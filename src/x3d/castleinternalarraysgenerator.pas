@@ -686,15 +686,19 @@ type
     Descendants don't have to do anything, this just works
     (using TAbstractGeometryNode.Attrib). }
   TAbstractShaderAttribGenerator = class(TAbstractFogGenerator)
-  private
-    Attrib: TX3DVertexAttributeNodes;
-    AttribPtr: array of TGeometryAttrib;
+  strict private
+    type
+      TAttribInfo = record
+        Node: TAbstractVertexAttributeNode;
+        GeometryAttrib: TGeometryAttrib;
+      end;
+    var
+      Attribs: array of TAttribInfo;
   protected
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
     procedure GenerateCoordinateBegin; override;
   public
     constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
-    destructor Destroy; override;
   end;
 
   { Handle bump mapping.
@@ -2096,67 +2100,57 @@ begin
 
   A := Geometry.AttribField;
   if A <> nil then
+  begin
+    SetLength(Attribs, A.Count); // in the most common case, when A.Count, this does nothing
     for I := 0 to A.Count - 1 do
       if A[I] is TAbstractVertexAttributeNode then
-      begin
-        { To conserve time and memory, create Attrib instance only when needed }
-        if Attrib = nil then
-          Attrib := TX3DVertexAttributeNodes.Create(false);
-        Attrib.Add(TAbstractVertexAttributeNode(A[I]));
-      end;
-end;
-
-destructor TAbstractShaderAttribGenerator.Destroy;
-begin
-  FreeAndNil(Attrib);
-  inherited;
+        Attribs[I].Node := TAbstractVertexAttributeNode(A[I]);
+  end;
 end;
 
 procedure TAbstractShaderAttribGenerator.PrepareAttributes(var AllowIndexed: boolean);
 var
   I: Integer;
+  NumComponents: Integer;
 begin
   inherited;
-  if Attrib <> nil then
+  for I := 0 to High(Attribs) do
   begin
-    SetLength(AttribPtr, Attrib.Count);
-    for I := 0 to Attrib.Count - 1 do
+    // this will be used later to check, with assert, that all clauses below set Attribs[I].GeometryAttrib
+    {$ifdef DEBUG} Attribs[I].GeometryAttrib := TGeometryAttrib(Pointer(1)); {$endif}
+
+    { call Arrays.AddGLSLAttribute* }
+    if Attribs[I].Node is TFloatVertexAttributeNode then
     begin
-      // this will be used later to check, with assert, that all clauses below set Attrib[I]
-      {$ifdef DEBUG} AttribPtr[I] := TGeometryAttrib(Pointer(1)); {$endif}
-
-      { call Arrays.AddGLSLAttribute* }
-      if Attrib[I] is TFloatVertexAttributeNode then
-      begin
-        case TFloatVertexAttributeNode(Attrib[I]).FdNumComponents.Value of
-          1: AttribPtr[I] := Arrays.AddGLSLAttributeFloat(Attrib[I].FdName.Value, false);
-          2: AttribPtr[I] := Arrays.AddGLSLAttributeVector2(Attrib[I].FdName.Value, false);
-          3: AttribPtr[I] := Arrays.AddGLSLAttributeVector3(Attrib[I].FdName.Value, false);
-          4: AttribPtr[I] := Arrays.AddGLSLAttributeVector4(Attrib[I].FdName.Value, false);
-          else
-          begin
-            AttribPtr[I] := nil;
-            WritelnWarning('X3D', Format('Invalid FloatVertexAttribute.numComponents: %d (should be between 1..4)',
-              [TFloatVertexAttributeNode(Attrib[I]).FdNumComponents.Value]));
-          end;
+      NumComponents := TFloatVertexAttributeNode(Attribs[I].Node).NumComponents;
+      case NumComponents of
+        1: Attribs[I].GeometryAttrib := Arrays.AddGLSLAttributeFloat(Attribs[I].Node.NameField, false);
+        2: Attribs[I].GeometryAttrib := Arrays.AddGLSLAttributeVector2(Attribs[I].Node.NameField, false);
+        3: Attribs[I].GeometryAttrib := Arrays.AddGLSLAttributeVector3(Attribs[I].Node.NameField, false);
+        4: Attribs[I].GeometryAttrib := Arrays.AddGLSLAttributeVector4(Attribs[I].Node.NameField, false);
+        else
+        begin
+          Attribs[I].GeometryAttrib := nil;
+          WritelnWarning('X3D', Format('Invalid FloatVertexAttribute.numComponents: %d (should be between 1..4)',
+            [NumComponents]));
         end;
-      end else
-      if Attrib[I] is TMatrix3VertexAttributeNode then
-      begin
-        AttribPtr[I] := Arrays.AddGLSLAttributeMatrix3(Attrib[I].FdName.Value, false);
-      end else
-      if Attrib[I] is TMatrix4VertexAttributeNode then
-      begin
-        AttribPtr[I] := Arrays.AddGLSLAttributeMatrix4(Attrib[I].FdName.Value, false);
-      end else
-      begin
-        AttribPtr[I] := nil;
-        WritelnWarning('X3D', Format('Not handled vertex attribute class %s',
-          [Attrib[I].X3DType]));
       end;
-
-      Assert(AttribPtr[I] <> TGeometryAttrib(Pointer(1))); // all cases above should have set Attrib[I] explicitly
+    end else
+    if Attribs[I].Node is TMatrix3VertexAttributeNode then
+    begin
+      Attribs[I].GeometryAttrib := Arrays.AddGLSLAttributeMatrix3(Attribs[I].Node.NameField, false);
+    end else
+    if Attribs[I].Node is TMatrix4VertexAttributeNode then
+    begin
+      Attribs[I].GeometryAttrib := Arrays.AddGLSLAttributeMatrix4(Attribs[I].Node.NameField, false);
+    end else
+    begin
+      Attribs[I].GeometryAttrib := nil;
+      WritelnWarning('X3D', Format('Not handled vertex attribute class %s',
+        [Attribs[I].Node.X3DType]));
     end;
+
+    Assert(Attribs[I].GeometryAttrib <> TGeometryAttrib(Pointer(1))); // all cases above should have set Attribs[I].GeometryAttrib explicitly
   end;
 end;
 
@@ -2172,36 +2166,33 @@ var
   NumComponents: Integer;
 begin
   inherited;
-  if Attrib <> nil then
+  for I := 0 to High(Attribs) do
   begin
-    for I := 0 to Attrib.Count - 1 do
+    { Note we don't do some warnings here, that were already done
+      in PrepareAttributes (and set Attribs[I].Node = nil). }
+    if Attribs[I].Node is TFloatVertexAttributeNode then
     begin
-      { Note we don't do some warnings here, that were already done
-        in PrepareAttributes (and set Attrib[I] = nil). }
-      if Attrib[I] is TFloatVertexAttributeNode then
-      begin
-        NumComponents := TFloatVertexAttributeNode(Attrib[I]).NumComponents;
-        { For NumComponents = 1, each TFloatVertexAttributeNode item is one attribute.
-          For NumComponents = 2,3,4:
-          Vector attributes in X3D are expressed using TFloatVertexAttributeNode,
-          with each vector component one after another.
-          We copy them fast, knowing that memory layout of TSingleList is the same as TVectorXxxList. }
-        SetAttrib(AttribPtr[I],
-          TFloatVertexAttributeNode(Attrib[I]).FdValue.Items.L, SizeOf(Single) * NumComponents,
-          TFloatVertexAttributeNode(Attrib[I]).FdValue.Items.Count div NumComponents);
-      end else
-      if Attrib[I] is TMatrix3VertexAttributeNode then
-      begin
-        SetAttrib(AttribPtr[I],
-          TMatrix3VertexAttributeNode(Attrib[I]).FdValue.Items.L, SizeOf(TMatrix3),
-          TMatrix3VertexAttributeNode(Attrib[I]).FdValue.Items.Count);
-      end else
-      if Attrib[I] is TMatrix4VertexAttributeNode then
-      begin
-        SetAttrib(AttribPtr[I],
-          TMatrix4VertexAttributeNode(Attrib[I]).FdValue.Items.L, SizeOf(TMatrix4),
-          TMatrix4VertexAttributeNode(Attrib[I]).FdValue.Items.Count);
-      end;
+      NumComponents := TFloatVertexAttributeNode(Attribs[I].Node).NumComponents;
+      { For NumComponents = 1, each TFloatVertexAttributeNode item is one attribute.
+        For NumComponents = 2,3,4:
+        Vector attributes in X3D are expressed using TFloatVertexAttributeNode,
+        with each vector component one after another.
+        We copy them fast, knowing that memory layout of TSingleList is the same as TVectorXxxList. }
+      SetAttrib(Attribs[I].GeometryAttrib,
+        TFloatVertexAttributeNode(Attribs[I].Node).FdValue.Items.L, SizeOf(Single) * NumComponents,
+        TFloatVertexAttributeNode(Attribs[I].Node).FdValue.Items.Count div NumComponents);
+    end else
+    if Attribs[I].Node is TMatrix3VertexAttributeNode then
+    begin
+      SetAttrib(Attribs[I].GeometryAttrib,
+        TMatrix3VertexAttributeNode(Attribs[I].Node).FdValue.Items.L, SizeOf(TMatrix3),
+        TMatrix3VertexAttributeNode(Attribs[I].Node).FdValue.Items.Count);
+    end else
+    if Attribs[I].Node is TMatrix4VertexAttributeNode then
+    begin
+      SetAttrib(Attribs[I].GeometryAttrib,
+        TMatrix4VertexAttributeNode(Attribs[I].Node).FdValue.Items.L, SizeOf(TMatrix4),
+        TMatrix4VertexAttributeNode(Attribs[I].Node).FdValue.Items.Count);
     end;
   end;
 end;
