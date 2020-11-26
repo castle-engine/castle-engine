@@ -1556,6 +1556,48 @@ procedure TAbstractTextureCoordinateGenerator.GenerateVertex(indexNum: integer);
 
 begin
   inherited;
+
+  { Observe that tcTexIndexed (seldom case, not even possible in glTF) is much worse optimized than
+    tcNonIndexed or tcCoordIndexed (common case).
+    tcTexIndexed needs to be performed in GenerateVertex.
+
+    I considered optimizing tcTexIndexed, but it would hurt the common case.
+
+    - We would need to extend AssignAttributeOrCoordinate to handle "IndexForSource: TLongIntList".
+
+    - To implement IndexForSource, we must know how indexes (from coordIndex) map
+      to vertexes. This information is no longer present in IndexesFromCoordIndex,
+      as IndexesFromCoordIndex doesn't correspond to coordIndex anymore
+      (e.g. coordIndex may have -1 in case of IndexedFaceSet,
+      but IndexesFromCoordIndex has only >= indexes,
+      after faces have been triangulated).
+
+    - So it would require creating IndexesFromCoordIndexMap, that maps index of indexes -> where to find it.
+      E.g. instead of this:
+
+        IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[BeginIndex]; Inc(IFSNextIndex);
+        IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[I + 1];      Inc(IFSNextIndex);
+        IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[I + 2];      Inc(IFSNextIndex);
+
+      => we would need this:
+
+        IndexesFromCoordIndexMap.L[IFSNextIndex] := BeginIndex; Inc(IFSNextIndex);
+        IndexesFromCoordIndexMap.L[IFSNextIndex] := I + 1;      Inc(IFSNextIndex);
+        IndexesFromCoordIndexMap.L[IFSNextIndex] := I + 2;      Inc(IFSNextIndex);
+
+    - However, in many cases this IndexesFromCoordIndexMap would be useless.
+      For tcNonIndexed or tcCoordIndexed it would be useless.
+      And so making IndexesFromCoordIndexMap would be a waste of time.
+      E.g. right now IndexedTriangleSetNode does this in TTriangleSetGenerator.PrepareIndexesPrimitives:
+
+        IndexesFromCoordIndex := TGeometryIndexList.Create;
+        IndexesFromCoordIndex.Assign(CoordIndex.Items);
+        IndexesFromCoordIndex.Count := (IndexesFromCoordIndex.Count div 3) * 3;
+
+      It would require extra iteration instead of simple "IndexesFromCoordIndex.Assign"
+      to create IndexedTriangleSetNode.
+  }
+
   if TexImplementation = tcTexIndexed then
     DoTexCoord(TexCoordIndex.Items.L[IndexNum]);
 end;
