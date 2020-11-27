@@ -81,7 +81,7 @@ begin
       try
         Data[I,J].Image := (Data[I,0].Image as TCastleImage).MakeCopy;
         Dest := Data[I,J].Image as TCastleImage;
-        Source := Data[0,I].Image as TCastleImage;
+        Source := Data[0,J].Image as TCastleImage;
         Dest.DrawFrom(Source, 0, 0, 0, 0, Source.Width, Source.Height, DrawMode);
       except
         Data[I,J].Image := NotApplicable;
