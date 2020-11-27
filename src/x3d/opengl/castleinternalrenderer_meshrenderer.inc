@@ -30,7 +30,7 @@
     documented interface. Experience with TGeneralIndexedRenderer
     taught me that this has to be really flexible and designed for
     long-term work, to encompass many nodes and features. So, while
-    this is internal for CastleRenderer, it still must be implemented
+    this is internal for CastleInternalRenderer, it still must be implemented
     and documented cleanly.
 }
 
@@ -41,7 +41,7 @@ type
     FShape: TX3DRendererShape;
     FGeometry: TAbstractGeometryNode;
     FState: TX3DGraphTraverseState;
-    FAttributes: TRenderingAttributes;
+    FRenderOptions: TCastleRenderOptions;
   protected
     { Current rendering properties, constant for the whole
       lifetime of the renderer, set in constructor. }
@@ -49,7 +49,7 @@ type
     property Shape: TX3DRendererShape read FShape;
     property Geometry: TAbstractGeometryNode read FGeometry;
     property State: TX3DGraphTraverseState read FState;
-    property Attributes: TRenderingAttributes read FAttributes;
+    property RenderOptions: TCastleRenderOptions read FRenderOptions;
   public
     PrepareRenderShape: Boolean;
 
@@ -156,7 +156,7 @@ begin
   FShape := AShape;
   FGeometry := AShape.Geometry;
   FState := AShape.State;
-  FAttributes := Renderer.Attributes;
+  FRenderOptions := Renderer.RenderOptions;
 end;
 
 { TBaseCoordinateRenderer ------------------------------------------------ }
@@ -212,7 +212,7 @@ var
       glDisableClientState(GL_VERTEX_ARRAY);
       glDisableClientState(GL_NORMAL_ARRAY);
 
-      if Attributes.Mode = rmFull then
+      if RenderOptions.Mode = rmFull then
         glDisableClientState(GL_COLOR_ARRAY);
 
       if Arrays.HasFogCoord and GLFeatures.EXT_fog_coord then
@@ -265,7 +265,7 @@ var
         (in castlerenderer_materials.inc) and material is TPhongMaterialInfo.
         This means that TPhongMaterialInfo has PureEmissive.
         (Note: the case when Lighting = false because of
-        Attributes.Lighting = false was covered earlier,
+        RenderOptions.Lighting = false was covered earlier,
         instead of calling MaterialPhongInitialize). }
       CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Vector4(M.EmissiveColor, M.Opacity));
     end;
@@ -295,21 +295,23 @@ var
     end;
 
   begin
-    if Attributes.CustomShader <> nil then
+    {$warnings off}
+    if RenderOptions.CustomShader <> nil then
+    {$warnings on}
       // right now CustomShader <> nil means "rendering to shadow map", so no need for any colors
       MaterialUnlitExplicit(White)
     else
-    if Attributes.Mode = rmSolidColor then
-      { In case of rmSolidColor, force using unlit with Attributes.SolidColor.
+    if RenderOptions.Mode = rmSolidColor then
+      { In case of rmSolidColor, force using unlit with RenderOptions.SolidColor.
         Note that castlerenderer_materials.inc made sure that Lightning = false
         in case of rmSolidColor, so we know it is rendered with LIT undefined. }
-      MaterialUnlitExplicit(Vector4(Attributes.SolidColor, 1))
+      MaterialUnlitExplicit(Vector4(RenderOptions.SolidColor, 1))
     else
-    if (not Attributes.Lighting) and (Shader.Material <> nil) then
-      { In case we have a material, but user requested Attributes.Lighting = false,
+    if (not RenderOptions.Lighting) and (Shader.Material <> nil) then
+      { In case we have a material, but user requested RenderOptions.Lighting = false,
         use MainColor. Otherwise we would e.g. use EmissiveColor in case of Phong,
         which would usually be black.
-        Attributes.Lighting = false is a debug rendering anyway, not covered
+        RenderOptions.Lighting = false is a debug rendering anyway, not covered
         by X3D spec equations. }
       MaterialUnlitExplicit(Vector4(Shader.Material.MainColor, Shader.Material.Opacity))
     else
@@ -434,7 +436,7 @@ begin
           glEnableClientState(GL_COLOR_ARRAY);
           glColorPointer(4, GL_FLOAT, Arrays.AttributeSize, Arrays.Color);
         end else
-        if (Attributes.Mode = rmFull) and Arrays.ForceUnlit then
+        if (RenderOptions.Mode = rmFull) and Arrays.ForceUnlit then
           glColorv(Arrays.ForcedUnlitColor);
 
         if Arrays.HasFogCoord and GLFeatures.EXT_fog_coord then
@@ -512,7 +514,7 @@ procedure TBaseCoordinateRenderer.RenderCoordinateBegin;
 begin
   RenderContext.CullFace := Arrays.CullFace;
   RenderContext.FrontFaceCcw := Arrays.FrontFaceCcw;
-  if Renderer.Attributes.Mode = rmFull then
+  if Renderer.RenderOptions.Mode = rmFull then
     Renderer.SmoothShading := not Arrays.ForceFlatShading;
 end;
 
@@ -522,7 +524,7 @@ end;
 
 function TBaseCoordinateRenderer.PerVertexColor: Boolean;
 begin
-  Result := (Attributes.Mode = rmFull) and Arrays.HasColor;
+  Result := (RenderOptions.Mode = rmFull) and Arrays.HasColor;
 end;
 
 { TTextureCoordinateRenderer ----------------------------------------- }
@@ -968,13 +970,15 @@ procedure TShaderCoordinateRenderer.RenderCoordinateBegin;
     linking the shader). }
   procedure InitializeLightingModel;
   begin
-    if Attributes.CustomShader <> nil then
+    {$warnings off}
+    if RenderOptions.CustomShader <> nil then
       Shader.LightingModel := lmUnlit
     else
-    if Attributes.Mode = rmSolidColor then
+    {$warnings on}
+    if RenderOptions.Mode = rmSolidColor then
       Shader.LightingModel := lmUnlit
     else
-    if (not Attributes.Lighting) and (Shader.Material <> nil) then
+    if (not RenderOptions.Lighting) and (Shader.Material <> nil) then
       Shader.LightingModel := lmUnlit
     else
     if Arrays.ForceUnlit then
@@ -1000,14 +1004,16 @@ begin
 
   InitializeLightingModel;
 
-  if Attributes.CustomShader <> nil then
+  {$warnings off}
+  if RenderOptions.CustomShader <> nil then
   begin
-    if (Attributes.CustomShaderAlphaTest <> nil) and
+    if (RenderOptions.CustomShaderAlphaTest <> nil) and
        Renderer.FixedFunctionAlphaTest then
-      CurrentMeshShader := Attributes.CustomShaderAlphaTest
+      CurrentMeshShader := RenderOptions.CustomShaderAlphaTest as TX3DShaderProgramBase
     else
-      CurrentMeshShader := Attributes.CustomShader;
+      CurrentMeshShader := RenderOptions.CustomShader as TX3DShaderProgramBase;
   end else
+  {$warnings on}
   begin
     { Finalize Shader settings, before calculating Shader.CodeHash }
     if (Shape.Node <> nil) and
@@ -1022,7 +1028,7 @@ begin
 
     UseShaderRendering := {$ifdef OpenGLES} true {$else}
       (not GLFeatures.EnableFixedFunction) or
-      ((Attributes.Mode = rmFull) and Shader.ShapeRequiresShaders)
+      ((RenderOptions.Mode = rmFull) and Shader.ShapeRequiresShaders)
       {$endif};
 
     if UseShaderRendering then

@@ -149,7 +149,7 @@ begin
   LevelScene.Load('castle-data:/level.x3d');
   LevelScene.Spatial := [ssRendering, ssDynamicCollisions];
   LevelScene.ProcessEvents := true;
-  LevelScene.Attributes.PhongShading := true; // prettier lights
+  LevelScene.RenderOptions.PhongShading := true; // prettier lights
 
   Viewport.Items.Add(LevelScene);
   Viewport.Items.MainScene := LevelScene;

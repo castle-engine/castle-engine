@@ -116,6 +116,10 @@ begin
     Bar.Background := UsedWindow.SaveScreen;
   Bar.YPosition := BarYPosition;
 
+  { Reset all keys because TGLMode.Create() can do a lot of uneeded things in
+    SimulateReleaseAll(). And probably no one expects the progress bar to
+    try to react to the pressed keys in some way. }
+  UsedWindow.Pressed.Clear;
   SavedMode := TGLMode.CreateReset(UsedWindow, nil, nil, @NoClose);
 
   UsedWindow.Controls.InsertFront(Bar);

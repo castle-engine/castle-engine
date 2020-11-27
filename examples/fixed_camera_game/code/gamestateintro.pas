@@ -58,7 +58,7 @@ uses SysUtils, DOM,
   CastleFilesUtils, CastleVectors,
   CastleGLUtils, CastleImages, CastleSoundEngine,
   CastleUIControls, CastleStringUtils, CastleXMLUtils,
-  CastleColors, CastleApplicationProperties,
+  CastleColors, CastleApplicationProperties, CastleRenderOptions,
   GameConfiguration, GameSound, GameStateMainMenu;
 
 { TStateIntro.TIntroPart ----------------------------------------------------- }

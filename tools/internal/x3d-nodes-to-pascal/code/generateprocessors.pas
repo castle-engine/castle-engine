@@ -188,7 +188,7 @@ begin
       FieldConfigure += '   ' + Field.PascalNamePrefixed + '.ChangeAlways := chVisibleNonGeometry;' + NL;
       FieldExposed := BoolToStr(Field.AccessType = atInputOutput, true);
       if Field.Comment <> '' then
-        FieldImplementationComment := '  { X3D specification comment: ' + Field.Comment + ' }' + NL
+        FieldImplementationComment := '  { X3D specification comment: ' + SReplaceChars(Field.Comment, ['{', '}'], '_') + ' }' + NL
       else
         FieldImplementationComment := '';
 

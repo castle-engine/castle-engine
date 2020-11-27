@@ -15,4 +15,6 @@ else
   CASTLE_ENGINE=castle-engine
 fi
 
-"${CASTLE_ENGINE}" simple-compile examples/research_special_rendering_methods/radiance_transfer/show_sh.lpr
+"${CASTLE_ENGINE}" simple-compile \
+  --compiler-option=-Fuexamples/research_special_rendering_methods/common_code/ \
+  examples/research_special_rendering_methods/radiance_transfer/show_sh.lpr

@@ -106,6 +106,10 @@ type
         Viewport: TCastleViewport;
         function SetupUniforms(var BoundTextureUnits: Cardinal): Boolean; override;
       end;
+      TSSRScreenEffect = class(TGLSLScreenEffect)
+        Viewport: TCastleViewport;
+        function SetupUniforms(var BoundTextureUnits: Cardinal): Boolean; override;
+      end;
     var
       FCamera: TCastleCamera;
       FRenderParams: TManagerRenderParams;
@@ -134,6 +138,11 @@ type
       SSAOShader: TSSAOScreenEffect;
       SSAOShaderInitialized: Boolean;
 
+      FScreenSpaceReflections: Boolean;
+      SSRShader: TSSRScreenEffect;
+      SSRShaderInitialized: Boolean;
+      FScreenSpaceReflectionsSurfaceGlossiness: Single;
+
       FOnCameraChanged: TNotifyEvent;
       { Renderer of shadow volumes. You can use this to optimize rendering
         of your shadow quads in RenderShadowVolume, and you can read
@@ -157,7 +166,10 @@ type
     function FillsWholeContainer: Boolean;
     function IsStoredNavigation: Boolean;
     procedure SetScreenSpaceAmbientOcclusion(const Value: Boolean);
+    procedure SetScreenSpaceReflections(const Value: Boolean);
+    procedure SetScreenSpaceReflectionsSurfaceGlossiness(const Value: Single);
     procedure SSAOShaderInitialize;
+    procedure SSRShaderInitialize;
     function GetNavigationType: TNavigationType;
     procedure SetAutoCamera(const Value: Boolean);
     { Make sure to call AssignDefaultCamera, if needed because of AutoCamera. }
@@ -215,6 +227,10 @@ type
       (internally we will convert them to TCastleTransform coordinates). }
     function FakeRayCollisionNode(const RayOriginWorld, RayDirectionWorld: TVector3;
       const Item: TCastleTransform): TRayCollisionNode;
+
+    { Whether to look at AvoidNavigationCollisions.
+      Checks that AvoidNavigationCollisions is set, and it is part of current @link(Items). }
+    function UseAvoidNavigationCollisions: Boolean;
   private
     var
       FNavigation: TCastleNavigation;
@@ -350,6 +366,8 @@ type
   public
     const
       DefaultScreenSpaceAmbientOcclusion = false;
+      DefaultScreenSpaceReflections = False;
+      DefaultScreenSpaceReflectionsSurfaceGlossiness = 0.5;
       DefaultUseGlobalLights = true;
       DefaultUseGlobalFog = true;
       DefaultShadowVolumes = true;
@@ -547,6 +565,12 @@ type
       You can use it e.g. to disable the menu item to switch SSAO in 3D viewer. }
     function ScreenSpaceAmbientOcclusionAvailable: Boolean;
 
+    { Does the graphic card support our ScreenSpaceReflections shader.
+      This does @italic(not) depend on the current state of
+      ScreenSpaceReflections property.
+      You can use it e.g. to disable the menu item to switch SSR in 3D viewer. }
+    function ScreenSpaceReflectionsAvailable: boolean;
+
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
 
@@ -593,6 +617,15 @@ type
     property ScreenSpaceAmbientOcclusion: Boolean
       read FScreenSpaceAmbientOcclusion write SetScreenSpaceAmbientOcclusion
       default DefaultScreenSpaceAmbientOcclusion;
+
+    { Enable built-in SSR screen effect in the world. }
+    property ScreenSpaceReflections: Boolean
+      read FScreenSpaceReflections write SetScreenSpaceReflections
+      default DefaultScreenSpaceReflections;
+
+    { Adjust SSR default surface glossiness. }
+    property ScreenSpaceReflectionsSurfaceGlossiness: Single
+      read FScreenSpaceReflectionsSurfaceGlossiness write SetScreenSpaceReflectionsSurfaceGlossiness;
 
     { Called on any camera change. }
     property OnCameraChanged: TNotifyEvent read FOnCameraChanged write FOnCameraChanged;
@@ -1295,6 +1328,28 @@ begin
   Uniform('far').SetValue(1000.0);
 end;
 
+{ TSSRScreenEffect ---------------------------------------------------------- }
+
+function TCastleViewport.TSSRScreenEffect.SetupUniforms(var BoundTextureUnits: Cardinal): Boolean;
+var
+  ViewProjectionMatrix,
+  ViewProjectionMatrixInverse: TMatrix4;
+begin
+  Result := inherited;
+
+  { set special uniforms for SSR shader }
+
+  Uniform('near').SetValue(0.1);
+  Uniform('far').SetValue(1000.0);
+  ViewProjectionMatrix := Viewport.Camera.ProjectionMatrix * Viewport.Camera.Matrix;
+  if not ViewProjectionMatrix.TryInverse(ViewProjectionMatrixInverse) then
+    ViewProjectionMatrixInverse := TMatrix4.Identity;
+  Uniform('defaultSurfaceGlossiness').SetValue(Viewport.ScreenSpaceReflectionsSurfaceGlossiness);
+  Uniform('castle_ViewProjectionMatrix').SetValue(ViewProjectionMatrix);
+  Uniform('castle_ViewProjectionMatrixInverse').SetValue(ViewProjectionMatrixInverse);
+  Uniform('castle_CameraPosition').SetValue(Viewport.Camera.Position);
+end;
+
 { TCastleViewport ------------------------------------------------------- }
 
 constructor TCastleViewport.Create(AOwner: TComponent);
@@ -1306,6 +1361,7 @@ begin
   FRenderParams := TManagerRenderParams.Create;
   FPrepareParams := TPrepareParams.Create;
   FShadowVolumes := DefaultShadowVolumes;
+  FScreenSpaceReflectionsSurfaceGlossiness := DefaultScreenSpaceReflectionsSurfaceGlossiness;
   FClearDepth := true;
   InternalDistortFieldOfViewY := 1;
   InternalDistortViewAspect := 1;
@@ -2341,11 +2397,31 @@ function TCastleViewport.GetScreenEffects(const Index: Integer): TGLSLProgram;
 begin
   if ScreenSpaceAmbientOcclusion then
     SSAOShaderInitialize;
+  if ScreenSpaceReflections then
+    SSRShaderInitialize;
 
+  if ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) and ScreenSpaceReflections and (SSRShader <> nil) then
+  begin
+    if Index = 0 then
+      Result := SSAOShader
+    else
+    if Index = 1 then
+      Result := SSRShader
+    else
+      Result := Items.MainScene.ScreenEffects(Index - 2);
+  end else
   if ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) then
   begin
     if Index = 0 then
-      Result := SSAOShader else
+      Result := SSAOShader
+    else
+      Result := Items.MainScene.ScreenEffects(Index - 1);
+  end else
+  if ScreenSpaceReflections and (SSRShader <> nil) then
+  begin
+    if Index = 0 then
+      Result := SSRShader
+    else
       Result := Items.MainScene.ScreenEffects(Index - 1);
   end else
   if Items.MainScene <> nil then
@@ -2359,6 +2435,8 @@ function TCastleViewport.ScreenEffectsCount: Integer;
 begin
   if ScreenSpaceAmbientOcclusion then
     SSAOShaderInitialize;
+  if ScreenSpaceReflections then
+    SSRShaderInitialize;
 
   if Items.MainScene <> nil then
     Result := Items.MainScene.ScreenEffectsCount
@@ -2366,14 +2444,20 @@ begin
     Result := 0;
   if ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) then
     Inc(Result);
+  if ScreenSpaceReflections and (SSRShader <> nil) then
+    Inc(Result);
 end;
 
 function TCastleViewport.ScreenEffectsNeedDepth: Boolean;
 begin
   if ScreenSpaceAmbientOcclusion then
     SSAOShaderInitialize;
+  if ScreenSpaceReflections then
+    SSRShaderInitialize;
 
   if ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) then
+    Exit(true);
+  if ScreenSpaceReflections and (SSRShader <> nil) then
     Exit(true);
   if Items.MainScene <> nil then
     Result := Items.MainScene.ScreenEffectsNeedDepth
@@ -2411,6 +2495,35 @@ begin
   SSAOShaderInitialized := true;
 end;
 
+procedure TCastleViewport.SSRShaderInitialize;
+begin
+  { Do not retry creating SSRShader if SSRShaderInitialize was already called.
+    Even if SSRShader is nil (when SSRShaderInitialize = true but
+    SSRShader = nil it means that compiling SSR shader fails on this GPU). }
+  if SSRShaderInitialized then Exit;
+
+  // SSAOShaderInitialized = false implies SSRShader = nil
+  Assert(SSRShader = nil);
+  if GLFeatures.Shaders <> gsNone then
+  begin
+    try
+      SSRShader := TSSRScreenEffect.Create;
+      SSRShader.Viewport := Self;
+      SSRShader.NeedsDepth := True;
+      SSRShader.ScreenEffectShader := {$I ssr.glsl.inc};
+      SSRShader.Link;
+    except
+      on E: EGLSLError do
+      begin
+        WritelnLog('GLSL', 'Error when initializing GLSL shader for ScreenSpaceReflectionsShader: ' + E.Message);
+        FreeAndNil(SSRShader);
+        ScreenSpaceReflections := False;
+      end;
+    end;
+  end;
+  SSRShaderInitialized := True;
+end;
+
 procedure TCastleViewport.GLContextOpen;
 begin
   inherited;
@@ -2442,11 +2555,35 @@ begin
   Result := (SSAOShader <> nil);
 end;
 
+function TCastleViewport.ScreenSpaceReflectionsAvailable: Boolean;
+begin
+  SSRShaderInitialize;
+  Result := (SSRShader <> nil);
+end;
+
 procedure TCastleViewport.SetScreenSpaceAmbientOcclusion(const Value: Boolean);
 begin
   if FScreenSpaceAmbientOcclusion <> Value then
   begin
     FScreenSpaceAmbientOcclusion := Value;
+    VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleViewport.SetScreenSpaceReflections(const Value: Boolean);
+begin
+  if FScreenSpaceReflections <> Value then
+  begin
+    FScreenSpaceReflections := Value;
+    VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleViewport.SetScreenSpaceReflectionsSurfaceGlossiness(const Value: Single);
+begin
+  if FScreenSpaceReflectionsSurfaceGlossiness <> Value then
+  begin
+    FScreenSpaceReflectionsSurfaceGlossiness := Value;
     VisibleChange([chRender]);
   end;
 end;
@@ -3368,6 +3505,17 @@ begin
     CameraChange;
 end;
 
+function TCastleViewport.UseAvoidNavigationCollisions: Boolean;
+begin
+  { Only use AvoidNavigationCollisions when it is part of current world.
+    Otherwise using methods like TCastleTransform.Ray (by AvoidNavigationCollisions.Ray)
+    would try to access AvoidNavigationCollisions's World,
+    which is not correct now (nil, or points to something else).
+    See https://github.com/castle-engine/castle-engine/pull/220 ,
+    https://trello.com/c/iz7uvjKN/79-frogger3d-crash-when-pressing-enter-on-game-over-message-box . }
+  Result := (AvoidNavigationCollisions <> nil) and (AvoidNavigationCollisions.World = Items);
+end;
+
 function TCastleViewport.NavigationMoveAllowed(const Sender: TCastleNavigation;
   const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
   const Radius: Single; const BecauseOfGravity: Boolean): Boolean;
@@ -3403,7 +3551,7 @@ begin
      PositionOutsideBoundingBox then
     Exit(false);
 
-  if AvoidNavigationCollisions <> nil then
+  if UseAvoidNavigationCollisions then
     Result := AvoidNavigationCollisions.MoveAllowed(OldPos, ProposedNewPos, NewPos, BecauseOfGravity)
   else
     Result := Items.WorldMoveAllowed(OldPos, ProposedNewPos, NewPos, true, Radius,
@@ -3420,7 +3568,7 @@ begin
   { Both version result in calling WorldHeight.
     AvoidNavigationCollisions version adds AvoidNavigationCollisions.Disable/Enable around. }
 
-  if AvoidNavigationCollisions <> nil then
+  if UseAvoidNavigationCollisions then
     Result := AvoidNavigationCollisions.Height(Position, AboveHeight, AboveGround)
   else
     Result := Items.WorldHeight(Position, AboveHeight, AboveGround);
@@ -3431,7 +3579,7 @@ begin
   { Both version result in calling WorldRay.
     AvoidNavigationCollisions version adds AvoidNavigationCollisions.Disable/Enable around. }
 
-  if AvoidNavigationCollisions <> nil then
+  if UseAvoidNavigationCollisions then
     Result := AvoidNavigationCollisions.Ray(RayOrigin, RayDirection)
   else
     Result := Items.WorldRay(RayOrigin, RayDirection);

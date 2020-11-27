@@ -79,7 +79,7 @@ implementation
 
 uses SysUtils,
   CastleClassUtils, CastleInternalShapeOctree, CastleGLUtils,
-  CastleRendererBaseTypes, CastleRenderContext;
+  CastleRenderOptions, CastleRenderContext;
 
 { TOcclusionQueryUtilsRenderer ------------------------------------------------- }
 

@@ -169,8 +169,9 @@ begin
     31: begin
           Filled := not Filled;
           if Filled then
-            Scene.Attributes.WireframeEffect := weNormal else
-            Scene.Attributes.WireframeEffect := weWireframeOnly;
+            Scene.RenderOptions.WireframeEffect := weNormal
+          else
+            Scene.RenderOptions.WireframeEffect := weWireframeOnly;
         end;
     40: Window.MainMenu.Append(TMenuItem.Create('New item', -1));
     41: begin

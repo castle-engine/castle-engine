@@ -74,7 +74,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="5"/>
-    <Files Count="711">
+    <Files Count="713">
       <Item1>
         <Filename Value="../src/3d/castleboxes.pas"/>
         <UnitName Value="CastleBoxes"/>
@@ -295,7 +295,7 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleRectangles"/>
       </Item54>
       <Item55>
-        <Filename Value="../src/base/castlerendererbasetypes.pas"/>
+        <Filename Value="../src/deprecated_units/castlerendererbasetypes.pas"/>
         <UnitName Value="CastleRendererBaseTypes"/>
       </Item55>
       <Item56>
@@ -2442,27 +2442,27 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleInternalBackground"/>
       </Item588>
       <Item589>
-        <Filename Value="../src/x3d/opengl/castlerenderer.pas"/>
-        <UnitName Value="CastleRenderer"/>
+        <Filename Value="../src/x3d/opengl/castleinternalrenderer.pas"/>
+        <UnitName Value="CastleInternalRenderer"/>
       </Item589>
       <Item590>
-        <Filename Value="../src/x3d/opengl/castlerenderer_glsl.inc"/>
+        <Filename Value="../src/x3d/opengl/castleinternalrenderer_glsl.inc"/>
         <Type Value="Include"/>
       </Item590>
       <Item591>
-        <Filename Value="../src/x3d/opengl/castlerenderer_materials.inc"/>
+        <Filename Value="../src/x3d/opengl/castleinternalrenderer_materials.inc"/>
         <Type Value="Include"/>
       </Item591>
       <Item592>
-        <Filename Value="../src/x3d/opengl/castlerenderer_meshrenderer.inc"/>
+        <Filename Value="../src/x3d/opengl/castleinternalrenderer_meshrenderer.inc"/>
         <Type Value="Include"/>
       </Item592>
       <Item593>
-        <Filename Value="../src/x3d/opengl/castlerenderer_resource.inc"/>
+        <Filename Value="../src/x3d/opengl/castleinternalrenderer_resource.inc"/>
         <Type Value="Include"/>
       </Item593>
       <Item594>
-        <Filename Value="../src/x3d/opengl/castlerenderer_texture.inc"/>
+        <Filename Value="../src/x3d/opengl/castleinternalrenderer_texture.inc"/>
         <Type Value="Include"/>
       </Item594>
       <Item595>
@@ -2935,6 +2935,14 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/x3d/x3dtriangles_raysegment_nonleaf.inc"/>
         <Type Value="Include"/>
       </Item711>
+      <Item712>
+        <Filename Value="../src/deprecated_units/castlerenderer.pas"/>
+        <UnitName Value="CastleRenderer"/>
+      </Item712>
+      <Item713>
+        <Filename Value="../src/base/castlerenderoptions.pas"/>
+        <UnitName Value="CastleRenderOptions"/>
+      </Item713>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>

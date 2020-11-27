@@ -469,13 +469,10 @@ type
       This case is also optimized when possible, to no multiplication will
       actually happen.
 
-      Note that the alpha of this color does not determine our alpha rendering
-      mode (it cannot, as you can change this color at any point,
-      and after creation the @link(Alpha) is never automatically updated).
-      If you set a color with alpha <> 1, consider setting also @link(Alpha)
-      property to whatever you need.
+      When the color's alpha is < 1, then we automatically use blending,
+      if @link(Alpha) is acAuto (regardless of the image alpha channel, in this case).
 
-      Note that if use TGrayscaleImage with TGrayscaleImage.TreatAsAlpha
+      Note that if you use TGrayscaleImage with TGrayscaleImage.TreatAsAlpha
       (which means that texture does not contain any RGB information),
       then only this color's RGB values determine the drawn RGB color. }
     property Color: TCastleColor read FColor write FColor;

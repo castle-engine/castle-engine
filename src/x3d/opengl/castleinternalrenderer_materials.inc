@@ -49,7 +49,7 @@ procedure RenderMaterialsBegin;
     else
       MaterialOpacity := 1;
 
-    if Attributes.Mode <> rmFull then Exit;
+    if RenderOptions.Mode <> rmFull then Exit;
 
     if GLFeatures.EnableFixedFunction then
     begin
@@ -93,7 +93,7 @@ procedure RenderMaterialsBegin;
       begin
         { UnlitMaterial is implemented here, as it causes Lighting = false always.
           We will also use this for fixed-function pipeline when
-          - user set Attributes.Lighting = false and we have Phong Material or PhysicalMaterial.
+          - user set RenderOptions.Lighting = false and we have Phong Material or PhysicalMaterial.
           - or we have Phong Material that is PureEmissive. }
         if PureEmissivePhong(M) then
           glColorv(Vector4(TPhongMaterialInfo(M).EmissiveColor, M.Opacity))
@@ -136,8 +136,8 @@ begin
   MaterialAndShapeLit := MaterialLit and Shape.Geometry.Lit(Shape.State);
 
   // calculate Lighting ("whether anything requires lighting calculation")
-  Lighting := Attributes.Lighting and MaterialAndShapeLit and
-    (Attributes.Mode = rmFull);
+  Lighting := RenderOptions.Lighting and MaterialAndShapeLit and
+    (RenderOptions.Mode = rmFull);
   FixedFunctionLighting := Lighting;
   if Lighting then
     Shader.EnableLighting;

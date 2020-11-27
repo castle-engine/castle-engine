@@ -110,8 +110,8 @@ begin
   DinoScene.Spatial := [ssRendering, ssDynamicCollisions];
   { render wireframe over a normal model. See TWireframeEffect docs
     for other options.  }
-  DinoScene.Attributes.WireframeEffect := weSolidWireframe;
-  DinoScene.Attributes.WireframeColor := Vector3(0, 0.25, 0); { dark green }
+  DinoScene.RenderOptions.WireframeEffect := weSolidWireframe;
+  DinoScene.RenderOptions.WireframeColor := Vector3(0, 0.25, 0); { dark green }
   // will be added to DinoTransform1 and DinoTransform2 later
 
   { initialize DinoTransform1 }

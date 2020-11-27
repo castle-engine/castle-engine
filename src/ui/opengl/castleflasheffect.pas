@@ -66,7 +66,7 @@ type
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleGLUtils, CastleLog;
+  CastleUtils, CastleGLUtils, CastleLog, CastleRenderOptions;
 
 constructor TCastleFlashEffect.Create(AOwner: TComponent);
 begin

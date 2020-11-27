@@ -168,7 +168,7 @@ uses SysUtils, Generics.Collections, Classes, XMLRead, DOM,
   CastleVideos, X3DTime, CastleTransform, CastleMaterialProperties,
   CastleScript, X3DCastleScript, CastleInternalOctree, CastleCompositeImage,
   CastleTextureImages, CastleKeysMouse, CastleSoundEngine, CastleStringUtils,
-  CastleTextureFontData, CastleRendererBaseTypes, CastleProjection;
+  CastleTextureFontData, CastleRenderOptions, CastleProjection;
 
 {$define read_interface}
 

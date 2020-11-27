@@ -24,7 +24,7 @@
 'precision mediump float;' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
-'varying vec2 tex_coord_frag;' + LineEnding +
+'varying vec2 screenf_01_position;' + LineEnding +
 '' + LineEnding +
 'uniform int screen_height;' + LineEnding +
 'uniform int screen_width;' + LineEnding +
@@ -34,18 +34,18 @@
 'ivec2 screen_position()' + LineEnding +
 '{' + LineEnding +
 '  return ivec2(' + LineEnding +
-'    int(tex_coord_frag.s * float(screen_width)),' + LineEnding +
-'    int(tex_coord_frag.t * float(screen_height)));' + LineEnding +
+'    int(screenf_01_position.s * float(screen_width)),' + LineEnding +
+'    int(screenf_01_position.t * float(screen_height)));' + LineEnding +
 '}' + LineEnding +
 '' + LineEnding +
 'int screen_x()' + LineEnding +
 '{' + LineEnding +
-'  return int(tex_coord_frag.s * float(screen_width));' + LineEnding +
+'  return int(screenf_01_position.s * float(screen_width));' + LineEnding +
 '}' + LineEnding +
 '' + LineEnding +
 'int screen_y()' + LineEnding +
 '{' + LineEnding +
-'  return int(tex_coord_frag.t * float(screen_height));' + LineEnding +
+'  return int(screenf_01_position.t * float(screen_height));' + LineEnding +
 '}' + LineEnding +
 '' + LineEnding +
 'vec4 screen_get_color(ivec2 position)' + LineEnding +
@@ -90,7 +90,7 @@
 '           texelFetch(screen, position, 1) ) / 2.0;' + LineEnding +
 '#else' + LineEnding +
 '  return texture2D(screen,' + LineEnding +
-'    /* Texture coordinates provided in tex_coord_frag are already hitting' + LineEnding +
+'    /* Texture coordinates provided in screenf_01_position are already hitting' + LineEnding +
 '       exactly the middle of the pixel.' + LineEnding +
 '       But functions screen_position, screen_x, screen_y cut off the half pixel' + LineEnding +
 '       size. So we restore it now by "+ vec2(0.5)". */' + LineEnding +
@@ -166,18 +166,18 @@
 '' + LineEnding +
 'vec2 screenf_position()' + LineEnding +
 '{' + LineEnding +
-'  return tex_coord_frag *' + LineEnding +
+'  return screenf_01_position *' + LineEnding +
 '    vec2(float(screen_width), float(screen_height));' + LineEnding +
 '}' + LineEnding +
 '' + LineEnding +
 'float screenf_x()' + LineEnding +
 '{' + LineEnding +
-'  return tex_coord_frag.s * float(screen_width);' + LineEnding +
+'  return screenf_01_position.s * float(screen_width);' + LineEnding +
 '}' + LineEnding +
 '' + LineEnding +
 'float screenf_y()' + LineEnding +
 '{' + LineEnding +
-'  return tex_coord_frag.t * float(screen_height);' + LineEnding +
+'  return screenf_01_position.t * float(screen_height);' + LineEnding +
 '}' + LineEnding +
 '' + LineEnding +
 'vec4 screenf_get_color(vec2 position)' + LineEnding +
@@ -234,7 +234,18 @@
 '  // We cannot do something much more optimal in this case, so just call full screenf_get_color' + LineEnding +
 '  return screenf_get_color(screenf_position());' + LineEnding +
 '#else' + LineEnding +
-'  return texture2D(screen, tex_coord_frag);' + LineEnding +
+'  return texture2D(screen, screenf_01_position);' + LineEnding +
+'#endif' + LineEnding +
+'}' + LineEnding +
+'' + LineEnding +
+'vec4 screenf_01_get_color(vec2 position_01)' + LineEnding +
+'{' + LineEnding +
+'#ifdef MULTI_SAMPLING' + LineEnding +
+'  // We cannot do something much more optimal in this case, so just call full screenf_get_color' + LineEnding +
+'  return screenf_get_color(position_01 * vec2(float(screen_width), float(screen_height)));' + LineEnding +
+');' + LineEnding +
+'#else' + LineEnding +
+'  return texture2D(screen, position_01);' + LineEnding +
 '#endif' + LineEnding +
 '}' + LineEnding +
 '' + LineEnding +
@@ -287,13 +298,23 @@
 '#endif' + LineEnding +
 '}' + LineEnding +
 '' + LineEnding +
+'float screenf_01_get_depth(vec2 position_01)' + LineEnding +
+'{' + LineEnding +
+'#ifdef MULTI_SAMPLING' + LineEnding +
+'  // We cannot do something much more optimal in this case, so just call full screenf_get_depth' + LineEnding +
+'  return screenf_get_depth(position_01 * vec2(float(screen_width), float(screen_height)));' + LineEnding +
+'#else' + LineEnding +
+'  return texture2D(screen_depth, position_01).r;' + LineEnding +
+'#endif' + LineEnding +
+'}' + LineEnding +
+'' + LineEnding +
 'float screenf_get_original_depth()' + LineEnding +
 '{' + LineEnding +
 '#ifdef MULTI_SAMPLING' + LineEnding +
 '  // We cannot do something much more optimal in this case, so just call full screenf_get_depth' + LineEnding +
 '  return screenf_get_depth(screenf_position());' + LineEnding +
 '#else' + LineEnding +
-'  return texture2D(screen_depth, tex_coord_frag).r;' + LineEnding +
+'  return texture2D(screen_depth, screenf_01_position).r;' + LineEnding +
 '#endif' + LineEnding +
 '}' + LineEnding +
 '' + LineEnding +

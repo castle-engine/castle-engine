@@ -243,7 +243,6 @@ EXAMPLES_BASE_NAMES := \
   examples/random_generator/globalrandom \
   examples/random_generator/random_speed_test \
   examples/random_generator/random_threads_test \
-  examples/research_special_rendering_methods/dynamic_ambient_occlusion/dynamic_ambient_occlusion \
   examples/research_special_rendering_methods/radiance_transfer/precompute_radiance_transfer \
   examples/research_special_rendering_methods/radiance_transfer/radiance_transfer \
   examples/research_special_rendering_methods/radiance_transfer/show_sh \
@@ -422,6 +421,7 @@ clean: cleanexamples
 	                      -name 'castle-engine-output' ')' \
 	     -exec rm -Rf '{}' ';' -prune
 	rm -Rf bin/ \
+	  'tools/castle-editor/Castle Game Engine.app' \
 	  packages/castle_base.pas \
 	  packages/castle_window.pas \
 	  packages/castle_components.pas \

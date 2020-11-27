@@ -4,10 +4,10 @@
 
 attribute vec2 vertex; // must be already in clip coordinates, -1..1
 attribute vec2 tex_coord;
-varying vec2 tex_coord_frag;
+varying vec2 screenf_01_position;
 
 void main(void)
 {
   gl_Position = vec4(vertex, 0.0, 1.0);
-  tex_coord_frag = tex_coord;
+  screenf_01_position = tex_coord;
 }

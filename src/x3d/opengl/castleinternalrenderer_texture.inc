@@ -10,7 +10,7 @@
   protected
     { Calculate things from TextureProperties node.
       If TextureProperties = @nil, they are taken from defaults
-      (possibly in Attributes). }
+      (possibly in RenderOptions). }
     procedure HandleTextureProperties(
       TextureProperties: TTexturePropertiesNode;
       out Filter: TTextureFilter; out Anisotropy: TGLfloat; out GUITexture: Boolean);
@@ -367,7 +367,7 @@
       that satisfies all OpenGL sizes requirements. }
     Size: Cardinal;
 
-    { Do we visualize depth map, because of Attributes.VisualizeDepthMap
+    { Do we visualize depth map, because of RenderOptions.VisualizeDepthMap
       or compareMode = NONE. }
     VisualizeDepthMap: Boolean;
 
@@ -386,7 +386,7 @@
 
     { Check would we use Variance Shadow Maps with current ARenderer
       attributes and OpenGL version/extensions. }
-    class function ClassVarianceShadowMaps(Attributes: TRenderingAttributes): Boolean;
+    class function ClassVarianceShadowMaps(RenderOptions: TCastleRenderOptions): Boolean;
   end;
 
   TGLShaderTexture = class(TGLSingleTextureNode)
@@ -443,11 +443,11 @@ procedure TGLTextureNode.HandleTextureProperties(
   begin
     case FilterAuto of
       minDefault:
-        case Renderer.Attributes.MinificationFilter of
-          minDefault: Result := TRenderingAttributes.DefaultMinificationFilter;
+        case Renderer.RenderOptions.MinificationFilter of
+          minDefault: Result := TCastleRenderOptions.DefaultMinificationFilter;
           minFastest: Result := minNearest;
           minNicest : Result := minLinearMipmapLinear;
-          else        Result := Renderer.Attributes.MinificationFilter;
+          else        Result := Renderer.RenderOptions.MinificationFilter;
         end;
       minFastest: Result := minNearest;
       minNicest : Result := minLinearMipmapLinear;
@@ -461,15 +461,32 @@ procedure TGLTextureNode.HandleTextureProperties(
   begin
     case FilterAuto of
       magDefault:
-        case Renderer.Attributes.MagnificationFilter of
-          magDefault: Result := TRenderingAttributes.DefaultMagnificationFilter;
+        case Renderer.RenderOptions.MagnificationFilter of
+          magDefault: Result := TCastleRenderOptions.DefaultMagnificationFilter;
           magFastest: Result := magNearest;
           magNicest : Result := magLinear;
-          else        Result := Renderer.Attributes.MagnificationFilter;
+          else        Result := Renderer.RenderOptions.MagnificationFilter;
         end;
       magFastest: Result := magNearest;
       magNicest : Result := magLinear;
       else        Result := FilterAuto;
+    end;
+  end;
+
+  function TextureFilter(const RenderOptions: TCastleRenderOptions): TTextureFilter;
+  begin
+    case RenderOptions.MinificationFilter of
+      minDefault: Result.Minification := TCastleRenderOptions.DefaultMinificationFilter;
+      minFastest: Result.Minification := minNearest;
+      minNicest : Result.Minification := minLinearMipmapLinear;
+      else        Result.Minification := RenderOptions.MinificationFilter;
+    end;
+
+    case RenderOptions.MagnificationFilter of
+      magDefault: Result.Magnification := TCastleRenderOptions.DefaultMagnificationFilter;
+      magFastest: Result.Magnification := magNearest;
+      magNicest : Result.Magnification := magLinear;
+      else        Result.Magnification := RenderOptions.MagnificationFilter;
     end;
   end;
 
@@ -482,7 +499,7 @@ begin
     GUITexture := TextureProperties.GUITexture;
   end else
   begin
-    Filter := Renderer.Attributes.TextureFilter;
+    Filter := TextureFilter(Renderer.RenderOptions);
     Anisotropy := 1;
     GUITexture := false;
   end;
@@ -1949,10 +1966,10 @@ begin
 end;
 
 class function TGLGeneratedShadowMap.ClassVarianceShadowMaps(
-  Attributes: TRenderingAttributes): Boolean;
+  RenderOptions: TCastleRenderOptions): Boolean;
 begin
   Result :=
-    (Attributes.ShadowSampling = ssVarianceShadowMaps) and
+    (RenderOptions.ShadowSampling = ssVarianceShadowMaps) and
     (GLFeatures.Shaders <> gsNone) and
     GLFeatures.TextureFloat;
 end;
@@ -1967,11 +1984,11 @@ begin
     But it's only for NV_texture_rectangle, without bilinear filtering
     or mipmapping, so it's not useful for VSM at all. }
 
-  VarianceShadowMaps := ClassVarianceShadowMaps(Renderer.Attributes);
+  VarianceShadowMaps := ClassVarianceShadowMaps(Renderer.RenderOptions);
 
-  WritelnLog('Shadows', Format('Variance Shadow Maps used: %s (Reasons: Attributes.Shadow sampling = %s, GLSL support = %s, texture_float support = %s)',
+  WritelnLog('Shadows', Format('Variance Shadow Maps used: %s (Reasons: RenderOptions.Shadow sampling = %s, GLSL support = %s, texture_float support = %s)',
     [ BoolToStr(VarianceShadowMaps, true),
-      ShadowSamplingNames[Renderer.Attributes.ShadowSampling],
+      ShadowSamplingNames[Renderer.RenderOptions.ShadowSampling],
       GLSupportNames[GLFeatures.Shaders],
       BoolToStr(GLFeatures.TextureFloat, true) ]));
 
@@ -1979,7 +1996,7 @@ begin
   Size := TextureNode.FdSize.Value;
 
   VisualizeDepthMap := (TextureNode.FdCompareMode.Value = 'NONE') or
-    Renderer.Attributes.VisualizeDepthMap;
+    Renderer.RenderOptions.VisualizeDepthMap;
 
   { At least in case of float textures for VSM, CLAMP_TO_EDGE is needed
     (instead of standard clamp to border). Didn't see any difference

@@ -24,7 +24,7 @@ interface
 uses SysUtils, Math, Matrix, Generics.Collections,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleImages, CastleUtils, CastleVectors, CastleRectangles,
-  CastleColors, CastleProjection, CastleRendererBaseTypes;
+  CastleColors, CastleProjection, CastleRenderOptions;
 
 {$define read_interface}
 
@@ -64,14 +64,6 @@ begin
 
   { free things created by GLInformationInitialize }
   FreeAndNil(GLVersion);
-
-  {$ifndef OpenGLES}
-  {$ifdef CASTLE_OBJFPC}
-  {$warnings off} // consciously initializing deprecated stuff, to keep it working
-  FreeAndNil(GLUVersion);
-  {$warnings on}
-  {$endif CASTLE_OBJFPC}
-  {$endif}
 
   FreeAndNil(GLFeatures);
 end;

@@ -311,8 +311,6 @@ begin
     State.VRML1State.NormalBinding.FdValue.Value);
   if NorImplementation = niNone then
     AutoGenerateNormals(SH.FdCreaseAngle.Value);
-
-  RadianceTransfer := ANode.FdRadianceTransfer.Items;
 end;
 
 procedure TIndexedFaceSet_1Generator.GenerateCoordinateBegin;

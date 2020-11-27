@@ -233,7 +233,7 @@ implementation
 
 uses SysUtils,
   CastleUtils, CastleStringUtils, CastleLog, CastleGLVersion,
-  CastleTriangles, CastleRendererBaseTypes;
+  CastleTriangles, CastleRenderOptions;
 
 constructor TGLShadowVolumeRenderer.Create;
 begin

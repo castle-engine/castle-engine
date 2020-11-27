@@ -27,7 +27,7 @@ uses SysUtils,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleUIControls, CastleApplicationProperties, CastleScreenEffects,
   CastleViewport, X3DNodes, X3DLoad, CastleUtils,
-  CastleRendererBaseTypes, CastleVectors;
+  CastleRenderOptions, CastleVectors;
 
 var
   Window: TCastleWindowBase;

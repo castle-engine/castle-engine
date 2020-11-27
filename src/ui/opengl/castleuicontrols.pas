@@ -2338,7 +2338,7 @@ implementation
 
 uses DOM, TypInfo, Math,
   CastleLog, CastleComponentSerialize, CastleXMLUtils, CastleStringUtils,
-  CastleInternalSettings, CastleFilesUtils, CastleURIUtils,
+  CastleInternalSettings, CastleFilesUtils, CastleURIUtils, CastleRenderOptions,
   {$ifdef CASTLE_OBJFPC} CastleGL {$else} GL, GLExt {$endif};
 
 { TTouchList ----------------------------------------------------------------- }

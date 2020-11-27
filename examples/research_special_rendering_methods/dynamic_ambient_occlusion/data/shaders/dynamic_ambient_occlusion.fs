@@ -1,5 +1,5 @@
 /*
-  Copyright 2009-2010 Michalis Kamburelis.
+  Copyright 2009-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,25 +29,14 @@ uniform sampler2D tex_elements_normal;
 uniform sampler2D tex_elements_intensity;
 #endif
 
-#ifdef FGLRX
-/* Fglrx is dumb and fails when elements_count is a constant...
-   For other GPUs, elements_count as a constant is a good idea. */
-uniform int tex_elements_size;
-uniform int elements_count;
-#else
 const int tex_elements_size = $tex_elements_size;
 const int elements_count = $elements_count;
-#endif
 
 uniform float area_scale;
 uniform vec3 position_scale;
 uniform vec3 position_shift;
 
 uniform float shadow_scale;
-
-/* ATI (Radeon) on Linux (fglrx) doesn't tolerate const floats in code. */
-uniform float zero_5;
-/* uniform float pi; <- not used now */
 
 void main(void)
 {
@@ -63,16 +52,8 @@ void main(void)
     vec3 current_pos = (current_pos_area.xyz + position_shift) * position_scale;
 
     vec3 current_normal = texture2D(tex_elements_normal, current_st).xyz;
-    current_normal = (current_normal - zero_5) * 2.0;
+    current_normal = (current_normal - 0.5) * 2.0;
 
-    /* Another happy ATI (Radeon) on Linux (fglrx) bug:
-       When for testing I did "color = 0.0"
-       initialization, it... never executed "current_index < elements_count"
-       branch. Yes, I'm sure --- changing color initializer changes it's
-       idea of "current_index < elements_count". FUBAR optimizer.
-
-       So beware if experimenting with this.
-    */
     float color = 1.0;
 
     for (int i = 0; i < elements_count; i++)
@@ -89,7 +70,7 @@ void main(void)
         float element_area = element_pos_area.w * area_scale;
 
         vec3 element_normal = texture2D(tex_elements_normal, element_st).xyz;
-        element_normal = (element_normal - zero_5) * 2.0;
+        element_normal = (element_normal - 0.5) * 2.0;
 
         vec3 direction_from_current = element_pos - current_pos;
         float sqr_distance = dot(direction_from_current, direction_from_current);

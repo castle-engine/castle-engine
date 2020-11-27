@@ -23,7 +23,7 @@ interface
 uses Generics.Collections,
   CastleVectors, CastleGLShaders,
   X3DTime, X3DFields, X3DNodes, CastleUtils, CastleBoxes,
-  CastleRendererInternalTextureEnv, CastleStringUtils, CastleRendererBaseTypes,
+  CastleRendererInternalTextureEnv, CastleStringUtils, CastleRenderOptions,
   CastleShapes, CastleRectangles, CastleTransform;
 
 type
@@ -324,8 +324,6 @@ type
   end;
 
   TTextureCoordinateShaderList = specialize TObjectList<TTextureCoordinateShader>;
-
-  TBumpMapping = (bmNone, bmBasic, bmParallax, bmSteepParallax, bmSteepParallaxShadowing);
 
   TDynamicUniform = class abstract
   public

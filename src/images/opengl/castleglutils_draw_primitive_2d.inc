@@ -31,46 +31,7 @@ type
     pmTriangleFan,
     pmTriangles
   );
-  TBlendingSourceFactor = (
-    bsSrcAlpha,
-    bsOneMinusSrcAlpha,
-    bsZero,
-    bsOne,
 
-    bsDstColor,
-    bsSrcColor, //< As a source factor only since GL 1.4, check @code(GLFeatures.Version_1_4)
-    bsDstAlpha,
-    bsOneMinusDstColor,
-    bsOneMinusSrcColor, //< As a source factor only since GL 1.4, check @code(GLFeatures.Version_1_4)
-    bsOneMinusDstAlpha,
-
-    bsSrcAlphaSaturate,
-
-    bsConstantColor,
-    bsOneMinusConstantColor,
-    bsConstantAlpha,
-    bsOneMinusConstantAlpha
-  );
-  TBlendingDestinationFactor = (
-    bdSrcAlpha,
-    bdOneMinusSrcAlpha,
-    bdZero,
-    bdOne,
-
-    bdDstColor, //< As a destination factor only since GL 1.4, check @code(GLFeatures.Version_1_4)
-    bdSrcColor,
-    bdDstAlpha,
-    bdOneMinusDstColor, //< As a destination factor only since GL 1.4, check @code(GLFeatures.Version_1_4)
-    bdOneMinusSrcColor,
-    bdOneMinusDstAlpha,
-
-    // not supported by OpenGL for destination factor: bsSrcAlphaSaturate
-    { }
-    bdConstantColor,
-    bdOneMinusConstantColor,
-    bdConstantAlpha,
-    bdOneMinusConstantAlpha
-  );
   TLineStipple = record
     { Makes pattern scaled to be longer.
       See glLineStipple parameter. }

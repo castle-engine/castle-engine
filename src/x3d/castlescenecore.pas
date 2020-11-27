@@ -1891,7 +1891,7 @@ type
       @italic(Current implementation notes:)
 
       Currently, this is used by TCastleScene if you use
-      Attributes.UseOcclusionQuery.
+      @link(RenderOptions.OcclusionQuery TCastleRenderOptions.OcclusionQuery).
       Normally, occlusion query tries to reuse results from previous
       frame, using the assumption that usually camera changes slowly
       and objects appear progressively in the view. When you make
@@ -2184,7 +2184,7 @@ type
 
       Note that this @bold(does not copy other scene attributes),
       like @link(ProcessEvents) or @link(Spatial) or rendering attributes
-      in @link(TCastleScene.Attributes).
+      in @link(TCastleScene.RenderOptions).
       It only copies the scene graph (RootNode) and also sets
       target URL based on source URL (for logging purposes, e.g.
       TCastleProfilerTime use this URL to report loading and preparation times). }

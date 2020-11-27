@@ -26,10 +26,20 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdVertices: TMFVec2f;
+    { X3D field "vertices". } { }
+    public property FdVertices: TMFVec2f read FFdVertices;
     { Set X3D field "vertices". } { }
     procedure SetVertices(const Value: array of TVector2);
     { Set X3D field "vertices". } { }
     procedure SetVertices(const Value: TVector2List);
+
+    strict private FFdSolid: TSFBool;
+    { X3D field "solid". } { }
+    public property FdSolid: TSFBool read FFdSolid;
 
 {$endif read_interface}
 
@@ -45,6 +55,25 @@ end;
 procedure TTriangleSet2DNode.SetVertices(const Value: TVector2List);
 begin
   FdVertices.Send(Value);
+end;
+
+class function TTriangleSet2DNode.ClassX3DType: String;
+begin
+  Result := 'TriangleSet2D';
+end;
+
+procedure TTriangleSet2DNode.CreateNode;
+begin
+  inherited;
+
+  FFdVertices := TMFVec2f.Create(Self, True, 'vertices', []);
+   FdVertices.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdVertices);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FFdSolid := TSFBool.Create(Self, False, 'solid', false);
+   FdSolid.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSolid);
 end;
 
 {$endif read_implementation}

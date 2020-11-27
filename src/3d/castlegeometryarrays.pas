@@ -21,7 +21,7 @@ unit CastleGeometryArrays;
 interface
 
 uses Generics.Collections,
-  CastleUtils, CastleVectors, CastleTriangles, CastleRendererBaseTypes;
+  CastleUtils, CastleVectors, CastleTriangles, CastleRenderOptions;
 
 type
   { Primitive geometry types. Analogous to OpenGL / OpenGLES primitives. }

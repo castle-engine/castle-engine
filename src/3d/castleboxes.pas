@@ -50,42 +50,6 @@ type
 
   TBoxCorners = array [0..7] of TVector3;
 
-  { Various ways to sort the 3D objects, in particular useful to correctly
-    render the partially-transparent objects.
-    @seealso TSceneRenderingAttributes.BlendingSort }
-  TBlendingSort = (
-    { Do not sort.
-      Using this for @link(TSceneRenderingAttributes.BlendingSort Scene.Attributes.BlendingSort)
-      is fastest, but will cause artifacts if multiple
-      partially-transparent objects may be visible on top of each other. }
-    bsNone,
-
-    { Sort objects by their Z coordinate.
-      Using this for @link(TSceneRenderingAttributes.BlendingSort Scene.Attributes.BlendingSort)
-      is very useful for 2D worlds, with flat 2D objects
-      that have zero (or near-zero) size in the Z axis,
-      and they are moved in the Z axis to specify which is on top for another.
-
-      More precisely, we take the minimum bounding box Z coordinate
-      of two objects. (We don't bother calculating the middle Z coordinate,
-      as we assume that the bounding box is infinitely small along the Z axis.)
-      The one with @italic(larger) Z coordinate is considered to be
-      @italic(closer), this is consistent with the right-handed coordinate system.
-
-      Note that the actual camera position doesn't matter for this sorting.
-      So the 2D object will look OK, @italic(even if viewed from an angle,
-      even if viewed from the other side). }
-    bs2D,
-
-    { Sort objects by the (3D) distance to the camera.
-      Using this for @link(TSceneRenderingAttributes.BlendingSort Scene.Attributes.BlendingSort)
-      is the best sorting method for 3D
-      scenes with many partially-transparent objects.
-
-      The distance is measured from the middle
-      of the bounding box to the camera posotion. }
-    bs3D);
-
   { Axis-aligned box. Rectangular prism with all sides parallel to basic planes
     X = 0, Y = 0 and Z = 0. This is sometimes called AABB, "axis-aligned bounding
     box". Many geometric operations are fast and easy on this type.

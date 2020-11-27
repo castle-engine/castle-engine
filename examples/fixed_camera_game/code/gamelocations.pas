@@ -20,7 +20,7 @@ interface
 
 uses Classes, Generics.Collections,
   CastleUtils, CastleClassUtils, CastleScene, CastleVectors, CastleTransform,
-  CastleGLImages, X3DNodes, CastleRectangles, CastleRenderer;
+  CastleGLImages, X3DNodes, CastleRectangles, CastleRenderOptions;
 
 type
   TLocation = class
@@ -116,14 +116,14 @@ var
 begin
   if RenderInternalModel then
   begin
-    Attributes.Mode := rmFull;
+    RenderOptions.Mode := rmFull;
     inherited;
   end else
   begin
     { this makes a tiny (not important in case of our trivial location 3D model)
       optimization: since we only care about filling the depth buffer,
       rendering with rmDepth will not initialize some material stuff. }
-    Attributes.Mode := rmDepth;
+    RenderOptions.Mode := rmDepth;
 
     RenderContext.ColorChannels := [];
     inherited;
@@ -182,7 +182,7 @@ begin
   FScene := TLocationScene.Create(nil);
   FScene.Spatial := [ssRendering, ssDynamicCollisions];
   // two-sided lighting
-  FScene.Attributes.PhongShading := true;
+  FScene.RenderOptions.PhongShading := true;
   { The shadows are already drawn on location Image,
     so no need to cast them on location again.
     TODO: This also means that location cannot cast shadows on Player.

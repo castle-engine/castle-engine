@@ -31,13 +31,13 @@
       This includes per-shape frustum culling (see @link(TCastleScene.FrustumCulling)),
       distance culling (@link(TCastleScene.DistanceCulling)),
       occlusion culling (see @link(
-      TSceneRenderingAttributes.UseOcclusionQuery)). }
+      TCastleRenderOptions.OcclusionQuery)). }
     ShapesRendered, ShapesVisible: Cardinal;
 
     { The number of shapes that were not rendered,
       but their bounding box was rendered to check with occlusion query.
       This is always zero when not using occlusion query (see
-      TSceneRenderingAttributes.UseOcclusionQuery).
+      TCastleRenderOptions.OcclusionQuery).
       Basically, this measures the "invisible overhead" of occlusion query. }
     BoxesOcclusionQueriedCount: Cardinal;
 

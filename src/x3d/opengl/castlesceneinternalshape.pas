@@ -23,7 +23,7 @@ interface
 
 uses X3DNodes, X3DFields, CastleImages,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
-  CastleRenderer;
+  CastleInternalRenderer, CastleRenderOptions;
 
 type
   { Shape within a scene rendered using OpenGL.
@@ -40,7 +40,7 @@ type
 
     PassedShapeCulling: Boolean;
 
-    { Used only when Attributes.ReallyUseOcclusionQuery.
+    { Used only when RenderOptions.ReallyOcclusionQuery.
       OcclusionQueryId is 0 if not initialized yet.
       When it's 0, value of OcclusionQueryAsked doesn't matter,
       OcclusionQueryAsked is always reset to @false when initializing
@@ -70,9 +70,26 @@ type
     function UseBlending: Boolean;
   end;
 
+{ Checks OcclusionQuery, existence of GL_ARB_occlusion_query,
+  and GLQueryCounterBits > 0. If @false, ARB_occlusion_query just cannot
+  be used.
+
+  Also, returns @false when HierarchicalOcclusionQuery is @true
+  --- because then HierarchicalOcclusionQuery should take precedence.
+
+  @exclude Internal. }
+function ReallyOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
+
+{ Checks HierarchicalOcclusionQuery, existence of GL_ARB_occlusion_query,
+  and GLQueryCounterBits > 0. If @false, ARB_occlusion_query just cannot
+  be used.
+
+  @exclude Internal. }
+function ReallyHierarchicalOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
+
 implementation
 
-uses CastleScene, CastleVectors;
+uses CastleScene, CastleVectors, CastleGLUtils;
 
 { TGLShape --------------------------------------------------------------- }
 
@@ -172,7 +189,7 @@ begin
   end;
 
   {$ifndef OpenGLES}
-  if TCastleScene(ParentScene).Attributes.ReallyUseOcclusionQuery and
+  if ReallyOcclusionQuery(TCastleScene(ParentScene).RenderOptions) and
      (OcclusionQueryId = 0) then
   begin
     glGenQueriesARB(1, @OcclusionQueryId);
@@ -207,6 +224,29 @@ end;
 function TGLShape.UseBlending: Boolean;
 begin
   Result := UseAlphaChannel = acBlending;
+end;
+
+{ global routines ------------------------------------------------------------ }
+
+function ReallyOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
+begin
+  {$warnings off}
+  Result := RenderOptions.OcclusionQuery and
+    (not RenderOptions.HierarchicalOcclusionQuery) and
+    GLFeatures.ARB_occlusion_query and
+    GLFeatures.VertexBufferObject and
+    (GLFeatures.QueryCounterBits > 0);
+  {$warnings on}
+end;
+
+function ReallyHierarchicalOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
+begin
+  {$warnings off}
+  Result := RenderOptions.HierarchicalOcclusionQuery and
+    GLFeatures.ARB_occlusion_query and
+    GLFeatures.VertexBufferObject and
+    (GLFeatures.QueryCounterBits > 0);
+  {$warnings on}
 end;
 
 end.

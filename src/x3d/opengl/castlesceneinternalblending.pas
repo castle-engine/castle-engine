@@ -22,7 +22,8 @@ unit CastleSceneInternalBlending;
 
 interface
 
-uses CastleSceneCore, CastleGLUtils, CastleShapes, CastleSceneInternalShape;
+uses CastleSceneCore, CastleGLUtils, CastleShapes, CastleSceneInternalShape,
+  CastleRenderOptions;
 
 type
   TBlendingRenderer = class
@@ -229,12 +230,12 @@ end;
 
 function TBlendingRenderer.DefaultSourceFactor: TBlendingSourceFactor;
 begin
-  Result := Scene.Attributes.BlendingSourceFactor;
+  Result := Scene.RenderOptions.BlendingSourceFactor;
 end;
 
 function TBlendingRenderer.DefaultDestinationFactor: TBlendingDestinationFactor;
 begin
-  Result := Scene.Attributes.BlendingDestinationFactor;
+  Result := Scene.RenderOptions.BlendingDestinationFactor;
 end;
 
 procedure TBlendingRenderer.RenderBegin;
@@ -244,7 +245,7 @@ begin
   glDepthMask(GL_FALSE);
   glEnable(GL_BLEND);
 
-  { Set glBlendFunc using Attributes.BlendingXxxFactor }
+  { Set glBlendFunc using RenderOptions.BlendingXxxFactor }
   SourceFactorSet := DefaultSourceFactor;
   DestinationFactorSet := DefaultDestinationFactor;
   GLBlendFunction(SourceFactorSet, DestinationFactorSet);
@@ -263,7 +264,7 @@ end;
 
 procedure TBlendingRenderer.BeforeRenderShape(const Shape: TGLShape);
 
-{ Looks at Scene.Attributes.BlendingXxx and Appearance.blendMode of X3D node.
+{ Looks at Scene.RenderOptions.BlendingXxx and Appearance.blendMode of X3D node.
   If different than currently set, then changes BlendingXxxFactorSet and updates
   by glBlendFunc. This way, we avoid calling glBlendFunc too often
   (which is potentially costly, since it changes GL state). }

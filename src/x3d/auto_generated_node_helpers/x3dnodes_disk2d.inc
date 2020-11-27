@@ -31,10 +31,24 @@
     function GetOuterRadius: Single;
     procedure SetOuterRadius(const Value: Single);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdInnerRadius: TSFFloat;
+    { X3D field "innerRadius". } { }
+    public property FdInnerRadius: TSFFloat read FFdInnerRadius;
     { X3D field "innerRadius". } { }
     property InnerRadius: Single read GetInnerRadius write SetInnerRadius;
+
+    strict private FFdOuterRadius: TSFFloat;
+    { X3D field "outerRadius". } { }
+    public property FdOuterRadius: TSFFloat read FFdOuterRadius;
     { X3D field "outerRadius". } { }
     property OuterRadius: Single read GetOuterRadius write SetOuterRadius;
+
+    strict private FFdSolid: TSFBool;
+    { X3D field "solid". } { }
+    public property FdSolid: TSFBool read FFdSolid;
 
 {$endif read_interface}
 
@@ -60,6 +74,30 @@ end;
 procedure TDisk2DNode.SetOuterRadius(const Value: Single);
 begin
   FdOuterRadius.Send(Value);
+end;
+
+class function TDisk2DNode.ClassX3DType: String;
+begin
+  Result := 'Disk2D';
+end;
+
+procedure TDisk2DNode.CreateNode;
+begin
+  inherited;
+
+  FFdInnerRadius := TSFFloat.Create(Self, False, 'innerRadius', 0);
+   FdInnerRadius.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdInnerRadius);
+  { X3D specification comment: [0,Inf) }
+
+  FFdOuterRadius := TSFFloat.Create(Self, False, 'outerRadius', 1);
+   FdOuterRadius.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdOuterRadius);
+  { X3D specification comment: (0,Inf) }
+
+  FFdSolid := TSFBool.Create(Self, False, 'solid', false);
+   FdSolid.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSolid);
 end;
 
 {$endif read_implementation}

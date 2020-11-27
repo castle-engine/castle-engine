@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,11 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ VRML / X3D low-level rendering (TGLRenderer).
-  You should never use this renderer directly,
-  you should always use TCastleScene that wraps this renderer and gives you simple
-  method to render whole scene.
-  TODO: this unit should be renamed to Internal at some point.
+{ X3D shapes rendering (TGLRenderer).
+  Normal user code does not use this directly,
+  instead users always render through TCastleScene that wraps this renderer.
 
   The overview of the renderer can also be found in engine documentation
   [https://castle-engine.io/engine_doc.php]
@@ -82,7 +80,7 @@
     )
   )
 
-  @bold(OpenGL state affecting VRML rendering:)
+  @bold(OpenGL state affecting X3D rendering:)
 
   Some OpenGL state is unconditionally reset by TGLRenderer.RenderBegin.
 
@@ -113,7 +111,7 @@
   TAbstractGeometryNode.VerticesCount (with OverTriangulate = @true).
 }
 
-unit CastleRenderer;
+unit CastleInternalRenderer;
 
 {$I castleconf.inc}
 
@@ -126,7 +124,7 @@ uses Classes, SysUtils, Generics.Collections,
   CastleGLShaders, CastleGLImages, CastleTextureImages, CastleVideos, X3DTime,
   CastleShapes, CastleGLCubeMaps, CastleClassUtils, CastleCompositeImage,
   CastleGeometryArrays, CastleArraysGenerator, CastleRendererInternalShader,
-  CastleRendererInternalTextureEnv, CastleBoxes, CastleTransform;
+  CastleRendererInternalTextureEnv, CastleBoxes, CastleTransform, CastleRenderOptions;
 
 {$define read_interface}
 
@@ -134,345 +132,7 @@ type
   TBeforeGLVertexProc = procedure (Node: TAbstractGeometryNode;
     const Vert: TVector3) of object;
 
-  TShadersRendering = (srDisable, srWhenRequired, srAlways);
-
-  TBumpMapping = CastleRendererInternalShader.TBumpMapping;
   TLightRenderEvent = CastleRendererInternalLights.TLightRenderEvent;
-
-  { TRenderingAttributes.Mode possible values. }
-  TRenderingMode = (
-    { Normal rendering features. Everything is enabled
-      (as long as other TRenderingAttributes settings allow them). }
-    rmFull,
-
-    { Solid color is used for everything. We do not show any color variation,
-      materials, lights, fog, textures on surfaces.
-      We still do back-face culling and depth test.
-      The idea is that we "hit" the same pixels as normal rendering
-      (with the exception of alpha test textures, this mode
-      doesn't set up alpha test for them).
-      But everything has color TRenderingAttributes.SolidColor.
-
-      This is useful for special tricks. }
-    rmSolidColor,
-
-    { Only the rendering fetures that affect depth buffer work reliably,
-      everything else is undefined (and works as fast as possible).
-      This is suitable if you render only to depth buffer, like for shadow maps.
-
-      It's quite similar to rmSolidColor, except alpha testing must work,
-      so (at least some) textures must be applied over the model. }
-    rmDepth
-  );
-
-  { Various properties that control rendering. }
-  TRenderingAttributes = class(TPersistent)
-  strict private
-    FOnRadianceTransfer: TRadianceTransferFunction;
-    FOnVertexColor: TVertexColorFunction;
-    FLighting: Boolean;
-    FUseSceneLights: Boolean;
-    FOpacity: Single;
-    FEnableTextures: Boolean;
-    FMinificationFilter: TAutoMinificationFilter;
-    FMagnificationFilter: TAutoMagnificationFilter;
-    FPointSize: TGLFloat;
-    FLineWidth: TGLFloat;
-    FBumpMapping: TBumpMapping;
-    FCustomShader, FCustomShaderAlphaTest: TX3DShaderProgramBase;
-    FMode: TRenderingMode;
-    FShadowSampling: TShadowSampling;
-    FVisualizeDepthMap: Boolean;
-    FDepthTest: Boolean;
-    FPhongShading: Boolean;
-    FSolidColor: TCastleColorRGB;
-    FSolidColorBlendingPipeline: Boolean;
-    FSeparateDiffuseTexture: Boolean;
-    FMaxLightsPerShape: Cardinal;
-    function GetShaders: TShadersRendering;
-    procedure SetShaders(const Value: TShadersRendering);
-    { These methods just set the value on given property,
-      eventually (some of them) calling ReleaseCachedResources.
-      @groupBegin }
-    procedure SetOnRadianceTransfer(const Value: TRadianceTransferFunction);
-    procedure SetOnVertexColor(const Value: TVertexColorFunction);
-    procedure SetEnableTextures(const Value: Boolean);
-    procedure SetMinificationFilter(const Value: TAutoMinificationFilter);
-    procedure SetMagnificationFilter(const Value: TAutoMagnificationFilter);
-    procedure SetBumpMapping(const Value: TBumpMapping);
-    procedure SetMode(const Value: TRenderingMode);
-    procedure SetShadowSampling(const Value: TShadowSampling);
-    procedure SetVisualizeDepthMap(const Value: Boolean);
-    { @groupEnd }
-  protected
-    procedure SetPhongShading(const Value: Boolean); virtual;
-
-    { Called before changing an attribute that requires the release
-      of things cached in a renderer. This includes attributes that affect:
-
-      @unorderedList(
-        @item(How TShapeCache.Arrays contents are generated.
-          For example, Generator uses TexCoordsNeeded, so changing
-          any attribute that affects TexCoordsNeeded calls this method.
-          Likewise OnVertexColor determines if color array will be loaded at all.)
-
-        @item(How (and if) TShapeCache.Vbo are loaded.)
-
-        @item(How textures are loaded (texture filtering options affect them).)
-      ) }
-    procedure ReleaseCachedResources; virtual;
-  public
-    const
-      DefaultPointSize = 3.0;
-      DefaultLineWidth = 2.0;
-      DefaultBumpMapping = bmSteepParallaxShadowing;
-      DefaultPhongShading = false;
-      DefaultMaxLightsPerShape = 8;
-
-    class var
-      { Value used when @link(MinificationFilter) is minDefault.
-        By default, this is minLinearMipmapLinear. }
-      DefaultMinificationFilter: TMinificationFilter;
-      { Value used when @link(MagnificationFilter) is magDefault.
-        By default, this is magLinear. }
-      DefaultMagnificationFilter: TMagnificationFilter;
-
-    constructor Create; virtual;
-
-    procedure Assign(Source: TPersistent); override;
-
-    { Is the second TRenderingAttributes instance on all fields
-      that affect TShapeCache, that is things that affect generated geometry
-      arrays or vbo. This compares the subset of variables that call
-      ReleaseCachedResources --- only the ones that affect TShapeCache. }
-    function EqualForShapeCache(SecondValue: TRenderingAttributes): Boolean; virtual;
-
-    { Calculate vertex color from radiance transfer.
-      If this is assigned, and geometry object has radianceTransfer
-      field (see [https://castle-engine.io/x3d_extensions.php#section_ext_radiance_transfer])
-      then this is used to calculate the color of each vertex.
-
-      Note that this is evaluated when object is rendered.
-      It causes the shapes resources to be regenerated at each render frame,
-      since we have to assume that results of this function change. }
-    property OnRadianceTransfer: TRadianceTransferFunction
-      read FOnRadianceTransfer write SetOnRadianceTransfer;
-      deprecated 'use Color node, or shaders, to change per-vertex colors';
-
-    { Calculate vertex color for given vertex by a callback.
-      If this is assigned, then this is used to calculate
-      the color of each vertex.
-
-      Note that this is evaluated when object is rendered.
-      It causes the shapes resources to be regenerated at each render frame,
-      since we have to assume that results of this function change. }
-    property OnVertexColor: TVertexColorFunction
-      read FOnVertexColor write SetOnVertexColor;
-      deprecated 'use Color node, or shaders, to change per-vertex colors';
-
-    { Enable OpenGL lighting when rendering.
-      This is @true by default, since it's almost always wanted.
-
-      When Lighting is @false, we disable OpenGL lighting.
-      (We had previously a different approach, when we left GL_LIGHTING
-      untouched and caller could enable/disable it. But this doesn't really
-      work for modern OpenGL, the renderer really has to know if lighting
-      is enabled. (to generate proper shaders, and to avoid clumsy
-      glPushAttrib / glPopAttrib at some places).) }
-    property Lighting: Boolean
-      read FLighting write FLighting default true;
-
-    { Should we setup VRML/X3D lights as OpenGL lights during rendering.
-
-      VRML/X3D lights are loaded into OpenGL lights. All OpenGL lights
-      are always used (we always start from the first OpenGL light 0,
-      up to the last available OpenGL light --- this is necessary,
-      as shader pipeline must know all the lights anyway).
-
-      Initial OpenGL lights are reserved for BaseLights
-      (useful for you to define any lights from outside of the scene).
-      Then following OpenGL lights are reserved for the lights defined
-      in your scene (if this property is @true).
-      The remaining OpenGL lights, if any, are not used (we make sure they
-      are disabled for fixed-function pipeline).
-
-      This is independent from the @link(Lighting) property (which merely
-      says whether we will turn OpenGL lighting on at all). }
-    property UseSceneLights: Boolean
-      read FUseSceneLights write FUseSceneLights default true;
-
-    { Opacity for all rendered shapes. Setting this to something < 1
-      you can make every shape transparent. }
-    property Opacity: Single read FOpacity write FOpacity default 1;
-
-    { Take model textures into account. When @true (default),
-      then our engine takes care of everything related to texturing
-      for you: enabling and using textures for textured parts of the model,
-      disabling textures for non-textured parts.
-
-      Otherwise, textures are disabled. }
-    property EnableTextures: Boolean
-      read FEnableTextures write SetEnableTextures default true;
-
-    { Default minification and magnification filters for textures.
-      These can be overridden on a per-texture basis in VRML / X3D files
-      by X3D TextureProperties node (see X3D specification).
-
-      They can be equal to minDefault, magDefault in which case they
-      actually use the values from
-      DefaultMinificationFilter, DefaultMagnificationFilter
-      (by default minLinearMipmapLinear, magLinear).
-
-      @groupBegin }
-    property MinificationFilter: TAutoMinificationFilter
-      read FMinificationFilter write SetMinificationFilter default minDefault;
-    property MagnificationFilter: TAutoMagnificationFilter
-      read FMagnificationFilter write SetMagnificationFilter default magDefault;
-    function TextureFilter: TTextureFilter;
-    { @groupEnd }
-
-    { Size of points. This has an effect on VRML/X3D PointSet rendering.
-      Must be > 0. }
-    property PointSize: TGLFloat
-      read FPointSize write FPointSize default DefaultPointSize;
-
-    { Line width. This has an effect on VRML/X3D LineSet rendering,
-      and on wireframe rendering for TSceneRenderingAttributes.WireframeEffect.
-      Must be > 0. }
-    property LineWidth: Single
-      read FLineWidth write FLineWidth default DefaultLineWidth;
-
-    { Use bump mapping. To actually use this, particular shape must also
-      provide normal map (and height map, if you want parallax bump mapping).
-      This also requires some OpenGL capabilities, in particular GLSL.
-
-      Simple bump mapping (when only normal map is available)
-      means that normals are provided in the texture, and lighting
-      is calculated per-fragment.
-
-      Parallax bump mapping means that additionally the texture coordinate
-      is perturbed, based on height map and camera direction, to create
-      illusion of 3D shape instead of flat surface.
-      This makes e.g. the bricks on the texture really
-      visible as "standing out", in 3D, from the wall. And self-shadowing
-      means that these bricks even cast appropriate shadows on each other.
-
-      Steep parallax mapping requires good GPU to work correctly and fast
-      enough. }
-    property BumpMapping: TBumpMapping
-      read FBumpMapping write SetBumpMapping default DefaultBumpMapping;
-
-    { When GLSL shaders are used.
-      This is now a deprecated property, better use @link(PhongShading) to determine
-      the shading.
-      The engine auto-detects whether to use shaders based on OpenGL capabilities,
-      particular shape needs (phong shading, bump mapping, shadow maps, compositing shader effects),
-      and GLFeatures.EnableFixedFunction. }
-    property Shaders: TShadersRendering read GetShaders write SetShaders; deprecated 'use PhongShading';
-
-    { Whether to use Phong shading by default for all shapes.
-      Note that each shape may override it by @link(TAbstractShapeNode.Shading) field. }
-    property PhongShading: Boolean read FPhongShading write SetPhongShading
-      default DefaultPhongShading;
-
-    { Custom GLSL shader to use for the whole scene.
-      When this is assigned, @link(Shaders) value is ignored.
-
-      @italic(Avoid using this.) It's not easy to create portable shaders,
-      that work both with OpenGL and OpenGLES. Try using "compositing shaders" instead
-      https://castle-engine.io/compositing_shaders.php which still allow you
-      to write GLSL effects, but they are integrated into standard shader code. }
-    property CustomShader: TX3DShaderProgramBase read FCustomShader write FCustomShader;
-
-    { Alternative custom GLSL shader used when alpha test is necessary.
-      Relevant only if CustomShader <> nil.
-
-      @italic(Do not use this.) This is a temporary hack to enable VSM working
-      with alpha test. It's not clean, and should not be used for anything else. }
-    property CustomShaderAlphaTest: TX3DShaderProgramBase read FCustomShaderAlphaTest write FCustomShaderAlphaTest;
-
-    { Rendering mode, can be used to disable many rendering features at once. }
-    property Mode: TRenderingMode read FMode write SetMode default rmFull;
-
-    { Shadow maps sampling. Various approaches result in various quality and speed. }
-    property ShadowSampling: TShadowSampling
-      read FShadowSampling write SetShadowSampling
-      default DefaultShadowSampling;
-
-    { Visualize depths stored in the shadow maps, instead of using them to
-      actually make shadow.
-
-      Even without turning this on, VRML author can always activate it
-      explicitly for specific lights. For this, you have to use
-      @code(X3DLightNode.defaultShadowMap) field,
-      and place a GeneratedShadowMap node there. If the
-      @code(GeneratedShadowMap.compareMode) is set to @code('NONE'),
-      we will always visualize depths of this shadow map.
-
-      Setting this property to @true has the same effect as setting
-      compareMode to "NONE" on all (explicit and implicitly created)
-      GeneratedShadowMap nodes. }
-    property VisualizeDepthMap: Boolean
-      read FVisualizeDepthMap write SetVisualizeDepthMap default false;
-
-    { By default, we use depth testing to determine which objects are in front
-      of the others. This allows to display all 3D content (all TCastleScene
-      instances, and all shapes inside them) in any order.
-
-      For very special purposes, you can disable depth testing.
-      This means that 3D objects will always be drawn in front of the previous
-      ones, in the order in which they are rendered,
-      ignoring the contents of the depth buffer. Use only if you know
-      what you're doing, if you're sure that the order of rendering will
-      always be good. }
-    property DepthTest: Boolean read FDepthTest write FDepthTest default true;
-
-    { Color used when @link(Mode) is @link(rmSolidColor). }
-    property SolidColor: TCastleColorRGB read FSolidColor write FSolidColor;
-
-    { Whether to render shapes as transparent, when @link(Mode) is @link(rmSolidColor). }
-    property SolidColorBlendingPipeline: Boolean
-      read FSolidColorBlendingPipeline
-      write FSolidColorBlendingPipeline;
-
-    { Set to @true to make diffuse texture affect only material diffuse color
-      when the shape is lit and shading is Phong.
-      This affects both textures from X3D Appearance.texture,
-      and textures from CommonSurfaceShader.diffuseTexture.
-      This is more correct (following X3D lighting equations),
-      and is more impressive (e.g. specular highlights may be better visible,
-      as they are not darkened by a dark diffuse texture).
-
-      For historic reasons and for Gouraud shading, by default, this is @false.
-      Which means that "diffuse texture" is actually used to multiply
-      a complete result of the lighting calculation.
-      This is not correct, but it is necessary for Gouraud shading,
-      and it is also depended upon by some applications (since the "diffuse texture"
-      effectively multiplies all factors, so it also multiplies
-      e.g. emissive factor for "pure emissive materials",
-      which may be useful sometimes). }
-    property SeparateDiffuseTexture: Boolean
-      read FSeparateDiffuseTexture
-      write FSeparateDiffuseTexture default false;
-      deprecated 'rendering always behaves as if this was true now, with Phong shading';
-
-    { For efficiency reasons, we only allow a finite number of lights that can affect
-      the given shape. You can increase this number if necessary.
-
-      Note that, instead of increasing this limit,
-      you can sometimes adjust your models to fit within this limit.
-      Do this using light source radius and/or scope (e.g. you can use "radius" in Blender,
-      it is exported OK to glTF), and make smaller shapes.
-
-      Note that on ancient dekstops, with fixed-function OpenGL pipeline,
-      there is an additional hard limit (dependent on GPU, but usually 8, for this).
-      But on modern desktops, as well as mobile and other platforms, you can increase this limit
-      freely. }
-    property MaxLightsPerShape: Cardinal
-      read FMaxLightsPerShape write FMaxLightsPerShape default DefaultMaxLightsPerShape;
-  end;
-
-  TRenderingAttributesClass = class of TRenderingAttributes;
 
   TTextureImageCache = class
     { Full URL of used texture image. Empty ('') if not known
@@ -545,7 +205,7 @@ type
   { Cached shape resources. }
   TShapeCache = class
   private
-    Attributes: TRenderingAttributes;
+    RenderOptions: TCastleRenderOptions;
     Geometry: TAbstractGeometryNode;
     State: TX3DGraphTraverseState;
     FogVolumetric: Boolean;
@@ -740,10 +400,10 @@ type
     procedure Program_DecReference(var ProgramCache: TShaderProgramCache);
   end;
 
-  {$I castlerenderer_resource.inc}
-  {$I castlerenderer_texture.inc}
-  {$I castlerenderer_glsl.inc}
-  {$I castlerenderer_pass.inc}
+  {$I castleinternalrenderer_resource.inc}
+  {$I castleinternalrenderer_texture.inc}
+  {$I castleinternalrenderer_glsl.inc}
+  {$I castleinternalrenderer_pass.inc}
 
   { Shape that can be rendered. }
   TX3DRendererShape = class(TShape)
@@ -858,14 +518,14 @@ type
       make pop texture matrix later.
 
       In fact this optimizes push/pops on texture matrix stack, such that
-      VRML/X3D TextureTransform nodes and such together with PushTextureUnit
+      X3D TextureTransform nodes and such together with PushTextureUnit
       will only use only matrix stack place, even if texture will be
       "pushed" multiple times (both by PushTextureUnit and normal
-      VRML TextureTransform realized in RenderShapeBegin.) }
+      X3D TextureTransform realized in RenderShapeBegin.) }
     procedure PushTextureUnit(const TexUnit: Cardinal);
     {$endif}
 
-    { Check Attributes (like Attributes.BumpMapping) and OpenGL
+    { Check RenderOptions (like RenderOptions.BumpMapping) and OpenGL
       context capabilities to see if bump mapping can be used. }
     function BumpMapping: TBumpMapping;
 
@@ -882,7 +542,7 @@ type
     property FixedFunctionAlphaTest: Boolean read FFixedFunctionAlphaTest write SetFixedFunctionAlphaTest;
     property LineType: TLineType read FLineType write SetLineType;
 
-    {$I castlerenderer_surfacetextures.inc}
+    {$I castleinternalrenderer_surfacetextures.inc}
   private
     { ----------------------------------------------------------------- }
 
@@ -900,7 +560,7 @@ type
     FogVolumetricDirection: TVector3;
     FogVolumetricVisibilityStart: Single;
 
-    FAttributes: TRenderingAttributes;
+    FRenderOptions: TCastleRenderOptions;
 
     FCache: TGLRendererContextCache;
 
@@ -913,7 +573,7 @@ type
     { Rendering pass. Set in each RenderBegin. }
     Pass: TTotalRenderingPass;
 
-    { Get VRML/X3D fog parameters, based on fog node and Attributes. }
+    { Get X3D fog parameters, based on fog node and RenderOptions. }
     procedure GetFog(const AFogFunctionality: TFogFunctionality;
       out Enabled, Volumetric: Boolean;
       out VolumetricDirection: TVector3;
@@ -989,7 +649,7 @@ type
 
     { Constructor. Always pass a cache instance --- preferably,
       something created and used by many scenes. }
-    constructor Create(const AttributesClass: TRenderingAttributesClass;
+    constructor Create(const RenderOptionsClass: TCastleRenderOptionsClass;
       const ACache: TGLRendererContextCache);
 
     destructor Destroy; override;
@@ -997,7 +657,7 @@ type
     { Rendering attributes. You can change them only when renderer
       is not tied to the current OpenGL context, so only after construction
       or after UnprepareAll call (before any Prepare or Render* calls). }
-    property Attributes: TRenderingAttributes read FAttributes;
+    property RenderOptions: TCastleRenderOptions read FRenderOptions;
 
     property Cache: TGLRendererContextCache read FCache;
 
@@ -1009,9 +669,9 @@ type
     { Release resources for this texture. }
     procedure UnprepareTexture(Node: TAbstractTextureNode);
 
-    { Release every OpenGL and VRML resource. That is release any knowledge
+    { Release every OpenGL and X3D resource. That is release any knowledge
       connecting us to the current OpenGL context and any knowledge
-      about your prepared VRML nodes, states etc.
+      about your prepared X3D nodes, states etc.
 
       Calling UnprepareAll is valid (and ignored) call if everything
       is already released.
@@ -1059,14 +719,6 @@ type
 
 const
   AllVboTypes = [Low(TVboType) .. High(TVboType)];
-
-  BumpMappingNames: array [TBumpMapping] of String =
-  ( 'None',
-    'Basic',
-    'Parallax',
-    'Steep Parallax',
-    'Steep Parallax With Self-Shadowing' );
-
   rmPureGeometry = rmSolidColor deprecated 'use rmSolidColor';
 
 var
@@ -1088,16 +740,16 @@ implementation
 uses Math,
   CastleStringUtils, CastleGLVersion, CastleLog,
   X3DCameraUtils, CastleProjection, CastleRectangles, CastleTriangles,
-  CastleCameras, CastleSceneInternalShape, CastleRendererBaseTypes,
+  CastleCameras, CastleSceneInternalShape,
   CastleRenderContext;
 
 {$define read_implementation}
 
-{$I castlerenderer_meshrenderer.inc}
-{$I castlerenderer_resource.inc}
-{$I castlerenderer_texture.inc}
-{$I castlerenderer_surfacetextures.inc}
-{$I castlerenderer_glsl.inc}
+{$I castleinternalrenderer_meshrenderer.inc}
+{$I castleinternalrenderer_resource.inc}
+{$I castleinternalrenderer_texture.inc}
+{$I castleinternalrenderer_surfacetextures.inc}
+{$I castleinternalrenderer_glsl.inc}
 
 { TGLRendererContextCache -------------------------------------------- }
 
@@ -1605,7 +1257,7 @@ begin
     case CompareMode of
       smNone:
         begin
-          { Using Attributes.VisualizeDepthMap effectively forces
+          { Using RenderOptions.VisualizeDepthMap effectively forces
             every shadow map's compareMode to be NONE.
             Although on some GPUs (Radeon X1600 (fglrx, chantal))
             setting compareMode to NONE is not needed (one can use them
@@ -1781,15 +1433,10 @@ var
       (Shape.Node.Appearance.FdShaders.Count <> 0) then
       Exit(false);
 
-    {$warnings off} // consciously using deprecated stuff, to keep it working
-    Result := not (
-      { If we use any features that (may) render shape differently
-        if shape's transform (or other stuff handled outside arrays
-        and castlerenderer) changes, then Result must be false. }
-      Assigned(ARenderer.Attributes.OnVertexColor) or
-      Assigned(ARenderer.Attributes.OnRadianceTransfer) or
-      FogVolumetric);
-    {$warnings on}
+    { If we use any features that (may) render shape differently
+      if shape's transform (or other stuff handled outside arrays
+      and castlerenderer) changes, then Result must be false. }
+    Result := not FogVolumetric;
   end;
 
   function FogVolumetricEqual(
@@ -1822,7 +1469,7 @@ begin
     begin
       Result := Caches[I];
       if (Result.Geometry = Shape.Geometry) and
-         Result.Attributes.EqualForShapeCache(ARenderer.Attributes) and
+         Result.RenderOptions.EqualForShapeCache(ARenderer.RenderOptions) and
          Result.State.Equals(Shape.State, IgnoreStateTransform) and
          FogVolumetricEqual(
            Result.FogVolumetric,
@@ -1843,7 +1490,7 @@ begin
 
   Result := TShapeCache.Create;
   Caches.Add(Result);
-  Result.Attributes := ARenderer.Attributes;
+  Result.RenderOptions := ARenderer.RenderOptions;
   Result.Geometry := Shape.Geometry;
   Result.State := Shape.State;
   Result.FogVolumetric := FogVolumetric;
@@ -1957,191 +1604,15 @@ begin
     'TGLRendererContextCache.Program_DecReference: no reference found');
 end;
 
-{ TRenderingAttributes --------------------------------------------------- }
-
-procedure TRenderingAttributes.Assign(Source: TPersistent);
-begin
-  if Source is TRenderingAttributes then
-  begin
-    {$warnings off} // consciously using deprecated stuff, to keep it working
-    OnRadianceTransfer := TRenderingAttributes(Source).OnRadianceTransfer;
-    OnVertexColor := TRenderingAttributes(Source).OnVertexColor;
-    {$warnings on}
-    Lighting := TRenderingAttributes(Source).Lighting;
-    UseSceneLights := TRenderingAttributes(Source).UseSceneLights;
-    Opacity := TRenderingAttributes(Source).Opacity;
-    EnableTextures := TRenderingAttributes(Source).EnableTextures;
-    MinificationFilter := TRenderingAttributes(Source).MinificationFilter;
-    MagnificationFilter := TRenderingAttributes(Source).MagnificationFilter;
-    PointSize := TRenderingAttributes(Source).PointSize;
-    LineWidth := TRenderingAttributes(Source).LineWidth;
-  end else
-    inherited;
-end;
-
-function TRenderingAttributes.EqualForShapeCache(
-  SecondValue: TRenderingAttributes): Boolean;
-begin
-  {$warnings off} // consciously using deprecated stuff, to keep it working
-  Result :=
-    (SecondValue.OnRadianceTransfer = OnRadianceTransfer) and
-    (SecondValue.OnVertexColor = OnVertexColor) and
-    (SecondValue.EnableTextures = EnableTextures);
-  {$warnings on}
-end;
-
-constructor TRenderingAttributes.Create;
-begin
-  inherited;
-
-  FLighting := true;
-  FUseSceneLights := true;
-  FOpacity := 1;
-  FEnableTextures := true;
-  FMinificationFilter := minDefault;
-  FMagnificationFilter := magDefault;
-  FPointSize := DefaultPointSize;
-  FLineWidth := DefaultLineWidth;
-  FBumpMapping := DefaultBumpMapping;
-  FShadowSampling := DefaultShadowSampling;
-  FDepthTest := true;
-  FPhongShading := DefaultPhongShading;
-  FMaxLightsPerShape := DefaultMaxLightsPerShape;
-end;
-
-procedure TRenderingAttributes.ReleaseCachedResources;
-begin
-  { Nothing to do in this class. }
-end;
-
-procedure TRenderingAttributes.SetOnRadianceTransfer(
-  const Value: TRadianceTransferFunction);
-begin
-  if FOnRadianceTransfer <> Value then
-  begin
-    ReleaseCachedResources;
-    FOnRadianceTransfer := Value;
-  end;
-end;
-
-procedure TRenderingAttributes.SetOnVertexColor(
-  const Value: TVertexColorFunction);
-begin
-  if FOnVertexColor <> Value then
-  begin
-    ReleaseCachedResources;
-    FOnVertexColor := Value;
-  end;
-end;
-
-procedure TRenderingAttributes.SetEnableTextures(const Value: Boolean);
-begin
-  if EnableTextures <> Value then
-  begin
-    ReleaseCachedResources;
-    FEnableTextures := Value;
-  end;
-end;
-
-procedure TRenderingAttributes.SetMinificationFilter(const Value: TAutoMinificationFilter);
-begin
-  if MinificationFilter <> Value then
-  begin
-    ReleaseCachedResources;
-    FMinificationFilter := Value;
-  end;
-end;
-
-procedure TRenderingAttributes.SetMagnificationFilter(const Value: TAutoMagnificationFilter);
-begin
-  if MagnificationFilter <> Value then
-  begin
-    ReleaseCachedResources;
-    FMagnificationFilter := Value;
-  end;
-end;
-
-function TRenderingAttributes.TextureFilter: TTextureFilter;
-begin
-  case MinificationFilter of
-    minDefault: Result.Minification := DefaultMinificationFilter;
-    minFastest: Result.Minification := minNearest;
-    minNicest : Result.Minification := minLinearMipmapLinear;
-    else        Result.Minification := MinificationFilter;
-  end;
-
-  case MagnificationFilter of
-    magDefault: Result.Magnification := DefaultMagnificationFilter;
-    magFastest: Result.Magnification := magNearest;
-    magNicest : Result.Magnification := magLinear;
-    else        Result.Magnification := MagnificationFilter;
-  end;
-end;
-
-procedure TRenderingAttributes.SetBumpMapping(const Value: TBumpMapping);
-begin
-  if BumpMapping <> Value then
-  begin
-    ReleaseCachedResources;
-    FBumpMapping := Value;
-  end;
-end;
-
-procedure TRenderingAttributes.SetMode(const Value: TRenderingMode);
-begin
-  FMode := Value;
-end;
-
-procedure TRenderingAttributes.SetShadowSampling(const Value: TShadowSampling);
-begin
-  if FShadowSampling <> Value then
-  begin
-    { When swithing between VSM and non-VSM sampling methods,
-      we need to ReleaseCachedResources, since shadow maps must be regenerated. }
-    if (FShadowSampling = ssVarianceShadowMaps) <>
-       (Value           = ssVarianceShadowMaps) then
-      ReleaseCachedResources;
-
-    FShadowSampling := Value;
-  end;
-end;
-
-procedure TRenderingAttributes.SetVisualizeDepthMap(const Value: Boolean);
-begin
-  if VisualizeDepthMap <> Value then
-  begin
-    ReleaseCachedResources;
-    FVisualizeDepthMap := Value;
-  end;
-end;
-
-function TRenderingAttributes.GetShaders: TShadersRendering;
-begin
-  if PhongShading then
-    Result := srAlways
-  else
-    Result := srWhenRequired;
-end;
-
-procedure TRenderingAttributes.SetShaders(const Value: TShadersRendering);
-begin
-  PhongShading := Value = srAlways;
-end;
-
-procedure TRenderingAttributes.SetPhongShading(const Value: Boolean);
-begin
-  FPhongShading := Value;
-end;
-
 { TGLRenderer ---------------------------------------------------------- }
 
 constructor TGLRenderer.Create(
-  const AttributesClass: TRenderingAttributesClass;
+  const RenderOptionsClass: TCastleRenderOptionsClass;
   const ACache: TGLRendererContextCache);
 begin
   inherited Create;
 
-  FAttributes := AttributesClass.Create;
+  FRenderOptions := RenderOptionsClass.Create(nil);
 
   GLTextureNodes := TGLTextureNodes.Create(false);
   ScreenEffectPrograms := TGLSLProgramList.Create;
@@ -2160,7 +1631,7 @@ begin
   FreeAndNil(TextureTransformUnitsUsedMore);
   FreeAndNil(GLTextureNodes);
   FreeAndNil(ScreenEffectPrograms);
-  FreeAndNil(FAttributes);
+  FreeAndNil(FRenderOptions);
   FreeAndNil(PreparedShader);
 
   FCache := nil; // we don't own cache
@@ -2518,12 +1989,12 @@ end;
 
 function TGLRenderer.BumpMapping: TBumpMapping;
 begin
-  if (Attributes.BumpMapping <> bmNone) and
-    Attributes.EnableTextures and
-    (Attributes.Mode = rmFull) and
+  if (RenderOptions.BumpMapping <> bmNone) and
+    RenderOptions.Textures and
+    (RenderOptions.Mode = rmFull) and
     GLFeatures.UseMultiTexturing and
     (GLFeatures.Shaders <> gsNone) then
-    Result := Attributes.BumpMapping else
+    Result := RenderOptions.BumpMapping else
     Result := bmNone;
 end;
 
@@ -2556,7 +2027,7 @@ procedure TGLRenderer.GetFog(const AFogFunctionality: TFogFunctionality;
   out VolumetricDirection: TVector3;
   out VolumetricVisibilityStart: Single);
 begin
-  Enabled := (Attributes.Mode = rmFull) and
+  Enabled := (RenderOptions.Mode = rmFull) and
     (AFogFunctionality <> nil) and
     (AFogFunctionality.VisibilityRange <> 0.0);
   Volumetric := Enabled and
@@ -2614,8 +2085,8 @@ begin
     {$endif}
   end;
 
-  RenderContext.PointSize := Attributes.PointSize;
-  RenderContext.LineWidth := Attributes.LineWidth;
+  RenderContext.PointSize := RenderOptions.PointSize;
+  RenderContext.LineWidth := RenderOptions.LineWidth;
 
   if Beginning then
   begin
@@ -2626,9 +2097,9 @@ begin
   end else
     LineType := ltSolid;
 
-  GLSetEnabled(GL_DEPTH_TEST, Beginning and Attributes.DepthTest);
+  GLSetEnabled(GL_DEPTH_TEST, Beginning and RenderOptions.DepthTest);
 
-  if GLFeatures.EnableFixedFunction and (Attributes.Mode in [rmDepth, rmFull]) then
+  if GLFeatures.EnableFixedFunction and (RenderOptions.Mode in [rmDepth, rmFull]) then
   begin
     {$ifndef OpenGLES}
     glDisable(GL_TEXTURE_GEN_S);
@@ -2651,7 +2122,7 @@ begin
     {$endif}
   end;
 
-  if GLFeatures.EnableFixedFunction and (Attributes.Mode = rmFull) then
+  if GLFeatures.EnableFixedFunction and (RenderOptions.Mode = rmFull) then
   begin
     {$ifndef OpenGLES}
     glDisable(GL_COLOR_MATERIAL);
@@ -2685,7 +2156,7 @@ begin
     if Beginning then
     begin
       { Initialize FFixedFunctionLighting, make sure OpenGL state is appropriate }
-      FFixedFunctionLighting := Attributes.Lighting;
+      FFixedFunctionLighting := RenderOptions.Lighting;
       {$ifndef OpenGLES}
       GLSetEnabled(GL_LIGHTING, FFixedFunctionLighting);
       {$endif}
@@ -2720,7 +2191,7 @@ begin
     FSmoothShading := true;
     if Beginning then
       { Initialize FFixedFunctionLighting, make sure OpenGL state is appropriate }
-      FFixedFunctionLighting := Attributes.Lighting;
+      FFixedFunctionLighting := RenderOptions.Lighting;
   end;
 end;
 
@@ -2773,15 +2244,15 @@ begin
     {$ifndef OpenGLES}
     glPushMatrix;
 
-    if Attributes.Mode = rmSolidColor then
-      glColorv(Attributes.SolidColor);
+    if RenderOptions.Mode = rmSolidColor then
+      glColorv(RenderOptions.SolidColor);
     {$endif}
   end;
 
   Assert(FogFunctionality = nil);
   Assert(not FogEnabled);
 
-  LightsRenderer := TVRMLGLLightsRenderer.Create(LightRenderEvent, Attributes.MaxLightsPerShape);
+  LightsRenderer := TVRMLGLLightsRenderer.Create(LightRenderEvent, RenderOptions.MaxLightsPerShape);
   LightsRenderer.RenderingCamera := RenderingCamera;
 end;
 
@@ -2873,7 +2344,7 @@ begin
   Shader.RenderingCamera := RenderingCamera;
 
   { calculate PhongShading }
-  PhongShading := Attributes.PhongShading;
+  PhongShading := RenderOptions.PhongShading;
   { if Shape specifies Shading = Gouraud or Phong, use it }
   if Shape.Node <> nil then
     if Shape.Node.Shading = shPhong then
@@ -2895,7 +2366,7 @@ begin
     Shader.ShapeRequiresShaders := true;
 
   Shader.ShapeBoundingBox := {$ifdef CASTLE_OBJFPC}@{$endif} Shape.BoundingBox;
-  Shader.ShadowSampling := Attributes.ShadowSampling;
+  Shader.ShadowSampling := RenderOptions.ShadowSampling;
   RenderShapeLineProperties(Shape, Shader);
 end;
 
@@ -2909,11 +2380,11 @@ begin
     LP := nil;
   if (LP <> nil) and LP.FdApplied.Value then
   begin
-    RenderContext.LineWidth := Max(1.0, Attributes.LineWidth * LP.FdLineWidthScaleFactor.Value);
+    RenderContext.LineWidth := Max(1.0, RenderOptions.LineWidth * LP.FdLineWidthScaleFactor.Value);
     LineType := LP.LineType;
   end else
   begin
-    RenderContext.LineWidth := Attributes.LineWidth;
+    RenderContext.LineWidth := RenderOptions.LineWidth;
     LineType := ltSolid;
   end;
 
@@ -2923,7 +2394,7 @@ end;
 procedure TGLRenderer.RenderShapeMaterials(const Shape: TX3DRendererShape;
   const Shader: TShader);
 
-  {$I castlerenderer_materials.inc}
+  {$I castleinternalrenderer_materials.inc}
 
 begin
   RenderMaterialsBegin;
@@ -2948,7 +2419,7 @@ begin
     there is no point in setting up lights. }
   if Lighting then
   begin
-    if Attributes.UseSceneLights then
+    if RenderOptions.SceneLights then
       SceneLights := Shape.State.Lights
     else
       SceneLights := nil;
@@ -3547,7 +3018,7 @@ procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
     TexCoordsNeeded := 0;
     BoundTextureUnits := 0;
 
-    if Attributes.Mode = rmSolidColor then
+    if RenderOptions.Mode = rmSolidColor then
       Exit;
 
     AlphaTest := false;
@@ -3572,7 +3043,7 @@ procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
         later when shader actually binds texture uniform values). }
       TexCoordsNeeded := UsedGLSLTexCoordsNeeded;
     end else
-    if Attributes.EnableTextures and
+    if RenderOptions.Textures and
        NodeTextured(Shape.Geometry) then
     begin
       AlphaTest := TGLShape(Shape).UseAlphaChannel = acTest;
@@ -3683,10 +3154,6 @@ begin
         Generator.FogVolumetricVisibilityStart := FogVolumetricVisibilityStart;
         Generator.ShapeBumpMappingUsed := ShapeBumpMappingUsed;
         Generator.ShapeBumpMappingTextureCoordinatesId := ShapeBumpMappingTextureCoordinatesId;
-        {$warnings off} // consciously using deprecated stuff, to keep it working
-        Generator.OnVertexColor := Attributes.OnVertexColor;
-        Generator.OnRadianceTransfer := Attributes.OnRadianceTransfer;
-        {$warnings on}
         Shape.Cache.Arrays := Generator.GenerateArrays;
       finally FreeAndNil(Generator) end;
 
@@ -3945,6 +3412,6 @@ begin
 end;
 
 initialization
-  TRenderingAttributes.DefaultMinificationFilter := minLinearMipmapLinear;
-  TRenderingAttributes.DefaultMagnificationFilter := magLinear;
+  TCastleRenderOptions.DefaultMinificationFilter := minLinearMipmapLinear;
+  TCastleRenderOptions.DefaultMagnificationFilter := magLinear;
 end.

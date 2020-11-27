@@ -7,8 +7,6 @@ Before 7.0 release:
   (ResizeDisabledReason) somewhere
   (at tooltip)?
 
-* Scene.Rendering (new Scene.Attributes) should be subcomponent and published
-
 ------------------------------------------------------------------------------
 Lower priority:
 OK if after nearest release:

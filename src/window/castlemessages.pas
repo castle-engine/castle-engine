@@ -397,7 +397,11 @@ begin
         for update would be large. }
       Application.ProcessMessage(false, true)
     until State.Answered;
-  finally FreeAndNil(SavedMode) end;
+  finally
+    FreeAndNil(SavedMode);
+    { Message boxes should not leave the keys in false/strange pressed state. }
+    Window.Pressed.Clear;
+  end;
 
   State.Stop;
 end;
