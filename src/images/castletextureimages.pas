@@ -189,6 +189,10 @@ const
   magFastest = CastleRenderOptions.magFastest;
   magNicest = CastleRenderOptions.magNicest;
 
+  { Default frame per second for Sprite Sheet animations like Starling
+    and Cocos2d. }
+  DefaultSpriteSheetFramesPerSecond = 8.0;
+
 implementation
 
 uses SysUtils, CastleStringUtils, CastleLog, CastleURIUtils;

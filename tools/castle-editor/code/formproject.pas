@@ -734,17 +734,18 @@ begin
     SelectedFileName := ShellListView1.GetPathFromItem(ShellListView1.Selected);
     SelectedURL := FilenameToURISafe(SelectedFileName);
 
-    if TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) then
-    begin
-      NeedsViewFile;
-      ViewFileFrame.LoadScene(SelectedURL);
-      Exit;
-    end;
-
+    { Check for images first because TCastleScene can now load images. }
     if LoadImage_FileFilters.Matches(SelectedURL) then
     begin
       NeedsViewFile;
       ViewFileFrame.LoadImage(SelectedURL);
+      Exit;
+    end;
+
+    if TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) then
+    begin
+      NeedsViewFile;
+      ViewFileFrame.LoadScene(SelectedURL);
       Exit;
     end;
 
@@ -858,16 +859,17 @@ begin
     SelectedURL := FilenameToURISafe(SelectedFileName);
     Ext := ExtractFileExt(SelectedFileName);
 
+    { Check for images first because TCastleScene can now load images. }
+    if LoadImage_FileFilters.Matches(SelectedURL) then
+    begin
+      OpenWithCastleTool('castle-view-image', SelectedURL, [SelectedURL]);
+      Exit;
+    end;
+
     if TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) then
     begin
       OpenWithCastleTool('view3dscene', SelectedURL,
         ['--project', ProjectPathUrl, SelectedURL]);
-      Exit;
-    end;
-
-    if LoadImage_FileFilters.Matches(SelectedURL) then
-    begin
-      OpenWithCastleTool('castle-view-image', SelectedURL, [SelectedURL]);
       Exit;
     end;
 

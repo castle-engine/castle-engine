@@ -939,7 +939,7 @@ begin
       We want to generate 2 triangles for each quad.
 
       We cannot do it by generating IndexesFromCoordIndex, as
-      CastleArraysGenerator assumes that IndexesFromCoordIndex may be <> nil
+      CastleInternalArraysGenerator assumes that IndexesFromCoordIndex may be <> nil
       only when CoordIndex <> nil. (and changing this restriction looks
       complicated for now...)
 

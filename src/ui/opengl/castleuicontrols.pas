@@ -681,7 +681,7 @@ type
       This is automatically used by @link(TCastleWalkNavigation.MouseLook).
       You can use it yourself for custom effects "like mouse look". The template to use this
       is below.
-      See the CGE examples examples/2d_standard_ui/dragging_test/ for a working code
+      See the CGE examples examples/user_interface/dragging_test/ for a working code
       demonstrating this.
 
       @longCode(#
@@ -1279,7 +1279,7 @@ type
       FAutoSizeToChildrenPaddingRight: Single;
       FAutoSizeToChildrenPaddingTop: Single;
       FSizeFromChildrenValid: Boolean;
-      FSizeFromChildrenRect: TFloatRectangle;
+      FSizeFromChildrenWidth, FSizeFromChildrenHeight: Single;
       FCachedRectWithoutAnchors: TFloatRectangle;
       FUseCachedRectWithoutAnchors: Cardinal; // <> 0 if we should use FCachedRectWithoutAnchors
       FInsideRectWithoutAnchors: Boolean;
@@ -2024,25 +2024,21 @@ type
 
       Our size is adjusted to all existing children sizes and positions.
 
-      Note that this works only for simple children anchors:
-      the left edge of the child to the left edge of the parent,
-      the bottom edge of the child to the bottom edge of the parent,
-      and so on.
-      It is impossible to adjust this calculation to all possible children anchors
-      values, since the interpretation of anchors depends on the parent size.
-
-      On the right and top side, we add @link(AutoSizeToChildrenPaddingTop)
-      and @link(AutoSizeToChildrenPaddingRight). To make left/bottom padding,
-      simply move all children away from the left/bottom edge.
+      We add @link(AutoSizeToChildrenPaddingTop) to the resulting height,
+      and @link(AutoSizeToChildrenPaddingRight) to the resulting width.
     }
     property AutoSizeToChildren: Boolean
       read FAutoSizeToChildren write SetAutoSizeToChildren default false;
 
-    { Padding added when @link(AutoSizeToChildren) is used. }
+    { Padding added when @link(AutoSizeToChildren) is used.
+      TODO: Should be AutoSizeToChildrenPaddingHorizontal, there's nothing that makes it specific
+      to "right" or "left" side now. }
     property AutoSizeToChildrenPaddingRight: Single
       read FAutoSizeToChildrenPaddingRight
       write SetAutoSizeToChildrenPaddingRight default 0;
-    { Padding added when @link(AutoSizeToChildren) is used. }
+    { Padding added when @link(AutoSizeToChildren) is used.
+      TODO: Should be AutoSizeToChildrenPaddingVertical, there's nothing that makes it specific
+      to "top" or "bottom" side now. }
     property AutoSizeToChildrenPaddingTop: Single
       read FAutoSizeToChildrenPaddingTop
       write SetAutoSizeToChildrenPaddingTop default 0;
@@ -4742,7 +4738,8 @@ function TCastleUserInterface.RectWithoutAnchors: TFloatRectangle;
   begin
     if FSizeFromChildrenValid then Exit;
     FSizeFromChildrenValid := true;
-    FSizeFromChildrenRect := TFloatRectangle.Empty;
+    FSizeFromChildrenWidth := 0;
+    FSizeFromChildrenHeight := 0;
 
     for I := 0 to ControlsCount - 1 do
     begin
@@ -4756,42 +4753,21 @@ function TCastleUserInterface.RectWithoutAnchors: TFloatRectangle;
         Although FSizeFromChildrenValid would prevent from entering an infinite
         loop, it would be still unreliable to use such result. }
       ChildRect := C.FastRectWithoutAnchors.ScaleAround0(1 / UIScale);
-      if not ChildRect.IsEmpty then
-      begin
-        // apply C anchors, at least some cases
+      if ChildRect.IsEmpty then
+        Continue;
 
-        if (C.HorizontalAnchorSelf = hpLeft) and
-           (C.HorizontalAnchorParent = hpLeft) then
-          ChildRect.Left := ChildRect.Left + C.HorizontalAnchorDelta
-        else
-        if (C.HorizontalAnchorSelf = hpRight) and
-           (C.HorizontalAnchorParent = hpRight) then
-          // when right anchor has delta -10, increase width + 10
-          ChildRect.Width := ChildRect.Width - C.HorizontalAnchorDelta;
+      { We had 2, much more complicated and more limited, implementations of this :)
+        Note that the instruction below makes sense both for both when
+        C.HorizontalAnchorSelf = C.HorizontalAnchorParent = hpLeft and when
+        C.HorizontalAnchorSelf = C.HorizontalAnchorParent = hpRight.
+      }
 
-        if (C.VerticalAnchorSelf = vpBottom) and
-           (C.VerticalAnchorParent = vpBottom) then
-          ChildRect.Bottom := ChildRect.Bottom + C.VerticalAnchorDelta
-        else
-        if (C.VerticalAnchorSelf = vpTop) and
-           (C.VerticalAnchorParent = vpTop) then
-          ChildRect.Height := ChildRect.Height - C.VerticalAnchorDelta;
-
-        // apply Border shift
-        ChildRect.Left := ChildRect.Left + FBorder.TotalLeft;
-        ChildRect.Bottom := ChildRect.Bottom + FBorder.TotalBottom;
-      end;
-
-      FSizeFromChildrenRect := FSizeFromChildrenRect + ChildRect;
+      MaxVar(FSizeFromChildrenWidth , ChildRect.Left   + ChildRect.Width  + Abs(C.HorizontalAnchorDelta) + FBorder.TotalWidth);
+      MaxVar(FSizeFromChildrenHeight, ChildRect.Bottom + ChildRect.Height + Abs(C.VerticalAnchorDelta)   + FBorder.TotalHeight);
     end;
 
-    if not FSizeFromChildrenRect.IsEmpty then
-    begin
-      FSizeFromChildrenRect.Width :=
-        FSizeFromChildrenRect.Width + FBorder.TotalRight + AutoSizeToChildrenPaddingRight;
-      FSizeFromChildrenRect.Height :=
-        FSizeFromChildrenRect.Height + FBorder.TotalTop + AutoSizeToChildrenPaddingTop;
-    end;
+    FSizeFromChildrenWidth  += AutoSizeToChildrenPaddingRight;
+    FSizeFromChildrenHeight += AutoSizeToChildrenPaddingTop;
   end;
 
 var
@@ -4810,17 +4786,11 @@ begin
   if AutoSizeToChildren then
   begin
     UpdateSizeFromChildren;
-    if FSizeFromChildrenRect.IsEmpty then
+    if (FSizeFromChildrenWidth <= 0) or
+       (FSizeFromChildrenHeight <= 0) then
       Result := TFloatRectangle.Empty
     else
-      { We do not use FSizeFromChildrenRect.Left/Bottom.
-        This would shift children:
-        Imagine a child with anchor (on the left) equal 100.
-        If this would increase our resulting Rect.Left by 100,
-        then child would still have to move another 100 to the left,
-        thus landing at total left = 200. }
-      Result := FloatRectangle(Left, Bottom,
-        FSizeFromChildrenRect.Right, FSizeFromChildrenRect.Top).
+      Result := FloatRectangle(Left, Bottom, FSizeFromChildrenWidth, FSizeFromChildrenHeight).
         ScaleAround0(UIScale);
   end else
   if FullSize then

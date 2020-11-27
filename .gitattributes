@@ -13,5 +13,6 @@
 
 *.inc linguist-language=Pascal text eol=auto
 *.pas text eol=auto
+*.lpk text eol=auto
 # Even on Windows, shell scripts line endings must be Unix, to work with Cygwin's bash.
 *.sh text eol=lf

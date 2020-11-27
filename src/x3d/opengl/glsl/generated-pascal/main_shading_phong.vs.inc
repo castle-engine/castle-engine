@@ -16,7 +16,10 @@
 'varying vec4 castle_vertex_eye;' + LineEnding +
 'varying vec3 castle_normal_eye;' + LineEnding +
 '' + LineEnding +
-'#ifdef COLOR_PER_VERTEX' + LineEnding +
+'#if defined(COLOR_PER_VERTEX_RGB)' + LineEnding +
+'attribute vec3 castle_ColorPerVertex;' + LineEnding +
+'varying vec3 castle_ColorPerVertexFragment;' + LineEnding +
+'#elif defined(COLOR_PER_VERTEX_RGB_ALPHA)' + LineEnding +
 'attribute vec4 castle_ColorPerVertex;' + LineEnding +
 'varying vec4 castle_ColorPerVertexFragment;' + LineEnding +
 '#endif' + LineEnding +

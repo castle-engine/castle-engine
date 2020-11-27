@@ -45,14 +45,7 @@
 '  material_info.shininess = castle_MaterialShininess;' + LineEnding +
 '  /* PLUG: material_shininess (material_info.shininess) */' + LineEnding +
 '' + LineEnding +
-'  material_info.diffuse_alpha =' + LineEnding +
-'    #if defined(COLOR_PER_VERTEX_REPLACE)' + LineEnding +
-'    castle_ColorPerVertexFragment;' + LineEnding +
-'    #elif defined(COLOR_PER_VERTEX_MODULATE)' + LineEnding +
-'    castle_ColorPerVertexFragment * castle_MaterialDiffuseAlpha;' + LineEnding +
-'    #else' + LineEnding +
-'    castle_MaterialDiffuseAlpha;' + LineEnding +
-'    #endif' + LineEnding +
+'  material_info.diffuse_alpha = castle_apply_color_per_vertex(castle_MaterialDiffuseAlpha);' + LineEnding +
 '' + LineEnding +
 '  main_texture_apply(material_info.diffuse_alpha, normal_eye);' + LineEnding +
 '' + LineEnding +
@@ -78,7 +71,7 @@
 '' + LineEnding +
 '     Diffuse color is zero in this case, and we know that it''s not set to non-zero' + LineEnding +
 '     by castle_ColorPerVertexFragment (since that would make the shape "lit").' + LineEnding +
-'     So we don''t use castle_ColorPerVertexFragment,' + LineEnding +
+'     So we don''t use castle_apply_color_per_vertex,' + LineEnding +
 '     and we don''t apply RGB of main_texture_apply (as it would be multiplied by zero).' + LineEnding +
 '  */' + LineEnding +
 '  result = castle_UnlitColor;' + LineEnding +

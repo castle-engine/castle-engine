@@ -399,7 +399,7 @@
 
   { Viewpoint for making reflections on flat objects.
     See https://castle-engine.io/x3d_extensions_mirror_plane.php . }
-  TViewpointMirrorNode = class(TX3DNode)
+  TViewpointMirrorNode = class(TAbstractNode)
   public
     {$I auto_generated_node_helpers/x3dnodes_viewpointmirror.inc}
   end;

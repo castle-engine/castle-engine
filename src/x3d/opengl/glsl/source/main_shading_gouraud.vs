@@ -12,9 +12,32 @@ varying vec4 castle_vertex_eye;
 varying vec3 castle_normal_eye;
 varying vec4 castle_Color;
 
-#ifdef COLOR_PER_VERTEX
+#if defined(COLOR_PER_VERTEX_RGB)
+attribute vec3 castle_ColorPerVertex;
+#elif defined(COLOR_PER_VERTEX_RGB_ALPHA)
 attribute vec4 castle_ColorPerVertex;
 #endif
+
+/* Apply per-vertex color, over the base/diffuse/emissive color + alpha. */
+vec4 castle_apply_color_per_vertex(vec4 color)
+{
+  return
+    #if defined(COLOR_PER_VERTEX_REPLACE)
+      #if defined(COLOR_PER_VERTEX_RGB)
+      vec4(castle_ColorPerVertex, color.a);
+      #elif defined(COLOR_PER_VERTEX_RGB_ALPHA)
+      castle_ColorPerVertex;
+      #endif
+    #elif defined(COLOR_PER_VERTEX_MODULATE)
+      #if defined(COLOR_PER_VERTEX_RGB)
+      vec4(castle_ColorPerVertex * color.rgb, color.a);
+      #elif defined(COLOR_PER_VERTEX_RGB_ALPHA)
+      castle_ColorPerVertex * color;
+      #endif
+    #else
+    color;
+    #endif
+}
 
 /* Include fragment shader utilities used by both Gouraud and Phong shading. */
 /* CASTLE-COMMON-CODE */

@@ -14,38 +14,9 @@
 }
 
 {$ifdef read_interface}
-
   { Interface for a base X3D node that can have some metadata. }
   IAbstractNode = interface(IX3DNode)
   ['{399AC6B2-C2B3-4EEA-AB74-D52C4836B3B9}']
-    {$ifndef CASTLE_SLIM_NODES}
-    property FdMetadata: TSFNode;
-    {$endif}
-  end;
-
-  { Basis for all metadata nodes. }
-  IAbstractMetadataNode = interface(IX3DNode)
-  ['{2D631FBF-683B-4259-A98D-74589893447C}']
-    property FdName: TSFString { read GetFdname }; { }
-    property FdReference: TSFString { read GetFdreference }; { }
-  end;
-
-  { Base X3D node that can have some metadata.
-
-    Almost all X3D nodes inherit from this, with the only exception being
-    the X3DMetadataObject (expressed only as an interface in Pascal,
-    @link(IAbstractMetadataNode)).
-    This means that you cannot have metadata inside a metadata. }
-  TAbstractNode = class(TX3DNode, IAbstractNode)
-  public
-    procedure CreateNode; override;
-
-    {$ifndef CASTLE_SLIM_NODES}
-    strict private FFdMetadata: TSFNode;
-    public property FdMetadata: TSFNode read FFdMetadata;
-    {$endif}
-
-    {$I auto_generated_node_helpers/x3dnodes_x3dnode.inc}
   end;
 
   { Interface for an abstract node type that indicates that the node may be used as
@@ -55,13 +26,115 @@
   ['{ECE6F71D-CA90-4B6C-8835-EAA68EEDAEED}']
   end;
 
+  { Base X3D node that can have some metadata. }
+  TAbstractNode = class(TX3DNode, IAbstractNode)
+  strict private
+    procedure InsertMetadata(const M: TAbstractMetadataNode);
+    function GetMetadataBoolean(const Key: String; const Index: Cardinal): Boolean;
+    procedure SetMetadataBoolean(const Key: String; const Index: Cardinal; const Value: Boolean);
+    function GetMetadataString(const Key: String; const Index: Cardinal): String;
+    procedure SetMetadataString(const Key: String; const Index: Cardinal; const Value: String);
+    function GetMetadataInteger(const Key: String; const Index: Cardinal): Integer;
+    procedure SetMetadataInteger(const Key: String; const Index: Cardinal; const Value: Integer);
+    function GetMetadataDouble(const Key: String; const Index: Cardinal): Double;
+    procedure SetMetadataDouble(const Key: String; const Index: Cardinal; const Value: Double);
+  public
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+
+    { Find a "metadata" information within this node with given key.
+      Returns @nil if not found.
+
+      This seeks for a TAbstractMetadataNode instance within the X3D "metadata"
+      field  of this node. Looks for TAbstractMetadataNode with
+      @link(TAbstractMetadataNode.NameField) matching the parameter @code(Key).
+      Note that X3D spec allows multiple metadata nodes to share the same key,
+      this method only finds the first one.
+
+      It ignores TMetadataSet when searching, as TMetadataSet doesn't contain
+      any simple data, it serves only as container for other metadata nodes.
+    }
+    function FindMetadata(const Key: String): TAbstractMetadataNode;
+
+    { Get/set metadata, identified by a given Key, as a Boolean.
+      "Metadata" is any value you want to save with this node, it has no effect on the rendering/behaviour.
+      This property hides various complexities of the X3D metadata nodes.
+
+      This property looks for a TMetadataBooleanNode node inside the "metadata" of this node
+      using @link(FindMetadata).
+      If found, it allows to operate @link(TMetadataBooleanNode.FdValue) array.
+      It gets/sets the appropriate items of this array.
+
+      If such metadata node is not found,
+      or it's @link(TMetadataBooleanNode.FdValue) array is too short,
+      this returns false.
+      When setting, it adds such metadata node if necessary,
+      and increases the @link(TMetadataBooleanNode.FdValue) array length if necessary. }
+    property MetadataBoolean[const Key: String; const Index: Cardinal]: Boolean read GetMetadataBoolean write SetMetadataBoolean;
+
+    { Get/set metadata, identified by a given Key, as a String.
+      "Metadata" is any value you want to save with this node, it has no effect on the rendering/behaviour.
+      This property hides various complexities of the X3D metadata nodes.
+
+      This property looks for a TMetadataStringNode node inside the "metadata" of this node
+      using @link(FindMetadata).
+      If found, it allows to operate @link(TMetadataStringNode.FdValue) array.
+      It gets/sets the appropriate items of this array.
+
+      If such metadata node is not found,
+      or it's @link(TMetadataStringNode.FdValue) array is too short,
+      this returns ''.
+      When setting, it adds such metadata node if necessary,
+      and increases the @link(TMetadataStringNode.FdValue) array length if necessary. }
+    property MetadataString[const Key: String; const Index: Cardinal]: String read GetMetadataString write SetMetadataString;
+
+    { Get/set metadata, identified by a given Key, as a Integer.
+      "Metadata" is any value you want to save with this node, it has no effect on the rendering/behaviour.
+      This property hides various complexities of the X3D metadata nodes.
+
+      This property looks for a TMetadataIntegerNode node inside the "metadata" of this node
+      using @link(FindMetadata).
+      If found, it allows to operate @link(TMetadataIntegerNode.FdValue) array.
+      It gets/sets the appropriate items of this array.
+
+      If such metadata node is not found,
+      or it's @link(TMetadataIntegerNode.FdValue) array is too short,
+      this returns 0.
+      When setting, it adds such metadata node if necessary,
+      and increases the @link(TMetadataIntegerNode.FdValue) array length if necessary. }
+    property MetadataInteger[const Key: String; const Index: Cardinal]: Integer read GetMetadataInteger write SetMetadataInteger;
+
+    { Get/set metadata, identified by a given Key, as a Double.
+      "Metadata" is any value you want to save with this node, it has no effect on the rendering/behaviour.
+      This property hides various complexities of the X3D metadata nodes.
+
+      This property looks for a TMetadataDoubleNode or TMetadataFloatNode
+      node inside the "metadata" of this node  using @link(FindMetadata).
+      If found, it allows to operate @link(TMetadataDoubleNode.FdValue) array
+      or @link(TMetadataFloatNode.FdValue) array.
+      It gets/sets the appropriate items of this array.
+
+      If such metadata node is not found,
+      or it's @link(TMetadataDoubleNode.FdValue) array is too short,
+      this returns 0.0.
+      When setting, it adds such metadata node if necessary,
+      and increases the @link(TMetadataDoubleNode.FdValue) array length if necessary. }
+    property MetadataDouble[const Key: String; const Index: Cardinal]: Double read GetMetadataDouble write SetMetadataDouble;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dnode.inc}
+  end;
+
+  { Basis for all metadata nodes. }
+  TAbstractMetadataNode = class(TAbstractNode)
+  public
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    {$I auto_generated_node_helpers/x3dnodes_x3dmetadatanode.inc}
+  end;
+
   { Abstract node type that indicates that the node may be used as
     a child of a grouping node,
     e.g. inside @link(TAbstractX3DGroupingNode.FdChildren). }
   TAbstractChildNode = class(TAbstractNode, IAbstractChildNode)
   public
-    procedure CreateNode; override;
-
     {$I auto_generated_node_helpers/x3dnodes_x3dchildnode.inc}
   end;
 
@@ -77,21 +150,7 @@
   protected
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
-    procedure CreateNode; override;
-
-    { Event in } { }
-    strict private FEventSet_bind: TSFBoolEvent;
-    public property EventSet_bind: TSFBoolEvent read FEventSet_bind;
-
-    { Event out } { }
-    {$ifndef CASTLE_SLIM_NODES}
-    strict private FEventBindTime: TSFTimeEvent;
-    public property EventBindTime: TSFTimeEvent read FEventBindTime;
-    {$endif}
-
-    { Event out } { }
-    strict private FEventIsBound: TSFBoolEvent;
-    public property EventIsBound: TSFBoolEvent read FEventIsBound;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
 
     { "Bound" node is the node currently used, for example the "bound" background
       determines the current background look.
@@ -173,126 +232,52 @@
   { Base abstract class for all sensors. }
   TAbstractSensorNode = class(TAbstractChildNode, IAbstractSensorNode)
   public
-    procedure CreateNode; override;
-
-    strict private FFdEnabled: TSFBool;
-    public property FdEnabled: TSFBool read FFdEnabled;
-
-    { Event out } { }
-    strict private FEventIsActive: TSFBoolEvent;
-    public property EventIsActive: TSFBoolEvent read FEventIsActive;
-
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_x3dsensornode.inc}
   end;
 
-  { A metadata (extra, custom information at a node) with a Boolean type. }
-  TMetadataBooleanNode = class(TAbstractNode, IAbstractMetadataNode)
+  { A metadata (extra, custom information at a node) with a boolean type. }
+  TMetadataBooleanNode = class(TAbstractMetadataNode)
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: String; override;
-
-    strict private FFdName: TSFString;
-    public property FdName: TSFString read FFdName;
-
-    strict private FFdReference: TSFString;
-    public property FdReference: TSFString read FFdReference;
-
-    strict private FFdValue: TMFBool;
-    public property FdValue: TMFBool read FFdValue;
-
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_metadataboolean.inc}
   end;
 
   { A metadata (extra, custom information at a node) with
     a double-precision floating point number type. }
-  TMetadataDoubleNode = class(TAbstractNode, IAbstractMetadataNode)
+  TMetadataDoubleNode = class(TAbstractMetadataNode)
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: String; override;
-
-    strict private FFdName: TSFString;
-    public property FdName: TSFString read FFdName;
-
-    strict private FFdReference: TSFString;
-    public property FdReference: TSFString read FFdReference;
-
-    strict private FFdValue: TMFDouble;
-    public property FdValue: TMFDouble read FFdValue;
-
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_metadatadouble.inc}
   end;
 
   { A metadata (extra, custom information at a node) with
     a single-precision floating point number type. }
-  TMetadataFloatNode = class(TAbstractNode, IAbstractMetadataNode)
+  TMetadataFloatNode = class(TAbstractMetadataNode)
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: String; override;
-
-    strict private FFdName: TSFString;
-    public property FdName: TSFString read FFdName;
-
-    strict private FFdReference: TSFString;
-    public property FdReference: TSFString read FFdReference;
-
-    strict private FFdValue: TMFFloat;
-    public property FdValue: TMFFloat read FFdValue;
-
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_metadatafloat.inc}
   end;
 
   { A metadata (extra, custom information at a node) with an integer type. }
-  TMetadataIntegerNode = class(TAbstractNode, IAbstractMetadataNode)
+  TMetadataIntegerNode = class(TAbstractMetadataNode)
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: String; override;
-
-    strict private FFdName: TSFString;
-    public property FdName: TSFString read FFdName;
-
-    strict private FFdReference: TSFString;
-    public property FdReference: TSFString read FFdReference;
-
-    strict private FFdValue: TMFInt32;
-    public property FdValue: TMFInt32 read FFdValue;
-
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_metadatainteger.inc}
   end;
 
   { A metadata (extra, custom information at a node) set,
     to reference of collection of other metadata nodes. }
-  TMetadataSetNode = class(TAbstractNode, IAbstractMetadataNode)
+  TMetadataSetNode = class(TAbstractMetadataNode)
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: String; override;
-
-    strict private FFdName: TSFString;
-    public property FdName: TSFString read FFdName;
-
-    strict private FFdReference: TSFString;
-    public property FdReference: TSFString read FFdReference;
-
-    strict private FFdValue: TMFNode;
-    public property FdValue: TMFNode read FFdValue;
-
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_metadataset.inc}
   end;
 
-  { A metadata (extra, custom information at a node) with a String type. }
-  TMetadataStringNode = class(TAbstractNode, IAbstractMetadataNode)
+  { A metadata (extra, custom information at a node) with a string type. }
+  TMetadataStringNode = class(TAbstractMetadataNode)
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: String; override;
-
-    strict private FFdName: TSFString;
-    public property FdName: TSFString read FFdName;
-
-    strict private FFdReference: TSFString;
-    public property FdReference: TSFString read FFdReference;
-
-    strict private FFdValue: TMFString;
-    public property FdValue: TMFString read FFdValue;
-
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_metadatastring.inc}
   end;
 
@@ -301,15 +286,7 @@
     and has no effect on the visual appearance or behaviour of the world. }
   TWorldInfoNode = class(TAbstractInfoNode)
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: String; override;
-
-    strict private FFdInfo: TMFString;
-    public property FdInfo: TMFString read FFdInfo;
-
-    strict private FFdTitle: TSFString;
-    public property FdTitle: TSFString read FFdTitle;
-
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_worldinfo.inc}
   end;
 
@@ -317,43 +294,267 @@
 
 {$ifdef read_implementation}
 
-procedure TAbstractNode.CreateNode;
+{ TAbstractNode -------------------------------------------------------------- }
+
+constructor TAbstractNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
   {$ifndef CASTLE_SLIM_NODES}
-  FFdMetadata := TSFNode.Create(Self, true, 'metadata', IAbstractMetadataNode);
-  AddField(FFdMetadata);
+  FdMetadata.ChangeAlways := chNone;
   {$endif}
 end;
 
-procedure TAbstractChildNode.CreateNode;
-begin
-  inherited;
+function TAbstractNode.FindMetadata(const Key: String): TAbstractMetadataNode;
 
-  { It's natural that X3DChildNode goes into "children" node of parent.
-    Actually, this makes many other
-      DefaultContainerField := 'children'
-    lines in our x3d_*.inc include files useless. }
-  DefaultContainerField := 'children';
+  function FindInSet(const MetadataSet: TMetadataSetNode): TAbstractMetadataNode; forward;
+
+  { Search a Metadata node,
+    which may be nil,
+    may be TMetadataSetNode,
+    may be other TAbstractMetadataNode. }
+  function FindInSetOrSingle(const PossibleMetadata: TX3DNode): TAbstractMetadataNode;
+  begin;
+    Result := nil;
+    if PossibleMetadata <> nil then
+    begin
+      if PossibleMetadata is TMetadataSetNode then
+        Result := FindInSet(TMetadataSetNode(PossibleMetadata))
+      else
+      if (PossibleMetadata is TAbstractMetadataNode) and
+         (TAbstractMetadataNode(PossibleMetadata).NameField = Key) then
+        Result := TAbstractMetadataNode(PossibleMetadata);
+    end;
+  end;
+
+  { Search a TMetadataSetNode instance (never nil). }
+  function FindInSet(const MetadataSet: TMetadataSetNode): TAbstractMetadataNode;
+  var
+    I: Integer;
+  begin
+    Result := nil;
+    for I := 0 to MetadataSet.FdValue.Count - 1 do
+    begin
+      Result := FindInSetOrSingle(MetadataSet.FdValue[I]);
+      if Result <> nil then Exit;
+    end;
+  end;
+
+begin
+  {$ifdef CASTLE_SLIM_NODES}
+  Result := nil;
+  {$else}
+  Result := FindInSetOrSingle(FdMetadata.Value);
+  {$endif}
 end;
 
-procedure TAbstractBindableNode.CreateNode;
+procedure TAbstractNode.InsertMetadata(const M: TAbstractMetadataNode);
+var
+  MSet: TMetadataSetNode;
+begin
+  {$ifndef CASTLE_SLIM_NODES}
+  if FdMetadata.Value is TMetadataSetNode then
+  begin
+    MSet := TMetadataSetNode(FdMetadata.Value);
+  end else
+  begin
+    MSet := TMetadataSetNode.Create;
+    MSet.NameField := 'ContainerForAllMetadataValues'; // set NameField because it is required by X3D
+    // preserve previous "metadata" value, by adding it to set
+    if FdMetadata.Value <> nil then
+      MSet.FdValue.Add(FdMetadata.Value);
+    FdMetadata.Value := MSet;
+  end;
+  MSet.FdValue.Add(M);
+  {$endif}
+end;
+
+function TAbstractNode.GetMetadataBoolean(const Key: String; const Index: Cardinal): Boolean;
+var
+  M: TAbstractMetadataNode;
+  MB: TMetadataBooleanNode;
+begin
+  M := FindMetadata(Key);
+  if M = nil then Exit(false);
+  if not (M is TMetadataBooleanNode) then Exit(false);
+
+  MB := TMetadataBooleanNode(M);
+  if Index < MB.FdValue.Count then
+    Result := MB.FdValue.Items[Index]
+  else
+    Result := false;
+end;
+
+procedure TAbstractNode.SetMetadataBoolean(const Key: String; const Index: Cardinal; const Value: Boolean);
+var
+  M: TAbstractMetadataNode;
+  MB: TMetadataBooleanNode;
+begin
+  M := FindMetadata(Key);
+  if M = nil then
+  begin
+    MB := TMetadataBooleanNode.Create;
+    MB.NameField := Key;
+    InsertMetadata(MB);
+  end else
+  begin
+    if not (M is TMetadataBooleanNode) then
+      raise Exception.CreateFmt('Cannot add Boolean metadata with key "%s", there is already metadata of type %s', [
+        Key,
+        M.X3DType
+      ]);
+    MB := TMetadataBooleanNode(M);
+  end;
+
+  MB.FdValue.Count := Max(MB.FdValue.Count, Index + 1);
+  MB.FdValue.Items[Index] := Value;
+end;
+
+function TAbstractNode.GetMetadataString(const Key: String; const Index: Cardinal): String;
+var
+  M: TAbstractMetadataNode;
+  MB: TMetadataStringNode;
+begin
+  M := FindMetadata(Key);
+  if M = nil then Exit('');
+  if not (M is TMetadataStringNode) then Exit('');
+
+  MB := TMetadataStringNode(M);
+  if Index < MB.FdValue.Count then
+    Result := MB.FdValue.Items[Index]
+  else
+    Result := '';
+end;
+
+procedure TAbstractNode.SetMetadataString(const Key: String; const Index: Cardinal; const Value: String);
+var
+  M: TAbstractMetadataNode;
+  MB: TMetadataStringNode;
+begin
+  M := FindMetadata(Key);
+  if M = nil then
+  begin
+    MB := TMetadataStringNode.Create;
+    MB.NameField := Key;
+    InsertMetadata(MB);
+  end else
+  begin
+    if not (M is TMetadataStringNode) then
+      raise Exception.CreateFmt('Cannot add String metadata with key "%s", there is already metadata of type %s', [
+        Key,
+        M.X3DType
+      ]);
+    MB := TMetadataStringNode(M);
+  end;
+
+  MB.FdValue.Count := Max(MB.FdValue.Count, Index + 1);
+  MB.FdValue.Items[Index] := Value;
+end;
+
+function TAbstractNode.GetMetadataInteger(const Key: String; const Index: Cardinal): Integer;
+var
+  M: TAbstractMetadataNode;
+  MB: TMetadataIntegerNode;
+begin
+  M := FindMetadata(Key);
+  if M = nil then Exit(0);
+  if not (M is TMetadataIntegerNode) then Exit(0);
+
+  MB := TMetadataIntegerNode(M);
+  if Index < MB.FdValue.Count then
+    Result := MB.FdValue.Items[Index]
+  else
+    Result := 0;
+end;
+
+procedure TAbstractNode.SetMetadataInteger(const Key: String; const Index: Cardinal; const Value: Integer);
+var
+  M: TAbstractMetadataNode;
+  MB: TMetadataIntegerNode;
+begin
+  M := FindMetadata(Key);
+  if M = nil then
+  begin
+    MB := TMetadataIntegerNode.Create;
+    MB.NameField := Key;
+    InsertMetadata(MB);
+  end else
+  begin
+    if not (M is TMetadataIntegerNode) then
+      raise Exception.CreateFmt('Cannot add Integer metadata with key "%s", there is already metadata of type %s', [
+        Key,
+        M.X3DType
+      ]);
+    MB := TMetadataIntegerNode(M);
+  end;
+
+  MB.FdValue.Count := Max(MB.FdValue.Count, Index + 1);
+  MB.FdValue.Items[Index] := Value;
+end;
+
+function TAbstractNode.GetMetadataDouble(const Key: String; const Index: Cardinal): Double;
+var
+  M: TAbstractMetadataNode;
+  MF: TMetadataFloatNode;
+  MD: TMetadataDoubleNode;
+begin
+  Result := 0.0;
+
+  M := FindMetadata(Key);
+  if M = nil then Exit;
+
+  if M is TMetadataDoubleNode then
+  begin
+    MD := TMetadataDoubleNode(M);
+    if Index < MD.FdValue.Count then
+      Result := MD.FdValue.Items[Index];
+  end else
+  if M is TMetadataFloatNode then
+  begin
+    MF := TMetadataFloatNode(M);
+    if Index < MF.FdValue.Count then
+      Result := MF.FdValue.Items[Index]
+  end;
+end;
+
+procedure TAbstractNode.SetMetadataDouble(const Key: String; const Index: Cardinal; const Value: Double);
+var
+  M: TAbstractMetadataNode;
+  MF: TMetadataFloatNode;
+  MD: TMetadataDoubleNode;
+begin
+  M := FindMetadata(Key);
+  if M = nil then
+  begin
+    M := TMetadataDoubleNode.Create;
+    M.NameField := Key;
+    InsertMetadata(M);
+  end;
+
+  if M is TMetadataFloatNode then
+  begin
+    MF := TMetadataFloatNode(M);
+    MF.FdValue.Count := Max(MF.FdValue.Count, Index + 1);
+    MF.FdValue.Items[Index] := Value;
+    WritelnWarning('Storing double-precision metadata in single-precision MetadataFloat, some precision may be lost');
+  end else
+  if M is TMetadataDoubleNode then
+  begin
+    MD := TMetadataDoubleNode(M);
+    MD.FdValue.Count := Max(MD.FdValue.Count, Index + 1);
+    MD.FdValue.Items[Index] := Value;
+  end else
+    raise Exception.CreateFmt('Cannot add Double metadata with key "%s", there is already metadata of type %s', [
+      Key,
+      M.X3DType
+    ]);
+end;
+
+{ TAbstractBindableNode ------------------------------------------------------ }
+
+constructor TAbstractBindableNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FEventSet_bind := TSFBoolEvent.Create(Self, 'set_bind', true);
-  AddEvent(FEventSet_bind);
-
-  {$ifndef CASTLE_SLIM_NODES}
-  FEventBindTime := TSFTimeEvent.Create(Self, 'bindTime', false);
-  AddEvent(FEventBindTime);
-  {$endif}
-
-  FEventIsBound := TSFBoolEvent.Create(Self, 'isBound', false);
-   EventIsBound.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventIsBoundReceive);
-  AddEvent(FEventIsBound);
-
+  EventIsBound.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventIsBoundReceive);
   FTransform := TMatrix4.Identity;
   FTransformScale := 1;
 end;
@@ -378,158 +579,81 @@ begin
   EventSet_bind.Send(Value);
 end;
 
-procedure TAbstractSensorNode.CreateNode;
+{ TAbstractSensorNode -------------------------------------------------------- }
+
+constructor TAbstractSensorNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FFdEnabled := TSFBool.Create(Self, true, 'enabled', true);
-  AddField(FFdEnabled);
-
-  FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
-  AddEvent(FEventIsActive);
+  FdEnabled.ChangeAlways := chNone;
 end;
 
-procedure TMetadataBooleanNode.CreateNode;
+{ TAbstractMetadataNode ------------------------------------------------------ }
+
+constructor TAbstractMetadataNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FFdName := TSFString.Create(Self, true, 'name', '');
-  AddField(FFdName);
-
-  FFdReference := TSFString.Create(Self, true, 'reference', '');
-  AddField(FFdReference);
-
-  FFdValue := TMFBool.Create(Self, true, 'value', []);
-  AddField(FFdValue);
-
-  DefaultContainerField := 'metadata';
+  FdName.ChangeAlways := chNone;
+  FdReference.ChangeAlways := chNone;
 end;
 
-class function TMetadataBooleanNode.ClassX3DType: String;
-begin
-  Result := 'MetadataBoolean';
-end;
+{ TMetadataBooleanNode ------------------------------------------------------- }
 
-procedure TMetadataDoubleNode.CreateNode;
+constructor TMetadataBooleanNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FFdName := TSFString.Create(Self, true, 'name', '');
-  AddField(FFdName);
-
-  FFdReference := TSFString.Create(Self, true, 'reference', '');
-  AddField(FFdReference);
-
-  FFdValue := TMFDouble.Create(Self, true, 'value', []);
-  AddField(FFdValue);
-
-  DefaultContainerField := 'metadata';
+  FdValue.ChangeAlways := chNone;
 end;
 
-class function TMetadataDoubleNode.ClassX3DType: String;
-begin
-  Result := 'MetadataDouble';
-end;
+{ TMetadataDoubleNode -------------------------------------------------------- }
 
-procedure TMetadataFloatNode.CreateNode;
+constructor TMetadataDoubleNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FFdName := TSFString.Create(Self, true, 'name', '');
-  AddField(FFdName);
-
-  FFdReference := TSFString.Create(Self, true, 'reference', '');
-  AddField(FFdReference);
-
-  FFdValue := TMFFloat.Create(Self, true, 'value', []);
-  AddField(FFdValue);
-
-  DefaultContainerField := 'metadata';
+  FdValue.ChangeAlways := chNone;
 end;
 
-class function TMetadataFloatNode.ClassX3DType: String;
-begin
-  Result := 'MetadataFloat';
-end;
+{ TMetadataFloatNode --------------------------------------------------------- }
 
-procedure TMetadataIntegerNode.CreateNode;
+constructor TMetadataFloatNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FFdName := TSFString.Create(Self, true, 'name', '');
-  AddField(FFdName);
-
-  FFdReference := TSFString.Create(Self, true, 'reference', '');
-  AddField(FFdReference);
-
-  FFdValue := TMFInt32.Create(Self, true, 'value', []);
-  AddField(FFdValue);
-
-  DefaultContainerField := 'metadata';
+  FdValue.ChangeAlways := chNone;
 end;
 
-class function TMetadataIntegerNode.ClassX3DType: String;
-begin
-  Result := 'MetadataInteger';
-end;
+{ TMetadataIntegerNode ------------------------------------------------------- }
 
-procedure TMetadataSetNode.CreateNode;
+constructor TMetadataIntegerNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FFdName := TSFString.Create(Self, true, 'name', '');
-  AddField(FFdName);
-
-  FFdReference := TSFString.Create(Self, true, 'reference', '');
-  AddField(FFdReference);
-
-  FFdValue := TMFNode.Create(Self, true, 'value', IAbstractMetadataNode);
-  AddField(FFdValue);
-
-  DefaultContainerField := 'metadata';
+  FdValue.ChangeAlways := chNone;
 end;
 
-class function TMetadataSetNode.ClassX3DType: String;
-begin
-  Result := 'MetadataSet';
-end;
+{ TMetadataSetNode ----------------------------------------------------------- }
 
-procedure TMetadataStringNode.CreateNode;
+constructor TMetadataSetNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FFdName := TSFString.Create(Self, true, 'name', '');
-  AddField(FFdName);
-
-  FFdReference := TSFString.Create(Self, true, 'reference', '');
-  AddField(FFdReference);
-
-  FFdValue := TMFString.Create(Self, true, 'value', []);
-  AddField(FFdValue);
-
-  DefaultContainerField := 'metadata';
+  FdValue.ChangeAlways := chNone;
 end;
 
-class function TMetadataStringNode.ClassX3DType: String;
-begin
-  Result := 'MetadataString';
-end;
+{ TMetadataStringNode -------------------------------------------------------- }
 
-procedure TWorldInfoNode.CreateNode;
+constructor TMetadataStringNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FFdInfo := TMFString.Create(Self, false, 'info', []);
-  AddField(FFdInfo);
-
-  FFdTitle := TSFString.Create(Self, false, 'title', '');
-  AddField(FFdTitle);
+  FdValue.ChangeAlways := chNone;
 end;
 
-class function TWorldInfoNode.ClassX3DType: String;
+{ TWorldInfoNode ------------------------------------------------------------- }
+
+constructor TWorldInfoNode.Create(const AX3DName, ABaseUrl: String);
 begin
-  Result := 'WorldInfo';
+  inherited;
+  FdInfo.ChangeAlways := chNone;
+  FdTitle.ChangeAlways := chNone;
 end;
+
+{ registration --------------------------------------------------------------- }
 
 procedure RegisterCoreNodes;
 begin

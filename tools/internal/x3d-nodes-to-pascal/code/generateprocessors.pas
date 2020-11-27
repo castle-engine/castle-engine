@@ -262,14 +262,17 @@ begin
   Result := SuffixRemove('Node', Result, true);
   Result := Result + 'Node';
 
+  // avoid TAbstractMetadataObjectNode, make it just TAbstractMetadataNode
+  if IsSuffix('ObjectNode', Result) then
+    Result := SuffixRemove('ObjectNode', Result, true) + 'Node';
+
   if ForceAsInterface or IsInterface then
   begin
-    // to avoid IAbstractMetadataObjectNode
-    if IsSuffix('ObjectNode', Result) then
-      Result := SuffixRemove('ObjectNode', Result, true) + 'Node';
-    Result := 'I' + Result
+    Result := 'I' + Result;
   end else
+  begin
     Result := 'T' + Result;
+  end;
 end;
 
 { TX3DNodeInformationList ---------------------------------------------------- }
@@ -941,8 +944,7 @@ begin
     WritelnVerbose('Not processing, this field has special implementation: ' + Field.X3DName);
     Exit;
   end;
-  if (Node.X3DType = 'X3DMetadataObject') or
-     (Node.X3DType = 'X3DFogObject') or
+  if (Node.X3DType = 'X3DFogObject') or
      (Node.X3DType = 'X3DPickableObject') or
      (Node.X3DType = 'LOD') then
   begin

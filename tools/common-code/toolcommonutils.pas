@@ -206,23 +206,31 @@ function GetCastleEnginePathFromExeName: String;
       DirectoryExists(Path + 'tools' + PathDelim + 'build-tool' + PathDelim + 'data');
   end;
 
+var
+  ToolDir: String;
 begin
   try
     // knowingly using deprecated ExeName, that should be non-deprecated and internal here
     {$warnings off}
+    ToolDir := ExtractFileDir(ExeName);
+    {$warnings on}
+    { in case we're inside macOS bundle, use bundle path.
+      This makes detection in case of CGE editor work OK. }
+    {$ifdef DARWIN}
+    if BundlePath <> '' then
+      ToolDir := ExclPathDelim(BundlePath);
+    {$endif}
 
     { Check ../ of current exe, makes sense in released CGE version when
       tools are precompiled in bin/ subdirectory. }
-    Result := InclPathDelim(ExtractFileDir(ExtractFileDir(ExeName)));
+    Result := InclPathDelim(ExtractFileDir(ToolDir));
     if CheckCastlePath(Result) then
       Exit;
     { Check ../ of current exe, makes sense in development when
       each tool is compiled by various scripts in tools/xxx/ subdirectory. }
-    Result := InclPathDelim(ExtractFileDir(ExtractFileDir(ExtractFileDir(ExeName))));
+    Result := InclPathDelim(ExtractFileDir(ExtractFileDir(ToolDir)));
     if CheckCastlePath(Result) then
       Exit;
-
-    {$warnings on}
 
     Result := '';
   except

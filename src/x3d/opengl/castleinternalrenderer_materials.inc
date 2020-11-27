@@ -15,7 +15,6 @@
 
 var
   Lighting: Boolean;
-  MaterialOpacity: Single;
 
 procedure RenderMaterialsBegin;
 
@@ -43,11 +42,6 @@ procedure RenderMaterialsBegin;
   {$endif}
   begin
     Shader.Material := M;
-
-    if M <> nil then
-      MaterialOpacity := M.Opacity
-    else
-      MaterialOpacity := 1;
 
     if RenderOptions.Mode <> rmFull then Exit;
 

@@ -403,8 +403,12 @@ begin
       begin
         if PerVertexColor then
         begin
-          Assert(Arrays.HasColor);
-          CurrentMeshShader.AttributeCastle_ColorPerVertex.EnableArrayVector4(Arrays.AttributeSize, PtrUInt(Arrays.Color));
+          Assert(Arrays.ColorType <> ctNone);
+          case Arrays.ColorType of
+            ctRgb     : CurrentMeshShader.AttributeCastle_ColorPerVertex.EnableArrayVector3(Arrays.AttributeSize, PtrUInt(Arrays.ColorRgb));
+            ctRgbAlpha: CurrentMeshShader.AttributeCastle_ColorPerVertex.EnableArrayVector4(Arrays.AttributeSize, PtrUInt(Arrays.ColorRgbAlpha));
+            else ;
+          end;
           Attribs.Add(CurrentMeshShader.AttributeCastle_ColorPerVertex);
         end;
 
@@ -432,9 +436,13 @@ begin
         {$ifndef OpenGLES}
         if PerVertexColor then
         begin
-          Assert(Arrays.HasColor);
+          Assert(Arrays.ColorType <> ctNone);
           glEnableClientState(GL_COLOR_ARRAY);
-          glColorPointer(4, GL_FLOAT, Arrays.AttributeSize, Arrays.Color);
+          case Arrays.ColorType of
+            ctRgb     : glColorPointer(3, GL_FLOAT, Arrays.AttributeSize, Arrays.ColorRgb);
+            ctRgbAlpha: glColorPointer(4, GL_FLOAT, Arrays.AttributeSize, Arrays.ColorRgbAlpha);
+            else ;
+          end;
         end else
         if (RenderOptions.Mode = rmFull) and Arrays.ForceUnlit then
           glColorv(Arrays.ForcedUnlitColor);
@@ -524,7 +532,7 @@ end;
 
 function TBaseCoordinateRenderer.PerVertexColor: Boolean;
 begin
-  Result := (RenderOptions.Mode = rmFull) and Arrays.HasColor;
+  Result := (RenderOptions.Mode = rmFull) and (Arrays.ColorType <> ctNone);
 end;
 
 { TTextureCoordinateRenderer ----------------------------------------- }
@@ -932,8 +940,8 @@ begin
     { Note that the shader implementation of color-per-vertex is enabled regardless
       if we have lighting or not, as in fact this activates COLOR_PER_VERTEX
       feature, which works regardless if we're lit or unlit. }
-    Assert(Arrays.HasColor); // PerVertexColor = true should guarantee this
-    Shader.EnableColorPerVertex(Arrays.ColorMode);
+    Assert(Arrays.ColorType <> ctNone); // PerVertexColor = true should guarantee this
+    Shader.EnableColorPerVertex(Arrays.ColorMode, Arrays.ColorType);
 
     {$ifndef OpenGLES}
     { For fixed-function pipeline, GL_COLOR_MATERIAL is needed only if Lighting. }

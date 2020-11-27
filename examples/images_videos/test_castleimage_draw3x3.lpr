@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,7 +26,7 @@ var
   SourceImage, DestImage: TCastleImage;
 begin
   try
-    SourceImage := LoadImage('../2d_standard_ui/show_various_ui_controls/data/box_with_borders.png');
+    SourceImage := LoadImage('castle-data:/box_with_borders.png');
 
     DestImage := TRGBAlphaImage.Create(400, 400);
     DestImage.Clear(Yellow);

@@ -207,14 +207,7 @@ void calculate_lighting(out vec4 result, const in vec4 vertex_eye, const in vec3
      (because it cannot be, as we're on vertex shader). */
   vec4 material_base_alpha;
 
-  material_base_alpha =
-    #if defined(COLOR_PER_VERTEX_REPLACE)
-    castle_ColorPerVertexFragment;
-    #elif defined(COLOR_PER_VERTEX_MODULATE)
-    castle_ColorPerVertexFragment * castle_MaterialBaseAlpha;
-    #else
-    castle_MaterialBaseAlpha;
-    #endif
+  material_base_alpha = castle_apply_color_per_vertex(castle_MaterialBaseAlpha);
 
   main_texture_apply(material_base_alpha, normal_eye);
 

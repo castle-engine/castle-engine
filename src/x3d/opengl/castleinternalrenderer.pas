@@ -103,14 +103,7 @@
   )
 
   The renderer uses arrays in GPU-friendly format defined by TGeometryArrays.
-
-  They have the same number of triangles and vertices as
-  calculated by TAbstractGeometryNode.Triangulate,
-  TAbstractGeometryNode.LocalTriangulate,
-  TAbstractGeometryNode.TrianglesCount,
-  TAbstractGeometryNode.VerticesCount (with OverTriangulate = @true).
 }
-
 unit CastleInternalRenderer;
 
 {$I castleconf.inc}
@@ -123,7 +116,7 @@ uses Classes, SysUtils, Generics.Collections,
   CastleInternalX3DLexer, CastleImages, CastleGLUtils, CastleRendererInternalLights,
   CastleGLShaders, CastleGLImages, CastleTextureImages, CastleVideos, X3DTime,
   CastleShapes, CastleGLCubeMaps, CastleClassUtils, CastleCompositeImage,
-  CastleGeometryArrays, CastleArraysGenerator, CastleRendererInternalShader,
+  CastleInternalGeometryArrays, CastleInternalArraysGenerator, CastleRendererInternalShader,
   CastleRendererInternalTextureEnv, CastleBoxes, CastleTransform, CastleRenderOptions;
 
 {$define read_interface}
@@ -441,6 +434,22 @@ type
     { For implementing TextureCoordinateGenerator.mode = "MIRROR-PLANE". }
     MirrorPlaneUniforms: TMirrorPlaneUniforms;
 
+    { Is bump mapping allowed by the current shape.
+      Fully calculated only after InitMeshRenderer, as determining GeneratorClass
+      is needed to set this. }
+    BumpMappingAllowed: Boolean;
+
+    { Is bump mapping used for current shape.
+      Fully calculated only during render, after BumpMappingAllowed is calculated
+      and after textures are applied.
+      This is determined by BumpMappingAllowed,
+      global BumpMapping, and by the texture information for current
+      shape (whether user provided normal map, height map etc.) }
+    BumpMappingUsed: Boolean;
+
+    { Along with Shape.BumpMappingUsed, this is calculated (use only if Shape.BumpMappingUsed). }
+    BumpMappingTextureCoordinatesId: Cardinal;
+
     destructor Destroy; override;
   end;
 
@@ -464,19 +473,7 @@ type
     { ------------------------------------------------------------
       Things usable only during Render. }
 
-    { Is bump mapping allowed by the current shape.
-      Fully calculated only after InitMeshRenderer, as determining GeneratorClass
-      is needed to set this. }
-    ShapeBumpMappingAllowed: Boolean;
-    { Is bump mapping used for current shape.
-      This is determined by ShapeBumpMappingAllowed,
-      global BumpMapping, and by the texture information for current
-      shape (whether user provided normal map, height map etc.) }
-    ShapeBumpMappingUsed: Boolean;
-    ShapeBumpMappingTextureCoordinatesId: Cardinal;
-
     { How many texture units are used.
-
       It's always clamped by the number of available texture units
       (GLFeatures.MaxTextureUnits). Always <= 1 if OpenGL doesn't support
       multitexturing (not GLFeatures.UseMultiTexturing). }
@@ -599,33 +596,33 @@ type
       const Shader: TShader);
     procedure RenderShapeLights(const Shape: TX3DRendererShape;
       const Shader: TShader;
-      const MaterialOpacity: Single; const Lighting: Boolean);
+      const Lighting: Boolean);
     procedure RenderShapeFog(const Shape: TX3DRendererShape;
       const Shader: TShader;
-      const MaterialOpacity: Single; const Lighting: Boolean);
+      const Lighting: Boolean);
     procedure RenderShapeTextureTransform(const Shape: TX3DRendererShape;
       const Shader: TShader;
-      const MaterialOpacity: Single; const Lighting: Boolean);
+      const Lighting: Boolean);
     procedure RenderShapeClipPlanes(const Shape: TX3DRendererShape;
       const Shader: TShader;
-      const MaterialOpacity: Single; const Lighting: Boolean);
+      const Lighting: Boolean);
     procedure RenderShapeCreateMeshRenderer(const Shape: TX3DRendererShape;
       const Shader: TShader;
-      const MaterialOpacity: Single; const Lighting: Boolean);
+      const Lighting: Boolean);
     procedure RenderShapeShaders(const Shape: TX3DRendererShape;
       const Shader: TShader;
-      const MaterialOpacity: Single; const Lighting: Boolean;
+      const Lighting: Boolean;
       const GeneratorClass: TArraysGeneratorClass;
       const ExposedMeshRenderer: TObject);
     procedure RenderShapeTextures(const Shape: TX3DRendererShape;
       const Shader: TShader;
-      const MaterialOpacity: Single; const Lighting: Boolean;
+      const Lighting: Boolean;
       const GeneratorClass: TArraysGeneratorClass;
       const ExposedMeshRenderer: TObject;
       const UsedGLSLTexCoordsNeeded: Cardinal);
     procedure RenderShapeInside(const Shape: TX3DRendererShape;
       const Shader: TShader;
-      const MaterialOpacity: Single; const Lighting: Boolean;
+      const Lighting: Boolean;
       const GeneratorClass: TArraysGeneratorClass;
       const ExposedMeshRenderer: TObject);
 
@@ -2398,12 +2395,12 @@ procedure TGLRenderer.RenderShapeMaterials(const Shape: TX3DRendererShape;
 
 begin
   RenderMaterialsBegin;
-  RenderShapeLights(Shape, Shader, MaterialOpacity, Lighting);
+  RenderShapeLights(Shape, Shader, Lighting);
 end;
 
 procedure TGLRenderer.RenderShapeLights(const Shape: TX3DRendererShape;
   const Shader: TShader;
-  const MaterialOpacity: Single; const Lighting: Boolean);
+  const Lighting: Boolean);
 var
   SceneLights: TLightInstancesList;
 begin
@@ -2427,13 +2424,12 @@ begin
     LightsRenderer.Render(BaseLights, SceneLights, Shader);
   end;
 
-  RenderShapeFog(Shape, Shader, MaterialOpacity, Lighting);
+  RenderShapeFog(Shape, Shader, Lighting);
 end;
 
 procedure TGLRenderer.RenderShapeFog(const Shape: TX3DRendererShape;
   const Shader: TShader;
-  const MaterialOpacity: Single; const Lighting: Boolean);
-
+  const Lighting: Boolean);
 const
   FogCoordinateSource: array [Boolean { volumetric }] of TFogCoordinateSource =
   ( fcDepth, fcPassedCoordinate );
@@ -2545,11 +2541,11 @@ begin
   if FogEnabled then
     Shader.EnableFog(FogType, FogCoordinateSource[FogVolumetric],
       FogColor, FogLinearEnd, FogExpDensity);
-  RenderShapeTextureTransform(Shape, Shader, MaterialOpacity, Lighting);
+  RenderShapeTextureTransform(Shape, Shader, Lighting);
 end;
 
 procedure TGLRenderer.RenderShapeTextureTransform(const Shape: TX3DRendererShape;
-  const Shader: TShader; const MaterialOpacity: Single; const Lighting: Boolean);
+  const Shader: TShader; const Lighting: Boolean);
 var
   TextureTransform: TAbstractTextureTransformNode;
   Child: TX3DNode;
@@ -2703,7 +2699,7 @@ begin
     end;
   end;
 
-  RenderShapeClipPlanes(Shape, Shader, MaterialOpacity, Lighting);
+  RenderShapeClipPlanes(Shape, Shader, Lighting);
 
   if GLFeatures.EnableFixedFunction then
   begin
@@ -2737,7 +2733,7 @@ end;
 
 procedure TGLRenderer.RenderShapeClipPlanes(const Shape: TX3DRendererShape;
   const Shader: TShader;
-  const MaterialOpacity: Single; const Lighting: Boolean);
+  const Lighting: Boolean);
 var
   { How many clip planes were enabled (and so, how many must be disabled
     at the end). }
@@ -2798,7 +2794,7 @@ begin
   {$endif}
 
     Shape.ModelView := Shape.ModelView * Shape.State.Transformation.Transform;
-    RenderShapeCreateMeshRenderer(Shape, Shader, MaterialOpacity, Lighting);
+    RenderShapeCreateMeshRenderer(Shape, Shader, Lighting);
 
   {$ifndef OpenGLES}
   if GLFeatures.EnableFixedFunction then
@@ -2809,7 +2805,7 @@ begin
 end;
 
 procedure TGLRenderer.RenderShapeCreateMeshRenderer(const Shape: TX3DRendererShape;
-  const Shader: TShader; const MaterialOpacity: Single; const Lighting: Boolean);
+  const Shader: TShader; const Lighting: Boolean);
 var
   GeneratorClass: TArraysGeneratorClass;
   MeshRenderer: TMeshRenderer;
@@ -2829,14 +2825,14 @@ var
       { If we have GeneratorClass, create TCompleteCoordinateRenderer.
         We'll initialize TCompleteCoordinateRenderer.Arrays later. }
       MeshRenderer := TCompleteCoordinateRenderer.Create(Self, Shape);
-      ShapeBumpMappingAllowed := GeneratorClass.BumpMappingAllowed;
+      Shape.BumpMappingAllowed := GeneratorClass.BumpMappingAllowed;
     end;
   end;
 
 begin
-  { default ShapeBumpMapping* state }
-  ShapeBumpMappingAllowed := false;
-  ShapeBumpMappingUsed := false;
+  { default Shape.BumpMapping* state }
+  Shape.BumpMappingAllowed := false;
+  Shape.BumpMappingUsed := false;
 
   { Initalize MeshRenderer to something non-nil. }
   if not InitMeshRenderer then
@@ -2849,7 +2845,7 @@ begin
   Assert(MeshRenderer <> nil);
 
   try
-    RenderShapeShaders(Shape, Shader, MaterialOpacity, Lighting,
+    RenderShapeShaders(Shape, Shader, Lighting,
       GeneratorClass, MeshRenderer);
   finally
     FreeAndNil(MeshRenderer);
@@ -2860,7 +2856,7 @@ end;
 
 procedure TGLRenderer.RenderShapeShaders(const Shape: TX3DRendererShape;
   const Shader: TShader;
-  const MaterialOpacity: Single; const Lighting: Boolean;
+  const Lighting: Boolean;
   const GeneratorClass: TArraysGeneratorClass;
   const ExposedMeshRenderer: TObject);
 var
@@ -2952,13 +2948,13 @@ begin
     end;
   end;
 
-  RenderShapeTextures(Shape, Shader, MaterialOpacity, Lighting,
+  RenderShapeTextures(Shape, Shader, Lighting,
     GeneratorClass, MeshRenderer, UsedGLSLTexCoordsNeeded);
 end;
 
 procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
   const Shader: TShader;
-  const MaterialOpacity: Single; const Lighting: Boolean;
+  const Lighting: Boolean;
   const GeneratorClass: TArraysGeneratorClass;
   const ExposedMeshRenderer: TObject;
   const UsedGLSLTexCoordsNeeded: Cardinal);
@@ -3111,14 +3107,13 @@ procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
 begin
   RenderTexturesBegin;
   try
-    RenderShapeInside(Shape, Shader, MaterialOpacity, Lighting,
-      GeneratorClass, MeshRenderer);
+    RenderShapeInside(Shape, Shader, Lighting, GeneratorClass, MeshRenderer);
   finally RenderTexturesEnd end;
 end;
 
 procedure TGLRenderer.RenderShapeInside(const Shape: TX3DRendererShape;
   const Shader: TShader;
-  const MaterialOpacity: Single; const Lighting: Boolean;
+  const Lighting: Boolean;
   const GeneratorClass: TArraysGeneratorClass;
   const ExposedMeshRenderer: TObject);
 var
@@ -3148,12 +3143,11 @@ begin
       Generator := GeneratorClass.Create(Shape, true);
       try
         Generator.TexCoordsNeeded := TexCoordsNeeded;
-        Generator.MaterialOpacity := MaterialOpacity;
         Generator.FogVolumetric := FogVolumetric;
         Generator.FogVolumetricDirection := FogVolumetricDirection;
         Generator.FogVolumetricVisibilityStart := FogVolumetricVisibilityStart;
-        Generator.ShapeBumpMappingUsed := ShapeBumpMappingUsed;
-        Generator.ShapeBumpMappingTextureCoordinatesId := ShapeBumpMappingTextureCoordinatesId;
+        Generator.ShapeBumpMappingUsed := Shape.BumpMappingUsed;
+        Generator.ShapeBumpMappingTextureCoordinatesId := Shape.BumpMappingTextureCoordinatesId;
         Shape.Cache.Arrays := Generator.GenerateArrays;
       finally FreeAndNil(Generator) end;
 

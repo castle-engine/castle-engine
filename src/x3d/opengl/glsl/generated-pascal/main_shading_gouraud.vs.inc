@@ -14,9 +14,32 @@
 'varying vec3 castle_normal_eye;' + LineEnding +
 'varying vec4 castle_Color;' + LineEnding +
 '' + LineEnding +
-'#ifdef COLOR_PER_VERTEX' + LineEnding +
+'#if defined(COLOR_PER_VERTEX_RGB)' + LineEnding +
+'attribute vec3 castle_ColorPerVertex;' + LineEnding +
+'#elif defined(COLOR_PER_VERTEX_RGB_ALPHA)' + LineEnding +
 'attribute vec4 castle_ColorPerVertex;' + LineEnding +
 '#endif' + LineEnding +
+'' + LineEnding +
+'/* Apply per-vertex color, over the base/diffuse/emissive color + alpha. */' + LineEnding +
+'vec4 castle_apply_color_per_vertex(vec4 color)' + LineEnding +
+'{' + LineEnding +
+'  return' + LineEnding +
+'    #if defined(COLOR_PER_VERTEX_REPLACE)' + LineEnding +
+'      #if defined(COLOR_PER_VERTEX_RGB)' + LineEnding +
+'      vec4(castle_ColorPerVertex, color.a);' + LineEnding +
+'      #elif defined(COLOR_PER_VERTEX_RGB_ALPHA)' + LineEnding +
+'      castle_ColorPerVertex;' + LineEnding +
+'      #endif' + LineEnding +
+'    #elif defined(COLOR_PER_VERTEX_MODULATE)' + LineEnding +
+'      #if defined(COLOR_PER_VERTEX_RGB)' + LineEnding +
+'      vec4(castle_ColorPerVertex * color.rgb, color.a);' + LineEnding +
+'      #elif defined(COLOR_PER_VERTEX_RGB_ALPHA)' + LineEnding +
+'      castle_ColorPerVertex * color;' + LineEnding +
+'      #endif' + LineEnding +
+'    #else' + LineEnding +
+'    color;' + LineEnding +
+'    #endif' + LineEnding +
+'}' + LineEnding +
 '' + LineEnding +
 '/* Include fragment shader utilities used by both Gouraud and Phong shading. */' + LineEnding +
 '/* CASTLE-COMMON-CODE */' + LineEnding +

@@ -589,7 +589,7 @@ begin
     Each viewport has it's own camera and navigation.
     See
     examples/3d_rendering_processing/multiple_viewports and
-    examples/2d_standard_ui/zombie_fighter/ for more examples of custom viewports. }
+    examples/user_interface/zombie_fighter/ for more examples of custom viewports. }
   ExtraViewport := TCastleViewport.Create(Application);
   ExtraViewport.Items := Viewport.Items; // share the same world as Viewport
   ExtraViewport.FullSize := false;

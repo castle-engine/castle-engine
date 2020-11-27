@@ -15,7 +15,7 @@
 
 { Handle PNG format using either LibPng or FPImage. }
 
-function LoadPNG(Stream: TStream;
+function LoadPNG(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
   {$if defined(CASTLE_PNG_DYNAMIC) or defined(CASTLE_PNG_STATIC)}
@@ -26,7 +26,7 @@ begin
     Result := LoadPNG_FPImage(Stream, AllowedImageClasses);
 end;
 
-procedure SavePNG(Img: TEncodedImage; Stream: TStream);
+procedure SavePNG(const Img: TEncodedImage; const Stream: TStream);
 begin
   {$if defined(CASTLE_PNG_DYNAMIC) or defined(CASTLE_PNG_STATIC)}
   if CastlePngInitialized then

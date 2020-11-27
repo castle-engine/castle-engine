@@ -1588,8 +1588,7 @@ type
   TLoadImageOption = (liFlipVertically);
   TLoadImageOptions = set of TLoadImageOption;
 
-{ TODO: zrobic LoadImageGuess ktore zgaduje format na podstawie
-  zawartosci. }
+{ TODO: add LoadImageGuess which guesses the format based on content. }
 
 (*The ultimate procedure to load an image from a file or URL.
 
@@ -2302,7 +2301,8 @@ begin
     // TODO; ProgressTitle not supported for this
     NewFpImage := MakeResizedToFpImage(ResizeWidth, ResizeHeight, Interpolation);
     try
-      Result := CreateFromFpImage(NewFpImage, [TCastleImageClass(ClassType)]);
+      // since we request our own class as output, CreateFromFpImage must return some TCastleImage
+      Result := CreateFromFpImage(NewFpImage, [TCastleImageClass(ClassType)]) as TCastleImage;
     finally FreeAndNil(NewFpImage) end;
   end else
   begin

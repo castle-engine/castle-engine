@@ -35,9 +35,10 @@
     means to repeat "NextNextRepeatCount shl 16" times and so on.
 }
 
-function LoadRGBE(Stream: TStream;
+function LoadRGBE(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
-var LoadResult: TCastleImage absolute result;
+var
+  LoadResult: TCastleImage absolute result;
 
   { Read from Stream one scanline (of the length result.Width) to RGBERow. }
   procedure ReadRGBERow(RGBERow: PVector4ByteArray);
@@ -192,7 +193,7 @@ begin
   except Result.Free; raise end;
 end;
 
-procedure SaveRGBE(Img: TEncodedImage; Stream: TStream);
+procedure SaveRGBE(const Img: TEncodedImage; const Stream: TStream);
 var
   PByte: PVector3Byte;
   PFloat: PVector3;
