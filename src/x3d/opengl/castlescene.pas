@@ -257,7 +257,6 @@ type
       var LightOn: Boolean);
 
     function GetRenderOptions: TCastleRenderOptions;
->>>>>>> master
   private
     PreparedShapesResources, PreparedRender: Boolean;
     Renderer: TGLRenderer;
