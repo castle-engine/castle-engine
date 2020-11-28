@@ -1098,7 +1098,7 @@ function TDOMElementHelper.TextData: String;
 {
   It concatenates all text data nodes that are direct children
   of this element. So if there are no text data nodes, it returns
-  empty String without raising any error.
+  empty string without raising any error.
 
   AFAIK it's uncommon but
   possible to have here more than one text node. Normally, more than one
