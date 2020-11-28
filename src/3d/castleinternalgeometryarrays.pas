@@ -345,7 +345,6 @@ type
     function GLSLAttributeVector4(const A: TGeometryAttrib; const Index: Cardinal = 0): PVector4;
     function GLSLAttributeMatrix3(const A: TGeometryAttrib; const Index: Cardinal = 0): PMatrix3;
     function GLSLAttributeMatrix4(const A: TGeometryAttrib; const Index: Cardinal = 0): PMatrix4;
->>>>>>> master:src/3d/castleinternalgeometryarrays.pas
 
     { Should we use backface-culling (ignore some faces during rendering).
 
