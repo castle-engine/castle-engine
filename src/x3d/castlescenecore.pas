@@ -5272,8 +5272,6 @@ var
 
   procedure HandleChangeChildren(const OnlyAdditions: Boolean);
   begin
-    if LogChanges then
-      WritelnLog('TODO: Children change (add/remove) is not optimized yet, but could be. Report if you need it.');
     HandleChangeEverything(OnlyAdditions);
   end;
 
