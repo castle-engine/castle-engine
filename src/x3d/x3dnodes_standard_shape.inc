@@ -750,16 +750,16 @@ begin
 
   {$ifndef CASTLE_SLIM_NODES}
   FFdFillProperties := TSFNode.Create(Self, true, 'fillProperties', [TFillPropertiesNode]);
-   FdFillProperties.ChangeAlways := chEverything;
+   FdFillProperties.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdFillProperties);
   {$endif}
 
   FFdLineProperties := TSFNode.Create(Self, true, 'lineProperties', [TLinePropertiesNode]);
-   FdLineProperties.ChangeAlways := chEverything;
+   FdLineProperties.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdLineProperties);
 
   FFdMaterial := TSFNode.Create(Self, true, 'material', [TAbstractMaterialNode]);
-   FdMaterial.ChangeAlways := chEverything;
+   FdMaterial.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdMaterial);
 
   FFdBackMaterial := TSFNode.Create(Self, true, 'backMaterial', [TAbstractMaterialNode]);
@@ -767,7 +767,7 @@ begin
   AddField(FFdBackMaterial);
 
   FFdShaders := TMFNodeShaders.Create(Self, true, 'shaders', [TAbstractShaderNode]);
-   FdShaders.ChangeAlways := chEverything;
+   FdShaders.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdShaders);
 
   FFdTexture := TSFNode.Create(Self, true, 'texture', [TAbstractTextureNode]);
@@ -805,7 +805,7 @@ begin
   AddField(FFdBlendMode);
 
   FFdEffects := TMFNode.Create(Self, false, 'effects', [TEffectNode]);
-   FdEffects.ChangeAlways := chEverything;
+   FdEffects.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdEffects);
 
   FFdAlphaChannel := TSFStringEnum.Create(Self, false, 'alphaChannel', AlphaToString, Ord(acAuto));
