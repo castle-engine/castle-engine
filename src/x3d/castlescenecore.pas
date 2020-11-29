@@ -6321,6 +6321,16 @@ function TCastleSceneCore.PointingDevicePress(const Pick: TRayCollisionNode;
 begin
   Result := inherited;
   if Result then Exit;
+
+  { If the Scene was just added to Viewport (and no mouse move occurred),
+    or if the Scene was modified by ChangedAll, e.g. by removing some items
+    (and no mouse move occurred),
+    then PointingDevicePress would not fire for sensors (like TouchSensor)
+    under mouse, because PointingDeviceOverItem is not set.
+    See https://github.com/castle-engine/castle-engine/issues/227 .
+    Using PointingDeviceMove sets PointingDeviceOverItem. }
+  PointingDeviceMove(Pick, Distance);
+
   Result := PointingDevicePressRelease(true, Distance, { ignored } false);
 end;
 
