@@ -395,6 +395,11 @@ var
 begin
   ReadImportSettings;
 
+  LastAnimationName := '';
+  TexCoordInterp := nil;
+  CoordInterp := nil;
+  TimeSensor := nil;
+
   FRoot := nil;
   Doc := nil;
   try
@@ -431,12 +436,12 @@ begin
             { First frame of animation loaded. }
 
             if CurrentAnimFrameCount > 0 then
-                AddAnimation(CurrentAnimFrameCount, TimeSensor, CoordInterp, TexCoordInterp);
+              AddAnimation(CurrentAnimFrameCount, TimeSensor, CoordInterp, TexCoordInterp);
 
             if not CheckAnimationNameAvailable(FSubTexture.AnimationName) then
             begin
               CurrentAnimFrameCount := 0;
-              continue;
+              Continue;
             end;
 
             { Reset variables for new animation }
@@ -592,4 +597,3 @@ end;
 
 
 end.
-
