@@ -1,6 +1,6 @@
 {
   "FullSize" : true,
-  "Name" : "Group1",
+  "Name" : "RootGroup",
   "$Children" : [
     {
       "AutoCamera" : true,
@@ -116,6 +116,35 @@
       "$Children" : [
       ],
       "$ClassName" : "TCastleButton"
+    },
+    {
+      "ColorPersistent" : {
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000,
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "HorizontalAnchorDelta" : 2.0000000000000000E+001,
+      "Name" : "LabelCurrentColor",
+      "Text" : [
+        "Current Color:"
+      ],
+      "VerticalAnchorDelta" : -1.0155981445312500E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleLabel"
+    },
+    {
+      "HorizontalAnchorDelta" : 2.0000000000000000E+001,
+      "Name" : "RectCurrentColor",
+      "VerticalAnchorDelta" : -1.3355981445312500E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleRectangleControl"
     }
   ],
   "$ClassName" : "TCastleUserInterface"

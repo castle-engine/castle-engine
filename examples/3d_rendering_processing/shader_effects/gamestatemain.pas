@@ -30,9 +30,10 @@ type
     LabelFps: TCastleLabel;
     ButtonRandomizeColor: TCastleButton;
     SceneForEffects: TCastleScene;
+    RectCurrentColor: TCastleRectangleControl;
 
     Effect: TEffectNode;
-    EffectColorField: TSFColor;
+    EffectColorField: TSFVec3f;
     procedure ClickRandomizeColor(Sender: TObject);
   public
     procedure Start; override;
@@ -60,7 +61,7 @@ procedure TStateMain.Start;
     Effect.Language := slGLSL;
 
     { Add custom field (maps to GLSL uniform "color"), initially white }
-    EffectColorField := TSFColor.Create(Effect, true, 'color', Vector3(1, 1, 1));
+    EffectColorField := TSFVec3f.Create(Effect, true, 'color', Vector3(1, 1, 1));
     Effect.AddCustomField(EffectColorField);
 
     { Add TEffectPartNode which actually contains shader code.
@@ -98,6 +99,7 @@ begin
   LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
   ButtonRandomizeColor := UiOwner.FindRequiredComponent('ButtonRandomizeColor') as TCastleButton;
   SceneForEffects := UiOwner.FindRequiredComponent('SceneForEffects') as TCastleScene;
+  RectCurrentColor := UiOwner.FindRequiredComponent('RectCurrentColor') as TCastleRectangleControl;
 
   CreateEffect(SceneForEffects);
 
@@ -116,6 +118,7 @@ var
   NewColor: TVector3;
 begin
   NewColor := Vector3(Random, Random, Random);
+  RectCurrentColor.Color := Vector4(NewColor, 1);
   EffectColorField.Send(NewColor);
 end;
 
