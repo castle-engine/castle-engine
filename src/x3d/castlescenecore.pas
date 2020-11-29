@@ -1255,7 +1255,7 @@ type
       detect what this change implicates for this VRML/X3D scene.
 
       @exclude }
-    procedure InternalChangedField(Field: TX3DField); override;
+    procedure InternalChangedField(const Field: TX3DField; const Change: TX3DChange); override;
 
     { Notification when geometry changed.
       "Geometry changed" means that the positions
@@ -4720,10 +4720,9 @@ begin
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
 end;
 
-procedure TCastleSceneCore.InternalChangedField(Field: TX3DField);
+procedure TCastleSceneCore.InternalChangedField(const Field: TX3DField; const Change: TX3DChange);
 var
   ANode: TX3DNode;
-  Change: TX3DChange;
 
   procedure DoLogChanges(const Additional: string = '');
   var
@@ -5296,7 +5295,7 @@ begin
   ANode := TX3DNode(Field.ParentNode);
   Assert(ANode <> nil);
 
-  { We used to check here RootNode.IsNodePresent, to eliminate
+  { We used to check here RootNode.IsNodePresent(ANode), to eliminate
     changes to nodes not in our graph. This is not done now, because:
 
     1. This check is not usually needed, and usually it wastes quite
@@ -5310,8 +5309,6 @@ begin
        of it: VRML1DefaultState, and also all the nodes created
        by Proxy methods (geometry and new state nodes).
   }
-
-  Change := Field.ExecuteChange;
 
   if LogChanges then
     DoLogChanges;
@@ -6439,8 +6436,7 @@ begin
                  IndexOf(ActiveSensor) <> -1) and
                (ActiveSensor is TTouchSensorNode) then
             begin
-              TTouchSensorNode(ActiveSensor).
-                EventTouchTime.Send(Time, NextEventTime);
+              TTouchSensorNode(ActiveSensor).EventTouchTime.Send(Time, NextEventTime);
             end;
           end;
           FPointingDeviceActiveSensors.Count := 0;
