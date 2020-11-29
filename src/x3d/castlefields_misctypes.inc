@@ -211,7 +211,13 @@
     chWireframe,
 
     { Children of X3D (or VRML 2) grouping node have been added or removed. }
-    chChildren,
+    chGroupChildren,
+
+    { Children of X3D (or VRML 2) grouping node have been added (but not removed).
+      This is special case of chGroupChildren.
+      If unsure whether something was removed or not, it is always safe to use chGroupChildren.
+      If you are sure that only additions were done, use chGroupChildrenAdd to be more efficient. }
+    chGroupChildrenAdd,
 
     { Shape.bboxCenter/Size changed, so TShape.LocalBoundingBox changed. }
     chBBox

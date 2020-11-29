@@ -761,7 +761,8 @@ type
 
     { Mechanism to schedule ChangedAll and GeometryChanged calls. }
     ChangedAllSchedule: Cardinal;
-    ChangedAllScheduled: boolean;
+    ChangedAllScheduled: Boolean;
+    ChangedAllScheduledOnlyAdditions: Boolean;
 
     ChangedAllCurrentViewpointIndex: Cardinal;
     FInitialViewpointIndex: Cardinal;
@@ -1232,7 +1233,7 @@ type
 
       ChangedAll calls BeforeNodesFree(true) first, for safety (and TGLShape
       actually depends on it, see implementation comments). }
-    procedure ChangedAll; override;
+    procedure ChangedAll(const OnlyAdditions: Boolean = false); override;
 
     { Notify scene that you changed the value of given field.
       @bold(This method is internal, it should be used only by TX3DField
@@ -1334,7 +1335,7 @@ type
       immediately call ChangedAll.
 
       @groupBegin }
-    procedure ScheduleChangedAll;
+    procedure ScheduleChangedAll(const OnlyAdditions: Boolean = false);
     procedure BeginChangesSchedule;
     procedure EndChangesSchedule;
     { @groupEnd }
@@ -3994,7 +3995,7 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.ChangedAll;
+procedure TCastleSceneCore.ChangedAll(const OnlyAdditions: Boolean);
 
   { Add where necessary lights with scope = global. }
   procedure AddGlobalLights;
@@ -4092,7 +4093,12 @@ begin
   try
 
   if LogChanges then
-    WritelnLog('X3D changes', 'ChangedAll');
+    WritelnLog('X3D changes', 'ChangedAll (OnlyAdditions: %s)', [BoolToStr(OnlyAdditions, true)]);
+
+  { TODO:
+    We ignore OnlyAdditions now.
+    We have to even do BeforeNodesFree always, even when OnlyAdditions,
+    the code below (may) assume it is always done, e.g. all lists are cleared in BeforeNodesFree. }
 
   BeforeNodesFree(true);
 
@@ -5179,10 +5185,10 @@ var
     end;
   end;
 
-  procedure HandleChangeEverything;
+  procedure HandleChangeEverything(const OnlyAdditions: Boolean = false);
   begin
     { An arbitrary change occurred. }
-    ScheduleChangedAll;
+    ScheduleChangedAll(OnlyAdditions);
   end;
 
   { Handle Change in [chVisibleGeometry, chVisibleNonGeometry, chRedisplay] }
@@ -5264,11 +5270,11 @@ var
     VisibleChangeHere([vcVisibleNonGeometry]);
   end;
 
-  procedure HandleChangeChildren;
+  procedure HandleChangeChildren(const OnlyAdditions: Boolean);
   begin
     if LogChanges then
       WritelnLog('TODO: Children change (add/remove) is not optimized yet, but could be. Report if you need it.');
-    HandleChangeEverything;
+    HandleChangeEverything(OnlyAdditions);
   end;
 
   procedure HandleChangeBBox;
@@ -5351,7 +5357,7 @@ begin
       chEverything: HandleChangeEverything;
       chShadowMaps: HandleChangeShadowMaps;
       chWireframe: HandleChangeWireframe;
-      chChildren: HandleChangeChildren;
+      chGroupChildren, chGroupChildrenAdd: HandleChangeChildren(Change = chGroupChildrenAdd);
       chBBox: HandleChangeBBox;
       chVisibleGeometry, chVisibleNonGeometry, chRedisplay: HandleVisibleChange;
       else ;
@@ -6988,14 +6994,20 @@ begin
   { ChangedAllScheduled = false always when ChangedAllSchedule = 0. }
   Assert((ChangedAllSchedule <> 0) or (not ChangedAllScheduled));
 
+  ChangedAllScheduledOnlyAdditions := true; // may be changed to false by ScheduleChangedAll
+
   Inc(ChangedAllSchedule);
 end;
 
-procedure TCastleSceneCore.ScheduleChangedAll;
+procedure TCastleSceneCore.ScheduleChangedAll(const OnlyAdditions: Boolean);
 begin
   if ChangedAllSchedule = 0 then
-    ChangedAll else
+    ChangedAll
+  else
+  begin
     ChangedAllScheduled := true;
+    ChangedAllScheduledOnlyAdditions := ChangedAllScheduledOnlyAdditions and OnlyAdditions;
+  end;
 end;
 
 procedure TCastleSceneCore.EndChangesSchedule;
@@ -7004,7 +7016,7 @@ begin
   if (ChangedAllSchedule = 0) and ChangedAllScheduled then
   begin
     { Note that ChangedAll will set ChangedAllScheduled to false. }
-    ChangedAll;
+    ChangedAll(ChangedAllScheduledOnlyAdditions);
   end;
 end;
 
