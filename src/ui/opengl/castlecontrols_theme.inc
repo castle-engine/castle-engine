@@ -96,7 +96,9 @@
       This allows to avoid making a screenshot (TStateDialog.BackgroundScreenshot may be false),
       which is safer when we want to show an exception
       (since the application may be in some dirty state, so it's better to avoid
-      rendering user stuff). }
+      rendering user stuff).
+
+      @exclude }
     InternalForceOpaqueBackground: boolean;
 
     DefaultLabelWhite: Boolean deprecated 'if you want the labels to be white, adjust TCastleLabel.Color to White after creating every TCastleLabel';

@@ -1892,7 +1892,7 @@ type
       @italic(Current implementation notes:)
 
       Currently, this is used by TCastleScene if you use
-      @link(RenderOptions.OcclusionQuery TCastleRenderOptions.OcclusionQuery).
+      @link(TCastleRenderOptions.OcclusionQuery RenderOptions.OcclusionQuery).
       Normally, occlusion query tries to reuse results from previous
       frame, using the assumption that usually camera changes slowly
       and objects appear progressively in the view. When you make
