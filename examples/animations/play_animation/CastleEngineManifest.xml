@@ -4,5 +4,4 @@
   game_units="GameInitialize"
   qualified_name="io.castleengine.play.animation"
 >
-  <data exists="false" />
 </project>
