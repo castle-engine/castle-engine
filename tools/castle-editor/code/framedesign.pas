@@ -1822,6 +1822,7 @@ var
   RayOrigin, RayDirection: TVector3;
   RayHit: TRayCollision;
   Distance: Single;
+  OldPickable: Boolean;
 
   function Is2DAsset(URL : String): Boolean;
   var
@@ -1849,7 +1850,6 @@ begin
         Exit;
 
       Viewport := TCastleViewport(UI);
-
       try
         Scene := AddComponent(Viewport.Items, TCastleScene, nil) as TCastleScene;
 
@@ -1858,16 +1858,23 @@ begin
 
         Scene.URL := SelectedURL;
 
-        Viewport.PositionToRay(Vector2(X, CastleControl.Height - Y), true, RayOrigin, RayDirection);
-        RayHit := Viewport.Items.WorldRay(RayOrigin, RayDirection);
+        { Make gizmos not pickable when looking for new scene position,
+          because ray can hit on gizmo. }
+        OldPickable := VisualizeTransformSelected.Pickable;
+        try
+          VisualizeTransformSelected.Pickable := false;
+          Viewport.PositionToRay(Vector2(X, CastleControl.Height - Y), true, RayOrigin, RayDirection);
+          RayHit := Viewport.Items.WorldRay(RayOrigin, RayDirection);
+        finally
+          VisualizeTransformSelected.Pickable := OldPickable;
+        end;
         if RayHit <> nil then
         begin
           Distance := RayHit.Distance;
           FreeAndNil(RayHit);
         end else
         begin
-          // if we don't hit any other scene set to default
-
+          // if we don't hit any other scene set Distance to default
           if Viewport.Camera.ProjectionType = ptOrthographic then
           begin
             // use camera position for 2D
