@@ -82,10 +82,12 @@ type
       FHover: Boolean;
       FOperation: TVisualizeOperation;
       FParent: TCastleTransform;
+      FPickable: Boolean;
       Box: TDebugTransformBox;
       Gizmo: array [TVisualizeOperation] of TGizmoScene;
     procedure SetOperation(const AValue: TVisualizeOperation);
     procedure SetParent(const AValue: TCastleTransform);
+    procedure SetPickable(const Value: Boolean);
     procedure GizmoHasModifiedParent(Sender: TObject);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -96,6 +98,7 @@ type
     { Currently visualized TCastleTransform instance.
       @nil to not visualize anything. }
     property Parent: TCastleTransform read FParent write SetParent;
+    property Pickable: Boolean read FPickable write SetPickable;
     property Operation: TVisualizeOperation read FOperation write SetOperation
       default voSelect;
   end;
@@ -541,6 +544,7 @@ constructor TVisualizeTransform.Create(AOwner: TComponent; const AHover: Boolean
 begin
   inherited Create(AOwner);
   FHover := AHover;
+  FPickable := true;
 
   Box := TDebugTransformBox.Create(Self);
   if FHover then
@@ -596,6 +600,19 @@ begin
     if Gizmo[Operation] <> nil then
       FParent.Add(Gizmo[Operation]);
     FParent.FreeNotification(Self);
+  end;
+end;
+
+procedure TVisualizeTransform.SetPickable(const Value: Boolean);
+var
+  VisualizeOperation: TVisualizeOperation;
+begin
+  if FPickable <> Value then
+  begin
+    FPickable := Value;
+    for VisualizeOperation in TVisualizeOperation do
+      if Gizmo[VisualizeOperation] <> nil then // Gizmo[voSelect] is nil now, nothing to show
+        Gizmo[VisualizeOperation].Pickable := Value;
   end;
 end;
 
