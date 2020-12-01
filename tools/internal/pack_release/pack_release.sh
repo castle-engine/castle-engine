@@ -165,7 +165,6 @@ do_pack_platform ()
      tools/texture-font-to-pascal/texture-font-to-pascal"${EXE_EXTENSION}" \
      tools/image-to-pascal/image-to-pascal"${EXE_EXTENSION}" \
      tools/castle-curves/castle-curves"${EXE_EXTENSION}" \
-     tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d"${EXE_EXTENSION}" \
      tools/to-data-uri/to-data-uri"${EXE_EXTENSION}" \
      tools/castle-editor/castle-editor"${EXE_EXTENSION}" \
      "${TEMP_PATH_CGE}"bin-to-keep
