@@ -181,9 +181,7 @@ end;
 
 class procedure TEventsHandler.ButtonOpen3DClick(Sender: TObject);
 begin
-  Open('../../fps_game/data/knight_creature/knight.gltf');
-
-  //Open('../resource_animations/data/knight_single_x3d/knight.x3dv');
+  Open('castle-data:/gltf_knight/knight.gltf');
 
   { Note: TransitionDuration is not supported for castle-anim-frames.
     TransitionDuration is supported on other model formats (in particular
@@ -193,7 +191,7 @@ end;
 
 class procedure TEventsHandler.ButtonOpen2DSpineClick(Sender: TObject);
 begin
-  Open('../../2d_dragon_spine_game/data/dragon/dragon.json');
+  Open('castle-data:/spine_dragon/dragon.json');
 end;
 
 { Simple funtion to parse current settings in options UI
@@ -222,7 +220,7 @@ end;
 
 class procedure TEventsHandler.ButtonOpen2DCocos2dClick(Sender: TObject);
 begin
-  Open('../../../tools/sprite-sheet-to-x3d/samples/wolf.plist');
+  Open('castle-data:/cocos2d/wolf.plist');
 end;
 
 class procedure TEventsHandler.ButtonOpen2DImageClick(Sender: TObject);
