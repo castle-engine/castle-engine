@@ -1815,14 +1815,13 @@ var
   ShellList: TCastleShellListView;
   SelectedFileName: String;
   SelectedURL: String;
-  R: TRegisteredComponent;
   Scene: TCastleScene;
   UI: TCastleUserInterface;
   Viewport: TCastleViewport;
-  Pos2D: TVector2;
-  Z: Single;
-  Asset2D: Boolean;
-  Transform: TCastleTransform;
+  ScenePos: TVector3;
+  RayOrigin, RayDirection: TVector3;
+  RayHit: TRayCollision;
+  Distance: Single;
 
   function Is2DAsset(URL : String): Boolean;
   var
@@ -1854,26 +1853,37 @@ begin
       try
         Scene := AddComponent(Viewport.Items, TCastleScene, nil) as TCastleScene;
 
-        Asset2D := Is2DAsset(SelectedURL);
-
-        if Asset2D then
+        if Is2DAsset(SelectedURL) then
           Scene.Setup2D;
+
         Scene.URL := SelectedURL;
 
-        if Asset2D then
+        Viewport.PositionToRay(Vector2(X, CastleControl.Height - Y), true, RayOrigin, RayDirection);
+        RayHit := Viewport.Items.WorldRay(RayOrigin, RayDirection);
+        if RayHit <> nil then
         begin
-          Pos2D := Viewport.PositionTo2DWorld(Vector2(X, CastleControl.Height - Y), true);
+          Distance := RayHit.Distance;
+          FreeAndNil(RayHit);
+        end else
+        begin
+          // if we don't hit any other scene set to default
 
-          Z := 0;
-          // check if there is something, if is change Z value
-          Transform := FDesignerLayer.HoverTransform(Vector2(X, CastleControl.Height - Y));
-          if Transform <> nil then
-            Z := Transform.Translation.Z + 1.0;
-
+          if Viewport.Camera.ProjectionType = ptOrthographic then
+          begin
+            // use camera position for 2D
+            if Viewport.Camera.Position.Z > 100 then
+              Distance := Viewport.Camera.Position.Z
+            else
+              Distance := 100;
+          end else
+            Distance := 20;
         end;
+        ScenePos := RayOrigin + (RayDirection * Distance);
 
-        WritelnWarning(IntToStr(Pos2D.X) + ' ' + IntToStr(Pos2D.Y) + ' ' + FloatToStr(Z));
-        Scene.Translation := Vector3(Pos2D.X, Pos2D.Y, Z);
+        if Viewport.Camera.ProjectionType = ptOrthographic then
+          ScenePos := ScenePos - Viewport.Camera.Direction;
+
+        Scene.Translation := ScenePos;
       except
         on E: Exception do
           ErrorBox(E.Message);
