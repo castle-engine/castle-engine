@@ -388,12 +388,10 @@ procedure TProjectForm.FormCreate(Sender: TObject);
       '- Other files open in external applications.';
     ShellListView1.PopupMenu := ShellListPopupMenu;
     ShellListView1.SmallImages := ShellIcons;
+    ShellListView1.DragMode := dmAutomatic;
 
     ShellTreeView1.ShellListView := ShellListView1;
     ShellListView1.ShellTreeView := ShellTreeView1;
-
-    ShellListView1.DragMode := dmAutomatic;
-    //ShellListView1.OnStartDrag :=  ;
   end;
 
 begin

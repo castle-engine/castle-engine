@@ -184,7 +184,7 @@ function FilenameToURISafe(FileName: string): string;
 
 { Tries change URI to use castle-data: protocol.
   It's used in our editor to change absolute paths to relative to castle-data
-  direcotry. }
+  directory. }
 function MaybeUseDataProtocol(const URL: String): String;
 
 { Get MIME type for content of the URI @italic(without downloading the file).
