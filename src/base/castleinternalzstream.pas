@@ -45,17 +45,17 @@ type
   {$ifdef FPC}
   class(TOwnerStream)
   private
-    FWriteMode : Boolean;
+    FWriteMode : boolean;
     FFIle : gzfile;
   public
-    Constructor Create(const Stream: TStream; const AWriteMode: Boolean);
+    Constructor Create(const Stream: TStream; const AWriteMode: boolean);
     Destructor Destroy;override;
     Function Read(Var Buffer; Count : longint): longint;override;
     function Write(const Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
   {$else}
   class(TDecompressionStream)
-    constructor Create(const Stream: TStream; const AWriteMode: Boolean);
+    constructor Create(const Stream: TStream; const AWriteMode: boolean);
   {$endif}
   end;
 
@@ -70,7 +70,7 @@ Const
 
 // TGZFileStream
 
-Constructor TGZFileStream.Create(const Stream: TStream; const AWriteMode: Boolean);
+Constructor TGZFileStream.Create(const Stream: TStream; const AWriteMode: boolean);
 begin
   inherited Create(Stream);
   SourceOwner := true;
@@ -112,7 +112,7 @@ end;
 
 {$else}
 
-constructor TGZFileStream.Create(const Stream: TStream; const AWriteMode: Boolean);
+constructor TGZFileStream.Create(const Stream: TStream; const AWriteMode: boolean);
 begin
   if AWriteMode then
     raise EZlibError.Create('Writing gzip data on Delphi not implemented yet');

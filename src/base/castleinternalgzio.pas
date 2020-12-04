@@ -55,7 +55,7 @@ uses zbase, crc, zdeflate, zinflate, Classes;
 type gzFile = pointer;
 type z_off_t = longint;
 
-function gzopen  (const Stream: TStream; const WriteMode: Boolean) : gzFile;
+function gzopen  (const Stream: TStream; const WriteMode: boolean) : gzFile;
 function gzread  (f:gzFile; buf:pointer; len:cardinal) : integer;
 function gzgetc  (f:gzfile) : integer;
 function gzgets  (f:gzfile; buf:Pchar; len:integer) : Pchar;
@@ -73,7 +73,7 @@ function gztell  (f:gzfile) : z_off_t;
 function gzclose (f:gzFile)                      : integer;
 function gzsetparams (f:gzfile; level:integer; strategy:integer) : integer;
 function gzrewind (f:gzFile) : integer;
-function gzeof (f:gzfile) : Boolean;
+function gzeof (f:gzfile) : boolean;
 
 const
   SEEK_SET {: z_off_t} = 0; { seek from beginning of file }
@@ -104,14 +104,14 @@ const
 type gz_stream = record
   stream      : z_stream;
   z_err       : integer;      { error code for last stream operation }
-  z_eof       : Boolean;  { set if end of input file }
+  z_eof       : boolean;  { set if end of input file }
   gzStream    : TStream;     { .gz file }
   inbuf       : Pbyte;   { input buffer }
   outbuf      : Pbyte;   { output buffer }
   crc         : cardinal;    { crc32 of uncompressed data }
   msg         : string[79]; { error message - limit 79 chars }
-  transparent : Boolean;  { true if input file is not a .gz file }
-  WriteMode   : Boolean;  { false means that we're in read mode }
+  transparent : boolean;  { true if input file is not a .gz file }
+  WriteMode   : boolean;  { false means that we're in read mode }
   startpos    : longint;     { start of compressed data in file (header skipped) }
 end;
 
@@ -134,7 +134,7 @@ procedure check_header(s:gz_streamp); forward;
 
 ============================================================================}
 
-function gzopen(const Stream: TStream; const WriteMode:Boolean) : gzFile;
+function gzopen(const Stream: TStream; const WriteMode:boolean) : gzFile;
 
 var
   err      : integer;
@@ -744,7 +744,7 @@ end;
 function do_flush (f:gzfile; flush:integer) : integer;
 var
   len     : cardinal;
-  done    : Boolean;
+  done    : boolean;
   s       : gz_streamp;
   written : integer;
 begin
@@ -984,7 +984,7 @@ end;
 
 ============================================================================}
 
-function gzeof (f:gzfile) : Boolean;
+function gzeof (f:gzfile) : boolean;
 var
   s:gz_streamp;
 begin

@@ -186,7 +186,7 @@ function zError(err:longint):string;
   are initialized and you can simply use zlib. If false then zlib was not
   installed, all function pointers in this unit are nil
   and you can't use anything fro zlib. }
-function CastleZLibInitialized: Boolean;
+function CastleZLibInitialized: boolean;
 
 procedure ZLibInitialization;
 
@@ -227,7 +227,7 @@ function zError(err:longint):string;
 var
   ZLibrary: TDynLib;
 
-function CastleZLibInitialized: Boolean;
+function CastleZLibInitialized: boolean;
 begin
  Result := ZLibrary <> nil;
 end;
