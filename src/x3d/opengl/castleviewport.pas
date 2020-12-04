@@ -3063,6 +3063,15 @@ begin
     if Value = nil then
       raise EInternalError.Create('Cannot set TCastleSceneManager.Items to nil');
     FItems := Value;
+
+    { TODO: do the same thing we did when creating internal FItems:
+    FItems.OnCursorChange := @RecalculateCursor;
+    FItems.OnVisibleChange := @ItemsVisibleChange;
+
+    // No need to change this, it's documented that MainCamera has to be manually managed if you reuse items
+    // FItems.MainCamera := Camera;
+    }
+
   end;
 end;
 

@@ -629,6 +629,10 @@ var
 begin
   CurrentAnimFrameCount := 0;
   FirstFrameInFirstAnimation := true;
+  LastAnimationName := '';
+  TexCoordInterp := nil;
+  CoordInterp := nil;
+  TimeSensor := nil;
 
   I := MetadataNode.ChildrenIterator;
   try
@@ -661,12 +665,12 @@ begin
         { First frame of animation loaded. }
 
         if CurrentAnimFrameCount > 0 then
-            AddAnimation(CurrentAnimFrameCount, TimeSensor, CoordInterp, TexCoordInterp);
+          AddAnimation(CurrentAnimFrameCount, TimeSensor, CoordInterp, TexCoordInterp);
 
         if not CheckAnimationNameAvailable(FCocosFrame.AnimationName) then
         begin
           CurrentAnimFrameCount := 0;
-          continue;
+          Continue;
         end;
 
         { Reset variables for new animation }
@@ -980,4 +984,3 @@ begin
 end;
 
 end.
-

@@ -177,7 +177,9 @@ type
       @italic(Avoid using this.) It's not easy to create portable shaders,
       that work both with OpenGL and OpenGLES. Try using "compositing shaders" instead
       https://castle-engine.io/compositing_shaders.php which still allow you
-      to write GLSL effects, but they are integrated into standard shader code. }
+      to write GLSL effects, but they are integrated into standard shader code.
+
+      @exclude }
     property CustomShader: TObject read FCustomShader write FCustomShader;
       deprecated 'use Effect node to define GLSL shaders that are more flexible';
 
@@ -186,7 +188,9 @@ type
       Relevant only if CustomShader <> nil.
 
       @italic(Do not use this.) This is a temporary hack to enable VSM working
-      with alpha test. It's not clean, and should not be used for anything else. }
+      with alpha test. It's not clean, and should not be used for anything else.
+
+      @exclude }
     property CustomShaderAlphaTest: TObject read FCustomShaderAlphaTest write FCustomShaderAlphaTest;
       deprecated 'use Effect node to define GLSL shaders that are more flexible';
 
@@ -319,7 +323,7 @@ type
       and global lights from
       @link(TCastleRootTransform.MainScene Viewport.Items.MainScene)
       (depending on
-      @link(TCastleRootTransform.UseGlobalLights Viewport.Items.UseGlobalLights))
+      @link(TCastleViewport.UseGlobalLights Viewport.UseGlobalLights))
       affect this scene.
 
       This doesn't matter if @link(Lighting) is @false. }
@@ -360,8 +364,14 @@ type
     { Use bump mapping. The bump mapping is only done when particular shape
       defines a normal map (and a height map, if you want parallax bump mapping).
 
-      The normal map is usually provided in the @link(TMaterialNode.NormalTexture) (Phong lighting)
-      or @link(TPhysicalMaterialNode.NormalTexture) (PBR lighting) fields.
+      The normal map is usually provided in
+      the @link(TAbstractOneSidedMaterialNode.NormalTexture) field.
+      @link(TAbstractOneSidedMaterialNode) is an ancestor of all useful
+      material nodes, like @link(TMaterialNode) (Phong lighting),
+      @link(TPhysicalMaterialNode) (PBR lighting), and even
+      @link(TUnlitMaterialNode) (unlit -- doesn't use normals for lighting,
+      but may still use them e.g. for tex coord generation).
+      So all material nodes allow to specify normal map.
       In CGE we also provide a number of alternative ways to provide normal maps
       ( https://castle-engine.io/x3d_implementation_texturing_extensions.php ),
       but the @code(NormalTexture) field is most advised.

@@ -104,7 +104,7 @@ do_pack_platform ()
   local OS="$1"
   local CPU="$2"
   shift 2
-  
+
   # restore CGE path, otherwise it points to a temporary (and no longer existing)
   # dir after one execution of do_pack_platform
   export CASTLE_ENGINE_PATH="${ORIGINAL_CASTLE_ENGINE_PATH}"
@@ -165,7 +165,6 @@ do_pack_platform ()
      tools/texture-font-to-pascal/texture-font-to-pascal"${EXE_EXTENSION}" \
      tools/image-to-pascal/image-to-pascal"${EXE_EXTENSION}" \
      tools/castle-curves/castle-curves"${EXE_EXTENSION}" \
-     tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d"${EXE_EXTENSION}" \
      tools/to-data-uri/to-data-uri"${EXE_EXTENSION}" \
      tools/castle-editor/castle-editor"${EXE_EXTENSION}" \
      "${TEMP_PATH_CGE}"bin-to-keep
@@ -205,6 +204,11 @@ ORIGINAL_CASTLE_ENGINE_PATH="${CASTLE_ENGINE_PATH}"
 check_fpc_version
 prepare_build_tool
 calculate_cge_version
-do_pack_platform win64 x86_64
-do_pack_platform win32 i386
-do_pack_platform linux x86_64
+if [ -n "${1:-}" ]; then
+  do_pack_platform "${1}" "${2}"
+else
+  # build for default platforms (expected by Jenkinsfile)
+  do_pack_platform win64 x86_64
+  do_pack_platform win32 i386
+  do_pack_platform linux x86_64
+fi

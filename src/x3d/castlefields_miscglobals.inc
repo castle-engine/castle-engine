@@ -69,6 +69,7 @@ const
     'Shadow maps',
     'Wireframe',
     'Children',
+    'Children added',
     'BBox'
   );
 

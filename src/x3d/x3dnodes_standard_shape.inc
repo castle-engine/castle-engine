@@ -750,12 +750,12 @@ begin
 
   {$ifndef CASTLE_SLIM_NODES}
   FFdFillProperties := TSFNode.Create(Self, true, 'fillProperties', [TFillPropertiesNode]);
-   FdFillProperties.ChangeAlways := chEverything;
+   FdFillProperties.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdFillProperties);
   {$endif}
 
   FFdLineProperties := TSFNode.Create(Self, true, 'lineProperties', [TLinePropertiesNode]);
-   FdLineProperties.ChangeAlways := chEverything;
+   FdLineProperties.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdLineProperties);
 
   FFdMaterial := TSFNode.Create(Self, true, 'material', [TAbstractMaterialNode]);

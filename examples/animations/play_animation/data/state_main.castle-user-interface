@@ -1,0 +1,619 @@
+{
+  "FullSize" : true,
+  "Name" : "RootGroup",
+  "$Children" : [
+    {
+      "Camera" : {
+        "Name" : "Camera",
+        "Orthographic" : {
+          "Name" : "Orthographic",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleOrthographic"
+        },
+        "Perspective" : {
+          "Name" : "Perspective",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastlePerspective"
+        },
+        "$Children" : [
+        ],
+        "$ClassName" : "TCastleCamera"
+      },
+      "FullSize" : true,
+      "Items" : {
+        "MainScene" : "Scene",
+        "Name" : "Items",
+        "PhysicsProperties" : {
+          "Name" : "PhysicsProperties",
+          "$Children" : [
+          ],
+          "$ClassName" : "TPhysicsProperties"
+        },
+        "$Children" : [
+          {
+            "ExposeTransforms" : [
+            ],
+            "Name" : "Scene",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "Name" : "RenderOptions",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "Spatial" : [
+              "ssRendering",
+              "ssDynamicCollisions"
+            ],
+            "$Children" : [
+            ],
+            "$ClassName" : "TCastleScene"
+          }
+        ],
+        "$ClassName" : "TCastleRootTransform"
+      },
+      "Name" : "Viewport",
+      "Navigation" : "ExamineNavigation1",
+      "$Children" : [
+        {
+          "Name" : "ExamineNavigation1",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleExamineNavigation"
+        }
+      ],
+      "$ClassName" : "TCastleViewport"
+    },
+    {
+      "ColorPersistent" : {
+        "Blue" : 2.1960784494876862E-001,
+        "Green" : 6.6666668653488159E-001,
+        "Red" : 1.0000000000000000E+000,
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "HorizontalAnchorParent" : "hpMiddle",
+      "HorizontalAnchorSelf" : "hpMiddle",
+      "Name" : "LabelFps",
+      "Text" : [
+        "LabelFps"
+      ],
+      "VerticalAnchorDelta" : -1.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleLabel"
+    },
+    {
+      "AutoSizeToChildren" : true,
+      "ColorPersistent" : {
+        "Alpha" : 5.0000000000000000E-001,
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+      "Name" : "RectStarlingOptions",
+      "VerticalAnchorDelta" : -3.6000000000000000E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+        {
+          "Name" : "VerticalGroup1",
+          "Padding" : 1.0000000000000000E+001,
+          "Spacing" : 1.0000000000000000E+001,
+          "$Children" : [
+            {
+              "ColorPersistent" : {
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000,
+                "$ClassName" : "TCastleColorPersistent"
+              },
+              "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+              "Name" : "Label1",
+              "Text" : [
+                "Starling Sprite Sheet load options:"
+              ],
+              "VerticalAnchorDelta" : -1.0000000000000000E+001,
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleLabel"
+            },
+            {
+              "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+              "Name" : "HorizontalGroup1",
+              "VerticalAnchorDelta" : -4.2000000000000000E+001,
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "$Children" : [
+                {
+                  "Name" : "Label2",
+                  "Text" : [
+                    "FPS:"
+                  ],
+                  "VerticalAnchorParent" : "vpMiddle",
+                  "VerticalAnchorSelf" : "vpMiddle",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleLabel"
+                },
+                {
+                  "HorizontalAnchorDelta" : 4.4000000000000000E+001,
+                  "Max" : 6.0000000000000000E+001,
+                  "Min" : 1.0000000000000000E+000,
+                  "Name" : "SliderFPSLoadOpt",
+                  "Value" : 8.0000000000000000E+000,
+                  "VerticalAnchorParent" : "vpMiddle",
+                  "VerticalAnchorSelf" : "vpMiddle",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleFloatSlider"
+                }
+              ],
+              "$ClassName" : "TCastleHorizontalGroup"
+            },
+            {
+              "Caption" : "All trailing numbers are animation frames",
+              "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+              "Name" : "CheckboxAnimationNamingLoadOpt",
+              "VerticalAnchorDelta" : -7.4000000000000000E+001,
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleCheckbox"
+            }
+          ],
+          "$ClassName" : "TCastleVerticalGroup"
+        }
+      ],
+      "$ClassName" : "TCastleRectangleControl"
+    },
+    {
+      "AutoSizeToChildren" : true,
+      "ColorPersistent" : {
+        "Alpha" : 5.0000000000000000E-001,
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+      "Name" : "RectLoad",
+      "VerticalAnchorDelta" : -1.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+        {
+          "Name" : "VerticalGroup2",
+          "Padding" : 1.0000000000000000E+001,
+          "Spacing" : 1.0000000000000000E+001,
+          "$Children" : [
+            {
+              "ColorPersistent" : {
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000,
+                "$ClassName" : "TCastleColorPersistent"
+              },
+              "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+              "Name" : "Label3",
+              "Text" : [
+                "Load scene:"
+              ],
+              "VerticalAnchorDelta" : -1.0000000000000000E+001,
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleLabel"
+            },
+            {
+              "Caption" : "glTF Skinned Animation (3D)",
+              "CustomBackgroundDisabled" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundFocused" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundNormal" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundPressed" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+              "Image" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "Name" : "ButtonOpen3D",
+              "VerticalAnchorDelta" : -4.2000000000000000E+001,
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleButton"
+            },
+            {
+              "Caption" : "Spine Skeletal Animation (2D)",
+              "CustomBackgroundDisabled" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundFocused" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundNormal" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundPressed" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+              "Image" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "Name" : "ButtonOpen2DSpine",
+              "VerticalAnchorDelta" : -9.1000000000000000E+001,
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleButton"
+            },
+            {
+              "Caption" : "Starling Sprite Sheet (2D)",
+              "CustomBackgroundDisabled" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundFocused" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundNormal" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundPressed" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+              "Image" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "Name" : "ButtonOpen2DStarling",
+              "VerticalAnchorDelta" : -1.4000000000000000E+002,
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleButton"
+            },
+            {
+              "Caption" : "Cocos2d Sprite Sheet (2D)",
+              "CustomBackgroundDisabled" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundFocused" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundNormal" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundPressed" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+              "Image" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "Name" : "ButtonOpen2DCocos2d",
+              "VerticalAnchorDelta" : -1.8900000000000000E+002,
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleButton"
+            },
+            {
+              "Caption" : "Image 2D",
+              "CustomBackgroundDisabled" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundFocused" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundNormal" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundPressed" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+              "Image" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "Name" : "ButtonOpen2DImage",
+              "VerticalAnchorDelta" : -2.3800000000000000E+002,
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleButton"
+            },
+            {
+              "Caption" : "Open any model on disk...",
+              "CustomBackgroundDisabled" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundFocused" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundNormal" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundPressed" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+              "Image" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "Name" : "ButtonOpenDialog",
+              "VerticalAnchorDelta" : -2.8700000000000000E+002,
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleButton"
+            }
+          ],
+          "$ClassName" : "TCastleVerticalGroup"
+        }
+      ],
+      "$ClassName" : "TCastleRectangleControl"
+    },
+    {
+      "ColorPersistent" : {
+        "Alpha" : 5.0000000000000000E-001,
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "Height" : 3.7000000000000000E+002,
+      "HorizontalAnchorDelta" : -1.0000000000000000E+001,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "AnimationsPanel",
+      "VerticalAnchorDelta" : -1.6000000000000000E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "Width" : 3.6000000000000000E+002,
+      "$Children" : [
+        {
+          "FullSize" : true,
+          "Name" : "ScrollView1",
+          "ScrollArea" : {
+            "AutoSizeToChildren" : true,
+            "Name" : "ScrollArea",
+            "$Children" : [
+              {
+                "Name" : "ScrollGroup",
+                "Padding" : 1.0000000000000000E+001,
+                "Spacing" : 1.0000000000000000E+001,
+                "VerticalAnchorParent" : "vpTop",
+                "VerticalAnchorSelf" : "vpTop",
+                "$Children" : [
+                  {
+                    "ColorPersistent" : {
+                      "Green" : 1.0000000000000000E+000,
+                      "Red" : 1.0000000000000000E+000,
+                      "$ClassName" : "TCastleColorPersistent"
+                    },
+                    "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+                    "Name" : "Label4",
+                    "Text" : [
+                      "Animations:"
+                    ],
+                    "VerticalAnchorDelta" : -1.0000000000000000E+001,
+                    "VerticalAnchorParent" : "vpTop",
+                    "VerticalAnchorSelf" : "vpTop",
+                    "$Children" : [
+                    ],
+                    "$ClassName" : "TCastleLabel"
+                  },
+                  {
+                    "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+                    "Name" : "HorizontalGroup2",
+                    "VerticalAnchorDelta" : -4.2000000000000000E+001,
+                    "VerticalAnchorParent" : "vpTop",
+                    "VerticalAnchorSelf" : "vpTop",
+                    "$Children" : [
+                      {
+                        "Name" : "Label5",
+                        "Text" : [
+                          "Transition:"
+                        ],
+                        "VerticalAnchorParent" : "vpMiddle",
+                        "VerticalAnchorSelf" : "vpMiddle",
+                        "$Children" : [
+                        ],
+                        "$ClassName" : "TCastleLabel"
+                      },
+                      {
+                        "HorizontalAnchorDelta" : 1.0700000000000000E+002,
+                        "Max" : 5.0000000000000000E+000,
+                        "Name" : "SliderTransition",
+                        "VerticalAnchorParent" : "vpMiddle",
+                        "VerticalAnchorSelf" : "vpMiddle",
+                        "$Children" : [
+                        ],
+                        "$ClassName" : "TCastleFloatSlider"
+                      }
+                    ],
+                    "$ClassName" : "TCastleHorizontalGroup"
+                  },
+                  {
+                    "Caption" : "Forward",
+                    "Checked" : true,
+                    "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+                    "Name" : "CheckboxForward",
+                    "VerticalAnchorDelta" : -7.4000000000000000E+001,
+                    "VerticalAnchorParent" : "vpTop",
+                    "VerticalAnchorSelf" : "vpTop",
+                    "$Children" : [
+                    ],
+                    "$ClassName" : "TCastleCheckbox"
+                  },
+                  {
+                    "Caption" : "Loop",
+                    "Checked" : true,
+                    "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+                    "Name" : "CheckboxLoop",
+                    "VerticalAnchorDelta" : -1.0800000000000000E+002,
+                    "VerticalAnchorParent" : "vpTop",
+                    "VerticalAnchorSelf" : "vpTop",
+                    "$Children" : [
+                    ],
+                    "$ClassName" : "TCastleCheckbox"
+                  },
+                  {
+                    "ColorPersistent" : {
+                      "Green" : 1.0000000000000000E+000,
+                      "Red" : 1.0000000000000000E+000,
+                      "$ClassName" : "TCastleColorPersistent"
+                    },
+                    "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+                    "Name" : "Label7",
+                    "Text" : [
+                      "Click to play animation:"
+                    ],
+                    "VerticalAnchorDelta" : -1.4200000000000000E+002,
+                    "VerticalAnchorParent" : "vpTop",
+                    "VerticalAnchorSelf" : "vpTop",
+                    "$Children" : [
+                    ],
+                    "$ClassName" : "TCastleLabel"
+                  },
+                  {
+                    "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+                    "Name" : "SceneAnimationButtons",
+                    "Spacing" : 1.0000000000000000E+001,
+                    "VerticalAnchorDelta" : -1.7400000000000000E+002,
+                    "VerticalAnchorParent" : "vpTop",
+                    "VerticalAnchorSelf" : "vpTop",
+                    "$Children" : [
+                    ],
+                    "$ClassName" : "TCastleVerticalGroup"
+                  }
+                ],
+                "$ClassName" : "TCastleVerticalGroup"
+              }
+            ],
+            "$ClassName" : "TInternalCastleScrollArea"
+          },
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleScrollView"
+        }
+      ],
+      "$ClassName" : "TCastleRectangleControl"
+    },
+    {
+      "AutoSizeToChildren" : true,
+      "ColorPersistent" : {
+        "Alpha" : 5.0000000000000000E-001,
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "Height" : 3.7000000000000000E+002,
+      "HorizontalAnchorDelta" : -1.0000000000000000E+001,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "RectDisplayOptions",
+      "VerticalAnchorDelta" : -1.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "Width" : 5.5000000000000000E+002,
+      "$Children" : [
+        {
+          "Name" : "VerticalGroupAnimations",
+          "Padding" : 1.0000000000000000E+001,
+          "Spacing" : 1.0000000000000000E+001,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+            {
+              "ColorPersistent" : {
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000,
+                "$ClassName" : "TCastleColorPersistent"
+              },
+              "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+              "Name" : "Label6",
+              "Text" : [
+                "Display:"
+              ],
+              "VerticalAnchorDelta" : -1.0000000000000000E+001,
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleLabel"
+            },
+            {
+              "Caption" : "Nearest magnification filter",
+              "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+              "Name" : "CheckboxMagFilterNearest",
+              "VerticalAnchorDelta" : -4.2000000000000000E+001,
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleCheckbox"
+            },
+            {
+              "Caption" : "Nearest minification filter",
+              "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+              "Name" : "CheckboxMinFilterNearest",
+              "VerticalAnchorDelta" : -7.6000000000000000E+001,
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleCheckbox"
+            },
+            {
+              "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+              "Name" : "HorizontalGroup4",
+              "VerticalAnchorDelta" : -1.1000000000000000E+002,
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "$Children" : [
+                {
+                  "Name" : "Label8",
+                  "Text" : [
+                    "Scale:"
+                  ],
+                  "VerticalAnchorParent" : "vpMiddle",
+                  "VerticalAnchorSelf" : "vpMiddle",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleLabel"
+                },
+                {
+                  "HorizontalAnchorDelta" : 6.1000000000000000E+001,
+                  "Max" : 5.0000000000000000E+000,
+                  "Min" : 9.9999997764825821E-003,
+                  "Name" : "SliderScale",
+                  "Value" : 1.0000000000000000E+000,
+                  "VerticalAnchorParent" : "vpMiddle",
+                  "VerticalAnchorSelf" : "vpMiddle",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleFloatSlider"
+                }
+              ],
+              "$ClassName" : "TCastleHorizontalGroup"
+            }
+          ],
+          "$ClassName" : "TCastleVerticalGroup"
+        }
+      ],
+      "$ClassName" : "TCastleRectangleControl"
+    }
+  ],
+  "$ClassName" : "TCastleUserInterface"
+}

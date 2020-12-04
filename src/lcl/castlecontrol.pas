@@ -54,7 +54,7 @@ type
     @link(TUIContainer.BackgroundColor Container.BackgroundColor).
   }
   TCastleControlBase = class(TCustomOpenGLControl)
-  private
+  strict private
     type
       { Non-abstract implementation of TUIContainer that cooperates with
         TCastleControlBase. }
@@ -117,7 +117,6 @@ type
 
     procedure SetMousePosition(const Value: TVector2);
     procedure SetAutoRedisplay(const Value: Boolean);
-    class function GetMainContainer: TUIContainer;
 
     { Force DoUpdate and Paint (if invalidated) events to happen,
       if sufficient time (based on LimitFPS, that in this case acts like
@@ -189,6 +188,8 @@ type
       with respect to handling input, e.g. mouse move will be processed with
       a small delay). So we use MaxDesiredFPS to cap it. }
     procedure AggressiveUpdate;
+  private
+    class function GetMainContainer: TUIContainer;
   protected
     procedure DestroyHandle; override;
     procedure DoExit; override;

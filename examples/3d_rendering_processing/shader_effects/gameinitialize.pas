@@ -34,11 +34,6 @@ var
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
 begin
-  { This is an optimization useful when you animate a hierarchy of Transform
-    nodes (which often happens in case of Spine animation).
-    The animation blending should work the same, regardless if this is false or true. }
-  // OptimizeExtensiveTransformations := true;
-
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
@@ -54,7 +49,7 @@ end;
 initialization
   { Set ApplicationName early, as our log uses it.
     Optionally you could also set ApplicationProperties.Version here. }
-  ApplicationProperties.ApplicationName := 'play_animation';
+  ApplicationProperties.ApplicationName := 'shader-effects';
 
   { Start logging. Do this as early as possible,
     to log information and eventual warnings during initialization.
@@ -70,7 +65,7 @@ initialization
 
   { Create and assign Application.MainWindow. }
   Window := TCastleWindowBase.Create(Application);
-  Window.Caption := 'Play Animation';
+  Window.Caption := 'Shader Effects Demo';
   Application.MainWindow := Window;
 
   { You should not need to do *anything* more in the unit "initialization" section.
