@@ -2679,7 +2679,7 @@ var
 begin
   V := SelectedViewport;
   V.Setup2D;
-  ;ModifiedOutsideObjectInspector('Camera Setup for 2D View and Projection');
+  ModifiedOutsideObjectInspector('Camera Setup for 2D View and Projection');
 end;
 
 procedure TDesignFrame.MenuItemViewportCameraCurrentFromInitialClick(
