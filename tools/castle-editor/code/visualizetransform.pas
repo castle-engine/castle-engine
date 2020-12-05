@@ -623,7 +623,6 @@ begin
     OnGizmoStopDrag(Self);
 end;
 
-
 procedure TVisualizeTransform.SetOperation(const AValue: TVisualizeOperation);
 begin
   if FOperation = AValue then Exit;
