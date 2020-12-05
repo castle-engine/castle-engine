@@ -30,7 +30,7 @@ type
     { This is an absolute URL constructed from RelativeURL. }
     function FullURL: String;
   public
-    CharCode: char;
+    CharCode: Char;
     procedure LoadFromFile; virtual; abstract;
     destructor Destroy; override;
   end;
@@ -65,8 +65,8 @@ type
     { Call this after Width and Height are set, this will initialize Items. }
     procedure CreateItems;
   public
-    BaseTiles: array[char] of TBaseTile;
-    BonusTiles: array[char] of TBonusTile;
+    BaseTiles: array [Char] of TBaseTile;
+    BonusTiles: array [Char] of TBonusTile;
     BaseTilesList: TList;
     BonusTilesList: TList;
     Items: array of array of TMapTile;
@@ -157,7 +157,7 @@ end;
 constructor TMap.CreateFromFile(const AURL: String);
 
   procedure ReadlnTileLine(const F: TTextReader;
-    var C: char; var RelativeURL: String);
+    var C: Char; var RelativeURL: String);
   var
     CStr: String;
   begin
@@ -176,7 +176,7 @@ constructor TMap.CreateFromFile(const AURL: String);
 var
   F: TTextReader;
   BaseTilesCount, BonusTilesCount: Cardinal;
-  C: char;
+  C: Char;
   S: String;
   I: Integer;
   X, Y: Cardinal;
@@ -259,7 +259,7 @@ end;
 destructor TMap.Destroy;
 var
   X, Y: Integer;
-  C: char;
+  C: Char;
 begin
   { We can't assume that Width and Height are > 0 here,
     they are possibly not initialized. That's why X, Y must be Integer,
