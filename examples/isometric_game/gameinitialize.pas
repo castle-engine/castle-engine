@@ -135,7 +135,7 @@ var
   NewViewMoveX, NewViewMoveY: Integer;
 
   { Get character from user. Returns #0 if cancelled. }
-  function MessageChar(const S: String): char;
+  function MessageChar(const S: String): Char;
   var
     Event: TInputPressRelease;
   begin
