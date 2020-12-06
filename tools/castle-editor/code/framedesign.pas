@@ -1757,7 +1757,7 @@ begin
   begin
     UpdateDesign;
     //WritelnWarning('CGE needed to explicitly tell editor to refresh hierarchy');
-    ModifiedOutsideObjectInspector('Internal update'); //WARNING: I don't really know when this happens and how it should behave
+    ModifiedOutsideObjectInspector('');
   end;
 end;
 
@@ -1900,7 +1900,7 @@ begin
 
   UndoSystem.RecordUndo(ComponentToString(FDesignRoot), SelectedName, ItemIndex, ControlProperties.TabIndex, UndoComment);
 
-  WriteLnLog('Undo %s recorded in %fs for %s', [UndoComment, StartTimer.ElapsedTime, SelectedName]);
+  WriteLnLog('Undo "%s" recorded in %fs for "%s".', [UndoComment, StartTimer.ElapsedTime, SelectedName]);
 end;
 
 procedure TDesignFrame.MarkModified;
