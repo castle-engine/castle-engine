@@ -148,8 +148,8 @@ begin
       WriteLnLog('New Undo is identical to previous Undo record. Not saving.')
     else
     begin
+      WriteLnLog('New Undo is identical to previous Undo record. Only selection has changed from ' + UndoHistory[CurrentUndo].Selected + ' to ' + SelectedComponent + '. This change has been saved.');
       UndoHistory[CurrentUndo].Selected := SelectedComponent;
-      WriteLnLog('New Undo is identical to previous Undo record. Only selection has changed from ' + UndoHistory[CurrentUndo].Selected + ' to ' + SelectedComponent + '. Not saving.');
       OnUpdateUndo(Self);
     end;
     if (UndoComment <> '') and (UndoHistory[CurrentUndo].Comment = '') then
