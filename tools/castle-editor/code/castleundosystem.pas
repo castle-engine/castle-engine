@@ -11,6 +11,13 @@ uses
   Classes, Generics.Collections,
   CastleUtils;
 
+const
+  { Higher priority can overwrite comment for lower priority undo records.
+    Currently we have only three levels, more can be added if needed. }
+  LowUndoPriority = 0;
+  HighUndoPriority = 1;
+  HighestUndoPriority = MaxInt;
+
 type
   { Content of the Undo record.
     We might want to change it in future, most likely make several types of data
@@ -56,6 +63,13 @@ type
     { Current undo step,
       equals to the last element of the Undo History, unless an undo has been performed. }
     CurrentUndo: Integer;
+    { Current undo element priority,
+      new undo record with identical data but higher priority
+      can overwrite undo record with lower priority.
+      This is required because often we receive several identical undo records
+      for the same user action, some of them may have a "better" (i.e. more specific) comment
+      which should overwrite the previous (or following) less specific comments. }
+    CurrentUndoCommentPriority: Integer;
     { All undo records in this session. }
     UndoHistory: TUndoHistory;
     { Calculates total size of RAM used by the Undo History. }
@@ -76,7 +90,9 @@ type
     { Try to record a new Undo record.
       If several actions have been undone before, all the redo history will be cleared at this moment.
       If the new Undo record is equal to the recorded one then nothing will be recorded. }
-    procedure RecordUndo(const UndoData: TUndoData; const SelectedComponent: TSelectedComponent; const ItemIndex: Integer; const TabIndex: Integer; const UndoComment: String);
+    procedure RecordUndo(const UndoData: TUndoData; const SelectedComponent: TSelectedComponent;
+      const ItemIndex: Integer; const TabIndex: Integer; const UndoComment: String;
+      const UndoCommentPriority);
     { Get a recent state change and move one step backwards in Undo History. }
     function Undo: TUndoHistoryElement;
     { Get a state change following current state and move one step fowrard in Undo History. }
@@ -136,7 +152,9 @@ begin
     Result += U.Size;
 end;
 
-procedure TUndoSystem.RecordUndo(const UndoData: TUndoData; const SelectedComponent: TSelectedComponent; const ItemIndex: Integer; const TabIndex: Integer; const UndoComment: String);
+procedure TUndoSystem.RecordUndo(const UndoData: TUndoData; const SelectedComponent: TSelectedComponent;
+  const ItemIndex: Integer; const TabIndex: Integer; const UndoComment: String;
+  const UndoCommentPriority);
 var
   NewUndoElement: TUndoHistoryElement;
   NewUndoHistorySize: Integer;
@@ -199,6 +217,7 @@ begin
     WriteLnLog('Performing Undo from ' + IntToStr(CurrentUndo) + ' to ' + IntToStr(CurrentUndo - 1));
     Dec(CurrentUndo);
     Result := UndoHistory[CurrentUndo];
+    CurrentUndoCommentPriority := HighestUndoPriority; // Whatever happens next this Undo record cannot be overwritten
     //OnUpdateUndo; The caller itself should better take care of that
   end else
     raise EInternalError.Create('Undo was requested but undo is not possible');
@@ -212,6 +231,7 @@ begin
     WriteLnLog('Performing Redo from ' + IntToStr(CurrentUndo) + ' to ' + IntToStr(CurrentUndo + 1));
     Inc(CurrentUndo);
     Result := UndoHistory[CurrentUndo];
+    CurrentUndoCommentPriority := HighestUndoPriority; // Whatever happens next this Undo record cannot be overwritten
     //OnUpdateUndo; The caller itself should better take care of that
   end else
     raise EInternalError.Create('Redo was requested but redo is not possible');
@@ -265,6 +285,7 @@ begin
   ScheduleRecordUndoOnRelease := false;
   UndoHistory.Clear;
   CurrentUndo := -1;
+  CurrentUndoCommentPriority := HighestUndoPriority; // Just for consistency
   if Assigned(OnUpdateUndo) then
     OnUpdateUndo(Self);
   WriteLnLog('Clearing Undo hisotry.');

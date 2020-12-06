@@ -327,7 +327,8 @@ type
     { Root saved/loaded to component file }
     property DesignRoot: TComponent read FDesignRoot;
     property DesignModified: Boolean read FDesignModified;
-    procedure RecordUndo(const UndoComment: String; const ItemIndex: Integer = -1);
+    procedure RecordUndo(const UndoComment: String;
+      const UndoCommentPriority: Integer; const ItemIndex: Integer = -1);
 
     procedure CurrentComponentApiUrl(var Url: String);
   end;
@@ -605,7 +606,7 @@ begin
     //especially when we start adding gizmos and motion event can change
     //a lot of different values
     if Frame.UndoSystem.ScheduleRecordUndoOnRelease then
-      Frame.RecordUndo('');
+      Frame.RecordUndo('', LowUndoPriority);
   end;
 end;
 
@@ -1186,7 +1187,7 @@ begin
 
   OpenDesign(NewDesignRoot, NewDesignOwner, NewDesignUrl);
 
-  RecordUndo('Open design');
+  RecordUndo('Open design', HighestUndoPriority);
 end;
 
 function TDesignFrame.FormCaption: String;
@@ -1797,7 +1798,7 @@ end;
 procedure TDesignFrame.GizmoStopDrag(Sender: TObject);
 begin
   if UndoSystem.ScheduleRecordUndoOnRelease then
-    RecordUndo('Transform with Gizmo');
+    RecordUndo('Transform with Gizmo', HighUndoPriority);
 end;
 
 procedure TDesignFrame.InspectorBasicFilter(Sender: TObject;
@@ -1836,7 +1837,7 @@ begin
   begin
     UpdateDesign; // Something has changed, but we don't know what exactly. Maybe it's some component's name? Let's rebuild everything to be safe
     //if not UndoSystem.ScheduleRecordUndoOnRelease then // We don't care here, this situation is an error, so we're saving what we can
-    RecordUndo('Modify property'); // We're recording a generic Undo message
+    RecordUndo('', LowUndoPriority); // We're recording a generic Undo message
     Exit;
   end;
   // This knows we have selected *at least one* component.
@@ -1876,15 +1877,16 @@ begin
         SenderRowDescription := 'Change ' + SenderRowName + ' to ' + SenderRowValue
       else
         SenderRowDescription := 'Change ' + SenderRowName;
-      RecordUndo(SenderRowDescription, TOICustomPropertyGrid(Sender).ItemIndex);
+      RecordUndo(SenderRowDescription, HighUndoPriority, TOICustomPropertyGrid(Sender).ItemIndex);
     end else
-      RecordUndo('');
+      RecordUndo('', LowUndoPriority);
   end;
 
   MarkModified;
 end;
 
-procedure TDesignFrame.RecordUndo(const UndoComment: String; const ItemIndex: Integer = -1);
+procedure TDesignFrame.RecordUndo(const UndoComment: String;
+  const UndoCommentPriority: Integer; const ItemIndex: Integer = -1);
 var
   StartTimer: TTimerResult;
   SelectedName: String;
@@ -1898,7 +1900,7 @@ begin
   else
     SelectedName := '';
 
-  UndoSystem.RecordUndo(ComponentToString(FDesignRoot), SelectedName, ItemIndex, ControlProperties.TabIndex, UndoComment);
+  UndoSystem.RecordUndo(ComponentToString(FDesignRoot), SelectedName, ItemIndex, ControlProperties.TabIndex, UndoComment, UndoCommentPriority);
 
   WriteLnLog('Undo "%s" recorded in %fs for "%s".', [UndoComment, StartTimer.ElapsedTime, SelectedName]);
 end;
@@ -2999,7 +3001,7 @@ begin
   if UndoOnRelease then
     UndoSystem.ScheduleRecordUndoOnRelease := true
   else
-    RecordUndo(UndoComment); //it will overwrite Undo recorded in PropertyGridModified with a better comment
+    RecordUndo(UndoComment, HighUndoPriority); //it will overwrite Undo recorded in PropertyGridModified with a better comment
 end;
 
 procedure TDesignFrame.NewDesign(const ComponentClass: TComponentClass;
@@ -3026,7 +3028,7 @@ begin
 
   OpenDesign(NewRoot, NewDesignOwner, '');
 
-  RecordUndo('Start new design');
+  RecordUndo('Start new design', HighestUndoPriority);
 end;
 
 initialization
