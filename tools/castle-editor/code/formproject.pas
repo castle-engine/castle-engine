@@ -434,24 +434,16 @@ end;
 
 procedure TProjectForm.UpdateUndoRedoInformation;
 begin
-  if (Design <> nil) and Design.UndoSystem.IsUndoPossible then
+  if Design <> nil then
   begin
-    MenuItemUndo.Enabled := true;
+    MenuItemUndo.Enabled := Design.UndoSystem.IsUndoPossible;
     MenuItemUndo.Caption := Design.UndoSystem.UndoComment;
-  end else
-  begin
-    MenuItemUndo.Enabled := false;
-    MenuItemUndo.Caption := 'Undo';
-  end;
-
-  if (Design <> nil) and Design.UndoSystem.IsRedoPossible then
-  begin
-    MenuItemRedo.Enabled := true;
+    MenuItemRedo.Enabled := Design.UndoSystem.IsRedoPossible;
     MenuItemRedo.Caption := Design.UndoSystem.RedoComment;
   end else
   begin
+    MenuItemUndo.Enabled := false;
     MenuItemRedo.Enabled := false;
-    MenuItemRedo.Caption := 'Redo';
   end;
 end;
 

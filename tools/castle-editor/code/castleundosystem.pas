@@ -249,7 +249,7 @@ begin
   if IsRedoPossible then
     Result := 'Redo: ' + GetUndoComment(CurrentUndo + 1)
   else
-    Result := '';
+    Result := 'Redo';
 end;
 
 function TUndoSystem.UndoComment: String;
@@ -257,7 +257,7 @@ begin
   if IsUndoPossible then
     Result := 'Undo: ' + GetUndoComment(CurrentUndo)
   else
-    Result := '';
+    Result := 'Undo';
 end;
 
 procedure TUndoSystem.ClearUndoHistory;
