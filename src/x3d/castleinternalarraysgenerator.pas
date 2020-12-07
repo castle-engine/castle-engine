@@ -712,9 +712,11 @@ type
       GetNormal to return correct normal. }
   TAbstractBumpMappingGenerator = class(TAbstractShaderAttribGenerator)
   strict private
-    { Helpers for bump mapping }
-    Tangent, Bitangent: TVector3;
-    AttribTangent, AttribBitangent: TGeometryAttrib;
+    { When CALCULATE_BITANGENT not defined, we don't calculate bitangent,
+      instead relying on GLSL to calculate it using cross product of normal and tangent. }
+    {.$define CALCULATE_BITANGENT}
+    Tangent {$ifdef CALCULATE_BITANGENT}, Bitangent{$endif}: TVector3;
+    AttribTangent {$ifdef CALCULATE_BITANGENT}, AttribBitangent{$endif}: TGeometryAttrib;
   protected
     procedure GenerateVertex(IndexNum: Integer); override;
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
@@ -2205,7 +2207,9 @@ begin
   if ShapeBumpMappingUsed then
   begin
     AttribTangent := Arrays.AddGLSLAttributeVector3('castle_tangent', true);
+    {$ifdef CALCULATE_BITANGENT}
     AttribBitangent := Arrays.AddGLSLAttributeVector3('castle_bitangent', true);
+    {$endif}
   end;
 end;
 
@@ -2213,7 +2217,7 @@ procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
 
   procedure SetTangentsBitangents;
   var
-    LocalTangent, LocalBitangent: TVector3;
+    LocalTangent {$ifdef CALCULATE_BITANGENT}, LocalBitangent{$endif}: TVector3;
     Normal: TVector3;
   begin
     GetNormal(IndexNum, CurrentRangeNumber, Normal);
@@ -2221,7 +2225,9 @@ procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
     if NormalsFlat then
     begin
       Arrays.GLSLAttributeVector3(AttribTangent, ArrayIndexNum)^ := Tangent;
+      {$ifdef CALCULATE_BITANGENT}
       Arrays.GLSLAttributeVector3(AttribBitangent, ArrayIndexNum)^ := Bitangent;
+      {$endif}
     end else
     begin
       { If NormalsFlat = false,
@@ -2237,12 +2243,13 @@ procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
 
       LocalTangent := Tangent;
       MakeVectorsOrthoOnTheirPlane(LocalTangent, Normal);
+      Arrays.GLSLAttributeVector3(AttribTangent, ArrayIndexNum)^ := LocalTangent;
 
+      {$ifdef CALCULATE_BITANGENT}
       LocalBitangent := Bitangent;
       MakeVectorsOrthoOnTheirPlane(LocalBitangent, Normal);
-
-      Arrays.GLSLAttributeVector3(AttribTangent, ArrayIndexNum)^ := LocalTangent;
       Arrays.GLSLAttributeVector3(AttribBitangent, ArrayIndexNum)^ := LocalBitangent;
+      {$endif}
     end;
   end;
 
@@ -2374,13 +2381,16 @@ begin
       GetTextureCoord(TriangleIndex2, ShapeBumpMappingTextureCoordinatesId, TriangleTexCoord.Data[1]) and
       GetTextureCoord(TriangleIndex3, ShapeBumpMappingTextureCoordinatesId, TriangleTexCoord.Data[2]) and
       { calculate Tangent, Bitangent }
-      CalculateTangent(true , Tangent, Triangle3D, TriangleTexCoord) and
-      CalculateTangent(false, Bitangent, Triangle3D, TriangleTexCoord) ) then
+      CalculateTangent(true , Tangent, Triangle3D, TriangleTexCoord)
+      {$ifdef CALCULATE_BITANGENT} and
+      CalculateTangent(false, Bitangent, Triangle3D, TriangleTexCoord) {$endif} ) then
     begin
       { Would be more correct to set Tangent as anything perpendicular
         to Normal, and Bitangent as vector product (normal, LocalTangent) }
       Tangent := TVector3.One[0];
+      {$ifdef CALCULATE_BITANGENT}
       Bitangent := TVector3.One[1];
+      {$endif}
     end;
 
     { It *is* possible that we'll get somewhat incorrect tangents in practice,
