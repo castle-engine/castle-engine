@@ -252,16 +252,11 @@ begin
   if UndoHistory[UndoI].Comment = '' then
   begin
     if UndoHistory[UndoI].Selected = '' then
-      Result := 'Modify global variable'
+      Result := ''
     else
       Result := 'Modify ' + UndoHistory[UndoI].Selected;
   end else
-  begin
-    if UndoHistory[UndoI].Selected = '' then
-      Result := UndoHistory[UndoI].Comment
-    else
-      Result := UndoHistory[UndoI].Comment + ' (' + UndoHistory[UndoI].Selected + ')';
-  end;
+    Result := UndoHistory[UndoI].Comment;
 end;
 
 function TUndoSystem.RedoComment: String;
