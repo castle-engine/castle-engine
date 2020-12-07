@@ -713,13 +713,13 @@ type
   TAbstractBumpMappingGenerator = class(TAbstractShaderAttribGenerator)
   strict private
     { Helpers for bump mapping }
-    STangent, TTangent: TVector3;
+    Tangent, Bitangent: TVector3;
     AttribTangent, AttribBitangent: TGeometryAttrib;
   protected
     procedure GenerateVertex(IndexNum: Integer); override;
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
 
-    { Update tangent vectors (STangent, TTangent).
+    { Update tangent vectors (Tangent, Bitangent).
       Without this, bump mapping will be wrong.
       Give triangle indexes (like IndexNum for GenerateVertex). }
     procedure CalculateTangentVectors(
@@ -2213,20 +2213,20 @@ procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
 
   procedure SetTangentsBitangents;
   var
-    LocalSTangent, LocalTTangent: TVector3;
+    LocalTangent, LocalBitangent: TVector3;
     Normal: TVector3;
   begin
     GetNormal(IndexNum, CurrentRangeNumber, Normal);
 
     if NormalsFlat then
     begin
-      Arrays.GLSLAttributeVector3(AttribTangent, ArrayIndexNum)^ := STangent;
-      Arrays.GLSLAttributeVector3(AttribBitangent, ArrayIndexNum)^ := TTangent;
+      Arrays.GLSLAttributeVector3(AttribTangent, ArrayIndexNum)^ := Tangent;
+      Arrays.GLSLAttributeVector3(AttribBitangent, ArrayIndexNum)^ := Bitangent;
     end else
     begin
       { If NormalsFlat = false,
-        we want to calculate *local* STangent and TTangent,
-        which are STangent and TTangent adjusted to the current vertex
+        we want to calculate *local* Tangent and Bitangent,
+        which are Tangent and Bitangent adjusted to the current vertex
         (since every vertex on this face may have a different normal).
 
         Without doing this, you would see strange artifacts, smoothed
@@ -2235,14 +2235,14 @@ procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
         faces, whole tangent space should vary for each vertex, so Normal,
         and both tangents may be different on each vertex. }
 
-      LocalSTangent := STangent;
-      MakeVectorsOrthoOnTheirPlane(LocalSTangent, Normal);
+      LocalTangent := Tangent;
+      MakeVectorsOrthoOnTheirPlane(LocalTangent, Normal);
 
-      LocalTTangent := TTangent;
-      MakeVectorsOrthoOnTheirPlane(LocalTTangent, Normal);
+      LocalBitangent := Bitangent;
+      MakeVectorsOrthoOnTheirPlane(LocalBitangent, Normal);
 
-      Arrays.GLSLAttributeVector3(AttribTangent, ArrayIndexNum)^ := LocalSTangent;
-      Arrays.GLSLAttributeVector3(AttribBitangent, ArrayIndexNum)^ := LocalTTangent;
+      Arrays.GLSLAttributeVector3(AttribTangent, ArrayIndexNum)^ := LocalTangent;
+      Arrays.GLSLAttributeVector3(AttribBitangent, ArrayIndexNum)^ := LocalBitangent;
     end;
   end;
 
@@ -2255,12 +2255,16 @@ end;
 procedure TAbstractBumpMappingGenerator.CalculateTangentVectors(
   const TriangleIndex1, TriangleIndex2, TriangleIndex3: Integer);
 
-  { This procedure can change Triangle*, but only by swapping some vertexes,
+  { Calculate tangent (along texture S coordinate, when IsTangent) or bitangent
+    (along texture T coordinate, when IsTangent=false),
+    knowing positions and texture coordinates.
+
+    This procedure can change Triangle*, but only by swapping some vertexes,
     so we pass Triangle* by reference instead of by value, to avoid
     needless mem copying.
 
     Returns @false if cannot be calculated. }
-  function CalculateTangent(IsSTangent: boolean; var Tangent: TVector3;
+  function CalculateTangent(const IsTangent: boolean; out Tangent: TVector3;
     var Triangle3D: TTriangle3;
     var TriangleTexCoord: TTriangle2): boolean;
   var
@@ -2270,8 +2274,9 @@ procedure TAbstractBumpMappingGenerator.CalculateTangentVectors(
     FarthestDistance, NewDistance, Alpha: Single;
     SearchCoord, OtherCoord: Cardinal;
   begin
-    if ISSTangent then
-      SearchCoord := 0 else
+    if IsTangent then
+      SearchCoord := 0
+    else
       SearchCoord := 1;
     OtherCoord := 1 - SearchCoord;
 
@@ -2307,7 +2312,7 @@ procedure TAbstractBumpMappingGenerator.CalculateTangentVectors(
       SwapValues(Triangle3D      .Data[0], Triangle3D      .Data[MiddleIndex]);
     end;
 
-    if IsSTangent then
+    if IsTangent then
     begin
       { we want line Y = TriangleTexCoord.Data[0].Data[1]. }
       LineA[0] := 0;
@@ -2368,14 +2373,14 @@ begin
       GetTextureCoord(TriangleIndex1, ShapeBumpMappingTextureCoordinatesId, TriangleTexCoord.Data[0]) and
       GetTextureCoord(TriangleIndex2, ShapeBumpMappingTextureCoordinatesId, TriangleTexCoord.Data[1]) and
       GetTextureCoord(TriangleIndex3, ShapeBumpMappingTextureCoordinatesId, TriangleTexCoord.Data[2]) and
-      { calculate STangent, TTangent }
-      CalculateTangent(true , STangent, Triangle3D, TriangleTexCoord) and
-      CalculateTangent(false, TTangent, Triangle3D, TriangleTexCoord) ) then
+      { calculate Tangent, Bitangent }
+      CalculateTangent(true , Tangent, Triangle3D, TriangleTexCoord) and
+      CalculateTangent(false, Bitangent, Triangle3D, TriangleTexCoord) ) then
     begin
-      { Would be more correct to set STangent as anything perpendicular
-        to Normal, and TTangent as vector product (normal, LocalSTangent) }
-      STangent := TVector3.One[0];
-      TTangent := TVector3.One[1];
+      { Would be more correct to set Tangent as anything perpendicular
+        to Normal, and Bitangent as vector product (normal, LocalTangent) }
+      Tangent := TVector3.One[0];
+      Bitangent := TVector3.One[1];
     end;
 
     { It *is* possible that we'll get somewhat incorrect tangents in practice,
@@ -2383,9 +2388,9 @@ begin
       because we don't really have here a better fallback.
       Using above "TVector3.One[0]" isn't really better. }
     {
-    if not ( (Abs(TVector3.DotProduct(STangent, TTangent)) < 0.95) and
-             (Abs(TVector3.DotProduct(STangent, Normal)) < 0.95) and
-             (Abs(TVector3.DotProduct(TTangent, Normal)) < 0.95) ) then
+    if not ( (Abs(TVector3.DotProduct(Tangent, Bitangent)) < 0.95) and
+             (Abs(TVector3.DotProduct(Tangent, Normal)) < 0.95) and
+             (Abs(TVector3.DotProduct(Bitangent, Normal)) < 0.95) ) then
       WritelnWarning('Tangents are likely incorrect');
     }
   end;
