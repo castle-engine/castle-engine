@@ -92,7 +92,7 @@ type
       If the new Undo record is equal to the recorded one then nothing will be recorded. }
     procedure RecordUndo(const UndoData: TUndoData; const SelectedComponent: TSelectedComponent;
       const ItemIndex: Integer; const TabIndex: Integer; const UndoComment: String;
-      const UndoCommentPriority);
+      const UndoCommentPriority: Integer);
     { Get a recent state change and move one step backwards in Undo History. }
     function Undo: TUndoHistoryElement;
     { Get a state change following current state and move one step fowrard in Undo History. }
@@ -116,9 +116,9 @@ uses
 
 function TUndoHistoryElement.Size: SizeInt;
 
-  //see https://www.freepascal.org/docs-html/ref/refsu13.html
-  //I'm not sure if this includes size of string pointer or not.
-  //Note that Length(AnsiString) returns length of the string in bytes, not in UTF8 characters.
+  { See https://www.freepascal.org/docs-html/ref/refsu13.html
+    I'm not sure if this includes size of string pointer or not.
+    Note that Length(AnsiString) returns length of the string in bytes, not in UTF8 characters. }
   function SizeOfAnsiString(const S: String): SizeInt;
   const
     HS = 16;
@@ -154,7 +154,7 @@ end;
 
 procedure TUndoSystem.RecordUndo(const UndoData: TUndoData; const SelectedComponent: TSelectedComponent;
   const ItemIndex: Integer; const TabIndex: Integer; const UndoComment: String;
-  const UndoCommentPriority);
+  const UndoCommentPriority: Integer);
 var
   NewUndoElement: TUndoHistoryElement;
   NewUndoHistorySize: Integer;
@@ -162,26 +162,26 @@ begin
   ScheduleRecordUndoOnRelease := false;
   if (UndoHistory.Count > 0) and (UndoData = UndoHistory[CurrentUndo].Data) then
   begin
-    if (SelectedComponent = UndoHistory[CurrentUndo].Selected) or (UndoHistory[CurrentUndo].Selected = '') then
-      WriteLnLog('New Undo is identical to previous Undo record. Not saving.')
-    else
+    if (SelectedComponent <> UndoHistory[CurrentUndo].Selected) then
     begin
       WriteLnLog('New Undo is identical to previous Undo record. Only selection has changed from ' + UndoHistory[CurrentUndo].Selected + ' to ' + SelectedComponent + '. This change has been saved.');
       UndoHistory[CurrentUndo].Selected := SelectedComponent;
       OnUpdateUndo(Self);
     end;
-    if (UndoComment <> '') and (UndoHistory[CurrentUndo].Comment = '') then
+    if (UndoCommentPriority > CurrentUndoCommentPriority) then
     begin
-      WriteLnLog('The last undo comment was set to generic "Edit value", overwriting with better reason: ' + UndoComment);
+      WriteLnLog('Overwriting previous Undo recrod "' + UndoHistory[CurrentUndo].Comment +
+        '" with a higher priority comment: "' + UndoComment + '".');
       UndoHistory[CurrentUndo].Comment := UndoComment;
-      OnUpdateUndo(Self);
+      OnUpdateUndo(Self); // It is safe to call OnUpdateUndo multiple times - it only updates menu captions
     end;
     Exit;
   end;
+
   WriteLnLog('Saving Undo record. CurrentUndo = ' + IntToStr(CurrentUndo));
-  //Clean all next undo records if available;
+  // Clean all next undo records if available;
   UndoHistory.Count := CurrentUndo + 1;
-  //add new UndoElement
+  // Add new UndoElement
   NewUndoElement := TUndoHistoryElement.Create;
   NewUndoElement.Data := UndoData;
   NewUndoElement.Selected := SelectedComponent;
@@ -190,8 +190,10 @@ begin
   NewUndoElement.Comment := UndoComment;
   UndoHistory.Add(NewUndoElement);
   Inc(CurrentUndo);
+  CurrentUndoCommentPriority := UndoCommentPriority;
+
   Assert(UndoHistory.Count - 1 = CurrentUndo);
-  //make sure Undo doesn't consume too much RAM
+  // Make sure Undo doesn't consume too much RAM
   {if CurrentUndo > MaxUndo then
   begin
     UndoHistory.Delete(0);
