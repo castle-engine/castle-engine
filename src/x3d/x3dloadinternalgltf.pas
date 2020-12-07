@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2019 Michalis Kamburelis.
+  Copyright 2018-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1413,11 +1413,13 @@ var
     Coord: TCoordinateNode;
     TexCoord: TTextureCoordinateNode;
     Normal: TNormalNode;
+    Tangent: TTangentNode;
     Color: TColorNode;
     ColorRGBA: TColorRGBANode;
     ColorAccessor: TPasGLTF.TAccessor;
     IndexField: TMFLong;
     Appearance: TGltfAppearanceNode;
+    Tangent4D: TVector4List;
   begin
     // create X3D geometry and shape nodes
     if Primitive.Indices <> -1 then
@@ -1503,11 +1505,15 @@ var
           Geometry.ColorField.Value := Color;
         end;
       end else
-      if (AttributeName = 'TANGENT') then
+      if (AttributeName = 'TANGENT') and (Geometry is TAbstractComposedGeometryNode) then
       begin
-        { Don't do anything -- we don't store tangents now,
-          but we can reliably calculate them when needed,
-          so don't warn about them being unimplemented. }
+        Tangent := TTangentNode.Create;
+        Tangent4D := TVector4List.Create;
+        try
+          AccessorToVector4(Primitive.Attributes[AttributeName], Tangent4D, false);
+          Tangent.SetVector4D(Tangent4D);
+        finally FreeAndNil(Tangent4D) end;
+        TAbstractComposedGeometryNode(Geometry).FdTangent.Value := Tangent;
       end else
       if (AttributeName = 'JOINTS_0') then
       begin

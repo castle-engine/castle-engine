@@ -88,6 +88,11 @@ Normal : X3DNormalNode {
   MFVec3f [in,out] vector   []   [-1,1]
 }
 
+Tangent : X3DGeometricPropertyNode {
+  x3d-nodes-to-pascal: auto-generate-more true
+  MFVec3f [in,out] vector   []   [-1,1]
+}
+
 PointSet : X3DGeometryNode {
   MFNode [in,out] attrib   []   [X3DVertexAttributeNode] # NOT-SLIM
   SFNode [in,out] color    NULL [X3DColorNode]

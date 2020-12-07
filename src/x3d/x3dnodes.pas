@@ -583,6 +583,7 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_stringsensor.inc}
 {$I auto_generated_node_helpers/x3dnodes_surfaceemitter.inc}
 {$I auto_generated_node_helpers/x3dnodes_switch.inc}
+{$I auto_generated_node_helpers/x3dnodes_tangent.inc}
 {$I auto_generated_node_helpers/x3dnodes_teapot.inc}
 {$I auto_generated_node_helpers/x3dnodes_texcoorddamper2d.inc}
 {$I auto_generated_node_helpers/x3dnodes_text.inc}
