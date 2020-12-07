@@ -1013,7 +1013,7 @@ begin
           if FTextChar.Count > LastIndex then
           begin
             FTextChar[index]:= FTextChar[LastIndex];
-//            FTextChar.Delete(LastIndex);
+            FTextChar.Delete(LastIndex);
           end;
           if LastIndex-Index > 1 then
           begin
@@ -1025,19 +1025,19 @@ begin
            end;
           end
           else;
-          if Index < FTextChar.Count then FTextChar.delete(Index);
+          //if Index < FTextChar.Count then FTextChar.delete(Index);
           if Text.Count > Index then
           begin
             s:= Text[Index+1];
-            UTF8Delete(s, 1, LastIndexColumn+1);
+            UTF8Delete(s, 0, LastIndexColumn+1);
             Text[Index]:= Text[Index] + s;
           end;
           WritelnLog('LI '+IntToStr(index+1)+' '+s);
           Text.Delete(Index+1);
-          if LastIndex < FTextChar.Count then
+          if Index+1 < FTextChar.Count then
           begin
-            FTextChar.Delete(LastIndex-1);
-            FTextChar[LastIndex-1]:= False;
+            FTextChar.Delete(Index+1);
+            FTextChar[Index+1]:= False;
           end;
           if Text.Count = 0 then Text.Add('');
           //LastIndexColumn:=-1;
