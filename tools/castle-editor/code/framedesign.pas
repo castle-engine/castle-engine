@@ -595,6 +595,8 @@ begin
 end;
 
 function TDesignFrame.TDesignerLayer.Release(const Event: TInputPressRelease): Boolean;
+var
+  Sel: TComponent;
 begin
   Result := inherited Press(Event);
   if Result then Exit;
@@ -605,7 +607,13 @@ begin
 
     { Note, that we may want to have better comment message here }
     if Frame.UndoSystem.ScheduleRecordUndoOnRelease then
-      Frame.RecordUndo('Drag''n''drop', HighUndoPriority);
+    begin
+      Sel := Frame.GetSelectedComponent;
+      if Sel <> nil then
+        Frame.RecordUndo('Drag''n''drop ' + Sel.Name, HighUndoPriority)
+      else
+        Frame.RecordUndo('Drag''n''drop', HighUndoPriority);
+    end;
   end;
 end;
 
@@ -1225,12 +1233,16 @@ end;
 
 procedure TDesignFrame.AddComponent(const ComponentClass: TComponentClass;
   const ComponentOnCreate: TNotifyEvent);
+var
+  Selected: TComponentList;
+  SelectedCount: Integer;
+  ParentComponent: TComponent;
 
   procedure FinishAddingComponent(const NewComponent: TComponent);
   begin
     UpdateDesign;
     SelectedComponent := NewComponent; // select after adding, makes it natural to edit
-    ModifiedOutsideObjectInspector('Add ' + NewComponent.Name, HighUndoPriority);
+    ModifiedOutsideObjectInspector('Add ' + NewComponent.Name + ' to ' + ParentComponent.Name, HighUndoPriority);
   end;
 
   procedure AddTransform(const ParentComponent: TCastleTransform);
@@ -1267,10 +1279,6 @@ procedure TDesignFrame.AddComponent(const ComponentClass: TComponentClass;
         [ComponentClass.ClassName, ParentComponent.ClassName]))
   end;
 
-var
-  Selected: TComponentList;
-  SelectedCount: Integer;
-  ParentComponent: TComponent;
 begin
   if ControlsTree.Selected <> nil then
     ControlsTree.Selected.EndEdit(true);
@@ -1885,12 +1893,12 @@ begin
       SenderRowName := TOICustomPropertyGrid(Sender).GetActiveRow.Name;
       SenderRowValue := TOICustomPropertyGrid(Sender).CurrentEditValue;
       if CharsPos(UnreadableChars, SenderRowValue) = 0 then
-        SenderRowDescription := 'Change ' + SenderRowName + ' to ' + SenderRowValue
+        SenderRowDescription := 'Change ' + Sel.Name + '.' + SenderRowName + ' to ' + SenderRowValue
       else
-        SenderRowDescription := 'Change ' + SenderRowName;
+        SenderRowDescription := 'Change ' + Sel.Name + '.' + SenderRowName;
       RecordUndo(SenderRowDescription, HighUndoPriority, TOICustomPropertyGrid(Sender).ItemIndex);
     end else
-      RecordUndo('', LowUndoPriority); // It is not certain what has been changed, so we're just recording a generic undo
+      RecordUndo('', LowUndoPriority);
   end;
 
   MarkModified;
@@ -2305,8 +2313,13 @@ end;
 
 procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
   Y: Integer);
+var
+  Src, Dst: TTreeNode;
+  SrcComponent, DstComponent: TComponent;
 
   procedure Refresh;
+  var
+    DestinationName: String;
   begin
     { TODO: In theory we could replicate the movement in UI controls tree
       by doing a movement in nodes tree using:
@@ -2329,7 +2342,12 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
     }
 
     UpdateDesign;
-    ModifiedOutsideObjectInspector('Drag''n''drop', HighUndoPriority);
+    case ControlsTreeNodeUnderMouseSide of
+      tnsRight: DestinationName := DstComponent.Name;
+      tnsBottom, tnsTop: DestinationName := TComponent(Dst.Parent.Data).Name;
+    end;
+    ModifiedOutsideObjectInspector('Drag''n''drop ' + SrcComponent.Name + ' into ' +
+      DestinationName, HighUndoPriority);
   end;
 
   { Does Parent contains PotentialChild, searching recursively.
@@ -2434,9 +2452,6 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
     end;
   end;
 
-var
-  Src, Dst: TTreeNode;
-  SrcComponent, DstComponent: TComponent;
 begin
   Src := ControlsTree.Selected;
   //Dst := ControlsTree.GetNodeAt(X,Y);
@@ -3040,7 +3055,7 @@ begin
 
   OpenDesign(NewRoot, NewDesignOwner, '');
 
-  RecordUndo('Start new design', HighestUndoPriority);
+  RecordUndo('Start new design', HighestUndoPriority); // This Undo comment is never seen
 end;
 
 initialization
