@@ -9,7 +9,7 @@ uses
   Interfaces, // this includes the LCL widgetset
   Forms, FormChooseProject, castle_components, ProjectUtils, FormNewProject,
   EditorUtils, FormProject, FrameDesign, FormAbout, FrameViewFile,
-  FormPreferences, VisualizeTransform;
+  FormPreferences, VisualizeTransform, FormSpriteSheetEditor;
 
 {$R *.res}
 
@@ -22,6 +22,7 @@ begin
   Application.CreateForm(TNewProjectForm, NewProjectForm);
   Application.CreateForm(TAboutForm, AboutForm);
   Application.CreateForm(TPreferencesForm, PreferencesForm);
+  Application.CreateForm(TSpriteSheetEditorForm, SpriteSheetEditorForm);
   Application.Run;
 end.
 

@@ -32,7 +32,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="11">
+    <Units Count="12">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -105,6 +105,13 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="VisualizeTransform"/>
       </Unit10>
+      <Unit11>
+        <Filename Value="formspritesheeteditor.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="SpriteSheetEditorForm"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="FormSpriteSheetEditor"/>
+      </Unit11>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

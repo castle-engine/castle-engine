@@ -1,0 +1,271 @@
+object SpriteSheetEditorForm: TSpriteSheetEditorForm
+  Left = 458
+  Height = 575
+  Top = 235
+  Width = 986
+  Caption = 'SpriteSheetEditorForm'
+  ClientHeight = 549
+  ClientWidth = 986
+  DesignTimePPI = 120
+  Menu = MainMenu
+  LCLVersion = '2.0.11.0'
+  object PanelTop: TPanel
+    Left = 0
+    Height = 28
+    Top = 0
+    Width = 986
+    Align = alTop
+    AutoSize = True
+    BevelOuter = bvNone
+    ClientHeight = 28
+    ClientWidth = 986
+    TabOrder = 2
+    object SpeedButtonNewSpriteSheet: TSpeedButton
+      AnchorSideLeft.Control = PanelTop
+      AnchorSideTop.Control = PanelTop
+      Left = 0
+      Height = 28
+      Top = 0
+      Width = 29
+      Action = ActionNewSpriteSheet
+      ShowCaption = False
+    end
+    object SpeedButtonOpenSpriteSheet: TSpeedButton
+      AnchorSideLeft.Control = SpeedButtonNewSpriteSheet
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = PanelTop
+      Left = 29
+      Height = 28
+      Top = 0
+      Width = 29
+      Action = ActionOpenSpriteSheet
+      ShowCaption = False
+    end
+    object SpeedButtonSaveSpriteSheet: TSpeedButton
+      AnchorSideLeft.Control = SpeedButtonOpenSpriteSheet
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = PanelTop
+      Left = 58
+      Height = 28
+      Top = 0
+      Width = 29
+    end
+  end
+  object PanelLeft: TPanel
+    Left = 0
+    Height = 521
+    Top = 28
+    Width = 200
+    Align = alLeft
+    BevelOuter = bvNone
+    Caption = 'PanelLeft'
+    ClientHeight = 521
+    ClientWidth = 200
+    TabOrder = 0
+    object ListBoxAnimations: TListBox
+      AnchorSideLeft.Control = PanelLeft
+      AnchorSideTop.Control = LabelAnimations
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = PanelLeft
+      AnchorSideRight.Side = asrBottom
+      AnchorSideBottom.Control = SpeedButtonAddAnimation
+      Left = 0
+      Height = 424
+      Top = 19
+      Width = 200
+      Anchors = [akTop, akLeft, akRight, akBottom]
+      ItemHeight = 0
+      ScrollWidth = 198
+      TabOrder = 0
+      TopIndex = -1
+    end
+    object SpeedButtonAddAnimation: TSpeedButton
+      AnchorSideLeft.Control = ListBoxAnimations
+      AnchorSideTop.Side = asrBottom
+      AnchorSideBottom.Control = PanelFPS
+      Left = 0
+      Height = 28
+      Top = 443
+      Width = 29
+      Anchors = [akLeft, akBottom]
+    end
+    object SpeedButtonRemoveAnimation: TSpeedButton
+      AnchorSideLeft.Control = SpeedButtonAddAnimation
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Side = asrBottom
+      AnchorSideBottom.Control = PanelFPS
+      Left = 29
+      Height = 28
+      Top = 443
+      Width = 29
+      Anchors = [akLeft, akBottom]
+    end
+    object PanelFPS: TPanel
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = PanelLeft
+      AnchorSideRight.Side = asrBottom
+      AnchorSideBottom.Control = PanelLeft
+      AnchorSideBottom.Side = asrBottom
+      Left = 0
+      Height = 30
+      Top = 471
+      Width = 200
+      Anchors = [akLeft, akRight, akBottom]
+      AutoSize = True
+      BorderSpacing.Bottom = 20
+      BevelOuter = bvNone
+      ClientHeight = 30
+      ClientWidth = 200
+      TabOrder = 1
+      object LabelFPS: TLabel
+        AnchorSideLeft.Control = PanelFPS
+        AnchorSideTop.Control = PanelFPS
+        AnchorSideTop.Side = asrCenter
+        Left = 0
+        Height = 18
+        Top = 6
+        Width = 28
+        Caption = 'FPS'
+        ParentColor = False
+      end
+      object FloatSpinEditFPS: TFloatSpinEdit
+        AnchorSideTop.Control = PanelFPS
+        AnchorSideTop.Side = asrCenter
+        AnchorSideRight.Control = PanelFPS
+        AnchorSideRight.Side = asrBottom
+        Left = 137
+        Height = 29
+        Top = 1
+        Width = 63
+        Anchors = [akTop, akRight]
+        MinValue = 1
+        TabOrder = 0
+        Value = 1
+      end
+    end
+    object LabelAnimations: TLabel
+      AnchorSideLeft.Control = PanelLeft
+      AnchorSideTop.Control = PanelLeft
+      Left = 0
+      Height = 19
+      Top = 0
+      Width = 108
+      Caption = 'Animations'
+      Font.Height = -17
+      Font.Name = 'Sans'
+      Font.Style = [fsBold]
+      ParentColor = False
+      ParentFont = False
+    end
+  end
+  object SplitterLeft: TSplitter
+    Left = 200
+    Height = 521
+    Top = 28
+    Width = 6
+  end
+  object PanelMiddle: TPanel
+    Left = 206
+    Height = 521
+    Top = 28
+    Width = 561
+    Align = alClient
+    BevelOuter = bvNone
+    Caption = 'PanelMiddle'
+    ClientHeight = 521
+    ClientWidth = 561
+    TabOrder = 3
+    object ListViewFrames: TListView
+      AnchorSideLeft.Control = PanelMiddle
+      AnchorSideTop.Control = LabelFrames
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = PanelMiddle
+      AnchorSideRight.Side = asrBottom
+      AnchorSideBottom.Control = PanelMiddle
+      AnchorSideBottom.Side = asrBottom
+      Left = 0
+      Height = 502
+      Top = 19
+      Width = 561
+      Anchors = [akTop, akLeft, akRight, akBottom]
+      Columns = <>
+      Items.LazData = {
+        2000000001000000FFFFFFFFFFFFFFFFFFFFFFFF000000000400000031313131
+      }
+      TabOrder = 0
+      ViewStyle = vsIcon
+    end
+    object LabelFrames: TLabel
+      AnchorSideLeft.Control = PanelMiddle
+      AnchorSideTop.Control = PanelMiddle
+      Left = 0
+      Height = 19
+      Top = 0
+      Width = 70
+      Caption = 'Frames'
+      Font.Height = -17
+      Font.Name = 'Sans'
+      Font.Style = [fsBold]
+      ParentColor = False
+      ParentFont = False
+    end
+  end
+  object PanelRight: TPanel
+    Left = 773
+    Height = 521
+    Top = 28
+    Width = 213
+    Align = alRight
+    BevelOuter = bvNone
+    ClientHeight = 521
+    ClientWidth = 213
+    TabOrder = 4
+    object LabelPreview: TLabel
+      AnchorSideLeft.Control = PanelRight
+      AnchorSideTop.Control = PanelRight
+      Left = 0
+      Height = 19
+      Top = 0
+      Width = 77
+      Caption = 'Preview'
+      Font.Height = -17
+      Font.Name = 'Sans'
+      Font.Style = [fsBold]
+      ParentColor = False
+      ParentFont = False
+    end
+  end
+  object Splitter1: TSplitter
+    Left = 767
+    Height = 521
+    Top = 28
+    Width = 6
+    Align = alRight
+    ResizeAnchor = akRight
+  end
+  object ActionListSpriteSheet: TActionList
+    Left = 629
+    Top = 131
+    object ActionNewSpriteSheet: TAction
+      Category = 'File'
+      Caption = 'New...'
+    end
+    object ActionOpenSpriteSheet: TAction
+      Category = 'File'
+      Caption = 'Open...'
+    end
+  end
+  object MainMenu: TMainMenu
+    Left = 339
+    Top = 109
+    object MenuItemFile: TMenuItem
+      Caption = 'File'
+      object MenuItem1: TMenuItem
+        Action = ActionNewSpriteSheet
+      end
+      object MenuItem2: TMenuItem
+        Action = ActionOpenSpriteSheet
+      end
+    end
+  end
+end
