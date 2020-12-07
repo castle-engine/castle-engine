@@ -220,7 +220,7 @@ begin
     Dec(CurrentUndo);
     Result := UndoHistory[CurrentUndo];
     CurrentUndoCommentPriority := HighestUndoPriority; // Whatever happens next this Undo record cannot be overwritten
-    //OnUpdateUndo; The caller itself should better take care of that
+    OnUpdateUndo(Self);
   end else
     raise EInternalError.Create('Undo was requested but undo is not possible');
 end;
@@ -234,7 +234,7 @@ begin
     Inc(CurrentUndo);
     Result := UndoHistory[CurrentUndo];
     CurrentUndoCommentPriority := HighestUndoPriority; // Whatever happens next this Undo record cannot be overwritten
-    //OnUpdateUndo; The caller itself should better take care of that
+    OnUpdateUndo(Self);
   end else
     raise EInternalError.Create('Redo was requested but redo is not possible');
 end;
