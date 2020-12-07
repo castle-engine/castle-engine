@@ -239,6 +239,7 @@ uses CastleClassUtils, CastleImages, CastleURIUtils, CastleStringUtils,
   X3DLoadInternalMD3, X3DLoadInternalGLTF, X3DLoadInternalStarling,
   X3DLoadInternalImage, X3DLoadInternalCocos2d,
   CastleInternalNodeInterpolator, CastleDownload;
+  CastleInternalNodeInterpolator, CastleSpriteSheet;
 
 { Load a sequence of nodes to an animation suitable for TNodeInterpolator.
   Allows to read sequence of static models as an animation,
@@ -460,6 +461,9 @@ begin
 
   if MimeType = 'application/x-starling-sprite-sheet' then
     Result := LoadStarlingSpriteSheet(Stream, BaseUrl)
+  if (MimeType = 'application/x-starling-sprite-sheet') or
+     (URIMimeType(URIDeleteAnchor(URL, true)) = 'application/x-starling-sprite-sheet') then
+    Result := LoadStarlingSpriteSheet(URL)
   else
 
   if (MimeType = 'application/x-plist') or
@@ -503,6 +507,7 @@ begin
     'Videoscape (*.geo)|*.geo|' +
     'Spine animation (*.json)|*.json|' +
     'Standard Triangle Language (*.stl)|*.stl|' +
+    'Castle Sprite Sheet (*.castle-sprite-sheet)|*.castle-sprite-sheet|' +
     'Starling Sprite Sheet (*.starling-xml)|*.starling-xml|' +
     'Cocos2d Sprite Sheet (*.cocos2d-plist, *.plist)|*.cocos2d-plist;*.plist|' +
     { Uncomment to see version with extensions - but filter combo is very long then }

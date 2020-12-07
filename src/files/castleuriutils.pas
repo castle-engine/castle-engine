@@ -910,6 +910,7 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
     if ExtA = '.starling-xml' then Result := 'application/x-starling-sprite-sheet' else
     if ExtA = '.cocos2d-plist' then Result := 'application/x-cocos2d-sprite-sheet' else
     if ExtA = '.plist' then Result := 'application/x-plist' else
+    if Ext = '.castle-sprite-sheet' then Result := 'application/x-castle-sprite-sheet' else
     // HTML
     if Ext = '.htm' then Result := 'text/html' else
     if Ext = '.html' then Result := 'text/html' else
