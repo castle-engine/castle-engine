@@ -714,6 +714,7 @@ type
   strict private
     Tangent: TVector3;
     AttribTangent: TGeometryAttrib;
+    CalculateTangents: Boolean;
   protected
     { If tangents are provided in the TAbstractComposedGeometryNode.FdTangent,
       descendants should set them here. }
@@ -2213,9 +2214,25 @@ end;
 procedure TAbstractBumpMappingGenerator.GenerateCoordinateBegin;
 begin
   inherited;
-  if ShapeBumpMappingUsed and (TangentsFromNode <> nil) then
-    AssignAttribute(Pointer(Arrays.GLSLAttribute(AttribTangent)),
-      TangentsFromNode.L, TangentsFromNode.ItemSize, TangentsFromNode.Count);
+
+  CalculateTangents := false;
+  if ShapeBumpMappingUsed then
+  begin
+    if (TangentsFromNode <> nil) and
+       (NorImplementation in [niPerVertexCoordIndexed, niPerVertexNonIndexed]) then
+    begin
+      AssignAttribute(Pointer(Arrays.GLSLAttribute(AttribTangent)),
+        TangentsFromNode.L, TangentsFromNode.ItemSize, TangentsFromNode.Count)
+    end else
+    begin
+      { If ShapeBumpMappingUsed, but we cannot use TangentsFromNode, then we need
+        to calculate tangents per-vertex or per-face here. }
+      CalculateTangents := true;
+      { Too verbose? Would also show when we only do this once
+        (because the geometry is not animated), which is not really a problem. }
+      // WritelnWarning('Calculating tangent vectors during rendering. This is slow. Export model with "Tangents" selected to make it much faster to render.');
+    end;
+  end;
 end;
 
 procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
@@ -2251,7 +2268,7 @@ procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
 
 begin
   inherited;
-  if ShapeBumpMappingUsed and (TangentsFromNode = nil) then
+  if CalculateTangents then
     SetTangents;
 end;
 
@@ -2364,7 +2381,7 @@ var
   Triangle3D: TTriangle3;
   TriangleTexCoord: TTriangle2;
 begin
-  if ShapeBumpMappingUsed and (TangentsFromNode = nil) then
+  if CalculateTangents then
   begin
     { calculate Triangle3D }
     Triangle3D.Data[0] := GetVertex(TriangleIndex1);

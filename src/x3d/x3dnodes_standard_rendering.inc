@@ -850,7 +850,14 @@
     {$I auto_generated_node_helpers/x3dnodes_normal.inc}
   end;
 
-  { Tangent vectors information, for bump mapping. }
+  { Tangent vectors information, for bump mapping.
+    The "vector" field should contain normalized tangent vectors,
+    in right-handed coordinate system.
+
+    The ordering of the tangent vectors is exactly the same as ordering
+    of normal vectors would be,
+    so e.g. @link(TAbstractComposedGeometryNode.NormalPerVertex) affects
+    the interpretation of tangent vectors as well. }
   TTangentNode = class(TAbstractGeometricPropertyNode)
     {$I auto_generated_node_helpers/x3dnodes_tangent.inc}
   public
