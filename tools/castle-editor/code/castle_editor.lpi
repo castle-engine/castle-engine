@@ -6,6 +6,7 @@
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
       <Title Value="castle_editor"/>
+      <Scaled Value="True"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
       <XPManifest>
@@ -32,7 +33,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="12">
+    <Units Count="13">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -109,9 +110,18 @@
         <Filename Value="formspritesheeteditor.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="SpriteSheetEditorForm"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="FormSpriteSheetEditor"/>
       </Unit11>
+      <Unit12>
+        <Filename Value="datamoduleicons.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Icons"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="DataModule"/>
+        <UnitName Value="DataModuleIcons"/>
+      </Unit12>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

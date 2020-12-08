@@ -9,15 +9,17 @@ uses
   Interfaces, // this includes the LCL widgetset
   Forms, FormChooseProject, castle_components, ProjectUtils, FormNewProject,
   EditorUtils, FormProject, FrameDesign, FormAbout, FrameViewFile,
-  FormPreferences, VisualizeTransform, FormSpriteSheetEditor;
+  FormPreferences, VisualizeTransform, FormSpriteSheetEditor, DataModuleIcons;
 
 {$R *.res}
 
 begin
   RequireDerivedFormResource := True;
+  Application.Scaled := True;
   Application.Initialize;
   { When this code changes (e.g. new auto-created form is added),
     remember to also update ../../build-tool/data/custom_editor_template/castle_editor.lpr }
+  Application.CreateForm(TIcons, Icons);
   Application.CreateForm(TChooseProjectForm, ChooseProjectForm);
   Application.CreateForm(TNewProjectForm, NewProjectForm);
   Application.CreateForm(TAboutForm, AboutForm);
