@@ -8,17 +8,20 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
   ClientWidth = 986
   DesignTimePPI = 120
   Menu = MainMenu
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
   LCLVersion = '2.0.11.0'
   object PanelTop: TPanel
-    Left = 0
+    Left = 4
     Height = 28
-    Top = 0
-    Width = 986
+    Top = 4
+    Width = 978
     Align = alTop
     AutoSize = True
+    BorderSpacing.Around = 4
     BevelOuter = bvNone
     ClientHeight = 28
-    ClientWidth = 986
+    ClientWidth = 978
     TabOrder = 2
     object SpeedButtonNewSpriteSheet: TSpeedButton
       AnchorSideLeft.Control = PanelTop
@@ -26,40 +29,52 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       Left = 0
       Height = 28
       Top = 0
-      Width = 29
+      Width = 28
       Action = ActionNewSpriteSheet
+      AutoSize = True
+      Constraints.MinHeight = 28
+      Constraints.MinWidth = 28
       ShowCaption = False
     end
     object SpeedButtonOpenSpriteSheet: TSpeedButton
       AnchorSideLeft.Control = SpeedButtonNewSpriteSheet
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = PanelTop
-      Left = 29
+      Left = 28
       Height = 28
       Top = 0
-      Width = 29
+      Width = 28
       Action = ActionOpenSpriteSheet
+      AutoSize = True
+      Constraints.MinHeight = 28
+      Constraints.MinWidth = 28
       ShowCaption = False
     end
     object SpeedButtonSaveSpriteSheet: TSpeedButton
       AnchorSideLeft.Control = SpeedButtonOpenSpriteSheet
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = PanelTop
-      Left = 58
+      Left = 56
       Height = 28
       Top = 0
-      Width = 29
+      Width = 28
+      Action = ActionSaveSpriteSheet
+      AutoSize = True
+      Constraints.MinHeight = 28
+      Constraints.MinWidth = 28
+      ShowCaption = False
     end
   end
   object PanelLeft: TPanel
     Left = 0
-    Height = 521
-    Top = 28
+    Height = 513
+    Top = 36
     Width = 200
     Align = alLeft
     BevelOuter = bvNone
+    BorderWidth = 4
     Caption = 'PanelLeft'
-    ClientHeight = 521
+    ClientHeight = 513
     ClientWidth = 200
     TabOrder = 0
     object ListBoxAnimations: TListBox
@@ -69,13 +84,14 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       AnchorSideRight.Control = PanelLeft
       AnchorSideRight.Side = asrBottom
       AnchorSideBottom.Control = SpeedButtonAddAnimation
-      Left = 0
-      Height = 424
-      Top = 19
-      Width = 200
+      Left = 4
+      Height = 408
+      Top = 23
+      Width = 192
       Anchors = [akTop, akLeft, akRight, akBottom]
       ItemHeight = 0
-      ScrollWidth = 198
+      OnSelectionChange = ListBoxAnimationsSelectionChange
+      ScrollWidth = 190
       TabOrder = 0
       TopIndex = -1
     end
@@ -83,9 +99,9 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       AnchorSideLeft.Control = ListBoxAnimations
       AnchorSideTop.Side = asrBottom
       AnchorSideBottom.Control = PanelFPS
-      Left = 0
+      Left = 4
       Height = 28
-      Top = 443
+      Top = 431
       Width = 29
       Anchors = [akLeft, akBottom]
     end
@@ -94,9 +110,9 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Side = asrBottom
       AnchorSideBottom.Control = PanelFPS
-      Left = 29
+      Left = 33
       Height = 28
-      Top = 443
+      Top = 431
       Width = 29
       Anchors = [akLeft, akBottom]
     end
@@ -108,14 +124,14 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       AnchorSideBottom.Side = asrBottom
       Left = 0
       Height = 30
-      Top = 471
-      Width = 200
+      Top = 459
+      Width = 196
       Anchors = [akLeft, akRight, akBottom]
       AutoSize = True
       BorderSpacing.Bottom = 20
       BevelOuter = bvNone
       ClientHeight = 30
-      ClientWidth = 200
+      ClientWidth = 196
       TabOrder = 1
       object LabelFPS: TLabel
         AnchorSideLeft.Control = PanelFPS
@@ -133,7 +149,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
         AnchorSideTop.Side = asrCenter
         AnchorSideRight.Control = PanelFPS
         AnchorSideRight.Side = asrBottom
-        Left = 137
+        Left = 133
         Height = 29
         Top = 1
         Width = 63
@@ -146,9 +162,9 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     object LabelAnimations: TLabel
       AnchorSideLeft.Control = PanelLeft
       AnchorSideTop.Control = PanelLeft
-      Left = 0
+      Left = 4
       Height = 19
-      Top = 0
+      Top = 4
       Width = 108
       Caption = 'Animations'
       Font.Height = -17
@@ -160,19 +176,20 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
   end
   object SplitterLeft: TSplitter
     Left = 200
-    Height = 521
-    Top = 28
+    Height = 513
+    Top = 36
     Width = 6
   end
   object PanelMiddle: TPanel
     Left = 206
-    Height = 521
-    Top = 28
+    Height = 513
+    Top = 36
     Width = 561
     Align = alClient
     BevelOuter = bvNone
+    BorderWidth = 4
     Caption = 'PanelMiddle'
-    ClientHeight = 521
+    ClientHeight = 513
     ClientWidth = 561
     TabOrder = 3
     object ListViewFrames: TListView
@@ -183,24 +200,22 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       AnchorSideRight.Side = asrBottom
       AnchorSideBottom.Control = PanelMiddle
       AnchorSideBottom.Side = asrBottom
-      Left = 0
-      Height = 502
-      Top = 19
-      Width = 561
+      Left = 4
+      Height = 486
+      Top = 23
+      Width = 553
       Anchors = [akTop, akLeft, akRight, akBottom]
       Columns = <>
-      Items.LazData = {
-        2000000001000000FFFFFFFFFFFFFFFFFFFFFFFF000000000400000031313131
-      }
+      LargeImages = Icons.MenuStroke1_5
       TabOrder = 0
       ViewStyle = vsIcon
     end
     object LabelFrames: TLabel
       AnchorSideLeft.Control = PanelMiddle
       AnchorSideTop.Control = PanelMiddle
-      Left = 0
+      Left = 4
       Height = 19
-      Top = 0
+      Top = 4
       Width = 70
       Caption = 'Frames'
       Font.Height = -17
@@ -212,20 +227,21 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
   end
   object PanelRight: TPanel
     Left = 773
-    Height = 521
-    Top = 28
+    Height = 513
+    Top = 36
     Width = 213
     Align = alRight
     BevelOuter = bvNone
-    ClientHeight = 521
+    BorderWidth = 4
+    ClientHeight = 513
     ClientWidth = 213
     TabOrder = 4
     object LabelPreview: TLabel
       AnchorSideLeft.Control = PanelRight
       AnchorSideTop.Control = PanelRight
-      Left = 0
+      Left = 4
       Height = 19
-      Top = 0
+      Top = 4
       Width = 77
       Caption = 'Preview'
       Font.Height = -17
@@ -235,37 +251,71 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       ParentFont = False
     end
   end
-  object Splitter1: TSplitter
+  object SplitterRight: TSplitter
     Left = 767
-    Height = 521
-    Top = 28
+    Height = 513
+    Top = 36
     Width = 6
     Align = alRight
     ResizeAnchor = akRight
   end
   object ActionListSpriteSheet: TActionList
+    Images = Icons.ToolbarStroke1_5
     Left = 629
     Top = 131
     object ActionNewSpriteSheet: TAction
       Category = 'File'
       Caption = 'New...'
+      ImageIndex = 0
+      OnExecute = ActionNewSpriteSheetExecute
     end
     object ActionOpenSpriteSheet: TAction
       Category = 'File'
       Caption = 'Open...'
+      ImageIndex = 1
+      OnExecute = ActionOpenSpriteSheetExecute
+    end
+    object ActionSaveSpriteSheet: TAction
+      Category = 'File'
+      Caption = 'Save'
+      ImageIndex = 2
+    end
+    object ActionSaveSpriteSheetAs: TAction
+      Category = 'File'
+      Caption = 'Save as...'
+      ImageIndex = 2
     end
   end
   object MainMenu: TMainMenu
+    Images = Icons.MenuStroke1_5
     Left = 339
     Top = 109
     object MenuItemFile: TMenuItem
       Caption = 'File'
-      object MenuItem1: TMenuItem
+      object MenuItemNew: TMenuItem
         Action = ActionNewSpriteSheet
       end
-      object MenuItem2: TMenuItem
+      object MenuItemOpen: TMenuItem
         Action = ActionOpenSpriteSheet
       end
+      object MenuItemSave: TMenuItem
+        Action = ActionSaveSpriteSheet
+      end
+      object MenuItemSaveAs: TMenuItem
+        Action = ActionSaveSpriteSheetAs
+      end
     end
+  end
+  object OpenDialog: TCastleOpenDialog
+    Left = 344
+    Top = 208
+  end
+  object SaveDialog: TCastleSaveDialog
+    Left = 467
+    Top = 208
+  end
+  object ImageListFrames: TImageList
+    Left = 406
+    Top = 303
   end
 end
