@@ -10,6 +10,7 @@ X3DComposedGeometryNode : X3DGeometryNode {
   SFNode [in,out] coord           NULL [X3DCoordinateNode]
   SFNode [in,out] fogCoord        NULL [FogCoordinate] # NOT-SLIM
   SFNode [in,out] normal          NULL [X3DNormalNode]
+  SFNode [in,out] tangent         NULL [Tangent]
   SFNode [in,out] texCoord        NULL [X3DTextureCoordinateNode]
   SFBool []       ccw             TRUE
   SFBool []       colorPerVertex  TRUE

@@ -1937,11 +1937,16 @@ var
     To the AnimatedCoords, we will add OriginalCoords.Count vertexes.
 
     We also add to AnimatedNormals if they are <> nil.
-    Both OriginalNormals and AnimatedNormals must be nil or both must be <> nil. }
+    Both OriginalNormals and AnimatedNormals must be nil or both must be <> nil.
+
+    Similarly, we also add AnimatedTangents if they are <> nil.
+    And both OriginalTangents and AnimatedTangents must be nil or both must be <> nil.
+     }
   procedure SampleSkinAnimation(const Anim: TAnimation;
     const TimeFraction: Single;
     const OriginalCoords, AnimatedCoords: TVector3List;
     const OriginalNormals, AnimatedNormals: TVector3List;
+    const OriginalTangents, AnimatedTangents: TVector3List;
     const Joints: TX3DNodeList; const JointsGltf: TPasGLTF.TSkin.TJoints;
     const InverseBindMatrices: TMatrix4List;
     const SkeletonRootIndex: Integer;
@@ -1955,6 +1960,8 @@ var
   begin
     Assert((AnimatedNormals = nil) = (OriginalNormals = nil));
     Assert((OriginalNormals = nil) or (OriginalNormals.Count = OriginalCoords.Count));
+    Assert((AnimatedTangents = nil) = (OriginalTangents = nil));
+    Assert((OriginalTangents = nil) or (OriginalTangents.Count = OriginalCoords.Count));
 
     AnimationSampler.Animation := Anim;
     AnimationSampler.SetTime(TimeFraction);
@@ -2002,6 +2009,8 @@ var
       AnimatedCoords.Add(SkinMatrix.MultPoint(OriginalCoords[I]));
       if AnimatedNormals <> nil then
         AnimatedNormals.Add(SkinMatrix.MultDirection(OriginalNormals[I]));
+      if AnimatedTangents <> nil then
+        AnimatedTangents.Add(SkinMatrix.MultDirection(OriginalTangents[I]));
     end;
   end;
 
@@ -2043,11 +2052,14 @@ var
     CoordField: TSFNode;
     Coord: TCoordinateNode;
     Normal: TNormalNode;
+    Tangent: TTangentNode;
     Anim: TAnimation;
     CoordInterpolator: TCoordinateInterpolatorNode;
     NormalInterpolator: TCoordinateInterpolatorNode;
+    TangentInterpolator: TCoordinateInterpolatorNode;
     I: Integer;
     OriginalNormals, AnimatedNormals: TVector3List;
+    OriginalTangents, AnimatedTangents: TVector3List;
   begin
     CoordField := Shape.Geometry.CoordField;
     if CoordField = nil then
@@ -2067,6 +2079,7 @@ var
     end;
     Coord := CoordField.Value as TCoordinateNode;
 
+    // calculate Normal
     Normal := nil;
     if (Shape.Geometry.NormalField <> nil) and
        (Shape.Geometry.NormalField.Value is TNormalNode) then
@@ -2085,6 +2098,27 @@ var
       if (Shape.Material is TMaterialNode) or
          (Shape.Material is TPhysicalMaterialNode) then
         WritelnWarning('TODO: Normal vectors are not provided for a skinned geometry (using lit material), and in effect the resulting animation will be slow as we''ll recalculate normals more often than necessary. For now it is adviced to generate glTF with normals included for skinned meshes.');
+    end;
+
+    // calculate Tangent
+    Tangent := nil;
+    if (Shape.Geometry.TangentField <> nil) and
+       (Shape.Geometry.TangentField.Value is TTangentNode) then
+    begin
+      Tangent := TTangentNode(Shape.Geometry.TangentField.Value);
+      // SampleSkinAnimation assumes that tangents and coords counts are equal
+      if Tangent.FdVector.Count <> Coord.FdPoint.Count then
+      begin
+        WritelnWarning('When animating using skin geometry %s, coords and tangents counts different', [
+          Shape.Geometry.NiceName
+        ]);
+        Tangent := nil;
+      end;
+    end else
+    begin
+      if (Shape.Material is TMaterialNode) or
+         (Shape.Material is TPhysicalMaterialNode) then
+        WritelnWarning('TODO: Tangent vectors are not provided for a skinned geometry (using lit material), and in effect the resulting animation will be slow as we''ll recalculate tangents more often than necessary. For now it is adviced to generate glTF with tangents included for skinned meshes.');
     end;
 
     if (Shape.Geometry.InternalSkinJoints = nil) or
@@ -2126,11 +2160,32 @@ var
         AnimatedNormals := nil;
       end;
 
+      if Tangent <> nil then
+      begin
+        TangentInterpolator := TCoordinateInterpolatorNode.Create;
+        TangentInterpolator.X3DName := 'SkinTangentInterpolator_' + Anim.TimeSensor.X3DName;
+        //GatherAnimationKeysToSample(TangentInterpolator.FdKey.Items, Anim.Interpolators);
+        // faster:
+        TangentInterpolator.FdKey.Assign(CoordInterpolator.FdKey);
+
+        ParentGroup.AddChildren(TangentInterpolator);
+        ParentGroup.AddRoute(Anim.TimeSensor.EventFraction_changed, TangentInterpolator.EventSet_fraction);
+        ParentGroup.AddRoute(TangentInterpolator.EventValue_changed, Tangent.FdVector);
+
+        OriginalTangents := Tangent.FdVector.Items;
+        AnimatedTangents := TangentInterpolator.FdKeyValue.Items;
+      end else
+      begin
+        OriginalTangents := nil;
+        AnimatedTangents := nil;
+      end;
+
       for I := 0 to CoordInterpolator.FdKey.Items.Count - 1 do
       begin
         SampleSkinAnimation(Anim, CoordInterpolator.FdKey.Items[I],
           Coord.FdPoint.Items, CoordInterpolator.FdKeyValue.Items,
           OriginalNormals, AnimatedNormals,
+          OriginalTangents, AnimatedTangents,
           Joints, JointsGltf, InverseBindMatrices,
           SkeletonRootIndex,
           Shape.Geometry.InternalSkinJoints,

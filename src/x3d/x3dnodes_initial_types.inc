@@ -70,6 +70,7 @@
   TTexturePropertiesNode = class;
   TAbstractTextureTransformNode = class;
   TAbstractSingleTextureCoordinateNode = class;
+  TTangentNode = class;
 
   TX3DNodeClass = class of TX3DNode;
 
