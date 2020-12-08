@@ -42,7 +42,7 @@ type
   TCastleSpriteSheetAnimation = class
     strict private
       FName: String;
-      FFps: Integer;
+      FFps: Single;
       FFrameList: TCastleSpriteSheetFrameList;
     public
       constructor Create(AName: String);
@@ -117,77 +117,77 @@ type
       end;
 
       TLoadStrategy = class
-        private
-          FLoader: TCastleSpriteSheetLoader;
-        public
-          constructor Create(Loader: TCastleSpriteSheetLoader);
+      protected
+        FLoader: TCastleSpriteSheetLoader;
+      public
+        constructor Create(Loader: TCastleSpriteSheetLoader);
 
-          procedure PrepareContainer; virtual; abstract;
-          procedure CalculateFrameCoords(const SubTexture: TSubTexture); virtual; abstract;
-          procedure PrepareAnimation(const Name: String); virtual; abstract;
-          procedure AddAnimation(const FrameCount: Integer); virtual; abstract;
-          procedure AddFrame; virtual; abstract;
+        procedure PrepareContainer; virtual; abstract;
+        procedure CalculateFrameCoords(const SubTexture: TSubTexture); virtual; abstract;
+        procedure PrepareAnimation(const Name: String); virtual; abstract;
+        procedure AddAnimation(const FrameCount: Integer); virtual; abstract;
+        procedure AddFrame; virtual; abstract;
       end;
 
       TLoadToX3D = class (TLoadStrategy)
-        private
-          procedure CalculateAnchors(const SubTexture: TSubTexture);
-          procedure PrepareTexCordsForX3D(const SubTexture: TSubTexture;
-            const ImageWidth, ImageHeight: Integer);
-        public
-          FRoot: TX3DRootNode;
-          FShapeCoord: TCoordinateNode;
-          FShapeTexCoord: TTextureCoordinateNode;
+      private
+        procedure CalculateAnchors(const SubTexture: TSubTexture);
+        procedure PrepareTexCordsForX3D(const SubTexture: TSubTexture;
+          const ImageWidth, ImageHeight: Integer);
+      public
+        FRoot: TX3DRootNode;
+        FShapeCoord: TCoordinateNode;
+        FShapeTexCoord: TTextureCoordinateNode;
 
-          FCoordArray: array of TVector3;
-          FTexCoordArray: array of TVector2;
+        FCoordArray: array of TVector3;
+        FTexCoordArray: array of TVector2;
 
-          TimeSensor: TTimeSensorNode;
-          CoordInterp: TCoordinateInterpolatorNode;
-          TexCoordInterp: TCoordinateInterpolator2DNode;
+        TimeSensor: TTimeSensorNode;
+        CoordInterp: TCoordinateInterpolatorNode;
+        TexCoordInterp: TCoordinateInterpolator2DNode;
 
-          { Current frame cords and anchors }
-          X1: Single;
-          Y1: Single;
-          X2: Single;
-          Y2: Single;
-          AnchorX: Single;
-          AnchorY: Single;
+        { Current frame cords and anchors }
+        X1: Single;
+        Y1: Single;
+        X2: Single;
+        Y2: Single;
+        AnchorX: Single;
+        AnchorY: Single;
 
-          constructor Create(Loader: TCastleSpriteSheetLoader; RootNode: TX3DRootNode);
+        constructor Create(Loader: TCastleSpriteSheetLoader; RootNode: TX3DRootNode);
 
-          { In case of X3D here we prepare X3D root node and shape }
-          procedure PrepareContainer; override;
-          { In case of X3D here we calculate anchors and set frame cords }
-          procedure CalculateFrameCoords(const SubTexture: TSubTexture); override;
-          { In case of X3D here we create TimeSensor, CoordInterp,
-            TexCoordInterp for animation }
-          procedure PrepareAnimation(const Name: String); override;
-          { In case of X3D here we add TimeSensor, CoordInterp, TexCoordInterp
-            and routes to root }
-          procedure AddAnimation(const FrameCount: Integer); override;
-          { In case of X3D here we add frame coords to CoordInterp and TexCoordInterp }
-          procedure AddFrame; override;
+        { In case of X3D here we prepare X3D root node and shape }
+        procedure PrepareContainer; override;
+        { In case of X3D here we calculate anchors and set frame cords }
+        procedure CalculateFrameCoords(const SubTexture: TSubTexture); override;
+        { In case of X3D here we create TimeSensor, CoordInterp,
+          TexCoordInterp for animation }
+        procedure PrepareAnimation(const Name: String); override;
+        { In case of X3D here we add TimeSensor, CoordInterp, TexCoordInterp
+          and routes to root }
+        procedure AddAnimation(const FrameCount: Integer); override;
+        { In case of X3D here we add frame coords to CoordInterp and TexCoordInterp }
+        procedure AddFrame; override;
       end;
 
       TLoadToSpriteSheetModel = class (TLoadStrategy)
-        private
-          FSpriteSheet: TCastleSpriteSheet;
-          FCurrentAnimation: TCastleSpriteSheetAnimation;
-          FSubTexture: TSubTexture;
-        public
-          constructor Create(Loader: TCastleSpriteSheetLoader; SpriteSheet: TCastleSpriteSheet);
+      private
+        FSpriteSheet: TCastleSpriteSheet;
+        FCurrentAnimation: TCastleSpriteSheetAnimation;
+        FSubTexture: TSubTexture;
+      public
+        constructor Create(Loader: TCastleSpriteSheetLoader; SpriteSheet: TCastleSpriteSheet);
 
-          { In case of TCastleSpriteSheet here we only set URL }
-          procedure PrepareContainer; override;
-          { In case of TCastleSpriteSheet here we only get SubTexture pointer }
-          procedure CalculateFrameCoords(const SubTexture: TSubTexture); override;
-          { In case of TCastleSpriteSheet here we only create animation }
-          procedure PrepareAnimation(const Name: String); override;
-          { In case of TCastleSpriteSheet here nothing to do }
-          procedure AddAnimation(const FrameCount: Integer); override;
-          { In case of TCastleSpriteSheet here we add frame to animation }
-          procedure AddFrame; override;
+        { In case of TCastleSpriteSheet here we only set URL }
+        procedure PrepareContainer; override;
+        { In case of TCastleSpriteSheet here we only get SubTexture pointer }
+        procedure CalculateFrameCoords(const SubTexture: TSubTexture); override;
+        { In case of TCastleSpriteSheet here we only create animation }
+        procedure PrepareAnimation(const Name: String); override;
+        { In case of TCastleSpriteSheet here nothing to do }
+        procedure AddAnimation(const FrameCount: Integer); override;
+        { In case of TCastleSpriteSheet here we add frame to animation }
+        procedure AddFrame; override;
       end;
 
     var
@@ -218,6 +218,7 @@ type
     destructor Destroy; override;
 
     function LoadToX3D: TX3DRootNode;
+    procedure LoadToCastleSpriteSheet(SpriteSheet: TCastleSpriteSheet);
     function LoadToCastleSpriteSheet: TCastleSpriteSheet;
   end;
 
@@ -287,6 +288,8 @@ end;
 constructor TCastleSpriteSheetAnimation.Create(AName: String);
 begin
   FName := AName;
+  FFps := DefaultSpriteSheetFramesPerSecond;
+  FFrameList := TCastleSpriteSheetFrameList.Create;
 end;
 
 destructor TCastleSpriteSheetAnimation.Destroy;
@@ -298,7 +301,7 @@ end;
 function TCastleSpriteSheetAnimation.Frame(const Index: Integer
   ): TCastleSpriteSheetFrame;
 begin
-
+  Result := FFrameList[Index];
 end;
 
 function TCastleSpriteSheetAnimation.FrameCount: Integer;
@@ -528,8 +531,15 @@ begin
 end;
 
 procedure TCastleSpriteSheet.Load(const URL: String);
+var
+  SpriteSheetLoader: TCastleSpriteSheetLoader;
 begin
-
+  SpriteSheetLoader := TCastleSpriteSheetLoader.Create(URL);
+  try
+    SpriteSheetLoader.LoadToCastleSpriteSheet(Self);
+  finally
+    FreeAndNil(SpriteSheetLoader);
+  end;
 end;
 
 procedure TCastleSpriteSheet.Save(const URL: String);
@@ -612,7 +622,7 @@ begin
   FAnimationList.Delete(Index);
 end;
 
-{ TStarlingTextureAtlasLoader ------------------------------------------------}
+{ TCastleSpriteSheetLoader ---------------------------------------------------}
 
 procedure TCastleSpriteSheetLoader.ReadImportSettings;
 var
@@ -725,20 +735,27 @@ begin
   end;
 end;
 
+procedure TCastleSpriteSheetLoader.LoadToCastleSpriteSheet(
+  SpriteSheet: TCastleSpriteSheet);
+var
+  ALoadToCastleSpriteSheet: TLoadToSpriteSheetModel;
+begin
+  ALoadToCastleSpriteSheet := TLoadToSpriteSheetModel.Create(Self, SpriteSheet);
+  try
+    Load(ALoadToCastleSpriteSheet);
+  finally
+    FreeAndNil(ALoadToCastleSpriteSheet);
+  end;
+end;
+
 function TCastleSpriteSheetLoader.LoadToCastleSpriteSheet: TCastleSpriteSheet;
 var
   SpriteSheet: TCastleSpriteSheet;
-  ALoadToCastleSpriteSheet: TLoadToSpriteSheetModel;
 begin
   SpriteSheet := TCastleSpriteSheet.Create;
   try
-    ALoadToCastleSpriteSheet := TLoadToSpriteSheetModel.Create(Self, SpriteSheet);
-    try
-      Load(ALoadToCastleSpriteSheet);
-      Result := SpriteSheet;
-    finally
-      FreeAndNil(ALoadToCastleSpriteSheet);
-    end;
+    LoadToCastleSpriteSheet(SpriteSheet);
+    Result := SpriteSheet;
   except
     FreeAndNil(SpriteSheet);
     raise;
