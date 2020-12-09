@@ -1130,7 +1130,7 @@ begin
      begin
       HeightText:=(Font.RowHeight+PaddingVerticalScaled*2)*Text.Count;
        end;
-  if Text<>nil then
+  if Text <> nil then
   for i:= 0 to Text.Count -1 do
   if i < Text.Count then
   begin
@@ -1151,10 +1151,10 @@ begin
     ( HeightText/Text.Count - Font.RowHeight) / 2 + Font.Descend)+HeightText/Text.Count*(Text.Count-i-1); //+FPaddingVertical
 
   Font.Print(TextLeft+LeftText, BottomText+TextBottom, Color, S);
-  if (FTextChar.Count > i) and (i > -1) then
+  {if (FTextChar.Count > i) and (i > -1) then
     if FTextChar[i] then
     Font.Print(TextLeft+LeftText+Font.TextWidth(S)+2, BottomText+TextBottom, Color, 'T')
-    else Font.Print(TextLeft+LeftText+Font.TextWidth(S)+2, BottomText+TextBottom, Color, 'F');
+    else Font.Print(TextLeft+LeftText+Font.TextWidth(S)+2, BottomText+TextBottom, Color, 'F');  }
      if Focused  and (i = Index) then
   begin
     CaretVisible := FloatModulo(LifeTime * CaretSpeed, 1.0) < 0.5;
