@@ -382,7 +382,6 @@ var
 begin
   if Sender <> nil then
   begin
-   WritelnLog('Change');
    SetLines(TStringList(Sender));
   end;
 end;
@@ -395,7 +394,6 @@ begin
   Text.Assign(AValue);
   FTextChar.Clear;
   for i:= 0 to Text.Count-1 do
-   WritelnLog(Text[i]);
   if AValue.Count > 2 then
     for i:= 0 to Text.Count-2 do
      begin
@@ -436,8 +434,7 @@ begin
   end else
      if (i*(Index)<=BottomText) and (BottomText>0) then
        BottomText:=BottomText-i;  }
-  FLastIndex:=Value;
-  WritelnLog('Assigned: ' +IntToStr(FLastIndex));
+  FLastIndex:= Value;
 end else Exit;
   if LastIndexColumn > Utf8Length(Text[Index])-1 then
      LastIndexColumn:=UTF8Length(Text[Index])-1;
@@ -493,11 +490,9 @@ begin
   Caret:= GetCaret;
   Lines1:= TStringList.Create;
   Lines1.Assign(Lines);
-  WritelnLog('GGF');
   if (Caret.Index2 > -1) and (Caret.Index2 < Lines1.Count) then
   if  (Caret.Index1 < Lines1.Count) and (BolSelect) then
   begin
-    WritelnLog('GGF');
     if Caret.Index1 <> Caret.Index2 then
     begin
       if Caret.Index1 > Caret.Index2 then
@@ -649,11 +644,8 @@ var
   i:integer;
 begin
  index:= index;
- WritelnLog('FF');
  WordWrap(index);
-  WritelnLog('FF');
  if index-1 > 0 then WordWrap(index-1);
-  WritelnLog('FF');
  {if FTextChar.Count >= FText.Count then
    for i:= 0 to FTextChar.Count-FText.Count do
      FTextChar.Delete(FText.Count-1);
@@ -741,7 +733,6 @@ begin
       if index2 <> 0 then
         for i:=0 to FTextChar.Count-1 do
         begin
-         WritelnLog('j: '+IntToStr(j));
           if FTextChar[i] = False then j:=j+1 else k:=k+1;
           if k >= index2 then break;
         end;
@@ -752,7 +743,6 @@ begin
     begin
       j:=UTF8Length(Text[LastIndex]);
       LastIndexColumn:=0;
-      WritelnLog('LastIndex'+IntToStr(LastIndex));
       for i:=LastIndex to Text.Count-1 do
       begin
         if indexColumn2 <= j then
@@ -923,7 +913,6 @@ var
   s1: TStringList;
   s: String;
 begin
-  WritelnLog('Append');
   if LastIndex <> -1 then
     begin
        DeleteSelectText;
@@ -935,17 +924,12 @@ begin
   if s1.Count > 1 then
   begin
     s1[s1.Count-1]:= s1[s1.Count-1] + UTF8Copy(Lines[Index1], IndexColumn1+2, UTF8Length(Lines[Index1]) - IndexColumn1 + 1);
-     WritelnLog('Append');
     //Lines[Index1]:= UTF8Copy(Lines[Index1], 1, IndexColumn1+1);
-     WritelnLog('Append');
     Lines[Index1]:= Lines[Index1] + s1[0];
     if s1.Count > 2 then
     begin
       for i:= 1 to s1.Count-1 do
-      begin
-       WritelnLog('Append1');
        Lines.Insert(Index1 + i, s1[i]);
-      end;
     end;
   end else
   begin
@@ -970,11 +954,9 @@ var
   s:String;
   Caret: TMemoIndexs;
 begin
- WritelnLog('DeleteSelectText');
   if LastIndex <> -1 then
   begin
     Caret:= GetCaret;
-   WritelnLog('DeleteSelectText '+IntToStr(Caret.Index1)+' LI '+IntToStr(Caret.Index2));
    if (Caret.Index1 = 0) and (Caret.Index2 = Lines.Count-1) then
     if (Caret.IndexColumn1 = -1) and (Caret.IndexColumn2 = UTF8Length(Lines[Caret.Index2])) then
     begin
@@ -997,7 +979,6 @@ begin
       //Cut First line
       s:= Lines[Caret.Index2];
       UTF8Delete(s, Caret.IndexColumn2+1, UTF8Length(s)-Caret.IndexColumn2);
-      WritelnLog('Cutting '+s+' g');
       Lines[Caret.Index2]:= s;
       //if exist Intermediate lines then cutting
       if Caret.Index1-Caret.Index2 > 1 then
@@ -1011,11 +992,9 @@ begin
       IndexColumn:= -1;
     end else
     begin
-     WritelnLog('Cutting');
       //Cut First line
       s:= Lines[Caret.Index1];
       UTF8Delete(s, Caret.IndexColumn1+2, UTF8Length(s)-Caret.IndexColumn1);
-      WritelnLog('Cutting '+s+' g');
       if s = '' then s:= ' ';
       Lines[Caret.Index1]:= s;
       //if exist Intermediate lines then cutting
@@ -1024,7 +1003,6 @@ begin
            Lines.Delete(Caret.Index1+1);
       s:= Lines[Caret.Index2];
       UTF8Delete(s, 1, Caret.IndexColumn2 + 2);
-      WritelnLog('Cutting '+s+' g');
       Lines[Caret.Index1]:= Lines[Caret.Index1] + s;
       Lines.Delete(Caret.Index2);
       LastIndex:= -1;
@@ -1213,7 +1191,6 @@ begin
        begin
          if RenderRect.Bottom + RectInside.Height-Event.Position.Y<i*(Font.RowHeight + UIScale * (PaddingVertical + Padding)*2)-BottomText then
          begin
-         WritelnLog('Motion Assign');
            LastIndex:= i-1;
            break;
          end;
@@ -1317,7 +1294,6 @@ begin
   begin
    if BolSelect = False then
     begin
-    WritelnLog(BoolToStr(BolSelect,True));
       LastIndex:= Index;
       LastIndexColumn:= IndexColumn;
       BolSelect:= True;
@@ -1341,7 +1317,6 @@ begin
         UndoSystem.ChangeAct(bool, Caret.Index1, Caret.IndexColumn1-1, -1, -1, UTF8Copy(Text[Index],IndexColumn+1,1), atDelete);
         Text[index]:= s;//+Text[index][IndexColumn];
         IndexColumn:= IndexColumn - 1;
-        WritelnLog('Deleted IndexColumn<>-1');
       end else
       if Index > 0 then
        begin
@@ -1432,7 +1407,6 @@ begin
        UndoSystem.AddAct(False, Caret.Index1, Caret.IndexColumn1, Caret.Index2, Caret.IndexColumn2, SelectedText, atDelete);
        bool:= True;
        LastIndex:= -1;
-       WritelnLog('True');
     end;
     s:=Clipboard.AsText;
     i:=0;
@@ -1505,7 +1479,6 @@ begin
   if Event.IsKey(keyLeft) or Event.IsKey(keyNumpadLeft) then
     if mkShift in Event.ModifiersDown then
     begin
-      WritelnLog('ShiftLeft');
      if LastIndexColumn <> -1 then
       LastIndexColumn:= LastIndexColumn - 1
      else
@@ -1609,7 +1582,6 @@ begin
        UndoSystem.AddAct(False, Caret.Index1, Caret.IndexColumn1, Caret.Index2, Caret.IndexColumn2, SelectedText, atDelete);
        bool:= True;
        LastIndex:= -1;
-       WritelnLog('True');
     end;
     Lines.Insert(Caret.Index1+1, UTF8Copy(Lines[Caret.Index1],Caret.IndexColumn1+2, UTF8Length(Lines[Caret.Index1])-Caret.IndexColumn1));   //UTF8Copy(Text[Index],IndexColumn+2,Length(Text[index])-IndexColumn+Length(Text[Index][Length(Text[Index])])));
     s:= Lines[Caret.Index1];
@@ -1646,7 +1618,6 @@ begin
   if Event.IsKey(CtrlZ) then
   begin
     UndoSystem.Undo;
-    WritelnLog('Undo');
     DoChange;
   end
   else
@@ -1879,7 +1850,6 @@ begin
   begin
     if IndexAct < Count then
     begin
-      WritelnLog('Ff'+IntToStr(IndexAct));
       A:= self[IndexAct];
       if index <> -2 then A.Index:= Index;
       if LastIndex <> -2 then A.LastIndex:= LastIndex;
@@ -1900,12 +1870,8 @@ ActionType: TMemoUndoActionType);
    i:integer;
    P: TMemoUndoActPointer;
  begin
-   WritelnLog('AddAct!  |   ');
     if AddBol then
     begin
-       WritelnLog('HI' + IntToStr(IndexAct) + 'Count:' + IntToStr(Count));
-      // WritelnLog('Index1_'+IntToStr(index)+'_IndexColumn1_'+IntToStr(indexColumn)+'_Text_'+Text);
-       WritelnLog('_LastIndex_'+IntToStr(LastIndex)+'_LastIndexColumn_'+IntToStr(LastIndexColumn)+'|||||||||||');
        A:= self[IndexAct-1];
        A.index1:= Index;
        A.indexColumn1:= indexColumn;
@@ -1924,18 +1890,12 @@ ActionType: TMemoUndoActionType);
       A.LastIndexColumn:= LastIndexColumn;
       A.Text:= Text;
       A.Index1:= -1;
-      WritelnLog('AddMain_' + IntToStr(IndexAct) + 'Count:' + IntToStr(Count));
-     // WritelnLog('Index1_'+IntToStr(index)+'_IndexColumn1_'+IntToStr(indexColumn)+'_Text_'+Text);
-       WritelnLog('_LastIndex_'+IntToStr(LastIndex)+'_LastIndexColumn_'+IntToStr(LastIndexColumn)+'|||||||||||');
 
-      if ActionType = atAdd then WritelnLog('add') else WritelnLog('delete');
       if IndexAct < Count then
        for i:= IndexAct to Count-1 do
            Delete(IndexAct); //+1
       Self.add(A);
       IndexAct:= IndexAct+1;
-      WritelnLog(IntToStr(IndexAct));
-      WritelnLog(IntToStr(Count));
     end;
  end;
 
@@ -1964,25 +1924,12 @@ end;
    AFleep:TMemoUndoAction;
    j:integer;
  begin
-   WritelnLog('IndexAct'+IntToStr(IndexAct-1));
    if (Count > IndexAct-1) and (IndexAct-1 > -1) then
    begin
-    if self[IndexAct-1].ActionType = atAdd then WritelnLog('Type Add') else
-    if self[IndexAct-1].ActionType = atDelete then WritelnLog('Type Delete') else
-    if self[IndexAct-1].ActionType = atEnter then WritelnLog('Type Enter');
-    if self[IndexAct-1].ActionType1 = atAdd then WritelnLog('Type Add1') else
-    if self[IndexAct-1].ActionType1 = atDelete then WritelnLog('Type Delete1') else
-    if self[IndexAct-1].ActionType1 = atEnter then WritelnLog('Type Enter1');
-    // WritelnLog(self[IndexAct-1].Text + '  ' + self[IndexAct-1].Text1);
-     WritelnLog('IndexAct'+IntToStr(IndexAct-1));
-     //for j:= 0 to Self.Count-1 do
-      //WritelnLog('Index:'+IntToStr(self[j].Index)+' IndexColumn:'+IntToStr(self[j].IndexColumn)+' LastIndex:'+IntToStr(self[j].LastIndex)+' LastIndexColumn:'+IntToStr(self[j].LastIndexColumn)+' Text:'+self[j].Text);
-     AFleep:= ActionFleep(self[IndexAct-1]);
-     Action1(AFleep);
-     Action(AFleep);
-     {if Self[IndexAct - 1].SecondAction_onf then
-         Action(ActionFleep(self[IndexAct-1].SecondAction));  }
-     IndexAct:= IndexAct-1;
+    AFleep:= ActionFleep(self[IndexAct-1]);
+    Action1(AFleep);
+    Action(AFleep);
+    IndexAct:= IndexAct-1;
    end;
  end;
 
@@ -1990,11 +1937,6 @@ end;
  begin
  if (Count > IndexAct)and(IndexAct > -1) then
  begin
-   if self[IndexAct].ActionType = atAdd then WritelnLog('Type Add') else
-    if self[IndexAct].ActionType = atDelete then WritelnLog('Type Delete') else
-    if self[IndexAct].ActionType = atEnter then WritelnLog('Type Enter');
-//  WritelnLog(self[IndexAct].Text);
-   WritelnLog('IndexAct'+IntToStr(IndexAct));
    Action(self[IndexAct]);
    Action1(self[IndexAct]);
    IndexAct:= IndexAct+1;
@@ -2035,8 +1977,6 @@ function TMemoUndo.ActionFleep(Action: TMemoUndoAction): TMemoUndoAction;
           if indexColumn < LastIndexColumn then
           begin
              UTF8Insert(Text, s, indexColumn + 2);
-             WritelnLog(Lines[Index]);
-             WritelnLog(s);
              Lines[Index]:= s;
              Memo^.Lines.Assign(Lines);
              Memo^.SetCaret(index, LastIndexColumn+1, -1, -1);
@@ -2044,8 +1984,6 @@ function TMemoUndo.ActionFleep(Action: TMemoUndoAction): TMemoUndoAction;
           else
           begin
              UTF8Insert(Text, s, LastIndexColumn + 2);
-             WritelnLog(Lines[Index]);
-             WritelnLog(s);
              Lines[Index]:= s;
              Memo^.Lines.Assign(Lines);
              Memo^.SetCaret(index, IndexColumn+1, -1, -1);
@@ -2067,7 +2005,6 @@ function TMemoUndo.ActionFleep(Action: TMemoUndoAction): TMemoUndoAction;
    else
    if ActionType = atDelete then
     begin
-      WritelnLog('Delete');
      if LastIndex < 0 then
      begin
       Lines:=TStringList.Create;
