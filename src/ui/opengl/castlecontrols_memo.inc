@@ -38,9 +38,10 @@
 
   TCastleMemo = class(TCastleUserInterfaceFont)
   strict private
+    FInOperativeMemory: Boolean;
     TextLeft: Single;
     FIndex, FLastIndex: integer;
-    FIndexColumn,FLastIndexColumn: integer;
+    FIndexColumn, FLastIndexColumn: integer;
     BottomText, LeftText: Single;
     FPasswordChar: Char;
     FText: TstringList;
@@ -61,6 +62,7 @@
     FSelectedColor: TCastleColor;
     UndoSystem: TMemoUndo;
     LastSizeWidth, LastSizeHeight: Single;
+    FLines: TStringList;
     function GetText: TStringList;
     procedure LinesChange(Sender: TObject);
     procedure SetLines(AValue: TStringList);
@@ -85,9 +87,10 @@
     procedure SetAutoSizeHeight(const Value: Boolean);
     procedure SetPlaceholder(const Value: String);
     procedure SetPasswordChar(const Value: Char);
-    function WordWrap(index1:integer=-1):integer;
+    function WordWrap(index1:integer = -1): integer;
   protected
     FTextChar: TBooleanList;  //if False-Enter is word wrap, True - is real Enter #13
+    function Text: TStringList;
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
     function GetInternalText: String; override;
     procedure SetInternalText(const Value:String); override;
@@ -117,7 +120,6 @@
     procedure Append(index1, indexColumn1: integer; Text_: String);
     function PropertySection(const PropertyName: String): TPropertySection; override;
     procedure DeleteSelectText;
-    property Text: TstringList read FText write SetText;
     property Index:integer read FIndex write SetIndex;
     property LastIndex:integer read FLastIndex write SetLastIndex;
      property IndexColumn:integer read FIndexColumn write SetIndexColumn;
@@ -211,6 +213,8 @@
       Determines if the property is enumerated by @link(TCastleComponent.TranslateProperties),
       which affects the rest of localization routines. }
     property PlaceholderTranslate: Boolean read FPlaceholderTranslate write FPlaceholderTranslate default true;
+    {If True - Lines save to operative memory, if False - Lines will be calculated from Text each time using the CPU}
+    property InOperativeMemory: Boolean read FInOperativeMemory write FInOperativeMemory;
   end;
  {$endif read_interface}
 
@@ -251,8 +255,10 @@ begin
   FBolScroll:=False;
   BolSelect:=False;
   FLastIndex:= -1 ;
-  FTextChar:=TBooleanList.Create;
+  FTextChar:= TBooleanList.Create;
   FSelectedColor:=Blue;
+  FLines:= TStringList.Create;
+  FInOperativeMemory:= False;
   UndoSystem:= TMemoUndo.Create;
   UndoSystem.Memo^:= Self;
 //  WordWrap(-1);
@@ -263,6 +269,7 @@ destructor TCastleMemo.Destroy;
 begin
   FreeAndNil(ScrollBar);
   FTextChar.Free;
+  FLines.Free;
   Text.Free;
   inherited;
 end;
@@ -327,30 +334,46 @@ end;
 
 function TCastleMemo.GetText: TStringList;
 var
-  i,j:integer;
-  ff:TStringList;
+  i, j, k: integer;
+  ff: TStringList;
 begin
-  ff:=TStringList.Create;
-  ff.Assign(Text);
-  i:= 0;
-  while i < FTextChar.Count do
+  if InOperativeMemory then
+  begin
+    if FLines <> nil then
+      Result:= FLines else
     begin
-     j:=i;
-     while FTextChar[i]=False do
-     begin
-       ff[j]:=ff[j]+ff[j+1];
-       ff.Delete(j+1);
-       i:=i+1;
-       if FTextChar.Count<=i then
-         break;
+      InOperativeMemory:= False;
+      Result:= GetText;
+      InOperativeMemory:= True;
     end;
-    i:= i + 1;
-   end;
- // ff.OnChange:= @LinesChange;
-  Result:=TStringList.Create;
-  Result.Assign(ff);
-  Result.OnChange:= @LinesChange;
-  ff.Free;
+  end
+  else
+  begin
+    ff:= TStringList.Create;
+    ff.Assign(Text);
+    i:= 0;
+    k:= 0;
+    while i < FTextChar.Count do
+      begin
+       j:=i-k;
+       if ff.Count <= j+1 then
+           break;
+       while FTextChar[i] = False do
+       begin
+         ff[j]:= ff[j] + ff[j+1];
+         ff.Delete(j+1);
+         i:= i+1;
+         k:= k+1;
+         if FTextChar.Count <= i then
+           break;
+       end;
+      i:= i + 1;
+     end;
+    Result:= TStringList.Create;
+    Result.Assign(ff);
+    Result.OnChange:= @LinesChange;
+    ff.Free;
+  end;
 end;
 
 procedure TCastleMemo.LinesChange(Sender: TObject);
@@ -368,15 +391,18 @@ procedure TCastleMemo.SetLines(AValue: TStringList);
 var
   i:integer;
 begin
+  Text.Clear;
   Text.Assign(AValue);
   FTextChar.Clear;
-  if Text.Count > 2 then
-  begin
+  for i:= 0 to Text.Count-1 do
+   WritelnLog(Text[i]);
+  if AValue.Count > 2 then
     for i:= 0 to Text.Count-2 do
+     begin
       FTextChar.Add(True);
-  end else
-  if Text.Count > 1 then  FTextChar.Add(True);
-  WritelnLog('Change1');
+     end
+  else
+    if AValue.Count > 1 then  FTextChar.Add(True);
   WordWrap(-1);
 end;
 
@@ -465,12 +491,13 @@ var
   Lines1: TStringList;
 begin
   Caret:= GetCaret;
+  Lines1:= TStringList.Create;
+  Lines1.Assign(Lines);
   WritelnLog('GGF');
-  if (Caret.Index2 > -1) and (Caret.Index2 < Lines.Count) and (Caret.Index1 < Lines.Count) and (BolSelect) then
+  if (Caret.Index2 > -1) and (Caret.Index2 < Lines1.Count) then
+  if  (Caret.Index1 < Lines1.Count) and (BolSelect) then
   begin
-   WritelnLog('GGF');
-    Lines1:= TStringList.Create;
-    Lines1.Assign(Lines);
+    WritelnLog('GGF');
     if Caret.Index1 <> Caret.Index2 then
     begin
       if Caret.Index1 > Caret.Index2 then
@@ -896,6 +923,7 @@ var
   s1: TStringList;
   s: String;
 begin
+  WritelnLog('Append');
   if LastIndex <> -1 then
     begin
        DeleteSelectText;
@@ -906,27 +934,24 @@ begin
   s1.AddText(Text_);
   if s1.Count > 1 then
   begin
-    s1[Text.Count-1]:= s1[Text.Count-1] + UTF8Copy(Text[Index1], IndexColumn1 + 2, UTF8Length(Text[Index1]) - IndexColumn1 + 2);
-    s1.Clear;
-    s1.AddText(Text_);
-    s1[s1.Count-1]:= s1[s1.Count-1] + UTF8Copy(Text[Index1], IndexColumn1 + 2,UTF8Length(Text[Index1]) - IndexColumn1 + 1);
-    Text[Index1]:= UTF8Copy(Text[Index1], 1, IndexColumn1+1);
-    Text[Index1]:= Text[Index1] + s1[0];
+    s1[s1.Count-1]:= s1[s1.Count-1] + UTF8Copy(Lines[Index1], IndexColumn1+2, UTF8Length(Lines[Index1]) - IndexColumn1 + 1);
+     WritelnLog('Append');
+    //Lines[Index1]:= UTF8Copy(Lines[Index1], 1, IndexColumn1+1);
+     WritelnLog('Append');
+    Lines[Index1]:= Lines[Index1] + s1[0];
     if s1.Count > 2 then
     begin
       for i:= 1 to s1.Count-1 do
       begin
-         Text.Insert(Index1 + i, s1[i]);
-         FTextChar.Insert(Index1 + i - 1, True);
+       WritelnLog('Append1');
+       Lines.Insert(Index1 + i, s1[i]);
       end;
-      for i:= 0 to s1.Count-1 do
-          WordWrap(Index1 + i);
     end;
   end else
   begin
-    s:= Text[Index1];
-    UTF8Insert(Clipboard.AsText, s, IndexColumn1 + 2);
-    Text[Index1]:= s;
+    s:= Lines[Index1];
+    UTF8Insert(Text_, s, IndexColumn1+2);
+    Lines[Index1]:= s;
   end;
   DoChange;
 end;
@@ -943,106 +968,68 @@ procedure TCastleMemo.DeleteSelectText;
 var
   i:integer;
   s:String;
+  Caret: TMemoIndexs;
 begin
  WritelnLog('DeleteSelectText');
   if LastIndex <> -1 then
   begin
-   WritelnLog('DeleteSelectText '+IntToStr(Index)+' LI '+IntToStr(LastIndex));
-   if (Index = 0) and (LastIndex = Text.Count-1) then
-    if (IndexColumn = -1) and (LastIndexColumn = UTF8Length(Text[LastIndex])) then
+    Caret:= GetCaret;
+   WritelnLog('DeleteSelectText '+IntToStr(Caret.Index1)+' LI '+IntToStr(Caret.Index2));
+   if (Caret.Index1 = 0) and (Caret.Index2 = Lines.Count-1) then
+    if (Caret.IndexColumn1 = -1) and (Caret.IndexColumn2 = UTF8Length(Lines[Caret.Index2])) then
     begin
      Text.Clear;
      Text.Add('');
     end;
-       if Index = LastIndex then
-        begin
-         s:=Text[Index];
-         if IndexColumn > LastIndexColumn then
-         begin
-           UTF8Delete(s,LastIndexColumn+2,IndexColumn-LastIndexColumn);
-           IndexColumn:= LastIndexColumn;
-         end  else UTF8Delete(s,IndexColumn+2,LastIndexColumn-IndexColumn);
-         Text[index]:= s;
-         LastIndex:= -1;
-        end else
-        if Index > LastIndex then
-        begin
-          s:= Text[LastIndex];
-          UTF8Delete(s, LastIndexColumn+2, UTF8Length(Text[LastIndex])-LastIndexColumn+2);
-          Text[LastIndex]:= s;
-          WritelnLog('Index_ADelete_'+IntToStr(Index));
-          if FTextChar.Count > Index then
-          begin
-            FTextChar[LastIndex]:= FTextChar[Index];
-            WritelnLog('LastIndex_Change_'+BoolToStr(FTextChar[LastIndex],True));
-            WritelnLog('Index_Delete_'+IntToStr(Index));
-            FTextChar.Delete(index);
-          end;
-          if Index - LastIndex > 1 then
-          begin
-           for i:= LastIndex+1 to Index-1 do
-           begin
-              Text.Delete(LastIndex+1);
-              if FTextChar.Count>LastIndex+1 then
-              FTextChar.Delete(LastIndex+1);
-              WritelnLog('LastIndex+1_Delete_'+IntToStr(LastIndex+1));
-           end;
-          end;
-          Index:= LastIndex+1;
-          s:=Text[Index];
-          UTF8Delete(s,1,IndexColumn+1);
-          if Text.Count=1 then Text[0]:='' else
-              Text.Delete(LastIndex+1);
-          WritelnLog('LastIndex'+IntToStr(LastIndex)+'Index_'+IntToStr(Index));
-          if (LastIndex < FTextChar.Count) and (LastIndex > 0) then
-          begin
-            FTextChar.Delete(LastIndex);
-            FTextChar[LastIndex-1]:= False;
-            WritelnLog('LastIndex_ADelete_'+IntToStr(LastIndex));
-          end;
-          Text[LastIndex]:=Text[LastIndex]+s;
-
-          Index:=LastIndex;
-          IndexColumn:=LastIndexColumn;
-          LastIndex:=-1;
-       end else
-       begin
-          s:= Text[Index];
-          UTF8Delete(s, IndexColumn+2, UTF8Length(Text[Index])-IndexColumn+2);
-          Text[Index]:= s;
-          if FTextChar.Count > LastIndex then
-          begin
-            FTextChar[index]:= FTextChar[LastIndex];
-            FTextChar.Delete(LastIndex);
-          end;
-          if LastIndex-Index > 1 then
-          begin
-           for i:= Index+1 to LastIndex-1 do
-           begin
-              Text.Delete(Index+1);
-              WritelnLog('i '+IntToStr(i));
-              if FTextChar.Count > Index+1 then FTextChar.Delete(Index+1);
-           end;
-          end
-          else;
-          //if Index < FTextChar.Count then FTextChar.delete(Index);
-          if Text.Count > Index then
-          begin
-            s:= Text[Index+1];
-            UTF8Delete(s, 0, LastIndexColumn+1);
-            Text[Index]:= Text[Index] + s;
-          end;
-          WritelnLog('LI '+IntToStr(index+1)+' '+s);
-          Text.Delete(Index+1);
-          if Index+1 < FTextChar.Count then
-          begin
-            FTextChar.Delete(Index+1);
-            FTextChar[Index+1]:= False;
-          end;
-          if Text.Count = 0 then Text.Add('');
-          //LastIndexColumn:=-1;
-          LastIndex:=-1;
-       end;
+   if Caret.Index1 = Caret.Index2 then
+    begin
+     s:= Lines[Caret.Index1];
+     if Caret.IndexColumn1 > Caret.IndexColumn2 then
+     begin
+       UTF8Delete(s, Caret.IndexColumn2+2, Caret.IndexColumn1-Caret.IndexColumn2);
+       SetCaret(-2, Caret.IndexColumn2, -2, -2);
+     end  else UTF8Delete(s, Caret.IndexColumn1+2, Caret.IndexColumn2 - Caret.IndexColumn1);
+     Lines[Caret.Index1]:= s;
+     LastIndex:= -1;
+    end else
+    if Caret.Index1 > Caret.Index2 then
+    begin
+      //Cut First line
+      s:= Lines[Caret.Index2];
+      UTF8Delete(s, Caret.IndexColumn2+1, UTF8Length(s)-Caret.IndexColumn2);
+      WritelnLog('Cutting '+s+' g');
+      Lines[Caret.Index2]:= s;
+      //if exist Intermediate lines then cutting
+      if Caret.Index1-Caret.Index2 > 1 then
+        for i:= Caret.Index2+1 to Caret.Index1-1 do
+           Lines.Delete(Caret.Index2+1);
+      s:= Lines[Caret.Index1];
+      UTF8Delete(s, 1, Caret.IndexColumn1+2);
+      Lines[Caret.Index2]:= Lines[Caret.Index2] + s;
+      Lines.Delete(Caret.Index1);
+      LastIndex:= -1;
+      IndexColumn:= -1;
+    end else
+    begin
+     WritelnLog('Cutting');
+      //Cut First line
+      s:= Lines[Caret.Index1];
+      UTF8Delete(s, Caret.IndexColumn1+2, UTF8Length(s)-Caret.IndexColumn1);
+      WritelnLog('Cutting '+s+' g');
+      if s = '' then s:= ' ';
+      Lines[Caret.Index1]:= s;
+      //if exist Intermediate lines then cutting
+      if Caret.Index2-Caret.Index1 > 1 then
+        for i:= Caret.Index1+1 to Caret.Index2-1 do
+           Lines.Delete(Caret.Index1+1);
+      s:= Lines[Caret.Index2];
+      UTF8Delete(s, 1, Caret.IndexColumn2 + 2);
+      WritelnLog('Cutting '+s+' g');
+      Lines[Caret.Index1]:= Lines[Caret.Index1] + s;
+      Lines.Delete(Caret.Index2);
+      LastIndex:= -1;
+      IndexColumn:= LastIndexColumn;
+   end;
 end;
   DoChange;
 end;
@@ -1166,15 +1153,16 @@ begin
       HeightText:=(Font.RowHeight+PaddingVerticalScaled*2)*Text.Count;
        end;
   if Text<>nil then
-  for i:=0 to Text.Count -1 do
+  for i:= 0 to Text.Count -1 do
+  if i < Text.Count then
   begin
   if ((Font.RowHeight + UIScale * (PaddingVertical + Padding)*2)*(i+1)>=BottomText) and (BottomText+RectInside.Height>=(Font.RowHeight + UIScale * (PaddingVertical + Padding)*2)*(i+1)) then
   begin
-    S :=Text[i];
+    S := Text[i];
     if Focused then
     begin
     if i=Index then
-      CaretShift := Font.TextWidth(UTF8Copy(s,1,IndexColumn+1));
+      CaretShift := Font.TextWidth(UTF8Copy(s, 1, IndexColumn+1));
     Color := FocusedColor
     end else
       Color := UnfocusedColor;
@@ -1185,7 +1173,7 @@ begin
     ( HeightText/Text.Count - Font.RowHeight) / 2 + Font.Descend)+HeightText/Text.Count*(Text.Count-i-1); //+FPaddingVertical
 
   Font.Print(TextLeft+LeftText, BottomText+TextBottom, Color, S);
-  if (FTextChar.Count>i) and (i>-1) then
+  if (FTextChar.Count > i) and (i > -1) then
     if FTextChar[i] then
     Font.Print(TextLeft+LeftText+Font.TextWidth(S)+2, BottomText+TextBottom, Color, 'T')
     else Font.Print(TextLeft+LeftText+Font.TextWidth(S)+2, BottomText+TextBottom, Color, 'F');
@@ -1341,12 +1329,12 @@ begin
   begin
     if LastIndex <> -1 then
     begin
-      UndoSystem.ChangeAct(bool, Caret.index1, Caret.indexcolumn1, Caret.Index2, Caret.IndexColumn2, SelectedText, atDelete);
+      UndoSystem.AddAct(bool, Caret.index1, Caret.indexcolumn1, Caret.Index2, Caret.IndexColumn2, SelectedText, atDelete);
       DeleteSelectText;
     end
     else
     begin
-     s:=Text[index];
+     s:= Text[index];
      if IndexColumn <> -1 then
       begin
         UTF8Delete(s, indexColumn+1, 1);
@@ -1360,15 +1348,15 @@ begin
         i:= UTF8Length(Text[Index-1])-1;
         if FTextChar[index-1] = False then
          begin
-         s:=Text[index-1];
+          s:= Text[index-1];
           UTF8Delete(s,UTF8Length(Text[index-1]),1);
           UndoSystem.ChangeAct(bool, Caret.Index1, UTF8Length(Text[index-1]), -1, -1, UTF8Copy(Text[index-1],UTF8Length(Text[index-1])-1,1), atDelete);
           Text[index-1]:=s;
          end;
-         if Text[index] <> '' then
-           Text[Index-1]:=Text[Index-1]+Text[Index];
-           UndoSystem.AddAct(bool, Caret.index1, Caret.IndexColumn1, -1, -1, Text[Index], atDeleteLine);
-           Text.Delete(index);
+        if Text[index] <> '' then
+         Text[Index-1]:=Text[Index-1]+Text[Index];
+        UndoSystem.AddAct(bool, Caret.index1, Caret.IndexColumn1, -1, -1, Text[Index], atDeleteLine);
+        Text.Delete(index);
         FTextChar.Delete(index-1);
         Index:=Index-1;
         IndexColumn:=i;
@@ -1396,7 +1384,8 @@ begin
       end
       else
       if (Text.Count > Index + 1) and (Text.Count > 1) then
-        if s='' then  begin
+        if s = '' then
+        begin
           Text.Delete(Index);
           FTextChar.Delete(index);
           UndoSystem.AddAct(Caret.Index1, Caret.IndexColumn1 + 2, '', atDeleteLine);
@@ -1622,11 +1611,10 @@ begin
        LastIndex:= -1;
        WritelnLog('True');
     end;
-    Text.Insert(Index+1, UTF8Copy(Text[index], IndexColumn+2, UTF8Length(Text[Index])-IndexColumn));   //UTF8Copy(Text[Index],IndexColumn+2,Length(Text[index])-IndexColumn+Length(Text[Index][Length(Text[Index])])));
-    s:= Text[index];
-    Utf8Delete(s,IndexColumn+2, UTF8Length(Text[index]) - IndexColumn+1);
-    Text[index]:= s;
-    FTextChar.Insert(index, True);
+    Lines.Insert(Caret.Index1+1, UTF8Copy(Lines[Caret.Index1],Caret.IndexColumn1+2, UTF8Length(Lines[Caret.Index1])-Caret.IndexColumn1));   //UTF8Copy(Text[Index],IndexColumn+2,Length(Text[index])-IndexColumn+Length(Text[Index][Length(Text[Index])])));
+    s:= Lines[Caret.Index1];
+    Utf8Delete(s, Caret.IndexColumn1+2, UTF8Length(Lines[Caret.Index1]) - Caret.IndexColumn1+1);
+    Lines[Caret.Index1]:= s;
     UndoSystem.AddAct(bool, Caret.Index1, Caret.IndexColumn1, Caret.Index1+1, -1, '', atEnter);
     Index:= Index+1;
     IndexColumn:= -1;
@@ -1789,6 +1777,12 @@ begin
     SetCaret(MemoIndexs.Index1, MemoIndexs.IndexColumn1, -2, -2);
   end;
 end;
+
+function TCastleMemo.Text: TStringList;
+begin
+  Result:= FText;
+end;
+
 function TCastleMemo.GetInternalText: String;
 begin
   Result := Text.Text;
@@ -2034,14 +2028,15 @@ function TMemoUndo.ActionFleep(Action: TMemoUndoAction): TMemoUndoAction;
       Lines.Assign(Memo^.Lines);
       if LastIndex <> -1 then
       begin
-        if NOT(Index < Lines.Count) then
-          Lines.Insert(Index,'');
+//        if NOT(Index < Lines.Count) then  Lines.Insert(Index,'');
         if index = LastIndex then
         begin
           s:= Lines[Index];
           if indexColumn < LastIndexColumn then
           begin
              UTF8Insert(Text, s, indexColumn + 2);
+             WritelnLog(Lines[Index]);
+             WritelnLog(s);
              Lines[Index]:= s;
              Memo^.Lines.Assign(Lines);
              Memo^.SetCaret(index, LastIndexColumn+1, -1, -1);
@@ -2049,11 +2044,13 @@ function TMemoUndo.ActionFleep(Action: TMemoUndoAction): TMemoUndoAction;
           else
           begin
              UTF8Insert(Text, s, LastIndexColumn + 2);
+             WritelnLog(Lines[Index]);
+             WritelnLog(s);
              Lines[Index]:= s;
              Memo^.Lines.Assign(Lines);
              Memo^.SetCaret(index, IndexColumn+1, -1, -1);
           end;
-        end;
+        end  else if index > LastIndex then Memo^.Append(LastIndex, LastIndexColumn, Text) else Memo^.Append(Index, IndexColumn, Text);
       end
       else
       begin
@@ -2070,6 +2067,7 @@ function TMemoUndo.ActionFleep(Action: TMemoUndoAction): TMemoUndoAction;
    else
    if ActionType = atDelete then
     begin
+      WritelnLog('Delete');
      if LastIndex < 0 then
      begin
       Lines:=TStringList.Create;
@@ -2088,13 +2086,17 @@ function TMemoUndo.ActionFleep(Action: TMemoUndoAction): TMemoUndoAction;
     end;
     end else if ActionType = atEnter then
      begin
+        Lines:=TStringList.Create;
+        Lines.Assign(Memo^.Lines);
         Memo^.SetCaret(index, indexColumn);
-        Memo^.Text.Insert(Memo^.Index+1, UTF8Copy(Memo^.Text[Memo^.index], Memo^.IndexColumn+2, UTF8Length(Memo^.Text[Memo^.Index])-Memo^.IndexColumn));
-        s:= Memo^.Text[Memo^.index];
-        Utf8Delete(s,Memo^.IndexColumn+2, UTF8Length(Memo^.Text[Memo^.index]) - Memo^.IndexColumn+1);
-        Memo^.Text[Memo^.index]:= s;
-        Memo^.FTextChar.Insert(Memo^.index, True);
+        Lines.Insert(Index+1, UTF8Copy(Lines[Index],IndexColumn+2, UTF8Length(Lines[Index])-IndexColumn));   //UTF8Copy(Text[Index],IndexColumn+2,Length(Text[index])-IndexColumn+Length(Text[Index][Length(Text[Index])])));
+        s:= Lines[Index];
+        Utf8Delete(s, IndexColumn+2, UTF8Length(Lines[Index]) - IndexColumn+1);
+        Lines[Index]:= s;
         Memo^.SetCaret(LastIndex, LastIndexColumn);
+        Memo^.Lines.Assign(Lines);
+        Lines.Free;
+
      end else if ActionType = atDeleteLine then
      begin
       Memo^.SetCaret(index, -1, index-1, indexColumn);
@@ -2106,7 +2108,6 @@ function TMemoUndo.ActionFleep(Action: TMemoUndoAction): TMemoUndoAction;
 
   procedure TMemoUndo.Action(UndoAction: TMemoUndoAction);
   begin
-    WritelnLog('Error');
    Action(UndoAction.Index, UndoAction.IndexColumn, UndoAction.LastIndex,UndoAction.LastIndexColumn, UndoAction.Text, UndoAction.ActionType);
   end;
 
