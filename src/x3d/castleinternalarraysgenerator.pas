@@ -2239,11 +2239,8 @@ procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
 
   procedure SetTangents;
   var
-    LocalTangent: TVector3;
     Normal: TVector3;
   begin
-    GetNormal(IndexNum, CurrentRangeNumber, Normal);
-
     if NormalsFlat then
     begin
       Arrays.GLSLAttributeVector3(AttribTangent, ArrayIndexNum)^ := Tangent;
@@ -2260,9 +2257,9 @@ procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
         faces, whole tangent space should vary for each vertex, so Normal,
         and both tangents/bitangents may be different on each vertex. }
 
-      LocalTangent := Tangent;
-      MakeVectorsOrthoOnTheirPlane(LocalTangent, Normal);
-      Arrays.GLSLAttributeVector3(AttribTangent, ArrayIndexNum)^ := LocalTangent;
+      GetNormal(IndexNum, CurrentRangeNumber, Normal);
+      Arrays.GLSLAttributeVector3(AttribTangent, ArrayIndexNum)^ :=
+        MakeVectorOrthogonal(Tangent, Normal);
     end;
   end;
 
@@ -2274,119 +2271,16 @@ end;
 
 procedure TAbstractBumpMappingGenerator.CalculateTangentVectors(
   const TriangleIndex1, TriangleIndex2, TriangleIndex3: Integer);
-
-  { Calculate tangent (along texture S coordinate, when IsTangent) or bitangent
-    (along texture T coordinate, when IsTangent=false),
-    knowing positions and texture coordinates.
-
-    This procedure can change Triangle*, but only by swapping some vertexes,
-    so we pass Triangle* by reference instead of by value, to avoid
-    needless mem copying.
-
-    Returns @false if cannot be calculated. }
-  function CalculateTangent(const IsTangent: boolean; out Tangent: TVector3;
-    var Triangle3D: TTriangle3;
-    var TriangleTexCoord: TTriangle2): boolean;
-  var
-    D: TVector2;
-    LineA, LineBC, DIn3D: TVector3;
-    MiddleIndex: Integer;
-    FarthestDistance, NewDistance, Alpha: Single;
-    SearchCoord, OtherCoord: Cardinal;
-  begin
-    if IsTangent then
-      SearchCoord := 0
-    else
-      SearchCoord := 1;
-    OtherCoord := 1 - SearchCoord;
-
-    { choose such that 1st and 2nd points have longest distance along
-      OtherCoord, so 0 point is in the middle. }
-
-    { MiddleIndex means that
-      MiddleIndex, (MiddleIndex + 1) mod 3 are farthest. }
-
-    MiddleIndex := 2;
-    FarthestDistance := Abs(TriangleTexCoord.Data[0].Data[OtherCoord] - TriangleTexCoord.Data[1].Data[OtherCoord]);
-
-    NewDistance := Abs(TriangleTexCoord.Data[1].Data[OtherCoord] - TriangleTexCoord.Data[2].Data[OtherCoord]);
-    if NewDistance > FarthestDistance then
-    begin
-      MiddleIndex := 0;
-      FarthestDistance := NewDistance;
-    end;
-
-    NewDistance := Abs(TriangleTexCoord.Data[2].Data[OtherCoord] - TriangleTexCoord.Data[0].Data[OtherCoord]);
-    if NewDistance > FarthestDistance then
-    begin
-      MiddleIndex := 1;
-      FarthestDistance := NewDistance;
-    end;
-
-    if IsZero(FarthestDistance) then
-      Exit(false);
-
-    if MiddleIndex <> 0 then
-    begin
-      SwapValues(TriangleTexCoord.Data[0], TriangleTexCoord.Data[MiddleIndex]);
-      SwapValues(Triangle3D      .Data[0], Triangle3D      .Data[MiddleIndex]);
-    end;
-
-    if IsTangent then
-    begin
-      { we want line Y = TriangleTexCoord.Data[0].Data[1]. }
-      LineA[0] := 0;
-      LineA[1] := 1;
-      LineA[2] := -TriangleTexCoord.Data[0].Data[1];
-    end else
-    begin
-      { we want line X = TriangleTexCoord.Data[0].Data[0]. }
-      LineA[0] := 1;
-      LineA[1] := 0;
-      LineA[2] := -TriangleTexCoord.Data[0].Data[0];
-    end;
-    LineBC := Line2DFrom2Points(
-      TriangleTexCoord.Data[1], TriangleTexCoord.Data[2]);
-
-    try
-      D := Lines2DIntersection(LineA, LineBC);
-    except
-      on ELinesParallel do begin Result := false; Exit; end;
-    end;
-
-    { LineBC[0, 1] is vector 2D orthogonal to LineBC.
-      If Abs(LineBC[0]) is *smaller* then it means that B and C points
-      are most different on 0 coord. }
-    if Abs(LineBC[0]) < Abs(LineBC[1]) then
-      Alpha := (                            D[0] - TriangleTexCoord.Data[1].Data[0]) /
-               (TriangleTexCoord.Data[2].Data[0] - TriangleTexCoord.Data[1].Data[0]) else
-      Alpha := (                            D[1] - TriangleTexCoord.Data[1].Data[1]) /
-               (TriangleTexCoord.Data[2].Data[1] - TriangleTexCoord.Data[1].Data[1]);
-
-    DIn3D :=
-      (Triangle3D.Data[1] * (1 - Alpha)) +
-      (Triangle3D.Data[2] * Alpha);
-
-    if D[SearchCoord] > TriangleTexCoord.Data[0].Data[SearchCoord] then
-      Tangent := DIn3D - Triangle3D.Data[0]
-    else
-      Tangent := Triangle3D.Data[0] - DIn3D;
-
-    Tangent.NormalizeMe;
-
-    Result := true;
-  end;
-
 var
-  Triangle3D: TTriangle3;
+  TriangleCoord: TTriangle3;
   TriangleTexCoord: TTriangle2;
 begin
   if CalculateTangents then
   begin
-    { calculate Triangle3D }
-    Triangle3D.Data[0] := GetVertex(TriangleIndex1);
-    Triangle3D.Data[1] := GetVertex(TriangleIndex2);
-    Triangle3D.Data[2] := GetVertex(TriangleIndex3);
+    { calculate TriangleCoord }
+    TriangleCoord.Data[0] := GetVertex(TriangleIndex1);
+    TriangleCoord.Data[1] := GetVertex(TriangleIndex2);
+    TriangleCoord.Data[2] := GetVertex(TriangleIndex3);
 
     if not (
       { calculate TriangleTexCoord }
@@ -2394,7 +2288,7 @@ begin
       GetTextureCoord(TriangleIndex2, ShapeBumpMappingTextureCoordinatesId, TriangleTexCoord.Data[1]) and
       GetTextureCoord(TriangleIndex3, ShapeBumpMappingTextureCoordinatesId, TriangleTexCoord.Data[2]) and
       { calculate Tangent }
-      CalculateTangent(true , Tangent, Triangle3D, TriangleTexCoord) ) then
+      CalculateTangent(true , Tangent, TriangleCoord, TriangleTexCoord) ) then
     begin
       { Would be more correct to set Tangent as anything perpendicular to Normal. }
       Tangent := TVector3.One[0];

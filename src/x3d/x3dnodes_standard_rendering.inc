@@ -954,7 +954,7 @@
   end;
 
   { Strips of triangles.
-    In constrast to @link(TIndexedTriangleStripSetNode), this doesn't use indexes
+    In contrast to @link(TIndexedTriangleStripSetNode), this doesn't use indexes
     to compose vertexes into triangles. }
   TTriangleStripSetNode = class(TAbstractComposedGeometryNode)
   protected

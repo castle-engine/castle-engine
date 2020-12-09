@@ -1543,6 +1543,8 @@ var
     // apply additional TGltfAppearanceNode parameters, specified in X3D at geometry
     Geometry.Solid := not Appearance.DoubleSided;
 
+    Shape.GenerateTangents;
+
     // add to X3D
     ParentGroup.AddChildren(Shape);
   end;
