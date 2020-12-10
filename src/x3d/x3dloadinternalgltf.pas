@@ -2118,9 +2118,10 @@ var
       end;
     end else
     begin
-      if (Shape.Material is TMaterialNode) or
-         (Shape.Material is TPhysicalMaterialNode) then
-        WritelnWarning('TODO: Tangent vectors are not provided for a skinned geometry (using lit material), and in effect the resulting animation will be slow as we''ll recalculate tangents more often than necessary. For now it is adviced to generate glTF with tangents included for skinned meshes.');
+      if ( (Shape.Material is TMaterialNode) or
+           (Shape.Material is TPhysicalMaterialNode) ) and
+         ((Shape.Material as TAbstractOneSidedMaterialNode).NormalTexture <> nil) then
+        WritelnWarning('TODO: Tangent vectors are not provided for a skinned geometry (using lit material with normalmap), and in effect the resulting animation will be slow as we''ll recalculate tangents more often than necessary. For now it is adviced to generate glTF with tangents included for skinned meshes.');
     end;
 
     if (Shape.Geometry.InternalSkinJoints = nil) or
