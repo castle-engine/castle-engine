@@ -66,6 +66,8 @@ begin
    FdVector.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdVector);
   { X3D specification comment: [-1,1] }
+
+  DefaultContainerField := 'tangent';
 end;
 
 {$endif read_implementation}
