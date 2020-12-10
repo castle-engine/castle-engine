@@ -95,6 +95,7 @@ type
       Initializing them only once after linking allows the mesh renderer to go fast. }
     AttributeCastle_Vertex,
     AttributeCastle_Normal,
+    AttributeCastle_Tangent,
     AttributeCastle_ColorPerVertex,
     AttributeCastle_FogCoord: TGLSLAttribute;
 
@@ -1172,6 +1173,7 @@ begin
 
   AttributeCastle_Vertex         := AttributeOptional('castle_Vertex');
   AttributeCastle_Normal         := AttributeOptional('castle_Normal');
+  AttributeCastle_Tangent        := AttributeOptional('castle_Tangent');
   AttributeCastle_ColorPerVertex := AttributeOptional('castle_ColorPerVertex');
   AttributeCastle_FogCoord       := AttributeOptional('castle_FogCoord');
 end;

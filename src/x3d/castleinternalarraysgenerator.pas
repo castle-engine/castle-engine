@@ -713,7 +713,6 @@ type
   TAbstractBumpMappingGenerator = class(TAbstractShaderAttribGenerator)
   strict private
     Tangent: TVector3;
-    AttribTangent: TGeometryAttrib;
     CalculateTangents: Boolean;
   protected
     { If tangents are provided in the TAbstractComposedGeometryNode.FdTangent,
@@ -2208,7 +2207,7 @@ procedure TAbstractBumpMappingGenerator.PrepareAttributes(var AllowIndexed: bool
 begin
   inherited;
   if ShapeBumpMappingUsed then
-    AttribTangent := Arrays.AddGLSLAttributeVector3('castle_tangent', true);
+    Arrays.AddTangent;
 end;
 
 procedure TAbstractBumpMappingGenerator.GenerateCoordinateBegin;
@@ -2221,8 +2220,7 @@ begin
     if (TangentsFromNode <> nil) and
        (NorImplementation in [niPerVertexCoordIndexed, niPerVertexNonIndexed]) then
     begin
-      AssignAttribute(Pointer(Arrays.GLSLAttribute(AttribTangent)),
-        TangentsFromNode.L, TangentsFromNode.ItemSize, TangentsFromNode.Count)
+      AssignCoordinate(Arrays.Tangent, TangentsFromNode.L, TangentsFromNode.ItemSize, TangentsFromNode.Count)
     end else
     begin
       { If ShapeBumpMappingUsed, but we cannot use TangentsFromNode, then we need
@@ -2243,7 +2241,7 @@ procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
   begin
     if NormalsFlat then
     begin
-      Arrays.GLSLAttributeVector3(AttribTangent, ArrayIndexNum)^ := Tangent;
+      Arrays.Tangent(ArrayIndexNum)^ := Tangent;
     end else
     begin
       { If NormalsFlat = false,
@@ -2258,8 +2256,7 @@ procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
         and both tangents/bitangents may be different on each vertex. }
 
       GetNormal(IndexNum, CurrentRangeNumber, Normal);
-      Arrays.GLSLAttributeVector3(AttribTangent, ArrayIndexNum)^ :=
-        MakeVectorOrthogonal(Tangent, Normal);
+      Arrays.Tangent(ArrayIndexNum)^ := MakeVectorOrthogonal(Tangent, Normal);
     end;
   end;
 
