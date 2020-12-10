@@ -138,15 +138,8 @@ begin
     begin
       Cache.FreeArrays([vtCoordinate]);
 
-      { When bump mapping is used, upon changing normals -> we need to recalculate tangents/bitangents.
-
-        TODO:
-        - we should pack tangents/bitangents along with normals, to vtCoordinate
-        - currently our castle_tangent_to_object_space, 3x3 floats, it could be only 2 vectors, 3x2 floats
-        - we could use tangent information from file (glTF may provide it),
-          then maybe FastCacheUpdate could work in this case. }
-      if Changes * [chNormal] <> [] then
-        Cache.FreeArrays([vtAttribute]);
+      { Note: When bump mapping is used, upon changing normals -> we need to recalculate tangents.
+        But that is already covered: tangents are also part of vtCoordinate. }
     end;
 
     { Note that Changes may contain both chCoordinate and chTextureCoordinate
