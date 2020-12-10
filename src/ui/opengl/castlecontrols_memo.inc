@@ -250,10 +250,10 @@ begin
   FAutoSizeHeight := false;
   FTextTranslate := true;
   FPlaceholderTranslate := true;
-  FText:=TStringList.Create;
-  Index:=FText.Add('');
-  FBolScroll:=False;
-  BolSelect:=False;
+  FText:= TStringList.Create;
+  Index:= FText.Add('');
+  FBolScroll:= False;
+  BolSelect:= False;
   FLastIndex:= -1 ;
   FTextChar:= TBooleanList.Create;
   FSelectedColor:=Blue;
@@ -302,13 +302,23 @@ begin
 i:= Font.RowHeight + UIScale * (PaddingVertical + Padding)*2;
 if (Value > -1) and (Value < Text.Count) then
 begin
-  if Value > FIndex then
+  {if Value > FIndex then
   begin
      if BottomText+RectInside.Height <= i*(Index+2) then
-       BottomText:= BottomText+i;
+       BottomText:= i*Value;
   end else
-     if (i*(Index) <= BottomText) and (BottomText > 0) then
-       BottomText:= BottomText-i;
+     if Value <> FIndex then
+       if (abs(Value-FIndex) <> 1) then
+         BottomText:= i*Index
+       else
+       begin
+         if Index <= Text.Count+1-round(RectInside.Height/(i/2)) then
+            if i*Index < 5+RenderRect.Bottom then
+               BottomText:= BottomText + i;
+         if BottomText > 0 then
+            if i*Index > RenderRect.Bottom+RenderRect.Height-7 then
+               BottomText:=BottomText - i;
+       end;  }
   FIndex:= Value;
   end else
   begin
@@ -316,15 +326,15 @@ begin
    if Value < 0 then Index:= 0;
    Exit;
   end;
+  FBolScroll:= True;
   if IndexColumn > Utf8Length(Text[Index])-1 then
      IndexColumn:= UTF8Length(Text[Index])-1;
-  FBolScroll:= True;
   if ScrollBar.CompleteSize <> (Text.Count)-(RectInside.Height/i) then
     ScrollBar.CompleteSize:= (Text.Count)-(RectInside.Height/i); //round((Text.Count+1)-(Height/i))
-  ScrollBar.Scroll:= Index -(RectInside.Height / i);  //Text.Count-Index)/(Height/i);
+  ScrollBar.Scroll:= Index -(RectInside.Height / i)/2;  //Text.Count-Index)/(Height/i);
   if (ScrollBar.Scroll < 0) or (Index = 0) then ScrollBar.Scroll:= 0;
   if ScrollBar.Scroll > ScrollBar.CompleteSize then ScrollBar.Scroll:= ScrollBar.CompleteSize;
-  FBolScroll:= False;
+  FBolScroll:= Not FBolScroll;
 end;
 
 procedure TCastleMemo.SetSelectedColor(const Value: TCastleColor);
@@ -393,7 +403,6 @@ begin
   Text.Clear;
   Text.Assign(AValue);
   FTextChar.Clear;
-  for i:= 0 to Text.Count-1 do
   if AValue.Count > 2 then
     for i:= 0 to Text.Count-2 do
      begin
@@ -426,18 +435,29 @@ var
 begin
 if (Value > -2) and (Value < Text.Count) then
 begin
- { i:=Font.RowHeight + UIScale * (PaddingVertical + Padding)*2;
-  if Value>FLastIndex then
-  begin
-     if BottomText+Height<=i*(Index+2) then
-       BottomText:=BottomText+i;
-  end else
-     if (i*(Index)<=BottomText) and (BottomText>0) then
-       BottomText:=BottomText-i;  }
+  i:= Font.RowHeight + UIScale * (PaddingVertical + Padding)*2;
+  if Value <> -1 then
+    if Value > FLastIndex then
+    begin
+       if BottomText+Height <= i*(LastIndex+2) then
+         BottomText:= BottomText+i;
+    end else
+       if (i*(LastIndex) <= BottomText) and (BottomText>0) then
+         BottomText:= BottomText-i;
   FLastIndex:= Value;
 end else Exit;
   if LastIndexColumn > Utf8Length(Text[Index])-1 then
-     LastIndexColumn:=UTF8Length(Text[Index])-1;
+     LastIndexColumn:= UTF8Length(Text[Index])-1;
+  if Value <> -1 then
+  begin
+    FBolScroll:= True;
+    if ScrollBar.CompleteSize <> Text.Count-(RectInside.Height/i) then
+      ScrollBar.CompleteSize:= Text.Count-(RectInside.Height/i);
+    ScrollBar.Scroll:= LastIndex -(RectInside.Height / i);
+    if (ScrollBar.Scroll < 0) or (LastIndex = 0) then ScrollBar.Scroll:= 0;
+    if ScrollBar.Scroll > ScrollBar.CompleteSize then ScrollBar.Scroll:= ScrollBar.CompleteSize;
+    FBolScroll:= False;
+  end;
 end;
 
 procedure TCastleMemo.SetLastIndexColumn(Value: integer);
@@ -1056,11 +1076,11 @@ begin
   if (LastSizeHeight<>RectInside.Height) or (LastSizeWidth<>RectInside.Width) then
     begin
     WordWrap(-1);
-    LastSizeHeight:=RectInside.Height;
-    LastSizeWidth:=RectInside.Width;
+    LastSizeHeight:= RectInside.Height;
+    LastSizeWidth:= RectInside.Width;
     end;
 
-  if LastIndex<>-1 then
+  if LastIndex <> -1 then
   begin
    MainSelectRect.Left:=TextLeft;
    if Index=LastIndex then
@@ -1103,22 +1123,22 @@ begin
     AddLastSelectRec:=AddLastSelectRec.GrowTop((Font.RowHeight+PaddingVerticalScaled*2)+1).GrowRight(Font.TextWidth(UTF8Copy(Text[LastIndex],1,LastIndexColumn+1)));
   end;
 
-  if MainSelectRect.Bottom<RectInside.Bottom then
-     MainSelectRect:=MainSelectRect.RemoveBottom(RectInside.Bottom-MainSelectRect.Bottom)
-  else if MainSelectRect.Bottom+MainSelectRect.Height>RectInside.Bottom+RectInside.Height then
-    MainSelectRect:=MainSelectRect.RemoveTop((MainSelectRect.Bottom+MainSelectRect.Height)-(RectInside.Bottom+RectInside.Height));
-    if AddSelectRec.Bottom<RectInside.Bottom then
-     AddSelectRec:=AddSelectRec.RemoveBottom(RectInside.Bottom-AddSelectRec.Bottom)
-  else if AddSelectRec.Bottom+AddSelectRec.Height>RectInside.Bottom+RectInside.Height then
-    AddSelectRec:=AddSelectRec.RemoveTop((AddSelectRec.Bottom+AddSelectRec.Height)-(RectInside.Bottom+RectInside.Height));
-    if AddSelectRec.Bottom<RectInside.Bottom then
-     AddSelectRec:=AddSelectRec.RemoveBottom(RectInside.Bottom-AddSelectRec.Bottom)
-  else if AddSelectRec.Bottom+AddSelectRec.Height>RectInside.Bottom+RectInside.Height then
-    AddSelectRec:=AddSelectRec.RemoveTop((AddSelectRec.Bottom+AddSelectRec.Height)-(RectInside.Bottom+RectInside.Height));
-     if AddLastSelectRec.Bottom<RectInside.Bottom then
-     AddLastSelectRec:=AddLastSelectRec.RemoveBottom(RectInside.Bottom-AddLastSelectRec.Bottom)
-  else if AddLastSelectRec.Bottom+AddLastSelectRec.Height>RectInside.Bottom+RectInside.Height then
-    AddLastSelectRec:=AddLastSelectRec.RemoveTop((AddLastSelectRec.Bottom+AddLastSelectRec.Height)-(RectInside.Bottom+RectInside.Height));
+  if MainSelectRect.Bottom < RectInside.Bottom then
+     MainSelectRect:= MainSelectRect.RemoveBottom(RectInside.Bottom-MainSelectRect.Bottom)
+  else if MainSelectRect.Bottom+MainSelectRect.Height > RectInside.Bottom+RectInside.Height then
+    MainSelectRect:= MainSelectRect.RemoveTop((MainSelectRect.Bottom+MainSelectRect.Height)-(RectInside.Bottom+RectInside.Height));
+    if AddSelectRec.Bottom < RectInside.Bottom then
+     AddSelectRec:= AddSelectRec.RemoveBottom(RectInside.Bottom-AddSelectRec.Bottom)
+  else if AddSelectRec.Bottom+AddSelectRec.Height > RectInside.Bottom+RectInside.Height then
+    AddSelectRec:= AddSelectRec.RemoveTop((AddSelectRec.Bottom+AddSelectRec.Height)-(RectInside.Bottom+RectInside.Height));
+    if AddSelectRec.Bottom < RectInside.Bottom then
+     AddSelectRec:= AddSelectRec.RemoveBottom(RectInside.Bottom-AddSelectRec.Bottom)
+  else if AddSelectRec.Bottom+AddSelectRec.Height > RectInside.Bottom+RectInside.Height then
+    AddSelectRec:= AddSelectRec.RemoveTop((AddSelectRec.Bottom+AddSelectRec.Height)-(RectInside.Bottom+RectInside.Height));
+     if AddLastSelectRec.Bottom < RectInside.Bottom then
+     AddLastSelectRec:= AddLastSelectRec.RemoveBottom(RectInside.Bottom-AddLastSelectRec.Bottom)
+  else if AddLastSelectRec.Bottom+AddLastSelectRec.Height > RectInside.Bottom+RectInside.Height then
+    AddLastSelectRec:= AddLastSelectRec.RemoveTop((AddLastSelectRec.Bottom+AddLastSelectRec.Height)-(RectInside.Bottom+RectInside.Height));
 
    DrawRectangle(MainSelectRect,SelectedColor);
    DrawRectangle(AddSelectRec,SelectedColor);
@@ -1134,7 +1154,7 @@ begin
   for i:= 0 to Text.Count -1 do
   if i < Text.Count then
   begin
-  if ((Font.RowHeight + UIScale * (PaddingVertical + Padding)*2)*(i+1)>=BottomText) and (BottomText+RectInside.Height>=(Font.RowHeight + UIScale * (PaddingVertical + Padding)*2)*(i+1)) then
+  if ((Font.RowHeight + UIScale * (PaddingVertical + Padding)*2)*(i+1) >= BottomText) and (BottomText+RectInside.Height>=(Font.RowHeight + UIScale * (PaddingVertical + Padding)*2)*(i+1)) then
   begin
     S := Text[i];
     if Focused then
@@ -1148,9 +1168,9 @@ begin
   TextLeft := RectInside.Left;
   // center in RectInside, important when AutoSize = false
   TextBottom := (RectInside.Bottom+(RectInside.Height-HeightText) +
-    ( HeightText/Text.Count - Font.RowHeight) / 2 + Font.Descend)+HeightText/Text.Count*(Text.Count-i-1); //+FPaddingVertical
-
-  Font.Print(TextLeft+LeftText, BottomText+TextBottom, Color, S);
+    (HeightText/Text.Count - Font.RowHeight) / 2 + Font.Descend)+HeightText/Text.Count*(Text.Count-i-1); //+FPaddingVertical
+  if (BottomText+TextBottom < RectInside.Height+RectInside.Bottom) and (BottomText+TextBottom > RectInside.Bottom) then
+   Font.Print(TextLeft+LeftText, BottomText+TextBottom, Color, S);
   {if (FTextChar.Count > i) and (i > -1) then
     if FTextChar[i] then
     Font.Print(TextLeft+LeftText+Font.TextWidth(S)+2, BottomText+TextBottom, Color, 'T')
@@ -1197,12 +1217,12 @@ begin
        end;
 
       if (LastIndex <= Text.Count+1-round(RectInside.Height/(Font.RowHeight + UIScale * (PaddingVertical + Padding)*2)/2)) then
-        if Event.Position.Y<5+RenderRect.Bottom then
-           BottomText:= BottomText+Font.RowHeight + UIScale * (PaddingVertical + Padding)*2;
+        if Event.Position.Y < 5+RenderRect.Bottom then
+           BottomText:= BottomText + Font.RowHeight + UIScale * (PaddingVertical + Padding)*2;
       if BottomText > 0 then
           if Event.Position.Y > RenderRect.Bottom+RenderRect.Height-7 then
-            BottomText:=BottomText-Font.RowHeight + UIScale * (PaddingVertical + Padding)*2;
-      if (LastIndex>-1) and (LastIndex<Text.Count) then
+            BottomText:= BottomText - Font.RowHeight + UIScale * (PaddingVertical + Padding)*2;
+      if (LastIndex > -1) and (LastIndex < Text.Count) then
           for i:=UTF8Length(Text[LastIndex]) downto 0 do
           begin
            if Event.Position.X-RenderRect.Left>Font.TextWidth(UTF8Copy(Text[LastIndex],1,i)) then
@@ -1245,19 +1265,18 @@ begin
       LastIndex:= -1;
       BolSelect:= False;
      end;
-  ////
-  if Event.IsKey('G') then WriteUndo(UndoSystem) else
-     ////
   if Event.IsMouseButton(mbLeft) then
   begin
-    if Text.Count=0 then Text.Add('');
+    if Text.Count = 0 then Text.Add('');
     if NOT(mkShift in Event.ModifiersDown) then
     begin
+    WritelnLog(IntToStr(Text.Count));
       for i:=1 to Text.Count do
       begin
+       //WritelnLog(FloatToStr(i*(Font.RowHeight + UIScale * (PaddingVertical + Padding)*2)-BottomText)+' '+IntToStr(i));
        if RenderRect.Bottom+RectInside.Height-Event.Position.Y < i*(Font.RowHeight + UIScale * (PaddingVertical + Padding)*2)-BottomText then
        begin
-         Index:=i-1;
+         Index:= i-1;
          break;
        end;
        if i = Text.Count then Index:= i;
@@ -1280,6 +1299,12 @@ begin
          LastIndex:= i-1;
          break;
        end;
+      if (LastIndex <= Text.Count+1-round(RectInside.Height/(Font.RowHeight + UIScale * (PaddingVertical + Padding)*2)/2)) then
+        if BottomText + (Font.RowHeight + UIScale * (PaddingVertical + Padding)*2)*LastIndex < 5+RenderRect.Bottom then
+           BottomText:= BottomText + Font.RowHeight + UIScale * (PaddingVertical + Padding)*2;
+      if BottomText > 0 then
+          if BottomText + (Font.RowHeight + UIScale * (PaddingVertical + Padding)*2)*LastIndex > RenderRect.Bottom+RenderRect.Height-7 then
+            BottomText:=BottomText - Font.RowHeight + UIScale * (PaddingVertical + Padding)*2;
       for i:=UTF8Length(Text[LastIndex]) downto 0 do
        if Event.Position.X-RenderRect.Left > Font.TextWidth(UTF8Copy(Text[LastIndex],1,i)) then
        begin
@@ -1789,23 +1814,14 @@ var
   i:Single;
   indexVar:integer;
 begin
-  if FBolScroll=False then
-    begin
-      i:=Font.RowHeight+UIScale * (PaddingVertical + Padding)*2;
-      if round(ScrollBar.Scroll-RectInside.Height/i)>0 then
-      begin
-      {if  round(ScrollBar.Scroll-RectInside.Height/i)<Text.Count-(RectInside.Height/i) then   }
-      indexVar:=round(ScrollBar.CompleteSize/ScrollBar.Scroll);{ else
-      indexVar:=round(Text.Count-(RectInside.Height/i)); }
-      end
-      else
-      indexVar:=0;
-      BottomText:=indexVar*i;
-    end else
-    begin
-      if ScrollBar.Scroll<0 then ScrollBar.Scroll:=0;
-      if ScrollBar.Scroll>ScrollBar.CompleteSize then ScrollBar.Scroll:=ScrollBar.CompleteSize;
-    end;
+  i:= Font.RowHeight+UIScale * (PaddingVertical + Padding)*2;
+  if round(ScrollBar.Scroll-RectInside.Height/i) > 0 then
+    indexVar:= round(TCastleScrollViewManual(Scroll).Scroll)
+  else indexVar:= 0;
+  if LifeTime > 5 then if BottomText <> indexVar*i then WritelnLog(IntToStr(indexVar));
+  {if indexVar > Text.Count - round(RectInside.Height/i)+1 then
+     indexVar:= Text.Count - round(RectInside.Height/i)+1;  }
+  BottomText:= indexVar*i;
 end;
 
 {$endif read_implementation}
