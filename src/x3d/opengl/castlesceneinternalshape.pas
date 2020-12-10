@@ -103,7 +103,7 @@ procedure TGLShape.Changed(const InactiveOnly: boolean;
     and tries using FastCoordinateNormalUpdate. }
   function FastCacheUpdate: Boolean;
   var
-    Coords, Normals: TVector3List;
+    Coords, Normals, Tangents: TVector3List;
   begin
     Result := false;
 
@@ -112,17 +112,21 @@ procedure TGLShape.Changed(const InactiveOnly: boolean;
        { Shape has coordinates and normals exposed in most common way,
          by Coordinate and Normal nodes. }
        (Geometry.CoordField <> nil) and
-       (Geometry.CoordField.Value <> nil) and
-       (Geometry.CoordField.Value is TCoordinateNode) and
+       (Geometry.CoordField.Value is TCoordinateNode) and // checks also Value <> nil
        (Geometry.NormalField <> nil) and
-       (Geometry.NormalField.Value <> nil) and
-       (Geometry.NormalField.Value is TNormalNode) and
-       { When bump mapping is used, we need to recalculate tangents/bitangents }
-       (not BumpMappingUsed) then
+       (Geometry.NormalField.Value is TNormalNode) and // checks also Value <> nil
+       { When bump mapping is used, we need to have tangents too }
+       ( (not BumpMappingUsed) or
+         ( (Geometry.TangentField <> nil) and
+           (Geometry.TangentField.Value is TTangentNode) ) ) then // checks also Value <> nil
     begin
       Coords := TCoordinateNode(Geometry.CoordField.Value).FdPoint.Items;
       Normals := TNormalNode(Geometry.NormalField.Value).FdVector.Items;
-      Result := Cache.FastCoordinateNormalUpdate(Coords, Normals);
+      if BumpMappingUsed then
+        Tangents := TTangentNode(Geometry.TangentField.Value).FdVector.Items
+      else
+        Tangents := nil;
+      Result := Cache.FastCoordinateNormalUpdate(Coords, Normals, Tangents);
     end;
   end;
 

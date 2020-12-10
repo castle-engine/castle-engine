@@ -232,13 +232,16 @@ type
     procedure FreeArrays(const Changed: TVboTypes);
     { Debug description of this shape cache. }
     function ToString: String; override;
-    { If possible, update the coordinate/normal data in VBO fast.
+    { If possible, update the coordinate/normal/tangent data in VBO fast.
 
       This is carefully implemented to do a specific case of TShapeCache.LoadArraysToVbo.
-      It optimizes the case of animating coordinates/normals using CoordinateInterpolator,
+      It optimizes the case of animating coordinates/normals/tangents using CoordinateInterpolator,
       which is very important to optimize, since that's how glTF skinned animations
-      are done. }
-    function FastCoordinateNormalUpdate(const Coords, Normals: TVector3List): Boolean;
+      are done.
+
+      Pass non-nil Tangents if VBO should have tangent data,
+      pass nil Tangents if VBO should not have it. }
+    function FastCoordinateNormalUpdate(const Coords, Normals, Tangents: TVector3List): Boolean;
   end;
 
   TShapeCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TShapeCache>;
@@ -1779,14 +1782,10 @@ begin
   VboToReload := [];
 end;
 
-function TShapeCache.FastCoordinateNormalUpdate(const Coords, Normals: TVector3List): Boolean;
-type
-  TCoordinateNormal = packed record
-    Coord, Normal: TVector3;
-  end;
+function TShapeCache.FastCoordinateNormalUpdate(const Coords, Normals, Tangents: TVector3List): Boolean;
 var
-  NewCoordinates: array of TCoordinateNormal;
-  Count, Size: Cardinal;
+  NewCoordinates, NewCoord: Pointer;
+  Count, Size, ItemSize: Cardinal;
   I: Integer;
 begin
   Result := false;
@@ -1795,15 +1794,23 @@ begin
        This also means that Arrays.FreeData was called, as LoadArraysToVbo does it. }
      (Vbo[vtCoordinate] <> 0) and
      VboCoordinatePreserveGeometryOrder and
-     (Normals.Count = Coords.Count) then
+     (Normals.Count = Coords.Count) and
+     ( (Tangents = nil) or
+       (Tangents.Count = Coords.Count) ) then
   begin
     Count := Coords.Count;
-    Size := Count * SizeOf(TCoordinateNormal);
+
+    ItemSize := SizeOf(TVector3) * 2;
+    if Tangents <> nil then
+      ItemSize += SizeOf(TVector3);
+    Size := Count * ItemSize;
+
     if (VboAllocatedUsage = GL_STREAM_DRAW) and
        { Comparing the byte sizes also makes sure that previous and new coordinates
          count stayed the same.
-         Right now we always pack into TCoordinateNormal record (2 vectors, 3x floats)
-         so VboAllocatedSize[vtCoordinate] just determines the count.
+         (Well, assuming we didn't change the Count, and simultaneously changed
+         the Tangent existence, which in theory could cause Size to match
+         for different structures.)
        }
        (VboAllocatedSize[vtCoordinate] = Size) then
     begin
@@ -1813,16 +1820,39 @@ begin
         VboToReload := VboToReload + [vtCoordinate];
 
         // calculate NewCoordinates
-        SetLength(NewCoordinates, Count);
-        for I := 0 to Count - 1 do
-        begin
-          NewCoordinates[I].Coord := Coords.List^[I];
-          NewCoordinates[I].Normal := Normals.List^[I];
-        end;
+        NewCoordinates := GetMem(Size);
+        try
+          NewCoord := NewCoordinates;
 
-        // load NewCoordinates to GPU
-        glBindBuffer(GL_ARRAY_BUFFER, Vbo[vtCoordinate]);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, Size, Pointer(NewCoordinates));
+          if Tangents <> nil then
+          begin
+            for I := 0 to Count - 1 do
+            begin
+              PVector3(NewCoord)^ := Coords.List^[I];
+              PtrUInt(NewCoord) += SizeOf(TVector3);
+
+              PVector3(NewCoord)^ := Normals.List^[I];
+              PtrUInt(NewCoord) += SizeOf(TVector3);
+
+              PVector3(NewCoord)^ := Tangents.List^[I];
+              PtrUInt(NewCoord) += SizeOf(TVector3);
+            end;
+          end else
+          begin
+            for I := 0 to Count - 1 do
+            begin
+              PVector3(NewCoord)^ := Coords.List^[I];
+              PtrUInt(NewCoord) += SizeOf(TVector3);
+
+              PVector3(NewCoord)^ := Normals.List^[I];
+              PtrUInt(NewCoord) += SizeOf(TVector3);
+            end;
+          end;
+
+          // load NewCoordinates to GPU
+          glBindBuffer(GL_ARRAY_BUFFER, Vbo[vtCoordinate]);
+          glBufferSubData(GL_ARRAY_BUFFER, 0, Size, NewCoordinates);
+        finally FreeMemNiling(NewCoordinates) end;
       end;
     end;
   end;
