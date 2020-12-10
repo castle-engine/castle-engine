@@ -861,6 +861,8 @@
   TTangentNode = class(TAbstractGeometricPropertyNode)
     {$I auto_generated_node_helpers/x3dnodes_tangent.inc}
   public
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+
     { Set tangent vectors from a list of 4D vectors following glTF specification.
       https://github.com/KhronosGroup/glTF/tree/master/specification/2.0 says
       "XYZW vertex tangents where the w component is a sign value
@@ -1983,6 +1985,14 @@ end;
 class function TNormalNode.ClassX3DType: string;
 begin
   Result := 'Normal';
+end;
+
+{ TTangentNode --------------------------------------------------------------- }
+
+constructor TTangentNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+begin
+  inherited;
+  FdVector.ChangeAlways := chTangent;
 end;
 
 procedure TTangentNode.SetVector4D(const List: TVector4List);

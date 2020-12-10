@@ -31,6 +31,7 @@ X3DGeometryNode : X3DNode {
 }
 
 X3DNormalNode : X3DGeometricPropertyNode {
+  x3d-nodes-to-pascal: default-container-field normal
 }
 
 ClipPlane : X3DChildNode {
@@ -91,6 +92,7 @@ Normal : X3DNormalNode {
 
 Tangent : X3DGeometricPropertyNode {
   x3d-nodes-to-pascal: auto-generate-more true
+  x3d-nodes-to-pascal: default-container-field tangent
   MFVec3f [in,out] vector   []   [-1,1]
 }
 

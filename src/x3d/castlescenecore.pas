@@ -4797,7 +4797,7 @@ var
     end;
   end;
 
-  procedure HandleChangeNormal;
+  procedure HandleChangeNormalTangent;
   var
     C, I: Integer;
   begin
@@ -5333,7 +5333,7 @@ begin
     case Change of
       chTransform: HandleChangeTransform;
       chCoordinate: HandleChangeCoordinate;
-      chNormal: HandleChangeNormal;
+      chNormal, chTangent: HandleChangeNormalTangent;
       chVisibleVRML1State, chGeometryVRML1State: HandleVRML1State;
       chAlphaChannel: HandleChangeAlphaChannel;
       chLightInstanceProperty: HandleChangeLightInstanceProperty;
