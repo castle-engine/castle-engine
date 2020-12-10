@@ -1458,7 +1458,7 @@ begin
         CoordsCount := Coords.Count;
 
         { detect and abort in case normal / tex coord ordering is more complicated }
-        if Geometry is TIndexedFaceSetNode and
+        if (Geometry is TIndexedFaceSetNode) and
            ( (TIndexedFaceSetNode(Geometry).FdNormalIndex.Items.Count <> 0) or
              (TIndexedFaceSetNode(Geometry).FdTexCoordIndex.Items.Count <> 0) ) then
           Exit;
