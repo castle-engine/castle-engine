@@ -712,14 +712,18 @@ type
       GetNormal to return correct normal. }
   TAbstractBumpMappingGenerator = class(TAbstractShaderAttribGenerator)
   strict private
-    { Helpers for bump mapping }
-    STangent, TTangent: TVector3;
-    AttribTangent, AttribBitangent: TGeometryAttrib;
+    Tangent: TVector3;
+    CalculateTangents: Boolean;
   protected
-    procedure GenerateVertex(IndexNum: Integer); override;
-    procedure PrepareAttributes(var AllowIndexed: Boolean); override;
+    { If tangents are provided in the TAbstractComposedGeometryNode.FdTangent,
+      descendants should set them here. }
+    TangentsFromNode: TVector3List;
 
-    { Update tangent vectors (STangent, TTangent).
+    procedure PrepareAttributes(var AllowIndexed: Boolean); override;
+    procedure GenerateCoordinateBegin; override;
+    procedure GenerateVertex(IndexNum: Integer); override;
+
+    { Update tangent vectors (Tangent, Bitangent).
       Without this, bump mapping will be wrong.
       Give triangle indexes (like IndexNum for GenerateVertex). }
     procedure CalculateTangentVectors(
@@ -2203,179 +2207,88 @@ procedure TAbstractBumpMappingGenerator.PrepareAttributes(var AllowIndexed: Bool
 begin
   inherited;
   if ShapeBumpMappingUsed then
+    Arrays.AddTangent;
+end;
+
+procedure TAbstractBumpMappingGenerator.GenerateCoordinateBegin;
+begin
+  inherited;
+
+  CalculateTangents := false;
+  if ShapeBumpMappingUsed then
   begin
-    AttribTangent := Arrays.AddGLSLAttributeVector3('castle_tangent', true);
-    AttribBitangent := Arrays.AddGLSLAttributeVector3('castle_bitangent', true);
+    if (TangentsFromNode <> nil) and
+       (NorImplementation in [niPerVertexCoordIndexed, niPerVertexNonIndexed]) then
+    begin
+      AssignCoordinate(Arrays.Tangent, TangentsFromNode.L, TangentsFromNode.ItemSize, TangentsFromNode.Count)
+    end else
+    begin
+      { If ShapeBumpMappingUsed, but we cannot use TangentsFromNode, then we need
+        to calculate tangents per-vertex or per-face here. }
+      CalculateTangents := true;
+      { Too verbose? Would also show when we only do this once
+        (because the geometry is not animated), which is not really a problem. }
+      // WritelnWarning('Calculating tangent vectors during rendering. This is slow. Export model with "Tangents" selected to make it much faster to render.');
+    end;
   end;
 end;
 
 procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
 
-  procedure SetTangentsBitangents;
+  procedure SetTangents;
   var
-    LocalSTangent, LocalTTangent: TVector3;
     Normal: TVector3;
   begin
-    GetNormal(IndexNum, CurrentRangeNumber, Normal);
-
     if NormalsFlat then
     begin
-      Arrays.GLSLAttributeVector3(AttribTangent, ArrayIndexNum)^ := STangent;
-      Arrays.GLSLAttributeVector3(AttribBitangent, ArrayIndexNum)^ := TTangent;
+      Arrays.Tangent(ArrayIndexNum)^ := Tangent;
     end else
     begin
       { If NormalsFlat = false,
-        we want to calculate *local* STangent and TTangent,
-        which are STangent and TTangent adjusted to the current vertex
+        we want to calculate *local* Tangent,
+        which is Tangent adjusted to the current vertex
         (since every vertex on this face may have a different normal).
 
         Without doing this, you would see strange artifacts, smoothed
         faces would look somewhat like flat faces.
         Conceptually, for smoothed
         faces, whole tangent space should vary for each vertex, so Normal,
-        and both tangents may be different on each vertex. }
+        and both tangents/bitangents may be different on each vertex. }
 
-      LocalSTangent := STangent;
-      MakeVectorsOrthoOnTheirPlane(LocalSTangent, Normal);
-
-      LocalTTangent := TTangent;
-      MakeVectorsOrthoOnTheirPlane(LocalTTangent, Normal);
-
-      Arrays.GLSLAttributeVector3(AttribTangent, ArrayIndexNum)^ := LocalSTangent;
-      Arrays.GLSLAttributeVector3(AttribBitangent, ArrayIndexNum)^ := LocalTTangent;
+      GetNormal(IndexNum, CurrentRangeNumber, Normal);
+      Arrays.Tangent(ArrayIndexNum)^ := MakeVectorOrthogonal(Tangent, Normal);
     end;
   end;
 
 begin
   inherited;
-  if ShapeBumpMappingUsed then
-    SetTangentsBitangents;
+  if CalculateTangents then
+    SetTangents;
 end;
 
 procedure TAbstractBumpMappingGenerator.CalculateTangentVectors(
   const TriangleIndex1, TriangleIndex2, TriangleIndex3: Integer);
-
-  { This procedure can change Triangle*, but only by swapping some vertexes,
-    so we pass Triangle* by reference instead of by value, to avoid
-    needless mem copying.
-
-    Returns @false if cannot be calculated. }
-  function CalculateTangent(IsSTangent: Boolean; var Tangent: TVector3;
-    var Triangle3D: TTriangle3;
-    var TriangleTexCoord: TTriangle2): Boolean;
-  var
-    D: TVector2;
-    LineA, LineBC, DIn3D: TVector3;
-    MiddleIndex: Integer;
-    FarthestDistance, NewDistance, Alpha: Single;
-    SearchCoord, OtherCoord: Cardinal;
-  begin
-    if ISSTangent then
-      SearchCoord := 0 else
-      SearchCoord := 1;
-    OtherCoord := 1 - SearchCoord;
-
-    { choose such that 1st and 2nd points have longest distance along
-      OtherCoord, so 0 point is in the middle. }
-
-    { MiddleIndex means that
-      MiddleIndex, (MiddleIndex + 1) mod 3 are farthest. }
-
-    MiddleIndex := 2;
-    FarthestDistance := Abs(TriangleTexCoord.Data[0].Data[OtherCoord] - TriangleTexCoord.Data[1].Data[OtherCoord]);
-
-    NewDistance := Abs(TriangleTexCoord.Data[1].Data[OtherCoord] - TriangleTexCoord.Data[2].Data[OtherCoord]);
-    if NewDistance > FarthestDistance then
-    begin
-      MiddleIndex := 0;
-      FarthestDistance := NewDistance;
-    end;
-
-    NewDistance := Abs(TriangleTexCoord.Data[2].Data[OtherCoord] - TriangleTexCoord.Data[0].Data[OtherCoord]);
-    if NewDistance > FarthestDistance then
-    begin
-      MiddleIndex := 1;
-      FarthestDistance := NewDistance;
-    end;
-
-    if IsZero(FarthestDistance) then
-      Exit(false);
-
-    if MiddleIndex <> 0 then
-    begin
-      SwapValues(TriangleTexCoord.Data[0], TriangleTexCoord.Data[MiddleIndex]);
-      SwapValues(Triangle3D      .Data[0], Triangle3D      .Data[MiddleIndex]);
-    end;
-
-    if IsSTangent then
-    begin
-      { we want line Y = TriangleTexCoord.Data[0].Data[1]. }
-      LineA[0] := 0;
-      LineA[1] := 1;
-      LineA[2] := -TriangleTexCoord.Data[0].Data[1];
-    end else
-    begin
-      { we want line X = TriangleTexCoord.Data[0].Data[0]. }
-      LineA[0] := 1;
-      LineA[1] := 0;
-      LineA[2] := -TriangleTexCoord.Data[0].Data[0];
-    end;
-    LineBC := Line2DFrom2Points(
-      TriangleTexCoord.Data[1], TriangleTexCoord.Data[2]);
-
-    try
-      D := Lines2DIntersection(LineA, LineBC);
-    except
-      on ELinesParallel do begin Result := false; Exit; end;
-    end;
-
-    { LineBC[0, 1] is vector 2D orthogonal to LineBC.
-      If Abs(LineBC[0]) is *smaller* then it means that B and C points
-      are most different on 0 coord. }
-    if Abs(LineBC[0]) < Abs(LineBC[1]) then
-      Alpha := (                            D[0] - TriangleTexCoord.Data[1].Data[0]) /
-               (TriangleTexCoord.Data[2].Data[0] - TriangleTexCoord.Data[1].Data[0]) else
-      Alpha := (                            D[1] - TriangleTexCoord.Data[1].Data[1]) /
-               (TriangleTexCoord.Data[2].Data[1] - TriangleTexCoord.Data[1].Data[1]);
-
-    DIn3D :=
-      (Triangle3D.Data[1] * (1 - Alpha)) +
-      (Triangle3D.Data[2] * Alpha);
-
-    if D[SearchCoord] > TriangleTexCoord.Data[0].Data[SearchCoord] then
-      Tangent := DIn3D - Triangle3D.Data[0]
-    else
-      Tangent := Triangle3D.Data[0] - DIn3D;
-
-    Tangent.NormalizeMe;
-
-    Result := true;
-  end;
-
 var
-  Triangle3D: TTriangle3;
+  TriangleCoord: TTriangle3;
   TriangleTexCoord: TTriangle2;
 begin
-  if ShapeBumpMappingUsed then
+  if CalculateTangents then
   begin
-    { calculate Triangle3D }
-    Triangle3D.Data[0] := GetVertex(TriangleIndex1);
-    Triangle3D.Data[1] := GetVertex(TriangleIndex2);
-    Triangle3D.Data[2] := GetVertex(TriangleIndex3);
+    { calculate TriangleCoord }
+    TriangleCoord.Data[0] := GetVertex(TriangleIndex1);
+    TriangleCoord.Data[1] := GetVertex(TriangleIndex2);
+    TriangleCoord.Data[2] := GetVertex(TriangleIndex3);
 
     if not (
       { calculate TriangleTexCoord }
       GetTextureCoord(TriangleIndex1, ShapeBumpMappingTextureCoordinatesId, TriangleTexCoord.Data[0]) and
       GetTextureCoord(TriangleIndex2, ShapeBumpMappingTextureCoordinatesId, TriangleTexCoord.Data[1]) and
       GetTextureCoord(TriangleIndex3, ShapeBumpMappingTextureCoordinatesId, TriangleTexCoord.Data[2]) and
-      { calculate STangent, TTangent }
-      CalculateTangent(true , STangent, Triangle3D, TriangleTexCoord) and
-      CalculateTangent(false, TTangent, Triangle3D, TriangleTexCoord) ) then
+      { calculate Tangent }
+      CalculateTangent(true , Tangent, TriangleCoord, TriangleTexCoord) ) then
     begin
-      { Would be more correct to set STangent as anything perpendicular
-        to Normal, and TTangent as vector product (normal, LocalSTangent) }
-      STangent := TVector3.One[0];
-      TTangent := TVector3.One[1];
+      { Would be more correct to set Tangent as anything perpendicular to Normal. }
+      Tangent := TVector3.One[0];
     end;
 
     { It *is* possible that we'll get somewhat incorrect tangents in practice,
@@ -2383,9 +2296,9 @@ begin
       because we don't really have here a better fallback.
       Using above "TVector3.One[0]" isn't really better. }
     {
-    if not ( (Abs(TVector3.DotProduct(STangent, TTangent)) < 0.95) and
-             (Abs(TVector3.DotProduct(STangent, Normal)) < 0.95) and
-             (Abs(TVector3.DotProduct(TTangent, Normal)) < 0.95) ) then
+    if not ( (Abs(TVector3.DotProduct(Tangent, Bitangent)) < 0.95) and
+             (Abs(TVector3.DotProduct(Tangent, Normal)) < 0.95) and
+             (Abs(TVector3.DotProduct(Bitangent, Normal)) < 0.95) ) then
       WritelnWarning('Tangents are likely incorrect');
     }
   end;

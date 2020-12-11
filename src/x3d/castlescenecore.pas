@@ -1948,11 +1948,18 @@ type
     function Event(const NodeName, EventName: String): TX3DEvent;
     { @groupEnd }
 
-    { List the names of available animations in this file.
-      Animations are detected in VRML/X3D models as simply TimeSensor nodes
-      (if you set @link(AnimationPrefix) property, we additionally
-      filter them to show only the names starting with given prefix).
-      You can even get the time sensor node directly by AnimationTimeSensor.
+    { List the names of available animations in current scene.
+      Animations are detected looking for TimeSensor nodes.
+      See https://castle-engine.io/x3d_implementation_interpolation.php
+      for an overview how nodes are used to create animations.
+
+      Note that if you set @link(AnimationPrefix) property, we additionally
+      filter TimeSensor nodes to show only the names starting with given prefix.
+      In this case, not all TTimeSensorNode are reflected in this list.
+
+      You can get the corresponding TTimeSensorNode by AnimationTimeSensor.
+      Note that the same TTimeSensorNode may occur multiple times on this list,
+      in case X3D IMPORT mechanism was used to rename the imported animation.
 
       The resulting TStringList instance is owned by this object,
       do not free it.
@@ -4790,7 +4797,7 @@ var
     end;
   end;
 
-  procedure HandleChangeNormal;
+  procedure HandleChangeNormalTangent;
   var
     C, I: Integer;
   begin
@@ -5326,7 +5333,7 @@ begin
     case Change of
       chTransform: HandleChangeTransform;
       chCoordinate: HandleChangeCoordinate;
-      chNormal: HandleChangeNormal;
+      chNormal, chTangent: HandleChangeNormalTangent;
       chVisibleVRML1State, chGeometryVRML1State: HandleVRML1State;
       chAlphaChannel: HandleChangeAlphaChannel;
       chLightInstanceProperty: HandleChangeLightInstanceProperty;
@@ -8073,7 +8080,8 @@ end;
 function TCastleSceneCore.AnimationTimeSensor(const Index: Integer): TTimeSensorNode;
 begin
   if Between(Index, 0, FAnimationsList.Count - 1) then
-    Result := FAnimationsList.Objects[Index] as TTimeSensorNode else
+    Result := FAnimationsList.Objects[Index] as TTimeSensorNode
+  else
     Result := nil;
 end;
 

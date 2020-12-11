@@ -425,8 +425,9 @@
   { Shape is a rendered object in the world, with an appearance and geometry. }
   TShapeNode = class(TAbstractShapeNode)
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: String; override;
+    { Generate tangent vectors on geometry if they are
+      (1) necessary and (2) possible to generate and (3) not present yet. }
+    procedure GenerateTangents;
 
     {$I auto_generated_node_helpers/x3dnodes_shape.inc}
   end;
@@ -1370,14 +1371,125 @@ end;
 
 { TShapeNode ----------------------------------------------------------------- }
 
-procedure TShapeNode.CreateNode;
-begin
-  inherited;
-end;
+procedure TShapeNode.GenerateTangents;
 
-class function TShapeNode.ClassX3DType: String;
+  { Calculate tangents, having all array (coords, normal, tex coords, tangents) prepared
+    and equal length (CoordsCount). }
+  procedure GenerateTangentsCore(const CoordsCount: Integer;
+    const Coords, Normals: TVector3List;
+    const TexCoords: TVector2List;
+    const Tangents: TVector3List);
+  var
+    TriangleIndexes: TLongIntList;
+    Tangent: TVector3;
+    I, Index0, Index1, Index2: Integer;
+    TriangleCoord: TTriangle3;
+    TriangleTexCoord: TTriangle2;
+  begin
+    WritelnLog('Calculating tangents for %s with geometry %s', [NiceName, Geometry.NiceName]);
+
+    { TODO: for now, we only handle TIndexedTriangleSetNode
+      (it is checked that Geometry is of this class in the main body of TShapeNode.GenerateTangents).
+      But we should be able to handle all geometries.
+
+      We need for this something like TAbstractGeometryNode.Triangulate,
+      instead of only helpers like TAbstractGeometryNode.InternalMakeCoordRanges .
+      We have TShape.Triangulate (using constructed array by TArraysGenerator),
+      but we cannot use TShape or TArraysGenerator here -- as lots of other data
+      for this is not ready yet.
+      We want GenerateTangents here, in X3DNodes, to use them when importing glTF). }
+
+    TriangleIndexes := TIndexedTriangleSetNode(Geometry).FdIndex.Items;
+    I := 0;
+    while I + 2 < TriangleIndexes.Count do
+    begin
+      Index0 := TriangleIndexes[I    ];
+      Index1 := TriangleIndexes[I + 1];
+      Index2 := TriangleIndexes[I + 2];
+      TriangleCoord.Data[0] := Coords.List^[Index0];
+      TriangleCoord.Data[1] := Coords.List^[Index1];
+      TriangleCoord.Data[2] := Coords.List^[Index2];
+      TriangleTexCoord.Data[0] := TexCoords.List^[Index0];
+      TriangleTexCoord.Data[1] := TexCoords.List^[Index1];
+      TriangleTexCoord.Data[2] := TexCoords.List^[Index2];
+
+      if not CalculateTangent(true, Tangent, TriangleCoord, TriangleTexCoord) then
+        Tangent := TVector3.One[0];
+
+      Tangents.List^[Index0] := MakeVectorOrthogonal(Tangent, Normals.List^[Index0]);
+      Tangents.List^[Index1] := MakeVectorOrthogonal(Tangent, Normals.List^[Index1]);
+      Tangents.List^[Index2] := MakeVectorOrthogonal(Tangent, Normals.List^[Index2]);
+
+      Inc(I, 3);
+    end;
+  end;
+
+var
+  OneSidedMat: TAbstractOneSidedMaterialNode;
+  NormalTextureCoords: TAbstractSingleTextureCoordinateNode;
+  Normal: TNormalNode;
+  Tangent: TTangentNode;
+  CoordsCount: Integer;
+  Coords, Normals: TVector3List;
+  TexCoords: TVector2List;
+  Tangents: TVector3List;
 begin
-  Result := 'Shape';
+  if { geometry has normals per-vertex }
+     (Geometry is TAbstractComposedGeometryNode) and // also checks Geometry <> nil
+     (TAbstractComposedGeometryNode(Geometry).Normal is TNormalNode) and // also checks Normal <> nil
+     (TAbstractComposedGeometryNode(Geometry).NormalPerVertex) and
+     { geometry doesn't have tangents }
+     (TAbstractComposedGeometryNode(Geometry).Tangent = nil) and
+     { appearance has normal texture }
+     (Appearance <> nil) and
+     (Appearance.Material is TAbstractOneSidedMaterialNode) and // checks also Appearance.Material <> nil
+     (TAbstractOneSidedMaterialNode(Appearance.Material).NormalTexture <> nil) then
+  begin
+    OneSidedMat := TAbstractOneSidedMaterialNode(Appearance.Material);
+    NormalTextureCoords := Geometry.FindTextureMapping(OneSidedMat.NormalTextureMapping, false);
+    { geometry has matching normal texture coordinates }
+    if NormalTextureCoords is TTextureCoordinateNode then // checks also NormalTextureCoords <> nil
+    begin
+      if (Geometry.CoordField <> nil) and
+         (Geometry.CoordField.Value is TCoordinateNode) then
+      begin
+        { calculate Coords, CoordsCount }
+        Coords := TCoordinateNode(Geometry.CoordField.Value).FdPoint.Items;
+        CoordsCount := Coords.Count;
+
+        { detect and abort in case normal / tex coord ordering is more complicated }
+        if (Geometry is TIndexedFaceSetNode) and
+           ( (TIndexedFaceSetNode(Geometry).FdNormalIndex.Items.Count <> 0) or
+             (TIndexedFaceSetNode(Geometry).FdTexCoordIndex.Items.Count <> 0) ) then
+          Exit;
+
+        { calculate Normals }
+        Normal := TNormalNode(TAbstractComposedGeometryNode(Geometry).Normal);
+        Normals := Normal.FdVector.Items;
+        if CoordsCount <> Normals.Count then
+          Exit;
+
+        { calculate TexCoords }
+        TexCoords := TTextureCoordinateNode(NormalTextureCoords).FdPoint.Items;
+        if CoordsCount <> TexCoords.Count then
+          Exit;
+
+        { calculate Tangents }
+        Tangent := TTangentNode.Create;
+        Tangents := Tangent.FdVector.Items;
+        Tangents.Count := CoordsCount;
+
+        // TODO: for now we can do this only for IndexedTriangleSet
+        if not (Geometry is TIndexedTriangleSetNode) then
+          Exit;
+
+        GenerateTangentsCore(CoordsCount, Coords, Normals, TexCoords, Tangents);
+
+        { assign this at the end, just in case it will cause TCastleSceneCore processing on change }
+        TAbstractComposedGeometryNode(Geometry).Tangent := Tangent;
+      end;
+    end;
+  end;
 end;
 
 { TTwoSidedMaterialInfo --------------------------------------------------- }

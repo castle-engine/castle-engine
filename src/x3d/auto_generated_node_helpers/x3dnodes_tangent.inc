@@ -29,20 +29,45 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
+    strict private FFdVector: TMFVec3f;
+    { X3D field "vector". } { }
+    public property FdVector: TMFVec3f read FFdVector;
+    { Set X3D field "vector". } { }
+    procedure SetVector(const Value: array of TVector3);
+    { Set X3D field "vector". } { }
+    procedure SetVector(const Value: TVector3List);
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-{ TShapeNode ----------------------------------------------- }
+{ TTangentNode ----------------------------------------------- }
 
-class function TShapeNode.ClassX3DType: String;
+procedure TTangentNode.SetVector(const Value: array of TVector3);
 begin
-  Result := 'Shape';
+  FdVector.Send(Value);
 end;
 
-procedure TShapeNode.CreateNode;
+procedure TTangentNode.SetVector(const Value: TVector3List);
+begin
+  FdVector.Send(Value);
+end;
+
+class function TTangentNode.ClassX3DType: String;
+begin
+  Result := 'Tangent';
+end;
+
+procedure TTangentNode.CreateNode;
 begin
   inherited;
+
+  FFdVector := TMFVec3f.Create(Self, True, 'vector', []);
+   FdVector.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdVector);
+  { X3D specification comment: [-1,1] }
+
+  DefaultContainerField := 'tangent';
 end;
 
 {$endif read_implementation}

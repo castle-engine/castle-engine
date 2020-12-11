@@ -10,6 +10,7 @@ X3DComposedGeometryNode : X3DGeometryNode {
   SFNode [in,out] coord           NULL [X3DCoordinateNode]
   SFNode [in,out] fogCoord        NULL [FogCoordinate] # NOT-SLIM
   SFNode [in,out] normal          NULL [X3DNormalNode]
+  SFNode [in,out] tangent         NULL [Tangent]
   SFNode [in,out] texCoord        NULL [X3DTextureCoordinateNode]
   SFBool []       ccw             TRUE
   SFBool []       colorPerVertex  TRUE
@@ -30,6 +31,7 @@ X3DGeometryNode : X3DNode {
 }
 
 X3DNormalNode : X3DGeometricPropertyNode {
+  x3d-nodes-to-pascal: default-container-field normal
 }
 
 ClipPlane : X3DChildNode {
@@ -85,6 +87,12 @@ LineSet : X3DGeometryNode {
 }
 
 Normal : X3DNormalNode {
+  MFVec3f [in,out] vector   []   [-1,1]
+}
+
+Tangent : X3DGeometricPropertyNode {
+  x3d-nodes-to-pascal: auto-generate-more true
+  x3d-nodes-to-pascal: default-container-field tangent
   MFVec3f [in,out] vector   []   [-1,1]
 }
 

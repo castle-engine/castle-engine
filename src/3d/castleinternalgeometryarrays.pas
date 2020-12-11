@@ -135,6 +135,9 @@ type
     FCoordinateSize: Cardinal;
     FCoordinatePreserveGeometryOrder: Boolean;
 
+    FHasTangent: Boolean;
+    FTangentOffset: Integer;
+
     FColorType: TColorPerVertexType;
     FColorMode: TColorMode;
     ColorOffset: Integer;
@@ -222,10 +225,9 @@ type
       (if Indexes assigned) or arrays Count (if Indexes not assigned). }
     property Counts: TCardinalList read FCounts write FCounts;
 
-    { Memory containing vertex positions and normals, that is everything
-      that changes during Coordinate.coord animation.
-      CoordinateSize is size, in bytes, of one item of this array
-      (currently just constant, 2 * TVector3).
+    { Memory containing vertex positions, normals and optionally tangents,
+      that is everything that changes during Coordinate.coord animation.
+      CoordinateSize is size, in bytes, of one item of this array.
       @groupBegin }
     property CoordinateArray: Pointer read FCoordinateArray;
     property CoordinateSize: Cardinal read FCoordinateSize;
@@ -248,7 +250,6 @@ type
 
     function Position: PVector3;
     function Position(const Index: Cardinal): PVector3;
-    procedure IncPosition(var P: PVector3);
 
     { Allocated number of items in vertex positions, normals, colors
       and such arrays.
@@ -262,7 +263,13 @@ type
 
     function Normal: PVector3;
     function Normal(const Index: Cardinal): PVector3;
-    procedure IncNormal(var P: PVector3);
+
+    { Add tangent information per-vertex to CoordinateArray. }
+    procedure AddTangent;
+    { Was AddTangent used. }
+    property HasTangent: Boolean read FHasTangent;
+    { Access tangent information per-vertex. }
+    function Tangent(const Index: Cardinal = 0): PVector3;
 
     { Add color-per-vertex attribute.
       @param AMode Rendering mode, determines what shader does.
@@ -459,11 +466,6 @@ begin
   Result := PVector3(PtrUInt(FCoordinateArray) + CoordinateSize * Index);
 end;
 
-procedure TGeometryArrays.IncPosition(var P: PVector3);
-begin
-  PtrUInt(P) += {CoordinateSize} SizeOf(TVector3) * 2;
-end;
-
 function TGeometryArrays.Normal: PVector3;
 begin
   { When DataFreed, FCoordinateArray is already nil }
@@ -478,9 +480,21 @@ begin
     SizeOf(TVector3) + CoordinateSize * Index));
 end;
 
-procedure TGeometryArrays.IncNormal(var P: PVector3);
+procedure TGeometryArrays.AddTangent;
 begin
-  PtrUInt(P) += {CoordinateSize} SizeOf(TVector3) * 2;
+  if not FHasTangent then
+  begin
+    FHasTangent := true;
+    FTangentOffset := FCoordinateSize;
+    FCoordinateSize += SizeOf(TVector3);
+  end;
+end;
+
+function TGeometryArrays.Tangent(const Index: Cardinal = 0): PVector3;
+begin
+  { When DataFreed, FCoordinateArray is already nil }
+  Result := PVector3(PtrUInt(PtrUInt(FCoordinateArray) +
+    FTangentOffset + CoordinateSize * Index));
 end;
 
 procedure TGeometryArrays.AddColor(const AMode: TColorMode; const WithAlpha: Boolean);

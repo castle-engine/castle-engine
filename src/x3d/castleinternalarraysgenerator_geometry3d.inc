@@ -334,6 +334,7 @@ begin
   TexCoordIndex := ANode.FdTexCoordIndex;
 
   Normals := ANode.InternalNormal;
+  TangentsFromNode := ANode.InternalTangent;
   NormalsCcw := ANode.FdCcw.Value;
   if Normals <> nil then
   begin
