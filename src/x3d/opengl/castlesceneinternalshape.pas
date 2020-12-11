@@ -95,52 +95,18 @@ uses CastleScene, CastleVectors, CastleGLUtils;
 
 procedure TGLShape.Changed(const InactiveOnly: boolean;
   const Changes: TX3DChanges);
-
-  { Assuming Cache <> nil, try to update the Cache VBOs fast
-    (without the need to recreate them).
-
-    This detects now for changes limited to coordinate/normal,
-    and tries using FastCoordinateNormalUpdate. }
-  function FastCacheUpdate: Boolean;
-  var
-    Coords, Normals, Tangents: TVector3List;
-  begin
-    Result := false;
-
-    if { We only changed Cooordinate.coord / Normal.vector / Tangent.vector. }
-       (Changes * [chCoordinate, chNormal, chTangent] = Changes) and
-       { Shape has coordinates and normals exposed in most common way,
-         by Coordinate and Normal nodes. }
-       (Geometry.CoordField <> nil) and
-       (Geometry.CoordField.Value is TCoordinateNode) and // checks also Value <> nil
-       (Geometry.NormalField <> nil) and
-       (Geometry.NormalField.Value is TNormalNode) and // checks also Value <> nil
-       { When bump mapping is used, we need to have tangents too }
-       ( (not BumpMappingUsed) or
-         ( (Geometry.TangentField <> nil) and
-           (Geometry.TangentField.Value is TTangentNode) ) ) then // checks also Value <> nil
-    begin
-      Coords := TCoordinateNode(Geometry.CoordField.Value).FdPoint.Items;
-      Normals := TNormalNode(Geometry.NormalField.Value).FdVector.Items;
-      if BumpMappingUsed then
-        Tangents := TTangentNode(Geometry.TangentField.Value).FdVector.Items
-      else
-        Tangents := nil;
-      Result := Cache.FastCoordinateNormalUpdate(Coords, Normals, Tangents);
-    end;
-  end;
-
 begin
   inherited;
 
-  if (Cache <> nil) and (not FastCacheUpdate) then
+  if Cache <> nil then
   begin
     { Ignore changes that don't affect prepared arrays,
       like transformation, clip planes and everything else that is applied
       by renderer every time, and doesn't affect TGeometryArrays. }
+
     if Changes * [chCoordinate, chNormal, chTangent] <> [] then
     begin
-      Cache.FreeArrays([vtCoordinate]);
+      Cache.InvalidateVertexData([vtCoordinate]);
 
       { Note: When bump mapping is used, upon changing normals -> we need to recalculate tangents.
         But that is already covered: tangents are also part of vtCoordinate. }
@@ -158,13 +124,13 @@ begin
       we need to make has changed.
       Testcase "animate_symbols", using Unholy spell effect animations.
 
-      TODO: Actually Cache.FreeArrays is often not necessary in case of chTextureImage.
+      TODO: Actually Cache.InvalidateVertexData is often not necessary in case of chTextureImage.
       It's only necessary when texture existence changed.
       This could be optimized more.
     }
     if Changes * [chTextureImage, chVisibleVRML1State, chGeometryVRML1State,
       chColorNode, chTextureCoordinate, chGeometry, chFontStyle, chWireframe] <> [] then
-      Cache.FreeArrays(AllVboTypes);
+      Cache.InvalidateVertexData(AllVboTypes);
   end;
 
   if Changes * [chTextureImage, chTextureRendererProperties] <> [] then

@@ -207,14 +207,22 @@ type
     References: Cardinal;
 
     { An instance of TGeometryArrays, decomposing this shape geometry.
-      Used to easily render and process this geometry, if assigned.
-      This is managed by TGLRenderer and TCastleScene. }
+      Used to easily render and process this geometry.
+
+      When VBO are supported (all non-ancient GPUs) then TShapeCache
+      uses an instance of it only once (in LoadArraysToVbo,
+      to load contents to GPU, and then calls Arrays.FreeData).
+      But it is later used by outside code multiple times to make draw calls
+      (as it is passed by TBaseCoordinateRenderer).
+      So storing it in TShapeCache (to be shared when possible) makes sense.
+
+      TShapeCache owns this -- it will be freed when TShapeCache is freed. }
     Arrays: TGeometryArrays;
 
-    { What Vbos do we need to reload.
-      Next time (right after creating arrays) we load vbo contents,
-      we'll look at this to know which parts to actually reload to vbo.
-      This is extended at each FreeArrays call. }
+    { What VBOs do we need to reload at next LoadArraysToVbo call.
+      This also implies that content for this VBOs needs to be created,
+      which may mean we need to change Arrays.
+      This is extended at each InvalidateVertexData call. }
     VboToReload: TVboTypes;
 
     Vbo: TVboArrays;
@@ -229,19 +237,9 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    procedure FreeArrays(const Changed: TVboTypes);
+    procedure InvalidateVertexData(const Changed: TVboTypes);
     { Debug description of this shape cache. }
     function ToString: String; override;
-    { If possible, update the coordinate/normal/tangent data in VBO fast.
-
-      This is carefully implemented to do a specific case of TShapeCache.LoadArraysToVbo.
-      It optimizes the case of animating coordinates/normals/tangents using CoordinateInterpolator,
-      which is very important to optimize, since that's how glTF skinned animations
-      are done.
-
-      Pass non-nil Tangents if VBO should have tangent data,
-      pass nil Tangents if VBO should not have it. }
-    function FastCoordinateNormalUpdate(const Coords, Normals, Tangents: TVector3List): Boolean;
   end;
 
   TShapeCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TShapeCache>;
@@ -1651,7 +1649,7 @@ end;
 
 destructor TShapeCache.Destroy;
 begin
-  FreeArrays(AllVboTypes);
+  FreeAndNil(Arrays);
   FreeVBO;
   inherited;
 end;
@@ -1673,9 +1671,8 @@ begin
   end;
 end;
 
-procedure TShapeCache.FreeArrays(const Changed: TVboTypes);
+procedure TShapeCache.InvalidateVertexData(const Changed: TVboTypes);
 begin
-  FreeAndNil(Arrays);
   VboToReload := VboToReload + Changed;
 end;
 
@@ -1731,131 +1728,55 @@ var
   end;
 
 begin
-  Assert(GLFeatures.VertexBufferObject);
-  Assert(not Arrays.DataFreed);
-
-  NewVbos := Vbo[vtCoordinate] = 0;
-  if NewVbos then
+  if GLFeatures.VertexBufferObject then
   begin
-    glGenBuffers(Ord(High(Vbo)) + 1, @Vbo);
-    if LogRenderer then
-      WritelnLog('Renderer', Format('Creating and loading data to VBOs (%d,%d,%d)',
-        [Vbo[vtCoordinate], Vbo[vtAttribute], Vbo[vtIndex]]));
-  end else
-  begin
-    if LogRenderer then
-      WritelnLog('Renderer', Format('Loading data to existing VBOs (%d,%d,%d), reloading %s',
-        [Vbo[vtCoordinate], Vbo[vtAttribute], Vbo[vtIndex],
-         VboTypesToStr(VboToReload)]));
-  end;
+    { In case of VBO not supported (ancient GPUs), we do not free data in Arrays,
+      it will be used to provide data at each draw call. }
+    Assert(not Arrays.DataFreed);
 
-  if DynamicGeometry then
-    { GL_STREAM_DRAW is most suitable if we will modify this every frame,
-      according to
-      https://www.khronos.org/opengl/wiki/Buffer_Object
-      https://computergraphics.stackexchange.com/questions/5712/gl-static-draw-vs-gl-dynamic-draw-vs-gl-stream-draw-does-it-matter
-    }
-    DataUsage := GL_STREAM_DRAW
-  else
-    DataUsage := GL_STATIC_DRAW;
-
-  VboCoordinatePreserveGeometryOrder := Arrays.CoordinatePreserveGeometryOrder;
-
-  BufferData(vtCoordinate, GL_ARRAY_BUFFER,
-    Arrays.Count * Arrays.CoordinateSize, Arrays.CoordinateArray);
-
-  BufferData(vtAttribute, GL_ARRAY_BUFFER,
-    Arrays.Count * Arrays.AttributeSize, Arrays.AttributeArray);
-
-  if Arrays.Indexes <> nil then
-    BufferData(vtIndex, GL_ELEMENT_ARRAY_BUFFER,
-      Arrays.Indexes.Count * SizeOf(TGeometryIndex), Arrays.Indexes.L);
-
-  VboAllocatedUsage := DataUsage;
-
-  Arrays.FreeData;
-
-  { Vbos are fully loaded now. By setting them to empty here,
-    we can later at FreeArrays update VboToReload (and this way things
-    work even if you call FreeArrays multiple times, the needed updates
-    are summed). }
-  VboToReload := [];
-end;
-
-function TShapeCache.FastCoordinateNormalUpdate(const Coords, Normals, Tangents: TVector3List): Boolean;
-var
-  NewCoordinates, NewCoord: Pointer;
-  Count, Size, ItemSize: Cardinal;
-  I: Integer;
-begin
-  Result := false;
-
-  if { VBO of coordinates was initialized.
-       This also means that Arrays.FreeData was called, as LoadArraysToVbo does it. }
-     (Vbo[vtCoordinate] <> 0) and
-     VboCoordinatePreserveGeometryOrder and
-     (Normals.Count = Coords.Count) and
-     ( (Tangents = nil) or
-       (Tangents.Count = Coords.Count) ) then
-  begin
-    Count := Coords.Count;
-
-    ItemSize := SizeOf(TVector3) * 2;
-    if Tangents <> nil then
-      ItemSize += SizeOf(TVector3);
-    Size := Count * ItemSize;
-
-    if (VboAllocatedUsage = GL_STREAM_DRAW) and
-       { Comparing the byte sizes also makes sure that previous and new coordinates
-         count stayed the same.
-         (Well, assuming we didn't change the Count, and simultaneously changed
-         the Tangent existence, which in theory could cause Size to match
-         for different structures.)
-       }
-       (VboAllocatedSize[vtCoordinate] = Size) then
+    NewVbos := Vbo[vtCoordinate] = 0;
+    if NewVbos then
     begin
-      Result := true;
-      if Count <> 0 then
-      begin
-        VboToReload := VboToReload + [vtCoordinate];
-
-        // calculate NewCoordinates
-        NewCoordinates := GetMem(Size);
-        try
-          NewCoord := NewCoordinates;
-
-          if Tangents <> nil then
-          begin
-            for I := 0 to Count - 1 do
-            begin
-              PVector3(NewCoord)^ := Coords.List^[I];
-              PtrUInt(NewCoord) += SizeOf(TVector3);
-
-              PVector3(NewCoord)^ := Normals.List^[I];
-              PtrUInt(NewCoord) += SizeOf(TVector3);
-
-              PVector3(NewCoord)^ := Tangents.List^[I];
-              PtrUInt(NewCoord) += SizeOf(TVector3);
-            end;
-          end else
-          begin
-            for I := 0 to Count - 1 do
-            begin
-              PVector3(NewCoord)^ := Coords.List^[I];
-              PtrUInt(NewCoord) += SizeOf(TVector3);
-
-              PVector3(NewCoord)^ := Normals.List^[I];
-              PtrUInt(NewCoord) += SizeOf(TVector3);
-            end;
-          end;
-
-          // load NewCoordinates to GPU
-          glBindBuffer(GL_ARRAY_BUFFER, Vbo[vtCoordinate]);
-          glBufferSubData(GL_ARRAY_BUFFER, 0, Size, NewCoordinates);
-        finally FreeMemNiling(NewCoordinates) end;
-      end;
+      glGenBuffers(Ord(High(Vbo)) + 1, @Vbo);
+      if LogRenderer then
+        WritelnLog('Renderer', Format('Creating and loading data to VBOs (%d,%d,%d)',
+          [Vbo[vtCoordinate], Vbo[vtAttribute], Vbo[vtIndex]]));
+    end else
+    begin
+      if LogRenderer then
+        WritelnLog('Renderer', Format('Loading data to existing VBOs (%d,%d,%d), reloading %s',
+          [Vbo[vtCoordinate], Vbo[vtAttribute], Vbo[vtIndex],
+           VboTypesToStr(VboToReload)]));
     end;
+
+    if DynamicGeometry then
+      { GL_STREAM_DRAW is most suitable if we will modify this every frame,
+        according to
+        https://www.khronos.org/opengl/wiki/Buffer_Object
+        https://computergraphics.stackexchange.com/questions/5712/gl-static-draw-vs-gl-dynamic-draw-vs-gl-stream-draw-does-it-matter
+      }
+      DataUsage := GL_STREAM_DRAW
+    else
+      DataUsage := GL_STATIC_DRAW;
+
+    VboCoordinatePreserveGeometryOrder := Arrays.CoordinatePreserveGeometryOrder;
+
+    BufferData(vtCoordinate, GL_ARRAY_BUFFER,
+      Arrays.Count * Arrays.CoordinateSize, Arrays.CoordinateArray);
+
+    BufferData(vtAttribute, GL_ARRAY_BUFFER,
+      Arrays.Count * Arrays.AttributeSize, Arrays.AttributeArray);
+
+    if Arrays.Indexes <> nil then
+      BufferData(vtIndex, GL_ELEMENT_ARRAY_BUFFER,
+        Arrays.Indexes.Count * SizeOf(TGeometryIndex), Arrays.Indexes.L);
+
+    VboAllocatedUsage := DataUsage;
+
+    Arrays.FreeData;
   end;
+
+  VboToReload := [];
 end;
 
 function TShapeCache.ToString: String;
@@ -3144,6 +3065,145 @@ begin
   finally RenderTexturesEnd end;
 end;
 
+{ Sometimes the updates indicated by Shape.Cache.VboToReload can be performed without
+  actually recreating the Shape.Cache.Arrays (so no need to create TArraysGenerator
+  and call TArraysGenerator.GenerateArrays).
+  Detect and perform such optimized case.
+
+  This is crucial for skinned animation, that only requires updating coords/normals/tangents
+  each frame, no need for updating other attributes. }
+function FastUpdateArrays(const Shape: TX3DRendererShape): Boolean;
+
+  { If possible, update the coordinate/normal/tangent data in VBO fast.
+
+    This is carefully implemented to do a specific case of TShapeCache.LoadArraysToVbo.
+    It optimizes the case of animating coordinates/normals/tangents using CoordinateInterpolator,
+    which is very important to optimize, since that's how glTF skinned animations
+    are done.
+
+    Pass non-nil Tangents if VBO should have tangent data,
+    pass nil Tangents if VBO should not have it. }
+  function FastCoordinateNormalUpdate(const Cache: TShapeCache;
+    const Coords, Normals, Tangents: TVector3List): Boolean;
+  var
+    NewCoordinates, NewCoord: Pointer;
+    Count, Size, ItemSize: Cardinal;
+    I: Integer;
+  begin
+    Result := false;
+
+    if Cache.VboCoordinatePreserveGeometryOrder and
+       (Normals.Count = Coords.Count) and
+       ( (Tangents = nil) or
+         (Tangents.Count = Coords.Count) ) then
+    begin
+      Count := Coords.Count;
+
+      ItemSize := SizeOf(TVector3) * 2;
+      if Tangents <> nil then
+        ItemSize += SizeOf(TVector3);
+      Size := Count * ItemSize;
+
+      if (Cache.VboAllocatedUsage = GL_STREAM_DRAW) and
+         { Comparing the byte sizes also makes sure that previous and new coordinates
+           count stayed the same.
+           (Well, assuming we didn't change the Count, and simultaneously changed
+           the Tangent existence, which in theory could cause Size to match
+           for different structures.)
+         }
+         (Cache.VboAllocatedSize[vtCoordinate] = Size) then
+      begin
+        Result := true;
+        Cache.VboToReload := Cache.VboToReload - [vtCoordinate]; // vtCoordinate are done
+        if Count <> 0 then
+        begin
+          // calculate NewCoordinates
+          NewCoordinates := GetMem(Size);
+          try
+            NewCoord := NewCoordinates;
+
+            if Tangents <> nil then
+            begin
+              for I := 0 to Count - 1 do
+              begin
+                PVector3(NewCoord)^ := Coords.List^[I];
+                PtrUInt(NewCoord) += SizeOf(TVector3);
+
+                PVector3(NewCoord)^ := Normals.List^[I];
+                PtrUInt(NewCoord) += SizeOf(TVector3);
+
+                PVector3(NewCoord)^ := Tangents.List^[I];
+                PtrUInt(NewCoord) += SizeOf(TVector3);
+              end;
+            end else
+            begin
+              for I := 0 to Count - 1 do
+              begin
+                PVector3(NewCoord)^ := Coords.List^[I];
+                PtrUInt(NewCoord) += SizeOf(TVector3);
+
+                PVector3(NewCoord)^ := Normals.List^[I];
+                PtrUInt(NewCoord) += SizeOf(TVector3);
+              end;
+            end;
+
+            // load NewCoordinates to GPU
+            glBindBuffer(GL_ARRAY_BUFFER, Cache.Vbo[vtCoordinate]);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, Size, NewCoordinates);
+          finally FreeMemNiling(NewCoordinates) end;
+        end;
+      end;
+    end;
+  end;
+
+var
+  Cache: TShapeCache;
+  Coords, Normals, Tangents: TVector3List;
+begin
+  Result := false;
+
+  Cache := Shape.Cache;
+
+  // this only optimizes the specific case of VboToReload = [vtCoordinate] now
+  if Cache.VboToReload <> [vtCoordinate] then
+    Exit;
+
+  { When VBO of coordinates is 0 then
+    - VBOs not supported (ancient GPU) -> we need to really update Arrays contents each time
+    - or VBO of coordinates was not initialized yet }
+  if Cache.Vbo[vtCoordinate] = 0 then
+    Exit;
+  if Cache.Arrays = nil then // not initialized yet
+    Exit;
+
+  if // Shape has coordinates expressed in simple way
+     (Shape.Geometry.CoordField <> nil) and
+     (Shape.Geometry.CoordField.Value is TCoordinateNode) then // checks also Value <> nil
+  begin
+    Coords := TCoordinateNode(Shape.Geometry.CoordField.Value).FdPoint.Items;
+
+    if // Shape has normals expressed in simple way
+       (Shape.Geometry.NormalField <> nil) and
+       (Shape.Geometry.NormalField.Value is TNormalNode) then // checks also Value <> nil
+    begin
+      Normals := TNormalNode(Shape.Geometry.NormalField.Value).FdVector.Items;
+
+      // Shape has normals expressed in tangents way, or doesn't use tangents (when no bump mapping used)
+      if ( (not Cache.Arrays.HasTangent) or
+           ( (Shape.Geometry.TangentField <> nil) and
+             (Shape.Geometry.TangentField.Value is TTangentNode) ) ) then // checks also Value <> nil
+      begin
+        if Cache.Arrays.HasTangent then
+          Tangents := TTangentNode(Shape.Geometry.TangentField.Value).FdVector.Items
+        else
+          Tangents := nil;
+
+        Result := FastCoordinateNormalUpdate(Cache, Coords, Normals, Tangents);
+      end;
+    end;
+  end;
+end;
+
 procedure TGLRenderer.RenderShapeInside(const Shape: TX3DRendererShape;
   const Shader: TShader;
   const Lighting: boolean;
@@ -3152,7 +3212,6 @@ procedure TGLRenderer.RenderShapeInside(const Shape: TX3DRendererShape;
 var
   Generator: TArraysGenerator;
   CoordinateRenderer: TBaseCoordinateRenderer;
-  VBO: boolean;
 begin
   { No point preparing VBO for clones, clones will need own VBOs anyway. }
   if RenderMode = rmPrepareRenderClones then
@@ -3168,34 +3227,31 @@ begin
     if Shape.Cache = nil then
       Shape.Cache := Cache.Shape_IncReference(Shape, Self);
 
-    VBO := GLFeatures.VertexBufferObject;
-
     { calculate Shape.Cache.Arrays }
-    if Shape.Cache.Arrays = nil then
+    if (Shape.Cache.Arrays = nil) or
+       (Shape.Cache.VboToReload <> []) then
     begin
-      Generator := GeneratorClass.Create(Shape, true);
-      try
-        Generator.TexCoordsNeeded := TexCoordsNeeded;
-        Generator.FogVolumetric := FogVolumetric;
-        Generator.FogVolumetricDirection := FogVolumetricDirection;
-        Generator.FogVolumetricVisibilityStart := FogVolumetricVisibilityStart;
-        Generator.ShapeBumpMappingUsed := Shape.BumpMappingUsed;
-        Generator.ShapeBumpMappingTextureCoordinatesId := Shape.BumpMappingTextureCoordinatesId;
-        Shape.Cache.Arrays := Generator.GenerateArrays;
-      finally FreeAndNil(Generator) end;
+      if not FastUpdateArrays(Shape) then
+      begin
+        FreeAndNil(Shape.Cache.Arrays); // we just need to create new Arrays
+        Generator := GeneratorClass.Create(Shape, true);
+        try
+          Generator.TexCoordsNeeded := TexCoordsNeeded;
+          Generator.FogVolumetric := FogVolumetric;
+          Generator.FogVolumetricDirection := FogVolumetricDirection;
+          Generator.FogVolumetricVisibilityStart := FogVolumetricVisibilityStart;
+          Generator.ShapeBumpMappingUsed := Shape.BumpMappingUsed;
+          Generator.ShapeBumpMappingTextureCoordinatesId := Shape.BumpMappingTextureCoordinatesId;
+          Shape.Cache.Arrays := Generator.GenerateArrays;
+        finally FreeAndNil(Generator) end;
 
-      { Always after regenerating Shape.Cache.Arrays, reload Shape.Cache.Vbo contents }
-      if VBO then
+        { Always after recreating Shape.Cache.Arrays, reload Shape.Cache.Vbo contents.
+          This also clears VboToReload. }
         Shape.LoadArraysToVbo;
-    end else
-    begin
-      { Arrays contents are already loaded, make sure that Vbo are loaded too
-        (in case Arrays were loaded previously, when VBO = false). }
-      if VBO and (Shape.Cache.Vbo[vtCoordinate] = 0) then
-        Shape.LoadArraysToVbo;
+      end;
     end;
 
-    if VBO then
+    if GLFeatures.VertexBufferObject then
     begin
       { Shape.Arrays contents are already loaded,
         so Vbo contents are already loaded too }
@@ -3212,7 +3268,7 @@ begin
   MeshRenderer.PrepareRenderShape := RenderMode in [rmPrepareRenderSelf, rmPrepareRenderClones];
   MeshRenderer.Render;
 
-  if (GeneratorClass <> nil) and VBO then
+  if (GeneratorClass <> nil) and GLFeatures.VertexBufferObject then
   begin
     { unbind arrays, to have a clean state on exit.
       TODO: this should not be needed, instead move to RenderEnd.
