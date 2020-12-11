@@ -90,6 +90,7 @@ procedure InitializeLog(const ProgramVersion: string;
 { Log message. }
 procedure WritelnLog(const Category: string; const Message: string); overload;
 procedure WritelnLog(const Message: string); overload;
+procedure WritelnLog(const Message: Integer); overload;
 
 { Format and log a message.
   This is a shortcut for @code(WritelnLog(Category, Format(MessageBase, Args))). }
@@ -431,6 +432,11 @@ end;
 procedure WritelnLog(const Message: string);
 begin
   WritelnLog('', Message);
+end;
+
+procedure WritelnLog(const Message: Integer);
+begin
+  WritelnLog('', IntToStr(Message));
 end;
 
 procedure WritelnLog(const Category: string; const MessageBase: string;
