@@ -2212,10 +2212,11 @@ var
         MemoryTaken += NormalInterpolator.FdKeyValue.Items.Capacity * SizeOf(TVector3);
       if TangentInterpolator <> nil then
         MemoryTaken += TangentInterpolator.FdKeyValue.Items.Capacity * SizeOf(TVector3);
-      WritelnLog('glTF', 'Memory occupied by precalculating "%s" animation: %s', [
-        Anim.TimeSensor.X3DName,
-        SizeToStr(MemoryTaken)
-      ]);
+      if MemoryTaken > 10 * 1024 * 1024 then // report only when memory usage > 10 MB
+        WritelnLog('glTF', 'Memory occupied by precalculating "%s" animation: %s', [
+          Anim.TimeSensor.X3DName,
+          SizeToStr(MemoryTaken)
+        ]);
 
       { We want to use Shape.BBox for optimization (to avoid recalculating bbox).
         Simple version:
