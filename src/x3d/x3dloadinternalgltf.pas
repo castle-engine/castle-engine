@@ -1944,7 +1944,7 @@ var
     Similarly, we also add AnimatedTangents if they are <> nil.
     And both OriginalTangents and AnimatedTangents must be nil or both must be <> nil.
      }
-  procedure SampleSkinAnimation(const Anim: TAnimation;
+  procedure SampleSkinAnimation(const Anim: TAnimation; const KeyIndex: Integer;
     const TimeFraction: Single;
     const OriginalCoords, AnimatedCoords: TVector3List;
     const OriginalNormals, AnimatedNormals: TVector3List;
@@ -2008,11 +2008,11 @@ var
           JointMatrix.List^[VertexJoints.Data[2]] * VertexWeights.Data[2] +
           JointMatrix.List^[VertexJoints.Data[3]] * VertexWeights.Data[3];
       end;
-      AnimatedCoords.Add(SkinMatrix.MultPoint(OriginalCoords[I]));
+      AnimatedCoords.List^[KeyIndex * OriginalCoords.Count + I] := SkinMatrix.MultPoint(OriginalCoords[I]);
       if AnimatedNormals <> nil then
-        AnimatedNormals.Add(SkinMatrix.MultDirection(OriginalNormals[I]));
+        AnimatedNormals.List^[KeyIndex * OriginalNormals.Count + I] := SkinMatrix.MultDirection(OriginalNormals[I]);
       if AnimatedTangents <> nil then
-        AnimatedTangents.Add(SkinMatrix.MultDirection(OriginalTangents[I]));
+        AnimatedTangents.List^[KeyIndex * OriginalTangents.Count + I] := SkinMatrix.MultDirection(OriginalTangents[I]);
     end;
   end;
 
@@ -2062,6 +2062,7 @@ var
     I: Integer;
     OriginalNormals, AnimatedNormals: TVector3List;
     OriginalTangents, AnimatedTangents: TVector3List;
+    MemoryTaken: Int64;
   begin
     CoordField := Shape.Geometry.CoordField;
     if CoordField = nil then
@@ -2138,6 +2139,13 @@ var
       CoordInterpolator := TCoordinateInterpolatorNode.Create;
       CoordInterpolator.X3DName := 'SkinCoordInterpolator_' + Anim.TimeSensor.X3DName;
       GatherAnimationKeysToSample(CoordInterpolator.FdKey.Items, Anim.Interpolators);
+      { Assign count, avoids later reallocating memory when adding vectors (slow),
+        and avoids Capacity >> Count (wasted memory).
+        This is important on large models.
+        Testcase: mouse_multiple,
+        - memory use: 180 MB vs 140 MB on each animation of dancing
+        - loading time: 14 vs 10 sec total. }
+      CoordInterpolator.FdKeyValue.Count := CoordInterpolator.FdKey.Count * Coord.FdPoint.Count;
 
       ParentGroup.AddChildren(CoordInterpolator);
       ParentGroup.AddRoute(Anim.TimeSensor.EventFraction_changed, CoordInterpolator.EventSet_fraction);
@@ -2150,6 +2158,7 @@ var
         //GatherAnimationKeysToSample(NormalInterpolator.FdKey.Items, Anim.Interpolators);
         // faster:
         NormalInterpolator.FdKey.Assign(CoordInterpolator.FdKey);
+        NormalInterpolator.FdKeyValue.Count := NormalInterpolator.FdKey.Count * Normal.FdVector.Count;
 
         ParentGroup.AddChildren(NormalInterpolator);
         ParentGroup.AddRoute(Anim.TimeSensor.EventFraction_changed, NormalInterpolator.EventSet_fraction);
@@ -2159,6 +2168,7 @@ var
         AnimatedNormals := NormalInterpolator.FdKeyValue.Items;
       end else
       begin
+        NormalInterpolator := nil;
         OriginalNormals := nil;
         AnimatedNormals := nil;
       end;
@@ -2170,6 +2180,7 @@ var
         //GatherAnimationKeysToSample(TangentInterpolator.FdKey.Items, Anim.Interpolators);
         // faster:
         TangentInterpolator.FdKey.Assign(CoordInterpolator.FdKey);
+        TangentInterpolator.FdKeyValue.Count := TangentInterpolator.FdKey.Count * Tangent.FdVector.Count;
 
         ParentGroup.AddChildren(TangentInterpolator);
         ParentGroup.AddRoute(Anim.TimeSensor.EventFraction_changed, TangentInterpolator.EventSet_fraction);
@@ -2179,13 +2190,14 @@ var
         AnimatedTangents := TangentInterpolator.FdKeyValue.Items;
       end else
       begin
+        TangentInterpolator := nil;
         OriginalTangents := nil;
         AnimatedTangents := nil;
       end;
 
       for I := 0 to CoordInterpolator.FdKey.Items.Count - 1 do
       begin
-        SampleSkinAnimation(Anim, CoordInterpolator.FdKey.Items[I],
+        SampleSkinAnimation(Anim, I, CoordInterpolator.FdKey.Items[I],
           Coord.FdPoint.Items, CoordInterpolator.FdKeyValue.Items,
           OriginalNormals, AnimatedNormals,
           OriginalTangents, AnimatedTangents,
@@ -2194,6 +2206,16 @@ var
           Shape.Geometry.InternalSkinJoints,
           Shape.Geometry.InternalSkinWeights);
       end;
+
+      MemoryTaken := CoordInterpolator.FdKeyValue.Items.Capacity * SizeOf(TVector3);
+      if NormalInterpolator <> nil then
+        MemoryTaken += NormalInterpolator.FdKeyValue.Items.Capacity * SizeOf(TVector3);
+      if TangentInterpolator <> nil then
+        MemoryTaken += TangentInterpolator.FdKeyValue.Items.Capacity * SizeOf(TVector3);
+      WritelnLog('glTF', 'Memory occupied by precalculating "%s" animation: %s', [
+        Anim.TimeSensor.X3DName,
+        SizeToStr(MemoryTaken)
+      ]);
 
       { We want to use Shape.BBox for optimization (to avoid recalculating bbox).
         Simple version:
