@@ -399,7 +399,7 @@ begin
       Result.X := AFrame.FrameWidth;
       Result.Y := AFrame.FrameHeight;
     end else
-    if AFrame.FrameHeight > Result.Y and AFrame.FrameHeight > Result.X then
+    if (AFrame.FrameHeight > Result.Y) and (AFrame.FrameHeight > Result.X) then
     begin
       { Use bigger frame with Y only if FrameHeight is bigger than FrameWidth }
       Result.X := AFrame.FrameWidth;
