@@ -3028,7 +3028,7 @@ begin
   if UndoOnRelease then
     UndoSystem.ScheduleRecordUndoOnRelease := true
   else
-    RecordUndo(UndoComment, HighUndoPriority); //it will overwrite Undo recorded in PropertyGridModified with a better comment
+    RecordUndo(UndoComment, UndoCommentPriority); //it will overwrite Undo recorded in PropertyGridModified with a better comment
 end;
 
 procedure TDesignFrame.NewDesign(const ComponentClass: TComponentClass;
