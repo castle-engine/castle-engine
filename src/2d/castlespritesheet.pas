@@ -6,7 +6,8 @@ interface
 
 uses
   Classes, SysUtils, Generics.Collections,
-  X3DNodes;
+  X3DNodes,
+  CastleImages, CastleVectors;
 
 type
   TCastleSpriteSheetAnimation = class;
@@ -42,17 +43,23 @@ type
   TCastleSpriteSheetAnimation = class
     strict private
       FName: String;
-      FFps: Single;
+      FFramesPerSecond: Single;
       FFrameList: TCastleSpriteSheetFrameList;
+
+      function GetFrame(const Index: Integer): TCastleSpriteSheetFrame;
     public
       constructor Create(AName: String);
       destructor Destroy; override;
 
-      function Frame(const Index: Integer): TCastleSpriteSheetFrame;
+
       function FrameCount: Integer;
       procedure AddFrame(AFrame: TCastleSpriteSheetFrame);
+      function AllFramesHasTheSameSize: Boolean;
+      function GetBigestFrameSize(const MaxWidth, MaxHeight: Integer): TVector2Integer;
 
       property Name: String read FName write FName;
+      property Frame[Index: Integer]: TCastleSpriteSheetFrame read GetFrame;
+      property FramesPerSecond: Single read FFramesPerSecond write FFramesPerSecond;
   end;
 
   TCastleSpriteSheetFrame = class
@@ -67,6 +74,10 @@ type
       FrameHeight: Integer; // real frame height (if not present Width have real frame height
 
       Trimmed: Boolean; // FrameX, FrameY, FrameWidth, FrameHeight has real values?
+      FrameImage: TCastleImage;
+
+      destructor Destroy; override;
+
   end;
 
   { Starling XML file is not correct }
@@ -75,8 +86,8 @@ type
 implementation
 
 uses StrUtils, DOM,
-  CastleImages, CastleLog, CastleStringUtils, CastleTextureImages,
-  CastleURIUtils, CastleUtils, CastleVectors, CastleXMLUtils;
+  CastleLog, CastleStringUtils, CastleTextureImages,
+  CastleURIUtils, CastleUtils, CastleXMLUtils;
 
 type
   { Frame names in starling file can be named freely, but in the case of our loader,
@@ -175,8 +186,11 @@ type
         FSpriteSheet: TCastleSpriteSheet;
         FCurrentAnimation: TCastleSpriteSheetAnimation;
         FSubTexture: TSubTexture;
+        FImage: TCastleImage;
       public
         constructor Create(Loader: TCastleSpriteSheetLoader; SpriteSheet: TCastleSpriteSheet);
+
+        destructor Destroy; override;
 
         { In case of TCastleSpriteSheet here we only set URL }
         procedure PrepareContainer; override;
@@ -222,6 +236,14 @@ type
     function LoadToCastleSpriteSheet: TCastleSpriteSheet;
   end;
 
+{ TCastleSpriteSheetFrame }
+
+destructor TCastleSpriteSheetFrame.Destroy;
+begin
+  FreeAndNil(FrameImage);
+  inherited Destroy;
+end;
+
 { TCastleSpriteSheetLoader.TLoadToSpriteSheetModel }
 
 constructor TCastleSpriteSheetLoader.TLoadToSpriteSheetModel.Create(
@@ -231,9 +253,16 @@ begin
   FSpriteSheet := SpriteSheet;
 end;
 
+destructor TCastleSpriteSheetLoader.TLoadToSpriteSheetModel.Destroy;
+begin
+  FreeAndNil(FImage);
+  inherited Destroy;
+end;
+
 procedure TCastleSpriteSheetLoader.TLoadToSpriteSheetModel.PrepareContainer;
 begin
   FSpriteSheet.URL := FLoader.FURL;
+  FImage := LoadImage(FLoader.FImagePath);
 end;
 
 procedure TCastleSpriteSheetLoader.TLoadToSpriteSheetModel.CalculateFrameCoords(
@@ -258,6 +287,7 @@ end;
 procedure TCastleSpriteSheetLoader.TLoadToSpriteSheetModel.AddFrame;
 var
   Frame: TCastleSpriteSheetFrame;
+  FrameImage: TCastleImage;
 begin
   Frame := TCastleSpriteSheetFrame.Create;
   Frame.X := FSubTexture.X;
@@ -280,6 +310,24 @@ begin
     Frame.FrameHeight := Frame.Height;
   end;
 
+  if not Frame.Trimmed then
+    Frame.FrameImage := FImage.MakeExtracted(Frame.X,
+      FLoader.FImageHeight - Frame.Y - Frame.Height,
+      Frame.Width, Frame.Height)
+  else
+  begin
+    { When Image is trimmed we can't simply extract image part }
+    Frame.FrameImage := TRGBAlphaImage.Create(Frame.FrameWidth, Frame.FrameHeight);
+    Frame.FrameImage.DrawFrom(FImage,
+      0, // destination X
+      0, // destination Y
+      Frame.X, // source X
+      FLoader.FImageHeight - Frame.Y - Frame.Height, // source Y
+      Frame.Width,
+      Frame.Height
+    );
+  end;
+
   FCurrentAnimation.AddFrame(Frame);
 end;
 
@@ -288,7 +336,7 @@ end;
 constructor TCastleSpriteSheetAnimation.Create(AName: String);
 begin
   FName := AName;
-  FFps := DefaultSpriteSheetFramesPerSecond;
+  FFramesPerSecond := DefaultSpriteSheetFramesPerSecond;
   FFrameList := TCastleSpriteSheetFrameList.Create;
 end;
 
@@ -298,7 +346,7 @@ begin
   inherited Destroy;
 end;
 
-function TCastleSpriteSheetAnimation.Frame(const Index: Integer
+function TCastleSpriteSheetAnimation.GetFrame(const Index: Integer
   ): TCastleSpriteSheetFrame;
 begin
   Result := FFrameList[Index];
@@ -312,6 +360,52 @@ end;
 procedure TCastleSpriteSheetAnimation.AddFrame(AFrame: TCastleSpriteSheetFrame);
 begin
   FFrameList.Add(AFrame);
+end;
+
+function TCastleSpriteSheetAnimation.AllFramesHasTheSameSize: Boolean;
+var
+  I: Integer;
+begin
+  if FrameCount < 2 then
+    Exit(true);
+
+  for I := 1 to FrameCount - 1 do
+  begin
+    if (Frame[I].FrameWidth <> Frame[I - 1].FrameWidth) or
+      (Frame[I].FrameHeight <> Frame[I - 1].FrameHeight) then
+      Exit(false);
+  end;
+
+  Result := true;
+end;
+
+function TCastleSpriteSheetAnimation.GetBigestFrameSize(
+  const MaxWidth, MaxHeight: Integer): TVector2Integer;
+var
+  I: Integer;
+  AFrame: TCastleSpriteSheetFrame;
+begin
+  Result.X := 0;
+  Result.Y := 0;
+  for I := 0 to FrameCount - 1 do
+  begin
+    AFrame := Frame[I];
+
+    if (AFrame.FrameWidth > MaxWidth) or (AFrame.FrameHeight > MaxHeight) then
+      continue;
+
+    if AFrame.FrameWidth > Result.X then
+    begin
+      Result.X := AFrame.FrameWidth;
+      Result.Y := AFrame.FrameHeight;
+    end else
+    if AFrame.FrameHeight > Result.Y and AFrame.FrameHeight > Result.X then
+    begin
+      { Use bigger frame with Y only if FrameHeight is bigger than FrameWidth }
+      Result.X := AFrame.FrameWidth;
+      Result.Y := AFrame.FrameHeight;
+    end;
+  end;
 end;
 
 { TCastleSpriteSheetLoader.TLoadToX3D }
