@@ -206,7 +206,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       Width = 553
       Anchors = [akTop, akLeft, akRight, akBottom]
       Columns = <>
-      LargeImages = Icons.MenuStroke1_5
+      LargeImages = ImageListFrames
       TabOrder = 0
       ViewStyle = vsIcon
     end
@@ -315,6 +315,8 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     Top = 208
   end
   object ImageListFrames: TImageList
+    Height = 128
+    Width = 96
     Left = 406
     Top = 303
   end

@@ -55,6 +55,7 @@ type
     procedure CloseSpriteSheet;
     procedure ClearAnimations;
     procedure LoadAnimations(const SpriteSheet: TCastleSpriteSheet);
+    procedure LoadAnimation(const Animation: TCastleSpriteSheetAnimation);
     procedure ClearFrames;
     procedure LoadFrames(const Animation: TCastleSpriteSheetAnimation);
   public
@@ -68,7 +69,9 @@ implementation
 
 {$R *.lfm}
 
-uses EditorUtils;
+uses GraphType, IntfGraphics,
+  CastleImages, CastleLog, CastleVectors,
+  EditorUtils;
 
 { TSpriteSheetEditorForm }
 
@@ -96,11 +99,9 @@ end;
 procedure TSpriteSheetEditorForm.ListBoxAnimationsSelectionChange(
   Sender: TObject; User: boolean);
 begin
-  ClearFrames;
-
   if ListBoxAnimations.ItemIndex > -1 then
   begin
-    LoadFrames(ListBoxAnimations.Items.Objects[ListBoxAnimations.ItemIndex] as TCastleSpriteSheetAnimation);
+    LoadAnimation(ListBoxAnimations.Items.Objects[ListBoxAnimations.ItemIndex] as TCastleSpriteSheetAnimation);
   end;
 end;
 
@@ -127,26 +128,114 @@ begin
     ListBoxAnimations.ItemIndex := 0;
 end;
 
+procedure TSpriteSheetEditorForm.LoadAnimation(const Animation: TCastleSpriteSheetAnimation);
+begin
+  FloatSpinEditFPS.Value := Animation.FramesPerSecond;
+  ClearFrames;
+  LoadFrames(Animation);
+end;
+
 procedure TSpriteSheetEditorForm.ClearFrames;
 begin
   ListViewFrames.Items.Clear;
 end;
 
 procedure TSpriteSheetEditorForm.LoadFrames(const Animation: TCastleSpriteSheetAnimation);
+const
+  MaxFrameSize = 256;
+  DefaultFrameSize = 128;
 var
   ListItem: TListItem;
   I: Integer;
   Frame: TCastleSpriteSheetFrame;
+  ResizedFrameImage: TCastleImage;
+  Bitmap: TBitmap;
+  IntfImage: TLazIntfImage;
+  ImageIndex: Integer;
+  FrameIconSize: TVector2Integer;
+
+  procedure PrepareImageList;
+  begin
+    ImageListFrames.Clear;
+
+    { ListView can have only one size of images so we need decide about size. }
+
+    FrameIconSize := Animation.GetBigestFrameSize(MaxFrameSize, MaxFrameSize);
+
+    if (FrameIconSize.X = 0) or (FrameIconSize.Y = 0) then
+    begin
+      FrameIconSize.X := DefaultFrameSize;
+      FrameIconSize.Y := DefaultFrameSize;
+    end;
+
+    ImageListFrames.Width := FrameIconSize.X;
+    ImageListFrames.Height := FrameIconSize.Y;
+  end;
+
+  function FrameImageToLazImage(const FrameImage: TCastleImage;
+    const Width, Height: Integer): TLazIntfImage;
+  var
+    RawImage: TRawImage;
+    Y: Integer;
+    RowSize: Integer;
+    SourceRow: PByte;
+    DestRow: PByte;
+  begin
+    // https://wiki.freepascal.org/Developing_with_Graphics#Working_with_TLazIntfImage.2C_TRawImage_and_TLazCanvas
+
+    // TODO: Support other image format than RGBA
+    RawImage.Init;
+    RawImage.Description.Init_BPP32_R8G8B8A8_BIO_TTB(Width, Height);
+    RawImage.CreateData(True);
+    RowSize := Frame.FrameWidth * 4;
+
+    // go to last row
+    SourceRow := PByte(FrameImage.RawPixels) + RowSize * Height;
+    DestRow := RawImage.Data;
+
+    for Y := Height - 1 downto 0 do
+    begin
+      Dec(SourceRow, RowSize);
+      Move(SourceRow^, DestRow^, RowSize);
+      Inc(DestRow, RowSize);
+    end;
+
+    Result := TLazIntfImage.Create(0, 0);
+    Result.SetRawImage(RawImage);
+  end;
+
 begin
+  PrepareImageList;
+
   for I := 0 to Animation.FrameCount - 1 do
   begin
-    Frame := Animation.Frame(I);
+    Frame := Animation.Frame[I];
+
+    ResizedFrameImage := nil;
+    IntfImage := nil;
+    Bitmap := nil;
+    try
+      // TODO:  better scaling alghoritm
+      ResizedFrameImage := Frame.FrameImage.MakeResized(FrameIconSize.X,
+        FrameIconSize.Y);
+
+      IntfImage := FrameImageToLazImage(ResizedFrameImage, FrameIconSize.X,
+        FrameIconSize.Y);
+
+      Bitmap := TBitmap.Create;
+      Bitmap.LoadFromIntfImage(IntfImage);
+      ImageIndex := ImageListFrames.Add(Bitmap, nil);
+    finally
+      FreeAndNil(ResizedFrameImage);
+      FreeAndNil(IntfImage);
+      FreeAndNil(Bitmap);
+    end;
+
     ListItem := ListViewFrames.Items.Add;
     ListItem.Caption := IntToStr(I) + ' - ' + IntToStr(Frame.FrameWidth) +
       'x' + IntToStr(Frame.FrameHeight);
     ListItem.Data := Frame;
-    // TODO: read frame image
-    ListItem.ImageIndex := 0;
+    ListItem.ImageIndex := ImageIndex;
   end;
 end;
 
