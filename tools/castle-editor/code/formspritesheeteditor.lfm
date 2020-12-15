@@ -154,6 +154,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
         Top = 1
         Width = 63
         Anchors = [akTop, akRight]
+        MaxValue = 1000
         MinValue = 1
         OnChange = FloatSpinEditFPSChange
         TabOrder = 0
