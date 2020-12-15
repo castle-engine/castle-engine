@@ -6,7 +6,8 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, ComCtrls,
-  Buttons, ActnList, StdCtrls, Spin, Menus, CastleSpriteSheet, CastleDialogs,
+  Buttons, ActnList, StdCtrls, Spin, Menus,
+  CastleControl, CastleDialogs, CastleScene, CastleSpriteSheet, CastleViewport,
   DataModuleIcons;
 
 type
@@ -16,6 +17,7 @@ type
     ActionNewSpriteSheet: TAction;
     ActionOpenSpriteSheet: TAction;
     ActionListSpriteSheet: TActionList;
+    CastleControlPreview: TCastleControlBase;
     ImageListFrames: TImageList;
     OpenDialog: TCastleOpenDialog;
     SaveDialog: TCastleSaveDialog;
@@ -51,13 +53,21 @@ type
     procedure ListBoxAnimationsSelectionChange(Sender: TObject; User: boolean);
   private
     FSpriteSheet: TCastleSpriteSheet;
+    FPreviewScene: TCastleScene;
+    FViewport: TCastleViewport;
 
     procedure CloseSpriteSheet;
+
     procedure ClearAnimations;
     procedure LoadAnimations(const SpriteSheet: TCastleSpriteSheet);
     procedure LoadAnimation(const Animation: TCastleSpriteSheetAnimation);
+    procedure LoadAnimationInPreview(AnimationName: String);
+
     procedure ClearFrames;
     procedure LoadFrames(const Animation: TCastleSpriteSheetAnimation);
+
+    { Recreates temp file }
+    procedure UpdatePreview;
   public
     procedure OpenSpriteSheet(const URL: String);
   end;
@@ -70,8 +80,9 @@ implementation
 {$R *.lfm}
 
 uses GraphType, IntfGraphics,
-  CastleImages, CastleLog, CastleVectors,
-  EditorUtils;
+  CastleImages, CastleLog, CastleVectors, CastleURIUtils,
+  EditorUtils,
+  FormProject;
 
 { TSpriteSheetEditorForm }
 
@@ -133,6 +144,7 @@ begin
   FloatSpinEditFPS.Value := Animation.FramesPerSecond;
   ClearFrames;
   LoadFrames(Animation);
+  LoadAnimationInPreview(Animation.Name);
 end;
 
 procedure TSpriteSheetEditorForm.ClearFrames;
@@ -237,6 +249,40 @@ begin
     ListItem.Data := Frame;
     ListItem.ImageIndex := ImageIndex;
   end;
+end;
+
+procedure TSpriteSheetEditorForm.LoadAnimationInPreview(AnimationName: String);
+begin
+  if FPreviewScene = nil then
+    UpdatePreview;
+
+  FPreviewScene.PlayAnimation(AnimationName, true, true);
+end;
+
+procedure TSpriteSheetEditorForm.UpdatePreview;
+var
+  TempURL: String;
+begin
+  TempURL := URIIncludeSlash(ProjectForm.ProjectPathUrl) + 'temp/preview.castle-sprite-sheet';
+  ForceDirectories(ExtractFilePath(URIToFilenameSafe(TempURL)));
+  FSpriteSheet.Save(TempURL);
+
+  if FPreviewScene = nil then
+  begin
+    FViewport := TCastleViewport.Create(Application);
+    FViewport.FullSize := true;
+    FViewport.AutoCamera := true;
+    FViewport.AutoNavigation := true;
+    CastleControlPreview.Controls.InsertFront(FViewport);
+
+
+    FPreviewScene := TCastleScene.Create(FViewport);
+
+    FViewport.Items.Add(FPreviewScene);
+    FViewport.Items.MainScene := FPreviewScene;
+  end;
+
+  FPreviewScene.Load(TempURL);
 end;
 
 procedure TSpriteSheetEditorForm.ClearAnimations;

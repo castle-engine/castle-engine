@@ -250,6 +250,15 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       ParentColor = False
       ParentFont = False
     end
+    object CastleControlPreview: TCastleControlBase
+      Left = 4
+      Height = 505
+      Top = 4
+      Width = 205
+      Align = alClient
+      Options = []
+      TabOrder = 0
+    end
   end
   object SplitterRight: TSplitter
     Left = 767
