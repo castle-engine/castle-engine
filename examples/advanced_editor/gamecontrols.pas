@@ -53,7 +53,8 @@ type
 implementation
 
 uses SysUtils,
-  CastleComponentSerialize, CastleImages, CastleRectangles, CastleStringUtils, CastleUtils;
+  CastleComponentSerialize, CastleImages, CastleRectangles, CastleStringUtils,
+  CastleUtils, CastleLog, CastleURIUtils;
 
 constructor TImageGrid.Create(AOwner: TComponent);
 var
@@ -132,7 +133,22 @@ begin
   if FURL <> Value then
   begin
     FURL := Value;
-    FImage.URL := Value;
+    try
+      FImage.URL := Value;
+    except
+      { If loading file failed, and we're inside CGE editor,
+        merely report a warning. This allows deserializing in CGE editor
+        designs with broken URLs. }
+      on E: Exception do
+      begin
+        if CastleDesignMode then
+        begin
+          WritelnWarning('TImageGrid', 'Failed to load image "%s": %s',
+            [URIDisplay(Value), ExceptMessage(E)]);
+        end else
+          raise;
+      end;
+    end;
     VisibleChange([chRectangle]); // redraw control, maybe even size changed
   end;
 end;
