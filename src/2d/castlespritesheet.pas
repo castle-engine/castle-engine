@@ -20,7 +20,11 @@ type
     strict private
       FAnimationList: TCastleSpriteSheetAnimationList;
       FURL: String;
-
+      FLoadedImagePath: String;
+      FRelativeImagePath: String;
+      FGeneratedImage: TCastleImage;
+    private
+      FImage: TCastleImage;
     public
       constructor Create;
       destructor Destroy; override;
@@ -38,6 +42,8 @@ type
       procedure RemoveAnimationByIndex(const Index: Integer);
 
       property URL: String read FURL write FURL;
+      property LoadedImagePath: String read FLoadedImagePath write FLoadedImagePath;
+      property RelativeImagePath: String read FRelativeImagePath write FRelativeImagePath;
   end;
 
   TCastleSpriteSheetAnimation = class
@@ -86,7 +92,7 @@ type
 implementation
 
 uses StrUtils, DOM,
-  CastleLog, CastleStringUtils, CastleTextureImages,
+  CastleFilesUtils, CastleLog, CastleStringUtils, CastleTextureImages,
   CastleURIUtils, CastleUtils, CastleXMLUtils;
 
 type
@@ -189,7 +195,6 @@ type
         FImage: TCastleImage;
       public
         constructor Create(Loader: TCastleSpriteSheetLoader; SpriteSheet: TCastleSpriteSheet);
-
         destructor Destroy; override;
 
         { In case of TCastleSpriteSheet here we only set URL }
@@ -212,7 +217,8 @@ type
       FFramesPerSecond: Single;
 
       FImageWidth, FImageHeight: Integer;
-      FImagePath: String;
+      FAbsoluteImagePath: String;
+      FRelativeImagePath: String;
 
       FSubTexture: TSubTexture;
 
@@ -235,6 +241,69 @@ type
     procedure LoadToCastleSpriteSheet(SpriteSheet: TCastleSpriteSheet);
     function LoadToCastleSpriteSheet: TCastleSpriteSheet;
   end;
+
+  TCastleSpriteSheetXMLExporter = class
+    private
+      FSpriteSheet: TCastleSpriteSheet;
+    public
+      constructor Create(const SpriteSheet: TCastleSpriteSheet);
+
+      function ExportToXML: TXMLDocument;
+  end;
+
+{ TCastleSpriteSheetXMLExporter }
+
+constructor TCastleSpriteSheetXMLExporter.Create(
+  const SpriteSheet: TCastleSpriteSheet);
+begin
+  inherited Create;
+  FSpriteSheet := SpriteSheet;
+end;
+
+function TCastleSpriteSheetXMLExporter.ExportToXML: TXMLDocument;
+var
+  I, J: Integer;
+  Animation: TCastleSpriteSheetAnimation;
+  Frame: TCastleSpriteSheetFrame;
+  RootNode: TDOMNode;
+  SubTextureNode: TDOMNode;
+begin
+  Result := TXMLDocument.Create;
+
+  RootNode := Result.CreateElement('TextureAtlas');
+  Result.AppendChild(RootNode);
+
+  TDOMElement(RootNode).SetAttribute('imagePath', FSpriteSheet.RelativeImagePath);
+
+  for I := 0 to FSpriteSheet.AnimationCount - 1 do
+  begin
+    Animation := FSpriteSheet.AnimationByIndex(I);
+
+    if Animation.FrameCount = 0 then
+      continue;
+
+    for J := 0  to Animation.FrameCount - 1 do
+    begin
+      Frame := Animation.Frame[J];
+      SubTextureNode := Result.CreateElement('SubTexture');
+      RootNode.AppendChild(SubTextureNode);
+
+      TDOMElement(SubTextureNode).SetAttribute('name', Animation.Name + '_' + IntToStr(J + 1));
+      TDOMElement(SubTextureNode).SetAttribute('x', IntToStr(Frame.X));
+      TDOMElement(SubTextureNode).SetAttribute('y', IntToStr(Frame.Y));
+      TDOMElement(SubTextureNode).SetAttribute('width', IntToStr(Frame.Width));
+      TDOMElement(SubTextureNode).SetAttribute('height', IntToStr(Frame.Height));
+      if Frame.Trimmed then
+      begin
+        TDOMElement(SubTextureNode).SetAttribute('frameX', IntToStr(Frame.FrameX));
+        TDOMElement(SubTextureNode).SetAttribute('frameY', IntToStr(Frame.FrameY));
+        TDOMElement(SubTextureNode).SetAttribute('frameWidth', IntToStr(Frame.FrameWidth));
+        TDOMElement(SubTextureNode).SetAttribute('frameHeight', IntToStr(Frame.FrameHeight));
+      end;
+    end;
+  end;
+
+end;
 
 { TCastleSpriteSheetFrame }
 
@@ -262,7 +331,9 @@ end;
 procedure TCastleSpriteSheetLoader.TLoadToSpriteSheetModel.PrepareContainer;
 begin
   FSpriteSheet.URL := FLoader.FURL;
-  FImage := LoadImage(FLoader.FImagePath);
+  FSpriteSheet.LoadedImagePath := FLoader.FAbsoluteImagePath;
+  FSpriteSheet.RelativeImagePath := FLoader.FRelativeImagePath;
+  FImage := LoadImage(FLoader.FAbsoluteImagePath);
 end;
 
 procedure TCastleSpriteSheetLoader.TLoadToSpriteSheetModel.CalculateFrameCoords(
@@ -479,7 +550,7 @@ begin
   Shape.Material := TUnlitMaterialNode.Create;
 
   Tex := TImageTextureNode.Create;
-  Tex.FdUrl.Send(FLoader.FImagePath);
+  Tex.FdUrl.Send(FLoader.FAbsoluteImagePath);
   Tex.RepeatS := false;
   Tex.RepeatT := false;
   Shape.Texture := Tex;
@@ -620,6 +691,7 @@ end;
 
 destructor TCastleSpriteSheet.Destroy;
 begin
+  FreeAndNil(FGeneratedImage);
   FreeAndNil(FAnimationList);
   inherited Destroy;
 end;
@@ -637,8 +709,37 @@ begin
 end;
 
 procedure TCastleSpriteSheet.Save(const URL: String);
+var
+  ExporterXML: TCastleSpriteSheetXMLExporter;
+  XMLDoc: TXMLDocument;
+  ImageURL: String;
 begin
+  { TODO: Maybe generate sprite sheet image here? }
 
+  { Generate image file name/path }
+  if FRelativeImagePath = '' then
+  begin
+    FRelativeImagePath := ExtractURIName(URL);
+  end;
+  ImageURL := URIIncludeSlash(ExtractURIPath(URL)) + FRelativeImagePath;
+
+  { Save image file }
+  if FGeneratedImage = nil then
+    CheckCopyFile(URIToFilenameSafe(LoadedImagePath), URIToFilenameSafe(ImageURL))
+  else
+    SaveImage(FGeneratedImage, ImageURL);
+
+  { Save xml (Starling) file }
+  ExporterXML := nil;
+  XMLDoc := nil;
+  try
+    ExporterXML := TCastleSpriteSheetXMLExporter.Create(Self);
+    XMLDoc := ExporterXML.ExportToXML;
+    URLWriteXML(XMLDoc, URL);
+  finally
+    FreeAndNil(ExporterXML);
+    FreeAndNil(XMLDoc);
+  end;
 end;
 
 class function TCastleSpriteSheet.LoadToX3D(const URL: String): TX3DRootNode;
@@ -758,7 +859,8 @@ procedure TCastleSpriteSheetLoader.ReadImageProperties(const URL: String;
 var
   Image: TCastleImage;
 begin
-  FImagePath := ExtractURIPath(URL) + AtlasNode.AttributeString('imagePath');
+  FRelativeImagePath := AtlasNode.AttributeString('imagePath');
+  FAbsoluteImagePath := ExtractURIPath(URL) + FRelativeImagePath;
   { Some exporters like Free Texture Packer add width and height attributes.
     In this case we don't need load image to check them. }
   if AtlasNode.HasAttribute('width') and AtlasNode.HasAttribute('height') then
@@ -767,7 +869,7 @@ begin
     FImageHeight := AtlasNode.AttributeInteger('height');
   end else
   begin
-    Image := LoadImage(FImagePath);
+    Image := LoadImage(FAbsoluteImagePath);
     try
       FImageWidth := Image.Width;
       FImageHeight := Image.Height;
