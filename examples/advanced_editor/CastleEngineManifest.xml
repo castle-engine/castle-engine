@@ -4,5 +4,6 @@
   game_units="GameInitialize"
   qualified_name="com.mycompany.advancededitor"
   caption="Advanced Editor Usage"
+  editor_units="GameControls"
 >
 </project>

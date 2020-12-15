@@ -126,6 +126,17 @@
       "$Children" : [
       ],
       "$ClassName" : "TCastleNotifications"
+    },
+    {
+      "Columns" : 5,
+      "HorizontalAnchorDelta" : 8.6000000000000000E+002,
+      "Name" : "ImageGrid1",
+      "Rows" : 3,
+      "URL" : "castle-data:/small_castle_game_engine_icon.png",
+      "VerticalAnchorDelta" : 6.0000000000000000E+001,
+      "$Children" : [
+      ],
+      "$ClassName" : "TImageGrid"
     }
   ],
   "$ClassName" : "TCastleUserInterface"
