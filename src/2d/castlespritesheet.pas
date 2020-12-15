@@ -229,6 +229,8 @@ type
 
     procedure ReadImageProperties(const URL: String; const AtlasNode: TDOMElement);
 
+    procedure ReadFramesPerSecond(const SubTextureNode: TDOMElement);
+
     function CheckAnimationNameAvailable(const AnimationName: String): Boolean;
 
     procedure Load(LoadTarget: TLoadStrategy);
@@ -300,6 +302,9 @@ begin
         TDOMElement(SubTextureNode).SetAttribute('frameWidth', IntToStr(Frame.FrameWidth));
         TDOMElement(SubTextureNode).SetAttribute('frameHeight', IntToStr(Frame.FrameHeight));
       end;
+
+      if J = 0 then
+        TDOMElement(SubTextureNode).SetAttribute('fps', FloatToStrDot(Animation.FramesPerSecond));
     end;
   end;
 
@@ -879,6 +884,12 @@ begin
   end;
 end;
 
+procedure TCastleSpriteSheetLoader.ReadFramesPerSecond(
+  const SubTextureNode: TDOMElement);
+begin
+  FFramesPerSecond := SubTextureNode.AttributeSingleDef('fps', FFramesPerSecond);
+end;
+
 function TCastleSpriteSheetLoader.CheckAnimationNameAvailable(
     const AnimationName: String): Boolean;
 begin
@@ -996,7 +1007,6 @@ begin
         if FirstFrameInFirstAnimation then
         begin
           LoadTarget.PrepareContainer;
-          ///PrepareShape(FCoordArray, FTexCoordArray);
           FirstFrameInFirstAnimation := false;
         end;
 
@@ -1017,13 +1027,12 @@ begin
           LastAnimationName := FSubTexture.AnimationName;
           CurrentAnimFrameCount := 1;
 
+          { Check fps (CastleSpriteSheet extension) }
+          ReadFramesPerSecond(I.Current);
+
           LoadTarget.PrepareAnimation(LastAnimationName);
-          ///TimeSensor := TTimeSensorNode.Create(LastAnimationName);
-          ///CoordInterp := TCoordinateInterpolatorNode.Create(LastAnimationName + '_Coord');
-          ///TexCoordInterp := TCoordinateInterpolator2DNode.Create(LastAnimationName + '_TexCoord');
 
           LoadTarget.AddFrame;
-          ///AddFrameCoords(CoordInterp, TexCoordInterp);
         end else
         begin
           { Next frame of animation }
@@ -1037,7 +1046,6 @@ begin
       { Add last animation }
       if CurrentAnimFrameCount > 0 then
         LoadTarget.AddAnimation(CurrentAnimFrameCount);
-        ///AddAnimation(CurrentAnimFrameCount, TimeSensor, CoordInterp, TexCoordInterp);
 
     finally
       FreeAndNil(I);
