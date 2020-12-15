@@ -30,7 +30,11 @@ uses
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionNewSpriteSheet: TAction;
+    ActionList: TActionList;
     ButtonClearWarnings: TBitBtn;
+    MenuItemNewSpriteSheet: TMenuItem;
+    MenuItemSepraratorSLP002: TMenuItem;
     PanelWarnings: TPanel;
     ShellIcons: TImageList;
     LabelNoDesign: TLabel;
@@ -111,6 +115,7 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionNewSpriteSheetExecute(Sender: TObject);
     procedure ButtonClearWarningsClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
@@ -161,7 +166,7 @@ type
     procedure ShellListPopupMenuPopup(Sender: TObject);
   private
     ProjectName: String;
-    ProjectPath, ProjectPathUrl, ProjectStandaloneSource, ProjectLazarus: String;
+    ProjectPath, ProjectStandaloneSource, ProjectLazarus: String;
     BuildMode: TBuildMode;
     OutputList: TOutputList;
     RunningProcess: TAsynchronousProcessQueue;
@@ -198,6 +203,7 @@ type
     { Clears all warnings and hides warnings tab }
     procedure ClearAllWarnings;
   public
+    ProjectPathUrl: String;
     { Open a project, given an absolute path to CastleEngineManifest.xml }
     procedure OpenProject(const ManifestUrl: String);
   end;
@@ -216,8 +222,8 @@ uses TypInfo, LCLType,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
-  FormChooseProject, ToolCommonUtils, FormAbout, FormPreferences,
-  ToolCompilerInfo;
+  FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
+  ToolCompilerInfo, ToolCommonUtils;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
 begin
@@ -344,6 +350,11 @@ end;
 procedure TProjectForm.ButtonClearWarningsClick(Sender: TObject);
 begin
   ClearAllWarnings;
+end;
+
+procedure TProjectForm.ActionNewSpriteSheetExecute(Sender: TObject);
+begin
+  SpriteSheetEditorForm.Show;
 end;
 
 procedure TProjectForm.FormCreate(Sender: TObject);

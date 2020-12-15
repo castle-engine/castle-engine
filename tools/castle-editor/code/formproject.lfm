@@ -4,7 +4,7 @@ object ProjectForm: TProjectForm
   Top = 273
   Width = 1142
   Caption = ' my-project | Castle Game Engine'
-  ClientHeight = 601
+  ClientHeight = 606
   ClientWidth = 1142
   DesignTimePPI = 120
   Menu = MainMenu1
@@ -17,7 +17,7 @@ object ProjectForm: TProjectForm
   object PageControlBottom: TPageControl
     Left = 0
     Height = 224
-    Top = 377
+    Top = 382
     Width = 1142
     ActivePage = TabFiles
     Align = alBottom
@@ -26,20 +26,20 @@ object ProjectForm: TProjectForm
     TabOrder = 0
     object TabFiles: TTabSheet
       Caption = 'Files'
-      ClientHeight = 187
-      ClientWidth = 1132
+      ClientHeight = 186
+      ClientWidth = 1136
       ParentFont = False
       object SplitterBetweenFiles: TSplitter
         Left = 0
-        Height = 187
+        Height = 186
         Top = 0
         Width = 6
       end
     end
     object TabOutput: TTabSheet
       Caption = 'Output'
-      ClientHeight = 187
-      ClientWidth = 1132
+      ClientHeight = 186
+      ClientWidth = 1136
       ParentFont = False
       object ListOutput: TListBox
         Left = 0
@@ -58,8 +58,8 @@ object ProjectForm: TProjectForm
     end
     object TabWarnings: TTabSheet
       Caption = 'Warnings'
-      ClientHeight = 187
-      ClientWidth = 1132
+      ClientHeight = 186
+      ClientWidth = 1136
       ParentFont = False
       TabVisible = False
       object ListWarnings: TListBox
@@ -181,19 +181,19 @@ object ProjectForm: TProjectForm
     Cursor = crVSplit
     Left = 0
     Height = 6
-    Top = 371
+    Top = 376
     Width = 1142
     Align = alBottom
     ResizeAnchor = akBottom
   end
   object PanelAboveTabs: TPanel
     Left = 0
-    Height = 371
+    Height = 376
     Top = 0
     Width = 1142
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 371
+    ClientHeight = 376
     ClientWidth = 1142
     ParentFont = False
     TabOrder = 2
@@ -204,10 +204,10 @@ object ProjectForm: TProjectForm
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Side = asrCenter
       AnchorSideBottom.Side = asrCenter
-      Left = 304
-      Height = 164
-      Top = 103
-      Width = 535
+      Left = 296
+      Height = 144
+      Top = 116
+      Width = 551
       Alignment = taCenter
       Caption = 'To visually design'#10'user interface or 3D/2D game world, '#10'open or create a new design'#10'using the "Design" menu.'
       Font.Height = -33
@@ -475,6 +475,12 @@ object ProjectForm: TProjectForm
     object MenuItemSeparator2303403o: TMenuItem
       Caption = '-'
     end
+    object MenuItemNewSpriteSheet: TMenuItem
+      Action = ActionNewSpriteSheet
+    end
+    object MenuItemSepraratorSLP002: TMenuItem
+      Caption = '-'
+    end
     object MenuItemRefreshDir: TMenuItem
       Caption = 'Refresh'
       OnClick = MenuItemRefreshDirClick
@@ -575,5 +581,13 @@ object ProjectForm: TProjectForm
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000
     }
+  end
+  object ActionList: TActionList
+    Left = 629
+    Top = 477
+    object ActionNewSpriteSheet: TAction
+      Caption = 'New sprite sheet...'
+      OnExecute = ActionNewSpriteSheetExecute
+    end
   end
 end
