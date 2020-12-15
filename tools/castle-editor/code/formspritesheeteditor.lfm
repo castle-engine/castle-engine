@@ -2,10 +2,10 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
   Left = 458
   Height = 575
   Top = 235
-  Width = 986
+  Width = 1147
   Caption = 'SpriteSheetEditorForm'
   ClientHeight = 549
-  ClientWidth = 986
+  ClientWidth = 1147
   DesignTimePPI = 120
   Menu = MainMenu
   OnCreate = FormCreate
@@ -15,13 +15,13 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     Left = 4
     Height = 28
     Top = 4
-    Width = 978
+    Width = 1139
     Align = alTop
     AutoSize = True
     BorderSpacing.Around = 4
     BevelOuter = bvNone
     ClientHeight = 28
-    ClientWidth = 978
+    ClientWidth = 1139
     TabOrder = 2
     object SpeedButtonNewSpriteSheet: TSpeedButton
       AnchorSideLeft.Control = PanelTop
@@ -184,13 +184,13 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     Left = 206
     Height = 513
     Top = 36
-    Width = 561
+    Width = 625
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 4
     Caption = 'PanelMiddle'
     ClientHeight = 513
-    ClientWidth = 561
+    ClientWidth = 625
     TabOrder = 3
     object ListViewFrames: TListView
       AnchorSideLeft.Control = PanelMiddle
@@ -203,12 +203,13 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       Left = 4
       Height = 486
       Top = 23
-      Width = 553
+      Width = 617
       Anchors = [akTop, akLeft, akRight, akBottom]
       Columns = <>
       LargeImages = ImageListFrames
       TabOrder = 0
       ViewStyle = vsIcon
+      OnSelectItem = ListViewFramesSelectItem
     end
     object LabelFrames: TLabel
       AnchorSideLeft.Control = PanelMiddle
@@ -226,42 +227,106 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     end
   end
   object PanelRight: TPanel
-    Left = 773
+    Left = 837
     Height = 513
     Top = 36
-    Width = 213
+    Width = 310
     Align = alRight
     BevelOuter = bvNone
     BorderWidth = 4
     ClientHeight = 513
-    ClientWidth = 213
+    ClientWidth = 310
     TabOrder = 4
-    object LabelPreview: TLabel
-      AnchorSideLeft.Control = PanelRight
-      AnchorSideTop.Control = PanelRight
-      Left = 4
-      Height = 19
-      Top = 4
-      Width = 77
-      Caption = 'Preview'
-      Font.Height = -17
-      Font.Name = 'Sans'
-      Font.Style = [fsBold]
-      ParentColor = False
-      ParentFont = False
-    end
     object CastleControlPreview: TCastleControlBase
+      AnchorSideLeft.Control = PanelRight
+      AnchorSideTop.Control = PanelPreviewHead
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = PanelRight
+      AnchorSideRight.Side = asrBottom
+      AnchorSideBottom.Control = PanelRight
+      AnchorSideBottom.Side = asrBottom
       Left = 4
-      Height = 505
-      Top = 4
-      Width = 205
-      Align = alClient
+      Height = 484
+      Top = 25
+      Width = 302
+      Anchors = [akTop, akLeft, akRight, akBottom]
       Options = []
       TabOrder = 0
     end
+    object PanelPreviewHead: TPanel
+      AnchorSideLeft.Control = PanelRight
+      AnchorSideTop.Control = PanelRight
+      AnchorSideRight.Control = PanelRight
+      AnchorSideRight.Side = asrBottom
+      Left = 4
+      Height = 21
+      Top = 4
+      Width = 302
+      Anchors = [akTop, akLeft, akRight]
+      AutoSize = True
+      BevelOuter = bvNone
+      ClientHeight = 21
+      ClientWidth = 302
+      TabOrder = 1
+      object LabelPreview: TLabel
+        AnchorSideLeft.Control = PanelPreviewHead
+        AnchorSideTop.Control = PanelPreviewHead
+        AnchorSideTop.Side = asrCenter
+        Left = 0
+        Height = 19
+        Top = 1
+        Width = 77
+        Caption = 'Preview'
+        Font.Height = -17
+        Font.Name = 'Sans'
+        Font.Style = [fsBold]
+        ParentColor = False
+        ParentFont = False
+      end
+      object RadioAnimation: TRadioButton
+        AnchorSideTop.Control = LabelPreview
+        AnchorSideTop.Side = asrCenter
+        AnchorSideRight.Control = RadioFrame
+        Left = 129
+        Height = 22
+        Top = -1
+        Width = 103
+        Anchors = [akTop, akRight]
+        Caption = 'Animation'
+        Checked = True
+        OnChange = RadioFrameChange
+        TabOrder = 0
+      end
+      object RadioFrame: TRadioButton
+        AnchorSideTop.Control = LabelPreview
+        AnchorSideTop.Side = asrCenter
+        AnchorSideRight.Control = PanelPreviewHead
+        AnchorSideRight.Side = asrBottom
+        Left = 232
+        Height = 22
+        Top = -1
+        Width = 70
+        Anchors = [akTop, akRight]
+        Caption = 'Frame'
+        OnChange = RadioFrameChange
+        TabOrder = 1
+      end
+    end
+    object LabelNoFrameToShow: TLabel
+      AnchorSideLeft.Control = PanelRight
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideTop.Control = PanelRight
+      AnchorSideTop.Side = asrCenter
+      Left = 76
+      Height = 18
+      Top = 247
+      Width = 159
+      Caption = 'Select frame to show'
+      ParentColor = False
+    end
   end
   object SplitterRight: TSplitter
-    Left = 767
+    Left = 831
     Height = 513
     Top = 36
     Width = 6

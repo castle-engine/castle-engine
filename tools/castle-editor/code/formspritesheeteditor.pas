@@ -19,7 +19,11 @@ type
     ActionListSpriteSheet: TActionList;
     CastleControlPreview: TCastleControlBase;
     ImageListFrames: TImageList;
+    LabelNoFrameToShow: TLabel;
     OpenDialog: TCastleOpenDialog;
+    PanelPreviewHead: TPanel;
+    RadioAnimation: TRadioButton;
+    RadioFrame: TRadioButton;
     SaveDialog: TCastleSaveDialog;
     FloatSpinEditFPS: TFloatSpinEdit;
     LabelPreview: TLabel;
@@ -51,6 +55,9 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure ListBoxAnimationsSelectionChange(Sender: TObject; User: boolean);
+    procedure ListViewFramesSelectItem(Sender: TObject; Item: TListItem;
+      Selected: Boolean);
+    procedure RadioFrameChange(Sender: TObject);
   private
     FSpriteSheet: TCastleSpriteSheet;
     FPreviewScene: TCastleScene;
@@ -61,13 +68,24 @@ type
     procedure ClearAnimations;
     procedure LoadAnimations(const SpriteSheet: TCastleSpriteSheet);
     procedure LoadAnimation(const Animation: TCastleSpriteSheetAnimation);
-    procedure LoadAnimationInPreview(AnimationName: String);
+    procedure LoadAnimationInPreview(const Animation: TCastleSpriteSheetAnimation);
+    function GetCurrentAnimation: TCastleSpriteSheetAnimation;
 
     procedure ClearFrames;
     procedure LoadFrames(const Animation: TCastleSpriteSheetAnimation);
+    procedure LoadFrameInPreview(const Frame: TCastleSpriteSheetFrame);
+    function GetSelectedFrame: TCastleSpriteSheetFrame;
 
-    { Recreates temp file }
-    procedure UpdatePreview;
+    procedure ShowPreviewControl(const MakeVisible: Boolean);
+    { Creates viewport and scene for preview }
+    procedure CreatePreviewUIIfNeeded;
+    { Loads current animation (with file regeneration when
+      ReloadSpriteSheetFile = true), or frame in preview. }
+    procedure UpdatePreview(const ReloadSpriteSheetFile: Boolean);
+    { Regenerates and load animation temp file }
+    procedure RegenerateAnimationPreviewFile;
+    { Regenerates and load frame temp file }
+    procedure RegenerateFramePreviewFile(const Frame: TCastleSpriteSheetFrame);
   public
     procedure OpenSpriteSheet(const URL: String);
   end;
@@ -109,11 +127,24 @@ end;
 
 procedure TSpriteSheetEditorForm.ListBoxAnimationsSelectionChange(
   Sender: TObject; User: boolean);
+var
+  Animation: TCastleSpriteSheetAnimation;
 begin
-  if ListBoxAnimations.ItemIndex > -1 then
-  begin
-    LoadAnimation(ListBoxAnimations.Items.Objects[ListBoxAnimations.ItemIndex] as TCastleSpriteSheetAnimation);
-  end;
+  Animation := GetCurrentAnimation;
+
+  if Animation <> nil then
+    LoadAnimation(Animation);
+end;
+
+procedure TSpriteSheetEditorForm.ListViewFramesSelectItem(Sender: TObject;
+  Item: TListItem; Selected: Boolean);
+begin
+  UpdatePreview(false);
+end;
+
+procedure TSpriteSheetEditorForm.RadioFrameChange(Sender: TObject);
+begin
+  UpdatePreview(true);
 end;
 
 procedure TSpriteSheetEditorForm.CloseSpriteSheet;
@@ -144,7 +175,7 @@ begin
   FloatSpinEditFPS.Value := Animation.FramesPerSecond;
   ClearFrames;
   LoadFrames(Animation);
-  LoadAnimationInPreview(Animation.Name);
+  UpdatePreview(false);
 end;
 
 procedure TSpriteSheetEditorForm.ClearFrames;
@@ -251,22 +282,36 @@ begin
   end;
 end;
 
-procedure TSpriteSheetEditorForm.LoadAnimationInPreview(AnimationName: String);
+procedure TSpriteSheetEditorForm.LoadFrameInPreview(
+  const Frame: TCastleSpriteSheetFrame);
 begin
-  if FPreviewScene = nil then
-    UpdatePreview;
-
-  FPreviewScene.PlayAnimation(AnimationName, true, true);
+  if Frame = nil then
+  begin
+    ShowPreviewControl(false);
+    Exit;
+  end;
+  RegenerateFramePreviewFile(Frame);
+  ShowPreviewControl(true);
 end;
 
-procedure TSpriteSheetEditorForm.UpdatePreview;
-var
-  TempURL: String;
+function TSpriteSheetEditorForm.GetSelectedFrame: TCastleSpriteSheetFrame;
 begin
-  TempURL := URIIncludeSlash(ProjectForm.ProjectPathUrl) + 'temp/preview.castle-sprite-sheet';
-  ForceDirectories(ExtractFilePath(URIToFilenameSafe(TempURL)));
-  FSpriteSheet.Save(TempURL);
+  if ListViewFrames.ItemIndex < 0 then
+    Exit(nil);
 
+  { TODO: add frame button - add condition here!!! }
+
+  Result := TCastleSpriteSheetFrame(ListViewFrames.Items[ListViewFrames.ItemIndex].Data);
+end;
+
+procedure TSpriteSheetEditorForm.ShowPreviewControl(const MakeVisible: Boolean);
+begin
+  CastleControlPreview.Visible := MakeVisible;
+  LabelNoFrameToShow.Visible := not MakeVisible;
+end;
+
+procedure TSpriteSheetEditorForm.CreatePreviewUIIfNeeded;
+begin
   if FPreviewScene = nil then
   begin
     FViewport := TCastleViewport.Create(Application);
@@ -281,6 +326,65 @@ begin
     FViewport.Items.Add(FPreviewScene);
     FViewport.Items.MainScene := FPreviewScene;
   end;
+end;
+
+procedure TSpriteSheetEditorForm.UpdatePreview(
+  const ReloadSpriteSheetFile: Boolean);
+begin
+  if RadioAnimation.Checked then
+  begin
+    { only when we know file changed }
+    if ReloadSpriteSheetFile then
+      RegenerateAnimationPreviewFile;
+    LoadAnimationInPreview(GetCurrentAnimation);
+  end else
+  begin
+    LoadFrameInPreview(GetSelectedFrame);
+  end;
+end;
+
+procedure TSpriteSheetEditorForm.LoadAnimationInPreview(const Animation: TCastleSpriteSheetAnimation);
+begin
+  ShowPreviewControl(true);
+  if FPreviewScene = nil then
+    RegenerateAnimationPreviewFile;
+
+  if Animation = nil then
+    FPreviewScene.StopAnimation
+  else
+    FPreviewScene.PlayAnimation(Animation.Name, true, true);
+end;
+
+function TSpriteSheetEditorForm.GetCurrentAnimation: TCastleSpriteSheetAnimation;
+begin
+  if ListBoxAnimations.ItemIndex < 0 then
+    Exit(nil);
+
+  Result := ListBoxAnimations.Items.Objects[ListBoxAnimations.ItemIndex] as TCastleSpriteSheetAnimation;
+end;
+
+procedure TSpriteSheetEditorForm.RegenerateAnimationPreviewFile;
+var
+  TempURL: String;
+begin
+  TempURL := URIIncludeSlash(ProjectForm.ProjectPathUrl) + 'temp/preview.castle-sprite-sheet';
+  ForceDirectories(ExtractFilePath(URIToFilenameSafe(TempURL)));
+  FSpriteSheet.Save(TempURL);
+
+  CreatePreviewUIIfNeeded;
+
+  FPreviewScene.Load(TempURL);
+end;
+
+procedure TSpriteSheetEditorForm.RegenerateFramePreviewFile(const Frame: TCastleSpriteSheetFrame);
+var
+  TempURL: String;
+begin
+  TempURL := URIIncludeSlash(ProjectForm.ProjectPathUrl) + 'temp/frame_preview.png';
+  ForceDirectories(ExtractFilePath(URIToFilenameSafe(TempURL)));
+  SaveImage(Frame.FrameImage, TempURL);
+
+  CreatePreviewUIIfNeeded;
 
   FPreviewScene.Load(TempURL);
 end;
