@@ -19,15 +19,19 @@ unit GameControls;
 interface
 
 uses Classes,
-  CastleClassUtils, CastleUIControls, CastleControls;
+  CastleClassUtils, CastleUIControls, CastleControls, CastleGLImages;
 
 type
   TImageGrid = class(TCastleUserInterface)
   strict private
     FRows, FColumns: Integer;
     FURL: String;
-    FImages: array of TCastleImageControl;
-    procedure RebuildChildren;
+    { While it would be possible to render the grid using multiple TCastleImageControl
+      instances (see the version from
+      https://github.com/castle-engine/castle-engine/commit/d2b20a608b01f87ff4e41db038393e7bbb3e90bb#diff-1d471baf18007e094eb060eec1873c36fc385ce7cea2af50b328db5059f39da3 )
+      it is much more efficient to use one TDrawableImage instance
+      with RepeatS = RepeatT = true. }
+    FImage: TDrawableImage;
     procedure SetRows(const Value: Integer);
     procedure SetColumns(const Value: Integer);
     procedure SetURL(const Value: String);
@@ -35,7 +39,11 @@ type
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure Render; override;
     function PropertySection(const PropertyName: String): TPropertySection; override;
+    procedure EditorAllowResize(
+      out ResizeWidth, ResizeHeight: Boolean; out Reason: String); override;
   published
     property Rows: Integer read FRows write SetRows default 1;
     property Columns: Integer read FColumns write SetColumns default 1;
@@ -45,13 +53,34 @@ type
 implementation
 
 uses SysUtils,
-  CastleComponentSerialize;
+  CastleComponentSerialize, CastleImages, CastleRectangles, CastleStringUtils, CastleUtils;
 
 constructor TImageGrid.Create(AOwner: TComponent);
+var
+  DummyInitialImage: TGrayscaleImage;
 begin
   inherited;
   FRows := 1;
   FColumns := 1;
+
+  DummyInitialImage := TGrayscaleImage.Create(100, 100);
+  DummyInitialImage.Clear(255); // white
+
+  FImage := TDrawableImage.Create(DummyInitialImage, true, true);
+  FImage.RepeatS := true;
+  FImage.RepeatT := true;
+end;
+
+destructor TImageGrid.Destroy;
+begin
+  FreeAndNil(FImage);
+  inherited;
+end;
+
+procedure TImageGrid.Render;
+begin
+  inherited;
+  FImage.Draw(RenderRect, FloatRectangle(0, 0, Columns, Rows));
 end;
 
 function TImageGrid.PropertySection(const PropertyName: String): TPropertySection;
@@ -65,37 +94,19 @@ begin
 end;
 
 procedure TImageGrid.PreferredSize(var PreferredWidth, PreferredHeight: Single);
-var
-  FirstImage: TCastleImageControl;
 begin
-  if Length(FImages) <> 0 then
-  begin
-    FirstImage := FImages[0];
-    PreferredWidth := UIScale * FirstImage.EffectiveWidth * Columns;
-    PreferredHeight := UIScale * FirstImage.EffectiveHeight * Rows;
-  end;
+  inherited;
+  PreferredWidth := UIScale * FImage.Width * Columns;
+  PreferredHeight := UIScale * FImage.Height * Rows;
 end;
 
-procedure TImageGrid.RebuildChildren;
-var
-  I, J: Integer;
-  NewImage: TCastleImageControl;
+procedure TImageGrid.EditorAllowResize(
+  out ResizeWidth, ResizeHeight: Boolean; out Reason: String);
 begin
-  for I := 0 to Length(FImages) - 1 do
-    FreeAndNil(FImages[I]);
-
-  SetLength(FImages, FRows * FColumns);
-  for I := 0 to Rows - 1 do
-    for J := 0 to Columns - 1 do
-    begin
-      NewImage := TCastleImageControl.Create(Self);
-      NewImage.SetTransient; // do not show this child in editor, do not serialize
-      NewImage.URL := URL;
-      NewImage.Anchor(hpLeft, J * NewImage.EffectiveWidth);
-      NewImage.Anchor(vpBottom, I * NewImage.EffectiveHeight);
-      FImages[I * Columns + J] := NewImage;
-      InsertFront(NewImage);
-    end;
+  inherited;
+  ResizeWidth := false;
+  ResizeHeight := false;
+  Reason := SAppendPart(Reason, NL, 'TImageGrid always automatically adjusts to the required size, based on image size and Rows/Columns properties.');
 end;
 
 procedure TImageGrid.SetRows(const Value: Integer);
@@ -103,7 +114,7 @@ begin
   if FRows <> Value then
   begin
     FRows := Value;
-    RebuildChildren;
+    VisibleChange([chRectangle]); // redraw control, size changed
   end;
 end;
 
@@ -112,7 +123,7 @@ begin
   if FColumns <> Value then
   begin
     FColumns := Value;
-    RebuildChildren;
+    VisibleChange([chRectangle]); // redraw control, size changed
   end;
 end;
 
@@ -121,7 +132,8 @@ begin
   if FURL <> Value then
   begin
     FURL := Value;
-    RebuildChildren;
+    FImage.URL := Value;
+    VisibleChange([chRectangle]); // redraw control, maybe even size changed
   end;
 end;
 
