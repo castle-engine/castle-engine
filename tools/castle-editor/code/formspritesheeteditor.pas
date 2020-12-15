@@ -88,9 +88,10 @@ type
     procedure ShowPreviewControl(const MakeVisible: Boolean);
     { Creates viewport and scene for preview }
     procedure CreatePreviewUIIfNeeded;
-    { Loads current preview. If PreviewModesToUpdate is pmAnimation
-      ForcePreviewFileRegen controls sprite sheet file should be
-      regenrated/reloaded }
+    { Updates current preview. If PreviewModesToUpdate is pmAnimation
+      value of ForcePreviewFileRegen controls sprite sheet file should be forced
+      to regenrate/reload. Note that it will be regenerated even if you don't
+      set it force when it's obvoius (eg. for frames). }
     procedure UpdatePreview(const PreviewModesToUpdate: TPreviewMode;
       const ForcePreviewFileRegen: TForceFileRegen);
     { Regenerates and load animation temp file }
