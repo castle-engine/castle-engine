@@ -23,8 +23,6 @@ type
       FLoadedImagePath: String;
       FRelativeImagePath: String;
       FGeneratedImage: TCastleImage;
-    private
-      FImage: TCastleImage;
     public
       constructor Create;
       destructor Destroy; override;
@@ -721,10 +719,10 @@ var
 begin
   { TODO: Maybe generate sprite sheet image here? }
 
-  { Generate image file name/path }
+  { Generate image file name/path, use PNG as main image file format }
   if FRelativeImagePath = '' then
   begin
-    FRelativeImagePath := ExtractURIName(URL);
+    FRelativeImagePath := DeleteURIExt(ExtractURIName(URL)) + '.png';
   end;
   ImageURL := URIIncludeSlash(ExtractURIPath(URL)) + FRelativeImagePath;
 
@@ -1038,7 +1036,6 @@ begin
           { Next frame of animation }
           Inc(CurrentAnimFrameCount);
 
-          //AddFrameCoords(CoordInterp, TexCoordInterp);
           LoadTarget.AddFrame;
         end;
       end;
