@@ -52,6 +52,7 @@ type
     SplitterLeft: TSplitter;
     procedure ActionNewSpriteSheetExecute(Sender: TObject);
     procedure ActionOpenSpriteSheetExecute(Sender: TObject);
+    procedure FloatSpinEditFPSChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure ListBoxAnimationsSelectionChange(Sender: TObject; User: boolean);
@@ -59,9 +60,15 @@ type
       Selected: Boolean);
     procedure RadioFrameChange(Sender: TObject);
   private
-    FSpriteSheet: TCastleSpriteSheet;
-    FPreviewScene: TCastleScene;
-    FViewport: TCastleViewport;
+    type
+      TPreviewMode = (pmAnimation, pmFrame);
+      { Enum just for readability }
+      TForceFileRegen = (ffgDoForceFileRegen, ffgDontForceFileRegen);
+
+    var
+      FSpriteSheet: TCastleSpriteSheet;
+      FPreviewScene: TCastleScene;
+      FViewport: TCastleViewport;
 
     procedure CloseSpriteSheet;
 
@@ -74,12 +81,18 @@ type
     procedure LoadFrames(const Animation: TCastleSpriteSheetAnimation);
     function GetSelectedFrame: TCastleSpriteSheetFrame;
 
+    { Returns current preview mode }
+    function GetCurrentPreviewMode: TPreviewMode;
+    { Shows or hides some preview controls. Just to have this switch in
+      one place. }
     procedure ShowPreviewControl(const MakeVisible: Boolean);
     { Creates viewport and scene for preview }
     procedure CreatePreviewUIIfNeeded;
-    { Loads current animation (with file regeneration when
-      ReloadSpriteSheetFile = true), or frame in preview. }
-    procedure UpdatePreview(const ReloadSpriteSheetFile: Boolean);
+    { Loads current preview. If PreviewModesToUpdate is pmAnimation
+      ForcePreviewFileRegen controls sprite sheet file should be
+      regenrated/reloaded }
+    procedure UpdatePreview(const PreviewModesToUpdate: TPreviewMode;
+      const ForcePreviewFileRegen: TForceFileRegen);
     { Regenerates and load animation temp file }
     procedure RegenerateAnimationPreviewFile;
     { Regenerates and load frame temp file }
@@ -113,6 +126,18 @@ begin
     OpenSpriteSheet(OpenDialog.URL);
 end;
 
+procedure TSpriteSheetEditorForm.FloatSpinEditFPSChange(Sender: TObject);
+var
+  Animation: TCastleSpriteSheetAnimation;
+begin
+  Animation := GetCurrentAnimation;
+  Assert(Animation <> nil,
+    'Animation should never be nil when SpinEditFPS is enabled');
+  Animation.FramesPerSecond := FloatSpinEditFPS.Value;
+  { To change frames per second file must be regenerated. }
+  UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+end;
+
 procedure TSpriteSheetEditorForm.FormCreate(Sender: TObject);
 begin
   FSpriteSheet := nil;
@@ -137,12 +162,16 @@ end;
 procedure TSpriteSheetEditorForm.ListViewFramesSelectItem(Sender: TObject;
   Item: TListItem; Selected: Boolean);
 begin
-  UpdatePreview(false);
+  { In case of changing frames, animation preview should be ok
+    (frame preview is always regenerated). }
+  UpdatePreview(GetCurrentPreviewMode, ffgDontForceFileRegen);
 end;
 
 procedure TSpriteSheetEditorForm.RadioFrameChange(Sender: TObject);
 begin
-  UpdatePreview(true);
+  { In case of changing from frame preview to animation preview,
+    animation preview can be outdated so we force file regeneration }
+  UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
 end;
 
 procedure TSpriteSheetEditorForm.CloseSpriteSheet;
@@ -173,7 +202,7 @@ begin
   FloatSpinEditFPS.Value := Animation.FramesPerSecond;
   ClearFrames;
   LoadFrames(Animation);
-  UpdatePreview(false);
+  UpdatePreview(GetCurrentPreviewMode, ffgDontForceFileRegen);
 end;
 
 procedure TSpriteSheetEditorForm.ClearFrames;
@@ -290,6 +319,14 @@ begin
   Result := TCastleSpriteSheetFrame(ListViewFrames.Items[ListViewFrames.ItemIndex].Data);
 end;
 
+function TSpriteSheetEditorForm.GetCurrentPreviewMode: TPreviewMode;
+begin
+  if RadioAnimation.Checked then
+    Result:= pmAnimation
+  else
+    Result:= pmFrame;
+end;
+
 procedure TSpriteSheetEditorForm.ShowPreviewControl(const MakeVisible: Boolean);
 begin
   CastleControlPreview.Visible := MakeVisible;
@@ -315,7 +352,8 @@ begin
 end;
 
 procedure TSpriteSheetEditorForm.UpdatePreview(
-  const ReloadSpriteSheetFile: Boolean);
+  const PreviewModesToUpdate: TPreviewMode;
+  const ForcePreviewFileRegen: TForceFileRegen);
 
   procedure LoadFrameInPreview(
     const Frame: TCastleSpriteSheetFrame);
@@ -343,15 +381,16 @@ procedure TSpriteSheetEditorForm.UpdatePreview(
   end;
 
 begin
-  if RadioAnimation.Checked then
-  begin
-    { only when we know file changed }
-    if ReloadSpriteSheetFile then
-      RegenerateAnimationPreviewFile;
-    LoadAnimationInPreview(GetCurrentAnimation);
-  end else
-  begin
-    LoadFrameInPreview(GetSelectedFrame);
+  case PreviewModesToUpdate of
+    pmAnimation:
+      begin
+        { only when we know file should change }
+        if ForcePreviewFileRegen = ffgDoForceFileRegen then
+          RegenerateAnimationPreviewFile;
+        LoadAnimationInPreview(GetCurrentAnimation);
+      end;
+    pmFrame:
+      LoadFrameInPreview(GetSelectedFrame);
   end;
 end;
 
