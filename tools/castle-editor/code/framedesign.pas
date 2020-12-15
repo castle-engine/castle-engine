@@ -733,7 +733,7 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
       to avoid recording Undo on every user Motion event.
       In this case UndoComment and UndoPriority do not matter,
       they will be replaced by appropriate values on Release. }
-    Frame.ModifiedOutsideObjectInspector('', LowUndoPriority, true);
+    Frame.ModifiedOutsideObjectInspector('', LowUndoPriority, true); // UndoComment doesn't matter here
   end;
 
   function ResizingCursor(const H: THorizontalPosition;
@@ -1810,7 +1810,7 @@ begin
   { Same comment as in Apply Drag:
     UndoOnRelease = true here means that we don't record the actual undo
     but defer it to GizmoStopDrag event }
-  ModifiedOutsideObjectInspector('', LowUndoPriority, true);
+  ModifiedOutsideObjectInspector('', LowUndoPriority, true); // UndoComment doesn't matter here
 end;
 
 procedure TDesignFrame.GizmoStopDrag(Sender: TObject);
@@ -1898,7 +1898,7 @@ begin
         SenderRowDescription := 'Change ' + Sel.Name + '.' + SenderRowName;
       RecordUndo(SenderRowDescription, HighUndoPriority, TOICustomPropertyGrid(Sender).ItemIndex);
     end else
-      RecordUndo('', LowUndoPriority);
+      RecordUndo('Modify ' + Sel.Name, LowUndoPriority);
   end;
 
   MarkModified;

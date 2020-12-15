@@ -74,8 +74,6 @@ type
     UndoHistory: TUndoHistory;
     { Calculates total size of RAM used by the Undo History. }
     function UndoHistorySize: Integer;
-    { Construct human-readable comment for this Undo record. }
-    function GetUndoComment(const UndoI: Integer): String;
   public
     { Called when Undo information displayed to the User should be changed. }
     OnUpdateUndo: TNotifyEvent;
@@ -249,31 +247,27 @@ begin
   Result := CurrentUndo < UndoHistory.Count - 1;
 end;
 
-function TUndoSystem.GetUndoComment(const UndoI: Integer): String;
-begin
-  if UndoHistory[UndoI].Comment = '' then
-  begin
-    if UndoHistory[UndoI].Selected = '' then
-      Result := ''
-    else
-      Result := 'Modify ' + UndoHistory[UndoI].Selected;
-  end else
-    Result := UndoHistory[UndoI].Comment;
-end;
-
 function TUndoSystem.RedoComment: String;
 begin
   if IsRedoPossible then
-    Result := 'Redo: ' + GetUndoComment(CurrentUndo + 1)
-  else
+  begin
+    if UndoHistory[CurrentUndo + 1].Comment = '' then
+      Result := 'Redo'
+    else
+      Result := 'Redo: ' + UndoHistory[CurrentUndo + 1].Comment;
+  end else
     Result := 'Redo';
 end;
 
 function TUndoSystem.UndoComment: String;
 begin
   if IsUndoPossible then
-    Result := 'Undo: ' + GetUndoComment(CurrentUndo)
-  else
+  begin
+    if UndoHistory[CurrentUndo].Comment = '' then
+      Result := 'Undo'
+    else
+      Result := 'Undo: ' + UndoHistory[CurrentUndo].Comment;
+  end else
     Result := 'Undo';
 end;
 
