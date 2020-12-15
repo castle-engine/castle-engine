@@ -80,7 +80,7 @@ end;
 procedure TImageGrid.Render;
 begin
   inherited;
-  FImage.Draw(RenderRect, FloatRectangle(0, 0, Columns, Rows));
+  FImage.Draw(RenderRect, FloatRectangle(0, 0, Columns * FImage.Width, Rows * FImage.Height));
 end;
 
 function TImageGrid.PropertySection(const PropertyName: String): TPropertySection;
