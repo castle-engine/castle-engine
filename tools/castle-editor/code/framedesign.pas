@@ -1484,10 +1484,13 @@ end;
 procedure TDesignFrame.DuplicateComponent;
 
   procedure FinishAddingComponent(const NewComponent: TComponent);
+  var
+    OldComponentName: String;
   begin
+    OldComponentName := SelectedComponent.Name;
     UpdateDesign;
     SelectedComponent := NewComponent; // select after adding, makes it natural to edit
-    ModifiedOutsideObjectInspector('Duplicate ' + NewComponent.Name, HighUndoPriority);
+    ModifiedOutsideObjectInspector('Duplicate ' + OldComponentName + '->' + NewComponent.Name, HighUndoPriority);
   end;
 
   procedure DuplicateUserInterface(const Selected: TCastleUserInterface);
