@@ -68,12 +68,10 @@ type
     procedure ClearAnimations;
     procedure LoadAnimations(const SpriteSheet: TCastleSpriteSheet);
     procedure LoadAnimation(const Animation: TCastleSpriteSheetAnimation);
-    procedure LoadAnimationInPreview(const Animation: TCastleSpriteSheetAnimation);
     function GetCurrentAnimation: TCastleSpriteSheetAnimation;
 
     procedure ClearFrames;
     procedure LoadFrames(const Animation: TCastleSpriteSheetAnimation);
-    procedure LoadFrameInPreview(const Frame: TCastleSpriteSheetFrame);
     function GetSelectedFrame: TCastleSpriteSheetFrame;
 
     procedure ShowPreviewControl(const MakeVisible: Boolean);
@@ -282,18 +280,6 @@ begin
   end;
 end;
 
-procedure TSpriteSheetEditorForm.LoadFrameInPreview(
-  const Frame: TCastleSpriteSheetFrame);
-begin
-  if Frame = nil then
-  begin
-    ShowPreviewControl(false);
-    Exit;
-  end;
-  RegenerateFramePreviewFile(Frame);
-  ShowPreviewControl(true);
-end;
-
 function TSpriteSheetEditorForm.GetSelectedFrame: TCastleSpriteSheetFrame;
 begin
   if ListViewFrames.ItemIndex < 0 then
@@ -330,6 +316,32 @@ end;
 
 procedure TSpriteSheetEditorForm.UpdatePreview(
   const ReloadSpriteSheetFile: Boolean);
+
+  procedure LoadFrameInPreview(
+    const Frame: TCastleSpriteSheetFrame);
+  begin
+    if Frame = nil then
+    begin
+      ShowPreviewControl(false);
+      Exit;
+    end;
+    RegenerateFramePreviewFile(Frame);
+    ShowPreviewControl(true);
+  end;
+
+  procedure LoadAnimationInPreview(
+    const Animation: TCastleSpriteSheetAnimation);
+  begin
+    ShowPreviewControl(true);
+    if FPreviewScene = nil then
+      RegenerateAnimationPreviewFile;
+
+    if Animation = nil then
+      FPreviewScene.StopAnimation
+    else
+      FPreviewScene.PlayAnimation(Animation.Name, true, true);
+  end;
+
 begin
   if RadioAnimation.Checked then
   begin
@@ -341,18 +353,6 @@ begin
   begin
     LoadFrameInPreview(GetSelectedFrame);
   end;
-end;
-
-procedure TSpriteSheetEditorForm.LoadAnimationInPreview(const Animation: TCastleSpriteSheetAnimation);
-begin
-  ShowPreviewControl(true);
-  if FPreviewScene = nil then
-    RegenerateAnimationPreviewFile;
-
-  if Animation = nil then
-    FPreviewScene.StopAnimation
-  else
-    FPreviewScene.PlayAnimation(Animation.Name, true, true);
 end;
 
 function TSpriteSheetEditorForm.GetCurrentAnimation: TCastleSpriteSheetAnimation;
