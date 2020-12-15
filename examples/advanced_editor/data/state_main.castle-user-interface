@@ -62,7 +62,7 @@
         ],
         "$ClassName" : "TInternalCastleScrollArea"
       },
-      "VerticalAnchorDelta" : 4.6000000000000000E+002,
+      "VerticalAnchorDelta" : 4.5000000000000000E+002,
       "Width" : 1.2100000000000000E+003,
       "$Children" : [
       ],
@@ -108,7 +108,7 @@
         "$ClassName" : "TCastleRootTransform"
       },
       "Name" : "ViewportForSoldiers",
-      "VerticalAnchorDelta" : 3.0000000000000000E+001,
+      "VerticalAnchorDelta" : 1.0000000000000000E+001,
       "Width" : 8.2000000000000000E+002,
       "$Children" : [
       ],
