@@ -223,13 +223,12 @@ var
   Lay: TTiledMap.TLayer;              // ObjectGroupLayer
   TiledObj: TTiledMap.TTiledObject;   // one TiledObject
   TiledObjPoints: array of TVector2;  // holds points of TiledObject as array of TVector2
+  ScaleX, ScaleY: Single;
 
   { Converts all TVector2's from a TVector2List to and array of TVector2.
     ArrIndex is the index of a TVector2 in the array, ListIndex is the TVector2
     in the list. }
   procedure ConvertAndScalePoints(ArrIndex, ListIndex: Cardinal);
-  var
-    ScaleX, ScaleY: Single;
   begin
     { Convert and scale X coordinates. }
     ScaleX := RenderRect.Width / Width;
@@ -242,6 +241,7 @@ var
       (Lay.OffsetY + TiledObj.Y + TiledObj.Points.Items[ListIndex].Y);
   end;
 
+  { Prepare and render TiledObject polyline and polygon. }
   procedure RenderPolylinePolygon;
   var
     i: Cardinal;
@@ -254,24 +254,24 @@ var
       ConvertAndScalePoints(i, i);
     end;
 
-    { If TiledObject is a polygon, for rendering of last line, a last point
-      has to be added manually to close the polygon. }
+    { If TiledObject is a polygon, for rendering of last line, a point has to be
+      added manually to close the polygon. }
     if TiledObj.Primitive = topPolygon then
     begin
       SetLength(TiledObjPoints, TiledObj.Points.Count+1);
       ConvertAndScalePoints(High(TiledObjPoints), 0);
     end;
 
-    { Draw polygon or line strip of one TiledObject. }
+    { Draw polygon or polyline TiledObject. }
     DrawPrimitive2D(pmLineStrip, TiledObjPoints, Orange, bsSrcAlpha,
       bdOneMinusSrcAlpha, false, 1, 1);
   end;
 
   procedure RenderPoint;
   var
-    TiledObjPoint: array[0..0] of TVector2;
-    ScaleX, ScaleY: Single;
+    TiledObjPoint: array[0..0] of TVector2;   // array with 1 element
   begin
+    { Prepare point. }
     ScaleX := RenderRect.Width / Width;
     TiledObjPoint[0].X := RenderRect.LeftBottom.X + ScaleX *
       (Lay.OffsetX + TiledObj.X);
@@ -281,6 +281,26 @@ var
     { Draw point TiledObject. }
     DrawPrimitive2D(pmPoints, TiledObjPoint, Orange, bsSrcAlpha,
       bdOneMinusSrcAlpha, false, 1, 1);
+  end;
+
+  procedure RenderRectangle;
+  var
+    TiledObjRect: TFloatRectangle;
+  begin
+    { Prepare rectangle. }
+    ScaleX := RenderRect.Width / Width;
+    TiledObjRect.Left := RenderRect.LeftBottom.X + ScaleX *
+      (Lay.OffsetX + TiledObj.X);
+    TiledObjRect.Width := ScaleX * TiledObj.Width;
+
+    ScaleY := RenderRect.Height / Height;
+    TiledObjRect.Bottom := RenderRect.Top - ScaleY *
+      (Lay.OffsetY + TiledObj.Y + TiledObj.Height);
+    TiledObjRect.Height := ScaleY * TiledObj.Height;
+
+    { Draw rectangle TiledObject. }
+    DrawRectangleOutline(TiledObjRect, Orange, 1, bsSrcAlpha,
+      bdOneMinusSrcAlpha, false);
   end;
 
 begin
@@ -296,6 +316,8 @@ begin
           case TiledObj.Primitive of
             topPolyline, topPolygon: RenderPolylinePolygon;
             topPoint: RenderPoint;
+            topRectangle: RenderRectangle;
+            // TODO: handle ellipse
           end;
         end;
       end;
