@@ -172,7 +172,7 @@ type
     ViewFileFrame: TViewFileFrame;
     SplitterBetweenViewFile: TSplitter;
     procedure BuildToolCall(const Commands: array of String;
-        const ExitOnSuccess: Boolean = false);
+      const ExitOnSuccess: Boolean = false);
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuItemDesignNewCustomRootClick(Sender: TObject);
     procedure SetEnabledCommandRun(const AEnabled: Boolean);
@@ -418,7 +418,7 @@ procedure TProjectForm.MenuItemRenameClick(Sender: TObject);
 begin
   Design.RenameSelectedItem;
 end;
- 
+
 procedure TProjectForm.UpdateRenameItem(Sender: TObject);
 begin
   if (Design <> nil) and Design.RenamePossible then
@@ -1078,5 +1078,7 @@ end;
 initialization
   // initialize CGE log
   ApplicationProperties.ApplicationName := 'castle-editor';
+  // Useful for testing of custom editor run by "Restart Editor", to see the log easily on Unix
+  // LogFileName := FileNameAutoInc('/tmp/castle-editor-%d.log');
   InitializeLog;
 end.
