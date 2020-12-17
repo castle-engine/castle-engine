@@ -174,3 +174,4 @@ Still, the editor stays GPL for the general public.
 - Adjust `Position` from "as designed" (usually "default" or "main form center" is more sensible).
 - Make sure closing the form with "X" (Alt + F4) works OK.
 - For a form you create manually, make sure it is freed at some point (preferably, not only at the end of application, if you can free it earlier; e.g. we don't want to have 100 of TProjectForm instances in memory after using the editor for a long time).
+- For a form created automatically, make sure you synchronize the line `Application.CreateForm(...);` from lpr with ../build-tool/data/custom_editor_template/castle_editor.lpr
