@@ -223,7 +223,6 @@ var
   Lay: TTiledMap.TLayer;              // ObjectGroupLayer
   TiledObj: TTiledMap.TTiledObject;   // one TiledObject
   TiledObjPoints: array of TVector2;  // holds points of TiledObject as array of TVector2
-  i: Cardinal;
 
   { Converts all TVector2's from a TVector2List to and array of TVector2.
     ArrIndex is the index of a TVector2 in the array, ListIndex is the TVector2
@@ -243,6 +242,47 @@ var
       (Lay.OffsetY + TiledObj.Y + TiledObj.Points.Items[ListIndex].Y);
   end;
 
+  procedure RenderPolylinePolygon;
+  var
+    i: Cardinal;
+  begin
+    { Prepare points for DrawPrimitive2D function. Convert from vector list
+      to array of vectors. }
+    SetLength(TiledObjPoints, TiledObj.Points.Count);
+    for i := 0 to High(TiledObjPoints) do
+    begin
+      ConvertAndScalePoints(i, i);
+    end;
+
+    { If TiledObject is a polygon, for rendering of last line, a last point
+      has to be added manually to close the polygon. }
+    if TiledObj.Primitive = topPolygon then
+    begin
+      SetLength(TiledObjPoints, TiledObj.Points.Count+1);
+      ConvertAndScalePoints(High(TiledObjPoints), 0);
+    end;
+
+    { Draw polygon or line strip of one TiledObject. }
+    DrawPrimitive2D(pmLineStrip, TiledObjPoints, Orange, bsSrcAlpha,
+      bdOneMinusSrcAlpha, false, 1, 1);
+  end;
+
+  procedure RenderPoint;
+  var
+    TiledObjPoint: array[0..0] of TVector2;
+    ScaleX, ScaleY: Single;
+  begin
+    ScaleX := RenderRect.Width / Width;
+    TiledObjPoint[0].X := RenderRect.LeftBottom.X + ScaleX *
+      (Lay.OffsetX + TiledObj.X);
+    ScaleY := RenderRect.Height / Height;
+    TiledObjPoint[0].Y := RenderRect.Top - ScaleY *
+      (Lay.OffsetY + TiledObj.Y);
+    { Draw point TiledObject. }
+    DrawPrimitive2D(pmPoints, TiledObjPoint, Orange, bsSrcAlpha,
+      bdOneMinusSrcAlpha, false, 1, 1);
+  end;
+
 begin
   { Object groups. }
   for Lay in Map.Layers do
@@ -253,25 +293,10 @@ begin
       begin
         if TiledObj.Visible then
         begin
-          { Prepare points for DrawPrimitive2D function. Convert from vector list
-            to array of vectors. }
-          SetLength(TiledObjPoints, TiledObj.Points.Count);
-          for i := 0 to High(TiledObjPoints) do
-          begin
-            ConvertAndScalePoints(i, i);
+          case TiledObj.Primitive of
+            topPolyline, topPolygon: RenderPolylinePolygon;
+            topPoint: RenderPoint;
           end;
-
-          { If TiledObject is a polygon, for rendering of last line, a last point
-            has to be added manually to close the polygon. }
-          if TiledObj.Primitive = topPolygon then
-          begin
-            SetLength(TiledObjPoints, TiledObj.Points.Count+1);
-            ConvertAndScalePoints(High(TiledObjPoints), 0);
-          end;
-
-          { Draw polygon or line strip of one TiledObject. }
-          DrawPrimitive2D(pmLineStrip, TiledObjPoints, Orange, bsSrcAlpha,
-            bdOneMinusSrcAlpha, false, 1, 1);
         end;
       end;
     end;

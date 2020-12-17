@@ -85,7 +85,8 @@ type
 
       TObjectsDrawOrder = (odoIndex, odoTopDown);
 
-      TTileObjectPrimitive = (topEllipse, topPolygon, topPolyLine);
+      TTileObjectPrimitive = (topEllipse, topPolygon, topPolyLine, topRectangle,
+        topPoint);
 
       { Object definition. }
       TTiledObject = class
@@ -783,6 +784,7 @@ begin
       case LowerCase(I.Current.TagName) of
         'properties': Properties.Load(I.Current, BaseUrl);
         'ellipse': Primitive := topEllipse;
+        'point': Primitive := topPoint;
         'polygon':
           begin
             Primitive := topPolygon;
