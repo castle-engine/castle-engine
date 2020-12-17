@@ -154,8 +154,8 @@ type
 
     property Scale: Single read FScale write SetScale default 1;
 
-    // TODO: not implemented yet
-    // property ObjectsVisible: Boolean read FObjectsVisible write FObjectsVisible;
+    // TODO: improve implementation (ellipse, images still missing)
+    property ObjectsVisible: Boolean read FObjectsVisible write FObjectsVisible;
 
     { How are images scaled (because of UI scaling, because of @link(Scale)).
       @true means we use nice "bilinear" filter.
@@ -198,7 +198,7 @@ constructor TCastleTiledMapControl.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   ClipChildren := true;
-  FObjectsVisible := true; // Reverse back to false later: for testing only
+  FObjectsVisible := false;
   FScale := 1;
   FSmoothScaling := false;
   FSmoothScalingSafeBorder := false;
