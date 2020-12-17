@@ -198,7 +198,7 @@ constructor TCastleTiledMapControl.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   ClipChildren := true;
-  FObjectsVisible := false;
+  FObjectsVisible := true; // Reverse back to false later: for testing only
   FScale := 1;
   FSmoothScaling := false;
   FSmoothScalingSafeBorder := false;
@@ -220,15 +220,63 @@ end;
 
 procedure TCastleTiledMapControl.RenderObjects;
 var
-  Lay: TTiledMap.TLayer;
+  Lay: TTiledMap.TLayer;              // ObjectGroupLayer
+  TiledObj: TTiledMap.TTiledObject;   // one TiledObject
+  TiledObjPoints: array of TVector2;  // holds points of TiledObject as array of TVector2
+  i: Cardinal;
+
+  { Converts all TVector2's from a TVector2List to and array of TVector2.
+    ArrIndex is the index of a TVector2 in the array, ListIndex is the TVector2
+    in the list. }
+  procedure ConvertAndScalePoints(ArrIndex, ListIndex: Cardinal);
+  var
+    ScaleX, ScaleY: Single;
+  begin
+    { Convert and scale X coordinates. }
+    ScaleX := RenderRect.Width / Width;
+    TiledObjPoints[ArrIndex].X := RenderRect.LeftBottom.X + ScaleX *
+      (Lay.OffsetX + TiledObj.X + TiledObj.Points.Items[ListIndex].X);
+    { Convert and scale Y coordinates and change ref. system (top-left
+      origin to bottom-left origin). }
+    ScaleY := RenderRect.Height / Height;
+    TiledObjPoints[ArrIndex].Y := RenderRect.Top - ScaleY *
+      (Lay.OffsetY + TiledObj.Y + TiledObj.Points.Items[ListIndex].Y);
+  end;
+
 begin
   { Object groups. }
   for Lay in Map.Layers do
   begin
-    // if Lay is TTiledMap.TObjectGroupLayer then
-    // TODO: draw TObjectGroupLayer here
-    // TODO: when to draw TImageLayer?
+    if Lay is TTiledMap.TObjectGroupLayer and Lay.Visible then
+    begin
+      for TiledObj in (Lay as TTiledMap.TObjectGroupLayer).Objects do
+      begin
+        if TiledObj.Visible then
+        begin
+          { Prepare points for DrawPrimitive2D function. Convert from vector list
+            to array of vectors. }
+          SetLength(TiledObjPoints, TiledObj.Points.Count);
+          for i := 0 to High(TiledObjPoints) do
+          begin
+            ConvertAndScalePoints(i, i);
+          end;
+
+          { If TiledObject is a polygon, for rendering of last line, a last point
+            has to be added manually to close the polygon. }
+          if TiledObj.Primitive = topPoligon then
+          begin
+            SetLength(TiledObjPoints, TiledObj.Points.Count+1);
+            ConvertAndScalePoints(High(TiledObjPoints), 0);
+          end;
+
+          { Draw polygon or line strip of one TiledObject. }
+          DrawPrimitive2D(pmLineStrip, TiledObjPoints, Orange, bsSrcAlpha,
+            bdOneMinusSrcAlpha, false, 1, 1);
+        end;
+      end;
+    end;
   end;
+  // TODO: when to draw TImageLayer?
 end;
 
 procedure TCastleTiledMapControl.LoadTilesetsImages;
