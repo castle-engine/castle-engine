@@ -85,7 +85,7 @@ type
 
       TObjectsDrawOrder = (odoIndex, odoTopDown);
 
-      TTileObjectPrimitive = (topEllipse, topPoligon, topPolyLine);
+      TTileObjectPrimitive = (topEllipse, topPolygon, topPolyLine);
 
       { Object definition. }
       TTiledObject = class
@@ -785,7 +785,7 @@ begin
         'ellipse': Primitive := topEllipse;
         'polygon':
           begin
-            Primitive := topPoligon;
+            Primitive := topPolygon;
             ReadPoints(I.Current.AttributeStringDef('points', ''), Points);
           end;
         'polyline':

@@ -263,7 +263,7 @@ begin
 
           { If TiledObject is a polygon, for rendering of last line, a last point
             has to be added manually to close the polygon. }
-          if TiledObj.Primitive = topPoligon then
+          if TiledObj.Primitive = topPolygon then
           begin
             SetLength(TiledObjPoints, TiledObj.Points.Count+1);
             ConvertAndScalePoints(High(TiledObjPoints), 0);
