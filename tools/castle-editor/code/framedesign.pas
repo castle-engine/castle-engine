@@ -1820,19 +1820,6 @@ var
   RayHit: TRayCollision;
   Distance: Single;
   OldPickable: Boolean;
-
-  function Is2DAsset(URL : String): Boolean;
-  var
-    MimeType: String;
-  begin
-    MimeType := URIMimeType(URL);
-    Result := LoadImage_FileFilters.Matches(URL) or
-      (MimeType = 'application/json') or
-      (MimeType = 'application/x-starling-sprite-sheet') or
-      (MimeType = 'application/x-plist') or
-      (MimeType = 'application/x-cocos2d-sprite-sheet');
-  end;
-
 begin
   if Source is TCastleShellListView then
   begin
@@ -1848,52 +1835,44 @@ begin
       Exit;
 
     Viewport := TCastleViewport(UI);
+
+    Scene := AddComponent(Viewport.Items, TCastleScene, nil) as TCastleScene;
+    Scene.URL := SelectedURL;
+
+    { Make gizmos not pickable when looking for new scene position,
+      because ray can hit on gizmo. }
+    OldPickable := VisualizeTransformSelected.Pickable;
     try
-      Scene := AddComponent(Viewport.Items, TCastleScene, nil) as TCastleScene;
-
-      if Is2DAsset(SelectedURL) then
-        Scene.Setup2D;
-
-      Scene.URL := SelectedURL;
-
-      { Make gizmos not pickable when looking for new scene position,
-        because ray can hit on gizmo. }
-      OldPickable := VisualizeTransformSelected.Pickable;
-      try
-        VisualizeTransformSelected.Pickable := false;
-        Viewport.PositionToRay(Vector2(X, CastleControl.Height - Y), true, RayOrigin, RayDirection);
-        RayHit := Viewport.Items.WorldRay(RayOrigin, RayDirection);
-      finally
-        VisualizeTransformSelected.Pickable := OldPickable;
-      end;
-      if RayHit <> nil then
-      begin
-        Distance := RayHit.Distance;
-        FreeAndNil(RayHit);
-      end else
-      begin
-        // if we don't hit any other scene set Distance to default
-        if Viewport.Camera.ProjectionType = ptOrthographic then
-        begin
-          // use camera position for 2D (minimum 100 distance)
-          if Viewport.Camera.Position.Z > 100 then
-            Distance := Viewport.Camera.Position.Z
-          else
-            Distance := 100;
-        end else
-          Distance := 20;
-      end;
-      ScenePos := RayOrigin + (RayDirection * Distance);
-
-      { In case of 2D game move scene a little closser to camera }
-      if Viewport.Camera.ProjectionType = ptOrthographic then
-        ScenePos := ScenePos - Viewport.Camera.Direction;
-
-      Scene.Translation := ScenePos;
-    except
-      on E: Exception do
-        ErrorBox(E.Message);
+      VisualizeTransformSelected.Pickable := false;
+      Viewport.PositionToRay(Vector2(X, CastleControl.Height - Y), true, RayOrigin, RayDirection);
+      RayHit := Viewport.Items.WorldRay(RayOrigin, RayDirection);
+    finally
+      VisualizeTransformSelected.Pickable := OldPickable;
     end;
+    if RayHit <> nil then
+    begin
+      Distance := RayHit.Distance;
+      FreeAndNil(RayHit);
+    end else
+    begin
+      // if we don't hit any other scene set Distance to default
+      if Viewport.Camera.ProjectionType = ptOrthographic then
+      begin
+        // use camera position for 2D (minimum 100 distance)
+        if Viewport.Camera.Position.Z > 100 then
+          Distance := Viewport.Camera.Position.Z
+        else
+          Distance := 100;
+      end else
+        Distance := 20;
+    end;
+    ScenePos := RayOrigin + (RayDirection * Distance);
+
+    { In case of 2D game move scene a little closser to camera }
+    if Viewport.Camera.ProjectionType = ptOrthographic then
+      ScenePos := ScenePos - Viewport.Camera.Direction;
+
+    Scene.Translation := ScenePos;
   end;
 end;
 
@@ -2755,14 +2734,7 @@ var
   R: TRegisteredComponent;
 begin
   R := TRegisteredComponent(Pointer((Sender as TComponent).Tag));
-  try
-    AddComponent(R.ComponentClass, R.OnCreate);
-  except
-    on E: Exception do
-    begin
-      ErrorBox(E.Message);
-    end;
-  end;
+  AddComponent(R.ComponentClass, R.OnCreate);
 end;
 
 procedure TDesignFrame.MenuItemRenameClick(Sender: TObject);

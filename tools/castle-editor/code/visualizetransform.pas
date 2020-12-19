@@ -532,7 +532,7 @@ constructor TVisualizeTransform.Create(AOwner: TComponent; const AHover: Boolean
   begin
     Result := TGizmoScene.Create(Self);
     Result.Collides := false;
-    //Result.Pickable := false;
+    Result.Pickable := FPickable;
     Result.CastShadowVolumes := false;
     Result.ExcludeFromStatistics := true;
     Result.InternalExcludeFromParentBoundingVolume := true;
