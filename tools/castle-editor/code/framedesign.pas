@@ -291,7 +291,7 @@ type
       const AllowToHideParentAnchorsFrame: Boolean);
     procedure ChangeMode(const NewMode: TMode);
     procedure ModifiedOutsideObjectInspector(const UndoComment: String;
-      const UndoCommentPriority: Integer; const UndoOnRelease: Boolean = false);
+      const UndoCommentPriority: TUndoCommentPriority; const UndoOnRelease: Boolean = false);
     procedure InspectorFilter(Sender: TObject;
       AEditor: TPropertyEditor; var AShow: Boolean; const Section: TPropertySection);
     procedure GizmoHasModifiedParent(Sender: TObject);
@@ -329,7 +329,7 @@ type
     property DesignRoot: TComponent read FDesignRoot;
     property DesignModified: Boolean read FDesignModified;
     procedure RecordUndo(const UndoComment: String;
-      const UndoCommentPriority: Integer; const ItemIndex: Integer = -1);
+      const UndoCommentPriority: TUndoCommentPriority; const ItemIndex: Integer = -1);
 
     procedure CurrentComponentApiUrl(var Url: String);
   end;
@@ -610,9 +610,9 @@ begin
     begin
       Sel := Frame.GetSelectedComponent;
       if Sel <> nil then
-        Frame.RecordUndo('Drag''n''drop ' + Sel.Name, HighUndoPriority)
+        Frame.RecordUndo('Drag''n''drop ' + Sel.Name, ucHigh)
       else
-        Frame.RecordUndo('Drag''n''drop', HighUndoPriority);
+        Frame.RecordUndo('Drag''n''drop', ucHigh);
     end;
   end;
 end;
@@ -733,7 +733,7 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
       to avoid recording Undo on every user Motion event.
       In this case UndoComment and UndoPriority do not matter,
       they will be replaced by appropriate values on Release. }
-    Frame.ModifiedOutsideObjectInspector('', LowUndoPriority, true); // UndoComment doesn't matter here
+    Frame.ModifiedOutsideObjectInspector('', ucLow, true); // UndoComment doesn't matter here
   end;
 
   function ResizingCursor(const H: THorizontalPosition;
@@ -1196,7 +1196,7 @@ begin
 
   OpenDesign(NewDesignRoot, NewDesignOwner, NewDesignUrl);
 
-  RecordUndo('Open design', HighestUndoPriority); // Technically this is impossible to see this Undo comment
+  RecordUndo('Open design', ucHighest); // Technically this is impossible to see this Undo comment
 end;
 
 function TDesignFrame.FormCaption: String;
@@ -1242,7 +1242,7 @@ var
   begin
     UpdateDesign;
     SelectedComponent := NewComponent; // select after adding, makes it natural to edit
-    ModifiedOutsideObjectInspector('Add ' + NewComponent.Name + ' to ' + ParentComponent.Name, HighUndoPriority);
+    ModifiedOutsideObjectInspector('Add ' + NewComponent.Name + ' to ' + ParentComponent.Name, ucHigh);
   end;
 
   procedure AddTransform(const ParentComponent: TCastleTransform);
@@ -1397,7 +1397,7 @@ begin
 
       { call this after UpdateDesign, otherwise tree is not ready,
         and events caused by ModifiedOutsideObjectInspector may expect it is. }
-      ModifiedOutsideObjectInspector('Delete ' + UndoSummary, HighUndoPriority);
+      ModifiedOutsideObjectInspector('Delete ' + UndoSummary, ucHigh);
     end;
   finally FreeAndNil(Selected) end;
 end;
@@ -1423,7 +1423,7 @@ procedure TDesignFrame.PasteComponent;
   begin
     UpdateDesign;
     SelectedComponent := NewComponent; // select after adding, makes it natural to edit
-    ModifiedOutsideObjectInspector('Paste ' + NewComponent.Name, HighUndoPriority);
+    ModifiedOutsideObjectInspector('Paste ' + NewComponent.Name, ucHigh);
   end;
 
 var
@@ -1490,7 +1490,7 @@ procedure TDesignFrame.DuplicateComponent;
     OldComponentName := SelectedComponent.Name;
     UpdateDesign;
     SelectedComponent := NewComponent; // select after adding, makes it natural to edit
-    ModifiedOutsideObjectInspector('Duplicate ' + OldComponentName + '->' + NewComponent.Name, HighUndoPriority);
+    ModifiedOutsideObjectInspector('Duplicate ' + OldComponentName + '->' + NewComponent.Name, ucHigh);
   end;
 
   procedure DuplicateUserInterface(const Selected: TCastleUserInterface);
@@ -1776,7 +1776,7 @@ begin
   begin
     UpdateDesign;
     //WritelnWarning('CGE needed to explicitly tell editor to refresh hierarchy');
-    ModifiedOutsideObjectInspector('', LowUndoPriority);
+    ModifiedOutsideObjectInspector('', ucLow);
   end;
 end;
 
@@ -1813,14 +1813,14 @@ begin
   { Same comment as in Apply Drag:
     UndoOnRelease = true here means that we don't record the actual undo
     but defer it to GizmoStopDrag event }
-  ModifiedOutsideObjectInspector('', LowUndoPriority, true); // UndoComment doesn't matter here
+  ModifiedOutsideObjectInspector('', ucLow, true); // UndoComment doesn't matter here
 end;
 
 procedure TDesignFrame.GizmoStopDrag(Sender: TObject);
 begin
   if UndoSystem.ScheduleRecordUndoOnRelease then
     RecordUndo('Transform ' + (Sender as TVisualizeTransform).Parent.Name +
-      ' with Gizmo', HighUndoPriority);
+      ' with Gizmo', ucHigh);
 end;
 
 procedure TDesignFrame.InspectorBasicFilter(Sender: TObject;
@@ -1859,7 +1859,7 @@ begin
   begin
     UpdateDesign; // Something has changed, but we don't know what exactly. Maybe it's some component's name? Let's rebuild everything to be safe
     //if not UndoSystem.ScheduleRecordUndoOnRelease then // We don't care here, this situation is an error, so we're saving what we can
-    RecordUndo('', LowUndoPriority); // We're recording a generic Undo message
+    RecordUndo('', ucLow); // We're recording a generic Undo message
     Exit;
   end;
   // This knows we have selected *at least one* component.
@@ -1899,16 +1899,16 @@ begin
         SenderRowDescription := 'Change ' + Sel.Name + '.' + SenderRowName + ' to ' + SenderRowValue
       else
         SenderRowDescription := 'Change ' + Sel.Name + '.' + SenderRowName;
-      RecordUndo(SenderRowDescription, HighUndoPriority, TOICustomPropertyGrid(Sender).ItemIndex);
+      RecordUndo(SenderRowDescription, ucHigh, TOICustomPropertyGrid(Sender).ItemIndex);
     end else
-      RecordUndo('Modify ' + Sel.Name, LowUndoPriority);
+      RecordUndo('Modify ' + Sel.Name, ucLow);
   end;
 
   MarkModified;
 end;
 
 procedure TDesignFrame.RecordUndo(const UndoComment: String;
-  const UndoCommentPriority: Integer; const ItemIndex: Integer = -1);
+  const UndoCommentPriority: TUndoCommentPriority; const ItemIndex: Integer = -1);
 var
   StartTimer: TTimerResult;
   SelectedName: String;
@@ -2217,7 +2217,7 @@ begin
     Sel := TComponent(Node.Data);
     UndoComment := 'Rename ' + Sel.Name + ' into ' + Node.Text;
     Sel.Name := Node.Text;
-    ModifiedOutsideObjectInspector(UndoComment, HighUndoPriority); // It'd be good if we set "ItemIndex" to index of "name" field, but there doesn't seem to be an easy way to
+    ModifiedOutsideObjectInspector(UndoComment, ucHigh); // It'd be good if we set "ItemIndex" to index of "name" field, but there doesn't seem to be an easy way to
   finally
     { This method must set Node.Text, to cleanup after ControlsTreeEditing + user editing.
       - If the name was correct, then "Sel.Name := " goes without exception, 
@@ -2293,7 +2293,7 @@ begin
       (RenderRectBeforeChange.Bottom - NewRect.Bottom) / UI.UIScale;
   end;
 
-  ModifiedOutsideObjectInspector('', LowUndoPriority);
+  ModifiedOutsideObjectInspector('', ucLow);
 end;
 
 procedure TDesignFrame.ControlsTreeEndDrag(Sender, Target: TObject; X,
@@ -2350,7 +2350,7 @@ var
       tnsBottom, tnsTop: DestinationName := TComponent(Dst.Parent.Data).Name;
     end;
     ModifiedOutsideObjectInspector('Drag''n''drop ' + SrcComponent.Name + ' into ' +
-      DestinationName, HighUndoPriority);
+      DestinationName, ucHigh);
   end;
 
   { Does Parent contains PotentialChild, searching recursively.
@@ -2574,7 +2574,7 @@ begin
   begin
     UI.HorizontalAnchorDelta := 0;
     UI.VerticalAnchorDelta := 0;
-    ModifiedOutsideObjectInspector('Clear anchor deltas for ' + UI.Name, HighUndoPriority);
+    ModifiedOutsideObjectInspector('Clear anchor deltas for ' + UI.Name, ucHigh);
   end;
 end;
 
@@ -2586,7 +2586,7 @@ begin
   if T <> nil then
   begin
     T.Identity;
-    ModifiedOutsideObjectInspector('Reset transformations for ' + T.Name, HighUndoPriority);
+    ModifiedOutsideObjectInspector('Reset transformations for ' + T.Name, ucHigh);
   end;
 end;
 
@@ -2710,7 +2710,7 @@ var
 begin
   V := SelectedViewport;
   V.Setup2D;
-  ModifiedOutsideObjectInspector('Camera Setup for 2D View and Projection for ' + V.Name, HighUndoPriority);
+  ModifiedOutsideObjectInspector('Camera Setup for 2D View and Projection for ' + V.Name, ucHigh);
 end;
 
 procedure TDesignFrame.MenuItemViewportCameraCurrentFromInitialClick(
@@ -2723,7 +2723,7 @@ begin
     V.Camera.InitialPosition,
     V.Camera.InitialDirection,
     V.Camera.InitialUp);
-  ModifiedOutsideObjectInspector('Camera Current := Initial for ' + V.Name, HighUndoPriority);
+  ModifiedOutsideObjectInspector('Camera Current := Initial for ' + V.Name, ucHigh);
 end;
 
 procedure TDesignFrame.MenuItemViewportCameraViewAllClick(Sender: TObject);
@@ -2763,7 +2763,7 @@ begin
     // Makes Examine camera pivot, and scroll speed, adjust to sizes
     V.Navigation.ModelBox := Box;
 
-  ModifiedOutsideObjectInspector('Camera Current := View All for ' + V.Name, HighUndoPriority);
+  ModifiedOutsideObjectInspector('Camera Current := View All for ' + V.Name, ucHigh);
 end;
 
 procedure TDesignFrame.MenuItemViewportCameraSetInitialClick(Sender: TObject);
@@ -2777,7 +2777,7 @@ begin
   V.Camera.SetInitialView(APos, ADir, AUp, false);
   V.AutoCamera := false;
 
-  ModifiedOutsideObjectInspector('Camera Initial := Current for ' + V.Name, HighUndoPriority);
+  ModifiedOutsideObjectInspector('Camera Initial := Current for ' + V.Name, ucHigh);
 end;
 
 procedure TDesignFrame.MenuItemViewportSort2DClick(Sender: TObject);
@@ -2789,7 +2789,7 @@ begin
   V.Items.SortBackToFront2D;
 
   UpdateDesign; // make the tree reflect new order
-  ModifiedOutsideObjectInspector('Sort Items for Correct 2D Blending for ' + V.Name, HighUndoPriority);
+  ModifiedOutsideObjectInspector('Sort Items for Correct 2D Blending for ' + V.Name, ucHigh);
 end;
 
 {
@@ -2842,7 +2842,7 @@ begin
     SelectedUserInterface := NewNavigation
   else
     SelectedUserInterface := V;
-  ModifiedOutsideObjectInspector('Change Viewport Navigation for ' + V.Name, HighUndoPriority);
+  ModifiedOutsideObjectInspector('Change Viewport Navigation for ' + V.Name, ucHigh);
 end;
 
 procedure TDesignFrame.MenuViewportNavigationNoneClick(Sender: TObject);
@@ -3012,7 +3012,7 @@ begin
 end;
 
 procedure TDesignFrame.ModifiedOutsideObjectInspector(const UndoComment: String;
-  const UndoCommentPriority: Integer; const UndoOnRelease: Boolean = false);
+  const UndoCommentPriority: TUndoCommentPriority; const UndoOnRelease: Boolean = false);
 var
   InspectorType: TInspectorType;
 begin
@@ -3058,7 +3058,7 @@ begin
 
   OpenDesign(NewRoot, NewDesignOwner, '');
 
-  RecordUndo('Start new design', HighestUndoPriority); // This Undo comment is never seen
+  RecordUndo('Start new design', ucHighest); // This Undo comment is never seen
 end;
 
 initialization

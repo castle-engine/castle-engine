@@ -11,12 +11,19 @@ uses
   Classes, Generics.Collections,
   CastleUtils;
 
-const
-  { Higher priority can overwrite comment for lower priority undo records.
-    Currently we have only three levels, more can be added if needed. }
-  LowUndoPriority = 0;
-  HighUndoPriority = 1;
-  HighestUndoPriority = MaxInt;
+type
+  TUndoCommentPriority = (
+    { Low priority comments will get overwritten by a higher priority comments
+      which correspond to a more specific description of what has happened,
+      but are not always available. }
+    ucLow = 0,
+    { High priority comments usually describe what exactly happened
+      and should overwrite less specific comments. }
+    ucHigh = 1,
+    { Highest priority comments should never be overwritten.}
+    ucHighest = 31
+    );
+
 
 type
   { Content of the Undo record.
@@ -69,7 +76,7 @@ type
       This is required because often we receive several identical undo records
       for the same user action, some of them may have a "better" (i.e. more specific) comment
       which should overwrite the previous (or following) less specific comments. }
-    CurrentUndoCommentPriority: Integer;
+    CurrentUndoCommentPriority: TUndoCommentPriority;
     { All undo records in this session. }
     UndoHistory: TUndoHistory;
     { Calculates total size of RAM used by the Undo History. }
@@ -90,7 +97,7 @@ type
       If the new Undo record is equal to the recorded one then nothing will be recorded. }
     procedure RecordUndo(const UndoData: TUndoData; const SelectedComponent: TSelectedComponent;
       const ItemIndex: Integer; const TabIndex: Integer; const UndoComment: String;
-      const UndoCommentPriority: Integer);
+      const UndoCommentPriority: TUndoCommentPriority);
     { Get a recent state change and move one step backwards in Undo History. }
     function Undo: TUndoHistoryElement;
     { Get a state change following current state and move one step fowrard in Undo History. }
@@ -152,7 +159,7 @@ end;
 
 procedure TUndoSystem.RecordUndo(const UndoData: TUndoData; const SelectedComponent: TSelectedComponent;
   const ItemIndex: Integer; const TabIndex: Integer; const UndoComment: String;
-  const UndoCommentPriority: Integer);
+  const UndoCommentPriority: TUndoCommentPriority);
 var
   NewUndoElement: TUndoHistoryElement;
   NewUndoHistorySize: Integer;
@@ -166,7 +173,7 @@ begin
       UndoHistory[CurrentUndo].Selected := SelectedComponent;
       OnUpdateUndo(Self);
     end;
-    if (UndoCommentPriority > CurrentUndoCommentPriority) then
+    if (Ord(UndoCommentPriority) > Ord(CurrentUndoCommentPriority)) then
     begin
       WriteLnLog('Overwriting previous Undo recrod "' + UndoHistory[CurrentUndo].Comment +
         '" with a higher priority comment: "' + UndoComment + '".');
@@ -217,7 +224,7 @@ begin
     WriteLnLog('Performing Undo from ' + IntToStr(CurrentUndo) + ' to ' + IntToStr(CurrentUndo - 1));
     Dec(CurrentUndo);
     Result := UndoHistory[CurrentUndo];
-    CurrentUndoCommentPriority := HighestUndoPriority; // Whatever happens next this Undo record cannot be overwritten
+    CurrentUndoCommentPriority := ucHighest; // Whatever happens next this Undo record cannot be overwritten
     OnUpdateUndo(Self);
   end else
     raise EInternalError.Create('Undo was requested but undo is not possible');
@@ -231,7 +238,7 @@ begin
     WriteLnLog('Performing Redo from ' + IntToStr(CurrentUndo) + ' to ' + IntToStr(CurrentUndo + 1));
     Inc(CurrentUndo);
     Result := UndoHistory[CurrentUndo];
-    CurrentUndoCommentPriority := HighestUndoPriority; // Whatever happens next this Undo record cannot be overwritten
+    CurrentUndoCommentPriority := ucHighest; // Whatever happens next this Undo record cannot be overwritten
     OnUpdateUndo(Self);
   end else
     raise EInternalError.Create('Redo was requested but redo is not possible');
@@ -276,7 +283,7 @@ begin
   ScheduleRecordUndoOnRelease := false;
   UndoHistory.Clear;
   CurrentUndo := -1;
-  CurrentUndoCommentPriority := HighestUndoPriority; // Just for consistency
+  CurrentUndoCommentPriority := ucHighest; // Just for consistency
   if Assigned(OnUpdateUndo) then
     OnUpdateUndo(Self);
   WriteLnLog('Clearing Undo hisotry.');
