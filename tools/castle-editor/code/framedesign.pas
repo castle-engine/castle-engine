@@ -1237,8 +1237,6 @@ var
   SelectedCount: Integer;
   ParentComponent: TComponent;
 begin
-  if ControlsTree.Selected <> nil then
-    ControlsTree.Selected.EndEdit(true);
   // calculate ParentComponent
   GetSelected(Selected, SelectedCount);
   try
@@ -1293,6 +1291,11 @@ function TDesignFrame.AddComponent(const ParentComponent:TComponent; const Compo
   end;
 
 begin
+  { Cancel editing the component name, when adding a component.
+    See https://trello.com/c/IC6NQx0X/59-bug-adding-a-component-to-a-component-that-is-being-currently-renamed-triggers-and-exception . }
+  if ControlsTree.Selected <> nil then
+    ControlsTree.Selected.EndEdit(true);
+
   if ParentComponent is TCastleUserInterface then
   begin
     Exit(AddUserInterface(ParentComponent as TCastleUserInterface));
