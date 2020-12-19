@@ -1820,6 +1820,7 @@ var
   RayHit: TRayCollision;
   Distance: Single;
   OldPickable: Boolean;
+  PlaneZ: Single;
 begin
   if Source is TCastleShellListView then
   begin
@@ -1849,28 +1850,28 @@ begin
     finally
       VisualizeTransformSelected.Pickable := OldPickable;
     end;
-    if RayHit <> nil then
+    if (RayHit = nil) and (Viewport.Camera.ProjectionType = ptOrthographic) then
     begin
-      Distance := RayHit.Distance;
-      FreeAndNil(RayHit);
+      PlaneZ := (Viewport.Camera.EffectiveProjectionNear + Viewport.Camera.EffectiveProjectionFar) / 2;
+      if not TrySimplePlaneRayIntersection(ScenePos, 2, PlaneZ, RayOrigin, RayDirection) then
+        Exit; // camera direction parallel to 3D plane with Z = constant
     end else
     begin
-      // if we don't hit any other scene set Distance to default
-      if Viewport.Camera.ProjectionType = ptOrthographic then
+      if RayHit <> nil then
       begin
-        // use camera position for 2D (minimum 100 distance)
-        if Viewport.Camera.Position.Z > 100 then
-          Distance := Viewport.Camera.Position.Z
-        else
-          Distance := 100;
+        Distance := RayHit.Distance;
+        FreeAndNil(RayHit);
       end else
-        Distance := 20;
-    end;
-    ScenePos := RayOrigin + (RayDirection * Distance);
+      begin
+        { If we don't hit any other scene set Distance to default value. }
+        Distance := 10;
+      end;
+      ScenePos := RayOrigin + (RayDirection * Distance);
 
-    { In case of 2D game move scene a little closser to camera }
-    if Viewport.Camera.ProjectionType = ptOrthographic then
-      ScenePos := ScenePos - Viewport.Camera.Direction;
+      { In case of 2D game move scene a little closser to camera }
+      if Viewport.Camera.ProjectionType = ptOrthographic then
+        ScenePos := ScenePos - Viewport.Camera.Direction;
+    end;
 
     Scene.Translation := ScenePos;
   end;
