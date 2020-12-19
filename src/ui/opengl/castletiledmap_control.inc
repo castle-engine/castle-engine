@@ -244,14 +244,14 @@ var
   { Prepare and render TiledObject polyline and polygon. }
   procedure RenderPolylinePolygon;
   var
-    i: Cardinal;
+    I: Cardinal;
   begin
     { Prepare points for DrawPrimitive2D function. Convert from vector list
       to array of vectors. }
     SetLength(TiledObjPoints, TiledObj.Points.Count);
-    for i := 0 to High(TiledObjPoints) do
+    for I := 0 to High(TiledObjPoints) do
     begin
-      ConvertAndScalePoints(i, i);
+      ConvertAndScalePoints(I, I);
     end;
 
     { If TiledObject is a polygon, for rendering of last line, a point has to be
