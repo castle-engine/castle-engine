@@ -122,6 +122,8 @@ type
         Image: TImage;
         constructor Create;
         destructor Destroy; override;
+        { X and Y packed in a vector. }
+        function Position: TVector2;
       end;
 
       TTiledObjectList = specialize TObjectList<TTiledObject>;
@@ -150,6 +152,8 @@ type
         Height: Integer;
         constructor Create;
         destructor Destroy; override;
+        { OffsetX and OffsetY packed in a vector. }
+        function Offset: TVector2;
       end;
 
       TObjectGroupLayer = class(TLayer)
@@ -806,6 +810,11 @@ begin
   finally FreeAndNil(I) end;
 end;
 
+function TTiledMap.TTiledObject.Position: TVector2;
+begin
+  Result := Vector2(X, Y);
+end;
+
 { TLayer ------------------------------------------------------------------- }
 
 constructor TTiledMap.TLayer.Create;
@@ -853,6 +862,11 @@ begin
       end;
     end;
   finally FreeAndNil(I) end;
+end;
+
+function TTiledMap.TLayer.Offset: TVector2;
+begin
+  Result := Vector2(OffsetX, OffsetY);
 end;
 
 { TObjectGroupLayer ---------------------------------------------------------- }

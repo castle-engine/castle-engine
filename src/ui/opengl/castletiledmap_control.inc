@@ -224,16 +224,18 @@ var
   TiledObj: TTiledMap.TTiledObject;   // one TiledObject
   TiledObjPoints: array of TVector2;  // holds points of TiledObject as array of TVector2
 
-  function ScaleX: Single;
+  { Transform point from Tiled position to our render position.
+    This is similar to TCastleTiledMapControl.TileRectangle, but works only for simple point. }
+  function RenderPosition(V: TVector2; const ScreenCoordinates: Boolean = true): TVector2;
   begin
-    { Denominator corresponds to width of object layer in pixels. }
-    Result := RenderRect.Width / (Map.Width * Map.TileWidth);
-  end;
-
-  function ScaleY: Single;
-  begin
-    { Denominator corresponds to height of object layer in pixels. }
-    Result := RenderRect.Height / (Map.Height * Map.TileHeight);
+    V.Y := Map.Height * Map.TileHeight - V.Y; // convert to be relative to bottom
+    // Apply Origin and Scale
+    Result := (V - Origin) * Scale;
+    if ScreenCoordinates then
+    begin
+      // Apply UIScale and RenderRect (anchors etc.) to honor standard TCastleUserInterface conventions
+      Result := (Result * UIScale) + RenderRect.LeftBottom;
+    end;
   end;
 
   { Converts all TVector2's from a TVector2List to and array of TVector2.
@@ -241,13 +243,8 @@ var
     in the list. }
   procedure ConvertAndScalePoints(const ArrIndex, ListIndex: Cardinal);
   begin
-    { Convert and scale X coordinates. }
-    TiledObjPoints[ArrIndex].X := RenderRect.Left + ScaleX *
-      (Lay.OffsetX + TiledObj.X + TiledObj.Points.Items[ListIndex].X);
-    { Convert and scale Y coordinates and change ref. system (top-left
-      origin to bottom-left origin). }
-    TiledObjPoints[ArrIndex].Y := RenderRect.Top - ScaleY *
-      (Lay.OffsetY + TiledObj.Y + TiledObj.Points.Items[ListIndex].Y);
+    TiledObjPoints[ArrIndex] := RenderPosition(
+      TiledObj.Points.Items[ListIndex] + TiledObj.Position + Lay.Offset);
   end;
 
   { Prepare and render TiledObject polyline and polygon. }
@@ -267,7 +264,7 @@ var
       added manually to close the polygon. }
     if TiledObj.Primitive = topPolygon then
     begin
-      SetLength(TiledObjPoints, TiledObj.Points.Count+1);
+      SetLength(TiledObjPoints, TiledObj.Points.Count + 1);
       ConvertAndScalePoints(High(TiledObjPoints), 0);
     end;
 
@@ -278,13 +275,11 @@ var
 
   procedure RenderPoint;
   var
-    TiledObjPoint: array[0..0] of TVector2;   // array with 1 element
+    TiledObjPoint: array [0..0] of TVector2;   // array with 1 element
   begin
     { Prepare point. }
-    TiledObjPoint[0].X := RenderRect.Left + ScaleX *
-      (Lay.OffsetX + TiledObj.X);
-    TiledObjPoint[0].Y := RenderRect.Top - ScaleY *
-      (Lay.OffsetY + TiledObj.Y);
+    TiledObjPoint[0] := RenderPosition(Lay.Offset + TiledObj.Position);
+
     { Draw point TiledObject. }
     DrawPrimitive2D(pmPoints, TiledObjPoint, Orange, bsSrcAlpha,
       bdOneMinusSrcAlpha, false, 1, 1);
@@ -293,15 +288,18 @@ var
   procedure RenderRectangle;
   var
     TiledObjRect: TFloatRectangle;
+    LeftBottom, RightTop: TVector2;
   begin
-    { Prepare rectangle. }
-    TiledObjRect.Left := RenderRect.Left + ScaleX *
-      (Lay.OffsetX + TiledObj.X);
-    TiledObjRect.Width := ScaleX * TiledObj.Width;
-
-    TiledObjRect.Bottom := RenderRect.Top - ScaleY *
-      (Lay.OffsetY + TiledObj.Y + TiledObj.Height);
-    TiledObjRect.Height := ScaleY * TiledObj.Height;
+    { Prepare rectangle.
+      The "Lay.Offset + TiledObj.Position" indicates left-top corner of the rectangle in Tiled. }
+    LeftBottom := RenderPosition(Lay.Offset + TiledObj.Position + Vector2(0, TiledObj.Height));
+    RightTop := RenderPosition(Lay.Offset + TiledObj.Position + Vector2(TiledObj.Width, 0));
+    TiledObjRect := FloatRectangle(
+      LeftBottom.X,
+      LeftBottom.Y,
+      RightTop.X - LeftBottom.X,
+      RightTop.Y - LeftBottom.Y
+    );
 
     { Draw rectangle TiledObject. }
     DrawRectangleOutline(TiledObjRect, Orange, 1, bsSrcAlpha,
