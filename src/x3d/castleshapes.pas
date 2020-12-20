@@ -93,9 +93,8 @@ type
     { X3D shape node of this triangle. May be @nil in case of VRML 1.0. }
     function ShapeNode: TAbstractShapeNode;
 
-    { X3D material node of this triangle. May be @nil in case material is not set,
-      or is VRML 1.0 node, or is TCommonSurfaceShaderNode,
-      or is TTwoSidedMaterialNode. }
+    { X3D material node of this triangle. May be @nil in case material is not set
+      or has a different class than one-sided Phong TMaterialNode. }
     function Material: TMaterialNode; deprecated 'use MaterialInfo';
     function MaterialNode: TMaterialNode; deprecated 'use MaterialInfo';
 
@@ -105,7 +104,7 @@ type
       (which indicates white unlit look).
 
       Returned TMaterialInfo is valid only as long as the underlying
-      node (Material, TwoSidedMaterial, CommonSurfaceShader) exists.
+      node (TMaterialNode, TPhysicalMaterialNode, TUnlitMaterialNode, TCommonSurfaceShaderNode...) exists.
       Do not free it yourself, it will be automatically freed. }
     function MaterialInfo: TMaterialInfo;
 
