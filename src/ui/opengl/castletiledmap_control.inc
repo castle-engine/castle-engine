@@ -223,20 +223,29 @@ var
   Lay: TTiledMap.TLayer;              // ObjectGroupLayer
   TiledObj: TTiledMap.TTiledObject;   // one TiledObject
   TiledObjPoints: array of TVector2;  // holds points of TiledObject as array of TVector2
-  ScaleX, ScaleY: Single;
+
+  function ScaleX: Single;
+  begin
+    { Denominator corresponds to width of object layer in pixels. }
+    Result := RenderRect.Width / (Map.Width * Map.TileWidth);
+  end;
+
+  function ScaleY: Single;
+  begin
+    { Denominator corresponds to height of object layer in pixels. }
+    Result := RenderRect.Height / (Map.Height * Map.TileHeight);
+  end;
 
   { Converts all TVector2's from a TVector2List to and array of TVector2.
     ArrIndex is the index of a TVector2 in the array, ListIndex is the TVector2
     in the list. }
-  procedure ConvertAndScalePoints(ArrIndex, ListIndex: Cardinal);
+  procedure ConvertAndScalePoints(const ArrIndex, ListIndex: Cardinal);
   begin
     { Convert and scale X coordinates. }
-    ScaleX := RenderRect.Width / Width;
-    TiledObjPoints[ArrIndex].X := RenderRect.LeftBottom.X + ScaleX *
+    TiledObjPoints[ArrIndex].X := RenderRect.Left + ScaleX *
       (Lay.OffsetX + TiledObj.X + TiledObj.Points.Items[ListIndex].X);
     { Convert and scale Y coordinates and change ref. system (top-left
       origin to bottom-left origin). }
-    ScaleY := RenderRect.Height / Height;
     TiledObjPoints[ArrIndex].Y := RenderRect.Top - ScaleY *
       (Lay.OffsetY + TiledObj.Y + TiledObj.Points.Items[ListIndex].Y);
   end;
@@ -272,10 +281,8 @@ var
     TiledObjPoint: array[0..0] of TVector2;   // array with 1 element
   begin
     { Prepare point. }
-    ScaleX := RenderRect.Width / Width;
-    TiledObjPoint[0].X := RenderRect.LeftBottom.X + ScaleX *
+    TiledObjPoint[0].X := RenderRect.Left + ScaleX *
       (Lay.OffsetX + TiledObj.X);
-    ScaleY := RenderRect.Height / Height;
     TiledObjPoint[0].Y := RenderRect.Top - ScaleY *
       (Lay.OffsetY + TiledObj.Y);
     { Draw point TiledObject. }
@@ -288,12 +295,10 @@ var
     TiledObjRect: TFloatRectangle;
   begin
     { Prepare rectangle. }
-    ScaleX := RenderRect.Width / Width;
-    TiledObjRect.Left := RenderRect.LeftBottom.X + ScaleX *
+    TiledObjRect.Left := RenderRect.Left + ScaleX *
       (Lay.OffsetX + TiledObj.X);
     TiledObjRect.Width := ScaleX * TiledObj.Width;
 
-    ScaleY := RenderRect.Height / Height;
     TiledObjRect.Bottom := RenderRect.Top - ScaleY *
       (Lay.OffsetY + TiledObj.Y + TiledObj.Height);
     TiledObjRect.Height := ScaleY * TiledObj.Height;
