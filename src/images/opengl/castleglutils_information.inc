@@ -214,19 +214,6 @@ begin
     '  All extensions: ' +PChar(glGetString(GL_EXTENSIONS)) + NL +
     NL +
 
-    {$ifndef OpenGLES}
-    {$ifdef CASTLE_OBJFPC}
-    {$warnings off} // consciously initializing deprecated stuff, to keep it working
-    '-----------------------------' + NL +
-    'OpenGL utility (GLU) version:' + NL +
-    '  Version string: ' +gluGetString(GLU_VERSION) + NL +
-    VersionReport(GLUVersion) + NL +
-    '  Extensions: '+gluGetString(GLU_EXTENSIONS) + NL +
-    NL +
-    {$warnings on}
-    {$endif CASTLE_OBJFPC}
-    {$endif}
-
     '---------------------------' + NL +
     'Current buffers bit depths:' + NL +
     '  Color (red / green / blue / alpha): '

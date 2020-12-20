@@ -16,7 +16,10 @@ pipeline {
        According to https://github.com/jenkinsci/pipeline-model-definition-plugin/pull/110
        this should be supported. */
     CASTLE_ENGINE_PATH = "${WORKSPACE}"
-    PATH = "${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/"
+    CGE_INSTALL_PREFIX = "${CASTLE_ENGINE_PATH}/jenkins-installed/"
+    PATH = "${PATH}:${CGE_INSTALL_PREFIX}/bin/"
+    /* By default Lazarus wants to build with Carbon, which is 32-bit only and deprecated by Apple */
+    CASTLE_LAZBUILD_OPTIONS = "--widgetset=cocoa"
   }
   stages {
     stage('Info') {
@@ -29,9 +32,9 @@ pipeline {
     }
     stage('Build Tools') {
       steps {
-        sh 'rm -Rf installed/'
-        sh 'mkdir -p installed/'
-        sh 'make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/'
+        sh 'rm -Rf ${CGE_INSTALL_PREFIX}'
+        sh 'mkdir -p ${CGE_INSTALL_PREFIX}'
+        sh 'make clean tools install PREFIX=${CGE_INSTALL_PREFIX}'
       }
     }
     stage('Build Examples') {
@@ -49,11 +52,40 @@ pipeline {
         sh 'make clean test-fpmake'
       }
     }
+    stage('Build Lazarus Packages') {
+      steps {
+        sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS packages/castle_base.lpk'
+        sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS packages/castle_window.lpk'
+        sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS packages/castle_components.lpk'
+        sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS packages/alternative_castle_window_based_on_lcl.lpk'
+      }
+    }
+    stage('Build Editor') {
+      steps {
+        sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/code/castle_editor.lpi'
+        sh 'cd tools/castle-editor/ && macos/create_bundle.sh'
+        sh 'cp -R "tools/castle-editor/Castle Game Engine.app" ${CGE_INSTALL_PREFIX}/bin'
+      }
+    }
+    /* TODO: We use a custom method to create macOS package now,
+       only with sources + command-line tools (without editor),
+       instead of full way in ./tools/internal/pack_release/pack_release.sh .
+    */
+    stage('Package macOS') {
+      steps {
+        sh 'make clean'
+        // Make binaries packaged in bin/ (similar to official release), remove other leftovers from "make install"
+        sh 'rm -Rf bin/'
+        sh 'mv ${CGE_INSTALL_PREFIX}/bin bin'
+        sh 'rm -Rf ${CGE_INSTALL_PREFIX}'
+        sh 'tar -czv --exclude=.git -f castle-game-engine-macos.tar.gz .'
+      }
+    }
   }
   post {
-    //success {
-      /* archiveArtifacts artifacts: 'escape_universe-*.tar.gz,escape_universe-*.zip,escape_universe*.apk,web-story/test_escape_universe_story-*.zip,web-story/test_escape_universe_story-*.tar.gz' */
-    //}
+    success {
+      archiveArtifacts artifacts: 'castle-game-engine-macos.tar.gz'
+    }
     regression {
       mail to: 'michalis@castle-engine.io',
         subject: "[jenkins] Build started failing: ${currentBuild.fullDisplayName}",

@@ -106,7 +106,7 @@ var
 
 implementation
 
-uses LCLType, LCLIntf, CastleVectors, CastleBoxes, X3DNodes, CastleRenderer,
+uses LCLType, LCLIntf, CastleVectors, CastleBoxes, X3DNodes,
   CastleClassUtils, CastleUtils, X3DLoad, CastleURIUtils,
   CastleGLUtils, CastleSceneCore, CastleFilesUtils, CastleParameters,
   CastleApplicationProperties,

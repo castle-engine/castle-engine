@@ -243,7 +243,7 @@
 {$else}
   { In our "Delphi test mode", macros are disabled, just like in actual Delphi. }
   {$ifndef CASTLE_ENGINE_TEST_DELPHI_MODE}
-    {$define CastleGL := GL, GLU, GLExt}
+    {$define CastleGL := GL, GLExt}
   {$endif}
 {$endif}
 

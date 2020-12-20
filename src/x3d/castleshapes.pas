@@ -29,33 +29,10 @@ interface
 uses SysUtils, Classes, Generics.Collections,
   CastleVectors, CastleTransform, CastleBoxes, X3DNodes, CastleClassUtils,
   CastleUtils, CastleInternalTriangleOctree, CastleFrustum, CastleInternalOctree,
-  X3DTriangles, X3DFields, CastleGeometryArrays, CastleTriangles, CastleImages,
+  X3DTriangles, X3DFields, CastleInternalGeometryArrays, CastleTriangles, CastleImages,
   CastleMaterialProperties, CastleShapeInternalShadowVolumes;
 
-type
-  TShadowSampling = (ssSimple,
-
-    { Percentage Closer Filtering improve shadow maps look, by sampling
-      the depth map a couple of times. They also make shadow more blurry
-      (increase shadow map size to counteract this), and a little slower.
-      They may also introduce new artifacts (due to bad interaction
-      with the "polygon offset" of shadow map). }
-    ssPCF4, ssPCF4Bilinear, ssPCF16,
-
-    { Variance Shadow Maps, see http://www.punkuser.net/vsm/ .
-      This may generally produce superior
-      results, as shadow maps can be then filtered like normal textures
-      (bilinear, mipmaps, anisotropic filtering). So shadows look much nicer
-      from very close and very far distances.
-      However, this requires new GPU, and may cause artifacts on some scenes. }
-    ssVarianceShadowMaps);
-
 const
-  ShadowSamplingNames: array [TShadowSampling] of string =
-  ( 'Simple', 'PCF 4', 'PCF 4 Bilinear', 'PCF 16', 'Variance Shadow Maps (Experimental)' );
-
-  DefaultShadowSampling = ssPCF16;
-
   { }
   DefLocalTriangleOctreeMaxDepth = 10;
   { Default octree leaf capacity for TShape.OctreeTriangles.
@@ -273,7 +250,8 @@ type
         TShapeNode,
         TAbstractGeometryNode,
         TCoordinateNode (anything that can be inside TAbstractGeometryNode.CoordField),
-        TNormalNode (anything that can be inside TAbstractGeometryNode.CoordField),
+        TNormalNode (anything that can be inside TAbstractGeometryNode.NormalField),
+        TTangentNode (anything that can be inside TAbstractGeometryNode.TangentField),
         TColorNode, TColorRGBANode  (anything that can be inside TAbstractGeometryNode.ColorField),
         TMaterialNode (anything that can be in TShapeNode.Material),
         TTextureCoordinateNode and other stuff that can be inside TAbstractGeometryNode.InternalTexCoord,
@@ -1066,7 +1044,7 @@ implementation
 
 uses Generics.Defaults,
   CastleProgress, CastleSceneCore, CastleInternalNormals, CastleLog,
-  CastleStringUtils, CastleArraysGenerator, CastleURIUtils;
+  CastleStringUtils, CastleInternalArraysGenerator, CastleURIUtils;
 
 const
   UnknownTexCoord: TTriangle4 = (Data: (
@@ -1444,6 +1422,9 @@ begin
     if (AGeometry.NormalField <> nil) and
        (AGeometry.NormalField.Value <> nil) then
       AssociateNode(AGeometry.NormalField.Value);
+    if (AGeometry.TangentField <> nil) and
+       (AGeometry.TangentField.Value <> nil) then
+      AssociateNode(AGeometry.TangentField.Value);
     if (AGeometry.TexCoordField <> nil) and
        (AGeometry.TexCoordField.Value <> nil) and
        { TODO: This workarounds assertion failure in UnAssociateNode
@@ -1496,6 +1477,9 @@ begin
     if (AGeometry.NormalField <> nil) and
        (AGeometry.NormalField.Value <> nil) then
       UnAssociateNode(AGeometry.NormalField.Value);
+    if (AGeometry.TangentField <> nil) and
+       (AGeometry.TangentField.Value <> nil) then
+      UnAssociateNode(AGeometry.TangentField.Value);
     if (AGeometry.TexCoordField <> nil) and
        (AGeometry.TexCoordField.Value <> nil) and
        (not (AGeometry.TexCoordField.Value is TMultiTextureCoordinateNode)) then
@@ -1673,17 +1657,6 @@ var
   G: TAbstractGeometryNode;
   S: TX3DGraphTraverseState;
 
-  function MaterialOpacity: Single;
-  var
-    MatInfo: TMaterialInfo;
-  begin
-    MatInfo := S.MaterialInfo;
-    if MatInfo <> nil then
-      Result := MatInfo.Opacity
-    else
-      Result := 1;
-  end;
-
   procedure TexCoordsNeededForMapping(var Needed: Cardinal; const Mapping: String);
   var
     Index: Integer;
@@ -1816,7 +1789,6 @@ begin
     Generator := GeneratorClass.Create(Self, OverTriangulate);
     try
       Generator.TexCoordsNeeded := TexCoordsNeeded;
-      Generator.MaterialOpacity := MaterialOpacity;
       Generator.FacesNeeded := true;
       { Leave the rest of Generator properties as default }
       Result := Generator.GenerateArrays;
@@ -1952,7 +1924,8 @@ begin
   { When Proxy needs to be recalculated.
     Include chVisibleVRML1State, since even MaterialBinding may change VRML 1.0
     proxies. }
-  if Changes * [chCoordinate, chNormal, chVisibleVRML1State, chGeometryVRML1State,
+  if Changes * [chCoordinate, chNormal, chTangent,
+    chVisibleVRML1State, chGeometryVRML1State,
     chTextureCoordinate, chGeometry, chWireframe] <> [] then
     FreeProxy;
 

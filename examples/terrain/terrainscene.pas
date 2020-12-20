@@ -20,7 +20,7 @@ interface
 
 uses Classes,
   CastleVectors, CastleTerrain, CastleScene, X3DNodes, X3DFields,
-  CastleRendererBaseTypes;
+  CastleRenderOptions;
 
 type
   { Scene showing a terrain.

@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-function LoadIPL(Stream: TStream;
+function LoadIPL(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 { Implemented looking at iplab_read.m from
   http://www.graphics.cornell.edu/online/box/data.html . }

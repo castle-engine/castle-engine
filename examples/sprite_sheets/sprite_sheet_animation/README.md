@@ -1,6 +1,9 @@
 This is a demo of using `TSprite` class from Castle Game Engine
 to display an animation.
 
+**This approach to handling sprite sheets (using TSprite) is deprecated now.
+We instead advise to [load sprite sheets to TCastleScene](https://github.com/castle-engine/castle-engine/wiki/Sprite-sheets).**
+
 Sprite is an image that contains a series of animation frames,
 like "data/hero_animation/hero_sprite_sheet_60fps.png" here.
 You load such animation to TSprite, and render it using TSprite.Draw,
@@ -14,10 +17,9 @@ and then I combined these into one big image using the tool
 
 # Alternatives
 
-- An alternative approach for sprite animation in Castle Game Engine:
-
-  Convert them to X3D using Castle Game Engine tool `sprite-sheet-to-x3d`,
-  and then load, display and animate them using TCastle2DScene.
+- Express spite sheet animations in Starling or Cocos2d format,
+  and then load, display and animate them using TCastleScene.
+  See https://github.com/castle-engine/castle-engine/wiki/Sprite-sheets .
   See https://github.com/castle-engine/castle-engine/wiki/2D-Games
   for a discussion and comparison of these 2 approaches.
 
@@ -32,13 +34,14 @@ and then I combined these into one big image using the tool
   Using the sprite sheet results in faster rendering, since it's a single image
   for GPU.
 
-- Finally (and this is what you should normally use, if you designed
-  the animation in Spine) you can export the animation from Spine to
-  a JSON file, and load it using TCastle2DScene.Load into Castle Game Engine.
+- You can design the 2D animation in Spine (or Dragon Bones) and export it to Spine JSON.
+  Or you can design it in Blender, and export to glTF.
+
+  In either case, you get a smooth animation, using bones,
+  and can load it using TCastleScene.Load into Castle Game Engine.
 
   This is *the best approach for 2D animation*,
   that results in a perfectly smooth animation,
   without having a prerecorded number of images.
   But it requires preparing an animation as a "real" 2D or 3D animation format,
   not as a series of images.
-  You can do this in Spine, Dragon Bones, Blender etc.

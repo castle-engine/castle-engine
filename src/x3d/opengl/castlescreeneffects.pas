@@ -265,7 +265,7 @@ type
 
 implementation
 
-uses CastleUtils, CastleGLUtils, CastleLog, CastleRenderContext;
+uses CastleUtils, CastleGLUtils, CastleLog, CastleRenderContext, CastleRenderOptions;
 
 function ScreenEffectVertex: string;
 begin
@@ -329,7 +329,7 @@ begin
 
     { We create TCastleScene that is used only for rendering screen effects.
       This way we can make all "support" things for screen effects work,
-      e.g. textures will be initialized using CastleRenderer,
+      e.g. textures will be initialized using CastleInternalRenderer,
       TimeSensor will work and can be fed into shader uniform etc. }
     ScreenEffectsScene := TCastleScene.Create(Self);
     ScreenEffectsScene.Name := 'ScreenEffectsScene';

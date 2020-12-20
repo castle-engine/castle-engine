@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2018 Michalis Kamburelis.
+  Copyright 2009-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,18 +14,21 @@
 }
 
 { Sample implementation of "Dynamic ambient occlusion".
-  See README for descriptions and links.
+  See README.txt for descriptions and links.
 
-  Run with $1 = 3d model to open.
-  Navigate by mouse/keys like in view3dscene (see
-  https://castle-engine.io/view3dscene.php).
+  By default opens the "peach" model from data/ subdirectory.
+  You can pass on command-line URL of a different model to open,
+  like "castle-data:/chinchilla_awakens.x3dv".
 
-  Keys s / S scale shadow more / less (for more/less dramatic effect;
+  Navigate by mouse/keys like in view3dscene (see https://castle-engine.io/view3dscene.php).
+
+  Use keys s / S scale shadow more / less (for more/less dramatic effect;
   the default scale is anyway 2 times larger than what math suggests,
   to be more dramatic).
 }
 program dynamic_ambient_occlusion;
 
+{$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 {$I castleconf.inc}
 
 uses SysUtils, Classes, Math,
@@ -34,17 +37,19 @@ uses SysUtils, Classes, Math,
   CastleClassUtils, CastleUtils, CastleKeysMouse,
   CastleGLUtils, CastleSceneCore, CastleScene, CastleParameters,
   CastleFilesUtils, CastleStringUtils, CastleGLShaders, CastleShapes,
-  X3DFields, CastleImages, CastleGLImages, CastleMessages, CastleLog,
+  X3DFields, X3DNodes, CastleImages, CastleGLImages, CastleMessages, CastleLog,
   CastleGLVersion, CastleViewport, CastleRectangles, CastleApplicationProperties,
-  CastleRenderContext;
+  CastleRenderContext, CastleColors, CastleCameras,
+  SceneUtilities;
 
 type
-  TDrawType = (dtNormalGL, dtElements, dtElementsIntensity, dtPass1, dtPass2);
+  TDrawType = (dtNormal, dtElements, dtElementsIntensity, dtPass1, dtPass2);
 
 var
   Window: TCastleWindowBase;
 
   Scene: TCastleScene;
+  SceneElements: TCastleScene;
   GLSLProgram: array [0..1] of TGLSLProgram;
   DrawType: TDrawType = dtPass2;
 
@@ -170,7 +175,7 @@ procedure CalculateElements;
       for I := 0 to Coord.Count - 1 do
       begin
         ShapeElements[I].Position :=
-          Shape.State.Transform.MultPoint(Coord.Items.List^[I]);
+          Shape.State.Transformation.Transform.MultPoint(Coord.Items.List^[I]);
         ShapeElements[I].Normal := TVector3.Zero;
         ShapeElements[I].Area := 0;
       end;
@@ -261,20 +266,11 @@ begin
 
   Assert(ShapeIndex = Length(Shapes));
 
-  Writeln('Bad elements (vertexes with no neighbors) removed: ',
-    Elements.Count - GoodElementsCount, ', remaining good elements: ',
-    GoodElementsCount);
+  WritelnLog('Bad elements (vertexes with no neighbors) removed: %d, remaining good elements: %d', [
+    Elements.Count - GoodElementsCount,
+    GoodElementsCount
+  ]);
   Elements.Count := GoodElementsCount;
-
-{ Tests:
-
-  Writeln('Elements: ', Elements.Count);
-  for I := 0 to Elements.Count - 1 do
-  begin
-    Writeln('pos ', Elements.List^[I].Position.ToString,
-            ' nor ', Elements.List^[I].Normal.ToString,
-            ' area ', Elements.List^[I].Area:1:10);
-  end;}
 end;
 
 var
@@ -346,8 +342,11 @@ begin
   ElementsTexSize := 1 shl TexSizeExponent;
 
   Assert(Sqr(ElementsTexSize) >= Elements.Count);
-  Writeln('For elements ', Elements.Count,
-    ' we use texture size ', ElementsTexSize, '^2 = ', Sqr(ElementsTexSize), ' pixels');
+  WritelnLog('For elements %d we use texture size %d^2 = %d pixels', [
+    Elements.Count,
+    ElementsTexSize,
+    Sqr(ElementsTexSize)
+  ]);
 
   { calculate maximum area, which is just AreaScale }
   AreaScale := 0;
@@ -364,11 +363,12 @@ begin
     PositionShift[I] := Scene.BoundingBox.Data[0][I] / PositionScale[I];
   end;
 
-  Writeln('To squeeze area into texture we use area_scale = ', AreaScale:1:10);
-  Writeln('To squeeze positions into texture we use scale = ',
-    PositionScale.ToString, ' and shift ',
-    PositionShift.ToString, ' (bbox is ',
-    Scene.BoundingBox.ToString, ')');
+  WritelnLog('To squeeze area into texture we use area_scale = %f', [AreaScale]);
+  WritelnLog('To squeeze positions into texture we use scale = %s and shift %s (bbox is %s)', [
+    PositionScale.ToString,
+    PositionShift.ToString,
+    Scene.BoundingBox.ToString
+  ]);
 
   { initialize textures }
   FreeAndNil(ElementsPositionAreaTex);
@@ -442,12 +442,77 @@ begin
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 end;
 
-{ ---------------------------------------------------------------------------- }
+{ Callbacks handle ----------------------------------------------------------- }
 
 var
   FullRenderShape: TShape;
   FullRenderShapeInfo: PShapeInfo;
   FullRenderIntensityTex: TGrayscaleImage;
+
+type
+  THelper = class
+    class function VertexColor(
+      const Shape: TShape;
+      const VertexPosition: TVector3;
+      const VertexIndex: Integer): TCastleColorRGB;
+
+    class procedure SceneGeometryChanged(Scene: TCastleSceneCore;
+      const SomeLocalGeometryChanged: boolean;
+      OnlyShapeChanged: TShape);
+  end;
+
+class function THelper.VertexColor(
+  const Shape: TShape;
+  const VertexPosition: TVector3;
+  const VertexIndex: Integer): TCastleColorRGB;
+var
+  ElemIndex, I: Integer;
+  Intensity: Single;
+begin
+  if FullRenderShape <> Shape then
+  begin
+    FullRenderShape := Shape;
+    FullRenderShapeInfo := nil;
+    for I := 0 to Length(Shapes) - 1 do
+      if Shapes[I].Shape = Shape then
+      begin
+        FullRenderShapeInfo := @Shapes[I];
+        Break;
+      end;
+    Assert(FullRenderShapeInfo <> nil, 'Shape info not found');
+  end;
+
+  ElemIndex := FullRenderShapeInfo^.CoordToElement[VertexIndex];
+  if ElemIndex = -1 then
+    Result := TVector3.Zero { element invalid, probably separate vertex } else
+  begin
+    Intensity := FullRenderIntensityTex.Pixels[ElemIndex]/255;
+    Result.Data[0] := Intensity;
+    Result.Data[1] := Intensity;
+    Result.Data[2] := Intensity;
+  end;
+end;
+
+class procedure THelper.SceneGeometryChanged(Scene: TCastleSceneCore;
+  const SomeLocalGeometryChanged: boolean;
+  OnlyShapeChanged: TShape);
+var
+  OldElementsTexSize, OldElementsCount: Cardinal;
+begin
+  OldElementsTexSize := ElementsTexSize;
+  OldElementsCount := Elements.Count;
+
+  CalculateElements;
+  CalculateElementsTex;
+
+  if (OldElementsTexSize <> ElementsTexSize) or
+     (OldElementsCount <> Cardinal(Elements.Count)) then
+  begin
+    WritelnWarning('TODO: animation changed elements count / texture size. Shaders need to reinitialiazed.');
+  end;
+end;
+
+{ ---------------------------------------------------------------------------- }
 
 type
   TMyViewport = class(TCastleViewport)
@@ -456,61 +521,9 @@ type
 
 var
   Viewport: TMyViewport;
+  RectVbo: TGLuint;
 
 procedure TMyViewport.RenderFromView3D(const Params: TRenderParams);
-
-  { If ElementsIntensityTex = nil,
-    then all element discs will have the same glMaterial.
-
-    Otherwise, we will assign single glColor for each element,
-    using values from ElementsIntensityTex. }
-  procedure DoShowElements(ElementsIntensityTex: TGrayscaleImage);
-  var
-    I: Integer;
-    Q: PGLUQuadric;
-    NewX, NewY, NewZ: TVector3;
-    Radius: Float;
-    ElementIntensity: PByte;
-  begin
-    glPushAttrib(GL_ENABLE_BIT);
-      glEnable(GL_DEPTH_TEST);
-      glMaterialv(GL_FRONT_AND_BACK, GL_SPECULAR, Vector4(0, 0, 0, 1));
-
-      if ElementsIntensityTex = nil then
-      begin
-        glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4(1, 1, 0, 1));
-      end else
-      begin
-        ElementIntensity := ElementsIntensityTex.Pixels;
-      end;
-
-      Q := NewGLUQuadric(false, GLU_FLAT, GLU_OUTSIDE, GLU_FILL);
-
-      for I := 0 to Elements.Count - 1 do
-      begin
-        if ElementsIntensityTex <> nil then
-        begin
-          glColor3ub(ElementIntensity^, ElementIntensity^, ElementIntensity^);
-          Inc(ElementIntensity);
-        end;
-
-        glPushMatrix;
-          NewZ := Elements.List^[I].Normal;
-          NewX := AnyOrthogonalVector(NewZ);
-          NewY := TVector3.CrossProduct(NewZ, NewX);
-          glMultMatrix(TransformToCoordsMatrix(Elements.List^[I].Position,
-            NewX, NewY, NewZ));
-
-          { Area = Pi * Radius^2, so Radius := Sqrt(Area/Pi) }
-          Radius := Sqrt(Elements.List^[I].Area/Pi);
-          gluDisk(Q, 0, Radius, 8, 2);
-
-        glPopMatrix;
-      end;
-
-      gluDeleteQuadric(Q);
-    glPopAttrib;
-  end;
 
   function CaptureAORect(SizePower2: boolean): TGrayscaleImage;
   var
@@ -528,6 +541,41 @@ procedure TMyViewport.RenderFromView3D(const Params: TRenderParams);
   end;
 
   procedure RenderAORect;
+
+    { Use direct OpenGL(ES) calls to render rectangle with 2D projection.
+      This is a bit like DrawPrimitive2D implementation, but simplified to only
+      account for rectangle and for EnableFixedFunction = false case. }
+    procedure RenderRect(const Rect: TFloatRectangle);
+    var
+      Points: array [0..3] of TVector2;
+      UniformViewportSize: TGLSLUniform;
+      AttribVertex: TGLSLAttribute;
+    begin
+      Points[0] := Vector2(Rect.Left , Rect.Bottom);
+      Points[1] := Vector2(Rect.Right, Rect.Bottom);
+      Points[2] := Vector2(Rect.Right, Rect.Top);
+      Points[3] := Vector2(Rect.Left , Rect.Top);
+
+      if RectVbo = 0 then
+        glGenBuffers(1, @RectVbo);
+      glBindBuffer(GL_ARRAY_BUFFER, RectVbo);
+      glBufferData(GL_ARRAY_BUFFER, SizeOf(Points), @Points, GL_DYNAMIC_DRAW);
+
+      UniformViewportSize := RenderContext.CurrentProgram.Uniform('viewport_size');
+      AttribVertex := RenderContext.CurrentProgram.Attribute('vertex');
+
+      AttribVertex.EnableArray(0, 2, GL_FLOAT, GL_FALSE, SizeOf(TVector2), 0);
+      UniformViewportSize.SetValue(Vector2(
+        RenderContext.Viewport.Width,
+        RenderContext.Viewport.Height
+      ));
+
+      glDrawArrays(GL_TRIANGLE_FAN, 0, High(Points) + 1);
+
+      AttribVertex.DisableArray;
+      glBindBuffer(GL_ARRAY_BUFFER, 0);
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    end;
 
     procedure DoRender(Pass: Integer);
     begin
@@ -551,240 +599,135 @@ procedure TMyViewport.RenderFromView3D(const Params: TRenderParams);
       GLSLProgram[Pass].SetUniform('position_scale', PositionScale);
       GLSLProgram[Pass].SetUniform('position_shift', PositionShift);
 
-      if GLVersion.Fglrx then
-      begin
-        GLSLProgram[Pass].SetUniform('elements_count', TGLint(Elements.Count));
-        GLSLProgram[Pass].SetUniform('tex_elements_size', TGLint(ElementsTexSize));
-      end;
-
-      GLSLProgram[Pass].SetUniform('zero_5', 0.5);
-      { GLSLProgram[Pass].SetUniform('pi', Pi); <- not used now in shader }
       GLSLProgram[Pass].SetUniform('shadow_scale', ShadowScale);
 
-      { Render rectange with each pixel corresponding to one element
+      { Render rectangle with each pixel corresponding to one element
         that needs intensity calculated. }
-      glRecti(0, 0, ElementsTexSize,
-        DivRoundUp(Cardinal(Elements.Count), ElementsTexSize));
+      RenderRect(FloatRectangle(
+        0,
+        0,
+        ElementsTexSize,
+        DivRoundUp(Cardinal(Elements.Count), ElementsTexSize)
+      ));
 
       GLSLProgram[Pass].Disable;
     end;
 
-  var
-    SavedProjectionMatrix: TMatrix4;
   begin
-    SavedProjectionMatrix := RenderContext.ProjectionMatrix;
-    OrthoProjection(FloatRectangle(Window.Rect));
+    DoRender(0);
 
-    glPushMatrix;
+    if DrawType = dtPass2 then
+    begin
+      { Alternative way to copy texture through CPU:
+      var
+        ElementsIntensityTex: TGrayscaleImage;
+      ElementsIntensityTex := CaptureAORect(true);
+      LoadGLGeneratedTexture(GLElementsIntensityTex, ElementsIntensityTex,
+        GL_NEAREST, GL_NEAREST);}
 
-      glLoadIdentity;
-      DoRender(0);
+      { Capture result of 1st pass into GLElementsIntensityTex
+        using glCopyTexSubImage2D. Also, this BTW binds GLElementsIntensityTex
+        to GL_TEXTURE2 texture unit, used by DoRender(1). }
 
-      if DrawType = dtPass2 then
-      begin
-        { Alternative way to copy texture through CPU:
-        var
-          ElementsIntensityTex: TGrayscaleImage;
-        ElementsIntensityTex := CaptureAORect(true);
-        LoadGLGeneratedTexture(GLElementsIntensityTex, ElementsIntensityTex,
-          GL_NEAREST, GL_NEAREST);}
+      glActiveTexture(GL_TEXTURE2);
+      glBindTexture(GL_TEXTURE_2D, GLElementsIntensityTex);
+      glReadBuffer(GL_BACK);
+      glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0,
+        ElementsTexSize, ElementsTexSize);
 
-        { Capture result of 1st pass into GLElementsIntensityTex
-          using glCopyTexSubImage2D. Also, this BTW binds GLElementsIntensityTex
-          to GL_TEXTURE2 texture unit, used by DoRender(1). }
-
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, GLElementsIntensityTex);
-        glReadBuffer(GL_BACK);
-        glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0,
-          ElementsTexSize, ElementsTexSize);
-
-        DoRender(1);
-      end;
-
-    glPopMatrix;
-
-    RenderContext.ProjectionMatrix := SavedProjectionMatrix;
+      DoRender(1);
+    end;
   end;
 
-var
-  ElementsIntensityTex: TGrayscaleImage;
 begin
-  { RenderFromView3D must initialize some Params fields itself }
-  Params.InShadow := false;
-  Params.Frustum := @Params.RenderingCamera.Frustum;
-
-  case DrawType of
-    dtNormalGL:
-      begin
-        Params.Transparent := false; Params.ShadowVolumesReceivers := [false, true]; Scene.Render(Params);
-        Params.Transparent := true ; Params.ShadowVolumesReceivers := [false, true]; Scene.Render(Params);
-      end;
-    dtElements:
-      begin
-        glPushAttrib(GL_ENABLE_BIT or GL_LIGHTING_BIT);
-          glEnable(GL_LIGHTING);
-          glEnable(GL_LIGHT0);
-          DoShowElements(nil);
-        glPopAttrib;
-      end;
-    dtElementsIntensity:
-      begin
-        RenderAORect;
-        ElementsIntensityTex := CaptureAORect(false);
-        try
-          DoShowElements(ElementsIntensityTex);
-        finally FreeAndNil(ElementsIntensityTex) end;
-      end;
-    dtPass1, dtPass2:
-      begin
-        RenderAORect;
-        FullRenderIntensityTex := CaptureAORect(false);
-        try
-          FullRenderShape := nil;
-          Params.Transparent := false; Params.ShadowVolumesReceivers := [false, true]; Scene.Render(Params);
-          Params.Transparent := true ; Params.ShadowVolumesReceivers := [false, true]; Scene.Render(Params);
-        finally FreeAndNil(FullRenderIntensityTex) end;
-      end;
-  end;
-end;
-
-type
-  THelper = class
-    class procedure VertexColor(var Color: TVector3;
-      Shape: TShape; const VertexPosition: TVector3;
-      VertexIndex: Integer);
-
-    class procedure SceneGeometryChanged(Scene: TCastleSceneCore;
-      const SomeLocalGeometryChanged: boolean;
-      OnlyShapeChanged: TShape);
-  end;
-
-class procedure THelper.VertexColor(var Color: TVector3;
-  Shape: TShape; const VertexPosition: TVector3;
-  VertexIndex: Integer);
-var
-  ElemIndex, I: Integer;
-  Intensity: Single;
-begin
-  if FullRenderShape <> Shape then
+  if DrawType in [dtPass1, dtPass2] then
   begin
-    FullRenderShape := Shape;
-    FullRenderShapeInfo := nil;
-    for I := 0 to Length(Shapes) - 1 do
-      if Shapes[I].Shape = Shape then
-      begin
-        FullRenderShapeInfo := @Shapes[I];
-        Break;
-      end;
-    Assert(FullRenderShapeInfo <> nil, 'Shape info not found');
+    FreeAndNil(FullRenderIntensityTex); // free previous FullRenderIntensityTex
+
+    RenderAORect;
+    FullRenderIntensityTex := CaptureAORect(false);
+    FullRenderShape := nil;
+    SetSceneColors(Scene, @THelper(nil).VertexColor);
   end;
-
-  ElemIndex := FullRenderShapeInfo^.CoordToElement[VertexIndex];
-  if ElemIndex = -1 then
-    Color := TVector3.Zero { element invalid, probably separate vertex } else
-  begin
-    Intensity := FullRenderIntensityTex.Pixels[ElemIndex]/255;
-    Color.Data[0] := Color.Data[0] * Intensity;
-    Color.Data[1] := Color.Data[1] * Intensity;
-    Color.Data[2] := Color.Data[2] * Intensity;
-  end;
-end;
-
-class procedure THelper.SceneGeometryChanged(Scene: TCastleSceneCore;
-  const SomeLocalGeometryChanged: boolean;
-  OnlyShapeChanged: TShape);
-var
-  OldElementsTexSize, OldElementsCount: Cardinal;
-begin
-  OldElementsTexSize := ElementsTexSize;
-  OldElementsCount := Elements.Count;
-
-  CalculateElements;
-  CalculateElementsTex;
-
-  if (OldElementsTexSize <> ElementsTexSize) or
-     (OldElementsCount <> Cardinal(Elements.Count)) then
-  begin
-    Writeln('TODO: animation changed elements count / texture size. Shaders need to reinitialiazed.');
-  end;
+  inherited;
 end;
 
 { CastleWindow callbacks --------------------------------------------------------- }
 
 procedure Open(Container: TUIContainer);
-const
-  GLSLProgramBaseName = 'dynamic_ambient_occlusion';
-var
-  ShaderString: string;
-begin
-  { TODO: this demo uses specialized rendering
-    that currently assumes some fixed-function things set up. }
-  GLFeatures.EnableFixedFunction := true;
 
-  if (Elements.Count = 0) or
-     Scene.BoundingBox.IsEmpty then
+  procedure Error(const S: String);
   begin
     Window.Controls.Remove(Viewport); { do not try to render }
-    MessageOk(Window, 'No elements, or empty bounding box --- we cannot do dyn ambient occlusion. Exiting.');
+    MessageOk(Window, S);
     Window.Close;
+  end;
+
+var
+  FragmentShader, VertexShader: string;
+begin
+  if GLFeatures.Shaders = gsNone then
+  begin
+    Error('This GPU cannot handle dynamic ambient occlusion. GLSL shaders not supported.');
     Exit;
+  end;
+  if GLFeatures.EnableFixedFunction then
+  begin
+    Error('This GPU cannot handle dynamic ambient occlusion. Color.mode="MODULATE" does not work in fixed-function pipeline.');
+    Exit;
+  end;
+  if not GLFeatures.VertexBufferObject then
+  begin
+    Error('This GPU cannot handle dynamic ambient occlusion. We use direct OpenGL(ES) calls here that use VBO.');
+    Exit;
+  end;
+  if (Elements.Count = 0) or Scene.BoundingBox.IsEmpty then
+  begin
+    Error('Scene has no elements, or empty bounding box --- we cannot do dynamic ambient occlusion.');
+    Exit;
+  end;
+  if GLVersion.Fglrx then
+  begin
+    Error('This GPU cannot handle dynamic ambient occlusion. FGLRX implementation of GLSL had so many bugs that supporting it for this demo was very burdensome.');
   end;
 
   CalculateElementsTex;
 
+  FragmentShader := FileToString('castle-data:/shaders/dynamic_ambient_occlusion.fs');
+  VertexShader := FileToString('castle-data:/shaders/dynamic_ambient_occlusion.vs');
+
+  { Integer constants are really constant for the shader.
+    This allows OpenGL to optimize them more.
+    Especially important for $elements_count, since then the "for" loop
+    inside the shader can be unrolled.
+    Required e.g. by NVidia GPU "GeForce FX 5200/AGP/SSE2/3DNOW!" }
+  StringReplaceAllVar(FragmentShader, '$tex_elements_size', IntToStr(ElementsTexSize));
+  StringReplaceAllVar(FragmentShader, '$elements_count', IntToStr(Elements.Count));
+
   { initialize GLSL program }
   GLSLProgram[0] := TGLSLProgram.Create;
-
-  if GLFeatures.Shaders = gsNone then
-  begin
-    Window.Controls.Remove(Viewport); { do not try to render }
-    MessageOk(Window, 'Sorry, GLSL shaders not supported on your graphic card. Exiting.');
-    Window.Close;
-    Exit;
-  end;
-
-  ShaderString := FileToString(GLSLProgramBaseName + '.fs');
-
-  if GLVersion.Fglrx then
-  begin
-    StringReplaceAllVar(ShaderString,
-      '/*$defines*/',
-      '/*$defines*/' + NL + '#define FGLRX');
-  end else
-  begin
-    { Integer constants are really constant for the shader.
-      This allows OpenGL to optimize them more.
-      Especially important for $elements_count, since then the "for" loop
-      inside the shader can be unrolled.
-      Required e.g. by NVidia GPU "GeForce FX 5200/AGP/SSE2/3DNOW!" }
-    StringReplaceAllVar(ShaderString, '$tex_elements_size', IntToStr(ElementsTexSize));
-    StringReplaceAllVar(ShaderString, '$elements_count', IntToStr(Elements.Count));
-  end;
-
-  GLSLProgram[0].AttachFragmentShader(ShaderString);
+  GLSLProgram[0].AttachVertexShader(VertexShader);
+  GLSLProgram[0].AttachFragmentShader(FragmentShader);
   { For this test program, we eventually allow shader to run in software.
     We display debug info, so user should know what's going on. }
   GLSLProgram[0].Link;
   { Only warn on non-used uniforms. This is more comfortable for shader
     development, you can easily comment shader parts. }
   GLSLProgram[0].UniformNotFoundAction := uaWarning;
-  Writeln('----------------------------- Shader for 1st pass:');
-  Writeln(GLSLProgram[0].DebugInfo);
 
-  { Analogously, load GLSLProgram[1] (for 2nd pass). The only difference
-    is that we #define PASS_2 this time. }
-  StringReplaceAllVar(ShaderString,
+  WritelnLogMultiline('Shader for 1st pass', GLSLProgram[0].DebugInfo);
+
+  StringReplaceAllVar(FragmentShader,
     '/*$defines*/',
     '/*$defines*/' + NL + '#define PASS_2');
+
   GLSLProgram[1] := TGLSLProgram.Create;
-  GLSLProgram[1].AttachFragmentShader(ShaderString);
+  GLSLProgram[1].AttachVertexShader(VertexShader);
+  GLSLProgram[1].AttachFragmentShader(FragmentShader);
   GLSLProgram[1].UniformNotFoundAction := uaWarning;
   GLSLProgram[1].Link;
-  Writeln('----------------------------- Shader for 2nd pass:');
-  Writeln(GLSLProgram[1].DebugInfo);
 
-  Writeln('--------------------------------------------------');
+  WritelnLogMultiline('Shader for 2nd pass', GLSLProgram[1].DebugInfo);
 end;
 
 procedure Close(Container: TUIContainer);
@@ -817,7 +760,7 @@ var
 begin
   Result := TMenu.Create('Main menu');
   M := TMenu.Create('_Program');
-    Radio := TMenuItemRadio.Create('Draw _Normal OpenGL', 100, DrawType = dtNormalGL, true);
+    Radio := TMenuItemRadio.Create('Draw _Normal', 100, DrawType = dtNormal, true);
     RadioGroup := Radio.Group;
     M.Append(Radio);
 
@@ -829,11 +772,11 @@ begin
     Radio.Group := RadioGroup;
     M.Append(Radio);
 
-    Radio := TMenuItemRadio.Create('Draw Dynamic AO (only _1st pass)', 103, DrawType = dtPass1, true);
+    Radio := TMenuItemRadio.Create('Update and Draw Dynamic AO (only _1st pass)', 103, DrawType = dtPass1, true);
     Radio.Group := RadioGroup;
     M.Append(Radio);
 
-    Radio := TMenuItemRadio.Create('Draw Dynamic AO (_2 passes)', 104, DrawType = dtPass2, true);
+    Radio := TMenuItemRadio.Create('Update and Draw Dynamic AO (_2 passes)', 104, DrawType = dtPass2, true);
     Radio.Group := RadioGroup;
     M.Append(Radio);
 
@@ -846,39 +789,92 @@ begin
     Result.Append(M);
 end;
 
-procedure UpdateSceneAttribs;
-begin
-  case DrawType of
-    dtNormalGL:
-      begin
-        Scene.Attributes.OnVertexColor := nil;
-        Scene.Attributes.Lighting := true;
-      end;
-    dtPass1, dtPass2:
-      begin
-        Scene.Attributes.OnVertexColor := @THelper(nil).VertexColor;
-        Scene.Attributes.Lighting := false;
-      end;
-    { else they don't matter }
-  end;
-end;
-
 procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
+
+  { Update SceneElements contents.
+
+    If ElementsIntensityTex = nil,
+    then all element discs will have the same material.
+    Otherwise, we will assign a color for each element,
+    using values from ElementsIntensityTex. }
+  procedure UpdateElements(const ElementsIntensityTex: TGrayscaleImage);
+  var
+    RootNode: TX3DRootNode;
+    Mat: TUnlitMaterialNode;
+    Disk: TDisk2DNode;
+    DiskShape: TShapeNode;
+    DiskTransform: TTransformNode;
+    I: Integer;
+    ElementIntensity: PByte;
+  begin
+    RootNode := TX3DRootNode.Create;
+
+    if ElementsIntensityTex <> nil then
+      ElementIntensity := ElementsIntensityTex.Pixels;
+
+    for I := 0 to Elements.Count - 1 do
+    begin
+      Disk := TDisk2DNode.CreateWithTransform(DiskShape, DiskTransform);
+      { Area = Pi * Radius^2, so Radius := Sqrt(Area/Pi) }
+      Disk.OuterRadius := Sqrt(Elements.List^[I].Area / Pi);
+      Disk.Solid := false;
+
+      if ElementsIntensityTex <> nil then
+      begin
+        Mat := TUnlitMaterialNode.Create;
+        Mat.EmissiveColor := Vector3(
+          ElementIntensity^ / 255,
+          ElementIntensity^ / 255,
+          ElementIntensity^ / 255
+        );
+        DiskShape.Material := Mat;
+        Inc(ElementIntensity);
+      end;
+
+      DiskTransform.Translation := Elements.List^[I].Position;
+      DiskTransform.Rotation := OrientationFromDirectionUp(
+        Elements.List^[I].Normal,
+        AnyOrthogonalVector(Elements.List^[I].Normal)
+      );
+      RootNode.AddChildren(DiskTransform);
+    end;
+
+    SceneElements.Load(RootNode, true);
+  end;
+
+  procedure SetDrawType(const NewDrawType: TDrawType);
+  begin
+    if DrawType <> NewDrawType then
+    begin
+      DrawType := NewDrawType;
+      Scene.Exists := DrawType in [dtNormal, dtPass1, dtPass2];
+      SceneElements.Exists := DrawType in [dtElements, dtElementsIntensity];
+      Window.Invalidate;
+
+      case DrawType of
+        dtNormal:
+          RemoveSceneColors(Scene); // clear colors, otherwise dtPass1/2 would leave their colors
+        dtElements:
+          UpdateElements(nil);
+        dtElementsIntensity:
+          UpdateElements(FullRenderIntensityTex);
+      end;
+    end;
+  end;
+
 begin
   case Item.IntData of
-    100: begin DrawType := dtNormalGL; UpdateSceneAttribs; end;
-    101: DrawType := dtElements;
-    102: DrawType := dtElementsIntensity;
-    103: begin DrawType := dtPass1; UpdateSceneAttribs; end;
-    104: begin DrawType := dtPass2; UpdateSceneAttribs; end;
+    100: SetDrawType(dtNormal);
+    101: SetDrawType(dtElements);
+    102: SetDrawType(dtElementsIntensity);
+    103: SetDrawType(dtPass1);
+    104: SetDrawType(dtPass2);
 
     150: Scene.TimePlaying := not Scene.TimePlaying;
 
     200: Window.Close;
     else Exit;
   end;
-
-  Window.Invalidate;
 end;
 
 var
@@ -886,6 +882,9 @@ var
     //'castle-data:/chinchilla_awakens.x3dv';
     'castle-data:/peach.wrl.gz';
 begin
+  ApplicationProperties.ApplicationName := 'dynamic_ambient_occlusion';
+  InitializeLog;
+
   Window := TCastleWindowBase.Create(Application);
 
   Elements := TAOElementList.Create;
@@ -895,28 +894,26 @@ begin
     ModelURL := Parameters[1];
 
   try
-    ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
-
-    Scene := TCastleScene.Create(Window);
-    Scene.Load(ModelURL);
-    UpdateSceneAttribs;
-
-    CalculateElements;
-
-    { start Scene animation }
-    Scene.Spatial := [ssRendering, ssDynamicCollisions];
-    Scene.OnGeometryChanged := @THelper(nil).SceneGeometryChanged;
-    Scene.ProcessEvents := true;
-
-    { init Viewport, with a Scene inside }
-    Viewport := TMyViewport.Create(Window);
+    { inititalize Viewport }
+    Viewport := TMyViewport.Create(Application);
     Viewport.FullSize := true;
     Viewport.AutoCamera := true;
     Viewport.AutoNavigation := true;
     Window.Controls.InsertFront(Viewport);
 
+    { initialize Scene }
+    Scene := TCastleScene.Create(Application);
+    Scene.Load(ModelURL);
+    Scene.Spatial := [ssRendering, ssDynamicCollisions];
+    Scene.OnGeometryChanged := @THelper(nil).SceneGeometryChanged;
+    Scene.ProcessEvents := true; { allow Scene animation }
+    CalculateElements;
     Viewport.Items.MainScene := Scene;
     Viewport.Items.Add(Scene);
+
+    { initialize SceneElements }
+    SceneElements := TCastleScene.Create(Application);
+    Viewport.Items.Add(SceneElements);
 
     Window.MainMenu := CreateMainMenu;
     Window.OnMenuClick := @MenuClick;
@@ -927,9 +924,9 @@ begin
     Window.SetDemoOptions(keyF11, CharEscape, true);
     Window.OpenAndRun;
   finally
-    FreeAndNil(Viewport);
     FreeAndNil(Elements);
     FreeAndNil(ElementsPositionAreaTex);
     FreeAndNil(ElementsNormalTex);
+    FreeAndNil(FullRenderIntensityTex);
   end;
 end.

@@ -155,6 +155,7 @@ type
     procedure SetCenterY(const Value: Single);
     procedure SetRepeatS(const Value: Boolean);
     procedure SetRepeatT(const Value: Boolean);
+    procedure SetURL(const Value: String);
   private
     StaticResourcesReady: boolean; static;
     { Create / destroy static stuff for rendering. }
@@ -469,13 +470,10 @@ type
       This case is also optimized when possible, to no multiplication will
       actually happen.
 
-      Note that the alpha of this color does not determine our alpha rendering
-      mode (it cannot, as you can change this color at any point,
-      and after creation the @link(Alpha) is never automatically updated).
-      If you set a color with alpha <> 1, consider setting also @link(Alpha)
-      property to whatever you need.
+      When the color's alpha is < 1, then we automatically use blending,
+      if @link(Alpha) is acAuto (regardless of the image alpha channel, in this case).
 
-      Note that if use TGrayscaleImage with TGrayscaleImage.TreatAsAlpha
+      Note that if you use TGrayscaleImage with TGrayscaleImage.TreatAsAlpha
       (which means that texture does not contain any RGB information),
       then only this color's RGB values determine the drawn RGB color. }
     property Color: TCastleColor read FColor write FColor;
@@ -643,8 +641,9 @@ type
     procedure DrawFrom(const SourceImage: TDrawableImage;
       const DestinationRect, SourceRect: TFloatRectangle);
 
-    { Non-empty only if the image was loaded from URL. }
-    property URL: String read FURL;
+    { URL of currently loaded image.
+      Non-empty only if the image was loaded from URL. }
+    property URL: String read FURL write SetURL;
 
     { Repeat or clamp texture in S (width) or T (height) dimensions.
       @groupBegin }
@@ -1309,7 +1308,7 @@ end;
     it seems like it doesn't receive DrawWidth correctly,
     and even when we workaround it, it calculates partial rectangles
     (for DrawAdd) incorrectly.
-    Testcase: e.g. examples/2d_standard_ui/show_various_ui_controls/ on Android/Aarch64.
+    Testcase: e.g. examples/user_interface/show_various_ui_controls/ on Android/Aarch64.
 
     TODO: Reproduce this in a simple testcase, submit to FPC devs. }
   {$optimization OFF}
@@ -1637,6 +1636,19 @@ begin
       glBindTexture(GL_TEXTURE_2D, FTexture);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, CurrentWrap.Data[1]);
     end;
+  end;
+end;
+
+procedure TDrawableImage.SetURL(const Value: String);
+var
+  NewImage: TEncodedImage;
+begin
+  if FURL <> Value then
+  begin
+    NewImage := LoadEncodedImage(Value); // make exception from loading before changing URL
+    FURL := Value;
+    Load(NewImage);
+    FOwnsImage := true; // change it after Load(), so that Load frees previous image if needed
   end;
 end;
 

@@ -23,8 +23,8 @@ interface
 uses Generics.Collections,
   CastleVectors, CastleGLShaders,
   X3DTime, X3DFields, X3DNodes, CastleUtils, CastleBoxes,
-  CastleRendererInternalTextureEnv, CastleStringUtils, CastleRendererBaseTypes,
-  CastleShapes, CastleRectangles, CastleTransform;
+  CastleRendererInternalTextureEnv, CastleStringUtils, CastleRenderOptions,
+  CastleShapes, CastleRectangles, CastleTransform, CastleInternalGeometryArrays;
 
 type
   TLightingModel = (lmPhong, lmPhysical, lmUnlit);
@@ -95,6 +95,7 @@ type
       Initializing them only once after linking allows the mesh renderer to go fast. }
     AttributeCastle_Vertex,
     AttributeCastle_Normal,
+    AttributeCastle_Tangent,
     AttributeCastle_ColorPerVertex,
     AttributeCastle_FogCoord: TGLSLAttribute;
 
@@ -325,8 +326,6 @@ type
 
   TTextureCoordinateShaderList = specialize TObjectList<TTextureCoordinateShader>;
 
-  TBumpMapping = (bmNone, bmBasic, bmParallax, bmSteepParallax, bmSteepParallaxShadowing);
-
   TDynamicUniform = class abstract
   public
     Name: string;
@@ -441,7 +440,8 @@ type
     }
     AppearanceEffects: TMFNode;
     GroupEffects: TX3DNodeList;
-    Lighting, ColorPerVertex: Boolean;
+    Lighting: Boolean;
+    ColorPerVertexType: TColorPerVertexType;
     ColorPerVertexMode: TColorMode;
 
     procedure EnableEffects(Effects: TMFNode;
@@ -617,7 +617,7 @@ type
     procedure EnableAppearanceEffects(Effects: TMFNode);
     procedure EnableGroupEffects(Effects: TX3DNodeList);
     procedure EnableLighting;
-    procedure EnableColorPerVertex(const AMode: TColorMode);
+    procedure EnableColorPerVertex(const AMode: TColorMode; const AColorType: TColorPerVertexType);
 
     property ShadowSampling: TShadowSampling
       read FShadowSampling write FShadowSampling;
@@ -1173,6 +1173,7 @@ begin
 
   AttributeCastle_Vertex         := AttributeOptional('castle_Vertex');
   AttributeCastle_Normal         := AttributeOptional('castle_Normal');
+  AttributeCastle_Tangent        := AttributeOptional('castle_Tangent');
   AttributeCastle_ColorPerVertex := AttributeOptional('castle_ColorPerVertex');
   AttributeCastle_FogCoord       := AttributeOptional('castle_FogCoord');
 end;
@@ -1302,12 +1303,20 @@ begin
     SetUniform(UniformName, TSFLong(UniformValue).Value, true) else
   if UniformValue is TSFVec2f then
     SetUniform(UniformName, TSFVec2f(UniformValue).Value, true) else
-  { Check TSFColor first, otherwise TSFVec3f would also catch and handle
+
+  (*
+  { Old approach: Check TSFColor first, otherwise TSFVec3f would also catch and handle
     TSFColor. And we don't want this: for GLSL, color is passed
     as vec4 (so says the spec, I guess that the reason is that for GLSL most
-    input/output colors are vec4). }
-  if UniformValue is TSFColor then
-    SetUniform(UniformName, Vector4(TSFColor(UniformValue).Value, 1.0), true) else
+    input/output colors are vec4).
+
+    New approach: That's just nonsense in X3D spec.
+    We now pass SFColor as vec3, it can fallback TSFVec3f clause. }
+
+  // if UniformValue is TSFColor then
+  //   SetUniform(UniformName, Vector4(TSFColor(UniformValue).Value, 1.0), true) else
+  *)
+
   if UniformValue is TSFVec3f then
     SetUniform(UniformName, TSFVec3f(UniformValue).Value, true) else
   if UniformValue is TSFVec4f then
@@ -1352,6 +1361,9 @@ begin
     SetUniform(UniformName, TMFLong(UniformValue).Items, true) else
   if UniformValue is TMFVec2f then
     SetUniform(UniformName, TMFVec2f(UniformValue).Items, true) else
+  (* Old approach: follow X3D spec, and map MFColor to vec4[].
+     New approach: ignore nonsense X3D spec, and map MFColor to vec3[].
+     Just allow TMFColor to fallback to TMFVec3f.
   if UniformValue is TMFColor then
   begin
     TempVec4f := TMFColor(UniformValue).Items.ToVector4(1.0);
@@ -1359,6 +1371,7 @@ begin
       SetUniform(UniformName, TempVec4f, true);
     finally FreeAndNil(TempVec4f) end;
   end else
+  *)
   if UniformValue is TMFVec3f then
     SetUniform(UniformName, TMFVec3f(UniformValue).Items, true) else
   if UniformValue is TMFVec4f then
@@ -1970,7 +1983,7 @@ begin
   AppearanceEffects := nil;
   GroupEffects := nil;
   Lighting := false;
-  ColorPerVertex := false;
+  ColorPerVertexType := ctNone;
   ColorPerVertexMode := cmReplace;
   FPhongShading := false;
   ShapeBoundingBox := nil;
@@ -2685,11 +2698,10 @@ var
     end;
   end;
 
-  { Must be done after EnableLights (to add define COLOR_PER_VERTEX
-    also to light shader parts). }
+  { Define COLOR_PER_VERTEX* symbols for GLSL. }
   procedure EnableShaderColorPerVertex;
   begin
-    if ColorPerVertex then
+    if ColorPerVertexType <> ctNone then
     begin
       { TODO: need to pass castle_ColorPerVertexFragment onward?
       Plug(stGeometry, GeometryShaderPassColors);
@@ -2707,6 +2719,18 @@ var
           begin
             Define('COLOR_PER_VERTEX_MODULATE', stVertex);
             Define('COLOR_PER_VERTEX_MODULATE', stFragment);
+          end;
+      end;
+      case ColorPerVertexType of
+        ctRgb:
+          begin
+            Define('COLOR_PER_VERTEX_RGB', stVertex);
+            Define('COLOR_PER_VERTEX_RGB', stFragment);
+          end;
+        ctRgbAlpha:
+          begin
+            Define('COLOR_PER_VERTEX_RGB_ALPHA', stVertex);
+            Define('COLOR_PER_VERTEX_RGB_ALPHA', stFragment);
           end;
       end;
     end;
@@ -3583,12 +3607,16 @@ begin
   FCodeHash.AddInteger(7);
 end;
 
-procedure TShader.EnableColorPerVertex(const AMode: TColorMode);
+procedure TShader.EnableColorPerVertex(const AMode: TColorMode; const AColorType: TColorPerVertexType);
 begin
+  Assert(AColorType <> ctNone);
   { This will cause appropriate shader later }
-  ColorPerVertex := true;
+  ColorPerVertexType := AColorType;
   ColorPerVertexMode := AMode;
-  FCodeHash.AddInteger((Ord(AMode) + 1) * 29);
+  FCodeHash.AddInteger(
+    (Ord(AMode) + 1) * 29 +
+    (Ord(AColorType) + 1) * 601
+  );
 end;
 
 function TShader.DeclareShadowFunctions: string;

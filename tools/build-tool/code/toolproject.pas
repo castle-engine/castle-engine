@@ -368,7 +368,7 @@ constructor TCastleProject.Create(const APath: string);
     DefautVersionCode = 1;
     { iOS requires version display to be <> '' }
     DefautVersionDisplayValue = '0.1';
-    DefaultAndroidCompileSdkVersion = 28;
+    DefaultAndroidCompileSdkVersion = 29;
     DefaultAndroidTargetSdkVersion = DefaultAndroidCompileSdkVersion;
     { See https://github.com/castle-engine/castle-engine/wiki/Android-FAQ#what-android-devices-are-supported
       for reasons behind this minimal version. }
@@ -2030,6 +2030,13 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
         Dir := S;
       Result := Result + Dir;
     end;
+
+    { For ABSOLUTE_xxx macros, add Path (project directory).
+      It is not necessary for relative paths, as their handling always includes current dir for now.
+      Testcase: examples/advanced_editor/CastleEngineManifest.xml ,
+      without this the "castle-engine editor" would not find GameControls. }
+    if Absolute then
+      Result := SAppendPart(Result, ';', Path);
   end;
 
 var

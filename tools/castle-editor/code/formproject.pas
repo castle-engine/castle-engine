@@ -171,7 +171,7 @@ type
     ViewFileFrame: TViewFileFrame;
     SplitterBetweenViewFile: TSplitter;
     procedure BuildToolCall(const Commands: array of String;
-        const ExitOnSuccess: Boolean = false);
+      const ExitOnSuccess: Boolean = false);
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuItemDesignNewCustomRootClick(Sender: TObject);
     procedure SetEnabledCommandRun(const AEnabled: Boolean);
@@ -387,6 +387,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
       '- Other files open in external applications.';
     ShellListView1.PopupMenu := ShellListPopupMenu;
     ShellListView1.SmallImages := ShellIcons;
+    ShellListView1.DragMode := dmAutomatic;
 
     ShellTreeView1.ShellListView := ShellListView1;
     ShellListView1.ShellTreeView := ShellTreeView1;
@@ -417,7 +418,7 @@ procedure TProjectForm.MenuItemRenameClick(Sender: TObject);
 begin
   Design.RenameSelectedItem;
 end;
- 
+
 procedure TProjectForm.UpdateRenameItem(Sender: TObject);
 begin
   if (Design <> nil) and Design.RenamePossible then
@@ -718,17 +719,18 @@ begin
     SelectedFileName := ShellListView1.GetPathFromItem(ShellListView1.Selected);
     SelectedURL := FilenameToURISafe(SelectedFileName);
 
-    if TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) then
-    begin
-      NeedsViewFile;
-      ViewFileFrame.LoadScene(SelectedURL);
-      Exit;
-    end;
-
+    { Check for images first because TCastleScene can now load images. }
     if LoadImage_FileFilters.Matches(SelectedURL) then
     begin
       NeedsViewFile;
       ViewFileFrame.LoadImage(SelectedURL);
+      Exit;
+    end;
+
+    if TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) then
+    begin
+      NeedsViewFile;
+      ViewFileFrame.LoadScene(SelectedURL);
       Exit;
     end;
 
@@ -842,16 +844,17 @@ begin
     SelectedURL := FilenameToURISafe(SelectedFileName);
     Ext := ExtractFileExt(SelectedFileName);
 
+    { Check for images first because TCastleScene can now load images. }
+    if LoadImage_FileFilters.Matches(SelectedURL) then
+    begin
+      OpenWithCastleTool('castle-view-image', SelectedURL, [SelectedURL]);
+      Exit;
+    end;
+
     if TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) then
     begin
       OpenWithCastleTool('view3dscene', SelectedURL,
         ['--project', ProjectPathUrl, SelectedURL]);
-      Exit;
-    end;
-
-    if LoadImage_FileFilters.Matches(SelectedURL) then
-    begin
-      OpenWithCastleTool('castle-view-image', SelectedURL, [SelectedURL]);
       Exit;
     end;
 
@@ -1060,5 +1063,7 @@ end;
 initialization
   // initialize CGE log
   ApplicationProperties.ApplicationName := 'castle-editor';
+  // Useful for testing of custom editor run by "Restart Editor", to see the log easily on Unix
+  // LogFileName := FileNameAutoInc('/tmp/castle-editor-%d.log');
   InitializeLog;
 end.

@@ -165,19 +165,6 @@ begin
   ]);
 end;
 
-function MaybeUseDataProtocol(const URL: String): String;
-var
-  DataPath: String;
-begin
-  { Use below ResolveCastleDataURL, to get real location of data,
-    e.g. resolved to file:// on normal desktop. }
-  DataPath := ResolveCastleDataURL('castle-data:/');
-  if IsPrefix(DataPath, URL, not FileNameCaseSensitive) then
-    Result := 'castle-data:/' + PrefixRemove(DataPath, URL, not FileNameCaseSensitive)
-  else
-    Result := URL;
-end;
-
 procedure WarningIfOutsideDataDirectory(const URL: String);
 begin
   if URIProtocol(URL) <> 'castle-data' then

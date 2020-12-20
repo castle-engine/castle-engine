@@ -153,7 +153,8 @@ type
   PTriangle3Single = PTriangle3 deprecated 'use PTriangle3';
   PTriangle4Single = PTriangle4 deprecated 'use PTriangle4';
 
-function Triangle3(const p0, p1, p2: TVector3): TTriangle3;
+function Triangle2(const P0, P1, P2: TVector2): TTriangle2;
+function Triangle3(const P0, P1, P2: TVector3): TTriangle3;
 
 { Normal vector of a triangle defined as three indexes intro vertex array.
   VerticesStride is the shift between vertex values in the array,
@@ -564,15 +565,35 @@ function TriangleArea(const T: TTriangle3): Single; deprecated 'use Triangle.Are
 function Barycentric(const T: TTriangle3; const Point: TVector3): TVector3; deprecated 'use Triangle.Barycentric';
 function TriangleToNiceStr(const T: TTriangle3): string; deprecated 'use T.ToString';
 
+{ Calculate tangent (along texture S coordinate, when IsTangent) or bitangent
+  (along texture T coordinate, when IsTangent=false),
+  knowing positions and texture coordinates.
+
+  This procedure can change Triangle*, but only by swapping some vertexes,
+  so we pass Triangle* by reference instead of by value, to avoid
+  needless mem copying.
+
+  Returns @false if cannot be calculated. }
+function CalculateTangent(const IsTangent: boolean; out Tangent: TVector3;
+  var TriangleCoord: TTriangle3;
+  var TriangleTexCoord: TTriangle2): Boolean;
+
 implementation
 
 uses Math;
 
-function Triangle3(const p0, p1, p2: TVector3): TTriangle3;
+function Triangle2(const P0, P1, P2: TVector2): TTriangle2;
 begin
-  Result.Data[0] := p0;
-  Result.Data[1] := p1;
-  Result.Data[2] := p2;
+  Result.Data[0] := P0;
+  Result.Data[1] := P1;
+  Result.Data[2] := P2;
+end;
+
+function Triangle3(const P0, P1, P2: TVector3): TTriangle3;
+begin
+  Result.Data[0] := P0;
+  Result.Data[1] := P1;
+  Result.Data[2] := P2;
 end;
 
 function IndexedTriangleNormal(const Indexes: TVector3Cardinal;
@@ -1595,6 +1616,99 @@ end;
 function TriangleToNiceStr(const T: TTriangle3): string; deprecated 'use T.ToString';
 begin
   Result := T.ToString;
+end;
+
+function CalculateTangent(const IsTangent: boolean; out Tangent: TVector3;
+  var TriangleCoord: TTriangle3;
+  var TriangleTexCoord: TTriangle2): Boolean;
+var
+  D: TVector2;
+  LineA, LineBC, DIn3D: TVector3;
+  MiddleIndex: Integer;
+  FarthestDistance, NewDistance, Alpha: Single;
+  SearchCoord, OtherCoord: Cardinal;
+begin
+  if IsTangent then
+    SearchCoord := 0
+  else
+    SearchCoord := 1;
+  OtherCoord := 1 - SearchCoord;
+
+  { choose such that 1st and 2nd points have longest distance along
+    OtherCoord, so 0 point is in the middle. }
+
+  { MiddleIndex means that
+    MiddleIndex, (MiddleIndex + 1) mod 3 are farthest. }
+
+  MiddleIndex := 2;
+  FarthestDistance := Abs(TriangleTexCoord.Data[0].Data[OtherCoord] - TriangleTexCoord.Data[1].Data[OtherCoord]);
+
+  NewDistance := Abs(TriangleTexCoord.Data[1].Data[OtherCoord] - TriangleTexCoord.Data[2].Data[OtherCoord]);
+  if NewDistance > FarthestDistance then
+  begin
+    MiddleIndex := 0;
+    FarthestDistance := NewDistance;
+  end;
+
+  NewDistance := Abs(TriangleTexCoord.Data[2].Data[OtherCoord] - TriangleTexCoord.Data[0].Data[OtherCoord]);
+  if NewDistance > FarthestDistance then
+  begin
+    MiddleIndex := 1;
+    FarthestDistance := NewDistance;
+  end;
+
+  if IsZero(FarthestDistance) then
+    Exit(false);
+
+  if MiddleIndex <> 0 then
+  begin
+    SwapValues(TriangleTexCoord.Data[0], TriangleTexCoord.Data[MiddleIndex]);
+    SwapValues(TriangleCoord   .Data[0], TriangleCoord   .Data[MiddleIndex]);
+  end;
+
+  if IsTangent then
+  begin
+    { we want line Y = TriangleTexCoord.Data[0].Data[1]. }
+    LineA[0] := 0;
+    LineA[1] := 1;
+    LineA[2] := -TriangleTexCoord.Data[0].Data[1];
+  end else
+  begin
+    { we want line X = TriangleTexCoord.Data[0].Data[0]. }
+    LineA[0] := 1;
+    LineA[1] := 0;
+    LineA[2] := -TriangleTexCoord.Data[0].Data[0];
+  end;
+  LineBC := Line2DFrom2Points(
+    TriangleTexCoord.Data[1], TriangleTexCoord.Data[2]);
+
+  try
+    D := Lines2DIntersection(LineA, LineBC);
+  except
+    on ELinesParallel do begin Result := false; Exit; end;
+  end;
+
+  { LineBC[0, 1] is vector 2D orthogonal to LineBC.
+    If Abs(LineBC[0]) is *smaller* then it means that B and C points
+    are most different on 0 coord. }
+  if Abs(LineBC[0]) < Abs(LineBC[1]) then
+    Alpha := (                            D[0] - TriangleTexCoord.Data[1].Data[0]) /
+             (TriangleTexCoord.Data[2].Data[0] - TriangleTexCoord.Data[1].Data[0]) else
+    Alpha := (                            D[1] - TriangleTexCoord.Data[1].Data[1]) /
+             (TriangleTexCoord.Data[2].Data[1] - TriangleTexCoord.Data[1].Data[1]);
+
+  DIn3D :=
+    (TriangleCoord.Data[1] * (1 - Alpha)) +
+    (TriangleCoord.Data[2] * Alpha);
+
+  if D[SearchCoord] > TriangleTexCoord.Data[0].Data[SearchCoord] then
+    Tangent := DIn3D - TriangleCoord.Data[0]
+  else
+    Tangent := TriangleCoord.Data[0] - DIn3D;
+
+  Tangent.NormalizeMe;
+
+  Result := true;
 end;
 
 end.

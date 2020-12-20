@@ -35,6 +35,20 @@ uses Classes,
 procedure URIExtractAnchor(var URI: string; out Anchor: string;
   const RecognizeEvenEscapedHash: boolean = false);
 
+{ Extract #anchor from an URI, and split it into a key-value map.
+
+  This supports special CGE syntax within URL anchor to specify loading parameters for
+  @url(https://github.com/castle-engine/castle-engine/wiki/Spine Spine),
+  @url(https://github.com/castle-engine/castle-engine/wiki/Sprite-sheets sprite sheets),
+  @url(https://github.com/castle-engine/castle-engine/wiki/Images images).
+
+  On input, URI contains full URI.
+  On output, Anchor is removed from URI and they key-value pairs are saved in TStringStringMap.
+  The SettingsFromAnchor is always cleared at the beginning.
+  If no anchor existed, SettingsFromAnchor will be empty when this ends. }
+procedure URIExtractSettingsFromAnchor(var URI: string;
+  const SettingsFromAnchor: TStringStringMap);
+
 { Return URI with anchor (if was any) stripped. }
 function URIDeleteAnchor(const URI: string;
   const RecognizeEvenEscapedHash: boolean = false): string;
@@ -167,6 +181,11 @@ function URIToFilenameSafe(const URI: string): string;
   so if the FileName is relative --- it will be expanded, treating it
   as relative to the current directory). }
 function FilenameToURISafe(FileName: string): string;
+
+{ Tries change URI to use castle-data: protocol.
+  It's used in our editor to change absolute paths to relative to castle-data
+  directory. }
+function MaybeUseDataProtocol(const URL: String): String;
 
 { Get MIME type for content of the URI @italic(without downloading the file).
   For local and remote files (file, http, and similar protocols)
@@ -387,6 +406,51 @@ begin
       SetLength(URI, HashPos - 1);
     end;
   end;
+end;
+
+procedure URIExtractSettingsFromAnchor(var URI: string;
+  const SettingsFromAnchor: TStringStringMap);
+var
+  URLForDisplay: String;
+
+  procedure ProcessAnchorPart(const Part: String);
+  var
+    Semicolon: Integer;
+    PartName, PartValue: String;
+  begin
+    Semicolon := Pos(':', Part);
+
+    if Semicolon = 0 then
+    begin
+      WritelnWarning('Empty setting (%s) in anchor of "%s"', [Part, URLForDisplay]);
+      SettingsFromAnchor.Add(Part, '');
+    end else
+    begin
+      PartName := Copy(Part, 1, Semicolon - 1);
+      PartValue := SEnding(Part, Semicolon + 1);
+      SettingsFromAnchor.Add(PartName, PartValue);
+    end;
+  end;
+
+var
+  Anchor, AnchorPart: String;
+  SeekPos: Integer;
+begin
+  URLForDisplay := URIDisplay(URI);
+
+  URIExtractAnchor(URI, Anchor);
+  SettingsFromAnchor.Clear;
+
+  if Anchor = '' then
+    Exit;
+
+  SeekPos := 1;
+  repeat
+    AnchorPart := NextToken(Anchor, SeekPos, [',']);
+    if AnchorPart = '' then
+      Break;
+    ProcessAnchorPart(AnchorPart);
+  until false;
 end;
 
 function URIDeleteAnchor(const URI: string;
@@ -809,6 +873,13 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
     if Ext = '.svg' then Result := 'image/svg+xml' else
     if Ext = '.ico' then Result := 'image/x-icon' else
     if Ext = '.icns' then Result := 'image/icns' else
+    { I didn't found real MIME type for Starling Texture Atlas.
+      Created as image type based on
+      https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
+    }
+    if Ext = '.starling-xml' then Result := 'application/x-starling-sprite-sheet' else
+    if Ext = '.cocos2d-plist' then Result := 'application/x-cocos2d-sprite-sheet' else
+    if Ext = '.plist' then Result := 'application/x-plist' else
     // HTML
     if Ext = '.htm' then Result := 'text/html' else
     if Ext = '.html' then Result := 'text/html' else
@@ -927,6 +998,19 @@ begin
     Result := 'text/x-castlescript' else
   if P = 'compiled' then
     Result := 'text/x-castle-compiled';
+end;
+
+function MaybeUseDataProtocol(const URL: String): String;
+var
+  DataPath: String;
+begin
+  { Use below ResolveCastleDataURL, to get real location of data,
+    e.g. resolved to file:// on normal desktop. }
+  DataPath := ResolveCastleDataURL('castle-data:/');
+  if IsPrefix(DataPath, URL, not FileNameCaseSensitive) then
+    Result := 'castle-data:/' + PrefixRemove(DataPath, URL, not FileNameCaseSensitive)
+  else
+    Result := URL;
 end;
 
 function URIMimeType(const URI: string): string;

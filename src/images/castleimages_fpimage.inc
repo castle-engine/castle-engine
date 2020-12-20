@@ -141,7 +141,7 @@ end;
 
 { Convert TInternalCastleFpImage to the best TCastleImage class. }
 function CreateFromFpImage(const FPImage: TInternalCastleFpImage;
-  const AllowedImageClasses: array of TEncodedImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 
   { FPImage doesn't provide us any information does the image contain useful
     alpha channel, and is it grayscale.
@@ -173,93 +173,107 @@ function CreateFromFpImage(const FPImage: TInternalCastleFpImage;
 
 var
   Alpha, Grayscale: boolean;
-  RGBA: TRGBAlphaImage;
+  ImageClass: TEncodedImageClass;
 begin
-  Detect(Alpha, Grayscale);
-
-  Result := nil;
-  try
-    { first try to return the best class for given Alpha/Grayscale combination }
-
+  if High(AllowedImageClasses) = 0 then
+  begin
+    { if AllowedImageClasses forces a specific class, then just create this image class }
+    ImageClass := AllowedImageClasses[0];
+  end else
+  begin
+    { detect Alpha and Grayscale looking at image contents, to determine ImageClass }
+    Detect(Alpha, Grayscale);
     if not Grayscale then
     begin
-      if ClassAllowed(TRGBAlphaImage, AllowedImageClasses) and Alpha then
-      begin
-        Result := TRGBAlphaImage.Create;
-        Result.FromFpImage(FPImage);
-        Exit;
-      end else
-      if ClassAllowed(TRGBImage, AllowedImageClasses) and not Alpha then
-      begin
-        Result := TRGBImage.Create;
-        Result.FromFpImage(FPImage);
-        Exit;
-      end;
+      if Alpha then
+        ImageClass := TRGBAlphaImage
+      else
+        ImageClass := TRGBImage;
     end else
     begin
-      if ClassAllowed(TGrayscaleAlphaImage, AllowedImageClasses) and Alpha then
-      begin
-        Result := TGrayscaleAlphaImage.Create;
-        Result.FromFpImage(FPImage);
-        Exit;
-      end else
-      if ClassAllowed(TGrayscaleImage, AllowedImageClasses) and not Alpha then
-      begin
-        Result := TGrayscaleImage.Create;
-        Result.FromFpImage(FPImage);
-        Exit;
-      end;
+      if Alpha then
+        ImageClass := TGrayscaleAlphaImage
+      else
+        ImageClass := TGrayscaleImage;
     end;
 
-    { otherwise, load RGBA and eventually strip some information to satisfy
-      ClassAllowed conditions }
-
-    RGBA := TRGBAlphaImage.Create;
-    RGBA.FromFpImage(FPImage);
-    if ClassAllowed(TRGBAlphaImage, AllowedImageClasses) then
-      Result := RGBA else
-    if ClassAllowed(TRGBImage, AllowedImageClasses) then
+    { if the optimal ImageClass (for these image contents) is not allowed,
+      try to find another class that works, and looses least information. }
+    if not ClassAllowed(ImageClass, AllowedImageClasses) then
     begin
-      Result := RGBA.ToRGBImage;
-      FreeAndNil(RGBA);
-    end else
-    if ClassAllowed(TGrayscaleImage, AllowedImageClasses) then
-    begin
-      Result := RGBA.ToGrayscaleImage;
-      FreeAndNil(RGBA);
-    end else
-    if ClassAllowed(TGrayscaleAlphaImage, AllowedImageClasses) then
-    begin
-      Result := RGBA.ToGrayscaleAlphaImage;
-      FreeAndNil(RGBA);
-    end else
-    begin
-      FreeAndNil(RGBA);
-      raise Exception.Create('Cannot convert FPImage to any of formats allowed by LoadImage AllowedImageClasses');
+      if ClassAllowed(TRGBAlphaImage, AllowedImageClasses) then
+        ImageClass := TRGBAlphaImage
+      else
+      if ClassAllowed(TRGBImage, AllowedImageClasses) then
+        ImageClass := TRGBImage
+      else
+      if ClassAllowed(TGrayscaleImage, AllowedImageClasses) then
+        ImageClass := TGrayscaleImage
+      else
+      if ClassAllowed(TGrayscaleAlphaImage, AllowedImageClasses) then
+        ImageClass := TGrayscaleAlphaImage
+      else
+        raise Exception.Create('Cannot load FPImage to any of formats allowed by LoadImage AllowedImageClasses');
     end;
+  end;
 
+  Result := ImageClass.Create;
+  try
+    Result.FromFpImage(FPImage);
   except FreeAndNil(Result); raise end;
 end;
 
-function LoadFpImage(Stream: TStream;
+function LoadFpImage(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass;
-  Reader: TFPCustomImageReader): TEncodedImage;
+  const Reader: TFPCustomImageReader;
+  const ImageFormat: TImageFormat): TEncodedImage;
 var
   FPImage: TInternalCastleFpImage;
+  DetectedClass: TEncodedImageClass;
 begin
+  { Unless exactly 1 image classes is allowed,
+    try to detect best class using format-specific DetectClass function.
+    This may avoid the need for time-consuming Detect(...) call in CreateFromFpImage.
+    Note that we don't limit this detection only to AllowedImageClasses = [] case,
+    as LoadImage is often called with TextureImageClasses or TextureImageClassesAll. }
+  DetectedClass := nil;
+  if (High(AllowedImageClasses) <> 0) and
+     Assigned(ImageFormatInfos[ImageFormat].DetectClass) then
+  begin
+    DetectedClass := ImageFormatInfos[ImageFormat].DetectClass(Stream);
+    if (DetectedClass <> nil) and
+       (not ClassAllowed(DetectedClass, AllowedImageClasses)) then
+    begin
+      DetectedClass := nil; // do not use
+    end;
+    // for debug:
+    // if DetectedClass <> nil then
+    //   WritelnLog('Will use detected image class %s (format %s)', [
+    //     DetectedClass.ClassName,
+    //     ImageFormatInfos[ImageFormat].FormatName
+    //   ]);
+  end;
+
   FPImage := CreateFpImage(0, 0);
   try
     FPImage.UsePalette := false;
     try
       FPImage.LoadFromStream(Stream, Reader);
+    except
       { FPImage.LoadFromStream may raise any kind of Exception (for example,
         in case of invalid JPEG header it just raises generic Exception class).
         Catch it and convert to our EImageLoadError. }
-    except on E: Exception do raise EImageLoadError.Create(E.Message) end;
-    Result := CreateFromFpImage(FPImage, AllowedImageClasses);
+      on E: Exception do
+        raise EImageLoadError.Create(E.Message)
+    end;
+
+    if DetectedClass <> nil then
+      Result := CreateFromFpImage(FPImage, [DetectedClass])
+    else
+      Result := CreateFromFpImage(FPImage, AllowedImageClasses);
   finally
     FreeAndNil(FPImage);
-    FreeAndNil(Reader);
+    Reader.Free;
   end;
 end;
 
@@ -384,16 +398,16 @@ end;
 
 { LoadXxx, SaveXxx for particular image file formats ------------------------- }
 
-function LoadGIF(Stream: TStream;
+function LoadGIF(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderGIF.Create);
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderGIF.Create, ifGIF);
 end;
 
-function LoadTGA(Stream: TStream;
+function LoadTGA(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderTarga.Create);
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderTarga.Create, ifTGA);
 end;
 
 {
@@ -403,52 +417,52 @@ with "missing RowsPerStrip.."
 function LoadTIFF(Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderTIFF.Create);
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderTIFF.Create, ifTIFF);
 end;
 }
 
-function LoadXPM(Stream: TStream;
+function LoadXPM(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderXPM.Create);
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderXPM.Create, ifXPM);
 end;
 
-function LoadPSD(Stream: TStream;
+function LoadPSD(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPSD.Create);
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPSD.Create, ifPSD);
 end;
 
-function LoadPCX(Stream: TStream;
+function LoadPCX(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPCX.Create);
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPCX.Create, ifPCX);
 end;
 
-function LoadJPEG(Stream: TStream;
+function LoadJPEG(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderJPEG.Create);
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderJPEG.Create, ifJPEG);
 end;
 
-function LoadPNG_FPImage(Stream: TStream;
+function LoadPNG_FPImage(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPNG.Create);
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPNG.Create, ifPNG);
 end;
 
-function LoadPNM(Stream: TStream;
+function LoadPNM(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPNM.Create);
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPNM.Create, ifPNM);
 end;
 
-procedure SaveJPEG(Img: TEncodedImage; Stream: TStream);
+procedure SaveJPEG(const Img: TEncodedImage; const Stream: TStream);
 begin
   SaveFpImage(Img, Stream, TFPWriterJPEG.Create);
 end;
 
-procedure SavePNG_FPImage(Img: TEncodedImage; Stream: TStream);
+procedure SavePNG_FPImage(const Img: TEncodedImage; const Stream: TStream);
 var
   Writer: TFPWriterPNG;
 begin

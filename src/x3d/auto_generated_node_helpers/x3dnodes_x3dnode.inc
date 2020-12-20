@@ -25,11 +25,61 @@
 
 {$ifdef read_interface}
 
+  strict private
+{$ifndef CASTLE_SLIM_NODES}
+    function GetMetadata: TAbstractMetadataNode;
+    procedure SetMetadata(const Value: TAbstractMetadataNode);
+{$endif not CASTLE_SLIM_NODES}
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+{$ifndef CASTLE_SLIM_NODES}
+    strict private FFdMetadata: TSFNode;
+    { X3D field "metadata". } { }
+    public property FdMetadata: TSFNode read FFdMetadata;
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
+    { X3D field "metadata". } { }
+    property Metadata: TAbstractMetadataNode read GetMetadata write SetMetadata;
+{$endif not CASTLE_SLIM_NODES}
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TAbstractNode ----------------------------------------------- }
+
+{$ifndef CASTLE_SLIM_NODES}
+function TAbstractNode.GetMetadata: TAbstractMetadataNode;
+begin
+  if FdMetadata.Value is TAbstractMetadataNode then
+    Result := TAbstractMetadataNode(FdMetadata.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAbstractNode.SetMetadata(const Value: TAbstractMetadataNode);
+begin
+  FdMetadata.Send(Value);
+end;
+
+{$endif not CASTLE_SLIM_NODES}
+class function TAbstractNode.ClassX3DType: String;
+begin
+  Result := 'X3DNode';
+end;
+
+procedure TAbstractNode.CreateNode;
+begin
+  inherited;
+
+{$ifndef CASTLE_SLIM_NODES}
+  FFdMetadata := TSFNode.Create(Self, True, 'metadata', [TAbstractMetadataNode]);
+   FdMetadata.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMetadata);
+  { X3D specification comment: # NOT-SLIM }
+{$endif not CASTLE_SLIM_NODES}
+end;
 
 {$endif read_implementation}

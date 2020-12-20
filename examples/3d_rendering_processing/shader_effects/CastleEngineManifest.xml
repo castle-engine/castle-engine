@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="shader-effects"
+  standalone_source="shader_effects_standalone.lpr"
+  game_units="GameInitialize"
+  qualified_name="com.mycompany.shadereffects"
+  caption="Shader Effects Demo"
+>
+</project>

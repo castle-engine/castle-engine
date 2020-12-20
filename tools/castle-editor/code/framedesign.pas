@@ -164,8 +164,6 @@ type
           ResizingVertical: TVerticalPosition; //< Defined only when DraggingMode=dmResize
           LabelHover, LabelSelected: TCastleLabel;
           RectHover, RectSelected: TCastleRectangleControl;
-        function HoverUserInterface(const AMousePosition: TVector2): TCastleUserInterface;
-        function HoverTransform(const AMousePosition: TVector2): TCastleTransform;
         { Should clicking inside UI rectangle start resizing (not only moving?). }
         function IsResizing(const UI: TCastleUserInterface; const Position: TVector2;
           out Horizontal: THorizontalPosition;
@@ -177,6 +175,8 @@ type
         function Release(const Event: TInputPressRelease): Boolean; override;
         function Motion(const Event: TInputMotion): Boolean; override;
         procedure Render; override;
+        function HoverUserInterface(const AMousePosition: TVector2): TCastleUserInterface;
+        function HoverTransform(const AMousePosition: TVector2): TCastleTransform;
       end;
 
       TTreeNodeMap = class(specialize TDictionary<TComponent, TTreeNode>)
@@ -213,6 +213,7 @@ type
         Also owner of a temporary viewport for .castle-transform,
         in general this owns everything specific to display currrent design. }
       DesignOwner: TComponent;
+      FDesignerLayer: TDesignerLayer;
       FDesignModified: Boolean;
       CastleControl: TCastleControlBase;
       TreeNodeMap: TTreeNodeMap;
@@ -226,6 +227,9 @@ type
     procedure CastleControlOpen(Sender: TObject);
     procedure CastleControlResize(Sender: TObject);
     procedure CastleControlUpdate(Sender: TObject);
+    procedure CastleControlDragOver(Sender, Source: TObject; X, Y: Integer;
+      State: TDragState; var Accept: Boolean);
+    procedure CastleControlDragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure ChangeViewportNavigation(
       const NewNavigation: TCastleNavigation);
     function ComponentCaption(const C: TComponent): String;
@@ -315,6 +319,8 @@ type
     procedure BeforeProposeSaveDesign;
     procedure AddComponent(const ComponentClass: TComponentClass;
       const ComponentOnCreate: TNotifyEvent);
+    function AddComponent(const ParentComponent:TComponent; const ComponentClass: TComponentClass;
+      const ComponentOnCreate: TNotifyEvent): TComponent;
     procedure DeleteComponent;
     procedure CopyComponent;
     procedure PasteComponent;
@@ -339,9 +345,11 @@ implementation
 uses // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
   {$ifdef VER3_0} {$ifdef MSWINDOWS} Windows, {$endif} {$endif}
   TypInfo, StrUtils, Math, Graphics, Types, Dialogs, LCLType,
-  CastleComponentSerialize, CastleUtils, Castle2DSceneManager,
-  CastleURIUtils, CastleStringUtils, CastleGLUtils, CastleTimeUtils,
-  CastleProjection, CastleScene, CastleLog, CastleThirdPersonNavigation,
+  Castle2DSceneManager, CastleComponentSerialize, CastleFileFilters,
+  CastleGLUtils, CastleImages, CastleLog,  CastleProjection, CastleScene,
+  CastleShellCtrls, CastleStringUtils, CastleThirdPersonNavigation,
+  CastleTimeUtils, CastleURIUtils, CastleUtils,
+  X3DLoad,
   EditorUtils, FormProject;
 
 {$R *.lfm}
@@ -959,8 +967,6 @@ constructor TDesignFrame.Create(TheOwner: TComponent);
     Result.ShowGutter := false;
   end;
 
-var
-  DesignerLayer: TDesignerLayer;
 begin
   inherited;
 
@@ -1001,14 +1007,16 @@ begin
   CastleControl.OnOpen := @CastleControlOpen;
   CastleControl.OnUpdate := @CastleControlUpdate;
   CastleControl.StencilBits := 8; // enable shadow volumes
+  CastleControl.OnDragOver := @CastleControlDragOver;
+  CastleControl.OnDragDrop := @CastleControlDragDrop;
 
   {$ifdef DEBUG_GIZMO_PICK}
   TCastleControl.MainControl := CastleControl;
   {$endif DEBUG_GIZMO_PICK}
 
-  DesignerLayer := TDesignerLayer.Create(Self);
-  DesignerLayer.Frame := Self;
-  CastleControl.Controls.InsertFront(DesignerLayer);
+  FDesignerLayer := TDesignerLayer.Create(Self);
+  FDesignerLayer.Frame := Self;
+  CastleControl.Controls.InsertFront(FDesignerLayer);
 
   // It's too easy to change it visually and forget, so we set it from code
   ControlProperties.ActivePage := TabBasic;
@@ -1236,52 +1244,7 @@ procedure TDesignFrame.AddComponent(const ComponentClass: TComponentClass;
 var
   Selected: TComponentList;
   SelectedCount: Integer;
-  ParentComponent: TComponent;
-
-  procedure FinishAddingComponent(const NewComponent: TComponent);
-  begin
-    UpdateDesign;
-    SelectedComponent := NewComponent; // select after adding, makes it natural to edit
-    ModifiedOutsideObjectInspector('Add ' + NewComponent.Name + ' to ' + ParentComponent.Name, ucHigh);
-  end;
-
-  procedure AddTransform(const ParentComponent: TCastleTransform);
-  var
-    NewTransform: TCastleTransform;
-  begin
-    if ComponentClass.InheritsFrom(TCastleTransform) then
-    begin
-      NewTransform := ComponentClass.Create(DesignOwner) as TCastleTransform;
-      if Assigned(ComponentOnCreate) then // call ComponentOnCreate ASAP after constructor
-        ComponentOnCreate(NewTransform);
-      NewTransform.Name := ProposeName(ComponentClass, DesignOwner);
-      ParentComponent.Add(NewTransform);
-      FinishAddingComponent(NewTransform);
-    end else
-      ErrorBox(Format('Cannot add component class %s when the parent is a TCastleTransform scendant (%s). Select a parent that descends from TCastleUserInterface.',
-        [ComponentClass.ClassName, ParentComponent.ClassName]))
-  end;
-
-  procedure AddUserInterface(const ParentComponent: TCastleUserInterface);
-  var
-    NewUserInterface: TCastleUserInterface;
-  begin
-    if ComponentClass.InheritsFrom(TCastleUserInterface) then
-    begin
-      NewUserInterface := ComponentClass.Create(DesignOwner) as TCastleUserInterface;
-      if Assigned(ComponentOnCreate) then // call ComponentOnCreate ASAP after constructor
-        ComponentOnCreate(NewUserInterface);
-      NewUserInterface.Name := ProposeName(ComponentClass, DesignOwner);
-      ParentComponent.InsertFront(NewUserInterface);
-      FinishAddingComponent(NewUserInterface);
-    end else
-      ErrorBox(Format('Cannot add component class %s when the parent is a TCastleUserInterface descendant (%s). Select a parent that descends from TCastleTransform, for example select Viewport.Items.',
-        [ComponentClass.ClassName, ParentComponent.ClassName]))
-  end;
-
 begin
-  if ControlsTree.Selected <> nil then
-    ControlsTree.Selected.EndEdit(true);
   // calculate ParentComponent
   GetSelected(Selected, SelectedCount);
   try
@@ -1291,15 +1254,64 @@ begin
       ParentComponent := DesignRoot;
   finally FreeAndNil(Selected) end;
 
+  AddComponent(ParentComponent, ComponentClass, ComponentOnCreate);
+end;
+
+function TDesignFrame.AddComponent(const ParentComponent:TComponent; const ComponentClass: TComponentClass;
+  const ComponentOnCreate: TNotifyEvent): TComponent;
+
+  procedure FinishAddingComponent(const NewComponent: TComponent);
+  begin
+    UpdateDesign;
+    SelectedComponent := NewComponent; // select after adding, makes it natural to edit
+    ModifiedOutsideObjectInspector('Add ' + NewComponent.Name + ' to ' + ParentComponent.Name, ucHigh);
+  end;
+
+  function AddTransform(const ParentComponent: TCastleTransform): TCastleTransform;
+  begin
+    if ComponentClass.InheritsFrom(TCastleTransform) then
+    begin
+      Result := ComponentClass.Create(DesignOwner) as TCastleTransform;
+      if Assigned(ComponentOnCreate) then // call ComponentOnCreate ASAP after constructor
+        ComponentOnCreate(Result);
+      Result.Name := ProposeName(ComponentClass, DesignOwner);
+      ParentComponent.Add(Result);
+      FinishAddingComponent(Result);
+    end else
+      raise Exception.Create(Format('Cannot add component class %s when the parent is a TCastleTransform scendant (%s). Select a parent that descends from TCastleUserInterface.',
+        [ComponentClass.ClassName, ParentComponent.ClassName]))
+  end;
+
+  function AddUserInterface(const ParentComponent: TCastleUserInterface): TCastleUserInterface;
+  begin
+    if ComponentClass.InheritsFrom(TCastleUserInterface) then
+    begin
+      Result := ComponentClass.Create(DesignOwner) as TCastleUserInterface;
+      if Assigned(ComponentOnCreate) then // call ComponentOnCreate ASAP after constructor
+        ComponentOnCreate(Result);
+      Result.Name := ProposeName(ComponentClass, DesignOwner);
+      ParentComponent.InsertFront(Result);
+      FinishAddingComponent(Result);
+    end else
+      raise Exception.Create(Format('Cannot add component class %s when the parent is a TCastleUserInterface descendant (%s). Select a parent that descends from TCastleTransform, for example select Viewport.Items.',
+        [ComponentClass.ClassName, ParentComponent.ClassName]))
+  end;
+
+begin
+  { Cancel editing the component name, when adding a component.
+    See https://trello.com/c/IC6NQx0X/59-bug-adding-a-component-to-a-component-that-is-being-currently-renamed-triggers-and-exception . }
+  if ControlsTree.Selected <> nil then
+    ControlsTree.Selected.EndEdit(true);
+
   if ParentComponent is TCastleUserInterface then
   begin
-    AddUserInterface(ParentComponent as TCastleUserInterface);
+    Exit(AddUserInterface(ParentComponent as TCastleUserInterface));
   end else
   if ParentComponent is TCastleTransform then
   begin
-    AddTransform(ParentComponent as TCastleTransform);
+    Exit(AddTransform(ParentComponent as TCastleTransform));
   end else
-    ErrorBox(Format('Cannot add to the parent of class %s, select other parent before adding.',
+    raise Exception.Create(Format('Cannot add to the parent of class %s, select other parent before adding.',
       [ParentComponent.ClassName]))
 end;
 
@@ -1628,16 +1640,21 @@ procedure TDesignFrame.CurrentComponentApiUrl(var Url: String);
 
   { If a property of the SelectedComponent is now focused
     in one of our object inspectors, return property name. }
-  function SelectedProperty(out PropertyName, PropertyNameForLink: String): Boolean;
+  function SelectedProperty(out PropertyInstance: TObject;
+    out PropertyName, PropertyNameForLink: String): Boolean;
   var
     ParentForm: TCustomForm;
     InspectorType: TInspectorType;
+    ActiveRow: TOIPropertyGridRow;
   begin
     ParentForm := GetParentForm(Self);
     if (ParentForm.ActiveControl <> nil) and
        InspectorTypeFromActiveControl(ParentForm.ActiveControl, InspectorType) and
        (Inspector[InspectorType].GetActiveRow <> nil) then
     begin
+      ActiveRow := Inspector[InspectorType].GetActiveRow;
+      PropertyInstance := ActiveRow.Editor.GetComponent(0);
+
       { Note that "GetActiveRow.Name" may not be the actual property name.
         The actual property name is in "GetActiveRow.Editor.GetPropInfo^.Name",
         and "GetActiveRow.Name" may be overrided by the property editor for presentation.
@@ -1649,8 +1666,8 @@ procedure TDesignFrame.CurrentComponentApiUrl(var Url: String);
 
         So we need to pass on this complication to ApiReference.
       }
-      PropertyName := Inspector[InspectorType].GetActiveRow.Editor.GetPropInfo^.Name;
-      PropertyNameForLink := Inspector[InspectorType].GetActiveRow.Name;
+      PropertyName := ActiveRow.Editor.GetPropInfo^.Name;
+      PropertyNameForLink := ActiveRow.Name;
       Result := true;
     end else
       Result := false;
@@ -1658,13 +1675,18 @@ procedure TDesignFrame.CurrentComponentApiUrl(var Url: String);
 
 var
   C: TComponent;
+  PropertyInstance: TObject;
   PropertyName, PropertyNameForLink: String;
 begin
   C := SelectedComponent;
   if C <> nil then
   begin
-    if SelectedProperty(PropertyName, PropertyNameForLink) then
-      Url := ApiReference(C, PropertyName, PropertyNameForLink)
+    { We do not use C for PropertyInstance, because in case of property
+      in SubComponent, PropertyInstance needs to be <> nil.
+      For example if you click F1 when being over "Blending" inside
+      TCastleScene.RenderOptions. }
+    if SelectedProperty(PropertyInstance, PropertyName, PropertyNameForLink) then
+      Url := ApiReference(PropertyInstance, PropertyName, PropertyNameForLink)
     else
       Url := ApiReference(C, '', '');
   end;
@@ -1777,6 +1799,94 @@ begin
     UpdateDesign;
     //WritelnWarning('CGE needed to explicitly tell editor to refresh hierarchy');
     ModifiedOutsideObjectInspector('', ucLow);
+  end;
+end;
+
+procedure TDesignFrame.CastleControlDragOver(Sender, Source: TObject; X,
+  Y: Integer; State: TDragState; var Accept: Boolean);
+var
+  ShellList: TCastleShellListView;
+  SelectedFileName: String;
+  SelectedURL: String;
+begin
+  if Source is TCastleShellListView then
+  begin
+    ShellList := TCastleShellListView(Source);
+    SelectedFileName := ShellList.GetPathFromItem(ShellList.Selected);
+    SelectedURL := FilenameToURISafe(SelectedFileName);
+
+    Accept := TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL);
+  end else
+    Accept := false;
+end;
+
+procedure TDesignFrame.CastleControlDragDrop(Sender, Source: TObject; X, Y: Integer);
+var
+  ShellList: TCastleShellListView;
+  SelectedFileName: String;
+  SelectedURL: String;
+  Scene: TCastleScene;
+  UI: TCastleUserInterface;
+  Viewport: TCastleViewport;
+  ScenePos: TVector3;
+  RayOrigin, RayDirection: TVector3;
+  RayHit: TRayCollision;
+  Distance: Single;
+  OldPickable: Boolean;
+  PlaneZ: Single;
+begin
+  if Source is TCastleShellListView then
+  begin
+    ShellList := TCastleShellListView(Source);
+    SelectedFileName := ShellList.GetPathFromItem(ShellList.Selected);
+    SelectedURL := MaybeUseDataProtocol(FilenameToURISafe(SelectedFileName));
+
+    if not TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) then
+      Exit;
+
+    UI := FDesignerLayer.HoverUserInterface(Vector2(X, Y));
+    if not (UI is TCastleViewport) then
+      Exit;
+
+    Viewport := TCastleViewport(UI);
+
+    Scene := AddComponent(Viewport.Items, TCastleScene, nil) as TCastleScene;
+    Scene.URL := SelectedURL;
+
+    { Make gizmos not pickable when looking for new scene position,
+      because ray can hit on gizmo. }
+    OldPickable := VisualizeTransformSelected.Pickable;
+    try
+      VisualizeTransformSelected.Pickable := false;
+      Viewport.PositionToRay(Vector2(X, CastleControl.Height - Y), true, RayOrigin, RayDirection);
+      RayHit := Viewport.Items.WorldRay(RayOrigin, RayDirection);
+    finally
+      VisualizeTransformSelected.Pickable := OldPickable;
+    end;
+    if (RayHit = nil) and (Viewport.Camera.ProjectionType = ptOrthographic) then
+    begin
+      PlaneZ := (Viewport.Camera.EffectiveProjectionNear + Viewport.Camera.EffectiveProjectionFar) / 2;
+      if not TrySimplePlaneRayIntersection(ScenePos, 2, PlaneZ, RayOrigin, RayDirection) then
+        Exit; // camera direction parallel to 3D plane with Z = constant
+    end else
+    begin
+      if RayHit <> nil then
+      begin
+        Distance := RayHit.Distance;
+        FreeAndNil(RayHit);
+      end else
+      begin
+        { If we don't hit any other scene set Distance to default value. }
+        Distance := 10;
+      end;
+      ScenePos := RayOrigin + (RayDirection * Distance);
+
+      { In case of 2D game move scene a little closser to camera }
+      if Viewport.Camera.ProjectionType = ptOrthographic then
+        ScenePos := ScenePos - Viewport.Camera.Direction;
+    end;
+
+    Scene.Translation := ScenePos;
   end;
 end;
 
@@ -1917,7 +2027,10 @@ begin
   StartTimer := Timer;
 
   SelectedC := GetSelectedComponent;
-  if (SelectedC <> nil) then
+  { In case of modifying subcomponent, like TCastleViewport.Items,
+    the currently selected component is not owned by whole design owner,
+    so it could not be later found by name in PerformUndoRedo. }
+  if (SelectedC <> nil) and (SelectedC.Owner = DesignOwner) then
     SelectedName := SelectedC.Name
   else
     SelectedName := '';

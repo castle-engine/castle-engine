@@ -168,7 +168,7 @@ uses SysUtils, Generics.Collections, Classes, XMLRead, DOM,
   CastleVideos, X3DTime, CastleTransform, CastleMaterialProperties,
   CastleScript, X3DCastleScript, CastleInternalOctree, CastleCompositeImage,
   CastleTextureImages, CastleKeysMouse, CastleSoundEngine, CastleStringUtils,
-  CastleTextureFontData, CastleRendererBaseTypes, CastleProjection;
+  CastleTextureFontData, CastleRenderOptions, CastleProjection;
 
 {$define read_interface}
 
@@ -279,7 +279,7 @@ uses
   CastleFilesUtils, StrUtils, CastleURIUtils, CastleUnicode, CastleCurves,
   CastleLog, CastleScriptParser, CastleDataURI, URIParser, CastleDownload,
   CastleNURBS, CastleQuaternions, CastleXMLUtils, CastleOpenDocument,
-  CastleSoundBase,
+  CastleSoundBase, CastleTriangles,
   X3DLoadInternalUtils;
 
 {$warnings on}
@@ -583,6 +583,7 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_stringsensor.inc}
 {$I auto_generated_node_helpers/x3dnodes_surfaceemitter.inc}
 {$I auto_generated_node_helpers/x3dnodes_switch.inc}
+{$I auto_generated_node_helpers/x3dnodes_tangent.inc}
 {$I auto_generated_node_helpers/x3dnodes_teapot.inc}
 {$I auto_generated_node_helpers/x3dnodes_texcoorddamper2d.inc}
 {$I auto_generated_node_helpers/x3dnodes_text.inc}
@@ -648,6 +649,7 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_x3dlayoutnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dlightnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dmaterialnode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dmetadatanode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dnbodycollidablenode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dnbodycollisionspacenode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dnetworksensornode.inc}

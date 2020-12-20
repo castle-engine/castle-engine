@@ -52,7 +52,7 @@ const
   //BI_RLE4 = 2;
   //BI_BITFIELDS = 3;
 
-function LoadBMP(Stream: TStream;
+function LoadBMP(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 var fhead: TBitmapFileHeader;
     ihead: TBitmapInfoHeader;
@@ -283,7 +283,7 @@ begin
  end;
 end;
 
-procedure SaveBMP(Img: TEncodedImage; Stream: TStream);
+procedure SaveBMP(const Img: TEncodedImage; const Stream: TStream);
 var fhead: TBitmapFileHeader;
     ihead: TBitmapInfoHeader;
     i, j, rowPaddedLength, PadSize: cardinal;

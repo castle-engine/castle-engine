@@ -159,28 +159,6 @@ procedure GLHorizontalLine(x1, x2, y: TGLfloat); deprecated 'use DrawPrimitive2D
 procedure GLDrawArrow(HeadThickness: TGLfloat = 0.4;
   HeadLength: TGLfloat = 0.5); deprecated 'use DrawPrimitive2D to draw shapes';
 
-{$ifdef CASTLE_OBJFPC}
-{ Comfortable wrapper for gluNewQuadric. Sets all quadric parameters.
-  Sets also the GLU_ERROR callback to ReportGLerror.
-  @raises Exception If gluNewQuadric fails (returns nil). }
-function NewGLUQuadric(
-  Texture: boolean = true;
-  Normals: TGLenum = GLU_NONE;
-  Orientation: TGLenum = GLU_OUTSIDE;
-  DrawStyle: TGLenum = GLU_FILL): PGLUQuadric; deprecated 'use TCastleScene to draw 3D stuff';
-
-{ Render sphere in OpenGL. Radius, Slices, Stacks have the same meaning
-  as for gluSphere (in case they are not self-explanatory...).
-  Other parameters set glu quadric parameters, see glu quadric documentation. }
-procedure CastleGluSphere(
-  const Radius: TGLdouble;
-  const Slices, Stacks: TGLint;
-  Texture: boolean = true;
-  Normals: TGLenum = GLU_NONE;
-  Orientation: TGLenum = GLU_OUTSIDE;
-  DrawStyle: TGLenum = GLU_FILL); deprecated 'use TCastleScene to draw 3D stuff';
-{$endif}
-
 { Draw axis (3 lines) around given position.
   Nothing is generated besides vertex positions ---
   no normal vectors, no texture coords, nothing. }
@@ -485,41 +463,6 @@ begin
     CurrentColor);
 end;
 *)
-
-{$ifdef CASTLE_OBJFPC}
-function NewGLUQuadric(texture: boolean; normals: TGLenum;
-  orientation: TGLenum; drawStyle: TGLenum): PGLUQuadric;
-begin
-  result := gluNewQuadric();
-  if result = nil then
-    raise Exception.Create('gluNewQuadric cannot be created');
-  {$push}
-  {$warnings off}
-  // knowingly using deprecated in another deprecated
-  gluQuadricCallback(result, GLU_ERROR, TCallBack(@GLErrorRaise));
-  {$pop}
-  gluQuadricTexture(result, Ord(texture));
-  gluQuadricNormals(result, normals);
-  gluQuadricOrientation(result, orientation);
-  gluQuadricDrawStyle(result, drawStyle);
-end;
-
-procedure CastleGluSphere(
-  const Radius: TGLdouble;
-  const Slices, Stacks: TGLint;
-  Texture: boolean; Normals: TGLenum;
-  Orientation: TGLenum; DrawStyle: TGLenum);
-var
-  Q: PGLUQuadric;
-begin
-  {$warnings off} { deliberately using deprecated stuff inside another deprecated }
-  Q := NewGLUQuadric(Texture, Normals, Orientation, DrawStyle);
-  {$warnings on}
-  try
-    gluSphere(Q, Radius, Slices, Stacks);
-  finally gluDeleteQuadric(Q); end;
-end;
-{$endif CASTLE_OBJFPC}
 
 procedure glDrawAxisWire(const Position: TVector3; Size: Single);
 begin

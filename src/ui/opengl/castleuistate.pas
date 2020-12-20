@@ -494,6 +494,8 @@ begin
     making the 1st SecondsPassed non-representatively large. }
   StateContainer.Fps.ZeroNextSecondsPassed;
 
+  FStartContainer := StateContainer;
+
   Start;
   { actually insert, this will also call GLContextOpen and Resize.
     However, check first that we're still the current state,
@@ -508,7 +510,16 @@ end;
 procedure TUIState.InternalStop;
 begin
   StateContainer.Controls.Remove(Self);
+
   Stop;
+
+  {$warnings off}
+  Finish;
+  {$warnings on}
+
+  FStartContainer := nil;
+  FreeAndNil(FFreeAtStop);
+
   if Log then
     WritelnLog('UIState', 'Stopped state ' + Name + ': ' + ClassName);
 end;
@@ -573,17 +584,19 @@ end;
 
 procedure TUIState.Start;
 begin
-  FStartContainer := StateContainer;
+  { Do not place here any logic, to make sure TUIState works reliably even when
+    descendant doesn't have "inherited" call.
+    While we don't guarantee that our classes generally work OK in such situations
+    (you should always call "inherited" unless documented otherwise),
+    but in this special case we try to make it so, otherwise sometimes hard-to-debug
+    errors occur. }
 end;
 
 procedure TUIState.Stop;
 begin
-  {$warnings off}
-  Finish;
-  {$warnings on}
-
-  FStartContainer := nil;
-  FreeAndNil(FFreeAtStop);
+  { Do not place here any logic, to make sure TUIState works reliably even when
+    descendant doesn't have "inherited" call.
+    Same as in Start. }
 end;
 
 procedure TUIState.Finish;

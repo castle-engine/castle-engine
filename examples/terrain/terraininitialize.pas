@@ -27,7 +27,7 @@ uses SysUtils, Classes,
   CastleStringUtils, CastleOnScreenMenu, CastleUIControls, CastleImages,
   CastleGLShaders, CastleGLImages, X3DFields, X3DNodes,
   CastleTransform, CastleFrustum, CastleViewport, CastleURIUtils,
-  CastleRectangles, CastleControls, CastleRendererBaseTypes,
+  CastleRectangles, CastleControls, CastleRenderOptions,
   CastleApplicationProperties, CastleLog, CastleScene, X3DLoad,
   TerrainScene;
 
@@ -464,9 +464,9 @@ begin
     10: begin
           Wireframe := not Wireframe;
           if Wireframe then
-            Scene.Attributes.WireframeEffect := weWireframeOnly
+            Scene.RenderOptions.WireframeEffect := weWireframeOnly
           else
-            Scene.Attributes.WireframeEffect := weNormal;
+            Scene.RenderOptions.WireframeEffect := weNormal;
         end;
     50: begin
           URL := '';

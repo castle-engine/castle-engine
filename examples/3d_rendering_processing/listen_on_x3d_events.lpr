@@ -46,9 +46,16 @@ type
 procedure TMyEventListener.ReceivedTouchTime(Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 var
   Val: Double;
+  Scene: TCastleScene;
 begin
   Val := (Value as TSFTime).Value;
-  Notifications.Show(Format('Received TouchSensor.touchTime event: time %f', [Val]));
+
+  { In case you need it, you can get the Scene reference from Event.
+    Typecasts below are unfortunately necessary for now.
+    But you can be sure they are correct, if this is part of some TCastleScene with events working. }
+  Scene := (Event.ParentNode as TX3DNode).Scene as TCastleScene;
+
+  Notifications.Show(Format('Received TouchSensor.touchTime event: time %f, scene: %s', [Val, Scene.Name]));
 end;
 
 procedure TMyEventListener.ReceivedIsActive(Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
@@ -110,6 +117,7 @@ begin
   Root.AddChildren(TouchSensor);
 
   Scene := TCastleScene.Create(Application);
+  Scene.Name := 'MyScene';
   Scene.Load(Root, true);
   Scene.ProcessEvents := true;
   { Remember to initialize Scene.Spatial,

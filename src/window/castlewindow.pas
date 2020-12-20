@@ -587,8 +587,10 @@ type
 
   TCaptionPart = (cpPublic, cpFps);
 
-  { Non-abstract implementation of TUIContainer that cooperates with
-    TCastleWindowBase. }
+  { Non-abstract implementation of TUIContainer that cooperates with TCastleWindowBase.
+    To use it, you need to also create descendant of TCastleWindowBase,
+    and override TCastleWindowBase.CreateContainer.
+    That said, it is much better to use TUIState and override methods there. }
   TWindowContainer = class(TUIContainer)
   private
     Parent: TCastleWindowBase;
@@ -610,7 +612,7 @@ type
     function TouchesCount: Integer; override;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; override; overload;
     function SettingMousePositionCausesMotion: Boolean; override;
-  end;
+  end deprecated 'do not descend from this, instead use custom TUIState descendants';
 
   {$define read_interface_types}
   {$I castlewindow_backend.inc}
@@ -647,7 +649,7 @@ type
     { Create a container class for this window.
       Override this to use a custom container class, e.g. to override
       some container methods. }
-    function CreateContainer: TWindowContainer; virtual;
+    function CreateContainer: TWindowContainer; virtual; deprecated 'instead of custom TWindowContainer descendants, use custom TUIState descendants';
   private
     FWidth, FHeight, FLeft, FTop: Integer;
     { Window size reported last to DoResize,
@@ -702,7 +704,10 @@ type
     FMaxWidth: Integer;
     FMaxHeight: Integer;
     FDpi: Single;
+    // Using deprecated TWindowContainer - should be internal in the future
+    {$warnings off}
     FContainer: TWindowContainer;
+    {$warnings on}
     FCursor: TMouseCursor;
     FCustomCursor: TRGBAlphaImage;
     FTouches: TTouchList;
@@ -1949,14 +1954,14 @@ type
       which means we are between an @link(Open) and @link(Close) calls. }
     function GLInitialized: boolean;
 
-    { Create the window with associated OpenGL context and show it.
+    { Create the window with associated rendering context and show it.
 
       @unorderedList(
-        @item(Create window, it's OpenGL area, optionally it's menu.)
-        @item(Create OpenGL context associated with it's OpenGL area.)
+        @item(Create window with a rendering area, optionally with a menu bar.)
+        @item(Create rendering context.)
         @item(Show the window.)
-        @item(Call GLInformationInitialize to initialize GLVersion,
-          GLUVersion, GLFeatures, show them in log.)
+        @item(Call @link(GLInformationInitialize) to initialize @link(GLVersion), @link(GLFeatures),
+          show them in log (https://castle-engine.io/manual_log.php).)
 
         @item(Initial events called:
           @unorderedList(
@@ -1964,8 +1969,8 @@ type
             @item Call MakeCurrent, EventOpen (OnOpen)
             @item Call MakeCurrent, EventResize (OnResize)
             @item(Call MakeCurrent once again, to be sure that after Open
-              active OpenGL context is the one associated with newly created
-              window (in case you would change active OpenGL context inside
+              active rendering context is the one associated with newly created
+              window (in case you would change active rendering context inside
               EventResize (OnResize), which is allowed).)
           )
         )
@@ -3048,7 +3053,10 @@ begin
   FDpi := DefaultDpi;
   FMousePosition := Vector2(-1, -1);
   FMainMenuVisible := true;
+  // Using deprecated CreateContainer - should be internal in the future
+  {$warnings off}
   FContainer := CreateContainer;
+  {$warnings on}
   Close_KeyString := '';
   SwapFullScreen_Key := keyNone;
   FpsShowOnCaption := false;
@@ -3086,7 +3094,10 @@ end;
 
 function TCastleWindowBase.CreateContainer: TWindowContainer;
 begin
+  // Using deprecated CreateContainer - should be internal in the future
+  {$warnings off}
   Result := TWindowContainer.Create(Self);
+  {$warnings on}
 end;
 
 procedure TCastleWindowBase.OpenCore;

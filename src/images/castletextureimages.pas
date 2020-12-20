@@ -35,7 +35,7 @@ unit CastleTextureImages;
 interface
 
 uses Generics.Collections,
-  CastleImages, CastleCompositeImage, CastleUtils, CastleVideos;
+  CastleImages, CastleCompositeImage, CastleUtils, CastleVideos, CastleRenderOptions;
 
 const
   { Image classes that are handled by absolutely all OpenGL versions. }
@@ -158,46 +158,6 @@ type
     function Empty: boolean; override;
   end;
 
-  { Texture minification filter (what happens when many texture pixels
-    are squeezed in one screen pixel). }
-  TAutoMinificationFilter = (
-    minNearest,
-    minLinear,
-    minNearestMipmapNearest,
-    minNearestMipmapLinear,
-    minLinearMipmapNearest,
-    minLinearMipmapLinear,
-
-    { Interpretation of this filter depends on current
-      @link(TRenderingAttributes.MinificationFilter Scene.Attributes.MinificationFilter).
-      If that is also minDefault, it depends on current
-      @link(TRenderingAttributes.DefaultMinificationFilter). }
-    minDefault,
-    { Alias for minNearest. }
-    minFastest,
-    { Alias for minLinearMipmapLinear. }
-    minNicest
-  );
-  TMinificationFilter = minNearest..minLinearMipmapLinear;
-
-  { Texture magnification filter (what happens when a single texture pixel
-    in stretched over many screen pixels). }
-  TAutoMagnificationFilter = (
-    magNearest,
-    magLinear,
-
-    { Interpretation of this filter depends on current
-      @link(TRenderingAttributes.MagnificationFilter Scene.Attributes.MagnificationFilter).
-      If that is also magDefault, it depends on current
-      @link(TRenderingAttributes.DefaultMagnificationFilter). }
-    magDefault,
-    { Alias for magnNearest. }
-    magFastest,
-    { Alias for magLinear. }
-    magNicest
-  );
-  TMagnificationFilter = magNearest..magLinear;
-
 var
   { Log texture cache events. Allows to see how the cache performs,
     and also how alpha channel is detected.
@@ -209,6 +169,29 @@ var
   { Cache of texture images, equal to X3DCache
     and automatically initialized / finalized if you use X3DNodes unit. }
   TextureCache: TTexturesVideosCache;
+
+const
+  { We recommend using CastleRenderOptions unit to get these constants.
+    But for backward compatibility, they are also available here. }
+  minNearest = CastleRenderOptions.minNearest;
+  minLinear = CastleRenderOptions.minLinear;
+  minNearestMipmapNearest = CastleRenderOptions.minNearestMipmapNearest;
+  minNearestMipmapLinear = CastleRenderOptions.minNearestMipmapLinear;
+  minLinearMipmapNearest = CastleRenderOptions.minLinearMipmapNearest;
+  minLinearMipmapLinear = CastleRenderOptions.minLinearMipmapLinear;
+  minDefault = CastleRenderOptions.minDefault;
+  minFastest = CastleRenderOptions.minFastest;
+  minNicest = CastleRenderOptions.minNicest;
+
+  magNearest = CastleRenderOptions.magNearest;
+  magLinear = CastleRenderOptions.magLinear;
+  magDefault = CastleRenderOptions.magDefault;
+  magFastest = CastleRenderOptions.magFastest;
+  magNicest = CastleRenderOptions.magNicest;
+
+  { Default frame per second for Sprite Sheet animations like Starling
+    and Cocos2d. }
+  DefaultSpriteSheetFramesPerSecond = 8.0;
 
 implementation
 

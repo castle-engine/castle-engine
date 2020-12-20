@@ -761,7 +761,8 @@ type
 
     { Mechanism to schedule ChangedAll and GeometryChanged calls. }
     ChangedAllSchedule: Cardinal;
-    ChangedAllScheduled: boolean;
+    ChangedAllScheduled: Boolean;
+    ChangedAllScheduledOnlyAdditions: Boolean;
 
     ChangedAllCurrentViewpointIndex: Cardinal;
     FInitialViewpointIndex: Cardinal;
@@ -1232,7 +1233,7 @@ type
 
       ChangedAll calls BeforeNodesFree(true) first, for safety (and TGLShape
       actually depends on it, see implementation comments). }
-    procedure ChangedAll; override;
+    procedure ChangedAll(const OnlyAdditions: Boolean = false); override;
 
     { Notify scene that you changed the value of given field.
       @bold(This method is internal, it should be used only by TX3DField
@@ -1255,7 +1256,7 @@ type
       detect what this change implicates for this VRML/X3D scene.
 
       @exclude }
-    procedure InternalChangedField(Field: TX3DField); override;
+    procedure InternalChangedField(const Field: TX3DField; const Change: TX3DChange); override;
 
     { Notification when geometry changed.
       "Geometry changed" means that the positions
@@ -1334,7 +1335,7 @@ type
       immediately call ChangedAll.
 
       @groupBegin }
-    procedure ScheduleChangedAll;
+    procedure ScheduleChangedAll(const OnlyAdditions: Boolean = false);
     procedure BeginChangesSchedule;
     procedure EndChangesSchedule;
     { @groupEnd }
@@ -1891,7 +1892,7 @@ type
       @italic(Current implementation notes:)
 
       Currently, this is used by TCastleScene if you use
-      Attributes.UseOcclusionQuery.
+      @link(TCastleRenderOptions.OcclusionQuery RenderOptions.OcclusionQuery).
       Normally, occlusion query tries to reuse results from previous
       frame, using the assumption that usually camera changes slowly
       and objects appear progressively in the view. When you make
@@ -1947,11 +1948,18 @@ type
     function Event(const NodeName, EventName: string): TX3DEvent;
     { @groupEnd }
 
-    { List the names of available animations in this file.
-      Animations are detected in VRML/X3D models as simply TimeSensor nodes
-      (if you set @link(AnimationPrefix) property, we additionally
-      filter them to show only the names starting with given prefix).
-      You can even get the time sensor node directly by AnimationTimeSensor.
+    { List the names of available animations in current scene.
+      Animations are detected looking for TimeSensor nodes.
+      See https://castle-engine.io/x3d_implementation_interpolation.php
+      for an overview how nodes are used to create animations.
+
+      Note that if you set @link(AnimationPrefix) property, we additionally
+      filter TimeSensor nodes to show only the names starting with given prefix.
+      In this case, not all TTimeSensorNode are reflected in this list.
+
+      You can get the corresponding TTimeSensorNode by AnimationTimeSensor.
+      Note that the same TTimeSensorNode may occur multiple times on this list,
+      in case X3D IMPORT mechanism was used to rename the imported animation.
 
       The resulting TStringList instance is owned by this object,
       do not free it.
@@ -2184,7 +2192,7 @@ type
 
       Note that this @bold(does not copy other scene attributes),
       like @link(ProcessEvents) or @link(Spatial) or rendering attributes
-      in @link(TCastleScene.Attributes).
+      in @link(TCastleScene.RenderOptions).
       It only copies the scene graph (RootNode) and also sets
       target URL based on source URL (for logging purposes, e.g.
       TCastleProfilerTime use this URL to report loading and preparation times). }
@@ -3994,7 +4002,7 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.ChangedAll;
+procedure TCastleSceneCore.ChangedAll(const OnlyAdditions: Boolean);
 
   { Add where necessary lights with scope = global. }
   procedure AddGlobalLights;
@@ -4092,7 +4100,12 @@ begin
   try
 
   if LogChanges then
-    WritelnLog('X3D changes', 'ChangedAll');
+    WritelnLog('X3D changes', 'ChangedAll (OnlyAdditions: %s)', [BoolToStr(OnlyAdditions, true)]);
+
+  { TODO:
+    We ignore OnlyAdditions now.
+    We have to even do BeforeNodesFree always, even when OnlyAdditions,
+    the code below (may) assume it is always done, e.g. all lists are cleared in BeforeNodesFree. }
 
   BeforeNodesFree(true);
 
@@ -4720,10 +4733,9 @@ begin
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
 end;
 
-procedure TCastleSceneCore.InternalChangedField(Field: TX3DField);
+procedure TCastleSceneCore.InternalChangedField(const Field: TX3DField; const Change: TX3DChange);
 var
   ANode: TX3DNode;
-  Change: TX3DChange;
 
   procedure DoLogChanges(const Additional: string = '');
   var
@@ -4785,7 +4797,7 @@ var
     end;
   end;
 
-  procedure HandleChangeNormal;
+  procedure HandleChangeNormalTangent;
   var
     C, I: Integer;
   begin
@@ -5180,10 +5192,10 @@ var
     end;
   end;
 
-  procedure HandleChangeEverything;
+  procedure HandleChangeEverything(const OnlyAdditions: Boolean = false);
   begin
     { An arbitrary change occurred. }
-    ScheduleChangedAll;
+    ScheduleChangedAll(OnlyAdditions);
   end;
 
   { Handle Change in [chVisibleGeometry, chVisibleNonGeometry, chRedisplay] }
@@ -5265,11 +5277,9 @@ var
     VisibleChangeHere([vcVisibleNonGeometry]);
   end;
 
-  procedure HandleChangeChildren;
+  procedure HandleChangeChildren(const OnlyAdditions: Boolean);
   begin
-    if LogChanges then
-      WritelnLog('TODO: Children change (add/remove) is not optimized yet, but could be. Report if you need it.');
-    HandleChangeEverything;
+    HandleChangeEverything(OnlyAdditions);
   end;
 
   procedure HandleChangeBBox;
@@ -5296,7 +5306,7 @@ begin
   ANode := TX3DNode(Field.ParentNode);
   Assert(ANode <> nil);
 
-  { We used to check here RootNode.IsNodePresent, to eliminate
+  { We used to check here RootNode.IsNodePresent(ANode), to eliminate
     changes to nodes not in our graph. This is not done now, because:
 
     1. This check is not usually needed, and usually it wastes quite
@@ -5311,8 +5321,6 @@ begin
        by Proxy methods (geometry and new state nodes).
   }
 
-  Change := Field.ExecuteChange;
-
   if LogChanges then
     DoLogChanges;
 
@@ -5325,7 +5333,7 @@ begin
     case Change of
       chTransform: HandleChangeTransform;
       chCoordinate: HandleChangeCoordinate;
-      chNormal: HandleChangeNormal;
+      chNormal, chTangent: HandleChangeNormalTangent;
       chVisibleVRML1State, chGeometryVRML1State: HandleVRML1State;
       chAlphaChannel: HandleChangeAlphaChannel;
       chLightInstanceProperty: HandleChangeLightInstanceProperty;
@@ -5354,7 +5362,7 @@ begin
       chEverything: HandleChangeEverything;
       chShadowMaps: HandleChangeShadowMaps;
       chWireframe: HandleChangeWireframe;
-      chChildren: HandleChangeChildren;
+      chGroupChildren, chGroupChildrenAdd: HandleChangeChildren(Change = chGroupChildrenAdd);
       chBBox: HandleChangeBBox;
       chVisibleGeometry, chVisibleNonGeometry, chRedisplay: HandleVisibleChange;
       else ;
@@ -6320,6 +6328,16 @@ function TCastleSceneCore.PointingDevicePress(const Pick: TRayCollisionNode;
 begin
   Result := inherited;
   if Result then Exit;
+
+  { If the Scene was just added to Viewport (and no mouse move occurred),
+    or if the Scene was modified by ChangedAll, e.g. by removing some items
+    (and no mouse move occurred),
+    then PointingDevicePress would not fire for sensors (like TouchSensor)
+    under mouse, because PointingDeviceOverItem is not set.
+    See https://github.com/castle-engine/castle-engine/issues/227 .
+    Using PointingDeviceMove sets PointingDeviceOverItem. }
+  PointingDeviceMove(Pick, Distance);
+
   Result := PointingDevicePressRelease(true, Distance, { ignored } false);
 end;
 
@@ -6439,8 +6457,7 @@ begin
                  IndexOf(ActiveSensor) <> -1) and
                (ActiveSensor is TTouchSensorNode) then
             begin
-              TTouchSensorNode(ActiveSensor).
-                EventTouchTime.Send(Time, NextEventTime);
+              TTouchSensorNode(ActiveSensor).EventTouchTime.Send(Time, NextEventTime);
             end;
           end;
           FPointingDeviceActiveSensors.Count := 0;
@@ -6992,14 +7009,20 @@ begin
   { ChangedAllScheduled = false always when ChangedAllSchedule = 0. }
   Assert((ChangedAllSchedule <> 0) or (not ChangedAllScheduled));
 
+  ChangedAllScheduledOnlyAdditions := true; // may be changed to false by ScheduleChangedAll
+
   Inc(ChangedAllSchedule);
 end;
 
-procedure TCastleSceneCore.ScheduleChangedAll;
+procedure TCastleSceneCore.ScheduleChangedAll(const OnlyAdditions: Boolean);
 begin
   if ChangedAllSchedule = 0 then
-    ChangedAll else
+    ChangedAll
+  else
+  begin
     ChangedAllScheduled := true;
+    ChangedAllScheduledOnlyAdditions := ChangedAllScheduledOnlyAdditions and OnlyAdditions;
+  end;
 end;
 
 procedure TCastleSceneCore.EndChangesSchedule;
@@ -7008,7 +7031,7 @@ begin
   if (ChangedAllSchedule = 0) and ChangedAllScheduled then
   begin
     { Note that ChangedAll will set ChangedAllScheduled to false. }
-    ChangedAll;
+    ChangedAll(ChangedAllScheduledOnlyAdditions);
   end;
 end;
 
@@ -8057,7 +8080,8 @@ end;
 function TCastleSceneCore.AnimationTimeSensor(const Index: Integer): TTimeSensorNode;
 begin
   if Between(Index, 0, FAnimationsList.Count - 1) then
-    Result := FAnimationsList.Objects[Index] as TTimeSensorNode else
+    Result := FAnimationsList.Objects[Index] as TTimeSensorNode
+  else
     Result := nil;
 end;
 

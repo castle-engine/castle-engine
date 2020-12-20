@@ -54,6 +54,8 @@ type
     procedure TestTryInverseHarder;
     procedure TestMaxAbsVectorCoord;
     procedure TestPointOnLineClosestToLine;
+    procedure TestRotatePointAroundAxis;
+    procedure TestMakeVectorOrthogonal;
   end;
 
 function RandomVector: TVector3;
@@ -969,6 +971,22 @@ begin
     Vector3(0.74, -0.16, 0.65)
   ));
   AssertVectorEquals(Vector3(0, 0.5, 0), I, 0.1);
+end;
+
+procedure TTestCastleVectors.TestRotatePointAroundAxis;
+begin
+  AssertVectorEquals(
+    RotatePointAroundAxis90(Vector3(1, 2, 3), Vector3(4, 5, 6)),
+    RotatePointAroundAxisRad(Pi / 2, Vector3(1, 2, 3), Vector3(4, 5, 6)));
+end;
+
+procedure TTestCastleVectors.TestMakeVectorOrthogonal;
+var
+  V, NewV: TVector3;
+begin
+  V := Vector3(Sqrt(2) / 2, Sqrt(2) / 2, 0);
+  NewV := MakeVectorOrthogonal(V, Vector3(0, 1, 0));
+  AssertVectorEquals(Vector3(1, 0, 0), NewV);
 end;
 
 initialization

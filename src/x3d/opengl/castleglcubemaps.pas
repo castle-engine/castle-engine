@@ -25,7 +25,7 @@ uses {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleGLImages, CastleTransform, CastleGLUtils;
 
 type
-  TCubeMapRenderSimpleFunction = procedure (ForCubeMap: boolean); experimental;
+  TCubeMapRenderEvent = procedure (const RenderParams: TRenderParams) of object; experimental;
 
 { Calculate spherical harmonics basis describing environment rendered
   by OpenGL. Environment is rendered by
@@ -45,7 +45,7 @@ type
 procedure SHVectorGLCapture(
   var SHVector: array of Single;
   const CapturePoint: TVector3;
-  const Render: TCubeMapRenderSimpleFunction;
+  const Render: TCubeMapRenderEvent;
   const MapScreenX, MapScreenY: Integer;
   const ScaleColor: Single); experimental;
 
@@ -113,12 +113,13 @@ procedure GLCaptureCubeMapTexture(
 
 implementation
 
-uses SysUtils, CastleSphericalHarmonics, CastleRectangles, CastleRenderContext;
+uses SysUtils, CastleSphericalHarmonics, CastleRectangles, CastleRenderContext,
+  CastleProjection, CastleScene;
 
 procedure SHVectorGLCapture(
   var SHVector: array of Single;
   const CapturePoint: TVector3;
-  const Render: TCubeMapRenderSimpleFunction;
+  const Render: TCubeMapRenderEvent;
   const MapScreenX, MapScreenY: Integer;
   const ScaleColor: Single);
 
@@ -126,21 +127,27 @@ procedure SHVectorGLCapture(
   var
     Map: TGrayscaleImage;
     I, SHBasis, ScreenX, ScreenY: Integer;
+    RenderParams: TRenderParams;
   begin
     ScreenX := CubeMapInfo[Side].ScreenX * CubeMapSize + MapScreenX;
     ScreenY := CubeMapInfo[Side].ScreenY * CubeMapSize + MapScreenY;
 
     RenderContext.Viewport := Rectangle(ScreenX, ScreenY, CubeMapSize, CubeMapSize);
 
-    {$ifndef OpenGLES}
-    // TODO-es
-    glPushMatrix;
-      glLoadMatrix(LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up));
-    {$endif}
-      Render(true);
-    {$ifndef OpenGLES}
-    glPopMatrix;
-    {$endif}
+    RenderParams := TBasicRenderParams.Create;
+    try
+      { TBasicRenderParams will automatically link to CastleRenderingCamera.RenderingCamera,
+        to CastleRenderingCamera.RenderingCamera.Frustum,
+        and will have good defaults (inclusive) for InShadow and ShadowVolumesReceivers. }
+      RenderParams.RenderingCamera.Target := rtCubeMapEnvironment;
+      RenderParams.RenderingCamera.FromMatrix(
+        LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
+        FastLookDirMatrix(CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
+        RenderContext.ProjectionMatrix
+      );
+      RenderParams.Transparent := false; Render(RenderParams);
+      RenderParams.Transparent := true ; Render(RenderParams);
+    finally FreeAndNil(RenderParams) end;
 
     Map := SaveScreen_noflush(TGrayscaleImage,
       Rectangle(ScreenX, ScreenY, CubeMapSize, CubeMapSize), cbBack) as TGrayscaleImage;

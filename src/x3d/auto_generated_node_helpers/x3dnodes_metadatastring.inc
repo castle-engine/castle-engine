@@ -25,16 +25,13 @@
 
 {$ifdef read_interface}
 
-  strict private
-    function GetNameField: String;
-    procedure SetNameField(const Value: String);
-    function GetReference: String;
-    procedure SetReference(const Value: String);
   public
-    { X3D field "name". } { }
-    property NameField: String read GetNameField write SetNameField;
-    { X3D field "reference". } { }
-    property Reference: String read GetReference write SetReference;
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdValue: TMFString;
+    { X3D field "value". } { }
+    public property FdValue: TMFString read FFdValue;
     { Set X3D field "value". } { }
     procedure SetValue(const Value: array of string);
     { Set X3D field "value". } { }
@@ -46,26 +43,6 @@
 
 { TMetadataStringNode ----------------------------------------------- }
 
-function TMetadataStringNode.GetNameField: String;
-begin
-  Result := FdName.Value;
-end;
-
-procedure TMetadataStringNode.SetNameField(const Value: String);
-begin
-  FdName.Send(Value);
-end;
-
-function TMetadataStringNode.GetReference: String;
-begin
-  Result := FdReference.Value;
-end;
-
-procedure TMetadataStringNode.SetReference(const Value: String);
-begin
-  FdReference.Send(Value);
-end;
-
 procedure TMetadataStringNode.SetValue(const Value: array of string);
 begin
   FdValue.Send(Value);
@@ -74,6 +51,20 @@ end;
 procedure TMetadataStringNode.SetValue(const Value: TCastleStringList);
 begin
   FdValue.Send(Value);
+end;
+
+class function TMetadataStringNode.ClassX3DType: String;
+begin
+  Result := 'MetadataString';
+end;
+
+procedure TMetadataStringNode.CreateNode;
+begin
+  inherited;
+
+  FFdValue := TMFString.Create(Self, True, 'value', []);
+   FdValue.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdValue);
 end;
 
 {$endif read_implementation}

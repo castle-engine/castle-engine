@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,12 +32,13 @@ implementation
 
 uses SysUtils, Classes, Math,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
-  CastleVectors, X3DNodes, CastleWindow,
-  CastleClassUtils, CastleUtils, CastleRenderingCamera,
+  CastleVectors, X3DNodes, CastleWindow, CastleShapes,
+  CastleClassUtils, CastleUtils,
   CastleGLUtils, CastleScene, CastleKeysMouse, CastleViewport,
   CastleFilesUtils, CastleLog, CastleSphericalHarmonics, CastleImages,
   CastleGLCubeMaps, CastleStringUtils, CastleParameters, CastleColors,
-  CastleApplicationProperties, CastleControls, CastleTransform;
+  CastleApplicationProperties, CastleControls, CastleTransform, X3DFields,
+  SceneUtilities;
 
 type
   TViewMode = (vmNormal, vmSimpleOcclusion, vmFull);
@@ -45,6 +46,9 @@ type
 var
   Window: TCastleWindowBase;
   Scene: TCastleScene;
+  SceneLightVisualize, SceneLightVisualizeForMap: TCastleScene;
+  MaterialLight, MaterialLightForMap: TUnlitMaterialNode;
+  SphereLight, SphereLightForMap: TSphereNode;
   ViewMode: TViewMode = vmFull;
   LightRadius: Single;
   LightPos: TVector3;
@@ -74,34 +78,97 @@ var
     by this. Can be in any range. }
   LightIntensityScale: Single = 100.0;
 
-procedure DrawLight(ForMap: boolean);
-begin
-  glPushMatrix;
-    glTranslatev(LightPos);
-
-    if not ForMap then
-    begin
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-      glEnable(GL_BLEND);
-      glColor4f(1, 1, 0, 0.1);
-    end else
-      glColor3f(LightIntensity, LightIntensity, LightIntensity);
-
-    CastleGluSphere(LightRadius, 10, 10);
-
-    if not ForMap then
-      glDisable(GL_BLEND);
-  glPopMatrix;
-end;
-
 type
   TMyViewport = class(TCastleViewport)
+  strict private
+    function VertexColor(const Shape: TShape; const VertexPosition: TVector3;
+      const VertexIndex: Integer): TCastleColorRGB;
+    procedure DrawLight(const RenderParams: TRenderParams);
+  public
     procedure Render; override;
     procedure Render3D(const Params: TRenderParams); override;
   end;
 
+procedure TMyViewport.DrawLight(const RenderParams: TRenderParams);
+begin
+  SceneLightVisualizeForMap.Render(RenderParams);
+end;
+
+function TMyViewport.VertexColor(const Shape: TShape; const VertexPosition: TVector3;
+  const VertexIndex: Integer): TCastleColorRGB;
+var
+  Geometry: TAbstractGeometryNode;
+  State: TX3DGraphTraverseState;
+  I: Integer;
+  RadianceTransferPtr: PVector3;
+  RadianceTransferList: TVector3List;
+  Coord: TMFVec3f;
+  RadianceTransferVertexSize: Cardinal;
+begin
+  Geometry := Shape.OriginalGeometry;
+  State := Shape.OriginalState;
+  Result := WhiteRGB; // default result, in case of error
+
+  // calculate RadianceTransferList
+  if not (Geometry is TAbstractComposedGeometryNode) then
+    Exit;
+  RadianceTransferList := (Geometry as TAbstractComposedGeometryNode).FdRadianceTransfer.Items;
+
+  if not Geometry.InternalCoord(State, Coord) then
+    Exit;
+
+  // check RadianceTransferList
+  if RadianceTransferList <> nil then
+  begin
+    if RadianceTransferList.Count = 0 then
+    begin
+      WritelnWarning('X3D', 'radianceTransfer field empty');
+      Exit;
+    end;
+
+    if RadianceTransferList.Count mod Coord.Count <> 0 then
+    begin
+      WritelnWarning('X3D', 'radianceTransfer must have a number of items being multiple of coods');
+      Exit;
+    end;
+
+    if RadianceTransferList.Count < Coord.Count then
+    begin
+      WritelnWarning('X3D', 'radianceTransfer must have a number of items >= number of coods');
+      Exit;
+    end;
+  end;
+
+  // calculate RadianceTransferVertexSize
+  RadianceTransferVertexSize := RadianceTransferList.Count div Coord.Count;
+  Assert(RadianceTransferVertexSize > 0);
+
+  RadianceTransferPtr := Addr(RadianceTransferList.List^[VertexIndex * RadianceTransferVertexSize]);
+
+  if ViewMode = vmSimpleOcclusion then
+  begin
+    Result := RadianceTransferPtr[0];
+  end else
+  begin
+    Result := TVector3.Zero;
+    for I := 0 to Min(RadianceTransferVertexSize, LightSHBasisCount) - 1 do
+    begin
+      Result.Data[0] += RadianceTransferPtr[I].Data[0] * LightSHBasis[I];
+      Result.Data[1] += RadianceTransferPtr[I].Data[1] * LightSHBasis[I];
+      Result.Data[2] += RadianceTransferPtr[I].Data[2] * LightSHBasis[I];
+    end;
+  end;
+end;
+
 procedure TMyViewport.Render;
 begin
+  { update light visualization (for normal display and for SHVectorGLCapture texture rendering) }
+  SceneLightVisualize.Translation := LightPos;
+  SceneLightVisualizeForMap.Translation := LightPos;
+  MaterialLightForMap.EmissiveColor := Vector3(LightIntensity, LightIntensity, LightIntensity);
+  SphereLight.Radius := LightRadius;
+  SphereLightForMap.Radius := LightRadius;
+
   if not Scene.BoundingBox.IsEmpty then
   begin
     { SHVectorGLCapture wil draw maps, get them,
@@ -121,49 +188,18 @@ end;
 
 procedure TMyViewport.Render3D(const Params: TRenderParams);
 begin
+  if (not Params.Transparent) and (true in Params.ShadowVolumesReceivers) then
+  begin
+    if ViewMode = vmNormal then
+      RemoveSceneColors(Scene)
+    else
+      SetSceneColors(Scene, @VertexColor);
+  end;
   inherited;
-  DrawLight(false);
 end;
 
 var
   Viewport: TMyViewport;
-
-type
-  THelper = class
-    function DoRadianceTransfer(Node: TAbstractGeometryNode;
-      RadianceTransfer: PVector3;
-      const RadianceTransferCount: Cardinal): TVector3;
-  end;
-
-function THelper.DoRadianceTransfer(Node: TAbstractGeometryNode;
-  RadianceTransfer: PVector3;
-  const RadianceTransferCount: Cardinal): TVector3;
-var
-  I: Integer;
-begin
-  Assert(RadianceTransferCount > 0);
-
-  if ViewMode = vmSimpleOcclusion then
-  begin
-    Result := RadianceTransfer[0];
-  end else
-  begin
-    Result := TVector3.Zero;
-    for I := 0 to Min(RadianceTransferCount, LightSHBasisCount) - 1 do
-    begin
-      Result.Data[0] += RadianceTransfer[I].Data[0] * LightSHBasis[I];
-      Result.Data[1] += RadianceTransfer[I].Data[1] * LightSHBasis[I];
-      Result.Data[2] += RadianceTransfer[I].Data[2] * LightSHBasis[I];
-    end;
-  end;
-end;
-
-procedure UpdateViewMode;
-begin
-  if ViewMode = vmNormal then
-    Scene.Attributes.OnRadianceTransfer := nil else
-    Scene.Attributes.OnRadianceTransfer := @THelper(nil).DoRadianceTransfer;
-end;
 
 procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
 begin
@@ -171,12 +207,11 @@ begin
     10: ViewMode := vmNormal;
     11: ViewMode := vmSimpleOcclusion;
     12: ViewMode := vmFull;
-    20: with Scene.Attributes do Lighting := not Lighting;
+    20: with Scene.RenderOptions do Lighting := not Lighting;
     100: Window.Container.SaveScreenToDefaultFile;
     200: Window.Close;
     else Exit;
   end;
-  UpdateViewMode;
   Window.Invalidate;
 end;
 
@@ -247,12 +282,25 @@ begin
     M.Append(Radio);
 
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItemChecked.Create('Apply OpenGL _Lighting', 20, { Scene.Attributes.Lighting } true, true));
+    M.Append(TMenuItemChecked.Create('Use Normal _Lighting', 20, { Scene.RenderOptions.Lighting } true, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Save Screen ...', 100, keyF5));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit', 200));
     Result.Append(M);
+end;
+
+function CreateLightVisualizeNodes(out Material: TUnlitMaterialNode; out Sphere: TSphereNode): TX3DRootNode;
+var
+  SphereShape: TShapeNode;
+begin
+  Result := TX3DRootNode.Create;
+
+  Sphere := TSphereNode.CreateWithShape(SphereShape);
+  Result.AddChildren(SphereShape);
+
+  Material := TUnlitMaterialNode.Create;
+  SphereShape.Material := Material;
 end;
 
 { One-time initialization of resources. }
@@ -267,6 +315,14 @@ begin
 
   Scene := TCastleScene.Create(Application);
   Scene.Load(URL);
+
+  SceneLightVisualize := TCastleScene.Create(Application);
+  SceneLightVisualize.Load(CreateLightVisualizeNodes(MaterialLight, SphereLight), true);
+  MaterialLight.EmissiveColor := YellowRGB;
+  MaterialLight.Transparency := 0.9;
+
+  SceneLightVisualizeForMap := TCastleScene.Create(Application);
+  SceneLightVisualizeForMap.Load(CreateLightVisualizeNodes(MaterialLightForMap, SphereLightForMap), true);
 
   if Scene.BoundingBox.IsEmpty then
   begin
@@ -294,19 +350,14 @@ begin
     to keep SHVectorGLCapture visible for debugging }
   Viewport.Transparent := true;
   Viewport.Items.Add(Scene);
+  Viewport.Items.Add(SceneLightVisualize);
   Viewport.Items.MainScene := Scene;
-
-  { TODO: this demo uses specialized rendering
-    that currently assumes some fixed-function things set up. }
-  GLFeatures.EnableFixedFunction := true;
 
   Window.Controls.InsertFront(Viewport);
 
   Window.OnUpdate := @Update;
 
   InitializeSHBasisMap;
-
-  UpdateViewMode;
 end;
 
 initialization

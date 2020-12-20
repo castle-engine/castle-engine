@@ -11,8 +11,8 @@ uses
   castle_components,
   castle_editor_automatic_package,
   Forms, FormChooseProject, ProjectUtils, FormNewProject,
-  EditorUtils, FormProject, FrameDesign, FormAbout
-  { you can add units after this };
+  EditorUtils, FormProject, FrameDesign, FormAbout, FrameViewFile,
+  FormPreferences, VisualizeTransform, CastleLog;
 
 {$R *.res}
 
@@ -22,5 +22,6 @@ begin
   Application.CreateForm(TChooseProjectForm, ChooseProjectForm);
   Application.CreateForm(TNewProjectForm, NewProjectForm);
   Application.CreateForm(TAboutForm, AboutForm);
+  Application.CreateForm(TPreferencesForm, PreferencesForm);
   Application.Run;
 end.

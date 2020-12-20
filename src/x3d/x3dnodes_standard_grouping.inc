@@ -548,7 +548,7 @@ begin
   EventRemoveChildren.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventRemoveChildrenReceive);
 
   FFdChildren := TMFNode.Create(Self, true, 'children', IAbstractChildNode);
-   FdChildren.ChangeAlways := chChildren;
+   FdChildren.ChangeAlways := chGroupChildren;
   AddField(FFdChildren);
 
   FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', TVector3.Zero);
@@ -620,7 +620,7 @@ begin
       FdChildren.Add(N);
 
   if Scene <> nil then
-    Scene.ChangedAll;
+    Scene.InternalChangedField(FdChildren, chGroupChildrenAdd);
 end;
 
 procedure TAbstractX3DGroupingNode.RemoveChildren(
@@ -648,7 +648,7 @@ begin
     FdChildren.Remove(N);
 
   if Scene <> nil then
-    Scene.ChangedAll;
+    Scene.InternalChangedField(FdChildren);
 end;
 
 procedure TAbstractX3DGroupingNode.AddChildren(
@@ -889,7 +889,7 @@ begin
   inherited;
 
   FFdChildren := TMFNode.Create(Self, false, 'children', IAbstractChildNode);
-   FdChildren.ChangeAlways := chChildren;
+   FdChildren.ChangeAlways := chGroupChildren;
   AddField(FFdChildren);
 
   FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', Vector3(0, 0, 0));

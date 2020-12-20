@@ -68,7 +68,7 @@
             "ProcessEvents" : true,
             "TranslationPersistent" : {
               "Y" : 1.5000000000000000E+003,
-              "Z" : 1.0000000000000000E+000,
+              "Z" : 5.0000000000000000E+001,
               "$ClassName" : "TCastleVector3Persistent"
             },
             "URL" : "castle-data:/clouds/clouds.json",

@@ -1,3 +1,5 @@
+../../../src/base/ TCastleRenderOptions WireframeColor TCastleColorRGB
+
 ../../../src/ui/opengl/ TCastleUserInterface BorderColor TCastleColor
 
 ../../../src/ui/opengl/ TCastleRectangleControl Color TCastleColor

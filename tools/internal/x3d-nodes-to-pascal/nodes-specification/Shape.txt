@@ -143,6 +143,7 @@ PhysicalMaterial : X3DOneSidedMaterialNode {
 }
 
 Shape : X3DShapeNode {
+  x3d-nodes-to-pascal: auto-generate-more true
 }
 
 TwoSidedMaterial : X3DMaterialNode {

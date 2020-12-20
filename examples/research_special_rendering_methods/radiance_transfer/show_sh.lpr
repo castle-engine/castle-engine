@@ -27,7 +27,8 @@ uses SysUtils, Classes, Math,
   CastleClassUtils, CastleUtils, CastleFilesUtils, CastleControls,
   CastleGLUtils, CastleCameras, CastleSphereSampling, CastleSphericalHarmonics,
   CastleViewport, CastleScene, X3DNodes, CastleShapes,
-  CastleStringUtils, CastleKeysMouse, CastleColors, CastleTransform;
+  CastleStringUtils, CastleKeysMouse, CastleColors, CastleTransform,
+  SceneUtilities;
 
 var
   Window: TCastleWindowBase;
@@ -51,17 +52,19 @@ end;
 type
   TMyScene = class(TCastleScene)
   private
-    procedure VertexColor(var Color: TVector3;
-      Shape: TShape; const VertexPosition: TVector3;
-      VertexIndex: Integer);
+    function VertexColor(
+      const Shape: TShape;
+      const VertexPosition: TVector3;
+      const VertexIndex: Integer): TCastleColorRGB;
   public
     constructor Create(AOwner: TComponent); override;
     procedure LocalRender(const Params: TRenderParams); override;
   end;
 
-procedure TMyScene.VertexColor(var Color: TVector3;
-  Shape: TShape; const VertexPosition: TVector3;
-  VertexIndex: Integer);
+function TMyScene.VertexColor(
+  const Shape: TShape;
+  const VertexPosition: TVector3;
+  const VertexIndex: Integer): TCastleColorRGB;
 var
   SH: Float;
 begin
@@ -70,29 +73,20 @@ begin
   if SH < MinSHValue then MinSHValue := SH;
 
   if SH >= 0 then
-    Color := Vector3(SH, SH, 0) else
-    Color := Vector3(0, 0, -SH);
+    Result := Vector3(SH, SH, 0)
+  else
+    Result := Vector3(0, 0, -SH);
 end;
 
 constructor TMyScene.Create(AOwner: TComponent);
-var
-  Root: TX3DRootNode;
-  Shape: TShapeNode;
-  SphereNode: TSphereNode;
 begin
   inherited;
 
-  Attributes.OnVertexColor := @VertexColor;
+  { Load a scene with sphere.
 
-  SphereNode := TSphereNode.Create;
-
-  Shape := TShapeNode.Create;
-  Shape.FdGeometry.Value := SphereNode;
-
-  Root := TX3DRootNode.Create;
-  Root.AddChildren(Shape);
-
-  Load(Root, true);
+    Why not using TSphereNode?
+    Because our SetSceneColor doesn't support changing colors on TSphereNode. }
+  Load('castle-data:/sphere.gltf');
 end;
 
 procedure TMyScene.LocalRender(const Params: TRenderParams);
@@ -103,7 +97,9 @@ begin
     { before every rendering clear Min/MaxSHValue, so that VertexColor can set them }
     MinSHValue :=  MaxFloat;
     MaxSHValue := -MaxFloat;
+    SetSceneColors(Self, @VertexColor);
   end;
+
   inherited;
 end;
 

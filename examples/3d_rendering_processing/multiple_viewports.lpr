@@ -26,7 +26,7 @@
 {$I castleconf.inc}
 
 uses SysUtils, Classes,
-  CastleWindow, X3DNodes, CastleSceneCore, CastleScene, CastleRendererBaseTypes,
+  CastleWindow, X3DNodes, CastleSceneCore, CastleScene, CastleRenderOptions,
   CastleUIControls, CastleCameras, CastleQuaternions, CastleVectors,
   CastleControls, CastleLog, CastleScreenEffects, CastleViewport,
   CastleUtils, CastleGLUtils, X3DLoad, CastleGLShaders, CastleParameters,
@@ -62,9 +62,9 @@ begin
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     But this is not possible on OpenGLES. }
 
-  Items.MainScene.Attributes.WireframeEffect := weWireframeOnly;
+  Items.MainScene.RenderOptions.WireframeEffect := weWireframeOnly;
   inherited;
-  Items.MainScene.Attributes.WireframeEffect := weNormal;
+  Items.MainScene.RenderOptions.WireframeEffect := weNormal;
 end;
 
 { TScreenEffectDemoViewport -------------------------------------------------- }

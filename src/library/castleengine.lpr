@@ -548,7 +548,7 @@ begin
 
       9: begin    // ecgevarOcclusionQuery
         if Window.MainScene <> nil then
-           Window.MainScene.Attributes.UseOcclusionQuery := (nValue > 0);
+           Window.MainScene.RenderOptions.OcclusionQuery := (nValue > 0);
       end;
 
     end;
@@ -626,7 +626,7 @@ begin
       end;
 
       9: begin    // ecgevarOcclusionQuery
-        if (Window.MainScene <> nil) and Window.MainScene.Attributes.UseOcclusionQuery then
+        if (Window.MainScene <> nil) and Window.MainScene.RenderOptions.OcclusionQuery then
           Result := 1 else
           Result := 0;
       end;

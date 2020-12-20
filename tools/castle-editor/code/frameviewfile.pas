@@ -62,7 +62,11 @@ uses CastleColors, CastleUtils, CastleSoundBase, CastleVectors, CastleCameras,
 { TViewFileFrame ----------------------------------------------------------- }
 
 procedure TViewFileFrame.ClearLoaded;
+var
+  OldInternalCastleDesignInvalidate: Boolean;
 begin
+  OldInternalCastleDesignInvalidate := InternalCastleDesignInvalidate;
+
   FURL := '';
   FSuccessMessage := '';
   FErrorMessage := '';
@@ -82,6 +86,13 @@ begin
     SoundEngine.FreeBuffer(SoundBuffer);
     SoundBuffer := nil;
   end;
+
+  { Save and restore InternalCastleDesignInvalidate here,
+    for the same reason as in LoadXxx.
+    Testcase: without this save+restore,
+    selecting in CGE editor a non-scene from scene in "Files"
+    would deselect your current selection in "Hierarchy". }
+  InternalCastleDesignInvalidate := OldInternalCastleDesignInvalidate;
 end;
 
 procedure TViewFileFrame.ClickSoundButton(Sender: TObject);
@@ -161,7 +172,9 @@ end;
 procedure TViewFileFrame.LoadScene(const AURL: String);
 var
   Pos, Dir, Up, GravityUp: TVector3;
+  OldInternalCastleDesignInvalidate: Boolean;
 begin
+  OldInternalCastleDesignInvalidate := InternalCastleDesignInvalidate;
   ClearLoaded;
 
   Viewport := TCastleViewport.Create(Self);
@@ -198,10 +211,20 @@ begin
   end;
 
   FinishLoading(AURL);
+  { Save and restore InternalCastleDesignInvalidate in all LoadXxx methods,
+    because changes done while initializing the preview frame
+    (even creating UI / transform components) don't really matter for the editor's
+    displayed hierarchy.
+    Testcase: without this save+restore, selecting in CGE editor a scene in "Files"
+    would deselect your current selection in "Hierarchy". }
+  InternalCastleDesignInvalidate := OldInternalCastleDesignInvalidate;
 end;
 
 procedure TViewFileFrame.LoadImage(const AURL: String);
+var
+  OldInternalCastleDesignInvalidate: Boolean;
 begin
+  OldInternalCastleDesignInvalidate := InternalCastleDesignInvalidate;
   ClearLoaded;
 
   Image := TCastleImageControl.Create(Self);
@@ -232,10 +255,14 @@ begin
   end;
 
   FinishLoading(AURL);
+  InternalCastleDesignInvalidate := OldInternalCastleDesignInvalidate;
 end;
 
 procedure TViewFileFrame.LoadSound(const AURL: String);
+var
+  OldInternalCastleDesignInvalidate: Boolean;
 begin
+  OldInternalCastleDesignInvalidate := InternalCastleDesignInvalidate;
   ClearLoaded;
 
   SoundButton := TCastleButton.Create(Self);
@@ -274,6 +301,7 @@ begin
   end;
 
   FinishLoading(AURL);
+  InternalCastleDesignInvalidate := OldInternalCastleDesignInvalidate;
 end;
 
 end.
