@@ -154,8 +154,8 @@ type
 
     property Scale: Single read FScale write SetScale default 1;
 
-    // TODO: improve implementation (ellipse, images still missing)
-    property ObjectsVisible: Boolean read FObjectsVisible write FObjectsVisible;
+    { Show objects like polylines and points on the map. }
+    property ObjectsVisible: Boolean read FObjectsVisible write FObjectsVisible default true;
 
     { How are images scaled (because of UI scaling, because of @link(Scale)).
       @true means we use nice "bilinear" filter.
@@ -198,7 +198,7 @@ constructor TCastleTiledMapControl.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   ClipChildren := true;
-  FObjectsVisible := false;
+  FObjectsVisible := true;
   FScale := 1;
   FSmoothScaling := false;
   FSmoothScalingSafeBorder := false;
@@ -476,7 +476,8 @@ begin
         RenderTile(Layer, X, Y);
   end;
 
-  if FObjectsVisible then RenderObjects;
+  if FObjectsVisible then
+    RenderObjects;
 end;
 
 procedure TCastleTiledMapControl.SetOrigin(const Value: TVector2);
