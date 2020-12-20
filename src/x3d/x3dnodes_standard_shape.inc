@@ -88,8 +88,9 @@
       read GetTextureTransform write SetTextureTransform;
 
     { Get / set the material of this shape.
-      When setting this material to something non-nil, we make sure
-      to also set Appearance to something non-nil. }
+      This is a shortcut to access @link(Appearance) and then set @code(Apperance.Material).
+      When setting the material to something non-nil, we make sure
+      to create @link(Appearance) node if necessary. }
     property Material: TAbstractMaterialNode read GetMaterial write SetMaterial;
 
     { Line properties of this shape. This is a clean, type-safe way
