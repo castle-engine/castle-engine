@@ -48,7 +48,7 @@ type
     LabelEventsInfo: TLabel;
     LabelSizeInfo: TLabel;
     LabelSelectedViewport: TLabel;
-    MenuItemRename: TMenuItem;
+    MenuTreeViewItemRename: TMenuItem;
     MenuTreeViewItemAddTransform: TMenuItem;
     MenuTreeViewItemAddUserInterface: TMenuItem;
     MenuTreeViewItemDelete: TMenuItem;
@@ -126,7 +126,7 @@ type
     procedure ButtonInteractModeClick(Sender: TObject);
     procedure ButtonModifyUiModeClick(Sender: TObject);
     procedure MenuItemAddComponentClick(Sender: TObject);
-    procedure MenuItemRenameClick(Sender: TObject);
+    procedure MenuTreeViewItemRenameClick(Sender: TObject);
     procedure MenuTreeViewItemDeleteClick(Sender: TObject);
     procedure MenuTreeViewItemCopyClick(Sender: TObject);
     procedure MenuTreeViewItemDuplicateClick(Sender: TObject);
@@ -2766,7 +2766,7 @@ begin
   AddComponent(R.ComponentClass, R.OnCreate);
 end;
 
-procedure TDesignFrame.MenuItemRenameClick(Sender: TObject);
+procedure TDesignFrame.MenuTreeViewItemRenameClick(Sender: TObject);
 begin
   RenameSelectedItem;
 end;
@@ -2791,9 +2791,10 @@ var
   Sel: TComponent;
 begin
   Sel := SelectedComponent;
+  MenuTreeViewItemRename.Enabled := RenamePossible;
   MenuTreeViewItemDuplicate.Enabled := Sel <> nil;
   MenuTreeViewItemCopy.Enabled := Sel <> nil;
-  MenuTreeViewItemDelete.Enabled := Sel <> nil;
+  MenuTreeViewItemDelete.Enabled := ControlsTree.SelectionCount > 0; // delete can handle multiple objects
   if (Sel is TCastleUserInterface) or ((Sel = nil) and (DesignRoot is TCastleUserInterface)) then
   begin
     MenuTreeViewItemAddUserInterface.SetEnabledVisible(true);
@@ -2805,7 +2806,7 @@ begin
     MenuTreeViewItemAddTransform.SetEnabledVisible(true);
   end else
   begin
-    // That wasn't supposed to happen!
+    WritelnWarning('Unexpected situation, selected / design root have unexpected classes');
     MenuTreeViewItemAddUserInterface.SetEnabledVisible(false);
     MenuTreeViewItemAddTransform.SetEnabledVisible(false);
   end;
