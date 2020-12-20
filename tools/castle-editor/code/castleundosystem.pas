@@ -16,12 +16,10 @@ type
     { Low priority comments will get overwritten by a higher priority comments
       which correspond to a more specific description of what has happened,
       but are not always available. }
-    ucLow = 0,
+    ucLow,
     { High priority comments usually describe what exactly happened
       and should overwrite less specific comments. }
-    ucHigh = 1,
-    { Highest priority comments should never be overwritten.}
-    ucHighest = 31
+    ucHigh
     );
 
 
@@ -173,7 +171,7 @@ begin
       UndoHistory[CurrentUndo].Selected := SelectedComponent;
       OnUpdateUndo(Self);
     end;
-    if (Ord(UndoCommentPriority) > Ord(CurrentUndoCommentPriority)) then
+    if (UndoCommentPriority > CurrentUndoCommentPriority) then
     begin
       WriteLnLog('Overwriting previous Undo recrod "' + UndoHistory[CurrentUndo].Comment +
         '" with a higher priority comment: "' + UndoComment + '".');
@@ -224,7 +222,7 @@ begin
     WriteLnLog('Performing Undo from ' + IntToStr(CurrentUndo) + ' to ' + IntToStr(CurrentUndo - 1));
     Dec(CurrentUndo);
     Result := UndoHistory[CurrentUndo];
-    CurrentUndoCommentPriority := ucHighest; // Whatever happens next this Undo record cannot be overwritten
+    CurrentUndoCommentPriority := High(TUndoCommentPriority); // Whatever happens next this Undo record cannot be overwritten
     OnUpdateUndo(Self);
   end else
     raise EInternalError.Create('Undo was requested but undo is not possible');
@@ -238,7 +236,7 @@ begin
     WriteLnLog('Performing Redo from ' + IntToStr(CurrentUndo) + ' to ' + IntToStr(CurrentUndo + 1));
     Inc(CurrentUndo);
     Result := UndoHistory[CurrentUndo];
-    CurrentUndoCommentPriority := ucHighest; // Whatever happens next this Undo record cannot be overwritten
+    CurrentUndoCommentPriority := High(TUndoCommentPriority); // Whatever happens next this Undo record cannot be overwritten
     OnUpdateUndo(Self);
   end else
     raise EInternalError.Create('Redo was requested but redo is not possible');
@@ -283,7 +281,7 @@ begin
   ScheduleRecordUndoOnRelease := false;
   UndoHistory.Clear;
   CurrentUndo := -1;
-  CurrentUndoCommentPriority := ucHighest; // Just for consistency
+  CurrentUndoCommentPriority := High(TUndoCommentPriority); // Just for consistency
   if Assigned(OnUpdateUndo) then
     OnUpdateUndo(Self);
   WriteLnLog('Clearing Undo hisotry.');

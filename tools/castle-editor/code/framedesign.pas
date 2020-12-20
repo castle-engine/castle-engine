@@ -1196,7 +1196,7 @@ begin
 
   OpenDesign(NewDesignRoot, NewDesignOwner, NewDesignUrl);
 
-  RecordUndo('Open design', ucHighest); // Technically this is impossible to see this Undo comment
+  RecordUndo('Open design', High(TUndoCommentPriority)); // Technically this is impossible to see this Undo comment
 end;
 
 function TDesignFrame.FormCaption: String;
@@ -3058,7 +3058,7 @@ begin
 
   OpenDesign(NewRoot, NewDesignOwner, '');
 
-  RecordUndo('Start new design', ucHighest); // This Undo comment is never seen
+  RecordUndo('Start new design', High(TUndoCommentPriority)); // This Undo comment is never seen
 end;
 
 initialization
