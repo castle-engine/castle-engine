@@ -49,7 +49,7 @@ type
     - You could make TEnemy a descendant of TCastleScene,
       and then in the CGE editor you would be able to insert TEnemy instance.
       This requires registering a custom component in CGE editor,
-      https://github.com/castle-engine/castle-engine/blob/master/tools/castle-editor/README.md#include-custom-project-specific-components-in-the-visual-designer
+      see https://castle-engine.io/manual_editor.php#section_custom_components .
   }
   TEnemy = class(TCastleTransform)
   public

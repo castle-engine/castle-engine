@@ -28,4 +28,4 @@ Show some advanced features of our https://castle-engine.io/manual_editor.php :
 
      - Run the custom version of the editor, with your custom components, using _"Project -> Restart Editor (With Custom Components)"_ from the normal editor. Or use `castle-engine editor` from command-line, when inside the project. The custom editor will be automatically build.
 
-     - See https://github.com/castle-engine/castle-engine/blob/master/tools/castle-editor/README.md#include-custom-project-specific-components-in-the-visual-designer .
+     - See https://castle-engine.io/manual_editor.php#section_custom_components .
