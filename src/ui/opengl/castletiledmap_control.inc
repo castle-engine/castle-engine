@@ -310,7 +310,7 @@ begin
   { Object groups. }
   for Lay in Map.Layers do
   begin
-    if Lay is TTiledMap.TObjectGroupLayer and Lay.Visible then
+    if (Lay is TTiledMap.TObjectGroupLayer) and Lay.Visible then
     begin
       for TiledObj in (Lay as TTiledMap.TObjectGroupLayer).Objects do
       begin
