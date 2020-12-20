@@ -118,7 +118,6 @@ type
     procedure ListOutputClick(Sender: TObject);
     procedure MenuItemRenameClick(Sender: TObject);
     procedure UpdateUndo(Sender: TObject);
-    procedure UpdateUndoRedoInformation;
     procedure UpdateRenameItem(Sender: TObject);
     procedure MenuItemRedoClick(Sender: TObject);
     procedure MenuItemUndoClick(Sender: TObject);
@@ -430,42 +429,27 @@ end;
 
 procedure TProjectForm.UpdateUndo(Sender: TObject);
 begin
-  UpdateUndoRedoInformation;
-end;
-
-procedure TProjectForm.UpdateUndoRedoInformation;
-begin
-  if (Design <> nil) and Design.UndoSystem.IsUndoPossible then
+  if Design <> nil then
   begin
-    MenuItemUndo.Enabled := true;
+    MenuItemUndo.Enabled := Design.UndoSystem.IsUndoPossible;
     MenuItemUndo.Caption := Design.UndoSystem.UndoComment;
-  end else
-  begin
-    MenuItemUndo.Enabled := false;
-    MenuItemUndo.Caption := 'Undo';
-  end;
-
-  if (Design <> nil) and Design.UndoSystem.IsRedoPossible then
-  begin
-    MenuItemRedo.Enabled := true;
+    MenuItemRedo.Enabled := Design.UndoSystem.IsRedoPossible;
     MenuItemRedo.Caption := Design.UndoSystem.RedoComment;
   end else
   begin
+    MenuItemUndo.Enabled := false;
     MenuItemRedo.Enabled := false;
-    MenuItemRedo.Caption := 'Redo';
   end;
 end;
 
 procedure TProjectForm.MenuItemRedoClick(Sender: TObject);
 begin
   Design.PerformRedo;
-  UpdateUndoRedoInformation;
 end;
 
 procedure TProjectForm.MenuItemUndoClick(Sender: TObject);
 begin
   Design.PerformUndo;
-  UpdateUndoRedoInformation;
 end;
 
 procedure TProjectForm.MenuItemDeleteFileClick(Sender: TObject);
@@ -572,7 +556,7 @@ begin
   MenuItemPasteComponent.Enabled := Design <> nil;
   MenuItemDuplicateComponent.Enabled := Design <> nil;
 
-  UpdateUndoRedoInformation;
+  UpdateUndo(nil);
   UpdateRenameItem(nil);
 
   LabelNoDesign.Visible := Design = nil;
