@@ -34,7 +34,7 @@ uses
   Classes, SysUtils, DOM, XMLRead, base64, zstream, Generics.Collections,
   CastleVectors, CastleColors, CastleUtils, CastleURIUtils, CastleXMLUtils,
   CastleLog, CastleStringUtils, CastleUIControls, CastleGLImages,
-  CastleRectangles, CastleClassUtils;
+  CastleRectangles, CastleClassUtils, CastleRenderOptions;
 
 {$define read_interface}
 {$I castletiledmap_map.inc}

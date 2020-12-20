@@ -154,8 +154,8 @@ type
 
     property Scale: Single read FScale write SetScale default 1;
 
-    // TODO: not implemented yet
-    // property ObjectsVisible: Boolean read FObjectsVisible write FObjectsVisible;
+    // TODO: improve implementation (ellipse, images still missing)
+    property ObjectsVisible: Boolean read FObjectsVisible write FObjectsVisible;
 
     { How are images scaled (because of UI scaling, because of @link(Scale)).
       @true means we use nice "bilinear" filter.
@@ -220,15 +220,115 @@ end;
 
 procedure TCastleTiledMapControl.RenderObjects;
 var
-  Lay: TTiledMap.TLayer;
+  Lay: TTiledMap.TLayer;              // ObjectGroupLayer
+  TiledObj: TTiledMap.TTiledObject;   // one TiledObject
+  TiledObjPoints: array of TVector2;  // holds points of TiledObject as array of TVector2
+
+  function ScaleX: Single;
+  begin
+    { Denominator corresponds to width of object layer in pixels. }
+    Result := RenderRect.Width / (Map.Width * Map.TileWidth);
+  end;
+
+  function ScaleY: Single;
+  begin
+    { Denominator corresponds to height of object layer in pixels. }
+    Result := RenderRect.Height / (Map.Height * Map.TileHeight);
+  end;
+
+  { Converts all TVector2's from a TVector2List to and array of TVector2.
+    ArrIndex is the index of a TVector2 in the array, ListIndex is the TVector2
+    in the list. }
+  procedure ConvertAndScalePoints(const ArrIndex, ListIndex: Cardinal);
+  begin
+    { Convert and scale X coordinates. }
+    TiledObjPoints[ArrIndex].X := RenderRect.Left + ScaleX *
+      (Lay.OffsetX + TiledObj.X + TiledObj.Points.Items[ListIndex].X);
+    { Convert and scale Y coordinates and change ref. system (top-left
+      origin to bottom-left origin). }
+    TiledObjPoints[ArrIndex].Y := RenderRect.Top - ScaleY *
+      (Lay.OffsetY + TiledObj.Y + TiledObj.Points.Items[ListIndex].Y);
+  end;
+
+  { Prepare and render TiledObject polyline and polygon. }
+  procedure RenderPolylinePolygon;
+  var
+    I: Cardinal;
+  begin
+    { Prepare points for DrawPrimitive2D function. Convert from vector list
+      to array of vectors. }
+    SetLength(TiledObjPoints, TiledObj.Points.Count);
+    for I := 0 to High(TiledObjPoints) do
+    begin
+      ConvertAndScalePoints(I, I);
+    end;
+
+    { If TiledObject is a polygon, for rendering of last line, a point has to be
+      added manually to close the polygon. }
+    if TiledObj.Primitive = topPolygon then
+    begin
+      SetLength(TiledObjPoints, TiledObj.Points.Count+1);
+      ConvertAndScalePoints(High(TiledObjPoints), 0);
+    end;
+
+    { Draw polygon or polyline TiledObject. }
+    DrawPrimitive2D(pmLineStrip, TiledObjPoints, Orange, bsSrcAlpha,
+      bdOneMinusSrcAlpha, false, 1, 1);
+  end;
+
+  procedure RenderPoint;
+  var
+    TiledObjPoint: array[0..0] of TVector2;   // array with 1 element
+  begin
+    { Prepare point. }
+    TiledObjPoint[0].X := RenderRect.Left + ScaleX *
+      (Lay.OffsetX + TiledObj.X);
+    TiledObjPoint[0].Y := RenderRect.Top - ScaleY *
+      (Lay.OffsetY + TiledObj.Y);
+    { Draw point TiledObject. }
+    DrawPrimitive2D(pmPoints, TiledObjPoint, Orange, bsSrcAlpha,
+      bdOneMinusSrcAlpha, false, 1, 1);
+  end;
+
+  procedure RenderRectangle;
+  var
+    TiledObjRect: TFloatRectangle;
+  begin
+    { Prepare rectangle. }
+    TiledObjRect.Left := RenderRect.Left + ScaleX *
+      (Lay.OffsetX + TiledObj.X);
+    TiledObjRect.Width := ScaleX * TiledObj.Width;
+
+    TiledObjRect.Bottom := RenderRect.Top - ScaleY *
+      (Lay.OffsetY + TiledObj.Y + TiledObj.Height);
+    TiledObjRect.Height := ScaleY * TiledObj.Height;
+
+    { Draw rectangle TiledObject. }
+    DrawRectangleOutline(TiledObjRect, Orange, 1, bsSrcAlpha,
+      bdOneMinusSrcAlpha, false);
+  end;
+
 begin
   { Object groups. }
   for Lay in Map.Layers do
   begin
-    // if Lay is TTiledMap.TObjectGroupLayer then
-    // TODO: draw TObjectGroupLayer here
-    // TODO: when to draw TImageLayer?
+    if Lay is TTiledMap.TObjectGroupLayer and Lay.Visible then
+    begin
+      for TiledObj in (Lay as TTiledMap.TObjectGroupLayer).Objects do
+      begin
+        if TiledObj.Visible then
+        begin
+          case TiledObj.Primitive of
+            topPolyline, topPolygon: RenderPolylinePolygon;
+            topPoint: RenderPoint;
+            topRectangle: RenderRectangle;
+            // TODO: handle ellipse
+          end;
+        end;
+      end;
+    end;
   end;
+  // TODO: when to draw TImageLayer?
 end;
 
 procedure TCastleTiledMapControl.LoadTilesetsImages;

@@ -85,7 +85,8 @@ type
 
       TObjectsDrawOrder = (odoIndex, odoTopDown);
 
-      TTileObjectPrimitive = (topEllipse, topPoligon, topPolyLine);
+      TTileObjectPrimitive = (topRectangle, topPoint, topEllipse, topPolygon,
+        topPolyLine);
 
       { Object definition. }
       TTiledObject = class
@@ -776,16 +777,22 @@ begin
     if TmpStr = '0' then
       Visible := False;
 
+  { Assume rectangle TiledObject first as it is the only element which has no
+    sub-element in TMX file which indicates its primitive type. Will be over-
+    ridden by follwing iteration, if a sub-element exists. }
+  Primitive := topRectangle;
+
   I := TXMLElementIterator.Create(Element);
   try
     while I.GetNext do
     begin
       case LowerCase(I.Current.TagName) of
         'properties': Properties.Load(I.Current, BaseUrl);
+        'point': Primitive := topPoint;
         'ellipse': Primitive := topEllipse;
         'polygon':
           begin
-            Primitive := topPoligon;
+            Primitive := topPolygon;
             ReadPoints(I.Current.AttributeStringDef('points', ''), Points);
           end;
         'polyline':
