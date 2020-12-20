@@ -2722,6 +2722,7 @@ var
           end;
       end;
       case ColorPerVertexType of
+        ctNone: ;
         ctRgb:
           begin
             Define('COLOR_PER_VERTEX_RGB', stVertex);
@@ -2944,6 +2945,7 @@ begin
   if GammaCorrection then
     Define('CASTLE_GAMMA_CORRECTION', stFragment);
   case ToneMapping of
+    tmNone: ;
     tmUncharted:
       begin
         Define('CASTLE_TONE_MAPPING', stFragment);

@@ -1944,6 +1944,7 @@ begin
       AssignCoordinate(Arrays.Normal, Normals.L, Normals.ItemSize, Normals.Count);
     niOverall: SetAllNormals(NormalsSafe(0));
     niUnlit: SetAllNormals(TVector3.Zero);
+    else ;
   end;
 end;
 
