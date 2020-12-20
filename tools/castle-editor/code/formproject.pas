@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2019 Michalis Kamburelis.
+  Copyright 2018-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -261,11 +261,19 @@ begin
   Assert(Design <> nil); // menu item is disabled otherwise
 
   if Design.DesignRoot is TCastleUserInterface then
-    SaveDesignDialog.DefaultExt := 'castle-user-interface'
-  else
+  begin
+    SaveDesignDialog.DefaultExt := 'castle-user-interface';
+    SaveDesignDialog.Filter := 'CGE User Interface Design (*.castle-user-interface)|*.castle-user-interface|All Files|*';
+  end else
   if Design.DesignRoot is TCastleTransform then
-    SaveDesignDialog.DefaultExt := 'castle-transform'
-  else
+  begin
+    { We modify both Filter and DefaultExt, otherwise (at least on GTK2)
+      the default extension (for filter like '*.castle-user-interface;*.castle-transform')
+      would still be castle-user-interface. I.e. DefaultExt seems to be ignored,
+      and instead GTK applies first filter. }
+    SaveDesignDialog.DefaultExt := 'castle-transform';
+    SaveDesignDialog.Filter := 'CGE Transform Design (*.castle-transform)|*.castle-transform|All Files|*';
+  end else
     raise EInternalError.Create('DesignRoot does not descend from TCastleUserInterface or TCastleTransform');
 
   SaveDesignDialog.Url := Design.DesignUrl;
