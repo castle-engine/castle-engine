@@ -104,6 +104,23 @@
         },
         "UseHeadlight" : "hlOn",
         "$Children" : [
+          {
+            "Name" : "DesignedSoldierWithCape",
+            "RotationPersistent" : {
+              "W" : 1.4821779727935791E+000,
+              "Y" : 9.9999809265136719E-001,
+              "$ClassName" : "TCastleVector4Persistent"
+            },
+            "TranslationPersistent" : {
+              "X" : -2.3763995170593262E+000,
+              "Z" : -9.1486116871237755E-003,
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "URL" : "castle-data:/soldier_with_cape.castle-transform",
+            "$Children" : [
+            ],
+            "$ClassName" : "TCastleTransformDesign"
+          }
         ],
         "$ClassName" : "TCastleRootTransform"
       },

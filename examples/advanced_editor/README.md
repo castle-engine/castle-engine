@@ -16,7 +16,7 @@ Show some advanced features of our https://castle-engine.io/manual_editor.php :
 
     - instantiated by code using `TSerializedComponent.TransformLoad` to efficiently instantiate them multiple times
 
-    - TODO: instantiated in editor using `TCastleTransformDesign`.
+    - instantiated in editor using `TCastleTransformDesign`.
 
     This is like using Unity prefabs to design game stuff (3D or 2D).
 

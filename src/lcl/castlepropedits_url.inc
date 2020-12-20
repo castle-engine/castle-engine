@@ -112,6 +112,38 @@ begin
   finally FreeAndNil(Dialog) end;
 end;
 
+{ TTransformDesignURLPropertyEditor ---------------------------------------------------- }
+
+type
+  { Property editor for URL that refers to a file readable by TransformLoad. }
+  TTransformDesignURLPropertyEditor = class(TStringPropertyEditor)
+  public
+    function GetAttributes: TPropertyAttributes; override;
+    procedure Edit; override;
+  end;
+
+function TTransformDesignURLPropertyEditor.GetAttributes: TPropertyAttributes;
+begin
+  Result := [paDialog, paRevertable];
+end;
+
+procedure TTransformDesignURLPropertyEditor.Edit;
+var
+  Dialog: TCastleOpenDialog;
+begin
+  Dialog := TCastleOpenDialog.Create(nil);
+  try
+    Dialog.Filter := 'CGE Transform Design (*.castle-transform)|*.castle-transform|All Files|*';
+    Dialog.AdviceDataDirectory := PropertyEditorsAdviceDataDirectory;
+    if (GetStrValue = '') and PropertyEditorsAdviceDataDirectory then
+      Dialog.URL := 'castle-data:/' // make it easier to open files within data folder
+    else
+      Dialog.URL := GetStrValue;
+    if Dialog.Execute then
+      SetStrValue(Dialog.URL);
+  finally FreeAndNil(Dialog) end;
+end;
+
 { TTiledMapURLPropertyEditor ---------------------------------------------------- }
 
 type

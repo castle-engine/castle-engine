@@ -154,7 +154,7 @@ procedure BuildComponentsMenu(const ParentUeserInterface, ParentTransform: TMenu
 
 implementation
 
-uses SysUtils, Dialogs, Graphics, TypInfo,
+uses SysUtils, Dialogs, Graphics, TypInfo, Generics.Defaults,
   CastleUtils, CastleLog,
   CastleComponentSerialize, CastleUiControls, CastleCameras, CastleTransform,
   ToolCompilerInfo;
@@ -670,6 +670,11 @@ begin
   end;
 end;
 
+function CompareRegisteredComponent(constref Left, Right: TRegisteredComponent): Integer;
+begin
+  Result := AnsiCompareStr(Left.Caption, Right.Caption);
+end;
+
 procedure BuildComponentsMenu(const ParentUeserInterface, ParentTransform: TMenuItem; const OnClickEvent: TNotifyEvent);
 
   function CreateMenuItemForComponent(const Owner: TComponent; const R: TRegisteredComponent): TMenuItem;
@@ -684,10 +689,18 @@ procedure BuildComponentsMenu(const ParentUeserInterface, ParentTransform: TMenu
     Result.Tag := PtrInt(Pointer(R));
   end;
 
+type
+  TRegisteredComponentComparer = specialize TComparer<TRegisteredComponent>;
 var
   MenuItem: TMenuItem;
   R: TRegisteredComponent;
 begin
+  { While RegisteredComponents is documented as "read-only",
+    we knowingly break it here for internal CGE purposes.
+    We need some reliable order of this list (as "RegisterSerializableComponent" may be called in any order),
+    for now alphabetic order seems good enough. }
+  RegisteredComponents.Sort(TRegisteredComponentComparer.Construct(@CompareRegisteredComponent));
+
   { add non-deprecated components }
   for R in RegisteredComponents do
     if not R.IsDeprecated then
