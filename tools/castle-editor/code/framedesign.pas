@@ -1244,6 +1244,7 @@ procedure TDesignFrame.AddComponent(const ComponentClass: TComponentClass;
 var
   Selected: TComponentList;
   SelectedCount: Integer;
+  ParentComponent:TComponent;
 begin
   // calculate ParentComponent
   GetSelected(Selected, SelectedCount);
