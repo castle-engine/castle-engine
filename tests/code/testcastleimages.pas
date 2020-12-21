@@ -311,11 +311,11 @@ var
   Stream: TStream;
   ImageClass: TEncodedImageClass;
 begin
-  // Stream := Download('castle-data:/png_with_alpha_trns.png');
-  // try
-  //   ImageClass := InternalDetectClassPNG(Stream);
-  //   AssertEquals('TRGBAlphaImage', ImageClass.ClassName);
-  // finally FreeAndNil(Stream) end;
+  Stream := Download('castle-data:/png_with_alpha_trns.png');
+  try
+    ImageClass := InternalDetectClassPNG(Stream);
+    AssertEquals('TRGBAlphaImage', ImageClass.ClassName);
+  finally FreeAndNil(Stream) end;
 end;
 
 initialization
