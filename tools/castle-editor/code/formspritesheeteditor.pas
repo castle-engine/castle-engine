@@ -287,8 +287,7 @@ begin
     Bitmap := nil;
     try
       // TODO:  better scaling alghoritm
-      ResizedFrameImage := Frame.FrameImage.MakeResized(FrameIconSize.X,
-        FrameIconSize.Y);
+      ResizedFrameImage := Frame.MakeResized(FrameIconSize.X, FrameIconSize.Y);
 
       IntfImage := FrameImageToLazImage(ResizedFrameImage, FrameIconSize.X,
         FrameIconSize.Y);
@@ -409,7 +408,7 @@ var
 begin
   TempURL := URIIncludeSlash(ProjectForm.ProjectPathUrl) + 'temp/preview.castle-sprite-sheet';
   ForceDirectories(ExtractFilePath(URIToFilenameSafe(TempURL)));
-  FSpriteSheet.Save(TempURL);
+  FSpriteSheet.Save(TempURL, true);
 
   CreatePreviewUIIfNeeded;
 
@@ -422,7 +421,7 @@ var
 begin
   TempURL := URIIncludeSlash(ProjectForm.ProjectPathUrl) + 'temp/frame_preview.png';
   ForceDirectories(ExtractFilePath(URIToFilenameSafe(TempURL)));
-  SaveImage(Frame.FrameImage, TempURL);
+  Frame.SaveFrameImage(TempURL);
 
   CreatePreviewUIIfNeeded;
 

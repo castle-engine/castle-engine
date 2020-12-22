@@ -16,20 +16,52 @@ type
   TCastleSpriteSheetAnimationList = specialize TObjectList<TCastleSpriteSheetAnimation>;
   TCastleSpriteSheetFrameList = specialize TObjectList<TCastleSpriteSheetFrame>;
 
+  TCastleSpriteSheetAbstractImageGen = class;
+
   TCastleSpriteSheet = class
     strict private
       FAnimationList: TCastleSpriteSheetAnimationList;
+
       FURL: String;
       FLoadedImagePath: String;
       FRelativeImagePath: String;
       FGeneratedImage: TCastleImage;
+
+      FModifiedState: Boolean;
+      FLoadingPending: Boolean;
+      FOnModifiedStateChanged: TNotifyEvent;
+
+    private
+      FImageWidth: Integer;
+      FImageHeight: Integer;
+
+      function GetImageWidth: Integer;
+      function GetImageHeight: Integer;
+
+    protected
+      { Sets sprite sheet state as modified. }
+      procedure SetModifiedState;
+      { Clears modified state e.g. after saving }
+      procedure ClearModifiedState;
+      { Blocks ModifiedState changing }
+      procedure BeginLoad;
+      { Removes ModifiedState changing blocking }
+      procedure EndLoad;
     public
       constructor Create;
       destructor Destroy; override;
 
+      { Returns true if spritesheet was modified }
+      function IsModified: Boolean;
+
       procedure Load(const URL: String);
-      procedure Save(const URL: String);
+      { Saves file to castle sprite sheet. If SaveSaveCopy = true then don't clears
+        Modified state, don't change URL, don't save image paths }
+      procedure Save(const URL: String; const SaveCopy: Boolean = false);
       class function LoadToX3D(const URL: String): TX3DRootNode;
+
+      { Arranges and creates atlas image }
+      procedure RegenerateImage;
 
       function AnimationByName(const Name:String): TCastleSpriteSheetAnimation;
       function AnimationByIndex(const Index: Integer): TCastleSpriteSheetAnimation;
@@ -39,9 +71,24 @@ type
       procedure RemoveAnimationByName(const Name:String);
       procedure RemoveAnimationByIndex(const Index: Integer);
 
+      { Last Load/Save URL. }
       property URL: String read FURL write FURL;
+      { Full image path to loaded image, if empty sprite sheet was created from
+        scratch. }
       property LoadedImagePath: String read FLoadedImagePath write FLoadedImagePath;
+      { Image name with path relative to Castle Sprite Sheet/Starling XML file.
+        Usually image is located next to Castle Sprite Sheet/Starling XML so
+        this is only file name but it's not a rule. This file name/path is
+        saved in Castle Sprite Sheet/Starling XML file.
+
+        If empty sprite sheet was created from scratch and never saved. }
       property RelativeImagePath: String read FRelativeImagePath write FRelativeImagePath;
+
+      property OnModifiedStateChanged: TNotifyEvent read FOnModifiedStateChanged
+        write FOnModifiedStateChanged;
+
+      property ImageWidth: Integer read GetImageWidth;
+      property ImageHeight: Integer read GetImageHeight;
   end;
 
   TCastleSpriteSheetAnimation = class
@@ -49,42 +96,107 @@ type
       FName: String;
       FFramesPerSecond: Single;
       FFrameList: TCastleSpriteSheetFrameList;
+      FSpriteSheet: TCastleSpriteSheet;
+
+      procedure SetName(const NewName: String);
 
       function GetFrame(const Index: Integer): TCastleSpriteSheetFrame;
+    private
+      { Sets sprite sheet state as modified. }
+      procedure SetModifiedState;
     public
-      constructor Create(AName: String);
+      constructor Create(SpriteSheet: TCastleSpriteSheet; AName: String);
       destructor Destroy; override;
 
 
       function FrameCount: Integer;
-      procedure AddFrame(AFrame: TCastleSpriteSheetFrame);
+      function AddFrame: TCastleSpriteSheetFrame;
       function AllFramesHasTheSameSize: Boolean;
       function GetBigestFrameSize(const MaxWidth, MaxHeight: Integer): TVector2Integer;
 
-      property Name: String read FName write FName;
+      property Name: String read FName write SetName;
       property Frame[Index: Integer]: TCastleSpriteSheetFrame read GetFrame;
       property FramesPerSecond: Single read FFramesPerSecond write FFramesPerSecond;
   end;
 
   TCastleSpriteSheetFrame = class
+    strict private
+      FAnimation: TCastleSpriteSheetAnimation;
+
+      FX: Integer; // x on image
+      FY: Integer; // y on image
+      FWidth: Integer; // width on image
+      FHeight: Integer; // height on image
+      FFrameX: Integer; // relative frame x coordinate
+      FFrameY: Integer; // relative frame y coordinate
+      FFrameWidth: Integer; // real frame width (if not present Width have real frame width)
+      FFrameHeight: Integer; // real frame height (if not present Width have real frame height)
+
+      FTrimmed: Boolean; // FrameX, FrameY, FrameWidth, FrameHeight has real values?
+      FFrameImage: TCastleImage; // Full frame image (even trimmed here is with margins)
+
+      procedure SetX(const NewX: Integer);
+      procedure SetY(const NewY: Integer);
+      procedure SetWidth(const NewWidth: Integer);
+      procedure SetHeight(const NewHeight: Integer);
+      procedure SetFrameX(const NewFrameX: Integer);
+      procedure SetFrameY(const NewFrameY: Integer);
+      procedure SetFrameWidth(const NewFrameWidth: Integer);
+      procedure SetFrameHeight(const NewFrameHeight: Integer);
+      procedure SetTrimmed(const NewTrimmed: Boolean);
+
+      { Sets sprite sheet state as modified. }
+      procedure SetModifiedState;
     public
-      X: Integer; // x on image
-      Y: Integer; // y on image
-      Width: Integer; // width on image
-      Height: Integer; // height on image
-      FrameX: Integer; // relative frame x coordinate
-      FrameY: Integer; // relative frame y coordinate
-      FrameWidth: Integer; // real frame width (if not present Width have real frame width
-      FrameHeight: Integer; // real frame height (if not present Width have real frame height
-
-      Trimmed: Boolean; // FrameX, FrameY, FrameWidth, FrameHeight has real values?
-      FrameImage: TCastleImage;
-
+      constructor Create(const Animation: TCastleSpriteSheetAnimation);
       destructor Destroy; override;
 
+      { Copies image and sets frame size. }
+      procedure SetFrameImage(const SourceImage: TCastleImage);
+
+      { Copies a fragment of the image and sets the image parameters }
+      procedure SetFrameImage(const SourceImage: TCastleImage; const DestX, DestY,
+          AFrameWidth, AFrameHeight, SourceX, SourceY,
+          SourceWidthToCopy, SourceHeightToCopy: Integer);
+
+      function MakeResized(const Width, Height: Integer): TCastleImage;
+
+      procedure SaveFrameImage(const URL: String);
+
+      class function FlipYCoordToCGE(StarlingY, ImageHeight:Integer): Integer;
+      class function FlipYCoordToCGE(StarlingY, Height, ImageHeight:Integer): Integer;
+
+      property X: Integer read FX write SetX;
+      property Y: Integer read FY write SetY;
+      property Width: Integer read FWidth write SetWidth;
+      property Height: Integer read FHeight write SetHeight;
+      property FrameX: Integer read FFrameX write SetFrameX;
+      property FrameY: Integer read FFrameY write SetFrameY;
+      property FrameWidth: Integer read FFrameWidth write SetFrameWidth;
+      property FrameHeight: Integer read FFrameHeight write SetFrameHeight;
+      property Trimmed: Boolean read FTrimmed write SetTrimmed;
   end;
 
-  { Starling XML file is not correct }
+  { Abstract class for frame image "arranger", it enables the implementation
+    of many algorithms }
+  TCastleSpriteSheetAbstractImageGen = class
+    private
+      FSpriteSheet: TCastleSpriteSheet;
+      FSpriteSheetMaxWidth: Integer;
+      FSpriteSheetMaxHeight: Integer;
+    public
+      constructor Create(const ASpriteSheet: TCastleSpriteSheet; const MaxWidth, MaxHeight: Integer);
+
+      procedure Generate; virtual; abstract;
+  end;
+
+  { Most simple implementation of frame arranger }
+  TCastleSpriteSheetBasicImageGen = class (TCastleSpriteSheetAbstractImageGen)
+    public
+      procedure Generate; override;
+  end;
+
+  { Castle Sprite Sheet XML file is not correct }
   EInvalidCastleSpriteSheetXml = class(Exception);
 
 implementation
@@ -191,6 +303,7 @@ type
         FCurrentAnimation: TCastleSpriteSheetAnimation;
         FSubTexture: TSubTexture;
         FImage: TCastleImage;
+        FLoadForEdit: Boolean;
       public
         constructor Create(Loader: TCastleSpriteSheetLoader; SpriteSheet: TCastleSpriteSheet);
         destructor Destroy; override;
@@ -215,7 +328,9 @@ type
       FFramesPerSecond: Single;
 
       FImageWidth, FImageHeight: Integer;
+      { Image name with full path }
       FAbsoluteImagePath: String;
+      { Image name from CastleSpriteSheet/Starling file }
       FRelativeImagePath: String;
 
       FSubTexture: TSubTexture;
@@ -250,6 +365,23 @@ type
 
       function ExportToXML: TXMLDocument;
   end;
+
+{ TCastleSpriteSheetAbstractImageGen }
+
+constructor TCastleSpriteSheetAbstractImageGen.Create(
+  const ASpriteSheet: TCastleSpriteSheet; const MaxWidth, MaxHeight: Integer);
+begin
+  FSpriteSheet := ASpriteSheet;
+  FSpriteSheetMaxWidth := MaxWidth;
+  FSpriteSheetMaxHeight := MaxHeight;
+end;
+
+{ TCastleSpriteSheetBasicImageGen }
+
+procedure TCastleSpriteSheetBasicImageGen.Generate;
+begin
+
+end;
 
 { TCastleSpriteSheetXMLExporter }
 
@@ -290,13 +422,13 @@ begin
 
       TDOMElement(SubTextureNode).SetAttribute('name', Animation.Name + '_' + IntToStr(J + 1));
       TDOMElement(SubTextureNode).SetAttribute('x', IntToStr(Frame.X));
-      TDOMElement(SubTextureNode).SetAttribute('y', IntToStr(Frame.Y));
+      TDOMElement(SubTextureNode).SetAttribute('y', IntToStr(FSpriteSheet.FImageHeight - Frame.Y - Frame.Height));
       TDOMElement(SubTextureNode).SetAttribute('width', IntToStr(Frame.Width));
       TDOMElement(SubTextureNode).SetAttribute('height', IntToStr(Frame.Height));
       if Frame.Trimmed then
       begin
         TDOMElement(SubTextureNode).SetAttribute('frameX', IntToStr(Frame.FrameX));
-        TDOMElement(SubTextureNode).SetAttribute('frameY', IntToStr(Frame.FrameY));
+        TDOMElement(SubTextureNode).SetAttribute('frameY', IntToStr(Frame.FrameHeight - Frame.FrameY - Frame.Height));
         TDOMElement(SubTextureNode).SetAttribute('frameWidth', IntToStr(Frame.FrameWidth));
         TDOMElement(SubTextureNode).SetAttribute('frameHeight', IntToStr(Frame.FrameHeight));
       end;
@@ -305,15 +437,188 @@ begin
         TDOMElement(SubTextureNode).SetAttribute('fps', FloatToStrDot(Animation.FramesPerSecond));
     end;
   end;
-
 end;
 
 { TCastleSpriteSheetFrame }
 
+procedure TCastleSpriteSheetFrame.SetX(const NewX: Integer);
+begin
+  if FX = NewX then
+    Exit;
+
+  FX := NewX;
+  SetModifiedState;
+end;
+
+procedure TCastleSpriteSheetFrame.SetY(const NewY: Integer);
+begin
+  if FY = NewY then
+    Exit;
+
+  FY := NewY;
+  SetModifiedState;
+end;
+
+procedure TCastleSpriteSheetFrame.SetWidth(const NewWidth: Integer);
+begin
+  if FWidth = NewWidth then
+    Exit;
+
+  FWidth := NewWidth;
+  SetModifiedState;
+end;
+
+procedure TCastleSpriteSheetFrame.SetHeight(const NewHeight: Integer);
+begin
+  if FHeight = NewHeight then
+    Exit;
+
+  FHeight := NewHeight;
+  SetModifiedState;
+end;
+
+procedure TCastleSpriteSheetFrame.SetFrameX(const NewFrameX: Integer);
+begin
+  if FFrameX = NewFrameX then
+    Exit;
+
+  FFrameX := NewFrameX;
+  SetModifiedState;
+end;
+
+procedure TCastleSpriteSheetFrame.SetFrameY(const NewFrameY: Integer);
+begin
+  if FFrameY = NewFrameY then
+    Exit;
+
+  FFrameY := NewFrameY;
+  SetModifiedState;
+end;
+
+procedure TCastleSpriteSheetFrame.SetFrameWidth(const NewFrameWidth: Integer);
+begin
+  if FFrameWidth = NewFrameWidth then
+    Exit;
+
+  FFrameWidth := NewFrameWidth;
+  SetModifiedState;
+end;
+
+procedure TCastleSpriteSheetFrame.SetFrameHeight(const NewFrameHeight: Integer);
+begin
+  if FFrameHeight = NewFrameHeight then
+    Exit;
+
+  FFrameHeight := NewFrameHeight;
+  SetModifiedState;
+end;
+
+procedure TCastleSpriteSheetFrame.SetTrimmed(const NewTrimmed: Boolean);
+begin
+  if FTrimmed = NewTrimmed then
+    Exit;
+
+  FTrimmed := NewTrimmed;
+  SetModifiedState;
+end;
+
+procedure TCastleSpriteSheetFrame.SetModifiedState;
+begin
+  FAnimation.SetModifiedState;
+end;
+
+constructor TCastleSpriteSheetFrame.Create(
+  const Animation: TCastleSpriteSheetAnimation);
+begin
+  Assert(Animation <> nil, 'Animation can''t be nil when creating frame!');
+
+  FAnimation := Animation;
+end;
+
 destructor TCastleSpriteSheetFrame.Destroy;
 begin
-  FreeAndNil(FrameImage);
+  FreeAndNil(FFrameImage);
   inherited Destroy;
+end;
+
+procedure TCastleSpriteSheetFrame.SetFrameImage(const SourceImage: TCastleImage);
+begin
+  FreeAndNil(FFrameImage);
+  Width := SourceImage.Width;
+  Height := SourceImage.Height;
+
+  FrameX := 0;
+  FrameY := 0;
+  FrameWidth := SourceImage.Width;
+  FrameHeight := SourceImage.Height;
+
+  FreeAndNil(FFrameImage);
+
+  FFrameImage := SourceImage.MakeCopy;
+  SetModifiedState;
+end;
+
+procedure TCastleSpriteSheetFrame.SetFrameImage(
+  const SourceImage: TCastleImage; const DestX, DestY, AFrameWidth,
+  AFrameHeight, SourceX, SourceY, SourceWidthToCopy, SourceHeightToCopy: Integer);
+begin
+  Trimmed := not ((DestX = 0) and (DestY = 0));
+
+  { update frame settings }
+  X := SourceX;
+  Y := SourceY;
+  Width := SourceWidthToCopy;
+  Height := SourceHeightToCopy;
+
+  FrameX := DestX;
+  FrameY := DestY;
+
+  FrameWidth := AFrameWidth;
+  FrameHeight := AFrameHeight;
+
+  FreeAndNil(FFrameImage);
+
+  if not Trimmed then
+    FFrameImage := SourceImage.MakeExtracted(X, Y, Width, Height)
+  else
+  begin
+    { When Image is trimmed we can't simply extract image part }
+    FFrameImage := TRGBAlphaImage.Create(FrameWidth, FrameHeight);
+    FFrameImage.DrawFrom(SourceImage,
+      FrameX, // destination X
+      FrameY, // destination Y
+      X, // source X
+      Y, // source Y
+      Width,
+      Height
+    );
+  end;
+
+  SetModifiedState;
+end;
+
+function TCastleSpriteSheetFrame.MakeResized(const Width, Height: Integer
+  ): TCastleImage;
+begin
+  Assert(FFrameImage <> nil, 'No frame image to resize');
+  Result := FFrameImage.MakeResized(Width, Height);
+end;
+
+procedure TCastleSpriteSheetFrame.SaveFrameImage(const URL: String);
+begin
+  SaveImage(FFrameImage, URL);
+end;
+
+class function TCastleSpriteSheetFrame.FlipYCoordToCGE(StarlingY,
+  ImageHeight: Integer): Integer;
+begin
+  Result := ImageHeight - StarlingY;
+end;
+
+class function TCastleSpriteSheetFrame.FlipYCoordToCGE(StarlingY, Height,
+  ImageHeight: Integer): Integer;
+begin
+  Result := ImageHeight - (StarlingY + Height);
 end;
 
 { TCastleSpriteSheetLoader.TLoadToSpriteSheetModel }
@@ -323,6 +628,7 @@ constructor TCastleSpriteSheetLoader.TLoadToSpriteSheetModel.Create(
 begin
   inherited Create(Loader);
   FSpriteSheet := SpriteSheet;
+  FLoadForEdit := true;
 end;
 
 destructor TCastleSpriteSheetLoader.TLoadToSpriteSheetModel.Destroy;
@@ -337,6 +643,8 @@ begin
   FSpriteSheet.LoadedImagePath := FLoader.FAbsoluteImagePath;
   FSpriteSheet.RelativeImagePath := FLoader.FRelativeImagePath;
   FImage := LoadImage(FLoader.FAbsoluteImagePath);
+  FSpriteSheet.FImageWidth := FLoader.FImageWidth;
+  FSpriteSheet.FImageHeight := FLoader.FImageHeight;
 end;
 
 procedure TCastleSpriteSheetLoader.TLoadToSpriteSheetModel.CalculateFrameCoords(
@@ -361,54 +669,62 @@ end;
 procedure TCastleSpriteSheetLoader.TLoadToSpriteSheetModel.AddFrame;
 var
   Frame: TCastleSpriteSheetFrame;
-  FrameImage: TCastleImage;
+  FrameYInCGECoords: Integer;
+  YInCGECoords: Integer;
 begin
-  Frame := TCastleSpriteSheetFrame.Create;
-  Frame.X := FSubTexture.X;
-  Frame.Y := FSubTexture.Y;
-  Frame.Width := FSubTexture.Width;
-  Frame.Height := FSubTexture.Height;
-  Frame.Trimmed := FSubTexture.Trimmed;
+  Frame := FCurrentAnimation.AddFrame;
+
+  // we need to go to CGE coords here
   if Frame.Trimmed then
-  begin
-    Frame.FrameWidth := FSubTexture.FrameWidth;
-    Frame.FrameHeight := FSubTexture.FrameHeight;
-    Frame.FrameX := FSubTexture.FrameY;
-    Frame.FrameY := FSubTexture.FrameY;
-  end else
-  begin
-    // make data always OK
-    Frame.FrameX := Frame.X;
-    Frame.FrameY := Frame.Y;
-    Frame.FrameWidth := Frame.Width;
-    Frame.FrameHeight := Frame.Height;
-  end;
-
-  if not Frame.Trimmed then
-    Frame.FrameImage := FImage.MakeExtracted(Frame.X,
-      FLoader.FImageHeight - Frame.Y - Frame.Height,
-      Frame.Width, Frame.Height)
+    FrameYInCGECoords := FSubTexture.FrameHeight - FSubTexture.FrameY - FSubTexture.Height
   else
+    FrameYInCGECoords := 0;
+
+  YInCGECoords := FLoader.FImageHeight - FSubTexture.Y - FSubTexture.Height;
+
+  if not FLoadForEdit then
   begin
-    { When Image is trimmed we can't simply extract image part }
-    Frame.FrameImage := TRGBAlphaImage.Create(Frame.FrameWidth, Frame.FrameHeight);
-    Frame.FrameImage.DrawFrom(FImage,
-      0, // destination X
-      0, // destination Y
-      Frame.X, // source X
-      FLoader.FImageHeight - Frame.Y - Frame.Height, // source Y
-      Frame.Width,
-      Frame.Height
-    );
+    Frame.Width := FSubTexture.Width;
+    Frame.Height := FSubTexture.Height;
+    Frame.Trimmed := FSubTexture.Trimmed;
+    Frame.X := FSubTexture.X;
+    Frame.Y := YInCGECoords;
+    if Frame.Trimmed then
+    begin
+      Frame.FrameWidth := FSubTexture.FrameWidth;
+      Frame.FrameHeight := FSubTexture.FrameHeight;
+      Frame.FrameX := FSubTexture.FrameX;
+      Frame.FrameY := FrameYInCGECoords;
+    end else
+    begin
+      // make data always OK
+      Frame.FrameX := 0;
+      Frame.FrameY := 0;
+      Frame.FrameWidth := Frame.Width;
+      Frame.FrameHeight := Frame.Height;
+    end;
+    Exit;
   end;
 
-  FCurrentAnimation.AddFrame(Frame);
+  { If we want load sprite sheet for edit }
+  Frame.SetFrameImage(FImage,
+    FSubTexture.FrameX,
+    FrameYInCGECoords,
+    FSubTexture.FrameWidth,
+    FSubTexture.FrameHeight,
+    FSubTexture.X,
+    YInCGECoords,
+    FSubTexture.Width,
+    FSubTexture.Height
+  );
 end;
 
 { TCastleSpriteSheetAnimation }
 
-constructor TCastleSpriteSheetAnimation.Create(AName: String);
+constructor TCastleSpriteSheetAnimation.Create(SpriteSheet: TCastleSpriteSheet; AName: String);
 begin
+  Assert(SpriteSheet <> nil, 'Sprite sheet can''t be nil when creating animation!');
+  FSpriteSheet := SpriteSheet;
   FName := AName;
   FFramesPerSecond := DefaultSpriteSheetFramesPerSecond;
   FFrameList := TCastleSpriteSheetFrameList.Create;
@@ -418,6 +734,20 @@ destructor TCastleSpriteSheetAnimation.Destroy;
 begin
   FreeAndNil(FFrameList);
   inherited Destroy;
+end;
+
+procedure TCastleSpriteSheetAnimation.SetModifiedState;
+begin
+  FSpriteSheet.SetModifiedState;
+end;
+
+procedure TCastleSpriteSheetAnimation.SetName(const NewName: String);
+begin
+  if NewName = FName then
+    Exit;
+
+  FName := NewName;
+  SetModifiedState;
 end;
 
 function TCastleSpriteSheetAnimation.GetFrame(const Index: Integer
@@ -431,9 +761,14 @@ begin
   Result := FFrameList.Count;
 end;
 
-procedure TCastleSpriteSheetAnimation.AddFrame(AFrame: TCastleSpriteSheetFrame);
+function TCastleSpriteSheetAnimation.AddFrame: TCastleSpriteSheetFrame;
+var
+  AFrame: TCastleSpriteSheetFrame;
 begin
+  AFrame := TCastleSpriteSheetFrame.Create(Self);
   FFrameList.Add(AFrame);
+  Result := AFrame;
+  SetModifiedState;
 end;
 
 function TCastleSpriteSheetAnimation.AllFramesHasTheSameSize: Boolean;
@@ -687,6 +1022,63 @@ end;
 
 { TCastleSpriteSheet }
 
+function TCastleSpriteSheet.GetImageWidth: Integer;
+begin
+  if FGeneratedImage <> nil then
+    Exit(FGeneratedImage.Width);
+
+  { If no image was generated use loaded image size. }
+  Result := FImageWidth;
+end;
+
+function TCastleSpriteSheet.GetImageHeight: Integer;
+begin
+  if FGeneratedImage <> nil then
+    Exit(FGeneratedImage.Height);
+
+  { If no image was generated use loaded image size. }
+  Result := FImageHeight;
+end;
+
+procedure TCastleSpriteSheet.SetModifiedState;
+begin
+  if FModifiedState then
+    Exit;
+
+  if FLoadingPending then
+    Exit;
+
+  FModifiedState := true;
+  if Assigned(FOnModifiedStateChanged) then
+    FOnModifiedStateChanged(Self);
+end;
+
+procedure TCastleSpriteSheet.ClearModifiedState;
+begin
+  if not FModifiedState then
+    Exit;
+
+  FModifiedState := false;
+
+  if Assigned(FOnModifiedStateChanged) then
+    FOnModifiedStateChanged(Self);
+end;
+
+function TCastleSpriteSheet.IsModified: Boolean;
+begin
+  Result := FModifiedState;
+end;
+
+procedure TCastleSpriteSheet.BeginLoad;
+begin
+  FLoadingPending := true;
+end;
+
+procedure TCastleSpriteSheet.EndLoad;
+begin
+  FLoadingPending := false;
+end;
+
 constructor TCastleSpriteSheet.Create;
 begin
   FAnimationList := TCastleSpriteSheetAnimationList.Create;
@@ -703,45 +1095,67 @@ procedure TCastleSpriteSheet.Load(const URL: String);
 var
   SpriteSheetLoader: TCastleSpriteSheetLoader;
 begin
-  SpriteSheetLoader := TCastleSpriteSheetLoader.Create(URL);
+  SpriteSheetLoader := nil;
+  BeginLoad;
   try
+    SpriteSheetLoader := TCastleSpriteSheetLoader.Create(URL);
     SpriteSheetLoader.LoadToCastleSpriteSheet(Self);
   finally
     FreeAndNil(SpriteSheetLoader);
+    EndLoad;
   end;
 end;
 
-procedure TCastleSpriteSheet.Save(const URL: String);
+procedure TCastleSpriteSheet.Save(const URL: String;
+  const SaveCopy: Boolean = false);
 var
   ExporterXML: TCastleSpriteSheetXMLExporter;
   XMLDoc: TXMLDocument;
   ImageURL: String;
+
+  FOldRelativeImagePath: String;
 begin
-  { TODO: Maybe generate sprite sheet image here? }
-
-  { Generate image file name/path, use PNG as main image file format }
-  if FRelativeImagePath = '' then
+  if SaveCopy then
   begin
-    FRelativeImagePath := DeleteURIExt(ExtractURIName(URL)) + '.png';
+    FOldRelativeImagePath := FRelativeImagePath;
   end;
-  ImageURL := URIIncludeSlash(ExtractURIPath(URL)) + FRelativeImagePath;
 
-  { Save image file }
-  if FGeneratedImage = nil then
-    CheckCopyFile(URIToFilenameSafe(LoadedImagePath), URIToFilenameSafe(ImageURL))
-  else
-    SaveImage(FGeneratedImage, ImageURL);
-
-  { Save xml (Starling) file }
-  ExporterXML := nil;
-  XMLDoc := nil;
+  if IsModified then
+    RegenerateImage;
   try
-    ExporterXML := TCastleSpriteSheetXMLExporter.Create(Self);
-    XMLDoc := ExporterXML.ExportToXML;
-    URLWriteXML(XMLDoc, URL);
+
+    { Generate image file name/path, use PNG as main image file format.
+      Maybe we should add option to set file name by user. }
+
+    if FRelativeImagePath = '' then
+    begin
+      FRelativeImagePath := DeleteURIExt(ExtractURIName(URL)) + '.png';
+    end;
+    ImageURL := URIIncludeSlash(ExtractURIPath(URL)) + FRelativeImagePath;
+
+    { Save image file }
+    if FGeneratedImage = nil then
+      CheckCopyFile(URIToFilenameSafe(LoadedImagePath), URIToFilenameSafe(ImageURL))
+    else
+      SaveImage(FGeneratedImage, ImageURL);
+
+    { Save xml (Starling) file }
+    ExporterXML := nil;
+    XMLDoc := nil;
+    try
+      ExporterXML := TCastleSpriteSheetXMLExporter.Create(Self);
+      XMLDoc := ExporterXML.ExportToXML;
+      URLWriteXML(XMLDoc, URL);
+    finally
+      FreeAndNil(ExporterXML);
+      FreeAndNil(XMLDoc);
+    end;
+
+    if not SaveCopy then
+      FURL := URL;
   finally
-    FreeAndNil(ExporterXML);
-    FreeAndNil(XMLDoc);
+    if SaveCopy then
+      FRelativeImagePath := FOldRelativeImagePath;
   end;
 end;
 
@@ -755,6 +1169,11 @@ begin
   finally
     FreeAndNil(SpriteSheetLoader);
   end;
+end;
+
+procedure TCastleSpriteSheet.RegenerateImage;
+begin
+
 end;
 
 function TCastleSpriteSheet.AnimationByName(const Name: String): TCastleSpriteSheetAnimation;
@@ -795,7 +1214,7 @@ function TCastleSpriteSheet.AddAnimation(const Name: String): TCastleSpriteSheet
 var
   Animation: TCastleSpriteSheetAnimation;
 begin
-  Animation := TCastleSpriteSheetAnimation.Create(Name);
+  Animation := TCastleSpriteSheetAnimation.Create(Self, Name);
   FAnimationList.Add(Animation);
   Result := Animation;
 end;
@@ -1109,17 +1528,10 @@ begin
   Height := SubTextureNode.AttributeInteger('height');
 
   Trimmed := SubTextureNode.HasAttribute('frameX');
-  if Trimmed then
-  begin
-    { When frame is trimmed Width and Height does not mean the full size
-      of the frame, so we have to calculate the appropriate
-      anchor to get the correct position because it will not be (0.5, 0.5) }
-
-    FrameX := SubTextureNode.AttributeIntegerDef('frameX', 0);
-    FrameY := SubTextureNode.AttributeIntegerDef('frameY', 0);
-    FrameWidth := SubTextureNode.AttributeIntegerDef('frameWidth', Width);
-    FrameHeight := SubTextureNode.AttributeIntegerDef('frameHeight', Height);
-  end;
+  FrameX := SubTextureNode.AttributeIntegerDef('frameX', 0);
+  FrameY := SubTextureNode.AttributeIntegerDef('frameY', 0);
+  FrameWidth := SubTextureNode.AttributeIntegerDef('frameWidth', Width);
+  FrameHeight := SubTextureNode.AttributeIntegerDef('frameHeight', Height);
 end;
 
 constructor TCastleSpriteSheetLoader.TSubTexture.Create;
