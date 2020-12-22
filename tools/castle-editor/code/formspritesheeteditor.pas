@@ -69,6 +69,7 @@ type
       FSpriteSheet: TCastleSpriteSheet;
       FPreviewScene: TCastleScene;
       FViewport: TCastleViewport;
+      FWindowTitle: String;
 
     procedure CloseSpriteSheet;
 
@@ -98,6 +99,9 @@ type
     procedure RegenerateAnimationPreviewFile;
     { Regenerates and load frame temp file }
     procedure RegenerateFramePreviewFile(const Frame: TCastleSpriteSheetFrame);
+
+    procedure UpdateWindowCaption;
+    procedure ModifiedStateChanged(Sender: TObject);
   public
     procedure OpenSpriteSheet(const URL: String);
   end;
@@ -142,6 +146,7 @@ end;
 procedure TSpriteSheetEditorForm.FormCreate(Sender: TObject);
 begin
   FSpriteSheet := nil;
+  FWindowTitle := SpriteSheetEditorForm.Caption;
 end;
 
 procedure TSpriteSheetEditorForm.FormDestroy(Sender: TObject);
@@ -428,6 +433,30 @@ begin
   FPreviewScene.Load(TempURL);
 end;
 
+procedure TSpriteSheetEditorForm.UpdateWindowCaption;
+var
+  ModifiedMark: String;
+begin
+  if FSpriteSheet = nil then
+  begin
+    SpriteSheetEditorForm.Caption := FWindowTitle;
+    Exit;
+  end;
+
+  if FSpriteSheet.IsModified then
+    ModifiedMark := '*'
+  else
+    ModifiedMark := '';
+
+  SpriteSheetEditorForm.Caption := FWindowTitle + ' - ' + ModifiedMark +
+    FSpriteSheet.URL;
+end;
+
+procedure TSpriteSheetEditorForm.ModifiedStateChanged(Sender: TObject);
+begin
+  UpdateWindowCaption;
+end;
+
 procedure TSpriteSheetEditorForm.ClearAnimations;
 begin
   ListBoxAnimations.Items.Clear;
@@ -438,7 +467,9 @@ begin
   try
     CloseSpriteSheet;
     FSpriteSheet :=  TCastleSpriteSheet.Create;
+    FSpriteSheet.OnModifiedStateChanged := @ModifiedStateChanged;
     FSpriteSheet.Load(URL);
+    UpdateWindowCaption;
     LoadAnimations(FSpriteSheet);
   except
     on E:Exception do
