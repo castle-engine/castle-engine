@@ -898,6 +898,31 @@ var
       WritelnWarning('Required extension KHR_draco_mesh_compression not supported by glTF reader');
   end;
 
+  { Read glTF "extras" into X3D "metadata" information. }
+  procedure ReadMetadata(const Extras: TPasJSONItemObject; const Node: TAbstractNode);
+  var
+    I: Integer;
+    Key: String;
+  begin
+    for I := 0 to Extras.Count - 1 do
+    begin
+      Key := Extras.Keys[I];
+      if Extras.Values[I] is TPasJSONItemString then
+        Node.MetadataString[Key, 0] := TPasJSONItemString(Extras.Values[I]).Value
+      else
+      if Extras.Values[I] is TPasJSONItemBoolean then
+        Node.MetadataBoolean[Key, 0] := TPasJSONItemBoolean(Extras.Values[I]).Value
+      else
+      if Extras.Values[I] is TPasJSONItemNumber then
+        Node.MetadataDouble[Key, 0] := TPasJSONItemNumber(Extras.Values[I]).Value
+      else
+        WritelnWarning('Cannot read glTF extra "%s", unexpected type %s', [
+          Key,
+          Extras.Values[I].ClassName
+        ]);
+    end;
+  end;
+
   function ReadTextureRepeat(const Wrap: TPasGLTF.TSampler.TWrappingMode): Boolean;
   begin
     Result :=
@@ -1180,6 +1205,7 @@ var
       Result.Material := ReadPhongMaterial(Material)
     else
       Result.Material := ReadPhysicalMaterial(Material);
+    ReadMetadata(Material.Extras, Result.Material);
 
     // read common material properties, that make sense in case of all material type
     Result.DoubleSided := Material.DoubleSided;
@@ -1547,6 +1573,7 @@ var
 
     // add to X3D
     ParentGroup.AddChildren(Shape);
+    ReadMetadata(Primitive.Extras, Shape);
   end;
 
   procedure ReadMesh(const Mesh: TPasGLTF.TMesh; const ParentGroup: TAbstractX3DGroupingNode);
@@ -1557,6 +1584,8 @@ var
     Group := TGroupNode.Create;
     Group.X3DName := Mesh.Name;
     ParentGroup.AddChildren(Group);
+
+    ReadMetadata(Mesh.Extras, Group);
 
     for Primitive in Mesh.Primitives do
       ReadPrimitive(Primitive, Group);
@@ -1581,6 +1610,8 @@ var
       OrthoViewpoint.X3DName := Camera.Name;
       OrthoViewpoint.GravityTransform := false;
       ParentGroup.AddChildren(OrthoViewpoint);
+
+      ReadMetadata(Camera.Extras, OrthoViewpoint);
     end else
     begin
       Viewpoint := TViewpointNode.Create;
@@ -1589,6 +1620,8 @@ var
         Viewpoint.FieldOfView := Camera.Perspective.YFov / 2;
       Viewpoint.GravityTransform := false;
       ParentGroup.AddChildren(Viewpoint);
+
+      ReadMetadata(Camera.Extras, Viewpoint);
     end;
   end;
 
@@ -1663,6 +1696,8 @@ var
       Transform.Rotation := Rotation;
       Transform.Scale := Scale;
       ParentGroup.AddChildren(Transform);
+
+      ReadMetadata(Node.Extras, Transform);
 
       if Node.Mesh <> -1 then
       begin
