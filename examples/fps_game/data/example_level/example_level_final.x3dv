@@ -3,9 +3,11 @@ PROFILE Interactive
 
 # This file defines the complete 3D model of the level.
 #
-# - The basic level geometry and lights are exported from Blender, as 2 glTF files
-#   (example_level.gltf and water.gltf).
-#   They are used (by "Inline" node) here.
+# - The basic level geometry,
+#   and non-collidable water,
+#   and lights,
+#   are exported from Blender as one glTF file (example_level.gltf).
+#   It is used (by "Inline" node) here.
 # - This file also adds some additional nodes,
 #   to define information that cannot be expressed in Blender.
 #
@@ -62,17 +64,6 @@ NavigationInfo {
 Viewpoint {
   position 16.827529907226563 2.0736739635467529 -3.8136968612670898
   orientation -6.9152335413491528E-8 1.0000001192092896 0 0.68426263332366943
-}
-
-# Add water.
-# Water is modeled in the same Blender example_level.blend file.
-# But we export water to a separate 3D file, to wrap it inside Collision
-# node with enabled=FALSE, to make water surface not collidable.
-# In the future we will have a way to set objects non-collidable
-# from Blender.
-Collision {
-  enabled FALSE
-  children Inline { url "water.gltf" }
 }
 
 # Textured background.

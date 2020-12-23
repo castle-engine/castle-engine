@@ -1446,6 +1446,7 @@ var
     IndexField: TMFLong;
     Appearance: TGltfAppearanceNode;
     Tangent4D: TVector4List;
+    MetadataCollision: String;
   begin
     // create X3D geometry and shape nodes
     if Primitive.Indices <> -1 then
@@ -1570,6 +1571,14 @@ var
     Geometry.Solid := not Appearance.DoubleSided;
 
     Shape.GenerateTangents;
+
+    MetadataCollision := ParentGroup.MetadataString['CastleCollision', 0];
+    case MetadataCollision of
+      'none': Shape.Collision := scNone;
+      'box': Shape.Collision := scBox;
+      '', 'default': Shape.Collision := scDefault;
+      else WritelnWarning('Invalid value for "CastleCollision" custom property, ignoring: %s', [MetadataCollision]);
+    end;
 
     // add to X3D
     ParentGroup.AddChildren(Shape);

@@ -580,14 +580,18 @@ type
     function Blending: boolean; deprecated 'use "AlphaChannel = acBlending"';
     function Transparent: boolean; deprecated 'use "AlphaChannel = acBlending"';
 
-    { Is shape visible, according to VRML Collision node rules.
-      Ths is simply a shortcut (with more obvious name) for
-      @code(State.InsideInvisible = 0). }
+    { Is the shape visible.
+      Most shapes are visible, except when placed in @link(TCollisionNode.Proxy)
+      (which allows to define invisible shapes, only for collision purposes). }
     function Visible: boolean;
 
-    { Is shape collidable, according to VRML Collision node rules.
-      Ths is simply a shortcut (with more obvious name) for
-      @code(State.InsideIgnoreCollision = 0). }
+    { Is the shape collidable.
+      Most shapes are collidable.
+      One exception is when @link(TShapeNode.Collision) is set to scNone,
+      which disables collisions.
+      Another exception is when the shape is placed inside @link(TCollisionNode) children,
+      and then you use @link(TCollisionNode.Enabled) to turn off collisions,
+      or @link(TCollisionNode.Proxy) to provide alternative geometry for collisions. }
     function Collidable: boolean;
 
     { Equivalent to using OctreeTriangles.RayCollision, except this
@@ -1883,7 +1887,7 @@ procedure TShape.Changed(const InactiveOnly: boolean;
          This is the case with glTF skinned animation. }
        not (
          (Node <> nil) and
-         (Node.Collision = scBox) and
+         (Node.Collision in [scBox, scNone]) and
          (not Node.BBox.IsEmpty)
        ) then
       FreeOctreeTriangles;
@@ -1946,7 +1950,7 @@ begin
   if Changes * [chBBox] <> [] then
   begin
     Validities := Validities - [svLocalBBox, svBBox];
-    if (Node <> nil) and (Node.Collision = scBox) then
+    if (Node <> nil) and (Node.Collision in [scBox, scNone]) then
       FreeOctreeTriangles; // bbox changed, so simple octree based on bbox also changed
   end;
 
@@ -2081,7 +2085,7 @@ function TShape.CreateTriangleOctree(
 begin
   Result := TTriangleOctree.Create(ALimits, LocalBoundingBox);
   try
-    if (Node <> nil) and (Node.Collision = scBox) then
+    if (Node <> nil) and (Node.Collision in [scBox, scNone]) then
     begin
       { Add 12 triangles for 6 cube (LocalBoundingBox) sides.
         No point in progress here, as this is always fast. }
@@ -2285,6 +2289,9 @@ end;
 function TShape.Collidable: boolean;
 begin
   Result := State.InsideIgnoreCollision = 0;
+  if (Node <> nil) and
+     (Node.Collision = scNone) then
+    Result := false;
 end;
 
 function TShape.RayCollision(
