@@ -1,3 +1,4 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleCompositeImage" -*-
 {
   Copyright 2009-2018 Michalis Kamburelis.
 
@@ -13,6 +14,7 @@
   ----------------------------------------------------------------------------
 }
 
+{ Test CastleCompositeImage unit. }
 unit TestCastleCompositeImage;
 
 interface

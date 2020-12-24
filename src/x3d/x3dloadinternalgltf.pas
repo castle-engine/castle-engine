@@ -908,13 +908,13 @@ var
     begin
       Key := Extras.Keys[I];
       if Extras.Values[I] is TPasJSONItemString then
-        Node.MetadataString[Key, 0] := TPasJSONItemString(Extras.Values[I]).Value
+        Node.MetadataString[Key] := TPasJSONItemString(Extras.Values[I]).Value
       else
       if Extras.Values[I] is TPasJSONItemBoolean then
-        Node.MetadataBoolean[Key, 0] := TPasJSONItemBoolean(Extras.Values[I]).Value
+        Node.MetadataBoolean[Key] := TPasJSONItemBoolean(Extras.Values[I]).Value
       else
       if Extras.Values[I] is TPasJSONItemNumber then
-        Node.MetadataDouble[Key, 0] := TPasJSONItemNumber(Extras.Values[I]).Value
+        Node.MetadataDouble[Key] := TPasJSONItemNumber(Extras.Values[I]).Value
       else
         WritelnWarning('Cannot read glTF extra "%s", unexpected type %s', [
           Key,
@@ -1572,7 +1572,7 @@ var
 
     Shape.GenerateTangents;
 
-    MetadataCollision := ParentGroup.MetadataString['CastleCollision', 0];
+    MetadataCollision := ParentGroup.MetadataString['CastleCollision'];
     case MetadataCollision of
       'none': Shape.Collision := scNone;
       'box': Shape.Collision := scBox;
