@@ -322,11 +322,11 @@
     by providing parameters to the lighting equations.
     This is the material responsible for the Phong lighting model.
 
-    It may be one-sided material under some cirumstances (black from the back
-    side).
-    To have a two-sided material, either use TTwoSidedMaterialNode,
-    or set the shading to Phong using @link(TCastleRenderOptions.PhongShading)
-    or @link(TAbstractShapeNode.Shading). }
+    It specifies how light affects one side of the surface.
+
+    Note: Whether the shape is visible from both sides depends on the
+    geometry @link(TAbstractGeometryNode.Solid) field,
+    and is independent of whether you use this node or @link(TwoSidedMaterial). }
   TMaterialNode = class(TAbstractOneSidedMaterialNode)
   strict private
     type
@@ -433,8 +433,11 @@
     {$I auto_generated_node_helpers/x3dnodes_shape.inc}
   end;
 
-  { Two-sided material (always lit from both sides),
-    with properties that allow to lit both sides with different properties (colors). }
+  { @deprecated
+
+    Note: Whether the shape is visible from both sides depends on the
+    geometry @link(TAbstractGeometryNode.Solid) field,
+    and is independent of whether you use this or other (one-sided) material nodes. }
   TTwoSidedMaterialNode = class(TAbstractMaterialNode)
   strict private
     type

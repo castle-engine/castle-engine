@@ -2279,9 +2279,7 @@ procedure TGLRenderer.RenderShape(const Shape: TX3DRendererShape);
   begin
     Result :=
       (Shape.Node <> nil) and
-      ( (Shape.Node.Material is TTwoSidedMaterialNode) or
-        (Shape.Node.Material is TPhysicalMaterialNode)
-      );
+      (Shape.Node.Material is TPhysicalMaterialNode);
   end;
 
 var
