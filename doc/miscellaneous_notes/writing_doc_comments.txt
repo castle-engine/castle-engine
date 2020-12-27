@@ -1,11 +1,11 @@
-We use PasDoc http://pasdoc.sourceforge.net/ for API documentation.
+We use PasDoc https://github.com/pasdoc/pasdoc for API documentation.
 Michalis, an author of this engine, is also a PasDoc developer,
 so suggestions about PasDoc improvements are also welcome :)
 
 We use @section and @groupBegin / @groupEnd tags in our documentation,
 although they are not yet implemented in PasDoc.
 I plan to implement them one day, see
-http://pasdoc.sipsolutions.net/MichalisKamburelis
+https://github.com/pasdoc/pasdoc/wiki/MichalisKamburelis
 
 We use PasDoc with --auto-abstract option. This is very handy,
 and it forces us (in a "good way") to write really good 1st sentence
