@@ -428,14 +428,14 @@ type
       (optimal to render) font data size. }
     constructor Create(const URL: string;
       const ASize: Integer; const AnAntiAliased: boolean;
-      const ACharacters: TUnicodeCharList = nil); reintroduce;
+      const ACharacters: TUnicodeCharList = nil); reintroduce; deprecated 'use Create(Owner: TComponent), then Load';
     procedure Load(const URL: string;
       const ASize: Integer; const AnAntiAliased: boolean;
       const ACharacters: TUnicodeCharList = nil);
 
     constructor Create(const URL: string;
       const ASize: Integer; const AnAntiAliased: boolean;
-      const ACharacters: TSetOfChars); deprecated;
+      const ACharacters: TSetOfChars); deprecated 'use Create(Owner: TComponent), then Load';
 
     { Create from a ready TTextureFontData instance.
       @param(Data TTextureFontData instance containing loaded image
@@ -447,7 +447,7 @@ type
         the finalization of CastleTextureFont_Xxx unit will already free
         the TTextureFontData instance.) }
     constructor Create(const Data: TTextureFontData;
-      const OwnsData: boolean = false); reintroduce;
+      const OwnsData: boolean = false); reintroduce; deprecated 'use Create(Owner: TComponent), then Load';
     procedure Load(const Data: TTextureFontData;
       const OwnsData: boolean = false);
     procedure PrepareResources; override;
@@ -1148,7 +1148,9 @@ begin
   try
     for C in ACharacters do
       Chars.Add(Ord(C));
+    {$warnings off} // calling deprecated from deprecated
     Create(URL, ASize, AnAntiAliased, Chars);
+    {$warnings on}
   finally FreeAndNil(Chars) end;
 end;
 
