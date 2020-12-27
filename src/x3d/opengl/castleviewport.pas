@@ -490,7 +490,7 @@ type
       after a @name call. No previous cached camera instance will be used. }
     procedure ClearCameras; deprecated 'just set Navigation to nil instead of using this method; to avoid reusing previous instance, do not use WalkNavigation/ExamineNavigation methods, instead create and destroy your own TCastleWalkNavigation/TCastleExamineNavigation whenever you want';
 
-    { Camera instances used by this scene manager.
+    { Camera instances used by this viewport.
       Using these methods automatically creates these instances
       (so they are never @nil).
 
@@ -500,7 +500,7 @@ type
 
       When you switch navigation types by calling @link(ExamineCamera),
       @link(WalkCamera) or setting @link(NavigationType)
-      the scene manager keeps using these instances of cameras,
+      the viewport keeps using these instances of cameras,
       instead of creating new camera instances.
       This way all the camera properties
       (not only those copied by TCastleNavigation.Assign) are preserved when you switch
@@ -661,11 +661,11 @@ type
           @link(TCastleOrthographic.Width Camera.Orthographic.Width) and/or
           @link(TCastleOrthographic.Height Camera.Orthographic.Height)
           to define visible projection size (horizontal or vertical) explicitly,
-          regardless of the scene manager size.
+          regardless of the viewport size.
 
           Setting @link(TCastleOrthographic.Origin Camera.Orthographic.Origin)
           is also often useful, e.g. set it to (0.5,0.5) to make the things positioned
-          at (0,0) in the world visible at the middle of the scene manager.
+          at (0,0) in the world visible at the middle of the viewport.
 
           By default our visible Z range is [-1500, 500],
           because this sets ProjectionNear to -1000, ProjectionFar to 1000,
@@ -836,7 +836,7 @@ type
       const PlaneZ: Single; out PlanePosition: TVector3): Boolean;
 
     { Convert 2D position into "world coordinates", which is the coordinate
-      space seen by TCastleTransform / TCastleScene inside scene manager @link(Items),
+      space seen by TCastleTransform / TCastleScene inside viewport @link(Items),
       assuming that we use orthographic projection in XY axes.
 
       The interpretation of Position depends on ScreenCoordinates,
@@ -1000,19 +1000,20 @@ type
       @link(TCastleRootTransform.MainScene MainScene) will be ignored. }
     property Transparent: boolean read FTransparent write FTransparent default false;
 
-    { At the beginning of rendering, scene manager by default clears
-      the depth buffer. This makes every scene manager draw everything
+    { At the beginning of rendering, viewport by default clears
+      the depth buffer. This makes every viewport draw everything
       on top of the previous 2D and 3D stuff (including on top
-      of previous scene managers), like a layer.
+      of previous viewport), like a layer.
 
       You can disable this, which allows to combine together the 3D objects rendered
-      by various scene managers (and by custom OpenGL rendering),
+      by various viewports (and by custom OpenGL rendering),
       such that the 3D positions determime what overlaps what.
-      This only makes sense if all these scene managers (or custom renderers)
-      use the same viewport, the same projection and the same camera.
+      This only makes sense if you have a number of TCastleViewport instances,
+      that share the same size and position on the screen,
+      same projection and the same camera.
 
       It's your responsibility in such case to clear the depth buffer.
-      E.g. place one scene manager in the back that has ClearDepth = @true.
+      E.g. place one viewport in the back that has ClearDepth = @true.
       Or place a TCastleUserInterface descendant in the back, that calls
       @code(TRenderContext.Clear RenderContext.Clear) in overridden
       @link(TCastleUserInterface.Render).
@@ -1095,12 +1096,12 @@ type
       deprecated 'adjust projection by changing Camera.ProjectionType and other projection parameters inside Camera';
 
     { Enable to drag a parent control, for example to drag a TCastleScrollView
-      that contains this scene manager, even when the scene inside contains
+      that contains this TCastleViewport, even when the scene inside contains
       clickable elements (using TouchSensor node).
 
       To do this, you need to turn on
       TCastleScrollView.EnableDragging, and set EnableParentDragging=@true
-      here. In effect, scene manager will cancel the click operation
+      here. In effect, viewport will cancel the click operation
       once you start dragging, which allows the parent to handle
       all the motion events for dragging. }
     property EnableParentDragging: boolean
@@ -1453,12 +1454,12 @@ end;
 
 procedure TCastleViewport.SetNavigation(const Value: TCastleNavigation);
 begin
-  { Scene manager / viewport will handle passing events to their camera,
+  { Viewport will handle passing events to their camera,
     and will also pass our own Container to Camera.Container.
     This is desired, this way events are correctly passed
     and interpreted before passing them to 3D objects.
     And this way we avoid the question whether camera should be before
-    or after the scene manager / viewport on the Controls list (as there's really
+    or after the viewport on the Controls list (as there's really
     no perfect ordering for them).
 
     Note that one Navigation instance can be assigned only to one TCastleViewport.

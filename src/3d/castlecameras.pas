@@ -168,14 +168,12 @@ type
       determines what is visible in the left-bottom corner of the viewport.
       This matches the typical 2D drawing coordinates used throughout our engine.
       In other words, if the camera is at position (0,0,whatever),
-      then the (0,0) position in 2D is in the left-bottom corner of the scene manager
-      rectangle.
+      then the (0,0) position in 2D is in the left-bottom corner of the TCastleViewport.
 
       You can change it e.g. to (0.5,0.5) to move the camera to
       the middle of the viewport.
       In effect, if the camera is at position (0,0,whatever),
-      then the (0,0) position is in the center of the scene manager
-      rectangle.
+      then the (0,0) position is in the center of the TCastleViewport.
 
       Both values of @name make sense,
       it depends on the game type and how you prefer to think in 2D coordinates.
@@ -791,9 +789,8 @@ type
       Camera needs to know this to calculate @link(Frustum),
       which in turn allows rendering code to use frustum culling.
 
-      In normal circumstances, if you use our @italic(scene manager)
-      and viewport (@link(TCastleViewport)) for rendering,
-      this is automatically correctly set for you. }
+      In normal circumstances, if you use TCastleViewport for rendering,
+      this is automatically correctly set. }
     property ProjectionMatrix: TMatrix4
       read GetProjectionMatrix write SetProjectionMatrix; deprecated 'use Viewport.Camera.ProjectionMatrix';
 

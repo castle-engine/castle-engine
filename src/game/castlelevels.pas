@@ -503,7 +503,7 @@ type
 
   TLevelProperties = TAbstractLevel deprecated 'use TAbstractLevel';
 
-  { Scene manager that can comfortably load and manage a 3D game level.
+  { Viewport that can comfortably load and manage a 3D game level.
     It really adds only one new method to TCastleSceneManager:
     @link(LoadLevel), see it's documentation to know what it gives you.
     It also exposes @link(Logic) and @link(Info) properties

@@ -772,9 +772,9 @@ type
 
       Note that adding and removing from this hierarchy is guaranteed to be fast,
       so you can do it even in the middle of the game.
-      In particular calling @link(Remove) doesn't free OpenGL reasources
+      In particular calling @link(Remove) doesn't free rendering reasources
       of the removed scene,
-      so removing scene only to add it later to another scene manager is blazingly fast.
+      so removing scene only to add it later to another TCastleViewport.Items is blazingly fast.
       @groupBegin }
     procedure Add(const Item: TCastleTransform);
     procedure Insert(const Index: Integer; const Item: TCastleTransform);
