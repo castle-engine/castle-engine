@@ -22,9 +22,11 @@ type
     CastleControlPreview: TCastleControlBase;
     ImageListFrames: TImageList;
     LabelNoFrameToShow: TLabel;
+    MenuItemRemoveAnimation: TMenuItem;
     MenuItemRemoveFrame: TMenuItem;
     OpenDialog: TCastleOpenDialog;
     PanelPreviewHead: TPanel;
+    PopupMenuAnimations: TPopupMenu;
     PopupMenuFrames: TPopupMenu;
     RadioAnimation: TRadioButton;
     RadioFrame: TRadioButton;
@@ -56,6 +58,8 @@ type
     SplitterLeft: TSplitter;
     procedure ActionNewSpriteSheetExecute(Sender: TObject);
     procedure ActionOpenSpriteSheetExecute(Sender: TObject);
+    procedure ActionRemoveAnimationExecute(Sender: TObject);
+    procedure ActionRemoveAnimationUpdate(Sender: TObject);
     procedure ActionRemoveFrameExecute(Sender: TObject);
     procedure ActionRemoveFrameUpdate(Sender: TObject);
     procedure FloatSpinEditFPSChange(Sender: TObject);
@@ -111,7 +115,9 @@ type
     // events:
 
     procedure ModifiedStateChanged(Sender: TObject);
+    procedure BeforeAnimationRemoved(AnimationToRemove: TCastleSpriteSheetAnimation);
     procedure BeforeAnimationFrameRemoved(FrameToRemove: TCastleSpriteSheetFrame);
+
   public
     procedure OpenSpriteSheet(const URL: String);
   end;
@@ -139,6 +145,23 @@ procedure TSpriteSheetEditorForm.ActionOpenSpriteSheetExecute(Sender: TObject);
 begin
   if OpenDialog.Execute then
     OpenSpriteSheet(OpenDialog.URL);
+end;
+
+procedure TSpriteSheetEditorForm.ActionRemoveAnimationExecute(Sender: TObject);
+var
+  Animation: TCastleSpriteSheetAnimation;
+begin
+  Animation := GetCurrentAnimation;
+  if Animation = nil then
+    Exit;
+
+  FSpriteSheet.RemoveAnimation(Animation);
+end;
+
+procedure TSpriteSheetEditorForm.ActionRemoveAnimationUpdate(Sender: TObject);
+begin
+  ActionRemoveAnimation.Enabled := (GetCurrentAnimation <> nil) and
+    (ListBoxAnimations.Focused);
 end;
 
 procedure TSpriteSheetEditorForm.ActionRemoveFrameExecute(Sender: TObject);
@@ -485,6 +508,30 @@ begin
   UpdateWindowCaption;
 end;
 
+procedure TSpriteSheetEditorForm.BeforeAnimationRemoved(
+  AnimationToRemove: TCastleSpriteSheetAnimation);
+var
+  I: Integer;
+begin
+  if AnimationToRemove = GetCurrentAnimation then
+  begin
+    ClearFrames;
+    ListBoxAnimations.Items.Delete(ListBoxAnimations.ItemIndex);
+    UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+    Exit;
+  end;
+
+  { When not current animation was removed }
+  for I := ListBoxAnimations.Items.Count - 1 downto 0 do
+  begin
+    if ListBoxAnimations.Items.Objects[I] = AnimationToRemove then
+    begin
+      ListBoxAnimations.Items.Delete(I);
+      Exit;
+    end;
+  end;
+end;
+
 procedure TSpriteSheetEditorForm.BeforeAnimationFrameRemoved(
   FrameToRemove: TCastleSpriteSheetFrame);
 var
@@ -515,6 +562,7 @@ begin
     FSpriteSheet.Load(URL);
     UpdateWindowCaption;
     LoadAnimations(FSpriteSheet);
+    FSpriteSheet.BeforeAnimationRemoved := @BeforeAnimationRemoved;
     FSpriteSheet.BeforeFrameRemoved := @BeforeAnimationFrameRemoved;
   except
     on E:Exception do

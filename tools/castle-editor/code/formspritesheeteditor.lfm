@@ -91,6 +91,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       Anchors = [akTop, akLeft, akRight, akBottom]
       ItemHeight = 0
       OnSelectionChange = ListBoxAnimationsSelectionChange
+      PopupMenu = PopupMenuAnimations
       ScrollWidth = 190
       TabOrder = 0
       TopIndex = -1
@@ -114,7 +115,9 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       Height = 28
       Top = 431
       Width = 29
+      Action = ActionRemoveAnimation
       Anchors = [akLeft, akBottom]
+      ShowCaption = False
     end
     object PanelFPS: TPanel
       AnchorSideTop.Side = asrBottom
@@ -370,7 +373,10 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       ShortCut = 46
     end
     object ActionRemoveAnimation: TAction
-      Caption = 'ActionRemoveAnimation'
+      Caption = 'Remove'
+      OnExecute = ActionRemoveAnimationExecute
+      OnUpdate = ActionRemoveAnimationUpdate
+      ShortCut = 46
     end
   end
   object MainMenu: TMainMenu
@@ -412,6 +418,13 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     Top = 126
     object MenuItemRemoveFrame: TMenuItem
       Action = ActionRemoveFrame
+    end
+  end
+  object PopupMenuAnimations: TPopupMenu
+    Left = 94
+    Top = 177
+    object MenuItemRemoveAnimation: TMenuItem
+      Action = ActionRemoveAnimation
     end
   end
 end

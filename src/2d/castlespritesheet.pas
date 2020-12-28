@@ -73,7 +73,8 @@ type
       function AnimationCount: Integer;
       function HasAnimation(const Name:String): Boolean;
       function AddAnimation(const Name:String): TCastleSpriteSheetAnimation;
-      procedure RemoveAnimationByName(const Name:String);
+      procedure RemoveAnimation(const Animation: TCastleSpriteSheetAnimation);
+      procedure RemoveAnimationByName(const Name: String);
       procedure RemoveAnimationByIndex(const Index: Integer);
 
       { Last Load/Save URL. }
@@ -1364,6 +1365,15 @@ begin
   Animation := TCastleSpriteSheetAnimation.Create(Self, Name);
   FAnimationList.Add(Animation);
   Result := Animation;
+end;
+
+procedure TCastleSpriteSheet.RemoveAnimation(
+  const Animation: TCastleSpriteSheetAnimation);
+begin
+  if (Assigned(FBeforeAnimationRemoved)) and
+    (FAnimationList.Contains(Animation)) then
+    FBeforeAnimationRemoved(Animation);
+  FAnimationList.Remove(Animation);
 end;
 
 procedure TCastleSpriteSheet.RemoveAnimationByName(const Name: String);
