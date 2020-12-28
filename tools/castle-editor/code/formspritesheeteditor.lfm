@@ -209,6 +209,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       Anchors = [akTop, akLeft, akRight, akBottom]
       Columns = <>
       LargeImages = ImageListFrames
+      PopupMenu = PopupMenuFrames
       TabOrder = 0
       ViewStyle = vsIcon
       OnSelectItem = ListViewFramesSelectItem
@@ -298,6 +299,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
         Checked = True
         OnChange = RadioFrameChange
         TabOrder = 0
+        TabStop = True
       end
       object RadioFrame: TRadioButton
         AnchorSideTop.Control = LabelPreview
@@ -361,6 +363,15 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       Caption = 'Save as...'
       ImageIndex = 2
     end
+    object ActionRemoveFrame: TAction
+      Caption = 'Remove'
+      OnExecute = ActionRemoveFrameExecute
+      OnUpdate = ActionRemoveFrameUpdate
+      ShortCut = 46
+    end
+    object ActionRemoveAnimation: TAction
+      Caption = 'ActionRemoveAnimation'
+    end
   end
   object MainMenu: TMainMenu
     Images = Icons.MenuStroke1_5
@@ -395,5 +406,12 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     Width = 96
     Left = 406
     Top = 303
+  end
+  object PopupMenuFrames: TPopupMenu
+    Left = 445
+    Top = 126
+    object MenuItemRemoveFrame: TMenuItem
+      Action = ActionRemoveFrame
+    end
   end
 end

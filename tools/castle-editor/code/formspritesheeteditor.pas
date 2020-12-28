@@ -12,6 +12,8 @@ uses
 
 type
   TSpriteSheetEditorForm = class(TForm)
+    ActionRemoveAnimation: TAction;
+    ActionRemoveFrame: TAction;
     ActionSaveSpriteSheetAs: TAction;
     ActionSaveSpriteSheet: TAction;
     ActionNewSpriteSheet: TAction;
@@ -20,8 +22,10 @@ type
     CastleControlPreview: TCastleControlBase;
     ImageListFrames: TImageList;
     LabelNoFrameToShow: TLabel;
+    MenuItemRemoveFrame: TMenuItem;
     OpenDialog: TCastleOpenDialog;
     PanelPreviewHead: TPanel;
+    PopupMenuFrames: TPopupMenu;
     RadioAnimation: TRadioButton;
     RadioFrame: TRadioButton;
     SaveDialog: TCastleSaveDialog;
@@ -52,6 +56,8 @@ type
     SplitterLeft: TSplitter;
     procedure ActionNewSpriteSheetExecute(Sender: TObject);
     procedure ActionOpenSpriteSheetExecute(Sender: TObject);
+    procedure ActionRemoveFrameExecute(Sender: TObject);
+    procedure ActionRemoveFrameUpdate(Sender: TObject);
     procedure FloatSpinEditFPSChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -101,7 +107,11 @@ type
     procedure RegenerateFramePreviewFile(const Frame: TCastleSpriteSheetFrame);
 
     procedure UpdateWindowCaption;
+
+    // events:
+
     procedure ModifiedStateChanged(Sender: TObject);
+    procedure BeforeAnimationFrameRemoved(FrameToRemove: TCastleSpriteSheetFrame);
   public
     procedure OpenSpriteSheet(const URL: String);
   end;
@@ -129,6 +139,24 @@ procedure TSpriteSheetEditorForm.ActionOpenSpriteSheetExecute(Sender: TObject);
 begin
   if OpenDialog.Execute then
     OpenSpriteSheet(OpenDialog.URL);
+end;
+
+procedure TSpriteSheetEditorForm.ActionRemoveFrameExecute(Sender: TObject);
+var
+  Animation: TCastleSpriteSheetAnimation;
+  Frame: TCastleSpriteSheetFrame;
+begin
+  Animation := GetCurrentAnimation;
+  if Animation = nil then
+    Exit;
+
+  Frame := GetSelectedFrame;
+  Animation.RemoveFrame(Frame);
+end;
+
+procedure TSpriteSheetEditorForm.ActionRemoveFrameUpdate(Sender: TObject);
+begin
+  ActionRemoveFrame.Enabled := (GetSelectedFrame <> nil) and (ListViewFrames.Focused);
 end;
 
 procedure TSpriteSheetEditorForm.FloatSpinEditFPSChange(Sender: TObject);
@@ -457,6 +485,22 @@ begin
   UpdateWindowCaption;
 end;
 
+procedure TSpriteSheetEditorForm.BeforeAnimationFrameRemoved(
+  FrameToRemove: TCastleSpriteSheetFrame);
+var
+  I: Integer;
+begin
+  if FrameToRemove.Animation <> GetCurrentAnimation then
+    Exit;
+
+  for I := ListViewFrames.Items.Count - 1 downto 0 do
+  begin
+    if TCastleSpriteSheetFrame(ListViewFrames.Items[I].Data) = FrameToRemove then
+      ListViewFrames.Items.Delete(I);
+  end;
+  UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+end;
+
 procedure TSpriteSheetEditorForm.ClearAnimations;
 begin
   ListBoxAnimations.Items.Clear;
@@ -471,6 +515,7 @@ begin
     FSpriteSheet.Load(URL);
     UpdateWindowCaption;
     LoadAnimations(FSpriteSheet);
+    FSpriteSheet.BeforeFrameRemoved := @BeforeAnimationFrameRemoved;
   except
     on E:Exception do
     begin

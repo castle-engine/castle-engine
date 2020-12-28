@@ -18,6 +18,9 @@ type
 
   TCastleSpriteSheetAbstractImageGen = class;
 
+  TCastleSpriteSheetFrameEvent = procedure (Frame: TCastleSpriteSheetFrame) of object;
+  TCastleSpriteSheetAnimationEvent = procedure (Animation: TCastleSpriteSheetAnimation) of object;
+
   TCastleSpriteSheet = class
     strict private
       FAnimationList: TCastleSpriteSheetAnimationList;
@@ -29,6 +32,8 @@ type
       FModifiedState: Boolean;
       FLoadingPending: Boolean;
       FOnModifiedStateChanged: TNotifyEvent;
+      FBeforeAnimationRemoved: TCastleSpriteSheetAnimationEvent;
+      FBeforeAnimationFrameRemoved: TCastleSpriteSheetFrameEvent;
 
     private
       FImageWidth: Integer;
@@ -87,6 +92,12 @@ type
       property OnModifiedStateChanged: TNotifyEvent read FOnModifiedStateChanged
         write FOnModifiedStateChanged;
 
+      property BeforeAnimationRemoved: TCastleSpriteSheetAnimationEvent
+        read FBeforeAnimationRemoved write FBeforeAnimationRemoved;
+
+      property BeforeFrameRemoved: TCastleSpriteSheetFrameEvent read
+        FBeforeAnimationFrameRemoved write FBeforeAnimationFrameRemoved;
+
       property ImageWidth: Integer read GetImageWidth;
       property ImageHeight: Integer read GetImageHeight;
   end;
@@ -112,6 +123,7 @@ type
       function FrameCount: Integer;
       function AddFrame: TCastleSpriteSheetFrame;
       function AllFramesHasTheSameSize: Boolean;
+      procedure RemoveFrame(const Frame: TCastleSpriteSheetFrame);
       function GetBigestFrameSize(const MaxWidth, MaxHeight: Integer): TVector2Integer;
 
       property Name: String read FName write SetName;
@@ -178,6 +190,7 @@ type
       property FrameWidth: Integer read FFrameWidth write SetFrameWidth;
       property FrameHeight: Integer read FFrameHeight write SetFrameHeight;
       property Trimmed: Boolean read FTrimmed write SetTrimmed;
+      property Animation: TCastleSpriteSheetAnimation read FAnimation;
   end;
 
   { Abstract class for frame image "arranger", it enables the implementation
@@ -905,6 +918,16 @@ begin
   Result := true;
 end;
 
+procedure TCastleSpriteSheetAnimation.RemoveFrame(
+  const Frame: TCastleSpriteSheetFrame);
+begin
+  if (Assigned(FSpriteSheet.BeforeFrameRemoved)) and
+    (FFrameList.Contains(Frame)) then
+    FSpriteSheet.BeforeFrameRemoved(Frame);
+  FFrameList.Remove(Frame);
+  SetModifiedState;
+end;
+
 function TCastleSpriteSheetAnimation.GetBigestFrameSize(
   const MaxWidth, MaxHeight: Integer): TVector2Integer;
 var
@@ -1353,6 +1376,8 @@ begin
     Animation := FAnimationList[I];
     if Animation.Name = Name then
     begin
+      if Assigned(FBeforeAnimationRemoved) then
+        FBeforeAnimationRemoved(Animation);
       FAnimationList.Delete(I);
     end;
   end;
@@ -1360,6 +1385,9 @@ end;
 
 procedure TCastleSpriteSheet.RemoveAnimationByIndex(const Index: Integer);
 begin
+  if Assigned(FBeforeAnimationRemoved) then
+    FBeforeAnimationRemoved(FAnimationList[Index]);
+
   FAnimationList.Delete(Index);
 end;
 
