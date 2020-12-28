@@ -32,6 +32,7 @@ type
       FModifiedState: Boolean;
       FLoadingPending: Boolean;
       FOnModifiedStateChanged: TNotifyEvent;
+      FOnAnimationAdded: TCastleSpriteSheetAnimationEvent;
       FBeforeAnimationRemoved: TCastleSpriteSheetAnimationEvent;
       FBeforeAnimationFrameRemoved: TCastleSpriteSheetFrameEvent;
       FOnFrameAdded: TCastleSpriteSheetFrameEvent;
@@ -77,6 +78,7 @@ type
       procedure RemoveAnimation(const Animation: TCastleSpriteSheetAnimation);
       procedure RemoveAnimationByName(const Name: String);
       procedure RemoveAnimationByIndex(const Index: Integer);
+      function ProposeAnimationName: String;
 
       { Last Load/Save URL. }
       property URL: String read FURL write FURL;
@@ -93,6 +95,9 @@ type
 
       property OnModifiedStateChanged: TNotifyEvent read FOnModifiedStateChanged
         write FOnModifiedStateChanged;
+
+      property OnAnimationAdded: TCastleSpriteSheetAnimationEvent
+        read FOnAnimationAdded write FOnAnimationAdded;
 
       property BeforeAnimationRemoved: TCastleSpriteSheetAnimationEvent
         read FBeforeAnimationRemoved write FBeforeAnimationRemoved;
@@ -1396,6 +1401,9 @@ var
 begin
   Animation := TCastleSpriteSheetAnimation.Create(Self, Name);
   FAnimationList.Add(Animation);
+  if Assigned(FOnAnimationAdded) then
+    FOnAnimationAdded(Animation);
+  SetModifiedState;
   Result := Animation;
 end;
 
@@ -1434,6 +1442,25 @@ begin
 
   FAnimationList.Delete(Index);
   SetModifiedState;
+end;
+
+function TCastleSpriteSheet.ProposeAnimationName: String;
+const
+  NamePrefix = 'NewAnim';
+var
+  I: Integer;
+begin
+  if not HasAnimation(NamePrefix) then
+    Exit (NamePrefix);
+
+  I := 1;
+
+  while true do
+  begin
+    if not HasAnimation(NamePrefix + IntTostr(I)) then
+      Exit(NamePrefix + IntTostr(I));
+    Inc(I);
+  end;
 end;
 
 { TCastleSpriteSheetLoader ---------------------------------------------------}

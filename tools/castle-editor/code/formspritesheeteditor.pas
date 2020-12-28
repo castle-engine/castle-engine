@@ -13,6 +13,7 @@ uses
 
 type
   TSpriteSheetEditorForm = class(TForm)
+    ActionAddAnimation: TAction;
     ActionAddFrame: TAction;
     ActionRenameAnimation: TAction;
     ActionRemoveAnimation: TAction;
@@ -27,6 +28,7 @@ type
     ImageListFrames: TImageList;
     LabelNoFrameToShow: TLabel;
     ListViewAnimations: TListView;
+    MenuItemAddAnimation: TMenuItem;
     MenuItemAddFrame: TMenuItem;
     MenuItemRename: TMenuItem;
     MenuItemRemoveAnimation: TMenuItem;
@@ -62,6 +64,8 @@ type
     SpeedButtonRemoveAnimation: TSpeedButton;
     SplitterRight: TSplitter;
     SplitterLeft: TSplitter;
+    procedure ActionAddAnimationExecute(Sender: TObject);
+    procedure ActionAddAnimationUpdate(Sender: TObject);
     procedure ActionAddFrameExecute(Sender: TObject);
     procedure ActionAddFrameUpdate(Sender: TObject);
     procedure ActionNewSpriteSheetExecute(Sender: TObject);
@@ -103,6 +107,8 @@ type
 
     procedure ClearAnimations;
     procedure LoadAnimations(const SpriteSheet: TCastleSpriteSheet);
+    function AddAnimationToListView(const Animation: TCastleSpriteSheetAnimation):
+      TListItem;
     procedure LoadAnimation(const Animation: TCastleSpriteSheetAnimation);
     function GetCurrentAnimation: TCastleSpriteSheetAnimation;
 
@@ -135,9 +141,12 @@ type
     // events:
 
     procedure ModifiedStateChanged(Sender: TObject);
+
+    procedure AnimationAdded(NewAnimation: TCastleSpriteSheetAnimation);
     procedure BeforeAnimationRemoved(AnimationToRemove: TCastleSpriteSheetAnimation);
-    procedure BeforeAnimationFrameRemoved(FrameToRemove: TCastleSpriteSheetFrame);
+
     procedure FrameAdded(NewFrame: TCastleSpriteSheetFrame);
+    procedure BeforeAnimationFrameRemoved(FrameToRemove: TCastleSpriteSheetFrame);
 
   public
     procedure OpenSpriteSheet(const URL: String);
@@ -179,6 +188,17 @@ begin
   begin
     Animation.AddFrame(CastleOpenImageDialog.URL);
   end;
+end;
+
+procedure TSpriteSheetEditorForm.ActionAddAnimationUpdate(Sender: TObject);
+begin
+  ActionAddAnimation.Enabled := FSpriteSheet <> nil;
+end;
+
+procedure TSpriteSheetEditorForm.ActionAddAnimationExecute(Sender: TObject);
+begin
+  FSpriteSheet.AddAnimation(FSpriteSheet.ProposeAnimationName);
+  UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
 end;
 
 procedure TSpriteSheetEditorForm.ActionOpenSpriteSheetExecute(Sender: TObject);
@@ -314,19 +334,23 @@ end;
 procedure TSpriteSheetEditorForm.LoadAnimations(const SpriteSheet: TCastleSpriteSheet);
 var
   I: Integer;
-  Animation: TCastleSpriteSheetAnimation;
-  ListItem: TListItem;
 begin
   for I := 0 to SpriteSheet.AnimationCount - 1 do
-  begin
-    Animation := SpriteSheet.AnimationByIndex(I);
-    ListItem := ListViewAnimations.Items.Add;
-    ListItem.Caption := Animation.Name;
-    ListItem.Data := Animation;
-  end;
+    AddAnimationToListView(SpriteSheet.AnimationByIndex(I));
 
   if SpriteSheet.AnimationCount > 0 then
     ListViewAnimations.ItemIndex := 0;
+end;
+
+function TSpriteSheetEditorForm.AddAnimationToListView(
+  const Animation: TCastleSpriteSheetAnimation): TListItem;
+var
+  ListItem: TListItem;
+begin
+  ListItem := ListViewAnimations.Items.Add;
+  ListItem.Caption := Animation.Name;
+  ListItem.Data := Animation;
+  Result := ListItem;
 end;
 
 procedure TSpriteSheetEditorForm.LoadAnimation(const Animation: TCastleSpriteSheetAnimation);
@@ -638,6 +662,12 @@ begin
   end;
 end;
 
+procedure TSpriteSheetEditorForm.AnimationAdded(
+  NewAnimation: TCastleSpriteSheetAnimation);
+begin
+  ListViewAnimations.Selected := AddAnimationToListView(NewAnimation);
+end;
+
 procedure TSpriteSheetEditorForm.FrameAdded(NewFrame: TCastleSpriteSheetFrame);
 begin
   if NewFrame.Animation <> GetCurrentAnimation then
@@ -662,9 +692,10 @@ begin
     FSpriteSheet.Load(URL);
     UpdateWindowCaption;
     LoadAnimations(FSpriteSheet);
+    FSpriteSheet.OnAnimationAdded := @AnimationAdded;
     FSpriteSheet.BeforeAnimationRemoved := @BeforeAnimationRemoved;
-    FSpriteSheet.BeforeFrameRemoved := @BeforeAnimationFrameRemoved;
     FSpriteSheet.OnFrameAdded := @FrameAdded;
+    FSpriteSheet.BeforeFrameRemoved := @BeforeAnimationFrameRemoved;
   except
     on E:Exception do
     begin

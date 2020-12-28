@@ -84,7 +84,9 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       Height = 28
       Top = 431
       Width = 29
+      Action = ActionAddAnimation
       Anchors = [akLeft, akBottom]
+      ShowCaption = False
     end
     object SpeedButtonRemoveAnimation: TSpeedButton
       AnchorSideLeft.Control = SpeedButtonAddAnimation
@@ -394,6 +396,12 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       OnExecute = ActionAddFrameExecute
       OnUpdate = ActionAddFrameUpdate
     end
+    object ActionAddAnimation: TAction
+      Category = 'Animation'
+      Caption = 'Add'
+      OnExecute = ActionAddAnimationExecute
+      OnUpdate = ActionAddAnimationUpdate
+    end
   end
   object MainMenu: TMainMenu
     Images = Icons.MenuStroke1_5
@@ -442,6 +450,9 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
   object PopupMenuAnimations: TPopupMenu
     Left = 94
     Top = 177
+    object MenuItemAddAnimation: TMenuItem
+      Action = ActionAddAnimation
+    end
     object MenuItemRename: TMenuItem
       Action = ActionRenameAnimation
     end
