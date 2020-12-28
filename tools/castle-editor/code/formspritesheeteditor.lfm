@@ -77,27 +77,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     ClientHeight = 513
     ClientWidth = 200
     TabOrder = 0
-    object ListBoxAnimations: TListBox
-      AnchorSideLeft.Control = PanelLeft
-      AnchorSideTop.Control = LabelAnimations
-      AnchorSideTop.Side = asrBottom
-      AnchorSideRight.Control = PanelLeft
-      AnchorSideRight.Side = asrBottom
-      AnchorSideBottom.Control = SpeedButtonAddAnimation
-      Left = 4
-      Height = 408
-      Top = 23
-      Width = 192
-      Anchors = [akTop, akLeft, akRight, akBottom]
-      ItemHeight = 0
-      OnSelectionChange = ListBoxAnimationsSelectionChange
-      PopupMenu = PopupMenuAnimations
-      ScrollWidth = 190
-      TabOrder = 0
-      TopIndex = -1
-    end
     object SpeedButtonAddAnimation: TSpeedButton
-      AnchorSideLeft.Control = ListBoxAnimations
       AnchorSideTop.Side = asrBottom
       AnchorSideBottom.Control = PanelFPS
       Left = 4
@@ -135,7 +115,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       BevelOuter = bvNone
       ClientHeight = 30
       ClientWidth = 196
-      TabOrder = 1
+      TabOrder = 0
       object LabelFPS: TLabel
         AnchorSideLeft.Control = PanelFPS
         AnchorSideTop.Control = PanelFPS
@@ -178,6 +158,25 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       ParentColor = False
       ParentFont = False
     end
+    object ListViewAnimations: TListView
+      AnchorSideLeft.Control = PanelLeft
+      AnchorSideTop.Control = LabelAnimations
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = PanelLeft
+      AnchorSideRight.Side = asrBottom
+      AnchorSideBottom.Control = SpeedButtonAddAnimation
+      Left = 4
+      Height = 408
+      Top = 23
+      Width = 192
+      Anchors = [akTop, akLeft, akRight, akBottom]
+      Columns = <>
+      PopupMenu = PopupMenuAnimations
+      ScrollBars = ssAutoBoth
+      TabOrder = 1
+      OnEdited = ListViewAnimationsEdited
+      OnSelectItem = ListViewAnimationsSelectItem
+    end
   end
   object SplitterLeft: TSplitter
     Left = 200
@@ -213,6 +212,8 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       Columns = <>
       LargeImages = ImageListFrames
       PopupMenu = PopupMenuFrames
+      ReadOnly = True
+      ScrollBars = ssAutoBoth
       TabOrder = 0
       ViewStyle = vsIcon
       OnSelectItem = ListViewFramesSelectItem
@@ -378,6 +379,12 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       OnUpdate = ActionRemoveAnimationUpdate
       ShortCut = 46
     end
+    object ActionRenameAnimation: TAction
+      Caption = 'Rename'
+      OnExecute = ActionRenameAnimationExecute
+      OnUpdate = ActionRenameAnimationUpdate
+      ShortCut = 113
+    end
   end
   object MainMenu: TMainMenu
     Images = Icons.MenuStroke1_5
@@ -423,6 +430,9 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
   object PopupMenuAnimations: TPopupMenu
     Left = 94
     Top = 177
+    object MenuItemRename: TMenuItem
+      Action = ActionRenameAnimation
+    end
     object MenuItemRemoveAnimation: TMenuItem
       Action = ActionRemoveAnimation
     end

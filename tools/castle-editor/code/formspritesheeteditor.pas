@@ -12,6 +12,7 @@ uses
 
 type
   TSpriteSheetEditorForm = class(TForm)
+    ActionRenameAnimation: TAction;
     ActionRemoveAnimation: TAction;
     ActionRemoveFrame: TAction;
     ActionSaveSpriteSheetAs: TAction;
@@ -22,6 +23,8 @@ type
     CastleControlPreview: TCastleControlBase;
     ImageListFrames: TImageList;
     LabelNoFrameToShow: TLabel;
+    ListViewAnimations: TListView;
+    MenuItemRename: TMenuItem;
     MenuItemRemoveAnimation: TMenuItem;
     MenuItemRemoveFrame: TMenuItem;
     OpenDialog: TCastleOpenDialog;
@@ -36,7 +39,6 @@ type
     LabelFrames: TLabel;
     LabelAnimations: TLabel;
     LabelFPS: TLabel;
-    ListBoxAnimations: TListBox;
     ListViewFrames: TListView;
     MainMenu: TMainMenu;
     MenuItemNew: TMenuItem;
@@ -62,10 +64,15 @@ type
     procedure ActionRemoveAnimationUpdate(Sender: TObject);
     procedure ActionRemoveFrameExecute(Sender: TObject);
     procedure ActionRemoveFrameUpdate(Sender: TObject);
+    procedure ActionRenameAnimationExecute(Sender: TObject);
+    procedure ActionRenameAnimationUpdate(Sender: TObject);
     procedure FloatSpinEditFPSChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure ListBoxAnimationsSelectionChange(Sender: TObject; User: boolean);
+    procedure ListViewAnimationsEdited(Sender: TObject; Item: TListItem;
+      var AValue: string);
+    procedure ListViewAnimationsSelectItem(Sender: TObject; Item: TListItem;
+      Selected: Boolean);
     procedure ListViewFramesSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
     procedure RadioFrameChange(Sender: TObject);
@@ -161,8 +168,7 @@ end;
 
 procedure TSpriteSheetEditorForm.ActionRemoveAnimationUpdate(Sender: TObject);
 begin
-  ActionRemoveAnimation.Enabled := (GetCurrentAnimation <> nil) and
-    (ListBoxAnimations.Focused);
+  ActionRemoveAnimation.Enabled := (GetCurrentAnimation <> nil);
 end;
 
 procedure TSpriteSheetEditorForm.ActionRemoveFrameExecute(Sender: TObject);
@@ -181,7 +187,17 @@ end;
 
 procedure TSpriteSheetEditorForm.ActionRemoveFrameUpdate(Sender: TObject);
 begin
-  ActionRemoveFrame.Enabled := (GetSelectedFrame <> nil) and (ListViewFrames.Focused);
+  ActionRemoveFrame.Enabled := (GetSelectedFrame <> nil);
+end;
+
+procedure TSpriteSheetEditorForm.ActionRenameAnimationExecute(Sender: TObject);
+begin
+  ListViewAnimations.Selected.EditCaption;
+end;
+
+procedure TSpriteSheetEditorForm.ActionRenameAnimationUpdate(Sender: TObject);
+begin
+  ActionRenameAnimation.Enabled := (GetCurrentAnimation <> nil);
 end;
 
 procedure TSpriteSheetEditorForm.FloatSpinEditFPSChange(Sender: TObject);
@@ -207,8 +223,29 @@ begin
   FreeAndNil(FSpriteSheet);
 end;
 
-procedure TSpriteSheetEditorForm.ListBoxAnimationsSelectionChange(
-  Sender: TObject; User: boolean);
+procedure TSpriteSheetEditorForm.ListViewAnimationsEdited(Sender: TObject;
+  Item: TListItem; var AValue: string);
+var
+  Animation: TCastleSpriteSheetAnimation;
+begin
+  Animation := TCastleSpriteSheetAnimation(Item.Data);
+
+  if Animation.Name = AValue then
+    Exit;
+
+  if FSpriteSheet.HasAnimation(AValue) then
+  begin
+    EditorUtils.ErrorBox('Animation "' + AValue + '" already exist.');
+    AValue := Animation.Name;
+    Exit;
+  end;
+
+  Animation.Name := AValue;
+  UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+end;
+
+procedure TSpriteSheetEditorForm.ListViewAnimationsSelectItem(Sender: TObject;
+  Item: TListItem; Selected: Boolean);
 var
   Animation: TCastleSpriteSheetAnimation;
 begin
@@ -245,15 +282,18 @@ procedure TSpriteSheetEditorForm.LoadAnimations(const SpriteSheet: TCastleSprite
 var
   I: Integer;
   Animation: TCastleSpriteSheetAnimation;
+  ListItem: TListItem;
 begin
   for I := 0 to SpriteSheet.AnimationCount - 1 do
   begin
     Animation := SpriteSheet.AnimationByIndex(I);
-    ListBoxAnimations.Items.AddObject(Animation.Name, Animation);
+    ListItem := ListViewAnimations.Items.Add;
+    ListItem.Caption := Animation.Name;
+    ListItem.Data := Animation;
   end;
 
   if SpriteSheet.AnimationCount > 0 then
-    ListBoxAnimations.ItemIndex := 0;
+    ListViewAnimations.ItemIndex := 0;
 end;
 
 procedure TSpriteSheetEditorForm.LoadAnimation(const Animation: TCastleSpriteSheetAnimation);
@@ -459,10 +499,10 @@ end;
 
 function TSpriteSheetEditorForm.GetCurrentAnimation: TCastleSpriteSheetAnimation;
 begin
-  if ListBoxAnimations.ItemIndex < 0 then
+  if ListViewAnimations.ItemIndex < 0 then
     Exit(nil);
 
-  Result := ListBoxAnimations.Items.Objects[ListBoxAnimations.ItemIndex] as TCastleSpriteSheetAnimation;
+  Result := TCastleSpriteSheetAnimation(ListViewAnimations.Items[ListViewAnimations.ItemIndex].Data);
 end;
 
 procedure TSpriteSheetEditorForm.RegenerateAnimationPreviewFile;
@@ -524,27 +564,27 @@ begin
   if AnimationToRemove = GetCurrentAnimation then
   begin
     ClearFrames;
-    ItemIndex := ListBoxAnimations.ItemIndex;
-    ListBoxAnimations.Items.Delete(ItemIndex);
+    ItemIndex := ListViewAnimations.ItemIndex;
+    ListViewAnimations.Items.Delete(ItemIndex);
 
     { Select next animation }
-    if ListBoxAnimations.Items.Count > 0 then
+    if ListViewAnimations.Items.Count > 0 then
     begin
-      if ListBoxAnimations.Items.Count > ItemIndex then
-        ListBoxAnimations.ItemIndex := ItemIndex
+      if ListViewAnimations.Items.Count > ItemIndex then
+        ListViewAnimations.ItemIndex := ItemIndex
       else
-        ListBoxAnimations.ItemIndex := ListBoxAnimations.Items.Count - 1;
+        ListViewAnimations.ItemIndex := ListViewAnimations.Items.Count - 1;
     end;
 
     Exit;
   end;
 
   { When not current animation was removed }
-  for I := ListBoxAnimations.Items.Count - 1 downto 0 do
+  for I := ListViewAnimations.Items.Count - 1 downto 0 do
   begin
-    if ListBoxAnimations.Items.Objects[I] = AnimationToRemove then
+    if TObject(ListViewAnimations.Items[i].Data) = AnimationToRemove then
     begin
-      ListBoxAnimations.Items.Delete(I);
+      ListViewAnimations.Items.Delete(I);
       Exit;
     end;
   end;
@@ -567,7 +607,7 @@ end;
 
 procedure TSpriteSheetEditorForm.ClearAnimations;
 begin
-  ListBoxAnimations.Items.Clear;
+  ListViewAnimations.Items.Clear;
 end;
 
 procedure TSpriteSheetEditorForm.OpenSpriteSheet(const URL: String);
