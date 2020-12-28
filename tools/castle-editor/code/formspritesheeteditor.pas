@@ -156,6 +156,7 @@ begin
     Exit;
 
   FSpriteSheet.RemoveAnimation(Animation);
+  UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
 end;
 
 procedure TSpriteSheetEditorForm.ActionRemoveAnimationUpdate(Sender: TObject);
@@ -175,6 +176,7 @@ begin
 
   Frame := GetSelectedFrame;
   Animation.RemoveFrame(Frame);
+  UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
 end;
 
 procedure TSpriteSheetEditorForm.ActionRemoveFrameUpdate(Sender: TObject);
@@ -430,10 +432,15 @@ procedure TSpriteSheetEditorForm.UpdatePreview(
     if FPreviewScene = nil then
       RegenerateAnimationPreviewFile;
 
-    if Animation = nil then
+    if (Animation = nil) or (Animation.FrameCount = 0) then
+    begin
+      FPreviewScene.Exists := false;
       FPreviewScene.StopAnimation
-    else
+    end else
+    begin
+      FPreviewScene.Exists := true;
       FPreviewScene.PlayAnimation(Animation.Name, true, true);
+    end;
   end;
 
 begin
@@ -512,12 +519,23 @@ procedure TSpriteSheetEditorForm.BeforeAnimationRemoved(
   AnimationToRemove: TCastleSpriteSheetAnimation);
 var
   I: Integer;
+  ItemIndex: Integer;
 begin
   if AnimationToRemove = GetCurrentAnimation then
   begin
     ClearFrames;
-    ListBoxAnimations.Items.Delete(ListBoxAnimations.ItemIndex);
-    UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+    ItemIndex := ListBoxAnimations.ItemIndex;
+    ListBoxAnimations.Items.Delete(ItemIndex);
+
+    { Select next animation }
+    if ListBoxAnimations.Items.Count > 0 then
+    begin
+      if ListBoxAnimations.Items.Count > ItemIndex then
+        ListBoxAnimations.ItemIndex := ItemIndex
+      else
+        ListBoxAnimations.ItemIndex := ListBoxAnimations.Items.Count - 1;
+    end;
+
     Exit;
   end;
 
@@ -545,7 +563,6 @@ begin
     if TCastleSpriteSheetFrame(ListViewFrames.Items[I].Data) = FrameToRemove then
       ListViewFrames.Items.Delete(I);
   end;
-  UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
 end;
 
 procedure TSpriteSheetEditorForm.ClearAnimations;
