@@ -34,6 +34,7 @@ type
       FOnModifiedStateChanged: TNotifyEvent;
       FBeforeAnimationRemoved: TCastleSpriteSheetAnimationEvent;
       FBeforeAnimationFrameRemoved: TCastleSpriteSheetFrameEvent;
+      FOnFrameAdded: TCastleSpriteSheetFrameEvent;
 
     private
       FImageWidth: Integer;
@@ -99,6 +100,9 @@ type
       property BeforeFrameRemoved: TCastleSpriteSheetFrameEvent read
         FBeforeAnimationFrameRemoved write FBeforeAnimationFrameRemoved;
 
+      property OnFrameAdded: TCastleSpriteSheetFrameEvent read FOnFrameAdded
+        write FOnFrameAdded;
+
       property ImageWidth: Integer read GetImageWidth;
       property ImageHeight: Integer read GetImageHeight;
   end;
@@ -123,6 +127,7 @@ type
 
       function FrameCount: Integer;
       function AddFrame: TCastleSpriteSheetFrame;
+      function AddFrame(const FrameImageURL: String): TCastleSpriteSheetFrame;
       function AllFramesHasTheSameSize: Boolean;
       procedure RemoveFrame(const Frame: TCastleSpriteSheetFrame);
       function GetBigestFrameSize(const MaxWidth, MaxHeight: Integer): TVector2Integer;
@@ -672,8 +677,6 @@ begin
   FrameWidth := SourceImage.Width;
   FrameHeight := SourceImage.Height;
 
-  FreeAndNil(FFrameImage);
-
   FFrameImage := SourceImage.MakeCopy;
   SetModifiedState;
 end;
@@ -899,7 +902,36 @@ begin
   AFrame := TCastleSpriteSheetFrame.Create(Self);
   FFrameList.Add(AFrame);
   Result := AFrame;
+  if Assigned(FSpriteSheet.OnFrameAdded) then
+    FSpriteSheet.OnFrameAdded(AFrame);
   SetModifiedState;
+end;
+
+function TCastleSpriteSheetAnimation.AddFrame(const FrameImageURL: String
+  ): TCastleSpriteSheetFrame;
+var
+  AFrame: TCastleSpriteSheetFrame;
+  Image: TCastleImage;
+begin
+  AFrame := TCastleSpriteSheetFrame.Create(Self);
+  try
+    Image := LoadImage(FrameImageURL);
+    try
+      AFrame.SetFrameImage(Image);
+    finally
+      FreeAndNil(Image);
+    end;
+
+    FFrameList.Add(AFrame);
+
+    if Assigned(FSpriteSheet.OnFrameAdded) then
+      FSpriteSheet.OnFrameAdded(AFrame);
+
+    SetModifiedState;
+  except
+    FreeAndNil(AFrame);
+  end;
+  Result := AFrame;
 end;
 
 function TCastleSpriteSheetAnimation.AllFramesHasTheSameSize: Boolean;

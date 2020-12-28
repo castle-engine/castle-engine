@@ -368,22 +368,31 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       ImageIndex = 2
     end
     object ActionRemoveFrame: TAction
+      Category = 'Frame'
       Caption = 'Remove'
       OnExecute = ActionRemoveFrameExecute
       OnUpdate = ActionRemoveFrameUpdate
       ShortCut = 46
     end
     object ActionRemoveAnimation: TAction
+      Category = 'Animation'
       Caption = 'Remove'
       OnExecute = ActionRemoveAnimationExecute
       OnUpdate = ActionRemoveAnimationUpdate
       ShortCut = 46
     end
     object ActionRenameAnimation: TAction
+      Category = 'Animation'
       Caption = 'Rename'
       OnExecute = ActionRenameAnimationExecute
       OnUpdate = ActionRenameAnimationUpdate
       ShortCut = 113
+    end
+    object ActionAddFrame: TAction
+      Category = 'Frame'
+      Caption = 'Add...'
+      OnExecute = ActionAddFrameExecute
+      OnUpdate = ActionAddFrameUpdate
     end
   end
   object MainMenu: TMainMenu
@@ -423,6 +432,9 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
   object PopupMenuFrames: TPopupMenu
     Left = 445
     Top = 126
+    object MenuItemAddFrame: TMenuItem
+      Action = ActionAddFrame
+    end
     object MenuItemRemoveFrame: TMenuItem
       Action = ActionRemoveFrame
     end
@@ -436,5 +448,9 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     object MenuItemRemoveAnimation: TMenuItem
       Action = ActionRemoveAnimation
     end
+  end
+  object CastleOpenImageDialog: TCastleOpenImageDialog
+    Left = 586
+    Top = 265
   end
 end

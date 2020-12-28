@@ -7,11 +7,13 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, ComCtrls,
   Buttons, ActnList, StdCtrls, Spin, Menus,
-  CastleControl, CastleDialogs, CastleScene, CastleSpriteSheet, CastleViewport,
+  CastleControl, CastleDialogs, CastleScene, CastleSpriteSheet, CastleVectors,
+  CastleViewport,
   DataModuleIcons;
 
 type
   TSpriteSheetEditorForm = class(TForm)
+    ActionAddFrame: TAction;
     ActionRenameAnimation: TAction;
     ActionRemoveAnimation: TAction;
     ActionRemoveFrame: TAction;
@@ -21,9 +23,11 @@ type
     ActionOpenSpriteSheet: TAction;
     ActionListSpriteSheet: TActionList;
     CastleControlPreview: TCastleControlBase;
+    CastleOpenImageDialog: TCastleOpenImageDialog;
     ImageListFrames: TImageList;
     LabelNoFrameToShow: TLabel;
     ListViewAnimations: TListView;
+    MenuItemAddFrame: TMenuItem;
     MenuItemRename: TMenuItem;
     MenuItemRemoveAnimation: TMenuItem;
     MenuItemRemoveFrame: TMenuItem;
@@ -58,6 +62,8 @@ type
     SpeedButtonRemoveAnimation: TSpeedButton;
     SplitterRight: TSplitter;
     SplitterLeft: TSplitter;
+    procedure ActionAddFrameExecute(Sender: TObject);
+    procedure ActionAddFrameUpdate(Sender: TObject);
     procedure ActionNewSpriteSheetExecute(Sender: TObject);
     procedure ActionOpenSpriteSheetExecute(Sender: TObject);
     procedure ActionRemoveAnimationExecute(Sender: TObject);
@@ -82,11 +88,16 @@ type
       { Enum just for readability }
       TForceFileRegen = (ffgDoForceFileRegen, ffgDontForceFileRegen);
 
+    const
+      MaxFrameSize = 256;
+      DefaultFrameSize = 128;
+
     var
       FSpriteSheet: TCastleSpriteSheet;
       FPreviewScene: TCastleScene;
       FViewport: TCastleViewport;
       FWindowTitle: String;
+      FrameIconSize: TVector2Integer; // current frame size in list view
 
     procedure CloseSpriteSheet;
 
@@ -96,6 +107,8 @@ type
     function GetCurrentAnimation: TCastleSpriteSheetAnimation;
 
     procedure ClearFrames;
+    function AddFrameToListView(const Frame: TCastleSpriteSheetFrame;
+      const FrameNo: Integer): TListItem;
     procedure LoadFrames(const Animation: TCastleSpriteSheetAnimation);
     function GetSelectedFrame: TCastleSpriteSheetFrame;
 
@@ -124,6 +137,7 @@ type
     procedure ModifiedStateChanged(Sender: TObject);
     procedure BeforeAnimationRemoved(AnimationToRemove: TCastleSpriteSheetAnimation);
     procedure BeforeAnimationFrameRemoved(FrameToRemove: TCastleSpriteSheetFrame);
+    procedure FrameAdded(NewFrame: TCastleSpriteSheetFrame);
 
   public
     procedure OpenSpriteSheet(const URL: String);
@@ -137,7 +151,7 @@ implementation
 {$R *.lfm}
 
 uses GraphType, IntfGraphics,
-  CastleImages, CastleLog, CastleVectors, CastleURIUtils,
+  CastleImages, CastleLog, CastleURIUtils,
   EditorUtils,
   FormProject;
 
@@ -146,6 +160,25 @@ uses GraphType, IntfGraphics,
 procedure TSpriteSheetEditorForm.ActionNewSpriteSheetExecute(Sender: TObject);
 begin
   ShowMessage('test');
+end;
+
+procedure TSpriteSheetEditorForm.ActionAddFrameUpdate(Sender: TObject);
+begin
+  ActionAddFrame.Enabled := GetCurrentAnimation <> nil;
+end;
+
+procedure TSpriteSheetEditorForm.ActionAddFrameExecute(Sender: TObject);
+var
+  Animation: TCastleSpriteSheetAnimation;
+begin
+  Animation := GetCurrentAnimation;
+  if Animation = nil then
+    Exit;
+
+  if CastleOpenImageDialog.Execute then
+  begin
+    Animation.AddFrame(CastleOpenImageDialog.URL);
+  end;
 end;
 
 procedure TSpriteSheetEditorForm.ActionOpenSpriteSheetExecute(Sender: TObject);
@@ -309,19 +342,78 @@ begin
   ListViewFrames.Items.Clear;
 end;
 
-procedure TSpriteSheetEditorForm.LoadFrames(const Animation: TCastleSpriteSheetAnimation);
-const
-  MaxFrameSize = 256;
-  DefaultFrameSize = 128;
+function TSpriteSheetEditorForm.AddFrameToListView(
+  const Frame: TCastleSpriteSheetFrame; const FrameNo: Integer): TListItem;
 var
   ListItem: TListItem;
-  I: Integer;
-  Frame: TCastleSpriteSheetFrame;
   ResizedFrameImage: TCastleImage;
   Bitmap: TBitmap;
   IntfImage: TLazIntfImage;
   ImageIndex: Integer;
-  FrameIconSize: TVector2Integer;
+
+  function FrameImageToLazImage(const FrameImage: TCastleImage;
+    const Width, Height: Integer): TLazIntfImage;
+  var
+    RawImage: TRawImage;
+    Y: Integer;
+    RowSize: Integer;
+    SourceRow: PByte;
+    DestRow: PByte;
+  begin
+    // https://wiki.freepascal.org/Developing_with_Graphics#Working_with_TLazIntfImage.2C_TRawImage_and_TLazCanvas
+
+    // TODO: Support other image format than RGBA
+    RawImage.Init;
+    RawImage.Description.Init_BPP32_R8G8B8A8_BIO_TTB(Width, Height);
+    RawImage.CreateData(True);
+    RowSize := FrameImage.Width * 4;
+
+    // go to last row
+    SourceRow := PByte(FrameImage.RawPixels) + RowSize * Height;
+    DestRow := RawImage.Data;
+
+    for Y := Height - 1 downto 0 do
+    begin
+      Dec(SourceRow, RowSize);
+      Move(SourceRow^, DestRow^, RowSize);
+      Inc(DestRow, RowSize);
+    end;
+
+    Result := TLazIntfImage.Create(0, 0);
+    Result.SetRawImage(RawImage);
+  end;
+
+begin
+  ResizedFrameImage := nil;
+  IntfImage := nil;
+  Bitmap := nil;
+  try
+    // TODO:  better scaling alghoritm
+    ResizedFrameImage := Frame.MakeResized(FrameIconSize.X, FrameIconSize.Y);
+
+    IntfImage := FrameImageToLazImage(ResizedFrameImage, FrameIconSize.X,
+      FrameIconSize.Y);
+
+    Bitmap := TBitmap.Create;
+    Bitmap.LoadFromIntfImage(IntfImage);
+    ImageIndex := ImageListFrames.Add(Bitmap, nil);
+  finally
+    FreeAndNil(ResizedFrameImage);
+    FreeAndNil(IntfImage);
+    FreeAndNil(Bitmap);
+  end;
+
+  ListItem := ListViewFrames.Items.Add;
+  ListItem.Caption := IntToStr(FrameNo) + ' - ' + IntToStr(Frame.FrameWidth) +
+    'x' + IntToStr(Frame.FrameHeight);
+  ListItem.Data := Frame;
+  ListItem.ImageIndex := ImageIndex;
+  Result := ListItem;
+end;
+
+procedure TSpriteSheetEditorForm.LoadFrames(const Animation: TCastleSpriteSheetAnimation);
+var
+  I: Integer;
 
   procedure PrepareImageList;
   begin
@@ -341,70 +433,11 @@ var
     ImageListFrames.Height := FrameIconSize.Y;
   end;
 
-  function FrameImageToLazImage(const FrameImage: TCastleImage;
-    const Width, Height: Integer): TLazIntfImage;
-  var
-    RawImage: TRawImage;
-    Y: Integer;
-    RowSize: Integer;
-    SourceRow: PByte;
-    DestRow: PByte;
-  begin
-    // https://wiki.freepascal.org/Developing_with_Graphics#Working_with_TLazIntfImage.2C_TRawImage_and_TLazCanvas
-
-    // TODO: Support other image format than RGBA
-    RawImage.Init;
-    RawImage.Description.Init_BPP32_R8G8B8A8_BIO_TTB(Width, Height);
-    RawImage.CreateData(True);
-    RowSize := Frame.FrameWidth * 4;
-
-    // go to last row
-    SourceRow := PByte(FrameImage.RawPixels) + RowSize * Height;
-    DestRow := RawImage.Data;
-
-    for Y := Height - 1 downto 0 do
-    begin
-      Dec(SourceRow, RowSize);
-      Move(SourceRow^, DestRow^, RowSize);
-      Inc(DestRow, RowSize);
-    end;
-
-    Result := TLazIntfImage.Create(0, 0);
-    Result.SetRawImage(RawImage);
-  end;
-
 begin
   PrepareImageList;
 
   for I := 0 to Animation.FrameCount - 1 do
-  begin
-    Frame := Animation.Frame[I];
-
-    ResizedFrameImage := nil;
-    IntfImage := nil;
-    Bitmap := nil;
-    try
-      // TODO:  better scaling alghoritm
-      ResizedFrameImage := Frame.MakeResized(FrameIconSize.X, FrameIconSize.Y);
-
-      IntfImage := FrameImageToLazImage(ResizedFrameImage, FrameIconSize.X,
-        FrameIconSize.Y);
-
-      Bitmap := TBitmap.Create;
-      Bitmap.LoadFromIntfImage(IntfImage);
-      ImageIndex := ImageListFrames.Add(Bitmap, nil);
-    finally
-      FreeAndNil(ResizedFrameImage);
-      FreeAndNil(IntfImage);
-      FreeAndNil(Bitmap);
-    end;
-
-    ListItem := ListViewFrames.Items.Add;
-    ListItem.Caption := IntToStr(I) + ' - ' + IntToStr(Frame.FrameWidth) +
-      'x' + IntToStr(Frame.FrameHeight);
-    ListItem.Data := Frame;
-    ListItem.ImageIndex := ImageIndex;
-  end;
+    AddFrameToListView(Animation.Frame[I], I);
 end;
 
 function TSpriteSheetEditorForm.GetSelectedFrame: TCastleSpriteSheetFrame;
@@ -605,6 +638,16 @@ begin
   end;
 end;
 
+procedure TSpriteSheetEditorForm.FrameAdded(NewFrame: TCastleSpriteSheetFrame);
+begin
+  if NewFrame.Animation <> GetCurrentAnimation then
+    Exit;
+
+  { Add frame on last position }
+  AddFrameToListView(NewFrame, NewFrame.Animation.FrameCount);
+  UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+end;
+
 procedure TSpriteSheetEditorForm.ClearAnimations;
 begin
   ListViewAnimations.Items.Clear;
@@ -621,6 +664,7 @@ begin
     LoadAnimations(FSpriteSheet);
     FSpriteSheet.BeforeAnimationRemoved := @BeforeAnimationRemoved;
     FSpriteSheet.BeforeFrameRemoved := @BeforeAnimationFrameRemoved;
+    FSpriteSheet.OnFrameAdded := @FrameAdded;
   except
     on E:Exception do
     begin
