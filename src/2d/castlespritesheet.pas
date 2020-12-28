@@ -1374,6 +1374,7 @@ begin
     (FAnimationList.Contains(Animation)) then
     FBeforeAnimationRemoved(Animation);
   FAnimationList.Remove(Animation);
+  SetModifiedState;
 end;
 
 procedure TCastleSpriteSheet.RemoveAnimationByName(const Name: String);
@@ -1389,6 +1390,7 @@ begin
       if Assigned(FBeforeAnimationRemoved) then
         FBeforeAnimationRemoved(Animation);
       FAnimationList.Delete(I);
+      SetModifiedState;
     end;
   end;
 end;
@@ -1399,6 +1401,7 @@ begin
     FBeforeAnimationRemoved(FAnimationList[Index]);
 
   FAnimationList.Delete(Index);
+  SetModifiedState;
 end;
 
 { TCastleSpriteSheetLoader ---------------------------------------------------}
