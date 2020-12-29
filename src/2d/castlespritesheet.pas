@@ -19,7 +19,13 @@ type
   TCastleSpriteSheetAbstractImageGen = class;
 
   TCastleSpriteSheetFrameEvent = procedure (Frame: TCastleSpriteSheetFrame) of object;
+  TCastleSpriteSheetFrameMoveEvent = procedure (
+      const Frame: TCastleSpriteSheetFrame;
+      const OldIndex, NewIndex: Integer) of object;
   TCastleSpriteSheetAnimationEvent = procedure (Animation: TCastleSpriteSheetAnimation) of object;
+  TCastleSpriteSheetAnimationMoveEvent = procedure (
+      const Animation: TCastleSpriteSheetAnimation;
+      const OldIndex, NewIndex: Integer) of object;
 
   TCastleSpriteSheet = class
     strict private
@@ -33,9 +39,11 @@ type
       FLoadingPending: Boolean;
       FOnModifiedStateChanged: TNotifyEvent;
       FOnAnimationAdded: TCastleSpriteSheetAnimationEvent;
+      FOnAnimationMoved: TCastleSpriteSheetAnimationMoveEvent;
       FBeforeAnimationRemoved: TCastleSpriteSheetAnimationEvent;
       FBeforeAnimationFrameRemoved: TCastleSpriteSheetFrameEvent;
       FOnFrameAdded: TCastleSpriteSheetFrameEvent;
+      FOnFrameMoved: TCastleSpriteSheetFrameMoveEvent;
 
     private
       FImageWidth: Integer;
@@ -73,8 +81,14 @@ type
       function AnimationByName(const Name:String): TCastleSpriteSheetAnimation;
       function AnimationByIndex(const Index: Integer): TCastleSpriteSheetAnimation;
       function AnimationCount: Integer;
+      function AnimationIndex(const Animation: TCastleSpriteSheetAnimation): Integer;
       function HasAnimation(const Name:String): Boolean;
       function AddAnimation(const Name:String): TCastleSpriteSheetAnimation;
+      procedure MoveAnimationUp(const Animation: TCastleSpriteSheetAnimation);
+      procedure MoveAnimationDown(const Animation: TCastleSpriteSheetAnimation);
+      procedure MoveAnimationToTop(const Animation: TCastleSpriteSheetAnimation);
+      procedure MoveAnimationToEnd(const Animation: TCastleSpriteSheetAnimation);
+      procedure MoveAnimation(const OldIndex, NewIndex: Integer);
       procedure RemoveAnimation(const Animation: TCastleSpriteSheetAnimation);
       procedure RemoveAnimationByName(const Name: String);
       procedure RemoveAnimationByIndex(const Index: Integer);
@@ -99,6 +113,9 @@ type
       property OnAnimationAdded: TCastleSpriteSheetAnimationEvent
         read FOnAnimationAdded write FOnAnimationAdded;
 
+      property OnAnimationMoved: TCastleSpriteSheetAnimationMoveEvent
+        read FOnAnimationMoved write FOnAnimationMoved;
+
       property BeforeAnimationRemoved: TCastleSpriteSheetAnimationEvent
         read FBeforeAnimationRemoved write FBeforeAnimationRemoved;
 
@@ -107,6 +124,9 @@ type
 
       property OnFrameAdded: TCastleSpriteSheetFrameEvent read FOnFrameAdded
         write FOnFrameAdded;
+
+      property OnFrameMoved: TCastleSpriteSheetFrameMoveEvent read FOnFrameMoved
+        write FOnFrameMoved;
 
       property ImageWidth: Integer read GetImageWidth;
       property ImageHeight: Integer read GetImageHeight;
@@ -131,10 +151,16 @@ type
 
 
       function FrameCount: Integer;
+      function FrameIndex(const Frame: TCastleSpriteSheetFrame): Integer;
       function AddFrame: TCastleSpriteSheetFrame;
       function AddFrame(const FrameImageURL: String): TCastleSpriteSheetFrame;
       function AllFramesHasTheSameSize: Boolean;
       procedure RemoveFrame(const Frame: TCastleSpriteSheetFrame);
+      procedure MoveFrameUp(const Frame: TCastleSpriteSheetFrame);
+      procedure MoveFrameDown(const Frame: TCastleSpriteSheetFrame);
+      procedure MoveFrameToTop(const Frame: TCastleSpriteSheetFrame);
+      procedure MoveFrameToEnd(const Frame: TCastleSpriteSheetFrame);
+      procedure MoveFrame(const OldIndex, NewIndex: Integer);
       function GetBigestFrameSize(const MaxWidth, MaxHeight: Integer): TVector2Integer;
 
       property Name: String read FName write SetName;
@@ -900,6 +926,12 @@ begin
   Result := FFrameList.Count;
 end;
 
+function TCastleSpriteSheetAnimation.FrameIndex(
+  const Frame: TCastleSpriteSheetFrame): Integer;
+begin
+  Result := FFrameList.IndexOf(Frame);
+end;
+
 function TCastleSpriteSheetAnimation.AddFrame: TCastleSpriteSheetFrame;
 var
   AFrame: TCastleSpriteSheetFrame;
@@ -963,6 +995,65 @@ begin
     (FFrameList.Contains(Frame)) then
     FSpriteSheet.BeforeFrameRemoved(Frame);
   FFrameList.Remove(Frame);
+  SetModifiedState;
+end;
+
+procedure TCastleSpriteSheetAnimation.MoveFrameUp(
+  const Frame: TCastleSpriteSheetFrame);
+var
+  Index: Integer;
+begin
+  Index := FFrameList.IndexOf(Frame);
+  if Index < 1 then
+    Exit;
+
+  MoveFrame(Index, Index - 1);
+end;
+
+procedure TCastleSpriteSheetAnimation.MoveFrameDown(
+  const Frame: TCastleSpriteSheetFrame);
+var
+  Index: Integer;
+begin
+  Index := FFrameList.IndexOf(Frame);
+  if (Index = FFrameList.Count - 1) or (Index = -1) then
+    Exit;
+
+  MoveFrame(Index, Index + 1);
+end;
+
+procedure TCastleSpriteSheetAnimation.MoveFrameToTop(
+  const Frame: TCastleSpriteSheetFrame);
+var
+  Index: Integer;
+begin
+  Index := FFrameList.IndexOf(Frame);
+  if Index < 1 then
+    Exit;
+
+  MoveFrame(Index, 0);
+end;
+
+procedure TCastleSpriteSheetAnimation.MoveFrameToEnd(
+  const Frame: TCastleSpriteSheetFrame);
+var
+  Index: Integer;
+begin
+  Index := FFrameList.IndexOf(Frame);
+  if (Index = FFrameList.Count - 1) or (Index = -1) then
+    Exit;
+
+  MoveFrame(Index, FFrameList.Count - 1);
+end;
+
+procedure TCastleSpriteSheetAnimation.MoveFrame(const OldIndex,
+  NewIndex: Integer);
+begin
+  FFrameList.Move(OldIndex, NewIndex);
+
+  if Assigned(FSpriteSheet.OnFrameMoved) then
+    FSpriteSheet.OnFrameMoved(FFrameList[NewIndex], OldIndex, NewIndex);
+
   SetModifiedState;
 end;
 
@@ -1383,6 +1474,12 @@ begin
   Result := FAnimationList.Count;
 end;
 
+function TCastleSpriteSheet.AnimationIndex(
+  const Animation: TCastleSpriteSheetAnimation): Integer;
+begin
+  Result := FAnimationList.IndexOf(Animation);
+end;
+
 function TCastleSpriteSheet.HasAnimation(const Name: String): Boolean;
 var
   Animation: TCastleSpriteSheetAnimation;
@@ -1405,6 +1502,64 @@ begin
     FOnAnimationAdded(Animation);
   SetModifiedState;
   Result := Animation;
+end;
+
+procedure TCastleSpriteSheet.MoveAnimationUp(
+  const Animation: TCastleSpriteSheetAnimation);
+var
+  Index: Integer;
+begin
+  Index := FAnimationList.IndexOf(Animation);
+  if Index < 1 then
+    Exit;
+
+  MoveAnimation(Index, Index - 1);
+end;
+
+procedure TCastleSpriteSheet.MoveAnimationDown(
+  const Animation: TCastleSpriteSheetAnimation);
+var
+  Index: Integer;
+begin
+  Index := FAnimationList.IndexOf(Animation);
+  if (Index = FAnimationList.Count - 1) or (Index = -1) then
+    Exit;
+
+  MoveAnimation(Index, Index + 1);
+end;
+
+procedure TCastleSpriteSheet.MoveAnimationToTop(
+  const Animation: TCastleSpriteSheetAnimation);
+var
+  Index: Integer;
+begin
+  Index := FAnimationList.IndexOf(Animation);
+  if Index < 1 then
+    Exit;
+
+  MoveAnimation(Index, 0);
+end;
+
+procedure TCastleSpriteSheet.MoveAnimationToEnd(
+  const Animation: TCastleSpriteSheetAnimation);
+var
+  Index: Integer;
+begin
+  Index := FAnimationList.IndexOf(Animation);
+  if (Index = FAnimationList.Count - 1) or (Index = -1) then
+    Exit;
+
+  MoveAnimation(Index, FAnimationList.Count - 1);
+end;
+
+procedure TCastleSpriteSheet.MoveAnimation(const OldIndex, NewIndex: Integer);
+begin
+  FAnimationList.Move(OldIndex, NewIndex);
+
+  if Assigned(FOnAnimationMoved) then
+    FOnAnimationMoved(FAnimationList[NewIndex], OldIndex, NewIndex);
+
+  SetModifiedState;
 end;
 
 procedure TCastleSpriteSheet.RemoveAnimation(

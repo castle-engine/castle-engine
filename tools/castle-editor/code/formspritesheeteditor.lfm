@@ -352,17 +352,20 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       Caption = 'New...'
       ImageIndex = 0
       OnExecute = ActionNewSpriteSheetExecute
+      ShortCut = 16462
     end
     object ActionOpenSpriteSheet: TAction
       Category = 'File'
       Caption = 'Open...'
       ImageIndex = 1
       OnExecute = ActionOpenSpriteSheetExecute
+      ShortCut = 16463
     end
     object ActionSaveSpriteSheet: TAction
       Category = 'File'
       Caption = 'Save'
       ImageIndex = 2
+      ShortCut = 16467
     end
     object ActionSaveSpriteSheetAs: TAction
       Category = 'File'
@@ -402,6 +405,58 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       OnExecute = ActionAddAnimationExecute
       OnUpdate = ActionAddAnimationUpdate
     end
+    object ActionMoveFrameUp: TAction
+      Category = 'Frame'
+      Caption = 'Move up'
+      OnExecute = ActionMoveFrameUpExecute
+      OnUpdate = ActionMoveFrameUpUpdate
+      ShortCut = 16422
+    end
+    object ActionMoveFrameDown: TAction
+      Category = 'Frame'
+      Caption = 'Move down'
+      OnExecute = ActionMoveFrameDownExecute
+      OnUpdate = ActionMoveFrameDownUpdate
+      ShortCut = 16424
+    end
+    object ActionMoveFrameTop: TAction
+      Category = 'Frame'
+      Caption = 'Move top'
+      OnExecute = ActionMoveFrameTopExecute
+      OnUpdate = ActionMoveFrameTopUpdate
+    end
+    object ActionMoveFrameEnd: TAction
+      Category = 'Frame'
+      Caption = 'Move end'
+      OnExecute = ActionMoveFrameEndExecute
+      OnUpdate = ActionMoveFrameEndUpdate
+    end
+    object ActionMoveAnimationUp: TAction
+      Category = 'Animation'
+      Caption = 'Move up'
+      OnExecute = ActionMoveAnimationUpExecute
+      OnUpdate = ActionMoveAnimationUpUpdate
+      ShortCut = 16422
+    end
+    object ActionMoveAnimationDown: TAction
+      Category = 'Animation'
+      Caption = 'Move down'
+      OnExecute = ActionMoveAnimationDownExecute
+      OnUpdate = ActionMoveAnimationDownUpdate
+      ShortCut = 16424
+    end
+    object ActionMoveAnimationTop: TAction
+      Category = 'Animation'
+      Caption = 'Move top'
+      OnExecute = ActionMoveAnimationTopExecute
+      OnUpdate = ActionMoveAnimationTopUpdate
+    end
+    object ActionMoveAnimationEnd: TAction
+      Category = 'Animation'
+      Caption = 'Move end'
+      OnExecute = ActionMoveAnimationEndExecute
+      OnUpdate = ActionMoveAnimationEndUpdate
+    end
   end
   object MainMenu: TMainMenu
     Images = Icons.MenuStroke1_5
@@ -440,6 +495,18 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
   object PopupMenuFrames: TPopupMenu
     Left = 445
     Top = 126
+    object MenuItemMoveFrameUp: TMenuItem
+      Action = ActionMoveFrameUp
+    end
+    object MenuItemMoveFrameDown: TMenuItem
+      Action = ActionMoveFrameDown
+    end
+    object MenuItemMoveFrameToTop: TMenuItem
+      Action = ActionMoveFrameTop
+    end
+    object MenuItemMoveEnd: TMenuItem
+      Action = ActionMoveFrameEnd
+    end
     object MenuItemAddFrame: TMenuItem
       Action = ActionAddFrame
     end
@@ -450,6 +517,18 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
   object PopupMenuAnimations: TPopupMenu
     Left = 94
     Top = 177
+    object MenuItemMoveAnimationUp: TMenuItem
+      Action = ActionMoveAnimationUp
+    end
+    object MenuItemAnimationDown: TMenuItem
+      Action = ActionMoveAnimationDown
+    end
+    object MenuItemAnimationTop: TMenuItem
+      Action = ActionMoveAnimationTop
+    end
+    object MenuItemAnimationEnd: TMenuItem
+      Action = ActionMoveAnimationEnd
+    end
     object MenuItemAddAnimation: TMenuItem
       Action = ActionAddAnimation
     end

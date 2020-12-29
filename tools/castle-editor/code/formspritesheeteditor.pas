@@ -13,6 +13,14 @@ uses
 
 type
   TSpriteSheetEditorForm = class(TForm)
+    ActionMoveAnimationEnd: TAction;
+    ActionMoveAnimationTop: TAction;
+    ActionMoveAnimationDown: TAction;
+    ActionMoveAnimationUp: TAction;
+    ActionMoveFrameEnd: TAction;
+    ActionMoveFrameTop: TAction;
+    ActionMoveFrameDown: TAction;
+    ActionMoveFrameUp: TAction;
     ActionAddAnimation: TAction;
     ActionAddFrame: TAction;
     ActionRenameAnimation: TAction;
@@ -28,6 +36,14 @@ type
     ImageListFrames: TImageList;
     LabelNoFrameToShow: TLabel;
     ListViewAnimations: TListView;
+    MenuItemAnimationEnd: TMenuItem;
+    MenuItemAnimationTop: TMenuItem;
+    MenuItemAnimationDown: TMenuItem;
+    MenuItemMoveAnimationUp: TMenuItem;
+    MenuItemMoveEnd: TMenuItem;
+    MenuItemMoveFrameToTop: TMenuItem;
+    MenuItemMoveFrameDown: TMenuItem;
+    MenuItemMoveFrameUp: TMenuItem;
     MenuItemAddAnimation: TMenuItem;
     MenuItemAddFrame: TMenuItem;
     MenuItemRename: TMenuItem;
@@ -68,6 +84,22 @@ type
     procedure ActionAddAnimationUpdate(Sender: TObject);
     procedure ActionAddFrameExecute(Sender: TObject);
     procedure ActionAddFrameUpdate(Sender: TObject);
+    procedure ActionMoveAnimationDownExecute(Sender: TObject);
+    procedure ActionMoveAnimationDownUpdate(Sender: TObject);
+    procedure ActionMoveAnimationEndExecute(Sender: TObject);
+    procedure ActionMoveAnimationEndUpdate(Sender: TObject);
+    procedure ActionMoveAnimationTopExecute(Sender: TObject);
+    procedure ActionMoveAnimationTopUpdate(Sender: TObject);
+    procedure ActionMoveAnimationUpExecute(Sender: TObject);
+    procedure ActionMoveAnimationUpUpdate(Sender: TObject);
+    procedure ActionMoveFrameDownExecute(Sender: TObject);
+    procedure ActionMoveFrameDownUpdate(Sender: TObject);
+    procedure ActionMoveFrameEndExecute(Sender: TObject);
+    procedure ActionMoveFrameEndUpdate(Sender: TObject);
+    procedure ActionMoveFrameTopExecute(Sender: TObject);
+    procedure ActionMoveFrameTopUpdate(Sender: TObject);
+    procedure ActionMoveFrameUpExecute(Sender: TObject);
+    procedure ActionMoveFrameUpUpdate(Sender: TObject);
     procedure ActionNewSpriteSheetExecute(Sender: TObject);
     procedure ActionOpenSpriteSheetExecute(Sender: TObject);
     procedure ActionRemoveAnimationExecute(Sender: TObject);
@@ -147,6 +179,10 @@ type
 
     procedure FrameAdded(NewFrame: TCastleSpriteSheetFrame);
     procedure BeforeAnimationFrameRemoved(FrameToRemove: TCastleSpriteSheetFrame);
+    procedure FrameMoved(const Frame: TCastleSpriteSheetFrame;
+      const OldIndex, NewIndex: Integer);
+    procedure AnimationMoved(const Animation: TCastleSpriteSheetAnimation;
+      const OldIndex, NewIndex: Integer);
 
   public
     procedure OpenSpriteSheet(const URL: String);
@@ -174,6 +210,179 @@ end;
 procedure TSpriteSheetEditorForm.ActionAddFrameUpdate(Sender: TObject);
 begin
   ActionAddFrame.Enabled := GetCurrentAnimation <> nil;
+end;
+
+procedure TSpriteSheetEditorForm.ActionMoveAnimationDownExecute(Sender: TObject
+  );
+var
+  Animation: TCastleSpriteSheetAnimation;
+begin
+  Animation := GetCurrentAnimation;
+  if Animation = nil then
+    Exit;
+
+  FSpriteSheet.MoveAnimationDown(Animation);
+end;
+
+procedure TSpriteSheetEditorForm.ActionMoveAnimationDownUpdate(Sender: TObject);
+var
+  Animation: TCastleSpriteSheetAnimation;
+begin
+  Animation := GetCurrentAnimation;
+  ActionMoveAnimationDown.Enabled := (Animation <> nil)
+    and (FSpriteSheet.AnimationIndex(Animation) <> FSpriteSheet.AnimationCount - 1);
+end;
+
+procedure TSpriteSheetEditorForm.ActionMoveAnimationEndExecute(Sender: TObject);
+var
+  Animation: TCastleSpriteSheetAnimation;
+begin
+  Animation := GetCurrentAnimation;
+  if Animation = nil then
+    Exit;
+
+  FSpriteSheet.MoveAnimationToEnd(Animation);
+end;
+
+procedure TSpriteSheetEditorForm.ActionMoveAnimationEndUpdate(Sender: TObject);
+var
+  Animation: TCastleSpriteSheetAnimation;
+begin
+  Animation := GetCurrentAnimation;
+  ActionMoveAnimationEnd.Enabled := (Animation <> nil)
+    and (FSpriteSheet.AnimationIndex(Animation) <> FSpriteSheet.AnimationCount - 1);
+end;
+
+procedure TSpriteSheetEditorForm.ActionMoveAnimationTopExecute(Sender: TObject);
+var
+  Animation: TCastleSpriteSheetAnimation;
+begin
+  Animation := GetCurrentAnimation;
+  if Animation = nil then
+    Exit;
+
+  FSpriteSheet.MoveAnimationToTop(Animation);
+end;
+
+procedure TSpriteSheetEditorForm.ActionMoveAnimationTopUpdate(Sender: TObject);
+var
+  Animation: TCastleSpriteSheetAnimation;
+begin
+  Animation := GetCurrentAnimation;
+  ActionMoveAnimationTop.Enabled := (Animation <> nil)
+    and (FSpriteSheet.AnimationIndex(Animation) <> 0);
+end;
+
+procedure TSpriteSheetEditorForm.ActionMoveAnimationUpExecute(Sender: TObject);
+var
+  Animation: TCastleSpriteSheetAnimation;
+begin
+  Animation := GetCurrentAnimation;
+  if Animation = nil then
+    Exit;
+
+  FSpriteSheet.MoveAnimationUp(Animation);
+end;
+
+procedure TSpriteSheetEditorForm.ActionMoveAnimationUpUpdate(Sender: TObject);
+var
+  Animation: TCastleSpriteSheetAnimation;
+begin
+  Animation := GetCurrentAnimation;
+  ActionMoveAnimationUp.Enabled := (Animation <> nil)
+    and (FSpriteSheet.AnimationIndex(Animation) <> 0);
+end;
+
+procedure TSpriteSheetEditorForm.ActionMoveFrameDownExecute(Sender: TObject);
+var
+  Frame: TCastleSpriteSheetFrame;
+  Animation: TCastleSpriteSheetAnimation;
+begin
+  Animation := GetCurrentAnimation;
+  Frame := GetSelectedFrame;
+
+  if (Animation = nil) or (Frame = nil) then
+    Exit;
+
+  Animation.MoveFrameDown(Frame);
+end;
+
+procedure TSpriteSheetEditorForm.ActionMoveFrameDownUpdate(Sender: TObject);
+var
+  Frame: TCastleSpriteSheetFrame;
+begin
+  Frame := GetSelectedFrame;
+  ActionMoveFrameDown.Enabled := (Frame <> nil)
+    and (Frame.Animation.FrameIndex(Frame) < Frame.Animation.FrameCount - 1);
+end;
+
+procedure TSpriteSheetEditorForm.ActionMoveFrameEndExecute(Sender: TObject);
+var
+  Frame: TCastleSpriteSheetFrame;
+  Animation: TCastleSpriteSheetAnimation;
+begin
+  Animation := GetCurrentAnimation;
+  Frame := GetSelectedFrame;
+
+  if (Animation = nil) or (Frame = nil) then
+    Exit;
+
+  Animation.MoveFrameToEnd(Frame);
+end;
+
+procedure TSpriteSheetEditorForm.ActionMoveFrameEndUpdate(Sender: TObject);
+var
+  Frame: TCastleSpriteSheetFrame;
+begin
+  Frame := GetSelectedFrame;
+  ActionMoveFrameEnd.Enabled := (Frame <> nil)
+    and (Frame.Animation.FrameIndex(Frame) < Frame.Animation.FrameCount - 1);
+end;
+
+procedure TSpriteSheetEditorForm.ActionMoveFrameTopExecute(Sender: TObject);
+var
+  Frame: TCastleSpriteSheetFrame;
+  Animation: TCastleSpriteSheetAnimation;
+begin
+  Animation := GetCurrentAnimation;
+  Frame := GetSelectedFrame;
+
+  if (Animation = nil) or (Frame = nil) then
+    Exit;
+
+  Animation.MoveFrameToTop(Frame);
+end;
+
+procedure TSpriteSheetEditorForm.ActionMoveFrameTopUpdate(Sender: TObject);
+var
+  Frame: TCastleSpriteSheetFrame;
+begin
+  Frame := GetSelectedFrame;
+  ActionMoveFrameTop.Enabled := (Frame <> nil)
+    and (Frame.Animation.FrameIndex(Frame) > 0);
+end;
+
+procedure TSpriteSheetEditorForm.ActionMoveFrameUpExecute(Sender: TObject);
+var
+  Frame: TCastleSpriteSheetFrame;
+  Animation: TCastleSpriteSheetAnimation;
+begin
+  Animation := GetCurrentAnimation;
+  Frame := GetSelectedFrame;
+
+  if (Animation = nil) or (Frame = nil) then
+    Exit;
+
+  Animation.MoveFrameUp(Frame);
+end;
+
+procedure TSpriteSheetEditorForm.ActionMoveFrameUpUpdate(Sender: TObject);
+var
+  Frame: TCastleSpriteSheetFrame;
+begin
+  Frame := GetSelectedFrame;
+  ActionMoveFrameUp.Enabled := (Frame <> nil)
+    and (Frame.Animation.FrameIndex(Frame) > 0);
 end;
 
 procedure TSpriteSheetEditorForm.ActionAddFrameExecute(Sender: TObject);
@@ -662,6 +871,21 @@ begin
   end;
 end;
 
+procedure TSpriteSheetEditorForm.FrameMoved(
+  const Frame: TCastleSpriteSheetFrame; const OldIndex, NewIndex: Integer);
+begin
+  ListViewFrames.Items.Move(OldIndex, NewIndex);
+  UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+end;
+
+procedure TSpriteSheetEditorForm.AnimationMoved(
+  const Animation: TCastleSpriteSheetAnimation; const OldIndex,
+  NewIndex: Integer);
+begin
+  ListViewAnimations.Items.Move(OldIndex, NewIndex);
+  UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+end;
+
 procedure TSpriteSheetEditorForm.AnimationAdded(
   NewAnimation: TCastleSpriteSheetAnimation);
 begin
@@ -693,8 +917,10 @@ begin
     UpdateWindowCaption;
     LoadAnimations(FSpriteSheet);
     FSpriteSheet.OnAnimationAdded := @AnimationAdded;
+    FSpriteSheet.OnAnimationMoved := @AnimationMoved;
     FSpriteSheet.BeforeAnimationRemoved := @BeforeAnimationRemoved;
     FSpriteSheet.OnFrameAdded := @FrameAdded;
+    FSpriteSheet.OnFrameMoved := @FrameMoved;
     FSpriteSheet.BeforeFrameRemoved := @BeforeAnimationFrameRemoved;
   except
     on E:Exception do
