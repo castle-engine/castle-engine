@@ -1197,7 +1197,7 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-
+    function PropertySection(const PropertyName: String): TPropertySection; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
     function AllowSuspendForInput: boolean; override;
@@ -1207,30 +1207,6 @@ type
 
     function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
     function SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
-
-    { Enable rotating the camera around the model by user input.
-      When @false, no keys / mouse dragging / 3D mouse etc. can cause a rotation.
-
-      Note that this doesn't prevent from rotating by code, e.g. by setting
-      @link(Rotations) property or calling @link(SetView). }
-    property RotationEnabled: Boolean read FRotationEnabled write FRotationEnabled default true;
-
-    { Enable moving the camera by user input.
-      When @false, no keys / mouse dragging / 3D mouse etc. can make a move.
-
-      Note that this doesn't prevent from moving by code, e.g. by setting
-      @link(Translation) property or calling @link(SetView). }
-    property MoveEnabled: Boolean read FMoveEnabled write FMoveEnabled default true;
-
-    { Enable zooming the camera on the model by user input.
-      Depending on the projection, zooming either moves camera or scales
-      the projection size.
-      When @false, no keys / mouse dragging / 3d mouse etc. can make a zoom.
-
-      Note that this doesn't prevent from zooming by code, e.g. by setting
-      @link(ScaleFactor) property (to scale the projection size)
-      or calling @link(SetView) (to move closer to the model). }
-    property ZoomEnabled: Boolean read FZoomEnabled write FZoomEnabled default true;
 
     { Drag with this mouse button to rotate the model.
 
@@ -1371,6 +1347,30 @@ type
       write FRotationSpeed
       default DefaultRotationSpeed;
   published
+    { Enable rotating the camera around the model by user input.
+      When @false, no keys / mouse dragging / 3D mouse etc. can cause a rotation.
+
+      Note that this doesn't prevent from rotating by code, e.g. by setting
+      @link(Rotations) property or calling @link(SetView). }
+    property RotationEnabled: Boolean read FRotationEnabled write FRotationEnabled default true;
+
+    { Enable moving the camera by user input.
+      When @false, no keys / mouse dragging / 3D mouse etc. can make a move.
+
+      Note that this doesn't prevent from moving by code, e.g. by setting
+      @link(Translation) property or calling @link(SetView). }
+    property MoveEnabled: Boolean read FMoveEnabled write FMoveEnabled default true;
+
+    { Enable zooming the camera on the model by user input.
+      Depending on the projection, zooming either moves camera or scales
+      the projection size.
+      When @false, no keys / mouse dragging / 3d mouse etc. can make a zoom.
+
+      Note that this doesn't prevent from zooming by code, e.g. by setting
+      @link(ScaleFactor) property (to scale the projection size)
+      or calling @link(SetView) (to move closer to the model). }
+    property ZoomEnabled: Boolean read FZoomEnabled write FZoomEnabled default true;
+
     { When @true, rotation keys make the rotation faster, and the model keeps
       rotating even when you don't hold any keys. When @false, you have to
       hold rotation keys to rotate. }
@@ -1596,7 +1596,7 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-
+    function PropertySection(const PropertyName: String): TPropertySection; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
     function AllowSuspendForInput: boolean; override;
@@ -3823,6 +3823,17 @@ begin
     Result := ntExamine;
 end;
 
+function TCastleExamineNavigation.PropertySection(
+  const PropertyName: String): TPropertySection;
+begin
+  if (PropertyName = 'MoveEnabled') or
+     (PropertyName = 'RotationEnabled') or
+     (PropertyName = 'ZoomEnabled') then
+    Result := psBasic
+  else
+    Result := inherited PropertySection(PropertyName);
+end;
+
 { TCastleMouseLookNavigation ------------------------------------------------- }
 
 constructor TCastleMouseLookNavigation.Create(AOwner: TComponent);
@@ -5310,6 +5321,16 @@ begin
     Result := ntWalk
   else
     Result := ntFly;
+end;
+
+function TCastleWalkNavigation.PropertySection(
+  const PropertyName: String): TPropertySection;
+begin
+  if (PropertyName = 'Gravity') or
+     (PropertyName = 'MoveSpeed') then
+    Result := psBasic
+  else
+    Result := inherited PropertySection(PropertyName);
 end;
 
 { global ------------------------------------------------------------ }
