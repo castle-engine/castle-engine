@@ -52,6 +52,7 @@ var
   PlaySoundOggButton: TCastleButton;
   VibrateButton: TCastleButton;
   TerminateButton: TCastleButton;
+  StatusText: TCastleLabel;
 
   MyShaderEffect: TEffectNode;
   MyScreenEffect: TScreenEffectNode;
@@ -253,6 +254,12 @@ begin
   Window.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
   Window.MainScene.ProcessEvents := true;
 
+  StatusText := TCastleLabel.Create(Window);
+  StatusText.Anchor(hpLeft, 10);
+  StatusText.Anchor(vpBottom, 10);
+  StatusText.Color := Yellow;
+  Window.Controls.InsertFront(StatusText);
+
   { buttons in middle-top, from top to bottom }
 
   ButtonsMiddle := TCastleVerticalGroup.Create(Application);
@@ -292,7 +299,7 @@ begin
   Window.Controls.InsertFront(ButtonsRight);
 
   TouchUIButton := TCastleButtonLarge.Create(Window);
-  TouchUIButton.Caption := 'Next Touch UI';
+  TouchUIButton.Caption := 'Next Touch Navigation';
   TouchUIButton.OnClick := @TEventsHandler(nil).TouchUIClick;
   ButtonsRight.InsertFront(TouchUIButton);
 
@@ -365,13 +372,20 @@ begin
   end;
 end;
 
-procedure WindowRender(Container: TUIContainer);
+procedure WindowUpdate(Container: TUIContainer);
+var
+  TouchInterfaceStr: String;
 begin
-  UIFont.Print(10, 10, Yellow, Format('FPS : %s. Shapes : %d / %d', [
+  WriteStr(TouchInterfaceStr, Window.TouchInterface);
+
+  StatusText.Caption := Format('FPS : %s' + NL +
+    'Shapes : %d / %d' + NL +
+    'Touch Navigation: %s', [
     Window.Fps.ToString,
     Window.SceneManager.Statistics.ShapesRendered,
-    Window.SceneManager.Statistics.ShapesVisible
-  ]));
+    Window.SceneManager.Statistics.ShapesVisible,
+    TouchInterfaceStr
+  ]);
 end;
 
 initialization
@@ -391,5 +405,5 @@ initialization
   { create Window and initialize Window callbacks }
   Window := TCastleWindowTouch.Create(Application);
   Application.MainWindow := Window;
-  Window.OnRender := @WindowRender;
+  Window.OnUpdate := @WindowUpdate;
 end.
