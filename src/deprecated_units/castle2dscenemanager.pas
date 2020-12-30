@@ -145,7 +145,9 @@ type
     function Clone(const AOwner: TComponent): TCastle2DScene;
   end deprecated 'use TCastleScene, and call Setup2D right after creating';
 
+  {$warnings off} // refering to deprecated from deprecated
   T2DScene = TCastle2DScene deprecated 'use TCastleScene, and call Setup2D right after creating';
+  {$wanrings on}
 
 implementation
 
@@ -244,7 +246,9 @@ end;
 
 function TCastle2DScene.Clone(const AOwner: TComponent): TCastle2DScene;
 begin
+  {$warnings off} // refering to deprecated from deprecated
   Result := TCastle2DScene.Create(AOwner);
+  {$warnings on}
   if RootNode <> nil then
     Result.Load(RootNode.DeepCopy as TX3DRootNode, true);
 end;
