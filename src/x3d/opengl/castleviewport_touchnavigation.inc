@@ -198,8 +198,7 @@ begin
   if (Viewport <> nil) and
      (FLastSeenNavigationType <> Viewport.NavigationType) then
   begin
-    FLastSeenNavigationType := Viewport.NavigationType;
-    UpdateAutoTouchInterface;
+    UpdateAutoTouchInterface; // will update FLastSeenNavigationType
   end;
 end;
 
@@ -286,7 +285,8 @@ procedure TCastleTouchNavigation.UpdateAutoTouchInterface;
 begin
   if (Viewport <> nil) and AutoTouchInterface then
   begin
-    case Viewport.NavigationType of
+    FLastSeenNavigationType := Viewport.NavigationType;
+    case FLastSeenNavigationType of
       ntNone:      TouchInterface := tiNone;
       ntWalk:      TouchInterface := FAutoWalkTouchInterface;
       ntFly:       TouchInterface := tiFlyWalk;
