@@ -25,7 +25,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleVectors, X3DNodes, X3DTriangles, CastleScene, CastleSceneCore, CastleCameras,
   CastleInternalGLShadowVolumes, CastleUIControls, CastleTransform, CastleTriangles,
   CastleKeysMouse, CastleBoxes, CastleInternalBackground, CastleUtils, CastleClassUtils,
-  CastleGLShaders, CastleGLImages, CastleTimeUtils,
+  CastleGLShaders, CastleGLImages, CastleTimeUtils, CastleControls,
   CastleInputs, CastleRectangles, CastleColors,
   CastleProjection, CastleScreenEffects;
 
@@ -1267,6 +1267,10 @@ var
     or TInputShortcut.MouseButtonUse. }
   Input_Interact: TInputShortcut;
 
+{$define read_interface}
+{$I castleviewport_touchnavigation.inc}
+{$undef read_interface}
+
 implementation
 
 {$warnings off}
@@ -1284,7 +1288,10 @@ procedure Register;
 begin
 end;
 
+{$define read_implementation}
+{$I castleviewport_touchnavigation.inc}
 {$I castleviewport_warmup_cache.inc}
+{$undef read_implementation}
 
 { TManagerRenderParams ------------------------------------------------------- }
 

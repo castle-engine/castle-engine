@@ -27,7 +27,7 @@ uses SysUtils, Classes,
   CastleGLUtils, CastleColors, X3DNodes, CastleFilesUtils, CastleLog,
   CastleSceneCore, CastleFindFiles, CastleStringUtils, CastleMessages,
   CastleProgress, CastleWindowProgress, CastleUtils, CastleSoundEngine,
-  CastleApplicationProperties, CastleOpenDocument;
+  CastleApplicationProperties, CastleOpenDocument, CastleViewport;
 
 { TODO:
   Using TCastleWindowTouch and TCastleWindow is deprecated.
