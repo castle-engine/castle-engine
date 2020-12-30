@@ -23,7 +23,7 @@ interface
 implementation
 
 uses SysUtils,
-  CastleWindowTouch, CastleWindow, CastleScene, CastleControls, CastleLog,
+  CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleUIControls, CastleApplicationProperties, CastleScreenEffects,
   CastleViewport, X3DNodes, X3DLoad, CastleUtils,
