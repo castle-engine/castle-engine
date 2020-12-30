@@ -32,12 +32,32 @@ type
     Depending on @link(AutoTouchInterface) and @link(TouchInterface),
     we will show 0, 1 or 2 controls to navigate at the bottom,
     in the left-bottom and right-bottom.
-    The size and position of this control determines where they appear.
+    It is easiest to just set
+
+    @longCode(#
+      MyTouchNavigation.TouchInterface := tiNone; // default
+      MyTouchNavigation.AutoTouchInterface := ApplicationProperties.TouchDevice;
+    #)
+
+    to activate this automatically on mobile devices, leaving @code(MyTouchNavigation.TouchInterface)
+    equal tiNone on non-mobile devices.
+    Alternatively, you can do something like this to control it manually on mobile devices:
+
+    @longCode(#
+      MyTouchNavigation.AutoTouchInterface := false; // default
+      MyTouchNavigation.Exists := ApplicationProperties.TouchDevice;
+      MyTouchNavigation.TouchInterface := tiSomething;
+    #)
+
+    The size and position of this control determines where the controls appear.
+    Typically this control is added as a direct child of TCastleViewport
+    and has @link(FullSize) = @true, this way it just fills the TCastleViewport.
 
     The @link(Viewport) determines the viewport where navigation is affected
     by this control. In case of @link(AutoTouchInterface), we also look
     at @link(Viewport) value of @link(TCastleViewport.NavigationType)
     to determine the best navigation automatically.
+    Typically the @link(Viewport) is also our visual parent, but it doesn't have to be.
   }
   TCastleTouchNavigation = class(TCastleUserInterface)
   strict private
