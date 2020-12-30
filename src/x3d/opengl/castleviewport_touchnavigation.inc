@@ -70,6 +70,7 @@ type
     FTouchInterface: TTouchInterface;
     FAutoWalkTouchInterface, FAutoExamineTouchInterface: TTouchInterface;
     FControlMouseDragMode: Boolean;
+    FScale: Single;
     { Apply current TouchInterface value.
       Call when TouchInterface or ControlMouseDragMode changed. }
     procedure UpdateTouchInterface;
@@ -84,6 +85,7 @@ type
     procedure SetAutoExamineTouchInterface(const Value: TTouchInterface);
     function TouchInterfaceStored: Boolean;
     procedure SetControlMouseDragMode(const Value: Boolean);
+    procedure SetScale(const Value: Single);
   public
     const
       DefaultAutoWalkTouchInterface = tiWalk;
@@ -146,6 +148,9 @@ type
       what you set in editor as @link(TCastleWalkNavigation.MouseDragMode) value. }
     property ControlMouseDragMode: Boolean
       read FControlMouseDragMode write SetControlMouseDragMode default false;
+
+    { Visual scale of the device. }
+    property Scale: Single read FScale write SetScale default 1.0;
   end;
 
 {$endif read_interface}
@@ -159,6 +164,7 @@ begin
   inherited;
   FAutoWalkTouchInterface := DefaultAutoWalkTouchInterface;
   FAutoExamineTouchInterface := DefaultAutoExamineTouchInterface;
+  FScale := 1.0;
 end;
 
 procedure TCastleTouchNavigation.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -227,6 +233,7 @@ procedure TCastleTouchNavigation.UpdateTouchInterface;
       {$warnings off} // TCastleTouchControl should be internal here
       NewControl := TCastleTouchControl.Create(Self);
       {$warnings on}
+      NewControl.Scale := Scale;
       NewControl.SetTransient;
       NewControl.TouchMode := Mode;
       if not RightSide then
@@ -345,10 +352,23 @@ begin
   if (PropertyName = 'Viewport') or
      (PropertyName = 'TouchInterface') or
      (PropertyName = 'AutoTouchInterface') or
-     (PropertyName = 'ControlMouseDragMode') then
+     (PropertyName = 'Scale') then
     Result := psBasic
   else
     Result := inherited PropertySection(PropertyName);
+end;
+
+procedure TCastleTouchNavigation.SetScale(const Value: Single);
+var
+  RightSide: Boolean;
+begin
+  if FScale <> Value then
+  begin
+    FScale := Value;
+    for RightSide in Boolean do
+      if FControl[RightSide] <> nil then
+        FControl[RightSide].Scale := FScale;
+  end;
 end;
 
 {$endif read_implementation}
