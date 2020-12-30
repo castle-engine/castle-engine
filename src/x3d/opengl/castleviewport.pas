@@ -3832,6 +3832,7 @@ initialization
   R.IsDeprecated := true;
   RegisterSerializableComponent(R);
 
+  RegisterSerializableComponent(TCastleTouchNavigation, 'Touch Navigation');
   RegisterSerializableComponent(TCastleViewport, 'Viewport');
 
   R := TRegisteredComponent.Create;
