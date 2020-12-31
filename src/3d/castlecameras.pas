@@ -3527,8 +3527,12 @@ begin
     if Input_StopRotating.IsEvent(Event) then
     begin
       { If StopRotating was useless, do not mark the event as "handled".
-        This is nice, otherwise on an empty TCastleControl/TCastleWindow mouse clicks
-        are "mysteriously" intercepted, since the default scene manager creates
+        This is necessary to avoid having mouse clicks "stolen" by the TCastleExamineNavigation
+        when an empty TCastleViewport is being used
+        (and thus, mouse clicks could instead be used by other control).
+        It was necessary with deprecated TCastleControl/TCastleWindow:
+        on empty window, mouse clicks would be "mysteriously" intercepted,
+        since the default scene manager creates
         examine camera, and it captures left mouse click as Input_StopRotating. }
       if StopRotating then
         Result := ExclusiveEvents;
