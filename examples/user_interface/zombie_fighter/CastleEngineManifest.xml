@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="zombie_fighter"
   caption="Zombie Fighter"
-  qualified_name="net.sourceforge.castleengine.zombie.fighter"
+  qualified_name="io.castleengine.zombie.fighter"
   standalone_source="zombie_fighter.lpr"
   game_units="GameInitialize"
   author="Michalis Kamburelis">
