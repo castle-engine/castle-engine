@@ -74,7 +74,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="5"/>
-    <Files Count="717">
+    <Files Count="718">
       <Item1>
         <Filename Value="../src/3d/castleboxes.pas"/>
         <UnitName Value="CastleBoxes"/>
@@ -2959,6 +2959,10 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/x3d/x3dtriangles_raysegment_nonleaf.inc"/>
         <Type Value="Include"/>
       </Item717>
+      <Item718>
+        <Filename Value="../src/x3d/x3dloadinternaltiledmap.pas"/>
+        <UnitName Value="X3DLoadInternalTiledMap"/>
+      </Item718>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>

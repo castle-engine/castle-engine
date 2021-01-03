@@ -180,7 +180,7 @@ uses CastleClassUtils, CastleImages, CastleURIUtils, CastleStringUtils,
   X3DLoadInternalGEO, X3DLoadInternal3DS, X3DLoadInternalOBJ,
   X3DLoadInternalCollada, X3DLoadInternalSpine, X3DLoadInternalSTL,
   X3DLoadInternalMD3, X3DLoadInternalGLTF, X3DLoadInternalStarling,
-  X3DLoadInternalImage, X3DLoadInternalCocos2d,
+  X3DLoadInternalImage, X3DLoadInternalCocos2d, X3DLoadInternalTiledMap,
   CastleInternalNodeInterpolator;
 
 { Load a sequence of nodes to an animation suitable for TNodeInterpolator.
@@ -344,6 +344,10 @@ begin
      (MimeType = 'application/x-cocos2d-sprite-sheet') or
      (URIMimeType(URIDeleteAnchor(URL, true)) = 'application/x-cocos2d-sprite-sheet') then
     Result := LoadCocos2d(URL)
+  else
+
+  if MimeType = 'text/xml' then
+    Result := {X3DLoadInternalTiledMap.}LoadTiledMap2d(URL)
   else
 
   { Support for simple graphics images like PNG }
