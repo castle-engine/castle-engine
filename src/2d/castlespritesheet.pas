@@ -16,7 +16,7 @@ type
   TCastleSpriteSheetAnimationList = specialize TObjectList<TCastleSpriteSheetAnimation>;
   TCastleSpriteSheetFrameList = specialize TObjectList<TCastleSpriteSheetFrame>;
 
-  TCastleSpriteSheetAbstractImageGen = class;
+  TCastleSpriteSheetAbstractAtlasGen = class;
 
   TCastleSpriteSheetFrameEvent = procedure (Frame: TCastleSpriteSheetFrame) of object;
   TCastleSpriteSheetFrameMoveEvent = procedure (
@@ -32,8 +32,8 @@ type
       FAnimationList: TCastleSpriteSheetAnimationList;
 
       FURL: String;
-      FLoadedImagePath: String;
-      FRelativeImagePath: String;
+      FLoadedAtlasPath: String;
+      FRelativeAtlasPath: String;
 
       FModifiedState: Boolean;
       FLoadingPending: Boolean;
@@ -46,12 +46,12 @@ type
       FOnFrameMoved: TCastleSpriteSheetFrameMoveEvent;
 
     private
-      FImageWidth: Integer;
-      FImageHeight: Integer;
-      FGeneratedImage: TCastleImage;
+      FAtlasWidth: Integer;
+      FAtlasHeight: Integer;
+      FGeneratedAtlas: TCastleImage;
 
-      function GetImageWidth: Integer;
-      function GetImageHeight: Integer;
+      function GetAtlasWidth: Integer;
+      function GetAtlasHeight: Integer;
 
     protected
       { Sets sprite sheet state as modified. }
@@ -76,7 +76,7 @@ type
       class function LoadToX3D(const URL: String): TX3DRootNode;
 
       { Arranges and creates atlas image }
-      procedure RegenerateImage;
+      procedure RegenerateAtlas;
 
       function AnimationByName(const Name:String): TCastleSpriteSheetAnimation;
       function AnimationByIndex(const Index: Integer): TCastleSpriteSheetAnimation;
@@ -98,14 +98,14 @@ type
       property URL: String read FURL write FURL;
       { Full image path to loaded image, if empty sprite sheet was created from
         scratch. }
-      property LoadedImagePath: String read FLoadedImagePath write FLoadedImagePath;
+      property LoadedAtlasPath: String read FLoadedAtlasPath write FLoadedAtlasPath;
       { Image name with path relative to Castle Sprite Sheet/Starling XML file.
         Usually image is located next to Castle Sprite Sheet/Starling XML so
         this is only file name but it's not a rule. This file name/path is
         saved in Castle Sprite Sheet/Starling XML file.
 
         If empty sprite sheet was created from scratch and never saved. }
-      property RelativeImagePath: String read FRelativeImagePath write FRelativeImagePath;
+      property RelativeAtlasPath: String read FRelativeAtlasPath write FRelativeAtlasPath;
 
       property OnModifiedStateChanged: TNotifyEvent read FOnModifiedStateChanged
         write FOnModifiedStateChanged;
@@ -128,8 +128,8 @@ type
       property OnFrameMoved: TCastleSpriteSheetFrameMoveEvent read FOnFrameMoved
         write FOnFrameMoved;
 
-      property ImageWidth: Integer read GetImageWidth;
-      property ImageHeight: Integer read GetImageHeight;
+      property AtlasWidth: Integer read GetAtlasWidth;
+      property AtlasHeight: Integer read GetAtlasHeight;
   end;
 
   TCastleSpriteSheetAnimation = class
@@ -232,7 +232,7 @@ type
 
   { Abstract class for frame image "arranger", it enables the implementation
     of many algorithms }
-  TCastleSpriteSheetAbstractImageGen = class
+  TCastleSpriteSheetAbstractAtlasGen = class
     protected
       FSpriteSheet: TCastleSpriteSheet;
       FSpriteSheetMaxWidth: Integer;
@@ -244,17 +244,17 @@ type
   end;
 
   { Most simple implementation of frame arranger - for debug purposes }
-  TCastleSpriteSheetBasicImageGen = class (TCastleSpriteSheetAbstractImageGen)
+  TCastleSpriteSheetBasicAtlasGen = class (TCastleSpriteSheetAbstractAtlasGen)
     private
       procedure LayoutFrames;
-      procedure GenerateImage;
+      procedure GenerateAtlas;
     public
       procedure Generate; override;
   end;
 
   { TODO: Advaned sprite sheet generator with all features like trimming,
     padding and everything else we want }
-  TCastleSpriteSheetAdvancedImageGen = class (TCastleSpriteSheetAbstractImageGen)
+  TCastleSpriteSheetAdvancedImageGen = class (TCastleSpriteSheetAbstractAtlasGen)
     public
       procedure Generate; override;
   end;
@@ -262,7 +262,7 @@ type
 
   { Castle Sprite Sheet XML file is not correct }
   EInvalidCastleSpriteSheetXml = class(Exception);
-  ECastleSpriteSheetImageToSmall = class(Exception);
+  ECastleSpriteSheetAtlasToSmall = class(Exception);
 
 implementation
 
@@ -438,9 +438,9 @@ begin
   // TODO
 end;
 
-{ TCastleSpriteSheetAbstractImageGen }
+{ TCastleSpriteSheetAbstractAtlasGen }
 
-constructor TCastleSpriteSheetAbstractImageGen.Create(
+constructor TCastleSpriteSheetAbstractAtlasGen.Create(
   const ASpriteSheet: TCastleSpriteSheet; const MaxWidth, MaxHeight: Integer);
 begin
   FSpriteSheet := ASpriteSheet;
@@ -448,9 +448,9 @@ begin
   FSpriteSheetMaxHeight := MaxHeight;
 end;
 
-{ TCastleSpriteSheetBasicImageGen }
+{ TCastleSpriteSheetBasicAtlasGen }
 
-procedure TCastleSpriteSheetBasicImageGen.LayoutFrames;
+procedure TCastleSpriteSheetBasicAtlasGen.LayoutFrames;
 var
   PreviousLineMaxY: Integer;
   I, J: Integer;
@@ -478,8 +478,8 @@ begin
 
         // check free height
         if Frame.FrameHeight + PreviousLineMaxY > FSpriteSheetMaxHeight then
-          raise ECastleSpriteSheetImageToSmall.Create(
-            'Image to small for sprite sheet');
+          raise ECastleSpriteSheetAtlasToSmall.Create(
+            'Atlas size to small for sprite sheet');
 
         Frame.X := X;
         Frame.Y := Y;
@@ -497,8 +497,8 @@ begin
       // check size
       if (Frame.FrameWidth > FSpriteSheetMaxWidth) or
         (Frame.FrameHeight + PreviousLineMaxY > FSpriteSheetMaxHeight) then
-        raise ECastleSpriteSheetImageToSmall.Create(
-          'Immage to small for sprite sheet');
+        raise ECastleSpriteSheetAtlasToSmall.Create(
+          'Atlas size to small for sprite sheet');
 
       // add frame
       Frame.X := X;
@@ -510,15 +510,15 @@ begin
   end;
 end;
 
-procedure TCastleSpriteSheetBasicImageGen.GenerateImage;
+procedure TCastleSpriteSheetBasicAtlasGen.GenerateAtlas;
 var
   Animation: TCastleSpriteSheetAnimation;
   Frame: TCastleSpriteSheetFrame;
   I, J: Integer;
 begin
-  FreeAndNil(FSpriteSheet.FGeneratedImage);
-  FSpriteSheet.FGeneratedImage := TRGBAlphaImage.Create(FSpriteSheetMaxWidth, FSpriteSheetMaxHeight);
-  FSpriteSheet.FGeneratedImage.Clear(Vector4Byte(0, 0, 0, 0));
+  FreeAndNil(FSpriteSheet.FGeneratedAtlas);
+  FSpriteSheet.FGeneratedAtlas := TRGBAlphaImage.Create(FSpriteSheetMaxWidth, FSpriteSheetMaxHeight);
+  FSpriteSheet.FGeneratedAtlas.Clear(Vector4Byte(0, 0, 0, 0));
 
   for I := 0 to FSpriteSheet.AnimationCount - 1 do
   begin
@@ -527,16 +527,16 @@ begin
     begin
       Frame := Animation.Frame[J];
 
-      Frame.DrawToImage(FSpriteSheet.FGeneratedImage, Frame.X, Frame.Y, 0, 0,
+      Frame.DrawToImage(FSpriteSheet.FGeneratedAtlas, Frame.X, Frame.Y, 0, 0,
         Frame.FrameWidth, Frame.FrameHeight);
     end;
   end;
 end;
 
-procedure TCastleSpriteSheetBasicImageGen.Generate;
+procedure TCastleSpriteSheetBasicAtlasGen.Generate;
 begin
   LayoutFrames;
-  GenerateImage;
+  GenerateAtlas;
 end;
 
 { TCastleSpriteSheetXMLExporter }
@@ -561,7 +561,7 @@ begin
   RootNode := Result.CreateElement('TextureAtlas');
   Result.AppendChild(RootNode);
 
-  TDOMElement(RootNode).SetAttribute('imagePath', FSpriteSheet.RelativeImagePath);
+  TDOMElement(RootNode).SetAttribute('imagePath', FSpriteSheet.RelativeAtlasPath);
 
   for I := 0 to FSpriteSheet.AnimationCount - 1 do
   begin
@@ -578,7 +578,7 @@ begin
 
       TDOMElement(SubTextureNode).SetAttribute('name', Animation.Name + '_' + IntToStr(J + 1));
       TDOMElement(SubTextureNode).SetAttribute('x', IntToStr(Frame.X));
-      TDOMElement(SubTextureNode).SetAttribute('y', IntToStr(FSpriteSheet.ImageHeight - Frame.Y - Frame.Height));
+      TDOMElement(SubTextureNode).SetAttribute('y', IntToStr(FSpriteSheet.AtlasHeight - Frame.Y - Frame.Height));
       TDOMElement(SubTextureNode).SetAttribute('width', IntToStr(Frame.Width));
       TDOMElement(SubTextureNode).SetAttribute('height', IntToStr(Frame.Height));
       if Frame.Trimmed then
@@ -805,11 +805,11 @@ end;
 procedure TCastleSpriteSheetLoader.TLoadToSpriteSheetModel.PrepareContainer;
 begin
   FSpriteSheet.URL := FLoader.FURL;
-  FSpriteSheet.LoadedImagePath := FLoader.FAbsoluteImagePath;
-  FSpriteSheet.RelativeImagePath := FLoader.FRelativeImagePath;
+  FSpriteSheet.LoadedAtlasPath := FLoader.FAbsoluteImagePath;
+  FSpriteSheet.RelativeAtlasPath := FLoader.FRelativeImagePath;
   FImage := LoadImage(FLoader.FAbsoluteImagePath);
-  FSpriteSheet.FImageWidth := FLoader.FImageWidth;
-  FSpriteSheet.FImageHeight := FLoader.FImageHeight;
+  FSpriteSheet.FAtlasWidth := FLoader.FImageWidth;
+  FSpriteSheet.FAtlasHeight := FLoader.FImageHeight;
 end;
 
 procedure TCastleSpriteSheetLoader.TLoadToSpriteSheetModel.CalculateFrameCoords(
@@ -1291,22 +1291,22 @@ end;
 
 { TCastleSpriteSheet }
 
-function TCastleSpriteSheet.GetImageWidth: Integer;
+function TCastleSpriteSheet.GetAtlasWidth: Integer;
 begin
-  if FGeneratedImage <> nil then
-    Exit(FGeneratedImage.Width);
+  if FGeneratedAtlas <> nil then
+    Exit(FGeneratedAtlas.Width);
 
   { If no image was generated use loaded image size. }
-  Result := FImageWidth;
+  Result := FAtlasWidth;
 end;
 
-function TCastleSpriteSheet.GetImageHeight: Integer;
+function TCastleSpriteSheet.GetAtlasHeight: Integer;
 begin
-  if FGeneratedImage <> nil then
-    Exit(FGeneratedImage.Height);
+  if FGeneratedAtlas <> nil then
+    Exit(FGeneratedAtlas.Height);
 
   { If no image was generated use loaded image size. }
-  Result := FImageHeight;
+  Result := FAtlasHeight;
 end;
 
 procedure TCastleSpriteSheet.SetModifiedState;
@@ -1351,11 +1351,13 @@ end;
 constructor TCastleSpriteSheet.Create;
 begin
   FAnimationList := TCastleSpriteSheetAnimationList.Create;
+  FAtlasWidth := 1024;
+  FAtlasHeight := 1024;
 end;
 
 destructor TCastleSpriteSheet.Destroy;
 begin
-  FreeAndNil(FGeneratedImage);
+  FreeAndNil(FGeneratedAtlas);
   FreeAndNil(FAnimationList);
   inherited Destroy;
 end;
@@ -1380,32 +1382,32 @@ procedure TCastleSpriteSheet.Save(const URL: String;
 var
   ExporterXML: TCastleSpriteSheetXMLExporter;
   XMLDoc: TXMLDocument;
-  ImageURL: String;
+  AtlasURL: String;
 
   FOldRelativeImagePath: String;
 begin
   if SaveCopy then
   begin
-    FOldRelativeImagePath := FRelativeImagePath;
+    FOldRelativeImagePath := FRelativeAtlasPath;
   end;
 
-  if IsModified or (LoadedImagePath = '') then
-    RegenerateImage;
+  if IsModified or (LoadedAtlasPath = '') then
+    RegenerateAtlas;
   try
-    { Generate image file name/path, use PNG as main image file format.
+    { Generate atlas file name/path, use PNG as main image file format.
       Maybe we should add option to set file name by user. }
 
-    if FRelativeImagePath = '' then
+    if FRelativeAtlasPath = '' then
     begin
-      FRelativeImagePath := DeleteURIExt(ExtractURIName(URL)) + '.png';
+      FRelativeAtlasPath := DeleteURIExt(ExtractURIName(URL)) + '.png';
     end;
-    ImageURL := URIIncludeSlash(ExtractURIPath(URL)) + FRelativeImagePath;
+    AtlasURL := URIIncludeSlash(ExtractURIPath(URL)) + FRelativeAtlasPath;
 
     { Save image file }
-    if FGeneratedImage = nil then
-      CheckCopyFile(URIToFilenameSafe(LoadedImagePath), URIToFilenameSafe(ImageURL))
+    if FGeneratedAtlas = nil then
+      CheckCopyFile(URIToFilenameSafe(LoadedAtlasPath), URIToFilenameSafe(AtlasURL))
     else
-      SaveImage(FGeneratedImage, ImageURL);
+      SaveImage(FGeneratedAtlas, AtlasURL);
 
     { Save xml (Starling) file }
     ExporterXML := nil;
@@ -1423,7 +1425,7 @@ begin
       FURL := URL;
   finally
     if SaveCopy then
-      FRelativeImagePath := FOldRelativeImagePath;
+      FRelativeAtlasPath := FOldRelativeImagePath;
   end;
 end;
 
@@ -1439,12 +1441,12 @@ begin
   end;
 end;
 
-procedure TCastleSpriteSheet.RegenerateImage;
+procedure TCastleSpriteSheet.RegenerateAtlas;
 var
-  BasicImageGen: TCastleSpriteSheetBasicImageGen;
+  BasicImageGen: TCastleSpriteSheetBasicAtlasGen;
 begin
-  // TODO configure image size
-  BasicImageGen := TCastleSpriteSheetBasicImageGen.Create(Self, 1024, 1024);
+  BasicImageGen := TCastleSpriteSheetBasicAtlasGen.Create(Self, FAtlasWidth,
+    FAtlasHeight);
   try
     BasicImageGen.Generate;
   finally
