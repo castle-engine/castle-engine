@@ -1389,7 +1389,7 @@ begin
     FOldRelativeImagePath := FRelativeImagePath;
   end;
 
-  if IsModified then
+  if IsModified or (LoadedImagePath = '') then
     RegenerateImage;
   try
     { Generate image file name/path, use PNG as main image file format.

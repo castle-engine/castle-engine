@@ -3,7 +3,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
   Height = 575
   Top = 235
   Width = 1147
-  Caption = 'SpriteSheetEditorForm'
+  Caption = 'Castle Sprite Sheet Editor'
   ClientHeight = 549
   ClientWidth = 1147
   DesignTimePPI = 120
@@ -64,6 +64,20 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       Constraints.MinWidth = 28
       ShowCaption = False
     end
+    object SpeedButtonSaveSpriteSheetAs: TSpeedButton
+      AnchorSideLeft.Control = SpeedButtonSaveSpriteSheet
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = PanelTop
+      Left = 84
+      Height = 28
+      Top = 0
+      Width = 28
+      Action = ActionSaveSpriteSheet
+      AutoSize = True
+      Constraints.MinHeight = 28
+      Constraints.MinWidth = 28
+      ShowCaption = False
+    end
   end
   object PanelLeft: TPanel
     Left = 0
@@ -97,7 +111,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       Height = 28
       Top = 431
       Width = 29
-      Action = ActionRemoveAnimation
+      Action = ActionDeleteAnimation
       Anchors = [akLeft, akBottom]
       ShowCaption = False
     end
@@ -372,18 +386,18 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       Caption = 'Save as...'
       ImageIndex = 2
     end
-    object ActionRemoveFrame: TAction
+    object ActionDeleteFrame: TAction
       Category = 'Frame'
-      Caption = 'Remove'
-      OnExecute = ActionRemoveFrameExecute
-      OnUpdate = ActionRemoveFrameUpdate
+      Caption = 'Delete'
+      OnExecute = ActionDeleteFrameExecute
+      OnUpdate = ActionDeleteFrameUpdate
       ShortCut = 46
     end
-    object ActionRemoveAnimation: TAction
+    object ActionDeleteAnimation: TAction
       Category = 'Animation'
-      Caption = 'Remove'
-      OnExecute = ActionRemoveAnimationExecute
-      OnUpdate = ActionRemoveAnimationUpdate
+      Caption = 'Delete'
+      OnExecute = ActionDeleteAnimationExecute
+      OnUpdate = ActionDeleteAnimationUpdate
       ShortCut = 46
     end
     object ActionRenameAnimation: TAction
@@ -477,6 +491,42 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
         Action = ActionSaveSpriteSheetAs
       end
     end
+    object MenuItemAnimationMenu: TMenuItem
+      Caption = 'Animation'
+      object MainMenuItemAddAnimation: TMenuItem
+        Action = ActionAddAnimation
+      end
+      object MenuItemRenameAnimation: TMenuItem
+        Action = ActionRenameAnimation
+      end
+      object MainMenuItemDeleteAnimation: TMenuItem
+        Action = ActionDeleteAnimation
+      end
+    end
+    object MenuItemFrameMenu: TMenuItem
+      Caption = 'Frame'
+      object MainMenuItemMoveFrameUp: TMenuItem
+        Action = ActionMoveFrameUp
+      end
+      object MainMenuItemMoveFrameDown: TMenuItem
+        Action = ActionMoveFrameDown
+      end
+      object MainMenuItemMoveFrameTop: TMenuItem
+        Action = ActionMoveFrameTop
+      end
+      object MainMenuItemMoveFrameEnd: TMenuItem
+        Action = ActionMoveFrameEnd
+      end
+      object N1: TMenuItem
+        Caption = '-'
+      end
+      object MainMenuItemAddFrame: TMenuItem
+        Action = ActionAddFrame
+      end
+      object MainMenuItemDeleteFrame: TMenuItem
+        Action = ActionDeleteFrame
+      end
+    end
   end
   object OpenDialog: TCastleOpenDialog
     Left = 344
@@ -510,8 +560,8 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     object MenuItemAddFrame: TMenuItem
       Action = ActionAddFrame
     end
-    object MenuItemRemoveFrame: TMenuItem
-      Action = ActionRemoveFrame
+    object MenuItemDeleteFrame: TMenuItem
+      Action = ActionDeleteFrame
     end
   end
   object PopupMenuAnimations: TPopupMenu
@@ -535,8 +585,8 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     object MenuItemRename: TMenuItem
       Action = ActionRenameAnimation
     end
-    object MenuItemRemoveAnimation: TMenuItem
-      Action = ActionRemoveAnimation
+    object MenuItemDeleteAnimation: TMenuItem
+      Action = ActionDeleteAnimation
     end
   end
   object CastleOpenImageDialog: TCastleOpenImageDialog

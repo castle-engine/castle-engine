@@ -24,8 +24,8 @@ type
     ActionAddAnimation: TAction;
     ActionAddFrame: TAction;
     ActionRenameAnimation: TAction;
-    ActionRemoveAnimation: TAction;
-    ActionRemoveFrame: TAction;
+    ActionDeleteAnimation: TAction;
+    ActionDeleteFrame: TAction;
     ActionSaveSpriteSheetAs: TAction;
     ActionSaveSpriteSheet: TAction;
     ActionNewSpriteSheet: TAction;
@@ -36,6 +36,18 @@ type
     ImageListFrames: TImageList;
     LabelNoFrameToShow: TLabel;
     ListViewAnimations: TListView;
+    MainMenuItemAddAnimation: TMenuItem;
+    MainMenuItemDeleteAnimation: TMenuItem;
+    MainMenuItemMoveFrameUp: TMenuItem;
+    MainMenuItemMoveFrameDown: TMenuItem;
+    MainMenuItemMoveFrameTop: TMenuItem;
+    MainMenuItemMoveFrameEnd: TMenuItem;
+    MainMenuItemAddFrame: TMenuItem;
+    MainMenuItemDeleteFrame: TMenuItem;
+    N1: TMenuItem;
+    MenuItemRenameAnimation: TMenuItem;
+    MenuItemFrameMenu: TMenuItem;
+    MenuItemAnimationMenu: TMenuItem;
     MenuItemAnimationEnd: TMenuItem;
     MenuItemAnimationTop: TMenuItem;
     MenuItemAnimationDown: TMenuItem;
@@ -47,8 +59,8 @@ type
     MenuItemAddAnimation: TMenuItem;
     MenuItemAddFrame: TMenuItem;
     MenuItemRename: TMenuItem;
-    MenuItemRemoveAnimation: TMenuItem;
-    MenuItemRemoveFrame: TMenuItem;
+    MenuItemDeleteAnimation: TMenuItem;
+    MenuItemDeleteFrame: TMenuItem;
     OpenDialog: TCastleOpenDialog;
     PanelPreviewHead: TPanel;
     PopupMenuAnimations: TPopupMenu;
@@ -78,6 +90,7 @@ type
     SpeedButtonAddAnimation: TSpeedButton;
     SpeedButtonSaveSpriteSheet: TSpeedButton;
     SpeedButtonRemoveAnimation: TSpeedButton;
+    SpeedButtonSaveSpriteSheetAs: TSpeedButton;
     SplitterRight: TSplitter;
     SplitterLeft: TSplitter;
     procedure ActionAddAnimationExecute(Sender: TObject);
@@ -102,10 +115,10 @@ type
     procedure ActionMoveFrameUpUpdate(Sender: TObject);
     procedure ActionNewSpriteSheetExecute(Sender: TObject);
     procedure ActionOpenSpriteSheetExecute(Sender: TObject);
-    procedure ActionRemoveAnimationExecute(Sender: TObject);
-    procedure ActionRemoveAnimationUpdate(Sender: TObject);
-    procedure ActionRemoveFrameExecute(Sender: TObject);
-    procedure ActionRemoveFrameUpdate(Sender: TObject);
+    procedure ActionDeleteAnimationExecute(Sender: TObject);
+    procedure ActionDeleteAnimationUpdate(Sender: TObject);
+    procedure ActionDeleteFrameExecute(Sender: TObject);
+    procedure ActionDeleteFrameUpdate(Sender: TObject);
     procedure ActionRenameAnimationExecute(Sender: TObject);
     procedure ActionRenameAnimationUpdate(Sender: TObject);
     procedure FloatSpinEditFPSChange(Sender: TObject);
@@ -135,7 +148,9 @@ type
       FWindowTitle: String;
       FrameIconSize: TVector2Integer; // current frame size in list view
 
-    procedure CloseSpriteSheet;
+    // Returns true if sprite sheet is closed
+    function CloseSpriteSheet: Boolean;
+    procedure AssignEventsToSpriteSheet;
 
     procedure ClearAnimations;
     procedure LoadAnimations(const SpriteSheet: TCastleSpriteSheet);
@@ -186,6 +201,7 @@ type
 
   public
     procedure OpenSpriteSheet(const URL: String);
+    procedure NewSpriteSheet;
   end;
 
 var
@@ -204,7 +220,7 @@ uses GraphType, IntfGraphics,
 
 procedure TSpriteSheetEditorForm.ActionNewSpriteSheetExecute(Sender: TObject);
 begin
-  ShowMessage('test');
+  NewSpriteSheet;
 end;
 
 procedure TSpriteSheetEditorForm.ActionAddFrameUpdate(Sender: TObject);
@@ -412,11 +428,13 @@ end;
 
 procedure TSpriteSheetEditorForm.ActionOpenSpriteSheetExecute(Sender: TObject);
 begin
+  if not CloseSpriteSheet then
+    Exit;
   if OpenDialog.Execute then
     OpenSpriteSheet(OpenDialog.URL);
 end;
 
-procedure TSpriteSheetEditorForm.ActionRemoveAnimationExecute(Sender: TObject);
+procedure TSpriteSheetEditorForm.ActionDeleteAnimationExecute(Sender: TObject);
 var
   Animation: TCastleSpriteSheetAnimation;
 begin
@@ -428,12 +446,12 @@ begin
   UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
 end;
 
-procedure TSpriteSheetEditorForm.ActionRemoveAnimationUpdate(Sender: TObject);
+procedure TSpriteSheetEditorForm.ActionDeleteAnimationUpdate(Sender: TObject);
 begin
-  ActionRemoveAnimation.Enabled := (GetCurrentAnimation <> nil);
+  ActionDeleteAnimation.Enabled := (GetCurrentAnimation <> nil);
 end;
 
-procedure TSpriteSheetEditorForm.ActionRemoveFrameExecute(Sender: TObject);
+procedure TSpriteSheetEditorForm.ActionDeleteFrameExecute(Sender: TObject);
 var
   Animation: TCastleSpriteSheetAnimation;
   Frame: TCastleSpriteSheetFrame;
@@ -447,9 +465,9 @@ begin
   UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
 end;
 
-procedure TSpriteSheetEditorForm.ActionRemoveFrameUpdate(Sender: TObject);
+procedure TSpriteSheetEditorForm.ActionDeleteFrameUpdate(Sender: TObject);
 begin
-  ActionRemoveFrame.Enabled := (GetSelectedFrame <> nil);
+  ActionDeleteFrame.Enabled := (GetSelectedFrame <> nil);
 end;
 
 procedure TSpriteSheetEditorForm.ActionRenameAnimationExecute(Sender: TObject);
@@ -478,6 +496,7 @@ procedure TSpriteSheetEditorForm.FormCreate(Sender: TObject);
 begin
   FSpriteSheet := nil;
   FWindowTitle := SpriteSheetEditorForm.Caption;
+  NewSpriteSheet;
 end;
 
 procedure TSpriteSheetEditorForm.FormDestroy(Sender: TObject);
@@ -532,12 +551,24 @@ begin
   UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
 end;
 
-procedure TSpriteSheetEditorForm.CloseSpriteSheet;
+function TSpriteSheetEditorForm.CloseSpriteSheet: Boolean;
 begin
   // TODO: ask for save
   ClearFrames;
   ClearAnimations;
   FreeAndNil(FSpriteSheet);
+  Result := True;
+end;
+
+procedure TSpriteSheetEditorForm.AssignEventsToSpriteSheet;
+begin
+  FSpriteSheet.OnModifiedStateChanged := @ModifiedStateChanged;
+  FSpriteSheet.OnAnimationAdded := @AnimationAdded;
+  FSpriteSheet.OnAnimationMoved := @AnimationMoved;
+  FSpriteSheet.BeforeAnimationRemoved := @BeforeAnimationRemoved;
+  FSpriteSheet.OnFrameAdded := @FrameAdded;
+  FSpriteSheet.OnFrameMoved := @FrameMoved;
+  FSpriteSheet.BeforeFrameRemoved := @BeforeAnimationFrameRemoved;
 end;
 
 procedure TSpriteSheetEditorForm.LoadAnimations(const SpriteSheet: TCastleSpriteSheet);
@@ -775,13 +806,20 @@ procedure TSpriteSheetEditorForm.RegenerateAnimationPreviewFile;
 var
   TempURL: String;
 begin
-  TempURL := URIIncludeSlash(ProjectForm.ProjectPathUrl) + 'temp/preview.castle-sprite-sheet';
-  ForceDirectories(ExtractFilePath(URIToFilenameSafe(TempURL)));
-  FSpriteSheet.Save(TempURL, true);
+  try
+    TempURL := URIIncludeSlash(ProjectForm.ProjectPathUrl) + 'temp/preview.castle-sprite-sheet';
+    ForceDirectories(ExtractFilePath(URIToFilenameSafe(TempURL)));
+    FSpriteSheet.Save(TempURL, true);
 
-  CreatePreviewUIIfNeeded;
+    CreatePreviewUIIfNeeded;
 
-  FPreviewScene.Load(TempURL);
+    FPreviewScene.Load(TempURL);
+  except
+    on E: Exception do
+    begin
+      ErrorBox(E.Message);
+    end;
+  end;
 end;
 
 procedure TSpriteSheetEditorForm.RegenerateFramePreviewFile(const Frame: TCastleSpriteSheetFrame);
@@ -800,6 +838,7 @@ end;
 procedure TSpriteSheetEditorForm.UpdateWindowCaption;
 var
   ModifiedMark: String;
+  FileName: String;
 begin
   if FSpriteSheet = nil then
   begin
@@ -812,8 +851,13 @@ begin
   else
     ModifiedMark := '';
 
+  if FSpriteSheet.URL = '' then
+    FileName := 'unknown'
+  else
+    FileName := FSpriteSheet.URL;
+
   SpriteSheetEditorForm.Caption := FWindowTitle + ' - ' + ModifiedMark +
-    FSpriteSheet.URL;
+    FileName;
 end;
 
 procedure TSpriteSheetEditorForm.ModifiedStateChanged(Sender: TObject);
@@ -910,18 +954,31 @@ end;
 procedure TSpriteSheetEditorForm.OpenSpriteSheet(const URL: String);
 begin
   try
-    CloseSpriteSheet;
+    if not CloseSpriteSheet then
+      Exit;
     FSpriteSheet :=  TCastleSpriteSheet.Create;
     FSpriteSheet.OnModifiedStateChanged := @ModifiedStateChanged;
     FSpriteSheet.Load(URL);
     UpdateWindowCaption;
     LoadAnimations(FSpriteSheet);
-    FSpriteSheet.OnAnimationAdded := @AnimationAdded;
-    FSpriteSheet.OnAnimationMoved := @AnimationMoved;
-    FSpriteSheet.BeforeAnimationRemoved := @BeforeAnimationRemoved;
-    FSpriteSheet.OnFrameAdded := @FrameAdded;
-    FSpriteSheet.OnFrameMoved := @FrameMoved;
-    FSpriteSheet.BeforeFrameRemoved := @BeforeAnimationFrameRemoved;
+    AssignEventsToSpriteSheet;
+  except
+    on E:Exception do
+    begin
+      ErrorBox(E.Message);
+    end;
+  end;
+end;
+
+procedure TSpriteSheetEditorForm.NewSpriteSheet;
+begin
+  try
+    if not CloseSpriteSheet then
+      Exit;
+    FSpriteSheet :=  TCastleSpriteSheet.Create;
+    UpdateWindowCaption;
+    LoadAnimations(FSpriteSheet);
+    AssignEventsToSpriteSheet;
   except
     on E:Exception do
     begin
