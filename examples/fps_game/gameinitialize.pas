@@ -564,7 +564,7 @@ begin
   { Load user preferences file.
     You can use it for your own user persistent data
     (preferences or savegames), see
-    https://castle-engine.io/tutorial_user_prefs.php . }
+    https://castle-engine.io/manual_user_prefs.php . }
   //UserConfig.Load;
 
   Viewport := TCastleViewport.Create(Application);
@@ -707,7 +707,7 @@ initialization
   ApplicationProperties.ApplicationName := 'fps_game';
 
   { Enable log.
-    See https://castle-engine.io/tutorial_log.php
+    See https://castle-engine.io/manual_log.php
     to know where it's going. }
   InitializeLog;
 

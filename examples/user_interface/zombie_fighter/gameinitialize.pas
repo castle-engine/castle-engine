@@ -23,19 +23,19 @@ implementation
 uses SysUtils, Classes, CastleControls, CastleUtils, CastleFilesUtils,
   CastleColors, CastleUIControls, CastleUIState, CastleWindow,
   CastleApplicationProperties,
-  GameStateMainMenu, GameStatePlay, GameStateAskDialog;
+  GameStateMainMenu, GameStateLoading, GameStatePlay, GameStateAskDialog;
 
 var
   Window: TCastleWindowBase;
 
 procedure ApplicationInitialize;
 begin
-  Window.Container.UIReferenceWidth := 1024;
-  Window.Container.UIReferenceHeight := 768;
-  Window.Container.UIScaling := usEncloseReferenceSize;
+  { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
+  Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
   { create all the states }
   StateMainMenu := TStateMainMenu.Create(Application);
+  StateLoading := TStateLoading.Create(Application);
   StatePlay := TStatePlay.Create(Application);
   StateAskDialog := TStateAskDialog.Create(Application);
 
