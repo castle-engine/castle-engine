@@ -20,6 +20,11 @@
   { Behaviors can be attached to TCastleTransform to perform specific logic,
     for example implement creature movement.
     This implements a simple component-system for TCastleTransform.
+    Using behaviors allows to attach independent functionality like
+    inventory, being alive (because not everything alive needs inventory,
+    not everything with inventory needs to be alive), creature logic and more.
+    CGE provides implementation for some behaviours, and you can create your own too.
+
     You implemement a descendant of TCastleBehavior, typically overriding
     its @link(Update) method, and add it to TCastleTransform by @link(TCastleTransform.AddBehavior).
     Inside TCastleBehavior, access the TCastleTransform instances by @link(Parent).
