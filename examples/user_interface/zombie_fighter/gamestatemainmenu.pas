@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2018 Michalis Kamburelis.
+  Copyright 2016-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,8 +23,7 @@ uses Classes, CastleControls, CastleUIState, CastleOnScreenMenu;
 type
   TStateMainMenu = class(TUIState)
   strict private
-    Background: TCastleRectangleControl;
-    Menu: TCastleOnScreenMenu;
+    ButtonNewGame, ButtonQuit: TCastleButton;
     procedure NewGameClick(Sender: TObject);
     procedure QuitClick(Sender: TObject);
   public
@@ -36,31 +35,31 @@ var
 
 implementation
 
-uses CastleColors, CastleWindow, CastleUIControls, CastleFilesUtils,
-  CastleUtils,
+uses CastleColors, CastleWindow, CastleUIControls, CastleFilesUtils, CastleApplicationProperties,
+  CastleUtils, CastleComponentSerialize,
   GameStatePlay;
 
 { TStateMainMenu ------------------------------------------------------------- }
 
 procedure TStateMainMenu.Start;
+var
+  UiOwner: TComponent;
 begin
   inherited;
 
-  Background := TCastleRectangleControl.Create(FreeAtStop);
-  Background.FullSize := true;
-  Background.Color := LightBlue;
-  InsertFront(Background);
+  { Load designed user interface }
+  InsertUserInterface('castle-data:/state_main_menu.castle-user-interface', FreeAtStop, UiOwner);
 
-  Menu := TCastleOnScreenMenu.Create(FreeAtStop);
-  Menu.FontSize := 30;
-  Menu.Add('New game', @NewGameClick);
-  Menu.Add('Quit', @QuitClick);
-  Menu.DrawFocusedBorder := false;
-  Menu.DrawBackgroundRectangle := false;
-  Menu.CaptureAllEvents := true;
-  Menu.Anchor(hpMiddle);
-  Menu.Anchor(vpMiddle);
-  InsertFront(Menu);
+  { Find components, by name, that we need to access from code }
+  ButtonNewGame := UiOwner.FindRequiredComponent('ButtonNewGame') as TCastleButton;
+  ButtonQuit := UiOwner.FindRequiredComponent('ButtonQuit') as TCastleButton;
+
+  { attach events }
+  ButtonNewGame.OnClick := @NewGameClick;
+  ButtonQuit.OnClick := @QuitClick;
+
+  // on some platforms, showing "Quit" button is not standard
+  ButtonQuit.Exists := ApplicationProperties.ShowUserInterfaceToQuit;
 end;
 
 procedure TStateMainMenu.NewGameClick(Sender: TObject);
