@@ -330,7 +330,7 @@ type
     { The speed (in units per second) of falling down because of gravity.
       Note that the gravity direction is controlled by your level 3D model,
       see "Which way is up" section in the engine tutorial
-      [https://castle-engine.io/tutorial_up.php].
+      https://castle-engine.io/manual_up.php .
 
       Currently, falling down of creatures and items just uses this constant speed.
       In the future, we plan to add properties to control mass and air friction

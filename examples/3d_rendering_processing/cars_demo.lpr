@@ -15,8 +15,8 @@
 
 { Demo of TCastleScene, TCastleViewport and related functionality.
   Follow the relevant tutorial pages
-  https://castle-engine.io/tutorial_load_3d.php
-  https://castle-engine.io/tutorial_scene.php
+  https://castle-engine.io/manual_load_3d.php
+  https://castle-engine.io/manual_scene.php
 }
 program cars_demo;
 

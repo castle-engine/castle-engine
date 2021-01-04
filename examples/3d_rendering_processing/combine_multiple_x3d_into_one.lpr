@@ -20,7 +20,7 @@
 
   If you want to render the complex scene fast, it may be beneficial to combine
   it into a single TCastleScene, instead of using multiple TCastleScenes.
-  See https://castle-engine.io/tutorial_transformation_hierarchy.php for detailed
+  See https://castle-engine.io/manual_transformation_hierarchy.php for detailed
   discussion.
 }
 program combine_multiple_x3d_into_one;
