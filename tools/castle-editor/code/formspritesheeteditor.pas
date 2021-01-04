@@ -907,6 +907,7 @@ function TSpriteSheetEditorForm.CheckAtlasMinSize: Boolean;
 var
   MinAtlasWidth, MinAtlasHeight: Integer;
 begin
+  Result := true;
   FSpriteSheet.GetMinAtlasSize(MinAtlasWidth, MinAtlasHeight);
 
   if (MinAtlasWidth > FSpriteSheet.MaxAtlasWidth) or
@@ -916,9 +917,9 @@ begin
       'Max atlas size to small to fit all frames %d needed.',
       [Max(MinAtlasWidth, MinAtlasHeight)])
     );
-    Exit(false);
-  end;
-  SetAtlasError('');
+    Result := false;
+  end else
+    SetAtlasError('');
 
   { check power of two }
   if not IsPowerOf2(Max(FSpriteSheet.MaxAtlasHeight,
@@ -926,8 +927,6 @@ begin
     SetAtlasWarning('We adwise using power of 2 size.')
   else
     SetAtlasWarning('');
-
-  Result := true;
 end;
 
 procedure TSpriteSheetEditorForm.ModifiedStateChanged(Sender: TObject);
