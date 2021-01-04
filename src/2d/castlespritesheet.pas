@@ -22,10 +22,13 @@ type
   TCastleSpriteSheetFrameMoveEvent = procedure (
       const Frame: TCastleSpriteSheetFrame;
       const OldIndex, NewIndex: Integer) of object;
-  TCastleSpriteSheetAnimationEvent = procedure (Animation: TCastleSpriteSheetAnimation) of object;
+  TCastleSpriteSheetAnimationEvent = procedure (
+      Animation: TCastleSpriteSheetAnimation) of object;
   TCastleSpriteSheetAnimationMoveEvent = procedure (
       const Animation: TCastleSpriteSheetAnimation;
       const OldIndex, NewIndex: Integer) of object;
+  TCastleSpriteSheetSizeChanged = procedure (
+      const Width, Height: Integer) of object;
 
   TCastleSpriteSheet = class
     strict private
@@ -44,15 +47,17 @@ type
       FBeforeAnimationFrameRemoved: TCastleSpriteSheetFrameEvent;
       FOnFrameAdded: TCastleSpriteSheetFrameEvent;
       FOnFrameMoved: TCastleSpriteSheetFrameMoveEvent;
+      FOnMaxAtlasSizeChanged: TCastleSpriteSheetSizeChanged;
 
     private
+      { Size of atlas after loading }
       FAtlasWidth: Integer;
       FAtlasHeight: Integer;
+      { Max atlas size }
+      FMaxAtlasWidth: Integer;
+      FMaxAtlasHeight: Integer;
+
       FGeneratedAtlas: TCastleImage;
-
-      function GetAtlasWidth: Integer;
-      function GetAtlasHeight: Integer;
-
     protected
       { Sets sprite sheet state as modified. }
       procedure SetModifiedState;
@@ -77,6 +82,11 @@ type
 
       { Arranges and creates atlas image }
       procedure RegenerateAtlas;
+      function AtlasCanBeRegenrated: Boolean;
+      procedure SetMaxAtlasSize(const NewMaxAtlasWidth,
+          NewMaxAtlasHeight: Integer);
+
+      procedure GetMinAtlasSize(out MinWidth, MinHeight: Integer);
 
       function AnimationByName(const Name:String): TCastleSpriteSheetAnimation;
       function AnimationByIndex(const Index: Integer): TCastleSpriteSheetAnimation;
@@ -128,8 +138,13 @@ type
       property OnFrameMoved: TCastleSpriteSheetFrameMoveEvent read FOnFrameMoved
         write FOnFrameMoved;
 
-      property AtlasWidth: Integer read GetAtlasWidth;
-      property AtlasHeight: Integer read GetAtlasHeight;
+      property OnMaxAtlasSizeChanged: TCastleSpriteSheetSizeChanged read
+          FOnMaxAtlasSizeChanged write FOnMaxAtlasSizeChanged;
+
+      property AtlasWidth: Integer read FAtlasWidth;
+      property AtlasHeight: Integer read FAtlasHeight;
+      property MaxAtlasWidth: Integer read FMaxAtlasWidth;
+      property MaxAtlasHeight: Integer read FMaxAtlasHeight;
   end;
 
   TCastleSpriteSheetAnimation = class
@@ -148,7 +163,6 @@ type
     public
       constructor Create(SpriteSheet: TCastleSpriteSheet; AName: String);
       destructor Destroy; override;
-
 
       function FrameCount: Integer;
       function FrameIndex(const Frame: TCastleSpriteSheetFrame): Integer;
@@ -200,6 +214,8 @@ type
       constructor Create(const Animation: TCastleSpriteSheetAnimation);
       destructor Destroy; override;
 
+      function HasFrameImage: Boolean;
+
       { Copies image and sets frame size. }
       procedure SetFrameImage(const SourceImage: TCastleImage);
 
@@ -238,17 +254,23 @@ type
       FSpriteSheetMaxWidth: Integer;
       FSpriteSheetMaxHeight: Integer;
     public
-      constructor Create(const ASpriteSheet: TCastleSpriteSheet; const MaxWidth, MaxHeight: Integer);
-
+      constructor Create(const ASpriteSheet: TCastleSpriteSheet;
+          const MaxWidth, MaxHeight: Integer);
+      function WillFramesFitInSize(
+          AtlasWidth, AtlasHeight: Integer): Boolean; virtual; abstract;
       procedure Generate; virtual; abstract;
   end;
 
   { Most simple implementation of frame arranger - for debug purposes }
   TCastleSpriteSheetBasicAtlasGen = class (TCastleSpriteSheetAbstractAtlasGen)
     private
-      procedure LayoutFrames;
-      procedure GenerateAtlas;
+      function LayoutFrames(const MaxAtlasWidth, MaxAtlasHeight: integer;
+          out MinAtlasWidth, MinAtlasHeight: Integer): Boolean;
+      procedure GenerateAtlas(const AtlasWidth, AtlasHeight: Integer);
     public
+      function WillFramesFitInSize(
+          AtlasWidth, AtlasHeight: Integer): Boolean; override;
+      procedure GetMinAtlasSize(out MinWidth, MinHeight: Integer);
       procedure Generate; override;
   end;
 
@@ -263,6 +285,7 @@ type
   { Castle Sprite Sheet XML file is not correct }
   EInvalidCastleSpriteSheetXml = class(Exception);
   ECastleSpriteSheetAtlasToSmall = class(Exception);
+  ECantRegenerateAtlas = class(Exception);
 
 implementation
 
@@ -450,7 +473,8 @@ end;
 
 { TCastleSpriteSheetBasicAtlasGen }
 
-procedure TCastleSpriteSheetBasicAtlasGen.LayoutFrames;
+function TCastleSpriteSheetBasicAtlasGen.LayoutFrames(const MaxAtlasWidth,
+  MaxAtlasHeight: integer; out MinAtlasWidth, MinAtlasHeight: Integer): Boolean;
 var
   PreviousLineMaxY: Integer;
   I, J: Integer;
@@ -458,11 +482,44 @@ var
   Animation: TCastleSpriteSheetAnimation;
   Frame: TCastleSpriteSheetFrame;
   CurrentMaxLineHeight: Integer;
+  BigestFrameWidth, BigestFrameHeight: Integer;
+  UsedMaxAtlasWidth: Integer;
+
+  procedure CheckBigestFrameSize;
+  var
+    I, J: Integer;
+  begin
+    BigestFrameWidth := 0;
+    BigestFrameHeight := 0;
+
+    for I := 0 to FSpriteSheet.AnimationCount - 1 do
+    begin
+      Animation := FSpriteSheet.AnimationByIndex(I);
+
+      for J := 0 to Animation.FrameCount - 1 do
+      begin
+        BigestFrameWidth := Max(BigestFrameWidth, Animation.Frame[J].Width);
+        BigestFrameHeight := Max(BigestFrameHeight, Animation.Frame[J].Height);
+      end;
+    end;
+  end;
+
 begin
   X := 0;
   Y := 0;
   PreviousLineMaxY := 0;
   CurrentMaxLineHeight := 0;
+
+  { Min size that we need for atlas }
+  MinAtlasHeight := 0;
+  MinAtlasWidth := 0;
+
+  { Check if some frame is bigger than max atlas size }
+  CheckBigestFrameSize;
+
+  { If BigestFrameWidth > MaxAtlasWidth we use BigestFrameWidth to calculate
+    height }
+  UsedMaxAtlasWidth := Max(MaxAtlasWidth, BigestFrameWidth);
 
   for I := 0 to FSpriteSheet.AnimationCount - 1 do
   begin
@@ -472,14 +529,17 @@ begin
       Frame := Animation.Frame[J];
 
       // add to this line ?
-      if X + Frame.FrameWidth < FSpriteSheetMaxWidth then
+      if X + Frame.FrameWidth <= UsedMaxAtlasWidth then
       begin
         // yes
 
-        // check free height
-        if Frame.FrameHeight + PreviousLineMaxY > FSpriteSheetMaxHeight then
-          raise ECastleSpriteSheetAtlasToSmall.Create(
-            'Atlas size to small for sprite sheet');
+        { check free height, only save if we don't have free space }
+        if Frame.FrameHeight + PreviousLineMaxY > MaxAtlasHeight then
+        begin
+          { return that we need more space }
+          MinAtlasHeight := Max(Frame.FrameHeight + PreviousLineMaxY,
+            MinAtlasHeight);
+        end;
 
         Frame.X := X;
         Frame.Y := Y;
@@ -489,16 +549,20 @@ begin
         continue;
       end;
 
-      // add to new line
+      { save max line width }
+      MinAtlasWidth := Max(MinAtlasWidth, X);
+
+      { Start new line (add to new line) }
       PreviousLineMaxY := PreviousLineMaxY + CurrentMaxLineHeight;
       Y := PreviousLineMaxY;
       X := 0;
 
       // check size
-      if (Frame.FrameWidth > FSpriteSheetMaxWidth) or
-        (Frame.FrameHeight + PreviousLineMaxY > FSpriteSheetMaxHeight) then
-        raise ECastleSpriteSheetAtlasToSmall.Create(
-          'Atlas size to small for sprite sheet');
+      if (Frame.FrameHeight + PreviousLineMaxY > MaxAtlasHeight) then
+      begin
+        MinAtlasHeight := Max(Frame.FrameHeight + PreviousLineMaxY,
+          MinAtlasHeight);
+      end;
 
       // add frame
       Frame.X := X;
@@ -508,16 +572,24 @@ begin
       CurrentMaxLineHeight := Max(CurrentMaxLineHeight, Frame.FrameHeight);
     end;
   end;
+
+  Result := (MinAtlasWidth <= MaxAtlasWidth) and
+    (MinAtlasHeight <= MaxAtlasHeight);
+
+  { Image must have size bigger than zero }
+  MinAtlasWidth := Max(MinAtlasWidth, 1);
+  MinAtlasHeight := Max(MinAtlasHeight, 1);
 end;
 
-procedure TCastleSpriteSheetBasicAtlasGen.GenerateAtlas;
+procedure TCastleSpriteSheetBasicAtlasGen.GenerateAtlas(const AtlasWidth,
+  AtlasHeight: Integer);
 var
   Animation: TCastleSpriteSheetAnimation;
   Frame: TCastleSpriteSheetFrame;
   I, J: Integer;
 begin
   FreeAndNil(FSpriteSheet.FGeneratedAtlas);
-  FSpriteSheet.FGeneratedAtlas := TRGBAlphaImage.Create(FSpriteSheetMaxWidth, FSpriteSheetMaxHeight);
+  FSpriteSheet.FGeneratedAtlas := TRGBAlphaImage.Create(AtlasWidth, AtlasHeight);
   FSpriteSheet.FGeneratedAtlas.Clear(Vector4Byte(0, 0, 0, 0));
 
   for I := 0 to FSpriteSheet.AnimationCount - 1 do
@@ -531,12 +603,43 @@ begin
         Frame.FrameWidth, Frame.FrameHeight);
     end;
   end;
+  FSpriteSheet.FAtlasWidth := AtlasWidth;
+  FSpriteSheet.FAtlasHeight := AtlasWidth;
+end;
+
+function TCastleSpriteSheetBasicAtlasGen.WillFramesFitInSize(AtlasWidth,
+  AtlasHeight: Integer): Boolean;
+var
+  MinWidth, MinHeight: Integer;
+begin
+  Result := LayoutFrames(AtlasWidth, AtlasHeight, MinWidth, MinHeight);
+end;
+
+procedure TCastleSpriteSheetBasicAtlasGen.GetMinAtlasSize(out MinWidth,
+  MinHeight: Integer);
+begin
+  LayoutFrames(FSpriteSheetMaxWidth, FSpriteSheetMaxHeight, MinWidth, MinHeight);
 end;
 
 procedure TCastleSpriteSheetBasicAtlasGen.Generate;
+var
+  MinWidth, MinHeight: Integer;
 begin
-  LayoutFrames;
-  GenerateAtlas;
+  { Try use the same size }
+  if LayoutFrames(FSpriteSheet.AtlasWidth, FSpriteSheet.AtlasHeight, MinWidth,
+    MinHeight) then
+  begin
+    GenerateAtlas(FSpriteSheet.AtlasWidth, FSpriteSheet.AtlasHeight);
+    Exit;
+  end;
+
+  { Try use max size }
+  if not LayoutFrames(FSpriteSheetMaxWidth, FSpriteSheetMaxHeight, MinWidth,
+    MinHeight) then
+    raise ECastleSpriteSheetAtlasToSmall.Create(Format(
+    'Min sprite sheet size atlas to small (%d x %d), we need %d x %d ',
+    [FSpriteSheetMaxWidth, FSpriteSheetMaxHeight, MinWidth, MinHeight]));
+  GenerateAtlas(FSpriteSheetMaxWidth, FSpriteSheetMaxHeight);
 end;
 
 { TCastleSpriteSheetXMLExporter }
@@ -695,6 +798,11 @@ destructor TCastleSpriteSheetFrame.Destroy;
 begin
   FreeAndNil(FFrameImage);
   inherited Destroy;
+end;
+
+function TCastleSpriteSheetFrame.HasFrameImage: Boolean;
+begin
+  Result := FFrameImage <> nil;
 end;
 
 procedure TCastleSpriteSheetFrame.SetFrameImage(const SourceImage: TCastleImage);
@@ -1291,24 +1399,6 @@ end;
 
 { TCastleSpriteSheet }
 
-function TCastleSpriteSheet.GetAtlasWidth: Integer;
-begin
-  if FGeneratedAtlas <> nil then
-    Exit(FGeneratedAtlas.Width);
-
-  { If no image was generated use loaded image size. }
-  Result := FAtlasWidth;
-end;
-
-function TCastleSpriteSheet.GetAtlasHeight: Integer;
-begin
-  if FGeneratedAtlas <> nil then
-    Exit(FGeneratedAtlas.Height);
-
-  { If no image was generated use loaded image size. }
-  Result := FAtlasHeight;
-end;
-
 procedure TCastleSpriteSheet.SetModifiedState;
 begin
   if FModifiedState then
@@ -1353,6 +1443,8 @@ begin
   FAnimationList := TCastleSpriteSheetAnimationList.Create;
   FAtlasWidth := 1024;
   FAtlasHeight := 1024;
+  FMaxAtlasWidth := 1024;
+  FMaxAtlasHeight := 1024;
 end;
 
 destructor TCastleSpriteSheet.Destroy;
@@ -1445,10 +1537,59 @@ procedure TCastleSpriteSheet.RegenerateAtlas;
 var
   BasicImageGen: TCastleSpriteSheetBasicAtlasGen;
 begin
-  BasicImageGen := TCastleSpriteSheetBasicAtlasGen.Create(Self, FAtlasWidth,
-    FAtlasHeight);
+  if not AtlasCanBeRegenrated then
+    raise ECantRegenerateAtlas.Create('Frames images not loaded can''t regenerate atlas.');
+
+  BasicImageGen := TCastleSpriteSheetBasicAtlasGen.Create(Self, FMaxAtlasWidth,
+    FMaxAtlasHeight);
   try
     BasicImageGen.Generate;
+  finally
+    FreeAndNil(BasicImageGen);
+  end;
+end;
+
+function TCastleSpriteSheet.AtlasCanBeRegenrated: Boolean;
+var
+  I, J: Integer;
+  Animation: TCastleSpriteSheetAnimation;
+  Frame: TCastleSpriteSheetFrame;
+begin
+  for I := 0 to AnimationCount - 1 do
+  begin
+    Animation := AnimationByIndex(I);
+    for J := 0 to Animation.FrameCount - 1 do
+    begin
+      Frame := Animation.Frame[J];
+      if not Frame.HasFrameImage then
+        Exit(false);
+    end;
+  end;
+  Result := true;
+end;
+
+procedure TCastleSpriteSheet.SetMaxAtlasSize(const NewMaxAtlasWidth,
+  NewMaxAtlasHeight: Integer);
+begin
+  if (FMaxAtlasWidth = NewMaxAtlasWidth) and
+    (FMaxAtlasHeight = NewMaxAtlasHeight) then
+    Exit;
+
+  FMaxAtlasWidth := NewMaxAtlasWidth;
+  FMaxAtlasHeight := NewMaxAtlasHeight;
+  if Assigned(FOnMaxAtlasSizeChanged) then
+    FOnMaxAtlasSizeChanged(FMaxAtlasWidth, FMaxAtlasHeight);
+  SetModifiedState;
+end;
+
+procedure TCastleSpriteSheet.GetMinAtlasSize(out MinWidth, MinHeight: Integer);
+var
+  BasicImageGen: TCastleSpriteSheetBasicAtlasGen;
+begin
+  BasicImageGen := TCastleSpriteSheetBasicAtlasGen.Create(Self, FMaxAtlasWidth,
+    FMaxAtlasHeight);
+  try
+    BasicImageGen.GetMinAtlasSize(MinWidth, MinHeight);
   finally
     FreeAndNil(BasicImageGen);
   end;

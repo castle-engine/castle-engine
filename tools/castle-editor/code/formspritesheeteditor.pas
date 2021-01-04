@@ -34,6 +34,9 @@ type
     CastleControlPreview: TCastleControlBase;
     CastleOpenImageDialog: TCastleOpenImageDialog;
     ImageListFrames: TImageList;
+    LabelAtlasWarning: TLabel;
+    LabelAtlasSizeError: TLabel;
+    LabelMaximumAtlasSize: TLabel;
     LabelNoFrameToShow: TLabel;
     ListViewAnimations: TListView;
     MainMenuItemAddAnimation: TMenuItem;
@@ -91,6 +94,7 @@ type
     SpeedButtonSaveSpriteSheet: TSpeedButton;
     SpeedButtonRemoveAnimation: TSpeedButton;
     SpeedButtonSaveSpriteSheetAs: TSpeedButton;
+    SpinEditMaxAtlasSize: TSpinEdit;
     SplitterRight: TSplitter;
     SplitterLeft: TSplitter;
     procedure ActionAddAnimationExecute(Sender: TObject);
@@ -131,6 +135,8 @@ type
     procedure ListViewFramesSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
     procedure RadioFrameChange(Sender: TObject);
+    procedure SpinEditMaxAtlasSizeChange(Sender: TObject);
+    procedure SpinEditMaxAtlasSizeEditingDone(Sender: TObject);
   private
     type
       TPreviewMode = (pmAnimation, pmFrame);
@@ -184,6 +190,11 @@ type
     procedure RegenerateFramePreviewFile(const Frame: TCastleSpriteSheetFrame);
 
     procedure UpdateWindowCaption;
+    procedure SetAtlasError(const Message: String);
+    procedure SetAtlasWarning(const Message: String);
+
+    { Check atlas size }
+    function CheckAtlasMinSize: Boolean;
 
     // events:
 
@@ -198,6 +209,7 @@ type
       const OldIndex, NewIndex: Integer);
     procedure AnimationMoved(const Animation: TCastleSpriteSheetAnimation;
       const OldIndex, NewIndex: Integer);
+    procedure MaxAtlasSizeChanged(const MaxWidth, MaxHeight: Integer);
 
   public
     procedure OpenSpriteSheet(const URL: String);
@@ -211,8 +223,8 @@ implementation
 
 {$R *.lfm}
 
-uses GraphType, IntfGraphics,
-  CastleImages, CastleLog, CastleURIUtils,
+uses GraphType, IntfGraphics, Math,
+  CastleImages, CastleLog, CastleUtils, CastleURIUtils,
   EditorUtils,
   FormProject;
 
@@ -496,6 +508,7 @@ procedure TSpriteSheetEditorForm.FormCreate(Sender: TObject);
 begin
   FSpriteSheet := nil;
   FWindowTitle := SpriteSheetEditorForm.Caption;
+  SetAtlasError('');
   NewSpriteSheet;
 end;
 
@@ -551,6 +564,17 @@ begin
   UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
 end;
 
+procedure TSpriteSheetEditorForm.SpinEditMaxAtlasSizeChange(Sender: TObject);
+begin
+end;
+
+procedure TSpriteSheetEditorForm.SpinEditMaxAtlasSizeEditingDone(Sender: TObject
+  );
+begin
+  FSpriteSheet.SetMaxAtlasSize(SpinEditMaxAtlasSize.Value,
+    SpinEditMaxAtlasSize.Value);
+end;
+
 function TSpriteSheetEditorForm.CloseSpriteSheet: Boolean;
 begin
   // TODO: ask for save
@@ -569,6 +593,7 @@ begin
   FSpriteSheet.OnFrameAdded := @FrameAdded;
   FSpriteSheet.OnFrameMoved := @FrameMoved;
   FSpriteSheet.BeforeFrameRemoved := @BeforeAnimationFrameRemoved;
+  FSpriteSheet.OnMaxAtlasSizeChanged := @MaxAtlasSizeChanged;
 end;
 
 procedure TSpriteSheetEditorForm.LoadAnimations(const SpriteSheet: TCastleSpriteSheet);
@@ -759,6 +784,7 @@ procedure TSpriteSheetEditorForm.UpdatePreview(
       Exit;
     end;
     RegenerateFramePreviewFile(Frame);
+    FPreviewScene.Exists := true;
     ShowPreviewControl(true);
   end;
 
@@ -769,7 +795,8 @@ procedure TSpriteSheetEditorForm.UpdatePreview(
     if FPreviewScene = nil then
       RegenerateAnimationPreviewFile;
 
-    if (Animation = nil) or (Animation.FrameCount = 0) then
+    if (Animation = nil) or (Animation.FrameCount = 0) or
+      (not CheckAtlasMinSize) then
     begin
       FPreviewScene.Exists := false;
       FPreviewScene.StopAnimation
@@ -807,11 +834,14 @@ var
   TempURL: String;
 begin
   try
+    CreatePreviewUIIfNeeded;
+    if not CheckAtlasMinSize then
+      Exit;
+
     TempURL := URIIncludeSlash(ProjectForm.ProjectPathUrl) + 'temp/preview.castle-sprite-sheet';
     ForceDirectories(ExtractFilePath(URIToFilenameSafe(TempURL)));
-    FSpriteSheet.Save(TempURL, true);
 
-    CreatePreviewUIIfNeeded;
+    FSpriteSheet.Save(TempURL, true);
 
     FPreviewScene.Load(TempURL);
   except
@@ -858,6 +888,43 @@ begin
 
   SpriteSheetEditorForm.Caption := FWindowTitle + ' - ' + ModifiedMark +
     FileName;
+end;
+
+procedure TSpriteSheetEditorForm.SetAtlasError(const Message: String);
+begin
+  LabelAtlasSizeError.Caption := Message;
+end;
+
+procedure TSpriteSheetEditorForm.SetAtlasWarning(const Message: String);
+begin
+  LabelAtlasWarning.Caption := Message;
+end;
+
+function TSpriteSheetEditorForm.CheckAtlasMinSize: Boolean;
+var
+  MinAtlasWidth, MinAtlasHeight: Integer;
+begin
+  FSpriteSheet.GetMinAtlasSize(MinAtlasWidth, MinAtlasHeight);
+
+  if (MinAtlasWidth > FSpriteSheet.MaxAtlasWidth) or
+    (MinAtlasHeight > FSpriteSheet.MaxAtlasHeight) then
+  begin
+    SetAtlasError(Format(
+      'Max atlas size to small to fit all frames %d needed.',
+      [Max(MinAtlasWidth, MinAtlasHeight)])
+    );
+    Exit(false);
+  end;
+  SetAtlasError('');
+
+  { check power of two }
+  if not IsPowerOf2(Max(FSpriteSheet.MaxAtlasHeight,
+    FSpriteSheet.MaxAtlasWidth)) then
+    SetAtlasWarning('We adwise using power of 2 size.')
+  else
+    SetAtlasWarning('');
+
+  Result := true;
 end;
 
 procedure TSpriteSheetEditorForm.ModifiedStateChanged(Sender: TObject);
@@ -927,6 +994,13 @@ procedure TSpriteSheetEditorForm.AnimationMoved(
   NewIndex: Integer);
 begin
   ListViewAnimations.Items.Move(OldIndex, NewIndex);
+  UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+end;
+
+procedure TSpriteSheetEditorForm.MaxAtlasSizeChanged(const MaxWidth,
+  MaxHeight: Integer);
+begin
+  SpinEditMaxAtlasSize.Value := Max(MaxWidth, MaxHeight);
   UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
 end;
 
