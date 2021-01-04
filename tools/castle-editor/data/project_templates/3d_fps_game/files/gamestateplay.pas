@@ -110,9 +110,9 @@ begin
       - TransformUnderMouse indicates we hit something
       - It has a behavior of TEnemy. }
     if (MainViewport.TransformUnderMouse <> nil) and
-       (MainViewport.TransformUnderMouse.GetBehavior(TEnemy) <> nil) then
+       (MainViewport.TransformUnderMouse.FindBehavior(TEnemy) <> nil) then
     begin
-      HitEnemy := MainViewport.TransformUnderMouse.GetBehavior(TEnemy) as TEnemy;
+      HitEnemy := MainViewport.TransformUnderMouse.FindBehavior(TEnemy) as TEnemy;
       HitEnemy.Hurt;
     end;
 

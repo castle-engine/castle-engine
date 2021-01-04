@@ -17,7 +17,7 @@ type
     This is a TCastleBehavior descendant,
     and is inserted to parent like EnemyScene.AddBehaviour(...).
     You can get the TEnemy instance of a TCastleScene,
-    by taking "Scene.GetBehavior(TEnemy)".
+    by taking "Scene.FindBehavior(TEnemy)".
 
     Other ways of making an association TCastleScene <-> TEnemy logic are possible:
 

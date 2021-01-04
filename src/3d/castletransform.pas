@@ -1816,7 +1816,7 @@ type
     procedure RemoveBehavior(const Behavior: TCastleBehavior);
 
     { Find the first behavior of the given class, @nil if none. }
-    function GetBehavior(const BehaviorClass: TCastleBehaviorClass): TCastleBehavior;
+    function FindBehavior(const BehaviorClass: TCastleBehaviorClass): TCastleBehavior;
   published
     { Is this object visible and colliding.
 
@@ -3805,7 +3805,7 @@ begin
   end;
 end;
 
-function TCastleTransform.GetBehavior(const BehaviorClass: TCastleBehaviorClass): TCastleBehavior;
+function TCastleTransform.FindBehavior(const BehaviorClass: TCastleBehaviorClass): TCastleBehavior;
 var
   I: Integer;
 begin
