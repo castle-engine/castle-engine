@@ -18,7 +18,7 @@ unit GameStateMainMenu;
 
 interface
 
-uses Classes, CastleControls, CastleUIState, CastleOnScreenMenu;
+uses Classes, CastleControls, CastleUIState;
 
 type
   TStateMainMenu = class(TUIState)
@@ -37,7 +37,7 @@ implementation
 
 uses CastleColors, CastleWindow, CastleUIControls, CastleFilesUtils, CastleApplicationProperties,
   CastleUtils, CastleComponentSerialize,
-  GameStatePlay;
+  GameStateLoading;
 
 { TStateMainMenu ------------------------------------------------------------- }
 
@@ -64,7 +64,7 @@ end;
 
 procedure TStateMainMenu.NewGameClick(Sender: TObject);
 begin
-  TUIState.Current := StatePlay;
+  TUIState.Current := StateLoading;
 end;
 
 procedure TStateMainMenu.QuitClick(Sender: TObject);
