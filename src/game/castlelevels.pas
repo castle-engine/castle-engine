@@ -539,7 +539,10 @@ type
     FTime: TFloatTime;
     FLevel: TAbstractLevel;
   protected
-    { Load 3D scene from file, doing common tasks.
+    { Level that we are part of. }
+    property Level: TAbstractLevel read FLevel;
+
+    { Load scene from file, doing common tasks.
       @unorderedList(
         @item optionally create triangle octree
         @item(call PrepareResources, with prRenderSelf, prBoundingBox, prShadowVolume
