@@ -19,7 +19,7 @@ unit CastleTransform;
 
 interface
 
-uses SysUtils, Classes, Math, Generics.Collections, Kraft,
+uses SysUtils, Classes, Math, Generics.Collections, Contnrs, Kraft,
   CastleVectors, CastleFrustum, CastleBoxes, CastleClassUtils, CastleKeysMouse,
   CastleRectangles, CastleUtils, CastleTimeUtils,
   CastleSoundEngine, CastleCameras, CastleTriangles, CastleRenderOptions;
@@ -195,8 +195,11 @@ type
     OtherTransform: TCastleTransform;
   end;
 
+  TRemoveType = (rtNone, rtRemove, rtRemoveAndFree);
+
   {$define read_interface}
   {$I castletransform_renderparams.inc}
+  {$I castletransform_behavior.inc}
   {$undef read_interface}
 
   { Information that a TCastleTransform object needs to prepare rendering.
@@ -226,8 +229,6 @@ type
       @exclude }
     InternalGlobalFog: TAbstractFogNode;
   end;
-
-  TRemoveType = (rtNone, rtRemove, rtRemoveAndFree);
 
   { List of TCastleTransform instances.
     This inherits from TCastleObjectList, getting many
@@ -374,6 +375,7 @@ type
       FWorld: TCastleAbstractRootTransform;
       FWorldReferences: Cardinal;
       FList: TCastleTransformList;
+      FBehaviors: TComponentList;
       FParent: TCastleTransform;
       FCollisionSphereRadius: Single;
 
@@ -436,30 +438,29 @@ type
     { Return non-nil parent, making sure it's valid. }
     function Parent: TCastleTransform;
     procedure WarningMatrixNan(const NewParamsInverseTransformValue: TMatrix4);
+    { Change to new world, or (if not needed) just increase FWorldReferences.
+      Value must not be @nil. }
+    procedure AddToWorld(const Value: TCastleAbstractRootTransform);
+    { Decrease FWorldReferences, then (if needed) change world to @nil.
+      Value must not be @nil. }
+    procedure RemoveFromWorld(const Value: TCastleAbstractRootTransform);
+    procedure RemoveBehaviorIndex(const BehaviorIndex: Integer);
   protected
     { Workaround for descendants where BoundingBox may suddenly change
       but their logic depends on stable (not suddenly changing) Middle.
-      If MiddleForceBox then we will use given MiddleForceBoxValue
+      If InternalMiddleForceBox then we will use given InternalMiddleForceBoxValue
       instead of LocalBoundingBox for Middle and PreferredHeight
       calculation. Descendants that deal with this should usually have
-      some timeout when they restore MiddleForceBox to false.
+      some timeout when they restore InternalMiddleForceBox to false.
 
       This is quite internal hack and you should not use this in your own programs.
       This is used only by TWalkAttackCreature.
       @exclude
       @groupBegin }
-    MiddleForceBox: boolean;
+    InternalMiddleForceBox: boolean;
     { @exclude }
-    MiddleForceBoxValue: TBox3D;
+    InternalMiddleForceBoxValue: TBox3D;
     { @groupEnd }
-
-    { Change to new world, or (if not needed) just increase FWorldReferences.
-      Value must not be @nil. }
-    procedure AddToWorld(const Value: TCastleAbstractRootTransform);
-
-    { Decrease FWorldReferences, then (if needed) change world to @nil.
-      Value must not be @nil. }
-    procedure RemoveFromWorld(const Value: TCastleAbstractRootTransform);
 
     { Called when the current @link(World) that contains this object changes.
       In the usual case, @link(World) corresponds to a @link(TCastleViewport.Items)
@@ -1010,13 +1011,13 @@ type
 
     { Continuously occuring event, for various tasks.
       @param(RemoveMe Set this to rtRemove or rtRemoveAndFree to remove
-        this item from 3D world (parent list) after Update finished.
+        this item from parent after this call finished.
         rtRemoveAndFree additionally will free this item.
         Initially it's rtNone when this method is called.) }
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); virtual;
 
-    { Something visible changed inside @italic(this) 3D object.
-      This is usually called by implementation of this 3D object,
+    { Something visible changed inside @italic(this) object.
+      This is usually called by implementation of this object,
       to notify others that it changed.
 
       Changes is a set describing what changes occurred.
@@ -1797,9 +1798,25 @@ type
       a child of this TCastleTransform instance. }
     property Orientation: TOrientationType read FOrientation write FOrientation;
 
-    { 3D objects inside.
+    { Transformation objects inside.
       Freeing these items automatically removes them from this list. }
     property List: TCastleTransformList read FList;
+
+    { Add a TCastleBehavior to this TCastleTransform.
+      In effect, the virtual methods of TCastleBehavior, like @link(TCastleBehavior.Update),
+      will be automatically called.
+      Also the @link(TCastleBehavior.Parent) gets assigned.
+      If the TCastleBehavior was part of another TCastleTransform, it is removed from it. }
+    procedure AddBehavior(const Behavior: TCastleBehavior);
+
+    { Remove TCastleBehavior from this TCastleTransform.
+      In effect, the virtual methods of TCastleBehavior, like @link(TCastleBehavior.Update),
+      will no longer be automatically called.
+      The @link(TCastleBehavior.Parent) is set to @nil. }
+    procedure RemoveBehavior(const Behavior: TCastleBehavior);
+
+    { Find the first behavior of the given class, @nil if none. }
+    function GetBehavior(const BehaviorClass: TCastleBehaviorClass): TCastleBehavior;
   published
     { Is this object visible and colliding.
 
@@ -2142,6 +2159,7 @@ uses CastleLog, CastleQuaternions, CastleComponentSerialize, X3DTriangles;
 {$I castletransform_physics.inc}
 {$I castletransform_collisions.inc}
 {$I castletransform_renderparams.inc}
+{$I castletransform_behavior.inc}
 {$undef read_implementation}
 
 { TransformMatricesMult ------------------------------------------------------ }
@@ -2356,6 +2374,7 @@ begin
   FVisible := true;
   FCursor := mcDefault;
   FList := TCastleTransformList.Create(false, Self);
+  FBehaviors := TComponentList.Create(false);
   FMiddleHeight := DefaultMiddleHeight;
   FOnlyTranslation := true;
   FScale := NoScale;
@@ -2374,6 +2393,7 @@ begin
 
   PhysicsDestroy;
   FreeAndNil(FList);
+  FreeAndNil(FBehaviors);
   { set to nil, to detach free notification }
   ChangeWorld(nil);
   GLContextClose;
@@ -2867,12 +2887,34 @@ begin
 end;
 
 procedure TCastleTransform.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
-var
-  I: Integer;
-  Item: TCastleTransform;
-  RemoveItem: TRemoveType;
-begin
-  if GetExists then
+
+  procedure UpdateBehaviors;
+  var
+    I: Integer;
+    Beh: TCastleBehavior;
+    RemoveItem: TRemoveType;
+  begin
+    I := 0;
+    while I < FBehaviors.Count do
+    begin
+      Beh := FBehaviors[I] as TCastleBehavior;
+      RemoveItem := rtNone;
+      Beh.Update(SecondsPassed, RemoveItem);
+      if RemoveItem in [rtRemove, rtRemoveAndFree] then
+      begin
+        RemoveBehaviorIndex(I);
+        if RemoveItem = rtRemoveAndFree then
+          FreeAndNil(Beh);
+      end else
+        Inc(I);
+    end;
+  end;
+
+  procedure UpdateChildren;
+  var
+    I: Integer;
+    Item: TCastleTransform;
+    RemoveItem: TRemoveType;
   begin
     I := 0;
     while I < List.Count do
@@ -2888,6 +2930,13 @@ begin
       end else
         Inc(I);
     end;
+  end;
+
+begin
+  if GetExists then
+  begin
+    UpdateBehaviors;
+    UpdateChildren;
 
     { Disable physics and gravity in design mode (in the future we may add optional way to enable them) }
     if not CastleDesignMode then
@@ -3317,8 +3366,8 @@ var
   B: TBox3D;
 begin
   GC := World.GravityCoordinate;
-  if MiddleForceBox then
-    B := MiddleForceBoxValue
+  if InternalMiddleForceBox then
+    B := InternalMiddleForceBoxValue
   else
     B := LocalBoundingBox;
 
@@ -3342,8 +3391,8 @@ var
   {$ifdef CHECK_HEIGHT_VS_RADIUS} R: Single; {$endif}
 begin
   GC := World.GravityCoordinate;
-  if MiddleForceBox then
-    B := MiddleForceBoxValue
+  if InternalMiddleForceBox then
+    B := InternalMiddleForceBoxValue
   else
     B := LocalBoundingBox;
   if B.IsEmpty then
@@ -3715,6 +3764,55 @@ end;
 function TCastleTransform.GetEnumerator: TEnumerator;
 begin
   Result := TEnumerator.Create(FList);
+end;
+
+procedure TCastleTransform.AddBehavior(const Behavior: TCastleBehavior);
+begin
+  if Behavior.FParent <> Self then
+  begin
+    Behavior.FParent := Self;
+    Behavior.ParentChanged;
+    FBehaviors.Add(Behavior);
+  end;
+end;
+
+procedure TCastleTransform.RemoveBehaviorIndex(const BehaviorIndex: Integer);
+var
+  Beh: TCastleBehavior;
+begin
+  Beh := FBehaviors[BehaviorIndex] as TCastleBehavior;
+  Beh.FParent := nil;
+  Beh.ParentChanged;
+  FBehaviors.Delete(BehaviorIndex);
+end;
+
+procedure TCastleTransform.RemoveBehavior(const Behavior: TCastleBehavior);
+var
+  I: Integer;
+begin
+  if Behavior.FParent = Self then
+  begin
+    I := FBehaviors.IndexOf(Behavior);
+    if I = -1 then
+    begin
+      WritelnWarning('Internal Error: Behavior %s %s has our parent, but is not present on FBehaviors list', [
+        Behavior.Name,
+        Behavior.ClassType
+      ]);
+      Exit;
+    end;
+    RemoveBehaviorIndex(I);
+  end;
+end;
+
+function TCastleTransform.GetBehavior(const BehaviorClass: TCastleBehaviorClass): TCastleBehavior;
+var
+  I: Integer;
+begin
+  for I := 0 to FBehaviors.Count - 1 do
+    if FBehaviors[I] is BehaviorClass then
+      Exit(TCastleBehavior(FBehaviors[I])); // since it's BehaviorClass, casting to TCastleBehavior must be safe
+  Result := nil;
 end;
 
 {$define read_implementation_methods}
