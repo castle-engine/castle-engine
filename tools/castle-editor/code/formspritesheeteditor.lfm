@@ -125,17 +125,47 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       ParentFont = False
     end
     object LabelAtlasWarning: TLabel
-      AnchorSideLeft.Control = LabelAtlasSizeError
+      AnchorSideLeft.Control = ImageAtlasSizeWarning
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = PanelTop
       AnchorSideTop.Side = asrCenter
-      Left = 456
+      Left = 480
       Height = 18
       Top = 6
       Width = 145
       BorderSpacing.Left = 4
       Caption = 'LabelAtlasWarning'
       ParentColor = False
+    end
+    object ImageAtlasSizeWarning: TImage
+      AnchorSideLeft.Control = LabelAtlasSizeError
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = PanelTop
+      AnchorSideTop.Side = asrCenter
+      Left = 452
+      Height = 24
+      Top = 3
+      Width = 24
+      AntialiasingMode = amOn
+      AutoSize = True
+      Picture.Data = {
+        1754506F727461626C654E6574776F726B47726170686963CB01000089504E47
+        0D0A1A0A0000000D4948445200000018000000180806000000E0773DF8000000
+        097048597300000EC300000EC301C76FA8640000001974455874536F66747761
+        7265007777772E696E6B73636170652E6F72679BEE3C1A000001584944415448
+        89E5D5CD4A1C4114C5F19F13094888DF64E90B441415853C86A20B415DC46C07
+        41F135FC226A9E20842CB30B220928A398459E429138EB48D45117550DEDD032
+        D3636F24072E0DE7569D5BF4BF9AE67FD214BEC79A2C3A7C0635FC8E55C37451
+        E1DD384705EDB12AD1EB2E62C09670E2F19437821B6C3E357C10D7F898D1DB8E
+        43865B0D6FC34F54D197D1EFC11F1CC6B5B9B5803BBC4F79E5588916E39AF9BC
+        E19D38C3094A29FF47AC44252D02DF10C04ED4F9F503605460B1DE6CF85B5C61
+        27A3973500763509BC2D0654D19F634002FC4003E0F302B4C547FAF590D3FA10
+        F7CE3D16FE1AA7F8E521D86655C29100BC2B6BC1BA6CB0793426B058AB6F2460
+        771B0494B1D460CD27E1EB1F4A9B7BB8406F01037A63D67EDAA861B5C1C63C5A
+        16800F94F0229A2F0B1CF00AB7F89BDCD92FC20FE418974F0CEFC03B7CC56C72
+        FA6FF1F9466B5734AD7FF88C15E1D53F73DD03645C4D9BEA33D8F70000000049
+        454E44AE426082
+      }
     end
   end
   object PanelLeft: TPanel
@@ -448,6 +478,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     object ActionDeleteFrame: TAction
       Category = 'Frame'
       Caption = 'Delete'
+      ImageIndex = 3
       OnExecute = ActionDeleteFrameExecute
       OnUpdate = ActionDeleteFrameUpdate
       ShortCut = 16430
@@ -455,6 +486,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     object ActionDeleteAnimation: TAction
       Category = 'Animation'
       Caption = 'Delete'
+      ImageIndex = 3
       OnExecute = ActionDeleteAnimationExecute
       OnUpdate = ActionDeleteAnimationUpdate
       ShortCut = 16430
@@ -469,12 +501,14 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     object ActionAddFrame: TAction
       Category = 'Frame'
       Caption = 'Add...'
+      ImageIndex = 4
       OnExecute = ActionAddFrameExecute
       OnUpdate = ActionAddFrameUpdate
     end
     object ActionAddAnimation: TAction
       Category = 'Animation'
       Caption = 'Add'
+      ImageIndex = 4
       OnExecute = ActionAddAnimationExecute
       OnUpdate = ActionAddAnimationUpdate
     end

@@ -33,6 +33,7 @@ type
     ActionListSpriteSheet: TActionList;
     CastleControlPreview: TCastleControlBase;
     CastleOpenImageDialog: TCastleOpenImageDialog;
+    ImageAtlasSizeWarning: TImage;
     ImageListFrames: TImageList;
     LabelAtlasWarning: TLabel;
     LabelAtlasSizeError: TLabel;
@@ -509,6 +510,7 @@ begin
   FSpriteSheet := nil;
   FWindowTitle := SpriteSheetEditorForm.Caption;
   SetAtlasError('');
+  SetAtlasWarning('');
   NewSpriteSheet;
 end;
 
@@ -897,6 +899,7 @@ end;
 
 procedure TSpriteSheetEditorForm.SetAtlasWarning(const Message: String);
 begin
+  ImageAtlasSizeWarning.Visible := (Message <> '');
   LabelAtlasWarning.Caption := Message;
 end;
 
