@@ -40,6 +40,7 @@ type
       strict private
         ImageEnemy: TCastleImageControl;
         ButtonRun, ButtonFight: TCastleButton;
+        State: TStateAskDialog;
         procedure ClickRun(Sender: TObject);
         procedure ClickFight(Sender: TObject);
       public
@@ -47,14 +48,12 @@ type
       end;
     var
       Dialog: TZombieDialog;
+      { Whether to show male image. Set by constructor. }
+      Male: boolean;
   public
-    { Whether to show male image. Set before doing @link(Start). }
-    Male: boolean;
+    constructor CreateUntilStopped(const AMale: Boolean);
     procedure Start; override;
   end;
-
-var
-  StateAskDialog: TStateAskDialog;
 
 implementation
 
@@ -97,15 +96,15 @@ end;
 procedure TStateAskDialog.TZombieDialog.ClickRun(Sender: TObject);
 begin
   { As this is just a demo, there's no actual "running",
-    we just return to StatePlay. }
-  TUIState.Pop(StateAskDialog);
+    we just return to TStatePlay. }
+  TUIState.Pop(State);
 end;
 
 procedure TStateAskDialog.TZombieDialog.ClickFight(Sender: TObject);
 begin
   { As this is just a demo, there's no actual "fighting",
-    we just return to StatePlay. }
-  TUIState.Pop(StateAskDialog);
+    we just return to TStatePlay. }
+  TUIState.Pop(State);
 end;
 
 { TStateAskDialog ------------------------------------------------------------ }
@@ -130,6 +129,12 @@ begin
   Dialog.Anchor(hpMiddle);
   Dialog.Anchor(vpMiddle);
   InsertFront(Dialog);
+end;
+
+constructor TStateAskDialog.CreateUntilStopped(const AMale: Boolean);
+begin
+  inherited CreateUntilStopped;
+  Male := AMale;
 end;
 
 end.

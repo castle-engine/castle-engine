@@ -30,9 +30,6 @@ type
     procedure Start; override;
   end;
 
-var
-  StateMainMenu: TStateMainMenu;
-
 implementation
 
 uses CastleColors, CastleWindow, CastleUIControls, CastleFilesUtils, CastleApplicationProperties,
@@ -64,7 +61,7 @@ end;
 
 procedure TStateMainMenu.ClickNewGame(Sender: TObject);
 begin
-  TUIState.Current := StateLoading;
+  TUIState.Current := TStateLoading.CreateUntilStopped;
 end;
 
 procedure TStateMainMenu.ClickQuit(Sender: TObject);

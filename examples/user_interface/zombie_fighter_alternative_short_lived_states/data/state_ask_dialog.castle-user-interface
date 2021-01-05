@@ -1,0 +1,21 @@
+{
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "ColorPersistent" : {
+        "Alpha" : 5.0000000000000000E-001,
+        "Blue" : 9.8039217293262482E-002,
+        "Green" : 9.8039217293262482E-002,
+        "Red" : 9.8039217293262482E-002,
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "FullSize" : true,
+      "Name" : "RectangleControl1",
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleRectangleControl"
+    }
+  ],
+  "$ClassName" : "TCastleUserInterface"
+}
