@@ -25,7 +25,6 @@ uses Classes, CastleControls, CastleUIState, CastleOnScreenMenu,
 type
   TStatePlay = class(TUIState)
   strict private
-    WalkNavigation: TCastleWalkNavigation;
     MainViewport, MapViewport: TCastleViewport;
     ButtonBack: TCastleButton;
     procedure ClickBack(Sender: TObject);
