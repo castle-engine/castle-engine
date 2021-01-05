@@ -669,8 +669,19 @@ begin
   if InterceptInput then
     HandleInput := false;
 
-  FCallBeforeUpdate.ExecuteAll(Self);
-  FCallBeforeUpdate.Clear;
+  if FCallBeforeUpdate.Count <> 0 then // optimize away common case
+  begin
+    { In case of using CreateUntilStopped state, you cannot change state
+      in the middle of FCallBeforeUpdate.ExecuteAll,
+      as it would free the array that is being iterated over. }
+    if FFreeWhenStopped then Inc(FDisableStackChange);
+    try
+      FCallBeforeUpdate.ExecuteAll(Self);
+      FCallBeforeUpdate.Clear;
+    finally
+      if FFreeWhenStopped then Dec(FDisableStackChange);
+    end;
+  end;
 end;
 
 procedure TUIState.InsertUserInterface(const DesignUrl: String;

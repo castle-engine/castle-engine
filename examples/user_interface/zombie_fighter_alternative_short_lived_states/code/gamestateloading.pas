@@ -38,6 +38,7 @@ type
       { Variable that simulates loading progress,
         we will grow it from 0 to FakeLoadingAdditionalStepsCount during loading. }
       FakeLoadingAdditionalSteps: Cardinal;
+      LoadingFinished: Boolean;
     procedure UpdateProgress(const Progress: Single);
     procedure DoLoadSomething1(Sender: TObject);
     procedure DoLoadSomething2(Sender: TObject);
@@ -45,6 +46,7 @@ type
     procedure DoLoadingFinish(Sender: TObject);
   public
     procedure Start; override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
   end;
 
 implementation
@@ -68,6 +70,7 @@ begin
   { Find components, by name, that we need to access from code }
   LabelPercent := UiOwner.FindRequiredComponent('LabelPercent') as TCastleLabel;
 
+  LoadingFinished := false;
   FakeLoadingAdditionalSteps := 0;
   UpdateProgress(0);
   WaitForRenderAndCall(@DoLoadSomething1);
@@ -115,8 +118,22 @@ end;
 
 procedure TStateLoading.DoLoadingFinish(Sender: TObject);
 begin
-  { Finished loading, go to StatePlay }
-  TUIState.Current := TStatePlay.CreateUntilStopped;
+  { Finished loading, go to StatePlay.
+
+    In case of using CreateUntilStopped, you cannot change state
+    inside a WaitForRenderAndCall callback.
+    So we need additional flag LoadingFinished to mark this state,
+    that is handled in Update.
+    This is more straightforward in version without CreateUntilStopped,
+    in examples/zombie_fighter/ . }
+  LoadingFinished := true;
+end;
+
+procedure TStateLoading.Update(const SecondsPassed: Single; var HandleInput: Boolean);
+begin
+  inherited;
+  if LoadingFinished then
+    TUIState.Current := TStatePlay.CreateUntilStopped;
 end;
 
 end.
