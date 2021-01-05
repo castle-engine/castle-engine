@@ -354,6 +354,8 @@ end;
 
 procedure TProjectForm.ActionNewSpriteSheetExecute(Sender: TObject);
 begin
+  if SpriteSheetEditorForm = nil then
+     SpriteSheetEditorForm := TSpriteSheetEditorForm.Create(Application);
   SpriteSheetEditorForm.Show;
 end;
 

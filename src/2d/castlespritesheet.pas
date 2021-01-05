@@ -115,7 +115,8 @@ type
         saved in Castle Sprite Sheet/Starling XML file.
 
         If empty sprite sheet was created from scratch and never saved. }
-      property RelativeAtlasPath: String read FRelativeAtlasPath write FRelativeAtlasPath;
+      property RelativeAtlasPath: String read FRelativeAtlasPath
+          write FRelativeAtlasPath;
 
       property OnModifiedStateChanged: TNotifyEvent read FOnModifiedStateChanged
         write FOnModifiedStateChanged;

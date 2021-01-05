@@ -203,13 +203,14 @@ type
 
     procedure AnimationAdded(NewAnimation: TCastleSpriteSheetAnimation);
     procedure BeforeAnimationRemoved(AnimationToRemove: TCastleSpriteSheetAnimation);
+    procedure AnimationMoved(const Animation: TCastleSpriteSheetAnimation;
+      const OldIndex, NewIndex: Integer);
 
     procedure FrameAdded(NewFrame: TCastleSpriteSheetFrame);
     procedure BeforeAnimationFrameRemoved(FrameToRemove: TCastleSpriteSheetFrame);
     procedure FrameMoved(const Frame: TCastleSpriteSheetFrame;
       const OldIndex, NewIndex: Integer);
-    procedure AnimationMoved(const Animation: TCastleSpriteSheetAnimation;
-      const OldIndex, NewIndex: Integer);
+
     procedure MaxAtlasSizeChanged(const MaxWidth, MaxHeight: Integer);
 
   public
@@ -508,7 +509,7 @@ end;
 procedure TSpriteSheetEditorForm.FormCreate(Sender: TObject);
 begin
   FSpriteSheet := nil;
-  FWindowTitle := SpriteSheetEditorForm.Caption;
+  FWindowTitle := Caption;
   SetAtlasError('');
   SetAtlasWarning('');
   NewSpriteSheet;
@@ -886,7 +887,7 @@ var
 begin
   if FSpriteSheet = nil then
   begin
-    SpriteSheetEditorForm.Caption := FWindowTitle;
+    Caption := FWindowTitle;
     Exit;
   end;
 
@@ -900,8 +901,7 @@ begin
   else
     FileName := FSpriteSheet.URL;
 
-  SpriteSheetEditorForm.Caption := FWindowTitle + ' - ' + ModifiedMark +
-    FileName;
+  Caption := FWindowTitle + ' - ' + ModifiedMark + FileName;
 end;
 
 procedure TSpriteSheetEditorForm.SetAtlasError(const Message: String);
@@ -986,20 +986,29 @@ procedure TSpriteSheetEditorForm.BeforeAnimationFrameRemoved(
 var
   I: Integer;
 begin
+  { Is changed Animation the current one? }
   if FrameToRemove.Animation <> GetCurrentAnimation then
     Exit;
 
+  { Remove frames from ListViewFrames }
   for I := ListViewFrames.Items.Count - 1 downto 0 do
   begin
     if TCastleSpriteSheetFrame(ListViewFrames.Items[I].Data) = FrameToRemove then
       ListViewFrames.Items.Delete(I);
   end;
+
+  { No preview update here, becouse this is "Before" event so update preview do
+    nothing. Preview update is in action Execute function. }
 end;
 
 procedure TSpriteSheetEditorForm.FrameMoved(
   const Frame: TCastleSpriteSheetFrame; const OldIndex, NewIndex: Integer);
 begin
-  ListViewFrames.Items.Move(OldIndex, NewIndex);
+  { Is changed Animation the current one? }
+  if Frame.Animation = GetCurrentAnimation then
+    ListViewFrames.Items.Move(OldIndex, NewIndex);
+
+  { Preview update must be always called here (make preview always correct). }
   UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
 end;
 
@@ -1022,28 +1031,37 @@ procedure TSpriteSheetEditorForm.AnimationAdded(
   NewAnimation: TCastleSpriteSheetAnimation);
 begin
   ListViewAnimations.Selected := AddAnimationToListView(NewAnimation);
+  ListViewAnimations.Selected.MakeVisible(false);
 end;
 
 procedure TSpriteSheetEditorForm.FrameAdded(NewFrame: TCastleSpriteSheetFrame);
 begin
+  { Is changed Animation the current one? }
   if NewFrame.Animation <> GetCurrentAnimation then
     Exit;
 
-  { When added frame is bigger than CurrentFrameIconSize but smaller than
-    MaxFrameIconSize we need reload all frames. }
-  if ((NewFrame.FrameWidth < MaxFrameIconSize) and
-     (NewFrame.FrameWidth > CurrentFrameIconSize.X)) or
-     ((NewFrame.FrameHeight < MaxFrameIconSize) and
-     (NewFrame.FrameHeight > CurrentFrameIconSize.Y)) then
-  begin
-    ClearFrames;
-    LoadFrames(NewFrame.Animation);
-    Exit;
-  end;
+  try
+    { Cases when we need reload all frames:
+      - When added frame is bigger than CurrentFrameIconSize but smaller than
+        MaxFrameIconSize
+      - When there are no frames we need use LoadFrames to prepare ListView,
+        maybe that should be changed to more obvious solution }
+    if (NewFrame.Animation.FrameCount = 1) or (
+      ((NewFrame.FrameWidth < MaxFrameIconSize) and
+      (NewFrame.FrameWidth > CurrentFrameIconSize.X)) or
+      ((NewFrame.FrameHeight < MaxFrameIconSize) and
+      (NewFrame.FrameHeight > CurrentFrameIconSize.Y))) then
+    begin
+      ClearFrames;
+      LoadFrames(NewFrame.Animation);
+      Exit;
+    end;
 
-  { Add frame on last position }
-  AddFrameToListView(NewFrame, NewFrame.Animation.FrameCount);
-  UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+    { Just add frame on last position }
+    AddFrameToListView(NewFrame, NewFrame.Animation.FrameCount);
+  finally
+    UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+  end;
 end;
 
 procedure TSpriteSheetEditorForm.ClearAnimations;
@@ -1079,6 +1097,7 @@ begin
     UpdateWindowCaption;
     LoadAnimations(FSpriteSheet);
     AssignEventsToSpriteSheet;
+    UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
   except
     on E:Exception do
     begin

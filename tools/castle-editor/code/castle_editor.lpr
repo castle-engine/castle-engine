@@ -24,7 +24,6 @@ begin
   Application.CreateForm(TNewProjectForm, NewProjectForm);
   Application.CreateForm(TAboutForm, AboutForm);
   Application.CreateForm(TPreferencesForm, PreferencesForm);
-  Application.CreateForm(TSpriteSheetEditorForm, SpriteSheetEditorForm);
   Application.Run;
 end.
 
