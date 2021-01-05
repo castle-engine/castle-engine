@@ -264,7 +264,13 @@ type
   { Most simple implementation of frame arranger - for debug purposes }
   TCastleSpriteSheetBasicAtlasGen = class (TCastleSpriteSheetAbstractAtlasGen)
     private
-      function LayoutFrames(const MaxAtlasWidth, MaxAtlasHeight: integer;
+      type
+        TLayoutOperation = (
+          loMeasure,
+          loArrange
+        );
+      function LayoutFrames(const Operation: TLayoutOperation;
+          const MaxAtlasWidth, MaxAtlasHeight: integer;
           out MinAtlasWidth, MinAtlasHeight: Integer): Boolean;
       procedure GenerateAtlas(const AtlasWidth, AtlasHeight: Integer);
     public
@@ -473,8 +479,10 @@ end;
 
 { TCastleSpriteSheetBasicAtlasGen }
 
-function TCastleSpriteSheetBasicAtlasGen.LayoutFrames(const MaxAtlasWidth,
-  MaxAtlasHeight: integer; out MinAtlasWidth, MinAtlasHeight: Integer): Boolean;
+function TCastleSpriteSheetBasicAtlasGen.LayoutFrames(
+  const Operation: TLayoutOperation;
+  const MaxAtlasWidth, MaxAtlasHeight: integer;
+  out MinAtlasWidth, MinAtlasHeight: Integer): Boolean;
 var
   PreviousLineMaxY: Integer;
   I, J: Integer;
@@ -501,6 +509,16 @@ var
         BigestFrameWidth := Max(BigestFrameWidth, Animation.Frame[J].Width);
         BigestFrameHeight := Max(BigestFrameHeight, Animation.Frame[J].Height);
       end;
+    end;
+  end;
+
+  procedure SetFrameCords(const AFrame: TCastleSpriteSheetFrame;
+    const X, Y: Integer);
+  begin
+    if Operation = loArrange then
+    begin
+      AFrame.X := X;
+      AFrame.Y := Y;
     end;
   end;
 
@@ -541,8 +559,7 @@ begin
             MinAtlasHeight);
         end;
 
-        Frame.X := X;
-        Frame.Y := Y;
+        SetFrameCords(Frame, X, Y);
 
         X := X + Frame.FrameWidth;
         CurrentMaxLineHeight := Max(CurrentMaxLineHeight, Frame.FrameHeight);
@@ -565,8 +582,7 @@ begin
       end;
 
       // add frame
-      Frame.X := X;
-      Frame.Y := Y;
+      SetFrameCords(Frame, X, Y);
 
       X := X + Frame.FrameWidth;
       CurrentMaxLineHeight := Max(CurrentMaxLineHeight, Frame.FrameHeight);
@@ -612,13 +628,13 @@ function TCastleSpriteSheetBasicAtlasGen.WillFramesFitInSize(AtlasWidth,
 var
   MinWidth, MinHeight: Integer;
 begin
-  Result := LayoutFrames(AtlasWidth, AtlasHeight, MinWidth, MinHeight);
+  Result := LayoutFrames(loMeasure, AtlasWidth, AtlasHeight, MinWidth, MinHeight);
 end;
 
 procedure TCastleSpriteSheetBasicAtlasGen.GetMinAtlasSize(out MinWidth,
   MinHeight: Integer);
 begin
-  LayoutFrames(FSpriteSheetMaxWidth, FSpriteSheetMaxHeight, MinWidth, MinHeight);
+  LayoutFrames(loMeasure, FSpriteSheetMaxWidth, FSpriteSheetMaxHeight, MinWidth, MinHeight);
 end;
 
 procedure TCastleSpriteSheetBasicAtlasGen.Generate;
@@ -626,7 +642,7 @@ var
   MinWidth, MinHeight: Integer;
 begin
   { Try use the same size }
-  if LayoutFrames(FSpriteSheet.AtlasWidth, FSpriteSheet.AtlasHeight, MinWidth,
+  if LayoutFrames(loArrange, FSpriteSheet.AtlasWidth, FSpriteSheet.AtlasHeight, MinWidth,
     MinHeight) then
   begin
     GenerateAtlas(FSpriteSheet.AtlasWidth, FSpriteSheet.AtlasHeight);
@@ -634,8 +650,8 @@ begin
   end;
 
   { Try use max size }
-  if not LayoutFrames(FSpriteSheetMaxWidth, FSpriteSheetMaxHeight, MinWidth,
-    MinHeight) then
+  if not LayoutFrames(loArrange, FSpriteSheetMaxWidth, FSpriteSheetMaxHeight,
+    MinWidth, MinHeight) then
     raise ECastleSpriteSheetAtlasToSmall.Create(Format(
     'Min sprite sheet size atlas to small (%d x %d), we need %d x %d ',
     [FSpriteSheetMaxWidth, FSpriteSheetMaxHeight, MinWidth, MinHeight]));
