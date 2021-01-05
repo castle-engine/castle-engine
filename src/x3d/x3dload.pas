@@ -347,7 +347,7 @@ begin
   else
 
   if MimeType = 'text/xml' then
-    Result := {X3DLoadInternalTiledMap.}LoadTiledMap2d(URL)
+    Result := LoadTiledMap2d(URL)
   else
 
   { Support for simple graphics images like PNG }
