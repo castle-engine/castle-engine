@@ -182,6 +182,11 @@ function URIToFilenameSafe(const URI: string): string;
   as relative to the current directory). }
 function FilenameToURISafe(FileName: string): string;
 
+{ Tries change URI to use castle-data: protocol.
+  It's used in our editor to change absolute paths to relative to castle-data
+  directory. }
+function MaybeUseDataProtocol(const URL: String): String;
+
 { Get MIME type for content of the URI @italic(without downloading the file).
   For local and remote files (file, http, and similar protocols)
   it guesses MIME type based on file extension.
@@ -993,6 +998,19 @@ begin
     Result := 'text/x-castlescript' else
   if P = 'compiled' then
     Result := 'text/x-castle-compiled';
+end;
+
+function MaybeUseDataProtocol(const URL: String): String;
+var
+  DataPath: String;
+begin
+  { Use below ResolveCastleDataURL, to get real location of data,
+    e.g. resolved to file:// on normal desktop. }
+  DataPath := ResolveCastleDataURL('castle-data:/');
+  if IsPrefix(DataPath, URL, not FileNameCaseSensitive) then
+    Result := 'castle-data:/' + PrefixRemove(DataPath, URL, not FileNameCaseSensitive)
+  else
+    Result := URL;
 end;
 
 function URIMimeType(const URI: string): string;

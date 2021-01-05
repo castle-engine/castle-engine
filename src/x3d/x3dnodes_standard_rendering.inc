@@ -30,6 +30,7 @@
     Bounds2DS, Bounds2DT: Integer;
     FIgnoredSolid: boolean; {< keeps value of Solid property when FdSolid is nil }
     FIgnoredConvex: boolean; {< keeps value of Convex property when FdConvex is nil }
+    MappingWarningDone: Boolean;
     { Workaround http://bugs.freepascal.org/view.php?id=17402
       by these methods. }
     function CallProxyLocalBoundingBox(
@@ -233,14 +234,21 @@
       information, but no "coord" field). }
     function CoordField: TSFNode; virtual;
 
-    { Node's "normal" field where you can place TCoordinateNode, or @nil if not available. }
+    { Node's "normal" field where you can place TNormalNode, or @nil if not available. }
     function NormalField: TSFNode; virtual;
+
+    { Node's "tangent" field where you can place TTangentNode, or @nil if not available. }
+    function TangentField: TSFNode; virtual;
 
     { Returns normal vectors that are specified explicitly.
       The vectors are taken from the Normal node inside our FdNormal field.
       In case of problems (no Normal node specified, invalid node specified etc.)
       returns @nil. }
     function InternalNormal: TVector3List;
+
+    { Returns tangent vectors that are specified explicitly, see @link(SetTangents).
+      Returns @nil if not specified. }
+    function InternalTangent: TVector3List;
 
     { Node's list of coordinate indexes.
 
@@ -526,6 +534,9 @@
     strict private FFdNormal: TSFNode;
     public property FdNormal: TSFNode read FFdNormal;
 
+    strict private FFdTangent: TSFNode;
+    public property FdTangent: TSFNode read FFdTangent;
+
     strict private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
 
@@ -555,6 +566,7 @@
     function SolidField: TSFBool; override;
     function AttribField: TMFNode; override;
     function NormalField: TSFNode; override;
+    function TangentField: TSFNode; override;
 
     function InternalFogCoord: TMFFloat; override;
 
@@ -827,9 +839,7 @@
     {$I auto_generated_node_helpers/x3dnodes_lineset.inc}
   end;
 
-  { Normal (information for lighting) node.
-    Note: It's identical for all VRML and X3D versions
-    (including ancient VRML 1.0). }
+  { Normal (information for lighting) node. }
   TNormalNode = class(TAbstractNormalNode)
   public
     procedure CreateNode; override;
@@ -839,6 +849,26 @@
     public property FdVector: TMFVec3f read FFdVector;
 
     {$I auto_generated_node_helpers/x3dnodes_normal.inc}
+  end;
+
+  { Tangent vectors information, for bump mapping.
+    The "vector" field should contain normalized tangent vectors,
+    in right-handed coordinate system.
+
+    The ordering of the tangent vectors is exactly the same as ordering
+    of normal vectors would be,
+    so e.g. @link(TAbstractComposedGeometryNode.NormalPerVertex) affects
+    the interpretation of tangent vectors as well. }
+  TTangentNode = class(TAbstractGeometricPropertyNode)
+    {$I auto_generated_node_helpers/x3dnodes_tangent.inc}
+  public
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+
+    { Set tangent vectors from a list of 4D vectors following glTF specification.
+      https://github.com/KhronosGroup/glTF/tree/master/specification/2.0 says
+      "XYZW vertex tangents where the w component is a sign value
+      (-1 or +1) indicating handedness of the tangent basis". }
+    procedure SetVector4D(const List: TVector4List);
   end;
 
   { Points. }
@@ -927,7 +957,7 @@
   end;
 
   { Strips of triangles.
-    In constrast to @link(TIndexedTriangleStripSetNode), this doesn't use indexes
+    In contrast to @link(TIndexedTriangleStripSetNode), this doesn't use indexes
     to compose vertexes into triangles. }
   TTriangleStripSetNode = class(TAbstractComposedGeometryNode)
   protected
@@ -1159,8 +1189,11 @@ begin
         Exit;
       end;
 
-    if MakeWarning and (Mapping <> '') then
+    if MakeWarning and (Mapping <> '') and (not MappingWarningDone) then
+    begin
       WritelnWarning('Texture mapping "%s" not found within MultiTextureCoordinate list', [Mapping]);
+      MappingWarningDone := true;
+    end;
   end else
   if T is TAbstractSingleTextureCoordinateNode then
   begin
@@ -1172,8 +1205,11 @@ begin
       Exit;
     end;
 
-    if MakeWarning and (Mapping <> '') then
+    if MakeWarning and (Mapping <> '') and (not MappingWarningDone) then
+    begin
       WritelnWarning('Texture mapping "%s" not matching the only texture coordinate node possible', [Mapping]);
+      MappingWarningDone := true;
+    end;
   end;
 end;
 
@@ -1341,11 +1377,25 @@ begin
   Result := nil;
 end;
 
+function TAbstractGeometryNode.TangentField: TSFNode;
+begin
+  Result := nil;
+end;
+
 function TAbstractGeometryNode.InternalNormal: TVector3List;
 begin
   if (NormalField <> nil) and
      (NormalField.Value is TNormalNode) then
     Result := TNormalNode(NormalField.Value).FdVector.Items
+  else
+    Result := nil;
+end;
+
+function TAbstractGeometryNode.InternalTangent: TVector3List;
+begin
+  if (TangentField <> nil) and
+     (TangentField.Value is TTangentNode) then
+    Result := TTangentNode(TangentField.Value).FdVector.Items
   else
     Result := nil;
 end;
@@ -1379,6 +1429,10 @@ begin
   FFdNormal := TSFNode.Create(Self, true, 'normal', [TAbstractNormalNode]);
    FdNormal.ChangeAlways := chGeometry;
   AddField(FFdNormal);
+
+  FFdTangent := TSFNode.Create(Self, true, 'tangent', [TTangentNode]);
+   FdTangent.ChangeAlways := chGeometry;
+  AddField(FFdTangent);
 
   FFdTexCoord := TSFNode.Create(Self, true, 'texCoord', [TAbstractTextureCoordinateNode]);
    FdTexCoord.ChangeAlways := chGeometry;
@@ -1458,6 +1512,11 @@ begin
   Result := FdNormal;
 end;
 
+function TAbstractComposedGeometryNode.TangentField: TSFNode;
+begin
+  Result := FdTangent;
+end;
+
 function TAbstractComposedGeometryNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   {$ifndef CASTLE_SLIM_NODES}
@@ -1476,7 +1535,10 @@ begin
   if Result <> nil then Exit;
   {$endif}
 
-  Result := Fdnormal.Enumerate(Func);
+  Result := FdNormal.Enumerate(Func);
+  if Result <> nil then Exit;
+
+  Result := FdTangent.Enumerate(Func);
   if Result <> nil then Exit;
 
   Result := FdtexCoord.Enumerate(Func);
@@ -1932,6 +1994,40 @@ begin
   Result := 'Normal';
 end;
 
+{ TTangentNode --------------------------------------------------------------- }
+
+constructor TTangentNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+begin
+  inherited;
+  FdVector.ChangeAlways := chTangent;
+end;
+
+procedure TTangentNode.SetVector4D(const List: TVector4List);
+var
+  I, Len: Integer;
+  Source: PVector4;
+  Dest: PVector3;
+  W: Single;
+begin
+  Len := List.Count;
+  FdVector.Items.Count := Len;
+  if Len = 0 then Exit;
+
+  Source := List.L;
+  Dest := FdVector.Items.L;
+  for I := 0 to Len - 1 do
+  begin
+    // convert tangents to right-handed
+    // slower: Dest^ := Source^.XYZ * Source^.W;
+    W := Source^.Data[3];
+    Dest^.Data[0] := Source^.Data[0] * W;
+    Dest^.Data[1] := Source^.Data[1] * W;
+    Dest^.Data[2] := Source^.Data[2] * W;
+    Inc(Source);
+    Inc(Dest);
+  end;
+end;
+
 procedure TPointSetNode.CreateNode;
 begin
   inherited;
@@ -2104,6 +2200,7 @@ begin
     TIndexedTriangleStripSetNode,
     TLineSetNode,
     TNormalNode,
+    TTangentNode,
     TPointSetNode,
     TTriangleFanSetNode,
     TTriangleSetNode,

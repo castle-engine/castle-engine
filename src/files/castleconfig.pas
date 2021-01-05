@@ -26,7 +26,7 @@ type
   TCastleConfig = CastleXMLConfig.TCastleConfig;
 
 { User preferences.
-  See https://castle-engine.io/tutorial_user_prefs.php . }
+  See https://castle-engine.io/manual_user_prefs.php . }
 function UserConfig: TCastleConfig;
 
 function Config: TCastleConfig; deprecated 'use UserConfig';

@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,12 +13,10 @@
   ----------------------------------------------------------------------------
 }
 
-{ Window with OpenGL context suitable for 2D and 3D rendering
-  of "Castle Game Engine". Provides a window with OpenGL context
-  that can contain 2D controls and 3D objects defined by our engine.
-  TCastleWindowBase is the base window class (it does not have any UI controls
-  at the beginning).
-  TCastleWindow is a comfortable class that adds a ready scene manager.
+{ Window with rendering context suitable for rendering of "Castle Game Engine".
+  Provides a window that can render hierarchy of TCastleUserInterface,
+  which includes a hierarchy of 3D and 2D scenes inside TCastleViewport.
+  Use the @link(TCastleWindowBase) as your window class.
 
   @link(Application) object (instance of class @link(TCastleApplication))
   is a central manager of all open @link(TCastleWindowBase) windows.
@@ -2381,7 +2379,6 @@ type
 
   { Window to render everything (3D or 2D) with Castle Game Engine,
     with a default @link(TCastleSceneManager) instance already created for you.
-    This is the simplest way to render a 3D world with 2D controls above.
     Add your
     game stuff (descending from @link(TCastleTransform), like @link(TCastleScene))
     to the scene manager
@@ -2399,7 +2396,11 @@ type
 
     If you're looking for analogous Lazarus component
     (that does basically the same, but can be placed on a Lazarus form)
-    see @link(TCastleControl) component. }
+    see @link(TCastleControl) component.
+
+    @deprecated This is deprecated, as such "window with default scene manager"
+    is an unnecessary API complication. Use instead TCastleWindowBase
+    and just add there a TCastleViewport with FullSize = true, it is trivial. }
   TCastleWindow = class(TCastleWindowBase)
   private
     {$warnings off} // using deprecated in deprecated

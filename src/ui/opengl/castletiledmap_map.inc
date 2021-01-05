@@ -85,7 +85,8 @@ type
 
       TObjectsDrawOrder = (odoIndex, odoTopDown);
 
-      TTileObjectPrimitive = (topEllipse, topPoligon, topPolyLine);
+      TTileObjectPrimitive = (topRectangle, topPoint, topEllipse, topPolygon,
+        topPolyLine);
 
       { Object definition. }
       TTiledObject = class
@@ -121,6 +122,8 @@ type
         Image: TImage;
         constructor Create;
         destructor Destroy; override;
+        { X and Y packed in a vector. }
+        function Position: TVector2;
       end;
 
       TTiledObjectList = specialize TObjectList<TTiledObject>;
@@ -149,6 +152,8 @@ type
         Height: Integer;
         constructor Create;
         destructor Destroy; override;
+        { OffsetX and OffsetY packed in a vector. }
+        function Offset: TVector2;
       end;
 
       TObjectGroupLayer = class(TLayer)
@@ -776,16 +781,22 @@ begin
     if TmpStr = '0' then
       Visible := False;
 
+  { Assume rectangle TiledObject first as it is the only element which has no
+    sub-element in TMX file which indicates its primitive type. Will be over-
+    ridden by follwing iteration, if a sub-element exists. }
+  Primitive := topRectangle;
+
   I := TXMLElementIterator.Create(Element);
   try
     while I.GetNext do
     begin
       case LowerCase(I.Current.TagName) of
         'properties': Properties.Load(I.Current, BaseUrl);
+        'point': Primitive := topPoint;
         'ellipse': Primitive := topEllipse;
         'polygon':
           begin
-            Primitive := topPoligon;
+            Primitive := topPolygon;
             ReadPoints(I.Current.AttributeStringDef('points', ''), Points);
           end;
         'polyline':
@@ -797,6 +808,11 @@ begin
       end;
     end;
   finally FreeAndNil(I) end;
+end;
+
+function TTiledMap.TTiledObject.Position: TVector2;
+begin
+  Result := Vector2(X, Y);
 end;
 
 { TLayer ------------------------------------------------------------------- }
@@ -846,6 +862,11 @@ begin
       end;
     end;
   finally FreeAndNil(I) end;
+end;
+
+function TTiledMap.TLayer.Offset: TVector2;
+begin
+  Result := Vector2(OffsetX, OffsetY);
 end;
 
 { TObjectGroupLayer ---------------------------------------------------------- }

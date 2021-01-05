@@ -59,6 +59,7 @@ type
           const Pick: TRayCollisionNode; const Coord: Integer): Boolean;
 
         procedure DoParentModified;
+        procedure DoGizmoStopDrag;
       protected
         procedure ChangeWorld(const Value: TCastleAbstractRootTransform); override;
         function LocalRayCollision(const RayOrigin, RayDirection: TVector3;
@@ -66,6 +67,7 @@ type
       public
         Operation: TVisualizeOperation;
         OnParentModified: TNotifyEvent;
+        OnGizmoStopDrag: TNotifyEvent;
         constructor Create(AOwner: TComponent); override;
         procedure CameraChanged(const ACamera: TCastleCamera); override;
         function Dragging: boolean; override;
@@ -82,20 +84,25 @@ type
       FHover: Boolean;
       FOperation: TVisualizeOperation;
       FParent: TCastleTransform;
+      FPickable: Boolean;
       Box: TDebugTransformBox;
       Gizmo: array [TVisualizeOperation] of TGizmoScene;
     procedure SetOperation(const AValue: TVisualizeOperation);
     procedure SetParent(const AValue: TCastleTransform);
+    procedure SetPickable(const Value: Boolean);
     procedure GizmoHasModifiedParent(Sender: TObject);
+    procedure GizmoStopDrag(Sender: TObject);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     OnParentModified: TNotifyEvent;
+    OnGizmoStopDrag: TNotifyEvent;
     constructor Create(AOwner: TComponent; const AHover: Boolean); reintroduce;
     destructor Destroy; override;
     { Currently visualized TCastleTransform instance.
       @nil to not visualize anything. }
     property Parent: TCastleTransform read FParent write SetParent;
+    property Pickable: Boolean read FPickable write SetPickable;
     property Operation: TVisualizeOperation read FOperation write SetOperation
       default voSelect;
   end;
@@ -209,6 +216,12 @@ procedure TVisualizeTransform.TGizmoScene.DoParentModified;
 begin
   if Assigned(OnParentModified) then
     OnParentModified(Self);
+end;
+
+procedure TVisualizeTransform.TGizmoScene.DoGizmoStopDrag;
+begin
+  if Assigned(OnGizmoStopDrag) then
+    OnGizmoStopDrag(Self);
 end;
 
 procedure TVisualizeTransform.TGizmoScene.ChangeWorld(
@@ -500,6 +513,7 @@ begin
     GizmoScalingAssumeScale := false;
     CameraChanged(World.MainCamera);
   end;
+  DoGizmoStopDrag;
 end;
 
 procedure TVisualizeTransform.TGizmoScene.LocalRender(const Params: TRenderParams);
@@ -529,18 +543,20 @@ constructor TVisualizeTransform.Create(AOwner: TComponent; const AHover: Boolean
   begin
     Result := TGizmoScene.Create(Self);
     Result.Collides := false;
-    //Result.Pickable := false;
+    Result.Pickable := FPickable;
     Result.CastShadowVolumes := false;
     Result.ExcludeFromStatistics := true;
     Result.InternalExcludeFromParentBoundingVolume := true;
     Result.Spatial := [ssDynamicCollisions];
     Result.SetTransient;
     Result.OnParentModified := @GizmoHasModifiedParent;
+    Result.OnGizmoStopDrag := @GizmoStopDrag;
   end;
 
 begin
   inherited Create(AOwner);
   FHover := AHover;
+  FPickable := true;
 
   Box := TDebugTransformBox.Create(Self);
   if FHover then
@@ -599,10 +615,29 @@ begin
   end;
 end;
 
+procedure TVisualizeTransform.SetPickable(const Value: Boolean);
+var
+  VisualizeOperation: TVisualizeOperation;
+begin
+  if FPickable <> Value then
+  begin
+    FPickable := Value;
+    for VisualizeOperation in TVisualizeOperation do
+      if Gizmo[VisualizeOperation] <> nil then // Gizmo[voSelect] is nil now, nothing to show
+        Gizmo[VisualizeOperation].Pickable := Value;
+  end;
+end;
+
 procedure TVisualizeTransform.GizmoHasModifiedParent(Sender: TObject);
 begin
   if Assigned(OnParentModified) then
     OnParentModified(Self);
+end;
+
+procedure TVisualizeTransform.GizmoStopDrag(Sender: TObject);
+begin
+  if Assigned(OnGizmoStopDrag) then
+    OnGizmoStopDrag(Self);
 end;
 
 procedure TVisualizeTransform.SetOperation(const AValue: TVisualizeOperation);

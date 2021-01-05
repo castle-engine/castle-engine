@@ -332,8 +332,8 @@ type
       bind the textures used by this shader, right after each @link(Enable)
       call.
 
-      This is automatically called after every @link(Enable) by VRML renderer
-      (when it renders shapes) or scene manager (when it renders screen effects).
+      This is automatically called after every @link(Enable) by our renderer
+      (when it renders shapes) or TCastleScreenEffect (when it renders screen effects).
       If you use this TGLSLProgram directly (if you call @link(Enable)
       yourself), then it's your responsibility to call this method
       explicitly, if you want shaders using it to work.

@@ -1947,6 +1947,9 @@ procedure RemoveLoadImageListener(const Event: TLoadImageEvent);
   This is used internally by the engine. }
 function ProcessImageUrl(const URL: string): string;
 
+{ @exclude }
+function InternalDetectClassPNG(const Stream: TStream): TEncodedImageClass;
+
 {$undef read_interface}
 
 implementation

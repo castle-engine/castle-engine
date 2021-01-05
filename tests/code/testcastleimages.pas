@@ -1,5 +1,6 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestImages" -*-
 {
-  Copyright 2004-2018 Michalis Kamburelis.
+  Copyright 2004-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,6 +14,7 @@
   ----------------------------------------------------------------------------
 }
 
+{ Test CastleImages. }
 unit TestCastleImages;
 
 {$I castleconf.inc}
@@ -33,12 +35,13 @@ type
     procedure TestResize;
     //procedure TestMimeTypesAndExtsCount;
     procedure TestLoadSavePreserveAlpha;
+    procedure TestInternalDetectClassPNG;
   end;
 
 implementation
 
-uses SysUtils,
-  CastleVectors, CastleImages, CastleFilesUtils;
+uses SysUtils, Classes,
+  CastleVectors, CastleImages, CastleFilesUtils, CastleDownload;
 
 procedure TTestImages.TestLoadImage;
 const ImagesPath = 'data/images/';
@@ -301,6 +304,18 @@ begin
   TestImage('castle-data:/images/load-save-alpha-test/3.png');
   TestImage('castle-data:/images/load-save-alpha-test/4.png');
   TestImage('castle-data:/images/load-save-alpha-test/5.png');
+end;
+
+procedure TTestImages.TestInternalDetectClassPNG;
+var
+  Stream: TStream;
+  ImageClass: TEncodedImageClass;
+begin
+  Stream := Download('castle-data:/png_with_alpha_trns.png');
+  try
+    ImageClass := InternalDetectClassPNG(Stream);
+    AssertEquals('TRGBAlphaImage', ImageClass.ClassName);
+  finally FreeAndNil(Stream) end;
 end;
 
 initialization

@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2019 Michalis Kamburelis.
+  Copyright 2018-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -118,7 +118,6 @@ type
     procedure ListOutputClick(Sender: TObject);
     procedure MenuItemRenameClick(Sender: TObject);
     procedure UpdateUndo(Sender: TObject);
-    procedure UpdateUndoRedoInformation;
     procedure UpdateRenameItem(Sender: TObject);
     procedure MenuItemRedoClick(Sender: TObject);
     procedure MenuItemUndoClick(Sender: TObject);
@@ -172,7 +171,7 @@ type
     ViewFileFrame: TViewFileFrame;
     SplitterBetweenViewFile: TSplitter;
     procedure BuildToolCall(const Commands: array of String;
-        const ExitOnSuccess: Boolean = false);
+      const ExitOnSuccess: Boolean = false);
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuItemDesignNewCustomRootClick(Sender: TObject);
     procedure SetEnabledCommandRun(const AEnabled: Boolean);
@@ -262,11 +261,19 @@ begin
   Assert(Design <> nil); // menu item is disabled otherwise
 
   if Design.DesignRoot is TCastleUserInterface then
-    SaveDesignDialog.DefaultExt := 'castle-user-interface'
-  else
+  begin
+    SaveDesignDialog.DefaultExt := 'castle-user-interface';
+    SaveDesignDialog.Filter := 'CGE User Interface Design (*.castle-user-interface)|*.castle-user-interface|All Files|*';
+  end else
   if Design.DesignRoot is TCastleTransform then
-    SaveDesignDialog.DefaultExt := 'castle-transform'
-  else
+  begin
+    { We modify both Filter and DefaultExt, otherwise (at least on GTK2)
+      the default extension (for filter like '*.castle-user-interface;*.castle-transform')
+      would still be castle-user-interface. I.e. DefaultExt seems to be ignored,
+      and instead GTK applies first filter. }
+    SaveDesignDialog.DefaultExt := 'castle-transform';
+    SaveDesignDialog.Filter := 'CGE Transform Design (*.castle-transform)|*.castle-transform|All Files|*';
+  end else
     raise EInternalError.Create('DesignRoot does not descend from TCastleUserInterface or TCastleTransform');
 
   SaveDesignDialog.Url := Design.DesignUrl;
@@ -388,6 +395,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
       '- Other files open in external applications.';
     ShellListView1.PopupMenu := ShellListPopupMenu;
     ShellListView1.SmallImages := ShellIcons;
+    ShellListView1.DragMode := dmAutomatic;
 
     ShellTreeView1.ShellListView := ShellListView1;
     ShellListView1.ShellTreeView := ShellTreeView1;
@@ -418,7 +426,7 @@ procedure TProjectForm.MenuItemRenameClick(Sender: TObject);
 begin
   Design.RenameSelectedItem;
 end;
- 
+
 procedure TProjectForm.UpdateRenameItem(Sender: TObject);
 begin
   if (Design <> nil) and Design.RenamePossible then
@@ -429,42 +437,27 @@ end;
 
 procedure TProjectForm.UpdateUndo(Sender: TObject);
 begin
-  UpdateUndoRedoInformation;
-end;
-
-procedure TProjectForm.UpdateUndoRedoInformation;
-begin
-  if (Design <> nil) and Design.UndoSystem.IsUndoPossible then
+  if Design <> nil then
   begin
-    MenuItemUndo.Enabled := true;
+    MenuItemUndo.Enabled := Design.UndoSystem.IsUndoPossible;
     MenuItemUndo.Caption := Design.UndoSystem.UndoComment;
-  end else
-  begin
-    MenuItemUndo.Enabled := false;
-    MenuItemUndo.Caption := 'Undo';
-  end;
-
-  if (Design <> nil) and Design.UndoSystem.IsRedoPossible then
-  begin
-    MenuItemRedo.Enabled := true;
+    MenuItemRedo.Enabled := Design.UndoSystem.IsRedoPossible;
     MenuItemRedo.Caption := Design.UndoSystem.RedoComment;
   end else
   begin
+    MenuItemUndo.Enabled := false;
     MenuItemRedo.Enabled := false;
-    MenuItemRedo.Caption := 'Redo';
   end;
 end;
 
 procedure TProjectForm.MenuItemRedoClick(Sender: TObject);
 begin
   Design.PerformRedo;
-  UpdateUndoRedoInformation;
 end;
 
 procedure TProjectForm.MenuItemUndoClick(Sender: TObject);
 begin
   Design.PerformUndo;
-  UpdateUndoRedoInformation;
 end;
 
 procedure TProjectForm.MenuItemDeleteFileClick(Sender: TObject);
@@ -571,7 +564,7 @@ begin
   MenuItemPasteComponent.Enabled := Design <> nil;
   MenuItemDuplicateComponent.Enabled := Design <> nil;
 
-  UpdateUndoRedoInformation;
+  UpdateUndo(nil);
   UpdateRenameItem(nil);
 
   LabelNoDesign.Visible := Design = nil;
@@ -1078,5 +1071,7 @@ end;
 initialization
   // initialize CGE log
   ApplicationProperties.ApplicationName := 'castle-editor';
+  // Useful for testing of custom editor run by "Restart Editor", to see the log easily on Unix
+  // LogFileName := FileNameAutoInc('/tmp/castle-editor-%d.log');
   InitializeLog;
 end.

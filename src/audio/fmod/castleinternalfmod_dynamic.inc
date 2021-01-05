@@ -1,3 +1,5 @@
+{%MainUnit castleinternalfmod.pas}
+
 { FMOD API expressed in Pascal, for Castle Game Engine.
   See https://github.com/castle-engine/castle-engine/wiki/FMOD
   about using FMOD with CGE.

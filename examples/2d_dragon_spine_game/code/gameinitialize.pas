@@ -146,7 +146,7 @@ begin
   Viewport.FullSize := true;
   Window.Controls.InsertFront(Viewport);
 
-  { add to scene manager an X3D scene with background and trees.
+  { Add to viewport a scene with background and trees.
     See data/background.x3dv (go ahead, open it in a text editor --- X3D files
     can be easily created and edited as normal text files) for what it does.
 

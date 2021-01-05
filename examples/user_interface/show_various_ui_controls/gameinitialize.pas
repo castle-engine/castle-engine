@@ -37,7 +37,6 @@ var
   Button, ButtonDemo: TCastleButton;
   Image, Image2, ImageInsideMenu, ImageWithBorders: TCastleImageControl;
   OnScreenMenu: TCastleOnScreenMenu;
-  Touch: TCastleTouchControl;
   SliderRotation: TCastleFloatSlider;
   Rect1, Rect2, Rect3, Rect4, Circle1, Circle2, Circle3, Circle4: TCastleShape;
   Switch: TCastleSwitchControl;
@@ -226,11 +225,6 @@ begin
   OnScreenMenu.Left := 10;
   OnScreenMenu.Anchor(vpTop, -10);
   Window.Controls.InsertFront(OnScreenMenu);
-
-  Touch := TCastleTouchControl.Create(Window);
-  Touch.Left := 10;
-  Touch.Bottom := 150;
-  Window.Controls.InsertFront(Touch);
 
   Rect1 := TCastleShape.Create(Window);
   Rect1.Width := 50;

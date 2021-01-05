@@ -34,7 +34,7 @@
     function TotalScale: Single;
     procedure SetPosition(const Value: TCastleTouchPosition);
     procedure SetScale(const Value: Single);
-    function MaxOffsetDist: Integer;
+    function MaxOffsetDist: Single;
   protected
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
@@ -62,7 +62,7 @@
       read FPosition write SetPosition default tpManual;
 
     property Scale: Single read FScale write SetScale default 1;
-  end;
+  end deprecated 'use TCastleTouchNavigation';
 
 {$endif read_interface}
 
@@ -88,16 +88,26 @@ end;
 
 function TCastleTouchControl.TotalScale: Single;
 begin
-  if ContainerSizeKnown then
-    Result := Scale * Container.Dpi / 96 else
-    Result := 1;
+  { We used to have here
+
+      Scale * Container.Dpi / 96
+
+    and we ignored UIScale. This makes it adjust to physical size.
+    But it's not so obviously good idea -- the control could get very large
+    (obscuring view) on small devices.
+    Better to default to our standard scaling. This also allows to clearly see
+    the visual size of this on desktops.
+
+    User can always set "TouchControl.UIScaling := false; TouchControl.Scale := Container.Dpi / 96;"
+    to get this effect. }
+
+  Result := Scale * UIScale;
 end;
 
 procedure TCastleTouchControl.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 begin
   inherited;
-  // do not apply UIScale here to Width / Height,
-  // it's already adjusted to physical size
+  // do not apply UIScale here, it is already inside TotalScale
   PreferredWidth  := Theme.Images[tiTouchCtlOuter].Width  * TotalScale;
   PreferredHeight := Theme.Images[tiTouchCtlOuter].Height * TotalScale;
 end;
@@ -130,16 +140,16 @@ begin
   end;
 end;
 
-function TCastleTouchControl.MaxOffsetDist: Integer;
+function TCastleTouchControl.MaxOffsetDist: Single;
 begin
-  Result := Round(TotalScale *
+  Result := TotalScale *
     (Theme.Images[tiTouchCtlOuter].Width -
-     Theme.Images[tiTouchCtlInner].Width) / 2);
+     Theme.Images[tiTouchCtlInner].Width) / 2;
 end;
 
 procedure TCastleTouchControl.Render;
 var
-  LevOffsetTrimmedX, LevOffsetTrimmedY, MaxDist: Integer;
+  LevOffsetTrimmedX, LevOffsetTrimmedY, MaxDist: Single;
   LeverDist: Double;
   InnerRect: TFloatRectangle;
   ImageInner, ImageOuter: TThemeImage;
@@ -164,14 +174,15 @@ begin
   MaxDist := MaxOffsetDist;
   if LeverDist <= MaxDist then
   begin
-    LevOffsetTrimmedX := Round(FLeverOffset[0]);
-    LevOffsetTrimmedY := Round(FLeverOffset[1]);
+    LevOffsetTrimmedX := FLeverOffset[0];
+    LevOffsetTrimmedY := FLeverOffset[1];
   end else
   begin
-    LevOffsetTrimmedX := Floor((FLeverOffset[0]*MaxDist)/LeverDist);
-    LevOffsetTrimmedY := Floor((FLeverOffset[1]*MaxDist)/LeverDist);
+    LevOffsetTrimmedX := (FLeverOffset[0] * MaxDist) / LeverDist;
+    LevOffsetTrimmedY := (FLeverOffset[1] * MaxDist) / LeverDist;
   end;
-  if FTouchMode = ctcmFlyUpdown then LevOffsetTrimmedX := 0;
+  if FTouchMode = ctcmFlyUpdown then
+    LevOffsetTrimmedX := 0;
 
   // draw lever
   InnerRect := FloatRectangle(Theme.Images[ImageInner].Rect); // rectangle at (0,0)

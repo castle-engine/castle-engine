@@ -93,9 +93,8 @@ type
     { X3D shape node of this triangle. May be @nil in case of VRML 1.0. }
     function ShapeNode: TAbstractShapeNode;
 
-    { X3D material node of this triangle. May be @nil in case material is not set,
-      or is VRML 1.0 node, or is TCommonSurfaceShaderNode,
-      or is TTwoSidedMaterialNode. }
+    { X3D material node of this triangle. May be @nil in case material is not set
+      or has a different class than one-sided Phong TMaterialNode. }
     function Material: TMaterialNode; deprecated 'use MaterialInfo';
     function MaterialNode: TMaterialNode; deprecated 'use MaterialInfo';
 
@@ -105,7 +104,7 @@ type
       (which indicates white unlit look).
 
       Returned TMaterialInfo is valid only as long as the underlying
-      node (Material, TwoSidedMaterial, CommonSurfaceShader) exists.
+      node (TMaterialNode, TPhysicalMaterialNode, TUnlitMaterialNode, TCommonSurfaceShaderNode...) exists.
       Do not free it yourself, it will be automatically freed. }
     function MaterialInfo: TMaterialInfo;
 
@@ -250,7 +249,8 @@ type
         TShapeNode,
         TAbstractGeometryNode,
         TCoordinateNode (anything that can be inside TAbstractGeometryNode.CoordField),
-        TNormalNode (anything that can be inside TAbstractGeometryNode.CoordField),
+        TNormalNode (anything that can be inside TAbstractGeometryNode.NormalField),
+        TTangentNode (anything that can be inside TAbstractGeometryNode.TangentField),
         TColorNode, TColorRGBANode  (anything that can be inside TAbstractGeometryNode.ColorField),
         TMaterialNode (anything that can be in TShapeNode.Material),
         TTextureCoordinateNode and other stuff that can be inside TAbstractGeometryNode.InternalTexCoord,
@@ -580,14 +580,18 @@ type
     function Blending: boolean; deprecated 'use "AlphaChannel = acBlending"';
     function Transparent: boolean; deprecated 'use "AlphaChannel = acBlending"';
 
-    { Is shape visible, according to VRML Collision node rules.
-      Ths is simply a shortcut (with more obvious name) for
-      @code(State.InsideInvisible = 0). }
+    { Is the shape visible.
+      Most shapes are visible, except when placed in @link(TCollisionNode.Proxy)
+      (which allows to define invisible shapes, only for collision purposes). }
     function Visible: boolean;
 
-    { Is shape collidable, according to VRML Collision node rules.
-      Ths is simply a shortcut (with more obvious name) for
-      @code(State.InsideIgnoreCollision = 0). }
+    { Is the shape collidable.
+      Most shapes are collidable.
+      One exception is when @link(TShapeNode.Collision) is set to scNone,
+      which disables collisions.
+      Another exception is when the shape is placed inside @link(TCollisionNode) children,
+      and then you use @link(TCollisionNode.Enabled) to turn off collisions,
+      or @link(TCollisionNode.Proxy) to provide alternative geometry for collisions. }
     function Collidable: boolean;
 
     { Equivalent to using OctreeTriangles.RayCollision, except this
@@ -1421,6 +1425,9 @@ begin
     if (AGeometry.NormalField <> nil) and
        (AGeometry.NormalField.Value <> nil) then
       AssociateNode(AGeometry.NormalField.Value);
+    if (AGeometry.TangentField <> nil) and
+       (AGeometry.TangentField.Value <> nil) then
+      AssociateNode(AGeometry.TangentField.Value);
     if (AGeometry.TexCoordField <> nil) and
        (AGeometry.TexCoordField.Value <> nil) and
        { TODO: This workarounds assertion failure in UnAssociateNode
@@ -1473,6 +1480,9 @@ begin
     if (AGeometry.NormalField <> nil) and
        (AGeometry.NormalField.Value <> nil) then
       UnAssociateNode(AGeometry.NormalField.Value);
+    if (AGeometry.TangentField <> nil) and
+       (AGeometry.TangentField.Value <> nil) then
+      UnAssociateNode(AGeometry.TangentField.Value);
     if (AGeometry.TexCoordField <> nil) and
        (AGeometry.TexCoordField.Value <> nil) and
        (not (AGeometry.TexCoordField.Value is TMultiTextureCoordinateNode)) then
@@ -1877,7 +1887,7 @@ procedure TShape.Changed(const InactiveOnly: boolean;
          This is the case with glTF skinned animation. }
        not (
          (Node <> nil) and
-         (Node.Collision = scBox) and
+         (Node.Collision in [scBox, scNone]) and
          (not Node.BBox.IsEmpty)
        ) then
       FreeOctreeTriangles;
@@ -1917,7 +1927,8 @@ begin
   { When Proxy needs to be recalculated.
     Include chVisibleVRML1State, since even MaterialBinding may change VRML 1.0
     proxies. }
-  if Changes * [chCoordinate, chNormal, chVisibleVRML1State, chGeometryVRML1State,
+  if Changes * [chCoordinate, chNormal, chTangent,
+    chVisibleVRML1State, chGeometryVRML1State,
     chTextureCoordinate, chGeometry, chWireframe] <> [] then
     FreeProxy;
 
@@ -1939,7 +1950,7 @@ begin
   if Changes * [chBBox] <> [] then
   begin
     Validities := Validities - [svLocalBBox, svBBox];
-    if (Node <> nil) and (Node.Collision = scBox) then
+    if (Node <> nil) and (Node.Collision in [scBox, scNone]) then
       FreeOctreeTriangles; // bbox changed, so simple octree based on bbox also changed
   end;
 
@@ -2074,7 +2085,7 @@ function TShape.CreateTriangleOctree(
 begin
   Result := TTriangleOctree.Create(ALimits, LocalBoundingBox);
   try
-    if (Node <> nil) and (Node.Collision = scBox) then
+    if (Node <> nil) and (Node.Collision in [scBox, scNone]) then
     begin
       { Add 12 triangles for 6 cube (LocalBoundingBox) sides.
         No point in progress here, as this is always fast. }
@@ -2278,6 +2289,9 @@ end;
 function TShape.Collidable: boolean;
 begin
   Result := State.InsideIgnoreCollision = 0;
+  if (Node <> nil) and
+     (Node.Collision = scNone) then
+    Result := false;
 end;
 
 function TShape.RayCollision(

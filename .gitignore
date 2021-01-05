@@ -247,3 +247,4 @@ castle-game-engine-*.fpm
 /tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d
 /tools/texture-font-to-pascal/texture-font-to-pascal
 /tools/to-data-uri/to-data-uri
+/examples/advanced_editor/advanced_editor

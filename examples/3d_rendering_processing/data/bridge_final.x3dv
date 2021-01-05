@@ -50,9 +50,9 @@ KambiInline {
 
 
 # Add a teapot, with cubemap mirror.
-# This shows that generated cubemap textures work from scene_manager_demos
-# as well, and mirror shows all world obects (in scene manager,
-# not only in current vrml scene).
+# This shows that generated cubemap textures work from transform_scenes_demos
+# as well, and mirror shows all world obects (all in TCastleViewport,
+# not only in one TCastleScene).
 Transform {
   translation -10 -4 4
   children Shape {

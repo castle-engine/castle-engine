@@ -32,6 +32,7 @@
     procedure SetSpacing(const Value: Single);
     procedure SetAutoSizeWidth(const Value: Boolean);
     procedure SetAutoSizeHeight(const Value: Boolean);
+    procedure PackChildren;
   protected
     FPackingValid: boolean;
     procedure DoPackChildren(out InsideWidth, InsideHeight: Single); virtual; abstract;
@@ -43,6 +44,7 @@
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure BeforeRender; override;
     procedure Render; override;
     procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
       const ChangeInitiatedByChildren: boolean = false); override;
@@ -164,6 +166,14 @@ begin
   inherited;
 end;
 
+procedure TCastlePackedGroup.BeforeRender;
+begin
+  inherited;
+  { We prefer to pack inside PreferredSize, to set size early correctly.
+    But in case group has FullSize, the PreferredSize may never be called. }
+  PackChildren;
+end;
+
 procedure TCastlePackedGroup.Render;
 begin
   inherited;
@@ -171,16 +181,15 @@ begin
     Theme.Draw(RenderRect, tiGroup, UIScale, FrameColor);
 end;
 
+procedure TCastlePackedGroup.PackChildren;
+begin
+  if FPackingValid then Exit;
+  { setting this to true early also prevents recursively entering DoPackChildren. }
+  FPackingValid := true;
+  DoPackChildren(FInsideWidth, FInsideHeight);
+end;
+
 procedure TCastlePackedGroup.PreferredSize(var PreferredWidth, PreferredHeight: Single);
-
-  procedure PackChildren;
-  begin
-    if FPackingValid then Exit;
-    { setting this to true early also prevents recursively entering DoPackChildren. }
-    FPackingValid := true;
-    DoPackChildren(FInsideWidth, FInsideHeight);
-  end;
-
 begin
   inherited;
   PackChildren;

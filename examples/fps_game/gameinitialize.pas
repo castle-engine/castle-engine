@@ -27,7 +27,7 @@ uses SysUtils, Classes,
   CastleWindow, CastleLog, CastleConfig, CastleLevels,
   CastlePlayer, CastleSoundEngine, CastleProgress, CastleWindowProgress,
   CastleResources, CastleControls, CastleKeysMouse, CastleStringUtils,
-  CastleTransform, CastleFilesUtils, CastleGameNotifications, CastleWindowTouch,
+  CastleTransform, CastleFilesUtils, CastleGameNotifications,
   CastleVectors, CastleUIControls, CastleGLUtils, CastleViewport,
   CastleColors, CastleItems, CastleUtils, CastleCameras, CastleMaterialProperties,
   CastleCreatures, CastleRectangles, CastleImages, CastleApplicationProperties,
@@ -543,6 +543,8 @@ end;
 { Initialize the game.
   This is assigned to Application.OnInitialize, and will be called only once. }
 procedure ApplicationInitialize;
+var
+  TouchNavigation: TCastleTouchNavigation;
 begin
   { Turn on some engine optimizations not enabled by default.
     TODO: In the future they should be default, and these variables should be ignored.
@@ -562,7 +564,7 @@ begin
   { Load user preferences file.
     You can use it for your own user persistent data
     (preferences or savegames), see
-    https://castle-engine.io/tutorial_user_prefs.php . }
+    https://castle-engine.io/manual_user_prefs.php . }
   //UserConfig.Load;
 
   Viewport := TCastleViewport.Create(Application);
@@ -618,13 +620,16 @@ begin
   { Show progress bars on our Window. }
   Progress.UserInterface := WindowProgressInterface;
 
-(* TODO: TCastleWindowTouch is deprecated now.
-   Fixing this needs upgrading TCastleTouchNavigation to be easily added to Viewport.
-
   { Enable automatic navigation UI on touch devices. }
   //ApplicationProperties.TouchDevice := true; // use this to test touch behavior on desktop
-  Window.AutomaticTouchInterface := ApplicationProperties.TouchDevice;
-*)
+  if ApplicationProperties.TouchDevice then
+  begin
+    TouchNavigation := TCastleTouchNavigation.Create(Application);
+    TouchNavigation.AutoTouchInterface := true;
+    TouchNavigation.Viewport := Viewport;
+    TouchNavigation.FullSize := true;
+    Viewport.InsertFront(TouchNavigation);
+  end;
 
   { Allow player to drop items by "R" key. This shortcut is by default inactive
     (no key/mouse button correspond to it), because not all games may want
@@ -702,7 +707,7 @@ initialization
   ApplicationProperties.ApplicationName := 'fps_game';
 
   { Enable log.
-    See https://castle-engine.io/tutorial_log.php
+    See https://castle-engine.io/manual_log.php
     to know where it's going. }
   InitializeLog;
 

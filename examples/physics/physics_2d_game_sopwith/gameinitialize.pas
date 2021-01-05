@@ -253,7 +253,7 @@ procedure WindowUpdate(Container: TUIContainer);
 begin
   Status.Caption := Format(
     'FPS: %s' + LineEnding +
-    'Scene Manager Objects: %d' + LineEnding +
+    'Viewport Objects: %d' + LineEnding +
     'Click or drag with mouse to move the plane.', [
     Container.Fps.ToString,
     Viewport.Items.Count

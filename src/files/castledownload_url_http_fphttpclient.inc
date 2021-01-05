@@ -262,6 +262,16 @@ begin
     begin
       Success := false;
       ErrorMessage := Format('Error when downloading "%s": ', [URIDisplay(Url)]) + ExceptMessage(E);
+
+      {$if defined(VER3_2) and defined(DARWIN) and not defined(CASTLE_IOS)}
+      if (E is ESocketError) and (URIProtocol(Url) = 'https') then
+      begin
+        ErrorMessage += NL +
+          'Warning: Https downloading with FPC 3.2.0 on macOS is broken for many hosts.' + NL +
+          'Upgrade to FPC 3.3.1.' + NL +
+          'See https://bugs.freepascal.org/view.php?id=37747 , https://github.com/castle-engine/castle-engine/issues/184 .';
+      end;
+      {$endif}
     end;
   end;
 end;

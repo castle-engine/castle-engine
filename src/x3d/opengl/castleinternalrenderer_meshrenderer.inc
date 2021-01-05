@@ -381,6 +381,12 @@ begin
           CurrentMeshShader.AttributeCastle_Normal.EnableArrayVector3(Arrays.CoordinateSize, PtrUInt(Arrays.Normal));
           Attribs.Add(CurrentMeshShader.AttributeCastle_Normal);
         end;
+
+        if Arrays.HasTangent then
+        begin
+          CurrentMeshShader.AttributeCastle_Tangent.EnableArrayVector3(Arrays.CoordinateSize, PtrUInt(Arrays.Tangent));
+          Attribs.Add(CurrentMeshShader.AttributeCastle_Tangent);
+        end;
       end else
       begin
         { set fixed-function parameters }

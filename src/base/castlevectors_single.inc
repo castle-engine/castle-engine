@@ -92,6 +92,14 @@ function RotatePointAroundAxisDeg(const Angle: Single; const Point: TVector3; co
   deprecated 'use radians for everything throughout CGE';
 { @groupEnd }
 
+{ Rotate Point around the Axis by 90 degrees.
+  This is specialized and optimized version of RotatePointAroundAxisRad. }
+function RotatePointAroundAxis90(const Point: TVector3; const Axis: TVector3): TVector3;
+
+{ Rotate Point around the Axis by -90 degrees.
+  This is specialized and optimized version of RotatePointAroundAxisRad. }
+function RotatePointAroundAxisMinus90(const Point: TVector3; const Axis: TVector3): TVector3;
+
 { Rotate Point around the given axis by a given angle.
   Axis is specified in the first 3 components of AxisAngle,
   rotation angle (in radians) is specified in the last component of AxisAngle. }
@@ -278,10 +286,17 @@ procedure MakeVectorsAngleRadOnTheirPlane(var v1: TVector3;
   const ResultWhenParallel: TVector3); overload;
 { @groupEnd }
 
-{ Adjust the V1 vector to force V1 and V2 to be orthogonal.
+{ Adjust the V1 vector to force V1 and V2 to be orthogonal,
+  but keep the 3D plane determined by V1 and V2 unchanged.
   When vectors are parallel, we set V1 to be AnyOrthogonalVector(V2). }
-procedure MakeVectorsOrthoOnTheirPlane(var v1: TVector3;
-  const v2: TVector3); overload;
+procedure MakeVectorsOrthoOnTheirPlane(var v1: TVector3; const v2: TVector3); overload;
+
+{ Adjust and return the V1 vector to force V1 and V2 to be orthogonal,
+  but keep the 3D plane determined by V1 and V2 unchanged.
+  When vectors are parallel, we return AnyOrthogonalVector(V2).
+
+  This is a functional version of MakeVectorsOrthoOnTheirPlane. }
+function MakeVectorOrthogonal(const V1, V2: TVector3): TVector3;
 
 { Return, deterministically, some vector orthogonal to V.
   When V is non-zero, then the result is non-zero.
@@ -1029,6 +1044,74 @@ begin
                  + (CosAngle + (1 - CosAngle) * z * z)       * Point.Data[2];
 end;
 
+function RotatePointAroundAxis90(const Point: TVector3; const Axis: TVector3): TVector3;
+var
+  X, Y, Z, L: Single;
+begin
+  { Optimized version of RotatePointAroundAxisRad for Angle = Pi / 2,
+    so SinAngle = 1, CosAngle = 0. }
+
+  { normalize and decompose Axis vector }
+  L := Axis.Length;
+  if L <> 0 then
+  begin
+    L := 1 / L;
+    X := Axis.Data[0] * L;
+    Y := Axis.Data[1] * L;
+    Z := Axis.Data[2] * L;
+  end else
+  begin
+    WarningZeroVectorNonZeroAngle;
+    Exit(Point);
+  end;
+
+  Result.Data[0] := (    x * x) * Point.Data[0]
+                  + (x * y - z) * Point.Data[1]
+                  + (x * z + y) * Point.Data[2];
+
+  Result.Data[1] := (x * y + z) * Point.Data[0]
+                  + (    y * y) * Point.Data[1]
+                  + (y * z - x) * Point.Data[2];
+
+  Result.Data[2] := (x * z - y) * Point.Data[0]
+                  + (y * z + x) * Point.Data[1]
+                  + (    z * z) * Point.Data[2];
+end;
+
+function RotatePointAroundAxisMinus90(const Point: TVector3; const Axis: TVector3): TVector3;
+var
+  X, Y, Z, L: Single;
+begin
+  { Optimized version of RotatePointAroundAxisRad for Angle = -Pi / 2,
+    so SinAngle = -1, CosAngle = 0. }
+
+  { normalize and decompose Axis vector }
+  L := Axis.Length;
+  if L <> 0 then
+  begin
+    L := 1 / L;
+    X := Axis.Data[0] * L;
+    Y := Axis.Data[1] * L;
+    Z := Axis.Data[2] * L;
+  end else
+  begin
+    WarningZeroVectorNonZeroAngle;
+    Exit(Point);
+  end;
+
+  Result.Data[0] := (    x * x) * Point.Data[0]
+                  + (x * y + z) * Point.Data[1]
+                  + (x * z - y) * Point.Data[2];
+
+  Result.Data[1] := (x * y - z) * Point.Data[0]
+                  + (    y * y) * Point.Data[1]
+                  + (y * z + x) * Point.Data[2];
+
+  Result.Data[2] := (x * z + y) * Point.Data[0]
+                  + (y * z - x) * Point.Data[1]
+                  + (    z * z) * Point.Data[2];
+end;
+
 function RotatePointAroundAxis(const AxisAngle: TVector4; const Point: TVector3): TVector3;
 var
   Axis: TVector3 absolute AxisAngle;
@@ -1433,15 +1516,35 @@ begin
   v1len := v1.Length;
   rotAxis := TVector3.CrossProduct(V1, V2);
   if rotAxis.IsZero then
-    V1 := ResultWhenParallel else
+    V1 := ResultWhenParallel
+  else
     V1 := RotatePointAroundAxisRad(-AngleRad, v2, rotAxis).AdjustToLength(v1len);
+end;
+
+procedure MakeVectorsAngle90OnTheirPlane(var v1: TVector3;
+  const v2: TVector3; const ResultWhenParallel: TVector3);
+var
+  rotAxis: TVector3;
+  v1len: Single;
+begin
+  v1len := v1.Length;
+  rotAxis := TVector3.CrossProduct(V1, V2);
+  if rotAxis.IsZero then
+    V1 := ResultWhenParallel
+  else
+    V1 := RotatePointAroundAxisMinus90(v2, rotAxis).AdjustToLength(v1len);
 end;
 
 procedure MakeVectorsOrthoOnTheirPlane(var v1: TVector3; const v2: TVector3);
 begin
-  { TODO: can we speed this up ?
-    For Pi/2, the RotatePointAroundAxisRad can probably be speed up. }
-  MakeVectorsAngleRadOnTheirPlane(V1, V2, Pi / 2, AnyOrthogonalVector(V2));
+  MakeVectorsAngle90OnTheirPlane(V1, V2, AnyOrthogonalVector(V2));
+  // MakeVectorsAngleRadOnTheirPlane(V1, V2, Pi / 2, AnyOrthogonalVector(V2));
+end;
+
+function MakeVectorOrthogonal(const V1, V2: TVector3): TVector3;
+begin
+  Result := V1;
+  MakeVectorsOrthoOnTheirPlane(Result, V2);
 end;
 
 function AnyOrthogonalVector(const V: TVector3): TVector3;

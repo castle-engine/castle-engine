@@ -24,7 +24,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="${CASTLE_ENGINE_PATH}tools/build-tool/code"/>
+            <OtherUnitFiles Value="${CASTLE_ENGINE_PATH}tools/common-code"/>
             <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <Parsing>
@@ -116,7 +116,7 @@
         <PackageName Value="castle_editor_automatic_package"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="9">
+    <Units Count="11">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -148,9 +148,9 @@
         <UnitName Value="EditorUtils"/>
       </Unit4>
       <Unit5>
-        <Filename Value="${CASTLE_ENGINE_PATH}tools/build-tool/code/toolutils.pas"/>
+        <Filename Value="${CASTLE_ENGINE_PATH}tools/common-code/toolcommonutils.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="ToolUtils"/>
+        <UnitName Value="ToolCommonUtils"/>
       </Unit5>
       <Unit6>
         <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/formproject.pas"/>
@@ -169,13 +169,26 @@
         <UnitName Value="FrameDesign"/>
       </Unit7>
       <Unit8>
-        <Filename Value="formabout.pas"/>
+        <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/formabout.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="AboutForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="FormAbout"/>
       </Unit8>
+      <Unit9>
+        <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/formpreferences.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="PreferencesForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="FormPreferences"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/visualizetransform.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="VisualizeTransform"/>
+      </Unit10>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

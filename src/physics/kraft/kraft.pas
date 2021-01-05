@@ -120,6 +120,11 @@ unit kraft;
 {$booleval off}
 {$typeinfo on}
 
+{ Workaround FPC 3.3.1 revision 47824 compilation error }
+{$if defined(DARWIN) and defined(VER3_3)}
+  {$undef caninline}
+{$endif}
+
 {-$define UseMoreCollisionGroups}
 
 {$define UseTriangleMeshFullPerturbation}

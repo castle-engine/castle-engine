@@ -232,7 +232,7 @@ type
         @item(If your exporter doesn't rotate the world.
           (You can configure Blender exporter to behave like this.
           You may also then configure engine to use +Z as up vector for everything,
-          see "Which way is up?" on [https://castle-engine.io/tutorial_up.php].))
+          see "Which way is up?" on https://castle-engine.io/manual_up.php .))
       )
 
       In Blender it's useful to enable the "Display -> Wire" option for placeholder
@@ -503,7 +503,7 @@ type
 
   TLevelProperties = TAbstractLevel deprecated 'use TAbstractLevel';
 
-  { Scene manager that can comfortably load and manage a 3D game level.
+  { Viewport that can comfortably load and manage a 3D game level.
     It really adds only one new method to TCastleSceneManager:
     @link(LoadLevel), see it's documentation to know what it gives you.
     It also exposes @link(Logic) and @link(Info) properties

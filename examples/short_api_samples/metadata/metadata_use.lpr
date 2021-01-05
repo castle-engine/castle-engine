@@ -18,29 +18,35 @@ begin
   Transform := TTransformNode.Create;
   Root.AddChildren(Transform);
 
-  { Advised way: use properties
-    MetadataBoolean / MetadataString  / MetadataInteger / MetadataDouble.
+  { Use properties
+    MetadataBooleanArray / MetadataStringArray  / MetadataIntegerArray / MetadataDoubleArray.
     Think of each metadata, as a mapping from a unique key (string) ->
     to an array of booleans / strings / integers / doubles.
+
+    You can use even simpler
+    MetadataBoolean / MetadataString  / MetadataInteger / MetadataDouble
+    that get/set first item of the respective arrays,
+    which allows you to think that each metadata, is a mapping from a unique key (string) ->
+    one boolean / string / integer / double.
 
     Underneath, more complicated scenarios are possible, but if you only
     use these properties to get/set metadata, then it remains simple. }
 
-  Transform.MetadataBoolean['my_boolean_value', 0] := true;
-  Writeln('Got back Boolean: ', Transform.MetadataBoolean['my_boolean_value', 0]);
+  Transform.MetadataBoolean['my_boolean_value'] := true;
+  Writeln('Got back Boolean: ', Transform.MetadataBoolean['my_boolean_value']);
 
-  Transform.MetadataString['my_string_value', 0] := 'apple';
-  Transform.MetadataString['my_string_value', 2] := 'banana';
+  Transform.MetadataStringArray['my_string_value', 0] := 'apple';
+  Transform.MetadataStringArray['my_string_value', 2] := 'banana';
   StringCount := (Transform.FindMetadata('my_string_value') as TMetadataStringNode).FdValue.Count;
   Writeln('Got back String array Count ', StringCount);
   for I := 0 to StringCount - 1 do
-    Writeln('Got back String array[', I, ']: ', Transform.MetadataString['my_string_value', I]);
+    Writeln('Got back String array[', I, ']: ', Transform.MetadataStringArray['my_string_value', I]);
 
-  Transform.MetadataInteger['my_integer_value', 2] := 123;
-  Writeln('Got back Integer: ', Transform.MetadataInteger['my_integer_value', 2]);
+  Transform.MetadataIntegerArray['my_integer_value', 2] := 123;
+  Writeln('Got back Integer: ', Transform.MetadataIntegerArray['my_integer_value', 2]);
 
-  Transform.MetadataDouble['my_double_value', 0] := 123.456;
-  Writeln('Got back Double: ', Transform.MetadataDouble['my_double_value', 0]:1:6);
+  Transform.MetadataDouble['my_double_value'] := 123.456;
+  Writeln('Got back Double: ', Transform.MetadataDouble['my_double_value']:1:6);
 
   { More manual way (not advised) }
   MetadataString := TMetadataStringNode.Create;

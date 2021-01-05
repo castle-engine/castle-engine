@@ -25,16 +25,17 @@ using Lazarus (http://www.lazarus.freepascal.org/):
 
 The example code, as well as the data files in data/ subdirectory,
 are full of (hopefully) helpful comments :)
-You will probably want to read engine tutorial, see
-  https://castle-engine.io/tutorial_intro.php
-along with browsing this code. And the engine reference
-  https://castle-engine.io/apidoc/html/index.html
+You will probably want to read engine manual, see
+
+  https://castle-engine.io/manual_intro.php
+
+along with browsing this code. And the engine API reference
 should be helpful too.
 
 If you have any questions, see our website on
 https://castle-engine.io/
 and in particular our forum
-https://sourceforge.net/p/castle-engine/discussion/ .
+https://forum.castle-engine.io/ .
 
 ------------------------------------------------------------------------------
 Keys: move using AWSD or arrow keys, and you can activate "Mouse Look"

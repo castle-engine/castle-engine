@@ -370,7 +370,7 @@ type
     { TBackground instance to render current background. Current background
       is the top node on the BackgroundStack of this scene, following X3D
       specifications, and can be animated.
-      The scene manager should use this to render background.
+      The TCastleViewport should use this to render background.
 
       You should not access the background this way in your own code.
       This is public only because our own TCastleViewport needs to access it.

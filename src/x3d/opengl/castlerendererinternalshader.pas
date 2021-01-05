@@ -95,6 +95,7 @@ type
       Initializing them only once after linking allows the mesh renderer to go fast. }
     AttributeCastle_Vertex,
     AttributeCastle_Normal,
+    AttributeCastle_Tangent,
     AttributeCastle_ColorPerVertex,
     AttributeCastle_FogCoord: TGLSLAttribute;
 
@@ -1172,6 +1173,7 @@ begin
 
   AttributeCastle_Vertex         := AttributeOptional('castle_Vertex');
   AttributeCastle_Normal         := AttributeOptional('castle_Normal');
+  AttributeCastle_Tangent        := AttributeOptional('castle_Tangent');
   AttributeCastle_ColorPerVertex := AttributeOptional('castle_ColorPerVertex');
   AttributeCastle_FogCoord       := AttributeOptional('castle_FogCoord');
 end;
@@ -2720,6 +2722,7 @@ var
           end;
       end;
       case ColorPerVertexType of
+        ctNone: ;
         ctRgb:
           begin
             Define('COLOR_PER_VERTEX_RGB', stVertex);
@@ -2942,6 +2945,7 @@ begin
   if GammaCorrection then
     Define('CASTLE_GAMMA_CORRECTION', stFragment);
   case ToneMapping of
+    tmNone: ;
     tmUncharted:
       begin
         Define('CASTLE_TONE_MAPPING', stFragment);

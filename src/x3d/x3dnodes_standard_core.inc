@@ -30,14 +30,24 @@
   TAbstractNode = class(TX3DNode, IAbstractNode)
   strict private
     procedure InsertMetadata(const M: TAbstractMetadataNode);
-    function GetMetadataBoolean(const Key: String; const Index: Cardinal): Boolean;
-    procedure SetMetadataBoolean(const Key: String; const Index: Cardinal; const Value: Boolean);
-    function GetMetadataString(const Key: String; const Index: Cardinal): String;
-    procedure SetMetadataString(const Key: String; const Index: Cardinal; const Value: String);
-    function GetMetadataInteger(const Key: String; const Index: Cardinal): Integer;
-    procedure SetMetadataInteger(const Key: String; const Index: Cardinal; const Value: Integer);
-    function GetMetadataDouble(const Key: String; const Index: Cardinal): Double;
-    procedure SetMetadataDouble(const Key: String; const Index: Cardinal; const Value: Double);
+
+    function GetMetadataBooleanArray(const Key: String; const Index: Cardinal): Boolean;
+    procedure SetMetadataBooleanArray(const Key: String; const Index: Cardinal; const Value: Boolean);
+    function GetMetadataStringArray(const Key: String; const Index: Cardinal): String;
+    procedure SetMetadataStringArray(const Key: String; const Index: Cardinal; const Value: String);
+    function GetMetadataIntegerArray(const Key: String; const Index: Cardinal): Integer;
+    procedure SetMetadataIntegerArray(const Key: String; const Index: Cardinal; const Value: Integer);
+    function GetMetadataDoubleArray(const Key: String; const Index: Cardinal): Double;
+    procedure SetMetadataDoubleArray(const Key: String; const Index: Cardinal; const Value: Double);
+
+    function GetMetadataBoolean(const Key: String): Boolean;
+    procedure SetMetadataBoolean(const Key: String; const Value: Boolean);
+    function GetMetadataString(const Key: String): String;
+    procedure SetMetadataString(const Key: String; const Value: String);
+    function GetMetadataInteger(const Key: String): Integer;
+    procedure SetMetadataInteger(const Key: String; const Value: Integer);
+    function GetMetadataDouble(const Key: String): Double;
+    procedure SetMetadataDouble(const Key: String; const Value: Double);
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
 
@@ -62,14 +72,16 @@
       This property looks for a TMetadataBooleanNode node inside the "metadata" of this node
       using @link(FindMetadata).
       If found, it allows to operate @link(TMetadataBooleanNode.FdValue) array.
-      It gets/sets the appropriate items of this array.
+      The MetadataBooleanArray allows to get/set appropriate items of this array.
+      The MetadataBoolean simply gets/sets the first array item.
 
       If such metadata node is not found,
       or it's @link(TMetadataBooleanNode.FdValue) array is too short,
       this returns false.
       When setting, it adds such metadata node if necessary,
       and increases the @link(TMetadataBooleanNode.FdValue) array length if necessary. }
-    property MetadataBoolean[const Key: String; const Index: Cardinal]: Boolean read GetMetadataBoolean write SetMetadataBoolean;
+    property MetadataBoolean[const Key: String]: Boolean read GetMetadataBoolean write SetMetadataBoolean;
+    property MetadataBooleanArray[const Key: String; const Index: Cardinal]: Boolean read GetMetadataBooleanArray write SetMetadataBooleanArray;
 
     { Get/set metadata, identified by a given Key, as a String.
       "Metadata" is any value you want to save with this node, it has no effect on the rendering/behaviour.
@@ -78,14 +90,16 @@
       This property looks for a TMetadataStringNode node inside the "metadata" of this node
       using @link(FindMetadata).
       If found, it allows to operate @link(TMetadataStringNode.FdValue) array.
-      It gets/sets the appropriate items of this array.
+      The MetadataStringArray allows to get/set appropriate items of this array.
+      The MetadataString simply gets/sets the first array item.
 
       If such metadata node is not found,
       or it's @link(TMetadataStringNode.FdValue) array is too short,
       this returns ''.
       When setting, it adds such metadata node if necessary,
       and increases the @link(TMetadataStringNode.FdValue) array length if necessary. }
-    property MetadataString[const Key: String; const Index: Cardinal]: String read GetMetadataString write SetMetadataString;
+    property MetadataString[const Key: String]: String read GetMetadataString write SetMetadataString;
+    property MetadataStringArray[const Key: String; const Index: Cardinal]: String read GetMetadataStringArray write SetMetadataStringArray;
 
     { Get/set metadata, identified by a given Key, as a Integer.
       "Metadata" is any value you want to save with this node, it has no effect on the rendering/behaviour.
@@ -94,14 +108,16 @@
       This property looks for a TMetadataIntegerNode node inside the "metadata" of this node
       using @link(FindMetadata).
       If found, it allows to operate @link(TMetadataIntegerNode.FdValue) array.
-      It gets/sets the appropriate items of this array.
+      The MetadataIntegerArray allows to get/set appropriate items of this array.
+      The MetadataInteger simply gets/sets the first array item.
 
       If such metadata node is not found,
       or it's @link(TMetadataIntegerNode.FdValue) array is too short,
       this returns 0.
       When setting, it adds such metadata node if necessary,
       and increases the @link(TMetadataIntegerNode.FdValue) array length if necessary. }
-    property MetadataInteger[const Key: String; const Index: Cardinal]: Integer read GetMetadataInteger write SetMetadataInteger;
+    property MetadataInteger[const Key: String]: Integer read GetMetadataInteger write SetMetadataInteger;
+    property MetadataIntegerArray[const Key: String; const Index: Cardinal]: Integer read GetMetadataIntegerArray write SetMetadataIntegerArray;
 
     { Get/set metadata, identified by a given Key, as a Double.
       "Metadata" is any value you want to save with this node, it has no effect on the rendering/behaviour.
@@ -111,14 +127,16 @@
       node inside the "metadata" of this node  using @link(FindMetadata).
       If found, it allows to operate @link(TMetadataDoubleNode.FdValue) array
       or @link(TMetadataFloatNode.FdValue) array.
-      It gets/sets the appropriate items of this array.
+      The MetadataDoubleArray allows to get/set appropriate items of this array.
+      The MetadataDouble simply gets/sets the first array item.
 
       If such metadata node is not found,
       or it's @link(TMetadataDoubleNode.FdValue) array is too short,
       this returns 0.0.
       When setting, it adds such metadata node if necessary,
       and increases the @link(TMetadataDoubleNode.FdValue) array length if necessary. }
-    property MetadataDouble[const Key: String; const Index: Cardinal]: Double read GetMetadataDouble write SetMetadataDouble;
+    property MetadataDouble[const Key: String]: Double read GetMetadataDouble write SetMetadataDouble;
+    property MetadataDoubleArray[const Key: String; const Index: Cardinal]: Double read GetMetadataDoubleArray write SetMetadataDoubleArray;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dnode.inc}
   end;
@@ -368,7 +386,7 @@ begin
   {$endif}
 end;
 
-function TAbstractNode.GetMetadataBoolean(const Key: String; const Index: Cardinal): Boolean;
+function TAbstractNode.GetMetadataBooleanArray(const Key: String; const Index: Cardinal): Boolean;
 var
   M: TAbstractMetadataNode;
   MB: TMetadataBooleanNode;
@@ -384,7 +402,7 @@ begin
     Result := false;
 end;
 
-procedure TAbstractNode.SetMetadataBoolean(const Key: String; const Index: Cardinal; const Value: Boolean);
+procedure TAbstractNode.SetMetadataBooleanArray(const Key: String; const Index: Cardinal; const Value: Boolean);
 var
   M: TAbstractMetadataNode;
   MB: TMetadataBooleanNode;
@@ -409,7 +427,7 @@ begin
   MB.FdValue.Items[Index] := Value;
 end;
 
-function TAbstractNode.GetMetadataString(const Key: String; const Index: Cardinal): String;
+function TAbstractNode.GetMetadataStringArray(const Key: String; const Index: Cardinal): String;
 var
   M: TAbstractMetadataNode;
   MB: TMetadataStringNode;
@@ -425,7 +443,7 @@ begin
     Result := '';
 end;
 
-procedure TAbstractNode.SetMetadataString(const Key: String; const Index: Cardinal; const Value: String);
+procedure TAbstractNode.SetMetadataStringArray(const Key: String; const Index: Cardinal; const Value: String);
 var
   M: TAbstractMetadataNode;
   MB: TMetadataStringNode;
@@ -450,7 +468,7 @@ begin
   MB.FdValue.Items[Index] := Value;
 end;
 
-function TAbstractNode.GetMetadataInteger(const Key: String; const Index: Cardinal): Integer;
+function TAbstractNode.GetMetadataIntegerArray(const Key: String; const Index: Cardinal): Integer;
 var
   M: TAbstractMetadataNode;
   MB: TMetadataIntegerNode;
@@ -466,7 +484,7 @@ begin
     Result := 0;
 end;
 
-procedure TAbstractNode.SetMetadataInteger(const Key: String; const Index: Cardinal; const Value: Integer);
+procedure TAbstractNode.SetMetadataIntegerArray(const Key: String; const Index: Cardinal; const Value: Integer);
 var
   M: TAbstractMetadataNode;
   MB: TMetadataIntegerNode;
@@ -491,7 +509,7 @@ begin
   MB.FdValue.Items[Index] := Value;
 end;
 
-function TAbstractNode.GetMetadataDouble(const Key: String; const Index: Cardinal): Double;
+function TAbstractNode.GetMetadataDoubleArray(const Key: String; const Index: Cardinal): Double;
 var
   M: TAbstractMetadataNode;
   MF: TMetadataFloatNode;
@@ -516,7 +534,7 @@ begin
   end;
 end;
 
-procedure TAbstractNode.SetMetadataDouble(const Key: String; const Index: Cardinal; const Value: Double);
+procedure TAbstractNode.SetMetadataDoubleArray(const Key: String; const Index: Cardinal; const Value: Double);
 var
   M: TAbstractMetadataNode;
   MF: TMetadataFloatNode;
@@ -547,6 +565,46 @@ begin
       Key,
       M.X3DType
     ]);
+end;
+
+function TAbstractNode.GetMetadataBoolean(const Key: String): Boolean;
+begin
+  Result := MetadataBooleanArray[Key, 0];
+end;
+
+procedure TAbstractNode.SetMetadataBoolean(const Key: String; const Value: Boolean);
+begin
+  MetadataBooleanArray[Key, 0] := Value;
+end;
+
+function TAbstractNode.GetMetadataString(const Key: String): String;
+begin
+  Result := MetadataStringArray[Key, 0];
+end;
+
+procedure TAbstractNode.SetMetadataString(const Key: String; const Value: String);
+begin
+  MetadataStringArray[Key, 0] := Value;
+end;
+
+function TAbstractNode.GetMetadataInteger(const Key: String): Integer;
+begin
+  Result := MetadataIntegerArray[Key, 0];
+end;
+
+procedure TAbstractNode.SetMetadataInteger(const Key: String; const Value: Integer);
+begin
+  MetadataIntegerArray[Key, 0] := Value;
+end;
+
+function TAbstractNode.GetMetadataDouble(const Key: String): Double;
+begin
+  Result := MetadataDoubleArray[Key, 0];
+end;
+
+procedure TAbstractNode.SetMetadataDouble(const Key: String; const Value: Double);
+begin
+  MetadataDoubleArray[Key, 0] := Value;
 end;
 
 { TAbstractBindableNode ------------------------------------------------------ }

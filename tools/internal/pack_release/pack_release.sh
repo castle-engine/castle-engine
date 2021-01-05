@@ -104,7 +104,7 @@ do_pack_platform ()
   local OS="$1"
   local CPU="$2"
   shift 2
-  
+
   # restore CGE path, otherwise it points to a temporary (and no longer existing)
   # dir after one execution of do_pack_platform
   export CASTLE_ENGINE_PATH="${ORIGINAL_CASTLE_ENGINE_PATH}"
@@ -204,6 +204,11 @@ ORIGINAL_CASTLE_ENGINE_PATH="${CASTLE_ENGINE_PATH}"
 check_fpc_version
 prepare_build_tool
 calculate_cge_version
-do_pack_platform win64 x86_64
-do_pack_platform win32 i386
-do_pack_platform linux x86_64
+if [ -n "${1:-}" ]; then
+  do_pack_platform "${1}" "${2}"
+else
+  # build for default platforms (expected by Jenkinsfile)
+  do_pack_platform win64 x86_64
+  do_pack_platform win32 i386
+  do_pack_platform linux x86_64
+fi

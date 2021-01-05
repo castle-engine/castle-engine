@@ -1,17 +1,14 @@
-We use PasDoc http://pasdoc.sourceforge.net/ for API documentation.
+We use PasDoc https://github.com/pasdoc/pasdoc for API documentation.
 Michalis, an author of this engine, is also a PasDoc developer,
 so suggestions about PasDoc improvements are also welcome :)
 
-We use @section and @groupBegin / @groupEnd tags in our documentation,
-although they are not yet implemented in PasDoc.
-I plan to implement them one day, see
-http://pasdoc.sipsolutions.net/MichalisKamburelis
-
 We use PasDoc with --auto-abstract option. This is very handy,
-and it forces us (in a "good way") to write really good 1st sentence
-of every documentation comment. Do's and dont's:
+and it forces us (in a good way) to write really good 1st sentence
+of every documentation comment. Guidelines below can be summarized as
+"make the 1st sentence of every documentation really meaningful".
+Do's and dont's:
 
-- Do not start a sentence with "This..", in particular "This function does
+- Do not start a sentence with "This..", like "This function does
   the job of calculating the sensor." or "This returns the calculated sensor
   value." or "This causes sensor value to be calculated."
   or things like that. Usually, the clumsy "This..." part of the sentence
@@ -50,12 +47,18 @@ of every documentation comment. Do's and dont's:
   not at the unit description --- since the class is the actual item being
   described.
 
-  Unit's description should then contain a very short description of the class,
-  in plural form, and a link to the class. Like
-    { Scene manager (TKamSceneManager) and viewport (TKamViewport) classes. }
-  or
-   { OpenGL bitmap fonts (TGLBitmapFont). }
+  Unit's description should then contain a very short description of the class
+  and a link to the class. Like
+    { Viewport (TCastleViewport). }
 
-- Do not start every documentation string with "Simple..." or "Trivial...".
-  We have a lot of simple and trivial wrappers over something else,
-  and it gets tiresome when every comments mentions this :)
+- Do not start documentation string with "Simple..." or "Trivial...",
+  like "Simple function to calculate cosinus".
+  If it was worth including in the engine, then there's some value to it,
+  even if the implementation is trivial :)
+  Whether it has trivial or not trivial implementation,
+  is not of primary interest to the documentation reader.
+  The primary concern is "what it does".
+
+We use @groupBegin / @groupEnd tags in our documentation,
+although they are not yet implemented in PasDoc.
+See https://github.com/pasdoc/pasdoc/wiki/MichalisKamburelis -- they are planned.

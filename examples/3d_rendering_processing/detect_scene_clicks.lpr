@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Example how to use Viewport.MouseRayHit to detect clicks on
+{ Example how to use Viewport.TransformUnderMouse to detect clicks on
   a particular scene.
 
   Note that you could also look at Viewport.TriangleHit for details of
@@ -22,6 +22,10 @@
     PointingDeviceOverItem: PTriangle;
     PointingDeviceOverPoint: TVector3;
     PointingDeviceActive: boolean;
+
+  You can also take a look at Viewport.MouseRayHit, which contains all information.
+  The Viewport.TransformUnderMouse and Viewport.TriangleHit
+  and in fact just comfortable shortcuts that access Viewport.MouseRayHit underneath.
 
   Alternative way to capture clicks is to use TouchSensor X3D node
   (not shown in this example). }

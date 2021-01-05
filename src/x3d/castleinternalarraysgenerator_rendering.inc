@@ -280,6 +280,7 @@ begin
   end;
 
   Normals := (Geometry as TAbstractComposedGeometryNode).InternalNormal;
+  TangentsFromNode := (Geometry as TAbstractComposedGeometryNode).InternalTangent;
   NormalsCcw := (Geometry as TAbstractComposedGeometryNode).FdCcw.Value;
   if Normals <> nil then
   begin
@@ -424,6 +425,7 @@ begin
   end;
 
   Normals := (Geometry as TAbstractComposedGeometryNode).InternalNormal;
+  TangentsFromNode := (Geometry as TAbstractComposedGeometryNode).InternalTangent;
   NormalsCcw := (Geometry as TAbstractComposedGeometryNode).FdCcw.Value;
   if Normals <> nil then
   begin
@@ -640,6 +642,7 @@ begin
   end;
 
   Normals := (Geometry as TAbstractComposedGeometryNode).InternalNormal;
+  TangentsFromNode := (Geometry as TAbstractComposedGeometryNode).InternalTangent;
   NormalsCcw := (Geometry as TAbstractComposedGeometryNode).FdCcw.Value;
   if Normals <> nil then
   begin
@@ -836,6 +839,7 @@ begin
     we have quads now. }
 
   Normals := (Geometry as TAbstractComposedGeometryNode).InternalNormal;
+  TangentsFromNode := (Geometry as TAbstractComposedGeometryNode).InternalTangent;
   NormalsCcw := (Geometry as TAbstractComposedGeometryNode).FdCcw.Value;
   if Normals <> nil then
   begin

@@ -105,3 +105,8 @@ To get bounding box of a particular shape,
 enumerate @link(TCastleSceneCore.Shapes) to find the correct shape
 (using any criteria you want -- note that the same TShapeNode may be reused multiple times),
 and then read @link(TShape.BoundingBox), @link(TShape.LocalBoundingBox).
+
+# TAbstractComposedGeometryNode.SetTangent
+Tangent vectors describe the tangent coordinate-space, used by the bump mapping algorithm.
+If specified, the ordering of tangents should be the same as normals,
+i.e. they should follow the NormalPerVertex and such properties.
