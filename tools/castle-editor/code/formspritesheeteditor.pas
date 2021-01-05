@@ -679,8 +679,20 @@ begin
   IntfImage := nil;
   Bitmap := nil;
   try
-    // TODO:  better scaling alghoritm
-    ResizedFrameImage := Frame.MakeResized(CurrentFrameIconSize.X, CurrentFrameIconSize.Y);
+    { When frame is smaller than CurrentFrameIconSize do not resize frame }
+    if (Frame.FrameWidth = CurrentFrameIconSize.X) and
+      (Frame.FrameHeight = CurrentFrameIconSize.Y) then
+    begin
+      ResizedFrameImage := Frame.MakeCopy;
+    end else
+    if (Frame.FrameWidth < CurrentFrameIconSize.X) and
+      (Frame.FrameHeight < CurrentFrameIconSize.Y) then
+    begin
+      ResizedFrameImage := Frame.CenterOnBiggerImage(CurrentFrameIconSize.X,
+        CurrentFrameIconSize.Y);
+    end else
+      ResizedFrameImage := Frame.MakeResized(CurrentFrameIconSize.X,
+        CurrentFrameIconSize.Y);
 
     IntfImage := FrameImageToLazImage(ResizedFrameImage, CurrentFrameIconSize.X,
       CurrentFrameIconSize.Y);

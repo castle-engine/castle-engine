@@ -228,6 +228,8 @@ type
           SourceX, SourceY, SourceWidthToDraw, SourceHeightToDraw: Integer);
 
       function MakeResized(const Width, Height: Integer): TCastleImage;
+      function MakeCopy: TCastleImage;
+      function CenterOnBiggerImage(const Width, Height: Integer): TCastleImage;
 
       procedure SaveFrameImage(const URL: String);
 
@@ -891,6 +893,27 @@ function TCastleSpriteSheetFrame.MakeResized(const Width, Height: Integer
 begin
   Assert(FFrameImage <> nil, 'No frame image to resize.');
   Result := FFrameImage.MakeResized(Width, Height);
+end;
+
+function TCastleSpriteSheetFrame.MakeCopy: TCastleImage;
+begin
+  Assert(FFrameImage <> nil, 'No frame image to make copy.');
+  Result := FFrameImage.MakeCopy;
+end;
+
+function TCastleSpriteSheetFrame.CenterOnBiggerImage(const Width,
+  Height: Integer): TCastleImage;
+begin
+  if (FrameWidth > Width) or (FrameHeight > Height) then
+    raise Exception.Create('Frame image bigger than gived size');
+
+  Result := FFrameImage.MakeCopy;
+  Result.Clear(Vector4(0.0, 0.0, 0.0, 0.0));
+  Result.Resize(Width, Height, riNearest);
+
+  Result.DrawFrom(FFrameImage, (Width - FFrameImage.Width) div 2,
+    (Height - FFrameImage.Height) div 2, 0, 0, FFrameImage.Width,
+    FFrameImage.Height, dmOverwrite);
 end;
 
 procedure TCastleSpriteSheetFrame.SaveFrameImage(const URL: String);
