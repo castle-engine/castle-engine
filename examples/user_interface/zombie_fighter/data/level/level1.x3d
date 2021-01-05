@@ -29,7 +29,7 @@
 					<Shape>
 						<Appearance>
 							<ImageTexture DEF="IM_Female-Zombie-300px_png"
-							              url='"Female-Zombie-300px.png" "/home/michalis/sources/castle-engine/castle-engine/examples/2d_standard_ui/zombie_fighter/data/Female-Zombie-300px.png"'
+							              url='"../enemy_images/Female-Zombie-300px.png"'
 							              repeatS='false'
 							              repeatT='false'
 							              />
@@ -104,7 +104,7 @@
 					<Shape>
 						<Appearance>
 							<ImageTexture DEF="IM_Male-Zombie-300px_png"
-							              url='"Male-Zombie-300px.png" "/home/michalis/sources/castle-engine/castle-engine/examples/2d_standard_ui/zombie_fighter/data/Male-Zombie-300px.png"'
+                                                                      url='"../enemy_images/Male-Zombie-300px.png"'
 							              repeatS='false'
 							              repeatT='false'
 							              />

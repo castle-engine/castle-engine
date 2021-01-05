@@ -82,9 +82,9 @@ begin
   ButtonFight := UiOwner.FindRequiredComponent('ButtonFight') as TCastleButton;
 
   if Male then
-    ImageEnemy.URL := 'castle-data:/Male-Zombie-300px.png'
+    ImageEnemy.URL := 'castle-data:/enemy_images/Male-Zombie-300px.png'
   else
-    ImageEnemy.URL := 'castle-data:/Female-Zombie-300px.png';
+    ImageEnemy.URL := 'castle-data:/enemy_images/Female-Zombie-300px.png';
 
   ButtonRun.OnClick := @RunClick;
   ButtonFight.OnClick := @FightClick;

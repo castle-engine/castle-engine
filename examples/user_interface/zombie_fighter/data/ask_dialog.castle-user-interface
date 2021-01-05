@@ -26,7 +26,7 @@
       "$Children" : [
         {
           "Content" : {
-            "URL" : "castle-data:/Male-Zombie-300px.png",
+            "URL" : "castle-data:/enemy_images/Male-Zombie-300px.png",
             "$ClassName" : "TCastleImagePersistent"
           },
           "HorizontalAnchorParent" : "hpMiddle",
