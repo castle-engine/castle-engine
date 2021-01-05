@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2018 Michalis Kamburelis.
+  Copyright 2016-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,7 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ Initialize the game window and states. }
+{ Game initialization.
+  This unit is cross-platform.
+  It will be used by the platform-specific program or library file. }
 unit GameInitialize;
 
 interface
@@ -22,17 +24,16 @@ implementation
 
 uses SysUtils, Classes, CastleControls, CastleUtils, CastleFilesUtils,
   CastleColors, CastleUIControls, CastleUIState, CastleWindow,
-  CastleApplicationProperties,
-  GameStateMainMenu, GameStatePlay, GameStateAskDialog;
+  CastleApplicationProperties, CastleLog,
+  GameStateMainMenu, GameStateLoading, GameStatePlay, GameStateAskDialog;
 
 var
   Window: TCastleWindowBase;
 
 procedure ApplicationInitialize;
 begin
-  Window.Container.UIReferenceWidth := 1024;
-  Window.Container.UIReferenceHeight := 768;
-  Window.Container.UIScaling := usEncloseReferenceSize;
+  { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
+  Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
   { initialize first state }
   TUIState.Current := TStateMainMenu.CreateUntilStopped;
@@ -42,10 +43,19 @@ initialization
   { Set ApplicationName early, as our log uses it. }
   ApplicationProperties.ApplicationName := 'zombie_fighter';
 
-  Window := TCastleWindowBase.Create(Application);
+  { Start logging. Do this as early as possible,
+    to log information and eventual warnings during initialization.
 
-  Application.MainWindow := Window;
+    For programs, InitializeLog is not called here.
+    Instead InitializeLog is done by the program main file,
+    after command-line parameters are parsed. }
+  if IsLibrary then
+    InitializeLog;
+
   Application.OnInitialize := @ApplicationInitialize;
+
+  Window := TCastleWindowBase.Create(Application);
+  Application.MainWindow := Window;
 finalization
   TUIState.Current := nil;
 end.

@@ -24,8 +24,8 @@ type
   TStateMainMenu = class(TUIState)
   strict private
     ButtonNewGame, ButtonQuit: TCastleButton;
-    procedure NewGameClick(Sender: TObject);
-    procedure QuitClick(Sender: TObject);
+    procedure ClickNewGame(Sender: TObject);
+    procedure ClickQuit(Sender: TObject);
   public
     procedure Start; override;
   end;
@@ -55,19 +55,19 @@ begin
   ButtonQuit := UiOwner.FindRequiredComponent('ButtonQuit') as TCastleButton;
 
   { attach events }
-  ButtonNewGame.OnClick := @NewGameClick;
-  ButtonQuit.OnClick := @QuitClick;
+  ButtonNewGame.OnClick := @ClickNewGame;
+  ButtonQuit.OnClick := @ClickQuit;
 
   // on some platforms, showing "Quit" button is not standard
   ButtonQuit.Exists := ApplicationProperties.ShowUserInterfaceToQuit;
 end;
 
-procedure TStateMainMenu.NewGameClick(Sender: TObject);
+procedure TStateMainMenu.ClickNewGame(Sender: TObject);
 begin
   TUIState.Current := StateLoading;
 end;
 
-procedure TStateMainMenu.QuitClick(Sender: TObject);
+procedure TStateMainMenu.ClickQuit(Sender: TObject);
 begin
   Application.Terminate;
 end;

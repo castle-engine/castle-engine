@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2018 Michalis Kamburelis.
+  Copyright 2016-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,7 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ Initialize the game window and states. }
+{ Game initialization.
+  This unit is cross-platform.
+  It will be used by the platform-specific program or library file. }
 unit GameInitialize;
 
 interface
@@ -22,7 +24,7 @@ implementation
 
 uses SysUtils, Classes, CastleControls, CastleUtils, CastleFilesUtils,
   CastleColors, CastleUIControls, CastleUIState, CastleWindow,
-  CastleApplicationProperties,
+  CastleApplicationProperties, CastleLog,
   GameStateMainMenu, GameStateLoading, GameStatePlay, GameStateAskDialog;
 
 var
@@ -47,8 +49,17 @@ initialization
   { Set ApplicationName early, as our log uses it. }
   ApplicationProperties.ApplicationName := 'zombie_fighter';
 
-  Window := TCastleWindowBase.Create(Application);
+  { Start logging. Do this as early as possible,
+    to log information and eventual warnings during initialization.
 
-  Application.MainWindow := Window;
+    For programs, InitializeLog is not called here.
+    Instead InitializeLog is done by the program main file,
+    after command-line parameters are parsed. }
+  if IsLibrary then
+    InitializeLog;
+
   Application.OnInitialize := @ApplicationInitialize;
+
+  Window := TCastleWindowBase.Create(Application);
+  Application.MainWindow := Window;
 end.
