@@ -24,13 +24,7 @@ uses
   Classes, SysUtils,
   X3DNodes, CastleTiledMap, CastleVectors, CastleTransform, CastleColors;
 
-type
-  TRectList = record
-    Points: TVector2List;
-
-  end;
-
-function LoadTiledMap2d(const URL: string): TX3DRootNode;
+function LoadTiledMap2d(const URL: String): TX3DRootNode;
 
 implementation
 
@@ -46,7 +40,12 @@ var
   ObjPolyNode: TPolyline2DNode = nil; // Geometry node of a TiledObject primitive.
   ObjMaterial: TMaterialNode = nil;   // Material node of a TiledObject primitive.
   ObjShapeNode: TShapeNode = nil;     // Shape node of a TiledObject primitive.
-  HandleVector2List: TVector2List;    // Handle to free list.
+  ObjVector2List: TVector2List = nil; // Helper list.
+
+  function CalcObjLayerHeight: Cardinal;
+  begin
+    Result := Map.Height * Map.TileHeight;
+  end;
 
   function CreateAndPrepareTransformNode: TTransformNode;
   begin
@@ -55,14 +54,14 @@ var
       ObjLayer.Offset.Y + TiledObj.Position.Y, 0);
   end;
 
-  function CreateVectorListFromRect(const w, h: Single): TVector2List;
+  procedure CalcVectorListFromRect(var AVector2List: TVector2List;
+    const w, h: Single);
   begin
-    Result := TVector2List.Create;
-    Result.Add(Vector2(0, 0));
-    Result.Add(Vector2(w, 0));
-    Result.Add(Vector2(w, h));
-    Result.Add(Vector2(0, h));
-    Result.Add(Result.Items[0]);
+    AVector2List.Add(Vector2(0, 0));
+    AVector2List.Add(Vector2(w, 0));
+    AVector2List.Add(Vector2(w, h));
+    AVector2List.Add(Vector2(0, h));
+    AVector2List.Add(AVector2List.Items[0]);
   end;
 
 begin
@@ -74,10 +73,13 @@ begin
   ObjMaterial.EmissiveColor := GreenRGB;  // all TiledOnbjects are green
 
   { Object groups. }
+  ObjVector2List := TVector2List.Create;  // Helper list.
+
   for ObjLayer in Map.Layers do
   begin
     if (ObjLayer is TTiledMap.TObjectGroupLayer) and ObjLayer.Visible then
     begin
+      { TODO : Every object layer should have an own transform node! Implement! }
       for TiledObj in (ObjLayer as TTiledMap.TObjectGroupLayer).Objects do
       begin
         if TiledObj.Visible then
@@ -89,43 +91,52 @@ begin
           ObjPolyNode := TPolyline2DNode.CreateWithShape(ObjShapeNode);
           case TiledObj.Primitive of
             topPolyline:
-                ObjPolyNode.SetLineSegments(TiledObj.Points);
+              begin
+                ObjVector2List.Clear;
+                ObjVector2List.Assign(TiledObj.Points);
+                ObjPolyNode.SetLineSegments(ConvertYValues(ObjVector2List));
+              end;
             topPolygon:
               begin
-                { add point with index 0 to points list to get a closed polygon
-                 (simple solution, but dirty --> original Map data is modified)
-                 TODO : Implement cleaner solution. }
-                TiledObj.Points.Add(TiledObj.Points.Items[0]);
-                ObjPolyNode.SetLineSegments(TiledObj.Points);
+                ObjVector2List.Clear;
+                ObjVector2List.Assign(TiledObj.Points);
+                { add point with index 0 to points list to get a closed polygon }
+                ObjVector2List.Add(ObjVector2List.Items[0]);
+                ObjPolyNode.SetLineSegments(ConvertYValues(ObjVector2List));
               end;
             topRectangle:
               begin
-                HandleVector2List := CreateVectorListFromRect(TiledObj.Width,
+                ObjVector2List.Clear;
+                CalcVectorListFromRect(ObjVector2List, TiledObj.Width,
                   TiledObj.Height);
-                ObjPolyNode.SetLineSegments(HandleVector2List);
-                FreeAndNil(HandleVector2List);
+                ObjPolyNode.SetLineSegments(ConvertYValues(ObjVector2List));
               end;
             topPoint:
               begin
-                // A point is a rectangle with width and height of 1 unit.
-                HandleVector2List := CreateVectorListFromRect(1, 1);
-                ObjPolyNode.SetLineSegments(HandleVector2List);
-                FreeAndNil(HandleVector2List);
+                ObjVector2List.Clear;
+                CalcVectorListFromRect(ObjVector2List, 1, 1);
+                { A point is a rectangle with width and height of 1 unit. }
+                ObjPolyNode.SetLineSegments(ConvertYValues(ObjVector2List));
               end;
             // TODO: handle ellipse
           end;
           ObjShapeNode.Material := ObjMaterial;
           ObjTransformNode.AddChildren(ObjShapeNode);
+          { TODO : When object layer nodes are implemented, objects should be
+            added to them. The layer node should be added to root finally. }
           RootTransformNode.AddChildren(ObjTransformNode);
         end;
       end;
     end;
   end;
+  FreeAndNil(ObjVector2List);
+  RootTransformNode.Rotation := Vector4(1, 0, 0, Pi);  // rotate scene by 180 deg around x-axis
+
   Result := TX3DRootNode.Create;
   Result.AddChildren(RootTransformNode);
 end;
 
-function LoadTiledMap2d(const URL: string): TX3DRootNode;
+function LoadTiledMap2d(const URL: String): TX3DRootNode;
 var
   ATiledMap: TTiledMap;
 begin
