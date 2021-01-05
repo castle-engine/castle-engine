@@ -145,15 +145,15 @@ type
       TForceFileRegen = (ffgDoForceFileRegen, ffgDontForceFileRegen);
 
     const
-      MaxFrameSize = 256;
-      DefaultFrameSize = 128;
+      MaxFrameIconSize = 256;
+      DefaultFrameIconSize = 128;
 
     var
       FSpriteSheet: TCastleSpriteSheet;
       FPreviewScene: TCastleScene;
       FViewport: TCastleViewport;
       FWindowTitle: String;
-      FrameIconSize: TVector2Integer; // current frame size in list view
+      CurrentFrameIconSize: TVector2Integer; // current frame size in list view
 
     // Returns true if sprite sheet is closed
     function CloseSpriteSheet: Boolean;
@@ -680,10 +680,10 @@ begin
   Bitmap := nil;
   try
     // TODO:  better scaling alghoritm
-    ResizedFrameImage := Frame.MakeResized(FrameIconSize.X, FrameIconSize.Y);
+    ResizedFrameImage := Frame.MakeResized(CurrentFrameIconSize.X, CurrentFrameIconSize.Y);
 
-    IntfImage := FrameImageToLazImage(ResizedFrameImage, FrameIconSize.X,
-      FrameIconSize.Y);
+    IntfImage := FrameImageToLazImage(ResizedFrameImage, CurrentFrameIconSize.X,
+      CurrentFrameIconSize.Y);
 
     Bitmap := TBitmap.Create;
     Bitmap.LoadFromIntfImage(IntfImage);
@@ -712,16 +712,16 @@ var
 
     { ListView can have only one size of images so we need decide about size. }
 
-    FrameIconSize := Animation.GetBigestFrameSize(MaxFrameSize, MaxFrameSize);
+    CurrentFrameIconSize := Animation.GetBigestFrameSize(MaxFrameIconSize, MaxFrameIconSize);
 
-    if (FrameIconSize.X = 0) or (FrameIconSize.Y = 0) then
+    if (CurrentFrameIconSize.X = 0) or (CurrentFrameIconSize.Y = 0) then
     begin
-      FrameIconSize.X := DefaultFrameSize;
-      FrameIconSize.Y := DefaultFrameSize;
+      CurrentFrameIconSize.X := DefaultFrameIconSize;
+      CurrentFrameIconSize.Y := DefaultFrameIconSize;
     end;
 
-    ImageListFrames.Width := FrameIconSize.X;
-    ImageListFrames.Height := FrameIconSize.Y;
+    ImageListFrames.Width := CurrentFrameIconSize.X;
+    ImageListFrames.Height := CurrentFrameIconSize.Y;
   end;
 
 begin
@@ -1016,6 +1016,18 @@ procedure TSpriteSheetEditorForm.FrameAdded(NewFrame: TCastleSpriteSheetFrame);
 begin
   if NewFrame.Animation <> GetCurrentAnimation then
     Exit;
+
+  { When added frame is bigger than CurrentFrameIconSize but smaller than
+    MaxFrameIconSize we need reload all frames. }
+  if ((NewFrame.FrameWidth < MaxFrameIconSize) and
+     (NewFrame.FrameWidth > CurrentFrameIconSize.X)) or
+     ((NewFrame.FrameHeight < MaxFrameIconSize) and
+     (NewFrame.FrameHeight > CurrentFrameIconSize.Y)) then
+  begin
+    ClearFrames;
+    LoadFrames(NewFrame.Animation);
+    Exit;
+  end;
 
   { Add frame on last position }
   AddFrameToListView(NewFrame, NewFrame.Animation.FrameCount);
