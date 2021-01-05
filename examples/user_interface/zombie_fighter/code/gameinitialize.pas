@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2018 Michalis Kamburelis.
+  Copyright 2016-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,7 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ Initialize the game window and states. }
+{ Game initialization.
+  This unit is cross-platform.
+  It will be used by the platform-specific program or library file. }
 unit GameInitialize;
 
 interface
