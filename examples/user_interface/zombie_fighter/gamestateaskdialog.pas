@@ -18,17 +18,27 @@ unit GameStateAskDialog;
 
 interface
 
-uses Classes, CastleControls, CastleUIState;
+uses Classes,
+  CastleControls, CastleUIState, CastleUIControls;
 
 type
   TStateAskDialog = class(TUIState)
   strict private
     type
-      TZombieDialog = class(TCastleRectangleControl)
+      { Example of designing a custom TCastleUserInterface descendant,
+        which acts as reusable UI control.
+
+        Note: In this example, this is quite pointless.
+        You could (and should) just put the dialog inside
+        state_ask_dialog.castle-user-interface, and you don't need nested
+        class TZombieDialog! This is just a demo that you *could* design a reusable
+        UI component like this.
+
+        Other approach to have reusable UI is to use TCastleDesign to load one
+        design inside another. See examples/advanced_editor/ for demo. }
+      TZombieDialog = class(TCastleUserInterface)
       strict private
-        InsideRect: TCastleRectangleControl;
-        Image: TCastleImageControl;
-        LabelStats: TCastleLabel;
+        ImageEnemy: TCastleImageControl;
         ButtonRun, ButtonFight: TCastleButton;
         procedure RunClick(Sender: TObject);
         procedure FightClick(Sender: TObject);
@@ -36,8 +46,7 @@ type
         constructor Create(AOwner: TComponent; const Male: boolean); reintroduce;
       end;
     var
-    TransparentBackground: TCastleRectangleControl;
-    Dialog: TZombieDialog;
+      Dialog: TZombieDialog;
   public
     { Whether to show male image. Set before doing @link(Start). }
     Male: boolean;
@@ -49,63 +58,40 @@ var
 
 implementation
 
-uses CastleColors, CastleWindow, CastleUIControls, CastleFilesUtils,
-  CastleUtils, CastleVectors;
+uses CastleUtils, CastleVectors, CastleComponentSerialize;
 
 { TStateAskDialog.TZombieDialog ---------------------------------------------- }
 
 constructor TStateAskDialog.TZombieDialog.Create(AOwner: TComponent; const Male: boolean);
+var
+  UiOwner: TComponent;
+  Ui: TCastleUserInterface;
 begin
   inherited Create(AOwner);
 
-  Width := 400;
-  Height := 500;
-  Color := HexToColor('5f3939'); // equivalent: Vector4(95/255, 57/255, 57/255, 1.0);
+  // UiOwner is useful to keep reference to all components loaded from the design
+  UiOwner := TComponent.Create(Self);
 
-  InsideRect := TCastleRectangleControl.Create(Self);
-  InsideRect.Width := EffectiveWidth - 10;
-  InsideRect.Height := EffectiveHeight - 10;
-  InsideRect.Color := Silver;
-  InsideRect.Anchor(hpMiddle);
-  InsideRect.Anchor(vpMiddle);
-  InsertFront(InsideRect);
+  { Load designed user interface }
+  Ui := UserInterfaceLoad('castle-data:/ask_dialog.castle-user-interface', UiOwner);
+  InsertFront(Ui);
 
-  Image := TCastleImageControl.Create(Self);
+  { Find components, by name, that we need to access from code }
+  ImageEnemy := UiOwner.FindRequiredComponent('ImageEnemy') as TCastleImageControl;
+  ButtonRun := UiOwner.FindRequiredComponent('ButtonRun') as TCastleButton;
+  ButtonFight := UiOwner.FindRequiredComponent('ButtonFight') as TCastleButton;
+
   if Male then
-    Image.URL := 'castle-data:/Male-Zombie-300px.png'
+    ImageEnemy.URL := 'castle-data:/Male-Zombie-300px.png'
   else
-    Image.URL := 'castle-data:/Female-Zombie-300px.png';
-  Image.Anchor(hpMiddle);
-  Image.Anchor(vpTop, -10);
-  InsideRect.InsertFront(Image);
+    ImageEnemy.URL := 'castle-data:/Female-Zombie-300px.png';
 
-  LabelStats := TCastleLabel.Create(Self);
-  LabelStats.Color := Black;
-  LabelStats.Html := true;
-  { anything, just to show off the HTML :) }
-  LabelStats.Caption := 'Statistics:' + NL +
-    'Life: <font color="#ff0000">12%</font>' + NL +
-    'Stamina: <font color="#ffff00">34%</font>' + NL +
-    'Mana: <font color="#0000ff">56%</font>';
-  LabelStats.Anchor(hpMiddle);
-  LabelStats.Anchor(vpBottom, 100);
-  InsideRect.InsertFront(LabelStats);
-
-  ButtonRun := TCastleButton.Create(Self);
-  ButtonRun.Caption := 'Run';
-  ButtonRun.Anchor(hpLeft, 10);
-  ButtonRun.Anchor(vpBottom, 10);
-  ButtonRun.PaddingHorizontal := 40;
   ButtonRun.OnClick := @RunClick;
-  InsideRect.InsertFront(ButtonRun);
-
-  ButtonFight := TCastleButton.Create(Self);
-  ButtonFight.Caption := 'Fight';
-  ButtonFight.Anchor(hpRight, -10);
-  ButtonFight.Anchor(vpBottom, 10);
-  ButtonFight.PaddingHorizontal := 40;
   ButtonFight.OnClick := @FightClick;
-  InsideRect.InsertFront(ButtonFight);
+
+  { Set own size to be equal to designed dialog in ask_dialog.castle-user-interface,
+    that has explicit Width and Height set in editor. }
+  AutoSizeToChildren := true;
 end;
 
 procedure TStateAskDialog.TZombieDialog.RunClick(Sender: TObject);
@@ -125,6 +111,8 @@ end;
 { TStateAskDialog ------------------------------------------------------------ }
 
 procedure TStateAskDialog.Start;
+var
+  UiOwner: TComponent;
 begin
   inherited;
 
@@ -135,10 +123,8 @@ begin
     StatePlay.ButtonBack). }
   InterceptInput := true;
 
-  TransparentBackground := TCastleRectangleControl.Create(FreeAtStop);
-  TransparentBackground.Color := Vector4(0.1, 0.1, 0.1, 0.5);
-  TransparentBackground.FullSize := true;
-  InsertFront(TransparentBackground);
+  { Load designed user interface }
+  InsertUserInterface('castle-data:/state_ask_dialog.castle-user-interface', FreeAtStop, UiOwner);
 
   Dialog := TZombieDialog.Create(FreeAtStop, Male);
   Dialog.Anchor(hpMiddle);
