@@ -8392,7 +8392,7 @@ function TCastleSceneCore.PropertySection(
   const PropertyName: String): TPropertySection;
 begin
   case PropertyName of
-    'URL', 'ProcessEvents', 'AutoAnimation', 'AutoAnimationLoop', 'DefaultAnimationTransition':
+    'URL', 'ProcessEvents', 'AutoAnimation', 'AutoAnimationLoop', 'DefaultAnimationTransition', 'Spatial':
       Result := psBasic;
     else
       Result := inherited PropertySection(PropertyName);
