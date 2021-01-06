@@ -43,8 +43,9 @@ type
 
       FTestMode: TTestMode;
     procedure SetTestMode(const Value: TTestMode);
-    { Change SceneMovingXxx material color, to show whether it collides. }
-    procedure ShowMovingCollides(const Collides: Boolean);
+    { Update SceneMovingXxx material color, to show whether it collides,
+      following current FTestMode. }
+    procedure UpdateCollision;
     procedure ClickTestMove(Sender: TObject);
     procedure ClickTestBox(Sender: TObject);
     procedure ClickTestSphere(Sender: TObject);
@@ -107,29 +108,62 @@ begin
   SceneMovingSphere.Exists := FTestMode in [tmMove, tmSphere];
   SceneMovingRay.Exists := FTestMode = tmRay;
 
-  ShowMovingCollides(false);
+  UpdateCollision;
 end;
 
-procedure TStateMain.ShowMovingCollides(const Collides: Boolean);
+procedure TStateMain.UpdateCollision;
+
+  procedure ShowCollision(const Collides: Boolean);
+  var
+    Appearance: TAppearanceNode;
+    Mat: TPhysicalMaterialNode;
+  begin
+    case FTestMode of
+      tmMove, tmSphere:
+        Appearance := SceneMovingSphere.Node('MainMaterial') as TAppearanceNode;
+      tmBox:
+        Appearance := SceneMovingBox.Node('MainMaterial') as TAppearanceNode;
+      tmRay:
+        Appearance := SceneMovingRay.Node('MainMaterial') as TAppearanceNode;
+    end;
+    { Here we simply assume that material is TPhysicalMaterialNode, which means it is a PBR
+      material as e.g. designed in Blender and exported to glTF. }
+    Mat := Appearance.Material as TPhysicalMaterialNode;
+    if Collides then
+      Mat.BaseColor := Vector3(0.9, 0.1, 0.1) // reddish
+    else
+      Mat.BaseColor := Vector3(0.9, 0.9, 0.9); // almost white
+  end;
+
 var
-  Appearance: TAppearanceNode;
-  Mat: TPhysicalMaterialNode;
+  Box: TBox3D;
 begin
+  { Use TransformMoving.Disable so that WorldXxxCollision call doesn't
+    detect collisions with TransformMoving (so it only detects them with SceneLevel). }
+  TransformMoving.Disable;
+
   case FTestMode of
     tmMove, tmSphere:
-      Appearance := SceneMovingSphere.Node('MainMaterial') as TAppearanceNode;
+      begin
+        ShowCollision(MainViewport.Items.WorldSphereCollision(
+          TransformMoving.Translation, 0.5));
+      end;
     tmBox:
-      Appearance := SceneMovingBox.Node('MainMaterial') as TAppearanceNode;
+      begin
+        Box := Box3D(
+          Vector3(-0.5, -0.5, -0.5),
+          Vector3( 0.5,  0.5,  0.5)
+        ).Translate(TransformMoving.Translation);
+        ShowCollision(MainViewport.Items.WorldBoxCollision(Box));
+      end;
     tmRay:
-      Appearance := SceneMovingRay.Node('MainMaterial') as TAppearanceNode;
+      begin
+        ShowCollision(MainViewport.Items.WorldRayCast(
+          TransformMoving.Translation, Vector3(0, 0, -1)) <> nil);
+      end;
   end;
-  { Here we simply assume that material is TPhysicalMaterialNode, which means it is a PBR
-    material as e.g. designed in Blender and exported to glTF. }
-  Mat := Appearance.Material as TPhysicalMaterialNode;
-  if Collides then
-    Mat.BaseColor := Vector3(0.9, 0.1, 0.1) // reddish
-  else
-    Mat.BaseColor := Vector3(0.9, 0.9, 0.9); // almost white
+
+  TransformMoving.Enable;
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -137,7 +171,6 @@ const
   MoveSpeed = 4.0;
 var
   MoveVector: TVector3;
-  Box: TBox3D;
 begin
   inherited;
   { This virtual method is executed every frame.}
@@ -158,36 +191,18 @@ begin
     MoveVector := MoveVector + Vector3(0, -1, 0) * MoveSpeed * SecondsPassed;
 
   if not MoveVector.IsPerfectlyZero then
-    case FTestMode of
-      tmMove: TransformMoving.Move(MoveVector, false);
-      tmBox:
-        begin
-          TransformMoving.Translation := TransformMoving.Translation + MoveVector;
-          Box := Box3D(
-            Vector3(-0.5, -0.5, -0.5),
-            Vector3( 0.5,  0.5,  0.5)
-          ).Translate(TransformMoving.Translation);
-          TransformMoving.Disable; // do not detect collisions with TransformMoving, only detect with SceneLevel
-          ShowMovingCollides(MainViewport.Items.WorldBoxCollision(Box));
-          TransformMoving.Enable;
-        end;
-      tmSphere:
-        begin
-          TransformMoving.Translation := TransformMoving.Translation + MoveVector;
-          TransformMoving.Disable; // do not detect collisions with TransformMoving, only detect with SceneLevel
-          ShowMovingCollides(MainViewport.Items.WorldSphereCollision(
-            TransformMoving.Translation, 0.5));
-          TransformMoving.Enable;
-        end;
-      tmRay:
-        begin
-          TransformMoving.Translation := TransformMoving.Translation + MoveVector;
-          TransformMoving.Disable; // do not detect collisions with TransformMoving, only detect with SceneLevel
-          ShowMovingCollides(MainViewport.Items.WorldRayCast(
-            TransformMoving.Translation, Vector3(0, 0, -1)) <> nil);
-          TransformMoving.Enable;
-        end;
+  begin
+    if FTestMode = tmMove then
+    begin
+      // change TransformMoving.Translation only if possible
+      TransformMoving.Move(MoveVector, false)
+    end else
+    begin
+      // unconditionally change TransformMoving.Translation
+      TransformMoving.Translation := TransformMoving.Translation + MoveVector;
+      UpdateCollision;
     end;
+  end;
 end;
 
 procedure TStateMain.ClickTestMove(Sender: TObject);
