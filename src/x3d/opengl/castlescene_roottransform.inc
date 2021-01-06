@@ -76,6 +76,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    function PropertySection(const PropertyName: String): TPropertySection; override;
 
     { Determines the headlight look, if we use a headlight
       (which is determined by the algorithm described at @link(UseHeadlight) and
@@ -298,6 +299,16 @@ begin
     {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create(2018081902);
     {$endif}
+  end;
+end;
+
+function TCastleRootTransform.PropertySection(const PropertyName: String): TPropertySection;
+begin
+  case PropertyName of
+    'MainScene', 'UseHeadlight':
+      Result := psBasic;
+    else
+      Result := inherited PropertySection(PropertyName);
   end;
 end;
 
