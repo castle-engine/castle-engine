@@ -63,6 +63,10 @@
               ],
               "$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
+            "Spatial" : [
+              "ssRendering",
+              "ssDynamicCollisions"
+            ],
             "URL" : "castle-data:/level.gltf",
             "$Children" : [
             ],
@@ -71,7 +75,7 @@
           {
             "Name" : "TransformMoving",
             "TranslationPersistent" : {
-              "Y" : 5.0000000000000000E-001,
+              "Y" : 5.0999999046325684E-001,
               "$ClassName" : "TCastleVector3Persistent"
             },
             "$Children" : [
@@ -127,7 +131,7 @@
         ],
         "$ClassName" : "TCastleRootTransform"
       },
-      "Name" : "Viewport1",
+      "Name" : "MainViewport",
       "Navigation" : "ExamineNavigation1",
       "Transparent" : true,
       "$Children" : [

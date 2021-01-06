@@ -20,7 +20,7 @@ interface
 
 uses Classes,
   CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls,
-  CastleKeysMouse, CastleScene;
+  CastleKeysMouse, CastleScene, CastleTransform, CastleViewport;
 
 type
   { Main state, where most of the application logic takes place. }
@@ -31,6 +31,7 @@ type
     var
       { Components designed using CGE editor, loaded from state_main.castle-user-interface. }
       LabelFps: TCastleLabel;
+      TransformMoving: TCastleTransform;
       SceneMovingBox: TCastleScene;
       SceneMovingSphere: TCastleScene;
       SceneMovingRay: TCastleScene;
@@ -38,9 +39,12 @@ type
       ButtonTestBox: TCastleButton;
       ButtonTestSphere: TCastleButton;
       ButtonTestRay: TCastleButton;
+      MainViewport: TCastleViewport;
 
       FTestMode: TTestMode;
     procedure SetTestMode(const Value: TTestMode);
+    { Change SceneMovingXxx material color, to show whether it collides. }
+    procedure ShowMovingCollides(const Collides: Boolean);
     procedure ClickTestMove(Sender: TObject);
     procedure ClickTestBox(Sender: TObject);
     procedure ClickTestSphere(Sender: TObject);
@@ -56,7 +60,8 @@ var
 
 implementation
 
-uses SysUtils;
+uses SysUtils,
+  X3DNodes, CastleVectors, CastleBoxes;
 
 { TStateMain ----------------------------------------------------------------- }
 
@@ -71,6 +76,7 @@ begin
 
   { Find components, by name, that we need to access from code }
   LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
+  TransformMoving := UiOwner.FindRequiredComponent('TransformMoving') as TCastleTransform;
   SceneMovingBox := UiOwner.FindRequiredComponent('SceneMovingBox') as TCastleScene;
   SceneMovingSphere := UiOwner.FindRequiredComponent('SceneMovingSphere') as TCastleScene;
   SceneMovingRay := UiOwner.FindRequiredComponent('SceneMovingRay') as TCastleScene;
@@ -78,6 +84,7 @@ begin
   ButtonTestBox := UiOwner.FindRequiredComponent('ButtonTestBox') as TCastleButton;
   ButtonTestSphere := UiOwner.FindRequiredComponent('ButtonTestSphere') as TCastleButton;
   ButtonTestRay := UiOwner.FindRequiredComponent('ButtonTestRay') as TCastleButton;
+  MainViewport := UiOwner.FindRequiredComponent('MainViewport') as TCastleViewport;
 
   ButtonTestMove.OnClick := @ClickTestMove;
   ButtonTestBox.OnClick := @ClickTestBox;
@@ -99,13 +106,88 @@ begin
   SceneMovingBox.Exists := FTestMode = tmBox;
   SceneMovingSphere.Exists := FTestMode in [tmMove, tmSphere];
   SceneMovingRay.Exists := FTestMode = tmRay;
+
+  ShowMovingCollides(false);
+end;
+
+procedure TStateMain.ShowMovingCollides(const Collides: Boolean);
+var
+  Appearance: TAppearanceNode;
+  Mat: TPhysicalMaterialNode;
+begin
+  case FTestMode of
+    tmMove, tmSphere:
+      Appearance := SceneMovingSphere.Node('MainMaterial') as TAppearanceNode;
+    tmBox:
+      Appearance := SceneMovingBox.Node('MainMaterial') as TAppearanceNode;
+    tmRay:
+      Appearance := SceneMovingRay.Node('MainMaterial') as TAppearanceNode;
+  end;
+  { Here we simply assume that material is TPhysicalMaterialNode, which means it is a PBR
+    material as e.g. designed in Blender and exported to glTF. }
+  Mat := Appearance.Material as TPhysicalMaterialNode;
+  if Collides then
+    Mat.BaseColor := Vector3(0.9, 0.1, 0.1) // reddish
+  else
+    Mat.BaseColor := Vector3(0.9, 0.9, 0.9); // almost white
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
+const
+  MoveSpeed = 4.0;
+var
+  MoveVector: TVector3;
+  Box: TBox3D;
 begin
   inherited;
   { This virtual method is executed every frame.}
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
+
+  MoveVector := TVector3.Zero;
+  if Container.Pressed.Keys[KeyA] then
+    MoveVector := MoveVector + Vector3(-1, 0, 0) * MoveSpeed * SecondsPassed;
+  if Container.Pressed.Keys[KeyD] then
+    MoveVector := MoveVector + Vector3( 1, 0, 0) * MoveSpeed * SecondsPassed;
+  if Container.Pressed.Keys[KeyW] then
+    MoveVector := MoveVector + Vector3(0, 0, -1) * MoveSpeed * SecondsPassed;
+  if Container.Pressed.Keys[KeyS] then
+    MoveVector := MoveVector + Vector3(0, 0,  1) * MoveSpeed * SecondsPassed;
+  if Container.Pressed.Keys[KeyE] then
+    MoveVector := MoveVector + Vector3(0,  1, 0) * MoveSpeed * SecondsPassed;
+  if Container.Pressed.Keys[KeyQ] then
+    MoveVector := MoveVector + Vector3(0, -1, 0) * MoveSpeed * SecondsPassed;
+
+  if not MoveVector.IsPerfectlyZero then
+    case FTestMode of
+      tmMove: TransformMoving.Move(MoveVector, false);
+      tmBox:
+        begin
+          TransformMoving.Translation := TransformMoving.Translation + MoveVector;
+          Box := Box3D(
+            Vector3(-0.5, -0.5, -0.5),
+            Vector3( 0.5,  0.5,  0.5)
+          ).Translate(TransformMoving.Translation);
+          TransformMoving.Disable; // do not detect collisions with TransformMoving, only detect with SceneLevel
+          ShowMovingCollides(MainViewport.Items.WorldBoxCollision(Box));
+          TransformMoving.Enable;
+        end;
+      tmSphere:
+        begin
+          TransformMoving.Translation := TransformMoving.Translation + MoveVector;
+          TransformMoving.Disable; // do not detect collisions with TransformMoving, only detect with SceneLevel
+          ShowMovingCollides(MainViewport.Items.WorldSphereCollision(
+            TransformMoving.Translation, 0.5));
+          TransformMoving.Enable;
+        end;
+      tmRay:
+        begin
+          TransformMoving.Translation := TransformMoving.Translation + MoveVector;
+          TransformMoving.Disable; // do not detect collisions with TransformMoving, only detect with SceneLevel
+          ShowMovingCollides(MainViewport.Items.WorldRayCast(
+            TransformMoving.Translation, Vector3(0, 0, -1)) <> nil);
+          TransformMoving.Enable;
+        end;
+    end;
 end;
 
 procedure TStateMain.ClickTestMove(Sender: TObject);
@@ -132,14 +214,6 @@ function TStateMain.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
-
-  // TODO
-  case FTestMode of
-    tmMove: ;
-    tmBox: ;
-    tmSphere: ;
-    tmRay: ;
-  end;
 end;
 
 end.
