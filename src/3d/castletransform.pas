@@ -544,9 +544,17 @@ type
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; overload;
     { @groupEnd }
 
+    { Check collision with a line segment, that is: a line between 2 points in 3D. }
     function SegmentCollision(const Pos1, Pos2: TVector3;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
       const ALineOfSight: boolean): boolean;
+
+    { Check collision with a 3D sphere.
+
+      This only works precisely when TCastleTransform hierarchy has only uniform scaling,
+      i.e. scale is the same in all X, Y, Z axes.
+      Otherwise this is only an approximation (in case of non-uniform scale,
+      we just average it, and treat as uniform). }
     function SphereCollision(const Pos: TVector3; const Radius: Single;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
 
@@ -555,6 +563,11 @@ type
       Note that PointCollision2D and SphereCollision2D @italic(do not work
       reliably on objects that have 3D rotations). See @link(PointCollision2D)
       for details.
+
+      This only works precisely when TCastleTransform hierarchy has only uniform scaling,
+      i.e. scale is the same in all X, Y, Z axes.
+      Otherwise this is only an approximation (in case of non-uniform scale,
+      we just average it, and treat as uniform).
 
       @param(Details If non-nil, these are automatically filled with the details
         about the collision.
@@ -1605,10 +1618,13 @@ type
           that scales more in one direction.
 
           Non-uniform scale works, but some collisions are not perfectly
-          calculated then. (For example, an ideal sphere is no longer a sphere
-          when scaled in non-uniform fashion, and not everywhere do we
-          account for that.) Although it works Ok on meshes.
-          @link(ScaleOrientation) matters in case of non-uniform scale.
+          calculated then. Our current sphere collision routines
+          (@link(TCastleAbstractRootTransform.WorldSphereCollision),
+          @link(TCastleAbstractRootTransform.WorldSphereCollision2D))
+          do not account for non-uniform scale now (in case of non-uniform scale,
+          they are only approximations, as they use an average scale).
+
+          Note that @link(ScaleOrientation) matters only in case of non-uniform scale.
         )
 
         @item(All scale components should > 0 if you want 3D lighting

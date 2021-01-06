@@ -287,20 +287,33 @@ function TShapeOctreeNode.CommonSphereLeaf(const Pos: TVector3;
 var
   I: Integer;
   Shape: TShape;
+  { Using SAFE_COLLISIONS_SPHERE_AS_BOX means that sphere is actually transformed to a box.
+    This means that it collides as something more than it should.
+    OTOH, this accounts for non-uniform scale. }
+  {.$define SAFE_COLLISIONS_SPHERE_AS_BOX}
+  {$ifdef SAFE_COLLISIONS_SPHERE_AS_BOX}
   LocalBox: TBox3D;
+  {$else}
+  LocalPos: TVector3;
+  LocalRadius: Single;
+  {$endif}
 begin
-  { TODO: this is bad, as 1. we take box around the sphere,
-    and 2. we transform this box, making larger box.
-    This means that collision is done vs something larger than it should be. }
   Result := nil;
   for I := 0 to ItemsIndices.Count - 1 do
   begin
     Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
     try
+      {$ifdef SAFE_COLLISIONS_SPHERE_AS_BOX}
       LocalBox := BoundingBox3DFromSphere(Pos, Radius).Transform(
         Shape.State.Transformation.InverseTransform);
       Result := Shape.InternalOctreeTriangles.BoxCollision(
         LocalBox, TriangleToIgnore, TrianglesToIgnoreFunc);
+      {$else}
+      LocalPos := Shape.State.Transformation.InverseTransform.MultPoint(Pos);
+      LocalRadius := Radius / Shape.State.Transformation.Scale;
+      Result := Shape.InternalOctreeTriangles.SphereCollision(
+        LocalPos, LocalRadius, TriangleToIgnore, TrianglesToIgnoreFunc);
+      {$endif}
     except
       on ETransformedResultInvalid do Result := nil;
     end;
