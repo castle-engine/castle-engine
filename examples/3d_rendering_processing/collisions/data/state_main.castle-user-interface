@@ -73,6 +73,7 @@
             "$ClassName" : "TCastleScene"
           },
           {
+            "CollisionSphereRadius" : 5.0000000000000000E-001,
             "Name" : "TransformMoving",
             "TranslationPersistent" : {
               "Y" : 5.0999999046325684E-001,

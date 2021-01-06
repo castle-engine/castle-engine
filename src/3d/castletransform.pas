@@ -1264,30 +1264,46 @@ type
       with your own geometry), and checks collisions with the rest of the world. }
     function LineOfSight(const Pos1, Pos2: TVector3): boolean;
 
-    { Is the move from OldPos to ProposedNewPos possible for me.
+    { Is the move from OldPos to ProposedNewPos possible for this object.
       Returns true and sets NewPos if some move is allowed.
-      Overloaded version without ProposedNewPos doesn't do wall-sliding,
-      and only answers if exactly this move is allowed.
 
-      If this object allows to use sphere for collisions
-      (see @link(CollisionSphereRadius) and @link(Sphere)) then sphere will be used.
+      The NewPos may be different than ProposedNewPos,
+      which allows to perform wall-sliding.
+      Wall sliding will only work if collision sphere is defined,
+      which should be configured by setting CollisionSphereRadius to something non-zero.
+      Otherwise, the move uses only box collisions, and wall sliding doesn't happen.
 
-      This ignores the geometry of this 3D object (to not accidentaly collide
-      with your own geometry), and checks collisions with the rest of the world.
+      When checking collisions, it avoids colliding with itself,
+      so it only checks collisions with the rest of the world (things outside of this TCastleTransform).
 
       The given OldPos, ProposedNewPos, NewPos are in the parent
       coordinate system of this TCastleTransform.
-      Intuitively, you are asking "Can I do this without causing collision:
-      @code(Translation := Translation + TranslationChange)".
-      So this method is consistent with @link(Move), @link(Translate).
-
-      @groupBegin }
+      Intuitively, you are asking @italic("Can I change @link(Translation)
+      from OldPos to NewPos").
+      So this method is consistent with @link(Move), @link(Translate). }
     function MoveAllowed(const OldPos, ProposedNewPos: TVector3;
       out NewPos: TVector3;
       const BecauseOfGravity: boolean): boolean; overload;
+
+    { Is the move from OldPos to NewPos possible for this object.
+
+      This overloaded version of MoveAllowed doesn't do wall-sliding
+      (use the version with ProposedNewPos for wall-sliding).
+
+      If this object allows to use sphere for collisions
+      (see @link(CollisionSphereRadius) and @link(Sphere)) then sphere will be used.
+      Otherwise, it will collide as a bounding box.
+
+      When checking collisions, it avoids colliding with itself,
+      so it only checks collisions with the rest of the world (things outside of this TCastleTransform).
+
+      The given OldPos, NewPos are in the parent
+      coordinate system of this TCastleTransform.
+      Intuitively, you are asking @italic("Can I change @link(Translation)
+      from OldPos to NewPos").
+      So this method is consistent with @link(Move), @link(Translate). }
     function MoveAllowed(const OldPos, NewPos: TVector3;
       const BecauseOfGravity: boolean): boolean; overload;
-    { @groupEnd }
 
     { Cast a ray, see what is hit.
 
@@ -1367,11 +1383,6 @@ type
     function LocalToWorldDistance(const Distance: Single): Single;
     function WorldToLocalDistance(const Distance: Single): Single;
     { @groupEnd }
-
-    { When non-zero, we can approximate collisions with this object using a sphere
-      in certain situations (@link(MoveAllowed), @link(Gravity)).
-      This usually makes dynamic objects, like player and creatures, collide better. }
-    property CollisionSphereRadius: Single read FCollisionSphereRadius write FCollisionSphereRadius;
 
     { Gravity may make this object fall down (see FallSpeed)
       or grow up (see GrowSpeed). See also PreferredHeight.
@@ -1574,6 +1585,10 @@ type
 
       Checks move possibility by MoveAllowed, using @link(Middle) point.
       Actual move is done using @link(Translate).
+
+      Note that wall sliding will only work if collision sphere is defined,
+      which should be configured by setting CollisionSphereRadius to something non-zero.
+      Otherwise, the move uses only box collisions, and wall sliding doesn't happen.
 
       The provided TranslationChange should be a direction in the parent
       coordinate system of this TCastleTransform,
@@ -1902,6 +1917,11 @@ type
       @link(TCastleViewport.Statistics). }
     property ExcludeFromStatistics: boolean
       read FExcludeFromStatistics write FExcludeFromStatistics default false;
+
+    { When non-zero, we can approximate collisions with this object using a sphere
+      in certain situations (@link(MoveAllowed), @link(Gravity)).
+      This usually makes dynamic objects, like player and creatures, collide better. }
+    property CollisionSphereRadius: Single read FCollisionSphereRadius write FCollisionSphereRadius;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
