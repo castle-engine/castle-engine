@@ -79,6 +79,7 @@ uses CastleConfig, CastleLCLUtils, CastleURIUtils, CastleUtils,
 
 procedure TChooseProjectForm.Show;
 begin
+  // Special Show/Hide on Windows, to fix taskbar button visible on Windows
   {$ifdef MSWINDOWS}
   Application.ShowMainForm := True;
   {$else}
