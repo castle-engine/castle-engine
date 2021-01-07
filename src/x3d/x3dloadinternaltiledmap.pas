@@ -94,7 +94,7 @@ begin
               begin
                 ObjVector2List.Clear;
                 ObjVector2List.Assign(TiledObj.Points);
-                ObjPolyNode.SetLineSegments(ConvertYValues(ObjVector2List));
+                ObjPolyNode.SetLineSegments(ObjVector2List);
               end;
             topPolygon:
               begin
@@ -102,21 +102,21 @@ begin
                 ObjVector2List.Assign(TiledObj.Points);
                 { add point with index 0 to points list to get a closed polygon }
                 ObjVector2List.Add(ObjVector2List.Items[0]);
-                ObjPolyNode.SetLineSegments(ConvertYValues(ObjVector2List));
+                ObjPolyNode.SetLineSegments(ObjVector2List);
               end;
             topRectangle:
               begin
                 ObjVector2List.Clear;
                 CalcVectorListFromRect(ObjVector2List, TiledObj.Width,
                   TiledObj.Height);
-                ObjPolyNode.SetLineSegments(ConvertYValues(ObjVector2List));
+                ObjPolyNode.SetLineSegments(ObjVector2List);
               end;
             topPoint:
               begin
                 ObjVector2List.Clear;
                 CalcVectorListFromRect(ObjVector2List, 1, 1);
                 { A point is a rectangle with width and height of 1 unit. }
-                ObjPolyNode.SetLineSegments(ConvertYValues(ObjVector2List));
+                ObjPolyNode.SetLineSegments(ObjVector2List);
               end;
             // TODO: handle ellipse
           end;
