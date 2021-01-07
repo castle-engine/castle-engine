@@ -35,6 +35,7 @@ var
 
   { All variables related to TiledObjects. }
   ObjLayer: TTiledMap.TLayer;         // Object group layer of TiledMap.
+  ObjLayerTransformNode: TTransformNode; // Transform node of an object layer.
   TiledObj: TTiledMap.TTiledObject;   // A TiledObject.
   ObjTransformNode: TTransformNode;   // Transform node of a TiledObject primitive.
   ObjPolyNode: TPolyline2DNode = nil; // Geometry node of a TiledObject primitive.
@@ -79,7 +80,9 @@ begin
   begin
     if (ObjLayer is TTiledMap.TObjectGroupLayer) and ObjLayer.Visible then
     begin
-      { TODO : Every object layer should have an own transform node! Implement! }
+      { All TiledObjects of this layer are added to this layer node. }
+      ObjLayerTransformNode := TTransformNode.Create;
+
       for TiledObj in (ObjLayer as TTiledMap.TObjectGroupLayer).Objects do
       begin
         if TiledObj.Visible then
@@ -122,12 +125,11 @@ begin
           end;
           ObjShapeNode.Material := ObjMaterial;
           ObjTransformNode.AddChildren(ObjShapeNode);
-          { TODO : When object layer nodes are implemented, objects should be
-            added to them. The layer node should be added to root finally. }
-          RootTransformNode.AddChildren(ObjTransformNode);
+          ObjLayerTransformNode.AddChildren(ObjTransformNode);
         end;
       end;
     end;
+    RootTransformNode.AddChildren(ObjLayerTransformNode);
   end;
   FreeAndNil(ObjVector2List);
   RootTransformNode.Rotation := Vector4(1, 0, 0, Pi);  // rotate scene by 180 deg around x-axis
