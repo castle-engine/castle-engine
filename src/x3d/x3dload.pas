@@ -346,7 +346,7 @@ begin
     Result := LoadCocos2d(URL)
   else
 
-  if MimeType = 'text/xml' then
+  if MimeType = 'application/x-tiled-map' then
     Result := LoadTiledMap2d(URL)
   else
 
