@@ -551,10 +551,9 @@ type
 
     { Check collision with a 3D sphere.
 
-      This only works precisely when TCastleTransform hierarchy has only uniform scaling,
+      This works precisely when transformation hierarchy has uniform scaling,
       i.e. scale is the same in all X, Y, Z axes.
-      Otherwise this is only an approximation (in case of non-uniform scale,
-      we just average it, and treat as uniform). }
+      In case of non-uniform scaling, this is an approximation. }
     function SphereCollision(const Pos: TVector3; const Radius: Single;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
 
@@ -564,10 +563,9 @@ type
       reliably on objects that have 3D rotations). See @link(PointCollision2D)
       for details.
 
-      This only works precisely when TCastleTransform hierarchy has only uniform scaling,
+      This works precisely when transformation hierarchy has uniform scaling,
       i.e. scale is the same in all X, Y, Z axes.
-      Otherwise this is only an approximation (in case of non-uniform scale,
-      we just average it, and treat as uniform).
+      In case of non-uniform scaling, this is an approximation.
 
       @param(Details If non-nil, these are automatically filled with the details
         about the collision.
@@ -1633,11 +1631,10 @@ type
           that scales more in one direction.
 
           Non-uniform scale works, but some collisions are not perfectly
-          calculated then. Our current sphere collision routines
+          calculated then. In particular sphere collision routines
           (@link(TCastleAbstractRootTransform.WorldSphereCollision),
           @link(TCastleAbstractRootTransform.WorldSphereCollision2D))
-          do not account for non-uniform scale now (in case of non-uniform scale,
-          they are only approximations, as they use an average scale).
+          only do an approximation in case of non-uniform scale.
 
           Note that @link(ScaleOrientation) matters only in case of non-uniform scale.
         )
