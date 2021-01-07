@@ -892,11 +892,15 @@ begin
     begin
       Moving := true;
       A.Direction := RotatePointAroundAxisRad(-RotationSpeed * SecondsPassed, A.Direction, A.Up)
+      { TODO: when AimAvatar, this is overridden by UpdateAimAvatar soon.
+        In effect, keys AD don't work when AimAvatar <> aaNone. }
     end;
     if Input_LeftRotate.IsPressed(Container) then
     begin
       Moving := true;
       A.Direction := RotatePointAroundAxisRad(RotationSpeed * SecondsPassed, A.Direction, A.Up);
+      { TODO: when AimAvatar, this is overridden by UpdateAimAvatar soon.
+        In effect, keys AD don't work when AimAvatar <> aaNone. }
     end;
 
     if not T.IsPerfectlyZero then
