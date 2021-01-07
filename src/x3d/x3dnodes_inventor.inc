@@ -32,6 +32,9 @@
     But some invalid VRML 1.0 models use it,
     e.g. [http://www-vrl.umich.edu/sel_prj/EECS498/]. }
   TRotationXYZNode = class(TAbstractTransformationNode_1)
+  protected
+    procedure MiddleTraverse(StateStack: TX3DGraphTraverseStateStack); override;
+  public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -40,9 +43,6 @@
 
     strict private FFdAngle: TSFFloat;
     public property FdAngle: TSFFloat read FFdAngle;
-
-    procedure Transformation(out Matrix, InvertedMatrix: TMatrix4); override;
-    function TransformScale: Single; override;
   end;
 {$endif read_interface}
 
@@ -77,16 +77,13 @@ begin
   Result := 'RotationXYZ';
 end;
 
-procedure TRotationXYZNode.Transformation(
-  out Matrix, InvertedMatrix: TMatrix4);
+procedure TRotationXYZNode.MiddleTraverse(StateStack: TX3DGraphTraverseStateStack);
+var
+  RotationAxisAngle: TVector4;
 begin
-  RotationMatricesRad(FdAngle.Value, TVector3.One[FdAxis.Value],
-    Matrix, InvertedMatrix);
-end;
-
-function TRotationXYZNode.TransformScale: Single;
-begin
-  Result := 1;
+  inherited;
+  RotationAxisAngle := Vector4(TVector3.One[FdAxis.Value], FdAngle.Value);
+  StateStack.Top.Transformation.Multiply(RotationAxisAngle, Vector3(1, 1, 1), TVector3.Zero);
 end;
 
 procedure RegistedInventorNodes;
