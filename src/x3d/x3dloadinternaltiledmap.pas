@@ -69,10 +69,6 @@ begin
   { Root node for scene. }
   RootTransformNode := TTransformNode.Create;
 
-  { All TiledObjects share the same material node. }
-  ObjMaterial := TMaterialNode.Create;
-  ObjMaterial.EmissiveColor := GreenRGB;  // all TiledOnbjects are green
-
   { Object groups. }
   ObjVector2List := TVector2List.Create;  // Helper list.
 
@@ -80,8 +76,12 @@ begin
   begin
     if (ObjLayer is TTiledMap.TObjectGroupLayer) and ObjLayer.Visible then
     begin
-      { All TiledObjects of this layer are added to this layer node. }
+      { Every Object (Group) Layer has an individual node. }
       ObjLayerTransformNode := TTransformNode.Create;
+
+      { All TiledObjects of this layer share the same material node. }
+      ObjMaterial := TMaterialNode.Create;
+      ObjMaterial.EmissiveColor := ObjLayer.Color;
 
       for TiledObj in (ObjLayer as TTiledMap.TObjectGroupLayer).Objects do
       begin
