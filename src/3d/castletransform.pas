@@ -614,6 +614,7 @@ type
     function PointCollision2D(const Point: TVector2;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
 
+    { Check collision with axis-aligned box in 3D. }
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
 
@@ -628,7 +629,7 @@ type
       collidable or not. Instead, this looks at @link(Pickable) property
       (actually, at @link(GetPickable) method result).
 
-      This always returns the first collision with the 3D world, that is
+      This always returns the first collision with the world, that is
       the one with smallest TRayCollision.Distance. For example, when
       implemented in TCastleTransform, this checks collisions for all list items,
       and chooses the closest one. }
@@ -883,7 +884,7 @@ type
       have FrustumCullingInit already initialized).
 
       ParentTransform and ParentTransformIsIdentity describe the transformation
-      of this object in the 3D world.
+      of this object in the world.
       TCastleTransform objects may be organized in a hierarchy when
       parent transforms it's children. When ParentTransformIsIdentity,
       ParentTransform must be TMatrix4.Identity (it's not guaranteed
@@ -1234,7 +1235,7 @@ type
       collisions, or bounding box (@link(TCastleTransform.BoundingBox)), depending on need. }
     property CollidesWithMoving: boolean read FCollidesWithMoving write FCollidesWithMoving default false;
 
-    { Get height of my point above the rest of the 3D world.
+    { Get height of my point above the rest of the world.
 
       The given MyPosition, and returned AboveHeight, are in the parent
       coordinate system of this TCastleTransform.
@@ -1250,8 +1251,8 @@ type
       out AboveHeight: Single; out AboveGround: PTriangle): boolean; overload;
     { @groupEnd }
 
-    { Whether there is line of sight (the line segment does not collide with anything)
-      between these 2 points.
+    { Whether there is line of sight (the line segment does not collide with anything
+      opaque) between these 2 points.
 
       The given Pos1, Pos2 are in the parent
       coordinate system of this TCastleTransform.
@@ -1980,48 +1981,176 @@ type
       // Leave it be for now.
       // TODO: deprecated 'use CameraGravityUp after checking CameraKnown';
 
-    { Collisions with world. They call corresponding methods without the World
-      prefix, automatically taking into account some knowledge about this world.
+    { Is the move from OldPos to ProposedNewPos possible.
+      Returns true and sets NewPos if some move is allowed, thus allows for wall-sliding.
 
-      Calling these methods to check collisions makes sense if your
-      collision query is not initiated by any existing TCastleTransform instance.
+      This checks collisions with world
+      (everything inside this @link(TCastleAbstractRootTransform)).
+
+      This checks collision with all objects that have @link(Collides)
+      and @link(Exists) equal @true.
+      To be more exact, it checks @link(GetCollides) virtual method,
+      which by default returns @link(Collides) property and @link(GetExists),
+      and @link(GetExists) in turn by default checks @link(Exists) property
+      and whether the object is not between @link(Disable) and @link(Enable).
 
       If your query originates from some existing TCastleTransform instance,
-      you usually do not want to call these WorldXxx methods.
-      Instead call TCastleTransform.MoveAllowed, TCastleTransform.Height methods.
-      Underneath, they still call @code(World.WorldMoveAllowed) and
-      @code(World.WorldHeight),
-      additionally making sure that the object does not collide with itself.
-      @groupBegin }
+      you should prefer to instead use @link(TCastleTransform.MoveAllowed)
+      method, that automatically prevents "collisions with yourself".
+
+      @seealso TCastleTransform.MoveAllowed }
     function WorldMoveAllowed(
       const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const BecauseOfGravity: boolean): boolean; overload;
+
+    { Is the move from OldPos to NewPos possible.
+
+      This checks collisions with world
+      (everything inside this @link(TCastleAbstractRootTransform)).
+
+      This checks collision with all objects that have @link(Collides)
+      and @link(Exists) equal @true.
+      To be more exact, it checks @link(GetCollides) virtual method,
+      which by default returns @link(Collides) property and @link(GetExists),
+      and @link(GetExists) in turn by default checks @link(Exists) property
+      and whether the object is not between @link(Disable) and @link(Enable).
+
+      If your query originates from some existing TCastleTransform instance,
+      you should prefer to instead use @link(TCastleTransform.MoveAllowed)
+      method, that automatically prevents "collisions with yourself".
+
+      @seealso TCastleTransform.MoveAllowed }
     function WorldMoveAllowed(
       const OldPos, NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const BecauseOfGravity: boolean): boolean; overload;
+
+    { Get height of point APosition above the world.
+
+      This checks collisions with world
+      (everything inside this @link(TCastleAbstractRootTransform)).
+
+      This checks collision with all objects that have @link(Collides)
+      and @link(Exists) equal @true.
+      To be more exact, it checks @link(GetCollides) virtual method,
+      which by default returns @link(Collides) property and @link(GetExists),
+      and @link(GetExists) in turn by default checks @link(Exists) property
+      and whether the object is not between @link(Disable) and @link(Enable).
+
+      If your query originates from some existing TCastleTransform instance,
+      you should prefer to instead use @link(TCastleTransform.MoveAllowed)
+      method, that automatically prevents "collisions with yourself". }
     function WorldHeight(const APosition: TVector3;
       out AboveHeight: Single; out AboveGround: PTriangle): boolean;
+
+    { Check that the line segment between 2 points that not collide with anything
+      (that has opaque material).
+
+      This checks collisions with world
+      (everything inside this @link(TCastleAbstractRootTransform)).
+
+      This checks collision with all objects that have @link(Collides)
+      and @link(Exists) equal @true.
+      To be more exact, it checks @link(GetCollides) virtual method,
+      which by default returns @link(Collides) property and @link(GetExists),
+      and @link(GetExists) in turn by default checks @link(Exists) property
+      and whether the object is not between @link(Disable) and @link(Enable). }
     function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean;
+
+    { What is hit by this ray.
+
+      This checks collisions with world
+      (everything inside this @link(TCastleAbstractRootTransform)).
+
+      This checks collision with all objects that have @link(Collides)
+      and @link(Exists) equal @true.
+      To be more exact, it checks @link(GetCollides) virtual method,
+      which by default returns @link(Collides) property and @link(GetExists),
+      and @link(GetExists) in turn by default checks @link(Exists) property
+      and whether the object is not between @link(Disable) and @link(Enable). }
     function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision;
+
     { What is hit by this ray.
       Returns the TCastleTransform that is hit (this is the "leaf" TCastleTransform
       in the TCastleTransform tree that is hit)
       and a distance from RayOrigin to the hit point.
       Returns @nil (Distance is undefined in this case) if nothing was hit.
-      Use @link(WorldRay) for a more advanced version of this, with more complicated result. }
+      Use @link(WorldRay) for a more advanced version of this, with more complicated result.
+      @groupBegin }
     function WorldRayCast(const RayOrigin, RayDirection: TVector3; out Distance: Single): TCastleTransform;
     function WorldRayCast(const RayOrigin, RayDirection: TVector3): TCastleTransform;
+    { @groupEnd }
+
+    { Check whether something collides with axis-aligned box in 3D.
+
+      This checks collisions with world
+      (everything inside this @link(TCastleAbstractRootTransform)).
+
+      This checks collision with all objects that have @link(Collides)
+      and @link(Exists) equal @true.
+      To be more exact, it checks @link(GetCollides) virtual method,
+      which by default returns @link(Collides) property and @link(GetExists),
+      and @link(GetExists) in turn by default checks @link(Exists) property
+      and whether the object is not between @link(Disable) and @link(Enable). }
     function WorldBoxCollision(const Box: TBox3D): boolean;
+
+    { Check whether something collides with a line segment.
+
+      This checks collisions with world
+      (everything inside this @link(TCastleAbstractRootTransform)).
+
+      This checks collision with all objects that have @link(Collides)
+      and @link(Exists) equal @true.
+      To be more exact, it checks @link(GetCollides) virtual method,
+      which by default returns @link(Collides) property and @link(GetExists),
+      and @link(GetExists) in turn by default checks @link(Exists) property
+      and whether the object is not between @link(Disable) and @link(Enable). }
     function WorldSegmentCollision(const Pos1, Pos2: TVector3): boolean;
+
+    { Check whether something collides with a sphere.
+
+      This checks collisions with world
+      (everything inside this @link(TCastleAbstractRootTransform)).
+
+      This checks collision with all objects that have @link(Collides)
+      and @link(Exists) equal @true.
+      To be more exact, it checks @link(GetCollides) virtual method,
+      which by default returns @link(Collides) property and @link(GetExists),
+      and @link(GetExists) in turn by default checks @link(Exists) property
+      and whether the object is not between @link(Disable) and @link(Enable). }
     function WorldSphereCollision(const Pos: TVector3; const Radius: Single): boolean;
+
+    { Check whether something collides with a sphere in 2D
+      (a circle, extruded to infinity along the Z axis).
+
+      This checks collisions with world
+      (everything inside this @link(TCastleAbstractRootTransform)).
+
+      This checks collision with all objects that have @link(Collides)
+      and @link(Exists) equal @true.
+      To be more exact, it checks @link(GetCollides) virtual method,
+      which by default returns @link(Collides) property and @link(GetExists),
+      and @link(GetExists) in turn by default checks @link(Exists) property
+      and whether the object is not between @link(Disable) and @link(Enable). }
     function WorldSphereCollision2D(const Pos: TVector2; const Radius: Single;
       const Details: TCollisionDetails = nil): boolean;
+
+    { Check whether something collides with a point in 2D
+      (which is an infinite line along the Z axis in 3D).
+
+      This checks collisions with world
+      (everything inside this @link(TCastleAbstractRootTransform)).
+
+      This checks collision with all objects that have @link(Collides)
+      and @link(Exists) equal @true.
+      To be more exact, it checks @link(GetCollides) virtual method,
+      which by default returns @link(Collides) property and @link(GetExists),
+      and @link(GetExists) in turn by default checks @link(Exists) property
+      and whether the object is not between @link(Disable) and @link(Enable). }
     function WorldPointCollision2D(const Point: TVector2): boolean;
-    { @groupEnd }
 
     { Camera position, direction, up and gravity up vectors.
       Expressed in the coordinate space of this TCastleAbstractRootTransform,
