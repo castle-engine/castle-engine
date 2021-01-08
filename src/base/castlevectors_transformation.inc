@@ -37,6 +37,10 @@ type
       causes non-uniform scaling, this value represents an average scale. }
     Scale: Single;
 
+    { Is the underlying scale uniform (which means that @link(Scale)
+      accurately represents the scaling, is not only approximate). }
+    UniformScale: Boolean;
+
     { Make no transformation (identity matrix, scale 1). }
     procedure Init;
 
@@ -64,6 +68,16 @@ type
       const ScaleVector: TVector3;
       const Translation: TVector3); overload;
 
+    { Modify transformation by an additional transformation matrix.
+      Using this is @bold(very discouraged), as we need to extract some information
+      from matrix (like scale) which is inherently inefficient (if we would use MatrixDecompose
+      instead of faster, but less correct, Approximate3DScale)
+      and/or not precise (cannot with work arbitrary matrix).
+
+      Use the @link(Multiply) instead to provide separate translation,
+      rotation etc. vectors. }
+    procedure MultiplyMatrix(const Matrix: TMatrix4);
+
     { Modify transformation by an additional translation. }
     procedure Translate(const Translation: TVector3);
   end;
@@ -84,6 +98,7 @@ begin
   Transform := TMatrix4.Identity;
   InverseTransform := TMatrix4.Identity;
   Scale := 1;
+  UniformScale := true;
 end;
 
 procedure TTransformation.Translate(const Translation: TVector3);
@@ -149,6 +164,9 @@ begin
     end;
 
     Scale := Scale * Approximate3DScale(ScaleVector);
+    UniformScale := UniformScale and
+      (ScaleVector.Data[0] = ScaleVector.Data[1]) and
+      (ScaleVector.Data[1] = ScaleVector.Data[2]);
   end;
 
   MultMatricesTranslation(Transform, InverseTransform, -Center);
@@ -193,7 +211,36 @@ begin
     InverseTransform := IM * InverseTransform;
 
     Scale := Scale * Approximate3DScale(ScaleVector);
+    UniformScale := UniformScale and
+      (ScaleVector.Data[0] = ScaleVector.Data[1]) and
+      (ScaleVector.Data[1] = ScaleVector.Data[2]);
   end;
+end;
+
+procedure TTransformation.MultiplyMatrix(const Matrix: TMatrix4);
+var
+  InvertedMatrix: TMatrix4;
+  MatrixScale: Single;
+  MatrixUniformScale: Boolean;
+begin
+  Transform := Transform * Matrix;
+
+  if TryInverseHarder(Matrix, InvertedMatrix) then
+  begin
+    InverseTransform := InvertedMatrix * InverseTransform;
+  end else
+  begin
+    WritelnLogMultiline('Matrix',
+      'Cannot invert matrix:' + NL + Matrix.ToRawString('  '));
+
+    { When determinant is zero, we treat inverted matrix
+      like identity (like in TMatrixTransformNode_1.Transformation).
+      So no need to multiply InverseTransform by anything. }
+  end;
+
+  MatrixScale := Approximate3DScale(Matrix, MatrixUniformScale);
+  Scale := Scale * MatrixScale;
+  UniformScale := UniformScale and MatrixUniformScale;
 end;
 
 {$endif read_implementation}

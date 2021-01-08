@@ -723,10 +723,18 @@ function RotatePoint2D(const Point: TVector2; const AngleRad: Single): TVector2;
   secures in case some of X, Y, Z are negative and some are positive
   (like scale (-1, 1), common in 2D to flip horizontally).
 
+  The overloaded version with matrix argument
+  makes a fast (not always correct) extraction of scale from matrix.
+  It does simple extraction and works for identity,
+  translation and scaling matrices.
+  It fails (returns incorrect values) when looking at some rotation matrices.
+  Use MatrixDecompose instead to have a full-blown, but slower, solution.
+
   @groupBegin }
 function Approximate3DScale(const X, Y, Z: Single): Single; overload;
 function Approximate3DScale(const V: TVector3): Single; overload;
 function Approximate3DScale(const M: TMatrix4): Single; overload;
+function Approximate3DScale(const M: TMatrix4; out UniformScale: Boolean): Single; overload;
 
 function Approximate2DScale(const X, Y: Single): Single; overload;
 function Approximate2DScale(const V: TVector2): Single; overload;
@@ -2737,16 +2745,26 @@ begin
   Result := Approximate3DScale(V.Data[0], V.Data[1], V.Data[2]);
 end;
 
-function Approximate3DScale(const M: TMatrix4): Single;
+function Approximate3DScale(const M: TMatrix4; out UniformScale: Boolean): Single;
+var
+  X, Y, Z: Single;
 begin
-  Result := Approximate3DScale(
-    { This is a simple method of extracting average scaling factor from a matrix.
-      Works OK for combination of scaling, translation matrices.
-      Will fail on rotation (and possibly many other) matrices. }
-    M.Data[0, 0],
-    M.Data[1, 1],
-    M.Data[2, 2]
-  );
+  { This is a simple method of extracting average scaling factor from a matrix.
+    Works OK for combination of scaling, translation matrices.
+    Will fail on rotation (and possibly many other) matrices. }
+  X := M.Data[0, 0];
+  Y := M.Data[1, 1];
+  Z := M.Data[2, 2];
+
+  Result := Approximate3DScale(X, Y, Z);
+  UniformScale := (X = Y) and (Y = Z);
+end;
+
+function Approximate3DScale(const M: TMatrix4): Single;
+var
+  IgnoreUniformScale: Boolean;
+begin
+  Result := Approximate3DScale(M, IgnoreUniformScale);
 end;
 
 function Approximate2DScale(const X, Y: Single): Single;

@@ -1961,7 +1961,7 @@ const
 var
   Sel: TComponent;
   UI: TCastleUserInterface;
-  SenderRowName, SenderRowValue, SenderRowDescription: String;
+  SenderRowName, SenderRowValue, UndoDescription: String;
 begin
   { Workaround possible ControlsTree.Selected = nil when the user deselects
     the currently edited component by clicking somewhere else.
@@ -1997,22 +1997,30 @@ begin
     end;
   end;
 
+  { When UndoSystem.ScheduleRecordUndoOnRelease we ignore changes,
+    otherwise we would record an undo for every OnMotion of dragging. }
   if not UndoSystem.ScheduleRecordUndoOnRelease then
   begin
-    { here we have PropertyGridModified conflict with Schedule Record Undo OnRelease
-      So we should ignore changes to PropertyGrid in case the change is caused
-      by dragging, otherwise we'll record an undo for every OnMotion of dragging }
+    { Sel may be nil in case multiple components change at once,
+      testcase: select multiple TCastleButton at once and change Toggle property. }
+    if Sel <> nil then
+      UndoDescription := 'Change ' + Sel.Name
+    else
+      UndoDescription := 'Change ';
+
     if Sender is TOICustomPropertyGrid then
     begin
       SenderRowName := TOICustomPropertyGrid(Sender).GetActiveRow.Name;
       SenderRowValue := TOICustomPropertyGrid(Sender).CurrentEditValue;
       if CharsPos(UnreadableChars, SenderRowValue) = 0 then
-        SenderRowDescription := 'Change ' + Sel.Name + '.' + SenderRowName + ' to ' + SenderRowValue
+        UndoDescription := UndoDescription + '.' + SenderRowName + ' to ' + SenderRowValue
       else
-        SenderRowDescription := 'Change ' + Sel.Name + '.' + SenderRowName;
-      RecordUndo(SenderRowDescription, ucHigh, TOICustomPropertyGrid(Sender).ItemIndex);
+        UndoDescription := UndoDescription + '.' + SenderRowName;
+      RecordUndo(UndoDescription, ucHigh, TOICustomPropertyGrid(Sender).ItemIndex);
     end else
-      RecordUndo('Modify ' + Sel.Name, ucLow);
+      { Sender is nil when PropertyGridModified is called
+        by ModifiedOutsideObjectInspector. }
+      RecordUndo(UndoDescription, ucLow);
   end;
 
   MarkModified;

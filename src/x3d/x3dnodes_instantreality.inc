@@ -609,29 +609,9 @@ begin
 end;
 
 procedure TMatrixTransformNode.ApplyTransform(var Transformation: TTransformation);
-var
-  M, InvertedMatrix: TMatrix4;
 begin
   inherited;
-
-  M := Matrix;
-
-  Transformation.Transform := Transformation.Transform * M;
-
-  if TryInverseHarder(M, InvertedMatrix) then
-  begin
-    Transformation.InverseTransform := InvertedMatrix * Transformation.InverseTransform;
-  end else
-  begin
-    WritelnLogMultiline('Matrix',
-      'Cannot invert matrix:' + NL + M.ToRawString('  '));
-
-    { When determinant is zero, we treat inverted matrix
-      like identity (like in TMatrixTransformNode_1.Transformation).
-      So no need to multiply Transformation.InverseTransform by anything. }
-  end;
-
-  Transformation.Scale := Transformation.Scale * FdMatrix.TransformScale;
+  Transformation.MultiplyMatrix(Matrix);
 end;
 
 function TMatrixTransformNode.TransformationChange: TNodeTransformationChange;

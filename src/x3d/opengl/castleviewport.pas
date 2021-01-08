@@ -162,6 +162,7 @@ type
       FPreventInfiniteFallingDown: Boolean;
       FCapturePointingDevice: TCastleTransform;
       FCapturePointingDeviceObserver: TFreeNotificationObserver;
+      FLastSeenMainScene: TCastleScene; // only used by editor
 
     function FillsWholeContainer: boolean;
     function IsStoredNavigation: Boolean;
@@ -172,6 +173,7 @@ type
     procedure SSRShaderInitialize;
     function GetNavigationType: TNavigationType;
     procedure SetAutoCamera(const Value: Boolean);
+    procedure SetAutoNavigation(const Value: Boolean);
     { Make sure to call AssignDefaultCamera, if needed because of AutoCamera. }
     procedure EnsureCameraDetected;
     procedure SetItems(const Value: TCastleRootTransform);
@@ -403,6 +405,7 @@ type
     procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
       const ChangeInitiatedByChildren: boolean = false); override;
     procedure BeforeRender; override;
+    function PropertySection(const PropertyName: String): TPropertySection; override;
 
     function GetMainScene: TCastleScene; deprecated 'use Items.MainScene';
 
@@ -1130,7 +1133,7 @@ type
       By default it is @false, which means that you control @link(Navigation) on your own.
     }
     property AutoNavigation: Boolean
-      read FAutoNavigation write FAutoNavigation default false;
+      read FAutoNavigation write SetAutoNavigation default false;
 
     { Called when bound Viewpoint node changes.
       Called exactly when TCastleSceneCore.ViewpointStack.OnBoundChanged is called. }
@@ -1785,6 +1788,18 @@ var
     end;
   end;
 
+  procedure WatchMainSceneChange;
+  begin
+    if CastleDesignMode then
+    begin
+      if FLastSeenMainScene <> Items.MainScene then
+      begin
+        FLastSeenMainScene := Items.MainScene;
+        AssignDefaultCameraDone := false;
+      end;
+    end;
+  end;
+
 begin
   inherited;
 
@@ -1800,6 +1815,7 @@ begin
 
   ItemsUpdate;
   DoScheduledVisibleChangeNotification;
+  WatchMainSceneChange;
 end;
 
 function TCastleViewport.AllowSuspendForInput: boolean;
@@ -1912,7 +1928,25 @@ begin
     does something, but here it would do something.
     Doing the same thing with AutoNavigation doesn't
     recreate navigation (if Navigation <> nil, it will stay as it was).
+
+    Later yet: This seems very useful in editor though, to see the effect
+    in editor immediately, without reloading file.
     *)
+
+    if CastleDesignMode and Value then
+      AssignDefaultCameraDone := false;
+  end;
+end;
+
+procedure TCastleViewport.SetAutoNavigation(const Value: Boolean);
+begin
+  if FAutoNavigation <> Value then
+  begin
+    FAutoNavigation := Value;
+    { Not necessary, and we actually don't have AssignDefaultNavigationDone.
+      The navigation will be auto-assigned when it is nil. }
+    // if CastleDesignMode and Value then
+    //   AssignDefaultNavigationDone := false;
   end;
 end;
 
@@ -3659,6 +3693,16 @@ begin
       SceneManager.Viewports.Add(Self);
   end;
   {$warnings on}
+end;
+
+function TCastleViewport.PropertySection(const PropertyName: String): TPropertySection;
+begin
+  case PropertyName of
+    'Transparent', 'Navigation':
+      Result := psBasic;
+    else
+      Result := inherited PropertySection(PropertyName);
+  end;
 end;
 
 {$define read_implementation_methods}
