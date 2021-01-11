@@ -129,6 +129,7 @@ type
     procedure FloatSpinEditFPSChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure ListViewAnimationsEdited(Sender: TObject; Item: TListItem;
       var AValue: string);
     procedure ListViewAnimationsSelectItem(Sender: TObject; Item: TListItem;
@@ -228,7 +229,8 @@ implementation
 uses GraphType, IntfGraphics, Math,
   CastleImages, CastleLog, CastleUtils, CastleURIUtils,
   EditorUtils,
-  FormProject;
+  FormProject
+  {$ifdef LCLGTK2},Gtk2Globals{$endif};
 
 { TSpriteSheetEditorForm }
 
@@ -518,6 +520,23 @@ end;
 procedure TSpriteSheetEditorForm.FormDestroy(Sender: TObject);
 begin
   FreeAndNil(FSpriteSheet);
+end;
+
+procedure TSpriteSheetEditorForm.FormShow(Sender: TObject);
+begin
+  {$ifdef LCLGTK2}
+  { On GTK2 actions in SpeedButtons are not updated after window show
+    See: https://bugs.freepascal.org/view.php?id=38345 }
+  LastMouse.Button := 0;
+  LastMouse.ClickCount := 0;
+  LastMouse.Down := False;
+  LastMouse.MousePos := Point(0, 0);
+  LastMouse.Time := 0;
+  LastMouse.WinControl := nil;
+
+  { Update actions state after FormShow - I think this is next GTK2 bug. }
+  UpdateActions;
+  {$endif}
 end;
 
 procedure TSpriteSheetEditorForm.ListViewAnimationsEdited(Sender: TObject;

@@ -11,6 +11,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
   Menu = MainMenu
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnShow = FormShow
   LCLVersion = '2.0.11.0'
   object PanelTop: TPanel
     Left = 8
@@ -73,7 +74,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       Height = 28
       Top = 0
       Width = 28
-      Action = ActionSaveSpriteSheet
+      Action = ActionSaveSpriteSheetAs
       AutoSize = True
       Constraints.MinHeight = 28
       Constraints.MinWidth = 28
