@@ -1521,6 +1521,8 @@ type
     procedure UnregisterScene(Node: TX3DNode);
       deprecated 'use Node.UnregisterScene';
 
+    { Scene processes X3D key sensor nodes here, https://castle-engine.io/x3d_implementation_keydevicesensor.php .
+      Remember to set ListenPressRelease to process the key sensor nodes. }
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
 

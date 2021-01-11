@@ -1552,6 +1552,8 @@ begin
 end;
 
 function TCastleViewport.Press(const Event: TInputPressRelease): boolean;
+var
+  I: Integer;
 begin
   Result := inherited;
   if Result or Items.Paused then Exit;
@@ -1564,9 +1566,11 @@ begin
 
   LastPressEvent := Event;
 
-  if (Items <> nil) and
-     Items.Press(Event) then
-    Exit(ExclusiveEvents);
+  if Items.InternalPressReleaseListeners <> nil then
+    // use downto, to work in case some Press will remove transform from list
+    for I := Items.InternalPressReleaseListeners.Count - 1 downto 0 do
+      if Items.InternalPressReleaseListeners[I].Press(Event) then
+        Exit(ExclusiveEvents);
 
   if Input_Interact.IsEvent(Event) and
      PointingDevicePress then
@@ -1574,6 +1578,8 @@ begin
 end;
 
 function TCastleViewport.Release(const Event: TInputPressRelease): boolean;
+var
+  I: Integer;
 begin
   Result := inherited;
   if Result or Items.Paused then Exit;
@@ -1581,9 +1587,11 @@ begin
   { Make MouseRayHit valid, as our PointingDeviceRelease uses it. }
   UpdateMouseRayHit;
 
-  if (Items <> nil) and
-     Items.Release(Event) then
-    Exit(ExclusiveEvents);
+  if Items.InternalPressReleaseListeners <> nil then
+    // use downto, to work in case some Release will remove transform from list
+    for I := Items.InternalPressReleaseListeners.Count - 1 downto 0 do
+      if Items.InternalPressReleaseListeners[I].Release(Event) then
+        Exit(ExclusiveEvents);
 
   if Input_Interact.IsEvent(Event) and
      PointingDeviceRelease then
