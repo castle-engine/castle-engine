@@ -32,9 +32,10 @@ function BuildSceneFromTiledMap(Map: TTiledMap): TX3DRootNode;
 var
   { All general variables to built the scene. }
   RootTransformNode: TTransformNode;  // The root node of the scene.
+  ALayer: TTiledMap.TLayer;           // A layer (tile layer, object layer, ...)
 
   { All variables related to TiledObjects. }
-  ObjLayer: TTiledMap.TLayer;         // Object group layer of TiledMap.
+
   ObjLayerTransformNode: TTransformNode; // Transform node of an object layer.
   TiledObj: TTiledMap.TTiledObject;   // A TiledObject.
   ObjTransformNode: TTransformNode;   // Transform node of a TiledObject primitive.
@@ -51,8 +52,8 @@ var
   function CreateAndPrepareTransformNode: TTransformNode;
   begin
     Result := TTransformNode.Create;
-    Result.Translation := Vector3(ObjLayer.Offset.X + TiledObj.Position.X,
-      ObjLayer.Offset.Y + TiledObj.Position.Y, 0);
+    Result.Translation := Vector3(ALayer.Offset.X + TiledObj.Position.X,
+      ALayer.Offset.Y + TiledObj.Position.Y, 0);
   end;
 
   procedure CalcVectorListFromRect(var AVector2List: TVector2List;
@@ -69,21 +70,28 @@ begin
   { Root node for scene. }
   RootTransformNode := TTransformNode.Create;
 
-  { Object groups. }
+
   ObjVector2List := TVector2List.Create;  // Helper list.
 
-  for ObjLayer in Map.Layers do
+  for ALayer in Map.Layers do
   begin
-    if (ObjLayer is TTiledMap.TObjectGroupLayer) and ObjLayer.Visible then
+    { Tile Layers. }
+    if (ALayer is TTiledMap.TLayer) and ALayer.Visible then
+    begin
+      { TODO : Implement! }
+    end;
+
+    { Object groups. }
+    if (ALayer is TTiledMap.TObjectGroupLayer) and ALayer.Visible then
     begin
       { Every Object (Group) Layer has an individual node. }
       ObjLayerTransformNode := TTransformNode.Create;
 
       { All TiledObjects of this layer share the same material node. }
       ObjMaterial := TMaterialNode.Create;
-      ObjMaterial.EmissiveColor := ObjLayer.Color;
+      ObjMaterial.EmissiveColor := ALayer.Color;
 
-      for TiledObj in (ObjLayer as TTiledMap.TObjectGroupLayer).Objects do
+      for TiledObj in (ALayer as TTiledMap.TObjectGroupLayer).Objects do
       begin
         if TiledObj.Visible then
         begin
@@ -129,6 +137,13 @@ begin
         end;
       end;
     end;
+
+    { Image Layers. }
+    if (ALayer is TTiledMap.TImageLayer) and ALayer.Visible then
+    begin
+      { TODO : Implement! }
+    end;
+
     RootTransformNode.AddChildren(ObjLayerTransformNode);
   end;
   FreeAndNil(ObjVector2List);
