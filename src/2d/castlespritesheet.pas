@@ -171,8 +171,8 @@ type
       function AddFrame(const FrameImageURL: String): TCastleSpriteSheetFrame;
       function AllFramesHasTheSameSize: Boolean;
       procedure RemoveFrame(const Frame: TCastleSpriteSheetFrame);
-      procedure MoveFrameUp(const Frame: TCastleSpriteSheetFrame);
-      procedure MoveFrameDown(const Frame: TCastleSpriteSheetFrame);
+      procedure MoveFrameLeft(const Frame: TCastleSpriteSheetFrame);
+      procedure MoveFrameRight(const Frame: TCastleSpriteSheetFrame);
       procedure MoveFrameToTop(const Frame: TCastleSpriteSheetFrame);
       procedure MoveFrameToEnd(const Frame: TCastleSpriteSheetFrame);
       procedure MoveFrame(const OldIndex, NewIndex: Integer);
@@ -1145,7 +1145,7 @@ begin
   SetModifiedState;
 end;
 
-procedure TCastleSpriteSheetAnimation.MoveFrameUp(
+procedure TCastleSpriteSheetAnimation.MoveFrameLeft(
   const Frame: TCastleSpriteSheetFrame);
 var
   Index: Integer;
@@ -1157,7 +1157,7 @@ begin
   MoveFrame(Index, Index - 1);
 end;
 
-procedure TCastleSpriteSheetAnimation.MoveFrameDown(
+procedure TCastleSpriteSheetAnimation.MoveFrameRight(
   const Frame: TCastleSpriteSheetFrame);
 var
   Index: Integer;

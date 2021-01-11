@@ -519,19 +519,19 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       OnExecute = ActionAddAnimationExecute
       OnUpdate = ActionAddAnimationUpdate
     end
-    object ActionMoveFrameUp: TAction
+    object ActionMoveFrameLeft: TAction
       Category = 'Frame'
-      Caption = 'Move up'
-      OnExecute = ActionMoveFrameUpExecute
-      OnUpdate = ActionMoveFrameUpUpdate
-      ShortCut = 16422
+      Caption = 'Move left'
+      OnExecute = ActionMoveFrameLeftExecute
+      OnUpdate = ActionMoveFrameLeftUpdate
+      ShortCut = 16421
     end
-    object ActionMoveFrameDown: TAction
+    object ActionMoveFrameRight: TAction
       Category = 'Frame'
-      Caption = 'Move down'
-      OnExecute = ActionMoveFrameDownExecute
-      OnUpdate = ActionMoveFrameDownUpdate
-      ShortCut = 16424
+      Caption = 'Move right'
+      OnExecute = ActionMoveFrameRightExecute
+      OnUpdate = ActionMoveFrameRightUpdate
+      ShortCut = 16423
     end
     object ActionMoveFrameTop: TAction
       Category = 'Frame'
@@ -606,10 +606,10 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     object MenuItemFrameMenu: TMenuItem
       Caption = 'Frame'
       object MainMenuItemMoveFrameUp: TMenuItem
-        Action = ActionMoveFrameUp
+        Action = ActionMoveFrameLeft
       end
       object MainMenuItemMoveFrameDown: TMenuItem
-        Action = ActionMoveFrameDown
+        Action = ActionMoveFrameRight
       end
       object MainMenuItemMoveFrameTop: TMenuItem
         Action = ActionMoveFrameTop
@@ -646,10 +646,10 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     Left = 445
     Top = 126
     object MenuItemMoveFrameUp: TMenuItem
-      Action = ActionMoveFrameUp
+      Action = ActionMoveFrameLeft
     end
     object MenuItemMoveFrameDown: TMenuItem
-      Action = ActionMoveFrameDown
+      Action = ActionMoveFrameRight
     end
     object MenuItemMoveFrameToTop: TMenuItem
       Action = ActionMoveFrameTop
