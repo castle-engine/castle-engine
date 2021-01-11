@@ -970,6 +970,7 @@ begin
   MenuItemPackageSource.Enabled := AEnabled;
   MenuItemAutoGenerateTextures.Enabled := AEnabled;
   MenuItemAutoGenerateClean.Enabled := AEnabled;
+  MenuItemRestartRebuildEditor.Enabled := AEnabled;
   MenuItemBreakProcess.Enabled := not AEnabled;
 end;
 
