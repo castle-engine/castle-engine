@@ -927,11 +927,11 @@ begin
     ModifiedMark := '';
 
   if FSpriteSheet.URL = '' then
-    FileName := 'unknown'
+    FileName := 'unsaved sprite sheet'
   else
     FileName := FSpriteSheet.URL;
 
-  Caption := FWindowTitle + ' - ' + ModifiedMark + FileName;
+  Caption := ModifiedMark + FileName + ' | ' + FWindowTitle;
 end;
 
 procedure TSpriteSheetEditorForm.SetAtlasError(const Message: String);
