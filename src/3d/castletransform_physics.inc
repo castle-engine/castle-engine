@@ -1085,7 +1085,7 @@ begin
       next FRigidBody.Update, then next FRigidBody would recreate Kraft
       resources for this object (once it's implemented, by setting
       FRecreateKraftInstance on every change),
-      which is needless (we create Kraft resourcest
+      which is needless (we create Kraft resources
       for this transform 2 times in this case, instead of once). }
   if RigidBody <> nil then
     RigidBody.InitializeTransform(Self);
@@ -1109,7 +1109,7 @@ begin
   end;
 end;
 
-destructor TCastleAbstractRootTransform.Destroy;
+procedure TCastleAbstractRootTransform.DestroyPhysicsEngine;
 var
   CastleRigidBody: TRigidBody;
   KraftRigidBody: TKraftRigidBody;
@@ -1129,10 +1129,9 @@ begin
       end;
       KraftRigidBody := NextKraftRigidBody;
     end;
-  end;
 
-  FreeAndNil(FKraftEngine);
-  inherited;
+    FreeAndNil(FKraftEngine);
+  end;
 end;
 
 procedure TCastleAbstractRootTransform.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);

@@ -376,6 +376,7 @@ type
       FList: TCastleTransformList;
       FParent: TCastleTransform;
       FCollisionSphereRadius: Single;
+      FListenPressRelease: Boolean;
 
       // transformation
       FCenter: TVector3;
@@ -436,6 +437,7 @@ type
     { Return non-nil parent, making sure it's valid. }
     function Parent: TCastleTransform;
     procedure WarningMatrixNan(const NewParamsInverseTransformValue: TMatrix4);
+    procedure SetListenPressRelease(const Value: Boolean);
   protected
     { Workaround for descendants where BoundingBox may suddenly change
       but their logic depends on stable (not suddenly changing) Middle.
@@ -943,12 +945,17 @@ type
       In the base class TCastleTransform this just returns 0.  }
     function PrepareResourcesSteps: Cardinal; virtual;
 
-    { Press and release events of key and mouse. Return @true if you handled them.
+    { Press and release events of key and mouse, passed only to instances that set ListenPressRelease.
+      Return @true if you handled the event, and it should not be passed to other objects.
       See also TCastleUserInterface analogous events.
       @groupBegin }
     function Press(const Event: TInputPressRelease): boolean; virtual;
     function Release(const Event: TInputPressRelease): boolean; virtual;
     { @groupEnd }
+
+    { Are @link(Press) and @link(Release) virtual methods called. }
+    property ListenPressRelease: Boolean
+      read FListenPressRelease write SetListenPressRelease default false;
 
     { Pointing device (mouse or touch) events, you can override these to handle pointing device events.
       These methods are automatically called by the TCastleViewport.
@@ -1945,12 +1952,17 @@ type
     FTimeScale: Single;
     FPaused: boolean;
     FMainCamera: TCastleCamera;
+    FInternalPressReleaseListeners: TCastleTransformList;
     procedure SetPaused(const Value: boolean);
     procedure SetMainCamera(const Value: TCastleCamera);
   private
     FKraftEngine: TKraft;
     { Create FKraftEngine, if not assigned yet. }
     procedure InitializePhysicsEngine;
+    { Destroy everything related to physics, if present. }
+    procedure DestroyPhysicsEngine;
+    procedure RegisterPressRelease(const T: TCastleTransform);
+    procedure UnregisterPressRelease(const T: TCastleTransform);
   public
     OnCursorChange: TNotifyEvent;
     OnVisibleChange: TVisibleChangeEvent;
@@ -1961,6 +1973,8 @@ type
       const RenderFunc: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single); override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+
+    property InternalPressReleaseListeners: TCastleTransformList read FInternalPressReleaseListeners;
 
     { The major axis of gravity vector: 0, 1 or 2.
       This is trivially derived from the known camera
@@ -2638,6 +2652,9 @@ begin
   begin
     if FWorld <> nil then
     begin
+      if ListenPressRelease then
+        FWorld.UnregisterPressRelease(Self);
+
       PhysicsChangeWorldDetach;
 
       { Do not call RemoveFreeNotification when FWorld is also our list owner,
@@ -2656,6 +2673,9 @@ begin
       FWorld.FreeNotification(Self);
 
       PhysicsChangeWorldAttach;
+
+      if ListenPressRelease then
+        FWorld.RegisterPressRelease(Self);
     end;
 
     // otherwise changing TCastleSceneCore.ExposeTransforms would not update CGE editor hierarchy view
@@ -3879,6 +3899,21 @@ begin
   Result := TEnumerator.Create(FList);
 end;
 
+procedure TCastleTransform.SetListenPressRelease(const Value: Boolean);
+begin
+  if FListenPressRelease <> Value then
+  begin
+    FListenPressRelease := Value;
+    if World <> nil then
+    begin
+      if Value then
+        FWorld.RegisterPressRelease(Self)
+      else
+        FWorld.UnregisterPressRelease(Self);
+    end;
+  end;
+end;
+
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
 {$undef read_implementation_methods}
@@ -3903,6 +3938,13 @@ begin
 
   { everything inside is part of this world }
   AddToWorld(Self);
+end;
+
+destructor TCastleAbstractRootTransform.Destroy;
+begin
+  DestroyPhysicsEngine;
+  FreeAndNil(FInternalPressReleaseListeners);
+  inherited;
 end;
 
 function TCastleAbstractRootTransform.GravityUp: TVector3;
@@ -4054,6 +4096,31 @@ begin
     FMainCamera := Value;
     VisibleChangeHere([]);
   end;
+end;
+
+procedure TCastleAbstractRootTransform.RegisterPressRelease(const T: TCastleTransform);
+begin
+  if FInternalPressReleaseListeners = nil then
+    FInternalPressReleaseListeners := TCastleTransformList.Create(false, nil);
+  FInternalPressReleaseListeners.Add(T);
+end;
+
+procedure TCastleAbstractRootTransform.UnregisterPressRelease(const T: TCastleTransform);
+var
+  I: Integer;
+begin
+  if FInternalPressReleaseListeners = nil then
+    I := -1
+  else
+    I := FInternalPressReleaseListeners.IndexOf(T);
+
+  if I = -1 then
+  begin
+    WritelnWarning('Transformation called UnregisterPressRelease, but it was not listening to Press/Release');
+    Exit;
+  end;
+
+  FInternalPressReleaseListeners.Delete(I);
 end;
 
 { global routines ------------------------------------------------------------ }

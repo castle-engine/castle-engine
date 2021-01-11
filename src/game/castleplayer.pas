@@ -229,6 +229,7 @@ type
     destructor Destroy; override;
     procedure Render(const Params: TRenderParams); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
+    property ListenPressRelease default true;
 
     { Flying.
       How it interacts with FlyingTimeout: Setting this property
@@ -580,6 +581,7 @@ end;
 constructor TPlayer.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  ListenPressRelease := true;
   CollidesWithMoving := true;
   Life := DefaultLife;
   MaxLife := DefaultLife;
