@@ -172,6 +172,10 @@ type
       const FrameNo: Integer): TListItem;
     procedure LoadFrames(const Animation: TCastleSpriteSheetAnimation);
     function GetSelectedFrame: TCastleSpriteSheetFrame;
+    function FrameTitle(const FrameNo: Integer;
+      const Frame: TCastleSpriteSheetFrame): string;
+    procedure UpdateFrameTitles;
+    function IsFrameListItem(const ItemToCheck: TListItem): Boolean;
 
     { Returns current preview mode }
     function GetCurrentPreviewMode: TPreviewMode;
@@ -727,8 +731,7 @@ begin
   end;
 
   ListItem := ListViewFrames.Items.Add;
-  ListItem.Caption := IntToStr(FrameNo) + ' - ' + IntToStr(Frame.FrameWidth) +
-    'x' + IntToStr(Frame.FrameHeight);
+  ListItem.Caption := FrameTitle(FrameNo, Frame);
   ListItem.Data := Frame;
   ListItem.ImageIndex := ImageIndex;
   Result := ListItem;
@@ -771,6 +774,36 @@ begin
   { TODO: add frame button - add condition here!!! }
 
   Result := TCastleSpriteSheetFrame(ListViewFrames.Items[ListViewFrames.ItemIndex].Data);
+end;
+
+function TSpriteSheetEditorForm.FrameTitle(const FrameNo: Integer;
+  const Frame: TCastleSpriteSheetFrame): string;
+begin
+  Result := IntToStr(FrameNo) + ' - ' + IntToStr(Frame.FrameWidth) +
+     'x' + IntToStr(Frame.FrameHeight);
+end;
+
+procedure TSpriteSheetEditorForm.UpdateFrameTitles;
+var
+  I: Integer;
+  AListItem: TListItem;
+begin
+  for I := 0 to ListViewFrames.Items.Count - 1 do
+  begin
+    AListItem := ListViewFrames.Items[I];
+    if IsFrameListItem(AListItem) then
+    begin
+      AListItem.Caption := FrameTitle(I + 1,
+        TCastleSpriteSheetFrame(AListItem.Data));
+    end;
+  end;
+end;
+
+function TSpriteSheetEditorForm.IsFrameListItem(const ItemToCheck: TListItem
+  ): Boolean;
+begin
+  { This function is preparation for adding "+" button to FrameItems. }
+  Result := ItemToCheck.Data <> nil;
 end;
 
 function TSpriteSheetEditorForm.GetCurrentPreviewMode: TPreviewMode;
@@ -1027,6 +1060,7 @@ begin
       ListViewFrames.Items.Delete(I);
   end;
 
+  UpdateFrameTitles;
   { No preview update here, becouse this is "Before" event so update preview do
     nothing. Preview update is in action Execute function. }
 end;
@@ -1036,7 +1070,10 @@ procedure TSpriteSheetEditorForm.FrameMoved(
 begin
   { Is changed Animation the current one? }
   if Frame.Animation = GetCurrentAnimation then
+  begin
     ListViewFrames.Items.Move(OldIndex, NewIndex);
+    UpdateFrameTitles;
+  end;
 
   { Preview update must be always called here (make preview always correct). }
   UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
