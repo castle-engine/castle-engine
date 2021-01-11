@@ -32,121 +32,122 @@ function BuildSceneFromTiledMap(Map: TTiledMap): TX3DRootNode;
 var
   { All general variables to built the scene. }
   RootTransformNode: TTransformNode;  // The root node of the scene.
-  ALayer: TTiledMap.TLayer;           // A layer (tile layer, object layer, ...)
-
-  { All variables related to TiledObjects. }
-
-  ObjLayerTransformNode: TTransformNode; // Transform node of an object layer.
-  TiledObj: TTiledMap.TTiledObject;   // A TiledObject.
-  ObjTransformNode: TTransformNode;   // Transform node of a TiledObject primitive.
-  ObjPolyNode: TPolyline2DNode = nil; // Geometry node of a TiledObject primitive.
-  ObjMaterial: TMaterialNode = nil;   // Material node of a TiledObject primitive.
-  ObjShapeNode: TShapeNode = nil;     // Shape node of a TiledObject primitive.
-  ObjVector2List: TVector2List = nil; // Helper list.
+  Layer: TTiledMap.TLayer;            // A (tile, object, image) layer
+  LayerTransformNode: TTransformNode; // Node of a (tile, object, image) layer.
 
   function CalcObjLayerHeight: Cardinal;
   begin
     Result := Map.Height * Map.TileHeight;
   end;
 
-  function CreateAndPrepareTransformNode: TTransformNode;
-  begin
-    Result := TTransformNode.Create;
-    Result.Translation := Vector3(ALayer.Offset.X + TiledObj.Position.X,
-      ALayer.Offset.Y + TiledObj.Position.Y, 0);
-  end;
+  function BuildObjectGroupLayer(const ALayer: TTiledMap.TLayer): TTransformNode;
+  var
+    ObjMaterial: TMaterialNode = nil;       // Material node of a TiledObject.
+    TiledObj: TTiledMap.TTiledObject;       // A TiledObject.
+    ObjTransformNode: TTransformNode = nil; // Transform node of a TiledObject.
+    ObjPolyNode: TPolyline2DNode = nil;     // Geometry node of a TiledObject primitive.
+    ObjShapeNode: TShapeNode = nil;         // Shape node of a TiledObject.
+    ObjVector2List: TVector2List = nil;     // Helper list.
 
-  procedure CalcVectorListFromRect(var AVector2List: TVector2List;
+    procedure CalcVectorListFromRect(const AVector2List: TVector2List;
     const w, h: Single);
+    begin
+      AVector2List.Add(Vector2(0, 0));
+      AVector2List.Add(Vector2(w, 0));
+      AVector2List.Add(Vector2(w, h));
+      AVector2List.Add(Vector2(0, h));
+      AVector2List.Add(AVector2List.Items[0]);
+    end;
+
   begin
-    AVector2List.Add(Vector2(0, 0));
-    AVector2List.Add(Vector2(w, 0));
-    AVector2List.Add(Vector2(w, h));
-    AVector2List.Add(Vector2(0, h));
-    AVector2List.Add(AVector2List.Items[0]);
+    { All TiledObjects of this layer share the same material node. }
+    ObjMaterial := TMaterialNode.Create;
+    ObjMaterial.EmissiveColor := ALayer.Color;
+
+    ObjVector2List := TVector2List.Create;  // Helper list.
+    Result := TTransformNode.Create;        // The resulting layer node.
+
+    for TiledObj in (ALayer as TTiledMap.TObjectGroupLayer).Objects do
+    begin
+      if not TiledObj.Visible then
+        Continue;
+
+      { Every TiledObject has its own root transform node. }
+      ObjTransformNode := TTransformNode.Create;
+      ObjTransformNode.Translation := Vector3(ALayer.Offset.X + TiledObj.Position.X,
+      ALayer.Offset.Y + TiledObj.Position.Y, 0);
+      { Every primitive is implemented as polyline node. Hint: For better
+        performance rectangle and point could be implemented as rect. node?}
+      ObjPolyNode := TPolyline2DNode.CreateWithShape(ObjShapeNode);
+      case TiledObj.Primitive of
+        topPolyline:
+          begin
+            ObjVector2List.Clear;
+            ObjVector2List.Assign(TiledObj.Points);
+            ObjPolyNode.SetLineSegments(ObjVector2List);
+          end;
+        topPolygon:
+          begin
+            ObjVector2List.Clear;
+            ObjVector2List.Assign(TiledObj.Points);
+            { add point with index 0 to points list to get a closed polygon }
+            ObjVector2List.Add(ObjVector2List.Items[0]);
+            ObjPolyNode.SetLineSegments(ObjVector2List);
+          end;
+        topRectangle:
+          begin
+            ObjVector2List.Clear;
+            CalcVectorListFromRect(ObjVector2List, TiledObj.Width,
+              TiledObj.Height);
+            ObjPolyNode.SetLineSegments(ObjVector2List);
+          end;
+        topPoint:
+          begin
+            ObjVector2List.Clear;
+            CalcVectorListFromRect(ObjVector2List, 1, 1);
+            { A point is a rectangle with width and height of 1 unit. }
+            ObjPolyNode.SetLineSegments(ObjVector2List);
+          end;
+        // TODO: handle ellipse
+      end;
+      ObjShapeNode.Material := ObjMaterial;
+      ObjTransformNode.AddChildren(ObjShapeNode);
+      Result.AddChildren(ObjTransformNode);
+    end;
+    FreeAndNil(ObjVector2List);
   end;
 
 begin
   { Root node for scene. }
   RootTransformNode := TTransformNode.Create;
 
-
-  ObjVector2List := TVector2List.Create;  // Helper list.
-
-  for ALayer in Map.Layers do
+  for Layer in Map.Layers do
   begin
-    { Tile Layers. }
-    if (ALayer is TTiledMap.TLayer) and ALayer.Visible then
+    if not Layer.Visible then
+      Continue;
+
+    { Every Layer has an individual layer node. }
+    LayerTransformNode := nil;
+
+    { Object Group Layer. }
+    if (Layer is TTiledMap.TObjectGroupLayer) then
     begin
-      { TODO : Implement! }
-    end;
-
-    { Object groups. }
-    if (ALayer is TTiledMap.TObjectGroupLayer) and ALayer.Visible then
-    begin
-      { Every Object (Group) Layer has an individual node. }
-      ObjLayerTransformNode := TTransformNode.Create;
-
-      { All TiledObjects of this layer share the same material node. }
-      ObjMaterial := TMaterialNode.Create;
-      ObjMaterial.EmissiveColor := ALayer.Color;
-
-      for TiledObj in (ALayer as TTiledMap.TObjectGroupLayer).Objects do
-      begin
-        if TiledObj.Visible then
-        begin
-          { Every TiledObject has its own root transform node. }
-          ObjTransformNode := CreateAndPrepareTransformNode;
-          { Every primitive is implemented as polyline node. Hint: For better
-            performance rectangle and point could be implemented as rect. node?}
-          ObjPolyNode := TPolyline2DNode.CreateWithShape(ObjShapeNode);
-          case TiledObj.Primitive of
-            topPolyline:
-              begin
-                ObjVector2List.Clear;
-                ObjVector2List.Assign(TiledObj.Points);
-                ObjPolyNode.SetLineSegments(ObjVector2List);
-              end;
-            topPolygon:
-              begin
-                ObjVector2List.Clear;
-                ObjVector2List.Assign(TiledObj.Points);
-                { add point with index 0 to points list to get a closed polygon }
-                ObjVector2List.Add(ObjVector2List.Items[0]);
-                ObjPolyNode.SetLineSegments(ObjVector2List);
-              end;
-            topRectangle:
-              begin
-                ObjVector2List.Clear;
-                CalcVectorListFromRect(ObjVector2List, TiledObj.Width,
-                  TiledObj.Height);
-                ObjPolyNode.SetLineSegments(ObjVector2List);
-              end;
-            topPoint:
-              begin
-                ObjVector2List.Clear;
-                CalcVectorListFromRect(ObjVector2List, 1, 1);
-                { A point is a rectangle with width and height of 1 unit. }
-                ObjPolyNode.SetLineSegments(ObjVector2List);
-              end;
-            // TODO: handle ellipse
-          end;
-          ObjShapeNode.Material := ObjMaterial;
-          ObjTransformNode.AddChildren(ObjShapeNode);
-          ObjLayerTransformNode.AddChildren(ObjTransformNode);
-        end;
-      end;
-    end;
-
+      LayerTransformNode := BuildObjectGroupLayer(Layer);
+    end else
     { Image Layers. }
-    if (ALayer is TTiledMap.TImageLayer) and ALayer.Visible then
+    if (Layer is TTiledMap.TImageLayer) then
     begin
       { TODO : Implement! }
+    end else
+    { Tile Layers. }
+    begin
+
     end;
 
-    RootTransformNode.AddChildren(ObjLayerTransformNode);
+    if Assigned(LayerTransformNode) then
+      RootTransformNode.AddChildren(LayerTransformNode);
   end;
-  FreeAndNil(ObjVector2List);
+
   RootTransformNode.Rotation := Vector4(1, 0, 0, Pi);  // rotate scene by 180 deg around x-axis
 
   Result := TX3DRootNode.Create;
