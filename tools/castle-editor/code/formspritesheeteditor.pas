@@ -776,8 +776,9 @@ begin
     FViewport.FullSize := true;
     FViewport.AutoCamera := true;
     FViewport.AutoNavigation := true;
+    FViewport.Setup2D;
+    FViewport.Camera.Orthographic.Origin := Vector2(0.5, 0.5);
     CastleControlPreview.Controls.InsertFront(FViewport);
-
 
     FPreviewScene := TCastleScene.Create(FViewport);
 
@@ -858,7 +859,12 @@ begin
 
     FSpriteSheet.Save(TempURL, true);
 
+    FPreviewScene.Scale := Vector3(1.0, 1.0, 1.0);
     FPreviewScene.Load(TempURL);
+    if not FPreviewScene.LocalBoundingBox.IsEmpty then
+      FViewport.Camera.Orthographic.Width := FPreviewScene.LocalBoundingBox.MaxSize
+    else
+      FViewport.Camera.Orthographic.Width := DefaultFrameIconSize;
   except
     on E: Exception do
     begin
@@ -877,7 +883,12 @@ begin
 
   CreatePreviewUIIfNeeded;
 
+  FPreviewScene.Scale := Vector3(1.0, 1.0, 1.0);
   FPreviewScene.Load(TempURL);
+
+  { Always set to the width of the first frame because we want to see the
+    size difference }
+  FViewport.Camera.Orthographic.Width := Frame.Animation.Frame[0].FrameWidth
 end;
 
 procedure TSpriteSheetEditorForm.UpdateWindowCaption;
