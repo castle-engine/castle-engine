@@ -1114,6 +1114,8 @@ begin
     on E:Exception do
     begin
       ErrorBox(E.Message);
+      FreeAndNil(FSpriteSheet);
+      NewSpriteSheet;
     end;
   end;
 end;
