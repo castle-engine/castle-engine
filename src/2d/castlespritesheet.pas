@@ -864,7 +864,7 @@ begin
   else
   begin
     { When Image is trimmed we can't simply extract image part }
-    FFrameImage := TRGBAlphaImage.Create(FrameWidth, FrameHeight);
+    FFrameImage := TCastleImageClass(SourceImage.ClassType).Create(FrameWidth, FrameHeight, SourceImage.Depth);
     FFrameImage.Clear(Vector4Byte(0, 0, 0, 0));
     FFrameImage.DrawFrom(SourceImage,
       FrameX, // destination X
@@ -908,9 +908,8 @@ begin
   if (FrameWidth > Width) or (FrameHeight > Height) then
     raise Exception.Create('Frame image bigger than gived size');
 
-  Result := FFrameImage.MakeCopy;
+  Result := TCastleImageClass(FFrameImage.ClassType).Create(Width, Height, FFrameImage.Depth);
   Result.Clear(Vector4(0.0, 0.0, 0.0, 0.0));
-  Result.Resize(Width, Height, riNearest);
 
   Result.DrawFrom(FFrameImage, (Width - FFrameImage.Width) div 2,
     (Height - FFrameImage.Height) div 2, 0, 0, FFrameImage.Width,
