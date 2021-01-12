@@ -9,7 +9,8 @@ uses
   Interfaces, // this includes the LCL widgetset
   Forms, FormChooseProject, castle_components, ProjectUtils, FormNewProject,
   EditorUtils, FormProject, FrameDesign, FormAbout, FrameViewFile,
-  FormPreferences, VisualizeTransform, FormSpriteSheetEditor, DataModuleIcons;
+  FormPreferences, VisualizeTransform, FormSpriteSheetEditor, DataModuleIcons,
+  FormImportAtlas;
 
 {$R *.res}
 
@@ -24,6 +25,7 @@ begin
   Application.CreateForm(TNewProjectForm, NewProjectForm);
   Application.CreateForm(TAboutForm, AboutForm);
   Application.CreateForm(TPreferencesForm, PreferencesForm);
+  Application.CreateForm(TImportAtlasForm, ImportAtlasForm);
   Application.Run;
 end.
 

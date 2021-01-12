@@ -1,0 +1,169 @@
+object ImportAtlasForm: TImportAtlasForm
+  Left = 635
+  Height = 181
+  Top = 370
+  Width = 400
+  AutoSize = True
+  BorderWidth = 8
+  Caption = 'Import Atlas'
+  ClientHeight = 181
+  ClientWidth = 400
+  DesignTimePPI = 120
+  LCLVersion = '2.0.11.0'
+  object LabelCols: TLabel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = SpinEditCols
+    AnchorSideTop.Side = asrCenter
+    Left = 8
+    Height = 18
+    Top = 81
+    Width = 153
+    Caption = 'Number of columns:'
+    ParentColor = False
+  end
+  object LabelRows: TLabel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = SpinEditRows
+    Left = 8
+    Height = 18
+    Top = 109
+    Width = 125
+    Caption = 'Number of rows:'
+    ParentColor = False
+  end
+  object ButtonImport: TButton
+    AnchorSideTop.Control = SpinEditRows
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Side = asrBottom
+    Left = 279
+    Height = 32
+    Top = 142
+    Width = 113
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 4
+    Caption = 'Import'
+    OnClick = ButtonImportClick
+    TabOrder = 0
+  end
+  object SpinEditCols: TSpinEdit
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = PanelAnimationName
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 288
+    Height = 29
+    Top = 76
+    Width = 104
+    Anchors = [akTop, akRight]
+    BorderSpacing.Top = 4
+    MinValue = 1
+    TabOrder = 1
+    Value = 2
+  end
+  object SpinEditRows: TSpinEdit
+    AnchorSideTop.Control = SpinEditCols
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 288
+    Height = 29
+    Top = 109
+    Width = 104
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 4
+    MaxValue = 1000
+    MinValue = 1
+    TabOrder = 2
+    Value = 2
+  end
+  object PanelAtlasURL: TPanel
+    Left = 8
+    Height = 30
+    Top = 8
+    Width = 384
+    Align = alTop
+    AutoSize = True
+    BevelOuter = bvNone
+    ClientHeight = 30
+    ClientWidth = 384
+    TabOrder = 3
+    object EditAtlasURL: TEdit
+      AnchorSideLeft.Control = LabelAtlasNameTitle
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = PanelAtlasURL
+      AnchorSideTop.Side = asrCenter
+      AnchorSideRight.Side = asrBottom
+      Left = 81
+      Height = 29
+      Top = 1
+      Width = 380
+      BorderSpacing.Left = 4
+      ReadOnly = True
+      TabOrder = 0
+    end
+    object LabelAtlasNameTitle: TLabel
+      AnchorSideLeft.Control = PanelAtlasURL
+      AnchorSideTop.Control = PanelAtlasURL
+      AnchorSideTop.Side = asrCenter
+      Left = 0
+      Height = 18
+      Top = 6
+      Width = 77
+      Caption = 'Atlas URL:'
+      ParentColor = False
+    end
+  end
+  object PanelAnimationName: TPanel
+    AnchorSideTop.Control = PanelAtlasURL
+    Left = 8
+    Height = 30
+    Top = 42
+    Width = 384
+    Align = alTop
+    AutoSize = True
+    BorderSpacing.Top = 4
+    BevelOuter = bvNone
+    ClientHeight = 30
+    ClientWidth = 384
+    TabOrder = 4
+    object LabelAnimationName: TLabel
+      AnchorSideLeft.Control = PanelAnimationName
+      AnchorSideTop.Control = PanelAnimationName
+      AnchorSideTop.Side = asrCenter
+      Left = 0
+      Height = 18
+      Top = 6
+      Width = 129
+      Caption = 'Animation name:'
+      ParentColor = False
+    end
+    object EditAnimationName: TEdit
+      AnchorSideLeft.Control = LabelAnimationName
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = LabelAnimationName
+      AnchorSideTop.Side = asrCenter
+      AnchorSideRight.Control = PanelAnimationName
+      AnchorSideRight.Side = asrBottom
+      Left = 133
+      Height = 29
+      Top = 1
+      Width = 251
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Left = 4
+      TabOrder = 0
+    end
+  end
+  object chbxImportByColumns: TCheckBox
+    AnchorSideLeft.Control = LabelRows
+    AnchorSideTop.Control = LabelRows
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 22
+    Top = 131
+    Width = 165
+    BorderSpacing.Top = 4
+    Caption = 'Import by columns'
+    TabOrder = 5
+  end
+end

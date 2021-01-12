@@ -171,6 +171,9 @@ type
       function AddFrameCopy(const SrcFrame: TCastleSpriteSheetFrame
           ): TCastleSpriteSheetFrame;
       function AddFrame(const FrameImageURL: String): TCastleSpriteSheetFrame;
+      function AddFrame(const SourceImage: TCastleImage; const DestX, DestY,
+          AFrameWidth, AFrameHeight, SourceX, SourceY,
+          SourceWidthToCopy, SourceHeightToCopy: Integer): TCastleSpriteSheetFrame;
       function AllFramesHasTheSameSize: Boolean;
       procedure RemoveFrame(const Frame: TCastleSpriteSheetFrame);
       procedure MoveFrameLeft(const Frame: TCastleSpriteSheetFrame);
@@ -178,6 +181,8 @@ type
       procedure MoveFrameToTop(const Frame: TCastleSpriteSheetFrame);
       procedure MoveFrameToEnd(const Frame: TCastleSpriteSheetFrame);
       procedure MoveFrame(const OldIndex, NewIndex: Integer);
+      procedure ImportAtlas(AtlasImageURL: String; Cols, Rows: Integer;
+          ImportByColumns: Boolean);
       function GetBigestFrameSize(const MaxWidth, MaxHeight: Integer): TVector2Integer;
 
       property Name: String read FName write SetName;
@@ -1159,6 +1164,22 @@ begin
   Result := AFrame;
 end;
 
+function TCastleSpriteSheetAnimation.AddFrame(const SourceImage: TCastleImage;
+  const DestX, DestY, AFrameWidth, AFrameHeight, SourceX, SourceY,
+  SourceWidthToCopy, SourceHeightToCopy: Integer): TCastleSpriteSheetFrame;
+var
+  AFrame: TCastleSpriteSheetFrame;
+begin
+  AFrame := TCastleSpriteSheetFrame.Create(Self);
+  FFrameList.Add(AFrame);
+  Result := AFrame;
+  AFrame.SetFrameImage(SourceImage, DestX, DestY, AFrameWidth, AFrameHeight,
+  SourceX, SourceY, SourceWidthToCopy, SourceHeightToCopy);
+  if Assigned(FSpriteSheet.OnFrameAdded) then
+    FSpriteSheet.OnFrameAdded(AFrame);
+  SetModifiedState;
+end;
+
 function TCastleSpriteSheetAnimation.AllFramesHasTheSameSize: Boolean;
 var
   I: Integer;
@@ -1243,6 +1264,41 @@ begin
     FSpriteSheet.OnFrameMoved(FFrameList[NewIndex], OldIndex, NewIndex);
 
   SetModifiedState;
+end;
+
+procedure TCastleSpriteSheetAnimation.ImportAtlas(AtlasImageURL: String; Cols,
+  Rows: Integer; ImportByColumns: Boolean);
+var
+  AFrame : TCastleSpriteSheetFrame;
+  AtlasToImport: TCastleImage;
+  FrameWidth: Integer;
+  FrameHeight: Integer;
+  I, J: Integer;
+begin
+  AtlasToImport := LoadImage(AtlasImageURL);
+  try
+    FrameWidth := AtlasToImport.Width div Cols;
+    FrameHeight := AtlasToImport.Height div Rows;
+
+    if ImportByColumns then
+    begin
+      for J := Rows - 1 downto 0 do
+        for I := 0  to Cols - 1 do
+        begin
+          AFrame := AddFrame(AtlasToImport, 0, 0, FrameWidth, FrameHeight,
+          I * FrameWidth, J * FrameHeight, FrameWidth, FrameHeight);
+        end;
+    end else
+    for I := 0  to Cols - 1 do
+      for J := Rows - 1 downto 0 do
+      begin
+        AFrame := AddFrame(AtlasToImport, 0, 0, FrameWidth, FrameHeight,
+        I * FrameWidth, J * FrameHeight, FrameWidth, FrameHeight);
+      end;
+
+  finally
+    FreeAndNil(AtlasToImport);
+  end;
 end;
 
 function TCastleSpriteSheetAnimation.GetBigestFrameSize(

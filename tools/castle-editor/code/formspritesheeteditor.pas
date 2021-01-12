@@ -13,6 +13,7 @@ uses
 
 type
   TSpriteSheetEditorForm = class(TForm)
+    ActionImportAtlas: TAction;
     ActionCreateNewAnimationFromSelection: TAction;
     ActionMoveAnimationEnd: TAction;
     ActionMoveAnimationTop: TAction;
@@ -34,6 +35,7 @@ type
     ActionListSpriteSheet: TActionList;
     CastleControlPreview: TCastleControlBase;
     CastleOpenImageDialog: TCastleOpenImageDialog;
+    CastleImportAtlasDialog: TCastleOpenImageDialog;
     ImageAtlasSizeWarning: TImage;
     ImageListFrames: TImageList;
     LabelAtlasWarning: TLabel;
@@ -50,6 +52,8 @@ type
     MainMenuItemAddFrame: TMenuItem;
     MainMenuItemDeleteFrame: TMenuItem;
     MainMenuItemCreateAnimFromSelection: TMenuItem;
+    MainMenuItemImportAtlas: TMenuItem;
+    MenuItemImportAtlas: TMenuItem;
     N6: TMenuItem;
     N5: TMenuItem;
     N4: TMenuItem;
@@ -112,6 +116,7 @@ type
     procedure ActionAddFrameUpdate(Sender: TObject);
     procedure ActionCreateNewAnimationFromSelectionExecute(Sender: TObject);
     procedure ActionCreateNewAnimationFromSelectionUpdate(Sender: TObject);
+    procedure ActionImportAtlasExecute(Sender: TObject);
     procedure ActionMoveAnimationDownExecute(Sender: TObject);
     procedure ActionMoveAnimationDownUpdate(Sender: TObject);
     procedure ActionMoveAnimationEndExecute(Sender: TObject);
@@ -269,7 +274,7 @@ implementation
 uses GraphType, IntfGraphics, Math,
   CastleImages, CastleLog, CastleUtils, CastleURIUtils,
   EditorUtils,
-  FormProject
+  FormProject, FormImportAtlas
   {$ifdef LCLGTK2},Gtk2Globals{$endif};
 
 { TSpriteSheetEditorForm.TSelectedFrames }
@@ -387,6 +392,15 @@ procedure TSpriteSheetEditorForm.ActionCreateNewAnimationFromSelectionUpdate(
   Sender: TObject);
 begin
   ActionCreateNewAnimationFromSelection.Enabled := (GetFirstSelectedFrame <> nil);
+end;
+
+procedure TSpriteSheetEditorForm.ActionImportAtlasExecute(Sender: TObject);
+begin
+  if CastleImportAtlasDialog.Execute then
+  begin
+    ImportAtlasForm.Initialize(FSpriteSheet, CastleImportAtlasDialog.URL);
+    ImportAtlasForm.ShowModal;
+  end;
 end;
 
 procedure TSpriteSheetEditorForm.ActionMoveAnimationDownExecute(Sender: TObject

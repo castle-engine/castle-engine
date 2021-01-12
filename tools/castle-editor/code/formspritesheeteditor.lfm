@@ -580,6 +580,11 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       OnUpdate = ActionCreateNewAnimationFromSelectionUpdate
       ShortCut = 24641
     end
+    object ActionImportAtlas: TAction
+      Category = 'File'
+      Caption = 'Import atlas...'
+      OnExecute = ActionImportAtlasExecute
+    end
   end
   object MainMenu: TMainMenu
     Images = Icons.MenuStroke1_5
@@ -638,6 +643,9 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       object MainMenuItemCreateAnimFromSelection: TMenuItem
         Action = ActionCreateNewAnimationFromSelection
       end
+      object MainMenuItemImportAtlas: TMenuItem
+        Action = ActionImportAtlas
+      end
       object N5: TMenuItem
         Caption = '-'
       end
@@ -687,6 +695,9 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     object MenuItemCreateNewAnimationFromSelection: TMenuItem
       Action = ActionCreateNewAnimationFromSelection
     end
+    object MenuItemImportAtlas: TMenuItem
+      Action = ActionImportAtlas
+    end
     object N2: TMenuItem
       Caption = '-'
     end
@@ -723,5 +734,10 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     Options = [ofAllowMultiSelect, ofEnableSizing, ofViewDetail]
     Left = 586
     Top = 265
+  end
+  object CastleImportAtlasDialog: TCastleOpenImageDialog
+    Title = 'Open atlas file to import'
+    Left = 593
+    Top = 396
   end
 end
