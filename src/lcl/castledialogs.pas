@@ -101,13 +101,19 @@ type
     FUseCastleDataProtocol: Boolean;
     InitialFilterIndex: Integer;
     InitialFilter: string;
-    function GetURL: string;
-    procedure SetURL(AValue: string);
+    function PrepareURL(const AFileName: String): String;
+    function GetURL: String;
+    function GetURLWithIndex(const Index: Integer): String;
+    procedure SetURL(AValue: String);
     function StoreFilterAndFilterIndex: boolean;
   protected
     function DoExecute: boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
+
+    function URLCount: Integer;
+
+    property URLs[Index: Integer]: String read GetURLWithIndex;
   published
     property URL: string read GetURL write SetURL stored false;
     { Warn (but still allow) if user selects URL outside of data directory. }
@@ -269,14 +275,24 @@ end;
 
 { TCastleOpenImageDialog --------------------------------------------------- }
 
-function TCastleOpenImageDialog.GetURL: string;
+function TCastleOpenImageDialog.PrepareURL(const AFileName: String): String;
 begin
   Result := FilenameToURISafeUTF8(CleanupFileName(FileName));
   if UseCastleDataProtocol then
     Result := MaybeUseDataProtocol(Result);
 end;
 
-procedure TCastleOpenImageDialog.SetURL(AValue: string);
+function TCastleOpenImageDialog.GetURL: String;
+begin
+  Result := PrepareURL(FileName);
+end;
+
+function TCastleOpenImageDialog.GetURLWithIndex(const Index: Integer): String;
+begin
+  Result := PrepareURL(Files[Index]);
+end;
+
+procedure TCastleOpenImageDialog.SetURL(AValue: String);
 begin
   FileName := URIToFilenameSafeUTF8(AValue);
 end;
@@ -300,6 +316,11 @@ begin
   FileFiltersToDialog(LoadImage_FileFilters, Self);
   InitialFilter := Filter;
   InitialFilterIndex := FilterIndex;
+end;
+
+function TCastleOpenImageDialog.URLCount: Integer;
+begin
+  Result := Files.Count;
 end;
 
 { TCastleSaveDialog -------------------------------------------------------- }
