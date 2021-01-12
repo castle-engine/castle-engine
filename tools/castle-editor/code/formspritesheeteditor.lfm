@@ -322,7 +322,9 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       Width = 609
       Anchors = [akTop, akLeft, akRight, akBottom]
       Columns = <>
+      HideSelection = False
       LargeImages = ImageListFrames
+      MultiSelect = True
       PopupMenu = PopupMenuFrames
       ReadOnly = True
       ScrollBars = ssAutoBoth
@@ -690,6 +692,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     end
   end
   object CastleOpenImageDialog: TCastleOpenImageDialog
+    Options = [ofAllowMultiSelect, ofEnableSizing, ofViewDetail]
     Left = 586
     Top = 265
   end

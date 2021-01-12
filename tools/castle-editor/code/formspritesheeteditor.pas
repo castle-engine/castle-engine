@@ -5,8 +5,8 @@ unit FormSpriteSheetEditor;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, ComCtrls,
-  Buttons, ActnList, StdCtrls, Spin, Menus,
+  Classes, SysUtils, Generics.Collections, Forms, Controls, Graphics, Dialogs,
+  ExtCtrls, ComCtrls, Buttons, ActnList, StdCtrls, Spin, Menus,
   CastleControl, CastleDialogs, CastleScene, CastleSpriteSheet, CastleVectors,
   CastleViewport,
   DataModuleIcons;
@@ -145,6 +145,29 @@ type
       { Enum just for readability }
       TForceFileRegen = (ffgDoForceFileRegen, ffgDontForceFileRegen);
 
+      TSelectedFrames = class
+        strict private
+          type
+            TListOfSelectedFrames = specialize TList<TCastleSpriteSheetFrame>;
+          var
+            FSelectedFrames: TListOfSelectedFrames;
+            FrameListView: TListView;
+        public
+          constructor Create(const FrameListViewToMonitor: TListView);
+          destructor Destroy; override;
+
+          procedure GetCurrentSelection;
+          procedure SetSelection;
+          procedure Clear;
+          function GetFrameByIndex(const Index: Integer): TCastleSpriteSheetFrame;
+          function FrameCount: Integer;
+
+          { This function is preparation for adding "+" button to ListViewFrames }
+          class function IsFrameListItem(const ItemToCheck: TListItem): Boolean;
+
+          property Frame[Index: Integer]: TCastleSpriteSheetFrame read GetFrameByIndex;
+      end;
+
     const
       MaxFrameIconSize = 256;
       DefaultFrameIconSize = 128;
@@ -155,6 +178,7 @@ type
       FViewport: TCastleViewport;
       FWindowTitle: String;
       CurrentFrameIconSize: TVector2Integer; // current frame size in list view
+      FSelectedFrames: TSelectedFrames;
 
     // Returns true if sprite sheet is closed
     function CloseSpriteSheet: Boolean;
@@ -171,11 +195,11 @@ type
     function AddFrameToListView(const Frame: TCastleSpriteSheetFrame;
       const FrameNo: Integer): TListItem;
     procedure LoadFrames(const Animation: TCastleSpriteSheetAnimation);
-    function GetSelectedFrame: TCastleSpriteSheetFrame;
+    function GetFirstSelectedFrame: TCastleSpriteSheetFrame;
+    function GetLastSelectedFrame: TCastleSpriteSheetFrame;
     function FrameTitle(const FrameNo: Integer;
       const Frame: TCastleSpriteSheetFrame): string;
     procedure UpdateFrameTitles;
-    function IsFrameListItem(const ItemToCheck: TListItem): Boolean;
 
     { Returns current preview mode }
     function GetCurrentPreviewMode: TPreviewMode;
@@ -235,6 +259,72 @@ uses GraphType, IntfGraphics, Math,
   EditorUtils,
   FormProject
   {$ifdef LCLGTK2},Gtk2Globals{$endif};
+
+{ TSpriteSheetEditorForm.TSelectedFrames }
+
+constructor TSpriteSheetEditorForm.TSelectedFrames.Create(
+  const FrameListViewToMonitor: TListView);
+begin
+  FrameListView := FrameListViewToMonitor;
+  FSelectedFrames := TListOfSelectedFrames.Create;
+end;
+
+destructor TSpriteSheetEditorForm.TSelectedFrames.Destroy;
+begin
+  FreeAndNil(FSelectedFrames);
+  inherited Destroy;
+end;
+
+procedure TSpriteSheetEditorForm.TSelectedFrames.GetCurrentSelection;
+var
+  Item: TListItem;
+begin
+  Clear;
+  Item := FrameListView.Selected;
+
+  while Item <> nil do
+  begin
+    if IsFrameListItem(Item) then
+      FSelectedFrames.Add(TCastleSpriteSheetFrame(Item.Data));
+
+    Item := FrameListView.GetNextItem(Item, sdBelow, [lisSelected]);
+  end;
+end;
+
+procedure TSpriteSheetEditorForm.TSelectedFrames.SetSelection;
+var
+  Item: TListItem;
+begin
+  for Item in FrameListView.Items do
+  begin
+    if IsFrameListItem(Item) then
+    begin
+      Item.Selected := FSelectedFrames.Contains(TCastleSpriteSheetFrame(Item.Data));
+    end;
+  end;
+end;
+
+procedure TSpriteSheetEditorForm.TSelectedFrames.Clear;
+begin
+  FSelectedFrames.Clear;
+end;
+
+function TSpriteSheetEditorForm.TSelectedFrames.GetFrameByIndex(
+  const Index: Integer): TCastleSpriteSheetFrame;
+begin
+  Result := FSelectedFrames[Index];
+end;
+
+function TSpriteSheetEditorForm.TSelectedFrames.FrameCount: Integer;
+begin
+  Result := FSelectedFrames.Count;
+end;
+
+class function TSpriteSheetEditorForm.TSelectedFrames.IsFrameListItem(
+  const ItemToCheck: TListItem): Boolean;
+begin
+  Result := ItemToCheck.Data <> nil;
+end;
 
 { TSpriteSheetEditorForm }
 
@@ -331,23 +421,25 @@ end;
 
 procedure TSpriteSheetEditorForm.ActionMoveFrameRightExecute(Sender: TObject);
 var
-  Frame: TCastleSpriteSheetFrame;
   Animation: TCastleSpriteSheetAnimation;
+  I: Integer;
 begin
   Animation := GetCurrentAnimation;
-  Frame := GetSelectedFrame;
-
-  if (Animation = nil) or (Frame = nil) then
+  if Animation = nil then
     Exit;
 
-  Animation.MoveFrameRight(Frame);
+  FSelectedFrames.GetCurrentSelection;
+  for I := FSelectedFrames.FrameCount - 1 downto 0 do
+  begin
+    Animation.MoveFrameRight(FSelectedFrames.Frame[I]);
+  end;
 end;
 
 procedure TSpriteSheetEditorForm.ActionMoveFrameRightUpdate(Sender: TObject);
 var
   Frame: TCastleSpriteSheetFrame;
 begin
-  Frame := GetSelectedFrame;
+  Frame := GetFirstSelectedFrame;
   ActionMoveFrameRight.Enabled := (Frame <> nil)
     and (Frame.Animation.FrameIndex(Frame) < Frame.Animation.FrameCount - 1);
 end;
@@ -358,7 +450,7 @@ var
   Animation: TCastleSpriteSheetAnimation;
 begin
   Animation := GetCurrentAnimation;
-  Frame := GetSelectedFrame;
+  Frame := GetFirstSelectedFrame;
 
   if (Animation = nil) or (Frame = nil) then
     Exit;
@@ -370,8 +462,8 @@ procedure TSpriteSheetEditorForm.ActionMoveFrameEndUpdate(Sender: TObject);
 var
   Frame: TCastleSpriteSheetFrame;
 begin
-  Frame := GetSelectedFrame;
-  ActionMoveFrameEnd.Enabled := (Frame <> nil)
+  Frame := GetFirstSelectedFrame;
+  ActionMoveFrameEnd.Enabled := (Frame <> nil) and (ListViewFrames.SelCount = 1)
     and (Frame.Animation.FrameIndex(Frame) < Frame.Animation.FrameCount - 1);
 end;
 
@@ -381,7 +473,7 @@ var
   Animation: TCastleSpriteSheetAnimation;
 begin
   Animation := GetCurrentAnimation;
-  Frame := GetSelectedFrame;
+  Frame := GetFirstSelectedFrame;
 
   if (Animation = nil) or (Frame = nil) then
     Exit;
@@ -393,30 +485,32 @@ procedure TSpriteSheetEditorForm.ActionMoveFrameTopUpdate(Sender: TObject);
 var
   Frame: TCastleSpriteSheetFrame;
 begin
-  Frame := GetSelectedFrame;
-  ActionMoveFrameTop.Enabled := (Frame <> nil)
+  Frame := GetFirstSelectedFrame;
+  ActionMoveFrameTop.Enabled := (Frame <> nil) and (ListViewFrames.SelCount = 1)
     and (Frame.Animation.FrameIndex(Frame) > 0);
 end;
 
 procedure TSpriteSheetEditorForm.ActionMoveFrameLeftExecute(Sender: TObject);
 var
-  Frame: TCastleSpriteSheetFrame;
   Animation: TCastleSpriteSheetAnimation;
+  I: Integer;
 begin
   Animation := GetCurrentAnimation;
-  Frame := GetSelectedFrame;
-
-  if (Animation = nil) or (Frame = nil) then
+  if Animation = nil then
     Exit;
 
-  Animation.MoveFrameLeft(Frame);
+  FSelectedFrames.GetCurrentSelection;
+  for I := 0 to FSelectedFrames.FrameCount -1 do
+  begin
+    Animation.MoveFrameLeft(FSelectedFrames.Frame[I]);
+  end;
 end;
 
 procedure TSpriteSheetEditorForm.ActionMoveFrameLeftUpdate(Sender: TObject);
 var
   Frame: TCastleSpriteSheetFrame;
 begin
-  Frame := GetSelectedFrame;
+  Frame := GetFirstSelectedFrame;
   ActionMoveFrameLeft.Enabled := (Frame <> nil)
     and (Frame.Animation.FrameIndex(Frame) > 0);
 end;
@@ -424,6 +518,7 @@ end;
 procedure TSpriteSheetEditorForm.ActionAddFrameExecute(Sender: TObject);
 var
   Animation: TCastleSpriteSheetAnimation;
+  I: Integer;
 begin
   Animation := GetCurrentAnimation;
   if Animation = nil then
@@ -431,7 +526,8 @@ begin
 
   if CastleOpenImageDialog.Execute then
   begin
-    Animation.AddFrame(CastleOpenImageDialog.URL);
+    for I := 0 to CastleOpenImageDialog.URLCount - 1 do
+      Animation.AddFrame(CastleOpenImageDialog.URLs[I]);
   end;
 end;
 
@@ -474,20 +570,23 @@ end;
 procedure TSpriteSheetEditorForm.ActionDeleteFrameExecute(Sender: TObject);
 var
   Animation: TCastleSpriteSheetAnimation;
-  Frame: TCastleSpriteSheetFrame;
+  I: Integer;
 begin
   Animation := GetCurrentAnimation;
   if Animation = nil then
     Exit;
 
-  Frame := GetSelectedFrame;
-  Animation.RemoveFrame(Frame);
+  FSelectedFrames.GetCurrentSelection;
+  for I := 0 to FSelectedFrames.FrameCount -1 do
+  begin
+    Animation.RemoveFrame(FSelectedFrames.Frame[I]);
+  end;
   UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
 end;
 
 procedure TSpriteSheetEditorForm.ActionDeleteFrameUpdate(Sender: TObject);
 begin
-  ActionDeleteFrame.Enabled := (GetSelectedFrame <> nil);
+  ActionDeleteFrame.Enabled := (GetFirstSelectedFrame <> nil);
 end;
 
 procedure TSpriteSheetEditorForm.ActionRenameAnimationExecute(Sender: TObject);
@@ -515,6 +614,7 @@ end;
 procedure TSpriteSheetEditorForm.FormCreate(Sender: TObject);
 begin
   FSpriteSheet := nil;
+  FSelectedFrames := TSelectedFrames.Create(ListViewFrames);
   FWindowTitle := Caption;
   SetAtlasError('');
   SetAtlasWarning('');
@@ -523,6 +623,7 @@ end;
 
 procedure TSpriteSheetEditorForm.FormDestroy(Sender: TObject);
 begin
+  FreeAndNil(FSelectedFrames);
   FreeAndNil(FSpriteSheet);
 end;
 
@@ -580,7 +681,8 @@ procedure TSpriteSheetEditorForm.ListViewFramesSelectItem(Sender: TObject;
 begin
   { In case of changing frames, animation preview should be ok
     (frame preview is always regenerated). }
-  UpdatePreview(GetCurrentPreviewMode, ffgDontForceFileRegen);
+  if GetCurrentPreviewMode = pmFrame then
+    UpdatePreview(GetCurrentPreviewMode, ffgDontForceFileRegen);
 end;
 
 procedure TSpriteSheetEditorForm.RadioFrameChange(Sender: TObject);
@@ -766,14 +868,27 @@ begin
     AddFrameToListView(Animation.Frame[I], I);
 end;
 
-function TSpriteSheetEditorForm.GetSelectedFrame: TCastleSpriteSheetFrame;
+function TSpriteSheetEditorForm.GetFirstSelectedFrame: TCastleSpriteSheetFrame;
+var
+  Item: TListItem;
 begin
-  if ListViewFrames.ItemIndex < 0 then
-    Exit(nil);
+  Item := ListViewFrames.Selected;
+  if (Item <> nil) and TSelectedFrames.IsFrameListItem(Item) then
+    Result := TCastleSpriteSheetFrame(Item.Data)
+  else
+    Result := nil;
+end;
 
-  { TODO: add frame button - add condition here!!! }
 
-  Result := TCastleSpriteSheetFrame(ListViewFrames.Items[ListViewFrames.ItemIndex].Data);
+function TSpriteSheetEditorForm.GetLastSelectedFrame: TCastleSpriteSheetFrame;
+var
+  Item: TListItem;
+begin
+  Item := ListViewFrames.LastSelected;
+  if (Item <> nil) and TSelectedFrames.IsFrameListItem(Item) then
+    Result := TCastleSpriteSheetFrame(Item.Data)
+  else
+    Result := nil;
 end;
 
 function TSpriteSheetEditorForm.FrameTitle(const FrameNo: Integer;
@@ -791,19 +906,12 @@ begin
   for I := 0 to ListViewFrames.Items.Count - 1 do
   begin
     AListItem := ListViewFrames.Items[I];
-    if IsFrameListItem(AListItem) then
+    if TSelectedFrames.IsFrameListItem(AListItem) then
     begin
       AListItem.Caption := FrameTitle(I + 1,
         TCastleSpriteSheetFrame(AListItem.Data));
     end;
   end;
-end;
-
-function TSpriteSheetEditorForm.IsFrameListItem(const ItemToCheck: TListItem
-  ): Boolean;
-begin
-  { This function is preparation for adding "+" button to FrameItems. }
-  Result := ItemToCheck.Data <> nil;
 end;
 
 function TSpriteSheetEditorForm.GetCurrentPreviewMode: TPreviewMode;
@@ -885,7 +993,7 @@ begin
         LoadAnimationInPreview(GetCurrentAnimation);
       end;
     pmFrame:
-      LoadFrameInPreview(GetSelectedFrame);
+      LoadFrameInPreview(GetFirstSelectedFrame);
   end;
 end;
 
@@ -1067,12 +1175,26 @@ end;
 
 procedure TSpriteSheetEditorForm.FrameMoved(
   const Frame: TCastleSpriteSheetFrame; const OldIndex, NewIndex: Integer);
+var
+  Selection: TSelectedFrames;
 begin
   { Is changed Animation the current one? }
   if Frame.Animation = GetCurrentAnimation then
   begin
-    ListViewFrames.Items.Move(OldIndex, NewIndex);
-    UpdateFrameTitles;
+    { I know this looks weird, but after rearranging the order of items
+      (at least on GTK2) the selection is completely broken. So here I need
+      remember selection and restore it after item rearranging. }
+    Selection := TSelectedFrames.Create(ListViewFrames);
+    try
+      Selection.GetCurrentSelection;
+      ListViewFrames.ClearSelection;
+
+      ListViewFrames.Items.Move(OldIndex, NewIndex);
+      UpdateFrameTitles;
+    finally
+      Selection.SetSelection;
+      FreeAndNil(Selection);
+    end;
   end;
 
   { Preview update must be always called here (make preview always correct). }
