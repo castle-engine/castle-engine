@@ -168,6 +168,8 @@ type
       function FrameCount: Integer;
       function FrameIndex(const Frame: TCastleSpriteSheetFrame): Integer;
       function AddFrame: TCastleSpriteSheetFrame;
+      function AddFrameCopy(const SrcFrame: TCastleSpriteSheetFrame
+          ): TCastleSpriteSheetFrame;
       function AddFrame(const FrameImageURL: String): TCastleSpriteSheetFrame;
       function AllFramesHasTheSameSize: Boolean;
       procedure RemoveFrame(const Frame: TCastleSpriteSheetFrame);
@@ -213,6 +215,9 @@ type
       procedure SetModifiedState;
     public
       constructor Create(const Animation: TCastleSpriteSheetAnimation);
+      { Construct full/deep copy of SrcFrame }
+      constructor Create(const Animation: TCastleSpriteSheetAnimation;
+          const SrcFrame: TCastleSpriteSheetFrame);
       destructor Destroy; override;
 
       function HasFrameImage: Boolean;
@@ -229,7 +234,7 @@ type
           SourceX, SourceY, SourceWidthToDraw, SourceHeightToDraw: Integer);
 
       function MakeResized(const Width, Height: Integer): TCastleImage;
-      function MakeCopy: TCastleImage;
+      function MakeImageCopy: TCastleImage;
       function CenterOnBiggerImage(const Width, Height: Integer): TCastleImage;
 
       procedure SaveFrameImage(const URL: String);
@@ -813,6 +818,29 @@ begin
   FAnimation := Animation;
 end;
 
+constructor TCastleSpriteSheetFrame.Create(
+  const Animation: TCastleSpriteSheetAnimation;
+  const SrcFrame: TCastleSpriteSheetFrame);
+begin
+  Create(Animation);
+
+  FX := SrcFrame.FX;
+  FY := SrcFrame.FX;
+
+  FWidth := SrcFrame.FWidth;
+  FHeight := SrcFrame.FHeight;
+  FFrameX := SrcFrame.FFrameX;
+  FFrameY := SrcFrame.FFrameY;
+  FFrameWidth := SrcFrame.FFrameWidth;
+  FFrameHeight := SrcFrame.FFrameHeight;
+
+  FTrimmed := SrcFrame.FTrimmed;
+  if SrcFrame.FFrameImage <> nil then
+    FFrameImage := SrcFrame.FFrameImage.MakeCopy
+  else
+    FFrameImage := nil;
+end;
+
 destructor TCastleSpriteSheetFrame.Destroy;
 begin
   FreeAndNil(FFrameImage);
@@ -896,7 +924,7 @@ begin
   Result := FFrameImage.MakeResized(Width, Height);
 end;
 
-function TCastleSpriteSheetFrame.MakeCopy: TCastleImage;
+function TCastleSpriteSheetFrame.MakeImageCopy: TCastleImage;
 begin
   Assert(FFrameImage <> nil, 'No frame image to make copy.');
   Result := FFrameImage.MakeCopy;
@@ -1084,6 +1112,19 @@ var
   AFrame: TCastleSpriteSheetFrame;
 begin
   AFrame := TCastleSpriteSheetFrame.Create(Self);
+  FFrameList.Add(AFrame);
+  Result := AFrame;
+  if Assigned(FSpriteSheet.OnFrameAdded) then
+    FSpriteSheet.OnFrameAdded(AFrame);
+  SetModifiedState;
+end;
+
+function TCastleSpriteSheetAnimation.AddFrameCopy(
+  const SrcFrame: TCastleSpriteSheetFrame): TCastleSpriteSheetFrame;
+var
+  AFrame: TCastleSpriteSheetFrame;
+begin
+  AFrame := TCastleSpriteSheetFrame.Create(Self, SrcFrame);
   FFrameList.Add(AFrame);
   Result := AFrame;
   if Assigned(FSpriteSheet.OnFrameAdded) then

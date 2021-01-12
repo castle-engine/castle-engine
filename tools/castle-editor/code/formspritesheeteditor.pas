@@ -13,6 +13,7 @@ uses
 
 type
   TSpriteSheetEditorForm = class(TForm)
+    ActionCreateNewAnimationFromSelection: TAction;
     ActionMoveAnimationEnd: TAction;
     ActionMoveAnimationTop: TAction;
     ActionMoveAnimationDown: TAction;
@@ -48,6 +49,13 @@ type
     MainMenuItemMoveFrameEnd: TMenuItem;
     MainMenuItemAddFrame: TMenuItem;
     MainMenuItemDeleteFrame: TMenuItem;
+    MainMenuItemCreateAnimFromSelection: TMenuItem;
+    N6: TMenuItem;
+    N5: TMenuItem;
+    N4: TMenuItem;
+    N3: TMenuItem;
+    MenuItemCreateNewAnimationFromSelection: TMenuItem;
+    N2: TMenuItem;
     N1: TMenuItem;
     MenuItemRenameAnimation: TMenuItem;
     MenuItemFrameMenu: TMenuItem;
@@ -102,6 +110,8 @@ type
     procedure ActionAddAnimationUpdate(Sender: TObject);
     procedure ActionAddFrameExecute(Sender: TObject);
     procedure ActionAddFrameUpdate(Sender: TObject);
+    procedure ActionCreateNewAnimationFromSelectionExecute(Sender: TObject);
+    procedure ActionCreateNewAnimationFromSelectionUpdate(Sender: TObject);
     procedure ActionMoveAnimationDownExecute(Sender: TObject);
     procedure ActionMoveAnimationDownUpdate(Sender: TObject);
     procedure ActionMoveAnimationEndExecute(Sender: TObject);
@@ -179,6 +189,8 @@ type
       FWindowTitle: String;
       CurrentFrameIconSize: TVector2Integer; // current frame size in list view
       FSelectedFrames: TSelectedFrames;
+      { should we select added animation (not always desirable) }
+      FSelectNewAnimation: Boolean;
 
     // Returns true if sprite sheet is closed
     function CloseSpriteSheet: Boolean;
@@ -336,6 +348,45 @@ end;
 procedure TSpriteSheetEditorForm.ActionAddFrameUpdate(Sender: TObject);
 begin
   ActionAddFrame.Enabled := GetCurrentAnimation <> nil;
+end;
+
+procedure TSpriteSheetEditorForm.ActionCreateNewAnimationFromSelectionExecute(
+  Sender: TObject);
+var
+  Animation: TCastleSpriteSheetAnimation;
+  NewAnimation: TCastleSpriteSheetAnimation;
+  I: Integer;
+  OldSelectNewAnimation: Boolean;
+begin
+  Animation := GetCurrentAnimation;
+  if Animation = nil then
+    Exit;
+
+  FSelectedFrames.GetCurrentSelection;
+
+  if FSelectedFrames.FrameCount = 0 then
+    Exit;
+
+  OldSelectNewAnimation := FSelectNewAnimation;
+  try
+    { We don't want to jump to new animation in this case }
+    FSelectNewAnimation := false;
+    NewAnimation := FSpriteSheet.AddAnimation(FSpriteSheet.ProposeAnimationName);
+  finally
+    FSelectNewAnimation := OldSelectNewAnimation;
+  end;
+
+  for I := 0 to FSelectedFrames.FrameCount -1 do
+  begin
+    NewAnimation.AddFrameCopy(FSelectedFrames.Frame[I]);
+  end;
+  UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+end;
+
+procedure TSpriteSheetEditorForm.ActionCreateNewAnimationFromSelectionUpdate(
+  Sender: TObject);
+begin
+  ActionCreateNewAnimationFromSelection.Enabled := (GetFirstSelectedFrame <> nil);
 end;
 
 procedure TSpriteSheetEditorForm.ActionMoveAnimationDownExecute(Sender: TObject
@@ -537,8 +588,16 @@ begin
 end;
 
 procedure TSpriteSheetEditorForm.ActionAddAnimationExecute(Sender: TObject);
+var
+  OldSelectNewAnimation: Boolean;
 begin
-  FSpriteSheet.AddAnimation(FSpriteSheet.ProposeAnimationName);
+  OldSelectNewAnimation := FSelectNewAnimation;
+  try
+    FSelectNewAnimation := true;
+    FSpriteSheet.AddAnimation(FSpriteSheet.ProposeAnimationName);
+  finally
+    FSelectNewAnimation := OldSelectNewAnimation;
+  end;
   UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
 end;
 
@@ -613,6 +672,7 @@ end;
 
 procedure TSpriteSheetEditorForm.FormCreate(Sender: TObject);
 begin
+  FSelectNewAnimation := true;
   FSpriteSheet := nil;
   FSelectedFrames := TSelectedFrames.Create(ListViewFrames);
   FWindowTitle := Caption;
@@ -809,7 +869,7 @@ begin
     if (Frame.FrameWidth = CurrentFrameIconSize.X) and
       (Frame.FrameHeight = CurrentFrameIconSize.Y) then
     begin
-      ResizedFrameImage := Frame.MakeCopy;
+      ResizedFrameImage := Frame.MakeImageCopy;
     end else
     if (Frame.FrameWidth < CurrentFrameIconSize.X) and
       (Frame.FrameHeight < CurrentFrameIconSize.Y) then
@@ -984,6 +1044,7 @@ procedure TSpriteSheetEditorForm.UpdatePreview(
   end;
 
 begin
+  WritelnLog('Update Preview');
   case PreviewModesToUpdate of
     pmAnimation:
       begin
@@ -1218,9 +1279,15 @@ end;
 
 procedure TSpriteSheetEditorForm.AnimationAdded(
   NewAnimation: TCastleSpriteSheetAnimation);
+var
+  NewAnimationItem: TListItem;
 begin
-  ListViewAnimations.Selected := AddAnimationToListView(NewAnimation);
-  ListViewAnimations.Selected.MakeVisible(false);
+  NewAnimationItem := AddAnimationToListView(NewAnimation);
+  if FSelectNewAnimation then
+  begin
+    ListViewAnimations.Selected := NewAnimationItem;
+    ListViewAnimations.Selected.MakeVisible(false);
+  end;
 end;
 
 procedure TSpriteSheetEditorForm.FrameAdded(NewFrame: TCastleSpriteSheetFrame);

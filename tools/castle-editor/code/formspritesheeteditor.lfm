@@ -573,6 +573,13 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       OnExecute = ActionMoveAnimationEndExecute
       OnUpdate = ActionMoveAnimationEndUpdate
     end
+    object ActionCreateNewAnimationFromSelection: TAction
+      Category = 'Frame'
+      Caption = 'Create new animation from selection'
+      OnExecute = ActionCreateNewAnimationFromSelectionExecute
+      OnUpdate = ActionCreateNewAnimationFromSelectionUpdate
+      ShortCut = 24641
+    end
   end
   object MainMenu: TMainMenu
     Images = Icons.MenuStroke1_5
@@ -625,6 +632,15 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       object MainMenuItemAddFrame: TMenuItem
         Action = ActionAddFrame
       end
+      object N6: TMenuItem
+        Caption = '-'
+      end
+      object MainMenuItemCreateAnimFromSelection: TMenuItem
+        Action = ActionCreateNewAnimationFromSelection
+      end
+      object N5: TMenuItem
+        Caption = '-'
+      end
       object MainMenuItemDeleteFrame: TMenuItem
         Action = ActionDeleteFrame
       end
@@ -659,8 +675,20 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     object MenuItemMoveEnd: TMenuItem
       Action = ActionMoveFrameEnd
     end
+    object N4: TMenuItem
+      Caption = '-'
+    end
     object MenuItemAddFrame: TMenuItem
       Action = ActionAddFrame
+    end
+    object N3: TMenuItem
+      Caption = '-'
+    end
+    object MenuItemCreateNewAnimationFromSelection: TMenuItem
+      Action = ActionCreateNewAnimationFromSelection
+    end
+    object N2: TMenuItem
+      Caption = '-'
     end
     object MenuItemDeleteFrame: TMenuItem
       Action = ActionDeleteFrame
