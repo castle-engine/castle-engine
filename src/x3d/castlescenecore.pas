@@ -2818,8 +2818,9 @@ begin
       { The same generated texture node Tex is instantiated more than once.
 
         - For GeneratedShadowMap, the shape where it's used, and actually
-          the whole place where it's used in the VRML graph, doesn't matter.
-          (GeneratedShadowMap makes view from it's light).
+          the whole place where it's used in the X3D graph, doesn't matter.
+          (GeneratedShadowMap makes view from it's light/viewpoint,
+          referenced explicitly in the node).
           Same thing for RenderedTexture (it makes view from specified viewpoint).
 
           So we can simply ignore duplicates (placing them
@@ -2837,7 +2838,7 @@ begin
 
       if (Tex is TGeneratedCubeMapTextureNode) and
          (Shape <> GenTex^.Shape) then
-        WritelnWarning('X3D', 'The same GeneratedCubeMapTexture node is used (instanced) within at least two different VRML shapes. This is bad, as we don''t know from which shape should environment be captured');
+        WritelnWarning('X3D', 'The same GeneratedCubeMapTexture node is used (instanced) within at least two different X3D shapes. This is incorrect, as we don''t know from which shape should environment be captured');
     end else
     begin
       GenTex := Add;

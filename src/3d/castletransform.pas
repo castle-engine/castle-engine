@@ -925,9 +925,7 @@ type
       the resources --- please wait".
 
       @param(Options What features should be prepared to execute fast.
-        See TPrepareResourcesOption,
-        the names should be self-explanatory (they refer to appropriate
-        methods of TCastleTransform, TCastleSceneCore or TCastleScene).)
+        See TPrepareResourcesOption.)
 
       @param(ProgressStep Says that we should call Progress.Step.
         It will be called PrepareResourcesSteps times.
@@ -1083,15 +1081,10 @@ type
     { Mouse cursor over this object. }
     property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
 
-    { Called when OpenGL context of the window is destroyed.
+    { Called when rendering context is destroyed.
       This will be also automatically called from destructor.
-
-      Control should clear here any resources that are tied to the GL context. }
+      Object should clear here any resources that are connected to the rendering context. }
     procedure GLContextClose; virtual;
-
-    procedure UpdateGeneratedTextures(
-      const RenderFunc: TRenderFromViewFunction;
-      const ProjectionNear, ProjectionFar: Single); virtual;
 
     { Are we in the middle of dragging something by moving the mouse.
 
@@ -1965,7 +1958,7 @@ type
     FEnablePhysics: boolean;
     FMoveLimit: TBox3D;
     FPhysicsProperties: TPhysicsProperties;
-    UpdateGeneratedTexturesFrameId, UpdateFrameId: TFrameId;
+    UpdateFrameId: TFrameId;
     FTimeScale: Single;
     FPaused: boolean;
     FMainCamera: TCastleCamera;
@@ -1984,13 +1977,23 @@ type
     OnCursorChange: TNotifyEvent;
     OnVisibleChange: TVisibleChangeEvent;
 
+    { Event to render whole world.
+      Used by generated textures to update their contents.
+      @exclude }
+    InternalRenderEverythingEvent: TRenderFromViewFunction;
+
+    { Projection near/far used. May be used when updating generated textures,
+      to determine their projection parameters.
+      @exclude }
+    InternalProjectionNear, InternalProjectionFar: Single;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure UpdateGeneratedTextures(
-      const RenderFunc: TRenderFromViewFunction;
-      const ProjectionNear, ProjectionFar: Single); override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
+    { @exclude
+      TCastleTransform instances that listen on press/release.
+      May be @nil, equivalent to empty. }
     property InternalPressReleaseListeners: TCastleTransformList read FInternalPressReleaseListeners;
 
     { The major axis of gravity vector: 0, 1 or 2.
@@ -3150,16 +3153,6 @@ begin
 end;
 *)
 
-procedure TCastleTransform.UpdateGeneratedTextures(
-  const RenderFunc: TRenderFromViewFunction;
-  const ProjectionNear, ProjectionFar: Single);
-var
-  I: Integer;
-begin
-  for I := 0 to List.Count - 1 do
-    List[I].UpdateGeneratedTextures(RenderFunc, ProjectionNear, ProjectionFar);
-end;
-
 procedure TCastleTransform.VisibleChangeNotification(const Changes: TVisibleChanges);
 var
   I: Integer;
@@ -4161,19 +4154,6 @@ begin
 
   { inherited calls CameraChanged on all items,
     and they may assume that World.Camera* properties are already properly set. }
-  inherited;
-end;
-
-procedure TCastleAbstractRootTransform.UpdateGeneratedTextures(
-  const RenderFunc: TRenderFromViewFunction;
-  const ProjectionNear, ProjectionFar: Single);
-begin
-  { Avoid doing this two times within the same FrameId.
-    Important if the same TCastleAbstractRootTransform is present in multiple viewports. }
-  if UpdateGeneratedTexturesFrameId = TFramesPerSecond.FrameId then
-    Exit;
-  UpdateGeneratedTexturesFrameId := TFramesPerSecond.FrameId;
-
   inherited;
 end;
 

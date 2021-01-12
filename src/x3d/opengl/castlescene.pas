@@ -29,7 +29,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleTriangles, CastleShapes, CastleFrustum, CastleTransform, CastleGLShaders,
   CastleRectangles, CastleCameras, CastleRendererInternalShader, CastleColors,
   CastleSceneInternalShape, CastleSceneInternalOcclusion, CastleSceneInternalBlending,
-  CastleInternalBatchShapes, CastleRenderOptions;
+  CastleInternalBatchShapes, CastleRenderOptions, CastleTimeUtils;
 
 {$define read_interface}
 
@@ -125,6 +125,9 @@ type
       { Used by UpdateGeneratedTextures, to prevent rendering non-shadow casters
         for shadow maps. }
       AvoidNonShadowCasterRendering: boolean;
+
+      { Used by UpdateGeneratedTextures, to avoid updating twice during the same render. }
+      UpdateGeneratedTexturesFrameId: TFrameId;
 
       VarianceShadowMapsProgram, ShadowMapsProgram: TCustomShaders;
       FDistanceCulling: Single;
@@ -257,6 +260,11 @@ type
       var LightOn: boolean);
 
     function GetRenderOptions: TCastleRenderOptions;
+
+    { Update generated textures, like generated cubemaps/shadow maps. }
+    procedure UpdateGeneratedTextures(
+      const RenderFunc: TRenderFromViewFunction;
+      const ProjectionNear, ProjectionFar: Single);
   private
     PreparedShapesResources, PreparedRender: Boolean;
     Renderer: TGLRenderer;
@@ -319,8 +327,8 @@ type
       const ParentTransform: TMatrix4); override;
   public
     constructor Create(AOwner: TComponent); override;
-
     destructor Destroy; override;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
     { Destroy any associations of this object with current OpenGL context.
       For example, release any allocated texture names.
@@ -395,10 +403,6 @@ type
     function InternalBackground: TBackground;
 
     function Attributes: TCastleRenderOptions; deprecated 'use RenderOptions';
-
-    procedure UpdateGeneratedTextures(
-      const RenderFunc: TRenderFromViewFunction;
-      const ProjectionNear, ProjectionFar: Single); override;
 
     procedure ViewChangedSuddenly; override;
 
@@ -554,7 +558,7 @@ implementation
 // TODO: This unit temporarily uses RenderingCamera singleton,
 // to keep TBasicRenderParams working for backward compatibility.
 uses CastleGLVersion, CastleImages, CastleLog,
-  CastleStringUtils, CastleApplicationProperties, CastleTimeUtils,
+  CastleStringUtils, CastleApplicationProperties,
   CastleRenderingCamera, CastleShapeInternalRenderShadowVolumes,
   CastleComponentSerialize, CastleRenderContext;
 {$warnings on}
@@ -1853,6 +1857,17 @@ begin
   end;
 end;
 
+procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+begin
+  inherited;
+
+  { This will do FrameProfiler.Start/Stop with fmUpdateGeneratedTextures }
+  UpdateGeneratedTextures(
+    World.InternalRenderEverythingEvent,
+    World.InternalProjectionNear,
+    World.InternalProjectionFar);
+end;
+
 procedure TCastleScene.LocalRender(const Params: TRenderParams);
 
 { Call LocalRenderOutside, choosing TTestShapeVisibility function
@@ -2006,6 +2021,20 @@ var
   Shape: TGLShape;
   TextureNode: TAbstractTextureNode;
 begin
+  if GeneratedTextures.Count = 0 then
+    Exit; // optimize away common case
+
+  FrameProfiler.Start(fmUpdateGeneratedTextures);
+
+  { Avoid doing this two times within the same FrameId.
+    Important if
+    - the same scene is present multiple times in one viewport,
+    - or when Viewport.Items are shared across multiple viewports
+      (thus scene is present in multiple viewports). }
+  if UpdateGeneratedTexturesFrameId = TFramesPerSecond.FrameId then
+    Exit;
+  UpdateGeneratedTexturesFrameId := TFramesPerSecond.FrameId;
+
   for I := 0 to GeneratedTextures.Count - 1 do
   begin
     Shape := TGLShape(GeneratedTextures.L[I].Shape);
@@ -2027,6 +2056,8 @@ begin
     AvoidShapeRendering := nil;
     AvoidNonShadowCasterRendering := false;
   end;
+
+  FrameProfiler.Stop(fmUpdateGeneratedTextures);
 end;
 
 procedure TCastleScene.ViewChangedSuddenly;
