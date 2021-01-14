@@ -40,6 +40,8 @@ var
     Result := Map.Height * Map.TileHeight;
   end;
 
+  { This function creates and builds a transform node from the Object Group
+    Layer data. }
   function BuildObjectGroupLayer(const ALayer: TTiledMap.TLayer): TTransformNode;
   var
     ObjMaterial: TMaterialNode = nil;       // Material node of a TiledObject.
@@ -117,6 +119,63 @@ var
     FreeAndNil(ObjVector2List);
   end;
 
+  { This function creates and builds a transform node from the Tile Layer data. }
+  function BuildTileLayer(const ALayer: TTiledMap.TLayer): TTransformNode;
+  var
+    Tile: TTiledMap.TTile;                  // A Tile.
+    Tileset: TTiledMap.TTileset;            // A Tileset.
+    I: Cardinal;
+
+    { Get the associated tileset of a specific tile by the tileset's FirstGID. }
+    function GetTilesetOfTile(const ATileGID: Cardinal): TTiledMap.TTileset;
+    var
+      J: Cardinal;
+    begin
+      Result := Map.Tilesets.Items[0];
+      if Map.Tilesets.Count = 1 then
+        Exit
+      else
+      begin
+        { "In order to find out from which tileset the tile is you need to find
+           the tileset with the highest firstgid that is still lower or equal
+           than the gid.The tilesets are always stored with increasing
+           firstgids."
+          (https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#tmx-data) }
+        for J := 1 to Map.Tilesets.Count - 1 do
+        begin
+          if ATileGID >= (Map.Tilesets.Items[J] as TTiledMap.TTileset).FirstGID then
+            Result := Map.Tilesets.Items[J];
+        end;
+      end;
+    end;
+
+    { Get a specific tile by its ID from a specific tileset. }
+    function GetTileFromTileset(ATileGID: Cardinal; ATileset: TTiledMap.TTileset): TTiledMap.TTile;
+    var
+      J: Cardinal;
+    begin
+      Result := nil;
+      for J := 0 to ATileset.Tiles.Count - 1 do
+      begin
+        if (ATileset.Tiles.Items[J] as TTiledMap.TTile).Id = ATileGID then
+        begin
+          Result := ATileset.Tiles.Items[J];
+          Exit;
+        end;
+      end;
+    end;
+
+  begin
+    Result := TTransformNode.Create;        // The resulting layer node.
+
+    for I := 0 to High(ALayer.Data.Data) do
+    begin
+      Tileset := GetTilesetOfTile(ALayer.Data.Data[I]);
+      Tile := GetTileFromTileset(ALayer.Data.Data[I], Tileset);
+
+    end;
+  end;
+
 begin
   { Root node for scene. }
   RootTransformNode := TTransformNode.Create;
@@ -129,19 +188,17 @@ begin
     { Every Layer has an individual layer node. }
     LayerTransformNode := nil;
 
-    { Object Group Layer. }
     if (Layer is TTiledMap.TObjectGroupLayer) then
     begin
       LayerTransformNode := BuildObjectGroupLayer(Layer);
     end else
-    { Image Layers. }
     if (Layer is TTiledMap.TImageLayer) then
     begin
-      { TODO : Implement! }
+      { TODO : Implement!
+        LayerTransformNode := BuildImageLayer(Layer); }
     end else
-    { Tile Layers. }
     begin
-
+      LayerTransformNode := BuildTileLayer(Layer);
     end;
 
     if Assigned(LayerTransformNode) then
