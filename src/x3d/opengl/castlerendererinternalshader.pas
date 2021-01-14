@@ -3666,8 +3666,10 @@ procedure TShader.AddScreenEffectCode(const Depth: boolean);
 var
   VS, FS: string;
 begin
+  {$warnings off} // using deprecated below, which should be internal
   VS := ScreenEffectVertex;
   FS := ScreenEffectFragment(Depth);
+  {$warnings on}
 
   Source[stVertex].Insert(0, VS);
   { For OpenGLES, ScreenEffectLibrary must be 1st shader,

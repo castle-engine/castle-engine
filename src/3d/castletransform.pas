@@ -1071,13 +1071,6 @@ type
       changes, you should override this. }
     procedure VisibleChangeNotification(const Changes: TVisibleChanges); virtual;
 
-    { Main camera observing this 3D object changed.
-      This is usually called by our container (like TCastleViewport)
-      to notify that camera changed. }
-    procedure CameraChanged(const ACamera: TCastleCamera); overload; virtual;
-    procedure CameraChanged(const ACamera: TCastleNavigation); overload;
-      deprecated 'use CameraChanged with TCastleCamera instance';
-
     { Mouse cursor over this object. }
     property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
 
@@ -1953,8 +1946,6 @@ type
   strict private
     WasPhysicsStep: boolean;
     TimeAccumulator: TFloatTime;
-    FCameraPosition, FCameraDirection, FCameraUp, FCameraGravityUp: TVector3;
-    FCameraKnown: boolean;
     FEnablePhysics: boolean;
     FMoveLimit: TBox3D;
     FPhysicsProperties: TPhysicsProperties;
@@ -1962,9 +1953,11 @@ type
     FTimeScale: Single;
     FPaused: boolean;
     FMainCamera: TCastleCamera;
+    FMainCameraObserver: TFreeNotificationObserver;
     FInternalPressReleaseListeners: TCastleTransformList;
     procedure SetPaused(const Value: boolean);
     procedure SetMainCamera(const Value: TCastleCamera);
+    procedure MainCameraFreeNotification(const Sender: TFreeNotificationObserver);
   private
     FKraftEngine: TKraft;
     { Create FKraftEngine, if not assigned yet. }
@@ -1986,6 +1979,11 @@ type
       to determine their projection parameters.
       @exclude }
     InternalProjectionNear, InternalProjectionFar: Single;
+
+    { Changes every time MainCamera vectors change.
+      Allows to track camera changes in scenes.
+      @exclude }
+    InternalMainCameraStateId: TFrameId;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -2011,9 +2009,9 @@ type
 
     function GravityUp: TVector3;
       // TODO: I would like to deprecate it,
-      // but it is so often useful, and the alternative name with Camera prefix looks convoluted.
+      // but it is so often useful, and the alternative MainCamera.GravityUp looks convoluted.
       // Leave it be for now.
-      // TODO: deprecated 'use CameraGravityUp after checking CameraKnown';
+      // TODO: deprecated 'use MainCamera.GravityUp if MainCamera <> nil';
 
     { Is the move from OldPos to ProposedNewPos possible.
       Returns true and sets NewPos if some move is allowed, thus allows for wall-sliding.
@@ -2063,6 +2061,7 @@ type
       const BecauseOfGravity: boolean): boolean; overload;
 
     { Get height of point APosition above the world.
+      Looks at current @link(MainCamera) to know the gravity direction.
 
       This checks collisions with world
       (everything inside this @link(TCastleAbstractRootTransform)).
@@ -2186,32 +2185,6 @@ type
       and whether the object is not between @link(Disable) and @link(Enable). }
     function WorldPointCollision2D(const Point: TVector2): boolean;
 
-    { Camera position, direction, up and gravity up vectors.
-      Expressed in the coordinate space of this TCastleAbstractRootTransform,
-      which means: the coordinate space of enclosing @link(TCastleViewport).
-
-      Note that some features of TCastleScene (like LOD or Billboard or ProximitySensor)
-      need to transform this camera to scene local space.
-      Which is not possible if the same scene instance
-      is used multiple times (e.g. under many different TCastleTransform parents).
-      If you need to use these features of TCastleScene,
-      then simply do not use the same scene reference multiple times
-      (instead clone the scene by @link(TCastleScene.Clone)).
-
-      CameraKnown = @false means that
-      CameraChanged was never called, and so camera settings are not known,
-      and so other Camera* properties have undefined values.
-
-      @groupBegin }
-    property CameraPosition: TVector3 read FCameraPosition;
-    property CameraDirection: TVector3 read FCameraDirection;
-    property CameraUp: TVector3 read FCameraUp;
-    property CameraGravityUp: TVector3 read FCameraGravityUp;
-    property CameraKnown: boolean read FCameraKnown;
-    { @groupEnd }
-
-    procedure CameraChanged(const ACamera: TCastleCamera); override;
-
     { Yoo can temporarily disable physics (no transformations will be updated
       by the physics engine) by setting this property to @false. }
     property EnablePhysics: boolean read FEnablePhysics write FEnablePhysics
@@ -2236,15 +2209,15 @@ type
     }
     property MoveLimit: TBox3D read FMoveLimit write FMoveLimit;
 
-    { The central camera, that controls the features that require
+    { Central camera, that controls the features that require
       a single "main" camera (features that do not make sense
       with multiple cameras from multiple viewports).
 
       This camera controls:
 
-      - the X3D nodes that "sense" camera like ProximitySensor, Billboard.
+      - the X3D nodes that "sense" camera like ProximitySensor, Billboard, LOD.
       - an audio listener (controlling the spatial sound).
-      - the headlight.
+      - the headlight position/direction.
       - when X3D nodes change Viewport/NavigationInfo,
         they apply these changes to this camera.
 
@@ -2256,17 +2229,28 @@ type
       e.g. mirror textures (like GeneratedCubeMapTexture)
       would need different contents in different viewpoints.
 
+      Note that features like LOD or Billboard or ProximitySensor
+      need to transform this camera to scene local space.
+      Which is not possible if the same scene instance
+      is used multiple times (e.g. under many different TCastleTransform parents).
+      If you need to use these features of TCastleScene,
+      then simply do not use the same scene reference multiple times
+      (instead clone the scene by @link(TCastleScene.Clone)).
+
       By default this is set to @link(TCastleViewport.Camera) of the @link(TCastleViewport)
       that created this @link(TCastleAbstractRootTransform) instance.
       So in simple cases (when you just create one @link(TCastleViewport)
       and add your scenes to it's already-created @link(TCastleViewport.Items))
       you don't have to do anything, it just works.
       In general, you can change this to any camera of any associated @link(TCastleViewport),
-      or @nil (in case no camera should be that "central" camera).
-
-      TODO: Use free notification to automatically nil this.
-      For now, be sure to unassign it early enough, before freeing the camera. }
+      or @nil (in case no camera should be that "central" camera). }
     property MainCamera: TCastleCamera read FMainCamera write SetMainCamera;
+
+    function CameraPosition: TVector3; deprecated 'use MainCamera.Position if MainCamera <> nil';
+    function CameraDirection: TVector3; deprecated 'use MainCamera.Direction if MainCamera <> nil';
+    function CameraUp: TVector3; deprecated 'use MainCamera.Up if MainCamera <> nil';
+    function CameraGravityUp: TVector3; deprecated 'use MainCamera.GravityUp if MainCamera <> nil';
+    function CameraKnown: Boolean; deprecated 'use MainCamera <> nil';
   published
     { Adjust physics behaviour. }
     property PhysicsProperties: TPhysicsProperties read FPhysicsProperties;
@@ -3161,19 +3145,6 @@ begin
     List[I].VisibleChangeNotification(Changes);
 end;
 
-procedure TCastleTransform.CameraChanged(const ACamera: TCastleCamera);
-var
-  I: Integer;
-begin
-  for I := 0 to List.Count - 1 do
-    List[I].CameraChanged(ACamera);
-end;
-
-procedure TCastleTransform.CameraChanged(const ACamera: TCastleNavigation);
-begin
-  CameraChanged(ACamera.Camera);
-end;
-
 function TCastleTransform.Dragging: boolean;
 var
   I: Integer;
@@ -3622,10 +3593,12 @@ procedure TCastleTransform.UpdateSimpleGravity(const SecondsPassed: Single);
     OldFalling: boolean;
     FallingDistance, MaximumFallingDistance: Single;
   begin
-    if (World = nil) or not World.CameraKnown then Exit;
+    if (World = nil) or
+       (World.MainCamera = nil) then
+      Exit;
 
     { calculate and save GravityUp once, it's used quite often in this procedure }
-    GravityUp := World.CameraGravityUp;
+    GravityUp := World.GravityUp;
 
     OldFalling := FFalling;
 
@@ -4020,12 +3993,12 @@ begin
   FPhysicsProperties.Name := 'PhysicsProperties';
   FPhysicsProperties.RootTransform := Self;
 
+  FMainCameraObserver := TFreeNotificationObserver.Create(Self);
+  FMainCameraObserver.OnFreeNotification := @MainCameraFreeNotification;
+
   FTimeScale := 1;
   FMoveLimit := TBox3D.Empty;
   FEnablePhysics := true;
-  { This initialization is only to keep deprecated GravityUp/GravityCoordinate
-    sensible, even for old code that doesn't look at CameraKnown. }
-  FCameraGravityUp := Vector3(0, 1, 0);
 
   { everything inside is part of this world }
   AddToWorld(Self);
@@ -4038,14 +4011,9 @@ begin
   inherited;
 end;
 
-function TCastleAbstractRootTransform.GravityUp: TVector3;
-begin
-  Result := FCameraGravityUp;
-end;
-
 function TCastleAbstractRootTransform.GravityCoordinate: Integer;
 begin
-  Result := MaxAbsVectorCoord(FCameraGravityUp);
+  Result := MaxAbsVectorCoord(GravityUp);
 end;
 
 function TCastleAbstractRootTransform.WorldBoxCollision(const Box: TBox3D): boolean;
@@ -4079,7 +4047,7 @@ end;
 function TCastleAbstractRootTransform.WorldHeight(const APosition: TVector3;
   out AboveHeight: Single; out AboveGround: PTriangle): boolean;
 begin
-  Result := HeightCollision(APosition, CameraGravityUp, nil,
+  Result := HeightCollision(APosition, GravityUp, nil,
     AboveHeight, AboveGround);
 end;
 
@@ -4147,16 +4115,6 @@ begin
     Result := MoveLimit.IsEmpty or MoveLimit.Contains(NewPos);
 end;
 
-procedure TCastleAbstractRootTransform.CameraChanged(const ACamera: TCastleCamera);
-begin
-  ACamera.GetView(FCameraPosition, FCameraDirection, FCameraUp, FCameraGravityUp);
-  FCameraKnown := true;
-
-  { inherited calls CameraChanged on all items,
-    and they may assume that World.Camera* properties are already properly set. }
-  inherited;
-end;
-
 procedure TCastleAbstractRootTransform.SetPaused(const Value: boolean);
 begin
   if FPaused <> Value then
@@ -4171,9 +4129,62 @@ procedure TCastleAbstractRootTransform.SetMainCamera(const Value: TCastleCamera)
 begin
   if FMainCamera <> Value then
   begin
+    FMainCameraObserver.Observed := Value;
     FMainCamera := Value;
     VisibleChangeHere([]);
   end;
+end;
+
+procedure TCastleAbstractRootTransform.MainCameraFreeNotification(const Sender: TFreeNotificationObserver);
+begin
+  MainCamera := nil;
+end;
+
+function TCastleAbstractRootTransform.CameraPosition: TVector3;
+begin
+  if MainCamera = nil then
+    Result := TVector3.Zero
+  else
+    Result := MainCamera.Position;
+end;
+
+function TCastleAbstractRootTransform.CameraDirection: TVector3;
+begin
+  if MainCamera = nil then
+    Result := DefaultCameraDirection
+  else
+    Result := MainCamera.Direction;
+end;
+
+function TCastleAbstractRootTransform.CameraUp: TVector3;
+begin
+  if MainCamera = nil then
+    Result := DefaultCameraUp
+  else
+    Result := MainCamera.Up;
+end;
+
+function TCastleAbstractRootTransform.CameraGravityUp: TVector3;
+begin
+  if MainCamera = nil then
+    Result := DefaultCameraUp
+  else
+    Result := MainCamera.GravityUp;
+end;
+
+function TCastleAbstractRootTransform.GravityUp: TVector3;
+begin
+  if MainCamera = nil then
+    { This is only to keep deprecated GravityUp/GravityCoordinate
+      sensible, even for old code that doesn't check MainCamera <> nil. }
+    Result := DefaultCameraUp
+  else
+    Result := MainCamera.GravityUp;
+end;
+
+function TCastleAbstractRootTransform.CameraKnown: Boolean;
+begin
+  Result := MainCamera <> nil;
 end;
 
 procedure TCastleAbstractRootTransform.RegisterPressRelease(const T: TCastleTransform);
