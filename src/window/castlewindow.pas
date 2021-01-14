@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2020 Michalis Kamburelis.
+  Copyright 2001-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -215,13 +215,10 @@ unit CastleWindow;
            {$elseif defined(CASTLE_ENGINE_PLUGIN)}
              // on Unix plugin, you have to use Xlib
              {$define CASTLE_WINDOW_XLIB}
-           {$elseif defined(OpenGLES)}
-             // when testing OpenGLES on desktop, the GTK2 backend cannot be used
-             {$define CASTLE_WINDOW_XLIB}
            {$else}
              // various possible backends on traditional Unix (Linux, FreeBSD) desktop:
-             {$define CASTLE_WINDOW_GTK_2} // best (looks native and most functional)
-             { $define CASTLE_WINDOW_XLIB}
+             {$define CASTLE_WINDOW_GTK_2} // best (looks native and most functional), supports both OpenGL and OpenGLES
+             { $define CASTLE_WINDOW_XLIB} // supports both OpenGL and OpenGLES
              { $define CASTLE_WINDOW_LCL}
              { $define CASTLE_WINDOW_LIBRARY}
              { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
