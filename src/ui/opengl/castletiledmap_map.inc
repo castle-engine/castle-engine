@@ -839,10 +839,10 @@ begin
   Visible := True;
   OffsetX := 0;
   OffsetY := 0;
+  Color := BlackRGB; // default color values in Tiled are (0, 0, 0) (if no color
+                     // is set) although layer doesn't appear black in Tiled
   if Element.AttributeString('color', TmpStr) then
-    Color := TiledToColorRGB(TmpStr)
-  else
-    Color := BlackRGB; // default layer color in Tiled (if no color is set)
+    Color := TiledToColorRGB(TmpStr);
   Name := Element.AttributeStringDef('name', '');
   if Element.AttributeString('opacity', TmpStr) then
     Opacity := StrToFloatDot(TmpStr);
