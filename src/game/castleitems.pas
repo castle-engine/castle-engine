@@ -828,7 +828,9 @@ end;
 
 procedure TItemWeapon.Attack(const Level: TAbstractLevel);
 var
+  {$warnings off} // using deprecated in deprecated
   Attacker: TCastleAlive;
+  {$warnings on}
   AttackDC, AttackDR, AttackKD: Single;
   AttackSoundHitDone: boolean;
 
@@ -854,11 +856,13 @@ var
     if Hit <> nil then
     begin
       for I := 0 to Hit.Count - 1 do
+        {$warnings off} // using deprecated in deprecated
         if Hit[I].Item is TCastleAlive then
         begin
           ImmediateAttackHit(TCastleAlive(Hit[I].Item));
           Break;
         end;
+        {$warnings on}
       FreeAndNil(Hit);
     end;
   end;
@@ -866,7 +870,9 @@ var
   procedure ShortRangeAttack;
   var
     I: Integer;
+    {$warnings off} // using deprecated in deprecated
     Enemy: TCastleAlive;
+    {$warnings on}
     WeaponBoundingBox: TBox3D;
     RootTransform: TCastleRootTransform;
   begin
@@ -877,6 +883,7 @@ var
     { TODO: we would prefer to use RootTransform.BoxCollision for this,
       but we need to know which creature was hit. }
     for I := 0 to RootTransform.Count - 1 do
+      {$warnings off} // using deprecated in deprecated
       if RootTransform[I] is TCastleAlive then
       begin
         Enemy := TCastleAlive(RootTransform[I]);
@@ -885,6 +892,7 @@ var
           Enemy.BoundingBox.Collision(WeaponBoundingBox) then
           ImmediateAttackHit(Enemy);
       end;
+      {$warnings on}
   end;
 
   procedure FireMissileAttack;
@@ -899,10 +907,12 @@ begin
 
   { attacking only works when there's an owner (player, in the future creature
     should also be able to use it) of the weapon }
+  {$warnings off} // using deprecated in deprecated
   if (Owner3D <> nil) and
      (Owner3D is TCastleAlive) then
   begin
     Attacker := TCastleAlive(Owner3D);
+  {$warnings on}
 
     AttackDC := Resource.AttackDamageConst;
     AttackDR := Resource.AttackDamageRandom;

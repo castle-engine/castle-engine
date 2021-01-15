@@ -225,9 +225,11 @@ type
       default DefaultKnockBackDistance;
 
     { See TCastleAlive.KnockBackSpeed. }
+    {$warnings off} // using deprecated in deprecated
     property KnockBackSpeed: Single
       read FKnockBackSpeed write FKnockBackSpeed
       default TCastleAlive.DefaultKnockBackSpeed;
+    {$warnings on}
 
     { By default dead creatures (corpses) don't collide, this usually looks better. }
     property CollidesWhenDead: boolean
@@ -1079,7 +1081,9 @@ begin
   FFlying := DefaultFlying;
   FDefaultMaxLife := DefaultDefaultMaxLife;
   FKnockBackDistance := DefaultKnockBackDistance;
+  {$warnings off} // using deprecated in deprecated
   FKnockBackSpeed := TCastleAlive.DefaultKnockBackSpeed;
+  {$warnings on}
   FSoundDieTiedToCreature := DefaultSoundDieTiedToCreature;
   FAttackDamageConst := DefaultAttackDamageConst;
   FAttackDamageRandom := DefaultAttackDamageRandom;
@@ -1098,8 +1102,9 @@ procedure TCreatureResource.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
   inherited;
 
-  KnockBackSpeed := ResourceConfig.GetFloat('knockback_speed',
-    TCastleAlive.DefaultKnockBackSpeed);
+  {$warnings off} // using deprecated in deprecated
+  KnockBackSpeed := ResourceConfig.GetFloat('knockback_speed', TCastleAlive.DefaultKnockBackSpeed);
+  {$warnings on}
   CollidesWhenDead := ResourceConfig.GetValue('collides_when_dead', false);
   ScaleMin := ResourceConfig.GetFloat('scale_min', 1);
   ScaleMax := ResourceConfig.GetFloat('scale_max', 1);
@@ -1742,7 +1747,9 @@ end;
 
 function TWalkAttackCreature.Enemy: TCastleAlive;
 begin
+  {$warnings off} // using deprecated in deprecated
   Result := Level.GetPlayer as TCastleAlive;
+  {$warnings on}
   if (Result <> nil) and Result.Dead then
     Result := nil; { do not attack dead player }
 end;
@@ -2579,7 +2586,9 @@ end;
 
 procedure TWalkAttackCreature.Attack;
 var
+  {$warnings off} // using deprecated in deprecated
   E: TCastleAlive;
+  {$warnings on}
 
   function ShortRangeAttackHits: boolean;
   var
@@ -2833,7 +2842,9 @@ end;
 procedure TMissileCreature.HitPlayer;
 begin
   ForceRemoveDead := true;
+  {$warnings off} // using deprecated in deprecated
   AttackHurt(Level.GetPlayer as TCastleAlive);
+  {$warnings on}
 end;
 
 procedure TMissileCreature.HitCreature(Creature: TCreature);
