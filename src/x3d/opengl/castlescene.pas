@@ -135,9 +135,7 @@ type
       FReceiveShadowVolumes: boolean;
       RegisteredGLContextCloseListener: boolean;
       FTempPrepareParams: TPrepareParams;
-      RenderCameraKnown: boolean;
-      { Camera position, in local scene coordinates, known (if RenderCameraKnown)
-        during the Render call. }
+      { Camera position, in local scene coordinates, known during the Render call. }
       RenderCameraPosition: TVector3;
 
       { Used by LocalRenderInside }
@@ -1067,7 +1065,7 @@ var
        (InternalOctreeRendering <> nil) then
     begin
       HierarchicalOcclusionQueryRenderer.Render(@RenderShape_SomeTests,
-        Params, RenderCameraKnown, RenderCameraPosition);
+        Params, RenderCameraPosition);
     end else
     begin
       if RenderOptions.Blending then
@@ -1075,8 +1073,7 @@ var
         if not Params.Transparent then
         begin
           { draw fully opaque objects }
-          if RenderCameraKnown and
-            (ReallyOcclusionQuery(RenderOptions) or RenderOptions.OcclusionSort) then
+          if ReallyOcclusionQuery(RenderOptions) or RenderOptions.OcclusionSort then
           begin
             ShapesFilterBlending(Shapes, true, true, false,
               TestShapeVisibility, FilteredShapes, false);
@@ -1101,9 +1098,8 @@ var
 
           { sort for blending, if BlendingSort not bsNone.
             Note that bs2D does not require knowledge of the camera,
-            CameraPosition is unused in this case by FilteredShapes.SortBackToFront }
-          if ((EffectiveBlendingSort = bs3D) and RenderCameraKnown) or
-              (EffectiveBlendingSort = bs2D) then
+            RenderCameraPosition is unused in this case by FilteredShapes.SortBackToFront }
+          if EffectiveBlendingSort in [bs3D, bs2D] then
           begin
             ShapesFilterBlending(Shapes, true, true, false,
               TestShapeVisibility, FilteredShapes, true);
@@ -1271,8 +1267,8 @@ procedure TCastleScene.PrepareResources(
         TTextureCoordinateRenderer.RenderCoordinateBegin does
         RenderingCamera.InverseMatrixNeeded.
         Testcase: silhouette. }
-      DummyCamera.FromMatrix(TMatrix4.Identity, TMatrix4.Identity,
-        TMatrix4.Identity);
+      DummyCamera.FromMatrix(TVector3.Zero,
+        TMatrix4.Identity, TMatrix4.Identity, TMatrix4.Identity);
 
       Renderer.RenderBegin(BaseLights, DummyCamera, nil, 0, 0, 0);
 
@@ -1735,7 +1731,6 @@ begin
   // This should be only called when DistanceCulling indicates this check is necessary
   Assert(DistanceCulling > 0);
   Result :=
-    (not RenderCameraKnown) or
     (PointsDistanceSqr(Shape.BoundingSphereCenter, RenderCameraPosition) <=
      Sqr(DistanceCulling + Shape.BoundingSphereRadius))
 end;
@@ -1918,9 +1913,7 @@ begin
       Inc(Params.Statistics.ScenesRendered);
 
     FrustumForShapeCulling := Params.Frustum;
-    RenderCameraKnown := (World <> nil) and (World.MainCamera <> nil);
-    if RenderCameraKnown then
-      RenderCameraPosition := Params.InverseTransform^.MultPoint(World.MainCamera.Position);
+    RenderCameraPosition := Params.InverseTransform^.MultPoint(Params.RenderingCamera.Position);
 
     if Assigned(InternalVisibilityTest) then
       LocalRenderOutside(InternalVisibilityTest, Params)
@@ -1938,10 +1931,6 @@ begin
       LocalRenderOutside(@RenderFrustumOctree_TestShape, Params);
     end else
       LocalRenderOutside(ShapeCullingFunc, Params);
-
-    { Nothing should even try to access camera outside of Render...
-      But for security, set RenderCameraKnown to false. }
-    RenderCameraKnown := false;
 
     FrameProfiler.Stop(fmRenderScene);
   end;
