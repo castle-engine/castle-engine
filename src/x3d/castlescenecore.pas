@@ -3901,6 +3901,8 @@ begin
       fvMainLightForShadows];
 
     DoGeometryChanged(gcActiveShapesChanged, nil);
+
+    InternalIncShapesHash; // TShapeTreeLOD returns now different things
   end;
 end;
 
@@ -6877,10 +6879,6 @@ procedure TCastleSceneCore.InternalCameraChanged;
     I: Integer;
   begin
     Assert(ProcessEvents);
-
-    // Active and visible shapes possibly changed, if we used LOD nodes and camera changed
-    if ShapeLODs.Count <> 0 then
-      InternalIncShapesHash;
 
     for I := 0 to ShapeLODs.Count - 1 do
       UpdateLODLevel(TShapeTreeLOD(ShapeLODs.Items[I]), CameraVectors.Position);
