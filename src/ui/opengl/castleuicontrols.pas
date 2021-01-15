@@ -210,10 +210,6 @@ type
 
     chCursor,
 
-    { Used by @link(TCastleCamera) descendants to notify that the current
-      camera view (position, direction, up and everything related to it) changed. }
-    chCamera,
-
     chExists,
 
     { A (direct) child control was added or removed. }

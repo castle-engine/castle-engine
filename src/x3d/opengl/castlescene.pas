@@ -258,11 +258,6 @@ type
       var LightOn: boolean);
 
     function GetRenderOptions: TCastleRenderOptions;
-
-    { Update generated textures, like generated cubemaps/shadow maps. }
-    procedure UpdateGeneratedTextures(
-      const RenderFunc: TRenderFromViewFunction;
-      const ProjectionNear, ProjectionFar: Single);
   private
     PreparedShapesResources, PreparedRender: Boolean;
     Renderer: TGLRenderer;
@@ -404,7 +399,6 @@ type
 
     procedure ViewChangedSuddenly; override;
 
-    procedure VisibleChangeNotification(const Changes: TVisibleChanges); override;
     procedure InternalCameraChanged; override;
 
     { Screen effects information, used by TCastleViewport.ScreenEffects.
@@ -816,7 +810,7 @@ procedure TCastleScene.GLContextClose;
   begin
     if GeneratedTextures <> nil then
       for I := 0 to GeneratedTextures.Count - 1 do
-        GeneratedTextures.List^[I].Handler.UpdateNeeded := true;
+        GeneratedTextures.List^[I].Handler.InternalUpdateNeeded := true;
   end;
 
 begin
@@ -1850,6 +1844,87 @@ begin
 end;
 
 procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+
+  { Update generated textures, like generated cubemaps/shadow maps. }
+  procedure UpdateGeneratedTextures(
+    const RenderFunc: TRenderFromViewFunction;
+    const ProjectionNear, ProjectionFar: Single);
+  var
+    I: Integer;
+    Shape: TGLShape;
+    TextureNode: TAbstractTextureNode;
+    Handler: TGeneratedTextureHandler;
+    CamPos, CamDir, CamUp: TVector3;
+  begin
+    if GeneratedTextures.Count = 0 then
+      Exit; // optimize away common case
+
+    FrameProfiler.Start(fmUpdateGeneratedTextures);
+
+    { Avoid doing this two times within the same FrameId.
+      Important if
+      - the same scene is present multiple times in one viewport,
+      - or when Viewport.Items are shared across multiple viewports
+        (thus scene is present in multiple viewports). }
+    if UpdateGeneratedTexturesFrameId = TFramesPerSecond.FrameId then
+      Exit;
+    UpdateGeneratedTexturesFrameId := TFramesPerSecond.FrameId;
+
+    if World.MainCamera <> nil then
+    begin
+      CamPos := World.MainCamera.Position;
+      CamDir := World.MainCamera.Direction;
+      CamUp  := World.MainCamera.Up;
+    end else
+    begin
+      CamPos := TVector3.Zero;
+      CamDir := DefaultCameraDirection;
+      CamUp  := DefaultCameraUp;
+    end;
+
+    for I := 0 to GeneratedTextures.Count - 1 do
+    begin
+      Shape := TGLShape(GeneratedTextures.L[I].Shape);
+      TextureNode := GeneratedTextures.L[I].TextureNode;
+      Handler := GeneratedTextures.L[I].Handler;
+
+      { update Handler.UpdateNeeded }
+      if TextureNode is TGeneratedShadowMapNode then
+      begin
+        { For TGeneratedShadowMapNode, only geometry change requires to regenerate it. }
+        if Handler.InternalLastStateId < World.InternalVisibleGeometryStateId then
+        begin
+          Handler.InternalLastStateId := World.InternalVisibleGeometryStateId;
+          Handler.InternalUpdateNeeded := true;
+        end;
+      end else
+      begin
+        { For TRenderedTextureNode, TGeneratedCubeMapTextureNode etc.
+          any visible change indicates to regenerate it. }
+        if Handler.InternalLastStateId < World.InternalVisibleStateId then
+        begin
+          Handler.InternalLastStateId := World.InternalVisibleStateId;
+          Handler.InternalUpdateNeeded := true;
+        end;
+      end;
+
+      if TextureNode is TGeneratedCubeMapTextureNode then
+        AvoidShapeRendering := Shape else
+      if TextureNode is TGeneratedShadowMapNode then
+        AvoidNonShadowCasterRendering := true;
+
+      Renderer.UpdateGeneratedTextures(Shape, TextureNode,
+        RenderFunc, ProjectionNear, ProjectionFar,
+        ViewpointStack.Top,
+        World.MainCamera <> nil, CamPos, CamDir, CamUp);
+
+      AvoidShapeRendering := nil;
+      AvoidNonShadowCasterRendering := false;
+    end;
+
+    FrameProfiler.Stop(fmUpdateGeneratedTextures);
+  end;
+
 begin
   inherited;
 
@@ -2000,63 +2075,6 @@ begin
   Result := Renderer.RenderOptions;
 end;
 
-procedure TCastleScene.UpdateGeneratedTextures(
-  const RenderFunc: TRenderFromViewFunction;
-  const ProjectionNear, ProjectionFar: Single);
-var
-  I: Integer;
-  Shape: TGLShape;
-  TextureNode: TAbstractTextureNode;
-  CamPos, CamDir, CamUp: TVector3;
-begin
-  if GeneratedTextures.Count = 0 then
-    Exit; // optimize away common case
-
-  FrameProfiler.Start(fmUpdateGeneratedTextures);
-
-  { Avoid doing this two times within the same FrameId.
-    Important if
-    - the same scene is present multiple times in one viewport,
-    - or when Viewport.Items are shared across multiple viewports
-      (thus scene is present in multiple viewports). }
-  if UpdateGeneratedTexturesFrameId = TFramesPerSecond.FrameId then
-    Exit;
-  UpdateGeneratedTexturesFrameId := TFramesPerSecond.FrameId;
-
-  if World.MainCamera <> nil then
-  begin
-    CamPos := World.MainCamera.Position;
-    CamDir := World.MainCamera.Direction;
-    CamUp  := World.MainCamera.Up;
-  end else
-  begin
-    CamPos := TVector3.Zero;
-    CamDir := DefaultCameraDirection;
-    CamUp  := DefaultCameraUp;
-  end;
-
-  for I := 0 to GeneratedTextures.Count - 1 do
-  begin
-    Shape := TGLShape(GeneratedTextures.L[I].Shape);
-    TextureNode := GeneratedTextures.L[I].TextureNode;
-
-    if TextureNode is TGeneratedCubeMapTextureNode then
-      AvoidShapeRendering := Shape else
-    if TextureNode is TGeneratedShadowMapNode then
-      AvoidNonShadowCasterRendering := true;
-
-    Renderer.UpdateGeneratedTextures(Shape, TextureNode,
-      RenderFunc, ProjectionNear, ProjectionFar,
-      ViewpointStack.Top,
-      World.MainCamera <> nil, CamPos, CamDir, CamUp);
-
-    AvoidShapeRendering := nil;
-    AvoidNonShadowCasterRendering := false;
-  end;
-
-  FrameProfiler.Stop(fmUpdateGeneratedTextures);
-end;
-
 procedure TCastleScene.ViewChangedSuddenly;
 var
   ShapeList: TShapeList;
@@ -2075,33 +2093,6 @@ begin
   end;
 end;
 
-procedure TCastleScene.VisibleChangeNotification(const Changes: TVisibleChanges);
-var
-  I: Integer;
-begin
-  inherited;
-
-  if Changes <> [] then
-  begin
-    for I := 0 to GeneratedTextures.Count - 1 do
-    begin
-      if GeneratedTextures.L[I].TextureNode is TGeneratedCubeMapTextureNode then
-      begin
-        if [vcVisibleGeometry, vcVisibleNonGeometry] * Changes <> [] then
-          GeneratedTextures.L[I].Handler.UpdateNeeded := true;
-      end else
-      if GeneratedTextures.L[I].TextureNode is TGeneratedShadowMapNode then
-      begin
-        if vcVisibleGeometry in Changes then
-          GeneratedTextures.L[I].Handler.UpdateNeeded := true;
-      end else
-        { For TRenderedTextureNode (and any other future generated textures),
-          any visible change indicates to regenerate it. }
-        GeneratedTextures.L[I].Handler.UpdateNeeded := true;
-    end;
-  end;
-end;
-
 procedure TCastleScene.InternalCameraChanged;
 var
   I: Integer;
@@ -2114,7 +2105,7 @@ begin
         as RenderedTexture with viewpoint = NULL uses current camera.
         See demo_models/rendered_texture/rendered_texture_no_headlight.x3dv
         testcase. }
-      GeneratedTextures.L[I].Handler.UpdateNeeded := true;
+      GeneratedTextures.L[I].Handler.InternalUpdateNeeded := true;
 end;
 
 function TCastleScene.ScreenEffectsCount: Integer;

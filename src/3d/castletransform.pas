@@ -1044,32 +1044,22 @@ type
       Changes can be [], meaning "something tells us to redraw, but no visible change
       happened yet, maybe something will happen during a redraw"
       (this is used when e.g. possibly LOD level changed).
-      We still broadcast VisibleChangeNotification, even when Changes=[].
+      We still increase TCastleAbstractRootTransform.InternalVisibleStateId
+      even when Changes=[].
 
-      The information about visibility changed is passed upward,
-      to the Parent, and eventually to the TCastleViewport,
-      that broadcasts this to all 3D objects
-      by VisibleChangeNotification. If you want to @italic(react) to visibility
-      changes, you should override VisibleChangeNotification,
-      not this method.
-
-      Be careful when handling this, various changes may cause this,
-      so be prepared to handle this at every time. }
-    procedure VisibleChangeHere(const Changes: TVisibleChanges); virtual;
+      The information about visibility changed is passed to TCastleAbstractRootTransform
+      in @link(World).
+      It increases @link(TCastleAbstractRootTransform.InternalVisibleStateId),
+      @link(TCastleAbstractRootTransform.InternalVisibleGeometryStateId),
+      @link(TCastleAbstractRootTransform.InternalVisibleNonGeometryStateId).
+      If you want to @italic(react) to visibility changes,
+      you should not override this method, instead watch above "state id" variables
+      and react when they change. }
+    procedure VisibleChangeHere(const Changes: TVisibleChanges);
 
     { Root transformation (TCastleAbstractRootTransform) containing us.
       @nil if we are not (yet) part of some hierarchy rooted in TCastleAbstractRootTransform. }
     property World: TCastleAbstractRootTransform read FWorld;
-
-    { Something visible changed in the world.
-      This is usually called by our container (like TCastleViewport),
-      to allow this object to react (e.g. by regenerating mirror textures)
-      to changes in the world (not necessarily in this object,
-      maybe in some other TCastleScene instance).
-
-      If you want to @italic(react) to visibility
-      changes, you should override this. }
-    procedure VisibleChangeNotification(const Changes: TVisibleChanges); virtual;
 
     { Mouse cursor over this object. }
     property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
@@ -1956,7 +1946,6 @@ type
     procedure UnregisterPressRelease(const T: TCastleTransform);
   public
     OnCursorChange: TNotifyEvent;
-    OnVisibleChange: TVisibleChangeEvent;
 
     { Event to render whole world.
       Used by generated textures to update their contents.
@@ -1972,6 +1961,13 @@ type
       Allows to track camera changes in scenes.
       @exclude }
     InternalMainCameraStateId: TFrameId;
+
+    { Latest frame when VisibleChangeNotification was called (with any params, even empty). }
+    InternalVisibleStateId: TFrameId;
+    { Latest frame when VisibleChangeNotification was called (with vcVisibleGeometry). }
+    InternalVisibleGeometryStateId: TFrameId;
+    { Latest frame when VisibleChangeNotification was called (with vcVisibleNonGeometry). }
+    InternalVisibleNonGeometryStateId: TFrameId;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -2553,8 +2549,14 @@ end;
 
 procedure TCastleTransform.VisibleChangeHere(const Changes: TVisibleChanges);
 begin
-  if (World <> nil) and Assigned(World.OnVisibleChange) then
-    World.OnVisibleChange(Self, Changes);
+  if World <> nil then
+  begin
+    Inc(World.InternalVisibleStateId);
+    if vcVisibleGeometry in Changes then
+      Inc(World.InternalVisibleGeometryStateId);
+    if vcVisibleNonGeometry in Changes then
+      Inc(World.InternalVisibleNonGeometryStateId);
+  end;
 end;
 
 procedure TCastleTransform.SetCursor(const Value: TMouseCursor);
@@ -3124,14 +3126,6 @@ begin
   end;
 end;
 *)
-
-procedure TCastleTransform.VisibleChangeNotification(const Changes: TVisibleChanges);
-var
-  I: Integer;
-begin
-  for I := 0 to List.Count - 1 do
-    List[I].VisibleChangeNotification(Changes);
-end;
 
 { transform stuff -------------------------------------------------------- }
 

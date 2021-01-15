@@ -151,8 +151,7 @@ type
         @nil when OpenGL context is not yet initialized. }
       FShadowVolumeRenderer: TGLShadowVolumeRenderer;
       FItems: TCastleRootTransform;
-      ScheduledVisibleChangeNotification: boolean;
-      ScheduledVisibleChangeNotificationChanges: TVisibleChanges;
+      LastVisibleStateIdForVisibleChange: TFrameId;
 
       FOnBoundViewpointChanged, FOnBoundNavigationInfoChanged: TNotifyEvent;
       FMouseRayHit: TRayCollision;
@@ -258,11 +257,6 @@ type
       This takes care to always update Camera.ProjectionMatrix,
       Projection, MainScene.BackgroundSkySphereRadius. }
     procedure ApplyProjection;
-    procedure ItemsVisibleChange(const Sender: TCastleTransform; const Changes: TVisibleChanges);
-
-    { What changes happen when camera changes.
-      You may want to use it when calling Scene.CameraChanged. }
-    function CameraToChanges(const ACamera: TCastleCamera): TVisibleChanges;
 
     { Render shadow quads for all the things rendered by @link(Render3D).
       You can use here ShadowVolumeRenderer instance, which is guaranteed
@@ -415,12 +409,14 @@ type
     function Motion(const Event: TInputMotion): boolean; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
-    procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
-      const ChangeInitiatedByChildren: boolean = false); override;
     procedure BeforeRender; override;
     function PropertySection(const PropertyName: String): TPropertySection; override;
 
     function GetMainScene: TCastleScene; deprecated 'use Items.MainScene';
+
+    { Notification done by TCastleCamera when our Camera state changed.
+      @exclude }
+    procedure InternalCameraChanged;
 
     { Current projection parameters,
       calculated by last @link(CalculateProjection) call,
@@ -1402,7 +1398,6 @@ begin
   FItems.SetSubComponent(true);
   FItems.Name := 'Items';
   FItems.OnCursorChange := @RecalculateCursor;
-  FItems.OnVisibleChange := @ItemsVisibleChange;
   FItems.MainCamera := Camera;
 
   FCapturePointingDeviceObserver := TFreeNotificationObserver.Create(Self);
@@ -1796,22 +1791,14 @@ var
     { we ignore RemoveItem --- main Items list cannot be removed }
   end;
 
-  procedure DoScheduledVisibleChangeNotification;
-  var
-    Changes: TVisibleChanges;
+  procedure UpdateVisibleChange;
   begin
-    if ScheduledVisibleChangeNotification then
+    { when some TCastleTransform calls TCastleTransform.VisibleChangeHere,
+      in effect TCastleViewport will call VisibleChange. }
+    if LastVisibleStateIdForVisibleChange < Items.InternalVisibleStateId then
     begin
-      { reset state first, in case some VisibleChangeNotification will post again
-        another visible change. }
-      ScheduledVisibleChangeNotification := false;
-      Changes := ScheduledVisibleChangeNotificationChanges;
-      ScheduledVisibleChangeNotificationChanges := [];
-
-      { pass visible change notification "upward" (as a TCastleUserInterface, to container) }
+      LastVisibleStateIdForVisibleChange := Items.InternalVisibleStateId;
       VisibleChange([chRender]);
-      { pass visible change notification "downward", to all children TCastleTransform }
-      Items.VisibleChangeNotification(Changes);
     end;
   end;
 
@@ -1853,7 +1840,7 @@ begin
 
   PrepareUpdateGeneratedTexturesParameters;
   ItemsUpdate;
-  DoScheduledVisibleChangeNotification;
+  UpdateVisibleChange;
   WatchMainSceneChange;
 end;
 
@@ -3142,26 +3129,16 @@ begin
     if Value = nil then
       raise EInternalError.Create('Cannot set TCastleSceneManager.Items to nil');
     FItems := Value;
+    LastVisibleStateIdForVisibleChange := 0;
 
     { TODO: do the same thing we did when creating internal FItems:
     FItems.OnCursorChange := @RecalculateCursor;
-    FItems.OnVisibleChange := @ItemsVisibleChange;
 
     // No need to change this, it's documented that MainCamera has to be manually managed if you reuse items
     // FItems.MainCamera := Camera;
     }
 
   end;
-end;
-
-procedure TCastleViewport.ItemsVisibleChange(const Sender: TCastleTransform; const Changes: TVisibleChanges);
-begin
-  { merely schedule broadcasting this change to a later time.
-    This way e.g. animating a lot of transformations doesn't cause a lot of
-    "visible change notifications" repeatedly on the same 3D object within
-    the same frame. }
-  ScheduledVisibleChangeNotification := true;
-  ScheduledVisibleChangeNotificationChanges := ScheduledVisibleChangeNotificationChanges + Changes;
 end;
 
 function TCastleViewport.GetPaused: Boolean;
@@ -3172,16 +3149,6 @@ end;
 procedure TCastleViewport.SetPaused(const Value: Boolean);
 begin
   Items.Paused := Value;
-end;
-
-function TCastleViewport.CameraToChanges(const ACamera: TCastleCamera): TVisibleChanges;
-begin
-  // headlight exists, and we changed camera controlling headlight
-  if (Items.InternalHeadlight <> nil) and
-     (ACamera = Items.MainCamera) then
-    Result := [vcVisibleNonGeometry]
-  else
-    Result := [];
 end;
 
 function TCastleViewport.GetMainScene: TCastleScene;
@@ -3560,34 +3527,29 @@ begin
   Result := PointingDeviceMoveCore(MouseRayHit, MouseRayOrigin, MouseRayDirection);
 end;
 
-procedure TCastleViewport.VisibleChange(const Changes: TCastleUserInterfaceChanges;
-  const ChangeInitiatedByChildren: boolean = false);
-
-  procedure CameraChange;
-  var
-    Pos, Dir, Up: TVector3;
-    MC: TCastleCamera;
+procedure TCastleViewport.InternalCameraChanged;
+var
+  Pos, Dir, Up: TVector3;
+  MC: TCastleCamera;
+begin
+  MC := Items.MainCamera;
+  if MC = Camera then
   begin
-    MC := Items.MainCamera;
-    if MC = Camera then
-    begin
-      Inc(Items.InternalMainCameraStateId);
-      { ItemsVisibleChange may again cause this VisibleChange (if we are TCastleViewport),
-        but without chCamera, so no infinite recursion. }
-      ItemsVisibleChange(Items, CameraToChanges(Camera));
+    Inc(Items.InternalMainCameraStateId);
 
-      Camera.GetView(Pos, Dir, Up);
-      SoundEngine.UpdateListener(Pos, Dir, Up);
-    end;
+    // we should redraw soon, this will cause VisibleChange() call
+    Inc(Items.InternalVisibleStateId);
 
-    if Assigned(OnCameraChanged) then
-      OnCameraChanged(Self);
+    // we changed MainCamera which makes headlight -> so lighting changed
+    if Items.InternalHeadlight <> nil then
+      Inc(Items.InternalVisibleNonGeometryStateId);
+
+    Camera.GetView(Pos, Dir, Up);
+    SoundEngine.UpdateListener(Pos, Dir, Up);
   end;
 
-begin
-  inherited;
-  if chCamera in Changes then
-    CameraChange;
+  if Assigned(OnCameraChanged) then
+    OnCameraChanged(Self);
 end;
 
 function TCastleViewport.UseAvoidNavigationCollisions: Boolean;

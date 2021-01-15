@@ -2842,10 +2842,10 @@ begin
         GenTex^.Handler := TRenderedTextureNode(Tex).GeneratedTextureHandler else
         raise EInternalError.Create('sf34234');
 
-      { Make sure to reset UpdateNeeded to true, in case it was false because
+      { Make sure to reset InternalUpdateNeeded to true, in case it was false because
         it was already generated but now some change caused ChangedAll.
         Testcase: projected_Spotlight.x3dv from Victor Amat. }
-      GenTex^.Handler.UpdateNeeded := true;
+      GenTex^.Handler.InternalUpdateNeeded := true;
       GenTex^.Shape := Shape;
     end;
   end;
@@ -2858,7 +2858,7 @@ begin
   for I := 0 to Count - 1 do
     if (List^[I].TextureNode is TGeneratedShadowMapNode) and
        (TGeneratedShadowMapNode(List^[I].TextureNode).FdLight.Value = LightNode) then
-      List^[I].Handler.UpdateNeeded := true;
+      List^[I].Handler.InternalUpdateNeeded := true;
 end;
 
 { TTimeDependentHandlerList ------------------------------------------------- }
@@ -5161,7 +5161,7 @@ var
       Handler := TRenderedTextureNode(ANode).GeneratedTextureHandler else
       Exit;
 
-    Handler.UpdateNeeded := true;
+    Handler.InternalUpdateNeeded := true;
     VisibleChangeHere([]);
   end;
 

@@ -2462,7 +2462,7 @@ end;
 procedure TCastleCamera.VisibleChange;
 begin
   if InternalViewport <> nil then
-    InternalViewport.VisibleChange([chCamera]);
+    (InternalViewport as TCastleViewport).InternalCameraChanged;
 end;
 
 function TCastleCamera.Matrix: TMatrix4;

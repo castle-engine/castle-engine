@@ -3334,7 +3334,7 @@ var
     Update := Handler.Update.Value;
     Result :=
         (Update = upNextFrameOnly) or
-      ( (Update = upAlways) and Handler.UpdateNeeded );
+      ( (Update = upAlways) and Handler.InternalUpdateNeeded );
   end;
 
   { Call this after CheckUpdateField returned @true and you updated
@@ -3344,7 +3344,7 @@ var
   begin
     if SavedHandler.Update.Value = upNextFrameOnly then
       SavedHandler.Update.Send(upNone);
-    SavedHandler.UpdateNeeded := false;
+    SavedHandler.InternalUpdateNeeded := false;
   end;
 
   procedure UpdateGeneratedCubeMap(TexNode: TGeneratedCubeMapTextureNode);
