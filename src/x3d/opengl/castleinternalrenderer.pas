@@ -3351,12 +3351,17 @@ var
   var
     GLNode: TGLGeneratedCubeMapTextureNode;
   begin
-    { Shape.BoundingBox must be non-empty, otherwise we don't know from what
-      3D point to capture environment. }
-    if Shape.BoundingBox.IsEmpty then Exit;
-
     if CheckUpdate(TexNode.GeneratedTextureHandler) then
     begin
+      { Shape.BoundingBox must be non-empty, otherwise we don't know from what
+        3D point to capture environment.
+
+        Note: check Shape.BoundingBox only after CheckUpdate passed.
+        This is more optimal, as Shape.BoundingBox may need to iterate over mesh.
+        Testcase: examples/mobile/simple_3d_demo/gameinitialize.pas with "toggle cubemap updates" = "off",
+        look at how much UpdateGeneratedTextures is eating. Should be 0% if off. }
+      if Shape.BoundingBox.IsEmpty then Exit;
+
       GLNode := TGLGeneratedCubeMapTextureNode(GLTextureNodes.TextureNode(TexNode));
       if GLNode <> nil then
       begin

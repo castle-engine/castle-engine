@@ -1808,6 +1808,17 @@ var
     end;
   end;
 
+  { Prepare information used by TCastleScene.UpdateGeneratedTextures, called from TCastleScene.Update }
+  procedure PrepareUpdateGeneratedTexturesParameters;
+  begin
+    if (FProjection.ProjectionNear = 0) or
+       (FProjection.ProjectionFar = 0) then // in case ApplyProjection was not called yet
+      FProjection := CalculateProjection;
+    Items.InternalRenderEverythingEvent := @RenderFromViewEverything;
+    Items.InternalProjectionNear := FProjection.ProjectionNear;
+    Items.InternalProjectionFar := FProjection.ProjectionFar;
+  end;
+
 begin
   inherited;
 
@@ -1821,6 +1832,7 @@ begin
     so passing HandleInput there is not necessary. }
   Camera.Update(SecondsPassedScaled);
 
+  PrepareUpdateGeneratedTexturesParameters;
   ItemsUpdate;
   DoScheduledVisibleChangeNotification;
   WatchMainSceneChange;
@@ -2423,8 +2435,6 @@ procedure TCastleViewport.RenderWithoutScreenEffects;
 begin
   inherited;
   ApplyProjection;
-  Items.UpdateGeneratedTextures(@RenderFromViewEverything,
-    FProjection.ProjectionNear, FProjection.ProjectionFar);
   RenderOnScreen(Camera);
 end;
 
@@ -3542,10 +3552,7 @@ procedure TCastleViewport.VisibleChange(const Changes: TCastleUserInterfaceChang
     MC := Items.MainCamera;
     if MC = Camera then
     begin
-      { Call CameraChanged on all TCastleTransform.
-        Note that we have to call it on all Items, not just MainScene,
-        to make ProximitySensor, Billboard etc. to work in all scenes, not just in MainScene. }
-      Items.CameraChanged(Camera);
+      Inc(Items.InternalMainCameraStateId);
       { ItemsVisibleChange may again cause this VisibleChange (if we are TCastleViewport),
         but without chCamera, so no infinite recursion. }
       ItemsVisibleChange(Items, CameraToChanges(Camera));

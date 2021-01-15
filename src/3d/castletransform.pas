@@ -19,7 +19,7 @@ unit CastleTransform;
 
 interface
 
-uses SysUtils, Classes, Math, Generics.Collections, Kraft,
+uses SysUtils, Classes, Math, Generics.Collections, Contnrs, Kraft,
   CastleVectors, CastleFrustum, CastleBoxes, CastleClassUtils, CastleKeysMouse,
   CastleRectangles, CastleUtils, CastleTimeUtils,
   CastleSoundEngine, CastleCameras, CastleTriangles, CastleRenderOptions;
@@ -195,8 +195,11 @@ type
     OtherTransform: TCastleTransform;
   end;
 
+  TRemoveType = (rtNone, rtRemove, rtRemoveAndFree);
+
   {$define read_interface}
   {$I castletransform_renderparams.inc}
+  {$I castletransform_behavior.inc}
   {$undef read_interface}
 
   { Information that a TCastleTransform object needs to prepare rendering.
@@ -226,8 +229,6 @@ type
       @exclude }
     InternalGlobalFog: TAbstractFogNode;
   end;
-
-  TRemoveType = (rtNone, rtRemove, rtRemoveAndFree);
 
   { List of TCastleTransform instances.
     This inherits from TCastleObjectList, getting many
@@ -374,6 +375,7 @@ type
       FWorld: TCastleAbstractRootTransform;
       FWorldReferences: Cardinal;
       FList: TCastleTransformList;
+      FBehaviors: TComponentList;
       FParent: TCastleTransform;
       FCollisionSphereRadius: Single;
       FListenPressRelease: Boolean;
@@ -437,31 +439,30 @@ type
     { Return non-nil parent, making sure it's valid. }
     function Parent: TCastleTransform;
     procedure WarningMatrixNan(const NewParamsInverseTransformValue: TMatrix4);
+    { Change to new world, or (if not needed) just increase FWorldReferences.
+      Value must not be @nil. }
+    procedure AddToWorld(const Value: TCastleAbstractRootTransform);
+    { Decrease FWorldReferences, then (if needed) change world to @nil.
+      Value must not be @nil. }
+    procedure RemoveFromWorld(const Value: TCastleAbstractRootTransform);
+    procedure RemoveBehaviorIndex(const BehaviorIndex: Integer);
     procedure SetListenPressRelease(const Value: Boolean);
   protected
     { Workaround for descendants where BoundingBox may suddenly change
       but their logic depends on stable (not suddenly changing) Middle.
-      If MiddleForceBox then we will use given MiddleForceBoxValue
+      If InternalMiddleForceBox then we will use given InternalMiddleForceBoxValue
       instead of LocalBoundingBox for Middle and PreferredHeight
       calculation. Descendants that deal with this should usually have
-      some timeout when they restore MiddleForceBox to false.
+      some timeout when they restore InternalMiddleForceBox to false.
 
       This is quite internal hack and you should not use this in your own programs.
       This is used only by TWalkAttackCreature.
       @exclude
       @groupBegin }
-    MiddleForceBox: boolean;
+    InternalMiddleForceBox: boolean;
     { @exclude }
-    MiddleForceBoxValue: TBox3D;
+    InternalMiddleForceBoxValue: TBox3D;
     { @groupEnd }
-
-    { Change to new world, or (if not needed) just increase FWorldReferences.
-      Value must not be @nil. }
-    procedure AddToWorld(const Value: TCastleAbstractRootTransform);
-
-    { Decrease FWorldReferences, then (if needed) change world to @nil.
-      Value must not be @nil. }
-    procedure RemoveFromWorld(const Value: TCastleAbstractRootTransform);
 
     { Called when the current @link(World) that contains this object changes.
       In the usual case, @link(World) corresponds to a @link(TCastleViewport.Items)
@@ -924,9 +925,7 @@ type
       the resources --- please wait".
 
       @param(Options What features should be prepared to execute fast.
-        See TPrepareResourcesOption,
-        the names should be self-explanatory (they refer to appropriate
-        methods of TCastleTransform, TCastleSceneCore or TCastleScene).)
+        See TPrepareResourcesOption.)
 
       @param(ProgressStep Says that we should call Progress.Step.
         It will be called PrepareResourcesSteps times.
@@ -1029,13 +1028,13 @@ type
 
     { Continuously occuring event, for various tasks.
       @param(RemoveMe Set this to rtRemove or rtRemoveAndFree to remove
-        this item from 3D world (parent list) after Update finished.
+        this item from parent after this call finished.
         rtRemoveAndFree additionally will free this item.
         Initially it's rtNone when this method is called.) }
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); virtual;
 
-    { Something visible changed inside @italic(this) 3D object.
-      This is usually called by implementation of this 3D object,
+    { Something visible changed inside @italic(this) object.
+      This is usually called by implementation of this object,
       to notify others that it changed.
 
       Changes is a set describing what changes occurred.
@@ -1072,25 +1071,13 @@ type
       changes, you should override this. }
     procedure VisibleChangeNotification(const Changes: TVisibleChanges); virtual;
 
-    { Main camera observing this 3D object changed.
-      This is usually called by our container (like TCastleViewport)
-      to notify that camera changed. }
-    procedure CameraChanged(const ACamera: TCastleCamera); overload; virtual;
-    procedure CameraChanged(const ACamera: TCastleNavigation); overload;
-      deprecated 'use CameraChanged with TCastleCamera instance';
-
     { Mouse cursor over this object. }
     property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
 
-    { Called when OpenGL context of the window is destroyed.
+    { Called when rendering context is destroyed.
       This will be also automatically called from destructor.
-
-      Control should clear here any resources that are tied to the GL context. }
+      Object should clear here any resources that are connected to the rendering context. }
     procedure GLContextClose; virtual;
-
-    procedure UpdateGeneratedTextures(
-      const RenderFunc: TRenderFromViewFunction;
-      const ProjectionNear, ProjectionFar: Single); virtual;
 
     { Are we in the middle of dragging something by moving the mouse.
 
@@ -1833,9 +1820,25 @@ type
       a child of this TCastleTransform instance. }
     property Orientation: TOrientationType read FOrientation write FOrientation;
 
-    { 3D objects inside.
+    { Transformation objects inside.
       Freeing these items automatically removes them from this list. }
     property List: TCastleTransformList read FList;
+
+    { Add a TCastleBehavior to this TCastleTransform.
+      In effect, the virtual methods of TCastleBehavior, like @link(TCastleBehavior.Update),
+      will be automatically called.
+      Also the @link(TCastleBehavior.Parent) gets assigned.
+      If the TCastleBehavior was part of another TCastleTransform, it is removed from it. }
+    procedure AddBehavior(const Behavior: TCastleBehavior);
+
+    { Remove TCastleBehavior from this TCastleTransform.
+      In effect, the virtual methods of TCastleBehavior, like @link(TCastleBehavior.Update),
+      will no longer be automatically called.
+      The @link(TCastleBehavior.Parent) is set to @nil. }
+    procedure RemoveBehavior(const Behavior: TCastleBehavior);
+
+    { Find the first behavior of the given class, @nil if none. }
+    function FindBehavior(const BehaviorClass: TCastleBehaviorClass): TCastleBehavior;
   published
     { Is this object visible and colliding.
 
@@ -1943,18 +1946,18 @@ type
   strict private
     WasPhysicsStep: boolean;
     TimeAccumulator: TFloatTime;
-    FCameraPosition, FCameraDirection, FCameraUp, FCameraGravityUp: TVector3;
-    FCameraKnown: boolean;
     FEnablePhysics: boolean;
     FMoveLimit: TBox3D;
     FPhysicsProperties: TPhysicsProperties;
-    UpdateGeneratedTexturesFrameId, UpdateFrameId: TFrameId;
+    UpdateFrameId: TFrameId;
     FTimeScale: Single;
     FPaused: boolean;
     FMainCamera: TCastleCamera;
+    FMainCameraObserver: TFreeNotificationObserver;
     FInternalPressReleaseListeners: TCastleTransformList;
     procedure SetPaused(const Value: boolean);
     procedure SetMainCamera(const Value: TCastleCamera);
+    procedure MainCameraFreeNotification(const Sender: TFreeNotificationObserver);
   private
     FKraftEngine: TKraft;
     { Create FKraftEngine, if not assigned yet. }
@@ -1967,13 +1970,28 @@ type
     OnCursorChange: TNotifyEvent;
     OnVisibleChange: TVisibleChangeEvent;
 
+    { Event to render whole world.
+      Used by generated textures to update their contents.
+      @exclude }
+    InternalRenderEverythingEvent: TRenderFromViewFunction;
+
+    { Projection near/far used. May be used when updating generated textures,
+      to determine their projection parameters.
+      @exclude }
+    InternalProjectionNear, InternalProjectionFar: Single;
+
+    { Changes every time MainCamera vectors change.
+      Allows to track camera changes in scenes.
+      @exclude }
+    InternalMainCameraStateId: TFrameId;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure UpdateGeneratedTextures(
-      const RenderFunc: TRenderFromViewFunction;
-      const ProjectionNear, ProjectionFar: Single); override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
+    { @exclude
+      TCastleTransform instances that listen on press/release.
+      May be @nil, equivalent to empty. }
     property InternalPressReleaseListeners: TCastleTransformList read FInternalPressReleaseListeners;
 
     { The major axis of gravity vector: 0, 1 or 2.
@@ -1991,9 +2009,9 @@ type
 
     function GravityUp: TVector3;
       // TODO: I would like to deprecate it,
-      // but it is so often useful, and the alternative name with Camera prefix looks convoluted.
+      // but it is so often useful, and the alternative MainCamera.GravityUp looks convoluted.
       // Leave it be for now.
-      // TODO: deprecated 'use CameraGravityUp after checking CameraKnown';
+      // TODO: deprecated 'use MainCamera.GravityUp if MainCamera <> nil';
 
     { Is the move from OldPos to ProposedNewPos possible.
       Returns true and sets NewPos if some move is allowed, thus allows for wall-sliding.
@@ -2043,6 +2061,7 @@ type
       const BecauseOfGravity: boolean): boolean; overload;
 
     { Get height of point APosition above the world.
+      Looks at current @link(MainCamera) to know the gravity direction.
 
       This checks collisions with world
       (everything inside this @link(TCastleAbstractRootTransform)).
@@ -2166,32 +2185,6 @@ type
       and whether the object is not between @link(Disable) and @link(Enable). }
     function WorldPointCollision2D(const Point: TVector2): boolean;
 
-    { Camera position, direction, up and gravity up vectors.
-      Expressed in the coordinate space of this TCastleAbstractRootTransform,
-      which means: the coordinate space of enclosing @link(TCastleViewport).
-
-      Note that some features of TCastleScene (like LOD or Billboard or ProximitySensor)
-      need to transform this camera to scene local space.
-      Which is not possible if the same scene instance
-      is used multiple times (e.g. under many different TCastleTransform parents).
-      If you need to use these features of TCastleScene,
-      then simply do not use the same scene reference multiple times
-      (instead clone the scene by @link(TCastleScene.Clone)).
-
-      CameraKnown = @false means that
-      CameraChanged was never called, and so camera settings are not known,
-      and so other Camera* properties have undefined values.
-
-      @groupBegin }
-    property CameraPosition: TVector3 read FCameraPosition;
-    property CameraDirection: TVector3 read FCameraDirection;
-    property CameraUp: TVector3 read FCameraUp;
-    property CameraGravityUp: TVector3 read FCameraGravityUp;
-    property CameraKnown: boolean read FCameraKnown;
-    { @groupEnd }
-
-    procedure CameraChanged(const ACamera: TCastleCamera); override;
-
     { Yoo can temporarily disable physics (no transformations will be updated
       by the physics engine) by setting this property to @false. }
     property EnablePhysics: boolean read FEnablePhysics write FEnablePhysics
@@ -2216,15 +2209,15 @@ type
     }
     property MoveLimit: TBox3D read FMoveLimit write FMoveLimit;
 
-    { The central camera, that controls the features that require
+    { Central camera, that controls the features that require
       a single "main" camera (features that do not make sense
       with multiple cameras from multiple viewports).
 
       This camera controls:
 
-      - the X3D nodes that "sense" camera like ProximitySensor, Billboard.
+      - the X3D nodes that "sense" camera like ProximitySensor, Billboard, LOD.
       - an audio listener (controlling the spatial sound).
-      - the headlight.
+      - the headlight position/direction.
       - when X3D nodes change Viewport/NavigationInfo,
         they apply these changes to this camera.
 
@@ -2236,17 +2229,28 @@ type
       e.g. mirror textures (like GeneratedCubeMapTexture)
       would need different contents in different viewpoints.
 
+      Note that features like LOD or Billboard or ProximitySensor
+      need to transform this camera to scene local space.
+      Which is not possible if the same scene instance
+      is used multiple times (e.g. under many different TCastleTransform parents).
+      If you need to use these features of TCastleScene,
+      then simply do not use the same scene reference multiple times
+      (instead clone the scene by @link(TCastleScene.Clone)).
+
       By default this is set to @link(TCastleViewport.Camera) of the @link(TCastleViewport)
       that created this @link(TCastleAbstractRootTransform) instance.
       So in simple cases (when you just create one @link(TCastleViewport)
       and add your scenes to it's already-created @link(TCastleViewport.Items))
       you don't have to do anything, it just works.
       In general, you can change this to any camera of any associated @link(TCastleViewport),
-      or @nil (in case no camera should be that "central" camera).
-
-      TODO: Use free notification to automatically nil this.
-      For now, be sure to unassign it early enough, before freeing the camera. }
+      or @nil (in case no camera should be that "central" camera). }
     property MainCamera: TCastleCamera read FMainCamera write SetMainCamera;
+
+    function CameraPosition: TVector3; deprecated 'use MainCamera.Position if MainCamera <> nil';
+    function CameraDirection: TVector3; deprecated 'use MainCamera.Direction if MainCamera <> nil';
+    function CameraUp: TVector3; deprecated 'use MainCamera.Up if MainCamera <> nil';
+    function CameraGravityUp: TVector3; deprecated 'use MainCamera.GravityUp if MainCamera <> nil';
+    function CameraKnown: Boolean; deprecated 'use MainCamera <> nil';
   published
     { Adjust physics behaviour. }
     property PhysicsProperties: TPhysicsProperties read FPhysicsProperties;
@@ -2318,6 +2322,7 @@ uses CastleLog, CastleQuaternions, CastleComponentSerialize, X3DTriangles;
 {$I castletransform_physics.inc}
 {$I castletransform_collisions.inc}
 {$I castletransform_renderparams.inc}
+{$I castletransform_behavior.inc}
 {$undef read_implementation}
 
 { TransformMatricesMult ------------------------------------------------------ }
@@ -2532,6 +2537,7 @@ begin
   FVisible := true;
   FCursor := mcDefault;
   FList := TCastleTransformList.Create(false, Self);
+  FBehaviors := TComponentList.Create(false);
   FMiddleHeight := DefaultMiddleHeight;
   FOnlyTranslation := true;
   FScale := NoScale;
@@ -2550,6 +2556,7 @@ begin
 
   PhysicsDestroy;
   FreeAndNil(FList);
+  FreeAndNil(FBehaviors);
   { set to nil, to detach free notification }
   ChangeWorld(nil);
   GLContextClose;
@@ -3049,12 +3056,34 @@ begin
 end;
 
 procedure TCastleTransform.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
-var
-  I: Integer;
-  Item: TCastleTransform;
-  RemoveItem: TRemoveType;
-begin
-  if GetExists then
+
+  procedure UpdateBehaviors;
+  var
+    I: Integer;
+    Beh: TCastleBehavior;
+    RemoveItem: TRemoveType;
+  begin
+    I := 0;
+    while I < FBehaviors.Count do
+    begin
+      Beh := FBehaviors[I] as TCastleBehavior;
+      RemoveItem := rtNone;
+      Beh.Update(SecondsPassed, RemoveItem);
+      if RemoveItem in [rtRemove, rtRemoveAndFree] then
+      begin
+        RemoveBehaviorIndex(I);
+        if RemoveItem = rtRemoveAndFree then
+          FreeAndNil(Beh);
+      end else
+        Inc(I);
+    end;
+  end;
+
+  procedure UpdateChildren;
+  var
+    I: Integer;
+    Item: TCastleTransform;
+    RemoveItem: TRemoveType;
   begin
     I := 0;
     while I < List.Count do
@@ -3070,6 +3099,13 @@ begin
       end else
         Inc(I);
     end;
+  end;
+
+begin
+  if GetExists then
+  begin
+    UpdateBehaviors;
+    UpdateChildren;
 
     { Disable physics and gravity in design mode (in the future we may add optional way to enable them) }
     if not CastleDesignMode then
@@ -3101,35 +3137,12 @@ begin
 end;
 *)
 
-procedure TCastleTransform.UpdateGeneratedTextures(
-  const RenderFunc: TRenderFromViewFunction;
-  const ProjectionNear, ProjectionFar: Single);
-var
-  I: Integer;
-begin
-  for I := 0 to List.Count - 1 do
-    List[I].UpdateGeneratedTextures(RenderFunc, ProjectionNear, ProjectionFar);
-end;
-
 procedure TCastleTransform.VisibleChangeNotification(const Changes: TVisibleChanges);
 var
   I: Integer;
 begin
   for I := 0 to List.Count - 1 do
     List[I].VisibleChangeNotification(Changes);
-end;
-
-procedure TCastleTransform.CameraChanged(const ACamera: TCastleCamera);
-var
-  I: Integer;
-begin
-  for I := 0 to List.Count - 1 do
-    List[I].CameraChanged(ACamera);
-end;
-
-procedure TCastleTransform.CameraChanged(const ACamera: TCastleNavigation);
-begin
-  CameraChanged(ACamera.Camera);
 end;
 
 function TCastleTransform.Dragging: boolean;
@@ -3499,8 +3512,8 @@ var
   B: TBox3D;
 begin
   GC := World.GravityCoordinate;
-  if MiddleForceBox then
-    B := MiddleForceBoxValue
+  if InternalMiddleForceBox then
+    B := InternalMiddleForceBoxValue
   else
     B := LocalBoundingBox;
 
@@ -3524,8 +3537,8 @@ var
   {$ifdef CHECK_HEIGHT_VS_RADIUS} R: Single; {$endif}
 begin
   GC := World.GravityCoordinate;
-  if MiddleForceBox then
-    B := MiddleForceBoxValue
+  if InternalMiddleForceBox then
+    B := InternalMiddleForceBoxValue
   else
     B := LocalBoundingBox;
   if B.IsEmpty then
@@ -3580,10 +3593,12 @@ procedure TCastleTransform.UpdateSimpleGravity(const SecondsPassed: Single);
     OldFalling: boolean;
     FallingDistance, MaximumFallingDistance: Single;
   begin
-    if (World = nil) or not World.CameraKnown then Exit;
+    if (World = nil) or
+       (World.MainCamera = nil) then
+      Exit;
 
     { calculate and save GravityUp once, it's used quite often in this procedure }
-    GravityUp := World.CameraGravityUp;
+    GravityUp := World.GravityUp;
 
     OldFalling := FFalling;
 
@@ -3914,6 +3929,55 @@ begin
   end;
 end;
 
+procedure TCastleTransform.AddBehavior(const Behavior: TCastleBehavior);
+begin
+  if Behavior.FParent <> Self then
+  begin
+    Behavior.FParent := Self;
+    Behavior.ParentChanged;
+    FBehaviors.Add(Behavior);
+  end;
+end;
+
+procedure TCastleTransform.RemoveBehaviorIndex(const BehaviorIndex: Integer);
+var
+  Beh: TCastleBehavior;
+begin
+  Beh := FBehaviors[BehaviorIndex] as TCastleBehavior;
+  Beh.FParent := nil;
+  Beh.ParentChanged;
+  FBehaviors.Delete(BehaviorIndex);
+end;
+
+procedure TCastleTransform.RemoveBehavior(const Behavior: TCastleBehavior);
+var
+  I: Integer;
+begin
+  if Behavior.FParent = Self then
+  begin
+    I := FBehaviors.IndexOf(Behavior);
+    if I = -1 then
+    begin
+      WritelnWarning('Internal Error: Behavior %s %s has our parent, but is not present on FBehaviors list', [
+        Behavior.Name,
+        Behavior.ClassType
+      ]);
+      Exit;
+    end;
+    RemoveBehaviorIndex(I);
+  end;
+end;
+
+function TCastleTransform.FindBehavior(const BehaviorClass: TCastleBehaviorClass): TCastleBehavior;
+var
+  I: Integer;
+begin
+  for I := 0 to FBehaviors.Count - 1 do
+    if FBehaviors[I] is BehaviorClass then
+      Exit(TCastleBehavior(FBehaviors[I])); // since it's BehaviorClass, casting to TCastleBehavior must be safe
+  Result := nil;
+end;
+
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
 {$undef read_implementation_methods}
@@ -3929,12 +3993,12 @@ begin
   FPhysicsProperties.Name := 'PhysicsProperties';
   FPhysicsProperties.RootTransform := Self;
 
+  FMainCameraObserver := TFreeNotificationObserver.Create(Self);
+  FMainCameraObserver.OnFreeNotification := @MainCameraFreeNotification;
+
   FTimeScale := 1;
   FMoveLimit := TBox3D.Empty;
   FEnablePhysics := true;
-  { This initialization is only to keep deprecated GravityUp/GravityCoordinate
-    sensible, even for old code that doesn't look at CameraKnown. }
-  FCameraGravityUp := Vector3(0, 1, 0);
 
   { everything inside is part of this world }
   AddToWorld(Self);
@@ -3947,14 +4011,9 @@ begin
   inherited;
 end;
 
-function TCastleAbstractRootTransform.GravityUp: TVector3;
-begin
-  Result := FCameraGravityUp;
-end;
-
 function TCastleAbstractRootTransform.GravityCoordinate: Integer;
 begin
-  Result := MaxAbsVectorCoord(FCameraGravityUp);
+  Result := MaxAbsVectorCoord(GravityUp);
 end;
 
 function TCastleAbstractRootTransform.WorldBoxCollision(const Box: TBox3D): boolean;
@@ -3988,7 +4047,7 @@ end;
 function TCastleAbstractRootTransform.WorldHeight(const APosition: TVector3;
   out AboveHeight: Single; out AboveGround: PTriangle): boolean;
 begin
-  Result := HeightCollision(APosition, CameraGravityUp, nil,
+  Result := HeightCollision(APosition, GravityUp, nil,
     AboveHeight, AboveGround);
 end;
 
@@ -4056,29 +4115,6 @@ begin
     Result := MoveLimit.IsEmpty or MoveLimit.Contains(NewPos);
 end;
 
-procedure TCastleAbstractRootTransform.CameraChanged(const ACamera: TCastleCamera);
-begin
-  ACamera.GetView(FCameraPosition, FCameraDirection, FCameraUp, FCameraGravityUp);
-  FCameraKnown := true;
-
-  { inherited calls CameraChanged on all items,
-    and they may assume that World.Camera* properties are already properly set. }
-  inherited;
-end;
-
-procedure TCastleAbstractRootTransform.UpdateGeneratedTextures(
-  const RenderFunc: TRenderFromViewFunction;
-  const ProjectionNear, ProjectionFar: Single);
-begin
-  { Avoid doing this two times within the same FrameId.
-    Important if the same TCastleAbstractRootTransform is present in multiple viewports. }
-  if UpdateGeneratedTexturesFrameId = TFramesPerSecond.FrameId then
-    Exit;
-  UpdateGeneratedTexturesFrameId := TFramesPerSecond.FrameId;
-
-  inherited;
-end;
-
 procedure TCastleAbstractRootTransform.SetPaused(const Value: boolean);
 begin
   if FPaused <> Value then
@@ -4093,9 +4129,62 @@ procedure TCastleAbstractRootTransform.SetMainCamera(const Value: TCastleCamera)
 begin
   if FMainCamera <> Value then
   begin
+    FMainCameraObserver.Observed := Value;
     FMainCamera := Value;
     VisibleChangeHere([]);
   end;
+end;
+
+procedure TCastleAbstractRootTransform.MainCameraFreeNotification(const Sender: TFreeNotificationObserver);
+begin
+  MainCamera := nil;
+end;
+
+function TCastleAbstractRootTransform.CameraPosition: TVector3;
+begin
+  if MainCamera = nil then
+    Result := TVector3.Zero
+  else
+    Result := MainCamera.Position;
+end;
+
+function TCastleAbstractRootTransform.CameraDirection: TVector3;
+begin
+  if MainCamera = nil then
+    Result := DefaultCameraDirection
+  else
+    Result := MainCamera.Direction;
+end;
+
+function TCastleAbstractRootTransform.CameraUp: TVector3;
+begin
+  if MainCamera = nil then
+    Result := DefaultCameraUp
+  else
+    Result := MainCamera.Up;
+end;
+
+function TCastleAbstractRootTransform.CameraGravityUp: TVector3;
+begin
+  if MainCamera = nil then
+    Result := DefaultCameraUp
+  else
+    Result := MainCamera.GravityUp;
+end;
+
+function TCastleAbstractRootTransform.GravityUp: TVector3;
+begin
+  if MainCamera = nil then
+    { This is only to keep deprecated GravityUp/GravityCoordinate
+      sensible, even for old code that doesn't check MainCamera <> nil. }
+    Result := DefaultCameraUp
+  else
+    Result := MainCamera.GravityUp;
+end;
+
+function TCastleAbstractRootTransform.CameraKnown: Boolean;
+begin
+  Result := MainCamera <> nil;
 end;
 
 procedure TCastleAbstractRootTransform.RegisterPressRelease(const T: TCastleTransform);

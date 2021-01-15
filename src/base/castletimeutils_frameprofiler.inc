@@ -27,6 +27,7 @@ type
     fmRenderShapesFilterBlending,
     //fmRenderFrameProfiler,
     fmUpdate,
+    fmUpdateGeneratedTextures,
     fmUpdateScene,
     fmUpdatePhysics
   );
@@ -140,6 +141,10 @@ procedure TCastleFrameProfiler.StartCore(const Metric: TMetricIndex);
 begin
   if not FEnabled then Exit;
 
+  if (Metric <> IndexFrameMetric(fmUpdateGeneratedTextures)) and
+     CurrentFrameStarted[IndexFrameMetric(fmUpdateGeneratedTextures)] then
+    Exit; // do not measure rendering times inside fmUpdateGeneratedTextures, they make output confusing
+
   if CurrentFrameStarted[Metric] then
   begin
     WritelnWarning('Frame metric %d not stopped yet (but started again). Possible causes: mismatched Start/Stop calls, or broken by exception', [
@@ -156,6 +161,10 @@ procedure TCastleFrameProfiler.StopCore(const Metric: TMetricIndex);
 begin
   if not FEnabled then Exit;
 
+  if (Metric <> IndexFrameMetric(fmUpdateGeneratedTextures)) and
+     CurrentFrameStarted[IndexFrameMetric(fmUpdateGeneratedTextures)] then
+    Exit; // do not measure rendering times inside fmUpdateGeneratedTextures, they make output confusing
+
   Assert(CurrentFrameStarted[Metric]);
   FramesTimes[CurrentFrame, Metric] := FramesTimes[CurrentFrame, Metric] +
     CurrentFrameStart[Metric].ElapsedTime;
@@ -168,6 +177,16 @@ procedure TCastleFrameProfiler.StartFrame;
   var
     TotalTime: TFloatTime;
 
+    function PercentTime(const MetricIndex: TMetricIndex): Integer; overload;
+    begin
+      Result := Round(100 * FramesTimes[CurrentFrame, MetricIndex] / TotalTime);
+    end;
+
+    function PercentTime(const FrameMetric: TFrameMetric): Integer; overload;
+    begin
+      Result := PercentTime(IndexFrameMetric(FrameMetric));
+    end;
+
     function DisplayUserMetrics(const Names: array of String; const InitialIndex: TMetricIndex): String;
     var
       I: TUserMetric;
@@ -177,7 +196,7 @@ procedure TCastleFrameProfiler.StartFrame;
         if Names[I] <> '' then
           Result := Result + Format('  - %s: %d%%' + NL, [
             Names[I],
-            Round(100 * FramesTimes[CurrentFrame, InitialIndex + I] / TotalTime)
+            PercentTime(InitialIndex + I)
           ]);
     end;
 
@@ -193,6 +212,7 @@ procedure TCastleFrameProfiler.StartFrame;
       // '  - RenderFrameProfiler: %d%%' + NL +
       '%s' +
       '- Update: %d%%' + NL +
+      '  - TCastleScene.UpdateGeneratedTextures: %d%%' + NL +
       '  - TCastleSceneCore.Update: %d%%' + NL +
       '  - Update Kraft Physics: %d%% (%.5f secs)' + NL +
       '%s' +
@@ -201,18 +221,19 @@ procedure TCastleFrameProfiler.StartFrame;
     , [
       TotalTime,
       1 / TotalTime,
-      Round(100 * FramesTimes[CurrentFrame, IndexFrameMetric(fmBeforeRender)] / TotalTime),
-      Round(100 * FramesTimes[CurrentFrame, IndexFrameMetric(fmRender)] / TotalTime),
+      PercentTime(fmBeforeRender),
+      PercentTime(fmRender),
       FramesTimes[CurrentFrame, IndexFrameMetric(fmRender)],
       1 / FramesTimes[CurrentFrame, IndexFrameMetric(fmRender)],
-      Round(100 * FramesTimes[CurrentFrame, IndexFrameMetric(fmRenderTransform)] / TotalTime),
-      Round(100 * FramesTimes[CurrentFrame, IndexFrameMetric(fmRenderScene)] / TotalTime),
-      Round(100 * FramesTimes[CurrentFrame, IndexFrameMetric(fmRenderShapesFilterBlending)] / TotalTime),
-      // Round(100 * FramesTimes[CurrentFrame, IndexFrameMetric(fmRenderFrameProfiler)] / TotalTime),
+      PercentTime(fmRenderTransform),
+      PercentTime(fmRenderScene),
+      PercentTime(fmRenderShapesFilterBlending),
+      // PercentTime(fmRenderFrameProfiler),
       DisplayUserMetrics(UserMetricsRenderNames, 1 + Ord(High(TFrameMetric)) + 1 + 0),
-      Round(100 * FramesTimes[CurrentFrame, IndexFrameMetric(fmUpdate)] / TotalTime),
-      Round(100 * FramesTimes[CurrentFrame, IndexFrameMetric(fmUpdateScene)] / TotalTime),
-      Round(100 * FramesTimes[CurrentFrame, IndexFrameMetric(fmUpdatePhysics)] / TotalTime),
+      PercentTime(fmUpdate),
+      PercentTime(fmUpdateGeneratedTextures),
+      PercentTime(fmUpdateScene),
+      PercentTime(fmUpdatePhysics),
       FramesTimes[CurrentFrame, IndexFrameMetric(fmUpdatePhysics)],
       DisplayUserMetrics(UserMetricsUpdateNames, 1 + Ord(High(TFrameMetric)) + 1 + MaxUserMetrics),
       DisplayUserMetrics(UserMetricsOtherNames , 1 + Ord(High(TFrameMetric)) + 1 + 2 * MaxUserMetrics)

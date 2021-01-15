@@ -306,7 +306,8 @@ begin
 
       if SafeCollisionsSphereAsBox then
       begin
-        WritelnWarning('Non-uniform scale, SphereCollision will not work precisely, approximating sphere with larger box');
+        // too verbose for normal usage
+        // WritelnWarning('Non-uniform scale, SphereCollision will not work precisely, approximating sphere with larger box');
         LocalBox := BoundingBox3DFromSphere(Pos, Radius).Transform(
           Shape.State.Transformation.InverseTransform);
         Result := Shape.InternalOctreeTriangles.BoxCollision(

@@ -24,7 +24,7 @@ implementation
 
 uses SysUtils, Classes,
   CastleWindow, CastleUIControls, CastleRectangles,
-  CastleLog, CastleSceneCore, CastleStringUtils,
+  CastleLog, CastleSceneCore, CastleStringUtils, CastleTimeUtils,
   CastleApplicationProperties, CastleUIState, CastleProgress, CastleWindowProgress,
   GameStateMain;
 
@@ -44,6 +44,8 @@ begin
     TStateCredits ("showing the credits state") etc. }
   StateMain := TStateMain.Create(Application);
   TUIState.Current := StateMain;
+
+  FrameProfiler.Enabled := true;
 end;
 
 initialization

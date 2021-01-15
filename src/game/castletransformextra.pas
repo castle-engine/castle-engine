@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -317,10 +317,7 @@ type
     { Scales how far the knockback effect pushes this creature/player. }
     property KnockBackSpeed: Single read FKnockBackSpeed write FKnockBackSpeed
       default DefaultKnockBackSpeed;
-  end {
-    This will get deprecated along with CastleItems and CastleCreatures one day.
-    deprecated 'the usefullness of this class is low, as in a typical application you can implement something similar yourself, adjusted to your particular case'
-  };
+  end deprecated 'use TCastleAliveBehavior, or implement "being alive" logic in your own game';
 
   { Contents of this transformation are loaded from an indicated file
     (by the @link(URL) property).

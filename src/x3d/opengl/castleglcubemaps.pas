@@ -141,6 +141,7 @@ procedure SHVectorGLCapture(
         and will have good defaults (inclusive) for InShadow and ShadowVolumesReceivers. }
       RenderParams.RenderingCamera.Target := rtCubeMapEnvironment;
       RenderParams.RenderingCamera.FromMatrix(
+        CapturePoint,
         LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
         FastLookDirMatrix(CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
         RenderContext.ProjectionMatrix
@@ -204,6 +205,7 @@ procedure SetRenderingCamera(const RenderingCamera: TRenderingCamera;
   const Side: TCubeMapSide);
 begin
   RenderingCamera.FromMatrix(
+    CapturePoint,
     LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
     FastLookDirMatrix(CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
     RenderContext.ProjectionMatrix);

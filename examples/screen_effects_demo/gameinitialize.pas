@@ -155,7 +155,7 @@ procedure ApplicationInitialize;
     Result.SetShaders([ComposedShader]);
   end;
 
-  procedure InitialiazeScreenEffects;
+  procedure InitializeScreenEffects;
   var
     I: Integer;
   begin
@@ -372,7 +372,7 @@ begin
   EdgeDetect.Button.OnClick := @TEventsHandler(nil).ToggleEdgeDetect;
   BottomControls.InsertFront(EdgeDetect.Button);
 
-  InitialiazeScreenEffects;
+  InitializeScreenEffects;
 end;
 
 initialization

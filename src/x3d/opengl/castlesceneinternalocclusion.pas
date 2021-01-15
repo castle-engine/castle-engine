@@ -71,7 +71,7 @@ type
       const AUtils: TOcclusionQueryUtilsRenderer);
     procedure Render(const RenderShape: TShapeProcedure;
       const Params: TRenderParams;
-      const RenderCameraKnown: boolean; const RenderCameraPosition: TVector3);
+      const RenderCameraPosition: TVector3);
     function WasLastVisible(const Shape: TGLShape): boolean;
   end;
 
@@ -357,7 +357,7 @@ end;
 procedure THierarchicalOcclusionQueryRenderer.Render(
   const RenderShape: TShapeProcedure;
   const Params: TRenderParams;
-  const RenderCameraKnown: boolean; const RenderCameraPosition: TVector3);
+  const RenderCameraPosition: TVector3);
 {$ifndef OpenGLES}
 var
   { Stack of TShapeOctreeNode.
@@ -391,10 +391,7 @@ var
       { Push Node children onto TraversalStack.
         We want to Pop them front-first, so (since this is a stack)
         we want to push back first. }
-      if RenderCameraKnown then
-        Node.PushChildrenBackToFront(TraversalStack, RenderCameraPosition)
-      else
-        Node.PushChildren(TraversalStack);
+      Node.PushChildrenBackToFront(TraversalStack, RenderCameraPosition);
     end;
   end;
 

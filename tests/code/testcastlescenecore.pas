@@ -252,14 +252,14 @@ begin
       SceneManager.Items.Add(Scene);
       SceneManager.MainScene := Scene;
 
-      Scene.CameraChanged(SceneManager.RequiredCamera);
+      Scene.InternalCameraChanged;
       FakeRemoveMe := rtNone;
       Scene.Update(1, FakeRemoveMe);
 
       Viewpoint := FindViewpointByDescription('City plan');
       Viewpoint.Bound := true;
 
-      Scene.CameraChanged(SceneManager.Camera);
+      Scene.InternalCameraChanged;
       FakeRemoveMe := rtNone;
       Scene.Update(1, FakeRemoveMe);
     finally FreeAndNil(Scene) end;

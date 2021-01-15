@@ -972,7 +972,7 @@ type
     WaypointsSaved_Begin: TSector;
     WaypointsSaved_End: TSector;
     WaypointsSaved: TWaypointList;
-    MiddleForceBoxTime: Single;
+    InternalMiddleForceBoxTime: Single;
 
     FDebugAlternativeTargetAxis: TDebugAxis;
     FDebugLastSensedEnemyAxis: TDebugAxis;
@@ -1769,7 +1769,7 @@ begin
       Safeguards:
 
       - Don't set to "forced" when it's already forced, as then it could
-        cause MiddleForceBoxValue change after each SetState to the box
+        cause InternalMiddleForceBoxValue change after each SetState to the box
         from previous state, and we'll be in a similar trouble
         (but with box values always from previous state).
         Trouble (without this safeguard) is reproducible on fps_game
@@ -1782,13 +1782,13 @@ begin
         (I didn't actually observed a need for this safeguard so far,
         but it seems reasonable to limit this hack only to idle/walk situation.)
     }
-    if (not MiddleForceBox) and
+    if (not InternalMiddleForceBox) and
        ( ((FState = csIdle) and (Value = csWalk)) or
          ((FState = csWalk) and (Value = csIdle)) ) then
     begin
-      MiddleForceBox := true;
-      MiddleForceBoxValue := LocalBoundingBox;
-      MiddleForceBoxTime := LifeTime + 0.1;
+      InternalMiddleForceBox := true;
+      InternalMiddleForceBoxValue := LocalBoundingBox;
+      InternalMiddleForceBoxTime := LifeTime + 0.1;
     end;
 
     { Some states require special finalization here. }
@@ -2506,8 +2506,8 @@ begin
   inherited;
   if (not GetExists) or DebugTimeStopForCreatures then Exit;
 
-  { eventually turn off MiddleForceBox }
-  MiddleForceBox := MiddleForceBox and (LifeTime <= MiddleForceBoxTime);
+  { eventually turn off InternalMiddleForceBox }
+  InternalMiddleForceBox := InternalMiddleForceBox and (LifeTime <= InternalMiddleForceBoxTime);
 
   if Dead and not (State in [csDie, csDieBack]) then
   begin
