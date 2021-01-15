@@ -343,6 +343,7 @@ end;
 
 { TCastleWindow -------------------------------------------------------------- }
 
+{$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
 procedure TCastleWindow.NavigationInfoChanged;
 var
   NavValue: integer;
@@ -360,6 +361,7 @@ begin
     LibraryCallbackProc(ecgelibNavigationTypeChanged, NavValue, 0, nil);
   end;
 end;
+{$endif}
 
 {$define read_implementation}
 

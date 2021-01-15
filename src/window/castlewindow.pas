@@ -306,10 +306,11 @@ uses {$define read_interface_uses}
   CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, CastleGLImages,
   CastleKeysMouse, CastleStringUtils, CastleFilesUtils, CastleTimeUtils,
   CastleFileFilters, CastleUIControls, CastleGLContainer,
-  CastleCameras, CastleInternalPk3DConnexion, CastleParameters, CastleSoundEngine,
-  CastleApplicationProperties,
-  { Castle Game Engine units depending on VRML/X3D stuff }
-  X3DNodes, CastleScene, CastleViewport, CastleLevels;
+  CastleInternalPk3DConnexion, CastleParameters, CastleSoundEngine,
+  CastleApplicationProperties
+  {$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES},
+  CastleCameras, X3DNodes, CastleScene, CastleViewport, CastleLevels
+  {$endif};
 
 {$define read_interface}
 
@@ -2196,6 +2197,8 @@ type
 
   TCastleWindowCustom = TCastleWindowBase deprecated 'use TCastleWindowBase';
 
+  {$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
+
   { Window to render everything (3D or 2D) with Castle Game Engine,
     with a default @link(TCastleSceneManager) instance already created for you.
     Add your
@@ -2272,6 +2275,8 @@ type
       read GetNavigationType write SetNavigationType;
       deprecated 'create TCastleViewport and use TCastleViewport.NavigationType';
   end deprecated 'use TCastleWindowBase and create instance of TCastleViewport explicitly';
+
+  {$endif}
 
   TWindowList = class(specialize TObjectList<TCastleWindowBase>)
   private
@@ -4462,6 +4467,8 @@ begin
   Result.Data[1] := FRealHeight - 1 - Floor(V.Data[1]);
 end;
 
+{$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
+
 { TWindowSceneManager -------------------------------------------------------- }
 
 type
@@ -4568,6 +4575,8 @@ begin
   SceneManager.NavigationType := Value;
   NavigationInfoChanged;
 end;
+
+{$endif CASTLE_DEPRECATED_WINDOW_CLASSES}
 
 { TWindowList ------------------------------------------------------------ }
 

@@ -406,4 +406,11 @@
   The choice "which fields are seldom used" is purely subjective, and may change! }
 {.$define CASTLE_SLIM_NODES}
 
+{ Compatibility -------------------------------------------------------------- }
+
+{ Define deprecated CastleWindow classes.
+  These introduce dependencies on deprecated units like CastleLevels etc.
+  which can otherwise be usually avoided. }
+{$define CASTLE_DEPRECATED_WINDOW_CLASSES}
+
 {$endif not CASTLE_CONF_INCLUDED}
