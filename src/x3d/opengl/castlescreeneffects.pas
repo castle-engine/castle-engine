@@ -129,7 +129,6 @@ type
       FScreenEffectsTimeScale: Single;
       { World to pass dummy camera position to ScreenEffectsScene. }
       World: TCastleRootTransform;
-      Camera: TCastleCamera;
 
       { OpenGL(ES) resources for screen effects. }
       { If a texture for screen effects is ready, then
@@ -338,11 +337,11 @@ begin
     ScreenEffectsScene.Load(ScreenEffectsRoot, true);
     ScreenEffectsScene.ProcessEvents := true;
 
-    (* We use Camera and World to make some ProximitySensors working,
+    (* We setup World with camera knowledge to make some ProximitySensors working,
        like a dummy "ProximitySensors { size 10000 10000 10000 }". *)
     World := TCastleRootTransform.Create(Self);
     World.Add(ScreenEffectsScene);
-    Camera := TCastleCamera.Create(Self);
+    World.MainCamera := TCastleCamera.Create(Self);
   end;
 
   { Note that AddChildren by default has AllowDuplicates=true,

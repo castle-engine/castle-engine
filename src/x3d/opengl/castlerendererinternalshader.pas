@@ -1246,7 +1246,7 @@ begin
   UniformEvent := FieldOrEvent.Event;
 
   { Set initial value for this GLSL uniform variable,
-    from VRML field or exposedField }
+    from X3D field or exposedField }
 
   if UniformField <> nil then
   try
