@@ -1898,8 +1898,6 @@ type
     procedure PrepareResources(const Options: TPrepareResourcesOptions;
       const ProgressStep: boolean; const Params: TPrepareParams); override;
 
-    function Dragging: boolean; override;
-
     { Static scene will not be automatically notified about the changes
       to the field values. This means that TX3DField.Send and
       TX3DField.Changed will not notify this scene. This makes a
@@ -6476,7 +6474,7 @@ begin
         warning that activation was unsuccessful.
 
         Fortunately, our ActiveChanged right now precisely tells us
-        when something happened. Whe not ActiveChanged, nothing happened,
+        when something happened. When not ActiveChanged, nothing happened,
         no X3D event was send. }
       Result := ActiveChanged;
     finally
@@ -6492,6 +6490,8 @@ begin
     Result := nil;
 end;
 
+(*
+// Not needed now
 function TCastleSceneCore.Dragging: boolean;
 
   function ActiveDraggingSensor: boolean;
@@ -6512,6 +6512,7 @@ begin
       ActiveDraggingSensor and
       ProcessEvents);
 end;
+*)
 
 { Time stuff ------------------------------------------------------------ }
 

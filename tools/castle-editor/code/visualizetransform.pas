@@ -72,7 +72,6 @@ type
         OnGizmoStopDrag: TNotifyEvent;
         constructor Create(AOwner: TComponent); override;
         procedure InternalCameraChanged; override;
-        function Dragging: boolean; override;
         function PointingDevicePress(const Pick: TRayCollisionNode;
           const Distance: Single): Boolean; override;
         function PointingDeviceMove(const Pick: TRayCollisionNode;
@@ -391,10 +390,13 @@ begin
   end;
 end;
 
+(*
+// Not needed now
 function TVisualizeTransform.TGizmoScene.Dragging: boolean;
 begin
   Result := (inherited Dragging) or GizmoDragging;
 end;
+*)
 
 function TVisualizeTransform.TGizmoScene.PointingDevicePress(
   const Pick: TRayCollisionNode; const Distance: Single): Boolean;

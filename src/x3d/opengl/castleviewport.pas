@@ -393,6 +393,19 @@ type
         @exclude }
       InternalDistortFieldOfViewY, InternalDistortViewAspect: Single;
 
+      { Do not navigate by dragging when we're already dragging a TCastleTransform item.
+        This means that if you drag
+
+        - X3D sensors like TouchSensor,
+        - gizmo in CGE editor,
+
+        ... then your dragging will not simultaneously also affect the navigation
+        (which would be very disorienting).
+
+        Set to true when some TCastleTransform handles PointingDevicePress,
+        set to false in PointingDeviceRelease. }
+      InternalPointingDeviceDragging: Boolean;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -1574,7 +1587,10 @@ begin
 
   if Input_Interact.IsEvent(Event) and
      PointingDevicePress then
+  begin
+    InternalPointingDeviceDragging := true;
     Exit(ExclusiveEvents);
+  end;
 end;
 
 function TCastleViewport.Release(const Event: TInputPressRelease): boolean;
@@ -1593,9 +1609,12 @@ begin
       if Items.InternalPressReleaseListeners[I].Release(Event) then
         Exit(ExclusiveEvents);
 
-  if Input_Interact.IsEvent(Event) and
-     PointingDeviceRelease then
-    Exit(ExclusiveEvents);
+  if Input_Interact.IsEvent(Event) then
+  begin
+    InternalPointingDeviceDragging := false;
+    if PointingDeviceRelease then
+      Exit(ExclusiveEvents);
+  end;
 end;
 
 function TCastleViewport.Motion(const Event: TInputMotion): boolean;

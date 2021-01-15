@@ -1079,18 +1079,6 @@ type
       Object should clear here any resources that are connected to the rendering context. }
     procedure GLContextClose; virtual;
 
-    { Are we in the middle of dragging something by moving the mouse.
-
-      This should be set to @true to disable camera navigation
-      methods that also use mouse move. In practice, to disable TCastleExamineNavigation
-      view rotation/movement by moving the mouse, as it makes (comfortable)
-      dragging practically impossible (at each mouse move, view changes...).
-
-      In particular, when you operate on active X3D pointing-device sensors
-      (like drag sensors, e.g. PlaneSensor, but also TouchSensor may
-      use it). }
-    function Dragging: boolean; virtual;
-
     { Middle point, usually "eye point", of the 3D model.
       This is used for sphere center
       (if @link(CollisionSphereRadius) is non-zero or @link(Sphere) returns @true)
@@ -3143,19 +3131,6 @@ var
 begin
   for I := 0 to List.Count - 1 do
     List[I].VisibleChangeNotification(Changes);
-end;
-
-function TCastleTransform.Dragging: boolean;
-var
-  I: Integer;
-begin
-  Result := false;
-
-  for I := 0 to List.Count - 1 do
-  begin
-    Result := List[I].Dragging;
-    if Result then Exit;
-  end;
 end;
 
 { transform stuff -------------------------------------------------------- }
