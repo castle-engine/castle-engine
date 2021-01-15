@@ -1854,10 +1854,11 @@ begin
   inherited;
 
   { This will do FrameProfiler.Start/Stop with fmUpdateGeneratedTextures }
-  UpdateGeneratedTextures(
-    World.InternalRenderEverythingEvent,
-    World.InternalProjectionNear,
-    World.InternalProjectionFar);
+  if World <> nil then
+    UpdateGeneratedTextures(
+      World.InternalRenderEverythingEvent,
+      World.InternalProjectionNear,
+      World.InternalProjectionFar);
 end;
 
 procedure TCastleScene.LocalRender(const Params: TRenderParams);
