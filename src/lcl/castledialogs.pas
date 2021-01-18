@@ -277,7 +277,7 @@ end;
 
 function TCastleOpenImageDialog.PrepareURL(const AFileName: String): String;
 begin
-  Result := FilenameToURISafeUTF8(CleanupFileName(FileName));
+  Result := FilenameToURISafeUTF8(CleanupFileName(AFileName));
   if UseCastleDataProtocol then
     Result := MaybeUseDataProtocol(Result);
 end;
