@@ -29,43 +29,85 @@ unit CastleGameBehaviors;
 interface
 
 uses Classes,
-  CastleVectors, CastleTransform, CastleTimeUtils;
+  CastleVectors, CastleTransform, CastleTimeUtils, CastleClassUtils, CastleSectors,
+  CastleSoundEngine;
 
 type
-  { Behavior that tracks life points, and determines being alive/dead in game. }
+  { Behavior that tracks life points, and determines being alive/dead
+    for game purposes. }
   TCastleAliveBehavior = class(TCastleBehavior)
   strict private
     FLife: Single;
     FMaxLife: Single;
+    FHurtDirection: TVector3;
+    FHurtStrength: Single;
+    FAttacker: TCastleAliveBehavior;
+    FAttackerObserver: TFreeNotificationObserver;
+    procedure SetAttacker(const Value: TCastleAliveBehavior);
+    procedure AttackerFreeNotification(const Sender: TFreeNotificationObserver);
+  protected
+    procedure ParentChanged; override;
   public
     const
       { Default value for @link(MaxLife) and @link(Life). }
       DefaultLife = 100.0;
 
     constructor Create(AOwner: TComponent); override;
+    function PropertySection(const PropertyName: String): TPropertySection; override;
 
-      FLife := DefaultLife;
-      FMaxLife := DefaultLife;
+    { Hurt given creature, decreasing its @link(Life) by LifeLoss,
+      also setting some additional properties that describe the damage.
+      These additional properties do not do anything in this class --
+      but they may be useful by other effects, e.g. "knockback",
+      done by other behaviors.
 
-    { Hurt given creature, decreasing it's life by LifeLoss,
-      setting last attack direction (may be used by knockback or other effects).
-      If all you want to do is to decrease Life, you can also just set @link(Life)
-      property.
+      Note: If all you want to do is to decrease @link(Life),
+      you can also just set @link(Life) property directly.
 
-      HurtDirection should be a normalized vector indicating direction
-      in which the attack came.
+      @param(AHurtDirection Should be a normalized vector indicating direction
+        from which the attack came.
 
-      AKnockbackDistance, if non-zero, indicates to push creature by given
-      length in the direction given by HurtDirection.
-      Ignored if HurtDirection is zero.
+        In this class, it does nothing, merely sets @link(HurtDirection) property.
+        Which may be used by other effects.)
 
-      Attacker is the other alive creature that caused this damage. It may be @nil
-      if no other TCastleAliveBehavior is directly responsible for this damage. This may
-      be useful for various purposes, for example the victim may become aware
-      of attacker presence when it's attacked. }
+      @param(AHurtStrength Describes "strength" of the attack.
+        What this "strengh" exactly means is not defined in this class.
+        It may cause a "knockback" effect, in which case it may be a knockback
+        distance, or a physical force strength, and is meaningful only when
+        @link(AHurtDirection) is non-zero.
+
+        In this class, it does nothing, merely sets @link(HurtStrength) property.
+        Which may be used by other effects.)
+
+      @param(AnAttacker The other alive creature that caused this damage.
+        It may be @nil if no other TCastleAliveBehavior is directly responsible
+        for this damage. This may be useful for various purposes,
+        for example the victim may become aware of attacker presence
+        when it's attacked.
+
+        In this class, it does nothing, merely sets @link(Attacker) property.
+        Which may be used by other effects.)
+      )}
     procedure Hurt(const LifeLoss: Single;
-      const HurtDirection: TVector3;
-      const AKnockbackDistance: Single; const Attacker: TCastleAliveBehavior); virtual;
+      const AHurtDirection: TVector3;
+      const AHurtStrength: Single;
+      const AnAttacker: TCastleAliveBehavior); virtual;
+
+    { Direction from where the last attack came, set by @link(Hurt).
+      Zero if there was no specific direction of last attack,
+      otherwise a normalized (length 1) vector. }
+    property HurtDirection: TVector3 read FHurtDirection;
+
+    { Strengh of the last attack, set by @link(Hurt).
+      What this "strengh" exactly means is not defined in this class.
+      It may cause a "knockback" effect, in which case it may be a knockback
+      distance, or a physical force strength, and is meaningful only when
+      @link(AHurtDirection) is non-zero. }
+    property HurtStrength: Single read FHurtStrength;
+
+    { Last attacker. Set by the last @link(Hurt) call,
+      it may also be set directly. }
+    property Attacker: TCastleAliveBehavior read FAttacker write SetAttacker;
   published
     { Current Life. The object is considered "dead" when this is <= 0. }
     property Life: Single read FLife write FLife default DefaultLife;
@@ -81,8 +123,53 @@ type
     property MaxLife: Single read FMaxLife write FMaxLife default DefaultLife;
   end;
 
-  { Behavior that allows the object to move around the game,
-    chasing the enemy, attacking the enemy or running away from danger. }
+  { Behavior to play spatial sounds, that automatically follow
+    the parent @link(TCastleTransform) transformation. }
+  TCastleSoundBehavior = class(TCastleBehavior)
+  strict private
+    UsedSounds: TSoundList;
+    procedure SoundRelease(Sender: TSound);
+    function LerpLegsMiddle(const A: Single): TVector3;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+
+    { Play SoundType where the parent is.
+
+      The exact position is between
+      @link(TCastleTransform.Translation Parent.Translation) and
+      @link(TCastleTransform.Middle Parent.Middle).
+      SoundHeight = 0 means to use
+      @link(TCastleTransform.Translation Parent.Translation),
+      SoundHeight = 1 means @link(TCastleTransform.Middle Parent.Middle),
+      other values imply a linear interpolation between the above two values.
+
+      If TiedToParent then the sound position will be updated
+      as the parent will move, and when we will
+      be destroyed, sound will stop. If not TiedToParent, then
+      the sound will simply be done at parent's position, but then
+      it will continue to be played independent of the parent existence
+      or position. }
+    procedure PlayOnce(const SoundType: TSoundType; const SoundHeight: Single;
+      const TiedToParent: boolean = true);
+  end;
+
+  { Behavior that allows the creature to move around,
+    chasing the enemy, attacking the enemy (by short-range or long-range attack),
+    running away from danger.
+
+    Optional dependencies: if present, this behavior will use other behaviors
+    on the same parent:
+
+    @unorderedList(
+      @item(TCastleSoundBehavior (to play spatial sounds;
+        this creature is silent otherwise),)
+
+      @item(TCastleAliveBehavior (to account for the fact that current creature
+        may be dead, or badly wounded;
+        this creature is assumed indestructible otherwise.))
+    ) }
   TCastleMoveAttackBehavior = class(TCastleBehavior)
   public
     type
@@ -130,14 +217,16 @@ type
     LastSensedEnemy: TVector3;
     LastSensedEnemySector: TSector;
 
-    property StateChangeTime: Single read FStateChangeTime;
+    FEnemy: TCastleAliveBehavior;
+    FEnemyObserver: TFreeNotificationObserver;
+
+    property StateChangeTime: TFloatTime read FStateChangeTime;
+    procedure SetEnemy(const Value: TCastleAliveBehavior);
+    procedure EnemyFreeNotification(const Sender: TFreeNotificationObserver);
+    procedure PlaySound(const SoundType: TSoundType; const SoundHeight: Single);
   protected
     procedure SetState(const Value: TState); virtual;
-
-    { Enemy of this creature.
-      TODO: The default implementation in this class returns player (if it exists and is still alive).
-      Return @nil for no enemy. }
-    function Enemy: TCastleAliveBehavior; virtual;
+    procedure ParentChanged; override;
 
     { Actually do the attack indicated by AttackAnimation
       and AttackTime and other AttackXxx properties.
@@ -150,7 +239,7 @@ type
       reach at the start of stateAttack state, the enemy could step back,
       so we need to check AttackMaxDistance again).
       The damage and knockback are defined by TCreatureResource.AttackDamageConst,
-      TCreatureResource.AttackDamageRandom, TCreatureResource.AttackKnockbackDistance. }
+      TCreatureResource.AttackDamageRandom, TCreatureResource.AttackHurtStrength. }
     procedure Attack; virtual;
 
     { Actually do the attack indicated by FireMissileAnimation
@@ -166,67 +255,235 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    function PropertySection(const PropertyName: String): TPropertySection; override;
 
+    { Current state of the creature, automatically changing. }
     property State: TState read FState default stateIdle;
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+
+    { Life, in seconds. }
+    property LifeTime: TFloatTime read FLifeTime;
+  published
+    { Enemy that is being chased and attacked by this creature. }
+    property Enemy: TCastleAliveBehavior read FEnemy write SetEnemy;
   end;
 
 implementation
 
-uses SysUtils, Math;
+uses SysUtils, Math,
+  CastleUtils;
+
+{ TCastleAliveBehavior ------------------------------------------------------- }
+
+constructor TCastleAliveBehavior.Create(AOwner: TComponent);
+begin
+  inherited;
+  FLife := DefaultLife;
+  FMaxLife := DefaultLife;
+  FAttackerObserver := TFreeNotificationObserver.Create(Self);
+  FAttackerObserver.OnFreeNotification := @AttackerFreeNotification;
+end;
+
+procedure TCastleAliveBehavior.ParentChanged;
+begin
+  inherited;
+  SingleInstanceOfBehavior;
+end;
+
+procedure TCastleAliveBehavior.AttackerFreeNotification(
+  const Sender: TFreeNotificationObserver);
+begin
+  Attacker := nil;
+end;
+
+procedure TCastleAliveBehavior.SetAttacker(const Value: TCastleAliveBehavior);
+begin
+  if FAttacker <> Value then
+  begin
+    FAttackerObserver.Observed := Value;
+    FAttacker := Value;
+  end;
+end;
+
+procedure TCastleAliveBehavior.Hurt(const LifeLoss: Single;
+  const AHurtDirection: TVector3;
+  const AHurtStrength: Single; const AnAttacker: TCastleAliveBehavior);
+begin
+  Life := Life - LifeLoss;
+  FHurtDirection := AHurtDirection;
+  FHurtStrength := AHurtStrength;
+  Attacker := AnAttacker;
+end;
+
+function TCastleAliveBehavior.PropertySection(
+  const PropertyName: String): TPropertySection;
+begin
+  case PropertyName of
+    'Life', 'MaxLife':
+      Result := psBasic;
+    else
+      Result := inherited PropertySection(PropertyName);
+  end;
+end;
+
+{ TSoundData ----------------------------------------------------------------- }
+
+type
+  TSoundData = class
+  public
+    SoundHeight: Single;
+  end;
+
+{ TCastleSoundBehavior ------------------------------------------------------- }
+
+constructor TCastleSoundBehavior.Create(AOwner: TComponent);
+begin
+  inherited;
+  UsedSounds := TSoundList.Create(false);
+end;
+
+destructor TCastleSoundBehavior.Destroy;
+var
+  I: Integer;
+begin
+  if UsedSounds <> nil then
+  begin
+    for I := 0 to UsedSounds.Count - 1 do
+    begin
+      UsedSounds[I].UserData.Free;
+      UsedSounds[I].UserData := nil;
+
+      { Otherwise OnRelease would call SoundRelease,
+        and this would remove it from UsedSounds list, breaking our
+        indexing over this list here. }
+      UsedSounds[I].OnRelease := nil;
+      UsedSounds[I].Release;
+    end;
+    FreeAndNil(UsedSounds);
+  end;
+  inherited;
+end;
+
+procedure TCastleSoundBehavior.SoundRelease(Sender: TSound);
+begin
+  Sender.UserData.Free;
+  Sender.UserData := nil;
+  UsedSounds.Remove(Sender);
+end;
+
+procedure TCastleSoundBehavior.PlayOnce(const SoundType: TSoundType; const SoundHeight: Single;
+  const TiedToParent: boolean);
+var
+  NewSource: TSound;
+  SoundPosition: TVector3;
+begin
+  SoundPosition := LerpLegsMiddle(SoundHeight);
+  if Parent.UniqueParent <> nil then // make sound position in world coordinates
+    SoundPosition := Parent.UniqueParent.LocalToWorld(SoundPosition);
+  NewSource := SoundEngine.Sound3d(SoundType, SoundPosition);
+  if TiedToParent and (NewSource <> nil) then
+  begin
+    UsedSounds.Add(NewSource);
+    NewSource.OnRelease := @SoundRelease;
+    NewSource.UserData := TSoundData.Create;
+  end;
+end;
+
+procedure TCastleSoundBehavior.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+var
+  I: Integer;
+  SoundPosition: TVector3;
+begin
+  inherited;
+  for I := 0 to UsedSounds.Count - 1 do
+  begin
+    SoundPosition := LerpLegsMiddle(
+      TSoundData(UsedSounds[I].UserData).SoundHeight);
+    if Parent.UniqueParent <> nil then // make sound position in world coordinates
+      SoundPosition := Parent.UniqueParent.LocalToWorld(SoundPosition);
+    UsedSounds[I].Position := SoundPosition;
+  end;
+end;
+
+function TCastleSoundBehavior.LerpLegsMiddle(const A: Single): TVector3;
+begin
+  Result := Lerp(A, Parent.Translation, Parent.Middle);
+end;
 
 { TCastleMoveAttackBehavior -------------------------------------------------------- }
 
 constructor TCastleMoveAttackBehavior.Create(AOwner: TComponent);
 begin
   inherited;
+  FEnemyObserver := TFreeNotificationObserver.Create(Self);
+  FEnemyObserver.OnFreeNotification := @EnemyFreeNotification;
+end;
 
-  if MaxLife > 0 then
+procedure TCastleMoveAttackBehavior.EnemyFreeNotification(
+  const Sender: TFreeNotificationObserver);
+begin
+  Enemy := nil;
+end;
+
+procedure TCastleMoveAttackBehavior.SetEnemy(const Value: TCastleAliveBehavior);
+begin
+  if FEnemy <> Value then
+  begin
+    FEnemyObserver.Observed := Value;
+    FEnemy := Value;
+  end;
+end;
+
+procedure TCastleMoveAttackBehavior.ParentChanged;
+var
+  Alive: TCastleAliveBehavior;
+begin
+  inherited;
+
+  SingleInstanceOfBehavior;
+
+  { Note that we don't automatically create TCastleAliveBehavior,
+    this would make it complicated when something adds another
+    instance of TCastleAliveBehavior -- adding it before or after
+    adding TCastleMoveAttackBehavior would have different effect. }
+  Alive := Parent.FindBehavior(TCastleAliveBehavior) as TCastleAliveBehavior;
+
+  if (Alive = nil) or (Alive.MaxLife > 0) then
   begin
     FState := stateIdle;
     FStateChangeTime := 0;
   end else
   begin
     { This means that the creature is created already in dead state...
-      So we start with csDie state and set FStateChangeTime to fake
+      So we start with stateDie state and set FStateChangeTime to fake
       the fact that creature was killed long time ago.
 
       This way the creature is created as a dead corpse, without making
       any kind of dying (or wounded) sound or animation. }
-    FState := csDie;
+    FState := stateDie;
     FStateChangeTime := -1000;
   end;
 
   WaypointsSaved := TWaypointList.Create(false);
 end;
 
-destructor TWalkAttackCreature.Destroy;
+destructor TCastleMoveAttackBehavior.Destroy;
 begin
   FreeAndNil(WaypointsSaved);
   inherited;
 end;
 
-function TWalkAttackCreature.Resource: TWalkAttackCreatureResource;
-begin
-  Result := TWalkAttackCreatureResource(inherited Resource);
-end;
+// TODO do not attack dead Enemy
 
-function TWalkAttackCreature.Enemy: TCastleAlive;
-begin
-  Result := Level.GetPlayer as TCastleAlive;
-  if (Result <> nil) and Result.Dead then
-    Result := nil; { do not attack dead player }
-end;
-
-procedure TWalkAttackCreature.SetState(Value: TState);
+procedure TCastleMoveAttackBehavior.SetState(const Value: TState);
 begin
   if FState <> Value then
   begin
     { Force old box value for Middle and PreferredHeight calculation,
       for a fraction of a second.
 
-      This is crucial for TWalkAttackCreature.Update logic
+      This is crucial for TCastleMoveAttackBehavior.Update logic
       that could otherwise sometimes get stuck and continuously switching
       between walk/idle states, because in idle state Middle indicates
       that we should walk (e.g. distance or angle to enemy is not good enough),
@@ -254,12 +511,12 @@ begin
         (I didn't actually observed a need for this safeguard so far,
         but it seems reasonable to limit this hack only to idle/walk situation.)
     }
-    if (not InternalMiddleForceBox) and
-       ( ((FState = stateIdle) and (Value = csWalk)) or
-         ((FState = csWalk) and (Value = stateIdle)) ) then
+    if (not Parent.InternalMiddleForceBox) and
+       ( ((FState = stateIdle) and (Value = stateWalk)) or
+         ((FState = stateWalk) and (Value = stateIdle)) ) then
     begin
-      InternalMiddleForceBox := true;
-      InternalMiddleForceBoxValue := LocalBoundingBox;
+      Parent.InternalMiddleForceBox := true;
+      Parent.InternalMiddleForceBoxValue := Parent.LocalBoundingBox;
       InternalMiddleForceBoxTime := LifeTime + 0.1;
     end;
 
@@ -281,7 +538,7 @@ begin
     case FState of
       stateAttack:
         begin
-          Sound3d(Resource.AttackSoundStart, 1.0);
+          PlaySound(Resource.AttackSoundStart, 1.0);
           LastAttackTime := StateChangeTime;
           AttackDone := false;
         end;
@@ -294,7 +551,18 @@ begin
   end;
 end;
 
-procedure TWalkAttackCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+procedure TCastleMoveAttackBehavior.PlaySound(const SoundType: TSoundType; const SoundHeight: Single);
+var
+  SoundBehavior: TCastleSoundBehavior;
+begin
+  if SoundType = stNone then Exit;
+
+  SoundBehavior := Parent.FindBehavior(TCastleSoundBehavior) as TCastleSoundBehavior;
+  if SoundBehavior <> nil then
+    SoundBehavior.PlayOnce(SoundType, SoundHeight);
+end;
+
+procedure TCastleMoveAttackBehavior.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 
   procedure UpdateResourceFrame;
   var
@@ -306,7 +574,7 @@ procedure TWalkAttackCreature.Update(const SecondsPassed: Single; var RemoveMe: 
     case FState of
       stateIdle:
         FResourceFrame.SetFrame(Level, Resource.IdleAnimation, StateTime, true);
-      csWalk:
+      stateWalk:
         if Resource.IdleToWalkAnimation.Defined and
            (StateTime < Resource.IdleToWalkAnimation.Duration) then
           FResourceFrame.SetFrame(Level, Resource.IdleToWalkAnimation, StateTime, false)
@@ -317,11 +585,11 @@ procedure TWalkAttackCreature.Update(const SecondsPassed: Single; var RemoveMe: 
         FResourceFrame.SetFrame(Level, Resource.AttackAnimation, StateTime, false);
       stateFireMissile:
         FResourceFrame.SetFrame(Level, Resource.FireMissileAnimation, StateTime, false);
-      csDie:
+      stateDie:
         FResourceFrame.SetFrame(Level, Resource.DieAnimation, StateTime, false);
-      csDieBack:
+      stateDieBack:
         FResourceFrame.SetFrame(Level, Resource.DieBackAnimation, StateTime, false);
-      csHurt:
+      stateHurt:
         FResourceFrame.SetFrame(Level, Resource.HurtAnimation, StateTime, false);
       else raise EInternalError.Create('FState ?');
     end;
@@ -345,7 +613,7 @@ var
     begin
       { Calculate and check AngleBetweenTheDirectionToEnemy. }
       AngleBetweenTheDirectionToEnemy := AngleRadBetweenVectors(
-        LastSensedEnemy - Middle, Direction);
+        LastSensedEnemy - Parent.Middle, Parent.Direction);
       Result := AngleBetweenTheDirectionToEnemy <= MaxAngle;
     end;
   end;
@@ -587,7 +855,7 @@ var
       if WantToRunAway or
          WantToWalkToEnemy(AngleBetweenDirectionToEnemy) then
       begin
-        SetState(csWalk);
+        SetState(stateWalk);
         Result := false;
       end else
       if Gravity and
@@ -602,7 +870,7 @@ var
             and slash us with a sword without any risk. (This was almost
             a standard technique of killing Werewolf or SpiderQueen bosses).
           So we move a little --- just for the sake of moving. }
-        SetState(csWalk);
+        SetState(stateWalk);
         InitAlternativeTarget;
         Result := false;
       end else
@@ -782,7 +1050,7 @@ var
           (because we already eliminated CloseEnoughToTarget case above).
           In each DoWalk call we will gradually fix this,
           by RotateDirectionToFaceTarget below.
-          So do nothing now. Just stay in csWalk mode,
+          So do nothing now. Just stay in stateWalk mode,
           and do RotateDirectionToFaceTarget below. }
       end;
 
@@ -978,15 +1246,17 @@ begin
   inherited;
   if (not GetExists) or DebugTimeStopForCreatures then Exit;
 
+  FLifeTime += SecondsPassed;
+
   { eventually turn off InternalMiddleForceBox }
   InternalMiddleForceBox := InternalMiddleForceBox and (LifeTime <= InternalMiddleForceBoxTime);
 
-  if Dead and not (State in [csDie, csDieBack]) then
+  if Dead and not (State in [stateDie, stateDieBack]) then
   begin
     if Resource.DieBackAnimation.Defined and WasLastAttackBack then
-      SetState(csDieBack)
+      SetState(stateDieBack)
     else
-      SetState(csDie);
+      SetState(stateDie);
     UpdateResourceFrame;
     Exit;
   end;
@@ -1017,12 +1287,12 @@ begin
 
   case FState of
     stateIdle: DoIdle;
-    csWalk: DoWalk;
+    stateWalk: DoWalk;
     stateAttack: DoAttack;
     stateFireMissile: DoFireMissile;
-    csDie    : DoDie(Resource.DieAnimation.Duration);
-    csDieBack: DoDie(Resource.DieBackAnimation.Duration);
-    csHurt: DoHurt;
+    stateDie    : DoDie(Resource.DieAnimation.Duration);
+    stateDieBack: DoDie(Resource.DieBackAnimation.Duration);
+    stateHurt: DoHurt;
   end;
 
   { Flying creatures may change their direction vector freely.
@@ -1039,17 +1309,17 @@ begin
   UpdateResourceFrame;
 end;
 
-procedure TWalkAttackCreature.SetLife(const Value: Single);
+procedure TCastleMoveAttackBehavior.SetLife(const Value: Single);
 begin
   if (not Dead) and
     (Life - Value > Resource.MinLifeLossToHurt * MaxLife) and
     ( (Resource.ChanceToHurt = 1.0) or
       (Random < Resource.ChanceToHurt) ) then
-    SetState(csHurt);
+    SetState(stateHurt);
   inherited;
 end;
 
-procedure TWalkAttackCreature.Attack;
+procedure TCastleMoveAttackBehavior.Attack;
 var
   E: TCastleAlive;
 
@@ -1093,12 +1363,13 @@ begin
   E := Enemy;
   if ShortRangeAttackHits then
   begin
-    Sound3d(Resource.AttackSoundHit, 1.0);
+    Parent.FindRequiredBehavior(TCastleSoundBehavior)
+    PlaySound(Resource.AttackSoundHit, 1.0);
     AttackHurt(E);
   end;
 end;
 
-procedure TWalkAttackCreature.FireMissile;
+procedure TCastleMoveAttackBehavior.FireMissile;
 var
   Missile: TCreature;
   MissilePosition, MissileDirection: TVector3;
@@ -1113,7 +1384,7 @@ begin
   end;
 end;
 
-procedure TWalkAttackCreature.UpdateDebugCaption(const Lines: TCastleStringList);
+procedure TCastleMoveAttackBehavior.UpdateDebugCaption(const Lines: TCastleStringList);
 var
   StateName: string;
 begin
@@ -1121,12 +1392,12 @@ begin
 
   case State of
     stateIdle       : StateName := 'Idle';
-    csWalk       : StateName := 'Walk';
+    stateWalk       : StateName := 'Walk';
     stateAttack     : StateName := 'Attack';
     stateFireMissile: StateName := 'FireMissile';
-    csDie        : StateName := 'Die';
-    csDieBack    : StateName := 'DieBack';
-    csHurt       : StateName := 'Hurt';
+    stateDie        : StateName := 'Die';
+    stateDieBack    : StateName := 'DieBack';
+    stateHurt       : StateName := 'Hurt';
     else StateName := Format('Custom State %d', [State]);
   end;
   Lines.Add(StateName);
@@ -1136,12 +1407,12 @@ begin
       [PointsDistance(LastSensedEnemy, Middle)]));
 end;
 
-procedure TWalkAttackCreature.Hurt(const LifeLoss: Single;
+procedure TCastleMoveAttackBehavior.Hurt(const LifeLoss: Single;
   const HurtDirection: TVector3;
-  const AKnockbackDistance: Single; const Attacker: TCastleAlive);
+  const AHurtStrength: Single; const Attacker: TCastleAlive);
 begin
   inherited Hurt(LifeLoss, HurtDirection,
-    AKnockbackDistance * Resource.KnockBackDistance, Attacker);
+    AHurtStrength * Resource.KnockBackDistance, Attacker);
 
   { If attacked by Enemy, update LastSensedEnemy fields.
     This way when you attack a creature from the back, it will turn around
@@ -1151,6 +1422,17 @@ begin
     HasLastSensedEnemy := true;
     LastSensedEnemy := Attacker.Middle;
     LastSensedEnemySector := Sector(Attacker);
+  end;
+end;
+
+function TCastleMoveAttackBehavior.PropertySection(
+  const PropertyName: String): TPropertySection;
+begin
+  case PropertyName of
+    // 'Life', 'MaxLife': // TODO
+    //   Result := psBasic;
+    // else
+      Result := inherited PropertySection(PropertyName);
   end;
 end;
 

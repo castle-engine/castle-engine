@@ -17,13 +17,13 @@ type
   { Main "playing game" state, where most of the game logic takes place. }
   TStatePlay = class(TUIState)
   private
-    { Enemies behaviours }
-    Enemies: TEnemyList;
-
     { Components designed using CGE editor, loaded from state_play.castle-user-interface. }
     LabelFps: TCastleLabel;
     MainViewport: TCastleViewport;
     WalkNavigation: TCastleWalkNavigation;
+
+    { Enemies behaviours }
+    Enemies: TEnemyList;
   public
     procedure Start; override;
     procedure Stop; override;

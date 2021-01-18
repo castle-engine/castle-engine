@@ -448,22 +448,6 @@ type
     procedure RemoveBehaviorIndex(const BehaviorIndex: Integer);
     procedure SetListenPressRelease(const Value: Boolean);
   protected
-    { Workaround for descendants where BoundingBox may suddenly change
-      but their logic depends on stable (not suddenly changing) Middle.
-      If InternalMiddleForceBox then we will use given InternalMiddleForceBoxValue
-      instead of LocalBoundingBox for Middle and PreferredHeight
-      calculation. Descendants that deal with this should usually have
-      some timeout when they restore InternalMiddleForceBox to false.
-
-      This is quite internal hack and you should not use this in your own programs.
-      This is used only by TWalkAttackCreature.
-      @exclude
-      @groupBegin }
-    InternalMiddleForceBox: boolean;
-    { @exclude }
-    InternalMiddleForceBoxValue: TBox3D;
-    { @groupEnd }
-
     { Called when the current @link(World) that contains this object changes.
       In the usual case, @link(World) corresponds to a @link(TCastleViewport.Items)
       instance, and when this method is called it means that object
@@ -740,6 +724,20 @@ type
         By default @link(otUpYDirectionZ), matching glTF orientation
         (as exported from Blender and other software). }
       DefaultOrientation: TOrientationType; static;
+
+      { Workaround for descendants where BoundingBox may suddenly change
+        but their logic depends on stable (not suddenly changing) Middle.
+        If InternalMiddleForceBox then we will use given InternalMiddleForceBoxValue
+        instead of LocalBoundingBox for Middle and PreferredHeight
+        calculation. Descendants that deal with this should usually have
+        some timeout when they restore InternalMiddleForceBox to false.
+
+        This is quite internal hack and you should not use this in your own programs.
+        This is used only by TWalkAttackCreature.
+        @exclude }
+      InternalMiddleForceBox: boolean;
+      { @exclude }
+      InternalMiddleForceBoxValue: TBox3D;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1817,6 +1815,10 @@ type
 
     { Find the first behavior of the given class, @nil if none. }
     function FindBehavior(const BehaviorClass: TCastleBehaviorClass): TCastleBehavior;
+
+    { Find the first behavior of the given class, or create and add a new one if necessary.
+      Never returns @nil. }
+    function FindRequiredBehavior(const BehaviorClass: TCastleBehaviorClass): TCastleBehavior;
   published
     { Is this object visible and colliding.
 
@@ -3945,6 +3947,16 @@ begin
     if FBehaviors[I] is BehaviorClass then
       Exit(TCastleBehavior(FBehaviors[I])); // since it's BehaviorClass, casting to TCastleBehavior must be safe
   Result := nil;
+end;
+
+function TCastleTransform.FindRequiredBehavior(const BehaviorClass: TCastleBehaviorClass): TCastleBehavior;
+begin
+  Result := FindBehavior(BehaviorClass);
+  if Result = nil then
+  begin
+    Result := BehaviorClass.Create(Self);
+    AddBehavior(Result);
+  end;
 end;
 
 {$define read_implementation_methods}
