@@ -147,6 +147,10 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure ListViewAnimationsDragDrop(Sender, Source: TObject; X, Y: Integer
+      );
+    procedure ListViewAnimationsDragOver(Sender, Source: TObject; X,
+      Y: Integer; State: TDragState; var Accept: Boolean);
     procedure ListViewAnimationsEdited(Sender: TObject; Item: TListItem;
       var AValue: string);
     procedure ListViewAnimationsSelectItem(Sender: TObject; Item: TListItem;
@@ -272,7 +276,7 @@ implementation
 
 {$R *.lfm}
 
-uses GraphType, IntfGraphics, Math,
+uses GraphType, IntfGraphics, Math, LCLIntf, LCLType,
   CastleImages, CastleLog, CastleUtils, CastleURIUtils, CastleFilesUtils,
   EditorUtils,
   FormProject, FormImportAtlas
@@ -763,6 +767,60 @@ begin
   {$endif}
 end;
 
+procedure TSpriteSheetEditorForm.ListViewAnimationsDragDrop(Sender,
+  Source: TObject; X, Y: Integer);
+var
+  SelectedFrames: TSelectedFrames;
+  AnimationItem: TListItem;
+  DestAnimation: TCastleSpriteSheetAnimation;
+  SrcAnimation: TCastleSpriteSheetAnimation;
+  I: Integer;
+  CtrlPressed: Boolean;
+begin
+  if Source = ListViewFrames then
+  begin
+    SelectedFrames := TSelectedFrames.Create(ListViewFrames);
+    try
+      SelectedFrames.GetCurrentSelection;
+
+      AnimationItem := ListViewAnimations.GetItemAt(X,Y);
+      if AnimationItem = nil then
+        Exit;
+
+      DestAnimation := TCastleSpriteSheetAnimation(AnimationItem.Data);
+
+      { Copy frame }
+      for I := 0 to SelectedFrames.FrameCount - 1 do
+        DestAnimation.AddFrameCopy(SelectedFrames.Frame[I]);
+
+      { Delete frames from current animation if ctrl not pressed
+        https://forum.lazarus.freepascal.org/index.php?topic=39663.0 }
+      {$ifdef darwin}
+        CtrlPressed := (GetKeyState(VK_LWIN) < 0) or (GetKeyState(VK_RWIN) < 0);
+      {$else}
+        CtrlPressed := GetKeyState(VK_CONTROL) < 0;
+      {$endif}
+      SrcAnimation := GetCurrentAnimation;
+      if (SrcAnimation <> nil) and (not CtrlPressed) then
+      begin
+        for I := 0 to SelectedFrames.FrameCount - 1 do
+          SrcAnimation.RemoveFrame(SelectedFrames.Frame[I]);
+      end;
+
+      UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+    finally
+      FreeAndNil(SelectedFrames);
+    end;
+  end;
+end;
+
+procedure TSpriteSheetEditorForm.ListViewAnimationsDragOver(Sender,
+  Source: TObject; X, Y: Integer; State: TDragState; var Accept: Boolean);
+begin
+  Accept := (Source = ListViewFrames)
+    and (ListViewAnimations.GetItemAt(X,Y) <> nil);
+end;
+
 procedure TSpriteSheetEditorForm.ListViewAnimationsEdited(Sender: TObject;
   Item: TListItem; var AValue: string);
 var
@@ -1014,7 +1072,7 @@ end;
 function TSpriteSheetEditorForm.FrameTitle(const FrameNo: Integer;
   const Frame: TCastleSpriteSheetFrame): string;
 begin
-  Result := IntToStr(FrameNo) + ' - ' + IntToStr(Frame.FrameWidth) +
+  Result := IntToStr(FrameNo + 1) + ' - ' + IntToStr(Frame.FrameWidth) +
      'x' + IntToStr(Frame.FrameHeight);
 end;
 
@@ -1028,7 +1086,7 @@ begin
     AListItem := ListViewFrames.Items[I];
     if TSelectedFrames.IsFrameListItem(AListItem) then
     begin
-      AListItem.Caption := FrameTitle(I + 1,
+      AListItem.Caption := FrameTitle(I,
         TCastleSpriteSheetFrame(AListItem.Data));
     end;
   end;

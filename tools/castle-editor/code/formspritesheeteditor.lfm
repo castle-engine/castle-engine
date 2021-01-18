@@ -286,6 +286,8 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       PopupMenu = PopupMenuAnimations
       ScrollBars = ssAutoBoth
       TabOrder = 1
+      OnDragDrop = ListViewAnimationsDragDrop
+      OnDragOver = ListViewAnimationsDragOver
       OnEdited = ListViewAnimationsEdited
       OnSelectItem = ListViewAnimationsSelectItem
     end
@@ -322,6 +324,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       Width = 609
       Anchors = [akTop, akLeft, akRight, akBottom]
       Columns = <>
+      DragMode = dmAutomatic
       HideSelection = False
       LargeImages = ImageListFrames
       MultiSelect = True
