@@ -872,6 +872,17 @@ begin
       Exit;
     end;
 
+    { Check for Castle Sprite Sheets, to open them in sprite editor }
+    if (URIMimeType(URIDeleteAnchor(SelectedURL, true)) =
+      'application/x-castle-sprite-sheet') then
+    begin
+      if SpriteSheetEditorForm = nil then
+        SpriteSheetEditorForm := TSpriteSheetEditorForm.Create(Application);
+      SpriteSheetEditorForm.Show;
+      SpriteSheetEditorForm.OpenSpriteSheet(SelectedURL);
+      Exit;
+    end;
+
     if TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) then
     begin
       OpenWithCastleTool('view3dscene', SelectedURL,
