@@ -29,6 +29,7 @@ type
       const OldIndex, NewIndex: Integer) of object;
   TCastleSpriteSheetSizeChanged = procedure (
       const Width, Height: Integer) of object;
+  TURLContentChanged = procedure (const ChangedURL: String);
 
   TCastleSpriteSheet = class
     strict private
@@ -40,6 +41,7 @@ type
 
       FModifiedState: Boolean;
       FLoadingPending: Boolean;
+      FOnURLChanged: TNotifyEvent;
       FOnModifiedStateChanged: TNotifyEvent;
       FOnAnimationAdded: TCastleSpriteSheetAnimationEvent;
       FOnAnimationMoved: TCastleSpriteSheetAnimationMoveEvent;
@@ -48,6 +50,7 @@ type
       FOnFrameAdded: TCastleSpriteSheetFrameEvent;
       FOnFrameMoved: TCastleSpriteSheetFrameMoveEvent;
       FOnMaxAtlasSizeChanged: TCastleSpriteSheetSizeChanged;
+      FOnFileSaved: TURLContentChanged;
 
     private
       { Size of atlas after loading }
@@ -58,6 +61,9 @@ type
       FMaxAtlasHeight: Integer;
 
       FGeneratedAtlas: TCastleImage;
+
+      procedure SetURL(const NewURL: String);
+
     protected
       { Sets sprite sheet state as modified. }
       procedure SetModifiedState;
@@ -77,7 +83,8 @@ type
       procedure Load(const URL: String);
       { Saves file to castle sprite sheet. If SaveSaveCopy = true then don't clears
         Modified state, don't change URL, don't save image paths }
-      procedure Save(const URL: String; const SaveCopy: Boolean = false);
+      procedure Save(const AURL: String; const SaveCopy: Boolean = false);
+
       class function LoadToX3D(const URL: String): TX3DRootNode;
 
       { Arranges and creates atlas image }
@@ -105,7 +112,7 @@ type
       function ProposeAnimationName: String;
 
       { Last Load/Save URL. }
-      property URL: String read FURL write FURL;
+      property URL: String read FURL write SetURL;
       { Full image path to loaded image, if empty sprite sheet was created from
         scratch. }
       property LoadedAtlasPath: String read FLoadedAtlasPath write FLoadedAtlasPath;
@@ -114,9 +121,16 @@ type
         this is only file name but it's not a rule. This file name/path is
         saved in Castle Sprite Sheet/Starling XML file.
 
-        If empty sprite sheet was created from scratch and never saved. }
+        Can be empty when sprite sheet was created from scratch and never saved. }
       property RelativeAtlasPath: String read FRelativeAtlasPath
           write FRelativeAtlasPath;
+
+      property OnURLChanged: TNotifyEvent read FOnURLChanged write FOnURLChanged;
+
+      { OnFileSaved event can be used for reload TCastleScenes with this sprite
+        sheet loaded }
+      property OnFileSaved: TURLContentChanged read FOnFileSaved
+          write FOnFileSaved;
 
       property OnModifiedStateChanged: TNotifyEvent read FOnModifiedStateChanged
         write FOnModifiedStateChanged;
@@ -1535,6 +1549,19 @@ end;
 
 { TCastleSpriteSheet }
 
+procedure TCastleSpriteSheet.SetURL(const NewURL: String);
+begin
+  if FURL = NewURL then
+    Exit;
+
+  FURL := NewURL;
+
+  if Assigned(FOnURLChanged) then
+    FOnURLChanged(Self);
+
+  SetModifiedState;
+end;
+
 procedure TCastleSpriteSheet.SetModifiedState;
 begin
   if FModifiedState then
@@ -1605,7 +1632,7 @@ begin
   end;
 end;
 
-procedure TCastleSpriteSheet.Save(const URL: String;
+procedure TCastleSpriteSheet.Save(const AURL: String;
   const SaveCopy: Boolean = false);
 var
   ExporterXML: TCastleSpriteSheetXMLExporter;
@@ -1621,15 +1648,18 @@ begin
 
   if IsModified or (LoadedAtlasPath = '') then
     RegenerateAtlas;
+
   try
     { Generate atlas file name/path, use PNG as main image file format.
-      Maybe we should add option to set file name by user. }
+      Maybe we should add option to set file name by user.
 
-    if FRelativeAtlasPath = '' then
+      When FRelativeAtlasPath is empty or URL changes (so we have save as,
+      we need generate new name. }
+    if (FRelativeAtlasPath = '') or (AURL <> URL) then
     begin
-      FRelativeAtlasPath := DeleteURIExt(ExtractURIName(URL)) + '.png';
+      FRelativeAtlasPath := DeleteURIExt(ExtractURIName(AURL)) + '.png';
     end;
-    AtlasURL := URIIncludeSlash(ExtractURIPath(URL)) + FRelativeAtlasPath;
+    AtlasURL := URIIncludeSlash(ExtractURIPath(AURL)) + FRelativeAtlasPath;
 
     { Save image file }
     if FGeneratedAtlas = nil then
@@ -1637,21 +1667,28 @@ begin
     else
       SaveImage(FGeneratedAtlas, AtlasURL);
 
-    { Save xml (Starling) file }
+    { Save xml (CastleSpriteSheet) file }
     ExporterXML := nil;
     XMLDoc := nil;
     try
       ExporterXML := TCastleSpriteSheetXMLExporter.Create(Self);
       XMLDoc := ExporterXML.ExportToXML;
-      URLWriteXML(XMLDoc, URL);
+      URLWriteXML(XMLDoc, AURL);
     finally
       FreeAndNil(ExporterXML);
       FreeAndNil(XMLDoc);
     end;
 
     if not SaveCopy then
-      FURL := URL;
+    begin
+      URL := AURL;
+      ClearModifiedState;
+      if Assigned(FOnFileSaved) then
+        FOnFileSaved(URL);
+    end;
   finally
+    { In case of copy go back to old relative image path when everything
+      is exported }
     if SaveCopy then
       FRelativeAtlasPath := FOldRelativeImagePath;
   end;

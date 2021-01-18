@@ -477,12 +477,14 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       Category = 'File'
       Caption = 'Save'
       ImageIndex = 2
+      OnExecute = ActionSaveSpriteSheetExecute
       ShortCut = 16467
     end
     object ActionSaveSpriteSheetAs: TAction
       Category = 'File'
       Caption = 'Save as...'
       ImageIndex = 2
+      OnExecute = ActionSaveSpriteSheetAsExecute
     end
     object ActionDeleteFrame: TAction
       Category = 'Frame'
@@ -655,10 +657,16 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     end
   end
   object OpenDialog: TCastleOpenDialog
+    Title = 'Open sprite sheet'
+    Filter = 'Castle Sprite Sheet (*.castle-sprite-sheet)|*.castle-sprite-sheet|All files|*'
     Left = 344
     Top = 208
   end
   object SaveDialog: TCastleSaveDialog
+    Title = 'Save sprite sheet'
+    Filter = 'Castle Sprite Sheet (*.castle-sprite-sheet)|*.castle-sprite-sheet|All files|*'
+    Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
+    AdviceDataDirectory = True
     Left = 467
     Top = 208
   end

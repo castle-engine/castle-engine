@@ -141,6 +141,8 @@ type
     procedure ActionDeleteFrameUpdate(Sender: TObject);
     procedure ActionRenameAnimationExecute(Sender: TObject);
     procedure ActionRenameAnimationUpdate(Sender: TObject);
+    procedure ActionSaveSpriteSheetAsExecute(Sender: TObject);
+    procedure ActionSaveSpriteSheetExecute(Sender: TObject);
     procedure FloatSpinEditFPSChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -243,7 +245,7 @@ type
     function CheckAtlasMinSize: Boolean;
 
     // events:
-
+    procedure URLChanged(Sender: TObject);
     procedure ModifiedStateChanged(Sender: TObject);
 
     procedure AnimationAdded(NewAnimation: TCastleSpriteSheetAnimation);
@@ -271,7 +273,7 @@ implementation
 {$R *.lfm}
 
 uses GraphType, IntfGraphics, Math,
-  CastleImages, CastleLog, CastleUtils, CastleURIUtils,
+  CastleImages, CastleLog, CastleUtils, CastleURIUtils, CastleFilesUtils,
   EditorUtils,
   FormProject, FormImportAtlas
   {$ifdef LCLGTK2},Gtk2Globals{$endif};
@@ -689,6 +691,34 @@ begin
   ActionRenameAnimation.Enabled := (GetCurrentAnimation <> nil);
 end;
 
+procedure TSpriteSheetEditorForm.ActionSaveSpriteSheetAsExecute(Sender: TObject
+  );
+begin
+  SaveDialog.DefaultExt := 'castle-sprite-sheet';
+  if FSpriteSheet.URL <> '' then
+    SaveDialog.URL := FSpriteSheet.URL
+  else
+    SaveDialog.URL := 'castle-data:/new-sprite-sheet.castle-sprite-sheet';
+  if SaveDialog.Execute then
+  begin
+    try
+      FSpriteSheet.Save(SaveDialog.URL, false);
+    except
+      on E: Exception do
+        ErrorBox(E.Message);
+    end;
+  end;
+end;
+
+procedure TSpriteSheetEditorForm.ActionSaveSpriteSheetExecute(Sender: TObject);
+begin
+  if (FSpriteSheet.URL = '') or (URIMimeType(URIDeleteAnchor(FSpriteSheet.URL,
+    true)) <> 'application/x-castle-sprite-sheet') then
+    ActionSaveSpriteSheetAsExecute(Sender)
+  else
+    FSpriteSheet.Save(FSpriteSheet.URL, false);
+end;
+
 procedure TSpriteSheetEditorForm.FloatSpinEditFPSChange(Sender: TObject);
 var
   Animation: TCastleSpriteSheetAnimation;
@@ -811,6 +841,7 @@ begin
   FSpriteSheet.OnFrameMoved := @FrameMoved;
   FSpriteSheet.BeforeFrameRemoved := @BeforeAnimationFrameRemoved;
   FSpriteSheet.OnMaxAtlasSizeChanged := @MaxAtlasSizeChanged;
+  FSpriteSheet.OnURLChanged := @URLChanged;
 end;
 
 procedure TSpriteSheetEditorForm.LoadAnimations(const SpriteSheet: TCastleSpriteSheet);
@@ -1200,6 +1231,11 @@ begin
     SetAtlasWarning('We adwise using power of 2 size.')
   else
     SetAtlasWarning('');
+end;
+
+procedure TSpriteSheetEditorForm.URLChanged(Sender: TObject);
+begin
+  UpdateWindowCaption;
 end;
 
 procedure TSpriteSheetEditorForm.ModifiedStateChanged(Sender: TObject);
