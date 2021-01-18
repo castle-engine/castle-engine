@@ -193,7 +193,6 @@ type
       FViewport: TCastleViewport;
       FWindowTitle: String;
       CurrentFrameIconSize: TVector2Integer; // current frame size in list view
-      FSelectedFrames: TSelectedFrames;
       { should we select added animation (not always desirable) }
       FSelectNewAnimation: Boolean;
 
@@ -362,28 +361,34 @@ var
   NewAnimation: TCastleSpriteSheetAnimation;
   I: Integer;
   OldSelectNewAnimation: Boolean;
+  SelectedFrames: TSelectedFrames;
 begin
   Animation := GetCurrentAnimation;
   if Animation = nil then
     Exit;
 
-  FSelectedFrames.GetCurrentSelection;
-
-  if FSelectedFrames.FrameCount = 0 then
-    Exit;
-
-  OldSelectNewAnimation := FSelectNewAnimation;
+  SelectedFrames := TSelectedFrames.Create(ListViewFrames);
   try
-    { We don't want to jump to new animation in this case }
-    FSelectNewAnimation := false;
-    NewAnimation := FSpriteSheet.AddAnimation(FSpriteSheet.ProposeAnimationName);
-  finally
-    FSelectNewAnimation := OldSelectNewAnimation;
-  end;
+    SelectedFrames.GetCurrentSelection;
 
-  for I := 0 to FSelectedFrames.FrameCount -1 do
-  begin
-    NewAnimation.AddFrameCopy(FSelectedFrames.Frame[I]);
+    if SelectedFrames.FrameCount = 0 then
+      Exit;
+
+    OldSelectNewAnimation := FSelectNewAnimation;
+    try
+      { We don't want to jump to new animation in this case }
+      FSelectNewAnimation := false;
+      NewAnimation := FSpriteSheet.AddAnimation(FSpriteSheet.ProposeAnimationName);
+    finally
+      FSelectNewAnimation := OldSelectNewAnimation;
+    end;
+
+    for I := 0 to SelectedFrames.FrameCount -1 do
+    begin
+      NewAnimation.AddFrameCopy(SelectedFrames.Frame[I]);
+    end;
+  finally
+    FreeAndNil(SelectedFrames);
   end;
   UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
 end;
@@ -488,15 +493,19 @@ procedure TSpriteSheetEditorForm.ActionMoveFrameRightExecute(Sender: TObject);
 var
   Animation: TCastleSpriteSheetAnimation;
   I: Integer;
+  SelectedFrames: TSelectedFrames;
 begin
   Animation := GetCurrentAnimation;
   if Animation = nil then
     Exit;
 
-  FSelectedFrames.GetCurrentSelection;
-  for I := FSelectedFrames.FrameCount - 1 downto 0 do
-  begin
-    Animation.MoveFrameRight(FSelectedFrames.Frame[I]);
+  SelectedFrames := TSelectedFrames.Create(ListViewFrames);
+  try
+    SelectedFrames.GetCurrentSelection;
+    for I := SelectedFrames.FrameCount - 1 downto 0 do
+      Animation.MoveFrameRight(SelectedFrames.Frame[I]);
+  finally
+    FreeAndNil(SelectedFrames);
   end;
 end;
 
@@ -559,15 +568,19 @@ procedure TSpriteSheetEditorForm.ActionMoveFrameLeftExecute(Sender: TObject);
 var
   Animation: TCastleSpriteSheetAnimation;
   I: Integer;
+  SelectedFrames: TSelectedFrames;
 begin
   Animation := GetCurrentAnimation;
   if Animation = nil then
     Exit;
 
-  FSelectedFrames.GetCurrentSelection;
-  for I := 0 to FSelectedFrames.FrameCount -1 do
-  begin
-    Animation.MoveFrameLeft(FSelectedFrames.Frame[I]);
+  SelectedFrames := TSelectedFrames.Create(ListViewFrames);
+  try
+    SelectedFrames.GetCurrentSelection;
+    for I := 0 to SelectedFrames.FrameCount - 1 do
+      Animation.MoveFrameLeft(SelectedFrames.Frame[I]);
+  finally
+    FreeAndNil(SelectedFrames);
   end;
 end;
 
@@ -644,15 +657,19 @@ procedure TSpriteSheetEditorForm.ActionDeleteFrameExecute(Sender: TObject);
 var
   Animation: TCastleSpriteSheetAnimation;
   I: Integer;
+  SelectedFrames: TSelectedFrames;
 begin
   Animation := GetCurrentAnimation;
   if Animation = nil then
     Exit;
 
-  FSelectedFrames.GetCurrentSelection;
-  for I := 0 to FSelectedFrames.FrameCount -1 do
-  begin
-    Animation.RemoveFrame(FSelectedFrames.Frame[I]);
+  SelectedFrames := TSelectedFrames.Create(ListViewFrames);
+  try
+    SelectedFrames.GetCurrentSelection;
+    for I := 0 to SelectedFrames.FrameCount - 1 do
+      Animation.RemoveFrame(SelectedFrames.Frame[I]);
+  finally
+    FreeAndNil(SelectedFrames);
   end;
   UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
 end;
@@ -688,7 +705,6 @@ procedure TSpriteSheetEditorForm.FormCreate(Sender: TObject);
 begin
   FSelectNewAnimation := true;
   FSpriteSheet := nil;
-  FSelectedFrames := TSelectedFrames.Create(ListViewFrames);
   FWindowTitle := Caption;
   SetAtlasError('');
   SetAtlasWarning('');
@@ -697,7 +713,6 @@ end;
 
 procedure TSpriteSheetEditorForm.FormDestroy(Sender: TObject);
 begin
-  FreeAndNil(FSelectedFrames);
   FreeAndNil(FSpriteSheet);
 end;
 
