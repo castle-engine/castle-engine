@@ -683,15 +683,6 @@ procedure TCastleSpriteSheetBasicAtlasGen.Generate;
 var
   MinWidth, MinHeight: Integer;
 begin
-  { Try use the same size }
-  if LayoutFrames(loArrange, FSpriteSheet.AtlasWidth, FSpriteSheet.AtlasHeight, MinWidth,
-    MinHeight) then
-  begin
-    GenerateAtlas(FSpriteSheet.AtlasWidth, FSpriteSheet.AtlasHeight);
-    Exit;
-  end;
-
-  { Try use max size }
   if not LayoutFrames(loArrange, FSpriteSheetMaxWidth, FSpriteSheetMaxHeight,
     MinWidth, MinHeight) then
     raise ECastleSpriteSheetAtlasToSmall.Create(Format(

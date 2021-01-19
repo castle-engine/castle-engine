@@ -263,7 +263,7 @@ type
       increases FLockUpdatePReviewRC }
     procedure LockUpdatePreview;
     { Decreases FLockUpdatePReviewRC and calls UpdatePreview() when
-      FLockUpdatePReviewRC < 1 cals }
+      FLockUpdatePReviewRC < 1 }
     procedure UnlockUpdatePreview;
 
     procedure UpdateWindowCaption;
