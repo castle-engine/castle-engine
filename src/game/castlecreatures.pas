@@ -860,8 +860,6 @@ type
     { Calculated @link(Radius) suitable for this creature.
       This is cached result of @link(TCreatureResource.Radius). }
     FRadius: Single;
-
-    procedure SoundRelease(Sender: TSound);
   protected
     var
       { Set by CreateCreature. }
@@ -1521,19 +1519,6 @@ end;
 
 procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 
-  procedure UpdateUsedSounds;
-  var
-    I: Integer;
-    SoundPosition: TVector3;
-  begin
-    for I := 0 to UsedSounds.Count - 1 do
-    begin
-      SoundPosition := LerpLegsMiddle(
-        TCreatureSoundData(UsedSounds[I].UserData).SoundHeight);
-      UsedSounds[I].Position := SoundPosition;
-    end;
-  end;
-
   procedure UpdateDebugCaptions;
   var
     Root: TX3DRootNode;
@@ -1609,7 +1594,6 @@ begin
     transformation (things taken into account in TCastleTransform) stay equal. }
   VisibleChangeHere([vcVisibleGeometry]);
 
-  UpdateUsedSounds;
   FDebugTransform.Exists := RenderDebug;
   UpdateDebugCaptions;
 end;
