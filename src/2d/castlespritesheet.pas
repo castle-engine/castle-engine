@@ -185,6 +185,7 @@ type
       FSpriteSheet: TCastleSpriteSheet;
 
       procedure SetName(const NewName: String);
+      procedure SetFramesPerSecond(const NewFPS: Single);
 
       function GetFrame(const Index: Integer): TCastleSpriteSheetFrame;
     private
@@ -216,7 +217,7 @@ type
 
       property Name: String read FName write SetName;
       property Frame[Index: Integer]: TCastleSpriteSheetFrame read GetFrame;
-      property FramesPerSecond: Single read FFramesPerSecond write FFramesPerSecond;
+      property FramesPerSecond: Single read FFramesPerSecond write SetFramesPerSecond;
   end;
 
   TCastleSpriteSheetFrame = class
@@ -1112,6 +1113,12 @@ begin
     Exit;
 
   FName := NewName;
+  SetModifiedState;
+end;
+
+procedure TCastleSpriteSheetAnimation.SetFramesPerSecond(const NewFPS: Single);
+begin
+  FFramesPerSecond := NewFPS;
   SetModifiedState;
 end;
 
