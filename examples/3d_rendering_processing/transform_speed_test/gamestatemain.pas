@@ -66,7 +66,7 @@ var
   StarTemplate: TCastleScene;
 
   procedure InstantiateStar(const Center: TVector3; const Radius: Single;
-    const RecursionLevel: Cardinal);
+    const RecursionLevel: Cardinal; const ParentTransform: TCastleTransform);
   const
     CircleCount = 8;
     RadiusDecrease = 0.75; // each recursion step decreases radius
@@ -91,13 +91,13 @@ var
 
     RotateBeh := TRotateBehavior.Create(FreeAtStop);
     Scene.AddBehavior(RotateBeh);
-    MainViewport.Items.Add(Scene);
+    ParentTransform.Add(Scene);
 
     for I := 0 to CircleCount - 1 do
     begin
       SinCos(2 * Pi * I / CircleCount, S, C);
       InstantiateStar(Center + Vector3(S * Radius, C * Radius, 0),
-        Radius * RadiusDecrease, RecursionLevel +  1);
+        Radius * RadiusDecrease, RecursionLevel +  1, Scene);
     end;
   end;
 
@@ -116,7 +116,7 @@ begin
   StarTemplate := TCastleScene.Create(FreeAtStop);
   StarTemplate.Load('castle-data:/star.gltf');
 
-  InstantiateStar(Vector3(0, 0, 0), 10, 0);
+  InstantiateStar(Vector3(0, 0, 0), 10, 0, MainViewport.Items);
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
