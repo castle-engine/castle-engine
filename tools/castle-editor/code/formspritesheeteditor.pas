@@ -159,6 +159,7 @@ type
     procedure ActionSaveSpriteSheetAsExecute(Sender: TObject);
     procedure ActionSaveSpriteSheetExecute(Sender: TObject);
     procedure FloatSpinEditFPSChange(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -221,6 +222,7 @@ type
       { RC for LockUpdatePreview/UnlockUpdatePreview }
       FLockUpdatePReviewRC: Integer;
 
+    function ProposeSaveSpriteSheet: Boolean;
     { Returns true if sprite sheet was closed }
     function CloseSpriteSheet: Boolean;
     procedure AssignEventsToSpriteSheet;
@@ -676,7 +678,7 @@ end;
 
 procedure TSpriteSheetEditorForm.ActionOpenSpriteSheetExecute(Sender: TObject);
 begin
-  if not CloseSpriteSheet then
+  if not ProposeSaveSpriteSheet then
     Exit;
   if OpenDialog.Execute then
     OpenSpriteSheet(OpenDialog.URL);
@@ -781,6 +783,18 @@ begin
     Animation.FramesPerSecond := FloatSpinEditFPS.Value;
     { To change frames per second file must be regenerated. }
     UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+  end;
+end;
+
+procedure TSpriteSheetEditorForm.FormCloseQuery(Sender: TObject;
+  var CanClose: boolean);
+begin
+  CanClose := ProposeSaveSpriteSheet;
+
+  if CanClose then
+  begin
+    CloseSpriteSheet;
+    NewSpriteSheet;
   end;
 end;
 
@@ -937,9 +951,35 @@ begin
     SpinEditMaxAtlasSize.Value);
 end;
 
+function TSpriteSheetEditorForm.ProposeSaveSpriteSheet: Boolean;
+var
+  Mr: TModalResult;
+  SpriteSheetName: String;
+begin
+  Result := true;
+
+  if FSpriteSheet = nil then
+    Exit;
+
+  if FSpriteSheet.IsModified then
+  begin
+    if FSpriteSheet.URL <> '' then
+      SpriteSheetName := ' "' + FSpriteSheet.URL + '"'
+    else
+      SpriteSheetName := '';
+    Mr := MessageDlg('Save sprite sheet',
+      'Sprite sheet' + SpriteSheetName +
+      ' was modified but not saved yet. Save it now?',
+      mtConfirmation, mbYesNoCancel, 0);
+    case Mr of
+      mrYes: ActionSaveSpriteSheetExecute(Self);
+      mrCancel: Result := false;
+    end;
+  end;
+end;
+
 function TSpriteSheetEditorForm.CloseSpriteSheet: Boolean;
 begin
-  // TODO: ask for save
   ClearFrames;
   ClearAnimations;
   FreeAndNil(FSpriteSheet);
@@ -1511,8 +1551,9 @@ end;
 procedure TSpriteSheetEditorForm.OpenSpriteSheet(const URL: String);
 begin
   try
-    if not CloseSpriteSheet then
+    if not ProposeSaveSpriteSheet then
       Exit;
+    CloseSpriteSheet;
     FSpriteSheet :=  TCastleSpriteSheet.Create;
     FSpriteSheet.OnModifiedStateChanged := @ModifiedStateChanged;
     FSpriteSheet.Load(URL);
@@ -1534,8 +1575,9 @@ end;
 procedure TSpriteSheetEditorForm.NewSpriteSheet;
 begin
   try
-    if not CloseSpriteSheet then
+    if not ProposeSaveSpriteSheet then
       Exit;
+    CloseSpriteSheet;
     FSpriteSheet :=  TCastleSpriteSheet.Create;
     UpdateWindowCaption;
     LoadAnimations(FSpriteSheet);

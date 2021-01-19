@@ -9,6 +9,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
   ClientWidth = 1147
   DesignTimePPI = 120
   Menu = MainMenu
+  OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
