@@ -113,7 +113,7 @@ begin
     ]);
 
   if not HasSelf then
-    raise Exception.CreateFmt('Instance of %s not found on parent', [BehaviorClass.ClassName]);
+    raise Exception.CreateFmt('Self instance of %s not found on parent', [BehaviorClass.ClassName]);
 end;
 
 {$endif read_implementation}
