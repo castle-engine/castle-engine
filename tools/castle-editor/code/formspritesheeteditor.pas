@@ -1462,7 +1462,8 @@ procedure TSpriteSheetEditorForm.AnimationMoved(
   NewIndex: Integer);
 begin
   ListViewAnimations.Items.Move(OldIndex, NewIndex);
-  UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+  { Moving the animations on the list does not change the display,
+    so it doesn't need a preview update }
 end;
 
 procedure TSpriteSheetEditorForm.MaxAtlasSizeChanged(const MaxWidth,
