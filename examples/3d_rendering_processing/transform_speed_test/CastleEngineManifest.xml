@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="transform_speed_test"
+  standalone_source="transform_speed_test_standalone.lpr"
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.transform.speed.test"
+  caption="TCastleTransform Speed Test"
+>
+</project>
