@@ -1630,7 +1630,7 @@ begin
   SpriteSheetLoader := nil;
   BeginLoad;
   try
-    SpriteSheetLoader := TCastleSpriteSheetLoader.Create(URL);
+    SpriteSheetLoader := TCastleSpriteSheetLoader.Create(MaybeUseDataProtocol(URL));
     SpriteSheetLoader.LoadToCastleSpriteSheet(Self);
   finally
     FreeAndNil(SpriteSheetLoader);

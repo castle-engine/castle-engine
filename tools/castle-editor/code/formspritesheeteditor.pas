@@ -1321,7 +1321,7 @@ begin
   if FSpriteSheet.URL = '' then
     FileName := 'unsaved sprite sheet'
   else
-    FileName := FSpriteSheet.URL;
+    FileName := ExtractURIName(FSpriteSheet.URL);
 
   Caption := ModifiedMark + FileName + ' | ' + FWindowTitle;
 end;
