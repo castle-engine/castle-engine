@@ -205,7 +205,9 @@ type
       end;
 
     const
+      { Max size for frame image in list view }
       MaxFrameIconSize = 256;
+      { Default size for frame image in list view }
       DefaultFrameIconSize = 128;
 
     var
@@ -214,10 +216,12 @@ type
       FViewport: TCastleViewport;
       FWindowTitle: String;
       CurrentFrameIconSize: TVector2Integer; // current frame size in list view
-      { should we select added animation (not always desirable) }
+      { Should we select added animation (not always desirable) }
       FSelectNewAnimation: Boolean;
+      { RC for LockUpdatePreview/UnlockUpdatePreview }
+      FLockUpdatePReviewRC: Integer;
 
-    // Returns true if sprite sheet is closed
+    { Returns true if sprite sheet was closed }
     function CloseSpriteSheet: Boolean;
     procedure AssignEventsToSpriteSheet;
 
@@ -255,6 +259,12 @@ type
     procedure RegenerateAnimationPreviewFile;
     { Regenerates and load frame temp file }
     procedure RegenerateFramePreviewFile(const Frame: TCastleSpriteSheetFrame);
+    { Way to lock update preview, useful for multi frames functions - just
+      increases FLockUpdatePReviewRC }
+    procedure LockUpdatePreview;
+    { Decreases FLockUpdatePReviewRC and calls UpdatePreview() when
+      FLockUpdatePReviewRC < 1 cals }
+    procedure UnlockUpdatePreview;
 
     procedure UpdateWindowCaption;
     procedure SetAtlasError(const Message: String);
@@ -523,8 +533,13 @@ begin
   SelectedFrames := TSelectedFrames.Create(ListViewFrames);
   try
     SelectedFrames.GetCurrentSelection;
-    for I := SelectedFrames.FrameCount - 1 downto 0 do
-      Animation.MoveFrameRight(SelectedFrames.Frame[I]);
+    LockUpdatePreview;
+    try
+      for I := SelectedFrames.FrameCount - 1 downto 0 do
+        Animation.MoveFrameRight(SelectedFrames.Frame[I]);
+    finally
+      UnlockUpdatePreview;
+    end;
   finally
     FreeAndNil(SelectedFrames);
   end;
@@ -598,8 +613,13 @@ begin
   SelectedFrames := TSelectedFrames.Create(ListViewFrames);
   try
     SelectedFrames.GetCurrentSelection;
-    for I := 0 to SelectedFrames.FrameCount - 1 do
-      Animation.MoveFrameLeft(SelectedFrames.Frame[I]);
+    LockUpdatePreview;
+    try
+      for I := 0 to SelectedFrames.FrameCount - 1 do
+        Animation.MoveFrameLeft(SelectedFrames.Frame[I]);
+    finally
+      UnlockUpdatePreview;
+    end;
   finally
     FreeAndNil(SelectedFrames);
   end;
@@ -625,8 +645,13 @@ begin
 
   if CastleOpenImageDialog.Execute then
   begin
-    for I := 0 to CastleOpenImageDialog.URLCount - 1 do
-      Animation.AddFrame(CastleOpenImageDialog.URLs[I]);
+    LockUpdatePreview;
+    try
+      for I := 0 to CastleOpenImageDialog.URLCount - 1 do
+        Animation.AddFrame(CastleOpenImageDialog.URLs[I]);
+    finally
+      UnlockUpdatePreview;
+    end;
   end;
 end;
 
@@ -687,12 +712,17 @@ begin
   SelectedFrames := TSelectedFrames.Create(ListViewFrames);
   try
     SelectedFrames.GetCurrentSelection;
-    for I := 0 to SelectedFrames.FrameCount - 1 do
-      Animation.RemoveFrame(SelectedFrames.Frame[I]);
+    LockUpdatePreview;
+    try
+      for I := 0 to SelectedFrames.FrameCount - 1 do
+        Animation.RemoveFrame(SelectedFrames.Frame[I]);
+    finally
+      UnlockUpdatePreview;
+    end;
   finally
     FreeAndNil(SelectedFrames);
   end;
-  UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+  { UpdatePreview is not needed here because UnlockUpdatePreview calls that }
 end;
 
 procedure TSpriteSheetEditorForm.ActionDeleteFrameUpdate(Sender: TObject);
@@ -745,9 +775,13 @@ begin
   Animation := GetCurrentAnimation;
   Assert(Animation <> nil,
     'Animation should never be nil when SpinEditFPS is enabled');
-  Animation.FramesPerSecond := FloatSpinEditFPS.Value;
-  { To change frames per second file must be regenerated. }
-  UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+  if CompareValue(Animation.FramesPerSecond, FloatSpinEditFPS.Value,
+    SingleEpsilon) <> EqualsValue then
+  begin
+    Animation.FramesPerSecond := FloatSpinEditFPS.Value;
+    { To change frames per second file must be regenerated. }
+    UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+  end;
 end;
 
 procedure TSpriteSheetEditorForm.FormCreate(Sender: TObject);
@@ -804,25 +838,30 @@ begin
 
       DestAnimation := TCastleSpriteSheetAnimation(AnimationItem.Data);
 
-      { Copy frame }
-      for I := 0 to SelectedFrames.FrameCount - 1 do
-        DestAnimation.AddFrameCopy(SelectedFrames.Frame[I]);
+      LockUpdatePreview;
+      try
 
-      { Delete frames from current animation if ctrl not pressed
-        https://forum.lazarus.freepascal.org/index.php?topic=39663.0 }
-      {$ifdef darwin}
-        CtrlPressed := (GetKeyState(VK_LWIN) < 0) or (GetKeyState(VK_RWIN) < 0);
-      {$else}
-        CtrlPressed := GetKeyState(VK_CONTROL) < 0;
-      {$endif}
-      SrcAnimation := GetCurrentAnimation;
-      if (SrcAnimation <> nil) and (not CtrlPressed) then
-      begin
+        { Copy frame }
         for I := 0 to SelectedFrames.FrameCount - 1 do
-          SrcAnimation.RemoveFrame(SelectedFrames.Frame[I]);
-      end;
+          DestAnimation.AddFrameCopy(SelectedFrames.Frame[I]);
 
-      UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+        { Delete frames from current animation if ctrl not pressed
+          https://forum.lazarus.freepascal.org/index.php?topic=39663.0 }
+        {$ifdef darwin}
+          CtrlPressed := (GetKeyState(VK_LWIN) < 0) or (GetKeyState(VK_RWIN) < 0);
+        {$else}
+          CtrlPressed := GetKeyState(VK_CONTROL) < 0;
+        {$endif}
+        SrcAnimation := GetCurrentAnimation;
+        if (SrcAnimation <> nil) and (not CtrlPressed) then
+        begin
+          for I := 0 to SelectedFrames.FrameCount - 1 do
+            SrcAnimation.RemoveFrame(SelectedFrames.Frame[I]);
+        end;
+
+      finally
+        UnlockUpdatePreview;
+      end;
     finally
       FreeAndNil(SelectedFrames);
     end;
@@ -862,6 +901,9 @@ procedure TSpriteSheetEditorForm.ListViewAnimationsSelectItem(Sender: TObject;
 var
   Animation: TCastleSpriteSheetAnimation;
 begin
+  if not Selected then
+    Exit;
+
   Animation := GetCurrentAnimation;
 
   if Animation <> nil then
@@ -926,6 +968,7 @@ begin
 
   if SpriteSheet.AnimationCount > 0 then
     ListViewAnimations.ItemIndex := 0;
+
 end;
 
 function TSpriteSheetEditorForm.AddAnimationToListView(
@@ -1177,7 +1220,9 @@ procedure TSpriteSheetEditorForm.UpdatePreview(
   end;
 
 begin
-  WritelnLog('Update Preview');
+  if FLockUpdatePReviewRC > 0 then
+    Exit;
+
   case PreviewModesToUpdate of
     pmAnimation:
       begin
@@ -1243,6 +1288,18 @@ begin
   { Always set to the width of the first frame because we want to see the
     size difference }
   FViewport.Camera.Orthographic.Width := Frame.Animation.Frame[0].FrameWidth
+end;
+
+procedure TSpriteSheetEditorForm.LockUpdatePreview;
+begin
+  Inc(FLockUpdatePReviewRC);
+end;
+
+procedure TSpriteSheetEditorForm.UnlockUpdatePreview;
+begin
+  Dec(FLockUpdatePReviewRC);
+  if FLockUpdatePReviewRC < 1 then
+    UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
 end;
 
 procedure TSpriteSheetEditorForm.UpdateWindowCaption;
@@ -1474,6 +1531,8 @@ begin
     UpdateWindowCaption;
     LoadAnimations(FSpriteSheet);
     AssignEventsToSpriteSheet;
+    FLockUpdatePReviewRC := 0;
+    UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
   except
     on E:Exception do
     begin
@@ -1493,6 +1552,7 @@ begin
     UpdateWindowCaption;
     LoadAnimations(FSpriteSheet);
     AssignEventsToSpriteSheet;
+    FLockUpdatePReviewRC := 0;
     UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
   except
     on E:Exception do
