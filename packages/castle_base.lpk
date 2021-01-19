@@ -2973,7 +2973,7 @@ See https://castle-engine.io/license.php for details.
       <Item718>
         <Filename Value="../src/2d/castlespritesheet.pas"/>
         <UnitName Value="CastleSpriteSheet"/>
-      </Item718>
+      </Item720>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>
