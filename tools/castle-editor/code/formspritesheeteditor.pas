@@ -301,7 +301,7 @@ implementation
 
 {$R *.lfm}
 
-uses GraphType, IntfGraphics, Math, LCLIntf, LCLType,
+uses GraphType, IntfGraphics, Math, LCLIntf, LCLType, FPImage,
   CastleImages, CastleLog, CastleUtils, CastleURIUtils, CastleFilesUtils,
   EditorUtils,
   FormProject, FormImportAtlas
@@ -1008,32 +1008,19 @@ var
     const Width, Height: Integer): TLazIntfImage;
   var
     RawImage: TRawImage;
-    Y: Integer;
-    RowSize: Integer;
-    SourceRow: PByte;
-    DestRow: PByte;
+    CustomFPImage: TFPCustomImage;
   begin
-    // https://wiki.freepascal.org/Developing_with_Graphics#Working_with_TLazIntfImage.2C_TRawImage_and_TLazCanvas
-
-    // TODO: Support other image format than RGBA
+    Result := TLazIntfImage.Create(0, 0);
     RawImage.Init;
     RawImage.Description.Init_BPP32_R8G8B8A8_BIO_TTB(Width, Height);
     RawImage.CreateData(True);
-    RowSize := FrameImage.Width * 4;
-
-    // go to last row
-    SourceRow := PByte(FrameImage.RawPixels) + RowSize * Height;
-    DestRow := RawImage.Data;
-
-    for Y := Height - 1 downto 0 do
-    begin
-      Dec(SourceRow, RowSize);
-      Move(SourceRow^, DestRow^, RowSize);
-      Inc(DestRow, RowSize);
-    end;
-
-    Result := TLazIntfImage.Create(0, 0);
     Result.SetRawImage(RawImage);
+    CustomFPImage := FrameImage.ToFpImage;
+    try
+      Result.CopyPixels(CustomFPImage);
+    finally
+      FreeAndNil(CustomFPImage);
+    end;
   end;
 
 begin
