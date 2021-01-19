@@ -1289,7 +1289,6 @@ end;
 procedure TCastleSpriteSheetAnimation.ImportAtlas(AtlasImageURL: String; Cols,
   Rows: Integer; ImportByColumns: Boolean);
 var
-  AFrame : TCastleSpriteSheetFrame;
   AtlasToImport: TCastleImage;
   FrameWidth: Integer;
   FrameHeight: Integer;
@@ -1305,14 +1304,14 @@ begin
       for J := Rows - 1 downto 0 do
         for I := 0  to Cols - 1 do
         begin
-          AFrame := AddFrame(AtlasToImport, 0, 0, FrameWidth, FrameHeight,
+          AddFrame(AtlasToImport, 0, 0, FrameWidth, FrameHeight,
           I * FrameWidth, J * FrameHeight, FrameWidth, FrameHeight);
         end;
     end else
     for I := 0  to Cols - 1 do
       for J := Rows - 1 downto 0 do
       begin
-        AFrame := AddFrame(AtlasToImport, 0, 0, FrameWidth, FrameHeight,
+        AddFrame(AtlasToImport, 0, 0, FrameWidth, FrameHeight,
         I * FrameWidth, J * FrameHeight, FrameWidth, FrameHeight);
       end;
 
