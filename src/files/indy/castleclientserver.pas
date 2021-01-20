@@ -13,12 +13,14 @@
   ----------------------------------------------------------------------------
 }
 
-{ Client and server for network communication using TCP (TCastleTCPClient, TCastleTCPServer). 
-  Use this in your games for easy client/server communication. 
-  On Android, it requires adding a service client_server (see https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine). 
-  On other platforms, it requires having Indy (http://www.indyproject.org/) available 
-  (note that Indy is not distributed together with Castle Game Engine, 
-  you need to download it yourself, and point the compiler to find Indy sources). }
+{ Client and server for network communication using TCP (TCastleTCPClient, TCastleTCPServer).
+  Use this in your games for easy client/server communication.
+  See https://castle-engine.io/manual_network.php#section_multi_player .
+
+  On Android, it requires adding
+  @url(https://github.com/castle-engine/castle-engine/wiki/Android-Services
+  client_server service in your project).
+  On other platforms, it requires having @url(http://www.indyproject.org/ Indy) available. }
 unit CastleClientServer;
 
 {$I castleconf.inc}
@@ -615,7 +617,7 @@ end;
         FOnConnected(TClientConnection.Create(LContext));
       FClientConnectedList.Clear;
       FClientConnectedList.UnlockList;
-    end;  
+    end;
   end;
 
   procedure TCastleTCPServer.ServerOnClientDisconnected;
@@ -628,7 +630,7 @@ end;
         FOnDisconnected(TClientConnection.Create(LContext));
       FClientDisconnectedList.Clear;
       FClientDisconnectedList.UnlockList;
-    end;  
+    end;
   end;
 
   procedure TCastleTCPServer.ServerOnMessageRecieved;
@@ -665,7 +667,7 @@ begin
     FClientThread.FreeClientOnTerminate := true;
     FClientThread.Terminate;
   {$endif}
-  
+
   inherited;
 end;
 
