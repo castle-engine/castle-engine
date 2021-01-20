@@ -3904,9 +3904,9 @@ procedure TCastleTransform.AddBehavior(const Behavior: TCastleBehavior);
 begin
   if Behavior.FParent <> Self then
   begin
-    Behavior.FParent := Self;
-    Behavior.ParentChanged;
     FBehaviors.Add(Behavior);
+    Behavior.FParent := Self;
+    Behavior.ParentChanged; // call at end, when state is consistent
   end;
 end;
 
@@ -3916,8 +3916,8 @@ var
 begin
   Beh := FBehaviors[BehaviorIndex] as TCastleBehavior;
   Beh.FParent := nil;
-  Beh.ParentChanged;
   FBehaviors.Delete(BehaviorIndex);
+  Beh.ParentChanged; // call at end, when state is consistent
 end;
 
 procedure TCastleTransform.RemoveBehavior(const Behavior: TCastleBehavior);
