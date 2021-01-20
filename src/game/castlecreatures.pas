@@ -1458,6 +1458,7 @@ begin
   MaxLife := AMaxLife;
   FSoundDieEnabled := true;
   SoundBehavior := TCastleSoundBehavior.Create(Self);
+  AddBehavior(SoundBehavior);
 
   FDebugTransform := TDebugTransform.Create(Self);
   FDebugTransform.Parent := Self;
