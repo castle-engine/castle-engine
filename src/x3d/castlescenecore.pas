@@ -8059,7 +8059,10 @@ begin
       {$warnings off} // knowingly using deprecated, to keep it working
       Enum.AnimationPrefix := AnimationPrefix;
       {$warnings on}
-      RootNode.EnumerateNodes(TTimeSensorNode, @Enum.Enumerate, true);
+      { OnlyActive = false, to also find animations under inactive Switch clauses.
+        Since the Switch.WhichChoice may change at runtime,
+        while the animations list should stay constant. }
+      RootNode.EnumerateNodes(TTimeSensorNode, @Enum.Enumerate, false);
 
       { recognize named animations also from IMPORTed node names.
         This alllows to import and rename animations, which is useful. }
