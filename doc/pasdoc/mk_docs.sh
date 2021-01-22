@@ -111,6 +111,7 @@ if (( $# == 0 )); then
               '(' -iname 'x3dloadinternal*.pas' ')' -or \
               '(' -iname 'castleinternal*.pas' ')' -or \
               '(' -iname 'castleshapeinternal*.pas' ')' -or \
+              '(' -iname 'castlevectorsinternal*.pas' ')' -or \
               '(' -iname 'kraft.pas' ')' -or \
               '(' -iwholename '*/compatibility/*' ')' -or \
               '(' -iwholename '*/deprecated_units/*' ')' -or \

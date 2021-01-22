@@ -16,6 +16,7 @@
 { TCastleBehavior. }
 
 {$ifdef read_interface}
+  TCastleBehaviorClass = class of TCastleBehavior;
 
   { Behaviors can be attached to TCastleTransform to perform specific logic,
     for example implement creature movement.
@@ -49,6 +50,14 @@
     { Called after @link(Parent) changed, at the end of @link(TCastleTransform.AddBehavior),
       @link(TCastleTransform.RemoveBehavior). }
     procedure ParentChanged; virtual;
+
+    { Used to check that the one and only instance of BehaviorClass in Parent
+      is Self. }
+    procedure SingleInstanceOfBehavior;
+
+    { Used to check that the one and only instance of current class type is Self.
+      This is a simpler overload of SingleInstanceOfBehavior. }
+    procedure SingleInstanceOfBehavior(const BehaviorClass: TCastleBehaviorClass);
   public
     { Parent TCastleTransform of this behavior.
       Change it by doing @link(TCastleTransform.AddBehavior),
@@ -57,8 +66,6 @@
       @nil if this behavior is not yet added to a parent. }
     property Parent: TCastleTransform read FParent;
   end;
-
-  TCastleBehaviorClass = class of TCastleBehavior;
 
 {$endif read_interface}
 
@@ -70,6 +77,43 @@ end;
 
 procedure TCastleBehavior.ParentChanged;
 begin
+end;
+
+procedure TCastleBehavior.SingleInstanceOfBehavior;
+begin
+  SingleInstanceOfBehavior(TCastleBehaviorClass(ClassType));
+end;
+
+procedure TCastleBehavior.SingleInstanceOfBehavior(
+  const BehaviorClass: TCastleBehaviorClass);
+var
+  HasSelf: Boolean;
+  Other: TCastleBehavior;
+  I: Integer;
+begin
+  HasSelf := false;
+  Other := nil;
+
+  for I := 0 to Parent.FBehaviors.Count - 1 do
+    if Parent.FBehaviors[I] is BehaviorClass then
+    begin
+      if Parent.FBehaviors[I] = Self then
+         HasSelf := true
+       else
+         Other := Parent.FBehaviors[I] as TCastleBehavior;
+    end;
+
+//  Other := Parent.FindBehavior(TCastleAliveBehavior);
+
+  if Other <> nil then
+    raise Exception.CreateFmt('Two instances of %s not allowed on one parent: %s %s', [
+      BehaviorClass.ClassName,
+      Name,
+      Other.Name
+    ]);
+
+  if not HasSelf then
+    raise Exception.CreateFmt('Self instance of %s not found on parent', [BehaviorClass.ClassName]);
 end;
 
 {$endif read_implementation}

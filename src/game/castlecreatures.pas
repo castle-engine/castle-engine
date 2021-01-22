@@ -24,7 +24,7 @@ uses Classes, Generics.Collections,
   CastleVectors, CastleBoxes, CastleClassUtils, CastleUtils, CastleScene,
   CastleStringUtils, CastleResources, CastleXMLConfig, CastleTransform,
   CastleTransformExtra, CastleSoundEngine, CastleFrustum, X3DNodes, CastleColors,
-  CastleDebugTransform, CastleSectors;
+  CastleDebugTransform, CastleSectors, CastleGameBehaviors;
 
 type
   TCreatureState = type Integer;
@@ -846,7 +846,7 @@ type
     FResource: TCreatureResource;
     FResourceFrame: TResourceFrame;
 
-    UsedSounds: TSoundList;
+    SoundBehavior: TCastleSoundBehavior;
     FSoundDieEnabled: boolean;
 
     FDebugCaptions: TCastleScene;
@@ -860,8 +860,6 @@ type
     { Calculated @link(Radius) suitable for this creature.
       This is cached result of @link(TCreatureResource.Radius). }
     FRadius: Single;
-
-    procedure SoundRelease(Sender: TSound);
   protected
     var
       { Set by CreateCreature. }
@@ -920,7 +918,7 @@ type
       the sound will simply be done at creature's position, but then
       it will continue to be played independent of this creature. }
     procedure Sound3d(const SoundType: TSoundType; const SoundHeight: Single;
-      TiedToCreature: boolean = true);
+      const TiedToCreature: boolean = true);
 
     { Can the approximate sphere be used for some collision-detection
       tasks.
@@ -1451,14 +1449,6 @@ begin
   RemoveDead := ResourceConfig.GetValue('remove_dead', DefaultRemoveDead);
 end;
 
-{ TCreatureSoundData --------------------------------------------------- }
-
-type
-  TCreatureSoundData = class
-  public
-    SoundHeight: Single;
-  end;
-
 { TCreature ------------------------------------------------------------------ }
 
 constructor TCreature.Create(AOwner: TComponent; const AMaxLife: Single);
@@ -1467,7 +1457,8 @@ begin
   CollidesWithMoving := true;
   MaxLife := AMaxLife;
   FSoundDieEnabled := true;
-  UsedSounds := TSoundList.Create(false);
+  SoundBehavior := TCastleSoundBehavior.Create(Self);
+  AddBehavior(SoundBehavior);
 
   FDebugTransform := TDebugTransform.Create(Self);
   FDebugTransform.Parent := Self;
@@ -1489,52 +1480,16 @@ begin
 end;
 
 destructor TCreature.Destroy;
-var
-  I: Integer;
 begin
-  if UsedSounds <> nil then
-  begin
-    for I := 0 to UsedSounds.Count - 1 do
-    begin
-      UsedSounds[I].UserData.Free;
-      UsedSounds[I].UserData := nil;
-
-      { Otherwise OnRelease would call TCreature.SoundRelease,
-        and this would remove it from UsedSounds list, breaking our
-        indexing over this list here. }
-      UsedSounds[I].OnRelease := nil;
-      UsedSounds[I].Release;
-    end;
-    FreeAndNil(UsedSounds);
-  end;
-
   if Resource <> nil then
     Resource.Release;
-
   inherited;
 end;
 
-procedure TCreature.SoundRelease(Sender: TSound);
-begin
-  Sender.UserData.Free;
-  Sender.UserData := nil;
-  UsedSounds.Remove(Sender);
-end;
-
 procedure TCreature.Sound3d(const SoundType: TSoundType; const SoundHeight: Single;
-  TiedToCreature: boolean);
-var
-  NewSource: TSound;
-  SoundPosition: TVector3;
+  const TiedToCreature: boolean);
 begin
-  SoundPosition := LerpLegsMiddle(SoundHeight);
-  NewSource := SoundEngine.Sound3d(SoundType, SoundPosition);
-  if TiedToCreature and (NewSource <> nil) then
-  begin
-    UsedSounds.Add(NewSource);
-    NewSource.OnRelease := @SoundRelease;
-    NewSource.UserData := TCreatureSoundData.Create;
-  end;
+  SoundBehavior.PlayOnce(SoundType, SoundHeight, TiedToCreature);
 end;
 
 function TCreature.LerpLegsMiddle(const A: Single): TVector3;
@@ -1564,19 +1519,6 @@ begin
 end;
 
 procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
-
-  procedure UpdateUsedSounds;
-  var
-    I: Integer;
-    SoundPosition: TVector3;
-  begin
-    for I := 0 to UsedSounds.Count - 1 do
-    begin
-      SoundPosition := LerpLegsMiddle(
-        TCreatureSoundData(UsedSounds[I].UserData).SoundHeight);
-      UsedSounds[I].Position := SoundPosition;
-    end;
-  end;
 
   procedure UpdateDebugCaptions;
   var
@@ -1653,7 +1595,6 @@ begin
     transformation (things taken into account in TCastleTransform) stay equal. }
   VisibleChangeHere([vcVisibleGeometry]);
 
-  UpdateUsedSounds;
   FDebugTransform.Exists := RenderDebug;
   UpdateDebugCaptions;
 end;
