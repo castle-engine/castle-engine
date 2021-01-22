@@ -51,7 +51,8 @@ type
 
 implementation
 
-uses SysUtils, CastleUtils, CastleGLUtils, CastleGLVersion, CastleLog;
+uses SysUtils, StrUtils,
+  CastleUtils, CastleGLUtils, CastleGLVersion, CastleLog;
 
 procedure TTestOpeningAndRendering3D.TestScene(const FileName: string);
 begin
@@ -102,6 +103,12 @@ procedure TTestOpeningAndRendering3D.TestSceneFromEnum(const FileInfo: TFileInfo
 var
   ParentDirName: string;
 begin
+  { While our masks do not allow such files,
+    but searching on Windows can find xxx.x3dv~ when only *.x3dv is requested.
+    So explicitly avoid them (as they will fail to load in CGE, as unrecognized).
+    TODO: should we just workaround it in FindFiles? The problem is inside FindFirst/Next. }
+  if IsWild(FileInfo.Name, '*~', true) then Exit;
+
   { do not check files in "errors" subdir, these are known to cause trouble }
   ParentDirName := ExtractFileName(ExclPathDelim(ExtractFileDir(FileInfo.AbsoluteName)));
   if ParentDirName = 'errors' then Exit;
