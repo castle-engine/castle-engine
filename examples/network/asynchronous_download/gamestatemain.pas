@@ -133,23 +133,37 @@ begin
 end;
 
 procedure TStateMain.DownloadFinish(const Sender: TCastleDownload; var FreeSender: Boolean);
+var
+  HttpResponseHeaders: String;
 begin
+  { Gracefully handle the case when Sender.HttpResponseHeaders = nil,
+    which will happen if you try to download non-HTTP/HTTPS URL,
+    like 'castle-data:/gears.gltf' . }
+  if Sender.HttpResponseHeaders <> nil then
+    HttpResponseHeaders := Sender.HttpResponseHeaders.Text
+  else
+    HttpResponseHeaders := '';
+
   if Sender.Status = dsError then
     WritelnLog('Downloading "%s" failed: %s.' + NL +
       'HTTP response code: %d' + NL +
-      'HTTP response headers: %s', [
+      'HTTP response headers: %s' + NL +
+      'Final URL: %s', [
       URIDisplay(Sender.Url),
       Sender.ErrorMessage,
       Sender.HttpResponseCode,
-      Sender.HttpResponseHeaders.Text
+      HttpResponseHeaders,
+      URIDisplay(Sender.FinalUrl)
     ])
   else
     WritelnLog('Downloading "%s" successful.' + NL +
       'HTTP response code: %d' + NL +
-      'HTTP response headers: %s', [
+      'HTTP response headers: %s' + NL +
+      'Final URL: %s', [
       URIDisplay(Sender.Url),
       Sender.HttpResponseCode,
-      Sender.HttpResponseHeaders.Text
+      HttpResponseHeaders,
+      URIDisplay(Sender.FinalUrl)
     ]);
 end;
 
