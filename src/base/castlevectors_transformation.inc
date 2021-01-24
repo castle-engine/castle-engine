@@ -69,13 +69,41 @@ type
       const Translation: TVector3); overload;
 
     { Modify transformation by an additional transformation matrix.
-      Using this is @bold(very discouraged), as we need to extract some information
-      from matrix (like scale) which is inherently inefficient (if we would use MatrixDecompose
-      instead of faster, but less correct, Approximate3DScale)
-      and/or not precise (cannot with work arbitrary matrix).
+
+      Using this is @bold(very discouraged), as we need to assume UniformScale=false,
+      which in turn e.g. makes sphere collisions worse (at some transformations,
+      they have to treat sphere as something larger).
+      That is because matrix can contain any transformation,
+      and even using MatrixDecompose and then analyzing whether resulting scale has X=Y=Z
+      would be unreliable. Testcases:
+
+     - Rendering ghost teeth in castle-game.
+
+       This shows that we cannot just replace matrix with translation+rotation+scale
+       by MatrixDecompose, matrix can contain other transformations like shear.
+       So we need to account whole matrix.
+       Replacing MultiplyMatrix(matrix) with MatrixDecompose + Multiply(vectors)
+       makes wrong rendering.
+
+     - Graves on "The Gate" level in castle-game.
+
+       This shows that even calculating UniformScale based on scale resulting
+       from MatrixDecompose doesn't work reliably.
+       Replacing inside MultiplyMatrix the UniformScale detection,
+       to assume true when scale (from MatrixDecompose) has X=Y=Z,
+       results in blocked movement.
+       MatrixDecompose cannot account fo arbitrary matrix that can contain anything.
+
+     - Beginng position (blocked movement) on "castle hall" level in castle-game.
+
+       Same as above.
+       Shows that we cannot detect UniformScale smartly.
 
       Use the @link(Multiply) instead to provide separate translation,
-      rotation etc. vectors. }
+      rotation etc. vectors.
+      Use this method only when you are forced to do so,
+      i.e. your input is already a matrix.
+    }
     procedure MultiplyMatrix(const Matrix: TMatrix4);
 
     { Modify transformation by an additional translation. }
@@ -238,9 +266,10 @@ begin
       So no need to multiply InverseTransform by anything. }
   end;
 
-  MatrixScale := Approximate3DScale(Matrix, MatrixUniformScale);
-  Scale := Scale * MatrixScale;
-  UniformScale := UniformScale and MatrixUniformScale;
+  Scale := Scale * Approximate3DScale(Matrix);
+
+   // we have to assume non-uniform matrix, see comments in the interface
+  UniformScale := false;
 end;
 
 {$endif read_implementation}
