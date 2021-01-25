@@ -416,7 +416,7 @@ type
       parameter follows this parameter value.
 
       @raises(EGLSLUniformNotFound If the variable is not found within
-        the program and we the behaviour (determined
+        the program and we the behavior (determined
         by AUniformTypeMismatchAction parameter or UniformTypeMismatchAction
         property) is uaException.)
 

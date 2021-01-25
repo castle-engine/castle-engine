@@ -1212,7 +1212,7 @@ type
 
       The default values for MouseButtonRotate (left),
       MouseButtonMove (middle), MouseButtonZoom (right)
-      were chosen to 1. match as much as possible behaviour
+      were chosen to 1. match as much as possible behavior
       of other programs (like Blender) and
       2. be accessible to all users (e.g. not everyone has middle
       mouse button in comfortable place, like laptop+touchpad users).

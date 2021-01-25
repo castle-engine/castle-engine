@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Enemy behaviour.
+{ Enemy behavior.
 
   This is an exact copy of enemy AI from standard CGE template "3D FPS game".
   It was not modified at all for the 3rd-person navigation demo. }

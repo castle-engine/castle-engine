@@ -1,4 +1,4 @@
-{%MainUnit castlegamebehaviors.pas}
+{%MainUnit castlebehaviors.pas}
 {
   Copyright 2006-2021 Michalis Kamburelis.
 

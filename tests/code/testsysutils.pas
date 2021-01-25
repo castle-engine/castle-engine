@@ -63,7 +63,7 @@ begin
   AssertFalse(FileExists(URIToFilenameSafe('castle-data:/')));
   AssertFalse(FileExists(URIToFilenameSafe('castle-data:/images/')));
   {$else}
-    {$if not defined(VER3_3)} // For FPC 3.3.1, the behaviour depends on exact revision...
+    {$if not defined(VER3_3)} // For FPC 3.3.1, the behavior depends on exact revision...
       {$if defined(VER3_0) or defined(VER3_1)}
       AssertTrue(FileExists(URIToFilenameSafe('castle-data:/')));
       AssertTrue(FileExists(URIToFilenameSafe('castle-data:/images/')));

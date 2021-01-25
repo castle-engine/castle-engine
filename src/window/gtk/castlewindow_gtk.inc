@@ -578,7 +578,7 @@ begin
 
       { I don't want this (because, first of all, not always my
         TMenuItemChecked will have AutoCheckedToggle = true.
-        Second, when not MenuActive, I do not want such behaviour, even for
+        Second, when not MenuActive, I do not want such behavior, even for
         AutoCheckedToggle = true.)
 
         So below I'm simply returning such GTK menu item to it's previous state.

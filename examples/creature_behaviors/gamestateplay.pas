@@ -1,8 +1,19 @@
-{ Main "playing game" state, where most of the game logic takes place.
+{
+  Copyright 2020-2021 Michalis Kamburelis.
 
-  Feel free to use this code as a starting point for your own projects.
-  (This code is in public domain, unlike most other CGE code which
-  is covered by the LGPL license variant, see the COPYING.txt file.) }
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Main "playing game" state, where most of the game logic takes place. }
 unit GameStatePlay;
 
 interface
@@ -10,7 +21,7 @@ interface
 uses Classes,
   CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleKeysMouse, CastleViewport, CastleScene, CastleVectors, CastleCameras,
-  CastleTransform, CastleGameBehaviors, CastleClassUtils,
+  CastleTransform, CastleBehaviors, CastleClassUtils,
   GameEnemy;
 
 type

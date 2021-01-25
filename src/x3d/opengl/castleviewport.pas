@@ -2899,7 +2899,7 @@ begin
 
   { This assertion should be OK. It is commented out only to prevent
     GetNavigationType from accidentally creating something intermediate,
-    and thus making debug and release behaviour different) }
+    and thus making debug and release behavior different) }
   // Assert(GetNavigationType = Value);
 
   FWithinSetNavigationType := false;

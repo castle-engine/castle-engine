@@ -188,7 +188,7 @@ function TVisualizeTransform.TGizmoScene.AngleOnPlane(out Angle: Single;
   { Return other 3D coords, in the lopping order X-Y-Z.
     This results in consistent ArcTan2 results, that makes rotating around
     any coord in TVisualizeTransform.TGizmoScene.PointingDeviceMove
-    have the same behaviour (no need to invert angle sign for Y coord,
+    have the same behavior (no need to invert angle sign for Y coord,
     as with CastleUtils.RestOf3dCoords). }
   procedure RestOf3dCoords(const Coord: Integer; out First, Second: Integer);
   begin

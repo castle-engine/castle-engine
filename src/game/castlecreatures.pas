@@ -24,7 +24,7 @@ uses Classes, Generics.Collections,
   CastleVectors, CastleBoxes, CastleClassUtils, CastleUtils, CastleScene,
   CastleStringUtils, CastleResources, CastleXMLConfig, CastleTransform,
   CastleTransformExtra, CastleSoundEngine, CastleFrustum, X3DNodes, CastleColors,
-  CastleDebugTransform, CastleSectors, CastleGameBehaviors;
+  CastleDebugTransform, CastleSectors, CastleBehaviors;
 
 type
   TCreatureState = type Integer;

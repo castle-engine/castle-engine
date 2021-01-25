@@ -280,7 +280,7 @@ type
     The TCaptureOutput class doesn't process the contents in any way.
     When it reads newline characters (#10, #13) they are treated
     just like any other character.
-    Descendants like TCaptureOutputFilter may have different behaviour. }
+    Descendants like TCaptureOutputFilter may have different behavior. }
   TCaptureOutput = class
   strict private
     const

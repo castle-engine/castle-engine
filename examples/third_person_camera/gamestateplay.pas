@@ -28,7 +28,7 @@ type
   { Main "playing game" state, where most of the game logic takes place. }
   TStatePlay = class(TUIState)
   private
-    { Enemies behaviours }
+    { Enemies behaviors }
     Enemies: TEnemyList;
 
     DebugAvatar: TDebugTransform;

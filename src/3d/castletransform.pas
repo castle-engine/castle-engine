@@ -1685,7 +1685,7 @@ type
         @item(@link(TCastleTransform.Gravity) property @italic(only affects the
           "simple physics simulation"). It is by default @false.
 
-          It has no effect on the "full-featured physics engine" behaviour,
+          It has no effect on the "full-featured physics engine" behavior,
           that has an independent property @link(TRigidBody.Gravity),
           which is @true by default.
 
@@ -2238,7 +2238,7 @@ type
     function CameraGravityUp: TVector3; deprecated 'use MainCamera.GravityUp if MainCamera <> nil';
     function CameraKnown: Boolean; deprecated 'use MainCamera <> nil';
   published
-    { Adjust physics behaviour. }
+    { Adjust physics properties. }
     property PhysicsProperties: TPhysicsProperties read FPhysicsProperties;
 
     { Time scale used when not @link(Paused). }

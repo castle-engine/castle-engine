@@ -22,7 +22,7 @@
   And then you can make your own decisions about various details
   (e.g. is life a float, or integer? does life equal "precisely
   zero" means being still alive, or dead?). }
-unit CastleGameBehaviors;
+unit CastleBehaviors;
 
 {$I castleconf.inc}
 
@@ -33,9 +33,9 @@ uses Classes,
   CastleSoundEngine;
 
 {$define read_interface}
-{$I castlegamebehaviors_alive.inc}
-{$I castlegamebehaviors_sound.inc}
-//{$I castlegamebehaviors_moveattack.inc}
+{$I castlebehaviors_alive.inc}
+{$I castlebehaviors_sound.inc}
+//{$I castlebehaviors_moveattack.inc}
 {$undef read_interface}
 
 implementation
@@ -44,9 +44,9 @@ uses SysUtils, Math,
   CastleUtils, CastleLog, CastleScene, CastleBoxes, CastleComponentSerialize;
 
 {$define read_implementation}
-{$I castlegamebehaviors_alive.inc}
-{$I castlegamebehaviors_sound.inc}
-// TODO {$I castlegamebehaviors_moveattack.inc}
+{$I castlebehaviors_alive.inc}
+{$I castlebehaviors_sound.inc}
+// TODO {$I castlebehaviors_moveattack.inc}
 
 initialization
   RegisterSerializableComponent(TCastleAliveBehavior, 'Alive');
