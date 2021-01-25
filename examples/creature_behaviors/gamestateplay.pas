@@ -21,8 +21,7 @@ interface
 uses Classes,
   CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleKeysMouse, CastleViewport, CastleScene, CastleVectors, CastleCameras,
-  CastleTransform, CastleBehaviors, CastleClassUtils,
-  GameEnemy;
+  CastleTransform, CastleBehaviors, CastleClassUtils;
 
 type
   { A transformation that automatically synchronizes (in both ways)
@@ -76,7 +75,7 @@ type
     MainViewport: TCastleViewport;
     WalkNavigation: TCastleWalkNavigation;
 
-    Enemies: TEnemyList;
+    Enemies: TCastleTransformList;
     Player: TCastleCameraTransform;
     PlayerAlive: TCastleAliveBehavior;
   public
@@ -190,9 +189,8 @@ procedure TStatePlay.Start;
 var
   UiOwner: TComponent;
   SoldierScene: TCastleScene;
-  Enemy: TEnemy;
   I: Integer;
-  // TODO MoveAttackBehavior: TCastleMoveAttackBehavior;
+  // TODO MoveAttackBehavior: TCastleMoveAttack;
 begin
   inherited;
 
@@ -211,21 +209,22 @@ begin
   PlayerAlive := TCastleAliveBehavior.Create(FreeAtStop);
   Player.AddBehavior(PlayerAlive);
 
-  { Create TEnemy instances, add them to Enemies list }
-  Enemies := TEnemyList.Create(true);
+  { Initialize Enemies }
+  Enemies := TCastleTransformList.Create(false);
   for I := 1 to 4 do
   begin
     SoldierScene := UiOwner.FindRequiredComponent('SceneSoldier' + IntToStr(I)) as TCastleScene;
-    { Below using nil as Owner of TEnemy, as the Enemies list already "owns"
-      instances of this class, i.e. it will free them. }
-    Enemy := TEnemy.Create(nil);
-    SoldierScene.AddBehavior(Enemy);
+    Enemies.Add(SoldierScene);
 
+    // TODO: TCastleMoveAttack should take care of this
+    SoldierScene.PlayAnimation('walk', true);
+
+    SoldierScene.AddBehavior(TCastleAliveBehavior.Create(FreeAtStop));
+    SoldierScene.AddBehavior(TCastleSound.Create(FreeAtStop));
     // TODO
-    // MoveAttackBehavior := TCastleMoveAttackBehavior.Create(FreeAtStop);
+    // MoveAttackBehavior := TCastleMoveAttack.Create(FreeAtStop);
     // MoveAttackBehavior.Enemy := PlayerAlive;
     // SoldierScene.AddBehavior(MoveAttackBehavior);
-    Enemies.Add(Enemy);
   end;
 end;
 
@@ -244,7 +243,7 @@ end;
 
 function TStatePlay.Press(const Event: TInputPressRelease): Boolean;
 var
-  HitEnemy: TEnemy;
+  HitAlive: TCastleAliveBehavior;
 begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
@@ -265,12 +264,20 @@ begin
 
     { We clicked on enemy if
       - TransformUnderMouse indicates we hit something
-      - It has a behavior of TEnemy. }
+      - It has a behavior of TCastleAliveBehavior. }
     if (MainViewport.TransformUnderMouse <> nil) and
-       (MainViewport.TransformUnderMouse.FindBehavior(TEnemy) <> nil) then
+       (MainViewport.TransformUnderMouse.FindBehavior(TCastleAliveBehavior) <> nil) then
     begin
-      HitEnemy := MainViewport.TransformUnderMouse.FindBehavior(TEnemy) as TEnemy;
-      HitEnemy.Hurt;
+      // TODO: TCastleMoveAttack should take care of this
+      HitAlive := MainViewport.TransformUnderMouse.FindBehavior(TCastleAliveBehavior) as TCastleAliveBehavior;
+      HitAlive.Hurt(1000, MainViewport.Camera.Direction);
+      if HitAlive.Dead then
+      begin
+        (HitAlive.Parent as TCastleScene).PlayAnimation('die', false);
+        // dead corpse no longer collides
+        HitAlive.Parent.Pickable := false;
+        HitAlive.Parent.Collides := false;
+      end;
     end;
 
     Exit(true);

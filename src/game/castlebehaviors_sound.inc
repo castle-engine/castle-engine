@@ -19,7 +19,7 @@
 type
   { Behavior to play spatial sounds, that automatically follow
     the parent @link(TCastleTransform) transformation. }
-  TCastleSoundBehavior = class(TCastleBehavior)
+  TCastleSound = class(TCastleBehavior)
   strict private
     UsedSounds: TSoundList;
     procedure SoundRelease(Sender: TSound);
@@ -61,15 +61,15 @@ type
     SoundHeight: Single;
   end;
 
-{ TCastleSoundBehavior ------------------------------------------------------- }
+{ TCastleSound ------------------------------------------------------- }
 
-constructor TCastleSoundBehavior.Create(AOwner: TComponent);
+constructor TCastleSound.Create(AOwner: TComponent);
 begin
   inherited;
   UsedSounds := TSoundList.Create(false);
 end;
 
-destructor TCastleSoundBehavior.Destroy;
+destructor TCastleSound.Destroy;
 var
   I: Integer;
 begin
@@ -91,14 +91,14 @@ begin
   inherited;
 end;
 
-procedure TCastleSoundBehavior.SoundRelease(Sender: TSound);
+procedure TCastleSound.SoundRelease(Sender: TSound);
 begin
   Sender.UserData.Free;
   Sender.UserData := nil;
   UsedSounds.Remove(Sender);
 end;
 
-procedure TCastleSoundBehavior.PlayOnce(const SoundType: TSoundType; const SoundHeight: Single;
+procedure TCastleSound.PlayOnce(const SoundType: TSoundType; const SoundHeight: Single;
   const TiedToParent: boolean);
 var
   NewSource: TSound;
@@ -116,7 +116,7 @@ begin
   end;
 end;
 
-procedure TCastleSoundBehavior.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+procedure TCastleSound.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
   I: Integer;
   SoundPosition: TVector3;
@@ -132,7 +132,7 @@ begin
   end;
 end;
 
-function TCastleSoundBehavior.LerpLegsMiddle(const A: Single): TVector3;
+function TCastleSound.LerpLegsMiddle(const A: Single): TVector3;
 begin
   Result := Lerp(A, Parent.Translation, Parent.Middle);
 end;

@@ -552,7 +552,7 @@ begin
   FAngularVelocityDamp := 0.1;
 
   FKraftBody := nil;
-  FCollisionList := TCastleTransformList.Create(false, nil);
+  FCollisionList := TCastleTransformList.Create(false);
   FPrevCollisions := TRigidBodyList.Create;
   FCurrentCollisions := TRigidBodyList.Create;
 

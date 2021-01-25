@@ -25,14 +25,14 @@ type
     on the same parent:
 
     @unorderedList(
-      @item(TCastleSoundBehavior (to play spatial sounds;
+      @item(TCastleSound (to play spatial sounds;
         this creature is silent otherwise),)
 
       @item(TCastleAliveBehavior (to account for the fact that current creature
         may be dead, or badly wounded;
         this creature is assumed indestructible otherwise.))
     ) }
-  TCastleMoveAttackBehavior = class(TCastleBehavior)
+  TCastleMoveAttack = class(TCastleBehavior)
   public
     type
       TState = (
@@ -190,11 +190,11 @@ type
     { Firing missile animation.
       Optional, it may be '' if creature doesn't fire missiles.
 
-      You can always override TCastleMoveAttackBehavior.FireMissile to do pretty
+      You can always override TCastleMoveAttack.FireMissile to do pretty
       much anything you want, and this way treat this as an "alternate attack",
       not necessarily firing a missile.
       It's not really required to actually fire a missile --- it's only what
-      happens at the default TCastleMoveAttackBehavior.FireMissile implementation. }
+      happens at the default TCastleMoveAttack.FireMissile implementation. }
     property AnimationFireMissile: String read FAnimationFireMissile write FAnimationFireMissile stored AnimationFireMissileStored nodefault;
 
     { An animation of dying.
@@ -221,9 +221,9 @@ type
 
 {$ifdef read_implementation}
 
-{ TCastleMoveAttackBehavior -------------------------------------------------------- }
+{ TCastleMoveAttack -------------------------------------------------------- }
 
-constructor TCastleMoveAttackBehavior.Create(AOwner: TComponent);
+constructor TCastleMoveAttack.Create(AOwner: TComponent);
 begin
   inherited;
   FEnemyObserver := TFreeNotificationObserver.Create(Self);
@@ -237,13 +237,13 @@ begin
   FAnimationHurt        := DefaultAnimationHurt;
 end;
 
-procedure TCastleMoveAttackBehavior.EnemyFreeNotification(
+procedure TCastleMoveAttack.EnemyFreeNotification(
   const Sender: TFreeNotificationObserver);
 begin
   Enemy := nil;
 end;
 
-procedure TCastleMoveAttackBehavior.SetEnemy(const Value: TCastleAliveBehavior);
+procedure TCastleMoveAttack.SetEnemy(const Value: TCastleAliveBehavior);
 begin
   if FEnemy <> Value then
   begin
@@ -252,12 +252,12 @@ begin
   end;
 end;
 
-function TCastleMoveAttackBehavior.AnimationDuration(const Animation: String): TFloatTime;
+function TCastleMoveAttack.AnimationDuration(const Animation: String): TFloatTime;
 begin
   Result := (Parent as TCastleScene).AnimationDuration(Animation);
 end;
 
-procedure TCastleMoveAttackBehavior.ParentChanged;
+procedure TCastleMoveAttack.ParentChanged;
 var
   Alive: TCastleAliveBehavior;
 begin
@@ -272,7 +272,7 @@ begin
   { Note that we don't automatically create TCastleAliveBehavior,
     this would make it complicated when something adds another
     instance of TCastleAliveBehavior -- adding it before or after
-    adding TCastleMoveAttackBehavior would have different effect. }
+    adding TCastleMoveAttack would have different effect. }
   Alive := Parent.FindBehavior(TCastleAliveBehavior) as TCastleAliveBehavior;
 
   if (Alive = nil) or (Alive.MaxLife > 0) then
@@ -296,13 +296,13 @@ begin
   WaypointsSaved := TWaypointList.Create(false);
 end;
 
-destructor TCastleMoveAttackBehavior.Destroy;
+destructor TCastleMoveAttack.Destroy;
 begin
   FreeAndNil(WaypointsSaved);
   inherited;
 end;
 
-procedure TCastleMoveAttackBehavior.SetSoundAttackHit(const Value: String);
+procedure TCastleMoveAttack.SetSoundAttackHit(const Value: String);
 begin
   if FSoundAttackHit <> Value then
   begin
@@ -311,7 +311,7 @@ begin
   end;
 end;
 
-procedure TCastleMoveAttackBehavior.SetSoundAttackStart(const Value: String);
+procedure TCastleMoveAttack.SetSoundAttackStart(const Value: String);
 begin
   if FSoundAttackStart <> Value then
   begin
@@ -322,14 +322,14 @@ end;
 
 // TODO do not attack dead Enemy
 
-procedure TCastleMoveAttackBehavior.SetState(const Value: TState);
+procedure TCastleMoveAttack.SetState(const Value: TState);
 begin
   if FState <> Value then
   begin
     { Force old box value for Middle and PreferredHeight calculation,
       for a fraction of a second.
 
-      This is crucial for TCastleMoveAttackBehavior.Update logic
+      This is crucial for TCastleMoveAttack.Update logic
       that could otherwise sometimes get stuck and continuously switching
       between move/idle states, because in idle state Middle indicates
       that we should move (e.g. distance or angle to enemy is not good enough),
@@ -399,18 +399,18 @@ begin
   end;
 end;
 
-procedure TCastleMoveAttackBehavior.PlaySound(const SoundType: TSoundType; const SoundHeight: Single);
+procedure TCastleMoveAttack.PlaySound(const SoundType: TSoundType; const SoundHeight: Single);
 var
-  SoundBehavior: TCastleSoundBehavior;
+  SoundBehavior: TCastleSound;
 begin
   if SoundType = stNone then Exit;
 
-  SoundBehavior := Parent.FindBehavior(TCastleSoundBehavior) as TCastleSoundBehavior;
+  SoundBehavior := Parent.FindBehavior(TCastleSound) as TCastleSound;
   if SoundBehavior <> nil then
     SoundBehavior.PlayOnce(SoundType, SoundHeight);
 end;
 
-procedure TCastleMoveAttackBehavior.UpdateAnimation;
+procedure TCastleMoveAttack.UpdateAnimation;
 var
   Loop: Boolean;
   AnimationName: String;
@@ -436,7 +436,7 @@ begin
   end;
 end;
 
-procedure TCastleMoveAttackBehavior.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+procedure TCastleMoveAttack.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
   EnemySensedNow: boolean;
   SqrDistanceToLastSensedEnemy: Single;
@@ -1155,7 +1155,7 @@ begin
 end;
 
 (* TODO: run hurt, listen on TCastleAliveBehavior
-procedure TCastleMoveAttackBehavior.SetLife(const Value: Single);
+procedure TCastleMoveAttack.SetLife(const Value: Single);
 begin
   if (not Dead) and
     (Life - Value > Resource.MinLifeLossToHurt * MaxLife) and
@@ -1166,7 +1166,7 @@ begin
 end;
 *)
 
-procedure TCastleMoveAttackBehavior.Attack;
+procedure TCastleMoveAttack.Attack;
 var
   E: TCastleAliveBehavior;
 
@@ -1215,7 +1215,7 @@ begin
   end;
 end;
 
-procedure TCastleMoveAttackBehavior.FireMissile;
+procedure TCastleMoveAttack.FireMissile;
 (* TODO: fire missile:
 var
   Missile: TCreature;
@@ -1235,7 +1235,7 @@ begin
 end;
 
 (* TODO: debug visualization
-procedure TCastleMoveAttackBehavior.UpdateDebugCaption(const Lines: TCastleStringList);
+procedure TCastleMoveAttack.UpdateDebugCaption(const Lines: TCastleStringList);
 var
   StateName: string;
 begin
@@ -1260,7 +1260,7 @@ end;
 *)
 
 (* TODO: be notified from TCastleAliveBehavior
-procedure TCastleMoveAttackBehavior.Hurt(const LifeLoss: Single;
+procedure TCastleMoveAttack.Hurt(const LifeLoss: Single;
   const HurtDirection: TVector3;
   const AHurtStrength: Single; const Attacker: TCastleAlive);
 begin
@@ -1279,7 +1279,7 @@ begin
 end;
 *)
 
-function TCastleMoveAttackBehavior.PropertySection(
+function TCastleMoveAttack.PropertySection(
   const PropertyName: String): TPropertySection;
 begin
   case PropertyName of
@@ -1290,37 +1290,37 @@ begin
   end;
 end;
 
-function TCastleMoveAttackBehavior.AnimationIdleStored: Boolean;
+function TCastleMoveAttack.AnimationIdleStored: Boolean;
 begin
   Result := FAnimationIdle <> DefaultAnimationIdle;
 end;
 
-function TCastleMoveAttackBehavior.AnimationMoveStored: Boolean;
+function TCastleMoveAttack.AnimationMoveStored: Boolean;
 begin
   Result := FAnimationMove <> DefaultAnimationMove;
 end;
 
-function TCastleMoveAttackBehavior.AnimationAttackStored: Boolean;
+function TCastleMoveAttack.AnimationAttackStored: Boolean;
 begin
   Result := FAnimationAttack <> DefaultAnimationAttack;
 end;
 
-function TCastleMoveAttackBehavior.AnimationFireMissileStored: Boolean;
+function TCastleMoveAttack.AnimationFireMissileStored: Boolean;
 begin
   Result := FAnimationFireMissile <> DefaultAnimationFireMissile;
 end;
 
-function TCastleMoveAttackBehavior.AnimationDieStored: Boolean;
+function TCastleMoveAttack.AnimationDieStored: Boolean;
 begin
   Result := FAnimationDie <> DefaultAnimationDie;
 end;
 
-function TCastleMoveAttackBehavior.AnimationDieBackStored: Boolean;
+function TCastleMoveAttack.AnimationDieBackStored: Boolean;
 begin
   Result := FAnimationDieBack <> DefaultAnimationDieBack;
 end;
 
-function TCastleMoveAttackBehavior.AnimationHurtStored: Boolean;
+function TCastleMoveAttack.AnimationHurtStored: Boolean;
 begin
   Result := FAnimationHurt <> DefaultAnimationHurt;
 end;

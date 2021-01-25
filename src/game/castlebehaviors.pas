@@ -13,15 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Behaviors (TCastleBehavior descendants) useful in games, for example to express
-  being alive, or creature intelligence.
-
-  Using these classes in your own games is completely optional,
-  for example you can implement "being alive" yourself in your own game trivially,
-  without using TCastleAliveBehavior.
-  And then you can make your own decisions about various details
-  (e.g. is life a float, or integer? does life equal "precisely
-  zero" means being still alive, or dead?). }
+{ Standard behaviors (TCastleBehavior descendants).
+  For example to express life, or creature intelligence, or playing sound. }
 unit CastleBehaviors;
 
 {$I castleconf.inc}
@@ -50,6 +43,6 @@ uses SysUtils, Math,
 
 initialization
   RegisterSerializableComponent(TCastleAliveBehavior, 'Alive');
-  RegisterSerializableComponent(TCastleSoundBehavior, 'Sound');
-  // TODO RegisterSerializableComponent(TCastleMoveAttackBehavior, 'Move Attack');
+  RegisterSerializableComponent(TCastleSound, 'Sound');
+  // TODO RegisterSerializableComponent(TCastleMoveAttack, 'Move Attack');
 end.

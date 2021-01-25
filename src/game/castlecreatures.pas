@@ -846,7 +846,7 @@ type
     FResource: TCreatureResource;
     FResourceFrame: TResourceFrame;
 
-    SoundBehavior: TCastleSoundBehavior;
+    SoundBehavior: TCastleSound;
     FSoundDieEnabled: boolean;
 
     FDebugCaptions: TCastleScene;
@@ -1457,7 +1457,7 @@ begin
   CollidesWithMoving := true;
   MaxLife := AMaxLife;
   FSoundDieEnabled := true;
-  SoundBehavior := TCastleSoundBehavior.Create(Self);
+  SoundBehavior := TCastleSound.Create(Self);
   AddBehavior(SoundBehavior);
 
   FDebugTransform := TDebugTransform.Create(Self);

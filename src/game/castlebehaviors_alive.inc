@@ -18,7 +18,13 @@
 
 type
   { Behavior that tracks life points, and determines being alive/dead
-    for game purposes. }
+    for game purposes.
+
+    Using this class in your own games is completely optional.
+    You can implement "alive" functionality yourself trivially,
+    and then make your own decisions about various details
+    (e.g. is life a float, or integer? does life equal "precisely
+    zero" means being still alive, or dead?). }
   TCastleAliveBehavior = class(TCastleBehavior)
   strict private
     FLife: Single;
@@ -38,6 +44,9 @@ type
 
     constructor Create(AOwner: TComponent); override;
     function PropertySection(const PropertyName: String): TPropertySection; override;
+
+    { Shortcut for checking Life <= 0. }
+    function Dead: Boolean;
 
     { Hurt given creature, decreasing its @link(Life) by LifeLoss,
       also setting some additional properties that describe the damage.
@@ -74,8 +83,8 @@ type
       )}
     procedure Hurt(const LifeLoss: Single;
       const AHurtDirection: TVector3;
-      const AHurtStrength: Single;
-      const AnAttacker: TCastleAliveBehavior); virtual;
+      const AHurtStrength: Single = 0;
+      const AnAttacker: TCastleAliveBehavior = nil); virtual;
 
     { Direction from where the last attack came, set by @link(Hurt).
       Zero if there was no specific direction of last attack,
@@ -162,6 +171,11 @@ begin
     else
       Result := inherited PropertySection(PropertyName);
   end;
+end;
+
+function TCastleAliveBehavior.Dead: Boolean;
+begin
+  Result := Life <= 0;
 end;
 
 {$endif read_implementation}

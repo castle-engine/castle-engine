@@ -232,26 +232,22 @@ type
 
   { List of TCastleTransform instances.
     This inherits from TCastleObjectList, getting many
-    features like TList notification mechanism.
-    You should not create instances of this class yourself
-    --- instead use TCastleTransform to group your scenes and transformations. }
+    features like TList notification mechanism. }
   TCastleTransformList = class(TCastleObjectList)
   private
+    { Note: Using this class with FOwner <> nil is only for internal purposes. }
     FOwner: TCastleTransform;
-
     function GetItem(const I: Integer): TCastleTransform;
     procedure SetItem(const I: Integer; const Item: TCastleTransform);
+    { TCastleTransform instance that owns this list.
+      May be @nil, for example when this list is used by TRayCollision. }
+    property Owner: TCastleTransform read FOwner;
   public
-    constructor Create(const FreeObjects: boolean; const AOwner: TCastleTransform);
     procedure Notify(Ptr: Pointer; Action: TListNotification); override;
     property Items[I: Integer]: TCastleTransform read GetItem write SetItem; default;
 
     function First: TCastleTransform;
     function Last: TCastleTransform;
-
-    { TCastleTransform instance that owns this list.
-      May be @nil, for example when this list is used by TRayCollision. }
-    property Owner: TCastleTransform read FOwner;
   end;
 
   { Orientation of the model is 3D world, determining where is
@@ -2412,12 +2408,6 @@ end;
 
 { TCastleTransformList ------------------------------------------------------------ }
 
-constructor TCastleTransformList.Create(const FreeObjects: boolean; const AOwner: TCastleTransform);
-begin
-  inherited Create(FreeObjects);
-  FOwner := AOwner;
-end;
-
 procedure TCastleTransformList.Notify(Ptr: Pointer; Action: TListNotification);
 var
   B: TCastleTransform;
@@ -2522,7 +2512,8 @@ begin
   FPickable := true;
   FVisible := true;
   FCursor := mcDefault;
-  FList := TCastleTransformList.Create(false, Self);
+  FList := TCastleTransformList.Create(false);
+  FList.FOwner := Self; // get notified about add/release, assign children World, Parent
   FBehaviors := TComponentList.Create(false);
   FMiddleHeight := DefaultMiddleHeight;
   FOnlyTranslation := true;
@@ -4171,7 +4162,7 @@ end;
 procedure TCastleAbstractRootTransform.RegisterPressRelease(const T: TCastleTransform);
 begin
   if FInternalPressReleaseListeners = nil then
-    FInternalPressReleaseListeners := TCastleTransformList.Create(false, nil);
+    FInternalPressReleaseListeners := TCastleTransformList.Create(false);
   FInternalPressReleaseListeners.Add(T);
 end;
 
