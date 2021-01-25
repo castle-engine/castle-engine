@@ -241,7 +241,6 @@ vec4 screenf_01_get_color(vec2 position_01)
 #ifdef MULTI_SAMPLING
   // We cannot do something much more optimal in this case, so just call full screenf_get_color
   return screenf_get_color(position_01 * vec2(float(screen_width), float(screen_height)));
-);
 #else
   return texture2D(screen, position_01);
 #endif

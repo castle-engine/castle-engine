@@ -243,7 +243,6 @@
 '#ifdef MULTI_SAMPLING' + LineEnding +
 '  // We cannot do something much more optimal in this case, so just call full screenf_get_color' + LineEnding +
 '  return screenf_get_color(position_01 * vec2(float(screen_width), float(screen_height)));' + LineEnding +
-');' + LineEnding +
 '#else' + LineEnding +
 '  return texture2D(screen, position_01);' + LineEnding +
 '#endif' + LineEnding +

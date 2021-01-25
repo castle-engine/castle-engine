@@ -298,13 +298,22 @@ begin
 end;
 
 procedure TGLSLScreenEffect.Link;
+var
+  VS, FS: String;
 begin
   if FScreenEffectShader = '' then
     raise Exception.Create('TGLSLScreenEffect shader not assigned by AttachScreenEffectShader method');
   {$warnings off} // using deprecated below, which should be internal
-  AttachVertexShader(ScreenEffectVertex);
-  AttachFragmentShader(ScreenEffectFragment(NeedsDepth) + FScreenEffectShader);
+  VS := ScreenEffectVertex;
+  FS := ScreenEffectFragment(NeedsDepth) + FScreenEffectShader;
   {$warnings on}
+  AttachVertexShader(VS);
+  AttachFragmentShader(FS);
+  if LogShaders then
+  begin
+    WritelnLogMultiline('Screen Effect Vertex Shader', VS);
+    WritelnLogMultiline('Screen Effect Fragment Shader', FS);
+  end;
   inherited;
 end;
 
