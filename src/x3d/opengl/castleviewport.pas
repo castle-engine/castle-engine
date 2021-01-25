@@ -2144,7 +2144,15 @@ function TCastleViewport.MainLightForShadows(out AMainLightPosition: TVector4): 
 begin
   if Items.MainScene <> nil then
   begin
-    Result := Items.MainScene.InternalMainLightForShadows(AMainLightPosition);
+    Result :=
+      Items.MainScene.InternalMainLightForShadows(AMainLightPosition) and
+      { We need WorldTransform for below conversion local<->world space.
+        It may not be available, if
+        - MainScene is present multiple times in Items
+        - MainScene is not present in Items at all, temporarily, but is still a MainScene.
+        Testcase: castle-game, change from level to level using debug menu.
+      }
+      Items.MainScene.HasWorldTransform;
     { Transform AMainLightPosition to world space.
       This matters in case MainScene (that contains shadow-casting light) has some transformation. }
     if Result then
