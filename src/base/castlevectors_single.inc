@@ -2745,8 +2745,6 @@ begin
 end;
 
 function Approximate3DScale(const M: TMatrix4): Single;
-var
-  X, Y, Z: Single;
 begin
   { This is a simple method of extracting average scaling factor from a matrix.
     Works OK for combination of scaling, translation matrices.

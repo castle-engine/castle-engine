@@ -248,8 +248,6 @@ end;
 procedure TTransformation.MultiplyMatrix(const Matrix: TMatrix4);
 var
   InvertedMatrix: TMatrix4;
-  MatrixScale: Single;
-  MatrixUniformScale: Boolean;
 begin
   Transform := Transform * Matrix;
 
