@@ -173,6 +173,7 @@ type
       Selected: Boolean);
     procedure ListViewFramesSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
+    procedure PopupMenuFramesClose(Sender: TObject);
     procedure RadioFrameChange(Sender: TObject);
     procedure SpinEditMaxAtlasSizeChange(Sender: TObject);
     procedure SpinEditMaxAtlasSizeEditingDone(Sender: TObject);
@@ -816,7 +817,7 @@ end;
 procedure TSpriteSheetEditorForm.FormShow(Sender: TObject);
 begin
   {$ifdef LCLGTK2}
-  { On GTK2 actions in SpeedButtons are not updated after window show
+  { On GTK2 SpeedButtons are frozen after window show from popup menu
     See: https://bugs.freepascal.org/view.php?id=38345 }
   LastMouse.Button := 0;
   LastMouse.ClickCount := 0;
@@ -931,6 +932,20 @@ begin
     (frame preview is always regenerated). }
   if GetCurrentPreviewMode = pmFrame then
     UpdatePreview(GetCurrentPreviewMode, ffgDontForceFileRegen);
+end;
+
+procedure TSpriteSheetEditorForm.PopupMenuFramesClose(Sender: TObject);
+begin
+  {$ifdef LCLGTK2}
+  { On GTK2 SpeedButtons are frozen after close popup menu
+    See: https://bugs.freepascal.org/view.php?id=38401 }
+  LastMouse.Button := 0;
+  LastMouse.ClickCount := 0;
+  LastMouse.Down := False;
+  LastMouse.MousePos := Point(0, 0);
+  LastMouse.Time := 0;
+  LastMouse.WinControl := nil;
+  {$endif}
 end;
 
 procedure TSpriteSheetEditorForm.RadioFrameChange(Sender: TObject);
