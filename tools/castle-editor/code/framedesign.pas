@@ -2338,6 +2338,11 @@ begin
   try
     Sel := TComponent(Node.Data);
     UndoComment := 'Rename ' + Sel.Name + ' into ' + Node.Text;
+    { Without this check, one could change Sel.Name to empty ('').
+      Although TComponent.SetName checks that it's a valid Pascal identifier already,
+      but it also explicitly allows to set Name = ''.
+      Object inspector has special code to secure from empty Name 
+      (in TComponentNamePropertyEditor.SetValue), so we need a similar check here. }
     if not IsValidIdent(Node.Text) then
       raise Exception.Create(Format(oisComponentNameIsNotAValidIdentifier, [Node.Text]));
     Sel.Name := Node.Text;
