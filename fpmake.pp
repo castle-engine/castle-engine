@@ -100,7 +100,6 @@ begin
     P.Targets.AddUnit('castleinternaloctree.pas');
     P.Targets.AddUnit('castlenurbs.pas');
     P.Targets.AddUnit('castlequaternions.pas');
-    P.Targets.AddUnit('castlerandom.pas');
     P.Targets.AddUnit('castlerays.pas');
     P.Targets.AddUnit('castlerenderingcamera.pas');
     P.Targets.AddUnit('castlesectors.pas');

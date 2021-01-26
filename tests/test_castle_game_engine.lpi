@@ -136,10 +136,6 @@
         <Filename Value="code/testcastlequaternions.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit22>
-      <Unit23>
-        <Filename Value="code/testcastlerandom.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit23>
       <Unit24>
         <Filename Value="code/testcastlerectangles.pas"/>
         <IsPartOfProject Value="True"/>

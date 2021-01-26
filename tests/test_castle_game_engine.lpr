@@ -89,7 +89,6 @@ uses
   TestCastleCurves,
   TestCastleTimeUtils,
   TestCastleControls,
-  TestCastleRandom,
   TestCastleSoundEngine,
   TestCastleComponentSerialize,
   TestX3DLoadInternalUtils,
