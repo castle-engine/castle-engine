@@ -344,7 +344,7 @@ implementation
 
 uses // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
   {$ifdef VER3_0} {$ifdef MSWINDOWS} Windows, {$endif} {$endif}
-  TypInfo, StrUtils, Math, Graphics, Types, Dialogs, LCLType,
+  TypInfo, StrUtils, Math, Graphics, Types, Dialogs, LCLType, ObjInspStrConsts,
   Castle2DSceneManager, CastleComponentSerialize, CastleFileFilters,
   CastleGLUtils, CastleImages, CastleLog,  CastleProjection, CastleScene,
   CastleShellCtrls, CastleStringUtils, CastleThirdPersonNavigation,
@@ -2338,6 +2338,13 @@ begin
   try
     Sel := TComponent(Node.Data);
     UndoComment := 'Rename ' + Sel.Name + ' into ' + Node.Text;
+    { Without this check, one could change Sel.Name to empty ('').
+      Although TComponent.SetName checks that it's a valid Pascal identifier already,
+      but it also explicitly allows to set Name = ''.
+      Object inspector has special code to secure from empty Name 
+      (in TComponentNamePropertyEditor.SetValue), so we need a similar check here. }
+    if not IsValidIdent(Node.Text) then
+      raise Exception.Create(Format(oisComponentNameIsNotAValidIdentifier, [Node.Text]));
     Sel.Name := Node.Text;
     ModifiedOutsideObjectInspector(UndoComment, ucHigh); // It'd be good if we set "ItemIndex" to index of "name" field, but there doesn't seem to be an easy way to
   finally
