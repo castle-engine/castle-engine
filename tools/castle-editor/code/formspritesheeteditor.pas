@@ -551,7 +551,7 @@ procedure TSpriteSheetEditorForm.ActionMoveFrameRightUpdate(Sender: TObject);
 var
   Frame: TCastleSpriteSheetFrame;
 begin
-  Frame := GetFirstSelectedFrame;
+  Frame := GetLastSelectedFrame;
   ActionMoveFrameRight.Enabled := (Frame <> nil)
     and (Frame.Animation.FrameIndex(Frame) < Frame.Animation.FrameCount - 1);
 end;
@@ -1145,13 +1145,18 @@ end;
 
 function TSpriteSheetEditorForm.GetLastSelectedFrame: TCastleSpriteSheetFrame;
 var
-  Item: TListItem;
+  SelectedFrames: TSelectedFrames;
 begin
-  Item := ListViewFrames.LastSelected;
-  if (Item <> nil) and TSelectedFrames.IsFrameListItem(Item) then
-    Result := TCastleSpriteSheetFrame(Item.Data)
-  else
-    Result := nil;
+  if ListViewFrames.Selected = nil then
+    Exit(nil);
+
+  SelectedFrames := TSelectedFrames.Create(ListViewFrames);
+  try
+    SelectedFrames.GetCurrentSelection;
+    Result := SelectedFrames.Frame[SelectedFrames.FrameCount - 1];
+  finally
+    FreeAndNil(SelectedFrames);
+  end;
 end;
 
 function TSpriteSheetEditorForm.FrameTitle(const FrameNo: Integer;
