@@ -18,7 +18,7 @@ program build_3d_tunnel;
 
 uses SysUtils,
   CastleWindow, CastleSceneCore, CastleScene, CastleVectors,
-  X3dnodes, CastleKeysMouse, CastleRandom, CastleLog, CastleCameras,
+  X3dnodes, CastleKeysMouse, CastleLog, CastleCameras,
   CastleViewport;
 
 const
@@ -137,14 +137,14 @@ begin
   for j := 1 to MaxSections do
   begin
     { determine next section parameters }
-    next_sect.angle := last_sect.angle+(Rand.Random-0.5)/10;
+    next_sect.angle := last_sect.angle+(Random-0.5)/10;
     next_sect.median[0] := last_sect.median[0]+sin(next_sect.angle);
-    next_sect.median[1] := last_sect.median[1]-(Rand.Random-0.5)/3;
+    next_sect.median[1] := last_sect.median[1]-(Random-0.5)/3;
     next_sect.median[2] := last_sect.median[2]-cos(next_sect.angle);
-    next_sect.width := last_sect.width+(Rand.Random-0.5)/3;
+    next_sect.width := last_sect.width+(Random-0.5)/3;
     if next_sect.width < 1 then next_sect.width:=1;
     if next_sect.width > 3 then next_sect.width:=3;
-    next_sect.height := last_sect.height+(Rand.Random-0.5)/3;
+    next_sect.height := last_sect.height+(Random-0.5)/3;
     if next_sect.height < 2 then next_sect.height:=2;
     if next_sect.height > 5 then next_sect.height:=5;
     { now create the section }
@@ -169,8 +169,8 @@ begin
   last_sect.median[0] := 0;
   last_sect.median[1] := -2;
   last_sect.median[2] := 2;
-  last_sect.width := 1+Rand.Random*2;
-  last_sect.height := 2+Rand.Random*2;
+  last_sect.width := 1+Random*2;
+  last_sect.height := 2+Random*2;
   last_sect.angle := 0;
   //and generate the section
   create_section;
@@ -181,6 +181,7 @@ end;
 
 begin
   InitializeLog;
+  Randomize;
 
   { initialize TCoordinateNode and TIndexedFaceSetNode}
   Coords := TCoordinateNode.Create;
