@@ -5,9 +5,9 @@
     {
       "Camera" : {
         "InitialDirectionPersistent" : {
-          "X" : 8.5947251319885254E-001,
-          "Y" : -2.4878335125322337E-007,
-          "Z" : 5.1118201017379761E-001,
+          "X" : 7.0783752202987671E-001,
+          "Y" : -4.1547303908373578E-007,
+          "Z" : 7.0637536048889160E-001,
           "$ClassName" : "TCastleVector3Persistent"
         },
         "InitialPositionPersistent" : {
@@ -50,7 +50,15 @@
         "UseHeadlight" : "hlOn",
         "$Children" : [
           {
+            "ExposeTransforms" : [
+            ],
             "Name" : "SceneLevel",
+            "RenderOptions" : {
+              "Name" : "RenderOptions",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
             "Spatial" : [
               "ssRendering",
               "ssDynamicCollisions"
@@ -61,7 +69,15 @@
             "$ClassName" : "TCastleScene"
           },
           {
+            "ExposeTransforms" : [
+            ],
             "Name" : "SceneSoldier1",
+            "RenderOptions" : {
+              "Name" : "RenderOptions",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
             "Spatial" : [
               "ssRendering",
               "ssDynamicCollisions"
@@ -77,7 +93,15 @@
             "$ClassName" : "TCastleScene"
           },
           {
+            "ExposeTransforms" : [
+            ],
             "Name" : "SceneSoldier2",
+            "RenderOptions" : {
+              "Name" : "RenderOptions",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
             "Spatial" : [
               "ssRendering",
               "ssDynamicCollisions"
@@ -93,7 +117,15 @@
             "$ClassName" : "TCastleScene"
           },
           {
+            "ExposeTransforms" : [
+            ],
             "Name" : "SceneSoldier3",
+            "RenderOptions" : {
+              "Name" : "RenderOptions",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
             "Spatial" : [
               "ssRendering",
               "ssDynamicCollisions"
@@ -109,7 +141,15 @@
             "$ClassName" : "TCastleScene"
           },
           {
+            "ExposeTransforms" : [
+            ],
             "Name" : "SceneSoldier4",
+            "RenderOptions" : {
+              "Name" : "RenderOptions",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
             "Spatial" : [
               "ssRendering",
               "ssDynamicCollisions"
@@ -123,6 +163,38 @@
             "$Children" : [
             ],
             "$ClassName" : "TCastleScene"
+          },
+          {
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneSoldier5",
+            "RenderOptions" : {
+              "MagnificationFilter" : "magNearest",
+              "Name" : "RenderOptions",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "ScalePersistent" : {
+              "X" : 7.4126735329627991E-002,
+              "Y" : 7.4126735329627991E-002,
+              "Z" : 7.4126735329627991E-002,
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "Spatial" : [
+              "ssRendering",
+              "ssDynamicCollisions"
+            ],
+            "TranslationPersistent" : {
+              "X" : 9.9126167297363281E+000,
+              "Y" : 1.1374617815017700E+000,
+              "Z" : -1.4989929199218750E+000,
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "URL" : "castle-data:/wolf/wolf.starling-xml",
+            "$Children" : [
+            ],
+            "$ClassName" : "TCastleScene"
           }
         ],
         "$ClassName" : "TCastleRootTransform"
@@ -131,7 +203,6 @@
       "Navigation" : "WalkNavigation",
       "$Children" : [
         {
-          "FullSize" : true,
           "MoveSpeed" : 1.0000000000000000E+001,
           "Name" : "WalkNavigation",
           "PreferredHeight" : 2.0000000000000000E+000,
