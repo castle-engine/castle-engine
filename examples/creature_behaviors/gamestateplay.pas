@@ -191,6 +191,7 @@ var
   SoldierScene: TCastleScene;
   I: Integer;
   // TODO MoveAttackBehavior: TCastleMoveAttack;
+  // Billboard: TCastleBillboard;
 begin
   inherited;
 
@@ -221,6 +222,13 @@ begin
 
     SoldierScene.AddBehavior(TCastleAliveBehavior.Create(FreeAtStop));
     SoldierScene.AddBehavior(TCastleSound.Create(FreeAtStop));
+
+    // just test:
+    // Billboard := TCastleBillboard.Create(FreeAtStop);
+    // // Billboard.AxisOfRotation := Vector3(1, 0, 0); // just test
+    // // Billboard.AxisOfRotation := Vector3(0, 0, 0); // just test
+    // SoldierScene.AddBehavior(Billboard);
+
     // TODO
     // MoveAttackBehavior := TCastleMoveAttack.Create(FreeAtStop);
     // MoveAttackBehavior.Enemy := PlayerAlive;

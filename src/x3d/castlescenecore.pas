@@ -6898,7 +6898,7 @@ procedure TCastleSceneCore.InternalCameraChanged;
       any parent Billboard nodes. }
     for I := 0 to BillboardNodes.Count - 1 do
     begin
-      (BillboardNodes[I] as TBillboardNode).CameraChanged(CameraVectors);
+      (BillboardNodes[I] as TBillboardNode).InternalCameraChanged(CameraVectors);
       { Apply transformation change to Shapes tree.
         Note that we should never call TransformationChanged when
         OptimizeExtensiveTransformations. }

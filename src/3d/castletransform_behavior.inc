@@ -32,10 +32,12 @@
 
     The API of TCastleBehavior is deliberately a subset of the TCastleTransform API,
     for example both have @link(Update) method.
-    In principle, you could achieve the same features by just using TCastleTransform descendants
-    instead of TCastleBehavior descendants, accessing the @link(TCastleTransform.UniqueParent)
-    from a child. However using TCastleBehavior is more efficient, as TCastleBehavior don't have their
-    own transformation and children. }
+    Using TCastleBehavior is just simpler and more efficient, as TCastleBehavior doesn't have
+    own transformation, children and it cannot render something.
+    If this is too limiting, remember you can always implement more powerful behaviors
+    by creating TCastleTransform descendants instead of TCastleBehavior descendants,
+    and accessing the @link(TCastleTransform.UniqueParent) from a child.
+  }
   TCastleBehavior = class(TCastleComponent)
   private
     FParent: TCastleTransform;

@@ -28,21 +28,25 @@ uses Classes,
 {$define read_interface}
 {$I castlebehaviors_alive.inc}
 {$I castlebehaviors_sound.inc}
+{$I castlebehaviors_billboard.inc}
 //{$I castlebehaviors_moveattack.inc}
 {$undef read_interface}
 
 implementation
 
 uses SysUtils, Math,
-  CastleUtils, CastleLog, CastleScene, CastleBoxes, CastleComponentSerialize;
+  CastleUtils, CastleLog, CastleScene, CastleBoxes, CastleComponentSerialize,
+  CastleCameras;
 
 {$define read_implementation}
 {$I castlebehaviors_alive.inc}
 {$I castlebehaviors_sound.inc}
+{$I castlebehaviors_billboard.inc}
 // TODO {$I castlebehaviors_moveattack.inc}
 
 initialization
   RegisterSerializableComponent(TCastleAliveBehavior, 'Alive');
   RegisterSerializableComponent(TCastleSound, 'Sound');
+  RegisterSerializableComponent(TCastleBillboard, 'Billboard');
   // TODO RegisterSerializableComponent(TCastleMoveAttack, 'Move Attack');
 end.

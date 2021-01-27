@@ -110,3 +110,7 @@ and then read @link(TShape.BoundingBox), @link(TShape.LocalBoundingBox).
 Tangent vectors describe the tangent coordinate-space, used by the bump mapping algorithm.
 If specified, the ordering of tangents should be the same as normals,
 i.e. they should follow the NormalPerVertex and such properties.
+
+# TBillboardNode.AxisOfRotation
+Axis around which the billboard rotates to face the camera.
+Can be zero to rotate freely.

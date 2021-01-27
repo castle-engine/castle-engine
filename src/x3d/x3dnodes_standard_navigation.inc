@@ -82,7 +82,10 @@
   end;
 
   { Grouping node that transforms the coordinate system of its children
-    so that they always turn towards the viewer. }
+    so that they always turn towards the viewer.
+    The local Z axis of the children faces the camera,
+    rotating around @link(AxisOfRotation) (it it is non-zero)
+    or rotating freely in 3D (when @link(AxisOfRotation) is exactly zero). }
   TBillboardNode = class(TAbstractX3DGroupingNode, ITransformNode)
   strict private
     FCameraVectors: TCameraVectors;
@@ -95,7 +98,8 @@
     class function ClassX3DType: string; override;
     function TransformationChange: TNodeTransformationChange; override;
 
-    procedure CameraChanged(const ACameraVectors: TCameraVectors);
+    { Change transformation to reflect current camera. @exclude }
+    procedure InternalCameraChanged(const ACameraVectors: TCameraVectors);
 
     strict private FFdAxisOfRotation: TSFVec3f;
     public property FdAxisOfRotation: TSFVec3f read FFdAxisOfRotation;
@@ -611,7 +615,7 @@ begin
   end;
 end;
 
-procedure TBillboardNode.CameraChanged(const ACameraVectors: TCameraVectors);
+procedure TBillboardNode.InternalCameraChanged(const ACameraVectors: TCameraVectors);
 begin
   FCameraVectorsKnown := true;
   FCameraVectors := ACameraVectors;
