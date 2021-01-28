@@ -48,6 +48,13 @@ X3DShapeNode : X3DChildNode, X3DBoundedObject {
 }
 
 Appearance : X3DAppearanceNode {
+  # Note: In edition 2 of X3D XML encoding, the default-container-field of this is empty...
+  # but in earlier versions, this was "appearance" and this seems more sensible,
+  # Appearance node may only occur within Shape.appearance field.
+
+  x3d-nodes-to-pascal: default-container-field appearance
+  x3d-nodes-to-pascal: auto-generate-more true
+
   SFNode [in,out] fillProperties   NULL [FillProperties] # NOT-SLIM
   SFNode [in,out] lineProperties   NULL [LineProperties]
   SFNode [in,out] material         NULL [X3DMaterialNode]
@@ -57,18 +64,19 @@ Appearance : X3DAppearanceNode {
   SFNode [in,out] textureTransform NULL [X3DTextureTransformNode]
 
   # EXTENSIONS:
-  MFNode     []            receiveShadows  []           # [X3DPunctualLightNode] list
+  MFNode     []            receiveShadows  []           [X3DPunctualLightNode]
   SFBool     [in,out]      shadowCaster     TRUE
-  SFNode     [in,out]      normalMap        NULL        # only texture nodes (ImageTexture, MovieTexture, PixelTexture) allowed
-  SFNode     [in,out]      heightMap        NULL        # only texture nodes (ImageTexture, MovieTexture, PixelTexture) allowed; NOT-SLIM
+  SFNode     [in,out]      normalMap        NULL        [X3DTexture2DNode] #
+  SFNode     [in,out]      heightMap        NULL        [X3DTexture2DNode] # NOT-SLIM
   SFFloat    [in,out]      heightMapScale   0.01        # must be > 0, meaningful only if heightMap specified
-  SFNode     [in,out]      blendMode        NULL        # [BlendMode]
-  MFNode     []            effects          []          # [Effect]
+  SFNode     [in,out]      blendMode        NULL        [BlendMode]
+  MFNode     []            effects          []          [Effect]
 
   # EXTENSIONS:
   # Commented out to not be seen by x3d-nodes-to-pascal,
   # this is implemented specially in Pascal.
-  # SFString   []            alphaChannel  "AUTO"      # ["AUTO"|"NONE"|"TEST"|"BLENDING"]
+  SFString   [in,out]      alphaChannel  "AUTO"      # ["AUTO"|"NONE"|"TEST"|"BLENDING"] enumerated-type: TAutoAlphaChannel AlphaToString acAuto
+  SFString   [in,out]      alphaMode     "AUTO"      # ["AUTO"|"OPAQUE"|"MASK"|"BLEND"] enumerated-type: TAlphaMode AlphaModeToString amAuto
 }
 
 FillProperties : X3DAppearanceChildNode {

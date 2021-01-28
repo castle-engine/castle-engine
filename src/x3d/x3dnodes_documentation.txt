@@ -114,3 +114,28 @@ i.e. they should follow the NormalPerVertex and such properties.
 # TBillboardNode.AxisOfRotation
 Axis around which the billboard rotates to face the camera.
 Can be zero to rotate freely.
+
+# TAppearanceNode.BlendMode
+
+Determines the exact blending equation used, in case @link(AlphaMode) indicates blending.
+See https://castle-engine.io/x3d_extensions.php#section_ext_blending .
+
+# TAppearanceNode.Texture
+
+Main texture used by this appearance (diffuse texture for Phong lighting model,
+base texture for physical lighting model,
+emissive texture for the unlit lighting model).
+It is usually simpler to set the relevant texture inside material node,
+like @link(TMaterialNode.DiffuseTexture),
+@link(TPhysicalMaterialNode.BaseTexture),
+@link(TUnlitMaterialNode.EmissiveTexture).
+
+# TAppearanceNode.NormalMap
+
+Normal map of this appearance.
+See https://castle-engine.io/x3d_implementation_texturing_extensions.php#section_ext_bump_mapping .
+
+@deprecated
+
+This is a deprecated property. It is better to set normal map within the material node,
+using the @link(TAbstractOneSidedMaterialNode.NormalTexture).

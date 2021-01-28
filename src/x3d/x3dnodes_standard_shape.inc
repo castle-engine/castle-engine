@@ -53,6 +53,18 @@
   TShading = (shDefault, shGouraud, shPhong, shWireframe);
   TShapeCollision = (scDefault, scBox, scNone);
 
+  { Alpha mode, for @link(TAppearanceNode.AlphaMode). }
+  TAlphaMode = (
+    { Automatically detect alpha treatment. }
+    amAuto,
+    { Render shape as opaque (ignore resulting alpha). }
+    amOpaque,
+    { Render shape using alpha testing (resulting alpha < 0.5 implies a transparent shape). }
+    amMask,
+    { Render shape using blending (supports partial transparency). }
+    amBlend
+  );
+
   { Base node type for all Shape nodes. }
   TAbstractShapeNode = class(TAbstractChildNode, IAbstractBoundedObject)
   strict private
@@ -106,16 +118,6 @@
     {$I auto_generated_node_helpers/x3dnodes_x3dshapenode.inc}
   end;
 
-  TMFNodeShaders = class(TMFNode)
-  strict protected
-    class function ExposedEventsFieldClass: TX3DFieldClass; override;
-  public
-    { Returns Items[Index], if it's a shader node suitable
-      for GLSL  shader. Otherwise returns @nil. Checks the class of
-      Items[Index] and it's @code(language) field. }
-    function GLSLShader(Index: Integer): TComposedShaderNode;
-  end;
-
   TFillPropertiesNode = class;
 
   { Visual properties of geometry.
@@ -125,98 +127,11 @@
     To make the geometry lit, you can just set there a default
     material created by @code(TMaterialNode.Create). }
   TAppearanceNode = class(TAbstractAppearanceNode)
-  strict private
-    function GetTexture: TAbstractTextureNode;
-    procedure SetTexture(const Value: TAbstractTextureNode);
-    function GetMaterial: TAbstractMaterialNode;
-    procedure SetMaterial(const Value: TAbstractMaterialNode);
-    function GetNormalMap: TAbstractTexture2DNode;
-    procedure SetNormalMap(const Value: TAbstractTexture2DNode);
-    function GetAlphaChannel: TAutoAlphaChannel;
-    procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure ParseAfter(Reader: TX3DReaderNames); override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    {$ifndef CASTLE_SLIM_NODES}
-    strict private FFdFillProperties: TSFNode;
-    public property FdFillProperties: TSFNode read FFdFillProperties;
-    {$endif}
-
-    strict private FFdLineProperties: TSFNode;
-    public property FdLineProperties: TSFNode read FFdLineProperties;
-
-    strict private FFdMaterial: TSFNode;
-    public property FdMaterial: TSFNode read FFdMaterial;
-
-    strict private FFdBackMaterial: TSFNode;
-    public property FdBackMaterial: TSFNode read FFdBackMaterial;
-
-    strict private FFdShaders: TMFNodeShaders;
-    public property FdShaders: TMFNodeShaders read FFdShaders;
-
-    strict private FFdTexture: TSFNode;
-    public property FdTexture: TSFNode read FFdTexture;
-
-    strict private FFdTextureTransform: TSFNode;
-    public property FdTextureTransform: TSFNode read FFdTextureTransform;
-
-    strict private FFdReceiveShadows: TMFNode;
-    public property FdReceiveShadows: TMFNode read FFdReceiveShadows;
-
-    strict private FFdShadowCaster: TSFBool;
-    public property FdShadowCaster: TSFBool read FFdShadowCaster;
-
-    strict private FFdEffects: TMFNode;
-    public property FdEffects: TMFNode read FFdEffects;
-
-    strict private FFdNormalMap: TSFNode;
-    public property FdNormalMap: TSFNode read FFdNormalMap;
-
-    {$ifndef CASTLE_SLIM_NODES}
-    strict private FFdHeightMap: TSFNode;
-    public property FdHeightMap: TSFNode read FFdHeightMap;
-    {$endif}
-
-    strict private FFdHeightMapScale: TSFFloat;
-    public property FdHeightMapScale: TSFFloat read FFdHeightMapScale;
-
-    { blendMode property.
-
-      This is modelled after InstantReality extension on [http://www.instantreality.org/].
-      See [http://www.instantreality.org/documentation/nodetype/ManagedAppearance/]
-      and [http://www.instantreality.org/documentation/nodetype/BlendMode/].
-      It allows you to use BlendMode nodes, which I consider very useful. }
-    strict private FFdBlendMode: TSFNode;
-    public property FdBlendMode: TSFNode read FFdBlendMode;
-
-    { The texture of this appearance.
-
-      This is a comfortable property for getting and setting the appropriate
-      X3D field, checking class types along the way and setting the value
-      through X3D events if necessary. }
-    property Texture: TAbstractTextureNode read GetTexture write SetTexture;
-
-    { The normal map of this appearance.
-
-      See https://castle-engine.io/x3d_implementation_texturing_extensions.php#section_ext_bump_mapping .
-      This is a deprecated method of using bump mapping, a better method is to
-      use CommonSurfaceShader:
-      https://castle-engine.io/x3d_implementation_texturing_extensions.php#section_ext_common_surface_shader .
-
-      This is a comfortable property for getting and setting the appropriate
-      X3D field, checking class types along the way and setting the value
-      through X3D events if necessary. }
-    property NormalMap: TAbstractTexture2DNode read GetNormalMap write SetNormalMap;
-
-    { The material of this appearance.
-      This is a comfortable property for getting and setting the appropriate
-      X3D field, checking class types along the way and setting the value
-      through X3D events if necessary. }
-    property Material: TAbstractMaterialNode read GetMaterial write SetMaterial;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
 
     { Find a suitable CommonSurfaceShader to be used when rendering this shape,
       or @nil. }
@@ -252,10 +167,6 @@
 
     function InternalMaterialProperty: TMaterialProperty;
     function MaterialProperty: TMaterialProperty; deprecated 'use InternalMaterialProperty, or (better) do not use it at all -- this is internal';
-
-    strict private FFdAlphaChannel: TSFStringEnum;
-    public property FdAlphaChannel: TSFStringEnum read FFdAlphaChannel;
-    property AlphaChannel: TAutoAlphaChannel read GetAlphaChannel write SetAlphaChannel;
 
     {$I auto_generated_node_helpers/x3dnodes_appearance.inc}
   end;
@@ -534,6 +445,15 @@
 
 {$ifdef read_implementation}
 
+const
+  AlphaModeToString: array [TAlphaMode] of string =
+  (
+    'AUTO',
+    'OPAQUE',
+    'MASK',
+    'BLEND'
+  );
+
 { TSFShading ----------------------------------------------------------------- }
 
 (*TODO:
@@ -750,109 +670,19 @@ begin
   end;
 end;
 
-procedure TAppearanceNode.CreateNode;
+constructor TAppearanceNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
-
-  {$ifndef CASTLE_SLIM_NODES}
-  FFdFillProperties := TSFNode.Create(Self, true, 'fillProperties', [TFillPropertiesNode]);
-   FdFillProperties.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdFillProperties);
-  {$endif}
-
-  FFdLineProperties := TSFNode.Create(Self, true, 'lineProperties', [TLinePropertiesNode]);
-   FdLineProperties.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdLineProperties);
-
-  FFdMaterial := TSFNode.Create(Self, true, 'material', [TAbstractMaterialNode]);
-   FdMaterial.ChangeAlways := chEverything;
-  AddField(FFdMaterial);
-
-  FFdBackMaterial := TSFNode.Create(Self, true, 'backMaterial', [TAbstractMaterialNode]);
-   FdBackMaterial.ChangeAlways := chNone; // not used now
-  AddField(FFdBackMaterial);
-
-  FFdShaders := TMFNodeShaders.Create(Self, true, 'shaders', [TAbstractShaderNode]);
-   FdShaders.ChangeAlways := chEverything;
-  AddField(FFdShaders);
-
-  FFdTexture := TSFNode.Create(Self, true, 'texture', [TAbstractTextureNode]);
-   FdTexture.ChangeAlways := chEverything;
-  AddField(FFdTexture);
-
-  FFdTextureTransform := TSFNode.Create(Self, true, 'textureTransform', [TAbstractTextureTransformNode]);
-   FdTextureTransform.ChangeAlways := chEverything;
-  AddField(FFdTextureTransform);
-
-  FFdReceiveShadows := TMFNode.Create(Self, false, 'receiveShadows', [TAbstractPunctualLightNode]);
-   FdReceiveShadows.ChangeAlways := chShadowMaps;
-  AddField(FFdReceiveShadows);
-
-  FFdShadowCaster := TSFBool.Create(Self, true, 'shadowCaster', true);
-   FdShadowCaster.ChangeAlways := chShadowCasters;
-  AddField(FFdShadowCaster);
-
-  FFdNormalMap := TSFNode.Create(Self, true, 'normalMap', [TAbstractTextureNode]);
-   FdNormalMap.ChangeAlways := chEverything;
-  AddField(FFdNormalMap);
-
-  {$ifndef CASTLE_SLIM_NODES}
-  FFdHeightMap := TSFNode.Create(Self, true, 'heightMap', [TAbstractTextureNode]);
-   FdHeightMap.ChangeAlways := chEverything;
-  AddField(FFdHeightMap);
-  {$endif CASTLE_SLIM_NODES}
-
-  FFdHeightMapScale := TSFFloat.Create(Self, {$ifdef CASTLE_SLIM_NODES} false {$else} true {$endif}, 'heightMapScale', DefaultHeightMapScale);
-   FdHeightMapScale.ChangeAlways := chEverything;
-  AddField(FFdHeightMapScale);
-
-  FFdBlendMode := TSFNode.Create(Self, true, 'blendMode', [TBlendModeNode]);
-   FdBlendMode.ChangeAlways := chEverything;
-  AddField(FFdBlendMode);
-
-  FFdEffects := TMFNode.Create(Self, false, 'effects', [TEffectNode]);
-   FdEffects.ChangeAlways := chEverything;
-  AddField(FFdEffects);
-
-  FFdAlphaChannel := TSFStringEnum.Create(Self, false, 'alphaChannel', AlphaToString, Ord(acAuto));
-  AddField(FFdAlphaChannel);
-
-  { In edition 2 of X3D XML encoding, this is empty... but in earlier
-    versions, this was "appearance" and this seems more sensible,
-    Appearance node may only occur within Shape.appearance field
-    so it should definitely have DefaultContainerField set. }
-  DefaultContainerField := 'appearance';
-end;
-
-class function TAppearanceNode.ClassX3DType: string;
-begin
-  Result := 'Appearance';
-end;
-
-function TAppearanceNode.GetAlphaChannel: TAutoAlphaChannel;
-begin
-  Result := TAutoAlphaChannel(FdAlphaChannel.EnumValue);
-end;
-
-procedure TAppearanceNode.SetAlphaChannel(const Value: TAutoAlphaChannel);
-begin
-  FdAlphaChannel.SendEnumValue(Ord(Value));
-end;
-
-class function TMFNodeShaders.ExposedEventsFieldClass: TX3DFieldClass;
-begin
-  Result := TMFNode;
-end;
-
-function TMFNodeShaders.GLSLShader(Index: Integer): TComposedShaderNode;
-begin
-  if Items[Index] is TComposedShaderNode then
-  begin
-    Result := TComposedShaderNode(Items[Index]);
-    if not (Result.Language in [slDefault, slGLSL]) then
-      Result := nil;
-  end else
-    Result := nil;
+  FdMaterial.ChangeAlways := chEverything;
+  FdBackMaterial.ChangeAlways := chNone; // not used now
+  FdShaders.ChangeAlways := chEverything;
+  FdTexture.ChangeAlways := chEverything;
+  FdTextureTransform.ChangeAlways := chEverything;
+  FdReceiveShadows.ChangeAlways := chShadowMaps;
+  FdShadowCaster.ChangeAlways := chShadowCasters;
+  FdNormalMap.ChangeAlways := chEverything;
+  FdBlendMode.ChangeAlways := chEverything;
+  FdEffects.ChangeAlways := chEverything;
 end;
 
 function TAppearanceNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -876,45 +706,6 @@ begin
 
   Result := FFdTextureTransform.Enumerate(Func);
   if Result <> nil then Exit;
-end;
-
-function TAppearanceNode.GetTexture: TAbstractTextureNode;
-begin
-  if FdTexture.Value is TAbstractTextureNode then
-    Result := TAbstractTextureNode(FdTexture.Value)
-  else
-    Result := nil;
-end;
-
-procedure TAppearanceNode.SetTexture(const Value: TAbstractTextureNode);
-begin
-  FdTexture.Send(Value);
-end;
-
-function TAppearanceNode.GetNormalMap: TAbstractTexture2DNode;
-begin
-  if FdNormalMap.Value is TAbstractTexture2DNode then
-    Result := TAbstractTexture2DNode(FdNormalMap.Value)
-  else
-    Result := nil;
-end;
-
-procedure TAppearanceNode.SetNormalMap(const Value: TAbstractTexture2DNode);
-begin
-  FdNormalMap.Send(Value);
-end;
-
-function TAppearanceNode.GetMaterial: TAbstractMaterialNode;
-begin
-  if FdMaterial.Value is TAbstractMaterialNode then
-    Result := TAbstractMaterialNode(FdMaterial.Value)
-  else
-    Result := nil;
-end;
-
-procedure TAppearanceNode.SetMaterial(const Value: TAbstractMaterialNode);
-begin
-  FdMaterial.Send(Value);
 end;
 
 function TAppearanceNode.CommonSurfaceShader: TCommonSurfaceShaderNode;

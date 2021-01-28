@@ -925,8 +925,6 @@ begin
      (Node.X3DType + '.' + Field.X3DName = 'GeoViewpoint.position') or
      (Node.X3DType + '.' + Field.X3DName = 'TextureProperties.magnificationFilter') or
      (Node.X3DType + '.' + Field.X3DName = 'TextureProperties.minificationFilter') or
-     (Node.X3DType + '.' + Field.X3DName = 'Appearance.material') or
-     (Node.X3DType + '.' + Field.X3DName = 'Appearance.texture') or
      (Node.X3DType + '.' + Field.X3DName = 'Text.fontStyle') or
      (Node.X3DType + '.' + Field.X3DName = 'HAnimHumanoid.skinCoord') or
      (Node.X3DType + '.' + Field.X3DName = 'FontStyle.family') or

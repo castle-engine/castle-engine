@@ -1194,7 +1194,7 @@ var
 
   function ReadAppearance(const Material: TPasGLTF.TMaterial): TGltfAppearanceNode;
   var
-    AlphaChannel: TAutoAlphaChannel;
+    AlphaMode: TAlphaMode;
   begin
     Result := TGltfAppearanceNode.Create(Material.Name);
 
@@ -1212,14 +1212,14 @@ var
 
     // read alpha channel treatment
     case Material.AlphaMode of
-      TPasGLTF.TMaterial.TAlphaMode.Opaque: AlphaChannel := acNone;
-      TPasGLTF.TMaterial.TAlphaMode.Blend : AlphaChannel := acBlending;
-      TPasGLTF.TMaterial.TAlphaMode.Mask  : AlphaChannel := acTest;
+      TPasGLTF.TMaterial.TAlphaMode.Opaque: AlphaMode := amOpaque;
+      TPasGLTF.TMaterial.TAlphaMode.Blend : AlphaMode := amBlend;
+      TPasGLTF.TMaterial.TAlphaMode.Mask  : AlphaMode := amMask;
       {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('Unexpected glTF Material.AlphaMode value');
       {$endif}
     end;
-    Result.AlphaChannel := AlphaChannel;
+    Result.AlphaMode := AlphaMode;
 
     // TODO: ignored for now:
     // Result.AlphaClipThreshold := Material.AlphaCutOff;

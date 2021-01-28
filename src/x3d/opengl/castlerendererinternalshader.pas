@@ -612,7 +612,7 @@ type
     procedure ModifyFog(const FogType: TFogType;
       const FogCoordinateSource: TFogCoordinateSource;
       const FogLinearEnd: Single; const FogExpDensity: Single);
-    function EnableCustomShaderCode(Shaders: TMFNodeShaders;
+    function EnableCustomShaderCode(const Shaders: TMFNode;
       out Node: TComposedShaderNode): boolean;
     procedure EnableAppearanceEffects(Effects: TMFNode);
     procedure EnableGroupEffects(Effects: TX3DNodeList);
@@ -3515,7 +3515,7 @@ begin
     433 * (Ord(FFogCoordinateSource) + 1));
 end;
 
-function TShader.EnableCustomShaderCode(Shaders: TMFNodeShaders;
+function TShader.EnableCustomShaderCode(const Shaders: TMFNode;
   out Node: TComposedShaderNode): boolean;
 var
   I, J: Integer;
@@ -3526,7 +3526,12 @@ begin
   Result := false;
   for I := 0 to Shaders.Count - 1 do
   begin
-    Node := Shaders.GLSLShader(I);
+    if (Shaders[I] is TComposedShaderNode) and
+       (TComposedShaderNode(Shaders[I]).Language in [slDefault, slGLSL]) then
+      Node := TComposedShaderNode(Shaders[I])
+    else
+      Node := nil;
+
     if Node <> nil then
     begin
       Result := true;
