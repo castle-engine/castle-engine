@@ -76,12 +76,14 @@ type
       ClickStarted: boolean;
       ClickStartedPosition: TVector2;
       FCaptionTranslate: Boolean;
+      FEnabled: Boolean;
     procedure SetCaption(const Value: String);
     procedure SetRightCaption(const Value: String);
     { Update Menu.CurrentItem to point to Self. }
     procedure MakeCurrent;
     { Containing TCastleOnScreenMenu. }
     function Menu: TCastleOnScreenMenu;
+    procedure SetEnabled(const Value: Boolean);
   private
     function LeftColumnWidth: Single;
     procedure PositionChildren(const MaxLeftColumnWidth: Single);
@@ -109,6 +111,9 @@ type
 
     { Event fired when user chooses this menu item in any way. }
     property OnClick: TNotifyEvent read FOnClick write FOnClick;
+
+    { Whether menu item is enabled. }
+    property Enabled: Boolean read FEnabled write SetEnabled default true;
 
     { Additional text displayed on the right side. }
     property RightCaption: String read FRightCaption write SetRightCaption;
@@ -277,7 +282,7 @@ type
       Default value is DefaultNonCurrentItemColor }
     property NonCurrentItemColor: TCastleColor
       read FNonCurrentItemColor write FNonCurrentItemColor;
-    { Label color for the non-focusable child.
+    { Label color for the non-focusable child (or TCastleOnScreenMenuItem with TCastleOnScreenMenuItem.Enabled = @false).
       Default value is DefaultNonFocusableItemColor }
     property NonFocusableItemColor: TCastleColor
       read FNonFocusableItemColor write FNonFocusableItemColor;
@@ -400,6 +405,7 @@ end;
 constructor TCastleOnScreenMenuItem.Create(AOwner: TComponent);
 begin
   inherited;
+  FEnabled := true;
   FCaptionTranslate := true;
 
   FCaptionLabel := TCastleLabel.Create(Self);
@@ -443,6 +449,15 @@ begin
   begin
     FCaption := Value;
     FCaptionLabel.Caption := Value;
+    VisibleChange([chRectangle]);
+  end;
+end;
+
+procedure TCastleOnScreenMenuItem.SetEnabled(const Value: Boolean);
+begin
+  if FEnabled <> Value then
+  begin
+    FEnabled := Value;
     VisibleChange([chRectangle]);
   end;
 end;
@@ -495,6 +510,9 @@ begin
 
   if Menu <> nil then
   begin
+    if not Enabled then
+      ItemColor := Menu.NonFocusableItemColor
+    else
     if Current then
     begin
       { Calculate CurrentItemBorderColor }
@@ -512,7 +530,12 @@ begin
     end else
       ItemColor := Menu.NonCurrentItemColor;
   end else
-    ItemColor := TCastleOnScreenMenu.DefaultCurrentItemColor;
+  begin
+    if Enabled then
+      ItemColor := TCastleOnScreenMenu.DefaultCurrentItemColor
+    else
+      ItemColor := TCastleOnScreenMenu.DefaultNonFocusableItemColor;
+  end;
 
   FCaptionLabel.Color := ItemColor;
 end;
@@ -580,6 +603,8 @@ end;
 
 procedure TCastleOnScreenMenuItem.DoClick;
 begin
+  if not Enabled then
+    Exit;
   {$warnings off}
   if Menu <> nil then
     Menu.Click; // keep deprecated Menu.Click working
