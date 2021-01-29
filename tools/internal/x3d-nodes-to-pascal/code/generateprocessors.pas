@@ -968,20 +968,22 @@ begin
      false // keep this line, to allow easily rearranging lines above
      then
   begin
-    WritelnVerbose('Not processing, this field has special implementation: ' + Field.X3DName);
+    WritelnVerbose('Not processing, this field has special implementation: ' + Node.X3DType + '.' + Field.X3DName);
     Exit;
   end;
   if (Node.X3DType = 'X3DFogObject') or
      (Node.X3DType = 'X3DPickableObject') or
      (Node.X3DType = 'LOD') then
   begin
-    WritelnVerbose('Not processing, this node has special implementation: ' + Node.X3DType);
+    WritelnVerbose('Not processing, this entire node has special implementation: ' + Node.X3DType);
     Exit;
   end;
   if (Field.X3DAccessType <> '[in,out]') and
      (Field.X3DAccessType <> '[]') then
   begin
-    WritelnVerbose('Only fields (inputOutput or initializeOnly) are supported now: ' + Field.X3DName);
+    { We don't generate any special helpers for events now, and they don't seem necessary. }
+    // too verbose, and this is normal -- not an alarming situation
+    //WritelnVerbose('Getters / setters are only generated for fields (inputOutput or initializeOnly) now, omitting event: ' + Field.X3DName);
     Exit;
   end;
 
@@ -1214,7 +1216,10 @@ begin
   if (OutputPrivateInterface = '') or
      (OutputPublicInterface = '') or
      (OutputImplementation = '') then
-    WritelnVerbose('Node does not have any helpers (for now), generating empty include file: ' + Node.X3DType);
+  begin
+    // too verbose, and this is normal -- not an alarming situation
+    // WritelnVerbose('Node does not have any helpers (for now), generating empty include file: ' + Node.X3DType);
+  end;
 
   if OutputPrivateInterface <> '' then
     OutputPrivateInterface := '  strict private' + NL + OutputPrivateInterface;
