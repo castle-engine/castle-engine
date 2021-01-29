@@ -1,4 +1,5 @@
 X3DNBodyCollidableNode : X3DChildNode, X3DBoundedObject {
+  x3d-nodes-to-pascal: auto-generate-more true
   SFBool     [in,out] enabled     TRUE
   SFRotation [in,out] rotation    0 0 1 0  [0,1]
   SFVec3f    [in,out] translation 0 0 0    (-Inf,Inf)
@@ -7,33 +8,40 @@ X3DNBodyCollidableNode : X3DChildNode, X3DBoundedObject {
 }
 
 X3DNBodyCollisionSpaceNode : X3DNode, X3DBoundedObject {
+  x3d-nodes-to-pascal: auto-generate-more true
   SFBool  [in,out] enabled    TRUE
   SFVec3f []       bboxCenter 0 0 0    (-Inf,Inf)
   SFVec3f []       bboxSize   -1 -1 -1 [0,Inf) or -1 -1 -1
 }
 
 X3DRigidJointNode : X3DNode {
+  x3d-nodes-to-pascal: auto-generate-more true
+  x3d-nodes-to-pascal: default-container-field joints
   SFNode   [in,out] body1       NULL   [RigidBody]
   SFNode   [in,out] body2       NULL   [RigidBody]
-  MFString [in,out] forceOutput "NONE" ["ALL","NONE",...]
+  MFString [in,out] forceOutput ["NONE"] ["ALL","NONE",...]
 }
 
 BallJoint : X3DRigidJointNode {
+  x3d-nodes-to-pascal: auto-generate-more true
   SFVec3f  [in,out] anchorPoint      0 0 0
   SFVec3f  [out]    body1AnchorPoint
   SFVec3f  [out]    body2AnchorPoint
 }
 
 CollidableOffset : X3DNBodyCollidableNode {
+  x3d-nodes-to-pascal: auto-generate-more true
   SFNode     []       collidable  NULL     [X3DNBodyCollidableNode]
 }
 
 CollidableShape : X3DNBodyCollidableNode  {
+  x3d-nodes-to-pascal: auto-generate-more true
   SFNode     []       shape       NULL     [Shape]
 }
 
 CollisionCollection : X3DChildNode {
-  MFString [in,out] appliedParameters        "BOUNCE" []
+  x3d-nodes-to-pascal: auto-generate-more true
+  MFString [in,out] appliedParameters        ["BOUNCE"] []
   SFFloat  [in,out] bounce                   0        [0,1]
   MFNode   [in,out] collidables              NULL     [X3DNBodyCollisionSpaceNode, X3DNBodyCollidableNode]
   SFBool   [in,out] enabled                  TRUE
@@ -46,18 +54,23 @@ CollisionCollection : X3DChildNode {
 }
 
 CollisionSensor : X3DSensorNode {
+  x3d-nodes-to-pascal: auto-generate-more true
   SFNode [in,out] collider      NULL [CollisionCollection]
   MFNode [out]    intersections	     [X3DNBodyCollidableNode]
   MFNode [out]    contacts           [Contact]
 }
 
 CollisionSpace : X3DNBodyCollisionSpaceNode {
+  x3d-nodes-to-pascal: auto-generate-more true
+  x3d-nodes-to-pascal: default-container-field children
   MFNode  [in,out] collidables NULL     [X3DNBodyCollisionSpaceNode,X3DNBodyCollidableNode]
   SFBool  [in,out] useGeometry FALSE
 }
 
 Contact : X3DNode {
-  MFString [in,out] appliedParameters        "BOUNCE" []
+  x3d-nodes-to-pascal: auto-generate-more true
+  x3d-nodes-to-pascal: default-container-field children
+  MFString [in,out] appliedParameters        ["BOUNCE"] []
   SFNode   [in,out] body1                    NULL     [RigidBody]
   SFNode   [in,out] body2                    NULL     [RigidBody]
   SFFloat  [in,out] bounce                   0        [0,1]
@@ -76,6 +89,7 @@ Contact : X3DNode {
 }
 
 DoubleAxisHingeJoint : X3DRigidJointNode {
+  x3d-nodes-to-pascal: auto-generate-more true
   SFVec3f  [in,out] anchorPoint               0 0 0
   SFVec3f  [in,out] axis1                     0 0 0
   SFVec3f  [in,out] axis2                     0 0 0
@@ -101,6 +115,7 @@ DoubleAxisHingeJoint : X3DRigidJointNode {
 }
 
 MotorJoint : X3DRigidJointNode {
+  x3d-nodes-to-pascal: auto-generate-more true
   SFFloat  [in,out] axis1Angle           0      [-Pi,Pi]
   SFFloat  [in,out] axis1Torque          0      (-Inf,Inf)
   SFFloat  [in,out] axis2Angle           0      [-Pi,Pi]
@@ -127,6 +142,8 @@ MotorJoint : X3DRigidJointNode {
 }
 
 RigidBody : X3DNode {
+  x3d-nodes-to-pascal: auto-generate-more true
+  x3d-nodes-to-pascal: default-container-field bodies
   SFFloat    [in,out] angularDampingFactor 0.001   [0,1]
   SFVec3f    [in,out] angularVelocity      0 0 0   (-Inf,Inf)
   SFBool     [in,out] autoDamp             FALSE
@@ -140,7 +157,7 @@ RigidBody : X3DNode {
   SFBool     [in,out] fixed                FALSE
   MFVec3f    [in,out] forces               []
   MFNode     [in,out] geometry             []      [X3DNBodyCollidableNode]
-  SFMatrix3f [in,out] inertia	           1 0 0  0 1 0  0 0 1
+  SFMatrix3f [in,out] inertia	           identity
   SFFloat    [in,out] linearDampingFactor  0.001   [0,1]
   SFVec3f    [in,out] linearVelocity       0 0 0   (-Inf,Inf)
   SFFloat    [in,out] mass                 1       (0,Inf)
@@ -153,7 +170,8 @@ RigidBody : X3DNode {
 }
 
 RigidBodyCollection : X3DChildNode {
-  MFNode  [in]     set_contacts            []       [Contact] 
+  x3d-nodes-to-pascal: auto-generate-more true
+  MFNode  [in]     set_contacts            []       [Contact]
   SFBool  [in,out] autoDisable             FALSE
   MFNode  [in,out] bodies                  []       [RigidBody]
   SFFloat [in,out] constantForceMix        0.0001   [0,Inf)
@@ -172,6 +190,7 @@ RigidBodyCollection : X3DChildNode {
 }
 
 SingleAxisHingeJoint : X3DRigidJointNode {
+  x3d-nodes-to-pascal: auto-generate-more true
   SFVec3f  [in,out] anchorPoint         0 0 0
   SFVec3f  [in,out] axis                0 0 0
   SFFloat  [in,out] maxAngle            Pi
@@ -185,6 +204,7 @@ SingleAxisHingeJoint : X3DRigidJointNode {
 }
 
 SliderJoint : X3DRigidJointNode {
+  x3d-nodes-to-pascal: auto-generate-more true
   SFVec3f  [in,out] axis                0 1 0
   SFFloat  [in,out] maxSeparation       1      [0,Inf)
   SFFloat  [in,out] minSeparation       0      [0,Inf)
@@ -195,6 +215,7 @@ SliderJoint : X3DRigidJointNode {
 }
 
 UniversalJoint : X3DRigidJointNode {
+  x3d-nodes-to-pascal: auto-generate-more true
   SFVec3f  [in,out] anchorPoint          0 0 0
   SFVec3f  [in,out] axis1                0 0 0
   SFVec3f  [in,out] axis2                0 0 0
@@ -207,4 +228,3 @@ UniversalJoint : X3DRigidJointNode {
   SFVec3f  [out]    body2AnchorPoint
   SFVec3f  [out]    body2Axis
 }
-

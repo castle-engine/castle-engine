@@ -664,6 +664,36 @@ procedure TProcessor.ProcessFile(const InputFileName: string);
       Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
       Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces) + ')';
     end else
+    if (Field.X3DType = 'SFMatrix3f') or
+       (Field.X3DType = 'SFMatrix3d') or
+       (Field.X3DType = 'MFMatrix3f') or
+       (Field.X3DType = 'MFMatrix3d') then
+    begin
+      Field.DefaultValue := 'Matrix3(';
+
+      if NextTokenOnce(Line, SeekPos, WhiteSpaces) = 'identity' then
+      begin
+        case Field.X3DType of
+          'SFMatrix3f': Field.DefaultValue := 'TMatrix3.Identity';
+          'SFMatrix3d': Field.DefaultValue := 'TMatrix3Double.Identity';
+        end;
+
+        // just to advance SeekPos
+        NextToken(Line, SeekPos, WhiteSpaces);
+      end else
+      begin
+        for I := 1 to 2 do
+        begin
+          Field.DefaultValue += '    Vector3(' + NextToken(Line, SeekPos, WhiteSpaces);
+          Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
+          Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces) + '),' + NL;
+        end;
+
+        Field.DefaultValue += '    Vector3(' + NextToken(Line, SeekPos, WhiteSpaces);
+        Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
+        Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces) + '));';
+      end;
+    end else
     if (Field.X3DType = 'SFMatrix4f') or
        (Field.X3DType = 'SFMatrix4d') or
        (Field.X3DType = 'MFMatrix4f') or
@@ -673,11 +703,10 @@ procedure TProcessor.ProcessFile(const InputFileName: string);
 
       if NextTokenOnce(Line, SeekPos, WhiteSpaces) = 'identity' then
       begin
-        if Field.X3DType = 'SFMatrix4f' then
-          Field.DefaultValue := 'TMatrix4.Identity'
-        else
-        if Field.X3DType = 'SFMatrix4d' then
-          Field.DefaultValue := 'TMatrix4d.Identity';
+        case Field.X3DType of
+          'SFMatrix4f': Field.DefaultValue := 'TMatrix4.Identity';
+          'SFMatrix4d': Field.DefaultValue := 'TMatrix4Double.Identity';
+        end;
 
         // just to advance SeekPos
         NextToken(Line, SeekPos, WhiteSpaces);
