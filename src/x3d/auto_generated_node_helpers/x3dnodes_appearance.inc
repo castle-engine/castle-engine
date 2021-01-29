@@ -40,6 +40,10 @@
     procedure SetTexture(const Value: TAbstractTextureNode);
     function GetTextureTransform: TAbstractTextureTransformNode;
     procedure SetTextureTransform(const Value: TAbstractTextureTransformNode);
+    function GetAlphaMode: TAlphaMode;
+    procedure SetAlphaMode(const Value: TAlphaMode);
+    function GetAlphaCutoff: Single;
+    procedure SetAlphaCutoff(const Value: Single);
     function GetShadowCaster: Boolean;
     procedure SetShadowCaster(const Value: Boolean);
     function GetNormalMap: TAbstractTexture2DNode;
@@ -54,8 +58,6 @@
     procedure SetBlendMode(const Value: TBlendModeNode);
     function GetAlphaChannel: TAutoAlphaChannel;
     procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
-    function GetAlphaMode: TAlphaMode;
-    procedure SetAlphaMode(const Value: TAlphaMode);
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -105,6 +107,18 @@
     public property FdTextureTransform: TSFNode read FFdTextureTransform;
     { X3D field "textureTransform". } { }
     property TextureTransform: TAbstractTextureTransformNode read GetTextureTransform write SetTextureTransform;
+
+    strict private FFdAlphaMode: TSFStringEnum;
+    { X3D field "alphaMode". } { }
+    public property FdAlphaMode: TSFStringEnum read FFdAlphaMode;
+    { X3D field "alphaMode". } { }
+    property AlphaMode: TAlphaMode read GetAlphaMode write SetAlphaMode;
+
+    strict private FFdAlphaCutoff: TSFFloat;
+    { X3D field "alphaCutoff". } { }
+    public property FdAlphaCutoff: TSFFloat read FFdAlphaCutoff;
+    { X3D field "alphaCutoff". } { }
+    property AlphaCutoff: Single read GetAlphaCutoff write SetAlphaCutoff;
 
     strict private FFdReceiveShadows: TMFNode;
     { X3D field "receiveShadows". } { }
@@ -157,12 +171,6 @@
     public property FdAlphaChannel: TSFStringEnum read FFdAlphaChannel;
     { X3D field "alphaChannel". } { }
     property AlphaChannel: TAutoAlphaChannel read GetAlphaChannel write SetAlphaChannel;
-
-    strict private FFdAlphaMode: TSFStringEnum;
-    { X3D field "alphaMode". } { }
-    public property FdAlphaMode: TSFStringEnum read FFdAlphaMode;
-    { X3D field "alphaMode". } { }
-    property AlphaMode: TAlphaMode read GetAlphaMode write SetAlphaMode;
 
 {$endif read_interface}
 
@@ -262,6 +270,26 @@ begin
   FdTextureTransform.Send(Value);
 end;
 
+function TAppearanceNode.GetAlphaMode: TAlphaMode;
+begin
+  Result := TAlphaMode(FdAlphaMode.EnumValue);
+end;
+
+procedure TAppearanceNode.SetAlphaMode(const Value: TAlphaMode);
+begin
+  FdAlphaMode.SendEnumValue(Ord(Value));
+end;
+
+function TAppearanceNode.GetAlphaCutoff: Single;
+begin
+  Result := FdAlphaCutoff.Value;
+end;
+
+procedure TAppearanceNode.SetAlphaCutoff(const Value: Single);
+begin
+  FdAlphaCutoff.Send(Value);
+end;
+
 procedure TAppearanceNode.SetReceiveShadows(const Value: array of TAbstractPunctualLightNode);
 var
   L: Integer;
@@ -357,16 +385,6 @@ begin
   FdAlphaChannel.SendEnumValue(Ord(Value));
 end;
 
-function TAppearanceNode.GetAlphaMode: TAlphaMode;
-begin
-  Result := TAlphaMode(FdAlphaMode.EnumValue);
-end;
-
-procedure TAppearanceNode.SetAlphaMode(const Value: TAlphaMode);
-begin
-  FdAlphaMode.SendEnumValue(Ord(Value));
-end;
-
 class function TAppearanceNode.ClassX3DType: String;
 begin
   Result := 'Appearance';
@@ -407,6 +425,16 @@ begin
    FdTextureTransform.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdTextureTransform);
 
+  FFdAlphaMode := TSFStringEnum.Create(Self, True, 'alphaMode', AlphaModeToString, Ord(amAuto));
+   FdAlphaMode.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAlphaMode);
+  { X3D specification comment: ["AUTO"|"OPAQUE"|"MASK"|"BLEND"] enumerated-type: TAlphaMode AlphaModeToString amAuto }
+
+  FFdAlphaCutoff := TSFFloat.Create(Self, True, 'alphaCutoff', 0.5);
+   FdAlphaCutoff.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAlphaCutoff);
+  { X3D specification comment: [0,1] }
+
   FFdReceiveShadows := TMFNode.Create(Self, False, 'receiveShadows', [TAbstractPunctualLightNode]);
    FdReceiveShadows.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdReceiveShadows);
@@ -444,11 +472,6 @@ begin
    FdAlphaChannel.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAlphaChannel);
   { X3D specification comment: ["AUTO"|"NONE"|"TEST"|"BLENDING"] enumerated-type: TAutoAlphaChannel AlphaToString acAuto }
-
-  FFdAlphaMode := TSFStringEnum.Create(Self, True, 'alphaMode', AlphaModeToString, Ord(amAuto));
-   FdAlphaMode.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdAlphaMode);
-  { X3D specification comment: ["AUTO"|"OPAQUE"|"MASK"|"BLEND"] enumerated-type: TAlphaMode AlphaModeToString amAuto }
 
   DefaultContainerField := 'appearance';
 end;

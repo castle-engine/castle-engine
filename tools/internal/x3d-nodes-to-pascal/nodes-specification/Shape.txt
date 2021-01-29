@@ -65,6 +65,10 @@ Appearance : X3DAppearanceNode {
   SFNode [in,out] texture          NULL [X3DTextureNode]
   SFNode [in,out] textureTransform NULL [X3DTextureTransformNode]
 
+  # X3D 4
+  SFString   [in,out]      alphaMode     "AUTO"      # ["AUTO"|"OPAQUE"|"MASK"|"BLEND"] enumerated-type: TAlphaMode AlphaModeToString amAuto
+  SFFloat    [in,out]      alphaCutoff   0.5         # [0,1]
+
   # EXTENSIONS:
   MFNode     []            receiveShadows  []           [X3DPunctualLightNode]
   SFBool     [in,out]      shadowCaster     TRUE
@@ -73,12 +77,7 @@ Appearance : X3DAppearanceNode {
   SFFloat    [in,out]      heightMapScale   0.01        # must be > 0, meaningful only if heightMap specified
   SFNode     [in,out]      blendMode        NULL        [BlendMode]
   MFNode     []            effects          []          [Effect]
-
-  # EXTENSIONS:
-  # Commented out to not be seen by x3d-nodes-to-pascal,
-  # this is implemented specially in Pascal.
   SFString   [in,out]      alphaChannel  "AUTO"      # ["AUTO"|"NONE"|"TEST"|"BLENDING"] enumerated-type: TAutoAlphaChannel AlphaToString acAuto
-  SFString   [in,out]      alphaMode     "AUTO"      # ["AUTO"|"OPAQUE"|"MASK"|"BLEND"] enumerated-type: TAlphaMode AlphaModeToString amAuto
 }
 
 FillProperties : X3DAppearanceChildNode {
