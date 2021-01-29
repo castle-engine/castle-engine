@@ -1,7 +1,9 @@
 X3DAppearanceChildNode : X3DNode {
+  x3d-nodes-to-pascal: auto-generate-more true
 }
 
 X3DAppearanceNode : X3DNode {
+  x3d-nodes-to-pascal: auto-generate-more true
 }
 
 X3DMaterialNode : X3DAppearanceChildNode {
@@ -80,6 +82,9 @@ Appearance : X3DAppearanceNode {
 }
 
 FillProperties : X3DAppearanceChildNode {
+  x3d-nodes-to-pascal: default-container-field fillProperties
+  x3d-nodes-to-pascal: auto-generate-more true
+
   SFBool  [in,out] filled     TRUE
   SFColor [in,out] hatchColor 1 1 1 [0,1]
   SFBool  [in,out] hatched    TRUE
@@ -87,6 +92,9 @@ FillProperties : X3DAppearanceChildNode {
 }
 
 LineProperties : X3DAppearanceChildNode {
+  x3d-nodes-to-pascal: default-container-field lineProperties
+  x3d-nodes-to-pascal: auto-generate-more true
+
   SFBool  [in,out] applied              TRUE
   SFInt32 [in,out] linetype             1    [1,Inf)
   SFFloat [in,out] linewidthScaleFactor 0    (-Inf,Inf)
@@ -155,6 +163,8 @@ Shape : X3DShapeNode {
 }
 
 TwoSidedMaterial : X3DMaterialNode {
+  x3d-nodes-to-pascal: auto-generate-more true
+
   SFFloat [in,out] ambientIntensity     0.2         [0,1]
   SFFloat [in,out] backAmbientIntensity 0.2         [0,1]
   SFColor [in,out] backDiffuseColor     0.8 0.8 0.8 [0,1]

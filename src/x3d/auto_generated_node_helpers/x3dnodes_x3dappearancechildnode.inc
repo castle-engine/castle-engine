@@ -25,11 +25,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TAbstractAppearanceChildNode ----------------------------------------------- }
+
+class function TAbstractAppearanceChildNode.ClassX3DType: String;
+begin
+  Result := 'X3DAppearanceChildNode';
+end;
+
+procedure TAbstractAppearanceChildNode.CreateNode;
+begin
+  inherited;
+end;
 
 {$endif read_implementation}

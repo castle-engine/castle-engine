@@ -174,21 +174,6 @@
   { Additional visual properties to be applied to all polygonal areas. }
   TFillPropertiesNode = class(TAbstractAppearanceChildNode)
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdFilled: TSFBool;
-    public property FdFilled: TSFBool read FFdFilled;
-
-    strict private FFdHatchColor: TSFColor;
-    public property FdHatchColor: TSFColor read FFdHatchColor;
-
-    strict private FFdHatched: TSFBool;
-    public property FdHatched: TSFBool read FFdHatched;
-
-    strict private FFdHatchStyle: TSFInt32;
-    public property FdHatchStyle: TSFInt32 read FFdHatchStyle;
-
     {$I auto_generated_node_helpers/x3dnodes_fillproperties.inc}
   end;
 
@@ -206,21 +191,8 @@
     function GetLineType: TLineType;
     procedure SetLineType(const Value: TLineType);
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdApplied: TSFBool;
-    public property FdApplied: TSFBool read FFdApplied;
-
-    strict private FFdLinetype: TSFInt32;
-    public property FdLinetype: TSFInt32 read FFdLinetype;
-
     { Line type (pattern). }
     property LineType: TLineType read GetLineType write SetLineType default ltSolid;
-
-    strict private FFdLinewidthScaleFactor: TSFFloat;
-    public property FdLinewidthScaleFactor: TSFFloat read FFdLinewidthScaleFactor;
-
     {$I auto_generated_node_helpers/x3dnodes_lineproperties.inc}
   end;
 
@@ -373,49 +345,9 @@
     var
       FMaterialInfo: TMaterialInfo;
   public
-    procedure CreateNode; override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     destructor Destroy; override;
-    class function ClassX3DType: string; override;
     function MaterialInfo: TMaterialInfo; override;
-
-    strict private FFdAmbientIntensity: TSFFloat;
-    public property FdAmbientIntensity: TSFFloat read FFdAmbientIntensity;
-
-    strict private FFdBackAmbientIntensity: TSFFloat;
-    public property FdBackAmbientIntensity: TSFFloat read FFdBackAmbientIntensity;
-
-    strict private FFdBackDiffuseColor: TSFColor;
-    public property FdBackDiffuseColor: TSFColor read FFdBackDiffuseColor;
-
-    strict private FFdBackEmissiveColor: TSFColor;
-    public property FdBackEmissiveColor: TSFColor read FFdBackEmissiveColor;
-
-    strict private FFdBackShininess: TSFFloat;
-    public property FdBackShininess: TSFFloat read FFdBackShininess;
-
-    strict private FFdBackSpecularColor: TSFColor;
-    public property FdBackSpecularColor: TSFColor read FFdBackSpecularColor;
-
-    strict private FFdBackTransparency: TSFFloat;
-    public property FdBackTransparency: TSFFloat read FFdBackTransparency;
-
-    strict private FFdDiffuseColor: TSFColor;
-    public property FdDiffuseColor: TSFColor read FFdDiffuseColor;
-
-    strict private FFdEmissiveColor: TSFColor;
-    public property FdEmissiveColor: TSFColor read FFdEmissiveColor;
-
-    strict private FFdShininess: TSFFloat;
-    public property FdShininess: TSFFloat read FFdShininess;
-
-    strict private FFdSeparateBackColor: TSFBool;
-    public property FdSeparateBackColor: TSFBool read FFdSeparateBackColor;
-
-    strict private FFdSpecularColor: TSFColor;
-    public property FdSpecularColor: TSFColor read FFdSpecularColor;
-
-    strict private FFdTransparency: TSFFloat;
-    public property FdTransparency: TSFFloat read FFdTransparency;
 
     {$I auto_generated_node_helpers/x3dnodes_twosidedmaterial.inc}
   end;
@@ -869,55 +801,6 @@ begin
     TAbstractSingleTextureNode(Texture).FdAlphaChannel.Value := MP.AlphaChannel;
 end;
 
-procedure TFillPropertiesNode.CreateNode;
-begin
-  inherited;
-
-  FFdFilled := TSFBool.Create(Self, true, 'filled', true);
-  AddField(FFdFilled);
-
-  FFdHatchColor := TSFColor.Create(Self, true, 'hatchColor', Vector3(1, 1, 1));
-  AddField(FFdHatchColor);
-  { X3D specification comment: [0,1] }
-
-  FFdHatched := TSFBool.Create(Self, true, 'hatched', true);
-  AddField(FFdHatched);
-
-  FFdHatchStyle := TSFInt32.Create(Self, true, 'hatchStyle', 1);
-  AddField(FFdHatchStyle);
-  { X3D specification comment: [0,Inf) }
-
-  DefaultContainerField := 'fillProperties';
-end;
-
-class function TFillPropertiesNode.ClassX3DType: string;
-begin
-  Result := 'FillProperties';
-end;
-
-procedure TLinePropertiesNode.CreateNode;
-begin
-  inherited;
-
-  FFdApplied := TSFBool.Create(Self, true, 'applied', true);
-  AddField(FFdApplied);
-
-  FFdLinetype := TSFInt32.Create(Self, true, 'linetype', 1);
-  AddField(FFdLinetype);
-  { X3D specification comment: [1,Inf) }
-
-  FFdLinewidthScaleFactor := TSFFloat.Create(Self, true, 'linewidthScaleFactor', 0);
-  AddField(FFdLinewidthScaleFactor);
-  { X3D specification comment: (-Inf,Inf) }
-
-  DefaultContainerField := 'lineProperties';
-end;
-
-class function TLinePropertiesNode.ClassX3DType: string;
-begin
-  Result := 'LineProperties';
-end;
-
 function TLinePropertiesNode.GetLineType: TLineType;
 begin
   case FdLineType.Value of
@@ -1352,84 +1235,17 @@ end;
 
 { TTwoSidedMaterialNode ------------------------------------------------------ }
 
-procedure TTwoSidedMaterialNode.CreateNode;
+constructor TTwoSidedMaterialNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
-
-  FFdAmbientIntensity := TSFFloat.Create(Self, true, 'ambientIntensity', 0.2);
-   FdAmbientIntensity.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdAmbientIntensity);
-  { X3D specification comment: [0,1] }
-
-  FFdBackAmbientIntensity := TSFFloat.Create(Self, true, 'backAmbientIntensity', 0.2);
-   FdBackAmbientIntensity.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdBackAmbientIntensity);
-  { X3D specification comment: [0,1] }
-
-  FFdBackDiffuseColor := TSFColor.Create(Self, true, 'backDiffuseColor', Vector3(0.8, 0.8, 0.8));
-   FdBackDiffuseColor.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdBackDiffuseColor);
-  { X3D specification comment: [0,1] }
-
-  FFdBackEmissiveColor := TSFColor.Create(Self, true, 'backEmissiveColor', Vector3(0, 0, 0));
-   FdBackEmissiveColor.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdBackEmissiveColor);
-  { X3D specification comment: [0,1] }
-
-  FFdBackShininess := TSFFloat.Create(Self, true, 'backShininess', 0.2);
-   FdBackShininess.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdBackShininess);
-  { X3D specification comment: [0,1] }
-
-  FFdBackSpecularColor := TSFColor.Create(Self, true, 'backSpecularColor', Vector3(0, 0, 0));
-   FdBackSpecularColor.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdBackSpecularColor);
-  { X3D specification comment: [0,1] }
-
-  FFdBackTransparency := TSFFloat.Create(Self, true, 'backTransparency', 0);
-   FdBackTransparency.ChangeAlways := chAlphaChannel;
-  AddField(FFdBackTransparency);
-  { X3D specification comment: [0,1] }
-
-  FFdDiffuseColor := TSFColor.Create(Self, true, 'diffuseColor', Vector3(0.8, 0.8, 0.8));
-   FdDiffuseColor.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdDiffuseColor);
-  { X3D specification comment: [0,1] }
-
-  FFdEmissiveColor := TSFColor.Create(Self, true, 'emissiveColor', Vector3(0, 0, 0));
-   FdEmissiveColor.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdEmissiveColor);
-  { X3D specification comment: [0,1] }
-
-  FFdShininess := TSFFloat.Create(Self, true, 'shininess', 0.2);
-   FdShininess.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdShininess);
-  { X3D specification comment: [0,1] }
-
-  FFdSeparateBackColor := TSFBool.Create(Self, true, 'separateBackColor', false);
-   FdSeparateBackColor.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdSeparateBackColor);
-
-  FFdSpecularColor := TSFColor.Create(Self, true, 'specularColor', Vector3(0, 0, 0));
-   FdSpecularColor.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdSpecularColor);
-  { X3D specification comment: [0,1] }
-
-  FFdTransparency := TSFFloat.Create(Self, true, 'transparency', 0);
-   FdTransparency.ChangeAlways := chAlphaChannel;
-  AddField(FFdTransparency);
-  { X3D specification comment: [0,1] }
+  FdBackTransparency.ChangeAlways := chAlphaChannel;
+  FdTransparency.ChangeAlways := chAlphaChannel;
 end;
 
 destructor TTwoSidedMaterialNode.Destroy;
 begin
   FreeAndNil(FMaterialInfo);
   inherited;
-end;
-
-class function TTwoSidedMaterialNode.ClassX3DType: string;
-begin
-  Result := 'TwoSidedMaterial';
 end;
 
 function TTwoSidedMaterialNode.MaterialInfo: TMaterialInfo;
