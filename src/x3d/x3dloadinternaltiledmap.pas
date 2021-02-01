@@ -126,7 +126,10 @@ var
     Tileset: TTiledMap.TTileset;            // A Tileset.
     I: Cardinal;
 
-    { Get the associated tileset of a specific tile by the tileset's FirstGID. }
+    { Get the associated tileset of a specific tile by the tileset's FirstGID.
+
+      TODO : Handle flipped tiles. The tileset alloction may be wrong otherwise!
+      }
     function GetTilesetOfTile(const ATileGID: Cardinal): TTiledMap.TTileset;
     var
       J: Cardinal;
@@ -137,27 +140,41 @@ var
       else
       begin
         { "In order to find out from which tileset the tile is you need to find
-           the tileset with the highest firstgid that is still lower or equal
-           than the gid.The tilesets are always stored with increasing
-           firstgids."
+          the tileset with the highest firstgid that is still lower or equal
+          than the gid.The tilesets are always stored with increasing
+          firstgids."
           (https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#tmx-data) }
         for J := 1 to Map.Tilesets.Count - 1 do
         begin
           if ATileGID >= (Map.Tilesets.Items[J] as TTiledMap.TTileset).FirstGID then
             Result := Map.Tilesets.Items[J];
         end;
+
+        { "The highest three bits of the gid store the flipped states. Bit 32 is
+          used for storing whether the tile is horizontally flipped, bit 31 is used
+          for the vertically flipped tiles and bit 30 indicates whether the tile is
+          flipped (anti) diagonally, enabling tile rotation. These bits have to be
+          read and cleared before you can find out which tileset a tile belongs to."
+          https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#data }
+
+        { TODO : Handle flipped tiles! }
       end;
     end;
 
-    { Get a specific tile by its ID from a specific tileset. }
+    { Get a specific tile by its GID from a specific tileset. }
     function GetTileFromTileset(ATileGID: Cardinal; ATileset: TTiledMap.TTileset): TTiledMap.TTile;
     var
       J: Cardinal;
+      TilesetTileGID: Cardinal; // TTile.Id are local with resp. to tileset
     begin
       Result := nil;
       for J := 0 to ATileset.Tiles.Count - 1 do
       begin
-        if (ATileset.Tiles.Items[J] as TTiledMap.TTile).Id = ATileGID then
+        { Convert local tile id to GID. }
+        TilesetTileGID := ATileset.FirstGID +
+          (ATileset.Tiles.Items[J] as TTiledMap.TTile).Id;
+
+        if TilesetTileGID = ATileGID then
         begin
           Result := ATileset.Tiles.Items[J];
           Exit;
@@ -168,11 +185,17 @@ var
   begin
     Result := TTransformNode.Create;        // The resulting layer node.
 
+    { Run through tile GIDs of this tile layer found in ALayer.Data.Data. }
     for I := 0 to High(ALayer.Data.Data) do
     begin
+      { All GIDs of tiles seem to be off by 1 (e.g. tiles with GID 29 in Tiled
+        editor have GID of 30 here. }
+      //Writeln(I, ' --> GID: ', ALayer.Data.Data[I]);
       Tileset := GetTilesetOfTile(ALayer.Data.Data[I]);
       Tile := GetTileFromTileset(ALayer.Data.Data[I], Tileset);
 
+      //writeln('Local Tile ID: ', Tile.Id, ' --> Tileset: ',
+      //  Tileset.Name, ' (FGID: ', Tileset.FirstGID, ')');
     end;
   end;
 
