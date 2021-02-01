@@ -126,6 +126,17 @@ var
     Tileset: TTiledMap.TTileset;            // A Tileset.
     I: Cardinal;
 
+    { The X3D tile node are constructred from these nodes. }
+    TileShapeNode: TShapeNode;
+    TileMaterialNode: TMaterialNode;
+    TileImageTexNode: TImageTextureNode;
+    TileTexPropertiesNode: TTexturePropertiesNode;
+    CoordNode: TCoordinateNode;
+    TexCoordNode: TTextureCoordinateNode;
+    TriSetNode: TTriangleSetNode;
+
+
+
     { Get the associated tileset of a specific tile by the tileset's FirstGID.
 
       TODO : Handle flipped tiles. The tileset alloction may be wrong otherwise!
@@ -188,14 +199,57 @@ var
     { Run through tile GIDs of this tile layer found in ALayer.Data.Data. }
     for I := 0 to High(ALayer.Data.Data) do
     begin
-      { All GIDs of tiles seem to be off by 1 (e.g. tiles with GID 29 in Tiled
-        editor have GID of 30 here. }
+      { Get tileset and tile ready to prepare "x3d tile node". }
       //Writeln(I, ' --> GID: ', ALayer.Data.Data[I]);
       Tileset := GetTilesetOfTile(ALayer.Data.Data[I]);
       Tile := GetTileFromTileset(ALayer.Data.Data[I], Tileset);
-
       //writeln('Local Tile ID: ', Tile.Id, ' --> Tileset: ',
       //  Tileset.Name, ' (FGID: ', Tileset.FirstGID, ')');
+
+      { Create "x3d tile node" for each tile. }
+      // For testing only the first tile should be handled! Delete later!
+      if I > 0 then
+        Continue;
+
+      TileShapeNode := TShapeNode.Create;
+      TileShapeNode.Appearance := TAppearanceNode.Create;
+
+      { Define material of X3D tile. }
+      TileMaterialNode := TMaterialNode.Create;
+      TileMaterialNode.DiffuseColor := Vector3(0, 0, 0);
+      TileMaterialNode.SpecularColor := Vector3(0, 0, 0);
+      TileMaterialNode.AmbientIntensity := 0;
+      TileMaterialNode.EmissiveColor := Vector3(1, 1, 1);
+      TileShapeNode.Material := TileMaterialNode;
+
+      TileImageTexNode := TImageTextureNode.Create;
+      TileImageTexNode.RepeatS := false;
+      TileImageTexNode.RepeatT := false;
+      TileImageTexNode.SetUrl(['castle-data:/tmw_desert_spacing.png']);
+      TileTexPropertiesNode:= TTexturePropertiesNode.Create;
+      TileTexPropertiesNode.FdMagnificationFilter.Send('NEAREST_PIXEL');
+      TileTexPropertiesNode.FdMinificationFilter.Send('NEAREST_PIXEL');
+      TileImageTexNode.FdTextureProperties.Value := TileTexPropertiesNode;
+
+      TileShapeNode.Texture := TileImageTexNode;
+
+      TriSetNode := TTriangleSetNode.Create;
+      TriSetNode.Solid := false;
+      TileShapeNode.FdGeometry.Value := TriSetNode;
+
+      CoordNode := TCoordinateNode.Create;
+      TexCoordNode := TTextureCoordinateNode.Create;
+
+      CoordNode.FdPoint.Items.AddRange([Vector3(0, 0, 0), Vector3(1, 0, 0), Vector3(0, 1, 0)]);
+      TexCoordNode.FdPoint.Items.AddRange([Vector2(0, 0), Vector2(1, 0), Vector2(0, 1)]);
+
+      TriSetNode.FdCoord.Value := CoordNode;
+      TriSetNode.FdTexCoord.Value := TexCoordNode;
+
+      //CoordNode.FdPoint.Items.Capacity := VERTEX_BUFFER;
+      //TexCoordNode.FdPoint.Items.Capacity := VERTEX_BUFFER;
+
+      Result.AddChildren(TileShapeNode);
     end;
   end;
 
