@@ -1220,13 +1220,7 @@ var
       {$endif}
     end;
     Result.AlphaMode := AlphaMode;
-
-    // TODO: ignored for now:
-    // Result.AlphaClipThreshold := Material.AlphaCutOff;
-    // Implement AlphaClipThreshold from X3DOM / InstantReality:
-    // https://doc.x3dom.org/author/Shape/Appearance.html
-    // https://www.x3dom.org/news/
-    // (our default 0.5?)
+    Result.AlphaCutOff := Material.AlphaCutOff;
   end;
 
   function AccessorTypeToStr(const AccessorType: TPasGLTF.TAccessor.TType): String;
