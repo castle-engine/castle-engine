@@ -252,7 +252,7 @@
           "$ClassName" : "TCastleButton"
         },
         {
-          "Caption" : "Test WorldRayCollision",
+          "Caption" : "Test WorldRayCast",
           "CustomBackgroundDisabled" : {
             "$ClassName" : "TCastleImagePersistent"
           },
