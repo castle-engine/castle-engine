@@ -230,24 +230,36 @@ type
     strict private
       FAnimation: TCastleSpriteSheetAnimation;
 
-      FX: Integer; // x on image
-      FY: Integer; // y on image
-      FWidth: Integer; // width on image
-      FHeight: Integer; // height on image
-      FFrameX: Integer; // relative frame x coordinate
-      FFrameY: Integer; // relative frame y coordinate
-      FFrameWidth: Integer; // real frame width (if not present Width have real frame width)
-      FFrameHeight: Integer; // real frame height (if not present Width have real frame height)
+      FXInAtlas: Integer; // x in atlas
+      FYInAtlas: Integer; // y in atlas
+      FWidthInAtlas: Integer; // width in atlas, this always will be shape width
+      FHeightInAtlas: Integer; // height in atlas, this always will be shape height
 
-      FTrimmed: Boolean; // FrameX, FrameY, FrameWidth, FrameHeight has real values?
+      { When frame is trimmed, then atlas rect is not full size of the
+        frame. So our shape is smaller too, to make it apear in right place we
+        need shift all the coordinates of the our shape. We do that by calculating
+        anchor from XOffset, FrameWidth, and shift vertices coordinates.
+        See TCastleSpriteSheetX3DExporter.CalculateAnchors().
+
+        In default Anchor is 0.5, 0.5 so shape is centered, when
+        (FrameWidth - WidthInAtlas) / 2 = XOffset anchor will be 0.5
+        but when XOffset * 2 + WidthInAtlas <> FrameWidth anchor will change
+        and shape coords will be shifted.
+      }
+      FTrimmed: Boolean; // is frame trimmed ?
+      FXOffset: Integer; // relative x cord offset, used for trimming
+      FYOffset: Integer; // relative y cord offset, used for trimming
+      FFrameWidth: Integer; // real frame width
+      FFrameHeight: Integer; // real frame height
+
       FFrameImage: TCastleImage; // Full frame image (even trimmed here is with margins)
 
-      procedure SetX(const NewX: Integer);
-      procedure SetY(const NewY: Integer);
-      procedure SetWidth(const NewWidth: Integer);
-      procedure SetHeight(const NewHeight: Integer);
-      procedure SetFrameX(const NewFrameX: Integer);
-      procedure SetFrameY(const NewFrameY: Integer);
+      procedure SetXInAtlas(const NewX: Integer);
+      procedure SetYInAtlas(const NewY: Integer);
+      procedure SetWidthInAtlas(const NewWidth: Integer);
+      procedure SetHeightInAtlas(const NewHeight: Integer);
+      procedure SetXOffset(const NewFrameX: Integer);
+      procedure SetYOffset(const NewFrameY: Integer);
       procedure SetFrameWidth(const NewFrameWidth: Integer);
       procedure SetFrameHeight(const NewFrameHeight: Integer);
       procedure SetTrimmed(const NewTrimmed: Boolean);
@@ -283,12 +295,12 @@ type
       class function FlipYCoordToCGE(StarlingY, ImageHeight:Integer): Integer;
       class function FlipYCoordToCGE(StarlingY, Height, ImageHeight:Integer): Integer;
 
-      property X: Integer read FX write SetX;
-      property Y: Integer read FY write SetY;
-      property Width: Integer read FWidth write SetWidth;
-      property Height: Integer read FHeight write SetHeight;
-      property FrameX: Integer read FFrameX write SetFrameX;
-      property FrameY: Integer read FFrameY write SetFrameY;
+      property XInAtlas: Integer read FXInAtlas write SetXInAtlas;
+      property YInAtlas: Integer read FYInAtlas write SetYInAtlas;
+      property WidthInAtlas: Integer read FWidthInAtlas write SetWidthInAtlas;
+      property HeightInAtlas: Integer read FHeightInAtlas write SetHeightInAtlas;
+      property XOffset: Integer read FXOffset write SetXOffset;
+      property YOffset: Integer read FYOffset write SetYOffset;
       property FrameWidth: Integer read FFrameWidth write SetFrameWidth;
       property FrameHeight: Integer read FFrameHeight write SetFrameHeight;
       property Trimmed: Boolean read FTrimmed write SetTrimmed;
@@ -627,7 +639,7 @@ begin
     with the size set to 0 so we need check this here (division by zero error)
     example:
     https://github.com/pammimeow/fatty-starling-as3-game/blob/master/assets/sprite%20elements.xml }
-  if Frame.Trimmed and (Frame.Width <> 0) and (Frame.Height <> 0) then
+  if Frame.Trimmed and (Frame.WidthInAtlas <> 0) and (Frame.HeightInAtlas <> 0) then
   begin
     { When frame is trimmed Width and Height does not mean the full size
       of the frame, so we have to calculate the appropriate
@@ -635,12 +647,12 @@ begin
 
     { Anchor in pixels (Without translation to correct texture point
       because we don't need that. Just add X1, Y1 to have correct position.) }
-    FrameAnchorX := Frame.FrameWidth div 2 + Frame.FrameX;
-    FrameAnchorY := Frame.FrameHeight div 2 + Frame.FrameY;
+    FrameAnchorX := Frame.FrameWidth div 2 + Frame.XOffset;
+    FrameAnchorY := Frame.FrameHeight div 2 + Frame.YOffset;
 
     { Convert to 0.0..1.0 coordinate system }
-    AnchorX := 1 / Frame.Width * FrameAnchorX;
-    AnchorY := 1 / Frame.Height * FrameAnchorY;
+    AnchorX := 1 / Frame.WidthInAtlas * FrameAnchorX;
+    AnchorY := 1 / Frame.HeightInAtlas * FrameAnchorY;
   end else
   begin
     AnchorX := 0.5;
@@ -651,33 +663,33 @@ end;
 procedure TCastleSpriteSheetX3DExporter.PrepareTexCordsForX3D(
   const Frame: TCastleSpriteSheetFrame; const ImageWidth, ImageHeight: Integer);
 begin
-  X1 := 1 / FSpriteSheet.AtlasWidth * Frame.X;
-  Y1 := 1 / FSpriteSheet.AtlasHeight * Frame.Y;
-  X2 := 1 / FSpriteSheet.AtlasWidth * (Frame.X + Frame.Width);
-  Y2 := 1 / FSpriteSheet.AtlasHeight * (Frame.Y + Frame.Height);
+  X1 := 1 / FSpriteSheet.AtlasWidth * Frame.XInAtlas;
+  Y1 := 1 / FSpriteSheet.AtlasHeight * Frame.YInAtlas;
+  X2 := 1 / FSpriteSheet.AtlasWidth * (Frame.XInAtlas + Frame.WidthInAtlas);
+  Y2 := 1 / FSpriteSheet.AtlasHeight * (Frame.YInAtlas + Frame.HeightInAtlas);
 end;
 
 procedure TCastleSpriteSheetX3DExporter.CalculateFrameCoords(
   const Frame: TCastleSpriteSheetFrame);
 begin
   CalculateAnchors(Frame);
-  FCoordArray[0] := Vector3(-Frame.Width * (AnchorX),
-      -Frame.Height * (1 - AnchorY), 0);
+  FCoordArray[0] := Vector3(-Frame.WidthInAtlas * (AnchorX),
+      -Frame.HeightInAtlas * (1 - AnchorY), 0);
 
-  FCoordArray[1] := Vector3(Frame.Width * (1 - AnchorX),
-      -Frame.Height * (1 - AnchorY), 0);
+  FCoordArray[1] := Vector3(Frame.WidthInAtlas * (1 - AnchorX),
+      -Frame.HeightInAtlas * (1 - AnchorY), 0);
 
-  FCoordArray[2] := Vector3(Frame.Width * (1 - AnchorX),
-      Frame.Height * AnchorY, 0);
+  FCoordArray[2] := Vector3(Frame.WidthInAtlas * (1 - AnchorX),
+      Frame.HeightInAtlas * AnchorY, 0);
 
-  FCoordArray[3] := Vector3(-Frame.Width * AnchorX,
-      -Frame.Height * (1 - AnchorY), 0);
+  FCoordArray[3] := Vector3(-Frame.WidthInAtlas * AnchorX,
+      -Frame.HeightInAtlas * (1 - AnchorY), 0);
 
-  FCoordArray[4] := Vector3(Frame.Width * (1 - AnchorX),
-      Frame.Height * AnchorY, 0);
+  FCoordArray[4] := Vector3(Frame.WidthInAtlas * (1 - AnchorX),
+      Frame.HeightInAtlas * AnchorY, 0);
 
-  FCoordArray[5] := Vector3(-Frame.Width * AnchorX,
-      Frame.Height * AnchorY, 0);
+  FCoordArray[5] := Vector3(-Frame.WidthInAtlas * AnchorX,
+      Frame.HeightInAtlas * AnchorY, 0);
 
   PrepareTexCordsForX3D(Frame, FSpriteSheet.FAtlasWidth, FSpriteSheet.FAtlasHeight);
 
@@ -849,8 +861,8 @@ var
 
       for J := 0 to Animation.FrameCount - 1 do
       begin
-        BigestFrameWidth := Max(BigestFrameWidth, Animation.Frame[J].Width);
-        BigestFrameHeight := Max(BigestFrameHeight, Animation.Frame[J].Height);
+        BigestFrameWidth := Max(BigestFrameWidth, Animation.Frame[J].WidthInAtlas);
+        BigestFrameHeight := Max(BigestFrameHeight, Animation.Frame[J].HeightInAtlas);
       end;
     end;
   end;
@@ -860,8 +872,8 @@ var
   begin
     if Operation = loArrange then
     begin
-      AFrame.X := X;
-      AFrame.Y := Y;
+      AFrame.XInAtlas := X;
+      AFrame.YInAtlas := Y;
     end;
   end;
 
@@ -958,7 +970,7 @@ begin
     begin
       Frame := Animation.Frame[J];
 
-      Frame.DrawToImage(FSpriteSheet.FGeneratedAtlas, Frame.X, Frame.Y, 0, 0,
+      Frame.DrawToImage(FSpriteSheet.FGeneratedAtlas, Frame.XInAtlas, Frame.YInAtlas, 0, 0,
         Frame.FrameWidth, Frame.FrameHeight);
     end;
   end;
@@ -1030,14 +1042,14 @@ begin
       RootNode.AppendChild(SubTextureNode);
 
       TDOMElement(SubTextureNode).SetAttribute('name', Animation.Name + '_' + IntToStr(J + 1));
-      TDOMElement(SubTextureNode).SetAttribute('x', IntToStr(Frame.X));
-      TDOMElement(SubTextureNode).SetAttribute('y', IntToStr(FSpriteSheet.AtlasHeight - Frame.Y - Frame.Height));
-      TDOMElement(SubTextureNode).SetAttribute('width', IntToStr(Frame.Width));
-      TDOMElement(SubTextureNode).SetAttribute('height', IntToStr(Frame.Height));
+      TDOMElement(SubTextureNode).SetAttribute('x', IntToStr(Frame.XInAtlas));
+      TDOMElement(SubTextureNode).SetAttribute('y', IntToStr(FSpriteSheet.AtlasHeight - Frame.YInAtlas - Frame.HeightInAtlas));
+      TDOMElement(SubTextureNode).SetAttribute('width', IntToStr(Frame.WidthInAtlas));
+      TDOMElement(SubTextureNode).SetAttribute('height', IntToStr(Frame.HeightInAtlas));
       if Frame.Trimmed then
       begin
-        TDOMElement(SubTextureNode).SetAttribute('frameX', IntToStr(Frame.FrameX));
-        TDOMElement(SubTextureNode).SetAttribute('frameY', IntToStr(Frame.FrameHeight - Frame.FrameY - Frame.Height));
+        TDOMElement(SubTextureNode).SetAttribute('frameX', IntToStr(Frame.XOffset));
+        TDOMElement(SubTextureNode).SetAttribute('frameY', IntToStr(Frame.FrameHeight - Frame.YOffset - Frame.HeightInAtlas));
         TDOMElement(SubTextureNode).SetAttribute('frameWidth', IntToStr(Frame.FrameWidth));
         TDOMElement(SubTextureNode).SetAttribute('frameHeight', IntToStr(Frame.FrameHeight));
       end;
@@ -1050,57 +1062,57 @@ end;
 
 { TCastleSpriteSheetFrame }
 
-procedure TCastleSpriteSheetFrame.SetX(const NewX: Integer);
+procedure TCastleSpriteSheetFrame.SetXInAtlas(const NewX: Integer);
 begin
-  if FX = NewX then
+  if FXInAtlas = NewX then
     Exit;
 
-  FX := NewX;
+  FXInAtlas := NewX;
   SetModifiedState;
 end;
 
-procedure TCastleSpriteSheetFrame.SetY(const NewY: Integer);
+procedure TCastleSpriteSheetFrame.SetYInAtlas(const NewY: Integer);
 begin
-  if FY = NewY then
+  if FYInAtlas = NewY then
     Exit;
 
-  FY := NewY;
+  FYInAtlas := NewY;
   SetModifiedState;
 end;
 
-procedure TCastleSpriteSheetFrame.SetWidth(const NewWidth: Integer);
+procedure TCastleSpriteSheetFrame.SetWidthInAtlas(const NewWidth: Integer);
 begin
-  if FWidth = NewWidth then
+  if FWidthInAtlas = NewWidth then
     Exit;
 
-  FWidth := NewWidth;
+  FWidthInAtlas := NewWidth;
   SetModifiedState;
 end;
 
-procedure TCastleSpriteSheetFrame.SetHeight(const NewHeight: Integer);
+procedure TCastleSpriteSheetFrame.SetHeightInAtlas(const NewHeight: Integer);
 begin
-  if FHeight = NewHeight then
+  if FHeightInAtlas = NewHeight then
     Exit;
 
-  FHeight := NewHeight;
+  FHeightInAtlas := NewHeight;
   SetModifiedState;
 end;
 
-procedure TCastleSpriteSheetFrame.SetFrameX(const NewFrameX: Integer);
+procedure TCastleSpriteSheetFrame.SetXOffset(const NewFrameX: Integer);
 begin
-  if FFrameX = NewFrameX then
+  if FXOffset = NewFrameX then
     Exit;
 
-  FFrameX := NewFrameX;
+  FXOffset := NewFrameX;
   SetModifiedState;
 end;
 
-procedure TCastleSpriteSheetFrame.SetFrameY(const NewFrameY: Integer);
+procedure TCastleSpriteSheetFrame.SetYOffset(const NewFrameY: Integer);
 begin
-  if FFrameY = NewFrameY then
+  if FYOffset = NewFrameY then
     Exit;
 
-  FFrameY := NewFrameY;
+  FYOffset := NewFrameY;
   SetModifiedState;
 end;
 
@@ -1150,13 +1162,13 @@ constructor TCastleSpriteSheetFrame.Create(
 begin
   Create(Animation);
 
-  FX := SrcFrame.FX;
-  FY := SrcFrame.FX;
+  FXInAtlas := SrcFrame.FXInAtlas;
+  FYInAtlas := SrcFrame.FXInAtlas;
 
-  FWidth := SrcFrame.FWidth;
-  FHeight := SrcFrame.FHeight;
-  FFrameX := SrcFrame.FFrameX;
-  FFrameY := SrcFrame.FFrameY;
+  FWidthInAtlas := SrcFrame.FWidthInAtlas;
+  FHeightInAtlas := SrcFrame.FHeightInAtlas;
+  FXOffset := SrcFrame.FXOffset;
+  FYOffset := SrcFrame.FYOffset;
   FFrameWidth := SrcFrame.FFrameWidth;
   FFrameHeight := SrcFrame.FFrameHeight;
 
@@ -1181,11 +1193,11 @@ end;
 procedure TCastleSpriteSheetFrame.SetFrameImage(const SourceImage: TCastleImage);
 begin
   FreeAndNil(FFrameImage);
-  Width := SourceImage.Width;
-  Height := SourceImage.Height;
+  WidthInAtlas := SourceImage.Width;
+  HeightInAtlas := SourceImage.Height;
 
-  FrameX := 0;
-  FrameY := 0;
+  XOffset := 0;
+  YOffset := 0;
   FrameWidth := SourceImage.Width;
   FrameHeight := SourceImage.Height;
 
@@ -1200,13 +1212,13 @@ begin
   Trimmed := not ((DestX = 0) and (DestY = 0));
 
   { update frame settings }
-  X := SourceX;
-  Y := SourceY;
-  Width := SourceWidthToCopy;
-  Height := SourceHeightToCopy;
+  XInAtlas := SourceX;
+  YInAtlas := SourceY;
+  WidthInAtlas := SourceWidthToCopy;
+  HeightInAtlas := SourceHeightToCopy;
 
-  FrameX := DestX;
-  FrameY := DestY;
+  XOffset := DestX;
+  YOffset := DestY;
 
   FrameWidth := AFrameWidth;
   FrameHeight := AFrameHeight;
@@ -1214,19 +1226,19 @@ begin
   FreeAndNil(FFrameImage);
 
   if not Trimmed then
-    FFrameImage := SourceImage.MakeExtracted(X, Y, Width, Height)
+    FFrameImage := SourceImage.MakeExtracted(XInAtlas, YInAtlas, WidthInAtlas, HeightInAtlas)
   else
   begin
     { When Image is trimmed we can't simply extract image part }
     FFrameImage := TCastleImageClass(SourceImage.ClassType).Create(FrameWidth, FrameHeight, SourceImage.Depth);
     FFrameImage.Clear(Vector4Byte(0, 0, 0, 0));
     FFrameImage.DrawFrom(SourceImage,
-      FrameX, // destination X
-      FrameY, // destination Y
-      X, // source X
-      Y, // source Y
-      Width,
-      Height,
+      XOffset, // destination XInAtlas
+      YOffset, // destination YInAtlas
+      XInAtlas, // source XInAtlas
+      YInAtlas, // source YInAtlas
+      WidthInAtlas,
+      HeightInAtlas,
       dmOverwrite
     );
   end;
@@ -1351,24 +1363,24 @@ begin
   { When we load for  }
   if not FLoadForEdit then
   begin
-    Frame.Width := FSubTexture.Width;
-    Frame.Height := FSubTexture.Height;
+    Frame.WidthInAtlas := FSubTexture.Width;
+    Frame.HeightInAtlas := FSubTexture.Height;
     Frame.Trimmed := FSubTexture.Trimmed;
-    Frame.X := FSubTexture.X;
-    Frame.Y := YInCGECoords;
+    Frame.XInAtlas := FSubTexture.X;
+    Frame.YInAtlas := YInCGECoords;
     if Frame.Trimmed then
     begin
       Frame.FrameWidth := FSubTexture.FrameWidth;
       Frame.FrameHeight := FSubTexture.FrameHeight;
-      Frame.FrameX := FSubTexture.FrameX;
-      Frame.FrameY := FrameYInCGECoords;
+      Frame.XOffset := FSubTexture.FrameX;
+      Frame.YOffset := FrameYInCGECoords;
     end else
     begin
       // make data always OK
-      Frame.FrameX := 0;
-      Frame.FrameY := 0;
-      Frame.FrameWidth := Frame.Width;
-      Frame.FrameHeight := Frame.Height;
+      Frame.XOffset := 0;
+      Frame.YOffset := 0;
+      Frame.FrameWidth := Frame.WidthInAtlas;
+      Frame.FrameHeight := Frame.HeightInAtlas;
     end;
     Exit;
   end;
