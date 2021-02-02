@@ -54,6 +54,8 @@ type
       FLoadedAtlasPath: String;
       FRelativeAtlasPath: String;
 
+      FEditMode: Boolean;
+
       FModifiedState: Boolean;
       FLoadingPending: Boolean;
       FOnURLChanged: TNotifyEvent;
@@ -89,7 +91,7 @@ type
       { Removes ModifiedState changing blocking }
       procedure EndLoad;
     public
-      constructor Create;
+      constructor Create(AEditMode: Boolean);
       destructor Destroy; override;
 
       { Returns true if spritesheet was modified }
@@ -102,8 +104,11 @@ type
 
       class function LoadToX3D(const URL: String): TX3DRootNode;
 
+      function ToX3D: TX3DRootNode;
+
       { Arranges and creates atlas image }
       procedure RegenerateAtlas;
+      { This checks: Have all frames loaded frame images? }
       function AtlasCanBeRegenrated: Boolean;
       procedure SetMaxAtlasSize(const NewMaxAtlasWidth,
           NewMaxAtlasHeight: Integer);
@@ -175,6 +180,7 @@ type
       property AtlasHeight: Integer read FAtlasHeight;
       property MaxAtlasWidth: Integer read FMaxAtlasWidth;
       property MaxAtlasHeight: Integer read FMaxAtlasHeight;
+      property EditMode: Boolean read FEditMode;
   end;
 
   TCastleSpriteSheetAnimation = class
@@ -336,6 +342,9 @@ type
   ECastleSpriteSheetAtlasToSmall = class(Exception);
   ECantRegenerateAtlas = class(Exception);
 
+var
+  InternalDirectCastleSpriteSheetToX3DLoad: Boolean = false;
+
 implementation
 
 uses StrUtils, DOM, Math,
@@ -475,6 +484,8 @@ type
       { Animation list to check if the file has any mixed SubTexture nodes. }
       FAnimationList: TStringList;
 
+      FLoadForEdit: Boolean;
+
     procedure ReadImportSettings;
 
     procedure ReadImageProperties(const URL: String; const AtlasNode: TDOMElement);
@@ -486,7 +497,7 @@ type
     procedure Load(LoadTarget: TLoadStrategy);
 
   public
-    constructor Create(const URL: String);
+    constructor Create(const URL: String; LoadForEdit: Boolean);
     destructor Destroy; override;
 
     function LoadToX3D: TX3DRootNode;
@@ -495,13 +506,302 @@ type
   end;
 
   TCastleSpriteSheetXMLExporter = class
-    private
-      FSpriteSheet: TCastleSpriteSheet;
-    public
-      constructor Create(const SpriteSheet: TCastleSpriteSheet);
+  strict private
+    FSpriteSheet: TCastleSpriteSheet;
+  public
+    constructor Create(const SpriteSheet: TCastleSpriteSheet);
 
-      function ExportToXML: TXMLDocument;
+    function ExportToXML: TXMLDocument;
   end;
+
+
+  TCastleSpriteSheetX3DExporter = class
+  strict private
+    FRoot: TX3DRootNode;
+    FShapeCoord: TCoordinateNode;
+    FShapeTexCoord: TTextureCoordinateNode;
+
+    FCoordArray: array of TVector3;
+    FTexCoordArray: array of TVector2;
+
+    TimeSensor: TTimeSensorNode;
+    CoordInterp: TCoordinateInterpolatorNode;
+    TexCoordInterp: TCoordinateInterpolator2DNode;
+
+    { Current frame tex cords and anchors }
+    X1: Single;
+    Y1: Single;
+    X2: Single;
+    Y2: Single;
+    AnchorX: Single;
+    AnchorY: Single;
+
+    FSpriteSheet: TCastleSpriteSheet;
+
+    procedure PrepareContainer;
+
+    procedure CalculateAnchors(const Frame: TCastleSpriteSheetFrame);
+    procedure PrepareTexCordsForX3D(const Frame: TCastleSpriteSheetFrame;
+      const ImageWidth, ImageHeight: Integer);
+    { In case of X3D here we calculate anchors and set frame cords }
+    procedure CalculateFrameCoords(const Frame: TCastleSpriteSheetFrame);
+
+    { In case of X3D here we create TimeSensor, CoordInterp,
+      TexCoordInterp for animation }
+    procedure PrepareAnimation(const Name: String);
+    { In case of X3D here we add TimeSensor, CoordInterp, TexCoordInterp
+      and routes to root }
+    procedure AddAnimation(const Animation: TCastleSpriteSheetAnimation);
+    { In case of X3D here we add frame coords to CoordInterp and TexCoordInterp }
+    procedure AddFrame;
+  public
+    constructor Create(const SpriteSheet: TCastleSpriteSheet);
+
+    function ExportToX3D: TX3DRootNode;
+  end;
+
+{ TCastleSpriteSheetX3DExporter }
+
+procedure TCastleSpriteSheetX3DExporter.PrepareContainer;
+var
+  Shape: TShapeNode;
+  Tri: TTriangleSetNode;
+  Tex: TAbstractTextureNode;
+begin
+  FRoot.Meta['generator'] := 'Castle Game Engine, https://castle-engine.io';
+  FRoot.Meta['source'] := ExtractURIName(FSpriteSheet.URL);
+
+  Shape := TShapeNode.Create;
+  Shape.Material := TUnlitMaterialNode.Create;
+
+  if FSpriteSheet.EditMode and (FSpriteSheet.FGeneratedAtlas <> nil) then
+  begin
+    Tex := TPixelTextureNode.Create;
+    TPixelTextureNode(Tex).FdImage.Value := FSpriteSheet.FGeneratedAtlas.MakeCopy;
+    TPixelTextureNode(Tex).RepeatS := false;
+    TPixelTextureNode(Tex).RepeatT := false;
+  end else
+  begin
+    Tex := TImageTextureNode.Create;
+    TImageTextureNode(Tex).FdUrl.Send(ExtractURIPath(FSpriteSheet.URL) + FSpriteSheet.RelativeAtlasPath);
+    TImageTextureNode(Tex).RepeatS := false;
+    TImageTextureNode(Tex).RepeatT := false;
+  end;
+  Shape.Texture := Tex;
+
+  Tri := TTriangleSetNode.Create;
+  Tri.Solid := false;
+
+  FShapeCoord := TCoordinateNode.Create('coord');
+  FShapeCoord.SetPoint([
+      FCoordArray[0],
+      FCoordArray[1],
+      FCoordArray[2],
+      FCoordArray[3],
+      FCoordArray[4],
+      FCoordArray[5]]);
+
+  FShapeTexCoord := TTextureCoordinateNode.Create('texcoord');
+  FShapeTexCoord.SetPoint([
+       FTexCoordArray[0],
+       FTexCoordArray[1],
+       FTexCoordArray[2],
+       FTexCoordArray[3],
+       FTexCoordArray[4],
+       FTexCoordArray[5]]);
+
+  Tri.Coord := FShapeCoord;
+  Tri.TexCoord := FShapeTexCoord;
+  Shape.Geometry := Tri;
+
+  FRoot.AddChildren(Shape);
+end;
+
+procedure TCastleSpriteSheetX3DExporter.CalculateAnchors(
+  const Frame: TCastleSpriteSheetFrame);
+var
+  FrameAnchorX: Integer;
+  FrameAnchorY: Integer;
+begin
+  { I found some starling files which may have the last frame of the animation
+    with the size set to 0 so we need check this here (division by zero error)
+    example:
+    https://github.com/pammimeow/fatty-starling-as3-game/blob/master/assets/sprite%20elements.xml }
+  if Frame.Trimmed and (Frame.Width <> 0) and (Frame.Height <> 0) then
+  begin
+    { When frame is trimmed Width and Height does not mean the full size
+      of the frame, so we have to calculate the appropriate
+      anchor to get the correct position because it will not be (0.5, 0.5) }
+
+    { Anchor in pixels (Without translation to correct texture point
+      because we don't need that. Just add X1, Y1 to have correct position.) }
+    FrameAnchorX := Frame.FrameWidth div 2 + Frame.FrameX;
+    FrameAnchorY := Frame.FrameHeight div 2 + Frame.FrameY;
+
+    { Convert to 0.0..1.0 coordinate system }
+    AnchorX := 1 / Frame.Width * FrameAnchorX;
+    AnchorY := 1 / Frame.Height * FrameAnchorY;
+  end else
+  begin
+    AnchorX := 0.5;
+    AnchorY := 0.5;
+  end;
+end;
+
+procedure TCastleSpriteSheetX3DExporter.PrepareTexCordsForX3D(
+  const Frame: TCastleSpriteSheetFrame; const ImageWidth, ImageHeight: Integer);
+begin
+  X1 := 1 / FSpriteSheet.AtlasWidth * Frame.X;
+  Y1 := 1 / FSpriteSheet.AtlasHeight * Frame.Y;
+  X2 := 1 / FSpriteSheet.AtlasWidth * (Frame.X + Frame.Width);
+  Y2 := 1 / FSpriteSheet.AtlasHeight * (Frame.Y + Frame.Height);
+end;
+
+procedure TCastleSpriteSheetX3DExporter.CalculateFrameCoords(
+  const Frame: TCastleSpriteSheetFrame);
+begin
+  CalculateAnchors(Frame);
+  FCoordArray[0] := Vector3(-Frame.Width * (AnchorX),
+      -Frame.Height * (1 - AnchorY), 0);
+
+  FCoordArray[1] := Vector3(Frame.Width * (1 - AnchorX),
+      -Frame.Height * (1 - AnchorY), 0);
+
+  FCoordArray[2] := Vector3(Frame.Width * (1 - AnchorX),
+      Frame.Height * AnchorY, 0);
+
+  FCoordArray[3] := Vector3(-Frame.Width * AnchorX,
+      -Frame.Height * (1 - AnchorY), 0);
+
+  FCoordArray[4] := Vector3(Frame.Width * (1 - AnchorX),
+      Frame.Height * AnchorY, 0);
+
+  FCoordArray[5] := Vector3(-Frame.Width * AnchorX,
+      Frame.Height * AnchorY, 0);
+
+  PrepareTexCordsForX3D(Frame, FSpriteSheet.FAtlasWidth, FSpriteSheet.FAtlasHeight);
+
+  FTexCoordArray[0] := Vector2(X1, Y1);
+  FTexCoordArray[1] := Vector2(X2, Y1);
+  FTexCoordArray[2] := Vector2(X2, Y2);
+  FTexCoordArray[3] := Vector2(X1, Y1);
+  FTexCoordArray[4] := Vector2(X2, Y2);
+  FTexCoordArray[5] := Vector2(X1, Y2);
+end;
+
+procedure TCastleSpriteSheetX3DExporter.PrepareAnimation(const Name: String);
+begin
+  TimeSensor := TTimeSensorNode.Create(Name);
+  CoordInterp := TCoordinateInterpolatorNode.Create(Name + '_Coord');
+  TexCoordInterp := TCoordinateInterpolator2DNode.Create(Name + '_TexCoord');
+end;
+
+procedure TCastleSpriteSheetX3DExporter.AddAnimation(
+  const Animation: TCastleSpriteSheetAnimation);
+var
+  I: Integer;
+  Key: Single;
+  FrameCount: Integer;
+begin
+  FrameCount := Animation.FrameCount;
+  { Set Cycle Interval becouse we know now frame count }
+  TimeSensor.CycleInterval := FrameCount / Animation.FramesPerSecond;
+
+  { Generate list of keys. }
+  for I := 0 to FrameCount - 1 do
+  begin
+    Key := I / FrameCount;
+
+    CoordInterp.FdKey.Items.Add(Key);
+    TexCoordInterp.FdKey.Items.Add(Key);
+    if I > 0 then
+    begin
+      CoordInterp.FdKey.Items.Add(Key);
+      TexCoordInterp.FdKey.Items.Add(Key);
+    end;
+  end;
+
+  { This way, we have keys like
+    0 0.333 0.333 0.666 0.666 1
+    That is, all keys are repeated, except 0 and 1. }
+  CoordInterp.FdKey.Items.Add(1.0);
+  TexCoordInterp.FdKey.Items.Add(1.0);
+
+  { Add TimeSensor, CoordinateInterpolatorNode,
+    CoordinateInterpolator2DNode to Root node }
+  FRoot.AddChildren(TimeSensor);
+  FRoot.AddChildren(CoordInterp);
+  FRoot.AddChildren(TexCoordInterp);
+  { Create routes. }
+  FRoot.AddRoute(TimeSensor.EventFraction_changed, CoordInterp.EventSet_fraction);
+  FRoot.AddRoute(TimeSensor.EventFraction_changed, TexCoordInterp.EventSet_fraction);
+  FRoot.AddRoute(CoordInterp.EventValue_changed, FShapeCoord.FdPoint);
+  FRoot.AddRoute(TexCoordInterp.EventValue_changed, FShapeTexCoord.FdPoint);
+end;
+
+procedure TCastleSpriteSheetX3DExporter.AddFrame;
+begin
+  CoordInterp.FdKeyValue.Items.AddRange(FCoordArray);
+  TexCoordInterp.FdKeyValue.Items.AddRange(FTexCoordArray);
+  { Repeat all keyValues, to avoid interpolating them smoothly between two keys }
+  CoordInterp.FdKeyValue.Items.AddRange(FCoordArray);
+  TexCoordInterp.FdKeyValue.Items.AddRange(FTexCoordArray);
+end;
+
+constructor TCastleSpriteSheetX3DExporter.Create(
+  const SpriteSheet: TCastleSpriteSheet);
+begin
+  inherited Create;
+  FSpriteSheet := SpriteSheet;
+  SetLength(FCoordArray, 6);
+  SetLength(FTexCoordArray, 6);
+end;
+
+function TCastleSpriteSheetX3DExporter.ExportToX3D: TX3DRootNode;
+var
+  I, J: Integer;
+  Animation: TCastleSpriteSheetAnimation;
+  Frame: TCastleSpriteSheetFrame;
+  FirstFrameInFirstAnimation: Boolean;
+begin
+  FirstFrameInFirstAnimation := true;
+
+  FRoot := TX3DRootNode.Create;
+  try
+    for I := 0 to FSpriteSheet.AnimationCount - 1 do
+    begin
+      Animation := FSpriteSheet.AnimationByIndex(I);
+
+      if Animation.FrameCount = 0 then
+        continue;
+
+      PrepareAnimation(Animation.Name);
+
+      for J := 0  to Animation.FrameCount - 1 do
+      begin
+        Frame := Animation.Frame[J];
+        CalculateFrameCoords(Frame);
+
+        { We want the shape has by default size of first frame
+          of first animation. }
+        if FirstFrameInFirstAnimation then
+        begin
+          FirstFrameInFirstAnimation := false;
+          PrepareContainer;
+        end;
+
+        AddFrame;
+      end;
+
+      AddAnimation(Animation);
+
+    end;
+    Result := FRoot;
+  except
+    FreeAndNil(FRoot);
+    raise;
+  end;
+end;
 
 { TCastleSpriteSheetAdvancedImageGen }
 
@@ -1048,6 +1348,7 @@ begin
 
   YInCGECoords := FLoader.FImageHeight - FSubTexture.Y - FSubTexture.Height;
 
+  { When we load for  }
   if not FLoadForEdit then
   begin
     Frame.Width := FSubTexture.Width;
@@ -1613,8 +1914,9 @@ begin
   FLoadingPending := false;
 end;
 
-constructor TCastleSpriteSheet.Create;
+constructor TCastleSpriteSheet.Create(AEditMode: Boolean);
 begin
+  FEditMode := AEditMode;
   FAnimationList := TCastleSpriteSheetAnimationList.Create;
   FAtlasWidth := 1024;
   FAtlasHeight := 1024;
@@ -1636,7 +1938,7 @@ begin
   SpriteSheetLoader := nil;
   BeginLoad;
   try
-    SpriteSheetLoader := TCastleSpriteSheetLoader.Create(MaybeUseDataProtocol(URL));
+    SpriteSheetLoader := TCastleSpriteSheetLoader.Create(MaybeUseDataProtocol(URL), EditMode);
     SpriteSheetLoader.LoadToCastleSpriteSheet(Self);
   finally
     FreeAndNil(SpriteSheetLoader);
@@ -1710,11 +2012,26 @@ class function TCastleSpriteSheet.LoadToX3D(const URL: String): TX3DRootNode;
 var
   SpriteSheetLoader: TCastleSpriteSheetLoader;
 begin
-  SpriteSheetLoader := TCastleSpriteSheetLoader.Create(URL);
+  SpriteSheetLoader := TCastleSpriteSheetLoader.Create(URL, false);
   try
     Result := SpriteSheetLoader.LoadToX3D;
   finally
     FreeAndNil(SpriteSheetLoader);
+  end;
+end;
+
+function TCastleSpriteSheet.ToX3D: TX3DRootNode;
+var
+  Exporter: TCastleSpriteSheetX3DExporter;
+begin
+  if IsModified then
+    RegenerateAtlas;
+
+  Exporter := TCastleSpriteSheetX3DExporter.Create(Self);
+  try
+    Result := Exporter.ExportToX3D;
+  finally
+    FreeAndNil(Exporter);
   end;
 end;
 
@@ -2029,7 +2346,7 @@ begin
 end;
 
 
-constructor TCastleSpriteSheetLoader.Create(const URL: String);
+constructor TCastleSpriteSheetLoader.Create(const URL: String; LoadForEdit: Boolean);
 begin
   inherited Create;
   FURL := URL;
@@ -2037,6 +2354,7 @@ begin
 
   FSubTexture := TSubTexture.Create;
   FAnimationList := TStringList.Create;
+  FLoadForEdit := LoadForEdit;
 end;
 
 destructor TCastleSpriteSheetLoader.Destroy;
@@ -2047,23 +2365,42 @@ begin
 end;
 
 function TCastleSpriteSheetLoader.LoadToX3D: TX3DRootNode;
-var
-  ALoadToX3D: TLoadToX3D;
-  RootNode: TX3DRootNode;
-begin
-  RootNode := TX3DRootNode.Create;
-  try
-    ALoadToX3D := TLoadToX3D.Create(Self, RootNode);
+  function LoadDirectToX3D: TX3DRootNode;
+  var
+    ALoadToX3D: TLoadToX3D;
+    RootNode: TX3DRootNode;
+  begin
+    RootNode := TX3DRootNode.Create;
     try
-      Load(ALoadToX3D);
-      Result := RootNode;
-    finally
-      FreeAndNil(ALoadToX3D);
+      ALoadToX3D := TLoadToX3D.Create(Self, RootNode);
+      try
+        Load(ALoadToX3D);
+        Result := RootNode;
+      finally
+        FreeAndNil(ALoadToX3D);
+      end;
+    except
+      FreeAndNil(RootNode);
+      raise;
     end;
-  except
-    FreeAndNil(RootNode);
-    raise;
   end;
+
+  function LoadUsingModel: TX3DRootNode;
+  var
+    SpriteSheet: TCastleSpriteSheet;
+  begin
+    SpriteSheet := LoadToCastleSpriteSheet;
+    try
+      Result := SpriteSheet.ToX3D;
+    finally
+      FreeAndNil(SpriteSheet);
+    end;
+  end;
+begin
+  if InternalDirectCastleSpriteSheetToX3DLoad then
+    Exit(LoadDirectToX3D);
+
+  Result := LoadUsingModel;
 end;
 
 procedure TCastleSpriteSheetLoader.LoadToCastleSpriteSheet(
@@ -2083,13 +2420,18 @@ function TCastleSpriteSheetLoader.LoadToCastleSpriteSheet: TCastleSpriteSheet;
 var
   SpriteSheet: TCastleSpriteSheet;
 begin
-  SpriteSheet := TCastleSpriteSheet.Create;
+  SpriteSheet := TCastleSpriteSheet.Create(FLoadForEdit);
+  SpriteSheet.BeginLoad;
   try
-    LoadToCastleSpriteSheet(SpriteSheet);
-    Result := SpriteSheet;
-  except
-    FreeAndNil(SpriteSheet);
-    raise;
+    try
+      LoadToCastleSpriteSheet(SpriteSheet);
+      Result := SpriteSheet;
+    except
+      FreeAndNil(SpriteSheet);
+      raise;
+    end;
+  finally
+    SpriteSheet.EndLoad;
   end;
 end;
 

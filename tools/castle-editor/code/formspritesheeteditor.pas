@@ -258,10 +258,10 @@ type
       set it force when it's obvoius (eg. for frames). }
     procedure UpdatePreview(const PreviewModesToUpdate: TPreviewMode;
       const ForcePreviewFileRegen: TForceFileRegen);
-    { Regenerates and load animation temp file }
-    procedure RegenerateAnimationPreviewFile;
-    { Regenerates and load frame temp file }
-    procedure RegenerateFramePreviewFile(const Frame: TCastleSpriteSheetFrame);
+    { Regenerates and load animation preview }
+    procedure RegenerateAnimationPreview;
+    { Regenerates and load frame preview }
+    procedure RegenerateFramePreview(const Frame: TCastleSpriteSheetFrame);
     { Way to lock update preview, useful for multi frames functions - just
       increases FLockUpdatePReviewRC }
     procedure LockUpdatePreview;
@@ -306,6 +306,7 @@ implementation
 
 uses GraphType, IntfGraphics, Math, LCLIntf, LCLType, FPImage,
   CastleImages, CastleLog, CastleUtils, CastleURIUtils, CastleFilesUtils,
+  X3DNodes,
   EditorUtils,
   FormProject, FormImportAtlas
   {$ifdef LCLGTK2},Gtk2Globals{$endif};
@@ -1242,7 +1243,7 @@ procedure TSpriteSheetEditorForm.UpdatePreview(
       ShowPreviewControl(false);
       Exit;
     end;
-    RegenerateFramePreviewFile(Frame);
+    RegenerateFramePreview(Frame);
     FPreviewScene.Exists := true;
     ShowPreviewControl(true);
   end;
@@ -1252,7 +1253,7 @@ procedure TSpriteSheetEditorForm.UpdatePreview(
   begin
     ShowPreviewControl(true);
     if FPreviewScene = nil then
-      RegenerateAnimationPreviewFile;
+      RegenerateAnimationPreview;
 
     if (Animation = nil) or (Animation.FrameCount = 0) or
       (not CheckAtlasMinSize) then
@@ -1275,7 +1276,7 @@ begin
       begin
         { only when we know file should change }
         if ForcePreviewFileRegen = ffgDoForceFileRegen then
-          RegenerateAnimationPreviewFile;
+          RegenerateAnimationPreview;
         LoadAnimationInPreview(GetCurrentAnimation);
       end;
     pmFrame:
@@ -1291,22 +1292,15 @@ begin
   Result := TCastleSpriteSheetAnimation(ListViewAnimations.Items[ListViewAnimations.ItemIndex].Data);
 end;
 
-procedure TSpriteSheetEditorForm.RegenerateAnimationPreviewFile;
-var
-  TempURL: String;
+procedure TSpriteSheetEditorForm.RegenerateAnimationPreview;
 begin
   try
     CreatePreviewUIIfNeeded;
     if not CheckAtlasMinSize then
       Exit;
 
-    TempURL := URIIncludeSlash(ProjectForm.ProjectPathUrl) + 'temp/preview.castle-sprite-sheet';
-    ForceDirectories(ExtractFilePath(URIToFilenameSafe(TempURL)));
-
-    FSpriteSheet.Save(TempURL, true);
-
     FPreviewScene.Scale := Vector3(1.0, 1.0, 1.0);
-    FPreviewScene.Load(TempURL);
+    FPreviewScene.Load(FSpriteSheet.ToX3D, true);
     if not FPreviewScene.LocalBoundingBox.IsEmpty then
       FViewport.Camera.Orthographic.Width := FPreviewScene.LocalBoundingBox.MaxSize
     else
@@ -1319,18 +1313,65 @@ begin
   end;
 end;
 
-procedure TSpriteSheetEditorForm.RegenerateFramePreviewFile(const Frame: TCastleSpriteSheetFrame);
-var
-  TempURL: String;
-begin
-  TempURL := URIIncludeSlash(ProjectForm.ProjectPathUrl) + 'temp/frame_preview.png';
-  ForceDirectories(ExtractFilePath(URIToFilenameSafe(TempURL)));
-  Frame.SaveFrameImage(TempURL);
+procedure TSpriteSheetEditorForm.RegenerateFramePreview(const Frame: TCastleSpriteSheetFrame);
 
+  function Generate3XDWithImage: TX3DRootNode;
+  var
+    Shape: TShapeNode;
+    Tri: TTriangleSetNode;
+    Tex: TPixelTextureNode;
+    HalfFrameWidth: Single;
+    HalfFrameHeight: Single;
+    ShapeCoord: TCoordinateNode;
+    ShapeTexCoord : TTextureCoordinateNode;
+  begin
+    Result := TX3DRootNode.Create;
+
+    Shape := TShapeNode.Create;
+    Shape.Material := TUnlitMaterialNode.Create;
+
+    Tex := TPixelTextureNode.Create;
+    Tex.FdImage.Value := Frame.MakeImageCopy;
+    Tex.RepeatS := false;
+    Tex.RepeatT := false;
+    Shape.Texture := Tex;
+
+    Tri := TTriangleSetNode.Create;
+    Tri.Solid := false;
+
+    HalfFrameWidth := Frame.FrameWidth * 0.5;
+    HalfFrameHeight := Frame.FrameHeight * 0.5;
+
+    ShapeCoord := TCoordinateNode.Create('coord');
+    ShapeCoord.SetPoint([
+        Vector3(-HalfFrameWidth, -HalfFrameHeight, 0),
+        Vector3(HalfFrameWidth, -HalfFrameHeight, 0),
+        Vector3(HalfFrameWidth, HalfFrameHeight, 0),
+        Vector3(-HalfFrameWidth, -HalfFrameHeight, 0),
+        Vector3(HalfFrameWidth, HalfFrameHeight, 0),
+        Vector3(-HalfFrameWidth, HalfFrameHeight, 0)]);
+
+    ShapeTexCoord := TTextureCoordinateNode.Create('texcoord');
+    ShapeTexCoord.SetPoint([
+         Vector2(0, 0),
+         Vector2(1, 0),
+         Vector2(1, 1),
+         Vector2(0, 0),
+         Vector2(1, 1),
+         Vector2(0, 1)]);
+
+    Tri.Coord := ShapeCoord;
+    Tri.TexCoord := ShapeTexCoord;
+    Shape.Geometry := Tri;
+
+    Result.AddChildren(Shape);
+  end;
+
+begin
   CreatePreviewUIIfNeeded;
 
   FPreviewScene.Scale := Vector3(1.0, 1.0, 1.0);
-  FPreviewScene.Load(TempURL);
+  FPreviewScene.Load(Generate3XDWithImage, true);
 
   { Always set to the width of the first frame because we want to see the
     size difference }
@@ -1574,7 +1615,7 @@ begin
     if not ProposeSaveSpriteSheet then
       Exit;
     CloseSpriteSheet;
-    FSpriteSheet :=  TCastleSpriteSheet.Create;
+    FSpriteSheet :=  TCastleSpriteSheet.Create(true); // edit mode
     FSpriteSheet.OnModifiedStateChanged := @ModifiedStateChanged;
     FSpriteSheet.Load(URL);
     UpdateWindowCaption;
@@ -1598,7 +1639,7 @@ begin
     if not ProposeSaveSpriteSheet then
       Exit;
     CloseSpriteSheet;
-    FSpriteSheet :=  TCastleSpriteSheet.Create;
+    FSpriteSheet :=  TCastleSpriteSheet.Create(true);
     UpdateWindowCaption;
     LoadAnimations(FSpriteSheet);
     AssignEventsToSpriteSheet;
