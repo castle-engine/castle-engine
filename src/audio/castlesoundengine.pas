@@ -557,17 +557,8 @@ type
       is released only once you call @link(FreeBuffer) as many times as you called
       LoadBuffer for it.
 
-      Not specifying SoundLoading means to use slComplete,
-      which loads sound at once. It means that loading time is long,
-      but there's zero additional work at runtime, and caching buffers
-      works great.
-
-      Using SoundLoading = slStreaming means that we decompress
-      the sound (like OggVorbis) during playback.
-      It allows for much quicker sound loading (almost instant, if you use streaming
-      for everything) but means that sounds will be loaded (in parts)
-      during playback.
-      In general case, we advise to use it for longer sounds (like music tracks).
+      @param(SoundLoading Specifies whether to load sound at once, or use streaming.
+        See @link(TSoundLoading) for details.)
 
       @raises(ESoundFileError If loading of this sound file failed.
         There are many reasons why this may happen: we cannot read given URL,
