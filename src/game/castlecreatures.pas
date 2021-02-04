@@ -846,7 +846,7 @@ type
     FResource: TCreatureResource;
     FResourceFrame: TResourceFrame;
 
-    SoundBehavior: TCastleSound;
+    SoundSource: TCastleSoundSource;
     FSoundDieEnabled: boolean;
 
     FDebugCaptions: TCastleScene;
@@ -1457,8 +1457,8 @@ begin
   CollidesWithMoving := true;
   MaxLife := AMaxLife;
   FSoundDieEnabled := true;
-  SoundBehavior := TCastleSound.Create(Self);
-  AddBehavior(SoundBehavior);
+  SoundSource := TCastleSoundSource.Create(Self);
+  AddBehavior(SoundSource);
 
   FDebugTransform := TDebugTransform.Create(Self);
   FDebugTransform.Parent := Self;
@@ -1489,7 +1489,7 @@ end;
 procedure TCreature.Sound3d(const SoundType: TSoundType; const SoundHeight: Single;
   const TiedToCreature: boolean);
 begin
-  SoundBehavior.PlayOnce(SoundType, SoundHeight, TiedToCreature);
+  SoundSource.PlayOnce(SoundType, SoundHeight, TiedToCreature);
 end;
 
 function TCreature.LerpLegsMiddle(const A: Single): TVector3;

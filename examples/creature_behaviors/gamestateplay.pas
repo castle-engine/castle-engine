@@ -192,6 +192,7 @@ var
   I: Integer;
   // TODO MoveAttackBehavior: TCastleMoveAttack;
   Billboard: TCastleBillboard;
+  SoundSource: TCastleSoundSource;
 begin
   inherited;
 
@@ -221,12 +222,16 @@ begin
     SoldierScene.PlayAnimation('walk', true);
 
     SoldierScene.AddBehavior(TCastleAliveBehavior.Create(FreeAtStop));
-    SoldierScene.AddBehavior(TCastleSound.Create(FreeAtStop));
 
     Billboard := TCastleBillboard.Create(FreeAtStop);
     // Billboard.AxisOfRotation := Vector3(1, 0, 0); // just test
     // Billboard.AxisOfRotation := Vector3(0, 0, 0); // just test
     SoldierScene.AddBehavior(Billboard);
+
+    SoundSource := TCastleSoundSource.Create(FreeAtStop);
+    if I = 5 then // make 5th enemy emit looping sound
+      SoundSource.Sound.URL := 'castle-data:/audio/werewolf_howling.wav';
+    SoldierScene.AddBehavior(SoundSource);
 
     // TODO
     // MoveAttackBehavior := TCastleMoveAttack.Create(FreeAtStop);

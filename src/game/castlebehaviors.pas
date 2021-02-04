@@ -27,7 +27,7 @@ uses Classes,
 
 {$define read_interface}
 {$I castlebehaviors_alive.inc}
-{$I castlebehaviors_sound.inc}
+{$I castlebehaviors_soundsource.inc}
 {$I castlebehaviors_billboard.inc}
 //{$I castlebehaviors_moveattack.inc}
 {$undef read_interface}
@@ -40,7 +40,7 @@ uses SysUtils, Math,
 
 {$define read_implementation}
 {$I castlebehaviors_alive.inc}
-{$I castlebehaviors_sound.inc}
+{$I castlebehaviors_soundsource.inc}
 {$I castlebehaviors_billboard.inc}
 // TODO {$I castlebehaviors_moveattack.inc}
 

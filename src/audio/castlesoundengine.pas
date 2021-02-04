@@ -557,6 +557,16 @@ type
       is released only once you call @link(FreeBuffer) as many times as you called
       LoadBuffer for it.
 
+      @param(ExceptionOnError When to raise exception,
+        or merely make a warning by WritelnWarning,
+        in case of error when loading.
+
+        Note that it always returns non-nil, even in case of ExceptionOnError=@false
+        and an error at loading. But in this case, TSoundBuffer is mostly a useless
+        empty instance. Do not depend on this behavior, and check for @nil
+        result in case you use ExceptionOnError=@false.
+      )
+
       @param(SoundLoading Specifies whether to load sound at once, or use streaming.
         See @link(TSoundLoading) for details.)
 
@@ -566,8 +576,10 @@ type
         or a library required to decompress e.g. OggVorbis is missing.)
 
       @groupBegin }
-    function LoadBuffer(const URL: string; const SoundLoading: TSoundLoading; const ExceptionOnError: Boolean = true): TSoundBuffer; overload;
-    function LoadBuffer(const URL: string; const ExceptionOnError: Boolean = true): TSoundBuffer; overload;
+    function LoadBuffer(const URL: string; const SoundLoading: TSoundLoading;
+      const ExceptionOnError: Boolean = true): TSoundBuffer; overload;
+    function LoadBuffer(const URL: string;
+      const ExceptionOnError: Boolean = true): TSoundBuffer; overload;
     function LoadBuffer(const URL: string; out Duration: TFloatTime): TSoundBuffer;
       overload;
       deprecated 'use LoadBuffer without Duration parameter, and just read TSoundBuffer.Duration after loading';
@@ -1225,6 +1237,10 @@ const
   engine class. Created on first call to this function. }
 function SoundEngine: TRepoSoundEngine;
 
+{$define read_interface}
+{$I castlesoundengine_castlesound.inc}
+{$undef read_interface}
+
 implementation
 
 { use a deprecated unit below, only to have it compiled together with Lazarus
@@ -1238,6 +1254,10 @@ uses XMLRead, StrUtils, Generics.Defaults,
   // unit below is deprecated
   CastleSoundAllocator;
 {$warnings on}
+
+{$define read_implementation}
+{$I castlesoundengine_castlesound.inc}
+{$undef read_implementation}
 
 var
   FSoundEngine: TRepoSoundEngine;
