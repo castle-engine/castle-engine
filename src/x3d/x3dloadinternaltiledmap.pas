@@ -21,8 +21,9 @@ unit X3DLoadInternalTiledMap;
 interface
 
 uses
-  Classes, SysUtils,
-  X3DNodes, CastleTiledMap, CastleVectors, CastleTransform, CastleColors;
+  Classes, SysUtils, Math,
+  X3DNodes, CastleTiledMap, CastleVectors, CastleTransform, CastleColors,
+  CastleRenderOptions, X3DLoadInternalImage;
 
 function LoadTiledMap2d(const URL: String): TX3DRootNode;
 
@@ -127,15 +128,7 @@ var
     I: Cardinal;
 
     { The X3D tile node are constructred from these nodes. }
-    TileShapeNode: TShapeNode;
-    TileMaterialNode: TMaterialNode;
-    TileImageTexNode: TImageTextureNode;
-    TileTexPropertiesNode: TTexturePropertiesNode;
-    CoordNode: TCoordinateNode;
-    TexCoordNode: TTextureCoordinateNode;
-    TriSetNode: TTriangleSetNode;
-
-
+    TileTransformNode: TTransformNode;
 
     { Get the associated tileset of a specific tile by the tileset's FirstGID.
 
@@ -193,6 +186,62 @@ var
       end;
     end;
 
+    { This function generates an anchor (parameter list) to load the
+      corresponding part from the tileset image.
+
+      Important: For this to work the tsx files have to be of recent version!
+      Older tsx files do not contain the columns property of the tileset which
+      is used in this function.
+
+      Ex. for anchor format:
+        my_image.png#left:100,bottom:100,width:256,height:256 }
+    function GenerateTileImageAnchor(ATile: TTiledMap.TTile; ATileset:
+      TTiledMap.TTileset): String;
+
+      function RowCountOfTileset: Cardinal;
+      begin
+        Result := ATileset.TileCount div ATileset.Columns;
+      end;
+
+      { Zero-based. }
+      function RowOfTileInTileset: Cardinal;
+      begin
+        Result := Floor(ATile.Id / ATileset.Columns);
+      end;
+
+      { Zero-based. }
+      function ColumnOfTileInTileset: Cardinal;
+      begin
+        if ATile.Id < ATileset.Columns then
+          Result := ATile.Id
+        else
+          Result := ATile.Id mod ATileset.Columns;
+      end;
+
+    begin
+      Result := '';
+      Result := Result + '#';
+      Result := Result + 'left:' + IntToStr(ColumnOfTileInTileset * ATileset.TileWidth + ATileset.Margin + ColumnOfTileInTileset * ATileSet.Spacing) + ',';
+      Result := Result + 'bottom:' + IntToStr((RowCountOfTileset - RowOfTileInTileset - 1) * ATileset.TileHeight + ATileset.Margin + (RowCountOfTileset - RowOfTileInTileset - 1) * ATileSet.Spacing) + ',';
+      Result := Result + 'width:' + IntToStr(Map.TileWidth) + ',';
+      Result := Result + 'height:' + IntToStr(Map.TileHeight);
+    end;
+
+    { Zero-based. }
+    function RowOfTileInMap: Cardinal;
+    begin
+      Result := Floor(I / Map.Width);
+    end;
+
+    { Zero-based. }
+    function ColumnOfTileInMap: Cardinal;
+    begin
+      if I < Map.Width then
+        Result := I
+      else
+        Result := I mod Map.Width;
+    end;
+
   begin
     Result := TTransformNode.Create;        // The resulting layer node.
 
@@ -208,48 +257,19 @@ var
 
       { Create "x3d tile node" for each tile. }
       // For testing only the first tile should be handled! Delete later!
-      if I > 0 then
-        Continue;
+      { if I > 64 then
+        Continue; }
 
-      TileShapeNode := TShapeNode.Create;
-      TileShapeNode.Appearance := TAppearanceNode.Create;
+      TileTransformNode := TTransformNode.Create;
+      TileTransformNode.AddChildren(LoadImageAsNode(Tileset.Image.URL +
+        GenerateTileImageAnchor(Tile, Tileset)));
+      TileTransformNode.Translation := Vector3(
+        ColumnOfTileInMap * Map.TileWidth,
+        RowOfTileInMap * Map.TileHeight,
+        0
+        );
+      Result.AddChildren(TileTransformNode);
 
-      { Define material of X3D tile. }
-      TileMaterialNode := TMaterialNode.Create;
-      TileMaterialNode.DiffuseColor := Vector3(0, 0, 0);
-      TileMaterialNode.SpecularColor := Vector3(0, 0, 0);
-      TileMaterialNode.AmbientIntensity := 0;
-      TileMaterialNode.EmissiveColor := Vector3(1, 1, 1);
-      TileShapeNode.Material := TileMaterialNode;
-
-      TileImageTexNode := TImageTextureNode.Create;
-      TileImageTexNode.RepeatS := false;
-      TileImageTexNode.RepeatT := false;
-      TileImageTexNode.SetUrl(['castle-data:/tmw_desert_spacing.png']);
-      TileTexPropertiesNode:= TTexturePropertiesNode.Create;
-      TileTexPropertiesNode.FdMagnificationFilter.Send('NEAREST_PIXEL');
-      TileTexPropertiesNode.FdMinificationFilter.Send('NEAREST_PIXEL');
-      TileImageTexNode.FdTextureProperties.Value := TileTexPropertiesNode;
-
-      TileShapeNode.Texture := TileImageTexNode;
-
-      TriSetNode := TTriangleSetNode.Create;
-      TriSetNode.Solid := false;
-      TileShapeNode.FdGeometry.Value := TriSetNode;
-
-      CoordNode := TCoordinateNode.Create;
-      TexCoordNode := TTextureCoordinateNode.Create;
-
-      CoordNode.FdPoint.Items.AddRange([Vector3(0, 0, 0), Vector3(1, 0, 0), Vector3(0, 1, 0)]);
-      TexCoordNode.FdPoint.Items.AddRange([Vector2(0, 0), Vector2(1, 0), Vector2(0, 1)]);
-
-      TriSetNode.FdCoord.Value := CoordNode;
-      TriSetNode.FdTexCoord.Value := TexCoordNode;
-
-      //CoordNode.FdPoint.Items.Capacity := VERTEX_BUFFER;
-      //TexCoordNode.FdPoint.Items.Capacity := VERTEX_BUFFER;
-
-      Result.AddChildren(TileShapeNode);
     end;
   end;
 
