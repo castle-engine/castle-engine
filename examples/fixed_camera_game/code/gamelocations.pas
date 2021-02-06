@@ -95,7 +95,7 @@ uses SysUtils, DOM,
 
 procedure TLocation.TLocationScene.LocalRender(const Params: TRenderParams);
 
-  { Draw Image centered on screen, to fit inside the scene manager rect,
+  { Draw Image centered on screen, to fit inside the TCastleViewport,
     matching the 3D scene projection. }
   procedure DrawImage(const Image: TDrawableImage);
   var

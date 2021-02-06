@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="advanced_editor"
+  standalone_source="advanced_editor_standalone.lpr"
+  game_units="GameInitialize"
+  qualified_name="com.mycompany.advancededitor"
+  caption="Advanced Editor Usage"
+  editor_units="GameControls"
+>
+</project>

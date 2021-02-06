@@ -30,6 +30,21 @@
     bbox than using LocalBoundingBox and transforming it.
 }
 
+{ Two optimizations:
+
+  - Calculate bounding boxes of transformed shapes as
+    a "transformed(bounding box, for all vertexes)".
+    This results in worse box than using "bounding boxm for all trasform(vertex)",
+    but it avoids multiplying each vertex by a matrix.
+
+  - Calculate bounding boxes of indexed and non-indexed shapes the same way,
+    by just iterating over coordinates, without paying attention to indexes.
+    This results in worse box than looking at indexes
+    (in case coordinates contain distant and unused vertexes) but is faster.
+}
+{$define FAST_MESH_BOUNDING_BOXES}
+
+{$ifndef FAST_MESH_BOUNDING_BOXES}
 type
   TGI_BBox_Calculator = class
   public
@@ -64,10 +79,20 @@ begin
     0..VertIndices.Count-1 }
   Result := CoordIndex.Items.List^[IndexNum];
 end;
+{$endif not FAST_MESH_BOUNDING_BOXES}
+
+function Coords_BoundingBox(State: TX3DGraphTraverseState;
+  Coord: TMFVec3f): TBox3D; forward;
+function Coords_LocalBoundingBox(State: TX3DGraphTraverseState;
+  Coord: TMFVec3f): TBox3D; forward;
 
 function IndexedCoords_BoundingBox(Geometry: TAbstractGeometryNode;
   State: TX3DGraphTraverseState;
   Coord: TMFVec3f; CoordIndex: TMFLong): TBox3D;
+{$ifdef FAST_MESH_BOUNDING_BOXES}
+begin
+  Result := Coords_BoundingBox(State, Coord);
+{$else}
 var
   Calculator: TGI_BBox_Calculator;
 begin
@@ -85,11 +110,16 @@ begin
     if not Calculator.WasSomeValidIndex then
       Result := TBox3D.Empty;
   finally Calculator.Free end;
+{$endif}
 end;
 
 function IndexedCoords_LocalBoundingBox(Geometry: TAbstractGeometryNode;
   State: TX3DGraphTraverseState;
   Coord: TMFVec3f; CoordIndex: TMFLong): TBox3D;
+{$ifdef FAST_MESH_BOUNDING_BOXES}
+begin
+  Result := Coords_LocalBoundingBox(State, Coord);
+{$else}
 var
   Calculator: TGI_BBox_Calculator;
 begin
@@ -106,13 +136,20 @@ begin
     if not Calculator.WasSomeValidIndex then
       Result := TBox3D.Empty;
   finally Calculator.Free end;
+{$endif}
 end;
 
 function Coords_BoundingBox(State: TX3DGraphTraverseState;
   Coord: TMFVec3f): TBox3D;
+{$ifdef FAST_MESH_BOUNDING_BOXES}
+begin
+  Result := Coords_LocalBoundingBox(State, Coord).Transform(
+    State.Transformation.Transform);
+{$else}
 begin
   Result := CalculateBoundingBox(Coord.Items.L,
     Coord.Items.Count, 0, State.Transformation.Transform);
+{$endif}
 end;
 
 function Coords_LocalBoundingBox(State: TX3DGraphTraverseState;

@@ -359,8 +359,9 @@ begin
   if not CheckMenu(Entry, EntryLCL) then Exit;
   Entry.ClearHandles;
 
-  {$ifdef LCLCarbon}
+  {$if defined(LCLCarbon) or defined(LCLCocoa)}
     (*Workaround LCL on Carbon bug http://bugs.freepascal.org/view.php?id=20688 .
+      (assuming it's the same on Cocoa)
 
       Symptoms:
       Sometimes after menu changes we have a segfault in Carbon widgetset,
@@ -576,13 +577,15 @@ end;
 
 procedure TCastleWindowBase.CloseBackend;
 begin
-  try
-    FreeAndNil(Form);
-  except
-    // TODO: hack to silence LCL problem
-    on EAccessViolation do
-      WritelnWarning('Freeing LCL form failed with EAccessViolation, this is unfortunately possible on macOS with Carbon widgetset. Silencing the exception and continuing.');
-  end;
+  { Workaround LCL problem with both Carbon and Cocoa
+    https://github.com/castle-engine/castle-engine/issues/237
+    Freeing LCL form may fail with EAccessViolation. }
+  {$if not (defined(LCLCarbon) or defined(LCLCocoa))}
+  FreeAndNil(Form);
+  {$else}
+  Form := nil; // causing memory leak, but at least not crash
+  {$endif}
+
   FreeAndNil(OpenGLControl);
   { freeing the Form will automatically free other owned components }
   Menu := nil;
@@ -1037,9 +1040,11 @@ end;
 
 { TCastleWindow -------------------------------------------------------------- }
 
+{$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
 procedure TCastleWindow.NavigationInfoChanged;
 begin
 end;
+{$endif}
 
 { TWindowContainer ----------------------------------------------------------- }
 

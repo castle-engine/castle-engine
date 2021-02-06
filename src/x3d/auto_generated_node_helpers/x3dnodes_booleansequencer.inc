@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,10 +26,20 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdKeyValue: TMFBool;
+    { X3D field "keyValue". } { }
+    public property FdKeyValue: TMFBool read FFdKeyValue;
     { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: array of boolean);
     { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: TBooleanList);
+
+    strict private FEventValue_changed: TSFBoolEvent;
+    { X3D out event "value_changed". } { }
+    public property EventValue_changed: TSFBoolEvent read FEventValue_changed;
 
 {$endif read_interface}
 
@@ -45,6 +55,23 @@ end;
 procedure TBooleanSequencerNode.SetKeyValue(const Value: TBooleanList);
 begin
   FdKeyValue.Send(Value);
+end;
+
+class function TBooleanSequencerNode.ClassX3DType: String;
+begin
+  Result := 'BooleanSequencer';
+end;
+
+procedure TBooleanSequencerNode.CreateNode;
+begin
+  inherited;
+
+  FFdKeyValue := TMFBool.Create(Self, True, 'keyValue', []);
+   FdKeyValue.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdKeyValue);
+
+  FEventValue_changed := TSFBoolEvent.Create(Self, 'value_changed', false);
+  AddEvent(FEventValue_changed);
 end;
 
 {$endif read_implementation}

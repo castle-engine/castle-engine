@@ -483,7 +483,6 @@ type
 
   { Control to render everything (3D or 2D) with Castle Game Engine,
     with a default @link(TCastleSceneManager) instance already created for you.
-    This is the simplest way to render a 3D world with 2D controls above.
     Add your
     game stuff (descending from @link(TCastleTransform), like @link(TCastleScene))
     to the scene manager
@@ -497,7 +496,11 @@ type
 
     Note that if you don't plan to use the default @link(SceneManager)
     instance, then you should better create @link(TCastleControlBase) instead
-    of this class. }
+    of this class.
+
+    @deprecated This is deprecated, as such "control with default scene manager"
+    is an unnecessary API complication. Use instead TCastleControlBase
+    and just add there a TCastleViewport with FullSize = true, it is trivial. }
   TCastleControl = class(TCastleControlBase)
   private
     FSceneManager: TControlGameSceneManager;

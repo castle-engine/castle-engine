@@ -30,6 +30,7 @@
     Bounds2DS, Bounds2DT: Integer;
     FIgnoredSolid: Boolean; {< keeps value of Solid property when FdSolid is nil }
     FIgnoredConvex: Boolean; {< keeps value of Convex property when FdConvex is nil }
+    MappingWarningDone: Boolean;
     { Workaround http://bugs.freepascal.org/view.php?id=17402
       by these methods. }
     function CallProxyLocalBoundingBox(
@@ -1188,8 +1189,11 @@ begin
         Exit;
       end;
 
-    if MakeWarning and (Mapping <> '') then
+    if MakeWarning and (Mapping <> '') and (not MappingWarningDone) then
+    begin
       WritelnWarning('Texture mapping "%s" not found within MultiTextureCoordinate list', [Mapping]);
+      MappingWarningDone := true;
+    end;
   end else
   if T is TAbstractSingleTextureCoordinateNode then
   begin
@@ -1201,8 +1205,11 @@ begin
       Exit;
     end;
 
-    if MakeWarning and (Mapping <> '') then
+    if MakeWarning and (Mapping <> '') and (not MappingWarningDone) then
+    begin
       WritelnWarning('Texture mapping "%s" not matching the only texture coordinate node possible', [Mapping]);
+      MappingWarningDone := true;
+    end;
   end;
 end;
 

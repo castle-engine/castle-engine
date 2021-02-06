@@ -23,7 +23,7 @@ interface
 implementation
 
 uses SysUtils,
-  CastleWindowTouch, CastleWindow, CastleScene, CastleControls, CastleLog,
+  CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleUIControls, CastleApplicationProperties, CastleScreenEffects,
   CastleViewport, X3DNodes, X3DLoad, CastleUtils,
@@ -155,7 +155,7 @@ procedure ApplicationInitialize;
     Result.SetShaders([ComposedShader]);
   end;
 
-  procedure InitialiazeScreenEffects;
+  procedure InitializeScreenEffects;
   var
     I: Integer;
   begin
@@ -372,7 +372,7 @@ begin
   EdgeDetect.Button.OnClick := @TEventsHandler(nil).ToggleEdgeDetect;
   BottomControls.InsertFront(EdgeDetect.Button);
 
-  InitialiazeScreenEffects;
+  InitializeScreenEffects;
 end;
 
 initialization

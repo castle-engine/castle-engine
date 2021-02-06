@@ -1,4 +1,5 @@
 MatrixTransform : X3DGroupingNode {
+  x3d-nodes-to-pascal: auto-generate-more true
   SFMatrix4f [in,out] matrix identity
 }
 

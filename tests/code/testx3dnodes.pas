@@ -1,5 +1,6 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestX3DNodes" -*-
 {
-  Copyright 2004-2018 Michalis Kamburelis.
+  Copyright 2004-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,6 +14,7 @@
   ----------------------------------------------------------------------------
 }
 
+{ Test X3DNodes unit. }
 unit TestX3DNodes;
 
 {$I tests.inc}
@@ -85,6 +87,7 @@ type
     procedure TestAddChildren;
     procedure TestAddChildrenAllowDuplicates;
     procedure TestMetadata;
+    procedure TestMetadataArray;
   end;
 
 implementation
@@ -1952,6 +1955,66 @@ begin
   finally FreeAndNil(G) end;
 end;
 
+procedure TTestX3DNodes.TestMetadataArray;
+var
+  Transform: TTransformNode;
+  MetadataString: TMetadataStringNode;
+begin
+  Transform := TTransformNode.Create;
+
+  { Use properties
+    MetadataBooleanArray / MetadataStringArray  / MetadataIntegerArray / MetadataDoubleArray.
+    Think of each metadata, as a mapping from a unique key (string) ->
+    to an array of booleans / strings / integers / doubles.
+
+    Underneath, more complicated scenarios are possible, but if you only
+    use these properties to get/set metadata, then it remains simple. }
+
+  Assert(not Transform.MetadataBooleanArray['my_boolean_value', 0]); // not yet set, means it is false
+  Transform.MetadataBooleanArray['my_boolean_value', 0] := true;
+  Assert(Transform.MetadataBooleanArray['my_boolean_value', 0]);
+
+  Assert(Transform.MetadataStringArray['my_string_value', 0] = ''); // not yet set, means it is ''
+  Assert(Transform.MetadataStringArray['my_boolean_value', 0] = ''); // invalid type, means it is ''
+  Transform.MetadataStringArray['my_string_value', 0] := 'apple';
+  Transform.MetadataStringArray['my_string_value', 2] := 'banana';
+  Assert((Transform.FindMetadata('my_string_value') as TMetadataStringNode).FdValue.Count = 3);
+  Assert(Transform.MetadataStringArray['my_string_value', 0] = 'apple');
+  Assert(Transform.MetadataStringArray['my_string_value', 1] = ''); // middle value is empty
+  Assert(Transform.MetadataStringArray['my_string_value', 2] = 'banana');
+  Assert(Transform.MetadataStringArray['my_string_value', 3] = ''); // not yet set, means it is ''
+
+  Assert(Transform.MetadataIntegerArray['my_integer_value', 0] = 0); // not yet set, means it is ''
+  Assert(Transform.MetadataIntegerArray['my_boolean_value', 0] = 0); // invalid type, means it is ''
+  Transform.MetadataIntegerArray['my_integer_value', 2] := 123;
+  Assert(Transform.MetadataIntegerArray['my_integer_value', 0] = 0);
+  Assert(Transform.MetadataIntegerArray['my_integer_value', 1] = 0);
+  Assert(Transform.MetadataIntegerArray['my_integer_value', 2] = 123);
+  Assert(Transform.MetadataIntegerArray['my_integer_value', 1233] = 0);
+
+  Assert(Transform.MetadataDoubleArray['my_double_value', 0] = 0.0); // not yet set, means it is 0.0
+  Assert(Transform.MetadataDoubleArray['my_boolean_value', 0] = 0); // invalid type, means it is 0.0
+  Transform.MetadataDoubleArray['my_double_value', 0] := 123.456;
+  Assert(SameValue(Transform.MetadataDoubleArray['my_double_value', 0], 123.456));
+  Assert(Transform.MetadataDoubleArray['my_double_value', 1233] = 0.0);
+
+  { More manual way (not advised) }
+  MetadataString := TMetadataStringNode.Create;
+  MetadataString.NameField := 'fruit-type';
+  MetadataString.SetValue(['banana']);
+  (Transform.Metadata as TMetadataSetNode).FdValue.Add(MetadataString);
+
+  Assert(Transform.Metadata is TMetadataSetNode);
+  Assert((Transform.Metadata as TMetadataSetNode).FdValue.Count = 5);
+  Assert((Transform.Metadata as TMetadataSetNode).FdValue.Items[0] is TMetadataBooleanNode);
+  Assert((Transform.Metadata as TMetadataSetNode).FdValue.Items[1] is TMetadataStringNode);
+  Assert((Transform.Metadata as TMetadataSetNode).FdValue.Items[2] is TMetadataIntegerNode);
+  Assert((Transform.Metadata as TMetadataSetNode).FdValue.Items[3] is TMetadataDoubleNode);
+  Assert((Transform.Metadata as TMetadataSetNode).FdValue.Items[4] = MetadataString);
+
+  FreeAndNil(Transform);
+end;
+
 procedure TTestX3DNodes.TestMetadata;
 var
   Transform: TTransformNode;
@@ -1967,33 +2030,33 @@ begin
     Underneath, more complicated scenarios are possible, but if you only
     use these properties to get/set metadata, then it remains simple. }
 
-  Assert(not Transform.MetadataBoolean['my_boolean_value', 0]); // not yet set, means it is false
-  Transform.MetadataBoolean['my_boolean_value', 0] := true;
-  Assert(Transform.MetadataBoolean['my_boolean_value', 0]);
+  Assert(not Transform.MetadataBoolean['my_boolean_value']); // not yet set, means it is false
+  Transform.MetadataBoolean['my_boolean_value'] := true;
+  Assert(Transform.MetadataBoolean['my_boolean_value']);
 
-  Assert(Transform.MetadataString['my_string_value', 0] = ''); // not yet set, means it is ''
-  Assert(Transform.MetadataString['my_boolean_value', 0] = ''); // invalid type, means it is ''
-  Transform.MetadataString['my_string_value', 0] := 'apple';
-  Transform.MetadataString['my_string_value', 2] := 'banana';
+  Assert(Transform.MetadataString['my_string_value'] = ''); // not yet set, means it is ''
+  Assert(Transform.MetadataString['my_boolean_value'] = ''); // invalid type, means it is ''
+  Transform.MetadataString['my_string_value'] := 'apple';
+  Transform.MetadataStringArray['my_string_value', 2] := 'banana';
   Assert((Transform.FindMetadata('my_string_value') as TMetadataStringNode).FdValue.Count = 3);
-  Assert(Transform.MetadataString['my_string_value', 0] = 'apple');
-  Assert(Transform.MetadataString['my_string_value', 1] = ''); // middle value is empty
-  Assert(Transform.MetadataString['my_string_value', 2] = 'banana');
-  Assert(Transform.MetadataString['my_string_value', 3] = ''); // not yet set, means it is ''
+  Assert(Transform.MetadataString['my_string_value'] = 'apple');
+  Assert(Transform.MetadataStringArray['my_string_value', 1] = ''); // middle value is empty
+  Assert(Transform.MetadataStringArray['my_string_value', 2] = 'banana');
+  Assert(Transform.MetadataStringArray['my_string_value', 3] = ''); // not yet set, means it is ''
 
-  Assert(Transform.MetadataInteger['my_integer_value', 0] = 0); // not yet set, means it is ''
-  Assert(Transform.MetadataInteger['my_boolean_value', 0] = 0); // invalid type, means it is ''
-  Transform.MetadataInteger['my_integer_value', 2] := 123;
-  Assert(Transform.MetadataInteger['my_integer_value', 0] = 0);
-  Assert(Transform.MetadataInteger['my_integer_value', 1] = 0);
-  Assert(Transform.MetadataInteger['my_integer_value', 2] = 123);
-  Assert(Transform.MetadataInteger['my_integer_value', 1233] = 0);
+  Assert(Transform.MetadataInteger['my_integer_value'] = 0); // not yet set, means it is ''
+  Assert(Transform.MetadataInteger['my_boolean_value'] = 0); // invalid type, means it is ''
+  Transform.MetadataIntegerArray['my_integer_value', 2] := 123;
+  Assert(Transform.MetadataInteger['my_integer_value'] = 0);
+  Assert(Transform.MetadataIntegerArray['my_integer_value', 1] = 0);
+  Assert(Transform.MetadataIntegerArray['my_integer_value', 2] = 123);
+  Assert(Transform.MetadataIntegerArray['my_integer_value', 1233] = 0);
 
-  Assert(Transform.MetadataDouble['my_double_value', 0] = 0.0); // not yet set, means it is 0.0
-  Assert(Transform.MetadataDouble['my_boolean_value', 0] = 0); // invalid type, means it is 0.0
-  Transform.MetadataDouble['my_double_value', 0] := 123.456;
-  Assert(SameValue(Transform.MetadataDouble['my_double_value', 0], 123.456));
-  Assert(Transform.MetadataDouble['my_double_value', 1233] = 0.0);
+  Assert(Transform.MetadataDouble['my_double_value'] = 0.0); // not yet set, means it is 0.0
+  Assert(Transform.MetadataDouble['my_boolean_value'] = 0); // invalid type, means it is 0.0
+  Transform.MetadataDouble['my_double_value'] := 123.456;
+  Assert(SameValue(Transform.MetadataDouble['my_double_value'], 123.456));
+  Assert(Transform.MetadataDoubleArray['my_double_value', 1233] = 0.0);
 
   { More manual way (not advised) }
   MetadataString := TMetadataStringNode.Create;

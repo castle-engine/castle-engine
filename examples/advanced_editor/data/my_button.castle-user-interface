@@ -1,0 +1,122 @@
+{
+  "AutoSize" : false,
+  "CustomBackgroundDisabled" : {
+    "$ClassName" : "TCastleImagePersistent"
+  },
+  "CustomBackgroundFocused" : {
+    "$ClassName" : "TCastleImagePersistent"
+  },
+  "CustomBackgroundNormal" : {
+    "$ClassName" : "TCastleImagePersistent"
+  },
+  "CustomBackgroundPressed" : {
+    "$ClassName" : "TCastleImagePersistent"
+  },
+  "Height" : 3.2000000000000000E+002,
+  "Image" : {
+    "$ClassName" : "TCastleImagePersistent"
+  },
+  "Name" : "RootButton",
+  "Width" : 5.1000000000000000E+002,
+  "$Children" : [
+    {
+      "HorizontalAnchorParent" : "hpMiddle",
+      "HorizontalAnchorSelf" : "hpMiddle",
+      "Name" : "Label1",
+      "Text" : [
+        "Button with a dragon!"
+      ],
+      "VerticalAnchorDelta" : -3.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleLabel"
+    },
+    {
+      "Camera" : {
+        "InitialDirectionPersistent" : {
+          "Y" : -1.7151265217091316E-015,
+          "$ClassName" : "TCastleVector3Persistent"
+        },
+        "InitialPositionPersistent" : {
+          "Z" : 5.0000000000000000E+002,
+          "$ClassName" : "TCastleVector3Persistent"
+        },
+        "InitialUpPersistent" : {
+          "Z" : 4.3711388286737929E-008,
+          "$ClassName" : "TCastleVector3Persistent"
+        },
+        "Name" : "Camera",
+        "Orthographic" : {
+          "Height" : 2.5000000000000000E+003,
+          "Name" : "Orthographic",
+          "OriginPersistent" : {
+            "X" : 5.0000000000000000E-001,
+            "Y" : 2.5000000000000000E-001,
+            "$ClassName" : "TCastleVector2Persistent"
+          },
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleOrthographic"
+        },
+        "Perspective" : {
+          "Name" : "Perspective",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastlePerspective"
+        },
+        "ProjectionFar" : 1.0000000000000000E+003,
+        "ProjectionNear" : -1.0000000000000000E+003,
+        "ProjectionType" : "ptOrthographic",
+        "$Children" : [
+        ],
+        "$ClassName" : "TCastleCamera"
+      },
+      "Height" : 2.3000000000000000E+002,
+      "HorizontalAnchorDelta" : 5.0000000000000000E+000,
+      "HorizontalAnchorParent" : "hpMiddle",
+      "HorizontalAnchorSelf" : "hpMiddle",
+      "Items" : {
+        "Name" : "Items",
+        "PhysicsProperties" : {
+          "Name" : "PhysicsProperties",
+          "$Children" : [
+          ],
+          "$ClassName" : "TPhysicsProperties"
+        },
+        "$Children" : [
+          {
+            "AutoAnimation" : "flying",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "Scene1",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "BlendingSort" : "bs2D",
+              "Name" : "RenderOptions",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "URL" : "castle-data:/dragon/dragon.json",
+            "$Children" : [
+            ],
+            "$ClassName" : "TCastleScene"
+          }
+        ],
+        "$ClassName" : "TCastleRootTransform"
+      },
+      "Name" : "Viewport1",
+      "Transparent" : true,
+      "VerticalAnchorDelta" : -5.0000000000000000E+000,
+      "VerticalAnchorParent" : "vpMiddle",
+      "VerticalAnchorSelf" : "vpMiddle",
+      "Width" : 2.3000000000000000E+002,
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleViewport"
+    }
+  ],
+  "$ClassName" : "TCastleButton"
+}

@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -35,12 +35,30 @@
     function GetHatchStyle: Integer;
     procedure SetHatchStyle(const Value: Integer);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdFilled: TSFBool;
+    { X3D field "filled". } { }
+    public property FdFilled: TSFBool read FFdFilled;
     { X3D field "filled". } { }
     property Filled: Boolean read GetFilled write SetFilled;
+
+    strict private FFdHatchColor: TSFColor;
+    { X3D field "hatchColor". } { }
+    public property FdHatchColor: TSFColor read FFdHatchColor;
     { X3D field "hatchColor". } { }
     property HatchColor: TCastleColorRGB read GetHatchColor write SetHatchColor;
+
+    strict private FFdHatched: TSFBool;
+    { X3D field "hatched". } { }
+    public property FdHatched: TSFBool read FFdHatched;
     { X3D field "hatched". } { }
     property Hatched: Boolean read GetHatched write SetHatched;
+
+    strict private FFdHatchStyle: TSFInt32;
+    { X3D field "hatchStyle". } { }
+    public property FdHatchStyle: TSFInt32 read FFdHatchStyle;
     { X3D field "hatchStyle". } { }
     property HatchStyle: Integer read GetHatchStyle write SetHatchStyle;
 
@@ -88,6 +106,36 @@ end;
 procedure TFillPropertiesNode.SetHatchStyle(const Value: Integer);
 begin
   FdHatchStyle.Send(Value);
+end;
+
+class function TFillPropertiesNode.ClassX3DType: String;
+begin
+  Result := 'FillProperties';
+end;
+
+procedure TFillPropertiesNode.CreateNode;
+begin
+  inherited;
+
+  FFdFilled := TSFBool.Create(Self, True, 'filled', true);
+   FdFilled.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdFilled);
+
+  FFdHatchColor := TSFColor.Create(Self, True, 'hatchColor', Vector3(1, 1, 1));
+   FdHatchColor.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdHatchColor);
+  { X3D specification comment: [0,1] }
+
+  FFdHatched := TSFBool.Create(Self, True, 'hatched', true);
+   FdHatched.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdHatched);
+
+  FFdHatchStyle := TSFInt32.Create(Self, True, 'hatchStyle', 1);
+   FdHatchStyle.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdHatchStyle);
+  { X3D specification comment: [0,Inf) }
+
+  DefaultContainerField := 'fillProperties';
 end;
 
 {$endif read_implementation}

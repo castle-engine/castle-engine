@@ -28,11 +28,6 @@ type
   { Main "playing game" state, where most of the game logic takes place. }
   TStatePlay = class(TUIState)
   private
-    { Enemies behaviours }
-    Enemies: TEnemyList;
-
-    DebugAvatar: TDebugTransform;
-
     { Components designed using CGE editor, loaded from state-main.castle-user-interface. }
     LabelFps: TCastleLabel;
     MainViewport: TCastleViewport;
@@ -42,6 +37,12 @@ type
     CheckboxAimAvatar: TCastleCheckbox;
     CheckboxDebugAvatarColliders: TCastleCheckbox;
     CheckboxImmediatelyFixBlockedCamera: TCastleCheckbox;
+
+    { Enemies behaviors }
+    Enemies: TEnemyList;
+
+    DebugAvatar: TDebugTransform;
+
     procedure ChangeCheckboxCameraFollows(Sender: TObject);
     procedure ChangeCheckboxAimAvatar(Sender: TObject);
     procedure ChangeCheckboxDebugAvatarColliders(Sender: TObject);
@@ -91,7 +92,10 @@ begin
   for I := 1 to 4 do
   begin
     SoldierScene := UiOwner.FindRequiredComponent('SceneSoldier' + IntToStr(I)) as TCastleScene;
-    Enemy := TEnemy.Create(SoldierScene);
+    { Below using nil as Owner of TEnemy, as the Enemies list already "owns"
+      instances of this class, i.e. it will free them. }
+    Enemy := TEnemy.Create(nil);
+    SoldierScene.AddBehavior(Enemy);
     Enemies.Add(Enemy);
   end;
 
@@ -192,18 +196,12 @@ begin
 
     { We clicked on enemy if
       - HitByAvatar indicates we hit something
-      - This something has, as 1st child, a TEnemy instance.
-
-      We depend here on our TEnemy behaviour:
-      - TEnemy instance adds itself as child of TCastleScene
-      - TEnemy has no collidable things by itself, so it's not returned itself by WorldRayCast.
-    }
+      - It has a behavior of TEnemy. }
     HitByAvatar := AvatarRayCast;
     if (HitByAvatar <> nil) and
-       (HitByAvatar.Count <> 0) and
-       (HitByAvatar.Items[0] is TEnemy) then
+       (HitByAvatar.FindBehavior(TEnemy) <> nil) then
     begin
-      HitEnemy := HitByAvatar.Items[0] as TEnemy;
+      HitEnemy := HitByAvatar.FindBehavior(TEnemy) as TEnemy;
       HitEnemy.Hurt;
     end;
 

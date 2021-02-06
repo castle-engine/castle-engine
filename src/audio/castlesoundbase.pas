@@ -56,7 +56,7 @@ type
     Just like in case of 16-bit WAV files, and OpenAL AL_FORMAT_MONO16 / AL_FORMAT_STEREO16:
     It is expressed as a signed value over the range -32768 to 32767, 0 being an audio output level of zero.
 
-    Stereo data is expressed in an interleaved format, left channel sample followed by theright channel sample.
+    Stereo data is expressed in an interleaved format, left channel sample followed by the right channel sample.
   }
   TSoundDataFormat = (
     sfMono8,
@@ -65,8 +65,19 @@ type
     sfStereo16
   );
 
+  { How to load a sound buffer. }
   TSoundLoading = (
+    { Load entire sound file at once.
+      The advantage is that once the sound buffer is loaded, there's zero overhead at runtime
+      for playing it, and loading the sound buffer multiple times uses the cache properly.
+      The disadvantage is that loading time may be long, for longer files. }
     slComplete,
+
+    { Decompress the sound (like OggVorbis) during playback.
+      It allows for much quicker sound loading (almost instant, if you use streaming
+      for everything) but means that sounds will be loaded (in parts)
+      during playback.
+      In general case, we advise to use it for longer sounds (like music tracks). }
     slStreaming
   );
 

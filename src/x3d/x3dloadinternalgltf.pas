@@ -898,6 +898,31 @@ var
       WritelnWarning('Required extension KHR_draco_mesh_compression not supported by glTF reader');
   end;
 
+  { Read glTF "extras" into X3D "metadata" information. }
+  procedure ReadMetadata(const Extras: TPasJSONItemObject; const Node: TAbstractNode);
+  var
+    I: Integer;
+    Key: String;
+  begin
+    for I := 0 to Extras.Count - 1 do
+    begin
+      Key := Extras.Keys[I];
+      if Extras.Values[I] is TPasJSONItemString then
+        Node.MetadataString[Key] := TPasJSONItemString(Extras.Values[I]).Value
+      else
+      if Extras.Values[I] is TPasJSONItemBoolean then
+        Node.MetadataBoolean[Key] := TPasJSONItemBoolean(Extras.Values[I]).Value
+      else
+      if Extras.Values[I] is TPasJSONItemNumber then
+        Node.MetadataDouble[Key] := TPasJSONItemNumber(Extras.Values[I]).Value
+      else
+        WritelnWarning('Cannot read glTF extra "%s", unexpected type %s', [
+          Key,
+          Extras.Values[I].ClassName
+        ]);
+    end;
+  end;
+
   function ReadTextureRepeat(const Wrap: TPasGLTF.TSampler.TWrappingMode): Boolean;
   begin
     Result :=
@@ -1169,7 +1194,7 @@ var
 
   function ReadAppearance(const Material: TPasGLTF.TMaterial): TGltfAppearanceNode;
   var
-    AlphaChannel: TAutoAlphaChannel;
+    AlphaMode: TAlphaMode;
   begin
     Result := TGltfAppearanceNode.Create(Material.Name);
 
@@ -1180,27 +1205,22 @@ var
       Result.Material := ReadPhongMaterial(Material)
     else
       Result.Material := ReadPhysicalMaterial(Material);
+    ReadMetadata(Material.Extras, Result.Material);
 
     // read common material properties, that make sense in case of all material type
     Result.DoubleSided := Material.DoubleSided;
 
     // read alpha channel treatment
     case Material.AlphaMode of
-      TPasGLTF.TMaterial.TAlphaMode.Opaque: AlphaChannel := acNone;
-      TPasGLTF.TMaterial.TAlphaMode.Blend : AlphaChannel := acBlending;
-      TPasGLTF.TMaterial.TAlphaMode.Mask  : AlphaChannel := acTest;
+      TPasGLTF.TMaterial.TAlphaMode.Opaque: AlphaMode := amOpaque;
+      TPasGLTF.TMaterial.TAlphaMode.Blend : AlphaMode := amBlend;
+      TPasGLTF.TMaterial.TAlphaMode.Mask  : AlphaMode := amMask;
       {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('Unexpected glTF Material.AlphaMode value');
       {$endif}
     end;
-    Result.AlphaChannel := AlphaChannel;
-
-    // TODO: ignored for now:
-    // Result.AlphaClipThreshold := Material.AlphaCutOff;
-    // Implement AlphaClipThreshold from X3DOM / InstantReality:
-    // https://doc.x3dom.org/author/Shape/Appearance.html
-    // https://www.x3dom.org/news/
-    // (our default 0.5?)
+    Result.AlphaMode := AlphaMode;
+    Result.AlphaCutOff := Material.AlphaCutOff;
   end;
 
   function AccessorTypeToStr(const AccessorType: TPasGLTF.TAccessor.TType): String;
@@ -1420,6 +1440,7 @@ var
     IndexField: TMFLong;
     Appearance: TGltfAppearanceNode;
     Tangent4D: TVector4List;
+    MetadataCollision: String;
   begin
     // create X3D geometry and shape nodes
     if Primitive.Indices <> -1 then
@@ -1545,8 +1566,17 @@ var
 
     Shape.GenerateTangents;
 
+    MetadataCollision := ParentGroup.MetadataString['CastleCollision'];
+    case MetadataCollision of
+      'none': Shape.Collision := scNone;
+      'box': Shape.Collision := scBox;
+      '', 'default': Shape.Collision := scDefault;
+      else WritelnWarning('Invalid value for "CastleCollision" custom property, ignoring: %s', [MetadataCollision]);
+    end;
+
     // add to X3D
     ParentGroup.AddChildren(Shape);
+    ReadMetadata(Primitive.Extras, Shape);
   end;
 
   procedure ReadMesh(const Mesh: TPasGLTF.TMesh; const ParentGroup: TAbstractX3DGroupingNode);
@@ -1557,6 +1587,8 @@ var
     Group := TGroupNode.Create;
     Group.X3DName := Mesh.Name;
     ParentGroup.AddChildren(Group);
+
+    ReadMetadata(Mesh.Extras, Group);
 
     for Primitive in Mesh.Primitives do
       ReadPrimitive(Primitive, Group);
@@ -1581,6 +1613,8 @@ var
       OrthoViewpoint.X3DName := Camera.Name;
       OrthoViewpoint.GravityTransform := false;
       ParentGroup.AddChildren(OrthoViewpoint);
+
+      ReadMetadata(Camera.Extras, OrthoViewpoint);
     end else
     begin
       Viewpoint := TViewpointNode.Create;
@@ -1589,6 +1623,8 @@ var
         Viewpoint.FieldOfView := Camera.Perspective.YFov / 2;
       Viewpoint.GravityTransform := false;
       ParentGroup.AddChildren(Viewpoint);
+
+      ReadMetadata(Camera.Extras, Viewpoint);
     end;
   end;
 
@@ -1663,6 +1699,8 @@ var
       Transform.Rotation := Rotation;
       Transform.Scale := Scale;
       ParentGroup.AddChildren(Transform);
+
+      ReadMetadata(Node.Extras, Transform);
 
       if Node.Mesh <> -1 then
       begin

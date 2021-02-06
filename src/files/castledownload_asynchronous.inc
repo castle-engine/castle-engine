@@ -52,6 +52,7 @@ type
   TCastleDownload = class(TComponent)
   strict private
     FUrl: String;
+    FFinalUrl: String;
     FHttpMethod: THttpMethod;
     FOnFinish: TDownloadFinishedEvent;
     FStatus: TDownloadStatus;
@@ -100,6 +101,11 @@ type
       Can only change when there is no download in progress
       (@link(Status) is dsNotStarted or dsSuccess). }
     property Url: String read FUrl write SetUrl;
+
+    { When the download has finished (with success or error),
+      this is updated to "final" URL, after resolving HTTP/HTTPS redirects and
+      castle-data:/ protocol. }
+    property FinalUrl: String read FFinalUrl;
 
     { Options that configure the output stream. See TStreamOption for details. }
     property Options: TStreamOptions read FOptions write SetOptions;
@@ -198,6 +204,8 @@ type
       @longCode(#
         LastModified := Download.HttpResponseHeaders.Values['Last-Modified'];
       #)
+
+      Note that it is @nil in case of non-HTTP/HTTPS requests.
     }
     property HttpResponseHeaders: TStrings read FHttpResponseHeaders;
   end;
@@ -341,13 +349,22 @@ procedure TCastleDownload.Start;
         FStatus := dsError;
         FErrorMessage := Format('Error when downloading "%s": ', [URIDisplay(Url)]) +
           ExceptMessage(E);
+        {$if defined(VER3_2) and defined(DARWIN) and not defined(CASTLE_IOS)}
+        if (E is ESocketError) and (URIProtocol(RealUrl) = 'https') then
+        begin
+          FErrorMessage += NL +
+            'Warning: Https downloading with FPC 3.2.0 on macOS is broken for many hosts.' + NL +
+            'Upgrade to FPC 3.3.1.' + NL +
+            'See https://bugs.freepascal.org/view.php?id=37747 , https://github.com/castle-engine/castle-engine/issues/184 .';
+        end;
+        {$endif}
       end;
     end;
     DoFinish;
   end;
 
 var
-  P, RealUrl: String;
+  P: String;
   RegisteredProtocol: TRegisteredProtocol;
 begin
   ClearPreviousDownload;
@@ -364,13 +381,13 @@ begin
     https://castle-engine.io/manual_data_directory.php . }
   if P = 'castle-data' then
   begin
-    RealUrl := ResolveCastleDataURL(Url);
-    P := URIProtocol(RealUrl);
+    FFinalUrl := ResolveCastleDataURL(Url);
+    P := URIProtocol(FFinalUrl);
   end else
-    RealUrl := Url;
+    FFinalUrl := Url;
 
   if LogAllLoading then
-    WritelnLog('Loading', 'Loading "%s"', [URIDisplay(RealUrl)]);
+    WritelnLog('Loading', 'Loading "%s"', [URIDisplay(FFinalUrl)]);
 
   RegisteredProtocol := RegisteredProtocols.Find(P);
   if RegisteredProtocol <> nil then
@@ -378,7 +395,7 @@ begin
     if RegisteredProtocol.AsynchronousReader <> nil then
     begin
       Reader := RegisteredProtocol.AsynchronousReader.Create;
-      Reader.Url := RealUrl;
+      Reader.Url := FFinalUrl;
       Reader.ForceSynchronous := ForceSynchronous;
       Reader.HttpMethod := HttpMethod;
       { Assign from field FHttpPostData, not HttpPostData function,
@@ -391,7 +408,7 @@ begin
     end else
     if Assigned(RegisteredProtocol.ReadEvent) then
     begin
-      SynchronousRead(RegisteredProtocol.ReadEvent, RealUrl);
+      SynchronousRead(RegisteredProtocol.ReadEvent, FFinalUrl);
     end else
     begin
       FStatus := dsError;
@@ -439,6 +456,7 @@ begin
       end;
       FHttpResponseCode := Reader.HttpResponseCode;
       FHttpResponseHeaders := Reader.HttpResponseHeaders;
+      FFinalUrl := Reader.FinalUrl;
       Reader.HttpResponseHeaders := nil; // do not free HttpResponseHeaders in Reader destructor
       if FStatus = dsError then
         FErrorMessage := Reader.ErrorMessage;

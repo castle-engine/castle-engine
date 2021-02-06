@@ -159,6 +159,16 @@ function FormatDot(const Fmt: String; const Args: array of const): String;
   (conversion is done like it is #0). }
 function FloatToStrDot(const Value: Extended): String;
 
+{ Like standard FloatToStr, but always uses dot (.) as a decimal separator
+  for the floating point numbers, regardless of the user's locale settings.
+
+  In general this ignores locale, so also ThousandSeparator doesn't matter
+  (conversion is done like it is #0). }
+function FloatToStrFDot(const Value: Extended;
+  const FloatFormat: TFloatFormat;
+  const Precision: Integer;
+  const Digits: Integer): String;
+
 { Like standard TryStrToFloat, but always uses dot (.) as a decimal separator
   for the floating point numbers, regardless of the user's locale settings.
 
@@ -347,6 +357,19 @@ begin
   FormatSettings.DecimalSeparator := '.';
   FormatSettings.ThousandSeparator := #0;
   Result := FloatToStr(Value, FormatSettings);
+end;
+
+function FloatToStrFDot(const Value: Extended;
+  const FloatFormat: TFloatFormat;
+  const Precision: Integer;
+  const Digits: Integer): String;
+var
+  FormatSettings: TFormatSettings;
+begin
+  FormatSettings := DefaultFormatSettings;
+  FormatSettings.DecimalSeparator := '.';
+  FormatSettings.ThousandSeparator := #0;
+  Result := FloatToStrF(Value, FloatFormat, Precision, Digits, FormatSettings);
 end;
 
 (*

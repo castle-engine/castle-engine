@@ -332,8 +332,8 @@ type
       bind the textures used by this shader, right after each @link(Enable)
       call.
 
-      This is automatically called after every @link(Enable) by VRML renderer
-      (when it renders shapes) or scene manager (when it renders screen effects).
+      This is automatically called after every @link(Enable) by our renderer
+      (when it renders shapes) or TCastleScreenEffect (when it renders screen effects).
       If you use this TGLSLProgram directly (if you call @link(Enable)
       yourself), then it's your responsibility to call this method
       explicitly, if you want shaders using it to work.
@@ -416,7 +416,7 @@ type
       parameter follows this parameter value.
 
       @raises(EGLSLUniformNotFound If the variable is not found within
-        the program and we the behaviour (determined
+        the program and we the behavior (determined
         by AUniformTypeMismatchAction parameter or UniformTypeMismatchAction
         property) is uaException.)
 

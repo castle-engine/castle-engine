@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,10 +29,32 @@
     function GetForceContinuousValue_changed: Boolean;
     procedure SetForceContinuousValue_changed(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventNext: TSFBoolEvent;
+    { X3D in event "next". } { }
+    public property EventNext: TSFBoolEvent read FEventNext;
+
+    strict private FEventPrevious: TSFBoolEvent;
+    { X3D in event "previous". } { }
+    public property EventPrevious: TSFBoolEvent read FEventPrevious;
+
+    strict private FEventSet_fraction: TSFFloatEvent;
+    { X3D in event "set_fraction". } { }
+    public property EventSet_fraction: TSFFloatEvent read FEventSet_fraction;
+
+    strict private FFdKey: TMFFloat;
+    { X3D field "key". } { }
+    public property FdKey: TMFFloat read FFdKey;
     { Set X3D field "key". } { }
     procedure SetKey(const Value: array of Single);
     { Set X3D field "key". } { }
     procedure SetKey(const Value: TSingleList);
+
+    strict private FFdForceContinuousValue_changed: TSFBool;
+    { X3D field "forceContinuousValue_changed". } { }
+    public property FdForceContinuousValue_changed: TSFBool read FFdForceContinuousValue_changed;
     { X3D field "forceContinuousValue_changed". } { }
     property ForceContinuousValue_changed: Boolean read GetForceContinuousValue_changed write SetForceContinuousValue_changed;
 
@@ -60,6 +82,34 @@ end;
 procedure TAbstractSequencerNode.SetForceContinuousValue_changed(const Value: Boolean);
 begin
   FdForceContinuousValue_changed.Send(Value);
+end;
+
+class function TAbstractSequencerNode.ClassX3DType: String;
+begin
+  Result := 'X3DSequencerNode';
+end;
+
+procedure TAbstractSequencerNode.CreateNode;
+begin
+  inherited;
+
+  FEventNext := TSFBoolEvent.Create(Self, 'next', true);
+  AddEvent(FEventNext);
+
+  FEventPrevious := TSFBoolEvent.Create(Self, 'previous', true);
+  AddEvent(FEventPrevious);
+
+  FEventSet_fraction := TSFFloatEvent.Create(Self, 'set_fraction', true);
+  AddEvent(FEventSet_fraction);
+
+  FFdKey := TMFFloat.Create(Self, True, 'key', []);
+   FdKey.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdKey);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FFdForceContinuousValue_changed := TSFBool.Create(Self, True, 'forceContinuousValue_changed', false);
+   FdForceContinuousValue_changed.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdForceContinuousValue_changed);
 end;
 
 {$endif read_implementation}

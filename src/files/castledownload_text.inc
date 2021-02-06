@@ -32,7 +32,7 @@ type
   { Read any stream like a text file. You can read an arbitrary TStream
     instance, or you can read an URL. Reading from URL supports
     all URL protocols supportted by the Castle Game Engine engine
-    (see https://castle-engine.io/tutorial_network.php ).
+    (see https://castle-engine.io/manual_network.php ).
 
     Includes comfortable @link(Readln) routine to read line by line
     (lines may be terminated in any OS convention).

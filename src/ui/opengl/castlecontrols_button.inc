@@ -594,7 +594,7 @@ begin
       on this button, if mouse down was on this) we *always* get release event
       (even if mouse position is no longer over this button).
 
-      This is consistent with behaviours of other toolkits.
+      This is consistent with behaviors of other toolkits.
       It means that if the user does mouse down over the button,
       moves mouse out from the control, then moves it back inside,
       then does mouse up -> it counts as a "click". }

@@ -210,10 +210,6 @@ type
 
     chCursor,
 
-    { Used by @link(TCastleCamera) descendants to notify that the current
-      camera view (position, direction, up and everything related to it) changed. }
-    chCamera,
-
     chExists,
 
     { A (direct) child control was added or removed. }
@@ -2859,7 +2855,7 @@ procedure TUIContainer.EventUpdate;
     begin
       { go downward, from front to back.
         Important for controls watching/setting HandleInput,
-        e.g. for sliders/OnScreenMenu to block the scene manager underneath
+        e.g. for sliders/OnScreenMenu to block the navigation in TCastleViewport underneath
         from processing arrow keys. }
       I := C.ControlsCount - 1;
       while I >= 0 do

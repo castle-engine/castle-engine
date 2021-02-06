@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -37,16 +37,46 @@
     function GetStopErrorCorrection: Single;
     procedure SetStopErrorCorrection(const Value: Single);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdAxis: TSFVec3f;
+    { X3D field "axis". } { }
+    public property FdAxis: TSFVec3f read FFdAxis;
     { X3D field "axis". } { }
     property Axis: TVector3 read GetAxis write SetAxis;
+
+    strict private FFdMaxSeparation: TSFFloat;
+    { X3D field "maxSeparation". } { }
+    public property FdMaxSeparation: TSFFloat read FFdMaxSeparation;
     { X3D field "maxSeparation". } { }
     property MaxSeparation: Single read GetMaxSeparation write SetMaxSeparation;
+
+    strict private FFdMinSeparation: TSFFloat;
+    { X3D field "minSeparation". } { }
+    public property FdMinSeparation: TSFFloat read FFdMinSeparation;
     { X3D field "minSeparation". } { }
     property MinSeparation: Single read GetMinSeparation write SetMinSeparation;
+
+    strict private FFdStopBounce: TSFFloat;
+    { X3D field "stopBounce". } { }
+    public property FdStopBounce: TSFFloat read FFdStopBounce;
     { X3D field "stopBounce". } { }
     property StopBounce: Single read GetStopBounce write SetStopBounce;
+
+    strict private FFdStopErrorCorrection: TSFFloat;
+    { X3D field "stopErrorCorrection". } { }
+    public property FdStopErrorCorrection: TSFFloat read FFdStopErrorCorrection;
     { X3D field "stopErrorCorrection". } { }
     property StopErrorCorrection: Single read GetStopErrorCorrection write SetStopErrorCorrection;
+
+    strict private FEventSeparation: TSFFloatEvent;
+    { X3D out event "separation". } { }
+    public property EventSeparation: TSFFloatEvent read FEventSeparation;
+
+    strict private FEventSeparationRate: TSFFloatEvent;
+    { X3D out event "separationRate". } { }
+    public property EventSeparationRate: TSFFloatEvent read FEventSeparationRate;
 
 {$endif read_interface}
 
@@ -102,6 +132,46 @@ end;
 procedure TSliderJointNode.SetStopErrorCorrection(const Value: Single);
 begin
   FdStopErrorCorrection.Send(Value);
+end;
+
+class function TSliderJointNode.ClassX3DType: String;
+begin
+  Result := 'SliderJoint';
+end;
+
+procedure TSliderJointNode.CreateNode;
+begin
+  inherited;
+
+  FFdAxis := TSFVec3f.Create(Self, True, 'axis', Vector3(0, 1, 0));
+   FdAxis.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAxis);
+
+  FFdMaxSeparation := TSFFloat.Create(Self, True, 'maxSeparation', 1);
+   FdMaxSeparation.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMaxSeparation);
+  { X3D specification comment: [0,Inf) }
+
+  FFdMinSeparation := TSFFloat.Create(Self, True, 'minSeparation', 0);
+   FdMinSeparation.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMinSeparation);
+  { X3D specification comment: [0,Inf) }
+
+  FFdStopBounce := TSFFloat.Create(Self, True, 'stopBounce', 0);
+   FdStopBounce.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdStopBounce);
+  { X3D specification comment: [0,1] }
+
+  FFdStopErrorCorrection := TSFFloat.Create(Self, True, 'stopErrorCorrection', 1);
+   FdStopErrorCorrection.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdStopErrorCorrection);
+  { X3D specification comment: [0,1] }
+
+  FEventSeparation := TSFFloatEvent.Create(Self, 'separation', false);
+  AddEvent(FEventSeparation);
+
+  FEventSeparationRate := TSFFloatEvent.Create(Self, 'separationRate', false);
+  AddEvent(FEventSeparationRate);
 end;
 
 {$endif read_implementation}

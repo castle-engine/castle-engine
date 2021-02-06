@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -55,34 +55,124 @@
     function GetSuspensionForce: Single;
     procedure SetSuspensionForce(const Value: Single);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdAnchorPoint: TSFVec3f;
+    { X3D field "anchorPoint". } { }
+    public property FdAnchorPoint: TSFVec3f read FFdAnchorPoint;
     { X3D field "anchorPoint". } { }
     property AnchorPoint: TVector3 read GetAnchorPoint write SetAnchorPoint;
+
+    strict private FFdAxis1: TSFVec3f;
+    { X3D field "axis1". } { }
+    public property FdAxis1: TSFVec3f read FFdAxis1;
     { X3D field "axis1". } { }
     property Axis1: TVector3 read GetAxis1 write SetAxis1;
+
+    strict private FFdAxis2: TSFVec3f;
+    { X3D field "axis2". } { }
+    public property FdAxis2: TSFVec3f read FFdAxis2;
     { X3D field "axis2". } { }
     property Axis2: TVector3 read GetAxis2 write SetAxis2;
+
+    strict private FFdDesiredAngularVelocity1: TSFFloat;
+    { X3D field "desiredAngularVelocity1". } { }
+    public property FdDesiredAngularVelocity1: TSFFloat read FFdDesiredAngularVelocity1;
     { X3D field "desiredAngularVelocity1". } { }
     property DesiredAngularVelocity1: Single read GetDesiredAngularVelocity1 write SetDesiredAngularVelocity1;
+
+    strict private FFdDesiredAngularVelocity2: TSFFloat;
+    { X3D field "desiredAngularVelocity2". } { }
+    public property FdDesiredAngularVelocity2: TSFFloat read FFdDesiredAngularVelocity2;
     { X3D field "desiredAngularVelocity2". } { }
     property DesiredAngularVelocity2: Single read GetDesiredAngularVelocity2 write SetDesiredAngularVelocity2;
+
+    strict private FFdMaxAngle1: TSFFloat;
+    { X3D field "maxAngle1". } { }
+    public property FdMaxAngle1: TSFFloat read FFdMaxAngle1;
     { X3D field "maxAngle1". } { }
     property MaxAngle1: Single read GetMaxAngle1 write SetMaxAngle1;
+
+    strict private FFdMaxTorque1: TSFFloat;
+    { X3D field "maxTorque1". } { }
+    public property FdMaxTorque1: TSFFloat read FFdMaxTorque1;
     { X3D field "maxTorque1". } { }
     property MaxTorque1: Single read GetMaxTorque1 write SetMaxTorque1;
+
+    strict private FFdMaxTorque2: TSFFloat;
+    { X3D field "maxTorque2". } { }
+    public property FdMaxTorque2: TSFFloat read FFdMaxTorque2;
     { X3D field "maxTorque2". } { }
     property MaxTorque2: Single read GetMaxTorque2 write SetMaxTorque2;
+
+    strict private FFdMinAngle1: TSFFloat;
+    { X3D field "minAngle1". } { }
+    public property FdMinAngle1: TSFFloat read FFdMinAngle1;
     { X3D field "minAngle1". } { }
     property MinAngle1: Single read GetMinAngle1 write SetMinAngle1;
+
+    strict private FFdStopBounce1: TSFFloat;
+    { X3D field "stopBounce1". } { }
+    public property FdStopBounce1: TSFFloat read FFdStopBounce1;
     { X3D field "stopBounce1". } { }
     property StopBounce1: Single read GetStopBounce1 write SetStopBounce1;
+
+    strict private FFdStopConstantForceMix1: TSFFloat;
+    { X3D field "stopConstantForceMix1". } { }
+    public property FdStopConstantForceMix1: TSFFloat read FFdStopConstantForceMix1;
     { X3D field "stopConstantForceMix1". } { }
     property StopConstantForceMix1: Single read GetStopConstantForceMix1 write SetStopConstantForceMix1;
+
+    strict private FFdStopErrorCorrection1: TSFFloat;
+    { X3D field "stopErrorCorrection1". } { }
+    public property FdStopErrorCorrection1: TSFFloat read FFdStopErrorCorrection1;
     { X3D field "stopErrorCorrection1". } { }
     property StopErrorCorrection1: Single read GetStopErrorCorrection1 write SetStopErrorCorrection1;
+
+    strict private FFdSuspensionErrorCorrection: TSFFloat;
+    { X3D field "suspensionErrorCorrection". } { }
+    public property FdSuspensionErrorCorrection: TSFFloat read FFdSuspensionErrorCorrection;
     { X3D field "suspensionErrorCorrection". } { }
     property SuspensionErrorCorrection: Single read GetSuspensionErrorCorrection write SetSuspensionErrorCorrection;
+
+    strict private FFdSuspensionForce: TSFFloat;
+    { X3D field "suspensionForce". } { }
+    public property FdSuspensionForce: TSFFloat read FFdSuspensionForce;
     { X3D field "suspensionForce". } { }
     property SuspensionForce: Single read GetSuspensionForce write SetSuspensionForce;
+
+    strict private FEventBody1AnchorPoint: TSFVec3fEvent;
+    { X3D out event "body1AnchorPoint". } { }
+    public property EventBody1AnchorPoint: TSFVec3fEvent read FEventBody1AnchorPoint;
+
+    strict private FEventBody1Axis: TSFVec3fEvent;
+    { X3D out event "body1Axis". } { }
+    public property EventBody1Axis: TSFVec3fEvent read FEventBody1Axis;
+
+    strict private FEventBody2AnchorPoint: TSFVec3fEvent;
+    { X3D out event "body2AnchorPoint". } { }
+    public property EventBody2AnchorPoint: TSFVec3fEvent read FEventBody2AnchorPoint;
+
+    strict private FEventBody2Axis: TSFVec3fEvent;
+    { X3D out event "body2Axis". } { }
+    public property EventBody2Axis: TSFVec3fEvent read FEventBody2Axis;
+
+    strict private FEventHinge1Angle: TSFFloatEvent;
+    { X3D out event "hinge1Angle". } { }
+    public property EventHinge1Angle: TSFFloatEvent read FEventHinge1Angle;
+
+    strict private FEventHinge1AngleRate: TSFFloatEvent;
+    { X3D out event "hinge1AngleRate". } { }
+    public property EventHinge1AngleRate: TSFFloatEvent read FEventHinge1AngleRate;
+
+    strict private FEventHinge2Angle: TSFFloatEvent;
+    { X3D out event "hinge2Angle". } { }
+    public property EventHinge2Angle: TSFFloatEvent read FEventHinge2Angle;
+
+    strict private FEventHinge2AngleRate: TSFFloatEvent;
+    { X3D out event "hinge2AngleRate". } { }
+    public property EventHinge2AngleRate: TSFFloatEvent read FEventHinge2AngleRate;
 
 {$endif read_interface}
 
@@ -228,6 +318,107 @@ end;
 procedure TDoubleAxisHingeJointNode.SetSuspensionForce(const Value: Single);
 begin
   FdSuspensionForce.Send(Value);
+end;
+
+class function TDoubleAxisHingeJointNode.ClassX3DType: String;
+begin
+  Result := 'DoubleAxisHingeJoint';
+end;
+
+procedure TDoubleAxisHingeJointNode.CreateNode;
+begin
+  inherited;
+
+  FFdAnchorPoint := TSFVec3f.Create(Self, True, 'anchorPoint', Vector3(0, 0, 0));
+   FdAnchorPoint.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAnchorPoint);
+
+  FFdAxis1 := TSFVec3f.Create(Self, True, 'axis1', Vector3(0, 0, 0));
+   FdAxis1.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAxis1);
+
+  FFdAxis2 := TSFVec3f.Create(Self, True, 'axis2', Vector3(0, 0, 0));
+   FdAxis2.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAxis2);
+
+  FFdDesiredAngularVelocity1 := TSFFloat.Create(Self, True, 'desiredAngularVelocity1', 0);
+   FdDesiredAngularVelocity1.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDesiredAngularVelocity1);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FFdDesiredAngularVelocity2 := TSFFloat.Create(Self, True, 'desiredAngularVelocity2', 0);
+   FdDesiredAngularVelocity2.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDesiredAngularVelocity2);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FFdMaxAngle1 := TSFFloat.Create(Self, True, 'maxAngle1', Pi);
+   FdMaxAngle1.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMaxAngle1);
+  { X3D specification comment: [-Pi,Pi] }
+
+  FFdMaxTorque1 := TSFFloat.Create(Self, True, 'maxTorque1', 0);
+   FdMaxTorque1.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMaxTorque1);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FFdMaxTorque2 := TSFFloat.Create(Self, True, 'maxTorque2', 0);
+   FdMaxTorque2.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMaxTorque2);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FFdMinAngle1 := TSFFloat.Create(Self, True, 'minAngle1', -Pi);
+   FdMinAngle1.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMinAngle1);
+  { X3D specification comment: [-Pi,Pi] }
+
+  FFdStopBounce1 := TSFFloat.Create(Self, True, 'stopBounce1', 0);
+   FdStopBounce1.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdStopBounce1);
+  { X3D specification comment: [0,1] }
+
+  FFdStopConstantForceMix1 := TSFFloat.Create(Self, True, 'stopConstantForceMix1', 0.001);
+   FdStopConstantForceMix1.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdStopConstantForceMix1);
+  { X3D specification comment: [0,Inf) }
+
+  FFdStopErrorCorrection1 := TSFFloat.Create(Self, True, 'stopErrorCorrection1', 0.8);
+   FdStopErrorCorrection1.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdStopErrorCorrection1);
+  { X3D specification comment: [0,1] }
+
+  FFdSuspensionErrorCorrection := TSFFloat.Create(Self, True, 'suspensionErrorCorrection', 0.8);
+   FdSuspensionErrorCorrection.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSuspensionErrorCorrection);
+  { X3D specification comment: [0,1] }
+
+  FFdSuspensionForce := TSFFloat.Create(Self, True, 'suspensionForce', 0);
+   FdSuspensionForce.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSuspensionForce);
+  { X3D specification comment: [0,Inf) }
+
+  FEventBody1AnchorPoint := TSFVec3fEvent.Create(Self, 'body1AnchorPoint', false);
+  AddEvent(FEventBody1AnchorPoint);
+
+  FEventBody1Axis := TSFVec3fEvent.Create(Self, 'body1Axis', false);
+  AddEvent(FEventBody1Axis);
+
+  FEventBody2AnchorPoint := TSFVec3fEvent.Create(Self, 'body2AnchorPoint', false);
+  AddEvent(FEventBody2AnchorPoint);
+
+  FEventBody2Axis := TSFVec3fEvent.Create(Self, 'body2Axis', false);
+  AddEvent(FEventBody2Axis);
+
+  FEventHinge1Angle := TSFFloatEvent.Create(Self, 'hinge1Angle', false);
+  AddEvent(FEventHinge1Angle);
+
+  FEventHinge1AngleRate := TSFFloatEvent.Create(Self, 'hinge1AngleRate', false);
+  AddEvent(FEventHinge1AngleRate);
+
+  FEventHinge2Angle := TSFFloatEvent.Create(Self, 'hinge2Angle', false);
+  AddEvent(FEventHinge2Angle);
+
+  FEventHinge2AngleRate := TSFFloatEvent.Create(Self, 'hinge2AngleRate', false);
+  AddEvent(FEventHinge2AngleRate);
 end;
 
 {$endif read_implementation}

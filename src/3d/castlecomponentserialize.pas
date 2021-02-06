@@ -254,8 +254,9 @@ begin
 
   ResultClass := FindComponentClass(ResultClassName);
   if ResultClass = nil then
-    raise EInvalidComponentFile.CreateFmt('Component JSON file contains unrecognized class "%s"',
-      [ResultClassName]);
+    raise EInvalidComponentFile.CreateFmt('Component JSON file references an unrecognized class "%s".' + NL + NL +
+      'Add the unit that registers "%s" to the "uses" clause of any unit in the application. E.g. add "CastleTiledMap" to some uses clause, if you use "TCastleTiledMapControl" in the design.',
+      [ResultClassName, ResultClassName]);
   Result := ResultClass.Create(Owner);
 end;
 

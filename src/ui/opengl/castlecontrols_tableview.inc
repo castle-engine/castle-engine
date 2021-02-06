@@ -147,7 +147,7 @@
                            read FOnDidSelectCell write FOnDidSelectCell;
     { Height of all cells. }
     property CellHeight: Integer read FCellHeight write FCellHeight default DefaultCellHeight;
-  end;
+  end deprecated 'use instead TCastleVerticalGroup with children as TCastleHorizontalGroup to create a table layout'; // it is better to visually design in editor, it is more flexible (with cells and borders being any TCastleUserInterface control), it has more natual API (you can just add rows)
 
 {$endif read_interface}
 

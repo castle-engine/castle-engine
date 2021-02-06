@@ -431,8 +431,8 @@ clean: cleanexamples
 	  examples/fonts/font_draw_over_image_output.png \
 	  examples/short_api_samples/transform_save_load/aaa.castle-transform
 	$(MAKE) -C doc/man/man1/ clean
-# fpmake binary, and units/ produced by fpmake compilation
-	rm -Rf fpmake fpmake.exe units/ *.fpm
+# fpmake stuff (binary, units/ produced by fpmake compilation, configs)
+	rm -Rf fpmake fpmake.exe units/ *.fpm .fppkg .config
 # lazarus produces lib/ subdirectories during compilation
 	$(FIND) examples/ -type d -name lib -prune -exec rm -Rf '{}' ';'
 	rm -Rf src/library/ios-output/\

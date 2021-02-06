@@ -155,6 +155,7 @@ type
     procedure SetCenterY(const Value: Single);
     procedure SetRepeatS(const Value: Boolean);
     procedure SetRepeatT(const Value: Boolean);
+    procedure SetURL(const Value: String);
   private
     StaticResourcesReady: Boolean; static;
     { Create / destroy static stuff for rendering. }
@@ -640,8 +641,9 @@ type
     procedure DrawFrom(const SourceImage: TDrawableImage;
       const DestinationRect, SourceRect: TFloatRectangle);
 
-    { Non-empty only if the image was loaded from URL. }
-    property URL: String read FURL;
+    { URL of currently loaded image.
+      Non-empty only if the image was loaded from URL. }
+    property URL: String read FURL write SetURL;
 
     { Repeat or clamp texture in S (width) or T (height) dimensions.
       @groupBegin }
@@ -1634,6 +1636,19 @@ begin
       glBindTexture(GL_TEXTURE_2D, FTexture);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, CurrentWrap.Data[1]);
     end;
+  end;
+end;
+
+procedure TDrawableImage.SetURL(const Value: String);
+var
+  NewImage: TEncodedImage;
+begin
+  if FURL <> Value then
+  begin
+    NewImage := LoadEncodedImage(Value); // make exception from loading before changing URL
+    FURL := Value;
+    Load(NewImage);
+    FOwnsImage := true; // change it after Load(), so that Load frees previous image if needed
   end;
 end;
 

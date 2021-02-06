@@ -160,7 +160,7 @@ type
       FWalkNavigation: TCastleWalkNavigation;
       FThirdPersonNavigation: TCastleThirdPersonNavigation;
       FUseThirdPerson: Boolean;
-      InsideSynchronizeFromNavigation: Cardinal;
+      InsideSynchronizeFromCamera: Cardinal;
 
     procedure SetEquippedWeapon(Value: TItemWeapon);
 
@@ -186,8 +186,8 @@ type
     procedure SetFlying(const AValue: Boolean);
     procedure SetFlyingTimeOut(const AValue: TFloatTime);
     procedure SetEnableNavigationDragging(const AValue: Boolean);
-    procedure SynchronizeToNavigation;
-    procedure SynchronizeFromNavigation;
+    procedure SynchronizeToCamera;
+    procedure SynchronizeFromCamera;
     procedure SetUseThirdPerson(const AValue: Boolean);
   protected
     procedure SetLife(const Value: Single); override;
@@ -229,6 +229,7 @@ type
     destructor Destroy; override;
     procedure Render(const Params: TRenderParams); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
+    property ListenPressRelease default true;
 
     { Flying.
       How it interacts with FlyingTimeout: Setting this property
@@ -580,6 +581,7 @@ end;
 constructor TPlayer.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  ListenPressRelease := true;
   CollidesWithMoving := true;
   Life := DefaultLife;
   MaxLife := DefaultLife;
@@ -798,17 +800,23 @@ begin
   end;
 end;
 
-procedure TPlayer.SynchronizeToNavigation;
+procedure TPlayer.SynchronizeToCamera;
 var
   P, D, U: TVector3;
 begin
-  // avoid recursive calls between SynchronizeToNavigation and SynchronizeFromNavigation
-  if InsideSynchronizeFromNavigation <> 0 then Exit;
+  // avoid recursive calls between SynchronizeToCamera and SynchronizeFromCamera
+  if InsideSynchronizeFromCamera <> 0 then Exit;
 
   // synchronize Position, Direction, Up *to* Navigation
   if not UseThirdPerson then
   try
     GetView(P, D, U);
+    if UniqueParent <> nil then
+    begin
+      P := UniqueParent.LocalToWorld(P);
+      D := UniqueParent.LocalToWorldDirection(D);
+      U := UniqueParent.LocalToWorldDirection(U);
+    end;
     Navigation.Camera.SetView(P, D, U);
   except
     on EViewportNotAssigned do
@@ -816,7 +824,7 @@ begin
   end;
 end;
 
-procedure TPlayer.SynchronizeFromNavigation;
+procedure TPlayer.SynchronizeFromCamera;
 var
   P, D, U: TVector3;
 begin
@@ -824,9 +832,15 @@ begin
   if not UseThirdPerson then
   try
     Navigation.Camera.GetView(P, D, U);
-    Inc(InsideSynchronizeFromNavigation);
+    if UniqueParent <> nil then
+    begin
+      P := UniqueParent.WorldToLocal(P);
+      D := UniqueParent.WorldToLocalDirection(D);
+      U := UniqueParent.WorldToLocalDirection(U);
+    end;
+    Inc(InsideSynchronizeFromCamera);
     SetView(P, D, U);
-    Dec(InsideSynchronizeFromNavigation);
+    Dec(InsideSynchronizeFromCamera);
   except
     on EViewportNotAssigned do
       WritelnWarning('Adjusting TCastlePlayer transformation (like position) in PrepareResources is aborted if TCastleViewport.Navigation is not yet associated with TCastlePlayer.Navigation');
@@ -837,7 +851,7 @@ procedure TPlayer.ChangedTransform;
 begin
   inherited;
   { If something called Player.Translation := xxx, update Navigation }
-  SynchronizeToNavigation;
+  SynchronizeToCamera;
 end;
 
 procedure TPlayer.UpdateNavigation;
@@ -1171,7 +1185,7 @@ begin
   inherited;
   if not GetExists then Exit;
 
-  SynchronizeFromNavigation;
+  SynchronizeFromCamera;
 
   if FFlyingTimeOut > 0 then
   begin
@@ -1503,7 +1517,7 @@ begin
     but before rendering.
     (Testcase: move/rotate using touch control
     in fps_game when you have shooting_eye.) }
-  SynchronizeFromNavigation;
+  SynchronizeFromCamera;
 
   inherited;
 end;

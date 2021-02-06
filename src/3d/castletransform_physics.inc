@@ -1,5 +1,6 @@
+{%MainUnit castletransform.pas}
 {
-  Copyright 2017-2018 Michalis Kamburelis.
+  Copyright 2017-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -551,7 +552,7 @@ begin
   FAngularVelocityDamp := 0.1;
 
   FKraftBody := nil;
-  FCollisionList := TCastleTransformList.Create(false, nil);
+  FCollisionList := TCastleTransformList.Create(false);
   FPrevCollisions := TRigidBodyList.Create;
   FCurrentCollisions := TRigidBodyList.Create;
 
@@ -650,7 +651,7 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
     if (not FAngularVelocity.IsPerfectlyZero) or
        (not FLinearVelocity.IsPerfectlyZero) then
     begin
-      { The behaviour is more natural when we zero the XxxVelocity
+      { The behavior is more natural when we zero the XxxVelocity
         components that are locked. (Otherwise testing e.g. Setup2D in a 3D
         world makes a little unexpected motions). }
 
@@ -1085,7 +1086,7 @@ begin
       next FRigidBody.Update, then next FRigidBody would recreate Kraft
       resources for this object (once it's implemented, by setting
       FRecreateKraftInstance on every change),
-      which is needless (we create Kraft resourcest
+      which is needless (we create Kraft resources
       for this transform 2 times in this case, instead of once). }
   if RigidBody <> nil then
     RigidBody.InitializeTransform(Self);
@@ -1109,7 +1110,7 @@ begin
   end;
 end;
 
-destructor TCastleAbstractRootTransform.Destroy;
+procedure TCastleAbstractRootTransform.DestroyPhysicsEngine;
 var
   CastleRigidBody: TRigidBody;
   KraftRigidBody: TKraftRigidBody;
@@ -1129,10 +1130,9 @@ begin
       end;
       KraftRigidBody := NextKraftRigidBody;
     end;
-  end;
 
-  FreeAndNil(FKraftEngine);
-  inherited;
+    FreeAndNil(FKraftEngine);
+  end;
 end;
 
 procedure TCastleAbstractRootTransform.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);

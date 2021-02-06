@@ -37,6 +37,7 @@ implementation
 
 uses URIParser, Math, Generics.Collections,
   {$ifdef HAS_FP_HTTP_CLIENT} SSLSockets, FpHttpClient, SyncObjs, {$endif}
+  {$if defined(VER3_2) and defined(DARWIN) and not defined(CASTLE_IOS)} { for ESocketError } SSockets, {$endif}
   CastleURIUtils, CastleUtils, CastleLog, CastleInternalZStream,
   CastleClassUtils, CastleDataURI, CastleStringUtils,
   CastleApplicationProperties, CastleFilesUtils

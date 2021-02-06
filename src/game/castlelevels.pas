@@ -232,7 +232,7 @@ type
         @item(If your exporter doesn't rotate the world.
           (You can configure Blender exporter to behave like this.
           You may also then configure engine to use +Z as up vector for everything,
-          see "Which way is up?" on [https://castle-engine.io/tutorial_up.php].))
+          see "Which way is up?" on https://castle-engine.io/manual_up.php .))
       )
 
       In Blender it's useful to enable the "Display -> Wire" option for placeholder
@@ -503,7 +503,7 @@ type
 
   TLevelProperties = TAbstractLevel deprecated 'use TAbstractLevel';
 
-  { Scene manager that can comfortably load and manage a 3D game level.
+  { Viewport that can comfortably load and manage a 3D game level.
     It really adds only one new method to TCastleSceneManager:
     @link(LoadLevel), see it's documentation to know what it gives you.
     It also exposes @link(Logic) and @link(Info) properties
@@ -533,16 +533,16 @@ type
     function LevelProperties: TAbstractLevel;
   end deprecated 'use TLevel together with a TCastleViewport';
 
-  { Level logic. We use TCastleTransform descendant, since this is the comfortable
-    way to add any behavior to the game world (it doesn't matter that
-    "level logic" is not a usual visible object --- it doesn't have to collide
-    or be visible). }
-  TLevelLogic = class(TCastleTransform)
+  { Level logic. }
+  TLevelLogic = class(TCastleBehavior)
   strict private
     FTime: TFloatTime;
     FLevel: TAbstractLevel;
   protected
-    { Load 3D scene from file, doing common tasks.
+    { Level that we are part of. }
+    property Level: TAbstractLevel read FLevel;
+
+    { Load scene from file, doing common tasks.
       @unorderedList(
         @item optionally create triangle octree
         @item(call PrepareResources, with prRenderSelf, prBoundingBox, prShadowVolume
@@ -602,7 +602,6 @@ type
     constructor Create(const AOwner: TComponent;
       const ALevel: TAbstractLevel;
       const MainScene: TCastleScene; const DOMElement: TDOMElement); reintroduce; virtual;
-    function LocalBoundingBox: TBox3D; override;
 
     { Called when new player starts new game on this level.
       This may be used to equip the player with some basic weapon / items.
@@ -1048,9 +1047,9 @@ begin
     { add FInternalLogic to Items }
     Items.Add(FInternalLogic);
 
-    { add FLogic (new Info.LogicClass instance) to Items }
+    { add FLogic (new Info.LogicClass instance) }
     FLogic := Info.LogicClass.Create(FreeAtUnload, Self, Items.MainScene, Info.Element);
-    Items.Add(Logic);
+    Items.AddBehavior(Logic);
 
     { We will calculate new Sectors and Waypoints and other stuff
       based on placeholders. Initialize them now to be empty. }
@@ -1420,19 +1419,6 @@ constructor TLevelLogic.Create(const AOwner: TComponent;
 begin
   inherited Create(AOwner);
   FLevel := ALevel;
-
-  AddToWorld(ALevel.RootTransform);
-
-  { Actually, the fact that our BoundingBox is empty also prevents collisions.
-    But for some methods, knowing that Collides = false allows them to exit
-    faster. }
-  Collides := false;
-end;
-
-function TLevelLogic.LocalBoundingBox: TBox3D;
-begin
-  { This object is invisible and non-colliding. }
-  Result := TBox3D.Empty;
 end;
 
 procedure TLevelLogic.PrepareNewPlayer(NewPlayer: TPlayer);

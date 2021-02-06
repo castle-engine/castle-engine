@@ -41,7 +41,7 @@ uses SysUtils, Classes, TypInfo, Forms,
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes, CastleCameras,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
   CastleVectors, CastleUtils, CastleColors, CastleViewport, CastleDialogs,
-  CastleTiledMap, CastleGLImages, CastleStringUtils,
+  CastleTiledMap, CastleGLImages, CastleStringUtils, CastleTransformExtra,
   CastleInternalExposeTransformsDialog;
 
 {$I castlepropedits_any_subproperties.inc}
@@ -66,6 +66,8 @@ begin
     'URL', TImageURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleDesign,
     'URL', TDesignURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTransformDesign,
+    'URL', TTransformDesignURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTiledMapControl,
     'URL', TTiledMapURLPropertyEditor);
 

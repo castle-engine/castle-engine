@@ -25,7 +25,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleVectors, X3DNodes, X3DTriangles, CastleScene, CastleSceneCore, CastleCameras,
   CastleInternalGLShadowVolumes, CastleUIControls, CastleTransform, CastleTriangles,
   CastleKeysMouse, CastleBoxes, CastleInternalBackground, CastleUtils, CastleClassUtils,
-  CastleGLShaders, CastleGLImages, CastleTimeUtils,
+  CastleGLShaders, CastleGLImages, CastleTimeUtils, CastleControls,
   CastleInputs, CastleRectangles, CastleColors,
   CastleProjection, CastleScreenEffects;
 
@@ -151,8 +151,7 @@ type
         @nil when OpenGL context is not yet initialized. }
       FShadowVolumeRenderer: TGLShadowVolumeRenderer;
       FItems: TCastleRootTransform;
-      ScheduledVisibleChangeNotification: Boolean;
-      ScheduledVisibleChangeNotificationChanges: TVisibleChanges;
+      LastVisibleStateIdForVisibleChange: TFrameId;
 
       FOnBoundViewpointChanged, FOnBoundNavigationInfoChanged: TNotifyEvent;
       FMouseRayHit: TRayCollision;
@@ -162,6 +161,7 @@ type
       FPreventInfiniteFallingDown: Boolean;
       FCapturePointingDevice: TCastleTransform;
       FCapturePointingDeviceObserver: TFreeNotificationObserver;
+      FLastSeenMainScene: TCastleScene; // only used by editor
 
     function FillsWholeContainer: Boolean;
     function IsStoredNavigation: Boolean;
@@ -172,6 +172,7 @@ type
     procedure SSRShaderInitialize;
     function GetNavigationType: TNavigationType;
     procedure SetAutoCamera(const Value: Boolean);
+    procedure SetAutoNavigation(const Value: Boolean);
     { Make sure to call AssignDefaultCamera, if needed because of AutoCamera. }
     procedure EnsureCameraDetected;
     procedure SetItems(const Value: TCastleRootTransform);
@@ -256,11 +257,6 @@ type
       This takes care to always update Camera.ProjectionMatrix,
       Projection, MainScene.BackgroundSkySphereRadius. }
     procedure ApplyProjection;
-    procedure ItemsVisibleChange(const Sender: TCastleTransform; const Changes: TVisibleChanges);
-
-    { What changes happen when camera changes.
-      You may want to use it when calling Scene.CameraChanged. }
-    function CameraToChanges(const ACamera: TCastleCamera): TVisibleChanges;
 
     { Render shadow quads for all the things rendered by @link(Render3D).
       You can use here ShadowVolumeRenderer instance, which is guaranteed
@@ -391,6 +387,19 @@ type
         @exclude }
       InternalDistortFieldOfViewY, InternalDistortViewAspect: Single;
 
+      { Do not navigate by dragging when we're already dragging a TCastleTransform item.
+        This means that if you drag
+
+        - X3D sensors like TouchSensor,
+        - gizmo in CGE editor,
+
+        ... then your dragging will not simultaneously also affect the navigation
+        (which would be very disorienting).
+
+        Set to true when some TCastleTransform handles PointingDevicePress,
+        set to false in PointingDeviceRelease. }
+      InternalPointingDeviceDragging: Boolean;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -400,11 +409,14 @@ type
     function Motion(const Event: TInputMotion): Boolean; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: Boolean); override;
-    procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
-      const ChangeInitiatedByChildren: Boolean = false); override;
     procedure BeforeRender; override;
+    function PropertySection(const PropertyName: String): TPropertySection; override;
 
     function GetMainScene: TCastleScene; deprecated 'use Items.MainScene';
+
+    { Notification done by TCastleCamera when our Camera state changed.
+      @exclude }
+    procedure InternalCameraChanged;
 
     { Current projection parameters,
       calculated by last @link(CalculateProjection) call,
@@ -490,7 +502,7 @@ type
       after a @name call. No previous cached camera instance will be used. }
     procedure ClearCameras; deprecated 'just set Navigation to nil instead of using this method; to avoid reusing previous instance, do not use WalkNavigation/ExamineNavigation methods, instead create and destroy your own TCastleWalkNavigation/TCastleExamineNavigation whenever you want';
 
-    { Camera instances used by this scene manager.
+    { Camera instances used by this viewport.
       Using these methods automatically creates these instances
       (so they are never @nil).
 
@@ -500,7 +512,7 @@ type
 
       When you switch navigation types by calling @link(ExamineCamera),
       @link(WalkCamera) or setting @link(NavigationType)
-      the scene manager keeps using these instances of cameras,
+      the viewport keeps using these instances of cameras,
       instead of creating new camera instances.
       This way all the camera properties
       (not only those copied by TCastleNavigation.Assign) are preserved when you switch
@@ -661,11 +673,11 @@ type
           @link(TCastleOrthographic.Width Camera.Orthographic.Width) and/or
           @link(TCastleOrthographic.Height Camera.Orthographic.Height)
           to define visible projection size (horizontal or vertical) explicitly,
-          regardless of the scene manager size.
+          regardless of the viewport size.
 
           Setting @link(TCastleOrthographic.Origin Camera.Orthographic.Origin)
           is also often useful, e.g. set it to (0.5,0.5) to make the things positioned
-          at (0,0) in the world visible at the middle of the scene manager.
+          at (0,0) in the world visible at the middle of the viewport.
 
           By default our visible Z range is [-1500, 500],
           because this sets ProjectionNear to -1000, ProjectionFar to 1000,
@@ -836,7 +848,7 @@ type
       const PlaneZ: Single; out PlanePosition: TVector3): Boolean;
 
     { Convert 2D position into "world coordinates", which is the coordinate
-      space seen by TCastleTransform / TCastleScene inside scene manager @link(Items),
+      space seen by TCastleTransform / TCastleScene inside viewport @link(Items),
       assuming that we use orthographic projection in XY axes.
 
       The interpretation of Position depends on ScreenCoordinates,
@@ -1000,19 +1012,20 @@ type
       @link(TCastleRootTransform.MainScene MainScene) will be ignored. }
     property Transparent: Boolean read FTransparent write FTransparent default false;
 
-    { At the beginning of rendering, scene manager by default clears
-      the depth buffer. This makes every scene manager draw everything
+    { At the beginning of rendering, viewport by default clears
+      the depth buffer. This makes every viewport draw everything
       on top of the previous 2D and 3D stuff (including on top
-      of previous scene managers), like a layer.
+      of previous viewport), like a layer.
 
       You can disable this, which allows to combine together the 3D objects rendered
-      by various scene managers (and by custom OpenGL rendering),
+      by various viewports (and by custom OpenGL rendering),
       such that the 3D positions determime what overlaps what.
-      This only makes sense if all these scene managers (or custom renderers)
-      use the same viewport, the same projection and the same camera.
+      This only makes sense if you have a number of TCastleViewport instances,
+      that share the same size and position on the screen,
+      same projection and the same camera.
 
       It's your responsibility in such case to clear the depth buffer.
-      E.g. place one scene manager in the back that has ClearDepth = @true.
+      E.g. place one viewport in the back that has ClearDepth = @true.
       Or place a TCastleUserInterface descendant in the back, that calls
       @code(TRenderContext.Clear RenderContext.Clear) in overridden
       @link(TCastleUserInterface.Render).
@@ -1095,12 +1108,12 @@ type
       deprecated 'adjust projection by changing Camera.ProjectionType and other projection parameters inside Camera';
 
     { Enable to drag a parent control, for example to drag a TCastleScrollView
-      that contains this scene manager, even when the scene inside contains
+      that contains this TCastleViewport, even when the scene inside contains
       clickable elements (using TouchSensor node).
 
       To do this, you need to turn on
       TCastleScrollView.EnableDragging, and set EnableParentDragging=@true
-      here. In effect, scene manager will cancel the click operation
+      here. In effect, viewport will cancel the click operation
       once you start dragging, which allows the parent to handle
       all the motion events for dragging. }
     property EnableParentDragging: Boolean
@@ -1129,7 +1142,7 @@ type
       By default it is @false, which means that you control @link(Navigation) on your own.
     }
     property AutoNavigation: Boolean
-      read FAutoNavigation write FAutoNavigation default false;
+      read FAutoNavigation write SetAutoNavigation default false;
 
     { Called when bound Viewpoint node changes.
       Called exactly when TCastleSceneCore.ViewpointStack.OnBoundChanged is called. }
@@ -1266,6 +1279,10 @@ var
     or TInputShortcut.MouseButtonUse. }
   Input_Interact: TInputShortcut;
 
+{$define read_interface}
+{$I castleviewport_touchnavigation.inc}
+{$undef read_interface}
+
 implementation
 
 {$warnings off}
@@ -1283,7 +1300,10 @@ procedure Register;
 begin
 end;
 
+{$define read_implementation}
+{$I castleviewport_touchnavigation.inc}
 {$I castleviewport_warmup_cache.inc}
+{$undef read_implementation}
 
 { TManagerRenderParams ------------------------------------------------------- }
 
@@ -1378,7 +1398,6 @@ begin
   FItems.SetSubComponent(true);
   FItems.Name := 'Items';
   FItems.OnCursorChange := @RecalculateCursor;
-  FItems.OnVisibleChange := @ItemsVisibleChange;
   FItems.MainCamera := Camera;
 
   FCapturePointingDeviceObserver := TFreeNotificationObserver.Create(Self);
@@ -1453,12 +1472,12 @@ end;
 
 procedure TCastleViewport.SetNavigation(const Value: TCastleNavigation);
 begin
-  { Scene manager / viewport will handle passing events to their camera,
+  { Viewport will handle passing events to their camera,
     and will also pass our own Container to Camera.Container.
     This is desired, this way events are correctly passed
     and interpreted before passing them to 3D objects.
     And this way we avoid the question whether camera should be before
-    or after the scene manager / viewport on the Controls list (as there's really
+    or after the viewport on the Controls list (as there's really
     no perfect ordering for them).
 
     Note that one Navigation instance can be assigned only to one TCastleViewport.
@@ -1541,6 +1560,8 @@ begin
 end;
 
 function TCastleViewport.Press(const Event: TInputPressRelease): Boolean;
+var
+  I: Integer;
 begin
   Result := inherited;
   if Result or Items.Paused then Exit;
@@ -1553,16 +1574,23 @@ begin
 
   LastPressEvent := Event;
 
-  if (Items <> nil) and
-     Items.Press(Event) then
-    Exit(ExclusiveEvents);
+  if Items.InternalPressReleaseListeners <> nil then
+    // use downto, to work in case some Press will remove transform from list
+    for I := Items.InternalPressReleaseListeners.Count - 1 downto 0 do
+      if Items.InternalPressReleaseListeners[I].Press(Event) then
+        Exit(ExclusiveEvents);
 
   if Input_Interact.IsEvent(Event) and
      PointingDevicePress then
+  begin
+    InternalPointingDeviceDragging := true;
     Exit(ExclusiveEvents);
+  end;
 end;
 
 function TCastleViewport.Release(const Event: TInputPressRelease): Boolean;
+var
+  I: Integer;
 begin
   Result := inherited;
   if Result or Items.Paused then Exit;
@@ -1570,13 +1598,18 @@ begin
   { Make MouseRayHit valid, as our PointingDeviceRelease uses it. }
   UpdateMouseRayHit;
 
-  if (Items <> nil) and
-     Items.Release(Event) then
-    Exit(ExclusiveEvents);
+  if Items.InternalPressReleaseListeners <> nil then
+    // use downto, to work in case some Release will remove transform from list
+    for I := Items.InternalPressReleaseListeners.Count - 1 downto 0 do
+      if Items.InternalPressReleaseListeners[I].Release(Event) then
+        Exit(ExclusiveEvents);
 
-  if Input_Interact.IsEvent(Event) and
-     PointingDeviceRelease then
-    Exit(ExclusiveEvents);
+  if Input_Interact.IsEvent(Event) then
+  begin
+    InternalPointingDeviceDragging := false;
+    if PointingDeviceRelease then
+      Exit(ExclusiveEvents);
+  end;
 end;
 
 function TCastleViewport.Motion(const Event: TInputMotion): Boolean;
@@ -1758,23 +1791,38 @@ var
     { we ignore RemoveItem --- main Items list cannot be removed }
   end;
 
-  procedure DoScheduledVisibleChangeNotification;
-  var
-    Changes: TVisibleChanges;
+  procedure UpdateVisibleChange;
   begin
-    if ScheduledVisibleChangeNotification then
+    { when some TCastleTransform calls TCastleTransform.VisibleChangeHere,
+      in effect TCastleViewport will call VisibleChange. }
+    if LastVisibleStateIdForVisibleChange < Items.InternalVisibleStateId then
     begin
-      { reset state first, in case some VisibleChangeNotification will post again
-        another visible change. }
-      ScheduledVisibleChangeNotification := false;
-      Changes := ScheduledVisibleChangeNotificationChanges;
-      ScheduledVisibleChangeNotificationChanges := [];
-
-      { pass visible change notification "upward" (as a TCastleUserInterface, to container) }
+      LastVisibleStateIdForVisibleChange := Items.InternalVisibleStateId;
       VisibleChange([chRender]);
-      { pass visible change notification "downward", to all children TCastleTransform }
-      Items.VisibleChangeNotification(Changes);
     end;
+  end;
+
+  procedure WatchMainSceneChange;
+  begin
+    if CastleDesignMode then
+    begin
+      if FLastSeenMainScene <> Items.MainScene then
+      begin
+        FLastSeenMainScene := Items.MainScene;
+        AssignDefaultCameraDone := false;
+      end;
+    end;
+  end;
+
+  { Prepare information used by TCastleScene.UpdateGeneratedTextures, called from TCastleScene.Update }
+  procedure PrepareUpdateGeneratedTexturesParameters;
+  begin
+    if (FProjection.ProjectionNear = 0) or
+       (FProjection.ProjectionFar = 0) then // in case ApplyProjection was not called yet
+      FProjection := CalculateProjection;
+    Items.InternalRenderEverythingEvent := @RenderFromViewEverything;
+    Items.InternalProjectionNear := FProjection.ProjectionNear;
+    Items.InternalProjectionFar := FProjection.ProjectionFar;
   end;
 
 begin
@@ -1790,8 +1838,10 @@ begin
     so passing HandleInput there is not necessary. }
   Camera.Update(SecondsPassedScaled);
 
+  PrepareUpdateGeneratedTexturesParameters;
   ItemsUpdate;
-  DoScheduledVisibleChangeNotification;
+  UpdateVisibleChange;
+  WatchMainSceneChange;
 end;
 
 function TCastleViewport.AllowSuspendForInput: Boolean;
@@ -1904,7 +1954,25 @@ begin
     does something, but here it would do something.
     Doing the same thing with AutoNavigation doesn't
     recreate navigation (if Navigation <> nil, it will stay as it was).
+
+    Later yet: This seems very useful in editor though, to see the effect
+    in editor immediately, without reloading file.
     *)
+
+    if CastleDesignMode and Value then
+      AssignDefaultCameraDone := false;
+  end;
+end;
+
+procedure TCastleViewport.SetAutoNavigation(const Value: Boolean);
+begin
+  if FAutoNavigation <> Value then
+  begin
+    FAutoNavigation := Value;
+    { Not necessary, and we actually don't have AssignDefaultNavigationDone.
+      The navigation will be auto-assigned when it is nil. }
+    // if CastleDesignMode and Value then
+    //   AssignDefaultNavigationDone := false;
   end;
 end;
 
@@ -2076,7 +2144,15 @@ function TCastleViewport.MainLightForShadows(out AMainLightPosition: TVector4): 
 begin
   if Items.MainScene <> nil then
   begin
-    Result := Items.MainScene.InternalMainLightForShadows(AMainLightPosition);
+    Result :=
+      Items.MainScene.InternalMainLightForShadows(AMainLightPosition) and
+      { We need WorldTransform for below conversion local<->world space.
+        It may not be available, if
+        - MainScene is present multiple times in Items
+        - MainScene is not present in Items at all, temporarily, but is still a MainScene.
+        Testcase: castle-game, change from level to level using debug menu.
+      }
+      Items.MainScene.HasWorldTransform;
     { Transform AMainLightPosition to world space.
       This matters in case MainScene (that contains shadow-casting light) has some transformation. }
     if Result then
@@ -2373,8 +2449,6 @@ procedure TCastleViewport.RenderWithoutScreenEffects;
 begin
   inherited;
   ApplyProjection;
-  Items.UpdateGeneratedTextures(@RenderFromViewEverything,
-    FProjection.ProjectionNear, FProjection.ProjectionFar);
   RenderOnScreen(Camera);
 end;
 
@@ -2825,7 +2899,7 @@ begin
 
   { This assertion should be OK. It is commented out only to prevent
     GetNavigationType from accidentally creating something intermediate,
-    and thus making debug and release behaviour different) }
+    and thus making debug and release behavior different) }
   // Assert(GetNavigationType = Value);
 
   FWithinSetNavigationType := false;
@@ -3063,26 +3137,16 @@ begin
     if Value = nil then
       raise EInternalError.Create('Cannot set TCastleSceneManager.Items to nil');
     FItems := Value;
+    LastVisibleStateIdForVisibleChange := 0;
 
     { TODO: do the same thing we did when creating internal FItems:
     FItems.OnCursorChange := @RecalculateCursor;
-    FItems.OnVisibleChange := @ItemsVisibleChange;
 
     // No need to change this, it's documented that MainCamera has to be manually managed if you reuse items
     // FItems.MainCamera := Camera;
     }
 
   end;
-end;
-
-procedure TCastleViewport.ItemsVisibleChange(const Sender: TCastleTransform; const Changes: TVisibleChanges);
-begin
-  { merely schedule broadcasting this change to a later time.
-    This way e.g. animating a lot of transformations doesn't cause a lot of
-    "visible change notifications" repeatedly on the same 3D object within
-    the same frame. }
-  ScheduledVisibleChangeNotification := true;
-  ScheduledVisibleChangeNotificationChanges := ScheduledVisibleChangeNotificationChanges + Changes;
 end;
 
 function TCastleViewport.GetPaused: Boolean;
@@ -3093,16 +3157,6 @@ end;
 procedure TCastleViewport.SetPaused(const Value: Boolean);
 begin
   Items.Paused := Value;
-end;
-
-function TCastleViewport.CameraToChanges(const ACamera: TCastleCamera): TVisibleChanges;
-begin
-  // headlight exists, and we changed camera controlling headlight
-  if (Items.InternalHeadlight <> nil) and
-     (ACamera = Items.MainCamera) then
-    Result := [vcVisibleNonGeometry]
-  else
-    Result := [];
 end;
 
 function TCastleViewport.GetMainScene: TCastleScene;
@@ -3481,37 +3535,29 @@ begin
   Result := PointingDeviceMoveCore(MouseRayHit, MouseRayOrigin, MouseRayDirection);
 end;
 
-procedure TCastleViewport.VisibleChange(const Changes: TCastleUserInterfaceChanges;
-  const ChangeInitiatedByChildren: Boolean = false);
-
-  procedure CameraChange;
-  var
-    Pos, Dir, Up: TVector3;
-    MC: TCastleCamera;
+procedure TCastleViewport.InternalCameraChanged;
+var
+  Pos, Dir, Up: TVector3;
+  MC: TCastleCamera;
+begin
+  MC := Items.MainCamera;
+  if MC = Camera then
   begin
-    MC := Items.MainCamera;
-    if MC = Camera then
-    begin
-      { Call CameraChanged on all TCastleTransform.
-        Note that we have to call it on all Items, not just MainScene,
-        to make ProximitySensor, Billboard etc. to work in all scenes, not just in MainScene. }
-      Items.CameraChanged(Camera);
-      { ItemsVisibleChange may again cause this VisibleChange (if we are TCastleViewport),
-        but without chCamera, so no infinite recursion. }
-      ItemsVisibleChange(Items, CameraToChanges(Camera));
+    Inc(Items.InternalMainCameraStateId);
 
-      Camera.GetView(Pos, Dir, Up);
-      SoundEngine.UpdateListener(Pos, Dir, Up);
-    end;
+    // we should redraw soon, this will cause VisibleChange() call
+    Inc(Items.InternalVisibleStateId);
 
-    if Assigned(OnCameraChanged) then
-      OnCameraChanged(Self);
+    // we changed MainCamera which makes headlight -> so lighting changed
+    if Items.InternalHeadlight <> nil then
+      Inc(Items.InternalVisibleNonGeometryStateId);
+
+    Camera.GetView(Pos, Dir, Up);
+    SoundEngine.UpdateListener(Pos, Dir, Up);
   end;
 
-begin
-  inherited;
-  if chCamera in Changes then
-    CameraChange;
+  if Assigned(OnCameraChanged) then
+    OnCameraChanged(Self);
 end;
 
 function TCastleViewport.UseAvoidNavigationCollisions: Boolean;
@@ -3651,6 +3697,16 @@ begin
       SceneManager.Viewports.Add(Self);
   end;
   {$warnings on}
+end;
+
+function TCastleViewport.PropertySection(const PropertyName: String): TPropertySection;
+begin
+  case PropertyName of
+    'Transparent', 'Navigation':
+      Result := psBasic;
+    else
+      Result := inherited PropertySection(PropertyName);
+  end;
 end;
 
 {$define read_implementation_methods}
@@ -3824,6 +3880,7 @@ initialization
   R.IsDeprecated := true;
   RegisterSerializableComponent(R);
 
+  RegisterSerializableComponent(TCastleTouchNavigation, 'Touch Navigation');
   RegisterSerializableComponent(TCastleViewport, 'Viewport');
 
   R := TRegisteredComponent.Create;

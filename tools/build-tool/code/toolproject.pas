@@ -2030,6 +2030,13 @@ function TCastleProject.ReplaceMacros(const Source: String): String;
         Dir := S;
       Result := Result + Dir;
     end;
+
+    { For ABSOLUTE_xxx macros, add Path (project directory).
+      It is not necessary for relative paths, as their handling always includes current dir for now.
+      Testcase: examples/advanced_editor/CastleEngineManifest.xml ,
+      without this the "castle-engine editor" would not find GameControls. }
+    if Absolute then
+      Result := SAppendPart(Result, ';', Path);
   end;
 
 var

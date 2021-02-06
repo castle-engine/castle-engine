@@ -455,7 +455,7 @@ function TCastleLabel.PropertySection(const PropertyName: String): TPropertySect
 begin
   case PropertyName of
     // Note that Caption expresses the same thing as Text, but easier to access
-    'Text', 'Caption', 'ColorPersistent':
+    'Text', 'Caption', 'ColorPersistent', 'Html':
       Result := psBasic;
     'AutoSize':
       Result := psLayout;

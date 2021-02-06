@@ -334,20 +334,75 @@ procedure TLightList.ShapeAdd(Shape: TShape);
     end;
   end;
 
+  { Extract (get and set to nil) the "main texture" from material,
+    and check whether setup makes sense for shadow mapping. }
+  function ExtractMaterialTexture(const MainTextureField: TSFNode;
+    const MainTextureMapping: String): TAbstractSingleTextureNode;
+  var
+    TexCoordIndex: Integer;
+  begin
+    Result := MainTextureField.Value as TAbstractSingleTextureNode;
+    Result.KeepExistingBegin; // needed to avoid freeing node when we set MainTextureField.Value to nil
+    Shape.Geometry.FindTextureMapping(MainTextureMapping, TexCoordIndex, false);
+    { The main texture will be placed as 1st on the Appearance.texture list.
+      So the mapping must either point to 1st texCoord,
+      or the texCoords must be empty (in which case we will correctly add default mapping). }
+    if (TexCoordIndex <> 0) and
+       (TexCoordIndex <> -1) then
+      WritelnWarning('Mapping for the main texture "%s" must correspond to the first texCoord item, in order for shadow maps to work', [
+        MainTextureMapping
+      ]);
+    MainTextureField.Value := nil;
+  end;
+
   { 1. Add necessary ShadowMap
     2. Add necessary TexGen
     3. Convert texture, texCoord, textureTransform to multi-texture if needed }
   procedure HandleLight(LightNode: TAbstractPunctualLightNode);
   var
     Light: PLight;
-    Texture: TAbstractTextureNode;
+    ShapeMaterial: TAbstractMaterialNode;
+    MaterialTexture, Texture: TAbstractTextureNode;
     TextureTransform: TAbstractTextureTransformNode;
     TexCoord: TX3DNode;
     TexturesCount: Cardinal;
   begin
     Light := FindLight(LightNode);
 
-    Texture := Shape.Node.Texture;
+    MaterialTexture := nil;
+
+    ShapeMaterial := Shape.Node.Material;
+    if (ShapeMaterial is TMaterialNode) and
+       (TMaterialNode(ShapeMaterial).DiffuseTexture <> nil) then
+    begin
+      { main texture in Material.diffuseTexture }
+      MaterialTexture := ExtractMaterialTexture(
+        TMaterialNode(ShapeMaterial).FdDiffuseTexture,
+        TMaterialNode(ShapeMaterial).DiffuseTextureMapping);
+      Texture := MaterialTexture;
+    end else
+    if (ShapeMaterial is TPhysicalMaterialNode) and
+       (TPhysicalMaterialNode(ShapeMaterial).BaseTexture <> nil) then
+    begin
+      { main texture in PhysicalMaterial.baseTexture }
+      MaterialTexture := ExtractMaterialTexture(
+        TPhysicalMaterialNode(ShapeMaterial).FdBaseTexture,
+        TPhysicalMaterialNode(ShapeMaterial).BaseTextureMapping);
+      Texture := MaterialTexture;
+    end else
+    if (ShapeMaterial is TUnlitMaterialNode) and
+       (TUnlitMaterialNode(ShapeMaterial).EmissiveTexture <> nil) then
+    begin
+      { main texture in UnlitMaterial.emissiveTexture }
+      MaterialTexture := ExtractMaterialTexture(
+        TUnlitMaterialNode(ShapeMaterial).FdEmissiveTexture,
+        TUnlitMaterialNode(ShapeMaterial).EmissiveTextureMapping);
+      Texture := MaterialTexture;
+    end else
+    begin
+      { main texture in Appearance.texture }
+      Texture := Shape.Node.Texture;
+    end;
     HandleShadowMap(Texture, Light^.ShadowMap, TexturesCount);
     { set Texture.
       Note: don't use "Shape.Node.Texture := ", we have to avoid calling
@@ -356,6 +411,8 @@ procedure TLightList.ShapeAdd(Shape: TShape);
     if Shape.Node.Appearance = nil then
       Shape.Node.FdAppearance.Value := TAppearanceNode.Create;
     Shape.Node.Appearance.FdTexture.Value := Texture;
+    if MaterialTexture <> nil then
+      MaterialTexture.KeepExistingEnd;
 
     TexCoord := Shape.Geometry.TexCoordField.Value;
     HandleTexGen(TexCoord, Light^.TexGen, TexturesCount);

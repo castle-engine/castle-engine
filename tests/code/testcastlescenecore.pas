@@ -27,6 +27,7 @@ type
     procedure TestMultipleScenesOneNodeIncorrect;
     procedure TestMultipleScenesOneNodeCorrect;
     procedure TestSpineUtf8Names;
+    procedure TestAnimsInSwitch;
   end;
 
 implementation
@@ -252,14 +253,14 @@ begin
       SceneManager.Items.Add(Scene);
       SceneManager.MainScene := Scene;
 
-      Scene.CameraChanged(SceneManager.RequiredCamera);
+      Scene.InternalCameraChanged;
       FakeRemoveMe := rtNone;
       Scene.Update(1, FakeRemoveMe);
 
       Viewpoint := FindViewpointByDescription('City plan');
       Viewpoint.Bound := true;
 
-      Scene.CameraChanged(SceneManager.Camera);
+      Scene.InternalCameraChanged;
       FakeRemoveMe := rtNone;
       Scene.Update(1, FakeRemoveMe);
     finally FreeAndNil(Scene) end;
@@ -406,6 +407,22 @@ begin
   finally
     ApplicationProperties.OnWarning.Remove(@OnWarningRaiseException);
   end;
+end;
+
+procedure TTestSceneCore.TestAnimsInSwitch;
+var
+  Scene: TCastleScene;
+  Anims: TStrings;
+begin
+  Scene := TCastleScene.Create(nil);
+  try
+    Scene.Load('castle-data:/animation_under_switch/both.x3dv');
+    Anims := Scene.AnimationsList;
+    AssertTrue(Anims.IndexOf('Attack') <> -1);
+    AssertTrue(Anims.IndexOf('Damaged') <> -1);
+    AssertTrue(Anims.IndexOf('flying') <> -1);
+    AssertTrue(Anims.IndexOf('flying_left') <> -1);
+  finally FreeAndNil(Scene) end;
 end;
 
 initialization

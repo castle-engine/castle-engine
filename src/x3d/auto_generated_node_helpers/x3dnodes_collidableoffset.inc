@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,6 +29,12 @@
     function GetCollidable: TAbstractNBodyCollidableNode;
     procedure SetCollidable(const Value: TAbstractNBodyCollidableNode);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdCollidable: TSFNode;
+    { X3D field "collidable". } { }
+    public property FdCollidable: TSFNode read FFdCollidable;
     { X3D field "collidable". } { }
     property Collidable: TAbstractNBodyCollidableNode read GetCollidable write SetCollidable;
 
@@ -49,6 +55,20 @@ end;
 procedure TCollidableOffsetNode.SetCollidable(const Value: TAbstractNBodyCollidableNode);
 begin
   FdCollidable.Send(Value);
+end;
+
+class function TCollidableOffsetNode.ClassX3DType: String;
+begin
+  Result := 'CollidableOffset';
+end;
+
+procedure TCollidableOffsetNode.CreateNode;
+begin
+  inherited;
+
+  FFdCollidable := TSFNode.Create(Self, False, 'collidable', [TAbstractNBodyCollidableNode]);
+   FdCollidable.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdCollidable);
 end;
 
 {$endif read_implementation}

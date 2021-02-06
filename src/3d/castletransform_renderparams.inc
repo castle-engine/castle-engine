@@ -1,5 +1,6 @@
+{%MainUnit castletransform.pas}
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -104,6 +105,11 @@
   strict private
     FTarget: TRenderTarget;
   public
+    { Current camera position.
+      In world coordinates, i.e. this is equal TCastleCamera.Position,
+      and in coordinates of whole TCastleViewport.Items. }
+    Position: TVector3;
+
     { Current camera matrix. Transforms from world space (normal 3D space)
       to camera space (camera space is the space where you're always
       standing on zero point, looking in -Z, and so on).
@@ -155,21 +161,15 @@
     function RotationInverseMatrix3: TMatrix3;
 
     { Set all properties (except Target) from TCastleCamera instance in ACamera.
-      See @link(FromMatrix) for comments about @link(Target) property.
-      The IgnoredViewpoint parameter is only for backward compatibility,
-      it is ignored. }
-    procedure FromCameraObject(const ACamera: TCastleCamera;
-      const IgnoredViewpoint: TObject = nil);
-    procedure FromCameraObject(const ACamera: TCastleNavigation;
-      const IgnoredViewpoint: TObject = nil); deprecated 'use FromCameraObject overload with TCastleCamera';
+      See @link(FromMatrix) for comments about @link(Target) property. }
+    procedure FromCameraObject(const ACamera: TCastleCamera);
 
-    { Set all properties (except Target) from explict matrices.
-      ProjectionMatrix is needed to calculate frustum.
-      The IgnoredViewpoint parameter is only for backward compatibility,
-      it is ignored. }
-    procedure FromMatrix(const AMatrix, ARotationMatrix,
-      ProjectionMatrix: TMatrix4;
-      const IgnoredViewpoint: TObject = nil);
+    { Set all properties (except Target) from explict matrices (and explicit position,
+      makes it faster than extracting position from matrix).
+      ProjectionMatrix is needed to calculate frustum. }
+    procedure FromMatrix(
+      const APosition: TVector3;
+      const AMatrix, ARotationMatrix, ProjectionMatrix: TMatrix4);
 
     property Target: TRenderTarget read FTarget write FTarget;
 
@@ -320,9 +320,9 @@ begin
   Move(RotationInverseMatrix.Data[2], Result.Data[2], SizeOf(Single) * 3);
 end;
 
-procedure TRenderingCamera.FromCameraObject(const ACamera: TCastleCamera;
-  const IgnoredViewpoint: TObject = nil);
+procedure TRenderingCamera.FromCameraObject(const ACamera: TCastleCamera);
 begin
+  Position := ACamera.Position;
   Matrix := ACamera.Matrix;
   InverseMatrixDone := false;
   RotationMatrix := ACamera.RotationMatrix;
@@ -330,16 +330,11 @@ begin
   Frustum := ACamera.Frustum;
 end;
 
-procedure TRenderingCamera.FromCameraObject(const ACamera: TCastleNavigation;
-  const IgnoredViewpoint: TObject = nil);
-begin
-  FromCameraObject(ACamera.Camera, IgnoredViewpoint);
-end;
-
 procedure TRenderingCamera.FromMatrix(
-  const AMatrix, ARotationMatrix, ProjectionMatrix: TMatrix4;
-  const IgnoredViewpoint: TObject = nil);
+  const APosition: TVector3;
+  const AMatrix, ARotationMatrix, ProjectionMatrix: TMatrix4);
 begin
+  Position := APosition;
   Matrix := AMatrix;
   InverseMatrixDone := false;
   RotationMatrix := ARotationMatrix;

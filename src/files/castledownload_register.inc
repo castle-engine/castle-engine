@@ -42,7 +42,7 @@ type
     { @groupEnd }
 
     { Fields that should be updated during downloading.
-      They will be set TCastleDownload properties of the same name.
+      They will set TCastleDownload properties of the same name.
       @groupBegin }
     Status: TDownloadStatus;
     DownloadedBytes, TotalBytes: Int64;
@@ -51,6 +51,7 @@ type
     MimeType: String; //< May be updated at any point, even when dsDownloading, or only when dsSuccess.
     HttpResponseCode: Integer; // In case of HTTP(S) requests, HTTP response code.
     HttpResponseHeaders: TStrings; // In case of HTTP(S) requests, this must contain HTTP response headers.
+    FinalUrl: String;
     { @groupEnd }
 
     { Start downloading, called when @link(TCastleDownload.Start) is called.

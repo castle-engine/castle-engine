@@ -27,6 +27,9 @@ const
   DefaultMaterialReflSpecularExp = 1000000 deprecated 'use TPhongMaterialInfo.DefaultReflSpecularExp';
   DefaultMaterialTransSpecularExp = 1000000 deprecated 'use TPhongMaterialInfo.DefaultTransSpecularExp';
 
+  { Default value of TAppearanceNode.AlphaCutoff. }
+  DefaultAlphaCutoff = 0.5;
+
   { Constants for
     @link(TMaterialBindingNode_1.FdValue).Value and
     @link(TNormalBindingNode_1.FdValue).Value.

@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,6 +29,16 @@
     function GetToggle: Boolean;
     procedure SetToggle(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventSet_boolean: TSFBoolEvent;
+    { X3D in event "set_boolean". } { }
+    public property EventSet_boolean: TSFBoolEvent read FEventSet_boolean;
+
+    strict private FFdToggle: TSFBool;
+    { X3D field "toggle". } { }
+    public property FdToggle: TSFBool read FFdToggle;
     { X3D field "toggle". } { }
     property Toggle: Boolean read GetToggle write SetToggle;
 
@@ -46,6 +56,23 @@ end;
 procedure TBooleanToggleNode.SetToggle(const Value: Boolean);
 begin
   FdToggle.Send(Value);
+end;
+
+class function TBooleanToggleNode.ClassX3DType: String;
+begin
+  Result := 'BooleanToggle';
+end;
+
+procedure TBooleanToggleNode.CreateNode;
+begin
+  inherited;
+
+  FEventSet_boolean := TSFBoolEvent.Create(Self, 'set_boolean', true);
+  AddEvent(FEventSet_boolean);
+
+  FFdToggle := TSFBool.Create(Self, True, 'toggle', false);
+   FdToggle.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdToggle);
 end;
 
 {$endif read_implementation}

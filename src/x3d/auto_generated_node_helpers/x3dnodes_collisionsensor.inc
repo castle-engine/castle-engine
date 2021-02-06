@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,8 +29,22 @@
     function GetCollider: TCollisionCollectionNode;
     procedure SetCollider(const Value: TCollisionCollectionNode);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdCollider: TSFNode;
+    { X3D field "collider". } { }
+    public property FdCollider: TSFNode read FFdCollider;
     { X3D field "collider". } { }
     property Collider: TCollisionCollectionNode read GetCollider write SetCollider;
+
+    strict private FEventIntersections: TMFNodeEvent;
+    { X3D out event "intersections". } { }
+    public property EventIntersections: TMFNodeEvent read FEventIntersections;
+
+    strict private FEventContacts: TMFNodeEvent;
+    { X3D out event "contacts". } { }
+    public property EventContacts: TMFNodeEvent read FEventContacts;
 
 {$endif read_interface}
 
@@ -49,6 +63,26 @@ end;
 procedure TCollisionSensorNode.SetCollider(const Value: TCollisionCollectionNode);
 begin
   FdCollider.Send(Value);
+end;
+
+class function TCollisionSensorNode.ClassX3DType: String;
+begin
+  Result := 'CollisionSensor';
+end;
+
+procedure TCollisionSensorNode.CreateNode;
+begin
+  inherited;
+
+  FFdCollider := TSFNode.Create(Self, True, 'collider', [TCollisionCollectionNode]);
+   FdCollider.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdCollider);
+
+  FEventIntersections := TMFNodeEvent.Create(Self, 'intersections', false);
+  AddEvent(FEventIntersections);
+
+  FEventContacts := TMFNodeEvent.Create(Self, 'contacts', false);
+  AddEvent(FEventContacts);
 end;
 
 {$endif read_implementation}

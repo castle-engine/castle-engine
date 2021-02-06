@@ -75,6 +75,7 @@ KambiOctreeProperties : X3DNode {
 }
 
 Teapot : X3DGeometryNode {
+  x3d-nodes-to-pascal: auto-generate-more true
   SFVec3f    []            size        3 3 3
   SFBool     []            solid       TRUE
   SFBool     []            manifold    FALSE
@@ -93,6 +94,7 @@ RenderedTexture : X3DSingleTextureNode {
 }
 
 Logger : X3DChildNode {
+  x3d-nodes-to-pascal: auto-generate-more true
   SFInt32    [in,out]      level       1
   SFString   []            logFile     ""
   SFBool     [in,out]      enabled     TRUE

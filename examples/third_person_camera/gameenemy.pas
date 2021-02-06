@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2020 Michalis Kamburelis.
+  Copyright 2020-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Enemy behaviour.
+{ Enemy behavior.
 
   This is an exact copy of enemy AI from standard CGE template "3D FPS game".
   It was not modified at all for the 3rd-person navigation demo. }
@@ -21,42 +21,43 @@ unit GameEnemy;
 
 interface
 
-uses Generics.Collections,
+uses Classes, Generics.Collections,
   CastleVectors, CastleScene, CastleTransform;
 
 type
-  { Simple enemy AI (Artificial Intellgence).
-    It controls the given Scene (TCastleScene): moves it, runs animations of it etc.
+  { Simple enemy intelligence.
+    It controls the parent Scene (TCastleScene): moves it, runs animations of it etc.
 
-    This object is a TCastleTransform descendant,
-    and inserts itself as the first child of Scene when it is created.
-    This way you can get the TEnemy instance of a TCastleScene,
-    by taking "Scene.Items[0] as TEnemy".
-    This is a relatively "clean" approach and extensible.
-    By adding children to the Scene, that control this scene,
-    you can make flexible systems (e.g. various behaviours could affect one scene).
+    This is a TCastleBehavior descendant,
+    and is inserted to parent like EnemyScene.AddBehaviour(...).
+    You can get the TEnemy instance of a TCastleScene,
+    by taking "Scene.FindBehavior(TEnemy)".
 
-    This is just a TCastleTransform without any collidable stuff,
-    so it will not be detected by e.g. MainViewport.MouseRayHit.
-    But it is possible to change this (you could add some TCastleScene here,
-    loaded from files or constructed by code using X3D nodes,
-    to add additional geometry to enemies).
+    Other ways of making an association TCastleScene <-> TEnemy logic are possible:
 
-    Other ways of making an association TCastleScene -> TEnemy logic are possible:
+    - TEnemy could be an independent class (not connected to any CGE class),
+      and simply have a reference to CGE TCastleScene instance.
 
-    - You could set TCastleScene.Tag to the instance of TEnemy.
+      This makes it easy to map TEnemy->TCastleScene.
+      To map TCastleScene->TEnemy you could e.g. use TCastleScene.Tag,
+      or a dedicated map structure like TDictionary from Generics.Collections.
 
-    - You could make TEnemy a descendant of TCastleScene,
-      and then in the CGE editor you would be able to insert TEnemy instance.
-      This requires registering a custom component in CGE editor,
-      https://github.com/castle-engine/castle-engine/blob/master/tools/castle-editor/README.md#include-custom-project-specific-components-in-the-visual-designer
+    - You could also make TEnemy a descendant of TCastleScene.
+
+    Note that TCastleBehavior or TCastleTransform descendants could be
+    registered in the CGE editor to visually add and edit them from editor.
+    See https://castle-engine.io/manual_editor.php#section_custom_components .
+    In this unit we call RegisterSerializableComponent,
+    so you only need to add editor_units="GameEnemy" to CastleEngineManifest.xml to see it in action.
   }
-  TEnemy = class(TCastleTransform)
-  public
+  TEnemy = class(TCastleBehavior)
+  strict private
     Scene: TCastleScene;
     MoveDirection: Integer; //< Always 1 or -1
     Dead: Boolean;
-    constructor Create(const AScene: TCastleScene); reintroduce;
+  public
+    constructor Create(AOwner: TComponent); override;
+    procedure ParentChanged; override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
     procedure Hurt;
   end;
@@ -65,17 +66,19 @@ type
 
 implementation
 
-constructor TEnemy.Create(const AScene: TCastleScene);
+uses CastleComponentSerialize;
+
+constructor TEnemy.Create(AOwner: TComponent);
 begin
-  { Using nil as Owner.
-    The state's Enemies list "owns" instances of this class, it will take care of freeing us. }
-  inherited Create(nil);
-
+  inherited;
   MoveDirection := -1;
+end;
 
-  Scene := AScene;
+procedure TEnemy.ParentChanged;
+begin
+  inherited;
+  Scene := Parent as TCastleScene; // TEnemy can only be added as behavior to TCastleScene
   Scene.PlayAnimation('walk', true);
-  Scene.Add(Self);
 end;
 
 procedure TEnemy.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
@@ -109,4 +112,6 @@ begin
   Dead := true;
 end;
 
+initialization
+  RegisterSerializableComponent(TEnemy, 'Enemy');
 end.

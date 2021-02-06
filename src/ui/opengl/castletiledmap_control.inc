@@ -154,8 +154,8 @@ type
 
     property Scale: Single read FScale write SetScale default 1;
 
-    // TODO: not implemented yet
-    // property ObjectsVisible: Boolean read FObjectsVisible write FObjectsVisible;
+    { Show objects like polylines and points on the map. }
+    property ObjectsVisible: Boolean read FObjectsVisible write FObjectsVisible default true;
 
     { How are images scaled (because of UI scaling, because of @link(Scale)).
       @true means we use nice "bilinear" filter.
@@ -198,7 +198,7 @@ constructor TCastleTiledMapControl.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   ClipChildren := true;
-  FObjectsVisible := false;
+  FObjectsVisible := true;
   FScale := 1;
   FSmoothScaling := false;
   FSmoothScalingSafeBorder := false;
@@ -220,15 +220,113 @@ end;
 
 procedure TCastleTiledMapControl.RenderObjects;
 var
-  Lay: TTiledMap.TLayer;
+  Lay: TTiledMap.TLayer;              // ObjectGroupLayer
+  TiledObj: TTiledMap.TTiledObject;   // one TiledObject
+  TiledObjPoints: array of TVector2;  // holds points of TiledObject as array of TVector2
+
+  { Transform point from Tiled position to our render position.
+    This is similar to TCastleTiledMapControl.TileRectangle, but works only for simple point. }
+  function RenderPosition(V: TVector2; const ScreenCoordinates: Boolean = true): TVector2;
+  begin
+    V.Y := Map.Height * Map.TileHeight - V.Y; // convert to be relative to bottom
+    // Apply Origin and Scale
+    Result := (V - Origin) * Scale;
+    if ScreenCoordinates then
+    begin
+      // Apply UIScale and RenderRect (anchors etc.) to honor standard TCastleUserInterface conventions
+      Result := (Result * UIScale) + RenderRect.LeftBottom;
+    end;
+  end;
+
+  { Converts all TVector2's from a TVector2List to and array of TVector2.
+    ArrIndex is the index of a TVector2 in the array, ListIndex is the TVector2
+    in the list. }
+  procedure ConvertAndScalePoints(const ArrIndex, ListIndex: Cardinal);
+  begin
+    TiledObjPoints[ArrIndex] := RenderPosition(
+      TiledObj.Points.Items[ListIndex] + TiledObj.Position + Lay.Offset);
+  end;
+
+  { Prepare and render TiledObject polyline and polygon. }
+  procedure RenderPolylinePolygon;
+  var
+    I: Cardinal;
+  begin
+    { Prepare points for DrawPrimitive2D function. Convert from vector list
+      to array of vectors. }
+    SetLength(TiledObjPoints, TiledObj.Points.Count);
+    for I := 0 to High(TiledObjPoints) do
+    begin
+      ConvertAndScalePoints(I, I);
+    end;
+
+    { If TiledObject is a polygon, for rendering of last line, a point has to be
+      added manually to close the polygon. }
+    if TiledObj.Primitive = topPolygon then
+    begin
+      SetLength(TiledObjPoints, TiledObj.Points.Count + 1);
+      ConvertAndScalePoints(High(TiledObjPoints), 0);
+    end;
+
+    { Draw polygon or polyline TiledObject. }
+    DrawPrimitive2D(pmLineStrip, TiledObjPoints, Orange, bsSrcAlpha,
+      bdOneMinusSrcAlpha, false, 1, 1);
+  end;
+
+  procedure RenderPoint;
+  var
+    TiledObjPoint: array [0..0] of TVector2;   // array with 1 element
+  begin
+    { Prepare point. }
+    TiledObjPoint[0] := RenderPosition(Lay.Offset + TiledObj.Position);
+
+    { Draw point TiledObject. }
+    DrawPrimitive2D(pmPoints, TiledObjPoint, Orange, bsSrcAlpha,
+      bdOneMinusSrcAlpha, false, 1, 1);
+  end;
+
+  procedure RenderRectangle;
+  var
+    TiledObjRect: TFloatRectangle;
+    LeftBottom, RightTop: TVector2;
+  begin
+    { Prepare rectangle.
+      The "Lay.Offset + TiledObj.Position" indicates left-top corner of the rectangle in Tiled. }
+    LeftBottom := RenderPosition(Lay.Offset + TiledObj.Position + Vector2(0, TiledObj.Height));
+    RightTop := RenderPosition(Lay.Offset + TiledObj.Position + Vector2(TiledObj.Width, 0));
+    TiledObjRect := FloatRectangle(
+      LeftBottom.X,
+      LeftBottom.Y,
+      RightTop.X - LeftBottom.X,
+      RightTop.Y - LeftBottom.Y
+    );
+
+    { Draw rectangle TiledObject. }
+    DrawRectangleOutline(TiledObjRect, Orange, 1, bsSrcAlpha,
+      bdOneMinusSrcAlpha, false);
+  end;
+
 begin
   { Object groups. }
   for Lay in Map.Layers do
   begin
-    // if Lay is TTiledMap.TObjectGroupLayer then
-    // TODO: draw TObjectGroupLayer here
-    // TODO: when to draw TImageLayer?
+    if (Lay is TTiledMap.TObjectGroupLayer) and Lay.Visible then
+    begin
+      for TiledObj in (Lay as TTiledMap.TObjectGroupLayer).Objects do
+      begin
+        if TiledObj.Visible then
+        begin
+          case TiledObj.Primitive of
+            topPolyline, topPolygon: RenderPolylinePolygon;
+            topPoint: RenderPoint;
+            topRectangle: RenderRectangle;
+            // TODO: handle ellipse
+          end;
+        end;
+      end;
+    end;
   end;
+  // TODO: when to draw TImageLayer?
 end;
 
 procedure TCastleTiledMapControl.LoadTilesetsImages;
@@ -376,7 +474,8 @@ begin
         RenderTile(Layer, X, Y);
   end;
 
-  if FObjectsVisible then RenderObjects;
+  if FObjectsVisible then
+    RenderObjects;
 end;
 
 procedure TCastleTiledMapControl.SetOrigin(const Value: TVector2);

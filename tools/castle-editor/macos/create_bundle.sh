@@ -17,7 +17,7 @@ set -eux
 BUNDLE_NAME='Castle Game Engine'
 BUNDLE_DIR="${BUNDLE_NAME}.app"
 EXE_NAME='castle-editor'
-APP_VERSION='6.5'
+APP_VERSION='7.0-alpha.snapshot'
 
 # Do the job -----------------------------------------------------------------
 

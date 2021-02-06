@@ -197,7 +197,26 @@ begin
   Result := TRGBImage;
 end;
 
-function DetectClassPNG(const Stream: TStream): TEncodedImageClass;
+function InternalDetectClassPNG(const Stream: TStream): TEncodedImageClass;
+
+  function ChunkTypeCode(const ChunkName: String): LongWord;
+  begin
+    Assert(Length(ChunkName) = 4);
+    Result :=
+      {$ifdef FPC_LITTLE_ENDIAN}
+      LongWord(Ord(ChunkName[4])) shl 24 +
+      LongWord(Ord(ChunkName[3])) shl 16 +
+      LongWord(Ord(ChunkName[2])) shl 8 +
+      Ord(ChunkName[1])
+      {$else}
+      LongWord(Ord(ChunkName[1])) shl 24 +
+      LongWord(Ord(ChunkName[2])) shl 16 +
+      LongWord(Ord(ChunkName[3])) shl 8 +
+      Ord(ChunkName[4])
+      {$endif}
+    ;
+  end;
+
 const
   { Color type masks and types.
     Copied from castleinternalpng_dynamic.inc, so this compiles regardless of libpng unit. }
@@ -212,10 +231,15 @@ const
   PNG_COLOR_TYPE_GRAY_ALPHA = (PNG_COLOR_MASK_ALPHA);
 var
   ReadHeader, ChunkType, ChunkSize, IWidth, IHeight: LongWord;
+  ChunkTypeIHDR, ChunkTypetRNS, ChunkTypeIEND: LongWord;
   Bits, ColorType: Byte;
 begin
   try
     { See https://en.wikipedia.org/wiki/Portable_Network_Graphics about PNG header }
+
+    ChunkTypeIHDR := ChunkTypeCode('IHDR');
+    ChunkTypetRNS := ChunkTypeCode('tRNS');
+    ChunkTypeIEND := ChunkTypeCode('IEND');
 
     Stream.ReadBuffer(ReadHeader, SizeOf(ReadHeader));
     if BEtoN(ReadHeader) <> $89504E47 then
@@ -230,7 +254,7 @@ begin
       Exit(nil);
 
     Stream.ReadBuffer(ChunkType, SizeOf(ChunkType));
-    if LEtoN(ChunkType) <> $52444849 then // chunk IHDR must be first
+    if LEtoN(ChunkType) <> ChunkTypeIHDR then // chunk IHDR must be first
       Exit(nil);
 
     Stream.ReadBuffer(IWidth, SizeOf(IWidth));
@@ -248,16 +272,48 @@ begin
       else                       Result := nil; // unknown, possible in case of PNG_COLOR_TYPE_PALETTE
     end;
 
-    { TODO: In case
+    // if Result indicates non-alpha image, scan for PNG tRNS chunk
+    if (Result = TRGBImage) or
+       (Result = TGrayscaleImage) then
+    begin
+      { skip 3 remaining bytes of IHDR chunk, + 4 for CRC }
+      Stream.Position := Stream.Position + 3 + 4;
 
-        png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS) <> 0
+      { We need to detect whether we have tRNS chunk.
+        Libpng implementation does this by
 
-      then we should consider the image as if ColorType indicated alpha,
-      i.e. "promote" PNG_COLOR_TYPE_GRAY -> PNG_COLOR_TYPE_GRAY_ALPHA,
-      or PNG_COLOR_TYPE_RGB -> PNG_COLOR_TYPE_RGB_ALPHA.
-      See png_is_alpha implementation in castleinternalpng.pas.
-    }
+          png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS) <> 0
 
+        In this case, we have alpha information,
+        even though ColorType doesn't indicate it.
+        See png_is_alpha implementation in castleinternalpng.pas.
+      }
+
+      while ChunkType <> ChunkTypeIEND do
+      begin
+        Stream.ReadBuffer(ChunkSize, SizeOf(ChunkSize));
+        ChunkSize := BEtoN(ChunkSize);
+
+        Stream.ReadBuffer(ChunkType, SizeOf(ChunkType));
+
+        // if tRNS, then update Result class and break
+        if LEtoN(ChunkType) = ChunkTypetRNS then
+        begin
+          if Result = TRGBImage then
+          begin
+            Result := TRGBAlphaImage;
+            Break;
+          end else
+          if Result = TGrayscaleImage then
+          begin
+            Result := TGrayscaleAlphaImage;
+            Break;
+          end;
+        end;
+
+        Stream.Position := Stream.Position + ChunkSize + 4 { CRC };
+      end;
+    end;
   finally
     Stream.Position := 0;
   end;
@@ -416,7 +472,7 @@ const
         all possibilities. }
       Load: @LoadPNG; LoadedClasses: lcG_GA_RGB_RGBA;
       Save: @SavePNG; SavedClasses: scG_GA_RGB_RGBA;
-      DetectClass: @DetectClassPNG;
+      DetectClass: @InternalDetectClassPNG;
     ),
     ( FormatName: 'Windows BMP image';
       MimeTypesCount: 1;

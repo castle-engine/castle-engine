@@ -58,7 +58,7 @@ type
   public
     procedure AddString(const S: AnsiString; const Multiplier: LongWord);
     procedure AddInteger(const I: Integer);
-    procedure AddFloat(const F: Single);
+    procedure AddFloat(const F: Single; const UniquePrimeNumber: Cardinal);
     procedure AddPointer(Ptr: Pointer);
     procedure AddEffects(Nodes: TX3DNodeList);
     procedure AddEffects(Nodes: TMFNode);
@@ -593,7 +593,7 @@ type
     procedure EnableClipPlane(const ClipPlaneIndex: Cardinal;
       const Plane: TVector4);
     procedure DisableClipPlane(const ClipPlaneIndex: Cardinal);
-    procedure EnableAlphaTest;
+    procedure EnableAlphaTest(const AlphaCutoff: Single);
     procedure EnableBumpMapping(const BumpMapping: TBumpMapping;
       const NormalMapTextureUnit, NormalMapTextureCoordinatesId: Cardinal;
       const HeightMapInAlpha: Boolean; const HeightMapScale: Single);
@@ -612,7 +612,7 @@ type
     procedure ModifyFog(const FogType: TFogType;
       const FogCoordinateSource: TFogCoordinateSource;
       const FogLinearEnd: Single; const FogExpDensity: Single);
-    function EnableCustomShaderCode(Shaders: TMFNodeShaders;
+    function EnableCustomShaderCode(const Shaders: TMFNode;
       out Node: TComposedShaderNode): Boolean;
     procedure EnableAppearanceEffects(Effects: TMFNode);
     procedure EnableGroupEffects(Effects: TX3DNodeList);
@@ -797,9 +797,9 @@ begin
   Sum += I;
 end;
 
-procedure TShaderCodeHash.AddFloat(const F: Single);
+procedure TShaderCodeHash.AddFloat(const F: Single; const UniquePrimeNumber: Cardinal);
 begin
-  Sum += Round(F * 100000);
+  Sum += (Round(F * 1000) + 1) * UniquePrimeNumber;
 end;
 
 {$include norqcheckend.inc}
@@ -939,7 +939,7 @@ begin
         Define(ldHasBeamWidth);
         LightUniformName1 := 'castle_LightSource%dBeamWidth';
         LightUniformValue1 := TSpotLightNode(Node).FdBeamWidth.Value;
-        Hash.AddFloat(LightUniformValue1);
+        Hash.AddFloat(LightUniformValue1, 2179);
       end;
     end;
 
@@ -1246,7 +1246,7 @@ begin
   UniformEvent := FieldOrEvent.Event;
 
   { Set initial value for this GLSL uniform variable,
-    from VRML field or exposedField }
+    from X3D field or exposedField }
 
   if UniformField <> nil then
   try
@@ -2722,6 +2722,7 @@ var
           end;
       end;
       case ColorPerVertexType of
+        ctNone: ;
         ctRgb:
           begin
             Define('COLOR_PER_VERTEX_RGB', stVertex);
@@ -2944,6 +2945,7 @@ begin
   if GammaCorrection then
     Define('CASTLE_GAMMA_CORRECTION', stFragment);
   case ToneMapping of
+    tmNone: ;
     tmUncharted:
       begin
         Define('CASTLE_TONE_MAPPING', stFragment);
@@ -3373,15 +3375,20 @@ begin
   {$endif}
 end;
 
-procedure TShader.EnableAlphaTest;
+procedure TShader.EnableAlphaTest(const AlphaCutoff: Single);
+var
+  AlphaCutoffStr: String;
 begin
-  { Enable for shader pipeline. We know alpha comparison is always < 0.5 }
+  { Convert float to be a valid GLSL constant.
+    Make sure to use dot, and a fixed notation. }
+  AlphaCutoffStr := FloatToStrFDot(AlphaCutoff, ffFixed, { ignored } 0, 4);
+
   FragmentEnd +=
-    '/* Do the trick with 1.0 / 2.0, instead of comparing with 0.5, to avoid fglrx bugs */' + NL +
-    'if (2.0 * gl_FragColor.a < 1.0)' + NL +
+    'if (gl_FragColor.a < ' + AlphaCutoffStr + ')' + NL +
     '  discard;' + NL;
 
   FCodeHash.AddInteger(2011);
+  FCodeHash.AddFloat(AlphaCutoff, 2017);
 end;
 
 procedure TShader.EnableBumpMapping(const BumpMapping: TBumpMapping;
@@ -3403,7 +3410,7 @@ begin
       379 * FNormalMapTextureCoordinatesId +
       383 * Ord(FHeightMapInAlpha)
     );
-    FCodeHash.AddFloat(FHeightMapScale);
+    FCodeHash.AddFloat(FHeightMapScale, 2203);
   end;
 end;
 
@@ -3513,7 +3520,7 @@ begin
     433 * (Ord(FFogCoordinateSource) + 1));
 end;
 
-function TShader.EnableCustomShaderCode(Shaders: TMFNodeShaders;
+function TShader.EnableCustomShaderCode(const Shaders: TMFNode;
   out Node: TComposedShaderNode): Boolean;
 var
   I, J: Integer;
@@ -3524,7 +3531,12 @@ begin
   Result := false;
   for I := 0 to Shaders.Count - 1 do
   begin
-    Node := Shaders.GLSLShader(I);
+    if (Shaders[I] is TComposedShaderNode) and
+       (TComposedShaderNode(Shaders[I]).Language in [slDefault, slGLSL]) then
+      Node := TComposedShaderNode(Shaders[I])
+    else
+      Node := nil;
+
     if Node <> nil then
     begin
       Result := true;
@@ -3664,8 +3676,10 @@ procedure TShader.AddScreenEffectCode(const Depth: Boolean);
 var
   VS, FS: String;
 begin
+  {$warnings off} // using deprecated below, which should be internal
   VS := ScreenEffectVertex;
   FS := ScreenEffectFragment(Depth);
+  {$warnings on}
 
   Source[stVertex].Insert(0, VS);
   { For OpenGLES, ScreenEffectLibrary must be 1st shader,

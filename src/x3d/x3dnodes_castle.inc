@@ -270,8 +270,8 @@
     destructor Destroy; override;
     class function ClassX3DType: String; override;
 
-    strict private FFdShaders: TMFNodeShaders;
-    public property FdShaders: TMFNodeShaders read FFdShaders;
+    strict private FFdShaders: TMFNode;
+    public property FdShaders: TMFNode read FFdShaders;
 
     strict private FFdNeedsDepth: TSFBool;
     public property FdNeedsDepth: TSFBool read FFdNeedsDepth;
@@ -777,7 +777,7 @@ begin
    FdEnabled.ChangeAlways := chScreenEffectEnabled;
   AddField(FFdEnabled);
 
-  FFdShaders := TMFNodeShaders.Create(Self, true, 'shaders', [TAbstractShaderNode]);
+  FFdShaders := TMFNode.Create(Self, true, 'shaders', [TAbstractShaderNode]);
    FdShaders.ChangeAlways := chEverything;
   AddField(FFdShaders);
 
