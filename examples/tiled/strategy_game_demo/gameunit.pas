@@ -111,7 +111,7 @@ type
 implementation
 
 uses SysUtils, TypInfo, Math,
-  CastleRectangles, CastleStringUtils, CastleColors;
+  CastleRectangles, CastleStringUtils, CastleColors, CastleViewport;
 
 { TUnitsOnMap ---------------------------------------------------------------- }
 
