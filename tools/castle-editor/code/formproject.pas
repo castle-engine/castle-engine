@@ -440,6 +440,7 @@ begin
   UserConfig.SetValue('ProjectForm_Left', Left);
   UserConfig.SetValue('ProjectForm_Top', Top);
   UserConfig.SetValue('ProjectForm_WindowState', WindowStateToStr(WindowState));
+  UserConfig.SetValue('ProjectForm_PageControlBottom.Height', PageControlBottom.Height);
   UserConfig.Save;
 end;
 
@@ -465,6 +466,7 @@ begin
   Left := UserConfig.GetValue('ProjectForm_Left', 546);
   Top := UserConfig.GetValue('ProjectForm_Top', 273);
   WindowState := StrToWindowState(UserConfig.GetValue('ProjectForm_WindowState', 'wsNormal'));
+  PageControlBottom.Height := UserConfig.GetValue('ProjectForm_PageControlBottom.Height', 224);
 end;
 
 procedure TProjectForm.ListOutputClick(Sender: TObject);
