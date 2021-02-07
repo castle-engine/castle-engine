@@ -11,6 +11,8 @@ object ProjectForm: TProjectForm
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnHide = FormHide
+  OnShow = FormShow
   Position = poMainFormCenter
   ShowInTaskBar = stAlways
   LCLVersion = '2.0.8.0'

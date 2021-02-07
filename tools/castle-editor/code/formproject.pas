@@ -115,6 +115,8 @@ type
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormHide(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure ListOutputClick(Sender: TObject);
     procedure MenuItemRenameClick(Sender: TObject);
     procedure UpdateUndo(Sender: TObject);
@@ -211,7 +213,7 @@ implementation
 
 uses TypInfo, LCLType,
   CastleXMLUtils, CastleLCLUtils, CastleOpenDocument, CastleURIUtils,
-  CastleFilesUtils, CastleUtils, CastleVectors, CastleColors,
+  CastleFilesUtils, CastleUtils, CastleVectors, CastleColors, CastleConfig,
   CastleScene, CastleViewport, Castle2DSceneManager, CastleCameras,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
@@ -411,10 +413,58 @@ end;
 
 procedure TProjectForm.FormDestroy(Sender: TObject);
 begin
+  FormHide(Self); //to save config properly
   ApplicationProperties.OnWarning.Remove(@WarningNotification);
   ApplicationDataOverride := '';
   FreeProcess;
   FreeAndNil(OutputList);
+end;
+
+procedure TProjectForm.FormHide(Sender: TObject);
+
+  function WindowStateToStr(const AWindowState: TWindowState): String;
+  begin
+    case AWindowState of
+      wsNormal: Result := 'wsNormal';
+      wsMinimized: Result := 'wsMinimized';
+      wsMaximized: Result := 'wsMaximized';
+      wsFullScreen: Result := 'wsFullScreen';
+    end;
+  end;
+
+begin
+  UserConfig.SetValue('ProjectForm_Width', Width);
+  UserConfig.SetValue('ProjectForm_Height', Height);
+  UserConfig.SetValue('ProjectForm_ClientWidth', ClientWidth);
+  UserConfig.SetValue('ProjectForm_ClientHeight', ClientHeight);
+  UserConfig.SetValue('ProjectForm_Left', Left);
+  UserConfig.SetValue('ProjectForm_Top', Top);
+  UserConfig.SetValue('ProjectForm_WindowState', WindowStateToStr(WindowState));
+  UserConfig.Save;
+end;
+
+procedure TProjectForm.FormShow(Sender: TObject);
+
+  function StrToWindowState(const AWindowStateStr: String): TWindowState;
+  begin
+    case AWindowStateStr of
+      'wsNormal': Result := wsNormal;
+      'wsMinimized': Result := wsMinimized;
+      'wsMaximized': Result := wsMaximized;
+      'wsFullScreen': Result := wsFullScreen;
+      else
+        Result := wsNormal;
+    end;
+  end;
+
+begin
+  Width := UserConfig.GetValue('ProjectForm_Width', 1142);
+  Height := UserConfig.GetValue('ProjectForm_Height', 632);
+  ClientWidth := UserConfig.GetValue('ProjectForm_ClientWidth', Width);
+  ClientHeight := UserConfig.GetValue('ProjectForm_ClientHeight', Height);
+  Left := UserConfig.GetValue('ProjectForm_Left', 546);
+  Top := UserConfig.GetValue('ProjectForm_Top', 273);
+  WindowState := StrToWindowState(UserConfig.GetValue('ProjectForm_WindowState', 'wsNormal'));
 end;
 
 procedure TProjectForm.ListOutputClick(Sender: TObject);
