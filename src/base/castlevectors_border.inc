@@ -1,5 +1,6 @@
+{%MainUnit castlevectors.pas}
 {
-  Copyright 2019-2019 Michalis Kamburelis.
+  Copyright 2019-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,7 +14,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Part of CastleGLImages unit: TBorder. }
+{ TBorder. }
 
 {$ifdef read_interface}
 

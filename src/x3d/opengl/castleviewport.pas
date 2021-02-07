@@ -26,7 +26,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleInternalGLShadowVolumes, CastleUIControls, CastleTransform, CastleTriangles,
   CastleKeysMouse, CastleBoxes, CastleInternalBackground, CastleUtils, CastleClassUtils,
   CastleGLShaders, CastleGLImages, CastleTimeUtils, CastleControls,
-  CastleInputs, CastleRectangles, CastleColors,
+  CastleInputs, CastleRectangles, CastleColors, CastleComponentSerialize,
   CastleProjection, CastleScreenEffects;
 
 type
@@ -1281,6 +1281,7 @@ var
 
 {$define read_interface}
 {$I castleviewport_touchnavigation.inc}
+{$I castleviewport_serialize.inc}
 {$undef read_interface}
 
 implementation
@@ -1292,7 +1293,7 @@ uses DOM, Math,
   CastleRenderingCamera,
   CastleGLUtils, CastleProgress, CastleLog, CastleStringUtils,
   CastleSoundEngine, CastleGLVersion, CastleShapes, CastleTextureImages,
-  CastleComponentSerialize, CastleInternalSettings, CastleXMLUtils, CastleURIUtils,
+  CastleInternalSettings, CastleXMLUtils, CastleURIUtils,
   CastleRenderContext, CastleApplicationProperties;
 {$warnings on}
 
@@ -1303,6 +1304,7 @@ end;
 {$define read_implementation}
 {$I castleviewport_touchnavigation.inc}
 {$I castleviewport_warmup_cache.inc}
+{$I castleviewport_serialize.inc}
 {$undef read_implementation}
 
 { TManagerRenderParams ------------------------------------------------------- }

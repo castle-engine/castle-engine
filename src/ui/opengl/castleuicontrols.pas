@@ -24,7 +24,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleKeysMouse, CastleUtils, CastleClassUtils, CastleGLUtils, CastleFonts,
   CastleRectangles, CastleTimeUtils, CastleInternalPk3DConnexion, CastleColors,
   CastleImages, CastleVectors, CastleJoysticks, CastleApplicationProperties,
-  CastleGLImages, CastleRenderContext;
+  CastleGLImages, CastleRenderContext, CastleComponentSerialize;
 
 const
   { Default value for container's Dpi, as is usually set on desktops. }
@@ -33,7 +33,7 @@ const
   DefaultTooltipDistance = 10;
 
 type
-  TBorder = CastleGLImages.TBorder;
+  TBorder = CastleVectors.TBorder;
 
   TInputListener = class;
   TCastleUserInterface = class;
@@ -2326,12 +2326,20 @@ function RenderControlToImage(const Container: TUIContainer;
   const ViewportRect: TRectangle;
   const BackgroundColor: TCastleColor): TRGBAlphaImage; overload;
 
+{$define read_interface}
+{$I castleuicontrols_serialize.inc}
+{$undef read_interface}
+
 implementation
 
 uses DOM, TypInfo, Math,
-  CastleLog, CastleComponentSerialize, CastleXMLUtils, CastleStringUtils,
+  CastleLog, CastleXMLUtils, CastleStringUtils,
   CastleInternalSettings, CastleFilesUtils, CastleURIUtils, CastleRenderOptions,
   {$ifdef CASTLE_OBJFPC} CastleGL {$else} GL, GLExt {$endif};
+
+{$define read_implementation}
+{$I castleuicontrols_serialize.inc}
+{$undef read_implementation}
 
 { TTouchList ----------------------------------------------------------------- }
 

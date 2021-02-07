@@ -21,7 +21,7 @@ interface
 
 uses SysUtils, Classes, Math, Generics.Collections, Contnrs, Kraft,
   CastleVectors, CastleFrustum, CastleBoxes, CastleClassUtils, CastleKeysMouse,
-  CastleRectangles, CastleUtils, CastleTimeUtils,
+  CastleRectangles, CastleUtils, CastleTimeUtils, CastleComponentSerialize,
   CastleSoundEngine, CastleCameras, CastleTriangles, CastleRenderOptions;
 
 type
@@ -2281,6 +2281,7 @@ type
 
   {$define read_interface}
   {$I castletransform_physics.inc}
+  {$I castletransform_serialize.inc}
   {$undef read_interface}
 
 procedure TransformMatricesMult(var Transform, InverseTransform: TMatrix4;
@@ -2298,13 +2299,14 @@ function StrToOrientationType(const S: String): TOrientationType;
 
 implementation
 
-uses CastleLog, CastleQuaternions, CastleComponentSerialize, X3DTriangles;
+uses CastleLog, CastleQuaternions, X3DTriangles;
 
 {$define read_implementation}
 {$I castletransform_physics.inc}
 {$I castletransform_collisions.inc}
 {$I castletransform_renderparams.inc}
 {$I castletransform_behavior.inc}
+{$I castletransform_serialize.inc}
 {$undef read_implementation}
 
 { TransformMatricesMult ------------------------------------------------------ }
