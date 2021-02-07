@@ -22,7 +22,7 @@
   THAnimDisplacerNode = class(TAbstractGeometricPropertyNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdCoordIndex: TMFInt32;
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
@@ -64,7 +64,7 @@
   public
     procedure CreateNode; override;
     destructor Destroy; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
     function TransformationChange: TNodeTransformationChange; override;
 
     strict private FFdCenter: TSFVec3f;
@@ -163,7 +163,7 @@
     procedure ParseAfter(Reader: TX3DReaderNames); override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
     function TransformationChange: TNodeTransformationChange; override;
 
     strict private FFdCenter: TSFVec3f;
@@ -216,7 +216,7 @@
     procedure ApplyTransform(var Transformation: TTransformation); override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
     function TransformationChange: TNodeTransformationChange; override;
 
     strict private FFdCenterOfMass: TSFVec3f;
@@ -263,7 +263,7 @@
     procedure ApplyTransform(var Transformation: TTransformation); override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
     function TransformationChange: TNodeTransformationChange; override;
 
     strict private FFdCenter: TSFVec3f;
@@ -312,7 +312,7 @@ begin
   DefaultContainerField := 'displacers';
 end;
 
-class function THAnimDisplacerNode.ClassX3DType: string;
+class function THAnimDisplacerNode.ClassX3DType: String;
 begin
   Result := 'HAnimDisplacer';
 end;
@@ -422,7 +422,7 @@ begin
   inherited;
 end;
 
-class function THAnimHumanoidNode.ClassX3DType: string;
+class function THAnimHumanoidNode.ClassX3DType: String;
 begin
   Result := 'HAnimHumanoid';
 end;
@@ -642,7 +642,7 @@ begin
   AnimateSkinTransform := TMatrix4.Identity;
 end;
 
-class function THAnimJointNode.ClassX3DType: string;
+class function THAnimJointNode.ClassX3DType: String;
 begin
   Result := 'HAnimJoint';
 end;
@@ -789,7 +789,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function THAnimSegmentNode.ClassX3DType: string;
+class function THAnimSegmentNode.ClassX3DType: String;
 begin
   Result := 'HAnimSegment';
 end;
@@ -849,7 +849,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function THAnimSiteNode.ClassX3DType: string;
+class function THAnimSiteNode.ClassX3DType: String;
 begin
   Result := 'HAnimSite';
 end;

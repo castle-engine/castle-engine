@@ -85,7 +85,7 @@ end;
 
 procedure TResourceRendererList.Unprepare(ANode: TX3DNode);
 var
-  I: integer;
+  I: Integer;
 begin
   { If we're already inside UnprepareAll on the same instance, prevent
     Unprepare call.

@@ -29,24 +29,24 @@ type
   TCreatureState = (csStand, csBored, csWalk);
 
 const
-  CreatureStateName: array [TCreatureState] of string =
+  CreatureStateName: array [TCreatureState] of String =
   ( 'stand', 'bored', 'walk' );
 
 type
   TCreatureAnimation = class
   public
-    URL: string;
+    URL: String;
     Animation: TCastleScene; //< Created in TCreatureKind.Load
     Duration: Single;
   end;
 
   TCreatureKind = class
   private
-    FName: string;
+    FName: String;
     Animations: array [TCreatureState] of TCreatureAnimation;
-    Loaded: boolean;
+    Loaded: Boolean;
   public
-    constructor Create(const AName: string);
+    constructor Create(const AName: String);
     destructor Destroy; override;
 
     { Create things necessary for playing (displaying this creature). }
@@ -54,7 +54,7 @@ type
 
     { Creature short name, must be simple (needs to be valid XML element
       name and X3D node name, for easy data reading). }
-    property Name: string read FName;
+    property Name: String read FName;
 
     { Loads creature properties from GameConfig file.
       This is normally called by constructor, so you don't have to call it.
@@ -85,7 +85,7 @@ type
     { SetState actually only "schedules" actual state change at the nearest
       comfortable time (namely, when current animation will get to the state
       when it's sensible to make transition). }
-    ScheduledTransitionBegin: boolean;
+    ScheduledTransitionBegin: Boolean;
     ScheduledTransitionBeginNewState: TCreatureState;
     ScheduledTransitionBeginTime: TFloatTime;
 
@@ -135,7 +135,7 @@ const
 
 { TCreatureKind -------------------------------------------------------------- }
 
-constructor TCreatureKind.Create(const AName: string);
+constructor TCreatureKind.Create(const AName: String);
 var
   S: TCreatureState;
 begin
@@ -167,7 +167,7 @@ const
   DefaultDuration = 0.5;
 var
   S: TCreatureState;
-  StatePath: string;
+  StatePath: String;
 begin
   for S := Low(S) to High(S) do
   begin
@@ -439,7 +439,7 @@ var
   end;
 
 var
-  IsTargetPos, IsTargetDir: boolean;
+  IsTargetPos, IsTargetDir: Boolean;
 begin
   if (not ScheduledTransitionBegin) and (State = csWalk) then
   begin

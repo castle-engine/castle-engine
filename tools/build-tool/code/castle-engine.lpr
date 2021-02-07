@@ -35,10 +35,10 @@ var
   Target: TTarget;
   OS: TOS;
   CPU: TCPU;
-  Plugin: boolean = false;
+  Plugin: Boolean = false;
   Mode: TCompilationMode = cmRelease;
-  AssumeCompiled: boolean = false;
-  Fast: boolean = false;
+  AssumeCompiled: Boolean = false;
+  Fast: Boolean = false;
   CompilerExtraOptions: TCastleStringList;
   PackageFormat: TPackageFormat = pfDefault;
   PackageNameIncludeVersion: Boolean = true;
@@ -70,8 +70,8 @@ const
     (Short: #0 ; Long: 'manifest-name'; Argument: oaRequired)
   );
 
-procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
-  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+procedure OptionProc(OptionNum: Integer; HasArgument: Boolean;
+  const Argument: String; const SeparateArgs: TSeparateArgs; Data: Pointer);
 
   { Call SetCurrentDir to open project within specified directory. }
   procedure ChangeProjectDir(const DirOrManifestFile: String);
@@ -231,7 +231,7 @@ end;
   for this. }
 procedure AdjustApplicationData;
 var
-  DataPath: string;
+  DataPath: String;
 begin
   if CastleEnginePath <> '' then
   begin
@@ -247,7 +247,7 @@ end;
 
 procedure Run;
 var
-  Command, S, FileName: string;
+  Command, S, FileName: String;
   Project: TCastleProject;
   RestOfParameters: TCastleStringList;
 begin

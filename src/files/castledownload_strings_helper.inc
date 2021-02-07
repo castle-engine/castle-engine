@@ -24,13 +24,13 @@ type
 
       The meaning (and default behaviour) of optional AEncoding
       is the same as for TStrings.LoadFromFile and TStrings.LoadFromStream. }
-    procedure LoadFromURL(const URL: string); overload;
-    procedure LoadFromURL(const URL: string; const AEncoding: TEncoding); overload;
+    procedure LoadFromURL(const URL: String); overload;
+    procedure LoadFromURL(const URL: String; const AEncoding: TEncoding); overload;
 
     { Save the contents to URL.
       Uses standard SaveToStream combined with
       Castle Game Engine @link(URLSaveStream) to save the contents. }
-    procedure SaveToURL(const URL: string);
+    procedure SaveToURL(const URL: String);
   end;
 
 {$endif}
@@ -39,7 +39,7 @@ type
 
 { TStringsHelper ---------------------------------------------------------- }
 
-procedure TStringsHelper.LoadFromURL(const URL: string);
+procedure TStringsHelper.LoadFromURL(const URL: String);
 var
   Stream: TStream;
 begin
@@ -49,7 +49,7 @@ begin
   finally FreeAndNil(Stream) end;
 end;
 
-procedure TStringsHelper.LoadFromURL(const URL: string; const AEncoding: TEncoding);
+procedure TStringsHelper.LoadFromURL(const URL: String; const AEncoding: TEncoding);
 var
   Stream: TStream;
 begin
@@ -59,7 +59,7 @@ begin
   finally FreeAndNil(Stream) end;
 end;
 
-procedure TStringsHelper.SaveToURL(const URL: string);
+procedure TStringsHelper.SaveToURL(const URL: String);
 var
   Stream: TStream;
 begin

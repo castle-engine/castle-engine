@@ -56,7 +56,7 @@ end;
 procedure TTestCastleXMLUtils.TestAttributeReading;
 var
   Doc: TXMLDocument;
-  S: string;
+  S: String;
   I: Integer;
 begin
   try

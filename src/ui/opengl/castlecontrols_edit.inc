@@ -29,15 +29,15 @@
   }
   TCastleEdit = class(TCastleUserInterfaceFont)
   strict private
-    FText: string;
+    FText: String;
     FPaddingHorizontal, FPaddingVertical, FPadding: Single;
     FBackgroundColor, FFocusedColor, FUnfocusedColor: TCastleColor;
     FPlaceholderColor: TCastleColor;
-    FFrame: boolean;
+    FFrame: Boolean;
     LifeTime: TFloatTime;
     FMaxLength: Cardinal;
     FAllowedChars: TSetOfChars;
-    FCaptureAllInput: boolean;
+    FCaptureAllInput: Boolean;
     FAutoOnScreenKeyboard: Boolean;
     Scissor: TScissor;
     FAutoSizeHeight: Boolean;
@@ -45,7 +45,7 @@
     FOnChange: TNotifyEvent;
     FPasswordChar: Char;
     FTextTranslate, FPlaceholderTranslate: Boolean;
-    procedure SetText(const Value: string);
+    procedure SetText(const Value: String);
     procedure SetFocusedColor(const Value: TCastleColor);
     procedure SetUnfocusedColor(const Value: TCastleColor);
     procedure SetPlaceholderColor(const Value: TCastleColor);
@@ -53,7 +53,7 @@
     procedure SetPadding(const Value: Single);
     procedure SetPaddingHorizontal(const Value: Single);
     procedure SetPaddingVertical(const Value: Single);
-    procedure SetFrame(const Value: boolean);
+    procedure SetFrame(const Value: Boolean);
     procedure SetAutoSizeHeight(const Value: Boolean);
     procedure SetPlaceholder(const Value: String);
     procedure SetPasswordChar(const Value: Char);
@@ -67,11 +67,11 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
-    function Press(const Event: TInputPressRelease): boolean; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
     procedure Update(const SecondsPassed: Single;
-      var HandleInput: boolean); override;
-    function CapturesEventsAtPosition(const Position: TVector2): boolean; override;
-    procedure SetFocused(const Value: boolean); override;
+      var HandleInput: Boolean); override;
+    function CapturesEventsAtPosition(const Position: TVector2): Boolean; override;
+    procedure SetFocused(const Value: Boolean); override;
     procedure EditorAllowResize(
       out ResizeWidth, ResizeHeight: Boolean; out Reason: String); override;
     function PropertySection(const PropertyName: String): TPropertySection; override;
@@ -110,7 +110,7 @@
       DefaultAutoOnScreenKeyboard = false;
 
     { Currently input text. }
-    property Text: string read FText write SetText;
+    property Text: String read FText write SetText;
 
     { Inside the box rectangle, padding between the borders (or frame, if @link(Frame)) and text.
       Total horizontal padding is the sum @code(PaddingHorizontal + Padding),
@@ -126,12 +126,12 @@
 
     { Draw frame around the box. Frame uses theme image tiEdit,
       see TCastleTheme.Images if you want to customize it. }
-    property Frame: boolean read FFrame write SetFrame default true;
+    property Frame: Boolean read FFrame write SetFrame default true;
 
     { Should we capture input regardless of the currently focused control.
       This is in practice only sensible if this is the only edit box currently
       visible on the screen. }
-    property CaptureAllInput: boolean read FCaptureAllInput write FCaptureAllInput;
+    property CaptureAllInput: Boolean read FCaptureAllInput write FCaptureAllInput;
 
     { When true, it shows the software keyboard on Android. }
     property AutoOnScreenKeyboard: Boolean
@@ -269,7 +269,7 @@ begin
   inherited;
 end;
 
-procedure TCastleEdit.SetText(const Value: string);
+procedure TCastleEdit.SetText(const Value: String);
 begin
   if FText <> Value then
   begin
@@ -341,7 +341,7 @@ begin
   end;
 end;
 
-procedure TCastleEdit.SetFrame(const Value: boolean);
+procedure TCastleEdit.SetFrame(const Value: Boolean);
 begin
   if FFrame <> Value then
   begin
@@ -418,8 +418,8 @@ var
   PaddingHorizontalScaled, PaddingVerticalScaled: Single;
   US, TextLeft, TextBottom: Single;
   FrameCorners: TVector4;
-  CaretVisible: boolean;
-  S: string;
+  CaretVisible: Boolean;
+  S: String;
   Color: TCastleColor;
   CaretShift: Single;
 begin
@@ -499,7 +499,7 @@ begin
 end;
 
 procedure TCastleEdit.Update(const SecondsPassed: Single;
-  var HandleInput: boolean);
+  var HandleInput: Boolean);
 begin
   inherited;
   LifeTime := LifeTime + SecondsPassed;
@@ -509,7 +509,7 @@ begin
     HandleInput := false;
 end;
 
-function TCastleEdit.Press(const Event: TInputPressRelease): boolean;
+function TCastleEdit.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result or (not GetExists) then Exit;
@@ -561,7 +561,7 @@ begin
   end;
 end;
 
-function TCastleEdit.CapturesEventsAtPosition(const Position: TVector2): boolean;
+function TCastleEdit.CapturesEventsAtPosition(const Position: TVector2): Boolean;
 begin
   if CaptureAllInput then
     Result := true // always capture
@@ -569,7 +569,7 @@ begin
     Result := inherited CapturesEventsAtPosition(Position);
 end;
 
-procedure TCastleEdit.SetFocused(const Value: boolean);
+procedure TCastleEdit.SetFocused(const Value: Boolean);
 begin
   inherited;
 
@@ -577,7 +577,7 @@ begin
     Messaging.Send(['change-keyboard-state', TMessaging.BoolToStr(Value)])
 end;
 
-procedure TCastleEdit.SetPlaceholder(const Value: string);
+procedure TCastleEdit.SetPlaceholder(const Value: String);
 begin
   if FPlaceholder <> Value then
   begin

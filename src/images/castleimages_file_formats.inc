@@ -182,7 +182,7 @@ procedure SavePNG(const Img: TEncodedImage; const Stream: TStream); forward;
 { }
 procedure SaveJPEG(const Img: TEncodedImage; const Stream: TStream); forward;
 { }
-procedure SavePPM(const Img: TEncodedImage; const Stream: TStream; const Binary: boolean); overload; forward;
+procedure SavePPM(const Img: TEncodedImage; const Stream: TStream; const Binary: Boolean); overload; forward;
 procedure SavePPM(const Img: TEncodedImage; const Stream: TStream); { binary = true } overload; forward;
 { }
 procedure SaveRGBE(const Img: TEncodedImage; const Stream: TStream); forward;
@@ -404,14 +404,14 @@ type
       usually means to only slightly rephrase typical file format extension.
 
       In practice, I now copy descriptions from English GIMP open dialog. }
-    FormatName: string;
+    FormatName: String;
 
     MimeTypesCount: TImageFormatInfoMimeTypesCount;
 
     { MIME types recognized as this image file format.
       First MIME type is the default for this file format
       (some procedures make use of it). }
-    MimeTypes: array [TImageFormatInfoMimeTypesCount] of string;
+    MimeTypes: array [TImageFormatInfoMimeTypesCount] of String;
 
     ExtsCount: TImageFormatInfoExtsCount;
 
@@ -428,7 +428,7 @@ type
       (when server may report MIME type) and data URIs, most of the code
       should operate using MIME types instead of file extensions.
       So usually you are more interested in MimeTypes than Exts. }
-    Exts: array [TImageFormatInfoExtsCount] of string;
+    Exts: array [TImageFormatInfoExtsCount] of String;
 
     { Load method for this file format.
       @nil if cannot be loaded. }
@@ -634,16 +634,16 @@ const
 { Helper methods for implementing LoadEncodedImage. }
 
 function ClassAllowed(ImageClass: TEncodedImageClass;
-  const AllowedImageClasses: array of TEncodedImageClass): boolean;
+  const AllowedImageClasses: array of TEncodedImageClass): Boolean;
 begin
   Result := (High(AllowedImageClasses) = -1) or
     InImageClasses(ImageClass, AllowedImageClasses);
 end;
 
 function LoadEncodedImageParams(
-  const AllowedImageClasses: array of TEncodedImageClass): string;
+  const AllowedImageClasses: array of TEncodedImageClass): String;
 
-  function ImageClassesToStr(const AllowedImageClasses: array of TEncodedImageClass): string;
+  function ImageClassesToStr(const AllowedImageClasses: array of TEncodedImageClass): String;
   var
     I: Integer;
   begin
@@ -665,7 +665,7 @@ end;
 
 { Exposing ImageFormatInfos mimo/exts info ----------------------------------- }
 
-function ImageExtToMimeType(Ext: string): string;
+function ImageExtToMimeType(Ext: String): String;
 var
   I: TImageFormat;
   E: TImageFormatInfoExtsCount;
@@ -690,8 +690,8 @@ begin
         ImageFormatInfos[I].MimeTypes[1]);
 end;
 
-function MimeTypeToImageFormat(const MimeType: string;
-  const OnlyLoadable, OnlySaveable: boolean; out ImgFormat: TImageFormat): boolean;
+function MimeTypeToImageFormat(const MimeType: String;
+  const OnlyLoadable, OnlySaveable: Boolean; out ImgFormat: TImageFormat): Boolean;
 var
   I: TImageFormat;
   M: TImageFormatInfoMimeTypesCount;
@@ -717,7 +717,7 @@ begin
     Result := TRGBImage;
 end;
 
-function ImageClassBestForSavingToFormat(const URL: string): TCastleImageClass;
+function ImageClassBestForSavingToFormat(const URL: String): TCastleImageClass;
 var
   Format: TImageFormat;
 begin
@@ -726,21 +726,21 @@ begin
   Result := ImageClassBestForSavingToFormatCore(Format);
 end;
 
-function IsImageMimeType(const MimeType: string;
-  const OnlyLoadable, OnlySaveable: boolean): boolean;
+function IsImageMimeType(const MimeType: String;
+  const OnlyLoadable, OnlySaveable: Boolean): Boolean;
 var
   ImgFormat: TImageFormat;
 begin
   Result := MimeTypeToImageFormat(MimeType, OnlyLoadable, OnlySaveable, ImgFormat);
 end;
 
-function ListImageExtsLong(OnlyLoadable, OnlySaveable: boolean;
-  const LinePrefix: string): string;
+function ListImageExtsLong(OnlyLoadable, OnlySaveable: Boolean;
+  const LinePrefix: String): String;
 var
   Format: TImageFormat;
   I: integer;
 begin
-  result := '';
+  Result := '';
 
   for Format := Low(Format) to High(Format) do
     if ((not OnlyLoadable) or Assigned(ImageFormatInfos[Format].Load)) and
@@ -760,7 +760,7 @@ begin
     end;
 end;
 
-function ListImageExtsShort(OnlyLoadable, OnlySaveable: boolean): string;
+function ListImageExtsShort(OnlyLoadable, OnlySaveable: Boolean): String;
 var
   Format: TImageFormat;
   I: integer;
@@ -794,7 +794,7 @@ procedure InitializeImagesFileFilters;
   var
     F: TFileFilter;
     ExtIndex: Integer;
-    Pattern: string;
+    Pattern: String;
   begin
     F := TFileFilter.Create;
     Filters.Add(F);

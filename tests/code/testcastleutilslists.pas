@@ -36,12 +36,14 @@ implementation
 
 uses CastleUtils, CastleVectors;
 
-function IsSmallerString(const a, b: string): Integer;
+function IsSmallerString(const A, B: String): Integer;
 begin
   if A < B then
-    Result := -1 else
+    Result := -1
+  else
   if A > B then
-    Result :=  1 else
+    Result :=  1
+  else
     Result :=  0;
 end;
 
@@ -68,7 +70,7 @@ end;
 (*
 procedure TTestBasicLists.TestGenericStringList;
 
-  function Equal(const S1: TGenericStringList; const S2: array of string): boolean;
+  function Equal(const S1: TGenericStringList; const S2: array of String): Boolean;
   var
     I: Integer;
   begin
@@ -95,11 +97,11 @@ procedure TTestBasicLists.TestGenericStringList;
 
 var
   sarr, sarr2: TGenericStringList;
-  i, j: integer;
+  I, J: Integer;
 const
-  twoStrings: array[0..1]of string = ('raz','dwa');
+  twoStrings: array [0..1] of String = ('raz','dwa');
 begin
- for i := 1 to 100 do
+ for I := 1 to 100 do
  begin
   sarr := TGenericStringList.Create;
   try
@@ -133,10 +135,10 @@ begin
    finally sarr2.Free end;
 
    {dodaj losowe stringi, sortuj, sprawdz}
-   for j := 0 to 20 do
+   for J := 0 to 20 do
     sarr.Add( Chr(Random(256)) + Chr(Random(256)) + Chr(Random(256)) );
    sarr.Sort(@IsSmallerString);
-   for j := 0 to sarr.Count-2 do AssertTrue(sarr[j] <= sarr[j+1]);
+   for J := 0 to sarr.Count-2 do AssertTrue(sarr[J] <= sarr[J+1]);
 
   finally sarr.Free end;
  end;
@@ -153,7 +155,7 @@ end;
 
 procedure TTestBasicLists.TestPrimitiveLists;
 
-  function Equal(const S1: TIntegerList; const S2: array of Integer): boolean;
+  function Equal(const S1: TIntegerList; const S2: array of Integer): Boolean;
   var
     I: Integer;
   begin
@@ -167,7 +169,7 @@ procedure TTestBasicLists.TestPrimitiveLists;
     end;
   end;
 
-  function Equal(const S1, S2: TIntegerList): boolean;
+  function Equal(const S1, S2: TIntegerList): Boolean;
   var
     I: Integer;
   begin
@@ -213,7 +215,7 @@ begin
 
 procedure DeleteDuplicates;
 var
-  I, Index: integer;
+  I, Index: Integer;
 begin
   I := 0;
   while I < Count do

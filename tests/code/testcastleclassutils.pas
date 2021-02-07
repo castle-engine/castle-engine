@@ -42,10 +42,10 @@ type
   end;
 
   TFoo = class
-    constructor Create(AI: Integer; AnS: string);
+    constructor Create(AI: Integer; AnS: String);
   public
     I: Integer;
-    S: string;
+    S: String;
   end;
 
   TFooList = class(specialize TObjectList<TFoo>)
@@ -59,7 +59,7 @@ uses Generics.Defaults;
 
 { TFoo, TFoosList ------------------------------------------------------------ }
 
-constructor TFoo.Create(AI: Integer; AnS: string);
+constructor TFoo.Create(AI: Integer; AnS: String);
 begin
   I := AI;
   S := AnS;
@@ -222,7 +222,7 @@ procedure TTestCastleClassUtils.TestLineColumnStreamCore(StreamFromStreamFunc: T
 var
   S: TStringStream;
   PS: TPeekCharStream;
-  B: array [0..1000] of char;
+  B: array [0..1000] of Char;
   I: Integer;
 begin
   { ReadBuffer (using Read underneath) advances the Line and Column values correctly }

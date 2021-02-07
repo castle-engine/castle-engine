@@ -46,16 +46,16 @@ type
     FHeight: Integer;
     FAngle: Integer;
     FWeight: Integer;
-    FItalic: boolean;
-    FUnderline: boolean;
-    FStrikeOut: boolean;
+    FItalic: Boolean;
+    FUnderline: Boolean;
+    FStrikeOut: Boolean;
     FCharSet: TWinCharSet;
     FOutputPrecision: DWord;
     FClipPrecision: DWord;
     FQuality: DWord;
     FPitch: DWord;
     FFamily: DWord;
-    FFaceName: string;
+    FFaceName: String;
   public
     property Height: Integer read FHeight write FHeight;
 
@@ -65,9 +65,9 @@ type
     property Angle: Integer read FAngle write FAngle default 0;
 
     property Weight: Integer read FWeight write FWeight default FW_REGULAR;
-    property Italic: boolean read FItalic write FItalic default false;
-    property Underline: boolean read FUnderline write FUnderline default false;
-    property StrikeOut: boolean read FStrikeOut write FStrikeOut default false;
+    property Italic: Boolean read FItalic write FItalic default false;
+    property Underline: Boolean read FUnderline write FUnderline default false;
+    property StrikeOut: Boolean read FStrikeOut write FStrikeOut default false;
     property CharSet: TWinCharSet read FCharSet write FCharSet default wcsDEFAULT;
 
     property OutputPrecision: DWord read FOutputPrecision write FOutputPrecision
@@ -87,7 +87,7 @@ type
     { @groupEnd }
 
     { Font face name. Default is ''. }
-    property FaceName: string read FFaceName write FFaceName;
+    property FaceName: String read FFaceName write FFaceName;
 
     { Create a font with given properties. Calls WinAPI CreateFont.
       Rememeber to free result somewhere by DeleteObject.
@@ -112,7 +112,7 @@ type
   end;
 
 const
-  CharSetsNames: array [TWinCharSet] of string=(
+  CharSetsNames: array [TWinCharSet] of String=(
     'ANSI_CHARSET',  'DEFAULT_CHARSET',  'SYMBOL_CHARSET',  'SHIFTJIS_CHARSET',
     'HANGEUL_CHARSET',  'GB2312_CHARSET',  'CHINESEBIG5_CHARSET',  'OEM_CHARSET',
     'HEBREW_CHARSET',  'ARABIC_CHARSET',  'GREEK_CHARSET',
@@ -124,20 +124,20 @@ const
   They probably could use some improvements. }
 
 { Is given Windows font possibly true-type. }
-function IsFontTrueType( Font: HFONT ): boolean;
+function IsFontTrueType( Font: HFONT ): Boolean;
 
 type
-  TEnumFontCharsetsProc_ByObject = procedure( FontCharset: byte ) of object;
-  TEnumFontCharsetsProc = procedure( FontCharset: byte );
+  TEnumFontCharsetsProc_ByObject = procedure( FontCharset: Byte) of object;
+  TEnumFontCharsetsProc = procedure( FontCharset: Byte );
 
 { Enumerate charsets handled by given font. Warning: enumerated values
   may be repeated.
   @groupBegin }
-procedure EnumFontCharsetsObj(const FontName: string; EnumProc : TEnumFontCharsetsProc_ByObject);
-procedure EnumFontCharsets(const FontName: string; EnumProc : TEnumFontCharsetsProc);
+procedure EnumFontCharsetsObj(const FontName: String; EnumProc : TEnumFontCharsetsProc_ByObject);
+procedure EnumFontCharsets(const FontName: String; EnumProc : TEnumFontCharsetsProc);
 { @groupEnd }
 
-function WinCharSetFromName(const Name: string): TWinCharSet;
+function WinCharSetFromName(const Name: String): TWinCharSet;
 
 implementation
 
@@ -172,7 +172,7 @@ end;
 
 function TWindowsFont.GetHandle: HFont;
 const
-  BoolTo01: array[boolean]of Cardinal = (0, 1);
+  BoolTo01: array[Boolean]of Cardinal = (0, 1);
 begin
   Result := CreateFont(FHeight, 0, FAngle, FAngle,
     FWeight, BoolTo01[FItalic], BoolTo01[FUnderline], BoolTo01[FStrikeOut],
@@ -209,11 +209,11 @@ begin
   Result := 1;
 end;
 
-function IsFontTrueType( Font: HFONT ): boolean;
+function IsFontTrueType( Font: HFONT ): Boolean;
 { See EnumFontFamProc_IsTrueType implementation comments for more information. }
 var
   LogFont: TLogFont;
-  wynik: integer;
+  wynik: Integer;
   dc: HDC;
   savedObj: HGDIOBJ;
 begin
@@ -250,7 +250,7 @@ begin
   result := 1;
 end;
 
-procedure EnumFontCharsetsObj(const FontName: string; EnumProc : TEnumFontCharsetsProc_ByObject);
+procedure EnumFontCharsetsObj(const FontName: String; EnumProc : TEnumFontCharsetsProc_ByObject);
 var
   InternalInfo: TEnumCharsetsInternalInfo_ByObject;
   DC: HDC;
@@ -271,14 +271,14 @@ end;
 type
   TEnumCharsetsDisp = class
     NonObjectEnumProc : TEnumFontCharsetsProc;
-    procedure ObjectEnumProc( FontCharset: byte );
+    procedure ObjectEnumProc( FontCharset: Byte);
   end;
-  procedure TEnumCharsetsDisp.ObjectEnumProc(FontCharset: byte);
+  procedure TEnumCharsetsDisp.ObjectEnumProc(FontCharset: Byte);
   begin { ObjectEnumProc przekazuje po prostu swoj argument do NonObjectenumProc }
    NonObjectEnumProc( FontCharset );
   end;
 
-procedure EnumFontCharsets(const FontName: string; EnumProc : TEnumFontCharsetsProc);
+procedure EnumFontCharsets(const FontName: String; EnumProc: TEnumFontCharsetsProc);
 var
   EnumObj: TEnumCharsetsDisp;
 begin
@@ -289,7 +289,7 @@ begin
   finally EnumObj.Free end;
 end;
 
-function WinCharSetFromName(const Name: string): TWinCharSet;
+function WinCharSetFromName(const Name: String): TWinCharSet;
 begin
   for Result := Low(Result) to High(Result) do
     if Name = CharSetsNames[Result] then

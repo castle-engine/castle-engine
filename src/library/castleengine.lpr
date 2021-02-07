@@ -43,7 +43,7 @@ type
   TCrosshairManager = class(TObject)
   public
     CrosshairCtl: TCastleCrosshair;
-    CrosshairActive: boolean;
+    CrosshairActive: Boolean;
 
     constructor Create;
     destructor Destroy; override;
@@ -56,14 +56,14 @@ var
   Window: TCastleWindowTouch;
   Crosshair: TCrosshairManager;
 
-function CGE_VerifyWindow(const FromFunc: string): boolean;
+function CGE_VerifyWindow(const FromFunc: String): Boolean;
 begin
   Result := (Window <> nil) and (Window.SceneManager <> nil);
   if not Result then
     WarningWrite(FromFunc + ' : CGE window not initialized (CGE_Open not called)');
 end;
 
-function CGE_VerifyScene(const FromFunc: string): boolean;
+function CGE_VerifyScene(const FromFunc: String): Boolean;
 begin
   Result := (Window <> nil) and (Window.SceneManager <> nil) and (Window.MainScene <> nil);
   if not Result then
@@ -119,9 +119,9 @@ begin
   end;
 end;
 
-procedure CGE_GetOpenGLInformation(szBuffer: pchar; nBufSize: cInt32); cdecl;
+procedure CGE_GetOpenGLInformation(szBuffer: PChar; nBufSize: cInt32); cdecl;
 var
-  sText: string;
+  sText: String;
 begin
   try
     sText := GLInformationString;
@@ -301,9 +301,9 @@ begin
   end;
 end;
 
-procedure CGE_GetViewpointName(iViewpointIdx: cInt32; szName: pchar; nBufSize: cInt32); cdecl;
+procedure CGE_GetViewpointName(iViewpointIdx: cInt32; szName: PChar; nBufSize: cInt32); cdecl;
 var
-  sName: string;
+  sName: String;
 begin
   try
     if not CGE_VerifyScene('CGE_GetViewpointName') then exit;
@@ -480,7 +480,7 @@ end;
 
 procedure CGE_IncreaseSceneTime(fTimeS: cFloat); cdecl;
 var
-  bHandleControls: boolean;
+  bHandleControls: Boolean;
 begin
   bHandleControls := true;
   try

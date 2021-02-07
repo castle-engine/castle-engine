@@ -6,7 +6,7 @@
 
 uses SysUtils, CastleUtils;
 
-function IsPrime(const Value: Cardinal): boolean;
+function IsPrime(const Value: Cardinal): Boolean;
 var
   I: Cardinal;
 begin

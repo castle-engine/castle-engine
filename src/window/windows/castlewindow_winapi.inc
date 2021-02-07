@@ -52,7 +52,7 @@ private
   h_Wnd: HWND;
   { InCloseBackend = true means we are currently inside CloseBackend call.
     Useful -- see at WM_ACTIVATE. }
-  InCloseBackend: boolean;
+  InCloseBackend: Boolean;
 
   EnableUpdatesFromWindowProc, DisableUpdatesFromWindowProc: Cardinal;
 
@@ -62,7 +62,7 @@ private
   VK_Semicolon_Exists,
   VK_Slash_Exists,
   VK_BackQuote_Exists,
-  VK_BackSlash_Exists: boolean;
+  VK_BackSlash_Exists: Boolean;
   VK_LeftBracket,
   VK_RightBracket,
   VK_Apostrophe,
@@ -85,7 +85,7 @@ private
 {$ifdef read_application_interface}
 private
   { Should we do ChangeDisplaySettings(nil, 0) when Destroy? }
-  DisplaySettingsChanged: boolean;
+  DisplaySettingsChanged: Boolean;
   WndClassName: {$ifdef CASTLE_WINAPI_UNICODE} UnicodeString {$else} String {$endif};
 
   { A private array, initialized in CreateBackend.
@@ -103,9 +103,9 @@ private
     Handle: HCURSOR;
   end;
 
-  fappActive: boolean;
-  procedure SetAppActive(value: boolean);
-  property appActive: boolean read fappActive write SetAppActive;
+  fappActive: Boolean;
+  procedure SetAppActive(value: Boolean);
+  property appActive: Boolean read fappActive write SetAppActive;
 {$endif read_application_interface}
 
 {$ifdef read_implementation}
@@ -120,15 +120,15 @@ type
     sizes under WinAPI. }
   TWMSizing = record
     Msg: Cardinal;    {< wm_SIZING }
-    fwSide: Longint;  {< const WMSZ_xxx }
+    fwSide: LongInt;  {< const WMSZ_xxx }
     lprc: PRect;      {< rectangle with window sizes }
     Result: LongBool; {< should return longbool(true) }
   end;
 
 procedure WMSizingHandler(var Msg:TWMSizing;
-  const minWidth, minHeight, maxWidth, maxHeight:integer); overload;
+  const minWidth, minHeight, maxWidth, maxHeight: Integer); overload;
 var
-  w, h:integer;
+  w, h: Integer;
 begin
   assert(minWidth<=maxWidth);
   assert(minHeight<=maxHeight);
@@ -145,7 +145,7 @@ begin
 end;
 
 function WMSizingHandler(const lParm:LPARAM; const wParm:WPARAM;
-  const minWidth, minHeight, maxWidth, maxHeight:integer):LRESULT; overload;
+  const minWidth, minHeight, maxWidth, maxHeight: Integer):LRESULT; overload;
 var
   msg: TWMSizing;
 begin
@@ -180,7 +180,7 @@ function TCastleWindowBase.VirtualKeyToKey(VirtualKey: Byte): TKey;
 var
   VirtualKeyToKeyResult: TKey absolute Result;
 
-  function VK_Stored(VK_Exists: boolean; VK_Value: Byte; KeyValue: TKey): boolean;
+  function VK_Stored(VK_Exists: Boolean; VK_Value: Byte; KeyValue: TKey): Boolean;
   begin
     Result := VK_Exists and (VirtualKey = VK_Value);
     if Result then
@@ -269,7 +269,7 @@ begin
     So you will never get KeyDown/Up with keyPrintScreen. }
 end;
 
-function TryHandlingMessage(hWnd: HWND; uMsg: UINT; wParm: WPARAM; lParm: LPARAM): boolean;
+function TryHandlingMessage(hWnd: HWND; uMsg: UINT; wParm: WPARAM; lParm: LPARAM): Boolean;
 var
   Window: TCastleWindowBase;
 begin
@@ -346,10 +346,10 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
         0:(Signed: LongInt {$ifdef CPUX86_64}; Dummy: LongWord {$endif});
         1:(LoWord, HiWord: Word);
         2:(LoSmallint, HiSmallint: Smallint);
-        3:(LowestByte, LowerByte, HigherByte, HighestByte: byte);
+        3:(LowestByte, LowerByte, HigherByte, HighestByte: Byte);
     end;
 
-  function InterceptedSystemKey(key: integer): boolean;
+  function InterceptedSystemKey(key: Integer): Boolean;
   begin
     Result := { TODO-alt: (key = VK_Alt) or }(key = VK_F10)
   end;
@@ -372,7 +372,7 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
 
           MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, @CharMsgWParam, SizeOf(CharMsgWParam), ...)
 
-        But this was a hack: we treated CharMsgWParam as string
+        But this was a hack: we treated CharMsgWParam as String
         (4 bytes, so 2 characters) in local Windows ANSI code page.
         We then hackishly ignored MultiByteToWideChar result,
         and used first returned WideChar.
@@ -400,7 +400,7 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
   var
     Key: TKey;
     CharMsg: TMsg;
-    KeyString: string;
+    KeyString: String;
   begin
     { WM_CHAR is placed in our message queue by TranslateMessage.
       Always in WM_KEYDOWN we do this PeekMessageW(..., WM_CHAR, WM_CHAR, PM_REMOVE).
@@ -559,7 +559,7 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
   end;
 
 var
-  DoEnableUpdatesFromWindowProc, DoDisableUpdatesFromWindowProc: boolean;
+  DoEnableUpdatesFromWindowProc, DoDisableUpdatesFromWindowProc: Boolean;
 begin
   Result := 0;
 
@@ -910,7 +910,7 @@ begin
   end;
 end;
 
-function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
+function TCastleWindowBase.RedirectKeyDownToMenuClick: Boolean;
 begin
   Result := true;
 end;
@@ -949,7 +949,7 @@ begin
   MenuInitialize;
 end;
 
-function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
+function TCastleWindowBase.MenuUpdateCheckedFast: Boolean;
 begin
   Result := false;
 end;
@@ -1293,7 +1293,7 @@ begin
   finally InCloseBackend := false; end;
 end;
 
-procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: String);
 begin
   FCaption[Part] := Value;
   if h_Wnd <> 0 then SetWindowText(h_Wnd, PChar(GetWholeCaption));
@@ -1303,8 +1303,8 @@ procedure TCastleWindowBase.CreateBackend;
 begin
 end;
 
-function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
-  OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
+function TCastleWindowBase.BackendFileDialog(const Title: String; var FileName: String;
+  OpenDialog: Boolean; FileFilters: TFileFilterList): Boolean;
 
   { Make path absolute. Same as ExpandFileName, but knows that
     FilePath contains only a path and will always work as it should.
@@ -1316,7 +1316,7 @@ function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: 
 
     Note: '' is treated as current dir (as it always should be, because
     ExtractFilePath('file') = '' and 'file' is in current dir). }
-  function ExpandFilePath(const FilePath: string): string;
+  function ExpandFilePath(const FilePath: String): String;
   begin
    if FilePath = '' then
     Result := InclPathDelim(GetCurrentDir) else
@@ -1330,13 +1330,13 @@ function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: 
      will do with 'c:' }
   end;
 
-  { Prepare string with encoded filter names and patterns, as specified
+  { Prepare String with encoded filter names and patterns, as specified
     in WinAPI OPENFILENAME reference.
 
     Note that Windows encoding of OpenFileName has limitations here, since all filters
-    are passed in a string: pattern cannot contain ';', and WinAPI reference
+    are passed in a String: pattern cannot contain ';', and WinAPI reference
     says that it also cannot contain a space. }
-  function MakeStrFilter(FileFilters: TFileFilterList): string;
+  function MakeStrFilter(FileFilters: TFileFilterList): String;
   var
     I, J: Integer;
     Filter: TFileFilter;
@@ -1360,7 +1360,7 @@ function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: 
     Result += #0;
   end;
 
-  function SearchFirstPatternWithExtension(const Ext: string): Integer;
+  function SearchFirstPatternWithExtension(const Ext: String): Integer;
   var
     I: Integer;
   begin
@@ -1388,10 +1388,10 @@ function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: 
 
 var
   Struct: TOpenFileName;
-  FileNameBuffer: array [0..6000] of char;
-  FilePath: string;
+  FileNameBuffer: array [0..6000] of Char;
+  FilePath: String;
   Mode: TGLModeFrozenScreen;
-  CurrentFileNameExt: string;
+  CurrentFileNameExt: String;
   CurrentFormatIndex: Integer;
 begin
   FillChar(Struct, SizeOf(Struct), 0);
@@ -1527,7 +1527,7 @@ begin
   end;
 end;
 
-function TCastleWindowBase.ColorDialog(var Color: TVector3): boolean;
+function TCastleWindowBase.ColorDialog(var Color: TVector3): Boolean;
 
   function Vector3ToColorRef(const Value: TVector3): TColorRef;
   begin
@@ -1581,7 +1581,7 @@ const
     MB_ICONERROR,
     0 );
 
-  MessageTypeToCaption: array [TWindowMessageType] of string =
+  MessageTypeToCaption: array [TWindowMessageType] of String =
   ( 'Information',
     'Warning',
     'Question',
@@ -1589,7 +1589,7 @@ const
     'Information');
 *)
 
-procedure TCastleWindowBase.MessageOK(const S: string; const MessageType: TWindowMessageType);
+procedure TCastleWindowBase.MessageOK(const S: String; const MessageType: TWindowMessageType);
 begin
   CastleMessages.MessageOK(Self, S);
 
@@ -1608,8 +1608,8 @@ begin
   *)
 end;
 
-function TCastleWindowBase.MessageYesNo(const S: string;
-  const MessageType: TWindowMessageType): boolean;
+function TCastleWindowBase.MessageYesNo(const S: String;
+  const MessageType: TWindowMessageType): Boolean;
 begin
   Result := CastleMessages.MessageYesNo(Self, S);
 
@@ -1641,11 +1641,11 @@ end;
 type
   TWinApiClipboard = class(TCastleClipboard)
   protected
-    function GetAsText: string; override;
-    procedure SetAsText(const Value: string); override;
+    function GetAsText: String; override;
+    procedure SetAsText(const Value: String); override;
   end;
 
-function TWinApiClipboard.GetAsText: string;
+function TWinApiClipboard.GetAsText: String;
 var
   DataHandle: Windows.HGLOBAL;
   Data: Pointer;
@@ -1674,7 +1674,7 @@ begin
   end;
 end;
 
-procedure TWinApiClipboard.SetAsText(const Value: string);
+procedure TWinApiClipboard.SetAsText(const Value: String);
 var
   DataHandle : Windows.HGLOBAL;
   Data: Pointer;
@@ -1784,7 +1784,7 @@ begin
   if DisplaySettingsChanged then ChangeDisplaySettings(nil, 0);
 end;
 
-function TCastleApplication.TryVideoChange: boolean;
+function TCastleApplication.TryVideoChange: Boolean;
 
 {$ifdef VER1_9_6}
 { This is to workaround a bug in FPC 1.9.6.
@@ -1798,7 +1798,7 @@ type
        dmSize : WORD;
        dmDriverExtra : WORD;
        dmFields : DWORD;
-       case byte of
+       case Byte of
          1: (dmOrientation : SmallInt;
              dmPaperSize : SmallInt;
              dmPaperLength : SmallInt;
@@ -1885,7 +1885,7 @@ begin
   end;
 end;
 
-procedure TCastleApplication.SetAppActive(value: boolean);
+procedure TCastleApplication.SetAppActive(value: Boolean);
 begin
   { ponizej : gdy fappActive zmienia sie z true na false musimy
     wykonac ChangeDisplaySettings(nil, 0) bez wzgledu na to czy
@@ -1912,14 +1912,14 @@ begin
   end;
 end;
 
-function TCastleApplication.ScreenWidth: integer;
+function TCastleApplication.ScreenWidth: Integer;
 begin
   if DisplaySettingsChanged and VideoResize then
     result := VideoResizeWidth else
     result := GetSystemMetrics(SM_CXSCREEN);
 end;
 
-function TCastleApplication.ScreenHeight: integer;
+function TCastleApplication.ScreenHeight: Integer;
 begin
   if DisplaySettingsChanged and VideoResize then
     result := VideoResizeHeight else
@@ -1931,7 +1931,7 @@ begin
   Result := 0;
 end;
 
-function TCastleApplication.BackendName: string;
+function TCastleApplication.BackendName: String;
 begin
   Result := 'WinAPI';
 end;

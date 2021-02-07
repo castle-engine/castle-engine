@@ -19,8 +19,8 @@ type
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
   private
   public
-    WasWarnings: boolean;
-    procedure WarningToConsole(const Category, S: string);
+    WasWarnings: Boolean;
+    procedure WarningToConsole(const Category, S: String);
   end;
 
 var
@@ -34,7 +34,7 @@ uses MainF;
 
 { TConsole }
 
-procedure TConsole.WarningToConsole(const Category, S: string);
+procedure TConsole.WarningToConsole(const Category, S: String);
 begin
   Memo1.Lines.Append(Category + ': ' + S);
   WasWarnings := true;

@@ -53,10 +53,10 @@ type
         KeyNodes: TX3DNodeList;
         KeyTimes: TSingleList;
         { @groupEnd }
-        Name: string;
+        Name: String;
         ScenesPerTime: Cardinal;
         Epsilon: Single;
-        Loop, Backwards: boolean;
+        Loop, Backwards: Boolean;
         BoundingBox: TBox3D;
 
         constructor Create;
@@ -91,8 +91,8 @@ type
         Nodes: TX3DNodeList;
 
         TimeBegin, TimeEnd: Single;
-        Name: string;
-        Loop, Backwards: boolean;
+        Name: String;
+        Loop, Backwards: Boolean;
         BoundingBox: TBox3D;
 
         constructor Create;
@@ -124,7 +124,7 @@ type
       but you must manually take care to free (or pass elsewhere)
       the TAnimation.KeyNodes contents, or just call @link(TAnimationList.FreeKeyNodesContents).)
     }
-    class function LoadAnimFramesToKeyNodes(const URL: string): TAnimationList;
+    class function LoadAnimFramesToKeyNodes(const URL: String): TAnimationList;
 
     { From key nodes, create a series of baked nodes (with final
       animation pose already calculated) representing an animation.
@@ -186,10 +186,10 @@ uses SysUtils, XMLRead, DOM, Math,
 
 type
   EModelsStructureDifferent = class(Exception)
-    constructor CreateFmt(const S: string; const Args: array of const);
+    constructor CreateFmt(const S: String; const Args: array of const);
   end;
 
-constructor EModelsStructureDifferent.CreateFmt(const S: string;
+constructor EModelsStructureDifferent.CreateFmt(const S: String;
   const Args: array of const);
 begin
   inherited CreateFmt('Models are structurally different: ' + S, Args);
@@ -384,9 +384,9 @@ end;
      up loading time and conserve memory use, if it sees the same
      reference to given GeometryNode twice. }
 function NodesMerge(Model1, Model2: TX3DNode;
-  const Epsilon: Single): boolean;
+  const Epsilon: Single): Boolean;
 
-  function SFNodesMerge(Field1, Field2: TSFNode): boolean;
+  function SFNodesMerge(Field1, Field2: TSFNode): Boolean;
   begin
     Result := true;
 
@@ -403,7 +403,7 @@ function NodesMerge(Model1, Model2: TX3DNode;
     end;
   end;
 
-  function MFNodesMerge(Field1, Field2: TMFNode): boolean;
+  function MFNodesMerge(Field1, Field2: TMFNode): Boolean;
   var
     I: Integer;
   begin
@@ -662,7 +662,7 @@ class function TNodeInterpolator.BakeToSequence(
   const Epsilon: Single): TBakedAnimation;
 var
   I: Integer;
-  StructurallyEqual, KeyNodesEqual: boolean;
+  StructurallyEqual, KeyNodesEqual: Boolean;
   LastNodesIndex: Integer;
   LastKeyNode, NewKeyNode: TX3DRootNode;
   LastTime, NewTime: Single;
@@ -752,7 +752,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TAnimationList;
+class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: String): TAnimationList;
 
   function LoadGLTFFromString(const Contents: String; const BaseUrl: String): TX3DRootNode;
   var
@@ -775,12 +775,12 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TA
     DefaultLoop = false;
     DefaultBackwards = false;
   var
-    AbsoluteBaseUrl: string;
+    AbsoluteBaseUrl: String;
     FrameElement: TDOMElement;
     Children: TXMLElementIterator;
     I: Integer;
     FrameTime: Single;
-    FrameURL, MimeType: string;
+    FrameURL, MimeType: String;
     NewNode: TX3DRootNode;
     Attr: TDOMAttr;
     FrameBoxCenter, FrameBoxSize: TVector3;
@@ -921,7 +921,7 @@ end;
 
 class function TNodeInterpolator.LoadSequenceToX3D(const BakedAnimations: TBakedAnimationList): TX3DRootNode;
 var
-  BaseUrl: string;
+  BaseUrl: String;
 
   { For VRML 1.0, wrap the contents in SeparateGroup. Prevents leaking
     transformations between switch node children (testcase:
@@ -952,7 +952,7 @@ var
     const RootNode: TX3DRootNode;
     const SwitchChooseAnimation: TSwitchNode): TAbstractChildNode;
   var
-    AnimationX3DName: string;
+    AnimationX3DName: String;
 
     procedure AddAnimationVisibilityRoutes(TimeSensor: TTimeSensorNode);
     var

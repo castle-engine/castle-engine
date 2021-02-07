@@ -24,7 +24,7 @@ uses CastleStringUtils;
 
 var
   { Trivial verbosity global setting. }
-  Verbose: boolean = false;
+  Verbose: Boolean = false;
 
 { In case of console application with Verbose, writes to stduot.
   Otherwise, only to WritelnLog. }
@@ -78,7 +78,7 @@ type
 procedure MyRunCommandIndir(
   const CurDir: string; const ExeName: string;
   const Options: array of string;
-  out OutputString: string; out ExitStatus: integer;
+  out OutputString: string; out ExitStatus: Integer;
   const LineFiltering: TLineFiltering = nil;
   const LineFilteringData: Pointer = nil;
   const Flags: TRunCommandFlags = []);
@@ -468,7 +468,7 @@ end;
 
 procedure MyRunCommandIndir(const CurDir: string;
   const ExeName: string;const Options: array of string;
-  out OutputString: string; out ExitStatus: integer;
+  out OutputString: string; out ExitStatus: Integer;
   const LineFiltering: TLineFiltering = nil;
   const LineFilteringData: Pointer = nil;
   const Flags: TRunCommandFlags = []);

@@ -54,11 +54,11 @@
   { Buffer for sound data, which can be played by the @link(TSoundNode). }
   TAudioClipNode = class(TAbstractSoundSourceNode, IAbstractUrlObject)
   strict private
-    FBufferLoaded: boolean;
+    FBufferLoaded: Boolean;
     Buffer: TSoundBuffer;
     FDuration: TFloatTime;
     InsideLoadBuffer: Cardinal;
-    procedure SetBufferLoaded(const Value: boolean);
+    procedure SetBufferLoaded(const Value: Boolean);
     procedure SoundRelease(ASound: TSound);
     procedure UpdatePlayingEvent(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
@@ -67,7 +67,7 @@
 
     { Did we attempt loading Buffer. You still have to check Buffer <> 0 to know
       if it's successfully loaded. }
-    property BufferLoaded: boolean read FBufferLoaded write SetBufferLoaded;
+    property BufferLoaded: Boolean read FBufferLoaded write SetBufferLoaded;
   private
     Sound: TSound;
   protected
@@ -76,7 +76,7 @@
   public
     procedure CreateNode; override;
     destructor Destroy; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
     function GetCycleInterval: TFloatTime; override;
 
     strict private FFdUrl: TMFString;
@@ -98,7 +98,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdDirection: TSFVec3f;
     public property FdDirection: TSFVec3f read FFdDirection;
@@ -201,7 +201,7 @@ begin
   inherited;
 end;
 
-class function TAudioClipNode.ClassX3DType: string;
+class function TAudioClipNode.ClassX3DType: String;
 begin
   Result := 'AudioClip';
 end;
@@ -305,10 +305,10 @@ begin
   end;
 end;
 
-procedure TAudioClipNode.SetBufferLoaded(const Value: boolean);
+procedure TAudioClipNode.SetBufferLoaded(const Value: Boolean);
 var
   I: Integer;
-  FullUrl: string;
+  FullUrl: String;
 begin
   if FBufferLoaded <> Value then
   begin
@@ -464,7 +464,7 @@ begin
   UpdateSourcePosition;
 end;
 
-class function TSoundNode.ClassX3DType: string;
+class function TSoundNode.ClassX3DType: String;
 begin
   Result := 'Sound';
 end;

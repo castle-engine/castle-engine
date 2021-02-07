@@ -35,7 +35,7 @@ var
 
 procedure ApplicationInitialize;
 
-  function LoadBrush(const Name: string): TDrawableImage;
+  function LoadBrush(const Name: String): TDrawableImage;
   begin
     Result := TDrawableImage.Create('castle-data:/brush_' + Name + '.png');
   end;

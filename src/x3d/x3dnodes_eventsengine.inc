@@ -23,7 +23,7 @@
   public
     { Handle set_bind event send to given Node.
       This always generates appropriate events. }
-    procedure Set_Bind(Node: TAbstractBindableNode; const Value: boolean); virtual; abstract;
+    procedure Set_Bind(Node: TAbstractBindableNode; const Value: Boolean); virtual; abstract;
   end;
 
   { Abstract scene handling VRML/X3D events.
@@ -33,7 +33,7 @@
     TCastleSceneCore is the only implementation of this interface in practice. }
   TX3DEventsEngine = class(TCastleTransform)
   protected
-    procedure ExecuteCompiledScript(const HandlerName: string;  ReceivedValue: TX3DField); virtual; abstract;
+    procedure ExecuteCompiledScript(const HandlerName: String;  ReceivedValue: TX3DField); virtual; abstract;
   public
     function GetBackgroundStack: TX3DBindableStackBasic; virtual; abstract;
     function GetFogStack: TX3DBindableStackBasic; virtual; abstract;
@@ -42,7 +42,7 @@
     function Time: TFloatTime; virtual; abstract;
     function NextEventTime: TX3DTime; virtual; abstract;
     procedure ChangedAll(const OnlyAdditions: Boolean = false); virtual; abstract;
-    procedure BeforeNodesFree(const InternalChangedAll: boolean = false); virtual; abstract;
+    procedure BeforeNodesFree(const InternalChangedAll: Boolean = false); virtual; abstract;
     procedure InternalChangedField(const Field: TX3DField; const Change: TX3DChange); overload; virtual; abstract;
     procedure InternalChangedField(const Field: TX3DField); overload;
   end;

@@ -123,7 +123,7 @@
     FOnDidSelectCell: TTableViewDidSelectCellEvent;
 
     FPressPos: TVector2;
-    FMotionIsClick: boolean;
+    FMotionIsClick: Boolean;
   public
     const
       DefaultCellHeight = 50;
@@ -134,11 +134,11 @@
     procedure ReloadData;
     procedure SetDataSource(ADataSource: ICastleTableViewDataSource);
 
-    function Press(const Event: TInputPressRelease): boolean; override;
-    function Release(const Event: TInputPressRelease): boolean; override;
-    function Motion(const Event: TInputMotion): boolean; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+    function Release(const Event: TInputPressRelease): Boolean; override;
+    function Motion(const Event: TInputMotion): Boolean; override;
     procedure Update(const SecondsPassed: Single;
-      var HandleInput: boolean); override;
+      var HandleInput: Boolean); override;
 
     { TableView needs data source set in order to show some contents. }
     property DataSource: ICastleTableViewDatasource read FDataSource write SetDataSource;
@@ -341,9 +341,9 @@ begin
 end;
 
 procedure TCastleTableView.Update(const SecondsPassed: Single;
-  var HandleInput: boolean);
+  var HandleInput: Boolean);
 var
-  WasScrollbar: boolean;
+  WasScrollbar: Boolean;
   Cell: TCastleTableViewCell;
   I: Integer;
   CellWidth: Single;
@@ -374,7 +374,7 @@ begin
   ReloadData;
 end;
 
-function TCastleTableView.Press(const Event: TInputPressRelease): boolean;
+function TCastleTableView.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
 
@@ -386,7 +386,7 @@ begin
   end;
 end;
 
-function TCastleTableView.Release(const Event: TInputPressRelease): boolean;
+function TCastleTableView.Release(const Event: TInputPressRelease): Boolean;
 var
   I: Integer;
   CellRect: TFloatRectangle;
@@ -407,7 +407,7 @@ begin
   FMotionIsClick := false;
 end;
 
-function TCastleTableView.Motion(const Event: TInputMotion): boolean;
+function TCastleTableView.Motion(const Event: TInputMotion): Boolean;
 begin
   Result := inherited;
 

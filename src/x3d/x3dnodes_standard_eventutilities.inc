@@ -74,7 +74,7 @@
     procedure EventSet_BooleanReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_booleanfilter.inc}
   end;
 
@@ -93,7 +93,7 @@
     procedure EventSet_BooleanReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_booleantoggle.inc}
   end;
 
@@ -103,7 +103,7 @@
     procedure EventSet_triggerTimeReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_booleantrigger.inc}
   end;
 
@@ -124,7 +124,7 @@
     procedure EventSet_BooleanReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_integertrigger.inc}
   end;
 
@@ -134,7 +134,7 @@
     procedure EventSet_BooleanReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_timetrigger.inc}
   end;
 
@@ -144,7 +144,7 @@
     procedure EventTriggerReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_valuetrigger.inc}
   end;
 
@@ -271,7 +271,7 @@ end;
 procedure TBooleanFilterNode.EventSet_BooleanReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 var
-  B: boolean;
+  B: Boolean;
 begin
   B := (Value as TSFBool).Value;
   if B then
@@ -303,7 +303,7 @@ end;
 procedure TBooleanToggleNode.EventSet_BooleanReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 var
-  B: boolean;
+  B: Boolean;
 begin
   B := (Value as TSFBool).Value;
   if B then
@@ -365,7 +365,7 @@ end;
 
 { TValueTriggerNode ---------------------------------------------------------- }
 
-constructor TValueTriggerNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TValueTriggerNode.Create(const AX3DName: String = ''; const ABaseUrl: String = '');
 begin
   inherited;
   FEventTrigger.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventTriggerReceive);

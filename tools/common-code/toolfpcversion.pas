@@ -22,7 +22,7 @@ type
   TFpcVersion = class
     Major, Minor, Release: Integer;
     IsCodeTyphon: Boolean;
-    function AtLeast(const AMajor, AMinor, ARelease: Integer): boolean;
+    function AtLeast(const AMajor, AMinor, ARelease: Integer): Boolean;
     { Get FPC version by running "fpc -iV". }
     constructor Create;
     function ToString: String; override;
@@ -43,7 +43,7 @@ uses SysUtils,
 
 { TFpcVersion ---------------------------------------------------------------- }
 
-function TFpcVersion.AtLeast(const AMajor, AMinor, ARelease: Integer): boolean;
+function TFpcVersion.AtLeast(const AMajor, AMinor, ARelease: Integer): Boolean;
 begin
   Result :=
       (AMajor < Major) or

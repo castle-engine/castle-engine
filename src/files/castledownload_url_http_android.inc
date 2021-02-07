@@ -33,7 +33,7 @@ type
     var
       DownloadId: Integer;
     function HandleDownloadMessages(const Received: TCastleStringList;
-      const ReceivedStream: TMemoryStream): boolean;
+      const ReceivedStream: TMemoryStream): Boolean;
   public
     procedure Start; override;
     destructor Destroy; override;
@@ -87,7 +87,7 @@ begin
 end;
 
 function THttpAndroidReader.HandleDownloadMessages(const Received: TCastleStringList;
-  const ReceivedStream: TMemoryStream): boolean;
+  const ReceivedStream: TMemoryStream): Boolean;
 
   procedure HandleHttpResponseHeaders(const Received: TCastleStringList);
   var

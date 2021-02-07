@@ -22,7 +22,7 @@
     EventSet_Fraction: TSFFloatEvent;
     Key: TMFFloat;
     Node: TAbstractChildNode;
-    UsedAsChild: boolean;
+    UsedAsChild: Boolean;
   end;
 
   TSlotTimeline = class
@@ -32,13 +32,13 @@
     Slot: TSlot;
     Time: TSingleList;
     Node1, Node2: TKeyedNode;
-    HasNode2: boolean;
+    HasNode2: Boolean;
     property MaxTime: Single read FMaxTime;
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONArray);
     procedure ParseSingleValue(const Json: TJSONObject); virtual; abstract;
-    procedure BuildNodes(const BaseUrl: string;
+    procedure BuildNodes(const BaseUrl: String;
       const MaxAnimationTime: Single; const Container: TX3DRootNode); virtual;
   end;
 
@@ -47,18 +47,18 @@
     constructor Create;
     destructor Destroy; override;
     procedure ParseSingleValue(const Json: TJSONObject); override;
-    procedure BuildNodes(const BaseUrl: string;
+    procedure BuildNodes(const BaseUrl: String;
       const MaxAnimationTime: Single; const Container: TX3DRootNode); override;
   end;
 
   TSlotTimelineColor = class(TSlotTimeline)
     Colors: TVector4List;
-    Curve: boolean;
+    Curve: Boolean;
     CurveControlPoints: TVector4List;
     constructor Create;
     destructor Destroy; override;
     procedure ParseSingleValue(const Json: TJSONObject); override;
-    procedure BuildNodes(const BaseUrl: string;
+    procedure BuildNodes(const BaseUrl: String;
       const MaxAnimationTime: Single; const Container: TX3DRootNode); override;
   end;
 
@@ -103,7 +103,7 @@ begin
     end;
 end;
 
-procedure TSlotTimeline.BuildNodes(const BaseUrl: string;
+procedure TSlotTimeline.BuildNodes(const BaseUrl: String;
   const MaxAnimationTime: Single; const Container: TX3DRootNode);
 
   procedure FillKeys(var Node: TKeyedNode);
@@ -140,14 +140,14 @@ end;
 
 procedure TSlotTimelineAttachment.ParseSingleValue(const Json: TJSONObject);
 var
-  AttachmentName: string;
+  AttachmentName: String;
 begin
   AttachmentName := Json.Get('name', '');
   Slot.AttachmentNames.Add(AttachmentName);
   Attachments.Add(AttachmentName);
 end;
 
-procedure TSlotTimelineAttachment.BuildNodes(const BaseUrl: string;
+procedure TSlotTimelineAttachment.BuildNodes(const BaseUrl: String;
   const MaxAnimationTime: Single; const Container: TX3DRootNode);
 var
   I: Integer;
@@ -232,7 +232,7 @@ begin
   Colors.Add(HexToColor(Json.Get('color', 'ffffffff')));
 end;
 
-procedure TSlotTimelineColor.BuildNodes(const BaseUrl: string;
+procedure TSlotTimelineColor.BuildNodes(const BaseUrl: String;
   const MaxAnimationTime: Single; const Container: TX3DRootNode);
 var
   I: Integer;

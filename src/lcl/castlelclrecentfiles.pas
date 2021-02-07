@@ -75,21 +75,21 @@ end;
 type
   TMenuRecentItem = class(TMenuItem)
   private
-    FURL: string;
+    FURL: String;
   public
     { Constructor. Number is 1-based number of this recent file entry. }
     constructor Create(AOwner: TComponent;
-      const Number: Integer; const AURL: string); reintroduce;
+      const Number: Integer; const AURL: String); reintroduce;
   public
     OnOpenRecent: TOnOpenRecent;
-    property URL: string read FURL;
+    property URL: String read FURL;
     procedure Click; override;
   end;
 
 constructor TMenuRecentItem.Create(AOwner: TComponent;
-  const Number: Integer; const AURL: string);
+  const Number: Integer; const AURL: String);
 var
-  S: string;
+  S: String;
 begin
   FURL := AURL;
 

@@ -34,24 +34,24 @@ type
   private
     StreamBegin: Cardinal;
     FStream: TStream;
-    FURI: string;
-    FMimeType: string;
-    FBase64: boolean;
-    FCharset: string;
-    FValid: boolean;
-    FURIPrefix: string;
-    FForceMemoryStream: boolean;
+    FURI: String;
+    FMimeType: String;
+    FBase64: Boolean;
+    FCharset: String;
+    FValid: Boolean;
+    FURIPrefix: String;
+    FForceMemoryStream: Boolean;
     procedure FreeStream;
-    procedure SetURI(const Value: string);
+    procedure SetURI(const Value: String);
   public
     destructor Destroy; override;
-    class function IsDataURI(const URI: string; out Colon: Integer): boolean; overload;
-    class function IsDataURI(const URI: string): boolean; overload;
+    class function IsDataURI(const URI: String; out Colon: Integer): Boolean; overload;
+    class function IsDataURI(const URI: String): Boolean; overload;
 
     { Force @link(Stream) and @link(ExtractStream) to return a TMemoryStream,
       that is always seekable and fully buffered in memory.
       Without this, they may return TBase64DecodingStream that may not be seekable. }
-    property ForceMemoryStream: boolean
+    property ForceMemoryStream: Boolean
       read FForceMemoryStream write FForceMemoryStream;
 
     { The data URI that this class reads.
@@ -64,13 +64,13 @@ type
       If this is not a valid data URI, then we set @link(Valid) to @false,
       make appropriate warning through WritelnWarning,
       and reset MimeType, Base64, Charset, URIPrefix to some default values. }
-    property URI: string read FURI write SetURI;
-    property Valid: boolean read FValid;
-    property MimeType: string read FMimeType;
-    property Base64: boolean read FBase64;
-    property Charset: string read FCharset;
+    property URI: String read FURI write SetURI;
+    property Valid: Boolean read FValid;
+    property MimeType: String read FMimeType;
+    property Base64: Boolean read FBase64;
+    property Charset: String read FCharset;
     { URI without the data, nice to show to user. }
-    property URIPrefix: string read FURIPrefix;
+    property URIPrefix: String read FURIPrefix;
 
     { Read the actual data contents. If the @link(URI) is not valid
       (includes the initial state when it's not set) then returns @nil.
@@ -116,24 +116,24 @@ begin
   inherited;
 end;
 
-class function TDataURI.IsDataURI(const URI: string; out Colon: Integer): boolean;
+class function TDataURI.IsDataURI(const URI: String; out Colon: Integer): Boolean;
 begin
   Result := URIProtocolIs(URI, 'data', Colon);
 end;
 
-class function TDataURI.IsDataURI(const URI: string): boolean;
+class function TDataURI.IsDataURI(const URI: String): Boolean;
 var
   Colon: Integer; { ignored }
 begin
   Result := URIProtocolIs(URI, 'data', Colon);
 end;
 
-procedure TDataURI.SetURI(const Value: string);
+procedure TDataURI.SetURI(const Value: String);
 var
-  ValidMimeType, ValidCharset: string;
-  ValidBase64: boolean;
+  ValidMimeType, ValidCharset: String;
+  ValidBase64: Boolean;
   PosBegin, PosNow, Colon: Integer;
-  Part: string;
+  Part: String;
 begin
   FreeStream;
 
@@ -222,7 +222,7 @@ end;
 function TDataURI.Stream: TStream;
 var
   MemStream: TMemoryStream;
-  Contents: string;
+  Contents: String;
   {$ifdef FPC}
   DecodingStream: TBase64DecodingStream;
   {$endif}

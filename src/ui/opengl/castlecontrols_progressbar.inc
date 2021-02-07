@@ -71,7 +71,7 @@ const
 
 { Make Text shorter to fit the text width (as rendered using Font)
   inside MaxWidth (in pixels). }
-procedure MakeTextFit(var Text: string; const Font: TCastleFont;
+procedure MakeTextFit(var Text: String; const Font: TCastleFont;
   const MaxWidth: Integer);
 var
   DotsWidth: Single;
@@ -79,7 +79,7 @@ var
   { Make Text shorter by preserving first and last words, inserting
     dots inside, and preserving as much as possible text between first and last
     words. }
-  function TrimIntelligent: boolean;
+  function TrimIntelligent: Boolean;
   begin
     Result := false;
 
@@ -120,8 +120,8 @@ var
   procedure TrimSimple;
   var
     NewTextDotsWidth, PotentialNewTextDotsWidth: Single;
-    NewText, PotentialNewText: string;
-    C: char;
+    NewText, PotentialNewText: String;
+    C: Char;
   begin
     NewText := '';
     NewTextDotsWidth := DotsWidth;
@@ -176,7 +176,7 @@ const
   MinPaddingVertical = 4;
 var
   MaxTextWidth: Integer;
-  Caption: string;
+  Caption: String;
   BarRect, FillRect: TFloatRectangle;
   HeightForText: Single;
 begin

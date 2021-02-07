@@ -38,7 +38,7 @@
   private
     FItems: TX3DNodeList;
     FDefaultItems: TX3DNodeList;
-    FDefaultValueExists: boolean;
+    FDefaultValueExists: Boolean;
     FParentNode: TX3DNode;
     AllowedChildren: TAllowedChildren;
     AllowedChildrenClasses: TX3DNodeClassesList;
@@ -65,19 +65,19 @@
       we must initially just allow all children, otherwise valid prototypes
       with SFNode/MFNode would cause warnings when parsing. }
     constructor CreateUndefined(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: string); override;
+      const AExposed: Boolean; const AName: String); override;
     constructor Create(const AParentNode: TX3DNode;
-      const AExposed: boolean; const AName: string;
+      const AExposed: Boolean; const AName: String;
       const AAllowedChildrenClasses: array of TX3DNodeClass); overload;
     { Constructor that takes a list of allowed children classes.
       Note that we copy the contents of AAllowedChildrenClasses,
       not the reference. }
     constructor Create(const AParentNode: TX3DNode;
-      const AExposed: boolean; const AName: string;
+      const AExposed: Boolean; const AName: String;
       const AAllowedChildrenClasses: TX3DNodeClassesList); overload;
     { Constructor that allows as children any implementor of given interface. }
     constructor Create(const AParentNode: TX3DNode;
-      const AExposed: boolean; const AName: string;
+      const AExposed: Boolean; const AName: String;
       const AnAllowedChildrenInterface: TGUID); overload;
     destructor Destroy; override;
 
@@ -111,11 +111,11 @@
     procedure AssignItems(const SourceItems: array of TX3DNode);
 
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
-    procedure ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader); override;
+    procedure ParseXMLAttribute(const AttributeValue: String; Reader: TX3DReader); override;
     procedure ParseXMLElement(Element: TDOMElement; Reader: TX3DReader); override;
 
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField): boolean; override;
+    function EqualsDefaultValue: Boolean; override;
+    function Equals(SecondValue: TX3DField): Boolean; override;
 
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
@@ -123,8 +123,8 @@
 
     property ParentNode: TX3DNode read FParentNode;
 
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent; override;
 
     { Checks is Child allowed on the list of nodes of this MFNode,
       and makes WritelnWarning if not.
@@ -140,7 +140,7 @@
       otherwise WritelnWarning message will be a little unsensible. }
     procedure WarningIfChildNotAllowed(Child: TX3DNode);
 
-    function ChildAllowed(Child: TX3DNode): boolean;
+    function ChildAllowed(Child: TX3DNode): Boolean;
 
     { Lists default items of this field.
 
@@ -156,7 +156,7 @@
     procedure ClearDefault;
     { @groupEnd }
 
-    property DefaultValueExists: boolean
+    property DefaultValueExists: Boolean
       read FDefaultValueExists write FDefaultValueExists default false;
 
     { Calls Func for all current children.
@@ -183,10 +183,10 @@
         flexible (you can always quickly get actual node knowing the index,
         by Items[Index], but not the other way around). It is also sometimes
         less comfortable (often you're not interested in node index).) }
-    function FindName(const AName: string): TX3DNode;
+    function FindName(const AName: String): TX3DNode;
 
     { Find index of a node with given name, -1 if not found. }
-    function IndexOfName(const AName: string): Integer;
+    function IndexOfName(const AName: String): Integer;
     { Find index of a node , -1 if not found. }
     function IndexOf(const ANode: TX3DNode): Integer;
   end;
@@ -198,7 +198,7 @@
 { TMFNode -------------------------------------------------------------------- }
 
 constructor TMFNode.CreateUndefined(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string);
+  const AExposed: Boolean; const AName: String);
 begin
   inherited;
   FItems := TX3DNodeList.Create(false);
@@ -211,7 +211,7 @@ begin
 end;
 
 constructor TMFNode.Create(const AParentNode: TX3DNode;
-  const AExposed: boolean; const AName: string;
+  const AExposed: Boolean; const AName: String;
   const AAllowedChildrenClasses: array of TX3DNodeClass);
 begin
   inherited Create(AParentNode, AExposed, AName);
@@ -229,7 +229,7 @@ begin
 end;
 
 constructor TMFNode.Create(const AParentNode: TX3DNode;
-  const AExposed: boolean; const AName: string;
+  const AExposed: Boolean; const AName: String;
   const AAllowedChildrenClasses: TX3DNodeClassesList);
 begin
   Create(AParentNode, AExposed, AName, []);
@@ -240,7 +240,7 @@ begin
 end;
 
 constructor TMFNode.Create(const AParentNode: TX3DNode;
-  const AExposed: boolean; const AName: string;
+  const AExposed: Boolean; const AName: String;
   const AnAllowedChildrenInterface: TGUID);
 begin
   inherited Create(AParentNode, AExposed, AName);
@@ -268,7 +268,7 @@ end;
 procedure TMFNode.SaveToStreamValue(Writer: TX3DWriter);
 var
   I: Integer;
-  N: string;
+  N: String;
 begin
   N := NameForVersion(Writer.Version);
   case Writer.Encoding of
@@ -434,7 +434,7 @@ begin
     DefaultItems[I].AddParentField(Self);
 end;
 
-function TMFNode.ChildAllowed(Child: TX3DNode): boolean;
+function TMFNode.ChildAllowed(Child: TX3DNode): Boolean;
 begin
   case AllowedChildren of
     acAll      : Result := true;
@@ -450,7 +450,7 @@ procedure TMFNode.WarningIfChildNotAllowed(Child: TX3DNode);
 
   procedure ChildNotAllowed;
   var
-    S: string;
+    S: String;
   begin
     S := Format('Node "%s" is not allowed in the field "%s"',
       [Child.X3DType, X3DName]);
@@ -494,10 +494,10 @@ begin
   end;
 end;
 
-procedure TMFNode.ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader);
+procedure TMFNode.ParseXMLAttribute(const AttributeValue: String; Reader: TX3DReader);
 var
   Node: TX3DNode;
-  UsedNodeFinished: boolean;
+  UsedNodeFinished: Boolean;
 begin
   Node := (Reader as TX3DReaderNames).Nodes.Bound(AttributeValue, UsedNodeFinished);
   if Node = nil then
@@ -519,7 +519,7 @@ procedure TMFNode.ParseXMLElement(Element: TDOMElement; Reader: TX3DReader);
 var
   Child: TX3DNode;
   I: TXMLElementIterator;
-  ContainerFieldDummy: string;
+  ContainerFieldDummy: String;
 begin
   { Clear is necessary because MFNode default value may be non-empty,
     when it's defined by a prototype.
@@ -541,12 +541,12 @@ begin
   finally FreeAndNil(I) end;
 end;
 
-function TMFNode.EqualsDefaultValue: boolean;
+function TMFNode.EqualsDefaultValue: Boolean;
 begin
   Result := DefaultValueExists and DefaultItems.Equals(FItems);
 end;
 
-function TMFNode.Equals(SecondValue: TX3DField): boolean;
+function TMFNode.Equals(SecondValue: TX3DField): Boolean;
 begin
   Result := (inherited Equals(SecondValue)) and
     (SecondValue is TMFNode) and
@@ -582,7 +582,7 @@ begin
   DefaultValueExists := true;
 end;
 
-class function TMFNode.X3DType: string;
+class function TMFNode.X3DType: String;
 begin
   Result := 'MFNode';
 end;
@@ -607,7 +607,7 @@ begin
   Result := FItems[Index];
 end;
 
-class function TMFNode.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TMFNode.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent;
 begin
   Result := TMFNodeEvent.Create(AParentNode, AName, AInEvent);
 end;
@@ -636,12 +636,12 @@ begin
   end;
 end;
 
-function TMFNode.FindName(const AName: string): TX3DNode;
+function TMFNode.FindName(const AName: String): TX3DNode;
 begin
   Result := FItems.FindName(AName);
 end;
 
-function TMFNode.IndexOfName(const AName: string): Integer;
+function TMFNode.IndexOfName(const AName: String): Integer;
 begin
   Result := FItems.IndexOfName(AName);
 end;

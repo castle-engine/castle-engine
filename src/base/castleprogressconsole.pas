@@ -79,17 +79,17 @@ const
     because this unit is supposed to work only with bare StdErr. }
   ConsoleWidth = 60;
 
-procedure Write(const s: string);
-begin System.Write(ErrOutput, s); end;
+procedure Write(const S: String);
+begin System.Write(ErrOutput, S); end;
 
-procedure Writeln(const s: string);
-begin System.Writeln(ErrOutput, s); end;
+procedure Writeln(const S: String);
+begin System.Writeln(ErrOutput, S); end;
 
 { TProgressConsoleInterface -------------------------------------------------- }
 
 procedure TProgressConsoleInterface.Init(Progress: TProgress);
 var
-  LeftSpace, RightSpace: integer;
+  LeftSpace, RightSpace: Integer;
 begin
   if Length(Progress.Title) > ConsoleWidth-2 then
   begin
@@ -111,7 +111,7 @@ end;
 
 procedure TProgressConsoleInterface.Update(Progress: TProgress);
 var
-  DotsNow: integer;
+  DotsNow: Integer;
 begin
   DotsNow := Progress.Position * ConsoleWidth div Progress.Max;
   if DotsNow > DotsWritten then

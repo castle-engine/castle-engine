@@ -91,16 +91,16 @@ type
 
   { GLSL attributes array information, for TGeometryArrays. }
   TGeometryAttrib = class
-    Name: string;
+    Name: String;
     { Internal for our engine (as opposed to specified in 3D model file).
       This is only used to change warnings related to this attribute. }
-    Internal: boolean;
+    Internal: Boolean;
     AType: TGeometryAttribType;
     Offset: Integer;
   end;
   TGeometryAttribList = class(specialize TObjectList<TGeometryAttrib>)
   public
-    function Find(const Name: string): TGeometryAttrib;
+    function Find(const Name: String): TGeometryAttrib;
   end;
 
   TGeometryIndex = {$ifdef GLIndexesShort} Word {$else} LongWord {$endif};
@@ -122,11 +122,11 @@ type
   private
     FIndexes: TGeometryIndexList;
     FIndexesCount: Cardinal;
-    FHasIndexes: boolean;
+    FHasIndexes: Boolean;
     FPrimitive: TGeometryPrimitive;
     FCount: Integer;
     FCounts: TCardinalList;
-    FDataFreed: boolean;
+    FDataFreed: Boolean;
 
     FAttributeArray: Pointer;
     FAttributeSize: Cardinal;
@@ -141,19 +141,19 @@ type
     FColorType: TColorPerVertexType;
     FColorMode: TColorMode;
     ColorOffset: Integer;
-    FForceUnlit: boolean;
+    FForceUnlit: Boolean;
     FForcedUnlitColor: TVector4;
 
-    FHasFogCoord: boolean;
+    FHasFogCoord: Boolean;
     FogCoordOffset: Integer;
-    FFogDirectValues: boolean;
+    FFogDirectValues: Boolean;
 
     FTexCoords: TGeometryTexCoordList;
     FAttribs: TGeometryAttribList;
 
-    FCullFace: boolean;
-    FFrontFaceCcw: boolean;
-    FForceFlatShading: boolean;
+    FCullFace: Boolean;
+    FFrontFaceCcw: Boolean;
+    FForceFlatShading: Boolean;
 
     FFaces: TFaceIndexesList;
 
@@ -162,9 +162,9 @@ type
       const Dimensions: TTexCoordDimensions;
       const TextureUnit: Cardinal);
     function AddGLSLAttribute(const AType: TGeometryAttribType;
-      const Name: string; const Internal: boolean): TGeometryAttrib;
+      const Name: String; const Internal: Boolean): TGeometryAttrib;
     function GLSLAttributeIndex(const AType: TGeometryAttribType;
-      const Name: string; const Index: Cardinal): PtrUInt;
+      const Name: String; const Index: Cardinal): PtrUInt;
     function GLSLAttributeIndex(const AType: TGeometryAttribType;
       const A: TGeometryAttrib; const Index: Cardinal): PtrUInt;
   public
@@ -205,7 +205,7 @@ type
       @groupBegin *)
     function IndexesPtr(const Index: Cardinal): PtrUInt;
     property IndexesCount: Cardinal read FIndexesCount;
-    property HasIndexes: boolean read FHasIndexes;
+    property HasIndexes: Boolean read FHasIndexes;
     { @groupEnd }
 
     property Primitive: TGeometryPrimitive read FPrimitive write FPrimitive;
@@ -289,20 +289,20 @@ type
       Note that (as with UnlitMaterial) the colors may be overridden
       per-vertex using Color array (X3D Color/ColorRGBA nodes).
       @groupBegin }
-    property ForceUnlit: boolean read FForceUnlit write FForceUnlit default false;
+    property ForceUnlit: Boolean read FForceUnlit write FForceUnlit default false;
     property ForcedUnlitColor: TVector4 read FForcedUnlitColor write FForcedUnlitColor;
     { @groupEnd }
 
     procedure AddFogCoord;
     function FogCoord(const Index: Cardinal = 0): PSingle;
-    property HasFogCoord: boolean read FHasFogCoord;
+    property HasFogCoord: Boolean read FHasFogCoord;
 
     { If FogCoord present, does it specify direct fog intensities,
       that should be used to change pixel colors without any further processing.
       When this is @false, then fog coordinates are understood
       as distance from the eye, and they are processed by linear/exp equations
       before being used to blend pixel colors. }
-    property FogDirectValues: boolean
+    property FogDirectValues: Boolean
       read FFogDirectValues write FFogDirectValues default false;
 
     { Allocated in AttributeArray texture coords.
@@ -330,21 +330,21 @@ type
 
     property Attribs: TGeometryAttribList read FAttribs;
 
-    function AddGLSLAttributeFloat(const Name: string; const Internal: boolean): TGeometryAttrib;
-    function AddGLSLAttributeVector2(const Name: string; const Internal: boolean): TGeometryAttrib;
-    function AddGLSLAttributeVector3(const Name: string; const Internal: boolean): TGeometryAttrib;
-    function AddGLSLAttributeVector4(const Name: string; const Internal: boolean): TGeometryAttrib;
-    function AddGLSLAttributeMatrix3(const Name: string; const Internal: boolean): TGeometryAttrib;
-    function AddGLSLAttributeMatrix4(const Name: string; const Internal: boolean): TGeometryAttrib;
+    function AddGLSLAttributeFloat(const Name: String; const Internal: Boolean): TGeometryAttrib;
+    function AddGLSLAttributeVector2(const Name: String; const Internal: Boolean): TGeometryAttrib;
+    function AddGLSLAttributeVector3(const Name: String; const Internal: Boolean): TGeometryAttrib;
+    function AddGLSLAttributeVector4(const Name: String; const Internal: Boolean): TGeometryAttrib;
+    function AddGLSLAttributeMatrix3(const Name: String; const Internal: Boolean): TGeometryAttrib;
+    function AddGLSLAttributeMatrix4(const Name: String; const Internal: Boolean): TGeometryAttrib;
 
     function GLSLAttribute(const A: TGeometryAttrib; const Offset: PtrUInt = 0): PtrUInt;
 
-    function GLSLAttributeFloat(const Name: string; const Index: Cardinal = 0): PSingle; deprecated 'use GLSLAttributeFloat with TGeometryAttrib parameter, it is faster in the usual case';
-    function GLSLAttributeVector2(const Name: string; const Index: Cardinal = 0): PVector2; deprecated 'use GLSLAttributeVector2 with TGeometryAttrib parameter, it is faster in the usual case';
-    function GLSLAttributeVector3(const Name: string; const Index: Cardinal = 0): PVector3; deprecated 'use GLSLAttributeVector3 with TGeometryAttrib parameter, it is faster in the usual case';
-    function GLSLAttributeVector4(const Name: string; const Index: Cardinal = 0): PVector4; deprecated 'use GLSLAttributeVector4 with TGeometryAttrib parameter, it is faster in the usual case';
-    function GLSLAttributeMatrix3(const Name: string; const Index: Cardinal = 0): PMatrix3; deprecated 'use GLSLAttributeMatrix3 with TGeometryAttrib parameter, it is faster in the usual case';
-    function GLSLAttributeMatrix4(const Name: string; const Index: Cardinal = 0): PMatrix4; deprecated 'use GLSLAttributeMatrix4 with TGeometryAttrib parameter, it is faster in the usual case';
+    function GLSLAttributeFloat(const Name: String; const Index: Cardinal = 0): PSingle; deprecated 'use GLSLAttributeFloat with TGeometryAttrib parameter, it is faster in the usual case';
+    function GLSLAttributeVector2(const Name: String; const Index: Cardinal = 0): PVector2; deprecated 'use GLSLAttributeVector2 with TGeometryAttrib parameter, it is faster in the usual case';
+    function GLSLAttributeVector3(const Name: String; const Index: Cardinal = 0): PVector3; deprecated 'use GLSLAttributeVector3 with TGeometryAttrib parameter, it is faster in the usual case';
+    function GLSLAttributeVector4(const Name: String; const Index: Cardinal = 0): PVector4; deprecated 'use GLSLAttributeVector4 with TGeometryAttrib parameter, it is faster in the usual case';
+    function GLSLAttributeMatrix3(const Name: String; const Index: Cardinal = 0): PMatrix3; deprecated 'use GLSLAttributeMatrix3 with TGeometryAttrib parameter, it is faster in the usual case';
+    function GLSLAttributeMatrix4(const Name: String; const Index: Cardinal = 0): PMatrix4; deprecated 'use GLSLAttributeMatrix4 with TGeometryAttrib parameter, it is faster in the usual case';
 
     function GLSLAttributeFloat(const A: TGeometryAttrib; const Index: Cardinal = 0): PSingle;
     function GLSLAttributeVector2(const A: TGeometryAttrib; const Index: Cardinal = 0): PVector2;
@@ -360,16 +360,16 @@ type
       and thus the faces ordered clockwise will be culled.
       When FrontFaceCcw = @false, the faces ordered counter-clockwise
       will be culled. }
-    property CullFace: boolean
+    property CullFace: Boolean
       read FCullFace write FCullFace default false;
 
     { Which faces are front, for backface-culling (see @link(CullFace))
       and for normals data (see @link(Normal)). }
-    property FrontFaceCcw: boolean
+    property FrontFaceCcw: Boolean
       read FFrontFaceCcw write FFrontFaceCcw default false;
 
     { Make the whole rendering with flat shading. }
-    property ForceFlatShading: boolean
+    property ForceFlatShading: Boolean
       read FForceFlatShading write FForceFlatShading default false;
 
     { Release the allocated memory for arrays (CoordinateArray, AttributeArray,
@@ -381,7 +381,7 @@ type
     procedure FreeData;
 
     { Was FreeData called. }
-    property DataFreed: boolean read FDataFreed;
+    property DataFreed: Boolean read FDataFreed;
 
     { Information about faces. Generated for some geometry types.
       Generated only when TArraysGenerator.FacesNeeded is @true.
@@ -397,7 +397,7 @@ uses SysUtils, CastleStringUtils;
 
 { TGeometryAttribList ------------------------------------------------------- }
 
-function TGeometryAttribList.Find(const Name: string): TGeometryAttrib;
+function TGeometryAttribList.Find(const Name: String): TGeometryAttrib;
 var
   I: Integer;
 begin
@@ -664,11 +664,11 @@ begin
 end;
 
 const
-  AttribTypeName: array[TGeometryAttribType] of string =
+  AttribTypeName: array[TGeometryAttribType] of String =
   ( 'float', 'vec2', 'vec3', 'vec4', 'mat3', 'mat4' );
 
 function TGeometryArrays.AddGLSLAttribute(const AType: TGeometryAttribType;
-  const Name: string; const Internal: boolean): TGeometryAttrib;
+  const Name: String; const Internal: Boolean): TGeometryAttrib;
 const
   AttribSizes: array[TGeometryAttribType] of Cardinal =
   ( SizeOf(Single),
@@ -707,32 +707,32 @@ begin
   end;
 end;
 
-function TGeometryArrays.AddGLSLAttributeFloat(const Name: string; const Internal: boolean): TGeometryAttrib;
+function TGeometryArrays.AddGLSLAttributeFloat(const Name: String; const Internal: Boolean): TGeometryAttrib;
 begin
   Result := AddGLSLAttribute(atFloat, Name, Internal);
 end;
 
-function TGeometryArrays.AddGLSLAttributeVector2(const Name: string; const Internal: boolean): TGeometryAttrib;
+function TGeometryArrays.AddGLSLAttributeVector2(const Name: String; const Internal: Boolean): TGeometryAttrib;
 begin
   Result := AddGLSLAttribute(atVector2, Name, Internal);
 end;
 
-function TGeometryArrays.AddGLSLAttributeVector3(const Name: string; const Internal: boolean): TGeometryAttrib;
+function TGeometryArrays.AddGLSLAttributeVector3(const Name: String; const Internal: Boolean): TGeometryAttrib;
 begin
   Result := AddGLSLAttribute(atVector3, Name, Internal);
 end;
 
-function TGeometryArrays.AddGLSLAttributeVector4(const Name: string; const Internal: boolean): TGeometryAttrib;
+function TGeometryArrays.AddGLSLAttributeVector4(const Name: String; const Internal: Boolean): TGeometryAttrib;
 begin
   Result := AddGLSLAttribute(atVector4, Name, Internal);
 end;
 
-function TGeometryArrays.AddGLSLAttributeMatrix3(const Name: string; const Internal: boolean): TGeometryAttrib;
+function TGeometryArrays.AddGLSLAttributeMatrix3(const Name: String; const Internal: Boolean): TGeometryAttrib;
 begin
   Result := AddGLSLAttribute(atMatrix3, Name, Internal);
 end;
 
-function TGeometryArrays.AddGLSLAttributeMatrix4(const Name: string; const Internal: boolean): TGeometryAttrib;
+function TGeometryArrays.AddGLSLAttributeMatrix4(const Name: String; const Internal: Boolean): TGeometryAttrib;
 begin
   Result := AddGLSLAttribute(atMatrix4, Name, Internal);
 end;
@@ -751,7 +751,7 @@ begin
 end;
 
 function TGeometryArrays.GLSLAttributeIndex(const AType: TGeometryAttribType;
-  const Name: string; const Index: Cardinal): PtrUInt;
+  const Name: String; const Index: Cardinal): PtrUInt;
 var
   A: TGeometryAttrib;
 begin
@@ -769,32 +769,32 @@ begin
   Result := PtrUInt(FAttributeArray) + A.Offset + Offset;
 end;
 
-function TGeometryArrays.GLSLAttributeFloat(const Name: string; const Index: Cardinal = 0): PSingle;
+function TGeometryArrays.GLSLAttributeFloat(const Name: String; const Index: Cardinal = 0): PSingle;
 begin
   Result := PSingle(GLSLAttributeIndex(atFloat, Name, Index));
 end;
 
-function TGeometryArrays.GLSLAttributeVector2(const Name: string; const Index: Cardinal = 0): PVector2;
+function TGeometryArrays.GLSLAttributeVector2(const Name: String; const Index: Cardinal = 0): PVector2;
 begin
   Result := PVector2(GLSLAttributeIndex(atVector2, Name, Index));
 end;
 
-function TGeometryArrays.GLSLAttributeVector3(const Name: string; const Index: Cardinal = 0): PVector3;
+function TGeometryArrays.GLSLAttributeVector3(const Name: String; const Index: Cardinal = 0): PVector3;
 begin
   Result := PVector3(GLSLAttributeIndex(atVector3, Name, Index));
 end;
 
-function TGeometryArrays.GLSLAttributeVector4(const Name: string; const Index: Cardinal = 0): PVector4;
+function TGeometryArrays.GLSLAttributeVector4(const Name: String; const Index: Cardinal = 0): PVector4;
 begin
   Result := PVector4(GLSLAttributeIndex(atVector4, Name, Index));
 end;
 
-function TGeometryArrays.GLSLAttributeMatrix3(const Name: string; const Index: Cardinal = 0): PMatrix3;
+function TGeometryArrays.GLSLAttributeMatrix3(const Name: String; const Index: Cardinal = 0): PMatrix3;
 begin
   Result := PMatrix3(GLSLAttributeIndex(atMatrix3, Name, Index));
 end;
 
-function TGeometryArrays.GLSLAttributeMatrix4(const Name: string; const Index: Cardinal = 0): PMatrix4;
+function TGeometryArrays.GLSLAttributeMatrix4(const Name: String; const Index: Cardinal = 0): PMatrix4;
 begin
   Result := PMatrix4(GLSLAttributeIndex(atMatrix4, Name, Index));
 end;

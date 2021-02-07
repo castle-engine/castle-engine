@@ -20,7 +20,7 @@ var
   { Log (through CastleLog) all loading, that is: all calls to @link(Download).
     This allows to easily check e.g. whether the engine is not loading something
     during the game (which usually badly affects the performance). }
-  LogAllLoading: boolean = false;
+  LogAllLoading: Boolean = false;
 
 var
   { Does @link(Download) (synchronous downloading routine) support http and https protocol.
@@ -28,7 +28,7 @@ var
     your application, for arbitrarily long time, and you have no way to interrupt it.
     It is recommended to use asynchronous downloading, using @link(TCastleDownload),
     to download resources over the network. }
-  EnableBlockingDownloads: boolean = false;
+  EnableBlockingDownloads: Boolean = false;
 
 type
   EDownloadError = class(Exception);
@@ -115,9 +115,9 @@ type
 
   @groupBegin
 }
-function Download(const Url: string; const Options: TStreamOptions = []): TStream; overload;
-function Download(const Url: string; const Options: TStreamOptions;
-  out MimeType: string): TStream; overload;
+function Download(const Url: String; const Options: TStreamOptions = []): TStream; overload;
+function Download(const Url: String; const Options: TStreamOptions;
+  out MimeType: String): TStream; overload;
 { @groupEnd }
 
 function GetEnableNetwork: Boolean; deprecated 'use EnableBlockingDownloads';
@@ -128,8 +128,8 @@ property EnableNetwork: Boolean read GetEnableNetwork write SetEnableNetwork;
 
 {$ifdef read_implementation}
 
-function Download(const Url: string; const Options: TStreamOptions;
-  out MimeType: string): TStream;
+function Download(const Url: String; const Options: TStreamOptions;
+  out MimeType: String): TStream;
 var
   D: TCastleDownload;
 begin
@@ -155,9 +155,9 @@ begin
   finally FreeAndNil(D) end;
 end;
 
-function Download(const Url: string; const Options: TStreamOptions): TStream;
+function Download(const Url: String; const Options: TStreamOptions): TStream;
 var
-  MimeType: string;
+  MimeType: String;
 begin
   Result := Download(Url, Options, MimeType { ignored });
 end;

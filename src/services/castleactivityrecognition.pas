@@ -81,7 +81,7 @@ type
     FActivityConfidence: TUserActivityConfidence;
     FOnChange: TNotifyEvent;
     function MessageReceived(const Received: TCastleStringList;
-      const ReceivedStream: TMemoryStream): boolean;
+      const ReceivedStream: TMemoryStream): Boolean;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -240,7 +240,7 @@ begin
 end;
 
 function TActivityRecognition.MessageReceived(const Received: TCastleStringList;
-  const ReceivedStream: TMemoryStream): boolean;
+  const ReceivedStream: TMemoryStream): Boolean;
 
   { Try to get most useful activity from the set of possible activities.
     If Activities contain only one item, return it,

@@ -28,7 +28,7 @@
 
     var
     FFieldClass: TX3DFieldClass;
-    FInEvent: boolean;
+    FInEvent: Boolean;
     { To avoid allocating memory for FNotifications list in the most-common case
       when 0 or 1 notification is enough, store 1st notification in special
       field instead. }
@@ -36,7 +36,7 @@
     FNotifications: TX3DEventReceiveList;
     FParentExposedField: TX3DField;
     Temp: TX3DField;
-    TempUsed: boolean;
+    TempUsed: Boolean;
 
     SendLevel: Cardinal;
     NotificationsToRemove: TX3DEventReceiveList;
@@ -44,8 +44,8 @@
     procedure RemoveNotificationNow(const Notification: TX3DEventReceive);
   public
     constructor Create(AParentNode: TX3DFileItem;
-      const AName: string;
-      const AFieldClass: TX3DFieldClass; const AInEvent: boolean);
+      const AName: String;
+      const AFieldClass: TX3DFieldClass; const AInEvent: Boolean);
     destructor Destroy; override;
 
     { Internal helper utility for SendXxx implementations. @exclude }
@@ -56,7 +56,7 @@
     property FieldClass: TX3DFieldClass read FFieldClass;
 
     { @abstract(Is it "in" or "out" event ?) }
-    property InEvent: boolean read FInEvent;
+    property InEvent: Boolean read FInEvent;
 
     { This only reads (optional) "IS" clause of the event, as may occur
       in VRML nodeBodyStatement. }
@@ -144,7 +144,7 @@
 
       For now, this simply returns whether any callback is registered
       by AddNotification. }
-    function SendNeeded: boolean;
+    function SendNeeded: Boolean;
 
     { Assign from another event. The FieldClass and InEvent is copied.
 
@@ -158,14 +158,14 @@
 
   TX3DEventList = class(specialize TObjectList<TX3DEvent>)
   strict private
-    function GetByName(const AName: string): TX3DEvent;
+    function GetByName(const AName: String): TX3DEvent;
   public
     { Access event by name.
       Raises EX3DNotFound if the given Name doesn't exist. }
-    property ByName[const AName: string]: TX3DEvent read GetByName;
+    property ByName[const AName: String]: TX3DEvent read GetByName;
 
     { Find event index on the list. -1 if not found. }
-    function IndexOfName(const Name: string): Integer;
+    function IndexOfName(const Name: String): Integer;
   end;
 
 {$endif read_interface}
@@ -186,8 +186,8 @@ end;
 { TX3DEvent ----------------------------------------------------------------- }
 
 constructor TX3DEvent.Create(AParentNode: TX3DFileItem;
-  const AName: string; const AFieldClass: TX3DFieldClass;
-  const AInEvent: boolean);
+  const AName: String; const AFieldClass: TX3DFieldClass;
+  const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName);
   FFieldClass := AFieldClass;
@@ -255,7 +255,7 @@ begin
     Send(Field, TX3DNode(ParentNode).Scene.NextEventTime);
 end;
 
-function TX3DEvent.SendNeeded: boolean;
+function TX3DEvent.SendNeeded: Boolean;
 begin
   Result :=
     Assigned(FFirstNotification) or
@@ -335,16 +335,16 @@ end;
 
 { TX3DEventList ------------------------------------------------------------ }
 
-function TX3DEventList.IndexOfName(const Name: string): Integer;
+function TX3DEventList.IndexOfName(const Name: String): Integer;
 begin
   for Result := 0 to Count - 1 do
     if Items[Result].IsName(Name) then Exit;
   Result := -1;
 end;
 
-function TX3DEventList.GetByName(const AName: string): TX3DEvent;
+function TX3DEventList.GetByName(const AName: String): TX3DEvent;
 var
-  I: integer;
+  I: Integer;
 begin
   I := IndexOfName(AName);
   if I <> -1 then

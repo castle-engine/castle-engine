@@ -20,8 +20,8 @@
   { Abstract node type for all scripting nodes. }
   TAbstractScriptNode = class(TAbstractChildNode, IAbstractUrlObject)
   strict private
-    FInitialized: boolean;
-    procedure SetInitialized(const Value: boolean);
+    FInitialized: Boolean;
+    procedure SetInitialized(const Value: Boolean);
   private
     FInitializedScriptType: TScriptType;
 
@@ -32,7 +32,7 @@
 
     procedure EventUrlReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
-    procedure ExecuteScript(const FunctionName: string;
+    procedure ExecuteScript(const FunctionName: String;
       ReceivedValue: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
@@ -55,7 +55,7 @@
       If you use TCastleSceneCore, this will be done for you automatically
       when you change TCastleSceneCore.ProcessEvents, so it's not a problem in
       practice. }
-    property Initialized: boolean read FInitialized write SetInitialized
+    property Initialized: Boolean read FInitialized write SetInitialized
       default false;
 
     { Clear the memory when the last events were generated from this script.
@@ -74,7 +74,7 @@
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdDirectOutput: TSFBool;
     public property FdDirectOutput: TSFBool read FFdDirectOutput;
@@ -134,7 +134,7 @@ begin
   Initialized := true;
 end;
 
-procedure TAbstractScriptNode.ExecuteScript(const FunctionName: string;
+procedure TAbstractScriptNode.ExecuteScript(const FunctionName: String;
   ReceivedValue: TX3DField; const Time: TX3DTime);
 var
   I: Integer;
@@ -207,11 +207,11 @@ begin
   end;
 end;
 
-procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
+procedure TAbstractScriptNode.SetInitialized(const Value: Boolean);
 
   { @raises(ECasScriptSyntaxError in case of program parsing error
       (we just let through ECasScriptSyntaxError from ParseProgram).) }
-  procedure CastleScriptInitialize(const ProgramContent: string);
+  procedure CastleScriptInitialize(const ProgramContent: String);
   var
     I: Integer;
   begin
@@ -236,9 +236,9 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
     CastleScriptProgram.Environment.BaseUrl := BaseUrl;
   end;
 
-  function LoadUrl(Url: string; var FailedUrlsLog: string): boolean;
+  function LoadUrl(Url: String; var FailedUrlsLog: String): Boolean;
   var
-    ScriptContents, MimeType: string;
+    ScriptContents, MimeType: String;
     ScriptContentsStream: TStream;
   begin
     Result := false;
@@ -301,9 +301,9 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
   end;
 
 var
-  ValidUrlFound: boolean;
+  ValidUrlFound: Boolean;
   I: Integer;
-  FailedUrlsLog: string;
+  FailedUrlsLog: String;
 begin
   if FInitialized <> Value then
   begin
@@ -358,7 +358,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TScriptNode.ClassX3DType: string;
+class function TScriptNode.ClassX3DType: String;
 begin
   Result := 'Script';
 end;
@@ -377,7 +377,7 @@ end;
 procedure TScriptNode.IDeclEventReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 var
-  FunctionName: string;
+  FunctionName: String;
 begin
   if Event.ParentExposedField <> nil then
     FunctionName := Event.ParentExposedField.X3DName

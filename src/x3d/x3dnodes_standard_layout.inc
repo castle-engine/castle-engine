@@ -25,7 +25,7 @@
   TLayoutNode = class(TAbstractLayoutNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAlign: TMFString;
     public property FdAlign: TMFString read FFdAlign;
@@ -51,7 +51,7 @@
   TLayoutGroupNode = class(TAbstractX3DGroupingNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdLayout: TSFNode;
     public property FdLayout: TSFNode read FFdLayout;
@@ -65,7 +65,7 @@
   TLayoutLayerNode = class(TAbstractLayerNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventAddChildren: TMFNodeEvent;
@@ -87,7 +87,7 @@
   TScreenFontStyleNode = class(TAbstractFontStyleNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdFamily: TMFString;
     public property FdFamily: TMFString read FFdFamily;
@@ -122,7 +122,7 @@
   TScreenGroupNode = class(TAbstractX3DGroupingNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     {$I auto_generated_node_helpers/x3dnodes_screengroup.inc}
   end;
@@ -168,7 +168,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TLayoutNode.ClassX3DType: string;
+class function TLayoutNode.ClassX3DType: String;
 begin
   Result := 'Layout';
 end;
@@ -186,7 +186,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TLayoutGroupNode.ClassX3DType: string;
+class function TLayoutGroupNode.ClassX3DType: String;
 begin
   Result := 'LayoutGroup';
 end;
@@ -208,7 +208,7 @@ begin
   AddField(FFdLayout);
 end;
 
-class function TLayoutLayerNode.ClassX3DType: string;
+class function TLayoutLayerNode.ClassX3DType: String;
 begin
   Result := 'LayoutLayer';
 end;
@@ -249,7 +249,7 @@ begin
   AddField(FFdTopToBottom);
 end;
 
-class function TScreenFontStyleNode.ClassX3DType: string;
+class function TScreenFontStyleNode.ClassX3DType: String;
 begin
   Result := 'ScreenFontStyle';
 end;
@@ -261,7 +261,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TScreenGroupNode.ClassX3DType: string;
+class function TScreenGroupNode.ClassX3DType: String;
 begin
   Result := 'ScreenGroup';
 end;

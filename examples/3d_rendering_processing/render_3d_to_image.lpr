@@ -29,11 +29,11 @@ const
   ImageWidth = 1024;
   ImageHeight = ImageWidth; //< Square image.
 
-procedure RenderScene(const Url: string);
+procedure RenderScene(const Url: String);
 var
   Scene: TCastleScene;
   DestImage: TCastleImage;
-  ImageUrl: string;
+  ImageUrl: String;
 begin
   Image.RenderToImageBegin;
 

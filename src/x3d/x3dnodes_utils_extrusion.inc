@@ -25,9 +25,9 @@ type
   strict private
     FHigh: Integer;
     FNode: TExtrusionNode;
-    FSpineClosed, FCrossSectionClosed: boolean;
+    FSpineClosed, FCrossSectionClosed: Boolean;
     FCrossSectionOmit: Cardinal;
-    FBeginEndCapsMatching: boolean;
+    FBeginEndCapsMatching: Boolean;
     procedure SetNode(Value: TExtrusionNode);
   public
     constructor Create;
@@ -48,8 +48,8 @@ type
       just calculated once (when setting Node) for speed.
 
       @groupBegin }
-    property SpineClosed: boolean read FSpineClosed;
-    property CrossSectionClosed: boolean read FCrossSectionClosed;
+    property SpineClosed: Boolean read FSpineClosed;
+    property CrossSectionClosed: Boolean read FCrossSectionClosed;
     { @groupEnd }
 
     { If we should omit a first (or last) vertex when rendering caps,
@@ -69,7 +69,7 @@ type
       TVRMLExtrusion.SpineTransformVar implementation). But we also
       have to compare Orientation and Scale factors --- only when they
       also match, the caps match. }
-    property BeginEndCapsMatching: boolean read FBeginEndCapsMatching;
+    property BeginEndCapsMatching: Boolean read FBeginEndCapsMatching;
 
     { If Spine > 0, LastY and LastZ must contain what was set here by calling
       SpineTransformVar(Spine - 1, LastY, LastZ). }
@@ -181,7 +181,7 @@ var
 
   { Calculate Z by searching for the first non-colinear three spine
     points. @false if not found. }
-  function FindFirstNonColinear(out Z: TVector3): boolean;
+  function FindFirstNonColinear(out Z: TVector3): Boolean;
   var
     I: Integer;
   begin

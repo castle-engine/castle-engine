@@ -39,7 +39,7 @@ uses X3DNodes, CastleShapes;
       ProjectedTextureCoordinate,)
   ) }
 procedure ProcessShadowMapsReceivers(Model: TX3DNode; Shapes: TShapeTree;
-  const Enable: boolean;
+  const Enable: Boolean;
   const DefaultShadowMapSize: Cardinal);
 
 implementation
@@ -66,7 +66,7 @@ type
   TLightList = class(specialize TStructList<TLight>)
   public
     DefaultShadowMapSize: Cardinal;
-    ShadowMapShaders: array [boolean, 0..1] of TComposedShaderNode;
+    ShadowMapShaders: array [Boolean, 0..1] of TComposedShaderNode;
     ShadowCastersBox: TBox3D;
     LightsCastingOnEverything: TX3DNodeList;
 
@@ -88,7 +88,7 @@ type
 function TLightList.FindLight(Light: TAbstractPunctualLightNode): PLight;
 var
   I: Integer;
-  LightUniqueName: string;
+  LightUniqueName: String;
 begin
   for I := 0 to Count - 1 do
     if L[I].Light = Light then Exit(Ptr(I));
@@ -653,7 +653,7 @@ begin
 end;
 
 procedure ProcessShadowMapsReceivers(Model: TX3DNode; Shapes: TShapeTree;
-  const Enable: boolean;
+  const Enable: Boolean;
   const DefaultShadowMapSize: Cardinal);
 var
   Lights: TLightList;

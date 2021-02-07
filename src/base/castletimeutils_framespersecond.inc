@@ -33,7 +33,7 @@ type
     FOnlyRenderFps: TFloatTime;
     FRealFps: TFloatTime;
     FSecondsPassed: TFloatTime;
-    DoZeroNextSecondsPassed: boolean;
+    DoZeroNextSecondsPassed: Boolean;
     FUpdateStartTime: TTimerResult;
     LastRecalculateTime: TTimerResult;
     RenderStartTime: TTimerResult;
@@ -42,7 +42,7 @@ type
     { how much time passed inside frame rendering }
     OnlyRenderTimePassed: TTimerResult;
     FMaxSensibleSecondsPassed: TFloatTime;
-    FWasSleeping, FSleeping: boolean;
+    FWasSleeping, FSleeping: Boolean;
   public
     const
       DefaultMaxSensibleSecondsPassed = 0.5;
@@ -116,10 +116,10 @@ type
 
       See https://castle-engine.io/manual_optimization.php#section_fps
       for a detailed description what this means. }
-    property WasSleeping: boolean read FWasSleeping;
+    property WasSleeping: Boolean read FWasSleeping;
 
     { Display current FPS (RealFps, OnlyRenderFps, taking into account WasSleeping). }
-    function ToString: string; override;
+    function ToString: String; override;
 
     { How much time passed since the last "update".
       You should use this inside "update" events and methods
@@ -231,7 +231,7 @@ begin
   FSleeping := true;
 end;
 
-function TFramesPerSecond.ToString: string;
+function TFramesPerSecond.ToString: String;
 begin
   if (RealFps = 0) and (OnlyRenderFps = 0) then
     Exit('no frames rendered');

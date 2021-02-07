@@ -47,7 +47,7 @@ type
     FFrustum: TFrustum;
     FrustumNearPoints: TFrustumPoints;
 
-    FWrapAvailable: boolean;
+    FWrapAvailable: Boolean;
     FStencilOpIncrWrap, FStencilOpDecrWrap: TGLenum;
 
     { These will ideally be initialized to GL_INCR/DECR_WRAP (available
@@ -65,32 +65,32 @@ type
     property StencilOpDecrWrap: TGLenum read FStencilOpDecrWrap;
     { @groupEnd }
   private
-    FCasterShadowPossiblyVisible: boolean;
-    FZFail: boolean;
-    FZFailAndLightCap: boolean;
+    FCasterShadowPossiblyVisible: Boolean;
+    FZFail: Boolean;
+    FZFailAndLightCap: Boolean;
 
     FLightPosition: TVector4;
 
-    StencilConfigurationKnown: boolean;
+    StencilConfigurationKnown: Boolean;
     StencilConfigurationKnownKind: TStencilSetupKind;
-    StencilConfigurationKnownZFail: boolean;
+    StencilConfigurationKnownZFail: Boolean;
 
     FStencilSetupKind: TStencilSetupKind;
 
-    FCount: boolean;
+    FCount: Boolean;
     FCountCasters: Cardinal;
     FCountShadowsNotVisible: Cardinal;
     FCountZPass: Cardinal;
     FCountZFailNoLightCap: Cardinal;
     FCountZFailAndLightCap: Cardinal;
 
-    FStencilTwoSided: boolean;
+    FStencilTwoSided: Boolean;
 
     procedure UpdateCount;
   public
     constructor Create;
 
-    property WrapAvailable: boolean read FWrapAvailable;
+    property WrapAvailable: Boolean read FWrapAvailable;
 
     { Call this when OpenGL context is initialized, this will set some things.
       For now, this sets StencilOpIncrWrap, StencilOpDecrWrap. }
@@ -138,13 +138,13 @@ type
     procedure InitCaster(const CasterBox: TBox3D);
 
     { Does the shadow need to be rendered, calculated by last InitCaster call. }
-    property CasterShadowPossiblyVisible: boolean read FCasterShadowPossiblyVisible;
+    property CasterShadowPossiblyVisible: Boolean read FCasterShadowPossiblyVisible;
 
     { Is the ZFail method needed, set by InitCaster. }
-    property ZFail: boolean read FZFail;
+    property ZFail: Boolean read FZFail;
 
     { Is the ZFail with light caps method needed, set by InitCaster. }
-    property ZFailAndLightCap: boolean read FZFailAndLightCap;
+    property ZFailAndLightCap: Boolean read FZFailAndLightCap;
 
     { Is two-sided stencil test (that allows you to make SV in a single pass)
       available.
@@ -157,7 +157,7 @@ type
         @item(We could also handle GL_EXT_stencil_two_side extension, glActiveStencilFaceEXT.
           But, since OpenGL >= 2.0 is now common, don't try.)
       ) }
-    property StencilTwoSided: boolean read FStencilTwoSided;
+    property StencilTwoSided: Boolean read FStencilTwoSided;
 
     { What kind of stencil settings should be set by InitCaster.
 
@@ -172,7 +172,7 @@ type
     { Statistics of shadow volumes. They are enabled by default,
       as calculating them takes practically no time.
       @groupBegin }
-    property Count: boolean read FCount write FCount default true;
+    property Count: Boolean read FCount write FCount default true;
     property CountCasters: Cardinal read FCountCasters;
     property CountShadowsNotVisible: Cardinal read FCountShadowsNotVisible;
     property CountZPass: Cardinal read FCountZPass;
@@ -226,7 +226,7 @@ type
       const Params: TRenderParams;
       const Render3D: TSVRenderParamsProc;
       const RenderShadowVolumes: TSVRenderProc;
-      const DrawShadowVolumes: boolean);
+      const DrawShadowVolumes: Boolean);
   end;
 
 implementation
@@ -362,11 +362,11 @@ procedure TGLShadowVolumeRenderer.InitCaster(const CasterBox: TBox3D);
 
   procedure DontSetupStencil(const CasterBox: TBox3D);
 
-    function CalculateShadowPossiblyVisible(const CasterBox: TBox3D): boolean;
+    function CalculateShadowPossiblyVisible(const CasterBox: TBox3D): Boolean;
     var
       I: Integer;
 
-      function CheckPoint(const X, Y, Z: Integer): boolean;
+      function CheckPoint(const X, Y, Z: Integer): Boolean;
       begin
         Result :=
           CasterBox.Data[X][0] * FrustumAndLightPlanes[I][0] +
@@ -391,13 +391,13 @@ procedure TGLShadowVolumeRenderer.InitCaster(const CasterBox: TBox3D);
       Result := true;
     end;
 
-    function CalculateZFail: boolean;
+    function CalculateZFail: Boolean;
 
       { Returns if CasterBox is (at least partially)
         inside the Plane (i.e. where the plane equation is <= 0).
         Also returns @true if Plane is invalid, since in this case result
         of CalculateZFail should depend on other planes. }
-      function InsidePlane(const Plane: TVector4): boolean;
+      function InsidePlane(const Plane: TVector4): Boolean;
 
         function CalculatePoint(const X, Y, Z: Integer): Single;
         begin
@@ -637,7 +637,7 @@ procedure TGLShadowVolumeRenderer.Render(
   const Params: TRenderParams;
   const Render3D: TSVRenderParamsProc;
   const RenderShadowVolumes: TSVRenderProc;
-  const DrawShadowVolumes: boolean);
+  const DrawShadowVolumes: Boolean);
 {$ifdef OpenGLES}
 begin
   // TODO-es
@@ -666,7 +666,7 @@ const
     but stencil_wrap will hopefully in this case minimize artifacts. }
   StencilShadowBits = $FF;
 var
-  OldCount: boolean;
+  OldCount: Boolean;
 begin
   Params.InShadow := false;
   Params.Transparent := false;

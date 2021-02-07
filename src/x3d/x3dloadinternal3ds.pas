@@ -23,7 +23,7 @@ interface
 
 uses X3DNodes;
 
-function Load3DS(const URL: string): TX3DRootNode;
+function Load3DS(const URL: String): TX3DRootNode;
 
 implementation
 
@@ -73,21 +73,21 @@ type
   EMaterialNotInitialized = class(EInvalid3dsFile);
 
   TMaterialMap3ds = record
-    Exists: boolean;
-    MapURL: string;
+    Exists: Boolean;
+    MapURL: String;
     Scale, Offset: TVector2;
   end;
 
   TMaterial3ds = class
   strict private
-    FName: string;
-    FInitialized: boolean;
+    FName: String;
+    FInitialized: Boolean;
   public
-    property Name: string read FName;
+    property Name: String read FName;
 
     { When @false, this material was found in TTrimesh but was not yet
       defined in 3DS file. }
-    property Initialized: boolean read FInitialized default false;
+    property Initialized: Boolean read FInitialized default false;
   public
     { Material properties. Have default values (following VRML and OpenGL
       defaults, as I don't know 3DS defaults) in case they would be
@@ -105,7 +105,7 @@ type
     ShininessStrenth, Transparency,
       TransparencyFalloff, ReflectBlur :Single; {< By default 0 }
 
-    constructor Create(const AName: string);
+    constructor Create(const AName: String);
 
     { Read CHUNK_MATERIAL, initializing our fields and changing
       @link(Initialized) to @true. }
@@ -116,7 +116,7 @@ type
   public
     { Index of material with given name. If material doesn't exist,
       it will be added. }
-    function MaterialIndex(const MatName: string): Integer;
+    function MaterialIndex(const MatName: String): Integer;
     { Raises EMaterialNotInitialized if any not TMaterial3ds.Initialized
       material present on the list. You should call it at the end of reading
       3DS file, to make sure all used materials were found in 3DS file.  }
@@ -133,10 +133,10 @@ type
     creating appropriate non-abstract TObject3DS descendant. }
   TObject3DS = class
   strict private
-    FName: string;
+    FName: String;
     FScene: TScene3DS;
   public
-    property Name: string read FName;
+    property Name: String read FName;
     { Scene containing this object. }
     property Scene: Tscene3DS read FScene;
 
@@ -149,14 +149,14 @@ type
 
       You don't have to finish reading at ChunkEndPos, we'll rewind
       the stream position afterwards if necessary. }
-    constructor Create(const AName: string; AScene: TScene3DS;
+    constructor Create(const AName: String; AScene: TScene3DS;
       Stream: TStream; const ChunkEndPos: Int64); virtual;
   end;
 
   TFace3ds = record
     VertsIndices: TVector3Cardinal;
-    EdgeFlags: packed array[0..2]of boolean;
-    Wrap: packed array[0..1]of boolean;
+    EdgeFlags: packed array [0..2] of Boolean;
+    Wrap: packed array [0..1] of Boolean;
     { Index to the Scene.Materials.
       -1 means "not specified in 3DS file" and means that face
       uses default material. There are some 3DS that have faces without
@@ -180,7 +180,7 @@ type
   TTrimesh3ds = class(TObject3DS)
   strict private
     FVertsCount, FFacesCount: Word;
-    FHasTexCoords: boolean;
+    FHasTexCoords: Boolean;
   public
     { Vertexes and faces. Read-only from outside of this class.
       @groupBegin }
@@ -188,7 +188,7 @@ type
     Faces: PFace3dsArray;
     { @groupEnd }
     { Do the vertexes have meaningful texture coordinates? }
-    property HasTexCoords: boolean read FHasTexCoords;
+    property HasTexCoords: Boolean read FHasTexCoords;
     { Number of vertexes and faces.
       Remember that VertsCount = FacesCount = 0 is possible, e.g. 0155.3ds.
       @groupBegin }
@@ -196,7 +196,7 @@ type
     property FacesCount: Word read FFacesCount;
     { @groupEnd }
 
-    constructor Create(const AName: string; AScene: TScene3DS;
+    constructor Create(const AName: String; AScene: TScene3DS;
       Stream: TStream; const ChunkEndPos: Int64); override;
     destructor Destroy; override;
   end;
@@ -210,7 +210,7 @@ type
     property Target: TVector3 read FTarget;
     property Bank: Single read FBank;
     property Lens: Single read FLens;
-    constructor Create(const AName: string; AScene: TScene3DS;
+    constructor Create(const AName: String; AScene: TScene3DS;
       Stream: TStream; const ChunkEndPos: Int64); override;
 
     { Camera direction. Calculated from Position and Target. }
@@ -223,8 +223,8 @@ type
   public
     Pos: TVector3;
     Col: TVector3;
-    Enabled: boolean;
-    constructor Create(const AName: string; AScene: TScene3DS;
+    Enabled: Boolean;
+    constructor Create(const AName: String; AScene: TScene3DS;
       Stream: TStream; const ChunkEndPos: Int64); override;
   end;
 
@@ -247,7 +247,7 @@ type
     { Autodesk version used to create this 3DS. }
     Version: LongWord;
     constructor Create(Stream: TStream); overload;
-    constructor Create(const URL: string); overload;
+    constructor Create(const URL: String); overload;
     destructor Destroy; override;
   end;
 
@@ -394,7 +394,7 @@ begin
 end;
 *)
 
-procedure Check3dsFile(TrueValue: boolean; const ErrMessg: string);
+procedure Check3dsFile(TrueValue: Boolean; const ErrMessg: String);
 begin
   if not TrueValue then raise EInvalid3dsFile.Create(ErrMessg);
 end;
@@ -408,7 +408,7 @@ end;
 
   Overloaded version with 4 components always returns alpha = 1. }
 function TryReadColorInSubchunks(var Col: TVector3;
-  Stream: TStream; EndPos: Int64): boolean; overload;
+  Stream: TStream; EndPos: Int64): Boolean; overload;
 var
   h: TChunkHeader;
   hEnd: Int64;
@@ -450,7 +450,7 @@ begin
 end;
 
 function TryReadColorInSubchunks(var Col: TVector4;
-  Stream: TStream; EndPos: Int64): boolean; overload;
+  Stream: TStream; EndPos: Int64): Boolean; overload;
 var
   Col3Single: TVector3;
 begin
@@ -462,7 +462,7 @@ end;
   value. Returns the value / 100.
   Similar comments as for TryReadColorInSubchunks. }
 function TryReadPercentageInSubchunks(var Value: Single;
-  Stream: TStream; EndPos: Int64): boolean;
+  Stream: TStream; EndPos: Int64): Boolean;
 var
   h: TChunkHeader;
   hEnd: Int64;
@@ -495,7 +495,7 @@ const
   Default3dsMatSpecular: TVector4 = (Data: (0, 0, 0, 1.0));
   Default3dsMatShininess: Single = 0.2; {< in range 0..1 }
 
-constructor TMaterial3ds.Create(const AName: string);
+constructor TMaterial3ds.Create(const AName: String);
 begin
   inherited Create;
   FName := AName;
@@ -576,7 +576,7 @@ end;
 
 { TMaterial3dsList ----------------------------------------------------- }
 
-function TMaterial3dsList.MaterialIndex(const MatName: string): Integer;
+function TMaterial3dsList.MaterialIndex(const MatName: String): Integer;
 begin
   for result := 0 to Count-1 do
     if Items[result].Name = MatName then exit;
@@ -587,18 +587,18 @@ end;
 
 procedure TMaterial3dsList.CheckAllInitialized;
 var
-  i: integer;
+  I: Integer;
 begin
-  for i := 0 to Count-1 do
-    if not Items[i].Initialized then
+  for I := 0 to Count-1 do
+    if not Items[I].Initialized then
       raise EMaterialNotInitialized.Create(
-        'Material "'+Items[i].Name+'" used but does not exist');
+        'Material "' + Items[I].Name + '" used but does not exist');
 end;
 
 procedure TMaterial3dsList.ReadMaterial(Stream: TStream; EndPos: Int64);
 var
   ind: Integer;
-  MatName: string;
+  MatName: String;
   StreamStartPos: Int64;
   h: TChunkHeader;
 begin
@@ -647,7 +647,7 @@ const
 
 { TObject3DS ----------------------------------------------------------------- }
 
-constructor TObject3DS.Create(const AName: string; AScene: TScene3DS;
+constructor TObject3DS.Create(const AName: String; AScene: TScene3DS;
   Stream: TStream; const ChunkEndPos: Int64);
 { don't ever call directly this constructor - we can get here
   only by  "inherited" call from Descendant's constructor }
@@ -659,7 +659,7 @@ end;
 
 function CreateObject3DS(AScene: TScene3DS; Stream: TStream; const ObjectEndPos: Int64): TObject3DS;
 var
-  ObjName: string;
+  ObjName: String;
   ChunkEndPos: Int64;
   h: TChunkHeader;
 begin
@@ -689,7 +689,7 @@ end;
 
 { TTrimesh3ds --------------------------------------------------------------- }
 
-constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
+constructor TTrimesh3ds.Create(const AName: String; AScene: TScene3DS;
   Stream: TStream; const ChunkEndPos: Int64);
 
   { Read FVertsCount, initialize Verts.
@@ -715,29 +715,29 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
 
   procedure ReadVertlist;
   var
-    i: integer;
+    I: Integer;
   begin
     ReadVertsCount;
-    for i := 0 to VertsCount-1 do
-      Stream.ReadLE(Verts^[i].Pos);
+    for I := 0 to VertsCount-1 do
+      Stream.ReadLE(Verts^[I].Pos);
   end;
 
-  procedure ReadMaplist(chunkEnd: Int64);
+  procedure ReadMaplist(ChunkEnd: Int64);
   var
-    i: integer;
+    I: Integer;
   begin
     FHasTexCoords := true;
     ReadVertsCount;
-    for i := 0 to VertsCount-1 do
-      Stream.ReadLE(Verts^[i].TexCoord);
-    Stream.Position := chunkEnd; { skip subchunks }
+    for I := 0 to VertsCount-1 do
+      Stream.ReadLE(Verts^[I].TexCoord);
+    Stream.Position := ChunkEnd; { skip subchunks }
   end;
 
   procedure ReadFacelist(chunkEnd: Int64);
 
     procedure ReadFacemat;
     var
-      MatName: string;
+      MatName: String;
       MatFaceCount: Word;
       FaceNum: Word;
       i, MatIndex: Integer;
@@ -757,7 +757,7 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
     end;
 
   var
-    i, j: integer;
+    I, J: Integer;
     Flags: Word;
     Word3: packed array[0..2]of Word;
     h: TChunkHeader;
@@ -766,19 +766,19 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
     Check3dsFile(FacesCount = 0, 'Duplicate faces specification for 3ds object '+Name);
     Stream.ReadLE(FFacesCount);
     Faces := GetMem(SizeOf(TFace3ds)*FacesCount);
-    for i := 0 to FacesCount-1 do
-    with Faces^[i] do
+    for I := 0 to FacesCount-1 do
+    with Faces^[I] do
     begin
       { init face }
       Stream.ReadBuffer(Word3, SizeOf(Word3));
-      for j := 0 to 2 do
-        VertsIndices[j] := LEtoN(Word3[j]);
+      for J := 0 to 2 do
+        VertsIndices[J] := LEtoN(Word3[J]);
       Stream.ReadLE(Flags);
       { decode Flags }
-      for j := 0 to 2 do
-        EdgeFlags[j]:=(FACEFLAG_EDGES[j] and Flags) <> 0;
-      for j := 0 to 1 do
-        Wrap[j]:=(FACEFLAG_WRAP[j] and Flags) <> 0;
+      for J := 0 to 2 do
+        EdgeFlags[J]:=(FACEFLAG_EDGES[J] and Flags) <> 0;
+      for J := 0 to 1 do
+        Wrap[J]:=(FACEFLAG_WRAP[J] and Flags) <> 0;
       FaceMaterialIndex := -1;
     end;
 
@@ -858,7 +858,7 @@ end;
 
 { TCamera3ds --------------------------------------------------------------- }
 
-constructor TCamera3ds.Create(const AName: string; AScene: TScene3DS;
+constructor TCamera3ds.Create(const AName: String; AScene: TScene3DS;
   Stream: TStream; const ChunkEndPos: Int64);
 begin
   inherited;
@@ -897,7 +897,7 @@ end;
 
 { TLights3ds --------------------------------------------------------------- }
 
-constructor TLight3ds.Create(const AName: string; AScene: TScene3DS;
+constructor TLight3ds.Create(const AName: String; AScene: TScene3DS;
   Stream: TStream; const ChunkEndPos: Int64);
 begin
   inherited;
@@ -963,7 +963,7 @@ begin
   Materials.CheckAllInitialized;
 end;
 
-constructor TScene3DS.Create(const URL: string);
+constructor TScene3DS.Create(const URL: String);
 var
   S: TStream;
 begin
@@ -983,9 +983,9 @@ end;
 
 { Load3DS -------------------------------------------------------------------- }
 
-function Load3DS(const URL: string): TX3DRootNode;
+function Load3DS(const URL: String): TX3DRootNode;
 var
-  BaseUrl: string;
+  BaseUrl: String;
   O3ds: TScene3DS;
 
   { Prefix names with things like "Material_", to make sure these
@@ -997,16 +997,16 @@ var
     effort to keep them unique (to help storing them with DEF/USE),
     if they were unique in 3DS. }
 
-  function MaterialVRMLName(const Mat3dsName: string): string;
+  function MaterialVRMLName(const Mat3dsName: String): String;
   begin Result := 'Material_' + Mat3dsName end;
 
-  function TrimeshVRMLName(const Tri3dsName: string): string;
+  function TrimeshVRMLName(const Tri3dsName: String): String;
   begin Result := 'Trimesh_' + Tri3dsName end;
 
-  function ViewpointVRMLName(const Camera3dsName: string): string;
+  function ViewpointVRMLName(const Camera3dsName: String): String;
   begin Result := 'Camera_' + Camera3dsName end;
 
-  function LightVRMLName(const Light3dsName: string): string;
+  function LightVRMLName(const Light3dsName: String): String;
   begin Result := 'Light_' + Light3dsName end;
 
   procedure AddViewpoints;
@@ -1089,15 +1089,15 @@ var
 
   { How many faces have the same material index.
     Starts, and compares, with the face numnbered StartFace (must be < FacesCount). }
-  function SameMaterialFacesCount(Faces: PFace3dsArray; FacesCount: integer;
-    StartFace: integer): integer;
+  function SameMaterialFacesCount(Faces: PFace3dsArray; FacesCount: Integer;
+    StartFace: Integer): Integer;
   var
     I: Integer;
   begin
     I := StartFace + 1;
     while (I < FacesCount) and
           (Faces^[I].FaceMaterialIndex = Faces^[StartFace].FaceMaterialIndex) do
-      Inc(i);
+      Inc(I);
     Result := I - StartFace;
   end;
 

@@ -42,11 +42,11 @@
 
     { Return TPixelTextureNode to draw given font configuration. }
     function LoadFontTexture(const Font: TTextureFontData;
-      const Blending: boolean): TPixelTextureNode;
+      const Blending: Boolean): TPixelTextureNode;
 
     procedure FreeFontTexture(var FontTexture: TPixelTextureNode);
 
-    function Empty: boolean; override;
+    function Empty: Boolean; override;
   end;
 
 {$endif read_interface}
@@ -74,7 +74,7 @@ begin
 end;
 
 function TX3DFontTexturesCache.LoadFontTexture(const Font: TTextureFontData;
-  const Blending: boolean): TPixelTextureNode;
+  const Blending: Boolean): TPixelTextureNode;
 var
   I: Integer;
   C: TCachedFontTexture;
@@ -168,7 +168,7 @@ begin
     [PointerToStr(FontTexture)]);
 end;
 
-function TX3DFontTexturesCache.Empty: boolean;
+function TX3DFontTexturesCache.Empty: Boolean;
 begin
   Result := (inherited Empty) and (CachedFontTextures.Count = 0);
 end;

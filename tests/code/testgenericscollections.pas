@@ -41,7 +41,7 @@ uses Generics.Defaults;
 
 type
   TApple = class
-    Name: string;
+    Name: String;
     procedure Eat;
   end;
 
@@ -217,7 +217,7 @@ begin
 end;
 
 type
-  TAppleDictionary = specialize TDictionary<string, TApple>;
+  TAppleDictionary = specialize TDictionary<String, TApple>;
 
 procedure TTestGenericsCollections.TestMapTryGetValue;
 var
@@ -472,7 +472,7 @@ begin
 end;
 
 type
-  TStringStringMap = class(specialize TDictionary<string, string>)
+  TStringStringMap = class(specialize TDictionary<String, String>)
   end;
 
 procedure TTestGenericsCollections.TestTryGetValueNil;

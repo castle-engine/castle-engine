@@ -112,7 +112,7 @@ type
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
     procedure ButtonClearWarningsClick(Sender: TObject);
-    procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure ListOutputClick(Sender: TObject);
@@ -194,7 +194,7 @@ type
     { Separated procedure to not duplicate code in various ways to open Design
       (files view, menu) }
     procedure OpenDesign(const DesignUrl: String);
-    procedure WarningNotification(const Category, Message: string);
+    procedure WarningNotification(const Category, Message: String);
     { Clears all warnings and hides warnings tab }
     procedure ClearAllWarnings;
   public
@@ -333,7 +333,7 @@ begin
   FreeProcess;
 end;
 
-procedure TProjectForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
+procedure TProjectForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
   if ProposeSaveDesign then
     Application.Terminate
@@ -600,7 +600,7 @@ begin
 end;
 
 procedure TProjectForm.WarningNotification(const Category,
-  Message: string);
+  Message: String);
 begin
   if Category <> '' then
     ListWarnings.Items.Add(Category + ': ' + Message)

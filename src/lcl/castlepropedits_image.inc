@@ -20,10 +20,10 @@ type
   { Editor for TCastleImagePersistent. }
   TCastleImagePersistentEditor = class(TSubPropertiesEditor)
   public
-    function GetName: shortstring; override;
+    function GetName: ShortString; override;
   end;
 
-function TCastleImagePersistentEditor.GetName: shortstring;
+function TCastleImagePersistentEditor.GetName: ShortString;
 begin
   Result := inherited GetName;
   Result := SuffixRemove('persistent', Result, true);

@@ -184,7 +184,7 @@ procedure TUnit.Initialize(const AUnitsOnMap: TUnitsOnMap;
   const AKind: TUnitKind;
   const AnAttack, ALife, AMovement: Integer);
 const
-  UnitIconUrls: array [TUnitKind] of string  =
+  UnitIconUrls: array [TUnitKind] of String  =
   ( 'castle-data:/units/alien1.png',
     'castle-data:/units/alien2.png',
     'castle-data:/units/human1.png',

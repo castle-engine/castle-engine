@@ -20,8 +20,8 @@
   { Writer of VRML/X3D to stream. }
   TX3DWriter = class abstract
   strict private
-    Indent: string;
-    DoDiscardNextIndent: boolean;
+    Indent: String;
+    DoDiscardNextIndent: Boolean;
     FEncoding: TX3DEncoding;
     FStream: TStream;
   public
@@ -37,13 +37,13 @@
     procedure IncIndent;
     procedure DecIndent;
 
-    { Comfortable routines that simply write given string to a stream.
+    { Comfortable routines that simply write given String to a stream.
       @groupBegin }
-    procedure Write(const S: string);
-    procedure Writeln(const S: string); overload;
+    procedure Write(const S: String);
+    procedure Writeln(const S: String); overload;
     procedure Writeln; overload;
-    procedure WriteIndent(const S: string);
-    procedure WritelnIndent(const S: string);
+    procedure WriteIndent(const S: String);
+    procedure WritelnIndent(const S: String);
     { @groupEnd }
 
     { Causes next WriteIndent or WritelnIndent too not write the Indent.
@@ -58,7 +58,7 @@
 { TX3DWriter ----------------------------------------------------------------- }
 
 const
-  { IndentIncrement is string or char. It's used by SaveToStream }
+  { IndentIncrement is String or Char. It's used by SaveToStream }
   IndentIncrement = CharTab;
 
 constructor TX3DWriter.Create(AStream: TStream; const AVersion: TX3DVersion;
@@ -89,12 +89,12 @@ begin
   SetLength(Indent, Length(Indent) - 1);
 end;
 
-procedure TX3DWriter.Write(const S: string);
+procedure TX3DWriter.Write(const S: String);
 begin
   WriteStr(FStream, S);
 end;
 
-procedure TX3DWriter.Writeln(const S: string);
+procedure TX3DWriter.Writeln(const S: String);
 begin
   WriteStr(FStream, S);
   WriteStr(FStream, NL);
@@ -105,7 +105,7 @@ begin
   WriteStr(FStream, NL);
 end;
 
-procedure TX3DWriter.WriteIndent(const S: string);
+procedure TX3DWriter.WriteIndent(const S: String);
 begin
   if DoDiscardNextIndent then
     DoDiscardNextIndent := false else
@@ -113,7 +113,7 @@ begin
   WriteStr(FStream, S);
 end;
 
-procedure TX3DWriter.WritelnIndent(const S: string);
+procedure TX3DWriter.WritelnIndent(const S: String);
 begin
   WriteIndent(S);
   WriteStr(FStream, NL);

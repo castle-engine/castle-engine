@@ -41,7 +41,7 @@
   TProximitySensorNode = class(TAbstractEnvironmentalSensorNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
     function TransformationChange: TNodeTransformationChange; override;
 
     { Event out } { }
@@ -65,7 +65,7 @@
   TTransformSensorNode = class(TAbstractEnvironmentalSensorNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdTargetObject: TSFNode;
     public property FdTargetObject: TSFNode read FFdTargetObject;
@@ -84,15 +84,15 @@
   { Detects visibility changes of a rectangular box as the user navigates the world. }
   TVisibilitySensorNode = class(TAbstractEnvironmentalSensorNode)
   strict private
-    FIsActive: boolean;
+    FIsActive: Boolean;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
     function TransformationChange: TNodeTransformationChange; override;
     function Box: TBox3D;
 
-    property IsActive: boolean read FIsActive;
-    procedure SetIsActive(const Value: boolean; const Time: TX3DTime);
+    property IsActive: Boolean read FIsActive;
+    procedure SetIsActive(const Value: Boolean; const Time: TX3DTime);
 
     {$I auto_generated_node_helpers/x3dnodes_visibilitysensor.inc}
   end;
@@ -139,7 +139,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TProximitySensorNode.ClassX3DType: string;
+class function TProximitySensorNode.ClassX3DType: String;
 begin
   Result := 'ProximitySensor';
 end;
@@ -165,7 +165,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TTransformSensorNode.ClassX3DType: string;
+class function TTransformSensorNode.ClassX3DType: String;
 begin
   Result := 'TransformSensor';
 end;
@@ -176,7 +176,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TVisibilitySensorNode.ClassX3DType: string;
+class function TVisibilitySensorNode.ClassX3DType: String;
 begin
   Result := 'VisibilitySensor';
 end;
@@ -204,7 +204,7 @@ begin
   Result := Box3DAroundPoint(FdCenter.Value, FdSize.Value);
 end;
 
-procedure TVisibilitySensorNode.SetIsActive(const Value: boolean; const Time: TX3DTime);
+procedure TVisibilitySensorNode.SetIsActive(const Value: Boolean; const Time: TX3DTime);
 begin
   if FIsActive <> Value then
   begin

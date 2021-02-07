@@ -15,7 +15,7 @@
 
 type
   TBitmapFileHeader = packed record
-    bfType: array[0..1]of char;
+    bfType: array[0..1] of Char;
     bfSize: LongWord;
     bfReserved1: Word;
     bfReserved2: Word;
@@ -24,24 +24,24 @@ type
 
   TBitmapInfoHeader = packed record
     biSize: LongWord;
-    biWidth: Longint;
-    biHeight: Longint;
+    biWidth: LongInt;
+    biHeight: LongInt;
     biPlanes: Word;
     biBitCount: Word;
     biCompression: LongWord;
     biSizeImage: LongWord;
-    biXPelsPerMeter: Longint;
-    biYPelsPerMeter: Longint;
+    biXPelsPerMeter: LongInt;
+    biYPelsPerMeter: LongInt;
     biClrUsed: LongWord;
     biClrImportant: LongWord;
   end;
 
-  TRGBQuad = packed record blue, green, red, reserved : byte end;
+  TRGBQuad = packed record blue, green, red, reserved : Byte end;
   //PRGBQuad = ^TRGBQuad;
   TRGBQuadArray = packed array[0..MaxInt div SizeOf(TRGBQuad)-1]of TRGBQuad;
   PRGBQuadArray = ^TRGBQuadArray;
 
-  TRGB_BMP24 = packed record b, g, r: byte end; { trojka RGB w zapisie danych 24 bitowej bitmapy }
+  TRGB_BMP24 = packed record b, g, r: Byte end; { trojka RGB w zapisie danych 24 bitowej bitmapy }
   PRGB_BMP24 = ^TRGB_BMP24;
   TRGB_BMP24Array = array[0..MaxInt div SizeOf(TRGB_BMP24)-1] of TRGB_BMP24;
   PRGB_BMP24Array = ^TRGB_BMP24Array;
@@ -56,12 +56,12 @@ function LoadBMP(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 var fhead: TBitmapFileHeader;
     ihead: TBitmapInfoHeader;
-    paletteSize: integer;    { rozmiar palety (0 jesli brak) }
+    paletteSize: Integer;    { rozmiar palety (0 jesli brak) }
     palette: PRGBQuadArray; { odczytana paleta (nil jesli paletteSize = 0) }
-    rowLength: integer;      { dlugosc wiersza (bez 32bit padding !) }
-    rownum: integer;
+    rowLength: Integer;      { dlugosc wiersza (bez 32bit padding !) }
+    rownum: Integer;
 
-  procedure PutPaletteColor(paletteIndex: integer; var rgb3: TVector3Byte);
+  procedure PutPaletteColor(paletteIndex: Integer; var rgb3: TVector3Byte);
   { ustaw rgb3 na kolor numer paletteIndex wziety z palety }
   begin
    rgb3.Data[0] := palette^[paletteIndex].red;
@@ -72,7 +72,7 @@ var fhead: TBitmapFileHeader;
   procedure WriteRow(Row: Pointer; bmprow: PByteArray);
   { przepisz wiersz bitmapy bmprow na wiersz strukturek TVector3Byte. }
 
-    function FiveBitsToByte(fivebits: Word): byte;
+    function FiveBitsToByte(fivebits: Word): Byte;
     begin
      {liczbe z zkaresu 0..31 (1111 binarnie) (ale podana jako typ Word -
       ponizej bezdiemy chcieli ja mnozyc przez 255 !) mapuje na zakres 0..255}
@@ -80,7 +80,7 @@ var fhead: TBitmapFileHeader;
     end;
 
   var
-    bmpi, rgbi: integer;  { bmpi iteruje po bmprow, rgbi iteruje po rgbrow }
+    bmpi, rgbi: Integer;  { bmpi iteruje po bmprow, rgbi iteruje po rgbrow }
     rgbrow: PVector3ByteArray absolute Row;
     rgbarow: PVector4ByteArray absolute Row;
   begin
@@ -136,13 +136,13 @@ var fhead: TBitmapFileHeader;
   end;
 
   { ClassAllowed is only shortcut to global utility. }
-  function ClassAllowed(ImageClass: TEncodedImageClass): boolean;
+  function ClassAllowed(ImageClass: TEncodedImageClass): Boolean;
   begin
     Result := CastleImages.ClassAllowed(ImageClass, AllowedImageClasses);
   end;
 
-var i: integer;
-    rowsGoingUp: boolean;
+var I: Integer;
+    rowsGoingUp: Boolean;
     rowdata: PByteArray;
     NewResult: TEncodedImage;
 begin
@@ -269,8 +269,8 @@ begin
      end;
 
     finally
-     FreeMemNiling(pointer(rowdata));
-     FreeMemNiling(pointer(palette));
+     FreeMemNiling(Pointer(rowdata));
+     FreeMemNiling(Pointer(palette));
     end;
    except Result.Free; raise end;
   end;
@@ -286,7 +286,7 @@ end;
 procedure SaveBMP(const Img: TEncodedImage; const Stream: TStream);
 var fhead: TBitmapFileHeader;
     ihead: TBitmapInfoHeader;
-    i, j, rowPaddedLength, PadSize: cardinal;
+    I, J, rowPaddedLength, PadSize: Cardinal;
     p :PVector3Byte;
     row, rowdata :PRGB_BMP24;
 begin

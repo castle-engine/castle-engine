@@ -21,7 +21,7 @@ var
 { Read <library_cameras> (Collada 1.4.x). Fills Cameras list. }
 procedure ReadLibraryCameras(LibraryE: TDOMElement);
 var
-  Id: string;
+  Id: String;
   CameraGroup: TGroupNode;
 
   procedure InitializeNavigationInfo(E: TDOMElement);

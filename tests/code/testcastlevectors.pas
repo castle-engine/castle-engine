@@ -104,10 +104,10 @@ begin
  AssertSameValue(1/3, T, 0.0000001);
 end;
 
-procedure WritelnSpeedTest(const s: string);
+procedure WritelnSpeedTest(const S: String);
 begin
  {$ifdef VECTOR_MATH_SPEED_TESTS}
- Writeln(s);
+ Writeln(S);
  {$endif}
 end;
 
@@ -161,21 +161,21 @@ begin
 end;
 
 procedure TTestCastleVectors.TestPerpParallel;
-var v: TVector3;
-    i: integer;
+var V: TVector3;
+    I: Integer;
 begin
- for i := 1 to 10 do
+ for I := 1 to 10 do
  try
-  v := RandomVector;
-  AssertTrue( VectorsPerp(AnyOrthogonalVector(v), v) );
+  V := RandomVector;
+  AssertTrue( VectorsPerp(AnyOrthogonalVector(V), V) );
   { I has to comment it out -- it fails too often due to floating point
     inaccuracy. }
-  { AssertTrue( VectorsParallel(v * (Random * 10)), v) ); }
-  AssertTrue( VectorsPerp(TVector3.Zero, v) );
-  AssertTrue( VectorsParallel(TVector3.Zero, v) );
+  { AssertTrue( VectorsParallel(V * (Random * 10)), V) ); }
+  AssertTrue( VectorsPerp(TVector3.Zero, V) );
+  AssertTrue( VectorsParallel(TVector3.Zero, V) );
  except
-  Writeln('and failed : v = ',v.ToString,
-    ' anyPerp = ',AnyOrthogonalVector(v).ToString);
+  Writeln('and failed : v = ',V.ToString,
+    ' anyPerp = ',AnyOrthogonalVector(V).ToString);
   raise;
  end;
 
@@ -209,9 +209,9 @@ var
   I1, I2, RayOrigin, RayDirection: TVector3;
   Plane: TVector4;
 // PlaneDir: TVector3 absolute Plane;
-  PlaneConstCoord: integer;
+  PlaneConstCoord: Integer;
   PlaneConstVal: Single;
-  b1, b2: boolean;
+  b1, b2: Boolean;
 // t1, t2: Double;
 
   function RandomVector3: TVector3;
@@ -224,14 +224,14 @@ var
 const VConst: TVector3 = (Data: (1.0, 2.0, 3.0));
 
 var
-  i: integer;
+  I: Integer;
   V: TVector3;
   Time0, Time1, Time2: Double;
   StartTime: TProcessTimerResult;
 begin
  { ------------------------------------------------------------
    testuj TrySimplePlaneRayIntersection przy uzyciu TryPlaneRayIntersection }
- for i := 1 to 100000 do
+ for I := 1 to 100000 do
  begin
   RayOrigin := RandomVector3;
   RayDirection := RandomVector3;
@@ -290,18 +290,18 @@ begin
  WritelnSpeedTest('SPEED TEST 1 ----------------------------------------------');
 
  StartTime := ProcessTimer;
- for i := 1 to SPEED_TEST_1_CYCLES do ;
+ for I := 1 to SPEED_TEST_1_CYCLES do ;
  Time0 := ProcessTimerSeconds(ProcessTimer, StartTime);
  WritelnSpeedTest(Format('Empty loop = %f',[Time0]));
 
  StartTime := ProcessTimer;
- for i := 1 to SPEED_TEST_1_CYCLES do
+ for I := 1 to SPEED_TEST_1_CYCLES do
   TrySimplePlaneRayIntersection(I1, PlaneConstCoord, PlaneConstVal, RayOrigin, RayDirection);
  Time1 := ProcessTimerSeconds(ProcessTimer, StartTime);
  WritelnSpeedTest(Format('TrySimplePlaneRayIntersection = %f',[Time1]));
 
  StartTime := ProcessTimer;
- for i := 1 to SPEED_TEST_1_CYCLES do
+ for I := 1 to SPEED_TEST_1_CYCLES do
   TryPlaneRayIntersection(I1, Plane, RayOrigin, RayDirection);
  Time2 := ProcessTimerSeconds(ProcessTimer, StartTime);
  WritelnSpeedTest(Format('TryPlaneRayIntersection = %f',[Time2]));
@@ -316,12 +316,12 @@ begin
  WritelnSpeedTest('SPEED TEST 2 ----------------------------------------------');
 
  StartTime := ProcessTimer;
- for i := 1 to SPEED_TEST_2_CYCLES do ;
+ for I := 1 to SPEED_TEST_2_CYCLES do ;
  Time0 := ProcessTimerSeconds(ProcessTimer, StartTime);
  WritelnSpeedTest(Format('Empty loop = %f',[Time0]));
 
  StartTime := ProcessTimer;
- for i := 1 to SPEED_TEST_2_CYCLES do
+ for I := 1 to SPEED_TEST_2_CYCLES do
  begin
   V := VConst;
   V := V * Pi;
@@ -348,45 +348,47 @@ end;
 procedure TTestCastleVectors.TestVectorStr;
 
   procedure OneTestVectorFromStr;
-  var v, v2: TVector3;
-      s: string;
+  var
+    V, V2: TVector3;
+    S: String;
   begin
-   v := RandomVector;
-   s := v.ToRawString;
-   v2 := Vector3FromStr(s);
-   AssertVectorEquals(v2, v, 0.001); // larger epsilon for ppc64
+   V := RandomVector;
+   S := V.ToRawString;
+   V2 := Vector3FromStr(S);
+   AssertVectorEquals(V2, V, 0.001); // larger epsilon for ppc64
   end;
 
   procedure OneTestByDeformat;
-  var v, v2: TVector3;
-      s: string;
+  var
+    V, V2: TVector3;
+    S: String;
   begin
-   v := RandomVector;
-   s := v.ToRawString;
-   DeFormat(s, '%.single. %.single. %.single.', [@v2.Data[0], @v2.Data[1], @v2.Data[2]]);
-   AssertVectorEquals(v2, v, 0.001); // larger epsilon for ppc64
+   V := RandomVector;
+   S := V.ToRawString;
+   DeFormat(S, '%.single. %.single. %.single.', [@V2.Data[0], @V2.Data[1], @V2.Data[2]]);
+   AssertVectorEquals(V2, V, 0.001); // larger epsilon for ppc64
   end;
 
 const
   CYCLES = SPEED_TEST_3_CYCLES;
 var
   Time0, Time1, Time2: Double;
-  i: integer;
+  I: Integer;
   StartTime: TProcessTimerResult;
 begin
  WritelnSpeedTest('SPEED TEST VectorFromStr ------------------------------------------');
  StartTime := ProcessTimer;
- for i := 1 to CYCLES do ;
+ for I := 1 to CYCLES do ;
  Time0 := ProcessTimerSeconds(ProcessTimer, StartTime);
  WritelnSpeedTest(Format('Empty loop = %f',[Time0]));
 
  StartTime := ProcessTimer;
- for i := 1 to CYCLES do OneTestVectorFromStr;
+ for I := 1 to CYCLES do OneTestVectorFromStr;
  Time1 := ProcessTimerSeconds(ProcessTimer, StartTime);
  WritelnSpeedTest(Format('VectorFromStr = %f',[Time1]));
 
  StartTime := ProcessTimer;
- for i := 1 to CYCLES do OneTestByDeFormat;
+ for I := 1 to CYCLES do OneTestByDeFormat;
  Time2 := ProcessTimerSeconds(ProcessTimer, StartTime);
  WritelnSpeedTest(Format('DeFormat = %f',[Time2]));
 
@@ -491,7 +493,7 @@ end;
 
 procedure TTestCastleVectors.TestSphereRayIntersection;
 var
-  Res: boolean;
+  Res: Boolean;
   I: TVector3;
 begin
   Res := TrySphereRayIntersection(I, Vector3(3, 0, 0), 10,
@@ -518,9 +520,9 @@ end;
 
 function RandomVector: TVector3;
 begin
-  result[0] := Random*1000;
-  result[1] := Random*1000;
-  result[2] := Random*1000;
+  result[0] := Random * 1000;
+  result[1] := Random * 1000;
+  result[2] := Random * 1000;
 end;
 
 function RandomMatrix: TMatrix4;
@@ -658,7 +660,7 @@ end;
 
 procedure TTestCastleVectors.TestPlaneTransform;
 
-  function PointLiesOnPlane(const Point: TVector3; const Plane: TVector4): boolean;
+  function PointLiesOnPlane(const Point: TVector3; const Plane: TVector4): Boolean;
   var
     PlaneDir: TVector3 absolute Plane;
   begin

@@ -72,7 +72,7 @@ type
       const Proposed: Single = 0): Single;
 
     procedure Render(const RenderingCamera: TRenderingCamera;
-      const Wireframe: boolean;
+      const Wireframe: Boolean;
       const RenderRect: TFloatRectangle;
       const CurrentProjection: TProjection); virtual;
     procedure UpdateRotation(const Rotation: TVector4); virtual;
@@ -140,7 +140,7 @@ begin
 end;
 
 procedure TBackground.Render(const RenderingCamera: TRenderingCamera;
-  const Wireframe: boolean;
+  const Wireframe: Boolean;
   const RenderRect: TFloatRectangle;
   const CurrentProjection: TProjection);
 begin
@@ -171,7 +171,7 @@ type
     constructor Create;
     destructor Destroy; override;
     procedure Render(const RenderingCamera: TRenderingCamera;
-      const Wireframe: boolean;
+      const Wireframe: Boolean;
       const RenderRect: TFloatRectangle;
       const CurrentProjection: TProjection); override;
     procedure FreeResources; override;
@@ -206,7 +206,7 @@ begin
 end;
 
 procedure TBackgroundScene.Render(const RenderingCamera: TRenderingCamera;
-  const Wireframe: boolean; const RenderRect: TFloatRectangle;
+  const Wireframe: Boolean; const RenderRect: TFloatRectangle;
   const CurrentProjection: TProjection);
 begin
   inherited;
@@ -250,7 +250,7 @@ type
       const SkySphereRadius: Single);
     procedure UpdateRotation(const Rotation: TVector4); override;
     procedure Render(const RenderingCamera: TRenderingCamera;
-      const Wireframe: boolean;
+      const Wireframe: Boolean;
       const RenderRect: TFloatRectangle;
       const CurrentProjection: TProjection); override;
   end;
@@ -334,7 +334,7 @@ constructor TBackground3D.Create(
   end;
 
 var
-  SphereCreated: boolean;
+  SphereCreated: Boolean;
   SphereCoord: TMFVec3f;
   SphereCoordIndex: TMFInt32;
   SphereColor: TMFColor;
@@ -645,7 +645,7 @@ begin
 end;
 
 procedure TBackground3D.Render(const RenderingCamera: TRenderingCamera;
-  const Wireframe: boolean;
+  const Wireframe: Boolean;
   const RenderRect: TFloatRectangle;
   const CurrentProjection: TProjection);
 var
@@ -683,7 +683,7 @@ type
     constructor Create(const ANode: TImageBackgroundNode);
     destructor Destroy; override;
     procedure Render(const RenderingCamera: TRenderingCamera;
-      const Wireframe: boolean;
+      const Wireframe: Boolean;
       const RenderRect: TFloatRectangle;
       const CurrentProjection: TProjection); override;
   end;
@@ -739,7 +739,7 @@ begin
 end;
 
 procedure TBackground2D.Render(const RenderingCamera: TRenderingCamera;
-  const Wireframe: boolean;
+  const Wireframe: Boolean;
   const RenderRect: TFloatRectangle;
   const CurrentProjection: TProjection);
 

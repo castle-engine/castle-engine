@@ -25,36 +25,36 @@ type
   type
     TAllocatedTexture = class
       TextureId: TGLTextureId;
-      URL: string;
+      URL: String;
       Width, Height, Depth: Integer;
-      Mipmaps: boolean;
+      Mipmaps: Boolean;
       Size: Int64;
-      ImageFormat: string;
+      ImageFormat: String;
     end;
     { Using TObjectList, not map, this way we can sort the list looking
       at data sizes. }
     TAllocatedTextures = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAllocatedTexture>;
   var
     AllocatedTextures: TAllocatedTextures;
-    FEnabled: boolean;
+    FEnabled: Boolean;
     function FindTextureId(const TextureId: Integer): Integer;
     procedure CheckLeaks;
   public
     constructor Create;
     destructor Destroy; override;
-    property Enabled: boolean read FEnabled write FEnabled;
+    property Enabled: Boolean read FEnabled write FEnabled;
 
     { Notify about texture memory allocation.
       This should be used only by code doing direct OpenGL operations. }
     procedure Allocate(const TextureId: TGLTextureId;
-      const URL, ImageFormat: string; const Size: Int64; const Mipmaps: boolean;
+      const URL, ImageFormat: String; const Size: Int64; const Mipmaps: Boolean;
       const Width, Height, Depth: Integer);
 
     { Notify about texture memory deallocation.
       This should be used only by code doing direct OpenGL operations. }
     procedure Deallocate(const TextureId: TGLTextureId);
 
-    function Summary: string;
+    function Summary: String;
 
     { Helper function to calculate memory needed by all mipmaps of given Image.
       Assumes that all mipmaps are generated, as by GenerateMipmap call. }
@@ -113,7 +113,7 @@ var
   { Log (through CastleLog) all texture and image loading to GPU.
     If additionally @link(TextureMemoryProfiler) is enabled, then we will dump
     texture memory usage. }
-  LogTextureLoading: boolean = false;
+  LogTextureLoading: Boolean = false;
 
 {$endif read_interface}
 
@@ -134,8 +134,8 @@ begin
 end;
 
 procedure TTextureMemoryProfiler.Allocate(const TextureId: TGLTextureId;
-  const URL, ImageFormat: string;
-  const Size: Int64; const Mipmaps: boolean;
+  const URL, ImageFormat: String;
+  const Size: Int64; const Mipmaps: Boolean;
   const Width, Height, Depth: Integer);
 var
   AllocatedTex: TAllocatedTexture;
@@ -239,9 +239,9 @@ begin
   Result := Value2.Size - Value1.Size;
 end;
 
-function TTextureMemoryProfiler.Summary: string;
+function TTextureMemoryProfiler.Summary: String;
 
-  function FormatSize(const Size: Int64): string;
+  function FormatSize(const Size: Int64): String;
   begin
     if Size >= 1024 * 1024 * 1024 then
       Result := Format('%f GB', [Size / (1024 * 1024 * 1024)]) else
@@ -255,7 +255,7 @@ function TTextureMemoryProfiler.Summary: string;
 type
   TAllocatedTextureComparer = {$ifdef CASTLE_OBJFPC}specialize{$endif} TComparer<TAllocatedTexture>;
 var
-  S: string;
+  S: String;
   I: Integer;
   Used: Int64;
   AllocatedTex: TAllocatedTexture;

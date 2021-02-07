@@ -24,13 +24,13 @@
   InfoWrite, or ErrOutput for ErrorWrite and WarningWrite).
 
   @groupBegin }
-procedure ErrorWrite(const s: string); overload;
-procedure WarningWrite(const s: string); overload;
-procedure InfoWrite(const s: string); overload;
+procedure ErrorWrite(const S: String); overload;
+procedure WarningWrite(const S: String); overload;
+procedure InfoWrite(const S: String); overload;
 
-procedure ErrorWrite(const s: string; const args: array of const); overload;
-procedure WarningWrite(const s: string; const args: array of const); overload;
-procedure InfoWrite(const s: string; const args: array of const); overload;
+procedure ErrorWrite(const S: String; const args: array of const); overload;
+procedure WarningWrite(const S: String; const args: array of const); overload;
+procedure InfoWrite(const S: String; const args: array of const); overload;
 { @groupEnd }
 
 { Output messages, using console or dialog box.
@@ -48,7 +48,7 @@ procedure InfoWrite(const s: string; const args: array of const); overload;
   @deprecated Deprecated. This just looks ugly in GUI version.
   It's better to present long information using only a console (just use Writeln),
   or only a full-featured GUI (like Lazarus LCL or our CastleUIControls). }
-procedure InfoWriteParts(const TitleFormat: string; const Messages: array of string); deprecated;
+procedure InfoWriteParts(const TitleFormat: String; const Messages: array of String); deprecated;
 
 {$endif read_interface}
 
@@ -71,43 +71,43 @@ procedure InfoWriteParts(const TitleFormat: string; const Messages: array of str
   It's Ok, they will be just removed from unit public interface
   and undeprecated then in the future. }
 
-procedure ErrorWrite(const s: string);
+procedure ErrorWrite(const S: String);
 begin
-  {$ifdef MSWINDOWS} if not IsConsole then ErrorBox(s) else {$endif}
-  Writeln(ErrOutput, s);
+  {$ifdef MSWINDOWS} if not IsConsole then ErrorBox(S) else {$endif}
+  Writeln(ErrOutput, S);
 end;
 
-procedure WarningWrite(const s: string);
+procedure WarningWrite(const S: String);
 begin
-  {$ifdef MSWINDOWS} if not IsConsole then WarningBox(s) else {$endif}
-  Writeln(ErrOutput, s);
+  {$ifdef MSWINDOWS} if not IsConsole then WarningBox(S) else {$endif}
+  Writeln(ErrOutput, S);
 end;
 
-procedure InfoWrite(const s: string);
+procedure InfoWrite(const S: String);
 begin
-  {$ifdef MSWINDOWS} if not IsConsole then InfoBox(s) else {$endif}
-  Writeln(s);
+  {$ifdef MSWINDOWS} if not IsConsole then InfoBox(S) else {$endif}
+  Writeln(S);
 end;
 
-procedure ErrorWrite(const s: string; const args: array of const);
-begin ErrorWrite(format(s, args)) end;
-procedure WarningWrite(const s: string; const args: array of const);
-begin WarningWrite(format(s, args)) end;
-procedure InfoWrite(const s: string; const args: array of const);
-begin InfoWrite(format(s, args)) end;
+procedure ErrorWrite(const S: String; const args: array of const);
+begin ErrorWrite(format(S, args)) end;
+procedure WarningWrite(const S: String; const args: array of const);
+begin WarningWrite(format(S, args)) end;
+procedure InfoWrite(const S: String; const args: array of const);
+begin InfoWrite(format(S, args)) end;
 
-procedure InfoWriteParts(const TitleFormat: string; const Messages: array of string);
-var i: Integer;
+procedure InfoWriteParts(const TitleFormat: String; const Messages: array of String);
+var I: Integer;
 begin
  {$ifdef MSWINDOWS}
  if not IsConsole then
  begin
-  for i := 0 to High(Messages) do
-   InfoBox(Messages[i], Format(TitleFormat, [i+1, High(Messages)+1]));
+  for I := 0 to High(Messages) do
+   InfoBox(Messages[I], Format(TitleFormat, [I+1, High(Messages)+1]));
  end else
  {$endif}
  begin
-  for i := 0 to High(Messages) do Writeln(Messages[i]);
+  for I := 0 to High(Messages) do Writeln(Messages[I]);
  end;
 end;
 

@@ -69,7 +69,7 @@ procedure SaveScreen_NoFlush(const Image: TCastleImage;
 { Captures current screen as a TDrawableImage instance, ready to be drawn on 2D screen. }
 function SaveScreenToGL_NoFlush(const Rect: TRectangle;
   const ReadBuffer: TColorBuffer;
-  const SmoothScaling: boolean = false): TDrawableImage;
+  const SmoothScaling: Boolean = false): TDrawableImage;
 
 {$endif read_interface}
 
@@ -139,7 +139,7 @@ end;
 
 function SaveScreenToGL_NoFlush(const Rect: TRectangle;
   const ReadBuffer: TColorBuffer;
-  const SmoothScaling: boolean): TDrawableImage;
+  const SmoothScaling: Boolean): TDrawableImage;
 var
   ScreenImage: TRGBImage;
 begin

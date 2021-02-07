@@ -14,7 +14,7 @@
 }
 
 function TElevationGridNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+  const OverTriangulate: Boolean): TAbstractGeometryNode;
 
 { I initially rendered ElevationGrid directly, by GL_QUAD_STRIP
   for each row. Fast, but has troubles:
@@ -72,7 +72,7 @@ var
 var
   IFS: TIndexedFaceSetNode absolute Result;
   XDim, ZDim: Integer; {< shortcuts for appropriate fields values }
-  TexCoordProvided: boolean;
+  TexCoordProvided: Boolean;
   I, J, NextIndex: Integer;
   CoordNode: TCoordinateNode;
   TexCoords: TVector2List;
@@ -153,7 +153,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TElevationGridNode.ProxyUsesOverTriangulate: boolean;
+function TElevationGridNode.ProxyUsesOverTriangulate: Boolean;
 begin
   Result := false;
 end;

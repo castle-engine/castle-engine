@@ -5,13 +5,13 @@
 function LoadImageExternalTool(
   Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass;
-  const ImageMagickName: string): TEncodedImage;
+  const ImageMagickName: String): TEncodedImage;
 {$ifdef HAS_EXECUTE_PROCESS}
 var
-  ImageFileName: string;
-  PngFileName: string;
+  ImageFileName: String;
+  PngFileName: String;
   PngStream: TMemoryStream;
-  ConvertExecutable: string;
+  ConvertExecutable: String;
 begin
   ImageFileName := GetTempFileNameCheck;
   StreamSaveToFile(Stream, ImageFileName);

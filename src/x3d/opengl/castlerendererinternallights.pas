@@ -30,7 +30,7 @@ type
     By default, LightOn is the value of Light.LightNode.FdOn field.
     You can change it if you want. }
   TLightRenderEvent = procedure (const Light: TLightInstance;
-    var LightOn: boolean) of object;
+    var LightOn: Boolean) of object;
 
   { Render lights to OpenGL.
     Sets OpenGL lights properties, enabling and disabling them as needed.
@@ -45,16 +45,16 @@ type
   TVRMLGLLightsRenderer = class
   private
     FLightRenderEvent: TLightRenderEvent;
-    LightsKnown: boolean;
+    LightsKnown: Boolean;
     LightsDone: array of PLightInstance;
     FMaxLightsPerShape: Cardinal;
-    function NeedRenderLight(Index: Integer; Light: PLightInstance): boolean;
+    function NeedRenderLight(Index: Integer; Light: PLightInstance): Boolean;
   public
     { Statistics of how many OpenGL light setups were done
       (Statistics[true]) vs how many were avoided (Statistics[false]).
       The second number should usually be much higher, prooving
       that using a cache of LightsDone inside this class was useful. }
-    Statistics: array [boolean] of Cardinal;
+    Statistics: array [Boolean] of Cardinal;
 
     RenderingCamera: TRenderingCamera;
 
@@ -136,7 +136,7 @@ procedure glLightFromVRMLLight(
 
 var
   LightNode: TAbstractPunctualLightNode;
-  SetNoAttenuation: boolean;
+  SetNoAttenuation: Boolean;
   Attenuat: TVector3;
   Color3, AmbientColor3: TVector3;
   Color4, AmbientColor4: TVector4;
@@ -233,7 +233,7 @@ begin
   SetLength(LightsDone, FMaxLightsPerShape);
 end;
 
-function TVRMLGLLightsRenderer.NeedRenderLight(Index: Integer; Light: PLightInstance): boolean;
+function TVRMLGLLightsRenderer.NeedRenderLight(Index: Integer; Light: PLightInstance): Boolean;
 begin
   Result := not (
     LightsKnown and
@@ -266,7 +266,7 @@ var
   procedure AddList(Lights: TLightInstancesList);
   var
     I: Integer;
-    LightOn: boolean;
+    LightOn: Boolean;
     Light: PLightInstance;
   begin
     for I := 0 to Lights.Count - 1 do

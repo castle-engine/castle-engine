@@ -49,7 +49,7 @@ type
     FALErrorNum: TALenum;
   public
     property ALErrorNum: TALenum read FALErrorNum;
-    constructor Create(AALErrorNum: TALenum; const AMessage: string);
+    constructor Create(AALErrorNum: TALenum; const AMessage: String);
   end;
 
   { For alcGetError errors (ALC_xxx constants). }
@@ -58,11 +58,11 @@ type
     FALCErrorNum: TALenum;
   public
     property ALCErrorNum: TALenum read FALCErrorNum;
-    constructor Create(AALCErrorNum: TALenum; const AMessage: string);
+    constructor Create(AALCErrorNum: TALenum; const AMessage: String);
   end;
 
 { @raises(EALError if alGetError returned something <> AL_NO_ERROR) }
-procedure CheckAL(const situation: string);
+procedure CheckAL(const Situation: String);
 
 { ---------------------------------------------------------------------------- }
 { @section(Query AL state) }
@@ -153,7 +153,7 @@ procedure alCreateBuffers(n: TALsizei; buffers: PALuint);
 
 const
   { }
-  BoolToAL: array[boolean] of TALint = (AL_FALSE, AL_TRUE);
+  BoolToAL: array[Boolean] of TALint = (AL_FALSE, AL_TRUE);
 
 { Pass resource to alDeleteSources or alDeleteBuffers,
   checking and setting it to zero.
@@ -176,8 +176,8 @@ procedure alFreeBuffer(var Buffer: TALuint);
   and pDeviceList is initialized to the null-separated list of
   possible OpenAL devices.
   @groupBegin }
-function EnumerationExtPresent(out pDeviceList: PChar): boolean; overload;
-function EnumerationExtPresent: boolean; overload;
+function EnumerationExtPresent(out pDeviceList: PChar): Boolean; overload;
+function EnumerationExtPresent: Boolean; overload;
 { @groupEnd }
 
 {$undef read_interface}
@@ -190,13 +190,13 @@ uses CastleVectors, CastleStringUtils, CastleLog, CastleURIUtils;
 
 { error checking ------------------------------------------------------- }
 
-constructor EALError.Create(AALErrorNum: TALenum; const AMessage: string);
+constructor EALError.Create(AALErrorNum: TALenum; const AMessage: String);
 begin
   FALErrorNum := AALErrorNum;
   inherited Create(AMessage);
 end;
 
-procedure CheckAL(const situation: string);
+procedure CheckAL(const Situation: String);
 var
   Err: TALenum;
 begin
@@ -208,7 +208,7 @@ end;
 
 { EALCError ------------------------------------------------------------------ }
 
-constructor EALCError.Create(AALCErrorNum: TALenum; const AMessage: string);
+constructor EALCError.Create(AALCErrorNum: TALenum; const AMessage: String);
 begin
   FALCErrorNum := AALCErrorNum;
   inherited Create(AMessage);
@@ -363,7 +363,7 @@ begin
   end;
 end;
 
-function EnumerationExtPresent(out pDeviceList: PChar): boolean;
+function EnumerationExtPresent(out pDeviceList: PChar): Boolean;
 begin
   Result := alcIsExtensionPresent(nil, 'ALC_ENUMERATION_EXT');
   if Result then
@@ -373,7 +373,7 @@ begin
   end;
 end;
 
-function EnumerationExtPresent: boolean;
+function EnumerationExtPresent: Boolean;
 begin
   Result := alcIsExtensionPresent(nil, 'ALC_ENUMERATION_EXT');
 end;

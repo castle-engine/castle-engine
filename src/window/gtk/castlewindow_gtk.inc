@@ -78,7 +78,7 @@ private
 
     @groupBegin }
   function GtkDialogRun(ADialog: PGtkWindow;
-    ok_button, cancel_button: PGtkWidget): boolean;
+    ok_button, cancel_button: PGtkWidget): Boolean;
   function GtkDialogRun(ADialog: PGtkDialog): gint;
   { @groupEnd }
   procedure GetInitialCursorPos;
@@ -129,9 +129,9 @@ private
   { Used by SetCursor, each item may be nil if not initialized. }
   Cursors: array [TMouseCursor] of PGdkCursor;
 
-  FXDisplayName: string;
+  FXDisplayName: String;
 
-  InitializeXDisplayDone: boolean;
+  InitializeXDisplayDone: Boolean;
 
   XDisplayGdk: PGdkDisplay;
   XScreenGdk: PGdkScreen;
@@ -160,7 +160,7 @@ public
 
     Note that this is exposed by GTK even for non-XWindows platforms,
     but I don't know what it does there. }
-  property XDisplayName: string read FXDisplayName write FXDisplayName;
+  property XDisplayName: String read FXDisplayName write FXDisplayName;
 {$endif read_application_interface}
 
 {$ifdef read_implementation}
@@ -268,7 +268,7 @@ end;
 { Converts GDK mouse button number (from GdkEventButton.button)
   to TCastleMouseButton. Returns false (and does not change mb) if such
   button number cannot be represented as TCastleMouseButton. }
-function ButtonNumberToMouseButton(bn: guint; out mb: TCastleMouseButton): boolean;
+function ButtonNumberToMouseButton(bn: guint; out mb: TCastleMouseButton): Boolean;
 begin
   { No need to implement this using dirty typecasts, it's simple enough
     to do it type-safe. }
@@ -437,7 +437,7 @@ function signal_key_press_event(AWindowGtk: PGtkWindow; Event: PGdkEventKey;
   data: gpointer): gboolean; cdecl;
 var
   Key: TKey;
-  KeyString: string;
+  KeyString: String;
 SIGNAL_WINDOW_BEGIN
   case Event^.KeyVal of
     GDK_KEY_Shift_L:   SetPrivateModifiersDown(mkShift, false, true);
@@ -767,7 +767,7 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: String);
 begin
   FCaption[Part] := Value;
   if not Closed then
@@ -1121,7 +1121,7 @@ type
     PDialogData will be passed as a 2nd argument to signals
     (and 3rd argument to events) associated with dialog boxes. }
   TDialogData = record
-    Answered: boolean; { = false }
+    Answered: Boolean; { = false }
     Answer: gint;
   end;
   PDialogData = ^TDialogData;
@@ -1163,7 +1163,7 @@ begin
 end;
 
 function TCastleWindowBase.GtkDialogRun(ADialog: PGtkWindow;
-  ok_button, cancel_button: PGtkWidget): boolean;
+  ok_button, cancel_button: PGtkWidget): Boolean;
 var
   Data: TDialogData;
   Mode: TGLModeFrozenScreen;
@@ -1233,7 +1233,7 @@ begin
   Result := Data.Answer;
 end;
 
-function GtkVersionAtLeast(const Major, Minor, Micro: Cardinal): boolean;
+function GtkVersionAtLeast(const Major, Minor, Micro: Cardinal): Boolean;
 begin
   Result :=
      (gtk_major_version > Major) or
@@ -1243,8 +1243,8 @@ begin
          (gtk_micro_version >= Micro) ));
 end;
 
-function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
-  OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
+function TCastleWindowBase.BackendFileDialog(const Title: String; var FileName: String;
+  OpenDialog: Boolean; FileFilters: TFileFilterList): Boolean;
 
 { FileChooser is available only in GTK >= 2.4.
   We assume that everyone with GTK 2 has also newer GTK 2, >= 2.4.
@@ -1252,7 +1252,7 @@ function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: 
   GtkFileSelection is removed.  }
 
 var
-  HasDefaultFilter: boolean;
+  HasDefaultFilter: Boolean;
 
   procedure DialogAddFilters(Dialog: PGtkFileChooserDialog;
     FileFilters: TFileFilterList);
@@ -1284,7 +1284,7 @@ var
   OkButtonText: PChar;
   Dialog: PGtkFileChooserDialog;
   CFileName: PChar;
-  ExpandedFileName, Dir: string;
+  ExpandedFileName, Dir: String;
 begin
   if OpenDialog then
   begin
@@ -1402,7 +1402,7 @@ begin
   if Result then
   begin
     CFileName := gtk_file_chooser_get_filename(Dialog);
-    { This copies string contents, so we can later free CFileName pointer. }
+    { This copies String contents, so we can later free CFileName pointer. }
     FileName := CFileName;
     g_free(CFileName);
   end;
@@ -1410,7 +1410,7 @@ begin
   gtk_widget_destroy(GTK_WIDGET(Dialog));
 end;
 
-function TCastleWindowBase.ColorDialog(var Color: TVector3): boolean;
+function TCastleWindowBase.ColorDialog(var Color: TVector3): Boolean;
 var
   Dialog: PGtkColorSelectionDialog;
   GtkColor: array [0..3] of GDouble;
@@ -1444,10 +1444,10 @@ const
     Ord(GTK_MESSAGE_ERROR),
     { GTK_MESSAGE_OTHER, missing from FPC bindings } 4 );
 
-procedure TCastleWindowBase.MessageOK(const S: string; const MessageType: TWindowMessageType);
+procedure TCastleWindowBase.MessageOK(const S: String; const MessageType: TWindowMessageType);
 var
   Dialog: PGtkMessageDialog;
-  SNew: string;
+  SNew: String;
 begin
   SNew := SUnformattable(S); // gtk_message_dialog_new formats argument using printf, prevent it
   Dialog := PGtkMessageDialog(gtk_message_dialog_new(WindowGtk, 0,
@@ -1457,10 +1457,10 @@ begin
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
 end;
 
-function TCastleWindowBase.MessageYesNo(const S: string; const MessageType: TWindowMessageType): boolean;
+function TCastleWindowBase.MessageYesNo(const S: String; const MessageType: TWindowMessageType): Boolean;
 var
   Dialog: PGtkMessageDialog;
-  SNew: string;
+  SNew: String;
 begin
   SNew := SUnformattable(S); // gtk_message_dialog_new formats argument using printf, prevent it
   Dialog := PGtkMessageDialog(gtk_message_dialog_new(WindowGtk, 0,
@@ -1502,11 +1502,11 @@ end;
 type
   TGTKClipboard = class(TCastleClipboard)
   protected
-    function GetAsText: string; override;
-    procedure SetAsText(const Value: string); override;
+    function GetAsText: String; override;
+    procedure SetAsText(const Value: String); override;
   end;
 
-function TGTKClipboard.GetAsText: string;
+function TGTKClipboard.GetAsText: String;
 var
   C: PGtkClipboard;
 begin
@@ -1514,7 +1514,7 @@ begin
   Result := gtk_clipboard_wait_for_text(C);
 end;
 
-procedure TGTKClipboard.SetAsText(const Value: string);
+procedure TGTKClipboard.SetAsText(const Value: String);
 var
   C: PGtkClipboard;
 begin
@@ -1584,7 +1584,7 @@ begin
     We need to use our ProcessMessage to call our ProcessUpdates. }
 end;
 
-function TCastleApplication.ProcessAllMessages: boolean;
+function TCastleApplication.ProcessAllMessages: Boolean;
 begin
   { Basically, call gtk_main_iteration (equivalent to
     gtk_main_iteration_do with parameter blocking = always true),
@@ -1616,9 +1616,9 @@ begin
   end;
 end;
 
-function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
+function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: Boolean): Boolean;
 var
-  WasAnyMessage: boolean;
+  WasAnyMessage: Boolean;
 begin
   (* Note that gtk_main_iteration_do result is not useful to us.
      That is, we can't just call here
@@ -1721,7 +1721,7 @@ end;
 { When CASTLE_WINDOW_USE_XF86VMODE, then castlewindow_xf86vmode.inc
   will provide implementation for ScreenWidth and ScreenHeight. }
 {$ifndef CASTLE_WINDOW_USE_XF86VMODE}
-function TCastleApplication.ScreenWidth: integer;
+function TCastleApplication.ScreenWidth: Integer;
 var
   Monitor: GInt;
   Rect: TGdkRectangle;
@@ -1736,7 +1736,7 @@ begin
   Result := Rect.Width;
 end;
 
-function TCastleApplication.ScreenHeight: integer;
+function TCastleApplication.ScreenHeight: Integer;
 var
   Monitor: GInt;
   Rect: TGdkRectangle;
@@ -1757,7 +1757,7 @@ begin
   Result := 0;
 end;
 
-function TCastleApplication.BackendName: string;
+function TCastleApplication.BackendName: String;
 begin
   Result := 'GTK+';
 end;

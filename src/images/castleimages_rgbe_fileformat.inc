@@ -43,7 +43,7 @@ var
   { Read from Stream one scanline (of the length result.Width) to RGBERow. }
   procedure ReadRGBERow(RGBERow: PVector4ByteArray);
 
-    function CompressedLineMarker(const Marker: TVector4Byte): boolean;
+    function CompressedLineMarker(const Marker: TVector4Byte): Boolean;
     begin
      result := (Marker.Data[0] = 2) and (Marker.Data[1] = 2) and ((Marker.Data[2] and $80) = 0);
      Assert((not result) or (LoadResult.Width =
@@ -56,7 +56,7 @@ var
       az do Pixel^.Data[(LoadResult.Width-1)*4]. }
     var i: Integer;
         x: Cardinal;
-        ByteMarker, ByteRepeat: byte;
+        ByteMarker, ByteRepeat: Byte;
     begin
      x := 0; { ile kolumn juz zapisalem do Pixel }
      while x < LoadResult.Width do
@@ -132,15 +132,15 @@ var
    end;
   end;
 
-  function ClassAllowed(ImageClass: TEncodedImageClass): boolean;
+  function ClassAllowed(ImageClass: TEncodedImageClass): Boolean;
   begin
     Result := CastleImages.ClassAllowed(ImageClass, AllowedImageClasses);
   end;
 
 var
-  line: string;
+  line: String;
   { jesli false to kazdy pixel to RGBE. Wpp. kazdy pixel w pliku to XYZE }
-  xyzFormat: boolean;
+  xyzFormat: Boolean;
   x, y, RGBEWidth, RGBEHeight: Integer;
   RGBERow: PVector4ByteArray;
   FloatRow: PVector3Array;

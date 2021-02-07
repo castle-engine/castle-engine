@@ -36,7 +36,7 @@ var
   Scene: TCastleSceneCore;
   ShapeList: TShapeList;
   Shape: TShape;
-  PlaceholderNameKey: string;
+  PlaceholderNameKey: String;
 begin
   { show PlaceholderNames }
   Writeln(Format('Available placeholder detection methods (%d):',

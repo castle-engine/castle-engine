@@ -27,9 +27,9 @@ type
   public
     Magnification: TMagnificationFilter;
     Minification: TMinificationFilter;
-    function NeedsMipmaps: boolean;
+    function NeedsMipmaps: Boolean;
     procedure DisableMipmaps;
-    class operator {$ifdef FPC}={$else}Equal{$endif} (const V1, V2: TTextureFilter): boolean;
+    class operator {$ifdef FPC}={$else}Equal{$endif} (const V1, V2: TTextureFilter): Boolean;
   end;
 
 function TextureFilter(const Minification: TMinificationFilter;
@@ -77,7 +77,7 @@ begin
   glTexParameteri(Target, GL_TEXTURE_MAG_FILTER, MagFilterGL[Filter.Magnification]);
 end;
 
-function TTextureFilter.NeedsMipmaps: boolean;
+function TTextureFilter.NeedsMipmaps: Boolean;
 begin
   Result := Minification in
     [ minNearestMipmapNearest,
@@ -96,7 +96,7 @@ begin
 end;
 
 class operator TTextureFilter.{$ifdef FPC}={$else}Equal{$endif}
-  (const V1, V2: TTextureFilter): boolean;
+  (const V1, V2: TTextureFilter): Boolean;
 begin
   Result :=
     (V1.Minification  = V2.Minification ) and

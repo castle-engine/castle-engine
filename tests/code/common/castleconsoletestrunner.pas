@@ -31,9 +31,9 @@ type
 
   TCastlePlainResultsWriter = class(TPlainResultsWriter)
   protected
-    procedure WriteSuiteFooter(ATestSuite: TTestSuite; ALevel: integer;
-      ATiming: TDateTime; ANumRuns: integer; ANumErrors: integer;
-      ANumFailures: integer; ANumIgnores: integer); override;
+    procedure WriteSuiteFooter(ATestSuite: TTestSuite; ALevel: Integer;
+      ATiming: TDateTime; ANumRuns: Integer; ANumErrors: Integer;
+      ANumFailures: Integer; ANumIgnores: Integer); override;
   end;
 
 implementation
@@ -46,9 +46,9 @@ begin
 end;
 
 procedure TCastlePlainResultsWriter.WriteSuiteFooter(ATestSuite: TTestSuite;
-  ALevel: integer;
-  ATiming: TDateTime; ANumRuns: integer; ANumErrors: integer;
-  ANumFailures: integer; ANumIgnores: integer);
+  ALevel: Integer;
+  ATiming: TDateTime; ANumRuns: Integer; ANumErrors: Integer;
+  ANumFailures: Integer; ANumIgnores: Integer);
 begin
   inherited;
   if (ANumErrors <> 0) or (ANumFailures <> 0) then

@@ -60,24 +60,24 @@ const
   kFillable = 128; //voxels we might flood fill
   kUnfillable = 255; //voxels we can not flood fill
 var
-  lWid,lHt,lQSz,lQHead,lQTail: integer;
+  lWid,lHt,lQSz,lQHead,lQTail: Integer;
   lQRA: LongIntP;
   lMaskRA: ByteP;
 
-  procedure IncQra(var lVal, lQSz: integer);//nested inside FloodFill
+  procedure IncQra(var lVal, lQSz: Integer);//nested inside FloodFill
   begin
       inc(lVal);
       if lVal >= lQSz then
          lVal := 1;
   end; //nested Proc IncQra
 
-  function Pos2XY (lPos: integer): TPoint;
+  function Pos2XY (lPos: Integer): TPoint;
   begin
       result.X := ((lPos-1) mod lWid)+1; //horizontal position
       result.Y := ((lPos-1) div lWid)+1; //vertical position
   end; //nested Proc Pos2XY
 
-  procedure TestPixel(lPos: integer);
+  procedure TestPixel(lPos: Integer);
   begin
        if (lMaskRA^[lPos]=kFillable) then begin
           lMaskRA^[lPos] := kFill;
@@ -88,7 +88,7 @@ var
 
   procedure RetirePixel; //nested inside FloodFill
   var
-     lVal: integer;
+     lVal: Integer;
      lXY : TPoint;
   begin
      lVal := lQra^[lQTail];
@@ -106,7 +106,7 @@ var
 
 var
    lTargetColorVal,lDefaultVal: byte;
-   lX,lY,lPos: integer;
+   lX,lY,lPos: Integer;
    lBrushColor: TFPColor;
 begin //FloodFill
   if FillStyle = fsSurface then begin

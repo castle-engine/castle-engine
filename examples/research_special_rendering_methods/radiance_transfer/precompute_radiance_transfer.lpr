@@ -186,8 +186,8 @@ const
     (Short: 'r'; Long: 'rays-per-vertex'; Argument: oaRequired)
   );
 
-  procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
-    const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+  procedure OptionProc(OptionNum: Integer; HasArgument: Boolean;
+    const Argument: String; const SeparateArgs: TSeparateArgs; Data: Pointer);
   begin
     case OptionNum of
       0: SHBasisCount := StrToInt(Argument);
@@ -199,7 +199,7 @@ var
   Geometry: TAbstractGeometryNode;
   State: TX3DGraphTraverseState;
   RadianceTransfer: TVector3List;
-  S: string;
+  S: String;
   TimeStart: TProcessTimerResult;
   Seconds: TFloatTime;
   ShapeList: TShapeList;

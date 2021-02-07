@@ -32,23 +32,23 @@ type
   PtrInt = NativeInt;
   PtrUInt = NativeUInt;
 
-  TGetVendorNameEvent  = function: string;
-  TGetAppNameEvent  = function: string;
+  TGetVendorNameEvent  = function: String;
+  TGetAppNameEvent  = function: String;
 
 var
   OnGetVendorName      : TGetVendorNameEvent;
   OnGetApplicationName : TGetAppNameEvent;
 
 function GetMem(const Size: Integer): Pointer;
-function VendorName: string;
-function ApplicationName: string;
+function VendorName: String;
+function ApplicationName: String;
 function GetAppConfigDir(Global : Boolean) : String;
 
-function StringsReplace(const S: string; OldPattern, NewPattern: array of string;  Flags: TReplaceFlags): string;
+function StringsReplace(const S: String; OldPattern, NewPattern: array of String;  Flags: TReplaceFlags): String;
 
 function StrToQWord(const S: String): QWord;
 
-function IsWild(InputStr, Wilds: string; IgnoreCase: Boolean): Boolean;
+function IsWild(InputStr, Wilds: String; IgnoreCase: Boolean): Boolean;
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -114,14 +114,14 @@ begin
     Result:=IncludeTrailingPathDelimiter(DGetAppConfigDir(Global));
 end;
 
-function StringsReplace(const S: string; OldPattern, NewPattern: array of string;  Flags: TReplaceFlags): string;
+function StringsReplace(const S: String; OldPattern, NewPattern: array of String;  Flags: TReplaceFlags): String;
 
-var pc,pcc,lastpc : pchar;
-    strcount      : integer;
+var pc,pcc,lastpc : PChar;
+    strcount      : Integer;
     ResStr,
-    CompStr       : string;
+    CompStr       : String;
     Found         : Boolean;
-    sc            : sizeint;
+    sc            : SizeInt;
 
 begin
   sc := length(OldPattern);
@@ -180,16 +180,16 @@ begin
   Result := StrToUInt64(S);
 end;
 
-Function isMatch(level : integer;inputstr,wilds : string; CWild, CinputWord: SizeInt;MaxInputword,maxwilds : SizeInt; Out EOS : Boolean) : Boolean;
+Function isMatch(level : integer; inputstr,wilds: String; CWild, CinputWord: SizeInt;MaxInputword,maxwilds : SizeInt; Out EOS : Boolean) : Boolean;
 
-  function WildisQuestionmark : boolean;
+  function WildisQuestionmark : Boolean;
 begin
     Result:=CWild <= MaxWilds;
     if Result then
       Result:= Wilds[CWild]='?';
   end;
 
-  function WildisStar : boolean;
+  function WildisStar : Boolean;
   begin
     Result:=CWild <= MaxWilds;
     if Result then
@@ -256,7 +256,7 @@ begin
     end
 end;
 
-function IsWild(InputStr, Wilds: string; IgnoreCase: Boolean): Boolean;
+function IsWild(InputStr, Wilds: String; IgnoreCase: Boolean): Boolean;
 
 var
   i: SizeInt;

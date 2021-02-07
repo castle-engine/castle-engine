@@ -20,12 +20,12 @@ type
   { Common class for reading or writing a stream like a text file. }
   TTextReaderWriter = class
   private
-    FOwnsStream: boolean;
+    FOwnsStream: Boolean;
     FStream: TStream;
   public
     { Open a stream. If AOwnsStream then in destructor we will free
       given AStream object. }
-    constructor Create(AStream: TStream; AOwnsStream: boolean); overload;
+    constructor Create(AStream: TStream; AOwnsStream: Boolean); overload;
     destructor Destroy; override;
   end;
 
@@ -43,18 +43,18 @@ type
     this class. We will move the position within this stream ourselves. }
   TTextReader = class(TTextReaderWriter)
   private
-    ReadBuf: string;
+    ReadBuf: String;
     { Try to read more data from underlying stream and add it to ReadBuf.
       Returns if we succeded, @false means that the stream ends.
       When it returns @true, you can be sure that Length(ReadBuf) increased. }
-    function IncreaseReadBuf: boolean;
+    function IncreaseReadBuf: Boolean;
   public
     { Download and open a file. }
-    constructor Create(const URL: string); overload;
+    constructor Create(const URL: String); overload;
 
-    { Read next line from Stream. Returned string does not contain
+    { Read next line from Stream. Returned String does not contain
       any end-of-line characters. }
-    function Readln: string;
+    function Readln: String;
 
     { Read the next string of non-whitespace characters.
       This skips any whitespace (including newlines) we currently see,
@@ -63,7 +63,7 @@ type
 
       Returns empty string if and only if the stream ended.
       Otherwise, returns the read non-whitespace characters. }
-    function Read: string;
+    function Read: String;
 
     { Read the next Integer from stream. Reads next string of non-whitespace
       characters, like @link(Read), and then converts it to Integer.
@@ -92,7 +92,7 @@ type
     function ReadVector3: TVector3;
     function ReadVector3Single: TVector3; deprecated 'use ReadVector3';
 
-    function Eof: boolean;
+    function Eof: Boolean;
   end;
 
   { Write to a stream like to a text file.
@@ -104,11 +104,11 @@ type
     a nice exception message in case of unsupprted URL protocol. }
   TTextWriter = class(TTextReaderWriter)
   public
-    constructor Create(const URL: string); overload;
-    procedure Write(const S: string); overload;
-    procedure Write(const S: string; const Args: array of const); overload;
-    procedure Writeln(const S: string = ''); overload;
-    procedure Writeln(const S: string; const Args: array of const); overload;
+    constructor Create(const URL: String); overload;
+    procedure Write(const S: String); overload;
+    procedure Write(const S: String; const Args: array of const); overload;
+    procedure Writeln(const S: String = ''); overload;
+    procedure Writeln(const S: String; const Args: array of const); overload;
   end;
 
 {$endif}
@@ -117,7 +117,7 @@ type
 
 { TTextReaderWriter ---------------------------------------------------------- }
 
-constructor TTextReaderWriter.Create(AStream: TStream; AOwnsStream: boolean);
+constructor TTextReaderWriter.Create(AStream: TStream; AOwnsStream: Boolean);
 begin
   inherited Create;
   FStream := Astream;
@@ -132,12 +132,12 @@ end;
 
 { TTextReader ---------------------------------------------------------------- }
 
-constructor TTextReader.Create(const URL: string);
+constructor TTextReader.Create(const URL: String);
 begin
   inherited Create(Download(URL), true);
 end;
 
-function TTextReader.IncreaseReadBuf: boolean;
+function TTextReader.IncreaseReadBuf: Boolean;
 const
   BufferIncrease = 100;
 var
@@ -149,9 +149,9 @@ begin
   Result := ReadCnt <> 0;
 end;
 
-function TTextReader.Readln: string;
+function TTextReader.Readln: String;
 var
-  I, DeleteCount: integer;
+  I, DeleteCount: Integer;
 begin
   I := 1;
 
@@ -191,9 +191,9 @@ begin
   until false;
 end;
 
-function TTextReader.Read: string;
+function TTextReader.Read: String;
 var
-  Start, I: integer;
+  Start, I: Integer;
 begin
   I := 1;
 
@@ -243,34 +243,34 @@ begin
   Result := ReadVector3;
 end;
 
-function TTextReader.Eof: boolean;
+function TTextReader.Eof: Boolean;
 begin
   Result := (ReadBuf = '') and not IncreaseReadBuf;
 end;
 
 { TTextWriter ---------------------------------------------------------------- }
 
-constructor TTextWriter.Create(const URL: string);
+constructor TTextWriter.Create(const URL: String);
 begin
   inherited Create(URLSaveStream(URL), true);
 end;
 
-procedure TTextWriter.Write(const S: string);
+procedure TTextWriter.Write(const S: String);
 begin
   WriteStr(FStream, S);
 end;
 
-procedure TTextWriter.Writeln(const S: string);
+procedure TTextWriter.Writeln(const S: String);
 begin
   WritelnStr(FStream, S);
 end;
 
-procedure TTextWriter.Write(const S: string; const Args: array of const);
+procedure TTextWriter.Write(const S: String; const Args: array of const);
 begin
   WriteStr(FStream, Format(S, Args));
 end;
 
-procedure TTextWriter.Writeln(const S: string; const Args: array of const);
+procedure TTextWriter.Writeln(const S: String; const Args: array of const);
 begin
   WritelnStr(FStream, Format(S, Args));
 end;

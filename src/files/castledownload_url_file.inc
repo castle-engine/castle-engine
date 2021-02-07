@@ -26,11 +26,11 @@
 
 type
   TUrlFile = class
-    class function Read(const Url: string; out MimeType: string): TStream;
-    class function Write(const Url: string): TStream;
+    class function Read(const Url: String; out MimeType: String): TStream;
+    class function Write(const Url: String): TStream;
   end;
 
-class function TUrlFile.Read(const Url: string; out MimeType: string): TStream;
+class function TUrlFile.Read(const Url: String; out MimeType: String): TStream;
 var
   FileName: String;
 begin
@@ -44,7 +44,7 @@ begin
   MimeType := URIMimeType(URL);
 end;
 
-class function TUrlFile.Write(const Url: string): TStream;
+class function TUrlFile.Write(const Url: String): TStream;
 var
   FileName: String;
 begin

@@ -60,7 +60,7 @@ const
 var Dir, Up: TVector3;
     i: Integer;
     NewOrient: TVector4;
-    oohFailed: boolean;
+    oohFailed: Boolean;
 begin
  { Uzywam zmiennej oohFailed bo chce wykonac zawsze test dla wszystkich
    wymienionych orientacji, nawet jesli niektore po drodze zawioda.
@@ -126,7 +126,7 @@ const
     (Dir: (Data: (-0.0031079668551683    , -0.0010071427095681, -0.9999946355819702)); Up: (Data: (-0.0020249725785106     , 0.9999974370002747, -0.0010008082026616)))
   );
 
-  procedure DoTest(const Dir, Up: TVector3; const TestName: string);
+  procedure DoTest(const Dir, Up: TVector3; const TestName: String);
   var
     Orientation: TQuaternion;
   begin
@@ -160,7 +160,7 @@ end;
 procedure TTestCameras.TestInput;
 
   procedure AssertCamera(const C: TCamera; const Input: TCameraInputs;
-    const IgnoreAllInputs, MouseNavigation: boolean);
+    const IgnoreAllInputs, MouseNavigation: Boolean);
   begin
     AssertTrue(C.Input = Input);
     {$warnings off}

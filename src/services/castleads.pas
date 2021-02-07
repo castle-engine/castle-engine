@@ -87,82 +87,82 @@ type
       TAdNetworkHandler = class abstract
       strict private
         FParent: TAds;
-        FBannerShowing: boolean;
+        FBannerShowing: Boolean;
         FBannerGravity: Integer;
         function MessageReceived(const Received: TCastleStringList;
-          const ReceivedStream: TMemoryStream): boolean;
+          const ReceivedStream: TMemoryStream): Boolean;
         procedure FullScreenAdClosed(const WatchedStatus: TAdWatchStatus);
       strict protected
-        FFullScreenAdVisible: boolean;
+        FFullScreenAdVisible: Boolean;
         procedure ReinitializeJavaActivity(Sender: TObject); virtual;
       public
         constructor Create(const AParent: TAds);
         destructor Destroy; override;
         property Parent: TAds read FParent;
-        class function Name: string; virtual; abstract;
+        class function Name: String; virtual; abstract;
         procedure ShowBanner(const Gravity: Integer); virtual;
         procedure HideBanner; virtual;
         procedure ShowFullScreenAd(const AdType: TFullScreenAdType;
-          const WaitUntilLoaded: boolean); virtual;
+          const WaitUntilLoaded: Boolean); virtual;
         procedure StartTestActivity; virtual;
       end;
 
       TAdMobHandler = class(TAdNetworkHandler)
       strict private
-        FBannerUnitId, FInterstitialUnitId, FRewardedUnitId, FTestDeviceIdsGlued: string;
+        FBannerUnitId, FInterstitialUnitId, FRewardedUnitId, FTestDeviceIdsGlued: String;
       strict protected
         procedure ReinitializeJavaActivity(Sender: TObject); override;
       public
         constructor Create(const AParent: TAds;
-          const ABannerUnitId, AInterstitialUnitId, ARewardedUnitId: string;
-          const TestDeviceIds: array of string);
+          const ABannerUnitId, AInterstitialUnitId, ARewardedUnitId: String;
+          const TestDeviceIds: array of String);
 
-        class function Name: string; override;
+        class function Name: String; override;
         procedure ShowBanner(const Gravity: Integer); override;
         procedure HideBanner; override;
         procedure ShowFullScreenAd(const AdType: TFullScreenAdType;
-          const WaitUntilLoaded: boolean); override;
+          const WaitUntilLoaded: Boolean); override;
       end;
 
       TChartboostHandler = class(TAdNetworkHandler)
       strict private
-        FAppId, FAppSignature: string;
+        FAppId, FAppSignature: String;
       strict protected
         procedure ReinitializeJavaActivity(Sender: TObject); override;
       public
         constructor Create(const AParent: TAds;
-          const AnAppId, AnAppSignature: string);
-        class function Name: string; override;
+          const AnAppId, AnAppSignature: String);
+        class function Name: String; override;
         procedure ShowFullScreenAd(const AdType: TFullScreenAdType;
-          const WaitUntilLoaded: boolean); override;
+          const WaitUntilLoaded: Boolean); override;
       end;
 
       TStartappHandler = class(TAdNetworkHandler)
       strict private
-        FAppId: string;
+        FAppId: String;
       strict protected
         procedure ReinitializeJavaActivity(Sender: TObject); override;
       public
         constructor Create(const AParent: TAds;
-          const AnAppId: string);
-        class function Name: string; override;
+          const AnAppId: String);
+        class function Name: String; override;
         procedure ShowFullScreenAd(const AdType: TFullScreenAdType;
-          const WaitUntilLoaded: boolean); override;
+          const WaitUntilLoaded: Boolean); override;
       end;
 
       THeyzapHandler = class(TAdNetworkHandler)
       strict private
-        FPublisherId: string;
+        FPublisherId: String;
       strict protected
         procedure ReinitializeJavaActivity(Sender: TObject); override;
       public
         constructor Create(const AParent: TAds;
-          const APublisherId: string);
-        class function Name: string; override;
+          const APublisherId: String);
+        class function Name: String; override;
         procedure ShowBanner(const Gravity: Integer); override;
         procedure HideBanner; override;
         procedure ShowFullScreenAd(const AdType: TFullScreenAdType;
-          const WaitUntilLoaded: boolean); override;
+          const WaitUntilLoaded: Boolean); override;
         procedure StartTestActivity; override;
       end;
     var
@@ -187,29 +187,29 @@ type
       getting banned for clicking on your own ads.
 
       Usually called from @link(TCastleApplication.OnInitialize). }
-    procedure InitializeAdMob(const BannerUnitId, InterstitialUnitId, RewardedUnitId: string;
-      const TestDeviceIds: array of string);
+    procedure InitializeAdMob(const BannerUnitId, InterstitialUnitId, RewardedUnitId: String;
+      const TestDeviceIds: array of String);
 
-    procedure InitializeAdMob(const BannerUnitId, InterstitialUnitId: string;
-      const TestDeviceIds: array of string);
+    procedure InitializeAdMob(const BannerUnitId, InterstitialUnitId: String;
+      const TestDeviceIds: array of String);
 
     { Initialize StartApp ads.
       You need to register your game on http://startapp.com/ to get app id.
 
       Usually called from @link(TCastleApplication.OnInitialize). }
-    procedure InitializeStartapp(const AppId: string);
+    procedure InitializeStartapp(const AppId: String);
 
     { Initialize Chartboost ads.
       You need to register your game on http://chartboost.com/ to get app id and signature.
 
       Usually called from @link(TCastleApplication.OnInitialize). }
-    procedure InitializeChartboost(const AppId, AppSignature: string);
+    procedure InitializeChartboost(const AppId, AppSignature: String);
 
     { Initialize Heyzap ads.
       You need to register your game on https://www.heyzap.com/ to get publisher id.
 
       Usually called from @link(TCastleApplication.OnInitialize). }
-    procedure InitializeHeyzap(const PublisherId: string);
+    procedure InitializeHeyzap(const PublisherId: String);
 
     { Show full-screen ad, interstitial (in-between) or reward ad.
 
@@ -227,7 +227,7 @@ type
       OnFullScreenAdClosed sometime. }
     procedure ShowFullScreenAd(const AdNetwork: TAdNetwork;
       const AdType: TFullScreenAdType;
-      const WaitUntilLoaded: boolean);
+      const WaitUntilLoaded: Boolean);
 
     { Show banner ad.
       Banners are not supported by all ad networks (only AdMob and Heyzap now),
@@ -276,7 +276,7 @@ begin
 end;
 
 function TAds.TAdNetworkHandler.MessageReceived(const Received: TCastleStringList;
-  const ReceivedStream: TMemoryStream): boolean;
+  const ReceivedStream: TMemoryStream): Boolean;
 var
   AdWatchStatusInt: Integer;
   WatchStatus: TAdWatchStatus;
@@ -333,7 +333,7 @@ begin
 end;
 
 procedure TAds.TAdNetworkHandler.ShowFullScreenAd(const AdType: TFullScreenAdType;
-  const WaitUntilLoaded: boolean);
+  const WaitUntilLoaded: Boolean);
 begin
   { if the network doesn't support showing full-screen ads, pretend it's shown,
     in case user code waits for OnFullScreenAdClosed. }
@@ -366,8 +366,8 @@ end;
 { TAdMobHandler -------------------------------------------------------------- }
 
 constructor TAds.TAdMobHandler.Create(const AParent: TAds;
-  const ABannerUnitId, AInterstitialUnitId, ARewardedUnitId: string;
-  const TestDeviceIds: array of string);
+  const ABannerUnitId, AInterstitialUnitId, ARewardedUnitId: String;
+  const TestDeviceIds: array of String);
 begin
   inherited Create(AParent);
   FTestDeviceIdsGlued := GlueStrings(TestDeviceIds, ',');
@@ -383,7 +383,7 @@ begin
   inherited;
 end;
 
-class function TAds.TAdMobHandler.Name: string;
+class function TAds.TAdMobHandler.Name: String;
 begin
   Result := 'admob';
 end;
@@ -400,7 +400,7 @@ begin
   inherited;
 end;
 
-procedure TAds.TAdMobHandler.ShowFullScreenAd(const AdType: TFullScreenAdType; const WaitUntilLoaded: boolean);
+procedure TAds.TAdMobHandler.ShowFullScreenAd(const AdType: TFullScreenAdType; const WaitUntilLoaded: Boolean);
 var
   AdTypeName: String;
   WaitUntilLoadedStr: String;
@@ -415,7 +415,7 @@ end;
 { TChartboostHandler --------------------------------------------------------- }
 
 constructor TAds.TChartboostHandler.Create(const AParent: TAds;
-  const AnAppId, AnAppSignature: string);
+  const AnAppId, AnAppSignature: String);
 begin
   inherited Create(AParent);
   FAppId := AnAppId;
@@ -429,13 +429,13 @@ begin
   inherited;
 end;
 
-class function TAds.TChartboostHandler.Name: string;
+class function TAds.TChartboostHandler.Name: String;
 begin
   Result := 'chartboost';
 end;
 
 procedure TAds.TChartboostHandler.ShowFullScreenAd(const AdType: TFullScreenAdType;
-  const WaitUntilLoaded: boolean);
+  const WaitUntilLoaded: Boolean);
 begin
   FFullScreenAdVisible := true;
   Messaging.Send(['ads-' + Name + '-show-interstitial']);
@@ -444,7 +444,7 @@ end;
 { TStartappHandler --------------------------------------------------------- }
 
 constructor TAds.TStartappHandler.Create(const AParent: TAds;
-  const AnAppId: string);
+  const AnAppId: String);
 begin
   inherited Create(AParent);
   FAppId := AnAppId;
@@ -457,13 +457,13 @@ begin
   inherited;
 end;
 
-class function TAds.TStartappHandler.Name: string;
+class function TAds.TStartappHandler.Name: String;
 begin
   Result := 'startapp';
 end;
 
 procedure TAds.TStartappHandler.ShowFullScreenAd(const AdType: TFullScreenAdType;
-  const WaitUntilLoaded: boolean);
+  const WaitUntilLoaded: Boolean);
 begin
   FFullScreenAdVisible := true;
   Messaging.Send(['ads-' + Name + '-show-interstitial']);
@@ -472,7 +472,7 @@ end;
 { THeyzapHandler --------------------------------------------------------- }
 
 constructor TAds.THeyzapHandler.Create(const AParent: TAds;
-  const APublisherId: string);
+  const APublisherId: String);
 begin
   inherited Create(AParent);
   FPublisherId := APublisherId;
@@ -485,7 +485,7 @@ begin
   inherited;
 end;
 
-class function TAds.THeyzapHandler.Name: string;
+class function TAds.THeyzapHandler.Name: String;
 begin
   Result := 'heyzap';
 end;
@@ -503,7 +503,7 @@ begin
 end;
 
 procedure TAds.THeyzapHandler.ShowFullScreenAd(const AdType: TFullScreenAdType;
-  const WaitUntilLoaded: boolean);
+  const WaitUntilLoaded: Boolean);
 begin
   FFullScreenAdVisible := true;
   case AdType of
@@ -536,8 +536,8 @@ begin
   inherited;
 end;
 
-procedure TAds.InitializeAdMob(const BannerUnitId, InterstitialUnitId, RewardedUnitId: string;
-  const TestDeviceIds: array of string);
+procedure TAds.InitializeAdMob(const BannerUnitId, InterstitialUnitId, RewardedUnitId: String;
+  const TestDeviceIds: array of String);
 begin
   if FNetworks[anAdMob] <> nil then
     FreeAndNil(FNetworks[anAdMob]);
@@ -545,27 +545,27 @@ begin
     BannerUnitId, InterstitialUnitId, RewardedUnitId, TestDeviceIds);
 end;
 
-procedure TAds.InitializeAdMob(const BannerUnitId, InterstitialUnitId: string;
-  const TestDeviceIds: array of string);
+procedure TAds.InitializeAdMob(const BannerUnitId, InterstitialUnitId: String;
+  const TestDeviceIds: array of String);
 begin
   InitializeAdMob(BannerUnitId, InterstitialUnitId, '', TestDeviceIds);
 end;
 
-procedure TAds.InitializeStartapp(const AppId: string);
+procedure TAds.InitializeStartapp(const AppId: String);
 begin
   if FNetworks[anStartApp] <> nil then
     FreeAndNil(FNetworks[anStartApp]);
   FNetworks[anStartApp] := TStartAppHandler.Create(Self, AppId);
 end;
 
-procedure TAds.InitializeChartboost(const AppId, AppSignature: string);
+procedure TAds.InitializeChartboost(const AppId, AppSignature: String);
 begin
   if FNetworks[anChartboost] <> nil then
     FreeAndNil(FNetworks[anChartboost]);
   FNetworks[anChartboost] := TChartboostHandler.Create(Self, AppId, AppSignature);
 end;
 
-procedure TAds.InitializeHeyzap(const PublisherId: string);
+procedure TAds.InitializeHeyzap(const PublisherId: String);
 begin
   if FNetworks[anHeyzap] <> nil then
     FreeAndNil(FNetworks[anHeyzap]);
@@ -579,7 +579,7 @@ begin
 end;
 
 procedure TAds.ShowFullScreenAd(const AdNetwork: TAdNetwork;
-  const AdType: TFullScreenAdType; const WaitUntilLoaded: boolean);
+  const AdType: TFullScreenAdType; const WaitUntilLoaded: Boolean);
 begin
   {$ifdef ANDROID}
   if FNetworks[AdNetwork] <> nil then

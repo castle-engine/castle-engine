@@ -63,7 +63,7 @@ var
 type
   TTnt = class(TCastleTransform)
   private
-    ToRemove: boolean;
+    ToRemove: Boolean;
   public
     function PointingDevicePress(const Pick: TRayCollisionNode;
       const Distance: Single): Boolean; override;
@@ -154,7 +154,7 @@ class procedure TDummy.CameraChanged(Camera: TObject);
 { Update stuff based on whether camera position is inside mute area. }
 
   function CylinderContains(const P: TVector3;
-    const MiddleX, MiddleY, Radius, MinZ, MaxZ: Single): boolean;
+    const MiddleX, MiddleY, Radius, MinZ, MaxZ: Single): Boolean;
   begin
     Result :=
       (Sqr(P[0]-MiddleX) + Sqr(P[1]-MiddleY) <= Sqr(Radius)) and
@@ -162,7 +162,7 @@ class procedure TDummy.CameraChanged(Camera: TObject);
   end;
 
 var
-  InMuteArea: boolean;
+  InMuteArea: Boolean;
 begin
   InMuteArea := CylinderContains(Viewport.Camera.Position, 2, 0, 0.38, 0, 1.045640);
 
@@ -216,13 +216,13 @@ end;
 { parsing parameters --------------------------------------------------------- }
 
 const
-  Options: array[0..1]of TOption =
+  Options: array [0..1] of TOption =
   ((Short:'h'; Long: 'help'; Argument: oaNone),
    (Short:'v'; Long: 'version'; Argument: oaNone)
   );
 
-procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
-  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+procedure OptionProc(OptionNum: Integer; HasArgument: Boolean;
+  const Argument: String; const SeparateArgs: TSeparateArgs; Data: Pointer);
 begin
   case OptionNum of
     0:begin

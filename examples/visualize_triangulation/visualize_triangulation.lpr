@@ -44,7 +44,7 @@ type
   strict private
     TriangleCount: Integer;
     Vertexes: TVector3List;
-    ImageUrlPrefix: string;
+    ImageUrlPrefix: String;
     Image: TFPCustomImage;
     Canvas: TFPCustomCanvas;
     VisualizeX, VisualizeY: Cardinal;
@@ -52,16 +52,16 @@ type
 
     function VisualizePoint(const P: TVector3): TPoint;
     function VisualizePointRect(const P: TVector3): TRect;
-    procedure SaveImage(const Url, Message: string);
+    procedure SaveImage(const Url, Message: String);
     procedure Face(const Tri: TVector3Integer);
     procedure CreateCommon(
-      const Name: string; AVisualizeX, AVisualizeY: Cardinal;
-      const RevertOrder: boolean);
+      const Name: String; AVisualizeX, AVisualizeY: Cardinal;
+      const RevertOrder: Boolean);
   public
     constructor Create(AVertexes: array of TVector3;
-      const Name: string; AVisualizeX, AVisualizeY: Cardinal;
-      const RevertOrder: boolean);
-    constructor Create(const URL: string);
+      const Name: String; AVisualizeX, AVisualizeY: Cardinal;
+      const RevertOrder: Boolean);
+    constructor Create(const URL: String);
     destructor Destroy; override;
     procedure VisualizePolygon;
     procedure VisualizeTriangulation;
@@ -83,7 +83,7 @@ begin
   Result := Rect(Pt.X - 10, Pt.Y - 10, Pt.X + 10, Pt.Y + 10);
 end;
 
-procedure TVisualizeTriangulation.SaveImage(const Url, Message: string);
+procedure TVisualizeTriangulation.SaveImage(const Url, Message: String);
 var
   Writer: TFPWriterPNG;
 begin
@@ -146,7 +146,7 @@ begin
     Format('Triangle %d: %d - %d - %d', [TriangleCount, Tri[0], Tri[1], Tri[2]]));
 end;
 
-constructor TVisualizeTriangulation.Create(const URL: string);
+constructor TVisualizeTriangulation.Create(const URL: String);
 var
   Scene: TCastleSceneCore;
   Extrusion: TExtrusionNode;
@@ -170,8 +170,8 @@ begin
 end;
 
 constructor TVisualizeTriangulation.Create(AVertexes: array of TVector3;
-  const Name: string; AVisualizeX, AVisualizeY: Cardinal;
-  const RevertOrder: boolean);
+  const Name: String; AVisualizeX, AVisualizeY: Cardinal;
+  const RevertOrder: Boolean);
 var
   I: Integer;
 begin
@@ -187,8 +187,8 @@ begin
 end;
 
 procedure TVisualizeTriangulation.CreateCommon(
-  const Name: string; AVisualizeX, AVisualizeY: Cardinal;
-  const RevertOrder: boolean);
+  const Name: String; AVisualizeX, AVisualizeY: Cardinal;
+  const RevertOrder: Boolean);
 var
   I: Integer;
 begin
@@ -294,7 +294,7 @@ const
     (Data: (1, 0, -2.44921e-016))
   );
 var
-  URL: string;
+  URL: String;
   Vis: TVisualizeTriangulation;
 begin
   InitializeLog;

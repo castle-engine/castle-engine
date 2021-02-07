@@ -58,7 +58,7 @@
     { X3D field "stopTime". } { }
     property StopTime: TFloatTime read GetStopTime write SetStopTime;
     { Set X3D field "url". } { }
-    procedure SetUrl(const Value: array of string);
+    procedure SetUrl(const Value: array of String);
     { Set X3D field "url". } { }
     procedure SetUrl(const Value: TCastleStringList);
     { X3D field "flipVertically". } { }
@@ -140,7 +140,7 @@ begin
   FdStopTime.Send(Value);
 end;
 
-procedure TMovieTextureNode.SetUrl(const Value: array of string);
+procedure TMovieTextureNode.SetUrl(const Value: array of String);
 begin
   FdUrl.Send(Value);
 end;

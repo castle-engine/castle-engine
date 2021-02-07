@@ -26,10 +26,10 @@
 
 type
   TUrlCompiled = class
-    class function Read(const Url: string; out MimeType: string): TStream;
+    class function Read(const Url: String; out MimeType: String): TStream;
   end;
 
-class function TUrlCompiled.Read(const Url: string; out MimeType: string): TStream;
+class function TUrlCompiled.Read(const Url: String; out MimeType: String): TStream;
 begin
   MimeType := 'text/x-castle-compiled';
   Result := MemoryStreamLoadFromString(URIDeleteProtocol(URL));

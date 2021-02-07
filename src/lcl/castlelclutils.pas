@@ -27,7 +27,7 @@ uses Dialogs, Classes, Controls, LCLType, Graphics, EditBtn,
   Suitable for both open and save dialogs (TOpenDialog, TSaveDialog
   both descend from TFileDialog).
 
-  Input filters are either given as a string FileFilters
+  Input filters are either given as a String FileFilters
   (encoded just like for TFileFilterList.AddFiltersFromString),
   or as TFileFilterList instance.
 
@@ -38,31 +38,31 @@ uses Dialogs, Classes, Controls, LCLType, Graphics, EditBtn,
   like "All files", "All images", are not included in the output.
 
   @groupBegin }
-procedure FileFiltersToDialog(const FileFilters: string;
-  Dialog: TFileDialog; const AllFields: boolean = true);
-procedure FileFiltersToDialog(const FileFilters: string;
-  const Edit: TFileNameEdit; const AllFields: boolean = true);
-procedure FileFiltersToDialog(const FileFilters: string;
-  out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: boolean = true);
+procedure FileFiltersToDialog(const FileFilters: String;
+  Dialog: TFileDialog; const AllFields: Boolean = true);
+procedure FileFiltersToDialog(const FileFilters: String;
+  const Edit: TFileNameEdit; const AllFields: Boolean = true);
+procedure FileFiltersToDialog(const FileFilters: String;
+  out LCLFilter: String; out LCLFilterIndex: Integer; const AllFields: Boolean = true);
 procedure FileFiltersToDialog(FFList: TFileFilterList;
-  Dialog: TFileDialog; const AllFields: boolean = true);
+  Dialog: TFileDialog; const AllFields: Boolean = true);
 procedure FileFiltersToDialog(FFList: TFileFilterList;
-  out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: boolean = true);
+  out LCLFilter: String; out LCLFilterIndex: Integer; const AllFields: Boolean = true);
 { @groupEnd }
 
 { Make each '&' inside string '&&', this way the string will not contain
   special '&x' sequences when used as a TMenuItem.Caption and such. }
-function SQuoteLCLCaption(const S: string): string;
+function SQuoteLCLCaption(const S: String): String;
 
 { Deprecated names, use the identifiers without "Open" in new code.
   @deprecated
   @groupBegin }
-procedure FileFiltersToOpenDialog(const FileFilters: string;
+procedure FileFiltersToOpenDialog(const FileFilters: String;
   Dialog: TFileDialog); deprecated;
-procedure FileFiltersToOpenDialog(const FileFilters: string;
-  out LCLFilter: string; out LCLFilterIndex: Integer); deprecated;
+procedure FileFiltersToOpenDialog(const FileFilters: String;
+  out LCLFilter: String; out LCLFilterIndex: Integer); deprecated;
 procedure FileFiltersToOpenDialog(FFList: TFileFilterList;
-  out LCLFilter: string; out LCLFilterIndex: Integer); deprecated;
+  out LCLFilter: String; out LCLFilterIndex: Integer); deprecated;
 { @groupEnd }
 
 { Convert Key (Lazarus key code) to Castle Game Engine TKey.
@@ -90,7 +90,7 @@ procedure KeyCastleToLCL(const Key: TKey; KeyString: String;
   is in the middle in my type)). }
 function MouseButtonLCLToCastle(
   const MouseButton: Controls.TMouseButton;
-  out MyMouseButton: TCastleMouseButton): boolean;
+  out MyMouseButton: TCastleMouseButton): Boolean;
 
 const
   CursorCastleToLCL: array [TMouseCursor] of TCursor =
@@ -115,8 +115,8 @@ const
     crSizeSE       // mcResizeBottomRight
   );
 
-function FilenameToURISafeUTF8(const FileName: string): string;
-function URIToFilenameSafeUTF8(const URL: string): string;
+function FilenameToURISafeUTF8(const FileName: String): String;
+function URIToFilenameSafeUTF8(const URL: String): String;
 
 { Convert LCL color values to our colors (vectors). }
 function ColorToVector3(const Color: TColor): TVector3;
@@ -179,10 +179,10 @@ implementation
 uses SysUtils, FileUtil, LazUTF8, LCLProc,
   CastleClassUtils, CastleStringUtils, CastleURIUtils, CastleLog;
 
-procedure FileFiltersToDialog(const FileFilters: string;
-  Dialog: TFileDialog; const AllFields: boolean);
+procedure FileFiltersToDialog(const FileFilters: String;
+  Dialog: TFileDialog; const AllFields: Boolean);
 var
-  LCLFilter: string;
+  LCLFilter: String;
   LCLFilterIndex: Integer;
 begin
   FileFiltersToDialog(FileFilters, LCLFilter, LCLFilterIndex, AllFields);
@@ -190,10 +190,10 @@ begin
   Dialog.FilterIndex := LCLFilterIndex;
 end;
 
-procedure FileFiltersToDialog(const FileFilters: string;
-  const Edit: TFileNameEdit; const AllFields: boolean);
+procedure FileFiltersToDialog(const FileFilters: String;
+  const Edit: TFileNameEdit; const AllFields: Boolean);
 var
-  LCLFilter: string;
+  LCLFilter: String;
   LCLFilterIndex: Integer;
 begin
   FileFiltersToDialog(FileFilters, LCLFilter, LCLFilterIndex, AllFields);
@@ -201,8 +201,8 @@ begin
   Edit.FilterIndex := LCLFilterIndex;
 end;
 
-procedure FileFiltersToDialog(const FileFilters: string;
-  out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: boolean);
+procedure FileFiltersToDialog(const FileFilters: String;
+  out LCLFilter: String; out LCLFilterIndex: Integer; const AllFields: Boolean);
 var
   FFList: TFileFilterList;
 begin
@@ -214,9 +214,9 @@ begin
 end;
 
 procedure FileFiltersToDialog(FFList: TFileFilterList;
-  Dialog: TFileDialog; const AllFields: boolean);
+  Dialog: TFileDialog; const AllFields: Boolean);
 var
-  LCLFilter: string;
+  LCLFilter: String;
   LCLFilterIndex: Integer;
 begin
   FileFiltersToDialog(FFList, LCLFilter, LCLFilterIndex, AllFields);
@@ -225,7 +225,7 @@ begin
 end;
 
 procedure FileFiltersToDialog(FFList: TFileFilterList;
-  out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: boolean);
+  out LCLFilter: String; out LCLFilterIndex: Integer; const AllFields: Boolean);
 var
   Filter: TFileFilter;
   I, J: Integer;
@@ -267,26 +267,26 @@ begin
   Inc(LCLFilterIndex);
 end;
 
-function SQuoteLCLCaption(const S: string): string;
+function SQuoteLCLCaption(const S: String): String;
 begin
   Result := StringReplace(S, '&', '&&', [rfReplaceAll]);
 end;
 
 { FileFiltersToOpenDialog are deprecated, just call versions without "Open". }
-procedure FileFiltersToOpenDialog(const FileFilters: string;
+procedure FileFiltersToOpenDialog(const FileFilters: String;
   Dialog: TFileDialog);
 begin
   FileFiltersToDialog(FileFilters, Dialog);
 end;
 
-procedure FileFiltersToOpenDialog(const FileFilters: string;
-  out LCLFilter: string; out LCLFilterIndex: Integer);
+procedure FileFiltersToOpenDialog(const FileFilters: String;
+  out LCLFilter: String; out LCLFilterIndex: Integer);
 begin
   FileFiltersToDialog(FileFilters, LCLFilter, LCLFilterIndex);
 end;
 
 procedure FileFiltersToOpenDialog(FFList: TFileFilterList;
-  out LCLFilter: string; out LCLFilterIndex: Integer);
+  out LCLFilter: String; out LCLFilterIndex: Integer);
 begin
   FileFiltersToDialog(FFList, LCLFilter, LCLFilterIndex);
 end;
@@ -466,7 +466,7 @@ end;
 
 function MouseButtonLCLToCastle(
   const MouseButton: Controls.TMouseButton;
-  out MyMouseButton: TCastleMouseButton): boolean;
+  out MyMouseButton: TCastleMouseButton): Boolean;
 begin
   Result := true;
   case MouseButton of
@@ -481,12 +481,12 @@ begin
   end;
 end;
 
-function FilenameToURISafeUTF8(const FileName: string): string;
+function FilenameToURISafeUTF8(const FileName: String): String;
 begin
   Result := FilenameToURISafe(UTF8ToSys(FileName));
 end;
 
-function URIToFilenameSafeUTF8(const URL: string): string;
+function URIToFilenameSafeUTF8(const URL: String): String;
 begin
   Result := SysToUTF8(URIToFilenameSafe(URL));
 end;

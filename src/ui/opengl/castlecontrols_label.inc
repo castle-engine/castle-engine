@@ -23,20 +23,20 @@
     FPaddingHorizontal, FPaddingVertical, FPadding: Single;
     FLineSpacing: Single;
     FColor: TCastleColor;
-    FHtml: boolean;
-    FFrame: boolean;
+    FHtml: Boolean;
+    FFrame: Boolean;
     FFrameColor: TCastleColor;
     FMaxWidth: Single;
     FAlignment: THorizontalPosition;
     FVerticalAlignment: TVerticalPosition;
-    FAutoSize: boolean;
+    FAutoSize: Boolean;
     FMaxDisplayChars: Integer;
     CachedRichText: TRichText;
     FCaptionTranslate: Boolean;
     function GetTextToRender: TRichText;
-    procedure SetAutoSize(const Value: boolean);
-    function GetCaption: string;
-    procedure SetCaption(const Value: string);
+    procedure SetAutoSize(const Value: Boolean);
+    function GetCaption: String;
+    procedure SetCaption(const Value: String);
     procedure SetAlignment(const Value: THorizontalPosition);
     procedure SetVerticalAlignment(const Value: TVerticalPosition);
     procedure SetMaxDisplayChars(const Value: Integer);
@@ -84,14 +84,14 @@
 
       When this is @true (the default) then
       @link(Width), @link(Height), @link(FullSize) values are ignored. }
-    property AutoSize: boolean read FAutoSize write SetAutoSize default true;
+    property AutoSize: Boolean read FAutoSize write SetAutoSize default true;
 
-    { Caption displayed on the label, each line as a string.
+    { Caption displayed on the label, each line as a String.
       Setting this property merely copies the contents using TStrings.Assign. }
     property Text: TStrings read FText write SetText;
 
     { Caption displayed on the label.
-      This is just a shortcut to get/set @link(Text) as a single string.
+      This is just a shortcut to get/set @link(Text) as a single String.
 
       Use LineEnding or NL constant when setting this to indicate a newline.
       The two examples below are equivalent:
@@ -106,7 +106,7 @@
         Label1.Caption := 'First line' + LineEnding + 'Second line';
       #)
     }
-    property Caption: string read GetCaption write SetCaption stored false;
+    property Caption: String read GetCaption write SetCaption stored false;
 
     { Inside the label rectangle, padding between rect borders and text.
       Total horizontal padding is the sum @code(PaddingHorizontal + Padding),
@@ -135,14 +135,14 @@
       you need to set the font to be TFontFamily with bold/italic variants.
       See the example mentioned above, examples/fonts/html_text.lpr,
       for a code how to do it. }
-    property Html: boolean read FHtml write SetHtml default false;
+    property Html: Boolean read FHtml write SetHtml default false;
 
-    property Tags: boolean read FHtml write SetHtml stored false default false;
+    property Tags: Boolean read FHtml write SetHtml stored false default false;
       deprecated 'use Html instead';
 
     { Draw frame around the text. Frame uses theme image tiLabel,
       see TCastleTheme.Images if you want to customize it. }
-    property Frame: boolean read FFrame write FFrame default false;
+    property Frame: Boolean read FFrame write FFrame default false;
 
     { If non-zero, limit the width of resulting label.
       The text will be broken in the middle of lines, to make it fit
@@ -362,7 +362,7 @@ begin
   end;
 end;
 
-procedure TCastleLabel.SetAutoSize(const Value: boolean);
+procedure TCastleLabel.SetAutoSize(const Value: Boolean);
 begin
   if FAutoSize <> Value then
   begin
@@ -371,12 +371,12 @@ begin
   end;
 end;
 
-function TCastleLabel.GetCaption: string;
+function TCastleLabel.GetCaption: String;
 begin
   Result := TrimEndingNewline(Text.Text);
 end;
 
-procedure TCastleLabel.SetCaption(const Value: string);
+procedure TCastleLabel.SetCaption(const Value: String);
 begin
   Text.Text := Value;
 end;

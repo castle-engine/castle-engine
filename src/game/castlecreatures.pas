@@ -68,14 +68,14 @@ type
     and TCreatureResource.Flying. }
   TCreatureResource = class(T3DResource)
   strict private
-    FFlying: boolean;
+    FFlying: Boolean;
     FSoundSuddenPain: TSoundType;
     FSoundDie: TSoundType;
-    FSoundDieTiedToCreature: boolean;
+    FSoundDieTiedToCreature: Boolean;
     FDefaultMaxLife: Single;
     FKnockBackDistance: Single;
     FKnockBackSpeed: Single;
-    FCollidesWhenDead: boolean;
+    FCollidesWhenDead: Boolean;
     FScaleMin, FScaleMax: Single;
 
     FRadiusOverride: Single;
@@ -109,7 +109,7 @@ type
       assumes that the non-flying creature is always standing up.
       For now, non-flying TWalkAttackCreature cannot "stand up" before walking,
       in case it's up vector gets skewed. }
-    function FlexibleUp: boolean; virtual;
+    function FlexibleUp: Boolean; virtual;
   public
     const
       { Default value for TCreatureResource.DefaultMaxLife.
@@ -124,7 +124,7 @@ type
       DefaultFallMinHeightToSound = 1.0;
       DefaultFallSoundName = 'creature_fall';
 
-    constructor Create(const AName: string); override;
+    constructor Create(const AName: String); override;
 
     { Flying creatures are not affected by gravity and
       (in case of TWalkAttackCreatureResource) their move direction is free.
@@ -144,7 +144,7 @@ type
       Be careful about creature @link(Radius) and @link(MiddleHeight) properties
       in this case, make sure that the values (explicitly set or automatically
       calculated) are suitable for both flying and non-flying states. }
-    property Flying: boolean read FFlying write FFlying default DefaultFlying;
+    property Flying: Boolean read FFlying write FFlying default DefaultFlying;
 
     property SoundSuddenPain: TSoundType
       read FSoundSuddenPain write FSoundSuddenPain;
@@ -155,7 +155,7 @@ type
     { See TCreature.Sound3d TiedToCreature parameter docs.
       You can set this to false if you want SoundDie to last even
       after the creature object was destroyed. }
-    property SoundDieTiedToCreature: boolean
+    property SoundDieTiedToCreature: Boolean
       read FSoundDieTiedToCreature write FSoundDieTiedToCreature
       default DefaultSoundDieTiedToCreature;
 
@@ -200,7 +200,7 @@ type
     procedure InstantiatePlaceholder(
       const ALevel: TAbstractLevel;
       const APosition, ADirection: TVector3;
-      const NumberPresent: boolean; const Number: Int64); override;
+      const NumberPresent: Boolean; const Number: Int64); override;
 
     function CreatureClass: TCreatureClass; virtual; abstract;
 
@@ -232,7 +232,7 @@ type
     {$warnings on}
 
     { By default dead creatures (corpses) don't collide, this usually looks better. }
-    property CollidesWhenDead: boolean
+    property CollidesWhenDead: Boolean
       read FCollidesWhenDead write FCollidesWhenDead default false;
 
     { Minimum scale when spawning, must be <= ScaleMax.
@@ -393,7 +393,7 @@ type
     FChanceToHurt: Single;
     FMaxHeightAcceptableToFall: Single;
     FRandomWalkDistance: Single;
-    FRemoveDead: boolean;
+    FRemoveDead: Boolean;
     FPreferredDistance: Single;
     FRunAwayLife: Single;
     FRunAwayDistance: Single;
@@ -409,11 +409,11 @@ type
     FFireMissileMinDelay: Single;
     FFireMissileMaxDistance: Single;
     FFireMissileMaxAngle: Single;
-    FFireMissileName: string;
+    FFireMissileName: String;
     FFireMissileHeight: Single;
     FFireMissileSound: TSoundType;
   protected
-    function FlexibleUp: boolean; override;
+    function FlexibleUp: Boolean; override;
   public
     const
       DefaultMoveSpeed = 10.0;
@@ -439,7 +439,7 @@ type
       DefaultFireMissileMaxAngle = DefaultAttackMaxAngle;
       DefaultFireMissileHeight = 0.5;
 
-    constructor Create(const AName: string); override;
+    constructor Create(const AName: String); override;
     procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
     function CreatureClass: TCreatureClass; override;
 
@@ -619,7 +619,7 @@ type
 
     { Name of the creature to fire as missile, at AttackTime during AttackAnimation.
       Leave empty to not fire any missile. }
-    property FireMissileName: string
+    property FireMissileName: String
       read FFireMissileName write FFireMissileName;
 
     { Height (between Position and Middle, usually: legs and eyes)
@@ -703,7 +703,7 @@ type
       write FRandomWalkDistance
       default DefaultRandomWalkDistance;
 
-    property RemoveDead: boolean
+    property RemoveDead: Boolean
       read FRemoveDead write FRemoveDead default DefaultRemoveDead;
   end;
 
@@ -725,10 +725,10 @@ type
     FCloseDirectionToTargetSpeed: Single;
     FPauseBetweenSoundIdle: Single;
     FSoundIdle: TSoundType;
-    FHitsPlayer: boolean;
-    FHitsCreatures: boolean;
+    FHitsPlayer: Boolean;
+    FHitsCreatures: Boolean;
     FDirectionFallSpeed: Single;
-    FRemoveDead: boolean;
+    FRemoveDead: Boolean;
   protected
     function RadiusCalculate(const GravityUp: TVector3): Single; override;
   public
@@ -741,7 +741,7 @@ type
       DefaultDirectionFallSpeed = 0.0;
       DefaultRemoveDead = true;
 
-    constructor Create(const AName: string); override;
+    constructor Create(const AName: String); override;
     function CreatureClass: TCreatureClass; override;
     procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
     function CreateCreature(
@@ -786,9 +786,9 @@ type
       read FPauseBetweenSoundIdle write FPauseBetweenSoundIdle
       default DefaultPauseBetweenSoundIdle;
 
-    property HitsPlayer: boolean
+    property HitsPlayer: Boolean
       read FHitsPlayer write FHitsPlayer default DefaultHitsPlayer;
-    property HitsCreatures: boolean
+    property HitsCreatures: Boolean
       read FHitsCreatures write FHitsCreatures default DefaultHitsCreatures;
 
     { How fast is the missile pulled down by gravity.
@@ -815,7 +815,7 @@ type
       object (like another creature or player).
       It only works when a missile hit something else than a creature/player,
       which means that it probably hit a static level wall. }
-    property RemoveDead: boolean
+    property RemoveDead: Boolean
       read FRemoveDead write FRemoveDead default DefaultRemoveDead;
   end;
 
@@ -825,18 +825,18 @@ type
   private
     FIdleAnimation: T3DResourceAnimation;
     FDieAnimation: T3DResourceAnimation;
-    FRemoveDead: boolean;
+    FRemoveDead: Boolean;
   public
     const
       DefaultRemoveDead = false;
 
-    constructor Create(const AName: string); override;
+    constructor Create(const AName: String); override;
     function CreatureClass: TCreatureClass; override;
     procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
 
     property IdleAnimation: T3DResourceAnimation read FIdleAnimation;
     property DieAnimation: T3DResourceAnimation read FDieAnimation;
-    property RemoveDead: boolean
+    property RemoveDead: Boolean
       read FRemoveDead write FRemoveDead default DefaultRemoveDead;
   end;
 
@@ -847,7 +847,7 @@ type
     FResourceFrame: TResourceFrame;
 
     SoundSource: TCastleSoundSource;
-    FSoundDieEnabled: boolean;
+    FSoundDieEnabled: Boolean;
 
     FDebugCaptions: TCastleScene;
     FDebugCaptionsTransform: TMatrixTransformNode;
@@ -886,12 +886,12 @@ type
   public
     class var
       { Render debug bounding boxes and captions at every creature. }
-      RenderDebug: boolean;
+      RenderDebug: Boolean;
 
     constructor Create(AOwner: TComponent; const AMaxLife: Single); virtual; reintroduce;
     destructor Destroy; override;
-    function GetExists: boolean; override;
-    function GetCollides: boolean; override;
+    function GetExists: Boolean; override;
+    function GetCollides: Boolean; override;
 
     property Resource: TCreatureResource read FResource;
 
@@ -901,7 +901,7 @@ type
       making any sound. This is really seldom needed, usefull only to avoid
       a loud shriek noise when you kill many creatures at once.
       Primarily for use by debug menu "kill all creatures" and similar things. }
-    property SoundDieEnabled: boolean read FSoundDieEnabled
+    property SoundDieEnabled: Boolean read FSoundDieEnabled
       write FSoundDieEnabled default true;
 
     { Play SoundType where the creature's position is.
@@ -918,7 +918,7 @@ type
       the sound will simply be done at creature's position, but then
       it will continue to be played independent of this creature. }
     procedure Sound3d(const SoundType: TSoundType; const SoundHeight: Single;
-      const TiedToCreature: boolean = true);
+      const TiedToCreature: Boolean = true);
 
     { Can the approximate sphere be used for some collision-detection
       tasks.
@@ -931,7 +931,7 @@ type
       sphere advantages (stairs climbing), and using sphere with dead
       creatures would unnecessarily force the sphere radius to be small
       and Middle to be high. }
-    function Sphere(out ARadius: Single): boolean; override;
+    function Sphere(out ARadius: Single): Boolean; override;
 
     { Sphere radius for collision detection for alive creatures.
       Must be something <> 0 for collision detection to work.
@@ -956,9 +956,9 @@ type
     LastAttackTime, LastFireMissileTime: Single;
     { Whether Attack or FireMissile was already called within this
       csAttack or csFireMissile state. }
-    AttackDone, FireMissileDone: boolean;
+    AttackDone, FireMissileDone: Boolean;
 
-    HasAlternativeTarget: boolean;
+    HasAlternativeTarget: Boolean;
     AlternativeTarget: TVector3;
     { Time of last setting HasAlternativeTarget to true and AlternativeTarget
       value, taken from LifeTime. Used to not fall into loop
@@ -978,7 +978,7 @@ type
     FDebugLastSensedEnemyAxis: TDebugAxis;
   protected
     { Last known information about enemy. }
-    HasLastSensedEnemy: boolean;
+    HasLastSensedEnemy: Boolean;
     LastSensedEnemy: TVector3;
     LastSensedEnemySector: TSector;
 
@@ -1037,7 +1037,7 @@ type
   TMissileCreature = class(TCreature)
   private
     LastSoundIdleTime: Single;
-    ForceRemoveDead: boolean;
+    ForceRemoveDead: Boolean;
     procedure HitCore;
     procedure HitPlayer;
     procedure HitCreature(Creature: TCreature);
@@ -1054,10 +1054,10 @@ type
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
-  TCreatureExistsEvent = function(const Creature: TCreature): boolean of object;
+  TCreatureExistsEvent = function(const Creature: TCreature): Boolean of object;
 
 var
-  DebugTimeStopForCreatures: boolean = false;
+  DebugTimeStopForCreatures: Boolean = false;
 
   { Global callback to control creatures existence. }
   OnCreatureExists: TCreatureExistsEvent;
@@ -1073,7 +1073,7 @@ var
 
 { TCreatureResource -------------------------------------------------------------- }
 
-constructor TCreatureResource.Create(const AName: string);
+constructor TCreatureResource.Create(const AName: String);
 begin
   inherited;
   FFlying := DefaultFlying;
@@ -1135,7 +1135,7 @@ begin
     ResourceConfig.GetValue('fall/sound/name', DefaultFallSoundName), false);
 end;
 
-function TCreatureResource.FlexibleUp: boolean;
+function TCreatureResource.FlexibleUp: Boolean;
 begin
   Result := true;
 end;
@@ -1191,7 +1191,7 @@ end;
 procedure TCreatureResource.InstantiatePlaceholder(
   const ALevel: TAbstractLevel;
   const APosition, ADirection: TVector3;
-  const NumberPresent: boolean; const Number: Int64);
+  const NumberPresent: Boolean; const Number: Int64);
 var
   CreatureDirection: TVector3;
   MaxLife: Single;
@@ -1257,7 +1257,7 @@ end;
 
 { TWalkAttackCreatureResource ------------------------------------------------ }
 
-constructor TWalkAttackCreatureResource.Create(const AName: string);
+constructor TWalkAttackCreatureResource.Create(const AName: String);
 begin
   inherited;
 
@@ -1334,7 +1334,7 @@ begin
   Result := TWalkAttackCreature;
 end;
 
-function TWalkAttackCreatureResource.FlexibleUp: boolean;
+function TWalkAttackCreatureResource.FlexibleUp: Boolean;
 begin
   { For non-flying creatures, "up" vector must be always equal to GravityUp. }
   Result := Flying;
@@ -1342,7 +1342,7 @@ end;
 
 { TMissileCreatureResource ---------------------------------------------------- }
 
-constructor TMissileCreatureResource.Create(const AName: string);
+constructor TMissileCreatureResource.Create(const AName: String);
 begin
   inherited;
   FMoveSpeed := DefaultMoveSpeed;
@@ -1430,7 +1430,7 @@ end;
 
 { TStillCreatureResource ---------------------------------------------------- }
 
-constructor TStillCreatureResource.Create(const AName: string);
+constructor TStillCreatureResource.Create(const AName: String);
 begin
   inherited;
   FIdleAnimation := T3DResourceAnimation.Create(Self, 'idle');
@@ -1467,13 +1467,13 @@ begin
   Add(FResourceFrame);
 end;
 
-function TCreature.GetExists: boolean;
+function TCreature.GetExists: Boolean;
 begin
   Result := (inherited GetExists) and (DisableCreatures = 0) and
     ((not Assigned(OnCreatureExists)) or OnCreatureExists(Self));
 end;
 
-function TCreature.GetCollides: boolean;
+function TCreature.GetCollides: Boolean;
 begin
   Result := (inherited GetCollides) and
     (Resource.CollidesWhenDead or (not Dead));
@@ -1487,7 +1487,7 @@ begin
 end;
 
 procedure TCreature.Sound3d(const SoundType: TSoundType; const SoundHeight: Single;
-  const TiedToCreature: boolean);
+  const TiedToCreature: Boolean);
 begin
   SoundSource.PlayOnce(SoundType, SoundHeight, TiedToCreature);
 end;
@@ -1623,7 +1623,7 @@ begin
       Resource.AttackKnockbackDistance, Self);
 end;
 
-function TCreature.Sphere(out ARadius: Single): boolean;
+function TCreature.Sphere(out ARadius: Single): Boolean;
 begin
   Result := GetExists and (not Dead);
   ARadius := Radius;
@@ -1804,11 +1804,11 @@ procedure TWalkAttackCreature.Update(const SecondsPassed: Single; var RemoveMe: 
   end;
 
 var
-  EnemySensedNow: boolean;
+  EnemySensedNow: Boolean;
   SqrDistanceToLastSensedEnemy: Single;
 
   function ActionAllowed(const Animation: T3DResourceAnimation;
-    const LastTime, MinDelay, MaxDistance, MaxAngle: Single): boolean;
+    const LastTime, MinDelay, MaxDistance, MaxAngle: Single): Boolean;
   var
     AngleBetweenTheDirectionToEnemy: Single;
   begin
@@ -1826,13 +1826,13 @@ var
     end;
   end;
 
-  function AttackAllowed: boolean;
+  function AttackAllowed: Boolean;
   begin
     Result := ActionAllowed(Resource.AttackAnimation, LastAttackTime,
       Resource.AttackMinDelay, Resource.AttackMaxDistance, Resource.AttackMaxAngle);
   end;
 
-  function FireMissileAllowed: boolean;
+  function FireMissileAllowed: Boolean;
   begin
     Result := ActionAllowed(Resource.FireMissileAnimation, LastFireMissileTime,
       Resource.FireMissileMinDelay, Resource.FireMissileMaxDistance, Resource.FireMissileMaxAngle);
@@ -1901,7 +1901,7 @@ var
     end;
   end;
 
-  function CloseEnoughToTarget(const Target: TVector3): boolean;
+  function CloseEnoughToTarget(const Target: TVector3): Boolean;
   const
     MinDistanceToTarget = 0.1;
   var
@@ -1932,7 +1932,7 @@ var
   { Assuming that I want to walk in DesiredDirection direction,
     is it sensible to do this by moving along current Direction ? }
   function WantToWalkInDesiredDirection(
-    const AngleBetweenDesiredDirection: Single): boolean;
+    const AngleBetweenDesiredDirection: Single): Boolean;
   const
     MaxAngleToMoveForward = Pi * 60 / 180;
   begin
@@ -1949,7 +1949,7 @@ var
     to Target. }
   function WantToWalkToTarget(
     const Target: TVector3;
-    const AngleBetweenDirectionToTarget: Single): boolean;
+    const AngleBetweenDirectionToTarget: Single): Boolean;
   begin
     Result :=
       WantToWalkInDesiredDirection(AngleBetweenDirectionToTarget) and
@@ -1961,7 +1961,7 @@ var
     it only looks at our and enemy Middle positions,
     and asks "do I want to get closer" ?
     Use only if HasLastSensedEnemy. }
-  function WantToShortenDistanceToEnemy: boolean;
+  function WantToShortenDistanceToEnemy: Boolean;
   begin
     { Is it wanted to get closer to the LastSensedEnemy?
       Yes, if it will help make AttackAllowed from false to true.
@@ -1994,13 +1994,13 @@ var
     along current Direction ?
     Call this only if HasLastSensedEnemy. }
   function WantToWalkToEnemy(
-    const AngleBetweenDirectionToEnemy: Single): boolean;
+    const AngleBetweenDirectionToEnemy: Single): Boolean;
   begin
     Result := WantToShortenDistanceToEnemy and
       WantToWalkToTarget(LastSensedEnemy, AngleBetweenDirectionToEnemy);
   end;
 
-  function WantToRunAway: boolean;
+  function WantToRunAway: Boolean;
   begin
     { We want to run away whenever HasLastSensedEnemy, not just when EnemySensedNow.
       Otherwise creature that tries to run away could easily get into a loop
@@ -2103,11 +2103,11 @@ var
         player and other creatures)
       - For not Flying creatures, also the check to not fall down from high
         is done. }
-    function MoveAlongTheDirection: boolean;
+    function MoveAlongTheDirection: Boolean;
 
       { Don't be stupid, and don't walk where you see you will fall down. }
       function TooHighAboveTheGround(const NewMiddle: TVector3):
-        boolean;
+        Boolean;
       var
         AboveHeight: Single;
       begin
@@ -2207,7 +2207,7 @@ var
     DirectionToTarget: TVector3;
     AngleBetweenDirectionToTarget: Single;
     SectorNow: TSector;
-    UseWalkNormal: boolean;
+    UseWalkNormal: Boolean;
   begin
     if HasAlternativeTarget then
     begin
@@ -2404,7 +2404,7 @@ var
 
   { @true if last attack was from the back of the creature,
     @false if from the front or unknown (when LastHurtDirection is zero). }
-  function WasLastAttackBack: boolean;
+  function WasLastAttackBack: Boolean;
   begin
     try
       Result := AngleRadBetweenVectors(LastHurtDirection, Direction) < Pi/2;
@@ -2531,7 +2531,7 @@ var
   E: TCastleAlive;
   {$warnings on}
 
-  function ShortRangeAttackHits: boolean;
+  function ShortRangeAttackHits: Boolean;
   var
     B, EB: TBox3D;
     DistanceLength, DistanceIncrease: Single;
@@ -2593,7 +2593,7 @@ end;
 
 procedure TWalkAttackCreature.UpdateDebugCaption(const Lines: TCastleStringList);
 var
-  StateName: string;
+  StateName: String;
 begin
   inherited;
 
@@ -2660,7 +2660,7 @@ procedure TMissileCreature.Update(const SecondsPassed: Single; var RemoveMe: TRe
 var
   Player: TCastleTransform;
 
-  function MissileMoveAllowed(const OldPos, NewPos: TVector3): boolean;
+  function MissileMoveAllowed(const OldPos, NewPos: TVector3): Boolean;
   begin
     if (not Resource.HitsPlayer) and (Player <> nil) then Player.Disable;
     if not Resource.HitsCreatures then Inc(DisableCreatures);

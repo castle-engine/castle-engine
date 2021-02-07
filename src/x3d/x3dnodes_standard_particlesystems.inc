@@ -47,7 +47,7 @@
   TBoundedPhysicsModelNode = class(TAbstractParticlePhysicsModelNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdGeometry: TSFNode;
     public property FdGeometry: TSFNode read FFdGeometry;
@@ -58,7 +58,7 @@
   TConeEmitterNode = class(TAbstractParticleEmitterNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAngle: TSFFloat;
     public property FdAngle: TSFFloat read FFdAngle;
@@ -75,7 +75,7 @@
   TExplosionEmitterNode = class(TAbstractParticleEmitterNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdPosition: TSFVec3f;
     public property FdPosition: TSFVec3f read FFdPosition;
@@ -86,7 +86,7 @@
   TForcePhysicsModelNode = class(TAbstractParticlePhysicsModelNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdForce: TSFVec3f;
     public property FdForce: TSFVec3f read FFdForce;
@@ -97,7 +97,7 @@
   TParticleSystemNode = class(TAbstractShapeNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdCreateParticles: TSFBool;
     public property FdCreateParticles: TSFBool read FFdCreateParticles;
@@ -148,7 +148,7 @@
   TPointEmitterNode = class(TAbstractParticleEmitterNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdDirection: TSFVec3f;
     public property FdDirection: TSFVec3f read FFdDirection;
@@ -162,7 +162,7 @@
   TPolylineEmitterNode = class(TAbstractParticleEmitterNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventSet_coordinate: TSFInt32Event;
@@ -183,7 +183,7 @@
   TSurfaceEmitterNode = class(TAbstractParticleEmitterNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventSet_coordinate: TSFInt32Event;
@@ -201,7 +201,7 @@
   TVolumeEmitterNode = class(TAbstractParticleEmitterNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventSet_coordinate: TSFInt32Event;
@@ -225,7 +225,7 @@
   TWindPhysicsModelNode = class(TAbstractParticlePhysicsModelNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdDirection: TSFVec3f;
     public property FdDirection: TSFVec3f read FFdDirection;
@@ -286,7 +286,7 @@ begin
   AddField(FFdGeometry);
 end;
 
-class function TBoundedPhysicsModelNode.ClassX3DType: string;
+class function TBoundedPhysicsModelNode.ClassX3DType: String;
 begin
   Result := 'BoundedPhysicsModel';
 end;
@@ -306,7 +306,7 @@ begin
   AddField(FFdPosition);
 end;
 
-class function TConeEmitterNode.ClassX3DType: string;
+class function TConeEmitterNode.ClassX3DType: String;
 begin
   Result := 'ConeEmitter';
 end;
@@ -319,7 +319,7 @@ begin
   AddField(FFdPosition);
 end;
 
-class function TExplosionEmitterNode.ClassX3DType: string;
+class function TExplosionEmitterNode.ClassX3DType: String;
 begin
   Result := 'ExplosionEmitter';
 end;
@@ -333,7 +333,7 @@ begin
   { X3D specification comment: (Inf,Inf) }
 end;
 
-class function TForcePhysicsModelNode.ClassX3DType: string;
+class function TForcePhysicsModelNode.ClassX3DType: String;
 begin
   Result := 'ForcePhysicsModel';
 end;
@@ -392,7 +392,7 @@ begin
   { X3D specification comment: [0,Inf) }
 end;
 
-class function TParticleSystemNode.ClassX3DType: string;
+class function TParticleSystemNode.ClassX3DType: String;
 begin
   Result := 'ParticleSystem';
 end;
@@ -408,7 +408,7 @@ begin
   AddField(FFdPosition);
 end;
 
-class function TPointEmitterNode.ClassX3DType: string;
+class function TPointEmitterNode.ClassX3DType: String;
 begin
   Result := 'PointEmitter';
 end;
@@ -432,7 +432,7 @@ begin
   { X3D specification comment: [0,Inf) or -1 }
 end;
 
-class function TPolylineEmitterNode.ClassX3DType: string;
+class function TPolylineEmitterNode.ClassX3DType: String;
 begin
   Result := 'PolylineEmitter';
 end;
@@ -452,7 +452,7 @@ begin
   AddField(FFdSurface);
 end;
 
-class function TSurfaceEmitterNode.ClassX3DType: string;
+class function TSurfaceEmitterNode.ClassX3DType: String;
 begin
   Result := 'SurfaceEmitter';
 end;
@@ -479,7 +479,7 @@ begin
   AddField(FFdInternal);
 end;
 
-class function TVolumeEmitterNode.ClassX3DType: string;
+class function TVolumeEmitterNode.ClassX3DType: String;
 begin
   Result := 'VolumeEmitter';
 end;
@@ -505,7 +505,7 @@ begin
   { X3D specification comment: [0,1] }
 end;
 
-class function TWindPhysicsModelNode.ClassX3DType: string;
+class function TWindPhysicsModelNode.ClassX3DType: String;
 begin
   Result := 'WindPhysicsModel';
 end;

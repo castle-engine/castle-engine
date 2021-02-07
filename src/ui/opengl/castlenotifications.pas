@@ -46,7 +46,7 @@ type
   private
     type
       TNotification = class
-        Text: string;
+        Text: String;
         Time: TTimerResult; {< appear time }
         Width: Single;
         Color: TCastleColor;
@@ -58,10 +58,10 @@ type
     { Messages, ordered from oldest (new mesages are added at the end).}
     Messages: TNotificationList;
     FColor: TCastleColor;
-    FMaxMessages: integer;
+    FMaxMessages: Integer;
     FTimeout, FFade: Single;
     FHistory: TCastleStringList;
-    FCollectHistory: boolean;
+    FCollectHistory: Boolean;
     FTextAlignment: THorizontalPosition;
   protected
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
@@ -75,19 +75,19 @@ type
     destructor Destroy; override;
 
     { Show new message. An overloaded version that takes a single string will
-      detect newlines in the string automatically so a message may be multi-line.
+      detect newlines in the String automatically so a message may be multi-line.
       The messages will be automatically broken to fit on the screen width with
       given font.
       @groupBegin }
-    procedure Show(const s: string); overload;
-    procedure Show(s: TStringList); overload;
+    procedure Show(const S: String); overload;
+    procedure Show(S: TStringList); overload;
     { @groupEnd }
 
     { Clear all messages. }
     procedure Clear;
 
     procedure Update(const SecondsPassed: Single;
-      var HandleInput: boolean); override;
+      var HandleInput: Boolean); override;
 
     procedure Render; override;
 
@@ -99,7 +99,7 @@ type
     property History: TCastleStringList read FHistory;
   published
     { How many message lines should be visible on the screen, at maximum.  }
-    property MaxMessages: integer
+    property MaxMessages: Integer
       read FMaxMessages write FMaxMessages default DefaultMaxMessages;
 
     { How long a given message should be visible on the screen, in seconds.
@@ -115,7 +115,7 @@ type
     property Fade: Single read FFade write FFade default DefaultFade;
 
     { Turn this on to have all the messages you pass to @link(Show) be collected
-      inside @link(History) string list. @link(History) is expanded by @link(Show),
+      inside @link(History) String list. @link(History) is expanded by @link(Show),
       it is cleared by @link(Clear), just like the notifications on screen.
       However, unlike the visible messages, it has unlimited size
       (messages there are not removed when MaxMessages or @link(Timeout)
@@ -123,7 +123,7 @@ type
 
       This is useful if you want to show the player a history of messages
       (in case they missed the message in game). }
-    property CollectHistory: boolean read FCollectHistory write FCollectHistory
+    property CollectHistory: Boolean read FCollectHistory write FCollectHistory
       default false;
 
     { Alignment of the text inside. }
@@ -195,15 +195,15 @@ procedure TCastleNotifications.Show(S: TStringList);
   procedure AddStrings(S: TStrings);
   var
     N: TNotification;
-    i: integer;
+    I: Integer;
   begin
     { Below could be optimized. But we use this only for a small number
       of messages, so no need to. }
-    for i := 0 to S.Count - 1 do
+    for I := 0 to S.Count - 1 do
     begin
       if Messages.Count = MaxMessages then Messages.Delete(0);
       N := TNotification.Create;
-      N.Text := S[i];
+      N.Text := S[I];
       N.Time := Timer;
       N.Width := Font.TextWidth(N.Text);
       N.Color := Color;
@@ -234,13 +234,13 @@ begin
   VisibleChange([chRectangle]);
 end;
 
-procedure TCastleNotifications.Show(const s: string);
+procedure TCastleNotifications.Show(const S: String);
 var
   Strs: TStringList;
 begin
   Strs := TStringList.Create;
   try
-    Strs.Text := s;
+    Strs.Text := S;
     Show(strs);
   finally Strs.Free end;
 end;
@@ -255,7 +255,7 @@ end;
 
 procedure TCastleNotifications.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 var
-  I: integer;
+  I: Integer;
 begin
   inherited;
   PreferredWidth := 0;
@@ -266,7 +266,7 @@ end;
 
 procedure TCastleNotifications.Render;
 var
-  I: integer;
+  I: Integer;
   SR: TFloatRectangle;
 begin
   SR := RenderRect;
@@ -280,11 +280,11 @@ begin
 end;
 
 procedure TCastleNotifications.Update(const SecondsPassed: Single;
-  var HandleInput: boolean);
+  var HandleInput: Boolean);
 var
   TimerNow: TTimerResult;
   TimeoutToFade: TFloatTime;
-  I: integer;
+  I: Integer;
   C: TCastleColor;
 begin
   inherited;

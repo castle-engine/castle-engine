@@ -31,7 +31,7 @@ type
     Vertexes: PVector3;
     CountVertexes: Integer;
     procedure Face(const Tri: TVector3Integer);
-    procedure OnWarningRaiseException(const Category, S: string);
+    procedure OnWarningRaiseException(const Category, S: String);
   published
     procedure TestIndexedConcavePolygonNormal;
     procedure TestTriangulateFace;
@@ -41,7 +41,7 @@ implementation
 
 uses CastleStringUtils, CastleUtils, CastleLog, CastleApplicationProperties;
 
-procedure TTestCastleTriangulate.OnWarningRaiseException(const Category, S: string);
+procedure TTestCastleTriangulate.OnWarningRaiseException(const Category, S: String);
 begin
   raise Exception.CreateFmt('CastleTriangulate made warning: %s: %s', [Category, S]);
 end;
@@ -87,7 +87,7 @@ end;
 procedure TTestCastleTriangulate.TestTriangulateFace;
 
   procedure DoPolygon(AVertexes: array of TVector3;
-    const Name: string; const RevertOrder: boolean);
+    const Name: String; const RevertOrder: Boolean);
   var
     I: Integer;
   begin
@@ -470,7 +470,7 @@ const
     (Data: (1, 0, -2.44921e-016))
   );
 var
-  RevertOrder: boolean;
+  RevertOrder: Boolean;
   Polygon_Circle: TVector3Array;
 begin
   { Warnings from CastleTriangulate mean that polygon cannot be triangulated.

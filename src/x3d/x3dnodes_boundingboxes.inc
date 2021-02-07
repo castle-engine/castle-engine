@@ -51,12 +51,12 @@ type
     Coord: TMFVec3f;
     CoordIndex: TMFLong;
     Geometry: TAbstractGeometryNode;
-    WasSomeValidIndex: boolean;
-    function GetVertexFromIndex(index: integer): TVector3;
-    function GetIndex(indexNum: integer): integer;
+    WasSomeValidIndex: Boolean;
+    function GetVertexFromIndex(index: Integer): TVector3;
+    function GetIndex(indexNum: Integer): Integer;
   end;
 
-function TGI_BBox_Calculator.GetVertexFromIndex(index: integer): TVector3;
+function TGI_BBox_Calculator.GetVertexFromIndex(index: Integer): TVector3;
 begin
   { na pewno index >= 0, CalculateBoundingBoxFromIndices nie bedzie
     pytalo o indeksy ujemne. }
@@ -72,7 +72,7 @@ begin
   end;
 end;
 
-function TGI_BBox_Calculator.GetIndex(IndexNum: integer): integer;
+function TGI_BBox_Calculator.GetIndex(IndexNum: Integer): Integer;
 begin
   { nie musimy sprawdzac czy indexNum jest dobry -
     CalculateBoundingBoxFromIndices bedzie pytalo tylko o indeksy between
@@ -245,7 +245,7 @@ function Text_LocalBoundingBox(State: TX3DGraphTraverseState;
   const Strings: TCastleStringList): TBox3D;
 var
   YScale, XScale, MaxRowWidth, MinX, MinY, MaxX, MaxY: Single;
-  I: integer;
+  I: Integer;
 begin
   YScale := Size / Font.RowHeight;
   { TODO: Use maxEntent, length for X3D and VRML 2.0. Use width for VRML 1.0. }
@@ -336,9 +336,9 @@ end;
 
 function Cone_BoundingBox(State: TX3DGraphTraverseState;
   const BottomRadius, Height: Single;
-  const Sides, Bottom, Local: boolean): TBox3D;
+  const Sides, Bottom, Local: Boolean): TBox3D;
 var points: array [0..4] of TVector3;
-    firstPoint: integer;
+    firstPoint: Integer;
 begin
  {liczymy bounding box takiego ostroslupa o podstawie z kwadratu.
   Tak jest prosto (po prostu 5 punktow); jasne ze w latwo sobie wyobrazic
@@ -431,7 +431,7 @@ end;
 
 function Cylinder_LocalBoundingBox(State: TX3DGraphTraverseState;
   const Height, Radius: Single;
-  const Bottom, Side, Top: boolean): TBox3D;
+  const Bottom, Side, Top: Boolean): TBox3D;
 var points: array[0..3]of TVector3;
 begin
  {points 0 = bottom start, 1 = bottom end}

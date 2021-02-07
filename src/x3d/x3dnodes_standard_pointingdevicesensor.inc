@@ -24,7 +24,7 @@
     Transformation: TTransformation;
 
     function EnabledCount: Integer;
-    function Enabled(Index: Integer): boolean;
+    function Enabled(Index: Integer): Boolean;
 
     procedure Assign(Source: TPointingDeviceSensorList);
   end;
@@ -123,7 +123,7 @@
   TCylinderSensorNode = class(TAbstractDragSensorNode)
   strict private
     { Are we in caps mode or cylinder mode (determined at activation) }
-    Caps: boolean;
+    Caps: Boolean;
     { If Caps, then this is a plane parallel to Y=0 and coincident with
       original intersection, in global coordinates }
     CapsPlane: TVector4;
@@ -141,12 +141,12 @@
     InvertedTransform: TMatrix4;
 
     { Was a rotation_changed send during this activation of sensor. }
-    WasRotation: boolean;
+    WasRotation: Boolean;
     { Last value of rotation_changed send, meaningful only if WasRotation. }
     RotationAngle: Single;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAxisRotation: TSFRotation;
     public property FdAxisRotation: TSFRotation read FFdAxisRotation;
@@ -193,12 +193,12 @@
     InvertedTransform: TMatrix4;
 
     { Was a translation_changed send during this activation of sensor. }
-    WasTranslation: boolean;
+    WasTranslation: Boolean;
     { Last value of translation_changed send, meaningful only if WasTranslation. }
     Translation: TVector3;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAxisRotation: TSFRotation;
     public property FdAxisRotation: TSFRotation read FFdAxisRotation;
@@ -238,12 +238,12 @@
     InvertedTransform: TMatrix4;
 
     { Was a rotation_changed send during this activation of sensor. }
-    WasRotation: boolean;
+    WasRotation: Boolean;
     { Last value of rotation_changed send, meaningful only if WasRotation. }
     Rotation: TVector4;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdOffset: TSFRotation;
     public property FdOffset: TSFRotation read FFdOffset;
@@ -265,7 +265,7 @@
   TTouchSensorNode = class(TAbstractTouchSensorNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event out } { }
     strict private FEventHitNormal_changed: TSFVec3fEvent;
@@ -298,7 +298,7 @@ begin
       Inc(Result);
 end;
 
-function TPointingDeviceSensorList.Enabled(Index: Integer): boolean;
+function TPointingDeviceSensorList.Enabled(Index: Integer): Boolean;
 begin
   Result := (not (Items[Index] is TAbstractPointingDeviceSensorNode)) or
     TAbstractPointingDeviceSensorNode(Items[Index]).FdEnabled.Value;
@@ -405,7 +405,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TCylinderSensorNode.ClassX3DType: string;
+class function TCylinderSensorNode.ClassX3DType: String;
 begin
   Result := 'CylinderSensor';
 end;
@@ -466,7 +466,7 @@ end;
 procedure TCylinderSensorNode.Drag(const Time: TX3DTime; const RayOrigin, RayDirection: TVector3);
 var
   Intersection, LocalIntersection: TVector3;
-  WasIntersection: boolean;
+  WasIntersection: Boolean;
 begin
   inherited;
 
@@ -532,7 +532,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TPlaneSensorNode.ClassX3DType: string;
+class function TPlaneSensorNode.ClassX3DType: String;
 begin
   Result := 'PlaneSensor';
 end;
@@ -679,7 +679,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TSphereSensorNode.ClassX3DType: string;
+class function TSphereSensorNode.ClassX3DType: String;
 begin
   Result := 'SphereSensor';
 end;
@@ -768,7 +768,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TTouchSensorNode.ClassX3DType: string;
+class function TTouchSensorNode.ClassX3DType: String;
 begin
   Result := 'TouchSensor';
 end;

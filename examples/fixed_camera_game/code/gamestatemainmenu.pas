@@ -72,7 +72,7 @@ type
   public
     procedure Start; override;
     procedure Stop; override;
-    function Press(const Event: TInputPressRelease): boolean; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
   end;
 
 var
@@ -240,7 +240,7 @@ begin
   InsertFront(CurrentMenu);
 end;
 
-function TStateMainMenu.Press(const Event: TInputPressRelease): boolean;
+function TStateMainMenu.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
 

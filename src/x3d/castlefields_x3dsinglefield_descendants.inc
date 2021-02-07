@@ -21,7 +21,7 @@
     @deprecated This is deprecated, as VRML 1.0 is an ancient format now. }
   TSFBitMask = class(TX3DSingleField)
   strict private
-    fAllString, fNoneString: string;
+    fAllString, fNoneString: String;
     fFlagNames: TStringList;
 
     { Value of this field, as a bit mask.
@@ -29,21 +29,21 @@
       Actually, defined field values have no more than 3 fields, and
       VRML > 1.0 dropped SFBitMask entirely. So 32 is always enough. }
     fFlags: set of 0..31;
-    function GetFlags(i: integer): boolean;
-    procedure SetFlags(i: integer; value: boolean);
-    function GetFlagNames(i: integer): string;
+    function GetFlags(I: Integer): Boolean;
+    procedure SetFlags(I: Integer; value: Boolean);
+    function GetFlagNames(I: Integer): String;
   strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
     { Value of this field. You can use Index from the range 0 .. FlagsCount - 1. }
-    property Flags[i: integer]:boolean read GetFlags write SetFlags;
-    function FlagsCount: integer;
+    property Flags[I: Integer]:Boolean read GetFlags write SetFlags;
+    function FlagsCount: Integer;
 
     { Names of the flags that can be "on" or "off".
       Note that this cannot be initialized by CreateUndefined,
       so you always must initialize this field using the @link(Create)
       overload that takes AFlagNames parameter. }
-    property FlagNames[i: integer]:string read GetFlagNames;
+    property FlagNames[I: Integer]: String read GetFlagNames;
 
     { Special strings that will be understood by parser as ALL or NONE
       bit values. AllString selects all flags, NoneString selects none.
@@ -56,14 +56,14 @@
       just "something"). But it's allowed syntactically.
 
       @groupBegin }
-    property AllString: string read fAllString;
-    property NoneString: string read fNoneString;
+    property AllString: String read fAllString;
+    property NoneString: String read fNoneString;
     { @groupEnd }
 
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
     { Are all flag values set to @true currently. }
-    function AreAllFlags(value: boolean): boolean;
+    function AreAllFlags(value: Boolean): Boolean;
 
     { Constructor.
 
@@ -71,17 +71,17 @@
       (AFlags is initial value of Flags) must have equal length.
       Eventually, AFlags may be longer (excessive items will be ignored). }
     constructor Create(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: string; const AFlagNames: array of string;
-      const ANoneString, AAllString: string; const AFlags: array of boolean);
+      const AExposed: Boolean; const AName: String; const AFlagNames: array of String;
+      const ANoneString, AAllString: String; const AFlags: array of Boolean);
 
     destructor Destroy; override;
 
-    function Equals(SecondValue: TX3DField): boolean; override;
+    function Equals(SecondValue: TX3DField): Boolean; override;
 
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
 
-    class function X3DType: string; override;
+    class function X3DType: String; override;
   end;
 
   { X3D field containing a single boolean value. }
@@ -89,26 +89,26 @@
   strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    Value: boolean;
-    DefaultValue: boolean;
-    DefaultValueExists: boolean;
+    Value: Boolean;
+    DefaultValue: Boolean;
+    DefaultValueExists: Boolean;
 
     constructor Create(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: string; const AValue: boolean);
+      const AExposed: Boolean; const AName: String; const AValue: Boolean);
 
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField): boolean; override;
-    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
+    function EqualsDefaultValue: Boolean; override;
+    function Equals(SecondValue: TX3DField): Boolean; override;
+    function FastEqualsValue(SecondValue: TX3DField): Boolean; override;
 
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent; override;
 
-    procedure Send(const AValue: boolean; const PartialSend: TPartialSend = nil); overload;
+    procedure Send(const AValue: Boolean; const PartialSend: TPartialSend = nil); overload;
   end;
 
   { VRML 1.0 (deprecated) field representing an enumerated value,
@@ -117,37 +117,37 @@
   TSFEnum = class(TX3DSingleField)
   strict private
     FEnumNames: TStringList;
-    function GetEnumNames(i: integer): string;
+    function GetEnumNames(i: Integer): String;
   strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
     { Value between 0 .. EnumCount - 1. By default 0. }
-    Value: integer;
+    Value: Integer;
 
-    DefaultValue: integer;
-    DefaultValueExists: boolean;
+    DefaultValue: Integer;
+    DefaultValueExists: Boolean;
 
     constructor Create(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: string;
-      const AEnumNames: array of string; const AValue: integer);
+      const AExposed: Boolean; const AName: String;
+      const AEnumNames: array of String; const AValue: Integer);
     destructor Destroy; override;
 
     { Names of the enumerated values.
       Note that this cannot be initialized by CreateUndefined,
       so you always must initialize this field using the @link(Create)
       overload that takes AEnumNames parameter. }
-    property EnumNames[i: integer]:string read GetEnumNames;
-    function EnumNamesCount: integer;
+    property EnumNames[i: Integer]: String read GetEnumNames;
+    function EnumNamesCount: Integer;
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField): boolean; override;
+    function EqualsDefaultValue: Boolean; override;
+    function Equals(SecondValue: TX3DField): Boolean; override;
 
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function X3DType: string; override;
+    class function X3DType: String; override;
 
     procedure Send(const AValue: LongInt); overload;
   end;
@@ -155,19 +155,19 @@
   { X3D field containing a floating-point value with Single precision. }
   TSFFloat = class(TX3DSingleField)
   strict private
-    FMustBeNonnegative: boolean;
+    FMustBeNonnegative: Boolean;
     FValue: Single;
-    FAngle: boolean;
+    FAngle: Boolean;
     procedure SetValue(const AValue: Single);
   strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
     DefaultValue: Single;
-    DefaultValueExists: boolean;
+    DefaultValueExists: Boolean;
 
     constructor Create(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: string; const AValue: Single;
-      const AMustBeNonnegative: boolean = false);
+      const AExposed: Boolean; const AName: String; const AValue: Single;
+      const AMustBeNonnegative: Boolean = false);
 
     property Value: Single read FValue write SetValue;
 
@@ -175,27 +175,27 @@
       we'll negate it (in other words, we'll keep Value >= 0 always).
       This is nice e.g. for Sphere.FdRadius field --- some incorrect VRML specify
       negative sphere radius. }
-    property MustBeNonnegative: boolean read FMustBeNonnegative default false;
+    property MustBeNonnegative: Boolean read FMustBeNonnegative default false;
 
     { Value represents an angle. When reading from X3D 3.3 file, we will
       make sure it's expressed in radians, honoring optional "UNIT angle ..."
       declaration in X3D file. }
-    property Angle: boolean read FAngle write FAngle default false;
+    property Angle: Boolean read FAngle write FAngle default false;
 
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField): boolean; override;
-    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
+    function EqualsDefaultValue: Boolean; override;
+    function Equals(SecondValue: TX3DField): Boolean; override;
+    function FastEqualsValue(SecondValue: TX3DField): Boolean; override;
 
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
+    function CanAssignLerp: Boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent; override;
 
     procedure Send(const AValue: Single); overload;
   end;
@@ -204,38 +204,38 @@
   TSFDouble = class(TX3DSingleField)
   strict private
     FValue: Double;
-    FAngle: boolean;
+    FAngle: Boolean;
     procedure SetValue(const AValue: Double);
   strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
     DefaultValue: Double;
-    DefaultValueExists: boolean;
+    DefaultValueExists: Boolean;
 
     constructor Create(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: string; const AValue: Double);
+      const AExposed: Boolean; const AName: String; const AValue: Double);
 
     property Value: Double read FValue write SetValue;
 
     { Value represents an angle. When reading from X3D 3.3 file, we will
       make sure it's expressed in radians, honoring optional "UNIT angle ..."
       declaration in X3D file. }
-    property Angle: boolean read FAngle write FAngle default false;
+    property Angle: Boolean read FAngle write FAngle default false;
 
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField): boolean; override;
-    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
+    function EqualsDefaultValue: Boolean; override;
+    function Equals(SecondValue: TX3DField): Boolean; override;
+    function FastEqualsValue(SecondValue: TX3DField): Boolean; override;
 
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
+    function CanAssignLerp: Boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent; override;
 
     procedure Send(const AValue: Double); overload;
   end;
@@ -243,8 +243,8 @@
   { X3D field containing a time, expressed as seconds that passed since some moment. }
   TSFTime = class(TSFDouble)
   public
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent; override;
     procedure Send(const AValue: Double); overload;
   end;
 
@@ -275,55 +275,55 @@
         You can pass AValue = nil, then Value will be initialized to null image
         TRGBImage.Create.) }
     constructor Create(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: string; const AValue: TCastleImage);
+      const AExposed: Boolean; const AName: String; const AValue: TCastleImage);
     constructor CreateUndefined(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: string); override;
+      const AExposed: Boolean; const AName: String); override;
 
     destructor Destroy; override;
 
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
-    function Equals(SecondValue: TX3DField): boolean; override;
+    function Equals(SecondValue: TX3DField): Boolean; override;
 
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
 
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent; override;
   end;
 
   { X3D field containing an single integer 32-bit value. }
   TSFLong = class(TX3DSingleField)
   strict private
-    FMustBeNonnegative: boolean;
-    FValue: Longint;
-    procedure SetValue(const AValue: Longint);
+    FMustBeNonnegative: Boolean;
+    FValue: LongInt;
+    procedure SetValue(const AValue: LongInt);
   strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    DefaultValue: Longint;
-    DefaultValueExists: boolean;
+    DefaultValue: LongInt;
+    DefaultValueExists: Boolean;
 
     constructor Create(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: string; const AValue: Longint;
-      const AMustBeNonnegative: boolean = false);
+      const AExposed: Boolean; const AName: String; const AValue: LongInt;
+      const AMustBeNonnegative: Boolean = false);
 
-    property Value: Longint read FValue write SetValue;
+    property Value: LongInt read FValue write SetValue;
 
     { See TSFFloat.MustBeNonnegative for explanation of this. }
-    property MustBeNonnegative: boolean read FMustBeNonnegative default false;
+    property MustBeNonnegative: Boolean read FMustBeNonnegative default false;
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField): boolean; override;
-    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
+    function EqualsDefaultValue: Boolean; override;
+    function Equals(SecondValue: TX3DField): Boolean; override;
+    function FastEqualsValue(SecondValue: TX3DField): Boolean; override;
 
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent; override;
 
     procedure Send(const AValue: LongInt); virtual; overload;
   end;
@@ -332,8 +332,8 @@
     The name SFInt32 is used instead of SFLong in new X3D versions. }
   TSFInt32 = class(TSFLong)
   public
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent; override;
     procedure Send(const AValue: LongInt); override;
   end;
 
@@ -346,30 +346,30 @@
   strict private
     FValue: TItem;
     DefaultValue: TItem;
-    DefaultValueExists: boolean;
+    DefaultValueExists: Boolean;
     class function MatrixSize: Integer;
   strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
     constructor Create(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: string; const AValue: TItem);
+      const AExposed: Boolean; const AName: String; const AValue: TItem);
 
     property Value: TItem read FValue write FValue;
 
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField): boolean; override;
-    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
+    function EqualsDefaultValue: Boolean; override;
+    function Equals(SecondValue: TX3DField): Boolean; override;
+    function FastEqualsValue(SecondValue: TX3DField): Boolean; override;
 
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
+    function CanAssignLerp: Boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
     procedure Send(const AValue: TItem); overload;
 
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent; override;
   end;
 
   { X3D field containing a 3x3 matrix with Single precision. }
@@ -378,7 +378,7 @@
     TVector3,
     TSFMatrix3fEvent>)
   public
-    class function X3DType: string; override;
+    class function X3DType: String; override;
   end;
 
   { X3D field containing a 3x3 matrix with Double precision. }
@@ -387,7 +387,7 @@
     TVector3Double,
     TSFMatrix3dEvent>)
   public
-    class function X3DType: string; override;
+    class function X3DType: String; override;
   end;
 
   { X3D field containing a 4x4 matrix with Single precision. }
@@ -396,7 +396,7 @@
     TVector4,
     TSFMatrix4fEvent>)
   public
-    class function X3DType: string; override;
+    class function X3DType: String; override;
   end;
 
   { X3D field containing a 4x4 matrix with Double precision. }
@@ -405,14 +405,14 @@
     TVector4Double,
     TSFMatrix4dEvent>)
   public
-    class function X3DType: string; override;
+    class function X3DType: String; override;
   end;
 
   { VRML 1.0 SFMatrix field.
     @deprecated This is deprecated, as VRML 1.0 is an ancient format now. }
   TSFMatrix = class(TSFMatrix4f)
   public
-    class function X3DType: string; override;
+    class function X3DType: String; override;
   end;
 
   { X3D field representing a 3D rotation around an arbitrary axis. }
@@ -420,7 +420,7 @@
   strict private
     DefaultAxis: TVector3;
     DefaultRotationRad: Single;
-    DefaultValueExists: boolean;
+    DefaultValueExists: Boolean;
   strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
     function GetValue: TVector4;
@@ -432,10 +432,10 @@
     RotationRad: Single;
 
     constructor Create(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: string;
+      const AExposed: Boolean; const AName: String;
       const AnAxis: TVector3; const ARotationRad: Single); overload;
     constructor Create(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: string;
+      const AExposed: Boolean; const AName: String;
       const AValue: TVector4); overload;
 
     { Current rotation value, with last component expressing rotation in radians.
@@ -455,18 +455,18 @@
     { Rotate point Pt around Self. }
     function RotatedPoint(const pt: TVector3): TVector3;
 
-    function Equals(SecondValue: TX3DField): boolean; override;
-    function EqualsDefaultValue: boolean; override;
-    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
+    function Equals(SecondValue: TX3DField): Boolean; override;
+    function EqualsDefaultValue: Boolean; override;
+    function FastEqualsValue(SecondValue: TX3DField): Boolean; override;
 
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
+    function CanAssignLerp: Boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent; override;
 
     procedure Send(const AValue: TVector4); overload;
   end;
@@ -474,39 +474,39 @@
   { X3D field containing a single string. }
   TSFString = class(TX3DSingleField)
   strict private
-    FValue: string;
-    FDefaultValue: string;
-    FDefaultValueExists: boolean;
+    FValue: String;
+    FDefaultValue: String;
+    FDefaultValueExists: Boolean;
   strict protected
-    procedure SetValue(const NewValue: string); virtual;
-    procedure SetDefaultValue(const NewDefaultValue: string); virtual;
+    procedure SetValue(const NewValue: String); virtual;
+    procedure SetDefaultValue(const NewDefaultValue: String); virtual;
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    property DefaultValue: string read FDefaultValue write SetDefaultValue;
-    property DefaultValueExists: boolean
+    property DefaultValue: String read FDefaultValue write SetDefaultValue;
+    property DefaultValueExists: Boolean
       read FDefaultValueExists write FDefaultValueExists;
-    property Value: string read FValue write SetValue;
+    property Value: String read FValue write SetValue;
 
     constructor Create(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: string; const AValue: string);
+      const AExposed: Boolean; const AName: String; const AValue: String);
 
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField): boolean; override;
-    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
+    function EqualsDefaultValue: Boolean; override;
+    function Equals(SecondValue: TX3DField): Boolean; override;
+    function FastEqualsValue(SecondValue: TX3DField): Boolean; override;
 
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent; override;
 
-    procedure ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader); override;
+    procedure ParseXMLAttribute(const AttributeValue: String; Reader: TX3DReader); override;
     function SaveToXmlValue: TSaveToXmlMethod; override;
 
-    procedure Send(const AValue: string); overload;
+    procedure Send(const AValue: String); overload;
   end;
 
   { X3D field that contains a value from a specified set.
@@ -524,14 +524,14 @@
     procedure SetEnumValue(const NewEnumValue: Integer);
     procedure SetDefaultEnumValue(const NewDefaultEnumValue: Integer);
   strict protected
-    function StringToEnumValue(const NewValue: string): Integer;
-    procedure SetValue(const NewValue: string); override;
-    procedure SetDefaultValue(const NewDefaultValue: string); override;
+    function StringToEnumValue(const NewValue: String): Integer;
+    procedure SetValue(const NewValue: String); override;
+    procedure SetDefaultValue(const NewDefaultValue: String); override;
     class function ExposedEventsFieldClass: TX3DFieldClass; override;
   public
     constructor Create(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: string;
-      const AEnumNames: array of string; const AValue: Integer);
+      const AExposed: Boolean; const AName: String;
+      const AEnumNames: array of String; const AValue: Integer);
     destructor Destroy; override;
     property EnumValue: Integer
       read FEnumValue write SetEnumValue;
@@ -551,25 +551,25 @@
     Value: TItem;
 
     DefaultValue: TItem;
-    DefaultValueExists: boolean;
+    DefaultValueExists: Boolean;
 
     constructor Create(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: string; const AValue: TItem);
+      const AExposed: Boolean; const AName: String; const AValue: TItem);
 
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField): boolean; override;
-    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
+    function EqualsDefaultValue: Boolean; override;
+    function Equals(SecondValue: TX3DField): Boolean; override;
+    function FastEqualsValue(SecondValue: TX3DField): Boolean; override;
 
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
+    function CanAssignLerp: Boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
     procedure Send(const AValue: TItem); overload;
 
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent; override;
   end;
 
   { X3D field containing a 2D vector with Single precision. }
@@ -577,7 +577,7 @@
     TVector2,
     TSFVec2fEvent>)
   public
-    class function X3DType: string; override;
+    class function X3DType: String; override;
   end;
 
   { X3D field containing a 3D vector with Single precision. }
@@ -585,7 +585,7 @@
     TVector3,
     TSFVec3fEvent>)
   public
-    class function X3DType: string; override;
+    class function X3DType: String; override;
     { Alternative version of @name, change only a given component of the vector. }
     procedure Send(const Index: Integer; const ComponentValue: Single); overload;
   end;
@@ -593,8 +593,8 @@
   { X3D field containing an RGB color. }
   TSFColor = class(TSFVec3f)
   public
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent; override;
   end;
 
   { X3D field containing a 4D vector with Single precision. }
@@ -602,14 +602,14 @@
     TVector4,
     TSFVec4fEvent>)
   public
-    class function X3DType: string; override;
+    class function X3DType: String; override;
   end;
 
   { X3D field containing an RGBA color (with an alpha). }
   TSFColorRGBA = class(TSFVec4f)
   public
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent; override;
   end;
 
   { X3D field containing a 2D vector with Double precision. }
@@ -617,7 +617,7 @@
     TVector2Double,
     TSFVec2dEvent>)
   public
-    class function X3DType: string; override;
+    class function X3DType: String; override;
   end;
 
   { X3D field containing a 3D vector with Double precision. }
@@ -625,7 +625,7 @@
     TVector3Double,
     TSFVec3dEvent>)
   public
-    class function X3DType: string; override;
+    class function X3DType: String; override;
   end;
 
   { X3D field containing a 4D vector with Double precision. }
@@ -633,7 +633,7 @@
     TVector4Double,
     TSFVec4dEvent>)
   public
-    class function X3DType: string; override;
+    class function X3DType: String; override;
   end;
 
 {$endif read_interface}
@@ -643,7 +643,7 @@
 { TSFBool -------------------------------------------------------------------- }
 
 constructor TSFBool.Create(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string; const AValue: boolean);
+  const AExposed: Boolean; const AName: String; const AValue: Boolean);
 begin
   inherited Create(AParentNode, AExposed, AName);
 
@@ -688,7 +688,7 @@ begin
 end;
 
 const
-  BoolKeywords: array [TX3DEncoding, boolean] of string =
+  BoolKeywords: array [TX3DEncoding, Boolean] of String =
   ( ('FALSE', 'TRUE'), ('false', 'true') );
 
 procedure TSFBool.SaveToStreamValue(Writer: TX3DWriter);
@@ -696,19 +696,19 @@ begin
   Writer.Write(BoolKeywords[Writer.Encoding, Value]);
 end;
 
-function TSFBool.EqualsDefaultValue: boolean;
+function TSFBool.EqualsDefaultValue: Boolean;
 begin
   result := DefaultValueExists and (DefaultValue = Value);
 end;
 
-function TSFBool.Equals(SecondValue: TX3DField): boolean;
+function TSFBool.Equals(SecondValue: TX3DField): Boolean;
 begin
   Result := (inherited Equals(SecondValue)) and
     (SecondValue is TSFBool) and
     (TSFBool(SecondValue).Value = Value);
 end;
 
-function TSFBool.FastEqualsValue(SecondValue: TX3DField): boolean;
+function TSFBool.FastEqualsValue(SecondValue: TX3DField): Boolean;
 begin
   Result := (SecondValue is TSFBool) and
     (TSFBool(SecondValue).Value = Value);
@@ -743,7 +743,7 @@ begin
   DefaultValueExists := true;
 end;
 
-class function TSFBool.X3DType: string;
+class function TSFBool.X3DType: String;
 begin
   Result := 'SFBool';
 end;
@@ -759,7 +759,7 @@ begin
   finally FreeAndNil(FieldValue) end;
 end;
 
-class function TSFBool.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TSFBool.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent;
 begin
   Result := TSFBoolEvent.Create(AParentNode, AName, AInEvent);
 end;
@@ -774,8 +774,8 @@ begin
 end;
 
 constructor TSFFloat.Create(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string; const AValue: Single;
-  const AMustBeNonnegative: boolean);
+  const AExposed: Boolean; const AName: String; const AValue: Single;
+  const AMustBeNonnegative: Boolean);
 begin
   inherited Create(AParentNode, AExposed, AName);
 
@@ -796,12 +796,12 @@ begin
   Writer.Write(Format('%g', [Value]));
 end;
 
-function TSFFloat.EqualsDefaultValue: boolean;
+function TSFFloat.EqualsDefaultValue: Boolean;
 begin
   result := DefaultValueExists and (DefaultValue = Value)
 end;
 
-function TSFFloat.Equals(SecondValue: TX3DField): boolean;
+function TSFFloat.Equals(SecondValue: TX3DField): Boolean;
 begin
   Result := (inherited Equals(SecondValue)) and
     (SecondValue is TSFFloat) and
@@ -809,7 +809,7 @@ begin
     SameValue(TSFFloat(SecondValue).Value, Value);
 end;
 
-function TSFFloat.FastEqualsValue(SecondValue: TX3DField): boolean;
+function TSFFloat.FastEqualsValue(SecondValue: TX3DField): Boolean;
 begin
   Result := (SecondValue is TSFFloat) and
     (TSFFloat(SecondValue).Value = Value);
@@ -820,7 +820,7 @@ begin
   Value := Lerp(A, (Value1 as TSFFloat).Value, (Value2 as TSFFloat).Value);
 end;
 
-function TSFFloat.CanAssignLerp: boolean;
+function TSFFloat.CanAssignLerp: Boolean;
 begin
   Result := true;
 end;
@@ -855,7 +855,7 @@ begin
   DefaultValueExists := true;
 end;
 
-class function TSFFloat.X3DType: string;
+class function TSFFloat.X3DType: String;
 begin
   Result := 'SFFloat';
 end;
@@ -870,7 +870,7 @@ begin
   finally FreeAndNil(FieldValue) end;
 end;
 
-class function TSFFloat.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TSFFloat.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent;
 begin
   Result := TSFFloatEvent.Create(AParentNode, AName, AInEvent);
 end;
@@ -878,7 +878,7 @@ end;
 { TSFDouble -------------------------------------------------------------------- }
 
 constructor TSFDouble.Create(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string; const AValue: Double);
+  const AExposed: Boolean; const AName: String; const AValue: Double);
 begin
   inherited Create(AParentNode, AExposed, AName);
 
@@ -903,19 +903,19 @@ begin
   Writer.Write(Format('%g', [Value]));
 end;
 
-function TSFDouble.EqualsDefaultValue: boolean;
+function TSFDouble.EqualsDefaultValue: Boolean;
 begin
   Result := DefaultValueExists and (DefaultValue = Value);
 end;
 
-function TSFDouble.Equals(SecondValue: TX3DField): boolean;
+function TSFDouble.Equals(SecondValue: TX3DField): Boolean;
 begin
   Result := (inherited Equals(SecondValue)) and
     (SecondValue is TSFDouble) and
     SameValue(TSFDouble(SecondValue).Value, Value);
 end;
 
-function TSFDouble.FastEqualsValue(SecondValue: TX3DField): boolean;
+function TSFDouble.FastEqualsValue(SecondValue: TX3DField): Boolean;
 begin
   Result := (SecondValue is TSFDouble) and
     (TSFDouble(SecondValue).Value = Value);
@@ -926,7 +926,7 @@ begin
   Value := Lerp(A, (Value1 as TSFDouble).Value, (Value2 as TSFDouble).Value);
 end;
 
-function TSFDouble.CanAssignLerp: boolean;
+function TSFDouble.CanAssignLerp: Boolean;
 begin
   Result := true;
 end;
@@ -960,7 +960,7 @@ begin
   DefaultValueExists := true;
 end;
 
-class function TSFDouble.X3DType: string;
+class function TSFDouble.X3DType: String;
 begin
   Result := 'SFDouble';
 end;
@@ -975,19 +975,19 @@ begin
   finally FreeAndNil(FieldValue) end;
 end;
 
-class function TSFDouble.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TSFDouble.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent;
 begin
   Result := TSFDoubleEvent.Create(AParentNode, AName, AInEvent);
 end;
 
 { TSFTime -------------------------------------------------------------------- }
 
-class function TSFTime.X3DType: string;
+class function TSFTime.X3DType: String;
 begin
   Result := 'SFTime';
 end;
 
-class function TSFTime.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TSFTime.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent;
 begin
   Result := TSFTimeEvent.Create(AParentNode, AName, AInEvent);
 end;
@@ -1005,7 +1005,7 @@ end;
 { TSFImage ------------------------------------------------------------------- }
 
 constructor TSFImage.Create(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string; const AValue: TCastleImage);
+  const AExposed: Boolean; const AName: String; const AValue: TCastleImage);
 begin
   inherited Create(AParentNode, AExposed, AName);
 
@@ -1015,7 +1015,7 @@ begin
 end;
 
 constructor TSFImage.CreateUndefined(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string);
+  const AExposed: Boolean; const AName: String);
 begin
   inherited;
 
@@ -1155,7 +1155,7 @@ begin
   end;
 end;
 
-function TSFImage.Equals(SecondValue: TX3DField): boolean;
+function TSFImage.Equals(SecondValue: TX3DField): Boolean;
 begin
   Result := (inherited Equals(SecondValue)) and
     (SecondValue is TSFImage) and
@@ -1183,19 +1183,19 @@ begin
     AssignValueRaiseInvalidClass(Source);
 end;
 
-class function TSFImage.X3DType: string;
+class function TSFImage.X3DType: String;
 begin
   Result := 'SFImage';
 end;
 
-class function TSFImage.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TSFImage.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent;
 begin
   Result := TSFImageEvent.Create(AParentNode, AName, AInEvent);
 end;
 
 { TSFLong -------------------------------------------------------------------- }
 
-procedure TSFLong.SetValue(const AValue: Longint);
+procedure TSFLong.SetValue(const AValue: LongInt);
 begin
   if MustBeNonnegative then
     FValue := Abs(AValue) else
@@ -1203,8 +1203,8 @@ begin
 end;
 
 constructor TSFLong.Create(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string; const AValue: Longint;
-  const AMustBeNonnegative: boolean);
+  const AExposed: Boolean; const AName: String; const AValue: LongInt;
+  const AMustBeNonnegative: Boolean);
 begin
   inherited Create(AParentNode, AExposed, AName);
 
@@ -1237,12 +1237,12 @@ begin
   Writer.Write(IntToStr(Value));
 end;
 
-function TSFLong.EqualsDefaultValue: boolean;
+function TSFLong.EqualsDefaultValue: Boolean;
 begin
   result := DefaultValueExists and (DefaultValue = Value)
 end;
 
-function TSFLong.Equals(SecondValue: TX3DField): boolean;
+function TSFLong.Equals(SecondValue: TX3DField): Boolean;
 begin
   { Note that this means that SFInt32 and SFLong will actually be considered
     equal. That's Ok, we want this. }
@@ -1252,7 +1252,7 @@ begin
     (TSFLong(SecondValue).Value = Value);
 end;
 
-function TSFLong.FastEqualsValue(SecondValue: TX3DField): boolean;
+function TSFLong.FastEqualsValue(SecondValue: TX3DField): Boolean;
 begin
   Result := (SecondValue is TSFLong) and
     (TSFLong(SecondValue).Value = Value);
@@ -1288,7 +1288,7 @@ begin
   DefaultValueExists := true;
 end;
 
-class function TSFLong.X3DType: string;
+class function TSFLong.X3DType: String;
 begin
   Result := 'SFLong';
 end;
@@ -1303,14 +1303,14 @@ begin
   finally FreeAndNil(FieldValue) end;
 end;
 
-class function TSFLong.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TSFLong.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent;
 begin
   Result := TSFLongEvent.Create(AParentNode, AName, AInEvent);
 end;
 
 { TSFInt32 ------------------------------------------------------------------- }
 
-class function TSFInt32.X3DType: string;
+class function TSFInt32.X3DType: String;
 begin
   Result := 'SFInt32';
 end;
@@ -1325,7 +1325,7 @@ begin
   finally FreeAndNil(FieldValue) end;
 end;
 
-class function TSFInt32.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TSFInt32.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent;
 begin
   Result := TSFInt32Event.Create(AParentNode, AName, AInEvent);
 end;
@@ -1333,7 +1333,7 @@ end;
 { TSFGenericMatrix ---------------------------------------------------------------------------- }
 
 constructor TSFGenericMatrix.Create(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string; const AValue: TItem);
+  const AExposed: Boolean; const AName: String; const AValue: TItem);
 begin
   inherited Create(AParentNode, AExposed, AName);
   FValue := AValue;
@@ -1342,7 +1342,7 @@ end;
 
 procedure TSFGenericMatrix.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 var
-  Column, Row: integer;
+  Column, Row: Integer;
 begin
   for Column := 0 to MatrixSize - 1 do
   begin
@@ -1363,7 +1363,7 @@ end;
 procedure TSFGenericMatrix.SaveToStreamValue(Writer: TX3DWriter);
 var
   V: TItemColumn;
-  Column: integer;
+  Column: Integer;
 begin
   V.Data := FValue.Data[0];
   Writer.Writeln(V.ToRawString);
@@ -1377,14 +1377,14 @@ begin
   Writer.DecIndent;
 end;
 
-function TSFGenericMatrix.Equals(SecondValue: TX3DField): boolean;
+function TSFGenericMatrix.Equals(SecondValue: TX3DField): Boolean;
 begin
   Result := (inherited Equals(SecondValue)) and
     (SecondValue is TSFGenericMatrix) and
     TItem.Equals(TSFGenericMatrix(SecondValue).FValue, FValue);
 end;
 
-function TSFGenericMatrix.FastEqualsValue(SecondValue: TX3DField): boolean;
+function TSFGenericMatrix.FastEqualsValue(SecondValue: TX3DField): Boolean;
 begin
   Result := (SecondValue is TSFGenericMatrix) and
     TItem.PerfectlyEquals(TSFGenericMatrix(SecondValue).Value, FValue);
@@ -1395,7 +1395,7 @@ begin
   Value := TItem.Lerp(A, (Value1 as TSFGenericMatrix).Value, (Value2 as TSFGenericMatrix).Value);
 end;
 
-function TSFGenericMatrix.CanAssignLerp: boolean;
+function TSFGenericMatrix.CanAssignLerp: Boolean;
 begin
   Result := true;
 end;
@@ -1420,7 +1420,7 @@ begin
     AssignValueRaiseInvalidClass(Source);
 end;
 
-function TSFGenericMatrix.EqualsDefaultValue: boolean;
+function TSFGenericMatrix.EqualsDefaultValue: Boolean;
 begin
   Result := DefaultValueExists and
     TItem.PerfectlyEquals(DefaultValue, Value);
@@ -1433,7 +1433,7 @@ begin
   DefaultValueExists := true;
 end;
 
-class function TSFGenericMatrix.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TSFGenericMatrix.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent;
 begin
   Result := TEvent.Create(AParentNode, AName, AInEvent);
 end;
@@ -1457,35 +1457,35 @@ end;
 
 { TSFMatrix3f ------------------------------------------------------------------ }
 
-class function TSFMatrix3f.X3DType: string;
+class function TSFMatrix3f.X3DType: String;
 begin
   Result := 'SFMatrix3f';
 end;
 
 { TSFMatrix3d ------------------------------------------------------------------ }
 
-class function TSFMatrix3d.X3DType: string;
+class function TSFMatrix3d.X3DType: String;
 begin
   Result := 'SFMatrix3d';
 end;
 
 { TSFMatrix4f ------------------------------------------------------------------ }
 
-class function TSFMatrix4f.X3DType: string;
+class function TSFMatrix4f.X3DType: String;
 begin
   Result := 'SFMatrix4f';
 end;
 
 { TSFMatrix4d ------------------------------------------------------------------ }
 
-class function TSFMatrix4d.X3DType: string;
+class function TSFMatrix4d.X3DType: String;
 begin
   Result := 'SFMatrix4d';
 end;
 
 { TSFMatrix ------------------------------------------------------------------ }
 
-class function TSFMatrix.X3DType: string;
+class function TSFMatrix.X3DType: String;
 begin
   Result := 'SFMatrix';
 end;
@@ -1493,7 +1493,7 @@ end;
 { TSFRotation ---------------------------------------------------------------- }
 
 constructor TSFRotation.Create(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string;
+  const AExposed: Boolean; const AName: String;
   const AnAxis: TVector3; const ARotationRad: Single);
 begin
   inherited Create(AParentNode, AExposed, AName);
@@ -1505,7 +1505,7 @@ begin
 end;
 
 constructor TSFRotation.Create(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string;
+  const AExposed: Boolean; const AName: String;
   const AValue: TVector4);
 var
   AnAxis: TVector3 absolute AValue;
@@ -1570,7 +1570,7 @@ begin
   end;
 end;
 
-function TSFRotation.Equals(SecondValue: TX3DField): boolean;
+function TSFRotation.Equals(SecondValue: TX3DField): Boolean;
 begin
   Result := (inherited Equals(SecondValue)) and
     (SecondValue is TSFRotation) and
@@ -1578,14 +1578,14 @@ begin
     SameValue(TSFRotation(SecondValue).RotationRad, RotationRad);
 end;
 
-function TSFRotation.FastEqualsValue(SecondValue: TX3DField): boolean;
+function TSFRotation.FastEqualsValue(SecondValue: TX3DField): Boolean;
 begin
   Result := (SecondValue is TSFRotation) and
     TVector3.PerfectlyEquals(TSFRotation(SecondValue).Axis, Axis) and
     (TSFRotation(SecondValue).RotationRad = RotationRad);
 end;
 
-function TSFRotation.EqualsDefaultValue: boolean;
+function TSFRotation.EqualsDefaultValue: Boolean;
 begin
   Result := DefaultValueExists and
     TVector3.PerfectlyEquals(DefaultAxis, Axis) and
@@ -1599,7 +1599,7 @@ begin
   Value := SLerp(A, (Value1 as TSFRotation).Value, (Value2 as TSFRotation).Value);
 end;
 
-function TSFRotation.CanAssignLerp: boolean;
+function TSFRotation.CanAssignLerp: Boolean;
 begin
   Result := true;
 end;
@@ -1634,7 +1634,7 @@ begin
   DefaultValueExists := true;
 end;
 
-class function TSFRotation.X3DType: string;
+class function TSFRotation.X3DType: String;
 begin
   Result := 'SFRotation';
 end;
@@ -1649,7 +1649,7 @@ begin
   finally FreeAndNil(FieldValue) end;
 end;
 
-class function TSFRotation.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TSFRotation.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent;
 begin
   Result := TSFRotationEvent.Create(AParentNode, AName, AInEvent);
 end;
@@ -1657,7 +1657,7 @@ end;
 { TSFString ------------------------------------------------------------------ }
 
 constructor TSFString.Create(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string; const AValue: string);
+  const AExposed: Boolean; const AName: String; const AValue: String);
 begin
   inherited Create(AParentNode, AExposed, AName);
 
@@ -1683,19 +1683,19 @@ begin
   end;
 end;
 
-function TSFString.EqualsDefaultValue: boolean;
+function TSFString.EqualsDefaultValue: Boolean;
 begin
   Result := DefaultValueExists and (DefaultValue = Value);
 end;
 
-function TSFString.Equals(SecondValue: TX3DField): boolean;
+function TSFString.Equals(SecondValue: TX3DField): Boolean;
 begin
   Result := (inherited Equals(SecondValue)) and
     (SecondValue is TSFString) and
     (TSFString(SecondValue).Value = Value);
 end;
 
-function TSFString.FastEqualsValue(SecondValue: TX3DField): boolean;
+function TSFString.FastEqualsValue(SecondValue: TX3DField): Boolean;
 begin
   Result := (SecondValue is TSFString) and
     (TSFString(SecondValue).Value = Value);
@@ -1730,12 +1730,12 @@ begin
   DefaultValueExists := true;
 end;
 
-class function TSFString.X3DType: string;
+class function TSFString.X3DType: String;
 begin
   Result := 'SFString';
 end;
 
-procedure TSFString.ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader);
+procedure TSFString.ParseXMLAttribute(const AttributeValue: String; Reader: TX3DReader);
 begin
   { SFString has quite special interpretation, it's just attrib
     name. It would not be usefull trying to use TX3DLexer here,
@@ -1757,7 +1757,7 @@ begin
     Value := AttributeValue;
 end;
 
-procedure TSFString.Send(const AValue: string);
+procedure TSFString.Send(const AValue: String);
 var
   FieldValue: TX3DField;
 begin
@@ -1772,17 +1772,17 @@ begin
   Result := sxAttributeCustomQuotes;
 end;
 
-class function TSFString.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TSFString.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent;
 begin
   Result := TSFStringEvent.Create(AParentNode, AName, AInEvent);
 end;
 
-procedure TSFString.SetValue(const NewValue: string);
+procedure TSFString.SetValue(const NewValue: String);
 begin
   FValue := NewValue;
 end;
 
-procedure TSFString.SetDefaultValue(const NewDefaultValue: string);
+procedure TSFString.SetDefaultValue(const NewDefaultValue: String);
 begin
   FDefaultValue := NewDefaultValue;
 end;
@@ -1790,7 +1790,7 @@ end;
 { TSFStringEnum -------------------------------------------------------------- }
 
 constructor TSFStringEnum.Create(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string; const AEnumNames: array of string; const AValue: integer);
+  const AExposed: Boolean; const AName: String; const AEnumNames: array of String; const AValue: Integer);
 begin
   FEnumNames := TStringListCaseSens.Create;
   AddStrArrayToStrings(AEnumNames, FEnumNames);
@@ -1812,9 +1812,9 @@ begin
   Result := TSFString;
 end;
 
-function TSFStringEnum.StringToEnumValue(const NewValue: string): Integer;
+function TSFStringEnum.StringToEnumValue(const NewValue: String): Integer;
 var
-  UpperValue: string;
+  UpperValue: String;
 begin
   UpperValue := UpperCase(NewValue);
   if UpperValue <> NewValue then
@@ -1830,10 +1830,10 @@ begin
   end;
 end;
 
-procedure TSFStringEnum.SetValue(const NewValue: string);
+procedure TSFStringEnum.SetValue(const NewValue: String);
 begin
   inherited SetValue(NewValue);
-  { calculate new FEnumValue, IOW convert string NewValue to integer }
+  { calculate new FEnumValue, IOW convert String NewValue to Integer }
   FEnumValue := StringToEnumValue(NewValue);
 end;
 
@@ -1848,7 +1848,7 @@ begin
   inherited Send(FEnumNames[NewValue]);
 end;
 
-procedure TSFStringEnum.SetDefaultValue(const NewDefaultValue: string);
+procedure TSFStringEnum.SetDefaultValue(const NewDefaultValue: String);
 begin
   inherited SetDefaultValue(NewDefaultValue);
   FDefaultEnumValue := StringToEnumValue(NewDefaultValue);
@@ -1863,7 +1863,7 @@ end;
 { TSFGenericVector ----------------------------------------------------------- }
 
 constructor TSFGenericVector.Create(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string; const AValue: TItem);
+  const AExposed: Boolean; const AName: String; const AValue: TItem);
 begin
   inherited Create(AParentNode, AExposed, AName);
 
@@ -1893,19 +1893,19 @@ begin
   Writer.Write(Value.ToRawString);
 end;
 
-function TSFGenericVector.EqualsDefaultValue: boolean;
+function TSFGenericVector.EqualsDefaultValue: Boolean;
 begin
   Result := DefaultValueExists and TItem.PerfectlyEquals(DefaultValue, Value);
 end;
 
-function TSFGenericVector.Equals(SecondValue: TX3DField): boolean;
+function TSFGenericVector.Equals(SecondValue: TX3DField): Boolean;
 begin
   Result := (inherited Equals(SecondValue)) and
     (SecondValue is TSFGenericVector) and
     TItem.Equals(TSFGenericVector(SecondValue).Value, Value);
 end;
 
-function TSFGenericVector.FastEqualsValue(SecondValue: TX3DField): boolean;
+function TSFGenericVector.FastEqualsValue(SecondValue: TX3DField): Boolean;
 begin
   Result := (SecondValue is TSFGenericVector) and
     TItem.PerfectlyEquals(TSFGenericVector(SecondValue).Value, Value);
@@ -1916,7 +1916,7 @@ begin
   Value := TItem.Lerp(A, (Value1 as TSFGenericVector).Value, (Value2 as TSFGenericVector).Value);
 end;
 
-function TSFGenericVector.CanAssignLerp: boolean;
+function TSFGenericVector.CanAssignLerp: Boolean;
 begin
   Result := true;
 end;
@@ -1950,7 +1950,7 @@ begin
   DefaultValueExists := true;
 end;
 
-class function TSFGenericVector.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TSFGenericVector.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent;
 begin
   Result := TEvent.Create(AParentNode, AName, AInEvent);
 end;
@@ -1969,14 +1969,14 @@ end;
 
 { TSFVec2f ------------------------------------------------------------------- }
 
-class function TSFVec2f.X3DType: string;
+class function TSFVec2f.X3DType: String;
 begin
   Result := 'SFVec2f';
 end;
 
 { TSFVec3f ------------------------------------------------------------------- }
 
-class function TSFVec3f.X3DType: string;
+class function TSFVec3f.X3DType: String;
 begin
   Result := 'SFVec3f';
 end;
@@ -1992,52 +1992,52 @@ end;
 
 { TSFColor ------------------------------------------------------------------- }
 
-class function TSFColor.X3DType: string;
+class function TSFColor.X3DType: String;
 begin
   Result := 'SFColor';
 end;
 
-class function TSFColor.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TSFColor.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent;
 begin
   Result := TSFColorEvent.Create(AParentNode, AName, AInEvent);
 end;
 
 { TSFVec4f ------------------------------------------------------------------- }
 
-class function TSFVec4f.X3DType: string;
+class function TSFVec4f.X3DType: String;
 begin
   Result := 'SFVec4f';
 end;
 
 { TSFColorRGBA --------------------------------------------------------------- }
 
-class function TSFColorRGBA.X3DType: string;
+class function TSFColorRGBA.X3DType: String;
 begin
   Result := 'SFColorRGBA';
 end;
 
-class function TSFColorRGBA.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TSFColorRGBA.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent;
 begin
   Result := TSFColorRGBAEvent.Create(AParentNode, AName, AInEvent);
 end;
 
 { TSFVec2d ------------------------------------------------------------------- }
 
-class function TSFVec2d.X3DType: string;
+class function TSFVec2d.X3DType: String;
 begin
   Result := 'SFVec2d';
 end;
 
 { TSFVec3d ------------------------------------------------------------------- }
 
-class function TSFVec3d.X3DType: string;
+class function TSFVec3d.X3DType: String;
 begin
   Result := 'SFVec3d';
 end;
 
 { TSFVec4d ------------------------------------------------------------------- }
 
-class function TSFVec4d.X3DType: string;
+class function TSFVec4d.X3DType: String;
 begin
   Result := 'SFVec4d';
 end;
@@ -2045,16 +2045,16 @@ end;
 { TSFBitMask ------------------------------------------------------------ }
 
 constructor TSFBitMask.Create(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string; const AFlagNames: array of string;
-  const ANoneString, AAllString: string; const AFlags: array of boolean);
+  const AExposed: Boolean; const AName: String; const AFlagNames: array of String;
+  const ANoneString, AAllString: String; const AFlags: array of Boolean);
 var
-  i: integer;
+  I: Integer;
 begin
   inherited Create(AParentNode, AExposed, AName);
 
   fFlagNames := TStringListCaseSens.Create;
   AddStrArrayToStrings(AFlagNames, fFlagNames);
-  for i := 0 to FlagsCount-1 do Flags[i] := AFlags[i];
+  for I := 0 to FlagsCount-1 do Flags[I] := AFlags[I];
   fNoneString := ANoneString;
   fAllString := AAllString;
 
@@ -2067,36 +2067,36 @@ begin
   inherited;
 end;
 
-function TSFBitMask.GetFlags(i: integer): boolean;
+function TSFBitMask.GetFlags(I: Integer): Boolean;
 begin
-  result := i in fFlags
+  Result := I in fFlags
 end;
 
-procedure TSFBitMask.SetFlags(i: integer; value: boolean);
+procedure TSFBitMask.SetFlags(I: Integer; value: Boolean);
 begin
-  if value then Include(fFlags, i) else Exclude(fFlags, i)
+  if value then Include(fFlags, I) else Exclude(fFlags, I)
 end;
 
-function TSFBitMask.FlagsCount: integer;
+function TSFBitMask.FlagsCount: Integer;
 begin
   result := fFlagNames.Count
 end;
 
-function TSFBitMask.GetFlagNames(i: integer): string;
+function TSFBitMask.GetFlagNames(I: Integer): String;
 begin
-  result := fFlagNames[i]
+  result := fFlagNames[I]
 end;
 
 procedure TSFBitMask.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 
   procedure InterpretTokenAsFlagName;
   var
-    i: integer;
+    I: Integer;
   begin
     Lexer.CheckTokenIs(vtName, 'bit mask constant');
-    i := fFlagNames.IndexOf(Lexer.TokenName);
-    if i >= 0 then
-      Flags[i] := true else
+    I := fFlagNames.IndexOf(Lexer.TokenName);
+    if I >= 0 then
+      Flags[I] := true else
     if Lexer.TokenName = fAllString then
       fFlags := [0..FlagsCount-1] else
     if Lexer.TokenName = fNoneString then
@@ -2125,19 +2125,19 @@ begin
   end;
 end;
 
-function TSFBitMask.AreAllFlags(value: boolean): boolean;
+function TSFBitMask.AreAllFlags(value: Boolean): Boolean;
 var
-  i: integer;
+  I: Integer;
 begin
-  for i := 0 to FlagsCount-1 do
-    if Flags[i] <> value then exit(false);
+  for I := 0 to FlagsCount-1 do
+    if Flags[I] <> value then Exit(false);
   exit(true);
 end;
 
 procedure TSFBitMask.SaveToStreamValue(Writer: TX3DWriter);
 var
-  i: integer;
-  PrecedeWithBar: boolean;
+  I: Integer;
+  PrecedeWithBar: Boolean;
 begin
   { This is an VRML 1.0 (and Inventor) type. The existing specs only say
     how to encode it for classic encoding. For XML, we just use the same format. }
@@ -2151,18 +2151,18 @@ begin
     begin
       PrecedeWithBar := false;
       Writer.Write('(');
-      for i := 0 to FlagsCount-1 do
-        if Flags[i] then
+      for I := 0 to FlagsCount-1 do
+        if Flags[I] then
         begin
           if PrecedeWithBar then Writer.Write('|') else PrecedeWithBar := true;
-          Writer.Write(FlagNames[i]);
+          Writer.Write(FlagNames[I]);
         end;
       Writer.Write(')');
     end;
   end;
 end;
 
-function TSFBitMask.Equals(SecondValue: TX3DField): boolean;
+function TSFBitMask.Equals(SecondValue: TX3DField): Boolean;
 begin
   Result := (inherited Equals(SecondValue)) and
     (SecondValue is TSFBitMask) and
@@ -2195,7 +2195,7 @@ begin
     AssignValueRaiseInvalidClass(Source);
 end;
 
-class function TSFBitMask.X3DType: string;
+class function TSFBitMask.X3DType: String;
 begin
   Result := 'SFBitMask';
 end;
@@ -2203,7 +2203,7 @@ end;
 { TSFEnum ----------------------------------------------------------------- }
 
 constructor TSFEnum.Create(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string; const AEnumNames: array of string; const AValue: integer);
+  const AExposed: Boolean; const AName: String; const AEnumNames: array of String; const AValue: Integer);
 begin
   inherited Create(AParentNode, AExposed, AName);
 
@@ -2219,26 +2219,26 @@ begin
   inherited;
 end;
 
-function TSFEnum.GetEnumNames(i: integer): string;
+function TSFEnum.GetEnumNames(I: Integer): String;
 begin
-  result := FEnumNames[i]
+  Result := FEnumNames[I]
 end;
 
-function TSFEnum.EnumNamesCount: integer;
+function TSFEnum.EnumNamesCount: Integer;
 begin
-  result := FEnumNames.Count
+  Result := FEnumNames.Count
 end;
 
 procedure TSFEnum.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 var
-  val: integer;
+  Val: Integer;
 begin
   Lexer.CheckTokenIs(vtName, 'enumerated type constant');
-  val := FEnumNames.IndexOf(Lexer.TokenName);
-  if val = -1 then
+  Val := FEnumNames.IndexOf(Lexer.TokenName);
+  if Val = -1 then
    raise EX3DParserError.Create(Lexer,
-     'Expected enumerated type constant, got '+Lexer.DescribeToken);
-  Value := val;
+     'Expected enumerated type constant, got ' + Lexer.DescribeToken);
+  Value := Val;
   Lexer.NextToken;
 end;
 
@@ -2247,12 +2247,12 @@ begin
   Writer.Write(EnumNames[Value]);
 end;
 
-function TSFEnum.EqualsDefaultValue: boolean;
+function TSFEnum.EqualsDefaultValue: Boolean;
 begin
   result := DefaultValueExists and (DefaultValue = Value);
 end;
 
-function TSFEnum.Equals(SecondValue: TX3DField): boolean;
+function TSFEnum.Equals(SecondValue: TX3DField): Boolean;
 begin
   Result := (inherited Equals(SecondValue)) and
     (SecondValue is TSFEnum) and
@@ -2290,7 +2290,7 @@ begin
   DefaultValueExists := true;
 end;
 
-class function TSFEnum.X3DType: string;
+class function TSFEnum.X3DType: String;
 begin
   Result := 'SFEnum';
 end;

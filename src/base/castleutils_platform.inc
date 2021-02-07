@@ -39,7 +39,7 @@ function Platform: TCastlePlatform;
 
 function PlatformToStr(const T: TCastlePlatform): String;
 
-{ Convert string to a platform name.
+{ Convert String to a platform name.
   Case (the difference between upper and lower letters) is ignored.
   Raises Exception on invalid platform name. }
 function StrToPlatform(const S: String): TCastlePlatform;

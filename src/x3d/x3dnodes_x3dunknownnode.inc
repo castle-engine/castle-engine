@@ -28,17 +28,17 @@
     that X3DType is always correctly set. }
   TX3DUnknownNode = class(TX3DNode)
   strict private
-    fX3DType: string;
+    fX3DType: String;
   protected
     function DeepCopyCreate(CopyState: TX3DNodeDeepCopyState): TX3DNode; override;
   public
-    function X3DType: string; override;
+    function X3DType: String; override;
     procedure Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames); override;
 
     { base Create will throw exception. Always use CreateUnknown* }
-    constructor Create(const AName: string; const ABaseUrl: string); override;
+    constructor Create(const AName: String; const ABaseUrl: String); override;
 
-    constructor CreateUnknown(const AName, ABaseUrl: string; const AX3DType :string);
+    constructor CreateUnknown(const AName, ABaseUrl: String; const AX3DType :String);
   end;
 
 {$endif read_interface}
@@ -47,7 +47,7 @@
 
 { TX3DUnknownNode ---------------------------------------------------------------- }
 
-function TX3DUnknownNode.X3DType: string;
+function TX3DUnknownNode.X3DType: String;
 begin
  result := fX3DType;
 end;
@@ -92,14 +92,14 @@ begin
   WritelnWarning('VRML/X3D', 'Unknown node of type "'+ X3DType + '" (named "'+ X3DName +'")');
 end;
 
-constructor TX3DUnknownNode.Create(const AName: string; const ABaseUrl: string);
+constructor TX3DUnknownNode.Create(const AName: String; const ABaseUrl: String);
 begin
   { Safety check: never create a TX3DUnknownNode instance by this method,
     to not leave FX3DType unset. }
   raise Exception.Create('You cannot create Unknown node using default constructor');
 end;
 
-constructor TX3DUnknownNode.CreateUnknown(const AName, ABaseUrl: string; const AX3DType :string);
+constructor TX3DUnknownNode.CreateUnknown(const AName, ABaseUrl: String; const AX3DType :String);
 begin
   inherited Create(AName, ABaseUrl);
   fX3DType := AX3DType;

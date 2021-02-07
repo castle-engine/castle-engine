@@ -41,7 +41,7 @@ var
   Window: TCastleWindowBase;
   Viewport: TCastleViewport;
   Scene: TCastleScene;
-  FogCulling: boolean;
+  FogCulling: Boolean;
 
 procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
 var

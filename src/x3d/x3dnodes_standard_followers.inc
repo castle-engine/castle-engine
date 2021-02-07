@@ -55,7 +55,7 @@
   TColorDamperNode = class(TAbstractDamperNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventSet_destination: TSFColorEvent;
@@ -81,7 +81,7 @@
   TCoordinateDamperNode = class(TAbstractDamperNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventSet_destination: TMFVec3fEvent;
@@ -107,7 +107,7 @@
   TOrientationChaserNode = class(TAbstractChaserNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventSet_destination: TSFRotationEvent;
@@ -133,7 +133,7 @@
   TOrientationDamperNode = class(TAbstractDamperNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventSet_destination: TSFRotationEvent;
@@ -159,7 +159,7 @@
   TPositionChaserNode = class(TAbstractChaserNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventSet_destination: TSFVec3fEvent;
@@ -185,7 +185,7 @@
   TPositionChaser2DNode = class(TAbstractChaserNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventSet_destination: TSFVec2fEvent;
@@ -211,7 +211,7 @@
   TPositionDamperNode = class(TAbstractDamperNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventSet_destination: TSFVec3fEvent;
@@ -237,7 +237,7 @@
   TPositionDamper2DNode = class(TAbstractDamperNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventSet_destination: TSFVec2fEvent;
@@ -263,7 +263,7 @@
   TScalarChaserNode = class(TAbstractChaserNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventSet_destination: TSFFloatEvent;
@@ -289,7 +289,7 @@
   TTexCoordDamper2DNode = class(TAbstractDamperNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventSet_destination: TMFVec2fEvent;
@@ -377,7 +377,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TColorDamperNode.ClassX3DType: string;
+class function TColorDamperNode.ClassX3DType: String;
 begin
   Result := 'ColorDamper';
 end;
@@ -404,7 +404,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TCoordinateDamperNode.ClassX3DType: string;
+class function TCoordinateDamperNode.ClassX3DType: String;
 begin
   Result := 'CoordinateDamper';
 end;
@@ -431,7 +431,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TOrientationChaserNode.ClassX3DType: string;
+class function TOrientationChaserNode.ClassX3DType: String;
 begin
   Result := 'OrientationChaser';
 end;
@@ -458,7 +458,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TOrientationDamperNode.ClassX3DType: string;
+class function TOrientationDamperNode.ClassX3DType: String;
 begin
   Result := 'OrientationDamper';
 end;
@@ -485,7 +485,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TPositionChaserNode.ClassX3DType: string;
+class function TPositionChaserNode.ClassX3DType: String;
 begin
   Result := 'PositionChaser';
 end;
@@ -514,7 +514,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TPositionChaser2DNode.ClassX3DType: string;
+class function TPositionChaser2DNode.ClassX3DType: String;
 begin
   Result := 'PositionChaser2D';
 end;
@@ -541,7 +541,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TPositionDamperNode.ClassX3DType: string;
+class function TPositionDamperNode.ClassX3DType: String;
 begin
   Result := 'PositionDamper';
 end;
@@ -568,7 +568,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TPositionDamper2DNode.ClassX3DType: string;
+class function TPositionDamper2DNode.ClassX3DType: String;
 begin
   Result := 'PositionDamper2D';
 end;
@@ -595,7 +595,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TScalarChaserNode.ClassX3DType: string;
+class function TScalarChaserNode.ClassX3DType: String;
 begin
   Result := 'ScalarChaser';
 end;
@@ -622,7 +622,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TTexCoordDamper2DNode.ClassX3DType: string;
+class function TTexCoordDamper2DNode.ClassX3DType: String;
 begin
   Result := 'TexCoordDamper2D';
 end;

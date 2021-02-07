@@ -18,15 +18,15 @@
 {$ifdef read_interface}
 
 { Return the symlink target path. Like Libc.ReadLink or FpReadLink,
-  but more comfortable, it returns a normal Pascal string.
+  but more comfortable, it returns a normal Pascal String.
   @raises EOSError In case of any failure (non-existing FileName etc.) }
-function CastleReadLink(const FileName: string): string;
+function CastleReadLink(const FileName: String): String;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-function CastleReadLink(const FileName: string): string;
+function CastleReadLink(const FileName: String): String;
 var ReadLinkResult, NewLength: Integer;
 begin
  NewLength := 100;

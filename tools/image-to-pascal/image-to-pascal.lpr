@@ -47,7 +47,7 @@ uses SysUtils, CastleImages, CastleUtils, CastleFilesUtils, CastleProgress,
   CastleClassUtils, CastleDownload;
 
 var
-  ShowProgress: boolean = true;
+  ShowProgress: Boolean = true;
   OutputDirectory: string = '';
 
 const
@@ -58,7 +58,7 @@ const
     (Short: 'o'; Long: 'output'; Argument: oaRequired)
   );
 
-procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+procedure OptionProc(OptionNum: Integer; HasArgument: Boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
 begin
   case OptionNum of
@@ -115,7 +115,7 @@ var
   CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization: string;
   ImageIndex: Integer;
   OutputUnit: TTextWriter;
-  AlphaStrip: boolean = false;
+  AlphaStrip: Boolean = false;
 begin
   { parse params }
   Parameters.Parse(Options, @OptionProc, nil);

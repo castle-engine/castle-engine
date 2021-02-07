@@ -74,13 +74,13 @@ type
   public
     procedure ContextOpen; override;
     procedure ContextClose; override;
-    function PlayingOrPaused: boolean; override;
+    function PlayingOrPaused: Boolean; override;
     procedure Play(const BufferChangedRecently: Boolean); override;
     procedure Stop; override;
     procedure SetPosition(const Value: TVector3); override;
     procedure SetVelocity(const Value: TVector3); override;
-    procedure SetLooping(const Value: boolean); override;
-    procedure SetRelative(const Value: boolean); override;
+    procedure SetLooping(const Value: Boolean); override;
+    procedure SetRelative(const Value: Boolean); override;
     procedure SetGain(const Value: Single); override;
     procedure SetMinGain(const Value: Single); override;
     procedure SetMaxGain(const Value: Single); override;
@@ -274,7 +274,7 @@ begin
   Stop;
 end;
 
-function TFMODSoundSourceBackend.PlayingOrPaused: boolean;
+function TFMODSoundSourceBackend.PlayingOrPaused: Boolean;
 var
   B: TFMOD_BOOL;
   IsPlayingError: TFMOD_RESULT;
@@ -327,7 +327,7 @@ begin
   // TODO
 end;
 
-procedure TFMODSoundSourceBackend.SetLooping(const Value: boolean);
+procedure TFMODSoundSourceBackend.SetLooping(const Value: Boolean);
 begin
   if FMODChannel = nil then Exit;
 
@@ -337,7 +337,7 @@ begin
     CheckFMOD(FMOD_Channel_SetMode(FMODChannel, FMOD_LOOP_OFF));
 end;
 
-procedure TFMODSoundSourceBackend.SetRelative(const Value: boolean);
+procedure TFMODSoundSourceBackend.SetRelative(const Value: Boolean);
 begin
   // TODO
 end;

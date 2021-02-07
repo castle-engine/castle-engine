@@ -23,7 +23,7 @@ uses
   CastleXMLUtils;
 
 
-procedure FoundFile(const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
+procedure FoundFile(const FileInfo: TFileInfo; Data: Pointer; var StopSearch: Boolean);
 begin
   Writeln('  Found file: ', FileInfo.Name, ', ', FileInfo.URL);
 end;

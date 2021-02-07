@@ -16,7 +16,7 @@
 {$ifdef read_interface}
 
 type
-  TStringTextureNodeMap = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<string, TAbstractTextureNode>;
+  TStringTextureNodeMap = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<String, TAbstractTextureNode>;
 
   TColladaEffect = class
     Appearance: TAppearanceNode;
@@ -25,7 +25,7 @@ type
       For now not used (we always take first input with TEXCOORD semantic
       to control the main texture, that affects the look (after lighting
       calculation, so not only diffuse). }
-    DiffuseTexCoordName: string;
+    DiffuseTexCoordName: String;
     destructor Destroy; override;
   end;
 
@@ -42,10 +42,10 @@ end;
 type
   TColladaEffectList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TColladaEffect>)
     { Find a TColladaEffect with given Name, @nil if not found. }
-    function Find(const Name: string): TColladaEffect;
+    function Find(const Name: String): TColladaEffect;
   end;
 
-function TColladaEffectList.Find(const Name: string): TColladaEffect;
+function TColladaEffectList.Find(const Name: String): TColladaEffect;
 var
   I: Integer;
 begin
@@ -70,7 +70,7 @@ var
   and coord names; if texture name was empty, you want to treat it like not
   existing anyway). }
 function ReadColorOrTexture(Element: TDOMElement;
-  out TextureName, TexCoordName: string): TCastleColor;
+  out TextureName, TexCoordName: String): TCastleColor;
 var
   Child: TDOMElement;
 begin
@@ -93,7 +93,7 @@ begin
 end;
 
 function ReadColorOrTextureRGB(Element: TDOMElement;
-  out TextureName, TexCoordName: string): TCastleColorRGB;
+  out TextureName, TexCoordName: String): TCastleColorRGB;
 begin
   { use ReadColorOrTexture and just ignore the alpha value }
   Result := ReadColorOrTexture(Element, TextureName, TexCoordName).XYZ;
@@ -103,7 +103,7 @@ end;
   but allow only color specification. }
 function ReadColorRGB(Element: TDOMElement): TVector3;
 var
-  IgnoreTextureName, IgnoreTexCoordName: string;
+  IgnoreTextureName, IgnoreTexCoordName: String;
 begin
   Result := ReadColorOrTextureRGB(Element, IgnoreTextureName, IgnoreTexCoordName);
 end;
@@ -112,7 +112,7 @@ end;
   but allow only color specification. }
 function ReadColor(Element: TDOMElement): TVector4;
 var
-  IgnoreTextureName, IgnoreTexCoordName: string;
+  IgnoreTextureName, IgnoreTexCoordName: String;
 begin
   Result := ReadColorOrTexture(Element, IgnoreTextureName, IgnoreTexCoordName);
 end;
@@ -136,7 +136,7 @@ end;
   Returns transparency (1 = transparent, 0 = opaque). }
 function ReadTransparentElement(const Element: TDOMElement): Single;
 var
-  OpaqueMode: string;
+  OpaqueMode: String;
   Color: TCastleColor;
 begin
   OpaqueMode := Element.AttributeStringDef('opaque', 'A_ONE');
@@ -184,9 +184,9 @@ var
     Image: TAbstractTextureNode;
     TechniqueChild: TDOMElement;
     I: TXMLElementIterator;
-    DiffuseTextureName, DiffuseTexCoordName: string;
+    DiffuseTextureName, DiffuseTexCoordName: String;
     Transparency: Single;
-    HasTransparency: boolean;
+    HasTransparency: Boolean;
   begin
     { We actually treat <phong> and <blinn> and even <lambert> elements the same.
       X3D lighting equations specify that always Blinn
@@ -207,7 +207,7 @@ var
         and forum https://collada.org/public_forum/viewtopic.php?t=386).
         When only one is specified, the other is like 1.
         However, when neither one is specified, we obviously want to leave
-        the model opaque (transparency = 0) so we need boolean HasTransparency. }
+        the model opaque (transparency = 0) so we need Boolean HasTransparency. }
       Transparency := 1;
       HasTransparency := false;
 
@@ -284,7 +284,7 @@ var
   procedure ReadNewParam(Element: TDOMElement);
   var
     Child: TDOMElement;
-    Name, RefersTo: string;
+    Name, RefersTo: String;
     Image: TAbstractTextureNode;
   begin
     if Element.AttributeString('sid', Name) then
@@ -318,7 +318,7 @@ var
   end;
 
 var
-  Id: string;
+  Id: String;
   I: TXMLElementIterator;
   ProfileElement: TDOMElement;
 begin

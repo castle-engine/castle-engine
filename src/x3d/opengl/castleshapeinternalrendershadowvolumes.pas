@@ -58,8 +58,8 @@ type
     procedure RenderSilhouetteShadowVolume(
       const LightPos: TVector4;
       const Transform: TMatrix4;
-      const LightCap, DarkCap: boolean;
-      const ForceOpaque: boolean);
+      const LightCap, DarkCap: Boolean;
+      const ForceOpaque: Boolean);
   end;
 
 implementation
@@ -140,8 +140,8 @@ end;
 procedure TRenderShapeShadowVolumes.RenderSilhouetteShadowVolume(
   const LightPos: TVector4;
   const Transform: TMatrix4;
-  const LightCap, DarkCap: boolean;
-  const ForceOpaque: boolean);
+  const LightCap, DarkCap: Boolean;
+  const ForceOpaque: Boolean);
 
 {$ifndef OpenGLES} //TODO-es
 
@@ -230,7 +230,7 @@ var
     each triangle only once. }
   procedure InitializeTrianglesPlaneSideAndRenderCaps(
     TrianglesPlaneSide: TBooleanList;
-    LightCap, DarkCap: boolean);
+    LightCap, DarkCap: Boolean);
 
     procedure RenderCaps(const T: TTriangle3);
     begin
@@ -249,7 +249,7 @@ var
       end;
     end;
 
-    function PlaneSide(const T: TTriangle3): boolean;
+    function PlaneSide(const T: TTriangle3): Boolean;
     var
       Plane: TVector4;
       TriangleTransformed: TTriangle3;
@@ -417,7 +417,7 @@ var
 
 var
   I: Integer;
-  PlaneSide0, PlaneSide1: boolean;
+  PlaneSide0, PlaneSide1: Boolean;
   TrianglesPlaneSide: TBooleanList;
   ManifoldEdgesNow: TManifoldEdgeList;
   ManifoldEdgePtr: PManifoldEdge;

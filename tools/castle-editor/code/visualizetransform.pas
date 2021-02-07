@@ -392,7 +392,7 @@ end;
 
 (*
 // Not needed now
-function TVisualizeTransform.TGizmoScene.Dragging: boolean;
+function TVisualizeTransform.TGizmoScene.Dragging: Boolean;
 begin
   Result := (inherited Dragging) or GizmoDragging;
 end;

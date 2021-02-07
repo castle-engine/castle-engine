@@ -36,7 +36,7 @@
     { X3D field "info". } { }
     public property FdInfo: TMFString read FFdInfo;
     { Set X3D field "info". } { }
-    procedure SetInfo(const Value: array of string);
+    procedure SetInfo(const Value: array of String);
     { Set X3D field "info". } { }
     procedure SetInfo(const Value: TCastleStringList);
 
@@ -52,7 +52,7 @@
 
 { TWorldInfoNode ----------------------------------------------- }
 
-procedure TWorldInfoNode.SetInfo(const Value: array of string);
+procedure TWorldInfoNode.SetInfo(const Value: array of String);
 begin
   FdInfo.Send(Value);
 end;

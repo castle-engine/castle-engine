@@ -45,7 +45,7 @@
     { TCastleScene rendered vs all visible. }
     ScenesRendered, ScenesVisible: Cardinal;
 
-    { Present the statistics information as a multi-line string.
+    { Present the statistics information as a multi-line String.
       Display it e.g. by assigning to TCastleLabel.Caption. }
     function ToString: String;
   end;
@@ -129,7 +129,7 @@
       and eventually will calculate inverse and set InverseMatrixDone to
       @true. }
     InverseMatrix: TMatrix4;
-    InverseMatrixDone: boolean;
+    InverseMatrixDone: Boolean;
 
     { Camera rotation matrix. That is, this is like @link(Matrix) but
       it doesn't move the camera, only rotates it.
@@ -140,7 +140,7 @@
     RotationMatrix: TMatrix4;
 
     { Use RotationMatrix as camera matrix for rendering. }
-    RotationOnly: boolean;
+    RotationOnly: Boolean;
 
     { Inverse of RotationMatrix.
 
@@ -149,7 +149,7 @@
       and eventually will calculate inverse and set RotationInverseMatrixDone to
       @true. }
     RotationInverseMatrix: TMatrix4;
-    RotationInverseMatrixDone: boolean;
+    RotationInverseMatrixDone: Boolean;
 
     Frustum: TFrustum;
 
@@ -190,7 +190,7 @@
   TRenderParams = class
     { Which parts should be rendered: opaque (@false) or transparent (@true).
       This should "filter" the rendered parts by @link(TCastleTransform.LocalRender). }
-    Transparent: boolean;
+    Transparent: Boolean;
 
     { Should we render parts that may receive shadow volumes, or ones that don't, or both.
       This should never be [].
@@ -204,7 +204,7 @@
 
       Which means that most lights (ones with shadowVolumes = TRUE)
       should be turned off, see [https://castle-engine.io/x3d_extensions.php#section_ext_shadows].) }
-    InShadow: boolean;
+    InShadow: Boolean;
 
     { Value > 0 means we're inside some stencil test (like for
       InShadow = @false pass of shadow volumes). }
@@ -223,7 +223,7 @@
       If TransformIdentity, then Transform and InverseTransform is always identity.
       @groupBegin }
     Transform, InverseTransform: PMatrix4;
-    TransformIdentity: boolean;
+    TransformIdentity: Boolean;
     { @groupEnd }
 
     { Current rendering statistics, should be updated by each
@@ -247,7 +247,7 @@
     function BaseLights(Scene: TCastleTransform): TAbstractLightInstancesList; virtual; abstract;
 
     function RenderTransform: TMatrix4; deprecated 'use Transform';
-    function RenderTransformIdentity: boolean; deprecated 'use TransformIdentity';
+    function RenderTransformIdentity: Boolean; deprecated 'use TransformIdentity';
   end;
 
 {$endif read_interface}
@@ -373,7 +373,7 @@ begin
   Result := Transform^;
 end;
 
-function TRenderParams.RenderTransformIdentity: boolean;
+function TRenderParams.RenderTransformIdentity: Boolean;
 begin
   Result := TransformIdentity;
 end;

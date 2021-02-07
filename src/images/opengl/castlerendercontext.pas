@@ -38,15 +38,15 @@ type
     and then disable the scissor within the same OnRender event. }
   TScissor = class
   strict private
-    FEnabled: boolean;
-    procedure SetEnabled(const Value: boolean);
+    FEnabled: Boolean;
+    procedure SetEnabled(const Value: Boolean);
   public
     { Rectangle to which we clip rendering. Empty by default (will clip everything,
       if you don't assign this!). Do not change this when scissor is enabled. }
     Rect: TRectangle;
     constructor Create;
     destructor Destroy; override;
-    property Enabled: boolean read FEnabled write SetEnabled;
+    property Enabled: Boolean read FEnabled write SetEnabled;
   end;
 
   { Possible values of @link(TRenderContext.DepthRange). }
@@ -90,7 +90,7 @@ type
       FGlobalScissor: TScissor;
       FProjectionMatrix: TMatrix4;
       FDepthRange: TDepthRange;
-      FCullFace, FFrontFaceCcw: boolean;
+      FCullFace, FFrontFaceCcw: Boolean;
       FColorChannels: TColorChannels;
       FViewport: TRectangle;
       FViewportDelta: TVector2Integer;
@@ -103,10 +103,10 @@ type
       procedure WarnContextNotCurrent;
       procedure SetProjectionMatrix(const Value: TMatrix4);
       procedure SetDepthRange(const Value: TDepthRange);
-      procedure SetCullFace(const Value: boolean);
-      procedure SetFrontFaceCcw(const Value: boolean);
-      function GetColorMask: boolean;
-      procedure SetColorMask(const Value: boolean);
+      procedure SetCullFace(const Value: Boolean);
+      procedure SetFrontFaceCcw(const Value: Boolean);
+      function GetColorMask: Boolean;
+      procedure SetColorMask(const Value: Boolean);
       procedure SetColorChannels(const Value: TColorChannels);
       procedure SetViewport(const Value: TRectangle);
       procedure SetViewportDelta(const Value: TVector2Integer);
@@ -171,17 +171,17 @@ type
 
     { Should we use backface-culling (ignore some faces during rendering).
       This controls whether OpenGL GL_CULL_FACE flag is enabled or not. }
-    property CullFace: boolean read FCullFace write SetCullFace
+    property CullFace: Boolean read FCullFace write SetCullFace
       default false;
 
     { Is the front face ordered counter-clockwise.
       The "front face" is important to interpreting the @link(CullFace)
       and to interpret the normal vectors (they point outward from front face). }
-    property FrontFaceCcw: boolean read FFrontFaceCcw write SetFrontFaceCcw
+    property FrontFaceCcw: Boolean read FFrontFaceCcw write SetFrontFaceCcw
       default true;
 
     { Which color buffer channels are touched by rendering. }
-    property ColorMask: boolean
+    property ColorMask: Boolean
       read GetColorMask write SetColorMask default true;
       deprecated 'use ColorChannels';
 
@@ -428,7 +428,7 @@ begin
   end;
 end;
 
-procedure TRenderContext.SetCullFace(const Value: boolean);
+procedure TRenderContext.SetCullFace(const Value: Boolean);
 begin
   if Self <> RenderContext then
     WarnContextNotCurrent;
@@ -440,7 +440,7 @@ begin
   end;
 end;
 
-procedure TRenderContext.SetFrontFaceCcw(const Value: boolean);
+procedure TRenderContext.SetFrontFaceCcw(const Value: Boolean);
 begin
   if Self <> RenderContext then
     WarnContextNotCurrent;
@@ -455,12 +455,12 @@ begin
   end;
 end;
 
-function TRenderContext.GetColorMask: boolean;
+function TRenderContext.GetColorMask: Boolean;
 begin
   Result := ColorChannels <> [];
 end;
 
-procedure TRenderContext.SetColorMask(const Value: boolean);
+procedure TRenderContext.SetColorMask(const Value: Boolean);
 begin
   if Value then
     ColorChannels := [0..3]
@@ -587,7 +587,7 @@ begin
   inherited;
 end;
 
-procedure TScissor.SetEnabled(const Value: boolean);
+procedure TScissor.SetEnabled(const Value: Boolean);
 begin
   if FEnabled <> Value then
   begin

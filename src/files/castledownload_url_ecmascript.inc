@@ -26,10 +26,10 @@
 
 type
   TUrlEcmaScript = class
-    class function Read(const Url: string; out MimeType: string): TStream;
+    class function Read(const Url: String; out MimeType: String): TStream;
   end;
 
-class function TUrlEcmaScript.Read(const Url: string; out MimeType: string): TStream;
+class function TUrlEcmaScript.Read(const Url: String; out MimeType: String): TStream;
 begin
   MimeType := 'application/javascript';
   Result := MemoryStreamLoadFromString(URIDeleteProtocol(URL));

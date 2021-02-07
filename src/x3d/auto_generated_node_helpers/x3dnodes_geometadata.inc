@@ -27,11 +27,11 @@
 
   public
     { Set X3D field "summary". } { }
-    procedure SetSummary(const Value: array of string);
+    procedure SetSummary(const Value: array of String);
     { Set X3D field "summary". } { }
     procedure SetSummary(const Value: TCastleStringList);
     { Set X3D field "url". } { }
-    procedure SetUrl(const Value: array of string);
+    procedure SetUrl(const Value: array of String);
     { Set X3D field "url". } { }
     procedure SetUrl(const Value: TCastleStringList);
 
@@ -41,7 +41,7 @@
 
 { TGeoMetadataNode ----------------------------------------------- }
 
-procedure TGeoMetadataNode.SetSummary(const Value: array of string);
+procedure TGeoMetadataNode.SetSummary(const Value: array of String);
 begin
   FdSummary.Send(Value);
 end;
@@ -51,7 +51,7 @@ begin
   FdSummary.Send(Value);
 end;
 
-procedure TGeoMetadataNode.SetUrl(const Value: array of string);
+procedure TGeoMetadataNode.SetUrl(const Value: array of String);
 begin
   FdUrl.Send(Value);
 end;

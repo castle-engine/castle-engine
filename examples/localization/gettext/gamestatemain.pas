@@ -28,7 +28,7 @@ type
     This implements the majority of this application functionality. }
   TStateMain = class(TUIState)
   strict private
-    Language: string;
+    Language: String;
 
     { For animating rotating text. }
     LifeTime: TFloatTime;
@@ -39,7 +39,7 @@ type
 
     { Load GetText MO files for new language,
       recreate user interface to show new language (calling InitializeUserInterface). }
-    procedure InitializeLanguage(const NewLanguage: string);
+    procedure InitializeLanguage(const NewLanguage: String);
     procedure InitializeUserInterface;
 
     procedure GetFont(const FontStyle: TFontStyleNode; var Font: TTextureFontData);
@@ -53,7 +53,7 @@ type
     procedure Start; override;
     { Animate text rotation. }
     procedure Update(const SecondsPassed: Single;
-      var HandleInput: boolean); override;
+      var HandleInput: Boolean); override;
   end;
 
 var
@@ -79,7 +79,7 @@ resourcestring
 
 { TStateMain ----------------------------------------------------------------- }
 
-procedure TStateMain.InitializeLanguage(const NewLanguage: string);
+procedure TStateMain.InitializeLanguage(const NewLanguage: String);
 begin
   Language := NewLanguage;
 
@@ -181,7 +181,7 @@ begin
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single;
-  var HandleInput: boolean);
+  var HandleInput: Boolean);
 begin
   LifeTime += SecondsPassed;
   TextTransform.Rotation := Vector4(0, 1, 0, LifeTime);

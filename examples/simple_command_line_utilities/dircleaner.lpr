@@ -32,10 +32,10 @@ uses SysUtils, CastleUtils, CastleParameters, CastleFindFiles,
 { Action ------------------------------------------------------------ }
 
 type TAction=(aNothing, aPrint, aClean);
-const ActionParStr: array[TAction]of string = ('nothing', 'print', 'clean');
+const ActionParStr: array [TAction] of String = ('nothing', 'print', 'clean');
 var Action: TAction;
 
-  function ActionParStrToAction(const S: string): TAction;
+  function ActionParStrToAction(const S: String): TAction;
   begin
     for Result := Low(Result) to High(Result) do
       if ActionParStr[Result] = S then Exit;
@@ -45,8 +45,8 @@ var Action: TAction;
 { global vars ------------------------------------------------------- }
 
 var
-  StartPath: string = '.' +PathDelim;
-  CleanDirsRecursively: boolean = true;
+  StartPath: String = '.' +PathDelim;
+  CleanDirsRecursively: Boolean = true;
 
   { note: we're keeping separate DirsToClean and DefaultDirsToClean
     (instead of just filling DirsToClean on start with default state)
@@ -68,7 +68,7 @@ var
   FilesSize: QWord = 0;
 
 procedure CleanFiles_FileProc(const FileInfo: TFileInfo;
-  Data: Pointer; var StopSearch: boolean);
+  Data: Pointer; var StopSearch: Boolean);
 begin
   Inc(FilesCount);
   FilesSize += FileInfo.Size;
@@ -87,9 +87,9 @@ begin
     Result := [];
 end;
 
-procedure CleanFiles(const Pattern: string);
+procedure CleanFiles(const Pattern: String);
 
-  function SizeToStr(const Size: Int64): string;
+  function SizeToStr(const Size: Int64): String;
   begin
     { powers of 1000, not 1024.
       https://en.wikipedia.org/wiki/Gigabyte
@@ -125,7 +125,7 @@ end;
 
 var DirsCount: Cardinal = 0;
 
-procedure CleanDirs_FileProc(const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
+procedure CleanDirs_FileProc(const FileInfo: TFileInfo; Data: Pointer; var StopSearch: Boolean);
 begin
   if not FileInfo.Directory then Exit;
 
@@ -138,7 +138,7 @@ begin
   end;
 end;
 
-procedure CleanDirs(const Pattern: string);
+procedure CleanDirs(const Pattern: String);
 begin
   DirsCount := 0;
 
@@ -196,8 +196,8 @@ const
     (Short:'n'; Long:'no-recursive'; Argument: oaNone)
   );
 
-  procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
-    const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+  procedure OptionProc(OptionNum: Integer; HasArgument: Boolean;
+    const Argument: String; const SeparateArgs: TSeparateArgs; Data: Pointer);
   var
     i: Integer;
   begin

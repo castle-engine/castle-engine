@@ -36,7 +36,7 @@ type
 { Nice exception description.
   Contains the ClassName (unless it descends from EShortErrorMessage),
   and the exception Message (if it descends from Exception). }
-function ExceptMessage(const E: TObject): string;
+function ExceptMessage(const E: TObject): String;
 
 procedure ProgramBreak; deprecated 'Use Halt';
 
@@ -44,9 +44,9 @@ procedure ProgramBreak; deprecated 'Use Halt';
 
 {$ifdef read_implementation}
 
-function ExceptMessage(const E: TObject): string;
+function ExceptMessage(const E: TObject): String;
 var
-  Message, NiceMessage: string;
+  Message, NiceMessage: String;
 begin
   if E is Exception then
   begin

@@ -30,7 +30,7 @@ procedure ReadLibraryImages(LibraryElement: TDOMElement);
 var
   I: TXMLElementIterator;
   Image: TImageTextureNode;
-  ImageId, ImageUrl: string;
+  ImageId, ImageUrl: String;
 begin
   I := LibraryElement.ChildrenIterator('image');
   try

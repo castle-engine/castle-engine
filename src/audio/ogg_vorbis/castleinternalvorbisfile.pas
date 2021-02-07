@@ -170,7 +170,7 @@ var
 {$endif CASTLE_TREMOLO_STATIC}
 
 { Is the vorbisfile shared library (with all necessary symbols) available. }
-function VorbisFileInitialized: boolean;
+function VorbisFileInitialized: Boolean;
 
 procedure VorbisFileInitialization;
 
@@ -178,7 +178,7 @@ implementation
 
 {$ifdef CASTLE_TREMOLO_STATIC}
 
-function VorbisFileInitialized: boolean;
+function VorbisFileInitialized: Boolean;
 begin
   Result := true;
 end;
@@ -196,7 +196,7 @@ uses SysUtils, CastleUtils, CastleDynLib, CastleFilesUtils;
 var
   VorbisFileLibrary: TDynLib;
 
-function VorbisFileInitialized: boolean;
+function VorbisFileInitialized: Boolean;
 begin
   Result := VorbisFileLibrary <> nil;
 end;

@@ -107,9 +107,9 @@ type
   strict private
     { FImage = nil and FImageURL = '' when not loaded. }
     FImage: TGrayscaleImage;
-    FImageURL: string;
+    FImageURL: String;
     FImageHeightScale: Single;
-    FImageRepeat: boolean;
+    FImageRepeat: Boolean;
     FImageX1, FImageX2, FImageY1, FImageY2: Single;
   public
     constructor Create;
@@ -117,14 +117,14 @@ type
 
     function Height(const X, Y: Single): Single; override;
 
-    procedure LoadImage(const AImageURL: string);
+    procedure LoadImage(const AImageURL: String);
     procedure ClearImage;
-    property ImageURL: string read FImageURL;
+    property ImageURL: String read FImageURL;
 
     property ImageHeightScale: Single
       read FImageHeightScale write FImageHeightScale default 1.0;
 
-    property ImageRepeat: boolean
+    property ImageRepeat: Boolean
       read FImageRepeat write FImageRepeat default false;
 
     property ImageX1: Single read FImageX1 write FImageX1 default -1;
@@ -145,7 +145,7 @@ type
     FXVariable, FYVariable: TCasScriptFloat;
     FFunction: TCasScriptExpression;
   public
-    constructor Create(const FunctionExpression: string);
+    constructor Create(const FunctionExpression: String);
     destructor Destroy; override;
     function Height(const X, Y: Single): Single; override;
   end;
@@ -190,11 +190,11 @@ type
     FFrequency: Single;
     FInterpolation: TNoiseInterpolation;
     NoiseMethod: TNoise2DMethod;
-    FBlur: boolean;
+    FBlur: Boolean;
     FSeed: Cardinal;
     FHeterogeneous: Single;
     procedure SetInterpolation(const Value: TNoiseInterpolation);
-    procedure SetBlur(const Value: boolean);
+    procedure SetBlur(const Value: Boolean);
     procedure UpdateNoiseMethod;
   public
     constructor Create;
@@ -272,7 +272,7 @@ type
       Note about [http://freespace.virgin.net/hugo.elias/models/m_perlin.htm]:
       this "blurring" is called "smoothing" there.
       I call it blurring, as it seems more precise to me. }
-    property Blur: boolean read FBlur write SetBlur default false;
+    property Blur: Boolean read FBlur write SetBlur default false;
 
     { Determines the random seeds used when generating the terrain. }
     property Seed: Cardinal read FSeed write FSeed default 0;
@@ -346,7 +346,7 @@ type
   strict private
     FData: array [0..1200, 0..1200] of SmallInt;
   public
-    constructor CreateFromFile(const URL: string);
+    constructor CreateFromFile(const URL: String);
 
     function GridHeight(const X, Y: Cardinal): Single; override;
     function GridSizeX: Cardinal; override;
@@ -607,7 +607,7 @@ begin
   inherited;
 end;
 
-procedure TTerrainImage.LoadImage(const AImageURL: string);
+procedure TTerrainImage.LoadImage(const AImageURL: String);
 var
   NewImage: TGrayscaleImage;
 begin
@@ -652,7 +652,7 @@ end;
 
 { TTerrainCasScript -------------------------------------------------------- }
 
-constructor TTerrainCasScript.Create(const FunctionExpression: string);
+constructor TTerrainCasScript.Create(const FunctionExpression: String);
 begin
   inherited Create;
 
@@ -729,7 +729,7 @@ begin
   UpdateNoiseMethod;
 end;
 
-procedure TTerrainNoise.SetBlur(const Value: boolean);
+procedure TTerrainNoise.SetBlur(const Value: Boolean);
 begin
   FBlur := Value;
   UpdateNoiseMethod;
@@ -819,7 +819,7 @@ end;
 
 { TTerrainSRTM ------------------------------------------------------------- }
 
-constructor TTerrainSRTM.CreateFromFile(const URL: string);
+constructor TTerrainSRTM.CreateFromFile(const URL: String);
 var
   Stream: TStream;
   P: PSmallInt;

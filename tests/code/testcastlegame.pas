@@ -38,14 +38,14 @@ procedure TTestGame.TestGameData;
     AssertSameValue(A, B, 0.01);
   end;
 
-  procedure AssertURL(const A, B: string);
+  procedure AssertURL(const A, B: String);
   begin
     { When reading XML files, we make URLs absolute. For comparison,
       strip directory part. }
     AssertEquals(ExtractURIName(A), B);
   end;
 
-  procedure AssertSound(const A: TSoundType; const B: string);
+  procedure AssertSound(const A: TSoundType; const B: String);
   begin
     AssertTrue(A = SoundEngine.SoundFromName(B));
   end;

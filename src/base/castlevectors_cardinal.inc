@@ -37,13 +37,13 @@ type
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector2Cardinal): TVector2Cardinal; inline;
     class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector2Cardinal): TVector2Cardinal; inline;
 
-    function ToString: string;
+    function ToString: String;
     property Items [const Index: TIndex]: Cardinal read GetItems write SetItems; default;
     property X: Cardinal index 0 read GetItemsInt write SetItemsInt;
     property Y: Cardinal index 1 read GetItemsInt write SetItemsInt;
 
-    function IsZero: boolean; inline;
-    class function Equals(const V1, V2: TVector2Cardinal): boolean; static; inline;
+    function IsZero: Boolean; inline;
+    class function Equals(const V1, V2: TVector2Cardinal): Boolean; static; inline;
 
     class function Zero: TVector2Cardinal; static; inline;
   end;
@@ -66,14 +66,14 @@ type
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector3Cardinal): TVector3Cardinal; inline;
     class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector3Cardinal): TVector3Cardinal; inline;
 
-    function ToString: string;
+    function ToString: String;
     property Items [const Index: TIndex]: Cardinal read GetItems write SetItems; default;
     property X: Cardinal index 0 read GetItemsInt write SetItemsInt;
     property Y: Cardinal index 1 read GetItemsInt write SetItemsInt;
     property Z: Cardinal index 2 read GetItemsInt write SetItemsInt;
 
-    function IsZero: boolean; inline;
-    class function Equals(const V1, V2: TVector3Cardinal): boolean; static; inline;
+    function IsZero: Boolean; inline;
+    class function Equals(const V1, V2: TVector3Cardinal): Boolean; static; inline;
 
     class function Zero: TVector3Cardinal; static; inline;
   end;
@@ -96,15 +96,15 @@ type
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector4Cardinal): TVector4Cardinal; inline;
     class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector4Cardinal): TVector4Cardinal; inline;
 
-    function ToString: string;
+    function ToString: String;
     property Items [const Index: TIndex]: Cardinal read GetItems write SetItems; default;
     property X: Cardinal index 0 read GetItemsInt write SetItemsInt;
     property Y: Cardinal index 1 read GetItemsInt write SetItemsInt;
     property Z: Cardinal index 2 read GetItemsInt write SetItemsInt;
     property W: Cardinal index 3 read GetItemsInt write SetItemsInt;
 
-    function IsZero: boolean; inline;
-    class function Equals(const V1, V2: TVector4Cardinal): boolean; static; inline;
+    function IsZero: Boolean; inline;
+    class function Equals(const V1, V2: TVector4Cardinal): Boolean; static; inline;
 
     class function Zero: TVector4Cardinal; static; inline;
   end;
@@ -148,7 +148,7 @@ begin
   Result.Data[1] := - V.Data[1];
 end;
 
-function TVector2Cardinal.ToString: string;
+function TVector2Cardinal.ToString: String;
 begin
   Result := Format('%d %d', [Data[0], Data[1]]);
 end;
@@ -173,12 +173,12 @@ begin
   Data[Index] := Value;
 end;
 
-function TVector2Cardinal.IsZero: boolean;
+function TVector2Cardinal.IsZero: Boolean;
 begin
   Result := IsMemCharFilled(Data, SizeOf(Data), #0);
 end;
 
-class function TVector2Cardinal.Equals(const V1, V2: TVector2Cardinal): boolean;
+class function TVector2Cardinal.Equals(const V1, V2: TVector2Cardinal): Boolean;
 begin
   Result := (V1.Data[0] = V2.Data[0]) and
             (V1.Data[1] = V2.Data[1]);
@@ -212,7 +212,7 @@ begin
   Result.Data[2] := - V.Data[2];
 end;
 
-function TVector3Cardinal.ToString: string;
+function TVector3Cardinal.ToString: String;
 begin
   Result := Format('%d %d %d', [Data[0], Data[1], Data[2]]);
 end;
@@ -237,12 +237,12 @@ begin
   Data[Index] := Value;
 end;
 
-function TVector3Cardinal.IsZero: boolean;
+function TVector3Cardinal.IsZero: Boolean;
 begin
   Result := IsMemCharFilled(Data, SizeOf(Data), #0);
 end;
 
-class function TVector3Cardinal.Equals(const V1, V2: TVector3Cardinal): boolean;
+class function TVector3Cardinal.Equals(const V1, V2: TVector3Cardinal): Boolean;
 begin
   Result := (V1.Data[0] = V2.Data[0]) and
             (V1.Data[1] = V2.Data[1]) and
@@ -280,7 +280,7 @@ begin
   Result.Data[3] := - V.Data[3];
 end;
 
-function TVector4Cardinal.ToString: string;
+function TVector4Cardinal.ToString: String;
 begin
   Result := Format('%d %d %d %d', [Data[0], Data[1], Data[2], Data[3]]);
 end;
@@ -305,12 +305,12 @@ begin
   Data[Index] := Value;
 end;
 
-function TVector4Cardinal.IsZero: boolean;
+function TVector4Cardinal.IsZero: Boolean;
 begin
   Result := IsMemCharFilled(Data, SizeOf(Data), #0);
 end;
 
-class function TVector4Cardinal.Equals(const V1, V2: TVector4Cardinal): boolean;
+class function TVector4Cardinal.Equals(const V1, V2: TVector4Cardinal): Boolean;
 begin
   Result := (V1.Data[0] = V2.Data[0]) and
             (V1.Data[1] = V2.Data[1]) and

@@ -50,7 +50,7 @@
     { X3D field "appliedParameters". } { }
     public property FdAppliedParameters: TMFString read FFdAppliedParameters;
     { Set X3D field "appliedParameters". } { }
-    procedure SetAppliedParameters(const Value: array of string);
+    procedure SetAppliedParameters(const Value: array of String);
     { Set X3D field "appliedParameters". } { }
     procedure SetAppliedParameters(const Value: TCastleStringList);
 
@@ -112,7 +112,7 @@
 
 { TCollisionCollectionNode ----------------------------------------------- }
 
-procedure TCollisionCollectionNode.SetAppliedParameters(const Value: array of string);
+procedure TCollisionCollectionNode.SetAppliedParameters(const Value: array of String);
 begin
   FdAppliedParameters.Send(Value);
 end;

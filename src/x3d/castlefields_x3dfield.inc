@@ -36,7 +36,7 @@
     AffectedFields: TX3DFieldList;
 
     { Ignore the send on fields that do not support lerp
-      (e.g. integer and boolean fields). }
+      (e.g. Integer and Boolean fields). }
     IgnoreIfCannotLerp: Boolean;
 
     constructor Create;
@@ -75,18 +75,18 @@
   }
   TX3DField = class(TX3DFieldOrEvent)
   strict private
-    FExposedEvents: array [boolean] of TX3DEvent;
+    FExposedEvents: array [Boolean] of TX3DEvent;
     FChangeAlways: TX3DChange;
 
     // keep booleans together, to pack them together in memory
-    FExposed: boolean;
-    FValueFromIsClause: boolean;
-    FExposedEventsLinked: boolean;
+    FExposed: Boolean;
+    FValueFromIsClause: Boolean;
+    FExposedEventsLinked: Boolean;
     FResetValue: TX3DField;
 
-    procedure SetExposed(Value: boolean);
-    function GetExposedEvents(InEvent: boolean): TX3DEvent;
-    procedure SetExposedEventsLinked(const Value: boolean);
+    procedure SetExposed(Value: Boolean);
+    function GetExposedEvents(InEvent: Boolean): TX3DEvent;
+    procedure SetExposedEventsLinked(const Value: Boolean);
     function AbortAssignValue(const Source: TX3DField): Boolean;
   private
     type
@@ -149,7 +149,7 @@
           This is now just a shortcut for "PartialValue <> nil", as this satisfies
           our needs.
         }
-        function ToBeApplied: boolean;
+        function ToBeApplied: Boolean;
 
         destructor Destroy; override;
       end;
@@ -165,7 +165,7 @@
         animation. }
       PartialReceived: TPartialReceived;
   strict protected
-    function SendsByEvent: boolean;
+    function SendsByEvent: Boolean;
 
     { Save field value to a stream. Must be overriden for each specific
       field.
@@ -232,7 +232,7 @@
       CreateUndefined, that does the same and addiionally gets parameters
       that specify default field value. }
     constructor Create(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: string);
+      const AExposed: Boolean; const AName: String);
 
     { Virtual constructor, that you can use to construct field instance when
       field class is known only at runtime.
@@ -252,7 +252,7 @@
       before they can be parsed. I guess that's one of the reasons why these
       field types were entirely removed from VRML 2.0. }
     constructor CreateUndefined(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: string); virtual;
+      const AExposed: Boolean; const AName: String); virtual;
 
     destructor Destroy; override;
 
@@ -266,7 +266,7 @@
       If "IS" clause not found, we call ParseValue which should
       actually parse field's value.
       Descendants should override ParseValue. }
-    procedure Parse(Lexer: TX3DLexer; Reader: TX3DReader; IsClauseAllowed: boolean);
+    procedure Parse(Lexer: TX3DLexer; Reader: TX3DReader; IsClauseAllowed: Boolean);
 
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); virtual; abstract;
 
@@ -280,7 +280,7 @@
 
       Implementation in this class creates a Lexer to parse the string,
       and calls ParseXMLAttributeLexer. }
-    procedure ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader); virtual;
+    procedure ParseXMLAttribute(const AttributeValue: String; Reader: TX3DReader); virtual;
 
     { Parse field's value from XML Element children.
       This is used to read SFNode / MFNode field value inside <field>
@@ -296,8 +296,8 @@
       IS clauses are not saved here (because they often have to be treated
       specially anyway, for XML encoding, for prototype declarations etc.). }
     procedure FieldSaveToStream(Writer: TX3DWriter;
-      FieldSaveWhenDefault: boolean = false;
-      XmlAvoidSavingNameBeforeValue: boolean = false);
+      FieldSaveWhenDefault: Boolean = false;
+      XmlAvoidSavingNameBeforeValue: Boolean = false);
 
     { Save the field to the stream.
 
@@ -313,12 +313,12 @@
     { Does current field value came from expanding "IS" clause.
       If yes, then saving this field to stream will only save it's "IS" clauses,
       never saving actual value. }
-    property ValueFromIsClause: boolean
+    property ValueFromIsClause: Boolean
       read FValueFromIsClause write FValueFromIsClause;
 
     { Zwraca zawsze false w tej klasie. Mozesz to przedefiniowac w podklasach
       aby SaveToStream nie zapisywalo do strumienia pol o wartosci domyslnej. }
-    function EqualsDefaultValue: boolean; virtual;
+    function EqualsDefaultValue: Boolean; virtual;
 
     { @true if the SecondValue object has exactly the same type and properties.
       For this class, this returns just (SecondValue.Name = Name).
@@ -341,7 +341,7 @@
       parsing (like names for TSFEnum and TSFBitMask) or allowed
       future values (like TSFFloat.MustBeNonnegative).
     }
-    function Equals(SecondValue: TX3DField): boolean; virtual; reintroduce;
+    function Equals(SecondValue: TX3DField): Boolean; virtual; reintroduce;
 
     { Compare value of this field, with other field, fast.
 
@@ -357,15 +357,15 @@
       it actually doesn't know.
 
       Default implementation in this class (@classname) just returns @false. }
-    function FastEqualsValue(SecondValue: TX3DField): boolean; virtual;
+    function FastEqualsValue(SecondValue: TX3DField): Boolean; virtual;
 
     { Does this field generate/accept events, that is
       an "exposedField" (in VRML 2.0) or "inputOutput" (in X3D). }
-    property Exposed: boolean read FExposed write SetExposed default false;
+    property Exposed: Boolean read FExposed write SetExposed default false;
 
     { These are the set_xxx and xxx_changed events exposed by this field.
       @nil if Exposed is @false. }
-    property ExposedEvents [InEvent: boolean]: TX3DEvent
+    property ExposedEvents [InEvent: Boolean]: TX3DEvent
       read GetExposedEvents;
 
     { Exposed events of this field. @nil if this field is not exposed.
@@ -386,7 +386,7 @@
       behavior.
 
       That said, in special cases you may decide to break this. }
-    property ExposedEventsLinked: boolean
+    property ExposedEventsLinked: Boolean
       read FExposedEventsLinked write SetExposedEventsLinked
       default true;
 
@@ -394,11 +394,11 @@
       As for VRML/X3D interface declaration statements.
       In base TX3DField class, this returns @code(XFAny)
       (name indicating any type, used by instantreality and us). }
-    class function X3DType: string; virtual;
-    class function TypeName: string; deprecated 'use X3DType';
+    class function X3DType: String; virtual;
+    class function TypeName: String; deprecated 'use X3DType';
 
     { Create TX3DEvent descendant suitable as exposed event for this field. }
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; virtual;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent; virtual;
 
     { Copies the current field value. Contrary to TPersistent.Assign, this
       doesn't copy the rest of properties.
@@ -483,9 +483,9 @@
 
       @italic(Descendants implementors notes):
       In this class, this always returns @false. }
-    function CanAssignLerp: boolean; virtual;
+    function CanAssignLerp: Boolean; virtual;
 
-    procedure AddAlternativeName(const AlternativeName: string;
+    procedure AddAlternativeName(const AlternativeName: String;
       const X3DMajorVersion: Integer); override;
 
     { Notify ParentNode.Scene that the value of this field changed. }
@@ -584,21 +584,21 @@
 
   TX3DFieldList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DField>)
   strict private
-    function GetByName(const AName: string): TX3DField;
+    function GetByName(const AName: String): TX3DField;
   public
     { Access field by name.
       Raises EX3DNotFound if the given Name doesn't exist. }
-    property ByName[const AName: string]: TX3DField read GetByName;
+    property ByName[const AName: String]: TX3DField read GetByName;
 
     { Searches for a field with given Name, returns it's index or -1 if not found. }
-    function IndexOfName(const AName: string): integer;
+    function IndexOfName(const AName: String): Integer;
 
     { Returns if EventName is an event implicitly exposed by one of our
       exposed fields (i.e. set_xxx or xxx_changed). If yes, then
       returns index of event, and the event reference itself
       (so always @code(Fields[ReturnedIndex].ExposedEvent[ReturnedEvent.InEvent]
       = ReturnedEvent)). Otherwise, returns -1. }
-    function IndexOfExposedEvent(const EventName: string;
+    function IndexOfExposedEvent(const EventName: String;
       out Event: TX3DEvent): Integer;
   end;
 
@@ -622,7 +622,7 @@ end;
 
 { TX3DField.TPartialReceived --------------------------------------------------------------- }
 
-function TX3DField.TPartialReceived.ToBeApplied: boolean;
+function TX3DField.TPartialReceived.ToBeApplied: Boolean;
 begin
   Result := PartialValue <> nil;
 end;
@@ -636,13 +636,13 @@ end;
 { TX3DField ------------------------------------------------------------- }
 
 constructor TX3DField.Create(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string);
+  const AExposed: Boolean; const AName: String);
 begin
   CreateUndefined(AParentNode, AExposed, AName);
 end;
 
 constructor TX3DField.CreateUndefined(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string);
+  const AExposed: Boolean; const AName: String);
 begin
   inherited Create(AParentNode, AName);
   FExposedEventsLinked := true;
@@ -662,7 +662,7 @@ begin
   inherited;
 end;
 
-function TX3DField.GetExposedEvents(InEvent: boolean): TX3DEvent;
+function TX3DField.GetExposedEvents(InEvent: Boolean): TX3DEvent;
 begin
   Result := FExposedEvents[InEvent];
 end;
@@ -688,7 +688,7 @@ end;
 procedure TX3DField.ExposedEventReceive(Event: TX3DEvent; Value: TX3DField;
   const Time: TX3DTime);
 var
-  ValuePossiblyChanged: boolean;
+  ValuePossiblyChanged: Boolean;
 begin
   Assert(Exposed);
   Assert(Event = FExposedEvents[true]);
@@ -736,7 +736,7 @@ begin
   Result := ChangeAlways;
 end;
 
-function TX3DField.SendsByEvent: boolean;
+function TX3DField.SendsByEvent: Boolean;
 begin
   Result :=
     Exposed and
@@ -746,7 +746,7 @@ end;
 
 procedure TX3DField.Send(Value: TX3DField);
 var
-  ValuePossiblyChanged: boolean;
+  ValuePossiblyChanged: Boolean;
 begin
   if SendsByEvent then
   begin
@@ -768,7 +768,7 @@ const
   SetPrefix = 'set_';
   ChangedSuffix = '_changed';
 
-procedure TX3DField.SetExposedEventsLinked(const Value: boolean);
+procedure TX3DField.SetExposedEventsLinked(const Value: Boolean);
 begin
   if FExposedEventsLinked <> Value then
   begin
@@ -790,12 +790,12 @@ begin
   Result := TX3DFieldClass(ClassType);
 end;
 
-class function TX3DField.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TX3DField.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent;
 begin
   Result := TX3DEvent.Create(AParentNode, AName, ExposedEventsFieldClass, AInEvent);
 end;
 
-procedure TX3DField.SetExposed(Value: boolean);
+procedure TX3DField.SetExposed(Value: Boolean);
 var
   I: Integer;
 begin
@@ -834,9 +834,9 @@ begin
 end;
 
 procedure TX3DField.FieldSaveToStream(Writer: TX3DWriter;
-  FieldSaveWhenDefault, XmlAvoidSavingNameBeforeValue: boolean);
+  FieldSaveWhenDefault, XmlAvoidSavingNameBeforeValue: Boolean);
 var
-  N: string;
+  N: String;
 begin
   N := NameForVersion(Writer);
 
@@ -899,22 +899,22 @@ begin
     Result := sxNone;
 end;
 
-function TX3DField.EqualsDefaultValue: boolean;
+function TX3DField.EqualsDefaultValue: Boolean;
 begin
   Result := false;
 end;
 
-function TX3DField.Equals(SecondValue: TX3DField): boolean;
+function TX3DField.Equals(SecondValue: TX3DField): Boolean;
 begin
   Result := SecondValue.X3DName = X3DName;
 end;
 
-function TX3DField.FastEqualsValue(SecondValue: TX3DField): boolean;
+function TX3DField.FastEqualsValue(SecondValue: TX3DField): Boolean;
 begin
   Result := false;
 end;
 
-procedure TX3DField.Parse(Lexer: TX3DLexer; Reader: TX3DReader; IsClauseAllowed: boolean);
+procedure TX3DField.Parse(Lexer: TX3DLexer; Reader: TX3DReader; IsClauseAllowed: Boolean);
 begin
   if IsClauseAllowed and Lexer.TokenIsKeyword(vkIS) then
     ParseIsClause(Lexer) else
@@ -926,7 +926,7 @@ begin
   ParseValue(Lexer, Reader);
 end;
 
-procedure TX3DField.ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader);
+procedure TX3DField.ParseXMLAttribute(const AttributeValue: String; Reader: TX3DReader);
 var
   Lexer: TX3DLexer;
 begin
@@ -955,7 +955,7 @@ end;
 
 procedure TX3DField.VRMLFieldAssignCommon(Source: TX3DField);
 var
-  NameChanges, ExposedChanges: boolean;
+  NameChanges, ExposedChanges: Boolean;
   I: Integer;
 begin
   NameChanges := X3DName <> Source.X3DName;
@@ -1134,12 +1134,12 @@ begin
   { do nothing, CanAssignLerp is false }
 end;
 
-function TX3DField.CanAssignLerp: boolean;
+function TX3DField.CanAssignLerp: Boolean;
 begin
   Result := false;
 end;
 
-procedure TX3DField.AddAlternativeName(const AlternativeName: string;
+procedure TX3DField.AddAlternativeName(const AlternativeName: String;
   const X3DMajorVersion: Integer);
 begin
   inherited;
@@ -1159,12 +1159,12 @@ end;
 { Note that TX3DField.X3DType cannot be abstract:
   it may be used if source event is of XFAny type in warning message
   in TX3DRoute.SetEndingInternal }
-class function TX3DField.X3DType: string;
+class function TX3DField.X3DType: String;
 begin
   Result := 'XFAny';
 end;
 
-class function TX3DField.TypeName: string;
+class function TX3DField.TypeName: String;
 begin
   Result := X3DType;
 end;
@@ -1183,7 +1183,7 @@ end;
 
 { TX3DFieldList ------------------------------------------------------------- }
 
-function TX3DFieldList.IndexOfName(const AName: string): integer;
+function TX3DFieldList.IndexOfName(const AName: String): Integer;
 begin
   for Result := 0 to Count-1 do
     if Items[Result].IsName(AName) then
@@ -1191,9 +1191,9 @@ begin
   Result := -1;
 end;
 
-function TX3DFieldList.GetByName(const AName: string): TX3DField;
+function TX3DFieldList.GetByName(const AName: String): TX3DField;
 var
-  I: integer;
+  I: Integer;
 begin
   I := IndexOfName(AName);
   if I <> -1 then
@@ -1201,10 +1201,10 @@ begin
     raise EX3DNotFound.CreateFmt('Field name "%s" not found', [AName]);
 end;
 
-function TX3DFieldList.IndexOfExposedEvent(const EventName: string;
+function TX3DFieldList.IndexOfExposedEvent(const EventName: String;
   out Event: TX3DEvent): Integer;
 var
-  InEvent: boolean;
+  InEvent: Boolean;
 begin
   { This implementation is quite optimized.
     Instead of browsing all fields and their ExposedEvents,

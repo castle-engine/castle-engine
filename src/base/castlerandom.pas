@@ -43,16 +43,16 @@ type
       even if initialization happens absolutely simultaneously. }
     procedure Initialize(RandomSeed: LongWord = 0);
     { Returns random float value in the 0..1 range. }
-    function Random: single;
+    function Random: Single;
     { Returns random integer number in the 0..N-1 range. }
     function Random(N: LongInt): LongInt;
     { A relatively slow procedure to get a 64 bit integer random number. }
-    function RandomInt64(N: int64): int64;
+    function RandomInt64(N: Int64): Int64;
     { A simple Yes/No function that with 50% chance returns true or false.
       Something like flipping a coin... }
-    function RandomBoolean: boolean;
+    function RandomBoolean: Boolean;
     { Randomly provides "-1", "0" or "1" with equal chances. }
-    function RandomSign: longint;
+    function RandomSign: LongInt;
     { Returns a random number in 1 .. High(LongWord) range. }
     function Random32bit: LongWord;
   private
@@ -63,14 +63,14 @@ type
 
 { Implementation of MurMur2 hash algorithm
   to make a cryptographic-unsafe but highly uniform
-  32bit hash from a given string very quickly.
+  32bit hash from a given String very quickly.
   It may be used for better initialization of user defined random seeds
   (e.g. "My New World" sounds much better than 6592202398)
   or for better sorting/searching of strings.
   Warning: the hash is deterministic, but the result may be different
   depending on CPU architecture or endianness (test required).
 
-  @param(InputString The input string)
+  @param(InputString The input String)
   @param(Seed Optional parameter enabling initialization
     of the algorithm seed different from default)
   @returns(Unsigned 32-bit integer)
@@ -80,7 +80,7 @@ function StringToHash(const InputString: AnsiString; const Seed: LongWord=0): Lo
 { Single random instance. }
 function Rand: TCastleRandom;
 
-function Rnd: single; deprecated 'use Rand.Random';
+function Rnd: Single; deprecated 'use Rand.Random';
 function Rnd(N: LongInt): LongInt; deprecated 'use Rand.Random';
 
 implementation
@@ -109,8 +109,8 @@ end;
 {$ENDIF}
 
 {$IFDEF USE_DEV_URANDOM}
-function DEV_URANDOM: longint;
-var DevRnd: file of integer;
+function DEV_URANDOM: LongInt;
+var DevRnd: File of Integer;
 begin
   { algorithm according to http://wiki.freepascal.org/Dev_random
    /dev/urandom is a native *nix very high-quality random number generator.
@@ -131,8 +131,8 @@ end;
   more comments than the code itself :)
   I hope I've made everything right :) At least formal tests show it is so.}
 var Store64bitSeed: QWord = 0; //this variable stores 64 bit seed for reusing
-   WaitForSeed: boolean = false;
-function Get_Randomseed: longint;
+   WaitForSeed: Boolean = false;
+function Get_Randomseed: LongInt;
 const DateMultiplier: QWord = 30000000;  // approximate accuracy of the date
       DateOrder: QWord = 80000 * 30000000; // order of the "now*date_multiplier" variable
       {p.s. date_order will be true until year ~2119}
@@ -234,7 +234,7 @@ begin
     {cycle everything one more time}
     XorShift64;
     {leave higher 32-bits of c64 as a true random seed}
-    Result := longint(c64 shr 32);
+    Result := LongInt(c64 shr 32);
   until Result <> 0;
   {and strictly demand it's not zero!
    adding a few XorShift64-cycles in case it does.}
@@ -246,7 +246,7 @@ begin
 end;
 {$ENDIF}
 
-function TCastleRandom.GetRandomSeed: longint;
+function TCastleRandom.GetRandomSeed: LongInt;
 begin
   {$IFDEF USE_DEV_URANDOM}
     { guarantees initialization with absolutely random number provided by
@@ -281,16 +281,16 @@ begin
   Result := LongWord(Seed);
 end;
 
-function TCastleRandom.Random: single;
-const Divisor: single = 1 / MaxInt;
+function TCastleRandom.Random: Single;
+const Divisor: Single = 1 / MaxInt;
 begin
   XorShiftCycle;
   Result := Divisor * LongInt(Seed shr 1);       // note: we discard 1 bit of accuracy to gain speed
   //Result := Divisor * LongInt(XorShift shr 1);    // works slower
 end;
 
-{Result := LongWord((int64(Seed)*N) shr 32)// := seed mod N; works slower
-//Result := Longint((int64(XorShift)*N) shr 32) // works slower}
+{Result := LongWord((Int64(Seed)*N) shr 32)// := seed mod N; works slower
+//Result := LongInt((Int64(XorShift)*N) shr 32) // works slower}
 
 // Adding  {$IFDEF SUPPORTS_INLINE} inline; {$ENDIF} makes this procedure
 //  +35% effective. But I don't think it's a good idea
@@ -306,7 +306,7 @@ end;
 { Works >10 times slower comparing to 32 bit version. And even slower than float version.
   Another problem is that it cycles the seed twice which might cause
   strange results if exact reproduction of the random sequence is required }
-function TCastleRandom.RandomInt64(N: int64): int64;
+function TCastleRandom.RandomInt64(N: Int64): Int64;
 var c64: QWord;
   procedure XorShift64; {$IFDEF SUPPORTS_INLINE} inline; {$ENDIF}
   begin
@@ -323,7 +323,7 @@ begin
      but slows down execution by ~10%}
     XorShift64;
     {in contrast to SysUtils we make it a true 64-bit random, not a fake 63 bit :)
-     There can be no overflow here, because N is int64 and it can't be
+     There can be no overflow here, because N is Int64 and it can't be
      larger than (High(QWORD) div 2), i.e. we can never get "negative" result
      as the first bit of the result will be always zero}
     Result := Int64(QWord(c64) mod QWord(N))
@@ -332,13 +332,13 @@ begin
     Result := 0;
 end;
 
-function TCastleRandom.RandomBoolean: boolean;
+function TCastleRandom.RandomBoolean: Boolean;
 begin
   XorShiftCycle;
   Result := Seed and %1 = 0   //can be %11 to provide for 1/4, %111 - 1/8 probability ...
 end;
 
-function TCastleRandom.RandomSign: longint;
+function TCastleRandom.RandomSign: LongInt;
 begin
   XorShiftCycle;
   Result := LongInt((Int64(LongWord(Seed))*3) shr 32)-1
@@ -348,7 +348,7 @@ end;
 
 { MurMur algorithm works on any memory region at pointer Data
   of length Len, and the result differs depending on Seed. }
-function MurMur2(const Data: pointer; const Len: Integer; const Seed: LongWord): LongWord;
+function MurMur2(const Data: Pointer; const Len: Integer; const Seed: LongWord): LongWord;
 var h, k: LongWord; //MurMur variables
     p: Pointer;
     i: Integer;
@@ -363,7 +363,7 @@ begin
   p := Data;
   h := Seed xor i; //init the deterministic seed
 
-  //cycle through all bytes of the string in 32 bit blocks
+  //cycle through all bytes of the String in 32 bit blocks
   while (i >= 4) do begin
     k := PLongWord(p)^;   //get next 4 bytes of data and process them
     CycleHash(k);
@@ -396,7 +396,7 @@ end;
 function StringToHash(const InputString: AnsiString; const Seed: LongWord = 0): LongWord;
 begin
   Result := MurMur2(Pointer(InputString), Length(InputString), Seed);
-  //Pointer(InputString) is an untyped pointer to the first character of the string
+  //Pointer(InputString) is an untyped Pointer to the first character of the String
 end;
 
 var GlobalRandom: TCastleRandom;

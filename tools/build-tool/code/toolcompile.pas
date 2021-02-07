@@ -29,29 +29,29 @@ type
 
 { Compile with FPC and proper command-line option given file.
   SearchPaths, ExtraOptions may be @nil (same as empty). }
-procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
-  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
+procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: Boolean;
+  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: String;
   const SearchPaths, LibraryPaths: TStrings;
   const ExtraOptions: TStrings);
 
 { Compile with lazbuild. }
 procedure CompileLazbuild(const OS: TOS; const CPU: TCPU;
   const Mode: TCompilationMode;
-  const WorkingDirectory, LazarusProjectFile: string);
+  const WorkingDirectory, LazarusProjectFile: String);
 
 { Output path, where temporary things like units (and iOS stuff)
   are placed. }
 function CompilationOutputPath(const OS: TOS; const CPU: TCPU;
-  const WorkingDirectory: string): string;
+  const WorkingDirectory: String): String;
 
-function ModeToString(const M: TCompilationMode): string;
-function StringToMode(const S: string): TCompilationMode;
+function ModeToString(const M: TCompilationMode): String;
+function StringToMode(const S: String): TCompilationMode;
 
 var
   { Should we use the -Vxxx parameter, that is necessary if you got FPC
     from the fpc-3.0.3.intel-macosx.cross.ios.dmg
     (official "FPC for iOS" installation). }
-  FpcVersionForIPhoneSimulator: string = 'auto';
+  FpcVersionForIPhoneSimulator: String = 'auto';
 
 implementation
 
@@ -63,17 +63,17 @@ type
   TFpcVersionForIPhoneSimulatorChecked = class
   strict private
     class var
-      IsCached: boolean;
-      CachedValue: string;
-    class function AutoDetect(const FpcVer: TFpcVersion): string; static;
+      IsCached: Boolean;
+      CachedValue: String;
+    class function AutoDetect(const FpcVer: TFpcVersion): String; static;
   public
     { Return FpcVersionForIPhoneSimulator, but the 1st time this is run,
       we check and optionally change the returned value to something better. }
-    class function Value(const FpcVer: TFpcVersion): string; static;
+    class function Value(const FpcVer: TFpcVersion): String; static;
   end;
 
 class function TFpcVersionForIPhoneSimulatorChecked.AutoDetect(
-  const FpcVer: TFpcVersion): string; static;
+  const FpcVer: TFpcVersion): String; static;
 begin
   if (not Odd(FpcVer.Minor)) and
      (not Odd(FpcVer.Release)) then
@@ -93,9 +93,9 @@ begin
 end;
 
 class function TFpcVersionForIPhoneSimulatorChecked.Value(
-  const FpcVer: TFpcVersion): string; static;
+  const FpcVer: TFpcVersion): String; static;
 var
-  FpcOutput, FpcExe: string;
+  FpcOutput, FpcExe: String;
   FpcExitStatus: Integer;
 begin
   if not IsCached then
@@ -126,10 +126,10 @@ end;
 type
   TCleanDirectoryHelper = class
     DeletedFiles: Cardinal; //< only for DeleteFoundFile
-    procedure DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+    procedure DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
   end;
 
-procedure TCleanDirectoryHelper.DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+procedure TCleanDirectoryHelper.DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
 begin
   if Verbose then
     Writeln('Deleting ' + FileInfo.AbsoluteName);
@@ -138,11 +138,11 @@ begin
 end;
 
 { Clean compilation trash in Directory, recursively. }
-procedure CleanDirectory(const Directory: string);
+procedure CleanDirectory(const Directory: String);
 var
   Helper: TCleanDirectoryHelper;
 
-  procedure DeleteFilesRecursive(const Mask: string);
+  procedure DeleteFilesRecursive(const Mask: String);
   begin
     FindFiles(Directory, Mask, false,
       {$ifdef CASTLE_OBJFPC}@{$endif} Helper.DeleteFoundFile, [ffRecursive]);
@@ -197,15 +197,15 @@ begin
   // Line := '<begin>' + Line + '<end>';
 end;
 
-procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
-  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
+procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: Boolean;
+  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: String;
   const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
 var
-  CastleEngineSrc: string;
+  CastleEngineSrc: String;
   FpcVer: TFpcVersion;
   FpcOptions: TCastleStringList;
 
-  procedure AddEnginePath(Path: string);
+  procedure AddEnginePath(Path: String);
   begin
     Path := CastleEngineSrc + Path;
     if not DirectoryExists(Path) then
@@ -295,7 +295,7 @@ var
         FpcOptions.Add('-Fl' + LibraryPaths[I]);
   end;
 
-  function IsIOS: boolean;
+  function IsIOS: Boolean;
   begin
     Result :=
       (OS = iphonesim) or
@@ -310,8 +310,8 @@ var
     DeviceSdk = '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk';
   {$endif}
   var
-    IOS: boolean;
-    VersionForSimulator: string;
+    IOS: Boolean;
+    VersionForSimulator: String;
   begin
     IOS := false;
 
@@ -388,7 +388,7 @@ var
   end;
 
 var
-  FpcOutput, FpcExe: string;
+  FpcOutput, FpcExe: String;
   FpcExitStatus: Integer;
 begin
   FpcVer := FpcVersion;
@@ -653,7 +653,7 @@ end;
 
 procedure CompileLazbuild(const OS: TOS; const CPU: TCPU;
   const Mode: TCompilationMode;
-  const WorkingDirectory, LazarusProjectFile: string);
+  const WorkingDirectory, LazarusProjectFile: String);
 var
   LazbuildExe: String;
   LazbuildOptions: TCastleStringList;
@@ -774,7 +774,7 @@ begin
 end;
 
 function CompilationOutputPath(const OS: TOS; const CPU: TCPU;
-  const WorkingDirectory: string): string;
+  const WorkingDirectory: String): String;
 begin
   Result := TempOutputPath(WorkingDirectory) + 'compilation' + PathDelim +
     CPUToString(CPU) + '-' + OSToString(OS) + PathDelim;
@@ -782,15 +782,15 @@ begin
 end;
 
 const
-  CompilationModeNames: array [TCompilationMode] of string =
+  CompilationModeNames: array [TCompilationMode] of String =
   ('release', 'valgrind', 'debug');
 
-function ModeToString(const M: TCompilationMode): string;
+function ModeToString(const M: TCompilationMode): String;
 begin
   Result := CompilationModeNames[M];
 end;
 
-function StringToMode(const S: string): TCompilationMode;
+function StringToMode(const S: String): TCompilationMode;
 begin
   for Result in TCompilationMode do
     if AnsiSameText(CompilationModeNames[Result], S) then

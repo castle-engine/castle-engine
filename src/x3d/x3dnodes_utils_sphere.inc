@@ -17,14 +17,14 @@
 procedure Sphere_Proxy(CoordIndex: TLongIntList;
   Coord: TVector3List; Normal: TVector3List;
   TexCoord: TVector2List;
-  OverTriangulate: boolean; const Radius: Single;
+  OverTriangulate: Boolean; const Radius: Single;
   const QuadricSlices, QuadricStacks: Cardinal);
 
   { We have rings numbered 0 ... QuadricStacks.
     The rings nr 0 and QuadricStacks have 0 radius (bottom and top of the sphere). }
 
   { For stack number calculate it's radius and height (in y). }
-  procedure StackCircle(StackNum: integer; out StackRadius, Height: Single);
+  procedure StackCircle(StackNum: Integer; out StackRadius, Height: Single);
   var
     Alpha, S, C: Float;
   begin
@@ -178,7 +178,7 @@ procedure SphereWireframe_Proxy(CoordIndex: TLongIntList;
     The rings nr 0 and QuadricStacks have 0 radius (bottom and top of the sphere). }
 
   { For stack number calculate it's radius and height (in y). }
-  procedure StackCircle(StackNum: integer; out StackRadius, Height: Single);
+  procedure StackCircle(StackNum: Integer; out StackRadius, Height: Single);
   var
     Alpha, S, C: Float;
   begin
@@ -272,7 +272,7 @@ begin
 end;
 
 function TSphereNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+  const OverTriangulate: Boolean): TAbstractGeometryNode;
 
   procedure SphereWireframe;
   var
@@ -339,7 +339,7 @@ begin
 end;
 
 function TSphereNode_1.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+  const OverTriangulate: Boolean): TAbstractGeometryNode;
 var
   CoordNode: TCoordinate3Node_1;
   NormalNode: TNormalNode;

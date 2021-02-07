@@ -43,7 +43,7 @@ type
     ButtonPanel1: TButtonPanel;
     CheckTransforms: TScrollBox;
     Label1: TLabel;
-    procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   private
     Checkboxes: TObjectList;
   public
@@ -96,7 +96,7 @@ begin
 end;
 
 procedure TExposeTransformsDialog.FormCloseQuery(Sender: TObject;
-  var CanClose: boolean);
+  var CanClose: Boolean);
 var
   I: Integer;
 begin

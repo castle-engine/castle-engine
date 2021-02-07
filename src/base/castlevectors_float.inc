@@ -88,7 +88,7 @@ function Matrix4(const V: TMatrix4Double): TMatrix4;
 function Matrix3Double(const V: TMatrix3): TMatrix3Double;
 function Matrix4Double(const V: TMatrix4): TMatrix4Double;
 
-{ Convert string to vector. Each component is simply parsed by StrToFloatDot,
+{ Convert String to Vector. Each component is simply parsed by StrToFloatDot,
   and components must be separated by whitespace (see @link(WhiteSpaces) constant).
   This is a reverse of
   @link(TGenericVector2.ToString TVector2.ToString),
@@ -96,12 +96,12 @@ function Matrix4Double(const V: TMatrix4): TMatrix4Double;
   @link(TGenericVector4.ToString TVector4.ToString) methods.
 
   @raises(EConvertError In case of problems during conversion (invalid float
-    or unexpected string end or expected but missed string end).)
+    or unexpected String end or expected but missed string end).)
 
   @groupBegin }
-function Vector2FromStr(const S: string): TVector2;
-function Vector3FromStr(const S: string): TVector3;
-function Vector4FromStr(const S: string): TVector4;
+function Vector2FromStr(const S: String): TVector2;
+function Vector3FromStr(const S: String): TVector3;
+function Vector4FromStr(const S: String): TVector4;
 { @groupEnd }
 
 { Linear interpolation between two vector values.
@@ -134,7 +134,7 @@ function Lerp(const A: Double; const M1, M2: TMatrix4Double): TMatrix4Double; ov
 { @groupEnd }
 
 { Try to inverse single-precision matrix using double-precision, if necessary. }
-function TryInverseHarder(const M: TMatrix4; out MInverse: TMatrix4): boolean;
+function TryInverseHarder(const M: TMatrix4; out MInverse: TMatrix4): Boolean;
 
 {$endif read_interface}
 
@@ -285,9 +285,9 @@ begin
       Result.Data[I, J] := V.Data[I, J];
 end;
 
-{ Convert from string -------------------------------------------------------- }
+{ Convert from String -------------------------------------------------------- }
 
-function Vector2FromStr(const S: string): TVector2;
+function Vector2FromStr(const S: String): TVector2;
 var
   SPosition: Integer;
 begin
@@ -298,7 +298,7 @@ begin
     raise EConvertError.Create('Expected end of data when reading vector from string');
 end;
 
-function Vector3FromStr(const S: string): TVector3;
+function Vector3FromStr(const S: String): TVector3;
 var
   SPosition: Integer;
 begin
@@ -314,7 +314,7 @@ begin
     often) }
 end;
 
-function Vector4FromStr(const S: string): TVector4;
+function Vector4FromStr(const S: String): TVector4;
 var
   SPosition: Integer;
 begin
@@ -391,7 +391,7 @@ end;
 
 { TryInverseHarder ----------------------------------------------------------- }
 
-function TryInverseHarder(const M: TMatrix4; out MInverse: TMatrix4): boolean;
+function TryInverseHarder(const M: TMatrix4; out MInverse: TMatrix4): Boolean;
 var
   MInverseDouble: TMatrix4Double;
 begin

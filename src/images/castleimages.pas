@@ -94,7 +94,7 @@ const
 { Check if the two RGB colors are equal, ignoring small differences.
   All three color components may differ by at most Tolerance.
   When Tolerance is 0, this is a normal (exact) comparison. }
-function EqualRGB(const Color1, Color2: TVector3Byte; Tolerance: Byte): boolean;
+function EqualRGB(const Color1, Color2: TVector3Byte; Tolerance: Byte): Boolean;
 
 type
   { Raised by @link(TCastleImage.MakeExtracted) when coordinates on image
@@ -117,8 +117,8 @@ type
     @exclude }
   TInternalCastleFpImage = class(TFPCompactImgRGBA8Bit)
   strict private
-    function GetColors8Bit(const x, y: integer): TFPCompactImgRGBA8BitValue;
-    procedure SetColors8Bit(const x, y: integer; const Value: TFPCompactImgRGBA8BitValue);
+    function GetColors8Bit(const x, y: Integer): TFPCompactImgRGBA8BitValue;
+    procedure SetColors8Bit(const x, y: Integer; const Value: TFPCompactImgRGBA8BitValue);
   public
     property Colors8Bit[X, Y: Integer]: TFPCompactImgRGBA8BitValue
       read GetColors8Bit write SetColors8Bit;
@@ -130,8 +130,8 @@ type
   TEncodedImage = class
   private
     FWidth, FHeight, FDepth: Cardinal;
-    FURL: string;
-    procedure NotImplemented(const AMethodName: string);
+    FURL: String;
+    procedure NotImplemented(const AMethodName: String);
     procedure FromFpImage(const FPImage: TInternalCastleFpImage); virtual;
     function ToFpImage: TInternalCastleFpImage; virtual;
   protected
@@ -140,7 +140,7 @@ type
     FRawPixels: Pointer;
   public
     { URL from which this image was loaded, if any. }
-    property URL: string read FURL write FURL;
+    property URL: String read FURL write FURL;
 
     destructor Destroy; override;
 
@@ -164,7 +164,7 @@ type
       @false means that RawPixels <> nil and Width * Height * Depth <> 0
       (so all Width > 0 and Height > 0 and Depth > 0, since they are
       Cardinal (unsigned) always). }
-    function IsEmpty: boolean;
+    function IsEmpty: Boolean;
 
     { Does an image have an alpha channel.
 
@@ -179,7 +179,7 @@ type
       @italic(Descendants implementors notes:) in this class, TCastleImage,
       this returns @false. Override to return @true for images with
       alpha channel. }
-    function HasAlpha: boolean; virtual;
+    function HasAlpha: Boolean; virtual;
 
     { @abstract(Check does an image have an alpha channel,
       and if yes analyze alpha channel: is it a single yes-no (only full
@@ -525,7 +525,7 @@ type
       from CastleProgress to indicate progress of operation. }
     procedure Resize(ResizeWidth, ResizeHeight: Cardinal;
       const Interpolation: TResizeInterpolation = riBilinear;
-      const ProgressTitle: string = '');
+      const ProgressTitle: String = '');
 
     { Change Width and Height and appropriately stretch image contents.
 
@@ -564,7 +564,7 @@ type
       from CastleProgress to indicate progress of operation. }
     function MakeResized(ResizeWidth, ResizeHeight: Cardinal;
       const Interpolation: TResizeInterpolation = riBilinear;
-      const ProgressTitle: string = ''): TCastleImage;
+      const ProgressTitle: String = ''): TCastleImage;
 
     { Mirror image horizotally (that is right edge is swapped with left edge). }
     procedure FlipHorizontal;
@@ -602,7 +602,7 @@ type
     procedure Clear(const Pixel: TCastleColor); overload;
 
     { Check do all image pixels have the same color. }
-    function IsClear(const Pixel: TVector4Byte): boolean; overload; virtual;
+    function IsClear(const Pixel: TVector4Byte): Boolean; overload; virtual;
 
     { Multiply each RGB color by a matrix.
       This is a useful routine for many various conversions of image colors.
@@ -694,7 +694,7 @@ type
 
     { Check if given Image has the same class, the same sizes
       (Width, Height) and contains exactly the same pixel values. }
-    function IsEqual(Image: TCastleImage): boolean;
+    function IsEqual(Image: TCastleImage): Boolean;
 
     { This is like IsEqual, but is compares only given parts of the images.
       Note that it's your responsibility to make sure that given areas
@@ -708,15 +708,15 @@ type
     function ArePartsEqual(
       const SelfX0, SelfY0, SelfWidth, SelfHeight: Cardinal;
       Image: TCastleImage;
-      const ImageX0, ImageY0, ImageWidth, ImageHeight: Cardinal): boolean; overload;
+      const ImageX0, ImageY0, ImageWidth, ImageHeight: Cardinal): Boolean; overload;
 
     function ArePartsEqual(
       Image: TCastleImage;
-      const ImageX0, ImageY0, ImageWidth, ImageHeight: Cardinal): boolean; overload;
+      const ImageX0, ImageY0, ImageWidth, ImageHeight: Cardinal): Boolean; overload;
 
     function ArePartsEqual(
       const SelfX0, SelfY0, SelfWidth, SelfHeight: Cardinal;
-      Image: TCastleImage): boolean; overload;
+      Image: TCastleImage): Boolean; overload;
     { @groupEnd }
 
     { Draw one image part on another image.
@@ -858,9 +858,9 @@ type
     procedure Assign(const Source: TCastleImage); virtual;
 
     { Append code to embed this image inside Pascal source code. }
-    procedure SaveToPascalCode(const ImageName: string;
-      const ShowProgress: boolean;
-      var CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization: string);
+    procedure SaveToPascalCode(const ImageName: String;
+      const ShowProgress: Boolean;
+      var CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization: String);
 
     { Set the RGB colors for transparent pixels to the nearest non-transparent
       colors. This fixes problems with black/white borders around the texture
@@ -876,24 +876,24 @@ type
       since it's really really slow).
 
       @groupBegin }
-    procedure AlphaBleed(const ProgressTitle: string = ''); virtual;
-    function MakeAlphaBleed(const ProgressTitle: string = ''): TCastleImage; virtual;
+    procedure AlphaBleed(const ProgressTitle: String = ''); virtual;
+    function MakeAlphaBleed(const ProgressTitle: String = ''): TCastleImage; virtual;
     { @groupEnd }
   public
     { Draw simple geometric shapes like circles, rectangles, lines, etc.
       @groupBegin }
-    procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+    procedure FillEllipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
       const aColor: TCastleColor); virtual;
-    procedure Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
-      const aWidth: single; const aColor: TCastleColor); virtual;
-    procedure FillRectangle(const x1, y1, x2, y2: single;
+    procedure Ellipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
+      const aWidth: Single; const aColor: TCastleColor); virtual;
+    procedure FillRectangle(const x1, y1, x2, y2: Single;
       const aColor: TCastleColor); virtual;
-    procedure Rectangle(const x1, y1, x2, y2: single;
-      const aWidth: single; const aColor: TCastleColor); virtual;
-    procedure Line(const x1, y1, x2, y2: single;
-      const aWidth: single; const aColor: TCastleColor); virtual;
-    procedure FloodFill(const x, y: integer; const aColor: TCastleColor;
-      const aThreshold: single = 0);
+    procedure Rectangle(const x1, y1, x2, y2: Single;
+      const aWidth: Single; const aColor: TCastleColor); virtual;
+    procedure Line(const x1, y1, x2, y2: Single;
+      const aWidth: Single; const aColor: TCastleColor); virtual;
+    procedure FloodFill(const x, y: Integer; const aColor: TCastleColor;
+      const aThreshold: Single = 0);
     { @groupEnd }
   end;
 
@@ -1008,7 +1008,7 @@ type
     { Size of the whole image data inside RawPixels, in bytes. }
     function Size: Cardinal; override;
 
-    function HasAlpha: boolean; override;
+    function HasAlpha: Boolean; override;
     function AlphaChannel(
       const AlphaTolerance: Byte): TAlphaChannel; override;
 
@@ -1068,13 +1068,13 @@ type
 { Check is ImageClass one of the items in the ImageClasses array,
   or a descendant of one of them. }
 function InImageClasses(ImageClass: TEncodedImageClass;
-  const ImageClasses: array of TEncodedImageClass): boolean; overload;
+  const ImageClasses: array of TEncodedImageClass): Boolean; overload;
 
 { Check is Image class one of the items in the ImageClasses array,
   or a descendant of one of them.
   This is a shortcut for InImageClasses(Image.ClassType, ImageClasses). }
 function InImageClasses(Image: TEncodedImage;
-  const ImageClasses: array of TEncodedImageClass): boolean; overload;
+  const ImageClasses: array of TEncodedImageClass): Boolean; overload;
 
 (*Check if both arrays contain exactly the same classes in the same order.
 
@@ -1103,7 +1103,7 @@ function InImageClasses(Image: TEncodedImage;
     @item @true if for sure both arrays contain the same classes and
     @item @false if @italic(possibly) they don't contain the same classes.
   ) *)
-function ImageClassesEqual(const Ar1, Ar2: array of TEncodedImageClass): boolean;
+function ImageClassesEqual(const Ar1, Ar2: array of TEncodedImageClass): Boolean;
 
 { TCastleImage basic descendants --------------------------------------------- }
 
@@ -1142,7 +1142,7 @@ type
     procedure InvertColors; override;
 
     procedure Clear(const Pixel: TVector4Byte); override;
-    function IsClear(const Pixel: TVector4Byte): boolean; override;
+    function IsClear(const Pixel: TVector4Byte): Boolean; override;
 
     procedure TransformRGB(const Matrix: TMatrix3); override;
     procedure ModulateRGB(const ColorModulator: TColorModulatorByteFunc); override;
@@ -1212,21 +1212,21 @@ type
     procedure Assign(const Source: TCastleImage); override;
 
   public
-    procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+    procedure FillEllipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
       const aColor: TCastleColor); override;
-    procedure Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
-      const aWidth: single; const aColor: TCastleColor); override;
-    procedure FillRectangle(const x1, y1, x2, y2: single;
+    procedure Ellipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
+      const aWidth: Single; const aColor: TCastleColor); override;
+    procedure FillRectangle(const x1, y1, x2, y2: Single;
       const aColor: TCastleColor); override;
-    procedure Rectangle(const x1, y1, x2, y2: single;
-      const aWidth: single; const aColor: TCastleColor); override;
-    procedure Line(const x1, y1, x2, y2: single;
-      const aWidth: single; const aColor: TCastleColor); override;
+    procedure Rectangle(const x1, y1, x2, y2: Single;
+      const aWidth: Single; const aColor: TCastleColor); override;
+    procedure Line(const x1, y1, x2, y2: Single;
+      const aWidth: Single; const aColor: TCastleColor); override;
   end;
 
   TRGBAlphaImage = class(TCastleImage)
   private
-    FPremultipliedAlpha: boolean;
+    FPremultipliedAlpha: Boolean;
     function GetPixels: PVector4Byte;
     function GetPixelsArray: PVector4ByteArray;
     procedure FromFpImage(const FPImage: TInternalCastleFpImage); override;
@@ -1253,7 +1253,7 @@ type
     procedure InvertColors; override;
 
     procedure Clear(const Pixel: TVector4Byte); override;
-    function IsClear(const Pixel: TVector4Byte): boolean; override;
+    function IsClear(const Pixel: TVector4Byte): Boolean; override;
 
     { Set alpha channel on every pixel to the same given value. }
     procedure ClearAlpha(const Alpha: Byte);
@@ -1274,7 +1274,7 @@ type
       size of this image after Compose call. }
     procedure Compose(RGB: TRGBImage; AGrayscale: TGrayscaleImage);
 
-    function HasAlpha: boolean; override;
+    function HasAlpha: Boolean; override;
 
     function AlphaChannel(
       const AlphaTolerance: Byte): TAlphaChannel; override;
@@ -1306,21 +1306,21 @@ type
       as a source for drawing, and the results will be the same as without
       premultiplying, but faster. }
     procedure PremultiplyAlpha;
-    property PremultipliedAlpha: boolean read FPremultipliedAlpha;
+    property PremultipliedAlpha: Boolean read FPremultipliedAlpha;
 
-    procedure AlphaBleed(const ProgressTitle: string = ''); override;
-    function MakeAlphaBleed(const ProgressTitle: string = ''): TCastleImage; override;
+    procedure AlphaBleed(const ProgressTitle: String = ''); override;
+    function MakeAlphaBleed(const ProgressTitle: String = ''): TCastleImage; override;
   public
-    procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+    procedure FillEllipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
       const aColor: TCastleColor); override;
-    procedure Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
-      const aWidth: single; const aColor: TCastleColor); override;
-    procedure FillRectangle(const x1, y1, x2, y2: single;
+    procedure Ellipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
+      const aWidth: Single; const aColor: TCastleColor); override;
+    procedure FillRectangle(const x1, y1, x2, y2: Single;
       const aColor: TCastleColor); override;
-    procedure Rectangle(const x1, y1, x2, y2: single;
-      const aWidth: single; const aColor: TCastleColor); override;
-    procedure Line(const x1, y1, x2, y2: single;
-      const aWidth: single; const aColor: TCastleColor); override;
+    procedure Rectangle(const x1, y1, x2, y2: Single;
+      const aWidth: Single; const aColor: TCastleColor); override;
+    procedure Line(const x1, y1, x2, y2: Single;
+      const aWidth: Single; const aColor: TCastleColor); override;
   end;
 
   { Image with high-precision RGB colors encoded as 3 floats. }
@@ -1347,10 +1347,10 @@ type
     procedure InvertColors; override;
 
     procedure Clear(const Pixel: TVector4Byte); overload; override;
-    function IsClear(const Pixel: TVector4Byte): boolean; overload; override;
+    function IsClear(const Pixel: TVector4Byte): Boolean; overload; override;
 
     procedure Clear(const Pixel: TVector3); overload; reintroduce;
-    function IsClear(const Pixel: TVector3): boolean; overload; reintroduce;
+    function IsClear(const Pixel: TVector3): Boolean; overload; reintroduce;
 
     { Converts TRGBFloatImage to TRGBImage.
       Colors in pixels are simply rounded using @link(Vector3Byte).
@@ -1376,7 +1376,7 @@ type
   { Grayscale image. Color is a simple Byte value. }
   TGrayscaleImage = class(TCastleImage)
   private
-    FTreatAsAlpha: boolean;
+    FTreatAsAlpha: Boolean;
     FColorWhenTreatedAsAlpha: TVector3Byte;
     function GetPixels: PByte;
     function GetPixelsArray: PByteArray;
@@ -1404,10 +1404,10 @@ type
     procedure InvertColors; override;
 
     procedure Clear(const Pixel: TVector4Byte); override;
-    function IsClear(const Pixel: TVector4Byte): boolean; override;
+    function IsClear(const Pixel: TVector4Byte): Boolean; override;
 
     procedure Clear(const Pixel: Byte); reintroduce;
-    function IsClear(const Pixel: Byte): boolean; reintroduce;
+    function IsClear(const Pixel: Byte): Boolean; reintroduce;
 
     { Every pixels value is halved (divided by 2).
       This is done by simple bitshift, so you can be sure that all
@@ -1445,7 +1445,7 @@ type
           taken from contents of this image.)
       )
     }
-    property TreatAsAlpha: boolean
+    property TreatAsAlpha: Boolean
       read FTreatAsAlpha write FTreatAsAlpha;
 
     property ColorWhenTreatedAsAlpha: TVector3Byte
@@ -1456,16 +1456,16 @@ type
 
     procedure Assign(const Source: TCastleImage); override;
   public
-    procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+    procedure FillEllipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
       const aColor: TCastleColor); override;
-    procedure Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
-      const aWidth: single; const aColor: TCastleColor); override;
-    procedure FillRectangle(const x1, y1, x2, y2: single;
+    procedure Ellipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
+      const aWidth: Single; const aColor: TCastleColor); override;
+    procedure FillRectangle(const x1, y1, x2, y2: Single;
       const aColor: TCastleColor); override;
-    procedure Rectangle(const x1, y1, x2, y2: single;
-      const aWidth: single; const aColor: TCastleColor); override;
-    procedure Line(const x1, y1, x2, y2: single;
-      const aWidth: single; const aColor: TCastleColor); override;
+    procedure Rectangle(const x1, y1, x2, y2: Single;
+      const aWidth: Single; const aColor: TCastleColor); override;
+    procedure Line(const x1, y1, x2, y2: Single;
+      const aWidth: Single; const aColor: TCastleColor); override;
   end;
 
   { Grayscale image with an alpha channel.
@@ -1498,12 +1498,12 @@ type
     procedure InvertColors; override;
 
     procedure Clear(const Pixel: TVector4Byte); override;
-    function IsClear(const Pixel: TVector4Byte): boolean; override;
+    function IsClear(const Pixel: TVector4Byte): Boolean; override;
 
     procedure Clear(const Pixel: TVector2Byte); reintroduce;
-    function IsClear(const Pixel: TVector2Byte): boolean; reintroduce;
+    function IsClear(const Pixel: TVector2Byte): Boolean; reintroduce;
 
-    function HasAlpha: boolean; override;
+    function HasAlpha: Boolean; override;
 
     function AlphaChannel(
       const AlphaTolerance: Byte): TAlphaChannel; override;
@@ -1515,19 +1515,19 @@ type
     procedure Assign(const Source: TCastleImage); override;
 
     // TODO: this should be implemented, just like for TRGBAlphaImage
-    //procedure AlphaBleed(const ProgressTitle: string = ''); override;
-    //function MakeAlphaBleed(const ProgressTitle: string = ''): TCastleImage; override;
+    //procedure AlphaBleed(const ProgressTitle: String = ''); override;
+    //function MakeAlphaBleed(const ProgressTitle: String = ''): TCastleImage; override;
   public
-    procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+    procedure FillEllipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
       const aColor: TCastleColor); override;
-    procedure Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
-      const aWidth: single; const aColor: TCastleColor); override;
-    procedure FillRectangle(const x1, y1, x2, y2: single;
+    procedure Ellipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
+      const aWidth: Single; const aColor: TCastleColor); override;
+    procedure FillRectangle(const x1, y1, x2, y2: Single;
       const aColor: TCastleColor); override;
-    procedure Rectangle(const x1, y1, x2, y2: single;
-      const aWidth: single; const aColor: TCastleColor); override;
-    procedure Line(const x1, y1, x2, y2: single;
-      const aWidth: single; const aColor: TCastleColor); override;
+    procedure Rectangle(const x1, y1, x2, y2: Single;
+      const aWidth: Single; const aColor: TCastleColor); override;
+    procedure Line(const x1, y1, x2, y2: Single;
+      const aWidth: Single; const aColor: TCastleColor); override;
   end;
 
 { RGBE <-> 3 Single color conversion --------------------------------- }
@@ -1547,8 +1547,8 @@ function VectorRGBETo3Single(const v: TVector4Byte): TVector3;
 { File formats managing ----------------------------------------------------- }
 
 { Does this MIME type correspond to image. }
-function IsImageMimeType(const MimeType: string;
-  const OnlyLoadable, OnlySaveable: boolean): boolean;
+function IsImageMimeType(const MimeType: String;
+  const OnlyLoadable, OnlySaveable: Boolean): Boolean;
 
 { List available image file formats.
 
@@ -1567,12 +1567,12 @@ function IsImageMimeType(const MimeType: string;
   ListImageExtsShort writes all recognized extensions separated by comma (', ').
 
   @groupBegin }
-function ListImageExtsLong(OnlyLoadable, OnlySaveable: boolean; const LinePrefix: string): string;
-function ListImageExtsShort(OnlyLoadable, OnlySaveable: boolean): string;
+function ListImageExtsLong(OnlyLoadable, OnlySaveable: Boolean; const LinePrefix: String): String;
+function ListImageExtsShort(OnlyLoadable, OnlySaveable: Boolean): String;
 { @groupEnd }
 
 { Guess MIME type from image extension. Empty string if cannot guess. }
-function ImageExtToMimeType(Ext: string): string; deprecated 'use URIMimeType';
+function ImageExtToMimeType(Ext: String): String; deprecated 'use URIMimeType';
 
 { loading image -------------------------------------------------------------- }
 
@@ -1670,15 +1670,15 @@ type
   @seealso LoadEncodedImage
 
   @groupBegin *)
-function LoadImage(Stream: TStream; const MimeType: string;
+function LoadImage(Stream: TStream; const MimeType: String;
   const AllowedImageClasses: array of TEncodedImageClass)
   :TCastleImage; overload;
 
-function LoadImage(const URL: string): TCastleImage; overload;
-function LoadImage(const URL: string;
+function LoadImage(const URL: String): TCastleImage; overload;
+function LoadImage(const URL: String;
   const AllowedImageClasses: array of TEncodedImageClass)
   :TCastleImage; overload;
-function LoadImage(const URL: string;
+function LoadImage(const URL: String;
   const AllowedImageClasses: array of TEncodedImageClass;
   const ResizeWidth, ResizeHeight: Cardinal;
   const Interpolation: TResizeInterpolation = riBilinear;
@@ -1694,13 +1694,13 @@ function LoadImage(const URL: string;
   @seealso LoadImage
 
   @groupBegin }
-function LoadEncodedImage(Stream: TStream; const MimeType: string;
+function LoadEncodedImage(Stream: TStream; const MimeType: String;
   const AllowedImageClasses: array of TEncodedImageClass;
   const Options: TLoadImageOptions = [])
   :TEncodedImage; overload;
-function LoadEncodedImage(const URL: string;
+function LoadEncodedImage(const URL: String;
   const Options: TLoadImageOptions = []): TEncodedImage; overload;
-function LoadEncodedImage(URL: string;
+function LoadEncodedImage(URL: String;
   const AllowedImageClasses: array of TEncodedImageClass;
   const Options: TLoadImageOptions = [])
   :TEncodedImage; overload;
@@ -1743,8 +1743,8 @@ type
     because of Img class (memory format) and/or image file format.)
 
   @groupBegin }
-procedure SaveImage(const img: TEncodedImage; const MimeType: string; Stream: TStream); overload;
-procedure SaveImage(const Img: TEncodedImage; const URL: string); overload;
+procedure SaveImage(const img: TEncodedImage; const MimeType: String; Stream: TStream); overload;
+procedure SaveImage(const Img: TEncodedImage; const URL: String); overload;
 { @groupEnd }
 
 { Other TCastleImage processing ---------------------------------------------------- }
@@ -1757,7 +1757,7 @@ procedure SaveImage(const Img: TEncodedImage; const URL: string); overload;
   by guessing based on file extension.
 
   @groupBegin }
-function ImageClassBestForSavingToFormat(const URL: string): TCastleImageClass;
+function ImageClassBestForSavingToFormat(const URL: String): TCastleImageClass;
 { @groupEnd }
 
 var
@@ -1777,16 +1777,16 @@ var
   otherwise returns "no alpha channel". }
 procedure AlphaMaxVar(var A: TAlphaChannel; const B: TAlphaChannel);
 
-function StringToAlpha(S: string; var WarningDone: boolean): TAutoAlphaChannel;
+function StringToAlpha(S: String; var WarningDone: Boolean): TAutoAlphaChannel;
 
 const
-  AlphaToString: array [TAutoAlphaChannel] of string =
+  AlphaToString: array [TAutoAlphaChannel] of String =
   ('AUTO', 'NONE', 'TEST', 'BLENDING');
 
 type
   TTextureCompressionInfo = object
-    Name: string;
-    RequiresPowerOf2: boolean;
+    Name: String;
+    RequiresPowerOf2: Boolean;
     AlphaChannel: TAlphaChannel;
 
     { When generating to DDS (that has reverted row order with respect to OpenGL),
@@ -1807,7 +1807,7 @@ type
       with correct orientation.
 
       This field is ignored if FileExtension is not .dds. }
-    DDSFlipped: boolean;
+    DDSFlipped: Boolean;
 
     { File extension/format the engine expects when try load GPU compressed
       version of texture. }
@@ -1865,25 +1865,25 @@ const
     (Name: 'ASTC_12x12_SRGB8_ALPHA8'     ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx')
   );
 
-{ Convert TTextureCompression enum to string. }
-function TextureCompressionToString(const TextureCompression: TTextureCompression): string;
+{ Convert TTextureCompression enum to String. }
+function TextureCompressionToString(const TextureCompression: TTextureCompression): String;
 
-{ Convert string to TTextureCompression enum. Possible values correspond
+{ Convert String to TTextureCompression enum. Possible values correspond
   to names listed in TextureCompressionInfo array, they are also equal
   to enum Pascal names without leading "tc".
   Compares given strig ignoring the case.
   @raises(Exception If the string value does not name any
     TTextureCompression value.) }
-function StringToTextureCompression(const S: string): TTextureCompression;
+function StringToTextureCompression(const S: String): TTextureCompression;
 
 type
   { Listener type for @link(AddLoadImageListener). }
-  TLoadImageEvent = procedure (var ImageUrl: string) of object;
+  TLoadImageEvent = procedure (var ImageUrl: String) of object;
 
 var
   { Is the value of @link(SupportedTextureCompression) determined
     by the renderer (like OpenGL context) parameters. }
-  SupportedTextureCompressionKnown: boolean;
+  SupportedTextureCompressionKnown: Boolean;
 
   { Which texture compression values are supported by
     the renderer (like OpenGL context). }
@@ -1916,7 +1916,7 @@ var
     uses ..., CastleURIUtils, CastleGLUtils, CastleLog, CastleStringUtils,
       CastleFilesUtils;
 
-    procedure TTextureUtils.GPUTextureAlternative(var ImageUrl: string);
+    procedure TTextureUtils.GPUTextureAlternative(var ImageUrl: String);
     begin
       if IsPrefix('castle-data:/animation/dragon/', ImageUrl) then
       begin
@@ -1945,7 +1945,7 @@ procedure RemoveLoadImageListener(const Event: TLoadImageEvent);
 
 { Process URL through events registered by @link(AddLoadImageListener).
   This is used internally by the engine. }
-function ProcessImageUrl(const URL: string): string;
+function ProcessImageUrl(const URL: String): String;
 
 { @exclude }
 function InternalDetectClassPNG(const Stream: TStream): TEncodedImageClass;
@@ -1975,7 +1975,7 @@ uses ExtInterpolation, FPCanvas, FPImgCanv,
 
 { Colors ------------------------------------------------------------------ }
 
-function EqualRGB(const Color1, Color2: TVector3Byte; Tolerance: Byte): boolean;
+function EqualRGB(const Color1, Color2: TVector3Byte; Tolerance: Byte): Boolean;
 begin
  result:=(Abs(Smallint(Color1.Data[0]) - Color2.Data[0]) <= Tolerance) and
          (Abs(Smallint(Color1.Data[1]) - Color2.Data[1]) <= Tolerance) and
@@ -1997,12 +1997,12 @@ begin
   Result.Data[2] := Depth;
 end;
 
-function TEncodedImage.IsEmpty: boolean;
+function TEncodedImage.IsEmpty: Boolean;
 begin
  Result := RawPixels = nil;
 end;
 
-function TEncodedImage.HasAlpha: boolean;
+function TEncodedImage.HasAlpha: Boolean;
 begin
   Result := false;
 end;
@@ -2018,7 +2018,7 @@ begin
   Result := Rectangle(0, 0, Width, Height);
 end;
 
-procedure TEncodedImage.NotImplemented(const AMethodName: string);
+procedure TEncodedImage.NotImplemented(const AMethodName: String);
 begin
   raise EInternalError.Create(AMethodName +
     ' method not implemented for the image class ' + ClassName);
@@ -2134,7 +2134,7 @@ procedure InternalResize(PixelSize: Cardinal;
   const DestinData: Pointer; const DestinRect: TRectangle; const DestinWidth, DestinHeight: Cardinal;
   const Interpolation: TResizeInterpolationInternal;
   const MixColors: TMixColorsFunction;
-  const ProgressTitle: string);
+  const ProgressTitle: String);
 var
   DestinY: Integer;
 
@@ -2256,7 +2256,7 @@ end;
 
 procedure TCastleImage.Resize(ResizeWidth, ResizeHeight: Cardinal;
   const Interpolation: TResizeInterpolation;
-  const ProgressTitle: string);
+  const ProgressTitle: String);
 var
   NewPixels: Pointer;
   NewFpImage: TInternalCastleFpImage;
@@ -2294,7 +2294,7 @@ end;
 
 function TCastleImage.MakeResized(ResizeWidth, ResizeHeight: Cardinal;
   const Interpolation: TResizeInterpolation;
-  const ProgressTitle: string): TCastleImage;
+  const ProgressTitle: String): TCastleImage;
 var
   NewFpImage: TInternalCastleFpImage;
 begin
@@ -2556,7 +2556,7 @@ begin
   Clear(Vector4Byte(Pixel));
 end;
 
-function TCastleImage.IsClear(const Pixel: TVector4Byte): boolean;
+function TCastleImage.IsClear(const Pixel: TVector4Byte): Boolean;
 begin
   NotImplemented('IsClear');
   { code will never get here (NotImplemented always raises an exception),
@@ -2609,7 +2609,7 @@ begin
   end;
 end;
 
-function TCastleImage.IsEqual(Image: TCastleImage): boolean;
+function TCastleImage.IsEqual(Image: TCastleImage): Boolean;
 begin
   Result :=
     (Image.ClassType = ClassType) and
@@ -2622,7 +2622,7 @@ end;
 function TCastleImage.ArePartsEqual(
   const SelfX0, SelfY0, SelfWidth, SelfHeight: Cardinal;
   Image: TCastleImage;
-  const ImageX0, ImageY0, ImageWidth, ImageHeight: Cardinal): boolean;
+  const ImageX0, ImageY0, ImageWidth, ImageHeight: Cardinal): Boolean;
 var
   Y: Integer;
   SelfPtr: Pointer;
@@ -2655,7 +2655,7 @@ end;
 
 function TCastleImage.ArePartsEqual(
   Image: TCastleImage;
-  const ImageX0, ImageY0, ImageWidth, ImageHeight: Cardinal): boolean;
+  const ImageX0, ImageY0, ImageWidth, ImageHeight: Cardinal): Boolean;
 begin
   Result := ArePartsEqual(
     0, 0, Width, Height,
@@ -2665,7 +2665,7 @@ end;
 
 function TCastleImage.ArePartsEqual(
   const SelfX0, SelfY0, SelfWidth, SelfHeight: Cardinal;
-  Image: TCastleImage): boolean;
+  Image: TCastleImage): Boolean;
 begin
   Result := ArePartsEqual(
     SelfX0, SelfY0, SelfWidth, SelfHeight,
@@ -2719,11 +2719,11 @@ begin
     (they only draw from/to Z = 0). }
 end;
 
-procedure TCastleImage.SaveToPascalCode(const ImageName: string;
-  const ShowProgress: boolean;
-  var CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization: string);
+procedure TCastleImage.SaveToPascalCode(const ImageName: String;
+  const ShowProgress: Boolean;
+  var CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization: String);
 var
-  NameWidth, NameHeight, NameDepth, NamePixels: string;
+  NameWidth, NameHeight, NameDepth, NamePixels: String;
   pb: PByte;
   I: Integer;
 begin
@@ -2789,13 +2789,13 @@ begin
     '  FreeAndNil(F' +ImageName+ ');' +nl;
 end;
 
-procedure TCastleImage.AlphaBleed(const ProgressTitle: string);
+procedure TCastleImage.AlphaBleed(const ProgressTitle: String);
 begin
   { default implementation does nothing.
     This is OK for images without alpha channel. }
 end;
 
-function TCastleImage.MakeAlphaBleed(const ProgressTitle: string): TCastleImage;
+function TCastleImage.MakeAlphaBleed(const ProgressTitle: String): TCastleImage;
 begin
   { default implementation returns a copy.
     This is OK for images without alpha channel. }
@@ -3005,7 +3005,7 @@ begin
   Result := FSize;
 end;
 
-function TGPUCompressedImage.HasAlpha: boolean;
+function TGPUCompressedImage.HasAlpha: Boolean;
 begin
   Result := TextureCompressionInfo[Compression].AlphaChannel <> acNone;
 end;
@@ -3043,7 +3043,7 @@ end;
 { TCastleImageClass and arrays of TCastleImageClasses ----------------------------- }
 
 function InImageClasses(ImageClass: TEncodedImageClass;
-  const ImageClasses: array of TEncodedImageClass): boolean;
+  const ImageClasses: array of TEncodedImageClass): Boolean;
 var
   i: Integer;
 begin
@@ -3057,12 +3057,12 @@ begin
 end;
 
 function InImageClasses(Image: TEncodedImage;
-  const ImageClasses: array of TEncodedImageClass): boolean;
+  const ImageClasses: array of TEncodedImageClass): Boolean;
 begin
   Result := InImageClasses(TEncodedImageClass(Image.ClassType), ImageClasses);
 end;
 
-function ImageClassesEqual(const Ar1, Ar2: array of TEncodedImageClass): boolean;
+function ImageClassesEqual(const Ar1, Ar2: array of TEncodedImageClass): Boolean;
 var
   i: Integer;
 begin
@@ -3088,8 +3088,8 @@ constructor TRGBImage.CreateCombined(const MapImage: TRGBImage;
   var ReplaceWhiteImage, ReplaceBlackImage: TRGBImage);
 var
   Map, White, Black, Res: PVector3Byte;
-  s: single;
-  i: integer;
+  S: Single;
+  I: Integer;
 begin
   Create(MapImage.Width, MapImage.Height);
 
@@ -3101,12 +3101,12 @@ begin
   Black := ReplaceBlackImage.Pixels;
   Res := Pixels;
 
-  for i := 1 to Width * Height * Depth do
+  for I := 1 to Width * Height * Depth do
   begin
-    s := (Map^.Data[0] + Map^.Data[1] + Map^.Data[2]) / 255 / 3;
-    Res^.Data[0] := Round(s * White^.Data[0] + (1-s) * Black^.Data[0]);
-    Res^.Data[1] := Round(s * White^.Data[1] + (1-s) * Black^.Data[1]);
-    Res^.Data[2] := Round(s * White^.Data[2] + (1-s) * Black^.Data[2]);
+    S := (Map^.Data[0] + Map^.Data[1] + Map^.Data[2]) / 255 / 3;
+    Res^.Data[0] := Round(S * White^.Data[0] + (1 - S) * Black^.Data[0]);
+    Res^.Data[1] := Round(S * White^.Data[1] + (1 - S) * Black^.Data[1]);
+    Res^.Data[2] := Round(S * White^.Data[2] + (1 - S) * Black^.Data[2]);
     Inc(Map);
     Inc(White);
     Inc(Black);
@@ -3152,9 +3152,9 @@ begin
   prgb := Pixels;
   for i := 1 to Width * Height * Depth do
   begin
-    prgb^.Data[0] := High(byte) - prgb^.Data[0];
-    prgb^.Data[1] := High(byte) - prgb^.Data[1];
-    prgb^.Data[2] := High(byte) - prgb^.Data[2];
+    prgb^.Data[0] := High(Byte) - prgb^.Data[0];
+    prgb^.Data[1] := High(Byte) - prgb^.Data[1];
+    prgb^.Data[2] := High(Byte) - prgb^.Data[2];
     Inc(prgb);
   end;
 end;
@@ -3193,7 +3193,7 @@ begin
   end;
 end;
 
-function TRGBImage.IsClear(const Pixel: TVector4Byte): boolean;
+function TRGBImage.IsClear(const Pixel: TVector4Byte): Boolean;
 var
   P: PVector3Byte;
   I: Cardinal;
@@ -3433,9 +3433,9 @@ begin
   palpha := Pixels;
   for i := 1 to Width * Height * Depth do
   begin
-    palpha^.Data[0] := High(byte) - palpha^.Data[0];
-    palpha^.Data[1] := High(byte) - palpha^.Data[1];
-    palpha^.Data[2] := High(byte) - palpha^.Data[2];
+    palpha^.Data[0] := High(Byte) - palpha^.Data[0];
+    palpha^.Data[1] := High(Byte) - palpha^.Data[1];
+    palpha^.Data[2] := High(Byte) - palpha^.Data[2];
     Inc(palpha);
   end;
 end;
@@ -3480,7 +3480,7 @@ begin
   end;
 end;
 
-function TRGBAlphaImage.IsClear(const Pixel: TVector4Byte): boolean;
+function TRGBAlphaImage.IsClear(const Pixel: TVector4Byte): Boolean;
 begin
   Result := IsMemDWordFilled(RawPixels^, Width * Height * Depth, LongWord(Pixel));
 end;
@@ -3538,7 +3538,7 @@ begin
   end;
 end;
 
-function TRGBAlphaImage.HasAlpha: boolean;
+function TRGBAlphaImage.HasAlpha: Boolean;
 begin
   Result := true;
 end;
@@ -3650,7 +3650,7 @@ begin
   end;
 end;
 
-procedure TRGBAlphaImage.AlphaBleed(const ProgressTitle: string);
+procedure TRGBAlphaImage.AlphaBleed(const ProgressTitle: String);
 var
   Copy: TCastleImage;
 begin
@@ -3661,12 +3661,12 @@ begin
   finally FreeAndNil(Copy) end;
 end;
 
-function TRGBAlphaImage.MakeAlphaBleed(const ProgressTitle: string): TCastleImage;
+function TRGBAlphaImage.MakeAlphaBleed(const ProgressTitle: String): TCastleImage;
 
   function FindNearestNonTransparentPixel(X, Y, Z: Integer): PVector4Byte;
 
     function TryPixelOpaque(const DX, DY: Integer;
-      var SomePixelWithinImage: boolean): PVector4Byte;
+      var SomePixelWithinImage: Boolean): PVector4Byte;
     var
       NX, NY, GX, GY: Integer;
     begin
@@ -3687,7 +3687,7 @@ function TRGBAlphaImage.MakeAlphaBleed(const ProgressTitle: string): TCastleImag
 
   var
     Distance: Cardinal;
-    SomePixelWithinImage: boolean;
+    SomePixelWithinImage: Boolean;
   begin
     Distance := 1;
     Result := nil;
@@ -3794,7 +3794,7 @@ begin
     Pixel.Data[2] * 255));
 end;
 
-function TRGBFloatImage.IsClear(const Pixel: TVector4Byte): boolean;
+function TRGBFloatImage.IsClear(const Pixel: TVector4Byte): Boolean;
 begin
   Result := IsClear(Vector3(
     Pixel.Data[0] * 255,
@@ -3815,7 +3815,7 @@ begin
   end;
 end;
 
-function TRGBFloatImage.IsClear(const Pixel: TVector3): boolean;
+function TRGBFloatImage.IsClear(const Pixel: TVector3): Boolean;
 var
   P: PVector3;
   I: Cardinal;
@@ -3965,7 +3965,7 @@ begin
   Clear(GrayscaleValue(Pixel));
 end;
 
-function TGrayscaleImage.IsClear(const Pixel: TVector4Byte): boolean;
+function TGrayscaleImage.IsClear(const Pixel: TVector4Byte): Boolean;
 begin
   Result := IsClear(GrayscaleValue(Pixel));
 end;
@@ -3975,7 +3975,7 @@ begin
   FillChar(RawPixels^, Size, Pixel);
 end;
 
-function TGrayscaleImage.IsClear(const Pixel: Byte): boolean;
+function TGrayscaleImage.IsClear(const Pixel: Byte): Boolean;
 begin
   Result := IsMemCharFilled(RawPixels^, Size, Char(Pixel));
 end;
@@ -4173,7 +4173,7 @@ begin
   Clear(Vector2Byte(GrayscaleValue(Pixel), Pixel.Data[3]));
 end;
 
-function TGrayscaleAlphaImage.IsClear(const Pixel: TVector4Byte): boolean;
+function TGrayscaleAlphaImage.IsClear(const Pixel: TVector4Byte): Boolean;
 begin
   Result := IsClear(Vector2Byte(GrayscaleValue(Pixel), Pixel.Data[3]));
 end;
@@ -4191,7 +4191,7 @@ begin
   end;
 end;
 
-function TGrayscaleAlphaImage.IsClear(const Pixel: TVector2Byte): boolean;
+function TGrayscaleAlphaImage.IsClear(const Pixel: TVector2Byte): Boolean;
 var
   P: PVector2Byte;
   I: Cardinal;
@@ -4209,7 +4209,7 @@ begin
   Result := true;
 end;
 
-function TGrayscaleAlphaImage.HasAlpha: boolean;
+function TGrayscaleAlphaImage.HasAlpha: Boolean;
 begin
   Result := true;
 end;
@@ -4398,9 +4398,9 @@ begin
 
   Multiplier := Mantissa * 256 / MaxVal;
 
-  { MaxVal * Multiplier daje Mantissa * High(byte) a wiec cos w zakresie
+  { MaxVal * Multiplier daje Mantissa * High(Byte) a wiec cos w zakresie
     0 .. High(Byte) bo Mantissa <= 1 (de facto, Mantissa >= 0.5 wiec
-    mozna podac dokladniejsze ograniczenie na Mantissa * High(byte)).
+    mozna podac dokladniejsze ograniczenie na Mantissa * High(Byte)).
     Wszystkie pozostale v[] sa mniejsze od MaxVal wiec one tez dadza cos
     w zakresie bajta. }
   Result.Data[0] := Clamped(Round(v.Data[0] * Multiplier), 0, High(Byte));
@@ -4433,10 +4433,10 @@ end;
 type
   { List of TLoadImageEvent methods. }
   TLoadImageEventList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TLoadImageEvent>)
-    procedure Execute(var URL: string);
+    procedure Execute(var URL: String);
   end;
 
-procedure TLoadImageEventList.Execute(var URL: string);
+procedure TLoadImageEventList.Execute(var URL: String);
 var
   I: Integer;
 begin
@@ -4486,7 +4486,7 @@ function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
   :TEncodedImage;
 
   { ClassAllowed is only a shortcut to global utility. }
-  function ClassAllowed(ImageClass: TEncodedImageClass): boolean;
+  function ClassAllowed(ImageClass: TEncodedImageClass): Boolean;
   begin
     Result := CastleImages.ClassAllowed(ImageClass, AllowedImageClasses);
   end;
@@ -4635,7 +4635,7 @@ begin
   end;
 end;
 
-function LoadEncodedImage(Stream: TStream; const MimeType: string;
+function LoadEncodedImage(Stream: TStream; const MimeType: String;
   const AllowedImageClasses: array of TEncodedImageClass;
   const Options: TLoadImageOptions = [])
   :TEncodedImage;
@@ -4648,14 +4648,14 @@ begin
     raise EImageFormatNotSupported.Create('Unrecognized image MIME type: "'+MimeType+'"');
 end;
 
-function LoadEncodedImage(URL: string;
+function LoadEncodedImage(URL: String;
   const AllowedImageClasses: array of TEncodedImageClass;
   const Options: TLoadImageOptions = []): TEncodedImage;
 const
   SLoadError = 'Error loading image from URL "%s": %s';
 var
   F: TStream;
-  MimeType: string;
+  MimeType: String;
   TimeStart: TCastleProfilerTime;
 begin
   F := nil;
@@ -4690,7 +4690,7 @@ begin
   end;
 end;
 
-function LoadEncodedImage(const URL: string;
+function LoadEncodedImage(const URL: String;
   const Options: TLoadImageOptions = []): TEncodedImage;
 begin
   Result := LoadEncodedImage(URL, [], Options);
@@ -4709,7 +4709,7 @@ begin
   Result := TCastleImage(E);
 end;
 
-function LoadImage(Stream: TStream; const MimeType: string;
+function LoadImage(Stream: TStream; const MimeType: String;
   const AllowedImageClasses: array of TEncodedImageClass): TCastleImage;
 var
   E: TEncodedImage;
@@ -4720,7 +4720,7 @@ begin
   Result := TCastleImage(E);
 end;
 
-function LoadImage(const URL: string;
+function LoadImage(const URL: String;
   const AllowedImageClasses: array of TEncodedImageClass): TCastleImage;
 var
   E: TEncodedImage;
@@ -4732,7 +4732,7 @@ begin
   Result := TCastleImage(E);
 end;
 
-function LoadImage(const URL: string): TCastleImage;
+function LoadImage(const URL: String): TCastleImage;
 var
   E: TEncodedImage;
 begin
@@ -4743,7 +4743,7 @@ begin
   Result := TCastleImage(E);
 end;
 
-function LoadImage(const URL: string;
+function LoadImage(const URL: String;
   const AllowedImageClasses: array of TEncodedImageClass;
   const ResizeWidth, ResizeHeight: Cardinal;
   const Interpolation: TResizeInterpolation;
@@ -4816,7 +4816,7 @@ begin
     raise EImageSaveError.CreateFmt('Saving image class %s not implemented', [Img.ClassName]);
 end;
 
-procedure SaveImage(const img: TEncodedImage; const MimeType: string; Stream: TStream);
+procedure SaveImage(const img: TEncodedImage; const MimeType: String; Stream: TStream);
 var
   Format: TImageFormat;
 begin
@@ -4826,13 +4826,13 @@ begin
   SaveImage(Img, Format, Stream);
 end;
 
-procedure SaveImage(const Img: TEncodedImage; const URL: string);
+procedure SaveImage(const Img: TEncodedImage; const URL: String);
 var
   Stream: TStream;
   Format: TImageFormat;
-  MimeType: string;
+  MimeType: String;
 begin
-  { Do not call SaveImage with MimeType: string parameter, instead calculate
+  { Do not call SaveImage with MimeType: String parameter, instead calculate
     Format here. This way we can make better error messaage. }
   MimeType := URIMimeType(URL);
   if not MimeTypeToImageFormat(MimeType, false, true, Format) then
@@ -4852,7 +4852,7 @@ begin
   if B > A then A := B;
 end;
 
-function StringToAlpha(S: string; var WarningDone: boolean): TAutoAlphaChannel;
+function StringToAlpha(S: String; var WarningDone: Boolean): TAutoAlphaChannel;
 begin
   S := UpperCase(S);
   for Result := Low(Result) to High(Result) do
@@ -4887,14 +4887,14 @@ begin
   Result := acAuto;
 end;
 
-function TextureCompressionToString(const TextureCompression: TTextureCompression): string;
+function TextureCompressionToString(const TextureCompression: TTextureCompression): String;
 begin
   Result := TextureCompressionInfo[TextureCompression].Name;
 end;
 
-function StringToTextureCompression(const S: string): TTextureCompression;
+function StringToTextureCompression(const S: String): TTextureCompression;
 var
-  SLower: string;
+  SLower: String;
 begin
   SLower := LowerCase(S);
   for Result := Low(Result) to High(Result) do
@@ -4913,7 +4913,7 @@ begin
   LoadImageEvents.Remove(Event);
 end;
 
-function ProcessImageUrl(const URL: string): string;
+function ProcessImageUrl(const URL: String): String;
 begin
   Result := URL;
   LoadImageEvents.Execute(Result);

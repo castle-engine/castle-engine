@@ -51,7 +51,7 @@ type
         (so it cannot be even registered), or if
         ((NodeClass was not registered) and ErrorIfNotRegistered)) }
     procedure UnRegisterNodeClass(NodeClass: TX3DNodeClass;
-      ErrorIfNotRegistered: boolean = true);
+      ErrorIfNotRegistered: Boolean = true);
 
     { Return node class for a given name. This method is the main purpose
       of TNodesManager: to map node names into node classes.
@@ -62,13 +62,13 @@ type
       @code(ForVRMLVersion(Version)).
 
       Returns @nil when not found. }
-    function X3DTypeToClass(const AX3DType: string;
+    function X3DTypeToClass(const AX3DType: String;
       const Version: TX3DVersion): TX3DNodeClass;
 
     { Return class that matches given URL. This is useful for EXTERNROTOs.
       Checks also @code(ForVRMLVersion(Version)).
       Returns @nil if not found. }
-    function URNToClass(const URN: string;
+    function URNToClass(const URN: String;
       const Version: TX3DVersion): TX3DNodeClass;
 
     { Enumerate all registered classes, from Registered[0] to
@@ -126,7 +126,7 @@ begin
 end;
 
 procedure TNodesManager.UnRegisterNodeClass(NodeClass: TX3DNodeClass;
-  ErrorIfNotRegistered: boolean);
+  ErrorIfNotRegistered: Boolean);
 var i: Integer;
 begin
   if NodeClass.ClassX3DType = '' then
@@ -142,7 +142,7 @@ begin
       '" was not registered, so you cannot unregister it');
 end;
 
-function TNodesManager.X3DTypeToClass(const AX3DType: string;
+function TNodesManager.X3DTypeToClass(const AX3DType: String;
   const Version: TX3DVersion): TX3DNodeClass;
 var
   I: Integer;
@@ -157,7 +157,7 @@ begin
   Result := nil;
 end;
 
-function TNodesManager.URNToClass(const URN: string;
+function TNodesManager.URNToClass(const URN: String;
   const Version: TX3DVersion): TX3DNodeClass;
 
   { Does this node name match the given URN. This is used when searching for an built-in

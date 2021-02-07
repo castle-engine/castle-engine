@@ -15,7 +15,7 @@
 
 {$ifdef read_interface_nested}
 
-function ReadChildText(Element: TDOMElement; const ChildTagName: string): string;
+function ReadChildText(Element: TDOMElement; const ChildTagName: String): String;
   forward;
 
 {$endif read_interface_nested}
@@ -26,7 +26,7 @@ function ReadChildText(Element: TDOMElement; const ChildTagName: string): string
   Useful to handle things like <init_from> and <source> elements in Collada.
   Returns empty string if ChildTagName not present (or present present more
   than once) in Element. }
-function ReadChildText(Element: TDOMElement; const ChildTagName: string): string;
+function ReadChildText(Element: TDOMElement; const ChildTagName: String): String;
 var
   Child: TDOMElement;
 begin
@@ -43,8 +43,8 @@ end;
   Returns false when such child not found (or occurs more than once),
   or when text cannot be converted to float.
   In this case, Value is guaranteed not to be modified. }
-function ReadChildFloat(Element: TDOMElement; const ChildTagName: string;
-  var Value: Float): boolean; overload;
+function ReadChildFloat(Element: TDOMElement; const ChildTagName: String;
+  var Value: Float): Boolean; overload;
 var
   Child: TDOMElement;
 begin
@@ -56,8 +56,8 @@ begin
   except on EConvertError do Result := false; end;
 end;
 
-function ReadChildFloat(Element: TDOMElement; const ChildTagName: string;
-  var Value: Single): boolean; overload;
+function ReadChildFloat(Element: TDOMElement; const ChildTagName: String;
+  var Value: Single): Boolean; overload;
 var
   ValueFloat: Float;
 begin
@@ -73,8 +73,8 @@ end;
   Returns false when such child not found (or occurs more than once),
   or when cannot be converted to float.
   In this case, Value is guaranteed not to be modified. }
-function ReadChildVector(Element: TDOMElement; const ChildTagName: string;
-  var Value: TVector3): boolean;
+function ReadChildVector(Element: TDOMElement; const ChildTagName: String;
+  var Value: TVector3): Boolean;
 var
   Child: TDOMElement;
 begin
@@ -90,7 +90,7 @@ end;
   Only for Collada < 1.4.x (Collada >= 1.4.x has  <library_xxx> elements). }
 procedure ReadLibrary(LibraryElement: TDOMElement);
 var
-  LibraryType: string;
+  LibraryType: String;
 begin
   if LibraryElement.AttributeString('type', LibraryType) then
   begin
@@ -106,7 +106,7 @@ end;
 procedure ReadInstance(ParentGroup: TAbstractX3DGroupingNode;
   InstantiatingElement: TDOMElement; List: TX3DChildrenList);
 var
-  Id: string;
+  Id: String;
   Node: TAbstractChildNode;
 begin
   if InstantiatingElement.AttributeString('url', Id) and

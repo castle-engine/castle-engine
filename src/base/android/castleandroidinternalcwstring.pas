@@ -52,10 +52,10 @@ uses dynlibs, CastleAndroidInternalLog;
 
 type
   UErrorCode = SizeInt;
-  int32_t = longint;
-  uint32_t = longword;
-  PUConverter = pointer;
-  PUCollator = pointer;
+  int32_t = LongInt;
+  uint32_t = LongWord;
+  PUConverter = Pointer;
+  PUCollator = Pointer;
   UBool = LongBool;
 
 var
@@ -79,12 +79,12 @@ var
   u_errorName: function (code: UErrorCode): PAnsiChar; cdecl;
 
 threadvar
-  ThreadDataInited: boolean;
+  ThreadDataInited: Boolean;
   DefConv, LastConv: PUConverter;
   LastCP: TSystemCodePage;
   DefColl: PUCollator;
 
-function OpenConverter(const name: ansistring): PUConverter;
+function OpenConverter(const name: AnsiString): PUConverter;
 var
   err: UErrorCode;
 begin
@@ -116,7 +116,7 @@ end;
 
 function GetConverter(cp: TSystemCodePage): PUConverter;
 var
-  s: ansistring;
+  s: AnsiString;
 begin
   if hlibICU = 0 then begin
     Result:=nil;
@@ -312,7 +312,7 @@ begin
   Result:=AnsiString(LowerUnicodeString(UnicodeString(s)));
 end;
 
-function CompareStrAnsiString(const s1, s2: ansistring): PtrInt;
+function CompareStrAnsiString(const s1, s2: AnsiString): PtrInt;
 begin
   Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2), []);
 end;
@@ -322,7 +322,7 @@ begin
   Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2), []);
 end;
 
-function AnsiCompareText(const S1, S2: ansistring): PtrInt;
+function AnsiCompareText(const S1, S2: AnsiString): PtrInt;
 begin
   Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2), [coIgnoreCase]);
 end;
@@ -334,7 +334,7 @@ end;
 
 function AnsiStrLComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
 var
-  as1, as2: ansistring;
+  as1, as2: AnsiString;
 begin
   SetString(as1, S1, MaxLen);
   SetString(as2, S2, MaxLen);
@@ -343,7 +343,7 @@ end;
 
 function AnsiStrLIComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
 var
-  as1, as2: ansistring;
+  as1, as2: AnsiString;
 begin
   SetString(as1, S1, MaxLen);
   SetString(as2, S2, MaxLen);
@@ -352,7 +352,7 @@ end;
 
 function AnsiStrLower(Str: PChar): PChar;
 var
-  s, res: ansistring;
+  s, res: AnsiString;
 begin
   s:=Str;
   res:=LowerAnsiString(s);
@@ -364,7 +364,7 @@ end;
 
 function AnsiStrUpper(Str: PChar): PChar;
 var
-  s, res: ansistring;
+  s, res: AnsiString;
 begin
   s:=Str;
   res:=UpperAnsiString(s);
@@ -483,7 +483,7 @@ end;
 
 function GetConverter(cp: TSystemCodePage): PUConverter;
 var
-  s: ansistring;
+  s: AnsiString;
 begin
   if hlibICU = 0 then begin
     Result:=nil;
@@ -662,7 +662,7 @@ begin
   Result:=AnsiString(LowerUnicodeString(UnicodeString(s)));
 end;
 
-function CompareStrAnsiString(const s1, s2: ansistring): PtrInt;
+function CompareStrAnsiString(const s1, s2: AnsiString): PtrInt;
 begin
   Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2));
 end;
@@ -672,7 +672,7 @@ begin
   Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2));
 end;
 
-function AnsiCompareText(const S1, S2: ansistring): PtrInt;
+function AnsiCompareText(const S1, S2: AnsiString): PtrInt;
 begin
   Result:=CompareTextUnicodeString(UnicodeString(s1), UnicodeString(s2));
 end;
@@ -684,7 +684,7 @@ end;
 
 function AnsiStrLComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
 var
-  as1, as2: ansistring;
+  as1, as2: AnsiString;
 begin
   SetString(as1, S1, MaxLen);
   SetString(as2, S2, MaxLen);
@@ -693,7 +693,7 @@ end;
 
 function AnsiStrLIComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
 var
-  as1, as2: ansistring;
+  as1, as2: AnsiString;
 begin
   SetString(as1, S1, MaxLen);
   SetString(as2, S2, MaxLen);
@@ -702,7 +702,7 @@ end;
 
 function AnsiStrLower(Str: PChar): PChar;
 var
-  s, res: ansistring;
+  s, res: AnsiString;
 begin
   s:=Str;
   res:=LowerAnsiString(s);
@@ -714,7 +714,7 @@ end;
 
 function AnsiStrUpper(Str: PChar): PChar;
 var
-  s, res: ansistring;
+  s, res: AnsiString;
 begin
   s:=Str;
   res:=UpperAnsiString(s);
@@ -858,11 +858,11 @@ end;
 
 procedure LoadICU;
 var
-  LibVer: ansistring;
+  LibVer: AnsiString;
 
-  function _GetProc(const Name: AnsiString; out ProcPtr; hLib: TLibHandle = 0): boolean;
+  function _GetProc(const Name: AnsiString; out ProcPtr; hLib: TLibHandle = 0): Boolean;
   var
-    p: pointer;
+    p: Pointer;
   begin
     if hLib = 0 then
       hLib:=hlibICU;
@@ -873,18 +873,18 @@ var
       Result:=False;
     end
     else begin
-      pointer(ProcPtr):=p;
+      Pointer(ProcPtr):=p;
       Result:=True;
     end;
   end;
 
 const
-  ICUver: array [1..9] of ansistring = ('3_8', '4_2', '44', '46', '48', '50', '51', '53', '55');
+  ICUver: array [1..9] of AnsiString = ('3_8', '4_2', '44', '46', '48', '50', '51', '53', '55');
   TestProcName = 'ucnv_open';
 
 var
-  i: longint;
-  s: ansistring;
+  i: LongInt;
+  s: AnsiString;
 begin
   hlibICU:=LoadLibrary('libicuuc.so');
   hlibICUi18n:=LoadLibrary('libicui18n.so');

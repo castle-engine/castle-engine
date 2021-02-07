@@ -38,31 +38,31 @@
     { X3D field "center". } { }
     property Center: TVector3Double read GetCenter write SetCenter;
     { Set X3D field "child1Url". } { }
-    procedure SetChild1Url(const Value: array of string);
+    procedure SetChild1Url(const Value: array of String);
     { Set X3D field "child1Url". } { }
     procedure SetChild1Url(const Value: TCastleStringList);
     { Set X3D field "child2Url". } { }
-    procedure SetChild2Url(const Value: array of string);
+    procedure SetChild2Url(const Value: array of String);
     { Set X3D field "child2Url". } { }
     procedure SetChild2Url(const Value: TCastleStringList);
     { Set X3D field "child3Url". } { }
-    procedure SetChild3Url(const Value: array of string);
+    procedure SetChild3Url(const Value: array of String);
     { Set X3D field "child3Url". } { }
     procedure SetChild3Url(const Value: TCastleStringList);
     { Set X3D field "child4Url". } { }
-    procedure SetChild4Url(const Value: array of string);
+    procedure SetChild4Url(const Value: array of String);
     { Set X3D field "child4Url". } { }
     procedure SetChild4Url(const Value: TCastleStringList);
     { X3D field "geoOrigin". } { }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
     { Set X3D field "geoSystem". } { }
-    procedure SetGeoSystem(const Value: array of string);
+    procedure SetGeoSystem(const Value: array of String);
     { Set X3D field "geoSystem". } { }
     procedure SetGeoSystem(const Value: TCastleStringList);
     { X3D field "range". } { }
     property Range: Single read GetRange write SetRange;
     { Set X3D field "rootUrl". } { }
-    procedure SetRootUrl(const Value: array of string);
+    procedure SetRootUrl(const Value: array of String);
     { Set X3D field "rootUrl". } { }
     procedure SetRootUrl(const Value: TCastleStringList);
     { Set X3D field "rootNode". } { }
@@ -86,7 +86,7 @@ begin
   FdCenter.Send(Value);
 end;
 
-procedure TGeoLODNode.SetChild1Url(const Value: array of string);
+procedure TGeoLODNode.SetChild1Url(const Value: array of String);
 begin
   FdChild1Url.Send(Value);
 end;
@@ -96,7 +96,7 @@ begin
   FdChild1Url.Send(Value);
 end;
 
-procedure TGeoLODNode.SetChild2Url(const Value: array of string);
+procedure TGeoLODNode.SetChild2Url(const Value: array of String);
 begin
   FdChild2Url.Send(Value);
 end;
@@ -106,7 +106,7 @@ begin
   FdChild2Url.Send(Value);
 end;
 
-procedure TGeoLODNode.SetChild3Url(const Value: array of string);
+procedure TGeoLODNode.SetChild3Url(const Value: array of String);
 begin
   FdChild3Url.Send(Value);
 end;
@@ -116,7 +116,7 @@ begin
   FdChild3Url.Send(Value);
 end;
 
-procedure TGeoLODNode.SetChild4Url(const Value: array of string);
+procedure TGeoLODNode.SetChild4Url(const Value: array of String);
 begin
   FdChild4Url.Send(Value);
 end;
@@ -139,7 +139,7 @@ begin
   FdGeoOrigin.Send(Value);
 end;
 
-procedure TGeoLODNode.SetGeoSystem(const Value: array of string);
+procedure TGeoLODNode.SetGeoSystem(const Value: array of String);
 begin
   FdGeoSystem.Send(Value);
 end;
@@ -159,7 +159,7 @@ begin
   FdRange.Send(Value);
 end;
 
-procedure TGeoLODNode.SetRootUrl(const Value: array of string);
+procedure TGeoLODNode.SetRootUrl(const Value: array of String);
 begin
   FdRootUrl.Send(Value);
 end;

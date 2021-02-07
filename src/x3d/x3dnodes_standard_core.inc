@@ -257,7 +257,7 @@
   { A metadata (extra, custom information at a node) with a boolean type. }
   TMetadataBooleanNode = class(TAbstractMetadataNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_metadataboolean.inc}
   end;
 
@@ -265,7 +265,7 @@
     a double-precision floating point number type. }
   TMetadataDoubleNode = class(TAbstractMetadataNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_metadatadouble.inc}
   end;
 
@@ -273,14 +273,14 @@
     a single-precision floating point number type. }
   TMetadataFloatNode = class(TAbstractMetadataNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_metadatafloat.inc}
   end;
 
   { A metadata (extra, custom information at a node) with an integer type. }
   TMetadataIntegerNode = class(TAbstractMetadataNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_metadatainteger.inc}
   end;
 
@@ -288,14 +288,14 @@
     to reference of collection of other metadata nodes. }
   TMetadataSetNode = class(TAbstractMetadataNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_metadataset.inc}
   end;
 
   { A metadata (extra, custom information at a node) with a string type. }
   TMetadataStringNode = class(TAbstractMetadataNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_metadatastring.inc}
   end;
 
@@ -304,7 +304,7 @@
     and has no effect on the visual appearance or behavior of the world. }
   TWorldInfoNode = class(TAbstractInfoNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_worldinfo.inc}
   end;
 

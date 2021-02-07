@@ -37,14 +37,14 @@ type
     FGeometry: TLineSetNode;
     FCoord: TCoordinateNode;
     FTransform: TTransformNode;
-    function GetRender: boolean;
-    procedure SetRender(const Value: boolean);
+    function GetRender: Boolean;
+    procedure SetRender(const Value: Boolean);
     procedure SetPosition(const Value: TVector3);
     procedure SetScaleFromBox(const Value: TBox3D);
   public
     constructor Create(const AOwner: TComponent; const Color: TCastleColorRGB); reintroduce;
     property Root: TTransformNode read FTransform;
-    property Render: boolean read GetRender write SetRender;
+    property Render: Boolean read GetRender write SetRender;
     property Position: TVector3 {read GetPosition} {} write SetPosition;
     property ScaleFromBox: TBox3D {read GetScale} {} write SetScaleFromBox;
   end;
@@ -96,14 +96,14 @@ type
     FTransform: TTransformNode;
     FShape: TShapeNode;
     FGeometry: TSphereNode;
-    function GetRender: boolean;
-    procedure SetRender(const Value: boolean);
+    function GetRender: Boolean;
+    procedure SetRender(const Value: Boolean);
     procedure SetPosition(const Value: TVector3);
     procedure SetRadius(const Value: Single);
   public
     constructor Create(const AOwner: TComponent; const Color: TCastleColorRGB); reintroduce;
     property Root: TTransformNode read FTransform;
-    property Render: boolean read GetRender write SetRender;
+    property Render: Boolean read GetRender write SetRender;
     property Position: TVector3 {read GetPosition} {} write SetPosition;
     property Radius: Single {read GetRadius} {} write SetRadius;
   end;
@@ -124,14 +124,14 @@ type
     procedure SetOrigin(const Value: TVector3);
     procedure SetDirection(const Value: TVector3);
     procedure UpdateGeometry;
-    function GetRender: boolean;
-    procedure SetRender(const Value: boolean);
+    function GetRender: Boolean;
+    procedure SetRender(const Value: Boolean);
   public
     constructor Create(const AOwner: TComponent; const Color: TCastleColorRGB); reintroduce;
     property Root: TTransformNode read FTransform;
     property Origin: TVector3 read FOrigin write SetOrigin;
     property Direction: TVector3 read FDirection write SetDirection;
-    property Render: boolean read GetRender write SetRender;
+    property Render: Boolean read GetRender write SetRender;
   end;
 
   { Visualization of a bounding volume of a TCastleTransform instance.
@@ -156,11 +156,11 @@ type
       FParentSpace: TAbstractX3DGroupingNode;
       FParent: TCastleTransform;
       FScene: TInternalScene;
-      FExists: boolean;
+      FExists: Boolean;
       FBoxColor: TCastleColor;
     procedure SetBoxColor(const AValue: TCastleColor);
     procedure UpdateSafe;
-    procedure SetExists(const Value: boolean);
+    procedure SetExists(const Value: Boolean);
     procedure SetParent(const Value: TCastleTransform);
     procedure Initialize;
   strict protected
@@ -182,7 +182,7 @@ type
       May be @nil, which means that nothing is visualized. }
     property Parent: TCastleTransform read FParent write SetParent;
     { Is the debug visualization visible. }
-    property Exists: boolean read FExists write SetExists default false;
+    property Exists: Boolean read FExists write SetExists default false;
     { Add to this additional things that are expressed in parent coordinate-space.
       Be sure to call @link(ChangedScene) afterwards, unless you do it in InitializeNodes
       (then @link(ChangedScene) is not necessary). }
@@ -241,12 +241,12 @@ begin
   FTransform.AddChildren(FShape);
 end;
 
-function TDebugAxis.GetRender: boolean;
+function TDebugAxis.GetRender: Boolean;
 begin
   Result := FShape.Render;
 end;
 
-procedure TDebugAxis.SetRender(const Value: boolean);
+procedure TDebugAxis.SetRender(const Value: Boolean);
 begin
   FShape.Render := Value;
 end;
@@ -335,12 +335,12 @@ begin
   FTransform.AddChildren(FShape);
 end;
 
-function TDebugSphere.GetRender: boolean;
+function TDebugSphere.GetRender: Boolean;
 begin
   Result := FShape.Render;
 end;
 
-procedure TDebugSphere.SetRender(const Value: boolean);
+procedure TDebugSphere.SetRender(const Value: Boolean);
 begin
   FShape.Render := Value;
 end;
@@ -422,12 +422,12 @@ begin
   ]);
 end;
 
-function TDebugArrow.GetRender: boolean;
+function TDebugArrow.GetRender: Boolean;
 begin
   Result := FShape.Render;
 end;
 
-procedure TDebugArrow.SetRender(const Value: boolean);
+procedure TDebugArrow.SetRender(const Value: Boolean);
 begin
   FShape.Render := Value;
 end;
@@ -526,7 +526,7 @@ begin
   Parent := AParent;
 end;
 
-procedure TDebugTransformBox.SetExists(const Value: boolean);
+procedure TDebugTransformBox.SetExists(const Value: Boolean);
 begin
   if FExists <> Value then
   begin

@@ -21,7 +21,7 @@ type
   TGLSupport = (gsNone, gsExtension, gsStandard);
 
 const
-  GLSupportNames: array [TGLSupport] of string =
+  GLSupportNames: array [TGLSupport] of String =
   ( 'None', 'Extension', 'Standard' );
 
 type
@@ -401,7 +401,7 @@ constructor TGLFeatures.Create;
   end;
 
 var
-  SupportedExtensions: string;
+  SupportedExtensions: String;
 begin
   inherited;
 
@@ -753,7 +753,7 @@ end;
 
 constructor TGLMemoryInfo.Create;
 var
-  SupportedExtensions: string;
+  SupportedExtensions: String;
 begin
   inherited;
   SupportedExtensions := PChar(glGetString(GL_EXTENSIONS));

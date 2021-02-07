@@ -48,13 +48,13 @@ type
     (instead of catching and re-raising).
     So be ready that this function may raise @italic(any) Exception class.)
 }
-function URLSaveStream(const URL: string; const Options: TSaveStreamOptions = []): TStream;
+function URLSaveStream(const URL: String; const Options: TSaveStreamOptions = []): TStream;
 
 {$endif}
 
 {$ifdef read_implementation}
 
-function URLSaveStream(const URL: string; const Options: TSaveStreamOptions): TStream;
+function URLSaveStream(const URL: String; const Options: TSaveStreamOptions): TStream;
 var
   P: String;
   RegisteredProtocol: TRegisteredProtocol;

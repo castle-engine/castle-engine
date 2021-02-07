@@ -140,7 +140,7 @@ end;
 procedure GenerateProgramWithBuildTool(const ProjectDirUrl: String);
 var
   BuildToolExe, BuildToolOutput: String;
-  BuildToolStatus: integer;
+  BuildToolStatus: Integer;
 begin
   BuildToolExe := FindExeCastleTool('castle-engine');
   if BuildToolExe = '' then
@@ -161,7 +161,7 @@ end;
 
 procedure UseEditorApplicationData;
 var
-  DataPath: string;
+  DataPath: String;
 begin
   { start by resetting ApplicationDataOverride to empty, to reset
     previous customizations of ApplicationDataOverride done by some editor code. }

@@ -18,14 +18,14 @@
 {$ifdef read_interface}
   { IndexedTriangleMesh (from Inventor 1.0). }
   TIndexedTriangleMeshNode_1 = class(TIndexedFacesOrTrianglesNode_1)
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
     function InternalTexCoord(State: TX3DGraphTraverseState;
-      out ATexCoord: TX3DNode): boolean; override;
+      out ATexCoord: TX3DNode): Boolean; override;
   end;
 
   { RotationXYZ node (from Inventor). It's not in VRML 1.0 spec.
@@ -36,7 +36,7 @@
     procedure MiddleTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAxis: TSFEnum;
     public property FdAxis: TSFEnum read FFdAxis;
@@ -47,13 +47,13 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-class function TIndexedTriangleMeshNode_1.ClassX3DType: string;
+class function TIndexedTriangleMeshNode_1.ClassX3DType: String;
 begin
   result := 'IndexedTriangleMesh';
 end;
 
 function TIndexedTriangleMeshNode_1.InternalTexCoord(State: TX3DGraphTraverseState;
-  out ATexCoord: TX3DNode): boolean;
+  out ATexCoord: TX3DNode): Boolean;
 begin
   Result := true;
   ATexCoord := State.VRML1State.TextureCoordinate2;
@@ -72,7 +72,7 @@ begin
   AddField(FFdAngle);
 end;
 
-class function TRotationXYZNode.ClassX3DType: string;
+class function TRotationXYZNode.ClassX3DType: String;
 begin
   Result := 'RotationXYZ';
 end;

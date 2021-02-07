@@ -414,7 +414,7 @@ procedure TOutputList.DrawItem(Control: TWinControl; Index: Integer;
 
   { Copied from LCL stdctrls.pp }
   procedure InternalDrawItem(Control: TControl;
-    Canvas: TCanvas; ARect: TRect; const Text: string);
+    Canvas: TCanvas; ARect: TRect; const Text: String);
   var
     OldBrushStyle: TBrushStyle;
     OldTextStyle: TTextStyle;

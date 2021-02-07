@@ -74,7 +74,7 @@
 {$endif not CASTLE_SLIM_NODES}
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAmbientIntensity: TSFFloat;
     { X3D field "ambientIntensity". } { }

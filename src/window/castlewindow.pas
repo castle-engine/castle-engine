@@ -367,7 +367,7 @@ type
 const
   DefaultAntiAliasing = aaNone;
 
-  AntiAliasingNames: array [TAntiAliasing] of string =
+  AntiAliasingNames: array [TAntiAliasing] of String =
   ( 'None',
     '2 samples (faster)',
     '2 samples (nicer)',
@@ -393,8 +393,8 @@ type
 
   TUpdateFunc = procedure;
   TMenuClickFunc = procedure (Container: TUIContainer; Item: TMenuItem);
-  TDropFilesFunc = procedure (Container: TUIContainer; const FileNames: array of string);
-  TGLContextRetryOpenFunc = function (Window: TCastleWindowBase): boolean;
+  TDropFilesFunc = procedure (Container: TUIContainer; const FileNames: array of String);
+  TGLContextRetryOpenFunc = function (Window: TCastleWindowBase): Boolean;
 
   TResizeAllowed = (raNotAllowed, raOnlyAtOpen, raAllowed);
 
@@ -413,7 +413,7 @@ type
     constructor Create(AParent: TCastleWindowBase); reintroduce;
 
     procedure Invalidate; override;
-    function GLInitialized: boolean; override;
+    function GLInitialized: Boolean; override;
     function Width: Integer; override;
     function Height: Integer; override;
     function Rect: TRectangle; override;
@@ -421,7 +421,7 @@ type
     function GetMousePosition: TVector2; override;
     procedure SetMousePosition(const Value: TVector2); override;
     function Dpi: Single; override;
-    function Focused: boolean; override;
+    function Focused: Boolean; override;
     procedure SetInternalCursor(const Value: TMouseCursor); override;
     function GetTouches(const Index: Integer): TTouch; override;
     function TouchesCount: Integer; override;
@@ -477,16 +477,16 @@ type
     { FFullScreenWanted is the value set by FullScreen property by the user.
       FFullScreenBackend is the last value of FullScreen known to the backend
       (GTK, WinAPI etc.) }
-    FFullScreenWanted, FFullScreenBackend: boolean;
-    FDoubleBuffer: boolean;
-    FDuringOpen: boolean;
+    FFullScreenWanted, FFullScreenBackend: Boolean;
+    FDoubleBuffer: Boolean;
+    FDuringOpen: Boolean;
     FResizeAllowed: TResizeAllowed;
-    FFocused: boolean;
+    FFocused: Boolean;
     FMousePosition: TVector2;
     FRedBits, FGreenBits, FBlueBits: Cardinal;
-    FAutoRedisplay: boolean;
-    FCaption: array [TCaptionPart] of string;
-    BeforeFullScreenGeometryKnown: boolean;
+    FAutoRedisplay: Boolean;
+    FCaption: array [TCaptionPart] of String;
+    BeforeFullScreenGeometryKnown: Boolean;
     BeforeFullScreenLeft, BeforeFullScreenTop, BeforeFullScreenWidth, BeforeFullScreenHeight: Integer;
     { Track if some Invalidate was called (and not realized yet by
       DoRender call). Invalidate only sets this, leaving actually
@@ -494,17 +494,17 @@ type
 
       Note: Xlib program should always wait for the first Expose event before
       redrawing anything. Similar for WinAPI. }
-    Invalidated: boolean;
+    Invalidated: Boolean;
 
     { FClosed = are we outside of Open..Close }
-    FClosed: boolean;
+    FClosed: Boolean;
 
     { EventOpenCalled = has OnOpen been called from Open? }
-    EventOpenCalled: boolean;
+    EventOpenCalled: Boolean;
 
     MenuUpdateInside: Cardinal;
-    MenuUpdateNeedsInitialize: boolean;
-    MenuInitialized: boolean;
+    MenuUpdateNeedsInitialize: Boolean;
+    MenuInitialized: Boolean;
 
     FDepthBits: Cardinal;
     FStencilBits: Cardinal;
@@ -512,8 +512,8 @@ type
     FAlphaBits: Cardinal;
     FMultiSampling: Cardinal;
     FAntiAliasing: TAntiAliasing;
-    FGtkIconName: string;
-    FVisible: boolean;
+    FGtkIconName: String;
+    FVisible: Boolean;
     FMinWidth: Integer;
     FMinHeight: Integer;
     FMaxWidth: Integer;
@@ -530,11 +530,11 @@ type
     function GetColorBits: Cardinal;
     procedure SetColorBits(const Value: Cardinal);
     procedure SetAntiAliasing(const Value: TAntiAliasing);
-    procedure SetAutoRedisplay(const Value: boolean);
-    function GetPublicCaption: string;
-    procedure SetPublicCaption(const Value: string);
-    procedure SetCaption(const Part: TCaptionPart; const Value: string);
-    function GetWholeCaption: string;
+    procedure SetAutoRedisplay(const Value: Boolean);
+    function GetPublicCaption: String;
+    procedure SetPublicCaption(const Value: String);
+    procedure SetCaption(const Part: TCaptionPart; const Value: String);
+    function GetWholeCaption: String;
     procedure SetCursor(const Value: TMouseCursor);
     procedure SetCustomCursor(const Value: TRGBAlphaImage);
     function GetOnOpen: TContainerEvent;
@@ -714,7 +714,7 @@ type
     procedure MenuUpdateChecked(Entry: TMenuItemChecked);
     procedure MenuInsert(const Parent: TMenu; const ParentPosition: Integer; const Entry: TMenuEntry);
     procedure MenuDelete(const Parent: TMenu; const ParentPosition: Integer; const Entry: TMenuEntry);
-    function MenuUpdateCheckedFast: boolean;
+    function MenuUpdateCheckedFast: Boolean;
     { @groupEnd }
 
     procedure CreateBackend;
@@ -751,7 +751,7 @@ type
       works on top of Xlib.
       When CastleWindow works on top of GTK or WinAPI that allow us to do a "real"
       menu, this should be implemented as "Result := false". }
-    function RedirectKeyDownToMenuClick: boolean;
+    function RedirectKeyDownToMenuClick: Boolean;
 
     { DoXxx methods ------------------------------------------------------------
 
@@ -805,7 +805,7 @@ type
       calling DoResize; but usually (under WinAPI, Xlib, GTK)
       it's not needed, i.e. WinAPI, Xlib, and GTK all take care of this
       automatically). }
-    procedure DoResize(AWidth, AHeight: integer; FirstResizeAfterOpen: boolean);
+    procedure DoResize(AWidth, AHeight: Integer; FirstResizeAfterOpen: Boolean);
 
     { Called by a backend when user wants to close the window
       (e.g. by pressing the special "close" button on the window manager border).
@@ -834,7 +834,7 @@ type
 
       Only DoKeyDown: pass also KeyString. Pass Key = keyNone if this is not
       representable as TKey, pass KeyString = '' if this is not representable
-      as char. But never pass both Key = keyNone and KeyString = ''
+      as Char. But never pass both Key = keyNone and KeyString = ''
       (this would mean that nothing is pressed, at least nothing that can be represented
       in CGE).
 
@@ -850,7 +850,7 @@ type
          MakeCurrent,
          EventKeyDown/Up.
     }
-    procedure DoKeyDown(const Key: TKey; const KeyString: string);
+    procedure DoKeyDown(const Key: TKey; const KeyString: String);
     procedure DoKeyUp(const key: TKey);
     { Do MakeCurrent,
          EventMotion,
@@ -866,8 +866,8 @@ type
       Button: TCastleMouseButton; const FingerIndex: TFingerIndex = 0);
     procedure DoMouseUp(const Position: TVector2;
       Button: TCastleMouseButton; const FingerIndex: TFingerIndex = 0;
-      const TrackReleased: boolean = true);
-    procedure DoMouseWheel(const Scroll: Single; const Vertical: boolean);
+      const TrackReleased: Boolean = true);
+    procedure DoMouseWheel(const Scroll: Single; const Vertical: Boolean);
     procedure DoTimer;
     { Just call it when user presses some MenuItem.
       This takes care of MainMenu.Enabled,
@@ -876,17 +876,17 @@ type
         optional OnMenuClick or Container.EventKeyDown }
     procedure DoMenuClick(Item: TMenuItem);
 
-    procedure DoDropFiles(const FileNames: array of string);
+    procedure DoDropFiles(const FileNames: array of String);
     function MessageReceived(const Received: TCastleStringList;
-      const ReceivedStream: TMemoryStream): boolean;
+      const ReceivedStream: TMemoryStream): Boolean;
 
     { Just like FileDialog, but these always get and should set FileName,
       not an URL. Also, for OpenDialog, we make sure that initial FileName
       contains only a path (not the final file name), since this is
       good behaviour for users (even if some API allow to set proposed
       file name). }
-    function BackendFileDialog(const Title: string; var FileName: string;
-      OpenDialog: boolean; FileFilters: TFileFilterList = nil): boolean; overload;
+    function BackendFileDialog(const Title: String; var FileName: String;
+      OpenDialog: Boolean; FileFilters: TFileFilterList = nil): Boolean; overload;
 
     procedure OpenCore;
     { Current OpenGL buffers configuration required.
@@ -898,7 +898,7 @@ type
       (It doesn't even need an OpenGL context open.)
 
       Useful for constructing messages e.g. for EGLContextNotPossible exceptions. }
-    function RequestedBufferAttributes: string;
+    function RequestedBufferAttributes: String;
     { Check do given OpenGL buffers configuration satisfies the
       requested configuration.
 
@@ -919,7 +919,7 @@ type
       MultiSampling = 1, which happens commonly (since our MultiSampling = 1 means
       "no multisampling" and is default, but most backends returns num_samples
       (or something equivalent) as = 0 when multisampling not supported). }
-    procedure CheckRequestedBufferAttributes(const ProviderName: string;
+    procedure CheckRequestedBufferAttributes(const ProviderName: String;
       ProvidedStencilBits, ProvidedDepthBits, ProvidedAlphaBits,
       ProvidedAccumRedBits, ProvidedAccumGreenBits, ProvidedAccumBlueBits,
       ProvidedAccumAlphaBits, ProvidedMultiSampling: Cardinal);
@@ -938,7 +938,7 @@ type
 
       The default implementation plays it safe, and does not allow suspending
       if we have OnUpdate, OnTimer or such callback defined. }
-    function AllowSuspendForInput: boolean; virtual;
+    function AllowSuspendForInput: Boolean; virtual;
 
     { Size of the window OpenGL area. Together with frame and border
       sizes, and eventually menu bar size, this determines the final
@@ -973,8 +973,8 @@ type
       TODO: Make it possible to set these properties while the window is open.
 
       @groupBegin }
-    property Width: integer read FWidth write SetWidth default WindowDefaultSize;
-    property Height: integer read FHeight write SetHeight default WindowDefaultSize;
+    property Width: Integer read FWidth write SetWidth default WindowDefaultSize;
+    property Height: Integer read FHeight write SetHeight default WindowDefaultSize;
     { @groupEnd }
 
     { Rectangle representing the inside of this container.
@@ -999,8 +999,8 @@ type
       TODO: Make it possible to set these properties while the window is open.
 
       @groupBegin }
-    property Left: integer read FLeft write SetLeft default WindowPositionCenter;
-    property Top :integer read FTop write SetTop default WindowPositionCenter;
+    property Left: Integer read FLeft write SetLeft default WindowPositionCenter;
+    property Top : Integer read FTop write SetTop default WindowPositionCenter;
     { @groupEnd }
 
     { Is the window fullscreen.
@@ -1043,7 +1043,7 @@ type
         )
       )
     }
-    property FullScreen: boolean
+    property FullScreen: Boolean
       read FFullScreenWanted write SetFullScreenWanted default false;
 
     { Deprecated, instead just do @code(FullScreen := not FullScreen). }
@@ -1052,7 +1052,7 @@ type
     { Should we request and use the double buffer.
       After every draw, we automatically swap buffers (if DoubleBuffer)
       or call glFlush (if not DoubleBuffer). }
-    property DoubleBuffer: boolean read FDoubleBuffer write FDoubleBuffer default true;
+    property DoubleBuffer: Boolean read FDoubleBuffer write FDoubleBuffer default true;
 
     { Required red / green / blue color buffer precision for this window.
       When 0, the default window system color precision will be used.
@@ -1415,7 +1415,7 @@ type
       for short information how and where to install your icons.
 
       It's ignored on non-GTK 2 backends. }
-    property GtkIconName: string read FGtkIconName write FGtkIconName;
+    property GtkIconName: String read FGtkIconName write FGtkIconName;
 
     (*Should this window be actually displayed on the desktop.
       In all normal programs you want to leave this as @true, as the
@@ -1463,11 +1463,11 @@ type
         end;
       #)
     *)
-    property Visible: boolean read FVisible write FVisible default true;
+    property Visible: Boolean read FVisible write FVisible default true;
 
     { Caption of the window. By default it's initialized to ApplicationName.
       May be changed even when the window is already open. }
-    property Caption: string read GetPublicCaption write SetPublicCaption;
+    property Caption: String read GetPublicCaption write SetPublicCaption;
 
     { Render window contents here.
 
@@ -1652,7 +1652,7 @@ type
       Note that the engine components always call @link(Invalidate) when
       necessary, so usually you should only call it yourself if you provide
       a custom @link(OnRender) implementation. }
-    property AutoRedisplay: boolean read FAutoRedisplay write SetAutoRedisplay
+    property AutoRedisplay: Boolean read FAutoRedisplay write SetAutoRedisplay
       default true;
 
     { -------------------------------------------------------------------------
@@ -1661,8 +1661,8 @@ type
 
   private
     FMainMenu: TMenu;
-    FMainMenuVisible: boolean;
-    FOwnsMainMenu: boolean;
+    FMainMenuVisible: Boolean;
+    FOwnsMainMenu: Boolean;
     FOnMenuClick: TMenuClickFunc;
     FUserData: Pointer;
     procedure SetMainMenu(Value: TMenu);
@@ -1704,12 +1704,12 @@ type
     { Is MainMenu visible. @false means that we do not show main menu bar,
       but menu key shortcuts should still work.
       Right now, you can reliably change this only before window is open. }
-    property MainMenuVisible: boolean
+    property MainMenuVisible: Boolean
       read FMainMenuVisible write FMainMenuVisible default true;
 
     { If true then the @link(MainMenu) will automatically freed when this
       TCastleWindowBase instance is freed. }
-    property OwnsMainMenu: boolean read FOwnsMainMenu write FOwnsMainMenu default true;
+    property OwnsMainMenu: Boolean read FOwnsMainMenu write FOwnsMainMenu default true;
 
     { Called each time user chooses some menu item and it's not handled
       in TMenuItem.DoClick. By default, menu item handling is passed
@@ -1728,14 +1728,14 @@ type
 
     { Is the window focused now, which means that keys/mouse events
       are directed to this window. }
-    property Focused: boolean read FFocused;
+    property Focused: Boolean read FFocused;
 
     { Place for your pointer, for any purposes.
       No code in this unit touches the value of this field.
       This is similar to TComponent.Tag property. }
     property UserData: Pointer read FUserData write FUserData;
 
-    property Closed: boolean read FClosed default true;
+    property Closed: Boolean read FClosed default true;
 
     property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
       deprecated 'do not set this, engine will override this. Set TCastleUserInterface.Cursor of your UI controls to control the Cursor.';
@@ -1770,7 +1770,7 @@ type
 
     { Is the OpenGL context initialized. This is equivalent to @code(not Closed),
       which means we are between an @link(Open) and @link(Close) calls. }
-    function GLInitialized: boolean;
+    function GLInitialized: Boolean;
 
     { Create the window with associated rendering context and show it.
 
@@ -1863,12 +1863,12 @@ type
       because in destructor of this object we call Close, to be sure
       that window is closed.
 
-      TODO: zrobic param boolean CloseFromDestroyQuitWhenLastWindowClosed?
+      TODO: zrobic param Boolean CloseFromDestroyQuitWhenLastWindowClosed?
       As for now Close from destructor is called always with
       QuitWhenLastWindowClosed = true.
 
       Call to Close is ignored if window is already Closed. }
-    procedure Close(const QuitWhenLastWindowClosed: boolean = true);
+    procedure Close(const QuitWhenLastWindowClosed: Boolean = true);
 
     { @deprecated Deprecated name for @link(Invalidate). }
     procedure PostRedisplay; deprecated;
@@ -1898,12 +1898,12 @@ type
       Note that only capturing the double-buffered windows (the default)
       is reliable.
       @groupBegin }
-    procedure SaveScreen(const URL: string); overload;
+    procedure SaveScreen(const URL: String); overload;
     function SaveScreen: TRGBImage; overload;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload;
-    function SaveScreenToGL(const SmoothScaling: boolean = false): TDrawableImage; overload;
+    function SaveScreenToGL(const SmoothScaling: Boolean = false): TDrawableImage; overload;
     function SaveScreenToGL(const SaveRect: TRectangle;
-      const SmoothScaling: boolean = false): TDrawableImage; overload;
+      const SmoothScaling: Boolean = false): TDrawableImage; overload;
     { @groupEnd }
 
     { Color buffer where we draw, and from which it makes sense to grab pixels.
@@ -1917,7 +1917,7 @@ type
       as default URL taking ProposedURL).
       If user accepts calls Window.SaveScreen.
       In case of problems with saving, shows a dialog (doesn't raise exception). }
-    procedure SaveScreenDialog(ProposedURL: string);
+    procedure SaveScreenDialog(ProposedURL: String);
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1943,7 +1943,7 @@ type
       as properties, and then use parameterless OpenAndRun version.
       In many programs, OnRender is not even used, as you render your stuff
       inside various TCastleUserInterface instances. }
-    procedure OpenAndRun(const ACaption: string; AOnRender: TContainerEvent); overload; deprecated;
+    procedure OpenAndRun(const ACaption: String; AOnRender: TContainerEvent); overload; deprecated;
 
     { Parsing parameters ------------------------------------------------------- }
 
@@ -2012,7 +2012,7 @@ type
       options obtained by @code(ParseParametersHelp(AllowedOptions))
       (i.e. with the same value of AllowedOptions).
 
-      Returned string may be multiline, but it does not contain
+      Returned String may be multiline, but it does not contain
       the trailing newline (newline char after the last line).
 
       Returned help text conforms to rules in
@@ -2026,7 +2026,7 @@ type
       by e.g. empty lines around). }
     class function ParseParametersHelp(
       const AllowedOptions: TWindowParseOptions;
-      AddHeader: boolean): string;
+      AddHeader: Boolean): String;
 
     { dialog boxes using GUI ------------------------------------------------ }
 
@@ -2113,16 +2113,16 @@ type
       @param(FileFilters A set of file filters to present to user.
         Pass @nil (default) if you do not want to use file file filters,
         so user will just always see everything. An overloaded version
-        allows you to pass file filters encoded in a single string,
+        allows you to pass file filters encoded in a single String,
         this may be slightly more comfortable for call, see
         TFileFilterList.AddFiltersFromString
-        for explanation how to encode filters in a string.)
+        for explanation how to encode filters in a String.)
 
       @groupBegin }
-    function FileDialog(const Title: string; var URL: string;
-      OpenDialog: boolean; FileFilters: TFileFilterList = nil): boolean; overload;
-    function FileDialog(const Title: string; var URL: string;
-      OpenDialog: boolean; const FileFilters: string): boolean; overload;
+    function FileDialog(const Title: String; var URL: String;
+      OpenDialog: Boolean; FileFilters: TFileFilterList = nil): Boolean; overload;
+    function FileDialog(const Title: String; var URL: String;
+      OpenDialog: Boolean; const FileFilters: String): Boolean; overload;
     { @groupEnd }
 
     { Shows a dialog window allowing user to choose an RGB color.
@@ -2131,31 +2131,31 @@ type
       returns false (and does not modify Color).
 
       @groupBegin }
-    function ColorDialog(var Color: TCastleColor): boolean;
-    function ColorDialog(var Color: TVector3): boolean;
-    function ColorDialog(var Color: TVector3Byte): boolean;
+    function ColorDialog(var Color: TCastleColor): Boolean;
+    function ColorDialog(var Color: TVector3): Boolean;
+    function ColorDialog(var Color: TVector3Byte): Boolean;
     { @groupEnd }
 
     { Simple "OK" dialog box. }
-    procedure MessageOK(const S: string; const MessageType: TWindowMessageType);
+    procedure MessageOK(const S: String; const MessageType: TWindowMessageType);
 
     { Simple yes/no question dialog box. }
-    function MessageYesNo(const S: string;
-      const MessageType: TWindowMessageType = mtQuestion): boolean;
+    function MessageYesNo(const S: String;
+      const MessageType: TWindowMessageType = mtQuestion): Boolean;
 
     { Named parameters used to initialize this window.
       Right now only meaningful when using NPAPI plugin. }
     property NamedParameters: TCastleStringList read FNamedParameters;
   private
     LastFpsOutputTime: TTimerResult;
-    FFpsShowOnCaption: boolean;
+    FFpsShowOnCaption: Boolean;
     FSwapFullScreen_Key: TKey;
     FClose_KeyString: String;
     FFpsCaptionUpdateDelay: Single;
   public
     { Show current frames per second on window caption.
       You can modify this property only @italic(before calling @link(Open).) }
-    property FpsShowOnCaption: boolean
+    property FpsShowOnCaption: Boolean
       read FFpsShowOnCaption write FFpsShowOnCaption default false;
 
     { Key to use to switch between FullScreen and not FullScreen.
@@ -2192,7 +2192,7 @@ type
     { Configure some options typically used by "demo" applications. }
     procedure SetDemoOptions(const ASwapFullScreen_Key: TKey;
       AClose_KeyString: String;
-      const AFpsShowOnCaption: boolean);
+      const AFpsShowOnCaption: Boolean);
   end;
 
   TCastleWindowCustom = TCastleWindowBase deprecated 'use TCastleWindowBase';
@@ -2229,10 +2229,10 @@ type
     FSceneManager: TGameSceneManager;
     {$warnings on}
 
-    function GetShadowVolumes: boolean;
-    function GetShadowVolumesRender: boolean;
-    procedure SetShadowVolumes(const Value: boolean);
-    procedure SetShadowVolumesRender(const Value: boolean);
+    function GetShadowVolumes: Boolean;
+    function GetShadowVolumesRender: Boolean;
+    procedure SetShadowVolumes(const Value: Boolean);
+    procedure SetShadowVolumesRender(const Value: Boolean);
     function GetNavigationType: TNavigationType;
     procedure SetNavigationType(const Value: TNavigationType);
   protected
@@ -2250,9 +2250,9 @@ type
 
       See manual for explanation:
       https://castle-engine.io/manual_load_3d.php }
-    procedure Load(const SceneURL: string);
+    procedure Load(const SceneURL: String);
       deprecated 'create TCastleScene and load using TCastleScene.Load; this method is an inflexible shortcut for this';
-    procedure Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
+    procedure Load(ARootNode: TX3DRootNode; const OwnsRootNode: Boolean);
       deprecated 'create TCastleScene and load using TCastleScene.Load; this method is an inflexible shortcut for this';
     function MainScene: TCastleScene;
       deprecated 'create TCastleViewport and use TCastleViewport.Items.MainScene';
@@ -2260,13 +2260,13 @@ type
     property SceneManager: TGameSceneManager read FSceneManager;
 
     { See @link(TCastleViewport.ShadowVolumes). }
-    property ShadowVolumes: boolean
+    property ShadowVolumes: Boolean
       read GetShadowVolumes write SetShadowVolumes
       default TCastleViewport.DefaultShadowVolumes;
       deprecated 'create TCastleViewport and use TCastleViewport.ShadowVolumes';
 
     { See @link(TCastleViewport.ShadowVolumesRender). }
-    property ShadowVolumesRender: boolean
+    property ShadowVolumesRender: Boolean
       read GetShadowVolumesRender write SetShadowVolumesRender default false;
       deprecated 'create TCastleViewport and use TCastleViewport.ShadowVolumesRender';
 
@@ -2317,23 +2317,23 @@ type
   private
     FOnInitialize{, FOnInitializeJavaActivity}: TProcedure;
     FOnInitializeEvent: TNotifyEvent;
-    Initialized, InitializedJavaActivity: boolean;
+    Initialized, InitializedJavaActivity: Boolean;
     FOnUpdate: TUpdateFunc;
     FOnTimer: TProcedure;
     FTimerMilisec: Cardinal;
-    FVideoColorBits: integer;
+    FVideoColorBits: Integer;
     FVideoFrequency: Cardinal;
     { Current window with OpenGL context active.
       Update in TCastleWindowBase.MakeCurrent, also TCastleWindowBase.Close. }
     Current: TCastleWindowBase;
     LastLimitFPSTime: TTimerResult;
     FMainWindow: TCastleWindowBase;
-    FUserAgent: string;
+    FUserAgent: String;
     FDefaultWindowClass: TCastleWindowBaseClass;
     LastMaybeDoTimerTime: TTimerResult;
 
     FOpenWindows: TWindowList;
-    function GetOpenWindows(Index: integer): TCastleWindowBase;
+    function GetOpenWindows(Index: Integer): TCastleWindowBase;
     { Run @link(OnInitialize) and
       @link(TCastleApplicationProperties.OnInitializeJavaActivity) callbacks,
       if not run yet.
@@ -2361,10 +2361,10 @@ type
 
       If Window was present on OpenWindows and after removing Window
       OpenWindowsCount = 0 and QuitWhenLastWindowClosed then it calls Quit. }
-    procedure OpenWindowsRemove(Window: TCastleWindowBase; QuitWhenLastWindowClosed: boolean);
+    procedure OpenWindowsRemove(Window: TCastleWindowBase; QuitWhenLastWindowClosed: Boolean);
 
     { Find window on the OpenWindows list. Returns index, or -1 if not found. }
-    function FindWindow(Window: TCastleWindowBase): integer;
+    function FindWindow(Window: TCastleWindowBase): Integer;
 
     procedure CreateBackend;
     procedure DestroyBackend;
@@ -2403,7 +2403,7 @@ type
       and call OnRender on all necessary windows.
       This allows some backends to easily do everything that typically needs
       to be done continuosly (without the need for any message from the outside). }
-    procedure UpdateAndRenderEverything(out WasAnyRendering: boolean);
+    procedure UpdateAndRenderEverything(out WasAnyRendering: Boolean);
     procedure UpdateAndRenderEverything;
 
     procedure MarkSleeping;
@@ -2413,7 +2413,7 @@ type
       the whole Application. Returns @true only if all open
       windows allow it, and application state allows it too
       (e.g. we do not have OnUpdate and OnTimer). }
-    function AllowSuspendForInput: boolean;
+    function AllowSuspendForInput: Boolean;
 
     procedure DoLimitFPS;
     procedure SetMainWindow(const Value: TCastleWindowBase);
@@ -2423,11 +2423,11 @@ type
       application work. }
     procedure CloseAllOpenWindows;
 
-    function GetVersion: string;
-    procedure SetVersion(const Value: string);
+    function GetVersion: String;
+    procedure SetVersion(const Value: String);
 
-    function GetTouchDevice: boolean;
-    procedure SetTouchDevice(const Value: boolean);
+    function GetTouchDevice: Boolean;
+    procedure SetTouchDevice(const Value: Boolean);
     function GetLimitFPS: Single;
     procedure SetLimitFPS(const Value: Single);
     function GetMainContainer: TUIContainer;
@@ -2444,9 +2444,9 @@ type
       VideoResizeHeight. Otherwise, next TryVideoChange and VideoChange will
       use default screen size.
       @groupBegin }
-    VideoResize : boolean;
+    VideoResize : Boolean;
     VideoResizeWidth,
-    VideoResizeheight : integer;
+    VideoResizeheight : Integer;
     { @groupEnd }
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -2454,7 +2454,7 @@ type
     { Color bits per pixel that will be set by next VideoChange call,
       and that are tried to be used at TCastleWindowBase.Open.
       Zero means that system default is used. }
-    property VideoColorBits: integer read FVideoColorBits write FVideoColorBits default 0;
+    property VideoColorBits: Integer read FVideoColorBits write FVideoColorBits default 0;
 
     { Video frequency to set in next VideoChange call.
       Leave as 0 to use system default. }
@@ -2462,9 +2462,9 @@ type
 
     { Describe the changes recorded in variables VideoXxx,
       used by VideoChange and TryVideoChange.
-      This is a multiline string, each line is indented by 2 spaces,
+      This is a multiline String, each line is indented by 2 spaces,
       always ends with CastleUtils.NL. }
-    function VideoSettingsDescribe: string;
+    function VideoSettingsDescribe: String;
 
     { Change the screen size, color bits and such, following the directions
       you set in VideoColorBits, VideoResize,
@@ -2477,7 +2477,7 @@ type
       TODO: Prefix "Video" for the family of these functions is not clear.
       Something like "Screen" would be better.
     }
-    function TryVideoChange: boolean;
+    function TryVideoChange: Boolean;
 
     { Change the screen size, color bits and such, following the directions
       you set in VideoColorBits, VideoResize,
@@ -2490,7 +2490,7 @@ type
 
       @raises(Exception If video mode change failed,
         and OnErrorWarnUserAndContinue = false.) }
-    procedure VideoChange(OnErrorWarnUserAndContinue: boolean);
+    procedure VideoChange(OnErrorWarnUserAndContinue: Boolean);
 
     { Return default screen video mode.
       If you never called TryVideoChange (with success), then this does nothing.
@@ -2499,14 +2499,14 @@ type
       screen resolution for user. }
     procedure VideoReset;
 
-    function ScreenHeight: integer;
-    function ScreenWidth: integer;
+    function ScreenHeight: Integer;
+    function ScreenWidth: Integer;
     function ScreenStatusBarScaledHeight: Cardinal;
 
     { List of all open windows.
       @groupBegin }
-    function OpenWindowsCount: integer;
-    property OpenWindows[Index: integer]: TCastleWindowBase read GetOpenWindows;
+    function OpenWindowsCount: Integer;
+    property OpenWindows[Index: Integer]: TCastleWindowBase read GetOpenWindows;
     { @groupEnd }
 
     { The application and CastleWindow backend is initialized.
@@ -2554,8 +2554,8 @@ type
       It is also used by TWindowProgressInterface to display progress bar. }
     property MainWindow: TCastleWindowBase read FMainWindow write SetMainWindow;
 
-    { User agent string, when running inside a browser, right now only meaningful when using NPAPI plugin. }
-    property UserAgent: string read FUserAgent;
+    { User agent String, when running inside a browser, right now only meaningful when using NPAPI plugin. }
+    property UserAgent: String read FUserAgent;
 
     { Default window class to create when environment requires it,
       right now: when a new instance of browser plugin is requested.
@@ -2648,7 +2648,7 @@ type
         have to set this to @false.
       )
     }
-    function ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
+    function ProcessMessage(WaitForMessage, WaitToLimitFPS: Boolean): Boolean;
 
     { Processes @italic(all) pending messages. Do not wait for anything.
 
@@ -2668,7 +2668,7 @@ type
 
       So ProcessAllMessages makes sure we have processed all pending events,
       thus we are up-to-date with window system requests. }
-    function ProcessAllMessages: boolean;
+    function ProcessAllMessages: Boolean;
 
     procedure Quit; deprecated 'Use Terminate';
 
@@ -2686,7 +2686,7 @@ type
       to work and exits immediately without any error. }
     procedure Run;
 
-    function BackendName: string;
+    function BackendName: String;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -2711,9 +2711,9 @@ type
 
     property LimitFPS: Single read GetLimitFPS write SetLimitFPS;
       deprecated 'use ApplicationProperties.LimitFps';
-    property Version: string read GetVersion write SetVersion;
+    property Version: String read GetVersion write SetVersion;
       deprecated 'use ApplicationProperties.Version';
-    property TouchDevice: boolean read GetTouchDevice write SetTouchDevice;
+    property TouchDevice: Boolean read GetTouchDevice write SetTouchDevice;
       deprecated 'use ApplicationProperties.TouchDevice';
   end;
 
@@ -2744,9 +2744,9 @@ procedure Resize2D(Container: TUIContainer);
   then this combination doesn't describe any key, and we return @false.
   Otherwise we return @true and set S. }
 function KeyToString(const KeyString: String; const Key: TKey; const Modifiers: TModifierKeys;
-  out S: string): boolean;
+  out S: String): Boolean;
 function KeyString(const AKeyString: String; const Key: TKey; const Modifiers: TModifierKeys;
-  out S: string): boolean; deprecated 'use KeyToString';
+  out S: String): Boolean; deprecated 'use KeyToString';
 
 {$undef read_interface}
 
@@ -2788,7 +2788,7 @@ begin
   Parent.Invalidate;
 end;
 
-function TWindowContainer.GLInitialized: boolean;
+function TWindowContainer.GLInitialized: Boolean;
 begin
   Result := Parent.GLInitialized;
 end;
@@ -2828,7 +2828,7 @@ begin
   Result := Parent.Dpi;
 end;
 
-function TWindowContainer.Focused: boolean;
+function TWindowContainer.Focused: Boolean;
 begin
   Result := Parent.Focused;
 end;
@@ -3108,7 +3108,7 @@ end;
   - shadows (stencil buffer)
   - depth size
   requirements and initialize worse GL context. }
-function DefaultRetryOpen(Window: TCastleWindowBase): boolean;
+function DefaultRetryOpen(Window: TCastleWindowBase): Boolean;
 begin
   if Window.AntiAliasing <> aaNone then
   begin
@@ -3138,7 +3138,7 @@ begin
   Open(@DefaultRetryOpen);
 end;
 
-procedure TCastleWindowBase.Close(const QuitWhenLastWindowClosed: boolean);
+procedure TCastleWindowBase.Close(const QuitWhenLastWindowClosed: Boolean);
 begin
   if FClosed then Exit;
 
@@ -3180,7 +3180,7 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.SetAutoRedisplay(const Value: boolean);
+procedure TCastleWindowBase.SetAutoRedisplay(const Value: Boolean);
 begin
   FAutoRedisplay := value;
   if Value then Invalidate;
@@ -3192,7 +3192,7 @@ var
   mb: TCastleMouseButton;
   {$ifdef CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN}
   mk: TModifierKey;
-  b: boolean;
+  b: Boolean;
   {$endif}
 begin
   {$ifdef CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN}
@@ -3257,7 +3257,7 @@ end;
   implementations independent from the backend.
   Backends should always call DoXxx, never call directly EventXxx or OnXxx. }
 
-procedure TCastleWindowBase.DoResize(AWidth, AHeight: integer; FirstResizeAfterOpen: boolean);
+procedure TCastleWindowBase.DoResize(AWidth, AHeight: Integer; FirstResizeAfterOpen: Boolean);
 begin
   { Set FRealWidth/Height unconditionally to AWidth/AHeight. }
   FRealWidth := AWidth;
@@ -3357,7 +3357,7 @@ begin
   {$ifdef CASTLE_WINDOW_CHECK_GL_ERRORS_AFTER_DRAW} CheckGLErrors('End of TCastleWindowBase.DoRender'); {$endif}
 end;
 
-procedure TCastleWindowBase.DoKeyDown(const Key: TKey; const KeyString: string);
+procedure TCastleWindowBase.DoKeyDown(const Key: TKey; const KeyString: String);
 var
   Event: TInputPressRelease;
 
@@ -3389,7 +3389,7 @@ var
 
 var
   MatchingMI: TMenuItem;
-  KeyRepeated: boolean;
+  KeyRepeated: Boolean;
 begin
   Event := InputKey(MousePosition, Key, KeyString, ModifiersDown(Container.Pressed));
 
@@ -3471,7 +3471,7 @@ end;
 
 procedure TCastleWindowBase.DoMouseUp(const Position: TVector2;
   Button: TCastleMouseButton; const FingerIndex: TFingerIndex;
-  const TrackReleased: boolean);
+  const TrackReleased: Boolean);
 var
   Event: TInputPressRelease;
 begin
@@ -3494,7 +3494,7 @@ begin
     FTouches.RemoveFingerIndex(Event.FingerIndex);
 end;
 
-procedure TCastleWindowBase.DoMouseWheel(const Scroll: Single; const Vertical: boolean);
+procedure TCastleWindowBase.DoMouseWheel(const Scroll: Single; const Vertical: Boolean);
 begin
   MakeCurrent;
   Container.EventPress(InputMouseWheel(MousePosition, Scroll, Vertical,
@@ -3547,7 +3547,7 @@ begin
     OnMenuClick(Container, Item);
 end;
 
-procedure TCastleWindowBase.DoDropFiles(const FileNames: array of string);
+procedure TCastleWindowBase.DoDropFiles(const FileNames: array of String);
 begin
   MakeCurrent;
   if Assigned(OnDropFiles) then
@@ -3555,9 +3555,9 @@ begin
 end;
 
 function TCastleWindowBase.MessageReceived(const Received: TCastleStringList;
-  const ReceivedStream: TMemoryStream): boolean;
+  const ReceivedStream: TMemoryStream): Boolean;
 var
-  Url: string;
+  Url: String;
 begin
   Result := false;
   if (Received.Count = 2) and
@@ -3569,7 +3569,7 @@ begin
   end;
 end;
 
-function TCastleWindowBase.AllowSuspendForInput: boolean;
+function TCastleWindowBase.AllowSuspendForInput: Boolean;
 begin
   Result := Container.AllowSuspendForInput and
     not (Invalidated or Assigned(OnUpdate) or Assigned(OnTimer) or FpsShowOnCaption);
@@ -3610,7 +3610,7 @@ begin
     Result := cbFront;
 end;
 
-procedure TCastleWindowBase.SaveScreen(const URL: string);
+procedure TCastleWindowBase.SaveScreen(const URL: String);
 begin
   Container.SaveScreen(URL);
 end;
@@ -3629,14 +3629,14 @@ begin
   Result := Container.SaveScreen(SaveRect);
 end;
 
-function TCastleWindowBase.SaveScreenToGL(const SmoothScaling: boolean): TDrawableImage;
+function TCastleWindowBase.SaveScreenToGL(const SmoothScaling: Boolean): TDrawableImage;
 begin
   Result := SaveScreenToGL(Rect, SmoothScaling);
 end;
 
 function TCastleWindowBase.SaveScreenToGL(
   const SaveRect: TRectangle;
-  const SmoothScaling: boolean): TDrawableImage;
+  const SmoothScaling: Boolean): TDrawableImage;
 begin
   if Closed then
     raise Exception.Create('Cannot save the screen when the TCastleWindow is closed');
@@ -3645,7 +3645,7 @@ begin
   Result := SaveScreenToGL_NoFlush(SaveRect, SaveScreenBuffer, SmoothScaling);
 end;
 
-procedure TCastleWindowBase.SaveScreenDialog(ProposedURL: string);
+procedure TCastleWindowBase.SaveScreenDialog(ProposedURL: String);
 begin
   if FileDialog('Save screen to file', ProposedURL, false, SaveImage_FileFilters) then
   try
@@ -3655,10 +3655,10 @@ begin
   end;
 end;
 
-function TCastleWindowBase.FileDialog(const Title: string; var URL: string;
-  OpenDialog: boolean; FileFilters: TFileFilterList = nil): boolean;
+function TCastleWindowBase.FileDialog(const Title: String; var URL: String;
+  OpenDialog: Boolean; FileFilters: TFileFilterList = nil): Boolean;
 var
-  FileName: string;
+  FileName: String;
 begin
   { calculate FileName from URL }
   FileName := URIToFilenameSafe(URL);
@@ -3669,8 +3669,8 @@ begin
     URL := FilenameToURISafe(FileName);
 end;
 
-function TCastleWindowBase.FileDialog(const Title: string; var URL: string;
-  OpenDialog: boolean; const FileFilters: string): boolean;
+function TCastleWindowBase.FileDialog(const Title: String; var URL: String;
+  OpenDialog: Boolean; const FileFilters: String): Boolean;
 var
   FFList: TFileFilterList;
 begin
@@ -3681,7 +3681,7 @@ begin
   finally FreeAndNil(FFList) end;
 end;
 
-function TCastleWindowBase.ColorDialog(var Color: TCastleColor): boolean;
+function TCastleWindowBase.ColorDialog(var Color: TCastleColor): Boolean;
 var
   Color3: TVector3;
 begin
@@ -3691,7 +3691,7 @@ begin
     Color := Vector4(Color3, 1.0);
 end;
 
-function TCastleWindowBase.ColorDialog(var Color: TVector3Byte): boolean;
+function TCastleWindowBase.ColorDialog(var Color: TVector3Byte): Boolean;
 var
   ColorSingle: TVector3;
 begin
@@ -3705,7 +3705,7 @@ end;
 
 { OpenAndRun ----------------------------------------------------------------- }
 
-procedure TCastleWindowBase.OpenAndRun(const ACaption: string; AOnRender: TContainerEvent);
+procedure TCastleWindowBase.OpenAndRun(const ACaption: String; AOnRender: TContainerEvent);
 begin
   SetPublicCaption(ACaption);
   OnRender := AOnRender;
@@ -3727,14 +3727,14 @@ type
   end;
   POptionProcData = ^TOptionProcData;
 
-procedure GeometryOptionProc(OptionNum: Integer; HasArgument: boolean;
-  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+procedure GeometryOptionProc(OptionNum: Integer; HasArgument: Boolean;
+  const Argument: String; const SeparateArgs: TSeparateArgs; Data: Pointer);
 var ProcData: POptionProcData absolute Data;
 
-  procedure ApplyGeometryParam(const geom: string);
-  var p: integer;
-      parWidth, parHeight, parXoff, parYoff: integer;
-      xoffPlus, yoffPlus, sizeSpecified, positionSpecified: boolean;
+  procedure ApplyGeometryParam(const geom: String);
+  var p: Integer;
+      parWidth, parHeight, parXoff, parYoff: Integer;
+      xoffPlus, yoffPlus, sizeSpecified, positionSpecified: Boolean;
       { p to znak w stringu geom ktory teraz chcemy czytac.
         parWidth i parHeight sa valid tylko o ile sizeSpecified.
         parXoff, parYoff, xoffPlus, yoffPlus sa valid tylko o ile positionSpecified.
@@ -3742,7 +3742,7 @@ var ProcData: POptionProcData absolute Data;
 
     procedure ParseSize;
     { parsuje width i height }
-    var startp: integer;
+    var startp: Integer;
     begin
      sizeSpecified := true;
 
@@ -3763,7 +3763,7 @@ var ProcData: POptionProcData absolute Data;
 
     procedure ParsePosition;
     { parsuje xoff, yoff i koniec stringa. }
-    var startp: integer;
+    var startp: Integer;
     begin
      positionSpecified := true;
 
@@ -3840,12 +3840,12 @@ begin
   end;
 end;
 
-procedure ScreenGeometryOptionProc(OptionNum: Integer; HasArgument: boolean;
-  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+procedure ScreenGeometryOptionProc(OptionNum: Integer; HasArgument: Boolean;
+  const Argument: String; const SeparateArgs: TSeparateArgs; Data: Pointer);
 var ProcData: POptionProcData absolute Data;
 
-  procedure ApplyFullScreenCustomParam(const option: string);
-  var p: integer;
+  procedure ApplyFullScreenCustomParam(const option: String);
+  var p: Integer;
   begin
    ProcData^.Window.FullScreen := true;
    try
@@ -3870,8 +3870,8 @@ begin
   end;
 end;
 
-procedure DisplayOptionProc(OptionNum: Integer; HasArgument: boolean;
-  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+procedure DisplayOptionProc(OptionNum: Integer; HasArgument: Boolean;
+  const Argument: String; const SeparateArgs: TSeparateArgs; Data: Pointer);
 var
   ProcData: POptionProcData absolute Data;
 begin
@@ -3898,8 +3898,8 @@ begin
   end;
 end;
 
-procedure LimitFpsOptionProc(OptionNum: Integer; HasArgument: boolean;
-  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+procedure LimitFpsOptionProc(OptionNum: Integer; HasArgument: Boolean;
+  const Argument: String; const SeparateArgs: TSeparateArgs; Data: Pointer);
 var
   ProcData: POptionProcData absolute Data;
 begin
@@ -3999,9 +3999,9 @@ end;
 
 class function TCastleWindowBase.ParseParametersHelp(
   const AllowedOptions: TWindowParseOptions;
-  AddHeader: boolean): string;
+  AddHeader: Boolean): String;
 const
-  HelpForParam: array [TWindowParseOption] of string =
+  HelpForParam: array [TWindowParseOption] of String =
   (
     // poGeometry
     '  --fullscreen          Set window to full-screen (cover whole screen).' + NL +
@@ -4040,7 +4040,7 @@ end;
 
 { TCastleWindowBase miscellaneous -------------------------------------------- }
 
-function TCastleWindowBase.RequestedBufferAttributes: string;
+function TCastleWindowBase.RequestedBufferAttributes: String;
 begin
  if DoubleBuffer then
    Result := 'double buffered' else
@@ -4061,12 +4061,12 @@ begin
 end;
 
 procedure TCastleWindowBase.CheckRequestedBufferAttributes(
-  const ProviderName: string;
+  const ProviderName: String;
   ProvidedStencilBits, ProvidedDepthBits, ProvidedAlphaBits,
   ProvidedAccumRedBits, ProvidedAccumGreenBits, ProvidedAccumBlueBits,
   ProvidedAccumAlphaBits, ProvidedMultiSampling: Cardinal);
 
-  procedure CheckRequestedBits(const Name: string; RequestedBits, ProvidedBits: Cardinal);
+  procedure CheckRequestedBits(const Name: String; RequestedBits, ProvidedBits: Cardinal);
   begin
    if ProvidedBits < RequestedBits then
     raise EGLContextNotPossible.CreateFmt('%s provided OpenGL context with %s'
@@ -4255,17 +4255,17 @@ begin
   FullScreen := not FullScreen;
 end;
 
-function TCastleWindowBase.GetPublicCaption: string;
+function TCastleWindowBase.GetPublicCaption: String;
 begin
   Result := FCaption[cpPublic];
 end;
 
-procedure TCastleWindowBase.SetPublicCaption(const Value: string);
+procedure TCastleWindowBase.SetPublicCaption(const Value: String);
 begin
   SetCaption(cpPublic, Value);
 end;
 
-function TCastleWindowBase.GetWholeCaption: string;
+function TCastleWindowBase.GetWholeCaption: String;
 begin
   Result := FCaption[cpPublic] + FCaption[cpFps];
 end;
@@ -4277,7 +4277,7 @@ begin
     Result := Rectangle(0, 0, Width, Height);
 end;
 
-function TCastleWindowBase.GLInitialized: boolean;
+function TCastleWindowBase.GLInitialized: Boolean;
 begin
   Result := not Closed;
 end;
@@ -4414,7 +4414,7 @@ end;
 
 procedure TCastleWindowBase.SetDemoOptions(const ASwapFullScreen_Key: TKey;
   AClose_KeyString: String;
-  const AFpsShowOnCaption: boolean);
+  const AFpsShowOnCaption: Boolean);
 begin
   // only for backward compatibility (when this parameter was Char) convert #0 to ''
   if AClose_KeyString = #0 then
@@ -4507,14 +4507,14 @@ begin
   Controls.InsertFront(SceneManager);
 end;
 
-procedure TCastleWindow.Load(const SceneURL: string);
+procedure TCastleWindow.Load(const SceneURL: String);
 begin
   {$warnings off} // using one deprecated from another
   Load(LoadNode(SceneURL), true);
   {$warnings on}
 end;
 
-procedure TCastleWindow.Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
+procedure TCastleWindow.Load(ARootNode: TX3DRootNode; const OwnsRootNode: Boolean);
 begin
   { destroy MainScene and clear cameras, we will recreate it }
   SceneManager.Items.MainScene.Free;
@@ -4545,22 +4545,22 @@ begin
   Result := SceneManager.Items.MainScene;
 end;
 
-function TCastleWindow.GetShadowVolumes: boolean;
+function TCastleWindow.GetShadowVolumes: Boolean;
 begin
   Result := SceneManager.ShadowVolumes;
 end;
 
-procedure TCastleWindow.SetShadowVolumes(const Value: boolean);
+procedure TCastleWindow.SetShadowVolumes(const Value: Boolean);
 begin
   SceneManager.ShadowVolumes := Value;
 end;
 
-function TCastleWindow.GetShadowVolumesRender: boolean;
+function TCastleWindow.GetShadowVolumesRender: Boolean;
 begin
   Result := SceneManager.ShadowVolumesRender;
 end;
 
-procedure TCastleWindow.SetShadowVolumesRender(const Value: boolean);
+procedure TCastleWindow.SetShadowVolumesRender(const Value: Boolean);
 begin
   SceneManager.ShadowVolumesRender := Value;
 end;
@@ -4582,23 +4582,23 @@ end;
 
 procedure TWindowList.Invalidate;
 var
-  i: Integer;
+  I: Integer;
 begin
-  for i := 0 to Count - 1 do Items[i].Invalidate;
+  for I := 0 to Count - 1 do Items[I].Invalidate;
 end;
 
 procedure TWindowList.DoUpdate;
 var
-  i: integer;
+  I: Integer;
 begin
-  for i := 0 to Count - 1 do Items[i].DoUpdate;
+  for I := 0 to Count - 1 do Items[I].DoUpdate;
 end;
 
 procedure TWindowList.DoTimer;
 var
-  i: integer;
+  I: Integer;
 begin
-  for i := 0 to Count - 1 do Items[i].DoTimer;
+  for I := 0 to Count - 1 do Items[I].DoTimer;
 end;
 
 { --------------------------------------------------------------------------
@@ -4724,12 +4724,12 @@ begin
     MainWindow := nil;
 end;
 
-function TCastleApplication.GetOpenWindows(Index: integer): TCastleWindowBase;
+function TCastleApplication.GetOpenWindows(Index: Integer): TCastleWindowBase;
 begin
   result := FOpenWindows[Index];
 end;
 
-function TCastleApplication.OpenWindowsCount: integer;
+function TCastleApplication.OpenWindowsCount: Integer;
 begin
   result := FOpenWindows.Count;
 end;
@@ -4740,7 +4740,7 @@ begin
 end;
 
 procedure TCastleApplication.OpenWindowsRemove(Window: TCastleWindowBase;
-  QuitWhenLastWindowClosed: boolean);
+  QuitWhenLastWindowClosed: Boolean);
 begin
   if (FOpenWindows.Remove(Window) <> -1) and
      (OpenWindowsCount = 0) and
@@ -4748,7 +4748,7 @@ begin
     CloseAllOpenWindows;
 end;
 
-function TCastleApplication.FindWindow(Window: TCastleWindowBase): integer;
+function TCastleApplication.FindWindow(Window: TCastleWindowBase): Integer;
 begin
   for result := 0 to OpenWindowsCount-1 do
     if OpenWindows[result] = Window then exit;
@@ -4821,9 +4821,9 @@ begin
   end;
 end;
 
-procedure TCastleApplication.UpdateAndRenderEverything(out WasAnyRendering: boolean);
+procedure TCastleApplication.UpdateAndRenderEverything(out WasAnyRendering: Boolean);
 var
-  I: integer;
+  I: Integer;
   Window: TCastleWindowBase;
 begin
   WasAnyRendering := false;
@@ -4889,7 +4889,7 @@ end;
 
 procedure TCastleApplication.UpdateAndRenderEverything;
 var
-  IgnoreWasAnyRendering: boolean;
+  IgnoreWasAnyRendering: Boolean;
 begin
   UpdateAndRenderEverything(IgnoreWasAnyRendering);
 end;
@@ -4902,7 +4902,7 @@ begin
     OpenWindows[I].Fps._Sleeping;
 end;
 
-function TCastleApplication.AllowSuspendForInput: boolean;
+function TCastleApplication.AllowSuspendForInput: Boolean;
 var
   I: Integer;
 begin
@@ -4922,7 +4922,7 @@ end;
 { TCastleApplication.Video* things ---------------------------------------- }
 
 {$ifndef CASTLE_WINDOW_HAS_VIDEO_CHANGE}
-function TCastleApplication.TryVideoChange: boolean;
+function TCastleApplication.TryVideoChange: Boolean;
 begin
  Result := false;
 end;
@@ -4932,7 +4932,7 @@ begin
 end;
 {$endif not CASTLE_WINDOW_HAS_VIDEO_CHANGE}
 
-function TCastleApplication.VideoSettingsDescribe: string;
+function TCastleApplication.VideoSettingsDescribe: String;
 begin
   Result := '';
   if VideoResize then
@@ -4946,8 +4946,8 @@ begin
     Result := '  No display settings change' + nl;
 end;
 
-procedure TCastleApplication.VideoChange(OnErrorWarnUserAndContinue: boolean);
-var s: string;
+procedure TCastleApplication.VideoChange(OnErrorWarnUserAndContinue: Boolean);
+var s: String;
 begin
  if not TryVideoChange then
  begin
@@ -5028,9 +5028,9 @@ procedure TCastleApplication.HandleException(Sender: TObject);
   var
     OriginalObj: TObject;
     OriginalAddr: Pointer;
-    OriginalFrameCount: Longint;
+    OriginalFrameCount: LongInt;
     OriginalFrame: Pointer;
-    ErrMessage: string;
+    ErrMessage: String;
     ContinueApp: Boolean;
   begin
     ErrMessage := ExceptMessage(ExceptObject) + NL + NL + DumpExceptionBackTraceToString;
@@ -5116,11 +5116,11 @@ begin
 end;
 
 // TODO: why this doesn't work as static TCastleApplication.OptionProc ?
-procedure ApplicationOptionProc(OptionNum: Integer; HasArgument: boolean;
-  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+procedure ApplicationOptionProc(OptionNum: Integer; HasArgument: Boolean;
+  const Argument: String; const SeparateArgs: TSeparateArgs; Data: Pointer);
 var
   App: TCastleApplication;
-  HelpString: string;
+  HelpString: String;
 begin
   App := TCastleApplication(Data);
 
@@ -5187,22 +5187,22 @@ begin
   Result := {$ifdef OpenGLES} true {$else} false {$endif};
 end;
 
-function TCastleApplication.GetVersion: string;
+function TCastleApplication.GetVersion: String;
 begin
   Result := ApplicationProperties.Version;
 end;
 
-procedure TCastleApplication.SetVersion(const Value: string);
+procedure TCastleApplication.SetVersion(const Value: String);
 begin
   ApplicationProperties.Version := Value;
 end;
 
-function TCastleApplication.GetTouchDevice: boolean;
+function TCastleApplication.GetTouchDevice: Boolean;
 begin
   Result := ApplicationProperties.TouchDevice;
 end;
 
-procedure TCastleApplication.SetTouchDevice(const Value: boolean);
+procedure TCastleApplication.SetTouchDevice(const Value: Boolean);
 begin
   ApplicationProperties.TouchDevice := Value;
 end;
@@ -5216,7 +5216,7 @@ begin
 end;
 
 function KeyToString(const KeyString: String; const Key: TKey;
-  const Modifiers: TModifierKeys; out S: string): boolean;
+  const Modifiers: TModifierKeys; out S: String): Boolean;
 begin
   if KeyString <> '' then
   begin
@@ -5234,7 +5234,7 @@ begin
 end;
 
 function KeyString(const AKeyString: String; const Key: TKey; const Modifiers: TModifierKeys;
-  out S: string): boolean;
+  out S: String): Boolean;
 begin
   Result := KeyToString(AKeyString, Key, Modifiers, S);
 end;

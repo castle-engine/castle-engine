@@ -131,9 +131,9 @@ end;
 
 procedure TTestCastleUtils.TestIndexMinMax_RestOf3dCoords;
 var a: array[0..2]of Double;
-    i, c1, c2, cm: integer;
+    I, c1, c2, cm: Integer;
 begin
- for i := 1 to 100 do
+ for I := 1 to 100 do
  begin
   a[0] := Random; a[1] := Random; a[2] := Random;
 
@@ -160,7 +160,7 @@ begin
  Writeln;
 end;
 
-function NaiveIsMemCharFilled(const Data; Size: Integer; AChar: char): boolean;
+function NaiveIsMemCharFilled(const Data; Size: Integer; AChar: Char): Boolean;
 begin
  result := CheckIsMemCharFilled(Data, Size, AChar) = -1;
 end;
@@ -169,7 +169,7 @@ procedure TTestCastleUtils.TestCheckIsMemCharFilled;
 
   procedure TimeTestIsMemCharFilled(SizeOfA: Integer);
   SpeedTest_Declare
-  var pa: pointer;
+  var pa: Pointer;
   begin
    { testowanie na danych ktore nie sa CharFilled jest problematyczne.
      Czas wtedy bedzie zalezal liniowo od pozycji na ktorej jest przeklamanie.
@@ -189,7 +189,7 @@ procedure TTestCastleUtils.TestCheckIsMemCharFilled;
    finally FreeMem(pa) end;
   end;
 
-var a: array[0..100]of char;
+var a: array[0..100] of Char;
     SizeOfA: Integer;
     i, YPos: Integer;
 begin
@@ -427,7 +427,7 @@ type
   TRec = record Id: Integer; SortKey: Integer; end;
   PRec = ^TRec;
 
-function IsSmallerRec(const A, B, Data: Pointer): boolean;
+function IsSmallerRec(const A, B, Data: Pointer): Boolean;
 begin
   Result := PRec(A)^.SortKey < PRec(B)^.SortKey;
 end;

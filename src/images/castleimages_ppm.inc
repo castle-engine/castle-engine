@@ -21,7 +21,7 @@
   Investigate, check if it's still there with FPC trunk, and eventually report.
 
   The segfault occurs in weird places, and seems to have something to do
-  with how ReadPPMToken(Stream) returns a string.
+  with how ReadPPMToken(Stream) returns a String.
 
   Occurs with both debug and release build.
   To reproduce, just try to open
@@ -35,8 +35,8 @@
   Returns token without those surrounding whitespaces.
   Returns '' if we're standing at the end of file.
   Ignores PPM comments (# ... to the nearest #10 or #13) before token. }
-function ReadPPMToken(Stream: TStream): string;
-var c: char;
+function ReadPPMToken(Stream: TStream): String;
+var c: Char;
 begin
  try
   result:='';
@@ -63,9 +63,9 @@ end;
 
 function LoadPPM(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
-var magic: array[0..1]of char;
-    IsBinary: boolean;
-    MaxColVal: integer;
+var magic: array[0..1] of Char;
+    IsBinary: Boolean;
+    MaxColVal: Integer;
     x, y: Cardinal;
     line: PVector3ByteArray;
     ppmline: PByteArray;
@@ -145,9 +145,9 @@ begin
  end;
 end;
 
-procedure SavePPM(const Img: TEncodedImage; const Stream: TStream; const Binary: boolean);
+procedure SavePPM(const Img: TEncodedImage; const Stream: TStream; const Binary: Boolean);
 var line: PVector3ByteArray;
-    x, y: cardinal;
+    x, y: Cardinal;
 begin
   if not (Img is TRGBImage) then
     raise EImageSaveError.CreateFmt('Saving to PPM image class %s not possible', [Img.ClassName]);

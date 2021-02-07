@@ -31,19 +31,19 @@
     BackupRotation: Single;
     IsBackup: Boolean;
   public
-    Name: string;
+    Name: String;
     Length: Single;
     XY: TVector2;
     Scale: TVector2;
     Rotation: Single;
-    InheritScale, InheritRotation: boolean;
+    InheritScale, InheritRotation: Boolean;
     Parent: TBone;
     Node: TTransformNode;
-    NodeUsedAsChild: boolean;
+    NodeUsedAsChild: Boolean;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject;
-      const PossibleParents: TBoneList; const ExpectedParent, DragonBonesFormat: boolean);
-    procedure BuildNodes(const BaseUrl: string);
+      const PossibleParents: TBoneList; const ExpectedParent, DragonBonesFormat: Boolean);
+    procedure BuildNodes(const BaseUrl: String);
     function ToWorldSpace(const V: TVector2): TVector2;
     function ToLocalSpace(V: TVector2): TVector2; overload;
     function ToLocalSpace(const V: TVector3): TVector3; overload;
@@ -60,13 +60,13 @@
   TBoneList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TBone>)
     { Find bone by name.
       @raises ESpineReadError If bone does not exist. }
-    function Find(const BoneName: string): TBone;
+    function Find(const BoneName: String): TBone;
     { Find bone by name.
       @return nil if bone does not exist. }
-    function FindByName(const BoneName: string): TBone;
+    function FindByName(const BoneName: String): TBone;
     procedure Parse(const Json: TJSONObject; var Root: TBone;
-      const DragonBonesFormat: boolean);
-    procedure BuildNodes(const BaseUrl: string);
+      const DragonBonesFormat: Boolean);
+    procedure BuildNodes(const BaseUrl: String);
     procedure Assign(const Source: TBoneList);
   end;
 {$endif}
@@ -76,9 +76,9 @@
 { TBone ---------------------------------------------------------------------- }
 
 procedure TBone.Parse(const Json: TJSONObject;
-  const PossibleParents: TBoneList; const ExpectedParent, DragonBonesFormat: boolean);
+  const PossibleParents: TBoneList; const ExpectedParent, DragonBonesFormat: Boolean);
 var
-  ParentName: string;
+  ParentName: String;
   Transform: TJSONObject;
 begin
   Name := Json.Get('name', '');
@@ -137,7 +137,7 @@ begin
   inherited;
 end;
 
-procedure TBone.BuildNodes(const BaseUrl: string);
+procedure TBone.BuildNodes(const BaseUrl: String);
 begin
   Node := TTransformNode.Create('Bone_' + Name, BaseUrl);
   Node.FdTranslation.Value := Vector3(XY[0], XY[1], 0);
@@ -231,7 +231,7 @@ end;
 
 { TBoneList ------------------------------------------------------------------ }
 
-function TBoneList.Find(const BoneName: string): TBone;
+function TBoneList.Find(const BoneName: String): TBone;
 var
   I: Integer;
 begin
@@ -241,7 +241,7 @@ begin
   raise ESpineReadError.CreateFmt('Bone name "%s" not found', [BoneName]);
 end;
 
-function TBoneList.FindByName(const BoneName: string): TBone;
+function TBoneList.FindByName(const BoneName: String): TBone;
 var
   I: Integer;
 begin
@@ -251,12 +251,12 @@ begin
   Exit(nil);
 end;
 
-procedure TBoneList.Parse(const Json: TJSONObject; var Root: TBone; const DragonBonesFormat: boolean);
+procedure TBoneList.Parse(const Json: TJSONObject; var Root: TBone; const DragonBonesFormat: Boolean);
 var
   I: Integer;
   Bone: TBone;
   ChildArray: TJSONArray;
-  ArrayName: string;
+  ArrayName: String;
 begin
   if DragonBonesFormat then
     ArrayName := 'bone'
@@ -282,7 +282,7 @@ begin
     end;
 end;
 
-procedure TBoneList.BuildNodes(const BaseUrl: string);
+procedure TBoneList.BuildNodes(const BaseUrl: String);
 var
   I: Integer;
 begin

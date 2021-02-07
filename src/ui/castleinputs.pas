@@ -110,12 +110,12 @@ type
     FKey1: TKey;
     FKey2: TKey;
     FKeyString: String;
-    FMouseButtonUse: boolean;
+    FMouseButtonUse: Boolean;
     FMouseButton: TCastleMouseButton;
-    FMouseButton2Use: boolean;
+    FMouseButton2Use: Boolean;
     FMouseButton2: TCastleMouseButton;
     FMouseWheel: TMouseWheelDirection;
-    FCaption: string;
+    FCaption: String;
     FGroup: TInputGroup;
     FGroupOrder: Integer;
     { Index of InputsAll. For now this is useful only for sorting,
@@ -125,9 +125,9 @@ type
     FDefaultKey1: TKey;
     FDefaultKey2: TKey;
     FDefaultKeyString: String;
-    FDefaultMouseButtonUse: boolean;
+    FDefaultMouseButtonUse: Boolean;
     FDefaultMouseButton: TCastleMouseButton;
-    FDefaultMouseButton2Use: boolean;
+    FDefaultMouseButton2Use: Boolean;
     FDefaultMouseButton2: TCastleMouseButton;
     FDefaultMouseWheel: TMouseWheelDirection;
 
@@ -136,9 +136,9 @@ type
     procedure SetKeyString(const Value: String);
     function GetCharacter: Char;
     procedure SetCharacter(const AValue: Char);
-    procedure SetMouseButtonUse(const Value: boolean);
+    procedure SetMouseButtonUse(const Value: Boolean);
     procedure SetMouseButton(const Value: TCastleMouseButton);
-    procedure SetMouseButton2Use(const Value: boolean);
+    procedure SetMouseButton2Use(const Value: Boolean);
     procedure SetMouseButton2(const Value: TCastleMouseButton);
     procedure SetMouseWheel(const Value: TMouseWheelDirection);
   protected
@@ -158,8 +158,8 @@ type
     { Flexible constructor that allows to set Group and choose global or local
       shortcut. }
     constructor Create(const AOwner: TComponent;
-      const ACaption: string;
-      const AName: string;
+      const ACaption: String;
+      const AName: String;
       const AGroup: TInputGroup); overload;
 
     procedure MakeDefault;
@@ -171,7 +171,7 @@ type
       It always copies "current" properties (Key1, Key2, KeyString,
       MouseButtonUse, MouseButton, MouseButton2Use, MouseButton2, MouseWheel),
       and optionally (if CopyDefaults) also copies the DefaultXxx properties. }
-    procedure Assign(Source: TInputShortcut; CopyDefaults: boolean); reintroduce;
+    procedure Assign(Source: TInputShortcut; CopyDefaults: Boolean); reintroduce;
 
     { Set keys/mouse buttons of this shortcut.
 
@@ -187,7 +187,7 @@ type
       const AKey1: TKey;
       const AKey2: TKey = keyNone;
       AKeyString: String = '';
-      const AMouseButtonUse: boolean = false;
+      const AMouseButtonUse: Boolean = false;
       const AMouseButton: TCastleMouseButton = buttonLeft;
       const AMouseWheel: TMouseWheelDirection = mwNone);
 
@@ -198,32 +198,32 @@ type
       const AKey1: TKey;
       const AKey2: TKey = keyNone;
       AKeyString: String = '';
-      const AMouseButtonUse: boolean = false;
+      const AMouseButtonUse: Boolean = false;
       const AMouseButton: TCastleMouseButton = buttonLeft;
       const AMouseWheel: TMouseWheelDirection = mwNone);
 
     { Make this input impossible to activate by the user.
       This sets both keys to keyNone, KeyString to '', MouseButtonUse
       to @false, and MouseWheel to mwNone. }
-    procedure MakeClear(const ClearAlsoDefaultState: boolean = false);
+    procedure MakeClear(const ClearAlsoDefaultState: Boolean = false);
 
     { Given a set of currently pressed keys and mouse buttons,
       decide whether this input is currently pressed. }
     function IsPressed(Pressed: TKeysPressed;
-      const MousePressed: TCastleMouseButtons): boolean; overload;
+      const MousePressed: TCastleMouseButtons): Boolean; overload;
 
     { Looking at Container's currently pressed keys and mouse buttons,
       decide whether this input is currently pressed. }
-    function IsPressed(Container: TUIContainer): boolean; overload;
+    function IsPressed(Container: TUIContainer): Boolean; overload;
 
     { Check does given Key or AKeyString correspond to this input shortcut.
       If Key = keyNone and AString = '', result is always @false. }
-    function IsKey(const Key: TKey; AKeyString: String): boolean;
+    function IsKey(const Key: TKey; AKeyString: String): Boolean;
 
     { Check does given mouse button correspond to this input shortcut. }
-    function IsMouseButton(const AMouseButton: TCastleMouseButton): boolean;
+    function IsMouseButton(const AMouseButton: TCastleMouseButton): Boolean;
 
-    function IsMouseWheel(const AMouseWheel: TMouseWheelDirection): boolean;
+    function IsMouseWheel(const AMouseWheel: TMouseWheelDirection): Boolean;
 
     { Check does given key or mouse button or mouse wheel use activates
       this shortcut.
@@ -239,9 +239,9 @@ type
       IsMouseButton or IsMouseWheel methods. It's sometimes more comfortable
       to use this instead of taking care of them separately. }
     function IsEvent(const AKey: TKey; AKeyString: String;
-      const AMousePress: boolean; const AMouseButton: TCastleMouseButton;
-      const AMouseWheel: TMouseWheelDirection): boolean; overload;
-    function IsEvent(const Event: TInputPressRelease): boolean; overload;
+      const AMousePress: Boolean; const AMouseButton: TCastleMouseButton;
+      const AMouseWheel: TMouseWheelDirection): Boolean; overload;
+    function IsEvent(const Event: TInputPressRelease): Boolean; overload;
 
     { Describe the current value (which key, mouse buttons and such) of this
       shortcut. If there is no way to press this shortcut (all properties
@@ -257,15 +257,15 @@ type
       then user will see it as @code('Press "use" key to do something')
       and will know that (s)he should configure the "use" key.
       @groupBegin }
-    function Description(const NoneString: string): string; overload;
-    function Description: string; overload;
+    function Description(const NoneString: String): String; overload;
+    function Description: String; overload;
     { @groupEnd }
 
     { Modifier keys that are relevant to recognize this shortcut. }
     function Modifiers: TModifierKeys;
 
     { Nice name to show user. With spaces, localized characters etc. }
-    property Caption: string read FCaption;
+    property Caption: String read FCaption;
 
     { Group of the global shortcut, or igLocal indicating a local shortcut.
       Games may use this group to better show the keys configuration for user,
@@ -323,14 +323,14 @@ type
     { Mouse shortcut for given command. You can set MouseButtonUse to @false
       if you don't want to use this.
       @groupBegin }
-    property MouseButtonUse: boolean read FMouseButtonUse write SetMouseButtonUse;
+    property MouseButtonUse: Boolean read FMouseButtonUse write SetMouseButtonUse;
     property MouseButton: TCastleMouseButton read FMouseButton write SetMouseButton;
     { @groupEnd }
 
     { Alternative mouse shortcut for given command. You can set MouseButton2Use to @false
       if you don't want to use this.
       @groupBegin }
-    property MouseButton2Use: boolean read FMouseButton2Use write SetMouseButton2Use;
+    property MouseButton2Use: Boolean read FMouseButton2Use write SetMouseButton2Use;
     property MouseButton2: TCastleMouseButton read FMouseButton2 write SetMouseButton2;
     { @groupEnd }
 
@@ -354,11 +354,11 @@ type
     property DefaultKey2: TKey read FDefaultKey2 write FDefaultKey2;
     property DefaultKeyString: String
       read FDefaultKeyString write FDefaultKeyString;
-    property DefaultMouseButtonUse: boolean
+    property DefaultMouseButtonUse: Boolean
       read FDefaultMouseButtonUse write FDefaultMouseButtonUse;
     property DefaultMouseButton: TCastleMouseButton
       read FDefaultMouseButton write FDefaultMouseButton;
-    property DefaultMouseButton2Use: boolean
+    property DefaultMouseButton2Use: Boolean
       read FDefaultMouseButton2Use write FDefaultMouseButton2Use;
     property DefaultMouseButton2: TCastleMouseButton
       read FDefaultMouseButton2 write FDefaultMouseButton2;
@@ -385,13 +385,13 @@ type
   TInputShortcutList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TInputShortcut>)
   public
     { Find shortcut by name, returns @nil if not found. }
-    function FindName(const Name: string): TInputShortcut;
+    function FindName(const Name: String): TInputShortcut;
 
     { Seeks for a shortcut that has matching key or mouse button or mouse wheel.
       @nil if not found. }
     function SeekMatchingShortcut(const Event: TInputPressRelease): TInputShortcut;
     procedure RestoreDefaults;
-    function SeekConflict(out ConflictDescription: string): boolean;
+    function SeekConflict(out ConflictDescription: String): Boolean;
 
     { Load customized input shortcuts from a config file,
       for example from @link(UserConfig).
@@ -431,8 +431,8 @@ uses SysUtils, Generics.Defaults,
 { TInputShortcut ------------------------------------------------------------- }
 
 constructor TInputShortcut.Create(const AOwner: TComponent;
-  const ACaption: string;
-  const AName: string;
+  const ACaption: String;
+  const AName: String;
   const AGroup: TInputGroup);
 begin
   inherited Create(AOwner);
@@ -493,7 +493,7 @@ end;
 procedure TInputShortcut.Assign(const AKey1: TKey;
   const AKey2: TKey;
   AKeyString: String;
-  const AMouseButtonUse: boolean;
+  const AMouseButtonUse: Boolean;
   const AMouseButton: TCastleMouseButton;
   const AMouseWheel: TMouseWheelDirection);
 begin
@@ -515,7 +515,7 @@ end;
 procedure TInputShortcut.AssignCurrent(const AKey1: TKey;
   const AKey2: TKey;
   AKeyString: String;
-  const AMouseButtonUse: boolean;
+  const AMouseButtonUse: Boolean;
   const AMouseButton: TCastleMouseButton;
   const AMouseWheel: TMouseWheelDirection);
 begin
@@ -534,7 +534,7 @@ begin
   Changed;
 end;
 
-procedure TInputShortcut.Assign(Source: TInputShortcut; CopyDefaults: boolean);
+procedure TInputShortcut.Assign(Source: TInputShortcut; CopyDefaults: Boolean);
 begin
   if CopyDefaults then
   begin
@@ -562,7 +562,7 @@ begin
   Changed;
 end;
 
-procedure TInputShortcut.MakeClear(const ClearAlsoDefaultState: boolean);
+procedure TInputShortcut.MakeClear(const ClearAlsoDefaultState: Boolean);
 begin
   FKey1 := keyNone;
   FKey2 := keyNone;
@@ -591,7 +591,7 @@ begin
 end;
 
 function TInputShortcut.IsPressed(Pressed: TKeysPressed;
-  const MousePressed: TCastleMouseButtons): boolean;
+  const MousePressed: TCastleMouseButtons): Boolean;
 begin
   Result :=
     ( (Pressed <> nil) and (Pressed.Keys[Key1] or
@@ -601,12 +601,12 @@ begin
     ( MouseButton2Use and (MouseButton2 in MousePressed) );
 end;
 
-function TInputShortcut.IsPressed(Container: TUIContainer): boolean;
+function TInputShortcut.IsPressed(Container: TUIContainer): Boolean;
 begin
   Result := IsPressed(Container.Pressed, Container.MousePressed);
 end;
 
-function TInputShortcut.IsKey(const Key: TKey; AKeyString: String): boolean;
+function TInputShortcut.IsKey(const Key: TKey; AKeyString: String): Boolean;
 begin
   // only for backward compatibility (when this parameter was Char) convert #0 to ''
   if AKeyString = #0 then
@@ -617,21 +617,21 @@ begin
     ( (KeyString <> '') and (KeyString = AKeyString) );
 end;
 
-function TInputShortcut.IsMouseButton(const AMouseButton: TCastleMouseButton): boolean;
+function TInputShortcut.IsMouseButton(const AMouseButton: TCastleMouseButton): Boolean;
 begin
   Result :=
     ( MouseButtonUse  and (AMouseButton = MouseButton) ) or
     ( MouseButton2Use and (AMouseButton = MouseButton2) );
 end;
 
-function TInputShortcut.IsMouseWheel(const AMouseWheel: TMouseWheelDirection): boolean;
+function TInputShortcut.IsMouseWheel(const AMouseWheel: TMouseWheelDirection): Boolean;
 begin
   Result := (AMouseWheel <> mwNone) and (AMouseWheel = MouseWheel);
 end;
 
 function TInputShortcut.IsEvent(const AKey: TKey; AKeyString: String;
-  const AMousePress: boolean; const AMouseButton: TCastleMouseButton;
-  const AMouseWheel: TMouseWheelDirection): boolean;
+  const AMousePress: Boolean; const AMouseButton: TCastleMouseButton;
+  const AMouseWheel: TMouseWheelDirection): Boolean;
 begin
   // only for backward compatibility (when this parameter was Char) convert #0 to ''
   if AKeyString = #0 then
@@ -646,7 +646,7 @@ begin
     Result := IsKey(AKey, AKeyString);
 end;
 
-function TInputShortcut.IsEvent(const Event: TInputPressRelease): boolean;
+function TInputShortcut.IsEvent(const Event: TInputPressRelease): Boolean;
 begin
   case Event.EventType of
     itKey        : Result := IsKey(Event.Key, Event.KeyString);
@@ -658,7 +658,7 @@ begin
   end;
 end;
 
-function TInputShortcut.Description(const NoneString: string): string;
+function TInputShortcut.Description(const NoneString: String): String;
 begin
   Result := '';
 
@@ -704,7 +704,7 @@ begin
     Result := NoneString;
 end;
 
-function TInputShortcut.Description: string;
+function TInputShortcut.Description: String;
 begin
   Result := Description(Format('"%s" key', [Caption]));
 end;
@@ -731,7 +731,7 @@ begin
   Changed;
 end;
 
-procedure TInputShortcut.SetMouseButtonUse(const Value: boolean);
+procedure TInputShortcut.SetMouseButtonUse(const Value: Boolean);
 begin
   FMouseButtonUse := Value;
   Changed;
@@ -743,7 +743,7 @@ begin
   Changed;
 end;
 
-procedure TInputShortcut.SetMouseButton2Use(const Value: boolean);
+procedure TInputShortcut.SetMouseButton2Use(const Value: Boolean);
 begin
   FMouseButton2Use := Value;
   Changed;
@@ -896,7 +896,7 @@ type
   TInputShortcutComparer = {$ifdef CASTLE_OBJFPC}specialize{$endif} TComparer<TInputShortcut>;
 var
   I: TInputShortcut;
-  ConflictDescription: string;
+  ConflictDescription: String;
   G: TInputGroupNotLocal;
 begin
   { we assume that all inputs are added now, so we do some finalizing operations
@@ -932,7 +932,7 @@ begin
 end;
 
 function TInputShortcutList.SeekConflict(
-  out ConflictDescription: string): boolean;
+  out ConflictDescription: String): Boolean;
 var
   I, J: Integer;
 begin
@@ -952,7 +952,7 @@ begin
   Result := false;
 end;
 
-function TInputShortcutList.FindName(const Name: string): TInputShortcut;
+function TInputShortcutList.FindName(const Name: String): TInputShortcut;
 var
   I: Integer;
 begin

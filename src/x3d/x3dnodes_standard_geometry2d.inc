@@ -18,13 +18,13 @@
     @bold(Rendering of this node is not implemented yet.) }
   TArc2DNode = class(TAbstractGeometryNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
 
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     {$I auto_generated_node_helpers/x3dnodes_arc2d.inc}
@@ -39,13 +39,13 @@
     @bold(Rendering of this node is not implemented yet.) }
   TArcClose2DNode = class(TAbstractGeometryNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
 
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     {$I auto_generated_node_helpers/x3dnodes_arcclose2d.inc}
@@ -56,10 +56,10 @@
   strict private
     function CalculateSlices: Cardinal;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-    function ProxyUsesOverTriangulate: boolean; override;
+      const OverTriangulate: Boolean): TAbstractGeometryNode; override;
+    function ProxyUsesOverTriangulate: Boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_circle2d.inc}
   end;
@@ -69,10 +69,10 @@
   strict private
     function CalculateSlices: Cardinal;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-    function ProxyUsesOverTriangulate: boolean; override;
+      const OverTriangulate: Boolean): TAbstractGeometryNode; override;
+    function ProxyUsesOverTriangulate: Boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_disk2d.inc}
   end;
@@ -80,10 +80,10 @@
   { Series of line segments in 2D. }
   TPolyline2DNode = class(TAbstractGeometryNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-    function ProxyUsesOverTriangulate: boolean; override;
+      const OverTriangulate: Boolean): TAbstractGeometryNode; override;
+    function ProxyUsesOverTriangulate: Boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_polyline2d.inc}
   end;
@@ -91,10 +91,10 @@
   { Set of vertices in 2D. }
   TPolypoint2DNode = class(TAbstractGeometryNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-    function ProxyUsesOverTriangulate: boolean; override;
+      const OverTriangulate: Boolean): TAbstractGeometryNode; override;
+    function ProxyUsesOverTriangulate: Boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_polypoint2d.inc}
   end;
@@ -102,10 +102,10 @@
   { Rectangle in 2D. }
   TRectangle2DNode = class(TAbstractGeometryNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-    function ProxyUsesOverTriangulate: boolean; override;
+      const OverTriangulate: Boolean): TAbstractGeometryNode; override;
+    function ProxyUsesOverTriangulate: Boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_rectangle2d.inc}
   end;
@@ -114,10 +114,10 @@
     @bold(Rendering of this node is not implemented yet.) }
   TTriangleSet2DNode = class(TAbstractGeometryNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-    function ProxyUsesOverTriangulate: boolean; override;
+      const OverTriangulate: Boolean): TAbstractGeometryNode; override;
+    function ProxyUsesOverTriangulate: Boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_triangleset2d.inc}
   end;
@@ -132,7 +132,7 @@ const
 
 { TArc2DNode ----------------------------------------------------------------- }
 
-constructor TArc2DNode.Create(const AX3DName, ABaseUrl: string);
+constructor TArc2DNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
   FdEndAngle.Angle := true;
@@ -149,14 +149,14 @@ begin
   Result := TBox3D.Empty;
 end;
 
-function TArc2DNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TArc2DNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   { Rendering of TArc2DNode not implemented. }
   Result := 0;
 end;
 
-function TArc2DNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TArc2DNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   { Rendering of TArc2DNode not implemented. }
@@ -165,7 +165,7 @@ end;
 
 { TArcClose2DNode ----------------------------------------------------------------- }
 
-constructor TArcClose2DNode.Create(const AX3DName, ABaseUrl: string);
+constructor TArcClose2DNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
   FdClosureType.ChangeAlways := chGeometry;
@@ -184,14 +184,14 @@ begin
   Result := TBox3D.Empty;
 end;
 
-function TArcClose2DNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TArcClose2DNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   { Rendering of TArcClose2DNode not implemented. }
   Result := 0;
 end;
 
-function TArcClose2DNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TArcClose2DNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   { Rendering of TArcClose2DNode not implemented. }
@@ -200,7 +200,7 @@ end;
 
 { TCircle2DNode -------------------------------------------------------------- }
 
-constructor TCircle2DNode.Create(const AX3DName, ABaseUrl: string);
+constructor TCircle2DNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
   FdRadius.ChangeAlways := chGeometry;
@@ -217,7 +217,7 @@ begin
 end;
 
 function TCircle2DNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+  const OverTriangulate: Boolean): TAbstractGeometryNode;
 var
   SlicesNow: Integer;
   C: TCoordinateNode;
@@ -248,7 +248,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TCircle2DNode.ProxyUsesOverTriangulate: boolean;
+function TCircle2DNode.ProxyUsesOverTriangulate: Boolean;
 begin
   Result := false;
 end;
@@ -302,7 +302,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TDisk2DNode.ProxyUsesOverTriangulate: boolean;
+function TDisk2DNode.ProxyUsesOverTriangulate: Boolean;
 begin
   Result := false;
 end;
@@ -317,7 +317,7 @@ begin
 end;
 
 function TPolyline2DNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+  const OverTriangulate: Boolean): TAbstractGeometryNode;
 var
   C: TCoordinateNode;
   LineSet: TLineSetNode absolute Result;
@@ -343,7 +343,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TPolyline2DNode.ProxyUsesOverTriangulate: boolean;
+function TPolyline2DNode.ProxyUsesOverTriangulate: Boolean;
 begin
   Result := false;
 end;
@@ -357,7 +357,7 @@ begin
 end;
 
 function TPolypoint2DNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+  const OverTriangulate: Boolean): TAbstractGeometryNode;
 var
   C: TCoordinateNode;
   PointSet: TPointSetNode absolute Result;
@@ -382,14 +382,14 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TPolypoint2DNode.ProxyUsesOverTriangulate: boolean;
+function TPolypoint2DNode.ProxyUsesOverTriangulate: Boolean;
 begin
   Result := false;
 end;
 
 { TRectangle2DNode ----------------------------------------------------------- }
 
-constructor TRectangle2DNode.Create(const AX3DName, ABaseUrl: string);
+constructor TRectangle2DNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
   FdSize.ChangeAlways := chGeometry;
@@ -397,7 +397,7 @@ begin
 end;
 
 function Rectangle2DProxy(Original: TAbstractGeometryNode;
-  const Size: TVector2; const Solid: boolean): TAbstractGeometryNode;
+  const Size: TVector2; const Solid: Boolean): TAbstractGeometryNode;
 var
   Coord: TCoordinateNode;
   TexCoord: TTextureCoordinateNode;
@@ -432,12 +432,12 @@ begin
 end;
 
 function TRectangle2DNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+  const OverTriangulate: Boolean): TAbstractGeometryNode;
 begin
   Result := Rectangle2DProxy(Self, FdSize.Value, FdSolid.Value);
 end;
 
-function TRectangle2DNode.ProxyUsesOverTriangulate: boolean;
+function TRectangle2DNode.ProxyUsesOverTriangulate: Boolean;
 begin
   Result := false;
 end;
@@ -452,7 +452,7 @@ begin
 end;
 
 function TTriangleSet2DNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+  const OverTriangulate: Boolean): TAbstractGeometryNode;
 var
   C: TCoordinateNode;
   TriangleSet: TTriangleSetNode absolute Result;
@@ -478,7 +478,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TTriangleSet2DNode.ProxyUsesOverTriangulate: boolean;
+function TTriangleSet2DNode.ProxyUsesOverTriangulate: Boolean;
 begin
   Result := false;
 end;

@@ -57,14 +57,14 @@ type
           const PrepareParams: TPrepareParams; const DoProgress: Boolean);
       end;
     var
-      FName: string;
-      FRequired: boolean;
+      FName: String;
+      FRequired: Boolean;
       FOwner: T3DResource;
       FSceneState: TSceneState;
       FDuration: Single;
-      FURL: string;
-      FAnimationName: string;
-    procedure Prepare(const Params: TPrepareParams; const DoProgress: boolean);
+      FURL: String;
+      FAnimationName: String;
+    procedure Prepare(const Params: TPrepareParams; const DoProgress: Boolean);
     procedure Release;
     procedure LoadFromFile(ResourceConfig: TCastleConfig);
     property Owner: T3DResource read FOwner;
@@ -82,10 +82,10 @@ type
       Note that this should not be used if owner resource uses pooling.
       In case of pooling, not ForceAnimationPose calls should be done
       (which is what this method does). }
-    function SceneAtTime(const Time: TFloatTime; const Loop: boolean): TCastleScene;
+    function SceneAtTime(const Time: TFloatTime; const Loop: Boolean): TCastleScene;
   public
     constructor Create(const AOwner: T3DResource;
-      const AName: string; const ARequired: boolean = true);
+      const AName: String; const ARequired: Boolean = true);
 
     { Duration of the animation. See engine tutorial about how resources animations
       duration is calculated. Always 0 if not @link(Defined). }
@@ -95,12 +95,12 @@ type
     { Was the animation state defined in resource.xml file.
       May be @false only if @link(Required) was @false, or before we actually
       read animation info from resource.xml file. }
-    function Defined: boolean;
+    function Defined: Boolean;
 
     { Scene URL, only when each animation is inside a separate 3D file.
       See [https://castle-engine.io/creating_data_resources.php]
       for documentation how you can define creature animations. }
-    property URL: string read FURL write FURL; deprecated 'do not use separate URLs for each animation; use one URL with all animations; see https://castle-engine.io/creating_data_resources.php';
+    property URL: String read FURL write FURL; deprecated 'do not use separate URLs for each animation; use one URL with all animations; see https://castle-engine.io/creating_data_resources.php';
 
     { Animation name (like for @link(TCastleSceneCore.PlayAnimation)),
       which is equal to TimeSensor node name.
@@ -113,18 +113,18 @@ type
 
       See [https://castle-engine.io/creating_data_resources.php]
       for documentation how you can define creature animations. }
-    property AnimationName: string read FAnimationName write FAnimationName;
-    property TimeSensor: string read FAnimationName write FAnimationName;
+    property AnimationName: String read FAnimationName write FAnimationName;
+    property TimeSensor: String read FAnimationName write FAnimationName;
       deprecated 'use AnimationName';
 
-    property Name: string read FName;
-    property Required: boolean read FRequired;
+    property Name: String read FName;
+    property Required: Boolean read FRequired;
   end;
 
   T3DResourceAnimationList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<T3DResourceAnimation>)
     { Find an animation by name.
       @raises Exception if not found. }
-    function FindName(const AName: string): T3DResourceAnimation;
+    function FindName(const AName: String): T3DResourceAnimation;
   end;
 
   TAbstractLevel = class;
@@ -136,7 +136,7 @@ type
   strict private
     FAnimation: T3DResourceAnimation;
     FTime: TFloatTime;
-    FLoop: boolean;
+    FLoop: Boolean;
     CurrentChild: TCastleScene;
     CurrentChildFromPool: Boolean;
   protected
@@ -147,11 +147,11 @@ type
     { Time within the ResourceAnimation. }
     property Time: TFloatTime read FTime;
     { Should we loop within ResourceAnimation. }
-    property Loop: boolean read FLoop;
+    property Loop: Boolean read FLoop;
     { Set which animation and animation frame to display. }
     procedure SetFrame(const Level: TAbstractLevel;
       const AnAnimation: T3DResourceAnimation;
-      const ATime: TFloatTime; const ALoop: boolean);
+      const ATime: TFloatTime; const ALoop: Boolean);
   end;
 
   { Abstract level information, with information useful to spawn resources
@@ -179,16 +179,16 @@ type
     For this purpose, it has a unique identifier in @link(Name) property. }
   T3DResource = class
   private
-    FName: string;
-    FPrepared: boolean;
+    FName: String;
+    FPrepared: Boolean;
     FUsageCount: Cardinal;
-    FConfigAlwaysPrepared: boolean;
+    FConfigAlwaysPrepared: Boolean;
     FFallSpeed, FGrowSpeed: Single;
     FAnimations: T3DResourceAnimationList;
-    FReceiveShadowVolumes: boolean;
-    FCastShadowVolumes: boolean;
+    FReceiveShadowVolumes: Boolean;
+    FCastShadowVolumes: Boolean;
     FDefaultAnimationTransition: Single;
-    FModelURL: string;
+    FModelURL: String;
     { Model loaded from ModelURL }
     ModelState: T3DResourceAnimation.TSceneState;
     { Non-nil only if we're using Pool to allocate scenes for resource instances.
@@ -219,7 +219,7 @@ type
       In this class, PrepareCoreSteps returns 0.
       @groupBegin }
     procedure PrepareCore(const Params: TPrepareParams;
-      const DoProgress: boolean); virtual;
+      const DoProgress: Boolean); virtual;
     function PrepareCoreSteps: Cardinal; virtual;
     procedure ReleaseCore; virtual;
     { @groupEnd }
@@ -230,7 +230,7 @@ type
       DefaultReceiveShadowVolumes = true;
       DefaultCastShadowVolumes = true;
 
-    constructor Create(const AName: string); virtual;
+    constructor Create(const AName: String); virtual;
     destructor Destroy; override;
 
     { Are we in a (fully) prepared state. That is after a (fully successful)
@@ -239,7 +239,7 @@ type
       in some situations, UsageCount may be non-zero while the preparation
       is not finished yet. This property is guaranteed to be @true only if
       preparation was fully successfully (no exceptions) finished. }
-    property Prepared: boolean read FPrepared;
+    property Prepared: Boolean read FPrepared;
 
     { Unique identifier of this resource.
       Used to refer to this resource from level placeholders
@@ -252,7 +252,7 @@ type
       Reason: This must be a valid identifier in both VRML/X3D and ObjectPascal.
       Also digits and underscores are reserved, as we may use them to get other
       information from placeholder names. }
-    property Name: string read FName;
+    property Name: String read FName;
 
     procedure LoadFromFile(ResourceConfig: TCastleConfig); virtual;
 
@@ -295,7 +295,7 @@ type
     procedure InstantiatePlaceholder(
       const ALevel: TAbstractLevel;
       const APosition, ADirection: TVector3;
-      const NumberPresent: boolean; const Number: Int64); virtual; abstract;
+      const NumberPresent: Boolean; const Number: Int64); virtual; abstract;
 
     { Animations of this resource.
 
@@ -322,9 +322,9 @@ type
       This allows to configure this using resource.xml files.
       Descendants may choose to override this, to override value from resource.xml
       file. }
-    function AlwaysPrepared: boolean; virtual;
+    function AlwaysPrepared: Boolean; virtual;
 
-    property ConfigAlwaysPrepared: boolean
+    property ConfigAlwaysPrepared: Boolean
       read FConfigAlwaysPrepared write FConfigAlwaysPrepared default false;
 
     { The speed (in units per second) of falling down because of gravity.
@@ -362,10 +362,10 @@ type
     property GrowSpeed: Single
       read FGrowSpeed write FGrowSpeed default DefaultGrowSpeed;
 
-    property ReceiveShadowVolumes: boolean
+    property ReceiveShadowVolumes: Boolean
       read FReceiveShadowVolumes write FReceiveShadowVolumes
       default DefaultReceiveShadowVolumes;
-    property CastShadowVolumes: boolean
+    property CastShadowVolumes: Boolean
       read FCastShadowVolumes write FCastShadowVolumes
       default DefaultCastShadowVolumes;
 
@@ -395,7 +395,7 @@ type
       a single 3D file. See
       [https://castle-engine.io/creating_data_resources.php]
       for notes about <model> element in resource.xml files. }
-    property ModelURL: string read FModelURL write FModelURL;
+    property ModelURL: String read FModelURL write FModelURL;
 
     { If non-zero, use a pool of TCastleScene to create resource instances.
 
@@ -456,13 +456,13 @@ type
 
   T3DResourceList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<T3DResource>)
   private
-    ResourceXmlReload: boolean;
-    procedure AddFromInfo(const FileInfo: TFileInfo; var StopSearch: boolean);
-    procedure AddFromFileDefaultReload(const URL: string);
+    ResourceXmlReload: Boolean;
+    procedure AddFromInfo(const FileInfo: TFileInfo; var StopSearch: Boolean);
+    procedure AddFromFileDefaultReload(const URL: String);
   public
     { Find resource with given T3DResource.Name.
       @raises Exception if not found and NilWhenNotFound = false. }
-    function FindName(const AName: string; const NilWhenNotFound: boolean = false): T3DResource;
+    function FindName(const AName: String; const NilWhenNotFound: Boolean = false): T3DResource;
 
     { Load all resources (creatures and items) information from
       resource.xml files found in given Path.
@@ -483,8 +483,8 @@ type
         but you don't want to recreate existing resource instances.)
 
       @groupBegin }
-    procedure LoadFromFiles(const Path: string; const Reload: boolean = false);
-    procedure LoadFromFiles(const Reload: boolean = false);
+    procedure LoadFromFiles(const Path: String; const Reload: Boolean = false);
+    procedure LoadFromFiles(const Reload: Boolean = false);
     { @groupEnd }
 
     { Load a single resource from resource.xml file.
@@ -492,7 +492,7 @@ type
       @param(Reload If @true, and the loaded resource will have a name
         matching existing T3DResource.Name, we will replace the current resource.
         Otherwise, we'll make an exception.) }
-    procedure AddFromFile(const URL: string; const Reload: boolean = false);
+    procedure AddFromFile(const URL: String; const Reload: Boolean = false);
 
     { Reads <prepare_resources> XML element.
       <prepare_resources> element is an optional child of given ParentElement.
@@ -503,7 +503,7 @@ type
     { Prepare / release all resources on list.
       @groupBegin }
     procedure Prepare(const Params: TPrepareParams;
-      const ResourcesName: string = 'resources');
+      const ResourcesName: String = 'resources');
     procedure Release;
     { @groupEnd }
   end;
@@ -515,7 +515,7 @@ function Resources: T3DResourceList;
 
 { Register a resource class, to allow creating resources (like a creature or item)
   of this class by using appropriate type="xxx" inside resource.xml file. }
-procedure RegisterResourceClass(const AClass: T3DResourceClass; const TypeName: string);
+procedure RegisterResourceClass(const AClass: T3DResourceClass; const TypeName: String);
 
 implementation
 
@@ -533,24 +533,24 @@ const
 { TResourceClasses ---------------------------------------------------------- }
 
 type
-  TResourceClasses = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<string, T3DResourceClass>)
+  TResourceClasses = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<String, T3DResourceClass>)
   strict private
-    function GetItems(const AKey: string): T3DResourceClass;
-    procedure SetItems(const AKey: string; const AValue: T3DResourceClass);
+    function GetItems(const AKey: String): T3DResourceClass;
+    procedure SetItems(const AKey: String; const AValue: T3DResourceClass);
   public
     { Access dictionary items.
       Setting this is allowed regardless if the key previously existed or not,
       in other words: setting this does AddOrSetValue, contrary to the ancestor TDictionary
       that only allows setting when the key already exists. }
-    property Items [const AKey: string]: T3DResourceClass read GetItems write SetItems; default;
+    property Items [const AKey: String]: T3DResourceClass read GetItems write SetItems; default;
   end;
 
-function TResourceClasses.GetItems(const AKey: string): T3DResourceClass;
+function TResourceClasses.GetItems(const AKey: String): T3DResourceClass;
 begin
   Result := inherited Items[AKey];
 end;
 
-procedure TResourceClasses.SetItems(const AKey: string; const AValue: T3DResourceClass);
+procedure TResourceClasses.SetItems(const AKey: String; const AValue: T3DResourceClass);
 begin
   AddOrSetValue(AKey, AValue);
 end;
@@ -602,7 +602,7 @@ end;
 { T3DResourceAnimation ------------------------------------------------------- }
 
 constructor T3DResourceAnimation.Create(const AOwner: T3DResource;
-  const AName: string; const ARequired: boolean);
+  const AName: String; const ARequired: Boolean);
 begin
   inherited Create;
   FName := AName;
@@ -618,13 +618,13 @@ var
 {$endif}
 
 function T3DResourceAnimation.SceneAtTime(const Time: TFloatTime;
-  const Loop: boolean): TCastleScene;
+  const Loop: Boolean): TCastleScene;
 
   procedure ForceTime(var SceneState: TSceneState);
   var
-    GoodAnimationName: string;
+    GoodAnimationName: String;
     ActualTime: TFloatTime;
-    ForceNecessary: boolean;
+    ForceNecessary: Boolean;
   begin
     if AnimationName <> '' then
       GoodAnimationName := AnimationName
@@ -694,7 +694,7 @@ begin
     Result := TBox3D.Empty;
 end;
 
-function T3DResourceAnimation.Defined: boolean;
+function T3DResourceAnimation.Defined: Boolean;
 begin
   {$warnings off} // using deprecated to keep it working
   Result := (URL <> '') or (AnimationName <> '');
@@ -702,7 +702,7 @@ begin
 end;
 
 procedure T3DResourceAnimation.Prepare(const Params: TPrepareParams;
-  const DoProgress: boolean);
+  const DoProgress: Boolean);
 begin
   {$warnings off} // using deprecated to keep it working
   if URL <> '' then
@@ -759,7 +759,7 @@ end;
 
 { T3DResourceAnimationList --------------------------------------------------- }
 
-function T3DResourceAnimationList.FindName(const AName: string): T3DResourceAnimation;
+function T3DResourceAnimationList.FindName(const AName: String): T3DResourceAnimation;
 var
   I: Integer;
 begin
@@ -804,7 +804,7 @@ end;
 
 procedure TResourceFrame.SetFrame(const Level: TAbstractLevel;
   const AnAnimation: T3DResourceAnimation;
-  const ATime: TFloatTime; const ALoop: boolean);
+  const ATime: TFloatTime; const ALoop: Boolean);
 var
   OldResource, NewResource: T3DResource;
   AnimationChanges: Boolean;
@@ -873,7 +873,7 @@ end;
 
 { T3DResource ---------------------------------------------------------------- }
 
-constructor T3DResource.Create(const AName: string);
+constructor T3DResource.Create(const AName: String);
 begin
   inherited Create;
   FName := AName;
@@ -901,7 +901,7 @@ begin
 end;
 
 procedure T3DResource.PrepareCore(const Params: TPrepareParams;
-  const DoProgress: boolean);
+  const DoProgress: Boolean);
 var
   I: Integer;
   TimeStart: TCastleProfilerTime;
@@ -988,7 +988,7 @@ end;
 
 procedure T3DResource.RedoPrepare(const Params: TPrepareParams);
 var
-  DoProgress: boolean;
+  DoProgress: Boolean;
 begin
   Assert(UsageCount <> 0);
   DoProgress := not Progress.Active;
@@ -1038,7 +1038,7 @@ begin
   finally FreeAndNil(List) end;
 end;
 
-function T3DResource.AlwaysPrepared: boolean;
+function T3DResource.AlwaysPrepared: Boolean;
 begin
   Result := ConfigAlwaysPrepared;
 end;
@@ -1081,15 +1081,15 @@ end;
 
 { T3DResourceList ------------------------------------------------------------- }
 
-procedure T3DResourceList.AddFromInfo(const FileInfo: TFileInfo; var StopSearch: boolean);
+procedure T3DResourceList.AddFromInfo(const FileInfo: TFileInfo; var StopSearch: Boolean);
 begin
   AddFromFileDefaultReload(FileInfo.URL);
 end;
 
-procedure T3DResourceList.AddFromFileDefaultReload(const URL: string);
+procedure T3DResourceList.AddFromFileDefaultReload(const URL: String);
 var
   Xml: TCastleConfig;
-  ResourceClassName, ResourceName: string;
+  ResourceClassName, ResourceName: String;
   ResourceClass: T3DResourceClass;
   Resource: T3DResource;
 begin
@@ -1140,13 +1140,13 @@ begin
   finally FreeAndNil(Xml) end;
 end;
 
-procedure T3DResourceList.AddFromFile(const URL: string; const Reload: boolean);
+procedure T3DResourceList.AddFromFile(const URL: String; const Reload: Boolean);
 begin
   ResourceXmlReload := Reload;
   AddFromFileDefaultReload(URL);
 end;
 
-procedure T3DResourceList.LoadFromFiles(const Path: string; const Reload: boolean);
+procedure T3DResourceList.LoadFromFiles(const Path: String; const Reload: Boolean);
 begin
   if not Reload then
     Clear;
@@ -1154,12 +1154,12 @@ begin
   FindFiles(Path, 'resource.xml', false, @AddFromInfo, [ffRecursive]);
 end;
 
-procedure T3DResourceList.LoadFromFiles(const Reload: boolean);
+procedure T3DResourceList.LoadFromFiles(const Reload: Boolean);
 begin
   LoadFromFiles('castle-data:/', Reload);
 end;
 
-function T3DResourceList.FindName(const AName: string; const NilWhenNotFound: boolean): T3DResource;
+function T3DResourceList.FindName(const AName: String; const NilWhenNotFound: Boolean): T3DResource;
 var
   I: Integer;
 begin
@@ -1178,7 +1178,7 @@ end;
 procedure T3DResourceList.LoadResources(ParentElement: TDOMElement);
 var
   ResourcesElement: TDOMElement;
-  ResourceName: string;
+  ResourceName: String;
   I: TXMLElementIterator;
 begin
   Clear;
@@ -1204,12 +1204,12 @@ begin
 end;
 
 procedure T3DResourceList.Prepare(const Params: TPrepareParams;
-  const ResourcesName: string);
+  const ResourcesName: String);
 var
   I: Integer;
   Resource: T3DResource;
   PrepareSteps: Cardinal;
-  PrepareNeeded, DoProgress: boolean;
+  PrepareNeeded, DoProgress: Boolean;
   TimeStart: TCastleProfilerTime;
 begin
   { We iterate two times over Items, first time only to calculate
@@ -1278,7 +1278,7 @@ end;
 
 { resource classes ----------------------------------------------------------- }
 
-procedure RegisterResourceClass(const AClass: T3DResourceClass; const TypeName: string);
+procedure RegisterResourceClass(const AClass: T3DResourceClass; const TypeName: String);
 begin
   ResourceClasses[TypeName] := AClass;
 end;

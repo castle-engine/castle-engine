@@ -38,13 +38,13 @@ uses SysUtils,
 type
   ECannotFindTool = class(Exception)
   strict private
-    FToolName: string;
+    FToolName: String;
   public
-    constructor Create(const AToolName: string; const C: TTextureCompression);
-    property ToolName: string read FToolName;
+    constructor Create(const AToolName: String; const C: TTextureCompression);
+    property ToolName: String read FToolName;
   end;
 
-constructor ECannotFindTool.Create(const AToolName: string;
+constructor ECannotFindTool.Create(const AToolName: String;
   const C: TTextureCompression);
 begin
   FToolName := AToolName;
@@ -67,7 +67,7 @@ type
   end;
 
 { Auto-detect best DXTn compression format for this image. }
-function AutoDetectDxt(const ImageUrl: string; var Stats: TStats): TTextureCompression;
+function AutoDetectDxt(const ImageUrl: String; var Stats: TStats): TTextureCompression;
 var
   Image: TCastleImage;
   TimeStart: TProcessTimerResult;
@@ -94,7 +94,7 @@ begin
 end;
 
 { Calculate file contents hash. }
-function CalculateHash(const FileUrl: string; var Stats: TStats): string;
+function CalculateHash(const FileUrl: String; var Stats: TStats): String;
 var
   TimeStart: TProcessTimerResult;
 begin
@@ -118,13 +118,13 @@ end;
 
 procedure AutoGenerateTextures(const Project: TCastleProject);
 
-  procedure TryToolExe(var ToolExe: string; const ToolExeAbsolutePath: string);
+  procedure TryToolExe(var ToolExe: String; const ToolExeAbsolutePath: String);
   begin
     if (ToolExe = '') and RegularFileExists(ToolExeAbsolutePath) then
       ToolExe := ToolExeAbsolutePath;
   end;
 
-  procedure TryToolExePath(var ToolExe: string; const ToolExeName: string;
+  procedure TryToolExePath(var ToolExe: String; const ToolExeName: String;
     const C: TTextureCompression);
   begin
     if ToolExe = '' then
@@ -135,12 +135,12 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
     end;
   end;
 
-  procedure Compressonator(const InputFile, OutputFile: string;
-    const C: TTextureCompression; const CompressionNameForTool: string);
+  procedure Compressonator(const InputFile, OutputFile: String;
+    const C: TTextureCompression; const CompressionNameForTool: String);
   var
-    ToolExe, InputFlippedFile, OutputTempFile, TempPrefix: string;
+    ToolExe, InputFlippedFile, OutputTempFile, TempPrefix: String;
     Image: TCastleImage;
-    CommandExe: string;
+    CommandExe: String;
     CommandOptions: TCastleStringList;
   begin
     ToolExe := '';
@@ -200,10 +200,10 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
     CheckDeleteFile(InputFlippedFile, true);
   end;
 
-  procedure PVRTexTool(const InputFile, OutputFile: string;
-    const C: TTextureCompression; const CompressionNameForTool: string);
+  procedure PVRTexTool(const InputFile, OutputFile: String;
+    const C: TTextureCompression; const CompressionNameForTool: String);
   var
-    ToolExe: string;
+    ToolExe: String;
   begin
     ToolExe := '';
     {$ifdef UNIX}
@@ -267,10 +267,10 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
        '-o', OutputFile]);
   end;
 
-  procedure NVCompress(const InputFile, OutputFile: string;
-    const C: TTextureCompression; const CompressionNameForTool: string);
+  procedure NVCompress(const InputFile, OutputFile: String;
+    const C: TTextureCompression; const CompressionNameForTool: String);
   var
-    ToolExe: string;
+    ToolExe: String;
   begin
     ToolExe := '';
 
@@ -284,10 +284,10 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
   end;
 
   procedure NVCompress_FallbackCompressonator(
-    const InputFile, OutputFile: string;
+    const InputFile, OutputFile: String;
     const C: TTextureCompression;
     const CompressionNameForNVCompress,
-          CompressionNameForCompressonator: string);
+          CompressionNameForCompressonator: String);
   begin
     try
       NVCompress(InputFile, OutputFile, C, CompressionNameForNVCompress);
@@ -303,8 +303,8 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
   { Convert both URLs to filenames and check whether output should be updated.
     In any case, makes appropriate message to user.
     If the file needs to be updated, makes sure it's output directory exists. }
-  function CheckNeedsUpdate(const InputURL, OutputURL: string; out InputFile, OutputFile: string;
-    const ContentAlreadyProcessed: boolean): boolean;
+  function CheckNeedsUpdate(const InputURL, OutputURL: String; out InputFile, OutputFile: String;
+    const ContentAlreadyProcessed: Boolean): Boolean;
   begin
     InputFile := URIToFilenameSafe(InputURL);
     OutputFile := URIToFilenameSafe(OutputURL);
@@ -327,14 +327,14 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
     end;
   end;
 
-  procedure UpdateTextureScale(const InputURL, OutputURL: string;
+  procedure UpdateTextureScale(const InputURL, OutputURL: String;
     const Scale: Cardinal; var Stats: TStats;
-    const ContentAlreadyProcessed: boolean);
+    const ContentAlreadyProcessed: Boolean);
   const
     // equivalent of GLTextureMinSize, but for TextureLoadingScale, not for GLTextureScale
     TextureMinSize = 16;
   var
-    InputFile, OutputFile: string;
+    InputFile, OutputFile: String;
     Image: TCastleImage;
     NewWidth, NewHeight: Integer;
     TimeStart: TProcessTimerResult;
@@ -366,9 +366,9 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
   { Like UpdateTextureScale, and also record the output in AutoGeneratedTex.Generated }
   procedure UpdateTextureScaleWhole(
     const AutoGeneratedTex: TAutoGenerated.TTexture;
-    const InputURL, OutputURL: string;
+    const InputURL, OutputURL: String;
     const Scale: Cardinal; var Stats: TStats;
-    const ContentAlreadyProcessed: boolean);
+    const ContentAlreadyProcessed: Boolean);
   var
     Generated: TAutoGenerated.TGeneratedTexture;
   begin
@@ -381,11 +381,11 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
     Generated.Platforms := AllPlatforms;
   end;
 
-  procedure UpdateTextureCompress(const InputURL, OutputURL: string;
+  procedure UpdateTextureCompress(const InputURL, OutputURL: String;
     const C: TTextureCompression; var Stats: TStats;
-    const ContentAlreadyProcessed: boolean);
+    const ContentAlreadyProcessed: Boolean);
   var
-    InputFile, OutputFile: string;
+    InputFile, OutputFile: String;
     TimeStart: TProcessTimerResult;
   begin
     if CheckNeedsUpdate(InputURL, OutputURL, InputFile, OutputFile, ContentAlreadyProcessed) then
@@ -484,7 +484,7 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
     const ContentAlreadyProcessed: Boolean;
     const Platforms: TCastlePlatforms);
   var
-    CompressedURL: string;
+    CompressedURL: String;
     Generated: TAutoGenerated.TGeneratedTexture;
   begin
     CompressedURL := MatProps.AutoGeneratedTextureURL(OriginalTextureURL, true, C, Scale);
@@ -498,17 +498,17 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
   end;
 
   procedure UpdateTexture(const MatProps: TMaterialProperties;
-    const OriginalTextureURL: string; var Stats: TStats;
+    const OriginalTextureURL: String; var Stats: TStats;
     const AutoGenerated: TAutoGenerated);
   var
-    UncompressedURL: string;
+    UncompressedURL: String;
     C: TTextureCompression;
     Scale: Cardinal;
     ToGenerate: TTextureCompressionsToGenerate;
     Compressions: TCompressionsMap;
     CompressionPair: TCompressionsMap.TDictionaryPair;
-    RelativeOriginalTextureUrl, Hash: string;
-    ContentAlreadyProcessed: boolean;
+    RelativeOriginalTextureUrl, Hash: String;
+    ContentAlreadyProcessed: Boolean;
     AutoGeneratedTex: TAutoGenerated.TTexture;
   begin
     Inc(Stats.Count);
@@ -571,7 +571,7 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
 var
   Textures: TCastleStringList;
   I: Integer;
-  AutoGeneratedUrl, MatPropsUrl: string;
+  AutoGeneratedUrl, MatPropsUrl: String;
   MatProps: TMaterialProperties;
   Stats: TStats;
   AutoGenerated: TAutoGenerated;
@@ -632,7 +632,7 @@ begin
 end;
 
 procedure CleanDir(const FileInfo: TFileInfo; Data: Pointer;
-  var StopSearch: boolean);
+  var StopSearch: Boolean);
 begin
   Writeln('Deleting ', FileInfo.AbsoluteName);
   RemoveNonEmptyDir(FileInfo.AbsoluteName);
@@ -640,7 +640,7 @@ end;
 
 procedure AutoGenerateCleanAll(const Project: TCastleProject);
 
-  procedure TryDeleteFile(const FileName: string);
+  procedure TryDeleteFile(const FileName: String);
   begin
     if RegularFileExists(FileName) then
     begin
@@ -664,11 +664,11 @@ type
     Project: TCastleProject;
     AutoGenerated: TAutoGenerated;
     destructor Destroy; override;
-    procedure FindFilesCallback(const FileInfo: TFileInfo; var StopSearch: boolean);
+    procedure FindFilesCallback(const FileInfo: TFileInfo; var StopSearch: Boolean);
   end;
 
 procedure TAutoGeneratedCleanUnusedHandler.FindFilesCallback(
-  const FileInfo: TFileInfo; var StopSearch: boolean);
+  const FileInfo: TFileInfo; var StopSearch: Boolean);
 var
   UrlInData: String;
 begin

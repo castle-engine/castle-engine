@@ -36,12 +36,12 @@ begin
   //Result := CreateFPCompactImg(GetFPCompactImgDesc(false, 8, true), Width, Height);
 end;
 
-function TInternalCastleFpImage.GetColors8Bit(const x, y: integer): TFPCompactImgRGBA8BitValue;
+function TInternalCastleFpImage.GetColors8Bit(const x, y: Integer): TFPCompactImgRGBA8BitValue;
 begin
   Result := FData[X + Y * Width];
 end;
 
-procedure TInternalCastleFpImage.SetColors8Bit(const x, y: integer; const Value: TFPCompactImgRGBA8BitValue);
+procedure TInternalCastleFpImage.SetColors8Bit(const x, y: Integer; const Value: TFPCompactImgRGBA8BitValue);
 begin
   FData[X + Y * Width] := Value;
 end;
@@ -146,7 +146,7 @@ function CreateFromFpImage(const FPImage: TInternalCastleFpImage;
   { FPImage doesn't provide us any information does the image contain useful
     alpha channel, and is it grayscale.
     So just iterate over pixels, and check it ourselves. }
-  procedure Detect(out Alpha, Grayscale: boolean);
+  procedure Detect(out Alpha, Grayscale: Boolean);
   var
     X, Y: Integer;
     Col: TFPCompactImgRGBA8BitValue;
@@ -172,7 +172,7 @@ function CreateFromFpImage(const FPImage: TInternalCastleFpImage;
   end;
 
 var
-  Alpha, Grayscale: boolean;
+  Alpha, Grayscale: Boolean;
   ImageClass: TEncodedImageClass;
 begin
   if High(AllowedImageClasses) = 0 then

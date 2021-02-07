@@ -28,7 +28,7 @@ uses SysUtils, Classes,
 { Standard GLSL vertex shader for screen effect.
   @bold(In your own programs, it's usually easier to use TGLSLScreenEffect,
   and then this function is not necessary). }
-function ScreenEffectVertex: string; deprecated 'this will be internal function soon, instead use TCastleScreenEffects or TCastleViewport and add screen effects there';
+function ScreenEffectVertex: String; deprecated 'this will be internal function soon, instead use TCastleScreenEffects or TCastleViewport and add screen effects there';
 
 (*Library of GLSL fragment shader functions useful for screen effects.
   This looks at current OpenGL context multi-sampling capabilities
@@ -39,7 +39,7 @@ function ScreenEffectVertex: string; deprecated 'this will be internal function 
 
   Note that to work with OpenGLES, we have to glue all fragment shaders,
   and ScreenEffectFragment must be before the actual shader code.
-  The string returned by this function is guaranteed to end with a newline,
+  The String returned by this function is guaranteed to end with a newline,
   to make it easy.
 
   So you usually want to create screen effect shaders like this:
@@ -57,7 +57,7 @@ function ScreenEffectVertex: string; deprecated 'this will be internal function 
   #)
 
 *)
-function ScreenEffectFragment(const Depth: boolean): string; deprecated 'this will be internal function soon, instead use TCastleScreenEffects or TCastleViewport and add screen effects there';
+function ScreenEffectFragment(const Depth: Boolean): string; deprecated 'this will be internal function soon, instead use TCastleScreenEffects or TCastleViewport and add screen effects there';
 
 type
   { GLSL shader program specialized for rendering screen effects.
@@ -72,12 +72,12 @@ type
     and the @link(NeedsDepth) value, to link the correct shader code. }
   TGLSLScreenEffect = class(TGLSLProgram)
   private
-    FScreenEffectShader: string;
-    FNeedsDepth: boolean;
+    FScreenEffectShader: String;
+    FNeedsDepth: Boolean;
   public
     constructor Create;
 
-    property NeedsDepth: boolean read FNeedsDepth write FNeedsDepth default false;
+    property NeedsDepth: Boolean read FNeedsDepth write FNeedsDepth default false;
 
     { In this class, UniformNotFoundAction is by default uaIgnore, since it's
       normal that screen effect doesn't use some of it's uniform variables. }
@@ -85,7 +85,7 @@ type
 
     { Attach GLSL code for the screen effect (executed as part of fragment shader).
       See https://castle-engine.io/x3d_extensions_screen_effects.php . }
-    property ScreenEffectShader: string read FScreenEffectShader write FScreenEffectShader;
+    property ScreenEffectShader: String read FScreenEffectShader write FScreenEffectShader;
 
     procedure Link; override;
   end deprecated 'this will be internal class soon, instead use TCastleScreenEffects or TCastleViewport and add screen effects there';
@@ -144,7 +144,7 @@ type
       ScreenEffectTextureHeight: Cardinal;
       { Saved ScreenEffectsCount/NeedDepth result, during rendering. }
       CurrentScreenEffectsCount: Integer;
-      CurrentScreenEffectsNeedDepth: boolean;
+      CurrentScreenEffectsNeedDepth: Boolean;
       ScreenPointVbo: TGLuint;
       ScreenPoint: packed array [0..3] of TScreenPoint;
 
@@ -239,7 +239,7 @@ type
     procedure BeforeRender; override;
     procedure Render; override;
     procedure RenderOverChildren; override;
-    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     procedure GLContextClose; override;
 
     { Scale time passing inside TimeSensor nodes you add as part of AddScreenEffect.
@@ -266,12 +266,12 @@ implementation
 
 uses CastleUtils, CastleGLUtils, CastleLog, CastleRenderContext, CastleRenderOptions;
 
-function ScreenEffectVertex: string;
+function ScreenEffectVertex: String;
 begin
   Result := {$I screen_effect.vs.inc};
 end;
 
-function ScreenEffectFragment(const Depth: boolean): string;
+function ScreenEffectFragment(const Depth: Boolean): String;
 begin
   Result := '';
   if Depth then
@@ -469,7 +469,7 @@ var
 
   { Create and setup new OpenGL texture for screen effects.
     Depends on ScreenEffectTextureWidth, ScreenEffectTextureHeight being set. }
-  function CreateScreenEffectTexture(const Depth: boolean): TGLuint;
+  function CreateScreenEffectTexture(const Depth: Boolean): TGLuint;
 
     { Create new OpenGL texture for screen effect.
       Calls glTexImage2D or glTexImage2DMultisample
@@ -796,7 +796,7 @@ begin
     EndRenderingToTexture;
 end;
 
-procedure TCastleScreenEffects.Update(const SecondsPassed: Single; var HandleInput: boolean);
+procedure TCastleScreenEffects.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 var
   RemoveItem: TRemoveType;
 begin

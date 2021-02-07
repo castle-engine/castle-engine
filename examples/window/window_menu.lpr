@@ -55,7 +55,7 @@ var
   { Scene 3D information. Displayed only to show that menu commands actually work. }
   Scene: TCastleScene;
 
-  Filled: boolean = true;
+  Filled: Boolean = true;
   Translation: TVector3;
 
   Shape: TShapeNode;

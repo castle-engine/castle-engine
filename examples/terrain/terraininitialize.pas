@@ -46,12 +46,12 @@ var
 
   { settings }
   TerrainType: TTerrainType = ttNoise; {< this is tied with Terrain class }
-  Wireframe: boolean = false;
+  Wireframe: Boolean = false;
   NoiseInterpolation: TNoiseInterpolation = niCosine;
-  NoiseBlur: boolean = false;
+  NoiseBlur: Boolean = false;
   Subdivision: Cardinal = 6;
   Size: Single = 100.0;
-  OnScreenMenuVisible: boolean = true;
+  OnScreenMenuVisible: Boolean = true;
 
 procedure UpdateScene;
 begin
@@ -77,7 +77,7 @@ type
 
 constructor TBaseOnScreenMenu.Create(AOwner: TComponent);
 
-  procedure ShaderSlider(const Name: string; const ValuePointer: PSingle;
+  procedure ShaderSlider(const Name: String; const ValuePointer: PSingle;
     const Min, Max: Single);
   begin
     Add(Name, TCastleFloatSlider.Create(
@@ -419,9 +419,9 @@ end;
 
 procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
 
-  procedure ExportToX3D(const URL: string; const UseTriangulatedNode: boolean);
+  procedure ExportToX3D(const URL: String; const UseTriangulatedNode: Boolean);
   var
-    OldUseTriangulatedNode: boolean;
+    OldUseTriangulatedNode: Boolean;
   begin
     if UseTriangulatedNode = Scene.UseTriangulatedNode then
       Scene.Save(URL)
@@ -456,8 +456,8 @@ procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
   end;
 
 var
-  URL: string;
-  Expression: string;
+  URL: String;
+  Expression: String;
   NewTerrain: TTerrain;
 begin
   case Item.IntData of
@@ -590,7 +590,7 @@ end;
 
 function CreateMainMenu: TMenu;
 const
-  NoiseInterpolationNames: array [TNoiseInterpolation] of string =
+  NoiseInterpolationNames: array [TNoiseInterpolation] of String =
   ('None', 'Linear', 'Cosine (Default)', 'Spline');
 var
   M: TMenu;

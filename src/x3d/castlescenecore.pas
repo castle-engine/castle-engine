@@ -101,7 +101,7 @@ type
     If nil, it indicates that only the given shape geometry changed.
     If not nil, assume that every shape's geometry potentially changed. }
   TSceneGeometryChanged = procedure (Scene: TCastleSceneCore;
-    const SomeLocalGeometryChanged: boolean;
+    const SomeLocalGeometryChanged: Boolean;
     OnlyShapeChanged: TShape) of object;
 
   { Stack of bindable nodes (only the top, bound, node is used for rendering/navigation).
@@ -113,11 +113,11 @@ type
     FParentScene: TCastleSceneCore;
     FOnBoundChanged: TNotifyEvent;
     BoundChangedSchedule: Cardinal;
-    BoundChangedScheduled: boolean;
+    BoundChangedScheduled: Boolean;
 
     { A useful utility: if the Node is not @nil, send isBound = Value and
       bindTime events to it. }
-    procedure SendIsBound(Node: TAbstractBindableNode; const Value: boolean);
+    procedure SendIsBound(Node: TAbstractBindableNode; const Value: Boolean);
 
     { Add new node to the top.
 
@@ -160,7 +160,7 @@ type
     { Add new node to the top, but only if stack is currently empty.
       If SendEvents, then isBound = true and bindTime events will be
       send to newly bound node. }
-    procedure PushIfEmpty(Node: TAbstractBindableNode; SendEvents: boolean);
+    procedure PushIfEmpty(Node: TAbstractBindableNode; SendEvents: Boolean);
 
     { Use when you suspect that some nodes on the stack
       are no longer present in VRML/X3D graph RootNode (they were deleted).
@@ -171,11 +171,11 @@ type
       will not  receive any set_bind = false or isBound = false events, since it
       may be destroyed by now). }
     procedure CheckForDeletedNodes(const RootNode: TX3DRootNode;
-      const SendEvents: boolean);
+      const SendEvents: Boolean);
 
     { Handle set_bind event send to given Node.
       This always generates appropriate events. }
-    procedure Set_Bind(Node: TAbstractBindableNode; const Value: boolean); override;
+    procedure Set_Bind(Node: TAbstractBindableNode; const Value: Boolean); override;
 
     { Notification when the currently bound node, that is
       @link(Top), changed. This also includes notification
@@ -187,13 +187,13 @@ type
   TBackgroundStack = class(TX3DBindableStack)
   public
     function Top: TAbstractBackgroundNode;
-    procedure PushIfEmpty(Node: TAbstractBackgroundNode; SendEvents: boolean);
+    procedure PushIfEmpty(Node: TAbstractBackgroundNode; SendEvents: Boolean);
   end;
 
   TFogStack = class(TX3DBindableStack)
   public
     function Top: TFogNode;
-    procedure PushIfEmpty(Node: TFogNode; SendEvents: boolean);
+    procedure PushIfEmpty(Node: TFogNode; SendEvents: Boolean);
   end;
 
   TNavigationInfoStack = class(TX3DBindableStack)
@@ -201,7 +201,7 @@ type
     procedure DoBoundChanged; override;
   public
     function Top: TNavigationInfoNode;
-    procedure PushIfEmpty(Node: TNavigationInfoNode; SendEvents: boolean);
+    procedure PushIfEmpty(Node: TNavigationInfoNode; SendEvents: Boolean);
   end;
 
   TViewpointStack = class(TX3DBindableStack)
@@ -209,7 +209,7 @@ type
     procedure DoBoundChanged; override;
   public
     function Top: TAbstractViewpointNode;
-    procedure PushIfEmpty(Node: TAbstractViewpointNode; SendEvents: boolean);
+    procedure PushIfEmpty(Node: TAbstractViewpointNode; SendEvents: Boolean);
   end;
 
   { Possible spatial structures that may be managed by TCastleSceneCore,
@@ -324,7 +324,7 @@ type
     paLooping,
     { Set TimeSensor.Loop to be @false, to force not looping. }
     paNotLooping
-  ) deprecated 'use PlayAnimation with "Loop: boolean" parameter instead of TPlayAnimationLooping';
+  ) deprecated 'use PlayAnimation with "Loop: Boolean" parameter instead of TPlayAnimationLooping';
 
   TStopAnimationEvent = procedure (const Scene: TCastleSceneCore;
     const Animation: TTimeSensorNode) of object;
@@ -342,13 +342,13 @@ type
     { Animation name.
       You have to set at least this field, otherwise calling
       @link(TCastleSceneCore.PlayAnimation) with this is useless. }
-    Name: string;
+    Name: String;
 
     { Should we play in a loop, default @false which means to play just once. }
-    Loop: boolean;
+    Loop: Boolean;
 
     { Does animation play forward, default @true. }
-    Forward: boolean;
+    Forward: Boolean;
 
     { Notification when the animation finished playing,
       which happens if the animation was non-looping and it reached the end,
@@ -477,7 +477,7 @@ type
 
       TCompiledScriptHandlerInfo = record
         Handler: TCompiledScriptHandler;
-        Name: string;
+        Name: String;
       end;
       PCompiledScriptHandlerInfo = ^TCompiledScriptHandlerInfo;
       TCompiledScriptHandlerInfoList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TCompiledScriptHandlerInfo>;
@@ -512,17 +512,17 @@ type
       end;
 
   private
-    FOwnsRootNode: boolean;
+    FOwnsRootNode: Boolean;
     FShapes: TShapeTree;
     FRootNode: TX3DRootNode;
     FOnPointingDeviceSensorsChange: TNotifyEvent;
-    FTimePlaying: boolean;
+    FTimePlaying: Boolean;
     FTimePlayingSpeed: Single;
-    FURL: string;
-    FStatic: boolean;
-    FShadowMaps: boolean;
+    FURL: String;
+    FStatic: Boolean;
+    FShadowMaps: Boolean;
     FShadowMapsDefaultSize: Cardinal;
-    ScheduleHeadlightOnFromNavigationInfoInChangedAll: boolean;
+    ScheduleHeadlightOnFromNavigationInfoInChangedAll: Boolean;
     LastUpdateFrameId: TFrameId;
     LastCameraStateId: TFrameId;
     FDefaultAnimationTransition: Single;
@@ -534,9 +534,9 @@ type
       (in particular after LoadAnchor, when the already existing camera
       is changed) will have immediate transitions in newly loaded file.
       ChangedAll sets this back to false at the end. }
-    ForceTeleportTransitions: boolean;
+    ForceTeleportTransitions: Boolean;
 
-    WatchForTransitionComplete: boolean;
+    WatchForTransitionComplete: Boolean;
 
     { Humanoids on which we should call AnimateSkin.
       We don't do AnimateSkin immediately, as it would force slowdown
@@ -549,10 +549,10 @@ type
       Note that NewPlayingAnimationUse does *not* imply that
       NewPlayingAnimationNode is <> nil,
       it can be nil (if we want to change animation to nil). }
-    NewPlayingAnimationUse: boolean;
+    NewPlayingAnimationUse: Boolean;
     NewPlayingAnimationNode: TTimeSensorNode;
-    NewPlayingAnimationLoop: boolean;
-    NewPlayingAnimationForward: boolean;
+    NewPlayingAnimationLoop: Boolean;
+    NewPlayingAnimationForward: Boolean;
     NewPlayingAnimationStopNotification: TStopAnimationEvent;
     NewPlayingAnimationTransitionDuration: TFloatTime;
     NewPlayingAnimationInitialTime: TFloatTime;
@@ -566,14 +566,14 @@ type
     PlayingAnimationTransitionDuration: TFloatTime;
 
     PreviousPlayingAnimation: TTimeSensorNode;
-    PreviousPlayingAnimationLoop: boolean;
-    PreviousPlayingAnimationForward: boolean;
+    PreviousPlayingAnimationLoop: Boolean;
+    PreviousPlayingAnimationForward: Boolean;
     PreviousPlayingAnimationTimeInAnimation: TFloatTime;
 
     PreviousPartialAffectedFields: TX3DFieldList;
 
     FCurrentAnimation: TTimeSensorNode;
-    FAnimationPrefix: string;
+    FAnimationPrefix: String;
     FAnimationsList: TStrings;
     FTimeAtLoad: TFloatTime;
 
@@ -620,9 +620,9 @@ type
     procedure UpdateLODLevel(const LODTree: TShapeTreeLOD;
       const CameraLocalPosition: TVector3);
 
-    procedure SetURL(const AValue: string);
-    procedure SetStatic(const Value: boolean);
-    procedure SetShadowMaps(const Value: boolean);
+    procedure SetURL(const AValue: String);
+    procedure SetStatic(const Value: Boolean);
+    procedure SetShadowMaps(const Value: Boolean);
     procedure SetShadowMapsDefaultSize(const Value: Cardinal);
 
     { Handle change of transformation of ITransformNode node.
@@ -645,8 +645,8 @@ type
 
     function LocalBoundingVolumeMoveCollision(
       const OldPos, NewPos: TVector3;
-      const IsRadius: boolean; const Radius: Single;
-      const OldBox, NewBox: TBox3D): boolean;
+      const IsRadius: Boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D): Boolean;
 
     procedure SetRootNode(const Value: TX3DRootNode);
 
@@ -690,11 +690,11 @@ type
     FGlobalLights: TLightInstancesList;
 
     FLocalBoundingBox: TBox3D;
-    FVerticesCount, FTrianglesCount: array [boolean] of Cardinal;
+    FVerticesCount, FTrianglesCount: array [Boolean] of Cardinal;
     Validities: TSceneValidities;
     function CalculateLocalBoundingBox: TBox3D;
-    function CalculateVerticesCount(OverTriangulate: boolean): Cardinal;
-    function CalculateTrianglesCount(OverTriangulate: boolean): Cardinal;
+    function CalculateVerticesCount(OverTriangulate: Boolean): Cardinal;
+    function CalculateTrianglesCount(OverTriangulate: Boolean): Cardinal;
   private
   type
     TAbstractViewpointNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAbstractViewpointNode>;
@@ -705,10 +705,10 @@ type
     FViewpointsArray: TAbstractViewpointNodeList;
 
     function GetViewpointCore(
-      const OnlyPerspective: boolean;
+      const OnlyPerspective: Boolean;
       out ProjectionType: TProjectionType;
       out CamPos, CamDir, CamUp, GravityUp: TVector3;
-      const ViewpointDescription: string):
+      const ViewpointDescription: String):
       TAbstractViewpointNode;
   private
     procedure FreeResources_UnloadTextureData(Node: TX3DNode);
@@ -721,8 +721,8 @@ type
     FOnBoundViewpointVectorsChanged: TNotifyEvent;
     FOnBoundNavigationInfoFieldsChanged: TNotifyEvent;
 
-    FProcessEvents: boolean;
-    procedure SetProcessEvents(const Value: boolean);
+    FProcessEvents: Boolean;
+    procedure SetProcessEvents(const Value: Boolean);
   private
     KeyDeviceSensorNodes: TX3DNodeList;
     TimeDependentHandlers: TTimeDependentHandlerList;
@@ -741,7 +741,7 @@ type
 
     { Internal procedure that handles Time changes. }
     procedure InternalSetTime(
-      const NewValue: TFloatTime; const TimeIncrease: TFloatTime; const ResetTime: boolean);
+      const NewValue: TFloatTime; const TimeIncrease: TFloatTime; const ResetTime: Boolean);
 
     procedure ResetLastEventTime(Node: TX3DNode);
   private
@@ -758,7 +758,7 @@ type
       right moment of ChangedAll, so that they have the necessary
       information (Shapes) ready and their modifications (new GeneratedTextures
       items) are accounted for. }
-    ScheduledShadowMapsProcessing: boolean;
+    ScheduledShadowMapsProcessing: Boolean;
 
     { Mechanism to schedule ChangedAll and GeometryChanged calls. }
     ChangedAllSchedule: Cardinal;
@@ -767,11 +767,11 @@ type
 
     ChangedAllCurrentViewpointIndex: Cardinal;
     FInitialViewpointIndex: Cardinal;
-    FInitialViewpointName: string;
+    FInitialViewpointName: String;
 
     FPointingDeviceOverItem: PTriangle;
     FPointingDeviceOverPoint: TVector3;
-    FPointingDeviceActive: boolean;
+    FPointingDeviceActive: Boolean;
     FPointingDeviceActiveSensors: TX3DNodeList;
   private
     { Call this when the ProximitySensor instance changed (either the box or
@@ -833,11 +833,11 @@ type
 
       @groupBegin }
     function CreateTriangleOctree(const Limits: TOctreeLimits;
-      const ProgressTitle: string;
-      const Collidable: boolean): TTriangleOctree;
+      const ProgressTitle: String;
+      const Collidable: Boolean): TTriangleOctree;
     function CreateShapeOctree(const Limits: TOctreeLimits;
-      const ProgressTitle: string;
-      const Collidable: boolean): TShapeOctree;
+      const ProgressTitle: String;
+      const Collidable: Boolean): TShapeOctree;
     { @groupEnd }
   private
     TriangleOctreeToAdd: TTriangleOctree;
@@ -847,10 +847,10 @@ type
       const Face: TFaceIndex);
   private
     FTriangleOctreeLimits: TOctreeLimits;
-    FTriangleOctreeProgressTitle: string;
+    FTriangleOctreeProgressTitle: String;
 
     FShapeOctreeLimits: TOctreeLimits;
-    FShapeOctreeProgressTitle: string;
+    FShapeOctreeProgressTitle: String;
 
     FOctreeRendering: TShapeOctree;
     FOctreeDynamicCollisions: TShapeOctree;
@@ -893,13 +893,13 @@ type
 
     procedure SetSpatial(const Value: TSceneSpatialStructures);
   private
-    FMainLightForShadowsExists: boolean;
+    FMainLightForShadowsExists: Boolean;
     FMainLightForShadows: TVector4;
     FMainLightForShadowsNode: TAbstractPunctualLightNode;
     FMainLightForShadowsTransform: TMatrix4;
     function SearchMainLightForShadows(
       Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-      ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
+      ParentInfo: PTraversingInfo; var TraverseIntoChildren: Boolean): Pointer;
     { Based on FMainLightForShadowsNode and FMainLightForShadowsTransform,
       calculate FMainLightForShadows (position). }
     procedure CalculateMainLightForShadowsPosition;
@@ -907,15 +907,15 @@ type
   private
     FAutoAnimation: String;
     FAutoAnimationLoop: Boolean;
-    FHeadlightOn: boolean;
+    FHeadlightOn: Boolean;
     FOnHeadlightOnChanged: TNotifyEvent;
-    FAnimateOnlyWhenVisible: boolean;
+    FAnimateOnlyWhenVisible: Boolean;
     FAnimateGatheredTime: TFloatTime;
     FAnimateSkipTicks: Cardinal;
     AnimateSkipNextTicks: Cardinal;
 
     procedure SetAnimateSkipTicks(const Value: Cardinal);
-    procedure SetHeadlightOn(const Value: boolean);
+    procedure SetHeadlightOn(const Value: Boolean);
     procedure SetAutoAnimation(const Value: String);
     procedure SetAutoAnimationLoop(const Value: Boolean);
     procedure UpdateAutoAnimation(const StopIfPlaying: Boolean);
@@ -924,18 +924,18 @@ type
       This is calculated every time now (in the future it may be optimized
       to recalculate only when WorldTransform changed, e.g. using
       FWorldTransformAndInverseId). }
-    function GetCameraLocal(out CameraVectors: TCameraVectors): boolean;
-    function GetCameraLocal(out CameraLocalPosition: TVector3): boolean;
+    function GetCameraLocal(out CameraVectors: TCameraVectors): Boolean;
+    function GetCameraLocal(out CameraLocalPosition: TVector3): Boolean;
 
-    function PointingDevicePressRelease(const DoPress: boolean;
-      const Distance: Single; const CancelAction: boolean): boolean;
+    function PointingDevicePressRelease(const DoPress: Boolean;
+      const Distance: Single; const CancelAction: Boolean): Boolean;
   protected
     { List of TScreenEffectNode nodes, collected by ChangedAll. }
     ScreenEffectNodes: TX3DNodeList;
 
     { Is the scene visible currently. Descendants may set this to @true
       during @link(TCastleTransform.LocalRender). }
-    IsVisibleNow: boolean;
+    IsVisibleNow: Boolean;
 
     GeneratedTextures: TGeneratedTextureList;
 
@@ -976,33 +976,33 @@ type
       OnPointingDeviceSensorsChange. }
     procedure DoPointingDeviceSensorsChange; virtual;
 
-    procedure ExecuteCompiledScript(const HandlerName: string; ReceivedValue: TX3DField); override;
+    procedure ExecuteCompiledScript(const HandlerName: String; ReceivedValue: TX3DField); override;
 
     function LocalHeightCollision(const APosition, GravityUp: TVector3;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
-      out AboveHeight: Single; out AboveGround: PTriangle): boolean; override;
+      out AboveHeight: Single; out AboveGround: PTriangle): Boolean; override;
     function LocalMoveCollision(
       const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
-      const IsRadius: boolean; const Radius: Single;
+      const IsRadius: Boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): Boolean; override;
     function LocalMoveCollision(
       const OldPos, NewPos: TVector3;
-      const IsRadius: boolean; const Radius: Single;
+      const IsRadius: Boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): Boolean; override;
     function LocalSegmentCollision(const Pos1, Pos2: TVector3;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
-      const ALineOfSight: boolean): boolean; override;
+      const ALineOfSight: Boolean): Boolean; override;
     function LocalSphereCollision(const Pos: TVector3; const Radius: Single;
-      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): Boolean; override;
     function LocalSphereCollision2D(const Pos: TVector2; const Radius: Single;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
-      const Details: TCollisionDetails): boolean; override;
+      const Details: TCollisionDetails): Boolean; override;
     function LocalPointCollision2D(const Point: TVector2;
-      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): Boolean; override;
     function LocalBoxCollision(const Box: TBox3D;
-      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): Boolean; override;
     function LocalRayCollision(const RayOrigin, RayDirection: TVector3;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision; override;
 
@@ -1096,7 +1096,7 @@ type
       See the manual:
       https://castle-engine.io/manual_scene.php#section_many_instances
     }
-    procedure Load(const ARootNode: TX3DRootNode; const AOwnsRootNode: boolean;
+    procedure Load(const ARootNode: TX3DRootNode; const AOwnsRootNode: Boolean;
       const AOptions: TSceneLoadOptions = []);
 
     { Load the 3D model from given URL.
@@ -1113,9 +1113,9 @@ type
       If you all you care about is loading normal files, then just pass
       a normal filename (absolute or relative to the current directory)
       as the URL parameter. }
-    procedure Load(const AURL: string; const AOptions: TSceneLoadOptions = []);
-    procedure Load(const AURL: string; const AllowStdIn: boolean;
-      const AResetTime: boolean = true); deprecated 'use Load with (AURL: string, AOptions: TSceneLoadOptions) parameters. AllowStdIn is not implemented anymore.';
+    procedure Load(const AURL: String; const AOptions: TSceneLoadOptions = []);
+    procedure Load(const AURL: String; const AllowStdIn: Boolean;
+      const AResetTime: Boolean = true); deprecated 'use Load with (AURL: String, AOptions: TSceneLoadOptions) parameters. AllowStdIn is not implemented anymore.';
 
     { Save the current 3D model (X3D nodes graph) to the given file (URL).
 
@@ -1131,7 +1131,7 @@ type
       compressed with gzip.
 
       The @link(URL) property is also changed. }
-    procedure Save(const AURL: string);
+    procedure Save(const AURL: String);
 
     destructor Destroy; override;
 
@@ -1161,17 +1161,17 @@ type
       TAbstractGeometryNode methods. Here, we just sum their results
       for all shapes.
       @groupBegin }
-    function VerticesCount(OverTriangulate: boolean): Cardinal;
-    function TrianglesCount(OverTriangulate: boolean): Cardinal;
+    function VerticesCount(OverTriangulate: Boolean): Cardinal;
+    function TrianglesCount(OverTriangulate: Boolean): Cardinal;
     { @groupEnd }
 
     { Helper functions for accessing viewpoints defined in the scene.
       @groupBegin }
     function ViewpointsCount: Cardinal;
-    function GetViewpointName(Idx: integer): string;
-    procedure MoveToViewpoint(Idx: integer; Animated: boolean = true);
+    function GetViewpointName(Idx: Integer): String;
+    procedure MoveToViewpoint(Idx: Integer; Animated: Boolean = true);
     procedure AddViewpointFromCamera(const Navigation: TCastleNavigation;
-      const AName: string);
+      const AName: String);
     { @groupEnd }
 
     { Methods to notify this class about changes to the underlying RootNode
@@ -1193,7 +1193,7 @@ type
       and we only require necessary cleanup at the beginning of ChangedAll.
       This way ChangedAll (when it wasn't preceeded by explicit
       BeforeNodesFree(false)) produces events from stacks CheckForDeletedNodes. }
-    procedure BeforeNodesFree(const InternalChangedAll: boolean = false); override;
+    procedure BeforeNodesFree(const InternalChangedAll: Boolean = false); override;
 
     { Call Node.FreeRemovingFromAllParents, making sure that changes
       to our VRML/X3D node graph are allowed. This makes sure we call
@@ -1349,14 +1349,14 @@ type
       Last line also ends with CastleUtils.NL. }
     function Info(
       ATriangleVerticesCounts,
-      ABoundingBox: boolean;
-      AManifoldAndBorderEdges: boolean): string; deprecated 'do not use this, better to construct a summary string yourself';
+      ABoundingBox: Boolean;
+      AManifoldAndBorderEdges: Boolean): String; deprecated 'do not use this, better to construct a summary string yourself';
 
-    function InfoTriangleVerticesCounts: string;
+    function InfoTriangleVerticesCounts: String;
       deprecated 'better to construct a string yourself, use TrianglesCount, VerticesCount';
-    function InfoBoundingBox: string;
+    function InfoBoundingBox: String;
       deprecated 'better to construct a string yourself, use BoundingBox.ToString';
-    function InfoManifoldAndBorderEdges: string;
+    function InfoManifoldAndBorderEdges: String;
       deprecated 'better to construct a string yourself, use EdgesCount';
 
     { Edges count in the scene, for information purposes. }
@@ -1384,7 +1384,7 @@ type
     property RootNode: TX3DRootNode read FRootNode write SetRootNode;
 
     { If @true, RootNode will be freed by destructor of this class. }
-    property OwnsRootNode: boolean read FOwnsRootNode write FOwnsRootNode default true;
+    property OwnsRootNode: Boolean read FOwnsRootNode write FOwnsRootNode default true;
 
     { A spatial structure containing all visible shapes.
       Add ssRendering to @link(Spatial) property, otherwise it's @nil.
@@ -1462,13 +1462,13 @@ type
       @link(TCastleAbstractRootTransform.WorldSphereCollision Viewport.Items.WorldSphereCollision).) }
     function InternalOctreeCollisions: TBaseTrianglesOctree;
 
-    function UseInternalOctreeCollisions: boolean;
+    function UseInternalOctreeCollisions: Boolean;
 
     { Progress title shown during spatial structure creation
       (through TProgress.Title). Uses only when not empty,
       and only if progress was not active already
       (so we avoid starting "progress bar within a progress bar"). }
-    property TriangleOctreeProgressTitle: string
+    property TriangleOctreeProgressTitle: String
       read  FTriangleOctreeProgressTitle
       write FTriangleOctreeProgressTitle;
 
@@ -1476,7 +1476,7 @@ type
       (through TProgress.Title). Uses only when not empty,
       and only if progress was not active already
       (so we avoid starting "progress bar within a progress bar"). }
-    property ShapeOctreeProgressTitle: string
+    property ShapeOctreeProgressTitle: String
       read  FShapeOctreeProgressTitle
       write FShapeOctreeProgressTitle;
 
@@ -1490,7 +1490,7 @@ type
 
       If ViewpointDescription = '', they return the first found viewpoint node.
       Otherwise, they look for X3DViewpointNode with description field mathing
-      given string.
+      given String.
 
       If camera properties were found in some node,
       it returns this node. Otherwise it returns nil.
@@ -1508,12 +1508,12 @@ type
     function GetViewpoint(
       out ProjectionType: TProjectionType;
       out CamPos, CamDir, CamUp, GravityUp: TVector3;
-      const ViewpointDescription: string = ''):
+      const ViewpointDescription: String = ''):
       TAbstractViewpointNode;
 
     function GetPerspectiveViewpoint(
       out CamPos, CamDir, CamUp, GravityUp: TVector3;
-      const ViewpointDescription: string = ''):
+      const ViewpointDescription: String = ''):
       TAbstractViewpointNode;
     { @groupEnd }
 
@@ -1527,8 +1527,8 @@ type
 
     { Scene processes X3D key sensor nodes here, https://castle-engine.io/x3d_implementation_keydevicesensor.php .
       Remember to set ListenPressRelease to process the key sensor nodes. }
-    function Press(const Event: TInputPressRelease): boolean; override;
-    function Release(const Event: TInputPressRelease): boolean; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+    function Release(const Event: TInputPressRelease): Boolean; override;
 
     function PointingDevicePress(const Pick: TRayCollisionNode;
       const Distance: Single): Boolean; override;
@@ -1544,7 +1544,7 @@ type
       To make pointing-device sensors work Ok, make sure you have non-nil
       OctreeCollisions (e.g. include ssDynamicCollisions in @link(Spatial)). }
     function PointingDeviceMove(const Pick: TRayCollisionNode;
-      const Distance: Single): boolean; override;
+      const Distance: Single): Boolean; override;
 
     { Current item over which the pointing device is. @nil if over none.
       For example, you can investigate it's pointing device sensors
@@ -1598,7 +1598,7 @@ type
 
     { Is pointing device currently active
       (for example, mouse button is pressed down). }
-    property PointingDeviceActive: boolean
+    property PointingDeviceActive: Boolean
       read FPointingDeviceActive default false;
 
     { Event called PointingDeviceSensors or
@@ -1726,7 +1726,7 @@ type
     function CameraPosition: TVector3; deprecated 'do not access camera properties this way, instead use e.g. Viewport.Camera.Position';
     function CameraDirection: TVector3; deprecated 'do not access camera properties this way, instead use e.g. Viewport.Camera.GetView';
     function CameraUp: TVector3; deprecated 'do not access camera properties this way, instead use e.g. Viewport.Camera.GetView';
-    function CameraViewKnown: boolean; deprecated 'do not access camera properties this way, instead use e.g. Viewport.Camera';
+    function CameraViewKnown: Boolean; deprecated 'do not access camera properties this way, instead use e.g. Viewport.Camera';
 
     { List of handlers for VRML/X3D Script node with "compiled:" protocol.
       This is read-only, change this only by RegisterCompiledScript. }
@@ -1736,7 +1736,7 @@ type
     { Register compiled script handler, for VRML/X3D Script node with
       "compiled:" protocol.
       See [https://castle-engine.io/x3d_extensions.php#section_ext_script_compiled]. }
-    procedure RegisterCompiledScript(const HandlerName: string;
+    procedure RegisterCompiledScript(const HandlerName: String;
       Handler: TCompiledScriptHandler);
 
     { TNavigationType value determined by current NavigationInfo node. }
@@ -1804,8 +1804,8 @@ type
       ) }
     procedure InternalUpdateCamera(const ACamera: TCastleCamera;
       const WorldBox: TBox3D;
-      const RelativeCameraTransform: boolean = false;
-      const AllowTransitionAnimate: boolean = true);
+      const RelativeCameraTransform: Boolean = false;
+      const AllowTransitionAnimate: Boolean = true);
 
     { Make Camera go to the view given by APosition, ADirection, AUp.
 
@@ -1845,7 +1845,7 @@ type
 
       @exclude
       Should only be used internally by TCastleViewport. }
-    function InternalMainLightForShadows(out AMainLightPosition: TVector4): boolean;
+    function InternalMainLightForShadows(out AMainLightPosition: TVector4): Boolean;
 
     { Light node that should be used for headlight, or @nil if default
       directional headlight is suitable.
@@ -1869,7 +1869,7 @@ type
       so scripts inside the VRML/X3D "know" when
       you turn on/off the headlight and may react to it,
       e.g. spawn a zombie monster when you turn on the flashlight.) }
-    property HeadlightOn: boolean
+    property HeadlightOn: Boolean
       read FHeadlightOn write SetHeadlightOn;
 
     property OnHeadlightOnChanged: TNotifyEvent
@@ -1896,7 +1896,7 @@ type
     procedure ViewChangedSuddenly; virtual;
 
     procedure PrepareResources(const Options: TPrepareResourcesOptions;
-      const ProgressStep: boolean; const Params: TPrepareParams); override;
+      const ProgressStep: Boolean; const Params: TPrepareParams); override;
 
     { Static scene will not be automatically notified about the changes
       to the field values. This means that TX3DField.Send and
@@ -1913,13 +1913,13 @@ type
 
       Changing this is expensive when the scene content is already loaded,
       so it's best to adjust this before @link(Load). }
-    property Static: boolean read FStatic write SetStatic default false;
+    property Static: Boolean read FStatic write SetStatic default false;
       deprecated 'do not use this; optimization done by this is really negligible; leave ProcessEvents=false for static scenes';
 
     { Nice scene caption. Uses the "title" of WorldInfo
       node inside the VRML/X3D scene. If there is no WorldInfo node
       (or it has empty title) then result is based on loaded URL. }
-    function Caption: string;
+    function Caption: String;
 
     { Global lights of this scene. Read-only. May be useful to render
       other 3D objects with lights defined inside this scene. }
@@ -1935,9 +1935,9 @@ type
       @raises(EX3DNotFound If given node (or field/event inside this node)
         could not be found.)
       @groupBegin }
-    function Node(const NodeName: string): TX3DNode;
-    function Field(const NodeName, FieldName: string): TX3DField;
-    function Event(const NodeName, EventName: string): TX3DEvent;
+    function Node(const NodeName: String): TX3DNode;
+    function Field(const NodeName, FieldName: String): TX3DField;
+    function Event(const NodeName, EventName: String): TX3DEvent;
     { @groupEnd }
 
     { List the names of available animations in current scene.
@@ -1964,12 +1964,12 @@ type
     { Does named animation with given name exist.
       @seealso AnimationsList
       @seealso PlayAnimation }
-    function HasAnimation(const AnimationName: string): boolean;
+    function HasAnimation(const AnimationName: String): Boolean;
 
     { TimeSensor of this animation. @nil if this name not found.
       See e.g. examples/3d_rendering_processing/listen_on_x3d_events.lpr
       for an example of using this. }
-    function AnimationTimeSensor(const AnimationName: string): TTimeSensorNode;
+    function AnimationTimeSensor(const AnimationName: String): TTimeSensorNode;
 
     { TimeSensor of this animation, by animation index (index
       on AnimationsList). @nil if this index not found. }
@@ -1984,15 +1984,15 @@ type
       it ignores the @link(ProcessEvents) and @link(AnimateOnlyWhenVisible)
       properties, it ignores the current animation set by @link(PlayAnimation),
       and forces the current time on TimeSensors by @link(TTimeSensorNode.FakeTime). }
-    function ForceAnimationPose(const AnimationName: string;
+    function ForceAnimationPose(const AnimationName: String;
       const TimeInAnimation: TFloatTime;
-      const Loop: boolean;
-      const Forward: boolean = true): boolean; overload;
-    function ForceAnimationPose(const AnimationName: string;
+      const Loop: Boolean;
+      const Forward: Boolean = true): Boolean; overload;
+    function ForceAnimationPose(const AnimationName: String;
       const TimeInAnimation: TFloatTime;
       const Looping: TPlayAnimationLooping;
-      const Forward: boolean = true): boolean; overload;
-      deprecated 'use ForceAnimationPose overload with "Loop: boolean" parameter';
+      const Forward: Boolean = true): Boolean; overload;
+      deprecated 'use ForceAnimationPose overload with "Loop: Boolean" parameter';
 
     { Play an animation specified by name.
       If the given animation name exists,
@@ -2077,13 +2077,13 @@ type
         )
       )
     }
-    function PlayAnimation(const Parameters: TPlayAnimationParameters): boolean; overload;
-    function PlayAnimation(const AnimationName: string;
-      const Loop: boolean; const Forward: boolean = true): boolean; overload;
-    function PlayAnimation(const AnimationName: string;
+    function PlayAnimation(const Parameters: TPlayAnimationParameters): Boolean; overload;
+    function PlayAnimation(const AnimationName: String;
+      const Loop: Boolean; const Forward: Boolean = true): Boolean; overload;
+    function PlayAnimation(const AnimationName: String;
       const Looping: TPlayAnimationLooping;
-      const Forward: boolean = true): boolean; overload;
-      deprecated 'use another overloaded version of PlayAnimation, like simple PlayAnimation(AnimationName: string, Loop: boolean)';
+      const Forward: Boolean = true): Boolean; overload;
+      deprecated 'use another overloaded version of PlayAnimation, like simple PlayAnimation(AnimationName: String, Loop: Boolean)';
 
     { Force the model to look like the initial animation frame @italic(now).
 
@@ -2107,7 +2107,7 @@ type
       (named animations are detected by @link(AnimationsList) method).
       For a looping animation, this is the duration of a single cycle.
       0 if not found. }
-    function AnimationDuration(const AnimationName: string): TFloatTime;
+    function AnimationDuration(const AnimationName: String): TFloatTime;
 
     { The prefix of an X3D TimeSensor node name to treat it as a "named animation".
       Named animation are used by methods @link(AnimationsList), @link(PlayAnimation),
@@ -2120,7 +2120,7 @@ type
       nodes with names starting with this prefix will be available
       on @link(AnimationsList), and this prefix will be stripped from
       the names you use with methods like @link(PlayAnimation). }
-    property AnimationPrefix: string
+    property AnimationPrefix: String
       read FAnimationPrefix write FAnimationPrefix;
       deprecated 'this property did not prove to be of much use; report if you need it, otherwise it may be removed one day';
 
@@ -2191,7 +2191,7 @@ type
     function Clone(const AOwner: TComponent): TCastleSceneCore;
 
     { @deprecated Deprecated name for @link(URL). }
-    property FileName: string read FURL write SetURL; deprecated;
+    property FileName: String read FURL write SetURL; deprecated;
 
     procedure InternalIncShapesHash;
     property InternalShapesHash: TShapesHash read FShapesHash;
@@ -2213,7 +2213,7 @@ type
       Our @link(Update) is usually automatically called (if you added this
       scene to TCastleWindowBase.Controls or TCastleControlBase.Controls)
       so you don't have to do anything to make this work. }
-    property TimePlaying: boolean read FTimePlaying write FTimePlaying default true;
+    property TimePlaying: Boolean read FTimePlaying write FTimePlaying default true;
 
     { Controls the time speed (if TimePlaying is @true):
       1.0 means that 1 second  of real time equals to 1 unit of world time. }
@@ -2332,7 +2332,7 @@ type
       with the user.
 
       If @false, this all doesn't work, which makes the scene static. }
-    property ProcessEvents: boolean
+    property ProcessEvents: Boolean
       read FProcessEvents write SetProcessEvents default false;
 
     { Currently loaded scene URL. Change this property to load a scene
@@ -2351,7 +2351,7 @@ type
 
       Pass URL = '' to load an empty scene, this sets @link(RootNode) to @nil.
     }
-    property URL: string read FURL write SetURL;
+    property URL: String read FURL write SetURL;
 
     { At loading, process the scene to support shadow maps.
       This happens at the @link(Load) method call,
@@ -2364,7 +2364,7 @@ type
       This property (and related ones
       like ShadowMapsDefaultSize)
       is relevant only for handling shadows by the "receiveShadows" field. }
-    property ShadowMaps: boolean read FShadowMaps write SetShadowMaps default true;
+    property ShadowMaps: Boolean read FShadowMaps write SetShadowMaps default true;
 
     { Default shadow map texture size.
 
@@ -2407,14 +2407,14 @@ type
           means to use the first viewpoint named 'blah'.
           That is, we are only counting nodes named 'blah' for this.)
       ) }
-    property InitialViewpointName: string
+    property InitialViewpointName: String
       read FInitialViewpointName write FInitialViewpointName;
 
     { When @true, we animate (more precisely: process time pass in @link(Update))
       only when the model is visible. This is a powerful optimization,
       but be careful if you depend on your animations
       for something else than just visual effect. }
-    property AnimateOnlyWhenVisible: boolean
+    property AnimateOnlyWhenVisible: Boolean
       read FAnimateOnlyWhenVisible write FAnimateOnlyWhenVisible default false;
 
     { Non-zero values optimize the animation processing, by not updating
@@ -2498,13 +2498,13 @@ var
     and friends, which is central to VRML/X3D dynamic changes and events engine.
 
     Meaningful only if you initialized log (see CastleLog unit) by InitializeLog first. }
-  LogChanges: boolean = false;
+  LogChanges: Boolean = false;
 
   { Set this to optimize animating transformations for scenes where you
     have many transformations (many Transform nodes), and many of them
     are animated at the same time. Often particularly effective for
     skeletal animations of characters, 3D and 2D (e.g. from Spine or glTF). }
-  OptimizeExtensiveTransformations: boolean = false;
+  OptimizeExtensiveTransformations: Boolean = false;
 
   { Experimental optimization of Transform animation.
     It assumes that Transform nodes affect only geometry, i.e. their only effect
@@ -2546,7 +2546,7 @@ begin
 end;
 
 procedure TX3DBindableStack.SendIsBound(Node: TAbstractBindableNode;
-  const Value: boolean);
+  const Value: Boolean);
 begin
   if Node <> nil then
   begin
@@ -2570,7 +2570,7 @@ begin
 end;
 
 procedure TX3DBindableStack.PushIfEmpty(Node: TAbstractBindableNode;
-  SendEvents: boolean);
+  SendEvents: Boolean);
 begin
   if Count = 0 then
   begin
@@ -2592,10 +2592,10 @@ begin
 end;
 
 procedure TX3DBindableStack.CheckForDeletedNodes(
-  const RootNode: TX3DRootNode; const SendEvents: boolean);
+  const RootNode: TX3DRootNode; const SendEvents: Boolean);
 var
   I: Integer;
-  TopChanged: boolean;
+  TopChanged: Boolean;
 begin
   if RootNode = nil then
     { Just empty all, since all are possibly freed }
@@ -2631,7 +2631,7 @@ begin
 end;
 
 procedure TX3DBindableStack.Set_Bind(Node: TAbstractBindableNode;
-  const Value: boolean);
+  const Value: Boolean);
 var
   NodeIndex: Integer;
 begin
@@ -2712,7 +2712,7 @@ begin
   Result := (inherited Top) as TAbstractBackgroundNode;
 end;
 
-procedure TBackgroundStack.PushIfEmpty(Node: TAbstractBackgroundNode; SendEvents: boolean);
+procedure TBackgroundStack.PushIfEmpty(Node: TAbstractBackgroundNode; SendEvents: Boolean);
 begin
   inherited PushIfEmpty(Node, SendEvents);
 end;
@@ -2724,7 +2724,7 @@ begin
   Result := (inherited Top) as TFogNode;
 end;
 
-procedure TFogStack.PushIfEmpty(Node: TFogNode; SendEvents: boolean);
+procedure TFogStack.PushIfEmpty(Node: TFogNode; SendEvents: Boolean);
 begin
   inherited PushIfEmpty(Node, SendEvents);
 end;
@@ -2742,7 +2742,7 @@ begin
   Result := (inherited Top) as TNavigationInfoNode;
 end;
 
-procedure TNavigationInfoStack.PushIfEmpty(Node: TNavigationInfoNode; SendEvents: boolean);
+procedure TNavigationInfoStack.PushIfEmpty(Node: TNavigationInfoNode; SendEvents: Boolean);
 begin
   inherited PushIfEmpty(Node, SendEvents);
 end;
@@ -2766,7 +2766,7 @@ begin
   Result := (inherited Top) as TAbstractViewpointNode;
 end;
 
-procedure TViewpointStack.PushIfEmpty(Node: TAbstractViewpointNode; SendEvents: boolean);
+procedure TViewpointStack.PushIfEmpty(Node: TAbstractViewpointNode; SendEvents: Boolean);
 begin
   inherited PushIfEmpty(Node, SendEvents);
 end;
@@ -3256,10 +3256,10 @@ begin
   inherited;
 end;
 
-procedure TCastleSceneCore.Load(const ARootNode: TX3DRootNode; const AOwnsRootNode: boolean;
+procedure TCastleSceneCore.Load(const ARootNode: TX3DRootNode; const AOwnsRootNode: Boolean;
   const AOptions: TSceneLoadOptions);
 var
-  RestoreProcessEvents: boolean;
+  RestoreProcessEvents: Boolean;
 begin
   { temporarily turn off events, to later initialize and turn them on }
   RestoreProcessEvents := ProcessEvents;
@@ -3301,8 +3301,8 @@ begin
   UpdateAutoAnimation(false);
 end;
 
-procedure TCastleSceneCore.Load(const AURL: string; const AllowStdIn: boolean;
-  const AResetTime: boolean);
+procedure TCastleSceneCore.Load(const AURL: String; const AllowStdIn: Boolean;
+  const AResetTime: Boolean);
 var
   Options: TSceneLoadOptions;
 begin
@@ -3312,7 +3312,7 @@ begin
   Load(AURL, Options);
 end;
 
-procedure TCastleSceneCore.Load(const AURL: string; const AOptions: TSceneLoadOptions);
+procedure TCastleSceneCore.Load(const AURL: String; const AOptions: TSceneLoadOptions);
 var
   TimeStart: TCastleProfilerTime;
   NewRoot: TX3DRootNode;
@@ -3436,14 +3436,14 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.Save(const AURL: string);
+procedure TCastleSceneCore.Save(const AURL: String);
 begin
   if RootNode <> nil then
     Save3D(RootNode, AURL, ApplicationName);
   FURL := AURL;
 end;
 
-procedure TCastleSceneCore.SetURL(const AValue: string);
+procedure TCastleSceneCore.SetURL(const AValue: String);
 begin
   if AValue <> FURL then
     Load(AValue);
@@ -3501,7 +3501,7 @@ begin
     Result.Include(Shape.BoundingBox);
 end;
 
-function TCastleSceneCore.CalculateVerticesCount(OverTriangulate: boolean): Cardinal;
+function TCastleSceneCore.CalculateVerticesCount(OverTriangulate: Boolean): Cardinal;
 var
   ShapeList: TShapeList;
   Shape: TShape;
@@ -3512,7 +3512,7 @@ begin
     Result := Result + Shape.VerticesCount(OverTriangulate);
 end;
 
-function TCastleSceneCore.CalculateTrianglesCount(OverTriangulate: boolean): Cardinal;
+function TCastleSceneCore.CalculateTrianglesCount(OverTriangulate: Boolean): Cardinal;
 var
   ShapeList: TShapeList;
   Shape: TShape;
@@ -3539,7 +3539,7 @@ begin
   Result.Include(inherited LocalBoundingBox);
 end;
 
-function TCastleSceneCore.VerticesCount(OverTriangulate: boolean): Cardinal;
+function TCastleSceneCore.VerticesCount(OverTriangulate: Boolean): Cardinal;
 begin
   if OverTriangulate then
   begin
@@ -3559,7 +3559,7 @@ begin
   Result := FVerticesCount[OverTriangulate];
 end;
 
-function TCastleSceneCore.TrianglesCount(OverTriangulate: boolean): Cardinal;
+function TCastleSceneCore.TrianglesCount(OverTriangulate: Boolean): Cardinal;
 begin
   if OverTriangulate then
   begin
@@ -3593,15 +3593,15 @@ type
   TChangedAllTraverser = class
     ParentScene: TCastleSceneCore;
     ShapesGroup: TShapeTreeGroup;
-    Active: boolean;
+    Active: Boolean;
     function Traverse(
       Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-      ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
+      ParentInfo: PTraversingInfo; var TraverseIntoChildren: Boolean): Pointer;
   end;
 
 function TChangedAllTraverser.Traverse(
   Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-  ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
+  ParentInfo: PTraversingInfo; var TraverseIntoChildren: Boolean): Pointer;
 
   { Handle ITransformNode node }
   procedure HandleTransform(TransformNode: TX3DNode);
@@ -3904,7 +3904,7 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.BeforeNodesFree(const InternalChangedAll: boolean);
+procedure TCastleSceneCore.BeforeNodesFree(const InternalChangedAll: Boolean);
 begin
   { Stuff that will be recalculated by ChangedAll }
   BillboardNodes.Count := 0;
@@ -4255,8 +4255,8 @@ type
     ParentScene: TCastleSceneCore;
     Shapes: PShapesParentInfo;
     ChangingNode: TX3DNode; {< must be also ITransformNode }
-    AnythingChanged: boolean;
-    Inside: boolean;
+    AnythingChanged: Boolean;
+    Inside: Boolean;
     { If = 0, we're in active or inactive graph part (we don't know).
       If > 0, we're in inactive graph part (TransformChangeTraverse
       may enter there, since our changing Transform node (or some of it's
@@ -4265,12 +4265,12 @@ type
     Inactive: Cardinal;
     function TransformChangeTraverse(
       Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-      ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
+      ParentInfo: PTraversingInfo; var TraverseIntoChildren: Boolean): Pointer;
   end;
 
 function TTransformChangeHelper.TransformChangeTraverse(
   Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-  ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
+  ParentInfo: PTraversingInfo; var TraverseIntoChildren: Boolean): Pointer;
 
   { Handle ITransformNode }
   procedure HandleTransform(TransformNode: TX3DNode);
@@ -4316,7 +4316,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
   procedure HandleSwitch(SwitchNode: TSwitchNode);
   var
     I: Integer;
-    ChildInactive: boolean;
+    ChildInactive: Boolean;
     ShapeSwitch: TShapeTreeSwitch;
     OldShapes: PShapesParentInfo;
     NewShapes: TShapesParentInfo;
@@ -4562,7 +4562,7 @@ var
   TraverseStack: TX3DGraphTraverseStateStack;
   C, I: Integer;
   TransformShapeTree: TShapeTreeTransform;
-  DoVisibleChanged: boolean;
+  DoVisibleChanged: Boolean;
 begin
   { This is the optimization for changing VRML >= 2.0 transformation
     (most fields of Transform node like translation, scale, center etc.,
@@ -4656,7 +4656,7 @@ var
   TransformChangeHelper: TTransformChangeHelper;
   TransformShapesParentInfo: TShapesParentInfo;
   TraverseStack: TX3DGraphTraverseStateStack;
-  DoVisibleChanged: boolean;
+  DoVisibleChanged: Boolean;
 begin
   if LogChanges then
     WritelnLog('X3D changes', 'Transform root node change');
@@ -4732,9 +4732,9 @@ procedure TCastleSceneCore.InternalChangedField(const Field: TX3DField; const Ch
 var
   ANode: TX3DNode;
 
-  procedure DoLogChanges(const Additional: string = '');
+  procedure DoLogChanges(const Additional: String = '');
   var
-    S: string;
+    S: String;
   begin
     S := 'InternalChangedField: ' + X3DChangeToStr[Change] +
       Format(', node: %s (%s %s) at %s',
@@ -4844,7 +4844,7 @@ var
 
   procedure HandleChangeLightInstanceProperty;
   var
-    J: integer;
+    J: Integer;
     ShapeList: TShapeList;
     Shape: TShape;
     LightInstance: PLightInstance;
@@ -4990,7 +4990,7 @@ var
       (which should be some TextureTransform* VRML/X3D node,
       but not nil and not TMultiTextureTransformNode). }
     function AppearanceUsesTextureTransform(Appearance: TAppearanceNode;
-      TextureTransform: TX3DNode): boolean;
+      TextureTransform: TX3DNode): Boolean;
     var
       MultiTrans: TMFNode;
       I: Integer;
@@ -5206,7 +5206,7 @@ var
 
   procedure HandleChangeDragSensorEnabled;
   var
-    Enabled: boolean;
+    Enabled: Boolean;
     DragSensor: TAbstractDragSensorNode;
   begin
     Enabled := (Field as TSFBool).Value;
@@ -5368,7 +5368,7 @@ end;
 procedure TCastleSceneCore.DoGeometryChanged(const Change: TGeometryChange;
   LocalGeometryShape: TShape);
 var
-  MaybeBoundingBoxChanged: boolean;
+  MaybeBoundingBoxChanged: Boolean;
 const
   { Whether LocalGeometryChanged was called, which means that octree and/or
     bounding box/sphere of some shape changed. }
@@ -5446,7 +5446,7 @@ resourcestring
     'When we use over-triangulating (e.g. when we do OpenGL rendering) '+
     'scene has %d triangles and %d vertices.';
 
-function TCastleSceneCore.InfoTriangleVerticesCounts: string;
+function TCastleSceneCore.InfoTriangleVerticesCounts: String;
 begin
   if (VerticesCount(false) = VerticesCount(true)) and
      (TrianglesCount(false) = TrianglesCount(true)) then
@@ -5461,7 +5461,7 @@ begin
   end;
 end;
 
-function TCastleSceneCore.InfoBoundingBox: string;
+function TCastleSceneCore.InfoBoundingBox: String;
 var
   BBox: TBox3D;
 begin
@@ -5489,7 +5489,7 @@ begin
   end;
 end;
 
-function TCastleSceneCore.InfoManifoldAndBorderEdges: string;
+function TCastleSceneCore.InfoManifoldAndBorderEdges: String;
 var
   ManifoldEdges, BorderEdges: Cardinal;
 begin
@@ -5501,7 +5501,7 @@ end;
 function TCastleSceneCore.Info(
   ATriangleVerticesCounts,
   ABoundingBox,
-  AManifoldAndBorderEdges: boolean): string;
+  AManifoldAndBorderEdges: Boolean): String;
 begin
   Result := '';
 
@@ -5572,7 +5572,7 @@ end;
 procedure TCastleSceneCore.SetSpatial(const Value: TSceneSpatialStructures);
 
   procedure SetShapeSpatial(const Value: TShapeSpatialStructures;
-    OnlyCollidable: boolean);
+    OnlyCollidable: Boolean);
   var
     ShapeList: TShapeList;
     Shape: TShape;
@@ -5604,7 +5604,7 @@ procedure TCastleSceneCore.SetSpatial(const Value: TSceneSpatialStructures);
   end;
 
 var
-  Old, New: boolean;
+  Old, New: Boolean;
 begin
   if Value <> Spatial then
   begin
@@ -5713,7 +5713,7 @@ begin
     Result := nil;
 end;
 
-function TCastleSceneCore.UseInternalOctreeCollisions: boolean;
+function TCastleSceneCore.UseInternalOctreeCollisions: Boolean;
 begin
   Result := Spatial * [ssStaticCollisions, ssDynamicCollisions] <> [];
   Assert((not Result) or (InternalOctreeCollisions <> nil));
@@ -5737,8 +5737,8 @@ end;
 
 function TCastleSceneCore.CreateTriangleOctree(
   const Limits: TOctreeLimits;
-  const ProgressTitle: string;
-  const Collidable: boolean): TTriangleOctree;
+  const ProgressTitle: String;
+  const Collidable: Boolean): TTriangleOctree;
 
   procedure FillOctree(TriangleEvent: TTriangleEvent);
   var
@@ -5784,8 +5784,8 @@ end;
 
 function TCastleSceneCore.CreateShapeOctree(
   const Limits: TOctreeLimits;
-  const ProgressTitle: string;
-  const Collidable: boolean): TShapeOctree;
+  const ProgressTitle: String;
+  const Collidable: Boolean): TShapeOctree;
 var
   I: Integer;
   ShapesList: TShapeList;
@@ -5836,16 +5836,16 @@ end;
 
 type
   TFirstViewpointSeeker = class
-    OnlyPerspective: boolean;
-    ViewpointDescription: string;
+    OnlyPerspective: Boolean;
+    ViewpointDescription: String;
     function Seek(
       Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-      ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
+      ParentInfo: PTraversingInfo; var TraverseIntoChildren: Boolean): Pointer;
   end;
 
   function TFirstViewpointSeeker.Seek(
     Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-    ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
+    ParentInfo: PTraversingInfo; var TraverseIntoChildren: Boolean): Pointer;
   var
     V: TAbstractViewpointNode;
   begin
@@ -5859,10 +5859,10 @@ type
   end;
 
 function TCastleSceneCore.GetViewpointCore(
-  const OnlyPerspective: boolean;
+  const OnlyPerspective: Boolean;
   out ProjectionType: TProjectionType;
   out CamPos, CamDir, CamUp, GravityUp: TVector3;
-  const ViewpointDescription: string): TAbstractViewpointNode;
+  const ViewpointDescription: String): TAbstractViewpointNode;
 var
   Seeker: TFirstViewpointSeeker;
 begin
@@ -5897,7 +5897,7 @@ end;
 function TCastleSceneCore.GetViewpoint(
   out ProjectionType: TProjectionType;
   out CamPos, CamDir, CamUp, GravityUp: TVector3;
-  const ViewpointDescription: string): TAbstractViewpointNode;
+  const ViewpointDescription: String): TAbstractViewpointNode;
 begin
   Result := GetViewpointCore(false, ProjectionType, CamPos, CamDir, CamUp, GravityUp,
     ViewpointDescription);
@@ -5905,7 +5905,7 @@ end;
 
 function TCastleSceneCore.GetPerspectiveViewpoint(
   out CamPos, CamDir, CamUp, GravityUp: TVector3;
-  const ViewpointDescription: string): TAbstractViewpointNode;
+  const ViewpointDescription: String): TAbstractViewpointNode;
 var
   ProjectionType: TProjectionType;
 begin
@@ -5994,7 +5994,7 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.SetProcessEvents(const Value: boolean);
+procedure TCastleSceneCore.SetProcessEvents(const Value: Boolean);
 begin
   if FProcessEvents <> Value then
   begin
@@ -6020,7 +6020,7 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.SetStatic(const Value: boolean);
+procedure TCastleSceneCore.SetStatic(const Value: Boolean);
 begin
   if FStatic <> Value then
   begin
@@ -6039,7 +6039,7 @@ end;
 
 { key sensors handling ------------------------------------------------------- }
 
-function TCastleSceneCore.Press(const Event: TInputPressRelease): boolean;
+function TCastleSceneCore.Press(const Event: TInputPressRelease): Boolean;
 var
   I: Integer;
 begin
@@ -6064,7 +6064,7 @@ begin
   end;
 end;
 
-function TCastleSceneCore.Release(const Event: TInputPressRelease): boolean;
+function TCastleSceneCore.Release(const Event: TInputPressRelease): Boolean;
 var
   I: Integer;
 begin
@@ -6092,11 +6092,11 @@ end;
 { pointing device handling --------------------------------------------------- }
 
 function TCastleSceneCore.PointingDeviceMove(const Pick: TRayCollisionNode;
-  const Distance: Single): boolean;
+  const Distance: Single): Boolean;
 var
   TouchSensor: TTouchSensorNode;
   ActiveSensor: TAbstractPointingDeviceSensorNode;
-  OldIsOver, NewIsOver: boolean;
+  OldIsOver, NewIsOver: Boolean;
   OldSensors: TX3DNodeList;
   NewSensors: TX3DNodeList;
   I: Integer;
@@ -6296,7 +6296,7 @@ end;
 
 procedure TCastleSceneCore.PointingDeviceClear;
 var
-  SensorsChanged: boolean;
+  SensorsChanged: Boolean;
 begin
   SensorsChanged :=
     (FPointingDeviceOverItem <> nil) or
@@ -6344,10 +6344,10 @@ begin
   Result := PointingDevicePressRelease(false, Distance, CancelAction);
 end;
 
-function TCastleSceneCore.PointingDevicePressRelease(const DoPress: boolean;
-  const Distance: Single; const CancelAction: boolean): boolean;
+function TCastleSceneCore.PointingDevicePressRelease(const DoPress: Boolean;
+  const Distance: Single; const CancelAction: Boolean): Boolean;
 
-  function AnchorActivate(Anchor: TAnchorNode): boolean;
+  function AnchorActivate(Anchor: TAnchorNode): Boolean;
   var
     NewRootNode: TX3DRootNode;
     NewViewpoint: TAbstractViewpointNode;
@@ -6378,7 +6378,7 @@ function TCastleSceneCore.PointingDevicePressRelease(const DoPress: boolean;
 var
   Sensors: TPointingDeviceSensorList;
 
-  function PDSensorActivate(Sensor: TAbstractPointingDeviceSensorNode): boolean;
+  function PDSensorActivate(Sensor: TAbstractPointingDeviceSensorNode): Boolean;
   begin
     Result := Sensor.FdEnabled.Value and
       { Send isActive = true and make DoPointingDeviceSensorsChange
@@ -6399,7 +6399,7 @@ var
 var
   I: Integer;
   ToActivate: TX3DNode;
-  ActiveChanged: boolean;
+  ActiveChanged: Boolean;
   ActiveSensor: TAbstractPointingDeviceSensorNode;
 begin
   Result := false;
@@ -6494,7 +6494,7 @@ end;
 // Not needed now
 function TCastleSceneCore.Dragging: boolean;
 
-  function ActiveDraggingSensor: boolean;
+  function ActiveDraggingSensor: Boolean;
   var
     I: Integer;
   begin
@@ -6677,12 +6677,12 @@ begin
 end;
 
 procedure TCastleSceneCore.InternalSetTime(
-  const NewValue: TFloatTime; const TimeIncrease: TFloatTime; const ResetTime: boolean);
+  const NewValue: TFloatTime; const TimeIncrease: TFloatTime; const ResetTime: Boolean);
 
   { Call SetTime on all TimeDependentHandlers. }
   procedure UpdateTimeDependentHandlers(const ExtraTimeIncrease: TFloatTime);
   var
-    SomethingVisibleChanged, SomePartialSend: boolean;
+    SomethingVisibleChanged, SomePartialSend: Boolean;
     I: Integer;
     T: TFloatTime;
     TimeHandler: TInternalTimeDependentHandler;
@@ -7031,7 +7031,7 @@ end;
 
 procedure TCastleSceneCore.PartialSendEnd(const TimeHandler: TInternalTimeDependentHandler);
 
-  function FieldsEqual(const L1, L2: TX3DFieldList): boolean;
+  function FieldsEqual(const L1, L2: TX3DFieldList): Boolean;
   var
     I: Integer;
   begin
@@ -7126,7 +7126,7 @@ procedure TCastleSceneCore.ProximitySensorUpdate(const PSI: TProximitySensorInst
 var
   APosition, ADirection, AUp: TVector3;
   ProxNode: TProximitySensorNode;
-  NewIsActive: boolean;
+  NewIsActive: Boolean;
 begin
   if ProcessEvents then
   begin
@@ -7205,7 +7205,7 @@ end;
 { camera --------------------------------------------------------------------- }
 
 function TCastleSceneCore.GetCameraLocal(
-  out CameraVectors: TCameraVectors): boolean;
+  out CameraVectors: TCameraVectors): Boolean;
 begin
   // note that HasWorldTransform implies also World <> nil
   Result := HasWorldTransform and (World.MainCamera <> nil);
@@ -7218,7 +7218,7 @@ begin
 end;
 
 function TCastleSceneCore.GetCameraLocal(
-  out CameraLocalPosition: TVector3): boolean;
+  out CameraLocalPosition: TVector3): Boolean;
 begin
   // note that HasWorldTransform implies also World <> nil
   Result := HasWorldTransform and (World.MainCamera <> nil);
@@ -7279,16 +7279,15 @@ begin
   {$warnings on}
 end;
 
-function TCastleSceneCore.CameraViewKnown: boolean;
+function TCastleSceneCore.CameraViewKnown: Boolean;
 begin
   {$warnings off} // using deprecated from deprecated
   Result := (World <> nil) and World.CameraKnown;
-  {$warnings on}
 end;
 
 { compiled scripts ----------------------------------------------------------- }
 
-procedure TCastleSceneCore.RegisterCompiledScript(const HandlerName: string;
+procedure TCastleSceneCore.RegisterCompiledScript(const HandlerName: String;
   Handler: TCompiledScriptHandler);
 var
   HandlerInfo: PCompiledScriptHandlerInfo;
@@ -7298,7 +7297,7 @@ begin
   HandlerInfo^.Name := HandlerName;
 end;
 
-procedure TCastleSceneCore.ExecuteCompiledScript(const HandlerName: string;
+procedure TCastleSceneCore.ExecuteCompiledScript(const HandlerName: String;
   ReceivedValue: TX3DField);
 var
   I: Integer;
@@ -7315,8 +7314,8 @@ end;
 
 function TCastleSceneCore.NavigationTypeFromNavigationInfo: TNavigationType;
 
-  function StringToNavigationType(const S: string;
-    out NavigationType: TNavigationType): boolean;
+  function StringToNavigationType(const S: String;
+    out NavigationType: TNavigationType): Boolean;
   begin
     Result := false;
     if S = 'WALK' then
@@ -7459,7 +7458,7 @@ end;
 
 procedure TCastleSceneCore.InternalUpdateCamera(const ACamera: TCastleCamera;
   const WorldBox: TBox3D;
-  const RelativeCameraTransform, AllowTransitionAnimate: boolean);
+  const RelativeCameraTransform, AllowTransitionAnimate: Boolean);
 var
   APosition: TVector3;
   ADirection: TVector3;
@@ -7563,10 +7562,10 @@ end;
 procedure TCastleSceneCore.CameraTransition(const Camera: TCastleCamera;
   const APosition, ADirection, AUp: TVector3);
 var
-  TransitionAnimate: boolean;
+  TransitionAnimate: Boolean;
   TransitionTime: TFloatTime;
   NavigationNode: TNavigationInfoNode;
-  TransitionType: string;
+  TransitionType: String;
   I: Integer;
 begin
   NavigationNode := NavigationInfoStack.Top;
@@ -7671,7 +7670,7 @@ end;
 
 function TCastleSceneCore.SearchMainLightForShadows(
   Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-  ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
+  ParentInfo: PTraversingInfo; var TraverseIntoChildren: Boolean): Pointer;
 var
   L: TAbstractPunctualLightNode absolute Node;
 begin
@@ -7705,7 +7704,7 @@ begin
 end;
 
 function TCastleSceneCore.InternalMainLightForShadows(
-  out AMainLightPosition: TVector4): boolean;
+  out AMainLightPosition: TVector4): Boolean;
 begin
   ValidateMainLightForShadows;
   Result := FMainLightForShadowsExists;
@@ -7713,7 +7712,7 @@ begin
     AMainLightPosition := FMainLightForShadows;
 end;
 
-procedure TCastleSceneCore.SetHeadlightOn(const Value: boolean);
+procedure TCastleSceneCore.SetHeadlightOn(const Value: Boolean);
 begin
   if FHeadlightOn <> Value then
   begin
@@ -7751,7 +7750,7 @@ begin
 end;
 
 procedure TCastleSceneCore.PrepareResources(const Options: TPrepareResourcesOptions;
-  const ProgressStep: boolean; const Params: TPrepareParams);
+  const ProgressStep: Boolean; const Params: TPrepareParams);
 
   { PrepareShapesOctrees and PrepareShadowVolumes could be optimized
     into one run }
@@ -7795,7 +7794,7 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.SetShadowMaps(const Value: boolean);
+procedure TCastleSceneCore.SetShadowMaps(const Value: Boolean);
 begin
   if FShadowMaps <> Value then
   begin
@@ -7820,7 +7819,7 @@ begin
   end;
 end;
 
-function TCastleSceneCore.Caption: string;
+function TCastleSceneCore.Caption: String;
 var
   WorldInfoNode: TWorldInfoNode;
 begin
@@ -7831,7 +7830,7 @@ begin
     Result := URICaption(URL);
 end;
 
-function TCastleSceneCore.Node(const NodeName: string): TX3DNode;
+function TCastleSceneCore.Node(const NodeName: String): TX3DNode;
 begin
   if RootNode = nil then
     raise EX3DNotFound.CreateFmt('Cannot find node "%s"', [NodeName])
@@ -7839,14 +7838,14 @@ begin
     Result := RootNode.FindNode(NodeName);
 end;
 
-function TCastleSceneCore.Field(const NodeName, FieldName: string): TX3DField;
+function TCastleSceneCore.Field(const NodeName, FieldName: String): TX3DField;
 begin
   Result := Node(NodeName).Field(FieldName);
   if Result = nil then
     raise EX3DNotFound.CreateFmt('Field name "%s" not found', [FieldName]);
 end;
 
-function TCastleSceneCore.Event(const NodeName, EventName: string): TX3DEvent;
+function TCastleSceneCore.Event(const NodeName, EventName: String): TX3DEvent;
 begin
   Result := Node(NodeName).AnyEvent(EventName);
   if Result = nil then
@@ -7867,16 +7866,16 @@ begin
   Result := FViewpointsArray.Count;
 end;
 
-function TCastleSceneCore.GetViewpointName(Idx: integer): string;
+function TCastleSceneCore.GetViewpointName(Idx: Integer): String;
 begin
   if Between(Idx, 0, FViewpointsArray.Count - 1) then
     Result := FViewpointsArray[Idx].SmartDescription else
     Result := '';
 end;
 
-procedure TCastleSceneCore.MoveToViewpoint(Idx: integer; Animated: boolean);
+procedure TCastleSceneCore.MoveToViewpoint(Idx: Integer; Animated: Boolean);
 var
-  OldForceTeleport: boolean;
+  OldForceTeleport: Boolean;
 begin
   if Between(Idx, 0, FViewpointsArray.Count - 1) then
   begin
@@ -7896,7 +7895,7 @@ begin
 end;
 
 procedure TCastleSceneCore.AddViewpointFromCamera(
-  const Navigation: TCastleNavigation; const AName: string);
+  const Navigation: TCastleNavigation; const AName: String);
 var
   APosition: TVector3;
   ADirection: TVector3;
@@ -7905,7 +7904,7 @@ var
   Version: TX3DCameraVersion;
   NewViewNode: TAbstractChildNode;
   NewViewpointNode: TAbstractViewpointNode;
-  NavigationType: string;
+  NavigationType: String;
   Walk: TCastleWalkNavigation;
   Examine: TCastleExamineNavigation;
   WalkSpeed, VisibilityLimit: Single;
@@ -7990,10 +7989,10 @@ end;
 type
   TAnimationsEnumerator = class
     //Parent: TCastleSceneCore;
-    AnimationPrefix: string;
+    AnimationPrefix: String;
     List: TStringList;
-    procedure EnumerateWithAlias(const Node: TX3DNode; const NodeName: string;
-      const Overwrite: boolean);
+    procedure EnumerateWithAlias(const Node: TX3DNode; const NodeName: String;
+      const Overwrite: Boolean);
     procedure Enumerate(Node: TX3DNode);
   end;
 
@@ -8003,9 +8002,9 @@ begin
 end;
 
 procedure TAnimationsEnumerator.EnumerateWithAlias(const Node: TX3DNode;
-  const NodeName: string; const Overwrite: boolean);
+  const NodeName: String; const Overwrite: Boolean);
 var
-  AnimationName: string;
+  AnimationName: String;
   ExistingIndex: Integer;
 begin
   if IsPrefix(AnimationPrefix, NodeName, false) then
@@ -8076,12 +8075,12 @@ begin
   end;
 end;
 
-function TCastleSceneCore.HasAnimation(const AnimationName: string): boolean;
+function TCastleSceneCore.HasAnimation(const AnimationName: String): Boolean;
 begin
   Result := FAnimationsList.IndexOf(AnimationName) <> -1;
 end;
 
-function TCastleSceneCore.AnimationTimeSensor(const AnimationName: string): TTimeSensorNode;
+function TCastleSceneCore.AnimationTimeSensor(const AnimationName: String): TTimeSensorNode;
 begin
   Result := AnimationTimeSensor(FAnimationsList.IndexOf(AnimationName));
 end;
@@ -8094,12 +8093,12 @@ begin
     Result := nil;
 end;
 
-function TCastleSceneCore.ForceAnimationPose(const AnimationName: string;
+function TCastleSceneCore.ForceAnimationPose(const AnimationName: String;
   const TimeInAnimation: TFloatTime;
   const Looping: TPlayAnimationLooping;
-  const Forward: boolean): boolean;
+  const Forward: Boolean): Boolean;
 var
-  Loop: boolean;
+  Loop: Boolean;
   TimeNode: TTimeSensorNode;
 begin
   // calculate Loop
@@ -8116,10 +8115,10 @@ begin
   Result := ForceAnimationPose(AnimationName, TimeInAnimation, Loop, Forward);
 end;
 
-function TCastleSceneCore.ForceAnimationPose(const AnimationName: string;
+function TCastleSceneCore.ForceAnimationPose(const AnimationName: String;
   const TimeInAnimation: TFloatTime;
-  const Loop: boolean;
-  const Forward: boolean): boolean;
+  const Loop: Boolean;
+  const Forward: Boolean): Boolean;
 var
   Index: Integer;
   TimeNode: TTimeSensorNode;
@@ -8155,11 +8154,11 @@ begin
   end;
 end;
 
-function TCastleSceneCore.PlayAnimation(const AnimationName: string;
+function TCastleSceneCore.PlayAnimation(const AnimationName: String;
   const Looping: TPlayAnimationLooping;
-  const Forward: boolean): boolean;
+  const Forward: Boolean): Boolean;
 var
-  Loop: boolean;
+  Loop: Boolean;
   TimeNode: TTimeSensorNode;
 begin
   // calculate Loop
@@ -8176,8 +8175,8 @@ begin
   Result := PlayAnimation(AnimationName, Loop, Forward);
 end;
 
-function TCastleSceneCore.PlayAnimation(const AnimationName: string;
-  const Loop: boolean; const Forward: boolean): boolean;
+function TCastleSceneCore.PlayAnimation(const AnimationName: String;
+  const Loop: Boolean; const Forward: Boolean): Boolean;
 var
   Params: TPlayAnimationParameters;
 begin
@@ -8193,7 +8192,7 @@ begin
 end;
 
 function TCastleSceneCore.PlayAnimation(
-  const Parameters: TPlayAnimationParameters): boolean;
+  const Parameters: TPlayAnimationParameters): Boolean;
 var
   Index: Integer;
 begin
@@ -8251,7 +8250,7 @@ end;
 procedure TCastleSceneCore.PlayingAnimationIsActive(
   Event: TX3DEvent; Value: TX3DField; const ATime: TX3DTime);
 var
-  Val: boolean;
+  Val: Boolean;
 begin
   Val := (Value as TSFBool).Value;
   if (not Val) and Assigned(PlayingAnimationStopNotification) then
@@ -8264,7 +8263,7 @@ begin
   end;
 end;
 
-function TCastleSceneCore.AnimationDuration(const AnimationName: string): TFloatTime;
+function TCastleSceneCore.AnimationDuration(const AnimationName: String): TFloatTime;
 var
   Index: Integer;
   TimeNode: TTimeSensorNode;

@@ -64,7 +64,7 @@
     { X3D field "appliedParameters". } { }
     public property FdAppliedParameters: TMFString read FFdAppliedParameters;
     { Set X3D field "appliedParameters". } { }
-    procedure SetAppliedParameters(const Value: array of string);
+    procedure SetAppliedParameters(const Value: array of String);
     { Set X3D field "appliedParameters". } { }
     procedure SetAppliedParameters(const Value: TCastleStringList);
 
@@ -164,7 +164,7 @@
 
 { TContactNode ----------------------------------------------- }
 
-procedure TContactNode.SetAppliedParameters(const Value: array of string);
+procedure TContactNode.SetAppliedParameters(const Value: array of String);
 begin
   FdAppliedParameters.Send(Value);
 end;

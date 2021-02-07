@@ -25,27 +25,27 @@ uses CastleVectors, CastleScript, CastleImages;
 type
   TCasScriptImage = class(TCasScriptValue)
   private
-    class procedure HandleImage(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleImageLoad(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleImage(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleImageLoad(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 
-    class procedure HandleImageWidth(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleImageHeight(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleImageComponents(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleImageWidth(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleImageHeight(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleImageComponents(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 
-    class procedure HandleImageGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleImageGetColor(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleImageGetAlpha(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleImageGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleImageGetColor(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleImageGetAlpha(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 
-    class procedure HandleImageSet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleImageSetColor(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleImageSetAlpha(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleImageSet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleImageSetColor(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleImageSetAlpha(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 
   private
     FValue: TCastleImage;
     procedure SetValue(const AValue: TCastleImage);
   public
-    constructor Create(const AWriteable: boolean; const AValue: TCastleImage); overload;
-    constructor Create(const AWriteable: boolean); override; overload;
+    constructor Create(const AWriteable: Boolean; const AValue: TCastleImage); overload;
+    constructor Create(const AWriteable: Boolean); override; overload;
     destructor Destroy; override;
 
     { Image value. Assigning here makes a @italic(copy) of the image. }
@@ -56,63 +56,63 @@ type
 
   TCasScriptImageFun = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptImageLoad = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptImageWidth = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptImageHeight = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptImageComponents = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptImageGet = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptImageGetColor = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptImageGetAlpha = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptImageSet = class(TCasScriptFunction)
   protected
     procedure CheckArguments; override;
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptImageSetColor = class(TCasScriptFunction)
   protected
     procedure CheckArguments; override;
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptImageSetAlpha = class(TCasScriptFunction)
   protected
     procedure CheckArguments; override;
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
 implementation
@@ -121,14 +121,14 @@ uses SysUtils, CastleUtils, CastleLog, CastleScriptVectors, CastleURIUtils;
 
 { TCasScriptImage ------------------------------------------------------------ }
 
-constructor TCasScriptImage.Create(const AWriteable: boolean; const AValue: TCastleImage);
+constructor TCasScriptImage.Create(const AWriteable: Boolean; const AValue: TCastleImage);
 begin
   Create(AWriteable);
 
   { First create a dummy empty TRGBImage in default
-    TCasScriptImage.Create(boolean) constructor, then SetValue will
+    TCasScriptImage.Create(Boolean) constructor, then SetValue will
     free it and replace with AValue copy. This is Ok --- calling
-    Create(boolean) first is safer (it's virtual, and in case
+    Create(Boolean) first is safer (it's virtual, and in case
     TCasScriptImage will have a descendant later it will be good)
     and creating/freeing temporary TRGBImage instance with zero size
     should not make a noticeable speed overhead. }
@@ -136,7 +136,7 @@ begin
   Value := AValue;
 end;
 
-constructor TCasScriptImage.Create(const AWriteable: boolean);
+constructor TCasScriptImage.Create(const AWriteable: Boolean);
 begin
   inherited;
   FValue := TRGBImage.Create(0, 0);
@@ -164,7 +164,7 @@ end;
 
 { TCasScriptImage function handlers ------------------------------------------ }
 
-class procedure TCasScriptImage.HandleImage(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptImage.HandleImage(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   Components: Int64;
   Width, Height: Cardinal;
@@ -194,9 +194,9 @@ begin
   TCasScriptImage(AResult).ValueAssigned := true;
 end;
 
-class procedure TCasScriptImage.HandleImageLoad(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptImage.HandleImageLoad(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
-  FullUrl: string;
+  FullUrl: String;
   NewImage: TCastleImage;
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptImage);
@@ -220,19 +220,19 @@ begin
   TCasScriptImage(AResult).ValueAssigned := true;
 end;
 
-class procedure TCasScriptImage.HandleImageWidth(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptImage.HandleImageWidth(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptInteger);
   TCasScriptInteger(AResult).Value := TCasScriptImage(Arguments[0]).Value.Width;
 end;
 
-class procedure TCasScriptImage.HandleImageHeight(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptImage.HandleImageHeight(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptInteger);
   TCasScriptInteger(AResult).Value := TCasScriptImage(Arguments[0]).Value.Height;
 end;
 
-class procedure TCasScriptImage.HandleImageComponents(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptImage.HandleImageComponents(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptInteger);
   TCasScriptInteger(AResult).Value := TCasScriptImage(Arguments[0]).Value.ColorComponentsCount;
@@ -240,7 +240,7 @@ end;
 
 procedure CheckImageCoords(Image: TCasScriptImage; const X, Y: Int64);
 var
-  Ok: boolean;
+  Ok: Boolean;
 begin
   Ok := Between(X, 0, Image.Value.Width  - 1) and
         Between(Y, 0, Image.Value.Height - 1);
@@ -251,7 +251,7 @@ end;
 
 procedure CheckImageColorAlphaType(Image: TCasScriptImage; Color: TCasScriptValue);
 var
-  Ok: boolean;
+  Ok: Boolean;
 begin
   case Image.Value.ColorComponentsCount of
     1: Ok := Color is TCasScriptFloat;
@@ -267,7 +267,7 @@ end;
 
 procedure CheckImageColorType(Image: TCasScriptImage; Color: TCasScriptValue);
 var
-  Ok: boolean;
+  Ok: Boolean;
 begin
   case Image.Value.ColorComponentsCount of
     1, 2: Ok := Color is TCasScriptFloat;
@@ -281,7 +281,7 @@ end;
 
 procedure CheckImageAlphaType(Image: TCasScriptImage; Color: TCasScriptValue);
 var
-  Ok: boolean;
+  Ok: Boolean;
 begin
   Ok := Color is TCasScriptFloat;
   if not Ok then
@@ -289,7 +289,7 @@ begin
       [Color.ClassName]);
 end;
 
-class procedure TCasScriptImage.HandleImageGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptImage.HandleImageGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   X, Y: Integer;
   G: PByte;
@@ -335,7 +335,7 @@ begin
   end;
 end;
 
-class procedure TCasScriptImage.HandleImageGetColor(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptImage.HandleImageGetColor(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   X, Y: Integer;
   G: PByte;
@@ -378,7 +378,7 @@ begin
   end;
 end;
 
-class procedure TCasScriptImage.HandleImageGetAlpha(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptImage.HandleImageGetAlpha(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   X, Y: Integer;
   GA: PVector2Byte;
@@ -406,7 +406,7 @@ begin
   end;
 end;
 
-class procedure TCasScriptImage.HandleImageSet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptImage.HandleImageSet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   X, Y: Integer;
   G: PByte;
@@ -454,7 +454,7 @@ begin
   TCasScriptImage(Arguments[0]).ValueAssigned := true;
 end;
 
-class procedure TCasScriptImage.HandleImageSetColor(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptImage.HandleImageSetColor(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   X, Y: Integer;
   G: PByte;
@@ -500,7 +500,7 @@ begin
   TCasScriptImage(Arguments[0]).ValueAssigned := true;
 end;
 
-class procedure TCasScriptImage.HandleImageSetAlpha(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptImage.HandleImageSetAlpha(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   X, Y: Integer;
   GA: PVector2Byte;
@@ -537,47 +537,47 @@ end;
 
 { Functions ------------------------------------------------------------------ }
 
-class function TCasScriptImageFun.ShortName: string;
+class function TCasScriptImageFun.ShortName: String;
 begin
   Result := 'image';
 end;
 
-class function TCasScriptImageLoad.ShortName: string;
+class function TCasScriptImageLoad.ShortName: String;
 begin
   Result := 'image_load';
 end;
 
-class function TCasScriptImageGet.ShortName: string;
+class function TCasScriptImageGet.ShortName: String;
 begin
   Result := 'image_get';
 end;
 
-class function TCasScriptImageWidth.ShortName: string;
+class function TCasScriptImageWidth.ShortName: String;
 begin
   Result := 'image_width';
 end;
 
-class function TCasScriptImageHeight.ShortName: string;
+class function TCasScriptImageHeight.ShortName: String;
 begin
   Result := 'image_height';
 end;
 
-class function TCasScriptImageComponents.ShortName: string;
+class function TCasScriptImageComponents.ShortName: String;
 begin
   Result := 'image_components';
 end;
 
-class function TCasScriptImageGetColor.ShortName: string;
+class function TCasScriptImageGetColor.ShortName: String;
 begin
   Result := 'image_get_color';
 end;
 
-class function TCasScriptImageGetAlpha.ShortName: string;
+class function TCasScriptImageGetAlpha.ShortName: String;
 begin
   Result := 'image_get_alpha';
 end;
 
-class function TCasScriptImageSet.ShortName: string;
+class function TCasScriptImageSet.ShortName: String;
 begin
   Result := 'image_set';
 end;
@@ -590,7 +590,7 @@ begin
     raise ECasScriptFunctionArgumentsError.Create('First argument of "image_set" function is not a writeable operand');
 end;
 
-class function TCasScriptImageSetColor.ShortName: string;
+class function TCasScriptImageSetColor.ShortName: String;
 begin
   Result := 'image_set_color';
 end;
@@ -603,7 +603,7 @@ begin
     raise ECasScriptFunctionArgumentsError.Create('First argument of "image_set_color" function is not a writeable operand');
 end;
 
-class function TCasScriptImageSetAlpha.ShortName: string;
+class function TCasScriptImageSetAlpha.ShortName: String;
 begin
   Result := 'image_set_alpha';
 end;

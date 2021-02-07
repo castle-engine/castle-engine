@@ -80,8 +80,8 @@
     FCaption: String;
     procedure SetCaption(const Value: String);
   private
-    FEnabled: boolean;
-    procedure SetEnabled(Value: boolean);
+    FEnabled: Boolean;
+    procedure SetEnabled(Value: Boolean);
   public
     constructor Create(const ACaption: String);
 
@@ -111,7 +111,7 @@
       gtk_menu_item_new_with_mnemonic. }
     property Caption: String read FCaption write SetCaption;
 
-    property Enabled: boolean read FEnabled write SetEnabled
+    property Enabled: Boolean read FEnabled write SetEnabled
       default true;
   end;
 
@@ -157,7 +157,7 @@
 
       @unorderedList(
         @item(TMenuItemRadio.Caption will be set to the Items[I]
-          string. Additionally it will be quoted by SQuoteMenuEntryCaption
+          String. Additionally it will be quoted by SQuoteMenuEntryCaption
           to avoid interpreting underscore characters (if QuoteCaption).)
 
         @item(TMenuItemRadio.IntData will be set to BaseIntData + the number
@@ -181,9 +181,9 @@
       We return the newly created TMenuItemRadioGroup.
       If Items is empty, this does nothing and returns @nil.
     }
-    function AppendRadioGroup(const Items: array of string;
+    function AppendRadioGroup(const Items: array of String;
       BaseIntData: Cardinal; SelectedIndex: Integer;
-      AAutoCheckedToggle: boolean; QuoteCaption: boolean = true): TMenuItemRadioGroup;
+      AAutoCheckedToggle: Boolean; QuoteCaption: Boolean = true): TMenuItemRadioGroup;
   end;
 
   { TMenuEntry that is a simple, clickable menu item.
@@ -230,7 +230,7 @@
       the context of the window that the clicked menu belongs to.
 
       Default implementation of this method in this class always returns false. }
-    function DoClick: boolean; virtual;
+    function DoClick: Boolean; virtual;
 
     { Key shortcut for this menu item.
 
@@ -293,18 +293,18 @@
       to work reliably. Don't change this property afterwards. }
     property Modifiers: TModifierKeys read FModifiers write FModifiers;
 
-    { Returns as S the string that describes key shortcut
+    { Returns as S the String that describes key shortcut
       (@link(KeyString), @link(Key), @link(Modifiers)) and then returns true.
       If KeyString = '' and Key = keyNone then returns false and
       S is undefined. }
-    function KeyToString(out S: string): boolean;
+    function KeyToString(out S: String): Boolean;
 
     function KeyMatches(const AKey: TKey; const AKeyString: String;
-      const AModifiers: TModifierKeys): boolean;
+      const AModifiers: TModifierKeys): Boolean;
 
     { Caption with optional key description (returned by KeyString)
       appended. }
-    function CaptionWithKey: string;
+    function CaptionWithKey: String;
 
     constructor Create(const ACaption: String; AIntData: Integer);
     constructor Create(const ACaption: String; AIntData: Integer; AKeyString: String);
@@ -323,11 +323,11 @@
   { TMenuItem that should visualize Checked state somehow to the user. }
   TMenuItemChecked = class(TMenuItem)
   private
-    FChecked: boolean;
-    FAutoCheckedToggle: boolean;
+    FChecked: Boolean;
+    FAutoCheckedToggle: Boolean;
   protected
     { Called when Checked property is assigned. }
-    procedure SetChecked(Value: boolean); virtual;
+    procedure SetChecked(Value: Boolean); virtual;
 
     { Called from DoClick when AutoCheckedToggle is @true.
       It's supposed to actually implement the AutoCheckedToggle behavior.
@@ -336,23 +336,23 @@
       (i.e. not calling "inherited") in TMenuItemRadio descendant. }
     procedure DoAutoCheckedToggle; virtual;
   public
-    property Checked: boolean read FChecked write SetChecked;
+    property Checked: Boolean read FChecked write SetChecked;
 
     { If @true then each time user chooses this menu item,
       @link(Checked) is changed to @code(not Checked). }
-    property AutoCheckedToggle: boolean read FAutoCheckedToggle
+    property AutoCheckedToggle: Boolean read FAutoCheckedToggle
       write FAutoCheckedToggle;
 
     { Overriden to handle AutoCheckedToggle. In this class,
       DoClick still returns false (like in ancestor class). }
-    function DoClick: boolean; override;
+    function DoClick: Boolean; override;
 
     constructor Create(const ACaption: String; AIntData: Integer;
-      AChecked, AAutoCheckedToggle: boolean);
+      AChecked, AAutoCheckedToggle: Boolean);
     constructor Create(const ACaption: String; AIntData: Integer; const AKeyString: String;
-      AChecked, AAutoCheckedToggle: boolean);
+      AChecked, AAutoCheckedToggle: Boolean);
     constructor Create(const ACaption: String; AIntData: Integer; AKey: TKey;
-      AChecked, AAutoCheckedToggle: boolean);
+      AChecked, AAutoCheckedToggle: Boolean);
   end;
 
   { Menu radio item. Similar to TMenuItemChecked, but it belongs to a group and
@@ -371,15 +371,15 @@
     procedure SetGroup(Value: TMenuItemRadioGroup);
     procedure CreateCommon;
   protected
-    procedure SetChecked(Value: boolean); override;
+    procedure SetChecked(Value: Boolean); override;
     procedure DoAutoCheckedToggle; override;
   public
     constructor Create(const ACaption: String; AIntData: Integer;
-      AChecked, AAutoCheckedToggle: boolean);
+      AChecked, AAutoCheckedToggle: Boolean);
     constructor Create(const ACaption: String; AIntData: Integer; const AKeyString: String;
-      AChecked, AAutoCheckedToggle: boolean);
+      AChecked, AAutoCheckedToggle: Boolean);
     constructor Create(const ACaption: String; AIntData: Integer; AKey: TKey;
-      AChecked, AAutoCheckedToggle: boolean);
+      AChecked, AAutoCheckedToggle: Boolean);
 
     destructor Destroy; override;
 
@@ -433,13 +433,13 @@
       If there is no previous item, but still @link(Selected) <> nil,
       return @link(Selected).
       Only when there's no @link(Selected) item, returns @false. }
-    function Previous(out Item: TMenuItemRadio): boolean;
+    function Previous(out Item: TMenuItemRadio): Boolean;
 
     { Return next (from @link(Selected)) menu item in this group.
       If there is no next item, but still @link(Selected) <> nil,
       return @link(Selected).
       Only when there's no @link(Selected) item, returns @false. }
-    function Next(out Item: TMenuItemRadio): boolean;
+    function Next(out Item: TMenuItemRadio): Boolean;
 
     (* procedure DebugWriteln; *)
   end;
@@ -453,8 +453,8 @@
 
     So you can just add it to your menu, and forget about it. }
   TMenuItemToggleFullScreen = class(TMenuItemChecked)
-    constructor Create(const InitialFullScreen: boolean);
-    function DoClick: boolean; override;
+    constructor Create(const InitialFullScreen: Boolean);
+    function DoClick: Boolean; override;
   end;
 
 {$endif read_interface}
@@ -471,7 +471,7 @@ function MenuItemFromSmallId(SearchSmallId: Integer): TMenuItem;
 
   In other words: with mnemonics (as defined by
   @link(TMenuEntryWithCaption.Caption) removed. }
-function SRemoveMnemonics(const S: string): string;
+function SRemoveMnemonics(const S: String): String;
 
 { Returns S with each underscore '_' replaced by two underscores, '__'.
 
@@ -480,7 +480,7 @@ function SRemoveMnemonics(const S: string): string;
   then this menu entry caption will display exactly S,
   without any mnemonics. Single '_' in S will be displayed exactly
   as single '_'. }
-function SQuoteMenuEntryCaption(const S: string): string;
+function SQuoteMenuEntryCaption(const S: String): String;
 
 {$endif read_interface_2}
 
@@ -581,7 +581,7 @@ begin
   if (P <> nil) and (not P.Closed) then P.MenuUpdateCaption(Self);
 end;
 
-procedure TMenuEntryWithCaption.SetEnabled(Value: boolean);
+procedure TMenuEntryWithCaption.SetEnabled(Value: Boolean);
 var
   P: TCastleWindowBase;
 begin
@@ -690,13 +690,13 @@ begin
   MenuUpdateEnd;
 end;
 
-function TMenu.AppendRadioGroup(const Items: array of string;
+function TMenu.AppendRadioGroup(const Items: array of String;
   BaseIntData: Cardinal; SelectedIndex: Integer;
-  AAutoCheckedToggle: boolean; QuoteCaption: boolean): TMenuItemRadioGroup;
+  AAutoCheckedToggle: Boolean; QuoteCaption: Boolean): TMenuItemRadioGroup;
 var
   Radio: TMenuItemRadio;
   I: Integer;
-  S: string;
+  S: String;
 begin
   Result := nil;
   for I := 0 to High(Items) do
@@ -740,18 +740,18 @@ begin
     KeyString := AValue;
 end;
 
-function TMenuItem.DoClick: boolean;
+function TMenuItem.DoClick: Boolean;
 begin
  Result := false;
 end;
 
-function TMenuItem.KeyToString(out S: string): boolean;
+function TMenuItem.KeyToString(out S: String): Boolean;
 begin
   Result := CastleWindow.KeyToString(KeyString, Key, Modifiers, S);
 end;
 
 function TMenuItem.KeyMatches(const AKey: TKey; const AKeyString: String;
-  const AModifiers: TModifierKeys): boolean;
+  const AModifiers: TModifierKeys): Boolean;
 begin
   { AModifiers (currently pressed) must be a superset of required Modifiers. }
   if not (AModifiers >= Modifiers) then
@@ -772,8 +772,8 @@ begin
       ( (AKeyString <> '') and (KeyString = AKeyString) );
 end;
 
-function TMenuItem.CaptionWithKey: string;
-var KeyStr: string;
+function TMenuItem.CaptionWithKey: String;
+var KeyStr: String;
 begin
  Result := Caption;
  if KeyToString(KeyStr) then
@@ -840,7 +840,7 @@ begin
   Checked := not Checked;
 end;
 
-function TMenuItemChecked.DoClick: boolean;
+function TMenuItemChecked.DoClick: Boolean;
 begin
  if inherited DoClick then Exit(true);
 
@@ -850,7 +850,7 @@ begin
  Result := false;
 end;
 
-procedure TMenuItemChecked.SetChecked(Value: boolean);
+procedure TMenuItemChecked.SetChecked(Value: Boolean);
 var
   P: TCastleWindowBase;
 begin
@@ -864,7 +864,7 @@ begin
 end;
 
 constructor TMenuItemChecked.Create(const ACaption: String; AIntData: Integer;
-  AChecked, AAutoCheckedToggle: boolean);
+  AChecked, AAutoCheckedToggle: Boolean);
 begin
  inherited Create(ACaption, AIntData);
  FChecked := AChecked;
@@ -873,7 +873,7 @@ end;
 
 constructor TMenuItemChecked.Create(const ACaption: String; AIntData: Integer;
   const AKeyString: String;
-  AChecked, AAutoCheckedToggle: boolean);
+  AChecked, AAutoCheckedToggle: Boolean);
 begin
  inherited Create(ACaption, AIntData, AKeyString);
  FChecked := AChecked;
@@ -882,7 +882,7 @@ end;
 
 constructor TMenuItemChecked.Create(const ACaption: String; AIntData: Integer;
   AKey: TKey;
-  AChecked, AAutoCheckedToggle: boolean);
+  AChecked, AAutoCheckedToggle: Boolean);
 begin
  inherited Create(ACaption, AIntData, AKey);
  FChecked := AChecked;
@@ -892,7 +892,7 @@ end;
 { TMenuItemRadio ------------------------------------------------------------- }
 
 constructor TMenuItemRadio.Create(const ACaption: String; AIntData: Integer;
-  AChecked, AAutoCheckedToggle: boolean);
+  AChecked, AAutoCheckedToggle: Boolean);
 begin
   inherited;
   CreateCommon;
@@ -900,7 +900,7 @@ end;
 
 constructor TMenuItemRadio.Create(const ACaption: String; AIntData: Integer;
   const AKeyString: String;
-  AChecked, AAutoCheckedToggle: boolean);
+  AChecked, AAutoCheckedToggle: Boolean);
 begin
   inherited;
   CreateCommon;
@@ -908,7 +908,7 @@ end;
 
 constructor TMenuItemRadio.Create(const ACaption: String; AIntData: Integer;
   AKey: TKey;
-  AChecked, AAutoCheckedToggle: boolean);
+  AChecked, AAutoCheckedToggle: Boolean);
 begin
   inherited;
   CreateCommon;
@@ -934,7 +934,7 @@ begin
   Value.Add(Self);
 end;
 
-procedure TMenuItemRadio.SetChecked(Value: boolean);
+procedure TMenuItemRadio.SetChecked(Value: Boolean);
 begin
   { MenuUpdateChecked inside inherited here is only for this menu item.
     Later Group.SetSelected takes care to notify about the changes
@@ -998,7 +998,7 @@ procedure TMenuItemRadioGroup.SetSelected(Value: TMenuItemRadio);
 var
   I: Integer;
   Item: TMenuItemRadio;
-  CheckedFast, SelectedFound: boolean;
+  CheckedFast, SelectedFound: Boolean;
   P: TCastleWindowBase;
 begin
   { When count is 0, we have no items belonging to our group.
@@ -1078,7 +1078,7 @@ begin
     Result := -1;
 end;
 
-function TMenuItemRadioGroup.Previous(out Item: TMenuItemRadio): boolean;
+function TMenuItemRadioGroup.Previous(out Item: TMenuItemRadio): Boolean;
 var
   SI: Integer;
 begin
@@ -1094,7 +1094,7 @@ begin
   end;
 end;
 
-function TMenuItemRadioGroup.Next(out Item: TMenuItemRadio): boolean;
+function TMenuItemRadioGroup.Next(out Item: TMenuItemRadio): Boolean;
 var
   SI: Integer;
 begin
@@ -1112,13 +1112,13 @@ end;
 
 { TMenuItemToggleFullScreen -------------------------------------------------- }
 
-constructor TMenuItemToggleFullScreen.Create(const InitialFullScreen: boolean);
+constructor TMenuItemToggleFullScreen.Create(const InitialFullScreen: Boolean);
 begin
   inherited Create('_Full Screen', 0, keyF11, InitialFullScreen, true);
   {$ifdef DARWIN} Modifiers := [mkCtrl]; {$endif}
 end;
 
-function TMenuItemToggleFullScreen.DoClick: boolean;
+function TMenuItemToggleFullScreen.DoClick: Boolean;
 begin
   Result := inherited;
   if not Result then
@@ -1130,7 +1130,7 @@ end;
 
 { Some useful things ---------------------------------------- }
 
-function SRemoveMnemonics(const S: string): string;
+function SRemoveMnemonics(const S: String): String;
 var SPos, ResultPos: Integer;
 begin
  { I'm utlizing here the fact that Result for sure will be
@@ -1163,7 +1163,7 @@ begin
  SetLength(Result, ResultPos - 1);
 end;
 
-function SQuoteMenuEntryCaption(const S: string): string;
+function SQuoteMenuEntryCaption(const S: String): String;
 begin
  Result := StringReplace(S, '_', '__', [rfReplaceAll]);
 end;

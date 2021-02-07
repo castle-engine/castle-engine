@@ -45,12 +45,12 @@ type
 
   @raises(EX3DGzipCompressed If the Stream starts with gzip file header.) }
 function LoadX3DClassicInternal(Stream: TPeekCharStream;
-  const BaseUrl: string): TX3DRootNode; overload;
+  const BaseUrl: String): TX3DRootNode; overload;
 
-{ Load VRML/X3D file in classic encoding from a string. Return it's root node.
+{ Load VRML/X3D file in classic encoding from a String. Return it's root node.
   @raises(EX3DGzipCompressed If the Stream is compressed with gzip.) }
-function LoadX3DClassicFromString(const VRMLContents: string;
-  const BaseUrl: string): TX3DRootNode; overload;
+function LoadX3DClassicFromString(const VRMLContents: String;
+  const BaseUrl: String): TX3DRootNode; overload;
 
 { Load VRML/X3D file in classic encoding, return it's root node.
 
@@ -63,8 +63,8 @@ function LoadX3DClassicFromString(const VRMLContents: string;
   If Gzipped then we can be relatively sure that stream is gzipped.
   Otherwise, it can still be gzipped (.wrl files are sometimes gzipped
   without extension indicating it). }
-function LoadX3DClassic(const URL: string;
-  const Gzipped: boolean): TX3DRootNode; overload;
+function LoadX3DClassic(const URL: String;
+  const Gzipped: Boolean): TX3DRootNode; overload;
 
 {$endif read_interface}
 
@@ -74,7 +74,7 @@ function LoadX3DClassic(const URL: string;
   ParseIgnoreToMatchingCurlyBracket }
 procedure ParseIgnoreToMatchingBracket(
   Lexer: TX3DLexer; Reader: TX3DReaderNames;
-  LevelSqBracket, LevelCurlyBracket: integer);
+  LevelSqBracket, LevelCurlyBracket: Integer);
 begin
   while (LevelSqBracket > 0) or
         (LevelCurlyBracket > 0) do
@@ -124,12 +124,12 @@ end;
   @raises(EX3DParserError On various parsing errors.)
 *)
 function ParseNode(Lexer: TX3DLexer; Reader: TX3DReaderNames;
-  NilIfUnresolvedUSE: boolean): TX3DNode;
+  NilIfUnresolvedUSE: Boolean): TX3DNode;
 
-  procedure ParseNamedNode(const NodeName: string);
+  procedure ParseNamedNode(const NodeName: String);
   var
     NodeClass: TX3DNodeClass;
-    X3DType: string;
+    X3DType: String;
     Proto: TX3DPrototypeBase;
   begin
     Lexer.CheckTokenIs(vtName, 'node type');
@@ -236,8 +236,8 @@ function ParseNode(Lexer: TX3DLexer; Reader: TX3DReaderNames;
   end;
 
 var
-  NodeName, S: string;
-  UsedNodeFinished: boolean;
+  NodeName, S: String;
+  UsedNodeFinished: Boolean;
 begin
   Result := nil;
   try
@@ -296,7 +296,7 @@ end;
 function ParseStatements(
   Lexer: TX3DLexer; Reader: TX3DReaderNames;
   const EndToken: TX3DToken;
-  FileTopLevel: boolean): TX3DRootNode; overload;
+  FileTopLevel: Boolean): TX3DRootNode; overload;
 var
   PositionInParent: Integer;
 
@@ -325,7 +325,7 @@ var
 
   procedure ParseComponents;
   var
-    Name: string;
+    Name: String;
     Level: Integer;
   begin
     while Lexer.TokenIsKeyword(vkCOMPONENT) do
@@ -348,7 +348,7 @@ var
 
   procedure ParseUnits;
   var
-    Category, Name: string;
+    Category, Name: String;
     ConversionFactor: Float;
   begin
     while Lexer.TokenIsKeyword(vkUNIT) do
@@ -374,7 +374,7 @@ var
 
   procedure ParseMetas;
   var
-    Key, Value: string;
+    Key, Value: String;
   begin
     if Lexer.TokenIsKeyword(vkMETA) and
        (Reader.Version.Major < 3) then
@@ -552,7 +552,7 @@ begin
 end;
 
 function LoadX3DClassicInternal(Stream: TPeekCharStream;
-  const BaseUrl: string): TX3DRootNode;
+  const BaseUrl: String): TX3DRootNode;
 var
   Lexer: TX3DLexer;
   Reader: TX3DReaderNames;
@@ -567,11 +567,11 @@ begin
   finally FreeAndNil(Lexer) end;
 end;
 
-function LoadX3DClassic(const URL: string;
-  const Gzipped: boolean): TX3DRootNode;
+function LoadX3DClassic(const URL: String;
+  const Gzipped: Boolean): TX3DRootNode;
 
-  function DoIt(BaseStream: TStream; const FreeBaseStream: boolean;
-    const BaseUrl: string): TX3DRootNode;
+  function DoIt(BaseStream: TStream; const FreeBaseStream: Boolean;
+    const BaseUrl: String): TX3DRootNode;
   var
     Stream: TPeekCharStream;
   begin
@@ -582,7 +582,7 @@ function LoadX3DClassic(const URL: string;
   end;
 
 var
-  BaseUrl: string;
+  BaseUrl: String;
 begin
   BaseUrl := AbsoluteURI(URL);
 
@@ -612,8 +612,8 @@ begin
   end;
 end;
 
-function LoadX3DClassicFromString(const VRMLContents: string;
-  const BaseUrl: string): TX3DRootNode; overload;
+function LoadX3DClassicFromString(const VRMLContents: String;
+  const BaseUrl: String): TX3DRootNode; overload;
 var
   Stream: TPeekCharStream;
 begin

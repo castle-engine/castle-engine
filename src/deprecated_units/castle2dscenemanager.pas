@@ -81,7 +81,7 @@ type
 
       In all cases, CurrentProjectionWidth and CurrentProjectionHeight
       can be checked to see actual projection dimensions. }
-    property ProjectionAutoSize: boolean
+    property ProjectionAutoSize: Boolean
       read GetProjectionAutoSize write SetProjectionAutoSize default true;
       deprecated 'use Camera.Orthographic.Width and Height; only when both are zero, it is auto-sized';
     property ProjectionHeight: Single
@@ -119,7 +119,7 @@ type
           to the left-bottom corner.)
       )
     }
-    property ProjectionOriginCenter: boolean
+    property ProjectionOriginCenter: Boolean
       read GetProjectionOriginCenter write SetProjectionOriginCenter default false;
       deprecated 'use Camera.Orthographic.Origin';
   end deprecated 'use TCastleViewport. To have the same initial behavior call Setup2D method, and set FullSize:=true';

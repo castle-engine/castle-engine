@@ -61,7 +61,7 @@ type
 
   Always TimeTickSecond(X, X, 0) = @true. that is, when both times
   are actually equal, it's correctly "later by zero miliseconds". }
-function TimeTickSecondLater(const FirstTime, SecondTime, TimeDelay: TMilisecTime): boolean;
+function TimeTickSecondLater(const FirstTime, SecondTime, TimeDelay: TMilisecTime): Boolean;
   deprecated 'to measure time, better use Timer + TimerSeconds or ProcessTimer + ProcessTimerSeconds';
 
 { Difference in times between SecondTime and FirstTime.
@@ -93,14 +93,14 @@ function MilisecTimesSubtract(const t1, t2: TMilisecTime): TMilisecTime;
 const
   MinDateTime: TDateTime = MinDouble;
 
-{ Convert DateTime to string in the form "date at time". }
-function DateTimeToAtStr(const DateTime: TDateTime): string;
+{ Convert DateTime to String in the form "date at time". }
+function DateTimeToAtStr(const DateTime: TDateTime): String;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-function TimeTickSecondLater(const FirstTime, SecondTime, TimeDelay: TMilisecTime): boolean;
+function TimeTickSecondLater(const FirstTime, SecondTime, TimeDelay: TMilisecTime): Boolean;
 var
   SecondTimeMinusDelay: Int64;
 begin
@@ -140,7 +140,7 @@ function MilisecTimesSubtract(const t1, t2: TMilisecTime): TMilisecTime;
 begin result := t1-t2 end;
 {$I norqcheckend.inc}
 
-function DateTimeToAtStr(const DateTime: TDateTime): string;
+function DateTimeToAtStr(const DateTime: TDateTime): String;
 begin
   Result := FormatDateTime('yyyy"-"mm"-"dd" at "tt', DateTime);
 end;

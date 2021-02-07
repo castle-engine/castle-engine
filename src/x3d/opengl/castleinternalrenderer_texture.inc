@@ -29,11 +29,11 @@
       (possibly in RenderOptions). }
     procedure HandleTextureProperties(
       TextureProperties: TTexturePropertiesNode;
-      out Filter: TTextureFilter; out Anisotropy: TGLfloat; out GUITexture: boolean);
+      out Filter: TTextureFilter; out Anisotropy: TGLfloat; out GUITexture: Boolean);
 
     { Decide if this class can handle given texture Node. }
     class function IsClassForTextureNode(
-      ANode: TAbstractTextureNode): boolean; virtual; abstract;
+      ANode: TAbstractTextureNode): Boolean; virtual; abstract;
 
     { Do the time-consuming preparations before rendering this texture.
       Called from TGLRenderer.Prepare, always through our
@@ -69,7 +69,7 @@
       Just like Enable, returns @false when texture node was not successfully
       prepared for OpenGL. Returns @true when it was successfully bound
       (caller can be sure then that given texture unit is currently active). }
-    function Bind(const TextureUnit: Cardinal): boolean; virtual; abstract;
+    function Bind(const TextureUnit: Cardinal): Boolean; virtual; abstract;
 
     { Enables texture for OpenGL. This has to bind texture identifier
       and enable proper texture state (for example:
@@ -90,7 +90,7 @@
       It's also already enabled (by glEnable(GL_TEXTURE_2D /
       GL_TEXTURE_CUBE_MAP / GL_TEXTURE_3D) ). }
     function Enable(const TextureUnit: Cardinal;
-      Shader: TShader; const Env: TTextureEnv): boolean; virtual; abstract;
+      Shader: TShader; const Env: TTextureEnv): Boolean; virtual; abstract;
 
     { Sets texture state for many texture units, based on this node.
       On every texture unit where something is enabled,
@@ -164,14 +164,14 @@
       If no texture renderer is prepared for this node,
       returns @false. }
     function Bind(ANode: TAbstractTextureNode;
-      const TextureUnit: Cardinal): boolean;
+      const TextureUnit: Cardinal): Boolean;
 
     { Enable and bind texture node. Calls TGLTextureNode.Enable method.
       If no texture renderer is prepared for this node,
       returns @false. }
     function Enable(ANode: TAbstractTextureNode;
       const TextureUnit: Cardinal;
-      Shader: TShader; const Env: TTextureEnv): boolean;
+      Shader: TShader; const Env: TTextureEnv): Boolean;
   end;
 
   { Common class for all single (not multi-texture) texture nodes.
@@ -185,7 +185,7 @@
       (latest possibility is to set this is a successful Enable call,
       but usually you want to do it in a Prepare call).
       You can set it by SetTextureRGBFromImage. }
-    TextureRGB: boolean;
+    TextureRGB: Boolean;
     procedure SetTextureRGBFromImage(Image: TEncodedImage);
   public
     procedure EnableAll(const TextureUnitsCount: Cardinal;
@@ -201,7 +201,7 @@
   private
     PreparedTextureChildren: TX3DNodeList;
   protected
-    class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
+    class function IsClassForTextureNode(ANode: TAbstractTextureNode): Boolean; override;
     procedure PrepareCore(State: TX3DGraphTraverseState); override;
   public
     { ANode must be TMultiTextureNode }
@@ -211,9 +211,9 @@
     function TextureNode: TMultiTextureNode;
 
     procedure Unprepare; override;
-    function Bind(const TextureUnit: Cardinal): boolean; override;
+    function Bind(const TextureUnit: Cardinal): Boolean; override;
     function Enable(const TextureUnit: Cardinal;
-      Shader: TShader; const Env: TTextureEnv): boolean; override;
+      Shader: TShader; const Env: TTextureEnv): Boolean; override;
     procedure EnableAll(const TextureUnitsCount: Cardinal;
       var TextureSlotsUsed: Cardinal; Shader: TShader); override;
   end;
@@ -231,7 +231,7 @@
   strict private
     FGLName: TGLuint;
   protected
-    class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
+    class function IsClassForTextureNode(ANode: TAbstractTextureNode): Boolean; override;
     procedure PrepareCore(State: TX3DGraphTraverseState); override;
   public
     NormalMap, HeightMap: TGLuint;
@@ -240,15 +240,15 @@
     function TextureNode: TAbstractTexture2DNode;
 
     procedure Unprepare; override;
-    function Bind(const TextureUnit: Cardinal): boolean; override;
+    function Bind(const TextureUnit: Cardinal): Boolean; override;
     function Enable(const TextureUnit: Cardinal;
-      Shader: TShader; const Env: TTextureEnv): boolean; override;
+      Shader: TShader; const Env: TTextureEnv): Boolean; override;
     function GLName: TGLTextureId; override;
   end;
 
   TGLMovieTextureNode = class(TGL2DTextureNode)
   protected
-    class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
+    class function IsClassForTextureNode(ANode: TAbstractTextureNode): Boolean; override;
     procedure PrepareCore(State: TX3DGraphTraverseState); override;
   public
     GLVideo: TGLVideo3D;
@@ -256,9 +256,9 @@
     function TextureNode: TMovieTextureNode;
 
     procedure Unprepare; override;
-    function Bind(const TextureUnit: Cardinal): boolean; override;
+    function Bind(const TextureUnit: Cardinal): Boolean; override;
     function Enable(const TextureUnit: Cardinal;
-      Shader: TShader; const Env: TTextureEnv): boolean; override;
+      Shader: TShader; const Env: TTextureEnv): Boolean; override;
     function GLName: TGLTextureId; override;
   end;
 
@@ -267,27 +267,27 @@
     FGLName: TGLuint;
     RenderToTexture: TGLRenderToTexture;
   protected
-    class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
+    class function IsClassForTextureNode(ANode: TAbstractTextureNode): Boolean; override;
     procedure PrepareCore(State: TX3DGraphTraverseState); override;
   public
     { The actual decided image size and mipmap status. }
     Width, Height: Cardinal;
-    NeedsMipmaps: boolean;
-    DepthMap: boolean;
+    NeedsMipmaps: Boolean;
+    DepthMap: Boolean;
 
     function TextureNode: TRenderedTextureNode;
 
     procedure Unprepare; override;
-    function Bind(const TextureUnit: Cardinal): boolean; override;
+    function Bind(const TextureUnit: Cardinal): Boolean; override;
     function Enable(const TextureUnit: Cardinal;
-      Shader: TShader; const Env: TTextureEnv): boolean; override;
+      Shader: TShader; const Env: TTextureEnv): Boolean; override;
     function GLName: TGLTextureId; override;
 
     procedure Update(
       const Render: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
       const CurrentViewpoint: TAbstractViewpointNode;
-      const CameraViewKnown: boolean;
+      const CameraViewKnown: Boolean;
       const CameraPosition, CameraDirection, CameraUp: TVector3;
       const ShapeBoundingBox: TBox3D;
       const GeometryTransform: TMatrix4;
@@ -307,14 +307,14 @@
       TextureCubeMap_IncReference. }
     procedure Unprepare; override;
 
-    function Bind(const TextureUnit: Cardinal): boolean; override;
+    function Bind(const TextureUnit: Cardinal): Boolean; override;
     function Enable(const TextureUnit: Cardinal;
-      Shader: TShader; const Env: TTextureEnv): boolean; override;
+      Shader: TShader; const Env: TTextureEnv): Boolean; override;
   end;
 
   TGLComposedCubeMapTextureNode = class(TGLCubeMapTextureNode)
   protected
-    class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
+    class function IsClassForTextureNode(ANode: TAbstractTextureNode): Boolean; override;
     procedure PrepareCore(State: TX3DGraphTraverseState); override;
   public
     function TextureNode: TComposedCubeMapTextureNode;
@@ -322,7 +322,7 @@
 
   TGLImageCubeMapTextureNode = class(TGLCubeMapTextureNode)
   protected
-    class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
+    class function IsClassForTextureNode(ANode: TAbstractTextureNode): Boolean; override;
     procedure PrepareCore(State: TX3DGraphTraverseState); override;
   public
     function TextureNode: TImageCubeMapTextureNode;
@@ -332,7 +332,7 @@
   private
     RenderToTexture: TGLRenderToTexture;
   protected
-    class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
+    class function IsClassForTextureNode(ANode: TAbstractTextureNode): Boolean; override;
     procedure PrepareCore(State: TX3DGraphTraverseState); override;
   public
     { The right size of the texture,
@@ -341,7 +341,7 @@
     Size: Cardinal;
 
     { Does Filter need mipmaps. }
-    NeedsMipmaps: boolean;
+    NeedsMipmaps: Boolean;
 
     function TextureNode: TGeneratedCubeMapTextureNode;
 
@@ -355,7 +355,7 @@
 
   TGL3DTextureNode = class(TGLSingleTextureNode)
   protected
-    class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
+    class function IsClassForTextureNode(ANode: TAbstractTextureNode): Boolean; override;
     procedure PrepareCore(State: TX3DGraphTraverseState); override;
   public
     GLName: TGLuint;
@@ -363,20 +363,20 @@
     function TextureNode: TAbstractTexture3DNode;
 
     procedure Unprepare; override;
-    function Bind(const TextureUnit: Cardinal): boolean; override;
+    function Bind(const TextureUnit: Cardinal): Boolean; override;
     function Enable(const TextureUnit: Cardinal;
-      Shader: TShader; const Env: TTextureEnv): boolean; override;
+      Shader: TShader; const Env: TTextureEnv): Boolean; override;
   end;
 
   TGLGeneratedShadowMap = class(TGL2DTextureNode)
   strict private
     RenderToTexture: TGLRenderToTexture;
     { VarianceShadowMaps calculated at the PrepareCore time. }
-    VarianceShadowMaps: boolean;
-    NeedsMipmaps: boolean;
+    VarianceShadowMaps: Boolean;
+    NeedsMipmaps: Boolean;
     FGLName: TGLuint;
   protected
-    class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
+    class function IsClassForTextureNode(ANode: TAbstractTextureNode): Boolean; override;
     procedure PrepareCore(State: TX3DGraphTraverseState); override;
   public
     { The right size of the texture,
@@ -385,14 +385,14 @@
 
     { Do we visualize depth map, because of RenderOptions.VisualizeDepthMap
       or compareMode = NONE. }
-    VisualizeDepthMap: boolean;
+    VisualizeDepthMap: Boolean;
 
     function TextureNode: TGeneratedShadowMapNode;
 
     procedure Unprepare; override;
-    function Bind(const TextureUnit: Cardinal): boolean; override;
+    function Bind(const TextureUnit: Cardinal): Boolean; override;
     function Enable(const TextureUnit: Cardinal;
-      Shader: TShader; const Env: TTextureEnv): boolean; override;
+      Shader: TShader; const Env: TTextureEnv): Boolean; override;
     function GLName: TGLTextureId; override;
 
     procedure Update(
@@ -402,19 +402,19 @@
 
     { Check would we use Variance Shadow Maps with current ARenderer
       attributes and OpenGL version/extensions. }
-    class function ClassVarianceShadowMaps(RenderOptions: TCastleRenderOptions): boolean;
+    class function ClassVarianceShadowMaps(RenderOptions: TCastleRenderOptions): Boolean;
   end;
 
   TGLShaderTexture = class(TGLSingleTextureNode)
   protected
-    class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
+    class function IsClassForTextureNode(ANode: TAbstractTextureNode): Boolean; override;
     procedure PrepareCore(State: TX3DGraphTraverseState); override;
   public
     function TextureNode: TShaderTextureNode;
     procedure Unprepare; override;
-    function Bind(const TextureUnit: Cardinal): boolean; override;
+    function Bind(const TextureUnit: Cardinal): Boolean; override;
     function Enable(const TextureUnit: Cardinal;
-      Shader: TShader; const Env: TTextureEnv): boolean; override;
+      Shader: TShader; const Env: TTextureEnv): Boolean; override;
   end;
 
 {$endif read_interface}
@@ -428,7 +428,7 @@ const
     GL_INTERPOLATE_EXT, GL_DOT3_RGB_ARB, GL_DOT3_RGBA_ARB );
 {$endif}
 
-function TextureRepeatToGL(const VrmlTextureRepeat: boolean): TGLenum;
+function TextureRepeatToGL(const VrmlTextureRepeat: Boolean): TGLenum;
 begin
   if VrmlTextureRepeat then
     Result := GL_REPEAT else
@@ -451,7 +451,7 @@ end;
 
 procedure TGLTextureNode.HandleTextureProperties(
   TextureProperties: TTexturePropertiesNode;
-  out Filter: TTextureFilter; out Anisotropy: TGLfloat; out GUITexture: boolean);
+  out Filter: TTextureFilter; out Anisotropy: TGLfloat; out GUITexture: Boolean);
 
   { Convert TAutoMinificationFilter to TMinificationFilter,
     resolving the "default"/"fastest"/"nicest" aliases to specific values. }
@@ -524,7 +524,7 @@ end;
 class function TGLTextureNode.ClassForTextureNode(
   ANode: TAbstractTextureNode): TGLTextureNodeClass;
 
-  function TryResult(C: TGLTextureNodeClass): boolean;
+  function TryResult(C: TGLTextureNodeClass): Boolean;
   begin
     Result := C.IsClassForTextureNode(ANode);
     if Result then
@@ -612,7 +612,7 @@ begin
 end;
 
 function TGLTextureNodes.Bind(ANode: TAbstractTextureNode;
-  const TextureUnit: Cardinal): boolean;
+  const TextureUnit: Cardinal): Boolean;
 var
   GLTextureNode: TGLTextureNode;
 begin
@@ -623,7 +623,7 @@ begin
 end;
 
 function TGLTextureNodes.Enable(ANode: TAbstractTextureNode;
-  const TextureUnit: Cardinal; Shader: TShader; const Env: TTextureEnv): boolean;
+  const TextureUnit: Cardinal; Shader: TShader; const Env: TTextureEnv): Boolean;
 var
   GLTextureNode: TGLTextureNode;
 begin
@@ -709,7 +709,7 @@ begin
 end;
 
 class function TGLMultiTextureNode.IsClassForTextureNode(
-  ANode: TAbstractTextureNode): boolean;
+  ANode: TAbstractTextureNode): Boolean;
 begin
   Result := ANode is TMultiTextureNode;
 end;
@@ -775,7 +775,7 @@ begin
     Renderer.GLTextureNodes.Unprepare(PreparedTextureChildren[I]);
 end;
 
-function TGLMultiTextureNode.Bind(const TextureUnit: Cardinal): boolean;
+function TGLMultiTextureNode.Bind(const TextureUnit: Cardinal): Boolean;
 begin
   { TGLMultiTextureNode cannot set only one texture unit.
     This may be called from GLSL shader, when someone will use MultiTexture
@@ -785,7 +785,7 @@ begin
 end;
 
 function TGLMultiTextureNode.Enable(const TextureUnit: Cardinal;
-  Shader: TShader; const Env: TTextureEnv): boolean;
+  Shader: TShader; const Env: TTextureEnv): Boolean;
 begin
   { This should never be called. TGLMultiTextureNode cannot set only one
     texture unit. }
@@ -804,9 +804,9 @@ var
   InitialTextureSlotsUsed: Cardinal;
   ChildTex: TX3DNode;
   I: Integer;
-  Success: boolean;
+  Success: Boolean;
   Env: TTextureEnv;
-  ModeStr, SourceStr, FunctionStr: string;
+  ModeStr, SourceStr, FunctionStr: String;
 begin
   { calculate TextureSlotsUsed }
   InitialTextureSlotsUsed := TextureSlotsUsed;
@@ -920,7 +920,7 @@ end;
 { TGLImageTextureNode -------------------------------------------------------- }
 
 class function TGLImageTextureNode.IsClassForTextureNode(
-  ANode: TAbstractTextureNode): boolean;
+  ANode: TAbstractTextureNode): Boolean;
 begin
   Result := (ANode is TAbstractTexture2DNode) and
     TAbstractTexture2DNode(ANode).IsTextureImage;
@@ -936,7 +936,7 @@ var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
   TextureWrap: TTextureWrap2D;
-  GUITexture, FlipVertically: boolean;
+  GUITexture, FlipVertically: Boolean;
 begin
   { HandledNode already made sure IsTextureImage = @true }
 
@@ -972,7 +972,7 @@ begin
   end;
 end;
 
-function TGLImageTextureNode.Bind(const TextureUnit: Cardinal): boolean;
+function TGLImageTextureNode.Bind(const TextureUnit: Cardinal): Boolean;
 begin
   Result := FGLName <> 0;
   if not Result then Exit;
@@ -982,7 +982,7 @@ begin
 end;
 
 function TGLImageTextureNode.Enable(const TextureUnit: Cardinal;
-  Shader: TShader; const Env: TTextureEnv): boolean;
+  Shader: TShader; const Env: TTextureEnv): Boolean;
 begin
   Result := Bind(TextureUnit);
   if not Result then Exit;
@@ -998,7 +998,7 @@ end;
 { TGLMovieTextureNode -------------------------------------------------------- }
 
 class function TGLMovieTextureNode.IsClassForTextureNode(
-  ANode: TAbstractTextureNode): boolean;
+  ANode: TAbstractTextureNode): Boolean;
 begin
   { Although for most code TGLMovieTextureNode, it would be enought
     to have any TAbstractTexture2DNode with IsTextureVideo = @true.
@@ -1022,7 +1022,7 @@ var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
   TextureWrap: TTextureWrap2D;
-  GUITexture: boolean;
+  GUITexture: Boolean;
 begin
   { HandledNode already made sure IsTextureVideo = @true }
 
@@ -1075,7 +1075,7 @@ begin
     Result := 0;
 end;
 
-function TGLMovieTextureNode.Bind(const TextureUnit: Cardinal): boolean;
+function TGLMovieTextureNode.Bind(const TextureUnit: Cardinal): Boolean;
 var
   N: TGLTextureId;
 begin
@@ -1089,7 +1089,7 @@ begin
 end;
 
 function TGLMovieTextureNode.Enable(const TextureUnit: Cardinal;
-  Shader: TShader; const Env: TTextureEnv): boolean;
+  Shader: TShader; const Env: TTextureEnv): Boolean;
 begin
   Result := Bind(TextureUnit);
   if not Result then Exit;
@@ -1100,7 +1100,7 @@ end;
 { TGLRenderedTextureNode ----------------------------------------------------- }
 
 class function TGLRenderedTextureNode.IsClassForTextureNode(
-  ANode: TAbstractTextureNode): boolean;
+  ANode: TAbstractTextureNode): Boolean;
 begin
   Result := ANode is TRenderedTextureNode;
 end;
@@ -1117,7 +1117,7 @@ var
   Anisotropy: TGLfloat;
   TextureWrap: TTextureWrap2D;
   NodeWidth, NodeHeight: Cardinal;
-  GUITexture: boolean;
+  GUITexture: Boolean;
   Sizing: TTextureSizing;
 begin
   HandleTextureProperties(TextureNode.TextureProperties,
@@ -1240,7 +1240,7 @@ begin
   end;
 end;
 
-function TGLRenderedTextureNode.Bind(const TextureUnit: Cardinal): boolean;
+function TGLRenderedTextureNode.Bind(const TextureUnit: Cardinal): Boolean;
 begin
   Result := FGLName <> 0;
   if not Result then Exit;
@@ -1250,7 +1250,7 @@ begin
 end;
 
 function TGLRenderedTextureNode.Enable(const TextureUnit: Cardinal;
-  Shader: TShader; const Env: TTextureEnv): boolean;
+  Shader: TShader; const Env: TTextureEnv): Boolean;
 begin
   Result := Bind(TextureUnit);
   if not Result then Exit;
@@ -1262,7 +1262,7 @@ procedure TGLRenderedTextureNode.Update(
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
   const CurrentViewpoint: TAbstractViewpointNode;
-  const CameraViewKnown: boolean;
+  const CameraViewKnown: Boolean;
   const CameraPosition, CameraDirection, CameraUp: TVector3;
   const ShapeBoundingBox: TBox3D;
   const GeometryTransform: TMatrix4;
@@ -1619,7 +1619,7 @@ begin
   end;
 end;
 
-function TGLCubeMapTextureNode.Bind(const TextureUnit: Cardinal): boolean;
+function TGLCubeMapTextureNode.Bind(const TextureUnit: Cardinal): Boolean;
 begin
   Result := GLName <> 0;
   if not Result then Exit;
@@ -1629,7 +1629,7 @@ begin
 end;
 
 function TGLCubeMapTextureNode.Enable(const TextureUnit: Cardinal;
-  Shader: TShader; const Env: TTextureEnv): boolean;
+  Shader: TShader; const Env: TTextureEnv): Boolean;
 begin
   Result := Bind(TextureUnit);
   if not Result then Exit;
@@ -1640,7 +1640,7 @@ end;
 { TGLComposedCubeMapTextureNode ---------------------------------------------- }
 
 class function TGLComposedCubeMapTextureNode.IsClassForTextureNode(
-  ANode: TAbstractTextureNode): boolean;
+  ANode: TAbstractTextureNode): Boolean;
 begin
   Result := ANode is TComposedCubeMapTextureNode;
 end;
@@ -1655,7 +1655,7 @@ var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
   BackRot, FrontRot, LeftRot, RightRot: TCastleImage;
-  GUITexture: boolean;
+  GUITexture: Boolean;
 begin
   if GLFeatures.TextureCubeMap = gsNone then
   begin
@@ -1707,7 +1707,7 @@ end;
 { TGLImageCubeMapTextureNode ------------------------------------------------- }
 
 class function TGLImageCubeMapTextureNode.IsClassForTextureNode(
-  ANode: TAbstractTextureNode): boolean;
+  ANode: TAbstractTextureNode): Boolean;
 begin
   Result := ANode is TImageCubeMapTextureNode;
 end;
@@ -1721,7 +1721,7 @@ procedure TGLImageCubeMapTextureNode.PrepareCore(State: TX3DGraphTraverseState);
 var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
-  GUITexture: boolean;
+  GUITexture: Boolean;
   Composite: TCompositeImage;
 begin
   if GLFeatures.TextureCubeMap = gsNone then
@@ -1767,7 +1767,7 @@ end;
 { TGLGeneratedCubeMapTextureNode --------------------------------------------- }
 
 class function TGLGeneratedCubeMapTextureNode.IsClassForTextureNode(
-  ANode: TAbstractTextureNode): boolean;
+  ANode: TAbstractTextureNode): Boolean;
 begin
   Result := ANode is TGeneratedCubeMapTextureNode;
 end;
@@ -1781,7 +1781,7 @@ procedure TGLGeneratedCubeMapTextureNode.PrepareCore(State: TX3DGraphTraverseSta
 var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
-  GUITexture: boolean;
+  GUITexture: Boolean;
   InitialImage: TCastleImage;
 begin
   if GLFeatures.TextureCubeMap = gsNone then
@@ -1898,7 +1898,7 @@ end;
 { TGL3DTextureNode ----------------------------------------------------------- }
 
 class function TGL3DTextureNode.IsClassForTextureNode(
-  ANode: TAbstractTextureNode): boolean;
+  ANode: TAbstractTextureNode): Boolean;
 begin
   Result := ANode is TAbstractTexture3DNode;
 end;
@@ -1912,7 +1912,7 @@ procedure TGL3DTextureNode.PrepareCore(State: TX3DGraphTraverseState);
 var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
-  GUITexture: boolean;
+  GUITexture: Boolean;
   TextureWrap: TTextureWrap3D;
 begin
   if GLFeatures.Texture3D = gsNone then
@@ -1953,7 +1953,7 @@ begin
   end;
 end;
 
-function TGL3DTextureNode.Bind(const TextureUnit: Cardinal): boolean;
+function TGL3DTextureNode.Bind(const TextureUnit: Cardinal): Boolean;
 begin
   Result := GLName <> 0;
   if not Result then Exit;
@@ -1965,7 +1965,7 @@ begin
 end;
 
 function TGL3DTextureNode.Enable(const TextureUnit: Cardinal;
-  Shader: TShader; const Env: TTextureEnv): boolean;
+  Shader: TShader; const Env: TTextureEnv): Boolean;
 begin
   Result := Bind(TextureUnit);
   if not Result then Exit;
@@ -1976,7 +1976,7 @@ end;
 { TGLGeneratedShadowMap ------------------------------------------------------ }
 
 class function TGLGeneratedShadowMap.IsClassForTextureNode(
-  ANode: TAbstractTextureNode): boolean;
+  ANode: TAbstractTextureNode): Boolean;
 begin
   Result := ANode is TGeneratedShadowMapNode;
 end;
@@ -1987,7 +1987,7 @@ begin
 end;
 
 class function TGLGeneratedShadowMap.ClassVarianceShadowMaps(
-  RenderOptions: TCastleRenderOptions): boolean;
+  RenderOptions: TCastleRenderOptions): Boolean;
 begin
   Result :=
     (RenderOptions.ShadowSampling = ssVarianceShadowMaps) and
@@ -2078,7 +2078,7 @@ begin
   end;
 end;
 
-function TGLGeneratedShadowMap.Bind(const TextureUnit: Cardinal): boolean;
+function TGLGeneratedShadowMap.Bind(const TextureUnit: Cardinal): Boolean;
 begin
   Result := FGLName <> 0;
   if not Result then Exit;
@@ -2088,7 +2088,7 @@ begin
 end;
 
 function TGLGeneratedShadowMap.Enable(const TextureUnit: Cardinal;
-  Shader: TShader; const Env: TTextureEnv): boolean;
+  Shader: TShader; const Env: TTextureEnv): Boolean;
 var
   TextureType: TTextureType;
 begin
@@ -2186,7 +2186,7 @@ end;
 { TGLShaderTexture ------------------------------------------------------ }
 
 class function TGLShaderTexture.IsClassForTextureNode(
-  ANode: TAbstractTextureNode): boolean;
+  ANode: TAbstractTextureNode): Boolean;
 begin
   Result := ANode is TShaderTextureNode;
 end;
@@ -2201,7 +2201,7 @@ begin
   { no need to do anything }
 end;
 
-function TGLShaderTexture.Bind(const TextureUnit: Cardinal): boolean;
+function TGLShaderTexture.Bind(const TextureUnit: Cardinal): Boolean;
 begin
   Result := true;
   { no need to actually do anything }
@@ -2212,7 +2212,7 @@ begin
 end;
 
 function TGLShaderTexture.Enable(const TextureUnit: Cardinal;
-  Shader: TShader; const Env: TTextureEnv): boolean;
+  Shader: TShader; const Env: TTextureEnv): Boolean;
 begin
   Result := Bind(TextureUnit);
   if not Result then Exit;

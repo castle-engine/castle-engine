@@ -135,7 +135,7 @@ var
 { ---------------------------------------------------------------------------- }
 
 { Enable or disable given OpenGL flag. }
-procedure GLSetEnabled(Value: TGLenum; IsEnabled: boolean);
+procedure GLSetEnabled(Value: TGLenum; IsEnabled: Boolean);
 
 {$ifndef OpenGLES}
 
@@ -188,7 +188,7 @@ type
     When glGenLists(Range) returned zero for non-zero Range.
     The exception's Message shows Place, which may describe
     where this is called --- makes it easier to debug.) }
-function glGenListsCheck(range: TGLsizei; const Place: string): TGLuint; deprecated 'do not use display lists; they are not available on OpenGLES and modern OpenGL';
+function glGenListsCheck(range: TGLsizei; const Place: String): TGLuint; deprecated 'do not use display lists; they are not available on OpenGLES and modern OpenGL';
 
 { If List <> 0 then it does glDeleteList on List and sets List to 0.
   In other words this is simply glDeleteList but
@@ -209,7 +209,7 @@ procedure glFreeBuffer(var Buffer: TGLuint);
     glDepthMask(Writeable);
     glColorMask(Writeable, Writeable, Writeable, Writeable);
   #) }
-procedure glSetDepthAndColorWriteable(const Writeable: boolean);
+procedure glSetDepthAndColorWriteable(const Writeable: Boolean);
 
 { Global position for drawing 2D stuff.
   @deprecated Do this use this.
@@ -240,9 +240,9 @@ type
 
   Note that this is only for fixed-function OpenGL pipeline.
   Shader pipeline completely ignores the enabled state of texture units. }
-function GLEnableTexture(const Target: TEnableTextureTarget): boolean;
+function GLEnableTexture(const Target: TEnableTextureTarget): Boolean;
 
-function BoolToGL(const Value: boolean): TGLboolean;
+function BoolToGL(const Value: Boolean): TGLboolean;
 
 {$endif read_interface}
 
@@ -374,7 +374,7 @@ end;
 
 { Various helpers ------------------------------------------------------------ }
 
-procedure GLSetEnabled(Value: TGLenum; IsEnabled: boolean);
+procedure GLSetEnabled(Value: TGLenum; IsEnabled: Boolean);
 begin
   if IsEnabled then glEnable(Value) else glDisable(Value);
 end;
@@ -490,7 +490,7 @@ end;
 
 {$ifndef OpenGLES}
 
-function glGenListsCheck(range: TGLsizei; const Place: string): TGLuint;
+function glGenListsCheck(range: TGLsizei; const Place: String): TGLuint;
 begin
   Result := glGenLists(range);
   if (Result = 0) and (range <> 0) then
@@ -518,7 +518,7 @@ begin
   end;
 end;
 
-function BoolToGL(const Value: boolean): TGLboolean;
+function BoolToGL(const Value: Boolean): TGLboolean;
 begin
   if Value then
     Result := GL_TRUE
@@ -526,7 +526,7 @@ begin
     Result := GL_FALSE;
 end;
 
-procedure glSetDepthAndColorWriteable(const Writeable: boolean);
+procedure glSetDepthAndColorWriteable(const Writeable: Boolean);
 begin
   glDepthMask(BoolToGL(Writeable));
   if Writeable then
@@ -535,7 +535,7 @@ begin
     RenderContext.ColorChannels := [];
 end;
 
-function GLEnableTexture(const Target: TEnableTextureTarget): boolean;
+function GLEnableTexture(const Target: TEnableTextureTarget): Boolean;
 begin
   Result := true;
 

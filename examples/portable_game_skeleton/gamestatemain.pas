@@ -19,7 +19,7 @@ type
     LabelFps: TCastleLabel;
   public
     procedure Start; override;
-    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
   end;
 
@@ -43,7 +43,7 @@ begin
   LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
 end;
 
-procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: boolean);
+procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 begin
   inherited;
   { This virtual method is executed every frame.}

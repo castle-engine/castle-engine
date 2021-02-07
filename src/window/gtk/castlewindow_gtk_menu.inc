@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
+function TCastleWindowBase.RedirectKeyDownToMenuClick: Boolean;
 begin
  Result := false;
 end;
@@ -406,7 +406,7 @@ end;
 
 { Extract PGtkWidget corresponding to given Entry.
   Returns @false (and does log warning, and sets EntryGtk to nil) if failed. }
-function CheckEntryGtk(Entry: TMenuEntryWithCaption; out EntryGtk: PGtkWidget): boolean;
+function CheckEntryGtk(Entry: TMenuEntryWithCaption; out EntryGtk: PGtkWidget): Boolean;
 begin
   EntryGtk := PGtkWidget(Entry.Handle);
   Result := EntryGtk <> nil;
@@ -454,7 +454,7 @@ begin
   end;
 end;
 
-function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
+function TCastleWindowBase.MenuUpdateCheckedFast: Boolean;
 begin
   Result := true;
 end;

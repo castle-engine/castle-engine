@@ -525,7 +525,7 @@ var
 
 procedure TMyViewport.RenderFromView3D(const Params: TRenderParams);
 
-  function CaptureAORect(SizePower2: boolean): TGrayscaleImage;
+  function CaptureAORect(SizePower2: Boolean): TGrayscaleImage;
   var
     TexHeight: Cardinal;
   begin
@@ -878,7 +878,7 @@ begin
 end;
 
 var
-  ModelURL: string =
+  ModelURL: String =
     //'castle-data:/chinchilla_awakens.x3dv';
     'castle-data:/peach.wrl.gz';
 begin

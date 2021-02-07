@@ -32,17 +32,17 @@
   TFontStyleNode = class(TAbstractFontStyleNode)
   strict private
     JustifyWarningUppercaseDone, JustifyWarningObsoleteDone,
-      JustifyWarningNotSupportedDone: boolean;
-    function GetBlending: boolean;
-    procedure SetBlending(const Value: boolean);
-    function StringToJustify(const S: string;
+      JustifyWarningNotSupportedDone: Boolean;
+    function GetBlending: Boolean;
+    procedure SetBlending(const Value: Boolean);
+    function StringToJustify(const S: String;
       const DefaultValue: TX3DFontJustify): TX3DFontJustify;
     function GetFamily: TX3DFontFamily;
     procedure SetFamily(const Value: TX3DFontFamily);
-    function GetBold: boolean;
-    procedure SetBold(const Value: boolean);
-    function GetItalic: boolean;
-    procedure SetItalic(const Value: boolean);
+    function GetBold: Boolean;
+    procedure SetBold(const Value: Boolean);
+    function GetItalic: Boolean;
+    procedure SetItalic(const Value: Boolean);
     function GetJustify: TX3DFontJustify;
     procedure SetJustify(const Value: TX3DFontJustify);
     function GetJustifyMinor: TX3DFontJustify;
@@ -59,7 +59,7 @@
       DefaultBlending = true;
 
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdFamily: TMFString;
     public property FdFamily: TMFString read FFdFamily;
@@ -89,8 +89,8 @@
 
     strict private FFdStyle: TSFString;
     public property FdStyle: TSFString read FFdStyle;
-    property Bold: boolean read GetBold write SetBold;
-    property Italic: boolean read GetItalic write SetItalic;
+    property Bold: Boolean read GetBold write SetBold;
+    property Italic: Boolean read GetItalic write SetItalic;
 
     {$ifndef CASTLE_SLIM_NODES}
     strict private FFdTopToBottom: TSFBool;
@@ -99,9 +99,9 @@
 
     strict private FFdBlending: TSFBool;
     public property FdBlending: TSFBool read FFdBlending;
-    property Blending: boolean read GetBlending write SetBlending;
+    property Blending: Boolean read GetBlending write SetBlending;
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
 
     type
@@ -144,7 +144,7 @@
   public
     procedure CreateNode; override;
     destructor Destroy; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdFontStyle: TSFNode;
     public property FdFontStyle: TSFNode read FFdFontStyle;
@@ -181,8 +181,8 @@
     function TexCoordField: TSFNode; override;
 
     function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-    function ProxyUsesOverTriangulate: boolean; override;
+      const OverTriangulate: Boolean): TAbstractGeometryNode; override;
+    function ProxyUsesOverTriangulate: Boolean; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function BoundingBox(State: TX3DGraphTraverseState;
@@ -266,12 +266,12 @@ begin
   AddField(FFdBlending);
 end;
 
-class function TFontStyleNode.ClassX3DType: string;
+class function TFontStyleNode.ClassX3DType: String;
 begin
   Result := 'FontStyle';
 end;
 
-class function TFontStyleNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TFontStyleNode.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major >= 2;
 end;
@@ -298,7 +298,7 @@ end;
 
 procedure TFontStyleNode.SetFamily(const Value: TX3DFontFamily);
 const
-  FontFamilyNames: array [TX3DFontFamily] of string =
+  FontFamilyNames: array [TX3DFontFamily] of String =
   ('SERIF', 'SANS', 'TYPEWRITER');
 begin
   FdFamily.Send(FontFamilyNames[Value]);
@@ -309,13 +309,13 @@ const
   StyleBoldItalic = 'BOLDITALIC';
   StyleItalic = 'ITALIC';
   StylePlain = 'PLAIN';
-  StyleString: array[boolean { bold ? }, boolean { italic ? }] of string =
+  StyleString: array[Boolean { bold ? }, Boolean { italic ? }] of String =
   ( (StylePlain, StyleItalic),
     (StyleBold, StyleBoldItalic) );
 
-function TFontStyleNode.GetBold: boolean;
+function TFontStyleNode.GetBold: Boolean;
 var
-  S: string;
+  S: String;
 begin
   S := FdStyle.Value;
   Result :=
@@ -336,14 +336,14 @@ begin
   end;
 end;
 
-procedure TFontStyleNode.SetBold(const Value: boolean);
+procedure TFontStyleNode.SetBold(const Value: Boolean);
 begin
   FdStyle.Send(StyleString[Value, Italic]);
 end;
 
-function TFontStyleNode.GetItalic: boolean;
+function TFontStyleNode.GetItalic: Boolean;
 var
-  S: string;
+  S: String;
 begin
   S := FdStyle.Value;
   Result :=
@@ -364,17 +364,17 @@ begin
   end;
 end;
 
-procedure TFontStyleNode.SetItalic(const Value: boolean);
+procedure TFontStyleNode.SetItalic(const Value: Boolean);
 begin
   FdStyle.Send(StyleString[Bold, Value]);
 end;
 
-function TFontStyleNode.StringToJustify(const S: string;
+function TFontStyleNode.StringToJustify(const S: String;
   const DefaultValue: TX3DFontJustify): TX3DFontJustify;
 const
   SJustifyObsolete = 'Font justify "%s" should not be used in VRML >= 2.0, use "%s" instead';
 var
-  J: string;
+  J: String;
 begin
   { Some X3D models use lowercase names, like [http://instant-reality.com/]
     test models. }
@@ -432,7 +432,7 @@ begin
 end;
 
 const
-  JustifyToString: array[TX3DFontJustify] of string =
+  JustifyToString: array[TX3DFontJustify] of String =
   ('FIRST', 'BEGIN', 'MIDDLE', 'END');
 
 function TFontStyleNode.GetJustify: TX3DFontJustify;
@@ -461,12 +461,12 @@ begin
   FdJustify.Send([JustifyToString[Justify], JustifyToString[Value]]);
 end;
 
-function TFontStyleNode.GetBlending: boolean;
+function TFontStyleNode.GetBlending: Boolean;
 begin
   Result := FdBlending.Value;
 end;
 
-procedure TFontStyleNode.SetBlending(const Value: boolean);
+procedure TFontStyleNode.SetBlending(const Value: Boolean);
 begin
   FdBlending.Send(Value);
 end;
@@ -528,7 +528,7 @@ begin
     X3DCache.FreeFontTexture(FFontTextureNode);
 end;
 
-class function TTextNode.ClassX3DType: string;
+class function TTextNode.ClassX3DType: String;
 begin
   Result := 'Text';
 end;
@@ -575,7 +575,7 @@ procedure TextProxy(const OriginalNode: TX3DNode;
   const Strings: TCastleStringList;
   const MaxDisplayChars: Integer;
   const Font: TTextureFontData;
-  const Solid: boolean;
+  const Solid: Boolean;
   const EventLineBounds: TMFVec2fEvent;
   const EventOrigin: TSFVec3fEvent;
   const EventTextBounds: TSFVec2fEvent;
@@ -694,10 +694,10 @@ var
     end;
   end;
 
-  { Print the string, by adding rectangles to current QuadSet.
+  { Print the String, by adding rectangles to current QuadSet.
     This is somewhat analogous to printing straight in 2D done
     by TCastleFont.Print and TDrawableImage.Draw. }
-  procedure Print(X, Y: Single; const S: string; const XScale, YScale: Single);
+  procedure Print(X, Y: Single; const S: String; const XScale, YScale: Single);
 
     function ConvertCoordToExtraTex(const CoordIndex: Integer; const Coord: Single): Single;
     begin
@@ -767,7 +767,7 @@ var
             ExtraTexOrigin and current Coord* values. This is enough,
             see the specification:
 
-              The texture origin is at the origin of the first string,
+              The texture origin is at the origin of the first String,
               as determined by the justification. The texture is scaled
               equally in both S and T dimensions, with the font height
               representing 1 unit. S increases to the right, and T increases up. }
@@ -842,7 +842,7 @@ begin
 end;
 
 function TTextNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+  const OverTriangulate: Boolean): TAbstractGeometryNode;
 var
   Size, Spacing: Single;
   Justify, JustifyMinor: TX3DFontJustify;
@@ -928,7 +928,7 @@ end;
   {$info Workaround Aarch64 optimizer: TextProxy not optimized (end)}
 {$endif}
 
-function TTextNode.ProxyUsesOverTriangulate: boolean;
+function TTextNode.ProxyUsesOverTriangulate: Boolean;
 begin
   Result := false;
 end;
@@ -991,7 +991,7 @@ end;
 
 function TTextNode.FontTextureNode: TAbstractTexture2DNode;
 var
-  Blending: boolean;
+  Blending: Boolean;
 begin
   { For now, we assume that font value never changes,
     and so FFontTextureNode is neved changed once it's initially

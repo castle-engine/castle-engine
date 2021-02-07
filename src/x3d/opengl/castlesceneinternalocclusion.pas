@@ -32,9 +32,9 @@ type
 
   TOcclusionQueryUtilsRenderer = class
   strict private
-    GLInitiliazed: boolean;
-    OcclusionBoxState: boolean;
-    SavedCullFace: boolean;
+    GLInitiliazed: Boolean;
+    OcclusionBoxState: Boolean;
+    SavedCullFace: Boolean;
     VboVertex, VboIndex: TGLuint;
     SimplestProgram: TGLSLProgram;
     UniformModelViewProjectionMatrix: TGLSLUniform;
@@ -45,7 +45,7 @@ type
     procedure DrawBox(const Box: TBox3D);
   public
     ModelViewProjectionMatrix: TMatrix4;
-    ModelViewProjectionMatrixChanged: boolean;
+    ModelViewProjectionMatrixChanged: Boolean;
     procedure GLContextClose;
     procedure OcclusionBoxStateEnd;
   end;
@@ -72,7 +72,7 @@ type
     procedure Render(const RenderShape: TShapeProcedure;
       const Params: TRenderParams;
       const RenderCameraPosition: TVector3);
-    function WasLastVisible(const Shape: TGLShape): boolean;
+    function WasLastVisible(const Shape: TGLShape): Boolean;
   end;
 
 implementation
@@ -455,7 +455,7 @@ var
   QueryQueue: TCastleObjectQueue;
   Q: TOcclusionQuery;
   Node: TShapeOctreeNode;
-  WasVisible, LeafOrWasInvisible: boolean;
+  WasVisible, LeafOrWasInvisible: Boolean;
 begin
   {$include norqcheckbegin.inc}
   Inc(FrameId);
@@ -591,7 +591,7 @@ begin
 {$endif}
 end;
 
-function THierarchicalOcclusionQueryRenderer.WasLastVisible(const Shape: TGLShape): boolean;
+function THierarchicalOcclusionQueryRenderer.WasLastVisible(const Shape: TGLShape): Boolean;
 begin
   Result := Shape.RenderedFrameId = FrameId
 end;

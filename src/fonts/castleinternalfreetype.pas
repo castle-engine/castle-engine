@@ -131,7 +131,7 @@ type
       CurFont : TMgrFont;
       CurSize : PMgrSize;
       CurRenderMode : FT_Render_Mode;
-      UseKerning : boolean;
+      UseKerning : Boolean;
       function GetSearchPath : string;
       procedure SetSearchPath (AValue : string);
       procedure SetExtention (AValue : string);
@@ -610,7 +610,7 @@ var g : PMgrGlyph;
     pc : pchar;
     pre, adv, pos, kern : FT_Vector;
     buf : CastleUtils.PByteArray;
-    reverse : boolean;
+    reverse : Boolean;
     trans : FT_Matrix;
 begin
   CurFont := GetFont(FontID);
@@ -723,7 +723,7 @@ var g : PMgrGlyph;
     pc : pchar;
     pos, kern : FT_Vector;
     buf : CastleUtils.PByteArray;
-    reverse : boolean;
+    reverse : Boolean;
 begin
   CurFont := GetFont(FontID);
   InitMakeString (FontID, Size);

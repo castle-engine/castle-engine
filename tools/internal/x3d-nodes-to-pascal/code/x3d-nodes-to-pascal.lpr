@@ -37,7 +37,7 @@ const
     (Short: #0 ; Long: 'output-path'; Argument: oaRequired)
   );
 
-procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+procedure OptionProc(OptionNum: Integer; HasArgument: Boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
 begin
   case OptionNum of

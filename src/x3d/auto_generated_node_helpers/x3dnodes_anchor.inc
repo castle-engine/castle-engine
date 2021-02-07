@@ -32,11 +32,11 @@
     { X3D field "description". } { }
     property Description: String read GetDescription write SetDescription;
     { Set X3D field "parameter". } { }
-    procedure SetParameter(const Value: array of string);
+    procedure SetParameter(const Value: array of String);
     { Set X3D field "parameter". } { }
     procedure SetParameter(const Value: TCastleStringList);
     { Set X3D field "url". } { }
-    procedure SetUrl(const Value: array of string);
+    procedure SetUrl(const Value: array of String);
     { Set X3D field "url". } { }
     procedure SetUrl(const Value: TCastleStringList);
 
@@ -56,7 +56,7 @@ begin
   FdDescription.Send(Value);
 end;
 
-procedure TAnchorNode.SetParameter(const Value: array of string);
+procedure TAnchorNode.SetParameter(const Value: array of String);
 begin
   FdParameter.Send(Value);
 end;
@@ -66,7 +66,7 @@ begin
   FdParameter.Send(Value);
 end;
 
-procedure TAnchorNode.SetUrl(const Value: array of string);
+procedure TAnchorNode.SetUrl(const Value: array of String);
 begin
   FdUrl.Send(Value);
 end;

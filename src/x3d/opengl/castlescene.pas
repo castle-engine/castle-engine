@@ -104,7 +104,7 @@ type
       TCustomShaders = record
         Shader: TX3DShaderProgramBase;
         ShaderAlphaTest: TX3DShaderProgramBase;
-        procedure Initialize(const VertexCode, FragmentCode: string);
+        procedure Initialize(const VertexCode, FragmentCode: String);
         procedure Free;
       end;
 
@@ -124,7 +124,7 @@ type
 
       { Used by UpdateGeneratedTextures, to prevent rendering non-shadow casters
         for shadow maps. }
-      AvoidNonShadowCasterRendering: boolean;
+      AvoidNonShadowCasterRendering: Boolean;
 
       { Used by UpdateGeneratedTextures, to avoid updating twice during the same render. }
       UpdateGeneratedTexturesFrameId: TFrameId;
@@ -132,8 +132,8 @@ type
       VarianceShadowMapsProgram, ShadowMapsProgram: TCustomShaders;
       FDistanceCulling: Single;
 
-      FReceiveShadowVolumes: boolean;
-      RegisteredGLContextCloseListener: boolean;
+      FReceiveShadowVolumes: Boolean;
+      RegisteredGLContextCloseListener: Boolean;
       FTempPrepareParams: TPrepareParams;
       { Camera position, in local scene coordinates, known during the Render call. }
       RenderCameraPosition: TVector3;
@@ -225,16 +225,16 @@ type
     function ShapeFog(const Shape: TShape; const GlobalFog: TFogNode): TFogFunctionality;
     function EffectiveBlendingSort: TBlendingSort;
 
-    function FrustumCulling_None(Shape: TShape): boolean;
-    function FrustumCulling_Sphere(Shape: TShape): boolean;
-    function FrustumCulling_Box(Shape: TShape): boolean;
-    function FrustumCulling_Both(Shape: TShape): boolean;
-    function DistanceCulling_FrustumCulling_None(Shape: TShape): boolean;
-    function DistanceCulling_FrustumCulling_Sphere(Shape: TShape): boolean;
-    function DistanceCulling_FrustumCulling_Box(Shape: TShape): boolean;
-    function DistanceCulling_FrustumCulling_Both(Shape: TShape): boolean;
+    function FrustumCulling_None(Shape: TShape): Boolean;
+    function FrustumCulling_Sphere(Shape: TShape): Boolean;
+    function FrustumCulling_Box(Shape: TShape): Boolean;
+    function FrustumCulling_Both(Shape: TShape): Boolean;
+    function DistanceCulling_FrustumCulling_None(Shape: TShape): Boolean;
+    function DistanceCulling_FrustumCulling_Sphere(Shape: TShape): Boolean;
+    function DistanceCulling_FrustumCulling_Box(Shape: TShape): Boolean;
+    function DistanceCulling_FrustumCulling_Both(Shape: TShape): Boolean;
 
-    function DistanceCullingCheck(Shape: TShape): boolean;
+    function DistanceCullingCheck(Shape: TShape): Boolean;
 
     procedure UpdateShapeCullingCallbacks;
     procedure SetFrustumCulling(const Value: TFrustumCulling);
@@ -242,9 +242,9 @@ type
     procedure SetShapeFrustumCulling(const Value: Boolean);
     procedure SetDistanceCulling(const Value: Single);
 
-    function RenderFrustumOctree_TestShape(Shape: TShape): boolean;
+    function RenderFrustumOctree_TestShape(Shape: TShape): Boolean;
     procedure RenderWithOctree_CheckShapeCulling(
-      ShapeIndex: Integer; CollidesForSure: boolean);
+      ShapeIndex: Integer; CollidesForSure: Boolean);
 
     { Turn off lights that are not supposed to light in the shadow.
       This simply turns LightOn to @false if the light has
@@ -255,7 +255,7 @@ type
       when you use shadow algorithm that requires
       you to make a first pass rendering the scene all shadowed. }
     class procedure LightRenderInShadow(const Light: TLightInstance;
-      var LightOn: boolean);
+      var LightOn: Boolean);
 
     function GetRenderOptions: TCastleRenderOptions;
   private
@@ -316,7 +316,7 @@ type
       (i.e. it's considered front face of this shadow volume). }
     procedure LocalRenderShadowVolume(
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
-      const ParentTransformIsIdentity: boolean;
+      const ParentTransformIsIdentity: Boolean;
       const ParentTransform: TMatrix4); override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -333,9 +333,9 @@ type
     procedure GLContextClose; override;
 
     procedure PrepareResources(const Options: TPrepareResourcesOptions;
-      const ProgressStep: boolean; const Params: TPrepareParams); override;
+      const ProgressStep: Boolean; const Params: TPrepareParams); override;
 
-    procedure BeforeNodesFree(const InternalChangedAll: boolean = false); override;
+    procedure BeforeNodesFree(const InternalChangedAll: Boolean = false); override;
 
     { Adjust parameters for rendering 2D scenes. Sets BlendingSort := bs2D,
       which is good when your transparent objects have proper order along the Z axis
@@ -353,12 +353,12 @@ type
       Never set FBackgroundValid to false directly - use InternalInvalidateBackground,
       this will automatically call FreeAndNil(FBackground) before setting
       FBackgroundValid to false. }
-    FBackgroundValid: boolean;
+    FBackgroundValid: Boolean;
     procedure SetBackgroundSkySphereRadius(const Value: Single);
     procedure PrepareBackground;
   public
     { Internal hack to avoid checking frustum at rendering in some situations. }
-    InternalIgnoreFrustum: boolean;
+    InternalIgnoreFrustum: Boolean;
     { Internal override test visibility. }
     InternalVisibilityTest: TTestShapeVisibility;
 
@@ -406,7 +406,7 @@ type
       @groupBegin }
     function ScreenEffects(Index: Integer): TGLSLProgram;
     function ScreenEffectsCount: Integer;
-    function ScreenEffectsNeedDepth: boolean;
+    function ScreenEffectsNeedDepth: Boolean;
     { @groupEnd }
 
     { Create a scene with the same contents (X3D scene graph) as this one.
@@ -456,7 +456,7 @@ type
       read FSceneFrustumCulling write FSceneFrustumCulling default true;
 
     { Does this scene receive shadows by shadow volumes. }
-    property ReceiveShadowVolumes: boolean
+    property ReceiveShadowVolumes: Boolean
       read FReceiveShadowVolumes write FReceiveShadowVolumes default true;
 
     { Cull shapes farther than this distance. Ignored if <= 0. }
@@ -585,9 +585,9 @@ end;
 
 { TCastleScene.TCustomShaders ------------------------------------------------ }
 
-procedure TCastleScene.TCustomShaders.Initialize(const VertexCode, FragmentCode: string);
+procedure TCastleScene.TCustomShaders.Initialize(const VertexCode, FragmentCode: String);
 
-  procedure DoInitialize(const VertexCode, FragmentCode: string);
+  procedure DoInitialize(const VertexCode, FragmentCode: String);
   begin
     { create programs if needed }
     if Shader = nil then
@@ -1014,7 +1014,7 @@ var
   var
     J: Integer;
     Instances: TVisibilitySensorInstanceList;
-    NewActive: boolean;
+    NewActive: Boolean;
     VisibilitySensorsPair: TVisibilitySensors.TDictionaryPair;
   begin
     { optimize for common case: exit early if nothing to do }
@@ -1193,7 +1193,7 @@ end;
 
 procedure TCastleScene.PrepareResources(
   const Options: TPrepareResourcesOptions;
-  const ProgressStep: boolean; const Params: TPrepareParams);
+  const ProgressStep: Boolean; const Params: TPrepareParams);
 
   procedure PrepareShapesResources;
   var
@@ -1383,7 +1383,7 @@ procedure TCastleScene.LocalRenderOutside(
   {$ifndef OpenGLES} // TODO-es For OpenGLES, wireframe must be done differently
   { This code uses a lot of deprecated stuff. It is already marked with TODO above. }
   {$warnings off}
-  procedure RenderWireframe(UseWireframeColor: boolean);
+  procedure RenderWireframe(UseWireframeColor: Boolean);
   var
     SavedMode: TRenderingMode;
     SavedSolidColor: TCastleColorRGB;
@@ -1570,7 +1570,7 @@ begin
 end;
 
 class procedure TCastleScene.LightRenderInShadow(const Light: TLightInstance;
-  var LightOn: boolean);
+  var LightOn: Boolean);
 begin
   if Light.Node.FdShadowVolumes.Value then
     LightOn := false;
@@ -1596,7 +1596,7 @@ begin
   (Sender as TCastleScene).PrimitiveGeometry := pgSphere;
 end;
 
-procedure TCastleScene.BeforeNodesFree(const InternalChangedAll: boolean);
+procedure TCastleScene.BeforeNodesFree(const InternalChangedAll: Boolean);
 begin
   { Release all associations with OpenGL context before freeing the nodes.
     This means vrml nodes are still valid during GLRenderer unprepare
@@ -1617,7 +1617,7 @@ end;
 
 procedure TCastleScene.LocalRenderShadowVolume(
   ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
-  const ParentTransformIsIdentity: boolean;
+  const ParentTransformIsIdentity: Boolean;
   const ParentTransform: TMatrix4);
 var
   SceneBox, ShapeBox: TBox3D;
@@ -1625,7 +1625,7 @@ var
   ShapeList: TShapeList;
   Shape: TShape;
   T: TMatrix4;
-  ForceOpaque: boolean;
+  ForceOpaque: Boolean;
 begin
   if GetVisible and CastShadowVolumes then
   begin
@@ -1668,24 +1668,24 @@ end;
 
 { Frustum culling ------------------------------------------------------------ }
 
-function TCastleScene.FrustumCulling_None(Shape: TShape): boolean;
+function TCastleScene.FrustumCulling_None(Shape: TShape): Boolean;
 begin
   Result := true;
 end;
 
-function TCastleScene.FrustumCulling_Sphere(Shape: TShape): boolean;
+function TCastleScene.FrustumCulling_Sphere(Shape: TShape): Boolean;
 begin
   Result :=
     Shape.FrustumBoundingSphereCollisionPossibleSimple(FrustumForShapeCulling^);
 end;
 
-function TCastleScene.FrustumCulling_Box(Shape: TShape): boolean;
+function TCastleScene.FrustumCulling_Box(Shape: TShape): Boolean;
 begin
   Result :=
     FrustumForShapeCulling^.Box3DCollisionPossibleSimple(Shape.BoundingBox);
 end;
 
-function TCastleScene.FrustumCulling_Both(Shape: TShape): boolean;
+function TCastleScene.FrustumCulling_Both(Shape: TShape): Boolean;
 begin
   Result :=
     Shape.FrustumBoundingSphereCollisionPossibleSimple(
@@ -1694,24 +1694,24 @@ begin
       Shape.BoundingBox);
 end;
 
-function TCastleScene.DistanceCulling_FrustumCulling_None(Shape: TShape): boolean;
+function TCastleScene.DistanceCulling_FrustumCulling_None(Shape: TShape): Boolean;
 begin
   Result := DistanceCullingCheck(Shape);
 end;
 
-function TCastleScene.DistanceCulling_FrustumCulling_Sphere(Shape: TShape): boolean;
+function TCastleScene.DistanceCulling_FrustumCulling_Sphere(Shape: TShape): Boolean;
 begin
   Result := DistanceCullingCheck(Shape) and
     Shape.FrustumBoundingSphereCollisionPossibleSimple(FrustumForShapeCulling^);
 end;
 
-function TCastleScene.DistanceCulling_FrustumCulling_Box(Shape: TShape): boolean;
+function TCastleScene.DistanceCulling_FrustumCulling_Box(Shape: TShape): Boolean;
 begin
   Result := DistanceCullingCheck(Shape) and
     FrustumForShapeCulling^.Box3DCollisionPossibleSimple(Shape.BoundingBox);
 end;
 
-function TCastleScene.DistanceCulling_FrustumCulling_Both(Shape: TShape): boolean;
+function TCastleScene.DistanceCulling_FrustumCulling_Both(Shape: TShape): Boolean;
 begin
   Result := DistanceCullingCheck(Shape) and
     Shape.FrustumBoundingSphereCollisionPossibleSimple(
@@ -1720,7 +1720,7 @@ begin
       Shape.BoundingBox);
 end;
 
-function TCastleScene.DistanceCullingCheck(Shape: TShape): boolean;
+function TCastleScene.DistanceCullingCheck(Shape: TShape): Boolean;
 begin
   // This should be only called when DistanceCulling indicates this check is necessary
   Assert(DistanceCulling > 0);
@@ -1819,14 +1819,14 @@ end;
 { Render --------------------------------------------------------------------- }
 
 function TCastleScene.RenderFrustumOctree_TestShape(
-  Shape: TShape): boolean;
+  Shape: TShape): Boolean;
 begin
   { We know that all shapes passed here are TGLShape, so we can cast }
   Result := TGLShape(Shape).PassedShapeCulling;
 end;
 
 procedure TCastleScene.RenderWithOctree_CheckShapeCulling(
-  ShapeIndex: Integer; CollidesForSure: boolean);
+  ShapeIndex: Integer; CollidesForSure: Boolean);
 var
   Shape: TGLShape;
 begin
@@ -2156,7 +2156,7 @@ begin
   raise EInternalError.Create('TCastleScene.ScreenEffects: Invalid index');
 end;
 
-function TCastleScene.ScreenEffectsNeedDepth: boolean;
+function TCastleScene.ScreenEffectsNeedDepth: Boolean;
 var
   I: Integer;
 begin

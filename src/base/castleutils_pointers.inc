@@ -21,13 +21,13 @@
 { Pointer arithmetic. Will wrap over if you add too much. Add may be negative.
   This is just a shortcut for @code(PtrInt(Result) := PtrInt(P)+Add),
   without any range / overflow checks. }
-function PointerAdd(p: pointer; add: integer): pointer;
+function PointerAdd(p: Pointer; add: Integer): Pointer;
 
-function GetClearMem(Size: integer; ClearValue: byte = 0): pointer; overload;
+function GetClearMem(Size: Integer; ClearValue: Byte = 0): Pointer; overload;
 
 { Safer version of FreeMem, checks is parameter @nil, and sets it to @nil
   afterwards. }
-procedure FreeMemNiling(var p: pointer);
+procedure FreeMemNiling(var p: Pointer);
 
 { Check is memory filled with the given character.
   Returns -1 is @true, or the number (between 0 .. Size - 1)
@@ -35,19 +35,19 @@ procedure FreeMemNiling(var p: pointer);
 function CheckIsMemCharFilled(const Data; Size: Integer; AChar: Char): Integer;
 
 { Check is memory filled with the given character.
-  Returns simple boolean, use CheckIsMemCharFilled to get more informative
+  Returns simple Boolean, use CheckIsMemCharFilled to get more informative
   result. }
-function IsMemCharFilled(const Data; Size: Integer; AChar: Char): boolean;
+function IsMemCharFilled(const Data; Size: Integer; AChar: Char): Boolean;
 
 { Check is memory filled with the Word (2 byte sequence).
   Size if the number of words (not bytes), this is consequent
   with Size parameter from FillWord from FPC's RTL. }
-function IsMemWordFilled(const Data; Size: Integer; Value: Word): boolean;
+function IsMemWordFilled(const Data; Size: Integer; Value: Word): Boolean;
 
 { Check is memory filled with the DWord (4 byte sequence).
   Size if the number of dwords (not bytes), this is consequent
   with Size parameter from FillDWord from FPC's RTL. }
-function IsMemDWordFilled(const Data; Size: Integer; Value: DWord): boolean;
+function IsMemDWordFilled(const Data; Size: Integer; Value: DWord): Boolean;
 
 { Calculate shift between A and B addresses (in bytes).
   Useful to pass as offsets to methods like TGLSLAttribute.EnableArray
@@ -57,15 +57,15 @@ function OffsetUInt(var A, B): PtrUInt;
 function Offset(var A, B): Pointer;
 
 { Compare two methods. }
-function CompareMethods(const AMethod1, AMethod2: TMethod): boolean; deprecated 'use SameMethods';
-function SameMethods(const AMethod1, AMethod2: TMethod): boolean;
+function CompareMethods(const AMethod1, AMethod2: TMethod): Boolean; deprecated 'use SameMethods';
+function SameMethods(const AMethod1, AMethod2: TMethod): Boolean;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 {$include norqcheckbegin.inc}
-function PointerAdd(p: pointer; Add: integer): pointer;
+function PointerAdd(p: Pointer; Add: Integer): Pointer;
 { Ten kod moze powodowac falszywe alarmy co do rangeChecking / arith. overflow,
   dlatego powinien dzialac z R-,Q- }
 var
@@ -78,10 +78,10 @@ begin
 end;
 {$include norqcheckend.inc}
 
-function GetClearMem(Size: integer; clearValue: byte{=0}): pointer;
+function GetClearMem(Size: Integer; clearValue: Byte{=0}): Pointer;
 begin result := GetMem(Size); FillChar(result^,Size, clearvalue) end;
 
-procedure FreeMemNiling(var p: pointer);
+procedure FreeMemNiling(var p: Pointer);
 begin
   {$ifdef VER3_3} try {$endif}
   if p <> nil then begin FreeMem(p); p := nil end;
@@ -112,7 +112,7 @@ begin
  result := -1;
 end;
 
-function IsMemCharFilled(const Data; Size: Integer; AChar: Char): boolean;
+function IsMemCharFilled(const Data; Size: Integer; AChar: Char): Boolean;
 var p: Pointer;
     p32: PLongWord absolute p;
     p16: PWord absolute p;
@@ -154,7 +154,7 @@ begin
  result:=(Size = 0) or (p8^=AChar);
 end;
 
-function IsMemWordFilled(const Data; Size: Integer; Value: Word): boolean;
+function IsMemWordFilled(const Data; Size: Integer; Value: Word): Boolean;
 var i: Integer;
     P: PWord;
 begin
@@ -173,7 +173,7 @@ begin
  Result := true;
 end;
 
-function IsMemDWordFilled(const Data; Size: Integer; Value: DWord): boolean;
+function IsMemDWordFilled(const Data; Size: Integer; Value: DWord): Boolean;
 var i: Integer;
     P: PDWord;
 begin
@@ -201,12 +201,12 @@ begin
   Result := Pointer(PtrUInt( PtrUInt(@A) - PtrUInt(@B) ));
 end;
 
-function CompareMethods(const AMethod1, AMethod2: TMethod): boolean;
+function CompareMethods(const AMethod1, AMethod2: TMethod): Boolean;
 begin
   Result := SameMethods(AMethod1, AMethod2);
 end;
 
-function SameMethods(const AMethod1, AMethod2: TMethod): boolean;
+function SameMethods(const AMethod1, AMethod2: TMethod): Boolean;
 begin
   Result := (AMethod1.Code = AMethod2.Code) and
             (AMethod1.Data = AMethod2.Data);

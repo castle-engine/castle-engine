@@ -34,7 +34,7 @@ type
   private
     FBarYPosition: Single;
     FImage: TObject;
-    FOwnsImage: boolean;
+    FOwnsImage: Boolean;
     procedure SetImage(const Value: TObject);
   public
     const
@@ -59,7 +59,7 @@ type
       be declared as such here, we want this unit to be part of base
       units, not dependent on images. }
     property Image: TObject read FImage write SetImage;
-    property OwnsImage: boolean read FOwnsImage write FOwnsImage default false;
+    property OwnsImage: Boolean read FOwnsImage write FOwnsImage default false;
 
     { Vertical position of the displayed progress bar.
       This feature is supposed to indicate a suitable free space on the
@@ -149,10 +149,10 @@ type
       of the last TProgress.Init or TProgress.Update call. }
     LastUpdatePos: Cardinal;
     LastUpdateTime: TTimerResult;
-    UserInterfaceDelayed: boolean;
+    UserInterfaceDelayed: Boolean;
 
-    FTitle: string;
-    FActive: boolean;
+    FTitle: String;
+    FActive: Boolean;
     procedure SetPosition(const Value: Cardinal);
   public
     const
@@ -189,11 +189,11 @@ type
       to appropriate @link(Step) call. }
     property Position: Cardinal read FPosition write SetPosition;
     property Max: Cardinal read FMax;
-    property Title: string read FTitle;
+    property Title: String read FTitle;
 
     { Are we between Init and Fini calls.
       Init changes Active to true, Fini changes Active to false. }
-    property Active: boolean read FActive;
+    property Active: Boolean read FActive;
 
     { Start the progress bar.
       You can call Init only when Active = false (that is, you
@@ -223,8 +223,8 @@ type
       to an operation with very few steps (e.g. 1) that may take a long time.
       If a time between Init and the first Update or Fini is really large,
       the progress bar will not be visible. }
-    procedure Init(AMax: Cardinal; const ATitle: string;
-      const DelayUserInterface: boolean = false);
+    procedure Init(AMax: Cardinal; const ATitle: String;
+      const DelayUserInterface: Boolean = false);
 
     { Increments progress bar @link(Position) by @code(StepSize).
       Use only when @link(Active), that is between @link(Init) and @link(Fini)
@@ -309,8 +309,8 @@ end;
 
 { TProgress ------------------------------------------------------------------ }
 
-procedure TProgress.Init(AMax: Cardinal; const ATitle: string;
-  const DelayUserInterface: boolean);
+procedure TProgress.Init(AMax: Cardinal; const ATitle: String;
+  const DelayUserInterface: Boolean);
 begin
   Check(not Active, 'TProgress.Init error: progress is already active');
   FActive := true;

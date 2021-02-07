@@ -97,9 +97,9 @@ begin
   Result := TStream(DataSource).Position;
 end;
 
-procedure CheckVorbisFile(Err: CInt; const Event: string);
+procedure CheckVorbisFile(Err: CInt; const Event: String);
 var
-  ErrDescription: string;
+  ErrDescription: String;
 begin
   { Errors list and ErrDescription values based on
     [http://xiph.org/vorbis/doc/vorbisfile/return.html] }
@@ -154,14 +154,14 @@ type
       out DataFormat: TSoundDataFormat; out Frequency: LongWord;
       out Duration: TFloatTime);
     destructor Destroy; override;
-    function Read(var Buffer; BufferSize: Longint): Longint; override;
+    function Read(var Buffer; BufferSize: LongInt): LongInt; override;
 
     { Only supports seeking to the beginning (or seeking to current position,
       which does nothing). }
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
 
     { Use this function to register OggVorbis handling with RegisterSoundFormat. }
-    class function ReadStream(const Url: string; const Stream: TStream;
+    class function ReadStream(const Url: String; const Stream: TStream;
       out DataFormat: TSoundDataFormat; out Frequency: LongWord;
       out Duration: TFloatTime): TStream;
   end;
@@ -232,7 +232,7 @@ begin
   end;
 end;
 
-function TOggVorbisStream.Read(var Buffer; BufferSize: Longint): Longint;
+function TOggVorbisStream.Read(var Buffer; BufferSize: LongInt): LongInt;
 (*
 
   This simple implementation may not fill enough space to be useful to streaming.
@@ -317,7 +317,7 @@ begin
   Result := 0; // just to get rid of warning
 end;
 
-class function TOggVorbisStream.ReadStream(const Url: string; const Stream: TStream;
+class function TOggVorbisStream.ReadStream(const Url: String; const Stream: TStream;
   out DataFormat: TSoundDataFormat; out Frequency: LongWord;
   out Duration: TFloatTime): TStream;
 begin

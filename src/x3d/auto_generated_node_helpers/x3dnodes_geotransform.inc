@@ -52,7 +52,7 @@
     { X3D field "geoOrigin". } { }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
     { Set X3D field "geoSystem". } { }
-    procedure SetGeoSystem(const Value: array of string);
+    procedure SetGeoSystem(const Value: array of String);
     { Set X3D field "geoSystem". } { }
     procedure SetGeoSystem(const Value: TCastleStringList);
 
@@ -125,7 +125,7 @@ begin
   FdGeoOrigin.Send(Value);
 end;
 
-procedure TGeoTransformNode.SetGeoSystem(const Value: array of string);
+procedure TGeoTransformNode.SetGeoSystem(const Value: array of String);
 begin
   FdGeoSystem.Send(Value);
 end;

@@ -26,19 +26,19 @@
     FDestinationEvent: TX3DEvent;
 
     LastEventTime: TX3DTime;
-    FInternal: boolean;
+    FInternal: Boolean;
 
     procedure DestructionNotification(const Node: TX3DNode);
 
     procedure UnsetEnding(
       var Node: TX3DNode; var Event: TX3DEvent;
-      const DestEnding: boolean;
-      RemoveFromDestructionNotification: boolean = true);
+      const DestEnding: Boolean;
+      RemoveFromDestructionNotification: Boolean = true);
 
-    procedure SetEnding(const NodeName, FieldOrEventName: string;
+    procedure SetEnding(const NodeName, FieldOrEventName: String;
       Reader: TX3DReaderNames;
       var Node: TX3DNode; var Event: TX3DEvent;
-      const DestEnding: boolean);
+      const DestEnding: Boolean);
 
     { Set Event, based on FieldOrEvent (may be actual event,
       or exposed field containing it) and DestEnding.
@@ -46,12 +46,12 @@
     procedure SetEndingInternal(
       const Node: TX3DNode; const FieldOrEvent: TX3DFieldOrEvent;
       var Event: TX3DEvent;
-      const DestEnding: boolean);
+      const DestEnding: Boolean);
 
     procedure SetEndingDirectly(
       const NewNode: TX3DNode; const FieldOrEvent: TX3DFieldOrEvent;
       var Node: TX3DNode; var Event: TX3DEvent;
-      const DestEnding: boolean);
+      const DestEnding: Boolean);
 
     procedure EventReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
@@ -99,11 +99,11 @@
 
       @groupBegin }
     procedure SetSource(
-      const SourceNodeName, SourceFieldOrEventName: string;
+      const SourceNodeName, SourceFieldOrEventName: String;
       Reader: TX3DReaderNames);
 
     procedure SetDestination(
-      const DestinationNodeName, DestinationFieldOrEventName: string;
+      const DestinationNodeName, DestinationFieldOrEventName: String;
       Reader: TX3DReaderNames);
     { @groupEnd }
 
@@ -174,7 +174,7 @@
           internal routes) to route one input event to another input event.)
       )
     }
-    property Internal: boolean read FInternal write FInternal default false;
+    property Internal: Boolean read FInternal write FInternal default false;
 
     function DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DRoute;
   end;
@@ -207,8 +207,8 @@ end;
 
 procedure TX3DRoute.Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);
 var
-  SourceNodeName, SourceEventName: string;
-  DestinationNodeName, DestinationEventName: string;
+  SourceNodeName, SourceEventName: String;
+  DestinationNodeName, DestinationEventName: String;
 begin
   { We don't use NextTokenForceVTName here, as then the dot "."
     is treated like part the VRML name. So this assumes that VRML node names
@@ -247,7 +247,7 @@ end;
 
 procedure TX3DRoute.ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
 
-  function RequiredX3DName(const AttrName: string): string;
+  function RequiredX3DName(const AttrName: String): String;
   begin
     if not XMLAttributeX3DName(Element, AttrName, Result) then
     begin
@@ -257,8 +257,8 @@ procedure TX3DRoute.ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
   end;
 
 var
-  SourceNodeName, SourceEventName: string;
-  DestinationNodeName, DestinationEventName: string;
+  SourceNodeName, SourceEventName: String;
+  DestinationNodeName, DestinationEventName: String;
 begin
   SourceNodeName := RequiredX3DName('fromNode');
   SourceEventName := RequiredX3DName('fromField');
@@ -271,8 +271,8 @@ end;
 
 procedure TX3DRoute.UnsetEnding(
   var Node: TX3DNode; var Event: TX3DEvent;
-  const DestEnding: boolean;
-  RemoveFromDestructionNotification: boolean);
+  const DestEnding: Boolean;
+  RemoveFromDestructionNotification: Boolean);
 begin
   if (Event <> nil) and (not DestEnding) then
     Event.RemoveNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventReceive);
@@ -317,14 +317,14 @@ type
   ERouteSetEndingError = class(EX3DError);
 
 const
-  DestEndingNames: array [boolean] of string =
+  DestEndingNames: array [Boolean] of String =
   ('source', 'destination');
 
 procedure TX3DRoute.SetEndingInternal(
   const Node: TX3DNode;
   const FieldOrEvent: TX3DFieldOrEvent;
   var Event: TX3DEvent;
-  const DestEnding: boolean);
+  const DestEnding: Boolean);
 var
   ExposedField: TX3DField;
 begin
@@ -363,14 +363,14 @@ begin
     Event.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventReceive);
 end;
 
-procedure TX3DRoute.SetEnding(const NodeName, FieldOrEventName: string;
+procedure TX3DRoute.SetEnding(const NodeName, FieldOrEventName: String;
   Reader: TX3DReaderNames;
   var Node: TX3DNode; var Event: TX3DEvent;
-  const DestEnding: boolean);
+  const DestEnding: Boolean);
 var
   N: TX3DNode;
   FieldOrEvent: TX3DFieldOrEvent;
-  IgnoreNodeFinished: boolean;
+  IgnoreNodeFinished: Boolean;
 begin
   UnsetEnding(Node, Event, DestEnding);
 
@@ -411,7 +411,7 @@ begin
 end;
 
 procedure TX3DRoute.SetSource(
-  const SourceNodeName, SourceFieldOrEventName: string;
+  const SourceNodeName, SourceFieldOrEventName: String;
   Reader: TX3DReaderNames);
 begin
   SetEnding(SourceNodeName, SourceFieldOrEventName,
@@ -419,7 +419,7 @@ begin
 end;
 
 procedure TX3DRoute.SetDestination(
-  const DestinationNodeName, DestinationFieldOrEventName: string;
+  const DestinationNodeName, DestinationFieldOrEventName: String;
   Reader: TX3DReaderNames);
 begin
   SetEnding(DestinationNodeName, DestinationFieldOrEventName,
@@ -429,7 +429,7 @@ end;
 procedure TX3DRoute.SetEndingDirectly(
   const NewNode: TX3DNode; const FieldOrEvent: TX3DFieldOrEvent;
   var Node: TX3DNode; var Event: TX3DEvent;
-  const DestEnding: boolean);
+  const DestEnding: Boolean);
 begin
   UnsetEnding(Node, Event, DestEnding);
 
@@ -479,11 +479,11 @@ type
 
 procedure TX3DRoute.SaveToStream(Writer: TX3DWriter);
 
-  procedure Ending(Node: TX3DNode; Event: TX3DEvent; const S: string;
-    out NodeName, EventName: string);
+  procedure Ending(Node: TX3DNode; Event: TX3DEvent; const S: String;
+    out NodeName, EventName: String);
   var
     BoundNode: TX3DNode;
-    IgnoreNodeFinished: boolean;
+    IgnoreNodeFinished: Boolean;
   begin
     { Check Node }
     if Node = nil then
@@ -518,7 +518,7 @@ procedure TX3DRoute.SaveToStream(Writer: TX3DWriter);
   end;
 
 var
-  SourceNodeName, SourceEventName, DestinationNodeName, DestinationEventName: string;
+  SourceNodeName, SourceEventName, DestinationNodeName, DestinationEventName: String;
 begin
   if Internal then Exit;
 

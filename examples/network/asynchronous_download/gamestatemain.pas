@@ -42,7 +42,7 @@ type
     procedure UpdateDownloadState;
   public
     procedure Start; override;
-    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
   end;
 
 var
@@ -83,7 +83,7 @@ begin
   UpdateDownloadState;
 end;
 
-procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: boolean);
+procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 begin
   inherited;
   LabelStatus.Caption := 'FPS: ' + Container.Fps.ToString;

@@ -79,7 +79,7 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
 
@@ -131,7 +131,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure ParseAfter(Reader: TX3DReaderNames); override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
 
     { Find a suitable CommonSurfaceShader to be used when rendering this shape,
       or @nil. }
@@ -242,10 +242,10 @@
     var
       FMaterialInfo: TMyMaterialInfo;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
 
     { Opacity is just a 1 - FdTransparency.Value.
@@ -272,7 +272,7 @@
       configurable (using FdEmissiveColor and FdTransparency fields).
 
       We can optimize this case when rendering. }
-    function PureEmissive: boolean;
+    function PureEmissive: Boolean;
 
     { Force the material pure emissive (see @link(PureEmissive)) by setting
       other colors to black. }
@@ -299,7 +299,7 @@
     var
       FMaterialInfo: TMyPhysicalMaterialInfo;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
     function MaterialInfo: TMaterialInfo; override;
 
@@ -366,7 +366,7 @@
     var
       FMaterialInfo: TMyUnlitMaterialInfo;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
     function MaterialInfo: TMaterialInfo; override;
 
@@ -400,7 +400,7 @@ end;
 
 procedure TAbstractShapeNode.TSFShading.ExposedEventReceive(Event: TX3DEvent; NewValue: TX3DField; const Time: TX3DTime);
 var
-  OldWireframe, NewWireframe: boolean;
+  OldWireframe, NewWireframe: Boolean;
 begin
   OldWireframe := TShading(EnumValue) = shWireframe;
   NewWireframe := TShading(StringToEnumValue((NewValue as TSFString).Value)) = shWireframe;
@@ -436,7 +436,7 @@ const
     'NONE'
   );
 
-constructor TAbstractShapeNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TAbstractShapeNode.Create(const AX3DName: String = ''; const ABaseUrl: String = '');
 begin
   inherited;
   FdBboxCenter.ChangeAlways := chBBox;
@@ -754,7 +754,7 @@ function TAppearanceNode.InternalMaterialProperty: TMaterialProperty;
 
   function TryUrl(const Url: TMFString): TMaterialProperty;
   var
-    TextureUrl: string;
+    TextureUrl: String;
   begin
     Result := nil;
     if Url.Count <> 0 then
@@ -829,7 +829,7 @@ end;
 
 { TMaterialNode -------------------------------------------------------------- }
 
-constructor TMaterialNode.Create(const AX3DName: string; const ABaseUrl: string);
+constructor TMaterialNode.Create(const AX3DName: String; const ABaseUrl: String);
 begin
   inherited;
   { Changing Transparency must also update shape's Blending. }
@@ -842,7 +842,7 @@ begin
   inherited;
 end;
 
-class function TMaterialNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TMaterialNode.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major >= 2;
 end;
@@ -864,7 +864,7 @@ begin
   Result := FMaterialInfo;
 end;
 
-function TMaterialNode.PureEmissive: boolean;
+function TMaterialNode.PureEmissive: Boolean;
 begin
   Result := (FdAmbientIntensity.Value = 0) and
             FdDiffuseColor.Value.IsPerfectlyZero and
@@ -1028,7 +1028,7 @@ end;
 
 { TPhysicalMaterialNode ------------------------------------------------------ }
 
-constructor TPhysicalMaterialNode.Create(const AX3DName: string; const ABaseUrl: string);
+constructor TPhysicalMaterialNode.Create(const AX3DName: String; const ABaseUrl: String);
 begin
   inherited;
   { Changing Transparency must also update shape's Blending. }
@@ -1275,7 +1275,7 @@ end;
 
 { TUnlitMaterialNode ------------------------------------------------------ }
 
-constructor TUnlitMaterialNode.Create(const AX3DName: string; const ABaseUrl: string);
+constructor TUnlitMaterialNode.Create(const AX3DName: String; const ABaseUrl: String);
 begin
   inherited;
   // default is different

@@ -23,13 +23,13 @@
     FImages: array [TThemeImage] of TCastleImage;
     FCorners: array [TThemeImage] of TVector4;
     FDrawableImages: array [TThemeImage] of TDrawableImage;
-    FOwnsImages: array [TThemeImage] of boolean;
+    FOwnsImages: array [TThemeImage] of Boolean;
     FMessageFont: TCastleFont;
-    FOwnsMessageFont: boolean;
+    FOwnsMessageFont: Boolean;
     function GetImages(const ImageType: TThemeImage): TCastleImage;
     procedure SetImages(const ImageType: TThemeImage; const Value: TCastleImage);
-    function GetOwnsImages(const ImageType: TThemeImage): boolean;
-    procedure SetOwnsImages(const ImageType: TThemeImage; const Value: boolean);
+    function GetOwnsImages(const ImageType: TThemeImage): Boolean;
+    procedure SetOwnsImages(const ImageType: TThemeImage; const Value: Boolean);
     function GetCorners(const ImageType: TThemeImage): TVector4;
     procedure SetCorners(const ImageType: TThemeImage; const Value: TVector4);
     function GetDrawableImages(const ImageType: TThemeImage): TDrawableImage;
@@ -99,7 +99,7 @@
       rendering user stuff).
 
       @exclude }
-    InternalForceOpaqueBackground: boolean;
+    InternalForceOpaqueBackground: Boolean;
 
     DefaultLabelWhite: Boolean deprecated 'if you want the labels to be white, adjust TCastleLabel.Color to White after creating every TCastleLabel';
 
@@ -117,7 +117,7 @@
       (for alpha test or alpha blending, see TDrawableImage). }
     property Images[const ImageType: TThemeImage]: TCastleImage read GetImages write SetImages;
 
-    property OwnsImages[const ImageType: TThemeImage]: boolean read GetOwnsImages write SetOwnsImages;
+    property OwnsImages[const ImageType: TThemeImage]: Boolean read GetOwnsImages write SetOwnsImages;
 
     { Corners that determine how image on @link(Images) is stretched when
       drawing by @link(TCastleTheme.Draw) method.
@@ -152,7 +152,7 @@
       Leave @nil to use @link(TUIContainer.DefaultFont). }
     property MessageFont: TCastleFont read FMessageFont write SetMessageFont;
 
-    property OwnsMessageFont: boolean
+    property OwnsMessageFont: Boolean
       read FOwnsMessageFont write FOwnsMessageFont default true;
 
     { Set dialogs theme to light. }
@@ -290,13 +290,13 @@ begin
   end;
 end;
 
-function TCastleTheme.GetOwnsImages(const ImageType: TThemeImage): boolean;
+function TCastleTheme.GetOwnsImages(const ImageType: TThemeImage): Boolean;
 begin
   Result := FOwnsImages[ImageType];
 end;
 
 procedure TCastleTheme.SetOwnsImages(const ImageType: TThemeImage;
-  const Value: boolean);
+  const Value: Boolean);
 begin
   FOwnsImages[ImageType] := Value;
 end;

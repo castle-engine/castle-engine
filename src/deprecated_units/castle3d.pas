@@ -75,7 +75,7 @@ type
 
   T3DAlive = TAlive deprecated 'use TCastleAlive';
 
-  T3DExistsEvent = function(const Item: T3D): boolean of object;
+  T3DExistsEvent = function(const Item: T3D): Boolean of object;
 
 const
   MaxSingle = Math.MaxSingle;
@@ -100,12 +100,12 @@ var
     to display additional features of 3D objects, helpful to debug collisions,
     AI and other things.
     @groupBegin }
-  RenderDebug3D: boolean = false
+  RenderDebug3D: Boolean = false
     {$ifndef CASTLE_ENGINE_LAZARUS_PACKAGE}
     // workaround for Lazarus <= 1.8.0: CodeTools cannot parse this
     deprecated 'use Player.RenderDebug, TCreature.RenderDebug, TItemOnWorld.RenderDebug'
     {$endif};
-  RenderDebugCaptions: boolean = false
+  RenderDebugCaptions: Boolean = false
     {$ifndef CASTLE_ENGINE_LAZARUS_PACKAGE}
     // workaround for Lazarus <= 1.8.0: CodeTools cannot parse this
     deprecated 'use TCreature.RenderDebug'

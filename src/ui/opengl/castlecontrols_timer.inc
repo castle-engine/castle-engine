@@ -19,7 +19,7 @@
   { Timer, running the @link(OnTimer) event periodically. }
   TCastleTimer = class(TCastleUserInterface)
   strict private
-    FCounteractDelays: boolean;
+    FCounteractDelays: Boolean;
     FIntervalSeconds, IntervalRemaining: TFloatTime;
     FOnTimer: TNotifyEvent;
     procedure SetIntervalSeconds(AValue: TFloatTime);
@@ -27,7 +27,7 @@
     procedure DoTimer; virtual;
   public
     procedure Update(const SecondsPassed: Single;
-      var HandleInput: boolean); override;
+      var HandleInput: Boolean); override;
     function PropertySection(const PropertyName: String): TPropertySection; override;
   published
     { How often should we call OnTimer. Value of 0 means to call OnTimer
@@ -41,7 +41,7 @@
       perfectly synchronized with each other.
       But it may cause to execute a @italic(lot) of timer events at once,
       in case the application hung for some time. }
-    property CounteractDelays: boolean
+    property CounteractDelays: Boolean
       read FCounteractDelays write FCounteractDelays default false;
   end;
 
@@ -66,7 +66,7 @@ begin
     OnTimer(Self);
 end;
 
-procedure TCastleTimer.Update(const SecondsPassed: Single; var HandleInput: boolean);
+procedure TCastleTimer.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 begin
   inherited;
   if IntervalSeconds <> 0 then

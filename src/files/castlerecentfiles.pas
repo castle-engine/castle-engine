@@ -23,7 +23,7 @@ interface
 uses Classes, CastleXMLConfig;
 
 type
-  TOnOpenRecent = procedure (const URL: string) of object;
+  TOnOpenRecent = procedure (const URL: String) of object;
 
   { Manage a list of recently open files.
 
@@ -115,7 +115,7 @@ end;
 
 procedure TRecentFiles.Add(const URL: String);
 var
-  F: string;
+  F: String;
   Index: Integer;
 begin
   F := AbsoluteURI(URL);
@@ -149,7 +149,7 @@ end;
 
 procedure TRecentFiles.Remove(const URL: String);
 var
-  F: string;
+  F: String;
   Index: Integer;
 begin
   F := AbsoluteURI(URL);
@@ -173,7 +173,7 @@ const
 procedure TRecentFiles.LoadFromConfig(const Config: TCastleConfig);
 var
   I, C: Integer;
-  S: string;
+  S: String;
 begin
   URLs.Clear;
   C := Config.GetValue(Path + '/count', 0);

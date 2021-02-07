@@ -16,7 +16,7 @@
 var
   Intersection: TVector3;
   SphereRadiusSqr: Single;
-  I, NextI: integer;
+  I, NextI: Integer;
   {$ifndef HAS_PRECALC_PLANE} TriPlane: TVector4; {$endif}
   { In case HAS_PRECALC_PLANE is not defined, TriDir is valid only once
     TriPlane is calculated. }

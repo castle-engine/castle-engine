@@ -25,18 +25,18 @@
     Bone: TBone;
     Time: TSingleList;
     BackupTime: TSingleList;
-    Curve: boolean;
+    Curve: Boolean;
     CurveControlPoints: TVector4List;
     Node: TAbstractInterpolatorNode;
-    NodeUsedAsChild: boolean;
+    NodeUsedAsChild: Boolean;
     property MaxTime: Single read FMaxTime;
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONArray); virtual;
     procedure ParseSingleValue(const Json: TJSONObject); virtual; abstract;
-    procedure BuildNodes(const BaseUrl: string;
+    procedure BuildNodes(const BaseUrl: String;
       const MaxAnimationTime: Single; const Container: TX3DRootNode); virtual;
-    function DoingSomething: boolean; virtual; abstract;
+    function DoingSomething: Boolean; virtual; abstract;
     procedure Backup; virtual;
     procedure Restore; virtual;
   end;
@@ -55,16 +55,16 @@
 
   TBoneTimelineTranslate = class(TBoneTimelineVector2)
     procedure ParseSingleValue(const Json: TJSONObject); override;
-    procedure BuildNodes(const BaseUrl: string;
+    procedure BuildNodes(const BaseUrl: String;
       const MaxAnimationTime: Single; const Container: TX3DRootNode); override;
-    function DoingSomething: boolean; override;
+    function DoingSomething: Boolean; override;
   end;
 
   TBoneTimelineScale = class(TBoneTimelineVector2)
     procedure ParseSingleValue(const Json: TJSONObject); override;
-    procedure BuildNodes(const BaseUrl: string;
+    procedure BuildNodes(const BaseUrl: String;
       const MaxAnimationTime: Single; const Container: TX3DRootNode); override;
-    function DoingSomething: boolean; override;
+    function DoingSomething: Boolean; override;
   end;
 
   TBoneTimelineRotate = class(TBoneTimeline)
@@ -75,9 +75,9 @@
     constructor Create;
     destructor Destroy; override;
     procedure ParseSingleValue(const Json: TJSONObject); override;
-    procedure BuildNodes(const BaseUrl: string;
+    procedure BuildNodes(const BaseUrl: String;
       const MaxAnimationTime: Single; const Container: TX3DRootNode); override;
-    function DoingSomething: boolean; override;
+    function DoingSomething: Boolean; override;
     procedure Backup; override;
     procedure Restore; override;
   end;
@@ -165,7 +165,7 @@ begin
   //Writeln('got timeline for bone ', Bone.Name, ' with ', Time.Count, ' items');
 end;
 
-procedure TBoneTimeline.BuildNodes(const BaseUrl: string;
+procedure TBoneTimeline.BuildNodes(const BaseUrl: String;
   const MaxAnimationTime: Single; const Container: TX3DRootNode);
 var
   I: Integer;
@@ -236,7 +236,7 @@ begin
     Json.Get('y', 0.0)));
 end;
 
-procedure TBoneTimelineTranslate.BuildNodes(const BaseUrl: string;
+procedure TBoneTimelineTranslate.BuildNodes(const BaseUrl: String;
   const MaxAnimationTime: Single; const Container: TX3DRootNode);
 var
   I: Integer;
@@ -287,7 +287,7 @@ begin
     WritelnWarning('Spine', Format(SSpine1KeyFrameWarning, ['bone', Bone.Name, 'translation']));
 end;
 
-function TBoneTimelineTranslate.DoingSomething: boolean;
+function TBoneTimelineTranslate.DoingSomething: Boolean;
 var
   I: Integer;
 begin
@@ -306,7 +306,7 @@ begin
     Json.Get('y', 1.0)));
 end;
 
-procedure TBoneTimelineScale.BuildNodes(const BaseUrl: string;
+procedure TBoneTimelineScale.BuildNodes(const BaseUrl: String;
   const MaxAnimationTime: Single; const Container: TX3DRootNode);
 
   { Combine initial node scale and 2D key scale into a final scale. }
@@ -364,7 +364,7 @@ begin
     WritelnWarning('Spine', Format(SSpine1KeyFrameWarning, ['bone', Bone.Name, 'scale']));
 end;
 
-function TBoneTimelineScale.DoingSomething: boolean;
+function TBoneTimelineScale.DoingSomething: Boolean;
 var
   I: Integer;
 begin
@@ -396,7 +396,7 @@ begin
   Angles.Add(Json.Get('angle', 0.0));
 end;
 
-procedure TBoneTimelineRotate.BuildNodes(const BaseUrl: string;
+procedure TBoneTimelineRotate.BuildNodes(const BaseUrl: String;
   const MaxAnimationTime: Single; const Container: TX3DRootNode);
 var
   I: Integer;
@@ -477,7 +477,7 @@ begin
     WritelnWarning('Spine', Format(SSpine1KeyFrameWarning, ['bone', Bone.Name, 'rotation']));
 end;
 
-function TBoneTimelineRotate.DoingSomething: boolean;
+function TBoneTimelineRotate.DoingSomething: Boolean;
 var
   I: Integer;
 begin

@@ -64,7 +64,7 @@ type
   TEnumerateShapeTexturesFunction = function (Shape: TShape;
     Texture: TAbstractTextureNode): Pointer of object;
 
-  TTestShapeVisibility = function (Shape: TShape): boolean of object;
+  TTestShapeVisibility = function (Shape: TShape): Boolean of object;
 
   TShapesHash = QWord;
 
@@ -113,7 +113,7 @@ type
     function Transparency: Single;
 
     { Returns @true for triangles that are transparent. }
-    function IsTransparent: boolean;
+    function IsTransparent: Boolean;
 
     { Returns @true for triangles that should be ignored by shadow rays.
       Returns @true for transparent triangles
@@ -121,7 +121,7 @@ type
       (with Appearance.shadowCaster = FALSE).
 
       @seealso TBaseTrianglesOctree.IgnoreForShadowRays }
-    function IgnoreForShadowRays: boolean;
+    function IgnoreForShadowRays: Boolean;
 
     {$ifndef CONSERVE_TRIANGLE_MEMORY}
     { For a given position (in world coordinates), return the smooth
@@ -164,9 +164,9 @@ type
     function MaxShapesCountCore: Integer; virtual; abstract;
     procedure InvalidateMaxShapesCount;
     procedure TraverseCore(const Func: TShapeTraverseFunc;
-      const OnlyActive: boolean;
-      const OnlyVisible: boolean;
-      const OnlyCollidable: boolean); virtual; abstract;
+      const OnlyActive: Boolean;
+      const OnlyVisible: Boolean;
+      const OnlyCollidable: Boolean); virtual; abstract;
     procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
       const ParentTransformation: TTransformation); virtual; abstract;
   public
@@ -195,32 +195,32 @@ type
         This is no longer advised -- using TraverseList is simpler and faster.
     }
     procedure Traverse(const Func: TShapeTraverseFunc;
-      const OnlyActive: boolean;
-      const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false);
+      const OnlyActive: Boolean;
+      const OnlyVisible: Boolean = false;
+      const OnlyCollidable: Boolean = false);
 
     { Return TShapeList containing the traversed shapes, just like @link(Traverse).
       Caller should never free the resulting list, it is owned by this TShapeTree instance. }
     function TraverseList(
-      const OnlyActive: boolean;
-      const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false): TShapeList;
+      const OnlyActive: Boolean;
+      const OnlyVisible: Boolean = false;
+      const OnlyCollidable: Boolean = false): TShapeList;
 
     { How many shapes would be enumerated by @link(Traverse). }
-    function ShapesCount(const OnlyActive: boolean;
-      const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false): Cardinal;
+    function ShapesCount(const OnlyActive: Boolean;
+      const OnlyVisible: Boolean = false;
+      const OnlyCollidable: Boolean = false): Cardinal;
 
     { Look for shape with Geometry.X3DName = GeometryNodeName.
       Returns @nil if not found. }
-    function FindGeometryNodeName(const GeometryNodeName: string;
-      OnlyActive: boolean = false): TShape;
+    function FindGeometryNodeName(const GeometryNodeName: String;
+      OnlyActive: Boolean = false): TShape;
 
     { Look for shape with Geometry that has a parent named ParentNodeName.
       Parent is searched by Geometry.TryFindParentNodeByName.
       Returns @nil if not found. }
-    function FindShapeWithParentNamed(const ParentNodeName: string;
-      OnlyActive: boolean = false): TShape;
+    function FindShapeWithParentNamed(const ParentNodeName: String;
+      OnlyActive: Boolean = false): TShape;
 
     { Enumerate all single texture nodes (possibly) used by the shapes.
       This looks into all shapes (not only active, so e.g. it looks into all
@@ -233,7 +233,7 @@ type
       and stops further processing. }
     function EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer; virtual; abstract;
 
-    function DebugInfo(const Indent: string = ''): string; virtual; abstract;
+    function DebugInfo(const Indent: String = ''): String; virtual; abstract;
 
     { Using the TX3DNode.InternalSceneShape field,
       you can associate X3D node with a number of TShapeTree instances.
@@ -307,7 +307,7 @@ type
     var
     FLocalBoundingBox: TBox3D;
     FBoundingBox: TBox3D;
-    FVerticesCount, FTrianglesCount: array [boolean] of Cardinal;
+    FVerticesCount, FTrianglesCount: array [Boolean] of Cardinal;
     Validities: TShapeValidities;
     FBoundingSphereCenter: TVector3;
     FBoundingSphereRadiusSqr: Single;
@@ -315,17 +315,17 @@ type
     FOriginalState: TX3DGraphTraverseState;
     { FGeometry[false] should be nil exactly when FState[false] is nil.
       Same for FGeometry[true] and FState[true]. }
-    FGeometry: array [boolean] of TAbstractGeometryNode;
-    FState: array [boolean] of TX3DGraphTraverseState;
+    FGeometry: array [Boolean] of TAbstractGeometryNode;
+    FState: array [Boolean] of TX3DGraphTraverseState;
 
     FGeometryParentNodeName,
     FGeometryGrandParentNodeName,
-    FGeometryGrandGrandParentNodeName: string;
+    FGeometryGrandGrandParentNodeName: String;
 
     FLocalGeometryChangedCount: Cardinal;
     FDynamicGeometry: Boolean;
 
-    IsCachedMaterialProperty: boolean;
+    IsCachedMaterialProperty: Boolean;
     CachedMaterialProperty: TMaterialProperty;
 
     FShadowVolumes: TShapeShadowVolumes;
@@ -333,15 +333,15 @@ type
     { Just like Geometry() and State(), except return @nil if no proxy available
       (when Geometry would return the same thing as OriginalGeometry).
       @groupBegin }
-    function ProxyGeometry(const OverTriangulate: boolean): TAbstractGeometryNode;
-    function ProxyState(const OverTriangulate: boolean): TX3DGraphTraverseState;
+    function ProxyGeometry(const OverTriangulate: Boolean): TAbstractGeometryNode;
+    function ProxyState(const OverTriangulate: Boolean): TX3DGraphTraverseState;
     { @groupEnd }
 
     procedure ValidateBoundingSphere;
 
     { Make both FGeometry[OverTriangulate] and FState[OverTriangulate] set.
       Uses appropriate Proxy calls to initialize them. }
-    procedure ValidateGeometryState(const OverTriangulate: boolean);
+    procedure ValidateGeometryState(const OverTriangulate: Boolean);
 
     { Make both FGeometry and FState nil (unset),
       freeing eventual instances created by Proxy methods.
@@ -369,10 +369,10 @@ type
       const Normal: TTriangle3; const TexCoord: TTriangle4;
       const Face: TFaceIndex);
     function CreateTriangleOctree(const ALimits: TOctreeLimits;
-      const ProgressTitle: string): TTriangleOctree;
+      const ProgressTitle: String): TTriangleOctree;
   strict private
     FTriangleOctreeLimits: TOctreeLimits;
-    FTriangleOctreeProgressTitle: string;
+    FTriangleOctreeProgressTitle: String;
 
     FOctreeTriangles: TTriangleOctree;
 
@@ -397,10 +397,10 @@ type
       Moreover, FNormalsCreaseAngle is meaningful only when
       (svNormals in Validities) and (NormalsCached = ncCreaseAngle). }
     FNormalsCached: TNormalsCached;
-    FNormalsCachedCcw: boolean;
+    FNormalsCachedCcw: Boolean;
     FNormals: TVector3List;
     FNormalsCreaseAngle: Single;
-    FNormalsOverTriangulate: boolean;
+    FNormalsOverTriangulate: Boolean;
 
     { Free and nil FOctreeTriangles. Also, makes sure to call
       PointingDeviceClear on ParentScene (since some PTriangle pointers
@@ -409,9 +409,9 @@ type
   private
     function MaxShapesCountCore: Integer; override;
     procedure TraverseCore(const Func: TShapeTraverseFunc;
-      const OnlyActive: boolean;
-      const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false); override;
+      const OnlyActive: Boolean;
+      const OnlyVisible: Boolean = false;
+      const OnlyCollidable: Boolean = false); override;
     procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
       const ParentTransformation: TTransformation); override;
   public
@@ -436,7 +436,7 @@ type
       This may come from initial VRML/X3D node graph (see OriginalGeometry),
       or it may be processed by @link(TAbstractGeometryNode.Proxy)
       for easier handling. }
-    function Geometry(const OverTriangulate: boolean = true): TAbstractGeometryNode;
+    function Geometry(const OverTriangulate: Boolean = true): TAbstractGeometryNode;
 
     { State of this shape.
       This may come from initial VRML/X3D node graph (see OriginalState),
@@ -444,19 +444,19 @@ type
       for easier handling.
 
       Owned by this TShape class. }
-    function State(const OverTriangulate: boolean = true): TX3DGraphTraverseState;
+    function State(const OverTriangulate: Boolean = true): TX3DGraphTraverseState;
 
     { Calculate bounding box and vertices/triangles count,
       see TAbstractGeometryNode methods.
       @groupBegin }
     function LocalBoundingBox: TBox3D;
     function BoundingBox: TBox3D;
-    function VerticesCount(OverTriangulate: boolean): Cardinal;
-    function TrianglesCount(OverTriangulate: boolean): Cardinal;
+    function VerticesCount(OverTriangulate: Boolean): Cardinal;
+    function TrianglesCount(OverTriangulate: Boolean): Cardinal;
     { @groupEnd }
 
     { Decompose the geometry into primitives, with arrays of per-vertex data. }
-    function GeometryArrays(OverTriangulate: boolean): TGeometryArrays;
+    function GeometryArrays(OverTriangulate: Boolean): TGeometryArrays;
 
     { Calculates bounding sphere based on BoundingBox.
       In the future this may be changed to use BoundingSphere method
@@ -493,7 +493,7 @@ type
 
       But it may be a little faster since it avoids some small speed problems. }
     function FrustumBoundingSphereCollisionPossibleSimple(
-      const Frustum: TFrustum): boolean;
+      const Frustum: TFrustum): Boolean;
 
     { Notify this shape that you changed a field inside one of it's nodes
       (automatically done by TCastleSceneCore).
@@ -509,7 +509,7 @@ type
       Here, chTransform in Changes means that only the transformation
       of TShape.State changed (so only on fields ignored by
       EqualsNoTransform). }
-    procedure Changed(const InactiveOnly: boolean;
+    procedure Changed(const InactiveOnly: Boolean;
       const Changes: TX3DChanges); virtual;
 
     { The dynamic octree containing all triangles.
@@ -562,7 +562,7 @@ type
       octree creation (through TProgress.Title). Will be shown only
       if progress is not active already
       (so we avoid starting "progress bar within progress bar"). }
-    property InternalTriangleOctreeProgressTitle: string
+    property InternalTriangleOctreeProgressTitle: String
       read  FTriangleOctreeProgressTitle
       write FTriangleOctreeProgressTitle;
 
@@ -577,13 +577,13 @@ type
       looking at material, color, texture nodes data (including at texture
       images contents). }
     function AlphaChannel: TAlphaChannel;
-    function Blending: boolean; deprecated 'use "AlphaChannel = acBlending"';
-    function Transparent: boolean; deprecated 'use "AlphaChannel = acBlending"';
+    function Blending: Boolean; deprecated 'use "AlphaChannel = acBlending"';
+    function Transparent: Boolean; deprecated 'use "AlphaChannel = acBlending"';
 
     { Is the shape visible.
       Most shapes are visible, except when placed in @link(TCollisionNode.Proxy)
       (which allows to define invisible shapes, only for collision purposes). }
-    function Visible: boolean;
+    function Visible: Boolean;
 
     { Is the shape collidable.
       Most shapes are collidable.
@@ -592,7 +592,7 @@ type
       Another exception is when the shape is placed inside @link(TCollisionNode) children,
       and then you use @link(TCollisionNode.Enabled) to turn off collisions,
       or @link(TCollisionNode.Proxy) to provide alternative geometry for collisions. }
-    function Collidable: boolean;
+    function Collidable: Boolean;
 
     { Equivalent to using OctreeTriangles.RayCollision, except this
       wil use the mailbox. }
@@ -601,9 +601,9 @@ type
       out Intersection: TVector3;
       out IntersectionDistance: Single;
       const RayOrigin, RayDirection: TVector3;
-      const ReturnClosestIntersection: boolean;
+      const ReturnClosestIntersection: Boolean;
       const TriangleToIgnore: PTriangle;
-      const IgnoreMarginAtStart: boolean;
+      const IgnoreMarginAtStart: Boolean;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 
     { Equivalent to using OctreeTriangles.SegmentCollision, except this
@@ -613,9 +613,9 @@ type
       out Intersection: TVector3;
       out IntersectionDistance: Single;
       const Pos1, Pos2: TVector3;
-      const ReturnClosestIntersection: boolean;
+      const ReturnClosestIntersection: Boolean;
       const TriangleToIgnore: PTriangle;
-      const IgnoreMarginAtStart: boolean;
+      const IgnoreMarginAtStart: Boolean;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 
     { Create normals suitable for this shape.
@@ -648,9 +648,9 @@ type
       will need normals many times (e.g. will be rendered many times).
 
       @groupBegin }
-    function NormalsSmooth(const OverTriangulate, FromCcw: boolean): TVector3List;
-    function NormalsFlat(const OverTriangulate, FromCcw: boolean): TVector3List;
-    function NormalsCreaseAngle(const OverTriangulate, FromCcw: boolean;
+    function NormalsSmooth(const OverTriangulate, FromCcw: Boolean): TVector3List;
+    function NormalsFlat(const OverTriangulate, FromCcw: Boolean): TVector3List;
+    function NormalsCreaseAngle(const OverTriangulate, FromCcw: Boolean;
       const CreaseAngle: Single): TVector3List;
     { @groupEnd }
 
@@ -658,12 +658,12 @@ type
 
     { Is the texture node Node possibly used by this shape.
       This is equivalent to checking does EnumerateShapeTextures return this shape. }
-    function UsesTexture(Node: TAbstractTextureNode): boolean;
+    function UsesTexture(Node: TAbstractTextureNode): Boolean;
 
     { Check is shape a shadow caster. Looks at Shape's
       Appearance.shadowCaster field (see
       https://castle-engine.io/x3d_extensions.php#section_ext_shadow_caster). }
-    function ShadowCaster: boolean;
+    function ShadowCaster: Boolean;
 
     { Triangulate shape. Calls TriangleEvent callback for each triangle.
       LocalTriangulate returns coordinates in local shape transformation
@@ -674,12 +674,12 @@ type
       additional stacks.
 
       @groupBegin }
-    procedure Triangulate(OverTriangulate: boolean; TriangleEvent: TTriangleEvent);
-    procedure LocalTriangulate(OverTriangulate: boolean; TriangleEvent: TTriangleEvent);
+    procedure Triangulate(OverTriangulate: Boolean; TriangleEvent: TTriangleEvent);
+    procedure LocalTriangulate(OverTriangulate: Boolean; TriangleEvent: TTriangleEvent);
     { @groupEnd }
 
-    function DebugInfo(const Indent: string = ''): string; override;
-    function NiceName: string;
+    function DebugInfo(const Indent: String = ''): String; override;
+    function NiceName: String;
 
     { Local geometry changes very often (like every frame).
       This is automatically detected and set to @true.
@@ -696,9 +696,9 @@ type
       as Node.NodeName, because the parent of geometry node is always
       a TShapeNode.
       @groupBegin }
-    property GeometryParentNodeName: string read FGeometryParentNodeName;
-    property GeometryGrandParentNodeName: string read FGeometryGrandParentNodeName;
-    property GeometryGrandGrandParentNodeName: string read FGeometryGrandGrandParentNodeName;
+    property GeometryParentNodeName: String read FGeometryParentNodeName;
+    property GeometryGrandParentNodeName: String read FGeometryGrandParentNodeName;
+    property GeometryGrandGrandParentNodeName: String read FGeometryGrandGrandParentNodeName;
     { @groupEnd }
 
     { Material property associated with this shape's material/texture. }
@@ -740,9 +740,9 @@ type
   private
     function MaxShapesCountCore: Integer; override;
     procedure TraverseCore(const Func: TShapeTraverseFunc;
-      const OnlyActive: boolean;
-      const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false); override;
+      const OnlyActive: Boolean;
+      const OnlyVisible: Boolean = false;
+      const OnlyCollidable: Boolean = false); override;
     procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
       const ParentTransformation: TTransformation); override;
   public
@@ -760,15 +760,15 @@ type
 
       May be >= Children.Count, even IterateBeginIndex + 1 may
       be >= Children.Count, i.e. it's Ok if this is already out of range. }
-    function IterateBeginIndex(OnlyActive: boolean): Integer; virtual;
+    function IterateBeginIndex(OnlyActive: Boolean): Integer; virtual;
 
     { End index for TShapeTreeIterator. Valid indexes are < this.
       This must be <= Children.Count. }
-    function IterateEndIndex(OnlyActive: boolean): Cardinal; virtual;
+    function IterateEndIndex(OnlyActive: Boolean): Cardinal; virtual;
 
     {$endif}
 
-    function DebugInfo(const Indent: string = ''): string; override;
+    function DebugInfo(const Indent: String = ''): String; override;
   end;
 
   { Node of the TShapeTree representing an alternative,
@@ -783,15 +783,15 @@ type
     FSwitchNode: TSwitchNode;
   private
     procedure TraverseCore(const Func: TShapeTraverseFunc;
-      const OnlyActive: boolean;
-      const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false); override;
+      const OnlyActive: Boolean;
+      const OnlyVisible: Boolean = false;
+      const OnlyCollidable: Boolean = false); override;
   public
     property SwitchNode: TSwitchNode read FSwitchNode write FSwitchNode;
 
     {$ifdef SHAPE_ITERATOR_SOPHISTICATED}
-    function IterateBeginIndex(OnlyActive: boolean): Integer; override;
-    function IterateEndIndex(OnlyActive: boolean): Cardinal; override;
+    function IterateBeginIndex(OnlyActive: Boolean): Integer; override;
+    function IterateEndIndex(OnlyActive: Boolean): Cardinal; override;
     {$endif}
   end;
 
@@ -850,12 +850,12 @@ type
     FLODNode: TAbstractLODNode;
     FLODInverseTransform: TMatrix4;
     FLevel: Cardinal;
-    FWasLevel_ChangedSend: boolean;
+    FWasLevel_ChangedSend: Boolean;
   private
     procedure TraverseCore(const Func: TShapeTraverseFunc;
-      const OnlyActive: boolean;
-      const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false); override;
+      const OnlyActive: Boolean;
+      const OnlyVisible: Boolean = false;
+      const OnlyCollidable: Boolean = false); override;
   public
     property LODNode: TAbstractLODNode read FLODNode write FLODNode;
     function LODInverseTransform: PMatrix4;
@@ -875,12 +875,12 @@ type
       use the highest-detail children. }
     property Level: Cardinal read FLevel write FLevel default 0;
 
-    property WasLevel_ChangedSend: boolean
+    property WasLevel_ChangedSend: Boolean
       read FWasLevel_ChangedSend write FWasLevel_ChangedSend default false;
 
     {$ifdef SHAPE_ITERATOR_SOPHISTICATED}
-    function IterateBeginIndex(OnlyActive: boolean): Integer; override;
-    function IterateEndIndex(OnlyActive: boolean): Cardinal; override;
+    function IterateBeginIndex(OnlyActive: Boolean): Integer; override;
+    function IterateEndIndex(OnlyActive: Boolean): Cardinal; override;
     {$endif}
   end;
 
@@ -890,19 +890,19 @@ type
   private
     function MaxShapesCountCore: Integer; override;
     procedure TraverseCore(const Func: TShapeTraverseFunc;
-      const OnlyActive: boolean;
-      const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false); override;
+      const OnlyActive: Boolean;
+      const OnlyVisible: Boolean = false;
+      const OnlyCollidable: Boolean = false); override;
     procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
       const ParentTransformation: TTransformation); override;
   public
     InverseTransform: TMatrix4;
-    IsActive: boolean;
+    IsActive: Boolean;
 
     property Node: TProximitySensorNode read FNode write FNode;
 
     function EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer; override;
-    function DebugInfo(const Indent: string = ''): string; override;
+    function DebugInfo(const Indent: String = ''): String; override;
   end;
 
   TVisibilitySensorInstance = class(TShapeTree)
@@ -911,9 +911,9 @@ type
   private
     function MaxShapesCountCore: Integer; override;
     procedure TraverseCore(const Func: TShapeTraverseFunc;
-      const OnlyActive: boolean;
-      const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false); override;
+      const OnlyActive: Boolean;
+      const OnlyVisible: Boolean = false;
+      const OnlyCollidable: Boolean = false); override;
     procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
       const ParentTransformation: TTransformation); override;
   public
@@ -926,7 +926,7 @@ type
     property Node: TVisibilitySensorNode read FNode write FNode;
 
     function EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer; override;
-    function DebugInfo(const Indent: string = ''): string; override;
+    function DebugInfo(const Indent: String = ''): String; override;
   end;
 
   { Iterates over all TShape items that would be enumerated by
@@ -937,19 +937,19 @@ type
     FCurrent: TShape;
     {$ifdef SHAPE_ITERATOR_SOPHISTICATED}
     Info: Pointer;
-    SingleShapeRemaining: boolean;
-    FOnlyActive, FOnlyVisible, FOnlyCollidable: boolean;
-    function CurrentMatches: boolean;
+    SingleShapeRemaining: Boolean;
+    FOnlyActive, FOnlyVisible, FOnlyCollidable: Boolean;
+    function CurrentMatches: Boolean;
     {$else}
     List: TShapeList;
     CurrentIndex: Integer;
     {$endif}
   public
-    constructor Create(const Tree: TShapeTree; const OnlyActive: boolean;
-      const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false);
+    constructor Create(const Tree: TShapeTree; const OnlyActive: Boolean;
+      const OnlyVisible: Boolean = false;
+      const OnlyCollidable: Boolean = false);
     destructor Destroy; override;
-    function GetNext: boolean;
+    function GetNext: Boolean;
     property Current: TShape read FCurrent;
   end deprecated{ 'use Tree.TraverseList(...)'};
 
@@ -963,9 +963,9 @@ type
     constructor Create;
 
     { Constructor that initializes list contents by traversing given tree. }
-    constructor Create(const Tree: TShapeTree; const OnlyActive: boolean;
-      const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false); deprecated 'use Tree.TraverseList(...)';
+    constructor Create(const Tree: TShapeTree; const OnlyActive: Boolean;
+      const OnlyVisible: Boolean = false;
+      const OnlyCollidable: Boolean = false); deprecated 'use Tree.TraverseList(...)';
 
     { Sort shapes by distance to given Position point, closest first. }
     procedure SortFrontToBack(const Position: TVector3);
@@ -980,7 +980,7 @@ type
       rendering things that pretend to be 2D, like Spine slots.
       See the @link(bs2D) at @link(TBlendingSort) documentation. }
     procedure SortBackToFront(const Position: TVector3;
-      const Distance3D: boolean);
+      const Distance3D: Boolean);
   end;
 
 var
@@ -991,7 +991,7 @@ var
 
   { Log various information about shapes. This displays quite a lot of non-critical
     information when opening non-trivial models. }
-  LogShapes: boolean = false;
+  LogShapes: Boolean = false;
 
 type
   { Detect the 3D placeholder name set in the external modeler,
@@ -1027,17 +1027,17 @@ type
     Except when it's not possible (like for old Blender VRML 1.0 exporter,
     when only mesh names are stored in VRML/X3D exported files),
     in which case it can be a mesh name. }
-  TPlaceholderName = function (const Shape: TShape): string;
-  TPlaceholderNames = class(specialize TDictionary<string, TPlaceholderName>)
+  TPlaceholderName = function (const Shape: TShape): String;
+  TPlaceholderNames = class(specialize TDictionary<String, TPlaceholderName>)
   strict private
-    function GetItems(const AKey: string): TPlaceholderName;
-    procedure SetItems(const AKey: string; const AValue: TPlaceholderName);
+    function GetItems(const AKey: String): TPlaceholderName;
+    procedure SetItems(const AKey: String; const AValue: TPlaceholderName);
   public
     { Access dictionary items.
       Setting this is allowed regardless if the key previously existed or not,
       in other words: setting this does AddOrSetValue, contrary to the ancestor TDictionary
       that only allows setting when the key already exists. }
-    property Items [const AKey: string]: TPlaceholderName read GetItems write SetItems; default;
+    property Items [const AKey: String]: TPlaceholderName read GetItems write SetItems; default;
   end;
 
 var
@@ -1117,14 +1117,14 @@ begin
     Result := 0;
 end;
 
-function TTriangleHelper.IsTransparent: boolean;
+function TTriangleHelper.IsTransparent: Boolean;
 begin
   Result := Transparency > SingleEpsilon;
 end;
 
-function TTriangleHelper.IgnoreForShadowRays: boolean;
+function TTriangleHelper.IgnoreForShadowRays: Boolean;
 
-  function NonShadowCaster(State: TX3DGraphTraverseState): boolean;
+  function NonShadowCaster(State: TX3DGraphTraverseState): Boolean;
   var
     Shape: TAbstractShapeNode;
   begin
@@ -1178,7 +1178,7 @@ begin
 end;
 
 function TShapeTree.FindGeometryNodeName(
-  const GeometryNodeName: string; OnlyActive: boolean): TShape;
+  const GeometryNodeName: String; OnlyActive: Boolean): TShape;
 var
   ShapeList: TShapeList;
   Shape: TShape;
@@ -1193,7 +1193,7 @@ begin
 end;
 
 function TShapeTree.FindShapeWithParentNamed(
-  const ParentNodeName: string; OnlyActive: boolean): TShape;
+  const ParentNodeName: String; OnlyActive: Boolean): TShape;
 var
   ShapeList: TShapeList;
   Shape: TShape;
@@ -1330,7 +1330,7 @@ begin
 end;
 
 procedure TShapeTree.Traverse(const Func: TShapeTraverseFunc;
-  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
+  const OnlyActive, OnlyVisible, OnlyCollidable: Boolean);
 var
   I: Integer;
   List: TShapeList;
@@ -1341,7 +1341,7 @@ begin
 end;
 
 function TShapeTree.ShapesCount(
-  const OnlyActive, OnlyVisible, OnlyCollidable: boolean): Cardinal;
+  const OnlyActive, OnlyVisible, OnlyCollidable: Boolean): Cardinal;
 begin
   // Since TraverseList is optimized now by caching, this method can just call TraverseList
   Result := TraverseList(OnlyActive, OnlyVisible, OnlyCollidable).Count;
@@ -1597,7 +1597,7 @@ begin
   Result := FBoundingBox;
 end;
 
-function TShape.VerticesCount(OverTriangulate: boolean): Cardinal;
+function TShape.VerticesCount(OverTriangulate: Boolean): Cardinal;
 
   procedure Calculate;
   begin
@@ -1626,7 +1626,7 @@ begin
   Result := FVerticesCount[OverTriangulate];
 end;
 
-function TShape.TrianglesCount(OverTriangulate: boolean): Cardinal;
+function TShape.TrianglesCount(OverTriangulate: Boolean): Cardinal;
 
   procedure Calculate;
   begin
@@ -1655,7 +1655,7 @@ begin
   Result := FTrianglesCount[OverTriangulate];
 end;
 
-function TShape.GeometryArrays(OverTriangulate: boolean): TGeometryArrays;
+function TShape.GeometryArrays(OverTriangulate: Boolean): TGeometryArrays;
 var
   G: TAbstractGeometryNode;
   S: TX3DGraphTraverseState;
@@ -1853,7 +1853,7 @@ begin
   Assert(FState[true] = nil);
 end;
 
-procedure TShape.Changed(const InactiveOnly: boolean;
+procedure TShape.Changed(const InactiveOnly: Boolean;
   const Changes: TX3DChanges);
 
   { Called when local geometry changed.
@@ -1871,7 +1871,7 @@ procedure TShape.Changed(const InactiveOnly: boolean;
     This frees the octree (will be recreated on Octree* call).
     Also removes cached normals.
     Also notifies parent scene about this change. }
-  procedure LocalGeometryChanged(const ChangedOnlyCoord: boolean);
+  procedure LocalGeometryChanged(const ChangedOnlyCoord: Boolean);
   begin
     if FLocalGeometryChangedCount <> 0 then
     begin
@@ -1993,7 +1993,7 @@ begin
 end;
 
 function TShape.FrustumBoundingSphereCollisionPossibleSimple(
-  const Frustum: TFrustum): boolean;
+  const Frustum: TFrustum): Boolean;
 begin
   ValidateBoundingSphere;
   Result := Frustum.SphereCollisionPossibleSimple(
@@ -2030,17 +2030,17 @@ end;
 
 function TShape.CreateTriangleOctree(
   const ALimits: TOctreeLimits;
-  const ProgressTitle: string): TTriangleOctree;
+  const ProgressTitle: String): TTriangleOctree;
 
   procedure LocalTriangulateBox(const Box: TBox3D);
 
-    procedure LocalTriangulateRect(const constCoord: integer;
+    procedure LocalTriangulateRect(const constCoord: Integer;
       const constCoordValue, x1, y1, x2, y2: Single);
     var
       Position, Normal: TTriangle3;
-      i, c1, c2: integer;
+      I, c1, c2: Integer;
 
-      procedure TriAssign(TriIndex: integer; c1value, c2value: Single);
+      procedure TriAssign(TriIndex: Integer; c1value, c2value: Single);
       begin
         Position.Data[TriIndex].Data[c1] := c1value;
         Position.Data[TriIndex].Data[c2] := c2value;
@@ -2121,7 +2121,7 @@ end;
 
 procedure TShape.SetSpatial(const Value: TShapeSpatialStructures);
 var
-  Old, New: boolean;
+  Old, New: Boolean;
 begin
   if Value <> InternalSpatial then
   begin
@@ -2137,19 +2137,19 @@ begin
   end;
 end;
 
-function TShape.Transparent: boolean;
+function TShape.Transparent: Boolean;
 begin
   Result := AlphaChannel = acBlending;
 end;
 
-function TShape.Blending: boolean;
+function TShape.Blending: Boolean;
 begin
   Result := AlphaChannel = acBlending;
 end;
 
 function TShape.AlphaChannel: TAlphaChannel;
 
-  function DetectAlphaBlending: boolean;
+  function DetectAlphaBlending: Boolean;
 
     { All the "transparency" field values are greater than zero.
       So the blending should be used when rendering.
@@ -2158,7 +2158,7 @@ function TShape.AlphaChannel: TAlphaChannel;
       a default transparency (0) should be used. So AllMaterialsTransparent
       is @false then (contrary to the strict definition of "all",
       which should be true for empty sets). }
-    function AllMaterialsTransparent(const Node: TMaterialNode_1): boolean;
+    function AllMaterialsTransparent(const Node: TMaterialNode_1): Boolean;
     var
       i: Integer;
     begin
@@ -2269,7 +2269,7 @@ begin
 end;
 
 procedure TShape.TraverseCore(const Func: TShapeTraverseFunc;
-  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
+  const OnlyActive, OnlyVisible, OnlyCollidable: Boolean);
 begin
   if ((not OnlyVisible) or Visible) and
      ((not OnlyCollidable) or Collidable) then
@@ -2293,12 +2293,12 @@ begin
   Result := 1;
 end;
 
-function TShape.Visible: boolean;
+function TShape.Visible: Boolean;
 begin
   Result := State.InsideInvisible = 0;
 end;
 
-function TShape.Collidable: boolean;
+function TShape.Collidable: Boolean;
 begin
   Result := State.InsideIgnoreCollision = 0;
   if (Node <> nil) and
@@ -2311,9 +2311,9 @@ function TShape.RayCollision(
   out Intersection: TVector3;
   out IntersectionDistance: Single;
   const RayOrigin, RayDirection: TVector3;
-  const ReturnClosestIntersection: boolean;
+  const ReturnClosestIntersection: Boolean;
   const TriangleToIgnore: PTriangle;
-  const IgnoreMarginAtStart: boolean;
+  const IgnoreMarginAtStart: Boolean;
   const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 begin
   {$ifdef SHAPE_OCTREE_USE_MAILBOX}
@@ -2352,9 +2352,9 @@ function TShape.SegmentCollision(
   out Intersection: TVector3;
   out IntersectionDistance: Single;
   const Pos1, Pos2: TVector3;
-  const ReturnClosestIntersection: boolean;
+  const ReturnClosestIntersection: Boolean;
   const TriangleToIgnore: PTriangle;
-  const IgnoreMarginAtStart: boolean;
+  const IgnoreMarginAtStart: Boolean;
   const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 begin
   {$ifdef SHAPE_OCTREE_USE_MAILBOX}
@@ -2388,7 +2388,7 @@ begin
   {$endif}
 end;
 
-function TShape.NormalsSmooth(const OverTriangulate, FromCcw: boolean): TVector3List;
+function TShape.NormalsSmooth(const OverTriangulate, FromCcw: Boolean): TVector3List;
 var
   G: TAbstractGeometryNode;
   S: TX3DGraphTraverseState;
@@ -2420,7 +2420,7 @@ begin
   Result := FNormals;
 end;
 
-function TShape.NormalsFlat(const OverTriangulate, FromCcw: boolean): TVector3List;
+function TShape.NormalsFlat(const OverTriangulate, FromCcw: Boolean): TVector3List;
 var
   G: TAbstractGeometryNode;
   S: TX3DGraphTraverseState;
@@ -2453,7 +2453,7 @@ begin
   Result := FNormals;
 end;
 
-function TShape.NormalsCreaseAngle(const OverTriangulate, FromCcw: boolean;
+function TShape.NormalsCreaseAngle(const OverTriangulate, FromCcw: Boolean;
   const CreaseAngle: Single): TVector3List;
 var
   G: TAbstractGeometryNode;
@@ -2753,7 +2753,7 @@ begin
     Result := nil;
 end;
 
-function TShape.UsesTexture(Node: TAbstractTextureNode): boolean;
+function TShape.UsesTexture(Node: TAbstractTextureNode): Boolean;
 var
   Helper: TUsesTextureHelper;
 begin
@@ -2764,7 +2764,7 @@ begin
   finally Helper.Free end;
 end;
 
-function TShape.ShadowCaster: boolean;
+function TShape.ShadowCaster: Boolean;
 var
   S: TAbstractShapeNode;
   A: TX3DNode;
@@ -2781,7 +2781,7 @@ begin
   end;
 end;
 
-procedure TShape.ValidateGeometryState(const OverTriangulate: boolean);
+procedure TShape.ValidateGeometryState(const OverTriangulate: Boolean);
 begin
   if FGeometry[OverTriangulate] = nil then
   begin
@@ -2824,32 +2824,32 @@ begin
   end;
 end;
 
-function TShape.Geometry(const OverTriangulate: boolean): TAbstractGeometryNode;
+function TShape.Geometry(const OverTriangulate: Boolean): TAbstractGeometryNode;
 begin
   ValidateGeometryState(OverTriangulate);
   Result := FGeometry[OverTriangulate];
 end;
 
-function TShape.State(const OverTriangulate: boolean): TX3DGraphTraverseState;
+function TShape.State(const OverTriangulate: Boolean): TX3DGraphTraverseState;
 begin
   ValidateGeometryState(OverTriangulate);
   Result := FState[OverTriangulate];
 end;
 
-function TShape.ProxyGeometry(const OverTriangulate: boolean): TAbstractGeometryNode;
+function TShape.ProxyGeometry(const OverTriangulate: Boolean): TAbstractGeometryNode;
 begin
   Result := Geometry(OverTriangulate);
   if Result = OriginalGeometry then Result := nil;
 end;
 
-function TShape.ProxyState(const OverTriangulate: boolean): TX3DGraphTraverseState;
+function TShape.ProxyState(const OverTriangulate: Boolean): TX3DGraphTraverseState;
 begin
   if Geometry(OverTriangulate) <> OriginalGeometry then
     Result := State(OverTriangulate) else
     Result := nil;
 end;
 
-procedure TShape.LocalTriangulate(OverTriangulate: boolean; TriangleEvent: TTriangleEvent);
+procedure TShape.LocalTriangulate(OverTriangulate: Boolean; TriangleEvent: TTriangleEvent);
 var
   Arrays: TGeometryArrays;
   RangeBeginIndex: Integer;
@@ -2920,7 +2920,7 @@ var
   procedure TriangulateRange(const Count: Cardinal);
   var
     I: Cardinal;
-    NormalOrder: boolean;
+    NormalOrder: Boolean;
   begin
     case Arrays.Primitive of
       gpTriangles:
@@ -3008,7 +3008,7 @@ begin
   TriangleEvent(Shape, Position.Transform(Transform^), Normal, TexCoord, Face);
 end;
 
-procedure TShape.Triangulate(OverTriangulate: boolean; TriangleEvent: TTriangleEvent);
+procedure TShape.Triangulate(OverTriangulate: Boolean; TriangleEvent: TTriangleEvent);
 var
   TR: TTriangulateRedirect;
 begin
@@ -3020,12 +3020,12 @@ begin
   finally FreeAndNil(TR) end;
 end;
 
-function TShape.DebugInfo(const Indent: string): string;
+function TShape.DebugInfo(const Indent: String): String;
 begin
   Result := Indent + NiceName + NL;
 end;
 
-function TShape.NiceName: string;
+function TShape.NiceName: String;
 begin
   Result := OriginalGeometry.NiceName;
   if (Node <> nil) and (Node.X3DName <> '') then
@@ -3057,7 +3057,7 @@ end;
 
 function TShape.InternalMaterialProperty: TMaterialProperty;
 var
-  TextureUrl: string;
+  TextureUrl: String;
 begin
   if IsCachedMaterialProperty then
     Exit(CachedMaterialProperty);
@@ -3110,7 +3110,7 @@ begin
 end;
 
 procedure TShapeTreeGroup.TraverseCore(const Func: TShapeTraverseFunc;
-  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
+  const OnlyActive, OnlyVisible, OnlyCollidable: Boolean);
 var
   I: Integer;
 begin
@@ -3149,18 +3149,18 @@ begin
 end;
 
 {$ifdef SHAPE_ITERATOR_SOPHISTICATED}
-function TShapeTreeGroup.IterateBeginIndex(OnlyActive: boolean): Integer;
+function TShapeTreeGroup.IterateBeginIndex(OnlyActive: Boolean): Integer;
 begin
   Result := -1;
 end;
 
-function TShapeTreeGroup.IterateEndIndex(OnlyActive: boolean): Cardinal;
+function TShapeTreeGroup.IterateEndIndex(OnlyActive: Boolean): Cardinal;
 begin
   Result := FChildren.Count;
 end;
 {$endif}
 
-function TShapeTreeGroup.DebugInfo(const Indent: string): string;
+function TShapeTreeGroup.DebugInfo(const Indent: String): String;
 var
   I: Integer;
 begin
@@ -3172,7 +3172,7 @@ end;
 { TShapeTreeSwitch ------------------------------------------------------- }
 
 procedure TShapeTreeSwitch.TraverseCore(const Func: TShapeTraverseFunc;
-  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
+  const OnlyActive, OnlyVisible, OnlyCollidable: Boolean);
 var
   WhichChoice: Integer;
 begin
@@ -3187,7 +3187,7 @@ begin
 end;
 
 {$ifdef SHAPE_ITERATOR_SOPHISTICATED}
-function TShapeTreeSwitch.IterateBeginIndex(OnlyActive: boolean): Integer;
+function TShapeTreeSwitch.IterateBeginIndex(OnlyActive: Boolean): Integer;
 var
   WhichChoice: Integer;
 begin
@@ -3203,7 +3203,7 @@ begin
     Result := inherited;
 end;
 
-function TShapeTreeSwitch.IterateEndIndex(OnlyActive: boolean): Cardinal;
+function TShapeTreeSwitch.IterateEndIndex(OnlyActive: Boolean): Cardinal;
 var
   WhichChoice: Integer;
 begin
@@ -3320,7 +3320,7 @@ begin
 end;
 
 procedure TShapeTreeLOD.TraverseCore(const Func: TShapeTraverseFunc;
-  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
+  const OnlyActive, OnlyVisible, OnlyCollidable: Boolean);
 begin
   if Children.Count > 0 then
   begin
@@ -3333,14 +3333,14 @@ begin
 end;
 
 {$ifdef SHAPE_ITERATOR_SOPHISTICATED}
-function TShapeTreeLOD.IterateBeginIndex(OnlyActive: boolean): Integer;
+function TShapeTreeLOD.IterateBeginIndex(OnlyActive: Boolean): Integer;
 begin
   if (Children.Count > 0) and OnlyActive then
     Result := Level - 1 else
     Result := inherited;
 end;
 
-function TShapeTreeLOD.IterateEndIndex(OnlyActive: boolean): Cardinal;
+function TShapeTreeLOD.IterateEndIndex(OnlyActive: Boolean): Cardinal;
 begin
   if (Children.Count > 0) and OnlyActive then
     Result := Level + 1 else
@@ -3351,7 +3351,7 @@ end;
 { TProximitySensorInstance ---------------------------------------------- }
 
 procedure TProximitySensorInstance.TraverseCore(const Func: TShapeTraverseFunc;
-  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
+  const OnlyActive, OnlyVisible, OnlyCollidable: Boolean);
 begin
   { Nothing to do: no geometry shapes, no children here }
 end;
@@ -3374,7 +3374,7 @@ begin
   Result := nil;
 end;
 
-function TProximitySensorInstance.DebugInfo(const Indent: string = ''): string;
+function TProximitySensorInstance.DebugInfo(const Indent: String = ''): String;
 begin
   Result := Indent + 'ProximitySensor (' + Node.X3DName + ')' + NL;
 end;
@@ -3382,7 +3382,7 @@ end;
 { TVisibilitySensorInstance ---------------------------------------------- }
 
 procedure TVisibilitySensorInstance.TraverseCore(const Func: TShapeTraverseFunc;
-  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
+  const OnlyActive, OnlyVisible, OnlyCollidable: Boolean);
 begin
   { Nothing to do: no geometry shapes, no children here }
 end;
@@ -3405,7 +3405,7 @@ begin
   Result := nil;
 end;
 
-function TVisibilitySensorInstance.DebugInfo(const Indent: string = ''): string;
+function TVisibilitySensorInstance.DebugInfo(const Indent: String = ''): String;
 begin
   Result := Indent + 'VisibilitySensor (' + Node.X3DName + ')' + NL;
 end;
@@ -3467,7 +3467,7 @@ type
 {$define IteratorInfo := PIteratorInfo(Info)}
 
 { Check Current for FOnlyVisible and FOnlyCollidable flags. }
-function TShapeTreeIterator.CurrentMatches: boolean;
+function TShapeTreeIterator.CurrentMatches: Boolean;
 begin
   if FOnlyVisible and FOnlyCollidable then
     Result := (Current <> nil) and Current.Visible and Current.Collidable else
@@ -3479,7 +3479,7 @@ begin
 end;
 
 constructor TShapeTreeIterator.Create(const Tree: TShapeTree;
-  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
+  const OnlyActive, OnlyVisible, OnlyCollidable: Boolean);
 begin
   inherited Create;
 
@@ -3522,7 +3522,7 @@ begin
   inherited;
 end;
 
-function TShapeTreeIterator.GetNext: boolean;
+function TShapeTreeIterator.GetNext: Boolean;
 var
   ParentInfo: PIteratorInfo;
   Child: TShapeTree;
@@ -3583,7 +3583,7 @@ end;
 {$else SHAPE_ITERATOR_SOPHISTICATED}
 
 constructor TShapeTreeIterator.Create(const Tree: TShapeTree;
-  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
+  const OnlyActive, OnlyVisible, OnlyCollidable: Boolean);
 begin
   inherited Create;
   List := Tree.TraverseList(OnlyActive, OnlyVisible, OnlyCollidable);
@@ -3595,7 +3595,7 @@ begin
   inherited;
 end;
 
-function TShapeTreeIterator.GetNext: boolean;
+function TShapeTreeIterator.GetNext: Boolean;
 begin
   Inc(CurrentIndex);
   Result := CurrentIndex < List.Count;
@@ -3613,7 +3613,7 @@ begin
 end;
 
 constructor TShapeList.Create(const Tree: TShapeTree;
-  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
+  const OnlyActive, OnlyVisible, OnlyCollidable: Boolean);
 
   procedure AddToList(const Shape: TShape);
   begin
@@ -3659,7 +3659,7 @@ begin
 end;
 
 procedure TShapeList.SortBackToFront(const Position: TVector3;
-  const Distance3D: boolean);
+  const Distance3D: Boolean);
 begin
   SortPosition := Position;
   if Distance3D then
@@ -3670,17 +3670,17 @@ end;
 
 { TPlaceholderNames ------------------------------------------------------- }
 
-function TPlaceholderNames.GetItems(const AKey: string): TPlaceholderName;
+function TPlaceholderNames.GetItems(const AKey: String): TPlaceholderName;
 begin
   Result := inherited Items[AKey];
 end;
 
-procedure TPlaceholderNames.SetItems(const AKey: string; const AValue: TPlaceholderName);
+procedure TPlaceholderNames.SetItems(const AKey: String; const AValue: TPlaceholderName);
 begin
   AddOrSetValue(AKey, AValue);
 end;
 
-function X3DShapePlaceholder(const Shape: TShape): string;
+function X3DShapePlaceholder(const Shape: TShape): String;
 begin
   { Shape.Node may be nil for old VRML 1.0 or Inventor. }
   if Shape.Node <> nil then
@@ -3688,7 +3688,7 @@ begin
     Result := '';
 end;
 
-function BlenderPlaceholder(const Shape: TShape): string;
+function BlenderPlaceholder(const Shape: TShape): String;
 begin
   if Shape.OriginalGeometry is TAbstractGeometryNode_1 then
   begin

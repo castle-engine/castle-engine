@@ -48,8 +48,8 @@ type
   TItemResource = class(T3DResource)
   strict private
     FBaseAnimation: T3DResourceAnimation;
-    FCaption: string;
-    FImageURL: string;
+    FCaption: String;
+    FImageURL: String;
     FImage: TEncodedImage;
     FDrawableImage: TDrawableImage;
   private
@@ -59,17 +59,17 @@ type
     function BoundingBoxRotated(const GravityUp: TVector3): TBox3D;
   protected
     procedure PrepareCore(const Params: TPrepareParams;
-      const DoProgress: boolean); override;
+      const DoProgress: Boolean); override;
     { Which TInventoryItem descendant to create when constructing item
       of this resource by CreateItem. }
     function ItemClass: TInventoryItemClass; virtual;
   public
-    constructor Create(const AName: string); override;
+    constructor Create(const AName: String); override;
     destructor Destroy; override;
     procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
 
     { Nice caption to display. }
-    property Caption: string read FCaption;
+    property Caption: String read FCaption;
 
     property BaseAnimation: T3DResourceAnimation read FBaseAnimation;
 
@@ -89,7 +89,7 @@ type
       menu option. }
     function Image: TEncodedImage;
 
-    property ImageURL: string read FImageURL;
+    property ImageURL: String read FImageURL;
 
     { Resource to draw @link(Image). }
     function DrawableImage: TDrawableImage;
@@ -156,9 +156,9 @@ type
     procedure InstantiatePlaceholder(
       const ALevel: TAbstractLevel;
       const APosition, ADirection: TVector3;
-      const NumberPresent: boolean; const Number: Int64); override;
+      const NumberPresent: Boolean; const Number: Int64); override;
 
-    function AlwaysPrepared: boolean; override;
+    function AlwaysPrepared: Boolean; override;
   end;
 
   { Weapon that can make an immiediate attack (short-range/shoot)
@@ -192,7 +192,7 @@ type
       DefaultAttackKnockbackDistance = 0.0;
       DefaultAttackShoot = false;
 
-    constructor Create(const AName: string); override;
+    constructor Create(const AName: String); override;
 
     { Sound to make on equipping. Each weapon can have it's own
       equipping sound. }
@@ -245,7 +245,7 @@ type
       FireMissileName to 'Arrow', to fire arrows as missiles (they will
       fly and can be avoided by fast moving enemies).
       And set AttackAmmo to something like 'Quiver'. }
-    property AttackAmmo: string read FAttackAmmo write FAttackAmmo;
+    property AttackAmmo: String read FAttackAmmo write FAttackAmmo;
 
     { If non-zero, it indicates that weapon has to be reloaded after making so many shots. }
     property AttackAmmoCapacity: Cardinal read FAttackAmmoCapacity write FAttackAmmoCapacity;
@@ -275,7 +275,7 @@ type
           bounding volume near owner. Only the enemies
           very close to the owner get hit.)
       ) }
-    property AttackShoot: boolean read FAttackShoot write FAttackShoot
+    property AttackShoot: Boolean read FAttackShoot write FAttackShoot
       default DefaultAttackShoot;
 
     { Sound on successful hit by an immediate attack (short-range/shoot). }
@@ -283,7 +283,7 @@ type
 
     { Creature resource name to be created (like 'Arrow') when firing a missile.
       Must be set to something not empty to actually fire a missile. }
-    property FireMissileName: string read FFireMissileName write FFireMissileName;
+    property FireMissileName: String read FFireMissileName write FFireMissileName;
 
     { Sound on missile fired.
       None (stNone) by default. }
@@ -406,9 +406,9 @@ type
       { Last State change time, assigned from LifeTime. }
       FStateChangeTime: Single;
       { If State = wsAttack, then this says whether Attack was already called. }
-      AttackDone: boolean;
+      AttackDone: Boolean;
       { If State = wsReload, then this says whether AmmoLoaded was already updated. }
-      ReloadDone: boolean;
+      ReloadDone: Boolean;
       FAmmoLoaded: Cardinal;
       LifeTime: TFloatTime;
   protected
@@ -515,7 +515,7 @@ type
   public
     class var
       { Render debug bounding boxes and captions at every creature. }
-      RenderDebug: boolean;
+      RenderDebug: Boolean;
 
       { Speed of the rotation of 3D item on world.
         In radians per second, default is DefaultRotationSpeed.
@@ -533,14 +533,14 @@ type
         to customize what happens at "pick" --- the default implementation
         picks an item by adding it to inventory, but you could override it
         e.g. to consume some potions immediately on pickup. }
-      AutoPick: boolean;
+      AutoPick: Boolean;
 
     const
       DefaultRotationSpeed = Pi;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function GetExists: boolean; override;
+    function GetExists: Boolean; override;
 
     { The Item owned by this TItemOnWorld instance. Never @nil. }
     property Item: TInventoryItem read FItem;
@@ -613,7 +613,7 @@ type
     procedure UseItem(const Index: Integer); virtual;
   end;
 
-  TItemOnWorldExistsEvent = function(const Item: TItemOnWorld): boolean of object;
+  TItemOnWorldExistsEvent = function(const Item: TItemOnWorld): Boolean of object;
 
 var
   { Global callback to control items on level existence. }
@@ -626,7 +626,7 @@ uses SysUtils, Math,
 
 { TItemResource ------------------------------------------------------------ }
 
-constructor TItemResource.Create(const AName: string);
+constructor TItemResource.Create(const AName: String);
 begin
   inherited;
   FBaseAnimation := T3DResourceAnimation.Create(Self, 'base');
@@ -666,7 +666,7 @@ begin
 end;
 
 procedure TItemResource.PrepareCore(const Params: TPrepareParams;
-  const DoProgress: boolean);
+  const DoProgress: Boolean);
 begin
   inherited;
   { prepare DrawableImage now }
@@ -691,7 +691,7 @@ end;
 procedure TItemResource.InstantiatePlaceholder(
   const ALevel: TAbstractLevel;
   const APosition, ADirection: TVector3;
-  const NumberPresent: boolean; const Number: Int64);
+  const NumberPresent: Boolean; const Number: Int64);
 var
   ItemQuantity: Cardinal;
 begin
@@ -703,7 +703,7 @@ begin
   CreateItem(ItemQuantity).PutOnWorld(ALevel, APosition);
 end;
 
-function TItemResource.AlwaysPrepared: boolean;
+function TItemResource.AlwaysPrepared: Boolean;
 begin
   Result := true;
 end;
@@ -722,7 +722,7 @@ end;
 
 { TItemWeaponResource ------------------------------------------------------------ }
 
-constructor TItemWeaponResource.Create(const AName: string);
+constructor TItemWeaponResource.Create(const AName: String);
 begin
   inherited;
   FAttackAnimation := T3DResourceAnimation.Create(Self, 'attack');
@@ -832,7 +832,7 @@ var
   Attacker: TCastleAlive;
   {$warnings on}
   AttackDC, AttackDR, AttackKD: Single;
-  AttackSoundHitDone: boolean;
+  AttackSoundHitDone: Boolean;
 
   procedure ImmediateAttackHit(Enemy: TCastleAlive);
   begin
@@ -957,7 +957,7 @@ end;
 procedure TItemWeapon.EquippedAttack(const Level: TAbstractLevel);
 
   { Check do you have ammunition to perform attack, and decrease it if yes. }
-  function CheckAmmo: boolean;
+  function CheckAmmo: Boolean;
   var
     Inventory: TInventory;
     AmmoIndex: Integer;
@@ -1330,7 +1330,7 @@ begin
   FItem := nil;
 end;
 
-function TItemOnWorld.GetExists: boolean;
+function TItemOnWorld.GetExists: Boolean;
 begin
   Result := (inherited GetExists) and
     ((not Assigned(OnItemOnWorldExists)) or OnItemOnWorldExists(Self));
@@ -1373,7 +1373,7 @@ function TAliveWithInventory.DropItem(const Index: Integer): TItemOnWorld;
   end;
 
   function GetItemDropTranslation(DroppedItemResource: TItemResource;
-    out DropTranslation: TVector3): boolean;
+    out DropTranslation: TVector3): Boolean;
   var
     ItemBox: TBox3D;
     ItemBoxRadius: Single;

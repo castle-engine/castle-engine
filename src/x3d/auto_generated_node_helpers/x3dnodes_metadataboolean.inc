@@ -33,7 +33,7 @@
     { X3D field "value". } { }
     public property FdValue: TMFBool read FFdValue;
     { Set X3D field "value". } { }
-    procedure SetValue(const Value: array of boolean);
+    procedure SetValue(const Value: array of Boolean);
     { Set X3D field "value". } { }
     procedure SetValue(const Value: TBooleanList);
 

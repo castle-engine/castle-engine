@@ -35,14 +35,14 @@ CastleJoysticks,
 public
   { Only the library in src/library/castleengine.lpr uses this,
     to notify our window instance about various events. }
-  procedure LibraryMouseWheel(const Scroll: Single; const Vertical: boolean);
+  procedure LibraryMouseWheel(const Scroll: Single; const Vertical: Boolean);
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
 private
   FScreenWidth, FScreenHeight: Integer;
   FScreenStatusBarHeight: Cardinal;
-  procedure WarningToCallback(const Category, S: string);
+  procedure WarningToCallback(const Category, S: String);
 {$endif read_application_interface}
 
 {$ifdef read_global_interface}
@@ -161,7 +161,7 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: String);
 begin
   FCaption[Part] := Value;
   if not Closed then
@@ -195,7 +195,7 @@ end;
 
 { LibraryXxx methods --------------------------------------------------------- }
 
-procedure TCastleWindowBase.LibraryMouseWheel(const Scroll: Single; const Vertical: boolean);
+procedure TCastleWindowBase.LibraryMouseWheel(const Scroll: Single; const Vertical: Boolean);
 begin
   DoMouseWheel(Scroll, Vertical);
 end;
@@ -223,7 +223,7 @@ procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
 begin
 end;
 
-function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
+function TCastleWindowBase.MenuUpdateCheckedFast: Boolean;
 begin
   Result := false;
 end;
@@ -238,7 +238,7 @@ procedure TCastleWindowBase.MenuDelete(const Parent: TMenu;
 begin
 end;
 
-function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
+function TCastleWindowBase.RedirectKeyDownToMenuClick: Boolean;
 begin
   Result := true;
 end;
@@ -247,24 +247,24 @@ end;
 
 { Methods below should make native-looking dialog boxes. }
 
-function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
-  OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
+function TCastleWindowBase.BackendFileDialog(const Title: String; var FileName: String;
+  OpenDialog: Boolean; FileFilters: TFileFilterList): Boolean;
 begin
   { TODO } Result := false;
 end;
 
-function TCastleWindowBase.ColorDialog(var Color: TVector3): boolean;
+function TCastleWindowBase.ColorDialog(var Color: TVector3): Boolean;
 begin
   { TODO } Result := false;
 end;
 
-procedure TCastleWindowBase.MessageOK(const S: string; const MessageType: TWindowMessageType);
+procedure TCastleWindowBase.MessageOK(const S: String; const MessageType: TWindowMessageType);
 begin
   { TODO }
 end;
 
-function TCastleWindowBase.MessageYesNo(const S: string;
-  const MessageType: TWindowMessageType): boolean;
+function TCastleWindowBase.MessageYesNo(const S: String;
+  const MessageType: TWindowMessageType): Boolean;
 begin
   { TODO } Result := true;
 end;
@@ -279,12 +279,12 @@ procedure TCastleApplication.DestroyBackend;
 begin
 end;
 
-function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
+function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: Boolean): Boolean;
 begin
   Result := true;
 end;
 
-function TCastleApplication.ProcessAllMessages: boolean;
+function TCastleApplication.ProcessAllMessages: Boolean;
 begin
   Result := ProcessMessage(false, false);
 end;
@@ -300,14 +300,14 @@ begin
   Terminate; // set Terminated := true
 end;
 
-function TCastleApplication.ScreenWidth: integer;
+function TCastleApplication.ScreenWidth: Integer;
 begin
   if FScreenWidth = 0 then
     WritelnWarning('Window', 'Application.ScreenWidth is queried before window is open, returns zero');
   Result := FScreenWidth;
 end;
 
-function TCastleApplication.ScreenHeight: integer;
+function TCastleApplication.ScreenHeight: Integer;
 begin
   if FScreenHeight = 0 then
     WritelnWarning('Window', 'Application.ScreenHeight is queried before window is open, returns zero');
@@ -319,16 +319,16 @@ begin
   Result := FScreenStatusBarHeight;
 end;
 
-function TCastleApplication.BackendName: string;
+function TCastleApplication.BackendName: String;
 begin
   Result := 'Library (Using Existing OpenGL Context)';
 end;
 
-procedure TCastleApplication.WarningToCallback(const Category, S: string);
+procedure TCastleApplication.WarningToCallback(const Category, S: String);
 var
-  sMsg: string;
+  sMsg: String;
   szBuffer: PChar;
-  nBufSize: cardinal;
+  nBufSize: Cardinal;
 begin
   if Assigned(LibraryCallbackProc) then
   begin
@@ -346,7 +346,7 @@ end;
 {$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
 procedure TCastleWindow.NavigationInfoChanged;
 var
-  NavValue: integer;
+  NavValue: Integer;
 begin
   // send info to parent app (to update navigation buttons state)
   if Assigned(LibraryCallbackProc) then

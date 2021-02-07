@@ -82,7 +82,7 @@ type
     var
       ToPascal: TCastleStringList;
       FOnReceive: TMessageReceivedEventList;
-      FLog: boolean;
+      FLog: Boolean;
     { Called constantly to empty the ToPascal list. }
     procedure Update(Sender: TObject);
   public
@@ -91,7 +91,7 @@ type
 
     { Send a message to a service (implemented in other language,
       like Java on Android or Objective-C on iOS). }
-    procedure Send(const Strings: array of string);
+    procedure Send(const Strings: array of String);
 
     { Callbacks called when new message from service is received. }
     property OnReceive: TMessageReceivedEventList read FOnReceive;
@@ -100,17 +100,17 @@ type
       Note that this is sometimes quite verbose, and it also allows cheaters
       to easier debug what happens in your game (e.g. how to fake getting
       some achievement), so in general don't leave it "on" in production. }
-    property Log: boolean read FLog write FLog default false;
+    property Log: Boolean read FLog write FLog default false;
 
-    { Convert boolean to 'true' or 'false' string, which will be understood correctly
+    { Convert Boolean to 'true' or 'false' String, which will be understood correctly
       by the service receiving the messages. }
-    class function BoolToStr(const Value: boolean): string;
+    class function BoolToStr(const Value: Boolean): String;
 
     { Convert float time (in seconds) to integer miliseconds, which are understood correctly
       by the service receiving the messages. }
-    class function TimeToStr(const Value: TFloatTime): string;
+    class function TimeToStr(const Value: TFloatTime): String;
 
-    { Convert string to a boolean, assuming the string was send by the external service.
+    { Convert String to a Boolean, assuming the string was send by the external service.
       The counterpart of this in Android is ServiceAbstract.booleanToString . }
     class function MessageToBoolean(const Value: String): Boolean;
   end;
@@ -144,7 +144,7 @@ procedure TMessageReceivedEventList.ExecuteAll(const Received: TCastleStringList
   const ReceivedStream: TMemoryStream);
 var
   I: Integer;
-  EventResult, Handled: boolean;
+  EventResult, Handled: Boolean;
 begin
   Handled := false;
 
@@ -211,9 +211,9 @@ const
       the UTF-8 multibyte stuff, as far as I know). }
   MessageDelimiter = #1;
 
-procedure TMessaging.Send(const Strings: array of string);
+procedure TMessaging.Send(const Strings: array of String);
 
-  procedure SendStr(const Message: string);
+  procedure SendStr(const Message: String);
   begin
     { secure in case this is called from state Finish when things are finalized }
     if Self = nil then Exit;
@@ -291,13 +291,13 @@ begin
   end;
 end;
 
-class function TMessaging.BoolToStr(const Value: boolean): string;
+class function TMessaging.BoolToStr(const Value: Boolean): String;
 begin
   Result := {$ifdef FPC} SysUtils.BoolToStr {$else} Iff {$endif}
     (Value, 'true', 'false');
 end;
 
-class function TMessaging.TimeToStr(const Value: TFloatTime): string;
+class function TMessaging.TimeToStr(const Value: TFloatTime): String;
 begin
   Result := IntToStr(Trunc(Value * 1000));
 end;
@@ -317,7 +317,7 @@ end;
 
 var
   FMessaging: TMessaging;
-  FinalizationDone: boolean;
+  FinalizationDone: Boolean;
 
 procedure DoInitialization;
 begin

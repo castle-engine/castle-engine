@@ -79,8 +79,8 @@ type
       and only such values will be set by TTextureEnv.Init. }
     Scale: TScalePerChannel;
 
-    Disabled: boolean;
-    NeedsConstantColor: boolean;
+    Disabled: Boolean;
+    NeedsConstantColor: Boolean;
 
     { If, and only if, one of SourceArgument is not taNone,
       then SourceArgument should be loaded with this color. }
@@ -97,7 +97,7 @@ type
       MultiTexture.function values.
       This does not setup any OpenGL state, it only calculates fields
       of this object. }
-    constructor Init(const Mode, SourceStr, FunctionStr: string);
+    constructor Init(const Mode, SourceStr, FunctionStr: String);
 
     { Calculate values based on simple OpenGL mode value. }
     constructor Init(const Mode: TCombine);
@@ -129,14 +129,14 @@ begin
 end;
 
 type
-  TStringPerChannel = array [TChannel] of string;
+  TStringPerChannel = array [TChannel] of String;
 
 { If S contains two separate modes (one for RGB, one for Alpha)
   returns @true and sets PerChannel to these separate strings.
   Strings returned in PerChannel will not contain the separator
   (slash, comma), and will not contain whitespace. }
-function SplitStringPerChannel(const S: string;
-  out PerChannel: TStringPerChannel): boolean;
+function SplitStringPerChannel(const S: String;
+  out PerChannel: TStringPerChannel): Boolean;
 var
   P: Integer;
 begin
@@ -150,13 +150,13 @@ begin
 end;
 
 { Calculate values knowing MultiTexture.mode value. }
-procedure ModeFromString(const S: string;
+procedure ModeFromString(const S: String;
   out Combine: TCombinePerChannel;
   out CurrentTextureArgument: TArgPerChannel;
   out SourceArgument: TArgPerChannel;
   out Scale: TScalePerChannel;
-  out Disabled: boolean;
-  out NeedsConstantColor: boolean;
+  out Disabled: Boolean;
+  out NeedsConstantColor: Boolean;
   out BlendAlphaSource: TColorSource);
 
   { Interpret simple mode name (this is for sure only one mode,
@@ -168,11 +168,11 @@ procedure ModeFromString(const S: string;
 
     Scale passed here must be initially 1.0. }
   procedure SimpleModeFromString(
-    const LS: string;
+    const LS: String;
     out Combine: TCombine;
     out CurrentTextureArgument, SourceArgument: TTextureEnvArgument;
     var Scale: Single;
-    const Channels: string);
+    const Channels: String);
   begin
     if LS = 'modulate' then
     begin
@@ -248,7 +248,7 @@ procedure ModeFromString(const S: string;
   end;
 
   procedure RGBModeFromString(
-    const LS: string;
+    const LS: String;
     out Combine: TCombine;
     out CurrentTextureArgument, SourceArgument: TTextureEnvArgument;
     var Scale: Single);
@@ -302,7 +302,7 @@ procedure ModeFromString(const S: string;
   end;
 
   procedure AlphaModeFromString(
-    const LS: string;
+    const LS: String;
     out Combine: TCombine;
     out CurrentTextureArgument, SourceArgument: TTextureEnvArgument;
     var Scale: Single);
@@ -311,7 +311,7 @@ procedure ModeFromString(const S: string;
   end;
 
   procedure BothModesFromString(
-    const LS: string;
+    const LS: String;
     out Combine: TCombinePerChannel;
     out CurrentTextureArgument, SourceArgument: TArgPerChannel;
     var Scale: TScalePerChannel);
@@ -387,7 +387,7 @@ procedure ModeFromString(const S: string;
   end;
 
 var
-  LS: string;
+  LS: String;
   StringPerChannel: TStringPerChannel;
 begin
   { initialize some out parameters to default values }
@@ -407,12 +407,12 @@ begin
 end;
 
 { Calculate values knowing MultiTexture.source value. }
-procedure SourceFromString(const S: string; out Source: TSourcePerChannel;
-  var NeedsConstantColor: boolean);
+procedure SourceFromString(const S: String; out Source: TSourcePerChannel;
+  var NeedsConstantColor: Boolean);
 
-  procedure SimpleSourceFromString(const LS: string;
+  procedure SimpleSourceFromString(const LS: String;
     out Source: TColorSource;
-    var NeedsConstantColor: boolean);
+    var NeedsConstantColor: Boolean);
   begin
     if LS = '' then
       Source := csPreviousTexture else
@@ -430,7 +430,7 @@ procedure SourceFromString(const S: string; out Source: TSourcePerChannel;
   end;
 
 var
-  LS: string;
+  LS: String;
   SourcePerChannel: TStringPerChannel;
 begin
   LS := LowerCase(S);
@@ -445,10 +445,10 @@ begin
   end;
 end;
 
-{ Convert MultiTexture.function string to TTextureFunction. }
-function FunctionFromString(const S: string): TTextureFunction;
+{ Convert MultiTexture.function String to TTextureFunction. }
+function FunctionFromString(const S: String): TTextureFunction;
 var
-  LS: string;
+  LS: String;
 begin
   LS := LowerCase(S);
   if LS = '' then
@@ -463,7 +463,7 @@ begin
   end;
 end;
 
-constructor TTextureEnv.Init(const Mode, SourceStr, FunctionStr: string);
+constructor TTextureEnv.Init(const Mode, SourceStr, FunctionStr: String);
 begin
   ModeFromString(Mode, Combine, CurrentTextureArgument, SourceArgument, Scale, Disabled,
     NeedsConstantColor, BlendAlphaSource);

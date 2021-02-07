@@ -28,8 +28,8 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
     procedure ApplyTransform(var Transformation: TTransformation); override;
 
@@ -43,14 +43,14 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
 
     function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-    function ProxyUsesOverTriangulate: boolean; override;
+      const OverTriangulate: Boolean): TAbstractGeometryNode; override;
+    function ProxyUsesOverTriangulate: Boolean; override;
 
     function TexCoordField: TSFNode; override;
-    function AutoGenerate3DTexCoords: boolean; override;
+    function AutoGenerate3DTexCoords: Boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_teapot.inc}
   end;
@@ -65,6 +65,7 @@
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     destructor Destroy; override;
+
     {$I auto_generated_node_helpers/x3dnodes_logger.inc}
   end;
 
@@ -74,7 +75,7 @@
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
@@ -97,7 +98,7 @@
     procedure CreateNode; override;
     destructor Destroy; override;
 
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     property GeneratedTextureHandler: TGeneratedTextureHandler
       read FGeneratedTextureHandler;
@@ -185,7 +186,7 @@
   TPlaneNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdSize: TSFVec2f;
     public property FdSize: TSFVec2f read FFdSize;
@@ -194,8 +195,8 @@
     public property FdSolid: TSFBool read FFdSolid;
 
     function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-    function ProxyUsesOverTriangulate: boolean; override;
+      const OverTriangulate: Boolean): TAbstractGeometryNode; override;
+    function ProxyUsesOverTriangulate: Boolean; override;
   end;
 
   { Utility for setting and observing a boolean value in various ways. }
@@ -213,7 +214,7 @@
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdStatus: TSFBool;
     public property FdStatus: TSFBool read FFdStatus;
@@ -279,7 +280,7 @@
   public
     procedure CreateNode; override;
     destructor Destroy; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAlphaFactor: TSFFloat;
     public property FdAlphaFactor: TSFFloat read FFdAlphaFactor;
@@ -514,7 +515,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdColor: TSFColorRGBA;
     { @seealso Color }
@@ -549,7 +550,7 @@ begin
   FdMatrix.ChangeAlways := chTransform;
 end;
 
-class function TMatrixTransformNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TMatrixTransformNode.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major >= 2;
 end;
@@ -587,7 +588,7 @@ begin
 end;
 
 function TTeapotNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+  const OverTriangulate: Boolean): TAbstractGeometryNode;
 const
   // Uncomment these if you need to temporarily compile without
   // auto_generated_teapot/teapot.inc.
@@ -634,7 +635,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TTeapotNode.ProxyUsesOverTriangulate: boolean;
+function TTeapotNode.ProxyUsesOverTriangulate: Boolean;
 begin
   Result := false;
 end;
@@ -653,7 +654,7 @@ begin
   Result := FdTexCoord;
 end;
 
-function TTeapotNode.AutoGenerate3DTexCoords: boolean;
+function TTeapotNode.AutoGenerate3DTexCoords: Boolean;
 begin
   Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
@@ -691,7 +692,7 @@ procedure TLoggerNode.EventWriteReceive(
 
   procedure WritelnLogMessage;
   var
-    S: string;
+    S: String;
   begin
     if FdLevel.Value >= 2 then
     begin
@@ -753,7 +754,7 @@ begin
     EventOut.Send(Value, Time);
 end;
 
-class function TConverterNode.ClassX3DType: string;
+class function TConverterNode.ClassX3DType: String;
 begin
   Result := 'Converter';
 end;
@@ -862,7 +863,7 @@ begin
   inherited;
 end;
 
-class function TRenderedTextureNode.ClassX3DType: string;
+class function TRenderedTextureNode.ClassX3DType: String;
 begin
   Result := 'RenderedTexture';
 end;
@@ -881,18 +882,18 @@ begin
   AddField(FFdSolid);
 end;
 
-class function TPlaneNode.ClassX3DType: string;
+class function TPlaneNode.ClassX3DType: String;
 begin
   Result := 'Plane';
 end;
 
 function TPlaneNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+  const OverTriangulate: Boolean): TAbstractGeometryNode;
 begin
   Result := Rectangle2DProxy(Self, FdSize.Value, FdSolid.Value);
 end;
 
-function TPlaneNode.ProxyUsesOverTriangulate: boolean;
+function TPlaneNode.ProxyUsesOverTriangulate: Boolean;
 begin
   Result := false;
 end;
@@ -958,7 +959,7 @@ begin
   AddField(FFdEnabled);
 end;
 
-class function TTogglerNode.ClassX3DType: string;
+class function TTogglerNode.ClassX3DType: String;
 begin
   Result := 'Toggler';
 end;
@@ -1371,7 +1372,7 @@ begin
   inherited;
 end;
 
-class function TCommonSurfaceShaderNode.ClassX3DType: string;
+class function TCommonSurfaceShaderNode.ClassX3DType: String;
 begin
   Result := 'CommonSurfaceShader';
 end;
@@ -1414,7 +1415,7 @@ begin
   AddField(FFdTexCoords);
 end;
 
-class function TImageBackgroundNode.ClassX3DType: string;
+class function TImageBackgroundNode.ClassX3DType: String;
 begin
   Result := 'ImageBackground';
 end;

@@ -30,7 +30,7 @@
     procedure SetPickable(const Value: Boolean);
   public
     { Set X3D field "objectType". } { }
-    procedure SetObjectType(const Value: array of string);
+    procedure SetObjectType(const Value: array of String);
     { Set X3D field "objectType". } { }
     procedure SetObjectType(const Value: TCastleStringList);
     { X3D field "pickable". } { }
@@ -42,7 +42,7 @@
 
 { TPickableGroupNode ----------------------------------------------- }
 
-procedure TPickableGroupNode.SetObjectType(const Value: array of string);
+procedure TPickableGroupNode.SetObjectType(const Value: array of String);
 begin
   FdObjectType.Send(Value);
 end;

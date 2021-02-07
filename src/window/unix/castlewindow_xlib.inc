@@ -41,17 +41,17 @@ private
   PluginStruct: TNPSetWindowCallbackStruct;
   {$endif}
 
-  function HandleXEvent(const Event: TXEvent): boolean;
+  function HandleXEvent(const Event: TXEvent): Boolean;
   procedure UpdateCursor;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
 private
   {$ifndef CASTLE_ENGINE_PLUGIN}
-  FXDisplayName: string;
+  FXDisplayName: String;
   {$endif}
   FXScreen: Integer;
-  InitializeXDisplayDone: boolean;
+  InitializeXDisplayDone: Boolean;
   XCursors: array [TMouseCursor] of TCursor;
   FXDisplay: PDisplay;
 
@@ -85,12 +85,12 @@ private
   procedure InitializeXDisplay;
 
 public
-  function HandleXEvent(Event: TXEvent): boolean;
+  function HandleXEvent(Event: TXEvent): Boolean;
 
   {$ifndef CASTLE_ENGINE_PLUGIN}
   { X display name used to communicate with X server (to open windows,
     query screen size and so on). }
-  property XDisplayName: string read FXDisplayName write FXDisplayName;
+  property XDisplayName: String read FXDisplayName write FXDisplayName;
   {$endif}
   property XDisplay: PDisplay read FXDisplay;
   property XScreen: Integer read FXScreen;
@@ -440,7 +440,7 @@ begin
     doesn't require X server runnning. }
 end;
 
-procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: String);
 var
   PValue: PChar;
   WindTitleProp: TXTextProperty;
@@ -458,7 +458,7 @@ begin
   end;
 end;
 
-function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
+function TCastleWindowBase.RedirectKeyDownToMenuClick: Boolean;
 begin
  Result := true;
 end;
@@ -488,7 +488,7 @@ begin
   { does nothing }
 end;
 
-function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
+function TCastleWindowBase.MenuUpdateCheckedFast: Boolean;
 begin
   Result := true; // MenuUpdateChecked does nothing, so yes, it's fast :)
 end;
@@ -505,13 +505,13 @@ begin
   { does nothing }
 end;
 
-function TCastleWindowBase.HandleXEvent(const Event: TXEvent): boolean;
+function TCastleWindowBase.HandleXEvent(const Event: TXEvent): Boolean;
 
   procedure X_KeyPress(const xEvent: TXKeyEvent);
   var
     k: TKeySym;
-    CharKey: char;
-    EventString: string;
+    CharKey: Char;
+    EventString: String;
     Key: TKey;
   begin
     { calculate k, CharKey }
@@ -538,7 +538,7 @@ function TCastleWindowBase.HandleXEvent(const Event: TXEvent): boolean;
   procedure X_KeyRelease(const xEvent: TXKeyEvent);
   var
     k: TKeySym;
-    CharKey: char; //we don't use it further anywhere
+    CharKey: Char; //we don't use it further anywhere
     Key: TKey;
   begin
     { Note: "XLib Progr Manual" warns that KeyRelease is not guaranteed on
@@ -586,7 +586,7 @@ function TCastleWindowBase.HandleXEvent(const Event: TXEvent): boolean;
     DoResize(xEvent.width, xEvent.height, false);
   end;
 
-  function xbtnToMouseButton(button: Cardinal; var mbtn: TCastleMouseButton): boolean;
+  function xbtnToMouseButton(button: Cardinal; var mbtn: TCastleMouseButton): Boolean;
   begin
     result := true;
     case button of
@@ -671,11 +671,11 @@ end;
 
 function TCastleApplication.FindWindowXID(seekWindowXID: TWindow): TCastleWindowBase;
 var
-  i: integer;
+  I: Integer;
 begin
-  for i := 0 to OpenWindowsCount-1 do
-    if OpenWindows[i].WindowXID = seekWindowXID then
-      Exit(OpenWindows[i]);
+  for I := 0 to OpenWindowsCount-1 do
+    if OpenWindows[I].WindowXID = seekWindowXID then
+      Exit(OpenWindows[I]);
   Result := nil;
 end;
 
@@ -745,13 +745,13 @@ const
   XK_a_upper = {$ifdef DCC} XK_a {$endif} {$ifdef FPC} XKc_a {$endif};
   XK_z_upper = {$ifdef DCC} XK_z {$endif} {$ifdef FPC} XKc_z {$endif};
 var
-  b: byte;
+  B: Byte;
 begin
   { See ~/sources/fpc/trunk/packages/x11/src/keysym.pp }
 
   { initialize KeySym*ToKey }
-  for b := Low(b) to High(b) do KeySym0ToKey[b] := keyNone;
-  for b := Low(b) to High(b) do KeySymFFToKey[b] := keyNone;
+  for B := Low(B) to High(B) do KeySym0ToKey[B] := keyNone;
+  for B := Low(B) to High(B) do KeySymFFToKey[B] := keyNone;
 
   KeySymFFToKey[XK_Page_Up and $FF] := keyPageUp;
   KeySymFFToKey[XK_Page_Down and $FF] := keyPageDown;
@@ -800,11 +800,11 @@ begin
   KeySymFFToKey[XK_KP_Multiply and $FF] := keyNumpadMultiply;
   KeySymFFToKey[XK_KP_Divide and $FF] := keyNumpadDivide;
 
-  for b := 0 to 11 do KeySymFFToKey[(XK_F1+b) and $FF] := TKey(Ord(keyF1) + b);
+  for B := 0 to 11 do KeySymFFToKey[(XK_F1+B) and $FF] := TKey(Ord(keyF1) + B);
 
-  for b := XK_0 to XK_9 do KeySym0ToKey[b] := TKey(b);
-  for b := XK_a_lower to XK_z_lower do KeySym0ToKey[b] := TKey(Ord(UpCase(Chr(b))));
-  for b := XK_a_upper to XK_z_upper do KeySym0ToKey[b] := TKey(b);
+  for B := XK_0 to XK_9 do KeySym0ToKey[B] := TKey(B);
+  for B := XK_a_lower to XK_z_lower do KeySym0ToKey[B] := TKey(Ord(UpCase(Chr(B))));
+  for B := XK_a_upper to XK_z_upper do KeySym0ToKey[B] := TKey(B);
   KeySym0ToKey[XK_Space] := keySpace;
   KeySym0ToKey[XK_comma] := keyComma;
   KeySym0ToKey[XK_period] := keyPeriod;
@@ -837,12 +837,12 @@ begin
   end;
 end;
 
-function TCastleApplication.BackendName: string;
+function TCastleApplication.BackendName: String;
 begin
   Result := 'Xlib+' + {$ifndef OpenGLES} 'glX' {$else} 'EGL' {$endif};
 end;
 
-function TCastleApplication.HandleXEvent(Event: TXEvent): boolean;
+function TCastleApplication.HandleXEvent(Event: TXEvent): Boolean;
 var
   Window: TCastleWindowBase;
 begin
@@ -863,13 +863,13 @@ begin
 end;
 
 {$ifndef CASTLE_WINDOW_USE_XF86VMODE}
-function TCastleApplication.ScreenWidth: integer;
+function TCastleApplication.ScreenWidth: Integer;
 begin
   InitializeXDisplay;
   Result := XDisplayWidth(XDisplay, XScreen);
 end;
 
-function TCastleApplication.ScreenHeight: integer;
+function TCastleApplication.ScreenHeight: Integer;
 begin
   InitializeXDisplay;
   Result := XDisplayHeight(XDisplay, XScreen);

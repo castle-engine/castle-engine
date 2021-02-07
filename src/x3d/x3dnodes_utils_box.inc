@@ -22,7 +22,7 @@
 procedure Box_Proxy(CoordIndex: TLongIntList;
   Coord: TVector3List; Normal: TVector3List;
   TexCoord: TVector2List; MaterialIndex: TLongIntList;
-  OverTriangulate: boolean; Sizes: TVector3;
+  OverTriangulate: Boolean; Sizes: TVector3;
   const Divisions: Cardinal);
 
 var
@@ -38,10 +38,10 @@ var
 
     @param(TextureSIsY By default, texture S goes along X and texture T
       goes along Y. Pass TextureSIsY = @true to change it.) }
-  procedure MakeRect(const ConstCoord: integer; const ConstCoordValue: Single;
+  procedure MakeRect(const ConstCoord: Integer; const ConstCoordValue: Single;
     const X1, Y1: Single; const TexX1, TexY1: Single;
     const FaceMaterialIndex: Integer;
-    const TextureSIsY: boolean = false);
+    const TextureSIsY: Boolean = false);
 
     function MakeTexCoord(const S, T: Single): TVector2;
     begin
@@ -57,7 +57,7 @@ var
     end;
 
   var
-    FaceIndex, Index, C1, C2: integer;
+    FaceIndex, Index, C1, C2: Integer;
     X2, Y2, TexX2, TexY2: Single;
     I, J, NewCoords, ThisIndex: Integer;
     N: TVector3;
@@ -172,7 +172,7 @@ begin
 end;
 
 function TBoxNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+  const OverTriangulate: Boolean): TAbstractGeometryNode;
 
   procedure BoxWireframe;
   var
@@ -244,7 +244,7 @@ begin
 end;
 
 function TCubeNode_1.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+  const OverTriangulate: Boolean): TAbstractGeometryNode;
 var
   CoordNode: TCoordinate3Node_1;
   NormalNode: TNormalNode;

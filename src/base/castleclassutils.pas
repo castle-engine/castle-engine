@@ -51,10 +51,10 @@ uses Classes, SysUtils, Contnrs, Generics.Collections,
 { @section(TStrings utilities) }
 
 { Add some strings. }
-procedure StringsAdd(Strs: TStrings; Count: integer; itemVal: string='dummy'); overload;
+procedure StringsAdd(Strs: TStrings; Count: Integer; itemVal: String='dummy'); overload;
 
 { Add all strings from string array to TStrings instance. }
-procedure AddStrArrayToStrings(const StrArr: array of string; strlist: TStrings);
+procedure AddStrArrayToStrings(const StrArr: array of String; strlist: TStrings);
 
 type
   { TStringList that is case sensitive. }
@@ -70,17 +70,17 @@ type
   part is equal to ''. And if S ends with Splitter then the last
   oart is equal to ''. }
 procedure Strings_AddSplittedString(Strings: TStrings;
-  const S, Splitter: string);
+  const S, Splitter: String);
 
 { Something like @link(SCastleEngineProgramHelpSuffix), but appends
   contents as a couple of lines to Strings. }
 procedure Strings_AddCastleEngineProgramHelpSuffix(
-  Strings: TStrings; const DisplayApplicationName: string;
-  const Version: string; WrapLines: boolean);
+  Strings: TStrings; const DisplayApplicationName: String;
+  const Version: String; WrapLines: Boolean);
 
 { Use this instead of @code(SList.Text := S) to workaround FPC 2.0.2 bug.
   See [http://www.freepascal.org/mantis/view.php?id=6699] }
-procedure Strings_SetText(SList: TStrings; const S: string);
+procedure Strings_SetText(SList: TStrings; const S: String);
 
 { Make sure we don't have more than MaxCount strings on a list.
   Removes the last strings if necessary. }
@@ -96,7 +96,7 @@ function StreamReadLongWord(Stream: TStream): LongWord;
 procedure StreamWriteByte(Stream: TStream; const Value: Byte);
 function StreamReadByte(Stream: TStream): Byte;
 
-{ Write string contents, as 8-bit string (AnsiString), to stream.
+{ Write string contents, as 8-bit String (AnsiString), to stream.
   This isn't a procedure to encode a string within a binary stream,
   this only writes string contents (Length(S) bytes) into the stream.
   Versions with "ln" append newline.
@@ -131,9 +131,9 @@ function StreamReadZeroEndString(Stream: TStream): AnsiString;
   @raises EReadError If the stream will end before encountering one of EndingChars.
   @groupBegin }
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean; out endingChar: AnsiChar): AnsiString; overload;
+  backEndingChar: Boolean; out endingChar: AnsiChar): AnsiString; overload;
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean): AnsiString; overload;
+  backEndingChar: Boolean): AnsiString; overload;
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
   out endingChar: AnsiChar): AnsiString; overload;
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars): AnsiString; overload;
@@ -149,11 +149,11 @@ function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars):
   Everything else works like with StreamReadUpto_NotEOS.
   @groupBegin }
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean; out endingChar: integer): AnsiString; overload;
+  backEndingChar: Boolean; out endingChar: Integer): AnsiString; overload;
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean): AnsiString; overload;
+  backEndingChar: Boolean): AnsiString; overload;
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  out endingChar: integer): AnsiString; overload;
+  out endingChar: Integer): AnsiString; overload;
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars): AnsiString; overload;
 { @groupEnd }
 
@@ -172,30 +172,30 @@ procedure ReadGrowingStream(const GrowingStream, DestStream: TStream;
   const ResetDestStreamPosition: Boolean;
   const BufferSize: Cardinal = 10 * 1000);
 
-{ Read a growing stream, and returns it's contents as a string.
+{ Read a growing stream, and returns it's contents as a String.
   A "growing stream" is a stream that we can only read
   sequentially, no seeks allowed, and size is unknown until we hit the end. }
 function ReadGrowingStreamToString(const GrowingStream: TStream): String;
 
-{ Encode / decode a string in a binary stream. Records string length (4 bytes),
+{ Encode / decode a String in a binary stream. Records string length (4 bytes),
   then the string contents (Length(S) bytes).
   @groupBegin }
-procedure StreamWriteString(Stream: TStream; const s: string);
-function StreamReadString(Stream: TStream): string;
+procedure StreamWriteString(Stream: TStream; const S: String);
+function StreamReadString(Stream: TStream): String;
 { @groupEnd }
 
-{ Convert whole Stream to a string.
+{ Convert whole Stream to a String.
   Changes Stream.Position to 0 and then reads Stream.Size bytes,
   so be sure that Stream.Size is usable. }
-function StreamToString(Stream: TStream): string;
+function StreamToString(Stream: TStream): String;
 
-{ Set contents of TMemoryStream to given string.
+{ Set contents of TMemoryStream to given String.
   If Rewind then the position is reset to the beginning,
   otherwise it stays at the end. }
 procedure MemoryStreamLoadFromString(const Stream: TMemoryStream;
-  const S: string; const Rewind: boolean = true); overload;
+  const S: String; const Rewind: Boolean = true); overload;
 function MemoryStreamLoadFromString(
-  const S: string; const Rewind: boolean = true): TMemoryStream; overload;
+  const S: String; const Rewind: Boolean = true): TMemoryStream; overload;
 
 type
   EStreamNotImplemented = class(Exception);
@@ -233,7 +233,7 @@ type
   TPeekCharStream = class(TStream)
   private
     FSourceStream: TStream;
-    FOwnsSourceStream: boolean;
+    FOwnsSourceStream: Boolean;
     FLine, FColumn: Int64;
   protected
     { @returns(SourceStream.Size). }
@@ -242,7 +242,7 @@ type
     { This stream doesn't support setting size.
       (All other versions of SetSize also call this.)
       @raises(EStreamNotImplementedSetSize Always.) }
-    procedure SetSize(NewSize: Longint); override;
+    procedure SetSize(NewSize: LongInt); override;
 
     {$ifndef FPC}
     function GetPosition: Int64; virtual; abstract;
@@ -250,7 +250,7 @@ type
     procedure UpdateLineColumn(const C: AnsiChar); overload;
     procedure UpdateLineColumn(const Buffer; const BufferCount: Integer); overload;
   public
-    constructor Create(ASourceStream: TStream; AOwnsSourceStream: boolean);
+    constructor Create(ASourceStream: TStream; AOwnsSourceStream: Boolean);
     destructor Destroy; override;
 
     { This stream doesn't support seeking.
@@ -261,13 +261,13 @@ type
     { This stream doesn't support writing.
       (WriteBuffer also calls this.)
       @raises(EStreamNotImplementedWrite Always.) }
-    function Write(const Buffer; Count: Longint): Longint; override;
+    function Write(const Buffer; Count: LongInt): LongInt; override;
 
     { Underlying stream. }
     property SourceStream: TStream read FSourceStream;
 
     { Should we free underlying SourceStream at destruction. }
-    property OwnsSourceStream: boolean
+    property OwnsSourceStream: Boolean
       read FOwnsSourceStream write FOwnsSourceStream;
 
     { Peek next character. Returns the next character
@@ -309,12 +309,12 @@ type
   TSimplePeekCharStream = class(TPeekCharStream)
   private
     PeekedChar: Integer;
-    IsPeekedChar: boolean;
+    IsPeekedChar: Boolean;
     FPosition: Int64;
   protected
     function GetPosition: Int64; override;
   public
-    function Read(var Buffer; Count: Longint): Longint; override;
+    function Read(var Buffer; Count: LongInt): LongInt; override;
     function PeekChar: Integer; override;
     function ReadChar: Integer; override;
   end;
@@ -357,11 +357,11 @@ type
   protected
     function GetPosition: Int64; override;
   public
-    constructor Create(ASourceStream: TStream; AOwnsSourceStream: boolean;
+    constructor Create(ASourceStream: TStream; AOwnsSourceStream: Boolean;
       ABufferSize: LongWord = DefaultReadBufferSize);
     destructor Destroy; override;
 
-    function Read(var LocalBuffer; Count: Longint): Longint; override;
+    function Read(var LocalBuffer; Count: LongInt): LongInt; override;
     function PeekChar: Integer; override;
     function ReadChar: Integer; override;
     function ReadUpto(const EndingChars: TSetOfChars): AnsiString; override;
@@ -613,7 +613,7 @@ type
       Since in ObjectPascal you can create open array parameter on the fly,
       this constructor is often comfortable to use, for example you can
       write @code(List := TCastleObjectList.Create(..., [Item1, Item2]);). }
-    constructor CreateFromArray(const FreeObjects: boolean;
+    constructor CreateFromArray(const FreeObjects: Boolean;
       const AItems: array of TObject);
 
     { Add contents of given array to the list. }
@@ -647,7 +647,7 @@ type
       is under / above each other), you want to place NewItem at the same
       position as previous TCastleOnScreenMenu instance, if any. }
     function MakeSingle(ReplaceClass: TClass; NewItem: TObject;
-      AddEnd: boolean): TObject;
+      AddEnd: Boolean): TObject;
 
     { Extract (remove from the list, but never free) given item index.
       This is similar TObjectList.Extract, except it takes an index. }
@@ -664,8 +664,8 @@ type
       was decreased). }
     function RemoveAll(Item: TObject): Cardinal;
 
-    function IsFirst(Value: TObject): boolean;
-    function IsLast(Value: TObject): boolean;
+    function IsFirst(Value: TObject): Boolean;
+    function IsLast(Value: TObject): Boolean;
 
     procedure InsertIfNotExists(Index: Integer; Value: TObject);
     procedure AddIfNotExists(Value: TObject);
@@ -682,8 +682,8 @@ type
   end;
 
 {$ifdef FPC}
-function DumpStackToString(const BaseFramePointer: Pointer): string;
-function DumpExceptionBackTraceToString: string;
+function DumpStackToString(const BaseFramePointer: Pointer): String;
+function DumpExceptionBackTraceToString: String;
 {$endif}
 
 type
@@ -740,18 +740,18 @@ uses {$ifdef UNIX} Unix {$endif} {$ifdef MSWINDOWS} Windows {$endif},
 
 { TStrings helpers ------------------------------------------------------- }
 
-procedure StringsAdd(Strs: TStrings; Count: integer; itemVal: string);
+procedure StringsAdd(Strs: TStrings; Count: Integer; itemVal: String);
 var
-  i: integer;
+  I: Integer;
 begin
-  for i := 1 to Count do Strs.Add(itemVal);
+  for I := 1 to Count do Strs.Add(itemVal);
 end;
 
-procedure AddStrArrayToStrings(const StrArr: array of string; strlist: TStrings);
+procedure AddStrArrayToStrings(const StrArr: array of String; strlist: TStrings);
 var
-  i: integer;
+  I: Integer;
 begin
-  for i := 0 to High(StrArr) do strlist.Append(StrArr[i]);
+  for I := 0 to High(StrArr) do strlist.Append(StrArr[I]);
 end;
 
 constructor TStringListCaseSens.Create;
@@ -761,7 +761,7 @@ begin
 end;
 
 procedure Strings_AddSplittedString(Strings: TStrings;
-  const S, Splitter: string);
+  const S, Splitter: String);
 var
   SplitterPos, Done: Integer;
 begin
@@ -777,14 +777,14 @@ begin
 end;
 
 procedure Strings_AddCastleEngineProgramHelpSuffix(
-  Strings: TStrings; const DisplayApplicationName: string;
-  const Version: string; WrapLines: boolean);
+  Strings: TStrings; const DisplayApplicationName: String;
+  const Version: String; WrapLines: Boolean);
 begin
   Strings_AddSplittedString(Strings,
     SCastleEngineProgramHelpSuffix(DisplayApplicationName, Version, WrapLines), nl);
 end;
 
-procedure Strings_SetText(SList: TStrings; const S: string);
+procedure Strings_SetText(SList: TStrings; const S: String);
 begin
   if Length(S) = 1 then
     SList.Text := S + LineEnding else
@@ -851,9 +851,9 @@ begin
 end;
 
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean; out endingChar: AnsiChar): AnsiString; overload;
+  backEndingChar: Boolean; out endingChar: AnsiChar): AnsiString; overload;
 var
-  readLen: integer; { ile znakow odczytales }
+  readLen: Integer; { ile znakow odczytales }
   ch: AnsiChar;
 begin
   readLen := 0;
@@ -879,7 +879,7 @@ begin
 end;
 
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean):AnsiString; overload;
+  backEndingChar: Boolean):AnsiString; overload;
 var
   dummy: AnsiChar;
 begin
@@ -898,8 +898,8 @@ begin
 end;
 
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean; out endingChar: integer): AnsiString; overload;
-var readLen: integer; { ile znakow odczytales }
+  backEndingChar: Boolean; out endingChar: Integer): AnsiString; overload;
+var readLen: Integer; { ile znakow odczytales }
     ch: AnsiChar;
 begin
   readLen := 0;
@@ -930,15 +930,15 @@ begin
 end;
 
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean): AnsiString; overload;
+  backEndingChar: Boolean): AnsiString; overload;
 var
-  dummy: integer;
+  dummy: Integer;
 begin
   result := StreamReadUpto_EOS(Stream, endingChars, backEndingChar, dummy);
 end;
 
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  out endingChar: integer): AnsiString;
+  out endingChar: Integer): AnsiString;
 begin
   result := StreamReadUpto_EOS(Stream, endingChars, false, endingChar);
 end;
@@ -971,7 +971,7 @@ const
   BufferSize = 10000;
 var
   ReadCount: Integer;
-  Buffer: string;
+  Buffer: String;
 begin
   SetLength(Buffer, BufferSize);
   Result := '';
@@ -982,17 +982,17 @@ begin
   until false;
 end;
 
-procedure StreamWriteString(Stream: TStream; const s: string);
+procedure StreamWriteString(Stream: TStream; const S: String);
 var
   L: Integer;
 begin
-  L := Length(s);
+  L := Length(S);
   Stream.WriteBuffer(L, SizeOf(L));
   { check L > 0 to avoid range check error on S[1] }
   if L > 0 then Stream.WriteBuffer(S[1], L);
 end;
 
-function StreamReadString(Stream: TStream): string;
+function StreamReadString(Stream: TStream): String;
 var
   L: Integer;
 begin
@@ -1002,7 +1002,7 @@ begin
   if L > 0 then Stream.ReadBuffer(Result[1], L);
 end;
 
-function StreamToString(Stream: TStream): string;
+function StreamToString(Stream: TStream): String;
 begin
   SetLength(Result, Stream.Size);
   Stream.Position := 0;
@@ -1010,7 +1010,7 @@ begin
 end;
 
 procedure MemoryStreamLoadFromString(const Stream: TMemoryStream;
-  const S: string; const Rewind: boolean);
+  const S: String; const Rewind: Boolean);
 begin
   Stream.Size := Length(S);
   if S <> '' then
@@ -1020,7 +1020,7 @@ begin
   end;
 end;
 
-function MemoryStreamLoadFromString(const S: string; const Rewind: boolean): TMemoryStream;
+function MemoryStreamLoadFromString(const S: String; const Rewind: Boolean): TMemoryStream;
 begin
   Result := TMemoryStream.Create;
   try
@@ -1031,7 +1031,7 @@ end;
 { TPeekCharStream -------------------------------------------------- }
 
 constructor TPeekCharStream.Create(ASourceStream: TStream;
-  AOwnsSourceStream: boolean);
+  AOwnsSourceStream: Boolean);
 begin
   inherited Create;
   FOwnsSourceStream := AOwnsSourceStream;
@@ -1051,7 +1051,7 @@ begin
   Result := SourceStream.Size;
 end;
 
-procedure TPeekCharStream.SetSize(NewSize: Longint);
+procedure TPeekCharStream.SetSize(NewSize: LongInt);
 begin
   raise EStreamNotImplementedSetSize.Create(
     'TPeekCharStream.SetSize not supported');
@@ -1063,7 +1063,7 @@ begin
   Result := 0; { just to get rid of dummy fpc warning }
 end;
 
-function TPeekCharStream.Write(const Buffer; Count: Longint): Longint;
+function TPeekCharStream.Write(const Buffer; Count: LongInt): LongInt;
 begin
   raise EStreamNotImplementedWrite.Create('TPeekCharStream.Write not supported');
   Result := 0; { just to get rid of dummy fpc warning }
@@ -1122,7 +1122,7 @@ begin
   Result := FPosition;
 end;
 
-function TSimplePeekCharStream.Read(var Buffer; Count: Longint): Longint;
+function TSimplePeekCharStream.Read(var Buffer; Count: LongInt): LongInt;
 begin
   if (Count <= 0) or
      (IsPeekedChar and (PeekedChar = -1)) then
@@ -1184,7 +1184,7 @@ end;
 { TBufferedReadStream ----------------------------------------------------- }
 
 constructor TBufferedReadStream.Create(ASourceStream: TStream;
-  AOwnsSourceStream: boolean; ABufferSize: LongWord);
+  AOwnsSourceStream: Boolean; ABufferSize: LongWord);
 begin
   inherited Create(ASourceStream, AOwnsSourceStream);
 
@@ -1211,7 +1211,7 @@ begin
   BufferPos := 0;
 end;
 
-function TBufferedReadStream.Read(var LocalBuffer; Count: Longint): Longint;
+function TBufferedReadStream.Read(var LocalBuffer; Count: LongInt): LongInt;
 var
   CopyCount: LongWord;
 begin
@@ -1581,7 +1581,7 @@ end;
 
 { TCastleObjectList ------------------------------------------------------------- }
 
-constructor TCastleObjectList.CreateFromArray(const FreeObjects: boolean;
+constructor TCastleObjectList.CreateFromArray(const FreeObjects: Boolean;
   const AItems: array of TObject);
 begin
   Create(FreeObjects);
@@ -1621,7 +1621,7 @@ begin
 end;
 
 function TCastleObjectList.MakeSingle(ReplaceClass: TClass; NewItem: TObject;
-  AddEnd: boolean): TObject;
+  AddEnd: Boolean): TObject;
 var
   I: Integer;
 begin
@@ -1661,7 +1661,7 @@ begin
     Notify(Result, lnExtracted);
 {$else}
 var
-  OldOwnsObjects: boolean;
+  OldOwnsObjects: Boolean;
 begin
   OldOwnsObjects := OwnsObjects;
   OwnsObjects := false;
@@ -1699,12 +1699,12 @@ begin
   end;
 end;
 
-function TCastleObjectList.IsFirst(Value: TObject): boolean;
+function TCastleObjectList.IsFirst(Value: TObject): Boolean;
 begin
   Result := (Count > 0) and (Items[0] = Value);
 end;
 
-function TCastleObjectList.IsLast(Value: TObject): boolean;
+function TCastleObjectList.IsLast(Value: TObject): Boolean;
 begin
   Result := (Count > 0) and (Items[Count - 1] = Value);
 end;
@@ -1768,7 +1768,7 @@ end;
 { DumpStack ------------------------------------------------------------------ }
 
 {$ifdef FPC}
-function DumpStackToString(const BaseFramePointer: Pointer): string;
+function DumpStackToString(const BaseFramePointer: Pointer): String;
 var
   TextFile: Text;
   StringStream: TStringStream;
@@ -1784,7 +1784,7 @@ begin
   finally FreeAndNil(StringStream) end;
 end;
 
-function DumpExceptionBackTraceToString: string;
+function DumpExceptionBackTraceToString: String;
 {$ifdef CASTLE_NINTENDO_SWITCH}
 begin
   Result := ''; // DumpExceptionBackTrace fails with Access Violation

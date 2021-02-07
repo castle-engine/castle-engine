@@ -21,7 +21,7 @@
 type
   TNodeAvailableInLibrary = object
     Element: TDOMElement;
-    Handled: boolean;
+    Handled: Boolean;
   end;
   PNodeAvailableInLibrary = ^TNodeAvailableInLibrary;
   TNodeAvailableInLibraryList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TNodeAvailableInLibrary>;
@@ -44,7 +44,7 @@ var
 procedure ReadInstanceNode(ParentGroup: TAbstractX3DGroupingNode;
   InstantiatingElement: TDOMElement);
 var
-  Id: string;
+  Id: String;
   Node: TAbstractChildNode;
   J: Integer;
 begin

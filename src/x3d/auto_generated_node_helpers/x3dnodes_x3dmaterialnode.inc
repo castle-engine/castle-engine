@@ -27,7 +27,7 @@
 
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
 {$endif read_interface}
 

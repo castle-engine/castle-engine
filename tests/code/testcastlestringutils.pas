@@ -49,7 +49,7 @@ uses CastleUtils, CastleStringUtils;
 procedure TTestCastleStringUtils.TestIntToStrBase;
 var i: Integer;
     l: Integer;
-    s1, s2: string;
+    s1, s2: String;
 begin
  for i := 1 to 100 do
  begin
@@ -65,20 +65,20 @@ end;
 
 procedure TTestCastleStringUtils.TestDeFormat;
 var
-  s, S2: string;
-  i: integer;
-  f: float;
+  s, S2: String;
+  I: Integer;
+  F: Float;
 begin
   DeFormat('123FOO98.2e1 '#9'123ioioio-x    /'+nl, '%dfoo%f %s /',
-    [@i, @f, @s], true);
-  AssertTrue(i = 123);
-  AssertTrue(f = 98.2e1);
+    [@I, @f, @s], true);
+  AssertTrue(I = 123);
+  AssertTrue(F = 98.2e1);
   AssertTrue(s = '123ioioio-x');
 
   { %% test }
   DeFormat('%d%%456foobar %', '%%d%%%%%d%s %%',
-    [@i, @s], true);
-  AssertTrue(i = 456);
+    [@I, @s], true);
+  AssertTrue(I = 456);
   AssertTrue(s = 'foobar');
 
   { Test RelatedWhitespaceChecking }
@@ -136,7 +136,7 @@ begin
 end;
 
 procedure TTestCastleStringUtils.TestIntToStr2;
-var i, Value, MinLength: Integer;
+var I, Value, MinLength: Integer;
 begin
  AssertTrue(IntToStr2(2) = '10');
  AssertTrue(IntToStr2(0) = '0');
@@ -148,7 +148,7 @@ begin
  AssertTrue(IntToStr2(-2, 4, '_', 'M', '+') = '+__M_');
  AssertTrue(IntToStr2(0, 4, '_', 'M', '+') = '____');
 
- for i := 1 to 100 do
+ for I := 1 to 100 do
  begin
   Value := Integer(Random(10000)) - 10000 div 2;
   MinLength := Random(5);
@@ -169,7 +169,7 @@ end;
 procedure TTestCastleStringUtils.TestFormatNameCounter;
 var
   ReplacementsDone: Cardinal;
-  AllowOldPercentSyntax: boolean;
+  AllowOldPercentSyntax: Boolean;
 begin
   AssertTrue(FormatNameCounter('', 0, true, ReplacementsDone) = '');
   AssertTrue(FormatNameCounter('a', 0, true, ReplacementsDone) = 'a');
@@ -236,10 +236,10 @@ procedure TTestCastleStringUtils.TestCastleStringList;
 }
 
 var sarr, sarr2: TCastleStringList;
-    i, j: integer;
-const twoStrings: array[0..1]of string = ('raz','dwa');
+    I, J: Integer;
+const twoStrings: array [0..1] of String = ('raz','dwa');
 begin
- for i := 1 to 100 do
+ for I := 1 to 100 do
  begin
   sarr := TCastleStringList.Create;
   try
@@ -273,13 +273,13 @@ begin
    finally sarr2.Free end;
 
    {dodaj losowe stringi, sortuj, sprawdz}
-   for j := 0 to 20 do
+   for J := 0 to 20 do
     sarr.Add( Chr(Random(256)) + Chr(Random(256)) + Chr(Random(256)) );
    sarr.Sort;
-   for j := 0 to sarr.Count-2 do AssertTrue(
-     { sarr[j] <= sarr[j+1] }
+   for J := 0 to sarr.Count-2 do AssertTrue(
+     { sarr[J] <= sarr[J+1] }
      { Sort may use AnsiCompareStr that takes into account locale }
-     AnsiCompareStr(sarr[j], sarr[j+1]) <= 0);
+     AnsiCompareStr(sarr[J], sarr[J+1]) <= 0);
 
   finally sarr.Free end;
  end;
@@ -401,7 +401,7 @@ end;
 
 procedure TTestCastleStringUtils.TestSplitString;
 
-  procedure AssertStringListEquals(const A: array of string; const List: TCastleStringList);
+  procedure AssertStringListEquals(const A: array of String; const List: TCastleStringList);
   var
     I: Integer;
   begin
@@ -410,8 +410,8 @@ procedure TTestCastleStringUtils.TestSplitString;
       AssertEquals(A[I], List[I]);
   end;
 
-  procedure TestSplitAndGlue(const CorrectParts: array of string;
-    const S: string; const Delimiter: char);
+  procedure TestSplitAndGlue(const CorrectParts: array of String;
+    const S: String; const Delimiter: Char);
   var
     List: TCastleStringList;
   begin

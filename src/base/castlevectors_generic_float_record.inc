@@ -68,16 +68,16 @@ type
     class operator {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector2; const Scalar: TGenericScalar): TGenericVector2; inline;
 
     procedure Init(const X, Y: TGenericScalar); inline;
-    function ToString: string;
+    function ToString: String;
 
-    { Convert to string using the most precise (not always easily readable
+    { Convert to String using the most precise (not always easily readable
       by humans) float format. This may use the exponential
       (scientific) notation to represent the floating-point value,
       if needed.
 
       This is suitable for storing the value in a file,
       with a best precision possible. }
-    function ToRawString: string;
+    function ToRawString: String;
 
     property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems; default;
     property X: TGenericScalar index 0 read GetItemsInt write SetItemsInt;
@@ -107,19 +107,19 @@ type
     function Abs: TGenericVector2; inline;
 
     { Are all components equal to zero (within some epsilon margin). }
-    function IsZero: boolean; overload; inline;
+    function IsZero: Boolean; overload; inline;
 
     { Are all components equal to zero (within Epsilon margin). }
-    function IsZero(const Epsilon: TGenericScalar): boolean; overload; inline;
+    function IsZero(const Epsilon: TGenericScalar): Boolean; overload; inline;
 
-    function IsPerfectlyZero: boolean;
+    function IsPerfectlyZero: Boolean;
 
     { Compare two vectors, with epsilon to tolerate slightly different floats. }
-    class function Equals(const V1, V2: TGenericVector2): boolean; overload; inline; static;
-    class function Equals(const V1, V2: TGenericVector2; const Epsilon: TGenericScalar): boolean; overload; inline; static;
+    class function Equals(const V1, V2: TGenericVector2): Boolean; overload; inline; static;
+    class function Equals(const V1, V2: TGenericVector2; const Epsilon: TGenericScalar): Boolean; overload; inline; static;
 
     { Compare two vectors using exact comparison (like the "=" operator to compare floats). }
-    class function PerfectlyEquals(const V1, V2: TGenericVector2): boolean; static; inline;
+    class function PerfectlyEquals(const V1, V2: TGenericVector2): Boolean; static; inline;
 
     { Linear interpolation between two vector values.
       @seealso TGenericVector3.Lerp }
@@ -168,16 +168,16 @@ type
     class operator {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector3; const Scalar: TGenericScalar): TGenericVector3; inline;
 
     procedure Init(const X, Y, Z: TGenericScalar); inline;
-    function ToString: string;
+    function ToString: String;
 
-    { Convert to string using the most precise (not always easily readable
+    { Convert to String using the most precise (not always easily readable
       by humans) float format. This may use the exponential
       (scientific) notation to represent the floating-point value,
       if needed.
 
       This is suitable for storing the value in a file,
       with a best precision possible. }
-    function ToRawString: string;
+    function ToRawString: String;
 
     property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems; default;
     property X: TGenericScalar index 0 read GetItemsInt write SetItemsInt;
@@ -235,19 +235,19 @@ type
     function Average: TGenericScalar; inline;
 
     { Are all components equal to zero (within some epsilon margin). }
-    function IsZero: boolean; overload; inline;
+    function IsZero: Boolean; overload; inline;
 
     { Are all components equal to zero (within Epsilon margin). }
-    function IsZero(const Epsilon: TGenericScalar): boolean; overload; inline;
+    function IsZero(const Epsilon: TGenericScalar): Boolean; overload; inline;
 
-    function IsPerfectlyZero: boolean; inline;
+    function IsPerfectlyZero: Boolean; inline;
 
     { Compare two vectors, with epsilon to tolerate slightly different floats. }
-    class function Equals(const V1, V2: TGenericVector3): boolean; overload; inline; static;
-    class function Equals(const V1, V2: TGenericVector3; const Epsilon: TGenericScalar): boolean; overload; inline; static;
+    class function Equals(const V1, V2: TGenericVector3): Boolean; overload; inline; static;
+    class function Equals(const V1, V2: TGenericVector3; const Epsilon: TGenericScalar): Boolean; overload; inline; static;
 
     { Compare two vectors using exact comparison (like the "=" operator to compare floats). }
-    class function PerfectlyEquals(const V1, V2: TGenericVector3): boolean; static; inline;
+    class function PerfectlyEquals(const V1, V2: TGenericVector3): Boolean; static; inline;
 
     function XY: TGenericVector2; inline;
 
@@ -300,16 +300,16 @@ type
     class operator {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector4; const Scalar: TGenericScalar): TGenericVector4; inline;
 
     procedure Init(const X, Y, Z, W: TGenericScalar); inline;
-    function ToString: string;
+    function ToString: String;
 
-    { Convert to string using the most precise (not always easily readable
+    { Convert to String using the most precise (not always easily readable
       by humans) float format. This may use the exponential
       (scientific) notation to represent the floating-point value,
       if needed.
 
       This is suitable for storing the value in a file,
       with a best precision possible. }
-    function ToRawString: string;
+    function ToRawString: String;
 
     property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems; default;
     property X: TGenericScalar index 0 read GetItemsInt write SetItemsInt;
@@ -339,19 +339,19 @@ type
     function Abs: TGenericVector4; inline;
 
     { Are all components equal to zero (within some epsilon margin). }
-    function IsZero: boolean; overload; inline;
+    function IsZero: Boolean; overload; inline;
 
     { Are all components equal to zero (within Epsilon margin). }
-    function IsZero(const Epsilon: TGenericScalar): boolean; overload; inline;
+    function IsZero(const Epsilon: TGenericScalar): Boolean; overload; inline;
 
-    function IsPerfectlyZero: boolean; inline;
+    function IsPerfectlyZero: Boolean; inline;
 
     { Compare two vectors, with epsilon to tolerate slightly different floats. }
-    class function Equals(const V1, V2: TGenericVector4): boolean; overload; inline; static;
-    class function Equals(const V1, V2: TGenericVector4; const Epsilon: TGenericScalar): boolean; overload; inline; static;
+    class function Equals(const V1, V2: TGenericVector4): Boolean; overload; inline; static;
+    class function Equals(const V1, V2: TGenericVector4; const Epsilon: TGenericScalar): Boolean; overload; inline; static;
 
     { Compare two vectors using exact comparison (like the "=" operator to compare floats). }
-    class function PerfectlyEquals(const V1, V2: TGenericVector4): boolean; static; inline;
+    class function PerfectlyEquals(const V1, V2: TGenericVector4): Boolean; static; inline;
 
     { Convert a 4D homogeneous coordinate to 3D position. }
     function ToPosition: TGenericVector3; inline;
@@ -401,16 +401,16 @@ type
       makes a component-wise multiplication. }
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const M1, M2: TGenericMatrix2): TGenericMatrix2;
 
-    function ToString(const LineIndent: string = ''): string;
+    function ToString(const LineIndent: String = ''): String;
 
-    { Convert to string using the most precise (not always easily readable
+    { Convert to String using the most precise (not always easily readable
       by humans) float format. This may use the exponential
       (scientific) notation to represent the floating-point value,
       if needed.
 
       This is suitable for storing the value in a file,
       with a best precision possible. }
-    function ToRawString(const LineIndent: string = ''): string;
+    function ToRawString(const LineIndent: String = ''): String;
 
     property Items [const AColumn, ARow: TIndex]: TGenericScalar read GetItems write SetItems; default;
     property Rows [const ARow: TIndex]: TGenericVector2 read GetRows write SetRows;
@@ -425,16 +425,16 @@ type
     function Inverse(ADeterminant: TGenericScalar): TGenericMatrix2;
 
     { Inverse the matrix, or return @false if the matrix is not invertible. }
-    function TryInverse(out MInverse: TGenericMatrix2): boolean;
+    function TryInverse(out MInverse: TGenericMatrix2): Boolean;
 
     function Transpose: TGenericMatrix2;
 
     { Compare two vectors, with epsilon to tolerate slightly different floats. }
-    class function Equals(const M1, M2: TGenericMatrix2): boolean; overload; static;
-    class function Equals(const M1, M2: TGenericMatrix2; const Epsilon: TGenericScalar): boolean; overload; static;
+    class function Equals(const M1, M2: TGenericMatrix2): Boolean; overload; static;
+    class function Equals(const M1, M2: TGenericMatrix2; const Epsilon: TGenericScalar): Boolean; overload; static;
 
     { Compare two vectors using exact comparison (like the "=" operator to compare floats). }
-    class function PerfectlyEquals(const M1, M2: TGenericMatrix2): boolean; static;
+    class function PerfectlyEquals(const M1, M2: TGenericMatrix2): Boolean; static;
 
     { Linear interpolation between two matrix values.
       @seealso TGenericVector3.Lerp }
@@ -488,16 +488,16 @@ type
       makes a component-wise multiplication. }
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const M1, M2: TGenericMatrix3): TGenericMatrix3;
 
-    function ToString(const LineIndent: string = ''): string;
+    function ToString(const LineIndent: String = ''): String;
 
-    { Convert to string using the most precise (not always easily readable
+    { Convert to String using the most precise (not always easily readable
       by humans) float format. This may use the exponential
       (scientific) notation to represent the floating-point value,
       if needed.
 
       This is suitable for storing the value in a file,
       with a best precision possible. }
-    function ToRawString(const LineIndent: string = ''): string;
+    function ToRawString(const LineIndent: String = ''): String;
 
     property Items [const AColumn, ARow: TIndex]: TGenericScalar read GetItems write SetItems; default;
     property Rows [const ARow: TIndex]: TGenericVector3 read GetRows write SetRows;
@@ -512,16 +512,16 @@ type
     function Inverse(ADeterminant: TGenericScalar): TGenericMatrix3;
 
     { Inverse the matrix, or return @false if the matrix is not invertible. }
-    function TryInverse(out MInverse: TGenericMatrix3): boolean;
+    function TryInverse(out MInverse: TGenericMatrix3): Boolean;
 
     function Transpose: TGenericMatrix3;
 
     { Compare two vectors, with epsilon to tolerate slightly different floats. }
-    class function Equals(const M1, M2: TGenericMatrix3): boolean; overload; static;
-    class function Equals(const M1, M2: TGenericMatrix3; const Epsilon: TGenericScalar): boolean; overload; static;
+    class function Equals(const M1, M2: TGenericMatrix3): Boolean; overload; static;
+    class function Equals(const M1, M2: TGenericMatrix3; const Epsilon: TGenericScalar): Boolean; overload; static;
 
     { Compare two vectors using exact comparison (like the "=" operator to compare floats). }
-    class function PerfectlyEquals(const M1, M2: TGenericMatrix3): boolean; static;
+    class function PerfectlyEquals(const M1, M2: TGenericMatrix3): Boolean; static;
 
     { Linear interpolation between two matrix values.
       @seealso TGenericVector3.Lerp }
@@ -570,16 +570,16 @@ type
       (without spending *any* time on calculating transposition). }
     function TransposeMultiply(const V: TGenericVector4): TGenericVector4; inline;
 
-    function ToString(const LineIndent: string = ''): string;
+    function ToString(const LineIndent: String = ''): String;
 
-    { Convert to string using the most precise (not always easily readable
+    { Convert to String using the most precise (not always easily readable
       by humans) float format. This may use the exponential
       (scientific) notation to represent the floating-point value,
       if needed.
 
       This is suitable for storing the value in a file,
       with a best precision possible. }
-    function ToRawString(const LineIndent: string = ''): string;
+    function ToRawString(const LineIndent: String = ''): String;
 
     property Items [const AColumn, ARow: TIndex]: TGenericScalar read GetItems write SetItems; default;
     property Rows [const ARow: TIndex]: TGenericVector4 read GetRows write SetRows;
@@ -594,7 +594,7 @@ type
     function Inverse(ADeterminant: TGenericScalar): TGenericMatrix4;
 
     { Inverse the matrix, or return @false if the matrix is not invertible. }
-    function TryInverse(out MInverse: TGenericMatrix4): boolean;
+    function TryInverse(out MInverse: TGenericMatrix4): Boolean;
 
     function Transpose: TGenericMatrix4;
 
@@ -631,11 +631,11 @@ type
     { @groupEnd }
 
     { Compare two vectors, with epsilon to tolerate slightly different floats. }
-    class function Equals(const M1, M2: TGenericMatrix4): boolean; overload; static;
-    class function Equals(const M1, M2: TGenericMatrix4; const Epsilon: TGenericScalar): boolean; overload; static;
+    class function Equals(const M1, M2: TGenericMatrix4): Boolean; overload; static;
+    class function Equals(const M1, M2: TGenericMatrix4; const Epsilon: TGenericScalar): Boolean; overload; static;
 
     { Compare two vectors using exact comparison (like the "=" operator to compare floats). }
-    class function PerfectlyEquals(const M1, M2: TGenericMatrix4): boolean; static;
+    class function PerfectlyEquals(const M1, M2: TGenericMatrix4): Boolean; static;
 
     { Linear interpolation between two matrix values.
       @seealso TGenericVector3.Lerp }
@@ -703,12 +703,12 @@ begin
   Data[1] := Y;
 end;
 
-function TGenericVector2.ToString: string;
+function TGenericVector2.ToString: String;
 begin
   Result := FormatDot('%f %f', [Data[0], Data[1]]);
 end;
 
-function TGenericVector2.ToRawString: string;
+function TGenericVector2.ToRawString: String;
 begin
   Result := FormatDot('%g %g', [Data[0], Data[1]]);
 end;
@@ -794,32 +794,32 @@ begin
   Result.Data[1] := System.Abs(Data[1]);
 end;
 
-function TGenericVector2.IsZero: boolean;
+function TGenericVector2.IsZero: Boolean;
 begin
   Result :=
     Math.IsZero(Data[0]) and
     Math.IsZero(Data[1]);
 end;
 
-function TGenericVector2.IsZero(const Epsilon: TGenericScalar): boolean;
+function TGenericVector2.IsZero(const Epsilon: TGenericScalar): Boolean;
 begin
   Result := (System.Abs(Data[0]) < Epsilon) and
             (System.Abs(Data[1]) < Epsilon);
 end;
 
-function TGenericVector2.IsPerfectlyZero: boolean;
+function TGenericVector2.IsPerfectlyZero: Boolean;
 begin
   Result := IsMemCharFilled(Data, SizeOf(Data), #0);
 end;
 
-class function TGenericVector2.Equals(const V1, V2: TGenericVector2): boolean;
+class function TGenericVector2.Equals(const V1, V2: TGenericVector2): Boolean;
 begin
   Result :=
     SameValue(V1.Data[0], V2.Data[0]) and
     SameValue(V1.Data[1], V2.Data[1]);
 end;
 
-class function TGenericVector2.Equals(const V1, V2: TGenericVector2; const Epsilon: TGenericScalar): boolean;
+class function TGenericVector2.Equals(const V1, V2: TGenericVector2; const Epsilon: TGenericScalar): Boolean;
 begin
   if Epsilon = 0 then
     Result := (V1.Data[0] = V2.Data[0]) and
@@ -828,7 +828,7 @@ begin
               (System.Abs(V1.Data[1]-V2.Data[1]) < Epsilon);
 end;
 
-class function TGenericVector2.PerfectlyEquals(const V1, V2: TGenericVector2): boolean;
+class function TGenericVector2.PerfectlyEquals(const V1, V2: TGenericVector2): Boolean;
 begin
   Result := (V1.Data[0] = V2.Data[0]) and
             (V1.Data[1] = V2.Data[1]);
@@ -912,12 +912,12 @@ begin
   Data[2] := Z;
 end;
 
-function TGenericVector3.ToString: string;
+function TGenericVector3.ToString: String;
 begin
   Result := FormatDot('%f %f %f', [Data[0], Data[1], Data[2]]);
 end;
 
-function TGenericVector3.ToRawString: string;
+function TGenericVector3.ToRawString: String;
 begin
   Result := FormatDot('%g %g %g', [Data[0], Data[1], Data[2]]);
 end;
@@ -1031,7 +1031,7 @@ begin
   Result := (Data[0] + Data[1] + Data[2]) / 3;
 end;
 
-function TGenericVector3.IsZero: boolean;
+function TGenericVector3.IsZero: Boolean;
 begin
   Result :=
     Math.IsZero(Data[0]) and
@@ -1039,19 +1039,19 @@ begin
     Math.IsZero(Data[2]);
 end;
 
-function TGenericVector3.IsZero(const Epsilon: TGenericScalar): boolean;
+function TGenericVector3.IsZero(const Epsilon: TGenericScalar): Boolean;
 begin
   Result := (System.Abs(Data[0]) < Epsilon) and
             (System.Abs(Data[1]) < Epsilon) and
             (System.Abs(Data[2]) < Epsilon);
 end;
 
-function TGenericVector3.IsPerfectlyZero: boolean;
+function TGenericVector3.IsPerfectlyZero: Boolean;
 begin
   Result := IsMemCharFilled(Data, SizeOf(Data), #0);
 end;
 
-class function TGenericVector3.Equals(const V1, V2: TGenericVector3): boolean;
+class function TGenericVector3.Equals(const V1, V2: TGenericVector3): Boolean;
 begin
   Result :=
     SameValue(V1.Data[0], V2.Data[0]) and
@@ -1059,7 +1059,7 @@ begin
     SameValue(V1.Data[2], V2.Data[2]);
 end;
 
-class function TGenericVector3.Equals(const V1, V2: TGenericVector3; const Epsilon: TGenericScalar): boolean;
+class function TGenericVector3.Equals(const V1, V2: TGenericVector3; const Epsilon: TGenericScalar): Boolean;
 begin
   if Epsilon = 0 then
     Result := (V1.Data[0] = V2.Data[0]) and
@@ -1070,7 +1070,7 @@ begin
               (System.Abs(V1.Data[2]-V2.Data[2]) < Epsilon);
 end;
 
-class function TGenericVector3.PerfectlyEquals(const V1, V2: TGenericVector3): boolean;
+class function TGenericVector3.PerfectlyEquals(const V1, V2: TGenericVector3): Boolean;
 begin
   Result := (V1.Data[0] = V2.Data[0]) and
             (V1.Data[1] = V2.Data[1]) and
@@ -1170,12 +1170,12 @@ begin
   Data[3] := Z;
 end;
 
-function TGenericVector4.ToString: string;
+function TGenericVector4.ToString: String;
 begin
   Result := FormatDot('%f %f %f %f', [Data[0], Data[1], Data[2], Data[3]]);
 end;
 
-function TGenericVector4.ToRawString: string;
+function TGenericVector4.ToRawString: String;
 begin
   Result := FormatDot('%g %g %g %g', [Data[0], Data[1], Data[2], Data[3]]);
 end;
@@ -1241,7 +1241,7 @@ begin
   Result.Data[3] := System.Abs(Data[3]);
 end;
 
-function TGenericVector4.IsZero: boolean;
+function TGenericVector4.IsZero: Boolean;
 begin
   Result :=
     Math.IsZero(Data[0]) and
@@ -1250,7 +1250,7 @@ begin
     Math.IsZero(Data[3]);
 end;
 
-function TGenericVector4.IsZero(const Epsilon: TGenericScalar): boolean;
+function TGenericVector4.IsZero(const Epsilon: TGenericScalar): Boolean;
 begin
   Result := (System.Abs(Data[0]) < Epsilon) and
             (System.Abs(Data[1]) < Epsilon) and
@@ -1258,12 +1258,12 @@ begin
             (System.Abs(Data[3]) < Epsilon);
 end;
 
-function TGenericVector4.IsPerfectlyZero: boolean;
+function TGenericVector4.IsPerfectlyZero: Boolean;
 begin
   Result := IsMemCharFilled(Data, SizeOf(Data), #0);
 end;
 
-class function TGenericVector4.Equals(const V1, V2: TGenericVector4): boolean;
+class function TGenericVector4.Equals(const V1, V2: TGenericVector4): Boolean;
 begin
   Result :=
     SameValue(V1.Data[0], V2.Data[0]) and
@@ -1272,7 +1272,7 @@ begin
     SameValue(V1.Data[3], V2.Data[3]);
 end;
 
-class function TGenericVector4.Equals(const V1, V2: TGenericVector4; const Epsilon: TGenericScalar): boolean;
+class function TGenericVector4.Equals(const V1, V2: TGenericVector4; const Epsilon: TGenericScalar): Boolean;
 begin
   if Epsilon = 0 then
     Result := (V1.Data[0] = V2.Data[0]) and
@@ -1285,7 +1285,7 @@ begin
               (System.Abs(V1.Data[3]-V2.Data[3]) < Epsilon);
 end;
 
-class function TGenericVector4.PerfectlyEquals(const V1, V2: TGenericVector4): boolean;
+class function TGenericVector4.PerfectlyEquals(const V1, V2: TGenericVector4): Boolean;
 begin
   Result := (V1.Data[0] = V2.Data[0]) and
             (V1.Data[1] = V2.Data[1]) and
@@ -1409,7 +1409,7 @@ begin
   Result.Data[1, 1] := M1.Data[0, 1] * M2.Data[1, 0] + M1.Data[1, 1] * M2.Data[1, 1];
 end;
 
-function TGenericMatrix2.ToString(const LineIndent: string): string;
+function TGenericMatrix2.ToString(const LineIndent: String): String;
 begin
   Result := FormatDot('%s%f %f' + NL +
                       '%s%f %f',
@@ -1417,7 +1417,7 @@ begin
     LineIndent, Data[0, 1], Data[1, 1] ]);
 end;
 
-function TGenericMatrix2.ToRawString(const LineIndent: string): string;
+function TGenericMatrix2.ToRawString(const LineIndent: String): String;
 begin
   Result := FormatDot('%s%g %g' + NL +
                       '%s%g %g',
@@ -1504,7 +1504,7 @@ begin
   Result.Data[1, 1] :=  Data[0, 0] * ADeterminant;
 end;
 
-function TGenericMatrix2.TryInverse(out MInverse: TGenericMatrix2): boolean;
+function TGenericMatrix2.TryInverse(out MInverse: TGenericMatrix2): Boolean;
 var
   D: TGenericScalar;
 begin
@@ -1523,7 +1523,7 @@ begin
   Result.Data[1, 1] := Data[1, 1];
 end;
 
-class function TGenericMatrix2.Equals(const M1, M2: TGenericMatrix2): boolean;
+class function TGenericMatrix2.Equals(const M1, M2: TGenericMatrix2): Boolean;
 begin
   Result :=
     SameValue(M1.Data[0, 0], M2.Data[0, 0]) and
@@ -1533,7 +1533,7 @@ begin
     SameValue(M1.Data[1, 1], M2.Data[1, 1]);
 end;
 
-class function TGenericMatrix2.Equals(const M1, M2: TGenericMatrix2; const Epsilon: TGenericScalar): boolean;
+class function TGenericMatrix2.Equals(const M1, M2: TGenericMatrix2; const Epsilon: TGenericScalar): Boolean;
 begin
   if Epsilon = 0 then
     Result := CompareMem(@M1, @M2, SizeOf(M1))
@@ -1546,7 +1546,7 @@ begin
       (System.Abs(M1.Data[1, 1] - M2.Data[1, 1]) < Epsilon);
 end;
 
-class function TGenericMatrix2.PerfectlyEquals(const M1, M2: TGenericMatrix2): boolean;
+class function TGenericMatrix2.PerfectlyEquals(const M1, M2: TGenericMatrix2): Boolean;
 begin
   Result := CompareMem(@M1, @M2, SizeOf(M1));
 end;
@@ -1669,7 +1669,7 @@ begin
   Result.Data[2, 2] := M1.Data[0, 2] * M2.Data[2, 0] + M1.Data[1, 2] * M2.Data[2, 1] + M1.Data[2, 2] * M2.Data[2, 2];
 end;
 
-function TGenericMatrix3.ToString(const LineIndent: string): string;
+function TGenericMatrix3.ToString(const LineIndent: String): String;
 begin
   Result := FormatDot('%s%f %f %f' + NL +
                       '%s%f %f %f' + NL +
@@ -1679,7 +1679,7 @@ begin
     LineIndent, Data[0, 2], Data[1, 2], Data[2, 2] ]);
 end;
 
-function TGenericMatrix3.ToRawString(const LineIndent: string): string;
+function TGenericMatrix3.ToRawString(const LineIndent: String): String;
 begin
   Result := FormatDot('%s%g %g %g' + NL +
                       '%s%g %g %g' + NL +
@@ -1765,7 +1765,7 @@ begin
   Result.Data[2,2] := (Data[0,0] * Data[1,1]-Data[1,0] * Data[0,1]) * ADeterminant;
 end;
 
-function TGenericMatrix3.TryInverse(out MInverse: TGenericMatrix3): boolean;
+function TGenericMatrix3.TryInverse(out MInverse: TGenericMatrix3): Boolean;
 var
   D: TGenericScalar;
 begin
@@ -1790,7 +1790,7 @@ begin
   Result.Data[2, 2] := Data[2, 2];
 end;
 
-class function TGenericMatrix3.Equals(const M1, M2: TGenericMatrix3): boolean;
+class function TGenericMatrix3.Equals(const M1, M2: TGenericMatrix3): Boolean;
 begin
   Result :=
     SameValue(M1.Data[0, 0], M2.Data[0, 0]) and
@@ -1806,7 +1806,7 @@ begin
     SameValue(M1.Data[2, 2], M2.Data[2, 2]);
 end;
 
-class function TGenericMatrix3.Equals(const M1, M2: TGenericMatrix3; const Epsilon: TGenericScalar): boolean;
+class function TGenericMatrix3.Equals(const M1, M2: TGenericMatrix3; const Epsilon: TGenericScalar): Boolean;
 begin
   if Epsilon = 0 then
     Result := CompareMem(@M1, @M2, SizeOf(M1))
@@ -1825,7 +1825,7 @@ begin
       (System.Abs(M1.Data[2, 2] - M2.Data[2, 2]) < Epsilon);
 end;
 
-class function TGenericMatrix3.PerfectlyEquals(const M1, M2: TGenericMatrix3): boolean;
+class function TGenericMatrix3.PerfectlyEquals(const M1, M2: TGenericMatrix3): Boolean;
 begin
   Result := CompareMem(@M1, @M2, SizeOf(M1));
 end;
@@ -2040,7 +2040,7 @@ begin
   Result.Data[3, 3] := M1.Data[0, 3] * M2.Data[3, 0] + M1.Data[1, 3] * M2.Data[3, 1] + M1.Data[2, 3] * M2.Data[3, 2] + M1.Data[3, 3] * M2.Data[3, 3];
 end;
 
-function TGenericMatrix4.ToString(const LineIndent: string): string;
+function TGenericMatrix4.ToString(const LineIndent: String): String;
 begin
   Result := FormatDot('%s%f %f %f %f' + NL +
                       '%s%f %f %f %f' + NL +
@@ -2052,7 +2052,7 @@ begin
     LineIndent, Data[0, 3], Data[1, 3], Data[2, 3], Data[3, 3] ]);
 end;
 
-function TGenericMatrix4.ToRawString(const LineIndent: string): string;
+function TGenericMatrix4.ToRawString(const LineIndent: String): String;
 begin
   Result := FormatDot('%s%g %g %g %g' + NL +
                       '%s%g %g %g %g' + NL +
@@ -2187,7 +2187,7 @@ begin
                                       Data[0,2] * (Data[1,0] * Data[2,1] - Data[1,1] * Data[2,0]));
 end;
 
-function TGenericMatrix4.TryInverse(out MInverse: TGenericMatrix4): boolean;
+function TGenericMatrix4.TryInverse(out MInverse: TGenericMatrix4): Boolean;
 var
   D: TGenericScalar;
 begin
@@ -2336,7 +2336,7 @@ begin
   Result.Data[1] := Res3D.Data[1];
 end;
 
-class function TGenericMatrix4.Equals(const M1, M2: TGenericMatrix4): boolean;
+class function TGenericMatrix4.Equals(const M1, M2: TGenericMatrix4): Boolean;
 begin
   Result :=
     SameValue(M1.Data[0, 0], M2.Data[0, 0]) and
@@ -2360,7 +2360,7 @@ begin
     SameValue(M1.Data[3, 3], M2.Data[3, 3]);
 end;
 
-class function TGenericMatrix4.Equals(const M1, M2: TGenericMatrix4; const Epsilon: TGenericScalar): boolean;
+class function TGenericMatrix4.Equals(const M1, M2: TGenericMatrix4; const Epsilon: TGenericScalar): Boolean;
 begin
   if Epsilon = 0 then
     Result := CompareMem(@M1, @M2, SizeOf(M1))
@@ -2387,7 +2387,7 @@ begin
       (System.Abs(M1.Data[3, 3] - M2.Data[3, 3]) < Epsilon);
 end;
 
-class function TGenericMatrix4.PerfectlyEquals(const M1, M2: TGenericMatrix4): boolean;
+class function TGenericMatrix4.PerfectlyEquals(const M1, M2: TGenericMatrix4): Boolean;
 begin
   Result := CompareMem(@M1, @M2, SizeOf(M1));
 end;

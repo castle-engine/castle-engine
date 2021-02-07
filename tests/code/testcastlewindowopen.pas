@@ -146,7 +146,7 @@ end;
 
 procedure TTestCastleWindowOpen.TestLoadLevelFromOpen;
 
-  procedure DoTest(const WithButton: boolean);
+  procedure DoTest(const WithButton: Boolean);
   var
     Window: TCastleWindow;
   begin

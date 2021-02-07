@@ -29,9 +29,9 @@ type
   private
     FFieldOrEvents: TX3DFieldOrEventList;
     FLastEventTimes: TX3DTimeList;
-    InsideAfterExecute: boolean;
+    InsideAfterExecute: Boolean;
   public
-    constructor Create(AFreeObjects: boolean);
+    constructor Create(AFreeObjects: Boolean);
     destructor Destroy; override;
 
     { List of field/events associated with this list's CasScript variables.
@@ -314,7 +314,7 @@ procedure X3DCasScriptAfterExecute(Value: TCasScriptValue;
   end;
 
 var
-  AbortSending: boolean;
+  AbortSending: Boolean;
   Field: TX3DField;
   SendToEvent: TX3DEvent;
 begin
@@ -469,7 +469,7 @@ end;
 
 { TCasScriptX3DValueList -------------------------------------------------- }
 
-constructor TCasScriptX3DValueList.Create(AFreeObjects: boolean);
+constructor TCasScriptX3DValueList.Create(AFreeObjects: Boolean);
 begin
   inherited;
   FFieldOrEvents := TX3DFieldOrEventList.Create(false);
@@ -504,7 +504,7 @@ end;
 procedure TCasScriptX3DValueList.AfterExecute(const Time: TX3DTime);
 var
   I: Integer;
-  WasSomeValueAssigned: boolean;
+  WasSomeValueAssigned: Boolean;
 begin
   if not InsideAfterExecute then
   begin

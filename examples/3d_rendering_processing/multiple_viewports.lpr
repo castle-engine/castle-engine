@@ -40,7 +40,7 @@ type
   { Derive our own TCastleViewport descendants, just to demo that we can. }
   TMyViewport = class(TCastleViewport)
   public
-    Caption: string;
+    Caption: String;
   end;
 
 { TWireViewport -------------------------------------------------------------- }
@@ -110,7 +110,7 @@ type
   TFocusedFrame = class(TCastleUserInterface)
   public
     procedure Render; override;
-    procedure SetFocused(const Value: boolean); override;
+    procedure SetFocused(const Value: Boolean); override;
   end;
 
 procedure TFocusedFrame.Render;
@@ -119,7 +119,7 @@ begin
     Theme.Draw(RenderRect, tiActiveFrame);
 end;
 
-procedure TFocusedFrame.SetFocused(const Value: boolean);
+procedure TFocusedFrame.SetFocused(const Value: Boolean);
 begin
   if Value <> Focused then
     { The TFocusedFrame.Render is based on Focused value. }
@@ -188,7 +188,7 @@ begin
 end;
 
 var
-  URL: string = 'castle-data:/teapot.x3dv';
+  URL: String = 'castle-data:/teapot.x3dv';
   // 'castle-data:/bridge_final.x3dv';
   // '../../../demo_models/shadow_volumes/shadows_dynamic.x3dv'
 
@@ -200,7 +200,7 @@ type
 
 procedure TDummy.OpenButtonClick(Sender: TObject);
 var
-  NewURL: string;
+  NewURL: String;
 begin
   NewURL := URL;
   if Window.FileDialog('Open Scene', NewURL, true, LoadScene_FileFilters) then

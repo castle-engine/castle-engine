@@ -26,7 +26,7 @@
   public
     { Find record with given TClipPlaneNode, returns -1 if not found. }
     function IndexOfNode(Node: TClipPlaneNode): Integer;
-    function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
+    function Equals(SecondValue: TObject): Boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
   end;
 
 {$endif read_interface}
@@ -43,7 +43,7 @@ begin
   Result := -1;
 end;
 
-function TClipPlaneList.Equals(SecondValue: TObject): boolean;
+function TClipPlaneList.Equals(SecondValue: TObject): Boolean;
 var
   I: Integer;
 begin

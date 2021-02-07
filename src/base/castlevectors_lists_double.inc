@@ -30,11 +30,11 @@ type
     { Does the SecondValue have equal length and content.
       The values are compared with an Epsilon tolerance, as usual for floating-point
       values. }
-    function Equals(SecondValue: TObject): boolean; override;
+    function Equals(SecondValue: TObject): Boolean; override;
 
     { Does the SecondValue have equal length and content.
       The values are compared perfectly, without any tolerance for difference. }
-    function PerfectlyEquals(SecondValue: TObject): boolean;
+    function PerfectlyEquals(SecondValue: TObject): Boolean;
   end;
 
   { List of @link(TVector3Double). }
@@ -49,11 +49,11 @@ type
     { Does the SecondValue have equal length and content.
       The values are compared with an Epsilon tolerance, as usual for floating-point
       values. }
-    function Equals(SecondValue: TObject): boolean; override;
+    function Equals(SecondValue: TObject): Boolean; override;
 
     { Does the SecondValue have equal length and content.
       The values are compared perfectly, without any tolerance for difference. }
-    function PerfectlyEquals(SecondValue: TObject): boolean;
+    function PerfectlyEquals(SecondValue: TObject): Boolean;
   end;
 
   { List of @link(TVector4Double). }
@@ -68,11 +68,11 @@ type
     { Does the SecondValue have equal length and content.
       The values are compared with an Epsilon tolerance, as usual for floating-point
       values. }
-    function Equals(SecondValue: TObject): boolean; override;
+    function Equals(SecondValue: TObject): Boolean; override;
 
     { Does the SecondValue have equal length and content.
       The values are compared perfectly, without any tolerance for difference. }
-    function PerfectlyEquals(SecondValue: TObject): boolean;
+    function PerfectlyEquals(SecondValue: TObject): Boolean;
   end;
 
   { List of @link(TMatrix3Double). }
@@ -87,11 +87,11 @@ type
     { Does the SecondValue have equal length and content.
       The values are compared with an Epsilon tolerance, as usual for floating-point
       values. }
-    function Equals(SecondValue: TObject): boolean; override;
+    function Equals(SecondValue: TObject): Boolean; override;
 
     { Does the SecondValue have equal length and content.
       The values are compared perfectly, without any tolerance for difference. }
-    function PerfectlyEquals(SecondValue: TObject): boolean;
+    function PerfectlyEquals(SecondValue: TObject): Boolean;
   end;
 
   { List of @link(TMatrix4Double). }
@@ -106,11 +106,11 @@ type
     { Does the SecondValue have equal length and content.
       The values are compared with an Epsilon tolerance, as usual for floating-point
       values. }
-    function Equals(SecondValue: TObject): boolean; override;
+    function Equals(SecondValue: TObject): Boolean; override;
 
     { Does the SecondValue have equal length and content.
       The values are compared perfectly, without any tolerance for difference. }
-    function PerfectlyEquals(SecondValue: TObject): boolean;
+    function PerfectlyEquals(SecondValue: TObject): Boolean;
   end;
 
 {$endif read_interface}
@@ -150,7 +150,7 @@ begin
     List^[I] := Lerp(Fraction, V1.List^[I], V2.List^[I]);
 end;
 
-function TVector2DoubleList.Equals(SecondValue: TObject): boolean;
+function TVector2DoubleList.Equals(SecondValue: TObject): Boolean;
 var
   I: Integer;
 begin
@@ -168,7 +168,7 @@ begin
   end;
 end;
 
-function TVector2DoubleList.PerfectlyEquals(SecondValue: TObject): boolean;
+function TVector2DoubleList.PerfectlyEquals(SecondValue: TObject): Boolean;
 var
   I: Integer;
 begin
@@ -219,7 +219,7 @@ begin
     List^[I] := Lerp(Fraction, V1.List^[I], V2.List^[I]);
 end;
 
-function TVector3DoubleList.Equals(SecondValue: TObject): boolean;
+function TVector3DoubleList.Equals(SecondValue: TObject): Boolean;
 var
   I: Integer;
 begin
@@ -237,7 +237,7 @@ begin
   end;
 end;
 
-function TVector3DoubleList.PerfectlyEquals(SecondValue: TObject): boolean;
+function TVector3DoubleList.PerfectlyEquals(SecondValue: TObject): Boolean;
 var
   I: Integer;
 begin
@@ -288,7 +288,7 @@ begin
     List^[I] := Lerp(Fraction, V1.List^[I], V2.List^[I]);
 end;
 
-function TVector4DoubleList.Equals(SecondValue: TObject): boolean;
+function TVector4DoubleList.Equals(SecondValue: TObject): Boolean;
 var
   I: Integer;
 begin
@@ -306,7 +306,7 @@ begin
   end;
 end;
 
-function TVector4DoubleList.PerfectlyEquals(SecondValue: TObject): boolean;
+function TVector4DoubleList.PerfectlyEquals(SecondValue: TObject): Boolean;
 var
   I: Integer;
 begin
@@ -357,7 +357,7 @@ begin
     List^[I] := Lerp(Fraction, V1.List^[I], V2.List^[I]);
 end;
 
-function TMatrix3DoubleList.Equals(SecondValue: TObject): boolean;
+function TMatrix3DoubleList.Equals(SecondValue: TObject): Boolean;
 var
   I: Integer;
 begin
@@ -375,7 +375,7 @@ begin
   end;
 end;
 
-function TMatrix3DoubleList.PerfectlyEquals(SecondValue: TObject): boolean;
+function TMatrix3DoubleList.PerfectlyEquals(SecondValue: TObject): Boolean;
 var
   I: Integer;
 begin
@@ -426,7 +426,7 @@ begin
     List^[I] := Lerp(Fraction, V1.List^[I], V2.List^[I]);
 end;
 
-function TMatrix4DoubleList.Equals(SecondValue: TObject): boolean;
+function TMatrix4DoubleList.Equals(SecondValue: TObject): Boolean;
 var
   I: Integer;
 begin
@@ -444,7 +444,7 @@ begin
   end;
 end;
 
-function TMatrix4DoubleList.PerfectlyEquals(SecondValue: TObject): boolean;
+function TMatrix4DoubleList.PerfectlyEquals(SecondValue: TObject): Boolean;
 var
   I: Integer;
 begin

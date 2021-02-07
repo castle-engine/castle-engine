@@ -29,16 +29,16 @@ type
   TTerrainScene = class(TCastleScene)
   private
     TerrainNode: TAbstractChildNode;
-    TerrainNodeTriangulated: boolean;
+    TerrainNodeTriangulated: Boolean;
     Appearance: TAppearanceNode;
     Effect: TEffectNode;
 
-    function GetLighting: boolean;
-    procedure SetLighting(const Value: boolean);
-    function GetTextured: boolean;
-    procedure SetTextured(const Value: boolean);
+    function GetLighting: Boolean;
+    procedure SetLighting(const Value: Boolean);
+    function GetTextured: Boolean;
+    procedure SetTextured(const Value: Boolean);
   public
-    UseTriangulatedNode: boolean;
+    UseTriangulatedNode: Boolean;
 
     { Shader parameters.
       @groupBegin }
@@ -59,8 +59,8 @@ type
     procedure Regenerate(Terrain: TTerrain;
       const Divisions: Cardinal; const Size: Single);
 
-    property Lighting: boolean read GetLighting write SetLighting;
-    property Textured: boolean read GetTextured write SetTextured;
+    property Lighting: Boolean read GetLighting write SetLighting;
+    property Textured: Boolean read GetTextured write SetTextured;
 
     { Apply new shader values. }
     procedure UpdateShader(Sender: TObject);
@@ -191,12 +191,12 @@ begin
   end;
 end;
 
-function TTerrainScene.GetLighting: boolean;
+function TTerrainScene.GetLighting: Boolean;
 begin
   Result := Appearance.Material <> nil;
 end;
 
-procedure TTerrainScene.SetLighting(const Value: boolean);
+procedure TTerrainScene.SetLighting(const Value: Boolean);
 begin
   if Value then
   begin
@@ -206,12 +206,12 @@ begin
     Appearance.Material := nil;
 end;
 
-function TTerrainScene.GetTextured: boolean;
+function TTerrainScene.GetTextured: Boolean;
 begin
   Result := Effect.Enabled;
 end;
 
-procedure TTerrainScene.SetTextured(const Value: boolean);
+procedure TTerrainScene.SetTextured(const Value: Boolean);
 begin
   Effect.Enabled := Value;
 end;

@@ -18,7 +18,7 @@
 type
   TX3DChildrenList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAbstractChildNode>)
     { Find node by name, @nil if not found. }
-    function FindName(const Name: string): TAbstractChildNode;
+    function FindName(const Name: String): TAbstractChildNode;
   end;
 
 procedure X3DChildrenList_FreeUnusedAndNil(var List: TX3DChildrenList); forward;
@@ -27,7 +27,7 @@ procedure X3DChildrenList_FreeUnusedAndNil(var List: TX3DChildrenList); forward;
 
 {$ifdef read_implementation}
 
-function TX3DChildrenList.FindName(const Name: string): TAbstractChildNode;
+function TX3DChildrenList.FindName(const Name: String): TAbstractChildNode;
 var
   I: Integer;
 begin

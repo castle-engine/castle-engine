@@ -32,8 +32,8 @@ uses Classes,
   from using actual filename with hash, thus making the escaping process
   useless). Unless there's no other sensible way --- e.g. specify
   Spine skin name when opening Spine json file... }
-procedure URIExtractAnchor(var URI: string; out Anchor: string;
-  const RecognizeEvenEscapedHash: boolean = false);
+procedure URIExtractAnchor(var URI: String; out Anchor: String;
+  const RecognizeEvenEscapedHash: Boolean = false);
 
 { Extract #anchor from an URI, and split it into a key-value map.
 
@@ -50,8 +50,8 @@ procedure URIExtractSettingsFromAnchor(var URI: string;
   const SettingsFromAnchor: TStringStringMap);
 
 { Return URI with anchor (if was any) stripped. }
-function URIDeleteAnchor(const URI: string;
-  const RecognizeEvenEscapedHash: boolean = false): string;
+function URIDeleteAnchor(const URI: String;
+  const RecognizeEvenEscapedHash: Boolean = false): String;
 
 { Replace all sequences like %xx with their actual 8-bit characters.
 
@@ -70,13 +70,13 @@ function URIDeleteAnchor(const URI: string;
   @unorderedList(
     @item("%xx" sequence ends unexpectedly at the end of the string.
       That is, string ends with "%" or "%x". In this case we simply
-      keep "%" or "%x" in resulting string.)
+      keep "%" or "%x" in resulting String.)
 
     @item("xx" in "%xx" sequence is not a valid hexadecimal number.
-      In this case we also simply keep "%xx" in resulting string.)
+      In this case we also simply keep "%xx" in resulting String.)
   )
 }
-function RawURIDecode(const S: string): string;
+function RawURIDecode(const S: String): String;
 
 { Get protocol from given URI.
 
@@ -111,15 +111,15 @@ function RawURIDecode(const S: string): string;
       (see http://tools.ietf.org/html/rfc3986#section-3.1).)
   )
 }
-function URIProtocol(const URI: string): string;
+function URIProtocol(const URI: String): String;
 
 { Check does URI contain given Protocol.
   This is equivalent to checking URIProtocol(S) = Protocol, ignoring case,
   although may be a little faster. Given Protocol string cannot contain
   ":" character. }
-function URIProtocolIs(const S: string; const Protocol: string; out Colon: Integer): boolean;
+function URIProtocolIs(const S: String; const Protocol: String; out Colon: Integer): Boolean;
 
-function URIDeleteProtocol(const S: string): string;
+function URIDeleteProtocol(const S: String): String;
 
 { Return absolute URI, given base and relative URI.
 
@@ -140,20 +140,20 @@ function URIDeleteProtocol(const S: string): string;
   specific to OS --- slash or backslash etc.).
   This routine, on the other hand, treats Relative string always as an
   URI (when it doesn't include protocol, it just means it's relative to Base). }
-function CombineURI(const Base, Relative: string): string;
+function CombineURI(const Base, Relative: String): String;
 
 { Make sure that the URI is absolute (always has a protocol).
   This function treats an URI without a protocol as a simple filename
   (absolute or relative to the current directory).
   This includes treating empty string as equivalent to current directory. }
-function AbsoluteURI(const URI: string): string;
+function AbsoluteURI(const URI: String): String;
 
 { Does URI contain only an absolute filename.
   Useful to detect unwanted paths in data files,
   you usually do not want to have such paths in data files,
   as they make it impossible to transfer the data (move/copy files)
   to other system/location. }
-function AbsoluteFileURI(const URI: string): boolean;
+function AbsoluteFileURI(const URI: String): Boolean;
 
 { Convert URI (or filename) to a filename.
 
@@ -167,7 +167,7 @@ function AbsoluteFileURI(const URI: string): boolean;
   For example, @code(%4d) in URI will turn into letter @code(M) in result.
 
   It also handles our castle-data: protocol.}
-function URIToFilenameSafe(const URI: string): string;
+function URIToFilenameSafe(const URI: String): String;
 
 { Convert filename to URI.
 
@@ -180,7 +180,7 @@ function URIToFilenameSafe(const URI: string): string;
   It also makes sure the filename is absolute (it uses ExpandFileName,
   so if the FileName is relative --- it will be expanded, treating it
   as relative to the current directory). }
-function FilenameToURISafe(FileName: string): string;
+function FilenameToURISafe(FileName: String): String;
 
 { Tries change URI to use castle-data: protocol.
   It's used in our editor to change absolute paths to relative to castle-data
@@ -210,8 +210,8 @@ function MaybeUseDataProtocol(const URL: String): String;
   mappings to the @link(URIMimeExtensions).
 
   @groupBegin }
-function URIMimeType(const URI: string): string; overload;
-function URIMimeType(const URI: string; out Gzipped: boolean): string; overload;
+function URIMimeType(const URI: String): String; overload;
+function URIMimeType(const URI: String; out Gzipped: Boolean): String; overload;
 { @groupEnd }
 
 { Map from an extension to a MIME type, used by @link(URIMimeType).
@@ -240,7 +240,7 @@ function URIMimeExtensions: TStringStringMap;
   It also means that it returns empty string for empty URI
   (contrary to most other routines that convert empty string
   to a current directory when resolving relative URLs). }
-function URIDisplay(const URI: string; const Short: boolean = false): string;
+function URIDisplay(const URI: String; const Short: Boolean = false): String;
 
 { Convert URI to a nice form for a short caption.
 
@@ -249,19 +249,19 @@ function URIDisplay(const URI: string; const Short: boolean = false): string;
 
   See URIDisplay documentation for details.
   This calls URIDisplay with Short = @true. }
-function URICaption(const URI: string): string;
+function URICaption(const URI: String): String;
 
 { Change extension of the URL. }
-function ChangeURIExt(const URL, Extension: string): string;
+function ChangeURIExt(const URL, Extension: String): String;
 
 { Delete extension of the URL. }
-function DeleteURIExt(const URL: string): string;
+function DeleteURIExt(const URL: String): String;
 
 { Extract filename (last part after slash) from URL. }
-function ExtractURIName(const URL: string): string;
+function ExtractURIName(const URL: String): String;
 
 { Extract path (everything before last part), including final slash, from URL. }
-function ExtractURIPath(const URL: string): string;
+function ExtractURIPath(const URL: String): String;
 
 { Ensure URL ends with slash.
 
@@ -287,7 +287,7 @@ function URIExcludeSlash(const URL: String): String;
   (like http / https).
 
   This is simply a shortcut for @code(URIExists(URL) in [ueFile, ueUnknown]). }
-function URIFileExists(const URL: string): Boolean;
+function URIFileExists(const URL: String): Boolean;
 
 type
   { Result of the @link(URIExists) query. }
@@ -345,11 +345,11 @@ type
 
 { Does a file or directory exist under this URL.
   See TURIExists for possible return values. }
-function URIExists(URL: string): TURIExists;
+function URIExists(URL: String): TURIExists;
 
 { Current working directory of the application, expressed as URL,
   including always final slash at the end. }
-function URICurrentPath: string;
+function URICurrentPath: String;
 
 { If this is castle-data:... URL, resolve it using ApplicationData. }
 function ResolveCastleDataURL(const URL: String): String;
@@ -375,8 +375,8 @@ uses SysUtils, URIParser,
   CastleInternalDirectoryInformation
   {$ifdef CASTLE_NINTENDO_SWITCH} , CastleInternalNxBase {$endif};
 
-procedure URIExtractAnchor(var URI: string; out Anchor: string;
-  const RecognizeEvenEscapedHash: boolean);
+procedure URIExtractAnchor(var URI: String; out Anchor: String;
+  const RecognizeEvenEscapedHash: Boolean);
 var
   HashPos: Integer;
 begin
@@ -408,7 +408,7 @@ begin
   end;
 end;
 
-procedure URIExtractSettingsFromAnchor(var URI: string;
+procedure URIExtractSettingsFromAnchor(var URI: String;
   const SettingsFromAnchor: TStringStringMap);
 var
   URLForDisplay: String;
@@ -454,28 +454,28 @@ begin
 end;
 
 function URIDeleteAnchor(const URI: string;
-  const RecognizeEvenEscapedHash: boolean): string;
+  const RecognizeEvenEscapedHash: Boolean): string;
 var
-  Anchor: string;
+  Anchor: String;
 begin
   Result := URI;
   URIExtractAnchor(Result, Anchor, RecognizeEvenEscapedHash);
 end;
 
-function RawURIDecode(const S: string): string;
+function RawURIDecode(const S: String): String;
 
   { Assume Position <= Length(S).
     Check is S[Positon] is a start of %xx sequence:
     - if not, exit false
     - if yes, but %xx is invalid, report WritelnWarning and exit false
     - if yes and %xx is valid, set DecodedChar and exit true }
-  function ValidSequence(const S: string; Position: Integer;
-    out DecodedChar: char): boolean;
+  function ValidSequence(const S: String; Position: Integer;
+    out DecodedChar: Char): Boolean;
   const
     ValidHexaChars = ['a'..'f', 'A'..'F', '0'..'9'];
 
     { Assume C is valid hex digit, return it's value (in 0..15 range). }
-    function HexDigit(const C: char): Byte;
+    function HexDigit(const C: Char): Byte;
     begin
       if C in ['0'..'9'] then
         Result := Ord(C) - Ord('0') else
@@ -514,9 +514,9 @@ function RawURIDecode(const S: string): string;
 
 var
   I, ResultI: Integer;
-  DecodedChar: char;
+  DecodedChar: Char;
 begin
-  { Allocate Result string at the beginning, to save time later for
+  { Allocate Result String at the beginning, to save time later for
     memory reallocations. We can do this, since we know that final
     Result is shorter or equal to S. }
   SetLength(Result, Length(S));
@@ -547,7 +547,7 @@ end;
   - FirstCharacter < Colon
   - FirstCharacter >= 1
   - Colon > 1 }
-function URIProtocolIndex(const S: string; out FirstCharacter, Colon: Integer): boolean;
+function URIProtocolIndex(const S: String; out FirstCharacter, Colon: Integer): Boolean;
 const
   { These constants match URIParser algorithm, which in turn follows RFC. }
   ALPHA = ['A'..'Z', 'a'..'z'];
@@ -586,7 +586,7 @@ begin
   end;
 end;
 
-function URIProtocol(const URI: string): string;
+function URIProtocol(const URI: String): String;
 var
   FirstCharacter, Colon: Integer;
 begin
@@ -595,7 +595,7 @@ begin
     Result := '';
 end;
 
-function URIProtocolIs(const S: string; const Protocol: string; out Colon: Integer): boolean;
+function URIProtocolIs(const S: String; const Protocol: String; out Colon: Integer): Boolean;
 var
   FirstCharacter, I: Integer;
 begin
@@ -610,7 +610,7 @@ begin
   end;
 end;
 
-function URIDeleteProtocol(const S: string): string;
+function URIDeleteProtocol(const S: String): String;
 var
   FirstCharacter, Colon: Integer;
 begin
@@ -620,9 +620,9 @@ begin
     Result := S;
 end;
 
-function CombineURI(const Base, Relative: string): string;
+function CombineURI(const Base, Relative: String): String;
 // var
-//   RelativeProtocol: string;
+//   RelativeProtocol: String;
 begin
   { Test for some special protocols first, that may have whitespace before
     the protocol name. }
@@ -671,21 +671,21 @@ begin
   end;
 end;
 
-function AbsoluteURI(const URI: string): string;
+function AbsoluteURI(const URI: String): String;
 begin
   if URIProtocol(URI) = '' then
     Result := FilenameToURISafe(URI) else
     Result := URI;
 end;
 
-function AbsoluteFileURI(const URI: string): boolean;
+function AbsoluteFileURI(const URI: String): Boolean;
 begin
   Result := (URIProtocol(URI) = '') and IsPathAbsoluteOnDrive(URI);
 end;
 
-function URIToFilenameSafe(const URI: string): string;
+function URIToFilenameSafe(const URI: String): String;
 var
-  P, CastleDataResolved: string;
+  P, CastleDataResolved: String;
 begin
   { Use our URIProtocol instead of depending that URIToFilename will detect
     empty protocol case correctly. This allows to handle Windows absolute
@@ -721,7 +721,7 @@ begin
     Result := '';
 end;
 
-function FilenameToURISafe(FileName: string): string;
+function FilenameToURISafe(FileName: String): String;
 
 { Code adjusted from FPC FilenameToURI (same license as our engine,
   so it's Ok to share code). Adjusted to call Escape on FileName.
@@ -769,7 +769,7 @@ const
 
 var
   I: Integer;
-  FilenamePart: string;
+  FilenamePart: String;
 begin
   FileName := ExpandFileName(FileName);
 
@@ -808,9 +808,9 @@ begin
   Result := FURIMimeExtensions;
 end;
 
-function URIMimeType(const URI: string; out Gzipped: boolean): string;
+function URIMimeType(const URI: String; out Gzipped: Boolean): String;
 
-  function ExtToMimeType(Ext, ExtExt: string): string;
+  function ExtToMimeType(Ext, ExtExt: String): String;
   begin
     Ext := LowerCase(Ext);
     ExtExt := LowerCase(ExtExt);
@@ -955,7 +955,7 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
   end;
 
 var
-  P: string;
+  P: String;
   DataURI: TDataURI;
 begin
   Result := '';
@@ -1013,14 +1013,14 @@ begin
     Result := URL;
 end;
 
-function URIMimeType(const URI: string): string;
+function URIMimeType(const URI: String): String;
 var
-  Gzipped: boolean;
+  Gzipped: Boolean;
 begin
   Result := URIMimeType(URI, Gzipped);
 end;
 
-function URIDisplay(const URI: string; const Short: boolean): string;
+function URIDisplay(const URI: String; const Short: Boolean): String;
 var
   DataURI: TDataURI;
   NewLinePos: Integer;
@@ -1066,29 +1066,29 @@ begin
   end;
 end;
 
-function URICaption(const URI: string): string;
+function URICaption(const URI: String): String;
 begin
   if URI = '' then
     Result := '' else
     Result := URIDisplay(AbsoluteURI(URI), true);
 end;
 
-function ChangeURIExt(const URL, Extension: string): string;
+function ChangeURIExt(const URL, Extension: String): String;
 begin
   Result := ChangeFileExt(URL, Extension);
 end;
 
-function DeleteURIExt(const URL: string): string;
+function DeleteURIExt(const URL: String): String;
 begin
   Result := DeleteFileExt(URL);
 end;
 
-function ExtractURIName(const URL: string): string;
+function ExtractURIName(const URL: String): String;
 begin
   Result := ExtractFileName(URL);
 end;
 
-function ExtractURIPath(const URL: string): string;
+function ExtractURIPath(const URL: String): String;
 begin
   Result := ExtractFilePath(URL);
 end;
@@ -1119,15 +1119,15 @@ begin
     Result := URL;
 end;
 
-function URIFileExists(const URL: string): Boolean;
+function URIFileExists(const URL: String): Boolean;
 begin
   Result := URIExists(URL) in [ueFile, ueUnknown];
 end;
 
-function URIExists(URL: string): TURIExists;
+function URIExists(URL: String): TURIExists;
 
   // Detect existence of castle-data:/xxx URL using DataDirectoryInformation.
-  function UseDataDirectoryInformation(const URL: string): TURIExists;
+  function UseDataDirectoryInformation(const URL: String): TURIExists;
   var
     U: TURI;
     URLPath: String;
@@ -1147,7 +1147,7 @@ function URIExists(URL: string): TURIExists;
 
   {$ifdef CASTLE_NINTENDO_SWITCH}
   // Detect existence of castle-nx-contents or castle-nx-save URL using NX-specific function.
-  function UseNXExists(const URL: string): TURIExists;
+  function UseNXExists(const URL: String): TURIExists;
   begin
     Result := NXFileExists(URL);
   end;
@@ -1210,7 +1210,7 @@ begin
   Result := ueUnknown;
 end;
 
-function URICurrentPath: string;
+function URICurrentPath: String;
 begin
   Result := FilenameToURISafe(InclPathDelim(GetCurrentDir));
 end;

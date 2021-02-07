@@ -38,7 +38,7 @@
     procedure SetNormalTextureMapping(const Value: String);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdEmissiveColor: TSFColor;
     { X3D field "emissiveColor". } { }

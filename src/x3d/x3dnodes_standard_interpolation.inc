@@ -90,7 +90,7 @@
     function InterpolatorLerp(const A: Single;
       const V1, V2: TVector3): TVector3; override;
   public
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     {$I auto_generated_node_helpers/x3dnodes_colorinterpolator.inc}
   end;
@@ -106,7 +106,7 @@
       const Fraction: Single; const F1, F2: TMFColor;
       const Index1, Index2, ACount: Integer); override;
   public
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     {$I auto_generated_node_helpers/x3dnodes_colorsetinterpolator.inc}
   end;
@@ -117,7 +117,7 @@
     TMFVec3f,
     TMFVec3fEvent>)
   public
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     {$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator.inc}
   end;
@@ -128,7 +128,7 @@
     TMFVec2f,
     TMFVec2fEvent>)
   public
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     {$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator2d.inc}
   end;
@@ -139,7 +139,7 @@
   TEaseInEaseOutNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventSet_fraction: TSFFloatEvent;
@@ -167,7 +167,7 @@
       const Fraction: Single; const F1, F2: TMFVec3f;
       const Index1, Index2, ACount: Integer); override;
   public
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     {$I auto_generated_node_helpers/x3dnodes_normalinterpolator.inc}
   end;
@@ -182,7 +182,7 @@
     function InterpolatorLerp(const A: Single;
       const V1, V2: TVector4): TVector4; override;
   public
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     {$I auto_generated_node_helpers/x3dnodes_orientationinterpolator.inc}
   end;
@@ -197,7 +197,7 @@
     function InterpolatorLerp(const A: Single;
       const V1, V2: TVector3): TVector3; override;
   public
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     {$I auto_generated_node_helpers/x3dnodes_positioninterpolator.inc}
   end;
@@ -211,7 +211,7 @@
     function InterpolatorLerp(const A: Single;
       const V1, V2: TVector2): TVector2; override;
   public
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     {$I auto_generated_node_helpers/x3dnodes_positioninterpolator2d.inc}
   end;
@@ -226,7 +226,7 @@
     function InterpolatorLerp(const A: Single;
       const V1, V2: Single): Single; override;
   public
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     {$I auto_generated_node_helpers/x3dnodes_scalarinterpolator.inc}
   end;
@@ -236,7 +236,7 @@
   TSplinePositionInterpolatorNode = class(TAbstractInterpolatorNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdClosed: TSFBool;
     public property FdClosed: TSFBool read FFdClosed;
@@ -262,7 +262,7 @@
   TSplinePositionInterpolator2DNode = class(TAbstractInterpolatorNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdClosed: TSFBool;
     public property FdClosed: TSFBool read FFdClosed;
@@ -288,7 +288,7 @@
   TSplineScalarInterpolatorNode = class(TAbstractInterpolatorNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdClosed: TSFBool;
     public property FdClosed: TSFBool read FFdClosed;
@@ -314,7 +314,7 @@
   TSquadOrientationInterpolatorNode = class(TAbstractInterpolatorNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdKeyValue: TMFRotation;
     public property FdKeyValue: TMFRotation read FFdKeyValue;
@@ -335,7 +335,7 @@
     TMFFloat,
     TMFFloatEvent>)
   public
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     {$I auto_generated_node_helpers/x3dnodes_vectorinterpolator.inc}
   end;
@@ -568,7 +568,7 @@ end;
 
 { TColorInterpolatorNode ----------------------------------------------------- }
 
-class function TColorInterpolatorNode.ClassX3DType: string;
+class function TColorInterpolatorNode.ClassX3DType: String;
 begin
   Result := 'ColorInterpolator';
 end;
@@ -581,7 +581,7 @@ end;
 
 { TColorSetInterpolatorNode -------------------------------------------------- }
 
-class function TColorSetInterpolatorNode.ClassX3DType: string;
+class function TColorSetInterpolatorNode.ClassX3DType: String;
 begin
   Result := 'ColorSetInterpolator';
 end;
@@ -595,12 +595,12 @@ end;
 
 { TCoordinateInterpolatorNode ------------------------------------------------ }
 
-class function TCoordinateInterpolatorNode.ClassX3DType: string;
+class function TCoordinateInterpolatorNode.ClassX3DType: String;
 begin
   Result := 'CoordinateInterpolator';
 end;
 
-class function TCoordinateInterpolator2DNode.ClassX3DType: string;
+class function TCoordinateInterpolator2DNode.ClassX3DType: String;
 begin
   Result := 'CoordinateInterpolator2D';
 end;
@@ -626,12 +626,12 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TEaseInEaseOutNode.ClassX3DType: string;
+class function TEaseInEaseOutNode.ClassX3DType: String;
 begin
   Result := 'EaseInEaseOut';
 end;
 
-class function TNormalInterpolatorNode.ClassX3DType: string;
+class function TNormalInterpolatorNode.ClassX3DType: String;
 begin
   Result := 'NormalInterpolator';
 end;
@@ -644,7 +644,7 @@ begin
   Target.Items.AssignLerpNormalize(Fraction, F1.Items, F2.Items, Index1, Index2, ACount);
 end;
 
-class function TOrientationInterpolatorNode.ClassX3DType: string;
+class function TOrientationInterpolatorNode.ClassX3DType: String;
 begin
   Result := 'OrientationInterpolator';
 end;
@@ -659,7 +659,7 @@ begin
   Result := SLerp(A, V1, V2);
 end;
 
-class function TPositionInterpolatorNode.ClassX3DType: string;
+class function TPositionInterpolatorNode.ClassX3DType: String;
 begin
   Result := 'PositionInterpolator';
 end;
@@ -670,7 +670,7 @@ begin
   Result := Lerp(A, V1, V2);
 end;
 
-class function TPositionInterpolator2DNode.ClassX3DType: string;
+class function TPositionInterpolator2DNode.ClassX3DType: String;
 begin
   Result := 'PositionInterpolator2D';
 end;
@@ -681,7 +681,7 @@ begin
   Result := Lerp(A, V1, V2);
 end;
 
-class function TScalarInterpolatorNode.ClassX3DType: string;
+class function TScalarInterpolatorNode.ClassX3DType: String;
 begin
   Result := 'ScalarInterpolator';
 end;
@@ -716,7 +716,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TSplinePositionInterpolatorNode.ClassX3DType: string;
+class function TSplinePositionInterpolatorNode.ClassX3DType: String;
 begin
   Result := 'SplinePositionInterpolator';
 end;
@@ -745,7 +745,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TSplinePositionInterpolator2DNode.ClassX3DType: string;
+class function TSplinePositionInterpolator2DNode.ClassX3DType: String;
 begin
   Result := 'SplinePositionInterpolator2D';
 end;
@@ -774,7 +774,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TSplineScalarInterpolatorNode.ClassX3DType: string;
+class function TSplineScalarInterpolatorNode.ClassX3DType: String;
 begin
   Result := 'SplineScalarInterpolator';
 end;
@@ -796,12 +796,12 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TSquadOrientationInterpolatorNode.ClassX3DType: string;
+class function TSquadOrientationInterpolatorNode.ClassX3DType: String;
 begin
   Result := 'SquadOrientationInterpolator';
 end;
 
-class function TVectorInterpolatorNode.ClassX3DType: string;
+class function TVectorInterpolatorNode.ClassX3DType: String;
 begin
   Result := 'VectorInterpolator';
 end;

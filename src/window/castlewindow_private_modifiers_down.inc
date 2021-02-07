@@ -53,26 +53,26 @@ private
        separately. (NOT only in KeysDown, where we have one keyShift)
 
     That's what PrivateModifiersDown is for. }
-  PrivateModifiersDown:array[TModifierKey, boolean] of boolean;
+  PrivateModifiersDown:array[TModifierKey, Boolean] of Boolean;
   
   { Set PrivateModifiersDown[Key, IsRight] := Value.
     Assume that k = ModifierKeyToKey[ModKey].
       If Value then it can call DoKeyDown(k), if state of k should change.
       If not Value then it can call DoKeyUp(k), if state of k should change. }
-  procedure SetPrivateModifiersDown(ModKey:TModifierKey; IsRight:boolean; 
-    Value:boolean);
+  procedure SetPrivateModifiersDown(ModKey: TModifierKey; IsRight: Boolean; 
+    Value: Boolean);
     
 {$endif read_window_interface}
   
 {$ifdef read_implementation}
 
-procedure TCastleWindowBase.SetPrivateModifiersDown(ModKey:TModifierKey; IsRight:boolean; 
-  Value:boolean);
-var OldState, NewState:boolean;
+procedure TCastleWindowBase.SetPrivateModifiersDown(ModKey: TModifierKey; IsRight: Boolean; 
+  Value: Boolean);
+var OldState, NewState: Boolean;
 begin
  { OldState and NewState are states of KeysDown[ModifierKeyToKey[ModKey]] }
  OldState:=PrivateModifiersDown[ModKey, true] or PrivateModifiersDown[ModKey, false];
- PrivateModifiersDown[ModKey, IsRight]:=Value;
+ PrivateModifiersDown[ModKey, IsRight] := Value;
  NewState:=PrivateModifiersDown[ModKey, true] or PrivateModifiersDown[ModKey, false];
  
  if OldState and (not NewState) then 

@@ -25,7 +25,7 @@
   TCoordinateDeformerNode = class(TAbstractGroupingNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventaddChildren: TMFNodeEvent;
@@ -92,7 +92,7 @@
   TNurbsCurveNode_2 = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdcontrolPoint: TMFVec3f;
     public property FdcontrolPoint: TMFVec3f read FFdcontrolPoint;
@@ -109,16 +109,16 @@
     strict private FFdorder: TSFInt32;
     public property Fdorder: TSFInt32 read FFdorder;
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;
 
     function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-    function ProxyUsesOverTriangulate: boolean; override;
+      const OverTriangulate: Boolean): TAbstractGeometryNode; override;
+    function ProxyUsesOverTriangulate: Boolean; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
   end deprecated 'use TNurbsCurveNode';
 
@@ -128,7 +128,7 @@
   TNurbsGroupNode = class(TAbstractX3DGroupingNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdtessellationScale: TSFFloat;
     public property FdtessellationScale: TSFFloat read FFdtessellationScale;
@@ -141,7 +141,7 @@
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventset_fraction: TSFFloatEvent;
@@ -166,14 +166,14 @@
     strict private FEventvalue_changed: TSFVec3fEvent;
     public property Eventvalue_changed: TSFVec3fEvent read FEventvalue_changed;
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;
   end deprecated 'use TNurbsPositionInterpolatorNode';
 
   { Visible NURBS 3D surface, for VRML 2.0. }
   TNurbsSurfaceNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdcontrolPoint: TMFVec3f;
     public property FdcontrolPoint: TMFVec3f read FFdcontrolPoint;
@@ -215,13 +215,13 @@
     public property FdvOrder: TSFInt32 read FFdvOrder;
 
     function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-    function ProxyUsesOverTriangulate: boolean; override;
+      const OverTriangulate: Boolean): TAbstractGeometryNode; override;
+    function ProxyUsesOverTriangulate: Boolean; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function SolidField: TSFBool; override;
   end deprecated 'use TNurbsPatchSurfaceNode; we define TNurbsSurfaceNode only for compatibility with VRML 2.0';
@@ -232,7 +232,7 @@
   TNurbsTextureSurfaceNode = class(TX3DNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdcontrolPoint: TMFVec2f;
     public property FdcontrolPoint: TMFVec2f read FFdcontrolPoint;
@@ -265,7 +265,7 @@
   TTrimmedSurfaceNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventaddTrimmingContour: TMFNodeEvent;
@@ -283,9 +283,9 @@
 
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
   end deprecated 'use TNurbsTrimmedSurfaceNode';
 
@@ -296,8 +296,8 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
+    class function ClassX3DType: String; override;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;
 
     { Event in } { }
     strict private FEventAddChildren: TMFNodeEvent;
@@ -312,9 +312,9 @@
 
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
   end;
 {$endif read_interface}
@@ -384,7 +384,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TCoordinateDeformerNode.ClassX3DType: string;
+class function TCoordinateDeformerNode.ClassX3DType: String;
 begin
   Result := 'CoordinateDeformer';
 end;
@@ -414,18 +414,18 @@ begin
   AddField(FFdorder);
 end;
 
-class function TNurbsCurveNode_2.ClassX3DType: string;
+class function TNurbsCurveNode_2.ClassX3DType: String;
 begin
   Result := 'NurbsCurve';
 end;
 
-class function TNurbsCurveNode_2.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TNurbsCurveNode_2.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major = 2;
 end;
 
 function TNurbsCurveNode_2.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+  const OverTriangulate: Boolean): TAbstractGeometryNode;
 var
   KnotDouble, WeightDouble: TDoubleList;
 begin
@@ -443,7 +443,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TNurbsCurveNode_2.ProxyUsesOverTriangulate: boolean;
+function TNurbsCurveNode_2.ProxyUsesOverTriangulate: Boolean;
 begin
   Result := false;
 end;
@@ -464,7 +464,7 @@ begin
   Result := NurbsBoundingBox(FdControlPoint.Items, FdWeight.Items, State.Transformation.Transform);
 end;
 
-function TNurbsCurveNode_2.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TNurbsCurveNode_2.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   Result := 0;
@@ -478,7 +478,7 @@ begin
   AddField(FFdtessellationScale);
 end;
 
-class function TNurbsGroupNode.ClassX3DType: string;
+class function TNurbsGroupNode.ClassX3DType: String;
 begin
   Result := 'NurbsGroup';
 end;
@@ -513,12 +513,12 @@ begin
   EventSet_Fraction.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
 end;
 
-class function TNurbsPositionInterpolatorNode_2.ClassX3DType: string;
+class function TNurbsPositionInterpolatorNode_2.ClassX3DType: String;
 begin
   Result := 'NurbsPositionInterpolator';
 end;
 
-class function TNurbsPositionInterpolatorNode_2.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TNurbsPositionInterpolatorNode_2.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major = 2;
 end;
@@ -616,13 +616,13 @@ begin
   AddField(FFdvOrder);
 end;
 
-class function TNurbsSurfaceNode.ClassX3DType: string;
+class function TNurbsSurfaceNode.ClassX3DType: String;
 begin
   Result := 'NurbsSurface';
 end;
 
 function TNurbsSurfaceNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+  const OverTriangulate: Boolean): TAbstractGeometryNode;
 var
   UKnotDouble, VKnotDouble, WeightDouble: TDoubleList;
 begin
@@ -665,7 +665,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TNurbsSurfaceNode.ProxyUsesOverTriangulate: boolean;
+function TNurbsSurfaceNode.ProxyUsesOverTriangulate: Boolean;
 begin
   Result := false;
 end;
@@ -686,7 +686,7 @@ begin
   Result := NurbsBoundingBox(FdControlPoint.Items, FdWeight.Items, State.Transformation.Transform);
 end;
 
-function TNurbsSurfaceNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TNurbsSurfaceNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 var
   UTess, VTess: Cardinal;
@@ -735,7 +735,7 @@ begin
   AddField(FFdvOrder);
 end;
 
-class function TNurbsTextureSurfaceNode.ClassX3DType: string;
+class function TNurbsTextureSurfaceNode.ClassX3DType: String;
 begin
   Result := 'NurbsTextureSurface';
 end;
@@ -761,7 +761,7 @@ begin
   {$warnings on}
 end;
 
-class function TTrimmedSurfaceNode.ClassX3DType: string;
+class function TTrimmedSurfaceNode.ClassX3DType: String;
 begin
   Result := 'TrimmedSurface';
 end;
@@ -773,14 +773,14 @@ begin
   Result := TBox3D.Empty;
 end;
 
-function TTrimmedSurfaceNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TTrimmedSurfaceNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   { Rendering of TTrimmedSurfaceNode not implemented. }
   Result := 0;
 end;
 
-function TTrimmedSurfaceNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TTrimmedSurfaceNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   { Rendering of TTrimmedSurfaceNode not implemented. }
@@ -808,12 +808,12 @@ begin
   DefaultContainerField := 'trimmingContour';
 end;
 
-class function TContour2DNode_2.ClassX3DType: string;
+class function TContour2DNode_2.ClassX3DType: String;
 begin
   Result := 'Contour2D';
 end;
 
-class function TContour2DNode_2.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TContour2DNode_2.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major = 2;
 end;
@@ -831,14 +831,14 @@ begin
   Result := TBox3D.Empty;
 end;
 
-function TContour2DNode_2.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TContour2DNode_2.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   { Rendering of TContour2DNode_2 not implemented. }
   Result := 0;
 end;
 
-function TContour2DNode_2.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TContour2DNode_2.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   { Rendering of TContour2DNode_2 not implemented. }

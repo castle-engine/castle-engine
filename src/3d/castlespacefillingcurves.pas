@@ -56,9 +56,9 @@ type
 
   @groupBegin
 }
-procedure PeanoCurve(InitialOrient: boolean; Angle: TSFCAngle; InitialLevel: Cardinal;
+procedure PeanoCurve(InitialOrient: Boolean; Angle: TSFCAngle; InitialLevel: Cardinal;
   Step: TSFCStepFunction; StepData: Pointer);
-procedure HilbertCurve(InitialOrient: boolean; Angle: TSFCAngle; InitialLevel: Cardinal;
+procedure HilbertCurve(InitialOrient: Boolean; Angle: TSFCAngle; InitialLevel: Cardinal;
   Step: TSFCStepFunction; StepData: Pointer);
 { @groupEnd }
 
@@ -90,7 +90,7 @@ type
 
     constructor Create(ASizeX, ASizeY: Cardinal); virtual;
 
-    function EndOfPixels: boolean; virtual; abstract;
+    function EndOfPixels: Boolean; virtual; abstract;
 
     { Get next point. Do not ever call this when EndOfPixels = @true. }
     function NextPixel: TVector2Cardinal; virtual; abstract;
@@ -114,7 +114,7 @@ type
     function PixelsDone: Cardinal; virtual; abstract;
 
     { Nice curve name, like 'swapscan', 'hilbert' or 'peano'. }
-    class function SFCName: string; virtual; abstract;
+    class function SFCName: String; virtual; abstract;
   end;
 
   TSpaceFillingCurveClass = class of TSpaceFillingCurve;
@@ -134,7 +134,7 @@ type
   public
     constructor Create(ASizeX, ASizeY: Cardinal); override;
     destructor Destroy; override;
-    function EndOfPixels: boolean; override;
+    function EndOfPixels: Boolean; override;
     function NextPixel: TVector2Cardinal; override;
     procedure SkipPixels(SkipCount: Cardinal); override;
     procedure Reset; override;
@@ -149,7 +149,7 @@ type
   protected
     procedure GeneratePixels(APixels: PVector2CardinalArray); override;
   public
-    class function SFCName: string; override;
+    class function SFCName: String; override;
   end;
 
   { Space-filling Hilbert curve.
@@ -160,7 +160,7 @@ type
   protected
     procedure GeneratePixels(APixels: PVector2CardinalArray); override;
   public
-    class function SFCName: string; override;
+    class function SFCName: String; override;
   end;
 
   { Space-filling Peano curve.
@@ -171,7 +171,7 @@ type
   protected
     procedure GeneratePixels(APixels: PVector2CardinalArray); override;
   public
-    class function SFCName: string; override;
+    class function SFCName: String; override;
   end;
 
 const
@@ -185,11 +185,11 @@ type
 { For curve name (matching some TSpaceFillingCurve.SFCName),
   return appropriate class. Not case-sensitive.
   @raises EInvalidSFCurveClassName For unknown curve names. }
-function StrToSFCurveClass(const s: string): TSpaceFillingCurveClass;
+function StrToSFCurveClass(const S: String): TSpaceFillingCurveClass;
 
 { All non-abstract space-filling curve names.
   Separated by commas, in apostrophes. }
-function AllSFCurveClassesNames: string;
+function AllSFCurveClassesNames: String;
 
 implementation
 
@@ -202,7 +202,7 @@ const
        result := ChangeIntCycle(Angle, 1, 3) else
        result := ChangeIntCycle(Angle, -1, 3);
     Uzywanie tablicy juz przeliczonych wartosci da nam tutaj maly zysk czasowy. }
-  AngleTurn: array[TSFCAngle, boolean]of TSFCAngle =
+  AngleTurn: array[TSFCAngle, Boolean]of TSFCAngle =
   (
     {Angle = 0} (3, 1),
     {Angle = 1} (0, 2),
@@ -210,14 +210,14 @@ const
     {Angle = 3} (2, 0)
   );
 
-procedure PeanoCurve(InitialOrient: boolean; Angle: TSFCAngle; InitialLevel: Cardinal;
+procedure PeanoCurve(InitialOrient: Boolean; Angle: TSFCAngle; InitialLevel: Cardinal;
   Step: TSFCStepFunction; StepData: Pointer);
 { na podstawie "Graphic Gems II", gem I.8.
   Zmienna Angle jest globalna z punktu widzenia kolejnych rekurencyjnych
   wywolan Peano(), one wszystkie modyfikuja po prostu zadeklarowany powyzej
   parametr Angle. }
 
-  procedure Peano(Orient: boolean; Level: Cardinal);
+  procedure Peano(Orient: Boolean; Level: Cardinal);
   begin
    if Level = 0 then Exit;
    Dec(Level);
@@ -249,11 +249,11 @@ begin
  Peano(InitialOrient, InitialLevel);
 end;
 
-procedure HilbertCurve(InitialOrient: boolean; Angle: TSFCAngle; InitialLevel: Cardinal;
+procedure HilbertCurve(InitialOrient: Boolean; Angle: TSFCAngle; InitialLevel: Cardinal;
   Step: TSFCStepFunction; StepData: Pointer);
 { na podstawie "Graphic Gems II", gem I.8 }
 
-  procedure Hilbert(Orient: boolean; Level: Cardinal);
+  procedure Hilbert(Orient: Boolean; Level: Cardinal);
   begin
    if Level = 0 then Exit;
    Dec(Level);
@@ -303,7 +303,7 @@ begin
  FreeMemNiling(Pixels);
 end;
 
-function TPrecalcCurve.EndOfPixels: boolean;
+function TPrecalcCurve.EndOfPixels: Boolean;
 begin
  result := NextPixelNum >= PixelsCount;
 end;
@@ -358,7 +358,7 @@ begin
   end;
 end;
 
-class function TSwapScanCurve.SFCName: string;
+class function TSwapScanCurve.SFCName: String;
 begin
  result := 'swapscan';
 end;
@@ -423,7 +423,7 @@ begin
    {$ifdef CASTLE_OBJFPC} @ {$endif} HilbertPeanoStep, @StepData);
 end;
 
-class function THilbertCurve.SFCName: string;
+class function THilbertCurve.SFCName: String;
 begin
  result := 'hilbert';
 end;
@@ -446,29 +446,29 @@ begin
    {$ifdef CASTLE_OBJFPC} @ {$endif} HilbertPeanoStep, @StepData);
 end;
 
-class function TPeanoCurve.SFCName: string;
+class function TPeanoCurve.SFCName: String;
 begin
  result := 'peano';
 end;
 
 { operacje na SFCName -------------------------------------------------------- }
 
-function StrToSFCurveClass(const s: string): TSpaceFillingCurveClass;
-var i: Integer;
+function StrToSFCurveClass(const S: String): TSpaceFillingCurveClass;
+var I: Integer;
 begin
- for i := 0 to High(AvailableSFCurveClasses) do
-  if AnsiSameText(s, AvailableSFCurveClasses[i].SFCName) then
-   Exit(AvailableSFCurveClasses[i]);
+ for I := 0 to High(AvailableSFCurveClasses) do
+  if AnsiSameText(S, AvailableSFCurveClasses[I].SFCName) then
+   Exit(AvailableSFCurveClasses[I]);
  raise EInvalidSFCurveClassName.Create('Invalid space filling curve name : "'+
-   s+'", allowed names are '+AllSFCurveClassesNames+'.');
+   S+'", allowed names are '+AllSFCurveClassesNames+'.');
 end;
 
-function AllSFCurveClassesNames: string;
-var i: Integer;
+function AllSFCurveClassesNames: String;
+var I: Integer;
 begin
  result := '"'+AvailableSFCurveClasses[0].SFCName+'"';
- for i := 1 to High(AvailableSFCurveClasses) do
-  result += ', "'+AvailableSFCurveClasses[i].SFCName+'"';
+ for I := 1 to High(AvailableSFCurveClasses) do
+  result += ', "'+AvailableSFCurveClasses[I].SFCName+'"';
 end;
 
 end.

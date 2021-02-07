@@ -41,7 +41,7 @@ implementation
 uses Math,
   CastleUtils, CastleTimeUtils, CastleProjection, CastleTransform, CastleLog;
 
-function RandomFrustum(MakeZFarInfinity: boolean): TFrustum;
+function RandomFrustum(MakeZFarInfinity: Boolean): TFrustum;
 
   function RandomNonZeroVector(const Scale: Float): TVector3;
   begin
@@ -193,7 +193,7 @@ procedure TTestCastleFrustum.TestCompareWithUnoptimizedPlaneCollision;
     fp: TFrustumPlane;
     FrustumMultiplyBox: TBox3D;
 
-    function CheckOutsideCorner(const XIndex, YIndex, ZIndex: Cardinal): boolean;
+    function CheckOutsideCorner(const XIndex, YIndex, ZIndex: Cardinal): Boolean;
     begin
      Result :=
        { Frustum[fp][0] * Box[XIndex][0] +
@@ -286,7 +286,7 @@ procedure TTestCastleFrustum.TestCompareWithUnoptimizedPlaneCollision;
 
   function OldFrustumBox3DCollisionPossibleSimple(
     const Frustum: TFrustum;
-    const Box: TBox3D): boolean;
+    const Box: TBox3D): Boolean;
 
   { Implementation is obviously based on
     FrustumBox3DCollisionPossible above, see there for more comments. }
@@ -295,7 +295,7 @@ procedure TTestCastleFrustum.TestCompareWithUnoptimizedPlaneCollision;
     fp: TFrustumPlane;
     FrustumMultiplyBox: TBox3D;
 
-    function CheckOutsideCorner(const XIndex, YIndex, ZIndex: Cardinal): boolean;
+    function CheckOutsideCorner(const XIndex, YIndex, ZIndex: Cardinal): Boolean;
     begin
      Result :=
        { Planes[fp][0] * Box[XIndex][0] +
@@ -352,7 +352,7 @@ var
     Frustum: TFrustum;
     Box: TBox3D;
     Result1: TFrustumCollisionPossible;
-    Result2: boolean;
+    Result2: Boolean;
   end;
   I: Integer;
   NoOutsideResults: Cardinal;

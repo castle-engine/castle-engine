@@ -71,7 +71,7 @@ procedure TTriangleStripSetPolygonizer.HandleCoordRange(
   const RangeNumber: Cardinal;
   BeginIndex, EndIndex: Integer);
 var
-  NormalOrder: boolean;
+  NormalOrder: Boolean;
 begin
   NormalOrder := true;
 

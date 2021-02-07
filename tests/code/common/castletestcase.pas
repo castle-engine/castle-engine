@@ -64,7 +64,7 @@ type
 
     procedure AssertBoxesEqual(const Expected, Actual: TBox3D; AErrorAddrs: Pointer = nil);
     procedure AssertBoxesEqual(const Expected, Actual: TBox3D; const Epsilon: Double; AErrorAddrs: Pointer = nil);
-    procedure AssertFilenamesEqual(const Expected, Actual: string; AErrorAddrs: Pointer = nil);
+    procedure AssertFilenamesEqual(const Expected, Actual: String; AErrorAddrs: Pointer = nil);
     procedure AssertImagesEqual(const Expected, Actual: TRGBAlphaImage; AErrorAddrs: Pointer = nil);
     procedure AssertRectsEqual(const Expected, Actual: TRectangle; AErrorAddrs: Pointer = nil);
     procedure AssertRectsEqual(const Expected, Actual: TFloatRectangle; AErrorAddrs: Pointer = nil);
@@ -381,7 +381,7 @@ begin
         [Expected.ToRawString, Actual.ToRawString]), AErrorAddrs);
 end;
 
-procedure TCastleTestCase.AssertFilenamesEqual(const Expected, Actual: string; AErrorAddrs: Pointer);
+procedure TCastleTestCase.AssertFilenamesEqual(const Expected, Actual: String; AErrorAddrs: Pointer);
 begin
   if AErrorAddrs = nil then
     AErrorAddrs := CallerAddr;

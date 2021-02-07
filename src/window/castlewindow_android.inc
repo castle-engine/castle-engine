@@ -84,9 +84,9 @@ private
     AndroidApp: PAndroid_App;
     QEvents: TQueuedEventList;
     TouchChanges: array [0..FingerCount - 1] of TTouchChange;
-    ResumeScheduled: boolean;
+    ResumeScheduled: Boolean;
 
-  function HandleInput(App: PAndroid_app; Event: PAInputEvent): boolean;
+  function HandleInput(App: PAndroid_app; Event: PAInputEvent): Boolean;
   procedure HandleCommand(App: PAndroid_app; Command: Integer);
 {$endif read_application_interface}
 
@@ -252,7 +252,7 @@ begin
   end;
 end;
 
-function TCastleApplication.HandleInput(App: PAndroid_app; Event: PAInputEvent): boolean;
+function TCastleApplication.HandleInput(App: PAndroid_app; Event: PAInputEvent): Boolean;
 
   function CurrentPosition(const PointerIndex: Integer): TVector2;
   begin
@@ -374,7 +374,7 @@ end;
 
 procedure AndroidMainImplementation(App: PAndroid_App);
 
-  function GetInternalDataPath: string;
+  function GetInternalDataPath: String;
   var
     Env: PJNIEnv;
 
@@ -500,7 +500,7 @@ begin
   MenuInitialize;
 end;
 
-function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
+function TCastleWindowBase.MenuUpdateCheckedFast: Boolean;
 begin
   Result := false;
 end;
@@ -538,7 +538,7 @@ begin
     previous NativeWindow value. }
 end;
 
-procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: String);
 begin
   FCaption[Part] := Value;
   if not Closed then { TODO: use GetWholeCaption };
@@ -560,7 +560,7 @@ begin
   FCustomCursor := Value;
 end;
 
-function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
+function TCastleWindowBase.RedirectKeyDownToMenuClick: Boolean;
 begin
   { Call menu shortcuts on key presses.
     Since we don't show MainMenu, this is the only way how we can at least
@@ -594,12 +594,12 @@ procedure TCastleApplication.DestroyBackend;
 begin
 end;
 
-function TCastleApplication.ProcessAllMessages: boolean;
+function TCastleApplication.ProcessAllMessages: Boolean;
 begin
   Result := ProcessMessage(false, false);
 end;
 
-function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
+function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: Boolean): Boolean;
 
   { Call Update and Timer on Application and all open Windows. }
   procedure WindowsUpdateAndTimer;
@@ -773,14 +773,14 @@ begin
   { TODO }
 end;
 
-function TCastleApplication.ScreenWidth: integer;
+function TCastleApplication.ScreenWidth: Integer;
 begin
   if FScreenWidth = 0 then
     WritelnWarning('Window', 'Application.ScreenWidth is queried before window is open, returns zero');
   Result := FScreenWidth;
 end;
 
-function TCastleApplication.ScreenHeight: integer;
+function TCastleApplication.ScreenHeight: Integer;
 begin
   if FScreenHeight = 0 then
     WritelnWarning('Window', 'Application.ScreenHeight is queried before window is open, returns zero');
@@ -792,7 +792,7 @@ begin
   Result := FScreenStatusBarHeight;
 end;
 
-function TCastleApplication.BackendName: string;
+function TCastleApplication.BackendName: String;
 begin
   Result := 'Android';
 end;

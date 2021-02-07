@@ -29,7 +29,7 @@
     procedure RegisterClasses(const Classes: array of TX3DFieldClass);
 
     { Return field class for given name. Returns @nil if not found. }
-    function X3DTypeToClass(const X3DType: string): TX3DFieldClass;
+    function X3DTypeToClass(const X3DType: String): TX3DFieldClass;
   end;
 
 function X3DFieldsManager: TX3DFieldsManager;
@@ -98,7 +98,7 @@ begin
 end;
 
 function TX3DFieldsManager.X3DTypeToClass(
-  const X3DType: string): TX3DFieldClass;
+  const X3DType: String): TX3DFieldClass;
 var
   I: Integer;
 begin

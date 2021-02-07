@@ -43,7 +43,7 @@ type
     ButtonTemplate3dModelViewer: TSpeedButton;
     ButtonTemplate3dFps: TSpeedButton;
     procedure EditLocationButtonClick(Sender: TObject);
-    procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormShow(Sender: TObject);
     procedure ButtonTemplateClick(Sender: TObject);
   private
@@ -107,7 +107,7 @@ begin
     EditLocation.Text := SelectDirectoryDialog1.FileName;
 end;
 
-procedure TNewProjectForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
+procedure TNewProjectForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 const
   AlphaNum = ['a'..'z', 'A'..'Z', '0'..'9'];
   ValidProjectNameChars = AlphaNum + ['_', '-'];

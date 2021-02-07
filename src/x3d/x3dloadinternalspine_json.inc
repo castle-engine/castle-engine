@@ -19,7 +19,7 @@
 {$endif}
 
 {$ifdef read_implementation}
-procedure ReadVector2List(const Json: TJSONObject; const Name: string;
+procedure ReadVector2List(const Json: TJSONObject; const Name: String;
   const List: TVector2List);
 var
   JsonArray: TJSONArray;
@@ -47,7 +47,7 @@ begin
   end;
 end;
 
-procedure ReadLongIntList(const Json: TJSONObject; const Name: string;
+procedure ReadLongIntList(const Json: TJSONObject; const Name: String;
   const List: TLongIntList);
 var
   JsonArray: TJSONArray;
@@ -70,7 +70,7 @@ begin
     end;
 end;
 
-procedure ReadSingleList(const Json: TJSONObject; const Name: string;
+procedure ReadSingleList(const Json: TJSONObject; const Name: String;
   const List: TSingleList);
 var
   JsonArray: TJSONArray;

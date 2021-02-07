@@ -21,7 +21,7 @@
 
     PointingDeviceOverItem: PTriangle;
     PointingDeviceOverPoint: TVector3;
-    PointingDeviceActive: boolean;
+    PointingDeviceActive: Boolean;
 
   You can also take a look at Viewport.MouseRayHit, which contains all information.
   The Viewport.TransformUnderMouse and Viewport.TriangleHit

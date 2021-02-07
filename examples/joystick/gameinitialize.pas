@@ -77,7 +77,7 @@ end;
 { globals -------------------------------------------------------------------- }
 
 const
-  AxisNames: array [JOY_AXIS_X..JOY_POVY] of string =
+  AxisNames: array [JOY_AXIS_X..JOY_POVY] of String =
   ( 'JOY_AXIS_X',
     'JOY_AXIS_Y',
     'JOY_AXIS_Z',

@@ -29,7 +29,7 @@ procedure SwapValues(var a, b: Double  ); overload; {$ifdef SUPPORTS_INLINE} inl
 {$ifndef EXTENDED_EQUALS_DOUBLE}
 procedure SwapValues(var a, b: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
-procedure SwapValues(var a, b: char    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure SwapValues(var a, b: Char    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure SwapValues(var a, b: Pointer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 { @groupEnd }
 
@@ -96,18 +96,18 @@ function IndexMax(const a0, a1, a2: Double): Integer; overload; {$ifdef SUPPORTS
 function IndexMin(const a0, a1, a2: Double): Integer; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 { @groupEnd }
 
-function Between(const a, vBegin, vEnd: Int64   ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function Between(const a, vBegin, vEnd: Integer ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function Between(const a, vBegin, vEnd: cardinal): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function Between(const a, vBegin, vEnd: Float   ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function Between(const a, vBegin, vEnd: Char    ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Between(const a, vBegin, vEnd: Int64   ): Boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Between(const a, vBegin, vEnd: Integer ): Boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Between(const a, vBegin, vEnd: Cardinal): Boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Between(const a, vBegin, vEnd: Float   ): Boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Between(const a, vBegin, vEnd: Char    ): Boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 
 function RoundClamp255(const A: Single): Byte; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 
 function Clamped(const a, vBegin, vEnd: Int64   ): Int64   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Clamped(const a, vBegin, vEnd: QWord   ): QWord   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Clamped(const a, vBegin, vEnd: Integer ): Integer ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function Clamped(const a, vBegin, vEnd: cardinal): cardinal; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Clamped(const a, vBegin, vEnd: Cardinal): Cardinal; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Clamped(const a, vBegin, vEnd: Single  ): Single  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Clamped(const a, vBegin, vEnd: Double  ): Double  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$ifndef EXTENDED_EQUALS_DOUBLE}
@@ -117,7 +117,7 @@ function Clamped(const a, vBegin, vEnd: Extended): Extended; overload; {$ifdef S
 procedure ClampVar(var a: Int64   ; const vBegin, vEnd: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure ClampVar(var a: QWord   ; const vBegin, vEnd: QWord   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure ClampVar(var a: Integer ; const vBegin, vEnd: Integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure ClampVar(var a: cardinal; const vBegin, vEnd: cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure ClampVar(var a: Cardinal; const vBegin, vEnd: Cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure ClampVar(var a: Single  ; const vBegin, vEnd: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure ClampVar(var a: Double  ; const vBegin, vEnd: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$ifndef EXTENDED_EQUALS_DOUBLE}
@@ -126,7 +126,7 @@ procedure ClampVar(var a: Extended; const vBegin, vEnd: Extended); overload; {$i
 
 procedure Clamp(var a: Int64   ; const vBegin, vEnd: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
 procedure Clamp(var a: Integer ; const vBegin, vEnd: Integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
-procedure Clamp(var a: cardinal; const vBegin, vEnd: cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
+procedure Clamp(var a: Cardinal; const vBegin, vEnd: Cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
 procedure Clamp(var a: Single  ; const vBegin, vEnd: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
 procedure Clamp(var a: Double  ; const vBegin, vEnd: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
 {$ifndef EXTENDED_EQUALS_DOUBLE}
@@ -194,7 +194,7 @@ function Smallest2Exponent(Value: Cardinal): Integer;
 function Smallest2Power(Value: Cardinal): Cardinal;
 
 { Check is Value an exact power of 2. }
-function IsPowerOf2(Value: Cardinal): boolean;
+function IsPowerOf2(Value: Cardinal): Boolean;
 
 function DivRoundUp(const Value, Divider: Cardinal): Cardinal; overload;
 function DivRoundUp(const Value, Divider: Integer): Integer; overload;
@@ -259,7 +259,7 @@ function RandomIntRange(const RangeBegin, RangeEnd: Int64): Int64; overload;
 function RandomIntRangeInclusive(const RangeBegin, RangeEnd: Integer): Integer; overload;
 function RandomIntRangeInclusive(const RangeBegin, RangeEnd: Int64): Int64; overload;
 
-function RandomBoolean: boolean;
+function RandomBoolean: Boolean;
 
 { Random -1 or +1. }
 function RandomPlusMinus: Integer;
@@ -386,7 +386,7 @@ procedure SwapValues(var a, b: Double);   var Tmp: Double;   begin Tmp := A; A :
 {$ifndef EXTENDED_EQUALS_DOUBLE}
 procedure SwapValues(var a, b: Extended); var Tmp: Extended; begin Tmp := A; A := B; B := Tmp; end;
 {$endif}
-procedure SwapValues(var a, b: char);     var Tmp: char;     begin Tmp := A; A := B; B := Tmp; end;
+procedure SwapValues(var a, b: Char);     var Tmp: Char;     begin Tmp := A; A := B; B := Tmp; end;
 procedure SwapValues(var a, b: Pointer);  var Tmp: Pointer;  begin Tmp := A; A := B; B := Tmp; end;
 
 procedure OrderUp(var Smaller, Larger: Int64);    begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
@@ -450,11 +450,11 @@ begin
  end;
 end;
 
-function Between(const a, vBegin, vEnd: Int64): boolean;    begin Result := (vBegin <= a) and (a <= vend) end;
-function Between(const a, vBegin, vEnd: Integer): boolean;  begin Result := (vBegin <= a) and (a <= vend) end;
-function Between(const a, vBegin, vEnd: cardinal): boolean; begin Result := (vBegin <= a) and (a <= vend) end;
-function Between(const a, vBegin, vEnd: Float): boolean;    begin Result := (vBegin <= a) and (a <= vend) end;
-function Between(const a, vBegin, vEnd: Char): boolean;     begin Result := (vBegin <= a) and (a <= vend) end;
+function Between(const a, vBegin, vEnd: Int64): Boolean;    begin Result := (vBegin <= a) and (a <= vend) end;
+function Between(const a, vBegin, vEnd: Integer): Boolean;  begin Result := (vBegin <= a) and (a <= vend) end;
+function Between(const a, vBegin, vEnd: Cardinal): Boolean; begin Result := (vBegin <= a) and (a <= vend) end;
+function Between(const a, vBegin, vEnd: Float): Boolean;    begin Result := (vBegin <= a) and (a <= vend) end;
+function Between(const a, vBegin, vEnd: Char): Boolean;     begin Result := (vBegin <= a) and (a <= vend) end;
 
 function RoundClamp255(const A: Single): Byte;
 var
@@ -489,7 +489,7 @@ begin
     result := a;
 end;
 
-function Clamped(const a, vBegin, vEnd: cardinal): cardinal;
+function Clamped(const a, vBegin, vEnd: Cardinal): Cardinal;
 begin
   if a < vBegin then result := vBegin else
   if a > vEnd then result := vEnd else
@@ -537,7 +537,7 @@ begin
   if a > vEnd then a := vEnd;
 end;
 
-procedure ClampVar(var a: cardinal; const vBegin, vEnd: cardinal);
+procedure ClampVar(var a: Cardinal; const vBegin, vEnd: Cardinal);
 begin
   if a < vBegin then a := vBegin else
   if a > vEnd then a := vEnd;
@@ -575,7 +575,7 @@ begin
   if a > vEnd then a := vEnd;
 end;
 
-procedure Clamp(var a: cardinal; const vBegin, vEnd: cardinal);
+procedure Clamp(var a: Cardinal; const vBegin, vEnd: Cardinal);
 begin
   if a < vBegin then a := vBegin else
   if a > vEnd then a := vEnd;
@@ -691,7 +691,7 @@ begin
     result := 1 shl Exp;
 end;
 
-function IsPowerOf2(Value: Cardinal): boolean;
+function IsPowerOf2(Value: Cardinal): Boolean;
 var
   i: Cardinal;
 begin
@@ -814,14 +814,14 @@ begin
   Result := RangeBegin + Random(RangeEnd - RangeBegin + 1);
 end;
 
-function RandomBoolean: boolean;
+function RandomBoolean: Boolean;
 begin
   Result := Random(2) = 0;
 end;
 
 function RandomPlusMinus: Integer;
 const
-  PlusMinus: array [boolean] of Integer = (-1, +1);
+  PlusMinus: array [Boolean] of Integer = (-1, +1);
 begin
   Result := PlusMinus[RandomBoolean];
 end;

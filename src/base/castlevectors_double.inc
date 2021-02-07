@@ -43,7 +43,7 @@ function ThreePlanesIntersectionPointDouble(
   https://bugs.freepascal.org/view.php?id=32188
 }
 
-function MaxAbsVectorCoordDouble(const v: TVector3Double): integer;
+function MaxAbsVectorCoordDouble(const v: TVector3Double): Integer;
 begin
   Result := 0;
   if Abs(v.Data[1]) > Abs(v.Data[Result]) then Result := 1;
@@ -124,7 +124,7 @@ begin
 end;
 
 function TryPlaneLineIntersectionDouble(out t: Double;
-  const plane: TVector4Double; const line0, lineVector: TVector3Double): boolean; overload;
+  const plane: TVector4Double; const line0, lineVector: TVector3Double): Boolean; overload;
 var
   PlaneDir: TVector3Double absolute plane;
   Dot: Double;
@@ -139,7 +139,7 @@ begin
 end;
 
 function TryPlaneLineIntersectionDouble(out intersection: TVector3Double;
-  const plane: TVector4Double; const line0, lineVector: TVector3Double): boolean; overload;
+  const plane: TVector4Double; const line0, lineVector: TVector3Double): Boolean; overload;
 var
   T: Double;
 begin

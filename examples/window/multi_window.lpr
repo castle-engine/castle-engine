@@ -32,12 +32,12 @@ uses CastleWindow, SysUtils, CastleUtils, CastleGLUtils, CastleKeysMouse, Castle
 type
   TText = class(TCastleUserInterface)
   public
-    Text: string;
+    Text: String;
     LightColor, DarkColor: TCastleColor;
     ParentWindow: TCastleWindowBase;
     procedure Render; override;
-    function Press(const Event: TInputPressRelease): boolean; override;
-    function CapturesEventsAtPosition(const Position: TVector2): boolean; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+    function CapturesEventsAtPosition(const Position: TVector2): Boolean; override;
   end;
 
 procedure TText.Render;
@@ -47,9 +47,9 @@ begin
   UIFont.Print(10, 10, LightColor, Text);
 end;
 
-function TText.Press(const Event: TInputPressRelease): boolean;
+function TText.Press(const Event: TInputPressRelease): Boolean;
 var
-  URL: string;
+  URL: String;
 begin
   Result := inherited;
   if Result then Exit;
@@ -71,7 +71,7 @@ begin
   end;
 end;
 
-function TText.CapturesEventsAtPosition(const Position: TVector2): boolean;
+function TText.CapturesEventsAtPosition(const Position: TVector2): Boolean;
 begin
   Result := true; // always
 end;

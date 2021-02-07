@@ -118,11 +118,11 @@ type
     FWidth: Cardinal;
     FHeight: Cardinal;
     FCompositeType: TCompositeType;
-    FMipmaps: boolean;
+    FMipmaps: Boolean;
     FMipmapsCount: Cardinal;
     FCubeMapSides: TDDSCubeMapSides;
     FDepth: Cardinal;
-    FOwnsFirstImage: boolean;
+    FOwnsFirstImage: Boolean;
     function GetImages(const Index: Integer): TEncodedImage;
     function GetCubeMapSides: TCubeMapSides;
     procedure SetCubeMapSides(const Value: TCubeMapSides);
@@ -135,7 +135,7 @@ type
       To be able to read such DDS files anyway,
       set AutomaticCompression to true and set AutomaticCompressionType
       as appropriate. }
-    class var AutomaticCompression: boolean;
+    class var AutomaticCompression: Boolean;
     class var AutomaticCompressionType: TTextureCompression;
 
     constructor Create;
@@ -156,7 +156,7 @@ type
     { Does this composite image contain mipmaps.
       If @true, then all @link(Images) are guaranteed to have sizes
       being power of 2. }
-    property Mipmaps: boolean read FMipmaps write FMipmaps;
+    property Mipmaps: Boolean read FMipmaps write FMipmaps;
     { Mipmaps count.
       Always 1 when @link(Mipmaps) = @false, this is usually comfortable. }
     property MipmapsCount: Cardinal read FMipmapsCount write FMipmapsCount;
@@ -182,15 +182,15 @@ type
       or (if empty) from URL,
       so make sure that you provide at least one of these parameters.
       @raises(EInvalidCompositeImage In case of any error in the file data.) }
-    procedure LoadFromStream(Stream: TStream; const URL: string;
-      MimeType: string = '';
+    procedure LoadFromStream(Stream: TStream; const URL: String;
+      MimeType: String = '';
       const Options: TLoadImageOptions = []);
 
     { Load composite (KTX or DDS) image from this URL. }
-    procedure LoadFromFile(URL: string; const Options: TLoadImageOptions = []);
+    procedure LoadFromFile(URL: String; const Options: TLoadImageOptions = []);
 
-    procedure SaveToStream(Stream: TStream; const MimeType: string);
-    procedure SaveToFile(const URL: string);
+    procedure SaveToStream(Stream: TStream; const MimeType: String);
+    procedure SaveToFile(const URL: String);
 
     { Close all loaded image data. Effectively, this releases all data
       loaded by LoadFromStream, reverting the object to the state right
@@ -202,7 +202,7 @@ type
       destructor of this object. When this is @false, you're responsible
       to storing and freeing Images[0] later yourself, or you'll get memory
       leaks. }
-    property OwnsFirstImage: boolean read FOwnsFirstImage write FOwnsFirstImage
+    property OwnsFirstImage: Boolean read FOwnsFirstImage write FOwnsFirstImage
       default true;
 
     { Convert 3D images in @link(Images) list into a sequences of 2D images.
@@ -249,7 +249,7 @@ type
     { Does this URL look like it contains composite (KTX, DDS...) contents.
       Guesses by processing the URL with @link(ProcessImageUrl)
       and then looking at final filename extension. }
-    class function MatchesURL(URL: string): boolean;
+    class function MatchesURL(URL: String): Boolean;
 
     procedure AddCubeMapImages(const AImages: TCubeMapImages);
   end;
@@ -257,7 +257,7 @@ type
 const
   AllCubeMapSides = [Low(TCubeMapSide) .. High(TCubeMapSide)];
 
-  CompositeTypeToString: array [TCompositeType] of string =
+  CompositeTypeToString: array [TCompositeType] of String =
   ( 'Texture', 'CubeMap', 'Volume' );
 
 implementation
@@ -316,8 +316,8 @@ begin
     Result := FImages[Index];
 end;
 
-procedure TCompositeImage.LoadFromStream(Stream: TStream; const URL: string;
-  MimeType: string;
+procedure TCompositeImage.LoadFromStream(Stream: TStream; const URL: String;
+  MimeType: String;
   const Options: TLoadImageOptions = []);
 var
   Handler: TCompositeFormatHandler;
@@ -344,7 +344,7 @@ begin
   finally FreeAndNil(Handler) end;
 end;
 
-procedure TCompositeImage.LoadFromFile(URL: string;
+procedure TCompositeImage.LoadFromFile(URL: String;
   const Options: TLoadImageOptions = []);
 var
   S: TStream;
@@ -357,7 +357,7 @@ begin
   finally FreeAndNil(S) end;
 end;
 
-procedure TCompositeImage.SaveToStream(Stream: TStream; const MimeType: string);
+procedure TCompositeImage.SaveToStream(Stream: TStream; const MimeType: String);
 var
   Handler: TCompositeFormatHandler;
 begin
@@ -377,7 +377,7 @@ begin
   finally FreeAndNil(Handler) end;
 end;
 
-procedure TCompositeImage.SaveToFile(const URL: string);
+procedure TCompositeImage.SaveToFile(const URL: String);
 var
   S: TStream;
 begin
@@ -387,7 +387,7 @@ begin
   finally FreeAndNil(S) end;
 end;
 
-class function TCompositeImage.MatchesURL(URL: string): boolean;
+class function TCompositeImage.MatchesURL(URL: String): Boolean;
 begin
   URL := ProcessImageUrl(URL);
 

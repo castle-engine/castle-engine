@@ -23,13 +23,13 @@
 {$ifdef read_interface}
   TCircleNode = class(TCircle2DNode)
   public
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
   end;
 
   TLayer2DNode = class(TGroupNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdTranslation: TSFVec2f;
     public property FdTranslation: TSFVec2f read FFdTranslation;
@@ -47,7 +47,7 @@
   TLayer3DNode = class(TGroupNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventAddChildrenLayer: TMFNodeEvent;
@@ -85,7 +85,7 @@
   TMouseSensorNode = class(TAbstractSensorNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdEventsProcessed: TSFBool;
     public property FdEventsProcessed: TSFBool read FFdEventsProcessed;
@@ -117,12 +117,12 @@
 
   TOrderedGroupNode = class(TGroupNode)
   public
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
   end;
 {$endif read_interface}
 
 {$ifdef read_implementation}
-class function TCircleNode.ClassX3DType: string;
+class function TCircleNode.ClassX3DType: String;
 begin
   Result := 'Circle';
 end;
@@ -144,7 +144,7 @@ begin
   AddField(FFdViewport);
 end;
 
-class function TLayer2DNode.ClassX3DType: string;
+class function TLayer2DNode.ClassX3DType: String;
 begin
   Result := 'Layer2D';
 end;
@@ -184,7 +184,7 @@ begin
   AddField(FFdViewpoint);
 end;
 
-class function TLayer3DNode.ClassX3DType: string;
+class function TLayer3DNode.ClassX3DType: String;
 begin
   Result := 'Layer3D';
 end;
@@ -215,12 +215,12 @@ begin
   AddEvent(FEventMouseWheel);
 end;
 
-class function TMouseSensorNode.ClassX3DType: string;
+class function TMouseSensorNode.ClassX3DType: String;
 begin
   Result := 'MouseSensor';
 end;
 
-class function TOrderedGroupNode.ClassX3DType: string;
+class function TOrderedGroupNode.ClassX3DType: String;
 begin
   Result := 'OrderedGroup';
 end;

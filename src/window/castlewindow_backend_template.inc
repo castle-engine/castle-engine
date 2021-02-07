@@ -71,7 +71,7 @@ begin
   MenuInitialize;
 end;
 
-function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
+function TCastleWindowBase.MenuUpdateCheckedFast: Boolean;
 begin
   Result := false;
 end;
@@ -124,7 +124,7 @@ begin
   { TODO (destroy OpenGL context, hide window; counterpart to OpenBackend) }
 end;
 
-procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: String);
 begin
   FCaption[Part] := Value;
   if not Closed then { TODO: use GetWholeCaption };
@@ -151,7 +151,7 @@ begin
   FCustomCursor := Value;
 end;
 
-function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
+function TCastleWindowBase.RedirectKeyDownToMenuClick: Boolean;
 begin
   Result := { TODO } true;
 end;
@@ -178,24 +178,24 @@ end;
   castlewindow_xxx.inc file), to have simple dialog boxes drawn on
   OpenGL context using our CastleMessages unit. }
 
-function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
-  OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
+function TCastleWindowBase.BackendFileDialog(const Title: String; var FileName: String;
+  OpenDialog: Boolean; FileFilters: TFileFilterList): Boolean;
 begin
   { TODO } Result := false;
 end;
 
-function TCastleWindowBase.ColorDialog(var Color: TVector3): boolean;
+function TCastleWindowBase.ColorDialog(var Color: TVector3): Boolean;
 begin
   { TODO } Result := false;
 end;
 
-procedure TCastleWindowBase.MessageOK(const S: string; const MessageType: TWindowMessageType);
+procedure TCastleWindowBase.MessageOK(const S: String; const MessageType: TWindowMessageType);
 begin
   { TODO }
 end;
 
-function TCastleWindowBase.MessageYesNo(const S: string;
-  const MessageType: TWindowMessageType): boolean;
+function TCastleWindowBase.MessageYesNo(const S: String;
+  const MessageType: TWindowMessageType): Boolean;
 begin
   { TODO } Result := true;
 end;
@@ -213,7 +213,7 @@ begin
   { TODO }
 end;
 
-function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
+function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: Boolean): Boolean;
 begin
   Result := not Terminated;
 
@@ -234,7 +234,7 @@ begin
   end;
 end;
 
-function TCastleApplication.ProcessAllMessages: boolean;
+function TCastleApplication.ProcessAllMessages: Boolean;
 begin
   { This implementation is valid for start: }
   Result := ProcessMessage(false, false);
@@ -262,13 +262,13 @@ begin
   { TODO }
 end;
 
-function TCastleApplication.ScreenWidth: integer;
+function TCastleApplication.ScreenWidth: Integer;
 begin
   { TODO }
   Result := 200;
 end;
 
-function TCastleApplication.ScreenHeight: integer;
+function TCastleApplication.ScreenHeight: Integer;
 begin
   { TODO }
   Result := 200;
@@ -279,7 +279,7 @@ begin
   Result := 0;
 end;
 
-function TCastleApplication.BackendName: string;
+function TCastleApplication.BackendName: String;
 begin
   { TODO }
   Result := 'My CastleWindow Backend';

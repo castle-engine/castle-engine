@@ -59,7 +59,7 @@
       LoadNode (then it's released and changed to @nil). }
     procedure FreeNode(var Node: TX3DRootNode);
 
-    function Empty: boolean; override;
+    function Empty: Boolean; override;
   end;
 
 {$endif read_interface}
@@ -195,7 +195,7 @@ begin
     Dec(C.References);
 end;
 
-function TX3DNodesCache.Empty: boolean;
+function TX3DNodesCache.Empty: Boolean;
 begin
   Result := (inherited Empty) and (CachedNodes.Count = 0);
 end;

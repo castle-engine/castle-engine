@@ -30,7 +30,7 @@
     procedure SetPickingGeometry(const Value: TAbstractGeometryNode);
   public
     { Set X3D field "objectType". } { }
-    procedure SetObjectType(const Value: array of string);
+    procedure SetObjectType(const Value: array of String);
     { Set X3D field "objectType". } { }
     procedure SetObjectType(const Value: TCastleStringList);
     { X3D field "pickingGeometry". } { }
@@ -42,7 +42,7 @@
 
 { TAbstractPickSensorNode ----------------------------------------------- }
 
-procedure TAbstractPickSensorNode.SetObjectType(const Value: array of string);
+procedure TAbstractPickSensorNode.SetObjectType(const Value: array of String);
 begin
   FdObjectType.Send(Value);
 end;

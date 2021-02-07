@@ -62,7 +62,7 @@ var
 
 var
   I: TXMLElementIterator;
-  NodeId: string;
+  NodeId: String;
   V3: TVector3;
   V4: TVector4;
 begin

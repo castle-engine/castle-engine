@@ -32,8 +32,8 @@
       user holds down a key --- we get many key down messages.
 
       @groupBegin }
-    procedure KeyDown(Key: TKey; C: char; const Time: TX3DTime); virtual;
-    procedure KeyUp(Key: TKey; C: char; const Time: TX3DTime); virtual;
+    procedure KeyDown(Key: TKey; C: Char; const Time: TX3DTime); virtual;
+    procedure KeyUp(Key: TKey; C: Char; const Time: TX3DTime); virtual;
     { @groupEnd }
 
     {$I auto_generated_node_helpers/x3dnodes_x3dkeydevicesensornode.inc}
@@ -42,10 +42,10 @@
   { Generate events when user key presses or releases keys on the keyboard. }
   TKeySensorNode = class(TAbstractKeyDeviceSensorNode)
   strict private
-    AltKey, ControlKey, ShiftKey: boolean;
+    AltKey, ControlKey, ShiftKey: Boolean;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event out } { }
     strict private FEventActionKeyPress: TSFInt32Event;
@@ -75,8 +75,8 @@
     strict private FEventShiftKey: TSFBoolEvent;
     public property EventShiftKey: TSFBoolEvent read FEventShiftKey;
 
-    procedure KeyDown(Key: TKey; C: char; const Time: TX3DTime); override;
-    procedure KeyUp(Key: TKey; C: char; const Time: TX3DTime); override;
+    procedure KeyDown(Key: TKey; C: Char; const Time: TX3DTime); override;
+    procedure KeyUp(Key: TKey; C: Char; const Time: TX3DTime); override;
 
     {$I auto_generated_node_helpers/x3dnodes_keysensor.inc}
   end;
@@ -85,11 +85,11 @@
     useful for example to simulate "input fields" in 3D. }
   TStringSensorNode = class(TAbstractKeyDeviceSensorNode)
   strict private
-    EnteredText: string;
-    Active: boolean;
+    EnteredText: String;
+    Active: Boolean;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdDeletionAllowed: TSFBool;
     public property FdDeletionAllowed: TSFBool read FFdDeletionAllowed;
@@ -102,7 +102,7 @@
     strict private FEventFinalText: TSFStringEvent;
     public property EventFinalText: TSFStringEvent read FEventFinalText;
 
-    procedure KeyDown(Key: TKey; C: char; const Time: TX3DTime); override;
+    procedure KeyDown(Key: TKey; C: Char; const Time: TX3DTime); override;
 
     {$I auto_generated_node_helpers/x3dnodes_stringsensor.inc}
   end;
@@ -117,19 +117,19 @@ begin
   DefaultContainerField := 'children';
 end;
 
-procedure TAbstractKeyDeviceSensorNode.KeyDown(Key: TKey; C: char; const Time: TX3DTime);
+procedure TAbstractKeyDeviceSensorNode.KeyDown(Key: TKey; C: Char; const Time: TX3DTime);
 begin
   { Nothing to do in this class. }
 end;
 
-procedure TAbstractKeyDeviceSensorNode.KeyUp(Key: TKey; C: char; const Time: TX3DTime);
+procedure TAbstractKeyDeviceSensorNode.KeyUp(Key: TKey; C: Char; const Time: TX3DTime);
 begin
   { Nothing to do in this class. }
 end;
 
 { Convert TKey to VRML "action" key code.
   As defined by X3D KeySensor node specification. }
-function KeyToActionKey(Key: TKey; out ActionKey: Integer): boolean;
+function KeyToActionKey(Key: TKey; out ActionKey: Integer): Boolean;
 begin
   Result := true;
   case Key of
@@ -174,14 +174,14 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TKeySensorNode.ClassX3DType: string;
+class function TKeySensorNode.ClassX3DType: String;
 begin
   Result := 'KeySensor';
 end;
 
-procedure TKeySensorNode.KeyDown(Key: TKey; C: char; const Time: TX3DTime);
+procedure TKeySensorNode.KeyDown(Key: TKey; C: Char; const Time: TX3DTime);
 
-  procedure HandleSpecial(var SpecialPressed: boolean; SpecialEvent: TSFBoolEvent);
+  procedure HandleSpecial(var SpecialPressed: Boolean; SpecialEvent: TSFBoolEvent);
   begin
     if not SpecialPressed then
     begin
@@ -225,9 +225,9 @@ begin
   end;
 end;
 
-procedure TKeySensorNode.KeyUp(Key: TKey; C: char; const Time: TX3DTime);
+procedure TKeySensorNode.KeyUp(Key: TKey; C: Char; const Time: TX3DTime);
 
-  procedure HandleSpecial(var SpecialPressed: boolean; SpecialEvent: TSFBoolEvent);
+  procedure HandleSpecial(var SpecialPressed: Boolean; SpecialEvent: TSFBoolEvent);
   begin
     if SpecialPressed then
     begin
@@ -278,12 +278,12 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TStringSensorNode.ClassX3DType: string;
+class function TStringSensorNode.ClassX3DType: String;
 begin
   Result := 'StringSensor';
 end;
 
-procedure TStringSensorNode.KeyDown(Key: TKey; C: char; const Time: TX3DTime);
+procedure TStringSensorNode.KeyDown(Key: TKey; C: Char; const Time: TX3DTime);
 begin
   inherited;
 

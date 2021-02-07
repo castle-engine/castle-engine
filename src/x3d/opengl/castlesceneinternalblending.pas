@@ -55,9 +55,9 @@ type
   only transparent shapes (UseBlending = @true). }
 procedure ShapesFilterBlending(
   const Tree: TShapeTree;
-  const OnlyActive, OnlyVisible, OnlyCollidable: boolean;
+  const OnlyActive, OnlyVisible, OnlyCollidable: Boolean;
   const TestShapeVisibility: TTestShapeVisibility;
-  const FilteredShapes: TShapeList; const UseBlending: boolean);
+  const FilteredShapes: TShapeList; const UseBlending: Boolean);
 
 implementation
 
@@ -80,11 +80,11 @@ uses SysUtils,
     NeedsConstXxx := NeedsConstXxx or <this factor needs them>;
   so can only change from false to true.
 }
-function BlendingFactorNameToStr(S: string;
+function BlendingFactorNameToStr(S: String;
   out Factor: TBlendingSourceFactor;
-  var NeedsConstColor, NeedsConstAlpha: boolean): boolean;
+  var NeedsConstColor, NeedsConstAlpha: Boolean): Boolean;
 const
-  FactorNames: array [TBlendingSourceFactor] of string =
+  FactorNames: array [TBlendingSourceFactor] of String =
   (
     'src_alpha',
     'one_minus_src_alpha',
@@ -149,11 +149,11 @@ begin
   WritelnWarning('VRML/X3D', Format('Unknown blending source factor name "%s"', [S]));
 end;
 
-function BlendingFactorNameToStr(S: string;
+function BlendingFactorNameToStr(S: String;
   out Factor: TBlendingDestinationFactor;
-  var NeedsConstColor, NeedsConstAlpha: boolean): boolean;
+  var NeedsConstColor, NeedsConstAlpha: Boolean): Boolean;
 const
-  FactorNames: array [TBlendingDestinationFactor] of string =
+  FactorNames: array [TBlendingDestinationFactor] of String =
   (
     'src_alpha',
     'one_minus_src_alpha',
@@ -273,7 +273,7 @@ var
   B: TBlendModeNode;
   NewSrc: TBlendingSourceFactor;
   NewDest: TBlendingDestinationFactor;
-  NeedsConstColor, NeedsConstAlpha: boolean;
+  NeedsConstColor, NeedsConstAlpha: Boolean;
 begin
   if not (Active and Shape.UseBlending) then
     Exit;
@@ -327,9 +327,9 @@ end;
 
 procedure ShapesFilterBlending(
   const Tree: TShapeTree;
-  const OnlyActive, OnlyVisible, OnlyCollidable: boolean;
+  const OnlyActive, OnlyVisible, OnlyCollidable: Boolean;
   const TestShapeVisibility: TTestShapeVisibility;
-  const FilteredShapes: TShapeList; const UseBlending: boolean);
+  const FilteredShapes: TShapeList; const UseBlending: Boolean);
 
   procedure AddToList(const Shape: TShape);
   begin

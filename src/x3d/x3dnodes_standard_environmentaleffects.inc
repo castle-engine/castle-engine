@@ -98,7 +98,7 @@
   public
     procedure CreateNode; override;
 
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
     function Texture(const Side: TBackgroundSide): TAbstractTextureNode; override;
 
     strict private FFdBackUrl: TMFString;
@@ -151,7 +151,7 @@
   public
     procedure CreateNode; override;
     destructor Destroy; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
     function TransformationChange: TNodeTransformationChange; override;
     function Functionality(const FunctionalityClass: TNodeFunctionalityClass): TNodeFunctionality; override;
 
@@ -207,7 +207,7 @@
   TFogCoordinateNode = class(TAbstractGeometricPropertyNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdDepth: TMFFloat;
     public property FdDepth: TMFFloat read FFdDepth;
@@ -247,7 +247,7 @@
   public
     procedure CreateNode; override;
     destructor Destroy; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
     function Functionality(const FunctionalityClass: TNodeFunctionalityClass): TNodeFunctionality; override;
 
     strict private FFdColor: TSFColor;
@@ -288,7 +288,7 @@
   TTextureBackgroundNode = class(TAbstract3DBackgroundNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
     function Texture(const Side: TBackgroundSide): TAbstractTextureNode; override;
 
     strict private FFdBackTexture: TSFNode;
@@ -450,7 +450,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TBackgroundNode.ClassX3DType: string;
+class function TBackgroundNode.ClassX3DType: String;
 begin
   Result := 'Background';
 end;
@@ -574,7 +574,7 @@ begin
   inherited;
 end;
 
-class function TFogNode.ClassX3DType: string;
+class function TFogNode.ClassX3DType: String;
 begin
   Result := 'Fog';
 end;
@@ -705,7 +705,7 @@ begin
   DefaultContainerField := 'fogCoord';
 end;
 
-class function TFogCoordinateNode.ClassX3DType: string;
+class function TFogCoordinateNode.ClassX3DType: String;
 begin
   Result := 'FogCoordinate';
 end;
@@ -814,7 +814,7 @@ begin
   State.LocalFog := Self;
 end;
 
-class function TLocalFogNode.ClassX3DType: string;
+class function TLocalFogNode.ClassX3DType: String;
 begin
   Result := 'LocalFog';
 end;
@@ -887,7 +887,7 @@ begin
     Result := nil;
 end;
 
-class function TTextureBackgroundNode.ClassX3DType: string;
+class function TTextureBackgroundNode.ClassX3DType: String;
 begin
   Result := 'TextureBackground';
 end;

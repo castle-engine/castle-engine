@@ -30,7 +30,7 @@
     procedure SetTextureProperties(const Value: TTexturePropertiesNode);
   public
     { Set X3D field "url". } { }
-    procedure SetUrl(const Value: array of string);
+    procedure SetUrl(const Value: array of String);
     { Set X3D field "url". } { }
     procedure SetUrl(const Value: TCastleStringList);
     { X3D field "textureProperties". } { }
@@ -42,7 +42,7 @@
 
 { TImageCubeMapTextureNode ----------------------------------------------- }
 
-procedure TImageCubeMapTextureNode.SetUrl(const Value: array of string);
+procedure TImageCubeMapTextureNode.SetUrl(const Value: array of String);
 begin
   FdUrl.Send(Value);
 end;

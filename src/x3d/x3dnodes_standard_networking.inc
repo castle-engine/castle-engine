@@ -38,7 +38,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdDescription: TSFString;
     public property FdDescription: TSFString read FFdDescription;
@@ -99,7 +99,7 @@
     function LoadAnchor(
       out NewRootNode: TX3DRootNode;
       out NewViewpoint: TAbstractViewpointNode;
-      CurrentRootNode: TX3DRootNode): boolean;
+      CurrentRootNode: TX3DRootNode): Boolean;
 
     {$I auto_generated_node_helpers/x3dnodes_anchor.inc}
   end;
@@ -117,7 +117,7 @@
       we condider "url" field as handled, and loaded *if possible*.
       If "url" didn't contain anything useful, InlinedLoaded is still set to @true,
       to avoid constantly trying to reload. }
-    InlinedLoaded: boolean;
+    InlinedLoaded: Boolean;
     FInlined: TX3DRootNode;
   protected
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
@@ -132,7 +132,7 @@
     function DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdLoad: TSFBool;
     public property FdLoad: TSFBool read FFdLoad;
@@ -146,7 +146,7 @@
     strict private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
-    class function VRML1ChildrenSaveToStream: boolean; override;
+    class function VRML1ChildrenSaveToStream: Boolean; override;
 
     { Load inlined content @bold(now).
       If @link(Inlined) is already loaded:
@@ -172,7 +172,7 @@
 
       @param(Exported If non-nil, we will assign here node names
         exported from the file. Used to handle IMPORT/EXPORT X3D mechanism.) }
-    procedure LoadInlined(CanReload: boolean;
+    procedure LoadInlined(CanReload: Boolean;
       const CurrentLengthConversionFactor: Float = 1.0;
       Exported: TX3DNodeNames = nil);
 
@@ -205,7 +205,7 @@
     procedure AfterLoadInlined; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event out } { }
     strict private FEventChildren: TMFNodeEvent;
@@ -216,7 +216,7 @@
   TLoadSensorNode = class(TAbstractNetworkSensorNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdTimeOut: TSFTime;
     public property FdTimeOut: TSFTime read FFdTimeOut;
@@ -266,7 +266,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TAnchorNode.ClassX3DType: string;
+class function TAnchorNode.ClassX3DType: String;
 begin
   Result := 'Anchor';
 end;
@@ -286,9 +286,9 @@ end;
 function TAnchorNode.LoadAnchor(
   out NewRootNode: TX3DRootNode;
   out NewViewpoint: TAbstractViewpointNode;
-  CurrentRootNode: TX3DRootNode): boolean;
+  CurrentRootNode: TX3DRootNode): Boolean;
 
-  procedure ViewpointNameInvalid(const NewViewpointName: string);
+  procedure ViewpointNameInvalid(const NewViewpointName: String);
   begin
     WritelnWarning('X3D', Format('Viewpoint "%s" specified by Anchor not found',
       [NewViewpointName]));
@@ -296,7 +296,7 @@ function TAnchorNode.LoadAnchor(
 
 var
   I: Integer;
-  Url, UrlWithoutViewpoint, NewViewpointName: string;
+  Url, UrlWithoutViewpoint, NewViewpointName: String;
 begin
   for I := 0 to FdUrl.Count - 1 do
   begin
@@ -420,7 +420,7 @@ begin
   FInlined := nil;
 end;
 
-class function TInlineNode.ClassX3DType: string;
+class function TInlineNode.ClassX3DType: String;
 begin
   Result := 'Inline';
 end;
@@ -458,12 +458,12 @@ begin
   InlinedLoaded := false;
 end;
 
-procedure TInlineNode.LoadInlined(CanReload: boolean;
+procedure TInlineNode.LoadInlined(CanReload: Boolean;
   const CurrentLengthConversionFactor: Float;
   Exported: TX3DNodeNames);
 var
   I: Integer;
-  FullUrl: string;
+  FullUrl: String;
 begin
   if Exported <> nil then Exported.Clear;
 
@@ -590,7 +590,7 @@ begin
   inherited;
 end;
 
-class function TInlineNode.VRML1ChildrenSaveToStream: boolean;
+class function TInlineNode.VRML1ChildrenSaveToStream: Boolean;
 begin
   Result := false;
 end;
@@ -646,7 +646,7 @@ begin
   FInlined := nil;
 end;
 
-class function TInlineLoadControlNode.ClassX3DType: string;
+class function TInlineLoadControlNode.ClassX3DType: String;
 begin
   Result := 'InlineLoadControl';
 end;
@@ -694,7 +694,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TLoadSensorNode.ClassX3DType: string;
+class function TLoadSensorNode.ClassX3DType: String;
 begin
   Result := 'LoadSensor';
 end;
