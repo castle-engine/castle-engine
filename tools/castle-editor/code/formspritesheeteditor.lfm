@@ -662,7 +662,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
   end
   object OpenDialog: TCastleOpenDialog
     Title = 'Open sprite sheet'
-    Filter = 'Castle Sprite Sheet (*.castle-sprite-sheet)|*.castle-sprite-sheet|All files|*'
+    Filter = 'All supported formats (*.castle-sprite-sheet, *.starling-xml, *.xml)|*.castle-sprite-sheet;*.starling-xml;*.xml|Castle Sprite Sheet (*.castle-sprite-sheet)|*.castle-sprite-sheet|Starling Sprite Sheet (*.starling-xml, *.xml)|*.starling-xml;*.xml|All files|*'
     Left = 344
     Top = 208
   end
