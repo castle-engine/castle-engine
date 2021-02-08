@@ -132,6 +132,7 @@
       This is in practice only sensible if this is the only edit box currently
       visible on the screen. }
     property CaptureAllInput: boolean read FCaptureAllInput write FCaptureAllInput;
+      deprecated 'use Container.ForceCaptureInput instead of this';
 
     { When true, it shows the software keyboard on Android. }
     property AutoOnScreenKeyboard: Boolean
@@ -563,9 +564,11 @@ end;
 
 function TCastleEdit.CapturesEventsAtPosition(const Position: TVector2): boolean;
 begin
+  {$warnings off} // using deprecated just to keep it working
   if CaptureAllInput then
     Result := true // always capture
   else
+  {$warnings on}
     Result := inherited CapturesEventsAtPosition(Position);
 end;
 
