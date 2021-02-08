@@ -429,8 +429,8 @@ type
     constructor Create(const URL: String; LoadForEdit: Boolean);
     destructor Destroy; override;
 
-    procedure LoadToCastleSpriteSheet(SpriteSheet: TCastleSpriteSheet);
-    function LoadToCastleSpriteSheet: TCastleSpriteSheet;
+    procedure Load(const SpriteSheet: TCastleSpriteSheet);
+    function Load: TCastleSpriteSheet;
   end;
 
   TCastleSpriteSheetXMLExporter = class
@@ -1576,7 +1576,7 @@ begin
   BeginLoad;
   try
     SpriteSheetLoader := TCastleSpriteSheetLoader.Create(MaybeUseDataProtocol(URL), EditMode);
-    SpriteSheetLoader.LoadToCastleSpriteSheet(Self);
+    SpriteSheetLoader.Load(Self);
   finally
     FreeAndNil(SpriteSheetLoader);
     EndLoad;
@@ -2044,8 +2044,8 @@ begin
   inherited Destroy;
 end;
 
-procedure TCastleSpriteSheetLoader.LoadToCastleSpriteSheet(
-  SpriteSheet: TCastleSpriteSheet);
+procedure TCastleSpriteSheetLoader.Load(
+  const SpriteSheet: TCastleSpriteSheet);
 var
   Doc: TXMLDocument;
   AtlasNode: TDOMElement;
@@ -2100,7 +2100,7 @@ begin
   end;
 end;
 
-function TCastleSpriteSheetLoader.LoadToCastleSpriteSheet: TCastleSpriteSheet;
+function TCastleSpriteSheetLoader.Load: TCastleSpriteSheet;
 var
   SpriteSheet: TCastleSpriteSheet;
 begin
@@ -2108,7 +2108,7 @@ begin
   SpriteSheet.BeginLoad;
   try
     try
-      LoadToCastleSpriteSheet(SpriteSheet);
+      Load(SpriteSheet);
       Result := SpriteSheet;
     except
       FreeAndNil(SpriteSheet);
