@@ -12,6 +12,7 @@ object ProjectForm: TProjectForm
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poMainFormCenter
+  ShowInTaskBar = stAlways
   LCLVersion = '2.0.8.0'
   object PageControlBottom: TPageControl
     Left = 0
