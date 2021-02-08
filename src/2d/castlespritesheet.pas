@@ -771,7 +771,6 @@ function TCastleSpriteSheetBasicAtlasGen.LayoutFrames(
   const MaxAtlasWidth, MaxAtlasHeight: integer;
   out MinAtlasWidth, MinAtlasHeight: Integer): Boolean;
 var
-  PreviousLineMaxY: Integer;
   I, J: Integer;
   X, Y: Integer;
   Animation: TCastleSpriteSheetAnimation;
@@ -812,7 +811,6 @@ var
 begin
   X := 0;
   Y := 0;
-  PreviousLineMaxY := 0;
   CurrentMaxLineHeight := 0;
 
   { Min size that we need for atlas }
@@ -839,10 +837,10 @@ begin
         // yes
 
         { check free height, only save if we don't have free space }
-        if Frame.FrameHeight + PreviousLineMaxY > MaxAtlasHeight then
+        if Y + Frame.FrameHeight > MaxAtlasHeight then
         begin
           { return that we need more space }
-          MinAtlasHeight := Max(Frame.FrameHeight + PreviousLineMaxY,
+          MinAtlasHeight := Max(Y + Frame.FrameHeight,
             MinAtlasHeight);
         end;
 
@@ -857,14 +855,13 @@ begin
       MinAtlasWidth := Max(MinAtlasWidth, X);
 
       { Start new line (add to new line) }
-      PreviousLineMaxY := PreviousLineMaxY + CurrentMaxLineHeight;
-      Y := PreviousLineMaxY;
+      Inc(Y, CurrentMaxLineHeight);
       X := 0;
 
       // check size
-      if (Frame.FrameHeight + PreviousLineMaxY > MaxAtlasHeight) then
+      if (Y + Frame.FrameHeight > MaxAtlasHeight) then
       begin
-        MinAtlasHeight := Max(Frame.FrameHeight + PreviousLineMaxY,
+        MinAtlasHeight := Max(Y + Frame.FrameHeight,
           MinAtlasHeight);
       end;
 
@@ -921,7 +918,8 @@ end;
 procedure TCastleSpriteSheetBasicAtlasGen.GetMinAtlasSize(out MinWidth,
   MinHeight: Integer);
 begin
-  LayoutFrames(loMeasure, FSpriteSheetMaxWidth, FSpriteSheetMaxHeight, MinWidth, MinHeight);
+  LayoutFrames(loMeasure, FSpriteSheetMaxWidth, FSpriteSheetMaxHeight, MinWidth,
+    MinHeight);
 end;
 
 procedure TCastleSpriteSheetBasicAtlasGen.Generate;
