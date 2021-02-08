@@ -461,15 +461,28 @@ procedure TProjectForm.FormShow(Sender: TObject);
     end;
   end;
 
+var
+  NewWidth, NewHeight, NewLeft, NewTop, NewControlHeight: Integer;
 begin
   if UserConfig.GetValue('ProjectForm_Saved', false) then
   begin
-    Width := UserConfig.GetInteger('ProjectForm_Width');
-    Height := UserConfig.GetInteger('ProjectForm_Height');
-    Left := UserConfig.GetInteger('ProjectForm_Left');
-    Top := UserConfig.GetInteger('ProjectForm_Top');
-    WindowState := StrToWindowState(UserConfig.GetStringNonEmpty('ProjectForm_WindowState'));
-    PageControlBottom.Height := UserConfig.GetInteger('ProjectForm_PageControlBottom.Height');
+    NewWidth := UserConfig.GetValue('ProjectForm_Width', -MaxInt);
+    NewHeight := UserConfig.GetValue('ProjectForm_Height', -MaxInt);
+    NewLeft := UserConfig.GetValue('ProjectForm_Left', -MaxInt);
+    NewTop := UserConfig.GetValue('ProjectForm_Top', -MaxInt);
+    NewControlHeight := UserConfig.GetValue('ProjectForm_PageControlBottom.Height', -MaxInt);
+    WindowState := StrToWindowState(UserConfig.GetValue('ProjectForm_WindowState', 'wsNormal'));
+    if (NewWidth + NewLeft <= Screen.Width + 32) and (NewWidth > 128) and
+       (NewHeight + NewTop <= Screen.Height + 32) and (NewHeight > 128) and
+       (NewControlHeight < NewHeight) and (NewControlHeight >= 0) and
+       (NewLeft > -32) and (NewTop > -32) then
+    begin
+      Width := NewWidth;
+      Height := NewHeight;
+      Left := NewLeft;
+      Top := NewTop;
+      PageControlBottom.Height := NewControlHeight;
+    end;
   end;
 end;
 
@@ -613,6 +626,8 @@ begin
 end;
 
 procedure TProjectForm.DesignExistenceChanged;
+var
+  NewPanelRightWidth, NewPanelLeftWidth: Integer;
 begin
   MenuItemSaveAsDesign.Enabled := Design <> nil;
   MenuItemSaveDesign.Enabled := Design <> nil;
@@ -629,8 +644,14 @@ begin
 
   if (Design <> nil) and UserConfig.GetValue('ProjectForm_DesignSaved', false) then
   begin
-    Design.PanelRight.Width := UserConfig.GetInteger('ProjectForm_Design.PanelRight.Width');
-    Design.PanelLeft.Width := UserConfig.GetInteger('ProjectForm_Design.PanelLeft.Width');
+    NewPanelRightWidth := UserConfig.GetValue('ProjectForm_Design.PanelRight.Width', -MaxInt);
+    NewPanelLeftWidth := UserConfig.GetValue('ProjectForm_Design.PanelLeft.Width', -MaxInt);
+    if (NewPanelRightWidth >= 0) and (NewPanelLeftWidth >= 0) and
+      (NewPanelRightWidth + NewPanelLeftWidth <= Width) then
+    begin
+      Design.PanelRight.Width := NewPanelRightWidth;
+      Design.PanelLeft.Width := NewPanelLeftWidth;
+    end;
   end;
 
   LabelNoDesign.Visible := Design = nil;
