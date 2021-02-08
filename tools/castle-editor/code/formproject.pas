@@ -433,6 +433,7 @@ procedure TProjectForm.FormHide(Sender: TObject);
   end;
 
 begin
+  UserConfig.SetValue('ProjectForm_Saved', true);
   UserConfig.SetValue('ProjectForm_Width', Width);
   UserConfig.SetValue('ProjectForm_Height', Height);
   UserConfig.SetValue('ProjectForm_Left', Left);
@@ -441,6 +442,7 @@ begin
   UserConfig.SetValue('ProjectForm_PageControlBottom.Height', PageControlBottom.Height);
   if Design <> nil then
   begin
+    UserConfig.SetValue('ProjectForm_DesignSaved', true);
     UserConfig.SetValue('ProjectForm_Design.PanelRight.Width', Design.PanelRight.Width);
     UserConfig.SetValue('ProjectForm_Design.PanelLeft.Width', Design.PanelLeft.Width);
   end;
@@ -460,12 +462,15 @@ procedure TProjectForm.FormShow(Sender: TObject);
   end;
 
 begin
-  Width := UserConfig.GetValue('ProjectForm_Width', 1142);
-  Height := UserConfig.GetValue('ProjectForm_Height', 632);
-  Left := UserConfig.GetValue('ProjectForm_Left', 546);
-  Top := UserConfig.GetValue('ProjectForm_Top', 273);
-  WindowState := StrToWindowState(UserConfig.GetValue('ProjectForm_WindowState', 'wsNormal'));
-  PageControlBottom.Height := UserConfig.GetValue('ProjectForm_PageControlBottom.Height', 224);
+  if UserConfig.GetValue('ProjectForm_Saved', false) then
+  begin
+    Width := UserConfig.GetInteger('ProjectForm_Width');
+    Height := UserConfig.GetInteger('ProjectForm_Height');
+    Left := UserConfig.GetInteger('ProjectForm_Left');
+    Top := UserConfig.GetInteger('ProjectForm_Top');
+    WindowState := StrToWindowState(UserConfig.GetStringNonEmpty('ProjectForm_WindowState'));
+    PageControlBottom.Height := UserConfig.GetInteger('ProjectForm_PageControlBottom.Height');
+  end;
 end;
 
 procedure TProjectForm.ListOutputClick(Sender: TObject);
@@ -577,6 +582,7 @@ begin
   begin
     UserConfig.SetValue('ProjectForm_Design.PanelRight.Width', Design.PanelRight.Width);
     UserConfig.SetValue('ProjectForm_Design.PanelLeft.Width', Design.PanelLeft.Width);
+    UserConfig.SetValue('ProjectForm_DesignSaved', true);
     UserConfig.Save;
     FreeAndNil(Design);
     DesignExistenceChanged;
@@ -621,10 +627,10 @@ begin
   UpdateUndo(nil);
   UpdateRenameItem(nil);
 
-  if Design <> nil then
+  if (Design <> nil) and UserConfig.GetValue('ProjectForm_DesignSaved', false) then
   begin
-    Design.PanelRight.Width := UserConfig.GetValue('ProjectForm_Design.PanelRight.Width', 326);
-    Design.PanelLeft.Width := UserConfig.GetValue('ProjectForm_Design.PanelLeft.Width', 266);
+    Design.PanelRight.Width := UserConfig.GetInteger('ProjectForm_Design.PanelRight.Width');
+    Design.PanelLeft.Width := UserConfig.GetInteger('ProjectForm_Design.PanelLeft.Width');
   end;
 
   LabelNoDesign.Visible := Design = nil;
