@@ -425,9 +425,6 @@ type
     procedure PrepareSpriteSheet(const SpriteSheet: TCastleSpriteSheet);
 
     procedure AddFrame(const Animation: TCastleSpriteSheetAnimation);
-
-    procedure Load(SpriteSheet: TCastleSpriteSheet);
-
   public
     constructor Create(const URL: String; LoadForEdit: Boolean);
     destructor Destroy; override;
@@ -2049,30 +2046,6 @@ end;
 
 procedure TCastleSpriteSheetLoader.LoadToCastleSpriteSheet(
   SpriteSheet: TCastleSpriteSheet);
-begin
-  Load(SpriteSheet);
-end;
-
-function TCastleSpriteSheetLoader.LoadToCastleSpriteSheet: TCastleSpriteSheet;
-var
-  SpriteSheet: TCastleSpriteSheet;
-begin
-  SpriteSheet := TCastleSpriteSheet.Create(FLoadForEdit);
-  SpriteSheet.BeginLoad;
-  try
-    try
-      LoadToCastleSpriteSheet(SpriteSheet);
-      Result := SpriteSheet;
-    except
-      FreeAndNil(SpriteSheet);
-      raise;
-    end;
-  finally
-    SpriteSheet.EndLoad;
-  end;
-end;
-
-procedure TCastleSpriteSheetLoader.Load(SpriteSheet: TCastleSpriteSheet);
 var
   Doc: TXMLDocument;
   AtlasNode: TDOMElement;
@@ -2124,6 +2097,25 @@ begin
     end;
   finally
     FreeAndNil(Doc);
+  end;
+end;
+
+function TCastleSpriteSheetLoader.LoadToCastleSpriteSheet: TCastleSpriteSheet;
+var
+  SpriteSheet: TCastleSpriteSheet;
+begin
+  SpriteSheet := TCastleSpriteSheet.Create(FLoadForEdit);
+  SpriteSheet.BeginLoad;
+  try
+    try
+      LoadToCastleSpriteSheet(SpriteSheet);
+      Result := SpriteSheet;
+    except
+      FreeAndNil(SpriteSheet);
+      raise;
+    end;
+  finally
+    SpriteSheet.EndLoad;
   end;
 end;
 
