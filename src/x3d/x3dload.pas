@@ -459,6 +459,11 @@ begin
     Result := LoadGLTF(Stream, BaseUrl)
   else
 
+  if (MimeType = 'application/x-castle-sprite-sheet') or
+     (URIMimeType(URIDeleteAnchor(URL, true)) = 'application/x-castle-sprite-sheet') then
+    Result := LoadCastleSpriteSheet(URL)
+  else
+
   if MimeType = 'application/x-starling-sprite-sheet' then
     Result := LoadStarlingSpriteSheet(Stream, BaseUrl)
   if (MimeType = 'application/x-starling-sprite-sheet') or

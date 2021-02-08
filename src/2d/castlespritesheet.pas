@@ -102,8 +102,6 @@ type
         Modified state, don't change URL, don't save image paths }
       procedure Save(const AURL: String; const SaveCopy: Boolean = false);
 
-      class function LoadToX3D(const URL: String): TX3DRootNode;
-
       function ToX3D: TX3DRootNode;
 
       { Arranges and creates atlas image }
@@ -319,6 +317,8 @@ type
           const MaxWidth, MaxHeight: Integer);
       function WillFramesFitInSize(
           AtlasWidth, AtlasHeight: Integer): Boolean; virtual; abstract;
+      procedure GetMinAtlasSize(
+          out MinWidth, MinHeight: Integer); virtual; abstract;
       procedure Generate; virtual; abstract;
   end;
 
@@ -337,7 +337,7 @@ type
     public
       function WillFramesFitInSize(
           AtlasWidth, AtlasHeight: Integer): Boolean; override;
-      procedure GetMinAtlasSize(out MinWidth, MinHeight: Integer);
+      procedure GetMinAtlasSize(out MinWidth, MinHeight: Integer); override;
       procedure Generate; override;
   end;
 
@@ -348,14 +348,12 @@ type
       procedure Generate; override;
   end;
 
-
   { Castle Sprite Sheet XML file is not correct }
   EInvalidCastleSpriteSheetXml = class(Exception);
   ECastleSpriteSheetAtlasToSmall = class(Exception);
   ECantRegenerateAtlas = class(Exception);
 
-var
-  InternalDirectCastleSpriteSheetToX3DLoad: Boolean = false;
+  function LoadCastleSpriteSheet(const URL: String): TX3DRootNode;
 
 implementation
 
@@ -434,8 +432,6 @@ type
     constructor Create(const URL: String; LoadForEdit: Boolean);
     destructor Destroy; override;
 
-    function LoadToX3D: TX3DRootNode;
-
     procedure LoadToCastleSpriteSheet(SpriteSheet: TCastleSpriteSheet);
     function LoadToCastleSpriteSheet: TCastleSpriteSheet;
   end;
@@ -494,6 +490,19 @@ type
 
     function ExportToX3D: TX3DRootNode;
   end;
+
+function LoadCastleSpriteSheet(const URL: String): TX3DRootNode;
+var
+  SpriteSheet: TCastleSpriteSheet;
+begin
+  SpriteSheet := TCastleSpriteSheet.Create(false);
+  try
+    SpriteSheet.Load(URL);
+    Result := SpriteSheet.ToX3D;
+  finally
+    FreeAndNil(SpriteSheet);
+  end;
+end;
 
 { TCastleSpriteSheetX3DExporter }
 
@@ -1641,18 +1650,6 @@ begin
   end;
 end;
 
-class function TCastleSpriteSheet.LoadToX3D(const URL: String): TX3DRootNode;
-var
-  SpriteSheetLoader: TCastleSpriteSheetLoader;
-begin
-  SpriteSheetLoader := TCastleSpriteSheetLoader.Create(URL, false);
-  try
-    Result := SpriteSheetLoader.LoadToX3D;
-  finally
-    FreeAndNil(SpriteSheetLoader);
-  end;
-end;
-
 function TCastleSpriteSheet.ToX3D: TX3DRootNode;
 var
   Exporter: TCastleSpriteSheetX3DExporter;
@@ -2050,18 +2047,6 @@ begin
   FreeAndNil(FSubTexture);
   FreeAndNil(FImage);
   inherited Destroy;
-end;
-
-function TCastleSpriteSheetLoader.LoadToX3D: TX3DRootNode;
-var
-  SpriteSheet: TCastleSpriteSheet;
-begin
-  SpriteSheet := LoadToCastleSpriteSheet;
-  try
-    Result := SpriteSheet.ToX3D;
-  finally
-    FreeAndNil(SpriteSheet);
-  end;
 end;
 
 procedure TCastleSpriteSheetLoader.LoadToCastleSpriteSheet(
