@@ -450,7 +450,9 @@ var
 begin
   URLForDisplay := URIDisplay(URI);
 
-  URIGetAnchor(URI, Anchor);
+  { We need recognize escaped hash because GTK2 open dialog returns %23
+    in # position }
+  URIExtractAnchor(URI, Anchor, true);
   SettingsFromAnchor.Clear;
 
   if Anchor = '' then
