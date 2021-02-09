@@ -308,7 +308,7 @@ uses GraphType, IntfGraphics, Math, LCLIntf, LCLType, FPImage,
   CastleImages, CastleLog, CastleUtils, CastleURIUtils, CastleFilesUtils,
   X3DNodes,
   EditorUtils,
-  FormProject, FormImportAtlas
+  FormProject, FormImportAtlas, FormImportStarling
   {$ifdef LCLGTK2},Gtk2Globals{$endif};
 
 { TSpriteSheetEditorForm.TSelectedFrames }
@@ -679,11 +679,37 @@ begin
 end;
 
 procedure TSpriteSheetEditorForm.ActionOpenSpriteSheetExecute(Sender: TObject);
+var
+  URLAnchor: String;
+  URLToOpen: String;
 begin
   if not ProposeSaveSpriteSheet then
     Exit;
   if OpenDialog.Execute then
-    OpenSpriteSheet(OpenDialog.URL, false);
+  begin
+    URLToOpen := OpenDialog.URL;
+
+    { Check: if file is Starling }
+    if (URIMimeType(URIDeleteAnchor(URLToOpen, true)) =
+     'application/x-starling-sprite-sheet')
+      or (ExtractFileExt(URLToOpen) = '.xml') then
+    begin
+      { If file has anchors don't show import dialog }
+      URIExtractAnchor(URLToOpen, URLAnchor, true);
+      if URLAnchor = '' then
+      begin
+        ImportStarlingForm.Initialize(URLToOpen);
+        case ImportStarlingForm.ShowModal of
+          mrCancel:
+            Exit;
+          mrOK:
+            URLToOpen := ImportStarlingForm.URL;
+        end;
+      end;
+
+    end;
+    OpenSpriteSheet(URLToOpen, false);
+  end;
 end;
 
 procedure TSpriteSheetEditorForm.ActionDeleteAnimationExecute(Sender: TObject);

@@ -10,7 +10,7 @@ uses
   Forms, FormChooseProject, castle_components, ProjectUtils, FormNewProject,
   EditorUtils, FormProject, FrameDesign, FormAbout, FrameViewFile,
   FormPreferences, VisualizeTransform, FormSpriteSheetEditor, DataModuleIcons,
-  FormImportAtlas;
+  FormImportAtlas, FormImportStarling;
 
 {$R *.res}
 
@@ -26,6 +26,7 @@ begin
   Application.CreateForm(TAboutForm, AboutForm);
   Application.CreateForm(TPreferencesForm, PreferencesForm);
   Application.CreateForm(TImportAtlasForm, ImportAtlasForm);
+  Application.CreateForm(TImportStarlingForm, ImportStarlingForm);
   Application.Run;
 end.
 

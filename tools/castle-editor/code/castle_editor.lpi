@@ -75,7 +75,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="14">
+    <Units Count="15">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -168,9 +168,17 @@
         <Filename Value="formimportatlas.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="ImportAtlasForm"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="FormImportAtlas"/>
       </Unit13>
+      <Unit14>
+        <Filename Value="formimportstarling.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="ImportStarlingForm"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="FormImportStarling"/>
+      </Unit14>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

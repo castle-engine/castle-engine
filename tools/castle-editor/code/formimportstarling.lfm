@@ -1,0 +1,245 @@
+object ImportStarlingForm: TImportStarlingForm
+  Left = 624
+  Height = 382
+  Top = 297
+  Width = 730
+  BorderWidth = 8
+  Caption = 'Import Starling Sprite Sheet'
+  ClientHeight = 382
+  ClientWidth = 730
+  DesignTimePPI = 120
+  Position = poScreenCenter
+  LCLVersion = '2.0.11.0'
+  object ButtonPanel1: TButtonPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 8
+    Height = 34
+    Top = 340
+    Width = 714
+    BorderSpacing.Around = 0
+    OKButton.Name = 'OKButton'
+    OKButton.DefaultCaption = True
+    HelpButton.Name = 'HelpButton'
+    HelpButton.DefaultCaption = True
+    CloseButton.Name = 'CloseButton'
+    CloseButton.DefaultCaption = True
+    CancelButton.Name = 'CancelButton'
+    CancelButton.DefaultCaption = True
+    TabOrder = 0
+    ShowButtons = [pbOK, pbCancel]
+    ShowBevel = False
+    object ButtonDefault: TBitBtn
+      AnchorSideLeft.Control = ButtonPanel1
+      AnchorSideTop.Control = ButtonPanel1
+      AnchorSideTop.Side = asrCenter
+      Left = 0
+      Height = 32
+      Top = 1
+      Width = 68
+      AutoSize = True
+      Caption = 'Default'
+      OnClick = ButtonDefaultClick
+      TabOrder = 4
+    end
+  end
+  object PanelFPS: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = LabelStarlingOptions
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 8
+    Height = 30
+    Top = 71
+    Width = 714
+    Anchors = [akTop, akLeft, akRight]
+    AutoSize = True
+    BorderSpacing.Top = 4
+    BorderSpacing.Bottom = 4
+    BevelOuter = bvNone
+    ClientHeight = 30
+    ClientWidth = 714
+    TabOrder = 1
+    object LabelFPS: TLabel
+      AnchorSideLeft.Control = PanelFPS
+      AnchorSideTop.Control = PanelFPS
+      AnchorSideTop.Side = asrCenter
+      Left = 0
+      Height = 18
+      Top = 6
+      Width = 146
+      Caption = 'Frames Per Second:'
+      ParentColor = False
+    end
+    object FloatSpinEditFPS: TFloatSpinEdit
+      AnchorSideTop.Control = PanelFPS
+      AnchorSideTop.Side = asrCenter
+      AnchorSideRight.Control = PanelFPS
+      AnchorSideRight.Side = asrBottom
+      Left = 536
+      Height = 29
+      Top = 1
+      Width = 178
+      Anchors = [akTop, akLeft, akRight]
+      OnChange = OptionsChange
+      TabOrder = 0
+      Value = 8
+    end
+  end
+  object PanelURL: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 8
+    Height = 29
+    Top = 8
+    Width = 714
+    Anchors = [akTop, akLeft, akRight]
+    AutoSize = True
+    BorderSpacing.Bottom = 4
+    BevelOuter = bvNone
+    ClientHeight = 29
+    ClientWidth = 714
+    TabOrder = 2
+    object LabelURLTitle: TLabel
+      AnchorSideLeft.Control = PanelURL
+      AnchorSideTop.Control = PanelURL
+      AnchorSideTop.Side = asrCenter
+      Left = 0
+      Height = 18
+      Top = 5
+      Width = 98
+      Caption = 'Starling URL:'
+      ParentColor = False
+    end
+    object EditURL: TEdit
+      AnchorSideLeft.Control = LabelURLTitle
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = PanelURL
+      AnchorSideTop.Side = asrCenter
+      AnchorSideRight.Control = PanelURL
+      AnchorSideRight.Side = asrBottom
+      Left = 102
+      Height = 29
+      Top = 0
+      Width = 612
+      Alignment = taRightJustify
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Left = 4
+      ParentShowHint = False
+      ReadOnly = True
+      ShowHint = True
+      TabOrder = 0
+    end
+  end
+  object PanelNamingConvention: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = PanelFPS
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = ButtonPanel1
+    Left = 8
+    Height = 235
+    Top = 105
+    Width = 714
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    AutoSize = True
+    BevelOuter = bvNone
+    ClientHeight = 235
+    ClientWidth = 714
+    TabOrder = 3
+    object RadioStrictUnderscore: TRadioButton
+      AnchorSideLeft.Control = PanelNamingConvention
+      AnchorSideTop.Control = LabelNamingConvention
+      AnchorSideTop.Side = asrBottom
+      Left = 4
+      Height = 22
+      Top = 26
+      Width = 154
+      BorderSpacing.Left = 4
+      BorderSpacing.Top = 8
+      Caption = 'Strict underscore'
+      Checked = True
+      OnChange = OptionsChange
+      TabOrder = 0
+      TabStop = True
+    end
+    object RadioTralingNumber: TRadioButton
+      AnchorSideLeft.Control = RadioStrictUnderscore
+      AnchorSideTop.Control = LabelStrictDesc
+      AnchorSideTop.Side = asrBottom
+      Left = 4
+      Height = 22
+      Top = 110
+      Width = 140
+      BorderSpacing.Top = 4
+      Caption = 'Traling number'
+      OnChange = OptionsChange
+      TabOrder = 1
+    end
+    object LabelNamingConvention: TLabel
+      AnchorSideLeft.Control = PanelNamingConvention
+      AnchorSideTop.Control = PanelNamingConvention
+      Left = 0
+      Height = 18
+      Top = 0
+      Width = 152
+      Caption = 'Naming convention:'
+      ParentColor = False
+    end
+    object LabelStrictDesc: TLabel
+      AnchorSideLeft.Control = RadioStrictUnderscore
+      AnchorSideTop.Control = RadioStrictUnderscore
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = PanelNamingConvention
+      AnchorSideRight.Side = asrBottom
+      Left = 24
+      Height = 54
+      Top = 52
+      Width = 690
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Left = 20
+      BorderSpacing.Top = 4
+      Caption = 'The default behavior, strict according to the Starling format specification. To recognize subsequent frames of the animation, the animation name and frame number must be separated by an underscore, like this: walk_01, walk_02'
+      ParentColor = False
+      WordWrap = True
+    end
+    object LabelStrictDesc1: TLabel
+      AnchorSideLeft.Control = RadioTralingNumber
+      AnchorSideTop.Control = RadioTralingNumber
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = PanelNamingConvention
+      AnchorSideRight.Side = asrBottom
+      Left = 24
+      Height = 72
+      Top = 136
+      Width = 690
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Left = 20
+      BorderSpacing.Top = 4
+      Caption = 'The consecutive animation frames do not need any character between animation name and the frame number. So e.g. walk1 and walk2 will work (resulting in animation name walk) just like walk_1 and walk_2 (underscore is optional, but still stripped, so it also results in animation name walk).'
+      ParentColor = False
+      WordWrap = True
+    end
+  end
+  object LabelStarlingOptions: TLabel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = PanelURL
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 18
+    Top = 49
+    Width = 131
+    BorderSpacing.Top = 12
+    Caption = 'Starling options:'
+    Font.Style = [fsBold]
+    ParentColor = False
+    ParentFont = False
+  end
+end
