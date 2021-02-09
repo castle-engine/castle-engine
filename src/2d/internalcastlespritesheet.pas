@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-unit CastleSpriteSheet;
+unit InternalCastleSpriteSheet;
 
 {$I castleconf.inc}
 

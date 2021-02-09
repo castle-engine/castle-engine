@@ -2967,12 +2967,11 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/x3d/x3dtriangles_raysegment_nonleaf.inc"/>
         <Type Value="Include"/>
       <Item720>
+        <Filename Value="../src/2d/internalcastlespritesheet.pas"/>
+        <UnitName Value="internalcastlespritesheet"/>
         <Filename Value="../src/game/castlebehaviors.pas"/>
         <UnitName Value="CastleBehaviors"/>
       </Item720>
-      <Item718>
-        <Filename Value="../src/2d/castlespritesheet.pas"/>
-        <UnitName Value="CastleSpriteSheet"/>
       </Item720>
     </Files>
     <RequiredPkgs Count="1">
