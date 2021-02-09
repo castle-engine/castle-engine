@@ -2188,6 +2188,7 @@ begin
 
           { Check fps (CastleSpriteSheet extension) }
           ReadFramesPerSecond(I.Current);
+          CurrentAnimation.FramesPerSecond := FFramesPerSecond;
 
           AddFrame(CurrentAnimation);
         end else
