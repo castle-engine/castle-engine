@@ -129,7 +129,7 @@ type
       procedure RemoveAnimationByIndex(const Index: Integer);
       function ProposeAnimationName: String;
 
-      { Last Load/Save URL. }
+      { Last Load/Save URL. Can be empty when loaded from Starling file. }
       property URL: String read FURL write SetURL;
       { Full image path to loaded image, if empty sprite sheet was created from
         scratch. }
@@ -366,12 +366,13 @@ type
     we have to define what is the next frame of the animation and what should
     be recognized as a separate animation.
     See https://github.com/castle-engine/castle-engine/wiki/Sprite-sheets }
-  TStarlingAnimationNaming = (
-    { Default behavior treats as animation frames only those subtextures whose
-      names ends with an underscore followed by a number. }
+  TAnimationNaming = (
+    { Default behavior for Castle Sprite Sheet and Starling. It treats
+      as animation frames only those subtextures whose names ends with
+      an underscore followed by a number. }
     anStrictUnderscore,
     { In many cases, the consecutive frames of one animation are named
-      without underscore. }
+      without underscore. Only for Starling files. }
     anTralingNumber
   );
 
@@ -381,7 +382,7 @@ type
       { Class that represents SubTexture from Starling xml file }
       TSubTexture = class
       private
-        FAnimationNaming: TStarlingAnimationNaming;
+        FAnimationNaming: TAnimationNaming;
         procedure ParseAnimationName(const SubTextureName: String);
       public
         AnimationName: String;
@@ -395,7 +396,8 @@ type
         FrameHeight: Integer;
         Trimmed: Boolean;
 
-        procedure ReadFormXMLNode(const SubTextureNode: TDOMElement; const ImageWidth, ImageHeight: Integer);
+        procedure ReadFormXMLNode(const SubTextureNode: TDOMElement;
+            const ImageWidth, ImageHeight: Integer);
         constructor Create;
       end;
 
@@ -413,7 +415,12 @@ type
       FRelativeImagePath: String;
 
       FSubTexture: TSubTexture;
+      { True means that we will load extra edit fields and create
+        images in frames }
       FLoadForEdit: Boolean;
+      { True means that we attemp to load Starling file }
+      FStarlingLoading : Boolean;
+
       FImage: TCastleImage;
 
     procedure ReadImportSettings;
@@ -524,7 +531,11 @@ begin
   end else
   begin
     Tex := TImageTextureNode.Create;
-    TImageTextureNode(Tex).FdUrl.Send(ExtractURIPath(FSpriteSheet.URL) + FSpriteSheet.RelativeAtlasPath);
+    { Check is this file loaded from Starling in that case use LoadedAtlasPath }
+    if FSpriteSheet.URL <> '' then
+      TImageTextureNode(Tex).FdUrl.Send(ExtractURIPath(FSpriteSheet.URL) + FSpriteSheet.RelativeAtlasPath)
+    else
+      TImageTextureNode(Tex).FdUrl.Send(FSpriteSheet.LoadedAtlasPath);
     TImageTextureNode(Tex).RepeatS := false;
     TImageTextureNode(Tex).RepeatT := false;
   end;
@@ -1901,31 +1912,35 @@ begin
   // default values
   FFramesPerSecond := DefaultSpriteSheetFramesPerSecond;
 
-  SettingsMap := TStringStringMap.Create;
-  try
-    URIExtractSettingsFromAnchor(FURL, SettingsMap);
-    for Setting in SettingsMap do
-    begin
-      if LowerCase(Setting.Key) = 'fps' then
+  if FStarlingLoading then
+  begin
+    SettingsMap := TStringStringMap.Create;
+    try
+      URIExtractSettingsFromAnchor(FURL, SettingsMap);
+      for Setting in SettingsMap do
       begin
-        FFramesPerSecond := StrToFloatDot(Setting.Value);
-      end else
-      if LowerCase(Setting.Key) = 'anim-naming' then
-      begin
-        if Setting.Value = 'strict-underscore' then
-          FSubTexture.FAnimationNaming := anStrictUnderscore
-        else if Setting.Value = 'trailing-number' then
-          FSubTexture.FAnimationNaming := anTralingNumber
-        else
-          WritelnWarning('Starling', 'Unknown anim-naming value (%s) in "%s" anchor.',
-            [Setting.Value, FDisplayURL]);
-      end else
-        WritelnWarning('Starling', 'Unknown setting (%s) in "%s" anchor.',
-          [Setting.Key, FDisplayURL]);
+        if LowerCase(Setting.Key) = 'fps' then
+        begin
+          FFramesPerSecond := StrToFloatDot(Setting.Value);
+        end else
+        if LowerCase(Setting.Key) = 'anim-naming' then
+        begin
+          if Setting.Value = 'strict-underscore' then
+            FSubTexture.FAnimationNaming := anStrictUnderscore
+          else if Setting.Value = 'trailing-number' then
+            FSubTexture.FAnimationNaming := anTralingNumber
+          else
+            WritelnWarning('Starling', 'Unknown anim-naming value (%s) in "%s" anchor.',
+              [Setting.Value, FDisplayURL]);
+        end else
+          WritelnWarning('Starling', 'Unknown setting (%s) in "%s" anchor.',
+            [Setting.Key, FDisplayURL]);
+      end;
+    finally
+      FreeAndNil(SettingsMap);
     end;
-  finally
-    FreeAndNil(SettingsMap);
-  end;
+  end else
+    FSubTexture.FAnimationNaming := anStrictUnderscore;
 end;
 
 procedure TCastleSpriteSheetLoader.ReadImageProperties(const URL: String;
@@ -1962,7 +1977,8 @@ end;
 procedure TCastleSpriteSheetLoader.PrepareSpriteSheet(
     const SpriteSheet: TCastleSpriteSheet);
 begin
-  SpriteSheet.URL := FURL;
+  if not FStarlingLoading then
+    SpriteSheet.URL := FURL;
   SpriteSheet.LoadedAtlasPath := FAbsoluteImagePath;
   SpriteSheet.RelativeAtlasPath := FRelativeImagePath;
   FreeAndNil(FImage);
@@ -2033,6 +2049,9 @@ begin
   FURL := URL;
   FDisplayURL := URIDisplay(FURL);
 
+  FStarlingLoading := (URIMimeType(URIDeleteAnchor(URL, true)) =
+     'application/x-starling-sprite-sheet') or (ExtractFileExt(URL) = '.xml');
+
   FSubTexture := TSubTexture.Create;
   FLoadForEdit := LoadForEdit;
 end;
@@ -2059,7 +2078,7 @@ begin
 
   Doc := nil;
   try
-    Doc := URLReadXML(FURL);
+    Doc := URLReadXML(URIDeleteAnchor(FURL, true));
 
     Check(Doc.DocumentElement.TagName8 = 'TextureAtlas',
       'Root of CastleSpriteSheet file must be <TextureAtlas>');
