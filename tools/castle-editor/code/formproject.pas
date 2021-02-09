@@ -356,7 +356,9 @@ procedure TProjectForm.ActionNewSpriteSheetExecute(Sender: TObject);
 begin
   if SpriteSheetEditorForm = nil then
      SpriteSheetEditorForm := TSpriteSheetEditorForm.Create(Application);
+
   SpriteSheetEditorForm.Show;
+  SpriteSheetEditorForm.NewSpriteSheet;
 end;
 
 procedure TProjectForm.FormCreate(Sender: TObject);
@@ -879,7 +881,7 @@ begin
       if SpriteSheetEditorForm = nil then
         SpriteSheetEditorForm := TSpriteSheetEditorForm.Create(Application);
       SpriteSheetEditorForm.Show;
-      SpriteSheetEditorForm.OpenSpriteSheet(SelectedURL);
+      SpriteSheetEditorForm.OpenSpriteSheet(SelectedURL, true);
       Exit;
     end;
 
