@@ -58,6 +58,7 @@ type
 
       FModifiedState: Boolean;
       FLoadingPending: Boolean;
+
       FOnURLChanged: TNotifyEvent;
       FOnModifiedStateChanged: TNotifyEvent;
       FOnAnimationAdded: TCastleSpriteSheetAnimationEvent;
@@ -90,6 +91,8 @@ type
       procedure BeginLoad;
       { Removes ModifiedState changing blocking }
       procedure EndLoad;
+      { Throws EReadOnlyMode exception when EditMode = false }
+      procedure CheckEditMode;
     public
       constructor Create(AEditMode: Boolean);
       destructor Destroy; override;
@@ -192,9 +195,13 @@ type
       procedure SetFramesPerSecond(const NewFPS: Single);
 
       function GetFrame(const Index: Integer): TCastleSpriteSheetFrame;
+
     private
       { Sets sprite sheet state as modified. }
       procedure SetModifiedState;
+
+      { Throws EReadOnlyMode exception when EditMode = false }
+      procedure CheckEditMode;
     public
       constructor Create(SpriteSheet: TCastleSpriteSheet; AName: String);
       destructor Destroy; override;
@@ -264,6 +271,7 @@ type
 
       { Sets sprite sheet state as modified. }
       procedure SetModifiedState;
+      procedure CheckEditMode;
     public
       constructor Create(const Animation: TCastleSpriteSheetAnimation);
       { Construct full/deep copy of SrcFrame }
@@ -352,6 +360,7 @@ type
   EInvalidCastleSpriteSheetXml = class(Exception);
   ECastleSpriteSheetAtlasToSmall = class(Exception);
   ECantRegenerateAtlas = class(Exception);
+  EReadOnlyMode = class(Exception);
 
   function LoadCastleSpriteSheet(const URL: String): TX3DRootNode;
 
@@ -1086,6 +1095,11 @@ begin
   FAnimation.SetModifiedState;
 end;
 
+procedure TCastleSpriteSheetFrame.CheckEditMode;
+begin
+  Animation.CheckEditMode;
+end;
+
 constructor TCastleSpriteSheetFrame.Create(
   const Animation: TCastleSpriteSheetAnimation);
 begin
@@ -1130,6 +1144,8 @@ end;
 
 procedure TCastleSpriteSheetFrame.SetFrameImage(const SourceImage: TCastleImage);
 begin
+  CheckEditMode;
+
   FreeAndNil(FFrameImage);
   WidthInAtlas := SourceImage.Width;
   HeightInAtlas := SourceImage.Height;
@@ -1147,6 +1163,8 @@ procedure TCastleSpriteSheetFrame.SetFrameImage(
   const SourceImage: TCastleImage; const DestX, DestY, AFrameWidth,
   AFrameHeight, SourceX, SourceY, SourceWidthToCopy, SourceHeightToCopy: Integer);
 begin
+  CheckEditMode;
+
   Trimmed := not ((DestX = 0) and (DestY = 0));
 
   { update frame settings }
@@ -1189,6 +1207,8 @@ procedure TCastleSpriteSheetFrame.DrawToImage(const DestImage: TCastleImage;
   SourceHeightToDraw: Integer);
 begin
   Assert(FFrameImage <> nil, 'No frame image to draw.');
+  CheckEditMode;
+
   DestImage.DrawFrom(FFrameImage, DestX, DestY, SourceX, SourceY, SourceWidthToDraw,
     SourceHeightToDraw, dmOverwrite);
 end;
@@ -1197,12 +1217,16 @@ function TCastleSpriteSheetFrame.MakeResized(const Width, Height: Integer
   ): TCastleImage;
 begin
   Assert(FFrameImage <> nil, 'No frame image to resize.');
+  CheckEditMode;
+
   Result := FFrameImage.MakeResized(Width, Height);
 end;
 
 function TCastleSpriteSheetFrame.MakeImageCopy: TCastleImage;
 begin
   Assert(FFrameImage <> nil, 'No frame image to make copy.');
+  CheckEditMode;
+
   Result := FFrameImage.MakeCopy;
 end;
 
@@ -1211,6 +1235,8 @@ function TCastleSpriteSheetFrame.CenterOnBiggerImage(const Width,
 begin
   if (FrameWidth > Width) or (FrameHeight > Height) then
     raise Exception.Create('Frame image bigger than gived size');
+
+  CheckEditMode;
 
   Result := TCastleImageClass(FFrameImage.ClassType).Create(Width, Height, FFrameImage.Depth);
   Result.Clear(Vector4(0.0, 0.0, 0.0, 0.0));
@@ -1222,6 +1248,8 @@ end;
 
 procedure TCastleSpriteSheetFrame.SaveFrameImage(const URL: String);
 begin
+  CheckEditMode;
+
   SaveImage(FFrameImage, URL);
 end;
 
@@ -1280,6 +1308,11 @@ begin
   Result := FFrameList[Index];
 end;
 
+procedure TCastleSpriteSheetAnimation.CheckEditMode;
+begin
+  FSpriteSheet.CheckEditMode;
+end;
+
 function TCastleSpriteSheetAnimation.FrameCount: Integer;
 begin
   Result := FFrameList.Count;
@@ -1295,6 +1328,8 @@ function TCastleSpriteSheetAnimation.AddFrame: TCastleSpriteSheetFrame;
 var
   AFrame: TCastleSpriteSheetFrame;
 begin
+  CheckEditMode;
+
   AFrame := TCastleSpriteSheetFrame.Create(Self);
   FFrameList.Add(AFrame);
   Result := AFrame;
@@ -1308,6 +1343,8 @@ function TCastleSpriteSheetAnimation.AddFrameCopy(
 var
   AFrame: TCastleSpriteSheetFrame;
 begin
+  CheckEditMode;
+
   AFrame := TCastleSpriteSheetFrame.Create(Self, SrcFrame);
   FFrameList.Add(AFrame);
   Result := AFrame;
@@ -1322,6 +1359,8 @@ var
   AFrame: TCastleSpriteSheetFrame;
   Image: TCastleImage;
 begin
+  CheckEditMode;
+
   AFrame := TCastleSpriteSheetFrame.Create(Self);
   try
     Image := LoadImage(FrameImageURL);
@@ -1349,6 +1388,8 @@ function TCastleSpriteSheetAnimation.AddFrame(const SourceImage: TCastleImage;
 var
   AFrame: TCastleSpriteSheetFrame;
 begin
+  CheckEditMode;
+
   AFrame := TCastleSpriteSheetFrame.Create(Self);
   FFrameList.Add(AFrame);
   Result := AFrame;
@@ -1379,6 +1420,8 @@ end;
 procedure TCastleSpriteSheetAnimation.RemoveFrame(
   const Frame: TCastleSpriteSheetFrame);
 begin
+  CheckEditMode;
+
   if (Assigned(FSpriteSheet.BeforeFrameRemoved)) and
     (FFrameList.Contains(Frame)) then
     FSpriteSheet.BeforeFrameRemoved(Frame);
@@ -1391,6 +1434,8 @@ procedure TCastleSpriteSheetAnimation.MoveFrameLeft(
 var
   Index: Integer;
 begin
+  CheckEditMode;
+
   Index := FFrameList.IndexOf(Frame);
   if Index < 1 then
     Exit;
@@ -1403,6 +1448,8 @@ procedure TCastleSpriteSheetAnimation.MoveFrameRight(
 var
   Index: Integer;
 begin
+  CheckEditMode;
+
   Index := FFrameList.IndexOf(Frame);
   if (Index = FFrameList.Count - 1) or (Index = -1) then
     Exit;
@@ -1415,6 +1462,8 @@ procedure TCastleSpriteSheetAnimation.MoveFrameToTop(
 var
   Index: Integer;
 begin
+  CheckEditMode;
+
   Index := FFrameList.IndexOf(Frame);
   if Index < 1 then
     Exit;
@@ -1427,6 +1476,8 @@ procedure TCastleSpriteSheetAnimation.MoveFrameToEnd(
 var
   Index: Integer;
 begin
+  CheckEditMode;
+
   Index := FFrameList.IndexOf(Frame);
   if (Index = FFrameList.Count - 1) or (Index = -1) then
     Exit;
@@ -1437,6 +1488,8 @@ end;
 procedure TCastleSpriteSheetAnimation.MoveFrame(const OldIndex,
   NewIndex: Integer);
 begin
+  CheckEditMode;
+
   FFrameList.Move(OldIndex, NewIndex);
 
   if Assigned(FSpriteSheet.OnFrameMoved) then
@@ -1453,6 +1506,8 @@ var
   FrameHeight: Integer;
   I, J: Integer;
 begin
+  CheckEditMode;
+
   AtlasToImport := LoadImage(AtlasImageURL);
   try
     FrameWidth := AtlasToImport.Width div Cols;
@@ -1560,6 +1615,16 @@ end;
 procedure TCastleSpriteSheet.EndLoad;
 begin
   FLoadingPending := false;
+end;
+
+procedure TCastleSpriteSheet.CheckEditMode;
+begin
+  if FLoadingPending then
+    Exit;
+
+  if not EditMode then
+    raise EReadOnlyMode.Create(
+      'Can''t edit spritesheet in read only state (reload in edit mode).');
 end;
 
 constructor TCastleSpriteSheet.Create(AEditMode: Boolean);
@@ -1713,6 +1778,8 @@ begin
     (FMaxAtlasHeight = NewMaxAtlasHeight) then
     Exit;
 
+  CheckEditMode;
+
   FMaxAtlasWidth := NewMaxAtlasWidth;
   FMaxAtlasHeight := NewMaxAtlasHeight;
   if Assigned(FOnMaxAtlasSizeChanged) then
@@ -1780,6 +1847,8 @@ begin
   if HasAnimation(Name) then
     Exit(AnimationByName(Name));
 
+  CheckEditMode;
+
   Animation := TCastleSpriteSheetAnimation.Create(Self, Name);
   FAnimationList.Add(Animation);
   if Assigned(FOnAnimationAdded) then
@@ -1793,6 +1862,8 @@ procedure TCastleSpriteSheet.MoveAnimationUp(
 var
   Index: Integer;
 begin
+  CheckEditMode;
+
   Index := FAnimationList.IndexOf(Animation);
   if Index < 1 then
     Exit;
@@ -1805,6 +1876,8 @@ procedure TCastleSpriteSheet.MoveAnimationDown(
 var
   Index: Integer;
 begin
+  CheckEditMode;
+
   Index := FAnimationList.IndexOf(Animation);
   if (Index = FAnimationList.Count - 1) or (Index = -1) then
     Exit;
@@ -1817,6 +1890,8 @@ procedure TCastleSpriteSheet.MoveAnimationToTop(
 var
   Index: Integer;
 begin
+  CheckEditMode;
+
   Index := FAnimationList.IndexOf(Animation);
   if Index < 1 then
     Exit;
@@ -1829,6 +1904,8 @@ procedure TCastleSpriteSheet.MoveAnimationToEnd(
 var
   Index: Integer;
 begin
+  CheckEditMode;
+
   Index := FAnimationList.IndexOf(Animation);
   if (Index = FAnimationList.Count - 1) or (Index = -1) then
     Exit;
@@ -1838,6 +1915,8 @@ end;
 
 procedure TCastleSpriteSheet.MoveAnimation(const OldIndex, NewIndex: Integer);
 begin
+  CheckEditMode;
+
   FAnimationList.Move(OldIndex, NewIndex);
 
   if Assigned(FOnAnimationMoved) then
@@ -1849,6 +1928,8 @@ end;
 procedure TCastleSpriteSheet.RemoveAnimation(
   const Animation: TCastleSpriteSheetAnimation);
 begin
+  CheckEditMode;
+
   if (Assigned(FBeforeAnimationRemoved)) and
     (FAnimationList.Contains(Animation)) then
     FBeforeAnimationRemoved(Animation);
@@ -1861,6 +1942,8 @@ var
   I: Integer;
   Animation: TCastleSpriteSheetAnimation;
 begin
+  CheckEditMode;
+
   for I := 0 to FAnimationList.Count - 1 do
   begin
     Animation := FAnimationList[I];
@@ -1876,6 +1959,8 @@ end;
 
 procedure TCastleSpriteSheet.RemoveAnimationByIndex(const Index: Integer);
 begin
+  CheckEditMode;
+
   if Assigned(FBeforeAnimationRemoved) then
     FBeforeAnimationRemoved(FAnimationList[Index]);
 
