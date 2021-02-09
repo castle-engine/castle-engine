@@ -293,7 +293,7 @@ type
     procedure MaxAtlasSizeChanged(const MaxWidth, MaxHeight: Integer);
 
   public
-    procedure OpenSpriteSheet(const URL: String);
+    procedure OpenSpriteSheet(const URL: String; const ProposeSave: Boolean);
     procedure NewSpriteSheet;
   end;
 
@@ -683,7 +683,7 @@ begin
   if not ProposeSaveSpriteSheet then
     Exit;
   if OpenDialog.Execute then
-    OpenSpriteSheet(OpenDialog.URL);
+    OpenSpriteSheet(OpenDialog.URL, false);
 end;
 
 procedure TSpriteSheetEditorForm.ActionDeleteAnimationExecute(Sender: TObject);
@@ -1609,10 +1609,11 @@ begin
   ListViewAnimations.Items.Clear;
 end;
 
-procedure TSpriteSheetEditorForm.OpenSpriteSheet(const URL: String);
+procedure TSpriteSheetEditorForm.OpenSpriteSheet(const URL: String;
+  const ProposeSave: Boolean);
 begin
   try
-    if not ProposeSaveSpriteSheet then
+    if ProposeSave and (not ProposeSaveSpriteSheet) then
       Exit;
     CloseSpriteSheet;
     FSpriteSheet :=  TCastleSpriteSheet.Create(true); // edit mode
