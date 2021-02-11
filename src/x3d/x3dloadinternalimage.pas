@@ -35,12 +35,9 @@ type
 
   TImageAsX3DModelLoader = class
   strict private
-    FStream: TStream;
+    FImage: TEncodedImage;
     FBaseUrl: String;
     FDisplayUrl: String;
-    FMimeType: String;
-
-    FImageWidth, FImageHeight: Integer;
 
     FLeft: Integer;
     FBottom: Integer;
@@ -57,8 +54,6 @@ type
     procedure ReadImportSettings;
 
     procedure PrepareX3DRoot;
-
-    procedure ReadImageProperties;
 
     procedure CalculateCoords;
 
@@ -119,31 +114,16 @@ begin
     FreeAndNil(SettingsMap);
   end;
 
-  ReadImageProperties;
-
   if FWidth = 0 then
-    FWidth := FImageWidth;
+    FWidth := FImage.Width;
   if FHeight = 0 then
-    FHeight := FImageHeight;
+    FHeight := FImage.Height;
 end;
 
 procedure TImageAsX3DModelLoader.PrepareX3DRoot;
 begin
   FRoot.Meta['generator'] := 'Castle Game Engine, https://castle-engine.io';
   FRoot.Meta['source'] := ExtractURIName(FBaseUrl);
-end;
-
-procedure TImageAsX3DModelLoader.ReadImageProperties;
-var
-  Image: TCastleImage;
-begin
-  Image := LoadImage(FStream, FMimeType, []);
-  try
-    FImageWidth := Image.Width;
-    FImageHeight := Image.Height;
-  finally
-    FreeAndNil(Image);
-  end;
 end;
 
 procedure TImageAsX3DModelLoader.CalculateCoords;
@@ -154,11 +134,11 @@ begin
   AnchorX := 0.5;
   AnchorY := 0.5;
 
-  X1 := 1 / FImageWidth * FLeft;
-  Y1 := 1 / FImageHeight * (FBottom + FHeight);
+  X1 := 1 / FImage.Width * FLeft;
+  Y1 := 1 / FImage.Height * (FBottom + FHeight);
 
-  X2 := 1 / FImageWidth * (FLeft + FWidth);
-  Y2 := 1 / FImageHeight * (FBottom);
+  X2 := 1 / FImage.Width * (FLeft + FWidth);
+  Y2 := 1 / FImage.Height * (FBottom);
 
   FCoordArray[0] := Vector3(-FWidth * AnchorX,
       FHeight * AnchorY, 0);
@@ -197,9 +177,8 @@ begin
   Shape.Material := TUnlitMaterialNode.Create;
 
   Tex := TImageTextureNode.Create;
-  { TODO: we are using FBaseUrl to load contents, instead of using ready FStream.
-    We need TImageTextureNode.LoadFromStream or even TImageTextureNode.LoadFromImage. }
-  Tex.FdUrl.Send(FBaseUrl);
+  { Take FImage ownership, we will not free it here }
+  Tex.LoadFromImage(FImage, true, FBaseUrl);
   Tex.RepeatS := false;
   Tex.RepeatT := false;
   Shape.Texture := Tex;
@@ -235,13 +214,10 @@ end;
 constructor TImageAsX3DModelLoader.Create(const Stream: TStream; const BaseUrl, MimeType: String);
 begin
   inherited Create;
-  FImageWidth := 0;
-  FImageHeight := 0;
 
-  FStream := Stream;
+  FImage := LoadImage(Stream, MimeType, []);
   FBaseUrl := BaseUrl;
   FDisplayUrl := URIDisplay(FBaseUrl);
-  FMimeType := MimeType;
 
   SetLength(FCoordArray, 6);
   SetLength(FTexCoordArray, 6);
