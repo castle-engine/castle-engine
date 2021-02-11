@@ -35,18 +35,21 @@ uses Classes,
 procedure URIExtractAnchor(var URI: string; out Anchor: string;
   const RecognizeEvenEscapedHash: boolean = false);
 
-{ Extract #anchor from an URI, and split it into a key-value map.
+{ Like URIExtractAnchor, but URI remains unchanged. }
+procedure URIGetAnchor(const URI: string; out Anchor: string;
+  const RecognizeEvenEscapedHash: boolean = false);
+
+{ Calculate #anchor from an URI, and split it into a key-value map.
 
   This supports special CGE syntax within URL anchor to specify loading parameters for
   @url(https://github.com/castle-engine/castle-engine/wiki/Spine Spine),
   @url(https://github.com/castle-engine/castle-engine/wiki/Sprite-sheets sprite sheets),
   @url(https://github.com/castle-engine/castle-engine/wiki/Images images).
 
-  On input, URI contains full URI.
-  On output, Anchor is removed from URI and they key-value pairs are saved in TStringStringMap.
+  On output, the key-value pairs from anchor are saved in TStringStringMap.
   The SettingsFromAnchor is always cleared at the beginning.
   If no anchor existed, SettingsFromAnchor will be empty when this ends. }
-procedure URIExtractSettingsFromAnchor(var URI: string;
+procedure URIGetSettingsFromAnchor(const URI: string;
   const SettingsFromAnchor: TStringStringMap);
 
 { Return URI with anchor (if was any) stripped. }
@@ -375,6 +378,15 @@ uses SysUtils, URIParser,
   CastleInternalDirectoryInformation
   {$ifdef CASTLE_NINTENDO_SWITCH} , CastleInternalNxBase {$endif};
 
+procedure URIGetAnchor(const URI: string; out Anchor: string;
+  const RecognizeEvenEscapedHash: boolean = false);
+var
+  U: String;
+begin
+  U := URI;
+  URIExtractAnchor(U, Anchor, RecognizeEvenEscapedHash);
+end;
+
 procedure URIExtractAnchor(var URI: string; out Anchor: string;
   const RecognizeEvenEscapedHash: boolean);
 var
@@ -408,7 +420,7 @@ begin
   end;
 end;
 
-procedure URIExtractSettingsFromAnchor(var URI: string;
+procedure URIGetSettingsFromAnchor(const URI: string;
   const SettingsFromAnchor: TStringStringMap);
 var
   URLForDisplay: String;
@@ -438,7 +450,7 @@ var
 begin
   URLForDisplay := URIDisplay(URI);
 
-  URIExtractAnchor(URI, Anchor);
+  URIGetAnchor(URI, Anchor);
   SettingsFromAnchor.Clear;
 
   if Anchor = '' then
@@ -810,10 +822,28 @@ end;
 
 function URIMimeType(const URI: string; out Gzipped: boolean): string;
 
-  function ExtToMimeType(Ext, ExtExt: string): string;
+  function ExtToMimeType(const URI: string): string;
+  var
+    Ext, ExtExt, ExtA{, ExtExtA}, URIWithoutAnchor: String;
   begin
-    Ext := LowerCase(Ext);
-    ExtExt := LowerCase(ExtExt);
+    { We're consciously using here ExtractFileExt and ExtractFileDoubleExt on URIs,
+      although they should be used for filenames.
+      Note that this unit does not define public functions like ExtractURIExt
+      or ExtractURIDoubleExt: *everything* should operate on MIME types instead. }
+    Ext := LowerCase(ExtractFileExt(URI));
+    ExtExt := LowerCase(ExtractFileDoubleExt(URI));
+
+    { Some of our reading functions, like Spine, sprite sheets and images,
+      recognize and strip anchors from URL.
+      So recognize MIME type based on URL without anchor too.
+      Otherwise 'xxx.json#skinname' would not be detected as Spine JSON.
+      The comparison below can use ExtA / ExtExtA instead of Ext / ExtExt then.
+
+      Note that doing it here means that *all* implementations of relevant formats
+      should strip anchors, e.g. both LoadImageAsNode and LoadImage must strip anchors. }
+    URIWithoutAnchor := URIDeleteAnchor(URI, true);
+    ExtA := LowerCase(ExtractFileExt(URIWithoutAnchor));
+    // unused: ExtExtA := LowerCase(ExtractFileDoubleExt(URIWithoutAnchor));
 
     { This list is based on
       http://svn.freepascal.org/cgi-bin/viewvc.cgi/trunk/lcl/interfaces/customdrawn/customdrawnobject_android.inc?root=lazarus&view=co&content-type=text%2Fplain
@@ -858,7 +888,7 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
     if Ext = '.geo' then Result := 'application/x-geo' else
     if Ext = '.kanim' then Result := 'application/x-castle-anim-frames' else
     if Ext = '.castle-anim-frames' then Result := 'application/x-castle-anim-frames' else
-    if Ext = '.json' then Result := 'application/json' else
+    if ExtA = '.json' then Result := 'application/json' else
     { Various sites propose various MIME types for STL:
       https://gist.github.com/allysonsouza/1bf9d4a0295a14373979cd23d15df0a9
       application/wavefront-stl
@@ -877,9 +907,9 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
       Created as image type based on
       https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
     }
-    if Ext = '.starling-xml' then Result := 'application/x-starling-sprite-sheet' else
-    if Ext = '.cocos2d-plist' then Result := 'application/x-cocos2d-sprite-sheet' else
-    if Ext = '.plist' then Result := 'application/x-plist' else
+    if ExtA = '.starling-xml' then Result := 'application/x-starling-sprite-sheet' else
+    if ExtA = '.cocos2d-plist' then Result := 'application/x-cocos2d-sprite-sheet' else
+    if ExtA = '.plist' then Result := 'application/x-plist' else
     // HTML
     if Ext = '.htm' then Result := 'text/html' else
     if Ext = '.html' then Result := 'text/html' else
@@ -951,7 +981,7 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
     if Ext = '.castle-user-interface' then Result := 'text/x-castle-user-interface' else
     if Ext = '.castle-transform' then Result := 'text/x-castle-transform' else
       { as a last resort, check URIMimeExtensions }
-      URIMimeExtensions.TryGetValue(Ext, Result);
+      URIMimeExtensions.TryGetValue(ExtA, Result);
   end;
 
 var
@@ -973,11 +1003,7 @@ begin
      (P = 'castle-nx-contents') or
      (P = 'castle-android-assets') or
      (P = 'castle-data') then
-    { We're consciously using here ExtractFileExt and ExtractFileDoubleExt on URIs,
-      although they should be used for filenames.
-      Note that this unit does not define public functions like ExtractURIExt
-      or ExtractURIDoubleExt: *everything* should operate on MIME types instead. }
-    Result := ExtToMimeType(ExtractFileExt(URI), ExtractFileDoubleExt(URI)) else
+    Result := ExtToMimeType(URI) else
 
   if P = 'data' then
   begin

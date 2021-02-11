@@ -1231,14 +1231,14 @@ begin
   end;
 end;
 
-function LoadX3DClassicStream(Stream: TStream): TX3DRootNode;
-var
-  BS: TBufferedReadStream;
+function LoadX3DClassicStream(const Stream: TStream): TX3DRootNode;
 begin
-  BS := TBufferedReadStream.Create(Stream, false);
-  try
-    Result := LoadX3DClassicInternal(BS , '');
-  finally FreeAndNil(BS) end;
+  Result := LoadNode(Stream, '', 'model/x3d+vrml');
+end;
+
+function LoadX3DXmlStream(const Stream: TStream): TX3DRootNode;
+begin
+  Result := LoadNode(Stream, '', 'model/x3d+xml');
 end;
 
 procedure TTestX3DNodes.TestRootNodeMeta;
@@ -1333,7 +1333,7 @@ begin
     Save3D(Node, TempStream, '', '', xeXML, false);
     FreeAndNil(Node);
     TempStream.Position := 0;
-    Node := LoadX3DXml(TempStream, '');
+    Node := LoadX3DXmlStream(TempStream);
 
     { make sure saved and loaded back Ok }
     AssertTrue(Node.HasForceVersion);
@@ -1383,7 +1383,7 @@ begin
 
     { check that loading it back results in 3.1 }
     TempStream.Position := 0;
-    Node := LoadX3DXml(TempStream, '');
+    Node := LoadX3DXmlStream(TempStream);
     AssertTrue(Node.HasForceVersion = true);
     AssertTrue(Node.ForceVersion.Major = 3);
     AssertTrue(Node.ForceVersion.Minor = 1);
@@ -1417,7 +1417,7 @@ begin
     { check that loading it back results in 3.0
       (conversion was done, since this is XML) }
     TempStream.Position := 0;
-    Node := LoadX3DXml(TempStream, '');
+    Node := LoadX3DXmlStream(TempStream);
     AssertTrue(Node.HasForceVersion = true);
     AssertTrue(Node.ForceVersion.Major = 3);
     AssertTrue(Node.ForceVersion.Minor = 0);
@@ -1535,7 +1535,7 @@ begin
     FreeAndNil(Node);
 
     TempStream.Position := 0;
-    Node := LoadX3DXml(TempStream, '');
+    Node := LoadX3DXmlStream(TempStream);
     Assertions(Node);
   finally
     FreeAndNil(Node);

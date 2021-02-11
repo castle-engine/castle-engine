@@ -124,7 +124,8 @@ type
       but you must manually take care to free (or pass elsewhere)
       the TAnimation.KeyNodes contents, or just call @link(TAnimationList.FreeKeyNodesContents).)
     }
-    class function LoadAnimFramesToKeyNodes(const URL: string): TAnimationList;
+    class function LoadAnimFramesToKeyNodes(const URL: string): TAnimationList; overload;
+    class function LoadAnimFramesToKeyNodes(const Stream: TStream; const BaseUrl: String): TAnimationList; overload;
 
     { From key nodes, create a series of baked nodes (with final
       animation pose already calculated) representing an animation.
@@ -753,6 +754,16 @@ begin
 end;
 
 class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TAnimationList;
+var
+  Stream: TStream;
+begin
+  Stream := Download(URL);
+  try
+    Result := LoadAnimFramesToKeyNodes(Stream, URL);
+  finally FreeAndNil(Stream) end;
+end;
+
+class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const Stream: TStream; const BaseUrl: String): TAnimationList;
 
   function LoadGLTFFromString(const Contents: String; const BaseUrl: String): TX3DRootNode;
   var
@@ -787,7 +798,7 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TA
   begin
     Result := TAnimation.Create;
     try
-      AbsoluteBaseUrl := AbsoluteURI(URL);
+      AbsoluteBaseUrl := AbsoluteURI(BaseUrl);
 
       Check(Element.TagName = 'animation', 'Expected an <animation> XML node');
 
@@ -851,7 +862,7 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TA
             MimeType := FrameElement.AttributeStringDef('mime_type', '');
             case MimeType of
               '', 'model/x3d+xml':
-                NewNode := LoadX3DXml(FrameElement.ChildElement('X3D'), AbsoluteBaseUrl);
+                NewNode := LoadX3DXmlInternal(FrameElement.ChildElement('X3D'), AbsoluteBaseUrl);
               'model/gltf+json':
                 NewNode := LoadGLTFFromString(FrameElement.TextData, AbsoluteBaseUrl);
               else
@@ -883,13 +894,9 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TA
 
 var
   Document: TXMLDocument;
-  Stream: TStream;
   Children: TXMLElementIterator;
 begin
-  Stream := Download(URL);
-  try
-    ReadXMLFile(Document, Stream);
-  finally FreeAndNil(Stream) end;
+  ReadXMLFile(Document, Stream);
 
   try
     Result := TAnimationList.Create;

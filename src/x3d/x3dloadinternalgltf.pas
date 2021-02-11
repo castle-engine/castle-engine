@@ -24,12 +24,8 @@ uses Classes,
   X3DNodes, X3DFields;
 
 { Load 3D model in the Gltf format, converting it to an X3D nodes graph.
-  This routine is internally used by the @link(LoadNode) to load an Gltf file.
-
-  The overloaded version without an explicit Stream will open the URL
-  using @link(Download). }
-function LoadGltf(const URL: string): TX3DRootNode;
-function LoadGltf(const Stream: TStream; const URL: string): TX3DRootNode;
+  This routine is internally used by the @link(LoadNode) to load an Gltf file. }
+function LoadGltf(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 
 implementation
 
@@ -828,9 +824,8 @@ end;
 { LoadGltf ------------------------------------------------------------------- }
 
 { Main routine that converts glTF -> X3D nodes, doing most of the work. }
-function LoadGltf(const Stream: TStream; const URL: string): TX3DRootNode;
+function LoadGltf(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 var
-  BaseUrl: String;
   Document: TPasGLTF.TDocument;
   // List of TGltfAppearanceNode nodes, ordered just list glTF materials
   Appearances: TX3DNodeList;
@@ -2401,15 +2396,6 @@ var
   Material: TPasGLTF.TMaterial;
   Animation: TPasGLTF.TAnimation;
 begin
-  { Make absolute URL.
-
-    This also makes the later Document.RootPath calculation correct.
-    Otherwise "InclPathDelim(ExtractFilePath(URIToFilenameSafe('my_file.gtlf')))"
-    would result in '/' (accidentally making all TPasGLTF.TImage.URI values
-    relative to root directory on Unix). This was reproducible doing
-    "view3dscene my_file.gtlf" on the command-line. }
-  BaseUrl := AbsoluteURI(URL);
-
   Result := TX3DRootNode.Create('', BaseUrl);
   try
     // Set to nil local variables, to avoid nested try..finally..end construction
@@ -2472,18 +2458,6 @@ begin
       FreeAndNil(Document);
     end;
   except FreeAndNil(Result); raise end;
-end;
-
-function LoadGltf(const URL: string): TX3DRootNode;
-var
-  Stream: TStream;
-begin
-  { Using soForceMemoryStream, because PasGLTF does seeking,
-    otherwise reading glTF from Android assets (TReadAssetStream) would fail. }
-  Stream := Download(URL, [soForceMemoryStream]);
-  try
-    Result := LoadGltf(Stream, URL);
-  finally FreeAndNil(Stream) end;
 end;
 
 end.

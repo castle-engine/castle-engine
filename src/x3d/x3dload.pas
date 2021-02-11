@@ -37,7 +37,7 @@
       (GNOME, and other following freedesktop.org specs). For this,
 
       1. Update view3dscene MIME database.
-      Simply add appopriate element to ../../../view3dscene/desktop/view3dscene.xml.
+      Simply add appopriate element to ../../../view3dscene/freedesktop/view3dscene.xml.
       Format of that MIME xml file is self-explanatory.
       It's good idea to google first
       to search for standard MIME type for your model format (e.g. wikipedia
@@ -46,10 +46,10 @@
       name for your format.
 
       2. After adding to MIME database, you want to also add format to
-      ../../../view3dscene/desktop/view3dscene.desktop, to indicate that
+      ../../../view3dscene/freedesktop/view3dscene.desktop, to indicate that
       view3dscene handles this MIME type.
 
-      3. Finally, also add this to ../../../view3dscene/desktop/install_thumbnailer.sh,
+      3. Finally, also add this to ../../../view3dscene/freedesktop/install_thumbnailer.sh,
       so that GNOME nautilus thumbnailers for this MIME types can be installed.)
 
     @item(You probably also want to extend documentation.
@@ -113,9 +113,40 @@ end;
   so you would actually use @code('castle-data:/my_model.x3d') URL instead
   of @code('my_model.x3d').
 }
-function LoadNode(const URL: string;
+function LoadNode(const Url: string;
   const NilOnUnrecognizedFormat: boolean = false): TX3DRootNode;
-function Load3D(const URL: string;
+
+{ Load a scene as X3D node from TStream.
+
+  Takes a TStream instance with contents to load,
+  and MimeType parameter determines the data content (e.g. X3D or glTF or Spine model).
+
+  In most cases, instead of this, you should use a simpler LoadNode overloaded version
+  that just takes URL parameter without the explicit Stream or MimeType parameters.
+  It will automatically create the stream and guess MIME type.
+
+  The BaseUrl parameter here is used to resolve relative URLs inside the model,
+  e.g. references to textures from various 3D and 2D model formats are resolved
+  relative to this base URL.
+  It generally should be a URL from which you downloaded the model.
+  If you don't know it, you can use the current directory (which can be conveniently
+  expressed by BaseUrl = '', which is a relative empty URL implying current working dir).
+  We @bold(do not) use BaseUrl to determine file contents (e.g. we don't look at filename
+  extension here) in this routine.
+
+  Note that some formats (like glTF) require a stream with free seeking capabilities.
+  Call @link(Download) with soForceMemoryStream, or wrap the stream in TMemoryStream manually,
+  if unsure. The overloaded LoadNode without explicit TStream uses soForceMemoryStream
+  when necessary.
+
+  Note that this routine assumes that the stream is not gzip-compressed.
+  The overloaded LoadNode without explicit TStream accounts for gzip-compressed streams
+  in some cases.
+}
+function LoadNode(const Stream: TStream; BaseUrl: String; const MimeType: String;
+  const NilOnUnrecognizedFormat: boolean = false): TX3DRootNode;
+
+function Load3D(const Url: string;
   const AllowStdIn: boolean = false;
   const NilOnUnrecognizedFormat: boolean = false): TX3DRootNode; deprecated 'use LoadNode, and note it has one less parameter (AllowStdIn is not implemented anymore)';
 
@@ -152,7 +183,7 @@ function Load3D_FileFilters: String; deprecated 'use LoadScene_FileFilters';
     Pass here some created and empty instance of TSingleList.)
 }
 procedure Load3DSequence(
-  const URL: string;
+  const Url: string;
   const AllowStdIn: boolean;
   const KeyNodes: TX3DNodeList;
   const KeyTimes: TSingleList;
@@ -181,7 +212,7 @@ uses CastleClassUtils, CastleImages, CastleURIUtils, CastleStringUtils,
   X3DLoadInternalCollada, X3DLoadInternalSpine, X3DLoadInternalSTL,
   X3DLoadInternalMD3, X3DLoadInternalGLTF, X3DLoadInternalStarling,
   X3DLoadInternalImage, X3DLoadInternalCocos2d,
-  CastleInternalNodeInterpolator;
+  CastleInternalNodeInterpolator, CastleDownload;
 
 { Load a sequence of nodes to an animation suitable for TNodeInterpolator.
   Allows to read sequence of static models as an animation,
@@ -245,80 +276,147 @@ end;
 
 function LoadNode(const URL: string;
   const NilOnUnrecognizedFormat: boolean): TX3DRootNode;
+var
+  MimeType, URLWithoutAnchor: string;
 
-  function LoadAnimFrames(const URL: string): TX3DRootNode;
+  function DownloadAndLoad(DownloadOptions: TStreamOptions): TX3DRootNode;
   var
-    Animations: TNodeInterpolator.TAnimationList;
+    Stream: TStream;
   begin
-    Animations := TNodeInterpolator.LoadAnimFramesToKeyNodes(URL);
-    try
-      Result := TNodeInterpolator.LoadToX3D(Animations);
-    finally FreeAndNil(Animations) end;
-  end;
+    { Some formats readers require seeking capability.
+      Testcase: e.g. PasGLTF does seeking,
+      and without soForceMemoryStream reading glTF from Android assets (TReadAssetStream) would fail. }
+    if (MimeType = 'model/gltf+json') or
+       (MimeType = 'model/gltf-binary') or
+       (MimeType = 'application/x-md3') or
+       (MimeType = 'image/x-3ds') then
+      Include(DownloadOptions, soForceMemoryStream);
 
-  function LoadMD3(const URL: string): TX3DRootNode;
-  var
-    Animations: TNodeInterpolator.TAnimationList;
-  begin
-    Animations := LoadMD3Sequence(URL);
+    Stream := Download(URLWithoutAnchor, DownloadOptions);
     try
-      Result := TNodeInterpolator.LoadToX3D(Animations);
-    finally FreeAndNil(Animations) end;
+      Result := LoadNode(Stream, URL, MimeType, NilOnUnrecognizedFormat);
+    finally FreeAndNil(Stream) end;
   end;
 
 var
-  MimeType: string;
   Gzipped: boolean;
 begin
-  MimeType := URIMimeType(URL, Gzipped);
+  { We always download stripping anchor.
+    Spine, sprite sheets (Starling, Cocos2d), images except such anchor.
+    Other model formats may support it as well in the future. }
+  URLWithoutAnchor := URIDeleteAnchor(URL, true);
 
   if HasNameCounter(URL, false) then
+  begin
     Result := LoadSequenceUsingCounter(URL)
-  else
+  end else
+  begin
+    MimeType := URIMimeType(URL, Gzipped);
+    if Gzipped then
+    begin
+      Result := DownloadAndLoad([soGzip])
+    end else
+    try
+      Result := DownloadAndLoad([])
+    except
+      { Some readers (only X3D for now, but maybe more will join in future)
+        detect that stream is gzip-compressed and raise EGzipCompressed.
+
+        In this case we reopen the file, creating new stream.
+        It's a simple and working solution in practice -- it allows us to read X3D files
+        compressed by gzip but without indicating this by file extension.
+
+        Other ideas to implement it:
+
+        1. Pipe the output always by gzip decompression.
+
+           But this means additional overhead always,
+           even though in 99% cases the input is not gzip-compressed.
+           We already filter the input through some streams anyway
+           (we already wrap TFileStream in TBufferedReadStream in case of typical X3D).
+
+        2. Rewind the stream and only pipe it conditionally.
+
+           But this forces the stream to be freely "seekable",
+           not all stream implementations allow it. }
+      on EGzipCompressed do
+        Result := DownloadAndLoad([soGzip])
+    end;
+  end;
+end;
+
+function LoadNode(const Stream: TStream;
+  BaseUrl: String; const MimeType: String;
+  const NilOnUnrecognizedFormat: boolean = false): TX3DRootNode;
+
+  function LoadAnimFrames(const Stream: TStream; const BaseUrl: string): TX3DRootNode;
+  var
+    Animations: TNodeInterpolator.TAnimationList;
+  begin
+    Animations := TNodeInterpolator.LoadAnimFramesToKeyNodes(Stream, BaseUrl);
+    try
+      Result := TNodeInterpolator.LoadToX3D(Animations);
+    finally FreeAndNil(Animations) end;
+  end;
+
+  function LoadMD3(const Stream: TStream; const BaseUrl: string): TX3DRootNode;
+  var
+    Animations: TNodeInterpolator.TAnimationList;
+  begin
+    Animations := LoadMD3Sequence(Stream, BaseUrl);
+    try
+      Result := TNodeInterpolator.LoadToX3D(Animations);
+    finally FreeAndNil(Animations) end;
+  end;
+
+begin
+  { All internal loading functions may assume BaseUrl is absolute.
+
+    E.g. from glTF loader:
+
+    Absolute BaseUrl makes the later Document.RootPath calculation correct.
+    Otherwise "InclPathDelim(ExtractFilePath(URIToFilenameSafe('my_file.gtlf')))"
+    would result in '/' (accidentally making all TPasGLTF.TImage.URI values
+    relative to root directory on Unix). This was reproducible doing
+    "view3dscene my_file.gtlf" on the command-line. }
+  BaseUrl := AbsoluteURI(BaseUrl);
 
   if (MimeType = 'application/x-inventor') or
      (MimeType = 'model/vrml') or
      (MimeType = 'model/x3d+vrml') then
-    Result := LoadX3DClassic(URL, Gzipped)
+    Result := LoadX3DClassicInternal(Stream, BaseUrl)
   else
 
   if MimeType = 'model/x3d+xml' then
-    Result := LoadX3DXml(URL, Gzipped)
+    Result := LoadX3DXmlInternal(Stream, BaseUrl)
   else
 
   if MimeType = 'application/x-geo' then
-    Result := LoadGEO(URL)
+    Result := LoadGEO(Stream, BaseUrl)
   else
 
   if MimeType = 'image/x-3ds' then
-    Result := Load3DS(URL)
+    Result := Load3DS(Stream, BaseUrl)
   else
 
   if MimeType = 'application/x-wavefront-obj' then
-    Result := LoadWavefrontOBJ(URL)
+    Result := LoadWavefrontOBJ(Stream, BaseUrl)
   else
 
   if MimeType = 'model/vnd.collada+xml' then
-    Result := LoadCollada(URL)
+    Result := LoadCollada(Stream, BaseUrl)
   else
 
-  if (MimeType = 'application/json') or
-     { For Spine, we will strip anchor in LoadSpine, so we can guess MIME
-       based on URL without anchor too. Otherwise xxx.json#skinname
-       would not be detected as Spine JSON.
-       Note that we should not do this in URIMimeType implementation,
-       as it depends on reader implementation whether anchor is understood
-       (and stripped). }
-     (URIMimeType(URIDeleteAnchor(URL, true), Gzipped) = 'application/json') then
-    Result := LoadSpine(URL)
+  if MimeType = 'application/json' then
+    Result := LoadSpine(Stream, BaseUrl)
   else
 
   if MimeType = 'application/x-castle-anim-frames' then
-    Result := LoadAnimFrames(URL)
+    Result := LoadAnimFrames(Stream, BaseUrl)
   else
 
   if MimeType = 'application/x-md3' then
-    Result := LoadMD3(URL)
+    Result := LoadMD3(Stream, BaseUrl)
   else
 
   if (MimeType = 'application/x-stl') or
@@ -326,36 +424,33 @@ begin
      (MimeType = 'application/wavefront-stl') or
      (MimeType = 'application/vnd.ms-pki.stl') or
      (MimeType = 'application/x-navistyle') then
-    Result := LoadSTL(URL)
+    Result := LoadSTL(Stream, BaseUrl)
   else
 
   if (MimeType = 'model/gltf+json') or
      (MimeType = 'model/gltf-binary') then
-    Result := LoadGLTF(URL)
+    Result := LoadGLTF(Stream, BaseUrl)
   else
 
-  if (MimeType = 'application/x-starling-sprite-sheet') or
-     (URIMimeType(URIDeleteAnchor(URL, true)) = 'application/x-starling-sprite-sheet') then
-    Result := LoadStarlingSpriteSheet(URL)
+  if MimeType = 'application/x-starling-sprite-sheet' then
+    Result := LoadStarlingSpriteSheet(Stream, BaseUrl)
   else
 
   if (MimeType = 'application/x-plist') or
-     (URIMimeType(URIDeleteAnchor(URL, true)) = 'application/x-plist') or
-     (MimeType = 'application/x-cocos2d-sprite-sheet') or
-     (URIMimeType(URIDeleteAnchor(URL, true)) = 'application/x-cocos2d-sprite-sheet') then
-    Result := LoadCocos2d(URL)
+     (MimeType = 'application/x-cocos2d-sprite-sheet') then
+    Result := LoadCocos2d(Stream, BaseUrl)
   else
 
   { Support for simple graphics images like PNG }
-  if IsImageMimeType(URIMimeType(URIDeleteAnchor(URL, true)), true, false) then
-    Result := LoadImageAsNode(URL)
+  if IsImageMimeType(MimeType, true, false) then
+    Result := LoadImageAsNode(Stream, BaseUrl, MimeType)
   else
 
   if NilOnUnrecognizedFormat then
     Result := nil
   else
-    raise Exception.CreateFmt('Unrecognized file type "%s" for scene "%s"',
-      [MimeType, URIDisplay(URL)]);
+    raise Exception.CreateFmt('Unrecognized file type "%s" for scene with base URL "%s"',
+      [MimeType, URIDisplay(BaseUrl)]);
 end;
 
 function LoadScene_FileFilters: String;
@@ -440,7 +535,9 @@ procedure Load3DSequence(const URL: string;
   end;
 
 var
-  MimeType: string;
+  MimeType: String;
+  AbsoluteBaseUrl: String;
+  Stream: TStream;
 begin
   Assert(KeyTimes.Count = 0);
   Assert(KeyNodes.Count = 0);
@@ -448,11 +545,21 @@ begin
   MimeType := URIMimeType(URL);
 
   if MimeType = 'application/x-castle-anim-frames' then
-    LoadNodeAnimation(TNodeInterpolator.LoadAnimFramesToKeyNodes(URL))
-  else
+  begin
+    AbsoluteBaseUrl := AbsoluteURI(URL);
+    Stream := Download(URL);
+    try
+      LoadNodeAnimation(TNodeInterpolator.LoadAnimFramesToKeyNodes(Stream, AbsoluteBaseUrl));
+    finally FreeAndNil(Stream) end;
+  end else
   if MimeType = 'application/x-md3' then
-    LoadNodeAnimation(LoadMD3Sequence(URL))
-  else
+  begin
+    AbsoluteBaseUrl := AbsoluteURI(URL);
+    Stream := Download(URL);
+    try
+      LoadNodeAnimation(LoadMD3Sequence(Stream, AbsoluteBaseUrl));
+    finally FreeAndNil(Stream) end;
+  end else
     LoadSingle(LoadNode(URL));
 end;
 

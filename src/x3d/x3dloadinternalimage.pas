@@ -24,7 +24,7 @@ uses
   Classes, SysUtils,
   X3DNodes;
 
-function LoadImageAsNode(const URL: String): TX3DRootNode;
+function LoadImageAsNode(const Stream: TStream; const BaseUrl, MimeType: String): TX3DRootNode;
 
 implementation
 
@@ -35,11 +35,12 @@ type
 
   TImageAsX3DModelLoader = class
   strict private
-    FURL: String;
-    FDisplayURL: String;
+    FStream: TStream;
+    FBaseUrl: String;
+    FDisplayUrl: String;
+    FMimeType: String;
 
     FImageWidth, FImageHeight: Integer;
-    FImagePath: String;
 
     FLeft: Integer;
     FBottom: Integer;
@@ -57,7 +58,7 @@ type
 
     procedure PrepareX3DRoot;
 
-    procedure ReadImageProperties(const URL: String);
+    procedure ReadImageProperties;
 
     procedure CalculateCoords;
 
@@ -65,16 +66,16 @@ type
         const TexCoordArray: array of TVector2);
 
   public
-    constructor Create(const URL: String);
+    constructor Create(const Stream: TStream; const BaseUrl, MimeType: String);
 
     function Load: TX3DRootNode;
   end;
 
-function LoadImageAsNode(const URL: String): TX3DRootNode;
+function LoadImageAsNode(const Stream: TStream; const BaseUrl, MimeType: String): TX3DRootNode;
 var
   ImageLoader: TImageAsX3DModelLoader;
 begin
-  ImageLoader := TImageAsX3DModelLoader.Create(URL);
+  ImageLoader := TImageAsX3DModelLoader.Create(Stream, BaseUrl, MimeType);
   try
     Result := ImageLoader.Load;
   finally
@@ -96,7 +97,7 @@ begin
 
   SettingsMap := TStringStringMap.Create;
   try
-    URIExtractSettingsFromAnchor(FURL, SettingsMap);
+    URIGetSettingsFromAnchor(FBaseUrl, SettingsMap);
     for Setting in SettingsMap do
     begin
       if LowerCase(Setting.Key) = 'left' then
@@ -112,13 +113,13 @@ begin
         FHeight := StrToInt(Setting.Value)
       else
         WritelnWarning('ImageAsX3DModel', 'Unknown setting (%s) in "%s" anchor.',
-          [Setting.Key, FDisplayURL]);
+          [Setting.Key, FDisplayUrl]);
     end;
   finally
     FreeAndNil(SettingsMap);
   end;
 
-  ReadImageProperties(FURL);
+  ReadImageProperties;
 
   if FWidth = 0 then
     FWidth := FImageWidth;
@@ -129,16 +130,14 @@ end;
 procedure TImageAsX3DModelLoader.PrepareX3DRoot;
 begin
   FRoot.Meta['generator'] := 'Castle Game Engine, https://castle-engine.io';
-  FRoot.Meta['source'] := ExtractURIName(FURL);
+  FRoot.Meta['source'] := ExtractURIName(FBaseUrl);
 end;
 
-procedure TImageAsX3DModelLoader.ReadImageProperties(const URL: String);
+procedure TImageAsX3DModelLoader.ReadImageProperties;
 var
   Image: TCastleImage;
 begin
-  FImagePath := URL;
-
-  Image := LoadImage(URL);
+  Image := LoadImage(FStream, FMimeType, []);
   try
     FImageWidth := Image.Width;
     FImageHeight := Image.Height;
@@ -198,7 +197,9 @@ begin
   Shape.Material := TUnlitMaterialNode.Create;
 
   Tex := TImageTextureNode.Create;
-  Tex.FdUrl.Send(FImagePath);
+  { TODO: we are using FBaseUrl to load contents, instead of using ready FStream.
+    We need TImageTextureNode.LoadFromStream or even TImageTextureNode.LoadFromImage. }
+  Tex.FdUrl.Send(FBaseUrl);
   Tex.RepeatS := false;
   Tex.RepeatT := false;
   Shape.Texture := Tex;
@@ -231,14 +232,16 @@ begin
   FRoot.AddChildren(Shape);
 end;
 
-constructor TImageAsX3DModelLoader.Create(const URL: String);
+constructor TImageAsX3DModelLoader.Create(const Stream: TStream; const BaseUrl, MimeType: String);
 begin
   inherited Create;
   FImageWidth := 0;
   FImageHeight := 0;
 
-  FURL := URL;
-  FDisplayURL := URIDisplay(FURL);
+  FStream := Stream;
+  FBaseUrl := BaseUrl;
+  FDisplayUrl := URIDisplay(FBaseUrl);
+  FMimeType := MimeType;
 
   SetLength(FCoordArray, 6);
   SetLength(FTexCoordArray, 6);
@@ -262,4 +265,3 @@ begin
 end;
 
 end.
-

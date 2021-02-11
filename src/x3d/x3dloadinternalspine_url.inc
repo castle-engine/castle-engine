@@ -16,12 +16,9 @@
 { Extract extra information from Spine URL.
   See https://github.com/castle-engine/castle-engine/wiki/Spine .
   For example for URL 'my_animation.json#skin:my_skin_name,atlas:my_atlas_name',
-  it changes the URL to 'my_animation.json',
-  and returns 'my_skin_name' as SkinName,
+  it returns 'my_skin_name' as SkinName,
   and returns 'my_atlas_name' as CustomAtlasName. }
-procedure URIExtractInfo(var URL: String; out SkinName, CustomAtlasName: String);
-var
-  URLForDisplay: String;
+procedure URIExtractInfo(const BaseUrl: String; out SkinName, CustomAtlasName: String);
 
   procedure ProcessAnchorPart(const Part: String);
   var
@@ -32,9 +29,11 @@ var
 
     if Semicolon = 0 then
     begin
-      WritelnWarning('Spine URL anchor is not empty, and it does not contain a semicolon: "%s". To specify Spine skin, use the new syntax "xxx.json#skin:my_skin_name" instead of "xxx.json#my_skin_name", IOW add the "skin:" specifier.', [URLForDisplay]);
+      WritelnWarning('Spine URL anchor is not empty, and it does not contain a semicolon: "%s". To specify Spine skin, use the new syntax "xxx.json#skin:my_skin_name" instead of "xxx.json#my_skin_name", IOW add the "skin:" specifier.', [
+        URIDisplay(BaseUrl)
+      ]);
       if SkinName <> '' then
-        WritelnWarning('Multiple skin names given in Spine URL "%s"', [URLForDisplay]);
+        WritelnWarning('Multiple skin names given in Spine URL "%s"', [URIDisplay(BaseUrl)]);
       SkinName := Part;
     end else
     begin
@@ -44,18 +43,18 @@ var
       if PartName = 'skin' then
       begin
         if SkinName <> '' then
-          WritelnWarning('Multiple skin names given in Spine URL "%s"', [URLForDisplay]);
+          WritelnWarning('Multiple skin names given in Spine URL "%s"', [URIDisplay(BaseUrl)]);
         SkinName := PartValue;
       end else
 
       if PartName = 'atlas' then
       begin
         if CustomAtlasName <> '' then
-          WritelnWarning('Multiple atlas names given in Spine URL "%s"', [URLForDisplay]);
+          WritelnWarning('Multiple atlas names given in Spine URL "%s"', [URIDisplay(BaseUrl)]);
         CustomAtlasName := PartValue;
       end else
 
-        WritelnWarning('Not recognized part name "%s" in Spine URL "%s"', [PartName, URLForDisplay]);
+        WritelnWarning('Not recognized part name "%s" in Spine URL "%s"', [PartName, URIDisplay(BaseUrl)]);
     end;
   end;
 
@@ -63,10 +62,7 @@ var
   Anchor, AnchorPart: String;
   SeekPos: Integer;
 begin
-  // calculate it before URIExtractAnchor
-  URLForDisplay := URIDisplay(URL);
-
-  URIExtractAnchor(URL, Anchor, true);
+  URIGetAnchor(BaseUrl, Anchor, true);
 
   SkinName := '';
   CustomAtlasName := '';

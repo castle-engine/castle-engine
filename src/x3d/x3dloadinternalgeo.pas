@@ -22,13 +22,14 @@ unit X3DLoadInternalGEO;
 
 interface
 
-uses X3DNodes;
+uses SysUtils, Classes,
+  X3DNodes;
 
-function LoadGEO(const URL: string): TX3DRootNode;
+function LoadGEO(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 
 implementation
 
-uses CastleVectors, CastleUtils, Classes, SysUtils, CastleLog,
+uses CastleVectors, CastleUtils, CastleLog,
   CastleClassUtils, CastleDownload, CastleURIUtils,
   CastleFilesUtils, CastleStringUtils, X3DLoadInternalUtils;
 
@@ -41,11 +42,11 @@ type
   public
     Verts: TVector3List;
     Faces: TVector3CardinalList;
-    constructor Create(const URL: string);
+    constructor Create(const Stream: TStream);
     destructor Destroy; override;
   end;
 
-constructor TObject3DGEO.Create(const URL: string);
+constructor TObject3DGEO.Create(const Stream: TStream);
 type
   TGEOFormatFlavor = (gfOld, gfMeshColorFaces, gfMeshColorVerts);
 var
@@ -121,7 +122,7 @@ begin
  Verts := TVector3List.Create;
  Faces := TVector3CardinalList.Create;
 
- Reader := TTextReader.Create(URL);
+ Reader := TTextReader.Create(Stream, false);
  try
   { Read first line: magic number (or not existent in older GEO format) }
   Line := Reader.Readln;
@@ -185,17 +186,15 @@ end;
 
 { LoadGEO -------------------------------------------------------------------- }
 
-function LoadGEO(const URL: string): TX3DRootNode;
+function LoadGEO(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 var
   geo: TObject3DGEO;
   verts: TCoordinateNode;
   faces: TIndexedFaceSetNode;
   Shape: TShapeNode;
   i: integer;
-  BaseUrl: string;
 begin
-  BaseUrl := AbsoluteURI(URL);
-  geo := TObject3DGEO.Create(URL);
+  geo := TObject3DGEO.Create(Stream);
   try
     result := TX3DRootNode.Create('', BaseUrl);
     try
