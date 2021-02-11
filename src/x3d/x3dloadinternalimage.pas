@@ -172,16 +172,26 @@ var
   Shape: TShapeNode;
   Tri: TTriangleSetNode;
   Tex: TImageTextureNode;
+  TexProperties: TTexturePropertiesNode;
 begin
   Shape := TShapeNode.Create;
   Shape.Material := TUnlitMaterialNode.Create;
 
-  Tex := TImageTextureNode.Create;
+  Tex := TImageTextureNode.Create('', FBaseUrl);
   { Take FImage ownership, we will not free it here }
   Tex.LoadFromImage(FImage, true, FBaseUrl);
   Tex.RepeatS := false;
   Tex.RepeatT := false;
   Shape.Texture := Tex;
+
+  TexProperties := TTexturePropertiesNode.Create;
+  TexProperties.MagnificationFilter := magDefault;
+  TexProperties.MinificationFilter := minDefault;
+  { Do not force "power of 2" size, which may prevent mipmaps.
+    This seems like a better default (otherwise the resizing underneath
+    may cause longer loading time, and loss of quality, if not expected). }
+  TexProperties.GuiTexture := true;
+  Tex.TextureProperties := TexProperties;
 
   Tri := TTriangleSetNode.Create;
   Tri.Solid := false;
