@@ -22,15 +22,21 @@ unit TestCastleSceneCore;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, X3DNodes;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase, CastleSceneCore, X3DNodes;
 
 type
-  TTestSceneCore = class(TTestCase)
+  TTestSceneCore = class(TCastleTestCase)
   strict private
     SearchingForDescription: string;
+    WarningFlag: Boolean;
     function SearchingForDescriptionCallback(Node: TX3DNode): Pointer;
     procedure NodeMultipleTimesWarning(const Category, S: string);
     procedure OnWarningRaiseException(const Category, S: string);
+    procedure OnWarningFlag(const Category, S: string);
+    { Load scene and expect a warning during loading.
+      Raises error if no warnings occurred. }
+    procedure LoadSceneRequireWarning(const Scene: TCastleSceneCore; const Url: String);
   published
     procedure TestBorderManifoldEdges;
     procedure TestIterator;
@@ -45,13 +51,18 @@ type
     procedure TestMultipleScenesOneNodeCorrect;
     procedure TestSpineUtf8Names;
     procedure TestAnimsInSwitch;
+    procedure TestLoadGzipped;
+    procedure TestStarlingAndAnchors;
+    procedure TestCocos;
+    procedure TestImageAsNode;
   end;
 
 implementation
 
-uses CastleSceneCore, X3DLoad, CastleVectors, CastleShapes,
+uses X3DLoad, CastleVectors, CastleShapes,
   CastleTimeUtils, CastleStringUtils, X3DFields, CastleSceneManager,
-  CastleFilesUtils, CastleScene, CastleTransform, CastleApplicationProperties;
+  CastleFilesUtils, CastleScene, CastleTransform, CastleApplicationProperties,
+  CastleURIUtils;
 
 procedure TTestSceneCore.TestBorderManifoldEdges;
 var
@@ -439,6 +450,157 @@ begin
     AssertTrue(Anims.IndexOf('Damaged') <> -1);
     AssertTrue(Anims.IndexOf('flying') <> -1);
     AssertTrue(Anims.IndexOf('flying_left') <> -1);
+  finally FreeAndNil(Scene) end;
+end;
+
+procedure TTestSceneCore.TestLoadGzipped;
+
+  procedure TestSphere(const Url: String);
+  var
+    Scene: TCastleScene;
+    Shape: TShapeNode;
+    Sphere: TSphereNode;
+  begin
+    Scene := TCastleScene.Create(nil);
+    try
+      Scene.Load(Url);
+      AssertEquals(1, Scene.RootNode.FdChildren.Count);
+      AssertTrue(Scene.RootNode.FdChildren[0] is TShapeNode);
+      Shape := Scene.RootNode.FdChildren[0] as TShapeNode;
+      AssertTrue(Shape.Geometry is TSphereNode);
+      Sphere := Shape.Geometry as TSphereNode;
+      AssertSameValue(123.456, Sphere.Radius);
+    finally FreeAndNil(Scene) end;
+  end;
+
+begin
+  TestSphere('castle-data:/gzipped_x3d/sphere.wrl');
+  TestSphere('castle-data:/gzipped_x3d/sphere.wrl.gz');
+  TestSphere('castle-data:/gzipped_x3d/sphere.wrz');
+  TestSphere('castle-data:/gzipped_x3d/sphere.x3d');
+  TestSphere('castle-data:/gzipped_x3d/sphere.x3d.gz');
+  TestSphere('castle-data:/gzipped_x3d/sphere.x3dv');
+  TestSphere('castle-data:/gzipped_x3d/sphere.x3dv.gz');
+  TestSphere('castle-data:/gzipped_x3d/sphere.x3dvz');
+  TestSphere('castle-data:/gzipped_x3d/sphere.x3dz');
+  TestSphere('castle-data:/gzipped_x3d/sphere_normal_extension_but_gzipped.wrl');
+  TestSphere('castle-data:/gzipped_x3d/sphere_normal_extension_but_gzipped.x3dv');
+end;
+
+procedure TTestSceneCore.OnWarningFlag(const Category, S: string);
+begin
+  WarningFlag := true;
+end;
+
+procedure TTestSceneCore.LoadSceneRequireWarning(const Scene: TCastleSceneCore; const Url: String);
+begin
+  ApplicationProperties.OnWarning.Add(@OnWarningFlag);
+  try
+    WarningFlag := false;
+    Scene.Load(Url);
+    if not WarningFlag then
+      Fail(Format('Expected to get some warning during loading of "%s"',
+        [URIDisplay(Url)]));
+  finally
+    ApplicationProperties.OnWarning.Remove(@OnWarningFlag);
+  end;
+end;
+
+procedure TTestSceneCore.TestStarlingAndAnchors;
+var
+  Scene: TCastleScene;
+begin
+  Scene := TCastleScene.Create(nil);
+  try
+    Scene.Load('castle-data:/sprite-sheets/starling_kenney_robot/character_robot_sheet.starling-xml');
+    AssertEquals(45, Scene.AnimationsList.Count);
+    AssertEquals(-1, Scene.AnimationsList.IndexOf('walk'));
+  finally FreeAndNil(Scene) end;
+
+  Scene := TCastleScene.Create(nil);
+  try
+    Scene.Load('castle-data:/sprite-sheets/starling_kenney_robot/character_robot_sheet.starling-xml#anim-naming:strict-underscore');
+    AssertEquals(45, Scene.AnimationsList.Count);
+    AssertEquals(-1, Scene.AnimationsList.IndexOf('walk'));
+  finally FreeAndNil(Scene) end;
+
+  Scene := TCastleScene.Create(nil);
+  try
+    Scene.Load('castle-data:/sprite-sheets/starling_kenney_robot/character_robot_sheet.starling-xml#fps:10,anim-naming:strict-underscore');
+    AssertEquals(45, Scene.AnimationsList.Count);
+    AssertEquals(-1, Scene.AnimationsList.IndexOf('walk'));
+  finally FreeAndNil(Scene) end;
+
+  Scene := TCastleScene.Create(nil);
+  try
+    Scene.Load('castle-data:/sprite-sheets/starling_kenney_robot/character_robot_sheet.starling-xml#anim-naming:trailing-number');
+    AssertEquals(31, Scene.AnimationsList.Count);
+    AssertTrue(-1 <> Scene.AnimationsList.IndexOf('walk'));
+  finally FreeAndNil(Scene) end;
+
+  Scene := TCastleScene.Create(nil);
+  try
+    Scene.Load('castle-data:/sprite-sheets/starling_kenney_robot/character_robot_sheet.starling-xml#fps:10,anim-naming:trailing-number');
+    AssertEquals(31, Scene.AnimationsList.Count);
+    AssertTrue(-1 <> Scene.AnimationsList.IndexOf('walk'));
+  finally FreeAndNil(Scene) end;
+
+  Scene := TCastleScene.Create(nil);
+  try
+    LoadSceneRequireWarning(Scene, 'castle-data:/sprite-sheets/starling_kenney_robot/character_robot_sheet.starling-xml#invalid-anchor,fps:10,anim-naming:trailing-number');
+  finally FreeAndNil(Scene) end;
+
+  Scene := TCastleScene.Create(nil);
+  try
+    LoadSceneRequireWarning(Scene, 'castle-data:/sprite-sheets/starling_kenney_robot/character_robot_sheet.starling-xml#invalid-anchor:blahblah,fps:10,anim-naming:trailing-number');
+  finally FreeAndNil(Scene) end;
+
+  Scene := TCastleScene.Create(nil);
+  try
+    LoadSceneRequireWarning(Scene, 'castle-data:/sprite-sheets/starling_kenney_robot/character_robot_sheet.starling-xml#fps:10,anim-naming:invalid-name');
+  finally FreeAndNil(Scene) end;
+end;
+
+procedure TTestSceneCore.TestCocos;
+var
+  Scene: TCastleScene;
+begin
+  Scene := TCastleScene.Create(nil);
+  try
+    Scene.Load('castle-data:/sprite-sheets/cocos2d_wolf/wolf.plist');
+    AssertEquals(4, Scene.AnimationsList.Count);
+    AssertTrue(-1 <> Scene.AnimationsList.IndexOf('walk'));
+  finally FreeAndNil(Scene) end;
+
+  Scene := TCastleScene.Create(nil);
+  try
+    Scene.Load('castle-data:/sprite-sheets/cocos2d_wolf/wolf.plist#fps:10');
+    AssertEquals(4, Scene.AnimationsList.Count);
+    AssertTrue(-1 <> Scene.AnimationsList.IndexOf('walk'));
+  finally FreeAndNil(Scene) end;
+
+  Scene := TCastleScene.Create(nil);
+  try
+    LoadSceneRequireWarning(Scene, 'castle-data:/sprite-sheets/cocos2d_wolf/wolf.plist#fps:10,anim-naming:trailing-number');
+    AssertEquals(4, Scene.AnimationsList.Count);
+    AssertTrue(-1 <> Scene.AnimationsList.IndexOf('walk'));
+  finally FreeAndNil(Scene) end;
+end;
+
+procedure TTestSceneCore.TestImageAsNode;
+var
+  Scene: TCastleScene;
+begin
+  Scene := TCastleScene.Create(nil);
+  try
+    Scene.Load('castle-data:/sprite-sheets/cocos2d_wolf/wolf.png');
+    AssertEquals(0, Scene.AnimationsList.Count);
+  finally FreeAndNil(Scene) end;
+
+  Scene := TCastleScene.Create(nil);
+  try
+    Scene.Load('castle-data:/sprite-sheets/cocos2d_wolf/wolf.png#left:100,bottom:100,width:256,height:256');
+    AssertEquals(0, Scene.AnimationsList.Count);
   finally FreeAndNil(Scene) end;
 end;
 
