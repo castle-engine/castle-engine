@@ -1065,7 +1065,9 @@ procedure TShapeNode.GenerateTangents;
     TriangleCoord: TTriangle3;
     TriangleTexCoord: TTriangle2;
   begin
-    WritelnLog('Calculating tangents for %s with geometry %s. Consider exporting with tangents already generated, to make loading faster.', [NiceName, Geometry.NiceName]);
+    // Too verbose.
+    // Also, it seems (test on soldier1.blend) that Blender cannot generate these tangents, so this is not easy to address by author.
+    // WritelnLog('Calculating tangents for %s with geometry %s. Consider exporting with tangents already generated, to make loading faster.', [NiceName, Geometry.NiceName]);
 
     { TODO: for now, we only handle TIndexedTriangleSetNode
       (it is checked that Geometry is of this class in the main body of TShapeNode.GenerateTangents).
