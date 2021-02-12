@@ -12,6 +12,10 @@ pipeline {
     stage('Regenerate API Docs and Upload') {
       when { branch "master" }
       steps {
+        /* remove older PasDoc versions, so that later "tar xzvf pasdoc-*-linux-x86_64.tar.gz"
+           expands "tar xzvf pasdoc-*-linux-x86_64.tar.gz" only to one file.
+           This matters when PasDoc version change, e.g. from 0.15.0 to 0.16.0. */
+        sh 'rm -f pasdoc-*-linux-x86_64.tar.gz'
         /* Use https://plugins.jenkins.io/copyartifact/ plugin to copy last pasdoc build into this build. */
         copyArtifacts(projectName: 'pasdoc_organization/pasdoc/master', filter: 'pasdoc-*-linux-x86_64.tar.gz')
         sh 'tar xzvf pasdoc-*-linux-x86_64.tar.gz'
