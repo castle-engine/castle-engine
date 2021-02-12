@@ -66,7 +66,7 @@
 
 program precompute_radiance_transfer;
 
-uses SysUtils, CastleUtils, CastleVectors, CastleSceneCore, X3DNodes,
+uses SysUtils, CastleUtils, CastleVectors, CastleSceneCore, X3DNodes, X3DLoad,
   CastleSphereSampling, CastleProgress, CastleProgressConsole, CastleColors,
   CastleSphericalHarmonics, CastleParameters, CastleTimeUtils, CastleShapes;
 
@@ -257,7 +257,7 @@ begin
 
     Writeln('Precomputing finished: ', S);
 
-    Save3D(Scene.RootNode, Parameters[2],
-      'radianceTransfer computed by precompute_radiance_transfer: ' + S, '', xeClassic);
+    SaveNode(Scene.RootNode, Parameters[2],
+      'radianceTransfer computed by precompute_radiance_transfer: ' + S);
   finally FreeAndNil(Scene) end;
 end.

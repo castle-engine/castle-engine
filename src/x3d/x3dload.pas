@@ -205,6 +205,32 @@ var
     of extra frames we add to the baked animation (between key frames). }
   BakedAnimationSmoothness: Single = DefaultBakedAnimationSmoothness;
 
+{ Save model to a file.
+  Right now we only support saving to the X3D format,
+  in classic (MIME type 'model/x3d+vrml') or XML encoding (MIME type 'model/x3d+xml').
+
+  The overloaded version with explicit URL also automatically detects and handles
+  gzip compression of the resulting file.
+
+  @param(Generator Optional name, or short description, of the application
+    generating this file. This value is not interpreted in any way,
+    it is simply a "metadata" information we store in the resulting file.
+  )
+
+  @param(Source Optional name of the original file, if this file is a result of some
+    conversion or transformation. This value is not interpreted in any way,
+    it is simply a "metadata" information we store in the resulting file.
+  )
+}
+procedure SaveNode(const Node: TX3DNode;
+  const URL: String;
+  const Generator: String = '';
+  const Source: String = ''); overload;
+procedure SaveNode(const Node: TX3DNode;
+  const Stream: TStream; const MimeType: String;
+  const Generator: String = '';
+  const Source: String = ''); overload;
+
 implementation
 
 uses CastleClassUtils, CastleImages, CastleURIUtils, CastleStringUtils,
@@ -566,6 +592,33 @@ end;
 function Load3DSequence_FileFilters: String;
 begin
   Result := LoadScene_FileFilters;
+end;
+
+procedure SaveNode(const Node: TX3DNode;
+  const URL: String;
+  const Generator: String;
+  const Source: String);
+begin
+  {$warnings off} // using deprecated, it will be internal
+  Save3D(Node, URL, Generator, Source);
+  {$warnings on}
+end;
+
+procedure SaveNode(const Node: TX3DNode;
+  const Stream: TStream; const MimeType: String;
+  const Generator: String;
+  const Source: String);
+var
+  Encoding: TX3DEncoding;
+begin
+  if (MimeType = 'model/vrml') or
+     (MimeType = 'model/x3d+vrml') then
+    Encoding := xeClassic
+  else
+    Encoding := xeXML;
+  {$warnings off} // using deprecated, it will be internal
+  Save3D(Node, Stream, Generator, Source, Encoding);
+  {$warnings on}
 end;
 
 end.

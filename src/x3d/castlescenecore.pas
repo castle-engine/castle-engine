@@ -3439,7 +3439,7 @@ end;
 procedure TCastleSceneCore.Save(const AURL: string);
 begin
   if RootNode <> nil then
-    Save3D(RootNode, AURL, ApplicationName);
+    SaveNode(RootNode, AURL, ApplicationName);
   FURL := AURL;
 end;
 

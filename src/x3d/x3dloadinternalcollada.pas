@@ -39,11 +39,11 @@ uses DOM, XMLRead, Generics.Collections, Math, URIParser,
   CastleXMLUtils, CastleLog, CastleClassUtils, X3DLoadInternalUtils,
   CastleDownload, CastleURIUtils;
 
-const
+var
   { If @true we may use some of our engine specific
     extensions. For example, Material.mirror may be <> 0,
     see [https://castle-engine.io/x3d_extensions.php#section_ext_material_mirror].) }
-  AllowCastleExtensions = true;
+  AllowCastleExtensions: Boolean = true;
 
 { Large missing stuff:
 
