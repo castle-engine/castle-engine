@@ -47,314 +47,314 @@ type
   TURLContentChanged = procedure (const ChangedURL: String);
 
   TCastleSpriteSheet = class
-    strict private
-      FAnimationList: TCastleSpriteSheetAnimationList;
+  strict private
+    FAnimationList: TCastleSpriteSheetAnimationList;
 
-      FURL: String;
-      FLoadedAtlasPath: String;
-      FRelativeAtlasPath: String;
+    FURL: String;
+    FLoadedAtlasPath: String;
+    FRelativeAtlasPath: String;
 
-      FEditMode: Boolean;
+    FEditMode: Boolean;
 
-      FModifiedState: Boolean;
-      FLoadingPending: Boolean;
+    FModifiedState: Boolean;
+    FLoadingPending: Boolean;
 
-      FOnURLChanged: TNotifyEvent;
-      FOnModifiedStateChanged: TNotifyEvent;
-      FOnAnimationAdded: TCastleSpriteSheetAnimationEvent;
-      FOnAnimationMoved: TCastleSpriteSheetAnimationMoveEvent;
-      FBeforeAnimationRemoved: TCastleSpriteSheetAnimationEvent;
-      FBeforeAnimationFrameRemoved: TCastleSpriteSheetFrameEvent;
-      FOnFrameAdded: TCastleSpriteSheetFrameEvent;
-      FOnFrameMoved: TCastleSpriteSheetFrameMoveEvent;
-      FOnMaxAtlasSizeChanged: TCastleSpriteSheetSizeChanged;
-      FOnFileSaved: TURLContentChanged;
+    FOnURLChanged: TNotifyEvent;
+    FOnModifiedStateChanged: TNotifyEvent;
+    FOnAnimationAdded: TCastleSpriteSheetAnimationEvent;
+    FOnAnimationMoved: TCastleSpriteSheetAnimationMoveEvent;
+    FBeforeAnimationRemoved: TCastleSpriteSheetAnimationEvent;
+    FBeforeAnimationFrameRemoved: TCastleSpriteSheetFrameEvent;
+    FOnFrameAdded: TCastleSpriteSheetFrameEvent;
+    FOnFrameMoved: TCastleSpriteSheetFrameMoveEvent;
+    FOnMaxAtlasSizeChanged: TCastleSpriteSheetSizeChanged;
+    FOnFileSaved: TURLContentChanged;
 
-    private
-      { Size of atlas after loading }
-      FAtlasWidth: Integer;
-      FAtlasHeight: Integer;
-      { Max atlas size }
-      FMaxAtlasWidth: Integer;
-      FMaxAtlasHeight: Integer;
+  private
+    { Size of atlas after loading }
+    FAtlasWidth: Integer;
+    FAtlasHeight: Integer;
+    { Max atlas size }
+    FMaxAtlasWidth: Integer;
+    FMaxAtlasHeight: Integer;
 
-      FGeneratedAtlas: TCastleImage;
+    FGeneratedAtlas: TCastleImage;
 
-      procedure SetURL(const NewURL: String);
+    procedure SetURL(const NewURL: String);
 
-    protected
-      { Sets sprite sheet state as modified. }
-      procedure SetModifiedState;
-      { Clears modified state e.g. after saving }
-      procedure ClearModifiedState;
-      { Blocks ModifiedState changing }
-      procedure BeginLoad;
-      { Removes ModifiedState changing blocking }
-      procedure EndLoad;
-      { Throws EReadOnlyMode exception when EditMode = false }
-      procedure CheckEditMode;
-    public
-      constructor Create(AEditMode: Boolean);
-      destructor Destroy; override;
+  protected
+    { Sets sprite sheet state as modified. }
+    procedure SetModifiedState;
+    { Clears modified state e.g. after saving }
+    procedure ClearModifiedState;
+    { Blocks ModifiedState changing }
+    procedure BeginLoad;
+    { Removes ModifiedState changing blocking }
+    procedure EndLoad;
+    { Throws EReadOnlyMode exception when EditMode = false }
+    procedure CheckEditMode;
+  public
+    constructor Create(AEditMode: Boolean);
+    destructor Destroy; override;
 
-      { Returns true if spritesheet was modified }
-      function IsModified: Boolean;
+    { Returns true if spritesheet was modified }
+    function IsModified: Boolean;
 
-      procedure Load(const URL: String);
-      procedure Load(const Stream: TStream; const BaseUrl: String);
-      { Saves file to castle sprite sheet. If SaveSaveCopy = true then don't clears
-        Modified state, don't change URL, don't save image paths }
-      procedure Save(const AURL: String; const SaveCopy: Boolean = false);
+    procedure Load(const URL: String);
+    procedure Load(const Stream: TStream; const BaseUrl: String);
+    { Saves file to castle sprite sheet. If SaveSaveCopy = true then don't clears
+      Modified state, don't change URL, don't save image paths }
+    procedure Save(const AURL: String; const SaveCopy: Boolean = false);
 
-      function ToX3D: TX3DRootNode;
+    function ToX3D: TX3DRootNode;
 
-      { Arranges and creates atlas image }
-      procedure RegenerateAtlas;
-      { This checks: Have all frames loaded frame images? }
-      function AtlasCanBeRegenrated: Boolean;
-      procedure SetMaxAtlasSize(const NewMaxAtlasWidth,
-          NewMaxAtlasHeight: Integer);
+    { Arranges and creates atlas image }
+    procedure RegenerateAtlas;
+    { This checks: Have all frames loaded frame images? }
+    function AtlasCanBeRegenrated: Boolean;
+    procedure SetMaxAtlasSize(const NewMaxAtlasWidth,
+        NewMaxAtlasHeight: Integer);
 
-      procedure GetMinAtlasSize(out MinWidth, MinHeight: Integer);
+    procedure GetMinAtlasSize(out MinWidth, MinHeight: Integer);
 
-      function AnimationByName(const Name:String): TCastleSpriteSheetAnimation;
-      function AnimationByIndex(const Index: Integer): TCastleSpriteSheetAnimation;
-      function AnimationCount: Integer;
-      function AnimationIndex(const Animation: TCastleSpriteSheetAnimation): Integer;
-      function HasAnimation(const Name:String): Boolean;
-      function AddAnimation(const Name:String): TCastleSpriteSheetAnimation;
-      procedure MoveAnimationUp(const Animation: TCastleSpriteSheetAnimation);
-      procedure MoveAnimationDown(const Animation: TCastleSpriteSheetAnimation);
-      procedure MoveAnimationToTop(const Animation: TCastleSpriteSheetAnimation);
-      procedure MoveAnimationToEnd(const Animation: TCastleSpriteSheetAnimation);
-      procedure MoveAnimation(const OldIndex, NewIndex: Integer);
-      procedure RemoveAnimation(const Animation: TCastleSpriteSheetAnimation);
-      procedure RemoveAnimationByName(const Name: String);
-      procedure RemoveAnimationByIndex(const Index: Integer);
-      function ProposeAnimationName: String;
+    function AnimationByName(const Name:String): TCastleSpriteSheetAnimation;
+    function AnimationByIndex(const Index: Integer): TCastleSpriteSheetAnimation;
+    function AnimationCount: Integer;
+    function AnimationIndex(const Animation: TCastleSpriteSheetAnimation): Integer;
+    function HasAnimation(const Name:String): Boolean;
+    function AddAnimation(const Name:String): TCastleSpriteSheetAnimation;
+    procedure MoveAnimationUp(const Animation: TCastleSpriteSheetAnimation);
+    procedure MoveAnimationDown(const Animation: TCastleSpriteSheetAnimation);
+    procedure MoveAnimationToTop(const Animation: TCastleSpriteSheetAnimation);
+    procedure MoveAnimationToEnd(const Animation: TCastleSpriteSheetAnimation);
+    procedure MoveAnimation(const OldIndex, NewIndex: Integer);
+    procedure RemoveAnimation(const Animation: TCastleSpriteSheetAnimation);
+    procedure RemoveAnimationByName(const Name: String);
+    procedure RemoveAnimationByIndex(const Index: Integer);
+    function ProposeAnimationName: String;
 
-      { Last Load/Save URL. Can be empty when loaded from Starling file. }
-      property URL: String read FURL write SetURL;
-      { Full image path to loaded image, if empty sprite sheet was created from
-        scratch. }
-      property LoadedAtlasPath: String read FLoadedAtlasPath write FLoadedAtlasPath;
-      { Image name with path relative to Castle Sprite Sheet/Starling XML file.
-        Usually image is located next to Castle Sprite Sheet/Starling XML so
-        this is only file name but it's not a rule. This file name/path is
-        saved in Castle Sprite Sheet/Starling XML file.
+    { Last Load/Save URL. Can be empty when loaded from Starling file. }
+    property URL: String read FURL write SetURL;
+    { Full image path to loaded image, if empty sprite sheet was created from
+      scratch. }
+    property LoadedAtlasPath: String read FLoadedAtlasPath write FLoadedAtlasPath;
+    { Image name with path relative to Castle Sprite Sheet/Starling XML file.
+      Usually image is located next to Castle Sprite Sheet/Starling XML so
+      this is only file name but it's not a rule. This file name/path is
+      saved in Castle Sprite Sheet/Starling XML file.
 
-        Can be empty when sprite sheet was created from scratch and never saved. }
-      property RelativeAtlasPath: String read FRelativeAtlasPath
-          write FRelativeAtlasPath;
+      Can be empty when sprite sheet was created from scratch and never saved. }
+    property RelativeAtlasPath: String read FRelativeAtlasPath
+        write FRelativeAtlasPath;
 
-      property OnURLChanged: TNotifyEvent read FOnURLChanged write FOnURLChanged;
+    property OnURLChanged: TNotifyEvent read FOnURLChanged write FOnURLChanged;
 
-      { OnFileSaved event can be used for reload TCastleScenes with this sprite
-        sheet loaded }
-      property OnFileSaved: TURLContentChanged read FOnFileSaved
-          write FOnFileSaved;
+    { OnFileSaved event can be used for reload TCastleScenes with this sprite
+      sheet loaded }
+    property OnFileSaved: TURLContentChanged read FOnFileSaved
+        write FOnFileSaved;
 
-      property OnModifiedStateChanged: TNotifyEvent read FOnModifiedStateChanged
-        write FOnModifiedStateChanged;
+    property OnModifiedStateChanged: TNotifyEvent read FOnModifiedStateChanged
+      write FOnModifiedStateChanged;
 
-      property OnAnimationAdded: TCastleSpriteSheetAnimationEvent
-        read FOnAnimationAdded write FOnAnimationAdded;
+    property OnAnimationAdded: TCastleSpriteSheetAnimationEvent
+      read FOnAnimationAdded write FOnAnimationAdded;
 
-      property OnAnimationMoved: TCastleSpriteSheetAnimationMoveEvent
-        read FOnAnimationMoved write FOnAnimationMoved;
+    property OnAnimationMoved: TCastleSpriteSheetAnimationMoveEvent
+      read FOnAnimationMoved write FOnAnimationMoved;
 
-      property BeforeAnimationRemoved: TCastleSpriteSheetAnimationEvent
-        read FBeforeAnimationRemoved write FBeforeAnimationRemoved;
+    property BeforeAnimationRemoved: TCastleSpriteSheetAnimationEvent
+      read FBeforeAnimationRemoved write FBeforeAnimationRemoved;
 
-      property BeforeFrameRemoved: TCastleSpriteSheetFrameEvent read
-        FBeforeAnimationFrameRemoved write FBeforeAnimationFrameRemoved;
+    property BeforeFrameRemoved: TCastleSpriteSheetFrameEvent read
+      FBeforeAnimationFrameRemoved write FBeforeAnimationFrameRemoved;
 
-      property OnFrameAdded: TCastleSpriteSheetFrameEvent read FOnFrameAdded
-        write FOnFrameAdded;
+    property OnFrameAdded: TCastleSpriteSheetFrameEvent read FOnFrameAdded
+      write FOnFrameAdded;
 
-      property OnFrameMoved: TCastleSpriteSheetFrameMoveEvent read FOnFrameMoved
-        write FOnFrameMoved;
+    property OnFrameMoved: TCastleSpriteSheetFrameMoveEvent read FOnFrameMoved
+      write FOnFrameMoved;
 
-      property OnMaxAtlasSizeChanged: TCastleSpriteSheetSizeChanged read
-          FOnMaxAtlasSizeChanged write FOnMaxAtlasSizeChanged;
+    property OnMaxAtlasSizeChanged: TCastleSpriteSheetSizeChanged read
+        FOnMaxAtlasSizeChanged write FOnMaxAtlasSizeChanged;
 
-      property AtlasWidth: Integer read FAtlasWidth;
-      property AtlasHeight: Integer read FAtlasHeight;
-      property MaxAtlasWidth: Integer read FMaxAtlasWidth;
-      property MaxAtlasHeight: Integer read FMaxAtlasHeight;
-      property EditMode: Boolean read FEditMode;
+    property AtlasWidth: Integer read FAtlasWidth;
+    property AtlasHeight: Integer read FAtlasHeight;
+    property MaxAtlasWidth: Integer read FMaxAtlasWidth;
+    property MaxAtlasHeight: Integer read FMaxAtlasHeight;
+    property EditMode: Boolean read FEditMode;
   end;
 
   TCastleSpriteSheetAnimation = class
-    strict private
-      FName: String;
-      FFramesPerSecond: Single;
-      FFrameList: TCastleSpriteSheetFrameList;
-      FSpriteSheet: TCastleSpriteSheet;
+  strict private
+    FName: String;
+    FFramesPerSecond: Single;
+    FFrameList: TCastleSpriteSheetFrameList;
+    FSpriteSheet: TCastleSpriteSheet;
 
-      procedure SetName(const NewName: String);
-      procedure SetFramesPerSecond(const NewFPS: Single);
+    procedure SetName(const NewName: String);
+    procedure SetFramesPerSecond(const NewFPS: Single);
 
-      function GetFrame(const Index: Integer): TCastleSpriteSheetFrame;
+    function GetFrame(const Index: Integer): TCastleSpriteSheetFrame;
 
-    private
-      { Sets sprite sheet state as modified. }
-      procedure SetModifiedState;
+  private
+    { Sets sprite sheet state as modified. }
+    procedure SetModifiedState;
 
-      { Throws EReadOnlyMode exception when EditMode = false }
-      procedure CheckEditMode;
-    public
-      constructor Create(SpriteSheet: TCastleSpriteSheet; AName: String);
-      destructor Destroy; override;
+    { Throws EReadOnlyMode exception when EditMode = false }
+    procedure CheckEditMode;
+  public
+    constructor Create(SpriteSheet: TCastleSpriteSheet; AName: String);
+    destructor Destroy; override;
 
-      function FrameCount: Integer;
-      function FrameIndex(const Frame: TCastleSpriteSheetFrame): Integer;
-      function AddFrame: TCastleSpriteSheetFrame;
-      function AddFrameCopy(const SrcFrame: TCastleSpriteSheetFrame
-          ): TCastleSpriteSheetFrame;
-      function AddFrame(const FrameImageURL: String): TCastleSpriteSheetFrame;
-      function AddFrame(const SourceImage: TCastleImage; const DestX, DestY,
-          AFrameWidth, AFrameHeight, SourceX, SourceY,
-          SourceWidthToCopy, SourceHeightToCopy: Integer): TCastleSpriteSheetFrame;
-      function AllFramesHasTheSameSize: Boolean;
-      procedure RemoveFrame(const Frame: TCastleSpriteSheetFrame);
-      procedure MoveFrameLeft(const Frame: TCastleSpriteSheetFrame);
-      procedure MoveFrameRight(const Frame: TCastleSpriteSheetFrame);
-      procedure MoveFrameToTop(const Frame: TCastleSpriteSheetFrame);
-      procedure MoveFrameToEnd(const Frame: TCastleSpriteSheetFrame);
-      procedure MoveFrame(const OldIndex, NewIndex: Integer);
-      procedure ImportAtlas(AtlasImageURL: String; Cols, Rows: Integer;
-          ImportByColumns: Boolean);
-      function GetBigestFrameSize(const MaxWidth, MaxHeight: Integer): TVector2Integer;
+    function FrameCount: Integer;
+    function FrameIndex(const Frame: TCastleSpriteSheetFrame): Integer;
+    function AddFrame: TCastleSpriteSheetFrame;
+    function AddFrameCopy(const SrcFrame: TCastleSpriteSheetFrame
+        ): TCastleSpriteSheetFrame;
+    function AddFrame(const FrameImageURL: String): TCastleSpriteSheetFrame;
+    function AddFrame(const SourceImage: TCastleImage; const DestX, DestY,
+        AFrameWidth, AFrameHeight, SourceX, SourceY,
+        SourceWidthToCopy, SourceHeightToCopy: Integer): TCastleSpriteSheetFrame;
+    function AllFramesHasTheSameSize: Boolean;
+    procedure RemoveFrame(const Frame: TCastleSpriteSheetFrame);
+    procedure MoveFrameLeft(const Frame: TCastleSpriteSheetFrame);
+    procedure MoveFrameRight(const Frame: TCastleSpriteSheetFrame);
+    procedure MoveFrameToTop(const Frame: TCastleSpriteSheetFrame);
+    procedure MoveFrameToEnd(const Frame: TCastleSpriteSheetFrame);
+    procedure MoveFrame(const OldIndex, NewIndex: Integer);
+    procedure ImportAtlas(AtlasImageURL: String; Cols, Rows: Integer;
+        ImportByColumns: Boolean);
+    function GetBigestFrameSize(const MaxWidth, MaxHeight: Integer): TVector2Integer;
 
-      property Name: String read FName write SetName;
-      property Frame[Index: Integer]: TCastleSpriteSheetFrame read GetFrame;
-      property FramesPerSecond: Single read FFramesPerSecond write SetFramesPerSecond;
+    property Name: String read FName write SetName;
+    property Frame[Index: Integer]: TCastleSpriteSheetFrame read GetFrame;
+    property FramesPerSecond: Single read FFramesPerSecond write SetFramesPerSecond;
   end;
 
   TCastleSpriteSheetFrame = class
-    strict private
-      FAnimation: TCastleSpriteSheetAnimation;
+  strict private
+    FAnimation: TCastleSpriteSheetAnimation;
 
-      FXInAtlas: Integer; // x in atlas
-      FYInAtlas: Integer; // y in atlas
-      FWidthInAtlas: Integer; // width in atlas, this always will be shape width
-      FHeightInAtlas: Integer; // height in atlas, this always will be shape height
+    FXInAtlas: Integer; // x in atlas
+    FYInAtlas: Integer; // y in atlas
+    FWidthInAtlas: Integer; // width in atlas, this always will be shape width
+    FHeightInAtlas: Integer; // height in atlas, this always will be shape height
 
-      { When frame is trimmed, then atlas rect is not full size of the
-        frame. So our shape is smaller too, to make it apear in right place we
-        need shift all the coordinates of the our shape. We do that by calculating
-        anchor from XOffset, FrameWidth, and shift vertices coordinates.
-        See TCastleSpriteSheetX3DExporter.CalculateAnchors().
+    { When frame is trimmed, then atlas rect is not full size of the
+      frame. So our shape is smaller too, to make it apear in right place we
+      need shift all the coordinates of the our shape. We do that by calculating
+      anchor from XOffset, FrameWidth, and shift vertices coordinates.
+      See TCastleSpriteSheetX3DExporter.CalculateAnchors().
 
-        In default Anchor is 0.5, 0.5 so shape is centered, when
-        (FrameWidth - WidthInAtlas) / 2 = XOffset anchor will be 0.5
-        but when XOffset * 2 + WidthInAtlas <> FrameWidth anchor will change
-        and shape coords will be shifted.
-      }
-      FTrimmed: Boolean; // is frame trimmed ?
-      FXOffset: Integer; // relative x cord offset, used for trimming
-      FYOffset: Integer; // relative y cord offset, used for trimming
-      FFrameWidth: Integer; // real frame width
-      FFrameHeight: Integer; // real frame height
+      In default Anchor is 0.5, 0.5 so shape is centered, when
+      (FrameWidth - WidthInAtlas) / 2 = XOffset anchor will be 0.5
+      but when XOffset * 2 + WidthInAtlas <> FrameWidth anchor will change
+      and shape coords will be shifted.
+    }
+    FTrimmed: Boolean; // is frame trimmed ?
+    FXOffset: Integer; // relative x cord offset, used for trimming
+    FYOffset: Integer; // relative y cord offset, used for trimming
+    FFrameWidth: Integer; // real frame width
+    FFrameHeight: Integer; // real frame height
 
-      FFrameImage: TCastleImage; // Full frame image (even trimmed here is with margins)
+    FFrameImage: TCastleImage; // Full frame image (even trimmed here is with margins)
 
-      procedure SetXInAtlas(const NewX: Integer);
-      procedure SetYInAtlas(const NewY: Integer);
-      procedure SetWidthInAtlas(const NewWidth: Integer);
-      procedure SetHeightInAtlas(const NewHeight: Integer);
-      procedure SetXOffset(const NewFrameX: Integer);
-      procedure SetYOffset(const NewFrameY: Integer);
-      procedure SetFrameWidth(const NewFrameWidth: Integer);
-      procedure SetFrameHeight(const NewFrameHeight: Integer);
-      procedure SetTrimmed(const NewTrimmed: Boolean);
+    procedure SetXInAtlas(const NewX: Integer);
+    procedure SetYInAtlas(const NewY: Integer);
+    procedure SetWidthInAtlas(const NewWidth: Integer);
+    procedure SetHeightInAtlas(const NewHeight: Integer);
+    procedure SetXOffset(const NewFrameX: Integer);
+    procedure SetYOffset(const NewFrameY: Integer);
+    procedure SetFrameWidth(const NewFrameWidth: Integer);
+    procedure SetFrameHeight(const NewFrameHeight: Integer);
+    procedure SetTrimmed(const NewTrimmed: Boolean);
 
-      { Sets sprite sheet state as modified. }
-      procedure SetModifiedState;
-      procedure CheckEditMode;
-    public
-      constructor Create(const Animation: TCastleSpriteSheetAnimation);
-      { Construct full/deep copy of SrcFrame }
-      constructor Create(const Animation: TCastleSpriteSheetAnimation;
-          const SrcFrame: TCastleSpriteSheetFrame);
-      destructor Destroy; override;
+    { Sets sprite sheet state as modified. }
+    procedure SetModifiedState;
+    procedure CheckEditMode;
+  public
+    constructor Create(const Animation: TCastleSpriteSheetAnimation);
+    { Construct full/deep copy of SrcFrame }
+    constructor Create(const Animation: TCastleSpriteSheetAnimation;
+        const SrcFrame: TCastleSpriteSheetFrame);
+    destructor Destroy; override;
 
-      function HasFrameImage: Boolean;
+    function HasFrameImage: Boolean;
 
-      { Copies image and sets frame size. }
-      procedure SetFrameImage(const SourceImage: TCastleImage);
+    { Copies image and sets frame size. }
+    procedure SetFrameImage(const SourceImage: TCastleImage);
 
-      { Copies a fragment of the image and sets the image parameters }
-      procedure SetFrameImage(const SourceImage: TCastleImage; const DestX, DestY,
-          AFrameWidth, AFrameHeight, SourceX, SourceY,
-          SourceWidthToCopy, SourceHeightToCopy: Integer);
+    { Copies a fragment of the image and sets the image parameters }
+    procedure SetFrameImage(const SourceImage: TCastleImage; const DestX, DestY,
+        AFrameWidth, AFrameHeight, SourceX, SourceY,
+        SourceWidthToCopy, SourceHeightToCopy: Integer);
 
-      procedure DrawToImage(const DestImage: TCastleImage; const DestX, DestY,
-          SourceX, SourceY, SourceWidthToDraw, SourceHeightToDraw: Integer);
+    procedure DrawToImage(const DestImage: TCastleImage; const DestX, DestY,
+        SourceX, SourceY, SourceWidthToDraw, SourceHeightToDraw: Integer);
 
-      function MakeResized(const Width, Height: Integer): TCastleImage;
-      function MakeImageCopy: TCastleImage;
-      function CenterOnBiggerImage(const Width, Height: Integer): TCastleImage;
+    function MakeResized(const Width, Height: Integer): TCastleImage;
+    function MakeImageCopy: TCastleImage;
+    function CenterOnBiggerImage(const Width, Height: Integer): TCastleImage;
 
-      procedure SaveFrameImage(const URL: String);
+    procedure SaveFrameImage(const URL: String);
 
-      class function FlipYCoordToCGE(StarlingY, ImageHeight:Integer): Integer;
-      class function FlipYCoordToCGE(StarlingY, Height, ImageHeight:Integer): Integer;
+    class function FlipYCoordToCGE(StarlingY, ImageHeight:Integer): Integer;
+    class function FlipYCoordToCGE(StarlingY, Height, ImageHeight:Integer): Integer;
 
-      property XInAtlas: Integer read FXInAtlas write SetXInAtlas;
-      property YInAtlas: Integer read FYInAtlas write SetYInAtlas;
-      property WidthInAtlas: Integer read FWidthInAtlas write SetWidthInAtlas;
-      property HeightInAtlas: Integer read FHeightInAtlas write SetHeightInAtlas;
-      property XOffset: Integer read FXOffset write SetXOffset;
-      property YOffset: Integer read FYOffset write SetYOffset;
-      property FrameWidth: Integer read FFrameWidth write SetFrameWidth;
-      property FrameHeight: Integer read FFrameHeight write SetFrameHeight;
-      property Trimmed: Boolean read FTrimmed write SetTrimmed;
-      property Animation: TCastleSpriteSheetAnimation read FAnimation;
+    property XInAtlas: Integer read FXInAtlas write SetXInAtlas;
+    property YInAtlas: Integer read FYInAtlas write SetYInAtlas;
+    property WidthInAtlas: Integer read FWidthInAtlas write SetWidthInAtlas;
+    property HeightInAtlas: Integer read FHeightInAtlas write SetHeightInAtlas;
+    property XOffset: Integer read FXOffset write SetXOffset;
+    property YOffset: Integer read FYOffset write SetYOffset;
+    property FrameWidth: Integer read FFrameWidth write SetFrameWidth;
+    property FrameHeight: Integer read FFrameHeight write SetFrameHeight;
+    property Trimmed: Boolean read FTrimmed write SetTrimmed;
+    property Animation: TCastleSpriteSheetAnimation read FAnimation;
   end;
 
   { Abstract class for frame image "arranger", it enables the implementation
     of many algorithms }
   TCastleSpriteSheetAbstractAtlasGen = class
-    protected
-      FSpriteSheet: TCastleSpriteSheet;
-      FSpriteSheetMaxWidth: Integer;
-      FSpriteSheetMaxHeight: Integer;
-    public
-      constructor Create(const ASpriteSheet: TCastleSpriteSheet;
-          const MaxWidth, MaxHeight: Integer);
-      function WillFramesFitInSize(
-          AtlasWidth, AtlasHeight: Integer): Boolean; virtual; abstract;
-      procedure GetMinAtlasSize(
-          out MinWidth, MinHeight: Integer); virtual; abstract;
-      procedure Generate; virtual; abstract;
+  protected
+    FSpriteSheet: TCastleSpriteSheet;
+    FSpriteSheetMaxWidth: Integer;
+    FSpriteSheetMaxHeight: Integer;
+  public
+    constructor Create(const ASpriteSheet: TCastleSpriteSheet;
+        const MaxWidth, MaxHeight: Integer);
+    function WillFramesFitInSize(
+        AtlasWidth, AtlasHeight: Integer): Boolean; virtual; abstract;
+    procedure GetMinAtlasSize(
+        out MinWidth, MinHeight: Integer); virtual; abstract;
+    procedure Generate; virtual; abstract;
   end;
 
   { Most simple implementation of frame arranger - for debug purposes }
   TCastleSpriteSheetBasicAtlasGen = class (TCastleSpriteSheetAbstractAtlasGen)
-    private
-      type
-        TLayoutOperation = (
-          loMeasure,
-          loArrange
-        );
-      function LayoutFrames(const Operation: TLayoutOperation;
-          const MaxAtlasWidth, MaxAtlasHeight: integer;
-          out MinAtlasWidth, MinAtlasHeight: Integer): Boolean;
-      procedure GenerateAtlas(const AtlasWidth, AtlasHeight: Integer);
-    public
-      function WillFramesFitInSize(
-          AtlasWidth, AtlasHeight: Integer): Boolean; override;
-      procedure GetMinAtlasSize(out MinWidth, MinHeight: Integer); override;
-      procedure Generate; override;
+  private
+    type
+      TLayoutOperation = (
+        loMeasure,
+        loArrange
+      );
+    function LayoutFrames(const Operation: TLayoutOperation;
+        const MaxAtlasWidth, MaxAtlasHeight: integer;
+        out MinAtlasWidth, MinAtlasHeight: Integer): Boolean;
+    procedure GenerateAtlas(const AtlasWidth, AtlasHeight: Integer);
+  public
+    function WillFramesFitInSize(
+        AtlasWidth, AtlasHeight: Integer): Boolean; override;
+    procedure GetMinAtlasSize(out MinWidth, MinHeight: Integer); override;
+    procedure Generate; override;
   end;
 
   { TODO: Advaned sprite sheet generator with all features like trimming,
     padding and everything else we want }
   TCastleSpriteSheetAdvancedImageGen = class (TCastleSpriteSheetAbstractAtlasGen)
-    public
-      procedure Generate; override;
+  public
+    procedure Generate; override;
   end;
 
   { Castle Sprite Sheet XML file is not correct }
