@@ -349,7 +349,7 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
       try
         NewWidth := Image.Width;
         NewHeight := Image.Height;
-        NewScale := 0;
+        NewScale := 1;
         while (NewWidth >= 2 * TextureMinSize) and (NewHeight >= 2 * TextureMinSize) and (NewScale < Scale) do
         begin
           NewWidth := NewWidth shr 1;
