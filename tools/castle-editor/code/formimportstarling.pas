@@ -17,7 +17,7 @@ type
     LabelStarlingOptions: TLabel;
     LabelStrictDesc: TLabel;
     LabelNamingConvention: TLabel;
-    LabelStrictDesc1: TLabel;
+    LabelTralingDesc: TLabel;
     EditURL: TEdit;
     LabelURLTitle: TLabel;
     PanelNamingConvention: TPanel;
@@ -27,6 +27,8 @@ type
     RadioStrictUnderscore: TRadioButton;
     RadioTralingNumber: TRadioButton;
     procedure ButtonDefaultClick(Sender: TObject);
+    procedure LabelTralingDescClick(Sender: TObject);
+    procedure LabelStrictDescClick(Sender: TObject);
     procedure OptionsChange(Sender: TObject);
   strict private
     function GetURL: String;
@@ -69,6 +71,16 @@ procedure TImportStarlingForm.ButtonDefaultClick(Sender: TObject);
 begin
   RadioStrictUnderscore.Checked := true;
   FloatSpinEditFPS.Value := 8.0;
+end;
+
+procedure TImportStarlingForm.LabelTralingDescClick(Sender: TObject);
+begin
+  RadioTralingNumber.Checked := true;
+end;
+
+procedure TImportStarlingForm.LabelStrictDescClick(Sender: TObject);
+begin
+  RadioStrictUnderscore.Checked := true;
 end;
 
 function TImportStarlingForm.GetURL: String;
