@@ -682,6 +682,7 @@ procedure TSpriteSheetEditorForm.ActionOpenSpriteSheetExecute(Sender: TObject);
 var
   URLAnchor: String;
   URLToOpen: String;
+  URLBuff: String;
 begin
   if not ProposeSaveSpriteSheet then
     Exit;
@@ -695,7 +696,8 @@ begin
       or (ExtractFileExt(URLToOpen) = '.xml') then
     begin
       { If file has anchors don't show import dialog }
-      URIExtractAnchor(URLToOpen, URLAnchor, true);
+      URLBuff := URLToOpen;
+      URIExtractAnchor(URLBuff, URLAnchor, true);
       if URLAnchor = '' then
       begin
         ImportStarlingForm.Initialize(URLToOpen);
