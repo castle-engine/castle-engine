@@ -101,6 +101,7 @@ type
       function IsModified: Boolean;
 
       procedure Load(const URL: String);
+      procedure Load(const Stream: TStream; const BaseUrl: String);
       { Saves file to castle sprite sheet. If SaveSaveCopy = true then don't clears
         Modified state, don't change URL, don't save image paths }
       procedure Save(const AURL: String; const SaveCopy: Boolean = false);
@@ -362,13 +363,13 @@ type
   ECantRegenerateAtlas = class(Exception);
   EReadOnlyMode = class(Exception);
 
-  function LoadCastleSpriteSheet(const URL: String): TX3DRootNode;
+  function LoadCastleSpriteSheet(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 
 implementation
 
-uses StrUtils, DOM, Math,
-  CastleFilesUtils, CastleLog, CastleStringUtils, CastleTextureImages,
-  CastleURIUtils, CastleUtils, CastleXMLUtils;
+uses StrUtils, DOM, Math, XMLRead,
+  CastleDownload, CastleFilesUtils, CastleLog, CastleStringUtils,
+  CastleTextureImages, CastleURIUtils, CastleUtils, CastleXMLUtils;
 
 type
   { Frame names in starling file can be named freely, but in the case of our loader,
@@ -411,7 +412,8 @@ type
       end;
 
     var
-      FURL: String;
+      FStream: TStream;
+      FBaseUrl: String;
       FDisplayURL: String;
 
       { Load settings. }
@@ -442,7 +444,8 @@ type
 
     procedure AddFrame(const Animation: TCastleSpriteSheetAnimation);
   public
-    constructor Create(const URL: String; LoadForEdit: Boolean);
+    constructor Create(const Stream: TStream; const BaseUrl: String;
+        LoadForEdit: Boolean);
     destructor Destroy; override;
 
     procedure Load(const SpriteSheet: TCastleSpriteSheet);
@@ -504,13 +507,13 @@ type
     function ExportToX3D: TX3DRootNode;
   end;
 
-function LoadCastleSpriteSheet(const URL: String): TX3DRootNode;
+function LoadCastleSpriteSheet(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 var
   SpriteSheet: TCastleSpriteSheet;
 begin
   SpriteSheet := TCastleSpriteSheet.Create(false);
   try
-    SpriteSheet.Load(URL);
+    SpriteSheet.Load(Stream, BaseUrl);
     Result := SpriteSheet.ToX3D;
   finally
     FreeAndNil(SpriteSheet);
@@ -1646,12 +1649,25 @@ end;
 
 procedure TCastleSpriteSheet.Load(const URL: String);
 var
+  URLWithoutAnchor: String;
+  Stream: TStream;
+begin
+  URLWithoutAnchor := URIDeleteAnchor(URL, true);
+
+  Stream := Download(URLWithoutAnchor);
+  try
+    Load(Stream, URL);
+  finally FreeAndNil(Stream) end;
+end;
+
+procedure TCastleSpriteSheet.Load(const Stream: TStream; const BaseUrl: String);
+var
   SpriteSheetLoader: TCastleSpriteSheetLoader;
 begin
   SpriteSheetLoader := nil;
   BeginLoad;
   try
-    SpriteSheetLoader := TCastleSpriteSheetLoader.Create(MaybeUseDataProtocol(URL), EditMode);
+    SpriteSheetLoader := TCastleSpriteSheetLoader.Create(Stream, BaseUrl, EditMode);
     SpriteSheetLoader.Load(Self);
   finally
     FreeAndNil(SpriteSheetLoader);
@@ -2001,7 +2017,7 @@ begin
   begin
     SettingsMap := TStringStringMap.Create;
     try
-      URIExtractSettingsFromAnchor(FURL, SettingsMap);
+      URIGetSettingsFromAnchor(FBaseUrl, SettingsMap);
       for Setting in SettingsMap do
       begin
         if LowerCase(Setting.Key) = 'fps' then
@@ -2063,7 +2079,7 @@ procedure TCastleSpriteSheetLoader.PrepareSpriteSheet(
     const SpriteSheet: TCastleSpriteSheet);
 begin
   if not FStarlingLoading then
-    SpriteSheet.URL := FURL;
+    SpriteSheet.URL := FBaseUrl;
   SpriteSheet.LoadedAtlasPath := FAbsoluteImagePath;
   SpriteSheet.RelativeAtlasPath := FRelativeImagePath;
   FreeAndNil(FImage);
@@ -2128,14 +2144,15 @@ begin
   );
 end;
 
-constructor TCastleSpriteSheetLoader.Create(const URL: String; LoadForEdit: Boolean);
+constructor TCastleSpriteSheetLoader.Create(const Stream: TStream; const BaseUrl: String; LoadForEdit: Boolean);
 begin
   inherited Create;
-  FURL := URL;
-  FDisplayURL := URIDisplay(FURL);
+  FStream := Stream;
+  FBaseUrl := BaseUrl;
+  FDisplayURL := URIDisplay(FBaseUrl);
 
-  FStarlingLoading := (URIMimeType(URIDeleteAnchor(URL, true)) =
-     'application/x-starling-sprite-sheet') or (ExtractFileExt(URL) = '.xml');
+  FStarlingLoading := (URIMimeType(URIDeleteAnchor(FBaseUrl, true)) =
+     'application/x-starling-sprite-sheet') or (ExtractFileExt(FBaseUrl) = '.xml');
 
   FSubTexture := TSubTexture.Create;
   FLoadForEdit := LoadForEdit;
@@ -2163,13 +2180,13 @@ begin
 
   Doc := nil;
   try
-    Doc := URLReadXML(URIDeleteAnchor(FURL, true));
+    ReadXMLFile(Doc, FStream);
 
     Check(Doc.DocumentElement.TagName8 = 'TextureAtlas',
       'Root of CastleSpriteSheet file must be <TextureAtlas>');
 
     AtlasNode := Doc.DocumentElement;
-    ReadImageProperties(FURL, AtlasNode);
+    ReadImageProperties(FBaseUrl, AtlasNode);
 
     PrepareSpriteSheet(SpriteSheet);
 
