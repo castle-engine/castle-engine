@@ -461,7 +461,6 @@ type
     function ExportToXML: TXMLDocument;
   end;
 
-
   TCastleSpriteSheetX3DExporter = class
   strict private
     FRoot: TX3DRootNode;

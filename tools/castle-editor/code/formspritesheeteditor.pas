@@ -184,26 +184,26 @@ type
       TForceFileRegen = (ffgDoForceFileRegen, ffgDontForceFileRegen);
 
       TSelectedFrames = class
-        strict private
-          type
-            TListOfSelectedFrames = specialize TList<TCastleSpriteSheetFrame>;
-          var
-            FSelectedFrames: TListOfSelectedFrames;
-            FrameListView: TListView;
-        public
-          constructor Create(const FrameListViewToMonitor: TListView);
-          destructor Destroy; override;
+      strict private
+        type
+          TListOfSelectedFrames = specialize TList<TCastleSpriteSheetFrame>;
+        var
+          FSelectedFrames: TListOfSelectedFrames;
+          FrameListView: TListView;
+      public
+        constructor Create(const FrameListViewToMonitor: TListView);
+        destructor Destroy; override;
 
-          procedure GetCurrentSelection;
-          procedure SetSelection;
-          procedure Clear;
-          function GetFrameByIndex(const Index: Integer): TCastleSpriteSheetFrame;
-          function FrameCount: Integer;
+        procedure GetCurrentSelection;
+        procedure SetSelection;
+        procedure Clear;
+        function GetFrameByIndex(const Index: Integer): TCastleSpriteSheetFrame;
+        function FrameCount: Integer;
 
-          { This function is preparation for adding "+" button to ListViewFrames }
-          class function IsFrameListItem(const ItemToCheck: TListItem): Boolean;
+        { This function is preparation for adding "+" button to ListViewFrames }
+        class function IsFrameListItem(const ItemToCheck: TListItem): Boolean;
 
-          property Frame[Index: Integer]: TCastleSpriteSheetFrame read GetFrameByIndex;
+        property Frame[Index: Integer]: TCastleSpriteSheetFrame read GetFrameByIndex;
       end;
 
     const
@@ -1051,6 +1051,9 @@ begin
   if SpriteSheet.AnimationCount > 0 then
     ListViewAnimations.ItemIndex := 0;
 
+  { We need update actions manually here, because some controls is not updated
+    automatically }
+  UpdateActions;
 end;
 
 function TSpriteSheetEditorForm.AddAnimationToListView(
