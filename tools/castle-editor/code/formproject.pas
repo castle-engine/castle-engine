@@ -342,8 +342,19 @@ end;
 procedure TProjectForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
 begin
   if ProposeSaveDesign then
+  begin
+    { Close sprite sheet editor window if visible }
+    if (SpriteSheetEditorForm <> nil) and (SpriteSheetEditorForm.Visible) then
+    begin
+      if not SpriteSheetEditorForm.CloseQuery then
+      begin
+        CanClose := false;
+        Exit;
+      end;
+    end;
+
     Application.Terminate
-  else
+  end else
     CanClose := false;
 end;
 
@@ -682,6 +693,13 @@ procedure TProjectForm.MenuItemSwitchProjectClick(Sender: TObject);
 begin
   if ProposeSaveDesign then
   begin
+    { Close sprite sheet editor window if visible }
+    if (SpriteSheetEditorForm <> nil) and (SpriteSheetEditorForm.Visible) then
+    begin
+      if not SpriteSheetEditorForm.CloseQuery then
+        Exit;
+    end;
+
     Free; // do not call MenuItemDesignClose, to avoid OnCloseQuery
     ChooseProjectForm.Show;
   end;
