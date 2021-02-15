@@ -1600,6 +1600,8 @@ begin
     ListViewAnimations.Selected := NewAnimationItem;
     ListViewAnimations.Selected.MakeVisible(false);
   end;
+  { On GTK2, actions at this point are not automatically updated }
+  UpdateActions;
 end;
 
 procedure TSpriteSheetEditorForm.FrameAdded(NewFrame: TCastleSpriteSheetFrame);
