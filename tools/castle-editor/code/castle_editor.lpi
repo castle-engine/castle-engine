@@ -10,6 +10,7 @@
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
       <XPManifest>
+        <DpiAware Value="True"/>
         <TextName Value="castleengine.castleeditor"/>
         <TextDesc Value="Castle Game Engine Editor"/>
       </XPManifest>

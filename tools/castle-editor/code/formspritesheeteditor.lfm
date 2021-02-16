@@ -5,7 +5,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
   Width = 1147
   BorderWidth = 4
   Caption = 'Castle Sprite Sheet Editor'
-  ClientHeight = 549
+  ClientHeight = 550
   ClientWidth = 1147
   DesignTimePPI = 120
   Menu = MainMenu
@@ -87,9 +87,9 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       AnchorSideTop.Control = SpeedButtonSaveSpriteSheetAs
       AnchorSideTop.Side = asrCenter
       Left = 132
-      Height = 18
-      Top = 7
-      Width = 148
+      Height = 20
+      Top = 6
+      Width = 130
       BorderSpacing.Left = 4
       Caption = 'Maximum atlas size'
       ParentColor = False
@@ -99,8 +99,8 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = PanelTop
       AnchorSideTop.Side = asrCenter
-      Left = 282
-      Height = 29
+      Left = 264
+      Height = 28
       Top = 2
       Width = 63
       BorderSpacing.Left = 2
@@ -117,10 +117,10 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = PanelTop
       AnchorSideTop.Side = asrCenter
-      Left = 349
-      Height = 18
-      Top = 7
-      Width = 119
+      Left = 331
+      Height = 20
+      Top = 6
+      Width = 101
       BorderSpacing.Left = 4
       Caption = 'AtlasLabelError'
       Font.Color = clRed
@@ -132,10 +132,10 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = PanelTop
       AnchorSideTop.Side = asrCenter
-      Left = 496
-      Height = 18
-      Top = 7
-      Width = 145
+      Left = 460
+      Height = 20
+      Top = 6
+      Width = 124
       BorderSpacing.Left = 4
       Caption = 'LabelAtlasWarning'
       ParentColor = False
@@ -145,7 +145,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = PanelTop
       AnchorSideTop.Side = asrCenter
-      Left = 468
+      Left = 432
       Height = 24
       Top = 4
       Width = 24
@@ -173,14 +173,14 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
   end
   object PanelLeft: TPanel
     Left = 4
-    Height = 501
+    Height = 502
     Top = 44
     Width = 200
     Align = alLeft
     BevelOuter = bvNone
     BorderWidth = 4
     Caption = 'PanelLeft'
-    ClientHeight = 501
+    ClientHeight = 502
     ClientWidth = 200
     TabOrder = 0
     object SpeedButtonAddAnimation: TSpeedButton
@@ -188,7 +188,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       AnchorSideBottom.Control = PanelFPS
       Left = 4
       Height = 32
-      Top = 415
+      Top = 418
       Width = 32
       Action = ActionAddAnimation
       Anchors = [akLeft, akBottom]
@@ -203,7 +203,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       AnchorSideBottom.Control = PanelFPS
       Left = 36
       Height = 32
-      Top = 415
+      Top = 418
       Width = 32
       Action = ActionDeleteAnimation
       Anchors = [akLeft, akBottom]
@@ -219,14 +219,14 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       AnchorSideBottom.Control = PanelLeft
       AnchorSideBottom.Side = asrBottom
       Left = 4
-      Height = 30
-      Top = 447
+      Height = 28
+      Top = 450
       Width = 192
       Anchors = [akLeft, akRight, akBottom]
       AutoSize = True
       BorderSpacing.Bottom = 20
       BevelOuter = bvNone
-      ClientHeight = 30
+      ClientHeight = 28
       ClientWidth = 192
       TabOrder = 0
       object LabelFPS: TLabel
@@ -234,9 +234,9 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
         AnchorSideTop.Control = PanelFPS
         AnchorSideTop.Side = asrCenter
         Left = 0
-        Height = 18
-        Top = 6
-        Width = 28
+        Height = 20
+        Top = 4
+        Width = 23
         Caption = 'FPS'
         ParentColor = False
       end
@@ -246,8 +246,8 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
         AnchorSideRight.Control = PanelFPS
         AnchorSideRight.Side = asrBottom
         Left = 129
-        Height = 29
-        Top = 1
+        Height = 28
+        Top = 0
         Width = 63
         Anchors = [akTop, akRight]
         MaxValue = 1000
@@ -263,7 +263,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       Left = 4
       Height = 19
       Top = 4
-      Width = 108
+      Width = 87
       Caption = 'Animations'
       Font.Height = -17
       Font.Name = 'Sans'
@@ -279,14 +279,21 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       AnchorSideRight.Side = asrBottom
       AnchorSideBottom.Control = SpeedButtonAddAnimation
       Left = 4
-      Height = 392
+      Height = 395
       Top = 23
       Width = 192
       Anchors = [akTop, akLeft, akRight, akBottom]
-      Columns = <>
+      AutoWidthLastColumn = True
+      Columns = <      
+        item
+          Width = 188
+        end>
       PopupMenu = PopupMenuAnimations
+      RowSelect = True
       ScrollBars = ssAutoBoth
+      ShowColumnHeaders = False
       TabOrder = 1
+      ViewStyle = vsReport
       OnDragDrop = ListViewAnimationsDragDrop
       OnDragOver = ListViewAnimationsDragOver
       OnEdited = ListViewAnimationsEdited
@@ -295,20 +302,20 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
   end
   object SplitterLeft: TSplitter
     Left = 204
-    Height = 501
+    Height = 502
     Top = 44
     Width = 6
   end
   object PanelMiddle: TPanel
     Left = 210
-    Height = 501
+    Height = 502
     Top = 44
     Width = 617
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 4
     Caption = 'PanelMiddle'
-    ClientHeight = 501
+    ClientHeight = 502
     ClientWidth = 617
     TabOrder = 3
     object ListViewFrames: TListView
@@ -320,13 +327,14 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       AnchorSideBottom.Control = PanelMiddle
       AnchorSideBottom.Side = asrBottom
       Left = 4
-      Height = 474
+      Height = 475
       Top = 23
       Width = 609
       Anchors = [akTop, akLeft, akRight, akBottom]
       Columns = <>
       DragMode = dmAutomatic
       HideSelection = False
+      IconOptions.AutoArrange = True
       LargeImages = ImageListFrames
       MultiSelect = True
       PopupMenu = PopupMenuFrames
@@ -342,7 +350,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       Left = 4
       Height = 19
       Top = 4
-      Width = 70
+      Width = 58
       Caption = 'Frames'
       Font.Height = -17
       Font.Name = 'Sans'
@@ -353,13 +361,13 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
   end
   object PanelRight: TPanel
     Left = 833
-    Height = 501
+    Height = 502
     Top = 44
     Width = 310
     Align = alRight
     BevelOuter = bvNone
     BorderWidth = 4
-    ClientHeight = 501
+    ClientHeight = 502
     ClientWidth = 310
     TabOrder = 4
     object CastleControlPreview: TCastleControlBase
@@ -371,8 +379,8 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       AnchorSideBottom.Control = PanelRight
       AnchorSideBottom.Side = asrBottom
       Left = 4
-      Height = 472
-      Top = 25
+      Height = 471
+      Top = 27
       Width = 302
       Anchors = [akTop, akLeft, akRight, akBottom]
       Options = []
@@ -384,13 +392,13 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       AnchorSideRight.Control = PanelRight
       AnchorSideRight.Side = asrBottom
       Left = 4
-      Height = 21
+      Height = 23
       Top = 4
       Width = 302
       Anchors = [akTop, akLeft, akRight]
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 21
+      ClientHeight = 23
       ClientWidth = 302
       TabOrder = 1
       object LabelPreview: TLabel
@@ -399,8 +407,8 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
         AnchorSideTop.Side = asrCenter
         Left = 0
         Height = 19
-        Top = 1
-        Width = 77
+        Top = 2
+        Width = 62
         Caption = 'Preview'
         Font.Height = -17
         Font.Name = 'Sans'
@@ -412,10 +420,10 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
         AnchorSideTop.Control = LabelPreview
         AnchorSideTop.Side = asrCenter
         AnchorSideRight.Control = RadioFrame
-        Left = 129
-        Height = 22
+        Left = 144
+        Height = 24
         Top = -1
-        Width = 103
+        Width = 93
         Anchors = [akTop, akRight]
         Caption = 'Animation'
         Checked = True
@@ -428,10 +436,10 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
         AnchorSideTop.Side = asrCenter
         AnchorSideRight.Control = PanelPreviewHead
         AnchorSideRight.Side = asrBottom
-        Left = 232
-        Height = 22
+        Left = 237
+        Height = 24
         Top = -1
-        Width = 70
+        Width = 65
         Anchors = [akTop, akRight]
         Caption = 'Frame'
         OnChange = RadioFrameChange
@@ -443,17 +451,17 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Control = PanelRight
       AnchorSideTop.Side = asrCenter
-      Left = 76
-      Height = 18
+      Left = 86
+      Height = 20
       Top = 241
-      Width = 159
+      Width = 139
       Caption = 'Select frame to show'
       ParentColor = False
     end
   end
   object SplitterRight: TSplitter
     Left = 827
-    Height = 501
+    Height = 502
     Top = 44
     Width = 6
     Align = alRight

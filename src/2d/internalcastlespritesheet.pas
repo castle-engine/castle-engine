@@ -294,8 +294,12 @@ type
         SourceX, SourceY, SourceWidthToDraw, SourceHeightToDraw: Integer);
 
     function MakeResized(const Width, Height: Integer): TCastleImage;
+    function MakeResizedWithBg(const Width, Height: Integer;
+        const BgColor: TVector4): TCastleImage;
     function MakeImageCopy: TCastleImage;
-    function CenterOnBiggerImage(const Width, Height: Integer): TCastleImage;
+    function MakeImageCopyWithBg(const BgColor: TVector4): TCastleImage;
+    function CenterOnBiggerImage(const Width, Height: Integer;
+        const BgColor: TVector4): TCastleImage;
 
     procedure SaveFrameImage(const URL: String);
 
@@ -1224,6 +1228,26 @@ begin
   Result := FFrameImage.MakeResized(Width, Height);
 end;
 
+function TCastleSpriteSheetFrame.MakeResizedWithBg(const Width,
+  Height: Integer; const BgColor: TVector4): TCastleImage;
+var
+  ResizedImage: TCastleImage;
+begin
+  Assert(FFrameImage <> nil, 'No frame image to resize.');
+  CheckEditMode;
+
+  Result := TCastleImageClass(FFrameImage.ClassType).Create(Width, Height, FFrameImage.Depth);
+  Result.Clear(BgColor);
+
+  ResizedImage := FFrameImage.MakeResized(Width, Height);
+  try
+    Result.DrawFrom(FFrameImage, 0, 0, 0, 0, ResizedImage.Width,
+      ResizedImage.Height, dmBlend);
+  finally
+    FreeAndNil(ResizedImage);
+  end;
+end;
+
 function TCastleSpriteSheetFrame.MakeImageCopy: TCastleImage;
 begin
   Assert(FFrameImage <> nil, 'No frame image to make copy.');
@@ -1232,8 +1256,22 @@ begin
   Result := FFrameImage.MakeCopy;
 end;
 
+function TCastleSpriteSheetFrame.MakeImageCopyWithBg(const BgColor: TVector4
+  ): TCastleImage;
+begin
+  Assert(FFrameImage <> nil, 'No frame image to make copy.');
+  CheckEditMode;
+
+  Result := TCastleImageClass(FFrameImage.ClassType).Create(FFrameImage.Width,
+    FFrameImage.Height, FFrameImage.Depth);
+  Result.Clear(BgColor);
+
+  Result.DrawFrom(FFrameImage, 0, 0, 0, 0, FFrameImage.Width,
+    FFrameImage.Height, dmBlend);
+end;
+
 function TCastleSpriteSheetFrame.CenterOnBiggerImage(const Width,
-  Height: Integer): TCastleImage;
+  Height: Integer; const BgColor: TVector4): TCastleImage;
 begin
   if (FrameWidth > Width) or (FrameHeight > Height) then
     raise Exception.Create('Frame image bigger than gived size');
@@ -1241,11 +1279,11 @@ begin
   CheckEditMode;
 
   Result := TCastleImageClass(FFrameImage.ClassType).Create(Width, Height, FFrameImage.Depth);
-  Result.Clear(Vector4(0.0, 0.0, 0.0, 0.0));
+  Result.Clear(BgColor);
 
   Result.DrawFrom(FFrameImage, (Width - FFrameImage.Width) div 2,
     (Height - FFrameImage.Height) div 2, 0, 0, FFrameImage.Width,
-    FFrameImage.Height, dmOverwrite);
+    FFrameImage.Height, dmBlend);
 end;
 
 procedure TCastleSpriteSheetFrame.SaveFrameImage(const URL: String);

@@ -1097,7 +1097,12 @@ var
   begin
     Result := TLazIntfImage.Create(0, 0);
     RawImage.Init;
+    { TListView on WIN32 widgetset need RGB image }
+    {$ifdef LCLWIN32}
+    RawImage.Description.Init_BPP24_R8G8B8_BIO_TTB(Width, Height);
+    {$else}
     RawImage.Description.Init_BPP32_R8G8B8A8_BIO_TTB(Width, Height);
+    {$endif}
     RawImage.CreateData(True);
     Result.SetRawImage(RawImage);
     CustomFPImage := FrameImage.ToFpImage;
@@ -1117,16 +1122,38 @@ begin
     if (Frame.FrameWidth = CurrentFrameIconSize.X) and
       (Frame.FrameHeight = CurrentFrameIconSize.Y) then
     begin
+      { On win32 widgetset image with transparency looks ugly, so we
+        blend frame on white background }
+      {$ifdef LCLWIN32}
+      ResizedFrameImage := Frame.MakeImageCopyWithBg(Vector4(1, 1, 1, 1));
+      {$else}
       ResizedFrameImage := Frame.MakeImageCopy;
+      {$endif}
     end else
     if (Frame.FrameWidth < CurrentFrameIconSize.X) and
       (Frame.FrameHeight < CurrentFrameIconSize.Y) then
     begin
+      { On win32 widgetset image with transparency looks ugly, so we
+        blend frame on white background }
+      {$ifdef LCLWIN32}
       ResizedFrameImage := Frame.CenterOnBiggerImage(CurrentFrameIconSize.X,
-        CurrentFrameIconSize.Y);
+        CurrentFrameIconSize.Y, Vector4(1, 1, 1, 1));
+      {$else}
+      ResizedFrameImage := Frame.CenterOnBiggerImage(CurrentFrameIconSize.X,
+        CurrentFrameIconSize.Y, Vector4(0, 0, 0, 0));
+      {$endif}
     end else
+    begin
+      { On win32 widgetset image with transparency looks ugly, so we
+        blend frame on white background }
+      {$ifdef LCLWIN32}
+      ResizedFrameImage := Frame.MakeResizedWithBg(CurrentFrameIconSize.X,
+        CurrentFrameIconSize.Y, Vector4(1, 1, 1, 1));
+      {$else}
       ResizedFrameImage := Frame.MakeResized(CurrentFrameIconSize.X,
         CurrentFrameIconSize.Y);
+      {$endif}
+    end;
 
     IntfImage := FrameImageToLazImage(ResizedFrameImage, CurrentFrameIconSize.X,
       CurrentFrameIconSize.Y);
@@ -1156,7 +1183,6 @@ var
     ImageListFrames.Clear;
 
     { ListView can have only one size of images so we need decide about size. }
-
     CurrentFrameIconSize := Animation.GetBigestFrameSize(MaxFrameIconSize, MaxFrameIconSize);
 
     if (CurrentFrameIconSize.X = 0) or (CurrentFrameIconSize.Y = 0) then
