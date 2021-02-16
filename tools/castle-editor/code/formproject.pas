@@ -698,6 +698,7 @@ begin
     begin
       if not SpriteSheetEditorForm.CloseQuery then
         Exit;
+      SpriteSheetEditorForm.Close; // not needed on GTK2, maybe add ifdef?
     end;
 
     Free; // do not call MenuItemDesignClose, to avoid OnCloseQuery
