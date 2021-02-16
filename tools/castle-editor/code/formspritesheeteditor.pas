@@ -1501,7 +1501,7 @@ begin
   { check power of two }
   if not IsPowerOf2(Max(FSpriteSheet.MaxAtlasHeight,
     FSpriteSheet.MaxAtlasWidth)) then
-    SetAtlasWarning('We adwise using power of 2 size.')
+    SetAtlasWarning('We advise using power of 2 size.')
   else
     SetAtlasWarning('');
 end;
