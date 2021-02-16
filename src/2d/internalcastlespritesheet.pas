@@ -2087,7 +2087,7 @@ var
   Image: TCastleImage;
 begin
   FRelativeImagePath := AtlasNode.AttributeString('imagePath');
-  FAbsoluteImagePath := ExtractURIPath(URL) + FRelativeImagePath;
+  FAbsoluteImagePath := ExtractURIPath(URIDeleteAnchor(URL, true)) + FRelativeImagePath;
   { Some exporters like Free Texture Packer add width and height attributes.
     In this case we don't need load image to check them. }
   if AtlasNode.HasAttribute('width') and AtlasNode.HasAttribute('height') then
