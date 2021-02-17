@@ -469,7 +469,8 @@ procedure TTestSceneCore.TestLoadGzipped;
       Shape := Scene.RootNode.FdChildren[0] as TShapeNode;
       AssertTrue(Shape.Geometry is TSphereNode);
       Sphere := Shape.Geometry as TSphereNode;
-      AssertSameValue(123.456, Sphere.Radius);
+      { Special epsilon necessary to pass test on Raspberry Pi (Linux/Arm). }
+      AssertSameValue(123.456, Sphere.Radius, 0.0001);
     finally FreeAndNil(Scene) end;
   end;
 
