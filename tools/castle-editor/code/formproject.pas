@@ -115,6 +115,8 @@ type
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormHide(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure ListOutputClick(Sender: TObject);
     procedure MenuItemRenameClick(Sender: TObject);
     procedure UpdateUndo(Sender: TObject);
@@ -211,7 +213,7 @@ implementation
 
 uses TypInfo, LCLType,
   CastleXMLUtils, CastleLCLUtils, CastleOpenDocument, CastleURIUtils,
-  CastleFilesUtils, CastleUtils, CastleVectors, CastleColors,
+  CastleFilesUtils, CastleUtils, CastleVectors, CastleColors, CastleConfig,
   CastleScene, CastleViewport, Castle2DSceneManager, CastleCameras,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
@@ -411,10 +413,77 @@ end;
 
 procedure TProjectForm.FormDestroy(Sender: TObject);
 begin
+  FormHide(Self); //to save config properly
   ApplicationProperties.OnWarning.Remove(@WarningNotification);
   ApplicationDataOverride := '';
   FreeProcess;
   FreeAndNil(OutputList);
+end;
+
+procedure TProjectForm.FormHide(Sender: TObject);
+
+  function WindowStateToStr(const AWindowState: TWindowState): String;
+  begin
+    case AWindowState of
+      wsNormal: Result := 'wsNormal';
+      wsMinimized: Result := 'wsMinimized';
+      wsMaximized: Result := 'wsMaximized';
+      wsFullScreen: Result := 'wsFullScreen';
+    end;
+  end;
+
+begin
+  UserConfig.SetValue('ProjectForm_Saved', true);
+  UserConfig.SetValue('ProjectForm_Width', Width);
+  UserConfig.SetValue('ProjectForm_Height', Height);
+  UserConfig.SetValue('ProjectForm_Left', Left);
+  UserConfig.SetValue('ProjectForm_Top', Top);
+  UserConfig.SetValue('ProjectForm_WindowState', WindowStateToStr(WindowState));
+  UserConfig.SetValue('ProjectForm_PageControlBottom.Height', PageControlBottom.Height);
+  if Design <> nil then
+  begin
+    UserConfig.SetValue('ProjectForm_DesignSaved', true);
+    UserConfig.SetValue('ProjectForm_Design.PanelRight.Width', Design.PanelRight.Width);
+    UserConfig.SetValue('ProjectForm_Design.PanelLeft.Width', Design.PanelLeft.Width);
+  end;
+  UserConfig.Save;
+end;
+
+procedure TProjectForm.FormShow(Sender: TObject);
+
+  function StrToWindowState(const AWindowStateStr: String): TWindowState;
+  begin
+    case AWindowStateStr of
+      'wsNormal': Result := wsNormal;
+      'wsMaximized': Result := wsMaximized;
+      else
+        Result := wsNormal; //treat wsMinimized and any other value as wsNormal
+    end;
+  end;
+
+var
+  NewWidth, NewHeight, NewLeft, NewTop, NewControlHeight: Integer;
+begin
+  if UserConfig.GetValue('ProjectForm_Saved', false) then
+  begin
+    NewWidth := UserConfig.GetValue('ProjectForm_Width', -MaxInt);
+    NewHeight := UserConfig.GetValue('ProjectForm_Height', -MaxInt);
+    NewLeft := UserConfig.GetValue('ProjectForm_Left', -MaxInt);
+    NewTop := UserConfig.GetValue('ProjectForm_Top', -MaxInt);
+    NewControlHeight := UserConfig.GetValue('ProjectForm_PageControlBottom.Height', -MaxInt);
+    WindowState := StrToWindowState(UserConfig.GetValue('ProjectForm_WindowState', 'wsNormal'));
+    if (NewWidth + NewLeft <= Screen.Width + 32) and (NewWidth > 128) and
+       (NewHeight + NewTop <= Screen.Height + 32) and (NewHeight > 128) and
+       (NewControlHeight < NewHeight) and (NewControlHeight >= 0) and
+       (NewLeft > -32) and (NewTop > -32) then
+    begin
+      Width := NewWidth;
+      Height := NewHeight;
+      Left := NewLeft;
+      Top := NewTop;
+      PageControlBottom.Height := NewControlHeight;
+    end;
+  end;
 end;
 
 procedure TProjectForm.ListOutputClick(Sender: TObject);
@@ -524,6 +593,10 @@ begin
 
   if ProposeSaveDesign then
   begin
+    UserConfig.SetValue('ProjectForm_Design.PanelRight.Width', Design.PanelRight.Width);
+    UserConfig.SetValue('ProjectForm_Design.PanelLeft.Width', Design.PanelLeft.Width);
+    UserConfig.SetValue('ProjectForm_DesignSaved', true);
+    UserConfig.Save;
     FreeAndNil(Design);
     DesignExistenceChanged;
   end;
@@ -553,6 +626,8 @@ begin
 end;
 
 procedure TProjectForm.DesignExistenceChanged;
+var
+  NewPanelRightWidth, NewPanelLeftWidth: Integer;
 begin
   MenuItemSaveAsDesign.Enabled := Design <> nil;
   MenuItemSaveDesign.Enabled := Design <> nil;
@@ -566,6 +641,18 @@ begin
 
   UpdateUndo(nil);
   UpdateRenameItem(nil);
+
+  if (Design <> nil) and UserConfig.GetValue('ProjectForm_DesignSaved', false) then
+  begin
+    NewPanelRightWidth := UserConfig.GetValue('ProjectForm_Design.PanelRight.Width', -MaxInt);
+    NewPanelLeftWidth := UserConfig.GetValue('ProjectForm_Design.PanelLeft.Width', -MaxInt);
+    if (NewPanelRightWidth >= 0) and (NewPanelLeftWidth >= 0) and
+      (NewPanelRightWidth + NewPanelLeftWidth <= Width) then
+    begin
+      Design.PanelRight.Width := NewPanelRightWidth;
+      Design.PanelLeft.Width := NewPanelLeftWidth;
+    end;
+  end;
 
   LabelNoDesign.Visible := Design = nil;
 end;
