@@ -22,7 +22,7 @@ interface
 uses
   Classes, SysUtils, Generics.Collections, Forms, Controls, Graphics, Dialogs,
   ExtCtrls, ComCtrls, Buttons, ActnList, StdCtrls, Spin, Menus,
-  CastleControl, CastleDialogs, CastleScene, InternalCastleSpriteSheet, CastleVectors,
+  CastleControl, CastleDialogs, CastleScene, CastleInternalSpriteSheet, CastleVectors,
   CastleViewport,
   DataModuleIcons;
 

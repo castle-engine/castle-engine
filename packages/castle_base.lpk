@@ -2968,8 +2968,8 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item719>
       <Item720>
-        <Filename Value="../src/2d/internalcastlespritesheet.pas"/>
-        <UnitName Value="internalcastlespritesheet"/>
+        <Filename Value="../src/2d/castleinternalspritesheet.pas"/>
+        <UnitName Value="castleinternalspritesheet"/>
       </Item720>
       <Item721>
         <Filename Value="../src/game/castlebehaviors.pas"/>

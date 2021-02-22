@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ComCtrls,
-  Spin, ExtCtrls, InternalCastleSpriteSheet;
+  Spin, ExtCtrls, CastleInternalSpriteSheet;
 
 type
   TImportAtlasForm = class(TForm)
