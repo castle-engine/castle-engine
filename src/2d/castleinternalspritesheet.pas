@@ -530,6 +530,7 @@ var
   Shape: TShapeNode;
   Tri: TTriangleSetNode;
   Tex: TAbstractTextureNode;
+  TexProperties: TTexturePropertiesNode;
 begin
   FRoot.Meta['generator'] := 'Castle Game Engine, https://castle-engine.io';
   FRoot.Meta['source'] := ExtractURIName(FSpriteSheet.URL);
@@ -537,12 +538,22 @@ begin
   Shape := TShapeNode.Create;
   Shape.Material := TUnlitMaterialNode.Create;
 
+  TexProperties := TTexturePropertiesNode.Create;
+  TexProperties.MagnificationFilter := magDefault;
+  TexProperties.MinificationFilter := minDefault;
+  { Do not force "power of 2" size, which may prevent mipmaps.
+    This seems like a better default (otherwise the resizing underneath
+    may cause longer loading time, and loss of quality, if not expected).
+    See https://github.com/castle-engine/castle-engine/issues/249 }
+  TexProperties.GuiTexture := true;
+
   if FSpriteSheet.EditMode and (FSpriteSheet.FGeneratedAtlas <> nil) then
   begin
     Tex := TPixelTextureNode.Create;
     TPixelTextureNode(Tex).FdImage.Value := FSpriteSheet.FGeneratedAtlas.MakeCopy;
     TPixelTextureNode(Tex).RepeatS := false;
     TPixelTextureNode(Tex).RepeatT := false;
+    TPixelTextureNode(Tex).TextureProperties := TexProperties;
   end else
   begin
     Tex := TImageTextureNode.Create;
@@ -553,6 +564,7 @@ begin
       TImageTextureNode(Tex).FdUrl.Send(FSpriteSheet.LoadedAtlasPath);
     TImageTextureNode(Tex).RepeatS := false;
     TImageTextureNode(Tex).RepeatT := false;
+    TImageTextureNode(Tex).TextureProperties := TexProperties;
   end;
   Shape.Texture := Tex;
 
