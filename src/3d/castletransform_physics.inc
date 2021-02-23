@@ -146,6 +146,17 @@
     Radius: Single;
   end;
 
+  { Collide as a capsule.
+    Place this inside @link(TRigidBody.Collider) property. }
+  TCapsuleCollider = class(TCollider)
+  strict protected
+    function CreateKraftShape(const APhysics: TKraft;
+      const ARigidBody: TKraftRigidBody): TKraftShape; override;
+  public
+    Radius: Single;
+    Height: Single;
+  end;
+
   T3DCoord = 0..2;
   T3DCoords = set of T3DCoord;
 
@@ -417,6 +428,14 @@ function MatrixFromKraft(const M: TKraftMatrix4x4): TMatrix4;
 begin
   Assert(SizeOf(M) = SizeOf(Result));
   Move(M, Result, SizeOf(M));
+end;
+
+{ TCapsuleCollider ----------------------------------------------------------- }
+
+function TCapsuleCollider.CreateKraftShape(const APhysics: TKraft;
+  const ARigidBody: TKraftRigidBody): TKraftShape;
+begin
+  Result := TKraftShapeCapsule.Create(APhysics, ARigidBody, Radius, Height);
 end;
 
 { TPhysicsProperties --------------------------------------------------------- }
