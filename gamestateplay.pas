@@ -94,7 +94,7 @@ end;
 procedure TStatePlay.ConfigurePlayerPhysics(const Player: TCastleScene);
 var
   RBody: TRigidBody;
-  Collider: TSphereCollider;
+  Collider: TCapsuleCollider;
 begin
   RBody := TRigidBody.Create(Player);
   RBody.Dynamic := true;
@@ -107,8 +107,9 @@ begin
   RBody.LockRotation := [0, 1, 2];
   RBody.MaximalLinearVelocity := 0;
 
-  Collider := TSphereCollider.Create(RBody);
-  Collider.Radius := ScenePlayer.BoundingBox.MaxSize / 2;
+  Collider := TCapsuleCollider.Create(RBody);
+  Collider.Radius := ScenePlayer.BoundingBox.SizeX / 2;
+  Collider.Height := ScenePlayer.BoundingBox.SizeY - Collider.Radius * 2;
   Collider.Friction := 0.1;
   Collider.Restitution := 0.05;
 
