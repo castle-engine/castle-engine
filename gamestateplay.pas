@@ -9,7 +9,7 @@ interface
 
 uses Classes,
   CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls,
-  CastleKeysMouse, CastleViewport, CastleScene, CastleVectors;
+  CastleKeysMouse, CastleViewport, CastleScene, CastleVectors, CastleTransform;
 
 type
   { Main "playing game" state, where most of the game logic takes place. }
@@ -30,8 +30,11 @@ type
     WasDoubleJump: Boolean;
 
     procedure ConfigurePlatformPhysics(Platform: TCastleScene);
+    procedure ConfigureCoinsPhysics(const Coin: TCastleScene);
+
     procedure ConfigurePlayerPhysics(const Player:TCastleScene);
     procedure ConfigurePlayerAbilities(const Player:TCastleScene);
+    procedure PlayerCollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
 
     { Simplest version }
     procedure UpdatePlayerSimpleDependOnlyVelocity(const SecondsPassed: Single;
@@ -60,7 +63,7 @@ implementation
 
 uses
   SysUtils, Math,
-  CastleTransform, CastleLog,
+  CastleLog,
   GameStateMenu;
 
 { TStatePlay ----------------------------------------------------------------- }
@@ -91,6 +94,31 @@ begin
   Platform.RigidBody := RBody;
 end;
 
+procedure TStatePlay.ConfigureCoinsPhysics(const Coin: TCastleScene);
+var
+  RBody: TRigidBody;
+  Collider: TSphereCollider;
+begin
+  RBody := TRigidBody.Create(Coin);
+  RBody.Dynamic := false;
+  //RBody.Animated := true;
+  RBody.Setup2D;
+  RBody.Gravity := false;
+  RBody.LinearVelocityDamp := 0;
+  RBody.AngularVelocityDamp := 0;
+  RBody.AngularVelocity := Vector3(0, 0, 0);
+  RBody.LockRotation := [0, 1, 2];
+  RBody.MaximalLinearVelocity := 0;
+  RBody.Trigger := true;
+
+  Collider := TSphereCollider.Create(RBody);
+  Collider.Radius := ScenePlayer.BoundingBox.SizeY / 2;
+  Collider.Friction := 0.1;
+  Collider.Restitution := 0.05;
+
+  Coin.RigidBody := RBody;
+end;
+
 procedure TStatePlay.ConfigurePlayerPhysics(const Player: TCastleScene);
 var
   RBody: TRigidBody;
@@ -106,6 +134,7 @@ begin
   RBody.AngularVelocity := Vector3(0, 0, 0);
   RBody.LockRotation := [0, 1, 2];
   RBody.MaximalLinearVelocity := 0;
+  RBody.OnCollisionEnter := @PlayerCollisionEnter;
 
   Collider := TCapsuleCollider.Create(RBody);
   Collider.Radius := ScenePlayer.BoundingBox.SizeX / 2;
@@ -122,6 +151,19 @@ procedure TStatePlay.ConfigurePlayerAbilities(const Player: TCastleScene);
 begin
   PlayerCanDoubleJump := true;
   WasDoubleJump := false;
+end;
+
+procedure TStatePlay.PlayerCollisionEnter(
+  const CollisionDetails: TPhysicsCollisionDetails);
+begin
+  if CollisionDetails.OtherTransform <> nil then
+  begin
+    WritelnWarning(CollisionDetails.OtherTransform.Name);
+    if pos('GoldCoin', CollisionDetails.OtherTransform.Name) > 0 then
+    begin
+      CollisionDetails.OtherTransform.Exists := false;
+    end;
+  end;
 end;
 
 procedure TStatePlay.UpdatePlayerSimpleDependOnlyVelocity(
@@ -450,6 +492,7 @@ var
   UiOwner: TComponent;
 
   PlatformsRoot: TCastleTransform;
+  CoinsRoot: TCastleTransform;
   I: Integer;
 begin
   inherited;
@@ -476,6 +519,14 @@ begin
     WritelnWarning('Configure platform: ' + PlatformsRoot.Items[I].Name);
     ConfigurePlatformPhysics(PlatformsRoot.Items[I] as TCastleScene);
   end;
+
+  CoinsRoot := UiOwner.FindRequiredComponent('Coins') as TCastleTransform;
+  for I := 0 to CoinsRoot.Count - 1 do
+  begin
+    WritelnWarning('Configure coin: ' + CoinsRoot.Items[I].Name);
+    ConfigureCoinsPhysics(CoinsRoot.Items[I] as TCastleScene);
+  end;
+
 end;
 
 procedure TStatePlay.Update(const SecondsPassed: Single; var HandleInput: Boolean);
