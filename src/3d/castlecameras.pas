@@ -1378,6 +1378,26 @@ type
       read FRotationAccelerate write SetRotationAccelerate default true;
   end;
 
+  TCastle2DNavigation = class (TCastleExamineNavigation)
+  public
+    constructor Create(AOwner: TComponent); override;
+
+    { Drag with this mouse button to move the model. }
+    property MouseButtonMove: TCastleMouseButton
+      read FMouseButtonMove write FMouseButtonMove default buttonRight;
+    { Drag with this mouse button to zoom the model (look closer / further). }
+    property MouseButtonZoom: TCastleMouseButton
+      read FMouseButtonZoom write FMouseButtonZoom default buttonMiddle;
+  published
+    { Enable rotating the camera around the model by user input.
+      When @false, no keys / mouse dragging / 3D mouse etc. can cause a rotation.
+
+      Note that this doesn't prevent from rotating by code, e.g. by setting
+      @link(Rotations) property or calling @link(SetView). }
+    property RotationEnabled: Boolean read FRotationEnabled write FRotationEnabled default false;
+  end;
+
+
   TCastleWalkNavigation = class;
 
   { What mouse dragging does in TCastleWalkNavigation. }
@@ -2199,6 +2219,17 @@ begin
   {$ifdef CASTLE_REGISTER_ALL_COMPONENTS_IN_LAZARUS}
   RegisterComponents('Castle', [TCastleExamineNavigation, TCastleWalkNavigation]);
   {$endif}
+end;
+
+{ TCastle2DNavigation -------------------------------------------------------- }
+
+constructor TCastle2DNavigation.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+
+  RotationEnabled := false;
+  MouseButtonMove := buttonRight;
+  MouseButtonZoom := buttonMiddle;
 end;
 
 { TCastlePerspective --------------------------------------------------------- }
@@ -5619,5 +5650,6 @@ end;
 
 initialization
   RegisterSerializableComponent(TCastleExamineNavigation, 'Examine Navigation');
+  RegisterSerializableComponent(TCastle2DNavigation, '2D Navigation');
   RegisterSerializableComponent(TCastleWalkNavigation, 'Walk Navigation');
 end.

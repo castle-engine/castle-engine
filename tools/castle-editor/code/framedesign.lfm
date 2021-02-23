@@ -1528,6 +1528,10 @@ object DesignFrame: TDesignFrame
       Caption = 'Set Navigation to None (Viewport.Navigation := nil)'
       OnClick = MenuViewportNavigationNoneClick
     end
+    object MenuViewportNavigation2D: TMenuItem
+      Caption = 'Set Navigation to 2D (Viewport.Navigation := TCastle2DNavigation.Create)'
+      OnClick = MenuViewportNavigation2DClick
+    end
     object MenuViewportNavigationExamine: TMenuItem
       Caption = 'Set Navigation to Examine (Viewport.Navigation := TCastleExamineNavigation.Create)'
       OnClick = MenuViewportNavigationExamineClick
