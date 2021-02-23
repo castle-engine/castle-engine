@@ -1,0 +1,280 @@
+{
+  "FullSize" : true,
+  "Name" : "RootGroup",
+  "$Children" : [
+    {
+      "Camera" : {
+        "InitialPositionPersistent" : {
+          "Z" : 5.0000000000000000E+002,
+          "$ClassName" : "TCastleVector3Persistent"
+        },
+        "Name" : "Camera",
+        "Orthographic" : {
+          "Height" : 8.0000000000000000E+002,
+          "Name" : "Orthographic",
+          "OriginPersistent" : {
+            "X" : 4.4999998807907104E-001,
+            "Y" : 5.0000000000000000E-001,
+            "$ClassName" : "TCastleVector2Persistent"
+          },
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleOrthographic"
+        },
+        "Perspective" : {
+          "Name" : "Perspective",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastlePerspective"
+        },
+        "ProjectionFar" : 1.0000000000000000E+003,
+        "ProjectionNear" : -1.0000000000000000E+003,
+        "ProjectionType" : "ptOrthographic",
+        "$Children" : [
+        ],
+        "$ClassName" : "TCastleCamera"
+      },
+      "FullSize" : true,
+      "Items" : {
+        "Name" : "Items",
+        "PhysicsProperties" : {
+          "Name" : "PhysicsProperties",
+          "$Children" : [
+          ],
+          "$ClassName" : "TPhysicsProperties"
+        },
+        "$Children" : [
+          {
+            "Name" : "Background",
+            "$Children" : [
+              {
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Layer1",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "URL" : "castle-data:/background/bg_layer1.png",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Layer2",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "Z" : 2.0000000000000000E+000,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/background/bg_layer2.png",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              }
+            ],
+            "$ClassName" : "TCastleTransform"
+          },
+          {
+            "AutoAnimation" : "idle",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "ScenePlayer",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "Name" : "RenderOptions",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "X" : -3.6852044677734375E+002,
+              "Y" : -1.1494252777099609E+002,
+              "Z" : 3.0000000000000000E+000,
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "URL" : "castle-data:/player/player.castle-sprite-sheet",
+            "$Children" : [
+            ],
+            "$ClassName" : "TCastleScene"
+          },
+          {
+            "Name" : "Platforms",
+            "$Children" : [
+              {
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Platform1",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : -4.3614303588867188E+002,
+                  "Y" : -3.0012771606445312E+002,
+                  "Z" : 3.0000000000000000E+000,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/platforms/ground_grass.png",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Platform2",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : 8.2375457763671875E+001,
+                  "Y" : -1.6475094604492188E+002,
+                  "Z" : 3.0000000000000000E+000,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/platforms/ground_grass.png",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Platform3",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : 5.4273309326171875E+002,
+                  "Y" : -1.7369094848632812E+002,
+                  "Z" : 3.0000000000000000E+000,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/platforms/ground_grass.png",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Platform4",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : 9.4017883300781250E+002,
+                  "Y" : 9.2975738525390625E+001,
+                  "Z" : 3.0000000000000000E+000,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/platforms/ground_grass.png",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "ExposeTransforms" : [
+                ],
+                "Name" : "SmallPlatform1",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : 3.1693487548828125E+002,
+                  "Y" : 1.4099617004394531E+002,
+                  "Z" : 3.0000000000000000E+000,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/platforms/ground_grass_small.png",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              }
+            ],
+            "$ClassName" : "TCastleTransform"
+          }
+        ],
+        "$ClassName" : "TCastleRootTransform"
+      },
+      "Name" : "MainViewport",
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleViewport"
+    },
+    {
+      "ColorPersistent" : {
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000,
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "FontSize" : 2.0000000000000000E+001,
+      "HorizontalAnchorDelta" : -2.0000000000000000E+001,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "LabelFps",
+      "Text" : [
+        "FPS: xxx"
+      ],
+      "VerticalAnchorDelta" : -2.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleLabel"
+    },
+    {
+      "Caption" : "Camera Follows Player",
+      "CheckboxSize" : 5.0000000000000000E+001,
+      "Checked" : true,
+      "FontSize" : 4.0000000000000000E+001,
+      "HorizontalAnchorDelta" : 4.0000000000000000E+001,
+      "Name" : "CheckboxCameraFollow",
+      "VerticalAnchorDelta" : -5.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleCheckbox"
+    },
+    {
+      "Caption" : "Advanced Player",
+      "CheckboxSize" : 5.0000000000000000E+001,
+      "Checked" : true,
+      "FontSize" : 4.0000000000000000E+001,
+      "HorizontalAnchorDelta" : 4.0000000000000000E+001,
+      "Name" : "AdvancedPlayer",
+      "VerticalAnchorDelta" : -1.2000000000000000E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleCheckbox"
+    }
+  ],
+  "$ClassName" : "TCastleUserInterface"
+}
