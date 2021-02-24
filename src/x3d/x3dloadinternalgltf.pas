@@ -2453,6 +2453,16 @@ begin
       FreeAndNil(AnimationSampler);
       FreeIfUnusedAndNil(DefaultAppearance);
       X3DNodeList_FreeUnusedAndNil(Appearances);
+      { Note that some Nodes[...] items may be nil.
+
+        While in glTF there are no gaps (the nodes are a list without gaps),
+        but a particular Document.Scene may refer only to a subset of nodes,
+        and our ReadNode reads them recursively.
+        Unused nodes (not referred by Document.Scene) are left unprocessed,
+        and their Nodes[...] remains nil.
+
+        Still, X3DNodeList_FreeUnusedAndNil guarantees to handle it.
+        Testcase: GLB from https://www.kenney.nl/assets/city-kit-suburban . }
       X3DNodeList_FreeUnusedAndNil(Nodes);
       FreeAndNil(Lights);
       FreeAndNil(Document);
