@@ -1045,14 +1045,20 @@ begin
   if (ANode = nil) and (GetRootPath <> '') then ANode := Items.GetFirstVisibleNode;
   if IsRoot then
   begin
-    if Assigned(ANode) then
-      RootNodeText := ANode.Text  //this may differ from FRoot, so don't use FRoot here
-    else
-      RootNodeText := GetRootPath;
+    { Castle: commented this out, it is broken.
+      In case we would do Tree.Refresh(Tree.Selected),
+      with Tree.Selected <> nil and equal to tree root,
+      we would effectively set RootNodeText to the name (but not full path!)
+      of the root directory.
+      But we need a full path, otherwise SetRoot with it will fail. }
+    //if Assigned(ANode) then
+    //  RootNodeText := ANode.Text  //this may differ from FRoot, so don't use FRoot here
+    //else
+
+    RootNodeText := GetRootPath;
     {$ifdef debug_shellctrls}
     debugln(['IsRoot = TRUE, RootNodeText = "',RootNodeText,'"']);
     {$endif}
-
 
     FRoot := #0; //invalidate FRoot
     SetRoot(RootNodeText); //re-initialize the entire tree

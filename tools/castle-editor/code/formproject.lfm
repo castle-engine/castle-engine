@@ -15,7 +15,7 @@ object ProjectForm: TProjectForm
   OnShow = FormShow
   Position = poMainFormCenter
   ShowInTaskBar = stAlways
-  LCLVersion = '2.0.8.0'
+  LCLVersion = '2.0.10.0'
   object PageControlBottom: TPageControl
     Left = 0
     Height = 224
@@ -484,17 +484,28 @@ object ProjectForm: TProjectForm
     object MenuItemSeparator123123213: TMenuItem
       Caption = '-'
     end
+    object MenuItemNewDirectory: TMenuItem
+      Caption = 'New Directory...'
+      OnClick = MenuItemNewDirectoryClick
+    end
     object MenuItemDeleteFile: TMenuItem
-      Caption = 'Delete'
+      Caption = 'Delete...'
       OnClick = MenuItemDeleteFileClick
     end
   end
   object ShellTreePopupMenu: TPopupMenu
     Left = 233
-    Top = 287
+    Top = 288
     object MenuItemShellTreeOpenDir: TMenuItem
       Caption = 'Open in File Manager'
       OnClick = MenuItemShellTreeOpenDirClick
+    end
+    object MenuItemShellTreeSeparator13123: TMenuItem
+      Caption = '-'
+    end
+    object MenuItemShellTreeRefresh: TMenuItem
+      Caption = 'Refresh'
+      OnClick = MenuItemShellTreeRefreshClick
     end
   end
   object ShellIcons: TImageList
@@ -577,5 +588,11 @@ object ProjectForm: TProjectForm
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000
     }
+  end
+  object ApplicationProperties1: TApplicationProperties
+    OnActivate = ApplicationProperties1Activate
+    OnException = ApplicationProperties1Exception
+    Left = 344
+    Top = 21
   end
 end

@@ -30,7 +30,11 @@ uses
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ApplicationProperties1: TApplicationProperties;
     ButtonClearWarnings: TBitBtn;
+    MenuItemNewDirectory: TMenuItem;
+    MenuItemShellTreeSeparator13123: TMenuItem;
+    MenuItemShellTreeRefresh: TMenuItem;
     PanelWarnings: TPanel;
     ShellIcons: TImageList;
     LabelNoDesign: TLabel;
@@ -111,6 +115,8 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ApplicationProperties1Activate(Sender: TObject);
+    procedure ApplicationProperties1Exception(Sender: TObject; E: Exception);
     procedure ButtonClearWarningsClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
@@ -118,7 +124,9 @@ type
     procedure FormHide(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ListOutputClick(Sender: TObject);
+    procedure MenuItemNewDirectoryClick(Sender: TObject);
     procedure MenuItemRenameClick(Sender: TObject);
+    procedure MenuItemShellTreeRefreshClick(Sender: TObject);
     procedure UpdateUndo(Sender: TObject);
     procedure UpdateRenameItem(Sender: TObject);
     procedure MenuItemRedoClick(Sender: TObject);
@@ -162,20 +170,32 @@ type
     procedure ProcessUpdateTimerTimer(Sender: TObject);
     procedure ShellListPopupMenuPopup(Sender: TObject);
   private
-    ProjectName: String;
-    ProjectPath, ProjectPathUrl, ProjectStandaloneSource, ProjectLazarus: String;
-    BuildMode: TBuildMode;
-    OutputList: TOutputList;
-    RunningProcess: TAsynchronousProcessQueue;
-    Design: TDesignFrame;
-    ShellListView1: TCastleShellListView;
-    ShellTreeView1: TCastleShellTreeView;
-    ViewFileFrame: TViewFileFrame;
-    SplitterBetweenViewFile: TSplitter;
+    type
+      // Argument for RefreshFiles
+      TRefreshFiles = (
+        // only files (not directories) within current directory changed
+        rfFilesInCurrentDir,
+        // files or directories, but only within current directory (not outside) changed
+        rfEverythingInCurrentDir,
+        // everything potentially changed
+        rfEverything
+      );
+    var
+      ProjectName: String;
+      ProjectPath, ProjectPathUrl, ProjectStandaloneSource, ProjectLazarus: String;
+      BuildMode: TBuildMode;
+      OutputList: TOutputList;
+      RunningProcess: TAsynchronousProcessQueue;
+      Design: TDesignFrame;
+      ShellListView1: TCastleShellListView;
+      ShellTreeView1: TCastleShellTreeView;
+      ViewFileFrame: TViewFileFrame;
+      SplitterBetweenViewFile: TSplitter;
     procedure BuildToolCall(const Commands: array of String;
       const ExitOnSuccess: Boolean = false);
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuItemDesignNewCustomRootClick(Sender: TObject);
+    procedure RefreshFiles(const RefreshNecessary: TRefreshFiles);
     procedure SetEnabledCommandRun(const AEnabled: Boolean);
     procedure FreeProcess;
     procedure ShellListViewDoubleClick(Sender: TObject);
@@ -250,7 +270,7 @@ end;
 
 procedure TProjectForm.MenuItemRefreshDirClick(Sender: TObject);
 begin
-  ShellListView1.RefreshContents;
+  RefreshFiles(rfEverythingInCurrentDir);
 end;
 
 procedure TProjectForm.MenuItemRestartRebuildEditorClick(Sender: TObject);
@@ -346,6 +366,30 @@ end;
 procedure TProjectForm.ButtonClearWarningsClick(Sender: TObject);
 begin
   ClearAllWarnings;
+end;
+
+procedure TProjectForm.ApplicationProperties1Activate(Sender: TObject);
+begin
+  { Refresh contents of selected dir, and tree of subdirectories,
+    in case user created some files/directories in other applications. }
+  RefreshFiles(rfEverything);
+end;
+
+procedure TProjectForm.ApplicationProperties1Exception(Sender: TObject;
+  E: Exception);
+begin
+  { In case of CGE editor, exceptions are nothing alarming.
+
+    We may raise exception during normal execution e.g.
+    - when you try to do invalid file operation (creating dir with invalid name,
+      deleting something to which you have no permission),
+    - renaming component to invalid value,
+    - in general doing anything that causes exception in FPC or CGE code.
+
+    So display a normal dialog box about them, user-friendly
+    (don't even show exception class for now),
+    instead of the default LCL dialog that proposes to kill the application. }
+  ErrorBox(E.Message);
 end;
 
 procedure TProjectForm.FormCreate(Sender: TObject);
@@ -491,9 +535,28 @@ begin
   // TODO: just to source code line in case of error message here
 end;
 
+procedure TProjectForm.MenuItemNewDirectoryClick(Sender: TObject);
+var
+  NewDir, FullNewDir: String;
+begin
+  if InputQuery('New Directory', 'Create a new directory:', NewDir) then
+  begin
+    FullNewDir := InclPathDelim(ShellListView1.Root) + NewDir;
+    if not CreateDir(FullNewDir) then
+      raise Exception.CreateFmt('Creating new directory "%s" failed', [FullNewDir]);
+    RefreshFiles(rfEverythingInCurrentDir);
+    // TODO: Select newly added dir, not so easy in ShellListView1
+  end;
+end;
+
 procedure TProjectForm.MenuItemRenameClick(Sender: TObject);
 begin
   Design.RenameSelectedItem;
+end;
+
+procedure TProjectForm.MenuItemShellTreeRefreshClick(Sender: TObject);
+begin
+  RefreshFiles(rfEverything);
 end;
 
 procedure TProjectForm.UpdateRenameItem(Sender: TObject);
@@ -536,11 +599,22 @@ begin
   if ShellListView1.Selected <> nil then
   begin
     SelectedFileName := ShellListView1.GetPathFromItem(ShellListView1.Selected);
-    if MessageDlg('Delete File', 'Delete file "' + SelectedFileName + '"?',
-      mtConfirmation, mbYesNo, 0) = mrYes then
+    if DirectoryExists(SelectedFileName) then
     begin
-      CheckDeleteFile(SelectedFileName, true);
-      ShellListView1.RefreshContents;
+      if MessageDlg('Delete Directory', 'Delete directory "' + SelectedFileName + '"?',
+        mtConfirmation, mbYesNo, 0) = mrYes then
+      begin
+        RemoveNonEmptyDir(SelectedFileName);
+        RefreshFiles(rfEverythingInCurrentDir);
+      end;
+    end else
+    begin
+      if MessageDlg('Delete File', 'Delete file "' + SelectedFileName + '"?',
+        mtConfirmation, mbYesNo, 0) = mrYes then
+      begin
+        CheckDeleteFile(SelectedFileName);
+        RefreshFiles(rfFilesInCurrentDir);
+      end;
     end;
   end;
 end;
@@ -1154,6 +1228,30 @@ begin
 
   DesignExistenceChanged;
   UpdateFormCaption(nil); // make form Caption reflect project name
+end;
+
+procedure TProjectForm.RefreshFiles(const RefreshNecessary: TRefreshFiles);
+var
+  TreeViewPath: String;
+begin
+  ShellListView1.RefreshContents;
+
+  { It is important to refresh ShellTreeView1 e.g. when new directory
+    was added, otherwise user could not navigate
+    into newly created directories, since they must exist in ShellTreeView1. }
+
+  case RefreshNecessary of
+    { Unfortunately this special implementation of "refresh current dir"
+      doesn't work for non-root directories. }
+    //rfEverythingInCurrentDir:
+    //  ShellTreeView1.Refresh(ShellTreeView1.Selected);
+    rfEverythingInCurrentDir, rfEverything:
+      begin
+        TreeViewPath := ShellTreeView1.Path;
+        ShellTreeView1.Refresh(nil);
+        ShellTreeView1.Path := TreeViewPath;
+      end;
+  end;
 end;
 
 initialization
