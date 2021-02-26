@@ -246,7 +246,7 @@
       returns @nil. }
     function InternalNormal: TVector3List;
 
-    { Returns tangent vectors that are specified explicitly, see @link(SetTangents).
+    { Returns tangent vectors that are specified explicitly, see @link(TAbstractComposedGeometryNode.Tangent).
       Returns @nil if not specified. }
     function InternalTangent: TVector3List;
 

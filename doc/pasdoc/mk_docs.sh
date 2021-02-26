@@ -101,6 +101,10 @@ if (( $# == 0 )); then
   #   mixed with CGE rendering).
   #   In any case, their docs are not ready for PasDoc (and never will be
   #   --- this is OpenGL and OpenGL ES API).
+  #
+  #   Exception: we still generate docs for castlevectorsinternal*.pas.
+  #   Although these units are not supposed to be used directly,
+  #   but they document API of TVector3 and TVector3Double.
 
   find .  \
     '(' -type f -iname '*.pas' \
@@ -111,7 +115,6 @@ if (( $# == 0 )); then
               '(' -iname 'x3dloadinternal*.pas' ')' -or \
               '(' -iname 'castleinternal*.pas' ')' -or \
               '(' -iname 'castleshapeinternal*.pas' ')' -or \
-              '(' -iname 'castlevectorsinternal*.pas' ')' -or \
               '(' -iname 'kraft.pas' ')' -or \
               '(' -iwholename '*/compatibility/*' ')' -or \
               '(' -iwholename '*/deprecated_units/*' ')' -or \
@@ -162,7 +165,7 @@ pasdoc \
   $PASDOC_INCLUDE_DIRS \
   --output "$OUTPUT_PATH" \
   --define "$TARGET_OS" \
-  --define FPC --define VER3 --define VER3_0 --define VER3_0_4 --define PASDOC \
+  --define FPC --define VER3 --define VER3_0 --define VER3_2_0 --define PASDOC \
   --write-uses-list \
   --title "Castle Game Engine" \
   --source "$TMP_PAS_LIST" \

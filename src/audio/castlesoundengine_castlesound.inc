@@ -21,13 +21,12 @@ type
     possibly using streaming) and played.
 
     Aside from sound file (also called "sound buffer" or "audio clip" in various APIs)
-    this class allows to configue also playback values, like @like(Volume) and @link(Pitch).
+    this class allows to configue also playback values, like @link(Volume) and @link(Pitch).
 
     This class does not handle actual playing of the sound,
     as it doesn't manage the 3D position of sound in case of spatial sounds,
     looping etc. To play it, use @link(TCastleSoundSource).
-    Attach @link(TCastleSoundSource) to a @link(TCastleTransform) within some @link(TCastleViewport)
-    and play using @link(TCastleSoundSource.Play).
+    Attach @link(TCastleSoundSource) to a @link(TCastleTransform) within some @link(TCastleViewport).
 
     This class can be nicely serialized (so you can use this as a SubComponent
     e.g. in TCastleBehavior descendants that want to expose some sound,

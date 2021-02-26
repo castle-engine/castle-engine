@@ -587,7 +587,7 @@ type
 
     { Is the shape collidable.
       Most shapes are collidable.
-      One exception is when @link(TShapeNode.Collision) is set to scNone,
+      One exception is when @link(TAbstractShapeNode.Collision) is set to scNone,
       which disables collisions.
       Another exception is when the shape is placed inside @link(TCollisionNode) children,
       and then you use @link(TCollisionNode.Enabled) to turn off collisions,
