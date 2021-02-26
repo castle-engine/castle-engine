@@ -314,7 +314,7 @@ type
     procedure DetachAllShaders;
 
     { Specify values to record in transform feedback buffers.
-      This must be called before @link(Link) method }
+      This must be called before @link(Link) method. }
     procedure SetTransformFeedbackVaryings(const Varyings: array of PChar; const IsSingleBufferMode: Boolean = True);
 
     { Link the program, this should be done after attaching all shaders
