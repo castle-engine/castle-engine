@@ -2664,12 +2664,15 @@ begin
       AddInFrontOfNewFocus(ControlUnderFinger0);
 
     { update TCastleUserInterface.Focused values, based on differences between FFocus and FNewFocus }
-    for I := 0 to FNewFocus.Count - 1 do
-      if FFocus.IndexOf(FNewFocus[I]) = -1 then
-        FNewFocus[I].Focused := true;
-    for I := 0 to FFocus.Count - 1 do
-      if FNewFocus.IndexOf(FFocus[I]) = -1 then
-        FFocus[I].Focused := false;
+    if not (ApplicationProperties.TouchDevice) then
+    begin
+      for I := 0 to FNewFocus.Count - 1 do
+        if FFocus.IndexOf(FNewFocus[I]) = -1 then
+          FNewFocus[I].Focused := true;
+      for I := 0 to FFocus.Count - 1 do
+        if FNewFocus.IndexOf(FFocus[I]) = -1 then
+          FFocus[I].Focused := false;
+    end;
   end;
 
   { swap FFocus and FNewFocus, so that FFocus changes to new value,
