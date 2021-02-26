@@ -247,8 +247,6 @@ type
 
   TLocationCache = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<String, TGLint>;
 
-  TGLSLTransformFeedbackVaryingArray = array of PChar;
-
   { Easily handle program in GLSL (OpenGL Shading Language). }
   TGLSLProgram = class
   private
