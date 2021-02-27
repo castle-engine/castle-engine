@@ -257,9 +257,11 @@ var
   T: TThemeImage;
 begin
   for T in TThemeImage do
-    FreeAndNil(FImagesPersistent);
+    FreeAndNil(FImagesPersistent[T]);
+
   if OwnsMessageFont then
-    FreeAndNil(FMessageFont) else
+    FreeAndNil(FMessageFont)
+  else
     FMessageFont := nil;
   inherited;
 end;
