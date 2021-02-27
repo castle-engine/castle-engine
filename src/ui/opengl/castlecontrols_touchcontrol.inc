@@ -108,8 +108,8 @@ procedure TCastleTouchControl.PreferredSize(var PreferredWidth, PreferredHeight:
 begin
   inherited;
   // do not apply UIScale here, it is already inside TotalScale
-  PreferredWidth  := Theme.Images[tiTouchCtlOuter].Width  * TotalScale;
-  PreferredHeight := Theme.Images[tiTouchCtlOuter].Height * TotalScale;
+  PreferredWidth  := Theme.ImagesPersistent[tiTouchCtlOuter].Width  * TotalScale;
+  PreferredHeight := Theme.ImagesPersistent[tiTouchCtlOuter].Height * TotalScale;
 end;
 
 procedure TCastleTouchControl.SetPosition(const Value: TCastleTouchPosition);
@@ -143,8 +143,8 @@ end;
 function TCastleTouchControl.MaxOffsetDist: Single;
 begin
   Result := TotalScale *
-    (Theme.Images[tiTouchCtlOuter].Width -
-     Theme.Images[tiTouchCtlInner].Width) / 2;
+    (Theme.ImagesPersistent[tiTouchCtlOuter].Width -
+     Theme.ImagesPersistent[tiTouchCtlInner].Width) / 2;
 end;
 
 procedure TCastleTouchControl.Render;
@@ -185,7 +185,7 @@ begin
     LevOffsetTrimmedX := 0;
 
   // draw lever
-  InnerRect := FloatRectangle(Theme.Images[ImageInner].Rect); // rectangle at (0,0)
+  InnerRect := FloatRectangle(Theme.ImagesPersistent[ImageInner].Image.Rect); // rectangle at (0,0)
   InnerRect.Width  := InnerRect.Width  * TotalScale;
   InnerRect.Height := InnerRect.Height * TotalScale;
   InnerRect.Left   := SR.Left   + (SR.Width  - InnerRect.Width ) / 2 + LevOffsetTrimmedX;

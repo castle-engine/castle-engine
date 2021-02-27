@@ -230,12 +230,12 @@ begin
     if FAccessoryType = tvcaCheckmark then
     begin
       FAccessoryTypeImage.OwnsImage := false;
-      FAccessoryTypeImage.Image := Theme.Images[tiCheckmark];
+      FAccessoryTypeImage.Image := Theme.ImagesPersistent[tiCheckmark].Image;
       FAccessoryTypeImage.Color := FTextLabel.Color;
     end
     else if FAccessoryType = tvcaDisclosureIndicator then begin
       FAccessoryTypeImage.OwnsImage := false;
-      FAccessoryTypeImage.Image := Theme.Images[tiDisclosure];
+      FAccessoryTypeImage.Image := Theme.ImagesPersistent[tiDisclosure].Image;
       FAccessoryTypeImage.Color := Theme.DisabledTextColor;
     end;
   end;

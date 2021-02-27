@@ -2952,7 +2952,7 @@ procedure TCastleWindowBase.OpenCore;
     RenderContext.Clear([cbColor], Theme.LoadingBackgroundColor);
 
     UIScale := FRealHeight / Theme.LoadingImageForWindowHeight;
-    TextRect := Theme.Images[tiLoading].Rect.
+    TextRect := Theme.ImagesPersistent[tiLoading].Image.Rect.
       ScaleAroundCenter(UIScale).
       Align(hpMiddle, WindowRect, hpMiddle).
       Align(vpMiddle, WindowRect, vpMiddle);
