@@ -26,6 +26,8 @@
     FOwnsMessageFont: boolean;
     function GetImages(const ImageType: TThemeImage): TCastleImage;
     procedure SetImages(const ImageType: TThemeImage; const Value: TCastleImage);
+    function GetOwnsImages(const ImageType: TThemeImage): boolean;
+    procedure SetOwnsImages(const ImageType: TThemeImage; const Value: boolean);
     function GetImagePersistent(const ImageType: TThemeImage): TCastleImagePersistent;
     function GetCorners(const ImageType: TThemeImage): TVector4;
     procedure SetCorners(const ImageType: TThemeImage; const Value: TVector4);
@@ -105,6 +107,8 @@
       (for alpha test or alpha blending, see TDrawableImage). }
     property Images[const ImageType: TThemeImage]: TCastleImage read GetImages write SetImages; deprecated 'Use ImagesPersistent.Image';
     property ImagesPersistent[const ImageType: TThemeImage]: TCastleImagePersistent read GetImagePersistent;
+
+    property OwnsImages[const ImageType: TThemeImage]: boolean read GetOwnsImages write SetOwnsImages; deprecated 'Use ImagesPersistent.OwnsImage';
 
     { Corners that determine how image on @link(Images) is stretched when
       drawing by @link(TCastleTheme.Draw) method.
@@ -275,6 +279,17 @@ procedure TCastleTheme.SetImages(const ImageType: TThemeImage;
   const Value: TCastleImage);
 begin
   FImagesPersistent[ImageType].Image := Value;
+end;
+
+function TCastleTheme.GetOwnsImages(const ImageType: TThemeImage): boolean;
+begin
+  Result := FImagesPersistent[ImageType].OwnsImage;
+end;
+
+procedure TCastleTheme.SetOwnsImages(const ImageType: TThemeImage;
+  const Value: boolean);
+begin
+  FImagesPersistent[ImageType].OwnsImage := Value;
 end;
 
 function TCastleTheme.GetImagePersistent(const ImageType: TThemeImage): TCastleImagePersistent;
