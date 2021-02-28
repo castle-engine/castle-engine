@@ -2038,7 +2038,7 @@ begin
     if Sel <> nil then
       RecordUndo(Sel.Name + ': change ' + TPropertyEditor(Sender).GetName + ' to ' + TPropertyEditor(Sender).GetValue, ucHigh)
     else
-      RecordUndo('Change ' + TPropertyEditor(Sender).GetName + ' to ' + TPropertyEditor(Sender).GetValue, ucLow)
+      RecordUndo('Change ' + TPropertyEditor(Sender).GetName + ' to ' + TPropertyEditor(Sender).GetValue, ucHigh)
   end else
     if Sel <> nil then
       RecordUndo(Sel.Name + ': modify property', ucLow)
