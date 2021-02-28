@@ -91,6 +91,7 @@ begin
         SetPtrValue(SelectionList);
       finally FreeAndNil(SelectionList) end;
     end;
+    Modified(GetName);
   finally FreeAndNil(D) end;
 end;
 
