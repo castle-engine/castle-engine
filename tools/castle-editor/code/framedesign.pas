@@ -278,6 +278,7 @@ type
       var aShow: Boolean);
     procedure MarkModified;
     procedure PropertyGridModified(Sender: TObject);
+    procedure PropertyEditorModified(Sender: TObject);
     { Is Child selectable and visible in hierarchy. }
     class function Selectable(const Child: TComponent): Boolean; static;
     { Is Child deletable by user (this implies it is also selectable). }
@@ -1178,6 +1179,7 @@ begin
 
   // Allows object inspectors to find matching components, e.g. when editing Viewport.Items.MainScene
   PropertyEditorHook.LookupRoot := DesignOwner;
+  PropertyEditorHook.AddHandlerModified(@PropertyEditorModified);
 
   UpdateDesign;
   OnUpdateFormCaption(Self);
@@ -2024,6 +2026,24 @@ begin
   end;
 
   MarkModified;
+end;
+
+procedure TDesignFrame.PropertyEditorModified(Sender: TObject);
+var
+  Sel: TComponent;
+begin
+  Sel := SelectedComponent;
+  if Sender is TPropertyEditor then
+  begin
+    if Sel <> nil then
+      RecordUndo(Sel.Name + ': change ' + TPropertyEditor(Sender).GetName + ' to ' + TPropertyEditor(Sender).GetValue, ucHigh)
+    else
+      RecordUndo('Change ' + TPropertyEditor(Sender).GetName + ' to ' + TPropertyEditor(Sender).GetValue, ucLow)
+  end else
+    if Sel <> nil then
+      RecordUndo(Sel.Name + ': modify property', ucLow)
+    else
+      RecordUndo('Modify property', ucLow)
 end;
 
 procedure TDesignFrame.RecordUndo(const UndoComment: String;
