@@ -12,6 +12,16 @@ uses Classes,
   CastleKeysMouse, CastleViewport, CastleScene, CastleVectors, CastleTransform;
 
 type
+  TLevelBounds = class (TComponent)
+  public
+    Left: Single;
+    Right: Single;
+    Top: Single;
+    Down: Single;
+    constructor Create(AOwner: TComponent);override;
+  end;
+
+
   { Main "playing game" state, where most of the game logic takes place. }
   TStatePlay = class(TUIState)
   strict private
@@ -29,8 +39,12 @@ type
     PlayerCanDoubleJump: Boolean;
     WasDoubleJump: Boolean;
 
+    { Level bounds }
+    LevelBounds: TLevelBounds;
+
     procedure ConfigurePlatformPhysics(Platform: TCastleScene);
     procedure ConfigureCoinsPhysics(const Coin: TCastleScene);
+    procedure ConfigureGroundPhysics(const Ground: TCastleScene);
 
     procedure ConfigurePlayerPhysics(const Player:TCastleScene);
     procedure ConfigurePlayerAbilities(const Player:TCastleScene);
@@ -65,6 +79,16 @@ uses
   SysUtils, Math,
   CastleLog,
   GameStateMenu;
+
+{ TLevelBounds }
+
+constructor TLevelBounds.Create(AOwner: TComponent);
+begin
+  Left := -4096;
+  Right := 6144;
+  Top := 4096;
+  Down := -2048;
+end;
 
 { TStatePlay ----------------------------------------------------------------- }
 
@@ -119,6 +143,32 @@ begin
   WritelnWarning('Coin collider: ' + FloatToStr(Collider.Radius));
 
   Coin.RigidBody := RBody;
+end;
+
+procedure TStatePlay.ConfigureGroundPhysics(const Ground: TCastleScene);
+var
+  RBody: TRigidBody;
+  Collider: TBoxCollider;
+  Size: TVector3;
+begin
+  RBody := TRigidBody.Create(Ground);
+  RBody.Dynamic := false;
+  RBody.Setup2D;
+  RBody.Gravity := false;
+  RBody.LinearVelocityDamp := 0;
+  RBody.AngularVelocityDamp := 0;
+  RBody.AngularVelocity := Vector3(0, 0, 0);
+  RBody.LockRotation := [0, 1, 2];
+
+  Collider := TBoxCollider.Create(RBody);
+
+  Size.X := Ground.BoundingBox.SizeX;
+  Size.Y := Ground.BoundingBox.SizeY;
+  Size.Z := 1;
+
+  Collider.Size := Size;
+
+  Ground.RigidBody := RBody;
 end;
 
 procedure TStatePlay.ConfigurePlayerPhysics(const Player: TCastleScene);
@@ -511,7 +561,9 @@ var
 
   PlatformsRoot: TCastleTransform;
   CoinsRoot: TCastleTransform;
-  I: Integer;
+  GroundsRoot: TCastleTransform;
+  GroundsLineRoot: TCastleTransform;
+  I, J: Integer;
 begin
   inherited;
 
@@ -538,12 +590,31 @@ begin
     ConfigurePlatformPhysics(PlatformsRoot.Items[I] as TCastleScene);
   end;
 
+  { Configure physics for coins }
   CoinsRoot := UiOwner.FindRequiredComponent('Coins') as TCastleTransform;
   for I := 0 to CoinsRoot.Count - 1 do
   begin
     WritelnWarning('Configure coin: ' + CoinsRoot.Items[I].Name);
     ConfigureCoinsPhysics(CoinsRoot.Items[I] as TCastleScene);
   end;
+
+  LevelBounds := TLevelBounds.Create(UiOwner);
+
+  { Configure physics for ground  }
+
+  GroundsRoot := UiOwner.FindRequiredComponent('Grounds') as TCastleTransform;
+  for I := 0 to GroundsRoot.Count - 1 do
+  begin
+    if pos('GroundLine', GroundsRoot.Items[I].Name) = 1 then
+    begin
+      GroundsLineRoot := GroundsRoot.Items[I];
+      for J := 0 to GroundsLineRoot.Count - 1 do
+      begin
+        ConfigureGroundPhysics(GroundsLineRoot.Items[J] as TCastleScene);
+      end;
+    end;
+  end;
+
 
 end;
 
@@ -560,6 +631,7 @@ begin
   begin
     CamPos := MainViewport.Camera.Position;
     CamPos.X := ScenePlayer.Translation.X;
+    CamPos.Y := ScenePlayer.Translation.Y;
     MainViewport.Camera.Position := CamPos;
   end;
 
