@@ -97,8 +97,14 @@ type
   TRegisteredComponent = class
   strict private
     FComponentNameBase: String;
+    { Constructs a reasonable ComponentBaseName based on ComponentClass.ClassName }
     procedure ConstructComponentBaseName;
+    { Tests if the ComponentBaseName is valid and corrects it }
+    procedure ValidateComponentNameBase;
+    { Gets ComponentBaseName or constructs one if it is empty }
     function GetComponentBaseName: String;
+    { Sets the ComponentBaseName and silently corrects it if it is invalid }
+    procedure SetComponentBaseName(const Value: String);
   public
     { Class of the component. Never leave this @nil. }
     ComponentClass: TComponentClass;
@@ -109,8 +115,9 @@ type
     { Should correspond to whether class is declared as "deprecated" in Pascal
       (we cannot get it using RTTI for now). }
     IsDeprecated: Boolean;
-    { Base for naming this component instance in Castle Editor }
-    property ComponentNameBase: String read GetComponentBaseName write FComponentNameBase;
+    { Base for naming this component instance,
+      e.g. to be used in Castle Editor for naming components }
+    property ComponentNameBase: String read GetComponentBaseName write SetComponentBaseName;
   end;
   TRegisteredComponents = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TRegisteredComponent>;
 
@@ -177,7 +184,13 @@ uses JsonParser, RtlConsts,
   CastleFilesUtils, CastleUtils, CastleLog, CastleStringUtils, CastleClassUtils,
   CastleURIUtils, CastleVectors, CastleColors;
 
-{ TRegisteredComponent }
+{ TRegisteredComponent ----------------------------------------------------- }
+
+procedure TRegisteredComponent.ValidateComponentNameBase;
+begin
+  if SCharIs(FComponentNameBase, 1, ['0'..'9']) then
+    FComponentNameBase := 'Component' + FComponentNameBase;
+end;
 
 procedure TRegisteredComponent.ConstructComponentBaseName;
 begin
@@ -199,6 +212,8 @@ begin
   if IsPrefix('3D', FComponentNameBase, true) then
     FComponentNameBase := PrefixRemove('3D', FComponentNameBase, true) + '3D';
 
+  ValidateComponentNameBase;
+
   // in case the replacements above made '', fix it (can happen in case of TCastleUserInterface)
   if FComponentNameBase = '' then
     FComponentNameBase := 'Group';
@@ -208,7 +223,13 @@ function TRegisteredComponent.GetComponentBaseName: String;
 begin
   if FComponentNameBase = '' then
     ConstructComponentBaseName;
-  Result := FComponentNameBase
+  Result := FComponentNameBase;
+end;
+
+procedure TRegisteredComponent.SetComponentBaseName(const Value: String);
+begin
+  FComponentNameBase := Value;
+  ValidateComponentNameBase;
 end;
 
 { component registration ----------------------------------------------------- }
