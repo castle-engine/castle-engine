@@ -112,9 +112,11 @@ begin
   RBody.Trigger := true;
 
   Collider := TSphereCollider.Create(RBody);
-  Collider.Radius := ScenePlayer.BoundingBox.SizeY / 2;
+  Collider.Radius := Coin.BoundingBox.SizeY / 8;
   Collider.Friction := 0.1;
   Collider.Restitution := 0.05;
+
+  WritelnWarning('Coin collider: ' + FloatToStr(Collider.Radius));
 
   Coin.RigidBody := RBody;
 end;
@@ -123,6 +125,7 @@ procedure TStatePlay.ConfigurePlayerPhysics(const Player: TCastleScene);
 var
   RBody: TRigidBody;
   Collider: TCapsuleCollider;
+  //ColliderBox: TBoxCollider;
 begin
   RBody := TRigidBody.Create(Player);
   RBody.Dynamic := true;
@@ -137,10 +140,18 @@ begin
   RBody.OnCollisionEnter := @PlayerCollisionEnter;
 
   Collider := TCapsuleCollider.Create(RBody);
-  Collider.Radius := ScenePlayer.BoundingBox.SizeX / 2;
+  Collider.Radius := ScenePlayer.BoundingBox.SizeX * 0.45; // little smaller than 50%
   Collider.Height := ScenePlayer.BoundingBox.SizeY - Collider.Radius * 2;
   Collider.Friction := 0.1;
   Collider.Restitution := 0.05;
+
+  {ColliderBox := TBoxCollider.Create(RBody);
+  ColliderBox.Size := Vector3(ScenePlayer.BoundingBox.SizeX, ScenePlayer.BoundingBox.SizeY, 30.0);
+  ColliderBox.Friction := 0.1;
+  ColliderBox.Restitution := 0.05;
+
+  WritelnWarning('Player collider: ' + FloatToStr(ColliderBox.Size.X) + ', ' +
+  FloatToStr(ColliderBox.Size.Y) + ', ' + FloatToStr(ColliderBox.Size.Z));}
 
   Player.RigidBody := RBody;
 
@@ -158,9 +169,16 @@ procedure TStatePlay.PlayerCollisionEnter(
 begin
   if CollisionDetails.OtherTransform <> nil then
   begin
-    WritelnWarning(CollisionDetails.OtherTransform.Name);
     if pos('GoldCoin', CollisionDetails.OtherTransform.Name) > 0 then
     begin
+      WritelnWarning('Coin position ' + FloatToStr(CollisionDetails.OtherTransform.Translation.X) + ', ' +
+      FloatToStr(CollisionDetails.OtherTransform.Translation.Y) + ', ' +
+      FloatToStr(CollisionDetails.OtherTransform.Translation.Z));
+
+      WritelnWarning('Player position ' + FloatToStr(ScenePlayer.Translation.X) + ', ' +
+      FloatToStr(ScenePlayer.Translation.Y) + ', ' +
+      FloatToStr(ScenePlayer.Translation.Z));
+
       CollisionDetails.OtherTransform.Exists := false;
     end;
   end;
@@ -274,7 +292,7 @@ begin
 
 
   { Two more checks Kraft - player should slide down when player just
-    on the edge, maye be can remove that when add Capsule collider }
+    on the edge, maybe be can remove that when add Capsule collider }
   if PlayerOnGround = false then
   begin
     if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(-ScenePlayer.BoundingBox.SizeX / 2, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
@@ -467,10 +485,10 @@ begin
     player is on platform have no 0 but some small values to up and down sometimes
     It can fail when the player goes uphill (will set jump animation) or down
     will set fall animation }
-  if Vel.Y > 20 then
+  if (not PlayerOnGround) and (Vel.Y > 20) then
     ScenePlayer.PlayAnimation('jump', true)
   else
-  if Vel.Y < -20 then
+  if (not PlayerOnGround) and (Vel.Y < -20) then
     ScenePlayer.PlayAnimation('fall', true)
   else
     if Abs(Vel.X) > 1 then
