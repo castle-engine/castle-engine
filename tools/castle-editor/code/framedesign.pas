@@ -3033,28 +3033,10 @@ end;
 function TDesignFrame.ProposeName(const ComponentClass: TComponentClass;
   const ComponentsOwner: TComponent): String;
 var
-  ResultBase: String;
   I: Integer;
+  ResultBase: String;
 begin
-  ResultBase := ComponentClass.ClassName;
-
-  // remove common prefixes
-  if IsPrefix('TCastleUserInterface', ResultBase, true) then
-    ResultBase := PrefixRemove('TCastleUserInterface', ResultBase, true)
-  else
-  if IsPrefix('TCastle', ResultBase, true) then
-    ResultBase := PrefixRemove('TCastle', ResultBase, true)
-  else
-  if IsPrefix('T', ResultBase, true) then
-    ResultBase := PrefixRemove('T', ResultBase, true);
-
-  // remove 2D, as component name cannot start with that
-  if IsPrefix('2D', ResultBase, true) then
-    ResultBase := PrefixRemove('2D', ResultBase, true);
-
-  // in case the replacements above made '', fix it (can happen in case of TCastleUserInterface)
-  if ResultBase = '' then
-    ResultBase := 'Group';
+  ResultBase := FindRegisteredComponentByComponentClass(ComponentClass).ComponentNameBase;
 
   // make unique
   I := 1;

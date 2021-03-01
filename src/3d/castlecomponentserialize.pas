@@ -95,6 +95,10 @@ type
   { Describes a component registered using @link(RegisterSerializableComponent),
     enumerated using @link(RegisteredComponents) list. }
   TRegisteredComponent = class
+  strict private
+    FComponentNameBase: String;
+    procedure ConstructComponentBaseName;
+    function GetComponentBaseName: String;
   public
     { Class of the component. Never leave this @nil. }
     ComponentClass: TComponentClass;
@@ -105,6 +109,8 @@ type
     { Should correspond to whether class is declared as "deprecated" in Pascal
       (we cannot get it using RTTI for now). }
     IsDeprecated: Boolean;
+    { Base for naming this component instance in Castle Editor }
+    property ComponentNameBase: String read GetComponentBaseName write FComponentNameBase;
   end;
   TRegisteredComponents = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TRegisteredComponent>;
 
@@ -120,6 +126,7 @@ procedure RegisterSerializableComponent(const C: TRegisteredComponent);
 { Read-only list of currently registered
   (using @link(RegisterSerializableComponent)) components. }
 function RegisteredComponents: TRegisteredComponents;
+function FindRegisteredComponentByComponentClass(ComponentClass: TComponentClass): TRegisteredComponent;
 
 type
   EComponentNotFound = class(Exception);
@@ -170,6 +177,40 @@ uses JsonParser, RtlConsts,
   CastleFilesUtils, CastleUtils, CastleLog, CastleStringUtils, CastleClassUtils,
   CastleURIUtils, CastleVectors, CastleColors;
 
+{ TRegisteredComponent }
+
+procedure TRegisteredComponent.ConstructComponentBaseName;
+begin
+  FComponentNameBase := ComponentClass.ClassName;
+
+  // remove common prefixes
+  if IsPrefix('TCastleUserInterface', FComponentNameBase, true) then
+    FComponentNameBase := PrefixRemove('TCastleUserInterface', FComponentNameBase, true)
+  else
+  if IsPrefix('TCastle', FComponentNameBase, true) then
+    FComponentNameBase := PrefixRemove('TCastle', FComponentNameBase, true)
+  else
+  if IsPrefix('T', FComponentNameBase, true) then
+    FComponentNameBase := PrefixRemove('T', FComponentNameBase, true);
+
+  // move 2D and 3D to back, as component name cannot start with a number
+  if IsPrefix('2D', FComponentNameBase, true) then
+    FComponentNameBase := PrefixRemove('2D', FComponentNameBase, true) + '2D';
+  if IsPrefix('3D', FComponentNameBase, true) then
+    FComponentNameBase := PrefixRemove('3D', FComponentNameBase, true) + '3D';
+
+  // in case the replacements above made '', fix it (can happen in case of TCastleUserInterface)
+  if FComponentNameBase = '' then
+    FComponentNameBase := 'Group';
+end;
+
+function TRegisteredComponent.GetComponentBaseName: String;
+begin
+  if FComponentNameBase = '' then
+    ConstructComponentBaseName;
+  Result := FComponentNameBase
+end;
+
 { component registration ----------------------------------------------------- }
 
 var
@@ -180,6 +221,16 @@ begin
   if FRegisteredComponents = nil then
     FRegisteredComponents := TRegisteredComponents.Create(true);
   Result := FRegisteredComponents;
+end;
+
+function FindRegisteredComponentByComponentClass(ComponentClass: TComponentClass): TRegisteredComponent;
+var
+  R: TRegisteredComponent;
+begin
+  for R in RegisteredComponents do
+    if R.ComponentClass = ComponentClass then
+      Exit(R);
+  Result := nil;
 end;
 
 procedure RegisterSerializableComponent(const ComponentClass: TComponentClass;
