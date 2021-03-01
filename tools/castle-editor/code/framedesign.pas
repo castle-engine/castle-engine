@@ -319,7 +319,7 @@ type
     procedure BeforeProposeSaveDesign;
     procedure AddComponent(const ComponentClass: TComponentClass;
       const ComponentOnCreate: TNotifyEvent);
-    function AddComponent(const ParentComponent:TComponent; const ComponentClass: TComponentClass;
+    function AddComponent(const ParentComponent: TComponent; const ComponentClass: TComponentClass;
       const ComponentOnCreate: TNotifyEvent): TComponent;
     procedure DeleteComponent;
     procedure CopyComponent;
@@ -1258,7 +1258,7 @@ begin
   AddComponent(ParentComponent, ComponentClass, ComponentOnCreate);
 end;
 
-function TDesignFrame.AddComponent(const ParentComponent:TComponent; const ComponentClass: TComponentClass;
+function TDesignFrame.AddComponent(const ParentComponent: TComponent; const ComponentClass: TComponentClass;
   const ComponentOnCreate: TNotifyEvent): TComponent;
 
   procedure FinishAddingComponent(const NewComponent: TComponent);
@@ -2341,7 +2341,7 @@ begin
     { Without this check, one could change Sel.Name to empty ('').
       Although TComponent.SetName checks that it's a valid Pascal identifier already,
       but it also explicitly allows to set Name = ''.
-      Object inspector has special code to secure from empty Name 
+      Object inspector has special code to secure from empty Name
       (in TComponentNamePropertyEditor.SetValue), so we need a similar check here. }
     if not IsValidIdent(Node.Text) then
       raise Exception.Create(Format(oisComponentNameIsNotAValidIdentifier, [Node.Text]));
@@ -2349,9 +2349,9 @@ begin
     ModifiedOutsideObjectInspector(UndoComment, ucHigh); // It'd be good if we set "ItemIndex" to index of "name" field, but there doesn't seem to be an easy way to
   finally
     { This method must set Node.Text, to cleanup after ControlsTreeEditing + user editing.
-      - If the name was correct, then "Sel.Name := " goes without exception, 
+      - If the name was correct, then "Sel.Name := " goes without exception,
         and we want to show new name + class name.
-      - If the name was not correct, then "Sel.Name := " raises exception, 
+      - If the name was not correct, then "Sel.Name := " raises exception,
         and we want to show old name + class name. }
     Node.Text := ComponentCaption(Sel);
   end;
@@ -3032,29 +3032,54 @@ end;
 
 function TDesignFrame.ProposeName(const ComponentClass: TComponentClass;
   const ComponentsOwner: TComponent): String;
+
+  { Cleanup S (right now, always taken from some ClassName)
+    to be a nice component name, which also must make it a valid Pascal identifier. }
+  function CleanComponentName(const S: String): String;
+  begin
+    Result := S;
+
+    // remove common prefixes
+    if IsPrefix('TCastleUserInterface', Result, true) then
+      Result := PrefixRemove('TCastleUserInterface', Result, true)
+    else
+    if IsPrefix('TCastle', Result, true) then
+      Result := PrefixRemove('TCastle', Result, true)
+    else
+    if IsPrefix('T', Result, true) then
+      Result := PrefixRemove('T', Result, true);
+
+    // move 2D and 3D to the back, as component name cannot start with a number
+    if IsPrefix('2D', Result, true) then
+      Result := PrefixRemove('2D', Result, true) + '2D';
+    if IsPrefix('3D', Result, true) then
+      Result := PrefixRemove('3D', Result, true) + '3D';
+
+    // in case the replacements above made '', fix it (can happen in case of TCastleUserInterface)
+    if Result = '' then
+      Result := 'Group';
+
+    if SCharIs(Result, 1, ['0'..'9']) then
+      Result := 'Component' + Result;
+  end;
+
 var
   ResultBase: String;
   I: Integer;
 begin
-  ResultBase := ComponentClass.ClassName;
+  ResultBase := CleanComponentName(ComponentClass.ClassName);
 
-  // remove common prefixes
-  if IsPrefix('TCastleUserInterface', ResultBase, true) then
-    ResultBase := PrefixRemove('TCastleUserInterface', ResultBase, true)
-  else
-  if IsPrefix('TCastle', ResultBase, true) then
-    ResultBase := PrefixRemove('TCastle', ResultBase, true)
-  else
-  if IsPrefix('T', ResultBase, true) then
-    ResultBase := PrefixRemove('T', ResultBase, true);
-
-  // remove 2D, as component name cannot start with that
-  if IsPrefix('2D', ResultBase, true) then
-    ResultBase := PrefixRemove('2D', ResultBase, true);
-
-  // in case the replacements above made '', fix it (can happen in case of TCastleUserInterface)
-  if ResultBase = '' then
-    ResultBase := 'Group';
+  { A simple test of the CleanComponentName routine.
+    This is *not* a good place for such automated test, but for now it was simplest to put it here. }
+  {
+  Assert(CleanComponentName('TSomething') = 'Something');
+  Assert(CleanComponentName('TCastleUserInterface') = 'Group');
+  Assert(CleanComponentName('TCastleUserInterfaceButton') = 'Button');
+  Assert(CleanComponentName('TCastleSomething') = 'Something');
+  Assert(CleanComponentName('TCastle2DStuff') = 'Stuff2D');
+  Assert(CleanComponentName('TCastle3DStuff') = 'Stuff3D');
+  Assert(CleanComponentName('TCastle4DProcessing') = 'Component4DProcessing');
+  }
 
   // make unique
   I := 1;
