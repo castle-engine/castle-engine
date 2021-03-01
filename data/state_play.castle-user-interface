@@ -17,7 +17,6 @@
             "Y" : 5.0000000000000000E-001,
             "$ClassName" : "TCastleVector2Persistent"
           },
-          "Scale" : 1.2112643718719482E+000,
           "$Children" : [
           ],
           "$ClassName" : "TCastleOrthographic"
@@ -49,38 +48,250 @@
             "Name" : "Background",
             "$Children" : [
               {
-                "ExposeTransforms" : [
-                ],
-                "Name" : "Layer1",
-                "RenderOptions" : {
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
-                },
-                "URL" : "castle-data:/background/bg_layer1.png",
+                "Name" : "SkyLayer",
                 "$Children" : [
+                  {
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "Sky1",
+                    "RenderOptions" : {
+                      "Name" : "RenderOptions",
+                      "$Children" : [
+                      ],
+                      "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "TranslationPersistent" : {
+                      "X" : -2.0480000000000000E+003,
+                      "$ClassName" : "TCastleVector3Persistent"
+                    },
+                    "URL" : "castle-data:/background/bg_layer1.png",
+                    "$Children" : [
+                    ],
+                    "$ClassName" : "TCastleScene"
+                  },
+                  {
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "Sky2",
+                    "RenderOptions" : {
+                      "Name" : "RenderOptions",
+                      "$Children" : [
+                      ],
+                      "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "TranslationPersistent" : {
+                      "X" : -2.0480000000000000E+003,
+                      "Y" : 2.0480000000000000E+003,
+                      "$ClassName" : "TCastleVector3Persistent"
+                    },
+                    "URL" : "castle-data:/background/bg_layer1.png",
+                    "$Children" : [
+                    ],
+                    "$ClassName" : "TCastleScene"
+                  },
+                  {
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "Sky3",
+                    "RenderOptions" : {
+                      "Name" : "RenderOptions",
+                      "$Children" : [
+                      ],
+                      "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "URL" : "castle-data:/background/bg_layer1.png",
+                    "$Children" : [
+                    ],
+                    "$ClassName" : "TCastleScene"
+                  },
+                  {
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "Sky4",
+                    "RenderOptions" : {
+                      "Name" : "RenderOptions",
+                      "$Children" : [
+                      ],
+                      "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "TranslationPersistent" : {
+                      "Y" : 2.0480000000000000E+003,
+                      "$ClassName" : "TCastleVector3Persistent"
+                    },
+                    "URL" : "castle-data:/background/bg_layer1.png",
+                    "$Children" : [
+                    ],
+                    "$ClassName" : "TCastleScene"
+                  },
+                  {
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "Sky5",
+                    "RenderOptions" : {
+                      "Name" : "RenderOptions",
+                      "$Children" : [
+                      ],
+                      "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "TranslationPersistent" : {
+                      "X" : 2.0480000000000000E+003,
+                      "$ClassName" : "TCastleVector3Persistent"
+                    },
+                    "URL" : "castle-data:/background/bg_layer1.png",
+                    "$Children" : [
+                    ],
+                    "$ClassName" : "TCastleScene"
+                  },
+                  {
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "Sky6",
+                    "RenderOptions" : {
+                      "Name" : "RenderOptions",
+                      "$Children" : [
+                      ],
+                      "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "TranslationPersistent" : {
+                      "X" : 2.0480000000000000E+003,
+                      "Y" : 2.0480000000000000E+003,
+                      "$ClassName" : "TCastleVector3Persistent"
+                    },
+                    "URL" : "castle-data:/background/bg_layer1.png",
+                    "$Children" : [
+                    ],
+                    "$ClassName" : "TCastleScene"
+                  },
+                  {
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "Sky7",
+                    "RenderOptions" : {
+                      "Name" : "RenderOptions",
+                      "$Children" : [
+                      ],
+                      "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "TranslationPersistent" : {
+                      "X" : 4.0960000000000000E+003,
+                      "$ClassName" : "TCastleVector3Persistent"
+                    },
+                    "URL" : "castle-data:/background/bg_layer1.png",
+                    "$Children" : [
+                    ],
+                    "$ClassName" : "TCastleScene"
+                  },
+                  {
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "Sky8",
+                    "RenderOptions" : {
+                      "Name" : "RenderOptions",
+                      "$Children" : [
+                      ],
+                      "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "TranslationPersistent" : {
+                      "X" : 4.0960000000000000E+003,
+                      "Y" : 2.0480000000000000E+003,
+                      "$ClassName" : "TCastleVector3Persistent"
+                    },
+                    "URL" : "castle-data:/background/bg_layer1.png",
+                    "$Children" : [
+                    ],
+                    "$ClassName" : "TCastleScene"
+                  }
                 ],
-                "$ClassName" : "TCastleScene"
+                "$ClassName" : "TCastleTransform"
               },
               {
-                "ExposeTransforms" : [
-                ],
-                "Name" : "Layer2",
-                "RenderOptions" : {
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
-                },
-                "TranslationPersistent" : {
-                  "Z" : 2.0000000000000000E+000,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "URL" : "castle-data:/background/bg_layer2.png",
+                "Name" : "CloudLayer",
                 "$Children" : [
+                  {
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "Cloud1",
+                    "RenderOptions" : {
+                      "Name" : "RenderOptions",
+                      "$Children" : [
+                      ],
+                      "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "TranslationPersistent" : {
+                      "X" : -2.0480000000000000E+003,
+                      "Y" : 2.9379998779296875E+002,
+                      "Z" : 2.0000000000000000E+000,
+                      "$ClassName" : "TCastleVector3Persistent"
+                    },
+                    "URL" : "castle-data:/background/bg_layer2.png",
+                    "$Children" : [
+                    ],
+                    "$ClassName" : "TCastleScene"
+                  },
+                  {
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "Cloud2",
+                    "RenderOptions" : {
+                      "Name" : "RenderOptions",
+                      "$Children" : [
+                      ],
+                      "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "TranslationPersistent" : {
+                      "Y" : 2.9380322265625000E+002,
+                      "Z" : 2.0000000000000000E+000,
+                      "$ClassName" : "TCastleVector3Persistent"
+                    },
+                    "URL" : "castle-data:/background/bg_layer2.png",
+                    "$Children" : [
+                    ],
+                    "$ClassName" : "TCastleScene"
+                  },
+                  {
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "Cloud3",
+                    "RenderOptions" : {
+                      "Name" : "RenderOptions",
+                      "$Children" : [
+                      ],
+                      "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "TranslationPersistent" : {
+                      "X" : 2.0480000000000000E+003,
+                      "Y" : 2.9379998779296875E+002,
+                      "Z" : 2.0000000000000000E+000,
+                      "$ClassName" : "TCastleVector3Persistent"
+                    },
+                    "URL" : "castle-data:/background/bg_layer2.png",
+                    "$Children" : [
+                    ],
+                    "$ClassName" : "TCastleScene"
+                  },
+                  {
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "Cloud4",
+                    "RenderOptions" : {
+                      "Name" : "RenderOptions",
+                      "$Children" : [
+                      ],
+                      "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "TranslationPersistent" : {
+                      "X" : 4.0960000000000000E+003,
+                      "Y" : 2.9379998779296875E+002,
+                      "Z" : 2.0000000000000000E+000,
+                      "$ClassName" : "TCastleVector3Persistent"
+                    },
+                    "URL" : "castle-data:/background/bg_layer2.png",
+                    "$Children" : [
+                    ],
+                    "$ClassName" : "TCastleScene"
+                  }
                 ],
-                "$ClassName" : "TCastleScene"
+                "$ClassName" : "TCastleTransform"
               }
             ],
             "$ClassName" : "TCastleTransform"
@@ -164,7 +375,7 @@
                   "$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "TranslationPersistent" : {
-                  "X" : 5.4273309326171875E+002,
+                  "X" : 5.2715594482421875E+002,
                   "Y" : -1.7369094848632812E+002,
                   "Z" : 3.0000000000000000E+000,
                   "$ClassName" : "TCastleVector3Persistent"
@@ -263,9 +474,44 @@
                   ],
                   "$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
+                "ScalePersistent" : {
+                  "X" : 5.0000000000000000E-001,
+                  "Y" : 5.0000000000000000E-001,
+                  "Z" : 5.0000000000000000E-001,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
-                  "X" : 3.1372204589843750E+002,
+                  "X" : 3.8110809326171875E+002,
                   "Y" : 2.3761196899414062E+002,
+                  "Z" : 3.0000000000000000E+000,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "AutoAnimation" : "rotate",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "GoldCoin3",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "ScalePersistent" : {
+                  "X" : 5.0000000000000000E-001,
+                  "Y" : 5.0000000000000000E-001,
+                  "Z" : 5.0000000000000000E-001,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "TranslationPersistent" : {
+                  "X" : -5.5555804443359375E+002,
+                  "Y" : -2.1791775512695312E+002,
                   "Z" : 3.0000000000000000E+000,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
