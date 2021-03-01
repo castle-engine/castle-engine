@@ -170,7 +170,7 @@ procedure TStatePlay.UpdatePlayerSimpleDependOnlyVelocity(
   const SecondsPassed: Single; var HandleInput: Boolean);
 const
   JumpVelocity = 700;
-  MaxHorizontalVelocity = 300;
+  MaxHorizontalVelocity = 350;
 var
   DeltaVelocity: TVector3;
   Vel: TVector3;
@@ -251,7 +251,7 @@ procedure TStatePlay.UpdatePlayerByVelocityAndRay(const SecondsPassed: Single;
   var HandleInput: Boolean);
 const
   JumpVelocity = 700;
-  MaxHorizontalVelocity = 300;
+  MaxHorizontalVelocity = 350;
 var
   DeltaVelocity: TVector3;
   Vel: TVector3;
@@ -362,7 +362,7 @@ procedure TStatePlay.UpdatePlayerByVelocityAndRayWithDblJump(
   const SecondsPassed: Single; var HandleInput: Boolean);
 const
   JumpVelocity = 700;
-  MaxHorizontalVelocity = 300;
+  MaxHorizontalVelocity = 350;
 var
   DeltaVelocity: TVector3;
   Vel: TVector3;
