@@ -97,14 +97,14 @@ type
   TRegisteredComponent = class
   strict private
     FComponentNameBase: String;
-    { Constructs a reasonable ComponentBaseName based on ComponentClass.ClassName }
-    procedure ConstructComponentBaseName;
-    { Tests if the ComponentBaseName is valid and corrects it }
+    { Constructs a reasonable ComponentNameBase based on ComponentClass.ClassName }
+    procedure ConstructComponentNameBase;
+    { Tests if the ComponentNameBase is valid and corrects it }
     procedure ValidateComponentNameBase;
-    { Gets ComponentBaseName or constructs one if it is empty }
-    function GetComponentBaseName: String;
-    { Sets the ComponentBaseName and silently corrects it if it is invalid }
-    procedure SetComponentBaseName(const Value: String);
+    { Gets ComponentNameBase or constructs one if it is empty }
+    function GetComponentNameBase: String;
+    { Sets the ComponentNameBase and silently corrects it if it is invalid }
+    procedure SetComponentNameBase(const Value: String);
   public
     { Class of the component. Never leave this @nil. }
     ComponentClass: TComponentClass;
@@ -117,7 +117,7 @@ type
     IsDeprecated: Boolean;
     { Base for naming this component instance,
       e.g. to be used in Castle Editor for naming components }
-    property ComponentNameBase: String read GetComponentBaseName write SetComponentBaseName;
+    property ComponentNameBase: String read GetComponentNameBase write SetComponentNameBase;
   end;
   TRegisteredComponents = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TRegisteredComponent>;
 
@@ -192,7 +192,7 @@ begin
     FComponentNameBase := 'Component' + FComponentNameBase;
 end;
 
-procedure TRegisteredComponent.ConstructComponentBaseName;
+procedure TRegisteredComponent.ConstructComponentNameBase;
 begin
   FComponentNameBase := ComponentClass.ClassName;
 
@@ -219,14 +219,14 @@ begin
     FComponentNameBase := 'Group';
 end;
 
-function TRegisteredComponent.GetComponentBaseName: String;
+function TRegisteredComponent.GetComponentNameBase: String;
 begin
   if FComponentNameBase = '' then
-    ConstructComponentBaseName;
+    ConstructComponentNameBase;
   Result := FComponentNameBase;
 end;
 
-procedure TRegisteredComponent.SetComponentBaseName(const Value: String);
+procedure TRegisteredComponent.SetComponentNameBase(const Value: String);
 begin
   FComponentNameBase := Value;
   ValidateComponentNameBase;
