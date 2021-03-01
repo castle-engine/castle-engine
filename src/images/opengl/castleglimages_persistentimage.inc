@@ -238,7 +238,7 @@ type
       or not (nearest-pixel filtering).
       See @link(TDrawableImage.SmoothScaling). }
     property SmoothScaling: boolean
-      read FSmoothScaling write FSmoothScaling default true;
+      read FSmoothScaling write SetSmoothScaling default true;
 
     { Rotation in radians. Default value 0. }
     property Rotation: Single read FRotation write SetRotation default 0;
@@ -564,6 +564,7 @@ begin
   if FSmoothScaling <> Value then
   begin
     FSmoothScaling := Value;
+    DrawableImage.SmoothScaling := Value;
     DoChange;
   end;
 end;

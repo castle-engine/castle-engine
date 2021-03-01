@@ -70,8 +70,8 @@ end;
 procedure TCastleCrosshair.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 begin
   inherited;
-  PreferredWidth  := Theme.Images[ImageType].Width  * UIScale;
-  PreferredHeight := Theme.Images[ImageType].Height * UIScale;
+  PreferredWidth  := Theme.ImagesPersistent[ImageType].Width  * UIScale;
+  PreferredHeight := Theme.ImagesPersistent[ImageType].Height * UIScale;
 end;
 
 procedure TCastleCrosshair.Render;
