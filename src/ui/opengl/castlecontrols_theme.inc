@@ -21,7 +21,6 @@
   TCastleTheme = class
   strict private
     FImagesPersistent: array [TThemeImage] of TCastleImagePersistent;
-    FCorners: array [TThemeImage] of TVector4;
     FMessageFont: TCastleFont;
     FOwnsMessageFont: boolean;
     function GetImages(const ImageType: TThemeImage): TCastleImage;
@@ -105,10 +104,10 @@
 
       The alpha channel of the image, if any, is automatically correctly used
       (for alpha test or alpha blending, see TDrawableImage). }
-    property Images[const ImageType: TThemeImage]: TCastleImage read GetImages write SetImages; deprecated 'Use ImagesPersistent.Image';
+    property Images[const ImageType: TThemeImage]: TCastleImage read GetImages write SetImages; deprecated 'use ImagesPersistent[...].Image';
     property ImagesPersistent[const ImageType: TThemeImage]: TCastleImagePersistent read GetImagePersistent;
 
-    property OwnsImages[const ImageType: TThemeImage]: boolean read GetOwnsImages write SetOwnsImages; deprecated 'Use ImagesPersistent.OwnsImage';
+    property OwnsImages[const ImageType: TThemeImage]: boolean read GetOwnsImages write SetOwnsImages; deprecated 'use ImagesPersistent[...].OwnsImage';
 
     { Corners that determine how image on @link(Images) is stretched when
       drawing by @link(TCastleTheme.Draw) method.
@@ -117,7 +116,7 @@
       it determines how the image is stretched.
       The corners are specified as 4D vector, order like in CSS: top, right, down,
       left. }
-    property Corners[const ImageType: TThemeImage]: TVector4 read GetCorners write SetCorners;
+    property Corners[const ImageType: TThemeImage]: TVector4 read GetCorners write SetCorners; deprecated 'use ImagesPersistent[...].ProtectedSides';
 
     { Draw the selected theme image on screen.
 
@@ -185,75 +184,64 @@ begin
   end;
 
   FImagesPersistent[tiPanel].Image := Panel;
-  FCorners[tiPanel] := Vector4(0, 0, 0, 0);
   FImagesPersistent[tiPanelSeparator].Image := PanelSeparator;
-  FCorners[tiPanelSeparator] := Vector4(0, 0, 0, 0);
   FImagesPersistent[tiProgressBar].Image := ProgressBar;
-  FCorners[tiProgressBar] := Vector4(2, 2, 2, 2);
+  FImagesPersistent[tiProgressBar].ProtectedSides.AllSides := 2;
   FImagesPersistent[tiProgressFill].Image := ProgressFill;
-  FCorners[tiProgressFill] := Vector4(2, 2, 2, 2);
+  FImagesPersistent[tiProgressFill].ProtectedSides.AllSides := 2;
   FImagesPersistent[tiSwitchControl].Image := ProgressBar;      // reuse same images as ProgressBar
-  FCorners[tiSwitchControl] := Vector4(2, 2, 2, 2);
+  FImagesPersistent[tiSwitchControl].ProtectedSides.AllSides := 2;
   FImagesPersistent[tiSwitchControlFill].Image := ProgressFill;
-  FCorners[tiSwitchControlFill] := Vector4(2, 2, 2, 2);
+  FImagesPersistent[tiSwitchControlFill].ProtectedSides.AllSides := 2;
   FImagesPersistent[tiButtonNormal].Image := ButtonNormal;
-  FCorners[tiButtonNormal] := Vector4(2, 2, 2, 2);
+  FImagesPersistent[tiButtonNormal].ProtectedSides.AllSides := 2;
   FImagesPersistent[tiButtonDisabled].Image := ButtonDisabled;
-  FCorners[tiButtonDisabled] := Vector4(2, 2, 2, 2);
+  FImagesPersistent[tiButtonDisabled].ProtectedSides.AllSides := 2;
   FImagesPersistent[tiButtonPressed].Image := ButtonPressed;
-  FCorners[tiButtonPressed] := Vector4(2, 2, 2, 2);
+  FImagesPersistent[tiButtonPressed].ProtectedSides.AllSides := 2;
   FImagesPersistent[tiButtonFocused].Image := ButtonFocused;
-  FCorners[tiButtonFocused] := Vector4(2, 2, 2, 2);
+  FImagesPersistent[tiButtonFocused].ProtectedSides.AllSides := 2;
   FImagesPersistent[tiWindow].Image := WindowDark;
-  FCorners[tiWindow] := Vector4(2, 2, 2, 2);
+  FImagesPersistent[tiWindow].ProtectedSides.AllSides := 2;
   FImagesPersistent[tiScrollbarFrame].Image := ScrollbarFrame;
-  FCorners[tiScrollbarFrame] := Vector4(1, 1, 1, 1);
+  FImagesPersistent[tiScrollbarFrame].ProtectedSides.AllSides := 1;
   FImagesPersistent[tiScrollbarSlider].Image := ScrollbarSlider;
-  FCorners[tiScrollbarSlider] := Vector4(3, 3, 3, 3);
+  FImagesPersistent[tiScrollbarSlider].ProtectedSides.AllSides := 3;
   FImagesPersistent[tiSlider].Image := Slider;
-  FCorners[tiSlider] := Vector4(4, 7, 4, 7);
+  FImagesPersistent[tiSlider].ProtectedSides.Top := 4;
+  FImagesPersistent[tiSlider].ProtectedSides.Bottom := 4;
+  FImagesPersistent[tiSlider].ProtectedSides.Left := 7;
+  FImagesPersistent[tiSlider].ProtectedSides.Right := 7;
   FImagesPersistent[tiSliderPosition].Image := SliderPosition;
-  FCorners[tiSliderPosition] := Vector4(1, 1, 1, 1);
+  FImagesPersistent[tiSliderPosition].ProtectedSides.AllSides := 1;
   FImagesPersistent[tiLabel].Image := FrameWhiteBlack;
-  FCorners[tiLabel] := Vector4(2, 2, 2, 2);
+  FImagesPersistent[tiLabel].ProtectedSides.AllSides := 2;
   FImagesPersistent[tiGroup].Image := FrameWhiteBlack;
-  FCorners[tiGroup] := Vector4(2, 2, 2, 2);
+  FImagesPersistent[tiGroup].ProtectedSides.AllSides := 2;
   FImagesPersistent[tiActiveFrame].Image := FrameWhite;
-  FCorners[tiActiveFrame] := Vector4(2, 2, 2, 2);
+  FImagesPersistent[tiActiveFrame].ProtectedSides.AllSides := 2;
   FImagesPersistent[tiTooltip].Image := Tooltip;
-  FCorners[tiTooltip] := Vector4(1, 1, 1, 1);
+  FImagesPersistent[tiTooltip].ProtectedSides.AllSides := 1;
   FImagesPersistent[tiTouchCtlInner].Image := TouchCtlInner;
-  FCorners[tiTouchCtlInner] := Vector4(0, 0, 0, 0);
   FImagesPersistent[tiTouchCtlOuter].Image := TouchCtlOuter;
-  FCorners[tiTouchCtlOuter] := Vector4(0, 0, 0, 0);
   FImagesPersistent[tiTouchCtlFlyInner].Image := TouchCtlFlyInner;
-  FCorners[tiTouchCtlFlyInner] := Vector4(0, 0, 0, 0);
   FImagesPersistent[tiTouchCtlFlyOuter].Image := TouchCtlFlyOuter;
-  FCorners[tiTouchCtlFlyOuter] := Vector4(0, 0, 0, 0);
   FImagesPersistent[tiCrosshair1].Image := Crosshair1;
-  FCorners[tiCrosshair1] := Vector4(0, 0, 0, 0);
   FImagesPersistent[tiCrosshair2].Image := Crosshair2;
-  FCorners[tiCrosshair2] := Vector4(0, 0, 0, 0);
   FImagesPersistent[tiCheckmark].Image := Checkmark;
-  FCorners[tiCheckmark] := Vector4(0, 0, 0, 0);
 
   { Note that tiSquareEmpty and tiSquarePressedBackground could have
     corners = (4, 4, 4, 4), but tiSquareChecked cannot.
     And these 3 images must be consistent.
     So, do not declare any corners for them. }
   FImagesPersistent[tiSquareEmpty].Image := SquareEmpty;
-  FCorners[tiSquareEmpty] := Vector4(0, 0, 0, 0);
   FImagesPersistent[tiSquareChecked].Image := SquareChecked;
-  FCorners[tiSquareChecked] := Vector4(0, 0, 0, 0);
   FImagesPersistent[tiSquarePressedBackground].Image := SquarePressedBackground;
-  FCorners[tiSquarePressedBackground] := Vector4(0, 0, 0, 0);
 
   FImagesPersistent[tiDisclosure].Image := Disclosure;
-  FCorners[tiDisclosure] := Vector4(0, 0, 0, 0);
   FImagesPersistent[tiLoading].Image := Loading;
-  FCorners[tiLoading] := Vector4(0, 0, 0, 0);
   FImagesPersistent[tiEdit].Image := Edit;
-  FCorners[tiEdit] := Vector4(2, 2, 2, 2);
+  FImagesPersistent[tiEdit].ProtectedSides.AllSides := 2;
 end;
 
 destructor TCastleTheme.Destroy;
@@ -298,13 +286,28 @@ begin
 end;
 
 function TCastleTheme.GetCorners(const ImageType: TThemeImage): TVector4;
+var
+  B: TBorder;
 begin
-  Result := FCorners[ImageType];
+  B := FImagesPersistent[ImageType].ProtectedSides;
+  Result := Vector4(
+    B.TotalTop,
+    B.TotalRight,
+    B.TotalBottom,
+    B.TotalLeft
+  );
 end;
 
 procedure TCastleTheme.SetCorners(const ImageType: TThemeImage; const Value: TVector4);
+var
+  B: TBorder;
 begin
-  FCorners[ImageType] := Value;
+  B := FImagesPersistent[ImageType].ProtectedSides;
+  B.AllSides := 0;
+  B.Top := Value[0];
+  B.Right := Value[1];
+  B.Bottom := Value[2];
+  B.Left := Value[3];
 end;
 
 procedure TCastleTheme.Draw(const Rect: TFloatRectangle; const ImageType: TThemeImage;
@@ -316,9 +319,9 @@ end;
 procedure TCastleTheme.Draw(const Rect: TFloatRectangle; const ImageType: TThemeImage;
   const UIScale: Single; const Color: TCastleColor);
 begin
-  FImagesPersistent[ImageType].DrawableImage.Color := Color;
-  FImagesPersistent[ImageType].DrawableImage.ScaleCorners := UIScale;
-  FImagesPersistent[ImageType].DrawableImage.Draw3x3(Rect, Corners[ImageType]);
+  FImagesPersistent[ImageType].Color := Color;
+  FImagesPersistent[ImageType].ScaleCorners := UIScale;
+  FImagesPersistent[ImageType].Draw(Rect);
 end;
 
 procedure TCastleTheme.Draw(const Rect: TRectangle; const ImageType: TThemeImage;
@@ -348,7 +351,9 @@ begin
   MessageInputTextColor := Vector4(0, 0.4, 0, 1.0);
   MessageTextColor := Black;
   FImagesPersistent[tiWindow].Image := WindowGray;
+  FImagesPersistent[tiWindow].OwnsImage := false;
   FImagesPersistent[tiLabel].Image := FrameYellowBlack;
+  FImagesPersistent[tiLabel].OwnsImage := false;
 end;
 
 var
