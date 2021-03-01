@@ -3475,9 +3475,14 @@ begin
   if FFixedFunctionAlphaTest <> Value then
   begin
     FFixedFunctionAlphaTest := Value;
-    {$ifndef OpenGLES}
-    GLSetEnabled(GL_ALPHA_TEST, FixedFunctionAlphaTest);
-    {$endif}
+    { Modify GL_ALPHA_TEST only under the same conditions that reset it in RenderCleanState.
+      Otherwise we could modify it, but not reset in RenderCleanState,
+      leaving other rendering (like TDrawableImage) be unexpectedly done with alpha test
+      even when not desired. }
+    if GLFeatures.EnableFixedFunction and (RenderOptions.Mode in [rmDepth, rmFull]) then
+      {$ifndef OpenGLES}
+      GLSetEnabled(GL_ALPHA_TEST, FixedFunctionAlphaTest);
+      {$endif}
   end;
 end;
 
@@ -3486,9 +3491,10 @@ begin
   if FFixedFunctionAlphaCutoff <> Value then
   begin
     FFixedFunctionAlphaCutoff := Value;
-    {$ifndef OpenGLES}
-    glAlphaFunc(GL_GEQUAL, FFixedFunctionAlphaCutoff);
-    {$endif}
+    if GLFeatures.EnableFixedFunction and (RenderOptions.Mode in [rmDepth, rmFull]) then
+      {$ifndef OpenGLES}
+      glAlphaFunc(GL_GEQUAL, FFixedFunctionAlphaCutoff);
+      {$endif}
   end;
 end;
 
