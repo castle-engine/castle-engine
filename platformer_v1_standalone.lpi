@@ -31,11 +31,16 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="1">
+    <Units Count="2">
       <Unit0>
         <Filename Value="platformer_v1_standalone.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
+      <Unit1>
+        <Filename Value="gameenemy.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="GameEnemy"/>
+      </Unit1>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

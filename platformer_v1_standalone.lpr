@@ -13,7 +13,7 @@ uses
     {$info Thread support enabled.}
     {$ifdef UNIX} CThreads, {$endif}
   {$endif}
-  CastleApplicationProperties, CastleLog, CastleWindow, GameInitialize;
+  CastleApplicationProperties, CastleLog, CastleWindow, GameInitialize, GameEnemy;
 
 begin
   ApplicationProperties.Version := '0.1';

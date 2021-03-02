@@ -17,6 +17,7 @@
             "Y" : 5.0000000000000000E-001,
             "$ClassName" : "TCastleVector2Persistent"
           },
+          "Scale" : 9.0483742952346802E-001,
           "$Children" : [
           ],
           "$ClassName" : "TCastleOrthographic"
@@ -2524,6 +2525,108 @@
                   "$ClassName" : "TCastleVector3Persistent"
                 },
                 "URL" : "file:///home/and3md/fpc/platformer_demo/platformer_v1/data-source/items/powerup_bunny.png",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              }
+            ],
+            "$ClassName" : "TCastleTransform"
+          },
+          {
+            "Name" : "Enemies",
+            "TranslationPersistent" : {
+              "Z" : 1.0000000000000000E+001,
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "$Children" : [
+              {
+                "AnimateOnlyWhenVisible" : true,
+                "AutoAnimation" : "idle",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Spider1",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : -4.1892999267578125E+002,
+                  "Y" : -2.2872999572753906E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "AnimateOnlyWhenVisible" : true,
+                "AutoAnimation" : "idle",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Spider2",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : 6.5463977050781250E+002,
+                  "Y" : -9.8123275756835938E+001,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "AnimateOnlyWhenVisible" : true,
+                "AutoAnimation" : "idle",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Spider3",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : -5.4504425048828125E+002,
+                  "Y" : 3.3012927246093750E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "AnimateOnlyWhenVisible" : true,
+                "AutoAnimation" : "idle",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Spider4",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : -7.2816125488281250E+002,
+                  "Y" : 5.1559143066406250E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
                 "$Children" : [
                 ],
                 "$ClassName" : "TCastleScene"
