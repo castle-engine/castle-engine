@@ -44,7 +44,9 @@ type
 
     procedure ConfigurePlatformPhysics(Platform: TCastleScene);
     procedure ConfigureCoinsPhysics(const Coin: TCastleScene);
+    procedure ConfigurePowerUpsPhysics(const PowerUp: TCastleScene);
     procedure ConfigureGroundPhysics(const Ground: TCastleScene);
+    procedure ConfigureStonePhysics(const Stone: TCastleScene);
 
     procedure ConfigurePlayerPhysics(const Player:TCastleScene);
     procedure ConfigurePlayerAbilities(const Player:TCastleScene);
@@ -84,10 +86,11 @@ uses
 
 constructor TLevelBounds.Create(AOwner: TComponent);
 begin
-  Left := -4096;
-  Right := 6144;
-  Top := 4096;
-  Down := -2048;
+  Left := -3072;
+  Right := 5120;
+  Top := 3072;
+  //Down := -1024;
+  Down := -800;
 end;
 
 { TStatePlay ----------------------------------------------------------------- }
@@ -145,6 +148,31 @@ begin
   Coin.RigidBody := RBody;
 end;
 
+procedure TStatePlay.ConfigurePowerUpsPhysics(const PowerUp: TCastleScene);
+var
+  RBody: TRigidBody;
+  Collider: TSphereCollider;
+begin
+  RBody := TRigidBody.Create(PowerUp);
+  RBody.Dynamic := false;
+  //RBody.Animated := true;
+  RBody.Setup2D;
+  RBody.Gravity := false;
+  RBody.LinearVelocityDamp := 0;
+  RBody.AngularVelocityDamp := 0;
+  RBody.AngularVelocity := Vector3(0, 0, 0);
+  RBody.LockRotation := [0, 1, 2];
+  RBody.MaximalLinearVelocity := 0;
+  RBody.Trigger := true;
+
+  Collider := TSphereCollider.Create(RBody);
+  Collider.Radius := PowerUp.BoundingBox.SizeY / 8;
+  Collider.Friction := 0.1;
+  Collider.Restitution := 0.05;
+
+  PowerUp.RigidBody := RBody;
+end;
+
 procedure TStatePlay.ConfigureGroundPhysics(const Ground: TCastleScene);
 var
   RBody: TRigidBody;
@@ -169,6 +197,32 @@ begin
   Collider.Size := Size;
 
   Ground.RigidBody := RBody;
+end;
+
+procedure TStatePlay.ConfigureStonePhysics(const Stone: TCastleScene);
+var
+  RBody: TRigidBody;
+  Collider: TBoxCollider;
+  Size: TVector3;
+begin
+  RBody := TRigidBody.Create(Stone);
+  RBody.Dynamic := false;
+  RBody.Setup2D;
+  RBody.Gravity := false;
+  RBody.LinearVelocityDamp := 0;
+  RBody.AngularVelocityDamp := 0;
+  RBody.AngularVelocity := Vector3(0, 0, 0);
+  RBody.LockRotation := [0, 1, 2];
+
+  Collider := TBoxCollider.Create(RBody);
+
+  Size.X := Stone.BoundingBox.SizeX;
+  Size.Y := Stone.BoundingBox.SizeY;
+  Size.Z := 1;
+
+  Collider.Size := Size;
+
+  Stone.RigidBody := RBody;
 end;
 
 procedure TStatePlay.ConfigurePlayerPhysics(const Player: TCastleScene);
@@ -210,7 +264,7 @@ end;
 
 procedure TStatePlay.ConfigurePlayerAbilities(const Player: TCastleScene);
 begin
-  PlayerCanDoubleJump := true;
+  PlayerCanDoubleJump := false;
   WasDoubleJump := false;
 end;
 
@@ -230,7 +284,13 @@ begin
       FloatToStr(ScenePlayer.Translation.Z));
 
       CollisionDetails.OtherTransform.Exists := false;
+    end else
+    if pos('DblJump', CollisionDetails.OtherTransform.Name) > 0 then
+    begin
+      PlayerCanDoubleJump := true;
+      CollisionDetails.OtherTransform.Exists := false;
     end;
+
   end;
 end;
 
@@ -345,7 +405,7 @@ begin
     on the edge, maybe be can remove that when add Capsule collider }
   if PlayerOnGround = false then
   begin
-    if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(-ScenePlayer.BoundingBox.SizeX / 2, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
+    if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.40, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
       Distance) <> nil then
     begin
       // WritelnWarning('Distance ', FloatToStr(Distance));
@@ -356,7 +416,7 @@ begin
 
   if PlayerOnGround = false then
   begin
-    if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(ScenePlayer.BoundingBox.SizeX / 2, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
+    if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(ScenePlayer.BoundingBox.SizeX * 0.40, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
       Distance) <> nil then
     begin
       // WritelnWarning('Distance ', FloatToStr(Distance));
@@ -459,7 +519,7 @@ begin
     on the edge, maye be can remove that when add Capsule collider }
   if PlayerOnGround = false then
   begin
-    if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(-ScenePlayer.BoundingBox.SizeX / 2, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
+    if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.40 , -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
       Distance) <> nil then
     begin
       // WritelnWarning('Distance ', FloatToStr(Distance));
@@ -470,7 +530,7 @@ begin
 
   if PlayerOnGround = false then
   begin
-    if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(ScenePlayer.BoundingBox.SizeX / 2, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
+    if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(ScenePlayer.BoundingBox.SizeX * 0.40, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
       Distance) <> nil then
     begin
       // WritelnWarning('Distance ', FloatToStr(Distance));
@@ -563,6 +623,8 @@ var
   CoinsRoot: TCastleTransform;
   GroundsRoot: TCastleTransform;
   GroundsLineRoot: TCastleTransform;
+  StonesRoot: TCastleTransform;
+  PowerUps: TCastleTransform;
   I, J: Integer;
 begin
   inherited;
@@ -615,12 +677,26 @@ begin
     end;
   end;
 
+  StonesRoot := UiOwner.FindRequiredComponent('Stones') as TCastleTransform;
+  for I := 0 to StonesRoot.Count - 1 do
+  begin
+    ConfigureStonePhysics(StonesRoot.Items[I] as TCastleScene);
+  end;
+
+  PowerUps := UiOwner.FindRequiredComponent('PowerUps') as TCastleTransform;
+  for I := 0 to PowerUps.Count - 1 do
+  begin
+    ConfigurePowerUpsPhysics(PowerUps.Items[I] as TCastleScene);
+  end;
+
 
 end;
 
 procedure TStatePlay.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 var
   CamPos: TVector3;
+  ViewHeight: Single;
+  ViewWidth: Single;
 begin
   inherited;
   { This virtual method is executed every frame.}
@@ -629,9 +705,26 @@ begin
 
   if CheckboxCameraFollow.Checked then
   begin
+    ViewHeight := MainViewport.Camera.Orthographic.EffectiveHeight;
+    ViewWidth := MainViewport.Camera.Orthographic.EffectiveWidth;
+
     CamPos := MainViewport.Camera.Position;
     CamPos.X := ScenePlayer.Translation.X;
     CamPos.Y := ScenePlayer.Translation.Y;
+
+    { Camera always stay on level }
+    if CamPos.Y - ViewHeight / 2 < LevelBounds.Down then
+       CamPos.Y := LevelBounds.Down + ViewHeight / 2;
+
+    if CamPos.Y + ViewHeight / 2 > LevelBounds.Top then
+       CamPos.Y := LevelBounds.Top - ViewHeight / 2;
+
+    if CamPos.X - ViewWidth / 2 < LevelBounds.Left then
+       CamPos.X := LevelBounds.Left + ViewWidth / 2;
+
+    if CamPos.X + ViewWidth / 2 > LevelBounds.Right then
+       CamPos.X := LevelBounds.Right - ViewWidth / 2;
+
     MainViewport.Camera.Position := CamPos;
   end;
 
