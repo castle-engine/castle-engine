@@ -1808,6 +1808,8 @@ begin;
     end else
       raise EGLSLTransformFeedbackError.Create('Transform feedback not supported by your OpenGL version');
   end;
+  {$else}
+  raise EGLSLTransformFeedbackError.Create('Transform feedback not supported by OpenGLES 2.0');
   {$endif}
 end;
 
