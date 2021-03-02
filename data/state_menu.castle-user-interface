@@ -4,6 +4,7 @@
   "$Children" : [
     {
       "Content" : {
+        "URL" : "castle-data:/background/colored_grass.png",
         "$ClassName" : "TCastleImagePersistent"
       },
       "HeightFraction" : 1.0000000000000000E+000,
