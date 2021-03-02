@@ -84,6 +84,29 @@
             }
           ],
           "$ClassName" : "TCastleVerticalGroup"
+        },
+        {
+          "Bottom" : 3.0000000000000000E+002,
+          "ColorPersistent" : {
+            "Blue" : 1.2156862765550613E-001,
+            "Green" : 7.4509805440902710E-001,
+            "Red" : 5.0196081399917603E-001,
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "FontSize" : 7.0000000000000000E+001,
+          "Height" : 8.0000000000000000E+001,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "Title",
+          "Text" : [
+            "Platformer"
+          ],
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle",
+          "Width" : 6.0000000000000000E+002,
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleLabel"
         }
       ],
       "$ClassName" : "TCastleImageControl"

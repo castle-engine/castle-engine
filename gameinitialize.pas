@@ -14,7 +14,8 @@ implementation
 uses SysUtils,
   CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
-  CastleUIControls, CastleApplicationProperties, CastleUIState,
+  CastleUIControls, CastleApplicationProperties, CastleUIState, CastleImages,
+  CastleVectors,
   GameStateMenu, GameStatePlay;
 
 var
@@ -22,9 +23,28 @@ var
 
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
+var
+  Image: TCastleImage;
 begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
+
+  { Adjust theme }
+  Image := LoadImage('castle-data:/ui/red_button06.png');
+  //Theme.OwnsImages[tiButtonNormal] := true;
+  Theme.Images[tiButtonNormal] := Image;
+  Theme.Corners[tiButtonNormal] := Vector4(6, 6, 6, 6);
+  Theme.TextColor := White;
+
+  Image := LoadImage('castle-data:/ui/red_button08.png');
+  //Theme.OwnsImages[tiButtonFocused] := true;
+  Theme.Images[tiButtonFocused] := Image;
+  Theme.Corners[tiButtonFocused] := Vector4(6, 6, 6, 6);
+
+  Image := LoadImage('castle-data:/ui/red_button07.png');
+  //Theme.OwnsImages[tiButtonPressed] := true;
+  Theme.Images[tiButtonPressed] := Image;
+  Theme.Corners[tiButtonPressed] := Vector4(6, 6, 6, 6);
 
   { Create game states and set initial state }
   StatePlay := TStatePlay.Create(Application);
