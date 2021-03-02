@@ -1785,7 +1785,9 @@ end;
 
 procedure TGLSLProgram.SetTransformFeedbackVaryings(const Varyings: array of PChar; const IsSingleBufferMode: Boolean);
 var
+  {$ifndef OpenGLES}
   TransformFeedbackBufferMode, ErrorCode: TGLuint;
+  {$endif}
   VaryingLength: Cardinal;
 begin;
   VaryingLength := Length(Varyings);
