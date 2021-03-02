@@ -1785,14 +1785,15 @@ end;
 
 procedure TGLSLProgram.SetTransformFeedbackVaryings(const Varyings: array of PChar; const IsSingleBufferMode: Boolean);
 var
-  TransformFeedbackBufferMode,
-  ErrorCode: TGLuint;
+  TransformFeedbackBufferMode, ErrorCode: TGLuint;
   VaryingLength: Cardinal;
 begin;
-  {$ifndef OpenGLES}
   VaryingLength := Length(Varyings);
   if VaryingLength > 0 then
   begin
+    {$ifdef OpenGLES}
+    raise EGLSLTransformFeedbackError.Create('Transform feedback not supported by OpenGLES 2.0');
+    {$else}
     if GLVersion.AtLeast(3, 0) and (FSupport = gsStandard) then
     begin
       if IsSingleBufferMode then
@@ -1807,10 +1808,8 @@ begin;
       end;
     end else
       raise EGLSLTransformFeedbackError.Create('Transform feedback not supported by your OpenGL version');
+    {$endif}
   end;
-  {$else}
-  raise EGLSLTransformFeedbackError.Create('Transform feedback not supported by OpenGLES 2.0');
-  {$endif}
 end;
 
 procedure TGLSLProgram.DetachAllShaders;
