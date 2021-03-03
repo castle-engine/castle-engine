@@ -2038,7 +2038,7 @@ begin
     if TPropertyEditor(Sender).PropCount > 1 then
       RecordUndo('Change ' + TPropertyEditor(Sender).GetName + ' to ' + TPropertyEditor(Sender).GetValue + ' in multiple components', ucHigh)
     else
-      RecordUndo('Change ' + TPropertyEditor(Sender).GetName + ' to ' + TPropertyEditor(Sender).GetValue, ucHigh)
+      RecordUndo('Change ' + TPropertyEditor(Sender).GetName + ' to ' + TPropertyEditor(Sender).GetValue, ucHigh);
   end else
     raise EInternalError.Create('PropertyEditorModified can only be called with TPropertyEditor as a Sender.');
 end;
