@@ -56,7 +56,7 @@ var
 begin
   VectorPersistent := (GetObjectValue as TCastleVector2Persistent);
   VectorPersistent.Value := Vector2FromStr(NewValue);
-  Modified(GetName);
+  Modified;
 end;
 
 { TCastleVector3PropertyEditor ------------------------------------------------- }
@@ -138,5 +138,5 @@ var
 begin
   VectorPersistent := (GetObjectValue as TCastleVector4Persistent);
   VectorPersistent.Value := Vector4FromStr(NewValue);
-  Modified(GetName);
+  Modified;
 end;
