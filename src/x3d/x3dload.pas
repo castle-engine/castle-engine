@@ -315,7 +315,8 @@ var
     if (MimeType = 'model/gltf+json') or
        (MimeType = 'model/gltf-binary') or
        (MimeType = 'application/x-md3') or
-       (MimeType = 'image/x-3ds') then
+       (MimeType = 'image/x-3ds') or
+       IsImageMimeType(MimeType, true, false) then
       Include(DownloadOptions, soForceMemoryStream);
 
     Stream := Download(URLWithoutAnchor, DownloadOptions);
