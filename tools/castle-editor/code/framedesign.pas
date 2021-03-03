@@ -2029,13 +2029,14 @@ begin
 end;
 
 procedure TDesignFrame.PropertyEditorModified(Sender: TObject);
-var
-  Sel: TComponent;
 begin
   if Sender is TPropertyEditor then
   begin
     if TPropertyEditor(Sender).PropCount = 1 then
       RecordUndo((TPropertyEditor(Sender).GetComponent(0) as TComponent).Name + ': change ' + TPropertyEditor(Sender).GetName + ' to ' + TPropertyEditor(Sender).GetValue, ucHigh)
+    else
+    if TPropertyEditor(Sender).PropCount > 1 then
+      RecordUndo('Change ' + TPropertyEditor(Sender).GetName + ' to ' + TPropertyEditor(Sender).GetValue + ' in multiple components', ucHigh)
     else
       RecordUndo('Change ' + TPropertyEditor(Sender).GetName + ' to ' + TPropertyEditor(Sender).GetValue, ucHigh)
   end else
