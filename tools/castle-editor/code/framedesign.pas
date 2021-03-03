@@ -2040,10 +2040,7 @@ begin
     else
       RecordUndo('Change ' + TPropertyEditor(Sender).GetName + ' to ' + TPropertyEditor(Sender).GetValue, ucHigh)
   end else
-    if Sel <> nil then
-      RecordUndo(Sel.Name + ': modify property', ucLow)
-    else
-      RecordUndo('Modify property', ucLow)
+    raise EInternalError.Create('PropertyEditorModified can only be called with TPropertyEditor as a Sender.');
 end;
 
 procedure TDesignFrame.RecordUndo(const UndoComment: String;
