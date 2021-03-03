@@ -2032,11 +2032,10 @@ procedure TDesignFrame.PropertyEditorModified(Sender: TObject);
 var
   Sel: TComponent;
 begin
-  Sel := SelectedComponent;
   if Sender is TPropertyEditor then
   begin
-    if Sel <> nil then
-      RecordUndo(Sel.Name + ': change ' + TPropertyEditor(Sender).GetName + ' to ' + TPropertyEditor(Sender).GetValue, ucHigh)
+    if TPropertyEditor(Sender).PropCount = 1 then
+      RecordUndo((TPropertyEditor(Sender).GetComponent(0) as TComponent).Name + ': change ' + TPropertyEditor(Sender).GetName + ' to ' + TPropertyEditor(Sender).GetValue, ucHigh)
     else
       RecordUndo('Change ' + TPropertyEditor(Sender).GetName + ' to ' + TPropertyEditor(Sender).GetValue, ucHigh)
   end else
