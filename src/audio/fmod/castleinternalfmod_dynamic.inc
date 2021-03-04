@@ -682,6 +682,12 @@ begin
     FmodLibrary := TDynLib.Load('libfmod.so', false);
   {$endif}
 
+  {$ifdef ANDROID}
+  FmodLibrary := TDynLib.Load('libfmod.so', false);
+  if FmodLibrary = nil then
+    FmodLibrary := TDynLib.Load('libfmod.so', false);
+  {$endif}
+
   if FmodLibrary <> nil then
   begin
     Pointer({$ifndef CASTLE_OBJFPC} @ {$endif} FMOD_Memory_Initialize) := FmodLibrary.Symbol('FMOD_Memory_Initialize');
