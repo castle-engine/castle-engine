@@ -1966,8 +1966,11 @@ const
 var
   ToValue: String;
 begin
-  //if CharsPos(UnreadableChars, SenderRowValue) = 0 then
-  ToValue := ' to ' + ModifiedValue;
+  if CharsPos(UnreadableChars, ModifiedValue) = 0 then
+    ToValue := ''
+  else
+    ToValue := ' to ' + ModifiedValue;
+
   if SelectedCount = 1 then // By this we guarantee that Sel <> nil
     Result := 'Change ' + Sel.Name + '.' + ModifiedProperty + ToValue
   else
