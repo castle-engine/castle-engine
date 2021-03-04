@@ -684,8 +684,6 @@ begin
 
   {$ifdef ANDROID}
   FmodLibrary := TDynLib.Load('libfmod.so', false);
-  if FmodLibrary = nil then
-    FmodLibrary := TDynLib.Load('libfmod.so', false);
   {$endif}
 
   if FmodLibrary <> nil then
