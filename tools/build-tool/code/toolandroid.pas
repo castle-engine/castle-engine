@@ -415,29 +415,27 @@ var
   var
     CPU: TCPU;
     JniPath: String;
-    InputFolderBase, InputFolder: String;
+    InputFolderBase, InputFolder, OutputFolder: String;
   begin
     if Project.AndroidServices.HasService('fmod') then
     begin
       if not Project.AndroidServices.Service('fmod').Parameters.TryGetValue('library_folder', InputFolderBase) then
         raise Exception.Create('Cannot find "library_folder" parameter in "fmod" service for Android in CastleEngineManifest.xml');
 
-      JniPath := 'app' + PathDelim + 'src' + PathDelim + 'main' + PathDelim +
-        { Place precompiled libs in jni/ , ndk-build will find them there. }
-        'jni' + PathDelim;
+      //JniPath := CombinePaths(Project.Path, AndroidProjectPath);
+      JniPath := 'app' + PathDelim + 'src' + PathDelim + 'main' + PathDelim + 'jniLibs' + PathDelim;
 
       for CPU in CPUS do
       begin
         InputFolder := InputFolderBase + PathDelim + CPUToAndroidArchitecture(CPU) + PathDelim;
-        PackageSmartCopyFile(InputFolder + 'libfmod.so',
-          JniPath + CPUToAndroidArchitecture(CPU) + PathDelim + 'libfmod.so');
+        OutputFolder := JniPath + CPUToAndroidArchitecture(CPU) + PathDelim;
+        PackageSmartCopyFile(InputFolder + 'libfmod.so', OutputFolder + 'libfmod.so');
         if Verbose then
-          Writeln('Packaging FMOD library file: ' + InputFolder + 'libfmod.so');
+          Writeln('Packaging FMOD library file: ' + InputFolder + 'libfmod.so => ' + OutputFolder);
 
-        PackageSmartCopyFile(InputFolder + 'libfmodL.so',
-          JniPath + CPUToAndroidArchitecture(CPU) + PathDelim + 'libfmodL.so');
+        PackageSmartCopyFile(InputFolder + 'libfmod.so', OutputFolder + 'libfmod.so');
         if Verbose then
-          Writeln('Packaging FMOD library file: ' + InputFolder + 'libfmodL.so');
+          Writeln('Packaging FMOD library file: ' + InputFolder + 'libfmodL.so => ' + OutputFolder);
       end;
     end;
   end;
@@ -638,11 +636,11 @@ begin
   CalculateSigningProperties(PackageMode);
 
   GenerateFromTemplates;
+  CopyExternalLibraries;
   GenerateIcons;
   GenerateAssets;
   GenerateLocalization;
   GenerateLibrary;
-  CopyExternalLibraries;
   RunNdkBuild;
   RunGradle(PackageMode);
 
