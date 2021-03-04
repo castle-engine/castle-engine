@@ -433,9 +433,9 @@ var
         if Verbose then
           Writeln('Packaging FMOD library file: ' + InputFolder + 'libfmod.so => ' + OutputFolder);
 
-        PackageSmartCopyFile(InputFolder + 'libfmodL.so', OutputFolder + 'libfmodL.so');
+        {PackageSmartCopyFile(InputFolder + 'libfmodL.so', OutputFolder + 'libfmodL.so');
         if Verbose then
-          Writeln('Packaging FMOD library file: ' + InputFolder + 'libfmodL.so => ' + OutputFolder);
+          Writeln('Packaging FMOD library file: ' + InputFolder + 'libfmodL.so => ' + OutputFolder);}
       end;
     end;
   end;

@@ -14,12 +14,13 @@
 
   ----------------------------------------------------------------------------
 */
-
 package net.sourceforge.castleengine;
 
 /**
  * Integration of FMOD with Castle Game Engine on Android.
  */
+
+/*
 public class ServiceFmodL extends ServiceAbstract
 {
     private static final String CATEGORY = "ServiceFmodL";
@@ -34,3 +35,4 @@ public class ServiceFmodL extends ServiceAbstract
         return "fmodl";
     }
 }
+*/
