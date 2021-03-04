@@ -277,6 +277,8 @@ type
     procedure InspectorOtherFilter(Sender: TObject; AEditor: TPropertyEditor;
       var aShow: Boolean);
     procedure MarkModified;
+    function UndoMessageModified(const Sel: TComponent;
+      const ModifiedProperty, ModifiedValue: String; const SelectedCount: Integer): String;
     procedure PropertyGridModified(Sender: TObject);
     procedure PropertyEditorModified(Sender: TObject);
     { Is Child selectable and visible in hierarchy. }
@@ -1954,12 +1956,28 @@ begin
   InspectorFilter(Sender, AEditor, AShow, psOther);
 end;
 
-procedure TDesignFrame.PropertyGridModified(Sender: TObject);
+function TDesignFrame.UndoMessageModified(const Sel: TComponent;
+  const ModifiedProperty, ModifiedValue: String; const SelectedCount: Integer): String;
 const
   { Unreadable chars are defined like in SReplaceChars.
     Note they include newlines, we don't want to include newlines in undo description,
     as it would make menu item look weird (actually multiline on GTK2). }
   UnreadableChars = [Low(AnsiChar) .. Pred(' '), #128 .. High(AnsiChar)];
+var
+  ToValue: String;
+begin
+  //if CharsPos(UnreadableChars, SenderRowValue) = 0 then
+  ToValue := ' to ' + ModifiedValue;
+  if SelectedCount = 1 then // By this we guarantee that Sel <> nil
+    Result := 'Change ' + Sel.Name + '.' + ModifiedProperty + ToValue
+  else
+  if SelectedCount > 1 then
+    Result := 'Change ' + ModifiedProperty + ToValue + ' in multiple components'
+  else
+    Result := 'Change ' + ModifiedProperty + ToValue;
+end;
+
+procedure TDesignFrame.PropertyGridModified(Sender: TObject);
 var
   Sel: TComponent;
   UI: TCastleUserInterface;
@@ -2003,22 +2021,12 @@ begin
     otherwise we would record an undo for every OnMotion of dragging. }
   if not UndoSystem.ScheduleRecordUndoOnRelease then
   begin
-    { Sel may be nil in case multiple components change at once,
-      testcase: select multiple TCastleButton at once and change Toggle property. }
-    if Sel <> nil then
-      UndoDescription := 'Change ' + Sel.Name
-    else
-      UndoDescription := 'Change ';
-
     if Sender is TOICustomPropertyGrid then
     begin
-      SenderRowName := TOICustomPropertyGrid(Sender).GetActiveRow.Name;
-      SenderRowValue := TOICustomPropertyGrid(Sender).CurrentEditValue;
-      if CharsPos(UnreadableChars, SenderRowValue) = 0 then
-        UndoDescription := UndoDescription + '.' + SenderRowName + ' to ' + SenderRowValue
-      else
-        UndoDescription := UndoDescription + '.' + SenderRowName;
-      RecordUndo(UndoDescription, ucHigh, TOICustomPropertyGrid(Sender).ItemIndex);
+      RecordUndo(
+        UndoMessageModified(Sel, TOICustomPropertyGrid(Sender).GetActiveRow.Name,
+        TOICustomPropertyGrid(Sender).CurrentEditValue, ControlsTree.SelectionCount),
+        ucHigh, TOICustomPropertyGrid(Sender).ItemIndex);
     end else
       { Sender is nil when PropertyGridModified is called
         by ModifiedOutsideObjectInspector. }
@@ -2029,16 +2037,19 @@ begin
 end;
 
 procedure TDesignFrame.PropertyEditorModified(Sender: TObject);
+var
+  Sel: TComponent;
 begin
   if Sender is TPropertyEditor then
   begin
     if TPropertyEditor(Sender).PropCount = 1 then
-      RecordUndo((TPropertyEditor(Sender).GetComponent(0) as TComponent).Name + ': change ' + TPropertyEditor(Sender).GetName + ' to ' + TPropertyEditor(Sender).GetValue, ucHigh)
+      Sel := (TPropertyEditor(Sender).GetComponent(0) as TComponent)
     else
-    if TPropertyEditor(Sender).PropCount > 1 then
-      RecordUndo('Change ' + TPropertyEditor(Sender).GetName + ' to ' + TPropertyEditor(Sender).GetValue + ' in multiple components', ucHigh)
-    else
-      RecordUndo('Change ' + TPropertyEditor(Sender).GetName + ' to ' + TPropertyEditor(Sender).GetValue, ucHigh);
+      Sel := nil;
+    RecordUndo(
+      UndoMessageModified(Sel, TPropertyEditor(Sender).GetName,
+      TPropertyEditor(Sender).GetValue, TPropertyEditor(Sender).PropCount),
+      ucHigh);
   end else
     raise EInternalError.Create('PropertyEditorModified can only be called with TPropertyEditor as a Sender.');
 end;
