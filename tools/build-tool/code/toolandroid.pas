@@ -423,7 +423,7 @@ var
         raise Exception.Create('Cannot find "library_folder" parameter in "fmod" service for Android in CastleEngineManifest.xml');
 
       //JniPath := CombinePaths(Project.Path, AndroidProjectPath);
-      JniPath := 'app' + PathDelim + 'src' + PathDelim + 'main' + PathDelim + 'jniLibs' + PathDelim;
+      JniPath := 'app' + PathDelim + 'src' + PathDelim + 'main' + PathDelim + 'jni' + PathDelim;
 
       for CPU in CPUS do
       begin
@@ -433,7 +433,7 @@ var
         if Verbose then
           Writeln('Packaging FMOD library file: ' + InputFolder + 'libfmod.so => ' + OutputFolder);
 
-        PackageSmartCopyFile(InputFolder + 'libfmod.so', OutputFolder + 'libfmod.so');
+        PackageSmartCopyFile(InputFolder + 'libfmodL.so', OutputFolder + 'libfmodL.so');
         if Verbose then
           Writeln('Packaging FMOD library file: ' + InputFolder + 'libfmodL.so => ' + OutputFolder);
       end;
