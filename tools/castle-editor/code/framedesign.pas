@@ -1981,7 +1981,6 @@ procedure TDesignFrame.PropertyGridModified(Sender: TObject);
 var
   Sel: TComponent;
   UI: TCastleUserInterface;
-  SenderRowName, SenderRowValue, UndoDescription: String;
 begin
   { Workaround possible ControlsTree.Selected = nil when the user deselects
     the currently edited component by clicking somewhere else.
@@ -2030,7 +2029,13 @@ begin
     end else
       { Sender is nil when PropertyGridModified is called
         by ModifiedOutsideObjectInspector. }
-      RecordUndo(UndoDescription, ucLow);
+      if Sel <> nil then
+        RecordUndo('Change ' + Sel.Name, ucLow)
+      else
+      if ControlsTree.SelectionCount > 1 then
+        RecordUndo('Change multiple components', ucLow)
+      else
+        RecordUndo('', ucLow)
   end;
 
   MarkModified;
