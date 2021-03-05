@@ -96,7 +96,8 @@ uses
   TestCastleLevels,
   TestCastleDownload,
   TestCastleUnicode,
-  TestCastleResources
+  TestCastleResources,
+  TestX3DLoadGltf
 
   {$ifdef TEXT_RUNNER} {$ifndef NO_WINDOW_SYSTEM},
   TestCastleWindow,
