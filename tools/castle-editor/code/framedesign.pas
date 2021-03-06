@@ -279,6 +279,18 @@ type
     procedure MarkModified;
     function UndoMessageModified(const Sel: TComponent;
       const ModifiedProperty, ModifiedValue: String; const SelectedCount: Integer): String;
+    { PropertyGridModified and PropertyEditorModified are called when
+      something changes in the design.
+      PropertyGridModified and PropertyEditorModified are both called when
+      something changes within Object Inspector basic features
+      (such as editing string, boolean, enum or numeric values)
+      In this case PropertyEditorModified usually comes first.
+      In case something changed outside of Object inspector (e.g. drag-and-drops,
+      rename components in treeview, add components, etc.)
+      only PropertyGridModified is called
+      In case a custom dialog is used to change a value
+      (e.g. a Color picker, TStrings editor, Open File dialogue, etc.)
+      then only PropertyEditorModified is called. }
     procedure PropertyGridModified(Sender: TObject);
     procedure PropertyEditorModified(Sender: TObject);
     { Is Child selectable and visible in hierarchy. }
