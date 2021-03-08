@@ -217,6 +217,7 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/transform_scenes_demos \
   examples/3d_rendering_processing/show_bounding_rect_in_2d \
   examples/3d_rendering_processing/switch_projection \
+  examples/3d_rendering_processing/transform_feedback \
   examples/3d_rendering_processing/triangulate_demo \
   examples/3d_rendering_processing/view_3d_model_advanced \
   examples/3d_rendering_processing/view_3d_model_basic \
