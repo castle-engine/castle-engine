@@ -3762,11 +3762,17 @@ begin
      (not GoodModelBox.IsEmpty) and
      (MouseButtonMove = DraggingMouseButton) then
   begin
-    Size := GoodModelBox.AverageSize;
-    Translation := Translation - Vector3(
-      DragMoveSpeed * Size * (Event.OldPosition[0] - Event.Position[0]) / (2*MoveDivConst),
-      DragMoveSpeed * Size * (Event.OldPosition[1] - Event.Position[1]) / (2*MoveDivConst),
-      0);
+    if Camera.ProjectionType = ptOrthographic then
+      Translation := Translation - Vector3(Event.OldPosition[0] - Event.Position[0],
+      Event.OldPosition[1] - Event.Position[1], 0) * GetScaleFactor
+    else
+      begin
+        Size := GoodModelBox.AverageSize;
+        Translation := Translation - Vector3(
+          DragMoveSpeed * Size * (Event.OldPosition[0] - Event.Position[0]) / (2*MoveDivConst),
+          DragMoveSpeed * Size * (Event.OldPosition[1] - Event.Position[1]) / (2*MoveDivConst),
+          0);
+      end;
     Result := ExclusiveEvents;
   end;
 end;
