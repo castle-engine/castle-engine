@@ -6,7 +6,7 @@ set -eu
 # Or just do "make examples" in base castle_game_engine directory.
 
 # Allow calling this script from it's dir.
-if [ -f transform_scenes_demos.lpr ]; then cd ../../; fi
+if [ -f transform_feedback.lpr ]; then cd ../../; fi
 
 # Find the build tool, use it to compile
 if which tools/build-tool/castle-engine > /dev/null; then
