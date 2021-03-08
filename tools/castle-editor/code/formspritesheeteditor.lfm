@@ -689,7 +689,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     Top = 303
   end
   object PopupMenuFrames: TPopupMenu
-    OnClose = PopupMenuFramesClose
+    OnClose = PopupMenuCloseGTK2Fix
     Left = 445
     Top = 126
     object MenuItemMoveFrameUp: TMenuItem
@@ -727,7 +727,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     end
   end
   object PopupMenuAnimations: TPopupMenu
-    OnClose = PopupMenuFramesClose
+    OnClose = PopupMenuCloseGTK2Fix
     Left = 94
     Top = 177
     object MenuItemMoveAnimationUp: TMenuItem
