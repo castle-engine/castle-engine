@@ -1125,6 +1125,7 @@ type
       FRotationEnabled: Boolean;
       FZoomEnabled: Boolean;
       FDragMoveSpeed, FKeysMoveSpeed: Single;
+      FExactMovement: Boolean;
       { Speed of rotations. Always zero when RotationAccelerate = false.
 
         This could be implemented as a quaternion,
@@ -1248,6 +1249,10 @@ type
 
     { How fast user moves the scene by pressing keys. }
     property KeysMoveSpeed: Single read FKeysMoveSpeed write FKeysMoveSpeed default 1.0;
+
+    { Optional movement algorithm, moves the camera exactly as many units as
+      the mouse position has changed especially useful in 2D in the editor. }
+    property ExactMovement: Boolean read FExactMovement write FExactMovement default false;
 
     property MoveAmount: TVector3 read GetTranslation write SetTranslation;
       deprecated 'use Translation';
@@ -1388,6 +1393,10 @@ type
     { Drag with this mouse button to zoom the model (look closer / further). }
     property MouseButtonZoom: TCastleMouseButton
       read FMouseButtonZoom write FMouseButtonZoom default buttonMiddle;
+
+    { Optional movement algorithm, moves the camera exactly as many units as
+      the mouse position has changed especially useful in 2D in the editor. }
+    property ExactMovement: Boolean read FExactMovement write FExactMovement default true;
   published
     { Enable rotating the camera around the model by user input.
       When @false, no keys / mouse dragging / 3D mouse etc. can cause a rotation.
@@ -2230,6 +2239,7 @@ begin
   RotationEnabled := false;
   MouseButtonMove := buttonRight;
   MouseButtonZoom := buttonMiddle;
+  FExactMovement := true;
 end;
 
 { TCastlePerspective --------------------------------------------------------- }
@@ -3762,7 +3772,7 @@ begin
      (not GoodModelBox.IsEmpty) and
      (MouseButtonMove = DraggingMouseButton) then
   begin
-    if Camera.ProjectionType = ptOrthographic then
+    if (Camera.ProjectionType = ptOrthographic) and ExactMovement then
       Translation := Translation - Vector3(Event.OldPosition[0] - Event.Position[0],
       Event.OldPosition[1] - Event.Position[1], 0) * GetScaleFactor
     else
