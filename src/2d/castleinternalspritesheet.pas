@@ -1244,6 +1244,7 @@ function TCastleSpriteSheetFrame.MakeResizedWithBg(const Width,
   Height: Integer; const BgColor: TVector4): TCastleImage;
 var
   ResizedImage: TCastleImage;
+  DrawMode: TDrawMode;
 begin
   Assert(FFrameImage <> nil, 'No frame image to resize.');
   CheckEditMode;
@@ -1251,10 +1252,15 @@ begin
   Result := TCastleImageClass(FFrameImage.ClassType).Create(Width, Height, FFrameImage.Depth);
   Result.Clear(BgColor);
 
+  if BgColor.IsPerfectlyZero then
+    DrawMode := dmOverwrite
+  else
+    DrawMode := dmBlend;
+
   ResizedImage := FFrameImage.MakeResized(Width, Height);
   try
     Result.DrawFrom(FFrameImage, 0, 0, 0, 0, ResizedImage.Width,
-      ResizedImage.Height, dmBlend);
+      ResizedImage.Height, DrawMode);
   finally
     FreeAndNil(ResizedImage);
   end;
@@ -1270,6 +1276,8 @@ end;
 
 function TCastleSpriteSheetFrame.MakeImageCopyWithBg(const BgColor: TVector4
   ): TCastleImage;
+var
+  DrawMode: TDrawMode;
 begin
   Assert(FFrameImage <> nil, 'No frame image to make copy.');
   CheckEditMode;
@@ -1278,12 +1286,19 @@ begin
     FFrameImage.Height, FFrameImage.Depth);
   Result.Clear(BgColor);
 
+  if BgColor.IsPerfectlyZero then
+    DrawMode := dmOverwrite
+  else
+    DrawMode := dmBlend;
+
   Result.DrawFrom(FFrameImage, 0, 0, 0, 0, FFrameImage.Width,
-    FFrameImage.Height, dmBlend);
+    FFrameImage.Height, DrawMode);
 end;
 
 function TCastleSpriteSheetFrame.CenterOnBiggerImage(const Width,
   Height: Integer; const BgColor: TVector4): TCastleImage;
+var
+  DrawMode: TDrawMode;
 begin
   if (FrameWidth > Width) or (FrameHeight > Height) then
     raise Exception.Create('Frame image bigger than gived size');
@@ -1293,9 +1308,14 @@ begin
   Result := TCastleImageClass(FFrameImage.ClassType).Create(Width, Height, FFrameImage.Depth);
   Result.Clear(BgColor);
 
+  if BgColor.IsPerfectlyZero then
+    DrawMode := dmOverwrite
+  else
+    DrawMode := dmBlend;
+
   Result.DrawFrom(FFrameImage, (Width - FFrameImage.Width) div 2,
     (Height - FFrameImage.Height) div 2, 0, 0, FFrameImage.Width,
-    FFrameImage.Height, dmBlend);
+    FFrameImage.Height, DrawMode);
 end;
 
 procedure TCastleSpriteSheetFrame.SaveFrameImage(const URL: String);
