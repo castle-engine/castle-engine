@@ -1387,23 +1387,11 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 
-    { Drag with this mouse button to move the model. }
-    property MouseButtonMove: TCastleMouseButton
-      read FMouseButtonMove write FMouseButtonMove default buttonRight;
-    { Drag with this mouse button to zoom the model (look closer / further). }
-    property MouseButtonZoom: TCastleMouseButton
-      read FMouseButtonZoom write FMouseButtonZoom default buttonMiddle;
-
-    { Optional movement algorithm, moves the camera exactly as many units as
-      the mouse position has changed especially useful in 2D in the editor. }
-    property ExactMovement: Boolean read FExactMovement write FExactMovement default true;
+    property MouseButtonMove default buttonRight;
+    property MouseButtonZoom default buttonMiddle;
+    property ExactMovement default true;
   published
-    { Enable rotating the camera around the model by user input.
-      When @false, no keys / mouse dragging / 3D mouse etc. can cause a rotation.
-
-      Note that this doesn't prevent from rotating by code, e.g. by setting
-      @link(Rotations) property or calling @link(SetView). }
-    property RotationEnabled: Boolean read FRotationEnabled write FRotationEnabled default false;
+    property RotationEnabled default false;
   end;
 
 
