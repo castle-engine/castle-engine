@@ -17,9 +17,6 @@
 
 program transform_feedback;
 
-{$macro on}
-{$define nl:=+ LineEnding +}
-
 uses
   GL, GLExt,
   CastleVectors, X3DNodes, CastleWindow, CastleLog,
@@ -31,38 +28,36 @@ const
     (Data: (-1, 0)), (Data: (1, 0)), (Data: (0, 1))
   );
   TransformFeedbackVertexShaderSource: String =
-'#version 330'nl
-'layout(location = 0) in vec2 inVertex;'nl
-'out vec2 outVertex;'nl
-'float atan2(vec2 v) {'nl
-'  return v.x == 0.0 ? sign(v.y) * 3.1415 / 2.0 : atan(v.y, v.x);'nl
-'}'nl
-'void main() {'nl
-'  float a = atan2(inVertex) + 0.01;'nl
-'  outVertex = vec2(cos(a), sin(a));'nl
+'#version 330' + NL +
+'layout(location = 0) in vec2 inVertex;' + NL +
+'out vec2 outVertex;' + NL +
+'float atan2(vec2 v) {' + NL +
+'  return v.x == 0.0 ? sign(v.y) * 3.1415 / 2.0 : atan(v.y, v.x);' + NL +
+'}' + NL +
+'void main() {' + NL +
+'  float a = atan2(inVertex) + 0.01;' + NL +
+'  outVertex = vec2(cos(a), sin(a));' + NL +
 '}';
 
   RenderVertexShaderSource: String =
-'#version 330'nl
-'layout(location = 0) in vec2 inVertex;'nl
-'void main() {'nl
-'  gl_Position = vec4(inVertex, 0.0, 1.0);'nl
+'#version 330' + NL +
+'layout(location = 0) in vec2 inVertex;' + NL +
+'void main() {' + NL +
+'  gl_Position = vec4(inVertex, 0.0, 1.0);' + NL +
 '}';
 
   RenderFragmentShaderSource: String =
-'#version 330'nl
-'out vec4 outColor;'nl
-'void main() {'nl
-'  outColor = vec4(1.0);'nl
+'#version 330' + NL +
+'out vec4 outColor;' + NL +
+'void main() {' + NL +
+'  outColor = vec4(1.0);' + NL +
 '}';
 
 var
   Window: TCastleWindowBase;
   Viewport: TCastleViewport;
-  VAOs,
-  VBOs: array[0..1] of GLint;
-  RenderProgram,
-  TransformFeedbackProgram: TGLSLProgram;
+  VAOs, VBOs: array[0..1] of TGLint;
+  RenderProgram, TransformFeedbackProgram: TGLSLProgram;
   PingPong: Integer = 0;
 
 procedure Update(Container: TUIContainer);
