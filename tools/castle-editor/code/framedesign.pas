@@ -277,7 +277,22 @@ type
     procedure InspectorOtherFilter(Sender: TObject; AEditor: TPropertyEditor;
       var aShow: Boolean);
     procedure MarkModified;
+    function UndoMessageModified(const Sel: TComponent;
+      const ModifiedProperty, ModifiedValue: String; const SelectedCount: Integer): String;
+    { PropertyGridModified and PropertyEditorModified are called when
+      something changes in the design.
+      PropertyGridModified and PropertyEditorModified are both called when
+      something changes within Object Inspector basic features
+      (such as editing string, boolean, enum or numeric values)
+      In this case PropertyEditorModified usually comes first.
+      In case something changed outside of Object inspector (e.g. drag-and-drops,
+      rename components in treeview, add components, etc.)
+      only PropertyGridModified is called
+      In case a custom dialog is used to change a value
+      (e.g. a Color picker, TStrings editor, Open File dialogue, etc.)
+      then only PropertyEditorModified is called. }
     procedure PropertyGridModified(Sender: TObject);
+    procedure PropertyEditorModified(Sender: TObject);
     { Is Child selectable and visible in hierarchy. }
     class function Selectable(const Child: TComponent): Boolean; static;
     { Is Child deletable by user (this implies it is also selectable). }
@@ -1178,6 +1193,7 @@ begin
 
   // Allows object inspectors to find matching components, e.g. when editing Viewport.Items.MainScene
   PropertyEditorHook.LookupRoot := DesignOwner;
+  PropertyEditorHook.AddHandlerModified(@PropertyEditorModified);
 
   UpdateDesign;
   OnUpdateFormCaption(Self);
@@ -1952,16 +1968,34 @@ begin
   InspectorFilter(Sender, AEditor, AShow, psOther);
 end;
 
-procedure TDesignFrame.PropertyGridModified(Sender: TObject);
+function TDesignFrame.UndoMessageModified(const Sel: TComponent;
+  const ModifiedProperty, ModifiedValue: String; const SelectedCount: Integer): String;
 const
   { Unreadable chars are defined like in SReplaceChars.
     Note they include newlines, we don't want to include newlines in undo description,
     as it would make menu item look weird (actually multiline on GTK2). }
   UnreadableChars = [Low(AnsiChar) .. Pred(' '), #128 .. High(AnsiChar)];
 var
+  ToValue: String;
+begin
+  if (Length(ModifiedValue) < 24) and (CharsPos(UnreadableChars, ModifiedValue) = 0) then
+    ToValue := ' to ' + ModifiedValue
+  else
+    ToValue := '';
+
+  if SelectedCount = 1 then // By this we guarantee that Sel <> nil
+    Result := 'Change ' + Sel.Name + '.' + ModifiedProperty + ToValue
+  else
+  if SelectedCount > 1 then
+    Result := 'Change ' + ModifiedProperty + ToValue + ' in multiple components'
+  else
+    Result := 'Change ' + ModifiedProperty + ToValue;
+end;
+
+procedure TDesignFrame.PropertyGridModified(Sender: TObject);
+var
   Sel: TComponent;
   UI: TCastleUserInterface;
-  SenderRowName, SenderRowValue, UndoDescription: String;
 begin
   { Workaround possible ControlsTree.Selected = nil when the user deselects
     the currently edited component by clicking somewhere else.
@@ -2001,29 +2035,43 @@ begin
     otherwise we would record an undo for every OnMotion of dragging. }
   if not UndoSystem.ScheduleRecordUndoOnRelease then
   begin
-    { Sel may be nil in case multiple components change at once,
-      testcase: select multiple TCastleButton at once and change Toggle property. }
-    if Sel <> nil then
-      UndoDescription := 'Change ' + Sel.Name
-    else
-      UndoDescription := 'Change ';
-
     if Sender is TOICustomPropertyGrid then
     begin
-      SenderRowName := TOICustomPropertyGrid(Sender).GetActiveRow.Name;
-      SenderRowValue := TOICustomPropertyGrid(Sender).CurrentEditValue;
-      if CharsPos(UnreadableChars, SenderRowValue) = 0 then
-        UndoDescription := UndoDescription + '.' + SenderRowName + ' to ' + SenderRowValue
-      else
-        UndoDescription := UndoDescription + '.' + SenderRowName;
-      RecordUndo(UndoDescription, ucHigh, TOICustomPropertyGrid(Sender).ItemIndex);
+      RecordUndo(
+        UndoMessageModified(Sel, TOICustomPropertyGrid(Sender).GetActiveRow.Name,
+        TOICustomPropertyGrid(Sender).CurrentEditValue, ControlsTree.SelectionCount),
+        ucHigh, TOICustomPropertyGrid(Sender).ItemIndex);
     end else
       { Sender is nil when PropertyGridModified is called
         by ModifiedOutsideObjectInspector. }
-      RecordUndo(UndoDescription, ucLow);
+      if Sel <> nil then
+        RecordUndo('Change ' + Sel.Name, ucLow)
+      else
+      if ControlsTree.SelectionCount > 1 then
+        RecordUndo('Change multiple components', ucLow)
+      else
+        RecordUndo('', ucLow)
   end;
 
   MarkModified;
+end;
+
+procedure TDesignFrame.PropertyEditorModified(Sender: TObject);
+var
+  Sel: TComponent;
+begin
+  if Sender is TPropertyEditor then
+  begin
+    if TPropertyEditor(Sender).PropCount = 1 then
+      Sel := (TPropertyEditor(Sender).GetComponent(0) as TComponent)
+    else
+      Sel := nil;
+    RecordUndo(
+      UndoMessageModified(Sel, TPropertyEditor(Sender).GetName,
+      TPropertyEditor(Sender).GetValue, TPropertyEditor(Sender).PropCount),
+      ucHigh);
+  end else
+    raise EInternalError.Create('PropertyEditorModified can only be called with TPropertyEditor as a Sender.');
 end;
 
 procedure TDesignFrame.RecordUndo(const UndoComment: String;
