@@ -3769,8 +3769,10 @@ begin
       begin
         Size := GoodModelBox.AverageSize;
         Translation := Translation - Vector3(
-          DragMoveSpeed * Size * (Event.OldPosition[0] - Event.Position[0]) / (2*MoveDivConst),
-          DragMoveSpeed * Size * (Event.OldPosition[1] - Event.Position[1]) / (2*MoveDivConst),
+          DragMoveSpeed * Size * (Event.OldPosition[0] - Event.Position[0])
+          / (2 * MoveDivConst),
+          DragMoveSpeed * Size * (Event.OldPosition[1] - Event.Position[1])
+          / (2 * MoveDivConst),
           0);
       end;
     Result := ExclusiveEvents;
