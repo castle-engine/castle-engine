@@ -309,7 +309,7 @@ uses GraphType, IntfGraphics, Math, LCLIntf, LCLType, FPImage,
   X3DNodes,
   EditorUtils,
   FormProject, FormImportAtlas, FormImportStarling
-  {$ifdef LCLGTK2},Gtk2Globals{$endif};
+  {$ifdef LCLGTK2},Gtk2Globals, LCLVersion{$endif};
 
 { TSpriteSheetEditorForm.TSelectedFrames }
 
@@ -844,6 +844,7 @@ end;
 procedure TSpriteSheetEditorForm.FormShow(Sender: TObject);
 begin
   {$ifdef LCLGTK2}
+  {$if (LCL_FULLVERSION >= 1080000) and (LCL_FULLVERSION < 2001200) }
   { On GTK2 SpeedButtons are frozen after window show from popup menu
     See: https://bugs.freepascal.org/view.php?id=38345 }
   LastMouse.Button := 0;
@@ -852,6 +853,7 @@ begin
   LastMouse.MousePos := Point(0, 0);
   LastMouse.Time := 0;
   LastMouse.WinControl := nil;
+  {$ifend}
 
   { Update actions state after FormShow - I think this is next GTK2 bug. }
   UpdateActions;
@@ -966,12 +968,14 @@ begin
   {$ifdef LCLGTK2}
   { On GTK2 SpeedButtons are frozen after close popup menu
     See: https://bugs.freepascal.org/view.php?id=38401 }
+  {$if (LCL_FULLVERSION >= 1080000) and (LCL_FULLVERSION < 2001200) }
   LastMouse.Button := 0;
   LastMouse.ClickCount := 0;
   LastMouse.Down := False;
   LastMouse.MousePos := Point(0, 0);
   LastMouse.Time := 0;
   LastMouse.WinControl := nil;
+  {$ifend}
   {$endif}
 end;
 
