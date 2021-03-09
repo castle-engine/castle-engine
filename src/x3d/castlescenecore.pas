@@ -5404,7 +5404,7 @@ begin
        (Change in [gcCollidableTransformChanged, gcActiveShapesChanged] + SomeLocalGeometryChanged) then
     begin
       FreeAndNil(FOctreeDynamicCollisions);
-      PointingDeviceClear; // remove any reference to (no longer valid) PTriangle records
+      // PointingDeviceClear; // do not free PTriangle records, the per-shape octrees remain valid. Testcase: Unholy clicking
     end;
   end;
 
@@ -5628,7 +5628,7 @@ begin
     if Old and not New then
     begin
       FreeAndNil(FOctreeDynamicCollisions);
-      PointingDeviceClear; // remove any reference to (no longer valid) PTriangle records
+      // PointingDeviceClear; // do not free PTriangle records, the per-shape octrees remain valid. Testcase: Unholy clicking
       SetShapeSpatial([], true);
     end else
     if New and not Old then
