@@ -277,7 +277,7 @@ type
     procedure InspectorOtherFilter(Sender: TObject; AEditor: TPropertyEditor;
       var aShow: Boolean);
     procedure MarkModified;
-    function UndoMessageModified(const Sel: TComponent;
+    function UndoMessageModified(const Sel: TPersistent;
       const ModifiedProperty, ModifiedValue: String; const SelectedCount: Integer): String;
     { PropertyGridModified and PropertyEditorModified are called when
       something changes in the design.
@@ -1968,7 +1968,7 @@ begin
   InspectorFilter(Sender, AEditor, AShow, psOther);
 end;
 
-function TDesignFrame.UndoMessageModified(const Sel: TComponent;
+function TDesignFrame.UndoMessageModified(const Sel: TPersistent;
   const ModifiedProperty, ModifiedValue: String; const SelectedCount: Integer): String;
 const
   { Unreadable chars are defined like in SReplaceChars.
@@ -1983,8 +1983,13 @@ begin
   else
     ToValue := '';
 
-  if SelectedCount = 1 then // By this we guarantee that Sel <> nil
-    Result := 'Change ' + Sel.Name + '.' + ModifiedProperty + ToValue
+  { Right now, when SelectedCount = 1 then we know that Sel <> nil
+    (but it is better to not depend on it).
+    But it may not be TComponent, in case when changing property like X
+    of TCastleVector3Persistent. }
+  if (SelectedCount = 1) and
+     (Sel is TComponent) then
+    Result := 'Change ' + TComponent(Sel).Name + '.' + ModifiedProperty + ToValue
   else
   if SelectedCount > 1 then
     Result := 'Change ' + ModifiedProperty + ToValue + ' in multiple components'
@@ -2058,17 +2063,17 @@ end;
 
 procedure TDesignFrame.PropertyEditorModified(Sender: TObject);
 var
-  Sel: TComponent;
+  Sel: TPersistent;
 begin
   if Sender is TPropertyEditor then
   begin
     if TPropertyEditor(Sender).PropCount = 1 then
-      Sel := (TPropertyEditor(Sender).GetComponent(0) as TComponent)
+      Sel := TPropertyEditor(Sender).GetComponent(0)
     else
       Sel := nil;
     RecordUndo(
       UndoMessageModified(Sel, TPropertyEditor(Sender).GetName,
-      TPropertyEditor(Sender).GetValue, TPropertyEditor(Sender).PropCount),
+        TPropertyEditor(Sender).GetValue, TPropertyEditor(Sender).PropCount),
       ucHigh);
   end else
     raise EInternalError.Create('PropertyEditorModified can only be called with TPropertyEditor as a Sender.');
