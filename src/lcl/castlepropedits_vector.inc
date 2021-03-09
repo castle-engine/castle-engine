@@ -96,9 +96,16 @@ end;
 procedure TCastleVector3PropertyEditor.SetValue(const NewValue: String);
 var
   VectorPersistent: TCastleVector3Persistent;
+  Value: String;
 begin
+  Value := trim(NewValue);
+  { In case of scale, we want to be able to enter uniform scale easily without
+    enter three numbers 2 2 2 just 2. }
+  if (GetName = 'Scale') and (pos(' ', Value) = 0) then
+    Value := Value + ' ' + Value + ' ' + Value;
+
   VectorPersistent := (GetObjectValue as TCastleVector3Persistent);
-  VectorPersistent.Value := Vector3FromStr(NewValue);
+  VectorPersistent.Value := Vector3FromStr(Value);
 end;
 
 { TCastleVector4PropertyEditor ------------------------------------------------- }
