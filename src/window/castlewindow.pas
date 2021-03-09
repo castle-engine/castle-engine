@@ -2960,6 +2960,20 @@ procedure TCastleWindowBase.OpenCore;
 
     // just like TCastleWindowBase.DoRender
     if DoubleBuffer then SwapBuffers else glFlush;
+
+    {$IFDEF android}
+    { Workaround an ARM64 Android-specific bug which manifests on some devices
+      where some "external" exception flags are "injected" into unrelated app
+      when it is launched/initialized
+      Reproduced on Xiaomi MI 9 SE
+      Also seems to be reproduced outside of Castle Game Engine:
+      https://forum.lazarus.freepascal.org/index.php/topic,42933.msg318965.html?#msg318965
+      These do not seem to interfere with normal porgram workflow,
+      but cause ClearExceptions(true) to raise unrelated dangling exceptions,
+      which in turn makes e.g. CastleScript misbehave.
+      It seems that clearing them once is perfectly enough. }
+    ClearExceptions(false);
+    {$ENDIF}
   end;
 
   { Do the job of OpenCore, do not protect from possible exceptions raised inside. }
@@ -4664,20 +4678,6 @@ procedure TCastleApplication.CastleEngineInitialize;
 var
   TimeStart, TimeStart2: TCastleProfilerTime;
 begin
-  {$IFDEF android}
-  { Workaround an ARM64 Android-specific bug which manifests on some devices
-    where some "external" exception flags are "injected" into unrelated app
-    when it is launched/initialized
-    Reproduced on Xiaomi MI 9 SE
-    Also seems to be reproduced outside of Castle Game Engine:
-    https://forum.lazarus.freepascal.org/index.php/topic,42933.msg318965.html?#msg318965
-    These do not seem to interfere with normal porgram workflow,
-    but cause ClearExceptions(true) to raise unrelated dangling exceptions,
-    which in turn makes e.g. CastleScript misbehave.
-    It seems that clearing them once is perfectly enough. }
-  ClearExceptions(false);
-  {$ENDIF}
-
   if Initialized and not InitializedJavaActivity then
     WritelnLog('Android', 'Android Java activity was killed (and now got created from stratch), but native thread survived. Calling only OnInitializeJavaActivity.');
 
