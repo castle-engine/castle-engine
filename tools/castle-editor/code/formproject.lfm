@@ -602,6 +602,7 @@ object ProjectForm: TProjectForm
       Caption = 'New sprite sheet...'
       OnExecute = ActionNewSpriteSheetExecute
     end
+  end
   object ApplicationProperties1: TApplicationProperties
     OnActivate = ApplicationProperties1Activate
     OnException = ApplicationProperties1Exception
