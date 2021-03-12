@@ -220,6 +220,8 @@ type
     { Mirror image vertically. }
     procedure FlipVertical; virtual; abstract;
 
+    { Convert image contents to FpImage instance.
+      The resulting instance is owned by the caller. }
     function ToFpImage: TInternalCastleFpImage; virtual;
   end;
 

@@ -111,8 +111,10 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 
+    { Number of selected images to open (useful when multi-selection is allowed). }
     function URLCount: Integer;
 
+    { Get URL of a selected image to open (useful when multi-selection is allowed). }
     property URLs[Index: Integer]: String read GetURLWithIndex;
   published
     property URL: string read GetURL write SetURL stored false;
