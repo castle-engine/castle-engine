@@ -1463,7 +1463,7 @@ begin
     ModifiedMark := '';
 
   if FSpriteSheet.URL = '' then
-    FileName := 'unsaved sprite sheet'
+    FileName := 'New Sprite Sheet'
   else
     FileName := ExtractURIName(FSpriteSheet.URL);
 
