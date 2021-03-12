@@ -987,15 +987,15 @@ var
   I, J: Integer;
   Animation: TCastleSpriteSheetAnimation;
   Frame: TCastleSpriteSheetFrame;
-  RootNode: TDOMNode;
-  SubTextureNode: TDOMNode;
+  RootNode: TDOMElement;
+  SubTextureNode: TDOMElement;
 begin
   Result := TXMLDocument.Create;
 
   RootNode := Result.CreateElement('TextureAtlas');
   Result.AppendChild(RootNode);
 
-  TDOMElement(RootNode).SetAttribute('imagePath', FSpriteSheet.RelativeAtlasPath);
+  RootNode.AttributeSet('imagePath', FSpriteSheet.RelativeAtlasPath);
 
   for I := 0 to FSpriteSheet.AnimationCount - 1 do
   begin
@@ -1007,24 +1007,23 @@ begin
     for J := 0  to Animation.FrameCount - 1 do
     begin
       Frame := Animation.Frame[J];
-      SubTextureNode := Result.CreateElement('SubTexture');
-      RootNode.AppendChild(SubTextureNode);
+      SubTextureNode := RootNode.CreateChild('SubTexture');
 
-      TDOMElement(SubTextureNode).SetAttribute('name', Animation.Name + '_' + IntToStr(J + 1));
-      TDOMElement(SubTextureNode).SetAttribute('x', IntToStr(Frame.XInAtlas));
-      TDOMElement(SubTextureNode).SetAttribute('y', IntToStr(FSpriteSheet.AtlasHeight - Frame.YInAtlas - Frame.HeightInAtlas));
-      TDOMElement(SubTextureNode).SetAttribute('width', IntToStr(Frame.WidthInAtlas));
-      TDOMElement(SubTextureNode).SetAttribute('height', IntToStr(Frame.HeightInAtlas));
+      SubTextureNode.AttributeSet('name', Animation.Name + '_' + IntToStr(J + 1));
+      SubTextureNode.AttributeSet('x', Frame.XInAtlas);
+      SubTextureNode.AttributeSet('y', FSpriteSheet.AtlasHeight - Frame.YInAtlas - Frame.HeightInAtlas);
+      SubTextureNode.AttributeSet('width', Frame.WidthInAtlas);
+      SubTextureNode.AttributeSet('height', Frame.HeightInAtlas);
       if Frame.Trimmed then
       begin
-        TDOMElement(SubTextureNode).SetAttribute('frameX', IntToStr(Frame.XOffset));
-        TDOMElement(SubTextureNode).SetAttribute('frameY', IntToStr(Frame.FrameHeight - Frame.YOffset - Frame.HeightInAtlas));
-        TDOMElement(SubTextureNode).SetAttribute('frameWidth', IntToStr(Frame.FrameWidth));
-        TDOMElement(SubTextureNode).SetAttribute('frameHeight', IntToStr(Frame.FrameHeight));
+        SubTextureNode.AttributeSet('frameX', Frame.XOffset);
+        SubTextureNode.AttributeSet('frameY', Frame.FrameHeight - Frame.YOffset - Frame.HeightInAtlas);
+        SubTextureNode.AttributeSet('frameWidth', Frame.FrameWidth);
+        SubTextureNode.AttributeSet('frameHeight', Frame.FrameHeight);
       end;
 
       if J = 0 then
-        TDOMElement(SubTextureNode).SetAttribute('fps', FloatToStrDot(Animation.FramesPerSecond));
+        SubTextureNode.AttributeSet('fps', Animation.FramesPerSecond);
     end;
   end;
 end;
@@ -2361,7 +2360,7 @@ begin
 end;
 
 procedure TCastleSpriteSheetLoader.TSubTexture.ReadFormXMLNode(
-    const SubTextureNode: TDOMElement; const ImageWidth, ImageHeight: Integer);
+  const SubTextureNode: TDOMElement; const ImageWidth, ImageHeight: Integer);
 begin
   ParseAnimationName(SubTextureNode.AttributeString('name'));
 
