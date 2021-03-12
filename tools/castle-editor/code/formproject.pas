@@ -757,7 +757,16 @@ procedure TProjectForm.OpenDesign(const DesignUrl: String);
 begin
   NeedsDesignFrame;
   ClearAllWarnings;
-  Design.OpenDesign(DesignUrl);
+  try
+    Design.OpenDesign(DesignUrl);
+  except
+    { In case Design.OpenDesign raised exception (e.g. file unreadable or invalid),
+      do not leave Design in half-uninitialized state (e.g. treeview will not
+      show anything valid). }
+    FreeAndNil(Design);
+    DesignExistenceChanged;
+    raise;
+  end;
 end;
 
 procedure TProjectForm.WarningNotification(const Category,

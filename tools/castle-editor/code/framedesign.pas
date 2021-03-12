@@ -1206,15 +1206,25 @@ var
 begin
   NewDesignOwner := TComponent.Create(Self);
 
-  Mime := URIMimeType(NewDesignUrl);
-  if Mime = 'text/x-castle-user-interface' then
-    NewDesignRoot := UserInterfaceLoad(NewDesignUrl, NewDesignOwner)
-  else
-  if Mime = 'text/x-castle-transform' then
-    NewDesignRoot := TransformLoad(NewDesignUrl, NewDesignOwner)
-  else
-    raise Exception.CreateFmt('Unrecognized file extension %s (MIME type %s)',
-      [ExtractFileExt(NewDesignUrl), Mime]);
+  try
+    Mime := URIMimeType(NewDesignUrl);
+    if Mime = 'text/x-castle-user-interface' then
+      NewDesignRoot := UserInterfaceLoad(NewDesignUrl, NewDesignOwner)
+    else
+    if Mime = 'text/x-castle-transform' then
+      NewDesignRoot := TransformLoad(NewDesignUrl, NewDesignOwner)
+    else
+      raise Exception.CreateFmt('Unrecognized file extension %s (MIME type %s)',
+        [ExtractFileExt(NewDesignUrl), Mime]);
+  except
+    { Testcase: try to load using UserInterfaceLoad a file
+      that has TCastleTransform inside. UserInterfaceLoad makes EInvalidCast. }
+    on E: Exception do
+    begin
+      E.Message := 'Error when loading ' + URIDisplay(NewDesignUrl) + ': ' + E.Message;
+      raise;
+    end;
+  end;
 
   UndoSystem.ClearUndoHistory;
 
