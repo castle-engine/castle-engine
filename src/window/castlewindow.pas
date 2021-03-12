@@ -2952,7 +2952,7 @@ procedure TCastleWindowBase.OpenCore;
     RenderContext.Clear([cbColor], Theme.LoadingBackgroundColor);
 
     UIScale := FRealHeight / Theme.LoadingImageForWindowHeight;
-    TextRect := Theme.Images[tiLoading].Rect.
+    TextRect := Theme.ImagesPersistent[tiLoading].Image.Rect.
       ScaleAroundCenter(UIScale).
       Align(hpMiddle, WindowRect, hpMiddle).
       Align(vpMiddle, WindowRect, vpMiddle);
@@ -2960,6 +2960,20 @@ procedure TCastleWindowBase.OpenCore;
 
     // just like TCastleWindowBase.DoRender
     if DoubleBuffer then SwapBuffers else glFlush;
+
+    {$IFDEF android}
+    { Workaround an ARM64 Android-specific bug which manifests on some devices
+      (reproduced on Xiaomi MI 9 SE) that creates a dangling EInvalidOp after calling Theme.Draw.
+      It doesn't seem to interfere with normal porgram workflow,
+      neither it causes any visible graphic glitches in the image rendered by Theme.Draw,
+      but causes ClearExceptions(true) to raise unrelated dangling exceptions,
+      which in turn makes e.g. CastleScript misbehave.
+      Also seems to be reproduced outside of Castle Game Engine:
+      https://forum.lazarus.freepascal.org/index.php/topic,42933.msg318965.html?#msg318965
+      It seems that clearing them once per app run is perfectly enough,
+      all subsequent calls to Theme.Draw do not raise the exception. }
+    ClearExceptions(false);
+    {$ENDIF}
   end;
 
   { Do the job of OpenCore, do not protect from possible exceptions raised inside. }

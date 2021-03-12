@@ -36,6 +36,8 @@ type
       { Components designed using CGE editor, loaded from state_main.castle-user-interface. }
       LabelFps: TCastleLabel;
       MainViewport: TCastleViewport;
+
+      StarsCount: Cardinal;
   public
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
@@ -78,9 +80,9 @@ var
     RotateBeh: TRotateBehavior;
     Scene: TCastleScene;
   begin
-    if RecursionLevel = MaxRecursionLevel then Exit;
     Scene := StarTemplate.Clone(FreeAtStop);
     Scene.Translation := Center;
+    Inc(StarsCount);
 
     Material := (Scene.Node('MatMain') as TAppearanceNode).
       Material as TUnlitMaterialNode;
@@ -93,12 +95,13 @@ var
     Scene.AddBehavior(RotateBeh);
     ParentTransform.Add(Scene);
 
-    for I := 0 to CircleCount - 1 do
-    begin
-      SinCos(2 * Pi * I / CircleCount, S, C);
-      InstantiateStar(Center + Vector3(S * Radius, C * Radius, 0),
-        Radius * RadiusDecrease, RecursionLevel +  1, Scene);
-    end;
+    if RecursionLevel + 1 < MaxRecursionLevel then
+      for I := 0 to CircleCount - 1 do
+      begin
+        SinCos(2 * Pi * I / CircleCount, S, C);
+        InstantiateStar(Center + Vector3(S * Radius, C * Radius, 0),
+          Radius * RadiusDecrease, RecursionLevel +  1, Scene);
+      end;
   end;
 
 var
@@ -116,6 +119,7 @@ begin
   StarTemplate := TCastleScene.Create(FreeAtStop);
   StarTemplate.Load('castle-data:/star.gltf');
 
+  StarsCount := 0;
   InstantiateStar(Vector3(0, 0, 0), 10, 0, MainViewport.Items);
 end;
 
@@ -125,7 +129,7 @@ begin
   { This virtual method is executed every frame.}
   LabelFps.Caption :=
     'FPS: ' + Container.Fps.ToString + NL +
-    'Star scenes: ' + IntToStr(MainViewport.Items.Count);
+    'Star scenes: ' + IntToStr(StarsCount);
 end;
 
 end.

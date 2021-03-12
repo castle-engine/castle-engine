@@ -582,9 +582,8 @@ begin
   MaterialProperties.URL := 'castle-data:/material_properties.xml';
 
   { Change Theme image tiActiveFrame, used to draw rectangle under image }
-  Theme.Images[tiActiveFrame] := LoadImage('castle-data:/box.png');
-  Theme.OwnsImages[tiActiveFrame] := true;
-  Theme.Corners[tiActiveFrame] := Vector4(38, 38, 38, 38);
+  Theme.ImagesPersistent[tiActiveFrame].Url := 'castle-data:/box.png';
+  Theme.ImagesPersistent[tiActiveFrame].ProtectedSides.AllSides := 38;
 
   { Create extra viewport to observe the world.
     You can always add additional viewports.

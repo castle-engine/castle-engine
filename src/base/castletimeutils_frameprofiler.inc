@@ -68,9 +68,13 @@ type
     const
       MaxRecordFrames = 1000;
       MaxUserMetrics = 16;
-      MetricsPerFrame = 1 //< frame total time
-        + Ord(High(TFrameMetric)) + 1 //< time, for each TFrameMetric
-        + 3 * MaxUserMetrics; //< user metrics, MaxUserMetrics for render, update, other
+      MetricsPerFrame =
+        // frame total time
+        1
+        // time, for each TFrameMetric
+        + Ord(High(TFrameMetric)) + 1
+        // user metrics, MaxUserMetrics for render, update, other
+        + 3 * MaxUserMetrics;
       IndexTotalMetric = 0;
     type
       TMetricIndex = 0..MetricsPerFrame - 1;

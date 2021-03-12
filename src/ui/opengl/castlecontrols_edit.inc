@@ -364,7 +364,6 @@ procedure TCastleEdit.PreferredSize(var PreferredWidth, PreferredHeight: Single)
 var
   PaddingVerticalScaled, HeightScaled: Single;
   US: Single;
-  FrameCorners: TVector4;
 begin
   inherited;
 
@@ -376,10 +375,9 @@ begin
     HeightScaled := Font.RowHeight + 2 * PaddingVerticalScaled;
     if Frame then
     begin
-      FrameCorners := Theme.Corners[tiEdit];
       HeightScaled := HeightScaled +
-        US * FrameCorners[0] +
-        US * FrameCorners[2];
+        US * Theme.ImagesPersistent[tiEdit].ProtectedSides.TotalTop +
+        US * Theme.ImagesPersistent[tiEdit].ProtectedSides.TotalBottom;
     end;
 
     PreferredHeight := HeightScaled;
@@ -418,7 +416,7 @@ var
   SR, RectInside: TFloatRectangle;
   PaddingHorizontalScaled, PaddingVerticalScaled: Single;
   US, TextLeft, TextBottom: Single;
-  FrameCorners: TVector4;
+  FrameSides: TBorder;
   CaretVisible: boolean;
   S: string;
   Color: TCastleColor;
@@ -433,12 +431,12 @@ begin
   if Frame then
   begin
     { make smaller RectInside, by frame size }
-    FrameCorners := Theme.Corners[tiEdit];
+    FrameSides := Theme.ImagesPersistent[tiEdit].ProtectedSides;
     RectInside := RectInside.
-      RemoveTop(FrameCorners[0] * US).
-      RemoveRight(FrameCorners[1] * US).
-      RemoveBottom(FrameCorners[2] * US).
-      RemoveLeft(FrameCorners[3] * US);
+      RemoveTop   (FrameSides.TotalTop    * US).
+      RemoveRight (FrameSides.TotalRight  * US).
+      RemoveBottom(FrameSides.TotalBottom * US).
+      RemoveLeft  (FrameSides.TotalLeft   * US);
 
     { draw frame }
     Theme.Draw(SR, tiEdit, US);

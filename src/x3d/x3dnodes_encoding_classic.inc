@@ -27,8 +27,7 @@ const
   deprecated 'use LoadNode and LoadScene_FileFilters';
 
 type
-  { Raised by @link(LoadX3DClassicFromString) or @link(LoadX3DClassicInternal)
-    when the stream is compressed with gzip. }
+  { Raised by classic X3D loading routines when the stream is compressed with gzip. }
   EGzipCompressed = CastleInternalX3DLexer.EGzipCompressed;
 
 { Load VRML/X3D file in classic encoding from stream. Return it's root node.

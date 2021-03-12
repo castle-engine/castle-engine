@@ -21,17 +21,24 @@ unit X3DLoadInternalGltf;
 interface
 
 uses Classes,
-  X3DNodes, X3DFields;
+  CastleUtils, CastleVectors, X3DNodes, X3DFields;
 
 { Load 3D model in the Gltf format, converting it to an X3D nodes graph.
   This routine is internally used by the @link(LoadNode) to load an Gltf file. }
 function LoadGltf(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 
+{ Process a list of key and key values to turn linear into step interpolation.
+  This is internal, exposed only for tests. }
+procedure ProcessStepTimeline(const Times: TSingleList;
+  const Values: TVector3List); overload;
+procedure ProcessStepTimeline(const Times: TSingleList;
+  const Values: TVector4List); overload;
+
 implementation
 
 uses SysUtils, TypInfo, Math, PasGLTF, PasJSON, Generics.Collections,
-  CastleClassUtils, CastleDownload, CastleUtils, CastleURIUtils, CastleLog,
-  CastleVectors, CastleStringUtils, CastleTextureImages, CastleQuaternions,
+  CastleClassUtils, CastleDownload, CastleURIUtils, CastleLog,
+  CastleStringUtils, CastleTextureImages, CastleQuaternions,
   CastleImages, CastleVideos, CastleTimeUtils, CastleTransform,
   CastleLoadGltf, X3DLoadInternalUtils, CastleBoxes, CastleColors,
   CastleRenderOptions;
@@ -74,6 +81,84 @@ uses SysUtils, TypInfo, Math, PasGLTF, PasJSON, Generics.Collections,
 
   - See https://castle-engine.io/planned_features.php .
 }
+
+{ other utilities ------------------------------------------------------------ }
+
+procedure ProcessStepTimeline(const Times: TSingleList;
+  const Values: TVector3List); overload;
+var
+  C, NewC: SizeInt;
+  I: Integer;
+  TimesPtr: PSingle;
+  ValuesPtr: PVector3;
+begin
+  if Times.Count > 1 then
+  begin
+    C := Times.Count;
+    if C <> Values.Count then
+    begin
+      WritelnWarning('"Step" timeline has different number of keys than key values');
+      Exit;
+    end;
+
+    NewC := (C - 1) * 2 + 1;
+
+    Times.Count := NewC;
+    Values.Count := NewC;
+
+    TimesPtr := PSingle(Times.List);
+    ValuesPtr := PVector3(Values.List);
+
+    // fill new values, going downward, to not overwrite the useful values
+    ValuesPtr[NewC - 1] := ValuesPtr[C- 1];
+    TimesPtr[NewC - 1] := TimesPtr[C- 1];
+    for I := C - 2 downto 0 do
+    begin
+      ValuesPtr[I * 2 + 1] := ValuesPtr[I];
+      ValuesPtr[I * 2    ] := ValuesPtr[I];
+      TimesPtr [I * 2 + 1] := TimesPtr [I + 1];
+      TimesPtr [I * 2    ] := TimesPtr [I];
+    end;
+  end;
+end;
+
+procedure ProcessStepTimeline(const Times: TSingleList;
+  const Values: TVector4List); overload;
+var
+  C, NewC: SizeInt;
+  I: Integer;
+  TimesPtr: PSingle;
+  ValuesPtr: PVector4;
+begin
+  if Times.Count > 1 then
+  begin
+    C := Times.Count;
+    if C <> Values.Count then
+    begin
+      WritelnWarning('"Step" timeline has different number of keys than key values');
+      Exit;
+    end;
+
+    NewC := (C - 1) * 2 + 1;
+
+    Times.Count := NewC;
+    Values.Count := NewC;
+
+    TimesPtr := PSingle(Times.List);
+    ValuesPtr := PVector4(Values.List);
+
+    // fill new values, going downward, to not overwrite the useful values
+    ValuesPtr[NewC - 1] := ValuesPtr[C- 1];
+    TimesPtr[NewC - 1] := TimesPtr[C- 1];
+    for I := C - 2 downto 0 do
+    begin
+      ValuesPtr[I * 2 + 1] := ValuesPtr[I];
+      ValuesPtr[I * 2    ] := ValuesPtr[I];
+      TimesPtr [I * 2 + 1] := TimesPtr [I + 1];
+      TimesPtr [I * 2    ] := TimesPtr [I];
+    end;
+  end;
+end;
 
 { Convert simple types ------------------------------------------------------- }
 
@@ -1803,11 +1888,24 @@ var
       TPasGLTF.TAnimation.TSampler.TSamplerType.Linear: ; // nothing to do
       TPasGLTF.TAnimation.TSampler.TSamplerType.Step:
         begin
-          WritelnWarning('Animation interpolation Step not supported now, will be Linear');
+          case Path of
+            gsTranslation, gsScale:
+              ProcessStepTimeline(
+                InterpolatePosition.FdKey.Items,
+                InterpolatePosition.FdKeyValue.Items);
+            gsRotation:
+              ProcessStepTimeline(
+                InterpolateOrientation.FdKey.Items,
+                InterpolateOrientation.FdKeyValue.Items);
+            {$ifndef COMPILER_CASE_ANALYSIS}
+            else raise EInternalError.Create('ReadSampler - Path?');
+            {$endif}
+          end;
         end;
       TPasGLTF.TAnimation.TSampler.TSamplerType.CubicSpline:
         begin
-          WritelnWarning('Animation interpolation "CubicSpline" not supported yet, approximating by "Linear"');
+          // May spam too much. Assume that our current approximation is good enough.
+          // WritelnWarning('Animation interpolation "CubicSpline" not supported yet, approximating by "Linear"');
           case Path of
             gsTranslation, gsScale:
               begin
@@ -2453,6 +2551,16 @@ begin
       FreeAndNil(AnimationSampler);
       FreeIfUnusedAndNil(DefaultAppearance);
       X3DNodeList_FreeUnusedAndNil(Appearances);
+      { Note that some Nodes[...] items may be nil.
+
+        While in glTF there are no gaps (the nodes are a list without gaps),
+        but a particular Document.Scene may refer only to a subset of nodes,
+        and our ReadNode reads them recursively.
+        Unused nodes (not referred by Document.Scene) are left unprocessed,
+        and their Nodes[...] remains nil.
+
+        Still, X3DNodeList_FreeUnusedAndNil guarantees to handle it.
+        Testcase: GLB from https://www.kenney.nl/assets/city-kit-suburban . }
       X3DNodeList_FreeUnusedAndNil(Nodes);
       FreeAndNil(Lights);
       FreeAndNil(Document);

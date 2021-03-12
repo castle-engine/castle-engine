@@ -308,7 +308,7 @@
 
     { Load image contents from a stream.
 
-      If UpdateUrl is not empty, then this also sets the @link(Url) field
+      If UpdateUrl is not empty, then this also sets the @link(FdUrl) field
       to the indicated value (without actually loading the image from this URL).
       This is useful if you later may serialize this TImageTextureNode:
       thus URL will represent this image in the output.
@@ -326,7 +326,7 @@
       (this is slower, but it means that ownership and freeing of given
       Image instance remains on your side).
 
-      If UpdateUrl is not empty, then this also sets the @link(Url) field
+      If UpdateUrl is not empty, then this also sets the @link(FdUrl) field
       to the indicated value (without actually loading the image from this URL).
       This is useful if you later may serialize this TImageTextureNode:
       thus URL will represent this image in the output.

@@ -1,5 +1,6 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestURIUtils" -*-
 {
-  Copyright 2013-2018 Michalis Kamburelis.
+  Copyright 2013-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,6 +32,7 @@ type
     procedure TestRelativeURLWhitespace;
     procedure TestURIExists;
     procedure TestRelativeToCastleDataURL;
+    procedure TestExtractURI;
   end;
 
 implementation
@@ -242,6 +244,29 @@ begin
   AssertFalse(WasInsideData);
   AssertEquals('/something-not-in-root/bar.txt', RelativeToCastleDataURL('/something-not-in-root/bar.txt', WasInsideData));
   AssertFalse(WasInsideData);
+end;
+
+procedure TTestURIUtils.TestExtractURI;
+begin
+  // Test with valid Spine URL, ending with anim-naming:strict-underscore
+  AssertEquals('castle-data:/starling/', ExtractURIPath('castle-data:/starling/character_zombie_atlas.starling-xml#fps:8,anim-naming:strict-underscore'));
+  AssertEquals('character_zombie_atlas.starling-xml', ExtractURIName('castle-data:/starling/character_zombie_atlas.starling-xml#fps:8,anim-naming:strict-underscore'));
+  AssertEquals('castle-data:/starling/character_zombie_atlas.starling-xml', URIDeleteAnchor('castle-data:/starling/character_zombie_atlas.starling-xml#fps:8,anim-naming:strict-underscore'));
+  AssertEquals('castle-data:/starling/character_zombie_atlas.new-extension#fps:8,anim-naming:strict-underscore', ChangeURIExt('castle-data:/starling/character_zombie_atlas.starling-xml#fps:8,anim-naming:strict-underscore', '.new-extension'));
+  AssertEquals('castle-data:/starling/character_zombie_atlas#fps:8,anim-naming:strict-underscore', DeleteURIExt('castle-data:/starling/character_zombie_atlas.starling-xml#fps:8,anim-naming:strict-underscore'));
+
+  // Test also invalid Spine URL, ending with anim-naming:character_zombie_atlas.png
+  AssertEquals('castle-data:/starling/', ExtractURIPath('castle-data:/starling/character_zombie_atlas.starling-xml#fps:8,anim-naming:character_zombie_atlas.png'));
+  AssertEquals('character_zombie_atlas.starling-xml', ExtractURIName('castle-data:/starling/character_zombie_atlas.starling-xml#fps:8,anim-naming:character_zombie_atlas.png'));
+  AssertEquals('castle-data:/starling/character_zombie_atlas.starling-xml', URIDeleteAnchor('castle-data:/starling/character_zombie_atlas.starling-xml#fps:8,anim-naming:character_zombie_atlas.png'));
+  AssertEquals('castle-data:/starling/character_zombie_atlas.new-extension#fps:8,anim-naming:character_zombie_atlas.png', ChangeURIExt('castle-data:/starling/character_zombie_atlas.starling-xml#fps:8,anim-naming:character_zombie_atlas.png', '.new-extension'));
+  AssertEquals('castle-data:/starling/character_zombie_atlas#fps:8,anim-naming:character_zombie_atlas.png', DeleteURIExt('castle-data:/starling/character_zombie_atlas.starling-xml#fps:8,anim-naming:character_zombie_atlas.png'));
+
+  AssertEquals('castle-data:/walking/npcs/hotel_room/hero/', ExtractURIPath('castle-data:/walking/npcs/hotel_room/hero/hawaii_exo.json#skin:default'));
+  AssertEquals('hawaii_exo.json', ExtractURIName('castle-data:/walking/npcs/hotel_room/hero/hawaii_exo.json#skin:default'));
+  AssertEquals('castle-data:/walking/npcs/hotel_room/hero/hawaii_exo.json', URIDeleteAnchor('castle-data:/walking/npcs/hotel_room/hero/hawaii_exo.json#skin:default'));
+  AssertEquals('castle-data:/walking/npcs/hotel_room/hero/hawaii_exo.new-extension#skin:default', ChangeURIExt('castle-data:/walking/npcs/hotel_room/hero/hawaii_exo.json#skin:default', '.new-extension'));
+  AssertEquals('castle-data:/walking/npcs/hotel_room/hero/hawaii_exo#skin:default', DeleteURIExt('castle-data:/walking/npcs/hotel_room/hero/hawaii_exo.json#skin:default'));
 end;
 
 initialization

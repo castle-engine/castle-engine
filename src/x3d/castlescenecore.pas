@@ -5402,13 +5402,17 @@ begin
 
     if (FOctreeDynamicCollisions <> nil) and
        (Change in [gcCollidableTransformChanged, gcActiveShapesChanged] + SomeLocalGeometryChanged) then
+    begin
       FreeAndNil(FOctreeDynamicCollisions);
+      // PointingDeviceClear; // do not free PTriangle records, the per-shape octrees remain valid. Testcase: Unholy clicking
+    end;
   end;
 
   if FOctreeStaticCollisions <> nil then
   begin
     WritelnWarning('ssStaticCollisions used on scene "' + Name + '" but the geometry changed. Freeing the spatial structure. You should use ssDynamicCollisions for this scene');
     FreeAndNil(FOctreeStaticCollisions);
+    PointingDeviceClear; // remove any reference to (no longer valid) PTriangle records
   end;
 
   if Assigned(OnGeometryChanged) then
@@ -5624,6 +5628,7 @@ begin
     if Old and not New then
     begin
       FreeAndNil(FOctreeDynamicCollisions);
+      // PointingDeviceClear; // do not free PTriangle records, the per-shape octrees remain valid. Testcase: Unholy clicking
       SetShapeSpatial([], true);
     end else
     if New and not Old then
@@ -5648,7 +5653,10 @@ begin
     New := ssStaticCollisions in Value;
 
     if Old and not New then
+    begin
       FreeAndNil(FOctreeStaticCollisions);
+      PointingDeviceClear; // remove any reference to (no longer valid) PTriangle records
+    end;
 
     FSpatial := Value;
   end;

@@ -209,7 +209,7 @@
 
     Note: Whether the shape is visible from both sides depends on the
     geometry @link(TAbstractGeometryNode.Solid) field,
-    and is independent of whether you use this node or @link(TwoSidedMaterial). }
+    and is independent of whether you use this node or @link(TTwoSidedMaterialNode). }
   TMaterialNode = class(TAbstractOneSidedMaterialNode)
   strict private
     type

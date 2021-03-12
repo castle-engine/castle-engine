@@ -1103,24 +1103,45 @@ begin
     Result := URIDisplay(AbsoluteURI(URI), true);
 end;
 
+const
+  { RecognizeEvenEscapedHash value for URI extracting functions below. }
+  DefaultRecognizeEvenEscapedHash = true;
+
 function ChangeURIExt(const URL, Extension: string): string;
+var
+  URLWithoutAnchor, Anchor: String;
 begin
-  Result := ChangeFileExt(URL, Extension);
+  URLWithoutAnchor := URL;
+  URIExtractAnchor(URLWithoutAnchor, Anchor, DefaultRecognizeEvenEscapedHash);
+  Result := ChangeFileExt(URLWithoutAnchor, Extension);
+  if Anchor <> '' then
+    Result := Result + '#' + Anchor;
 end;
 
 function DeleteURIExt(const URL: string): string;
 begin
-  Result := DeleteFileExt(URL);
+  Result := ChangeURIExt(URL, '');
 end;
 
 function ExtractURIName(const URL: string): string;
+var
+  URLWithoutAnchor: String;
 begin
-  Result := ExtractFileName(URL);
+  URLWithoutAnchor := URIDeleteAnchor(URL, DefaultRecognizeEvenEscapedHash);
+  Result := ExtractFileName(URLWithoutAnchor);
 end;
 
 function ExtractURIPath(const URL: string): string;
+var
+  URLWithoutAnchor: String;
 begin
-  Result := ExtractFilePath(URL);
+  { While on non-Windows ExtractFilePath would work on full URL as well,
+    but on Windows the ":" inside anchor (like
+    "castle-data:/starling/character_zombie_atlas.starling-xml#fps:8,anim-naming:strict-underscore")
+    would cause trouble: it would be considered a drive letter separator,
+    and change the result. }
+  URLWithoutAnchor := URIDeleteAnchor(URL, DefaultRecognizeEvenEscapedHash);
+  Result := ExtractFilePath(URLWithoutAnchor);
 end;
 
 function URIIncludeSlash(const URL: String): String;

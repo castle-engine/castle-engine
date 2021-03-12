@@ -57,6 +57,7 @@ begin
       if Color[3] = 0 then
         Color[3] := 1;
       ColorPersistent.Value := Color;
+      Modified;
     end;
   finally FreeAndNil(Dialog) end;
 end;
@@ -81,6 +82,7 @@ var
 begin
   ColorPersistent := (GetObjectValue as TCastleColorPersistent);
   ColorPersistent.Value := HexToColor(NewValue);
+  Modified;
 end;
 
 { TCastleColorRGBPropertyEditor ------------------------------------------------- }
@@ -119,6 +121,7 @@ begin
       RedGreenBlue(Dialog.Color, ColorByte.Data[0], ColorByte.Data[1], ColorByte.Data[2]);
       Color := Vector3(ColorByte);
       ColorPersistent.Value := Color;
+      Modified;
     end;
   finally FreeAndNil(Dialog) end;
 end;
@@ -143,4 +146,5 @@ var
 begin
   ColorPersistent := (GetObjectValue as TCastleColorRGBPersistent);
   ColorPersistent.Value := HexToColorRGB(NewValue);
+  Modified;
 end;

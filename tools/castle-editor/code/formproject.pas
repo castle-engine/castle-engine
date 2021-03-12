@@ -32,9 +32,13 @@ type
   TProjectForm = class(TForm)
     ActionNewSpriteSheet: TAction;
     ActionList: TActionList;
-    ButtonClearWarnings: TBitBtn;
     MenuItemNewSpriteSheet: TMenuItem;
     MenuItemSepraratorSLP002: TMenuItem;
+    ApplicationProperties1: TApplicationProperties;
+    ButtonClearWarnings: TBitBtn;
+    MenuItemNewDirectory: TMenuItem;
+    MenuItemShellTreeSeparator13123: TMenuItem;
+    MenuItemShellTreeRefresh: TMenuItem;
     PanelWarnings: TPanel;
     ShellIcons: TImageList;
     LabelNoDesign: TLabel;
@@ -116,12 +120,18 @@ type
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
     procedure ActionNewSpriteSheetExecute(Sender: TObject);
+    procedure ApplicationProperties1Activate(Sender: TObject);
+    procedure ApplicationProperties1Exception(Sender: TObject; E: Exception);
     procedure ButtonClearWarningsClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormHide(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure ListOutputClick(Sender: TObject);
+    procedure MenuItemNewDirectoryClick(Sender: TObject);
     procedure MenuItemRenameClick(Sender: TObject);
+    procedure MenuItemShellTreeRefreshClick(Sender: TObject);
     procedure UpdateUndo(Sender: TObject);
     procedure UpdateRenameItem(Sender: TObject);
     procedure MenuItemRedoClick(Sender: TObject);
@@ -165,20 +175,32 @@ type
     procedure ProcessUpdateTimerTimer(Sender: TObject);
     procedure ShellListPopupMenuPopup(Sender: TObject);
   private
-    ProjectName: String;
-    ProjectPath, ProjectStandaloneSource, ProjectLazarus: String;
-    BuildMode: TBuildMode;
-    OutputList: TOutputList;
-    RunningProcess: TAsynchronousProcessQueue;
-    Design: TDesignFrame;
-    ShellListView1: TCastleShellListView;
-    ShellTreeView1: TCastleShellTreeView;
-    ViewFileFrame: TViewFileFrame;
-    SplitterBetweenViewFile: TSplitter;
+    type
+      // Argument for RefreshFiles
+      TRefreshFiles = (
+        // only files (not directories) within current directory changed
+        rfFilesInCurrentDir,
+        // files or directories, but only within current directory (not outside) changed
+        rfEverythingInCurrentDir,
+        // everything potentially changed
+        rfEverything
+      );
+    var
+      ProjectName: String;
+      ProjectPath, ProjectPathUrl, ProjectStandaloneSource, ProjectLazarus: String;
+      BuildMode: TBuildMode;
+      OutputList: TOutputList;
+      RunningProcess: TAsynchronousProcessQueue;
+      Design: TDesignFrame;
+      ShellListView1: TCastleShellListView;
+      ShellTreeView1: TCastleShellTreeView;
+      ViewFileFrame: TViewFileFrame;
+      SplitterBetweenViewFile: TSplitter;
     procedure BuildToolCall(const Commands: array of String;
       const ExitOnSuccess: Boolean = false);
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuItemDesignNewCustomRootClick(Sender: TObject);
+    procedure RefreshFiles(const RefreshNecessary: TRefreshFiles);
     procedure SetEnabledCommandRun(const AEnabled: Boolean);
     procedure FreeProcess;
     procedure ShellListViewDoubleClick(Sender: TObject);
@@ -217,7 +239,7 @@ implementation
 
 uses TypInfo, LCLType,
   CastleXMLUtils, CastleLCLUtils, CastleOpenDocument, CastleURIUtils,
-  CastleFilesUtils, CastleUtils, CastleVectors, CastleColors,
+  CastleFilesUtils, CastleUtils, CastleVectors, CastleColors, CastleConfig,
   CastleScene, CastleViewport, Castle2DSceneManager, CastleCameras,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
@@ -254,7 +276,7 @@ end;
 
 procedure TProjectForm.MenuItemRefreshDirClick(Sender: TObject);
 begin
-  ShellListView1.RefreshContents;
+  RefreshFiles(rfEverythingInCurrentDir);
 end;
 
 procedure TProjectForm.MenuItemRestartRebuildEditorClick(Sender: TObject);
@@ -370,6 +392,29 @@ begin
 
   SpriteSheetEditorForm.Show;
   SpriteSheetEditorForm.NewSpriteSheet;
+
+procedure TProjectForm.ApplicationProperties1Activate(Sender: TObject);
+begin
+  { Refresh contents of selected dir, and tree of subdirectories,
+    in case user created some files/directories in other applications. }
+  RefreshFiles(rfEverything);
+end;
+
+procedure TProjectForm.ApplicationProperties1Exception(Sender: TObject;
+  E: Exception);
+begin
+  { In case of CGE editor, exceptions are nothing alarming.
+
+    We may raise exception during normal execution e.g.
+    - when you try to do invalid file operation (creating dir with invalid name,
+      deleting something to which you have no permission),
+    - renaming component to invalid value,
+    - in general doing anything that causes exception in FPC or CGE code.
+
+    So display a normal dialog box about them, user-friendly
+    (don't even show exception class for now),
+    instead of the default LCL dialog that proposes to kill the application. }
+  ErrorBox(E.Message);
 end;
 
 procedure TProjectForm.FormCreate(Sender: TObject);
@@ -437,10 +482,77 @@ end;
 
 procedure TProjectForm.FormDestroy(Sender: TObject);
 begin
+  FormHide(Self); //to save config properly
   ApplicationProperties.OnWarning.Remove(@WarningNotification);
   ApplicationDataOverride := '';
   FreeProcess;
   FreeAndNil(OutputList);
+end;
+
+procedure TProjectForm.FormHide(Sender: TObject);
+
+  function WindowStateToStr(const AWindowState: TWindowState): String;
+  begin
+    case AWindowState of
+      wsNormal: Result := 'wsNormal';
+      wsMinimized: Result := 'wsMinimized';
+      wsMaximized: Result := 'wsMaximized';
+      wsFullScreen: Result := 'wsFullScreen';
+    end;
+  end;
+
+begin
+  UserConfig.SetValue('ProjectForm_Saved', true);
+  UserConfig.SetValue('ProjectForm_Width', Width);
+  UserConfig.SetValue('ProjectForm_Height', Height);
+  UserConfig.SetValue('ProjectForm_Left', Left);
+  UserConfig.SetValue('ProjectForm_Top', Top);
+  UserConfig.SetValue('ProjectForm_WindowState', WindowStateToStr(WindowState));
+  UserConfig.SetValue('ProjectForm_PageControlBottom.Height', PageControlBottom.Height);
+  if Design <> nil then
+  begin
+    UserConfig.SetValue('ProjectForm_DesignSaved', true);
+    UserConfig.SetValue('ProjectForm_Design.PanelRight.Width', Design.PanelRight.Width);
+    UserConfig.SetValue('ProjectForm_Design.PanelLeft.Width', Design.PanelLeft.Width);
+  end;
+  UserConfig.Save;
+end;
+
+procedure TProjectForm.FormShow(Sender: TObject);
+
+  function StrToWindowState(const AWindowStateStr: String): TWindowState;
+  begin
+    case AWindowStateStr of
+      'wsNormal': Result := wsNormal;
+      'wsMaximized': Result := wsMaximized;
+      else
+        Result := wsNormal; //treat wsMinimized and any other value as wsNormal
+    end;
+  end;
+
+var
+  NewWidth, NewHeight, NewLeft, NewTop, NewControlHeight: Integer;
+begin
+  if UserConfig.GetValue('ProjectForm_Saved', false) then
+  begin
+    NewWidth := UserConfig.GetValue('ProjectForm_Width', -MaxInt);
+    NewHeight := UserConfig.GetValue('ProjectForm_Height', -MaxInt);
+    NewLeft := UserConfig.GetValue('ProjectForm_Left', -MaxInt);
+    NewTop := UserConfig.GetValue('ProjectForm_Top', -MaxInt);
+    NewControlHeight := UserConfig.GetValue('ProjectForm_PageControlBottom.Height', -MaxInt);
+    WindowState := StrToWindowState(UserConfig.GetValue('ProjectForm_WindowState', 'wsNormal'));
+    if (NewWidth + NewLeft <= Screen.Width + 32) and (NewWidth > 128) and
+       (NewHeight + NewTop <= Screen.Height + 32) and (NewHeight > 128) and
+       (NewControlHeight < NewHeight) and (NewControlHeight >= 0) and
+       (NewLeft > -32) and (NewTop > -32) then
+    begin
+      Width := NewWidth;
+      Height := NewHeight;
+      Left := NewLeft;
+      Top := NewTop;
+      PageControlBottom.Height := NewControlHeight;
+    end;
+  end;
 end;
 
 procedure TProjectForm.ListOutputClick(Sender: TObject);
@@ -448,9 +560,28 @@ begin
   // TODO: just to source code line in case of error message here
 end;
 
+procedure TProjectForm.MenuItemNewDirectoryClick(Sender: TObject);
+var
+  NewDir, FullNewDir: String;
+begin
+  if InputQuery('New Directory', 'Create a new directory:', NewDir) then
+  begin
+    FullNewDir := InclPathDelim(ShellListView1.Root) + NewDir;
+    if not CreateDir(FullNewDir) then
+      raise Exception.CreateFmt('Creating new directory "%s" failed', [FullNewDir]);
+    RefreshFiles(rfEverythingInCurrentDir);
+    // TODO: Select newly added dir, not so easy in ShellListView1
+  end;
+end;
+
 procedure TProjectForm.MenuItemRenameClick(Sender: TObject);
 begin
   Design.RenameSelectedItem;
+end;
+
+procedure TProjectForm.MenuItemShellTreeRefreshClick(Sender: TObject);
+begin
+  RefreshFiles(rfEverything);
 end;
 
 procedure TProjectForm.UpdateRenameItem(Sender: TObject);
@@ -493,11 +624,22 @@ begin
   if ShellListView1.Selected <> nil then
   begin
     SelectedFileName := ShellListView1.GetPathFromItem(ShellListView1.Selected);
-    if MessageDlg('Delete File', 'Delete file "' + SelectedFileName + '"?',
-      mtConfirmation, mbYesNo, 0) = mrYes then
+    if DirectoryExists(SelectedFileName) then
     begin
-      CheckDeleteFile(SelectedFileName, true);
-      ShellListView1.RefreshContents;
+      if MessageDlg('Delete Directory', 'Delete directory "' + SelectedFileName + '"?',
+        mtConfirmation, mbYesNo, 0) = mrYes then
+      begin
+        RemoveNonEmptyDir(SelectedFileName);
+        RefreshFiles(rfEverythingInCurrentDir);
+      end;
+    end else
+    begin
+      if MessageDlg('Delete File', 'Delete file "' + SelectedFileName + '"?',
+        mtConfirmation, mbYesNo, 0) = mrYes then
+      begin
+        CheckDeleteFile(SelectedFileName);
+        RefreshFiles(rfFilesInCurrentDir);
+      end;
     end;
   end;
 end;
@@ -550,6 +692,10 @@ begin
 
   if ProposeSaveDesign then
   begin
+    UserConfig.SetValue('ProjectForm_Design.PanelRight.Width', Design.PanelRight.Width);
+    UserConfig.SetValue('ProjectForm_Design.PanelLeft.Width', Design.PanelLeft.Width);
+    UserConfig.SetValue('ProjectForm_DesignSaved', true);
+    UserConfig.Save;
     FreeAndNil(Design);
     DesignExistenceChanged;
   end;
@@ -579,6 +725,8 @@ begin
 end;
 
 procedure TProjectForm.DesignExistenceChanged;
+var
+  NewPanelRightWidth, NewPanelLeftWidth: Integer;
 begin
   MenuItemSaveAsDesign.Enabled := Design <> nil;
   MenuItemSaveDesign.Enabled := Design <> nil;
@@ -592,6 +740,18 @@ begin
 
   UpdateUndo(nil);
   UpdateRenameItem(nil);
+
+  if (Design <> nil) and UserConfig.GetValue('ProjectForm_DesignSaved', false) then
+  begin
+    NewPanelRightWidth := UserConfig.GetValue('ProjectForm_Design.PanelRight.Width', -MaxInt);
+    NewPanelLeftWidth := UserConfig.GetValue('ProjectForm_Design.PanelLeft.Width', -MaxInt);
+    if (NewPanelRightWidth >= 0) and (NewPanelLeftWidth >= 0) and
+      (NewPanelRightWidth + NewPanelLeftWidth <= Width) then
+    begin
+      Design.PanelRight.Width := NewPanelRightWidth;
+      Design.PanelLeft.Width := NewPanelLeftWidth;
+    end;
+  end;
 
   LabelNoDesign.Visible := Design = nil;
 end;
@@ -1112,6 +1272,30 @@ begin
 
   DesignExistenceChanged;
   UpdateFormCaption(nil); // make form Caption reflect project name
+end;
+
+procedure TProjectForm.RefreshFiles(const RefreshNecessary: TRefreshFiles);
+var
+  TreeViewPath: String;
+begin
+  ShellListView1.RefreshContents;
+
+  { It is important to refresh ShellTreeView1 e.g. when new directory
+    was added, otherwise user could not navigate
+    into newly created directories, since they must exist in ShellTreeView1. }
+
+  case RefreshNecessary of
+    { Unfortunately this special implementation of "refresh current dir"
+      doesn't work for non-root directories. }
+    //rfEverythingInCurrentDir:
+    //  ShellTreeView1.Refresh(ShellTreeView1.Selected);
+    rfEverythingInCurrentDir, rfEverything:
+      begin
+        TreeViewPath := ShellTreeView1.Path;
+        ShellTreeView1.Refresh(nil);
+        ShellTreeView1.Path := TreeViewPath;
+      end;
+  end;
 end;
 
 initialization

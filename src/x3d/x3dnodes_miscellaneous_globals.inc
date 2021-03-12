@@ -237,8 +237,8 @@ var
   *)
   RebaseRelativeUrlsInPrototypes: boolean = false;
 
-{ Free all unused VRML/X3D nodes on the list, then free and @nil the list
-  itself. }
+{ Free all unused X3D nodes on the list, then free and @nil the list itself.
+  Ignores @nil items within the list. }
 procedure X3DNodeList_FreeUnusedAndNil(var List: TX3DNodeList);
 
 { Find a range within "key" field corresponding to given Fraction.
@@ -277,7 +277,8 @@ begin
   if List <> nil then
   begin
     for I := 0 to List.Count - 1 do
-      if List.Items[I].VRML1ParentsCount + List.Items[I].ParentFieldsCount = 0 then
+      if (List.Items[I] <> nil) and
+         (List.Items[I].VRML1ParentsCount + List.Items[I].ParentFieldsCount = 0) then
         List.Items[I].Free;
     FreeAndNil(List);
   end;

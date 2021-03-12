@@ -121,7 +121,7 @@ begin
 
   FImagePressedBackground := TCastleImageControl.Create(Self);
   FImagePressedBackground.SetTransient;
-  FImagePressedBackground.Image := Theme.Images[tiSquarePressedBackground];
+  FImagePressedBackground.Image := Theme.ImagesPersistent[tiSquarePressedBackground].Image;
   FImagePressedBackground.OwnsImage := false;
   FImagePressedBackground.Color := FCheckboxColor;
   FImagePressedBackground.Exists := FPressed;
@@ -131,7 +131,7 @@ begin
 
   FImageSquareEmpty := TCastleImageControl.Create(Self);
   FImageSquareEmpty.SetTransient;
-  FImageSquareEmpty.Image := Theme.Images[tiSquareEmpty];
+  FImageSquareEmpty.Image := Theme.ImagesPersistent[tiSquareEmpty].Image;
   FImageSquareEmpty.OwnsImage := false;
   FImageSquareEmpty.Color := FCheckboxColor;
   FImageSquareEmpty.Exists := not FChecked;
@@ -141,7 +141,7 @@ begin
 
   FImageSquareChecked := TCastleImageControl.Create(Self);
   FImageSquareChecked.SetTransient;
-  FImageSquareChecked.Image := Theme.Images[tiSquareChecked];
+  FImageSquareChecked.Image := Theme.ImagesPersistent[tiSquareChecked].Image;
   FImageSquareChecked.OwnsImage := false;
   FImageSquareChecked.Color := FCheckboxColor;
   FImageSquareChecked.Exists := FChecked;

@@ -493,7 +493,7 @@ type
     { Compare two bounding boxes based
       on their distance to the SortPosition point,
       suitable for depth sorting in 3D.
-      Follows the algorithm documented at @link(TBlendingSort.bs3D).
+      Follows the algorithm documented at @link(bs3D).
       Returns -1 if A < B, 1 if A > B, 0 if A = B.
 
       Using this with a typical sorting function will result
@@ -504,7 +504,7 @@ type
 
     { Compare two bounding boxes based
       on their Z coordinates, suitable for depth sorting in 2D.
-      Follows the algorithm documented at @link(TBlendingSort.bs2D).
+      Follows the algorithm documented at @link(bs2D).
       Returns -1 if A < B, 1 if A > B, 0 if A = B.
 
       Using this with a typical sorting function will result
