@@ -774,10 +774,9 @@ procedure TSpriteSheetEditorForm.ActionSaveSpriteSheetAsExecute(Sender: TObject
   );
 begin
   SaveDialog.DefaultExt := 'castle-sprite-sheet';
-  if FSpriteSheet.URL <> '' then
-    SaveDialog.URL := FSpriteSheet.URL
-  else
-    SaveDialog.URL := 'castle-data:/new-sprite-sheet.castle-sprite-sheet';
+  SaveDialog.InitialDir := URIToFilenameSafe('castle-data:/');
+  { In case FSpriteSheet.URL = '' (not yet saved), the save dialog shows correct UI. }
+  SaveDialog.URL := FSpriteSheet.URL;
   if SaveDialog.Execute then
   begin
     try
