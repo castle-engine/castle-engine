@@ -13,6 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
+{ Sprite sheet representation for loading and editing purposes (TCastleSpriteSheet). }
 unit CastleInternalSpriteSheet;
 
 {$I castleconf.inc}
@@ -35,17 +36,18 @@ type
 
   TCastleSpriteSheetFrameEvent = procedure (Frame: TCastleSpriteSheetFrame) of object;
   TCastleSpriteSheetFrameMoveEvent = procedure (
-      const Frame: TCastleSpriteSheetFrame;
-      const OldIndex, NewIndex: Integer) of object;
+    const Frame: TCastleSpriteSheetFrame;
+    const OldIndex, NewIndex: Integer) of object;
   TCastleSpriteSheetAnimationEvent = procedure (
-      Animation: TCastleSpriteSheetAnimation) of object;
+    Animation: TCastleSpriteSheetAnimation) of object;
   TCastleSpriteSheetAnimationMoveEvent = procedure (
-      const Animation: TCastleSpriteSheetAnimation;
-      const OldIndex, NewIndex: Integer) of object;
+    const Animation: TCastleSpriteSheetAnimation;
+    const OldIndex, NewIndex: Integer) of object;
   TCastleSpriteSheetSizeChanged = procedure (
-      const Width, Height: Integer) of object;
+    const Width, Height: Integer) of object;
   TURLContentChanged = procedure (const ChangedURL: String);
 
+  { Sprite sheet representation for loading and editing purposes. }
   TCastleSpriteSheet = class
   strict private
     FAnimationList: TCastleSpriteSheetAnimationList;
@@ -185,6 +187,7 @@ type
     property EditMode: Boolean read FEditMode;
   end;
 
+  { Sprite sheet animation, part of TCastleSpriteSheet. }
   TCastleSpriteSheetAnimation = class
   strict private
     FName: String;
@@ -232,6 +235,7 @@ type
     property FramesPerSecond: Single read FFramesPerSecond write SetFramesPerSecond;
   end;
 
+  { Sprite sheet animation frame, part of TCastleSpriteSheetAnimation. }
   TCastleSpriteSheetFrame = class
   strict private
     FAnimation: TCastleSpriteSheetAnimation;
@@ -2381,4 +2385,3 @@ end;
 
 
 end.
-
