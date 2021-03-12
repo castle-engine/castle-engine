@@ -1488,11 +1488,11 @@ begin
   Result := true;
   FSpriteSheet.GetMinAtlasSize(MinAtlasWidth, MinAtlasHeight);
 
-  if (MinAtlasWidth > FSpriteSheet.MaxAtlasWidth) or
-    (MinAtlasHeight > FSpriteSheet.MaxAtlasHeight) then
+  if (MinAtlasWidth  > FSpriteSheet.MaxAtlasWidth) or
+     (MinAtlasHeight > FSpriteSheet.MaxAtlasHeight) then
   begin
     SetAtlasError(Format(
-      'Max atlas size to small to fit all frames %d needed.',
+      'Maximum atlas size too small to fit all the frames. Increase it to at least %d.',
       [Max(MinAtlasWidth, MinAtlasHeight)])
     );
     Result := false;

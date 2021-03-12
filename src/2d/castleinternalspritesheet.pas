@@ -348,7 +348,7 @@ type
         loArrange
       );
     function LayoutFrames(const Operation: TLayoutOperation;
-        const MaxAtlasWidth, MaxAtlasHeight: integer;
+        const MaxAtlasWidth, MaxAtlasHeight: Integer;
         out MinAtlasWidth, MinAtlasHeight: Integer): Boolean;
     procedure GenerateAtlas(const AtlasWidth, AtlasHeight: Integer);
   public
@@ -807,7 +807,7 @@ end;
 
 function TCastleSpriteSheetBasicAtlasGen.LayoutFrames(
   const Operation: TLayoutOperation;
-  const MaxAtlasWidth, MaxAtlasHeight: integer;
+  const MaxAtlasWidth, MaxAtlasHeight: Integer;
   out MinAtlasWidth, MinAtlasHeight: Integer): Boolean;
 var
   I, J: Integer;
@@ -968,7 +968,7 @@ begin
   if not LayoutFrames(loArrange, FSpriteSheetMaxWidth, FSpriteSheetMaxHeight,
     MinWidth, MinHeight) then
     raise ECastleSpriteSheetAtlasToSmall.Create(Format(
-    'Min sprite sheet size atlas to small (%d x %d), we need %d x %d ',
+    'Minimum sprite sheet atlas size too small (%d x %d), we need at least %d x %d ',
     [FSpriteSheetMaxWidth, FSpriteSheetMaxHeight, MinWidth, MinHeight]));
   GenerateAtlas(FSpriteSheetMaxWidth, FSpriteSheetMaxHeight);
 end;
