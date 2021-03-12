@@ -225,7 +225,6 @@ type
     { Clears all warnings and hides warnings tab }
     procedure ClearAllWarnings;
   public
-    ProjectPathUrl: String;
     { Open a project, given an absolute path to CastleEngineManifest.xml }
     procedure OpenProject(const ManifestUrl: String);
   end;
@@ -388,10 +387,11 @@ end;
 procedure TProjectForm.ActionNewSpriteSheetExecute(Sender: TObject);
 begin
   if SpriteSheetEditorForm = nil then
-     SpriteSheetEditorForm := TSpriteSheetEditorForm.Create(Application);
+    SpriteSheetEditorForm := TSpriteSheetEditorForm.Create(Application);
 
   SpriteSheetEditorForm.Show;
   SpriteSheetEditorForm.NewSpriteSheet;
+end;
 
 procedure TProjectForm.ApplicationProperties1Activate(Sender: TObject);
 begin
