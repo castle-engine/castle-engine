@@ -38,6 +38,8 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       Constraints.MinHeight = 32
       Constraints.MinWidth = 32
       ShowCaption = False
+      ShowHint = True
+      ParentShowHint = False
     end
     object SpeedButtonOpenSpriteSheet: TSpeedButton
       AnchorSideLeft.Control = SpeedButtonNewSpriteSheet
@@ -52,6 +54,8 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       Constraints.MinHeight = 32
       Constraints.MinWidth = 32
       ShowCaption = False
+      ShowHint = True
+      ParentShowHint = False
     end
     object SpeedButtonSaveSpriteSheet: TSpeedButton
       AnchorSideLeft.Control = SpeedButtonOpenSpriteSheet
@@ -66,6 +70,8 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       Constraints.MinHeight = 32
       Constraints.MinWidth = 32
       ShowCaption = False
+      ShowHint = True
+      ParentShowHint = False
     end
     object SpeedButtonSaveSpriteSheetAs: TSpeedButton
       AnchorSideLeft.Control = SpeedButtonSaveSpriteSheet
@@ -80,6 +86,8 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       Constraints.MinHeight = 32
       Constraints.MinWidth = 32
       ShowCaption = False
+      ShowHint = True
+      ParentShowHint = False
     end
     object LabelMaximumAtlasSize: TLabel
       AnchorSideLeft.Control = SpeedButtonSaveSpriteSheetAs
@@ -196,6 +204,8 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       Constraints.MinHeight = 32
       Constraints.MinWidth = 32
       ShowCaption = False
+      ShowHint = True
+      ParentShowHint = False
     end
     object SpeedButtonRemoveAnimation: TSpeedButton
       AnchorSideLeft.Control = SpeedButtonAddAnimation
@@ -211,6 +221,8 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       Constraints.MinHeight = 32
       Constraints.MinWidth = 32
       ShowCaption = False
+      ShowHint = True
+      ParentShowHint = False
     end
     object PanelFPS: TPanel
       AnchorSideLeft.Control = PanelLeft
@@ -476,7 +488,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     object ActionNewSpriteSheet: TAction
       Category = 'File'
       Caption = 'New'
-      Hint = 'New'
+      Hint = 'New sprite sheet'
       ImageIndex = 0
       OnExecute = ActionNewSpriteSheetExecute
       ShortCut = 16462
@@ -484,7 +496,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     object ActionOpenSpriteSheet: TAction
       Category = 'File'
       Caption = 'Open...'
-      Hint = 'Open...'
+      Hint = 'Open sprite sheet...'
       ImageIndex = 1
       OnExecute = ActionOpenSpriteSheetExecute
       ShortCut = 16463
@@ -492,7 +504,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     object ActionSaveSpriteSheet: TAction
       Category = 'File'
       Caption = 'Save'
-      Hint = 'Save'
+      Hint = 'Save sprite sheet'
       ImageIndex = 2
       OnExecute = ActionSaveSpriteSheetExecute
       ShortCut = 16467
@@ -500,7 +512,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     object ActionSaveSpriteSheetAs: TAction
       Category = 'File'
       Caption = 'Save As...'
-      Hint = 'Save As...'
+      Hint = 'Save sprite sheet as...'
       ImageIndex = 2
       OnExecute = ActionSaveSpriteSheetAsExecute
     end
@@ -515,6 +527,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     object ActionDeleteAnimation: TAction
       Category = 'Animation'
       Caption = 'Delete'
+      Hint = 'Delete animation'
       ImageIndex = 3
       OnExecute = ActionDeleteAnimationExecute
       OnUpdate = ActionDeleteAnimationUpdate
@@ -537,6 +550,7 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
     object ActionAddAnimation: TAction
       Category = 'Animation'
       Caption = 'Add'
+      Hint = 'Add animation'
       ImageIndex = 4
       OnExecute = ActionAddAnimationExecute
       OnUpdate = ActionAddAnimationUpdate
