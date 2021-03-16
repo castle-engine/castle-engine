@@ -1017,7 +1017,7 @@ begin
       if Frame.Trimmed then
       begin
         SubTextureNode.AttributeSet('frameX', Frame.XOffset);
-        SubTextureNode.AttributeSet('frameY', Frame.FrameHeight - Frame.YOffset - Frame.HeightInAtlas);
+        SubTextureNode.AttributeSet('frameY', Frame.YOffset);
         SubTextureNode.AttributeSet('frameWidth', Frame.FrameWidth);
         SubTextureNode.AttributeSet('frameHeight', Frame.FrameHeight);
       end;
@@ -1194,8 +1194,8 @@ begin
   WidthInAtlas := SourceWidthToCopy;
   HeightInAtlas := SourceHeightToCopy;
 
-  XOffset := DestX;
-  YOffset := DestY;
+  XOffset := -DestX;
+  YOffset := -DestY;
 
   FrameWidth := AFrameWidth;
   FrameHeight := AFrameHeight;
@@ -1210,8 +1210,8 @@ begin
     FFrameImage := TCastleImageClass(SourceImage.ClassType).Create(FrameWidth, FrameHeight, SourceImage.Depth);
     FFrameImage.Clear(Vector4Byte(0, 0, 0, 0));
     FFrameImage.DrawFrom(SourceImage,
-      XOffset, // destination XInAtlas
-      YOffset, // destination YInAtlas
+      DestX, // destination XInAtlas
+      DestY, // destination YInAtlas
       XInAtlas, // source XInAtlas
       YInAtlas, // source YInAtlas
       WidthInAtlas,
@@ -2171,11 +2171,6 @@ begin
   Frame := Animation.AddFrame;
 
   // we need to go to CGE coords here
-  if FSubTexture.Trimmed then
-    FrameYInCGECoords := FSubTexture.FrameHeight - FSubTexture.FrameY - FSubTexture.Height
-  else
-    FrameYInCGECoords := 0;
-
   YInCGECoords := FImageHeight - FSubTexture.Y - FSubTexture.Height;
 
   { When we load not for edit }
@@ -2191,7 +2186,7 @@ begin
       Frame.FrameWidth := FSubTexture.FrameWidth;
       Frame.FrameHeight := FSubTexture.FrameHeight;
       Frame.XOffset := FSubTexture.FrameX;
-      Frame.YOffset := FrameYInCGECoords;
+      Frame.YOffset := FSubTexture.FrameY;
     end else
     begin
       // make data always OK
@@ -2205,8 +2200,8 @@ begin
 
   { If we want load sprite sheet for edit }
   Frame.SetFrameImage(FImage,
-    FSubTexture.FrameX,
-    FrameYInCGECoords,
+    -FSubTexture.FrameX,
+    -FSubTexture.FrameY,
     FSubTexture.FrameWidth,
     FSubTexture.FrameHeight,
     FSubTexture.X,
