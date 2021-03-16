@@ -619,6 +619,11 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       Caption = 'Import atlas...'
       OnExecute = ActionImportAtlasExecute
     end
+    object ActionCloseSpriteSheetEditor: TAction
+      Category = 'File'
+      Caption = 'Close'
+      OnExecute = ActionCloseSpriteSheetEditorExecute
+    end
   end
   object MainMenu: TMainMenu
     Images = Icons.MenuStroke1_5
@@ -637,6 +642,12 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
       end
       object MenuItemSaveAs: TMenuItem
         Action = ActionSaveSpriteSheetAs
+      end
+      object MenuItemSeparator: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemClose: TMenuItem
+        Action = ActionCloseSpriteSheetEditor
       end
     end
     object MenuItemAnimationMenu: TMenuItem

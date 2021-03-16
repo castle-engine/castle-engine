@@ -28,6 +28,7 @@ uses
 
 type
   TSpriteSheetEditorForm = class(TForm)
+    ActionCloseSpriteSheetEditor: TAction;
     ActionImportAtlas: TAction;
     ActionCreateNewAnimationFromSelection: TAction;
     ActionMoveAnimationEnd: TAction;
@@ -68,6 +69,8 @@ type
     MainMenuItemDeleteFrame: TMenuItem;
     MainMenuItemCreateAnimFromSelection: TMenuItem;
     MainMenuItemImportAtlas: TMenuItem;
+    MenuItemClose: TMenuItem;
+    MenuItemSeparator: TMenuItem;
     MenuItemImportAtlas: TMenuItem;
     N6: TMenuItem;
     N5: TMenuItem;
@@ -129,6 +132,7 @@ type
     procedure ActionAddAnimationUpdate(Sender: TObject);
     procedure ActionAddFrameExecute(Sender: TObject);
     procedure ActionAddFrameUpdate(Sender: TObject);
+    procedure ActionCloseSpriteSheetEditorExecute(Sender: TObject);
     procedure ActionCreateNewAnimationFromSelectionExecute(Sender: TObject);
     procedure ActionCreateNewAnimationFromSelectionUpdate(Sender: TObject);
     procedure ActionImportAtlasExecute(Sender: TObject);
@@ -387,6 +391,12 @@ end;
 procedure TSpriteSheetEditorForm.ActionAddFrameUpdate(Sender: TObject);
 begin
   ActionAddFrame.Enabled := GetCurrentAnimation <> nil;
+end;
+
+procedure TSpriteSheetEditorForm.ActionCloseSpriteSheetEditorExecute(
+  Sender: TObject);
+begin
+  Close;
 end;
 
 procedure TSpriteSheetEditorForm.ActionCreateNewAnimationFromSelectionExecute(
