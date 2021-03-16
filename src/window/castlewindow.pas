@@ -1324,8 +1324,10 @@ type
       read FStencilBits write FStencilBits default 0;
 
     { How many samples are required for multi-sampling (anti-aliasing).
-      Use @link(AntiAliasing) instead of this for more comfortable
+
+      Set @link(AntiAliasing) instead of this for more comfortable
       (higher-level) way to turn on multi-sampling (anti-aliasing).
+      Setting @link(AntiAliasing) will also set this property.
 
       1 means that no multi-sampling is required.
       Values larger than 1 mean that we require OpenGL context with

@@ -190,7 +190,7 @@ typedef void (*TCgeReceiveMessageFromPascalCallback)(const char *message);
 extern void CGEApp_Initialize(const char *applicationConfigDirectory);
 extern void CGEApp_Finalize(void);
 
-extern int CGEApp_ContextProperties(int* redBits, int* greenBits, int* blueBits, int* alphaBits, int* depthBits, int* stencilBits);
+extern int CGEApp_ContextProperties(int* redBits, int* greenBits, int* blueBits, int* alphaBits, int* depthBits, int* stencilBits, int* multiSampling);
 
 extern void CGEApp_Open(unsigned initialWidth, unsigned initialHeight, unsigned initialStatusBarHeight, unsigned nDpi);
 extern void CGEApp_Close(bool quitWhenLastWindowClosed);
