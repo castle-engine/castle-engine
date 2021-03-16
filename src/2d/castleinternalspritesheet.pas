@@ -277,6 +277,9 @@ type
     { Sets sprite sheet state as modified. }
     procedure SetModifiedState;
     procedure CheckEditMode;
+  protected
+    { Currently only reset to full frame size }
+    procedure UpdateTrimming;
   public
     constructor Create(const Animation: TCastleSpriteSheetAnimation);
     { Construct full/deep copy of SrcFrame }
@@ -831,8 +834,11 @@ var
 
       for J := 0 to Animation.FrameCount - 1 do
       begin
-        BigestFrameWidth := Max(BigestFrameWidth, Animation.Frame[J].WidthInAtlas);
-        BigestFrameHeight := Max(BigestFrameHeight, Animation.Frame[J].HeightInAtlas);
+        Frame := Animation.Frame[J];
+        Frame.UpdateTrimming;
+
+        BigestFrameWidth := Max(BigestFrameWidth, Frame.WidthInAtlas);
+        BigestFrameHeight := Max(BigestFrameHeight, Frame.HeightInAtlas);
       end;
     end;
   end;
@@ -1119,6 +1125,16 @@ end;
 procedure TCastleSpriteSheetFrame.CheckEditMode;
 begin
   Animation.CheckEditMode;
+end;
+
+procedure TCastleSpriteSheetFrame.UpdateTrimming;
+begin
+  { TODO: add trimming, currently only reset to full frame size }
+  XOffset := 0;
+  YOffset := 0;
+
+  WidthInAtlas := FrameWidth;
+  HeightInAtlas := FrameHeight;
 end;
 
 constructor TCastleSpriteSheetFrame.Create(
