@@ -179,17 +179,32 @@ object SpriteSheetEditorForm: TSpriteSheetEditorForm
         454E44AE426082
       }
     end
+    object ButtonCloseWindow: TButton
+      AnchorSideTop.Control = SpeedButtonNewSpriteSheet
+      AnchorSideTop.Side = asrCenter
+      AnchorSideRight.Control = PanelTop
+      AnchorSideRight.Side = asrBottom
+      Left = 1080
+      Height = 32
+      Top = 0
+      Width = 51
+      Action = ActionCloseSpriteSheetEditor
+      Anchors = [akTop, akRight]
+      AutoSize = True
+      TabOrder = 1
+      TabStop = False
+    end
   end
   object PanelLeft: TPanel
     Left = 4
-    Height = 488
-    Top = 52
+    Height = 501
+    Top = 44
     Width = 200
     Align = alLeft
     BevelOuter = bvNone
     BorderWidth = 4
     Caption = 'PanelLeft'
-    ClientHeight = 488
+    ClientHeight = 501
     ClientWidth = 200
     TabOrder = 0
     object SpeedButtonAddAnimation: TSpeedButton
