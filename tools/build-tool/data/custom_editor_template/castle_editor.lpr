@@ -19,9 +19,12 @@ uses
 begin
   RequireDerivedFormResource := True;
   Application.Initialize;
+  Application.CreateForm(TIcons, Icons);
   Application.CreateForm(TChooseProjectForm, ChooseProjectForm);
   Application.CreateForm(TNewProjectForm, NewProjectForm);
   Application.CreateForm(TAboutForm, AboutForm);
   Application.CreateForm(TPreferencesForm, PreferencesForm);
+  Application.CreateForm(TImportAtlasForm, ImportAtlasForm);
+  Application.CreateForm(TImportStarlingForm, ImportStarlingForm);
   Application.Run;
 end.

@@ -116,7 +116,7 @@
         <PackageName Value="castle_editor_automatic_package"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="11">
+    <Units Count="15">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -189,6 +189,37 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="VisualizeTransform"/>
       </Unit10>
+     <Unit11>
+        <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/formspritesheeteditor.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="SpriteSheetEditorForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="FormSpriteSheetEditor"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/datamoduleicons.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Icons"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="DataModule"/>
+        <UnitName Value="DataModuleIcons"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/formimportatlas.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="ImportAtlasForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="FormImportAtlas"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/formimportstarling.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="ImportStarlingForm"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="FormImportStarling"/>
+      </Unit14>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
