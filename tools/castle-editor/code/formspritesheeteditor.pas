@@ -1665,7 +1665,7 @@ begin
     end;
 
     { Just add frame on last position }
-    AddFrameToListView(NewFrame, NewFrame.Animation.FrameCount);
+    AddFrameToListView(NewFrame, NewFrame.Animation.FrameCount - 1);
   finally
     UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
   end;
