@@ -331,8 +331,9 @@ begin
   try
     if not CGE_VerifyScene('CGE_AddViewpointFromCurrentView') then exit;
 
-    Window.MainScene.AddViewpointFromCamera(
-      Window.SceneManager.Camera, StrPas(PChar(szName)));
+    if Window.SceneManager.Navigation <> nil then
+      Window.MainScene.AddViewpointFromNavigation(
+        Window.SceneManager.Navigation, StrPas(PChar(szName)));
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
@@ -479,13 +480,10 @@ begin
 end;
 
 procedure CGE_IncreaseSceneTime(fTimeS: cFloat); cdecl;
-var
-  bHandleControls: boolean;
 begin
-  bHandleControls := true;
   try
     Window.MainScene.IncreaseTime(fTimeS);
-    Window.SceneManager.Camera.Update(fTimeS, bHandleControls);
+    Window.SceneManager.Camera.Update(fTimeS);
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;

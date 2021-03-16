@@ -415,7 +415,7 @@ end;
 
 initialization
   { Set ApplicationName early, as our log uses it. }
-  ApplicationProperties.ApplicationName := 'castle_spine';
+  ApplicationProperties.ApplicationName := 'dragon_spine_demo';
 
   InitializeLog;
 

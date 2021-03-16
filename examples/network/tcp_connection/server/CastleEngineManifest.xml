@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="server"
   caption="Castle TCP server"
-  qualified_name="io.castleengine.tcpserver"
+  qualified_name="io.castleengine.tcp.server"
   standalone_source="server.lpr"
   game_units="GameInitialize"
   author="Benedikt Magnus"
-  screen_orientation="portrait">
+  screen_orientation="portrait"
+>
   <version value="0.1" code="1" />
   <compiler_options>
     <search_paths>
-      <path value="/your/path/to/Indy10/Core" />  
+      <path value="code/" />
+      <path value="/your/path/to/Indy10/Core" />
       <path value="/your/path/to/Indy10/System" />
     </search_paths>
   </compiler_options>

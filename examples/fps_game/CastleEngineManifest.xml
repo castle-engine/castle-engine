@@ -9,10 +9,9 @@
   <package>
     <include path="README.txt" />
   </package>
-  <!--
-    Enable Android project integration with "services",
-    https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine .
-    This automatically makes some features on Android work: sound, immersive mode.
-  -->
-  <android project_type="integrated" />
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
 </project>

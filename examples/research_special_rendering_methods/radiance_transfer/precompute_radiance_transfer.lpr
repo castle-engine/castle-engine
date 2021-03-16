@@ -247,7 +247,7 @@ begin
         Normals := Shape.NormalsSmooth(true, true);
         ComputeTransfer(RadianceTransfer,
           Geometry.InternalCoordinates(State).Items,
-          State.Transform, MainColor(State));
+          State.Transformation.Transform, MainColor(State));
       end;
     end;
 

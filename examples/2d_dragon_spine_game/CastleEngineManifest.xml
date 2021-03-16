@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project name="castle_spine"
-  caption="Dragon:Castle Game Engine Demo"
-  qualified_name="io.castleengine.castlespine"
-  standalone_source="code/castle_spine.lpr"
+<project name="dragon_spine_demo"
+  caption="Dragon Spine Demo"
+  qualified_name="io.castleengine.dragon.spine.demo"
+  standalone_source="dragon_spine_demo_standalone.lpr"
   game_units="GameInitialize"
   author="Michalis Kamburelis and Paweł Wojciechowicz"
-  screen_orientation="landscape">
+  screen_orientation="landscape"
+>
   <version value="1.1" code="12" />
   <compiler_options>
     <search_paths>

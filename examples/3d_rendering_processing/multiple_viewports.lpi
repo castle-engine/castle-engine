@@ -49,6 +49,9 @@
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
+    <Target>
+      <Filename Value="multiple_viewports"/>
+    </Target>
     <SearchPaths>
       <IncludeFiles Value="../../src/base"/>
     </SearchPaths>

@@ -5,4 +5,9 @@
   qualified_name="io.castleengine.play.animation"
   caption="Play Animation"
 >
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
 </project>

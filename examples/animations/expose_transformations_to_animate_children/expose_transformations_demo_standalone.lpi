@@ -31,8 +31,8 @@
       <Filename Value="expose_transformations_demo"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value=""/>
-      <OtherUnitFiles Value=""/>
+      <IncludeFiles Value="code/"/>
+      <OtherUnitFiles Value="code/"/>
       <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
       <Libraries Value="" />
     </SearchPaths>

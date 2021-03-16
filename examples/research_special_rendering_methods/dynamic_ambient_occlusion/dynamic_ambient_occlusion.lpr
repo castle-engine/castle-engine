@@ -29,10 +29,9 @@
 program dynamic_ambient_occlusion;
 
 {$ifdef MSWINDOWS} {$apptype GUI} {$endif}
-{$I castleconf.inc}
 
 uses SysUtils, Classes, Math,
-  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  GL, GLExt,
   CastleVectors, CastleWindow, CastleTriangles, CastleTransform,
   CastleClassUtils, CastleUtils, CastleKeysMouse,
   CastleGLUtils, CastleSceneCore, CastleScene, CastleParameters,
@@ -67,7 +66,7 @@ type
     Position, Normal: TVector3;
   end;
   PAOElement = ^TAOElement;
-  TAOElementList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TAOElement>;
+  TAOElementList = {$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TAOElement>;
 
 var
   Elements: TAOElementList;

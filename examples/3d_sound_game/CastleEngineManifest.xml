@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="lets_take_a_walk"
   caption="Let's Take A Walk"
-  qualified_name="io.castleengine.letstakeawalk"
+  qualified_name="io.castleengine.lets.take.a.walk"
   standalone_source="lets_take_a_walk.lpr"
-  author="Michalis Kamburelis">
+  author="Michalis Kamburelis"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
 </project>
