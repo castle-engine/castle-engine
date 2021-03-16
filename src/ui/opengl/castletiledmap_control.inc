@@ -42,7 +42,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Load given TMX file to memory and creates structures. }
     procedure LoadFromFile(const AURL: string); deprecated 'set URL instead of calling LoadFromFile';
@@ -591,15 +591,15 @@ begin
   end;
 end;
 
-function TCastleTiledMapControl.PropertySection(
-  const PropertyName: String): TPropertySection;
+function TCastleTiledMapControl.PropertySections(
+  const PropertyName: String): TPropertySections;
 begin
   if (PropertyName = 'URL') or
      (PropertyName = 'SmoothScaling') or
      (PropertyName = 'SmoothScalingSafeBorder') then
-    Result := psBasic
+    Result := [psBasic]
   else
-    Result := inherited PropertySection(PropertyName);
+    Result := inherited PropertySections(PropertyName);
 end;
 
 {$define read_implementation_methods}

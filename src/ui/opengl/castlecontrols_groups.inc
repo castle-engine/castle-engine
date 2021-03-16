@@ -50,7 +50,7 @@
       const ChangeInitiatedByChildren: boolean = false); override;
     procedure EditorAllowResize(out ResizeWidth, ResizeHeight: Boolean;
       out Reason: String); override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { If @link(Frame), this is the frame's color. By default white. }
     property FrameColor: TCastleColor read FFrameColor write SetFrameColor;
@@ -103,7 +103,7 @@
     procedure DoPackChildren(out W, H: Single); override;
   public
     constructor Create(AOwner: TComponent); override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     { The alignment of children inside this control. }
     property Alignment: TVerticalPosition
@@ -129,7 +129,7 @@
     procedure DoPackChildren(out W, H: Single); override;
   public
     constructor Create(AOwner: TComponent); override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     { The alignment of children inside this control. }
     property Alignment: THorizontalPosition
@@ -277,13 +277,13 @@ begin
   end;
 end;
 
-function TCastlePackedGroup.PropertySection(
-  const PropertyName: String): TPropertySection;
+function TCastlePackedGroup.PropertySections(
+  const PropertyName: String): TPropertySections;
 begin
   if (PropertyName = 'Spacing') then
-    Result := psBasic
+    Result := [psBasic, psLayout]
   else
-    Result := inherited PropertySection(PropertyName);
+    Result := inherited PropertySections(PropertyName);
 end;
 
 {$define read_implementation_methods}
@@ -354,13 +354,13 @@ begin
   H := H + 2 * Padding;
 end;
 
-function TCastleHorizontalGroup.PropertySection(
-  const PropertyName: String): TPropertySection;
+function TCastleHorizontalGroup.PropertySections(
+  const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Spacing') then
-    Result := psBasic
+  if (PropertyName = 'Alignment') then
+    Result := [psBasic, psLayout]
   else
-    Result := inherited PropertySection(PropertyName);
+    Result := inherited PropertySections(PropertyName);
 end;
 
 { TCastleVerticalGroup ----------------------------------------------------- }
@@ -427,13 +427,13 @@ begin
   H := H - Spacing + Padding;
 end;
 
-function TCastleVerticalGroup.PropertySection(
-  const PropertyName: String): TPropertySection;
+function TCastleVerticalGroup.PropertySections(
+  const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Spacing') then
-    Result := psBasic
+  if (PropertyName = 'Alignment') then
+    Result := [psBasic, psLayout]
   else
-    Result := inherited PropertySection(PropertyName);
+    Result := inherited PropertySections(PropertyName);
 end;
 
 {$endif read_implementation}

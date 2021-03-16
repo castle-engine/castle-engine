@@ -156,7 +156,7 @@ type
     procedure Update(const SecondsPassed: Single;
       var HandleInput: Boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Makes camera be positioned with respect to the current properties and avatar.
       Always call this explicitly once.
@@ -1017,13 +1017,13 @@ begin
   end;
 end;
 
-function TCastleThirdPersonNavigation.PropertySection(const PropertyName: String): TPropertySection;
+function TCastleThirdPersonNavigation.PropertySections(const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
     'CameraFollows', 'AvatarTarget', 'Avatar', 'AvatarHierarchy', 'Radius', 'AimAvatar', 'InitialHeightAboveTarget', 'DistanceToAvatarTarget':
-      Result := psBasic;
+      Result := [psBasic];
     else
-      Result := inherited PropertySection(PropertyName);
+      Result := inherited PropertySections(PropertyName);
   end;
 end;
 

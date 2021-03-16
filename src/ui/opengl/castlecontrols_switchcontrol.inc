@@ -36,7 +36,7 @@
     procedure Render; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     property IsOn: boolean read FChecked write SetChecked default false;
       deprecated 'use Checked instead, consistent with LCL TCheckBox.Checked';
@@ -177,13 +177,13 @@ begin
   end;
 end;
 
-function TCastleSwitchControl.PropertySection(
-  const PropertyName: String): TPropertySection;
+function TCastleSwitchControl.PropertySections(
+  const PropertyName: String): TPropertySections;
 begin
   if (PropertyName = 'Checked') then
-    Result := psBasic
+    Result := [psBasic]
   else
-    Result := inherited PropertySection(PropertyName);
+    Result := inherited PropertySections(PropertyName);
 end;
 
 {$endif read_implementation}

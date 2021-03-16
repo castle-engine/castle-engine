@@ -101,7 +101,6 @@ type
     TabEvents: TTabSheet;
     TabLayout: TTabSheet;
     TabBasic: TTabSheet;
-    TabOther: TTabSheet;
     UpdateObjectInspector: TTimer;
     procedure ButtonClearAnchorDeltasClick(Sender: TObject);
     procedure ButtonResetTransformationClick(Sender: TObject);
@@ -193,7 +192,7 @@ type
 
       TTreeNodeSide = (tnsRight, tnsBottom, tnsTop);
 
-      TInspectorType = (itBasic, itLayout, itOther, itEvents, itAll);
+      TInspectorType = (itBasic, itLayout, itEvents, itAll);
 
     const
       TransformModes = [
@@ -273,8 +272,6 @@ type
     procedure InspectorBasicFilter(Sender: TObject; AEditor: TPropertyEditor;
       var aShow: Boolean);
     procedure InspectorLayoutFilter(Sender: TObject; AEditor: TPropertyEditor;
-      var aShow: Boolean);
-    procedure InspectorOtherFilter(Sender: TObject; AEditor: TPropertyEditor;
       var aShow: Boolean);
     procedure MarkModified;
     function UndoMessageModified(const Sel: TPersistent;
@@ -1000,11 +997,6 @@ begin
   Inspector[itLayout].Filter := tkProperties;
   Inspector[itLayout].Align := alBottom;
   Inspector[itLayout].AnchorToNeighbour(akTop, 0, PanelLayoutTop);
-
-  Inspector[itOther] := CommonInspectorCreate;
-  Inspector[itOther].Parent := TabOther;
-  Inspector[itOther].OnEditorFilter := @InspectorOtherFilter;
-  Inspector[itOther].Filter := tkProperties;
 
   Inspector[itAll] := CommonInspectorCreate;
   Inspector[itAll].Parent := TabAll;
@@ -1937,7 +1929,7 @@ begin
     { Show=true when Instance is some class used for subcomponents,
       like TCastleVector3Persistent, TBorder, TCastleImagePersistent... }
     if (not (Instance is TCastleComponent)) or
-       (TCastleComponent(Instance).PropertySection(PropertyName) = Section) then
+       (Section in TCastleComponent(Instance).PropertySections(PropertyName)) then
     begin
       AShow := true;
       Exit;
@@ -1970,12 +1962,6 @@ procedure TDesignFrame.InspectorLayoutFilter(Sender: TObject;
   AEditor: TPropertyEditor; var aShow: Boolean);
 begin
   InspectorFilter(Sender, AEditor, AShow, psLayout);
-end;
-
-procedure TDesignFrame.InspectorOtherFilter(Sender: TObject;
-  AEditor: TPropertyEditor; var aShow: Boolean);
-begin
-  InspectorFilter(Sender, AEditor, AShow, psOther);
 end;
 
 function TDesignFrame.UndoMessageModified(const Sel: TPersistent;

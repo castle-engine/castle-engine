@@ -1038,7 +1038,7 @@ type
       DefaultShadowMapsDefaultSize = 256;
 
     constructor Create(AOwner: TComponent); override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Load the model given as a X3D nodes graph.
       This replaces RootNode with new value.
@@ -8405,14 +8405,14 @@ begin
     Result.Load(RootNode.DeepCopy as TX3DRootNode, true);
 end;
 
-function TCastleSceneCore.PropertySection(
-  const PropertyName: String): TPropertySection;
+function TCastleSceneCore.PropertySections(
+  const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
     'URL', 'ProcessEvents', 'AutoAnimation', 'AutoAnimationLoop', 'DefaultAnimationTransition', 'Spatial':
-      Result := psBasic;
+      Result := [psBasic];
     else
-      Result := inherited PropertySection(PropertyName);
+      Result := inherited PropertySections(PropertyName);
   end;
 end;
 

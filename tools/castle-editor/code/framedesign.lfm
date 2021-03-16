@@ -302,10 +302,6 @@ object DesignFrame: TDesignFrame
           end
         end
       end
-      object TabOther: TTabSheet
-        Caption = 'Other'
-        ParentFont = False
-      end
       object TabEvents: TTabSheet
         Caption = 'Events'
         ClientHeight = 417

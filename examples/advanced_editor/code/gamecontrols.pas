@@ -41,7 +41,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure EditorAllowResize(
       out ResizeWidth, ResizeHeight: Boolean; out Reason: String); override;
   published
@@ -84,13 +84,13 @@ begin
   FImage.Draw(RenderRect, FloatRectangle(0, 0, Columns * FImage.Width, Rows * FImage.Height));
 end;
 
-function TImageGrid.PropertySection(const PropertyName: String): TPropertySection;
+function TImageGrid.PropertySections(const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
     'Rows', 'Columns', 'URL':
-      Result := psBasic;
+      Result := [psBasic];
     else
-      Result := inherited PropertySection(PropertyName);
+      Result := inherited PropertySections(PropertyName);
   end;
 end;
 
