@@ -1054,8 +1054,7 @@ begin
     end;
 
     { Check for Castle Sprite Sheets, to open them in sprite editor }
-    if (URIMimeType(URIDeleteAnchor(SelectedURL, true)) =
-      'application/x-castle-sprite-sheet') then
+    if (URIMimeType(SelectedURL) = 'application/x-castle-sprite-sheet') then
     begin
       if SpriteSheetEditorForm = nil then
         SpriteSheetEditorForm := TSpriteSheetEditorForm.Create(Application);

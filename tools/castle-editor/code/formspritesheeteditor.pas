@@ -690,8 +690,7 @@ begin
     URLToOpen := OpenDialog.URL;
 
     { Check: if file is Starling }
-    if (URIMimeType(URIDeleteAnchor(URLToOpen, true)) =
-     'application/x-starling-sprite-sheet')
+    if (URIMimeType(URLToOpen) = 'application/x-starling-sprite-sheet')
       or (ExtractFileExt(URLToOpen) = '.xml') then
     begin
       { If file has anchors don't show import dialog }
@@ -790,8 +789,8 @@ end;
 
 procedure TSpriteSheetEditorForm.ActionSaveSpriteSheetExecute(Sender: TObject);
 begin
-  if (FSpriteSheet.URL = '') or (URIMimeType(URIDeleteAnchor(FSpriteSheet.URL,
-    true)) <> 'application/x-castle-sprite-sheet') then
+  if (FSpriteSheet.URL = '') or
+     (URIMimeType(FSpriteSheet.URL) <> 'application/x-castle-sprite-sheet') then
     ActionSaveSpriteSheetAsExecute(Sender)
   else
     FSpriteSheet.Save(FSpriteSheet.URL, false);

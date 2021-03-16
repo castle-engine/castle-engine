@@ -2241,8 +2241,8 @@ begin
   FBaseUrl := BaseUrl;
   FDisplayURL := URIDisplay(FBaseUrl);
 
-  FStarlingLoading := (URIMimeType(URIDeleteAnchor(FBaseUrl, true)) =
-     'application/x-starling-sprite-sheet') or (ExtractFileExt(FBaseUrl) = '.xml');
+  FStarlingLoading := (URIMimeType(FBaseUrl) = 'application/x-starling-sprite-sheet')
+    or (ExtractFileExt(FBaseUrl) = '.xml');
 
   FSubTexture := TSubTexture.Create;
   FLoadForEdit := LoadForEdit;
