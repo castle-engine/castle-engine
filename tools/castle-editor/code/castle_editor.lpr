@@ -7,9 +7,13 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, FormChooseProject, castle_components, ProjectUtils, FormNewProject,
+  // packages:
+  castle_components,
+  // uncomment this line in custom editor template LPI:
+  //castle_editor_automatic_package,
+  Forms, FormChooseProject, ProjectUtils, FormNewProject,
   EditorUtils, FormProject, FrameDesign, FormAbout, FrameViewFile,
-  FormPreferences, VisualizeTransform;
+  FormPreferences, VisualizeTransform, FormNewUnit;
 
 {$R *.res}
 
@@ -22,6 +26,7 @@ begin
   Application.CreateForm(TNewProjectForm, NewProjectForm);
   Application.CreateForm(TAboutForm, AboutForm);
   Application.CreateForm(TPreferencesForm, PreferencesForm);
+  Application.CreateForm(TNewUnitForm, NewUnitForm);
   Application.Run;
 end.
 

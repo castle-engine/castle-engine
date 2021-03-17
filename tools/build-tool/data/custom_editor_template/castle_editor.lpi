@@ -116,7 +116,7 @@
         <PackageName Value="castle_editor_automatic_package"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="11">
+    <Units Count="12">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -189,6 +189,13 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="VisualizeTransform"/>
       </Unit10>
+      <Unit11>
+        <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/formnewunit.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="NewUnitForm"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="FormNewUnit"/>
+      </Unit11>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

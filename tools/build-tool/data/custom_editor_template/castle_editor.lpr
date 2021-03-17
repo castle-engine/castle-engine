@@ -12,7 +12,7 @@ uses
   castle_editor_automatic_package,
   Forms, FormChooseProject, ProjectUtils, FormNewProject,
   EditorUtils, FormProject, FrameDesign, FormAbout, FrameViewFile,
-  FormPreferences, VisualizeTransform, CastleLog;
+  FormPreferences, VisualizeTransform, FormNewUnit;
 
 {$R *.res}
 
@@ -23,5 +23,6 @@ begin
   Application.CreateForm(TNewProjectForm, NewProjectForm);
   Application.CreateForm(TAboutForm, AboutForm);
   Application.CreateForm(TPreferencesForm, PreferencesForm);
+  Application.CreateForm(TNewUnitForm, NewUnitForm);
   Application.Run;
 end.
