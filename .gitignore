@@ -51,7 +51,6 @@ castle-game-engine-*.fpm
 /doc/pasdoc/html/
 /doc/pasdoc/latex/
 /doc/reference/
-/examples/2d_dragon_spine_game/dragon_spine_demo
 /examples/3d_rendering_processing/animate_3d_model_by_code
 /examples/3d_rendering_processing/animate_3d_model_by_code_2
 /examples/3d_rendering_processing/anisotropic_filtering/anisotropic_filtering
@@ -150,10 +149,9 @@ castle-game-engine-*.fpm
 /examples/localization/custom/castle_localization
 /examples/localization/gettext/localization_test
 /examples/localization/gettext/po_files/generator/po_generator
+/examples/mobile/achievements/dragon_spine_demo
 /examples/mobile/activity_recognition/activity_recognition
 /examples/mobile/drawing_toy/drawing_toy
-/examples/mobile/drawing_toy/libdrawing_toy.so
-/examples/mobile/simple_3d_demo/libsimple_3d_demo.so
 /examples/mobile/simple_3d_demo/simple_3d_demo
 /examples/mobile/test_bump_mapping/test_bump_mapping
 /examples/network/asynchronous_download/asynchronous_download
