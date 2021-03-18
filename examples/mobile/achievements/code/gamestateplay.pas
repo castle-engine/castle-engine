@@ -36,8 +36,10 @@ type
     MainViewport: TCastleViewport;
     SceneDragon: TCastleScene;
     CheckboxCameraFollow: TCastleCheckbox;
+    ButtonShowAchievements: TCastleButton;
 
     procedure ChangeCheckboxCameraFollow(Sender: TObject);
+    procedure ClickShowAchievements(Sender: TObject);
   public
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
@@ -68,8 +70,10 @@ begin
   MainViewport := UiOwner.FindRequiredComponent('MainViewport') as TCastleViewport;
   SceneDragon := UiOwner.FindRequiredComponent('SceneDragon') as TCastleScene;
   CheckboxCameraFollow := UiOwner.FindRequiredComponent('CheckboxCameraFollow') as TCastleCheckbox;
+  ButtonShowAchievements := UiOwner.FindRequiredComponent('ButtonShowAchievements') as TCastleButton;
 
   CheckboxCameraFollow.OnChange := @ChangeCheckboxCameraFollow;
+  ButtonShowAchievements.OnClick := @ClickShowAchievements;
 end;
 
 procedure TStatePlay.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -181,6 +185,11 @@ end;
 procedure TStatePlay.ChangeCheckboxCameraFollow(Sender: TObject);
 begin
   GameService.Achievement(AchievementClickFollow);
+end;
+
+procedure TStatePlay.ClickShowAchievements(Sender: TObject);
+begin
+  GameService.ShowAchievements;
 end;
 
 end.
