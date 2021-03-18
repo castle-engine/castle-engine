@@ -1,5 +1,6 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleWindowOpen" -*-
 {
-  Copyright 2014-2018 Michalis Kamburelis.
+  Copyright 2014-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 

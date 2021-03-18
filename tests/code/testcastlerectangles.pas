@@ -1,5 +1,6 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestRectangles" -*-
 {
-  Copyright 2013-2018 Michalis Kamburelis.
+  Copyright 2013-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,6 +14,7 @@
   ----------------------------------------------------------------------------
 }
 
+{ Test CastleRectangles unit. }
 unit TestCastleRectangles;
 
 interface

@@ -1,5 +1,6 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestX3DFields" -*-
 {
-  Copyright 2017-2018 Michalis Kamburelis.
+  Copyright 2017-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,10 +20,11 @@ unit TestX3DFields;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, X3DFields, X3DTime;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase, X3DFields, X3DTime;
 
 type
-  TTestX3DFields = class(TTestCase)
+  TTestX3DFields = class(TCastleTestCase)
   strict private
     Counter: Integer;
     procedure Check123(Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);

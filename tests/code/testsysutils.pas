@@ -1,6 +1,6 @@
 // -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestSysUtils" -*-
 {
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,10 +19,11 @@ unit TestSysUtils;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase;
 
 type
-  TTestSysUtils = class(TTestCase)
+  TTestSysUtils = class(TCastleTestCase)
     procedure TestDirectoryFileExists;
   end;
 

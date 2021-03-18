@@ -14,6 +14,7 @@
   ----------------------------------------------------------------------------
 }
 
+{ Test CastleURIUtils unit. }
 unit TestCastleURIUtils;
 
 interface

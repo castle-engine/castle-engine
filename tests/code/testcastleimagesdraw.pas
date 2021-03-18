@@ -1,5 +1,6 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestImagesDraw" -*-
 {
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,7 +21,8 @@ unit TestCastleImagesDraw;
 interface
 
 uses
-  FpcUnit, TestUtils, TestRegistry, CastleImages, CastleTestCase;
+  FpcUnit, TestUtils, TestRegistry,
+  CastleImages, CastleTestCase;
 
 type
   TTestImagesDraw = class(TCastleTestCase)
