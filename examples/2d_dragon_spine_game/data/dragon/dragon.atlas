@@ -1,188 +1,208 @@
 
 dragon.png
-size: 4096,1024
+size: 1024,1024
 format: RGBA8888
 filter: Linear,Linear
 repeat: none
 body_1
   rotate: true
-  xy: 2538, 182
-  size: 389, 447
-  orig: 389, 447
+  xy: 727, 443
+  size: 195, 224
+  orig: 195, 224
   offset: 0, 0
   index: -1
 body_2
-  rotate: false
-  xy: 2019, 128
-  size: 517, 443
-  orig: 517, 443
+  rotate: true
+  xy: 798, 182
+  size: 259, 222
+  orig: 259, 222
   offset: 0, 0
   index: -1
 claw
   rotate: true
-  xy: 2538, 138
-  size: 42, 138
-  orig: 42, 138
+  xy: 2, 831
+  size: 21, 69
+  orig: 21, 69
   offset: 0, 0
   index: -1
 claws_thumb
+  rotate: true
+  xy: 134, 807
+  size: 45, 53
+  orig: 45, 53
+  offset: 0, 0
+  index: -1
+fire_0001_fire4
   rotate: false
-  xy: 3387, 70
-  size: 89, 106
-  orig: 89, 106
+  xy: 2, 345
+  size: 241, 202
+  orig: 241, 202
+  offset: 0, 0
+  index: -1
+fire_0002_fire3
+  rotate: false
+  xy: 519, 229
+  size: 277, 212
+  orig: 277, 212
+  offset: 0, 0
+  index: -1
+fire_0003_fire2
+  rotate: false
+  xy: 245, 256
+  size: 272, 204
+  orig: 272, 204
+  offset: 0, 0
+  index: -1
+fire_0004_fire1
+  rotate: false
+  xy: 783, 640
+  size: 136, 120
+  orig: 136, 120
   offset: 0, 0
   index: -1
 hand_1
   rotate: false
-  xy: 1572, 106
-  size: 280, 268
-  orig: 280, 268
+  xy: 154, 549
+  size: 140, 134
+  orig: 140, 134
   offset: 0, 0
   index: -1
 hand_2
-  rotate: false
-  xy: 3916, 726
-  size: 171, 296
-  orig: 171, 296
+  rotate: true
+  xy: 675, 766
+  size: 86, 148
+  orig: 86, 148
   offset: 0, 0
   index: -1
 head_1
-  rotate: false
-  xy: 3610, 466
-  size: 300, 309
-  orig: 300, 309
+  rotate: true
+  xy: 296, 507
+  size: 150, 155
+  orig: 150, 155
   offset: 0, 0
   index: -1
 head_armor
   rotate: false
-  xy: 1271, 127
-  size: 299, 247
-  orig: 299, 247
+  xy: 2, 559
+  size: 150, 124
+  orig: 150, 124
   offset: 0, 0
   index: -1
 head_jaw
   rotate: true
-  xy: 2987, 174
-  size: 236, 252
-  orig: 236, 252
+  xy: 655, 646
+  size: 118, 126
+  orig: 118, 126
   offset: 0, 0
   index: -1
 leg_1
   rotate: true
-  xy: 526, 27
-  size: 180, 298
-  orig: 180, 298
+  xy: 825, 762
+  size: 90, 149
+  orig: 90, 149
   offset: 0, 0
   index: -1
 leg_2
-  rotate: true
-  xy: 3491, 196
-  size: 214, 200
-  orig: 214, 200
-  offset: 0, 0
+  rotate: false
+  xy: 2, 723
+  size: 107, 96
+  orig: 107, 100
+  offset: 0, 4
   index: -1
 neck_1
-  rotate: true
-  xy: 1854, 116
-  size: 258, 161
-  orig: 258, 161
+  rotate: false
+  xy: 544, 771
+  size: 129, 81
+  orig: 129, 81
   offset: 0, 0
   index: -1
 neck_2
   rotate: true
-  xy: 3241, 178
-  size: 232, 248
-  orig: 232, 248
+  xy: 529, 653
+  size: 116, 124
+  orig: 116, 124
   offset: 0, 0
   index: -1
 neck_3
   rotate: true
-  xy: 963, 144
-  size: 230, 306
-  orig: 230, 306
+  xy: 374, 659
+  size: 115, 153
+  orig: 115, 153
   offset: 0, 0
   index: -1
 oot_1
-  rotate: false
-  xy: 826, 20
-  size: 118, 187
-  orig: 118, 187
+  rotate: true
+  xy: 271, 793
+  size: 59, 94
+  orig: 59, 94
   offset: 0, 0
   index: -1
 tail_big
   rotate: false
-  xy: 3912, 573
-  size: 171, 151
-  orig: 171, 151
+  xy: 456, 776
+  size: 86, 76
+  orig: 86, 76
   offset: 0, 0
   index: -1
 tail_medium
-  rotate: true
-  xy: 3241, 2
-  size: 174, 144
-  orig: 174, 144
+  rotate: false
+  xy: 367, 780
+  size: 87, 72
+  orig: 87, 72
   offset: 0, 0
   index: -1
 tail_small
-  rotate: false
-  xy: 946, 24
-  size: 62, 118
-  orig: 62, 118
-  offset: 0, 0
-  index: -1
-tongue
-  rotate: false
-  xy: 2987, 443
-  size: 60, 128
-  orig: 60, 128
+  rotate: true
+  xy: 73, 821
+  size: 31, 59
+  orig: 31, 59
   offset: 0, 0
   index: -1
 wing_0
   rotate: false
-  xy: 3912, 462
-  size: 159, 109
-  orig: 159, 109
+  xy: 189, 797
+  size: 80, 55
+  orig: 80, 55
   offset: 0, 0
   index: -1
 wing_1
   rotate: false
-  xy: 3065, 412
-  size: 543, 363
-  orig: 543, 363
+  xy: 453, 462
+  size: 272, 182
+  orig: 272, 182
   offset: 0, 0
   index: -1
 wing_2
   rotate: false
-  xy: 2, 22
-  size: 522, 185
-  orig: 522, 185
-  offset: 0, 0
-  index: -1
-wing_feather1
-  rotate: false
-  xy: 3065, 777
-  size: 849, 245
-  orig: 849, 245
+  xy: 111, 685
+  size: 261, 93
+  orig: 261, 93
   offset: 0, 0
   index: -1
 wing_feather2
   rotate: false
-  xy: 2019, 573
-  size: 1044, 449
-  orig: 1044, 449
+  xy: 2, 2
+  size: 522, 225
+  orig: 522, 225
   offset: 0, 0
   index: -1
+
+dragon2.png
+size: 1024,512
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
 wing_feather3
   rotate: false
-  xy: 963, 376
-  size: 1054, 646
-  orig: 1054, 646
+  xy: 484, 86
+  size: 527, 323
+  orig: 527, 323
   offset: 0, 0
   index: -1
 wing_feather4
   rotate: false
-  xy: 2, 209
-  size: 959, 813
-  orig: 959, 813
+  xy: 2, 2
+  size: 480, 407
+  orig: 480, 407
   offset: 0, 0
   index: -1
