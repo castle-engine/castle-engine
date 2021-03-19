@@ -429,25 +429,19 @@ end;
 
 procedure TProjectForm.ActionNewUnitClassExecute(Sender: TObject);
 begin
-  NewUnitForm.UnitType := utClass;
-  NewUnitForm.ProjectPath := ProjectPath;
-  NewUnitForm.CurrentPath := InclPathDelim(ShellListView1.Root);
+  NewUnitForm.InitializeUi(utClass, ProjectPath, InclPathDelim(ShellListView1.Root));
   NewUnitForm.ShowModal;
 end;
 
 procedure TProjectForm.ActionNewUnitEmptyExecute(Sender: TObject);
 begin
-  NewUnitForm.UnitType := utEmpty;
-  NewUnitForm.ProjectPath := ProjectPath;
-  NewUnitForm.CurrentPath := InclPathDelim(ShellListView1.Root);
+  NewUnitForm.InitializeUi(utEmpty, ProjectPath, InclPathDelim(ShellListView1.Root));
   NewUnitForm.ShowModal;
 end;
 
 procedure TProjectForm.ActionNewUnitStateExecute(Sender: TObject);
 begin
-  NewUnitForm.UnitType := utState;
-  NewUnitForm.ProjectPath := ProjectPath;
-  NewUnitForm.CurrentPath := InclPathDelim(ShellListView1.Root);
+  NewUnitForm.InitializeUi(utState, ProjectPath, InclPathDelim(ShellListView1.Root));
   NewUnitForm.ShowModal;
 end;
 

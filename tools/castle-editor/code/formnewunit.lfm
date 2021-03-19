@@ -23,8 +23,8 @@ object NewUnitForm: TNewUnitForm
     ItemIndex = 0
     Items.Strings = (
       'Empty Unit'
-      'Unit With a Class Definition'
-      'Unit With a TUIState Definition'
+      'Unit With Class (empty class derived from TObject) '
+      'Unit With State  (class derived from TUIState) '
     )
     OnChange = ComboUnitTypeChange
     Style = csDropDownList

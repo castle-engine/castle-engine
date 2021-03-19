@@ -53,21 +53,22 @@ type
     procedure ComboUnitTypeChange(Sender: TObject);
   private
     FUnitType: TNewUnitType;
-    procedure SetUnitType(const AValue: TNewUnitType);
-    procedure RefreshUiDependingOnUnitType;
-  protected
-    procedure DoShow; override;
-  public
+
     { Absolute directory (with final path delim) of the current project.
       Set before ShowModal. }
     ProjectPath: String;
 
-    { Absolute directory (with final path delim) of the current directory where
+    { Absolute directory (with final path delim) of the directory where
       unit should be created.
       Set before ShowModal.}
-    CurrentPath: String;
+    UnitOutputPath: String;
 
+    procedure SetUnitType(const AValue: TNewUnitType);
     property UnitType: TNewUnitType read FUnitType write SetUnitType default utEmpty;
+    procedure RefreshUiDependingOnUnitType;
+  public
+    procedure InitializeUi(const AUnitType: TNewUnitType;
+      const AProjectPath, AUnitOutputPath: String);
   end;
 
 var
@@ -89,31 +90,23 @@ end;
 
 procedure TNewUnitForm.SetUnitType(const AValue: TNewUnitType);
 begin
-  { Refresh UI even when setting to the same value,
-   to work regardless of the initial designed form state. }
-  // if FUnitType = AValue then Exit;
-
+  if FUnitType = AValue then Exit;
   FUnitType := AValue;
-
-  ComboUnitType.OnChange := nil; // avoid recursive ComboUnitType.OnChange calls
-  ComboUnitType.ItemIndex := Ord(AValue);
-  ComboUnitType.OnChange := @ComboUnitTypeChange;
-
-  SetEnabledExists(PanelUnitClass, AValue = utClass);
-  SetEnabledExists(PanelUnitState, AValue = utState);
+  RefreshUiDependingOnUnitType;
 end;
 
-procedure TNewUnitForm.DoShow;
+procedure TNewUnitForm.InitializeUi(const AUnitType: TNewUnitType;
+  const AProjectPath, AUnitOutputPath: String);
 var
-  RelativeCurrentPath: String;
+  RelativeUnitPath: String;
 begin
-  inherited;
+  FUnitType := AUnitType;
+  ProjectPath := AProjectPath;
+  UnitOutputPath := AUnitOutputPath;
 
-  // clean UI, except ComboUnitType that should be set by called setting UnitType
-
-  RelativeCurrentPath := ExtractRelativePath(ProjectPath, CurrentPath);
+  RelativeUnitPath := ExtractRelativePath(ProjectPath, UnitOutputPath);
   EditUnitName.Text := 'GameSomething';
-  EditUnitFile.Text := RelativeCurrentPath + 'gamesomething.pas';
+  EditUnitFile.Text := RelativeUnitPath + 'gamesomething.pas';
 
   RefreshUiDependingOnUnitType;
 end;
@@ -145,6 +138,13 @@ var
   UnitToInitializeState: String;
   UnitToInitializeStateFound, UnitToInitializeStateValid: Boolean;
 begin
+  ComboUnitType.OnChange := nil; // avoid recursive ComboUnitType.OnChange calls
+  ComboUnitType.ItemIndex := Ord(FUnitType);
+  ComboUnitType.OnChange := @ComboUnitTypeChange;
+
+  SetEnabledExists(PanelUnitClass, FUnitType = utClass);
+  SetEnabledExists(PanelUnitState, FUnitType = utState);
+
   case UnitType of
     utClass:
       EditClassName.Text := 'TSomething';
