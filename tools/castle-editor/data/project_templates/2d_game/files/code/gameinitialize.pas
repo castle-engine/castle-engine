@@ -15,7 +15,9 @@ uses SysUtils,
   CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleUIControls, CastleApplicationProperties, CastleUIState,
-  GameStateMenu, GameStatePlay;
+  GameStateMenu, GameStatePlay
+  // CGE-USE-STATES: Keep this comment, to allow CGE editor to automatically initialize new states.
+  ;
 
 var
   Window: TCastleWindowBase;
@@ -29,6 +31,8 @@ begin
   { Create game states and set initial state }
   StatePlay := TStatePlay.Create(Application);
   StateMenu := TStateMenu.Create(Application);
+  // CGE-CREATE-STATES: Keep this comment, to allow CGE editor to automatically initialize new states.
+
   TUIState.Current := StateMenu;
 end;
 

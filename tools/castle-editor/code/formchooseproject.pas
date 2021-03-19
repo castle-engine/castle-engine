@@ -73,7 +73,7 @@ uses CastleConfig, CastleLCLUtils, CastleURIUtils, CastleUtils,
   CastleFilesUtils, CastleParameters, CastleLog, CastleStringUtils,
   ProjectUtils, EditorUtils, FormNewProject, FormPreferences,
   ToolCompilerInfo, ToolFpcVersion,
-  FormProject;
+  FormProject, FormNewUnit;
 
 { TChooseProjectForm ------------------------------------------------------------- }
 

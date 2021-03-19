@@ -1,11 +1,11 @@
 object NewUnitForm: TNewUnitForm
-  Left = 610
-  Height = 514
-  Top = 272
-  Width = 616
+  Left = 737
+  Height = 686
+  Top = 128
+  Width = 726
   Caption = 'Create Pascal Unit'
-  ClientHeight = 514
-  ClientWidth = 616
+  ClientHeight = 686
+  ClientWidth = 726
   DesignTimePPI = 120
   Position = poMainFormCenter
   LCLVersion = '2.0.10.0'
@@ -16,7 +16,7 @@ object NewUnitForm: TNewUnitForm
     Left = 8
     Height = 35
     Top = 39
-    Width = 594
+    Width = 704
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Top = 8
     ItemHeight = 0
@@ -26,6 +26,7 @@ object NewUnitForm: TNewUnitForm
       'Unit With a Class Definition'
       'Unit With a TUIState Definition'
     )
+    OnChange = ComboUnitTypeChange
     Style = csDropDownList
     TabOrder = 0
     Text = 'Empty Unit'
@@ -37,7 +38,7 @@ object NewUnitForm: TNewUnitForm
     Left = 8
     Height = 40
     Top = 121
-    Width = 594
+    Width = 704
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Top = 8
     TabOrder = 1
@@ -54,8 +55,8 @@ object NewUnitForm: TNewUnitForm
   object ButtonPanel1: TButtonPanel
     Left = 8
     Height = 47
-    Top = 459
-    Width = 600
+    Top = 631
+    Width = 710
     BorderSpacing.Around = 8
     OKButton.Name = 'OKButton'
     OKButton.DefaultCaption = True
@@ -65,7 +66,7 @@ object NewUnitForm: TNewUnitForm
     CloseButton.DefaultCaption = True
     CancelButton.Name = 'CancelButton'
     CancelButton.DefaultCaption = True
-    TabOrder = 7
+    TabOrder = 4
     ShowButtons = [pbOK, pbCancel]
   end
   object LabelUnitName: TLabel
@@ -99,43 +100,18 @@ object NewUnitForm: TNewUnitForm
     Left = 8
     Height = 40
     Top = 208
-    Width = 548
+    Width = 658
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Top = 8
     TabOrder = 2
     Text = 'code/gamesomething.pas'
-  end
-  object LabelClassName: TLabel
-    AnchorSideLeft.Control = LabelCreateUnit
-    AnchorSideTop.Control = EditUnitFile
-    AnchorSideTop.Side = asrBottom
-    Left = 8
-    Height = 23
-    Top = 264
-    Width = 102
-    BorderSpacing.Top = 16
-    Caption = 'Class Name:'
-    ParentColor = False
-  end
-  object EditClassName: TEdit
-    AnchorSideLeft.Control = LabelCreateUnit
-    AnchorSideTop.Control = LabelClassName
-    AnchorSideTop.Side = asrBottom
-    Left = 8
-    Height = 40
-    Top = 295
-    Width = 592
-    Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Top = 8
-    TabOrder = 4
-    Text = 'TStateSomething'
   end
   object ButtonUnitFile: TButton
     AnchorSideLeft.Control = EditUnitFile
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = EditUnitFile
     AnchorSideTop.Side = asrCenter
-    Left = 556
+    Left = 666
     Height = 39
     Top = 209
     Width = 31
@@ -144,43 +120,144 @@ object NewUnitForm: TNewUnitForm
     OnClick = ButtonUnitFileClick
     TabOrder = 3
   end
-  object EditStateFile: TEdit
-    AnchorSideLeft.Control = LabelCreateUnit
-    AnchorSideTop.Control = LabelStateFile
+  object PanelUnitClass: TPanel
+    AnchorSideTop.Control = EditUnitFile
     AnchorSideTop.Side = asrBottom
-    Left = 8
-    Height = 40
-    Top = 382
-    Width = 548
-    Anchors = [akTop, akLeft, akRight]
+    Left = 0
+    Height = 105
+    Top = 256
+    Width = 720
     BorderSpacing.Top = 8
+    BevelOuter = bvNone
+    ClientHeight = 105
+    ClientWidth = 720
     TabOrder = 5
-    Text = 'data/state_something.castle-user-interface'
+    object LabelClassName: TLabel
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 23
+      Top = 8
+      Width = 102
+      Anchors = [akTop]
+      BorderSpacing.Top = 16
+      Caption = 'Class Name:'
+      ParentColor = False
+    end
+    object EditClassName: TEdit
+      AnchorSideLeft.Control = LabelClassName
+      AnchorSideTop.Control = LabelClassName
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 40
+      Top = 39
+      Width = 700
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Top = 8
+      TabOrder = 0
+      Text = 'TSomething'
+    end
   end
-  object ButtonStateFile: TButton
-    AnchorSideLeft.Control = EditStateFile
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = EditStateFile
-    AnchorSideTop.Side = asrCenter
-    Left = 556
-    Height = 39
-    Top = 383
-    Width = 31
-    AutoSize = True
-    Caption = '...'
-    OnClick = ButtonStateFileClick
-    TabOrder = 6
-  end
-  object LabelStateFile: TLabel
-    AnchorSideLeft.Control = LabelCreateUnit
-    AnchorSideTop.Control = EditClassName
+  object PanelUnitState: TPanel
+    AnchorSideTop.Control = EditUnitFile
     AnchorSideTop.Side = asrBottom
-    Left = 8
-    Height = 23
-    Top = 351
-    Width = 84
-    BorderSpacing.Top = 16
-    Caption = 'State File:'
-    ParentColor = False
+    Left = 0
+    Height = 384
+    Top = 256
+    Width = 720
+    BorderSpacing.Top = 8
+    BevelOuter = bvNone
+    ClientHeight = 384
+    ClientWidth = 720
+    TabOrder = 6
+    object LabelStateName: TLabel
+      AnchorSideLeft.Control = LabelCreateUnit
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 23
+      Top = 8
+      Width = 102
+      BorderSpacing.Top = 16
+      Caption = 'State Name:'
+      ParentColor = False
+    end
+    object EditStateName: TEdit
+      AnchorSideLeft.Control = LabelCreateUnit
+      AnchorSideTop.Control = LabelStateName
+      AnchorSideTop.Side = asrBottom
+      Left = 2
+      Height = 40
+      Top = 39
+      Width = 718
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Top = 8
+      TabOrder = 0
+      Text = 'TStateSomething'
+    end
+    object LabelStateFile: TLabel
+      AnchorSideLeft.Control = LabelCreateUnit
+      AnchorSideTop.Control = EditStateName
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 23
+      Top = 95
+      Width = 84
+      BorderSpacing.Top = 16
+      Caption = 'State File:'
+      ParentColor = False
+    end
+    object EditStateFile: TEdit
+      AnchorSideLeft.Control = LabelCreateUnit
+      AnchorSideTop.Control = LabelStateFile
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 40
+      Top = 126
+      Width = 658
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Top = 8
+      TabOrder = 1
+      Text = 'data/state_something.castle-user-interface'
+    end
+    object ButtonStateFile: TButton
+      AnchorSideLeft.Control = EditStateFile
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = EditStateFile
+      AnchorSideTop.Side = asrCenter
+      Left = 666
+      Height = 39
+      Top = 127
+      Width = 31
+      AutoSize = True
+      Caption = '...'
+      OnClick = ButtonStateFileClick
+      TabOrder = 2
+    end
+    object CheckStateInitialize: TCheckBox
+      AnchorSideLeft.Control = LabelCreateUnit
+      AnchorSideTop.Control = EditStateFile
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 27
+      Top = 174
+      Width = 427
+      BorderSpacing.Top = 8
+      Caption = 'Add State Initialization to Application.OnInitialize'
+      TabOrder = 3
+    end
+    object LabelStateInitializeInfo: TLabel
+      AnchorSideLeft.Control = LabelCreateUnit
+      AnchorSideTop.Control = CheckStateInitialize
+      AnchorSideTop.Side = asrBottom
+      Left = 40
+      Height = 184
+      Top = 209
+      Width = 650
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Left = 32
+      BorderSpacing.Top = 8
+      Caption = 'We will modify code/gameinitialize.pas to add state initialization.'#10#10'Warning: Found code/gameinitialize.pas , but it is missing special CGE-XXX comments (see the new project templates for example).'#10'You will need to manually create the new state in Application.OnInitialize.'#10#10'Warning: Could not find code/gameinitialize.pas .'#10'You will need to manually create the new state in Application.OnInitialize.'
+      ParentColor = False
+      WordWrap = True
+    end
   end
 end
