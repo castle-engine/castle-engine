@@ -119,9 +119,6 @@ procedure TNewUnitForm.RefreshUiDependingOnUnitType;
   begin
     try
       Content := FileToString(FilenameToURISafe(ProjectPath + RelativeFileName));
-      Result :=
-        (Pos('// CGE-USE-STATES', Content) <> 0) or
-        (Pos('// CGE-CREATE-STATES', Content) <> 0);
     except
       on E: Exception do
       begin
@@ -129,9 +126,15 @@ procedure TNewUnitForm.RefreshUiDependingOnUnitType;
           RelativeFileName,
           E.Message
         ]);
-        Result := false;
+        Exit(false);
       end;
     end;
+
+    Result :=
+      (Pos('{ CASTLE-STATE-CREATE-BEGIN }', Content) <> 0) and
+      (Pos('{ CASTLE-STATE-CREATE-END }', Content) <> 0) and
+      (Pos('{ CASTLE-INITIALIZATION-USES-BEGIN }', Content) <> 0) and
+      (Pos('{ CASTLE-INITIALIZATION-USES-END }', Content) <> 0);
   end;
 
 var
@@ -167,7 +170,7 @@ begin
         else
         if UnitToInitializeStateFound then
           LabelStateInitializeInfo.Caption := Format(
-            'WARNING: Found %s, but it is missing special CGE-XXX comments (see the new project templates for example).' + NL +
+            'WARNING: Found %s, but it is missing special CASTLE-XXX comments (see the new project templates for example).' + NL +
             'You will need to manually create the new state in Application.OnInitialize.',
             [UnitToInitializeState])
         else
