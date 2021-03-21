@@ -43,20 +43,6 @@ function TempOutputPath(const WorkingDirectory: string;
 type
   TReplaceMacros = function (const Source: string): string of object;
 
-type
-  TImageFileNames = class(TCastleStringList)
-  private
-    FBaseUrl: string;
-  public
-    property BaseUrl: string read FBaseUrl write FBaseUrl;
-    { Find image with given extension, or '' if not found. }
-    function FindExtension(const Extensions: array of string): string;
-    { Find and read an image format that we can process with our CastleImages.
-      Try to read it to a class that supports nice-quality resizing (TResizeInterpolationFpImage).
-      @nil if not found. }
-    function FindReadable: TCastleImage;
-  end;
-
 const
   MaxAndroidTagLength = 23;
 
@@ -82,28 +68,6 @@ const
        finally
   }
   BestInterpolation = {$ifdef VER3_0} riLanczos {$else} riBilinear {$endif};
-
-{ Find in Element all children called <parameter>,
-  read them and add to Parameters list,
-  expecting this format:
-
-  <parameter key="my_key" value="my_value" />
-  or
-  <parameter key="my_key">my_value</parameter>
-  or
-  <parameter key="my_key"><![CDATA[my_value]]></parameter>
-
-  Note that keys are converted to lowercase.
-  Parameter keys, just like macro names, are not case-sensitive.
-
-  All the keys in RequiredKeys are guaranteed to have a value set.
-  If they are not specified in Element (or Element is @nil),
-  they will have an empty value.
-  This is necessary if you want to use this macro in template *even*
-  when user doesn't specify it.
-}
-procedure ReadParameters(const Element: TDOMElement; const Parameters: TStringStringMap;
-  const RequiredKeys: array of String);
 
 { Add all parameters in Parameters to Macros.
   Each parameter key is prefixed by ParameterMacroPrefix
@@ -170,89 +134,6 @@ begin
   end;
 
   Result := FOutputPath;
-end;
-
-{ TImageFileNames ------------------------------------------------------------- }
-
-function TImageFileNames.FindExtension(const Extensions: array of string): string;
-var
-  I: Integer;
-begin
-  Result := '';
-  for I := 0 to Count - 1 do
-    if AnsiSameText(ExtractFileExt(Strings[I]), '.ico') then
-      Exit(Strings[I]);
-end;
-
-function TImageFileNames.FindReadable: TCastleImage;
-var
-  I: Integer;
-  MimeType, URL: string;
-begin
-  for I := 0 to Count - 1 do
-  begin
-    URL := CombineURI(BaseUrl, Strings[I]);
-    MimeType := URIMimeType(URL);
-    if (MimeType <> '') and IsImageMimeType(MimeType, true, false) then
-      Exit(LoadImage(URL, [TRGBImage, TRGBAlphaImage]));
-  end;
-  Result := nil;
-end;
-
-function GetCData(const Element: TDOMElement): String;
-var
-  I: TXMLCDataIterator;
-begin
-  Result := '';
-  I := TXMLCDataIterator.Create(Element);
-  try
-    while I.GetNext do
-      Result := Result + I.Current;
-  finally FreeAndNil(I) end;
-end;
-
-procedure ReadParameters(const Element: TDOMElement; const Parameters: TStringStringMap;
-  const RequiredKeys: array of String);
-var
-  ChildElements: TXMLElementIterator;
-  ChildElement: TDOMElement;
-  Key, Value, KeyLower: string;
-begin
-  if Element <> nil then
-  begin
-    ChildElements := Element.ChildrenIterator('parameter');
-    try
-      while ChildElements.GetNext do
-      begin
-        ChildElement := ChildElements.Current;
-
-        Key := LowerCase(ChildElement.AttributeString('key'));
-        if Key = '' then
-          raise Exception.Create('Key for <parameter> is empty in CastleEngineManifest.xml');
-
-        if ChildElement.HasAttribute('value') then
-          Value := ChildElement.AttributeString('value')
-        else
-        begin
-          Value := ChildElement.TextData;
-          if Value = '' then
-            Value := GetCData(ChildElement);
-          { value cannot be empty in this case }
-          if Value = '' then
-            raise Exception.CreateFmt('No value for key "%s" specified in CastleEngineManifest.xml', [Key]);
-        end;
-
-        Parameters.Add(Key, Value);
-      end;
-    finally FreeAndNil(ChildElements) end;
-  end;
-
-  for Key in RequiredKeys do
-  begin
-    KeyLower := LowerCase(Key);
-    if not Parameters.ContainsKey(KeyLower) then
-      Parameters.Add(KeyLower, '');
-  end;
 end;
 
 procedure ParametersAddMacros(const Macros, Parameters: TStringStringMap;
