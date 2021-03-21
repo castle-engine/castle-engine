@@ -99,7 +99,7 @@ type
       FIOSOverrideVersion: TProjectVersion; //< nil if not overridden, should use FVersion then
       FUsesNonExemptEncryption: boolean;
       FDataExists: Boolean;
-      FPath, FDataPath: string;
+      FPath, FPathUrl, FDataPath: string;
       FIncludePaths, FExcludePaths: TCastleStringList;
       FExtraCompilerOptions, FExtraCompilerOptionsAbsolute: TCastleStringList;
       FIcons, FLaunchImages: TImageFileNames;
@@ -135,11 +135,19 @@ type
     const
       DataName = 'data';
 
-    { Load defaults. }
+    { Load defaults.
+      @param APath Project path, must be absolute. }
     constructor Create(const APath: String);
-    { Load manifest file. }
+    { Load manifest file.
+      @param APath Project path, must be absolute.
+      @param ManifestUrl Full URL to CastleEngineManifest.xml, must be absolute. }
     constructor CreateFromUrl(const APath, ManifestUrl: String);
-    { Guess values for the manifest, using AName as the project name. }
+    { Load manifest file.
+      @param ManifestUrl Full URL to CastleEngineManifest.xml, must be absolute. }
+    constructor CreateFromUrl(const ManifestUrl: String);
+    { Guess values for the manifest, using AName as the project name.
+      @param APath Project path, must be absolute.
+      @param AName Guessed project name. }
     constructor CreateGuess(const APath, AName: String);
 
     destructor Destroy; override;
@@ -158,7 +166,9 @@ type
     property Name: string read FName;
     { Project path. Absolute.
       Always ends with path delimiter, like a slash or backslash. }
-    property Path: string read FPath;
+    property Path: String read FPath;
+    { Same thing as @link(Path), but expressed as an URL. }
+    property PathUrl: String read FPathUrl;
     property DataExists: Boolean read FDataExists;
     { Project data path. Absolute.
       Always ends with path delimiter, like a slash or backslash.
@@ -293,6 +303,7 @@ begin
   FFullscreenImmersive := DefaultFullscreenImmersive;
 
   FPath := InclPathDelim(APath);
+  FPathUrl := FilenameToURISafe(FPath);
   FDataPath := InclPathDelim(FPath + DataName);
 end;
 
@@ -549,6 +560,11 @@ begin
   finally FreeAndNil(Doc) end;
 
   CreateFinish;
+end;
+
+constructor TCastleManifest.CreateFromUrl(const ManifestUrl: String);
+begin
+  CreateFromUrl(ExtractFilePath(URIToFilenameSafe(ManifestUrl)), ManifestUrl);
 end;
 
 destructor TCastleManifest.Destroy;

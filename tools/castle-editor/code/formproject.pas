@@ -265,7 +265,8 @@ uses TypInfo, LCLType,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
   FormChooseProject, ToolCommonUtils, FormAbout, FormPreferences,
-  ToolCompilerInfo, FormNewUnit;
+  ToolCompilerInfo, ToolManifest,
+  FormNewUnit;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
 begin
@@ -1240,32 +1241,23 @@ end;
 
 procedure TProjectForm.OpenProject(const ManifestUrl: String);
 var
-  ManifestDoc: TXMLDocument;
-  DefaultLazarusProject: String;
+  Manifest: TCastleManifest;
 begin
-  ManifestDoc := URLReadXML(ManifestUrl);
-  try
-    ProjectName := ManifestDoc.DocumentElement.AttributeString('name');
-    if not ManifestDoc.DocumentElement.AttributeString(
-      'standalone_source', ProjectStandaloneSource) then
-      ProjectStandaloneSource := '';
-
-    if ProjectStandaloneSource <> '' then
-      DefaultLazarusProject := ChangeFileExt(ProjectStandaloneSource, '.lpi')
-    else
-      DefaultLazarusProject := '';
-    ProjectLazarus := ManifestDoc.DocumentElement.AttributeStringDef(
-      'lazarus_project', DefaultLazarusProject);
-    if (ManifestDoc.DocumentElement.AttributeStringDef('editor_units', '') <> '') and
-       (not InternalHasCustomComponents) then
-      WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
-  finally FreeAndNil(ManifestDoc) end;
-
   { Below we assume ManifestUrl contains an absolute path,
     otherwise ProjectPathUrl could be '',
     and OpenDesignDialog.InitialDir would be left '' and so on. }
-  ProjectPathUrl := ExtractURIPath(ManifestUrl);
-  ProjectPath := URIToFilenameSafe(ProjectPathUrl);
+
+  Manifest := TCastleManifest.CreateFromUrl(ManifestUrl);
+  try
+    ProjectName := Manifest.Name;
+    ProjectPath := Manifest.Path;
+    ProjectPathUrl := Manifest.PathUrl;
+    ProjectStandaloneSource := Manifest.StandaloneSource;
+    ProjectLazarus := Manifest.LazarusProject;
+    if (Manifest.EditorUnits <> '') and
+       (not InternalHasCustomComponents) then
+      WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
+  finally FreeAndNil(Manifest) end;
 
   { Make some fields absolute paths, or empty }
   if ProjectStandaloneSource <> '' then
