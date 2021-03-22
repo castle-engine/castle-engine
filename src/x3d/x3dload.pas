@@ -236,9 +236,9 @@ implementation
 uses CastleClassUtils, CastleImages, CastleURIUtils, CastleStringUtils,
   X3DLoadInternalGEO, X3DLoadInternal3DS, X3DLoadInternalOBJ,
   X3DLoadInternalCollada, X3DLoadInternalSpine, X3DLoadInternalSTL,
-  X3DLoadInternalMD3, X3DLoadInternalGLTF, X3DLoadInternalStarling,
-  X3DLoadInternalImage, X3DLoadInternalCocos2d,
-  CastleInternalNodeInterpolator, CastleInternalSpritesheet, CastleDownload;
+  X3DLoadInternalMD3, X3DLoadInternalGLTF, X3DLoadInternalImage,
+  X3DLoadInternalCocos2d, CastleInternalNodeInterpolator,
+  CastleInternalSpritesheet, CastleDownload;
 
 { Load a sequence of nodes to an animation suitable for TNodeInterpolator.
   Allows to read sequence of static models as an animation,
@@ -459,12 +459,9 @@ begin
     Result := LoadGLTF(Stream, BaseUrl)
   else
 
-  if MimeType = 'application/x-castle-sprite-sheet' then
+  if (MimeType = 'application/x-castle-sprite-sheet') or
+     (MimeType = 'application/x-starling-sprite-sheet') then
     Result := LoadCastleSpriteSheet(Stream, BaseUrl)
-  else
-
-  if MimeType = 'application/x-starling-sprite-sheet' then
-    Result := LoadStarlingSpriteSheet(Stream, BaseUrl)
   else
 
   if (MimeType = 'application/x-plist') or

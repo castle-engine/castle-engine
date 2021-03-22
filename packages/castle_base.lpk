@@ -74,7 +74,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="5"/>
-    <Files Count="721">
+    <Files Count="720">
       <Item1>
         <Filename Value="../src/3d/castleboxes.pas"/>
         <UnitName Value="CastleBoxes"/>
@@ -2736,245 +2736,241 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item661>
       <Item662>
-        <Filename Value="../src/x3d/x3dloadinternalstarling.pas"/>
-        <UnitName Value="X3DLoadInternalStarling"/>
-      </Item662>
-      <Item663>
         <Filename Value="../src/x3d/x3dloadinternalstl.pas"/>
         <UnitName Value="X3DLoadInternalSTL"/>
-      </Item663>
-      <Item664>
+      </Item662>
+      <Item663>
         <Filename Value="../src/x3d/x3dloadinternalutils.pas"/>
         <UnitName Value="X3DLoadInternalUtils"/>
-      </Item664>
-      <Item665>
+      </Item663>
+      <Item664>
         <Filename Value="../src/x3d/x3dnodes.pas"/>
         <UnitName Value="X3DNodes"/>
+      </Item664>
+      <Item665>
+        <Filename Value="../src/x3d/x3dnodes_1.inc"/>
+        <Type Value="Include"/>
       </Item665>
       <Item666>
-        <Filename Value="../src/x3d/x3dnodes_1.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_97_hanim.inc"/>
         <Type Value="Include"/>
       </Item666>
       <Item667>
-        <Filename Value="../src/x3d/x3dnodes_97_hanim.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_97_nurbs.inc"/>
         <Type Value="Include"/>
       </Item667>
       <Item668>
-        <Filename Value="../src/x3d/x3dnodes_97_nurbs.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_bitmanagement.inc"/>
         <Type Value="Include"/>
       </Item668>
       <Item669>
-        <Filename Value="../src/x3d/x3dnodes_bitmanagement.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_boundingboxes.inc"/>
         <Type Value="Include"/>
       </Item669>
       <Item670>
-        <Filename Value="../src/x3d/x3dnodes_boundingboxes.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_castle.inc"/>
         <Type Value="Include"/>
       </Item670>
       <Item671>
-        <Filename Value="../src/x3d/x3dnodes_castle.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_coordpolygons.inc"/>
         <Type Value="Include"/>
       </Item671>
       <Item672>
-        <Filename Value="../src/x3d/x3dnodes_coordpolygons.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_encoding_classic.inc"/>
         <Type Value="Include"/>
       </Item672>
       <Item673>
-        <Filename Value="../src/x3d/x3dnodes_encoding_classic.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_encoding_xml.inc"/>
         <Type Value="Include"/>
       </Item673>
       <Item674>
-        <Filename Value="../src/x3d/x3dnodes_encoding_xml.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_eventsengine.inc"/>
         <Type Value="Include"/>
       </Item674>
       <Item675>
-        <Filename Value="../src/x3d/x3dnodes_eventsengine.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_generatedtextures.inc"/>
         <Type Value="Include"/>
       </Item675>
       <Item676>
-        <Filename Value="../src/x3d/x3dnodes_generatedtextures.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_instantreality.inc"/>
         <Type Value="Include"/>
       </Item676>
       <Item677>
-        <Filename Value="../src/x3d/x3dnodes_instantreality.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_inventor.inc"/>
         <Type Value="Include"/>
       </Item677>
       <Item678>
-        <Filename Value="../src/x3d/x3dnodes_inventor.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_load.inc"/>
         <Type Value="Include"/>
       </Item678>
       <Item679>
-        <Filename Value="../src/x3d/x3dnodes_load.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_save.inc"/>
         <Type Value="Include"/>
       </Item679>
       <Item680>
-        <Filename Value="../src/x3d/x3dnodes_save.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_cadgeometry.inc"/>
         <Type Value="Include"/>
       </Item680>
       <Item681>
-        <Filename Value="../src/x3d/x3dnodes_standard_cadgeometry.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_core.inc"/>
         <Type Value="Include"/>
       </Item681>
       <Item682>
-        <Filename Value="../src/x3d/x3dnodes_standard_core.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_cubemaptexturing.inc"/>
         <Type Value="Include"/>
       </Item682>
       <Item683>
-        <Filename Value="../src/x3d/x3dnodes_standard_cubemaptexturing.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_dis.inc"/>
         <Type Value="Include"/>
       </Item683>
       <Item684>
-        <Filename Value="../src/x3d/x3dnodes_standard_dis.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_environmentaleffects.inc"/>
         <Type Value="Include"/>
       </Item684>
       <Item685>
-        <Filename Value="../src/x3d/x3dnodes_standard_environmentaleffects.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_environmentalsensor.inc"/>
         <Type Value="Include"/>
       </Item685>
       <Item686>
-        <Filename Value="../src/x3d/x3dnodes_standard_environmentalsensor.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_eventutilities.inc"/>
         <Type Value="Include"/>
       </Item686>
       <Item687>
-        <Filename Value="../src/x3d/x3dnodes_standard_eventutilities.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_followers.inc"/>
         <Type Value="Include"/>
       </Item687>
       <Item688>
-        <Filename Value="../src/x3d/x3dnodes_standard_followers.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_geometry2d.inc"/>
         <Type Value="Include"/>
       </Item688>
       <Item689>
-        <Filename Value="../src/x3d/x3dnodes_standard_geometry2d.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_geometry3d.inc"/>
         <Type Value="Include"/>
       </Item689>
       <Item690>
-        <Filename Value="../src/x3d/x3dnodes_standard_geometry3d.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_geospatial.inc"/>
         <Type Value="Include"/>
       </Item690>
       <Item691>
-        <Filename Value="../src/x3d/x3dnodes_standard_geospatial.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_grouping.inc"/>
         <Type Value="Include"/>
       </Item691>
       <Item692>
-        <Filename Value="../src/x3d/x3dnodes_standard_grouping.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_h-anim.inc"/>
         <Type Value="Include"/>
       </Item692>
       <Item693>
-        <Filename Value="../src/x3d/x3dnodes_standard_h-anim.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_interpolation.inc"/>
         <Type Value="Include"/>
       </Item693>
       <Item694>
-        <Filename Value="../src/x3d/x3dnodes_standard_interpolation.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_interpolation_cubic_bezier.inc"/>
         <Type Value="Include"/>
       </Item694>
       <Item695>
-        <Filename Value="../src/x3d/x3dnodes_standard_interpolation_cubic_bezier.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_keydevicesensor.inc"/>
         <Type Value="Include"/>
       </Item695>
       <Item696>
-        <Filename Value="../src/x3d/x3dnodes_standard_keydevicesensor.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_layering.inc"/>
         <Type Value="Include"/>
       </Item696>
       <Item697>
-        <Filename Value="../src/x3d/x3dnodes_standard_layering.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_layout.inc"/>
         <Type Value="Include"/>
       </Item697>
       <Item698>
-        <Filename Value="../src/x3d/x3dnodes_standard_layout.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_lighting.inc"/>
         <Type Value="Include"/>
       </Item698>
       <Item699>
-        <Filename Value="../src/x3d/x3dnodes_standard_lighting.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_navigation.inc"/>
         <Type Value="Include"/>
       </Item699>
       <Item700>
-        <Filename Value="../src/x3d/x3dnodes_standard_navigation.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_networking.inc"/>
         <Type Value="Include"/>
       </Item700>
       <Item701>
-        <Filename Value="../src/x3d/x3dnodes_standard_networking.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_nurbs.inc"/>
         <Type Value="Include"/>
       </Item701>
       <Item702>
-        <Filename Value="../src/x3d/x3dnodes_standard_nurbs.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_particlesystems.inc"/>
         <Type Value="Include"/>
       </Item702>
       <Item703>
-        <Filename Value="../src/x3d/x3dnodes_standard_particlesystems.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_picking.inc"/>
         <Type Value="Include"/>
       </Item703>
       <Item704>
-        <Filename Value="../src/x3d/x3dnodes_standard_picking.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_pointingdevicesensor.inc"/>
         <Type Value="Include"/>
       </Item704>
       <Item705>
-        <Filename Value="../src/x3d/x3dnodes_standard_pointingdevicesensor.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_rendering.inc"/>
         <Type Value="Include"/>
       </Item705>
       <Item706>
-        <Filename Value="../src/x3d/x3dnodes_standard_rendering.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_rigidbodyphysics.inc"/>
         <Type Value="Include"/>
       </Item706>
       <Item707>
-        <Filename Value="../src/x3d/x3dnodes_standard_rigidbodyphysics.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_scripting.inc"/>
         <Type Value="Include"/>
       </Item707>
       <Item708>
-        <Filename Value="../src/x3d/x3dnodes_standard_scripting.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_shaders.inc"/>
         <Type Value="Include"/>
       </Item708>
       <Item709>
-        <Filename Value="../src/x3d/x3dnodes_standard_shaders.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_shape.inc"/>
         <Type Value="Include"/>
       </Item709>
       <Item710>
-        <Filename Value="../src/x3d/x3dnodes_standard_shape.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_sound.inc"/>
         <Type Value="Include"/>
       </Item710>
       <Item711>
-        <Filename Value="../src/x3d/x3dnodes_standard_sound.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_text.inc"/>
         <Type Value="Include"/>
       </Item711>
       <Item712>
-        <Filename Value="../src/x3d/x3dnodes_standard_text.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_texturing.inc"/>
         <Type Value="Include"/>
       </Item712>
       <Item713>
-        <Filename Value="../src/x3d/x3dnodes_standard_texturing.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_texturing3d.inc"/>
         <Type Value="Include"/>
       </Item713>
       <Item714>
-        <Filename Value="../src/x3d/x3dnodes_standard_texturing3d.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_time.inc"/>
         <Type Value="Include"/>
       </Item714>
       <Item715>
-        <Filename Value="../src/x3d/x3dnodes_standard_time.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_verticesandtrianglescounting.inc"/>
         <Type Value="Include"/>
       </Item715>
       <Item716>
-        <Filename Value="../src/x3d/x3dnodes_verticesandtrianglescounting.inc"/>
-        <Type Value="Include"/>
-      </Item716>
-      <Item717>
         <Filename Value="../src/x3d/x3dtime.pas"/>
         <UnitName Value="X3DTime"/>
-      </Item717>
-      <Item718>
+      </Item716>
+      <Item717>
         <Filename Value="../src/x3d/x3dtriangles.pas"/>
         <UnitName Value="X3DTriangles"/>
-      </Item718>
-      <Item719>
+      </Item717>
+      <Item718>
         <Filename Value="../src/x3d/x3dtriangles_raysegment_nonleaf.inc"/>
         <Type Value="Include"/>
+      </Item718>
+      <Item719>
+        <Filename Value="../src/2d/castleinternalspritesheet.pas"/>
+        <UnitName Value="CastleInternalSpriteSheet"/>
       </Item719>
       <Item720>
-        <Filename Value="../src/2d/castleinternalspritesheet.pas"/>
-        <UnitName Value="castleinternalspritesheet"/>
-      </Item720>
-      <Item721>
         <Filename Value="../src/game/castlebehaviors.pas"/>
         <UnitName Value="CastleBehaviors"/>
-      </Item721>
+      </Item720>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>
