@@ -22,7 +22,8 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, EditBtn,
-  ButtonPanel, ExtCtrls;
+  ButtonPanel, ExtCtrls,
+  ToolManifest;
 
 type
   TNewUnitType = (utEmpty, utClass, utState);
@@ -53,22 +54,17 @@ type
     procedure ComboUnitTypeChange(Sender: TObject);
   private
     FUnitType: TNewUnitType;
-
-    { Absolute directory (with final path delim) of the current project.
-      Set before ShowModal. }
-    ProjectPath: String;
-
     { Absolute directory (with final path delim) of the directory where
-      unit should be created.
-      Set before ShowModal.}
-    UnitOutputPath: String;
-
+      unit should be created. }
+    FUnitOutputPath: String;
+    { Current project manifest. }
+    FProjectManifest: TCastleManifest;
     procedure SetUnitType(const AValue: TNewUnitType);
     property UnitType: TNewUnitType read FUnitType write SetUnitType default utEmpty;
     procedure RefreshUiDependingOnUnitType;
   public
     procedure InitializeUi(const AUnitType: TNewUnitType;
-      const AProjectPath, AUnitOutputPath: String);
+      const AUnitOutputPath: String; const AProjectManifest: TCastleManifest);
   end;
 
 var
@@ -76,7 +72,7 @@ var
 
 implementation
 
-uses CastleFilesUtils, CastleURIUtils, CastleLog, CastleUtils,
+uses CastleFilesUtils, CastleURIUtils, CastleLog, CastleUtils, CastleStringUtils,
   EditorUtils;
 
 {$R *.lfm}
@@ -96,34 +92,28 @@ begin
 end;
 
 procedure TNewUnitForm.InitializeUi(const AUnitType: TNewUnitType;
-  const AProjectPath, AUnitOutputPath: String);
-var
-  RelativeUnitPath: String;
+  const AUnitOutputPath: String; const AProjectManifest: TCastleManifest);
 begin
   FUnitType := AUnitType;
-  ProjectPath := AProjectPath;
-  UnitOutputPath := AUnitOutputPath;
-
-  RelativeUnitPath := ExtractRelativePath(ProjectPath, UnitOutputPath);
-  EditUnitName.Text := 'GameSomething';
-  EditUnitFile.Text := RelativeUnitPath + 'gamesomething.pas';
+  FUnitOutputPath := AUnitOutputPath;
+  FProjectManifest := AProjectManifest;
 
   RefreshUiDependingOnUnitType;
 end;
 
 procedure TNewUnitForm.RefreshUiDependingOnUnitType;
 
-  function CheckUnitToInitializeState(const RelativeFileName: String): Boolean;
+  function CheckUnitToInitializeState(const FileName: String): Boolean;
   var
     Content: String;
   begin
     try
-      Content := FileToString(FilenameToURISafe(ProjectPath + RelativeFileName));
+      Content := FileToString(FilenameToURISafe(FileName));
     except
       on E: Exception do
       begin
         WritelnWarning('Could not open main unit to initialize states "%s": %s', [
-          RelativeFileName,
+          FileName,
           E.Message
         ]);
         Exit(false);
@@ -137,49 +127,76 @@ procedure TNewUnitForm.RefreshUiDependingOnUnitType;
       (Pos('{ CASTLE-INITIALIZATION-USES-END }', Content) <> 0);
   end;
 
+  { Find unit where state initialization takes place.
+    Returns '' if not found.
+    Returns relative filename (relative to project path) if found. }
+  function FindUnitToInitializeState: String;
+  var
+    UnitNames: TCastleStringList;
+    AUnitName, UnitFileNameAbsolute, UnitFileNameRelative: String;
+  begin
+    UnitNames := CreateTokens(FProjectManifest.GameUnits, WhiteSpaces + [',']);
+    try
+      for AUnitName in UnitNames do
+      begin
+        UnitFileNameAbsolute := FProjectManifest.SearchPascalUnit(AUnitName);
+        if (UnitFileNameAbsolute <> '') and
+           CheckUnitToInitializeState(UnitFileNameAbsolute) then
+        begin
+          UnitFileNameRelative := ExtractRelativePath(FProjectManifest.Path, UnitFileNameAbsolute);
+          Exit(UnitFileNameRelative);
+        end;
+      end;
+
+      Result := ''; // not found
+    finally FreeAndNil(UnitNames) end;
+  end;
+
 var
+  RelativeUnitPath: String;
   UnitToInitializeState: String;
-  UnitToInitializeStateFound, UnitToInitializeStateValid: Boolean;
 begin
   ComboUnitType.OnChange := nil; // avoid recursive ComboUnitType.OnChange calls
   ComboUnitType.ItemIndex := Ord(FUnitType);
   ComboUnitType.OnChange := @ComboUnitTypeChange;
 
+  RelativeUnitPath := ExtractRelativePath(FProjectManifest.Path, FUnitOutputPath);
+
   SetEnabledExists(PanelUnitClass, FUnitType = utClass);
   SetEnabledExists(PanelUnitState, FUnitType = utState);
 
   case UnitType of
+    utEmpty:
+      begin
+        EditUnitName.Text := 'GameSomething';
+      end;
     utClass:
-      EditClassName.Text := 'TSomething';
+      begin
+        EditUnitName.Text := 'GameSomething';
+        EditClassName.Text := 'TSomething';
+      end;
     utState:
       begin
-        UnitToInitializeState := 'code/gameinitialize.pas'; // TODO: should be taken from manifest
-        UnitToInitializeStateFound := FileExists(ProjectPath + UnitToInitializeState);
-        UnitToInitializeStateValid := UnitToInitializeStateFound and
-          CheckUnitToInitializeState(UnitToInitializeState);
+        UnitToInitializeState := FindUnitToInitializeState;
 
+        EditUnitName.Text := 'GameStateSomething';
         EditStateName.Text := 'TStateSomething';
-        EditStateFile.Text := 'castle-data:/state_something.castle-user-interface';
-        CheckStateInitialize.Checked := UnitToInitializeStateValid;
-        CheckStateInitialize.Enabled := UnitToInitializeStateValid;
+        EditStateFile.Text := 'castle-data:/gamestatesomething.castle-user-interface';
+        CheckStateInitialize.Checked := UnitToInitializeState <> '';
+        CheckStateInitialize.Enabled := UnitToInitializeState <> '';
 
-        if UnitToInitializeStateValid then
+        if UnitToInitializeState <> '' then
           LabelStateInitializeInfo.Caption := Format(
             'Select above checkbox to modify %s to add state initialization.',
             [UnitToInitializeState])
         else
-        if UnitToInitializeStateFound then
-          LabelStateInitializeInfo.Caption := Format(
-            'WARNING: Found %s, but it is missing special CASTLE-XXX comments (see the new project templates for example).' + NL +
-            'You will need to manually create the new state in Application.OnInitialize.',
-            [UnitToInitializeState])
-        else
-          LabelStateInitializeInfo.Caption := Format(
-            'WARNING: Cannot find %s.' + NL +
-            'You will need to manually create the new state in Application.OnInitialize.',
-            [UnitToInitializeState]);
+          LabelStateInitializeInfo.Caption :=
+            'WARNING: Cannot find unit with state initialization. We search units listed in game_units in CastleEngineManifest.xml, among the search paths, for special CASTLE-XXX comments (see the new project templates for example).' + NL + NL +
+            'You will need to manually create the new state in Application.OnInitialize.';
       end;
   end;
+
+  EditUnitFile.Text := RelativeUnitPath + LowerCase(EditUnitName.Text) + '.pas';
 end;
 
 procedure TNewUnitForm.ButtonStateFileClick(Sender: TObject);

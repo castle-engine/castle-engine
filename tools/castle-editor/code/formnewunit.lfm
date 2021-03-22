@@ -216,7 +216,7 @@ object NewUnitForm: TNewUnitForm
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Top = 8
       TabOrder = 1
-      Text = 'data/state_something.castle-user-interface'
+      Text = 'data/gamestatesomething.castle-user-interface'
     end
     object ButtonStateFile: TButton
       AnchorSideLeft.Control = EditStateFile
