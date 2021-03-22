@@ -224,6 +224,15 @@ type
       Most build tool code should use TCastleProject.PluginSourceFile instead,
       that can optionally auto-create the source file. }
     property PluginSource: string read FPluginSource;
+
+    { Find a file with given BaseName (contains filename, with extension, but without any path)
+      among SearchPaths of this project.
+      Returns absolute filename, or '' if not found. }
+    // unused: function SearchFile(const BaseName: String): String;
+
+    { Find a unit with given name among SearchPaths of this project.
+      Returns absolute filename, or '' if not found. }
+    function SearchPascalUnit(const AUnitName: String): String;
   end;
 
 function DependencyToString(const D: TDependency): string;
@@ -758,6 +767,51 @@ begin
   GuessDependencies; // depends on FDataExists finalized, so must be after CheckDataExists
   CloseDependencies; // must be after GuessDependencies, to close also guesses dependencies
   CheckManifestCorrect; // must be at end, to validate all
+end;
+
+{
+function TCastleManifest.SearchFile(const BaseName: String): String;
+var
+  SearchPath, FileNameAbsolute: String;
+begin
+  for SearchPath in SearchPaths do
+  begin
+    FileNameAbsolute := CombinePaths(CombinePaths(Path, SearchPath), BaseName);
+    if RegularFileExists(FileNameAbsolute) then
+      Exit(FileNameAbsolute);
+  end;
+  Result := '';
+end;
+}
+
+function TCastleManifest.SearchPascalUnit(const AUnitName: String): String;
+var
+  SearchPath, FileNameAbsolute, SearchPathAbsolute: String;
+begin
+  for SearchPath in SearchPaths do
+  begin
+    SearchPathAbsolute := CombinePaths(Path, SearchPath);
+
+    FileNameAbsolute := CombinePaths(SearchPathAbsolute, AUnitName + '.pas');
+    if RegularFileExists(FileNameAbsolute) then
+      Exit(FileNameAbsolute);
+
+    FileNameAbsolute := CombinePaths(SearchPathAbsolute, AUnitName + '.pp');
+    if RegularFileExists(FileNameAbsolute) then
+      Exit(FileNameAbsolute);
+
+    { for case-sensitive filesystems, search also for lowercase version,
+      just like FPC does. }
+
+    FileNameAbsolute := CombinePaths(SearchPathAbsolute, LowerCase(AUnitName) + '.pas');
+    if RegularFileExists(FileNameAbsolute) then
+      Exit(FileNameAbsolute);
+
+    FileNameAbsolute := CombinePaths(SearchPathAbsolute, LowerCase(AUnitName) + '.pp');
+    if RegularFileExists(FileNameAbsolute) then
+      Exit(FileNameAbsolute);
+  end;
+  Result := '';
 end;
 
 { globals -------------------------------------------------------------------- }

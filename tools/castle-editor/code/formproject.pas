@@ -24,20 +24,22 @@ uses
   Classes, SysUtils, DOM, FileUtil, Forms, Controls, Graphics, Dialogs, Menus,
   ExtCtrls, ComCtrls, CastleShellCtrls, StdCtrls, ValEdit, ActnList, Buttons,
   ProjectUtils, Types, Contnrs, CastleControl, CastleUIControls,
-  CastlePropEdits, CastleDialogs, X3DNodes, EditorUtils, FrameDesign,
-  FrameViewFile;
+  CastlePropEdits, CastleDialogs, X3DNodes, CastleFindFiles,
+  EditorUtils, FrameDesign, FrameViewFile, ToolManifest;
 
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionEditAssociatedUnit: TAction;
     ActionNewUnitClass: TAction;
     ActionNewUnitState: TAction;
     ActionNewUnitEmpty: TAction;
-    ActionEditUnitCode: TAction;
+    ActionEditUnit: TAction;
     ActionOpenProjectCode: TAction;
     ActionList1: TActionList;
     ApplicationProperties1: TApplicationProperties;
     ButtonClearWarnings: TBitBtn;
+    MenuItem1: TMenuItem;
     OpenPascalUnitDialog: TCastleOpenPascalUnitDialog;
     MenuItemPopupNewUnitEmpty: TMenuItem;
     MenuItemPopupNewUnitClass: TMenuItem;
@@ -135,7 +137,8 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
-    procedure ActionEditUnitCodeExecute(Sender: TObject);
+    procedure ActionEditAssociatedUnitExecute(Sender: TObject);
+    procedure ActionEditUnitExecute(Sender: TObject);
     procedure ActionNewUnitClassExecute(Sender: TObject);
     procedure ActionNewUnitEmptyExecute(Sender: TObject);
     procedure ActionNewUnitStateExecute(Sender: TObject);
@@ -206,6 +209,7 @@ type
         rfEverything
       );
     var
+      Manifest: TCastleManifest;
       ProjectName: String;
       ProjectPath, ProjectPathUrl, ProjectStandaloneSource, ProjectLazarus: String;
       BuildMode: TBuildMode;
@@ -265,8 +269,7 @@ uses TypInfo, LCLType,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
   FormChooseProject, ToolCommonUtils, FormAbout, FormPreferences,
-  ToolCompilerInfo, ToolManifest,
-  FormNewUnit;
+  ToolCompilerInfo, FormNewUnit;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
 begin
@@ -422,10 +425,22 @@ begin
       'Create Lazarus project (e.g. by "castle-engine generate-program") and update CastleEngineManifest.xml.');
 end;
 
-procedure TProjectForm.ActionEditUnitCodeExecute(Sender: TObject);
+procedure TProjectForm.ActionEditUnitExecute(Sender: TObject);
 begin
   if OpenPascalUnitDialog.Execute then
     OpenPascal(OpenPascalUnitDialog.FileName);
+end;
+
+procedure TProjectForm.ActionEditAssociatedUnitExecute(Sender: TObject);
+var
+  AUnitName, UnitFileNameAbsolute: String;
+begin
+  AUnitName := DeleteURIExt(ExtractURIName(Design.DesignUrl));
+  UnitFileNameAbsolute := Manifest.SearchPascalUnit(AUnitName);
+  if UnitFileNameAbsolute <> '' then
+    OpenPascal(UnitFileNameAbsolute)
+  else
+    ErrorBox('Cannot find Pascal unit ' + AUnitName + ' (filename like "' + AUnitName + '.pas") among the search paths listed in CastleEngineManifest.xml');
 end;
 
 procedure TProjectForm.ActionNewUnitClassExecute(Sender: TObject);
@@ -533,6 +548,7 @@ begin
   ApplicationDataOverride := '';
   FreeProcess;
   FreeAndNil(OutputList);
+  FreeAndNil(Manifest);
 end;
 
 procedure TProjectForm.FormHide(Sender: TObject);
@@ -783,6 +799,7 @@ begin
   MenuItemCopyComponent.Enabled := Design <> nil;
   MenuItemPasteComponent.Enabled := Design <> nil;
   MenuItemDuplicateComponent.Enabled := Design <> nil;
+  ActionEditAssociatedUnit.Enabled := Design <> nil;
 
   UpdateUndo(nil);
   UpdateRenameItem(nil);
@@ -1240,24 +1257,22 @@ begin
 end;
 
 procedure TProjectForm.OpenProject(const ManifestUrl: String);
-var
-  Manifest: TCastleManifest;
 begin
   { Below we assume ManifestUrl contains an absolute path,
     otherwise ProjectPathUrl could be '',
     and OpenDesignDialog.InitialDir would be left '' and so on. }
 
+  FreeAndNil(Manifest); // free previous manifest, if any
   Manifest := TCastleManifest.CreateFromUrl(ManifestUrl);
-  try
-    ProjectName := Manifest.Name;
-    ProjectPath := Manifest.Path;
-    ProjectPathUrl := Manifest.PathUrl;
-    ProjectStandaloneSource := Manifest.StandaloneSource;
-    ProjectLazarus := Manifest.LazarusProject;
-    if (Manifest.EditorUnits <> '') and
-       (not InternalHasCustomComponents) then
-      WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
-  finally FreeAndNil(Manifest) end;
+
+  ProjectName := Manifest.Name;
+  ProjectPath := Manifest.Path;
+  ProjectPathUrl := Manifest.PathUrl;
+  ProjectStandaloneSource := Manifest.StandaloneSource;
+  ProjectLazarus := Manifest.LazarusProject;
+  if (Manifest.EditorUnits <> '') and
+     (not InternalHasCustomComponents) then
+    WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
 
   { Make some fields absolute paths, or empty }
   if ProjectStandaloneSource <> '' then

@@ -340,8 +340,11 @@ object ProjectForm: TProjectForm
       object MenuItemOpenProjectCode: TMenuItem
         Action = ActionOpenProjectCode
       end
+      object MenuItem1: TMenuItem
+        Action = ActionEditAssociatedUnit
+      end
       object MenuItemEditUnitCode: TMenuItem
-        Action = ActionEditUnitCode
+        Action = ActionEditUnit
       end
       object N2: TMenuItem
         Caption = '-'
@@ -641,9 +644,9 @@ object ProjectForm: TProjectForm
       Caption = 'Open Project in Lazarus'
       OnExecute = ActionOpenProjectCodeExecute
     end
-    object ActionEditUnitCode: TAction
-      Caption = 'Edit Unit Code...'
-      OnExecute = ActionEditUnitCodeExecute
+    object ActionEditUnit: TAction
+      Caption = 'Edit Unit...'
+      OnExecute = ActionEditUnitExecute
     end
     object ActionNewUnitEmpty: TAction
       Caption = 'Empty Unit'
@@ -657,9 +660,13 @@ object ProjectForm: TProjectForm
       Caption = 'Unit With State'
       OnExecute = ActionNewUnitStateExecute
     end
+    object ActionEditAssociatedUnit: TAction
+      Caption = 'Edit Unit Associated With Open Design'
+      OnExecute = ActionEditAssociatedUnitExecute
+      ShortCut = 123
+    end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog
-    Filter = 'Pascal unit (*.pas, *.pp)|*.pas;*.pp|All Files|*'
     Left = 263
     Top = 200
   end
