@@ -1,5 +1,6 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestKeysMouse" -*-
 {
-  Copyright 2012-2018 Michalis Kamburelis.
+  Copyright 2012-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,10 +19,11 @@ unit TestCastleKeysMouse;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase;
 
 type
-  TTestKeysMouse = class(TTestCase)
+  TTestKeysMouse = class(TCastleTestCase)
   published
     procedure TestKey;
     procedure TestKeyToStrAndBack;

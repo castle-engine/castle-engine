@@ -1038,7 +1038,7 @@ type
       DefaultShadowMapsDefaultSize = 256;
 
     constructor Create(AOwner: TComponent); override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Load the model given as a X3D nodes graph.
       This replaces RootNode with new value.
@@ -1170,7 +1170,7 @@ type
     function ViewpointsCount: Cardinal;
     function GetViewpointName(Idx: integer): string;
     procedure MoveToViewpoint(Idx: integer; Animated: boolean = true);
-    procedure AddViewpointFromCamera(const Navigation: TCastleNavigation;
+    procedure AddViewpointFromNavigation(const Navigation: TCastleNavigation;
       const AName: string);
     { @groupEnd }
 
@@ -7903,7 +7903,7 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.AddViewpointFromCamera(
+procedure TCastleSceneCore.AddViewpointFromNavigation(
   const Navigation: TCastleNavigation; const AName: string);
 var
   APosition: TVector3;
@@ -7925,7 +7925,7 @@ begin
   if RootNode = nil then
     raise Exception.Create('You have to initialize RootNode, usually just by loading some scene to TCastleSceneCore.Load, before adding viewpoints');
   if Navigation.InternalViewport = nil then
-    raise Exception.Create('Navigation must be part of some Viewport before using AddViewpointFromCamera');
+    raise Exception.Create('Navigation must be part of some Viewport before using AddViewpointFromNavigation');
 
   Navigation.Camera.GetView(APosition, ADirection, AUp, GravityUp);
 
@@ -8405,14 +8405,14 @@ begin
     Result.Load(RootNode.DeepCopy as TX3DRootNode, true);
 end;
 
-function TCastleSceneCore.PropertySection(
-  const PropertyName: String): TPropertySection;
+function TCastleSceneCore.PropertySections(
+  const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
     'URL', 'ProcessEvents', 'AutoAnimation', 'AutoAnimationLoop', 'DefaultAnimationTransition', 'Spatial':
-      Result := psBasic;
+      Result := [psBasic];
     else
-      Result := inherited PropertySection(PropertyName);
+      Result := inherited PropertySections(PropertyName);
   end;
 end;
 

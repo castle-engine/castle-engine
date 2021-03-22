@@ -95,7 +95,7 @@
     constructor Create;
     destructor Destroy; override;
 
-    { 2D GUI images, represented as TCastleImage.
+    { Theme images, represented as TCastleImage.
       Although they all have sensible defaults, you can also change them
       at any time. Simply create TCastleImage instance (e.g. by LoadImage
       function) and assign it here. Be sure to adjust also @link(OwnsImages)
@@ -105,6 +105,20 @@
       The alpha channel of the image, if any, is automatically correctly used
       (for alpha test or alpha blending, see TDrawableImage). }
     property Images[const ImageType: TThemeImage]: TCastleImage read GetImages write SetImages; deprecated 'use ImagesPersistent[...].Image';
+
+    { Images used to draw UI controls by default.
+
+      You can adjust them e.g. to adjust how a default TCastleButton looks.
+      Note that some controls have properties to override the "theme" look
+      for a particular control, e.g. on a particular TCastleButton
+      you can set @link(TCastleButton.CustomBackground) and
+      @link(TCastleButton.CustomBackgroundNormal).
+
+      When adjusting these images, it is simplest to assign
+      the image URL by setting @link(TCastleImagePersistent.URL).
+      See https://castle-engine.io/manual_2d_user_interface.php#section_theme .
+      Adjust also @link(TCastleImagePersistent.ProtectedSides) to use
+      @url(https://en.wikipedia.org/wiki/9-slice_scaling 9-slice scaling). }
     property ImagesPersistent[const ImageType: TThemeImage]: TCastleImagePersistent read GetImagePersistent;
 
     property OwnsImages[const ImageType: TThemeImage]: boolean read GetOwnsImages write SetOwnsImages; deprecated 'use ImagesPersistent[...].OwnsImage';

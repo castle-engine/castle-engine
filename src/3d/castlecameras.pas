@@ -1197,7 +1197,7 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
     function AllowSuspendForInput: boolean; override;
@@ -1596,7 +1596,7 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
     function AllowSuspendForInput: boolean; override;
@@ -3811,15 +3811,15 @@ begin
     Result := ntExamine;
 end;
 
-function TCastleExamineNavigation.PropertySection(
-  const PropertyName: String): TPropertySection;
+function TCastleExamineNavigation.PropertySections(
+  const PropertyName: String): TPropertySections;
 begin
   if (PropertyName = 'MoveEnabled') or
      (PropertyName = 'RotationEnabled') or
      (PropertyName = 'ZoomEnabled') then
-    Result := psBasic
+    Result := [psBasic]
   else
-    Result := inherited PropertySection(PropertyName);
+    Result := inherited PropertySections(PropertyName);
 end;
 
 { TCastleMouseLookNavigation ------------------------------------------------- }
@@ -5311,14 +5311,14 @@ begin
     Result := ntFly;
 end;
 
-function TCastleWalkNavigation.PropertySection(
-  const PropertyName: String): TPropertySection;
+function TCastleWalkNavigation.PropertySections(
+  const PropertyName: String): TPropertySections;
 begin
   if (PropertyName = 'Gravity') or
      (PropertyName = 'MoveSpeed') then
-    Result := psBasic
+    Result := [psBasic]
   else
-    Result := inherited PropertySection(PropertyName);
+    Result := inherited PropertySections(PropertyName);
 end;
 
 { global ------------------------------------------------------------ }

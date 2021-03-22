@@ -1420,7 +1420,7 @@ type
     procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
       const ChangeInitiatedByChildren: boolean = false); override;
     procedure InternalAddChild(const C: TComponent); override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
     function GetEnumerator: TEnumerator;
 
     property Controls [Index: Integer]: TCastleUserInterface read GetControls write SetControls;
@@ -4620,13 +4620,14 @@ begin
     (longrec(DesignInfo).Hi<>Longrec(temp).Hi));
 end;
 
-function TCastleUserInterface.PropertySection(
-  const PropertyName: String): TPropertySection;
+function TCastleUserInterface.PropertySections(
+  const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
     'Exists':
-      Result := psBasic;
-    'FullSize',
+      Result := [psBasic];
+    'FullSize':
+      Result := [psBasic, psLayout];
     'Width',
     'Height',
     'HeightFraction',
@@ -4644,9 +4645,9 @@ begin
     'Bottom',
     'Border',
     'BorderColorPersistent':
-      Result := psLayout;
+      Result := [psLayout];
     else
-      Result := inherited PropertySection(PropertyName);
+      Result := inherited PropertySections(PropertyName);
   end;
 end;
 

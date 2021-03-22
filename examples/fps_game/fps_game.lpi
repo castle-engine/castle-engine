@@ -39,6 +39,15 @@
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
+    <Target>
+      <Filename Value="fps_game"/>
+    </Target>
+    <SearchPaths>
+      <IncludeFiles Value="code/"/>
+      <OtherUnitFiles Value="code/"/>
+      <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
+      <Libraries Value="" />
+    </SearchPaths>
     <Parsing>
       <SyntaxOptions>
         <CStyleMacros Value="True"/>

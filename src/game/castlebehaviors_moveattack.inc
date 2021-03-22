@@ -149,7 +149,7 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
     { Current state of the creature, automatically changing. }
@@ -1279,14 +1279,14 @@ begin
 end;
 *)
 
-function TCastleMoveAttack.PropertySection(
-  const PropertyName: String): TPropertySection;
+function TCastleMoveAttack.PropertySections(
+  const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
     // 'Life', 'MaxLife': // TODO
-    //   Result := psBasic;
+    //   Result := [psBasic];
     // else
-      Result := inherited PropertySection(PropertyName);
+      Result := inherited PropertySections(PropertyName);
   end;
 end;
 

@@ -49,11 +49,13 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="play_animation_standalone"/>
+      <Filename Value="play_animation"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="$(ProjOutDir)"/>
-      <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
+      <IncludeFiles Value="code/"/>
+      <OtherUnitFiles Value="code/"/>
+      <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
+      <Libraries Value="" />
     </SearchPaths>
     <Other>
       <Verbosity>

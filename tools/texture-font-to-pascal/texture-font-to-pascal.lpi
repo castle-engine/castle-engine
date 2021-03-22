@@ -16,13 +16,23 @@
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
+    <Target>
+      <Filename Value="texture-font-to-pascal"/>
+    </Target>
     <Parsing>
       <SyntaxOptions>
         <UseAnsiStrings Value="True"/>
       </SyntaxOptions>
     </Parsing>
     <SearchPaths>
-      <IncludeFiles Value="$(ProjOutDir);../../src/base"/>
+      <IncludeFiles Value="code/"/>
+      <OtherUnitFiles Value="code/"/>
+      <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
+    <Other>
+      <Verbosity>
+        <ShowHints Value="False"/>
+      </Verbosity>
+    </Other>
   </CompilerOptions>
 </CONFIG>

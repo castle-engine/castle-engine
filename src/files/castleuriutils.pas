@@ -826,7 +826,7 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
 
   function ExtToMimeType(const URI: string): string;
   var
-    Ext, ExtExt, ExtA{, ExtExtA}, URIWithoutAnchor: String;
+    Ext, ExtExt, ExtA{, ExtExtA}, URIWithoutAnchor, URIName: String;
   begin
     { We're consciously using here ExtractFileExt and ExtractFileDoubleExt on URIs,
       although they should be used for filenames.
@@ -846,6 +846,8 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
     URIWithoutAnchor := URIDeleteAnchor(URI, true);
     ExtA := LowerCase(ExtractFileExt(URIWithoutAnchor));
     // unused: ExtExtA := LowerCase(ExtractFileDoubleExt(URIWithoutAnchor));
+
+    URIName := LowerCase(ExtractURIName(URI));
 
     { This list is based on
       http://svn.freepascal.org/cgi-bin/viewvc.cgi/trunk/lcl/interfaces/customdrawn/customdrawnobject_android.inc?root=lazarus&view=co&content-type=text%2Fplain
@@ -929,6 +931,8 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
     if Ext = '.cpp' then Result := 'text/plain' else
     if Ext = '.java' then Result := 'text/plain' else
     if Ext = '.log' then Result := 'text/plain'  else
+    if Ext = '.md' then Result := 'text/plain' else
+    if URIName = '.gitignore' then Result := 'text/plain' else
     // Videos
     if Ext = '.mp4' then Result := 'video/mp4' else
     if Ext = '.avi' then Result := 'video/x-msvideo' else

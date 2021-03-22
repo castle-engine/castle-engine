@@ -25,7 +25,7 @@ program terrain;
 
 uses CastleApplicationProperties, CastleLog, CastleWindow,
   CastleParameters,
-  TerrainInitialize;
+  GameInitialize;
 
 begin
   Application.ParseStandardParameters;

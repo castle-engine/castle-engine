@@ -8,9 +8,9 @@
     -->
     <!-- See https://developers.google.com/android/guides/setup#split
       and https://developers.heyzap.com/docs/android_sdk_setup_and_requirements# -->
-    <dependency>compile 'com.google.android.gms:play-services-ads:18.1.1'</dependency>
-    <dependency>compile 'com.google.android.gms:play-services-location:17.0.0'</dependency>
-    <dependency>compile(name:'AudienceNetwork', ext:'aar')</dependency>
-    <dependency>compile(name:'unity-ads', ext:'aar')</dependency>
+    <dependency>api 'com.google.android.gms:play-services-ads:18.1.1'</dependency>
+    <dependency>api 'com.google.android.gms:play-services-location:17.0.0'</dependency>
+    <dependency>api(name:'AudienceNetwork', ext:'aar')</dependency>
+    <dependency>api(name:'unity-ads', ext:'aar')</dependency>
   </dependencies>
 </build_gradle_merge>

@@ -5,4 +5,9 @@
   qualified_name="com.mycompany.shadereffects"
   caption="Shader Effects Demo"
 >
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
 </project>

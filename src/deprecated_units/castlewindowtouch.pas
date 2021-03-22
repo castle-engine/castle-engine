@@ -24,6 +24,8 @@ uses Classes, CastleWindow, CastleControls, CastleCameras,
   CastleUIControls, CastleViewport;
 
 type
+  TTouchInterface = CastleViewport.TTouchInterface;
+
   { Full-featured window for rendering (see @link(TCastleWindow))
     with optional touch controls, to provide a 3D navigation comfortable
     on touch devices (phones, tablets and such).
@@ -81,6 +83,8 @@ const
   tiCtlWalkDragRotate = tiWalkRotate deprecated;
   tiCtlFlyCtlWalkDragRotate = tiFlyWalk deprecated;
   tiCtlPanXYDragRotate = tiPan deprecated;
+
+  tiNone = CastleViewport.tiNone;
 
 implementation
 

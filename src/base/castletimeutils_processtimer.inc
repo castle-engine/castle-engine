@@ -24,14 +24,11 @@ type
   TProcessTimerResult = record
   private
     Value:
-      {$ifdef UNIX}
-        {$ifdef CASTLE_NINTENDO_SWITCH}
-          QWord
-        {$else}
-          clock_t // other Unix
-        {$endif}
-      {$endif}
-      {$ifdef MSWINDOWS} DWord {$endif};
+      {$if defined(MSWINDOWS) or defined(CASTLE_NINTENDO_SWITCH)}
+      QWord // ProcessTimer just does CastleGetTickCount64
+      {$else}
+      clock_t // Unix
+      {$endif};
   public
     { Seconds passed since this time sample up to now.
       Equivalent to @code(ProcessTimerSeconds(ProcessTimer, Self)) }

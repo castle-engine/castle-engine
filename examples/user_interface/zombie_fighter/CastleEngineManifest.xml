@@ -4,7 +4,8 @@
   qualified_name="io.castleengine.zombie.fighter"
   standalone_source="zombie_fighter_standalone.lpr"
   game_units="GameInitialize"
-  author="Michalis Kamburelis">
+  author="Michalis Kamburelis"
+>
   <version value="1.0" code="1" />
   <compiler_options>
     <search_paths>

@@ -70,7 +70,7 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    api fileTree(dir: 'libs', include: ['*.jar'])
 
     // For ActivityCompat
     // See https://developer.android.com/jetpack/androidx/releases/activity

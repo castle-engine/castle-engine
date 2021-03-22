@@ -1,5 +1,6 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestFPImage" -*-
 {
-  Copyright 2011-2018 Michalis Kamburelis.
+  Copyright 2011-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,15 +14,17 @@
   ----------------------------------------------------------------------------
 }
 
+{ Test FPC FpImage unit. }
 unit TestFPImage;
 
 interface
 
 uses
-  FpcUnit, TestUtils, TestRegistry;
+  FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase;
 
 type
-  TTestFPImage = class(TTestCase)
+  TTestFPImage = class(TCastleTestCase)
   published
     procedure TestJPEG;
   end;

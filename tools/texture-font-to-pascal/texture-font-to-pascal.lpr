@@ -17,7 +17,6 @@
   to embed fonts inside source code. }
 
 {$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
-{$I castleconf.inc}
 
 uses Classes, SysUtils,
   CastleFont2Pascal, CastleUtils, CastleClassUtils, CastleLog,

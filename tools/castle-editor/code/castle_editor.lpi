@@ -128,7 +128,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="15">
+    <Units Count="16">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -232,6 +232,13 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="FormImportStarling"/>
       </Unit14>
+      <Unit15>
+        <Filename Value="formnewunit.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="NewUnitForm"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="FormNewUnit"/>
+      </Unit15>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -1,5 +1,6 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleFilesUtils" -*-
 {
-  Copyright 2007-2018 Michalis Kamburelis.
+  Copyright 2007-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,22 +14,17 @@
   ----------------------------------------------------------------------------
 }
 
-{ Test some OS-specific utilities in castle_game_engine,
-  mostly in CastleFilesUtils unit.
-  Usually the mere purpose of these utilities is to hide some OS-specific
-  (UNIX-specific, Windows-specific) things from program. }
-
+{ Test OS-specific utilities mostly in CastleFilesUtils unit. }
 unit TestCastleFilesUtils;
-
-{$mode objfpc}{$H+}
 
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase;
 
 type
-  TTestOSSpecific = class(TTestCase)
+  TTestCastleFilesUtils = class(TCastleTestCase)
   published
     procedure TestPathDelim;
     procedure TestExeName;
@@ -42,7 +38,7 @@ implementation
 uses CastleUtils, CastleFindFiles, CastleFilesUtils, CastleTimeUtils
   {$ifdef UNIX}, BaseUnix {$endif};
 
-procedure TTestOSSpecific.TestPathDelim;
+procedure TTestCastleFilesUtils.TestPathDelim;
 begin
   { slash should be added / stripped on both Windows and Unix }
 
@@ -83,7 +79,7 @@ begin
   {$endif}
 end;
 
-procedure TTestOSSpecific.TestExeName;
+procedure TTestCastleFilesUtils.TestExeName;
 begin
   try
     {$push} // knowingly using deprecated below, for test
@@ -101,7 +97,7 @@ begin
   end;
 end;
 
-procedure TTestOSSpecific.TestTimer;
+procedure TTestCastleFilesUtils.TestTimer;
 {var
   TimerStart: TTimerResult;}
 begin
@@ -118,7 +114,7 @@ begin
 end;
 
 {$ifdef UNIX}
-procedure TTestOSSpecific.TestHomePath;
+procedure TTestCastleFilesUtils.TestHomePath;
 begin
 {  Writeln('HomePath is ', HomePath);
   Writeln('  ~/expanded is ', ExpandHomePath('~/expanded')); }
@@ -128,12 +124,12 @@ begin
 end;
 {$endif}
 
-procedure TTestOSSpecific.TestGetTempDir;
+procedure TTestCastleFilesUtils.TestGetTempDir;
 begin
 //  Writeln('TempDir: ', GetTempDir);
   GetTempDir; // ignore result, just make sure it doesn't raise errors
 end;
 
 initialization
-  RegisterTest(TTestOSSpecific);
+  RegisterTest(TTestCastleFilesUtils);
 end.

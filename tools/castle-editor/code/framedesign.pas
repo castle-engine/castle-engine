@@ -101,7 +101,6 @@ type
     TabEvents: TTabSheet;
     TabLayout: TTabSheet;
     TabBasic: TTabSheet;
-    TabOther: TTabSheet;
     UpdateObjectInspector: TTimer;
     procedure ButtonClearAnchorDeltasClick(Sender: TObject);
     procedure ButtonResetTransformationClick(Sender: TObject);
@@ -193,7 +192,7 @@ type
 
       TTreeNodeSide = (tnsRight, tnsBottom, tnsTop);
 
-      TInspectorType = (itBasic, itLayout, itOther, itEvents, itAll);
+      TInspectorType = (itBasic, itLayout, itEvents, itAll);
 
     const
       TransformModes = [
@@ -273,8 +272,6 @@ type
     procedure InspectorBasicFilter(Sender: TObject; AEditor: TPropertyEditor;
       var aShow: Boolean);
     procedure InspectorLayoutFilter(Sender: TObject; AEditor: TPropertyEditor;
-      var aShow: Boolean);
-    procedure InspectorOtherFilter(Sender: TObject; AEditor: TPropertyEditor;
       var aShow: Boolean);
     procedure MarkModified;
     function UndoMessageModified(const Sel: TPersistent;
@@ -1001,11 +998,6 @@ begin
   Inspector[itLayout].Align := alBottom;
   Inspector[itLayout].AnchorToNeighbour(akTop, 0, PanelLayoutTop);
 
-  Inspector[itOther] := CommonInspectorCreate;
-  Inspector[itOther].Parent := TabOther;
-  Inspector[itOther].OnEditorFilter := @InspectorOtherFilter;
-  Inspector[itOther].Filter := tkProperties;
-
   Inspector[itAll] := CommonInspectorCreate;
   Inspector[itAll].Parent := TabAll;
   Inspector[itAll].Filter := tkProperties;
@@ -1206,15 +1198,25 @@ var
 begin
   NewDesignOwner := TComponent.Create(Self);
 
-  Mime := URIMimeType(NewDesignUrl);
-  if Mime = 'text/x-castle-user-interface' then
-    NewDesignRoot := UserInterfaceLoad(NewDesignUrl, NewDesignOwner)
-  else
-  if Mime = 'text/x-castle-transform' then
-    NewDesignRoot := TransformLoad(NewDesignUrl, NewDesignOwner)
-  else
-    raise Exception.CreateFmt('Unrecognized file extension %s (MIME type %s)',
-      [ExtractFileExt(NewDesignUrl), Mime]);
+  try
+    Mime := URIMimeType(NewDesignUrl);
+    if Mime = 'text/x-castle-user-interface' then
+      NewDesignRoot := UserInterfaceLoad(NewDesignUrl, NewDesignOwner)
+    else
+    if Mime = 'text/x-castle-transform' then
+      NewDesignRoot := TransformLoad(NewDesignUrl, NewDesignOwner)
+    else
+      raise Exception.CreateFmt('Unrecognized file extension %s (MIME type %s)',
+        [ExtractFileExt(NewDesignUrl), Mime]);
+  except
+    { Testcase: try to load using UserInterfaceLoad a file
+      that has TCastleTransform inside. UserInterfaceLoad makes EInvalidCast. }
+    on E: Exception do
+    begin
+      E.Message := 'Error when loading ' + URIDisplay(NewDesignUrl) + ': ' + E.Message;
+      raise;
+    end;
+  end;
 
   UndoSystem.ClearUndoHistory;
 
@@ -1927,7 +1929,7 @@ begin
     { Show=true when Instance is some class used for subcomponents,
       like TCastleVector3Persistent, TBorder, TCastleImagePersistent... }
     if (not (Instance is TCastleComponent)) or
-       (TCastleComponent(Instance).PropertySection(PropertyName) = Section) then
+       (Section in TCastleComponent(Instance).PropertySections(PropertyName)) then
     begin
       AShow := true;
       Exit;
@@ -1960,12 +1962,6 @@ procedure TDesignFrame.InspectorLayoutFilter(Sender: TObject;
   AEditor: TPropertyEditor; var aShow: Boolean);
 begin
   InspectorFilter(Sender, AEditor, AShow, psLayout);
-end;
-
-procedure TDesignFrame.InspectorOtherFilter(Sender: TObject;
-  AEditor: TPropertyEditor; var aShow: Boolean);
-begin
-  InspectorFilter(Sender, AEditor, AShow, psOther);
 end;
 
 function TDesignFrame.UndoMessageModified(const Sel: TPersistent;

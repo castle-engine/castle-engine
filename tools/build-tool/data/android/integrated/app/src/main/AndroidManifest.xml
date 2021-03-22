@@ -35,10 +35,20 @@ ${ANDROID_ASSOCIATE_DOCUMENT_TYPES}
         </activity>
     </application>
 
-    <!-- Avoid warning from ndk-build
+    <!--
+    Without the line about android:minSdkVersion, we get a warning:
       Android NDK: WARNING: APP_PLATFORM android-16 is higher than android:minSdkVersion 1 in ./AndroidManifest.xml. NDK binaries will *not* be compatible with devices older than android-16. See https://android.googlesource.com/platform/ndk/+/master/docs/user/common_problems.md for more information.
+
+    With this line, we get an error on latest Android Gradle Plugin 4.1.0:
+      Caused by: com.android.builder.errors.EvalIssueException: Failed to parse XML in /mnt/data-linux/sources/cat-astrophe-games/unholy_society/trunk/castle-engine-output/android/project/app/src/main/AndroidManifest.xml
+      The minSdk version should not be declared in the android manifest file. You can move the version from the manifest to the defaultConfig in the build.gradle file.
+
+    The error makes sense, indeed this information is also duplicated in build.gradle.
     -->
+    <!--
     <uses-sdk android:minSdkVersion="${ANDROID_MIN_SDK_VERSION}" />
+    -->
+
 
     <uses-feature android:glEsVersion="0x00020000"/>
 

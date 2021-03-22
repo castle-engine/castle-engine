@@ -48,7 +48,7 @@
     function TooltipExists: boolean; override;
     procedure TooltipRender(const TooltipPosition: TVector2); override;
     procedure Render; override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Copy font properties from another control. }
     procedure AssignFont(const Source: TCastleUserInterfaceFont);
@@ -450,13 +450,13 @@ begin
   FontScale := Source.FontScale;
 end;
 
-function TCastleUserInterfaceFont.PropertySection(
-  const PropertyName: String): TPropertySection;
+function TCastleUserInterfaceFont.PropertySections(
+  const PropertyName: String): TPropertySections;
 begin
   if (PropertyName = 'FontSize') then
-    Result := psBasic
+    Result := [psBasic]
   else
-    Result := inherited PropertySection(PropertyName);
+    Result := inherited PropertySections(PropertyName);
 end;
 
 {$define read_implementation_methods}

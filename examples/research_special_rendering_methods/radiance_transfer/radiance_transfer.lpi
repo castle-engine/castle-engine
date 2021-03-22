@@ -43,8 +43,10 @@
       <Filename Value="radiance_transfer"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="../../../src/base;$(ProjOutDir)"/>
+      <IncludeFiles Value="code/;../common_code/"/>
+      <OtherUnitFiles Value="code/;../common_code/"/>
       <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
+      <Libraries Value="" />
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>

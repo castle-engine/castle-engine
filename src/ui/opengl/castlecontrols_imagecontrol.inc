@@ -105,7 +105,7 @@
     procedure GLContextOpen; override;
     procedure EditorAllowResize(
       out ResizeWidth, ResizeHeight: Boolean; out Reason: String); override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Image contents, or @nil if none. You can set it by setting @link(URL),
       or by setting this property directly,
@@ -698,16 +698,16 @@ begin
   ProtectedSides.Left   := Value[3];
 end;
 
-function TCastleImageControl.PropertySection(
-  const PropertyName: String): TPropertySection;
+function TCastleImageControl.PropertySections(
+  const PropertyName: String): TPropertySections;
 begin
   if (PropertyName = 'URL') or
      (PropertyName = 'Stretch') or
      (PropertyName = 'ProportionalScaling') or
      (PropertyName = 'ColorPersistent') then
-    Result := psBasic
+    Result := [psBasic]
   else
-    Result := inherited PropertySection(PropertyName);
+    Result := inherited PropertySections(PropertyName);
 end;
 
 function TCastleImageControl.GetCenterX: Single;

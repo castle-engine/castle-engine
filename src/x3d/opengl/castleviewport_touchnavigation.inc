@@ -92,7 +92,7 @@ type
       DefaultAutoExamineTouchInterface = tiPan;
     constructor Create(AOwner: TComponent); override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     { Viewport where navigation is affected by this control.
       In case of @link(AutoTouchInterface), we also look
@@ -346,16 +346,16 @@ begin
   end;
 end;
 
-function TCastleTouchNavigation.PropertySection(
-  const PropertyName: String): TPropertySection;
+function TCastleTouchNavigation.PropertySections(
+  const PropertyName: String): TPropertySections;
 begin
   if (PropertyName = 'Viewport') or
      (PropertyName = 'TouchInterface') or
      (PropertyName = 'AutoTouchInterface') or
      (PropertyName = 'Scale') then
-    Result := psBasic
+    Result := [psBasic]
   else
-    Result := inherited PropertySection(PropertyName);
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TCastleTouchNavigation.SetScale(const Value: Single);

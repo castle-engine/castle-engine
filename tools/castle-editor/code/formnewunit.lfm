@@ -1,0 +1,186 @@
+object NewUnitForm: TNewUnitForm
+  Left = 610
+  Height = 514
+  Top = 272
+  Width = 616
+  Caption = 'Create Pascal Unit'
+  ClientHeight = 514
+  ClientWidth = 616
+  DesignTimePPI = 120
+  Position = poMainFormCenter
+  LCLVersion = '2.0.10.0'
+  object ComboUnitType: TComboBox
+    AnchorSideLeft.Control = LabelCreateUnit
+    AnchorSideTop.Control = LabelCreateUnit
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 35
+    Top = 39
+    Width = 594
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 8
+    ItemHeight = 0
+    ItemIndex = 0
+    Items.Strings = (
+      'Empty Unit'
+      'Unit With a Class Definition'
+      'Unit With a TUIState Definition'
+    )
+    Style = csDropDownList
+    TabOrder = 0
+    Text = 'Empty Unit'
+  end
+  object EditUnitName: TEdit
+    AnchorSideLeft.Control = LabelCreateUnit
+    AnchorSideTop.Control = LabelUnitName
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 40
+    Top = 121
+    Width = 594
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 8
+    TabOrder = 1
+    Text = 'GameSomething'
+  end
+  object LabelCreateUnit: TLabel
+    Left = 8
+    Height = 23
+    Top = 8
+    Width = 197
+    Caption = 'Create New Pascal Unit:'
+    ParentColor = False
+  end
+  object ButtonPanel1: TButtonPanel
+    Left = 8
+    Height = 47
+    Top = 459
+    Width = 600
+    BorderSpacing.Around = 8
+    OKButton.Name = 'OKButton'
+    OKButton.DefaultCaption = True
+    HelpButton.Name = 'HelpButton'
+    HelpButton.DefaultCaption = True
+    CloseButton.Name = 'CloseButton'
+    CloseButton.DefaultCaption = True
+    CancelButton.Name = 'CancelButton'
+    CancelButton.DefaultCaption = True
+    TabOrder = 7
+    ShowButtons = [pbOK, pbCancel]
+  end
+  object LabelUnitName: TLabel
+    AnchorSideLeft.Control = LabelCreateUnit
+    AnchorSideTop.Control = ComboUnitType
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 23
+    Top = 90
+    Width = 93
+    BorderSpacing.Top = 16
+    Caption = 'Unit Name:'
+    ParentColor = False
+  end
+  object LabelUnitFile: TLabel
+    AnchorSideLeft.Control = LabelCreateUnit
+    AnchorSideTop.Control = EditUnitName
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 23
+    Top = 177
+    Width = 75
+    BorderSpacing.Top = 16
+    Caption = 'Unit File:'
+    ParentColor = False
+  end
+  object EditUnitFile: TEdit
+    AnchorSideLeft.Control = LabelCreateUnit
+    AnchorSideTop.Control = LabelUnitFile
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 40
+    Top = 208
+    Width = 548
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 8
+    TabOrder = 2
+    Text = 'code/gamesomething.pas'
+  end
+  object LabelClassName: TLabel
+    AnchorSideLeft.Control = LabelCreateUnit
+    AnchorSideTop.Control = EditUnitFile
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 23
+    Top = 264
+    Width = 102
+    BorderSpacing.Top = 16
+    Caption = 'Class Name:'
+    ParentColor = False
+  end
+  object EditClassName: TEdit
+    AnchorSideLeft.Control = LabelCreateUnit
+    AnchorSideTop.Control = LabelClassName
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 40
+    Top = 295
+    Width = 592
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 8
+    TabOrder = 4
+    Text = 'TStateSomething'
+  end
+  object ButtonUnitFile: TButton
+    AnchorSideLeft.Control = EditUnitFile
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = EditUnitFile
+    AnchorSideTop.Side = asrCenter
+    Left = 556
+    Height = 39
+    Top = 209
+    Width = 31
+    AutoSize = True
+    Caption = '...'
+    OnClick = ButtonUnitFileClick
+    TabOrder = 3
+  end
+  object EditStateFile: TEdit
+    AnchorSideLeft.Control = LabelCreateUnit
+    AnchorSideTop.Control = LabelStateFile
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 40
+    Top = 382
+    Width = 548
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 8
+    TabOrder = 5
+    Text = 'data/state_something.castle-user-interface'
+  end
+  object ButtonStateFile: TButton
+    AnchorSideLeft.Control = EditStateFile
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = EditStateFile
+    AnchorSideTop.Side = asrCenter
+    Left = 556
+    Height = 39
+    Top = 383
+    Width = 31
+    AutoSize = True
+    Caption = '...'
+    OnClick = ButtonStateFileClick
+    TabOrder = 6
+  end
+  object LabelStateFile: TLabel
+    AnchorSideLeft.Control = LabelCreateUnit
+    AnchorSideTop.Control = EditClassName
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 23
+    Top = 351
+    Width = 84
+    BorderSpacing.Top = 16
+    Caption = 'State File:'
+    ParentColor = False
+  end
+end

@@ -74,7 +74,7 @@
     procedure SetFocused(const Value: boolean); override;
     procedure EditorAllowResize(
       out ResizeWidth, ResizeHeight: Boolean; out Reason: String); override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Focused text color. By default it's black. }
     property FocusedColor: TCastleColor read FFocusedColor write SetFocusedColor;
@@ -184,7 +184,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     procedure SetFocused(const AValue: Boolean); override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     { In case of this descendant, Text is always derived from Value. }
     property Text stored false;
@@ -216,7 +216,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     procedure SetFocused(const AValue: Boolean); override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     { In case of this descendant, Text is always derived from Value. }
     property Text stored false;
@@ -401,12 +401,12 @@ begin
   end;
 end;
 
-function TCastleEdit.PropertySection(const PropertyName: String): TPropertySection;
+function TCastleEdit.PropertySections(const PropertyName: String): TPropertySections;
 begin
   if (PropertyName = 'Text') then
-    Result := psBasic
+    Result := [psBasic]
   else
-    Result := inherited PropertySection(PropertyName);
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TCastleEdit.Render;
@@ -651,15 +651,15 @@ begin
   Value := Value;
 end;
 
-function TCastleFloatEdit.PropertySection(const PropertyName: String): TPropertySection;
+function TCastleFloatEdit.PropertySections(const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
     'Text':
-      Result := psOther; // override TCastleEdit making it psBasic
+      Result := []; // override TCastleEdit that made it [psBasic], we instead expose Value
     'Value', 'Min', 'Max':
-      Result := psBasic;
+      Result := [psBasic];
     else
-      Result := inherited PropertySection(PropertyName);
+      Result := inherited PropertySections(PropertyName);
   end;
 end;
 
@@ -709,15 +709,15 @@ begin
   Value := Value;
 end;
 
-function TCastleIntegerEdit.PropertySection(const PropertyName: String): TPropertySection;
+function TCastleIntegerEdit.PropertySections(const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
     'Text':
-      Result := psOther; // override TCastleEdit making it psBasic
+      Result := []; // override TCastleEdit that made it [psBasic], we instead expose Value
     'Value', 'Min', 'Max':
-      Result := psBasic;
+      Result := [psBasic];
     else
-      Result := inherited PropertySection(PropertyName);
+      Result := inherited PropertySections(PropertyName);
   end;
 end;
 
