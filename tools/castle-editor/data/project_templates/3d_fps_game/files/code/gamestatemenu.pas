@@ -39,7 +39,7 @@ begin
   inherited;
 
   { Load designed user interface }
-  InsertUserInterface('castle-data:/state_menu.castle-user-interface', FreeAtStop, UiOwner);
+  InsertUserInterface('castle-data:/gamestatemenu.castle-user-interface', FreeAtStop, UiOwner);
 
   { Find components, by name, that we need to access from code }
   ButtonPlay := UiOwner.FindRequiredComponent('ButtonPlay') as TCastleButton;

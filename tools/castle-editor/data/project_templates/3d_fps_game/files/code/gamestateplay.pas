@@ -52,7 +52,7 @@ begin
   inherited;
 
   { Load designed user interface }
-  InsertUserInterface('castle-data:/state_play.castle-user-interface', FreeAtStop, UiOwner);
+  InsertUserInterface('castle-data:/gamestateplay.castle-user-interface', FreeAtStop, UiOwner);
 
   { Find components, by name, that we need to access from code }
   LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
