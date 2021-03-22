@@ -1329,6 +1329,7 @@ procedure TSpriteSheetEditorForm.UpdatePreview(
     end else
     begin
       FPreviewScene.Exists := true;
+      FViewport.Camera.Orthographic.Width := Animation.Frame[0].FrameWidth;
       FPreviewScene.PlayAnimation(Animation.Name, true, true);
     end;
   end;
@@ -1359,8 +1360,6 @@ begin
 end;
 
 procedure TSpriteSheetEditorForm.RegenerateAnimationPreview;
-var
-  OldExist: Boolean;
 begin
   try
     CreatePreviewUIIfNeeded;
@@ -1369,17 +1368,7 @@ begin
 
     FPreviewScene.Scale := Vector3(1.0, 1.0, 1.0);
     FPreviewScene.Load(FSpriteSheet.ToX3D, true);
-    OldExist := FPreviewScene.Exists;
-    try
-      { To check LocalBoundingBox Exists must be true }
-      FPreviewScene.Exists := true;
-      if not FPreviewScene.LocalBoundingBox.IsEmpty then
-        FViewport.Camera.Orthographic.Width := FPreviewScene.LocalBoundingBox.MaxSize
-      else
-        FViewport.Camera.Orthographic.Width := DefaultFrameIconSize;
-    finally
-      FPreviewScene.Exists := OldExist;
-    end;
+    FViewport.Camera.Orthographic.Width := DefaultFrameIconSize;
   except
     on E: Exception do
     begin
