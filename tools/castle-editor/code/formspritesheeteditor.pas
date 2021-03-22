@@ -216,7 +216,8 @@ type
       MaxFrameIconSize = 256;
       { Default size for frame image in list view }
       DefaultFrameIconSize = 128;
-
+      { Preview margin }
+      PreviewMargin = 1;
     var
       FSpriteSheet: TCastleSpriteSheet;
       FPreviewScene: TCastleScene;
@@ -1329,7 +1330,8 @@ procedure TSpriteSheetEditorForm.UpdatePreview(
     end else
     begin
       FPreviewScene.Exists := true;
-      FViewport.Camera.Orthographic.Width := Animation.Frame[0].FrameWidth;
+      FViewport.Camera.Orthographic.Width := Animation.Frame[0].FrameWidth +
+        PreviewMargin * 2;
       FPreviewScene.PlayAnimation(Animation.Name, true, true);
     end;
   end;
@@ -1368,7 +1370,7 @@ begin
 
     FPreviewScene.Scale := Vector3(1.0, 1.0, 1.0);
     FPreviewScene.Load(FSpriteSheet.ToX3D, true);
-    FViewport.Camera.Orthographic.Width := DefaultFrameIconSize;
+    FViewport.Camera.Orthographic.Width := DefaultFrameIconSize + PreviewMargin * 2;
   except
     on E: Exception do
     begin
