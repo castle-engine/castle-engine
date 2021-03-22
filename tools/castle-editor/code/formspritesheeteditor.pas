@@ -280,6 +280,7 @@ type
 
     { Check atlas size }
     function CheckAtlasMinSize: Boolean;
+    procedure LoadAtlasSize;
 
     // events:
     procedure URLChanged(Sender: TObject);
@@ -1525,6 +1526,15 @@ begin
     SetAtlasWarning('');
 end;
 
+procedure TSpriteSheetEditorForm.LoadAtlasSize;
+begin
+  if FSpriteSheet = nil then
+    SpinEditMaxAtlasSize.Value := 1024
+  else
+    SpinEditMaxAtlasSize.Value := Max(FSpriteSheet.MaxAtlasHeight,
+      FSpriteSheet.MaxAtlasWidth);
+end;
+
 procedure TSpriteSheetEditorForm.URLChanged(Sender: TObject);
 begin
   UpdateWindowCaption;
@@ -1695,6 +1705,7 @@ begin
     FSpriteSheet :=  TCastleSpriteSheet.Create(true); // edit mode
     FSpriteSheet.OnModifiedStateChanged := @ModifiedStateChanged;
     FSpriteSheet.Load(URL);
+    LoadAtlasSize;
     UpdateWindowCaption;
     LoadAnimations(FSpriteSheet);
     AssignEventsToSpriteSheet;
@@ -1717,6 +1728,7 @@ begin
       Exit;
     CloseSpriteSheet;
     FSpriteSheet :=  TCastleSpriteSheet.Create(true);
+    LoadAtlasSize;
     UpdateWindowCaption;
     LoadAnimations(FSpriteSheet);
     AssignEventsToSpriteSheet;

@@ -2179,6 +2179,8 @@ begin
     FImage := LoadImage(FAbsoluteImagePath);
   SpriteSheet.FAtlasWidth := FImageWidth;
   SpriteSheet.FAtlasHeight := FImageHeight;
+  SpriteSheet.FMaxAtlasWidth := FImageWidth;
+  SpriteSheet.FMaxAtlasHeight := FImageHeight;
 end;
 
 procedure TCastleSpriteSheetLoader.AddFrame(
