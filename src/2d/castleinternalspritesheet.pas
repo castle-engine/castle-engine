@@ -1217,8 +1217,7 @@ begin
   FrameHeight := AFrameHeight;
 
   LeftOffset := -DestX;
-  TopOffset := -AFrameWidth + DestY + HeightInAtlas;
-
+  TopOffset := -AFrameHeight + DestY + HeightInAtlas;
 
   FreeAndNil(FFrameImage);
 
