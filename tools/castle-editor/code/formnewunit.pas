@@ -58,21 +58,32 @@ type
     procedure EditDesignDirChange(Sender: TObject);
     procedure EditUnitDirChange(Sender: TObject);
     procedure EditUnitNameChange(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormShow(Sender: TObject);
   private
     EditUnitNameOldText: String;
+    FCreatedUnitRelative, FCreatedDesignRelative: String;
+    FCreatedUnitAbsolute, FCreatedDesignAbsolute: String;
     FUnitType: TNewUnitType;
     { Absolute directory (with final path delim) of the directory where
       unit should be created. }
     FUnitOutputPath: String;
     { Current project manifest. }
     FProjectManifest: TCastleManifest;
-    procedure GetFinalFilenames(out FinalUnitFile, FinalDesignFile: String);
+    procedure GetFinalFilenames(out FinalUnitRelative, FinalDesignRelative: String);
+    procedure GetFinalFilenames(out FinalUnitRelative, FinalDesignRelative: String;
+      out FinalUnitAbsolute, FinalDesignAbsolute: String);
     procedure SetUnitType(const AValue: TNewUnitType);
     procedure UpdateFinalFilenames;
     property UnitType: TNewUnitType read FUnitType write SetUnitType default utEmpty;
     procedure RefreshUiDependingOnUnitType;
   public
+    { After ShowModel, the Created* contain filenames created (or empty if none). }
+    property CreatedUnitRelative: String read FCreatedUnitRelative;
+    property CreatedUnitAbsolute: String read FCreatedUnitAbsolute;
+    property CreatedDesignRelative: String read FCreatedDesignRelative;
+    property CreatedDesignAbsolute: String read FCreatedDesignAbsolute;
+
     procedure InitializeUi(const AUnitType: TNewUnitType;
       const AUnitOutputPath: String; const AProjectManifest: TCastleManifest);
   end;
@@ -82,8 +93,9 @@ var
 
 implementation
 
-uses CastleFilesUtils, CastleURIUtils, CastleLog, CastleUtils, CastleStringUtils,
-  EditorUtils;
+uses Generics.Collections,
+  CastleFilesUtils, CastleURIUtils, CastleLog, CastleUtils, CastleStringUtils,
+  EditorUtils, ProjectUtils;
 
 {$R *.lfm}
 
@@ -303,24 +315,132 @@ begin
   UpdateFinalFilenames;
 end;
 
+procedure TNewUnitForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
+
+  procedure CreateFiles(
+    const FinalUnitRelative, FinalDesignRelative: String;
+    const FinalUnitAbsolute, FinalDesignAbsolute: String);
+  var
+    Macros: TStringStringMap;
+    TemplateSource, Contents: String;
+  begin
+    Macros := TStringStringMap.Create;
+    try
+      Macros.Add('${UNIT_NAME}', EditUnitName.Text);
+      case UnitType of
+        utEmpty:
+          begin
+            TemplateSource := 'newunit.pas';
+          end;
+        utClass:
+          begin
+            TemplateSource := 'newunitclass.pas';
+            Macros.Add('${CLASS_NAME}', EditClassName.Text);
+          end;
+        utState:
+          begin
+            TemplateSource := 'newunitstate.pas';
+            Macros.Add('${STATE_CLASS_NAME}', EditStateName.Text);
+            Macros.Add('${DESIGN_FILE_URL}', MaybeUseDataProtocol(FilenameToURISafe(FinalDesignAbsolute)));
+
+            StringToFile(FinalDesignAbsolute, FileToString(
+              EditorApplicationData + 'templates/newunitstate.castle-user-interface'));
+            FCreatedDesignRelative := FinalDesignRelative;
+            FCreatedDesignAbsolute := FinalDesignAbsolute;
+          end;
+      end;
+
+      Contents := FileToString(EditorApplicationData + 'templates/' + TemplateSource);
+      Contents := SReplacePatterns(Contents, Macros, false);
+      StringToFile(FinalUnitAbsolute, Contents);
+      FCreatedUnitRelative := FinalUnitRelative;
+      FCreatedUnitAbsolute := FinalUnitAbsolute;
+    finally FreeAndNil(Macros) end;
+  end;
+
+var
+  FinalUnitRelative, FinalDesignRelative: String;
+  FinalUnitAbsolute, FinalDesignAbsolute: String;
+begin
+  // reset output properties
+  FCreatedUnitRelative := '';
+  FCreatedUnitAbsolute := '';
+  FCreatedDesignRelative := '';
+  FCreatedDesignAbsolute := '';
+
+  if ModalResult = mrOK then
+  begin
+    GetFinalFilenames(
+      FinalUnitRelative, FinalDesignRelative,
+      FinalUnitAbsolute, FinalDesignAbsolute);
+
+    Assert(FinalUnitAbsolute <> '');
+    if FileExists(FinalUnitAbsolute) or DirectoryExists(FinalUnitAbsolute) then
+    begin
+      if not YesNoBox('Overwrite unit', Format('Unit file already exists: "%s".' + NL + NL + 'Overwrite file?', [
+        FinalUnitRelative
+      ])) then
+      begin
+        CanClose := false;
+        Exit;
+      end;
+    end;
+
+    if (FinalDesignAbsolute <> '') and
+       (FileExists(FinalDesignAbsolute) or DirectoryExists(FinalDesignAbsolute)) then
+    begin
+      if not YesNoBox('Overwrite design', Format('Design file already exists: "%s".' + NL + NL + 'Overwrite file?', [
+        FinalDesignRelative
+      ])) then
+      begin
+        CanClose := false;
+        Exit;
+      end;
+    end;
+
+    CreateFiles(
+      FinalUnitRelative, FinalDesignRelative,
+      FinalUnitAbsolute, FinalDesignAbsolute);
+  end;
+end;
+
 procedure TNewUnitForm.FormShow(Sender: TObject);
 begin
   ActiveControl := EditUnitName; // set focus on EditUnitName each time you open this form
 end;
 
-procedure TNewUnitForm.GetFinalFilenames(out FinalUnitFile, FinalDesignFile: String);
+procedure TNewUnitForm.GetFinalFilenames(
+  out FinalUnitRelative, FinalDesignRelative: String);
 begin
-  FinalUnitFile := EditUnitDir.Text + LowerCase(EditUnitName.Text) + '.pas';
-  FinalDesignFile := EditDesignDir.Text + LowerCase(EditUnitName.Text) + '.castle-user-interface';
+  FinalUnitRelative := EditUnitDir.Text + LowerCase(EditUnitName.Text) + '.pas';
+
+  if UnitType = utState then
+    FinalDesignRelative := EditDesignDir.Text + LowerCase(EditUnitName.Text) + '.castle-user-interface'
+  else
+    FinalDesignRelative := '';
+end;
+
+procedure TNewUnitForm.GetFinalFilenames(
+  out FinalUnitRelative, FinalDesignRelative: String;
+  out FinalUnitAbsolute, FinalDesignAbsolute: String);
+begin
+  GetFinalFilenames(FinalUnitRelative, FinalDesignRelative);
+
+  FinalUnitAbsolute := CombinePaths(FProjectManifest.Path, FinalUnitRelative);
+
+  if FinalDesignRelative <> '' then
+    FinalDesignAbsolute := CombinePaths(FProjectManifest.Path, FinalDesignRelative)
+  else
+    FinalDesignAbsolute := '';
 end;
 
 procedure TNewUnitForm.UpdateFinalFilenames;
 var
-  FinalUnitFile, FinalDesignFile: String;
+  FinalUnitRelative, FinalDesignRelative: String;
 begin
-  GetFinalFilenames(FinalUnitFile, FinalDesignFile);
-  LabelFinalUnitFile.Caption := 'Final Unit File: ' + FinalUnitFile;
-  LabelFinalDesignFile.Caption := 'Final Design File: ' + FinalDesignFile;
+  GetFinalFilenames(FinalUnitRelative, FinalDesignRelative);
+  LabelFinalUnitFile.Caption := 'Final Unit File: ' + FinalUnitRelative;
+  LabelFinalDesignFile.Caption := 'Final Design File: ' + FinalDesignRelative;
 end;
 
 end.

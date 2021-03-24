@@ -25,7 +25,7 @@ uses
   ExtCtrls, ComCtrls, CastleShellCtrls, StdCtrls, ValEdit, ActnList, Buttons,
   ProjectUtils, Types, Contnrs, CastleControl, CastleUIControls,
   CastlePropEdits, CastleDialogs, X3DNodes, CastleFindFiles,
-  EditorUtils, FrameDesign, FrameViewFile, ToolManifest;
+  EditorUtils, FrameDesign, FrameViewFile, FormNewUnit, ToolManifest;
 
 type
   { Main project management. }
@@ -231,6 +231,7 @@ type
     procedure ShellListViewDoubleClick(Sender: TObject);
     procedure ShellListViewSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
+    procedure ShowNewUnitForm(const AUnitType: TNewUnitType);
     procedure UpdateFormCaption(Sender: TObject);
     { Propose saving the hierarchy.
       Returns should we continue (user did not cancel). }
@@ -269,7 +270,7 @@ uses TypInfo, LCLType,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
   FormChooseProject, ToolCommonUtils, FormAbout, FormPreferences,
-  ToolCompilerInfo, FormNewUnit;
+  ToolCompilerInfo;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
 begin
@@ -445,20 +446,77 @@ end;
 
 procedure TProjectForm.ActionNewUnitClassExecute(Sender: TObject);
 begin
-  NewUnitForm.InitializeUi(utClass, InclPathDelim(ShellListView1.Root), Manifest);
-  NewUnitForm.ShowModal;
+  ShowNewUnitForm(utClass);
 end;
 
 procedure TProjectForm.ActionNewUnitEmptyExecute(Sender: TObject);
 begin
-  NewUnitForm.InitializeUi(utEmpty, InclPathDelim(ShellListView1.Root), Manifest);
-  NewUnitForm.ShowModal;
+  ShowNewUnitForm(utEmpty);
 end;
 
 procedure TProjectForm.ActionNewUnitStateExecute(Sender: TObject);
 begin
-  NewUnitForm.InitializeUi(utState, InclPathDelim(ShellListView1.Root), Manifest);
-  NewUnitForm.ShowModal;
+  ShowNewUnitForm(utState);
+end;
+
+procedure TProjectForm.ShowNewUnitForm(const AUnitType: TNewUnitType);
+
+  { Check if unit is on search path, as we don't edit CastleEngineManifest.xml
+    search paths automatically now. }
+  procedure CheckNewUnitOnSearchPath;
+  var
+    UnitBaseName: String;
+  begin
+    if NewUnitForm.CreatedUnitRelative <> '' then
+    begin
+      UnitBaseName := DeleteFileExt(ExtractFileName(NewUnitForm.CreatedUnitRelative));
+      if Manifest.SearchPascalUnit(UnitBaseName) = '' then
+      begin
+        WarningBox(Format('Created unit "%s" not found on the search path. Make sure that subdirectory "%s" is listed among search paths inside CastleEngineManifest.xml.', [
+          NewUnitForm.CreatedUnitRelative,
+          ExtractFilePath(NewUnitForm.CreatedUnitRelative)
+        ]));
+      end;
+    end;
+  end;
+
+  { Propose to open design or unit code immediately. }
+  procedure ProposeToOpenNewFile;
+  begin
+    if NewUnitForm.CreatedDesignRelative <> '' then
+    begin
+      Assert(NewUnitForm.CreatedUnitRelative <> '');
+      if YesNoBox('Open design', Format(
+        'Created unit: %s' + NL +
+        NL +
+        'Created user interface design: %s' + NL +
+        NL +
+        'Open the user interface design now?', [
+        NewUnitForm.CreatedUnitRelative,
+        NewUnitForm.CreatedDesignRelative
+      ])) then
+        OpenDesign(NewUnitForm.CreatedDesignAbsolute);
+    end else
+    if NewUnitForm.CreatedUnitRelative <> '' then
+    begin
+      if YesNoBox('Edit unit', Format(
+        'Created unit: %s' + NL +
+        NL +
+        'Edit the unit code now?', [
+        NewUnitForm.CreatedUnitRelative
+      ])) then
+        OpenPascal(NewUnitForm.CreatedUnitAbsolute);
+    end;
+  end;
+
+begin
+  NewUnitForm.InitializeUi(AUnitType, InclPathDelim(ShellListView1.Root), Manifest);
+  if NewUnitForm.ShowModal = mrOK then
+  begin
+    CheckNewUnitOnSearchPath;
+    ProposeToOpenNewFile;
+    RefreshFiles(rfFilesInCurrentDir);
+  end;
 end;
 
 procedure TProjectForm.ApplicationProperties1Exception(Sender: TObject;
