@@ -187,6 +187,8 @@ procedure TNewUnitForm.RefreshUiDependingOnUnitType;
     finally FreeAndNil(UnitNames) end;
   end;
 
+const
+  ButtonsMargin = 16;
 var
   RelativeUnitPath: String;
   UnitToInitializeState: String;
@@ -205,11 +207,17 @@ begin
     utEmpty:
       begin
         EditUnitName.Text := 'GameSomething';
+
+        { adjust form height }
+        ClientHeight := LabelFinalUnitFile.Top + LabelFinalUnitFile.Height + ButtonsMargin + ButtonPanel1.Height;
       end;
     utClass:
       begin
         EditUnitName.Text := 'GameSomething';
         EditClassName.Text := 'TSomething';
+
+        { adjust form height }
+        ClientHeight := PanelUnitClass.Top + PanelUnitClass.Height + ButtonsMargin + ButtonPanel1.Height;
       end;
     utState:
       begin
@@ -229,6 +237,10 @@ begin
           LabelStateInitializeInfo.Caption :=
             'WARNING: Cannot find unit with state initialization. We search units listed in game_units in CastleEngineManifest.xml, among the search paths, for special CASTLE-XXX comments (see the new project templates for example).' + NL + NL +
             'You will need to manually create the new state in Application.OnInitialize.';
+
+        { adjust form height }
+        PanelUnitState.ClientHeight := LabelStateInitializeInfo.Top + LabelStateInitializeInfo.Height;
+        ClientHeight := PanelUnitState.Top + PanelUnitState.Height + ButtonsMargin + ButtonPanel1.Height;
       end;
   end;
 
