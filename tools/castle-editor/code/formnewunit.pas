@@ -30,36 +30,46 @@ type
 
   { Dialog to configure new unit properties. }
   TNewUnitForm = class(TForm)
-    ButtonStateFile: TButton;
-    ButtonUnitFile: TButton;
+    ButtonStateDir: TButton;
+    ButtonUnitDir: TButton;
     ButtonPanel1: TButtonPanel;
     CheckStateInitialize: TCheckBox;
     ComboUnitType: TComboBox;
     EditClassName: TEdit;
-    EditStateFile: TEdit;
+    EditDesignDir: TEdit;
     EditStateName: TEdit;
     EditUnitName: TEdit;
-    EditUnitFile: TEdit;
+    EditUnitDir: TEdit;
+    LabelFinalUnitFile: TLabel;
+    LabelFinalDesignFile: TLabel;
     LabelClassName: TLabel;
-    LabelStateFile: TLabel;
+    LabelDesignDir: TLabel;
     LabelStateInitializeInfo: TLabel;
     LabelStateName: TLabel;
     LabelUnitName: TLabel;
     LabelCreateUnit: TLabel;
-    LabelUnitFile: TLabel;
+    LabelUnitDir: TLabel;
     PanelUnitClass: TPanel;
     PanelUnitState: TPanel;
-    procedure ButtonUnitFileClick(Sender: TObject);
-    procedure ButtonStateFileClick(Sender: TObject);
+    SelectDirectoryDialog1: TSelectDirectoryDialog;
+    procedure ButtonUnitDirClick(Sender: TObject);
+    procedure ButtonStateDirClick(Sender: TObject);
     procedure ComboUnitTypeChange(Sender: TObject);
+    procedure EditDesignDirChange(Sender: TObject);
+    procedure EditUnitDirChange(Sender: TObject);
+    procedure EditUnitNameChange(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
+    EditUnitNameOldText: String;
     FUnitType: TNewUnitType;
     { Absolute directory (with final path delim) of the directory where
       unit should be created. }
     FUnitOutputPath: String;
     { Current project manifest. }
     FProjectManifest: TCastleManifest;
+    procedure GetFinalFilenames(out FinalUnitFile, FinalDesignFile: String);
     procedure SetUnitType(const AValue: TNewUnitType);
+    procedure UpdateFinalFilenames;
     property UnitType: TNewUnitType read FUnitType write SetUnitType default utEmpty;
     procedure RefreshUiDependingOnUnitType;
   public
@@ -77,11 +87,30 @@ uses CastleFilesUtils, CastleURIUtils, CastleLog, CastleUtils, CastleStringUtils
 
 {$R *.lfm}
 
-procedure TNewUnitForm.ButtonUnitFileClick(Sender: TObject);
+{ Like ExtractRelativePath but prefer to end result with PathDelim,
+  as it just seems cleaner (it is then obvious that edit box shows
+  a directory). }
+function ExtractRelativePathDelim(const Base, Target: String): String;
 begin
-  // TODO: allow to choose directory only (filename is determined by lowercase(unit name) + .pas
-  // only within the project
-  // TODO: start EditUnitFile with directory from where user clicked the "New Unit" menu item
+  if DirectoryExists(Base) and
+     SameFileName(InclPathDelim(Base), InclPathDelim(Target)) then
+    Exit(''); // otherwise ExtractRelativePath returns '../my_dir_name/'
+  Result := ExtractRelativePath(Base, Target);
+  if Result <> '' then
+    Result := InclPathDelim(Result);
+end;
+
+{ TNewUnitForm --------------------------------------------------------------- }
+
+procedure TNewUnitForm.ButtonUnitDirClick(Sender: TObject);
+begin
+  SelectDirectoryDialog1.InitialDir := CombinePaths(FProjectManifest.Path, EditUnitDir.Text);
+  SelectDirectoryDialog1.FileName := CombinePaths(FProjectManifest.Path, EditUnitDir.Text);
+  if SelectDirectoryDialog1.Execute then
+  begin
+    EditUnitDir.Text := ExtractRelativePathDelim(FProjectManifest.Path, SelectDirectoryDialog1.FileName);
+    UpdateFinalFilenames;
+  end;
 end;
 
 procedure TNewUnitForm.SetUnitType(const AValue: TNewUnitType);
@@ -95,8 +124,14 @@ procedure TNewUnitForm.InitializeUi(const AUnitType: TNewUnitType;
   const AUnitOutputPath: String; const AProjectManifest: TCastleManifest);
 begin
   FUnitType := AUnitType;
-  FUnitOutputPath := AUnitOutputPath;
+
   FProjectManifest := AProjectManifest;
+
+  FUnitOutputPath := AUnitOutputPath;
+  { place code in code/ subdirectory instead of top-level, if possible }
+  if SameFileName(InclPathDelim(FUnitOutputPath), InclPathDelim(FProjectManifest.Path)) and
+     DirectoryExists(CombinePaths(FProjectManifest.Path, 'code')) then
+    FUnitOutputPath := CombinePaths(FProjectManifest.Path, 'code');
 
   RefreshUiDependingOnUnitType;
 end;
@@ -160,7 +195,8 @@ begin
   ComboUnitType.ItemIndex := Ord(FUnitType);
   ComboUnitType.OnChange := @ComboUnitTypeChange;
 
-  RelativeUnitPath := ExtractRelativePath(FProjectManifest.Path, FUnitOutputPath);
+  RelativeUnitPath := ExtractRelativePathDelim(FProjectManifest.Path, FUnitOutputPath);
+  EditUnitDir.Text := RelativeUnitPath;
 
   SetEnabledExists(PanelUnitClass, FUnitType = utClass);
   SetEnabledExists(PanelUnitState, FUnitType = utState);
@@ -181,7 +217,7 @@ begin
 
         EditUnitName.Text := 'GameStateSomething';
         EditStateName.Text := 'TStateSomething';
-        EditStateFile.Text := 'castle-data:/gamestatesomething.castle-user-interface';
+        EditDesignDir.Text := 'data/';
         CheckStateInitialize.Checked := UnitToInitializeState <> '';
         CheckStateInitialize.Enabled := UnitToInitializeState <> '';
 
@@ -196,17 +232,83 @@ begin
       end;
   end;
 
-  EditUnitFile.Text := RelativeUnitPath + LowerCase(EditUnitName.Text) + '.pas';
+  EditUnitNameOldText := EditUnitName.Text;
+  UpdateFinalFilenames;
 end;
 
-procedure TNewUnitForm.ButtonStateFileClick(Sender: TObject);
+procedure TNewUnitForm.ButtonStateDirClick(Sender: TObject);
+var
+  DataPath: String;
 begin
-  // TODO: allow to choose directory and filename, but only within castle-data:/
+  SelectDirectoryDialog1.InitialDir := CombinePaths(FProjectManifest.Path, EditDesignDir.Text);
+  SelectDirectoryDialog1.FileName := CombinePaths(FProjectManifest.Path, EditDesignDir.Text);
+  if SelectDirectoryDialog1.Execute then
+  begin
+    DataPath := URIToFilenameSafe(ResolveCastleDataURL('castle-data:/'));
+    if not IsPrefix(DataPath, InclPathDelim(SelectDirectoryDialog1.FileName), not FileNameCaseSensitive) then
+    begin
+      MessageDlg('Design outside data', 'You are saving a design outside of the project''s "data" directory.' + NL +
+        NL +
+        'The state design file will not be automatically referenced correctly from code (using "castle-data:/" protocol) and will not be automatically packaged in the project.' + NL +
+        NL +
+        'Unless you really know what you''re doing, we heavily advice to change the directory to be inside the project "data" directory.',
+        mtWarning, [mbOK], 0);
+    end;
+
+    EditDesignDir.Text := ExtractRelativePathDelim(FProjectManifest.Path, SelectDirectoryDialog1.FileName);
+    UpdateFinalFilenames;
+  end;
 end;
 
 procedure TNewUnitForm.ComboUnitTypeChange(Sender: TObject);
 begin
   UnitType := TNewUnitType(ComboUnitType.ItemIndex);
+end;
+
+procedure TNewUnitForm.EditDesignDirChange(Sender: TObject);
+begin
+  UpdateFinalFilenames;
+end;
+
+procedure TNewUnitForm.EditUnitDirChange(Sender: TObject);
+begin
+  UpdateFinalFilenames;
+end;
+
+procedure TNewUnitForm.EditUnitNameChange(Sender: TObject);
+begin
+  { automatically change lower edit boxes, if they matched }
+  if SameText(EditClassName.Text, 'T' + EditUnitNameOldText) or
+     SameText(EditClassName.Text, 'T' + PrefixRemove('game', EditUnitNameOldText, true)) then
+    EditClassName.Text := 'T' + PrefixRemove('game', EditUnitName.Text, true);
+
+  if SameText(EditStateName.Text, 'T' + EditUnitNameOldText) or
+     SameText(EditStateName.Text, 'T' + PrefixRemove('game', EditUnitNameOldText, true)) then
+    EditStateName.Text := 'T' + PrefixRemove('game', EditUnitName.Text, true);
+
+  EditUnitNameOldText := EditUnitName.Text;
+
+  UpdateFinalFilenames;
+end;
+
+procedure TNewUnitForm.FormShow(Sender: TObject);
+begin
+  ActiveControl := EditUnitName; // set focus on EditUnitName each time you open this form
+end;
+
+procedure TNewUnitForm.GetFinalFilenames(out FinalUnitFile, FinalDesignFile: String);
+begin
+  FinalUnitFile := EditUnitDir.Text + LowerCase(EditUnitName.Text) + '.pas';
+  FinalDesignFile := EditDesignDir.Text + LowerCase(EditUnitName.Text) + '.castle-user-interface';
+end;
+
+procedure TNewUnitForm.UpdateFinalFilenames;
+var
+  FinalUnitFile, FinalDesignFile: String;
+begin
+  GetFinalFilenames(FinalUnitFile, FinalDesignFile);
+  LabelFinalUnitFile.Caption := 'Final Unit File: ' + FinalUnitFile;
+  LabelFinalDesignFile.Caption := 'Final Design File: ' + FinalDesignFile;
 end;
 
 end.
