@@ -15,8 +15,12 @@ uses SysUtils,
   CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleUIControls, CastleApplicationProperties, CastleUIState, CastleSoundEngine,
-  CastleTransform, CastleRenderOptions,
-  GameStateMenu, GameStatePlay;
+  CastleTransform, CastleRenderOptions
+  { CASTLE-INITIALIZATION-USES-BEGIN }
+  // The content here may be automatically updated by CGE editor.
+  , GameStateMenu
+  , GameStatePlay
+  { CASTLE-INITIALIZATION-USES-END };
 
 var
   Window: TCastleWindowBase;
@@ -28,8 +32,12 @@ begin
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
   { Create game states and set initial state }
+  { CASTLE-STATE-CREATE-BEGIN }
+  // The content here may be automatically updated by CGE editor.
   StatePlay := TStatePlay.Create(Application);
   StateMenu := TStateMenu.Create(Application);
+  { CASTLE-STATE-CREATE-END }
+
   TUIState.Current := StateMenu;
 
   SoundEngine.RepositoryURL := 'castle-data:/audio/index.xml';

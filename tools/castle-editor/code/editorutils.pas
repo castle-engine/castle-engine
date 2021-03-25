@@ -130,6 +130,7 @@ type
 procedure ErrorBox(const Message: String);
 procedure WarningBox(const Message: String);
 function YesNoBox(const Message: String): Boolean;
+function YesNoBox(const Caption, Message: String): Boolean;
 
 { Set both C.Enabled and C.Exists. }
 procedure SetEnabledExists(const C: TControl; const Value: Boolean);
@@ -569,6 +570,11 @@ end;
 function YesNoBox(const Message: String): Boolean;
 begin
   Result := MessageDlg('Question', Message, mtConfirmation, [mbYes, mbNo], 0) = mrYes;
+end;
+
+function YesNoBox(const Caption, Message: String): Boolean;
+begin
+  Result := MessageDlg(Caption, Message, mtConfirmation, [mbYes, mbNo], 0) = mrYes;
 end;
 
 procedure SetEnabledExists(const C: TControl; const Value: Boolean);

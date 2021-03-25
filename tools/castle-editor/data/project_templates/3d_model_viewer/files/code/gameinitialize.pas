@@ -14,8 +14,11 @@ implementation
 uses SysUtils,
   CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
-  CastleUIControls, CastleApplicationProperties, CastleUIState, CastleRenderOptions,
-  GameStateMain;
+  CastleUIControls, CastleApplicationProperties, CastleUIState, CastleRenderOptions
+  { CASTLE-INITIALIZATION-USES-BEGIN }
+  // The content here may be automatically updated by CGE editor.
+  , GameStateMain
+  { CASTLE-INITIALIZATION-USES-END };
 
 var
   Window: TCastleWindowBase;
@@ -31,7 +34,11 @@ begin
     e.g. TStateMainMenu ("main menu state"),
     TStatePlay ("playing the game state"),
     TStateCredits ("showing the credits state") etc. }
+  { CASTLE-STATE-CREATE-BEGIN }
+  // The content here may be automatically updated by CGE editor.
   StateMain := TStateMain.Create(Application);
+  { CASTLE-STATE-CREATE-END }
+
   TUIState.Current := StateMain;
 end;
 

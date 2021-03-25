@@ -19,8 +19,7 @@ unit ToolAssocDocTypes;
 interface
 
 uses SysUtils, Generics.Collections, DOM,
-  CastleUtils, CastleStringUtils,
-  ToolUtils;
+  CastleUtils, CastleStringUtils;
 
 type
   TAssocDocTypeFileExt = class
