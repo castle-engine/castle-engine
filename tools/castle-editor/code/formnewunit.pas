@@ -70,6 +70,7 @@ type
     FUnitOutputPath: String;
     { Current project manifest. }
     FProjectManifest: TCastleManifest;
+    UnitToInitializeState: String;
     procedure GetFinalFilenames(out FinalUnitRelative, FinalDesignRelative: String);
     procedure GetFinalFilenames(out FinalUnitRelative, FinalDesignRelative: String;
       out FinalUnitAbsolute, FinalDesignAbsolute: String);
@@ -95,7 +96,7 @@ implementation
 
 uses Generics.Collections,
   CastleFilesUtils, CastleURIUtils, CastleLog, CastleUtils, CastleStringUtils,
-  EditorUtils, ProjectUtils;
+  EditorUtils, ProjectUtils, EditorCodeTools;
 
 {$R *.lfm}
 
@@ -149,61 +150,10 @@ begin
 end;
 
 procedure TNewUnitForm.RefreshUiDependingOnUnitType;
-
-  function CheckUnitToInitializeState(const FileName: String): Boolean;
-  var
-    Content: String;
-  begin
-    try
-      Content := FileToString(FilenameToURISafe(FileName));
-    except
-      on E: Exception do
-      begin
-        WritelnWarning('Could not open main unit to initialize states "%s": %s', [
-          FileName,
-          E.Message
-        ]);
-        Exit(false);
-      end;
-    end;
-
-    Result :=
-      (Pos('{ CASTLE-STATE-CREATE-BEGIN }', Content) <> 0) and
-      (Pos('{ CASTLE-STATE-CREATE-END }', Content) <> 0) and
-      (Pos('{ CASTLE-INITIALIZATION-USES-BEGIN }', Content) <> 0) and
-      (Pos('{ CASTLE-INITIALIZATION-USES-END }', Content) <> 0);
-  end;
-
-  { Find unit where state initialization takes place.
-    Returns '' if not found.
-    Returns relative filename (relative to project path) if found. }
-  function FindUnitToInitializeState: String;
-  var
-    UnitNames: TCastleStringList;
-    AUnitName, UnitFileNameAbsolute, UnitFileNameRelative: String;
-  begin
-    UnitNames := CreateTokens(FProjectManifest.GameUnits, WhiteSpaces + [',']);
-    try
-      for AUnitName in UnitNames do
-      begin
-        UnitFileNameAbsolute := FProjectManifest.SearchPascalUnit(AUnitName);
-        if (UnitFileNameAbsolute <> '') and
-           CheckUnitToInitializeState(UnitFileNameAbsolute) then
-        begin
-          UnitFileNameRelative := ExtractRelativePath(FProjectManifest.Path, UnitFileNameAbsolute);
-          Exit(UnitFileNameRelative);
-        end;
-      end;
-
-      Result := ''; // not found
-    finally FreeAndNil(UnitNames) end;
-  end;
-
 const
   ButtonsMargin = 16;
 var
   RelativeUnitPath: String;
-  UnitToInitializeState: String;
 begin
   ComboUnitType.OnChange := nil; // avoid recursive ComboUnitType.OnChange calls
   ComboUnitType.ItemIndex := Ord(FUnitType);
@@ -233,7 +183,7 @@ begin
       end;
     utState:
       begin
-        UnitToInitializeState := FindUnitToInitializeState;
+        UnitToInitializeState := FindUnitToInitializeState(FProjectManifest);
 
         EditUnitName.Text := 'GameStateSomething';
         EditStateName.Text := 'TStateSomething';
@@ -338,6 +288,12 @@ procedure TNewUnitForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
       ErrorBox(Format('State name "%s" is not a valid Pascal identifier', [EditStateName.Text]));
       Exit(false);
     end;
+
+    if (UnitType = utState) and (not IsPrefix('t', EditStateName.Text, true)) then
+    begin
+      ErrorBox(Format('State name "%s" must start with letter "T" (following Pascal conventions for type names, this allows to have state singleton variable without "T" prefix)', [EditStateName.Text]));
+      Exit(false);
+    end;
   end;
 
   procedure CreateFiles(
@@ -345,7 +301,7 @@ procedure TNewUnitForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
     const FinalUnitAbsolute, FinalDesignAbsolute: String);
   var
     Macros: TStringStringMap;
-    TemplateSource, Contents: String;
+    TemplateSource, Contents, StateVariableName: String;
   begin
     Macros := TStringStringMap.Create;
     try
@@ -363,13 +319,25 @@ procedure TNewUnitForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
         utState:
           begin
             TemplateSource := 'newunitstate.pas';
+            StateVariableName := PrefixRemove('t', EditStateName.Text, true);
             Macros.Add('${STATE_CLASS_NAME}', EditStateName.Text);
+            Macros.Add('${STATE_VARIABLE_NAME}', StateVariableName);
             Macros.Add('${DESIGN_FILE_URL}', MaybeUseDataProtocol(FilenameToURISafe(FinalDesignAbsolute)));
 
             StringToFile(FinalDesignAbsolute, FileToString(
               EditorApplicationData + 'templates/newunitstate.castle-user-interface'));
             FCreatedDesignRelative := FinalDesignRelative;
             FCreatedDesignAbsolute := FinalDesignAbsolute;
+
+            if CheckStateInitialize.Checked then
+            begin
+              Assert(UnitToInitializeState <> '');
+              AddInitializeState(CombinePaths(FProjectManifest.Path, UnitToInitializeState),
+                EditUnitName.Text,
+                EditStateName.Text,
+                StateVariableName
+              );
+            end;
           end;
       end;
 

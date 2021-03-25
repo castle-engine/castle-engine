@@ -14,6 +14,9 @@ type
     procedure Start; override;
   end;
 
+var
+  ${STATE_VARIABLE_NAME}: ${STATE_CLASS_NAME};
+
 implementation
 
 procedure ${STATE_CLASS_NAME}.Start;

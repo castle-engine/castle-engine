@@ -13,7 +13,7 @@ uses
   //castle_editor_automatic_package,
   Forms, FormChooseProject, ProjectUtils, FormNewProject,
   EditorUtils, FormProject, FrameDesign, FormAbout, FrameViewFile,
-  FormPreferences, VisualizeTransform, FormNewUnit;
+  FormPreferences, VisualizeTransform, FormNewUnit, EditorCodeTools;
 
 {$R *.res}
 
