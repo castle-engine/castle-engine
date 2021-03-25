@@ -317,6 +317,29 @@ end;
 
 procedure TNewUnitForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
 
+  function CheckValidPascalIdentifiers: Boolean;
+  begin
+    Result := true;
+
+    if not IsValidIdent(EditUnitName.Text, true) then
+    begin
+      ErrorBox(Format('Unit name "%s" is not a valid Pascal identifier', [EditUnitName.Text]));
+      Exit(false);
+    end;
+
+    if (UnitType = utClass) and (not IsValidIdent(EditClassName.Text, true)) then
+    begin
+      ErrorBox(Format('Class name "%s" is not a valid Pascal identifier', [EditClassName.Text]));
+      Exit(false);
+    end;
+
+    if (UnitType = utState) and (not IsValidIdent(EditStateName.Text, true)) then
+    begin
+      ErrorBox(Format('State name "%s" is not a valid Pascal identifier', [EditStateName.Text]));
+      Exit(false);
+    end;
+  end;
+
   procedure CreateFiles(
     const FinalUnitRelative, FinalDesignRelative: String;
     const FinalUnitAbsolute, FinalDesignAbsolute: String);
@@ -358,6 +381,31 @@ procedure TNewUnitForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
     finally FreeAndNil(Macros) end;
   end;
 
+  function CheckCanOverwriteFiles(
+    const FinalUnitRelative, FinalDesignRelative: String;
+    const FinalUnitAbsolute, FinalDesignAbsolute: String): Boolean;
+  begin
+    Result := true;
+
+    Assert(FinalUnitAbsolute <> '');
+    if FileExists(FinalUnitAbsolute) or DirectoryExists(FinalUnitAbsolute) then
+    begin
+      if not YesNoBox('Overwrite unit', Format('Unit file already exists: "%s".' + NL + NL + 'Overwrite file?', [
+        FinalUnitRelative
+      ])) then
+        Exit(false);
+    end;
+
+    if (FinalDesignAbsolute <> '') and
+       (FileExists(FinalDesignAbsolute) or DirectoryExists(FinalDesignAbsolute)) then
+    begin
+      if not YesNoBox('Overwrite design', Format('Design file already exists: "%s".' + NL + NL + 'Overwrite file?', [
+        FinalDesignRelative
+      ])) then
+        Exit(false);
+    end;
+  end;
+
 var
   FinalUnitRelative, FinalDesignRelative: String;
   FinalUnitAbsolute, FinalDesignAbsolute: String;
@@ -370,32 +418,22 @@ begin
 
   if ModalResult = mrOK then
   begin
+    if not CheckValidPascalIdentifiers then
+    begin
+      CanClose := false;
+      Exit;
+    end;
+
     GetFinalFilenames(
       FinalUnitRelative, FinalDesignRelative,
       FinalUnitAbsolute, FinalDesignAbsolute);
 
-    Assert(FinalUnitAbsolute <> '');
-    if FileExists(FinalUnitAbsolute) or DirectoryExists(FinalUnitAbsolute) then
+    if not CheckCanOverwriteFiles(
+      FinalUnitRelative, FinalDesignRelative,
+      FinalUnitAbsolute, FinalDesignAbsolute) then
     begin
-      if not YesNoBox('Overwrite unit', Format('Unit file already exists: "%s".' + NL + NL + 'Overwrite file?', [
-        FinalUnitRelative
-      ])) then
-      begin
-        CanClose := false;
-        Exit;
-      end;
-    end;
-
-    if (FinalDesignAbsolute <> '') and
-       (FileExists(FinalDesignAbsolute) or DirectoryExists(FinalDesignAbsolute)) then
-    begin
-      if not YesNoBox('Overwrite design', Format('Design file already exists: "%s".' + NL + NL + 'Overwrite file?', [
-        FinalDesignRelative
-      ])) then
-      begin
-        CanClose := false;
-        Exit;
-      end;
+      CanClose := false;
+      Exit;
     end;
 
     CreateFiles(
