@@ -46,25 +46,6 @@ type
     function Service(const Name: string): TService;
   end;
 
-implementation
-
-uses Classes, XMLRead, XMLWrite,
-  CastleXMLUtils, CastleURIUtils, CastleFilesUtils;
-
-{ internal utils ------------------------------------------------------------- }
-
-function GetCData(const Element: TDOMElement): String;
-var
-  I: TXMLCDataIterator;
-begin
-  Result := '';
-  I := TXMLCDataIterator.Create(Element);
-  try
-    while I.GetNext do
-      Result := Result + I.Current;
-  finally FreeAndNil(I) end;
-end;
-
 { Find in Element all children called <parameter>,
   read them and add to Parameters list,
   expecting this format:
@@ -84,6 +65,28 @@ end;
   This is necessary if you want to use this macro in template *even*
   when user doesn't specify it.
 }
+procedure ReadParameters(const Element: TDOMElement; const Parameters: TStringStringMap;
+  const RequiredKeys: array of String);
+
+implementation
+
+uses Classes, XMLRead, XMLWrite,
+  CastleXMLUtils, CastleURIUtils, CastleFilesUtils;
+
+{ internal utils ------------------------------------------------------------- }
+
+function GetCData(const Element: TDOMElement): String;
+var
+  I: TXMLCDataIterator;
+begin
+  Result := '';
+  I := TXMLCDataIterator.Create(Element);
+  try
+    while I.GetNext do
+      Result := Result + I.Current;
+  finally FreeAndNil(I) end;
+end;
+
 procedure ReadParameters(const Element: TDOMElement; const Parameters: TStringStringMap;
   const RequiredKeys: array of String);
 var
