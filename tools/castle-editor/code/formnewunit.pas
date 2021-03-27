@@ -137,15 +137,8 @@ procedure TNewUnitForm.InitializeUi(const AUnitType: TNewUnitType;
   const AUnitOutputPath: String; const AProjectManifest: TCastleManifest);
 begin
   FUnitType := AUnitType;
-
   FProjectManifest := AProjectManifest;
-
   FUnitOutputPath := AUnitOutputPath;
-  { place code in code/ subdirectory instead of top-level, if possible }
-  if SameFileName(InclPathDelim(FUnitOutputPath), InclPathDelim(FProjectManifest.Path)) and
-     DirectoryExists(CombinePaths(FProjectManifest.Path, 'code')) then
-    FUnitOutputPath := CombinePaths(FProjectManifest.Path, 'code');
-
   RefreshUiDependingOnUnitType;
 end;
 

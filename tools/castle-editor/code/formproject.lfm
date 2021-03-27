@@ -523,15 +523,15 @@ object ProjectForm: TProjectForm
       Caption = '-'
     end
     object MenuItemPopupNewUnit: TMenuItem
-      Caption = 'New Unit'
+      Caption = 'New Unit Here'
       object MenuItemPopupNewUnitEmpty: TMenuItem
-        Action = ActionNewUnitEmpty
+        Action = ActionNewUnitHereEmpty
       end
       object MenuItemPopupNewUnitClass: TMenuItem
-        Action = ActionNewUnitClass
+        Action = ActionNewUnitHereClass
       end
       object MenuItemPopupNewUnitState: TMenuItem
-        Action = ActionNewUnitState
+        Action = ActionNewUnitHereState
       end
     end
   end
@@ -639,7 +639,7 @@ object ProjectForm: TProjectForm
   end
   object ActionList1: TActionList
     Left = 498
-    Top = 23
+    Top = 24
     object ActionOpenProjectCode: TAction
       Caption = 'Open Project in Lazarus'
       OnExecute = ActionOpenProjectCodeExecute
@@ -649,16 +649,28 @@ object ProjectForm: TProjectForm
       OnExecute = ActionEditUnitExecute
     end
     object ActionNewUnitEmpty: TAction
-      Caption = 'Empty Unit'
+      Caption = 'Empty Unit...'
       OnExecute = ActionNewUnitEmptyExecute
     end
     object ActionNewUnitClass: TAction
-      Caption = 'Unit With Class'
+      Caption = 'Unit With Class...'
       OnExecute = ActionNewUnitClassExecute
     end
     object ActionNewUnitState: TAction
-      Caption = 'Unit With State'
+      Caption = 'Unit With State...'
       OnExecute = ActionNewUnitStateExecute
+    end
+    object ActionNewUnitHereEmpty: TAction
+      Caption = 'Empty Unit...'
+      OnExecute = ActionNewUnitHereEmptyExecute
+    end
+    object ActionNewUnitHereClass: TAction
+      Caption = 'Unit With Class...'
+      OnExecute = ActionNewUnitHereClassExecute
+    end
+    object ActionNewUnitHereState: TAction
+      Caption = 'Unit With State...'
+      OnExecute = ActionNewUnitHereStateExecute
     end
     object ActionEditAssociatedUnit: TAction
       Caption = 'Edit Unit Associated With Open Design'
