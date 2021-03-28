@@ -30,6 +30,7 @@ uses
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionRegenerateProject: TAction;
     ActionEditAssociatedUnit: TAction;
     ActionNewUnitHereClass: TAction;
     ActionNewUnitHereState: TAction;
@@ -43,6 +44,8 @@ type
     ApplicationProperties1: TApplicationProperties;
     ButtonClearWarnings: TBitBtn;
     MenuItem1: TMenuItem;
+    MenuItemRegenerateProject: TMenuItem;
+    MenuItemSeparator123123345: TMenuItem;
     OpenPascalUnitDialog: TCastleOpenPascalUnitDialog;
     MenuItemPopupNewUnitEmpty: TMenuItem;
     MenuItemPopupNewUnitClass: TMenuItem;
@@ -149,6 +152,7 @@ type
     procedure ActionNewUnitHereStateExecute(Sender: TObject);
     procedure ActionNewUnitStateExecute(Sender: TObject);
     procedure ActionOpenProjectCodeExecute(Sender: TObject);
+    procedure ActionRegenerateProjectExecute(Sender: TObject);
     procedure ApplicationProperties1Activate(Sender: TObject);
     procedure ApplicationProperties1Exception(Sender: TObject; E: Exception);
     procedure ButtonClearWarningsClick(Sender: TObject);
@@ -431,6 +435,11 @@ begin
     ErrorBox('Lazarus project not defined (neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml).' + NL +
       NL +
       'Create Lazarus project (e.g. by "castle-engine generate-program") and update CastleEngineManifest.xml.');
+end;
+
+procedure TProjectForm.ActionRegenerateProjectExecute(Sender: TObject);
+begin
+  BuildToolCall(['generate-program']);
 end;
 
 procedure TProjectForm.ActionEditUnitExecute(Sender: TObject);
