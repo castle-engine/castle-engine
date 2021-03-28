@@ -613,7 +613,7 @@ var
       { For OSes where chmod matters, make sure to set it before packing }
       UnixPermissionsMatter := not (OS in AllWindowsOSes);
       if UnixPermissionsMatter then
-        Pack.MakeExecutable(ExecutableNameFull);
+        Pack.MakeExecutable(ExecutableNameExt);
     end;
   end;
 
