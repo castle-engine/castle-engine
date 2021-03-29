@@ -38,6 +38,7 @@
       "Items" : {
         "Name" : "Items",
         "PhysicsProperties" : {
+          "GravityStrength" : 1.2000000000000000E+003,
           "Name" : "PhysicsProperties",
           "$Children" : [
           ],
