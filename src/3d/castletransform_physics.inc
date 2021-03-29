@@ -245,6 +245,11 @@
     { Transformations that we collide with currently. }
     function GetCollidingTransforms: TCastleTransformList;
 
+    function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
+      const MaxDistance: Single): TCastleTransform;
+    function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
+      const MaxDistance: Single; out Distance: Single): TCastleTransform;
+
     property AngularVelocity: TVector3 read FAngularVelocity write SetAngularVelocity;
     property AngularVelocityDamp: Single read FAngularVelocityDamp write SetAngularVelocityDamp;
     property MaximalAngularVelocity: Single read FMaximalAngularVelocity write SetMaximalAngularVelocity;
@@ -980,6 +985,56 @@ begin
     if FCollisionList.IndexOf(CastleTransform) = -1 then
       FCollisionList.Add(CastleTransform);
     ContactPairEdge := ContactPairEdge^.Next;
+  end;
+end;
+
+function TRigidBody.PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
+  const MaxDistance: Single): TCastleTransform;
+var
+  IgnoredDistance: Single;
+begin
+  Result := PhysicsRayCast(RayOrigin, RayDirection, MaxDistance, IgnoredDistance);
+end;
+
+function TRigidBody.PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
+  const MaxDistance: Single; out Distance: Single): TCastleTransform;
+var
+  Shape: TKraftShape;
+  Time: TKraftScalar; // I think it's distance
+  Point: TKraftVector3;
+  Normal: TKraftVector3;
+  OldShapeFlags: TKraftShapeFlags;
+  RayOriginWorld, RayDirectionWorld: TVector3;
+  Hit: Boolean;
+begin
+  if FTransform = nil then
+  begin
+    WritelnWarning(
+      'Attempt to cast a ray from TRigidBody not connected to TCastleTransform. Maybe you forget about TCastleTransform.RigidBody?');
+    Exit(nil);
+  end;
+
+  RayOriginWorld := FTransform.UniqueParent.LocalToWorld(RayOrigin);
+  RayDirectionWorld := FTransform.UniqueParent.LocalToWorldDirection(RayDirection);
+
+  { We use ksfRayCastable flag to not hit to caster shape. }
+  OldShapeFlags := Collider.FKraftShape.Flags;
+  try
+    Collider.FKraftShape.Flags := Collider.FKraftShape.Flags - [ksfRayCastable];
+    { TODO: Time looks like distance? Why this is time?
+      MaxTime looks/works like MaxDistance?
+      Check time depends on physics frequency? }
+    Hit := FTransform.World.FKraftEngine.RayCast(VectorToKraft(RayOriginWorld),
+      VectorToKraft(RayDirectionWorld), MaxDistance, Shape, Time, Point, Normal);
+
+    if Hit then
+    begin
+      Distance := FTransform.UniqueParent.WorldToLocalDistance(Time);
+      Result := TCastleTransform(Shape.RigidBody.UserData);
+    end else
+      Result := nil;
+  finally
+    Collider.FKraftShape.Flags := OldShapeFlags;
   end;
 end;
 
