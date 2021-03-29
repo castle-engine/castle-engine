@@ -2310,7 +2310,7 @@ begin
       else LabelControlSelected.Caption := 'Selected:' + NL + IntToStr(SelectedCount) + ' components';
     end;
 
-    SetEnabledExists(ControlProperties, SelectedCount <> 0);
+    SetEnabledVisible(ControlProperties, SelectedCount <> 0);
 
     SelectionForOI := TPersistentSelectionList.Create;
     try
@@ -2322,7 +2322,7 @@ begin
   finally FreeAndNil(Selected) end;
 
   UI := SelectedUserInterface;
-  SetEnabledExists(PanelAnchors, UI <> nil);
+  SetEnabledVisible(PanelAnchors, UI <> nil);
   if UI <> nil then
   begin
     UpdateLabelSizeInfo(UI);
@@ -2330,13 +2330,13 @@ begin
   end;
 
   V := SelectedViewport;
-  SetEnabledExists(LabelSelectedViewport, V <> nil);
-  SetEnabledExists(ButtonViewportMenu, V <> nil);
+  SetEnabledVisible(LabelSelectedViewport, V <> nil);
+  SetEnabledVisible(ButtonViewportMenu, V <> nil);
   if V <> nil then
     LabelSelectedViewport.Caption := V.Name + ':';
 
   T := SelectedTransform;
-  SetEnabledExists(PanelLayoutTransform, T <> nil);
+  SetEnabledVisible(PanelLayoutTransform, T <> nil);
   VisualizeTransformSelected.Parent := T; // works also in case SelectedTransform is nil
 end;
 
@@ -3217,7 +3217,7 @@ begin
   { Hiding this is not nice for user, as then clicking on ButtonTransformSelectMode
     when current mode is moModifyUi will shift the position of the
     ButtonTransformSelectMode under your mouse. }
-  //SetEnabledExists(SpinEditSnap, Mode = moModifyUi);
+  //SetEnabledVisible(SpinEditSnap, Mode = moModifyUi);
 
   ButtonTransformSelectMode.Down := Mode = moTransformSelect;
   ButtonTransformTranslateMode.Down := Mode = moTransformTranslate;

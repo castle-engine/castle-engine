@@ -155,8 +155,8 @@ begin
   RelativeUnitPath := ExtractRelativePathDelim(FProjectManifest.Path, FUnitOutputPath);
   EditUnitDir.Text := RelativeUnitPath;
 
-  SetEnabledExists(PanelUnitClass, FUnitType = utClass);
-  SetEnabledExists(PanelUnitState, FUnitType = utState);
+  SetEnabledVisible(PanelUnitClass, FUnitType = utClass);
+  SetEnabledVisible(PanelUnitState, FUnitType = utState);
 
   case UnitType of
     utEmpty:

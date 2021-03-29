@@ -14,7 +14,7 @@ type
   { Simple "menu" user interface, that allows to run the game or quit. }
   TStateMenu = class(TUIState)
   private
-    { Components designed using CGE editor, loaded from state_menu.castle-user-interface. }
+    { Components designed using CGE editor, loaded from gamestatemenu.castle-user-interface. }
     ButtonPlay, ButtonQuit: TCastleButton;
     procedure ClickPlay(Sender: TObject);
     procedure ClickQuit(Sender: TObject);

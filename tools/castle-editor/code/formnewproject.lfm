@@ -1,12 +1,12 @@
 object NewProjectForm: TNewProjectForm
-  Left = 78
-  Height = 590
-  Top = 34
-  Width = 951
+  Left = 432
+  Height = 690
+  Top = 125
+  Width = 942
   ActiveControl = EditProjectName
   Caption = 'New Project | Castle Game Engine'
-  ClientHeight = 590
-  ClientWidth = 951
+  ClientHeight = 690
+  ClientWidth = 942
   DesignTimePPI = 120
   OnCloseQuery = FormCloseQuery
   OnShow = FormShow
@@ -16,8 +16,8 @@ object NewProjectForm: TNewProjectForm
   object ButtonPanel1: TButtonPanel
     Left = 5
     Height = 47
-    Top = 538
-    Width = 941
+    Top = 638
+    Width = 932
     BorderSpacing.Around = 5
     OKButton.Name = 'OKButton'
     OKButton.Caption = '&Create Project'
@@ -7702,9 +7702,9 @@ object NewProjectForm: TNewProjectForm
     AnchorSideTop.Side = asrBottom
     Left = 15
     Height = 23
-    Top = 464
+    Top = 455
     Width = 126
-    BorderSpacing.Top = 17
+    BorderSpacing.Top = 8
     Caption = 'Project Caption'
     ParentColor = False
     ParentFont = False
@@ -7715,7 +7715,7 @@ object NewProjectForm: TNewProjectForm
     AnchorSideTop.Side = asrBottom
     Left = 15
     Height = 40
-    Top = 492
+    Top = 483
     Width = 415
     BorderSpacing.Top = 5
     ParentFont = False
@@ -7739,5 +7739,31 @@ object NewProjectForm: TNewProjectForm
     MaxLength = 0
     TabOrder = 1
     Text = 'EditLocation'
+  end
+  object LabelStateName: TLabel
+    AnchorSideLeft.Control = LabelTitle
+    AnchorSideTop.Control = EditProjectCaption
+    AnchorSideTop.Side = asrBottom
+    Left = 15
+    Height = 23
+    Top = 531
+    Width = 584
+    BorderSpacing.Top = 8
+    Caption = 'Main State Name (determines name of the initial design and Pascal unit)'
+    ParentColor = False
+    ParentFont = False
+  end
+  object EditStateName: TEdit
+    AnchorSideLeft.Control = LabelTitle
+    AnchorSideTop.Control = LabelStateName
+    AnchorSideTop.Side = asrBottom
+    Left = 15
+    Height = 40
+    Top = 559
+    Width = 415
+    BorderSpacing.Top = 5
+    ParentFont = False
+    TabOrder = 5
+    Text = 'Main'
   end
 end

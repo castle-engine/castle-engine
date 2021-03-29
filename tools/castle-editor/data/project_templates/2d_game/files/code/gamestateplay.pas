@@ -20,7 +20,7 @@ type
     DragonFlying: Boolean;
     DragonFlyingTarget: TVector2;
 
-    { Components designed using CGE editor, loaded from state_play.castle-user-interface. }
+    { Components designed using CGE editor, loaded from gamestateplay.castle-user-interface. }
     LabelFps: TCastleLabel;
     MainViewport: TCastleViewport;
     SceneDragon: TCastleScene;

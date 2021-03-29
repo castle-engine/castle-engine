@@ -17,7 +17,7 @@ type
   { Main "playing game" state, where most of the game logic takes place. }
   TStatePlay = class(TUIState)
   private
-    { Components designed using CGE editor, loaded from state_play.castle-user-interface. }
+    { Components designed using CGE editor, loaded from gamestateplay.castle-user-interface. }
     LabelFps: TCastleLabel;
     MainViewport: TCastleViewport;
     WalkNavigation: TCastleWalkNavigation;

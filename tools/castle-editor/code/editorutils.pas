@@ -133,7 +133,7 @@ function YesNoBox(const Message: String): Boolean;
 function YesNoBox(const Caption, Message: String): Boolean;
 
 { Set both C.Enabled and C.Exists. }
-procedure SetEnabledExists(const C: TControl; const Value: Boolean);
+procedure SetEnabledVisible(const C: TControl; const Value: Boolean);
 
 const
   ApiReferenceUrl = 'https://castle-engine.io/apidoc-unstable/html/';
@@ -577,7 +577,7 @@ begin
   Result := MessageDlg(Caption, Message, mtConfirmation, [mbYes, mbNo], 0) = mrYes;
 end;
 
-procedure SetEnabledExists(const C: TControl; const Value: Boolean);
+procedure SetEnabledVisible(const C: TControl; const Value: Boolean);
 begin
   C.Enabled := Value;
   C.Visible := Value;

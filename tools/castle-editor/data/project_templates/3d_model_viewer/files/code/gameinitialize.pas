@@ -15,7 +15,7 @@ uses SysUtils,
   CastleWindow, CastleLog, CastleUIState
   { CASTLE-INITIALIZATION-USES-BEGIN }
   // The content here may be automatically updated by CGE editor.
-  , GameStateMain
+  , GameState${MAIN_STATE}
   { CASTLE-INITIALIZATION-USES-END };
 
 var
@@ -27,17 +27,17 @@ begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-  { Create TStateMain that will handle "main" state of the game.
+  { Create TState${MAIN_STATE} that will handle "main" state of the game.
     Larger games may use multiple states,
     e.g. TStateMainMenu ("main menu state"),
     TStatePlay ("playing the game state"),
     TStateCredits ("showing the credits state") etc. }
   { CASTLE-STATE-CREATE-BEGIN }
   // The content here may be automatically updated by CGE editor.
-  StateMain := TStateMain.Create(Application);
+  State${MAIN_STATE} := TState${MAIN_STATE}.Create(Application);
   { CASTLE-STATE-CREATE-END }
 
-  TUIState.Current := StateMain;
+  TUIState.Current := State${MAIN_STATE};
 end;
 
 initialization

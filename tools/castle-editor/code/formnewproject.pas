@@ -30,9 +30,11 @@ type
     ButtonPanel1: TButtonPanel;
     ButtonTemplate2d: TSpeedButton;
     EditLocation: TDirectoryEdit;
+    EditStateName: TEdit;
     EditProjectName: TEdit;
     EditProjectCaption: TEdit;
     GroupProjectTemplate: TGroupBox;
+    LabelStateName: TLabel;
     LabelProjectLocation: TLabel;
     LabelProjectCaption: TLabel;
     LabelTitle: TLabel;
@@ -44,7 +46,8 @@ type
     procedure FormShow(Sender: TObject);
     procedure ButtonTemplateClick(Sender: TObject);
   private
-
+    procedure AdjustFormSize;
+    procedure AdjustStateNameUi;
   public
 
   end;
@@ -87,11 +90,38 @@ begin
   EditLocation.Directory := NewProjectDir;
 
   EditProjectName.Text := 'my-new-project';
+
+  EditStateName.Text := 'Main';
+
+  AdjustStateNameUi;
+  AdjustFormSize;
+end;
+
+procedure TNewProjectForm.AdjustFormSize;
+const
+  ButtonsMargin = 8;
+begin
+  { adjust form height }
+  if EditStateName.Visible then
+    ClientHeight := EditStateName.Top + EditStateName.Height + ButtonsMargin + ButtonPanel1.Height
+  else
+    ClientHeight := EditProjectCaption.Top + EditProjectCaption.Height + ButtonsMargin + ButtonPanel1.Height;
+end;
+
+procedure TNewProjectForm.AdjustStateNameUi;
+var
+  AskForStateName: Boolean;
+begin
+  AskForStateName := ButtonTemplateEmpty.Down or ButtonTemplate3dModelViewer.Down;
+  SetEnabledVisible(LabelStateName, AskForStateName);
+  SetEnabledVisible(EditStateName, AskForStateName);
 end;
 
 procedure TNewProjectForm.ButtonTemplateClick(Sender: TObject);
 begin
   (Sender as TSpeedButton).Down := true;
+  AdjustStateNameUi;
+  AdjustFormSize;
 end;
 
 procedure TNewProjectForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
@@ -141,6 +171,14 @@ begin
     begin
       ErrorBox(Format('Directory "%s" already exists, cannot create a project there. Please pick a project name that does not correspond to an already-existing directory.',
         [ProjectDir]));
+      CanClose := false;
+      Exit;
+    end;
+
+    if EditStateName.Visible and not IsValidIdent(EditStateName.Text) then
+    begin
+      ErrorBox(Format('State name "%s" is not a valid Pascal identifier',
+        [EditStateName.Text]));
       CanClose := false;
       Exit;
     end;
