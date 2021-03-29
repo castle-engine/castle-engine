@@ -54,7 +54,6 @@ const
   MovingSpeed = 200;
 var
   EnemyOnGround: Boolean;
-  Distance: Single;
   NeedTurn: Boolean;
   Vel: TVector3;
   RayMaxDistance: Single;
