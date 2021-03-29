@@ -27,10 +27,9 @@ uses
 type
   { Determine new project settings. }
   TNewProjectForm = class(TForm)
-    ButtonChooseLocation: TButton;
     ButtonPanel1: TButtonPanel;
     ButtonTemplate2d: TSpeedButton;
-    EditLocation: TEdit;
+    EditLocation: TDirectoryEdit;
     EditProjectName: TEdit;
     EditProjectCaption: TEdit;
     GroupProjectTemplate: TGroupBox;
@@ -38,11 +37,9 @@ type
     LabelProjectCaption: TLabel;
     LabelTitle: TLabel;
     LabelProjectName: TLabel;
-    SelectDirectoryDialog1: TSelectDirectoryDialog;
     ButtonTemplateEmpty: TSpeedButton;
     ButtonTemplate3dModelViewer: TSpeedButton;
     ButtonTemplate3dFps: TSpeedButton;
-    procedure EditLocationButtonClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormShow(Sender: TObject);
     procedure ButtonTemplateClick(Sender: TObject);
@@ -87,9 +84,7 @@ begin
   DefaultNewProjectDir := InclPathDelim(DefaultProjectsParentDir) +
     'Castle Game Engine Projects';
   NewProjectDir := UserConfig.GetValue('new_project/default_dir', DefaultNewProjectDir);
-  // SelectDirectoryDialog1.InitialDir := NewProjectDir; // not neeeded
-  SelectDirectoryDialog1.FileName := NewProjectDir;
-  EditLocation.Text := NewProjectDir;
+  EditLocation.Directory := NewProjectDir;
 
   EditProjectName.Text := 'my-new-project';
 end;
@@ -97,14 +92,6 @@ end;
 procedure TNewProjectForm.ButtonTemplateClick(Sender: TObject);
 begin
   (Sender as TSpeedButton).Down := true;
-end;
-
-procedure TNewProjectForm.EditLocationButtonClick(Sender: TObject);
-begin
-  // SelectDirectoryDialog1.InitialDir := EditLocation.Text; // not neeeded
-  SelectDirectoryDialog1.FileName := EditLocation.Text;
-  if SelectDirectoryDialog1.Execute then
-    EditLocation.Text := SelectDirectoryDialog1.FileName;
 end;
 
 procedure TNewProjectForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
@@ -120,7 +107,7 @@ begin
   if ModalResult = mrOK then
   begin
     ProjectName := EditProjectName.Text;
-    ProjectLocation := EditLocation.Text;
+    ProjectLocation := EditLocation.Directory;
 
     if ProjectName = '' then
     begin

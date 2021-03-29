@@ -31,8 +31,6 @@ OK if after nearest release:
 
 * component class display with grayed-out color, to be visually separate from name
 
-* TEditDirectory use at "new project"
-
 * *All* images from theme should also be customizable at the control level,
   and naming should be consistent.
   Just place TTheme instance at each component?
