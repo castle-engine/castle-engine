@@ -71,6 +71,10 @@ type
     procedure UpdatePlayerByVelocityAndRayWithDblJump(const SecondsPassed: Single;
       var HandleInput: Boolean);
 
+    procedure UpdatePlayerByVelocityAndPhysicsRayWithDblJump(const SecondsPassed: Single;
+      var HandleInput: Boolean);
+
+
   public
     procedure Start; override;
     procedure Stop; override;
@@ -256,7 +260,7 @@ begin
   Collider.Restitution := 0.05;
 
   {ColliderBox := TBoxCollider.Create(RBody);
-  ColliderBox.Size := Vector3(ScenePlayer.BoundingBox.SizeX, ScenePlayer.BoundingBox.SizeY, 30.0);
+  ColliderBox.Size := Vector3(ScenePlayer.BoundingBox.SizeX, ScenePlayer.BoundingBox.SizeY, 60.0);
   ColliderBox.Friction := 0.1;
   ColliderBox.Restitution := 0.05;
 
@@ -651,6 +655,122 @@ begin
     ScenePlayer.Scale := Vector3(1, 1, 1);
 end;
 
+procedure TStatePlay.UpdatePlayerByVelocityAndPhysicsRayWithDblJump(
+  const SecondsPassed: Single; var HandleInput: Boolean);
+const
+  JumpVelocity = 700;
+  MaxHorizontalVelocity = 350;
+var
+  DeltaVelocity: TVector3;
+  Vel: TVector3;
+  PlayerOnGround: Boolean;
+  Distance: Single;
+  InSecondJump: Boolean;
+begin
+  { This method is executed every frame.}
+
+  InSecondJump := false;
+
+  DeltaVelocity := Vector3(0, 0, 0);
+  Vel := ScenePlayer.RigidBody.LinearVelocity;
+
+  { Check player is on ground }
+  PlayerOnGround := ScenePlayer.RigidBody.PhysicsRayCast(ScenePlayer.Translation,
+    Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5) <> nil;
+
+  { Two more checks Kraft - player should slide down when player just
+    on the edge, but sometimes it stay and center ray dont "see" that we are
+    on ground }
+  if PlayerOnGround = false then
+  begin
+    PlayerOnGround := ScenePlayer.RigidBody.PhysicsRayCast(ScenePlayer.Translation
+      + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.40, 0, 0),
+      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5) <> nil;
+  end;
+
+  if PlayerOnGround = false then
+  begin
+    PlayerOnGround := ScenePlayer.RigidBody.PhysicsRayCast(ScenePlayer.Translation
+      + Vector3(ScenePlayer.BoundingBox.SizeX * 0.40, 0, 0),
+      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5) <> nil;
+  end;
+
+  if PlayerOnGround then
+    WasDoubleJump := false;
+
+  if Container.Pressed.Items[keyW] then
+  begin
+    if (not WasJumpKeyPressed) and (PlayerOnGround or (PlayerCanDoubleJump and (not WasDoubleJump))) then
+    begin
+      if not PlayerOnGround then
+      begin
+        WasDoubleJump := true;
+        InSecondJump := true;
+        { In second jump just add diffrence betwen current Velocity and JumpVelocity }
+        DeltaVelocity.Y := JumpVelocity - Vel.Y;
+      end else
+        DeltaVelocity.Y := JumpVelocity;
+      WasJumpKeyPressed := true;
+    end;
+  end else
+    WasJumpKeyPressed := false;
+
+  if Container.Pressed.Items[keyD] and (PlayerOnGround or InSecondJump) then
+  begin
+    if InSecondJump then
+      DeltaVelocity.x := MaxHorizontalVelocity / 3
+    else
+      DeltaVelocity.x := MaxHorizontalVelocity / 2;
+  end;
+
+  if Container.Pressed.Items[keyA] and (PlayerOnGround or InSecondJump) then
+  begin
+    if InSecondJump then
+      DeltaVelocity.x := MaxHorizontalVelocity / 3
+    else
+      DeltaVelocity.x := - MaxHorizontalVelocity / 2;
+  end;
+
+  if Vel.X + DeltaVelocity.X > 0 then
+    Vel.X := Min(Vel.X + DeltaVelocity.X, MaxHorizontalVelocity)
+  else
+    Vel.X := Max(Vel.X + DeltaVelocity.X, -MaxHorizontalVelocity);
+
+  Vel.Y := Vel.Y + DeltaVelocity.Y;
+  Vel.Z := 0;
+
+  { Stop the player without slipping }
+  if PlayerOnGround and (Container.Pressed.Items[keyD] = false) and (Container.Pressed.Items[keyA] = false) then
+    Vel.X := 0;
+
+  ScenePlayer.RigidBody.LinearVelocity := Vel;
+
+  { Set animation }
+
+  { We get here 20 because vertical velocity calculated by physics engine when
+    player is on platform have no 0 but some small values to up and down sometimes
+    It can fail when the player goes uphill (will set jump animation) or down
+    will set fall animation }
+  if (not PlayerOnGround) and (Vel.Y > 20) then
+    ScenePlayer.PlayAnimation('jump', true)
+  else
+  if (not PlayerOnGround) and (Vel.Y < -20) then
+    ScenePlayer.PlayAnimation('fall', true)
+  else
+    if Abs(Vel.X) > 1 then
+    begin
+      if ScenePlayer.CurrentAnimation.X3DName <> 'walk' then
+        ScenePlayer.PlayAnimation('walk', true);
+    end
+    else
+      ScenePlayer.PlayAnimation('idle', true);
+
+  if Vel.X < 0 then
+    ScenePlayer.Scale := Vector3(-1, 1, 1)
+  else
+    ScenePlayer.Scale := Vector3(1, 1, 1);
+end;
+
 procedure TStatePlay.Start;
 var
   UiOwner: TComponent;
@@ -787,7 +907,8 @@ begin
   if CheckboxAdvancedPlayer.Checked then
     { uncomment to see less advanced versions }
     //UpdatePlayerByVelocityAndRay(SecondsPassed, HandleInput)
-    UpdatePlayerByVelocityAndRayWithDblJump(SecondsPassed, HandleInput)
+    //UpdatePlayerByVelocityAndRayWithDblJump(SecondsPassed, HandleInput)
+    UpdatePlayerByVelocityAndPhysicsRayWithDblJump(SecondsPassed, HandleInput)
   else
     UpdatePlayerSimpleDependOnlyVelocity(SecondsPassed, HandleInput);
 end;
