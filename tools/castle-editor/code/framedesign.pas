@@ -1828,15 +1828,29 @@ var
   SelectedFileName: String;
   SelectedURL: String;
 begin
+  Accept := false;
   if Source is TCastleShellListView then
   begin
     ShellList := TCastleShellListView(Source);
-    SelectedFileName := ShellList.GetPathFromItem(ShellList.Selected);
-    SelectedURL := FilenameToURISafe(SelectedFileName);
 
-    Accept := TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL);
-  end else
-    Accept := false;
+    { ShellList.Selected may be nil, testcase:
+      - open any project (empty from template is OK)
+      - create new design using menu item
+        (looks like this step is necessary into tricking LCL that we're
+        in the middle of drag-and-drop on GTK?)
+      - double-click on some design file in data/ by double-clicking
+      - mouse over the design -> without this check, would have access violation
+        due to TDesignFrame.CastleControlDragOver being called with
+        ShellList.Selected = nil. }
+
+    if ShellList.Selected <> nil then
+    begin
+      SelectedFileName := ShellList.GetPathFromItem(ShellList.Selected);
+      SelectedURL := FilenameToURISafe(SelectedFileName);
+
+      Accept := TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL);
+    end;
+  end;
 end;
 
 procedure TDesignFrame.CastleControlDragDrop(Sender, Source: TObject; X, Y: Integer);
@@ -1857,55 +1871,58 @@ begin
   if Source is TCastleShellListView then
   begin
     ShellList := TCastleShellListView(Source);
-    SelectedFileName := ShellList.GetPathFromItem(ShellList.Selected);
-    SelectedURL := MaybeUseDataProtocol(FilenameToURISafe(SelectedFileName));
-
-    if not TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) then
-      Exit;
-
-    UI := FDesignerLayer.HoverUserInterface(Vector2(X, Y));
-    if not (UI is TCastleViewport) then
-      Exit;
-
-    Viewport := TCastleViewport(UI);
-
-    Scene := AddComponent(Viewport.Items, TCastleScene, nil) as TCastleScene;
-    Scene.URL := SelectedURL;
-
-    { Make gizmos not pickable when looking for new scene position,
-      because ray can hit on gizmo. }
-    OldPickable := VisualizeTransformSelected.Pickable;
-    try
-      VisualizeTransformSelected.Pickable := false;
-      Viewport.PositionToRay(Vector2(X, CastleControl.Height - Y), true, RayOrigin, RayDirection);
-      RayHit := Viewport.Items.WorldRay(RayOrigin, RayDirection);
-    finally
-      VisualizeTransformSelected.Pickable := OldPickable;
-    end;
-    if (RayHit = nil) and (Viewport.Camera.ProjectionType = ptOrthographic) then
+    if ShellList.Selected <> nil then
     begin
-      PlaneZ := (Viewport.Camera.EffectiveProjectionNear + Viewport.Camera.EffectiveProjectionFar) / 2;
-      if not TrySimplePlaneRayIntersection(ScenePos, 2, PlaneZ, RayOrigin, RayDirection) then
-        Exit; // camera direction parallel to 3D plane with Z = constant
-    end else
-    begin
-      if RayHit <> nil then
+      SelectedFileName := ShellList.GetPathFromItem(ShellList.Selected);
+      SelectedURL := MaybeUseDataProtocol(FilenameToURISafe(SelectedFileName));
+
+      if not TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) then
+        Exit;
+
+      UI := FDesignerLayer.HoverUserInterface(Vector2(X, Y));
+      if not (UI is TCastleViewport) then
+        Exit;
+
+      Viewport := TCastleViewport(UI);
+
+      Scene := AddComponent(Viewport.Items, TCastleScene, nil) as TCastleScene;
+      Scene.URL := SelectedURL;
+
+      { Make gizmos not pickable when looking for new scene position,
+        because ray can hit on gizmo. }
+      OldPickable := VisualizeTransformSelected.Pickable;
+      try
+        VisualizeTransformSelected.Pickable := false;
+        Viewport.PositionToRay(Vector2(X, CastleControl.Height - Y), true, RayOrigin, RayDirection);
+        RayHit := Viewport.Items.WorldRay(RayOrigin, RayDirection);
+      finally
+        VisualizeTransformSelected.Pickable := OldPickable;
+      end;
+      if (RayHit = nil) and (Viewport.Camera.ProjectionType = ptOrthographic) then
       begin
-        Distance := RayHit.Distance;
-        FreeAndNil(RayHit);
+        PlaneZ := (Viewport.Camera.EffectiveProjectionNear + Viewport.Camera.EffectiveProjectionFar) / 2;
+        if not TrySimplePlaneRayIntersection(ScenePos, 2, PlaneZ, RayOrigin, RayDirection) then
+          Exit; // camera direction parallel to 3D plane with Z = constant
       end else
       begin
-        { If we don't hit any other scene set Distance to default value. }
-        Distance := 10;
+        if RayHit <> nil then
+        begin
+          Distance := RayHit.Distance;
+          FreeAndNil(RayHit);
+        end else
+        begin
+          { If we don't hit any other scene set Distance to default value. }
+          Distance := 10;
+        end;
+        ScenePos := RayOrigin + (RayDirection * Distance);
+
+        { In case of 2D game move scene a little closser to camera }
+        if Viewport.Camera.ProjectionType = ptOrthographic then
+          ScenePos := ScenePos - Viewport.Camera.Direction;
       end;
-      ScenePos := RayOrigin + (RayDirection * Distance);
 
-      { In case of 2D game move scene a little closser to camera }
-      if Viewport.Camera.ProjectionType = ptOrthographic then
-        ScenePos := ScenePos - Viewport.Camera.Direction;
+      Scene.Translation := ScenePos;
     end;
-
-    Scene.Translation := ScenePos;
   end;
 end;
 
