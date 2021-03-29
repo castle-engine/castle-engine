@@ -1527,6 +1527,55 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
       Result := SAppendPart(Result, ';', Path);
   end;
 
+  procedure AddMacrosLazarusProject(const Macros: TStringStringMap);
+  var
+    PascalFiles: TStringList;
+    PascalFile, PascalFilesXml: String;
+    I: Integer;
+  begin
+    { As an optimization, do not calculate LAZARUS_PROJECT_ALL_UNITS
+      macro value when not needed. }
+    if Pos('${LAZARUS_PROJECT_ALL_UNITS}', Source) <> 0 then
+    begin
+      PascalFiles := Manifest.FindPascalFiles;
+      try
+        PascalFilesXml := '';
+        I := 1;
+        for PascalFile in PascalFiles do
+        begin
+          if LowerCase(ExtractFileExt(PascalFile)) = '.inc' then
+          begin
+            PascalFilesXml += Format(
+              '      <Unit%d>' + NL +
+              '        <Filename Value="%s"/>' + NL +
+              '        <IsPartOfProject Value="True"/>' + NL +
+              '      </Unit%d>' + NL, [
+              I,
+              PascalFile,
+              I
+            ]);
+          end else
+          begin
+            PascalFilesXml += Format(
+              '      <Unit%d>' + NL +
+              '        <Filename Value="%s"/>' + NL +
+              '        <IsPartOfProject Value="True"/>' + NL +
+              '        <UnitName Value="%s"/>' + NL +
+              '      </Unit%d>' + NL, [
+              I,
+              PascalFile,
+              DeleteFileExt(ExtractFileName(PascalFile)),
+              I
+            ]);
+          end;
+          Inc(I);
+        end;
+        Macros.Add('LAZARUS_PROJECT_ALL_UNITS_COUNT', IntToStr(PascalFiles.Count + 1));
+        Macros.Add('LAZARUS_PROJECT_ALL_UNITS', PascalFilesXml);
+      finally FreeAndNil(PascalFiles) end;
+    end;
+  end;
+
 var
   I: Integer;
   NonEmptyAuthor: string;
@@ -1578,6 +1627,7 @@ begin
 
     AddMacrosAndroid(Macros);
     AddMacrosIOS(Macros);
+    AddMacrosLazarusProject(Macros);
 
     Result := ToolMacros.ReplaceMacros(Macros, Source);
   finally FreeAndNil(Macros) end;

@@ -18,12 +18,12 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="1">
+    <Units Count="${LAZARUS_PROJECT_ALL_UNITS_COUNT}">
       <Unit0>
         <Filename Value="${NAME_PASCAL}_standalone.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
-    </Units>
+${LAZARUS_PROJECT_ALL_UNITS}    </Units>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>

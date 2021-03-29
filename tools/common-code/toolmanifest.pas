@@ -22,7 +22,7 @@ unit ToolManifest;
 interface
 
 uses DOM, Classes, Generics.Collections,
-  CastleStringUtils, CastleImages, CastleUtils,
+  CastleStringUtils, CastleImages, CastleUtils, CastleFindFiles,
   ToolServices, ToolAssocDocTypes;
 
 type
@@ -118,6 +118,7 @@ type
       FAssociateDocumentTypes: TAssociatedDocTypeList;
       FListLocalizedAppName: TListLocalizedAppName;
       FIOSTeam: string;
+      FindPascalFilesResult: TStringList; // valid only during FindPascalFilesCallback
 
     function DefaultQualifiedName(const AName: String): String;
     procedure CheckMatches(const Name, Value: string; const AllowedChars: TSetOfChars);
@@ -131,6 +132,7 @@ type
       Returns @nil if Element is @nil. }
     function ReadVersion(const Element: TDOMElement): TProjectVersion;
     procedure CreateFinish;
+    procedure FindPascalFilesCallback(const FileInfo: TFileInfo; var StopSearch: boolean);
   public
     const
       DataName = 'data';
@@ -233,6 +235,10 @@ type
     { Find a unit with given name among SearchPaths of this project.
       Returns absolute filename, or '' if not found. }
     function SearchPascalUnit(const AUnitName: String): String;
+
+    { Finds all Pascal files (units and includes -- not lpr / dpr for now).
+      Returns a list with filenames relative to Path. }
+    function FindPascalFiles: TStringList;
   end;
 
 function DependencyToString(const D: TDependency): string;
@@ -244,8 +250,7 @@ function StringToScreenOrientation(const S: string): TScreenOrientation;
 implementation
 
 uses SysUtils,
-  CastleXMLUtils, CastleFilesUtils, CastleFindFiles, CastleLog,
-  CastleURIUtils,
+  CastleXMLUtils, CastleFilesUtils, CastleLog, CastleURIUtils,
   ToolCommonUtils;
 
 { TImageFileNames ------------------------------------------------------------- }
@@ -812,6 +817,28 @@ begin
       Exit(FileNameAbsolute);
   end;
   Result := '';
+end;
+
+function TCastleManifest.FindPascalFiles: TStringList;
+var
+  SearchPath, SearchPathAbsolute: String;
+begin
+  Result := TStringList.Create;
+
+  for SearchPath in SearchPaths do
+  begin
+    SearchPathAbsolute := CombinePaths(Path, SearchPath);
+    FindPascalFilesResult := Result;
+    FindFiles(SearchPathAbsolute, '*.pas', false, @FindPascalFilesCallback, []);
+    FindFiles(SearchPathAbsolute, '*.pp', false, @FindPascalFilesCallback, []);
+    FindFiles(SearchPathAbsolute, '*.inc', false, @FindPascalFilesCallback, []);
+  end;
+end;
+
+procedure TCastleManifest.FindPascalFilesCallback(
+  const FileInfo: TFileInfo; var StopSearch: boolean);
+begin
+  FindPascalFilesResult.Add(ExtractRelativePath(Path, FileInfo.AbsoluteName));
 end;
 
 { globals -------------------------------------------------------------------- }
