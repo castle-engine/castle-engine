@@ -57,6 +57,7 @@ var
   Distance: Single;
   NeedTurn: Boolean;
   Vel: TVector3;
+  RayMaxDistance: Single;
 begin
   inherited;
 
@@ -67,13 +68,10 @@ begin
     Exit;
   end;
 
-  if Scene.RayCast(Scene.Translation + Vector3(0, -Scene.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
-    Distance) <> nil then
-  begin
-    // WritelnWarning('Distance ', FloatToStr(Distance));
-    EnemyOnGround := Distance < 2;
-  end else
-    EnemyOnGround := false;
+  RayMaxDistance := Scene.BoundingBox.SizeY * 0.50 + 5;
+
+  EnemyOnGround := Scene.RigidBody.PhysicsRayCast(Scene.Translation,
+  Vector3(0, -1, 0), RayMaxDistance) <> nil;
 
   if not EnemyOnGround then
   begin
@@ -87,13 +85,9 @@ begin
 
   if DontFallDown then
   begin
-    if Scene.RayCast(Scene.Translation + Vector3(MoveDirection * Scene.BoundingBox.SizeX * 0.50, -Scene.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
-      Distance) <> nil then
-    begin
-      // WritelnWarning('Distance ', FloatToStr(Distance));
-      NeedTurn := Distance > 5;
-    end else
-      NeedTurn := true;
+    NeedTurn := Scene.RigidBody.PhysicsRayCast(Scene.Translation
+      + Vector3(MoveDirection * Scene.BoundingBox.SizeX * 0.50, 0, 0),
+      Vector3(0, -1, 0), RayMaxDistance) = nil;
   end else
     NeedTurn := false;
 
@@ -107,7 +101,6 @@ begin
   Scene.Scale := Vector3(-MoveDirection, 1, 1);
 
   Scene.RigidBody.LinearVelocity := Vel;
-
 end;
 
 procedure TEnemy.Hit;
