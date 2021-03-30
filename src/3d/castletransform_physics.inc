@@ -245,10 +245,28 @@
     { Transformations that we collide with currently. }
     function GetCollidingTransforms: TCastleTransformList;
 
+    { Cast a ray using physics engine, see what is hit.
+
+      The given RayOrigin, RayDirection are in the parent
+      coordinate system of this TCastleTransform.
+      So for example query like this works naturally:
+      @code(MyTransform.RayCast(MyTransform.Translation, MyTransform.Direction, MaxDistance)).
+      In case of the overloaded version with Distance parameter,
+      the Distance is consistently in the same, parent coordinate system.
+
+      This ignores the collider of this rigid body (to not accidentally collide
+      with your own collider), and checks collisions with the rest of the world in
+      given max distance.
+
+      This returns the TCastleTransform that is hit and a distance from RayOrigin
+      to the hit point.
+      Returns @nil (Distance is undefined in this case) if nothing was hit.
+      @groupBegin }
     function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
       const MaxDistance: Single): TCastleTransform;
     function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
       const MaxDistance: Single; out Distance: Single): TCastleTransform;
+    { @groupEnd }
 
     property AngularVelocity: TVector3 read FAngularVelocity write SetAngularVelocity;
     property AngularVelocityDamp: Single read FAngularVelocityDamp write SetAngularVelocityDamp;
