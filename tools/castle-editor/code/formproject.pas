@@ -30,7 +30,11 @@ uses
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionRegenerateProject: TAction;
     ActionEditAssociatedUnit: TAction;
+    ActionNewUnitHereClass: TAction;
+    ActionNewUnitHereState: TAction;
+    ActionNewUnitHereEmpty: TAction;
     ActionNewUnitClass: TAction;
     ActionNewUnitState: TAction;
     ActionNewUnitEmpty: TAction;
@@ -40,6 +44,8 @@ type
     ApplicationProperties1: TApplicationProperties;
     ButtonClearWarnings: TBitBtn;
     MenuItem1: TMenuItem;
+    MenuItemRegenerateProject: TMenuItem;
+    MenuItemSeparator123123345: TMenuItem;
     OpenPascalUnitDialog: TCastleOpenPascalUnitDialog;
     MenuItemPopupNewUnitEmpty: TMenuItem;
     MenuItemPopupNewUnitClass: TMenuItem;
@@ -141,8 +147,12 @@ type
     procedure ActionEditUnitExecute(Sender: TObject);
     procedure ActionNewUnitClassExecute(Sender: TObject);
     procedure ActionNewUnitEmptyExecute(Sender: TObject);
+    procedure ActionNewUnitHereClassExecute(Sender: TObject);
+    procedure ActionNewUnitHereEmptyExecute(Sender: TObject);
+    procedure ActionNewUnitHereStateExecute(Sender: TObject);
     procedure ActionNewUnitStateExecute(Sender: TObject);
     procedure ActionOpenProjectCodeExecute(Sender: TObject);
+    procedure ActionRegenerateProjectExecute(Sender: TObject);
     procedure ApplicationProperties1Activate(Sender: TObject);
     procedure ApplicationProperties1Exception(Sender: TObject; E: Exception);
     procedure ButtonClearWarningsClick(Sender: TObject);
@@ -231,7 +241,8 @@ type
     procedure ShellListViewDoubleClick(Sender: TObject);
     procedure ShellListViewSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
-    procedure ShowNewUnitForm(const AUnitType: TNewUnitType);
+    procedure ShowNewUnitForm(const AUnitType: TNewUnitType;
+      const UnitOutputDirFromFileBrowser: Boolean);
     procedure UpdateFormCaption(Sender: TObject);
     { Propose saving the hierarchy.
       Returns should we continue (user did not cancel). }
@@ -426,6 +437,11 @@ begin
       'Create Lazarus project (e.g. by "castle-engine generate-program") and update CastleEngineManifest.xml.');
 end;
 
+procedure TProjectForm.ActionRegenerateProjectExecute(Sender: TObject);
+begin
+  BuildToolCall(['generate-program']);
+end;
+
 procedure TProjectForm.ActionEditUnitExecute(Sender: TObject);
 begin
   if OpenPascalUnitDialog.Execute then
@@ -446,20 +462,36 @@ end;
 
 procedure TProjectForm.ActionNewUnitClassExecute(Sender: TObject);
 begin
-  ShowNewUnitForm(utClass);
+  ShowNewUnitForm(utClass, false);
 end;
 
 procedure TProjectForm.ActionNewUnitEmptyExecute(Sender: TObject);
 begin
-  ShowNewUnitForm(utEmpty);
+  ShowNewUnitForm(utEmpty, false);
+end;
+
+procedure TProjectForm.ActionNewUnitHereClassExecute(Sender: TObject);
+begin
+  ShowNewUnitForm(utClass, true);
+end;
+
+procedure TProjectForm.ActionNewUnitHereEmptyExecute(Sender: TObject);
+begin
+  ShowNewUnitForm(utEmpty, true);
+end;
+
+procedure TProjectForm.ActionNewUnitHereStateExecute(Sender: TObject);
+begin
+  ShowNewUnitForm(utState, true);
 end;
 
 procedure TProjectForm.ActionNewUnitStateExecute(Sender: TObject);
 begin
-  ShowNewUnitForm(utState);
+  ShowNewUnitForm(utState, false);
 end;
 
-procedure TProjectForm.ShowNewUnitForm(const AUnitType: TNewUnitType);
+procedure TProjectForm.ShowNewUnitForm(const AUnitType: TNewUnitType;
+  const UnitOutputDirFromFileBrowser: Boolean);
 
   { Check if unit is on search path, as we don't edit CastleEngineManifest.xml
     search paths automatically now. }
@@ -509,8 +541,24 @@ procedure TProjectForm.ShowNewUnitForm(const AUnitType: TNewUnitType);
     end;
   end;
 
+var
+  UnitOutputPath: String;
 begin
-  NewUnitForm.InitializeUi(AUnitType, InclPathDelim(ShellListView1.Root), Manifest);
+  { calculate UnitOutputPath }
+  if UnitOutputDirFromFileBrowser then
+  begin
+    UnitOutputPath := ShellListView1.Root;
+  end else
+  begin
+    { place code in code/ subdirectory, if possible }
+    UnitOutputPath := CombinePaths(Manifest.Path, 'code');
+    if not DirectoryExists(UnitOutputPath) then
+      UnitOutputPath := Manifest.Path;
+  end;
+  UnitOutputPath := InclPathDelim(UnitOutputPath);
+
+  NewUnitForm.InitializeUi(AUnitType, UnitOutputPath, Manifest);
+
   if NewUnitForm.ShowModal = mrOK then
   begin
     CheckNewUnitOnSearchPath;

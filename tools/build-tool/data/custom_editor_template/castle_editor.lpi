@@ -31,11 +31,8 @@
       <Item2>
         <PackageName Value="LCL"/>
       </Item2>
-      <Item3>
-        <PackageName Value="castle_editor_automatic_package"/>
-      </Item3>
-    </RequiredPackages>
-    <Units Count="15">
+    <Item3> <PackageName Value="castle_editor_automatic_package"/> </Item3> </RequiredPackages>
+    <Units Count="16">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -112,6 +109,7 @@
         <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/formnewunit.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="NewUnitForm"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="FormNewUnit"/>
       </Unit11>
@@ -128,6 +126,11 @@
         <Filename Value="${CASTLE_ENGINE_PATH}tools/common-code/toolservices.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit14>
+      <Unit15>
+        <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/editorcodetools.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="EditorCodeTools"/>
+      </Unit15>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -137,10 +140,9 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="${CASTLE_ENGINE_PATH}src/base;$(ProjOutDir)"/>
-      <OtherUnitFiles Value="${CASTLE_ENGINE_PATH}tools/build-tool/code;${CASTLE_ENGINE_PATH}tools/castle-editor/code;${CASTLE_ENGINE_PATH}tools/common-code"/>
+      <OtherUnitFiles Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code;${CASTLE_ENGINE_PATH}tools/common-code"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
-      <Libraries Value="${ABSOLUTE_LIBRARY_PATHS}" />
-    </SearchPaths>
+    <Libraries Value="${ABSOLUTE_LIBRARY_PATHS}" /> </SearchPaths>
     <Parsing>
       <SyntaxOptions>
         <IncludeAssertionCode Value="True"/>

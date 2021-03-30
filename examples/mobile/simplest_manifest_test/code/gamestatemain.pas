@@ -3,7 +3,7 @@
   Feel free to use this code as a starting point for your own projects.
   (This code is in public domain, unlike most other CGE code which
   is covered by the LGPL license variant, see the COPYING.txt file.) }
-unit GameState${MAIN_STATE};
+unit GameStateMain;
 
 interface
 
@@ -13,9 +13,9 @@ uses Classes,
 
 type
   { Main state, where most of the application logic takes place. }
-  TState${MAIN_STATE} = class(TUIState)
+  TStateMain = class(TUIState)
   private
-    { Components designed using CGE editor, loaded from gamestate${MAIN_STATE_LOWERCASE}.castle-user-interface. }
+    { Components designed using CGE editor, loaded from state_main.castle-user-interface. }
     LabelFps: TCastleLabel;
   public
     procedure Start; override;
@@ -24,35 +24,35 @@ type
   end;
 
 var
-  State${MAIN_STATE}: TState${MAIN_STATE};
+  StateMain: TStateMain;
 
 implementation
 
 uses SysUtils;
 
-{ TState${MAIN_STATE} ----------------------------------------------------------------- }
+{ TStateMain ----------------------------------------------------------------- }
 
-procedure TState${MAIN_STATE}.Start;
+procedure TStateMain.Start;
 var
   UiOwner: TComponent;
 begin
   inherited;
 
   { Load designed user interface }
-  InsertUserInterface('castle-data:/gamestate${MAIN_STATE_LOWERCASE}.castle-user-interface', FreeAtStop, UiOwner);
+  InsertUserInterface('castle-data:/gamestatemain.castle-user-interface', FreeAtStop, UiOwner);
 
   { Find components, by name, that we need to access from code }
   LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
 end;
 
-procedure TState${MAIN_STATE}.Update(const SecondsPassed: Single; var HandleInput: Boolean);
+procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 begin
   inherited;
   { This virtual method is executed every frame.}
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 end;
 
-function TState${MAIN_STATE}.Press(const Event: TInputPressRelease): Boolean;
+function TStateMain.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
@@ -63,7 +63,7 @@ begin
     Note that each UI control has also events like OnPress and OnClick.
     These events can be used to handle the "press", if it should do something
     specific when used in that UI control.
-    The TState${MAIN_STATE}.Press method should be used to handle keys
+    The TStateMain.Press method should be used to handle keys
     not handled in children controls.
   }
 

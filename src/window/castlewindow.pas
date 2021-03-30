@@ -1467,7 +1467,9 @@ type
     *)
     property Visible: boolean read FVisible write FVisible default true;
 
-    { Caption of the window. By default it's initialized to ApplicationName.
+    { Caption of the window.
+      By default it's initialized from ApplicationProperties.Caption or (if empty)
+      ApplicationName.
       May be changed even when the window is already open. }
     property Caption: string read GetPublicCaption write SetPublicCaption;
 
@@ -2701,8 +2703,8 @@ type
         @item(@code(-h / --help))
         @item(@code(-v / --version), using @link(Version))
         @item(@code(--log-file), setting @link(LogFileName))
-        @item(All the parameters handled by @link(TCastleWindowBase.ParseParameters).
-          Requires @link(MainWindow) to be set.)
+        @item(All the parameters handled by @link(TCastleWindowBase.ParseParameters),
+          if @link(MainWindow) is set already.)
         @item(All the parameters handled by @link(TSoundEngine.ParseParameters).)
       )
     }
@@ -2874,7 +2876,10 @@ begin
   FLeft  := WindowPositionCenter;
   FTop   := WindowPositionCenter;
   FDoubleBuffer := true;
-  FCaption[cpPublic] := ApplicationName;
+  if ApplicationProperties.Caption <> '' then
+    FCaption[cpPublic] := ApplicationProperties.Caption
+  else
+    FCaption[cpPublic] := ApplicationName;
   FResizeAllowed := raAllowed;
   minWidth := 100;  maxWidth := 4000;
   minHeight := 100; maxHeight := 4000;
@@ -5149,11 +5154,12 @@ begin
           HelpOptionHelp + NL +
           VersionOptionHelp + NL +
           SoundEngine.ParseParametersHelp + NL+
-          NL;
-        if App.MainWindow <> nil then
-          HelpString += TCastleWindowBase.ParseParametersHelp(StandardParseOptions, true) + NL + NL;
-        HelpString += SCastleEngineProgramHelpSuffix(ApplicationName,
-          ApplicationProperties.Version, true);
+          NL +
+          // do this regardless of MainWindow <> nil, as MainWindow may be assigned later
+          TCastleWindowBase.ParseParametersHelp(StandardParseOptions, true) +
+          NL +
+          NL +
+          SCastleEngineProgramHelpSuffix(ApplicationName, ApplicationProperties.Version, true);
         InfoWrite(HelpString);
         Halt;
       end;
@@ -5179,7 +5185,7 @@ begin
   SoundEngine.ParseParameters;
   if MainWindow <> nil then
     MainWindow.ParseParameters;
-  Parameters.Parse(Options, @ApplicationOptionProc, Self);
+  Parameters.Parse(Options, @ApplicationOptionProc, Self, true);
 end;
 
 function TCastleApplication.OpenGLES: Boolean;

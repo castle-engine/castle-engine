@@ -12,11 +12,10 @@ interface
 implementation
 
 uses SysUtils,
-  CastleWindow, CastleLog, CastleUIState, CastleSoundEngine
+  CastleWindow, CastleLog, CastleUIState
   { CASTLE-INITIALIZATION-USES-BEGIN }
   // The content here may be automatically updated by CGE editor.
-  , GameStateMenu
-  , GameStatePlay
+  , GameStateMain
   { CASTLE-INITIALIZATION-USES-END };
 
 var
@@ -28,17 +27,17 @@ begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-  { Create game states and set initial state }
+  { Create TStateMain that will handle "main" state of the game.
+    Larger games may use multiple states,
+    e.g. TStateMainMenu ("main menu state"),
+    TStatePlay ("playing the game state"),
+    TStateCredits ("showing the credits state") etc. }
   { CASTLE-STATE-CREATE-BEGIN }
   // The content here may be automatically updated by CGE editor.
-  StatePlay := TStatePlay.Create(Application);
-  StateMenu := TStateMenu.Create(Application);
+  StateMain := TStateMain.Create(Application);
   { CASTLE-STATE-CREATE-END }
 
-  TUIState.Current := StateMenu;
-
-  SoundEngine.RepositoryURL := 'castle-data:/audio/index.xml';
-  SoundEngine.MusicPlayer.Sound := SoundEngine.SoundFromName('dark_music');
+  TUIState.Current := StateMain;
 end;
 
 initialization
