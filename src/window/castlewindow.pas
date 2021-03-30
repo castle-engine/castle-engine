@@ -5140,10 +5140,10 @@ end;
 procedure ApplicationOptionProc(OptionNum: Integer; HasArgument: boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
 var
-  App: TCastleApplication;
+  // App: TCastleApplication; // unused now
   HelpString: string;
 begin
-  App := TCastleApplication(Data);
+  // App := TCastleApplication(Data); // unused now
 
   case OptionNum of
     0:begin
