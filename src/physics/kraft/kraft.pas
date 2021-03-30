@@ -120,8 +120,28 @@ unit kraft;
 {$booleval off}
 {$typeinfo on}
 
-{ Workaround FPC 3.3.1 revision 47824 compilation error }
-{$if defined(DARWIN) and defined(VER3_3)}
+{ Workaround FPC 3.3.1 errors:
+
+  - Reproduced with revision 47824 compilation error, on Darwin (not recorded CPU).
+  - Reproduced also with FPC 3.3.1 revision 48998 with Android/Arm and Android/Aarrch64.
+
+  The errors mention invalid assembler syntax.
+  E.g. Android/Aarrch64 output:
+
+    kraft.s: Assembler messages:
+    kraft.s:86936: Error: operand mismatch -- `fadd d0,s0,s1'
+    kraft.s:86936: Info:    did you mean this?
+    kraft.s:86936: Info:    	fadd s0,s0,s1
+    kraft.s:86936: Info:    other valid variant(s):
+    kraft.s:86936: Info:    	fadd d0,d0,d1
+    kraft.s:86938: Error: operand mismatch -- `fadd d0,d0,s1'
+    kraft.s:86938: Info:    did you mean this?
+    kraft.s:86938: Info:    	fadd d0,d0,d1
+    kraft.s:86938: Info:    other valid variant(s):
+    kraft.s:86938: Info:    	fadd s0,s0,s1
+    kraft.pas(33101) Error: Error while assembling exitcode 1
+}
+{$if defined(VER3_3) and (defined(DARWIN) or defined(CPUARM) or defined(CPUAARCH64))}
   {$undef caninline}
 {$endif}
 
