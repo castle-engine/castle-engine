@@ -820,19 +820,28 @@ begin
 end;
 
 function TCastleManifest.FindPascalFiles: TStringList;
-var
-  SearchPath, SearchPathAbsolute: String;
-begin
-  Result := TStringList.Create;
 
-  for SearchPath in SearchPaths do
+  procedure ScanSearchPath(const SearchPath: String);
+  var
+    SearchPathAbsolute: String;
   begin
     SearchPathAbsolute := CombinePaths(Path, SearchPath);
-    FindPascalFilesResult := Result;
     FindFiles(SearchPathAbsolute, '*.pas', false, @FindPascalFilesCallback, []);
     FindFiles(SearchPathAbsolute, '*.pp', false, @FindPascalFilesCallback, []);
     FindFiles(SearchPathAbsolute, '*.inc', false, @FindPascalFilesCallback, []);
   end;
+
+var
+  SearchPath: String;
+begin
+  Result := TStringList.Create;
+  FindPascalFilesResult := Result;
+
+  ScanSearchPath(''); // the project root is implicitly always on search path
+  for SearchPath in SearchPaths do
+    ScanSearchPath(SearchPath);
+
+  FindPascalFilesResult := nil; // nothing should use it, but don't leave dangling pointer anyway
 end;
 
 procedure TCastleManifest.FindPascalFilesCallback(

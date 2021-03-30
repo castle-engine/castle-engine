@@ -4,8 +4,10 @@
     <Version Value="10"/>
     <General>
       <Flags>
+        <MainUnitHasUsesSectionForAllUnits Value="False"/>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
+        <MainUnitHasScaledStatement Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <Title Value="${NAME_PASCAL}"/>
