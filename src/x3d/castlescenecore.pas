@@ -1038,7 +1038,7 @@ type
       DefaultShadowMapsDefaultSize = 256;
 
     constructor Create(AOwner: TComponent); override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Load the model given as a X3D nodes graph.
       This replaces RootNode with new value.
@@ -1170,7 +1170,7 @@ type
     function ViewpointsCount: Cardinal;
     function GetViewpointName(Idx: integer): string;
     procedure MoveToViewpoint(Idx: integer; Animated: boolean = true);
-    procedure AddViewpointFromCamera(const Navigation: TCastleNavigation;
+    procedure AddViewpointFromNavigation(const Navigation: TCastleNavigation;
       const AName: string);
     { @groupEnd }
 
@@ -5402,13 +5402,17 @@ begin
 
     if (FOctreeDynamicCollisions <> nil) and
        (Change in [gcCollidableTransformChanged, gcActiveShapesChanged] + SomeLocalGeometryChanged) then
+    begin
       FreeAndNil(FOctreeDynamicCollisions);
+      // PointingDeviceClear; // do not free PTriangle records, the per-shape octrees remain valid. Testcase: Unholy clicking
+    end;
   end;
 
   if FOctreeStaticCollisions <> nil then
   begin
     WritelnWarning('ssStaticCollisions used on scene "' + Name + '" but the geometry changed. Freeing the spatial structure. You should use ssDynamicCollisions for this scene');
     FreeAndNil(FOctreeStaticCollisions);
+    PointingDeviceClear; // remove any reference to (no longer valid) PTriangle records
   end;
 
   if Assigned(OnGeometryChanged) then
@@ -5624,6 +5628,7 @@ begin
     if Old and not New then
     begin
       FreeAndNil(FOctreeDynamicCollisions);
+      // PointingDeviceClear; // do not free PTriangle records, the per-shape octrees remain valid. Testcase: Unholy clicking
       SetShapeSpatial([], true);
     end else
     if New and not Old then
@@ -5648,7 +5653,10 @@ begin
     New := ssStaticCollisions in Value;
 
     if Old and not New then
+    begin
       FreeAndNil(FOctreeStaticCollisions);
+      PointingDeviceClear; // remove any reference to (no longer valid) PTriangle records
+    end;
 
     FSpatial := Value;
   end;
@@ -7895,7 +7903,7 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.AddViewpointFromCamera(
+procedure TCastleSceneCore.AddViewpointFromNavigation(
   const Navigation: TCastleNavigation; const AName: string);
 var
   APosition: TVector3;
@@ -7917,7 +7925,7 @@ begin
   if RootNode = nil then
     raise Exception.Create('You have to initialize RootNode, usually just by loading some scene to TCastleSceneCore.Load, before adding viewpoints');
   if Navigation.InternalViewport = nil then
-    raise Exception.Create('Navigation must be part of some Viewport before using AddViewpointFromCamera');
+    raise Exception.Create('Navigation must be part of some Viewport before using AddViewpointFromNavigation');
 
   Navigation.Camera.GetView(APosition, ADirection, AUp, GravityUp);
 
@@ -8397,14 +8405,14 @@ begin
     Result.Load(RootNode.DeepCopy as TX3DRootNode, true);
 end;
 
-function TCastleSceneCore.PropertySection(
-  const PropertyName: String): TPropertySection;
+function TCastleSceneCore.PropertySections(
+  const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
     'URL', 'ProcessEvents', 'AutoAnimation', 'AutoAnimationLoop', 'DefaultAnimationTransition', 'Spatial':
-      Result := psBasic;
+      Result := [psBasic];
     else
-      Result := inherited PropertySection(PropertyName);
+      Result := inherited PropertySections(PropertyName);
   end;
 end;
 

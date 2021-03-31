@@ -280,9 +280,13 @@
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
+    <Target>
+      <Filename Value="test_castle_game_engine"/>
+    </Target>
     <SearchPaths>
       <IncludeFiles Value="../src/base;code"/>
       <OtherUnitFiles Value="code;code/common"/>
+      <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>

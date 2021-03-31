@@ -1,5 +1,6 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCompiler" -*-
 {
-  Copyright 2017-2018 Michalis Kamburelis.
+  Copyright 2017-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,6 +14,7 @@
   ----------------------------------------------------------------------------
 }
 
+{ Test some Pascal compiler (FPC) stuff. These tests are independent from CGE. }
 unit TestCompiler;
 
 interface

@@ -2,7 +2,6 @@
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
-    <PathDelim Value="\"/>
     <General>
       <Flags>
         <MainUnitHasCreateFormStatements Value="False"/>
@@ -45,13 +44,14 @@
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
-    <PathDelim Value="\"/>
     <Target>
       <Filename Value="edit_test"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="$(ProjOutDir)"/>
-      <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+      <IncludeFiles Value="code/"/>
+      <OtherUnitFiles Value="code/"/>
+      <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
+      <Libraries Value="" />
     </SearchPaths>
   </CompilerOptions>
   <Debugging>

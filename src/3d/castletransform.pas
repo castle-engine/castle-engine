@@ -739,7 +739,7 @@ type
     destructor Destroy; override;
 
     procedure InternalAddChild(const C: TComponent); override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
     function GetEnumerator: TEnumerator;
 
     { Does item really exist, see @link(Exists) and @link(Enable),
@@ -3697,20 +3697,19 @@ begin
   Add(C as TCastleTransform)
 end;
 
-function TCastleTransform.PropertySection(const PropertyName: String
-  ): TPropertySection;
+function TCastleTransform.PropertySections(const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
     'Exists':
-      Result := psBasic;
+      Result := [psBasic];
     'CenterPersistent',
     'RotationPersistent',
     'ScalePersistent',
     'ScaleOrientationPersistent',
     'TranslationPersistent':
-      Result := psLayout;
+      Result := [psBasic, psLayout];
     else
-      Result := inherited PropertySection(PropertyName);
+      Result := inherited PropertySections(PropertyName);
   end;
 end;
 

@@ -68,6 +68,7 @@ type
     FTouchDevice: boolean;
     FLimitFPS: Single;
     FShowUserInterfaceToQuit: Boolean;
+    FCaption: String;
     function GetApplicationName: String;
     procedure SetApplicationName(const Value: String);
   public
@@ -91,6 +92,9 @@ type
       as standard SysUtils.ApplicationName.
       When setting this, we automatically set SysUtils.OnGetApplicationName. }
     property ApplicationName: String read GetApplicationName write SetApplicationName;
+
+    { @abstract(Pretty application name, to show to user e.g. as a window caption.) }
+    property Caption: String read FCaption write FCaption;
 
     { Version of this application.
       It may be used e.g. by @link(InitializeLog) and

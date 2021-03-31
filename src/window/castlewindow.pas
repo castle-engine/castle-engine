@@ -1324,8 +1324,10 @@ type
       read FStencilBits write FStencilBits default 0;
 
     { How many samples are required for multi-sampling (anti-aliasing).
-      Use @link(AntiAliasing) instead of this for more comfortable
+
+      Set @link(AntiAliasing) instead of this for more comfortable
       (higher-level) way to turn on multi-sampling (anti-aliasing).
+      Setting @link(AntiAliasing) will also set this property.
 
       1 means that no multi-sampling is required.
       Values larger than 1 mean that we require OpenGL context with
@@ -1465,7 +1467,9 @@ type
     *)
     property Visible: boolean read FVisible write FVisible default true;
 
-    { Caption of the window. By default it's initialized to ApplicationName.
+    { Caption of the window.
+      By default it's initialized from ApplicationProperties.Caption or (if empty)
+      ApplicationName.
       May be changed even when the window is already open. }
     property Caption: string read GetPublicCaption write SetPublicCaption;
 
@@ -2699,8 +2703,8 @@ type
         @item(@code(-h / --help))
         @item(@code(-v / --version), using @link(Version))
         @item(@code(--log-file), setting @link(LogFileName))
-        @item(All the parameters handled by @link(TCastleWindowBase.ParseParameters).
-          Requires @link(MainWindow) to be set.)
+        @item(All the parameters handled by @link(TCastleWindowBase.ParseParameters),
+          if @link(MainWindow) is set already.)
         @item(All the parameters handled by @link(TSoundEngine.ParseParameters).)
       )
     }
@@ -2872,7 +2876,10 @@ begin
   FLeft  := WindowPositionCenter;
   FTop   := WindowPositionCenter;
   FDoubleBuffer := true;
-  FCaption[cpPublic] := ApplicationName;
+  if ApplicationProperties.Caption <> '' then
+    FCaption[cpPublic] := ApplicationProperties.Caption
+  else
+    FCaption[cpPublic] := ApplicationName;
   FResizeAllowed := raAllowed;
   minWidth := 100;  maxWidth := 4000;
   minHeight := 100; maxHeight := 4000;
@@ -2960,6 +2967,20 @@ procedure TCastleWindowBase.OpenCore;
 
     // just like TCastleWindowBase.DoRender
     if DoubleBuffer then SwapBuffers else glFlush;
+
+    {$IFDEF android}
+    { Workaround an ARM64 Android-specific bug which manifests on some devices
+      (reproduced on Xiaomi MI 9 SE) that creates a dangling EInvalidOp after calling Theme.Draw.
+      It doesn't seem to interfere with normal porgram workflow,
+      neither it causes any visible graphic glitches in the image rendered by Theme.Draw,
+      but causes ClearExceptions(true) to raise unrelated dangling exceptions,
+      which in turn makes e.g. CastleScript misbehave.
+      Also seems to be reproduced outside of Castle Game Engine:
+      https://forum.lazarus.freepascal.org/index.php/topic,42933.msg318965.html?#msg318965
+      It seems that clearing them once per app run is perfectly enough,
+      all subsequent calls to Theme.Draw do not raise the exception. }
+    ClearExceptions(false);
+    {$ENDIF}
   end;
 
   { Do the job of OpenCore, do not protect from possible exceptions raised inside. }
@@ -5119,10 +5140,10 @@ end;
 procedure ApplicationOptionProc(OptionNum: Integer; HasArgument: boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
 var
-  App: TCastleApplication;
+  // App: TCastleApplication; // unused now
   HelpString: string;
 begin
-  App := TCastleApplication(Data);
+  // App := TCastleApplication(Data); // unused now
 
   case OptionNum of
     0:begin
@@ -5133,11 +5154,12 @@ begin
           HelpOptionHelp + NL +
           VersionOptionHelp + NL +
           SoundEngine.ParseParametersHelp + NL+
-          NL;
-        if App.MainWindow <> nil then
-          HelpString += TCastleWindowBase.ParseParametersHelp(StandardParseOptions, true) + NL + NL;
-        HelpString += SCastleEngineProgramHelpSuffix(ApplicationName,
-          ApplicationProperties.Version, true);
+          NL +
+          // do this regardless of MainWindow <> nil, as MainWindow may be assigned later
+          TCastleWindowBase.ParseParametersHelp(StandardParseOptions, true) +
+          NL +
+          NL +
+          SCastleEngineProgramHelpSuffix(ApplicationName, ApplicationProperties.Version, true);
         InfoWrite(HelpString);
         Halt;
       end;
@@ -5163,7 +5185,7 @@ begin
   SoundEngine.ParseParameters;
   if MainWindow <> nil then
     MainWindow.ParseParameters;
-  Parameters.Parse(Options, @ApplicationOptionProc, Self);
+  Parameters.Parse(Options, @ApplicationOptionProc, Self, true);
 end;
 
 function TCastleApplication.OpenGLES: Boolean;

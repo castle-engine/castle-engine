@@ -24,14 +24,42 @@ uses
   Classes, SysUtils, DOM, FileUtil, Forms, Controls, Graphics, Dialogs, Menus,
   ExtCtrls, ComCtrls, CastleShellCtrls, StdCtrls, ValEdit, ActnList, Buttons,
   ProjectUtils, Types, Contnrs, CastleControl, CastleUIControls,
-  CastlePropEdits, CastleDialogs, X3DNodes, EditorUtils, FrameDesign,
-  FrameViewFile;
+  CastlePropEdits, CastleDialogs, X3DNodes, CastleFindFiles,
+  EditorUtils, FrameDesign, FrameViewFile, FormNewUnit, ToolManifest;
 
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionRegenerateProject: TAction;
+    ActionEditAssociatedUnit: TAction;
+    ActionNewUnitHereClass: TAction;
+    ActionNewUnitHereState: TAction;
+    ActionNewUnitHereEmpty: TAction;
+    ActionNewUnitClass: TAction;
+    ActionNewUnitState: TAction;
+    ActionNewUnitEmpty: TAction;
+    ActionEditUnit: TAction;
+    ActionOpenProjectCode: TAction;
+    ActionList1: TActionList;
     ApplicationProperties1: TApplicationProperties;
     ButtonClearWarnings: TBitBtn;
+    MenuItem1: TMenuItem;
+    MenuItemRegenerateProject: TMenuItem;
+    MenuItemSeparator123123345: TMenuItem;
+    OpenPascalUnitDialog: TCastleOpenPascalUnitDialog;
+    MenuItemPopupNewUnitEmpty: TMenuItem;
+    MenuItemPopupNewUnitClass: TMenuItem;
+    MenuItemPopupNewUnitState: TMenuItem;
+    MenuItemPopupNewUnit: TMenuItem;
+    N3: TMenuItem;
+    MenuItemNewUnitState: TMenuItem;
+    MenuItemNewUnitClass: TMenuItem;
+    MenuItemNewUnitEmpty: TMenuItem;
+    MenuItemNewUnit: TMenuItem;
+    N2: TMenuItem;
+    MenuItemEditUnitCode: TMenuItem;
+    MenuItemOpenProjectCode: TMenuItem;
+    MenuItemCode: TMenuItem;
     MenuItemNewDirectory: TMenuItem;
     MenuItemShellTreeSeparator13123: TMenuItem;
     MenuItemShellTreeRefresh: TMenuItem;
@@ -115,6 +143,16 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionEditAssociatedUnitExecute(Sender: TObject);
+    procedure ActionEditUnitExecute(Sender: TObject);
+    procedure ActionNewUnitClassExecute(Sender: TObject);
+    procedure ActionNewUnitEmptyExecute(Sender: TObject);
+    procedure ActionNewUnitHereClassExecute(Sender: TObject);
+    procedure ActionNewUnitHereEmptyExecute(Sender: TObject);
+    procedure ActionNewUnitHereStateExecute(Sender: TObject);
+    procedure ActionNewUnitStateExecute(Sender: TObject);
+    procedure ActionOpenProjectCodeExecute(Sender: TObject);
+    procedure ActionRegenerateProjectExecute(Sender: TObject);
     procedure ApplicationProperties1Activate(Sender: TObject);
     procedure ApplicationProperties1Exception(Sender: TObject; E: Exception);
     procedure ButtonClearWarningsClick(Sender: TObject);
@@ -181,6 +219,7 @@ type
         rfEverything
       );
     var
+      Manifest: TCastleManifest;
       ProjectName: String;
       ProjectPath, ProjectPathUrl, ProjectStandaloneSource, ProjectLazarus: String;
       BuildMode: TBuildMode;
@@ -195,12 +234,15 @@ type
       const ExitOnSuccess: Boolean = false);
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuItemDesignNewCustomRootClick(Sender: TObject);
+    procedure OpenPascal(const FileName: String);
     procedure RefreshFiles(const RefreshNecessary: TRefreshFiles);
     procedure SetEnabledCommandRun(const AEnabled: Boolean);
     procedure FreeProcess;
     procedure ShellListViewDoubleClick(Sender: TObject);
     procedure ShellListViewSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
+    procedure ShowNewUnitForm(const AUnitType: TNewUnitType;
+      const UnitOutputDirFromFileBrowser: Boolean);
     procedure UpdateFormCaption(Sender: TObject);
     { Propose saving the hierarchy.
       Returns should we continue (user did not cancel). }
@@ -375,6 +417,156 @@ begin
   RefreshFiles(rfEverything);
 end;
 
+procedure TProjectForm.ActionOpenProjectCodeExecute(Sender: TObject);
+var
+  Exe: String;
+begin
+  Exe := FindExeLazarusIDE;
+
+  { Prefer to open using LPR (ProjectStandaloneSource) instead of LPI
+    (ProjectLazarus), see OpenPascal comments for reasons. }
+
+  if ProjectStandaloneSource <> '' then
+    RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectStandaloneSource])
+  else
+  if ProjectLazarus <> '' then
+    RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus])
+  else
+    ErrorBox('Lazarus project not defined (neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml).' + NL +
+      NL +
+      'Create Lazarus project (e.g. by "castle-engine generate-program") and update CastleEngineManifest.xml.');
+end;
+
+procedure TProjectForm.ActionRegenerateProjectExecute(Sender: TObject);
+begin
+  BuildToolCall(['generate-program']);
+end;
+
+procedure TProjectForm.ActionEditUnitExecute(Sender: TObject);
+begin
+  if OpenPascalUnitDialog.Execute then
+    OpenPascal(OpenPascalUnitDialog.FileName);
+end;
+
+procedure TProjectForm.ActionEditAssociatedUnitExecute(Sender: TObject);
+var
+  AUnitName, UnitFileNameAbsolute: String;
+begin
+  AUnitName := DeleteURIExt(ExtractURIName(Design.DesignUrl));
+  UnitFileNameAbsolute := Manifest.SearchPascalUnit(AUnitName);
+  if UnitFileNameAbsolute <> '' then
+    OpenPascal(UnitFileNameAbsolute)
+  else
+    ErrorBox('Cannot find Pascal unit ' + AUnitName + ' (filename like "' + AUnitName + '.pas") among the search paths listed in CastleEngineManifest.xml');
+end;
+
+procedure TProjectForm.ActionNewUnitClassExecute(Sender: TObject);
+begin
+  ShowNewUnitForm(utClass, false);
+end;
+
+procedure TProjectForm.ActionNewUnitEmptyExecute(Sender: TObject);
+begin
+  ShowNewUnitForm(utEmpty, false);
+end;
+
+procedure TProjectForm.ActionNewUnitHereClassExecute(Sender: TObject);
+begin
+  ShowNewUnitForm(utClass, true);
+end;
+
+procedure TProjectForm.ActionNewUnitHereEmptyExecute(Sender: TObject);
+begin
+  ShowNewUnitForm(utEmpty, true);
+end;
+
+procedure TProjectForm.ActionNewUnitHereStateExecute(Sender: TObject);
+begin
+  ShowNewUnitForm(utState, true);
+end;
+
+procedure TProjectForm.ActionNewUnitStateExecute(Sender: TObject);
+begin
+  ShowNewUnitForm(utState, false);
+end;
+
+procedure TProjectForm.ShowNewUnitForm(const AUnitType: TNewUnitType;
+  const UnitOutputDirFromFileBrowser: Boolean);
+
+  { Check if unit is on search path, as we don't edit CastleEngineManifest.xml
+    search paths automatically now. }
+  procedure CheckNewUnitOnSearchPath;
+  var
+    UnitBaseName: String;
+  begin
+    if NewUnitForm.CreatedUnitRelative <> '' then
+    begin
+      UnitBaseName := DeleteFileExt(ExtractFileName(NewUnitForm.CreatedUnitRelative));
+      if Manifest.SearchPascalUnit(UnitBaseName) = '' then
+      begin
+        WarningBox(Format('Created unit "%s" not found on the search path. Make sure that subdirectory "%s" is listed among search paths inside CastleEngineManifest.xml.', [
+          NewUnitForm.CreatedUnitRelative,
+          ExtractFilePath(NewUnitForm.CreatedUnitRelative)
+        ]));
+      end;
+    end;
+  end;
+
+  { Propose to open design or unit code immediately. }
+  procedure ProposeToOpenNewFile;
+  begin
+    if NewUnitForm.CreatedDesignRelative <> '' then
+    begin
+      Assert(NewUnitForm.CreatedUnitRelative <> '');
+      if YesNoBox('Open design', Format(
+        'Created unit: %s' + NL +
+        NL +
+        'Created user interface design: %s' + NL +
+        NL +
+        'Open the user interface design now?', [
+        NewUnitForm.CreatedUnitRelative,
+        NewUnitForm.CreatedDesignRelative
+      ])) then
+        OpenDesign(NewUnitForm.CreatedDesignAbsolute);
+    end else
+    if NewUnitForm.CreatedUnitRelative <> '' then
+    begin
+      if YesNoBox('Edit unit', Format(
+        'Created unit: %s' + NL +
+        NL +
+        'Edit the unit code now?', [
+        NewUnitForm.CreatedUnitRelative
+      ])) then
+        OpenPascal(NewUnitForm.CreatedUnitAbsolute);
+    end;
+  end;
+
+var
+  UnitOutputPath: String;
+begin
+  { calculate UnitOutputPath }
+  if UnitOutputDirFromFileBrowser then
+  begin
+    UnitOutputPath := ShellListView1.Root;
+  end else
+  begin
+    { place code in code/ subdirectory, if possible }
+    UnitOutputPath := CombinePaths(Manifest.Path, 'code');
+    if not DirectoryExists(UnitOutputPath) then
+      UnitOutputPath := Manifest.Path;
+  end;
+  UnitOutputPath := InclPathDelim(UnitOutputPath);
+
+  NewUnitForm.InitializeUi(AUnitType, UnitOutputPath, Manifest);
+
+  if NewUnitForm.ShowModal = mrOK then
+  begin
+    CheckNewUnitOnSearchPath;
+    ProposeToOpenNewFile;
+    RefreshFiles(rfFilesInCurrentDir);
+  end;
+end;
+
 procedure TProjectForm.ApplicationProperties1Exception(Sender: TObject;
   E: Exception);
 begin
@@ -462,6 +654,7 @@ begin
   ApplicationDataOverride := '';
   FreeProcess;
   FreeAndNil(OutputList);
+  FreeAndNil(Manifest);
 end;
 
 procedure TProjectForm.FormHide(Sender: TObject);
@@ -712,6 +905,7 @@ begin
   MenuItemCopyComponent.Enabled := Design <> nil;
   MenuItemPasteComponent.Enabled := Design <> nil;
   MenuItemDuplicateComponent.Enabled := Design <> nil;
+  ActionEditAssociatedUnit.Enabled := Design <> nil;
 
   UpdateUndo(nil);
   UpdateRenameItem(nil);
@@ -757,7 +951,16 @@ procedure TProjectForm.OpenDesign(const DesignUrl: String);
 begin
   NeedsDesignFrame;
   ClearAllWarnings;
-  Design.OpenDesign(DesignUrl);
+  try
+    Design.OpenDesign(DesignUrl);
+  except
+    { In case Design.OpenDesign raised exception (e.g. file unreadable or invalid),
+      do not leave Design in half-uninitialized state (e.g. treeview will not
+      show anything valid). }
+    FreeAndNil(Design);
+    DesignExistenceChanged;
+    raise;
+  end;
 end;
 
 procedure TProjectForm.WarningNotification(const Category,
@@ -922,6 +1125,38 @@ begin
   end;
 end;
 
+procedure TProjectForm.OpenPascal(const FileName: String);
+var
+  Exe: String;
+begin
+  Exe := FindExeLazarusIDE;
+
+  { It would be cleaner to use LPI file, like this:
+
+  // pass both project name, and particular filename, to open file within this project.
+  RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus, FileName]);
+
+    But it doesn't work nicely: Lazarus asks for confirmation whether to open
+    LPI as XML file, or a project.
+    Instead opening LPR works better, i.e. just switches project (if necessary)
+    to new one.
+  }
+
+  //if ProjectLazarus = '' then
+  if ProjectStandaloneSource = '' then // see comments below, we use ProjectStandaloneSource
+  begin
+    //WritelnWarning('Lazarus project not defined (neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
+    WritelnWarning('Lazarus project not defined ("standalone_source" was not specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
+  end;
+
+  if (ProjectStandaloneSource = '') or
+     SameFileName(ProjectStandaloneSource, FileName) then
+    RunCommandNoWait(CreateTemporaryDir, Exe, [FileName])
+  else
+    { pass both project name, and particular filename, to open file within this project. }
+    RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectStandaloneSource, FileName]);
+end;
+
 procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
 
   procedure OpenWithCastleTool(const ToolName: String;
@@ -941,60 +1176,11 @@ procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
     RunCommandNoWait(CreateTemporaryDir, Exe, Arguments);
   end;
 
-  procedure OpenPascal(const FileName: String);
-  var
-    Exe: String;
-  begin
-    try
-      Exe := FindExeLazarusIDE;
-    except
-      on E: EExecutableNotFound do
-      begin
-        EditorUtils.ErrorBox(E.Message);
-        Exit;
-      end;
-    end;
-
-    { It would be cleaner to use LPI file, like this:
-
-    // pass both project name, and particular filename, to open file within this project.
-    RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus, FileName]);
-
-      But it doesn't work nicely: Lazarus asks for confirmation whether to open
-      LPI as XML file, or a project.
-      Instead opening LPR works better, i.e. just switches project (if necessary)
-      to new one.
-    }
-
-    //if ProjectLazarus = '' then
-    if ProjectStandaloneSource = '' then // see comments below, we use ProjectStandaloneSource
-    begin
-      //WritelnWarning('Lazarus project not defined (neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
-      WritelnWarning('Lazarus project not defined ("standalone_source" was not specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
-    end;
-
-    if (ProjectStandaloneSource = '') or
-       SameFileName(ProjectStandaloneSource, FileName) then
-      RunCommandNoWait(CreateTemporaryDir, Exe, [FileName])
-    else
-      { pass both project name, and particular filename, to open file within this project. }
-      RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectStandaloneSource, FileName]);
-  end;
-
   procedure OpenLazarusProject(const FileName: String);
   var
     Exe: String;
   begin
-    try
-      Exe := FindExeLazarusIDE;
-    except
-      on E: EExecutableNotFound do
-      begin
-        EditorUtils.ErrorBox(E.Message);
-        Exit;
-      end;
-    end;
-
+    Exe := FindExeLazarusIDE;
     RunCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
   end;
 
@@ -1177,33 +1363,22 @@ begin
 end;
 
 procedure TProjectForm.OpenProject(const ManifestUrl: String);
-var
-  ManifestDoc: TXMLDocument;
-  DefaultLazarusProject: String;
 begin
-  ManifestDoc := URLReadXML(ManifestUrl);
-  try
-    ProjectName := ManifestDoc.DocumentElement.AttributeString('name');
-    if not ManifestDoc.DocumentElement.AttributeString(
-      'standalone_source', ProjectStandaloneSource) then
-      ProjectStandaloneSource := '';
-
-    if ProjectStandaloneSource <> '' then
-      DefaultLazarusProject := ChangeFileExt(ProjectStandaloneSource, '.lpi')
-    else
-      DefaultLazarusProject := '';
-    ProjectLazarus := ManifestDoc.DocumentElement.AttributeStringDef(
-      'lazarus_project', DefaultLazarusProject);
-    if (ManifestDoc.DocumentElement.AttributeStringDef('editor_units', '') <> '') and
-       (not InternalHasCustomComponents) then
-      WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
-  finally FreeAndNil(ManifestDoc) end;
-
   { Below we assume ManifestUrl contains an absolute path,
     otherwise ProjectPathUrl could be '',
     and OpenDesignDialog.InitialDir would be left '' and so on. }
-  ProjectPathUrl := ExtractURIPath(ManifestUrl);
-  ProjectPath := URIToFilenameSafe(ProjectPathUrl);
+
+  FreeAndNil(Manifest); // free previous manifest, if any
+  Manifest := TCastleManifest.CreateFromUrl(ManifestUrl);
+
+  ProjectName := Manifest.Name;
+  ProjectPath := Manifest.Path;
+  ProjectPathUrl := Manifest.PathUrl;
+  ProjectStandaloneSource := Manifest.StandaloneSource;
+  ProjectLazarus := Manifest.LazarusProject;
+  if (Manifest.EditorUnits <> '') and
+     (not InternalHasCustomComponents) then
+    WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
 
   { Make some fields absolute paths, or empty }
   if ProjectStandaloneSource <> '' then
@@ -1214,8 +1389,11 @@ begin
   { override ApplicationData interpretation, and castle-data:/xxx URL,
     while this project is open. }
   ApplicationDataOverride := CombineURI(ProjectPathUrl, 'data/');
+
+  { adjust some InitialDir values to make open dialogs natural }
   OpenDesignDialog.InitialDir := URIToFilenameSafe(ApplicationDataOverride);
   SaveDesignDialog.InitialDir := URIToFilenameSafe(ApplicationDataOverride);
+  OpenPascalUnitDialog.InitialDir := ProjectPath;
 
   ShellTreeView1.Root := ProjectPath;
 

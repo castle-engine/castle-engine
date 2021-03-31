@@ -5,4 +5,9 @@
   qualified_name="${PROJECT_QUALIFIED_NAME}"
   caption="${PROJECT_CAPTION}"
 >
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
 </project>

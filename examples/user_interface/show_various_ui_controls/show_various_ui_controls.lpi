@@ -49,6 +49,15 @@
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
+    <Target>
+      <Filename Value="show_various_ui_controls"/>
+    </Target>
+    <SearchPaths>
+      <IncludeFiles Value="code/"/>
+      <OtherUnitFiles Value="code/"/>
+      <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
+      <Libraries Value="" />
+    </SearchPaths>
     <Other>
       <Verbosity>
         <ShowHints Value="False"/>

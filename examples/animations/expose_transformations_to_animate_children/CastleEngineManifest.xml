@@ -2,7 +2,12 @@
 <project name="expose_transformations_demo"
   standalone_source="expose_transformations_demo_standalone.lpr"
   game_units="GameInitialize"
-  qualified_name="io.castleengine.exposetransformationsdemo"
+  qualified_name="io.castleengine.expose.transformations.demo"
   caption="ExposeTransforms test"
 >
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
 </project>

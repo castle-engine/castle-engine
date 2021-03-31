@@ -66,7 +66,7 @@
     procedure Render; override;
     procedure EditorAllowResize(
       out ResizeWidth, ResizeHeight: Boolean; out Reason: String); override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure FontChanged; override;
 
     { Text color. By default it's opaque black. }
@@ -451,16 +451,16 @@ begin
   Caption := Value;
 end;
 
-function TCastleLabel.PropertySection(const PropertyName: String): TPropertySection;
+function TCastleLabel.PropertySections(const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
     // Note that Caption expresses the same thing as Text, but easier to access
     'Text', 'Caption', 'ColorPersistent', 'Html':
-      Result := psBasic;
-    'AutoSize':
-      Result := psLayout;
+      Result := [psBasic];
+    'Alignment', 'VerticalAlignment', 'LineSpacing', 'AutoSize':
+      Result := [psBasic, psLayout];
     else
-      Result := inherited PropertySection(PropertyName);
+      Result := inherited PropertySections(PropertyName);
   end;
 end;
 

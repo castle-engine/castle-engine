@@ -24,6 +24,7 @@
     FAngularVelocityRK4Integration: Boolean;
     FLinearVelocityRK4Integration: Boolean;
     FFrequency: Single;
+    FGravityStrength: Single;
     FMaxPhysicsTicksPerUpdate: Cardinal;
 
     procedure SetAngularVelocityRK4Integration(const AValue: Boolean);
@@ -41,6 +42,7 @@
       DefaultLinearVelocityRK4Integration = false;
       DefaultFrequency = 60.0;
       DefaultMaxPhysicsTicksPerUpdate = 5;
+      DefaultGravityStrength = 9.81;
 
     constructor Create(AOwner: TComponent); override;
 
@@ -54,6 +56,9 @@
     { How often should the physics simulation run in a second.
       Larger values increase accuracy (up to a certain point), but also increase the CPU overhead. }
     property Frequency: Single read FFrequency write SetFrequency default DefaultFrequency;
+    { Physics gravity is set using the -GravityUp vector (from main camera)
+      multiplied with GravityStrength. }
+    property GravityStrength: Single read FGravityStrength write FGravityStrength default DefaultGravityStrength;
 
     { Non-zero value avoids the "spiral of death" when the physics takes
       a long time to calculate.
@@ -144,6 +149,17 @@
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
   public
     Radius: Single;
+  end;
+
+  { Collide as a capsule.
+    Place this inside @link(TRigidBody.Collider) property. }
+  TCapsuleCollider = class(TCollider)
+  strict protected
+    function CreateKraftShape(const APhysics: TKraft;
+      const ARigidBody: TKraftRigidBody): TKraftShape; override;
+  public
+    Radius: Single;
+    Height: Single;
   end;
 
   T3DCoord = 0..2;
@@ -419,6 +435,14 @@ begin
   Move(M, Result, SizeOf(M));
 end;
 
+{ TCapsuleCollider ----------------------------------------------------------- }
+
+function TCapsuleCollider.CreateKraftShape(const APhysics: TKraft;
+  const ARigidBody: TKraftRigidBody): TKraftShape;
+begin
+  Result := TKraftShapeCapsule.Create(APhysics, ARigidBody, Radius, Height);
+end;
+
 { TPhysicsProperties --------------------------------------------------------- }
 
 procedure TPhysicsProperties.SetFrequency(const AValue: Single);
@@ -461,6 +485,7 @@ begin
   FAngularVelocityRK4Integration := DefaultAngularVelocityRK4Integration;
   FLinearVelocityRK4Integration := DefaultLinearVelocityRK4Integration;
   FFrequency := DefaultFrequency;
+  FGravityStrength := DefaultGravityStrength;
   FPhysicsTimeStep := 1.0 / FFrequency;
   FMaxPhysicsTicksPerUpdate := DefaultMaxPhysicsTicksPerUpdate;
 end;
@@ -1155,7 +1180,7 @@ begin
 
     // update FKraftEngine.Gravity
     // TODO: do we really need to be prepared that it changes each frame?
-    KraftGravity := -GravityUp * 9.81;
+    KraftGravity := -GravityUp * PhysicsProperties.GravityStrength;
     FKraftEngine.Gravity.Vector := VectorToKraft(KraftGravity);
 
     PhysicsTicksCount := 0;

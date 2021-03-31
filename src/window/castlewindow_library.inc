@@ -55,7 +55,7 @@ procedure CGEApp_Finalize; cdecl;
 { Used by the external process to ask for context properties from CGE
   (whether to use alpha channel, depth buffer etc.).
   CGE answers looking at Application.MainWindow properties. }
-procedure CGEApp_ContextProperties(RedBits, GreenBits, BlueBits, AlphaBits, DepthBits, StencilBits: PCInt); cdecl; export;
+procedure CGEApp_ContextProperties(RedBits, GreenBits, BlueBits, AlphaBits, DepthBits, StencilBits, MultiSampling: PCInt); cdecl; export;
 
 { Notifications from the external process about various events:
   rendering context was opened, closed, resized etc. }
@@ -393,26 +393,28 @@ begin
   end;
 end;
 
-procedure CGEApp_ContextProperties(RedBits, GreenBits, BlueBits, AlphaBits, DepthBits, StencilBits: PCInt); cdecl;
+procedure CGEApp_ContextProperties(RedBits, GreenBits, BlueBits, AlphaBits, DepthBits, StencilBits, MultiSampling: PCInt); cdecl;
 var
   W: TCastleWindowBase;
 begin
   try
     CheckMainWindow;
     W := Application.MainWindow;
-    RedBits    ^ := Max(1, W.RedBits  );
-    GreenBits  ^ := Max(1, W.GreenBits);
-    BlueBits   ^ := Max(1, W.BlueBits );
-    AlphaBits  ^ := W.AlphaBits  ;
-    DepthBits  ^ := W.DepthBits  ;
-    StencilBits^ := W.StencilBits;
-    WritelnLog('Rendering context will be initialized with these (minimal) buffer sizes: red %d, green %d, blue %d, alpha %d, depth %d, stencil %d', [
-      RedBits    ^,
-      GreenBits  ^,
-      BlueBits   ^,
-      AlphaBits  ^,
-      DepthBits  ^,
-      StencilBits^
+    RedBits      ^ := Max(1, W.RedBits);
+    GreenBits    ^ := Max(1, W.GreenBits);
+    BlueBits     ^ := Max(1, W.BlueBits);
+    AlphaBits    ^ := W.AlphaBits;
+    DepthBits    ^ := W.DepthBits;
+    StencilBits  ^ := W.StencilBits;
+    MultiSampling^ := W.MultiSampling;
+    WritelnLog('Rendering context will be initialized with these (minimal) buffer sizes: red %d, green %d, blue %d, alpha %d, depth %d, stencil %d, multi-sampling %d', [
+      RedBits      ^,
+      GreenBits    ^,
+      BlueBits     ^,
+      AlphaBits    ^,
+      DepthBits    ^,
+      StencilBits  ^,
+      MultiSampling^
     ]);
   except
     on E: TObject do WritelnWarning('CGEApp_ContextProperties', ExceptMessage(E));

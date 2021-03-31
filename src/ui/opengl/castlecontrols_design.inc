@@ -34,7 +34,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     { Load file with the user interface design.
       The file should be in the format created by Castle Game Engine Editor
@@ -169,14 +169,14 @@ begin
     FStretchWhenNotLoaded := Value;
 end;
 
-function TCastleDesign.PropertySection(
-  const PropertyName: String): TPropertySection;
+function TCastleDesign.PropertySections(
+  const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
     'URL', 'Stretch':
-      Result := psBasic;
+      Result := [psBasic];
     else
-      Result := inherited PropertySection(PropertyName);
+      Result := inherited PropertySections(PropertyName);
   end;
 end;
 

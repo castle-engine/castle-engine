@@ -556,11 +556,7 @@ begin
   Result := FdSolid;
 end;
 
-{$if defined(FPC) and defined(CPUAARCH64) and defined(RELEASE)}
-  { TextProxy implementation is broken by optimizations on Aarch64,
-    it seems like it draws only 1st letter of each line.
-    Testcase: bubbles in unholy_society.
-    TODO: Reproduce this in a simple testcase, submit to FPC devs. }
+{$ifdef BUGGY_AARCH64_OPTIMIZATIONS}
   {$optimization OFF}
   {$info Workaround Aarch64 optimizer: TextProxy not optimized (begin)}
 {$endif}
@@ -922,8 +918,8 @@ end;
 
 { Turn optimizations back on.
   FPC $push / $pop unfortunately doesn't save/restore optimization level,
-  so we restore it if -dRELEASE. }
-{$if defined(FPC) and defined(CPUAARCH64) and defined(RELEASE)}
+  so we restore it if -dBUGGY_AARCH64_OPTIMIZATIONS. }
+{$ifdef BUGGY_AARCH64_OPTIMIZATIONS}
   {$optimization ON}
   {$info Workaround Aarch64 optimizer: TextProxy not optimized (end)}
 {$endif}

@@ -483,7 +483,8 @@ begin
     { Release build and valgrind build are quite similar, they share many options. }
     if Mode in [cmRelease, cmValgrind] then
     begin
-      { Aarch64 optimizations exhibit bugs, on all OSes, with FPC 3.0.x.
+      { Aarch64 optimizations exhibit bugs, on all OSes,
+        with older FPC < 3.3.1 (rev 48104).
         Testcases:
 
         - iOS:
@@ -514,15 +515,16 @@ begin
           Draw3x3 implementation now.
 
         So we disable optimizations on Aarch64.
-        For safety, we disable them always, unless $CASTLE_ENGINE_ENABLE_AARCH64_OPTIMIZER is set to true.
-        In the future, we would like to disable them only for FPC 3.0.x. }
+        Unless $CASTLE_ENGINE_ENABLE_AARCH64_OPTIMIZER is set to true.
+        Or unless we have FPC version where it was fixed:
+        see https://trello.com/c/5ydB4MuA/113-enable-again-aarch64-optimizations }
 
       if (CPU = Aarch64) and
-         {not FpcVer.AtLeast(3, 1, 1)}
-         not (GetEnvironmentVariable('CASTLE_ENGINE_ENABLE_AARCH64_OPTIMIZER') = 'true') then
+         (not FpcVer.AtLeast(3, 3, 1)) and
+         (GetEnvironmentVariable('CASTLE_ENGINE_ENABLE_AARCH64_OPTIMIZER') <> 'true') then
       begin
         FpcOptions.Add('-O-');
-        WritelnWarning('Disabling optimizations, because they are buggy on Aarch64.');
+        WritelnWarning('Disabling optimizations, because they are buggy on Aarch64 with FPC < 3.3.1 (rev 48104).');
       end else
         FpcOptions.Add('-O2');
       FpcOptions.Add('-dRELEASE');

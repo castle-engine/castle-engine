@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="10"/>
+    <Version Value="11"/>
     <General>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
@@ -14,96 +14,15 @@
       </XPManifest>
       <Icon Value="0"/>
     </General>
-    <BuildModes Count="3">
-      <Item1 Name="Default"/>
-      <Item2 Name="Debug">
-        <CompilerOptions>
-          <Version Value="11"/>
-          <Target>
-            <Filename Value="castle-editor"/>
-          </Target>
-          <SearchPaths>
-            <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="${CASTLE_ENGINE_PATH}tools/common-code"/>
-            <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
-          </SearchPaths>
-          <Parsing>
-            <SyntaxOptions>
-              <IncludeAssertionCode Value="True"/>
-            </SyntaxOptions>
-          </Parsing>
-          <CodeGeneration>
-            <Checks>
-              <IOChecks Value="True"/>
-              <RangeChecks Value="True"/>
-              <OverflowChecks Value="True"/>
-              <StackChecks Value="True"/>
-            </Checks>
-            <VerifyObjMethodCallValidity Value="True"/>
-          </CodeGeneration>
-          <Linking>
-            <Debugging>
-              <DebugInfoType Value="dsDwarf2Set"/>
-              <UseHeaptrc Value="True"/>
-              <TrashVariables Value="True"/>
-              <UseExternalDbgSyms Value="True"/>
-            </Debugging>
-            <Options>
-              <Win32>
-                <GraphicApplication Value="True"/>
-              </Win32>
-            </Options>
-          </Linking>
-          <Other>
-            <Verbosity>
-              <ShowHints Value="False"/>
-            </Verbosity>
-          </Other>
-        </CompilerOptions>
-      </Item2>
-      <Item3 Name="Release" Default="True">
-        <CompilerOptions>
-          <Version Value="11"/>
-          <Target>
-            <Filename Value="castle-editor"/>
-          </Target>
-          <SearchPaths>
-            <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="${CASTLE_ENGINE_PATH}tools/build-tool/code"/>
-            <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
-          </SearchPaths>
-          <CodeGeneration>
-            <SmartLinkUnit Value="True"/>
-            <Optimizations>
-              <OptimizationLevel Value="3"/>
-            </Optimizations>
-          </CodeGeneration>
-          <Linking>
-            <Debugging>
-              <GenerateDebugInfo Value="False"/>
-            </Debugging>
-            <LinkSmart Value="True"/>
-            <Options>
-              <Win32>
-                <GraphicApplication Value="True"/>
-              </Win32>
-            </Options>
-          </Linking>
-          <Other>
-            <Verbosity>
-              <ShowHints Value="False"/>
-            </Verbosity>
-          </Other>
-        </CompilerOptions>
-      </Item3>
+    <BuildModes Count="1">
+      <Item1 Name="default" Default="True"/>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
     </PublishOptions>
     <RunParams>
-      <local>
-        <FormatVersion Value="1"/>
-      </local>
+      <FormatVersion Value="2"/>
+      <Modes Count="0"/>
     </RunParams>
     <RequiredPackages Count="3">
       <Item1>
@@ -112,11 +31,8 @@
       <Item2>
         <PackageName Value="LCL"/>
       </Item2>
-      <Item3>
-        <PackageName Value="castle_editor_automatic_package"/>
-      </Item3>
-    </RequiredPackages>
-    <Units Count="11">
+    <Item3> <PackageName Value="castle_editor_automatic_package"/> </Item3> </RequiredPackages>
+    <Units Count="16">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -189,6 +105,32 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="VisualizeTransform"/>
       </Unit10>
+      <Unit11>
+        <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/formnewunit.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="NewUnitForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="FormNewUnit"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="${CASTLE_ENGINE_PATH}tools/common-code/toolassocdoctypes.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="${CASTLE_ENGINE_PATH}tools/common-code/toolmanifest.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="ToolManifest"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="${CASTLE_ENGINE_PATH}tools/common-code/toolservices.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit14>
+      <Unit15>
+        <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/editorcodetools.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="EditorCodeTools"/>
+      </Unit15>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -197,11 +139,21 @@
       <Filename Value="castle-editor"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="${CASTLE_ENGINE_PATH}tools/build-tool/code;${CASTLE_ENGINE_PATH}tools/castle-editor/code;${CASTLE_ENGINE_PATH}tools/common-code"/>
+      <IncludeFiles Value="${CASTLE_ENGINE_PATH}src/base;$(ProjOutDir)"/>
+      <OtherUnitFiles Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code;${CASTLE_ENGINE_PATH}tools/common-code"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
-      <Libraries Value="${ABSOLUTE_LIBRARY_PATHS}" />
-    </SearchPaths>
+    <Libraries Value="${ABSOLUTE_LIBRARY_PATHS}" /> </SearchPaths>
+    <Parsing>
+      <SyntaxOptions>
+        <IncludeAssertionCode Value="True"/>
+        <CStyleMacros Value="True"/>
+      </SyntaxOptions>
+    </Parsing>
+    <CodeGeneration>
+      <Checks>
+        <IOChecks Value="True"/>
+      </Checks>
+    </CodeGeneration>
     <Linking>
       <Options>
         <Win32>
@@ -216,10 +168,14 @@
       <CompilerMessages>
         <IgnoredMessages idx4046="True"/>
       </CompilerMessages>
+      <ConfigFile>
+        <CustomConfigFile Value="True"/>
+        <ConfigFilePath Value="${CASTLE_ENGINE_PATH}castle-fpc-messages.cfg"/>
+      </ConfigFile>
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="3">
+    <Exceptions Count="4">
       <Item1>
         <Name Value="EAbort"/>
       </Item1>
@@ -229,6 +185,9 @@
       <Item3>
         <Name Value="EFOpenError"/>
       </Item3>
+      <Item4>
+        <Name Value="EExecutableNotFound"/>
+      </Item4>
     </Exceptions>
   </Debugging>
 </CONFIG>

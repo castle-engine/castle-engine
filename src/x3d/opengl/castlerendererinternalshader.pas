@@ -656,6 +656,7 @@ uses SysUtils, StrUtils,
   CastleGLUtils, CastleLog, CastleGLVersion,
   CastleScreenEffects, CastleInternalX3DLexer;
 
+{$ifndef OpenGLES}
 var
   { By default (when this is false),
     desktop OpenGL either use gl_ClipVertex or gl_ClipDistance.
@@ -666,6 +667,7 @@ var
     This is a global variable only to silence compiler warnings about
     unreachable code, in practice we use this as a constant. }
   ForceOpenGLESClipPlanes: Boolean = false;
+{$endif}
 
 const
   Sampler2DShadow = {$ifndef OpenGLES} 'sampler2DShadow' {$else} 'sampler2D' {$endif};

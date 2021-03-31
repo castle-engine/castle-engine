@@ -171,6 +171,24 @@
   {$endif}
 {$endif}
 
+{ Various things are broken when older FPC < 3.3.1 (rev 48104)
+  is used with optimizations=on on Aarch64.
+
+  - See https://trello.com/c/5ydB4MuA/113-enable-again-aarch64-optimizations .
+
+  - TextProxy broken:
+    it seems like it draws only 1st letter of each line.
+    Testcase: bubbles in unholy_society.
+
+  - Draw3x3 implementation is broken by optimizations on Aarch64,
+    it seems like it doesn't receive DrawWidth correctly,
+    and even when we workaround it, it calculates partial rectangles
+    (for DrawAdd) incorrectly.
+    Testcase: e.g. examples/user_interface/show_various_ui_controls/ on Android/Aarch64. }
+{$if defined(FPC) and defined(CPUAARCH64) and defined(RELEASE) and (defined(VER3_0) or defined(VER3_1) or defined(VER3_2))}
+  {$define BUGGY_AARCH64_OPTIMIZATIONS}
+{$endif}
+
 { Nintendo Switch ------------------------------------------------------------ }
 
 { Since we use (as a hack) Aarch64/Android for Nintendo Switch,

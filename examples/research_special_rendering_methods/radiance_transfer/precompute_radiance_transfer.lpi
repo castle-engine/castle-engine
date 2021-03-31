@@ -55,6 +55,15 @@
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
+    <Target>
+      <Filename Value="precompute_radiance_transfer"/>
+    </Target>
+    <SearchPaths>
+      <IncludeFiles Value="code/;../common_code/"/>
+      <OtherUnitFiles Value="code/;../common_code/"/>
+      <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
+      <Libraries Value="" />
+    </SearchPaths>
     <Other>
       <Verbosity>
         <ShowHints Value="False"/>

@@ -44,7 +44,10 @@
       <Filename Value="physics_2d_collisions"/>
     </Target>
     <SearchPaths>
+      <IncludeFiles Value="code/"/>
+      <OtherUnitFiles Value="code/"/>
       <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
+      <Libraries Value="" />
     </SearchPaths>
     <Other>
       <Verbosity>

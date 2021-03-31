@@ -32,7 +32,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="11">
+    <Units Count="16">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -105,6 +105,32 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="VisualizeTransform"/>
       </Unit10>
+      <Unit11>
+        <Filename Value="formnewunit.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="NewUnitForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="FormNewUnit"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="../../common-code/toolassocdoctypes.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="../../common-code/toolmanifest.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="ToolManifest"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="../../common-code/toolservices.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit14>
+      <Unit15>
+        <Filename Value="editorcodetools.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="EditorCodeTools"/>
+      </Unit15>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -113,7 +139,7 @@
       <Filename Value="../castle-editor"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="$(ProjOutDir)"/>
+      <IncludeFiles Value="../../../src/base;$(ProjOutDir)"/>
       <OtherUnitFiles Value="../../common-code"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>

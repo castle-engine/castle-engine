@@ -1,5 +1,6 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestOpeningAndRendering3D" -*-
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,11 +20,12 @@ unit TestCastleOpeningAndRendering3D;
 
 interface
 
-uses FpcUnit, TestUtils, TestRegistry, CastleFilesUtils, CastleFindFiles,
-  CastleWindow, CastleSceneCore, CastleScene, CastleSceneManager;
+uses FpcUnit, TestUtils, TestRegistry,
+  CastleFilesUtils, CastleFindFiles,
+  CastleTestCase, CastleWindow, CastleSceneCore, CastleScene, CastleSceneManager;
 
 type
-  TTestOpeningAndRendering3D = class(TTestCase)
+  TTestOpeningAndRendering3D = class(TCastleTestCase)
   private
     { Available only during Test1 }
     Window: TCastleWindowBase;

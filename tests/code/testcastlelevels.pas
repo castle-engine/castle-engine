@@ -1,5 +1,6 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleLevels" -*-
 {
-  Copyright 2020-2020 Michalis Kamburelis.
+  Copyright 2020-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,10 +19,11 @@ unit TestCastleLevels;
 
 interface
 
-uses Classes, SysUtils, FpcUnit, TestUtils, TestRegistry;
+uses Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase;
 
 type
-  TTestCastleLevels = class(TTestCase)
+  TTestCastleLevels = class(TCastleTestCase)
   published
     { Test that TLevel.Load works even when GL context is not ready yet }
     procedure TestLoadLevelWithoutGLContext;

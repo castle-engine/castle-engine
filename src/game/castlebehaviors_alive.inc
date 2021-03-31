@@ -43,7 +43,7 @@ type
       DefaultLife = 100.0;
 
     constructor Create(AOwner: TComponent); override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Shortcut for checking Life <= 0. }
     function Dead: Boolean;
@@ -162,14 +162,14 @@ begin
   Attacker := AnAttacker;
 end;
 
-function TCastleAliveBehavior.PropertySection(
-  const PropertyName: String): TPropertySection;
+function TCastleAliveBehavior.PropertySections(
+  const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
     'Life', 'MaxLife':
-      Result := psBasic;
+      Result := [psBasic];
     else
-      Result := inherited PropertySection(PropertyName);
+      Result := inherited PropertySections(PropertyName);
   end;
 end;
 

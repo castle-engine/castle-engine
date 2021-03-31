@@ -78,9 +78,9 @@
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
-    <SearchPaths>
-      <IncludeFiles Value="$(ProjOutDir)"/>
-    </SearchPaths>
+    <Target>
+      <Filename Value="view_3d_model_advanced"/>
+    </Target>
     <Parsing>
       <SyntaxOptions>
         <CStyleMacros Value="True"/>

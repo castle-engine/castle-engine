@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="drawing_toy"
   caption="Drawing Toy"
-  qualified_name="io.castleengine.drawingtoy"
+  qualified_name="io.castleengine.drawing.toy"
   standalone_source="drawing_toy_standalone.lpr"
-  game_units="GameInitialize">
+  game_units="GameInitialize"
+>
   <package>
     <include path="README.txt" />
   </package>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
 </project>
