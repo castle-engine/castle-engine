@@ -436,6 +436,18 @@ var
   Version: CUInt;
 begin
   FmodLibraryUsingBegin;
+
+  { Uncomment FMOD_Debug_Initialize call to get additional logs.
+
+    Note that FMOD_Debug_Initialize will only work if you use
+    "logging version" of the FMOD library.
+    Just rename libfmodL.so to libfmod.so.
+
+    On Android: Run "adb logcat | grep fmod" to see useful output,
+    it is not visible on just "castle-engine run --target=android". }
+  // CheckFMOD(FMOD_Debug_Initialize(FMOD_DEBUG_LEVEL_LOG or FMOD_DEBUG_DISPLAY_TIMESTAMPS,
+  //   FMOD_DEBUG_MODE_TTY, nil, nil), 'FMOD_Debug_Initialize', true);
+
   CheckFMOD(FMOD_System_Create(@FMODSystem), 'FMOD_System_Create');
   CheckFMOD(FMOD_System_Init(FMODSystem, 256, FMOD_INIT_NORMAL, nil), 'FMOD_System_Init');
   CheckFMOD(FMOD_System_GetVersion(FMODSystem, @Version), 'FMOD_System_GetVersion');
