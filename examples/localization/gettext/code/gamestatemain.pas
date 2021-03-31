@@ -59,9 +59,6 @@ type
 var
   StateMain: TStateMain;
 
-  { Assigned in GameInitialize, used here by MessageOK. }
-  Window: TCastleWindowBase;
-
 implementation
 
 uses SysUtils,
@@ -134,7 +131,7 @@ var
   ButtonMessage: TCastleButton;
 begin
   { Load designed user interface }
-  InsertUserInterface('castle-data:/state_main.castle-user-interface', FreeAtStop, UiOwner);
+  InsertUserInterface('castle-data:/gamestatemain.castle-user-interface', FreeAtStop, UiOwner);
 
   Viewport := UiOwner.FindRequiredComponent('Viewport') as TCastleViewport;
   ButtonSwitchEnglish := UiOwner.FindRequiredComponent('ButtonSwitchEnglish') as TCastleButton;
@@ -194,7 +191,7 @@ end;
 
 procedure TStateMain.ClickButtonMessage(Sender: TObject);
 begin
-  MessageOK(Window, MessageText);
+  MessageOK(Application.MainWindow, MessageText);
 end;
 
 procedure TStateMain.ClickButtonEnglish(Sender: TObject);
