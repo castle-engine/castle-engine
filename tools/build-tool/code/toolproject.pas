@@ -1367,6 +1367,11 @@ const
       Result += 'safeLoadLibrary("tremolo");' + NL;
     if depFreetype in Dependencies then
       Result += 'safeLoadLibrary("freetype");' + NL;
+    { Necessary, otherwise FMOD is not initialized correctly, and reports
+        [ERR] FMOD_JNI_GetEnv                          : JNI_OnLoad has not run, should have occurred during System.LoadLibrary.
+      and reports internal error even from FMOD_System_Create. }
+    if AndroidServices.HasService('fmod') then
+      Result += 'safeLoadLibrary("fmod");' + NL;
   end;
 
   { Android ABI list like '"armeabi-v7a","arm64-v8a"' }
