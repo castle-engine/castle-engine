@@ -146,7 +146,7 @@ castle-game-engine-*.fpm
 /examples/library/lazarus_library_tester/cge_dynlib_tester
 /examples/library/lazarus_library_tester/cge_dynlib_tester.res
 /examples/library/lazarus_library_tester/lib/
-/examples/localization/custom/castle_localization
+/examples/localization/deprecated_custom/castle_localization
 /examples/localization/gettext/localization_test
 /examples/localization/gettext/po_files/generator/po_generator
 /examples/mobile/achievements/dragon_spine_demo
