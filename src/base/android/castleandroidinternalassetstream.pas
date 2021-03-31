@@ -63,7 +63,7 @@ var
     code (usually CastleWindow), and used for reading assets. }
   AssetManager: PAAssetManager;
 
-{ Assuming that this is @code(assets:/xxx/yyy) URL, convert it to an asset path
+{ Assuming that this is @code(castle-android-assets:/xxx/yyy) URL, convert it to an asset path
   @code(xxx/yyy). Does percent-decoding along the way. }
 function URIToAssetPath(const URI: string): string;
 
