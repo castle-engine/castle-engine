@@ -416,27 +416,30 @@ var
   var
     CPU: TCPU;
     JniPath: String;
-    InputFolderBase, InputFolder, OutputFolder: String;
+    FmodLibraryPath, InputFile, OutputFile: String;
   begin
     if Project.AndroidServices.HasService('fmod') then
     begin
-      if not Project.AndroidServices.Service('fmod').Parameters.TryGetValue('library_folder', InputFolderBase) then
-        raise Exception.Create('Cannot find "library_folder" parameter in "fmod" service for Android in CastleEngineManifest.xml');
+      if not Project.AndroidServices.Service('fmod').Parameters.TryGetValue('library_path', FmodLibraryPath) then
+        raise Exception.Create('Cannot find "library_path" parameter in "fmod" service for Android in CastleEngineManifest.xml');
+      FmodLibraryPath := InclPathDelim(FmodLibraryPath);
+
+      InputFile := FmodLibraryPath + 'fmod.jar';
+      OutputFile := 'app' + PathDelim + 'libs' + PathDelim + 'fmod.jar';
+      PackageSmartCopyFile(InputFile, OutputFile);
+      if Verbose then
+        Writeln('Packaging FMOD library file: ' + InputFile + ' => ' + OutputFile);
 
       //JniPath := CombinePaths(Project.Path, AndroidProjectPath);
       JniPath := 'app' + PathDelim + 'src' + PathDelim + 'main' + PathDelim + 'jni' + PathDelim;
 
       for CPU in CPUS do
       begin
-        InputFolder := InputFolderBase + PathDelim + CPUToAndroidArchitecture(CPU) + PathDelim;
-        OutputFolder := JniPath + CPUToAndroidArchitecture(CPU) + PathDelim;
-        PackageSmartCopyFile(InputFolder + 'libfmod.so', OutputFolder + 'libfmod.so');
+        InputFile := FmodLibraryPath + CPUToAndroidArchitecture(CPU) + PathDelim + 'libfmod.so';
+        OutputFile := JniPath + CPUToAndroidArchitecture(CPU) + PathDelim + 'libfmod.so';
+        PackageSmartCopyFile(InputFile, OutputFile);
         if Verbose then
-          Writeln('Packaging FMOD library file: ' + InputFolder + 'libfmod.so => ' + OutputFolder);
-
-        {PackageSmartCopyFile(InputFolder + 'libfmodL.so', OutputFolder + 'libfmodL.so');
-        if Verbose then
-          Writeln('Packaging FMOD library file: ' + InputFolder + 'libfmodL.so => ' + OutputFolder);}
+          Writeln('Packaging FMOD library file: ' + InputFile + ' => ' + OutputFile);
       end;
     end;
   end;

@@ -12,7 +12,7 @@ Declare it like this in [CastleEngineManifest.xml](https://github.com/castle-eng
   <android>
     <services>
       <service name="fmod">
-        <parameter key="library_folder" value="libraries/android" />
+        <parameter key="library_path" value="libraries/android" />
       </service>
     </services>
   </android>
@@ -21,13 +21,13 @@ Declare it like this in [CastleEngineManifest.xml](https://github.com/castle-eng
 
 You need to download the _FMOD Engine_ for _Android_ from https://www.fmod.com/ yourself (any version 2.x is OK, so just take the latest). Make sure you understand the FMOD licensing and pricing terms. FMOD is not open-source, and it is not free (although they have some clauses friendly to indie game companies without big revenue).
 
-The `library_folder` parameter is the location of the FMOD for Android library. You should point `library_folder` to the contents of `fmodstudioapi(VersionNumber)android/api/core/lib/`, it contains libraries for different CPU architectures possible on Android devices, it also contains cross-platform jar file. We expect a directory structure with at least files like this:
+The `library_path` parameter is the location of the FMOD for Android library. You should point `library_path` to the contents of `fmodstudioapi(VersionNumber)android/api/core/lib/`, it contains libraries for different CPU architectures possible on Android devices, it also contains cross-platform jar file. We expect a directory structure with at least files like this:
 
 ```
 fmodstudioapi(VersionNumber)android/
   api/
     core/
-      lib/ <- point the library_folder to this directory
+      lib/ <- point the library_path to this directory
         fmod.jar
         arm64-v8a/
           libfmod.so

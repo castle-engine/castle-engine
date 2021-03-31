@@ -33,4 +33,19 @@ public class ServiceFmod extends ServiceAbstract
     {
         return "fmod";
     }
+
+    @Override
+    public void onCreate()
+    {
+        /* FMOD docs recommend calling this, see
+           https://www.fmod.com/resources/documentation-api?version=2.1&page=platforms-android.html#asset-manager
+           In fact it is required to load Android asset files using FMOD. */
+        org.fmod.FMOD.init(getActivity());
+    }
+
+    @Override
+    public void onDestroy()
+    {
+        org.fmod.FMOD.close();
+    }
 }

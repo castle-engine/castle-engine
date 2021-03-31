@@ -1,4 +1,3 @@
 /* This will be inserted to the whole MainActivity.java sources
    by the buil tool. */
 services.add(new ServiceFmod(this));
-/*services.add(new ServiceFmodL(this));*/
