@@ -507,7 +507,8 @@ begin
       while ScalesIterator.GetNext do
       begin
         Scale.Value := StrToScale(ScalesIterator.Current.AttributeString('value'));
-        PlatformsElement := Element.ChildElement('platforms', false);
+        Scale.Platforms := [];
+        PlatformsElement := ScalesIterator.Current.ChildElement('platforms', false);
         if (PlatformsElement <> nil) then
         begin
           PlatformsIterator := PlatformsElement.ChildrenIterator('platform');
