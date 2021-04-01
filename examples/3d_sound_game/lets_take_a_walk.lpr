@@ -237,9 +237,10 @@ begin
   Window.OnPress := @Press;
   Window.SetDemoOptions(keyF11, CharEscape, true);
 
-  { parse parameters }
+  { parse rest of parameters, after creating Window }
   Window.FullScreen := true; { by default we open in fullscreen }
   Window.ParseParameters(StandardParseOptions);
+  Parameters.CheckHigh(0);
 
   { open window }
   Window.Open;
