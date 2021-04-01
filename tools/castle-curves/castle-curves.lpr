@@ -641,7 +641,8 @@ begin
              NL +
              CurvesToolURL + NL +
              NL +
-             'Compiled with ' + SCompilerDescription +'.');
+             'Compiled with ' + SCompilerDescription + '.' + NL +
+             'Platform: ' + SPlatformDescription + '.');
          end;
     else raise EInternalError.Create('not impl menu item');
   end;

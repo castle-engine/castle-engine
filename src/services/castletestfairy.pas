@@ -58,7 +58,8 @@ begin
       TTestFairy.LogCallback('  Version: ' + ApplicationProperties.Version + '.' + NL);
     TTestFairy.LogCallback('  TestFairy logging started on ' + DateTimeToAtStr(CastleNow) + '.' + NL);
     TTestFairy.LogCallback('  Castle Game Engine version: ' + CastleEngineVersion + '.' + NL);
-    TTestFairy.LogCallback('  Compiled with: ' + SCompilerDescription + '.' + NL);
+    TTestFairy.LogCallback('  Compiled with ' + SCompilerDescription + '.' + NL);
+    TTestFairy.LogCallback('  Platform: ' + SPlatformDescription + '.' + NL);
   end;
 
   if ApplicationProperties.OnLog.IndexOf(@LogCallback) = -1 then
