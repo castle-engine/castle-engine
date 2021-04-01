@@ -44,16 +44,3 @@ Use `CastleFMODSoundBackend` unit and call `UseFMODSoundBackend`.
 That's it, now all our sound API (see [manual chapter about sound](https://castle-engine.io/manual_sound.php) and [API reference of CastleSoundEngine unit](https://castle-engine.io/apidoc-unstable/html/CastleSoundEngine.html)) uses FMOD under the hood.
 
 See https://github.com/castle-engine/castle-engine/wiki/FMOD for more details.
-
-TODO: For now there's one additional step, only on Android: you need to call `InitializeFmodLibrary` from `CastleInternalFMOD` unit on Android. Do it like this:
-
-```pascal
-uses
-  CastleFMODSoundBackend {$ifdef ANDROID} , CastleInternalFMOD, {$endif};
-
-procedure InitSound;
-begin
-  {$ifdef ANDROID} InitializeFmodLibrary; {$endif}
-  UseFMODSoundBackend;
-end;
-```
