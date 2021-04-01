@@ -407,7 +407,7 @@ var
     if Project.IOSServices.HasService('fmod') then
     begin
       if not Project.IOSServices.Service('fmod').Parameters.TryGetValue('library_file', InputFile) then
-        raise Exception.Create('Cannot find "library_file" parameter in "fmod" service in CastleEngineManifest.xml');
+        raise Exception.Create('Cannot find "library_file" parameter in "fmod" service for iOS in CastleEngineManifest.xml');
       OutputFileBase := ExtractFileName(InputFile);
       OutputFile := XcodeProject + OutputFileBase;
       SmartCopyFile(InputFile, OutputFile);
