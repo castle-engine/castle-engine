@@ -2701,7 +2701,7 @@ type
       Handles:
       @unorderedList(
         @item(@code(-h / --help))
-        @item(@code(-v / --version), using @link(Version))
+        @item(@code(-v / --version), using @link(TCastleApplicationProperties.Version ApplicationProperties.Version))
         @item(@code(--log-file), setting @link(LogFileName))
         @item(All the parameters handled by @link(TCastleWindowBase.ParseParameters),
           if @link(MainWindow) is set already.)
