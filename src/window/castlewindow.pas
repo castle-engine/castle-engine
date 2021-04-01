@@ -4047,16 +4047,14 @@ var
   ParamKind: TWindowParseOption;
 begin
   if AddHeader then
-    result := 'Window options (backend ' + Application.BackendName + '):' else
-    result := '';
+    Result := 'Window options (backend ' + Application.BackendName + '):'
+  else
+    Result := '';
 
   for ParamKind := Low(ParamKind) to High(ParamKind) do
     if (ParamKind in AllowedOptions) and
        (ParamKind <> poMacOsXProcessSerialNumber) then
-    begin
-      if result <> '' then result += nl;
-      result += HelpForParam[ParamKind];
-    end;
+      Result := SAppendPart(Result, NL, HelpForParam[ParamKind]);
 end;
 
 { TCastleWindowBase miscellaneous -------------------------------------------- }
@@ -5156,10 +5154,9 @@ begin
           SoundEngine.ParseParametersHelp + NL+
           NL +
           // do this regardless of MainWindow <> nil, as MainWindow may be assigned later
-          TCastleWindowBase.ParseParametersHelp(StandardParseOptions, true) +
+          TCastleWindowBase.ParseParametersHelp(StandardParseOptions, true) + NL +
           NL +
-          NL +
-          SCastleEngineProgramHelpSuffix(ApplicationName, ApplicationProperties.Version, true);
+          ApplicationProperties.Description;
         InfoWrite(HelpString);
         Halt;
       end;
