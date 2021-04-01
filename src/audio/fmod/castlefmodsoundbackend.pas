@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2019 Michalis Kamburelis.
+  Copyright 2019-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -42,7 +42,7 @@ uses SysUtils, Classes, Math, StrUtils, CTypes,
   CastleVectors, CastleTimeUtils, CastleLog, CastleUtils, CastleURIUtils,
   CastleClassUtils, CastleStringUtils, CastleInternalSoundFile,
   CastleInternalAbstractSoundBackend, CastleSoundBase, CastleSoundEngine,
-  {$ifdef ANDROID} CastleAndroidInternalAssetStream, {$endif}
+  {$ifdef ANDROID} JNI, CastleAndroidNativeAppGlue, CastleAndroidInternalAssetStream, {$endif}
   CastleInternalFMOD;
 
 { sound backend classes interface -------------------------------------------- }
@@ -434,8 +434,19 @@ function TFMODSoundEngineBackend.ContextOpen(const ADevice: String;
   out Information: String): Boolean;
 var
   Version: CUInt;
+  {$ifdef ANDROID} Env: PJNIEnv; {$endif}
 begin
   FmodLibraryUsingBegin;
+
+  {$ifdef ANDROID}
+  { This is necessary, otherwise FMOD shows an error
+    and FMOD_System_Create exits with internal error:
+
+      FMOD_JNI_GetEnv: Native threads must be attached to the Java virtual machine, please call JavaVM::AttachCurrentThread before invocation.
+  }
+  Env := nil; // make sure uninitialized
+  AndroidMainApp^.Activity^.VM^^.AttachCurrentThread(AndroidMainApp^.Activity^.VM, @Env, nil);
+  {$endif}
 
   { Uncomment FMOD_Debug_Initialize call to get additional logs.
 
