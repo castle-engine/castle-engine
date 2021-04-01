@@ -495,6 +495,23 @@ end;
 
 procedure UseFMODSoundBackend;
 begin
+  {$ifdef ANDROID}
+  { Calling InitializeFmodLibrary is necessary on Android to load dynamic library,
+    otherwise InitializeFmodLibrary is never called and fmod entry points
+    are not loaded from libfmod.so, so FmodLibraryAvailable = false.
+
+    This could be fixed better (since this problem is not specific to FMOD):
+
+    - Initialization in castle-engine/src/audio/fmod/castleinternalfmod_dynamic.inc
+      should register a callback that would be later done from TCastleApplication.Run.
+
+    - We could also try exposing JNI_OnLoad, and then since FPC 3.2.0 maybe we can ignore
+      the issue and remove whole ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION complication?
+      FPC recommends it, https://wiki.freepascal.org/Android -
+      "if you are creating a JNI shared library, always export JNI_OnLoad, even if it is empty". }
+  InitializeFmodLibrary;
+  {$endif}
+
   if not FmodLibraryAvailable then
   begin
     WritelnWarning('FMOD library not available, aborting setting FMOD as sound backend');
