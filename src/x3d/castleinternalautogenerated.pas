@@ -76,6 +76,7 @@ type
           see https://castle-engine.io/creating_data_auto_generated_textures.php ). }
         Width, Height, Depth: Cardinal;
 
+        { Platforms for which the original texture is packaged. }
         OriginalPlatforms: TCastlePlatforms;
 
         constructor Create;
