@@ -516,7 +516,8 @@ begin
           finally
             FreeAndNil(PlatformsIterator);
           end;
-        end;
+        end else
+          Scale.Platforms := AllPlatforms;
         FScales.Add(Scale);
       end;
     finally
