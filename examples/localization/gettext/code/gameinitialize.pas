@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,14 +18,15 @@ unit GameInitialize;
 
 interface
 
-uses CastleWindow;
-
 implementation
 
 uses SysUtils, Classes,
-  CastleControls, CastleUtils, CastleUIControls, CastleVectors,
+  CastleWindow, CastleControls, CastleUtils, CastleUIControls, CastleVectors,
   CastleApplicationProperties, CastleLog, CastleFilesUtils, CastleUIState,
   GameStateMain;
+
+var
+  Window: TCastleWindowBase;
 
 procedure ApplicationInitialize;
 begin
@@ -37,12 +38,11 @@ begin
 end;
 
 initialization
-  { Set ApplicationName early, as our log uses it. }
-  ApplicationProperties.ApplicationName := 'localization_test';
-
-  InitializeLog;
-
-  Window := TCastleWindowBase.Create(Application);
-  Application.MainWindow := Window;
+  { Initialize Application.OnInitialize. }
   Application.OnInitialize := @ApplicationInitialize;
+
+  { Create and assign Application.MainWindow. }
+  Window := TCastleWindowBase.Create(Application);
+  Window.ParseParameters; // allows to control window size / fullscreen on the command-line
+  Application.MainWindow := Window;
 end.

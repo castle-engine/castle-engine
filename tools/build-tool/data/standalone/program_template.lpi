@@ -4,8 +4,10 @@
     <Version Value="10"/>
     <General>
       <Flags>
+        <MainUnitHasUsesSectionForAllUnits Value="False"/>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
+        <MainUnitHasScaledStatement Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <Title Value="${NAME_PASCAL}"/>
@@ -36,6 +38,18 @@ ${LAZARUS_PROJECT_ALL_UNITS}    </Units>
       <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/${DOLLAR}(TargetCPU)-${DOLLAR}(TargetOS)"/>
       <Libraries Value="${LIBRARY_PATHS}" />
     </SearchPaths>
+    <Parsing>
+      <SyntaxOptions>
+        <IncludeAssertionCode Value="True"/>
+      </SyntaxOptions>
+    </Parsing>
+    <CodeGeneration>
+      <Checks>
+        <IOChecks Value="True"/>
+        <RangeChecks Value="True"/>
+        <OverflowChecks Value="True"/>
+      </Checks>
+    </CodeGeneration>
     <Other>
       <Verbosity>
         <ShowHints Value="False"/>

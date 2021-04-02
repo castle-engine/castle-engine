@@ -55,7 +55,7 @@ begin
            '  --verbose             Be verbose' +NL+
            '  --output=helper|template  Choose the output type' +NL+
            NL+
-           SCastleEngineProgramHelpSuffix('x3d-nodes-to-pascal', CastleEngineVersion, true));
+           ApplicationProperties.Description);
          Halt;
        end;
     1: begin
@@ -82,6 +82,8 @@ var
   I: Integer;
   Processor: TProcessor;
 begin
+  ApplicationProperties.ApplicationName := 'x3d-nodes-to-pascal';
+  ApplicationProperties.Version := '1.0';
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
   Parameters.Parse(Options, @OptionProc, nil);

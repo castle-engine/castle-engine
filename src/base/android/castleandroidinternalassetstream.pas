@@ -58,12 +58,7 @@ type
     function Read(var Buffer; Count: Longint): Longint; override;
   end;
 
-var
-  { Asset manager reference, automatically set by the Android initialization
-    code (usually CastleWindow), and used for reading assets. }
-  AssetManager: PAAssetManager;
-
-{ Assuming that this is @code(assets:/xxx/yyy) URL, convert it to an asset path
+{ Assuming that this is @code(castle-android-assets:/xxx/yyy) URL, convert it to an asset path
   @code(xxx/yyy). Does percent-decoding along the way. }
 function URIToAssetPath(const URI: string): string;
 
@@ -71,10 +66,12 @@ function AssetPathToURI(const AssetPath: string): string;
 
 implementation
 
-uses CastleAndroidInternalLog,
+uses CastleAndroidInternalLog, CastleAndroidNativeAppGlue,
   CastleClassUtils, CastleLog, CastleStringUtils, URIParser;
 
 constructor TReadAssetStream.Create(Path: string);
+var
+  AssetManager: PAAssetManager;
 begin
   inherited Create;
   if ExtractFileExt(Path) = '.gz' then
@@ -83,6 +80,7 @@ begin
     //   [Path]);
     Path := ChangeFileExt(Path, '');
   end;
+  AssetManager := AndroidMainApp^.Activity^.AssetManager;
   Asset := AAssetManager_open(AssetManager, PChar(Path), AASSET_MODE_STREAMING);
   if Asset = nil then
     raise EAssetNotFound.CreateFmt('Android asset "%s" not found', [Path]);

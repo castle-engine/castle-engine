@@ -2701,7 +2701,7 @@ type
       Handles:
       @unorderedList(
         @item(@code(-h / --help))
-        @item(@code(-v / --version), using @link(Version))
+        @item(@code(-v / --version), using @link(TCastleApplicationProperties.Version ApplicationProperties.Version))
         @item(@code(--log-file), setting @link(LogFileName))
         @item(All the parameters handled by @link(TCastleWindowBase.ParseParameters),
           if @link(MainWindow) is set already.)
@@ -4047,16 +4047,14 @@ var
   ParamKind: TWindowParseOption;
 begin
   if AddHeader then
-    result := 'Window options (backend ' + Application.BackendName + '):' else
-    result := '';
+    Result := 'Window options (backend ' + Application.BackendName + '):'
+  else
+    Result := '';
 
   for ParamKind := Low(ParamKind) to High(ParamKind) do
     if (ParamKind in AllowedOptions) and
        (ParamKind <> poMacOsXProcessSerialNumber) then
-    begin
-      if result <> '' then result += nl;
-      result += HelpForParam[ParamKind];
-    end;
+      Result := SAppendPart(Result, NL, HelpForParam[ParamKind]);
 end;
 
 { TCastleWindowBase miscellaneous -------------------------------------------- }
@@ -5140,10 +5138,10 @@ end;
 procedure ApplicationOptionProc(OptionNum: Integer; HasArgument: boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
 var
-  App: TCastleApplication;
+  // App: TCastleApplication; // unused now
   HelpString: string;
 begin
-  App := TCastleApplication(Data);
+  // App := TCastleApplication(Data); // unused now
 
   case OptionNum of
     0:begin
@@ -5156,10 +5154,9 @@ begin
           SoundEngine.ParseParametersHelp + NL+
           NL +
           // do this regardless of MainWindow <> nil, as MainWindow may be assigned later
-          TCastleWindowBase.ParseParametersHelp(StandardParseOptions, true) +
+          TCastleWindowBase.ParseParametersHelp(StandardParseOptions, true) + NL +
           NL +
-          NL +
-          SCastleEngineProgramHelpSuffix(ApplicationName, ApplicationProperties.Version, true);
+          ApplicationProperties.Description;
         InfoWrite(HelpString);
         Halt;
       end;

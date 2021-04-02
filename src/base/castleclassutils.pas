@@ -72,12 +72,6 @@ type
 procedure Strings_AddSplittedString(Strings: TStrings;
   const S, Splitter: string);
 
-{ Something like @link(SCastleEngineProgramHelpSuffix), but appends
-  contents as a couple of lines to Strings. }
-procedure Strings_AddCastleEngineProgramHelpSuffix(
-  Strings: TStrings; const DisplayApplicationName: string;
-  const Version: string; WrapLines: boolean);
-
 { Use this instead of @code(SList.Text := S) to workaround FPC 2.0.2 bug.
   See [http://www.freepascal.org/mantis/view.php?id=6699] }
 procedure Strings_SetText(SList: TStrings; const S: string);
@@ -775,14 +769,6 @@ begin
     SplitterPos := PosEx(Splitter, S, Done + 1);
   end;
   Strings.Append(SEnding(S, Done + 1));
-end;
-
-procedure Strings_AddCastleEngineProgramHelpSuffix(
-  Strings: TStrings; const DisplayApplicationName: string;
-  const Version: string; WrapLines: boolean);
-begin
-  Strings_AddSplittedString(Strings,
-    SCastleEngineProgramHelpSuffix(DisplayApplicationName, Version, WrapLines), nl);
 end;
 
 procedure Strings_SetText(SList: TStrings; const S: string);

@@ -303,6 +303,13 @@ type
       On iOS, some things (like ApplicationConfig path) may not be initialized so early. }
     property _FileAccessSafe: boolean read FFileAccessSafe write FFileAccessSafe;
     { @groupEnd }
+
+    { Print some common information about application,
+      for example to use in --help command-line output.
+      It shows application name, version, CGE version, compiler version, platform.
+
+      Includes the output of SCompilerDescription and SPlatformDescription. }
+    function Description: String;
   end;
 
 function ApplicationProperties(
@@ -489,6 +496,15 @@ begin
   else
     WarningCategory := 'Warning';
   WarningWrite(ApplicationName + ': ' + WarningCategory + ': ' + Message);
+end;
+
+function TCastleApplicationProperties.Description: String;
+begin
+  Result :=
+    ApplicationName + ' version ' + Version + '.' + NL +
+    'Using Castle Game Engine ( https://castle-engine.io/ ) version ' + CastleEngineVersion + '.' + NL +
+    'Compiled with ' + SCompilerDescription + '.' + NL +
+    'Platform: ' + SPlatformDescription + '.';
 end;
 
 initialization

@@ -69,7 +69,6 @@ var
   SceneMove: TVector2;
 
 const
-  Version = '2.0.0';
   CurvesToolURL = 'https://github.com/castle-engine/castle-engine/wiki/Curves-tool';
   DonateURL = 'https://castle-engine.io/donate.php';
 
@@ -637,11 +636,12 @@ begin
     1030:begin
            MessageOk(Window,
              'castle-curves: curves editor for Castle Game Engine.' +nl+
-             'Version ' + Version + '.' + NL +
+             'Version ' + ApplicationProperties.Version + '.' + NL +
              NL +
              CurvesToolURL + NL +
              NL +
-             'Compiled with ' + SCompilerDescription +'.');
+             'Compiled with ' + SCompilerDescription + '.' + NL +
+             'Platform: ' + SPlatformDescription + '.');
          end;
     else raise EInternalError.Create('not impl menu item');
   end;
@@ -740,12 +740,12 @@ begin
           'Full documentation on' + NL +
           'https://github.com/castle-engine/castle-engine/wiki/Curves-tool' + NL +
           NL +
-          SCastleEngineProgramHelpSuffix('castle-curves', Version, true));
+          ApplicationProperties.Description);
         Halt;
       end;
     1:begin
         // include ApplicationName in version, good for help2man
-        WritelnStr(ApplicationName + ' ' + Version);
+        WritelnStr(ApplicationName + ' ' + ApplicationProperties.Version);
         Halt;
       end;
     else raise EInternalError.Create('OptionProc');
@@ -797,6 +797,7 @@ end;
 
 begin
   ApplicationProperties.ApplicationName := 'castle-curves';
+  ApplicationProperties.Version := '2.0.0';
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
   InitializeLog;
 

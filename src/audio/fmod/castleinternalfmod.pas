@@ -790,7 +790,7 @@ procedure InitializeFmodLibrary;
   must be present at compile-time. }
 function FmodLibraryAvailable: Boolean;
 
-{ Surround calls to Fmod library in these routines.
+{ Surround calls to FMOD library in these routines.
   This protects from freeing the dynamic FMOD library too early.
   Makes everything working correctly even if this unit's "finalization"
   section is run even when FMOD backend is still used (because CastleSoundEngine
@@ -802,7 +802,7 @@ procedure FmodLibraryUsingEnd;
   Note that, fortunately, none of these platforms use LCL for OpenGL backend.
   That's good, because castle_base.lpk has to include the FMOD unit,
   and including FMOD unit on platforms where static compilation is used
-  *forces* the presense of FMOD libraries. }
+  *forces* the presence of FMOD libraries. }
 {$if not (defined(CASTLE_NINTENDO_SWITCH) or defined(CASTLE_IOS))}
   {$define FMOD_DYNAMIC_LINK}
 {$endif}
