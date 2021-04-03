@@ -30,5 +30,7 @@ uses
 { Qualify identifiers by unit names below,
   to prevent GAME_UNITS from changing the meaning of code below. }
 
-exports CastleAndroidNativeAppGlue.ANativeActivity_onCreate;
+exports
+  CastleAndroidNativeAppGlue.ANativeActivity_onCreate,
+  CastleAndroidNativeAppGlue.JNI_OnLoad;
 end.

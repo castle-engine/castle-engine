@@ -43,7 +43,7 @@ uses
     "uses" clause of your Android library. }
   CThreads,
 
-  ctypes,baseunix,unixtype,
+  ctypes, baseunix, unixtype, JNI,
   CastleAndroidInternalConfiguration, CastleAndroidInternalLooper, CastleAndroidInternalLog,
   CastleAndroidInternalInput, CastleAndroidInternalRect, CastleAndroidInternalNativeWindow,
   CastleAndroidInternalNativeActivity;
@@ -312,6 +312,19 @@ function AllocateSavedState(const Size: csize_t): Pointer;
 var
   { Singleton instance of PAndroid_App, initialized right before AndroidMain is called. }
   AndroidMainApp: PAndroid_App;
+
+{ Export this from Android library.
+  Reason:
+
+  FPC recommends it, https://wiki.freepascal.org/Android -
+  "if you are creating a JNI shared library, always export JNI_OnLoad, even if it is empty".
+
+  It may solve the problem we workaround by ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION right now
+  (ugly hack spread across a number of units). We could make this hack cleaner,
+  but maybe it is also just not necessary since FPC 3.2.0 and our JNI_OnLoad usage.
+  TODO: Untested now, maybe we can remove the hack?
+}
+procedure JNI_OnLoad(Vm: PJavaVM; Reserved: Pointer); cdecl;
 
 implementation
 
@@ -894,6 +907,11 @@ begin
     on E: TObject do
       AndroidLog(alError, 'NativeAppGlue: ANativeActivity_onCreate exited with exception: ' + ExceptMessage(E));
   end;
+end;
+
+procedure JNI_OnLoad(Vm: PJavaVM; Reserved: Pointer); cdecl;
+begin
+  // does nothing
 end;
 
 end.

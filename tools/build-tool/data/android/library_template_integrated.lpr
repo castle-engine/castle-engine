@@ -34,5 +34,6 @@ uses
 exports
   CastleMessaging.Java_net_sourceforge_castleengine_MainActivity_jniMessage,
   CastleSystemLanguage.Java_net_sourceforge_castleengine_MainActivity_jniLanguage,
-  CastleAndroidNativeAppGlue.ANativeActivity_onCreate;
+  CastleAndroidNativeAppGlue.ANativeActivity_onCreate,
+  CastleAndroidNativeAppGlue.JNI_OnLoad;
 end.
