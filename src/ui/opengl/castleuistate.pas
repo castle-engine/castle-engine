@@ -315,10 +315,10 @@ type
       is freed when the state is stopped.
     }
     procedure InsertUserInterface(const DesignUrl: String;
-      const FinalOwner: TComponent;
+      const FinalOwner: TComponent; deprecated 'instead of this, set DesignUrl in constructor';
       out Ui: TCastleUserInterface; out UiOwner: TComponent);
     procedure InsertUserInterface(const DesignUrl: String;
-      const FinalOwner: TComponent; out UiOwner: TComponent);
+      const FinalOwner: TComponent; out UiOwner: TComponent); deprecated 'instead of this, set DesignUrl in constructor';
 
     { Wait until the render event happens (to redraw current state),
       and then call Event.
@@ -339,6 +339,71 @@ type
       you may spend more time waiting for render event (each WaitForRenderAndCall
       taking 1/60 of second) than doing actual loading. }
     procedure WaitForRenderAndCall(const Event: TNotifyEvent);
+
+    { Load a designed user interface (from .castle-user-interface) when this state is started.
+      You typically set this property in overridden constructor, and it means that
+      the given design file will be loaded right before @link(Start) and it will be freed
+      right before (Stop).
+      You can also modify this property when the design is already started: in this case
+      it will unload previou design.
+
+      Typical use-case looks like this:
+
+      @longCode(#
+      constructor TStatePlay.Create(AOwner: TComponent);
+      begin
+        inherited;
+        DesignUrl := 'castle-data:/gamestateplay.castle-user-interface';
+        // DesignPreload := true; // to make future "TUIState.Current := StatePlay" faster
+      end;
+
+      procedure TStatePlay.Start;
+      begin
+        inherited;
+        MyButton := specialize DesignedComponent<TCastleButton>('MyButton');
+      end;
+      #)
+
+      @seealso DesignPreload
+      @seealso DesignedComponent
+    }
+    property DesignUrl: String read FDesignUrl write SetDesignUrl;
+
+    // SetDesignUrl
+    //   remember to free previous FDesign, and load it immediately, if already started
+
+    { Preload the design file as soon as possible, making starting the state later
+      much faster. Using this property means that we "preload" the design file,
+      to cache the referenced  images / TCastleScene instances etc. as soon as possible,
+      to make the future loading of this design (when state starts) very quick.
+
+      Typically you set this property in overridden TUIState constructor,
+      right after or right before setting DesignUrl. It will mean that constructor
+      takes a longer time (which typically means that Application.OnInitialize takes a longer time)
+      but in exchange future starting of the state (when you do e.g. @code(TUIState.Current := StateXxx)
+      or @code(TUIState.Push(StateXxx)) will be much faster.
+
+      No functional difference should be visible, regardless of the @link(DesignPreload)
+      value. E.g. the @link(Design) is nil or non-nil at the same time.
+      So think of this property as pure optimization -- you decide whether to slow down
+      the state constructor, or state start.
+
+      @seealso DesignUrl }
+    property DesignPreload: Boolean read FDesignPreload write SetDesignPreload default false;
+//      when true, load to TSerializedComponent, and keep 1 instance FDesignPreloaded
+
+    { When the DesignUrl is set, and the state is started, you can use this method to find
+      loaded components. Like this:
+
+      @longCode(#
+      MyButton := specialize DesignedComponent<TCastleButton>('MyButton');
+      #)
+
+      See @link(DesignUrl) for full usage example.
+
+      @seealso DesignUrl }
+    generic function DesignedComponent<T: TComponent>(const ComponentName: String): T; overload;
+    function DesignedComponent(const ComponentName: String): TComponent; overload;
   published
     { TUIState control makes most sense when it is FullSize,
       filling the whole window.
