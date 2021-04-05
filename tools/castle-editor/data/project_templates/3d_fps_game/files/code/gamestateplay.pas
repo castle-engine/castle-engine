@@ -25,6 +25,7 @@ type
     { Enemies behaviours }
     Enemies: TEnemyList;
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Stop; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
@@ -42,28 +43,30 @@ uses SysUtils, Math,
 
 { TStatePlay ----------------------------------------------------------------- }
 
+constructor TStatePlay.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestateplay.castle-user-interface';
+end;
+
 procedure TStatePlay.Start;
 var
-  UiOwner: TComponent;
   SoldierScene: TCastleScene;
   Enemy: TEnemy;
   I: Integer;
 begin
   inherited;
 
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/gamestateplay.castle-user-interface', FreeAtStop, UiOwner);
-
   { Find components, by name, that we need to access from code }
-  LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
-  MainViewport := UiOwner.FindRequiredComponent('MainViewport') as TCastleViewport;
-  WalkNavigation := UiOwner.FindRequiredComponent('WalkNavigation') as TCastleWalkNavigation;
+  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
+  MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
+  WalkNavigation := DesignedComponent('WalkNavigation') as TCastleWalkNavigation;
 
   { Create TEnemy instances, add them to Enemies list }
   Enemies := TEnemyList.Create(true);
   for I := 1 to 4 do
   begin
-    SoldierScene := UiOwner.FindRequiredComponent('SceneSoldier' + IntToStr(I)) as TCastleScene;
+    SoldierScene := DesignedComponent('SceneSoldier' + IntToStr(I)) as TCastleScene;
     { Below using nil as Owner of TEnemy, as the Enemies list already "owns"
       instances of this class, i.e. it will free them. }
     Enemy := TEnemy.Create(nil);

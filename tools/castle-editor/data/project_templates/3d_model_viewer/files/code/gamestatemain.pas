@@ -33,6 +33,7 @@ type
     procedure ClickPlayAnimation(Sender: TObject);
     procedure ClickStopAnimation(Sender: TObject);
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
@@ -48,25 +49,26 @@ uses SysUtils,
 
 { TState${MAIN_STATE} ----------------------------------------------------------------- }
 
+constructor TState${MAIN_STATE}.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestate${MAIN_STATE_LOWERCASE}.castle-user-interface';
+end;
+
 procedure TState${MAIN_STATE}.Start;
-var
-  UiOwner: TComponent;
 begin
   inherited;
 
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/gamestate${MAIN_STATE_LOWERCASE}.castle-user-interface', FreeAtStop, UiOwner);
-
   { Find components, by name, that we need to access from code }
-  LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
-  LabelLoadedUrl := UiOwner.FindRequiredComponent('LabelLoadedUrl') as TCastleLabel;
-  ButtonLoadKnight := UiOwner.FindRequiredComponent('ButtonLoadKnight') as TCastleButton;
-  ButtonLoadCar := UiOwner.FindRequiredComponent('ButtonLoadCar') as TCastleButton;
-  ButtonLoadCustom := UiOwner.FindRequiredComponent('ButtonLoadCustom') as TCastleButton;
-  ButtonPlayAnimation := UiOwner.FindRequiredComponent('ButtonPlayAnimation') as TCastleButton;
-  ButtonStopAnimation := UiOwner.FindRequiredComponent('ButtonStopAnimation') as TCastleButton;
-  Viewport := UiOwner.FindRequiredComponent('Viewport') as TCastleViewport;
-  SceneMain := UiOwner.FindRequiredComponent('SceneMain') as TCastleScene;
+  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
+  LabelLoadedUrl := DesignedComponent('LabelLoadedUrl') as TCastleLabel;
+  ButtonLoadKnight := DesignedComponent('ButtonLoadKnight') as TCastleButton;
+  ButtonLoadCar := DesignedComponent('ButtonLoadCar') as TCastleButton;
+  ButtonLoadCustom := DesignedComponent('ButtonLoadCustom') as TCastleButton;
+  ButtonPlayAnimation := DesignedComponent('ButtonPlayAnimation') as TCastleButton;
+  ButtonStopAnimation := DesignedComponent('ButtonStopAnimation') as TCastleButton;
+  Viewport := DesignedComponent('Viewport') as TCastleViewport;
+  SceneMain := DesignedComponent('SceneMain') as TCastleScene;
 
   { Assign OnClick handler to buttons }
   ButtonLoadKnight.OnClick := @ClickLoadKnight;
