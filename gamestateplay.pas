@@ -22,6 +22,13 @@ type
     constructor Create(AOwner: TComponent);override;
   end;
 
+  TBullet = class(TCastleTransform)
+  strict private
+    Duration: Single;
+  public
+    constructor Create(AOwner: TComponent; BulletSpriteScene: TCastleScene); reintroduce;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+  end;
 
   { Main "playing game" state, where most of the game logic takes place. }
   TStatePlay = class(TUIState)
@@ -36,9 +43,15 @@ type
     { Checks this is firs Update when W key (jump) was pressed }
     WasJumpKeyPressed: Boolean;
 
+    { Checks this is firs Update when Space key (shot) was pressed }
+    WasShotKeyPressed: Boolean;
+
     { Player abilities }
     PlayerCanDoubleJump: Boolean;
     WasDoubleJump: Boolean;
+    PlayerCanShot: Boolean;
+
+    BulletSpriteScene: TCastleScene;
 
     { Level bounds }
     LevelBounds: TLevelBounds;
@@ -55,6 +68,7 @@ type
     procedure ConfigurePlayerPhysics(const Player:TCastleScene);
     procedure ConfigurePlayerAbilities(const Player:TCastleScene);
     procedure PlayerCollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
+    procedure ConfigureBulletSpriteScene;
 
     procedure ConfigureEnemyPhysics(const EnemyScene: TCastleScene);
 
@@ -74,6 +88,10 @@ type
     procedure UpdatePlayerByVelocityAndPhysicsRayWithDblJump(const SecondsPassed: Single;
       var HandleInput: Boolean);
 
+    procedure UpdatePlayerByVelocityAndPhysicsRayWithDblJumpShot(const SecondsPassed: Single;
+      var HandleInput: Boolean);
+
+    procedure Shot(BulletOwner: TComponent; const Origin, Direction: TVector3);
 
   public
     procedure Start; override;
@@ -91,6 +109,51 @@ uses
   SysUtils, Math,
   CastleLog,
   GameStateMenu;
+
+{ TBullet }
+
+constructor TBullet.Create(AOwner: TComponent; BulletSpriteScene: TCastleScene);
+var
+  RBody: TRigidBody;
+  Collider: TSphereCollider;
+begin
+  inherited Create(AOwner);
+
+  Add(BulletSpriteScene);
+  BulletSpriteScene.Visible := true;
+  BulletSpriteScene.Translation := Vector3(0, 0, 0);
+
+  RBody := TRigidBody.Create(Self);
+  RBody.Setup2D;
+  RBody.Dynamic := true;
+  RBody.MaximalLinearVelocity := 0;
+
+{  RBody.Animated := true;
+  RBody.Setup2D;
+  RBody.Gravity := true;
+  RBody.LinearVelocityDamp := 0;
+  RBody.AngularVelocityDamp := 0;
+  RBody.AngularVelocity := Vector3(0, 0, 0);
+  RBody.LockRotation := [0, 1, 2];
+  RBody.MaximalLinearVelocity := 0;}
+
+
+  Collider := TSphereCollider.Create(RBody);
+  Collider.Radius :=  BulletSpriteScene.BoundingBox.Size.X / 2;
+  //Collider.Mass := 10;
+
+  RigidBody := RBody;
+end;
+
+procedure TBullet.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType
+  );
+begin
+  inherited Update(SecondsPassed, RemoveMe);
+
+  Duration := Duration + SecondsPassed;
+  {if Duration > 5 then
+    RemoveMe := rtRemoveAndFree;}
+end;
 
 { TLevelBounds }
 
@@ -138,7 +201,6 @@ var
 begin
   RBody := TRigidBody.Create(Coin);
   RBody.Dynamic := false;
-  //RBody.Animated := true;
   RBody.Setup2D;
   RBody.Gravity := false;
   RBody.LinearVelocityDamp := 0;
@@ -259,6 +321,9 @@ begin
   Collider.Friction := 0.1;
   Collider.Restitution := 0.05;
 
+  {ColliderSP := TSphereCollider.Create(RBody);
+  ColliderSP.Radius := ScenePlayer.BoundingBox.SizeX * 0.45;}
+
   {ColliderBox := TBoxCollider.Create(RBody);
   ColliderBox.Size := Vector3(ScenePlayer.BoundingBox.SizeX, ScenePlayer.BoundingBox.SizeY, 60.0);
   ColliderBox.Friction := 0.1;
@@ -332,6 +397,13 @@ begin
   ColliderBox.Restitution := 0.05;}
 
   EnemyScene.RigidBody := RBody;
+end;
+
+procedure TStatePlay.ConfigureBulletSpriteScene;
+begin
+  BulletSpriteScene := TCastleScene.Create(FreeAtStop);
+  BulletSpriteScene.URL := 'castle-data:/bullet/particle_darkGrey.png';
+  BulletSpriteScene.Scale := Vector3(0.5, 0.5, 0.5);
 end;
 
 procedure TStatePlay.UpdatePlayerSimpleDependOnlyVelocity(
@@ -664,7 +736,6 @@ var
   DeltaVelocity: TVector3;
   Vel: TVector3;
   PlayerOnGround: Boolean;
-  Distance: Single;
   InSecondJump: Boolean;
 begin
   { This method is executed every frame.}
@@ -771,6 +842,149 @@ begin
     ScenePlayer.Scale := Vector3(1, 1, 1);
 end;
 
+procedure TStatePlay.UpdatePlayerByVelocityAndPhysicsRayWithDblJumpShot(
+  const SecondsPassed: Single; var HandleInput: Boolean);
+const
+  JumpVelocity = 700;
+  MaxHorizontalVelocity = 350;
+var
+  DeltaVelocity: TVector3;
+  Vel: TVector3;
+  PlayerOnGround: Boolean;
+  InSecondJump: Boolean;
+begin
+  { This method is executed every frame.}
+
+  InSecondJump := false;
+
+  DeltaVelocity := Vector3(0, 0, 0);
+  Vel := ScenePlayer.RigidBody.LinearVelocity;
+
+  { Check player is on ground }
+  PlayerOnGround := ScenePlayer.RigidBody.PhysicsRayCast(ScenePlayer.Translation,
+    Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5) <> nil;
+
+  { Two more checks Kraft - player should slide down when player just
+    on the edge, but sometimes it stay and center ray dont "see" that we are
+    on ground }
+  if PlayerOnGround = false then
+  begin
+    PlayerOnGround := ScenePlayer.RigidBody.PhysicsRayCast(ScenePlayer.Translation
+      + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.40, 0, 0),
+      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5) <> nil;
+  end;
+
+  if PlayerOnGround = false then
+  begin
+    PlayerOnGround := ScenePlayer.RigidBody.PhysicsRayCast(ScenePlayer.Translation
+      + Vector3(ScenePlayer.BoundingBox.SizeX * 0.40, 0, 0),
+      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5) <> nil;
+  end;
+
+  if PlayerOnGround then
+    WasDoubleJump := false;
+
+  if Container.Pressed.Items[keyW] then
+  begin
+    if (not WasJumpKeyPressed) and (PlayerOnGround or (PlayerCanDoubleJump and (not WasDoubleJump))) then
+    begin
+      if not PlayerOnGround then
+      begin
+        WasDoubleJump := true;
+        InSecondJump := true;
+        { In second jump just add diffrence betwen current Velocity and JumpVelocity }
+        DeltaVelocity.Y := JumpVelocity - Vel.Y;
+      end else
+        DeltaVelocity.Y := JumpVelocity;
+      WasJumpKeyPressed := true;
+    end;
+  end else
+    WasJumpKeyPressed := false;
+
+  if Container.Pressed.Items[keyD] and (PlayerOnGround or InSecondJump) then
+  begin
+    if InSecondJump then
+      DeltaVelocity.x := MaxHorizontalVelocity / 3
+    else
+      DeltaVelocity.x := MaxHorizontalVelocity / 2;
+  end;
+
+  if Container.Pressed.Items[keyA] and (PlayerOnGround or InSecondJump) then
+  begin
+    if InSecondJump then
+      DeltaVelocity.x := MaxHorizontalVelocity / 3
+    else
+      DeltaVelocity.x := - MaxHorizontalVelocity / 2;
+  end;
+
+  if Vel.X + DeltaVelocity.X > 0 then
+    Vel.X := Min(Vel.X + DeltaVelocity.X, MaxHorizontalVelocity)
+  else
+    Vel.X := Max(Vel.X + DeltaVelocity.X, -MaxHorizontalVelocity);
+
+  Vel.Y := Vel.Y + DeltaVelocity.Y;
+  Vel.Z := 0;
+
+  { Stop the player without slipping }
+  if PlayerOnGround and (Container.Pressed.Items[keyD] = false) and (Container.Pressed.Items[keyA] = false) then
+    Vel.X := 0;
+
+  ScenePlayer.RigidBody.LinearVelocity := Vel;
+
+  { Set animation }
+
+  { We get here 20 because vertical velocity calculated by physics engine when
+    player is on platform have no 0 but some small values to up and down sometimes
+    It can fail when the player goes uphill (will set jump animation) or down
+    will set fall animation }
+  if (not PlayerOnGround) and (Vel.Y > 20) then
+    ScenePlayer.PlayAnimation('jump', true)
+  else
+  if (not PlayerOnGround) and (Vel.Y < -20) then
+    ScenePlayer.PlayAnimation('fall', true)
+  else
+    if Abs(Vel.X) > 1 then
+    begin
+      if ScenePlayer.CurrentAnimation.X3DName <> 'walk' then
+        ScenePlayer.PlayAnimation('walk', true);
+    end
+    else
+      ScenePlayer.PlayAnimation('idle', true);
+
+  if Vel.X < 0 then
+    ScenePlayer.Scale := Vector3(-1, 1, 1)
+  else
+    ScenePlayer.Scale := Vector3(1, 1, 1);
+
+  PlayerCanShot := true;
+  if PlayerCanShot then
+  begin
+    if Container.Pressed.Items[keySpace] then
+    begin
+      if WasShotKeyPressed = false  then
+      begin
+        WasShotKeyPressed := true;
+
+        Shot(ScenePlayer, ScenePlayer.LocalToWorld(Vector3(ScenePLayer.BoundingBox.SizeX / 2 + 5, 0, 0)),
+          Vector3(ScenePlayer.Scale.X, 0, 0));
+      end;
+    end else
+      WasShotKeyPressed := false;
+  end;
+
+end;
+
+procedure TStatePlay.Shot(BulletOwner: TComponent; const Origin,
+  Direction: TVector3);
+var
+  Bullet: TBullet;
+begin
+  Bullet := TBullet.Create(BulletOwner, BulletSpriteScene);
+  Bullet.Translation := Origin;
+  Bullet.RigidBody.LinearVelocity := Direction * Vector3(800, 800, 0);
+  MainViewport.Items.Add(Bullet);
+end;
+
 procedure TStatePlay.Start;
 var
   UiOwner: TComponent;
@@ -799,9 +1013,8 @@ begin
 
   ScenePlayer := UiOwner.FindRequiredComponent('ScenePlayer') as TCastleScene;
 
-  { Configure physics for player }
-  ConfigurePlayerPhysics(ScenePlayer);
-  ConfigurePlayerAbilities(ScenePlayer);
+
+  WasShotKeyPressed := false;
 
   { Configure physics for platforms }
   PlatformsRoot := UiOwner.FindRequiredComponent('Platforms') as TCastleTransform;
@@ -860,6 +1073,13 @@ begin
     EnemyScene.AddBehavior(Enemy);
     Enemies.Add(Enemy);
   end;
+
+  { Configure physics for player }
+  ConfigurePlayerPhysics(ScenePlayer);
+  ConfigurePlayerAbilities(ScenePlayer);
+
+
+  ConfigureBulletSpriteScene;
 end;
 
 procedure TStatePlay.Stop;
@@ -908,7 +1128,8 @@ begin
     { uncomment to see less advanced versions }
     //UpdatePlayerByVelocityAndRay(SecondsPassed, HandleInput)
     //UpdatePlayerByVelocityAndRayWithDblJump(SecondsPassed, HandleInput)
-    UpdatePlayerByVelocityAndPhysicsRayWithDblJump(SecondsPassed, HandleInput)
+    //UpdatePlayerByVelocityAndPhysicsRayWithDblJump(SecondsPassed, HandleInput)
+    UpdatePlayerByVelocityAndPhysicsRayWithDblJumpShot(SecondsPassed, HandleInput)
   else
     UpdatePlayerSimpleDependOnlyVelocity(SecondsPassed, HandleInput);
 end;
