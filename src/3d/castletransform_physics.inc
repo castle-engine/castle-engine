@@ -1023,6 +1023,7 @@ var
   Normal: TKraftVector3;
   OldShapeFlags: TKraftShapeFlags;
   RayOriginWorld, RayDirectionWorld: TVector3;
+  RayMaxDistanceWorld: Single;
   Hit: Boolean;
 begin
   if FTransform = nil then
@@ -1034,6 +1035,7 @@ begin
 
   RayOriginWorld := FTransform.UniqueParent.LocalToWorld(RayOrigin);
   RayDirectionWorld := FTransform.UniqueParent.LocalToWorldDirection(RayDirection);
+  RayMaxDistanceWorld := FTransform.UniqueParent.LocalToWorldDistance(MaxDistance);
 
   { We use ksfRayCastable flag to not hit to caster shape. }
   OldShapeFlags := Collider.FKraftShape.Flags;
@@ -1043,7 +1045,7 @@ begin
       MaxTime looks/works like MaxDistance?
       Check time depends on physics frequency? }
     Hit := FTransform.World.FKraftEngine.RayCast(VectorToKraft(RayOriginWorld),
-      VectorToKraft(RayDirectionWorld), MaxDistance, Shape, Time, Point, Normal);
+      VectorToKraft(RayDirectionWorld), RayMaxDistanceWorld, Shape, Time, Point, Normal);
 
     if Hit then
     begin
