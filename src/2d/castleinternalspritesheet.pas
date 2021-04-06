@@ -2236,14 +2236,18 @@ begin
 end;
 
 constructor TCastleSpriteSheetLoader.Create(const Stream: TStream; const BaseUrl: String; LoadForEdit: Boolean);
+var
+  MimeType: String;
 begin
   inherited Create;
   FStream := Stream;
   FBaseUrl := BaseUrl;
   FDisplayURL := URIDisplay(FBaseUrl);
 
-  FStarlingLoading := (URIMimeType(FBaseUrl) = 'application/x-starling-sprite-sheet')
-    or (ExtractFileExt(FBaseUrl) = '.xml');
+  MimeType := URIMimeType(FBaseUrl);
+  FStarlingLoading :=
+    (MimeType = 'application/x-starling-sprite-sheet') or
+    (MimeType = 'application/xml');
 
   FSubTexture := TSubTexture.Create;
   FLoadForEdit := LoadForEdit;

@@ -982,7 +982,7 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
     if Ext = '.rar' then Result := 'application/x-rar-compressed' else
     if Ext = '.gz' then begin Result := 'application/gzip'; Gzipped := true; end else
     // Various
-    if Ext = '.xml' then Result := 'application/xml' else
+    if ExtA = '.xml' then Result := 'application/xml' else
     if Ext = '.castlescript' then Result := 'text/x-castlescript' else
     if Ext = '.kscript'      then Result := 'text/x-castlescript' else
     if Ext = '.js' then Result := 'application/javascript' else

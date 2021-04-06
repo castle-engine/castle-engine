@@ -694,7 +694,7 @@ end;
 procedure TSpriteSheetEditorForm.ActionOpenSpriteSheetExecute(Sender: TObject);
 var
   URLAnchor: String;
-  URLToOpen: String;
+  URLToOpen, MimeType: String;
 begin
   if not ProposeSaveSpriteSheet then
     Exit;
@@ -703,8 +703,9 @@ begin
     URLToOpen := OpenDialog.URL;
 
     { Check: if file is Starling }
-    if (URIMimeType(URLToOpen) = 'application/x-starling-sprite-sheet')
-      or (ExtractFileExt(URLToOpen) = '.xml') then
+    MimeType := URIMimeType(URLToOpen);
+    if (MimeType = 'application/x-starling-sprite-sheet') or
+       (MimeType = 'application/xml') then
     begin
       { If file has anchors don't show import dialog }
       URIGetAnchor(URLToOpen, URLAnchor, true);
@@ -1734,4 +1735,3 @@ begin
 end;
 
 end.
-
