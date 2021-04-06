@@ -40,18 +40,6 @@ begin
 end;
 
 initialization
-  { Set ApplicationName early, as our log uses it. }
-  ApplicationProperties.ApplicationName := 'zombie_fighter';
-
-  { Start logging. Do this as early as possible,
-    to log information and eventual warnings during initialization.
-
-    For programs, InitializeLog is not called here.
-    Instead InitializeLog is done by the program main file,
-    after command-line parameters are parsed. }
-  if IsLibrary then
-    InitializeLog;
-
   Application.OnInitialize := @ApplicationInitialize;
 
   Window := TCastleWindowBase.Create(Application);

@@ -73,7 +73,7 @@ uses CastleConfig, CastleLCLUtils, CastleURIUtils, CastleUtils,
   CastleFilesUtils, CastleParameters, CastleLog, CastleStringUtils,
   ProjectUtils, EditorUtils, FormNewProject, FormPreferences,
   ToolCompilerInfo, ToolFpcVersion,
-  FormProject;
+  FormProject, FormNewUnit;
 
 { TChooseProjectForm ------------------------------------------------------------- }
 
@@ -191,7 +191,8 @@ begin
       // Fill project dir
       CopyTemplate(ProjectDirUrl, TemplateName,
         NewProjectForm.EditProjectName.Text,
-        NewProjectForm.EditProjectCaption.Text);
+        NewProjectForm.EditProjectCaption.Text,
+        NewProjectForm.EditStateName.Text);
       GenerateProgramWithBuildTool(ProjectDirUrl);
 
       // Open new project

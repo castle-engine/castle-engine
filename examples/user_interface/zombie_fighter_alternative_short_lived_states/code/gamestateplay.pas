@@ -29,6 +29,7 @@ type
     ButtonBack: TCastleButton;
     procedure ClickBack(Sender: TObject);
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Resume; override;
     procedure Pause; override;
@@ -44,19 +45,20 @@ uses CastleVectors, CastleColors, CastleUIControls,
 
 { TStatePlay ------------------------------------------------------------- }
 
+constructor TStatePlay.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestateplay.castle-user-interface';
+end;
+
 procedure TStatePlay.Start;
-var
-  UiOwner: TComponent;
 begin
   inherited;
 
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/state_play.castle-user-interface', FreeAtStop, UiOwner);
-
   { Find components, by name, that we need to access from code }
-  MainViewport := UiOwner.FindRequiredComponent('MainViewport') as TCastleViewport;
-  MapViewport := UiOwner.FindRequiredComponent('MapViewport') as TCastleViewport;
-  ButtonBack := UiOwner.FindRequiredComponent('ButtonBack') as TCastleButton;
+  MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
+  MapViewport := DesignedComponent('MapViewport') as TCastleViewport;
+  ButtonBack := DesignedComponent('ButtonBack') as TCastleButton;
 
   { turn off head bobbing, it makes a feeling that sprites sometimes "tremble" }
 //  WalkNavigation.HeadBobbing := 0;

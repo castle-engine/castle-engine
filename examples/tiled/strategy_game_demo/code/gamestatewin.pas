@@ -39,16 +39,14 @@ uses SysUtils, Classes,
   GameStateMainMenu;
 
 procedure TStateWin.Start;
-var
-  UiOwner: TComponent;
 begin
   inherited;
 
   { Load designed user interface }
   if HumansWin then
-    InsertUserInterface('castle-data:/state_win_humans.castle-user-interface', FreeAtStop, UiOwner)
+    DesignUrl := 'castle-data:/gamestatewinhumans.castle-user-interface'
   else
-    InsertUserInterface('castle-data:/state_win_aliens.castle-user-interface', FreeAtStop, UiOwner);
+    DesignUrl := 'castle-data:/gamestatewinaliens.castle-user-interface';
 
   { do not pass clicks to state underneath }
   InterceptInput := true;

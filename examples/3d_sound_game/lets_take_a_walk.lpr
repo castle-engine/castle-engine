@@ -39,7 +39,7 @@ uses SysUtils, Classes,
   CastleParameters, CastleImages, CastleMessages, CastleFilesUtils, CastleGLImages,
   CastleTransform, CastleSoundEngine, CastleRectangles,
   CastleControls, CastleConfig, CastleKeysMouse, CastleControlsImages,
-  CastleViewport, CastleCameras;
+  CastleViewport, CastleCameras, CastleLog, CastleApplicationProperties;
 
 { global variables ----------------------------------------------------------- }
 
@@ -175,12 +175,6 @@ begin
     SoundEngine.Volume := 1;
 end;
 
-{ help message --------------------------------------------------------------- }
-
-const
-  Version = '1.2.4';
-  DisplayApplicationName = 'lets_take_a_walk';
-
 { window callbacks ----------------------------------------------------------- }
 
 procedure Update(Container: TUIContainer);
@@ -213,69 +207,40 @@ begin
     end;
 end;
 
-{ parsing parameters --------------------------------------------------------- }
-
-const
-  Options: array[0..1]of TOption =
-  ((Short:'h'; Long: 'help'; Argument: oaNone),
-   (Short:'v'; Long: 'version'; Argument: oaNone)
-  );
-
-procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
-  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
-begin
-  case OptionNum of
-    0:begin
-        InfoWrite(
-          'lets_take_a_walk: a toy, demonstrating the use of VRML/X3D and OpenGL rendering' +nl+
-          '  and OpenAL environmental audio combined in one simple program.' +nl+
-          '  You can walk in a 3D world (with collision-checking) using DOOM-like' +nl+
-          '  keys (Up/Down, Right/Left, PageUp/PageDown, Insert/Delete, Home, +/-),' +nl+
-          '  you can fire up some TNTs etc. Nothing special - but I hope that' +nl+
-          '  such combination of 3d graphic and sound will make a nice effect.' +nl+
-          nl+
-          'Options:' +nl+
-          HelpOptionHelp +nl+
-          VersionOptionHelp +nl+
-          SoundEngine.ParseParametersHelp +nl+
-          nl+
-          TCastleWindowBase.ParseParametersHelp(StandardParseOptions, true) +nl+
-          nl+
-          SCastleEngineProgramHelpSuffix(DisplayApplicationName, Version, true));
-        Halt;
-      end;
-    1:begin
-        Writeln(Version);
-        Halt;
-      end;
-  end;
-end;
-
 { main -------------------------------------------------------------------- }
 
 begin
+  // TODO: use standard LPR + gameinitialize.pas approach from other CGE examples
+  ApplicationProperties.ApplicationName := 'lets_take_a_walk';
+  ApplicationProperties.Version := '1.2.4';
+  ApplicationProperties.Caption := 'Let''s Take A Walk';
+
+  { parse standard parameters before opening log }
+  Application.ParseStandardParameters;
+  SoundEngine.ParseParameters;
+
+  InitializeLog;
+
   { load config, before SoundEngine.ParseParameters
     (that may change SoundEngine.Enable by --no-sound). }
   UserConfig.Load;
   SoundEngine.LoadFromConfig(UserConfig);
 
   { init messages }
-  Theme.Images[tiWindow] := WindowDarkTransparent;
+  Theme.ImagesPersistent[tiWindow].Image := WindowDarkTransparent;
+  Theme.ImagesPersistent[tiWindow].OwnsImage := false;
 
   { init window }
   Window := TCastleWindowBase.Create(Application);
   Window.OnUpdate := @Update;
   Window.OnTimer := @Timer;
   Window.OnPress := @Press;
-  Window.AutoRedisplay := true;
-  Window.Caption := 'Let''s take a walk';
   Window.SetDemoOptions(keyF11, CharEscape, true);
 
-  { parse parameters }
+  { parse rest of parameters, after creating Window }
   Window.FullScreen := true; { by default we open in fullscreen }
   Window.ParseParameters(StandardParseOptions);
-  SoundEngine.ParseParameters;
-  Parameters.Parse(Options, @OptionProc, nil);
+  Parameters.CheckHigh(0);
 
   { open window }
   Window.Open;

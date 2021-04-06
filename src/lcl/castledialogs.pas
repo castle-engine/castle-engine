@@ -65,9 +65,10 @@ type
     property UseCastleDataProtocol: Boolean read FUseCastleDataProtocol write FUseCastleDataProtocol default true;
   end;
 
-  { 3D model open dialog. It uses an URL, and additionally initializes the filters
-    to include all the 3D model types our engine can load (through
-    LoadNode, through setting TCastleScene.URL and other functions). }
+  { Dialog to open scene (select a file that can be loaded using TCastleScene.Load).
+    It uses an URL, and additionally initializes the filters
+    to include all the scene types we can load (through
+    LoadNode, TCastleScene.Load, TCastleScene.URL and so on). }
   TCastleOpen3DDialog = class(TOpenDialog)
   private
     FAdviceDataDirectory: Boolean;
@@ -154,6 +155,21 @@ type
     property FilterIndex stored StoreFilterAndFilterIndex;
   end;
 
+  TCastleOpenPascalUnitDialog = class(TOpenDialog)
+  private
+    const
+      InitialFilterIndex = 0;
+      InitialFilter = 'Pascal unit (*.pas, *.pp)|*.pas;*.pp|All Files|*';
+    function StoreFilterAndFilterIndex: boolean;
+  protected
+    function DoExecute: boolean; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+  published
+    property Filter stored StoreFilterAndFilterIndex;
+    property FilterIndex stored StoreFilterAndFilterIndex;
+  end;
+
 procedure Register;
 
 implementation
@@ -169,7 +185,8 @@ begin
     TCastleSaveDialog,
     TCastleOpen3DDialog,
     TCastleOpenImageDialog,
-    TCastleSaveImageDialog
+    TCastleSaveImageDialog,
+    TCastleOpenPascalUnitDialog
   ]);
 end;
 
@@ -377,6 +394,25 @@ constructor TCastleOpenDialog.Create(AOwner: TComponent);
 begin
   inherited;
   FUseCastleDataProtocol := true;
+end;
+
+{ TCastleOpenPascalUnitDialog ----------------------------------------------------- }
+
+function TCastleOpenPascalUnitDialog.StoreFilterAndFilterIndex: boolean;
+begin
+  Result := (Filter <> InitialFilter) or (FilterIndex <> InitialFilterIndex);
+end;
+
+function TCastleOpenPascalUnitDialog.DoExecute: boolean;
+begin
+  Result := inherited DoExecute;
+end;
+
+constructor TCastleOpenPascalUnitDialog.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  Filter := InitialFilter;
+  FilterIndex := InitialFilterIndex;
 end;
 
 end.

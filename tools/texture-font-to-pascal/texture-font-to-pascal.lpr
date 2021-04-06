@@ -55,7 +55,7 @@ begin
   case OptionNum of
     0: begin
          Writeln(
-           'texture-font-to-pascal: convert ttf font' +NL+
+           'texture-font-to-pascal: convert font file (like TTF or OTF)' +NL+
            'to a Pascal source file, based on types' +NL+
            'in Castle Game Engine CastleTextureFontData unit.' +NL+
            NL+
@@ -84,12 +84,12 @@ begin
            OptionDescription('--debug-font-image',
              'Write to disk font images as png.') + NL +
            NL+
-           SCastleEngineProgramHelpSuffix('texture-font-to-pascal', CastleEngineVersion, true));
+           ApplicationProperties.Description);
          Halt;
        end;
     1: begin
          // include ApplicationName in version, good for help2man
-         Writeln(ApplicationName + ' ' + CastleEngineVersion);
+         Writeln(ApplicationName + ' ' + ApplicationProperties.Version);
          Halt;
        end;
     2: Size := StrToInt(Argument);
@@ -110,6 +110,8 @@ var
   Font: TTextureFontData;
   PrecedingComment, UnitName, FontFunctionName, OutURL, FontURL, FontName: string;
 begin
+  ApplicationProperties.ApplicationName := 'texture-font-to-pascal';
+  ApplicationProperties.Version := '1.0';
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
   Characters := TUnicodeCharList.Create;

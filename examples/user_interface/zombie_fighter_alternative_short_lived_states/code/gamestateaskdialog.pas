@@ -109,9 +109,14 @@ end;
 
 { TStateAskDialog ------------------------------------------------------------ }
 
+constructor TStateAskDialog.CreateUntilStopped(const AMale: Boolean);
+begin
+  inherited CreateUntilStopped;
+  Male := AMale;
+  DesignUrl := 'castle-data:/gamestateaskdialog.castle-user-interface';
+end;
+
 procedure TStateAskDialog.Start;
-var
-  UiOwner: TComponent;
 begin
   inherited;
 
@@ -122,19 +127,10 @@ begin
     StatePlay.ButtonBack). }
   InterceptInput := true;
 
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/state_ask_dialog.castle-user-interface', FreeAtStop, UiOwner);
-
   Dialog := TZombieDialog.Create(FreeAtStop, Male);
   Dialog.Anchor(hpMiddle);
   Dialog.Anchor(vpMiddle);
   InsertFront(Dialog);
-end;
-
-constructor TStateAskDialog.CreateUntilStopped(const AMale: Boolean);
-begin
-  inherited CreateUntilStopped;
-  Male := AMale;
 end;
 
 end.

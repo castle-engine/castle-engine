@@ -18,7 +18,8 @@ unit GameStateMain;
 
 interface
 
-uses CastleUIState, CastleScene, CastleControls,
+uses Classes,
+  CastleUIState, CastleScene, CastleControls,
   CastleKeysMouse, CastleColors, CastleViewport, CastleUIControls,
   CastleDownload;
 
@@ -41,6 +42,7 @@ type
     procedure DownloadFinish(const Sender: TCastleDownload; var FreeSender: Boolean);
     procedure UpdateDownloadState;
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
   end;
@@ -50,32 +52,33 @@ var
 
 implementation
 
-uses SysUtils, Classes, Math,
+uses SysUtils, Math,
   {$ifndef VER3_0} OpenSSLSockets, {$endif} // https support
   CastleComponentSerialize, CastleUtils, CastleStringUtils, CastleLog,
   CastleURIUtils;
 
 { TStateMain ----------------------------------------------------------------- }
 
+constructor TStateMain.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestatemain.castle-user-interface';
+end;
+
 procedure TStateMain.Start;
-var
-  UiOwner: TComponent;
 begin
   inherited;
 
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/state_main.castle-user-interface', FreeAtStop, UiOwner);
-
   { Find components, by name, that we need to access from code }
-  ButtonStartDownloads := UiOwner.FindRequiredComponent('ButtonStartDownloads') as TCastleButton;
-  ButtonAbortDownloads := UiOwner.FindRequiredComponent('ButtonAbortDownloads') as TCastleButton;
-  LabelDownload[1] := UiOwner.FindRequiredComponent('LabelDownload1') as TCastleLabel;
-  LabelDownload[2] := UiOwner.FindRequiredComponent('LabelDownload2') as TCastleLabel;
-  LabelDownload[3] := UiOwner.FindRequiredComponent('LabelDownload3') as TCastleLabel;
-  ProgressDownload[1] := UiOwner.FindRequiredComponent('ProgressDownload1') as TCastleRectangleControl;
-  ProgressDownload[2] := UiOwner.FindRequiredComponent('ProgressDownload2') as TCastleRectangleControl;
-  ProgressDownload[3] := UiOwner.FindRequiredComponent('ProgressDownload3') as TCastleRectangleControl;
-  LabelStatus := UiOwner.FindRequiredComponent('LabelStatus') as TCastleLabel;
+  ButtonStartDownloads := DesignedComponent('ButtonStartDownloads') as TCastleButton;
+  ButtonAbortDownloads := DesignedComponent('ButtonAbortDownloads') as TCastleButton;
+  LabelDownload[1] := DesignedComponent('LabelDownload1') as TCastleLabel;
+  LabelDownload[2] := DesignedComponent('LabelDownload2') as TCastleLabel;
+  LabelDownload[3] := DesignedComponent('LabelDownload3') as TCastleLabel;
+  ProgressDownload[1] := DesignedComponent('ProgressDownload1') as TCastleRectangleControl;
+  ProgressDownload[2] := DesignedComponent('ProgressDownload2') as TCastleRectangleControl;
+  ProgressDownload[3] := DesignedComponent('ProgressDownload3') as TCastleRectangleControl;
+  LabelStatus := DesignedComponent('LabelStatus') as TCastleLabel;
 
   ButtonStartDownloads.OnClick := @ClickStartDownloads;
   ButtonAbortDownloads.OnClick := @ClickAbortDownloads;

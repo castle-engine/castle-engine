@@ -83,39 +83,21 @@ const
   { Castle Game Engine version. }
   CastleEngineVersion = {$I castleversion.inc};
 
-{$ifdef FPC}
-{ FPC version. In the form 'version.release.patch'.
+{ Name and version of the Pascal compiler used to compile this unit.
 
-  This is actually a constant (for every run of a program it has
-  always the same value) but I can't declare it as a Pascal constant
-  because it must use "Format" function that is not allowed in constant
-  expressions. }
-function SFPCVersion: string;
-{$endif}
-
-{ Short name and version of Pascal compiler used
-  to compile this unit. It is a constant, actually, but I cannot
-  declare it as a constant because it must call SFPCVersion that
-  is not declared as a constant. }
+  @seealso TCastleApplicationProperties.Description
+  @seealso SPlatformDescription }
 function SCompilerDescription: string;
 
-{ Print some common info for programs released on
-  [https://castle-engine.io/].
-  This is useful only for programs released on this WWW page by Michalis.
-  Resulting string is multiline.
+{ Describe current platform, OS, CPU.
+  This is all detected looking at compilation symbols defined when compiling this unit.
 
-  @param(DisplayApplicationName Short application name.
-    Usually you should take it from ApplicationName.)
+  @seealso TCastleApplicationProperties.Description
+  @seealso SCompilerDescription }
+function SPlatformDescription: String;
 
-  @param(Version Version to display.
-    Usually you should take it from
-    @link(TCastleApplicationProperties.Version ApplicationProperties.Version).)
-
-  @param(WrapLines If true then resulting string will not have lines
-    longer than 80 characters. Suitable for printing program
-    help message on stdout, e.g. in response to @--help option.) }
-function SCastleEngineProgramHelpSuffix(const DisplayApplicationName: string;
-  const Version: string; WrapLines: boolean): string;
+function SCastleEngineProgramHelpSuffix(const AppName, AppVersion: String; const Ignored: Boolean): String;
+  deprecated 'use ApplicationProperties.Description';
 
 { If not TrueValue then RaiseLastOSError. }
 procedure OSCheck(TrueValue: boolean); overload;
@@ -266,20 +248,13 @@ function Iff(boolval: boolean; trueval, falseval: Float)   : Float;    begin if 
 function Iff(boolval: boolean; trueval, falseval: Cardinal): Cardinal; begin if boolval then result := trueval else result := falseval end;
 function Iff(boolval: boolean; trueval, falseval: char)    : char;     begin if boolval then result := trueval else result := falseval end;
 
-{ Helpful consts ------------------------------------------------------------ }
-
-{$ifdef FPC}
-function SFPCVersion: string;
-begin
-  Result := {$I %FPCVERSION%} + ' (' + {$I %FPCTARGETOS%} + ' / ' + {$I %FPCTARGETCPU%} + ')';
-end;
-{$endif FPC}
+{ Various routines ------------------------------------------------------------ }
 
 function SCompilerDescription: string;
 begin
   Result :=
     {$ifdef FPC}
-      'FPC ' + SFPCVersion
+      'FPC ' + {$I %FPCVERSION%}
     {$else}
 
     {$ifdef DCC}
@@ -293,20 +268,28 @@ begin
     'Unrecognized compiler'
 
     {$endif} {$endif} {$endif};
-
-  Result := Result + ', platform: ' + PlatformToStr(Platform);
 end;
 
-function SCastleEngineProgramHelpSuffix(const DisplayApplicationName: string;
-  const Version: string; WrapLines: boolean): string;
+function SPlatformDescription: String;
 begin
-  if Version <> '' then
-    Result := DisplayApplicationName + ' version ' + Version + '.' + NL
-  else
-    Result := '';
-  Result := Result +
-    'Created using Castle Game Engine ( https://castle-engine.io/ ) version ' + CastleEngineVersion + '.' + NL +
-    'Compiled with ' + SCompilerDescription + '.';
+  Result := PlatformToStr(Platform);
+  {$ifdef FPC}
+  Result +=
+    ', OS: ' + {$I %FPCTARGETOS%} +
+    ', CPU: ' + {$I %FPCTARGETCPU%} +
+    { Clearly stating CPU bits is more obvious in some cases.
+      E.g. this avoids the question "what does Arm mean, is it 32-bit or 64-bit Arm?". }
+    ' (' + IntToStr(SizeOf(Pointer) * 8) + '-bit)';
+  {$endif}
+end;
+
+function SCastleEngineProgramHelpSuffix(const AppName, AppVersion: String; const Ignored: Boolean): String;
+begin
+  Result :=
+    AppName + ' version ' + AppVersion + '.' + NL +
+    'Using Castle Game Engine ( https://castle-engine.io/ ) version ' + CastleEngineVersion + '.' + NL +
+    'Compiled with ' + SCompilerDescription + '.' + NL +
+    'Platform: ' + SPlatformDescription + '.';
 end;
 
 procedure OSCheck(TrueValue: boolean);

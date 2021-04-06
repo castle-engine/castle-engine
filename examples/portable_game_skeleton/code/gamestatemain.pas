@@ -15,9 +15,10 @@ type
   { Main state, where most of the application logic takes place. }
   TStateMain = class(TUIState)
   private
-    { Components designed using CGE editor, loaded from state_main.castle-user-interface. }
+    { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
     LabelFps: TCastleLabel;
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
@@ -30,17 +31,18 @@ implementation
 
 { TStateMain ----------------------------------------------------------------- }
 
+constructor TStateMain.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestatemain.castle-user-interface';
+end;
+
 procedure TStateMain.Start;
-var
-  UiOwner: TComponent;
 begin
   inherited;
 
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/state_main.castle-user-interface', FreeAtStop, UiOwner);
-
   { Find components, by name, that we need to access from code }
-  LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
+  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: boolean);

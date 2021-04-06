@@ -18,7 +18,8 @@ unit GameStateInstructions;
 
 interface
 
-uses CastleUIState, CastleControls, CastleWindow, CastleUIControls;
+uses Classes,
+  CastleUIState, CastleControls, CastleWindow, CastleUIControls;
 
 type
   TStateInstructions = class(TUIState)
@@ -26,6 +27,7 @@ type
     ButtonClose: TCastleButton;
     procedure ClickClose(Sender: TObject);
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
   end;
 
@@ -34,20 +36,21 @@ var
 
 implementation
 
-uses SysUtils, Classes,
+uses SysUtils,
   CastleComponentSerialize,
   GameStatePlay;
 
+constructor TStateInstructions.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestateinstructions.castle-user-interface';
+end;
+
 procedure TStateInstructions.Start;
-var
-  UiOwner: TComponent;
 begin
   inherited;
 
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/state_instructions.castle-user-interface', FreeAtStop, UiOwner);
-
-  ButtonClose := UiOwner.FindRequiredComponent('ButtonClose') as TCastleButton;
+  ButtonClose := DesignedComponent('ButtonClose') as TCastleButton;
   ButtonClose.OnClick := @ClickClose;
 
   { do not pass clicks to state underneath }

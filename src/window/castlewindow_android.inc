@@ -81,7 +81,6 @@ private
   var
     FScreenWidth, FScreenHeight: Integer;
     FScreenStatusBarHeight: Cardinal;
-    AndroidApp: PAndroid_App;
     QEvents: TQueuedEventList;
     TouchChanges: array [0..FingerCount - 1] of TTouchChange;
     ResumeScheduled: boolean;
@@ -432,8 +431,6 @@ var
   ConfigState: TStringStream;
 {$endif CASTLE_PERSISTENT_ANDROID_STATE}
 begin
-  Application.AndroidApp := App;
-
   ApplicationConfigOverride := FilenameToURISafe(InclPathDelim(GetInternalDataPath));
 
   {$ifdef CASTLE_PERSISTENT_ANDROID_STATE}
@@ -650,7 +647,7 @@ begin
     if Ident < 0 then Break;
 
     if Source <> nil then
-      Source^.Process(AndroidApp, Source);
+      Source^.Process(AndroidMainApp, Source);
 
     { poll our own events quueue.
       Yes, we need our own events queue to shield from the native_app_glue
@@ -675,7 +672,7 @@ begin
       end;
 
     // Check if we are exiting.
-    if AndroidApp^.DestroyRequested = 1 then
+    if AndroidMainApp^.DestroyRequested = 1 then
     begin
       CloseContext;
       Terminate; // tell ancestor TCustomApplication to end our loop
@@ -732,10 +729,9 @@ begin
 
   FillByte(TouchChanges, SizeOf(TouchChanges), 0);
 
-  { since we have AndroidApp now, prepare it }
-  AndroidApp^.OnAppCmd := @HandleCommand;
-  AndroidApp^.OnInputEvent := @HandleInput;
-  AssetManager := AndroidApp^.Activity^.AssetManager;
+  { since we have AndroidMainApp now, prepare it }
+  AndroidMainApp^.OnAppCmd := @HandleCommand;
+  AndroidMainApp^.OnInputEvent := @HandleInput;
 
   { We could not do dlopen on Android before AndroidMain is called.
     Load necessary libraries now. Some of the below libraries are not really

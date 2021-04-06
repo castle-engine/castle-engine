@@ -1,22 +1,23 @@
 object NewProjectForm: TNewProjectForm
-  Left = 75
-  Height = 590
-  Top = 34
-  Width = 951
+  Left = 432
+  Height = 690
+  Top = 125
+  Width = 942
+  ActiveControl = EditProjectName
   Caption = 'New Project | Castle Game Engine'
-  ClientHeight = 590
-  ClientWidth = 951
+  ClientHeight = 690
+  ClientWidth = 942
   DesignTimePPI = 120
   OnCloseQuery = FormCloseQuery
   OnShow = FormShow
   Position = poMainFormCenter
   ShowInTaskBar = stAlways
-  LCLVersion = '2.0.8.0'
+  LCLVersion = '2.0.10.0'
   object ButtonPanel1: TButtonPanel
     Left = 5
     Height = 47
-    Top = 538
-    Width = 941
+    Top = 638
+    Width = 932
     BorderSpacing.Around = 5
     OKButton.Name = 'OKButton'
     OKButton.Caption = '&Create Project'
@@ -26,14 +27,14 @@ object NewProjectForm: TNewProjectForm
     CloseButton.Caption = 'Close'
     CancelButton.Name = 'CancelButton'
     CancelButton.DefaultCaption = True
-    TabOrder = 5
+    TabOrder = 4
     ShowButtons = [pbOK, pbCancel]
   end
   object LabelTitle: TLabel
     Left = 15
-    Height = 29
+    Height = 31
     Top = 14
-    Width = 213
+    Width = 215
     Caption = 'Create New Project'
     Font.Height = -25
     ParentColor = False
@@ -45,7 +46,7 @@ object NewProjectForm: TNewProjectForm
     AnchorSideTop.Side = asrBottom
     Left = 15
     Height = 230
-    Top = 51
+    Top = 53
     Width = 840
     BorderSpacing.Top = 8
     Caption = 'Project Template'
@@ -7658,12 +7659,13 @@ object NewProjectForm: TNewProjectForm
   end
   object LabelProjectName: TLabel
     AnchorSideLeft.Control = LabelTitle
+    AnchorSideTop.Control = EditLocation
     AnchorSideTop.Side = asrBottom
     Left = 15
-    Height = 21
-    Top = 380
+    Height = 23
+    Top = 379
     Width = 112
-    BorderSpacing.Top = 17
+    BorderSpacing.Top = 8
     Caption = 'Project Name'
     ParentColor = False
     ParentFont = False
@@ -7673,12 +7675,12 @@ object NewProjectForm: TNewProjectForm
     AnchorSideTop.Control = LabelProjectName
     AnchorSideTop.Side = asrBottom
     Left = 15
-    Height = 39
-    Top = 406
+    Height = 40
+    Top = 407
     Width = 415
     BorderSpacing.Top = 5
     ParentFont = False
-    TabOrder = 3
+    TabOrder = 2
     Text = 'my-new-project'
   end
   object LabelProjectLocation: TLabel
@@ -7686,8 +7688,8 @@ object NewProjectForm: TNewProjectForm
     AnchorSideTop.Control = GroupProjectTemplate
     AnchorSideTop.Side = asrBottom
     Left = 15
-    Height = 21
-    Top = 298
+    Height = 23
+    Top = 300
     Width = 284
     BorderSpacing.Top = 17
     Caption = 'Project Location (Parent Directory)'
@@ -7699,10 +7701,10 @@ object NewProjectForm: TNewProjectForm
     AnchorSideTop.Control = EditProjectName
     AnchorSideTop.Side = asrBottom
     Left = 15
-    Height = 21
-    Top = 462
+    Height = 23
+    Top = 455
     Width = 126
-    BorderSpacing.Top = 17
+    BorderSpacing.Top = 8
     Caption = 'Project Caption'
     ParentColor = False
     ParentFont = False
@@ -7712,45 +7714,56 @@ object NewProjectForm: TNewProjectForm
     AnchorSideTop.Control = LabelProjectCaption
     AnchorSideTop.Side = asrBottom
     Left = 15
-    Height = 39
-    Top = 488
+    Height = 40
+    Top = 483
     Width = 415
     BorderSpacing.Top = 5
     ParentFont = False
-    TabOrder = 4
+    TabOrder = 3
     Text = 'My New Project'
   end
-  object EditLocation: TEdit
-    AnchorSideLeft.Control = LabelTitle
+  object EditLocation: TDirectoryEdit
+    AnchorSideLeft.Control = LabelProjectLocation
     AnchorSideTop.Control = LabelProjectLocation
     AnchorSideTop.Side = asrBottom
     Left = 15
-    Height = 39
-    Top = 324
-    Width = 412
+    Height = 40
+    Top = 331
+    Width = 836
+    Directory = 'EditLocation'
+    ShowHidden = False
+    ButtonCaption = 'Choose Directory'
+    ButtonWidth = 200
+    NumGlyphs = 1
+    BorderSpacing.Top = 8
+    MaxLength = 0
+    TabOrder = 1
+    Text = 'EditLocation'
+  end
+  object LabelStateName: TLabel
+    AnchorSideLeft.Control = LabelTitle
+    AnchorSideTop.Control = EditProjectCaption
+    AnchorSideTop.Side = asrBottom
+    Left = 15
+    Height = 23
+    Top = 531
+    Width = 584
+    BorderSpacing.Top = 8
+    Caption = 'Main State Name (determines name of the initial design and Pascal unit)'
+    ParentColor = False
+    ParentFont = False
+  end
+  object EditStateName: TEdit
+    AnchorSideLeft.Control = LabelTitle
+    AnchorSideTop.Control = LabelStateName
+    AnchorSideTop.Side = asrBottom
+    Left = 15
+    Height = 40
+    Top = 559
+    Width = 415
     BorderSpacing.Top = 5
     ParentFont = False
-    TabOrder = 1
-  end
-  object ButtonChooseLocation: TButton
-    AnchorSideLeft.Control = EditLocation
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = EditLocation
-    AnchorSideTop.Side = asrCenter
-    Left = 437
-    Height = 39
-    Top = 324
-    Width = 158
-    AutoSize = True
-    BorderSpacing.Left = 10
-    Caption = 'Choose Directory'
-    OnClick = EditLocationButtonClick
-    TabOrder = 2
-  end
-  object SelectDirectoryDialog1: TSelectDirectoryDialog
-    Title = 'Select The Project Parent Directory'
-    Options = [ofPathMustExist, ofFileMustExist, ofEnableSizing, ofViewDetail]
-    Left = 652
-    Top = 329
+    TabOrder = 5
+    Text = 'Main'
   end
 end

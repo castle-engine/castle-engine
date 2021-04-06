@@ -1467,7 +1467,9 @@ type
     *)
     property Visible: boolean read FVisible write FVisible default true;
 
-    { Caption of the window. By default it's initialized to ApplicationName.
+    { Caption of the window.
+      By default it's initialized from ApplicationProperties.Caption or (if empty)
+      ApplicationName.
       May be changed even when the window is already open. }
     property Caption: string read GetPublicCaption write SetPublicCaption;
 
@@ -2699,10 +2701,10 @@ type
       Handles:
       @unorderedList(
         @item(@code(-h / --help))
-        @item(@code(-v / --version), using @link(Version))
+        @item(@code(-v / --version), using @link(TCastleApplicationProperties.Version ApplicationProperties.Version))
         @item(@code(--log-file), setting @link(LogFileName))
-        @item(All the parameters handled by @link(TCastleWindowBase.ParseParameters).
-          Requires @link(MainWindow) to be set.)
+        @item(All the parameters handled by @link(TCastleWindowBase.ParseParameters),
+          if @link(MainWindow) is set already.)
         @item(All the parameters handled by @link(TSoundEngine.ParseParameters).)
       )
     }
@@ -2874,7 +2876,10 @@ begin
   FLeft  := WindowPositionCenter;
   FTop   := WindowPositionCenter;
   FDoubleBuffer := true;
-  FCaption[cpPublic] := ApplicationName;
+  if ApplicationProperties.Caption <> '' then
+    FCaption[cpPublic] := ApplicationProperties.Caption
+  else
+    FCaption[cpPublic] := ApplicationName;
   FResizeAllowed := raAllowed;
   minWidth := 100;  maxWidth := 4000;
   minHeight := 100; maxHeight := 4000;
@@ -4042,16 +4047,14 @@ var
   ParamKind: TWindowParseOption;
 begin
   if AddHeader then
-    result := 'Window options (backend ' + Application.BackendName + '):' else
-    result := '';
+    Result := 'Window options (backend ' + Application.BackendName + '):'
+  else
+    Result := '';
 
   for ParamKind := Low(ParamKind) to High(ParamKind) do
     if (ParamKind in AllowedOptions) and
        (ParamKind <> poMacOsXProcessSerialNumber) then
-    begin
-      if result <> '' then result += nl;
-      result += HelpForParam[ParamKind];
-    end;
+      Result := SAppendPart(Result, NL, HelpForParam[ParamKind]);
 end;
 
 { TCastleWindowBase miscellaneous -------------------------------------------- }
@@ -5135,10 +5138,10 @@ end;
 procedure ApplicationOptionProc(OptionNum: Integer; HasArgument: boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
 var
-  App: TCastleApplication;
+  // App: TCastleApplication; // unused now
   HelpString: string;
 begin
-  App := TCastleApplication(Data);
+  // App := TCastleApplication(Data); // unused now
 
   case OptionNum of
     0:begin
@@ -5149,11 +5152,11 @@ begin
           HelpOptionHelp + NL +
           VersionOptionHelp + NL +
           SoundEngine.ParseParametersHelp + NL+
-          NL;
-        if App.MainWindow <> nil then
-          HelpString += TCastleWindowBase.ParseParametersHelp(StandardParseOptions, true) + NL + NL;
-        HelpString += SCastleEngineProgramHelpSuffix(ApplicationName,
-          ApplicationProperties.Version, true);
+          NL +
+          // do this regardless of MainWindow <> nil, as MainWindow may be assigned later
+          TCastleWindowBase.ParseParametersHelp(StandardParseOptions, true) + NL +
+          NL +
+          ApplicationProperties.Description;
         InfoWrite(HelpString);
         Halt;
       end;
@@ -5179,7 +5182,7 @@ begin
   SoundEngine.ParseParameters;
   if MainWindow <> nil then
     MainWindow.ParseParameters;
-  Parameters.Parse(Options, @ApplicationOptionProc, Self);
+  Parameters.Parse(Options, @ApplicationOptionProc, Self, true);
 end;
 
 function TCastleApplication.OpenGLES: Boolean;

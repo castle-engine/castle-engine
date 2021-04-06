@@ -115,6 +115,7 @@ function LoadGetTextMo(const Url: String): TCastleMOFile;
 { Extract from MO file all unique characters in translated strings,
   add them to Characters. }
 procedure AddTranslatedCharacters(const Url: String; const Characters: TUnicodeCharList);
+procedure AddTranslatedCharacters(const Mo: TCastleMOFile; const Characters: TUnicodeCharList);
 
 { Translate all future designs (component hierarchies) loaded using @link(CastleComponentSerialize)
   using the given GetText MO file.
@@ -281,13 +282,19 @@ end;
 procedure AddTranslatedCharacters(const Url: String; const Characters: TUnicodeCharList);
 var
   Mo: TCastleMOFile;
-  I: Integer;
 begin
   Mo := TCastleMOFile.Create(Url);
   try
-    for I := 0 to Mo.Count - 1 do
-      Characters.Add(Mo.Values[I]);
+    AddTranslatedCharacters(Mo, Characters);
   finally FreeAndNil(Mo) end;
+end;
+
+procedure AddTranslatedCharacters(const Mo: TCastleMOFile; const Characters: TUnicodeCharList);
+var
+  I: Integer;
+begin
+  for I := 0 to Mo.Count - 1 do
+    Characters.Add(Mo.Values[I]);
 end;
 
 { TranslateAllDesigns -------------------------------------------------------- }

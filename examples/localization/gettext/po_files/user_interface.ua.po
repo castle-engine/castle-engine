@@ -1,32 +1,32 @@
 msgctxt "castle-components"
-msgid "state_main.Label1.Caption"
+msgid "gamestatemain.Label1.Caption"
 msgstr "Це - мітка"
 
 msgctxt "castle-components"
-msgid "state_main.Edit.Text"
+msgid "gamestatemain.Edit.Text"
 msgstr "Вміст редактора"
 
 msgctxt "castle-components"
-msgid "state_main.ButtonMessage.Caption"
+msgid "gamestatemain.ButtonMessage.Caption"
 msgstr "Показати повідомлення"
 
 msgctxt "castle-components"
-msgid "state_main.ButtonSwitchEnglish.Caption"
+msgid "gamestatemain.ButtonSwitchEnglish.Caption"
 msgstr "Англійська"
 
 msgctxt "castle-components"
-msgid "state_main.ButtonSwitchGerman.Caption"
+msgid "gamestatemain.ButtonSwitchGerman.Caption"
 msgstr "Німецька"
 
 msgctxt "castle-components"
-msgid "state_main.ButtonSwitchPolish.Caption"
+msgid "gamestatemain.ButtonSwitchPolish.Caption"
 msgstr "Польська"
 
 msgctxt "castle-components"
-msgid "state_main.ButtonSwitchRussian.Caption"
+msgid "gamestatemain.ButtonSwitchRussian.Caption"
 msgstr "Російська"
 
 msgctxt "castle-components"
-msgid "state_main.ButtonSwitchUkrainian.Caption"
+msgid "gamestatemain.ButtonSwitchUkrainian.Caption"
 msgstr "Українська"
 

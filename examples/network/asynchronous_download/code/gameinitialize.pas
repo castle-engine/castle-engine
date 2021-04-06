@@ -39,19 +39,6 @@ begin
 end;
 
 initialization
-  { Set ApplicationName early, as our log uses it.
-    Optionally you could also set ApplicationProperties.Version here. }
-  ApplicationProperties.ApplicationName := 'asynchronous_download';
-
-  { Start logging. Do this as early as possible,
-    to log information and eventual warnings during initialization.
-
-    For programs, InitializeLog is not called here.
-    Instead InitializeLog is done by the program main file,
-    after command-line parameters are parsed. }
-  if IsLibrary then
-    InitializeLog;
-
   { Initialize Application.OnInitialize. }
   Application.OnInitialize := @ApplicationInitialize;
 

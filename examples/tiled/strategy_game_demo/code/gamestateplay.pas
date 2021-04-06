@@ -18,7 +18,8 @@ unit GameStatePlay;
 
 interface
 
-uses CastleUIState, CastleControls, CastleTiledMap, CastleUIControls,
+uses Classes,
+  CastleUIState, CastleControls, CastleTiledMap, CastleUIControls,
   CastleVectors, CastleKeysMouse,
   GameUnit;
 
@@ -45,6 +46,7 @@ type
   public
     { Set this before starting this state. }
     MapName: String;
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Stop; override;
     procedure Update(const SecondsPassed: Single;
@@ -56,9 +58,15 @@ var
 
 implementation
 
-uses SysUtils, Classes,
+uses SysUtils,
   CastleComponentSerialize, CastleUtils, CastleRectangles,
   GameStateMainMenu, GameStateInstructions, GameStateWin;
+
+constructor TStatePlay.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestateplay.castle-user-interface';
+end;
 
 procedure TStatePlay.Start;
 
@@ -110,21 +118,16 @@ procedure TStatePlay.Start;
       AddUnit(ukHumanLight, W - 1 - W div 8 - 2, W - 1 - W div 8 - 2, YBegin, YEnd);
   end;
 
-var
-  UiOwner: TComponent;
 begin
   inherited;
 
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/state_play.castle-user-interface', FreeAtStop, UiOwner);
-
   // find components in designed user interface
-  MapControl := UiOwner.FindRequiredComponent('MapControl') as TCastleTiledMapControl;
-  ButtonQuit := UiOwner.FindRequiredComponent('ButtonQuit') as TCastleButton;
-  ButtonInstructions := UiOwner.FindRequiredComponent('ButtonInstructions') as TCastleButton;
-  ButtonEndTurn := UiOwner.FindRequiredComponent('ButtonEndTurn') as TCastleButton;
-  LabelStatus := UiOwner.FindRequiredComponent('LabelStatus') as TCastleLabel;
-  LabelTurnStatus := UiOwner.FindRequiredComponent('LabelTurnStatus') as TCastleLabel;
+  MapControl := DesignedComponent('MapControl') as TCastleTiledMapControl;
+  ButtonQuit := DesignedComponent('ButtonQuit') as TCastleButton;
+  ButtonInstructions := DesignedComponent('ButtonInstructions') as TCastleButton;
+  ButtonEndTurn := DesignedComponent('ButtonEndTurn') as TCastleButton;
+  LabelStatus := DesignedComponent('LabelStatus') as TCastleLabel;
+  LabelTurnStatus := DesignedComponent('LabelTurnStatus') as TCastleLabel;
 
   MapControl.URL := 'castle-data:/maps/' + MapName + '.tmx';
   MapControl.OnPress := @MapPress;

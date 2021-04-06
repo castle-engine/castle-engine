@@ -33,6 +33,7 @@ type
 
     procedure ClickSendLog(Sender: TObject);
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Stop; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
@@ -49,19 +50,20 @@ uses CastleLog,
 
 { TStateMain ----------------------------------------------------------------- }
 
+constructor TStateMain.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestatemain.castle-user-interface';
+end;
+
 procedure TStateMain.Start;
-var
-  UiOwner: TComponent;
 begin
   inherited;
 
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/state_main.castle-user-interface', FreeAtStop, UiOwner);
-
   { Find components, by name, that we need to access from code }
-  LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
-  Notifications := UiOwner.FindRequiredComponent('Notifications') as TCastleNotifications;
-  ButtonSendLog := UiOwner.FindRequiredComponent('ButtonSendLog') as TCastleButton;
+  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
+  Notifications := DesignedComponent('Notifications') as TCastleNotifications;
+  ButtonSendLog := DesignedComponent('ButtonSendLog') as TCastleButton;
 
   ButtonSendLog.OnClick := @ClickSendLog;
 

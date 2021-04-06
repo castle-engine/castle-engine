@@ -25,7 +25,7 @@ uses
 
 { Fill directory for new project with the template. }
 procedure CopyTemplate(const ProjectDirUrl: String;
-  const TemplateName, ProjectName, ProjectCaption: String);
+  const TemplateName, ProjectName, ProjectCaption, MainState: String);
 
 { Fill directory for new project with the build-tool generated stuff. }
 procedure GenerateProgramWithBuildTool(const ProjectDirUrl: String);
@@ -56,6 +56,7 @@ type
   TTemplateCopyProcess = class
     TemplateUrl: String;
     ProjectDirUrl: String;
+    MainState: String;
     Macros: TStringStringMap;
     procedure FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
   end;
@@ -72,6 +73,11 @@ begin
       [TemplateUrl, FileInfo.URL]);
   RelativeUrl := PrefixRemove(TemplateUrl, FileInfo.URL, true);
   TargetUrl := CombineURI(ProjectDirUrl, RelativeUrl);
+  { Rename target files that depend on MainState. }
+  if ExtractURIName(TargetUrl) = 'gamestatemain.pas' then
+    TargetUrl := ExtractURIPath(TargetUrl) + 'gamestate' + LowerCase(MainState) + '.pas';
+  if ExtractURIName(TargetUrl) = 'gamestatemain.castle-user-interface' then
+    TargetUrl := ExtractURIPath(TargetUrl) + 'gamestate' + LowerCase(MainState) + '.castle-user-interface';
   TargetFileName := URIToFilenameSafe(TargetUrl);
 
   if FileInfo.Directory then
@@ -100,7 +106,7 @@ end;
 { global routines ------------------------------------------------------------ }
 
 procedure CopyTemplate(const ProjectDirUrl: String;
-  const TemplateName, ProjectName, ProjectCaption: String);
+  const TemplateName, ProjectName, ProjectCaption, MainState: String);
 var
   TemplateUrl, ProjectQualifiedName, ProjectPascalName: String;
   CopyProcess: TTemplateCopyProcess;
@@ -126,12 +132,15 @@ begin
     Macros.Add('${PROJECT_QUALIFIED_NAME}', ProjectQualifiedName);
     Macros.Add('${PROJECT_PASCAL_NAME}', ProjectPascalName);
     Macros.Add('${PROJECT_CAPTION}', ProjectCaption);
+    Macros.Add('${MAIN_STATE}', MainState);
+    Macros.Add('${MAIN_STATE_LOWERCASE}', LowerCase(MainState));
 
     CopyProcess := TTemplateCopyProcess.Create;
     try
       CopyProcess.TemplateUrl := TemplateUrl;
       CopyProcess.ProjectDirUrl := ProjectDirUrl;
       CopyProcess.Macros := Macros;
+      CopyProcess.MainState := MainState;
       FindFiles(TemplateUrl, '*', true, @CopyProcess.FoundFile, [ffRecursive]);
     finally FreeAndNil(CopyProcess) end;
   finally FreeAndNil(Macros) end;

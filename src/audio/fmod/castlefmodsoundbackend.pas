@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2019 Michalis Kamburelis.
+  Copyright 2019-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -42,6 +42,7 @@ uses SysUtils, Classes, Math, StrUtils, CTypes,
   CastleVectors, CastleTimeUtils, CastleLog, CastleUtils, CastleURIUtils,
   CastleClassUtils, CastleStringUtils, CastleInternalSoundFile,
   CastleInternalAbstractSoundBackend, CastleSoundBase, CastleSoundEngine,
+  {$ifdef ANDROID} JNI, CastleAndroidNativeAppGlue, CastleAndroidInternalAssetStream, {$endif}
   CastleInternalFMOD;
 
 { sound backend classes interface -------------------------------------------- }
@@ -223,7 +224,17 @@ begin
   try
     FmodName := ResolveCastleDataURL(URL); // resolve castle-data:/, as FMOD cannot understand it
     if URIProtocol(FmodName) = 'file' then
-      FmodName := URIToFilenameSafe(FmodName); // resolve file:/, as FMOD cannot understand it
+      FmodName := URIToFilenameSafe(FmodName) // resolve file:/, as FMOD cannot understand it
+    {$ifdef ANDROID}
+    else
+    if URIProtocol(FmodName) = 'castle-android-assets' then
+    begin
+      { Resolve CGE URL to Android URL that FMOD will handle.
+        See https://www.fmod.com/resources/documentation-api?version=2.1&page=platforms-android.html#asset-manager }
+      FmodName := 'file:///android_asset/' + URIToAssetPath(FmodName);
+    end
+    {$endif}
+    ;
 
     Mode := FMOD_DEFAULT or FMOD_2D;
     if FSoundLoading = slStreaming then
@@ -423,11 +434,34 @@ function TFMODSoundEngineBackend.ContextOpen(const ADevice: String;
   out Information: String): Boolean;
 var
   Version: CUInt;
+  {$ifdef ANDROID} Env: PJNIEnv; {$endif}
 begin
   FmodLibraryUsingBegin;
-  CheckFMOD(FMOD_System_Create(@FMODSystem));
-  CheckFMOD(FMOD_System_Init(FMODSystem, 256, FMOD_INIT_NORMAL, nil));
-  CheckFMOD(FMOD_System_GetVersion(FMODSystem, @Version));
+
+  {$ifdef ANDROID}
+  { This is necessary, otherwise FMOD shows an error
+    and FMOD_System_Create exits with internal error:
+
+      FMOD_JNI_GetEnv: Native threads must be attached to the Java virtual machine, please call JavaVM::AttachCurrentThread before invocation.
+  }
+  Env := nil; // make sure uninitialized
+  AndroidMainApp^.Activity^.VM^^.AttachCurrentThread(AndroidMainApp^.Activity^.VM, @Env, nil);
+  {$endif}
+
+  { Uncomment FMOD_Debug_Initialize call to get additional logs.
+
+    Note that FMOD_Debug_Initialize will only work if you use
+    "logging version" of the FMOD library.
+    Just rename libfmodL.so to libfmod.so.
+
+    On Android: Run "adb logcat | grep fmod" to see useful output,
+    it is not visible on just "castle-engine run --target=android". }
+  // CheckFMOD(FMOD_Debug_Initialize(FMOD_DEBUG_LEVEL_LOG or FMOD_DEBUG_DISPLAY_TIMESTAMPS,
+  //   FMOD_DEBUG_MODE_TTY, nil, nil), 'FMOD_Debug_Initialize', true);
+
+  CheckFMOD(FMOD_System_Create(@FMODSystem), 'FMOD_System_Create');
+  CheckFMOD(FMOD_System_Init(FMODSystem, 256, FMOD_INIT_NORMAL, nil), 'FMOD_System_Init');
+  CheckFMOD(FMOD_System_GetVersion(FMODSystem, @Version), 'FMOD_System_GetVersion');
   Information := Format('FMOD version %d.%d.%d initialized', [
     Version shr 16,
     (Version and $FF00) shr 8,
@@ -472,6 +506,23 @@ end;
 
 procedure UseFMODSoundBackend;
 begin
+  {$ifdef ANDROID}
+  { Calling InitializeFmodLibrary is necessary on Android to load dynamic library,
+    otherwise InitializeFmodLibrary is never called and fmod entry points
+    are not loaded from libfmod.so, so FmodLibraryAvailable = false.
+
+    This could be fixed better (since this problem is not specific to FMOD):
+
+    - Initialization in castle-engine/src/audio/fmod/castleinternalfmod_dynamic.inc
+      should register a callback that would be later done from TCastleApplication.Run.
+
+    - We could also try exposing JNI_OnLoad, and then since FPC 3.2.0 maybe we can ignore
+      the issue and remove whole ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION complication?
+      FPC recommends it, https://wiki.freepascal.org/Android -
+      "if you are creating a JNI shared library, always export JNI_OnLoad, even if it is empty". }
+  InitializeFmodLibrary;
+  {$endif}
+
   if not FmodLibraryAvailable then
   begin
     WritelnWarning('FMOD library not available, aborting setting FMOD as sound backend');

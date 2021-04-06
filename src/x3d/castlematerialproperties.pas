@@ -249,7 +249,7 @@ var
     See the https://castle-engine.io/creating_data_material_properties.php#section_texture_scale .
 
     Each size (width, height, and (for 3D images) depth) is scaled
-    by 1 / 2^TextureLoadingScale.
+    by @code(1 / 2^(TextureLoadingScale-1)).
     So value = 1 means no scaling, value = 2 means that each size is 1/2
     (texture area is 1/4), value = 3 means that each size is 1/4 and so on.
 

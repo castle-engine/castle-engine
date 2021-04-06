@@ -34,7 +34,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="16">
+    <Units Count="20">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -146,6 +146,24 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="FormNewUnit"/>
       </Unit15>
+      <Unit16>
+        <Filename Value="../../common-code/toolassocdoctypes.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit16>
+      <Unit17>
+        <Filename Value="../../common-code/toolmanifest.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="ToolManifest"/>
+      </Unit17>
+      <Unit18>
+        <Filename Value="../../common-code/toolservices.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit18>
+      <Unit19>
+        <Filename Value="editorcodetools.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="EditorCodeTools"/>
+      </Unit19>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -154,7 +172,7 @@
       <Filename Value="../castle-editor"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="$(ProjOutDir)"/>
+      <IncludeFiles Value="../../../src/base;$(ProjOutDir)"/>
       <OtherUnitFiles Value="../../common-code"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
