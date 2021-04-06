@@ -653,7 +653,7 @@ object ProjectForm: TProjectForm
     Left = 498
     Top = 24
     object ActionNewSpriteSheet: TAction
-      Caption = 'New sprite sheet...'
+      Caption = 'New Sprite Sheet...'
       OnExecute = ActionNewSpriteSheetExecute
     end
     object ActionOpenProjectCode: TAction
