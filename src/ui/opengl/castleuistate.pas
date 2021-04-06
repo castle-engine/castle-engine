@@ -334,9 +334,9 @@ type
     }
     procedure InsertUserInterface(const ADesignUrl: String;
       const FinalOwner: TComponent;
-      out Ui: TCastleUserInterface; out UiOwner: TComponent); {deprecated 'instead of this, set DesignUrl in constructor';}
+      out Ui: TCastleUserInterface; out UiOwner: TComponent); deprecated 'instead of this, set DesignUrl in constructor';
     procedure InsertUserInterface(const ADesignUrl: String;
-      const FinalOwner: TComponent; out UiOwner: TComponent); {deprecated 'instead of this, set DesignUrl in constructor';}
+      const FinalOwner: TComponent; out UiOwner: TComponent); deprecated 'instead of this, set DesignUrl in constructor';
 
     { Wait until the render event happens (to redraw current state),
       and then call Event.
