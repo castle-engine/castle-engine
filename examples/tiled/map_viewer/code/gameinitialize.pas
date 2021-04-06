@@ -146,11 +146,6 @@ var
   EventsHandler: TEventsHandler;
 
 initialization
-  { Set ApplicationName early, as our log uses it. }
-  ApplicationProperties.ApplicationName := 'map_viewer';
-
-  InitializeLog;
-
   { initialize Application callbacks }
   EventsHandler := TEventsHandler.Create(Application);
   Application.OnInitializeEvent := @EventsHandler.Initialize;

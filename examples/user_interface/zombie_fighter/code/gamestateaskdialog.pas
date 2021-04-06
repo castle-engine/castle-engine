@@ -50,6 +50,7 @@ type
   public
     { Whether to show male image. Set before doing @link(Start). }
     Male: boolean;
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
   end;
 
@@ -110,9 +111,13 @@ end;
 
 { TStateAskDialog ------------------------------------------------------------ }
 
+constructor TStateAskDialog.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestateaskdialog.castle-user-interface';
+end;
+
 procedure TStateAskDialog.Start;
-var
-  UiOwner: TComponent;
 begin
   inherited;
 
@@ -122,9 +127,6 @@ begin
     another StateAskDialog by clicking, or by pressing on
     StatePlay.ButtonBack). }
   InterceptInput := true;
-
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/state_ask_dialog.castle-user-interface', FreeAtStop, UiOwner);
 
   Dialog := TZombieDialog.Create(FreeAtStop, Male);
   Dialog.Anchor(hpMiddle);

@@ -29,6 +29,7 @@ type
     procedure ClickPlay(Sender: TObject);
     procedure ClickQuit(Sender: TObject);
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
   end;
 
@@ -42,18 +43,19 @@ uses CastleApplicationProperties, CastleWindow,
 
 { TStateMenu ----------------------------------------------------------------- }
 
+constructor TStateMenu.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestatemenu.castle-user-interface';
+end;
+
 procedure TStateMenu.Start;
-var
-  UiOwner: TComponent;
 begin
   inherited;
 
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/state_menu.castle-user-interface', FreeAtStop, UiOwner);
-
   { Find components, by name, that we need to access from code }
-  ButtonPlay := UiOwner.FindRequiredComponent('ButtonPlay') as TCastleButton;
-  ButtonQuit := UiOwner.FindRequiredComponent('ButtonQuit') as TCastleButton;
+  ButtonPlay := DesignedComponent('ButtonPlay') as TCastleButton;
+  ButtonQuit := DesignedComponent('ButtonQuit') as TCastleButton;
 
   ButtonPlay.OnClick := @ClickPlay;
   ButtonQuit.OnClick := @ClickQuit;

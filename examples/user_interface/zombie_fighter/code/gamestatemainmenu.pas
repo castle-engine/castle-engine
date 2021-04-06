@@ -27,6 +27,7 @@ type
     procedure ClickNewGame(Sender: TObject);
     procedure ClickQuit(Sender: TObject);
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
   end;
 
@@ -41,18 +42,19 @@ uses CastleColors, CastleWindow, CastleUIControls, CastleFilesUtils, CastleAppli
 
 { TStateMainMenu ------------------------------------------------------------- }
 
+constructor TStateMainMenu.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestatemainmenu.castle-user-interface';
+end;
+
 procedure TStateMainMenu.Start;
-var
-  UiOwner: TComponent;
 begin
   inherited;
 
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/state_main_menu.castle-user-interface', FreeAtStop, UiOwner);
-
   { Find components, by name, that we need to access from code }
-  ButtonNewGame := UiOwner.FindRequiredComponent('ButtonNewGame') as TCastleButton;
-  ButtonQuit := UiOwner.FindRequiredComponent('ButtonQuit') as TCastleButton;
+  ButtonNewGame := DesignedComponent('ButtonNewGame') as TCastleButton;
+  ButtonQuit := DesignedComponent('ButtonQuit') as TCastleButton;
 
   { attach events }
   ButtonNewGame.OnClick := @ClickNewGame;

@@ -18,7 +18,8 @@ unit GameStateMainMenu;
 
 interface
 
-uses CastleUIState, CastleControls, CastleWindow, CastleUIControls;
+uses Classes,
+  CastleUIState, CastleControls, CastleWindow, CastleUIControls;
 
 type
   TStateMainMenu = class(TUIState)
@@ -34,6 +35,7 @@ type
     procedure ClickOrthogonal(Sender: TObject);
     procedure ClickQuit(Sender: TObject);
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
   end;
 
@@ -42,24 +44,25 @@ var
 
 implementation
 
-uses SysUtils, Classes,
+uses SysUtils,
   CastleComponentSerialize, CastleApplicationProperties,
   GameStatePlay;
 
+constructor TStateMainMenu.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestatemainmenu.castle-user-interface';
+end;
+
 procedure TStateMainMenu.Start;
-var
-  UiOwner: TComponent;
 begin
   inherited;
 
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/state_main_menu.castle-user-interface', FreeAtStop, UiOwner);
-
-  ButtonPlayHexagonal := UiOwner.FindRequiredComponent('ButtonPlayHexagonal') as TCastleButton;
-  ButtonPlayIsometricStaggered := UiOwner.FindRequiredComponent('ButtonPlayIsometricStaggered') as TCastleButton;
-  ButtonPlayIsometric := UiOwner.FindRequiredComponent('ButtonPlayIsometric') as TCastleButton;
-  ButtonPlayOrthogonal := UiOwner.FindRequiredComponent('ButtonPlayOrthogonal') as TCastleButton;
-  ButtonQuit := UiOwner.FindRequiredComponent('ButtonQuit') as TCastleButton;
+  ButtonPlayHexagonal := DesignedComponent('ButtonPlayHexagonal') as TCastleButton;
+  ButtonPlayIsometricStaggered := DesignedComponent('ButtonPlayIsometricStaggered') as TCastleButton;
+  ButtonPlayIsometric := DesignedComponent('ButtonPlayIsometric') as TCastleButton;
+  ButtonPlayOrthogonal := DesignedComponent('ButtonPlayOrthogonal') as TCastleButton;
+  ButtonQuit := DesignedComponent('ButtonQuit') as TCastleButton;
 
   ButtonPlayHexagonal.OnClick := @ClickHexagonal;
   ButtonPlayIsometricStaggered.OnClick := @ClickIsometricStaggered;

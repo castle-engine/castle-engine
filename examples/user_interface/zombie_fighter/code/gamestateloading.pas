@@ -44,6 +44,7 @@ type
     procedure DoLoadSomethingSmall(Sender: TObject);
     procedure DoLoadingFinish(Sender: TObject);
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
   end;
 
@@ -59,17 +60,18 @@ uses SysUtils,
 
 { TStateLoading ------------------------------------------------------------- }
 
+constructor TStateLoading.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestateloading.castle-user-interface';
+end;
+
 procedure TStateLoading.Start;
-var
-  UiOwner: TComponent;
 begin
   inherited;
 
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/state_loading.castle-user-interface', FreeAtStop, UiOwner);
-
   { Find components, by name, that we need to access from code }
-  LabelPercent := UiOwner.FindRequiredComponent('LabelPercent') as TCastleLabel;
+  LabelPercent := DesignedComponent('LabelPercent') as TCastleLabel;
 
   FakeLoadingAdditionalSteps := 0;
   UpdateProgress(0);
