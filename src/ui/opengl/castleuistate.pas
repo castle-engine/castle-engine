@@ -108,6 +108,7 @@ type
     FDesignPreload: Boolean;
     FDesignPreloadedSerialized: TSerializedComponent;
     FDesignPreloaded: TCastleUserInterface;
+    FDesignPreloadedOwner: TComponent;
 
     procedure InternalStart;
     procedure InternalStop;
@@ -861,7 +862,8 @@ begin
     FDesignPreloadedSerialized := TSerializedComponent.Create(DesignUrl);
     // load FDesignPreloaded to cache all that's possible,
     // like images used inside TCastleImageControl or TCastleScene.
-    FDesignPreloaded := FDesignPreloadedSerialized.UserInterfaceLoad(nil);
+    FDesignPreloadedOwner := TComponent.Create(nil);
+    FDesignPreloaded := FDesignPreloadedSerialized.UserInterfaceLoad(FDesignPreloadedOwner);
   end;
 end;
 
@@ -871,7 +873,8 @@ begin
     currently created FDesignLoaded or not.
     So FDesignLoaded* and FDesignPreloadedxx* are completely independent.
     This makes it easier to think about them. }
-  FreeAndNil(FDesignPreloaded);
+  FreeAndNil(FDesignPreloadedOwner);
+  FDesignPreloaded := nil;// freeing FDesignPreloadedOwner must have freed this too
   FreeAndNil(FDesignPreloadedSerialized);
 end;
 
