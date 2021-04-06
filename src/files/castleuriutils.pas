@@ -450,7 +450,9 @@ var
 begin
   URLForDisplay := URIDisplay(URI);
 
-  URIGetAnchor(URI, Anchor);
+  { We need recognize escaped hash because GTK2 open dialog returns %23
+    in # position }
+  URIGetAnchor(URI, Anchor, true);
   SettingsFromAnchor.Clear;
 
   if Anchor = '' then
@@ -905,6 +907,7 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
     if Ext = '.svg' then Result := 'image/svg+xml' else
     if Ext = '.ico' then Result := 'image/x-icon' else
     if Ext = '.icns' then Result := 'image/icns' else
+    if ExtA = '.castle-sprite-sheet' then Result := 'application/x-castle-sprite-sheet' else
     { I didn't found real MIME type for Starling Texture Atlas.
       Created as image type based on
       https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
@@ -912,6 +915,7 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
     if ExtA = '.starling-xml' then Result := 'application/x-starling-sprite-sheet' else
     if ExtA = '.cocos2d-plist' then Result := 'application/x-cocos2d-sprite-sheet' else
     if ExtA = '.plist' then Result := 'application/x-plist' else
+
     // HTML
     if Ext = '.htm' then Result := 'text/html' else
     if Ext = '.html' then Result := 'text/html' else
@@ -978,7 +982,7 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
     if Ext = '.rar' then Result := 'application/x-rar-compressed' else
     if Ext = '.gz' then begin Result := 'application/gzip'; Gzipped := true; end else
     // Various
-    if Ext = '.xml' then Result := 'application/xml' else
+    if ExtA = '.xml' then Result := 'application/xml' else
     if Ext = '.castlescript' then Result := 'text/x-castlescript' else
     if Ext = '.kscript'      then Result := 'text/x-castlescript' else
     if Ext = '.js' then Result := 'application/javascript' else

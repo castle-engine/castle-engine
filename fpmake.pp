@@ -89,6 +89,9 @@ begin
     P.Targets.AddUnit('generics.strings.pas');
     {$endif}
 
+    P.SourcePath.Add('src' + PathDelim + '2d');
+    P.Targets.AddUnit('castleinternalspritesheet.pas');
+
     P.SourcePath.Add('src' + PathDelim + '3d');
     P.Targets.AddUnit('castleboxes.pas');
     P.Targets.AddUnit('castlecameras.pas');

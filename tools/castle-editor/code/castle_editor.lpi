@@ -6,9 +6,11 @@
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
       <Title Value="castle_editor"/>
+      <Scaled Value="True"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
       <XPManifest>
+        <DpiAware Value="True"/>
         <TextName Value="castleengine.castleeditor"/>
         <TextDesc Value="Castle Game Engine Editor"/>
       </XPManifest>
@@ -32,7 +34,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="16">
+    <Units Count="20">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -106,31 +108,62 @@
         <UnitName Value="VisualizeTransform"/>
       </Unit10>
       <Unit11>
+        <Filename Value="formspritesheeteditor.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="SpriteSheetEditorForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="FormSpriteSheetEditor"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="datamoduleicons.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Icons"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="DataModule"/>
+        <UnitName Value="DataModuleIcons"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="formimportatlas.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="ImportAtlasForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="FormImportAtlas"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="formimportstarling.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="ImportStarlingForm"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="FormImportStarling"/>
+      </Unit14>
+      <Unit15>
         <Filename Value="formnewunit.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="NewUnitForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="FormNewUnit"/>
-      </Unit11>
-      <Unit12>
+      </Unit15>
+      <Unit16>
         <Filename Value="../../common-code/toolassocdoctypes.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit12>
-      <Unit13>
+      </Unit16>
+      <Unit17>
         <Filename Value="../../common-code/toolmanifest.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="ToolManifest"/>
-      </Unit13>
-      <Unit14>
+      </Unit17>
+      <Unit18>
         <Filename Value="../../common-code/toolservices.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit14>
-      <Unit15>
+      </Unit18>
+      <Unit19>
         <Filename Value="editorcodetools.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="EditorCodeTools"/>
-      </Unit15>
+      </Unit19>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

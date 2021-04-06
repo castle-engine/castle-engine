@@ -30,6 +30,10 @@ uses
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionNewSpriteSheet: TAction;
+    ActionList: TActionList;
+    MenuItemNewSpriteSheet: TMenuItem;
+    MenuItemSepraratorSLP002: TMenuItem;
     ActionRegenerateProject: TAction;
     ActionEditAssociatedUnit: TAction;
     ActionNewUnitHereClass: TAction;
@@ -40,7 +44,6 @@ type
     ActionNewUnitEmpty: TAction;
     ActionEditUnit: TAction;
     ActionOpenProjectCode: TAction;
-    ActionList1: TActionList;
     ApplicationProperties1: TApplicationProperties;
     ButtonClearWarnings: TBitBtn;
     MenuItem1: TMenuItem;
@@ -143,6 +146,7 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionNewSpriteSheetExecute(Sender: TObject);
     procedure ActionEditAssociatedUnitExecute(Sender: TObject);
     procedure ActionEditUnitExecute(Sender: TObject);
     procedure ActionNewUnitClassExecute(Sender: TObject);
@@ -280,8 +284,8 @@ uses TypInfo, LCLType,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
-  FormChooseProject, ToolCommonUtils, FormAbout, FormPreferences,
-  ToolCompilerInfo;
+  FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
+  ToolCompilerInfo, ToolCommonUtils;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
 begin
@@ -400,14 +404,34 @@ end;
 procedure TProjectForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
 begin
   if ProposeSaveDesign then
+  begin
+    { Close sprite sheet editor window if visible }
+    if (SpriteSheetEditorForm <> nil) and (SpriteSheetEditorForm.Visible) then
+    begin
+      if not SpriteSheetEditorForm.CloseQuery then
+      begin
+        CanClose := false;
+        Exit;
+      end;
+    end;
+
     Application.Terminate
-  else
+  end else
     CanClose := false;
 end;
 
 procedure TProjectForm.ButtonClearWarningsClick(Sender: TObject);
 begin
   ClearAllWarnings;
+end;
+
+procedure TProjectForm.ActionNewSpriteSheetExecute(Sender: TObject);
+begin
+  if SpriteSheetEditorForm = nil then
+    SpriteSheetEditorForm := TSpriteSheetEditorForm.Create(Application);
+
+  SpriteSheetEditorForm.Show;
+  SpriteSheetEditorForm.NewSpriteSheet;
 end;
 
 procedure TProjectForm.ApplicationProperties1Activate(Sender: TObject);
@@ -1031,6 +1055,14 @@ procedure TProjectForm.MenuItemSwitchProjectClick(Sender: TObject);
 begin
   if ProposeSaveDesign then
   begin
+    { Close sprite sheet editor window if visible }
+    if (SpriteSheetEditorForm <> nil) and (SpriteSheetEditorForm.Visible) then
+    begin
+      if not SpriteSheetEditorForm.CloseQuery then
+        Exit;
+      SpriteSheetEditorForm.Close; // not needed on GTK2, maybe add ifdef?
+    end;
+
     Free; // do not call MenuItemDesignClose, to avoid OnCloseQuery
     ChooseProjectForm.Show;
   end;
@@ -1203,6 +1235,16 @@ begin
     if LoadImage_FileFilters.Matches(SelectedURL) then
     begin
       OpenWithCastleTool('castle-view-image', SelectedURL, [SelectedURL]);
+      Exit;
+    end;
+
+    { Check for Castle Sprite Sheets, to open them in sprite editor }
+    if (URIMimeType(SelectedURL) = 'application/x-castle-sprite-sheet') then
+    begin
+      if SpriteSheetEditorForm = nil then
+        SpriteSheetEditorForm := TSpriteSheetEditorForm.Create(Application);
+      SpriteSheetEditorForm.Show;
+      SpriteSheetEditorForm.OpenSpriteSheet(SelectedURL, true);
       Exit;
     end;
 

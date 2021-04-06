@@ -1,0 +1,811 @@
+object SpriteSheetEditorForm: TSpriteSheetEditorForm
+  Left = 458
+  Height = 575
+  Top = 235
+  Width = 1147
+  BorderWidth = 4
+  Caption = 'Castle Sprite Sheet Editor'
+  ClientHeight = 544
+  ClientWidth = 1147
+  DesignTimePPI = 120
+  Menu = MainMenu
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnShow = FormShow
+  LCLVersion = '2.0.10.0'
+  object PanelTop: TPanel
+    Left = 8
+    Height = 40
+    Top = 8
+    Width = 1131
+    Align = alTop
+    AutoSize = True
+    BorderSpacing.Around = 4
+    BevelOuter = bvNone
+    ClientHeight = 40
+    ClientWidth = 1131
+    TabOrder = 2
+    object SpeedButtonNewSpriteSheet: TSpeedButton
+      AnchorSideLeft.Control = PanelTop
+      AnchorSideTop.Control = PanelTop
+      Left = 0
+      Height = 32
+      Top = 0
+      Width = 32
+      Action = ActionNewSpriteSheet
+      AutoSize = True
+      Constraints.MinHeight = 32
+      Constraints.MinWidth = 32
+      ShowCaption = False
+      ShowHint = True
+      ParentShowHint = False
+    end
+    object SpeedButtonOpenSpriteSheet: TSpeedButton
+      AnchorSideLeft.Control = SpeedButtonNewSpriteSheet
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = PanelTop
+      Left = 32
+      Height = 32
+      Top = 0
+      Width = 32
+      Action = ActionOpenSpriteSheet
+      AutoSize = True
+      Constraints.MinHeight = 32
+      Constraints.MinWidth = 32
+      ShowCaption = False
+      ShowHint = True
+      ParentShowHint = False
+    end
+    object SpeedButtonSaveSpriteSheet: TSpeedButton
+      AnchorSideLeft.Control = SpeedButtonOpenSpriteSheet
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = PanelTop
+      Left = 64
+      Height = 32
+      Top = 0
+      Width = 32
+      Action = ActionSaveSpriteSheet
+      AutoSize = True
+      Constraints.MinHeight = 32
+      Constraints.MinWidth = 32
+      ShowCaption = False
+      ShowHint = True
+      ParentShowHint = False
+    end
+    object SpeedButtonSaveSpriteSheetAs: TSpeedButton
+      AnchorSideLeft.Control = SpeedButtonSaveSpriteSheet
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = PanelTop
+      Left = 96
+      Height = 32
+      Top = 0
+      Width = 32
+      Action = ActionSaveSpriteSheetAs
+      AutoSize = True
+      Constraints.MinHeight = 32
+      Constraints.MinWidth = 32
+      ShowCaption = False
+      ShowHint = True
+      ParentShowHint = False
+    end
+    object LabelMaximumAtlasSize: TLabel
+      AnchorSideLeft.Control = SpeedButtonSaveSpriteSheetAs
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = SpeedButtonSaveSpriteSheetAs
+      AnchorSideTop.Side = asrCenter
+      Left = 132
+      Height = 23
+      Top = 5
+      Width = 161
+      BorderSpacing.Left = 4
+      Caption = 'Maximum atlas size'
+      ParentColor = False
+    end
+    object SpinEditMaxAtlasSize: TSpinEdit
+      AnchorSideLeft.Control = LabelMaximumAtlasSize
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = PanelTop
+      AnchorSideTop.Side = asrCenter
+      Left = 295
+      Height = 40
+      Top = 0
+      Width = 81
+      Alignment = taRightJustify
+      BorderSpacing.Left = 2
+      Increment = 8
+      MaxValue = 32768
+      MinValue = 8
+      OnChange = SpinEditMaxAtlasSizeChange
+      OnEditingDone = SpinEditMaxAtlasSizeEditingDone
+      TabOrder = 0
+      Value = 1024
+    end
+    object LabelAtlasSizeError: TLabel
+      AnchorSideLeft.Control = SpinEditMaxAtlasSize
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = PanelTop
+      AnchorSideTop.Side = asrCenter
+      Left = 380
+      Height = 23
+      Top = 9
+      Width = 128
+      BorderSpacing.Left = 4
+      Caption = 'AtlasLabelError'
+      Font.Color = clRed
+      ParentColor = False
+      ParentFont = False
+    end
+    object LabelAtlasWarning: TLabel
+      AnchorSideLeft.Control = ImageAtlasSizeWarning
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = PanelTop
+      AnchorSideTop.Side = asrCenter
+      Left = 536
+      Height = 23
+      Top = 9
+      Width = 156
+      BorderSpacing.Left = 4
+      Caption = 'LabelAtlasWarning'
+      ParentColor = False
+    end
+    object ImageAtlasSizeWarning: TImage
+      AnchorSideLeft.Control = LabelAtlasSizeError
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = PanelTop
+      AnchorSideTop.Side = asrCenter
+      Left = 508
+      Height = 24
+      Top = 8
+      Width = 24
+      AntialiasingMode = amOn
+      AutoSize = True
+      Picture.Data = {
+        1754506F727461626C654E6574776F726B47726170686963CB01000089504E47
+        0D0A1A0A0000000D4948445200000018000000180806000000E0773DF8000000
+        097048597300000EC300000EC301C76FA8640000001974455874536F66747761
+        7265007777772E696E6B73636170652E6F72679BEE3C1A000001584944415448
+        89E5D5CD4A1C4114C5F19F13094888DF64E90B441415853C86A20B415DC46C07
+        41F135FC226A9E20842CB30B220928A398459E429138EB48D45117550DEDD032
+        D3636F24072E0DE7569D5BF4BF9AE67FD214BEC79A2C3A7C0635FC8E55C37451
+        E1DD384705EDB12AD1EB2E62C09670E2F19437821B6C3E357C10D7F898D1DB8E
+        43865B0D6FC34F54D197D1EFC11F1CC6B5B9B5803BBC4F79E5588916E39AF9BC
+        E19D38C3094A29FF47AC44252D02DF10C04ED4F9F503605460B1DE6CF85B5C61
+        27A3973500763509BC2D0654D19F634002FC4003E0F302B4C547FAF590D3FA10
+        F7CE3D16FE1AA7F8E521D86655C29100BC2B6BC1BA6CB0793426B058AB6F2460
+        771B0494B1D460CD27E1EB1F4A9B7BB8406F01037A63D67EDAA861B5C1C63C5A
+        16800F94F0229A2F0B1CF00AB7F89BDCD92FC20FE418974F0CEFC03B7CC56C72
+        FA6FF1F9466B5734AD7FF88C15E1D53F73DD03645C4D9BEA33D8F70000000049
+        454E44AE426082
+      }
+    end
+    object ButtonCloseWindow: TButton
+      AnchorSideTop.Control = SpeedButtonNewSpriteSheet
+      AnchorSideTop.Side = asrCenter
+      AnchorSideRight.Control = PanelTop
+      AnchorSideRight.Side = asrBottom
+      Left = 1080
+      Height = 32
+      Top = 0
+      Width = 51
+      Action = ActionCloseSpriteSheetEditor
+      Anchors = [akTop, akRight]
+      AutoSize = True
+      TabOrder = 1
+      TabStop = False
+    end
+  end
+  object PanelLeft: TPanel
+    Left = 4
+    Height = 501
+    Top = 44
+    Width = 200
+    Align = alLeft
+    BevelOuter = bvNone
+    BorderWidth = 4
+    Caption = 'PanelLeft'
+    ClientHeight = 501
+    ClientWidth = 200
+    TabOrder = 0
+    object SpeedButtonAddAnimation: TSpeedButton
+      AnchorSideTop.Side = asrBottom
+      AnchorSideBottom.Control = PanelFPS
+      Left = 4
+      Height = 32
+      Top = 392
+      Width = 32
+      Action = ActionAddAnimation
+      Anchors = [akLeft, akBottom]
+      Constraints.MinHeight = 32
+      Constraints.MinWidth = 32
+      ShowCaption = False
+      ShowHint = True
+      ParentShowHint = False
+    end
+    object SpeedButtonRemoveAnimation: TSpeedButton
+      AnchorSideLeft.Control = SpeedButtonAddAnimation
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Side = asrBottom
+      AnchorSideBottom.Control = PanelFPS
+      Left = 36
+      Height = 32
+      Top = 392
+      Width = 32
+      Action = ActionDeleteAnimation
+      Anchors = [akLeft, akBottom]
+      Constraints.MinHeight = 32
+      Constraints.MinWidth = 32
+      ShowCaption = False
+      ShowHint = True
+      ParentShowHint = False
+    end
+    object PanelFPS: TPanel
+      AnchorSideLeft.Control = PanelLeft
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = PanelLeft
+      AnchorSideRight.Side = asrBottom
+      AnchorSideBottom.Control = PanelLeft
+      AnchorSideBottom.Side = asrBottom
+      Left = 4
+      Height = 40
+      Top = 424
+      Width = 192
+      Anchors = [akLeft, akRight, akBottom]
+      AutoSize = True
+      BorderSpacing.Bottom = 20
+      BevelOuter = bvNone
+      ClientHeight = 40
+      ClientWidth = 192
+      TabOrder = 0
+      object LabelFPS: TLabel
+        AnchorSideLeft.Control = PanelFPS
+        AnchorSideTop.Control = PanelFPS
+        AnchorSideTop.Side = asrCenter
+        Left = 0
+        Height = 23
+        Top = 9
+        Width = 33
+        Caption = 'FPS'
+        ParentColor = False
+      end
+      object FloatSpinEditFPS: TFloatSpinEdit
+        AnchorSideTop.Control = PanelFPS
+        AnchorSideTop.Side = asrCenter
+        AnchorSideRight.Control = PanelFPS
+        AnchorSideRight.Side = asrBottom
+        Left = 105
+        Height = 40
+        Top = 0
+        Width = 87
+        Alignment = taRightJustify
+        Anchors = [akTop, akRight]
+        MaxValue = 1000
+        MinValue = 1
+        OnChange = FloatSpinEditFPSChange
+        TabOrder = 0
+        Value = 1
+      end
+    end
+    object LabelAnimations: TLabel
+      AnchorSideLeft.Control = PanelLeft
+      AnchorSideTop.Control = PanelLeft
+      Left = 4
+      Height = 21
+      Top = 4
+      Width = 108
+      Caption = 'Animations'
+      Font.Height = -17
+      Font.Name = 'Sans'
+      Font.Style = [fsBold]
+      ParentColor = False
+      ParentFont = False
+    end
+    object ListViewAnimations: TListView
+      AnchorSideLeft.Control = PanelLeft
+      AnchorSideTop.Control = LabelAnimations
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = PanelLeft
+      AnchorSideRight.Side = asrBottom
+      AnchorSideBottom.Control = SpeedButtonAddAnimation
+      Left = 4
+      Height = 367
+      Top = 25
+      Width = 192
+      Anchors = [akTop, akLeft, akRight, akBottom]
+      AutoWidthLastColumn = True
+      Columns = <      
+        item
+          Width = 190
+        end>
+      PopupMenu = PopupMenuAnimations
+      RowSelect = True
+      ScrollBars = ssAutoBoth
+      ShowColumnHeaders = False
+      TabOrder = 1
+      ViewStyle = vsReport
+      OnDragDrop = ListViewAnimationsDragDrop
+      OnDragOver = ListViewAnimationsDragOver
+      OnEdited = ListViewAnimationsEdited
+      OnSelectItem = ListViewAnimationsSelectItem
+    end
+  end
+  object SplitterLeft: TSplitter
+    Left = 204
+    Height = 488
+    Top = 52
+    Width = 6
+  end
+  object PanelMiddle: TPanel
+    Left = 210
+    Height = 488
+    Top = 52
+    Width = 617
+    Align = alClient
+    BevelOuter = bvNone
+    BorderWidth = 4
+    Caption = 'PanelMiddle'
+    ClientHeight = 488
+    ClientWidth = 617
+    TabOrder = 3
+    object ListViewFrames: TListView
+      AnchorSideLeft.Control = PanelMiddle
+      AnchorSideTop.Control = LabelFrames
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = PanelMiddle
+      AnchorSideRight.Side = asrBottom
+      AnchorSideBottom.Control = PanelMiddle
+      AnchorSideBottom.Side = asrBottom
+      Left = 4
+      Height = 459
+      Top = 25
+      Width = 609
+      Anchors = [akTop, akLeft, akRight, akBottom]
+      Columns = <>
+      DragMode = dmAutomatic
+      HideSelection = False
+      IconOptions.AutoArrange = True
+      LargeImages = ImageListFrames
+      MultiSelect = True
+      PopupMenu = PopupMenuFrames
+      ReadOnly = True
+      ScrollBars = ssAutoBoth
+      TabOrder = 0
+      ViewStyle = vsIcon
+      OnSelectItem = ListViewFramesSelectItem
+    end
+    object LabelFrames: TLabel
+      AnchorSideLeft.Control = PanelMiddle
+      AnchorSideTop.Control = PanelMiddle
+      Left = 4
+      Height = 21
+      Top = 4
+      Width = 70
+      Caption = 'Frames'
+      Font.Height = -17
+      Font.Name = 'Sans'
+      Font.Style = [fsBold]
+      ParentColor = False
+      ParentFont = False
+    end
+  end
+  object PanelRight: TPanel
+    Left = 833
+    Height = 488
+    Top = 52
+    Width = 310
+    Align = alRight
+    BevelOuter = bvNone
+    BorderWidth = 4
+    ClientHeight = 488
+    ClientWidth = 310
+    TabOrder = 4
+    object CastleControlPreview: TCastleControlBase
+      AnchorSideLeft.Control = PanelRight
+      AnchorSideTop.Control = PanelPreviewHead
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = PanelRight
+      AnchorSideRight.Side = asrBottom
+      AnchorSideBottom.Control = PanelRight
+      AnchorSideBottom.Side = asrBottom
+      Left = 4
+      Height = 453
+      Top = 31
+      Width = 302
+      Anchors = [akTop, akLeft, akRight, akBottom]
+      Options = []
+      TabOrder = 0
+    end
+    object PanelPreviewHead: TPanel
+      AnchorSideLeft.Control = PanelRight
+      AnchorSideTop.Control = PanelRight
+      AnchorSideRight.Control = PanelRight
+      AnchorSideRight.Side = asrBottom
+      Left = 4
+      Height = 27
+      Top = 4
+      Width = 302
+      Anchors = [akTop, akLeft, akRight]
+      AutoSize = True
+      BevelOuter = bvNone
+      ClientHeight = 27
+      ClientWidth = 302
+      TabOrder = 1
+      object LabelPreview: TLabel
+        AnchorSideLeft.Control = PanelPreviewHead
+        AnchorSideTop.Control = PanelPreviewHead
+        AnchorSideTop.Side = asrCenter
+        Left = 0
+        Height = 21
+        Top = 3
+        Width = 77
+        Caption = 'Preview'
+        Font.Height = -17
+        Font.Name = 'Sans'
+        Font.Style = [fsBold]
+        ParentColor = False
+        ParentFont = False
+      end
+      object RadioAnimation: TRadioButton
+        AnchorSideTop.Control = LabelPreview
+        AnchorSideTop.Side = asrCenter
+        AnchorSideRight.Control = RadioFrame
+        Left = 113
+        Height = 27
+        Top = 0
+        Width = 110
+        Anchors = [akTop, akRight]
+        Caption = 'Animation'
+        Checked = True
+        OnChange = RadioFrameChange
+        TabOrder = 0
+        TabStop = True
+      end
+      object RadioFrame: TRadioButton
+        AnchorSideTop.Control = LabelPreview
+        AnchorSideTop.Side = asrCenter
+        AnchorSideRight.Control = PanelPreviewHead
+        AnchorSideRight.Side = asrBottom
+        Left = 223
+        Height = 27
+        Top = 0
+        Width = 79
+        Anchors = [akTop, akRight]
+        Caption = 'Frame'
+        OnChange = RadioFrameChange
+        TabOrder = 1
+      end
+    end
+    object LabelNoFrameToShow: TLabel
+      AnchorSideLeft.Control = PanelRight
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideTop.Control = PanelRight
+      AnchorSideTop.Side = asrCenter
+      Left = 69
+      Height = 23
+      Top = 233
+      Width = 172
+      Caption = 'Select frame to show'
+      ParentColor = False
+    end
+  end
+  object SplitterRight: TSplitter
+    Left = 827
+    Height = 488
+    Top = 52
+    Width = 6
+    Align = alRight
+    ResizeAnchor = akRight
+  end
+  object ActionListSpriteSheet: TActionList
+    Images = Icons.ToolbarStroke1_5
+    Left = 629
+    Top = 131
+    object ActionNewSpriteSheet: TAction
+      Category = 'File'
+      Caption = 'New'
+      Hint = 'New sprite sheet'
+      ImageIndex = 0
+      OnExecute = ActionNewSpriteSheetExecute
+      ShortCut = 16462
+    end
+    object ActionOpenSpriteSheet: TAction
+      Category = 'File'
+      Caption = 'Open...'
+      Hint = 'Open sprite sheet...'
+      ImageIndex = 1
+      OnExecute = ActionOpenSpriteSheetExecute
+      ShortCut = 16463
+    end
+    object ActionSaveSpriteSheet: TAction
+      Category = 'File'
+      Caption = 'Save'
+      Hint = 'Save sprite sheet'
+      ImageIndex = 2
+      OnExecute = ActionSaveSpriteSheetExecute
+      ShortCut = 16467
+    end
+    object ActionSaveSpriteSheetAs: TAction
+      Category = 'File'
+      Caption = 'Save As...'
+      Hint = 'Save sprite sheet as...'
+      ImageIndex = 2
+      OnExecute = ActionSaveSpriteSheetAsExecute
+    end
+    object ActionDeleteFrame: TAction
+      Category = 'Frame'
+      Caption = 'Delete'
+      ImageIndex = 3
+      OnExecute = ActionDeleteFrameExecute
+      OnUpdate = ActionDeleteFrameUpdate
+      ShortCut = 16430
+    end
+    object ActionDeleteAnimation: TAction
+      Category = 'Animation'
+      Caption = 'Delete'
+      Hint = 'Delete animation'
+      ImageIndex = 3
+      OnExecute = ActionDeleteAnimationExecute
+      OnUpdate = ActionDeleteAnimationUpdate
+      ShortCut = 16430
+    end
+    object ActionRenameAnimation: TAction
+      Category = 'Animation'
+      Caption = 'Rename'
+      OnExecute = ActionRenameAnimationExecute
+      OnUpdate = ActionRenameAnimationUpdate
+      ShortCut = 113
+    end
+    object ActionAddFrame: TAction
+      Category = 'Frame'
+      Caption = 'Add...'
+      ImageIndex = 4
+      OnExecute = ActionAddFrameExecute
+      OnUpdate = ActionAddFrameUpdate
+    end
+    object ActionAddAnimation: TAction
+      Category = 'Animation'
+      Caption = 'Add'
+      Hint = 'Add animation'
+      ImageIndex = 4
+      OnExecute = ActionAddAnimationExecute
+      OnUpdate = ActionAddAnimationUpdate
+    end
+    object ActionMoveFrameLeft: TAction
+      Category = 'Frame'
+      Caption = 'Move left'
+      OnExecute = ActionMoveFrameLeftExecute
+      OnUpdate = ActionMoveFrameLeftUpdate
+      ShortCut = 16421
+    end
+    object ActionMoveFrameRight: TAction
+      Category = 'Frame'
+      Caption = 'Move right'
+      OnExecute = ActionMoveFrameRightExecute
+      OnUpdate = ActionMoveFrameRightUpdate
+      ShortCut = 16423
+    end
+    object ActionMoveFrameTop: TAction
+      Category = 'Frame'
+      Caption = 'Move top'
+      OnExecute = ActionMoveFrameTopExecute
+      OnUpdate = ActionMoveFrameTopUpdate
+    end
+    object ActionMoveFrameEnd: TAction
+      Category = 'Frame'
+      Caption = 'Move end'
+      OnExecute = ActionMoveFrameEndExecute
+      OnUpdate = ActionMoveFrameEndUpdate
+    end
+    object ActionMoveAnimationUp: TAction
+      Category = 'Animation'
+      Caption = 'Move up'
+      OnExecute = ActionMoveAnimationUpExecute
+      OnUpdate = ActionMoveAnimationUpUpdate
+      ShortCut = 16422
+    end
+    object ActionMoveAnimationDown: TAction
+      Category = 'Animation'
+      Caption = 'Move down'
+      OnExecute = ActionMoveAnimationDownExecute
+      OnUpdate = ActionMoveAnimationDownUpdate
+      ShortCut = 16424
+    end
+    object ActionMoveAnimationTop: TAction
+      Category = 'Animation'
+      Caption = 'Move top'
+      OnExecute = ActionMoveAnimationTopExecute
+      OnUpdate = ActionMoveAnimationTopUpdate
+    end
+    object ActionMoveAnimationEnd: TAction
+      Category = 'Animation'
+      Caption = 'Move end'
+      OnExecute = ActionMoveAnimationEndExecute
+      OnUpdate = ActionMoveAnimationEndUpdate
+    end
+    object ActionCreateNewAnimationFromSelection: TAction
+      Category = 'Frame'
+      Caption = 'Create new animation from selection'
+      OnExecute = ActionCreateNewAnimationFromSelectionExecute
+      OnUpdate = ActionCreateNewAnimationFromSelectionUpdate
+      ShortCut = 24641
+    end
+    object ActionImportAtlas: TAction
+      Category = 'File'
+      Caption = 'Import atlas...'
+      OnExecute = ActionImportAtlasExecute
+    end
+    object ActionCloseSpriteSheetEditor: TAction
+      Category = 'File'
+      Caption = 'Close'
+      OnExecute = ActionCloseSpriteSheetEditorExecute
+    end
+  end
+  object MainMenu: TMainMenu
+    Images = Icons.MenuStroke1_5
+    Left = 339
+    Top = 109
+    object MenuItemFile: TMenuItem
+      Caption = 'File'
+      object MenuItemNew: TMenuItem
+        Action = ActionNewSpriteSheet
+      end
+      object MenuItemOpen: TMenuItem
+        Action = ActionOpenSpriteSheet
+      end
+      object MenuItemSave: TMenuItem
+        Action = ActionSaveSpriteSheet
+      end
+      object MenuItemSaveAs: TMenuItem
+        Action = ActionSaveSpriteSheetAs
+      end
+      object MenuItemSeparator: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemClose: TMenuItem
+        Action = ActionCloseSpriteSheetEditor
+      end
+    end
+    object MenuItemAnimationMenu: TMenuItem
+      Caption = 'Animation'
+      object MainMenuItemAddAnimation: TMenuItem
+        Action = ActionAddAnimation
+      end
+      object MenuItemRenameAnimation: TMenuItem
+        Action = ActionRenameAnimation
+      end
+      object MainMenuItemDeleteAnimation: TMenuItem
+        Action = ActionDeleteAnimation
+      end
+    end
+    object MenuItemFrameMenu: TMenuItem
+      Caption = 'Frame'
+      object MainMenuItemMoveFrameUp: TMenuItem
+        Action = ActionMoveFrameLeft
+      end
+      object MainMenuItemMoveFrameDown: TMenuItem
+        Action = ActionMoveFrameRight
+      end
+      object MainMenuItemMoveFrameTop: TMenuItem
+        Action = ActionMoveFrameTop
+      end
+      object MainMenuItemMoveFrameEnd: TMenuItem
+        Action = ActionMoveFrameEnd
+      end
+      object N1: TMenuItem
+        Caption = '-'
+      end
+      object MainMenuItemAddFrame: TMenuItem
+        Action = ActionAddFrame
+      end
+      object N6: TMenuItem
+        Caption = '-'
+      end
+      object MainMenuItemCreateAnimFromSelection: TMenuItem
+        Action = ActionCreateNewAnimationFromSelection
+      end
+      object MainMenuItemImportAtlas: TMenuItem
+        Action = ActionImportAtlas
+      end
+      object N5: TMenuItem
+        Caption = '-'
+      end
+      object MainMenuItemDeleteFrame: TMenuItem
+        Action = ActionDeleteFrame
+      end
+    end
+  end
+  object OpenDialog: TCastleOpenDialog
+    Title = 'Open sprite sheet'
+    Filter = 'All supported formats (*.castle-sprite-sheet, *.starling-xml, *.xml)|*.castle-sprite-sheet;*.starling-xml;*.xml|Castle Sprite Sheet (*.castle-sprite-sheet)|*.castle-sprite-sheet|Starling Sprite Sheet (*.starling-xml, *.xml)|*.starling-xml;*.xml|All files|*'
+    Left = 344
+    Top = 208
+  end
+  object SaveDialog: TCastleSaveDialog
+    Title = 'Save sprite sheet'
+    Filter = 'Castle Sprite Sheet (*.castle-sprite-sheet)|*.castle-sprite-sheet|All files|*'
+    Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
+    AdviceDataDirectory = True
+    Left = 467
+    Top = 208
+  end
+  object ImageListFrames: TImageList
+    Height = 128
+    Width = 96
+    Left = 406
+    Top = 303
+  end
+  object PopupMenuFrames: TPopupMenu
+    OnClose = PopupMenuCloseGTK2Fix
+    Left = 445
+    Top = 126
+    object MenuItemMoveFrameUp: TMenuItem
+      Action = ActionMoveFrameLeft
+    end
+    object MenuItemMoveFrameDown: TMenuItem
+      Action = ActionMoveFrameRight
+    end
+    object MenuItemMoveFrameToTop: TMenuItem
+      Action = ActionMoveFrameTop
+    end
+    object MenuItemMoveEnd: TMenuItem
+      Action = ActionMoveFrameEnd
+    end
+    object N4: TMenuItem
+      Caption = '-'
+    end
+    object MenuItemAddFrame: TMenuItem
+      Action = ActionAddFrame
+    end
+    object N3: TMenuItem
+      Caption = '-'
+    end
+    object MenuItemCreateNewAnimationFromSelection: TMenuItem
+      Action = ActionCreateNewAnimationFromSelection
+    end
+    object MenuItemImportAtlas: TMenuItem
+      Action = ActionImportAtlas
+    end
+    object N2: TMenuItem
+      Caption = '-'
+    end
+    object MenuItemDeleteFrame: TMenuItem
+      Action = ActionDeleteFrame
+    end
+  end
+  object PopupMenuAnimations: TPopupMenu
+    OnClose = PopupMenuCloseGTK2Fix
+    Left = 94
+    Top = 177
+    object MenuItemMoveAnimationUp: TMenuItem
+      Action = ActionMoveAnimationUp
+    end
+    object MenuItemAnimationDown: TMenuItem
+      Action = ActionMoveAnimationDown
+    end
+    object MenuItemAnimationTop: TMenuItem
+      Action = ActionMoveAnimationTop
+    end
+    object MenuItemAnimationEnd: TMenuItem
+      Action = ActionMoveAnimationEnd
+    end
+    object MenuItemAddAnimation: TMenuItem
+      Action = ActionAddAnimation
+    end
+    object MenuItemRename: TMenuItem
+      Action = ActionRenameAnimation
+    end
+    object MenuItemDeleteAnimation: TMenuItem
+      Action = ActionDeleteAnimation
+    end
+  end
+  object CastleOpenImageDialog: TCastleOpenImageDialog
+    Options = [ofAllowMultiSelect, ofEnableSizing, ofViewDetail]
+    Left = 586
+    Top = 265
+  end
+  object CastleImportAtlasDialog: TCastleOpenImageDialog
+    Title = 'Open atlas file to import'
+    Left = 593
+    Top = 396
+  end
+end
