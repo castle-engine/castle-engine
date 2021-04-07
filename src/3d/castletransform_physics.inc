@@ -245,6 +245,38 @@
     { Transformations that we collide with currently. }
     function GetCollidingTransforms: TCastleTransformList;
 
+    { Cast a ray using physics engine, see what is hit.
+
+      The given RayOrigin, RayDirection are in the parent
+      coordinate system of this TCastleTransform.
+      So for example query like this works naturally:
+      @code(MyTransform.RayCast(MyTransform.Translation, MyTransform.Direction, MaxDistance)).
+      In case of the overloaded version with Distance parameter,
+      the Distance is consistently in the same, parent coordinate system.
+
+      This ignores the collider of this rigid body (to not accidentally collide
+      with your own collider), and checks collisions with the rest of the world in
+      given max distance.
+      Only collisions with the physics colliders (defined inside @link(TRigidBody.Collider))
+      are considered.
+
+      The @link(TCastleTransform.Pickable) property is ignored by this method,
+      i.e. it considers all colliders regardless of their @link(TCastleTransform.Pickable) value.
+      This is in contrast to @link(TCastleTransform.RayCast).
+      In the future this method will become the basis of a new @link(TCastleTransform.RayCast)
+      implementation and the concept of "pickable" flag will change into 
+      collision layers.
+      
+      This returns the TCastleTransform that is hit and a distance from RayOrigin
+      to the hit point.
+      Returns @nil (Distance is undefined in this case) if nothing was hit.
+      @groupBegin }
+    function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
+      const MaxDistance: Single): TCastleTransform;
+    function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
+      const MaxDistance: Single; out Distance: Single): TCastleTransform;
+    { @groupEnd }
+
     property AngularVelocity: TVector3 read FAngularVelocity write SetAngularVelocity;
     property AngularVelocityDamp: Single read FAngularVelocityDamp write SetAngularVelocityDamp;
     property MaximalAngularVelocity: Single read FMaximalAngularVelocity write SetMaximalAngularVelocity;
@@ -980,6 +1012,60 @@ begin
     if FCollisionList.IndexOf(CastleTransform) = -1 then
       FCollisionList.Add(CastleTransform);
     ContactPairEdge := ContactPairEdge^.Next;
+  end;
+end;
+
+function TRigidBody.PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
+  const MaxDistance: Single): TCastleTransform;
+var
+  IgnoredDistance: Single;
+begin
+  Result := PhysicsRayCast(RayOrigin, RayDirection, MaxDistance, IgnoredDistance);
+end;
+
+function TRigidBody.PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
+  const MaxDistance: Single; out Distance: Single): TCastleTransform;
+var
+  Shape: TKraftShape;
+  ResultingDistance: TKraftScalar;
+  Point: TKraftVector3;
+  Normal: TKraftVector3;
+  OldShapeFlags: TKraftShapeFlags;
+  RayOriginWorld, RayDirectionWorld: TVector3;
+  RayMaxDistanceWorld: Single;
+  Hit: Boolean;
+begin
+  if FTransform = nil then
+  begin
+    WritelnWarning(
+      'Attempt to cast a ray from TRigidBody not connected to TCastleTransform. Maybe you forgot to assign to TCastleTransform.RigidBody?');
+    Exit(nil);
+  end;
+
+  RayOriginWorld := FTransform.UniqueParent.LocalToWorld(RayOrigin);
+  RayDirectionWorld := FTransform.UniqueParent.LocalToWorldDirection(RayDirection);
+  RayMaxDistanceWorld := FTransform.UniqueParent.LocalToWorldDistance(MaxDistance);
+
+  { We use ksfRayCastable flag to not hit to caster shape. }
+  OldShapeFlags := Collider.FKraftShape.Flags;
+  try
+    Collider.FKraftShape.Flags := Collider.FKraftShape.Flags - [ksfRayCastable];
+    { Note: In Kraft, the distance parameters are called "time"
+      (MaxTime, Time instead of more natural MaxDistance, Distance).
+      But all research shows that it is actually "distance" and that is also how
+      other physics engines call it.
+      TODO: Check time depends on physics frequency? }
+    Hit := FTransform.World.FKraftEngine.RayCast(VectorToKraft(RayOriginWorld),
+      VectorToKraft(RayDirectionWorld), RayMaxDistanceWorld, Shape, ResultingDistance, Point, Normal);
+
+    if Hit then
+    begin
+      Distance := FTransform.UniqueParent.WorldToLocalDistance(ResultingDistance);
+      Result := TCastleTransform(Shape.RigidBody.UserData);
+    end else
+      Result := nil;
+  finally
+    Collider.FKraftShape.Flags := OldShapeFlags;
   end;
 end;
 
