@@ -53,7 +53,10 @@ type
     Each custom animation is an array of frames with
     corresponding frames duration. Frames can be in any order. It is valid
     to use some particural frame many times with different
-    duration time. }
+    duration time.
+
+    @deprecated
+    Instead of this, load sprite sheets to TCastleScene from .castle-sprite-sheet format. }
   TSprite = class
   private
     type
@@ -380,7 +383,10 @@ type
     property SmoothScalingSafeBorder: Boolean
       read FSmoothScalingSafeBorder write FSmoothScalingSafeBorder
       default false;
- end;
+
+  { Unfortunately deprecating it makes unavoidable warnings from TSpriteList
+    specialization, and we cannot hide them putting $warnings off/on around it. }
+  end {deprecated 'load sprite sheets to TCastleScene from .castle-sprite-sheet format'};
 
   { List of sprites. }
   TSpriteList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSprite>;
