@@ -40,7 +40,7 @@
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
-        <Filename Value="formchooseproject.pas"/>
+        <Filename Value="code/formchooseproject.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="ChooseProjectForm"/>
         <HasResources Value="True"/>
@@ -48,12 +48,12 @@
         <UnitName Value="FormChooseProject"/>
       </Unit1>
       <Unit2>
-        <Filename Value="projectutils.pas"/>
+        <Filename Value="code/projectutils.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="ProjectUtils"/>
       </Unit2>
       <Unit3>
-        <Filename Value="formnewproject.pas"/>
+        <Filename Value="code/formnewproject.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="NewProjectForm"/>
         <HasResources Value="True"/>
@@ -61,17 +61,17 @@
         <UnitName Value="FormNewProject"/>
       </Unit3>
       <Unit4>
-        <Filename Value="editorutils.pas"/>
+        <Filename Value="code/editorutils.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="EditorUtils"/>
       </Unit4>
       <Unit5>
-        <Filename Value="../../common-code/toolcommonutils.pas"/>
+        <Filename Value="../common-code/toolcommonutils.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="ToolCommonUtils"/>
       </Unit5>
       <Unit6>
-        <Filename Value="formproject.pas"/>
+        <Filename Value="code/formproject.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="ProjectForm"/>
         <HasResources Value="True"/>
@@ -79,7 +79,7 @@
         <UnitName Value="FormProject"/>
       </Unit6>
       <Unit7>
-        <Filename Value="framedesign.pas"/>
+        <Filename Value="code/framedesign.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="DesignFrame"/>
         <HasResources Value="True"/>
@@ -87,7 +87,7 @@
         <UnitName Value="FrameDesign"/>
       </Unit7>
       <Unit8>
-        <Filename Value="formabout.pas"/>
+        <Filename Value="code/formabout.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="AboutForm"/>
         <HasResources Value="True"/>
@@ -95,7 +95,7 @@
         <UnitName Value="FormAbout"/>
       </Unit8>
       <Unit9>
-        <Filename Value="formpreferences.pas"/>
+        <Filename Value="code/formpreferences.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="PreferencesForm"/>
         <HasResources Value="True"/>
@@ -103,12 +103,12 @@
         <UnitName Value="FormPreferences"/>
       </Unit9>
       <Unit10>
-        <Filename Value="visualizetransform.pas"/>
+        <Filename Value="code/visualizetransform.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="VisualizeTransform"/>
       </Unit10>
       <Unit11>
-        <Filename Value="formspritesheeteditor.pas"/>
+        <Filename Value="code/formspritesheeteditor.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="SpriteSheetEditorForm"/>
         <HasResources Value="True"/>
@@ -116,7 +116,7 @@
         <UnitName Value="FormSpriteSheetEditor"/>
       </Unit11>
       <Unit12>
-        <Filename Value="datamoduleicons.pas"/>
+        <Filename Value="code/datamoduleicons.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Icons"/>
         <HasResources Value="True"/>
@@ -124,7 +124,7 @@
         <UnitName Value="DataModuleIcons"/>
       </Unit12>
       <Unit13>
-        <Filename Value="formimportatlas.pas"/>
+        <Filename Value="code/formimportatlas.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="ImportAtlasForm"/>
         <HasResources Value="True"/>
@@ -132,14 +132,14 @@
         <UnitName Value="FormImportAtlas"/>
       </Unit13>
       <Unit14>
-        <Filename Value="formimportstarling.pas"/>
+        <Filename Value="code/formimportstarling.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="ImportStarlingForm"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="FormImportStarling"/>
       </Unit14>
       <Unit15>
-        <Filename Value="formnewunit.pas"/>
+        <Filename Value="code/formnewunit.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="NewUnitForm"/>
         <HasResources Value="True"/>
@@ -147,20 +147,20 @@
         <UnitName Value="FormNewUnit"/>
       </Unit15>
       <Unit16>
-        <Filename Value="../../common-code/toolassocdoctypes.pas"/>
+        <Filename Value="../common-code/toolassocdoctypes.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit16>
       <Unit17>
-        <Filename Value="../../common-code/toolmanifest.pas"/>
+        <Filename Value="../common-code/toolmanifest.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="ToolManifest"/>
       </Unit17>
       <Unit18>
-        <Filename Value="../../common-code/toolservices.pas"/>
+        <Filename Value="../common-code/toolservices.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit18>
       <Unit19>
-        <Filename Value="editorcodetools.pas"/>
+        <Filename Value="code/editorcodetools.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="EditorCodeTools"/>
       </Unit19>
@@ -169,11 +169,11 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="../castle-editor"/>
+      <Filename Value="castle-editor"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="../../../src/base;$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../../common-code"/>
+      <IncludeFiles Value="../../src/base;$(ProjOutDir)"/>
+      <OtherUnitFiles Value="../common-code;code"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Parsing>
@@ -203,7 +203,7 @@
       </CompilerMessages>
       <ConfigFile>
         <CustomConfigFile Value="True"/>
-        <ConfigFilePath Value="../../../castle-fpc-messages.cfg"/>
+        <ConfigFilePath Value="../../castle-fpc-messages.cfg"/>
       </ConfigFile>
     </Other>
   </CompilerOptions>

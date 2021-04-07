@@ -7,7 +7,7 @@ set -eux
 # This is a simplified and specialized version of
 # https://github.com/castle-engine/cge-scripts/blob/master/create_macosx_bundle.sh .
 #
-# Before calling this, compile editor binary like "lazbuild code/castle_editor.lpi".
+# Before calling this, compile editor binary like "lazbuild castle_editor.lpi".
 # Note that this script can in principle put any binary (compiled for any OS/CPU)
 # into a bundle, but it really only makes sense to package this way macOS binary
 # (OS=darwin, CPU=x86_64).

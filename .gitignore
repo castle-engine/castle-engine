@@ -233,7 +233,7 @@ castle-game-engine-*.fpm
 /tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/libGameAnalytics.a
 /tools/build-tool/tests/test_cge_build_tool
 /tools/castle-curves/castle-curves
-/tools/castle-editor/code/castle_editor.res
+/tools/castle-editor/castle_editor.res
 /tools/castle-engine
 /tools/image-to-pascal/image-to-pascal
 /tools/internal/generate-persistent-vectors/generate-persistent-vectors

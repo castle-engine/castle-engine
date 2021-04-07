@@ -62,7 +62,7 @@ pipeline {
     }
     stage('Build Editor') {
       steps {
-        sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/code/castle_editor.lpi'
+        sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/castle_editor.lpi'
         sh 'cd tools/castle-editor/ && macos/create_bundle.sh'
         sh 'cp -R "tools/castle-editor/Castle Game Engine.app" ${CGE_INSTALL_PREFIX}/bin'
       }

@@ -157,7 +157,7 @@ do_pack_platform ()
 
   # Compile most tools with FPC, and castle-editor with lazbuild
   make tools
-  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/code/castle_editor.lpi
+  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/castle_editor.lpi
 
   # Place tools binaries in bin/ subdirectory
   mkdir -p "${TEMP_PATH_CGE}"bin-to-keep
