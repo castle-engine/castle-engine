@@ -257,7 +257,16 @@
       This ignores the collider of this rigid body (to not accidentally collide
       with your own collider), and checks collisions with the rest of the world in
       given max distance.
+      Only collisions with the physics colliders (defined inside @link(TRigidBody.Collider))
+      are considered.
 
+      The @link(TCastleTransform.Pickable) property is ignored by this method,
+      i.e. it considers all colliders regardless of their @link(TCastleTransform.Pickable) value.
+      This is in contrast to @link(TCastleTransform.RayCast).
+      In the future this method will become the basis of a new @link(TCastleTransform.RayCast)
+      implementation and the concept of "pickable" flag will change into 
+      collision layers.
+      
       This returns the TCastleTransform that is hit and a distance from RayOrigin
       to the hit point.
       Returns @nil (Distance is undefined in this case) if nothing was hit.
@@ -1018,7 +1027,7 @@ function TRigidBody.PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
   const MaxDistance: Single; out Distance: Single): TCastleTransform;
 var
   Shape: TKraftShape;
-  Time: TKraftScalar; // I think it's distance
+  ResultingDistance: TKraftScalar;
   Point: TKraftVector3;
   Normal: TKraftVector3;
   OldShapeFlags: TKraftShapeFlags;
@@ -1029,7 +1038,7 @@ begin
   if FTransform = nil then
   begin
     WritelnWarning(
-      'Attempt to cast a ray from TRigidBody not connected to TCastleTransform. Maybe you forget about TCastleTransform.RigidBody?');
+      'Attempt to cast a ray from TRigidBody not connected to TCastleTransform. Maybe you forgot to assign to TCastleTransform.RigidBody?');
     Exit(nil);
   end;
 
@@ -1041,15 +1050,17 @@ begin
   OldShapeFlags := Collider.FKraftShape.Flags;
   try
     Collider.FKraftShape.Flags := Collider.FKraftShape.Flags - [ksfRayCastable];
-    { TODO: Time looks like distance? Why this is time?
-      MaxTime looks/works like MaxDistance?
-      Check time depends on physics frequency? }
+    { Note: In Kraft, the distance parameters are called "time"
+      (MaxTime, Time instead of more natural MaxDistance, Distance).
+      But all research shows that it is actually "distance" and that is also how
+      other physics engines call it.
+      TODO: Check time depends on physics frequency? }
     Hit := FTransform.World.FKraftEngine.RayCast(VectorToKraft(RayOriginWorld),
-      VectorToKraft(RayDirectionWorld), RayMaxDistanceWorld, Shape, Time, Point, Normal);
+      VectorToKraft(RayDirectionWorld), RayMaxDistanceWorld, Shape, ResultingDistance, Point, Normal);
 
     if Hit then
     begin
-      Distance := FTransform.UniqueParent.WorldToLocalDistance(Time);
+      Distance := FTransform.UniqueParent.WorldToLocalDistance(ResultingDistance);
       Result := TCastleTransform(Shape.RigidBody.UserData);
     end else
       Result := nil;
