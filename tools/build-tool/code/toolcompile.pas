@@ -238,7 +238,6 @@ var
       AddEnginePath('images');
       AddEnginePath('images/opengl');
       AddEnginePath('images/opengl/glsl/generated-pascal');
-      AddEnginePath('2d');
       AddEnginePath('3d');
       AddEnginePath('3d/opengl');
       AddEnginePath('x3d');

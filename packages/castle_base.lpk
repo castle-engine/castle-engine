@@ -9,7 +9,7 @@
       <Version Value="11"/>
       <SearchPaths>
         <IncludeFiles Value="../src/base;../src/base/unix;../src/base/windows;../src/audio;../src/castlescript;../src/3d;../src/x3d/opengl/glsl/generated-pascal;../src/x3d/opengl;../src/x3d;../src/base/opengl;../src/images/opengl;../src/images/opengl/glsl/generated-pascal;../src/images;../src/x3d/auto_generated_node_helpers;../src/ui/opengl;../src/deprecated_units;../src/files"/>
-        <OtherUnitFiles Value="../src/base;../src/2d;../src/3d;../src/x3d;../src/x3d/opengl;../src/images;../src/fonts;../src/fonts/windows;../src/audio;../src/files;../src/castlescript;../src/ui;../src/ui/windows;../src/ui/opengl;../src/game;../src/services;../src/services/opengl;../src/3d/opengl;../src/base/opengl;../src/images/opengl;../src/fonts/opengl;../src/physics/kraft;../src/pasgltf;../src/audio/openal;../src/audio/ogg_vorbis;../src/audio/fmod;../src/deprecated_units"/>
+        <OtherUnitFiles Value="../src/base;../src/3d;../src/x3d;../src/x3d/opengl;../src/images;../src/fonts;../src/fonts/windows;../src/audio;../src/files;../src/castlescript;../src/ui;../src/ui/windows;../src/ui/opengl;../src/game;../src/services;../src/services/opengl;../src/3d/opengl;../src/base/opengl;../src/images/opengl;../src/fonts/opengl;../src/physics/kraft;../src/pasgltf;../src/audio/openal;../src/audio/ogg_vorbis;../src/audio/fmod;../src/deprecated_units"/>
         <UnitOutputDirectory Value="lib/castle_base/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Conditionals Value="// example for adding linker options on macOS
@@ -2964,7 +2964,7 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item718>
       <Item719>
-        <Filename Value="../src/2d/castleinternalspritesheet.pas"/>
+        <Filename Value="../src/x3d/castleinternalspritesheet.pas"/>
         <UnitName Value="CastleInternalSpriteSheet"/>
       </Item719>
       <Item720>
