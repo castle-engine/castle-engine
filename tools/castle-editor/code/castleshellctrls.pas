@@ -377,6 +377,11 @@ const
   //no need to localize, it's a message for the programmer
   sShellTreeViewIncorrectNodeType = 'TCastleShellTreeView: the newly created node is not a TShellTreeNode!';
 
+  {$warnings off}
+  { Hide warnings that faXxx are unportable -- it is as expected. }
+  flagHidden = faHidden;
+  {$warnings on}
+
 function DbgS(OT: TObjectTypes): String; overload;
 begin
   Result := '[';
@@ -755,7 +760,7 @@ begin
 
         IsValidDirectory := (ShortFilename <> '.') and (ShortFilename <> '..');
 
-        IsHidden := (DirInfo.Attr and faHidden{%H-} = faHidden{%H-});
+        IsHidden := (DirInfo.Attr and flagHidden = flagHidden);
 
         // First check if we show hidden files
         if IsHidden then AddFile := (otHidden in AObjectTypes)
@@ -878,14 +883,14 @@ var
      Result:=False;
      try
        Attr := faDirectory;
-       if (otHidden in fObjectTypes) then Attr := Attr or faHidden{%H-};
+       if (otHidden in fObjectTypes) then Attr := Attr or flagHidden;
        FindRes := FindFirstUTF8(AppendPathDelim(ADir) + AllFilesMask, Attr , SR);
        while (FindRes = 0) do
        begin
          if ((SR.Attr and faDirectory <> 0) and (SR.Name <> '.') and
             (SR.Name <> '..')) then
          begin
-           IsHidden := ((Attr and faHidden{%H-}) > 0);
+           IsHidden := ((Attr and flagHidden) > 0);
            if not (IsHidden and (not ((otHidden in fObjectTypes)))) then
            begin
              Result := True;
@@ -951,7 +956,7 @@ begin
     //Yes, we want to remove the backslash,so don't use ChompPathDelim here
     TShellTreeNode(NewNode).FFileInfo.Name := ExcludeTrailingBackslash(pDrive);
     //On NT platforms drive-roots really have these attributes
-    TShellTreeNode(NewNode).FFileInfo.Attr := faDirectory + faSysFile + faHidden;
+    TShellTreeNode(NewNode).FFileInfo.Attr := faDirectory + faSysFile + flagHidden;
     TShellTreeNode(NewNode).SetBasePath('');
     NewNode.HasChildren := True;
     Inc(pDrive, 4);
@@ -1149,7 +1154,7 @@ var
     else
     begin
       Attr := FileGetAttrUtf8(Fn);
-      Result := ((Attr and faHidden{%H-}) = faHidden{%H-}) and not PathIsDriveRoot(Fn);
+      Result := ((Attr and flagHidden) = flagHidden) and not PathIsDriveRoot(Fn);
       if not Result then
       begin
         //it also is not allowed that any folder above is hidden
@@ -1181,7 +1186,7 @@ var
             if (Length(Fn) = 2) and (Fn[2] = ':') then Continue;
             {$endif}
             Attr := FileGetAttrUtf8(Fn);
-            if (Attr <> -1) and ((Attr and faHidden{%H-}) > 0) and not PathIsDriveRoot(Fn) then
+            if (Attr <> -1) and ((Attr and flagHidden) > 0) and not PathIsDriveRoot(Fn) then
             begin
               Result := True;
               {$ifdef debug_shellctrls}
