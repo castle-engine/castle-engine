@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextureAtlas imagePath="hero_60fps.png">
-  <SubTexture x="0" y="3619" fps="60" name="walk_1" width="296" height="477"/>
+<TextureAtlas imagePath="hero_high_fps.png">
+  <SubTexture x="0" y="3619" fps="55" name="walk_1" width="296" height="477"/>
   <SubTexture x="296" y="3619" name="walk_2" width="296" height="477"/>
   <SubTexture x="592" y="3619" name="walk_3" width="296" height="477"/>
   <SubTexture x="888" y="3619" name="walk_4" width="296" height="477"/>

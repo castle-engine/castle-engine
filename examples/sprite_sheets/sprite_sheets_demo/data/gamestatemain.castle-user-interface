@@ -55,7 +55,7 @@
               "Y" : 3.2305838012695312E+002,
               "$ClassName" : "TCastleVector3Persistent"
             },
-            "URL" : "castle-data:/hero_animation/hero_24fps.castle-sprite-sheet",
+            "URL" : "castle-data:/hero_animation/hero_low_fps.castle-sprite-sheet",
             "$Children" : [
             ],
             "$ClassName" : "TCastleScene"
@@ -77,7 +77,7 @@
               "Y" : 3.3108471679687500E+002,
               "$ClassName" : "TCastleVector3Persistent"
             },
-            "URL" : "castle-data:/hero_animation/hero_60fps.castle-sprite-sheet",
+            "URL" : "castle-data:/hero_animation/hero_high_fps.castle-sprite-sheet",
             "$Children" : [
             ],
             "$ClassName" : "TCastleScene"
@@ -98,7 +98,7 @@
           "Name" : "Label1",
           "Text" : [
             "Hero walk",
-            "(24 frames per second)"
+            "(23 frames per second)"
           ],
           "VerticalAnchorDelta" : 5.8000000000000000E+002,
           "$Children" : [
@@ -116,7 +116,7 @@
           "Name" : "Label2",
           "Text" : [
             "Hero walk",
-            "(60 frames per second)"
+            "(55 frames per second)"
           ],
           "VerticalAnchorDelta" : 5.8000000000000000E+002,
           "$Children" : [
