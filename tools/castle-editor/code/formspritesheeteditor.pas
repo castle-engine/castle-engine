@@ -787,7 +787,6 @@ procedure TSpriteSheetEditorForm.ActionSaveSpriteSheetAsExecute(Sender: TObject
   );
 begin
   SaveDialog.DefaultExt := 'castle-sprite-sheet';
-  SaveDialog.InitialDir := URIToFilenameSafe('castle-data:/');
   { In case FSpriteSheet.URL = '' (not yet saved), the save dialog shows correct UI. }
   SaveDialog.URL := FSpriteSheet.URL;
   if SaveDialog.Execute then
@@ -846,6 +845,12 @@ begin
   SetAtlasError('');
   SetAtlasWarning('');
   NewSpriteSheet;
+
+  { adjust InitialDir values to make open/save dialogs natural }
+  OpenDialog.InitialDir := URIToFilenameSafe('castle-data:/');
+  SaveDialog.InitialDir := URIToFilenameSafe('castle-data:/');
+  CastleOpenImageDialog.InitialDir := URIToFilenameSafe('castle-data:/');
+  CastleImportAtlasDialog.InitialDir := URIToFilenameSafe('castle-data:/');
 end;
 
 procedure TSpriteSheetEditorForm.FormDestroy(Sender: TObject);
