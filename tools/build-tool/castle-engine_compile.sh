@@ -15,7 +15,7 @@ set -eu
 # in this directory (castle_game_engine/tools/build-tool/).
 
 # Allow calling this script from it's dir.
-if [ -f code/castle-engine.lpr ]; then cd ../../; fi
+if [ -f castle-engine.lpr ]; then cd ../../; fi
 
 mkdir -p tools/build-tool/castle-engine-output/build-tool-compilation
 
@@ -23,9 +23,10 @@ fpc -dRELEASE @castle-fpc.cfg \
   -FEtools/build-tool/ \
   -FUtools/build-tool/castle-engine-output/build-tool-compilation \
   -Futools/common-code/ \
+  -Futools/build-tool/code/ \
   -Futools/build-tool/embedded_images/ \
   ${CASTLE_FPC_OPTIONS:-} \
-  tools/build-tool/code/castle-engine.lpr
+  tools/build-tool/castle-engine.lpr
 
 # Not needed anymore, we use -FE
 # move binaries up (writing tools/build-tool/castle-engine.exe explicitly
