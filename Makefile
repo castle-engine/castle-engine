@@ -270,8 +270,8 @@ EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/library/lazarus_library_tester/cge_dynlib_tester \
   examples/random_generator/graphics_random_test \
   tests/test_castle_game_engine \
-  tools/build-tool/code/castle-engine \
-  tools/castle-editor/code/castle_editor
+  tools/build-tool/castle-engine \
+  tools/castle-editor/castle_editor
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
   $(EXAMPLES_LAZARUS_BASE_NAMES) \

@@ -27,13 +27,3 @@ fpc -dRELEASE @castle-fpc.cfg \
   -Futools/build-tool/embedded_images/ \
   ${CASTLE_FPC_OPTIONS:-} \
   tools/build-tool/castle-engine.lpr
-
-# Not needed anymore, we use -FE
-# move binaries up (writing tools/build-tool/castle-engine.exe explicitly
-# is needed for MinGW "mv" to work OK)
-# if [ -f tools/build-tool/code/castle-engine.exe ]; then
-#   mv -f tools/build-tool/code/castle-engine.exe tools/build-tool/castle-engine.exe
-# fi
-# if [ -f tools/build-tool/code/castle-engine ]; then
-#   mv -f tools/build-tool/code/castle-engine tools/build-tool/castle-engine
-# fi
