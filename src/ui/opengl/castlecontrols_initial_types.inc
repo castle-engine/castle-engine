@@ -43,7 +43,7 @@
       So this serves as a universal "please wait, we're loading" screen.
 
       You can customize this image, by setting
-      @link(TCastleTheme.Images Theme.Images[tiLoading]),
+      @link(TCastleTheme.ImagesPersistent Theme.ImagesPersistent[tiLoading].Image),
       @link(TCastleTheme.LoadingBackgroundColor LoadingBackgroundColor),
       @link(TCastleTheme.LoadingTextColor LoadingTextColor).
       See https://castle-engine.io/manual_2d_user_interface.php#section_theme

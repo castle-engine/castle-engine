@@ -126,10 +126,9 @@ const
   TestClip = false;
   TestClipLine: TVector3 = (Data: (1, 0, -0.5));
 begin
-  { customize tooltips to use rounded corners.
-    Just because we can :) }
-  Theme.Images[tiTooltip] := TooltipRounded;
-  Theme.Corners[tiTooltip] := Vector4(9, 9, 9, 9);
+  { Customize tooltips to use rounded corners, just to demo that we can. }
+  Theme.ImagesPersistent[tiTooltip].Image := TooltipRounded;
+  Theme.ImagesPersistent[tiTooltip].ProtectedSides.AllSides := 9;
 
   ImageWithBorders := TCastleImageControl.Create(Window);
   ImageWithBorders.URL := 'castle-data:/box_with_borders.png';

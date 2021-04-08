@@ -323,9 +323,8 @@ begin
   begin
     X := ControlsMargin + Player.InventoryCurrentItem * (InventoryImageSize + ControlsMargin);
     { This allows to draw a standard tiActiveFrame image.
-      You could change the image by assigning Theme.Images[tiActiveFrame]
-      (and choosing one of your own images or one of the predefined images
-      in CastleControlsImages, see main program code for example),
+      You could change the image by assigning Theme.ImagesPersistent[tiActiveFrame]
+      (see https://castle-engine.io/manual_2d_user_interface.php#section_theme )
       or by creating and using TDrawableImage.Draw3x3 or TDrawableImage.Draw directly. }
     Theme.Draw(FloatRectangle(X, Y, InventoryImageSize, InventoryImageSize), tiActiveFrame);
   end;
