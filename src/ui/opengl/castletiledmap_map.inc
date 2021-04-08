@@ -315,8 +315,11 @@ type
     FTilesets: TTilesetList;
     FProperties: TPropertyList;
     FLayers: TLayerList;
+    { Load TMX file from stream. }
     procedure LoadTMXFile(const Stream: TStream; const BaseUrl_: String); overload;
+    { Load TMX file by URL. }
     procedure LoadTMXFile(const AURL: String); overload;
+    { Load TMX file internally from XMLDocument instance. }
     procedure LoadTMXFileInternal(var Doc: TXMLDocument);
   public
     property Layers: TLayerList read FLayers;
@@ -1069,13 +1072,11 @@ end;
 
 procedure TTiledMap.LoadTMXFileInternal(var Doc: TXMLDocument);
 var
-  //Doc: TXMLDocument;
   TmpStr: string;
   I: TXMLElementIterator;
   NewLayer: TLayer;
   NewTileset: TTileset;
 begin
-  //Doc := URLReadXML(AURL);
   try
     // Parse map attributes
     Check(LowerCase(Doc.DocumentElement.TagName) = 'map',
