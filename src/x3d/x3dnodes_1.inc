@@ -538,68 +538,50 @@
     public property FdCreaseAngle: TSFFloat read FFdCreaseAngle;
   end;
 
-  { Common base class for all nodes that modify the modelview matrix.
-    In descendants you only have to override the MatrixTransform method. }
+  { Common base class for all VRML 1 nodes that modify the transformation. }
   TAbstractTransformationNode_1 = class(TAbstractChildNode)
-  protected
-    procedure MiddleTraverse(StateStack: TX3DGraphTraverseStateStack); override;
-  public
-    procedure Transformation(out Matrix, InvertedMatrix: TMatrix4); virtual; abstract;
-    function TransformScale: Single; virtual; abstract;
   end;
 
   { VRML 1.0 MatrixTransform node. }
   TMatrixTransformNode_1 = class(TAbstractTransformationNode_1)
+  protected
+    procedure MiddleTraverse(StateStack: TX3DGraphTraverseStateStack); override;
+  public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdMatrix: TSFMatrix;
     public property FdMatrix: TSFMatrix read FFdMatrix;
 
-    { Returns simply FdMatrix as transformation. Inverse is also calculated
-      (if matrix is invertible at all, otherwise identity is returned). }
-    procedure Transformation(out Matrix, InvertedMatrix: TMatrix4); override;
-
-    { Return average scale for this FdMatrix.
-
-      Note that this doesn't correctly extract scale from FdMatrix,
-      as that is too difficcult. Insted it does simple extraction,
-      which will work for identity, translation and scaling matrices
-      (but e.g. will fail miserably (generate nonsense results) when
-      looking at some rotation matrices).
-
-      Ultimately, this is the reason why VRML 2.0 removed this node
-      from specification: extracting some features from arbitrary given
-      4x4 matrix is very difficult. }
-    function TransformScale: Single; override;
-
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
   end;
 
   TRotationNode_1 = class(TAbstractTransformationNode_1)
+  protected
+    procedure MiddleTraverse(StateStack: TX3DGraphTraverseStateStack); override;
+  public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdRotation: TSFRotation;
     public property FdRotation: TSFRotation read FFdRotation;
-
-    procedure Transformation(out Matrix, InvertedMatrix: TMatrix4); override;
-    function TransformScale: Single; override;
   end;
 
   TScaleNode_1 = class(TAbstractTransformationNode_1)
+  protected
+    procedure MiddleTraverse(StateStack: TX3DGraphTraverseStateStack); override;
+  public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdScaleFactor: TSFVec3f;
     public property FdScaleFactor: TSFVec3f read FFdScaleFactor;
-
-    procedure Transformation(out Matrix, InvertedMatrix: TMatrix4); override;
-    function TransformScale: Single; override;
   end;
 
   TTransformNode_1 = class(TAbstractTransformationNode_1)
+  protected
+    procedure MiddleTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -619,22 +601,19 @@
     strict private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
 
-    procedure Transformation(out Matrix, InvertedMatrix: TMatrix4); override;
-    function TransformScale: Single; override;
-
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
   end;
 
   TTranslationNode_1 = class(TAbstractTransformationNode_1)
+  protected
+    procedure MiddleTraverse(StateStack: TX3DGraphTraverseStateStack); override;
+  public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdTranslation: TSFVec3f;
     public property FdTranslation: TSFVec3f read FFdTranslation;
-
-    procedure Transformation(out Matrix, InvertedMatrix: TMatrix4); override;
-    function TransformScale: Single; override;
   end;
 
   { Common base class for all cameras in VRML 1.0. }
@@ -1907,18 +1886,6 @@ begin
   end;
 end;
 
-procedure TAbstractTransformationNode_1.MiddleTraverse(StateStack: TX3DGraphTraverseStateStack);
-var
-  M, IM: TMatrix4;
-begin
-  inherited;
-
-  Transformation(M, IM);
-  StateStack.Top.Transformation.Transform := StateStack.Top.Transformation.Transform * M;
-  StateStack.Top.Transformation.InverseTransform := IM * StateStack.Top.Transformation.InverseTransform;
-  StateStack.Top.Transformation.Scale := StateStack.Top.Transformation.Scale * TransformScale;
-end;
-
 procedure TMatrixTransformNode_1.CreateNode;
 begin
   inherited;
@@ -1933,22 +1900,10 @@ begin
  Result := 'MatrixTransform';
 end;
 
-procedure TMatrixTransformNode_1.Transformation(
-  out Matrix, InvertedMatrix: TMatrix4);
+procedure TMatrixTransformNode_1.MiddleTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
-  Matrix := FdMatrix.Value;
-
-  if not TryInverseHarder(Matrix, InvertedMatrix) then
-  begin
-    WritelnLogMultiline('Matrix',
-      'Cannot invert matrix:' + NL + Matrix.ToRawString('  '));
-    InvertedMatrix := TMatrix4.Identity;
-  end;
-end;
-
-function TMatrixTransformNode_1.TransformScale: Single;
-begin
-  Result := FdMatrix.TransformScale;
+  inherited;
+  StateStack.Top.Transformation.MultiplyMatrix(FdMatrix.Value);
 end;
 
 class function TMatrixTransformNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -1970,18 +1925,10 @@ begin
   Result := 'Rotation';
 end;
 
-procedure TRotationNode_1.Transformation(
-  out Matrix, InvertedMatrix: TMatrix4);
+procedure TRotationNode_1.MiddleTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
-  { We don't check here for FdRotation.Axis = zero, RotationMatricesRad
-    will set both matrices for identity in such case. }
-  RotationMatricesRad(FdRotation.RotationRad, FdRotation.Axis,
-    Matrix, InvertedMatrix);
-end;
-
-function TRotationNode_1.TransformScale: Single;
-begin
-  Result := 1;
+  inherited;
+  StateStack.Top.Transformation.Multiply(FdRotation.Value, Vector3(1, 1, 1), TVector3.Zero);
 end;
 
 procedure TScaleNode_1.CreateNode;
@@ -1998,14 +1945,10 @@ begin
  Result := 'Scale';
 end;
 
-procedure TScaleNode_1.Transformation(out Matrix, InvertedMatrix: TMatrix4);
+procedure TScaleNode_1.MiddleTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
-  ScalingMatrices(FdScaleFactor.Value, true, Matrix, InvertedMatrix);
-end;
-
-function TScaleNode_1.TransformScale: Single;
-begin
-  Result := Approximate3DScale(FdScaleFactor.Value);
+  inherited;
+  StateStack.Top.Transformation.Multiply(TVector4.Zero, FdScaleFactor.Value, TVector3.Zero);
 end;
 
 procedure TTransformNode_1.CreateNode;
@@ -2038,50 +1981,15 @@ begin
   Result := 'Transform';
 end;
 
-procedure TTransformNode_1.Transformation(out Matrix, InvertedMatrix: TMatrix4);
-var
-  M, IM, MRotateScaleOrient, IMRotateScaleOrient: TMatrix4;
+procedure TTransformNode_1.MiddleTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
-  TranslationMatrices(FdTranslation.Value + FdCenter.Value,
-    Matrix, InvertedMatrix);
-
-  { Note that even Axis = zero is OK, both M and IM will be identity in
-    this case. }
-  RotationMatricesRad(FdRotation.RotationRad, FdRotation.Axis, M, IM);
-  Matrix := Matrix * M;
-  InvertedMatrix := IM * InvertedMatrix;
-
-  if (FdScaleFactor.Value[0] <> 1) or
-     (FdScaleFactor.Value[1] <> 1) or
-     (FdScaleFactor.Value[2] <> 1) then
-  begin
-    RotationMatricesRad(FdScaleOrientation.RotationRad, FdScaleOrientation.Axis,
-      MRotateScaleOrient, IMRotateScaleOrient);
-
-    Matrix := Matrix * MRotateScaleOrient;
-    InvertedMatrix := IMRotateScaleOrient * InvertedMatrix;
-
-    { For scaling, we explicitly request that if ScalingFactor contains
-      zero, IM will be forced to be identity. That's because VRML allows
-      scaling factor to have 0 components (we need InvertedTransform only
-      for special tricks). }
-
-    ScalingMatrices(FdScaleFactor.Value, true, M, IM);
-    Matrix := Matrix * M;
-    InvertedMatrix := IM * InvertedMatrix;
-
-    Matrix := Matrix * IMRotateScaleOrient;
-    InvertedMatrix := MRotateScaleOrient * InvertedMatrix;
-  end;
-
-  TranslationMatrices(-FdCenter.Value, M, IM);
-  Matrix := Matrix * M;
-  InvertedMatrix := IM * InvertedMatrix;
-end;
-
-function TTransformNode_1.TransformScale: Single;
-begin
-  Result := Approximate3DScale(FdScaleFactor.Value);
+  inherited;
+  StateStack.Top.Transformation.Multiply(
+    FdCenter.Value,
+    FdRotation.Value,
+    FdScaleFactor.Value,
+    FdScaleOrientation.Value,
+    FdTranslation.Value);
 end;
 
 class function TTransformNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -2103,15 +2011,10 @@ begin
   Result := 'Translation';
 end;
 
-procedure TTranslationNode_1.Transformation(
-  out Matrix, InvertedMatrix: TMatrix4);
+procedure TTranslationNode_1.MiddleTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
-  TranslationMatrices(FdTranslation.Value, Matrix, InvertedMatrix);
-end;
-
-function TTranslationNode_1.TransformScale: Single;
-begin
-  Result := 1;
+  inherited;
+  StateStack.Top.Transformation.Multiply(TVector4.Zero, Vector3(1, 1, 1), FdTranslation.Value);
 end;
 
 procedure TAbstractCameraNode_1.CreateNode;

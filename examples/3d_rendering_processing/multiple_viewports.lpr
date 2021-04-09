@@ -271,10 +271,12 @@ begin
   Viewports[2] := TScreenEffectDemoViewport.Create(Application);
   Viewports[2].Caption := 'Screen effect shader';
 
-  Theme.Images[tiActiveFrame] := FrameThickWhite;
-  Theme.Corners[tiActiveFrame] := Vector4(3, 3, 3, 3);
-  Theme.Images[tiLabel] := FrameYellowBlack;
-  Theme.Corners[tiLabel] := Vector4(1, 1, 1, 1);
+  Theme.ImagesPersistent[tiActiveFrame].Image := FrameThickWhite;
+  Theme.ImagesPersistent[tiActiveFrame].OwnsImage := false; // should be default, but just in case...
+  Theme.ImagesPersistent[tiActiveFrame].ProtectedSides.AllSides := 3;
+  Theme.ImagesPersistent[tiLabel].Image := FrameYellowBlack;
+  Theme.ImagesPersistent[tiLabel].OwnsImage := false; // should be default, but just in case...
+  Theme.ImagesPersistent[tiLabel].ProtectedSides.AllSides := 1;
 
   for I := 0 to High(Viewports) do
   begin

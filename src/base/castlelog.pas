@@ -328,7 +328,8 @@ begin
     WriteLogCoreCore('  Version: ' + ApplicationProperties.Version + '.' + NL);
   WriteLogCoreCore('  Started on ' + DateTimeToAtStr(CastleNow) + '.' + NL);
   WriteLogCoreCore('  Castle Game Engine version: ' + CastleEngineVersion + '.' + NL);
-  WriteLogCoreCore('  Compiled with: ' + SCompilerDescription + '.' + NL);
+  WriteLogCoreCore('  Compiled with ' + SCompilerDescription + '.' + NL);
+  WriteLogCoreCore('  Platform: ' + SPlatformDescription + '.' + NL);
   if CollectedLog <> '' then
   begin
     WriteLogCoreCore(CollectedLog);

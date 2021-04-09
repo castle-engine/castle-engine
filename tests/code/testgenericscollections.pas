@@ -1,5 +1,6 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestGenericsCollections" -*-
 {
-  Copyright 2017-2018 Michalis Kamburelis.
+  Copyright 2017-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,7 +14,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Test Generics.Collections unit. }
+{ Test Generics.Collections unit. These tests are independent from CGE. }
 unit TestGenericsCollections;
 
 interface

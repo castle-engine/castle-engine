@@ -27,14 +27,15 @@
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
+    <SearchPaths>
+      <IncludeFiles Value="code/"/>
+      <OtherUnitFiles Value="code/"/>
+      <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
+      <Libraries Value="" />
+    </SearchPaths>
     <Target>
       <Filename Value="isometric_game"/>
     </Target>
-    <SearchPaths>
-      <IncludeFiles Value=""/>
-      <OtherUnitFiles Value=""/>
-      <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
-    </SearchPaths>
     <Other>
       <Verbosity>
         <ShowHints Value="False"/>

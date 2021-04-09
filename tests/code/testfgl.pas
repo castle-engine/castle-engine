@@ -1,5 +1,6 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestFGL" -*-
 {
-  Copyright 2004-2018 Michalis Kamburelis.
+  Copyright 2004-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,6 +15,7 @@
 }
 
 { Test FGL unit. }
+
 unit TestFGL;
 
 interface
@@ -22,7 +24,7 @@ uses
   Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, FGL;
 
 type
-  TTestObjectsList = class(TTestCase)
+  TTestFGL = class(TTestCase)
     procedure TestObjectsList;
   end;
 
@@ -93,66 +95,82 @@ begin
     System.Move(Source.List^[0], List^[OldCount], SizeOf(Pointer) * Source.Count);
 end;
 
-procedure TTestObjectsList.TestObjectsList;
+procedure TTestFGL.TestObjectsList;
 var ol, ol2: TItemList;
 begin
- ol := TItemList.Create(false);
- try ol.Add(TItem.Create); ol[0].Str := 'foo'; ol[0].Free;
- finally ol.Free end;
+  ol := TItemList.Create(false);
+  try ol.Add(TItem.Create); ol[0].Str := 'foo'; ol[0].Free;
+  finally ol.Free end;
 
- ol := TItemList.Create(false);
- try ol.Add(TItem($454545)); ol.Delete(0);
- finally ol.Free end;
+  ol := TItemList.Create(false);
+  try ol.Add(TItem($454545)); ol.Delete(0);
+  finally ol.Free end;
 
- ol := TItemList.Create(true);
- try ol.Add(TItem.Create); ol.Clear;
- finally ol.Free end;
+  ol := TItemList.Create(true);
+  try ol.Add(TItem.Create); ol.Clear;
+  finally ol.Free end;
 
- ol := TItemList.Create(true);
- try ol.Add(nil); ol.Clear;
- finally ol.Free end;
+  ol := TItemList.Create(true);
+  try ol.Add(nil); ol.Clear;
+  finally ol.Free end;
 
- ol := TItemList.Create(true);
- try
-  ol.Add(TItem.Create); ol.Last.Str := 'first item';
-
-  ol2 := TItemList.Create(false);
+  ol := TItemList.Create(true);
   try
-   ol2.Add(TItem.Create); ol2.Last.Str := 'one';
-   ol2.Add(TItem.Create); ol2.Last.Str := 'two';
-   ol.AddList(ol2);
-  finally ol2.Free end;
-  ol.Clear;
- finally ol.Free end;
+    ol.Add(TItem.Create); ol.Last.Str := 'first item';
 
- ol := TItemList.Create(true);
- try
-  ol.Add(TItem.Create); ol.Last.Str := 'first item';
+    ol2 := TItemList.Create(false);
+    try
+      ol2.Add(TItem.Create); ol2.Last.Str := 'one';
+      ol2.Add(TItem.Create); ol2.Last.Str := 'two';
+      ol.AddList(ol2);
+    finally ol2.Free end;
+    ol.Clear;
+  finally ol.Free end;
 
-  ol2 := TItemList.Create(false);
+  ol := TItemList.Create(true);
   try
-   ol2.Add(TItem.Create); ol2.Last.Str := 'one';
-   ol2.Add(TItem.Create); ol2.Last.Str := 'two';
-   ol.AddList(ol2);
-   ol.AddList(ol2);
-  finally ol2.Free end;
+    ol.Add(TItem.Create); ol.Last.Str := 'first item';
 
-  AssertTrue(ol.Count = 5);
-  AssertTrue(ol[0].Str = 'first item');
-  AssertTrue(ol[1].Str = 'one');
-  AssertTrue(ol[2].Str = 'two');
-  AssertTrue(ol[3].Str = 'one');
-  AssertTrue(ol[4].Str = 'two');
+    ol2 := TItemList.Create(false);
+    try
+      ol2.Add(TItem.Create); ol2.Last.Str := 'one';
+      ol2.Add(TItem.Create); ol2.Last.Str := 'two';
+      ol.AddList(ol2);
+      ol.AddList(ol2);
+    finally ol2.Free end;
 
-  AssertTrue(ol[1] = ol[3]); { (1 i 3) i (2 i 4) to te same obiekty. }
-  AssertTrue(ol[2] = ol[4]);
+    AssertTrue(ol.Count = 5);
+    AssertTrue(ol[0].Str = 'first item');
+    AssertTrue(ol[1].Str = 'one');
+    AssertTrue(ol[2].Str = 'two');
+    AssertTrue(ol[3].Str = 'one');
+    AssertTrue(ol[4].Str = 'two');
 
-  { delete dups, preventing Clear from Freeing two times the same reference }
-  ol.DeleteDuplicates;
-  ol.Clear;
- finally ol.Free end;
+    AssertTrue(ol[1] = ol[3]); { (1 i 3) i (2 i 4) to te same obiekty. }
+    AssertTrue(ol[2] = ol[4]);
+
+    { delete dups, preventing Clear from Freeing two times the same reference }
+    ol.DeleteDuplicates;
+    ol.Clear;
+  finally ol.Free end;
 end;
 
 initialization
- RegisterTest(TTestObjectsList);
+  { For some reason, testing FGL with FPC 3.3.1 fails with:
+
+      Marked memory at $00007F65B6276C60 invalid
+      Wrong signature $2071BAA5 instead of 243D6DCB
+        $00000000004CB2C0
+
+      FPC rev 40000, Linux/x86_64.
+      Also: FPC rev 41505, Windows/x86_64.
+      Once the backtrace pointed to DEREF,  line 1028 of fgl.pp .
+
+    TODO: submit FPC bug.
+    For now, do not do this test with newer FPCs.
+    We don't use FGL in CGE now anyway.
+  }
+  {$ifdef VER3_0}
+  RegisterTest(TTestFGL);
+  {$endif}
 end.

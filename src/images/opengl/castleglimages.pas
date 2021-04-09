@@ -75,7 +75,6 @@ uses SysUtils, Generics.Collections, Classes,
 {$I castleglimages_wrap.inc}
 {$I castleglimages_drawableimage.inc}
 {$I castleglimages_drawableimagecache.inc}
-{$I castleglimages_border.inc}
 {$I castleglimages_persistentimage.inc}
 {$I castleglimages_load_2d.inc}
 {$I castleglimages_load_3d.inc}
@@ -103,7 +102,6 @@ uses Math, Generics.Defaults,
 {$I castleglimages_wrap.inc}
 {$I castleglimages_drawableimage.inc}
 {$I castleglimages_drawableimagecache.inc}
-{$I castleglimages_border.inc}
 {$I castleglimages_persistentimage.inc}
 {$I castleglimages_load_2d.inc}
 {$I castleglimages_load_3d.inc}

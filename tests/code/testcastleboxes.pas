@@ -1,6 +1,6 @@
 // -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleBoxes" -*-
 {
-  Copyright 2007-2020 Michalis Kamburelis.
+  Copyright 2007-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 

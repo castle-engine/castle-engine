@@ -68,11 +68,19 @@ type
     FTouchDevice: boolean;
     FLimitFPS: Single;
     FShowUserInterfaceToQuit: Boolean;
+    FCaption: String;
     function GetApplicationName: String;
     procedure SetApplicationName(const Value: String);
   public
     const
       DefaultLimitFPS = 100.0;
+
+      { Some platforms do not support Application.ProcessMessages, which means you
+        cannot just write a function like MessageYesNo that waits until user clicks
+        something.
+        You *have* to implement modal boxes then using states,
+        e.g. using CastleDialogStates or your own TUIState descendants. }
+      PlatformAllowsModalRoutines = {$if defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH)} false {$else} true {$endif};
 
     constructor Create;
     destructor Destroy; override;
@@ -84,6 +92,9 @@ type
       as standard SysUtils.ApplicationName.
       When setting this, we automatically set SysUtils.OnGetApplicationName. }
     property ApplicationName: String read GetApplicationName write SetApplicationName;
+
+    { @abstract(Pretty application name, to show to user e.g. as a window caption.) }
+    property Caption: String read FCaption write FCaption;
 
     { Version of this application.
       It may be used e.g. by @link(InitializeLog) and
@@ -292,6 +303,13 @@ type
       On iOS, some things (like ApplicationConfig path) may not be initialized so early. }
     property _FileAccessSafe: boolean read FFileAccessSafe write FFileAccessSafe;
     { @groupEnd }
+
+    { Print some common information about application,
+      for example to use in --help command-line output.
+      It shows application name, version, CGE version, compiler version, platform.
+
+      Includes the output of SCompilerDescription and SPlatformDescription. }
+    function Description: String;
   end;
 
 function ApplicationProperties(
@@ -478,6 +496,15 @@ begin
   else
     WarningCategory := 'Warning';
   WarningWrite(ApplicationName + ': ' + WarningCategory + ': ' + Message);
+end;
+
+function TCastleApplicationProperties.Description: String;
+begin
+  Result :=
+    ApplicationName + ' version ' + Version + '.' + NL +
+    'Using Castle Game Engine ( https://castle-engine.io/ ) version ' + CastleEngineVersion + '.' + NL +
+    'Compiled with ' + SCompilerDescription + '.' + NL +
+    'Platform: ' + SPlatformDescription + '.';
 end;
 
 initialization

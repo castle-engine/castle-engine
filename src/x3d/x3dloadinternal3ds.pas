@@ -21,13 +21,14 @@ unit X3DLoadInternal3DS;
 
 interface
 
-uses X3DNodes;
+uses SysUtils, Classes,
+  X3DNodes;
 
-function Load3DS(const URL: string): TX3DRootNode;
+function Load3DS(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 
 implementation
 
-uses SysUtils, Classes, Generics.Collections, Math,
+uses Generics.Collections, Math,
   CastleUtils, CastleClassUtils, CastleVectors, X3DCameraUtils,
   X3DLoadInternalUtils, CastleLog, CastleDownload, CastleURIUtils,
   CastleStreamUtils;
@@ -246,8 +247,7 @@ type
     { @groupEnd }
     { Autodesk version used to create this 3DS. }
     Version: LongWord;
-    constructor Create(Stream: TStream); overload;
-    constructor Create(const URL: string); overload;
+    constructor Create(const Stream: TStream);
     destructor Destroy; override;
   end;
 
@@ -912,7 +912,7 @@ end;
 
 { TScene3DS ----------------------------------------------------------------- }
 
-constructor TScene3DS.Create(Stream: TStream);
+constructor TScene3DS.Create(const Stream: TStream);
 var
   hmain, hsubmain, hsubObjMesh: TChunkHeader;
   hsubmainEnd, hsubObjMeshEnd: Int64;
@@ -963,15 +963,6 @@ begin
   Materials.CheckAllInitialized;
 end;
 
-constructor TScene3DS.Create(const URL: string);
-var
-  S: TStream;
-begin
-  S := Download(URL, [soForceMemoryStream]);
-  try Create(S);
-  finally S.Free end;
-end;
-
 destructor TScene3DS.Destroy;
 begin
   FreeAndNil(Trimeshes);
@@ -983,9 +974,8 @@ end;
 
 { Load3DS -------------------------------------------------------------------- }
 
-function Load3DS(const URL: string): TX3DRootNode;
+function Load3DS(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 var
-  BaseUrl: string;
   O3ds: TScene3DS;
 
   { Prefix names with things like "Material_", to make sure these
@@ -1110,9 +1100,8 @@ var
   Shape: TShapeNode;
   I, J, FaceMaterialNum, ThisMaterialFacesCount, FaceNum: Integer;
 begin
-  BaseUrl := AbsoluteURI(URL);
   Appearances := nil;
-  O3ds := TScene3DS.Create(URL);
+  O3ds := TScene3DS.Create(Stream);
   try
     Result := TX3DRootNode.Create('', BaseUrl);
     try

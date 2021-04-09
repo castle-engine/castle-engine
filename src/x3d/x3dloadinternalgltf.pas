@@ -21,21 +21,24 @@ unit X3DLoadInternalGltf;
 interface
 
 uses Classes,
-  X3DNodes, X3DFields;
+  CastleUtils, CastleVectors, X3DNodes, X3DFields;
 
 { Load 3D model in the Gltf format, converting it to an X3D nodes graph.
-  This routine is internally used by the @link(LoadNode) to load an Gltf file.
+  This routine is internally used by the @link(LoadNode) to load an Gltf file. }
+function LoadGltf(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 
-  The overloaded version without an explicit Stream will open the URL
-  using @link(Download). }
-function LoadGltf(const URL: string): TX3DRootNode;
-function LoadGltf(const Stream: TStream; const URL: string): TX3DRootNode;
+{ Process a list of key and key values to turn linear into step interpolation.
+  This is internal, exposed only for tests. }
+procedure ProcessStepTimeline(const Times: TSingleList;
+  const Values: TVector3List); overload;
+procedure ProcessStepTimeline(const Times: TSingleList;
+  const Values: TVector4List); overload;
 
 implementation
 
 uses SysUtils, TypInfo, Math, PasGLTF, PasJSON, Generics.Collections,
-  CastleClassUtils, CastleDownload, CastleUtils, CastleURIUtils, CastleLog,
-  CastleVectors, CastleStringUtils, CastleTextureImages, CastleQuaternions,
+  CastleClassUtils, CastleDownload, CastleURIUtils, CastleLog,
+  CastleStringUtils, CastleTextureImages, CastleQuaternions,
   CastleImages, CastleVideos, CastleTimeUtils, CastleTransform,
   CastleLoadGltf, X3DLoadInternalUtils, CastleBoxes, CastleColors,
   CastleRenderOptions;
@@ -78,6 +81,84 @@ uses SysUtils, TypInfo, Math, PasGLTF, PasJSON, Generics.Collections,
 
   - See https://castle-engine.io/planned_features.php .
 }
+
+{ other utilities ------------------------------------------------------------ }
+
+procedure ProcessStepTimeline(const Times: TSingleList;
+  const Values: TVector3List); overload;
+var
+  C, NewC: SizeInt;
+  I: Integer;
+  TimesPtr: PSingle;
+  ValuesPtr: PVector3;
+begin
+  if Times.Count > 1 then
+  begin
+    C := Times.Count;
+    if C <> Values.Count then
+    begin
+      WritelnWarning('"Step" timeline has different number of keys than key values');
+      Exit;
+    end;
+
+    NewC := (C - 1) * 2 + 1;
+
+    Times.Count := NewC;
+    Values.Count := NewC;
+
+    TimesPtr := PSingle(Times.List);
+    ValuesPtr := PVector3(Values.List);
+
+    // fill new values, going downward, to not overwrite the useful values
+    ValuesPtr[NewC - 1] := ValuesPtr[C- 1];
+    TimesPtr[NewC - 1] := TimesPtr[C- 1];
+    for I := C - 2 downto 0 do
+    begin
+      ValuesPtr[I * 2 + 1] := ValuesPtr[I];
+      ValuesPtr[I * 2    ] := ValuesPtr[I];
+      TimesPtr [I * 2 + 1] := TimesPtr [I + 1];
+      TimesPtr [I * 2    ] := TimesPtr [I];
+    end;
+  end;
+end;
+
+procedure ProcessStepTimeline(const Times: TSingleList;
+  const Values: TVector4List); overload;
+var
+  C, NewC: SizeInt;
+  I: Integer;
+  TimesPtr: PSingle;
+  ValuesPtr: PVector4;
+begin
+  if Times.Count > 1 then
+  begin
+    C := Times.Count;
+    if C <> Values.Count then
+    begin
+      WritelnWarning('"Step" timeline has different number of keys than key values');
+      Exit;
+    end;
+
+    NewC := (C - 1) * 2 + 1;
+
+    Times.Count := NewC;
+    Values.Count := NewC;
+
+    TimesPtr := PSingle(Times.List);
+    ValuesPtr := PVector4(Values.List);
+
+    // fill new values, going downward, to not overwrite the useful values
+    ValuesPtr[NewC - 1] := ValuesPtr[C- 1];
+    TimesPtr[NewC - 1] := TimesPtr[C- 1];
+    for I := C - 2 downto 0 do
+    begin
+      ValuesPtr[I * 2 + 1] := ValuesPtr[I];
+      ValuesPtr[I * 2    ] := ValuesPtr[I];
+      TimesPtr [I * 2 + 1] := TimesPtr [I + 1];
+      TimesPtr [I * 2    ] := TimesPtr [I];
+    end;
+  end;
+end;
 
 { Convert simple types ------------------------------------------------------- }
 
@@ -828,9 +909,8 @@ end;
 { LoadGltf ------------------------------------------------------------------- }
 
 { Main routine that converts glTF -> X3D nodes, doing most of the work. }
-function LoadGltf(const Stream: TStream; const URL: string): TX3DRootNode;
+function LoadGltf(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 var
-  BaseUrl: String;
   Document: TPasGLTF.TDocument;
   // List of TGltfAppearanceNode nodes, ordered just list glTF materials
   Appearances: TX3DNodeList;
@@ -1194,7 +1274,7 @@ var
 
   function ReadAppearance(const Material: TPasGLTF.TMaterial): TGltfAppearanceNode;
   var
-    AlphaChannel: TAutoAlphaChannel;
+    AlphaMode: TAlphaMode;
   begin
     Result := TGltfAppearanceNode.Create(Material.Name);
 
@@ -1212,21 +1292,15 @@ var
 
     // read alpha channel treatment
     case Material.AlphaMode of
-      TPasGLTF.TMaterial.TAlphaMode.Opaque: AlphaChannel := acNone;
-      TPasGLTF.TMaterial.TAlphaMode.Blend : AlphaChannel := acBlending;
-      TPasGLTF.TMaterial.TAlphaMode.Mask  : AlphaChannel := acTest;
+      TPasGLTF.TMaterial.TAlphaMode.Opaque: AlphaMode := amOpaque;
+      TPasGLTF.TMaterial.TAlphaMode.Blend : AlphaMode := amBlend;
+      TPasGLTF.TMaterial.TAlphaMode.Mask  : AlphaMode := amMask;
       {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('Unexpected glTF Material.AlphaMode value');
       {$endif}
     end;
-    Result.AlphaChannel := AlphaChannel;
-
-    // TODO: ignored for now:
-    // Result.AlphaClipThreshold := Material.AlphaCutOff;
-    // Implement AlphaClipThreshold from X3DOM / InstantReality:
-    // https://doc.x3dom.org/author/Shape/Appearance.html
-    // https://www.x3dom.org/news/
-    // (our default 0.5?)
+    Result.AlphaMode := AlphaMode;
+    Result.AlphaCutOff := Material.AlphaCutOff;
   end;
 
   function AccessorTypeToStr(const AccessorType: TPasGLTF.TAccessor.TType): String;
@@ -1814,11 +1888,24 @@ var
       TPasGLTF.TAnimation.TSampler.TSamplerType.Linear: ; // nothing to do
       TPasGLTF.TAnimation.TSampler.TSamplerType.Step:
         begin
-          WritelnWarning('Animation interpolation Step not supported now, will be Linear');
+          case Path of
+            gsTranslation, gsScale:
+              ProcessStepTimeline(
+                InterpolatePosition.FdKey.Items,
+                InterpolatePosition.FdKeyValue.Items);
+            gsRotation:
+              ProcessStepTimeline(
+                InterpolateOrientation.FdKey.Items,
+                InterpolateOrientation.FdKeyValue.Items);
+            {$ifndef COMPILER_CASE_ANALYSIS}
+            else raise EInternalError.Create('ReadSampler - Path?');
+            {$endif}
+          end;
         end;
       TPasGLTF.TAnimation.TSampler.TSamplerType.CubicSpline:
         begin
-          WritelnWarning('Animation interpolation "CubicSpline" not supported yet, approximating by "Linear"');
+          // May spam too much. Assume that our current approximation is good enough.
+          // WritelnWarning('Animation interpolation "CubicSpline" not supported yet, approximating by "Linear"');
           case Path of
             gsTranslation, gsScale:
               begin
@@ -2407,15 +2494,6 @@ var
   Material: TPasGLTF.TMaterial;
   Animation: TPasGLTF.TAnimation;
 begin
-  { Make absolute URL.
-
-    This also makes the later Document.RootPath calculation correct.
-    Otherwise "InclPathDelim(ExtractFilePath(URIToFilenameSafe('my_file.gtlf')))"
-    would result in '/' (accidentally making all TPasGLTF.TImage.URI values
-    relative to root directory on Unix). This was reproducible doing
-    "view3dscene my_file.gtlf" on the command-line. }
-  BaseUrl := AbsoluteURI(URL);
-
   Result := TX3DRootNode.Create('', BaseUrl);
   try
     // Set to nil local variables, to avoid nested try..finally..end construction
@@ -2473,23 +2551,21 @@ begin
       FreeAndNil(AnimationSampler);
       FreeIfUnusedAndNil(DefaultAppearance);
       X3DNodeList_FreeUnusedAndNil(Appearances);
+      { Note that some Nodes[...] items may be nil.
+
+        While in glTF there are no gaps (the nodes are a list without gaps),
+        but a particular Document.Scene may refer only to a subset of nodes,
+        and our ReadNode reads them recursively.
+        Unused nodes (not referred by Document.Scene) are left unprocessed,
+        and their Nodes[...] remains nil.
+
+        Still, X3DNodeList_FreeUnusedAndNil guarantees to handle it.
+        Testcase: GLB from https://www.kenney.nl/assets/city-kit-suburban . }
       X3DNodeList_FreeUnusedAndNil(Nodes);
       FreeAndNil(Lights);
       FreeAndNil(Document);
     end;
   except FreeAndNil(Result); raise end;
-end;
-
-function LoadGltf(const URL: string): TX3DRootNode;
-var
-  Stream: TStream;
-begin
-  { Using soForceMemoryStream, because PasGLTF does seeking,
-    otherwise reading glTF from Android assets (TReadAssetStream) would fail. }
-  Stream := Download(URL, [soForceMemoryStream]);
-  try
-    Result := LoadGltf(Stream, URL);
-  finally FreeAndNil(Stream) end;
 end;
 
 end.

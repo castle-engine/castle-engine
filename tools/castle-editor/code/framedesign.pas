@@ -101,7 +101,6 @@ type
     TabEvents: TTabSheet;
     TabLayout: TTabSheet;
     TabBasic: TTabSheet;
-    TabOther: TTabSheet;
     UpdateObjectInspector: TTimer;
     procedure ButtonClearAnchorDeltasClick(Sender: TObject);
     procedure ButtonResetTransformationClick(Sender: TObject);
@@ -193,7 +192,7 @@ type
 
       TTreeNodeSide = (tnsRight, tnsBottom, tnsTop);
 
-      TInspectorType = (itBasic, itLayout, itOther, itEvents, itAll);
+      TInspectorType = (itBasic, itLayout, itEvents, itAll);
 
     const
       TransformModes = [
@@ -274,10 +273,23 @@ type
       var aShow: Boolean);
     procedure InspectorLayoutFilter(Sender: TObject; AEditor: TPropertyEditor;
       var aShow: Boolean);
-    procedure InspectorOtherFilter(Sender: TObject; AEditor: TPropertyEditor;
-      var aShow: Boolean);
     procedure MarkModified;
+    function UndoMessageModified(const Sel: TPersistent;
+      const ModifiedProperty, ModifiedValue: String; const SelectedCount: Integer): String;
+    { PropertyGridModified and PropertyEditorModified are called when
+      something changes in the design.
+      PropertyGridModified and PropertyEditorModified are both called when
+      something changes within Object Inspector basic features
+      (such as editing string, boolean, enum or numeric values)
+      In this case PropertyEditorModified usually comes first.
+      In case something changed outside of Object inspector (e.g. drag-and-drops,
+      rename components in treeview, add components, etc.)
+      only PropertyGridModified is called
+      In case a custom dialog is used to change a value
+      (e.g. a Color picker, TStrings editor, Open File dialogue, etc.)
+      then only PropertyEditorModified is called. }
     procedure PropertyGridModified(Sender: TObject);
+    procedure PropertyEditorModified(Sender: TObject);
     { Is Child selectable and visible in hierarchy. }
     class function Selectable(const Child: TComponent): Boolean; static;
     { Is Child deletable by user (this implies it is also selectable). }
@@ -319,7 +331,7 @@ type
     procedure BeforeProposeSaveDesign;
     procedure AddComponent(const ComponentClass: TComponentClass;
       const ComponentOnCreate: TNotifyEvent);
-    function AddComponent(const ParentComponent:TComponent; const ComponentClass: TComponentClass;
+    function AddComponent(const ParentComponent: TComponent; const ComponentClass: TComponentClass;
       const ComponentOnCreate: TNotifyEvent): TComponent;
     procedure DeleteComponent;
     procedure CopyComponent;
@@ -344,7 +356,7 @@ implementation
 
 uses // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
   {$ifdef VER3_0} {$ifdef MSWINDOWS} Windows, {$endif} {$endif}
-  TypInfo, StrUtils, Math, Graphics, Types, Dialogs, LCLType,
+  TypInfo, StrUtils, Math, Graphics, Types, Dialogs, LCLType, ObjInspStrConsts,
   Castle2DSceneManager, CastleComponentSerialize, CastleFileFilters,
   CastleGLUtils, CastleImages, CastleLog,  CastleProjection, CastleScene,
   CastleShellCtrls, CastleStringUtils, CastleThirdPersonNavigation,
@@ -986,11 +998,6 @@ begin
   Inspector[itLayout].Align := alBottom;
   Inspector[itLayout].AnchorToNeighbour(akTop, 0, PanelLayoutTop);
 
-  Inspector[itOther] := CommonInspectorCreate;
-  Inspector[itOther].Parent := TabOther;
-  Inspector[itOther].OnEditorFilter := @InspectorOtherFilter;
-  Inspector[itOther].Filter := tkProperties;
-
   Inspector[itAll] := CommonInspectorCreate;
   Inspector[itAll].Parent := TabAll;
   Inspector[itAll].Filter := tkProperties;
@@ -1178,6 +1185,7 @@ begin
 
   // Allows object inspectors to find matching components, e.g. when editing Viewport.Items.MainScene
   PropertyEditorHook.LookupRoot := DesignOwner;
+  PropertyEditorHook.AddHandlerModified(@PropertyEditorModified);
 
   UpdateDesign;
   OnUpdateFormCaption(Self);
@@ -1190,15 +1198,25 @@ var
 begin
   NewDesignOwner := TComponent.Create(Self);
 
-  Mime := URIMimeType(NewDesignUrl);
-  if Mime = 'text/x-castle-user-interface' then
-    NewDesignRoot := UserInterfaceLoad(NewDesignUrl, NewDesignOwner)
-  else
-  if Mime = 'text/x-castle-transform' then
-    NewDesignRoot := TransformLoad(NewDesignUrl, NewDesignOwner)
-  else
-    raise Exception.CreateFmt('Unrecognized file extension %s (MIME type %s)',
-      [ExtractFileExt(NewDesignUrl), Mime]);
+  try
+    Mime := URIMimeType(NewDesignUrl);
+    if Mime = 'text/x-castle-user-interface' then
+      NewDesignRoot := UserInterfaceLoad(NewDesignUrl, NewDesignOwner)
+    else
+    if Mime = 'text/x-castle-transform' then
+      NewDesignRoot := TransformLoad(NewDesignUrl, NewDesignOwner)
+    else
+      raise Exception.CreateFmt('Unrecognized file extension %s (MIME type %s)',
+        [ExtractFileExt(NewDesignUrl), Mime]);
+  except
+    { Testcase: try to load using UserInterfaceLoad a file
+      that has TCastleTransform inside. UserInterfaceLoad makes EInvalidCast. }
+    on E: Exception do
+    begin
+      E.Message := 'Error when loading ' + URIDisplay(NewDesignUrl) + ': ' + E.Message;
+      raise;
+    end;
+  end;
 
   UndoSystem.ClearUndoHistory;
 
@@ -1258,7 +1276,7 @@ begin
   AddComponent(ParentComponent, ComponentClass, ComponentOnCreate);
 end;
 
-function TDesignFrame.AddComponent(const ParentComponent:TComponent; const ComponentClass: TComponentClass;
+function TDesignFrame.AddComponent(const ParentComponent: TComponent; const ComponentClass: TComponentClass;
   const ComponentOnCreate: TNotifyEvent): TComponent;
 
   procedure FinishAddingComponent(const NewComponent: TComponent);
@@ -1810,15 +1828,29 @@ var
   SelectedFileName: String;
   SelectedURL: String;
 begin
+  Accept := false;
   if Source is TCastleShellListView then
   begin
     ShellList := TCastleShellListView(Source);
-    SelectedFileName := ShellList.GetPathFromItem(ShellList.Selected);
-    SelectedURL := FilenameToURISafe(SelectedFileName);
 
-    Accept := TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL);
-  end else
-    Accept := false;
+    { ShellList.Selected may be nil, testcase:
+      - open any project (empty from template is OK)
+      - create new design using menu item
+        (looks like this step is necessary into tricking LCL that we're
+        in the middle of drag-and-drop on GTK?)
+      - double-click on some design file in data/ by double-clicking
+      - mouse over the design -> without this check, would have access violation
+        due to TDesignFrame.CastleControlDragOver being called with
+        ShellList.Selected = nil. }
+
+    if ShellList.Selected <> nil then
+    begin
+      SelectedFileName := ShellList.GetPathFromItem(ShellList.Selected);
+      SelectedURL := FilenameToURISafe(SelectedFileName);
+
+      Accept := TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL);
+    end;
+  end;
 end;
 
 procedure TDesignFrame.CastleControlDragDrop(Sender, Source: TObject; X, Y: Integer);
@@ -1839,55 +1871,58 @@ begin
   if Source is TCastleShellListView then
   begin
     ShellList := TCastleShellListView(Source);
-    SelectedFileName := ShellList.GetPathFromItem(ShellList.Selected);
-    SelectedURL := MaybeUseDataProtocol(FilenameToURISafe(SelectedFileName));
-
-    if not TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) then
-      Exit;
-
-    UI := FDesignerLayer.HoverUserInterface(Vector2(X, Y));
-    if not (UI is TCastleViewport) then
-      Exit;
-
-    Viewport := TCastleViewport(UI);
-
-    Scene := AddComponent(Viewport.Items, TCastleScene, nil) as TCastleScene;
-    Scene.URL := SelectedURL;
-
-    { Make gizmos not pickable when looking for new scene position,
-      because ray can hit on gizmo. }
-    OldPickable := VisualizeTransformSelected.Pickable;
-    try
-      VisualizeTransformSelected.Pickable := false;
-      Viewport.PositionToRay(Vector2(X, CastleControl.Height - Y), true, RayOrigin, RayDirection);
-      RayHit := Viewport.Items.WorldRay(RayOrigin, RayDirection);
-    finally
-      VisualizeTransformSelected.Pickable := OldPickable;
-    end;
-    if (RayHit = nil) and (Viewport.Camera.ProjectionType = ptOrthographic) then
+    if ShellList.Selected <> nil then
     begin
-      PlaneZ := (Viewport.Camera.EffectiveProjectionNear + Viewport.Camera.EffectiveProjectionFar) / 2;
-      if not TrySimplePlaneRayIntersection(ScenePos, 2, PlaneZ, RayOrigin, RayDirection) then
-        Exit; // camera direction parallel to 3D plane with Z = constant
-    end else
-    begin
-      if RayHit <> nil then
+      SelectedFileName := ShellList.GetPathFromItem(ShellList.Selected);
+      SelectedURL := MaybeUseDataProtocol(FilenameToURISafe(SelectedFileName));
+
+      if not TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) then
+        Exit;
+
+      UI := FDesignerLayer.HoverUserInterface(Vector2(X, Y));
+      if not (UI is TCastleViewport) then
+        Exit;
+
+      Viewport := TCastleViewport(UI);
+
+      Scene := AddComponent(Viewport.Items, TCastleScene, nil) as TCastleScene;
+      Scene.URL := SelectedURL;
+
+      { Make gizmos not pickable when looking for new scene position,
+        because ray can hit on gizmo. }
+      OldPickable := VisualizeTransformSelected.Pickable;
+      try
+        VisualizeTransformSelected.Pickable := false;
+        Viewport.PositionToRay(Vector2(X, CastleControl.Height - Y), true, RayOrigin, RayDirection);
+        RayHit := Viewport.Items.WorldRay(RayOrigin, RayDirection);
+      finally
+        VisualizeTransformSelected.Pickable := OldPickable;
+      end;
+      if (RayHit = nil) and (Viewport.Camera.ProjectionType = ptOrthographic) then
       begin
-        Distance := RayHit.Distance;
-        FreeAndNil(RayHit);
+        PlaneZ := (Viewport.Camera.EffectiveProjectionNear + Viewport.Camera.EffectiveProjectionFar) / 2;
+        if not TrySimplePlaneRayIntersection(ScenePos, 2, PlaneZ, RayOrigin, RayDirection) then
+          Exit; // camera direction parallel to 3D plane with Z = constant
       end else
       begin
-        { If we don't hit any other scene set Distance to default value. }
-        Distance := 10;
+        if RayHit <> nil then
+        begin
+          Distance := RayHit.Distance;
+          FreeAndNil(RayHit);
+        end else
+        begin
+          { If we don't hit any other scene set Distance to default value. }
+          Distance := 10;
+        end;
+        ScenePos := RayOrigin + (RayDirection * Distance);
+
+        { In case of 2D game move scene a little closser to camera }
+        if Viewport.Camera.ProjectionType = ptOrthographic then
+          ScenePos := ScenePos - Viewport.Camera.Direction;
       end;
-      ScenePos := RayOrigin + (RayDirection * Distance);
 
-      { In case of 2D game move scene a little closser to camera }
-      if Viewport.Camera.ProjectionType = ptOrthographic then
-        ScenePos := ScenePos - Viewport.Camera.Direction;
+      Scene.Translation := ScenePos;
     end;
-
-    Scene.Translation := ScenePos;
   end;
 end;
 
@@ -1911,7 +1946,7 @@ begin
     { Show=true when Instance is some class used for subcomponents,
       like TCastleVector3Persistent, TBorder, TCastleImagePersistent... }
     if (not (Instance is TCastleComponent)) or
-       (TCastleComponent(Instance).PropertySection(PropertyName) = Section) then
+       (Section in TCastleComponent(Instance).PropertySections(PropertyName)) then
     begin
       AShow := true;
       Exit;
@@ -1946,22 +1981,39 @@ begin
   InspectorFilter(Sender, AEditor, AShow, psLayout);
 end;
 
-procedure TDesignFrame.InspectorOtherFilter(Sender: TObject;
-  AEditor: TPropertyEditor; var aShow: Boolean);
-begin
-  InspectorFilter(Sender, AEditor, AShow, psOther);
-end;
-
-procedure TDesignFrame.PropertyGridModified(Sender: TObject);
+function TDesignFrame.UndoMessageModified(const Sel: TPersistent;
+  const ModifiedProperty, ModifiedValue: String; const SelectedCount: Integer): String;
 const
   { Unreadable chars are defined like in SReplaceChars.
     Note they include newlines, we don't want to include newlines in undo description,
     as it would make menu item look weird (actually multiline on GTK2). }
   UnreadableChars = [Low(AnsiChar) .. Pred(' '), #128 .. High(AnsiChar)];
 var
+  ToValue: String;
+begin
+  if (Length(ModifiedValue) < 24) and (CharsPos(UnreadableChars, ModifiedValue) = 0) then
+    ToValue := ' to ' + ModifiedValue
+  else
+    ToValue := '';
+
+  { Right now, when SelectedCount = 1 then we know that Sel <> nil
+    (but it is better to not depend on it).
+    But it may not be TComponent, in case when changing property like X
+    of TCastleVector3Persistent. }
+  if (SelectedCount = 1) and
+     (Sel is TComponent) then
+    Result := 'Change ' + TComponent(Sel).Name + '.' + ModifiedProperty + ToValue
+  else
+  if SelectedCount > 1 then
+    Result := 'Change ' + ModifiedProperty + ToValue + ' in multiple components'
+  else
+    Result := 'Change ' + ModifiedProperty + ToValue;
+end;
+
+procedure TDesignFrame.PropertyGridModified(Sender: TObject);
+var
   Sel: TComponent;
   UI: TCastleUserInterface;
-  SenderRowName, SenderRowValue, SenderRowDescription: String;
 begin
   { Workaround possible ControlsTree.Selected = nil when the user deselects
     the currently edited component by clicking somewhere else.
@@ -1997,25 +2049,47 @@ begin
     end;
   end;
 
+  { When UndoSystem.ScheduleRecordUndoOnRelease we ignore changes,
+    otherwise we would record an undo for every OnMotion of dragging. }
   if not UndoSystem.ScheduleRecordUndoOnRelease then
   begin
-    { here we have PropertyGridModified conflict with Schedule Record Undo OnRelease
-      So we should ignore changes to PropertyGrid in case the change is caused
-      by dragging, otherwise we'll record an undo for every OnMotion of dragging }
     if Sender is TOICustomPropertyGrid then
     begin
-      SenderRowName := TOICustomPropertyGrid(Sender).GetActiveRow.Name;
-      SenderRowValue := TOICustomPropertyGrid(Sender).CurrentEditValue;
-      if CharsPos(UnreadableChars, SenderRowValue) = 0 then
-        SenderRowDescription := 'Change ' + Sel.Name + '.' + SenderRowName + ' to ' + SenderRowValue
-      else
-        SenderRowDescription := 'Change ' + Sel.Name + '.' + SenderRowName;
-      RecordUndo(SenderRowDescription, ucHigh, TOICustomPropertyGrid(Sender).ItemIndex);
+      RecordUndo(
+        UndoMessageModified(Sel, TOICustomPropertyGrid(Sender).GetActiveRow.Name,
+        TOICustomPropertyGrid(Sender).CurrentEditValue, ControlsTree.SelectionCount),
+        ucHigh, TOICustomPropertyGrid(Sender).ItemIndex);
     end else
-      RecordUndo('Modify ' + Sel.Name, ucLow);
+      { Sender is nil when PropertyGridModified is called
+        by ModifiedOutsideObjectInspector. }
+      if Sel <> nil then
+        RecordUndo('Change ' + Sel.Name, ucLow)
+      else
+      if ControlsTree.SelectionCount > 1 then
+        RecordUndo('Change multiple components', ucLow)
+      else
+        RecordUndo('', ucLow)
   end;
 
   MarkModified;
+end;
+
+procedure TDesignFrame.PropertyEditorModified(Sender: TObject);
+var
+  Sel: TPersistent;
+begin
+  if Sender is TPropertyEditor then
+  begin
+    if TPropertyEditor(Sender).PropCount = 1 then
+      Sel := TPropertyEditor(Sender).GetComponent(0)
+    else
+      Sel := nil;
+    RecordUndo(
+      UndoMessageModified(Sel, TPropertyEditor(Sender).GetName,
+        TPropertyEditor(Sender).GetValue, TPropertyEditor(Sender).PropCount),
+      ucHigh);
+  end else
+    raise EInternalError.Create('PropertyEditorModified can only be called with TPropertyEditor as a Sender.');
 end;
 
 procedure TDesignFrame.RecordUndo(const UndoComment: String;
@@ -2236,7 +2310,7 @@ begin
       else LabelControlSelected.Caption := 'Selected:' + NL + IntToStr(SelectedCount) + ' components';
     end;
 
-    SetEnabledExists(ControlProperties, SelectedCount <> 0);
+    SetEnabledVisible(ControlProperties, SelectedCount <> 0);
 
     SelectionForOI := TPersistentSelectionList.Create;
     try
@@ -2248,7 +2322,7 @@ begin
   finally FreeAndNil(Selected) end;
 
   UI := SelectedUserInterface;
-  SetEnabledExists(PanelAnchors, UI <> nil);
+  SetEnabledVisible(PanelAnchors, UI <> nil);
   if UI <> nil then
   begin
     UpdateLabelSizeInfo(UI);
@@ -2256,13 +2330,13 @@ begin
   end;
 
   V := SelectedViewport;
-  SetEnabledExists(LabelSelectedViewport, V <> nil);
-  SetEnabledExists(ButtonViewportMenu, V <> nil);
+  SetEnabledVisible(LabelSelectedViewport, V <> nil);
+  SetEnabledVisible(ButtonViewportMenu, V <> nil);
   if V <> nil then
     LabelSelectedViewport.Caption := V.Name + ':';
 
   T := SelectedTransform;
-  SetEnabledExists(PanelLayoutTransform, T <> nil);
+  SetEnabledVisible(PanelLayoutTransform, T <> nil);
   VisualizeTransformSelected.Parent := T; // works also in case SelectedTransform is nil
 end;
 
@@ -2330,13 +2404,20 @@ begin
   try
     Sel := TComponent(Node.Data);
     UndoComment := 'Rename ' + Sel.Name + ' into ' + Node.Text;
+    { Without this check, one could change Sel.Name to empty ('').
+      Although TComponent.SetName checks that it's a valid Pascal identifier already,
+      but it also explicitly allows to set Name = ''.
+      Object inspector has special code to secure from empty Name
+      (in TComponentNamePropertyEditor.SetValue), so we need a similar check here. }
+    if not IsValidIdent(Node.Text) then
+      raise Exception.Create(Format(oisComponentNameIsNotAValidIdentifier, [Node.Text]));
     Sel.Name := Node.Text;
     ModifiedOutsideObjectInspector(UndoComment, ucHigh); // It'd be good if we set "ItemIndex" to index of "name" field, but there doesn't seem to be an easy way to
   finally
     { This method must set Node.Text, to cleanup after ControlsTreeEditing + user editing.
-      - If the name was correct, then "Sel.Name := " goes without exception, 
+      - If the name was correct, then "Sel.Name := " goes without exception,
         and we want to show new name + class name.
-      - If the name was not correct, then "Sel.Name := " raises exception, 
+      - If the name was not correct, then "Sel.Name := " raises exception,
         and we want to show old name + class name. }
     Node.Text := ComponentCaption(Sel);
   end;
@@ -3017,29 +3098,54 @@ end;
 
 function TDesignFrame.ProposeName(const ComponentClass: TComponentClass;
   const ComponentsOwner: TComponent): String;
+
+  { Cleanup S (right now, always taken from some ClassName)
+    to be a nice component name, which also must make it a valid Pascal identifier. }
+  function CleanComponentName(const S: String): String;
+  begin
+    Result := S;
+
+    // remove common prefixes
+    if IsPrefix('TCastleUserInterface', Result, true) then
+      Result := PrefixRemove('TCastleUserInterface', Result, true)
+    else
+    if IsPrefix('TCastle', Result, true) then
+      Result := PrefixRemove('TCastle', Result, true)
+    else
+    if IsPrefix('T', Result, true) then
+      Result := PrefixRemove('T', Result, true);
+
+    // move 2D and 3D to the back, as component name cannot start with a number
+    if IsPrefix('2D', Result, true) then
+      Result := PrefixRemove('2D', Result, true) + '2D';
+    if IsPrefix('3D', Result, true) then
+      Result := PrefixRemove('3D', Result, true) + '3D';
+
+    // in case the replacements above made '', fix it (can happen in case of TCastleUserInterface)
+    if Result = '' then
+      Result := 'Group';
+
+    if SCharIs(Result, 1, ['0'..'9']) then
+      Result := 'Component' + Result;
+  end;
+
 var
   ResultBase: String;
   I: Integer;
 begin
-  ResultBase := ComponentClass.ClassName;
+  ResultBase := CleanComponentName(ComponentClass.ClassName);
 
-  // remove common prefixes
-  if IsPrefix('TCastleUserInterface', ResultBase, true) then
-    ResultBase := PrefixRemove('TCastleUserInterface', ResultBase, true)
-  else
-  if IsPrefix('TCastle', ResultBase, true) then
-    ResultBase := PrefixRemove('TCastle', ResultBase, true)
-  else
-  if IsPrefix('T', ResultBase, true) then
-    ResultBase := PrefixRemove('T', ResultBase, true);
-
-  // remove 2D, as component name cannot start with that
-  if IsPrefix('2D', ResultBase, true) then
-    ResultBase := PrefixRemove('2D', ResultBase, true);
-
-  // in case the replacements above made '', fix it (can happen in case of TCastleUserInterface)
-  if ResultBase = '' then
-    ResultBase := 'Group';
+  { A simple test of the CleanComponentName routine.
+    This is *not* a good place for such automated test, but for now it was simplest to put it here. }
+  {
+  Assert(CleanComponentName('TSomething') = 'Something');
+  Assert(CleanComponentName('TCastleUserInterface') = 'Group');
+  Assert(CleanComponentName('TCastleUserInterfaceButton') = 'Button');
+  Assert(CleanComponentName('TCastleSomething') = 'Something');
+  Assert(CleanComponentName('TCastle2DStuff') = 'Stuff2D');
+  Assert(CleanComponentName('TCastle3DStuff') = 'Stuff3D');
+  Assert(CleanComponentName('TCastle4DProcessing') = 'Component4DProcessing');
+  }
 
   // make unique
   I := 1;
@@ -3111,7 +3217,7 @@ begin
   { Hiding this is not nice for user, as then clicking on ButtonTransformSelectMode
     when current mode is moModifyUi will shift the position of the
     ButtonTransformSelectMode under your mouse. }
-  //SetEnabledExists(SpinEditSnap, Mode = moModifyUi);
+  //SetEnabledVisible(SpinEditSnap, Mode = moModifyUi);
 
   ButtonTransformSelectMode.Down := Mode = moTransformSelect;
   ButtonTransformTranslateMode.Down := Mode = moTransformTranslate;

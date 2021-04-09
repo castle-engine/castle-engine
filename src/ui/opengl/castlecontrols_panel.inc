@@ -75,7 +75,7 @@ begin
     Theme.Draw(FloatRectangle(
       SR.Left + VerticalSeparators[I] * UIScale,
       SR.Bottom + SeparatorMarginScaled,
-      Theme.Images[tiPanelSeparator].Width, SR.Height - 2 * SeparatorMarginScaled),
+      Theme.ImagesPersistent[tiPanelSeparator].Width, SR.Height - 2 * SeparatorMarginScaled),
       tiPanelSeparator, UIScale);
 end;
 

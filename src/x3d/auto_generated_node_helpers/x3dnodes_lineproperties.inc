@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,8 +31,22 @@
     function GetLinewidthScaleFactor: Single;
     procedure SetLinewidthScaleFactor(const Value: Single);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdApplied: TSFBool;
+    { X3D field "applied". } { }
+    public property FdApplied: TSFBool read FFdApplied;
     { X3D field "applied". } { }
     property Applied: Boolean read GetApplied write SetApplied;
+
+    strict private FFdLinetype: TSFInt32;
+    { X3D field "linetype". } { }
+    public property FdLinetype: TSFInt32 read FFdLinetype;
+
+    strict private FFdLinewidthScaleFactor: TSFFloat;
+    { X3D field "linewidthScaleFactor". } { }
+    public property FdLinewidthScaleFactor: TSFFloat read FFdLinewidthScaleFactor;
     { X3D field "linewidthScaleFactor". } { }
     property LinewidthScaleFactor: Single read GetLinewidthScaleFactor write SetLinewidthScaleFactor;
 
@@ -60,6 +74,32 @@ end;
 procedure TLinePropertiesNode.SetLinewidthScaleFactor(const Value: Single);
 begin
   FdLinewidthScaleFactor.Send(Value);
+end;
+
+class function TLinePropertiesNode.ClassX3DType: String;
+begin
+  Result := 'LineProperties';
+end;
+
+procedure TLinePropertiesNode.CreateNode;
+begin
+  inherited;
+
+  FFdApplied := TSFBool.Create(Self, True, 'applied', true);
+   FdApplied.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdApplied);
+
+  FFdLinetype := TSFInt32.Create(Self, True, 'linetype', 1);
+   FdLinetype.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdLinetype);
+  { X3D specification comment: [1,Inf) }
+
+  FFdLinewidthScaleFactor := TSFFloat.Create(Self, True, 'linewidthScaleFactor', 0);
+   FdLinewidthScaleFactor.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdLinewidthScaleFactor);
+  { X3D specification comment: (-Inf,Inf) }
+
+  DefaultContainerField := 'lineProperties';
 end;
 
 {$endif read_implementation}

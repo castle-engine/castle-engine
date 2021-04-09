@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -61,38 +61,132 @@
     function GetAutoCalc: Boolean;
     procedure SetAutoCalc(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdAxis1Angle: TSFFloat;
+    { X3D field "axis1Angle". } { }
+    public property FdAxis1Angle: TSFFloat read FFdAxis1Angle;
     { X3D field "axis1Angle". } { }
     property Axis1Angle: Single read GetAxis1Angle write SetAxis1Angle;
+
+    strict private FFdAxis1Torque: TSFFloat;
+    { X3D field "axis1Torque". } { }
+    public property FdAxis1Torque: TSFFloat read FFdAxis1Torque;
     { X3D field "axis1Torque". } { }
     property Axis1Torque: Single read GetAxis1Torque write SetAxis1Torque;
+
+    strict private FFdAxis2Angle: TSFFloat;
+    { X3D field "axis2Angle". } { }
+    public property FdAxis2Angle: TSFFloat read FFdAxis2Angle;
     { X3D field "axis2Angle". } { }
     property Axis2Angle: Single read GetAxis2Angle write SetAxis2Angle;
+
+    strict private FFdAxis2Torque: TSFFloat;
+    { X3D field "axis2Torque". } { }
+    public property FdAxis2Torque: TSFFloat read FFdAxis2Torque;
     { X3D field "axis2Torque". } { }
     property Axis2Torque: Single read GetAxis2Torque write SetAxis2Torque;
+
+    strict private FFdAxis3Angle: TSFFloat;
+    { X3D field "axis3Angle". } { }
+    public property FdAxis3Angle: TSFFloat read FFdAxis3Angle;
     { X3D field "axis3Angle". } { }
     property Axis3Angle: Single read GetAxis3Angle write SetAxis3Angle;
+
+    strict private FFdAxis3Torque: TSFFloat;
+    { X3D field "axis3Torque". } { }
+    public property FdAxis3Torque: TSFFloat read FFdAxis3Torque;
     { X3D field "axis3Torque". } { }
     property Axis3Torque: Single read GetAxis3Torque write SetAxis3Torque;
+
+    strict private FFdEnabledAxes: TSFInt32;
+    { X3D field "enabledAxes". } { }
+    public property FdEnabledAxes: TSFInt32 read FFdEnabledAxes;
     { X3D field "enabledAxes". } { }
     property EnabledAxes: Integer read GetEnabledAxes write SetEnabledAxes;
+
+    strict private FFdMotor1Axis: TSFVec3f;
+    { X3D field "motor1Axis". } { }
+    public property FdMotor1Axis: TSFVec3f read FFdMotor1Axis;
     { X3D field "motor1Axis". } { }
     property Motor1Axis: TVector3 read GetMotor1Axis write SetMotor1Axis;
+
+    strict private FFdMotor2Axis: TSFVec3f;
+    { X3D field "motor2Axis". } { }
+    public property FdMotor2Axis: TSFVec3f read FFdMotor2Axis;
     { X3D field "motor2Axis". } { }
     property Motor2Axis: TVector3 read GetMotor2Axis write SetMotor2Axis;
+
+    strict private FFdMotor3Axis: TSFVec3f;
+    { X3D field "motor3Axis". } { }
+    public property FdMotor3Axis: TSFVec3f read FFdMotor3Axis;
     { X3D field "motor3Axis". } { }
     property Motor3Axis: TVector3 read GetMotor3Axis write SetMotor3Axis;
+
+    strict private FFdStop1Bounce: TSFFloat;
+    { X3D field "stop1Bounce". } { }
+    public property FdStop1Bounce: TSFFloat read FFdStop1Bounce;
     { X3D field "stop1Bounce". } { }
     property Stop1Bounce: Single read GetStop1Bounce write SetStop1Bounce;
+
+    strict private FFdStop1ErrorCorrection: TSFFloat;
+    { X3D field "stop1ErrorCorrection". } { }
+    public property FdStop1ErrorCorrection: TSFFloat read FFdStop1ErrorCorrection;
     { X3D field "stop1ErrorCorrection". } { }
     property Stop1ErrorCorrection: Single read GetStop1ErrorCorrection write SetStop1ErrorCorrection;
+
+    strict private FFdStop2Bounce: TSFFloat;
+    { X3D field "stop2Bounce". } { }
+    public property FdStop2Bounce: TSFFloat read FFdStop2Bounce;
     { X3D field "stop2Bounce". } { }
     property Stop2Bounce: Single read GetStop2Bounce write SetStop2Bounce;
+
+    strict private FFdStop2ErrorCorrection: TSFFloat;
+    { X3D field "stop2ErrorCorrection". } { }
+    public property FdStop2ErrorCorrection: TSFFloat read FFdStop2ErrorCorrection;
     { X3D field "stop2ErrorCorrection". } { }
     property Stop2ErrorCorrection: Single read GetStop2ErrorCorrection write SetStop2ErrorCorrection;
+
+    strict private FFdStop3Bounce: TSFFloat;
+    { X3D field "stop3Bounce". } { }
+    public property FdStop3Bounce: TSFFloat read FFdStop3Bounce;
     { X3D field "stop3Bounce". } { }
     property Stop3Bounce: Single read GetStop3Bounce write SetStop3Bounce;
+
+    strict private FFdStop3ErrorCorrection: TSFFloat;
+    { X3D field "stop3ErrorCorrection". } { }
+    public property FdStop3ErrorCorrection: TSFFloat read FFdStop3ErrorCorrection;
     { X3D field "stop3ErrorCorrection". } { }
     property Stop3ErrorCorrection: Single read GetStop3ErrorCorrection write SetStop3ErrorCorrection;
+
+    strict private FEventMotor1Angle: TSFFloatEvent;
+    { X3D out event "motor1Angle". } { }
+    public property EventMotor1Angle: TSFFloatEvent read FEventMotor1Angle;
+
+    strict private FEventMotor1AngleRate: TSFFloatEvent;
+    { X3D out event "motor1AngleRate". } { }
+    public property EventMotor1AngleRate: TSFFloatEvent read FEventMotor1AngleRate;
+
+    strict private FEventMotor2Angle: TSFFloatEvent;
+    { X3D out event "motor2Angle". } { }
+    public property EventMotor2Angle: TSFFloatEvent read FEventMotor2Angle;
+
+    strict private FEventMotor2AngleRate: TSFFloatEvent;
+    { X3D out event "motor2AngleRate". } { }
+    public property EventMotor2AngleRate: TSFFloatEvent read FEventMotor2AngleRate;
+
+    strict private FEventMotor3Angle: TSFFloatEvent;
+    { X3D out event "motor3Angle". } { }
+    public property EventMotor3Angle: TSFFloatEvent read FEventMotor3Angle;
+
+    strict private FEventMotor3AngleRate: TSFFloatEvent;
+    { X3D out event "motor3AngleRate". } { }
+    public property EventMotor3AngleRate: TSFFloatEvent read FEventMotor3AngleRate;
+
+    strict private FFdAutoCalc: TSFBool;
+    { X3D field "autoCalc". } { }
+    public property FdAutoCalc: TSFBool read FFdAutoCalc;
     { X3D field "autoCalc". } { }
     property AutoCalc: Boolean read GetAutoCalc write SetAutoCalc;
 
@@ -270,6 +364,115 @@ end;
 procedure TMotorJointNode.SetAutoCalc(const Value: Boolean);
 begin
   FdAutoCalc.Send(Value);
+end;
+
+class function TMotorJointNode.ClassX3DType: String;
+begin
+  Result := 'MotorJoint';
+end;
+
+procedure TMotorJointNode.CreateNode;
+begin
+  inherited;
+
+  FFdAxis1Angle := TSFFloat.Create(Self, True, 'axis1Angle', 0);
+   FdAxis1Angle.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAxis1Angle);
+  { X3D specification comment: [-Pi,Pi] }
+
+  FFdAxis1Torque := TSFFloat.Create(Self, True, 'axis1Torque', 0);
+   FdAxis1Torque.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAxis1Torque);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FFdAxis2Angle := TSFFloat.Create(Self, True, 'axis2Angle', 0);
+   FdAxis2Angle.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAxis2Angle);
+  { X3D specification comment: [-Pi,Pi] }
+
+  FFdAxis2Torque := TSFFloat.Create(Self, True, 'axis2Torque', 0);
+   FdAxis2Torque.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAxis2Torque);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FFdAxis3Angle := TSFFloat.Create(Self, True, 'axis3Angle', 0);
+   FdAxis3Angle.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAxis3Angle);
+  { X3D specification comment: [-Pi,Pi] }
+
+  FFdAxis3Torque := TSFFloat.Create(Self, True, 'axis3Torque', 0);
+   FdAxis3Torque.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAxis3Torque);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FFdEnabledAxes := TSFInt32.Create(Self, True, 'enabledAxes', 1);
+   FdEnabledAxes.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdEnabledAxes);
+  { X3D specification comment: [0,3] }
+
+  FFdMotor1Axis := TSFVec3f.Create(Self, True, 'motor1Axis', Vector3(0, 0, 0));
+   FdMotor1Axis.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMotor1Axis);
+
+  FFdMotor2Axis := TSFVec3f.Create(Self, True, 'motor2Axis', Vector3(0, 0, 0));
+   FdMotor2Axis.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMotor2Axis);
+
+  FFdMotor3Axis := TSFVec3f.Create(Self, True, 'motor3Axis', Vector3(0, 0, 0));
+   FdMotor3Axis.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMotor3Axis);
+
+  FFdStop1Bounce := TSFFloat.Create(Self, True, 'stop1Bounce', 0);
+   FdStop1Bounce.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdStop1Bounce);
+  { X3D specification comment: [0,1] }
+
+  FFdStop1ErrorCorrection := TSFFloat.Create(Self, True, 'stop1ErrorCorrection', 0.8);
+   FdStop1ErrorCorrection.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdStop1ErrorCorrection);
+  { X3D specification comment: [0,1] }
+
+  FFdStop2Bounce := TSFFloat.Create(Self, True, 'stop2Bounce', 0);
+   FdStop2Bounce.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdStop2Bounce);
+  { X3D specification comment: [0,1] }
+
+  FFdStop2ErrorCorrection := TSFFloat.Create(Self, True, 'stop2ErrorCorrection', 0.8);
+   FdStop2ErrorCorrection.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdStop2ErrorCorrection);
+  { X3D specification comment: [0,1] }
+
+  FFdStop3Bounce := TSFFloat.Create(Self, True, 'stop3Bounce', 0);
+   FdStop3Bounce.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdStop3Bounce);
+  { X3D specification comment: [0,1] }
+
+  FFdStop3ErrorCorrection := TSFFloat.Create(Self, True, 'stop3ErrorCorrection', 0.8);
+   FdStop3ErrorCorrection.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdStop3ErrorCorrection);
+  { X3D specification comment: [0,1] }
+
+  FEventMotor1Angle := TSFFloatEvent.Create(Self, 'motor1Angle', false);
+  AddEvent(FEventMotor1Angle);
+
+  FEventMotor1AngleRate := TSFFloatEvent.Create(Self, 'motor1AngleRate', false);
+  AddEvent(FEventMotor1AngleRate);
+
+  FEventMotor2Angle := TSFFloatEvent.Create(Self, 'motor2Angle', false);
+  AddEvent(FEventMotor2Angle);
+
+  FEventMotor2AngleRate := TSFFloatEvent.Create(Self, 'motor2AngleRate', false);
+  AddEvent(FEventMotor2AngleRate);
+
+  FEventMotor3Angle := TSFFloatEvent.Create(Self, 'motor3Angle', false);
+  AddEvent(FEventMotor3Angle);
+
+  FEventMotor3AngleRate := TSFFloatEvent.Create(Self, 'motor3AngleRate', false);
+  AddEvent(FEventMotor3AngleRate);
+
+  FFdAutoCalc := TSFBool.Create(Self, False, 'autoCalc', false);
+   FdAutoCalc.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAutoCalc);
 end;
 
 {$endif read_implementation}

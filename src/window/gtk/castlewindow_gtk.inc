@@ -25,7 +25,11 @@
     forced by user (using window manager, not F11) really cleanly.
 }
 
-{$I castlewindow_glx.inc}
+{$ifdef OpenGLES}
+  {$I castlewindow_egl.inc}
+{$else}
+  {$I castlewindow_glx.inc}
+{$endif}
 
 {$ifdef read_interface_uses}
 Glib2, Gdk2, Gtk2, CastleDynLib,
@@ -574,7 +578,7 @@ begin
 
       { I don't want this (because, first of all, not always my
         TMenuItemChecked will have AutoCheckedToggle = true.
-        Second, when not MenuActive, I do not want such behaviour, even for
+        Second, when not MenuActive, I do not want such behavior, even for
         AutoCheckedToggle = true.)
 
         So below I'm simply returning such GTK menu item to it's previous state.
@@ -850,9 +854,11 @@ const
       [FDpi, FDpi / DefaultDpi, DefaultDpi]);
   end;
 
+{$ifndef OpenGLES}
 var
   GdkVisual: PGdkVisual;
   GdkColormap: PGdkColormap;
+{$endif}
 begin
   Application.InitializeXDisplay;
 
@@ -871,10 +877,12 @@ begin
   { Create XVisual }
   ContextCreateBegin;
 
+  {$ifndef OpenGLES}
   { Create GdkColormap using XVisual }
   GdkVisual := gdk_x11_screen_lookup_visual(Application.XScreenGdk, XVisual^.VisualId);
   GdkColormap := gdk_colormap_new(GdkVisual, gfalse);
   gtk_widget_push_colormap(GdkColormap);
+  {$endif}
 
   { Create now GLAreaGtk, which will use GdkColormap }
   GLAreaGtk := gtk_drawing_area_new;
@@ -883,6 +891,7 @@ begin
   // Cleanup after gtk_widget_push_colormap called above
   gtk_widget_pop_colormap();
 
+  {$ifndef OpenGLES}
   { We should pass WindowXID to be correct.
     But:
     - it is not ready yet (widget is not realized, and calling WindowXID
@@ -893,6 +902,7 @@ begin
     So, as a quick solution, we pass 0.
   }
   ContextCreateEnd({ WindowXID } 0);
+  {$endif}
 
   gtk_widget_show(GTK_WIDGET(GLAreaGtk));
 
@@ -1025,6 +1035,14 @@ begin
       question). }
     gtk_widget_realize(GTK_WIDGET(GLAreaGtk));
   end;
+
+  {$ifdef OpenGLES}
+  { In case of EGL (OpenGLES) we really need WindowXID.
+    So we cannot use previous workaround, instead we wait for a good time
+    to get WindowXID, when widget is realized.
+    TODO: Should we just do it with glX version too? }
+  ContextCreateEnd(WindowXID);
+  {$endif}
 
   { From this point I require that WindowGtk is realized (has associated
     GdkWindow, i.e. I can use GTK_WIDGET(WindowGtk).Window).
@@ -1817,9 +1835,11 @@ end;
 
 { TCastleWindow -------------------------------------------------------------- }
 
+{$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
 procedure TCastleWindow.NavigationInfoChanged;
 begin
 end;
+{$endif}
 
 { TWindowContainer ----------------------------------------------------------- }
 

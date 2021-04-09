@@ -24,7 +24,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleKeysMouse, CastleUtils, CastleClassUtils, CastleGLUtils, CastleFonts,
   CastleRectangles, CastleTimeUtils, CastleInternalPk3DConnexion, CastleColors,
   CastleImages, CastleVectors, CastleJoysticks, CastleApplicationProperties,
-  CastleGLImages, CastleRenderContext;
+  CastleGLImages, CastleRenderContext, CastleComponentSerialize;
 
 const
   { Default value for container's Dpi, as is usually set on desktops. }
@@ -33,7 +33,7 @@ const
   DefaultTooltipDistance = 10;
 
 type
-  TBorder = CastleGLImages.TBorder;
+  TBorder = CastleVectors.TBorder;
 
   TInputListener = class;
   TCastleUserInterface = class;
@@ -209,10 +209,6 @@ type
     chRectangle,
 
     chCursor,
-
-    { Used by @link(TCastleCamera) descendants to notify that the current
-      camera view (position, direction, up and everything related to it) changed. }
-    chCamera,
 
     chExists,
 
@@ -1424,7 +1420,7 @@ type
     procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
       const ChangeInitiatedByChildren: boolean = false); override;
     procedure InternalAddChild(const C: TComponent); override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
     function GetEnumerator: TEnumerator;
 
     property Controls [Index: Integer]: TCastleUserInterface read GetControls write SetControls;
@@ -2330,12 +2326,20 @@ function RenderControlToImage(const Container: TUIContainer;
   const ViewportRect: TRectangle;
   const BackgroundColor: TCastleColor): TRGBAlphaImage; overload;
 
+{$define read_interface}
+{$I castleuicontrols_serialize.inc}
+{$undef read_interface}
+
 implementation
 
 uses DOM, TypInfo, Math,
-  CastleLog, CastleComponentSerialize, CastleXMLUtils, CastleStringUtils,
+  CastleLog, CastleXMLUtils, CastleStringUtils,
   CastleInternalSettings, CastleFilesUtils, CastleURIUtils, CastleRenderOptions,
   {$ifdef CASTLE_OBJFPC} CastleGL {$else} GL, GLExt {$endif};
+
+{$define read_implementation}
+{$I castleuicontrols_serialize.inc}
+{$undef read_implementation}
 
 { TTouchList ----------------------------------------------------------------- }
 
@@ -2660,12 +2664,15 @@ begin
       AddInFrontOfNewFocus(ControlUnderFinger0);
 
     { update TCastleUserInterface.Focused values, based on differences between FFocus and FNewFocus }
-    for I := 0 to FNewFocus.Count - 1 do
-      if FFocus.IndexOf(FNewFocus[I]) = -1 then
-        FNewFocus[I].Focused := true;
-    for I := 0 to FFocus.Count - 1 do
-      if FNewFocus.IndexOf(FFocus[I]) = -1 then
-        FFocus[I].Focused := false;
+    if not (ApplicationProperties.TouchDevice) then
+    begin
+      for I := 0 to FNewFocus.Count - 1 do
+        if FFocus.IndexOf(FNewFocus[I]) = -1 then
+          FNewFocus[I].Focused := true;
+      for I := 0 to FFocus.Count - 1 do
+        if FNewFocus.IndexOf(FFocus[I]) = -1 then
+          FFocus[I].Focused := false;
+    end;
   end;
 
   { swap FFocus and FNewFocus, so that FFocus changes to new value,
@@ -4613,13 +4620,14 @@ begin
     (longrec(DesignInfo).Hi<>Longrec(temp).Hi));
 end;
 
-function TCastleUserInterface.PropertySection(
-  const PropertyName: String): TPropertySection;
+function TCastleUserInterface.PropertySections(
+  const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
     'Exists':
-      Result := psBasic;
-    'FullSize',
+      Result := [psBasic];
+    'FullSize':
+      Result := [psBasic, psLayout];
     'Width',
     'Height',
     'HeightFraction',
@@ -4637,9 +4645,9 @@ begin
     'Bottom',
     'Border',
     'BorderColorPersistent':
-      Result := psLayout;
+      Result := [psLayout];
     else
-      Result := inherited PropertySection(PropertyName);
+      Result := inherited PropertySections(PropertyName);
   end;
 end;
 

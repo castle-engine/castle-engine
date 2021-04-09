@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,10 +31,28 @@
     function GetManifold: Boolean;
     procedure SetManifold(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdSize: TSFVec3f;
+    { X3D field "size". } { }
+    public property FdSize: TSFVec3f read FFdSize;
     { X3D field "size". } { }
     property Size: TVector3 read GetSize write SetSize;
+
+    strict private FFdSolid: TSFBool;
+    { X3D field "solid". } { }
+    public property FdSolid: TSFBool read FFdSolid;
+
+    strict private FFdManifold: TSFBool;
+    { X3D field "manifold". } { }
+    public property FdManifold: TSFBool read FFdManifold;
     { X3D field "manifold". } { }
     property Manifold: Boolean read GetManifold write SetManifold;
+
+    strict private FFdTexCoord: TSFNode;
+    { X3D field "texCoord". } { }
+    public property FdTexCoord: TSFNode read FFdTexCoord;
 
 {$endif read_interface}
 
@@ -60,6 +78,32 @@ end;
 procedure TTeapotNode.SetManifold(const Value: Boolean);
 begin
   FdManifold.Send(Value);
+end;
+
+class function TTeapotNode.ClassX3DType: String;
+begin
+  Result := 'Teapot';
+end;
+
+procedure TTeapotNode.CreateNode;
+begin
+  inherited;
+
+  FFdSize := TSFVec3f.Create(Self, False, 'size', Vector3(3, 3, 3));
+   FdSize.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSize);
+
+  FFdSolid := TSFBool.Create(Self, False, 'solid', true);
+   FdSolid.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSolid);
+
+  FFdManifold := TSFBool.Create(Self, False, 'manifold', false);
+   FdManifold.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdManifold);
+
+  FFdTexCoord := TSFNode.Create(Self, True, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiGeneratedTextureCoordinateNode]);
+   FdTexCoord.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdTexCoord);
 end;
 
 {$endif read_implementation}

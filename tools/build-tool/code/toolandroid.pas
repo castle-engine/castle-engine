@@ -49,7 +49,8 @@ implementation
 
 uses SysUtils, DOM, XMLWrite,
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils, CastleImages,
-  ToolEmbeddedImages, ToolFPCVersion, ToolPackage, ToolCommonUtils, ToolUtils;
+  ToolEmbeddedImages, ToolFPCVersion, ToolPackage, ToolCommonUtils, ToolUtils,
+  ToolManifest;
 
 var
   DetectAndroidCPUSCached: TCPUS;
@@ -411,6 +412,38 @@ var
     end;
   end;
 
+  procedure CopyExternalLibraries;
+  var
+    CPU: TCPU;
+    JniPath: String;
+    FmodLibraryPath, InputFile, OutputFile: String;
+  begin
+    if Project.AndroidServices.HasService('fmod') then
+    begin
+      if not Project.AndroidServices.Service('fmod').Parameters.TryGetValue('library_path', FmodLibraryPath) then
+        raise Exception.Create('Cannot find "library_path" parameter in "fmod" service for Android in CastleEngineManifest.xml');
+      FmodLibraryPath := InclPathDelim(FmodLibraryPath);
+
+      InputFile := FmodLibraryPath + 'fmod.jar';
+      OutputFile := 'app' + PathDelim + 'libs' + PathDelim + 'fmod.jar';
+      PackageSmartCopyFile(InputFile, OutputFile);
+      if Verbose then
+        Writeln('Packaging FMOD library file: ' + InputFile + ' => ' + OutputFile);
+
+      //JniPath := CombinePaths(Project.Path, AndroidProjectPath);
+      JniPath := 'app' + PathDelim + 'src' + PathDelim + 'main' + PathDelim + 'jni' + PathDelim;
+
+      for CPU in CPUS do
+      begin
+        InputFile := FmodLibraryPath + CPUToAndroidArchitecture(CPU) + PathDelim + 'libfmod.so';
+        OutputFile := JniPath + CPUToAndroidArchitecture(CPU) + PathDelim + 'libfmod.so';
+        PackageSmartCopyFile(InputFile, OutputFile);
+        if Verbose then
+          Writeln('Packaging FMOD library file: ' + InputFile + ' => ' + OutputFile);
+      end;
+    end;
+  end;
+
 var
   KeyStore, KeyAlias, KeyStorePassword, KeyAliasPassword: string;
 
@@ -607,6 +640,7 @@ begin
   CalculateSigningProperties(PackageMode);
 
   GenerateFromTemplates;
+  CopyExternalLibraries;
   GenerateIcons;
   GenerateAssets;
   GenerateLocalization;

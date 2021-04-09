@@ -485,14 +485,18 @@ end;
 
 type
   TFoundFileMethodWrapper = record
-    Contents: TFoundFileMethod;
+    FileMethod: TFoundFileMethod;
   end;
   PFoundFileMethodWrapper = ^TFoundFileMethodWrapper;
 
 procedure FoundFileProcToMethod(
   const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
+var
+  FileMethod: TFoundFileMethod;
 begin
-  PFoundFileMethodWrapper(Data)^.Contents(FileInfo, StopSearch);
+  FileMethod := PFoundFileMethodWrapper(Data)^.FileMethod;
+  if Assigned(FileMethod) then
+    FileMethod(FileInfo, StopSearch);
 end;
 
 function FindFiles(const Path, Mask: string; const FindDirectories: boolean;
@@ -500,7 +504,7 @@ function FindFiles(const Path, Mask: string; const FindDirectories: boolean;
 var
   FileMethodWrapper: TFoundFileMethodWrapper;
 begin
-  FileMethodWrapper.Contents := FileMethod;
+  FileMethodWrapper.FileMethod := FileMethod;
   Result := FindFiles(Path, Mask, FindDirectories,
     {$ifdef CASTLE_OBJFPC}@{$endif} FoundFileProcToMethod,
     @FileMethodWrapper, Options);

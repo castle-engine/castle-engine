@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -53,30 +53,84 @@
     function GetTransparency: Single;
     procedure SetTransparency(const Value: Single);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdAmbientIntensity: TSFFloat;
+    { X3D field "ambientIntensity". } { }
+    public property FdAmbientIntensity: TSFFloat read FFdAmbientIntensity;
     { X3D field "ambientIntensity". } { }
     property AmbientIntensity: Single read GetAmbientIntensity write SetAmbientIntensity;
+
+    strict private FFdBackAmbientIntensity: TSFFloat;
+    { X3D field "backAmbientIntensity". } { }
+    public property FdBackAmbientIntensity: TSFFloat read FFdBackAmbientIntensity;
     { X3D field "backAmbientIntensity". } { }
     property BackAmbientIntensity: Single read GetBackAmbientIntensity write SetBackAmbientIntensity;
+
+    strict private FFdBackDiffuseColor: TSFColor;
+    { X3D field "backDiffuseColor". } { }
+    public property FdBackDiffuseColor: TSFColor read FFdBackDiffuseColor;
     { X3D field "backDiffuseColor". } { }
     property BackDiffuseColor: TCastleColorRGB read GetBackDiffuseColor write SetBackDiffuseColor;
+
+    strict private FFdBackEmissiveColor: TSFColor;
+    { X3D field "backEmissiveColor". } { }
+    public property FdBackEmissiveColor: TSFColor read FFdBackEmissiveColor;
     { X3D field "backEmissiveColor". } { }
     property BackEmissiveColor: TCastleColorRGB read GetBackEmissiveColor write SetBackEmissiveColor;
+
+    strict private FFdBackShininess: TSFFloat;
+    { X3D field "backShininess". } { }
+    public property FdBackShininess: TSFFloat read FFdBackShininess;
     { X3D field "backShininess". } { }
     property BackShininess: Single read GetBackShininess write SetBackShininess;
+
+    strict private FFdBackSpecularColor: TSFColor;
+    { X3D field "backSpecularColor". } { }
+    public property FdBackSpecularColor: TSFColor read FFdBackSpecularColor;
     { X3D field "backSpecularColor". } { }
     property BackSpecularColor: TCastleColorRGB read GetBackSpecularColor write SetBackSpecularColor;
+
+    strict private FFdBackTransparency: TSFFloat;
+    { X3D field "backTransparency". } { }
+    public property FdBackTransparency: TSFFloat read FFdBackTransparency;
     { X3D field "backTransparency". } { }
     property BackTransparency: Single read GetBackTransparency write SetBackTransparency;
+
+    strict private FFdDiffuseColor: TSFColor;
+    { X3D field "diffuseColor". } { }
+    public property FdDiffuseColor: TSFColor read FFdDiffuseColor;
     { X3D field "diffuseColor". } { }
     property DiffuseColor: TCastleColorRGB read GetDiffuseColor write SetDiffuseColor;
+
+    strict private FFdEmissiveColor: TSFColor;
+    { X3D field "emissiveColor". } { }
+    public property FdEmissiveColor: TSFColor read FFdEmissiveColor;
     { X3D field "emissiveColor". } { }
     property EmissiveColor: TCastleColorRGB read GetEmissiveColor write SetEmissiveColor;
+
+    strict private FFdShininess: TSFFloat;
+    { X3D field "shininess". } { }
+    public property FdShininess: TSFFloat read FFdShininess;
     { X3D field "shininess". } { }
     property Shininess: Single read GetShininess write SetShininess;
+
+    strict private FFdSeparateBackColor: TSFBool;
+    { X3D field "separateBackColor". } { }
+    public property FdSeparateBackColor: TSFBool read FFdSeparateBackColor;
     { X3D field "separateBackColor". } { }
     property SeparateBackColor: Boolean read GetSeparateBackColor write SetSeparateBackColor;
+
+    strict private FFdSpecularColor: TSFColor;
+    { X3D field "specularColor". } { }
+    public property FdSpecularColor: TSFColor read FFdSpecularColor;
     { X3D field "specularColor". } { }
     property SpecularColor: TCastleColorRGB read GetSpecularColor write SetSpecularColor;
+
+    strict private FFdTransparency: TSFFloat;
+    { X3D field "transparency". } { }
+    public property FdTransparency: TSFFloat read FFdTransparency;
     { X3D field "transparency". } { }
     property Transparency: Single read GetTransparency write SetTransparency;
 
@@ -214,6 +268,80 @@ end;
 procedure TTwoSidedMaterialNode.SetTransparency(const Value: Single);
 begin
   FdTransparency.Send(Value);
+end;
+
+class function TTwoSidedMaterialNode.ClassX3DType: String;
+begin
+  Result := 'TwoSidedMaterial';
+end;
+
+procedure TTwoSidedMaterialNode.CreateNode;
+begin
+  inherited;
+
+  FFdAmbientIntensity := TSFFloat.Create(Self, True, 'ambientIntensity', 0.2);
+   FdAmbientIntensity.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAmbientIntensity);
+  { X3D specification comment: [0,1] }
+
+  FFdBackAmbientIntensity := TSFFloat.Create(Self, True, 'backAmbientIntensity', 0.2);
+   FdBackAmbientIntensity.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBackAmbientIntensity);
+  { X3D specification comment: [0,1] }
+
+  FFdBackDiffuseColor := TSFColor.Create(Self, True, 'backDiffuseColor', Vector3(0.8, 0.8, 0.8));
+   FdBackDiffuseColor.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBackDiffuseColor);
+  { X3D specification comment: [0,1] }
+
+  FFdBackEmissiveColor := TSFColor.Create(Self, True, 'backEmissiveColor', Vector3(0, 0, 0));
+   FdBackEmissiveColor.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBackEmissiveColor);
+  { X3D specification comment: [0,1] }
+
+  FFdBackShininess := TSFFloat.Create(Self, True, 'backShininess', 0.2);
+   FdBackShininess.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBackShininess);
+  { X3D specification comment: [0,1] }
+
+  FFdBackSpecularColor := TSFColor.Create(Self, True, 'backSpecularColor', Vector3(0, 0, 0));
+   FdBackSpecularColor.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBackSpecularColor);
+  { X3D specification comment: [0,1] }
+
+  FFdBackTransparency := TSFFloat.Create(Self, True, 'backTransparency', 0);
+   FdBackTransparency.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBackTransparency);
+  { X3D specification comment: [0,1] }
+
+  FFdDiffuseColor := TSFColor.Create(Self, True, 'diffuseColor', Vector3(0.8, 0.8, 0.8));
+   FdDiffuseColor.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDiffuseColor);
+  { X3D specification comment: [0,1] }
+
+  FFdEmissiveColor := TSFColor.Create(Self, True, 'emissiveColor', Vector3(0, 0, 0));
+   FdEmissiveColor.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdEmissiveColor);
+  { X3D specification comment: [0,1] }
+
+  FFdShininess := TSFFloat.Create(Self, True, 'shininess', 0.2);
+   FdShininess.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdShininess);
+  { X3D specification comment: [0,1] }
+
+  FFdSeparateBackColor := TSFBool.Create(Self, True, 'separateBackColor', false);
+   FdSeparateBackColor.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSeparateBackColor);
+
+  FFdSpecularColor := TSFColor.Create(Self, True, 'specularColor', Vector3(0, 0, 0));
+   FdSpecularColor.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSpecularColor);
+  { X3D specification comment: [0,1] }
+
+  FFdTransparency := TSFFloat.Create(Self, True, 'transparency', 0);
+   FdTransparency.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdTransparency);
+  { X3D specification comment: [0,1] }
 end;
 
 {$endif read_implementation}

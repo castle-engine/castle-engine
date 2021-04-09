@@ -41,6 +41,7 @@ type
         LastPickAngle: Single;
         GizmoScalingAssumeScale: Boolean;
         GizmoScalingAssumeScaleValue: TVector3;
+        InsideInternalCameraChanged: Boolean;
 
         { Point on axis closest to given pick.
           Axis may be -1 to indicate we drag on all axes with the same amount. }
@@ -60,6 +61,7 @@ type
 
         procedure DoParentModified;
         procedure DoGizmoStopDrag;
+        procedure UpdateSize;
       protected
         procedure ChangeWorld(const Value: TCastleAbstractRootTransform); override;
         function LocalRayCollision(const RayOrigin, RayDirection: TVector3;
@@ -69,8 +71,7 @@ type
         OnParentModified: TNotifyEvent;
         OnGizmoStopDrag: TNotifyEvent;
         constructor Create(AOwner: TComponent); override;
-        procedure CameraChanged(const ACamera: TCastleCamera); override;
-        function Dragging: boolean; override;
+        procedure InternalCameraChanged; override;
         function PointingDevicePress(const Pick: TRayCollisionNode;
           const Distance: Single): Boolean; override;
         function PointingDeviceMove(const Pick: TRayCollisionNode;
@@ -187,7 +188,7 @@ function TVisualizeTransform.TGizmoScene.AngleOnPlane(out Angle: Single;
   { Return other 3D coords, in the lopping order X-Y-Z.
     This results in consistent ArcTan2 results, that makes rotating around
     any coord in TVisualizeTransform.TGizmoScene.PointingDeviceMove
-    have the same behaviour (no need to invert angle sign for Y coord,
+    have the same behavior (no need to invert angle sign for Y coord,
     as with CastleUtils.RestOf3dCoords). }
   procedure RestOf3dCoords(const Coord: Integer; out First, Second: Integer);
   begin
@@ -231,9 +232,6 @@ begin
   begin
     inherited;
     GizmoDragging := false;
-    // TODO: CameraChanged is not automatically called by inherited ChangeWorld, maybe it should be?
-    if Value <> nil then
-      CameraChanged(Value.MainCamera);
   end;
 end;
 
@@ -282,8 +280,19 @@ begin
   {$endif DEBUG_GIZMO_PICK}
 end;
 
-procedure TVisualizeTransform.TGizmoScene.CameraChanged(
-  const ACamera: TCastleCamera);
+procedure TVisualizeTransform.TGizmoScene.InternalCameraChanged;
+begin
+  inherited;
+  { UpdateSize changes our transformation, and ChangedTransform in turn
+    calls InternalCameraChanged, which means we can get into infinite
+    recursion. Use InsideInternalCameraChanged to prevent it. }
+  if InsideInternalCameraChanged then Exit;
+  InsideInternalCameraChanged := true;
+  UpdateSize;
+  InsideInternalCameraChanged := false;
+end;
+
+procedure TVisualizeTransform.TGizmoScene.UpdateSize;
 
   function Projected(const V, X, Y: TVector3): TVector2;
   begin
@@ -320,16 +329,19 @@ var
   ZeroWorld, OneWorld, OneProjected3, ZeroProjected3, CameraPos, CameraSide: TVector3;
   CameraNearPlane: TVector4;
   GizmoScale: Single;
+  Camera: TCastleCamera;
 begin
-  inherited;
-
   { Adjust scale to take the same space on screen. }
-  if HasWorldTransform then
+  if HasWorldTransform and
+     (World <> nil) and
+     (World.MainCamera <> nil) then
   begin
-    if ACamera.ProjectionType = ptOrthographic then
-      GizmoScale := 0.001 * ACamera.Orthographic.EffectiveHeight
+    Camera := World.MainCamera;
+
+    if Camera.ProjectionType = ptOrthographic then
+      GizmoScale := 0.001 * Camera.Orthographic.EffectiveHeight
     else
-      GizmoScale := 0.25 {TODO:* ACamera.Perspective.EffeectiveFieldOfViewVertical};
+      GizmoScale := 0.25 {TODO:* Camera.Perspective.EffeectiveFieldOfViewVertical};
 
     BeginWorldTransform;
 
@@ -342,31 +354,31 @@ begin
     }
     Scale := Vector3(1, 1, 1); // assume gizmo scale = 1, will be changed later
     ZeroWorld := LocalToWorld(TVector3.Zero);
-    { Note: We use ACamera.Up, not ACamera.GravityUp, to work sensibly even
+    { Note: We use Camera.Up, not Camera.GravityUp, to work sensibly even
       when looking at world at a direction similar to +Y. }
-    OneWorld := LocalToWorld(WorldToLocalDirection(ACamera.Up).Normalize);
+    OneWorld := LocalToWorld(WorldToLocalDirection(Camera.Up).Normalize);
 
     EndWorldTransform;
 
     (* TODO: why this fails:
-    ViewProjectionMatrix := ACamera.ProjectionMatrix * ACamera.Matrix;
+    ViewProjectionMatrix := Camera.ProjectionMatrix * Camera.Matrix;
     ZeroProjected := (ViewProjectionMatrix * Vector4(ZeroWorld, 1)).XY;
     OneProjected := (ViewProjectionMatrix * Vector4(OneWorld, 1)).XY;
     *)
 
-    CameraPos := ACamera.Position;
-    CameraNearPlane.XYZ := ACamera.Direction;
+    CameraPos := Camera.Position;
+    CameraNearPlane.XYZ := Camera.Direction;
     { plane equation should yield 0 when used with point in front of camera }
     CameraNearPlane.W := - TVector3.DotProduct(
-      CameraPos + ACamera.Direction * AssumeNear, ACamera.Direction);
+      CameraPos + Camera.Direction * AssumeNear, Camera.Direction);
     if not TryPlaneLineIntersection(OneProjected3, CameraNearPlane, CameraPos, OneWorld - CameraPos) then
       Exit;
     if not TryPlaneLineIntersection(ZeroProjected3, CameraNearPlane, CameraPos, ZeroWorld - CameraPos) then
       Exit;
 
-    CameraSide := TVector3.CrossProduct(ACamera.Direction, ACamera.Up);
-    ZeroProjected := Projected(ZeroProjected3, CameraSide, ACamera.Up);
-    OneProjected := Projected(OneProjected3, CameraSide, ACamera.Up);
+    CameraSide := TVector3.CrossProduct(Camera.Direction, Camera.Up);
+    ZeroProjected := Projected(ZeroProjected3, CameraSide, Camera.Up);
+    OneProjected := Projected(OneProjected3, CameraSide, Camera.Up);
 
     // get the distance, on screen in pixels, of a 1 unit in 3D around gizmo
     OneDistance := PointsDistance(ZeroProjected, OneProjected);
@@ -378,10 +390,13 @@ begin
   end;
 end;
 
+(*
+// Not needed now
 function TVisualizeTransform.TGizmoScene.Dragging: boolean;
 begin
   Result := (inherited Dragging) or GizmoDragging;
 end;
+*)
 
 function TVisualizeTransform.TGizmoScene.PointingDevicePress(
   const Pick: TRayCollisionNode; const Distance: Single): Boolean;
@@ -493,7 +508,7 @@ begin
         UniqueParent.Translation. }
 
       // update our gizmo size, as we moved ourselves
-      CameraChanged(World.MainCamera);
+      UpdateSize;
       DoParentModified;
     end;
   end;
@@ -511,7 +526,7 @@ begin
   if GizmoScalingAssumeScale then
   begin
     GizmoScalingAssumeScale := false;
-    CameraChanged(World.MainCamera);
+    UpdateSize;
   end;
   DoGizmoStopDrag;
 end;

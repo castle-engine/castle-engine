@@ -1,3 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project name="test_local_filename_chars" game_units="GameInitialize">
+<project name="test_local_filename_chars"
+  standalone_source="test_local_filename_chars_standalone.lpr"
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.test.local.filename.chars"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
 </project>

@@ -321,7 +321,7 @@ function MessageInputQueryVector4(
   const Html: boolean = false): boolean;
 
 var
-  { Change MessageOK behaviour to create @link(TStateDialogOK)
+  { Change MessageOK behavior to create @link(TStateDialogOK)
     and push it (using @link(TUIState.Push))
     and immediately return, without waiting for user confirmation.
 

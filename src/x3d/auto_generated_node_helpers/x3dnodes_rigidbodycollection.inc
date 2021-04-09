@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -53,34 +53,100 @@
     function GetCollider: TCollisionCollectionNode;
     procedure SetCollider(const Value: TCollisionCollectionNode);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventSet_contacts: TMFNodeEvent;
+    { X3D in event "set_contacts". } { }
+    public property EventSet_contacts: TMFNodeEvent read FEventSet_contacts;
+
+    strict private FFdAutoDisable: TSFBool;
+    { X3D field "autoDisable". } { }
+    public property FdAutoDisable: TSFBool read FFdAutoDisable;
     { X3D field "autoDisable". } { }
     property AutoDisable: Boolean read GetAutoDisable write SetAutoDisable;
+
+    strict private FFdBodies: TMFNode;
+    { X3D field "bodies". } { }
+    public property FdBodies: TMFNode read FFdBodies;
     { Set X3D field "bodies". } { }
     procedure SetBodies(const Value: array of TRigidBodyNode);
+
+    strict private FFdConstantForceMix: TSFFloat;
+    { X3D field "constantForceMix". } { }
+    public property FdConstantForceMix: TSFFloat read FFdConstantForceMix;
     { X3D field "constantForceMix". } { }
     property ConstantForceMix: Single read GetConstantForceMix write SetConstantForceMix;
+
+    strict private FFdContactSurfaceThickness: TSFFloat;
+    { X3D field "contactSurfaceThickness". } { }
+    public property FdContactSurfaceThickness: TSFFloat read FFdContactSurfaceThickness;
     { X3D field "contactSurfaceThickness". } { }
     property ContactSurfaceThickness: Single read GetContactSurfaceThickness write SetContactSurfaceThickness;
+
+    strict private FFdDisableAngularSpeed: TSFFloat;
+    { X3D field "disableAngularSpeed". } { }
+    public property FdDisableAngularSpeed: TSFFloat read FFdDisableAngularSpeed;
     { X3D field "disableAngularSpeed". } { }
     property DisableAngularSpeed: Single read GetDisableAngularSpeed write SetDisableAngularSpeed;
+
+    strict private FFdDisableLinearSpeed: TSFFloat;
+    { X3D field "disableLinearSpeed". } { }
+    public property FdDisableLinearSpeed: TSFFloat read FFdDisableLinearSpeed;
     { X3D field "disableLinearSpeed". } { }
     property DisableLinearSpeed: Single read GetDisableLinearSpeed write SetDisableLinearSpeed;
+
+    strict private FFdDisableTime: TSFFloat;
+    { X3D field "disableTime". } { }
+    public property FdDisableTime: TSFFloat read FFdDisableTime;
     { X3D field "disableTime". } { }
     property DisableTime: Single read GetDisableTime write SetDisableTime;
+
+    strict private FFdEnabled: TSFBool;
+    { X3D field "enabled". } { }
+    public property FdEnabled: TSFBool read FFdEnabled;
     { X3D field "enabled". } { }
     property Enabled: Boolean read GetEnabled write SetEnabled;
+
+    strict private FFdErrorCorrection: TSFFloat;
+    { X3D field "errorCorrection". } { }
+    public property FdErrorCorrection: TSFFloat read FFdErrorCorrection;
     { X3D field "errorCorrection". } { }
     property ErrorCorrection: Single read GetErrorCorrection write SetErrorCorrection;
+
+    strict private FFdGravity: TSFVec3f;
+    { X3D field "gravity". } { }
+    public property FdGravity: TSFVec3f read FFdGravity;
     { X3D field "gravity". } { }
     property Gravity: TVector3 read GetGravity write SetGravity;
+
+    strict private FFdIterations: TSFInt32;
+    { X3D field "iterations". } { }
+    public property FdIterations: TSFInt32 read FFdIterations;
     { X3D field "iterations". } { }
     property Iterations: Integer read GetIterations write SetIterations;
+
+    strict private FFdJoints: TMFNode;
+    { X3D field "joints". } { }
+    public property FdJoints: TMFNode read FFdJoints;
     { Set X3D field "joints". } { }
     procedure SetJoints(const Value: array of TAbstractRigidJointNode);
+
+    strict private FFdMaxCorrectionSpeed: TSFFloat;
+    { X3D field "maxCorrectionSpeed". } { }
+    public property FdMaxCorrectionSpeed: TSFFloat read FFdMaxCorrectionSpeed;
     { X3D field "maxCorrectionSpeed". } { }
     property MaxCorrectionSpeed: Single read GetMaxCorrectionSpeed write SetMaxCorrectionSpeed;
+
+    strict private FFdPreferAccuracy: TSFBool;
+    { X3D field "preferAccuracy". } { }
+    public property FdPreferAccuracy: TSFBool read FFdPreferAccuracy;
     { X3D field "preferAccuracy". } { }
     property PreferAccuracy: Boolean read GetPreferAccuracy write SetPreferAccuracy;
+
+    strict private FFdCollider: TSFNode;
+    { X3D field "collider". } { }
+    public property FdCollider: TSFNode read FFdCollider;
     { X3D field "collider". } { }
     property Collider: TCollisionCollectionNode read GetCollider write SetCollider;
 
@@ -245,6 +311,87 @@ end;
 procedure TRigidBodyCollectionNode.SetCollider(const Value: TCollisionCollectionNode);
 begin
   FdCollider.Send(Value);
+end;
+
+class function TRigidBodyCollectionNode.ClassX3DType: String;
+begin
+  Result := 'RigidBodyCollection';
+end;
+
+procedure TRigidBodyCollectionNode.CreateNode;
+begin
+  inherited;
+
+  FEventSet_contacts := TMFNodeEvent.Create(Self, 'set_contacts', true);
+  AddEvent(FEventSet_contacts);
+
+  FFdAutoDisable := TSFBool.Create(Self, True, 'autoDisable', false);
+   FdAutoDisable.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAutoDisable);
+
+  FFdBodies := TMFNode.Create(Self, True, 'bodies', [TRigidBodyNode]);
+   FdBodies.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBodies);
+
+  FFdConstantForceMix := TSFFloat.Create(Self, True, 'constantForceMix', 0.0001);
+   FdConstantForceMix.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdConstantForceMix);
+  { X3D specification comment: [0,Inf) }
+
+  FFdContactSurfaceThickness := TSFFloat.Create(Self, True, 'contactSurfaceThickness', 0);
+   FdContactSurfaceThickness.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdContactSurfaceThickness);
+  { X3D specification comment: [0,Inf) }
+
+  FFdDisableAngularSpeed := TSFFloat.Create(Self, True, 'disableAngularSpeed', 0);
+   FdDisableAngularSpeed.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDisableAngularSpeed);
+  { X3D specification comment: [0,Inf) }
+
+  FFdDisableLinearSpeed := TSFFloat.Create(Self, True, 'disableLinearSpeed', 0);
+   FdDisableLinearSpeed.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDisableLinearSpeed);
+  { X3D specification comment: [0,Inf) }
+
+  FFdDisableTime := TSFFloat.Create(Self, True, 'disableTime', 0);
+   FdDisableTime.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDisableTime);
+  { X3D specification comment: [0,Inf) }
+
+  FFdEnabled := TSFBool.Create(Self, True, 'enabled', true);
+   FdEnabled.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdEnabled);
+
+  FFdErrorCorrection := TSFFloat.Create(Self, True, 'errorCorrection', 0.8);
+   FdErrorCorrection.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdErrorCorrection);
+  { X3D specification comment: [0,1] }
+
+  FFdGravity := TSFVec3f.Create(Self, True, 'gravity', Vector3(0, -9.8, 0));
+   FdGravity.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdGravity);
+
+  FFdIterations := TSFInt32.Create(Self, True, 'iterations', 10);
+   FdIterations.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdIterations);
+  { X3D specification comment: [0,Inf) }
+
+  FFdJoints := TMFNode.Create(Self, True, 'joints', [TAbstractRigidJointNode]);
+   FdJoints.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdJoints);
+
+  FFdMaxCorrectionSpeed := TSFFloat.Create(Self, True, 'maxCorrectionSpeed', -1);
+   FdMaxCorrectionSpeed.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMaxCorrectionSpeed);
+  { X3D specification comment: [0,Inf) or -1 }
+
+  FFdPreferAccuracy := TSFBool.Create(Self, True, 'preferAccuracy', false);
+   FdPreferAccuracy.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdPreferAccuracy);
+
+  FFdCollider := TSFNode.Create(Self, False, 'collider', [TCollisionCollectionNode]);
+   FdCollider.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdCollider);
 end;
 
 {$endif read_implementation}

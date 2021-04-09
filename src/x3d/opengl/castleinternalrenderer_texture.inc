@@ -1,3 +1,19 @@
+{%MainUnit castleinternalrenderer.pas}
+{
+  Copyright 2002-2020 Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
 {$ifdef read_interface}
 
   { }
@@ -1437,6 +1453,7 @@ procedure TGLRenderedTextureNode.Update(
   end;
 
   procedure GetMatricesForViewpoint(const Viewpoint: TAbstractViewpointNode;
+    out CameraRenderPosition: TVector3;
     out CameraMatrix, CameraRotationMatrix, ProjectionMatrix: TMatrix4);
   var
     Pos, Dir, Up: TVector3;
@@ -1444,11 +1461,13 @@ procedure TGLRenderedTextureNode.Update(
     ProjectionMatrix := GetProjectionMatrix(Viewpoint);
 
     GetRenderedTextureCamera(Viewpoint, Pos, Dir, Up);
+    CameraRenderPosition := Pos;
     CameraMatrix := LookDirMatrix(Pos, Dir, Up);
     CameraRotationMatrix := LookDirMatrix(TVector3.Zero, Dir, Up);
   end;
 
   procedure GetMatricesForViewpointMirror(const Viewpoint: TViewpointMirrorNode;
+    out CameraRenderPosition: TVector3;
     out CameraMatrix, CameraRotationMatrix, ProjectionMatrix: TMatrix4);
   var
     Pos, Dir, Up, PosOnPlane, Side, Coord, PlaneCoord: TVector3;
@@ -1462,7 +1481,7 @@ procedure TGLRenderedTextureNode.Update(
     begin
       WritelnWarning('ViewpointMirror can only be used on node with coordinates');
       GetMatricesForViewpoint(
-        CurrentViewpoint, CameraMatrix, CameraRotationMatrix, ProjectionMatrix);
+        CurrentViewpoint, CameraRenderPosition, CameraMatrix, CameraRotationMatrix, ProjectionMatrix);
       Exit;
     end;
 
@@ -1473,7 +1492,7 @@ procedure TGLRenderedTextureNode.Update(
     begin
       WritelnWarning('ViewpointMirror plane cannot be determined, the shape does not define a plane');
       GetMatricesForViewpoint(
-        CurrentViewpoint, CameraMatrix, CameraRotationMatrix, ProjectionMatrix);
+        CurrentViewpoint, CameraRenderPosition, CameraMatrix, CameraRotationMatrix, ProjectionMatrix);
       Exit;
     end;
     Plane := PlaneTransform(Plane, GeometryTransform);
@@ -1490,6 +1509,7 @@ procedure TGLRenderedTextureNode.Update(
     MakeVectorsOrthoOnTheirPlane(Up, Dir);
     Side := TVector3.CrossProduct(Dir, Up);
 
+    CameraRenderPosition := Pos;
     CameraMatrix := LookDirMatrix(Pos, Dir, Side, Up);
     CameraRotationMatrix := LookDirMatrix(TVector3.Zero, Dir, Side, Up);
 
@@ -1521,6 +1541,7 @@ procedure TGLRenderedTextureNode.Update(
   end;
 
 var
+  CameraRenderPosition: TVector3;
   CameraMatrix, CameraRotationMatrix, SavedProjectionMatrix, NewProjectionMatrix: TMatrix4;
   Camera: TRenderingCamera;
   SavedViewport: TRectangle;
@@ -1531,16 +1552,16 @@ begin
   if TextureNode.FdViewpoint.Value is TViewpointMirrorNode then
     GetMatricesForViewpointMirror(
       TViewpointMirrorNode(TextureNode.FdViewpoint.Value),
-      CameraMatrix, CameraRotationMatrix, NewProjectionMatrix)
+      CameraRenderPosition, CameraMatrix, CameraRotationMatrix, NewProjectionMatrix)
   else
   if TextureNode.FdViewpoint.Value is TAbstractViewpointNode then
     GetMatricesForViewpoint(
       TAbstractViewpointNode(TextureNode.FdViewpoint.Value),
-      CameraMatrix, CameraRotationMatrix, NewProjectionMatrix)
+      CameraRenderPosition, CameraMatrix, CameraRotationMatrix, NewProjectionMatrix)
   else
     GetMatricesForViewpoint(
       CurrentViewpoint,
-      CameraMatrix, CameraRotationMatrix, NewProjectionMatrix);
+      CameraRenderPosition, CameraMatrix, CameraRotationMatrix, NewProjectionMatrix);
 
   TextureNode.EventProjection.Send(NewProjectionMatrix);
   TextureNode.EventViewing.Send(CameraMatrix);
@@ -1549,7 +1570,7 @@ begin
   Camera := TRenderingCamera.Create;
   try
     Camera.Target := rfRenderedTexture;
-    Camera.FromMatrix(CameraMatrix, CameraRotationMatrix, NewProjectionMatrix);
+    Camera.FromMatrix(CameraRenderPosition, CameraMatrix, CameraRotationMatrix, NewProjectionMatrix);
 
     RenderToTexture.RenderBegin;
 
@@ -2106,6 +2127,7 @@ begin
       Camera.Target := rtShadowMap;
 
     Camera.FromMatrix(
+      Light.ProjectionSceneLocation,
       Light.ModelviewMatrix,
       Light.ModelviewRotationMatrix,
       NewProjectionMatrix);

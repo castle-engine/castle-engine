@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,10 +26,20 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdKeyValue: TMFInt32;
+    { X3D field "keyValue". } { }
+    public property FdKeyValue: TMFInt32 read FFdKeyValue;
     { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: array of LongInt);
     { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: TLongIntList);
+
+    strict private FEventValue_changed: TSFInt32Event;
+    { X3D out event "value_changed". } { }
+    public property EventValue_changed: TSFInt32Event read FEventValue_changed;
 
 {$endif read_interface}
 
@@ -45,6 +55,24 @@ end;
 procedure TIntegerSequencerNode.SetKeyValue(const Value: TLongIntList);
 begin
   FdKeyValue.Send(Value);
+end;
+
+class function TIntegerSequencerNode.ClassX3DType: String;
+begin
+  Result := 'IntegerSequencer';
+end;
+
+procedure TIntegerSequencerNode.CreateNode;
+begin
+  inherited;
+
+  FFdKeyValue := TMFInt32.Create(Self, True, 'keyValue', []);
+   FdKeyValue.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdKeyValue);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FEventValue_changed := TSFInt32Event.Create(Self, 'value_changed', false);
+  AddEvent(FEventValue_changed);
 end;
 
 {$endif read_implementation}

@@ -4,19 +4,22 @@ object ProjectForm: TProjectForm
   Top = 273
   Width = 1142
   Caption = ' my-project | Castle Game Engine'
-  ClientHeight = 601
+  ClientHeight = 606
   ClientWidth = 1142
   DesignTimePPI = 120
   Menu = MainMenu1
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnHide = FormHide
+  OnShow = FormShow
   Position = poMainFormCenter
-  LCLVersion = '2.0.8.0'
+  ShowInTaskBar = stAlways
+  LCLVersion = '2.0.10.0'
   object PageControlBottom: TPageControl
     Left = 0
     Height = 224
-    Top = 377
+    Top = 382
     Width = 1142
     ActivePage = TabFiles
     Align = alBottom
@@ -25,20 +28,20 @@ object ProjectForm: TProjectForm
     TabOrder = 0
     object TabFiles: TTabSheet
       Caption = 'Files'
-      ClientHeight = 187
-      ClientWidth = 1132
+      ClientHeight = 186
+      ClientWidth = 1136
       ParentFont = False
       object SplitterBetweenFiles: TSplitter
         Left = 0
-        Height = 187
+        Height = 186
         Top = 0
         Width = 6
       end
     end
     object TabOutput: TTabSheet
       Caption = 'Output'
-      ClientHeight = 187
-      ClientWidth = 1132
+      ClientHeight = 186
+      ClientWidth = 1136
       ParentFont = False
       object ListOutput: TListBox
         Left = 0
@@ -57,8 +60,8 @@ object ProjectForm: TProjectForm
     end
     object TabWarnings: TTabSheet
       Caption = 'Warnings'
-      ClientHeight = 187
-      ClientWidth = 1132
+      ClientHeight = 186
+      ClientWidth = 1136
       ParentFont = False
       TabVisible = False
       object ListWarnings: TListBox
@@ -180,19 +183,19 @@ object ProjectForm: TProjectForm
     Cursor = crVSplit
     Left = 0
     Height = 6
-    Top = 371
+    Top = 376
     Width = 1142
     Align = alBottom
     ResizeAnchor = akBottom
   end
   object PanelAboveTabs: TPanel
     Left = 0
-    Height = 371
+    Height = 376
     Top = 0
     Width = 1142
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 371
+    ClientHeight = 376
     ClientWidth = 1142
     ParentFont = False
     TabOrder = 2
@@ -203,10 +206,10 @@ object ProjectForm: TProjectForm
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Side = asrCenter
       AnchorSideBottom.Side = asrCenter
-      Left = 304
-      Height = 164
-      Top = 103
-      Width = 535
+      Left = 296
+      Height = 144
+      Top = 116
+      Width = 551
       Alignment = taCenter
       Caption = 'To visually design'#10'user interface or 3D/2D game world, '#10'open or create a new design'#10'using the "Design" menu.'
       Font.Height = -33
@@ -330,6 +333,39 @@ object ProjectForm: TProjectForm
       object MenuItemDesignClose: TMenuItem
         Caption = 'Close'
         OnClick = MenuItemDesignCloseClick
+      end
+    end
+    object MenuItemCode: TMenuItem
+      Caption = 'Code'
+      object MenuItemOpenProjectCode: TMenuItem
+        Action = ActionOpenProjectCode
+      end
+      object MenuItem1: TMenuItem
+        Action = ActionEditAssociatedUnit
+      end
+      object MenuItemEditUnitCode: TMenuItem
+        Action = ActionEditUnit
+      end
+      object N2: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemNewUnit: TMenuItem
+        Caption = 'New Unit'
+        object MenuItemNewUnitEmpty: TMenuItem
+          Action = ActionNewUnitEmpty
+        end
+        object MenuItemNewUnitClass: TMenuItem
+          Action = ActionNewUnitClass
+        end
+        object MenuItemNewUnitState: TMenuItem
+          Action = ActionNewUnitState
+        end
+      end
+      object MenuItemSeparator123123345: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemRegenerateProject: TMenuItem
+        Action = ActionRegenerateProject
       end
     end
     object MenuItemRun: TMenuItem
@@ -474,6 +510,12 @@ object ProjectForm: TProjectForm
     object MenuItemSeparator2303403o: TMenuItem
       Caption = '-'
     end
+    object MenuItemNewSpriteSheet: TMenuItem
+      Action = ActionNewSpriteSheet
+    end
+    object MenuItemSepraratorSLP002: TMenuItem
+      Caption = '-'
+    end
     object MenuItemRefreshDir: TMenuItem
       Caption = 'Refresh'
       OnClick = MenuItemRefreshDirClick
@@ -481,17 +523,43 @@ object ProjectForm: TProjectForm
     object MenuItemSeparator123123213: TMenuItem
       Caption = '-'
     end
+    object MenuItemNewDirectory: TMenuItem
+      Caption = 'New Directory...'
+      OnClick = MenuItemNewDirectoryClick
+    end
     object MenuItemDeleteFile: TMenuItem
-      Caption = 'Delete'
+      Caption = 'Delete...'
       OnClick = MenuItemDeleteFileClick
+    end
+    object N3: TMenuItem
+      Caption = '-'
+    end
+    object MenuItemPopupNewUnit: TMenuItem
+      Caption = 'New Unit Here'
+      object MenuItemPopupNewUnitEmpty: TMenuItem
+        Action = ActionNewUnitHereEmpty
+      end
+      object MenuItemPopupNewUnitClass: TMenuItem
+        Action = ActionNewUnitHereClass
+      end
+      object MenuItemPopupNewUnitState: TMenuItem
+        Action = ActionNewUnitHereState
+      end
     end
   end
   object ShellTreePopupMenu: TPopupMenu
     Left = 233
-    Top = 287
+    Top = 288
     object MenuItemShellTreeOpenDir: TMenuItem
       Caption = 'Open in File Manager'
       OnClick = MenuItemShellTreeOpenDirClick
+    end
+    object MenuItemShellTreeSeparator13123: TMenuItem
+      Caption = '-'
+    end
+    object MenuItemShellTreeRefresh: TMenuItem
+      Caption = 'Refresh'
+      OnClick = MenuItemShellTreeRefreshClick
     end
   end
   object ShellIcons: TImageList
@@ -574,5 +642,64 @@ object ProjectForm: TProjectForm
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000
     }
+  end
+  object ApplicationProperties1: TApplicationProperties
+    OnActivate = ApplicationProperties1Activate
+    OnException = ApplicationProperties1Exception
+    Left = 344
+    Top = 21
+  end
+  object ActionList: TActionList
+    Left = 498
+    Top = 24
+    object ActionNewSpriteSheet: TAction
+      Caption = 'New Sprite Sheet...'
+      OnExecute = ActionNewSpriteSheetExecute
+    end
+    object ActionOpenProjectCode: TAction
+      Caption = 'Open Project in Lazarus'
+      OnExecute = ActionOpenProjectCodeExecute
+    end
+    object ActionEditUnit: TAction
+      Caption = 'Edit Unit...'
+      OnExecute = ActionEditUnitExecute
+    end
+    object ActionNewUnitEmpty: TAction
+      Caption = 'Empty Unit...'
+      OnExecute = ActionNewUnitEmptyExecute
+    end
+    object ActionNewUnitClass: TAction
+      Caption = 'Unit With Class...'
+      OnExecute = ActionNewUnitClassExecute
+    end
+    object ActionNewUnitState: TAction
+      Caption = 'Unit With State...'
+      OnExecute = ActionNewUnitStateExecute
+    end
+    object ActionNewUnitHereEmpty: TAction
+      Caption = 'Empty Unit...'
+      OnExecute = ActionNewUnitHereEmptyExecute
+    end
+    object ActionNewUnitHereClass: TAction
+      Caption = 'Unit With Class...'
+      OnExecute = ActionNewUnitHereClassExecute
+    end
+    object ActionNewUnitHereState: TAction
+      Caption = 'Unit With State...'
+      OnExecute = ActionNewUnitHereStateExecute
+    end
+    object ActionEditAssociatedUnit: TAction
+      Caption = 'Edit Unit Associated With Open Design'
+      OnExecute = ActionEditAssociatedUnitExecute
+      ShortCut = 123
+    end
+    object ActionRegenerateProject: TAction
+      Caption = 'Regenerate Project (overwrites LPR, LPI, CastleAutoGenerated)'
+      OnExecute = ActionRegenerateProjectExecute
+    end
+  end
+  object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog
+    Left = 263
+    Top = 200
   end
 end

@@ -1,13 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <build_gradle_merge>
-  <!-- https://github.com/GameAnalytics/GA-SDK-Android/wiki/Download%20&%20Installation -->
+  <!-- Following https://gameanalytics.com/docs/s/article/Android-SDK-Setup#Configure-Android-Studio -->
   <dependencies>
-    <dependency>compile 'com.gameanalytics.sdk:gameanalytics-android:4.3.4'</dependency>
-
-    <!-- Following https://github.com/GameAnalytics/GA-SDK-ANDROID/wiki/Configure%20Android%20Studio -->
-    <!-- Does not seem necessary. Gradle should download GA dependencies automatically, right? -->
-    <!-- <dependency>compile 'com.google.android.gms:play-services-basement:9.4.0'</dependency> -->
-    <!-- <dependency>compile 'com.google.android.gms:play-services-ads:9.4.0'</dependency> -->
-    <!-- <dependency>compile 'com.android.support:appcompat-v7:24.2.0'</dependency> -->
+    <dependency>api 'com.gameanalytics.sdk:gameanalytics-android:4.3.4'</dependency>
+    <dependency>implementation 'com.google.android.gms:play-services-base:10.2.1'</dependency>
+    <dependency>implementation 'com.android.support:appcompat-v7:24.2.0'</dependency>
   </dependencies>
 </build_gradle_merge>

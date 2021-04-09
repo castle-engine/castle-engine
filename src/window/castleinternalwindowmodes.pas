@@ -245,7 +245,10 @@ procedure NoClose(Container: TUIContainer);
 
 implementation
 
-uses CastleUtils, CastleWindowTouch, CastleColors, CastleVectors;
+uses CastleUtils, CastleColors, CastleVectors
+  {$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
+  , CastleWindowTouch
+  {$endif};
 
 { TGLMode.TWindowState -------------------------------------------------------------- }
 
@@ -283,6 +286,7 @@ begin
   OldControls.Assign(Window.Controls);
   OldControls.BeginDisableContextOpenClose;
 
+  {$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
   { save AutomaticTouchInterface,
     as it has to be reset in SetStandardState,
     as adding to Controls during a mode doesn't work (Controls contain
@@ -293,6 +297,7 @@ begin
   if Window is TCastleWindowTouch then
     OldAutomaticTouchControl := TCastleWindowTouch(Window).AutomaticTouchInterface;
   {$warnings on}
+  {$endif}
 end;
 
 destructor TGLMode.TWindowState.Destroy;
@@ -327,6 +332,7 @@ begin
     FreeAndNil(OldControls);
   end;
 
+  {$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
   { restore AutomaticTouchInterface after Controls are restored,
     as it may add/remove touch controls, if navigation type changed
     during the mode. }
@@ -334,6 +340,7 @@ begin
   if Window is TCastleWindowTouch then
     TCastleWindowTouch(Window).AutomaticTouchInterface := OldAutomaticTouchControl;
   {$warnings on}
+  {$endif}
 
   inherited;
 end;
@@ -401,10 +408,12 @@ begin
   Window.InternalCursor := mcDefault;
   Window.SwapFullScreen_Key := keyNone;
   Window.Close_KeyString := '';
+  {$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
   {$warnings off} // code only to keep deprecated working
   if Window is TCastleWindowTouch then
     TCastleWindowTouch(Window).AutomaticTouchInterface := false;
   {$warnings on}
+  {$endif}
   Window.Controls.Clear;
 end;
 

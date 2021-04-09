@@ -25,11 +25,15 @@ See the [manual documenting the editor](https://castle-engine.io/manual_editor.p
 
 ## License
 
-The Castle Game Engine editor is provided on the GNU GPL >= 2 license terms.
+The **Castle Game Engine Editor** is provided on the GNU GPL >= 2 license terms.
+*Not* on more permissive terms of LGPL (with static linking exception) >= 2
+(that are used for the rest of the Castle Game Engine).
 See the file ../../COPYING.md for details.
-In short:
-You can use "Castle Game Engine" to create your own closed-source programs,
-but you cannot fork "Castle Game Engine Editor" into a closed-source program.
+This means that:
+
+- You can use the editor to create your own closed-source programs,
+- but you cannot fork the editor into a closed-source program (and distribute it publicly).
+- You are of course free to extend Castle Game Engine editor for internal purposes (if you don't distribute it publicly, the GPL license terms don't concern you), or you can extend it publicly on terms of GPL (thus, keeping the whole work open-source).
 
 When contributing (sending pull requests etc.) to the castle-editor source code,
 you agree that your contributions may be used under either GPL

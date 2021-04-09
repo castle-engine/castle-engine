@@ -49,6 +49,9 @@ type
     any edits to Line don't matter then). }
   TLineFiltering = function (var Line: String; const Data: Pointer): Boolean;
 
+  TRunCommandFlag = (rcNoConsole);
+  TRunCommandFlags = set of TRunCommandFlag;
+
 { Run command in the given directory with the given arguments,
   gathering the output (including error output, i.e. stdout and stderr)
   to a string.
@@ -77,7 +80,8 @@ procedure MyRunCommandIndir(
   const Options: array of string;
   out OutputString: string; out ExitStatus: integer;
   const LineFiltering: TLineFiltering = nil;
-  const LineFilteringData: Pointer = nil);
+  const LineFilteringData: Pointer = nil;
+  const Flags: TRunCommandFlags = []);
 
 { Run command in given directory with given arguments,
   gathering output and status to string, and also letting output
@@ -276,7 +280,7 @@ type
     The TCaptureOutput class doesn't process the contents in any way.
     When it reads newline characters (#10, #13) they are treated
     just like any other character.
-    Descendants like TCaptureOutputFilter may have different behaviour. }
+    Descendants like TCaptureOutputFilter may have different behavior. }
   TCaptureOutput = class
   strict private
     const
@@ -466,7 +470,8 @@ procedure MyRunCommandIndir(const CurDir: string;
   const ExeName: string;const Options: array of string;
   out OutputString: string; out ExitStatus: integer;
   const LineFiltering: TLineFiltering = nil;
-  const LineFilteringData: Pointer = nil);
+  const LineFilteringData: Pointer = nil;
+  const Flags: TRunCommandFlags = []);
 var
   P: TProcess;
   I: Integer;
@@ -492,6 +497,8 @@ begin
     WritelnVerbose(P.Parameters.Text);
 
     P.Options := [poUsePipes, poStderrToOutPut];
+    if rcNoConsole in Flags then
+      P.Options := P.Options + [poNoConsole];
     P.Execute;
 
     Capture := TCaptureOutput.Construct(P.Output, LineFiltering, LineFilteringData);

@@ -240,11 +240,18 @@ a.download_code {
 }
 
 /* make documentation.php lists look good */
-.content-near-sidebar ol,
-.content-near-sidebar ul,
+.content-near-sidebar       ol,
+.content-near-sidebar       ul,
 article.post .entry-content ol,
 article.post .entry-content ul {
   margin-bottom: 10px !important;
+}
+/* Revert above change for class="list-no-margin" */
+.content-near-sidebar       ol.list-no-margin,
+.content-near-sidebar       ul.list-no-margin,
+article.post .entry-content ol.list-no-margin,
+article.post .entry-content ul.list-no-margin {
+  margin-bottom: 0 !important;
 }
 
 /* main page stuff ----------------------------------------------------------- */
@@ -271,6 +278,16 @@ article.post .entry-content ul {
     font-size: 87% !important;
     margin-top: 0; /* .download-hints already makes margins */
     margin-bottom: 0; /* .download-hints already makes margins */
+}
+
+.centered-download-wrapper .main-cge-download .btn-primary {
+  padding-left: 1em;
+  padding-right: 1em;
+}
+
+div.main-cge-download {
+  padding-left: 2em !important;
+  padding-right: 2em !important;
 }
 
 /* news on main page --------------------------------------------------------- */
@@ -779,7 +796,7 @@ div.download table a img { border: 0px none; }
 
 div.download .download_platform {
   display: inline-block;
-  margin: 1em;
+  margin: 0.5em;
 }
 
 .centered-download-wrapper .btn-primary {

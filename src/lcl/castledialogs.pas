@@ -65,9 +65,10 @@ type
     property UseCastleDataProtocol: Boolean read FUseCastleDataProtocol write FUseCastleDataProtocol default true;
   end;
 
-  { 3D model open dialog. It uses an URL, and additionally initializes the filters
-    to include all the 3D model types our engine can load (through
-    LoadNode, through setting TCastleScene.URL and other functions). }
+  { Dialog to open scene (select a file that can be loaded using TCastleScene.Load).
+    It uses an URL, and additionally initializes the filters
+    to include all the scene types we can load (through
+    LoadNode, TCastleScene.Load, TCastleScene.URL and so on). }
   TCastleOpen3DDialog = class(TOpenDialog)
   private
     FAdviceDataDirectory: Boolean;
@@ -101,13 +102,21 @@ type
     FUseCastleDataProtocol: Boolean;
     InitialFilterIndex: Integer;
     InitialFilter: string;
-    function GetURL: string;
-    procedure SetURL(AValue: string);
+    function PrepareURL(const AFileName: String): String;
+    function GetURL: String;
+    function GetURLWithIndex(const Index: Integer): String;
+    procedure SetURL(AValue: String);
     function StoreFilterAndFilterIndex: boolean;
   protected
     function DoExecute: boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
+
+    { Number of selected images to open (useful when multi-selection is allowed). }
+    function URLCount: Integer;
+
+    { Get URL of a selected image to open (useful when multi-selection is allowed). }
+    property URLs[Index: Integer]: String read GetURLWithIndex;
   published
     property URL: string read GetURL write SetURL stored false;
     { Warn (but still allow) if user selects URL outside of data directory. }
@@ -146,6 +155,21 @@ type
     property FilterIndex stored StoreFilterAndFilterIndex;
   end;
 
+  TCastleOpenPascalUnitDialog = class(TOpenDialog)
+  private
+    const
+      InitialFilterIndex = 0;
+      InitialFilter = 'Pascal unit (*.pas, *.pp)|*.pas;*.pp|All Files|*';
+    function StoreFilterAndFilterIndex: boolean;
+  protected
+    function DoExecute: boolean; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+  published
+    property Filter stored StoreFilterAndFilterIndex;
+    property FilterIndex stored StoreFilterAndFilterIndex;
+  end;
+
 procedure Register;
 
 implementation
@@ -161,7 +185,8 @@ begin
     TCastleSaveDialog,
     TCastleOpen3DDialog,
     TCastleOpenImageDialog,
-    TCastleSaveImageDialog
+    TCastleSaveImageDialog,
+    TCastleOpenPascalUnitDialog
   ]);
 end;
 
@@ -269,14 +294,24 @@ end;
 
 { TCastleOpenImageDialog --------------------------------------------------- }
 
-function TCastleOpenImageDialog.GetURL: string;
+function TCastleOpenImageDialog.PrepareURL(const AFileName: String): String;
 begin
-  Result := FilenameToURISafeUTF8(CleanupFileName(FileName));
+  Result := FilenameToURISafeUTF8(CleanupFileName(AFileName));
   if UseCastleDataProtocol then
     Result := MaybeUseDataProtocol(Result);
 end;
 
-procedure TCastleOpenImageDialog.SetURL(AValue: string);
+function TCastleOpenImageDialog.GetURL: String;
+begin
+  Result := PrepareURL(FileName);
+end;
+
+function TCastleOpenImageDialog.GetURLWithIndex(const Index: Integer): String;
+begin
+  Result := PrepareURL(Files[Index]);
+end;
+
+procedure TCastleOpenImageDialog.SetURL(AValue: String);
 begin
   FileName := URIToFilenameSafeUTF8(AValue);
 end;
@@ -300,6 +335,11 @@ begin
   FileFiltersToDialog(LoadImage_FileFilters, Self);
   InitialFilter := Filter;
   InitialFilterIndex := FilterIndex;
+end;
+
+function TCastleOpenImageDialog.URLCount: Integer;
+begin
+  Result := Files.Count;
 end;
 
 { TCastleSaveDialog -------------------------------------------------------- }
@@ -354,6 +394,25 @@ constructor TCastleOpenDialog.Create(AOwner: TComponent);
 begin
   inherited;
   FUseCastleDataProtocol := true;
+end;
+
+{ TCastleOpenPascalUnitDialog ----------------------------------------------------- }
+
+function TCastleOpenPascalUnitDialog.StoreFilterAndFilterIndex: boolean;
+begin
+  Result := (Filter <> InitialFilter) or (FilterIndex <> InitialFilterIndex);
+end;
+
+function TCastleOpenPascalUnitDialog.DoExecute: boolean;
+begin
+  Result := inherited DoExecute;
+end;
+
+constructor TCastleOpenPascalUnitDialog.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  Filter := InitialFilter;
+  FilterIndex := InitialFilterIndex;
 end;
 
 end.

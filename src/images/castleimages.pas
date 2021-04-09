@@ -133,7 +133,6 @@ type
     FURL: string;
     procedure NotImplemented(const AMethodName: string);
     procedure FromFpImage(const FPImage: TInternalCastleFpImage); virtual;
-    function ToFpImage: TInternalCastleFpImage; virtual;
   protected
     { Operate on this by Get/Realloc/FreeMem.
       It's always freed and nil'ed in destructor. }
@@ -220,6 +219,10 @@ type
 
     { Mirror image vertically. }
     procedure FlipVertical; virtual; abstract;
+
+    { Convert image contents to FpImage instance.
+      The resulting instance is owned by the caller. }
+    function ToFpImage: TInternalCastleFpImage; virtual;
   end;
 
   { Resize interpolation modes, see TCastleImage.Resize and TCastleImage.MakeResized. }
@@ -1119,7 +1122,6 @@ type
     function GetPixels: PVector3Byte;
     function GetPixelsArray: PVector3ByteArray;
     procedure FromFpImage(const FPImage: TInternalCastleFpImage); override;
-    function ToFpImage: TInternalCastleFpImage; override;
   protected
     procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
@@ -1169,6 +1171,8 @@ type
     function ToRGBFloat: TRGBFloatImage;
 
     function ToGrayscale: TGrayscaleImage;
+
+    function ToFpImage: TInternalCastleFpImage; override;
 
     { Draw horizontal line. Must be y1 <= y2, else it is NOOP. }
     procedure HorizontalLine(const x1, x2, y: Integer;
@@ -1230,7 +1234,6 @@ type
     function GetPixels: PVector4Byte;
     function GetPixelsArray: PVector4ByteArray;
     procedure FromFpImage(const FPImage: TInternalCastleFpImage); override;
-    function ToFpImage: TInternalCastleFpImage; override;
   protected
     procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
@@ -1291,6 +1294,8 @@ type
 
     { Flatten to grayscale and remove alpha channel. }
     function ToGrayscaleImage: TGrayscaleImage;
+
+    function ToFpImage: TInternalCastleFpImage; override;
 
     { Premultiply the RGB channel with alpha, to make it faster
       to use this image as source for TCastleImage.DrawTo and
@@ -1381,7 +1386,6 @@ type
     function GetPixels: PByte;
     function GetPixelsArray: PByteArray;
     procedure FromFpImage(const FPImage: TInternalCastleFpImage); override;
-    function ToFpImage: TInternalCastleFpImage; override;
   protected
     procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
@@ -1419,6 +1423,8 @@ type
       except in the special case of TGrayscaleImage.TreatAsAlpha = @true
       (where the contents will be copied to alpha, and intensity set to white). }
     function ToGrayscaleAlphaImage: TGrayscaleAlphaImage;
+
+    function ToFpImage: TInternalCastleFpImage; override;
 
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
     class procedure MixColors(const OutputColor: Pointer;
@@ -1475,7 +1481,6 @@ type
     function GetPixels: PVector2Byte;
     function GetPixelsArray: PVector2ByteArray;
     procedure FromFpImage(const FPImage: TInternalCastleFpImage); override;
-    function ToFpImage: TInternalCastleFpImage; override;
   protected
     procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
@@ -1507,6 +1512,8 @@ type
 
     function AlphaChannel(
       const AlphaTolerance: Byte): TAlphaChannel; override;
+
+    function ToFpImage: TInternalCastleFpImage; override;
 
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
     class procedure MixColors(const OutputColor: Pointer;

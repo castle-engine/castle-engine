@@ -664,6 +664,36 @@ procedure TProcessor.ProcessFile(const InputFileName: string);
       Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
       Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces) + ')';
     end else
+    if (Field.X3DType = 'SFMatrix3f') or
+       (Field.X3DType = 'SFMatrix3d') or
+       (Field.X3DType = 'MFMatrix3f') or
+       (Field.X3DType = 'MFMatrix3d') then
+    begin
+      Field.DefaultValue := 'Matrix3(';
+
+      if NextTokenOnce(Line, SeekPos, WhiteSpaces) = 'identity' then
+      begin
+        case Field.X3DType of
+          'SFMatrix3f': Field.DefaultValue := 'TMatrix3.Identity';
+          'SFMatrix3d': Field.DefaultValue := 'TMatrix3Double.Identity';
+        end;
+
+        // just to advance SeekPos
+        NextToken(Line, SeekPos, WhiteSpaces);
+      end else
+      begin
+        for I := 1 to 2 do
+        begin
+          Field.DefaultValue += '    Vector3(' + NextToken(Line, SeekPos, WhiteSpaces);
+          Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
+          Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces) + '),' + NL;
+        end;
+
+        Field.DefaultValue += '    Vector3(' + NextToken(Line, SeekPos, WhiteSpaces);
+        Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
+        Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces) + '));';
+      end;
+    end else
     if (Field.X3DType = 'SFMatrix4f') or
        (Field.X3DType = 'SFMatrix4d') or
        (Field.X3DType = 'MFMatrix4f') or
@@ -673,11 +703,10 @@ procedure TProcessor.ProcessFile(const InputFileName: string);
 
       if NextTokenOnce(Line, SeekPos, WhiteSpaces) = 'identity' then
       begin
-        if Field.X3DType = 'SFMatrix4f' then
-          Field.DefaultValue := 'TMatrix4.Identity'
-        else
-        if Field.X3DType = 'SFMatrix4d' then
-          Field.DefaultValue := 'TMatrix4d.Identity';
+        case Field.X3DType of
+          'SFMatrix4f': Field.DefaultValue := 'TMatrix4.Identity';
+          'SFMatrix4d': Field.DefaultValue := 'TMatrix4Double.Identity';
+        end;
 
         // just to advance SeekPos
         NextToken(Line, SeekPos, WhiteSpaces);
@@ -925,8 +954,6 @@ begin
      (Node.X3DType + '.' + Field.X3DName = 'GeoViewpoint.position') or
      (Node.X3DType + '.' + Field.X3DName = 'TextureProperties.magnificationFilter') or
      (Node.X3DType + '.' + Field.X3DName = 'TextureProperties.minificationFilter') or
-     (Node.X3DType + '.' + Field.X3DName = 'Appearance.material') or
-     (Node.X3DType + '.' + Field.X3DName = 'Appearance.texture') or
      (Node.X3DType + '.' + Field.X3DName = 'Text.fontStyle') or
      (Node.X3DType + '.' + Field.X3DName = 'HAnimHumanoid.skinCoord') or
      (Node.X3DType + '.' + Field.X3DName = 'FontStyle.family') or
@@ -941,20 +968,22 @@ begin
      false // keep this line, to allow easily rearranging lines above
      then
   begin
-    WritelnVerbose('Not processing, this field has special implementation: ' + Field.X3DName);
+    WritelnVerbose('Not processing, this field has special implementation: ' + Node.X3DType + '.' + Field.X3DName);
     Exit;
   end;
   if (Node.X3DType = 'X3DFogObject') or
      (Node.X3DType = 'X3DPickableObject') or
      (Node.X3DType = 'LOD') then
   begin
-    WritelnVerbose('Not processing, this node has special implementation: ' + Node.X3DType);
+    WritelnVerbose('Not processing, this entire node has special implementation: ' + Node.X3DType);
     Exit;
   end;
   if (Field.X3DAccessType <> '[in,out]') and
      (Field.X3DAccessType <> '[]') then
   begin
-    WritelnVerbose('Only fields (inputOutput or initializeOnly) are supported now: ' + Field.X3DName);
+    { We don't generate any special helpers for events now, and they don't seem necessary. }
+    // too verbose, and this is normal -- not an alarming situation
+    //WritelnVerbose('Getters / setters are only generated for fields (inputOutput or initializeOnly) now, omitting event: ' + Field.X3DName);
     Exit;
   end;
 
@@ -1187,7 +1216,10 @@ begin
   if (OutputPrivateInterface = '') or
      (OutputPublicInterface = '') or
      (OutputImplementation = '') then
-    WritelnVerbose('Node does not have any helpers (for now), generating empty include file: ' + Node.X3DType);
+  begin
+    // too verbose, and this is normal -- not an alarming situation
+    // WritelnVerbose('Node does not have any helpers (for now), generating empty include file: ' + Node.X3DType);
+  end;
 
   if OutputPrivateInterface <> '' then
     OutputPrivateInterface := '  strict private' + NL + OutputPrivateInterface;

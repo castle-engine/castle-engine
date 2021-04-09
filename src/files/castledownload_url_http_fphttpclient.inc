@@ -33,6 +33,7 @@ type
     - Updates ParentJob.DownloadedBytes
     - Updates ParentJob.TotalBytes
     - Updates ParentJob.MimeType
+    - Updates ParentJob.FinalUrl
     - Terminates the client, if ParentThread is terminated
       (ParentThread can also be = nil, for non-threaded operation)
 
@@ -81,6 +82,7 @@ type
     ErrorMessage: String;
     HttpResponseCode: Integer;
     HttpResponseHeaders: TStrings;
+    FinalUrl: String;
 
     constructor Create;
     destructor Destroy; override;
@@ -119,8 +121,13 @@ end;
 
 procedure TCastleFpHttpClient.RedirectLog(Sender: TObject; const ASrc: String; var ADest: String);
 begin
-  // TODO: Not safe from thread:
+  // TODO: WritelnLog is not safe from thread:
   WritelnLog('Network', 'Following HTTP redirect to "%s"', [ADest]);
+
+  SynchronizationCS.Acquire;
+  try
+    ParentJob.FinalUrl := ADest;
+  finally SynchronizationCS.Release end;
 end;
 
 procedure TCastleFpHttpClient.DataReceived(Sender: TObject; const ContentLength, CurrentPos: Int64);
@@ -222,6 +229,9 @@ begin
         for I := 0 to HttpHeadersKeys.Count - 1 do
           Client.AddHeader(HttpHeadersKeys[I], HttpHeadersValues[I]);
       end;
+
+      // will be updated by Client when redirect occurs
+      FinalUrl := Url;
 
       try
         case HttpMethod of
@@ -435,6 +445,7 @@ begin
   HttpResponseCode := Job.HttpResponseCode;
   HttpResponseHeaders := Job.HttpResponseHeaders;
   Job.HttpResponseHeaders := nil; // do not free HttpResponseHeaders inside TFpHttpClientJob destructor
+  FinalUrl := Job.FinalUrl;
   if Job.Success then
   begin
     Status := dsSuccess;

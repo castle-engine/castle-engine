@@ -337,6 +337,7 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
     InputFile, OutputFile: string;
     Image: TCastleImage;
     NewWidth, NewHeight: Integer;
+    NewScale: Cardinal;
     TimeStart: TProcessTimerResult;
   begin
     if CheckNeedsUpdate(InputURL, OutputURL, InputFile, OutputFile, ContentAlreadyProcessed) then
@@ -346,12 +347,17 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
 
       Image := LoadImage(InputURL);
       try
-        if Image.Width < TextureMinSize then
-          NewWidth := Image.Width else
-          NewWidth := Image.Width shr (Scale - 1);
-        if Image.Height < TextureMinSize then
-          NewHeight := Image.Height else
-          NewHeight := Image.Height shr (Scale - 1);
+        NewWidth := Image.Width;
+        NewHeight := Image.Height;
+        NewScale := 1;
+        while (NewWidth shr 1 >= TextureMinSize) and
+              (NewHeight shr 1 >= TextureMinSize) and
+              (NewScale < Scale) do
+        begin
+          NewWidth := NewWidth shr 1;
+          NewHeight := NewHeight shr 1;
+          Inc(NewScale);
+        end;
         if Verbose then
           Writeln(Format('Resizing "%s" from %dx%d to %dx%d',
             [InputURL, Image.Width, Image.Height, NewWidth, NewHeight]));

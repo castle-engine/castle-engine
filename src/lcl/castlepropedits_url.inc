@@ -29,7 +29,7 @@ type
 
 function TSceneURLPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
-  Result := [paDialog, paRevertable];
+  Result := [paDialog, paRevertable, paMultiSelect];
 end;
 
 procedure TSceneURLPropertyEditor.Edit;
@@ -61,7 +61,7 @@ type
 
 function TImageURLPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
-  Result := [paDialog, paRevertable];
+  Result := [paDialog, paRevertable, paMultiSelect];
 end;
 
 procedure TImageURLPropertyEditor.Edit;
@@ -92,7 +92,7 @@ type
 
 function TDesignURLPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
-  Result := [paDialog, paRevertable];
+  Result := [paDialog, paRevertable, paMultiSelect];
 end;
 
 procedure TDesignURLPropertyEditor.Edit;
@@ -124,7 +124,7 @@ type
 
 function TTransformDesignURLPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
-  Result := [paDialog, paRevertable];
+  Result := [paDialog, paRevertable, paMultiSelect];
 end;
 
 procedure TTransformDesignURLPropertyEditor.Edit;
@@ -156,7 +156,7 @@ type
 
 function TTiledMapURLPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
-  Result := [paDialog, paRevertable];
+  Result := [paDialog, paRevertable, paMultiSelect];
 end;
 
 procedure TTiledMapURLPropertyEditor.Edit;

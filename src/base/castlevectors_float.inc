@@ -91,9 +91,9 @@ function Matrix4Double(const V: TMatrix4): TMatrix4Double;
 { Convert string to vector. Each component is simply parsed by StrToFloatDot,
   and components must be separated by whitespace (see @link(WhiteSpaces) constant).
   This is a reverse of
-  @link(TGenericVector2.ToString TVector2.ToString),
-  @link(TGenericVector3.ToString TVector3.ToString),
-  @link(TGenericVector4.ToString TVector4.ToString) methods.
+  @link(CastleVectorsInternalSingle.TGenericVector2.ToString TVector2.ToString),
+  @link(CastleVectorsInternalSingle.TGenericVector3.ToString TVector3.ToString),
+  @link(CastleVectorsInternalSingle.TGenericVector4.ToString TVector4.ToString) methods.
 
   @raises(EConvertError In case of problems during conversion (invalid float
     or unexpected string end or expected but missed string end).)

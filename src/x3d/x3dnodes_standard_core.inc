@@ -66,7 +66,7 @@
     function FindMetadata(const Key: String): TAbstractMetadataNode;
 
     { Get/set metadata, identified by a given Key, as a Boolean.
-      "Metadata" is any value you want to save with this node, it has no effect on the rendering/behaviour.
+      "Metadata" is any value you want to save with this node, it has no effect on the rendering/behavior.
       This property hides various complexities of the X3D metadata nodes.
 
       This property looks for a TMetadataBooleanNode node inside the "metadata" of this node
@@ -84,7 +84,7 @@
     property MetadataBooleanArray[const Key: String; const Index: Cardinal]: Boolean read GetMetadataBooleanArray write SetMetadataBooleanArray;
 
     { Get/set metadata, identified by a given Key, as a String.
-      "Metadata" is any value you want to save with this node, it has no effect on the rendering/behaviour.
+      "Metadata" is any value you want to save with this node, it has no effect on the rendering/behavior.
       This property hides various complexities of the X3D metadata nodes.
 
       This property looks for a TMetadataStringNode node inside the "metadata" of this node
@@ -102,7 +102,7 @@
     property MetadataStringArray[const Key: String; const Index: Cardinal]: String read GetMetadataStringArray write SetMetadataStringArray;
 
     { Get/set metadata, identified by a given Key, as a Integer.
-      "Metadata" is any value you want to save with this node, it has no effect on the rendering/behaviour.
+      "Metadata" is any value you want to save with this node, it has no effect on the rendering/behavior.
       This property hides various complexities of the X3D metadata nodes.
 
       This property looks for a TMetadataIntegerNode node inside the "metadata" of this node
@@ -120,7 +120,7 @@
     property MetadataIntegerArray[const Key: String; const Index: Cardinal]: Integer read GetMetadataIntegerArray write SetMetadataIntegerArray;
 
     { Get/set metadata, identified by a given Key, as a Double.
-      "Metadata" is any value you want to save with this node, it has no effect on the rendering/behaviour.
+      "Metadata" is any value you want to save with this node, it has no effect on the rendering/behavior.
       This property hides various complexities of the X3D metadata nodes.
 
       This property looks for a TMetadataDoubleNode or TMetadataFloatNode
@@ -301,7 +301,7 @@
 
   { Information about the world.
     This node is strictly for documentation purposes
-    and has no effect on the visual appearance or behaviour of the world. }
+    and has no effect on the visual appearance or behavior of the world. }
   TWorldInfoNode = class(TAbstractInfoNode)
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;

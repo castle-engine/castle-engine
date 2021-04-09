@@ -36,11 +36,11 @@ type
   { Starling XML file is not correct }
   EInvalidCocos2dPlist = class(Exception);
 
-function LoadCocos2d(const URL: String): TX3DRootNode;
+function LoadCocos2d(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 
 implementation
 
-uses StrUtils, DOM,
+uses StrUtils, DOM, XMLRead,
   CastleImages, CastleLog, CastleStringUtils, CastleTextureImages,
   CastleURIUtils, CastleUtils, CastleVectors, CastleXMLUtils;
 
@@ -52,7 +52,7 @@ type
       { Class that represents frame from Cocos2d file }
       TCocosFrame = class
       private
-        FDisplayURL: String;
+        FDisplayUrl: String;
         FCocosFormat: Integer;
 
         FParseFrameDictionary: procedure (const DictNode: TDOMElement) of object;
@@ -76,7 +76,7 @@ type
         AnchorX: Single;
         AnchorY: Single;
 
-        constructor Create(const DisplayURL: String);
+        constructor Create(const DisplayUrl: String);
         { We support format version 2 and 3. This procedure sets suitable
           ParseFrameDictionaryFormatX procedure. }
         procedure SetCocosFormat(const Format: Integer);
@@ -88,8 +88,9 @@ type
         class function ReadQuad(const ASrc: String; out V1, V2, V3, V4: Integer): Boolean;
       end;
     var
-      FURL: String;
-      FDisplayURL: String;
+      FStream: TStream;
+      FBaseUrl: String;
+      FDisplayUrl: String;
 
       { Load settings. }
       FFramesPerSecond: Single;
@@ -141,17 +142,17 @@ type
     function CheckAnimationNameAvailable(const AnimationName: String): Boolean;
 
   public
-    constructor Create(const URL: String);
+    constructor Create(const Stream: TStream; const BaseUrl: String);
     destructor Destroy; override;
 
     function Load: TX3DRootNode;
   end;
 
-function LoadCocos2d(const URL: String): TX3DRootNode;
+function LoadCocos2d(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 var
   Cocos2dLoader: TCocos2dLoader;
 begin
-  Cocos2dLoader := TCocos2dLoader.Create(URL);
+  Cocos2dLoader := TCocos2dLoader.Create(Stream, BaseUrl);
   try
     Result := Cocos2dLoader.Load;
   finally
@@ -228,10 +229,10 @@ begin
     begin
       KeyNode := I.Current;
       if KeyNode.NodeName <> 'key' then
-        raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - key node expected.', [FDisplayURL]);
+        raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - key node expected.', [FDisplayUrl]);
 
       if not I.GetNext then
-        raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - value node expected.', [FDisplayURL]);
+        raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - value node expected.', [FDisplayUrl]);
 
       ValueNode := I.Current;
 
@@ -271,7 +272,7 @@ begin
   end;
 
   if not WasFrameSize or not WasFrame then
-    raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - frame data incomplete.', [FDisplayURL]);
+    raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - frame data incomplete.', [FDisplayUrl]);
 
   if not HasAnchor then
   begin
@@ -331,10 +332,10 @@ begin
     begin
       KeyNode := I.Current;
       if KeyNode.NodeName <> 'key' then
-        raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - key node expected.', [FDisplayURL]);
+        raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - key node expected.', [FDisplayUrl]);
 
       if not I.GetNext then
-        raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - value node expected.', [FDisplayURL]);
+        raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - value node expected.', [FDisplayUrl]);
 
       ValueNode := I.Current;
 
@@ -374,7 +375,7 @@ begin
   end;
 
   if not WasTextureFrame or not WasFrameFullSize then
-    raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - frame data incomplete.', [FDisplayURL]);
+    raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - frame data incomplete.', [FDisplayUrl]);
 
   X1 := X;
   Y1 := Y;
@@ -406,10 +407,10 @@ begin
   end;
 end;
 
-constructor TCocos2dLoader.TCocosFrame.Create(const DisplayURL: String);
+constructor TCocos2dLoader.TCocosFrame.Create(const DisplayUrl: String);
 begin
   inherited Create;
-  FDisplayURL := DisplayURL;
+  FDisplayUrl := DisplayUrl;
   { By default, use format 3 }
   FParseFrameDictionary := @ParseFrameDictionaryFormat3;
 end;
@@ -427,7 +428,7 @@ begin
       FParseFrameDictionary := @ParseFrameDictionaryFormat3;
       WritelnWarning('Cocos2d',
         'Unsupported format version %d in "%s", trying to load with the latest importer (format = 3).',
-        [Format, FDisplayURL]);
+        [Format, FDisplayUrl]);
   end;
 end;
 
@@ -531,7 +532,7 @@ begin
 
   SettingsMap := TStringStringMap.Create;
   try
-    URIExtractSettingsFromAnchor(FURL, SettingsMap);
+    URIGetSettingsFromAnchor(FBaseUrl, SettingsMap);
     for Setting in SettingsMap do
     begin
       if LowerCase(Setting.Key) = 'fps' then
@@ -539,7 +540,7 @@ begin
         FFramesPerSecond := StrToFloatDot(Setting.Value);
       end else
         WritelnWarning('Starling', 'Unknown setting (%s) in "%s" anchor.',
-          [Setting.Key, FDisplayURL]);
+          [Setting.Key, FDisplayUrl]);
     end;
   finally
     FreeAndNil(SettingsMap);
@@ -550,7 +551,7 @@ end;
 procedure TCocos2dLoader.PrepareX3DRoot;
 begin
   FRoot.Meta['generator'] := 'Castle Game Engine, https://castle-engine.io';
-  FRoot.Meta['source'] := ExtractURIName(FURL);
+  FRoot.Meta['source'] := ExtractURIName(FBaseUrl);
 end;
 
 procedure TCocos2dLoader.ReadMetadata(const MetadataNode: TDOMElement);
@@ -568,10 +569,10 @@ begin
     begin
       KeyNode := I.Current;
       if KeyNode.NodeName <> 'key' then
-        raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - key node expected.', [FDisplayURL]);
+        raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - key node expected.', [FDisplayUrl]);
 
       if not I.GetNext then
-        raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - value node expected.', [FDisplayURL]);
+        raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - value node expected.', [FDisplayUrl]);
 
       ValueNode := I.Current;
 
@@ -582,7 +583,7 @@ begin
           TextureFileName := ValueNode.TextData;
         'size':
           if not TCocosFrame.ReadDual(ValueNode.TextData, FImageWidth, FImageHeight) then
-            raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - invalid size.', [FDisplayURL]);
+            raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - invalid size.', [FDisplayUrl]);
         'format':
           FCocosFormat := StrToInt(ValueNode.TextData);
         else
@@ -597,9 +598,9 @@ begin
     but there are a lot files with name in textureFileName which has often
     file name without extension when realTextureFileName exists. }
   if RealTextureFileName <> '' then
-    FImagePath := ExtractURIPath(FURL) + RealTextureFileName
+    FImagePath := ExtractURIPath(FBaseUrl) + RealTextureFileName
   else
-    FImagePath := ExtractURIPath(FURL) + TextureFileName;
+    FImagePath := ExtractURIPath(FBaseUrl) + TextureFileName;
 
   { This should never be needed. }
   if (FImageWidth = 0) or (FImageHeight = 0) then
@@ -640,14 +641,14 @@ begin
     begin
       KeyNode := I.Current;
       if KeyNode.NodeName <> 'key' then
-        raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - key node expected.', [FDisplayURL]);
+        raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - key node expected.', [FDisplayUrl]);
 
       if not I.GetNext then
-        raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - dict node expected.', [FDisplayURL]);
+        raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - dict node expected.', [FDisplayUrl]);
 
       DictNode := I.Current;
       if DictNode.NodeName <> 'dict' then
-        raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - dict node expected.', [FDisplayURL]);
+        raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - dict node expected.', [FDisplayUrl]);
 
       { Read frame from plist }
       FCocosFrame.ReadFormDict(KeyNode, DictNode, FImageWidth, FImageHeight);
@@ -735,6 +736,7 @@ var
   Shape: TShapeNode;
   Tri: TTriangleSetNode;
   Tex: TImageTextureNode;
+  TexProperties: TTexturePropertiesNode;
 begin
   Shape := TShapeNode.Create;
   Shape.Material := TUnlitMaterialNode.Create;
@@ -744,6 +746,16 @@ begin
   Tex.RepeatS := false;
   Tex.RepeatT := false;
   Shape.Texture := Tex;
+
+  TexProperties := TTexturePropertiesNode.Create;
+  TexProperties.MagnificationFilter := magDefault;
+  TexProperties.MinificationFilter := minDefault;
+  { Do not force "power of 2" size, which may prevent mipmaps.
+    This seems like a better default (otherwise the resizing underneath
+    may cause longer loading time, and loss of quality, if not expected).
+    See https://github.com/castle-engine/castle-engine/issues/249 }
+  TexProperties.GuiTexture := true;
+  Tex.TextureProperties := TexProperties;
 
   Tri := TTriangleSetNode.Create;
   Tri.Solid := false;
@@ -840,7 +852,7 @@ begin
   if FAnimationList.IndexOf(AnimationName) > -1 then
   begin
     WritelnWarning('Starling', 'Mixed animations tags (animation: %s) in "%s".',
-      [AnimationName, FDisplayURL]);
+      [AnimationName, FDisplayUrl]);
     Exit(false);
   end;
 
@@ -848,13 +860,14 @@ begin
   Result := true;
 end;
 
-constructor TCocos2dLoader.Create(const URL: String);
+constructor TCocos2dLoader.Create(const Stream: TStream; const BaseUrl: String);
 begin
   inherited Create;
-  FURL := URL;
-  FDisplayURL := URIDisplay(FURL);
+  FStream := Stream;
+  FBaseUrl := BaseUrl;
+  FDisplayUrl := URIDisplay(FBaseUrl);
 
-  FCocosFrame := TCocosFrame.Create(FDisplayURL);
+  FCocosFrame := TCocosFrame.Create(FDisplayUrl);
   SetLength(FCoordArray, 6);
   SetLength(FTexCoordArray, 6);
   FAnimationList := TStringList.Create;
@@ -893,7 +906,7 @@ begin
   try
     try
       FRoot := TX3DRootNode.Create;
-      Doc := URLReadXML(FURL);
+      ReadXMLFile(Doc, FStream);
 
       { Doc.FindNode('plist') can fail here because of plist Apple DOCTYPE
         above plist element. }
@@ -909,13 +922,13 @@ begin
       end;
 
       if PlistNode = nil then
-        raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - plist node not found.', [FDisplayURL]);
+        raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - plist node not found.', [FDisplayUrl]);
 
       { With Required = false just return nil, because we want to raise a nicer
         exception. }
       PlistDictNode := PlistNode.Child('dict', false);
       if (PlistDictNode = nil) then
-        raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - plist dictionary node not found.', [FDisplayURL]);
+        raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - plist dictionary node not found.', [FDisplayUrl]);
 
       { Iterate file to find frames, metadata, textures nodes }
       I := PlistDictNode.ChildrenIterator;
@@ -925,15 +938,15 @@ begin
           { Should be key node. }
           KeyNode := I.Current;
           if KeyNode.NodeName <> 'key' then
-            raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - key node expected.', [FDisplayURL]);
+            raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - key node expected.', [FDisplayUrl]);
 
           if not I.GetNext then
-            raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - dict node expected.', [FDisplayURL]);
+            raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - dict node expected.', [FDisplayUrl]);
 
           DictNode := I.Current;
 
           if DictNode.NodeName <> 'dict' then
-            raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - dict node expected.', [FDisplayURL]);
+            raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - dict node expected.', [FDisplayUrl]);
 
           { Check KeyNode.TextData to decide what this is metadata, texture or frames}
           case KeyNode.TextData of
@@ -955,11 +968,11 @@ begin
         The files of this version (1) are so outdated that nobody will ever need
         to use them (I think). }
       if TextureDictNode <> nil then
-        raise EInvalidCocos2dPlist.CreateFmt('Cocos2d plist file "%s" - file version 1 is unsupported.', [FDisplayURL]);
+        raise EInvalidCocos2dPlist.CreateFmt('Cocos2d plist file "%s" - file version 1 is unsupported.', [FDisplayUrl]);
 
       { First read metadata - texture properties }
       if MetadataDictNode = nil then
-        raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - metadata dict node not found.', [FDisplayURL]);
+        raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - metadata dict node not found.', [FDisplayUrl]);
 
       ReadMetadata(MetadataDictNode);
 
@@ -969,7 +982,7 @@ begin
 
       { Now we can read frames }
       if FramesDictNode = nil then
-        raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - frames dict node not found.', [FDisplayURL]);
+        raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - frames dict node not found.', [FDisplayUrl]);
 
       ReadFrames(FramesDictNode);
 

@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -65,52 +65,146 @@
     function GetUseGlobalGravity: Boolean;
     procedure SetUseGlobalGravity(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdAngularDampingFactor: TSFFloat;
+    { X3D field "angularDampingFactor". } { }
+    public property FdAngularDampingFactor: TSFFloat read FFdAngularDampingFactor;
     { X3D field "angularDampingFactor". } { }
     property AngularDampingFactor: Single read GetAngularDampingFactor write SetAngularDampingFactor;
+
+    strict private FFdAngularVelocity: TSFVec3f;
+    { X3D field "angularVelocity". } { }
+    public property FdAngularVelocity: TSFVec3f read FFdAngularVelocity;
     { X3D field "angularVelocity". } { }
     property AngularVelocity: TVector3 read GetAngularVelocity write SetAngularVelocity;
+
+    strict private FFdAutoDamp: TSFBool;
+    { X3D field "autoDamp". } { }
+    public property FdAutoDamp: TSFBool read FFdAutoDamp;
     { X3D field "autoDamp". } { }
     property AutoDamp: Boolean read GetAutoDamp write SetAutoDamp;
+
+    strict private FFdAutoDisable: TSFBool;
+    { X3D field "autoDisable". } { }
+    public property FdAutoDisable: TSFBool read FFdAutoDisable;
     { X3D field "autoDisable". } { }
     property AutoDisable: Boolean read GetAutoDisable write SetAutoDisable;
+
+    strict private FFdCenterOfMass: TSFVec3f;
+    { X3D field "centerOfMass". } { }
+    public property FdCenterOfMass: TSFVec3f read FFdCenterOfMass;
     { X3D field "centerOfMass". } { }
     property CenterOfMass: TVector3 read GetCenterOfMass write SetCenterOfMass;
+
+    strict private FFdDisableAngularSpeed: TSFFloat;
+    { X3D field "disableAngularSpeed". } { }
+    public property FdDisableAngularSpeed: TSFFloat read FFdDisableAngularSpeed;
     { X3D field "disableAngularSpeed". } { }
     property DisableAngularSpeed: Single read GetDisableAngularSpeed write SetDisableAngularSpeed;
+
+    strict private FFdDisableLinearSpeed: TSFFloat;
+    { X3D field "disableLinearSpeed". } { }
+    public property FdDisableLinearSpeed: TSFFloat read FFdDisableLinearSpeed;
     { X3D field "disableLinearSpeed". } { }
     property DisableLinearSpeed: Single read GetDisableLinearSpeed write SetDisableLinearSpeed;
+
+    strict private FFdDisableTime: TSFFloat;
+    { X3D field "disableTime". } { }
+    public property FdDisableTime: TSFFloat read FFdDisableTime;
     { X3D field "disableTime". } { }
     property DisableTime: Single read GetDisableTime write SetDisableTime;
+
+    strict private FFdEnabled: TSFBool;
+    { X3D field "enabled". } { }
+    public property FdEnabled: TSFBool read FFdEnabled;
     { X3D field "enabled". } { }
     property Enabled: Boolean read GetEnabled write SetEnabled;
+
+    strict private FFdFiniteRotationAxis: TSFVec3f;
+    { X3D field "finiteRotationAxis". } { }
+    public property FdFiniteRotationAxis: TSFVec3f read FFdFiniteRotationAxis;
     { X3D field "finiteRotationAxis". } { }
     property FiniteRotationAxis: TVector3 read GetFiniteRotationAxis write SetFiniteRotationAxis;
+
+    strict private FFdFixed: TSFBool;
+    { X3D field "fixed". } { }
+    public property FdFixed: TSFBool read FFdFixed;
     { X3D field "fixed". } { }
     property Fixed: Boolean read GetFixed write SetFixed;
+
+    strict private FFdForces: TMFVec3f;
+    { X3D field "forces". } { }
+    public property FdForces: TMFVec3f read FFdForces;
     { Set X3D field "forces". } { }
     procedure SetForces(const Value: array of TVector3);
     { Set X3D field "forces". } { }
     procedure SetForces(const Value: TVector3List);
+
+    strict private FFdGeometry: TMFNode;
+    { X3D field "geometry". } { }
+    public property FdGeometry: TMFNode read FFdGeometry;
     { Set X3D field "geometry". } { }
     procedure SetGeometry(const Value: array of TAbstractNBodyCollidableNode);
+
+    strict private FFdInertia: TSFMatrix3f;
+    { X3D field "inertia". } { }
+    public property FdInertia: TSFMatrix3f read FFdInertia;
     { X3D field "inertia". } { }
     property Inertia: TMatrix3 read GetInertia write SetInertia;
+
+    strict private FFdLinearDampingFactor: TSFFloat;
+    { X3D field "linearDampingFactor". } { }
+    public property FdLinearDampingFactor: TSFFloat read FFdLinearDampingFactor;
     { X3D field "linearDampingFactor". } { }
     property LinearDampingFactor: Single read GetLinearDampingFactor write SetLinearDampingFactor;
+
+    strict private FFdLinearVelocity: TSFVec3f;
+    { X3D field "linearVelocity". } { }
+    public property FdLinearVelocity: TSFVec3f read FFdLinearVelocity;
     { X3D field "linearVelocity". } { }
     property LinearVelocity: TVector3 read GetLinearVelocity write SetLinearVelocity;
+
+    strict private FFdMass: TSFFloat;
+    { X3D field "mass". } { }
+    public property FdMass: TSFFloat read FFdMass;
     { X3D field "mass". } { }
     property Mass: Single read GetMass write SetMass;
+
+    strict private FFdMassDensityModel: TSFNode;
+    { X3D field "massDensityModel". } { }
+    public property FdMassDensityModel: TSFNode read FFdMassDensityModel;
+
+    strict private FFdOrientation: TSFRotation;
+    { X3D field "orientation". } { }
+    public property FdOrientation: TSFRotation read FFdOrientation;
     { X3D field "orientation". } { }
     property Orientation: TVector4 read GetOrientation write SetOrientation;
+
+    strict private FFdPosition: TSFVec3f;
+    { X3D field "position". } { }
+    public property FdPosition: TSFVec3f read FFdPosition;
     { X3D field "position". } { }
     property Position: TVector3 read GetPosition write SetPosition;
+
+    strict private FFdTorques: TMFVec3f;
+    { X3D field "torques". } { }
+    public property FdTorques: TMFVec3f read FFdTorques;
     { Set X3D field "torques". } { }
     procedure SetTorques(const Value: array of TVector3);
     { Set X3D field "torques". } { }
     procedure SetTorques(const Value: TVector3List);
+
+    strict private FFdUseFiniteRotation: TSFBool;
+    { X3D field "useFiniteRotation". } { }
+    public property FdUseFiniteRotation: TSFBool read FFdUseFiniteRotation;
     { X3D field "useFiniteRotation". } { }
     property UseFiniteRotation: Boolean read GetUseFiniteRotation write SetUseFiniteRotation;
+
+    strict private FFdUseGlobalGravity: TSFBool;
+    { X3D field "useGlobalGravity". } { }
+    public property FdUseGlobalGravity: TSFBool read FFdUseGlobalGravity;
     { X3D field "useGlobalGravity". } { }
     property UseGlobalGravity: Boolean read GetUseGlobalGravity write SetUseGlobalGravity;
 
@@ -340,6 +434,122 @@ end;
 procedure TRigidBodyNode.SetUseGlobalGravity(const Value: Boolean);
 begin
   FdUseGlobalGravity.Send(Value);
+end;
+
+class function TRigidBodyNode.ClassX3DType: String;
+begin
+  Result := 'RigidBody';
+end;
+
+procedure TRigidBodyNode.CreateNode;
+begin
+  inherited;
+
+  FFdAngularDampingFactor := TSFFloat.Create(Self, True, 'angularDampingFactor', 0.001);
+   FdAngularDampingFactor.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAngularDampingFactor);
+  { X3D specification comment: [0,1] }
+
+  FFdAngularVelocity := TSFVec3f.Create(Self, True, 'angularVelocity', Vector3(0, 0, 0));
+   FdAngularVelocity.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAngularVelocity);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FFdAutoDamp := TSFBool.Create(Self, True, 'autoDamp', false);
+   FdAutoDamp.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAutoDamp);
+
+  FFdAutoDisable := TSFBool.Create(Self, True, 'autoDisable', false);
+   FdAutoDisable.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAutoDisable);
+
+  FFdCenterOfMass := TSFVec3f.Create(Self, True, 'centerOfMass', Vector3(0, 0, 0));
+   FdCenterOfMass.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdCenterOfMass);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FFdDisableAngularSpeed := TSFFloat.Create(Self, True, 'disableAngularSpeed', 0);
+   FdDisableAngularSpeed.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDisableAngularSpeed);
+  { X3D specification comment: [0,Inf) }
+
+  FFdDisableLinearSpeed := TSFFloat.Create(Self, True, 'disableLinearSpeed', 0);
+   FdDisableLinearSpeed.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDisableLinearSpeed);
+  { X3D specification comment: [0,Inf) }
+
+  FFdDisableTime := TSFFloat.Create(Self, True, 'disableTime', 0);
+   FdDisableTime.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDisableTime);
+  { X3D specification comment: [0,Inf) }
+
+  FFdEnabled := TSFBool.Create(Self, True, 'enabled', true);
+   FdEnabled.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdEnabled);
+
+  FFdFiniteRotationAxis := TSFVec3f.Create(Self, True, 'finiteRotationAxis', Vector3(0, 0, 0));
+   FdFiniteRotationAxis.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdFiniteRotationAxis);
+  { X3D specification comment: [-1,1] }
+
+  FFdFixed := TSFBool.Create(Self, True, 'fixed', false);
+   FdFixed.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdFixed);
+
+  FFdForces := TMFVec3f.Create(Self, True, 'forces', []);
+   FdForces.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdForces);
+
+  FFdGeometry := TMFNode.Create(Self, True, 'geometry', [TAbstractNBodyCollidableNode]);
+   FdGeometry.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdGeometry);
+
+  FFdInertia := TSFMatrix3f.Create(Self, True, 'inertia', TMatrix3.Identity);
+   FdInertia.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdInertia);
+
+  FFdLinearDampingFactor := TSFFloat.Create(Self, True, 'linearDampingFactor', 0.001);
+   FdLinearDampingFactor.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdLinearDampingFactor);
+  { X3D specification comment: [0,1] }
+
+  FFdLinearVelocity := TSFVec3f.Create(Self, True, 'linearVelocity', Vector3(0, 0, 0));
+   FdLinearVelocity.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdLinearVelocity);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FFdMass := TSFFloat.Create(Self, True, 'mass', 1);
+   FdMass.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMass);
+  { X3D specification comment: (0,Inf) }
+
+  FFdMassDensityModel := TSFNode.Create(Self, True, 'massDensityModel', [TSphereNode, TBoxNode, TConeNode]);
+   FdMassDensityModel.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMassDensityModel);
+
+  FFdOrientation := TSFRotation.Create(Self, True, 'orientation', Vector3(0, 0, 1), 0);
+   FdOrientation.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdOrientation);
+  { X3D specification comment: [0,1] }
+
+  FFdPosition := TSFVec3f.Create(Self, True, 'position', Vector3(0, 0, 0));
+   FdPosition.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdPosition);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FFdTorques := TMFVec3f.Create(Self, True, 'torques', []);
+   FdTorques.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdTorques);
+
+  FFdUseFiniteRotation := TSFBool.Create(Self, True, 'useFiniteRotation', false);
+   FdUseFiniteRotation.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdUseFiniteRotation);
+
+  FFdUseGlobalGravity := TSFBool.Create(Self, True, 'useGlobalGravity', true);
+   FdUseGlobalGravity.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdUseGlobalGravity);
+
+  DefaultContainerField := 'bodies';
 end;
 
 {$endif read_implementation}

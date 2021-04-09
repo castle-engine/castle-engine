@@ -1,6 +1,6 @@
 // -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestSysUtils" -*-
 {
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,10 +19,11 @@ unit TestSysUtils;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase;
 
 type
-  TTestSysUtils = class(TTestCase)
+  TTestSysUtils = class(TCastleTestCase)
     procedure TestDirectoryFileExists;
   end;
 
@@ -63,7 +64,7 @@ begin
   AssertFalse(FileExists(URIToFilenameSafe('castle-data:/')));
   AssertFalse(FileExists(URIToFilenameSafe('castle-data:/images/')));
   {$else}
-    {$if not defined(VER3_3)} // For FPC 3.3.1, the behaviour depends on exact revision...
+    {$if not defined(VER3_3)} // For FPC 3.3.1, the behavior depends on exact revision...
       {$if defined(VER3_0) or defined(VER3_1)}
       AssertTrue(FileExists(URIToFilenameSafe('castle-data:/')));
       AssertTrue(FileExists(URIToFilenameSafe('castle-data:/images/')));

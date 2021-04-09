@@ -120,7 +120,7 @@
       const ChangeInitiatedByChildren: boolean = false); override;
     procedure EditorAllowResize(out ResizeWidth, ResizeHeight: Boolean;
       out Reason: String); override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Called when user clicks the button. In this class, simply calls
       OnClick callback. }
@@ -594,7 +594,7 @@ begin
       on this button, if mouse down was on this) we *always* get release event
       (even if mouse position is no longer over this button).
 
-      This is consistent with behaviours of other toolkits.
+      This is consistent with behaviors of other toolkits.
       It means that if the user does mouse down over the button,
       moves mouse out from the control, then moves it back inside,
       then does mouse up -> it counts as a "click". }
@@ -993,16 +993,16 @@ begin
   Caption := Value;
 end;
 
-function TCastleButton.PropertySection(
-  const PropertyName: String): TPropertySection;
+function TCastleButton.PropertySections(
+  const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
     'Caption':
-      Result := psBasic;
+      Result := [psBasic];
     'AutoSize', 'AutoSizeWidth', 'AutoSizeHeight', 'PaddingHorizontal', 'PaddingVertical':
-      Result := psLayout;
+      Result := [psBasic, psLayout];
     else
-      Result := inherited PropertySection(PropertyName);
+      Result := inherited PropertySections(PropertyName);
   end;
 end;
 

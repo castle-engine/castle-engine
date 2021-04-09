@@ -309,6 +309,10 @@ procedure ANativeActivity_onCreate(activity: PANativeActivity; savedState: Point
 { Allocate memory for saved state. }
 function AllocateSavedState(const Size: csize_t): Pointer;
 
+var
+  { Singleton instance of PAndroid_App, initialized right before AndroidMain is called. }
+  AndroidMainApp: PAndroid_App;
+
 implementation
 
 uses SysUtils, Classes, CastleUtils;
@@ -567,6 +571,7 @@ begin
       Reproducible by drawing_toy with deliberately crashing DrawCore.
       (Possibly not needed anymore, since using TAndroidAppThread?). }
     try
+      AndroidMainApp := android_app;
       AndroidMain(android_app);
     except
       on E: TObject do

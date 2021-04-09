@@ -25,8 +25,8 @@ uses SysUtils, Classes, Generics.Collections,
   CastleVectors, X3DNodes, X3DTriangles, CastleScene, CastleSceneCore, CastleCameras,
   CastleInternalGLShadowVolumes, CastleUIControls, CastleTransform, CastleTriangles,
   CastleKeysMouse, CastleBoxes, CastleInternalBackground, CastleUtils, CastleClassUtils,
-  CastleGLShaders, CastleGLImages, CastleTimeUtils,
-  CastleInputs, CastleRectangles, CastleColors,
+  CastleGLShaders, CastleGLImages, CastleTimeUtils, CastleControls,
+  CastleInputs, CastleRectangles, CastleColors, CastleComponentSerialize,
   CastleProjection, CastleScreenEffects;
 
 type
@@ -151,8 +151,7 @@ type
         @nil when OpenGL context is not yet initialized. }
       FShadowVolumeRenderer: TGLShadowVolumeRenderer;
       FItems: TCastleRootTransform;
-      ScheduledVisibleChangeNotification: boolean;
-      ScheduledVisibleChangeNotificationChanges: TVisibleChanges;
+      LastVisibleStateIdForVisibleChange: TFrameId;
 
       FOnBoundViewpointChanged, FOnBoundNavigationInfoChanged: TNotifyEvent;
       FMouseRayHit: TRayCollision;
@@ -162,6 +161,7 @@ type
       FPreventInfiniteFallingDown: Boolean;
       FCapturePointingDevice: TCastleTransform;
       FCapturePointingDeviceObserver: TFreeNotificationObserver;
+      FLastSeenMainScene: TCastleScene; // only used by editor
 
     function FillsWholeContainer: boolean;
     function IsStoredNavigation: Boolean;
@@ -172,6 +172,7 @@ type
     procedure SSRShaderInitialize;
     function GetNavigationType: TNavigationType;
     procedure SetAutoCamera(const Value: Boolean);
+    procedure SetAutoNavigation(const Value: Boolean);
     { Make sure to call AssignDefaultCamera, if needed because of AutoCamera. }
     procedure EnsureCameraDetected;
     procedure SetItems(const Value: TCastleRootTransform);
@@ -256,11 +257,6 @@ type
       This takes care to always update Camera.ProjectionMatrix,
       Projection, MainScene.BackgroundSkySphereRadius. }
     procedure ApplyProjection;
-    procedure ItemsVisibleChange(const Sender: TCastleTransform; const Changes: TVisibleChanges);
-
-    { What changes happen when camera changes.
-      You may want to use it when calling Scene.CameraChanged. }
-    function CameraToChanges(const ACamera: TCastleCamera): TVisibleChanges;
 
     { Render shadow quads for all the things rendered by @link(Render3D).
       You can use here ShadowVolumeRenderer instance, which is guaranteed
@@ -391,6 +387,19 @@ type
         @exclude }
       InternalDistortFieldOfViewY, InternalDistortViewAspect: Single;
 
+      { Do not navigate by dragging when we're already dragging a TCastleTransform item.
+        This means that if you drag
+
+        - X3D sensors like TouchSensor,
+        - gizmo in CGE editor,
+
+        ... then your dragging will not simultaneously also affect the navigation
+        (which would be very disorienting).
+
+        Set to true when some TCastleTransform handles PointingDevicePress,
+        set to false in PointingDeviceRelease. }
+      InternalPointingDeviceDragging: Boolean;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -400,11 +409,14 @@ type
     function Motion(const Event: TInputMotion): boolean; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
-    procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
-      const ChangeInitiatedByChildren: boolean = false); override;
     procedure BeforeRender; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     function GetMainScene: TCastleScene; deprecated 'use Items.MainScene';
+
+    { Notification done by TCastleCamera when our Camera state changed.
+      @exclude }
+    procedure InternalCameraChanged;
 
     { Current projection parameters,
       calculated by last @link(CalculateProjection) call,
@@ -1130,7 +1142,7 @@ type
       By default it is @false, which means that you control @link(Navigation) on your own.
     }
     property AutoNavigation: Boolean
-      read FAutoNavigation write FAutoNavigation default false;
+      read FAutoNavigation write SetAutoNavigation default false;
 
     { Called when bound Viewpoint node changes.
       Called exactly when TCastleSceneCore.ViewpointStack.OnBoundChanged is called. }
@@ -1267,6 +1279,11 @@ var
     or TInputShortcut.MouseButtonUse. }
   Input_Interact: TInputShortcut;
 
+{$define read_interface}
+{$I castleviewport_touchnavigation.inc}
+{$I castleviewport_serialize.inc}
+{$undef read_interface}
+
 implementation
 
 {$warnings off}
@@ -1276,7 +1293,7 @@ uses DOM, Math,
   CastleRenderingCamera,
   CastleGLUtils, CastleProgress, CastleLog, CastleStringUtils,
   CastleSoundEngine, CastleGLVersion, CastleShapes, CastleTextureImages,
-  CastleComponentSerialize, CastleInternalSettings, CastleXMLUtils, CastleURIUtils,
+  CastleInternalSettings, CastleXMLUtils, CastleURIUtils,
   CastleRenderContext, CastleApplicationProperties;
 {$warnings on}
 
@@ -1284,7 +1301,11 @@ procedure Register;
 begin
 end;
 
+{$define read_implementation}
+{$I castleviewport_touchnavigation.inc}
 {$I castleviewport_warmup_cache.inc}
+{$I castleviewport_serialize.inc}
+{$undef read_implementation}
 
 { TManagerRenderParams ------------------------------------------------------- }
 
@@ -1379,7 +1400,6 @@ begin
   FItems.SetSubComponent(true);
   FItems.Name := 'Items';
   FItems.OnCursorChange := @RecalculateCursor;
-  FItems.OnVisibleChange := @ItemsVisibleChange;
   FItems.MainCamera := Camera;
 
   FCapturePointingDeviceObserver := TFreeNotificationObserver.Create(Self);
@@ -1542,6 +1562,8 @@ begin
 end;
 
 function TCastleViewport.Press(const Event: TInputPressRelease): boolean;
+var
+  I: Integer;
 begin
   Result := inherited;
   if Result or Items.Paused then Exit;
@@ -1554,16 +1576,23 @@ begin
 
   LastPressEvent := Event;
 
-  if (Items <> nil) and
-     Items.Press(Event) then
-    Exit(ExclusiveEvents);
+  if Items.InternalPressReleaseListeners <> nil then
+    // use downto, to work in case some Press will remove transform from list
+    for I := Items.InternalPressReleaseListeners.Count - 1 downto 0 do
+      if Items.InternalPressReleaseListeners[I].Press(Event) then
+        Exit(ExclusiveEvents);
 
   if Input_Interact.IsEvent(Event) and
      PointingDevicePress then
+  begin
+    InternalPointingDeviceDragging := true;
     Exit(ExclusiveEvents);
+  end;
 end;
 
 function TCastleViewport.Release(const Event: TInputPressRelease): boolean;
+var
+  I: Integer;
 begin
   Result := inherited;
   if Result or Items.Paused then Exit;
@@ -1571,13 +1600,18 @@ begin
   { Make MouseRayHit valid, as our PointingDeviceRelease uses it. }
   UpdateMouseRayHit;
 
-  if (Items <> nil) and
-     Items.Release(Event) then
-    Exit(ExclusiveEvents);
+  if Items.InternalPressReleaseListeners <> nil then
+    // use downto, to work in case some Release will remove transform from list
+    for I := Items.InternalPressReleaseListeners.Count - 1 downto 0 do
+      if Items.InternalPressReleaseListeners[I].Release(Event) then
+        Exit(ExclusiveEvents);
 
-  if Input_Interact.IsEvent(Event) and
-     PointingDeviceRelease then
-    Exit(ExclusiveEvents);
+  if Input_Interact.IsEvent(Event) then
+  begin
+    InternalPointingDeviceDragging := false;
+    if PointingDeviceRelease then
+      Exit(ExclusiveEvents);
+  end;
 end;
 
 function TCastleViewport.Motion(const Event: TInputMotion): boolean;
@@ -1759,23 +1793,38 @@ var
     { we ignore RemoveItem --- main Items list cannot be removed }
   end;
 
-  procedure DoScheduledVisibleChangeNotification;
-  var
-    Changes: TVisibleChanges;
+  procedure UpdateVisibleChange;
   begin
-    if ScheduledVisibleChangeNotification then
+    { when some TCastleTransform calls TCastleTransform.VisibleChangeHere,
+      in effect TCastleViewport will call VisibleChange. }
+    if LastVisibleStateIdForVisibleChange < Items.InternalVisibleStateId then
     begin
-      { reset state first, in case some VisibleChangeNotification will post again
-        another visible change. }
-      ScheduledVisibleChangeNotification := false;
-      Changes := ScheduledVisibleChangeNotificationChanges;
-      ScheduledVisibleChangeNotificationChanges := [];
-
-      { pass visible change notification "upward" (as a TCastleUserInterface, to container) }
+      LastVisibleStateIdForVisibleChange := Items.InternalVisibleStateId;
       VisibleChange([chRender]);
-      { pass visible change notification "downward", to all children TCastleTransform }
-      Items.VisibleChangeNotification(Changes);
     end;
+  end;
+
+  procedure WatchMainSceneChange;
+  begin
+    if CastleDesignMode then
+    begin
+      if FLastSeenMainScene <> Items.MainScene then
+      begin
+        FLastSeenMainScene := Items.MainScene;
+        AssignDefaultCameraDone := false;
+      end;
+    end;
+  end;
+
+  { Prepare information used by TCastleScene.UpdateGeneratedTextures, called from TCastleScene.Update }
+  procedure PrepareUpdateGeneratedTexturesParameters;
+  begin
+    if (FProjection.ProjectionNear = 0) or
+       (FProjection.ProjectionFar = 0) then // in case ApplyProjection was not called yet
+      FProjection := CalculateProjection;
+    Items.InternalRenderEverythingEvent := @RenderFromViewEverything;
+    Items.InternalProjectionNear := FProjection.ProjectionNear;
+    Items.InternalProjectionFar := FProjection.ProjectionFar;
   end;
 
 begin
@@ -1791,8 +1840,10 @@ begin
     so passing HandleInput there is not necessary. }
   Camera.Update(SecondsPassedScaled);
 
+  PrepareUpdateGeneratedTexturesParameters;
   ItemsUpdate;
-  DoScheduledVisibleChangeNotification;
+  UpdateVisibleChange;
+  WatchMainSceneChange;
 end;
 
 function TCastleViewport.AllowSuspendForInput: boolean;
@@ -1905,7 +1956,25 @@ begin
     does something, but here it would do something.
     Doing the same thing with AutoNavigation doesn't
     recreate navigation (if Navigation <> nil, it will stay as it was).
+
+    Later yet: This seems very useful in editor though, to see the effect
+    in editor immediately, without reloading file.
     *)
+
+    if CastleDesignMode and Value then
+      AssignDefaultCameraDone := false;
+  end;
+end;
+
+procedure TCastleViewport.SetAutoNavigation(const Value: Boolean);
+begin
+  if FAutoNavigation <> Value then
+  begin
+    FAutoNavigation := Value;
+    { Not necessary, and we actually don't have AssignDefaultNavigationDone.
+      The navigation will be auto-assigned when it is nil. }
+    // if CastleDesignMode and Value then
+    //   AssignDefaultNavigationDone := false;
   end;
 end;
 
@@ -2077,7 +2146,15 @@ function TCastleViewport.MainLightForShadows(out AMainLightPosition: TVector4): 
 begin
   if Items.MainScene <> nil then
   begin
-    Result := Items.MainScene.InternalMainLightForShadows(AMainLightPosition);
+    Result :=
+      Items.MainScene.InternalMainLightForShadows(AMainLightPosition) and
+      { We need WorldTransform for below conversion local<->world space.
+        It may not be available, if
+        - MainScene is present multiple times in Items
+        - MainScene is not present in Items at all, temporarily, but is still a MainScene.
+        Testcase: castle-game, change from level to level using debug menu.
+      }
+      Items.MainScene.HasWorldTransform;
     { Transform AMainLightPosition to world space.
       This matters in case MainScene (that contains shadow-casting light) has some transformation. }
     if Result then
@@ -2374,8 +2451,6 @@ procedure TCastleViewport.RenderWithoutScreenEffects;
 begin
   inherited;
   ApplyProjection;
-  Items.UpdateGeneratedTextures(@RenderFromViewEverything,
-    FProjection.ProjectionNear, FProjection.ProjectionFar);
   RenderOnScreen(Camera);
 end;
 
@@ -2826,7 +2901,7 @@ begin
 
   { This assertion should be OK. It is commented out only to prevent
     GetNavigationType from accidentally creating something intermediate,
-    and thus making debug and release behaviour different) }
+    and thus making debug and release behavior different) }
   // Assert(GetNavigationType = Value);
 
   FWithinSetNavigationType := false;
@@ -3064,26 +3139,16 @@ begin
     if Value = nil then
       raise EInternalError.Create('Cannot set TCastleSceneManager.Items to nil');
     FItems := Value;
+    LastVisibleStateIdForVisibleChange := 0;
 
     { TODO: do the same thing we did when creating internal FItems:
     FItems.OnCursorChange := @RecalculateCursor;
-    FItems.OnVisibleChange := @ItemsVisibleChange;
 
     // No need to change this, it's documented that MainCamera has to be manually managed if you reuse items
     // FItems.MainCamera := Camera;
     }
 
   end;
-end;
-
-procedure TCastleViewport.ItemsVisibleChange(const Sender: TCastleTransform; const Changes: TVisibleChanges);
-begin
-  { merely schedule broadcasting this change to a later time.
-    This way e.g. animating a lot of transformations doesn't cause a lot of
-    "visible change notifications" repeatedly on the same 3D object within
-    the same frame. }
-  ScheduledVisibleChangeNotification := true;
-  ScheduledVisibleChangeNotificationChanges := ScheduledVisibleChangeNotificationChanges + Changes;
 end;
 
 function TCastleViewport.GetPaused: Boolean;
@@ -3094,16 +3159,6 @@ end;
 procedure TCastleViewport.SetPaused(const Value: Boolean);
 begin
   Items.Paused := Value;
-end;
-
-function TCastleViewport.CameraToChanges(const ACamera: TCastleCamera): TVisibleChanges;
-begin
-  // headlight exists, and we changed camera controlling headlight
-  if (Items.InternalHeadlight <> nil) and
-     (ACamera = Items.MainCamera) then
-    Result := [vcVisibleNonGeometry]
-  else
-    Result := [];
 end;
 
 function TCastleViewport.GetMainScene: TCastleScene;
@@ -3482,37 +3537,29 @@ begin
   Result := PointingDeviceMoveCore(MouseRayHit, MouseRayOrigin, MouseRayDirection);
 end;
 
-procedure TCastleViewport.VisibleChange(const Changes: TCastleUserInterfaceChanges;
-  const ChangeInitiatedByChildren: boolean = false);
-
-  procedure CameraChange;
-  var
-    Pos, Dir, Up: TVector3;
-    MC: TCastleCamera;
+procedure TCastleViewport.InternalCameraChanged;
+var
+  Pos, Dir, Up: TVector3;
+  MC: TCastleCamera;
+begin
+  MC := Items.MainCamera;
+  if MC = Camera then
   begin
-    MC := Items.MainCamera;
-    if MC = Camera then
-    begin
-      { Call CameraChanged on all TCastleTransform.
-        Note that we have to call it on all Items, not just MainScene,
-        to make ProximitySensor, Billboard etc. to work in all scenes, not just in MainScene. }
-      Items.CameraChanged(Camera);
-      { ItemsVisibleChange may again cause this VisibleChange (if we are TCastleViewport),
-        but without chCamera, so no infinite recursion. }
-      ItemsVisibleChange(Items, CameraToChanges(Camera));
+    Inc(Items.InternalMainCameraStateId);
 
-      Camera.GetView(Pos, Dir, Up);
-      SoundEngine.UpdateListener(Pos, Dir, Up);
-    end;
+    // we should redraw soon, this will cause VisibleChange() call
+    Inc(Items.InternalVisibleStateId);
 
-    if Assigned(OnCameraChanged) then
-      OnCameraChanged(Self);
+    // we changed MainCamera which makes headlight -> so lighting changed
+    if Items.InternalHeadlight <> nil then
+      Inc(Items.InternalVisibleNonGeometryStateId);
+
+    Camera.GetView(Pos, Dir, Up);
+    SoundEngine.UpdateListener(Pos, Dir, Up);
   end;
 
-begin
-  inherited;
-  if chCamera in Changes then
-    CameraChange;
+  if Assigned(OnCameraChanged) then
+    OnCameraChanged(Self);
 end;
 
 function TCastleViewport.UseAvoidNavigationCollisions: Boolean;
@@ -3652,6 +3699,16 @@ begin
       SceneManager.Viewports.Add(Self);
   end;
   {$warnings on}
+end;
+
+function TCastleViewport.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  case PropertyName of
+    'Transparent', 'Navigation':
+      Result := [psBasic];
+    else
+      Result := inherited PropertySections(PropertyName);
+  end;
 end;
 
 {$define read_implementation_methods}
@@ -3825,6 +3882,7 @@ initialization
   R.IsDeprecated := true;
   RegisterSerializableComponent(R);
 
+  RegisterSerializableComponent(TCastleTouchNavigation, 'Touch Navigation');
   RegisterSerializableComponent(TCastleViewport, 'Viewport');
 
   R := TRegisteredComponent.Create;

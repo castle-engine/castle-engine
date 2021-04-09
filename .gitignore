@@ -51,10 +51,6 @@ castle-game-engine-*.fpm
 /doc/pasdoc/html/
 /doc/pasdoc/latex/
 /doc/reference/
-/examples/2d_dragon_spine_game/castle_spine
-/examples/2d_dragon_spine_game/castle_spine.log
-/examples/2d_dragon_spine_game/code/lib/
-/examples/2d_dragon_spine_game/code/libcastle_spine_android.so
 /examples/3d_rendering_processing/animate_3d_model_by_code
 /examples/3d_rendering_processing/animate_3d_model_by_code_2
 /examples/3d_rendering_processing/anisotropic_filtering/anisotropic_filtering
@@ -62,6 +58,7 @@ castle-game-engine-*.fpm
 /examples/3d_rendering_processing/build_3d_tunnel
 /examples/3d_rendering_processing/call_pascal_code_from_3d_model_script
 /examples/3d_rendering_processing/cars_demo
+/examples/3d_rendering_processing/collisions/collisions
 /examples/3d_rendering_processing/combine_multiple_x3d_into_one
 /examples/3d_rendering_processing/custom_3d_object
 /examples/3d_rendering_processing/custom_input_shortcuts_saved_to_config
@@ -79,7 +76,9 @@ castle-game-engine-*.fpm
 /examples/3d_rendering_processing/switch_projection
 /examples/3d_rendering_processing/tools/castle_anim_frames_to_interpolators
 /examples/3d_rendering_processing/tools/gen_light_map
+/examples/3d_rendering_processing/transform_feedback
 /examples/3d_rendering_processing/transform_scenes_demos
+/examples/3d_rendering_processing/transform_speed_test/transform_speed_test
 /examples/3d_rendering_processing/triangulate_demo
 /examples/3d_rendering_processing/triangulate_demo.res
 /examples/3d_rendering_processing/view_3d_model_advanced
@@ -88,6 +87,7 @@ castle-game-engine-*.fpm
 /examples/3d_sound_game/data/levels/base/devel/process_base_b
 /examples/3d_sound_game/data/levels/base/devel/process_base_b.res
 /examples/3d_sound_game/lets_take_a_walk
+/examples/advanced_editor/advanced_editor
 /examples/animations/expose_transformations_to_animate_children/expose_transformations_demo
 /examples/animations/play_animation/play_animation
 /examples/animations/resource_animations/resource_animations
@@ -103,6 +103,7 @@ castle-game-engine-*.fpm
 /examples/castlescript/castle_calculator
 /examples/castlescript/image_make_by_script
 /examples/component_gallery/cge-component-gallery
+/examples/creature_behaviors/creature_behaviors
 /examples/curves/simplest_curve_read
 /examples/delphi/base_tests/base_tests.res
 /examples/fixed_camera_game/rift
@@ -112,7 +113,6 @@ castle-game-engine-*.fpm
 /examples/fonts/html_text/html_text
 /examples/fonts/test_font_break
 /examples/fonts/test_local_characters/test_local_characters
-/examples/fonts/test_local_characters/test_local_characters_standalone
 /examples/fonts/texture-font-to-pascal
 /examples/fps_game/fps_game
 /examples/headlight_test/headlight_test
@@ -146,15 +146,13 @@ castle-game-engine-*.fpm
 /examples/library/lazarus_library_tester/cge_dynlib_tester
 /examples/library/lazarus_library_tester/cge_dynlib_tester.res
 /examples/library/lazarus_library_tester/lib/
-/examples/localization/custom/castle_localization
+/examples/localization/deprecated_custom/castle_localization
 /examples/localization/gettext/localization_test
 /examples/localization/gettext/po_files/generator/po_generator
+/examples/mobile/achievements/dragon_spine_demo
 /examples/mobile/activity_recognition/activity_recognition
 /examples/mobile/drawing_toy/drawing_toy
-/examples/mobile/drawing_toy/libdrawing_toy.so
-/examples/mobile/simple_3d_demo/libsimple_3d_demo.so
 /examples/mobile/simple_3d_demo/simple_3d_demo
-/examples/mobile/simple_3d_demo/simple_3d_demo_standalone
 /examples/mobile/test_bump_mapping/test_bump_mapping
 /examples/network/asynchronous_download/asynchronous_download
 /examples/network/castle_download/castle_download
@@ -192,13 +190,10 @@ castle-game-engine-*.fpm
 /examples/simple_command_line_utilities/dircleaner.res
 /examples/simple_command_line_utilities/stringoper
 /examples/space_filling_curve/draw_space_filling_curve
-/examples/sprite_sheets/combine_images_into_sprite_sheet/combine_images_into_sprite_sheet
-/examples/sprite_sheets/sprite_sheet_animation/sprite_sheet_animation
+/examples/sprite_sheets/sprite_sheets_demo/sprite_sheets_demo
 /examples/terrain/terrain
 /examples/third_person_camera/third_person_camera
-/examples/tiled/map_viewer/tiled_demo
-/examples/tiled/map_viewer/tiled_demo_standalone
-/examples/tiled/map_viewer/tiled_demo_standalone.lps
+/examples/tiled/map_viewer/map_viewer
 /examples/tiled/strategy_game_demo/strategy_game_demo
 /examples/user_interface/dragging_test/dragging_test
 /examples/user_interface/edit_test/edit_test
@@ -237,7 +232,7 @@ castle-game-engine-*.fpm
 /tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/libGameAnalytics.a
 /tools/build-tool/tests/test_cge_build_tool
 /tools/castle-curves/castle-curves
-/tools/castle-editor/code/castle_editor.res
+/tools/castle-editor/castle_editor.res
 /tools/castle-engine
 /tools/image-to-pascal/image-to-pascal
 /tools/internal/generate-persistent-vectors/generate-persistent-vectors
@@ -247,4 +242,3 @@ castle-game-engine-*.fpm
 /tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d
 /tools/texture-font-to-pascal/texture-font-to-pascal
 /tools/to-data-uri/to-data-uri
-/examples/advanced_editor/advanced_editor

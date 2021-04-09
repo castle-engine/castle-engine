@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="screen_effects_demo"
   standalone_source="screen_effects_demo_standalone.lpr"
-  game_units="GameInitialize">
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.screen.effects.demo"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
 </project>

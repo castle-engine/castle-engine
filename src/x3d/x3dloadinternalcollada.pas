@@ -20,7 +20,8 @@ unit X3DLoadInternalCollada;
 
 interface
 
-uses X3DNodes;
+uses SysUtils, Classes,
+  X3DNodes;
 
 { Load Collada file as X3D.
 
@@ -28,20 +29,21 @@ uses X3DNodes;
   Should handle any Collada 1.3.x or 1.4.x or 1.5.x version.
   http://www.gamasutra.com/view/feature/1580/introduction_to_collada.php?page=6
   suggests that "specification stayed quite stable between 1.1 and 1.3.1",
-  which means that older versions (< 1.3.1) may be handled too.
-
-  @param(AllowKambiExtensions If @true we may use some of our engine specific
-    extensions. For example, Material.mirror may be <> 0,
-    see [https://castle-engine.io/x3d_extensions.php#section_ext_material_mirror].) }
-function LoadCollada(const URL: string;
-  const AllowKambiExtensions: boolean = false): TX3DRootNode;
+  which means that older versions (< 1.3.1) may be handled too. }
+function LoadCollada(const Stream: TStream; BaseUrl: String): TX3DRootNode;
 
 implementation
 
-uses SysUtils, Classes, DOM, XMLRead, Generics.Collections, Math, URIParser,
+uses DOM, XMLRead, Generics.Collections, Math, URIParser,
   CastleUtils, CastleStringUtils, CastleVectors, CastleColors,
   CastleXMLUtils, CastleLog, CastleClassUtils, X3DLoadInternalUtils,
   CastleDownload, CastleURIUtils;
+
+var
+  { If @true we may use some of our engine specific
+    extensions. For example, Material.mirror may be <> 0,
+    see [https://castle-engine.io/x3d_extensions.php#section_ext_material_mirror].) }
+  AllowCastleExtensions: Boolean = true;
 
 { Large missing stuff:
 
@@ -115,10 +117,8 @@ uses SysUtils, Classes, DOM, XMLRead, Generics.Collections, Math, URIParser,
 
 { LoadCollada ---------------------------------------------------------------- }
 
-function LoadCollada(const URL: string;
-  const AllowKambiExtensions: boolean): TX3DRootNode;
+function LoadCollada(const Stream: TStream; BaseUrl: String): TX3DRootNode;
 var
-  BaseUrl: string;
   ResultModel: TGroupNode absolute Result;
   Version14: boolean; //< Collada version >= 1.4.x
 
@@ -167,7 +167,7 @@ var
   Version: string;
   I: TXMLElementIterator;
   LibraryE: TDOMElement;
-  Stream: TStream;
+  NewBaseUrl: String;
 begin
   Effects := nil;
   Materials := nil;
@@ -180,10 +180,7 @@ begin
   Result := nil;
 
   try
-    Stream := Download(URL);
-    try
-      ReadXMLFile(Doc, Stream);
-    finally FreeAndNil(Stream) end;
+    ReadXMLFile(Doc, Stream);
 
     try
       Check(Doc.DocumentElement.TagName = 'COLLADA',
@@ -203,9 +200,9 @@ begin
 
       { honour COLLADA.base (exactly for the same purpose as our BaseUrl),
         but only if it's absolute }
-      if not (Doc.DocumentElement.AttributeString('base', BaseUrl) and
-              IsAbsoluteURI(BaseUrl)) then
-        BaseUrl := AbsoluteURI(URL);
+      if Doc.DocumentElement.AttributeString('base', NewBaseUrl) and
+         IsAbsoluteURI(NewBaseUrl) then
+        BaseUrl := NewBaseUrl;
 
       Effects := TColladaEffectList.Create;
       Materials := TColladaMaterialsMap.Create;
@@ -270,7 +267,7 @@ begin
             ReadSceneElement(I.Current);
       finally FreeAndNil(I); end;
 
-      Result.Meta.PutPreserve('source', ExtractURIName(URL));
+      Result.Meta.PutPreserve('source', ExtractURIName(BaseUrl));
       Result.Meta['source-collada-version'] := Version;
     finally
       FreeAndNil(Doc);

@@ -24,7 +24,7 @@ uses
   Classes, SysUtils,
   X3DNodes;
 
-function LoadImageAsNode(const URL: String): TX3DRootNode;
+function LoadImageAsNode(const Stream: TStream; const BaseUrl, MimeType: String): TX3DRootNode;
 
 implementation
 
@@ -35,11 +35,9 @@ type
 
   TImageAsX3DModelLoader = class
   strict private
-    FURL: String;
-    FDisplayURL: String;
-
-    FImageWidth, FImageHeight: Integer;
-    FImagePath: String;
+    FImage: TEncodedImage;
+    FBaseUrl: String;
+    FDisplayUrl: String;
 
     FLeft: Integer;
     FBottom: Integer;
@@ -57,24 +55,22 @@ type
 
     procedure PrepareX3DRoot;
 
-    procedure ReadImageProperties(const URL: String);
-
     procedure CalculateCoords;
 
     procedure PrepareShape(const CoordArray: array of TVector3;
         const TexCoordArray: array of TVector2);
 
   public
-    constructor Create(const URL: String);
+    constructor Create(const Stream: TStream; const BaseUrl, MimeType: String);
 
     function Load: TX3DRootNode;
   end;
 
-function LoadImageAsNode(const URL: String): TX3DRootNode;
+function LoadImageAsNode(const Stream: TStream; const BaseUrl, MimeType: String): TX3DRootNode;
 var
   ImageLoader: TImageAsX3DModelLoader;
 begin
-  ImageLoader := TImageAsX3DModelLoader.Create(URL);
+  ImageLoader := TImageAsX3DModelLoader.Create(Stream, BaseUrl, MimeType);
   try
     Result := ImageLoader.Load;
   finally
@@ -96,7 +92,7 @@ begin
 
   SettingsMap := TStringStringMap.Create;
   try
-    URIExtractSettingsFromAnchor(FURL, SettingsMap);
+    URIGetSettingsFromAnchor(FBaseUrl, SettingsMap);
     for Setting in SettingsMap do
     begin
       if LowerCase(Setting.Key) = 'left' then
@@ -112,39 +108,22 @@ begin
         FHeight := StrToInt(Setting.Value)
       else
         WritelnWarning('ImageAsX3DModel', 'Unknown setting (%s) in "%s" anchor.',
-          [Setting.Key, FDisplayURL]);
+          [Setting.Key, FDisplayUrl]);
     end;
   finally
     FreeAndNil(SettingsMap);
   end;
 
-  ReadImageProperties(FURL);
-
   if FWidth = 0 then
-    FWidth := FImageWidth;
+    FWidth := FImage.Width;
   if FHeight = 0 then
-    FHeight := FImageHeight;
+    FHeight := FImage.Height;
 end;
 
 procedure TImageAsX3DModelLoader.PrepareX3DRoot;
 begin
   FRoot.Meta['generator'] := 'Castle Game Engine, https://castle-engine.io';
-  FRoot.Meta['source'] := ExtractURIName(FURL);
-end;
-
-procedure TImageAsX3DModelLoader.ReadImageProperties(const URL: String);
-var
-  Image: TCastleImage;
-begin
-  FImagePath := URL;
-
-  Image := LoadImage(URL);
-  try
-    FImageWidth := Image.Width;
-    FImageHeight := Image.Height;
-  finally
-    FreeAndNil(Image);
-  end;
+  FRoot.Meta['source'] := ExtractURIName(FBaseUrl);
 end;
 
 procedure TImageAsX3DModelLoader.CalculateCoords;
@@ -155,11 +134,11 @@ begin
   AnchorX := 0.5;
   AnchorY := 0.5;
 
-  X1 := 1 / FImageWidth * FLeft;
-  Y1 := 1 / FImageHeight * (FBottom + FHeight);
+  X1 := 1 / FImage.Width * FLeft;
+  Y1 := 1 / FImage.Height * (FBottom + FHeight);
 
-  X2 := 1 / FImageWidth * (FLeft + FWidth);
-  Y2 := 1 / FImageHeight * (FBottom);
+  X2 := 1 / FImage.Width * (FLeft + FWidth);
+  Y2 := 1 / FImage.Height * (FBottom);
 
   FCoordArray[0] := Vector3(-FWidth * AnchorX,
       FHeight * AnchorY, 0);
@@ -193,15 +172,26 @@ var
   Shape: TShapeNode;
   Tri: TTriangleSetNode;
   Tex: TImageTextureNode;
+  TexProperties: TTexturePropertiesNode;
 begin
   Shape := TShapeNode.Create;
   Shape.Material := TUnlitMaterialNode.Create;
 
-  Tex := TImageTextureNode.Create;
-  Tex.FdUrl.Send(FImagePath);
+  Tex := TImageTextureNode.Create('', FBaseUrl);
+  { Take FImage ownership, we will not free it here }
+  Tex.LoadFromImage(FImage, true, FBaseUrl);
   Tex.RepeatS := false;
   Tex.RepeatT := false;
   Shape.Texture := Tex;
+
+  TexProperties := TTexturePropertiesNode.Create;
+  TexProperties.MagnificationFilter := magDefault;
+  TexProperties.MinificationFilter := minDefault;
+  { Do not force "power of 2" size, which may prevent mipmaps.
+    This seems like a better default (otherwise the resizing underneath
+    may cause longer loading time, and loss of quality, if not expected). }
+  TexProperties.GuiTexture := true;
+  Tex.TextureProperties := TexProperties;
 
   Tri := TTriangleSetNode.Create;
   Tri.Solid := false;
@@ -231,14 +221,13 @@ begin
   FRoot.AddChildren(Shape);
 end;
 
-constructor TImageAsX3DModelLoader.Create(const URL: String);
+constructor TImageAsX3DModelLoader.Create(const Stream: TStream; const BaseUrl, MimeType: String);
 begin
   inherited Create;
-  FImageWidth := 0;
-  FImageHeight := 0;
 
-  FURL := URL;
-  FDisplayURL := URIDisplay(FURL);
+  FImage := LoadImage(Stream, MimeType, []);
+  FBaseUrl := BaseUrl;
+  FDisplayUrl := URIDisplay(FBaseUrl);
 
   SetLength(FCoordArray, 6);
   SetLength(FTexCoordArray, 6);
@@ -262,4 +251,3 @@ begin
 end;
 
 end.
-

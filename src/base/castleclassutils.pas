@@ -72,12 +72,6 @@ type
 procedure Strings_AddSplittedString(Strings: TStrings;
   const S, Splitter: string);
 
-{ Something like @link(SCastleEngineProgramHelpSuffix), but appends
-  contents as a couple of lines to Strings. }
-procedure Strings_AddCastleEngineProgramHelpSuffix(
-  Strings: TStrings; const DisplayApplicationName: string;
-  const Version: string; WrapLines: boolean);
-
 { Use this instead of @code(SList.Text := S) to workaround FPC 2.0.2 bug.
   See [http://www.freepascal.org/mantis/view.php?id=6699] }
 procedure Strings_SetText(SList: TStrings; const S: string);
@@ -379,8 +373,9 @@ procedure CreateIfNeeded(var Component: TComponent;
   ComponentClass: TComponentClass; Owner: TComponent);
 
 type
-  { Used by @link(TCastleComponent.PropertySection). }
-  TPropertySection = (psBasic, psLayout, psOther);
+  { Used by @link(TCastleComponent.PropertySections). }
+  TPropertySection = (psBasic, psLayout);
+  TPropertySections = set of TPropertySection;
 
   TCastleComponent = class;
 
@@ -438,7 +433,7 @@ type
     procedure InternalLoaded;
 
     { Section where to show property in the editor. }
-    function PropertySection(const PropertyName: String): TPropertySection; virtual;
+    function PropertySections(const PropertyName: String): TPropertySections; virtual;
 
     { Ignore this component when serializing parent's
       @link(TCastleUserInterface.Controls) list or @link(TCastleTransform.List),
@@ -774,14 +769,6 @@ begin
     SplitterPos := PosEx(Splitter, S, Done + 1);
   end;
   Strings.Append(SEnding(S, Done + 1));
-end;
-
-procedure Strings_AddCastleEngineProgramHelpSuffix(
-  Strings: TStrings; const DisplayApplicationName: string;
-  const Version: string; WrapLines: boolean);
-begin
-  Strings_AddSplittedString(Strings,
-    SCastleEngineProgramHelpSuffix(DisplayApplicationName, Version, WrapLines), nl);
 end;
 
 procedure Strings_SetText(SList: TStrings; const S: string);
@@ -1427,12 +1414,12 @@ begin
     InternalText := Value;
 end;
 
-function TCastleComponent.PropertySection(const PropertyName: String): TPropertySection;
+function TCastleComponent.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if PropertyName = 'Name' then
-    Result := psBasic
+  if (PropertyName = 'Name') then
+    Result := [psBasic]
   else
-    Result := psOther;
+    Result := [];
 end;
 
 procedure TCastleComponent.TranslateProperties(

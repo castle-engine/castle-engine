@@ -28,7 +28,7 @@ uses SysUtils, Classes,
 { Standard GLSL vertex shader for screen effect.
   @bold(In your own programs, it's usually easier to use TGLSLScreenEffect,
   and then this function is not necessary). }
-function ScreenEffectVertex: string;
+function ScreenEffectVertex: string; deprecated 'this will be internal function soon, instead use TCastleScreenEffects or TCastleViewport and add screen effects there';
 
 (*Library of GLSL fragment shader functions useful for screen effects.
   This looks at current OpenGL context multi-sampling capabilities
@@ -57,7 +57,7 @@ function ScreenEffectVertex: string;
   #)
 
 *)
-function ScreenEffectFragment(const Depth: boolean): string;
+function ScreenEffectFragment(const Depth: boolean): string; deprecated 'this will be internal function soon, instead use TCastleScreenEffects or TCastleViewport and add screen effects there';
 
 type
   { GLSL shader program specialized for rendering screen effects.
@@ -88,7 +88,7 @@ type
     property ScreenEffectShader: string read FScreenEffectShader write FScreenEffectShader;
 
     procedure Link; override;
-  end;
+  end deprecated 'this will be internal class soon, instead use TCastleScreenEffects or TCastleViewport and add screen effects there';
 
   { Control that applies shader screen effects (post-processing)
     on the rendering done by children and (when this class is used as an ancestor)
@@ -129,7 +129,6 @@ type
       FScreenEffectsTimeScale: Single;
       { World to pass dummy camera position to ScreenEffectsScene. }
       World: TCastleRootTransform;
-      Camera: TCastleCamera;
 
       { OpenGL(ES) resources for screen effects. }
       { If a texture for screen effects is ready, then
@@ -299,11 +298,22 @@ begin
 end;
 
 procedure TGLSLScreenEffect.Link;
+var
+  VS, FS: String;
 begin
   if FScreenEffectShader = '' then
     raise Exception.Create('TGLSLScreenEffect shader not assigned by AttachScreenEffectShader method');
-  AttachVertexShader(ScreenEffectVertex);
-  AttachFragmentShader(ScreenEffectFragment(NeedsDepth) + FScreenEffectShader);
+  {$warnings off} // using deprecated below, which should be internal
+  VS := ScreenEffectVertex;
+  FS := ScreenEffectFragment(NeedsDepth) + FScreenEffectShader;
+  {$warnings on}
+  AttachVertexShader(VS);
+  AttachFragmentShader(FS);
+  if LogShaders then
+  begin
+    WritelnLogMultiline('Screen Effect Vertex Shader', VS);
+    WritelnLogMultiline('Screen Effect Fragment Shader', FS);
+  end;
   inherited;
 end;
 
@@ -336,19 +346,19 @@ begin
     ScreenEffectsScene.Load(ScreenEffectsRoot, true);
     ScreenEffectsScene.ProcessEvents := true;
 
-    (* We use Camera and World to make some ProximitySensors working,
+    (* We setup World with camera knowledge to make some ProximitySensors working,
        like a dummy "ProximitySensors { size 10000 10000 10000 }". *)
     World := TCastleRootTransform.Create(Self);
     World.Add(ScreenEffectsScene);
-    Camera := TCastleCamera.Create(Self);
+    World.MainCamera := TCastleCamera.Create(Self);
   end;
 
   { Note that AddChildren by default has AllowDuplicates=true,
     and enables multiple instances of this node on a list. That's good. }
   ScreenEffectsRoot.AddChildren(Node);
 
-  { Send CameraChanged to activate ProximitySensors inside new nodes. }
-  World.CameraChanged(Camera);
+  { Send InternalCameraChanged now, to activate ProximitySensors inside new nodes. }
+  ScreenEffectsScene.InternalCameraChanged;
 end;
 
 procedure TCastleScreenEffects.RemoveScreenEffect(const Node: TAbstractChildNode);

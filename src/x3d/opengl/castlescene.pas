@@ -29,7 +29,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleTriangles, CastleShapes, CastleFrustum, CastleTransform, CastleGLShaders,
   CastleRectangles, CastleCameras, CastleRendererInternalShader, CastleColors,
   CastleSceneInternalShape, CastleSceneInternalOcclusion, CastleSceneInternalBlending,
-  CastleInternalBatchShapes, CastleRenderOptions;
+  CastleInternalBatchShapes, CastleRenderOptions, CastleTimeUtils;
 
 {$define read_interface}
 
@@ -126,15 +126,16 @@ type
         for shadow maps. }
       AvoidNonShadowCasterRendering: boolean;
 
+      { Used by UpdateGeneratedTextures, to avoid updating twice during the same render. }
+      UpdateGeneratedTexturesFrameId: TFrameId;
+
       VarianceShadowMapsProgram, ShadowMapsProgram: TCustomShaders;
       FDistanceCulling: Single;
 
       FReceiveShadowVolumes: boolean;
       RegisteredGLContextCloseListener: boolean;
       FTempPrepareParams: TPrepareParams;
-      RenderCameraKnown: boolean;
-      { Camera position, in local scene coordinates, known (if RenderCameraKnown)
-        during the Render call. }
+      { Camera position, in local scene coordinates, known during the Render call. }
       RenderCameraPosition: TVector3;
 
       { Used by LocalRenderInside }
@@ -268,7 +269,7 @@ type
     function CreateShape(const AGeometry: TAbstractGeometryNode;
       const AState: TX3DGraphTraverseState;
       const ParentInfo: PTraversingInfo): TShape; override;
-    procedure InvalidateBackground; override;
+    procedure InternalInvalidateBackground; override;
 
     procedure LocalRender(const Params: TRenderParams); override;
 
@@ -319,8 +320,8 @@ type
       const ParentTransform: TMatrix4); override;
   public
     constructor Create(AOwner: TComponent); override;
-
     destructor Destroy; override;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
     { Destroy any associations of this object with current OpenGL context.
       For example, release any allocated texture names.
@@ -349,7 +350,7 @@ type
     { Is FBackground valid ? We can't use "nil" FBackground value to flag this
       (bacause nil is valid value for Background function).
       If not FBackgroundValid then FBackground must always be nil.
-      Never set FBackgroundValid to false directly - use InvalidateBackground,
+      Never set FBackgroundValid to false directly - use InternalInvalidateBackground,
       this will automatically call FreeAndNil(FBackground) before setting
       FBackgroundValid to false. }
     FBackgroundValid: boolean;
@@ -396,14 +397,9 @@ type
 
     function Attributes: TCastleRenderOptions; deprecated 'use RenderOptions';
 
-    procedure UpdateGeneratedTextures(
-      const RenderFunc: TRenderFromViewFunction;
-      const ProjectionNear, ProjectionFar: Single); override;
-
     procedure ViewChangedSuddenly; override;
 
-    procedure VisibleChangeNotification(const Changes: TVisibleChanges); override;
-    procedure CameraChanged(const ACamera: TCastleCamera); override;
+    procedure InternalCameraChanged; override;
 
     { Screen effects information, used by TCastleViewport.ScreenEffects.
       ScreenEffectsCount may actually prepare screen effects.
@@ -475,9 +471,6 @@ type
   TCastleSceneClass = class of TCastleScene;
 
   TCastleSceneList = class(specialize TObjectList<TCastleScene>)
-  private
-    { Call InvalidateBackground on all items. }
-    procedure InvalidateBackground;
   end;
 
   TTriangle4List = specialize TStructList<TTriangle4>;
@@ -554,7 +547,7 @@ implementation
 // TODO: This unit temporarily uses RenderingCamera singleton,
 // to keep TBasicRenderParams working for backward compatibility.
 uses CastleGLVersion, CastleImages, CastleLog,
-  CastleStringUtils, CastleApplicationProperties, CastleTimeUtils,
+  CastleStringUtils, CastleApplicationProperties,
   CastleRenderingCamera, CastleShapeInternalRenderShadowVolumes,
   CastleComponentSerialize, CastleRenderContext;
 {$warnings on}
@@ -817,7 +810,7 @@ procedure TCastleScene.GLContextClose;
   begin
     if GeneratedTextures <> nil then
       for I := 0 to GeneratedTextures.Count - 1 do
-        GeneratedTextures.List^[I].Handler.UpdateNeeded := true;
+        GeneratedTextures.List^[I].Handler.InternalUpdateNeeded := true;
   end;
 
 begin
@@ -838,7 +831,7 @@ begin
 
   ScheduleUpdateGeneratedTextures;
 
-  InvalidateBackground;
+  InternalInvalidateBackground;
 
   if OcclusionQueryUtilsRenderer <> nil then
     OcclusionQueryUtilsRenderer.GLContextClose;
@@ -1066,7 +1059,7 @@ var
        (InternalOctreeRendering <> nil) then
     begin
       HierarchicalOcclusionQueryRenderer.Render(@RenderShape_SomeTests,
-        Params, RenderCameraKnown, RenderCameraPosition);
+        Params, RenderCameraPosition);
     end else
     begin
       if RenderOptions.Blending then
@@ -1074,8 +1067,7 @@ var
         if not Params.Transparent then
         begin
           { draw fully opaque objects }
-          if RenderCameraKnown and
-            (ReallyOcclusionQuery(RenderOptions) or RenderOptions.OcclusionSort) then
+          if ReallyOcclusionQuery(RenderOptions) or RenderOptions.OcclusionSort then
           begin
             ShapesFilterBlending(Shapes, true, true, false,
               TestShapeVisibility, FilteredShapes, false);
@@ -1100,9 +1092,8 @@ var
 
           { sort for blending, if BlendingSort not bsNone.
             Note that bs2D does not require knowledge of the camera,
-            CameraPosition is unused in this case by FilteredShapes.SortBackToFront }
-          if ((EffectiveBlendingSort = bs3D) and RenderCameraKnown) or
-              (EffectiveBlendingSort = bs2D) then
+            RenderCameraPosition is unused in this case by FilteredShapes.SortBackToFront }
+          if EffectiveBlendingSort in [bs3D, bs2D] then
           begin
             ShapesFilterBlending(Shapes, true, true, false,
               TestShapeVisibility, FilteredShapes, true);
@@ -1270,8 +1261,8 @@ procedure TCastleScene.PrepareResources(
         TTextureCoordinateRenderer.RenderCoordinateBegin does
         RenderingCamera.InverseMatrixNeeded.
         Testcase: silhouette. }
-      DummyCamera.FromMatrix(TMatrix4.Identity, TMatrix4.Identity,
-        TMatrix4.Identity);
+      DummyCamera.FromMatrix(TVector3.Zero,
+        TMatrix4.Identity, TMatrix4.Identity, TMatrix4.Identity);
 
       Renderer.RenderBegin(BaseLights, DummyCamera, nil, 0, 0, 0);
 
@@ -1734,7 +1725,6 @@ begin
   // This should be only called when DistanceCulling indicates this check is necessary
   Assert(DistanceCulling > 0);
   Result :=
-    (not RenderCameraKnown) or
     (PointsDistanceSqr(Shape.BoundingSphereCenter, RenderCameraPosition) <=
      Sqr(DistanceCulling + Shape.BoundingSphereRadius))
 end;
@@ -1853,6 +1843,99 @@ begin
   end;
 end;
 
+procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+
+  { Update generated textures, like generated cubemaps/shadow maps. }
+  procedure UpdateGeneratedTextures(
+    const RenderFunc: TRenderFromViewFunction;
+    const ProjectionNear, ProjectionFar: Single);
+  var
+    I: Integer;
+    Shape: TGLShape;
+    TextureNode: TAbstractTextureNode;
+    Handler: TGeneratedTextureHandler;
+    CamPos, CamDir, CamUp: TVector3;
+  begin
+    if GeneratedTextures.Count = 0 then
+      Exit; // optimize away common case
+
+    FrameProfiler.Start(fmUpdateGeneratedTextures);
+
+    { Avoid doing this two times within the same FrameId.
+      Important if
+      - the same scene is present multiple times in one viewport,
+      - or when Viewport.Items are shared across multiple viewports
+        (thus scene is present in multiple viewports). }
+    if UpdateGeneratedTexturesFrameId = TFramesPerSecond.FrameId then
+      Exit;
+    UpdateGeneratedTexturesFrameId := TFramesPerSecond.FrameId;
+
+    if World.MainCamera <> nil then
+    begin
+      CamPos := World.MainCamera.Position;
+      CamDir := World.MainCamera.Direction;
+      CamUp  := World.MainCamera.Up;
+    end else
+    begin
+      CamPos := TVector3.Zero;
+      CamDir := DefaultCameraDirection;
+      CamUp  := DefaultCameraUp;
+    end;
+
+    for I := 0 to GeneratedTextures.Count - 1 do
+    begin
+      Shape := TGLShape(GeneratedTextures.L[I].Shape);
+      TextureNode := GeneratedTextures.L[I].TextureNode;
+      Handler := GeneratedTextures.L[I].Handler;
+
+      { update Handler.UpdateNeeded }
+      if TextureNode is TGeneratedShadowMapNode then
+      begin
+        { For TGeneratedShadowMapNode, only geometry change requires to regenerate it. }
+        if Handler.InternalLastStateId < World.InternalVisibleGeometryStateId then
+        begin
+          Handler.InternalLastStateId := World.InternalVisibleGeometryStateId;
+          Handler.InternalUpdateNeeded := true;
+        end;
+      end else
+      begin
+        { For TRenderedTextureNode, TGeneratedCubeMapTextureNode etc.
+          any visible change indicates to regenerate it. }
+        if Handler.InternalLastStateId < World.InternalVisibleStateId then
+        begin
+          Handler.InternalLastStateId := World.InternalVisibleStateId;
+          Handler.InternalUpdateNeeded := true;
+        end;
+      end;
+
+      if TextureNode is TGeneratedCubeMapTextureNode then
+        AvoidShapeRendering := Shape else
+      if TextureNode is TGeneratedShadowMapNode then
+        AvoidNonShadowCasterRendering := true;
+
+      Renderer.UpdateGeneratedTextures(Shape, TextureNode,
+        RenderFunc, ProjectionNear, ProjectionFar,
+        ViewpointStack.Top,
+        World.MainCamera <> nil, CamPos, CamDir, CamUp);
+
+      AvoidShapeRendering := nil;
+      AvoidNonShadowCasterRendering := false;
+    end;
+
+    FrameProfiler.Stop(fmUpdateGeneratedTextures);
+  end;
+
+begin
+  inherited;
+
+  { This will do FrameProfiler.Start/Stop with fmUpdateGeneratedTextures }
+  if World <> nil then
+    UpdateGeneratedTextures(
+      World.InternalRenderEverythingEvent,
+      World.InternalProjectionNear,
+      World.InternalProjectionFar);
+end;
+
 procedure TCastleScene.LocalRender(const Params: TRenderParams);
 
 { Call LocalRenderOutside, choosing TTestShapeVisibility function
@@ -1906,9 +1989,7 @@ begin
       Inc(Params.Statistics.ScenesRendered);
 
     FrustumForShapeCulling := Params.Frustum;
-    RenderCameraKnown := (World <> nil) and World.CameraKnown;
-    if RenderCameraKnown then
-      RenderCameraPosition := Params.InverseTransform^.MultPoint(World.CameraPosition);
+    RenderCameraPosition := Params.InverseTransform^.MultPoint(Params.RenderingCamera.Position);
 
     if Assigned(InternalVisibilityTest) then
       LocalRenderOutside(InternalVisibilityTest, Params)
@@ -1927,17 +2008,13 @@ begin
     end else
       LocalRenderOutside(ShapeCullingFunc, Params);
 
-    { Nothing should even try to access camera outside of Render...
-      But for security, set RenderCameraKnown to false. }
-    RenderCameraKnown := false;
-
     FrameProfiler.Stop(fmRenderScene);
   end;
 end;
 
 { Background-related things -------------------------------------------------- }
 
-procedure TCastleScene.InvalidateBackground;
+procedure TCastleScene.InternalInvalidateBackground;
 begin
   FreeAndNil(FBackground);
   FBackgroundNode := nil;
@@ -1948,7 +2025,7 @@ procedure TCastleScene.SetBackgroundSkySphereRadius(const Value: Single);
 begin
   if Value <> FBackgroundSkySphereRadius then
   begin
-    InvalidateBackground;
+    InternalInvalidateBackground;
     FBackgroundSkySphereRadius := Value;
   end;
 end;
@@ -1962,7 +2039,7 @@ begin
   { Background is created, but not suitable for current
     BackgroundStack.Top. So destroy it. }
   if FBackgroundValid then
-    InvalidateBackground;
+    InternalInvalidateBackground;
 
   if BackgroundStack.Top <> nil then
     FBackground := CreateBackground(BackgroundStack.Top, BackgroundSkySphereRadius)
@@ -1998,37 +2075,6 @@ begin
   Result := Renderer.RenderOptions;
 end;
 
-procedure TCastleScene.UpdateGeneratedTextures(
-  const RenderFunc: TRenderFromViewFunction;
-  const ProjectionNear, ProjectionFar: Single);
-var
-  I: Integer;
-  Shape: TGLShape;
-  TextureNode: TAbstractTextureNode;
-begin
-  for I := 0 to GeneratedTextures.Count - 1 do
-  begin
-    Shape := TGLShape(GeneratedTextures.L[I].Shape);
-    TextureNode := GeneratedTextures.L[I].TextureNode;
-
-    if TextureNode is TGeneratedCubeMapTextureNode then
-      AvoidShapeRendering := Shape else
-    if TextureNode is TGeneratedShadowMapNode then
-      AvoidNonShadowCasterRendering := true;
-
-    Renderer.UpdateGeneratedTextures(Shape, TextureNode,
-      RenderFunc, ProjectionNear, ProjectionFar,
-      ViewpointStack.Top,
-      World.CameraKnown,
-      World.CameraPosition,
-      World.CameraDirection,
-      World.CameraUp);
-
-    AvoidShapeRendering := nil;
-    AvoidNonShadowCasterRendering := false;
-  end;
-end;
-
 procedure TCastleScene.ViewChangedSuddenly;
 var
   ShapeList: TShapeList;
@@ -2047,34 +2093,7 @@ begin
   end;
 end;
 
-procedure TCastleScene.VisibleChangeNotification(const Changes: TVisibleChanges);
-var
-  I: Integer;
-begin
-  inherited;
-
-  if Changes <> [] then
-  begin
-    for I := 0 to GeneratedTextures.Count - 1 do
-    begin
-      if GeneratedTextures.L[I].TextureNode is TGeneratedCubeMapTextureNode then
-      begin
-        if [vcVisibleGeometry, vcVisibleNonGeometry] * Changes <> [] then
-          GeneratedTextures.L[I].Handler.UpdateNeeded := true;
-      end else
-      if GeneratedTextures.L[I].TextureNode is TGeneratedShadowMapNode then
-      begin
-        if vcVisibleGeometry in Changes then
-          GeneratedTextures.L[I].Handler.UpdateNeeded := true;
-      end else
-        { For TRenderedTextureNode (and any other future generated textures),
-          any visible change indicates to regenerate it. }
-        GeneratedTextures.L[I].Handler.UpdateNeeded := true;
-    end;
-  end;
-end;
-
-procedure TCastleScene.CameraChanged(const ACamera: TCastleCamera);
+procedure TCastleScene.InternalCameraChanged;
 var
   I: Integer;
 begin
@@ -2086,7 +2105,7 @@ begin
         as RenderedTexture with viewpoint = NULL uses current camera.
         See demo_models/rendered_texture/rendered_texture_no_headlight.x3dv
         testcase. }
-      GeneratedTextures.L[I].Handler.UpdateNeeded := true;
+      GeneratedTextures.L[I].Handler.InternalUpdateNeeded := true;
 end;
 
 function TCastleScene.ScreenEffectsCount: Integer;
@@ -2176,19 +2195,6 @@ end;
 procedure TCastleScene.Setup2D;
 begin
   RenderOptions.BlendingSort := bs2D;
-end;
-
-{ TCastleSceneList ------------------------------------------------------ }
-
-procedure TCastleSceneList.InvalidateBackground;
-{ This may be called from various destructors,
-  so we are extra careful here and check Items[I] <> nil. }
-var
-  I: Integer;
-begin
-  for I := 0 to Count - 1 do
-    if Items[I] <> nil then
-      Items[I].InvalidateBackground;
 end;
 
 { TBasicRenderParams --------------------------------------------------------- }

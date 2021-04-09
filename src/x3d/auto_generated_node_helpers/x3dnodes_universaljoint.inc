@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -41,20 +41,66 @@
     function GetStop2ErrorCorrection: Single;
     procedure SetStop2ErrorCorrection(const Value: Single);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdAnchorPoint: TSFVec3f;
+    { X3D field "anchorPoint". } { }
+    public property FdAnchorPoint: TSFVec3f read FFdAnchorPoint;
     { X3D field "anchorPoint". } { }
     property AnchorPoint: TVector3 read GetAnchorPoint write SetAnchorPoint;
+
+    strict private FFdAxis1: TSFVec3f;
+    { X3D field "axis1". } { }
+    public property FdAxis1: TSFVec3f read FFdAxis1;
     { X3D field "axis1". } { }
     property Axis1: TVector3 read GetAxis1 write SetAxis1;
+
+    strict private FFdAxis2: TSFVec3f;
+    { X3D field "axis2". } { }
+    public property FdAxis2: TSFVec3f read FFdAxis2;
     { X3D field "axis2". } { }
     property Axis2: TVector3 read GetAxis2 write SetAxis2;
+
+    strict private FFdStopBounce1: TSFFloat;
+    { X3D field "stopBounce1". } { }
+    public property FdStopBounce1: TSFFloat read FFdStopBounce1;
     { X3D field "stopBounce1". } { }
     property StopBounce1: Single read GetStopBounce1 write SetStopBounce1;
+
+    strict private FFdStop1ErrorCorrection: TSFFloat;
+    { X3D field "stop1ErrorCorrection". } { }
+    public property FdStop1ErrorCorrection: TSFFloat read FFdStop1ErrorCorrection;
     { X3D field "stop1ErrorCorrection". } { }
     property Stop1ErrorCorrection: Single read GetStop1ErrorCorrection write SetStop1ErrorCorrection;
+
+    strict private FFdStop2Bounce: TSFFloat;
+    { X3D field "stop2Bounce". } { }
+    public property FdStop2Bounce: TSFFloat read FFdStop2Bounce;
     { X3D field "stop2Bounce". } { }
     property Stop2Bounce: Single read GetStop2Bounce write SetStop2Bounce;
+
+    strict private FFdStop2ErrorCorrection: TSFFloat;
+    { X3D field "stop2ErrorCorrection". } { }
+    public property FdStop2ErrorCorrection: TSFFloat read FFdStop2ErrorCorrection;
     { X3D field "stop2ErrorCorrection". } { }
     property Stop2ErrorCorrection: Single read GetStop2ErrorCorrection write SetStop2ErrorCorrection;
+
+    strict private FEventBody1AnchorPoint: TSFVec3fEvent;
+    { X3D out event "body1AnchorPoint". } { }
+    public property EventBody1AnchorPoint: TSFVec3fEvent read FEventBody1AnchorPoint;
+
+    strict private FEventBody1Axis: TSFVec3fEvent;
+    { X3D out event "body1Axis". } { }
+    public property EventBody1Axis: TSFVec3fEvent read FEventBody1Axis;
+
+    strict private FEventBody2AnchorPoint: TSFVec3fEvent;
+    { X3D out event "body2AnchorPoint". } { }
+    public property EventBody2AnchorPoint: TSFVec3fEvent read FEventBody2AnchorPoint;
+
+    strict private FEventBody2Axis: TSFVec3fEvent;
+    { X3D out event "body2Axis". } { }
+    public property EventBody2Axis: TSFVec3fEvent read FEventBody2Axis;
 
 {$endif read_interface}
 
@@ -130,6 +176,60 @@ end;
 procedure TUniversalJointNode.SetStop2ErrorCorrection(const Value: Single);
 begin
   FdStop2ErrorCorrection.Send(Value);
+end;
+
+class function TUniversalJointNode.ClassX3DType: String;
+begin
+  Result := 'UniversalJoint';
+end;
+
+procedure TUniversalJointNode.CreateNode;
+begin
+  inherited;
+
+  FFdAnchorPoint := TSFVec3f.Create(Self, True, 'anchorPoint', Vector3(0, 0, 0));
+   FdAnchorPoint.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAnchorPoint);
+
+  FFdAxis1 := TSFVec3f.Create(Self, True, 'axis1', Vector3(0, 0, 0));
+   FdAxis1.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAxis1);
+
+  FFdAxis2 := TSFVec3f.Create(Self, True, 'axis2', Vector3(0, 0, 0));
+   FdAxis2.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAxis2);
+
+  FFdStopBounce1 := TSFFloat.Create(Self, True, 'stopBounce1', 0);
+   FdStopBounce1.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdStopBounce1);
+  { X3D specification comment: [0,1] }
+
+  FFdStop1ErrorCorrection := TSFFloat.Create(Self, True, 'stop1ErrorCorrection', 0.8);
+   FdStop1ErrorCorrection.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdStop1ErrorCorrection);
+  { X3D specification comment: [0,1] }
+
+  FFdStop2Bounce := TSFFloat.Create(Self, True, 'stop2Bounce', 0);
+   FdStop2Bounce.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdStop2Bounce);
+  { X3D specification comment: [0,1] }
+
+  FFdStop2ErrorCorrection := TSFFloat.Create(Self, True, 'stop2ErrorCorrection', 0.8);
+   FdStop2ErrorCorrection.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdStop2ErrorCorrection);
+  { X3D specification comment: [0,1] }
+
+  FEventBody1AnchorPoint := TSFVec3fEvent.Create(Self, 'body1AnchorPoint', false);
+  AddEvent(FEventBody1AnchorPoint);
+
+  FEventBody1Axis := TSFVec3fEvent.Create(Self, 'body1Axis', false);
+  AddEvent(FEventBody1Axis);
+
+  FEventBody2AnchorPoint := TSFVec3fEvent.Create(Self, 'body2AnchorPoint', false);
+  AddEvent(FEventBody2AnchorPoint);
+
+  FEventBody2Axis := TSFVec3fEvent.Create(Self, 'body2Axis', false);
+  AddEvent(FEventBody2Axis);
 end;
 
 {$endif read_implementation}

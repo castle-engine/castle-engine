@@ -28,8 +28,8 @@
     procedure CreateNode; override;
 
     { Shaders used to render background geometry. }
-    strict private FFdShaders: TMFNodeShaders;
-    public property FdShaders: TMFNodeShaders read FFdShaders;
+    strict private FFdShaders: TMFNode;
+    public property FdShaders: TMFNode read FFdShaders;
 
     { Shader effects (see https://castle-engine.io/compositing_shaders.php)
       used to render background geometry. }
@@ -322,7 +322,7 @@ procedure TAbstractBackgroundNode.CreateNode;
 begin
   inherited;
 
-  FFdShaders := TMFNodeShaders.Create(Self, true, 'shaders', [TAbstractShaderNode]);
+  FFdShaders := TMFNode.Create(Self, true, 'shaders', [TAbstractShaderNode]);
    FdShaders.ChangeAlways := chEverything;
   AddField(FFdShaders);
 

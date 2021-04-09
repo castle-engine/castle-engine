@@ -1,7 +1,9 @@
 X3DAppearanceChildNode : X3DNode {
+  x3d-nodes-to-pascal: auto-generate-more true
 }
 
 X3DAppearanceNode : X3DNode {
+  x3d-nodes-to-pascal: auto-generate-more true
 }
 
 X3DMaterialNode : X3DAppearanceChildNode {
@@ -48,6 +50,13 @@ X3DShapeNode : X3DChildNode, X3DBoundedObject {
 }
 
 Appearance : X3DAppearanceNode {
+  # Note: In edition 2 of X3D XML encoding, the default-container-field of this is empty...
+  # but in earlier versions, this was "appearance" and this seems more sensible,
+  # Appearance node may only occur within Shape.appearance field.
+
+  x3d-nodes-to-pascal: default-container-field appearance
+  x3d-nodes-to-pascal: auto-generate-more true
+
   SFNode [in,out] fillProperties   NULL [FillProperties] # NOT-SLIM
   SFNode [in,out] lineProperties   NULL [LineProperties]
   SFNode [in,out] material         NULL [X3DMaterialNode]
@@ -56,22 +65,25 @@ Appearance : X3DAppearanceNode {
   SFNode [in,out] texture          NULL [X3DTextureNode]
   SFNode [in,out] textureTransform NULL [X3DTextureTransformNode]
 
-  # EXTENSIONS:
-  MFNode     []            receiveShadows  []           # [X3DPunctualLightNode] list
-  SFBool     [in,out]      shadowCaster     TRUE
-  SFNode     [in,out]      normalMap        NULL        # only texture nodes (ImageTexture, MovieTexture, PixelTexture) allowed
-  SFNode     [in,out]      heightMap        NULL        # only texture nodes (ImageTexture, MovieTexture, PixelTexture) allowed; NOT-SLIM
-  SFFloat    [in,out]      heightMapScale   0.01        # must be > 0, meaningful only if heightMap specified
-  SFNode     [in,out]      blendMode        NULL        # [BlendMode]
-  MFNode     []            effects          []          # [Effect]
+  # X3D 4
+  SFString   [in,out]      alphaMode     "AUTO"      # ["AUTO"|"OPAQUE"|"MASK"|"BLEND"] enumerated-type: TAlphaMode AlphaModeToString amAuto
+  SFFloat    [in,out]      alphaCutoff   0.5         # [0,1]
 
   # EXTENSIONS:
-  # Commented out to not be seen by x3d-nodes-to-pascal,
-  # this is implemented specially in Pascal.
-  # SFString   []            alphaChannel  "AUTO"      # ["AUTO"|"NONE"|"TEST"|"BLENDING"]
+  MFNode     []            receiveShadows  []           [X3DPunctualLightNode]
+  SFBool     [in,out]      shadowCaster     TRUE
+  SFNode     [in,out]      normalMap        NULL        [X3DTexture2DNode] #
+  SFNode     [in,out]      heightMap        NULL        [X3DTexture2DNode] # NOT-SLIM
+  SFFloat    [in,out]      heightMapScale   0.01        # must be > 0, meaningful only if heightMap specified
+  SFNode     [in,out]      blendMode        NULL        [BlendMode]
+  MFNode     []            effects          []          [Effect]
+  SFString   [in,out]      alphaChannel  "AUTO"      # ["AUTO"|"NONE"|"TEST"|"BLENDING"] enumerated-type: TAutoAlphaChannel AlphaToString acAuto
 }
 
 FillProperties : X3DAppearanceChildNode {
+  x3d-nodes-to-pascal: default-container-field fillProperties
+  x3d-nodes-to-pascal: auto-generate-more true
+
   SFBool  [in,out] filled     TRUE
   SFColor [in,out] hatchColor 1 1 1 [0,1]
   SFBool  [in,out] hatched    TRUE
@@ -79,6 +91,9 @@ FillProperties : X3DAppearanceChildNode {
 }
 
 LineProperties : X3DAppearanceChildNode {
+  x3d-nodes-to-pascal: default-container-field lineProperties
+  x3d-nodes-to-pascal: auto-generate-more true
+
   SFBool  [in,out] applied              TRUE
   SFInt32 [in,out] linetype             1    [1,Inf)
   SFFloat [in,out] linewidthScaleFactor 0    (-Inf,Inf)
@@ -147,6 +162,8 @@ Shape : X3DShapeNode {
 }
 
 TwoSidedMaterial : X3DMaterialNode {
+  x3d-nodes-to-pascal: auto-generate-more true
+
   SFFloat [in,out] ambientIntensity     0.2         [0,1]
   SFFloat [in,out] backAmbientIntensity 0.2         [0,1]
   SFColor [in,out] backDiffuseColor     0.8 0.8 0.8 [0,1]

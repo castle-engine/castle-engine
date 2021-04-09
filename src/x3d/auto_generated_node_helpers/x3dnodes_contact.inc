@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -57,38 +57,104 @@
     function GetSurfaceSpeed: TVector2;
     procedure SetSurfaceSpeed(const Value: TVector2);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdAppliedParameters: TMFString;
+    { X3D field "appliedParameters". } { }
+    public property FdAppliedParameters: TMFString read FFdAppliedParameters;
     { Set X3D field "appliedParameters". } { }
     procedure SetAppliedParameters(const Value: array of string);
     { Set X3D field "appliedParameters". } { }
     procedure SetAppliedParameters(const Value: TCastleStringList);
+
+    strict private FFdBody1: TSFNode;
+    { X3D field "body1". } { }
+    public property FdBody1: TSFNode read FFdBody1;
     { X3D field "body1". } { }
     property Body1: TRigidBodyNode read GetBody1 write SetBody1;
+
+    strict private FFdBody2: TSFNode;
+    { X3D field "body2". } { }
+    public property FdBody2: TSFNode read FFdBody2;
     { X3D field "body2". } { }
     property Body2: TRigidBodyNode read GetBody2 write SetBody2;
+
+    strict private FFdBounce: TSFFloat;
+    { X3D field "bounce". } { }
+    public property FdBounce: TSFFloat read FFdBounce;
     { X3D field "bounce". } { }
     property Bounce: Single read GetBounce write SetBounce;
+
+    strict private FFdContactNormal: TSFVec3f;
+    { X3D field "contactNormal". } { }
+    public property FdContactNormal: TSFVec3f read FFdContactNormal;
     { X3D field "contactNormal". } { }
     property ContactNormal: TVector3 read GetContactNormal write SetContactNormal;
+
+    strict private FFdDepth: TSFFloat;
+    { X3D field "depth". } { }
+    public property FdDepth: TSFFloat read FFdDepth;
     { X3D field "depth". } { }
     property Depth: Single read GetDepth write SetDepth;
+
+    strict private FFdFrictionCoefficients: TSFVec2f;
+    { X3D field "frictionCoefficients". } { }
+    public property FdFrictionCoefficients: TSFVec2f read FFdFrictionCoefficients;
     { X3D field "frictionCoefficients". } { }
     property FrictionCoefficients: TVector2 read GetFrictionCoefficients write SetFrictionCoefficients;
+
+    strict private FFdFrictionDirection: TSFVec3f;
+    { X3D field "frictionDirection". } { }
+    public property FdFrictionDirection: TSFVec3f read FFdFrictionDirection;
     { X3D field "frictionDirection". } { }
     property FrictionDirection: TVector3 read GetFrictionDirection write SetFrictionDirection;
+
+    strict private FFdGeometry1: TSFNode;
+    { X3D field "geometry1". } { }
+    public property FdGeometry1: TSFNode read FFdGeometry1;
     { X3D field "geometry1". } { }
     property Geometry1: TAbstractNBodyCollidableNode read GetGeometry1 write SetGeometry1;
+
+    strict private FFdGeometry2: TSFNode;
+    { X3D field "geometry2". } { }
+    public property FdGeometry2: TSFNode read FFdGeometry2;
     { X3D field "geometry2". } { }
     property Geometry2: TAbstractNBodyCollidableNode read GetGeometry2 write SetGeometry2;
+
+    strict private FFdMinbounceSpeed: TSFFloat;
+    { X3D field "minbounceSpeed". } { }
+    public property FdMinbounceSpeed: TSFFloat read FFdMinbounceSpeed;
     { X3D field "minbounceSpeed". } { }
     property MinbounceSpeed: Single read GetMinbounceSpeed write SetMinbounceSpeed;
+
+    strict private FFdPosition: TSFVec3f;
+    { X3D field "position". } { }
+    public property FdPosition: TSFVec3f read FFdPosition;
     { X3D field "position". } { }
     property Position: TVector3 read GetPosition write SetPosition;
+
+    strict private FFdSlipCoefficients: TSFVec2f;
+    { X3D field "slipCoefficients". } { }
+    public property FdSlipCoefficients: TSFVec2f read FFdSlipCoefficients;
     { X3D field "slipCoefficients". } { }
     property SlipCoefficients: TVector2 read GetSlipCoefficients write SetSlipCoefficients;
+
+    strict private FFdSoftnessConstantForceMix: TSFFloat;
+    { X3D field "softnessConstantForceMix". } { }
+    public property FdSoftnessConstantForceMix: TSFFloat read FFdSoftnessConstantForceMix;
     { X3D field "softnessConstantForceMix". } { }
     property SoftnessConstantForceMix: Single read GetSoftnessConstantForceMix write SetSoftnessConstantForceMix;
+
+    strict private FFdSoftnessErrorCorrection: TSFFloat;
+    { X3D field "softnessErrorCorrection". } { }
+    public property FdSoftnessErrorCorrection: TSFFloat read FFdSoftnessErrorCorrection;
     { X3D field "softnessErrorCorrection". } { }
     property SoftnessErrorCorrection: Single read GetSoftnessErrorCorrection write SetSoftnessErrorCorrection;
+
+    strict private FFdSurfaceSpeed: TSFVec2f;
+    { X3D field "surfaceSpeed". } { }
+    public property FdSurfaceSpeed: TSFVec2f read FFdSurfaceSpeed;
     { X3D field "surfaceSpeed". } { }
     property SurfaceSpeed: TVector2 read GetSurfaceSpeed write SetSurfaceSpeed;
 
@@ -268,6 +334,94 @@ end;
 procedure TContactNode.SetSurfaceSpeed(const Value: TVector2);
 begin
   FdSurfaceSpeed.Send(Value);
+end;
+
+class function TContactNode.ClassX3DType: String;
+begin
+  Result := 'Contact';
+end;
+
+procedure TContactNode.CreateNode;
+begin
+  inherited;
+
+  FFdAppliedParameters := TMFString.Create(Self, True, 'appliedParameters', ['BOUNCE']);
+   FdAppliedParameters.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAppliedParameters);
+  { X3D specification comment: [] }
+
+  FFdBody1 := TSFNode.Create(Self, True, 'body1', [TRigidBodyNode]);
+   FdBody1.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBody1);
+
+  FFdBody2 := TSFNode.Create(Self, True, 'body2', [TRigidBodyNode]);
+   FdBody2.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBody2);
+
+  FFdBounce := TSFFloat.Create(Self, True, 'bounce', 0);
+   FdBounce.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBounce);
+  { X3D specification comment: [0,1] }
+
+  FFdContactNormal := TSFVec3f.Create(Self, True, 'contactNormal', Vector3(0, 1, 0));
+   FdContactNormal.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdContactNormal);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FFdDepth := TSFFloat.Create(Self, True, 'depth', 0);
+   FdDepth.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDepth);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FFdFrictionCoefficients := TSFVec2f.Create(Self, True, 'frictionCoefficients', Vector2(0, 0));
+   FdFrictionCoefficients.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdFrictionCoefficients);
+  { X3D specification comment: [0,Inf) }
+
+  FFdFrictionDirection := TSFVec3f.Create(Self, True, 'frictionDirection', Vector3(0, 1, 0));
+   FdFrictionDirection.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdFrictionDirection);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FFdGeometry1 := TSFNode.Create(Self, True, 'geometry1', [TAbstractNBodyCollidableNode]);
+   FdGeometry1.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdGeometry1);
+
+  FFdGeometry2 := TSFNode.Create(Self, True, 'geometry2', [TAbstractNBodyCollidableNode]);
+   FdGeometry2.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdGeometry2);
+
+  FFdMinbounceSpeed := TSFFloat.Create(Self, True, 'minbounceSpeed', 0);
+   FdMinbounceSpeed.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMinbounceSpeed);
+  { X3D specification comment: [0,Inf) }
+
+  FFdPosition := TSFVec3f.Create(Self, True, 'position', Vector3(0, 0, 0));
+   FdPosition.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdPosition);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FFdSlipCoefficients := TSFVec2f.Create(Self, True, 'slipCoefficients', Vector2(0, 0));
+   FdSlipCoefficients.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSlipCoefficients);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FFdSoftnessConstantForceMix := TSFFloat.Create(Self, True, 'softnessConstantForceMix', 0.0001);
+   FdSoftnessConstantForceMix.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSoftnessConstantForceMix);
+  { X3D specification comment: [0,1] }
+
+  FFdSoftnessErrorCorrection := TSFFloat.Create(Self, True, 'softnessErrorCorrection', 0.8);
+   FdSoftnessErrorCorrection.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSoftnessErrorCorrection);
+  { X3D specification comment: [0,1] }
+
+  FFdSurfaceSpeed := TSFVec2f.Create(Self, True, 'surfaceSpeed', Vector2(0, 0));
+   FdSurfaceSpeed.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSurfaceSpeed);
+  { X3D specification comment: (-Inf,Inf) }
+
+  DefaultContainerField := 'children';
 end;
 
 {$endif read_implementation}

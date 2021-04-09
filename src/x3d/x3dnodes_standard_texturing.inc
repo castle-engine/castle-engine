@@ -290,6 +290,8 @@
 
   { Texture image loaded from a file. }
   TImageTextureNode = class(TAbstractX3DTexture2DNode, IAbstractUrlObject)
+  strict private
+    function LoadOptions: TLoadImageOptions;
   strict protected
     procedure LoadTextureData(out WasCacheUsed: boolean); override;
   public
@@ -303,6 +305,36 @@
     public property FdFlipVertically: TSFBool read FFdFlipVertically;
 
     function TextureDescription: string; override;
+
+    { Load image contents from a stream.
+
+      If UpdateUrl is not empty, then this also sets the @link(FdUrl) field
+      to the indicated value (without actually loading the image from this URL).
+      This is useful if you later may serialize this TImageTextureNode:
+      thus URL will represent this image in the output.
+      Note: aside from normal URLs (file, http and such protocols),
+      you can always set this URL to a "data URI" that would encode the image contents.
+      See CGE example tools/to-data-uri/to-data-uri.lpr for an example. }
+    procedure LoadFromStream(const Stream: TStream; const MimeType: String; const UpdateUrl: String);
+
+    { Load image contents from a ready TEncodedImage instance.
+
+      If TakeImageOwnership = @true then we take given Image reference,
+      and the lifetime of this Image object will be further managed by this TImageTextureNode
+      class (so you should no longer free it yourself).
+      If TakeImageOwnership = @false then we only copy Image contents
+      (this is slower, but it means that ownership and freeing of given
+      Image instance remains on your side).
+
+      If UpdateUrl is not empty, then this also sets the @link(FdUrl) field
+      to the indicated value (without actually loading the image from this URL).
+      This is useful if you later may serialize this TImageTextureNode:
+      thus URL will represent this image in the output.
+      Note: aside from normal URLs (file, http and such protocols),
+      you can always set this URL to a "data URI" that would encode the image contents.
+      See CGE example tools/to-data-uri/to-data-uri.lpr for an example. }
+    procedure LoadFromImage(const Image: TEncodedImage;
+      const TakeImageOwnership: Boolean; const UpdateUrl: String);
 
     {$I auto_generated_node_helpers/x3dnodes_imagetexture.inc}
   end;
@@ -895,15 +927,14 @@ begin
   Result := 'ImageTexture';
 end;
 
+function TImageTextureNode.LoadOptions: TLoadImageOptions;
+begin
+  Result := [];
+  if FlipVertically then
+    Include(Result, liFlipVertically);
+end;
+
 procedure TImageTextureNode.LoadTextureData(out WasCacheUsed: boolean);
-
-  function LoadOptions: TLoadImageOptions;
-  begin
-    Result := [];
-    if FlipVertically then
-      Include(Result, liFlipVertically);
-  end;
-
 var
   I: Integer;
   FullUrl, ErrorMessage: string;
@@ -963,6 +994,43 @@ begin
   if TextureUsedFullUrl <> '' then
     Result := 'image from file "' + TextureUsedFullUrl + '"' else
     Result := 'none';
+end;
+
+procedure TImageTextureNode.LoadFromStream(const Stream: TStream; const MimeType: String; const UpdateUrl: String);
+var
+  Image: TEncodedImage;
+begin
+  Image := LoadEncodedImage(Stream, MimeType, [], LoadOptions);
+  LoadFromImage(Image, true, UpdateUrl);
+end;
+
+procedure TImageTextureNode.LoadFromImage(const Image: TEncodedImage;
+  const TakeImageOwnership: Boolean; const UpdateUrl: String);
+begin
+  FreeAndNilTextureData;
+
+  if TakeImageOwnership then
+    FTextureImage := Image
+  else
+    FTextureImage := Image.CreateCopy;
+
+  { update things that need to be updated when loading image }
+  FAlphaChannelData := FTextureImage.AlphaChannel;
+  FIsTextureLoaded := true;
+  UsedCache := nil;
+
+  if UpdateUrl <> '' then
+  begin
+    FTextureUsedFullUrl := UpdateUrl;
+    { Deliberately change FdUrl value in low-level fashion,
+      without triggering Scene.InternalChangedField,
+      because we never want to actually load contents of UpdateUrl. }
+    FdUrl.Items.Clear;
+    FdUrl.Items.Add(UpdateUrl);
+  end;
+
+  if Scene <> nil then
+    Scene.InternalChangedField(FdUrl);
 end;
 
 procedure TMovieTextureNode.CreateNode;

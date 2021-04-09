@@ -56,6 +56,7 @@ var
 begin
   VectorPersistent := (GetObjectValue as TCastleVector2Persistent);
   VectorPersistent.Value := Vector2FromStr(NewValue);
+  Modified;
 end;
 
 { TCastleVector3PropertyEditor ------------------------------------------------- }
@@ -100,6 +101,33 @@ begin
   VectorPersistent.Value := Vector3FromStr(NewValue);
 end;
 
+{ TScalePropertyEditor ------------------------------------------------- }
+
+type
+  TScalePropertyEditor = class(TCastleVector3PropertyEditor)
+    procedure SetValue(const NewValue: String); override;
+  end;
+
+procedure TScalePropertyEditor.SetValue(const NewValue: String);
+var
+  VectorPersistent: TCastleVector3Persistent;
+  F: Single;
+  V: TVector3;
+begin
+  VectorPersistent := (GetObjectValue as TCastleVector3Persistent);
+
+  try
+    { accept just a single float as input, so e.g. "2" works the same as "2 2 2" }
+    F := StrToFloat(NewValue);
+    V := Vector3(F, F, F);
+  except
+    on EConvertError do
+      V := Vector3FromStr(NewValue);
+  end;
+
+  VectorPersistent.Value := V;
+end;
+
 { TCastleVector4PropertyEditor ------------------------------------------------- }
 
 type
@@ -137,4 +165,5 @@ var
 begin
   VectorPersistent := (GetObjectValue as TCastleVector4Persistent);
   VectorPersistent.Value := Vector4FromStr(NewValue);
+  Modified;
 end;

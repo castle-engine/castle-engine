@@ -59,7 +59,9 @@ begin
   inherited;
 
   FpcExe := FindExeFpcCompiler;
-  MyRunCommandIndir(GetCurrentDir, FpcExe, ['-iV'], FpcOutput, FpcExitStatus);
+  MyRunCommandIndir(GetCurrentDir, FpcExe, ['-iV'], FpcOutput, FpcExitStatus,
+    // use rcNoConsole to not blink with a console when CGE editor starts
+    nil, nil, [rcNoConsole]);
   if FpcExitStatus <> 0 then
     raise Exception.Create('Failed to query FPC version');
 

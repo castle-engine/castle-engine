@@ -50,9 +50,14 @@
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
+    <Target>
+      <Filename Value="dynamic_ambient_occlusion"/>
+    </Target>
     <SearchPaths>
-      <IncludeFiles Value="../common_code/"/>
-      <OtherUnitFiles Value="../common_code/"/>
+      <IncludeFiles Value="code/;../common_code/"/>
+      <OtherUnitFiles Value="code/;../common_code/"/>
+      <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
+      <Libraries Value="" />
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>

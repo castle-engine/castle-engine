@@ -214,8 +214,7 @@ function ApplicationConfig(const Path: string): string;
 
   See the manual about the purpose of "data" directory:
   https://castle-engine.io/manual_data_directory.php .
-  Since Castle Game Engine 6.5, using @code('castle-data:/xxx') is more adviced
-  than explicitly calling @code(ApplicationData('xxx')).
+  Using @code('castle-data:/xxx') is adviced over explicitly calling @code(ApplicationData('xxx')).
 
   Given Path parameter must specify a path under the data directory,
   with possible subdirectories, with possible FileName at the end.
@@ -1036,6 +1035,22 @@ begin
   {$else}
   Result := PathFileSearch(ExeName + ExeExtension, false);
   {$endif}
+
+  { On Windows when PathFileSearch gets ImplicitCurrentDir = true,
+    then it can return relative filename.
+    And we want to use ImplicitCurrentDir to search also the current dir
+    (as standard on Windows).
+
+    On all platforms, even disregarding ImplicitCurrentDir, PathFileSearch
+    doesn't exactly guarantee an absolute path. It should usually be true because $PATH
+    should contain only absolute paths, but this is nowhere guaranteed,
+    user can set there anything, on any OS.
+
+    So better do ExpandFileName to make sure the result in absolute,
+    as promised in FindExe API. E.g. RunCommandSimple usage in ToolCommonUtils
+    assumes it, checking IsPathAbsolute to know whether FindExe should be used again. }
+  if Result <> '' then
+    Result := ExpandFileName(Result);
 end;
 
 function AddExeExtension(const ExePath: string): string;

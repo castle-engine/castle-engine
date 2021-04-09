@@ -397,15 +397,6 @@
     TSFMatrix4fEvent>)
   public
     class function X3DType: string; override;
-
-    { Return average scale for current matrix Value.
-
-      Note that this doesn't correctly extract scale from matrix,
-      as that is too difficcult. Insted it does simple extraction,
-      which will work for identity, translation and scaling matrices
-      (but e.g. will fail miserably (generate nonsense results) when
-      looking at some rotation matrices). }
-    function TransformScale: Single;
   end;
 
   { X3D field containing a 4x4 matrix with Double precision. }
@@ -1483,11 +1474,6 @@ end;
 class function TSFMatrix4f.X3DType: string;
 begin
   Result := 'SFMatrix4f';
-end;
-
-function TSFMatrix4f.TransformScale: Single;
-begin
-  Result := Approximate3DScale(Value);
 end;
 
 { TSFMatrix4d ------------------------------------------------------------------ }

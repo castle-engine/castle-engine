@@ -1,5 +1,6 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestX3DNodesOptimizedProxy" -*-
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,6 +14,7 @@
   ----------------------------------------------------------------------------
 }
 
+{ Test Proxy feature in X3DNodes. }
 unit TestX3DNodesOptimizedProxy;
 
 interface

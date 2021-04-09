@@ -1,5 +1,6 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestX3DNodesNurbs" -*-
 {
-  Copyright 2020-2020 Michalis Kamburelis.
+  Copyright 2020-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 

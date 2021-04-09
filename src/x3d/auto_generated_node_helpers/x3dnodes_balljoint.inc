@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,8 +29,22 @@
     function GetAnchorPoint: TVector3;
     procedure SetAnchorPoint(const Value: TVector3);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdAnchorPoint: TSFVec3f;
+    { X3D field "anchorPoint". } { }
+    public property FdAnchorPoint: TSFVec3f read FFdAnchorPoint;
     { X3D field "anchorPoint". } { }
     property AnchorPoint: TVector3 read GetAnchorPoint write SetAnchorPoint;
+
+    strict private FEventBody1AnchorPoint: TSFVec3fEvent;
+    { X3D out event "body1AnchorPoint". } { }
+    public property EventBody1AnchorPoint: TSFVec3fEvent read FEventBody1AnchorPoint;
+
+    strict private FEventBody2AnchorPoint: TSFVec3fEvent;
+    { X3D out event "body2AnchorPoint". } { }
+    public property EventBody2AnchorPoint: TSFVec3fEvent read FEventBody2AnchorPoint;
 
 {$endif read_interface}
 
@@ -46,6 +60,26 @@ end;
 procedure TBallJointNode.SetAnchorPoint(const Value: TVector3);
 begin
   FdAnchorPoint.Send(Value);
+end;
+
+class function TBallJointNode.ClassX3DType: String;
+begin
+  Result := 'BallJoint';
+end;
+
+procedure TBallJointNode.CreateNode;
+begin
+  inherited;
+
+  FFdAnchorPoint := TSFVec3f.Create(Self, True, 'anchorPoint', Vector3(0, 0, 0));
+   FdAnchorPoint.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAnchorPoint);
+
+  FEventBody1AnchorPoint := TSFVec3fEvent.Create(Self, 'body1AnchorPoint', false);
+  AddEvent(FEventBody1AnchorPoint);
+
+  FEventBody2AnchorPoint := TSFVec3fEvent.Create(Self, 'body2AnchorPoint', false);
+  AddEvent(FEventBody2AnchorPoint);
 end;
 
 {$endif read_implementation}

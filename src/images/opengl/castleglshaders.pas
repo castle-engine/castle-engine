@@ -70,6 +70,7 @@ type
   EGLSLShaderCompileError = class(EGLSLError);
   EGLSLProgramLinkError = class(EGLSLError);
   EGLSLAttributeNotFound = class(EGLSLError);
+  EGLSLTransformFeedbackError = class(EGLSLError);
 
   EGLSLUniformInvalid = class(EGLSLError);
   EGLSLUniformNotFound = class(EGLSLUniformInvalid);
@@ -312,6 +313,10 @@ type
 
     procedure DetachAllShaders;
 
+    { Specify values to record in transform feedback buffers.
+      This must be called before @link(Link) method. }
+    procedure SetTransformFeedbackVaryings(const Varyings: array of PChar; const IsSingleBufferMode: Boolean = True);
+
     { Link the program, this should be done after attaching all shaders
       and before actually using the program.
 
@@ -416,7 +421,7 @@ type
       parameter follows this parameter value.
 
       @raises(EGLSLUniformNotFound If the variable is not found within
-        the program and we the behaviour (determined
+        the program and we the behavior (determined
         by AUniformTypeMismatchAction parameter or UniformTypeMismatchAction
         property) is uaException.)
 
@@ -1776,6 +1781,37 @@ end;
 procedure TGLSLProgram.AttachGeometryShader(const S: string);
 begin
   AttachShader(stGeometry, S);
+end;
+
+procedure TGLSLProgram.SetTransformFeedbackVaryings(const Varyings: array of PChar; const IsSingleBufferMode: Boolean);
+var
+  {$ifndef OpenGLES}
+  TransformFeedbackBufferMode, ErrorCode: TGLuint;
+  {$endif}
+  VaryingLength: Cardinal;
+begin;
+  VaryingLength := Length(Varyings);
+  if VaryingLength > 0 then
+  begin
+    {$ifdef OpenGLES}
+    raise EGLSLTransformFeedbackError.Create('Transform feedback not supported by OpenGLES 2.0');
+    {$else}
+    if GLVersion.AtLeast(3, 0) and (FSupport = gsStandard) then
+    begin
+      if IsSingleBufferMode then
+        TransformFeedbackBufferMode := GL_INTERLEAVED_ATTRIBS
+      else
+        TransformFeedbackBufferMode := GL_SEPARATE_ATTRIBS;
+      glTransformFeedbackVaryings(ProgramId, VaryingLength, @Varyings[0], TransformFeedbackBufferMode);
+      ErrorCode := glGetError();
+      if ErrorCode = GL_INVALID_VALUE then
+      begin
+        raise EGLSLTransformFeedbackError.Create('Error occured after setting transform feedback varyings');
+      end;
+    end else
+      raise EGLSLTransformFeedbackError.Create('Transform feedback not supported by your OpenGL version');
+    {$endif}
+  end;
 end;
 
 procedure TGLSLProgram.DetachAllShaders;

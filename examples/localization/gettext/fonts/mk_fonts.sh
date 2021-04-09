@@ -11,4 +11,4 @@ texture-font-to-pascal DejaVuSans.ttf \
   --size 50 \
   --unit-name Font_DejaVuSans \
   --sample-text "${SAMPLE_TEXT}"
-mv -f font_dejavusans.pas ../
+mv -f font_dejavusans.pas ../code/

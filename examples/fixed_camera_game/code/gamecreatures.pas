@@ -16,8 +16,6 @@
 { Creatures and (as a special creature descendant) player. }
 unit GameCreatures;
 
-{$I castleconf.inc}
-
 interface
 
 uses SysUtils, Classes, Generics.Collections,
@@ -65,7 +63,7 @@ type
     procedure LoadFromConfig;
   end;
 
-  TCreatureKindList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCreatureKind>)
+  TCreatureKindList = class({$ifdef FPC_OBJFPC}specialize{$endif} TObjectList<TCreatureKind>)
   public
     PlayerKind: TCreatureKind;
 

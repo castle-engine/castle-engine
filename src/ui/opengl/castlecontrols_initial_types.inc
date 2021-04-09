@@ -43,10 +43,10 @@
       So this serves as a universal "please wait, we're loading" screen.
 
       You can customize this image, by setting
-      @link(TCastleTheme.Images Theme.Images[tiLoading]),
+      @link(TCastleTheme.ImagesPersistent Theme.ImagesPersistent[tiLoading].Image),
       @link(TCastleTheme.LoadingBackgroundColor LoadingBackgroundColor),
       @link(TCastleTheme.LoadingTextColor LoadingTextColor).
-      See https://castle-engine.io/tutorial_player_2d_controls.php
+      See https://castle-engine.io/manual_2d_user_interface.php#section_theme
       for a sample code that sets a theme image.
 
       Note that the customization of this image should be done before

@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,6 +29,12 @@
     function GetShape: TShapeNode;
     procedure SetShape(const Value: TShapeNode);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdShape: TSFNode;
+    { X3D field "shape". } { }
+    public property FdShape: TSFNode read FFdShape;
     { X3D field "shape". } { }
     property Shape: TShapeNode read GetShape write SetShape;
 
@@ -49,6 +55,20 @@ end;
 procedure TCollidableShapeNode.SetShape(const Value: TShapeNode);
 begin
   FdShape.Send(Value);
+end;
+
+class function TCollidableShapeNode.ClassX3DType: String;
+begin
+  Result := 'CollidableShape';
+end;
+
+procedure TCollidableShapeNode.CreateNode;
+begin
+  inherited;
+
+  FFdShape := TSFNode.Create(Self, False, 'shape', [TShapeNode]);
+   FdShape.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdShape);
 end;
 
 {$endif read_implementation}

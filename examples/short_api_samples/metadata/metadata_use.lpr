@@ -6,7 +6,7 @@
 {$apptype CONSOLE}
 
 uses SysUtils, Math,
-  X3DNodes;
+  X3DNodes, X3DLoad;
 var
   Root: TX3DRootNode;
   Transform: TTransformNode;
@@ -54,7 +54,7 @@ begin
   MetadataString.SetValue(['banana']);
   (Transform.Metadata as TMetadataSetNode).FdValue.Add(MetadataString);
 
-  Save3D(Root, 'my.x3d');
+  SaveNode(Root, 'my.x3d');
 
   FreeAndNil(Root);
 end.

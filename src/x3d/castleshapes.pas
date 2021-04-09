@@ -587,7 +587,7 @@ type
 
     { Is the shape collidable.
       Most shapes are collidable.
-      One exception is when @link(TShapeNode.Collision) is set to scNone,
+      One exception is when @link(TAbstractShapeNode.Collision) is set to scNone,
       which disables collisions.
       Another exception is when the shape is placed inside @link(TCollisionNode) children,
       and then you use @link(TCollisionNode.Enabled) to turn off collisions,
@@ -2238,10 +2238,22 @@ function TShape.AlphaChannel: TAlphaChannel;
   { TODO: DetectAlphaBlending and DetectAlphaTest both look at alpha channel
     of textures. They should share some part of a single implementation. }
 
+const
+  AlphaModeToChannel: array [TAlphaMode] of TAutoAlphaChannel = (
+    { amAuto -> } acAuto,
+    { amOpaque -> } acNone,
+    { amMask -> } acTest,
+    { amBlend -> } acBlending
+  );
 begin
-  { Check whether Appearance.alphaChannel field is set to something <> "AUTO".
+  { Check whether Appearance.alphaMode or alphaChannel field is set to something <> "AUTO".
     This is the simplest option, in which we don't need to run our "auto detection"
     below. }
+  if (State.ShapeNode <> nil) and
+     (State.ShapeNode.Appearance <> nil) and
+     (State.ShapeNode.Appearance.AlphaMode <> amAuto) then
+    Exit(AlphaModeToChannel[State.ShapeNode.Appearance.AlphaMode]);
+
   if (State.ShapeNode <> nil) and
      (State.ShapeNode.Appearance <> nil) and
      (State.ShapeNode.Appearance.AlphaChannel <> acAuto) then

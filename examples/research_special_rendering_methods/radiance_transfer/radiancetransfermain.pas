@@ -24,14 +24,12 @@
 }
 unit RadianceTransferMain;
 
-{$I castleconf.inc}
-
 interface
 
 implementation
 
 uses SysUtils, Classes, Math,
-  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  GL, GLExt,
   CastleVectors, X3DNodes, CastleWindow, CastleShapes,
   CastleClassUtils, CastleUtils,
   CastleGLUtils, CastleScene, CastleKeysMouse, CastleViewport,

@@ -71,7 +71,8 @@ var
 implementation
 
 uses SysUtils,
-  CastleLog, CastleUIControls, CastleWindow, CastleURIUtils, CastleTimeUtils, CastleSoundBase;
+  CastleLog, CastleUIControls, CastleWindow, CastleURIUtils, CastleTimeUtils,
+  CastleSoundBase, CastleViewport;
 
 { TButtonSoundBuffer --------------------------------------------------------- }
 

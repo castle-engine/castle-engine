@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,10 +31,24 @@
     function GetBody2: TRigidBodyNode;
     procedure SetBody2(const Value: TRigidBodyNode);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdBody1: TSFNode;
+    { X3D field "body1". } { }
+    public property FdBody1: TSFNode read FFdBody1;
     { X3D field "body1". } { }
     property Body1: TRigidBodyNode read GetBody1 write SetBody1;
+
+    strict private FFdBody2: TSFNode;
+    { X3D field "body2". } { }
+    public property FdBody2: TSFNode read FFdBody2;
     { X3D field "body2". } { }
     property Body2: TRigidBodyNode read GetBody2 write SetBody2;
+
+    strict private FFdForceOutput: TMFString;
+    { X3D field "forceOutput". } { }
+    public property FdForceOutput: TMFString read FFdForceOutput;
     { Set X3D field "forceOutput". } { }
     procedure SetForceOutput(const Value: array of string);
     { Set X3D field "forceOutput". } { }
@@ -80,6 +94,31 @@ end;
 procedure TAbstractRigidJointNode.SetForceOutput(const Value: TCastleStringList);
 begin
   FdForceOutput.Send(Value);
+end;
+
+class function TAbstractRigidJointNode.ClassX3DType: String;
+begin
+  Result := 'X3DRigidJointNode';
+end;
+
+procedure TAbstractRigidJointNode.CreateNode;
+begin
+  inherited;
+
+  FFdBody1 := TSFNode.Create(Self, True, 'body1', [TRigidBodyNode]);
+   FdBody1.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBody1);
+
+  FFdBody2 := TSFNode.Create(Self, True, 'body2', [TRigidBodyNode]);
+   FdBody2.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBody2);
+
+  FFdForceOutput := TMFString.Create(Self, True, 'forceOutput', ['NONE']);
+   FdForceOutput.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdForceOutput);
+  { X3D specification comment: ["ALL","NONE",...] }
+
+  DefaultContainerField := 'joints';
 end;
 
 {$endif read_implementation}

@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,8 +29,22 @@
     function GetIntegerKey: Integer;
     procedure SetIntegerKey(const Value: Integer);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventSet_boolean: TSFBoolEvent;
+    { X3D in event "set_boolean". } { }
+    public property EventSet_boolean: TSFBoolEvent read FEventSet_boolean;
+
+    strict private FFdIntegerKey: TSFInt32;
+    { X3D field "integerKey". } { }
+    public property FdIntegerKey: TSFInt32 read FFdIntegerKey;
     { X3D field "integerKey". } { }
     property IntegerKey: Integer read GetIntegerKey write SetIntegerKey;
+
+    strict private FEventTriggerValue: TSFInt32Event;
+    { X3D out event "triggerValue". } { }
+    public property EventTriggerValue: TSFInt32Event read FEventTriggerValue;
 
 {$endif read_interface}
 
@@ -46,6 +60,27 @@ end;
 procedure TIntegerTriggerNode.SetIntegerKey(const Value: Integer);
 begin
   FdIntegerKey.Send(Value);
+end;
+
+class function TIntegerTriggerNode.ClassX3DType: String;
+begin
+  Result := 'IntegerTrigger';
+end;
+
+procedure TIntegerTriggerNode.CreateNode;
+begin
+  inherited;
+
+  FEventSet_boolean := TSFBoolEvent.Create(Self, 'set_boolean', true);
+  AddEvent(FEventSet_boolean);
+
+  FFdIntegerKey := TSFInt32.Create(Self, True, 'integerKey', -1);
+   FdIntegerKey.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdIntegerKey);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FEventTriggerValue := TSFInt32Event.Create(Self, 'triggerValue', false);
+  AddEvent(FEventTriggerValue);
 end;
 
 {$endif read_implementation}

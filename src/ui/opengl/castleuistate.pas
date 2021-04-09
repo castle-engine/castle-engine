@@ -21,8 +21,8 @@ unit CastleUIState;
 interface
 
 uses Classes, Generics.Collections,
-  CastleConfig, CastleKeysMouse, CastleImages, CastleUIControls,
-  CastleGLImages, CastleVectors, CastleRectangles;
+  CastleConfig, CastleKeysMouse, CastleImages, CastleUIControls, CastleClassUtils,
+  CastleGLImages, CastleVectors, CastleRectangles, CastleComponentSerialize;
 
 type
   TUIStateList = class;
@@ -98,8 +98,28 @@ type
     FStartContainer: TUIContainer;
     FInterceptInput, FFreeWhenStopped: boolean;
     FFreeAtStop: TComponent;
+    FWaitingForRender: TNotifyEventList;
+    FCallBeforeUpdate: TNotifyEventList;
+
+    { Design* private fields }
+    FDesignUrl: String;
+    FDesignLoaded: TCastleUserInterface;
+    FDesignLoadedOwner: TComponent;
+    FDesignPreload: Boolean;
+    FDesignPreloadedSerialized: TSerializedComponent;
+    FDesignPreloaded: TCastleUserInterface;
+    FDesignPreloadedOwner: TComponent;
+
     procedure InternalStart;
     procedure InternalStop;
+
+    { Design* private routines }
+    procedure SetDesignUrl(const Value: String);
+    procedure SetDesignPreload(const Value: Boolean);
+    procedure LoadDesign;
+    procedure UnLoadDesign;
+    procedure PreloadDesign;
+    procedure UnPreloadDesign;
 
     class var FStateStack: TUIStateList;
     class var FDisableStackChange: Cardinal;
@@ -160,8 +180,8 @@ type
       (e.g. in Application.OnInitialize callback), like
 
       @longCode(#
-        StateMain := TStateMain.Create(Application);
-        StatePlay := TStateMain.Create(Application);
+        StateMainMenu := TStateMainMenu.Create(Application);
+        StatePlay := TStatePlay.Create(Application);
       #)
 
       Later you switch between states using @link(Current) or @link(Push) or @link(Pop),
@@ -170,6 +190,9 @@ type
       @longCode(#
         TUIState.Current := StateMain;
       #)
+
+      See https://castle-engine.io/manual_2d_user_interface.php
+      and numerous engine examples, like examples/user_interface/zombie_fighter/ .
     }
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -284,6 +307,7 @@ type
     function Motion(const Event: TInputMotion): boolean; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
+    procedure Render; override;
 
     { Load and show a user interface from a .castle-user-interface file,
       designed in Castle Game Engine Editor.
@@ -308,11 +332,111 @@ type
       and as FinalOwner you pass @link(FreeAtStop) -- this way the user interface
       is freed when the state is stopped.
     }
-    procedure InsertUserInterface(const DesignUrl: String;
+    procedure InsertUserInterface(const ADesignUrl: String;
       const FinalOwner: TComponent;
-      out Ui: TCastleUserInterface; out UiOwner: TComponent);
-    procedure InsertUserInterface(const DesignUrl: String;
-      const FinalOwner: TComponent; out UiOwner: TComponent);
+      out Ui: TCastleUserInterface; out UiOwner: TComponent); deprecated 'instead of this, set DesignUrl in constructor';
+    procedure InsertUserInterface(const ADesignUrl: String;
+      const FinalOwner: TComponent; out UiOwner: TComponent); deprecated 'instead of this, set DesignUrl in constructor';
+
+    { Wait until the render event happens (to redraw current state),
+      and then call Event.
+
+      The scheduled Event will be called at the @link(Update) time.
+
+      If the state stopped before the scheduled events fired,
+      then the remaining events are ignored.
+      That is, the scheduled events are cleared every time you start the state.
+
+      One use-case of this is to show a loading state,
+      where you load things, but also update the loading progress from time to time.
+      Be careful in this case to not call this @italic(too often),
+      as then your loading time will be tied to rendering time.
+      For example, when the monitor refresh rate is 60, and the "vertical sync"
+      is "on", then the render events happen at most 60 times per second.
+      So if you call WaitForRenderAndCall too often during loading,
+      you may spend more time waiting for render event (each WaitForRenderAndCall
+      taking 1/60 of second) than doing actual loading. }
+    procedure WaitForRenderAndCall(const Event: TNotifyEvent);
+
+    { Load a designed user interface (from .castle-user-interface file)
+      when this state is started.
+      You typically set this property in overridden constructor, and in effect
+      the given design file will be loaded right before @link(Start) and it will be freed
+      right after @link(Stop).
+
+      Typical use-case looks like this:
+
+      @longCode(#
+      constructor TStatePlay.Create(AOwner: TComponent);
+      begin
+        inherited;
+        DesignUrl := 'castle-data:/gamestateplay.castle-user-interface';
+        // DesignPreload := true; // to make future "TUIState.Current := StatePlay" faster
+      end;
+
+      procedure TStatePlay.Start;
+      begin
+        inherited;
+        MyButton := specialize DesignedComponent<TCastleButton>('MyButton');
+      end;
+      #)
+
+      You can also modify this property when the state has already started
+      (after @link(Start) and before @link(Stop)) in which case
+      the previous design will be freed and new one will be loaded immediately.
+
+      Set this to empty string (default) to mean "no design should be loaded".
+
+      Note that this is not the only way to load a .castle-user-interface file.
+      A more general approach is to use @link(UserInterfaceLoad),
+      and call @link(InsertFront) to add it to the state UI.
+      Using this property just adds some comfortable automatic behavior
+      (state is freed at stop, and you can use comfortable
+      @link(DesignedComponent) or @link(DesignPreload)).
+
+      @seealso DesignPreload
+      @seealso DesignedComponent
+    }
+    property DesignUrl: String read FDesignUrl write SetDesignUrl;
+
+    { Preload the design file (specified in @link(DesignUrl)) as soon as possible,
+      making starting the state much faster.
+      Using this property means that we "preload" the design file,
+      to cache the referenced images / TCastleScene instances etc. as soon as possible,
+      to make the future loading of this design (when state starts) very quick.
+
+      Typically you set this property in overridden TUIState constructor,
+      right after (or before, it doesn't matter) setting DesignUrl.
+      It will mean that constructor takes a longer time (which typically means
+      that Application.OnInitialize takes a longer time) but in exchange
+      future starting of the state (when you do e.g. @code(TUIState.Current := StateXxx)
+      or @code(TUIState.Push(StateXxx)) will be much faster.
+
+      No functional difference should be visible, regardless of the @link(DesignPreload)
+      value. Internally the designed component is added/removed from state at the same time.
+      So think of this property as pure optimization -- you decide whether to slow down
+      the state constructor, or state start.
+
+      @seealso DesignUrl }
+    property DesignPreload: Boolean read FDesignPreload write SetDesignPreload default false;
+
+    { When the DesignUrl is set, and the state is started, you can use this method to find
+      loaded components. Like this:
+
+      @longCode(#
+      MyButton := DesignedComponent('MyButton') as TCastleButton;
+      #)
+
+      See @link(DesignUrl) for full usage example.
+
+      @seealso DesignUrl }
+    function DesignedComponent(const ComponentName: String): TComponent;
+
+    { TODO: This doesn't work with FPC 3.2.0, see implementation comments.
+      It is also not that useful -- unlike Unity "GameObject.GetComponent<T>(): T",
+      in this case T would not be used as searching criteria, so it would
+      be just another way to express "as" cast. }
+    // generic function DesignedComponent<T: TComponent>(const ComponentName: String): T; overload;
   published
     { TUIState control makes most sense when it is FullSize,
       filling the whole window.
@@ -328,8 +452,7 @@ type
 implementation
 
 uses SysUtils,
-  CastleFilesUtils, CastleUtils, CastleTimeUtils, CastleLog,
-  CastleComponentSerialize;
+  CastleFilesUtils, CastleUtils, CastleTimeUtils, CastleLog;
 
 { TODO: Change this into always exception in the future.
   Changing state during state Start/Stop/Push/Pop is not reliable,
@@ -342,6 +465,22 @@ begin
   {$else}
   WritelnWarning('TUIState', Message);
   {$endif}
+end;
+
+type
+  { Helper methods extending TSerializedComponent.
+    Do not use TSerializedComponentHelper from CastleViewport,
+    to not complicate unit dependencies. }
+  TSerializedComponentHelper = class helper for TSerializedComponent
+    { Instantiate component.
+      Using this is equivalent to using global @link(UserInterfaceLoad),
+      but it is much faster if you want to instantiate the same file many times. }
+    function UserInterfaceLoad(const Owner: TComponent): TCastleUserInterface;
+  end;
+
+function TSerializedComponentHelper.UserInterfaceLoad(const Owner: TComponent): TCastleUserInterface;
+begin
+  Result := ComponentLoad(Owner) as TCastleUserInterface;
 end;
 
 { TUIState --------------------------------------------------------------------- }
@@ -490,11 +629,16 @@ var
 begin
   TimeStart := Profiler.Start('Started state ' + Name + ': ' + ClassName);
 
+  FWaitingForRender.Clear;
+  FCallBeforeUpdate.Clear;
+
   { typically, the Start method will initialize some stuff,
     making the 1st SecondsPassed non-representatively large. }
   StateContainer.Fps.ZeroNextSecondsPassed;
 
   FStartContainer := StateContainer;
+
+  LoadDesign;
 
   Start;
   { actually insert, this will also call GLContextOpen and Resize.
@@ -516,6 +660,8 @@ begin
   {$warnings off}
   Finish;
   {$warnings on}
+
+  UnLoadDesign;
 
   FStartContainer := nil;
   FreeAndNil(FFreeAtStop);
@@ -543,6 +689,8 @@ constructor TUIState.Create(AOwner: TComponent);
 begin
   inherited;
   FullSize := true;
+  FWaitingForRender := TNotifyEventList.Create;
+  FCallBeforeUpdate := TNotifyEventList.Create;
 end;
 
 constructor TUIState.CreateUntilStopped;
@@ -567,6 +715,10 @@ begin
       FreeAndNil(FStateStack);
   end;
 
+  UnLoadDesign;
+  UnPreloadDesign;
+  FreeAndNil(FWaitingForRender);
+  FreeAndNil(FCallBeforeUpdate);
   inherited;
 end;
 
@@ -630,27 +782,164 @@ end;
 procedure TUIState.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
 begin
+  inherited;
+
   { do not allow controls underneath to handle input }
   if InterceptInput then
     HandleInput := false;
+
+  if FCallBeforeUpdate.Count <> 0 then // optimize away common case
+  begin
+    { In case of using CreateUntilStopped state, you cannot change state
+      in the middle of FCallBeforeUpdate.ExecuteAll,
+      as it would free the array that is being iterated over. }
+    if FFreeWhenStopped then Inc(FDisableStackChange);
+    try
+      FCallBeforeUpdate.ExecuteAll(Self);
+      FCallBeforeUpdate.Clear;
+    finally
+      if FFreeWhenStopped then Dec(FDisableStackChange);
+    end;
+  end;
 end;
 
-procedure TUIState.InsertUserInterface(const DesignUrl: String;
+procedure TUIState.InsertUserInterface(const ADesignUrl: String;
   const FinalOwner: TComponent;
   out Ui: TCastleUserInterface; out UiOwner: TComponent);
 begin
   UiOwner := TComponent.Create(FinalOwner);
-  Ui := UserInterfaceLoad(DesignUrl, UiOwner);
+  Ui := UserInterfaceLoad(ADesignUrl, UiOwner);
   InsertFront(Ui);
 end;
 
-procedure TUIState.InsertUserInterface(const DesignUrl: String;
+procedure TUIState.InsertUserInterface(const ADesignUrl: String;
   const FinalOwner: TComponent; out UiOwner: TComponent);
 var
   Ui: TCastleUserInterface;
 begin
-  InsertUserInterface(DesignUrl, FinalOwner, Ui, UiOwner);
+  {$warnings off} // using deprecated in deprecated
+  InsertUserInterface(ADesignUrl, FinalOwner, Ui, UiOwner);
+  {$warnings on}
   // ignore the returned Ui reference
+end;
+
+procedure TUIState.Render;
+begin
+  inherited;
+  FCallBeforeUpdate.AddRange(FWaitingForRender);
+  FWaitingForRender.Clear;
+end;
+
+procedure TUIState.WaitForRenderAndCall(const Event: TNotifyEvent);
+begin
+  FWaitingForRender.Add(Event);
+end;
+
+procedure TUIState.LoadDesign;
+begin
+  if DesignUrl <> '' then
+  begin
+    FDesignLoadedOwner := TComponent.Create(nil);
+    if FDesignPreloadedSerialized <> nil then
+      FDesignLoaded := FDesignPreloadedSerialized.UserInterfaceLoad(FDesignLoadedOwner)
+    else
+      FDesignLoaded := UserInterfaceLoad(DesignUrl, FDesignLoadedOwner);
+    InsertFront(FDesignLoaded);
+  end;
+end;
+
+procedure TUIState.UnLoadDesign;
+begin
+  FreeAndNil(FDesignLoadedOwner);
+  FDesignLoaded := nil; // freeing FDesignLoadedOwner must have freed this too
+end;
+
+procedure TUIState.PreloadDesign;
+begin
+  if DesignUrl <> '' then
+  begin
+    // load FDesignPreloadedSerialized to be able to faster load design, without parsing JSON
+    FDesignPreloadedSerialized := TSerializedComponent.Create(DesignUrl);
+    // load FDesignPreloaded to cache all that's possible,
+    // like images used inside TCastleImageControl or TCastleScene.
+    FDesignPreloadedOwner := TComponent.Create(nil);
+    FDesignPreloaded := FDesignPreloadedSerialized.UserInterfaceLoad(FDesignPreloadedOwner);
+  end;
+end;
+
+procedure TUIState.UnPreloadDesign;
+begin
+  { Note that it doesn't matter whether this FDesignPreloaded was used to load
+    currently created FDesignLoaded or not.
+    So FDesignLoaded* and FDesignPreloadedxx* are completely independent.
+    This makes it easier to think about them. }
+  FreeAndNil(FDesignPreloadedOwner);
+  FDesignPreloaded := nil;// freeing FDesignPreloadedOwner must have freed this too
+  FreeAndNil(FDesignPreloadedSerialized);
+end;
+
+procedure TUIState.SetDesignUrl(const Value: String);
+begin
+  if FDesignUrl <> Value then
+  begin
+    UnLoadDesign;
+    UnPreloadDesign;
+    FDesignUrl := Value;
+    if DesignPreload then
+      PreloadDesign; // do this before LoadDesign, as LoadDesign may use it
+    if Active then
+      LoadDesign;
+  end;
+end;
+
+procedure TUIState.SetDesignPreload(const Value: Boolean);
+begin
+  if FDesignPreload <> Value then
+  begin
+    UnPreloadDesign;
+    FDesignPreload := Value;
+    if FDesignPreload then
+      PreloadDesign;
+  end;
+end;
+
+procedure ErrorDesignLoaded;
+begin
+  raise Exception.Create('DesignedComponent can only be used if the desing was loaded, which means that TUIState has started and DesignUrl is not empty');
+end;
+
+(*
+{ FPC 3.2.0 error:
+    Error: function header doesn't match the previous declaration "DesignedComponent$1(const AnsiString):T;"
+    Error: Found declaration: DesignedComponent$1(const AnsiString):T;
+}
+generic function TUIState.DesignedComponent<T: TComponent>(const ComponentName: String): T;
+begin
+  if FDesignLoaded = nil then
+    ErrorDesignLoaded;
+  Result := FDesignLoaded.FindRequiredComponent(ComponentName) as T;
+end;
+
+{ FPC 3.2.0 error:
+    Error: Global Generic template references static symtable
+  This works OK in a smaller testcase. }
+generic function TUIState.DesignedComponent<T>(const ComponentName: String): T;
+begin
+  if FDesignLoaded = nil then
+    ErrorDesignLoaded;
+  // Dirty typecast to TClass needed, otherwise we get error
+  //   Error: Class or interface type expected, but got "T"
+  // The error is valid -- which is why our first option was generic with constraints
+  // <T: TComponent> yet it failed.
+  Result := FDesignLoaded.FindRequiredComponent(ComponentName) as TClass(T);
+end;
+*)
+
+function TUIState.DesignedComponent(const ComponentName: String): TComponent;
+begin
+  if FDesignLoaded = nil then
+    ErrorDesignLoaded;
+  Result := FDesignLoadedOwner.FindRequiredComponent(ComponentName);
 end;
 
 end.

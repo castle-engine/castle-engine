@@ -81,23 +81,23 @@ function Save3DVersion(Node: TX3DNode): TX3DVersion;
 procedure Save3D(Node: TX3DNode;
   const Stream: TStream; const Generator, Source: string;
   Version: TX3DVersion; const Encoding: TX3DEncoding;
-  const ForceConvertingToX3D: boolean = false); overload;
+  const ForceConvertingToX3D: boolean = false); overload; deprecated 'use SaveNode';
 procedure Save3D(Node: TX3DNode;
   const URL, Generator, Source: string;
   const Version: TX3DVersion; const Encoding: TX3DEncoding;
-  const ForceConvertingToX3D: boolean = false); overload;
+  const ForceConvertingToX3D: boolean = false); overload; deprecated 'use SaveNode';
 procedure Save3D(Node: TX3DNode;
   const Stream: TStream; const Generator, Source: string;
   const Encoding: TX3DEncoding;
-  const ForceConvertingToX3D: boolean = false); overload;
+  const ForceConvertingToX3D: boolean = false); overload; deprecated 'use SaveNode';
 procedure Save3D(Node: TX3DNode;
   const URL, Generator, Source: string;
   const Encoding: TX3DEncoding;
-  const ForceConvertingToX3D: boolean = false); overload;
+  const ForceConvertingToX3D: boolean = false); overload; deprecated 'use SaveNode';
 procedure Save3D(Node: TX3DNode;
   const URL: string;
   const Generator: string = '';
-  const Source: string = ''); overload;
+  const Source: string = ''); overload; deprecated 'use SaveNode';
 { @groupEnd }
 
 function Save3DWillConvertToX3D(Version: TX3DVersion;
@@ -615,8 +615,10 @@ begin
 
   Stream := URLSaveStream(URL, StreamOptions);
   try
+    {$warnings off} // using deprecated in deprecated
     Save3D(Node, Stream, Generator, Source, Version,
       Encoding, ForceConvertingToX3D);
+    {$warnings on}
   finally Stream.Free end;
 end;
 
@@ -625,8 +627,10 @@ procedure Save3D(Node: TX3DNode;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean);
 begin
+  {$warnings off} // using deprecated in deprecated
   Save3D(Node, Stream, Generator, Source, Save3DVersion(Node),
     Encoding, ForceConvertingToX3D);
+  {$warnings on}
 end;
 
 procedure Save3D(Node: TX3DNode;
@@ -634,8 +638,10 @@ procedure Save3D(Node: TX3DNode;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean);
 begin
+  {$warnings off} // using deprecated in deprecated
   Save3D(Node, URL, Generator, Source, Save3DVersion(Node),
     Encoding, ForceConvertingToX3D);
+  {$warnings on}
 end;
 
 procedure Save3D(Node: TX3DNode;
@@ -652,7 +658,9 @@ begin
      (Mime = 'model/x3d+vrml') then
     Encoding := xeClassic else
     Encoding := xeXML;
+  {$warnings off} // using deprecated in deprecated
   Save3D(Node, URL, Generator, Source, Encoding);
+  {$warnings on}
 end;
 
 {$endif read_implementation}

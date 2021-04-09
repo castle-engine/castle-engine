@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -233,7 +233,7 @@ begin
   FFdCollision := TSFStringEnum.Create(Self, False, 'collision', ShapeCollisionNames, Ord(scDefault));
    FdCollision.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdCollision);
-  { X3D specification comment: ["DEFAULT"|"BOX"] enumerated-type: TShapeCollision ShapeCollisionNames scDefault }
+  { X3D specification comment: ["DEFAULT"|"BOX"|"NONE"] enumerated-type: TShapeCollision ShapeCollisionNames scDefault }
 end;
 
 {$endif read_implementation}

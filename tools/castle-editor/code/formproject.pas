@@ -24,13 +24,48 @@ uses
   Classes, SysUtils, DOM, FileUtil, Forms, Controls, Graphics, Dialogs, Menus,
   ExtCtrls, ComCtrls, CastleShellCtrls, StdCtrls, ValEdit, ActnList, Buttons,
   ProjectUtils, Types, Contnrs, CastleControl, CastleUIControls,
-  CastlePropEdits, CastleDialogs, X3DNodes, EditorUtils, FrameDesign,
-  FrameViewFile;
+  CastlePropEdits, CastleDialogs, X3DNodes, CastleFindFiles,
+  EditorUtils, FrameDesign, FrameViewFile, FormNewUnit, ToolManifest;
 
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionNewSpriteSheet: TAction;
+    ActionList: TActionList;
+    MenuItemNewSpriteSheet: TMenuItem;
+    MenuItemSepraratorSLP002: TMenuItem;
+    ActionRegenerateProject: TAction;
+    ActionEditAssociatedUnit: TAction;
+    ActionNewUnitHereClass: TAction;
+    ActionNewUnitHereState: TAction;
+    ActionNewUnitHereEmpty: TAction;
+    ActionNewUnitClass: TAction;
+    ActionNewUnitState: TAction;
+    ActionNewUnitEmpty: TAction;
+    ActionEditUnit: TAction;
+    ActionOpenProjectCode: TAction;
+    ApplicationProperties1: TApplicationProperties;
     ButtonClearWarnings: TBitBtn;
+    MenuItem1: TMenuItem;
+    MenuItemRegenerateProject: TMenuItem;
+    MenuItemSeparator123123345: TMenuItem;
+    OpenPascalUnitDialog: TCastleOpenPascalUnitDialog;
+    MenuItemPopupNewUnitEmpty: TMenuItem;
+    MenuItemPopupNewUnitClass: TMenuItem;
+    MenuItemPopupNewUnitState: TMenuItem;
+    MenuItemPopupNewUnit: TMenuItem;
+    N3: TMenuItem;
+    MenuItemNewUnitState: TMenuItem;
+    MenuItemNewUnitClass: TMenuItem;
+    MenuItemNewUnitEmpty: TMenuItem;
+    MenuItemNewUnit: TMenuItem;
+    N2: TMenuItem;
+    MenuItemEditUnitCode: TMenuItem;
+    MenuItemOpenProjectCode: TMenuItem;
+    MenuItemCode: TMenuItem;
+    MenuItemNewDirectory: TMenuItem;
+    MenuItemShellTreeSeparator13123: TMenuItem;
+    MenuItemShellTreeRefresh: TMenuItem;
     PanelWarnings: TPanel;
     ShellIcons: TImageList;
     LabelNoDesign: TLabel;
@@ -111,12 +146,29 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionNewSpriteSheetExecute(Sender: TObject);
+    procedure ActionEditAssociatedUnitExecute(Sender: TObject);
+    procedure ActionEditUnitExecute(Sender: TObject);
+    procedure ActionNewUnitClassExecute(Sender: TObject);
+    procedure ActionNewUnitEmptyExecute(Sender: TObject);
+    procedure ActionNewUnitHereClassExecute(Sender: TObject);
+    procedure ActionNewUnitHereEmptyExecute(Sender: TObject);
+    procedure ActionNewUnitHereStateExecute(Sender: TObject);
+    procedure ActionNewUnitStateExecute(Sender: TObject);
+    procedure ActionOpenProjectCodeExecute(Sender: TObject);
+    procedure ActionRegenerateProjectExecute(Sender: TObject);
+    procedure ApplicationProperties1Activate(Sender: TObject);
+    procedure ApplicationProperties1Exception(Sender: TObject; E: Exception);
     procedure ButtonClearWarningsClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormHide(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure ListOutputClick(Sender: TObject);
+    procedure MenuItemNewDirectoryClick(Sender: TObject);
     procedure MenuItemRenameClick(Sender: TObject);
+    procedure MenuItemShellTreeRefreshClick(Sender: TObject);
     procedure UpdateUndo(Sender: TObject);
     procedure UpdateRenameItem(Sender: TObject);
     procedure MenuItemRedoClick(Sender: TObject);
@@ -160,25 +212,41 @@ type
     procedure ProcessUpdateTimerTimer(Sender: TObject);
     procedure ShellListPopupMenuPopup(Sender: TObject);
   private
-    ProjectName: String;
-    ProjectPath, ProjectPathUrl, ProjectStandaloneSource, ProjectLazarus: String;
-    BuildMode: TBuildMode;
-    OutputList: TOutputList;
-    RunningProcess: TAsynchronousProcessQueue;
-    Design: TDesignFrame;
-    ShellListView1: TCastleShellListView;
-    ShellTreeView1: TCastleShellTreeView;
-    ViewFileFrame: TViewFileFrame;
-    SplitterBetweenViewFile: TSplitter;
+    type
+      // Argument for RefreshFiles
+      TRefreshFiles = (
+        // only files (not directories) within current directory changed
+        rfFilesInCurrentDir,
+        // files or directories, but only within current directory (not outside) changed
+        rfEverythingInCurrentDir,
+        // everything potentially changed
+        rfEverything
+      );
+    var
+      Manifest: TCastleManifest;
+      ProjectName: String;
+      ProjectPath, ProjectPathUrl, ProjectStandaloneSource, ProjectLazarus: String;
+      BuildMode: TBuildMode;
+      OutputList: TOutputList;
+      RunningProcess: TAsynchronousProcessQueue;
+      Design: TDesignFrame;
+      ShellListView1: TCastleShellListView;
+      ShellTreeView1: TCastleShellTreeView;
+      ViewFileFrame: TViewFileFrame;
+      SplitterBetweenViewFile: TSplitter;
     procedure BuildToolCall(const Commands: array of String;
       const ExitOnSuccess: Boolean = false);
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuItemDesignNewCustomRootClick(Sender: TObject);
+    procedure OpenPascal(const FileName: String);
+    procedure RefreshFiles(const RefreshNecessary: TRefreshFiles);
     procedure SetEnabledCommandRun(const AEnabled: Boolean);
     procedure FreeProcess;
     procedure ShellListViewDoubleClick(Sender: TObject);
     procedure ShellListViewSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
+    procedure ShowNewUnitForm(const AUnitType: TNewUnitType;
+      const UnitOutputDirFromFileBrowser: Boolean);
     procedure UpdateFormCaption(Sender: TObject);
     { Propose saving the hierarchy.
       Returns should we continue (user did not cancel). }
@@ -211,13 +279,13 @@ implementation
 
 uses TypInfo, LCLType,
   CastleXMLUtils, CastleLCLUtils, CastleOpenDocument, CastleURIUtils,
-  CastleFilesUtils, CastleUtils, CastleVectors, CastleColors,
+  CastleFilesUtils, CastleUtils, CastleVectors, CastleColors, CastleConfig,
   CastleScene, CastleViewport, Castle2DSceneManager, CastleCameras,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
-  FormChooseProject, ToolCommonUtils, FormAbout, FormPreferences,
-  ToolCompilerInfo;
+  FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
+  ToolCompilerInfo, ToolCommonUtils;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
 begin
@@ -248,7 +316,7 @@ end;
 
 procedure TProjectForm.MenuItemRefreshDirClick(Sender: TObject);
 begin
-  ShellListView1.RefreshContents;
+  RefreshFiles(rfEverythingInCurrentDir);
 end;
 
 procedure TProjectForm.MenuItemRestartRebuildEditorClick(Sender: TObject);
@@ -336,14 +404,208 @@ end;
 procedure TProjectForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
 begin
   if ProposeSaveDesign then
+  begin
+    { Close sprite sheet editor window if visible }
+    if (SpriteSheetEditorForm <> nil) and (SpriteSheetEditorForm.Visible) then
+    begin
+      if not SpriteSheetEditorForm.CloseQuery then
+      begin
+        CanClose := false;
+        Exit;
+      end;
+    end;
+
     Application.Terminate
-  else
+  end else
     CanClose := false;
 end;
 
 procedure TProjectForm.ButtonClearWarningsClick(Sender: TObject);
 begin
   ClearAllWarnings;
+end;
+
+procedure TProjectForm.ActionNewSpriteSheetExecute(Sender: TObject);
+begin
+  if SpriteSheetEditorForm = nil then
+    SpriteSheetEditorForm := TSpriteSheetEditorForm.Create(Application);
+
+  SpriteSheetEditorForm.Show;
+  SpriteSheetEditorForm.NewSpriteSheet;
+end;
+
+procedure TProjectForm.ApplicationProperties1Activate(Sender: TObject);
+begin
+  { Refresh contents of selected dir, and tree of subdirectories,
+    in case user created some files/directories in other applications. }
+  RefreshFiles(rfEverything);
+end;
+
+procedure TProjectForm.ActionOpenProjectCodeExecute(Sender: TObject);
+var
+  Exe: String;
+begin
+  Exe := FindExeLazarusIDE;
+
+  { Prefer to open using LPR (ProjectStandaloneSource) instead of LPI
+    (ProjectLazarus), see OpenPascal comments for reasons. }
+
+  if ProjectStandaloneSource <> '' then
+    RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectStandaloneSource])
+  else
+  if ProjectLazarus <> '' then
+    RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus])
+  else
+    ErrorBox('Lazarus project not defined (neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml).' + NL +
+      NL +
+      'Create Lazarus project (e.g. by "castle-engine generate-program") and update CastleEngineManifest.xml.');
+end;
+
+procedure TProjectForm.ActionRegenerateProjectExecute(Sender: TObject);
+begin
+  BuildToolCall(['generate-program']);
+end;
+
+procedure TProjectForm.ActionEditUnitExecute(Sender: TObject);
+begin
+  if OpenPascalUnitDialog.Execute then
+    OpenPascal(OpenPascalUnitDialog.FileName);
+end;
+
+procedure TProjectForm.ActionEditAssociatedUnitExecute(Sender: TObject);
+var
+  AUnitName, UnitFileNameAbsolute: String;
+begin
+  AUnitName := DeleteURIExt(ExtractURIName(Design.DesignUrl));
+  UnitFileNameAbsolute := Manifest.SearchPascalUnit(AUnitName);
+  if UnitFileNameAbsolute <> '' then
+    OpenPascal(UnitFileNameAbsolute)
+  else
+    ErrorBox('Cannot find Pascal unit ' + AUnitName + ' (filename like "' + AUnitName + '.pas") among the search paths listed in CastleEngineManifest.xml');
+end;
+
+procedure TProjectForm.ActionNewUnitClassExecute(Sender: TObject);
+begin
+  ShowNewUnitForm(utClass, false);
+end;
+
+procedure TProjectForm.ActionNewUnitEmptyExecute(Sender: TObject);
+begin
+  ShowNewUnitForm(utEmpty, false);
+end;
+
+procedure TProjectForm.ActionNewUnitHereClassExecute(Sender: TObject);
+begin
+  ShowNewUnitForm(utClass, true);
+end;
+
+procedure TProjectForm.ActionNewUnitHereEmptyExecute(Sender: TObject);
+begin
+  ShowNewUnitForm(utEmpty, true);
+end;
+
+procedure TProjectForm.ActionNewUnitHereStateExecute(Sender: TObject);
+begin
+  ShowNewUnitForm(utState, true);
+end;
+
+procedure TProjectForm.ActionNewUnitStateExecute(Sender: TObject);
+begin
+  ShowNewUnitForm(utState, false);
+end;
+
+procedure TProjectForm.ShowNewUnitForm(const AUnitType: TNewUnitType;
+  const UnitOutputDirFromFileBrowser: Boolean);
+
+  { Check if unit is on search path, as we don't edit CastleEngineManifest.xml
+    search paths automatically now. }
+  procedure CheckNewUnitOnSearchPath;
+  var
+    UnitBaseName: String;
+  begin
+    if NewUnitForm.CreatedUnitRelative <> '' then
+    begin
+      UnitBaseName := DeleteFileExt(ExtractFileName(NewUnitForm.CreatedUnitRelative));
+      if Manifest.SearchPascalUnit(UnitBaseName) = '' then
+      begin
+        WarningBox(Format('Created unit "%s" not found on the search path. Make sure that subdirectory "%s" is listed among search paths inside CastleEngineManifest.xml.', [
+          NewUnitForm.CreatedUnitRelative,
+          ExtractFilePath(NewUnitForm.CreatedUnitRelative)
+        ]));
+      end;
+    end;
+  end;
+
+  { Propose to open design or unit code immediately. }
+  procedure ProposeToOpenNewFile;
+  begin
+    if NewUnitForm.CreatedDesignRelative <> '' then
+    begin
+      Assert(NewUnitForm.CreatedUnitRelative <> '');
+      if YesNoBox('Open design', Format(
+        'Created unit: %s' + NL +
+        NL +
+        'Created user interface design: %s' + NL +
+        NL +
+        'Open the user interface design now?', [
+        NewUnitForm.CreatedUnitRelative,
+        NewUnitForm.CreatedDesignRelative
+      ])) then
+        OpenDesign(NewUnitForm.CreatedDesignAbsolute);
+    end else
+    if NewUnitForm.CreatedUnitRelative <> '' then
+    begin
+      if YesNoBox('Edit unit', Format(
+        'Created unit: %s' + NL +
+        NL +
+        'Edit the unit code now?', [
+        NewUnitForm.CreatedUnitRelative
+      ])) then
+        OpenPascal(NewUnitForm.CreatedUnitAbsolute);
+    end;
+  end;
+
+var
+  UnitOutputPath: String;
+begin
+  { calculate UnitOutputPath }
+  if UnitOutputDirFromFileBrowser then
+  begin
+    UnitOutputPath := ShellListView1.Root;
+  end else
+  begin
+    { place code in code/ subdirectory, if possible }
+    UnitOutputPath := CombinePaths(Manifest.Path, 'code');
+    if not DirectoryExists(UnitOutputPath) then
+      UnitOutputPath := Manifest.Path;
+  end;
+  UnitOutputPath := InclPathDelim(UnitOutputPath);
+
+  NewUnitForm.InitializeUi(AUnitType, UnitOutputPath, Manifest);
+
+  if NewUnitForm.ShowModal = mrOK then
+  begin
+    CheckNewUnitOnSearchPath;
+    ProposeToOpenNewFile;
+    RefreshFiles(rfFilesInCurrentDir);
+  end;
+end;
+
+procedure TProjectForm.ApplicationProperties1Exception(Sender: TObject;
+  E: Exception);
+begin
+  { In case of CGE editor, exceptions are nothing alarming.
+
+    We may raise exception during normal execution e.g.
+    - when you try to do invalid file operation (creating dir with invalid name,
+      deleting something to which you have no permission),
+    - renaming component to invalid value,
+    - in general doing anything that causes exception in FPC or CGE code.
+
+    So display a normal dialog box about them, user-friendly
+    (don't even show exception class for now),
+    instead of the default LCL dialog that proposes to kill the application. }
+  ErrorBox(E.Message);
 end;
 
 procedure TProjectForm.FormCreate(Sender: TObject);
@@ -411,10 +673,78 @@ end;
 
 procedure TProjectForm.FormDestroy(Sender: TObject);
 begin
+  FormHide(Self); //to save config properly
   ApplicationProperties.OnWarning.Remove(@WarningNotification);
   ApplicationDataOverride := '';
   FreeProcess;
   FreeAndNil(OutputList);
+  FreeAndNil(Manifest);
+end;
+
+procedure TProjectForm.FormHide(Sender: TObject);
+
+  function WindowStateToStr(const AWindowState: TWindowState): String;
+  begin
+    case AWindowState of
+      wsNormal: Result := 'wsNormal';
+      wsMinimized: Result := 'wsMinimized';
+      wsMaximized: Result := 'wsMaximized';
+      wsFullScreen: Result := 'wsFullScreen';
+    end;
+  end;
+
+begin
+  UserConfig.SetValue('ProjectForm_Saved', true);
+  UserConfig.SetValue('ProjectForm_Width', Width);
+  UserConfig.SetValue('ProjectForm_Height', Height);
+  UserConfig.SetValue('ProjectForm_Left', Left);
+  UserConfig.SetValue('ProjectForm_Top', Top);
+  UserConfig.SetValue('ProjectForm_WindowState', WindowStateToStr(WindowState));
+  UserConfig.SetValue('ProjectForm_PageControlBottom.Height', PageControlBottom.Height);
+  if Design <> nil then
+  begin
+    UserConfig.SetValue('ProjectForm_DesignSaved', true);
+    UserConfig.SetValue('ProjectForm_Design.PanelRight.Width', Design.PanelRight.Width);
+    UserConfig.SetValue('ProjectForm_Design.PanelLeft.Width', Design.PanelLeft.Width);
+  end;
+  UserConfig.Save;
+end;
+
+procedure TProjectForm.FormShow(Sender: TObject);
+
+  function StrToWindowState(const AWindowStateStr: String): TWindowState;
+  begin
+    case AWindowStateStr of
+      'wsNormal': Result := wsNormal;
+      'wsMaximized': Result := wsMaximized;
+      else
+        Result := wsNormal; //treat wsMinimized and any other value as wsNormal
+    end;
+  end;
+
+var
+  NewWidth, NewHeight, NewLeft, NewTop, NewControlHeight: Integer;
+begin
+  if UserConfig.GetValue('ProjectForm_Saved', false) then
+  begin
+    NewWidth := UserConfig.GetValue('ProjectForm_Width', -MaxInt);
+    NewHeight := UserConfig.GetValue('ProjectForm_Height', -MaxInt);
+    NewLeft := UserConfig.GetValue('ProjectForm_Left', -MaxInt);
+    NewTop := UserConfig.GetValue('ProjectForm_Top', -MaxInt);
+    NewControlHeight := UserConfig.GetValue('ProjectForm_PageControlBottom.Height', -MaxInt);
+    WindowState := StrToWindowState(UserConfig.GetValue('ProjectForm_WindowState', 'wsNormal'));
+    if (NewWidth + NewLeft <= Screen.Width + 32) and (NewWidth > 128) and
+       (NewHeight + NewTop <= Screen.Height + 32) and (NewHeight > 128) and
+       (NewControlHeight < NewHeight) and (NewControlHeight >= 0) and
+       (NewLeft > -32) and (NewTop > -32) then
+    begin
+      Width := NewWidth;
+      Height := NewHeight;
+      Left := NewLeft;
+      Top := NewTop;
+      PageControlBottom.Height := NewControlHeight;
+    end;
+  end;
 end;
 
 procedure TProjectForm.ListOutputClick(Sender: TObject);
@@ -422,9 +752,28 @@ begin
   // TODO: just to source code line in case of error message here
 end;
 
+procedure TProjectForm.MenuItemNewDirectoryClick(Sender: TObject);
+var
+  NewDir, FullNewDir: String;
+begin
+  if InputQuery('New Directory', 'Create a new directory:', NewDir) then
+  begin
+    FullNewDir := InclPathDelim(ShellListView1.Root) + NewDir;
+    if not CreateDir(FullNewDir) then
+      raise Exception.CreateFmt('Creating new directory "%s" failed', [FullNewDir]);
+    RefreshFiles(rfEverythingInCurrentDir);
+    // TODO: Select newly added dir, not so easy in ShellListView1
+  end;
+end;
+
 procedure TProjectForm.MenuItemRenameClick(Sender: TObject);
 begin
   Design.RenameSelectedItem;
+end;
+
+procedure TProjectForm.MenuItemShellTreeRefreshClick(Sender: TObject);
+begin
+  RefreshFiles(rfEverything);
 end;
 
 procedure TProjectForm.UpdateRenameItem(Sender: TObject);
@@ -467,11 +816,22 @@ begin
   if ShellListView1.Selected <> nil then
   begin
     SelectedFileName := ShellListView1.GetPathFromItem(ShellListView1.Selected);
-    if MessageDlg('Delete File', 'Delete file "' + SelectedFileName + '"?',
-      mtConfirmation, mbYesNo, 0) = mrYes then
+    if DirectoryExists(SelectedFileName) then
     begin
-      CheckDeleteFile(SelectedFileName, true);
-      ShellListView1.RefreshContents;
+      if MessageDlg('Delete Directory', 'Delete directory "' + SelectedFileName + '"?',
+        mtConfirmation, mbYesNo, 0) = mrYes then
+      begin
+        RemoveNonEmptyDir(SelectedFileName);
+        RefreshFiles(rfEverythingInCurrentDir);
+      end;
+    end else
+    begin
+      if MessageDlg('Delete File', 'Delete file "' + SelectedFileName + '"?',
+        mtConfirmation, mbYesNo, 0) = mrYes then
+      begin
+        CheckDeleteFile(SelectedFileName);
+        RefreshFiles(rfFilesInCurrentDir);
+      end;
     end;
   end;
 end;
@@ -524,6 +884,10 @@ begin
 
   if ProposeSaveDesign then
   begin
+    UserConfig.SetValue('ProjectForm_Design.PanelRight.Width', Design.PanelRight.Width);
+    UserConfig.SetValue('ProjectForm_Design.PanelLeft.Width', Design.PanelLeft.Width);
+    UserConfig.SetValue('ProjectForm_DesignSaved', true);
+    UserConfig.Save;
     FreeAndNil(Design);
     DesignExistenceChanged;
   end;
@@ -553,6 +917,8 @@ begin
 end;
 
 procedure TProjectForm.DesignExistenceChanged;
+var
+  NewPanelRightWidth, NewPanelLeftWidth: Integer;
 begin
   MenuItemSaveAsDesign.Enabled := Design <> nil;
   MenuItemSaveDesign.Enabled := Design <> nil;
@@ -563,9 +929,22 @@ begin
   MenuItemCopyComponent.Enabled := Design <> nil;
   MenuItemPasteComponent.Enabled := Design <> nil;
   MenuItemDuplicateComponent.Enabled := Design <> nil;
+  ActionEditAssociatedUnit.Enabled := Design <> nil;
 
   UpdateUndo(nil);
   UpdateRenameItem(nil);
+
+  if (Design <> nil) and UserConfig.GetValue('ProjectForm_DesignSaved', false) then
+  begin
+    NewPanelRightWidth := UserConfig.GetValue('ProjectForm_Design.PanelRight.Width', -MaxInt);
+    NewPanelLeftWidth := UserConfig.GetValue('ProjectForm_Design.PanelLeft.Width', -MaxInt);
+    if (NewPanelRightWidth >= 0) and (NewPanelLeftWidth >= 0) and
+      (NewPanelRightWidth + NewPanelLeftWidth <= Width) then
+    begin
+      Design.PanelRight.Width := NewPanelRightWidth;
+      Design.PanelLeft.Width := NewPanelLeftWidth;
+    end;
+  end;
 
   LabelNoDesign.Visible := Design = nil;
 end;
@@ -596,7 +975,16 @@ procedure TProjectForm.OpenDesign(const DesignUrl: String);
 begin
   NeedsDesignFrame;
   ClearAllWarnings;
-  Design.OpenDesign(DesignUrl);
+  try
+    Design.OpenDesign(DesignUrl);
+  except
+    { In case Design.OpenDesign raised exception (e.g. file unreadable or invalid),
+      do not leave Design in half-uninitialized state (e.g. treeview will not
+      show anything valid). }
+    FreeAndNil(Design);
+    DesignExistenceChanged;
+    raise;
+  end;
 end;
 
 procedure TProjectForm.WarningNotification(const Category,
@@ -667,6 +1055,14 @@ procedure TProjectForm.MenuItemSwitchProjectClick(Sender: TObject);
 begin
   if ProposeSaveDesign then
   begin
+    { Close sprite sheet editor window if visible }
+    if (SpriteSheetEditorForm <> nil) and (SpriteSheetEditorForm.Visible) then
+    begin
+      if not SpriteSheetEditorForm.CloseQuery then
+        Exit;
+      SpriteSheetEditorForm.Close; // not needed on GTK2, maybe add ifdef?
+    end;
+
     Free; // do not call MenuItemDesignClose, to avoid OnCloseQuery
     ChooseProjectForm.Show;
   end;
@@ -761,6 +1157,38 @@ begin
   end;
 end;
 
+procedure TProjectForm.OpenPascal(const FileName: String);
+var
+  Exe: String;
+begin
+  Exe := FindExeLazarusIDE;
+
+  { It would be cleaner to use LPI file, like this:
+
+  // pass both project name, and particular filename, to open file within this project.
+  RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus, FileName]);
+
+    But it doesn't work nicely: Lazarus asks for confirmation whether to open
+    LPI as XML file, or a project.
+    Instead opening LPR works better, i.e. just switches project (if necessary)
+    to new one.
+  }
+
+  //if ProjectLazarus = '' then
+  if ProjectStandaloneSource = '' then // see comments below, we use ProjectStandaloneSource
+  begin
+    //WritelnWarning('Lazarus project not defined (neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
+    WritelnWarning('Lazarus project not defined ("standalone_source" was not specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
+  end;
+
+  if (ProjectStandaloneSource = '') or
+     SameFileName(ProjectStandaloneSource, FileName) then
+    RunCommandNoWait(CreateTemporaryDir, Exe, [FileName])
+  else
+    { pass both project name, and particular filename, to open file within this project. }
+    RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectStandaloneSource, FileName]);
+end;
+
 procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
 
   procedure OpenWithCastleTool(const ToolName: String;
@@ -780,60 +1208,11 @@ procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
     RunCommandNoWait(CreateTemporaryDir, Exe, Arguments);
   end;
 
-  procedure OpenPascal(const FileName: String);
-  var
-    Exe: String;
-  begin
-    try
-      Exe := FindExeLazarusIDE;
-    except
-      on E: EExecutableNotFound do
-      begin
-        EditorUtils.ErrorBox(E.Message);
-        Exit;
-      end;
-    end;
-
-    { It would be cleaner to use LPI file, like this:
-
-    // pass both project name, and particular filename, to open file within this project.
-    RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus, FileName]);
-
-      But it doesn't work nicely: Lazarus asks for confirmation whether to open
-      LPI as XML file, or a project.
-      Instead opening LPR works better, i.e. just switches project (if necessary)
-      to new one.
-    }
-
-    //if ProjectLazarus = '' then
-    if ProjectStandaloneSource = '' then // see comments below, we use ProjectStandaloneSource
-    begin
-      //WritelnWarning('Lazarus project not defined (neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
-      WritelnWarning('Lazarus project not defined ("standalone_source" was not specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
-    end;
-
-    if (ProjectStandaloneSource = '') or
-       SameFileName(ProjectStandaloneSource, FileName) then
-      RunCommandNoWait(CreateTemporaryDir, Exe, [FileName])
-    else
-      { pass both project name, and particular filename, to open file within this project. }
-      RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectStandaloneSource, FileName]);
-  end;
-
   procedure OpenLazarusProject(const FileName: String);
   var
     Exe: String;
   begin
-    try
-      Exe := FindExeLazarusIDE;
-    except
-      on E: EExecutableNotFound do
-      begin
-        EditorUtils.ErrorBox(E.Message);
-        Exit;
-      end;
-    end;
-
+    Exe := FindExeLazarusIDE;
     RunCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
   end;
 
@@ -856,6 +1235,16 @@ begin
     if LoadImage_FileFilters.Matches(SelectedURL) then
     begin
       OpenWithCastleTool('castle-view-image', SelectedURL, [SelectedURL]);
+      Exit;
+    end;
+
+    { Check for Castle Sprite Sheets, to open them in sprite editor }
+    if (URIMimeType(SelectedURL) = 'application/x-castle-sprite-sheet') then
+    begin
+      if SpriteSheetEditorForm = nil then
+        SpriteSheetEditorForm := TSpriteSheetEditorForm.Create(Application);
+      SpriteSheetEditorForm.Show;
+      SpriteSheetEditorForm.OpenSpriteSheet(SelectedURL, true);
       Exit;
     end;
 
@@ -970,6 +1359,7 @@ begin
   MenuItemPackageSource.Enabled := AEnabled;
   MenuItemAutoGenerateTextures.Enabled := AEnabled;
   MenuItemAutoGenerateClean.Enabled := AEnabled;
+  MenuItemRestartRebuildEditor.Enabled := AEnabled;
   MenuItemBreakProcess.Enabled := not AEnabled;
 end;
 
@@ -1015,33 +1405,22 @@ begin
 end;
 
 procedure TProjectForm.OpenProject(const ManifestUrl: String);
-var
-  ManifestDoc: TXMLDocument;
-  DefaultLazarusProject: String;
 begin
-  ManifestDoc := URLReadXML(ManifestUrl);
-  try
-    ProjectName := ManifestDoc.DocumentElement.AttributeString('name');
-    if not ManifestDoc.DocumentElement.AttributeString(
-      'standalone_source', ProjectStandaloneSource) then
-      ProjectStandaloneSource := '';
-
-    if ProjectStandaloneSource <> '' then
-      DefaultLazarusProject := ChangeFileExt(ProjectStandaloneSource, '.lpi')
-    else
-      DefaultLazarusProject := '';
-    ProjectLazarus := ManifestDoc.DocumentElement.AttributeStringDef(
-      'lazarus_project', DefaultLazarusProject);
-    if (ManifestDoc.DocumentElement.AttributeStringDef('editor_units', '') <> '') and
-       (not InternalHasCustomComponents) then
-      WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
-  finally FreeAndNil(ManifestDoc) end;
-
   { Below we assume ManifestUrl contains an absolute path,
     otherwise ProjectPathUrl could be '',
     and OpenDesignDialog.InitialDir would be left '' and so on. }
-  ProjectPathUrl := ExtractURIPath(ManifestUrl);
-  ProjectPath := URIToFilenameSafe(ProjectPathUrl);
+
+  FreeAndNil(Manifest); // free previous manifest, if any
+  Manifest := TCastleManifest.CreateFromUrl(ManifestUrl);
+
+  ProjectName := Manifest.Name;
+  ProjectPath := Manifest.Path;
+  ProjectPathUrl := Manifest.PathUrl;
+  ProjectStandaloneSource := Manifest.StandaloneSource;
+  ProjectLazarus := Manifest.LazarusProject;
+  if (Manifest.EditorUnits <> '') and
+     (not InternalHasCustomComponents) then
+    WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
 
   { Make some fields absolute paths, or empty }
   if ProjectStandaloneSource <> '' then
@@ -1052,8 +1431,11 @@ begin
   { override ApplicationData interpretation, and castle-data:/xxx URL,
     while this project is open. }
   ApplicationDataOverride := CombineURI(ProjectPathUrl, 'data/');
+
+  { adjust some InitialDir values to make open dialogs natural }
   OpenDesignDialog.InitialDir := URIToFilenameSafe(ApplicationDataOverride);
   SaveDesignDialog.InitialDir := URIToFilenameSafe(ApplicationDataOverride);
+  OpenPascalUnitDialog.InitialDir := ProjectPath;
 
   ShellTreeView1.Root := ProjectPath;
 
@@ -1066,6 +1448,30 @@ begin
 
   DesignExistenceChanged;
   UpdateFormCaption(nil); // make form Caption reflect project name
+end;
+
+procedure TProjectForm.RefreshFiles(const RefreshNecessary: TRefreshFiles);
+var
+  TreeViewPath: String;
+begin
+  ShellListView1.RefreshContents;
+
+  { It is important to refresh ShellTreeView1 e.g. when new directory
+    was added, otherwise user could not navigate
+    into newly created directories, since they must exist in ShellTreeView1. }
+
+  case RefreshNecessary of
+    { Unfortunately this special implementation of "refresh current dir"
+      doesn't work for non-root directories. }
+    //rfEverythingInCurrentDir:
+    //  ShellTreeView1.Refresh(ShellTreeView1.Selected);
+    rfEverythingInCurrentDir, rfEverything:
+      begin
+        TreeViewPath := ShellTreeView1.Path;
+        ShellTreeView1.Refresh(nil);
+        ShellTreeView1.Path := TreeViewPath;
+      end;
+  end;
 end;
 
 initialization

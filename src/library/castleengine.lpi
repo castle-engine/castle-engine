@@ -28,7 +28,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir);..\base"/>
-            <OtherUnitFiles Value="..\window"/>
+            <OtherUnitFiles Value="..\window;..\deprecated_units"/>
             <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <Parsing>
@@ -79,7 +79,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="..\window"/>
+            <OtherUnitFiles Value="..\window;..\deprecated_units"/>
             <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <CodeGeneration>
@@ -137,7 +137,7 @@
         <UnitName Value="CastleWindow"/>
       </Unit1>
       <Unit2>
-        <Filename Value="..\window\castlewindowtouch.pas"/>
+        <Filename Value="..\deprecated_units\castlewindowtouch.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="CastleWindowTouch"/>
       </Unit2>
@@ -151,7 +151,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir);..\base"/>
-      <OtherUnitFiles Value="..\window"/>
+      <OtherUnitFiles Value="..\window;..\deprecated_units"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Parsing>

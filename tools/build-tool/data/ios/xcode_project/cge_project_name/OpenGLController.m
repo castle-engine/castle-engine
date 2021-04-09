@@ -53,8 +53,8 @@
        https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/OpenGLES_ProgrammingGuide/DrawingWithOpenGLES/DrawingWithOpenGLES.html#//apple_ref/doc/uid/TP40008793-CH503-SW1
        https://developer.apple.com/documentation/glkit/glkview
     */
-    int redBits, greenBits, blueBits, alphaBits, depthBits, stencilBits;
-    CGEApp_ContextProperties(&redBits, &greenBits, &blueBits, &alphaBits, &depthBits, &stencilBits);
+    int redBits, greenBits, blueBits, alphaBits, depthBits, stencilBits, multiSampling;
+    CGEApp_ContextProperties(&redBits, &greenBits, &blueBits, &alphaBits, &depthBits, &stencilBits, &multiSampling);
     // view.drawableColorFormat = GLKViewDrawableColorFormatRGBA8888; // default
 
     if (depthBits == 0) {
@@ -71,7 +71,12 @@
     } else {
         view.drawableStencilFormat = GLKViewDrawableStencilFormat8;
     }
-    // view.drawableMultisample = GLKViewDrawableMultisample4X;
+
+    if (multiSampling < 4) {
+        view.drawableMultisample = GLKViewDrawableMultisampleNone;
+    } else {
+        view.drawableMultisample = GLKViewDrawableMultisample4X;
+    }
 
     // initialize input
 

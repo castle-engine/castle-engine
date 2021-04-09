@@ -67,3 +67,5 @@
 ../../../src/3d/ TCastleOrthographic Origin TVector2
 
 ../../../src/x3d/opengl/ TCastleViewport BackgroundColor TCastleColor
+
+../../../src/game/ TCastleBillboard AxisOfRotation TVector3

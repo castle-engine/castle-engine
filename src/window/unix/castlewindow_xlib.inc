@@ -884,9 +884,11 @@ end;
 
 { TCastleWindow -------------------------------------------------------------- }
 
+{$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
 procedure TCastleWindow.NavigationInfoChanged;
 begin
 end;
+{$endif}
 
 { TWindowContainer ----------------------------------------------------------- }
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -317,10 +317,7 @@ type
     { Scales how far the knockback effect pushes this creature/player. }
     property KnockBackSpeed: Single read FKnockBackSpeed write FKnockBackSpeed
       default DefaultKnockBackSpeed;
-  end {
-    This will get deprecated along with CastleItems and CastleCreatures one day.
-    deprecated 'the usefullness of this class is low, as in a typical application you can implement something similar yourself, adjusted to your particular case'
-  };
+  end deprecated 'use TCastleAliveBehavior, or implement "being alive" logic in your own game';
 
   { Contents of this transformation are loaded from an indicated file
     (by the @link(URL) property).
@@ -337,7 +334,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     { Load file with the transform design.
       The file should be in the format created by Castle Game Engine Editor
@@ -811,14 +808,14 @@ begin
   end;
 end;
 
-function TCastleTransformDesign.PropertySection(
-  const PropertyName: String): TPropertySection;
+function TCastleTransformDesign.PropertySections(
+  const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
     'URL':
-      Result := psBasic;
+      Result := [psBasic];
     else
-      Result := inherited PropertySection(PropertyName);
+      Result := inherited PropertySections(PropertyName);
   end;
 end;
 

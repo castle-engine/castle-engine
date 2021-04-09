@@ -13,19 +13,22 @@
   ----------------------------------------------------------------------------
 }
 
-{ Reading and writing of hierachy of CGE components
-  (TCastleUserInterface, TCastleTransform) to and from files.
+{ Reading and writing a hierachy of CGE components to/from files.
   This is used by CGE editor to read/write components,
   and it can be used at runtime by games to instantiate components designed
-  in CGE editor. }
+  in the CGE editor.
+
+  Most code should use @link(UserInterfaceLoad),
+  @link(UserInterfaceSave), @link(TransformLoad), @link(TransformSave)
+  which are defined in other units, that rely on this unit for base
+  @link(ComponentLoad), @link(ComponentSave) implementation. }
 unit CastleComponentSerialize;
 
 {$I castleconf.inc}
 
 interface
 
-uses SysUtils, Classes, FpJson, FpJsonRtti, Generics.Collections, TypInfo,
-  CastleUIControls, CastleTransform;
+uses SysUtils, Classes, FpJson, FpJsonRtti, Generics.Collections, TypInfo;
 
 type
   EInvalidComponentFile = class(Exception);
@@ -72,17 +75,6 @@ type
     { Will own all deserialized components. }
     property Owner: TComponent read FOwner;
   end;
-
-{ Save / load TCastleTransform (or descendant) to a .castle-transform file.
-
-  An example:
-  @includeCode(../../examples/short_api_samples/transform_save_load/transform_save_load.lpr) }
-procedure TransformSave(const T: TCastleTransform; const Url: String);
-function TransformLoad(const Url: String; const Owner: TComponent): TCastleTransform;
-
-{ Save / load TCastleUserInterface (or descendant) to a .castle-user-interface file. }
-procedure UserInterfaceSave(const C: TCastleUserInterface; const Url: String);
-function UserInterfaceLoad(const Url: String; const Owner: TComponent): TCastleUserInterface;
 
 { Save / load TComponent (or descendant)
   to a .castle-user-interface or .castle-transform file.
@@ -151,18 +143,6 @@ type
     constructor Create(const AUrl: String);
     constructor CreateFromString(const Contents: String);
     destructor Destroy; override;
-
-    { Instantiate component.
-      Using this is equivalent to using global
-      @link(CastleComponentSerialize.TransformLoad),
-      but it is much faster if you want to instantiate the same file many times. }
-    function TransformLoad(const Owner: TComponent): TCastleTransform;
-
-    { Instantiate component.
-      Using this is equivalent to using global
-      @link(CastleComponentSerialize.UserInterfaceLoad),
-      but it is much faster if you want to instantiate the same file many times. }
-    function UserInterfaceLoad(const Owner: TComponent): TCastleUserInterface;
 
     { Instantiate component.
       Using this is equivalent to using global
@@ -546,16 +526,6 @@ begin
   end;
 end;
 
-function TSerializedComponent.TransformLoad(const Owner: TComponent): TCastleTransform;
-begin
-  Result := ComponentLoad(Owner) as TCastleTransform;
-end;
-
-function TSerializedComponent.UserInterfaceLoad(const Owner: TComponent): TCastleUserInterface;
-begin
-  Result := ComponentLoad(Owner) as TCastleUserInterface;
-end;
-
 function StringToComponent(const Contents: String; const Owner: TComponent): TComponent;
 var
   SerializedComponent: TSerializedComponent;
@@ -769,28 +739,6 @@ end;
 procedure ComponentSave(const C: TComponent; const Url: String);
 begin
   StringToFile(Url, ComponentToString(C));
-end;
-
-{ simple utilities ----------------------------------------------------------- }
-
-procedure TransformSave(const T: TCastleTransform; const Url: String);
-begin
-  ComponentSave(T, Url);
-end;
-
-function TransformLoad(const Url: String; const Owner: TComponent): TCastleTransform;
-begin
-  Result := ComponentLoad(Url, Owner) as TCastleTransform;
-end;
-
-procedure UserInterfaceSave(const C: TCastleUserInterface; const Url: String);
-begin
-  ComponentSave(C, Url);
-end;
-
-function UserInterfaceLoad(const Url: String; const Owner: TComponent): TCastleUserInterface;
-begin
-  Result := ComponentLoad(Url, Owner) as TCastleUserInterface;
 end;
 
 { TComponentHelper ----------------------------------------------------------- }
