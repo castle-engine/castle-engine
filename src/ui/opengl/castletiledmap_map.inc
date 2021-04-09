@@ -19,6 +19,9 @@
 
 type
   { Loading and manipulating "Tiled" map files (http://mapeditor.org). }
+
+  { TTiledMap }
+
   TTiledMap = class
   public
     type
@@ -312,7 +315,12 @@ type
     FTilesets: TTilesetList;
     FProperties: TPropertyList;
     FLayers: TLayerList;
-    procedure LoadTMXFile(const AURL: string);
+    { Load TMX file from stream. }
+    procedure LoadTMXFile(const Stream: TStream; const BaseUrl_: String); overload;
+    { Load TMX file by URL. }
+    procedure LoadTMXFile(const AURL: String); overload;
+    { Load TMX file internally from XMLDocument instance. }
+    procedure LoadTMXFileInternal(var Doc: TXMLDocument);
   public
     property Layers: TLayerList read FLayers;
     { Map orientation. }
@@ -345,7 +353,8 @@ type
     property RenderOrder: TMapRenderOrder read FRenderOrder;
     { Constructor.
       @param(AURL URL to Tiled (TMX) file.) }
-    constructor Create(const AURL: string);
+    constructor Create(const Stream: TStream; const BaseUrl_: String); overload;
+    constructor Create(const AURL: string); overload;
     destructor Destroy; override;
 
     { Is the given tile number valid.
@@ -1049,15 +1058,29 @@ end;
 
 { TTiledMap ------------------------------------------------------------------ }
 
-procedure TTiledMap.LoadTMXFile(const AURL: string);
+procedure TTiledMap.LoadTMXFile(const Stream: TStream; const BaseUrl_: String);
 var
   Doc: TXMLDocument;
+begin
+  ReadXMLFile(Doc, Stream, BaseUrl_);
+  LoadTMXFileInternal(Doc);
+end;
+
+procedure TTiledMap.LoadTMXFile(const AURL: String);
+var
+  Doc: TXMLDocument;
+begin
+  Doc := URLReadXML(AURL);
+  LoadTMXFileInternal(Doc);
+end;
+
+procedure TTiledMap.LoadTMXFileInternal(var Doc: TXMLDocument);
+var
   TmpStr: string;
   I: TXMLElementIterator;
   NewLayer: TLayer;
   NewTileset: TTileset;
 begin
-  Doc := URLReadXML(AURL);
   try
     // Parse map attributes
     Check(LowerCase(Doc.DocumentElement.TagName) = 'map',
@@ -1139,6 +1162,17 @@ begin
   finally
     FreeAndNil(Doc);
   end;
+end;
+
+constructor TTiledMap.Create(const Stream: TStream; const BaseUrl_: String);
+begin
+  FTilesets := TTilesetList.Create;
+  FProperties := TPropertyList.Create;
+  FLayers := TLayerList.Create(true);
+  BaseUrl := BaseUrl_;
+
+  //Load TMX
+  LoadTMXFile(Stream, BaseUrl_);
 end;
 
 constructor TTiledMap.Create(const AURL: string);
