@@ -470,7 +470,7 @@ begin
   else
 
   if MimeType = 'application/x-tiled-map' then
-    Result := LoadTiledMap2d(URL)
+    Result := LoadTiledMap2d(Stream, BaseUrl)
   else
 
   { Support for simple graphics images like PNG }
