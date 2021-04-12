@@ -339,7 +339,8 @@ begin
     Camera := World.MainCamera;
 
     if Camera.ProjectionType = ptOrthographic then
-      GizmoScale := 0.001 * Camera.Orthographic.EffectiveHeight
+      { We just want gizmo is about 15% of effective height }
+      GizmoScale := 0.15 * Camera.Orthographic.EffectiveHeight
     else
       GizmoScale := 0.25 {TODO:* Camera.Perspective.EffeectiveFieldOfViewVertical};
 
@@ -382,7 +383,10 @@ begin
 
     // get the distance, on screen in pixels, of a 1 unit in 3D around gizmo
     OneDistance := PointsDistance(ZeroProjected, OneProjected);
-    if IsZero(OneDistance) then
+
+    if Camera.ProjectionType = ptOrthographic then
+          ScaleUniform := WorldToLocalDistance(GizmoScale)
+    else if IsZero(OneDistance) then
       ScaleUniform := 1
     else
       ScaleUniform := GizmoScale / OneDistance;
