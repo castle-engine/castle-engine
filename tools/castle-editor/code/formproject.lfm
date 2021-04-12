@@ -439,6 +439,12 @@ object ProjectForm: TProjectForm
         OnClick = MenuItemBreakProcessClick
       end
     end
+    object MenuItemData: TMenuItem
+      Caption = 'Data'
+      object MenuItemNewCastleSpriteSheet: TMenuItem
+        Action = ActionNewSpriteSheet
+      end
+    end
     object MenuItemHelp: TMenuItem
       Caption = '&Help'
       object MenuItemReferenceOfCurrent: TMenuItem
