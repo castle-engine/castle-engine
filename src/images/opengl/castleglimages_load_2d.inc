@@ -272,7 +272,7 @@ begin
   try
     {$ifndef OpenGLES}
     { Workaround Mesa 7.9-devel bug (at least with Intel DRI,
-      on Ubuntu 10.10, observed on domek): glTexImage2D accidentaly
+      on Ubuntu 10.10, observed on domek): glTexImage2D accidentally
       enables GL_TEXTURE_2D. }
     if GLFeatures.EnableFixedFunction and GLVersion.Mesa then
       glPushAttrib(GL_ENABLE_BIT);

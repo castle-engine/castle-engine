@@ -1688,7 +1688,7 @@ begin
 
   { update the cursor, since 3D object under the cursor possibly changed.
 
-    Accidentaly, this also workarounds the problem of TCastleViewport:
+    Accidentally, this also workarounds the problem of TCastleViewport:
     when the 3D object stayed the same but it's Cursor value changed,
     Items.CursorChange notify only TCastleSceneManager (not custom viewport).
     But thanks to doing RecalculateCursor below, this isn't

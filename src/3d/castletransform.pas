@@ -1208,7 +1208,7 @@ type
       So for example query like this works naturally:
       @code(MyTransform.Height(MyTransform.Translation, ...)).
 
-      This ignores the geometry of this 3D object (to not accidentaly collide
+      This ignores the geometry of this 3D object (to not accidentally collide
       with your own geometry), and checks collisions with the rest of the world.
       @groupBegin }
     function Height(const MyPosition: TVector3;
@@ -1225,7 +1225,7 @@ type
       So for example query like this works naturally:
       @code(MyTransform.LineOfSight(MyTransform.Translation, MyTransform.Translation + MyTransform.Direction * 10)).
 
-      This ignores the geometry of this 3D object (to not accidentaly collide
+      This ignores the geometry of this 3D object (to not accidentally collide
       with your own geometry), and checks collisions with the rest of the world. }
     function LineOfSight(const Pos1, Pos2: TVector3): boolean;
 
@@ -1277,7 +1277,7 @@ type
       So for example query like this works naturally:
       @code(MyTransform.Ray(MyTransform.Translation, MyTransform.Direction)).
 
-      This ignores the geometry of this object (to not accidentaly collide
+      This ignores the geometry of this object (to not accidentally collide
       with your own geometry), and checks collisions with the rest of the world. }
     function Ray(const RayOrigin, RayDirection: TVector3): TRayCollision;
 
@@ -1290,7 +1290,7 @@ type
       In case of the overloaded version with Distance parameter,
       the Distance is consistently in the same, parent coordinate system.
 
-      This ignores the geometry of this object (to not accidentaly collide
+      This ignores the geometry of this object (to not accidentally collide
       with your own geometry), and checks collisions with the rest of the world.
 
       This returns the TCastleTransform that is hit (this is the "leaf" TCastleTransform
