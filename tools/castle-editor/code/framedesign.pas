@@ -977,6 +977,7 @@ constructor TDesignFrame.Create(TheOwner: TComponent);
     Result.PreferredSplitterX := 150;
     Result.ValueFont.Bold := true;
     Result.ShowGutter := false;
+    Result.ReadOnlyColor := clWindowText;
   end;
 
 begin
