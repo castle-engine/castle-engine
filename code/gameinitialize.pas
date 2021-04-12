@@ -15,8 +15,12 @@ uses SysUtils,
   CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleUIControls, CastleApplicationProperties, CastleUIState, CastleImages,
-  CastleVectors,
-  GameStateMenu, GameStatePlay;
+  CastleVectors
+  { CASTLE-INITIALIZATION-USES-BEGIN }
+  // The content here may be automatically updated by CGE editor.
+  , GameStateMenu
+  , GameStatePlay
+  { CASTLE-INITIALIZATION-USES-END };
 
 var
   Window: TCastleWindowBase;
@@ -47,8 +51,15 @@ begin
   Theme.Corners[tiButtonPressed] := Vector4(6, 6, 6, 6);
 
   { Create game states and set initial state }
+  { CASTLE-STATE-CREATE-BEGIN }
+  // The content here may be automatically updated by CGE editor.
   StatePlay := TStatePlay.Create(Application);
   StateMenu := TStateMenu.Create(Application);
+  { CASTLE-STATE-CREATE-END }
+
+  StatePlay.DesignUrl := 'castle-data:/gamestateplay.castle-user-interface';
+  StateMenu.DesignUrl := 'castle-data:/gamestatemenu.castle-user-interface';
+
   TUIState.Current := StateMenu;
 end;
 

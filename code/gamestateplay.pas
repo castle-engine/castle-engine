@@ -301,11 +301,11 @@ procedure TStatePlay.ConfigurePlayerPhysics(const Player: TCastleScene);
 var
   RBody: TRigidBody;
   Collider: TCapsuleCollider;
+  // ColliderSP: TSphereCollider;
   //ColliderBox: TBoxCollider;
 begin
   RBody := TRigidBody.Create(Player);
   RBody.Dynamic := true;
-  //RBody.Animated := true;
   RBody.Setup2D;
   RBody.Gravity := true;
   RBody.LinearVelocityDamp := 0;
@@ -364,7 +364,9 @@ begin
     begin
       PlayerCanDoubleJump := true;
       CollisionDetails.OtherTransform.Exists := false;
-    end;
+    end; //else
+{    if CollisionDetails.OtherTransform is TBullet then
+      WritelnLog('Bullet');}
 
   end;
 end;
@@ -987,8 +989,6 @@ end;
 
 procedure TStatePlay.Start;
 var
-  UiOwner: TComponent;
-
   PlatformsRoot: TCastleTransform;
   CoinsRoot: TCastleTransform;
   GroundsRoot: TCastleTransform;
@@ -1002,22 +1002,19 @@ var
 begin
   inherited;
 
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/state_play.castle-user-interface', FreeAtStop, UiOwner);
-
   { Find components, by name, that we need to access from code }
-  LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
-  MainViewport := UiOwner.FindRequiredComponent('MainViewport') as TCastleViewport;
-  CheckboxCameraFollow := UiOwner.FindRequiredComponent('CheckboxCameraFollow') as TCastleCheckbox;
-  CheckboxAdvancedPlayer := UiOwner.FindRequiredComponent('AdvancedPlayer') as TCastleCheckbox;
+  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
+  MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
+  CheckboxCameraFollow := DesignedComponent('CheckboxCameraFollow') as TCastleCheckbox;
+  CheckboxAdvancedPlayer := DesignedComponent('AdvancedPlayer') as TCastleCheckbox;
 
-  ScenePlayer := UiOwner.FindRequiredComponent('ScenePlayer') as TCastleScene;
+  ScenePlayer := DesignedComponent('ScenePlayer') as TCastleScene;
 
 
   WasShotKeyPressed := false;
 
   { Configure physics for platforms }
-  PlatformsRoot := UiOwner.FindRequiredComponent('Platforms') as TCastleTransform;
+  PlatformsRoot := DesignedComponent('Platforms') as TCastleTransform;
   for I := 0 to PlatformsRoot.Count - 1 do
   begin
     WritelnWarning('Configure platform: ' + PlatformsRoot.Items[I].Name);
@@ -1025,18 +1022,18 @@ begin
   end;
 
   { Configure physics for coins }
-  CoinsRoot := UiOwner.FindRequiredComponent('Coins') as TCastleTransform;
+  CoinsRoot := DesignedComponent('Coins') as TCastleTransform;
   for I := 0 to CoinsRoot.Count - 1 do
   begin
     WritelnWarning('Configure coin: ' + CoinsRoot.Items[I].Name);
     ConfigureCoinsPhysics(CoinsRoot.Items[I] as TCastleScene);
   end;
 
-  LevelBounds := TLevelBounds.Create(UiOwner);
+  LevelBounds := TLevelBounds.Create(CoinsRoot.Owner);
 
   { Configure physics for ground  }
 
-  GroundsRoot := UiOwner.FindRequiredComponent('Grounds') as TCastleTransform;
+  GroundsRoot := DesignedComponent('Grounds') as TCastleTransform;
   for I := 0 to GroundsRoot.Count - 1 do
   begin
     if pos('GroundLine', GroundsRoot.Items[I].Name) = 1 then
@@ -1049,20 +1046,20 @@ begin
     end;
   end;
 
-  StonesRoot := UiOwner.FindRequiredComponent('Stones') as TCastleTransform;
+  StonesRoot := DesignedComponent('Stones') as TCastleTransform;
   for I := 0 to StonesRoot.Count - 1 do
   begin
     ConfigureStonePhysics(StonesRoot.Items[I] as TCastleScene);
   end;
 
-  PowerUps := UiOwner.FindRequiredComponent('PowerUps') as TCastleTransform;
+  PowerUps := DesignedComponent('PowerUps') as TCastleTransform;
   for I := 0 to PowerUps.Count - 1 do
   begin
     ConfigurePowerUpsPhysics(PowerUps.Items[I] as TCastleScene);
   end;
 
   Enemies := TEnemyList.Create(true);
-  EnemiesRoot := UiOwner.FindRequiredComponent('Enemies') as TCastleTransform;
+  EnemiesRoot := DesignedComponent('Enemies') as TCastleTransform;
   for I := 0 to EnemiesRoot.Count - 1 do
   begin
     EnemyScene := EnemiesRoot.Items[I] as TCastleScene;
