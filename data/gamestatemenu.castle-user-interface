@@ -39,7 +39,6 @@
               "CustomBackgroundPressed" : {
                 "$ClassName" : "TCastleImagePersistent"
               },
-              "FontScale" : 2.0000000000000000E+000,
               "Image" : {
                 "$ClassName" : "TCastleImagePersistent"
               },
@@ -67,7 +66,6 @@
               "CustomBackgroundPressed" : {
                 "$ClassName" : "TCastleImagePersistent"
               },
-              "FontScale" : 2.0000000000000000E+000,
               "Image" : {
                 "$ClassName" : "TCastleImagePersistent"
               },
@@ -75,7 +73,7 @@
               "Name" : "ButtonQuit",
               "PaddingHorizontal" : 3.0000000000000000E+001,
               "PaddingVertical" : 3.0000000000000000E+001,
-              "VerticalAnchorDelta" : -1.1800000000000000E+002,
+              "VerticalAnchorDelta" : -1.1200000000000000E+002,
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop",
               "$Children" : [
@@ -93,7 +91,7 @@
             "Red" : 5.0196081399917603E-001,
             "$ClassName" : "TCastleColorPersistent"
           },
-          "FontSize" : 7.0000000000000000E+001,
+          "FontSize" : 1.0000000000000000E+002,
           "Height" : 8.0000000000000000E+001,
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",

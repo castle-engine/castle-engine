@@ -326,7 +326,27 @@
                 },
                 "TranslationPersistent" : {
                   "X" : -8.3637817382812500E+002,
-                  "Y" : -4.8571627807617188E+002,
+                  "Y" : -4.9870883178710938E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/scenery/foliagePack_010.png",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "ExposeTransforms" : [
+                ],
+                "Name" : "TreeA2",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : 5.2227233886718750E+002,
+                  "Y" : -4.9499667358398438E+002,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
                 "URL" : "castle-data:/scenery/foliagePack_010.png",
@@ -457,6 +477,27 @@
                 },
                 "TranslationPersistent" : {
                   "X" : -2.9295451660156250E+003,
+                  "Y" : -4.6539221191406250E+002,
+                  "Z" : 3.0000000000000000E+000,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/scenery/foliagePack_012.png",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "ExposeTransforms" : [
+                ],
+                "Name" : "TreeC2",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : 6.4155267333984375E+002,
                   "Y" : -4.6539221191406250E+002,
                   "Z" : 3.0000000000000000E+000,
                   "$ClassName" : "TCastleVector3Persistent"
@@ -2524,7 +2565,7 @@
                   "Z" : 3.0000000000000000E+000,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
-                "URL" : "file:///home/and3md/fpc/platformer_demo/platformer_v1/data-source/items/powerup_bunny.png",
+                "URL" : "castle-data:/items/powerup_bunny.png",
                 "$Children" : [
                 ],
                 "$ClassName" : "TCastleScene"
@@ -2650,53 +2691,197 @@
       "$ClassName" : "TCastleViewport"
     },
     {
-      "ColorPersistent" : {
-        "Green" : 1.0000000000000000E+000,
-        "Red" : 1.0000000000000000E+000,
-        "$ClassName" : "TCastleColorPersistent"
-      },
-      "FontSize" : 2.0000000000000000E+001,
       "HorizontalAnchorDelta" : -2.0000000000000000E+001,
       "HorizontalAnchorParent" : "hpRight",
       "HorizontalAnchorSelf" : "hpRight",
-      "Name" : "LabelFps",
-      "Text" : [
-        "FPS: xxx"
-      ],
+      "Name" : "LogAndOptionsVerticalGroup",
+      "Spacing" : 2.0000000000000000E+000,
       "VerticalAnchorDelta" : -2.0000000000000000E+001,
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",
       "$Children" : [
+        {
+          "ColorPersistent" : {
+            "Blue" : 1.1372549086809158E-001,
+            "Green" : 1.1372549086809158E-001,
+            "Red" : 8.5098040103912354E-001,
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "FontSize" : 2.0000000000000000E+001,
+          "Name" : "LabelFps",
+          "Text" : [
+            "FPS: xxx"
+          ],
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleLabel"
+        },
+        {
+          "Caption" : "Camera Follows Player",
+          "CheckboxColorPersistent" : {
+            "Blue" : 1.1372549086809158E-001,
+            "Green" : 1.1372549086809158E-001,
+            "Red" : 8.5098040103912354E-001,
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "CheckboxSize" : 2.0000000000000000E+001,
+          "Checked" : true,
+          "FontSize" : 2.0000000000000000E+001,
+          "Name" : "CheckboxCameraFollow",
+          "TextColorPersistent" : {
+            "Blue" : 1.1372549086809158E-001,
+            "Green" : 1.1372549086809158E-001,
+            "Red" : 8.5098040103912354E-001,
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "VerticalAnchorDelta" : -1.4800000190734863E+001,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleCheckbox"
+        },
+        {
+          "Caption" : "Advanced Player",
+          "CheckboxColorPersistent" : {
+            "Blue" : 1.1372549086809158E-001,
+            "Green" : 1.1372549086809158E-001,
+            "Red" : 8.5098040103912354E-001,
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "CheckboxSize" : 2.0000000000000000E+001,
+          "Checked" : true,
+          "FontSize" : 2.0000000000000000E+001,
+          "Name" : "AdvancedPlayer",
+          "TextColorPersistent" : {
+            "Blue" : 1.1372549086809158E-001,
+            "Green" : 1.1372549086809158E-001,
+            "Red" : 8.5098040103912354E-001,
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "VerticalAnchorDelta" : -3.6799999237060547E+001,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleCheckbox"
+        }
       ],
-      "$ClassName" : "TCastleLabel"
+      "$ClassName" : "TCastleVerticalGroup"
     },
     {
-      "Caption" : "Camera Follows Player",
-      "CheckboxSize" : 5.0000000000000000E+001,
-      "Checked" : true,
-      "FontSize" : 4.0000000000000000E+001,
-      "HorizontalAnchorDelta" : 4.0000000000000000E+001,
-      "Name" : "CheckboxCameraFollow",
-      "VerticalAnchorDelta" : -5.0000000000000000E+001,
+      "HorizontalAnchorDelta" : 2.0000000000000000E+001,
+      "Name" : "GameHudGroup",
+      "Spacing" : 3.0000000000000000E+001,
+      "VerticalAnchorDelta" : -2.0000000000000000E+001,
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",
       "$Children" : [
+        {
+          "Name" : "LifeGroup",
+          "Spacing" : 2.0000000000000000E+000,
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle",
+          "$Children" : [
+            {
+              "Content" : {
+                "URL" : "castle-data:/ui/hud_heartFull.png",
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "Name" : "Heart1",
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleImageControl"
+            },
+            {
+              "Content" : {
+                "URL" : "castle-data:/ui/hud_heartFull.png",
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "HorizontalAnchorDelta" : 5.4999996185302734E+001,
+              "Name" : "Heart2",
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleImageControl"
+            },
+            {
+              "Content" : {
+                "URL" : "castle-data:/ui/hud_heartFull.png",
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "HorizontalAnchorDelta" : 1.0999999237060547E+002,
+              "Name" : "Heart3",
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleImageControl"
+            },
+            {
+              "Content" : {
+                "URL" : "castle-data:/ui/hud_heartFull.png",
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "HorizontalAnchorDelta" : 1.6499998474121094E+002,
+              "Name" : "Heart4",
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleImageControl"
+            }
+          ],
+          "$ClassName" : "TCastleHorizontalGroup"
+        },
+        {
+          "HorizontalAnchorDelta" : 2.4799998474121094E+002,
+          "Name" : "CoinGroup",
+          "Spacing" : 1.0000000000000000E+001,
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle",
+          "$Children" : [
+            {
+              "Content" : {
+                "URL" : "castle-data:/ui/hud_coins.png",
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "Name" : "Coin",
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleImageControl"
+            },
+            {
+              "ColorPersistent" : {
+                "Blue" : 1.1372549086809158E-001,
+                "Green" : 1.1372549086809158E-001,
+                "Red" : 8.5098040103912354E-001,
+                "$ClassName" : "TCastleColorPersistent"
+              },
+              "FontSize" : 5.0000000000000000E+001,
+              "HorizontalAnchorDelta" : 5.6999996185302734E+001,
+              "Name" : "LabelCoinNumber",
+              "Text" : [
+                "0"
+              ],
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleLabel"
+            }
+          ],
+          "$ClassName" : "TCastleHorizontalGroup"
+        }
       ],
-      "$ClassName" : "TCastleCheckbox"
-    },
-    {
-      "Caption" : "Advanced Player",
-      "CheckboxSize" : 5.0000000000000000E+001,
-      "Checked" : true,
-      "FontSize" : 4.0000000000000000E+001,
-      "HorizontalAnchorDelta" : 4.0000000000000000E+001,
-      "Name" : "AdvancedPlayer",
-      "VerticalAnchorDelta" : -1.2000000000000000E+002,
-      "VerticalAnchorParent" : "vpTop",
-      "VerticalAnchorSelf" : "vpTop",
-      "$Children" : [
-      ],
-      "$ClassName" : "TCastleCheckbox"
+      "$ClassName" : "TCastleHorizontalGroup"
     }
   ],
   "$ClassName" : "TCastleUserInterface"
