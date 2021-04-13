@@ -2867,7 +2867,7 @@
               },
               "FontSize" : 5.0000000000000000E+001,
               "HorizontalAnchorDelta" : 5.6999996185302734E+001,
-              "Name" : "LabelCoinNumber",
+              "Name" : "LabelCollectedCoins",
               "Text" : [
                 "0"
               ],

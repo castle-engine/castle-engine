@@ -35,6 +35,7 @@ type
   strict private
     { Components designed using CGE editor, loaded from state_play.castle-user-interface. }
     LabelFps: TCastleLabel;
+    LabelCollectedCoins: TCastleLabel;
     MainViewport: TCastleViewport;
     ScenePlayer: TCastleScene;
     CheckboxCameraFollow: TCastleCheckbox;
@@ -50,6 +51,7 @@ type
     PlayerCanDoubleJump: Boolean;
     WasDoubleJump: Boolean;
     PlayerCanShot: Boolean;
+    PlayerCollectedCoins: Integer;
 
     BulletSpriteScene: TCastleScene;
 
@@ -92,6 +94,10 @@ type
       var HandleInput: Boolean);
 
     procedure Shot(BulletOwner: TComponent; const Origin, Direction: TVector3);
+
+    { Coins support }
+    procedure CollectCoin;
+    procedure ResetCollectedCoins;
 
   public
     procedure Start; override;
@@ -341,6 +347,7 @@ procedure TStatePlay.ConfigurePlayerAbilities(const Player: TCastleScene);
 begin
   PlayerCanDoubleJump := false;
   WasDoubleJump := false;
+  ResetCollectedCoins;
 end;
 
 procedure TStatePlay.PlayerCollisionEnter(
@@ -348,26 +355,16 @@ procedure TStatePlay.PlayerCollisionEnter(
 begin
   if CollisionDetails.OtherTransform <> nil then
   begin
-    if pos('GoldCoin', CollisionDetails.OtherTransform.Name) > 0 then
+    if Pos('GoldCoin', CollisionDetails.OtherTransform.Name) > 0 then
     begin
-      WritelnWarning('Coin position ' + FloatToStr(CollisionDetails.OtherTransform.Translation.X) + ', ' +
-      FloatToStr(CollisionDetails.OtherTransform.Translation.Y) + ', ' +
-      FloatToStr(CollisionDetails.OtherTransform.Translation.Z));
-
-      WritelnWarning('Player position ' + FloatToStr(ScenePlayer.Translation.X) + ', ' +
-      FloatToStr(ScenePlayer.Translation.Y) + ', ' +
-      FloatToStr(ScenePlayer.Translation.Z));
-
+      CollectCoin;
       CollisionDetails.OtherTransform.Exists := false;
     end else
-    if pos('DblJump', CollisionDetails.OtherTransform.Name) > 0 then
+    if Pos('DblJump', CollisionDetails.OtherTransform.Name) > 0 then
     begin
       PlayerCanDoubleJump := true;
       CollisionDetails.OtherTransform.Exists := false;
-    end; //else
-{    if CollisionDetails.OtherTransform is TBullet then
-      WritelnLog('Bullet');}
-
+    end;
   end;
 end;
 
@@ -987,6 +984,18 @@ begin
   MainViewport.Items.Add(Bullet);
 end;
 
+procedure TStatePlay.CollectCoin;
+begin
+  Inc(PlayerCollectedCoins);
+  LabelCollectedCoins.Caption := PlayerCollectedCoins.ToString;
+end;
+
+procedure TStatePlay.ResetCollectedCoins;
+begin
+  PlayerCollectedCoins := 0;
+  LabelCollectedCoins.Caption := '0';
+end;
+
 procedure TStatePlay.Start;
 var
   PlatformsRoot: TCastleTransform;
@@ -1004,6 +1013,7 @@ begin
 
   { Find components, by name, that we need to access from code }
   LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
+  LabelCollectedCoins := DesignedComponent('LabelCollectedCoins') as TCastleLabel;
   MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
   CheckboxCameraFollow := DesignedComponent('CheckboxCameraFollow') as TCastleCheckbox;
   CheckboxAdvancedPlayer := DesignedComponent('AdvancedPlayer') as TCastleCheckbox;
@@ -1074,7 +1084,6 @@ begin
   { Configure physics for player }
   ConfigurePlayerPhysics(ScenePlayer);
   ConfigurePlayerAbilities(ScenePlayer);
-
 
   ConfigureBulletSpriteScene;
 end;
