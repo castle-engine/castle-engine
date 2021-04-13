@@ -1037,14 +1037,14 @@ begin
     ImageHitPoint3.URL := 'castle-data:/ui/hud_heartEmpty.png';
 
   if PlayerHitPoints > 1 then
-    ImageHitPoint3.URL := 'castle-data:/ui/hud_heartFull.png'
+    ImageHitPoint2.URL := 'castle-data:/ui/hud_heartFull.png'
   else
-    ImageHitPoint3.URL := 'castle-data:/ui/hud_heartEmpty.png';
+    ImageHitPoint2.URL := 'castle-data:/ui/hud_heartEmpty.png';
 
   if PlayerHitPoints > 0 then
-    ImageHitPoint3.URL := 'castle-data:/ui/hud_heartFull.png'
+    ImageHitPoint1.URL := 'castle-data:/ui/hud_heartFull.png'
   else
-    ImageHitPoint3.URL := 'castle-data:/ui/hud_heartEmpty.png';
+    ImageHitPoint1.URL := 'castle-data:/ui/hud_heartEmpty.png';
 end;
 
 procedure TStatePlay.Start;
