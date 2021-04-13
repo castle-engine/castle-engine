@@ -44,7 +44,8 @@ type
         InsideInternalCameraChanged: Boolean;
 
         { Point on axis closest to given pick.
-          Axis may be -1 to indicate we drag on all axes with the same amount. }
+          Axis may be -1 to indicate we drag on all axes with the same amount
+          or -2 to indicate we drag X and Y axes for 2D. }
         function PointOnAxis(out Intersection: TVector3;
           const Pick: TRayCollisionNode; const Axis: Integer): Boolean;
 
@@ -142,6 +143,7 @@ end;
 
 var
   IntersectionScalar: Single;
+  IntersectionOneAxis: TVector3;
 begin
   if Axis = -1 then
   begin
@@ -158,6 +160,26 @@ begin
     Result := true;
     IntersectionScalar := Sqrt(PointToLineDistanceSqr(TVector3.Zero, Pick.RayOrigin, Pick.RayDirection));
     Intersection := Vector3(IntersectionScalar, IntersectionScalar, IntersectionScalar);
+  end else
+  if Axis = -2 then
+  begin
+    Intersection := Vector3(0, 0, 0);
+    Result := false;
+    if PointOnLineClosestToLine(IntersectionOneAxis,
+       TVector3.Zero, TVector3.One[0],
+       Pick.RayOrigin, Pick.RayDirection) then
+    begin
+      Intersection := IntersectionOneAxis;
+      Result := true;
+    end;
+
+    if PointOnLineClosestToLine(IntersectionOneAxis,
+       TVector3.Zero, TVector3.One[1],
+       Pick.RayOrigin, Pick.RayDirection) then
+    begin
+      Intersection := Intersection + IntersectionOneAxis;
+      Result := true;
+    end;
   end else
   begin
     Result := PointOnLineClosestToLine(Intersection,
@@ -416,7 +438,20 @@ begin
     case AppearanceName of
       'MaterialX': DraggingCoord := 0;
       'MaterialY': DraggingCoord := 1;
-      'MaterialZ': DraggingCoord := 2;
+      'MaterialZ':
+        begin
+          { In 2D mode dragging Z axis means translate in X and Y. }
+          if (Operation = voTranslate)
+             and HasWorldTransform
+             and (World <> nil)
+             and (World.MainCamera <> nil)
+             and (World.MainCamera.ProjectionType = ptOrthographic)
+             and (TVector3.Equals(World.MainCamera.Direction, Vector3(0, 0, -1)))
+            then
+            DraggingCoord := -2
+          else
+            DraggingCoord := 2;
+        end;
       'MaterialCenter': DraggingCoord := -1;
       else Exit;
     end;
