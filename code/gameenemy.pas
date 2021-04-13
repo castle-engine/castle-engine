@@ -23,7 +23,8 @@ type
     constructor Create(AOwner: TComponent); override;
     procedure ParentChanged; override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
-    procedure Hit;
+    procedure HitPlayer;
+    procedure TakeDamageFromBullet(const Bullet: TCastleTransform);
 
     procedure CollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
   end;
@@ -31,6 +32,8 @@ type
 TEnemyList = specialize TObjectList<TEnemy>;
 
 implementation
+
+uses GameStatePlay;
 
 { TEnemy }
 
@@ -90,6 +93,14 @@ begin
   end else
     NeedTurn := false;
 
+  { Check enemy must turn because he go wall. }
+  if not NeedTurn then
+  begin
+    NeedTurn := Scene.RigidBody.PhysicsRayCast(Scene.Translation
+      + Vector3(MoveDirection * Scene.BoundingBox.SizeX * 0.50, 0, 0),
+      Vector3(MoveDirection, 0, 0), RayMaxDistance) <> nil;
+  end;
+
   if NeedTurn then
     MoveDirection := - MoveDirection;
 
@@ -102,17 +113,29 @@ begin
   Scene.RigidBody.LinearVelocity := Vel;
 end;
 
-procedure TEnemy.Hit;
+procedure TEnemy.HitPlayer;
 begin
+  StatePlay.HitPlayer;
   Dead := true;
+  Parent.RigidBody.Exists := false;
+end;
+
+procedure TEnemy.TakeDamageFromBullet(const Bullet: TCastleTransform);
+begin
+  Bullet.Exists := false;
+  Dead := true;
+  Parent.RigidBody.Exists := false;
 end;
 
 procedure TEnemy.CollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
 begin
+  if Dead then
+    Exit;
+
   if CollisionDetails.OtherTransform.Name = 'ScenePlayer' then
-  begin
-    Hit;
-  end;
+    HitPlayer
+  else if CollisionDetails.OtherTransform is TBullet then
+    TakeDamageFromBullet(CollisionDetails.OtherTransform);
 end;
 
 end.

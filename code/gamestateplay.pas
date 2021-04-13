@@ -40,6 +40,10 @@ type
     ScenePlayer: TCastleScene;
     CheckboxCameraFollow: TCastleCheckbox;
     CheckboxAdvancedPlayer: TCastleCheckbox;
+    ImageHitPoint4: TCastleImageControl;
+    ImageHitPoint3: TCastleImageControl;
+    ImageHitPoint2: TCastleImageControl;
+    ImageHitPoint1: TCastleImageControl;
 
     { Checks this is firs Update when W key (jump) was pressed }
     WasJumpKeyPressed: Boolean;
@@ -52,6 +56,7 @@ type
     WasDoubleJump: Boolean;
     PlayerCanShot: Boolean;
     PlayerCollectedCoins: Integer;
+    PlayerHitPoints: Integer;
 
     BulletSpriteScene: TCastleScene;
 
@@ -93,17 +98,28 @@ type
     procedure UpdatePlayerByVelocityAndPhysicsRayWithDblJumpShot(const SecondsPassed: Single;
       var HandleInput: Boolean);
 
+
+
     procedure Shot(BulletOwner: TComponent; const Origin, Direction: TVector3);
 
     { Coins support }
     procedure CollectCoin;
     procedure ResetCollectedCoins;
 
+    { Life support }
+    procedure ResetHitPoints;
+    procedure SetHitPoints(const HitPoints: Integer);
+
+
   public
     procedure Start; override;
     procedure Stop; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
+
+    { Public functions }
+    procedure HitPlayer;
+
   end;
 
 var
@@ -348,6 +364,7 @@ begin
   PlayerCanDoubleJump := false;
   WasDoubleJump := false;
   ResetCollectedCoins;
+  ResetHitPoints;
 end;
 
 procedure TStatePlay.PlayerCollisionEnter(
@@ -996,6 +1013,40 @@ begin
   LabelCollectedCoins.Caption := '0';
 end;
 
+procedure TStatePlay.HitPlayer;
+begin
+  SetHitPoints(PlayerHitPoints - 1);
+end;
+
+procedure TStatePlay.ResetHitPoints;
+begin
+  SetHitPoints(4);
+end;
+
+procedure TStatePlay.SetHitPoints(const HitPoints: Integer);
+begin
+  PlayerHitPoints := HitPoints;
+  if PlayerHitPoints > 3 then
+    ImageHitPoint4.URL := 'castle-data:/ui/hud_heartFull.png'
+  else
+    ImageHitPoint4.URL := 'castle-data:/ui/hud_heartEmpty.png';
+
+  if PlayerHitPoints > 2 then
+    ImageHitPoint3.URL := 'castle-data:/ui/hud_heartFull.png'
+  else
+    ImageHitPoint3.URL := 'castle-data:/ui/hud_heartEmpty.png';
+
+  if PlayerHitPoints > 1 then
+    ImageHitPoint3.URL := 'castle-data:/ui/hud_heartFull.png'
+  else
+    ImageHitPoint3.URL := 'castle-data:/ui/hud_heartEmpty.png';
+
+  if PlayerHitPoints > 0 then
+    ImageHitPoint3.URL := 'castle-data:/ui/hud_heartFull.png'
+  else
+    ImageHitPoint3.URL := 'castle-data:/ui/hud_heartEmpty.png';
+end;
+
 procedure TStatePlay.Start;
 var
   PlatformsRoot: TCastleTransform;
@@ -1017,6 +1068,10 @@ begin
   MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
   CheckboxCameraFollow := DesignedComponent('CheckboxCameraFollow') as TCastleCheckbox;
   CheckboxAdvancedPlayer := DesignedComponent('AdvancedPlayer') as TCastleCheckbox;
+  ImageHitPoint1 := DesignedComponent('ImageHitPoint1') as TCastleImageControl;
+  ImageHitPoint2 := DesignedComponent('ImageHitPoint2') as TCastleImageControl;
+  ImageHitPoint3 := DesignedComponent('ImageHitPoint3') as TCastleImageControl;
+  ImageHitPoint4 := DesignedComponent('ImageHitPoint4') as TCastleImageControl;
 
   ScenePlayer := DesignedComponent('ScenePlayer') as TCastleScene;
 

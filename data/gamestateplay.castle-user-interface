@@ -2671,6 +2671,75 @@
                 "$Children" : [
                 ],
                 "$ClassName" : "TCastleScene"
+              },
+              {
+                "AnimateOnlyWhenVisible" : true,
+                "AutoAnimation" : "idle",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Spider5",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : -1.5722735595703125E+003,
+                  "Y" : -6.7663049316406250E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "AnimateOnlyWhenVisible" : true,
+                "AutoAnimation" : "idle",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Spider6",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : -2.2553217773437500E+003,
+                  "Y" : -6.7663049316406250E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "AnimateOnlyWhenVisible" : true,
+                "AutoAnimation" : "idle",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Spider7",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : -1.4652751464843750E+003,
+                  "Y" : -3.9616485595703125E+001,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
               }
             ],
             "$ClassName" : "TCastleTransform"
@@ -2780,7 +2849,7 @@
       "VerticalAnchorSelf" : "vpTop",
       "$Children" : [
         {
-          "Name" : "LifeGroup",
+          "Name" : "HitPointsGroup",
           "Spacing" : 2.0000000000000000E+000,
           "VerticalAnchorParent" : "vpMiddle",
           "VerticalAnchorSelf" : "vpMiddle",
@@ -2790,7 +2859,7 @@
                 "URL" : "castle-data:/ui/hud_heartFull.png",
                 "$ClassName" : "TCastleImagePersistent"
               },
-              "Name" : "Heart1",
+              "Name" : "ImageHitPoint1",
               "VerticalAnchorParent" : "vpMiddle",
               "VerticalAnchorSelf" : "vpMiddle",
               "$Children" : [
@@ -2803,7 +2872,7 @@
                 "$ClassName" : "TCastleImagePersistent"
               },
               "HorizontalAnchorDelta" : 5.4999996185302734E+001,
-              "Name" : "Heart2",
+              "Name" : "ImageHitPoint2",
               "VerticalAnchorParent" : "vpMiddle",
               "VerticalAnchorSelf" : "vpMiddle",
               "$Children" : [
@@ -2816,7 +2885,7 @@
                 "$ClassName" : "TCastleImagePersistent"
               },
               "HorizontalAnchorDelta" : 1.0999999237060547E+002,
-              "Name" : "Heart3",
+              "Name" : "ImageHitPoint3",
               "VerticalAnchorParent" : "vpMiddle",
               "VerticalAnchorSelf" : "vpMiddle",
               "$Children" : [
@@ -2829,7 +2898,7 @@
                 "$ClassName" : "TCastleImagePersistent"
               },
               "HorizontalAnchorDelta" : 1.6499998474121094E+002,
-              "Name" : "Heart4",
+              "Name" : "ImageHitPoint4",
               "VerticalAnchorParent" : "vpMiddle",
               "VerticalAnchorSelf" : "vpMiddle",
               "$Children" : [
