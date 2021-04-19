@@ -98,8 +98,6 @@ type
     procedure UpdatePlayerByVelocityAndPhysicsRayWithDblJumpShot(const SecondsPassed: Single;
       var HandleInput: Boolean);
 
-
-
     procedure Shot(BulletOwner: TComponent; const Origin, Direction: TVector3);
 
     { Coins support }
@@ -150,19 +148,11 @@ begin
   RBody.Dynamic := true;
   RBody.MaximalLinearVelocity := 0;
 
-{  RBody.Animated := true;
-  RBody.Setup2D;
-  RBody.Gravity := true;
-  RBody.LinearVelocityDamp := 0;
-  RBody.AngularVelocityDamp := 0;
-  RBody.AngularVelocity := Vector3(0, 0, 0);
-  RBody.LockRotation := [0, 1, 2];
-  RBody.MaximalLinearVelocity := 0;}
-
 
   Collider := TSphereCollider.Create(RBody);
   Collider.Radius :=  BulletSpriteScene.BoundingBox.Size.X / 2;
-  //Collider.Mass := 10;
+  { Make bullet more bouncy }
+  Collider.Restitution := 0.6;
 
   RigidBody := RBody;
 end;
@@ -173,8 +163,8 @@ begin
   inherited Update(SecondsPassed, RemoveMe);
 
   Duration := Duration + SecondsPassed;
-  {if Duration > 5 then
-    RemoveMe := rtRemoveAndFree;}
+  if Duration > 3 then
+    RemoveMe := rtRemoveAndFree;
 end;
 
 { TLevelBounds }
@@ -363,6 +353,7 @@ procedure TStatePlay.ConfigurePlayerAbilities(const Player: TCastleScene);
 begin
   PlayerCanDoubleJump := false;
   WasDoubleJump := false;
+  PlayerCanShot := false;
   ResetCollectedCoins;
   ResetHitPoints;
 end;
@@ -387,7 +378,16 @@ begin
       { TODO: When we only change OtherTransform.Exists = false, rigid body
         still exists, this is only temporary hack to fix that. }
       CollisionDetails.OtherTransform.RigidBody.Exists := false;
+    end else
+    if Pos('Shot', CollisionDetails.OtherTransform.Name) > 0 then
+    begin
+      PlayerCanShot := true;
+      CollisionDetails.OtherTransform.Exists := false;
+      { TODO: When we only change OtherTransform.Exists = false, rigid body
+        still exists, this is only temporary hack to fix that. }
+      CollisionDetails.OtherTransform.RigidBody.Exists := false;
     end;
+
   end;
 end;
 
@@ -978,7 +978,6 @@ begin
   else if Vel.X > 1 then
     ScenePlayer.Scale := Vector3(1, 1, 1);
 
-  PlayerCanShot := true;
   if PlayerCanShot then
   begin
     if Container.Pressed.Items[keySpace] then
@@ -988,7 +987,7 @@ begin
         WasShotKeyPressed := true;
 
         Shot(ScenePlayer, ScenePlayer.LocalToWorld(Vector3(ScenePLayer.BoundingBox.SizeX / 2 + 5, 0, 0)),
-          Vector3(ScenePlayer.Scale.X, 0, 0));
+          Vector3(ScenePlayer.Scale.X, 1, 0));
       end;
     end else
       WasShotKeyPressed := false;
@@ -1003,7 +1002,7 @@ var
 begin
   Bullet := TBullet.Create(BulletOwner, BulletSpriteScene);
   Bullet.Translation := Origin;
-  Bullet.RigidBody.LinearVelocity := Direction * Vector3(800, 800, 0);
+  Bullet.RigidBody.LinearVelocity := Direction * Vector3(750, 20, 0);
   MainViewport.Items.Add(Bullet);
 end;
 

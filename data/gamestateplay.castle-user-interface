@@ -2569,6 +2569,27 @@
                 "$Children" : [
                 ],
                 "$ClassName" : "TCastleScene"
+              },
+              {
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Shot",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : -2.6136452636718750E+003,
+                  "Y" : -6.4546191406250000E+002,
+                  "Z" : 3.0000000000000000E+000,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/items/powerup_shot.png",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
               }
             ],
             "$ClassName" : "TCastleTransform"
