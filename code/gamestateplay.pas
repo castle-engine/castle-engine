@@ -376,11 +376,17 @@ begin
     begin
       CollectCoin;
       CollisionDetails.OtherTransform.Exists := false;
+      { TODO: When we only change OtherTransform.Exists = false, rigid body
+        still exists, this is only temporary hack to fix that. }
+      CollisionDetails.OtherTransform.RigidBody.Exists := false;
     end else
     if Pos('DblJump', CollisionDetails.OtherTransform.Name) > 0 then
     begin
       PlayerCanDoubleJump := true;
       CollisionDetails.OtherTransform.Exists := false;
+      { TODO: When we only change OtherTransform.Exists = false, rigid body
+        still exists, this is only temporary hack to fix that. }
+      CollisionDetails.OtherTransform.RigidBody.Exists := false;
     end;
   end;
 end;
