@@ -1109,9 +1109,11 @@ begin
   if Assigned(Collider) and Assigned(Collider.FKraftShape) then
   begin
     if FExists then
-      Collider.FKraftShape.Flags := Collider.FKraftShape.Flags + [ksfCollision]
+      Collider.FKraftShape.Flags := Collider.FKraftShape.Flags + [ksfCollision,
+        ksfRayCastable]
     else
-      Collider.FKraftShape.Flags := Collider.FKraftShape.Flags - [ksfCollision];
+      Collider.FKraftShape.Flags := Collider.FKraftShape.Flags - [ksfCollision,
+        ksfRayCastable];
   end;
 end;
 
