@@ -497,9 +497,9 @@ begin
     else
       ScenePlayer.PlayAnimation('idle', true);
 
-  if Vel.X < 0 then
+  if Vel.X < -1 then
     ScenePlayer.Scale := Vector3(-1, 1, 1)
-  else
+  else if Vel.X > 1 then
     ScenePlayer.Scale := Vector3(1, 1, 1);
 end;
 
@@ -608,9 +608,9 @@ begin
     else
       ScenePlayer.PlayAnimation('idle', true);
 
-  if Vel.X < 0 then
+  if Vel.X < -1 then
     ScenePlayer.Scale := Vector3(-1, 1, 1)
-  else
+  else if Vel.X > 1 then
     ScenePlayer.Scale := Vector3(1, 1, 1);
 end;
 
@@ -737,9 +737,9 @@ begin
     else
       ScenePlayer.PlayAnimation('idle', true);
 
-  if Vel.X < 0 then
+  if Vel.X < -1 then
     ScenePlayer.Scale := Vector3(-1, 1, 1)
-  else
+  else if Vel.X > 1 then
     ScenePlayer.Scale := Vector3(1, 1, 1);
 end;
 
@@ -852,9 +852,9 @@ begin
     else
       ScenePlayer.PlayAnimation('idle', true);
 
-  if Vel.X < 0 then
+  if Vel.X < -1 then
     ScenePlayer.Scale := Vector3(-1, 1, 1)
-  else
+  else if Vel.X > 1 then
     ScenePlayer.Scale := Vector3(1, 1, 1);
 end;
 
@@ -967,9 +967,9 @@ begin
     else
       ScenePlayer.PlayAnimation('idle', true);
 
-  if Vel.X < 0 then
+  if Vel.X < -1 then
     ScenePlayer.Scale := Vector3(-1, 1, 1)
-  else
+  else if Vel.X > 1 then
     ScenePlayer.Scale := Vector3(1, 1, 1);
 
   PlayerCanShot := true;
