@@ -1075,7 +1075,6 @@ begin
 
   ScenePlayer := DesignedComponent('ScenePlayer') as TCastleScene;
 
-
   WasShotKeyPressed := false;
 
   { Configure physics for platforms }

@@ -33,7 +33,9 @@ TEnemyList = specialize TObjectList<TEnemy>;
 
 implementation
 
-uses GameStatePlay;
+uses
+  CastleLog,
+  GameStatePlay;
 
 { TEnemy }
 
@@ -60,6 +62,7 @@ var
   NeedTurn: Boolean;
   Vel: TVector3;
   RayMaxDistance: Single;
+  ObstacleAhead: TCastleTransform;
 begin
   inherited;
 
@@ -96,9 +99,15 @@ begin
   { Check enemy must turn because he go wall. }
   if not NeedTurn then
   begin
-    NeedTurn := Scene.RigidBody.PhysicsRayCast(Scene.Translation
-      + Vector3(MoveDirection * Scene.BoundingBox.SizeX * 0.50, 0, 0),
-      Vector3(MoveDirection, 0, 0), RayMaxDistance) <> nil;
+    ObstacleAhead := Scene.RigidBody.PhysicsRayCast(Scene.Translation,
+      Vector3(MoveDirection, 0, 0), RayMaxDistance + 5);
+
+    if ObstacleAhead <> nil then
+    begin
+      if (ObstacleAhead.Name <> 'ScenePlayer') and
+         (Pos('GoldCoin', ObstacleAhead.Name) = 0) then
+        NeedTurn := true;
+    end;
   end;
 
   if NeedTurn then

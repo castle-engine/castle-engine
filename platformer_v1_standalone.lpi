@@ -45,6 +45,7 @@
       <Unit2>
         <Filename Value="code/gameenemy.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="GameEnemy"/>
       </Unit2>
       <Unit3>
         <Filename Value="code/gameinitialize.pas"/>
