@@ -693,20 +693,30 @@ begin
   end else
     WasJumpKeyPressed := false;
 
-  if Container.Pressed.Items[keyD] and (PlayerOnGround or InSecondJump) then
+  if Container.Pressed.Items[keyD] then
   begin
-    if InSecondJump then
+    if PlayerOnGround then
+      DeltaVelocity.x := MaxHorizontalVelocity / 2
+    else if InSecondJump then
+      { When key is pressed when you make second jump you can increase
+        horizontal speed }
       DeltaVelocity.x := MaxHorizontalVelocity / 3
     else
-      DeltaVelocity.x := MaxHorizontalVelocity / 2;
+      { This add a little control when you in the air during jumping or falling }
+      DeltaVelocity.x := MaxHorizontalVelocity / 50;
   end;
 
-  if Container.Pressed.Items[keyA] and (PlayerOnGround or InSecondJump) then
+  if Container.Pressed.Items[keyA] then
   begin
-    if InSecondJump then
-      DeltaVelocity.x := MaxHorizontalVelocity / 3
+    if PlayerOnGround then
+      DeltaVelocity.x := - MaxHorizontalVelocity / 2
+    else if InSecondJump then
+      { When key is pressed when you make second jump you can increase
+        horizontal speed }
+      DeltaVelocity.x := - MaxHorizontalVelocity / 3
     else
-      DeltaVelocity.x := - MaxHorizontalVelocity / 2;
+      { This add a little control when you in the air during jumping or falling }
+      DeltaVelocity.x := - MaxHorizontalVelocity / 50;
   end;
 
   if Vel.X + DeltaVelocity.X > 0 then
@@ -808,20 +818,30 @@ begin
   end else
     WasJumpKeyPressed := false;
 
-  if Container.Pressed.Items[keyD] and (PlayerOnGround or InSecondJump) then
+  if Container.Pressed.Items[keyD] then
   begin
-    if InSecondJump then
+    if PlayerOnGround then
+      DeltaVelocity.x := MaxHorizontalVelocity / 2
+    else if InSecondJump then
+      { When key is pressed when you make second jump you can increase
+        horizontal speed }
       DeltaVelocity.x := MaxHorizontalVelocity / 3
     else
-      DeltaVelocity.x := MaxHorizontalVelocity / 2;
+      { This add a little control when you in the air during jumping or falling }
+      DeltaVelocity.x := MaxHorizontalVelocity / 50;
   end;
 
-  if Container.Pressed.Items[keyA] and (PlayerOnGround or InSecondJump) then
+  if Container.Pressed.Items[keyA] then
   begin
-    if InSecondJump then
-      DeltaVelocity.x := MaxHorizontalVelocity / 3
+    if PlayerOnGround then
+      DeltaVelocity.x := - MaxHorizontalVelocity / 2
+    else if InSecondJump then
+      { When key is pressed when you make second jump you can increase
+        horizontal speed }
+      DeltaVelocity.x := - MaxHorizontalVelocity / 3
     else
-      DeltaVelocity.x := - MaxHorizontalVelocity / 2;
+      { This add a little control when you in the air during jumping or falling }
+      DeltaVelocity.x := - MaxHorizontalVelocity / 50;
   end;
 
   if Vel.X + DeltaVelocity.X > 0 then
@@ -914,7 +934,7 @@ begin
       begin
         WasDoubleJump := true;
         InSecondJump := true;
-        { In second jump just add diffrence betwen current Velocity and JumpVelocity }
+        { In second jump just add diffrence between current Velocity and JumpVelocity }
         DeltaVelocity.Y := JumpVelocity - Vel.Y;
       end else
         DeltaVelocity.Y := JumpVelocity;
@@ -923,20 +943,30 @@ begin
   end else
     WasJumpKeyPressed := false;
 
-  if Container.Pressed.Items[keyD] and (PlayerOnGround or InSecondJump) then
+  if Container.Pressed.Items[keyD] then
   begin
-    if InSecondJump then
+    if PlayerOnGround then
+      DeltaVelocity.x := MaxHorizontalVelocity / 2
+    else if InSecondJump then
+      { When key is pressed when you make second jump you can increase
+        horizontal speed }
       DeltaVelocity.x := MaxHorizontalVelocity / 3
     else
-      DeltaVelocity.x := MaxHorizontalVelocity / 2;
+      { This add a little control when you in the air during jumping or falling }
+      DeltaVelocity.x := MaxHorizontalVelocity / 50;
   end;
 
-  if Container.Pressed.Items[keyA] and (PlayerOnGround or InSecondJump) then
+  if Container.Pressed.Items[keyA] then
   begin
-    if InSecondJump then
-      DeltaVelocity.x := MaxHorizontalVelocity / 3
+    if PlayerOnGround then
+      DeltaVelocity.x := - MaxHorizontalVelocity / 2
+    else if InSecondJump then
+      { When key is pressed when you make second jump you can increase
+        horizontal speed }
+      DeltaVelocity.x := - MaxHorizontalVelocity / 3
     else
-      DeltaVelocity.x := - MaxHorizontalVelocity / 2;
+      { This add a little control when you in the air during jumping or falling }
+      DeltaVelocity.x := - MaxHorizontalVelocity / 50;
   end;
 
   if Vel.X + DeltaVelocity.X > 0 then

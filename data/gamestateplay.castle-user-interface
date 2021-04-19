@@ -2734,7 +2734,7 @@
                   "$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
-                  "X" : -2.3075769042968750E+003,
+                  "X" : -2.3822268066406250E+003,
                   "Y" : -6.7663049316406250E+002,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
@@ -2784,7 +2784,7 @@
                   "$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
-                  "X" : -2.2142644042968750E+003,
+                  "X" : -2.2914028320312500E+003,
                   "Y" : -6.7663049316406250E+002,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
@@ -2811,7 +2811,7 @@
                   "$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
-                  "X" : -2.1197077636718750E+003,
+                  "X" : -2.2067995605468750E+003,
                   "Y" : -6.7663049316406250E+002,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
@@ -2838,7 +2838,7 @@
                   "$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
-                  "X" : -2.4033781738281250E+003,
+                  "X" : -2.4817609863281250E+003,
                   "Y" : -6.7663049316406250E+002,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
@@ -2865,8 +2865,8 @@
                   "$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
-                  "X" : -2.0288835449218750E+003,
-                  "Y" : -6.7663049316406250E+002,
+                  "X" : -1.8932691650390625E+003,
+                  "Y" : -5.5594616699218750E+002,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
                 "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
