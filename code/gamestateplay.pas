@@ -128,7 +128,7 @@ implementation
 uses
   SysUtils, Math,
   CastleLog,
-  GameStateMenu;
+  GameStateMenu, GameStateGameOver;
 
 { TBullet }
 
@@ -1031,6 +1031,13 @@ end;
 procedure TStatePlay.SetHitPoints(const HitPoints: Integer);
 begin
   PlayerHitPoints := HitPoints;
+
+  if PlayerHitPoints = 0 then
+  begin
+    TUIState.Push(StateGameOver);
+    Exit;
+  end;
+
   if PlayerHitPoints > 3 then
     ImageHitPoint4.URL := 'castle-data:/ui/hud_heartFull.png'
   else

@@ -2582,7 +2582,7 @@
                 },
                 "TranslationPersistent" : {
                   "X" : -2.6136452636718750E+003,
-                  "Y" : -6.4546191406250000E+002,
+                  "Y" : -6.4172943115234375E+002,
                   "Z" : 3.0000000000000000E+000,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
@@ -2759,6 +2759,114 @@
                 "TranslationPersistent" : {
                   "X" : -1.4652751464843750E+003,
                   "Y" : -3.9616485595703125E+001,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "AnimateOnlyWhenVisible" : true,
+                "AutoAnimation" : "idle",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Spider8",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "ScalePersistent" : {
+                  "X" : -1.0000000000000000E+000,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "TranslationPersistent" : {
+                  "X" : -2.2142644042968750E+003,
+                  "Y" : -6.7663049316406250E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "AnimateOnlyWhenVisible" : true,
+                "AutoAnimation" : "idle",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Spider9",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "ScalePersistent" : {
+                  "X" : -1.0000000000000000E+000,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "TranslationPersistent" : {
+                  "X" : -2.1197077636718750E+003,
+                  "Y" : -6.7663049316406250E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "AnimateOnlyWhenVisible" : true,
+                "AutoAnimation" : "idle",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Spider10",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "ScalePersistent" : {
+                  "X" : -1.0000000000000000E+000,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "TranslationPersistent" : {
+                  "X" : -2.4033781738281250E+003,
+                  "Y" : -6.7663049316406250E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "AnimateOnlyWhenVisible" : true,
+                "AutoAnimation" : "idle",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Spider11",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "ScalePersistent" : {
+                  "X" : -1.0000000000000000E+000,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "TranslationPersistent" : {
+                  "X" : -2.0288835449218750E+003,
+                  "Y" : -6.7663049316406250E+002,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
                 "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",

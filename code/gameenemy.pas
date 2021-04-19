@@ -107,6 +107,8 @@ begin
 
     if ObstacleAhead <> nil then
     begin
+      { Enemy should not run away from the player or change direction when
+        there is coin }
       if (ObstacleAhead.Name <> 'ScenePlayer') and
          (Pos('GoldCoin', ObstacleAhead.Name) = 0) then
         NeedTurn := true;

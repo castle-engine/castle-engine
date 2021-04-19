@@ -20,6 +20,7 @@ uses SysUtils,
   // The content here may be automatically updated by CGE editor.
   , GameStateMenu
   , GameStatePlay
+  , GameStateGameOver
   { CASTLE-INITIALIZATION-USES-END };
 
 var
@@ -55,10 +56,12 @@ begin
   // The content here may be automatically updated by CGE editor.
   StatePlay := TStatePlay.Create(Application);
   StateMenu := TStateMenu.Create(Application);
+  StateGameOver := TStateGameOver.Create(Application);
   { CASTLE-STATE-CREATE-END }
 
   StatePlay.DesignUrl := 'castle-data:/gamestateplay.castle-user-interface';
   StateMenu.DesignUrl := 'castle-data:/gamestatemenu.castle-user-interface';
+  StateGameOver.DesignUrl := 'castle-data:/gamestategameover.castle-user-interface';
 
   TUIState.Current := StateMenu;
 end;
