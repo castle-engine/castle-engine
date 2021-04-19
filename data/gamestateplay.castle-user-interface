@@ -2708,8 +2708,12 @@
                   ],
                   "$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
+                "ScalePersistent" : {
+                  "X" : -1.0000000000000000E+000,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
-                  "X" : -2.2553217773437500E+003,
+                  "X" : -2.3075769042968750E+003,
                   "Y" : -6.7663049316406250E+002,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
