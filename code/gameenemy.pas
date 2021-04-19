@@ -137,6 +137,10 @@ end;
 procedure TEnemy.TakeDamageFromBullet(const Bullet: TCastleTransform);
 begin
   Bullet.Exists := false;
+  { TODO: When we only change Bullet.Exists = false, rigid body
+    still exists, this is only temporary hack to fix that. }
+  Bullet.RigidBody.Exists := false;
+
   Dead := true;
   Parent.RigidBody.Exists := false;
 end;
