@@ -889,6 +889,29 @@ procedure TStatePlay.UpdatePlayerByVelocityAndPhysicsRayWithDblJumpShot(
 const
   JumpVelocity = 700;
   MaxHorizontalVelocity = 350;
+  { We need multiply any horizontal velocity speed by SecondsPassed.
+    Without that when game will run 120 FPS, player will accelerated
+    twice faster than on 60 FPS.
+    So MaxHorizontalVelocityChange is designed and tested on 60 FPS so we need
+    multiply MaxHorizontalVelocity by 60 to get it.
+
+    It's easy to realize when you know that for 60 FPS:
+
+    MaxHorizontalVelocityChange * SecondsPassed * 60 = 350
+    21000 * (1/60) * 60 = 350
+    21000 * 0.01666 * 60 = 350
+
+    And for 120 FPS:
+    21000 * (1/120) * 60 = 175
+    21000 * 0.008333 * 60 = 175
+    For 120 FPS every frame max speed up will be 175 but you have two times
+    more frames (updates). So 175 * 2 = 350 like in 60 FPS.
+
+    We don't need that for jump because jump is one time event not changed
+    per update. If something depend from update call frequency you need make it
+    depend from time passed in CGE SecondsPassed.
+    }
+  MaxHorizontalVelocityChange = MaxHorizontalVelocity * 60;
 var
   DeltaVelocity: TVector3;
   Vel: TVector3;
@@ -946,27 +969,27 @@ begin
   if Container.Pressed.Items[keyD] then
   begin
     if PlayerOnGround then
-      DeltaVelocity.x := MaxHorizontalVelocity / 2
+      DeltaVelocity.x := MaxHorizontalVelocityChange * SecondsPassed / 2
     else if InSecondJump then
       { When key is pressed when you make second jump you can increase
         horizontal speed }
-      DeltaVelocity.x := MaxHorizontalVelocity / 3
+      DeltaVelocity.x := MaxHorizontalVelocityChange * SecondsPassed / 3
     else
       { This add a little control when you in the air during jumping or falling }
-      DeltaVelocity.x := MaxHorizontalVelocity / 50;
+      DeltaVelocity.x := MaxHorizontalVelocityChange * SecondsPassed / 50;
   end;
 
   if Container.Pressed.Items[keyA] then
   begin
     if PlayerOnGround then
-      DeltaVelocity.x := - MaxHorizontalVelocity / 2
+      DeltaVelocity.x := - MaxHorizontalVelocityChange * SecondsPassed / 2
     else if InSecondJump then
       { When key is pressed when you make second jump you can increase
         horizontal speed }
-      DeltaVelocity.x := - MaxHorizontalVelocity / 3
+      DeltaVelocity.x := - MaxHorizontalVelocityChange * SecondsPassed / 3
     else
       { This add a little control when you in the air during jumping or falling }
-      DeltaVelocity.x := - MaxHorizontalVelocity / 50;
+      DeltaVelocity.x := - MaxHorizontalVelocityChange * SecondsPassed / 50;
   end;
 
   if Vel.X + DeltaVelocity.X > 0 then
