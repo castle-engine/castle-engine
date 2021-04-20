@@ -10,7 +10,7 @@ interface
 uses Classes,
   CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleKeysMouse, CastleViewport, CastleScene, CastleVectors, CastleTransform,
-  GameEnemy;
+  GameEnemy, GameFallingObstacle;
 
 type
   TLevelBounds = class (TComponent)
@@ -65,6 +65,9 @@ type
 
     { Enemies behaviours }
     Enemies: TEnemyList;
+
+    { Falling obstacles (spike) behaviours }
+    FallingObstacles: TFallingObstaclesList;
 
     procedure ConfigurePlatformPhysics(Platform: TCastleScene);
     procedure ConfigureCoinsPhysics(const Coin: TCastleScene);
@@ -1120,9 +1123,12 @@ var
   GroundsLineRoot: TCastleTransform;
   StonesRoot: TCastleTransform;
   EnemiesRoot: TCastleTransform;
+  FallingObstaclesRoot: TCastleTransform;
   PowerUps: TCastleTransform;
   Enemy: TEnemy;
   EnemyScene: TCastleScene;
+  FallingObstacleScene: TCastleScene;
+  FallingObstacle: TFallingObstacle;
   I, J: Integer;
 begin
   inherited;
@@ -1200,6 +1206,18 @@ begin
     Enemies.Add(Enemy);
   end;
 
+  FallingObstacles := TFallingObstaclesList.Create(true);
+  FallingObstaclesRoot := DesignedComponent('FallingObstacles') as TCastleTransform;
+  for I := 0 to FallingObstaclesRoot.Count - 1 do
+  begin
+    FallingObstacleScene := FallingObstaclesRoot.Items[I] as TCastleScene;
+    { Below using nil as Owner of TFallingObstacle, as the list already "owns"
+      instances of this class, i.e. it will free them. }
+    FallingObstacle := TFallingObstacle.Create(nil);
+    FallingObstacleScene.AddBehavior(FallingObstacle);
+    FallingObstacles.Add(FallingObstacle);
+  end;
+
   { Configure physics for player }
   ConfigurePlayerPhysics(ScenePlayer);
   ConfigurePlayerAbilities(ScenePlayer);
@@ -1210,6 +1228,7 @@ end;
 procedure TStatePlay.Stop;
 begin
   FreeAndNil(Enemies);
+  FreeAndNil(FallingObstacles);
   inherited;
 end;
 

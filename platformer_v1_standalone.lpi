@@ -20,7 +20,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="7">
+    <Units Count="8">
       <Unit0>
         <Filename Value="platformer_v1_standalone.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -51,10 +51,15 @@
         <UnitName Value="gamestateplay"/>
       </Unit5>
       <Unit6>
+        <Filename Value="code/gamefallingobstacle.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gamefallingobstacle"/>
+      </Unit6>
+      <Unit7>
         <Filename Value="code/gamestatemenu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gamestatemenu"/>
-      </Unit6>
+      </Unit7>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

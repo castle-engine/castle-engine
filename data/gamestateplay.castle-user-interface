@@ -2876,6 +2876,39 @@
               }
             ],
             "$ClassName" : "TCastleTransform"
+          },
+          {
+            "Name" : "FallingObstacles",
+            "$Children" : [
+              {
+                "ExposeTransforms" : [
+                ],
+                "Name" : "FallingObstacle1",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "ScalePersistent" : {
+                  "X" : 1.1000000238418579E+000,
+                  "Y" : 1.1000000238418579E+000,
+                  "Z" : 1.1000000238418579E+000,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "TranslationPersistent" : {
+                  "X" : -5.6322705078125000E+002,
+                  "Y" : -3.6748828125000000E+002,
+                  "Z" : 3.0000000000000000E+000,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/obstacle/spikeTop.png",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              }
+            ],
+            "$ClassName" : "TCastleTransform"
           }
         ],
         "$ClassName" : "TCastleRootTransform"
