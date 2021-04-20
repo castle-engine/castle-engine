@@ -9,7 +9,8 @@ interface
 
 uses Classes,
   CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls,
-  CastleKeysMouse, CastleViewport, CastleScene, CastleVectors, CastleTransform,
+  CastleKeysMouse, CastleViewport, CastleScene, CastleSceneCore, CastleVectors,
+  CastleTransform, X3DNodes,
   GameEnemy, GameFallingObstacle, GameDeadlyObstacle;
 
 type
@@ -57,6 +58,7 @@ type
     PlayerCanShot: Boolean;
     PlayerCollectedCoins: Integer;
     PlayerHitPoints: Integer;
+    PlayerAnimationToLoop: String;
 
     BulletSpriteScene: TCastleScene;
 
@@ -114,6 +116,10 @@ type
     procedure ResetHitPoints;
     procedure SetHitPoints(const HitPoints: Integer);
 
+    procedure PlayAnimationOnceAndLoop(Scene: TCastleScene;
+      const AnimationNameToPlayOnce, AnimationNameToLoop: string);
+    procedure OnAnimationStop(const Scene: TCastleSceneCore;
+      const Animation: TTimeSensorNode);
 
   public
     procedure Start; override;
@@ -1010,10 +1016,20 @@ begin
   if PlayerOnGround and (Container.Pressed.Items[keyD] = false) and (Container.Pressed.Items[keyA] = false) then
     Vel.X := 0;
 
+  { Player can't move when hurt on ground }
+  if PlayerOnGround and (ScenePlayer.CurrentAnimation.X3DName = 'hurt') then
+  begin
+    Vel.X := 0;
+    Vel.Y := 0;
+  end;
+
   ScenePlayer.RigidBody.LinearVelocity := Vel;
 
   { Set animation }
 
+  { Don't change animation when player are hurt }
+  if ScenePlayer.CurrentAnimation.X3DName <> 'hurt' then
+  begin
   { We get here 20 because vertical velocity calculated by physics engine when
     player is on platform have no 0 but some small values to up and down sometimes
     It can fail when the player goes uphill (will set jump animation) or down
@@ -1031,6 +1047,7 @@ begin
     end
     else
       ScenePlayer.PlayAnimation('idle', true);
+  end;
 
   if Vel.X < -1 then
     ScenePlayer.Scale := Vector3(-1, 1, 1)
@@ -1080,6 +1097,8 @@ end;
 procedure TStatePlay.HitPlayer;
 begin
   SetHitPoints(PlayerHitPoints - 1);
+  //ScenePlayer.PlayAnimation('hurt', false);
+  PlayAnimationOnceAndLoop(ScenePlayer, 'hurt', 'idle');
 end;
 
 procedure TStatePlay.ResetHitPoints;
@@ -1091,7 +1110,7 @@ procedure TStatePlay.SetHitPoints(const HitPoints: Integer);
 begin
   PlayerHitPoints := HitPoints;
 
-  if PlayerHitPoints = 0 then
+  if PlayerHitPoints < 0 then
   begin
     TUIState.Push(StateGameOver);
     Exit;
@@ -1116,6 +1135,26 @@ begin
     ImageHitPoint1.URL := 'castle-data:/ui/hud_heartFull.png'
   else
     ImageHitPoint1.URL := 'castle-data:/ui/hud_heartEmpty.png';
+end;
+
+procedure TStatePlay.PlayAnimationOnceAndLoop(Scene: TCastleScene;
+  const AnimationNameToPlayOnce, AnimationNameToLoop: string);
+var
+  Parameters: TPlayAnimationParameters;
+begin
+  Parameters := TPlayAnimationParameters.Create;
+  Parameters.Loop := false;
+  Parameters.Name := AnimationNameToPlayOnce;
+  Parameters.Forward := true;
+  Parameters.StopNotification := @OnAnimationStop;
+  PlayerAnimationToLoop := AnimationNameToLoop;
+  Scene.PlayAnimation(Parameters);
+end;
+
+procedure TStatePlay.OnAnimationStop(const Scene: TCastleSceneCore;
+  const Animation: TTimeSensorNode);
+begin
+  Scene.PlayAnimation(PlayerAnimationToLoop, true);
 end;
 
 procedure TStatePlay.Start;
