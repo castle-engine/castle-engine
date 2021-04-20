@@ -593,6 +593,733 @@
             "$ClassName" : "TCastleTransform"
           },
           {
+            "Name" : "FallingObstacles",
+            "TranslationPersistent" : {
+              "Z" : 9.0000000000000000E+000,
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "$Children" : [
+              {
+                "ExposeTransforms" : [
+                ],
+                "Name" : "FallingObstacle1",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "ScalePersistent" : {
+                  "X" : 1.1000000238418579E+000,
+                  "Y" : 1.1000000238418579E+000,
+                  "Z" : 1.1000000238418579E+000,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "TranslationPersistent" : {
+                  "X" : -5.6322998046875000E+002,
+                  "Y" : -3.6126998901367188E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/obstacle/spikeTop.png",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              }
+            ],
+            "$ClassName" : "TCastleTransform"
+          },
+          {
+            "Name" : "DeadlyObstacles",
+            "$Children" : [
+              {
+                "ExposeTransforms" : [
+                ],
+                "Name" : "DeadlyObstacle1",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : -1.0280516357421875E+003,
+                  "Y" : -6.8987207031250000E+002,
+                  "Z" : 3.0000000000000000E+000,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/obstacle/spikesBottom.png",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "ExposeTransforms" : [
+                ],
+                "Name" : "DeadlyObstacle2",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : -9.5713409423828125E+002,
+                  "Y" : -6.8987207031250000E+002,
+                  "Z" : 3.0000000000000000E+000,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/obstacle/spikesBottom.png",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              }
+            ],
+            "$ClassName" : "TCastleTransform"
+          },
+          {
+            "Name" : "Coins",
+            "TranslationPersistent" : {
+              "Z" : 1.0000000000000000E+001,
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "$Children" : [
+              {
+                "AutoAnimation" : "rotate",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "GoldCoin1",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "ScalePersistent" : {
+                  "X" : 5.0000000000000000E-001,
+                  "Y" : 5.0000000000000000E-001,
+                  "Z" : 5.0000000000000000E-001,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "TranslationPersistent" : {
+                  "X" : 8.9165997314453125E+002,
+                  "Y" : 1.8191999816894531E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "AutoAnimation" : "rotate",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "GoldCoin2",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "ScalePersistent" : {
+                  "X" : 5.0000000000000000E-001,
+                  "Y" : 5.0000000000000000E-001,
+                  "Z" : 5.0000000000000000E-001,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "TranslationPersistent" : {
+                  "X" : 3.8110998535156250E+002,
+                  "Y" : 2.3761000061035156E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "AutoAnimation" : "rotate",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "GoldCoin3",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "ScalePersistent" : {
+                  "X" : 5.0000000000000000E-001,
+                  "Y" : 5.0000000000000000E-001,
+                  "Z" : 5.0000000000000000E-001,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "TranslationPersistent" : {
+                  "X" : -5.5555999755859375E+002,
+                  "Y" : -2.1791999816894531E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "AutoAnimation" : "rotate",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "GoldCoin5",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "ScalePersistent" : {
+                  "X" : 5.0000000000000000E-001,
+                  "Y" : 5.0000000000000000E-001,
+                  "Z" : 5.0000000000000000E-001,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "TranslationPersistent" : {
+                  "X" : -1.4412346191406250E+003,
+                  "Y" : -6.7299645996093750E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "AutoAnimation" : "rotate",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "GoldCoin4",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "ScalePersistent" : {
+                  "X" : 5.0000000000000000E-001,
+                  "Y" : 5.0000000000000000E-001,
+                  "Z" : 5.0000000000000000E-001,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "TranslationPersistent" : {
+                  "X" : -1.5828599853515625E+003,
+                  "Y" : -2.5299999237060547E+001,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              }
+            ],
+            "$ClassName" : "TCastleTransform"
+          },
+          {
+            "Name" : "Enemies",
+            "TranslationPersistent" : {
+              "Z" : 1.0000000000000000E+001,
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "$Children" : [
+              {
+                "AnimateOnlyWhenVisible" : true,
+                "AutoAnimation" : "idle",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Spider1",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : -4.1892999267578125E+002,
+                  "Y" : -2.2872999572753906E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "AnimateOnlyWhenVisible" : true,
+                "AutoAnimation" : "idle",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Spider2",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : 6.5463977050781250E+002,
+                  "Y" : -9.8123275756835938E+001,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "AnimateOnlyWhenVisible" : true,
+                "AutoAnimation" : "idle",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Spider3",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : -5.4504425048828125E+002,
+                  "Y" : 3.3012927246093750E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "AnimateOnlyWhenVisible" : true,
+                "AutoAnimation" : "idle",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Spider4",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : -7.2816125488281250E+002,
+                  "Y" : 5.1559143066406250E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "AnimateOnlyWhenVisible" : true,
+                "AutoAnimation" : "idle",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Spider5",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : -1.5722735595703125E+003,
+                  "Y" : -6.7663049316406250E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "AnimateOnlyWhenVisible" : true,
+                "AutoAnimation" : "idle",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Spider6",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "ScalePersistent" : {
+                  "X" : -1.0000000000000000E+000,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "TranslationPersistent" : {
+                  "X" : -2.3822268066406250E+003,
+                  "Y" : -6.7663049316406250E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "AnimateOnlyWhenVisible" : true,
+                "AutoAnimation" : "idle",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Spider7",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : -1.4652751464843750E+003,
+                  "Y" : -3.9616485595703125E+001,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "AnimateOnlyWhenVisible" : true,
+                "AutoAnimation" : "idle",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Spider8",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "ScalePersistent" : {
+                  "X" : -1.0000000000000000E+000,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "TranslationPersistent" : {
+                  "X" : -2.2914028320312500E+003,
+                  "Y" : -6.7663049316406250E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "AnimateOnlyWhenVisible" : true,
+                "AutoAnimation" : "idle",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Spider9",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "ScalePersistent" : {
+                  "X" : -1.0000000000000000E+000,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "TranslationPersistent" : {
+                  "X" : -2.2067995605468750E+003,
+                  "Y" : -6.7663049316406250E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "AnimateOnlyWhenVisible" : true,
+                "AutoAnimation" : "idle",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Spider10",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "ScalePersistent" : {
+                  "X" : -1.0000000000000000E+000,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "TranslationPersistent" : {
+                  "X" : -2.4817609863281250E+003,
+                  "Y" : -6.7663049316406250E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "AnimateOnlyWhenVisible" : true,
+                "AutoAnimation" : "idle",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Spider11",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "ScalePersistent" : {
+                  "X" : -1.0000000000000000E+000,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "TranslationPersistent" : {
+                  "X" : -1.8932691650390625E+003,
+                  "Y" : -5.5594616699218750E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              }
+            ],
+            "$ClassName" : "TCastleTransform"
+          },
+          {
+            "Name" : "Platforms",
+            "TranslationPersistent" : {
+              "Z" : 1.0000000000000000E+001,
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "$Children" : [
+              {
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Platform1",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : -4.3614001464843750E+002,
+                  "Y" : -3.0013000488281250E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/platforms/ground_grass.png",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Platform6",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : -4.3614001464843750E+002,
+                  "Y" : 2.5132058715820312E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/platforms/ground_grass.png",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Platform7",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : -8.2539929199218750E+002,
+                  "Y" : 4.3175845336914062E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/platforms/ground_grass.png",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Platform2",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : 8.2379997253417969E+001,
+                  "Y" : -1.6475000000000000E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/platforms/ground_grass.png",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Platform5",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : 5.0110000610351562E+001,
+                  "Y" : -5.3303997802734375E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/platforms/ground_grass.png",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Platform3",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : 5.2715997314453125E+002,
+                  "Y" : -1.7369000244140625E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/platforms/ground_grass.png",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Platform4",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : 9.4017999267578125E+002,
+                  "Y" : 9.2980003356933594E+001,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/platforms/ground_grass.png",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "ExposeTransforms" : [
+                ],
+                "Name" : "SmallPlatform1",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : 3.1692999267578125E+002,
+                  "Y" : 1.4100000000000000E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/platforms/ground_grass_small.png",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "ExposeTransforms" : [
+                ],
+                "Name" : "SmallPlatform2",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : -1.3029560546875000E+003,
+                  "Y" : 1.0856173706054688E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/platforms/ground_grass_small.png",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "ExposeTransforms" : [
+                ],
+                "Name" : "SmallPlatform3",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : -1.1569838867187500E+003,
+                  "Y" : 2.7480786132812500E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/platforms/ground_grass_small.png",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              }
+            ],
+            "$ClassName" : "TCastleTransform"
+          },
+          {
             "Name" : "Stones",
             "TranslationPersistent" : {
               "Z" : 1.0000000000000000E+001,
@@ -2183,366 +2910,6 @@
             "$ClassName" : "TCastleScene"
           },
           {
-            "Name" : "Platforms",
-            "TranslationPersistent" : {
-              "Z" : 1.0000000000000000E+001,
-              "$ClassName" : "TCastleVector3Persistent"
-            },
-            "$Children" : [
-              {
-                "ExposeTransforms" : [
-                ],
-                "Name" : "Platform1",
-                "RenderOptions" : {
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
-                },
-                "TranslationPersistent" : {
-                  "X" : -4.3614001464843750E+002,
-                  "Y" : -3.0013000488281250E+002,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "URL" : "castle-data:/platforms/ground_grass.png",
-                "$Children" : [
-                ],
-                "$ClassName" : "TCastleScene"
-              },
-              {
-                "ExposeTransforms" : [
-                ],
-                "Name" : "Platform6",
-                "RenderOptions" : {
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
-                },
-                "TranslationPersistent" : {
-                  "X" : -4.3614001464843750E+002,
-                  "Y" : 2.5132058715820312E+002,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "URL" : "castle-data:/platforms/ground_grass.png",
-                "$Children" : [
-                ],
-                "$ClassName" : "TCastleScene"
-              },
-              {
-                "ExposeTransforms" : [
-                ],
-                "Name" : "Platform7",
-                "RenderOptions" : {
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
-                },
-                "TranslationPersistent" : {
-                  "X" : -8.2539929199218750E+002,
-                  "Y" : 4.3175845336914062E+002,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "URL" : "castle-data:/platforms/ground_grass.png",
-                "$Children" : [
-                ],
-                "$ClassName" : "TCastleScene"
-              },
-              {
-                "ExposeTransforms" : [
-                ],
-                "Name" : "Platform2",
-                "RenderOptions" : {
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
-                },
-                "TranslationPersistent" : {
-                  "X" : 8.2379997253417969E+001,
-                  "Y" : -1.6475000000000000E+002,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "URL" : "castle-data:/platforms/ground_grass.png",
-                "$Children" : [
-                ],
-                "$ClassName" : "TCastleScene"
-              },
-              {
-                "ExposeTransforms" : [
-                ],
-                "Name" : "Platform5",
-                "RenderOptions" : {
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
-                },
-                "TranslationPersistent" : {
-                  "X" : 5.0110000610351562E+001,
-                  "Y" : -5.3303997802734375E+002,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "URL" : "castle-data:/platforms/ground_grass.png",
-                "$Children" : [
-                ],
-                "$ClassName" : "TCastleScene"
-              },
-              {
-                "ExposeTransforms" : [
-                ],
-                "Name" : "Platform3",
-                "RenderOptions" : {
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
-                },
-                "TranslationPersistent" : {
-                  "X" : 5.2715997314453125E+002,
-                  "Y" : -1.7369000244140625E+002,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "URL" : "castle-data:/platforms/ground_grass.png",
-                "$Children" : [
-                ],
-                "$ClassName" : "TCastleScene"
-              },
-              {
-                "ExposeTransforms" : [
-                ],
-                "Name" : "Platform4",
-                "RenderOptions" : {
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
-                },
-                "TranslationPersistent" : {
-                  "X" : 9.4017999267578125E+002,
-                  "Y" : 9.2980003356933594E+001,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "URL" : "castle-data:/platforms/ground_grass.png",
-                "$Children" : [
-                ],
-                "$ClassName" : "TCastleScene"
-              },
-              {
-                "ExposeTransforms" : [
-                ],
-                "Name" : "SmallPlatform1",
-                "RenderOptions" : {
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
-                },
-                "TranslationPersistent" : {
-                  "X" : 3.1692999267578125E+002,
-                  "Y" : 1.4100000000000000E+002,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "URL" : "castle-data:/platforms/ground_grass_small.png",
-                "$Children" : [
-                ],
-                "$ClassName" : "TCastleScene"
-              },
-              {
-                "ExposeTransforms" : [
-                ],
-                "Name" : "SmallPlatform2",
-                "RenderOptions" : {
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
-                },
-                "TranslationPersistent" : {
-                  "X" : -1.3029560546875000E+003,
-                  "Y" : 1.0856173706054688E+002,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "URL" : "castle-data:/platforms/ground_grass_small.png",
-                "$Children" : [
-                ],
-                "$ClassName" : "TCastleScene"
-              },
-              {
-                "ExposeTransforms" : [
-                ],
-                "Name" : "SmallPlatform3",
-                "RenderOptions" : {
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
-                },
-                "TranslationPersistent" : {
-                  "X" : -1.1569838867187500E+003,
-                  "Y" : 2.7480786132812500E+002,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "URL" : "castle-data:/platforms/ground_grass_small.png",
-                "$Children" : [
-                ],
-                "$ClassName" : "TCastleScene"
-              }
-            ],
-            "$ClassName" : "TCastleTransform"
-          },
-          {
-            "Name" : "Coins",
-            "TranslationPersistent" : {
-              "Z" : 1.0000000000000000E+001,
-              "$ClassName" : "TCastleVector3Persistent"
-            },
-            "$Children" : [
-              {
-                "AutoAnimation" : "rotate",
-                "ExposeTransforms" : [
-                ],
-                "Name" : "GoldCoin1",
-                "ProcessEvents" : true,
-                "RenderOptions" : {
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
-                },
-                "ScalePersistent" : {
-                  "X" : 5.0000000000000000E-001,
-                  "Y" : 5.0000000000000000E-001,
-                  "Z" : 5.0000000000000000E-001,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "TranslationPersistent" : {
-                  "X" : 8.9165997314453125E+002,
-                  "Y" : 1.8191999816894531E+002,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
-                "$Children" : [
-                ],
-                "$ClassName" : "TCastleScene"
-              },
-              {
-                "AutoAnimation" : "rotate",
-                "ExposeTransforms" : [
-                ],
-                "Name" : "GoldCoin2",
-                "ProcessEvents" : true,
-                "RenderOptions" : {
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
-                },
-                "ScalePersistent" : {
-                  "X" : 5.0000000000000000E-001,
-                  "Y" : 5.0000000000000000E-001,
-                  "Z" : 5.0000000000000000E-001,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "TranslationPersistent" : {
-                  "X" : 3.8110998535156250E+002,
-                  "Y" : 2.3761000061035156E+002,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
-                "$Children" : [
-                ],
-                "$ClassName" : "TCastleScene"
-              },
-              {
-                "AutoAnimation" : "rotate",
-                "ExposeTransforms" : [
-                ],
-                "Name" : "GoldCoin3",
-                "ProcessEvents" : true,
-                "RenderOptions" : {
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
-                },
-                "ScalePersistent" : {
-                  "X" : 5.0000000000000000E-001,
-                  "Y" : 5.0000000000000000E-001,
-                  "Z" : 5.0000000000000000E-001,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "TranslationPersistent" : {
-                  "X" : -5.5555999755859375E+002,
-                  "Y" : -2.1791999816894531E+002,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
-                "$Children" : [
-                ],
-                "$ClassName" : "TCastleScene"
-              },
-              {
-                "AutoAnimation" : "rotate",
-                "ExposeTransforms" : [
-                ],
-                "Name" : "GoldCoin5",
-                "ProcessEvents" : true,
-                "RenderOptions" : {
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
-                },
-                "ScalePersistent" : {
-                  "X" : 5.0000000000000000E-001,
-                  "Y" : 5.0000000000000000E-001,
-                  "Z" : 5.0000000000000000E-001,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "TranslationPersistent" : {
-                  "X" : -1.4412346191406250E+003,
-                  "Y" : -6.7299645996093750E+002,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
-                "$Children" : [
-                ],
-                "$ClassName" : "TCastleScene"
-              },
-              {
-                "AutoAnimation" : "rotate",
-                "ExposeTransforms" : [
-                ],
-                "Name" : "GoldCoin4",
-                "ProcessEvents" : true,
-                "RenderOptions" : {
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
-                },
-                "ScalePersistent" : {
-                  "X" : 5.0000000000000000E-001,
-                  "Y" : 5.0000000000000000E-001,
-                  "Z" : 5.0000000000000000E-001,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "TranslationPersistent" : {
-                  "X" : -1.5828599853515625E+003,
-                  "Y" : -2.5299999237060547E+001,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
-                "$Children" : [
-                ],
-                "$ClassName" : "TCastleScene"
-              }
-            ],
-            "$ClassName" : "TCastleTransform"
-          },
-          {
             "Name" : "PowerUps",
             "TranslationPersistent" : {
               "Z" : 1.0000000000000000E+001,
@@ -2593,331 +2960,15 @@
               }
             ],
             "$ClassName" : "TCastleTransform"
-          },
-          {
-            "Name" : "Enemies",
-            "TranslationPersistent" : {
-              "Z" : 1.0000000000000000E+001,
-              "$ClassName" : "TCastleVector3Persistent"
-            },
-            "$Children" : [
-              {
-                "AnimateOnlyWhenVisible" : true,
-                "AutoAnimation" : "idle",
-                "ExposeTransforms" : [
-                ],
-                "Name" : "Spider1",
-                "ProcessEvents" : true,
-                "RenderOptions" : {
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
-                },
-                "TranslationPersistent" : {
-                  "X" : -4.1892999267578125E+002,
-                  "Y" : -2.2872999572753906E+002,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
-                "$Children" : [
-                ],
-                "$ClassName" : "TCastleScene"
-              },
-              {
-                "AnimateOnlyWhenVisible" : true,
-                "AutoAnimation" : "idle",
-                "ExposeTransforms" : [
-                ],
-                "Name" : "Spider2",
-                "ProcessEvents" : true,
-                "RenderOptions" : {
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
-                },
-                "TranslationPersistent" : {
-                  "X" : 6.5463977050781250E+002,
-                  "Y" : -9.8123275756835938E+001,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
-                "$Children" : [
-                ],
-                "$ClassName" : "TCastleScene"
-              },
-              {
-                "AnimateOnlyWhenVisible" : true,
-                "AutoAnimation" : "idle",
-                "ExposeTransforms" : [
-                ],
-                "Name" : "Spider3",
-                "ProcessEvents" : true,
-                "RenderOptions" : {
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
-                },
-                "TranslationPersistent" : {
-                  "X" : -5.4504425048828125E+002,
-                  "Y" : 3.3012927246093750E+002,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
-                "$Children" : [
-                ],
-                "$ClassName" : "TCastleScene"
-              },
-              {
-                "AnimateOnlyWhenVisible" : true,
-                "AutoAnimation" : "idle",
-                "ExposeTransforms" : [
-                ],
-                "Name" : "Spider4",
-                "ProcessEvents" : true,
-                "RenderOptions" : {
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
-                },
-                "TranslationPersistent" : {
-                  "X" : -7.2816125488281250E+002,
-                  "Y" : 5.1559143066406250E+002,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
-                "$Children" : [
-                ],
-                "$ClassName" : "TCastleScene"
-              },
-              {
-                "AnimateOnlyWhenVisible" : true,
-                "AutoAnimation" : "idle",
-                "ExposeTransforms" : [
-                ],
-                "Name" : "Spider5",
-                "ProcessEvents" : true,
-                "RenderOptions" : {
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
-                },
-                "TranslationPersistent" : {
-                  "X" : -1.5722735595703125E+003,
-                  "Y" : -6.7663049316406250E+002,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
-                "$Children" : [
-                ],
-                "$ClassName" : "TCastleScene"
-              },
-              {
-                "AnimateOnlyWhenVisible" : true,
-                "AutoAnimation" : "idle",
-                "ExposeTransforms" : [
-                ],
-                "Name" : "Spider6",
-                "ProcessEvents" : true,
-                "RenderOptions" : {
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
-                },
-                "ScalePersistent" : {
-                  "X" : -1.0000000000000000E+000,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "TranslationPersistent" : {
-                  "X" : -2.3822268066406250E+003,
-                  "Y" : -6.7663049316406250E+002,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
-                "$Children" : [
-                ],
-                "$ClassName" : "TCastleScene"
-              },
-              {
-                "AnimateOnlyWhenVisible" : true,
-                "AutoAnimation" : "idle",
-                "ExposeTransforms" : [
-                ],
-                "Name" : "Spider7",
-                "ProcessEvents" : true,
-                "RenderOptions" : {
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
-                },
-                "TranslationPersistent" : {
-                  "X" : -1.4652751464843750E+003,
-                  "Y" : -3.9616485595703125E+001,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
-                "$Children" : [
-                ],
-                "$ClassName" : "TCastleScene"
-              },
-              {
-                "AnimateOnlyWhenVisible" : true,
-                "AutoAnimation" : "idle",
-                "ExposeTransforms" : [
-                ],
-                "Name" : "Spider8",
-                "ProcessEvents" : true,
-                "RenderOptions" : {
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
-                },
-                "ScalePersistent" : {
-                  "X" : -1.0000000000000000E+000,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "TranslationPersistent" : {
-                  "X" : -2.2914028320312500E+003,
-                  "Y" : -6.7663049316406250E+002,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
-                "$Children" : [
-                ],
-                "$ClassName" : "TCastleScene"
-              },
-              {
-                "AnimateOnlyWhenVisible" : true,
-                "AutoAnimation" : "idle",
-                "ExposeTransforms" : [
-                ],
-                "Name" : "Spider9",
-                "ProcessEvents" : true,
-                "RenderOptions" : {
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
-                },
-                "ScalePersistent" : {
-                  "X" : -1.0000000000000000E+000,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "TranslationPersistent" : {
-                  "X" : -2.2067995605468750E+003,
-                  "Y" : -6.7663049316406250E+002,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
-                "$Children" : [
-                ],
-                "$ClassName" : "TCastleScene"
-              },
-              {
-                "AnimateOnlyWhenVisible" : true,
-                "AutoAnimation" : "idle",
-                "ExposeTransforms" : [
-                ],
-                "Name" : "Spider10",
-                "ProcessEvents" : true,
-                "RenderOptions" : {
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
-                },
-                "ScalePersistent" : {
-                  "X" : -1.0000000000000000E+000,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "TranslationPersistent" : {
-                  "X" : -2.4817609863281250E+003,
-                  "Y" : -6.7663049316406250E+002,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
-                "$Children" : [
-                ],
-                "$ClassName" : "TCastleScene"
-              },
-              {
-                "AnimateOnlyWhenVisible" : true,
-                "AutoAnimation" : "idle",
-                "ExposeTransforms" : [
-                ],
-                "Name" : "Spider11",
-                "ProcessEvents" : true,
-                "RenderOptions" : {
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
-                },
-                "ScalePersistent" : {
-                  "X" : -1.0000000000000000E+000,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "TranslationPersistent" : {
-                  "X" : -1.8932691650390625E+003,
-                  "Y" : -5.5594616699218750E+002,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
-                "$Children" : [
-                ],
-                "$ClassName" : "TCastleScene"
-              }
-            ],
-            "$ClassName" : "TCastleTransform"
-          },
-          {
-            "Name" : "FallingObstacles",
-            "$Children" : [
-              {
-                "ExposeTransforms" : [
-                ],
-                "Name" : "FallingObstacle1",
-                "RenderOptions" : {
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
-                },
-                "ScalePersistent" : {
-                  "X" : 1.1000000238418579E+000,
-                  "Y" : 1.1000000238418579E+000,
-                  "Z" : 1.1000000238418579E+000,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "TranslationPersistent" : {
-                  "X" : -5.6322705078125000E+002,
-                  "Y" : -3.6748828125000000E+002,
-                  "Z" : 3.0000000000000000E+000,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "URL" : "castle-data:/obstacle/spikeTop.png",
-                "$Children" : [
-                ],
-                "$ClassName" : "TCastleScene"
-              }
-            ],
-            "$ClassName" : "TCastleTransform"
           }
         ],
         "$ClassName" : "TCastleRootTransform"
       },
       "Name" : "MainViewport",
-      "Navigation" : "Navigation1",
+      "Navigation" : "Navigation2D1",
       "$Children" : [
         {
-          "Name" : "Navigation1",
+          "Name" : "Navigation2D1",
           "$Children" : [
           ],
           "$ClassName" : "TCastle2DNavigation"

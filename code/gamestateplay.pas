@@ -10,7 +10,7 @@ interface
 uses Classes,
   CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleKeysMouse, CastleViewport, CastleScene, CastleVectors, CastleTransform,
-  GameEnemy, GameFallingObstacle;
+  GameEnemy, GameFallingObstacle, GameDeadlyObstacle;
 
 type
   TLevelBounds = class (TComponent)
@@ -68,6 +68,9 @@ type
 
     { Falling obstacles (spike) behaviours }
     FallingObstacles: TFallingObstaclesList;
+
+    { Deadly obstacles (spikes) behaviours }
+    DeadlyObstacles: TDeadlyObstaclesList;
 
     procedure ConfigurePlatformPhysics(Platform: TCastleScene);
     procedure ConfigureCoinsPhysics(const Coin: TCastleScene);
@@ -1124,11 +1127,14 @@ var
   StonesRoot: TCastleTransform;
   EnemiesRoot: TCastleTransform;
   FallingObstaclesRoot: TCastleTransform;
+  DeadlyObstaclesRoot: TCastleTransform;
   PowerUps: TCastleTransform;
   Enemy: TEnemy;
   EnemyScene: TCastleScene;
   FallingObstacleScene: TCastleScene;
   FallingObstacle: TFallingObstacle;
+  DeadlyObstacleScene: TCastleScene;
+  DeadlyObstacle: TDeadlyObstacle;
   I, J: Integer;
 begin
   inherited;
@@ -1218,6 +1224,18 @@ begin
     FallingObstacles.Add(FallingObstacle);
   end;
 
+  DeadlyObstacles := TDeadlyObstaclesList.Create(true);
+  DeadlyObstaclesRoot := DesignedComponent('DeadlyObstacles') as TCastleTransform;
+  for I := 0 to DeadlyObstaclesRoot.Count - 1 do
+  begin
+    DeadlyObstacleScene := DeadlyObstaclesRoot.Items[I] as TCastleScene;
+    { Below using nil as Owner of TFallingObstacle, as the list already "owns"
+      instances of this class, i.e. it will free them. }
+    DeadlyObstacle := TDeadlyObstacle.Create(nil);
+    DeadlyObstacleScene.AddBehavior(DeadlyObstacle);
+    DeadlyObstacles.Add(DeadlyObstacle);
+  end;
+
   { Configure physics for player }
   ConfigurePlayerPhysics(ScenePlayer);
   ConfigurePlayerAbilities(ScenePlayer);
@@ -1229,6 +1247,7 @@ procedure TStatePlay.Stop;
 begin
   FreeAndNil(Enemies);
   FreeAndNil(FallingObstacles);
+  FreeAndNil(DeadlyObstacles);
   inherited;
 end;
 
