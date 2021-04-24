@@ -444,10 +444,6 @@ clean: cleanexamples
 	  packages/alternative_castle_window_based_on_lcl.pas \
 	  tests/test_castle_game_engine \
 	  tests/test_castle_game_engine.exe \
-	  examples/mobile/drawing_toy/drawing_toy \
-	  examples/mobile/drawing_toy/drawing_toy.exe \
-	  examples/portable_game_skeleton/my_fantastic_game \
-	  examples/portable_game_skeleton/my_fantastic_game.exe \
 	  examples/fonts/font_draw_over_image_output.png \
 	  examples/short_api_samples/transform_save_load/aaa.castle-transform
 	$(MAKE) -C doc/man/man1/ clean

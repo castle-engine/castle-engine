@@ -1018,10 +1018,10 @@ type
       are still constrained by MinWidth, MaxWidth, MinHeight, MaxHeight
       and ResizeAllowed.
 
-      It is best to change this before the window is open.
-      If you use a cross-platform game unit (see
-      https://castle-engine.io/manual_cross_platform.php and
-      example in examples/portable_game_skeleton/ ) then it is best to place
+      It is best to adjust this property before the window is open,
+      this way window will be immediately open in the full-screen size.
+      In the standard case (see https://castle-engine.io/manual_cross_platform.php
+      about a typical initialization) you should place
       @code(Window.FullScreen := true) inside the unit initialization section.
 
       You can also change this property after the window is open.
