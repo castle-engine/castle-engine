@@ -539,9 +539,6 @@ const
 
 {$define read_interface}
 {$I castlescene_roottransform.inc}
-{$I castlescene_abstractprimitive.inc}
-{$I castlescene_box.inc}
-{$I castlescene_sphere.inc}
 {$undef read_interface}
 
 implementation
