@@ -55,6 +55,7 @@ type
     procedure TestStarlingAndAnchors;
     procedure TestCocos;
     procedure TestImageAsNode;
+    procedure TestPlayStopAnim;
   end;
 
 implementation
@@ -602,6 +603,25 @@ begin
   try
     Scene.Load('castle-data:/sprite-sheets/cocos2d_wolf/wolf.png#left:100,bottom:100,width:256,height:256');
     AssertEquals(0, Scene.AnimationsList.Count);
+  finally FreeAndNil(Scene) end;
+end;
+
+procedure TTestSceneCore.TestPlayStopAnim;
+var
+  Scene: TCastleScene;
+begin
+  Scene := TCastleScene.Create(nil);
+  try
+    Scene.ProcessEvents := true;
+    Scene.Load('castle-data:/spine/escape_from_the_universe_boss/boss.json');
+    Scene.Exists := false; // doesn't matter for animation playing
+
+    Scene.PlayAnimation('flying', true);
+    AssertTrue(Scene.CurrentAnimation <> nil);
+    AssertEquals('flying', Scene.CurrentAnimation.X3DName);
+
+    Scene.StopAnimation;
+    AssertTrue(Scene.CurrentAnimation = nil);
   finally FreeAndNil(Scene) end;
 end;
 

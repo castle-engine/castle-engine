@@ -673,6 +673,9 @@ type
       in practice too?) }
     procedure UpdateNewPlayingAnimation(out NeedsUpdateTimeDependentHandlers: Boolean);
 
+    { Call SetTime on all TimeDependentHandlers. }
+    procedure UpdateTimeDependentHandlers(const TimeIncrease: TFloatTime; const ResetTime: boolean);
+
     function SensibleCameraRadius(const WorldBox: TBox3D;
       out RadiusAutomaticallyDerivedFromBox: Boolean): Single;
 
@@ -1977,7 +1980,7 @@ type
 
     function Animations: TStringList; deprecated 'use AnimationsList (and do not free it''s result)';
 
-    { Forcefully, immediately, set 3D pose from given animation,
+    { Forcefully, immediately, set pose from given animation,
       with given time in animation.
 
       This avoids the normal passage of time in X3D scenes,
@@ -6684,43 +6687,43 @@ begin
   end;
 end;
 
+procedure TCastleSceneCore.UpdateTimeDependentHandlers(
+  const TimeIncrease: TFloatTime; const ResetTime: boolean);
+var
+  SomethingVisibleChanged, SomePartialSend: boolean;
+  I: Integer;
+  T: TFloatTime;
+  TimeHandler: TInternalTimeDependentHandler;
+begin
+  SomethingVisibleChanged := false;
+  T := Time;
+  SomePartialSend := false;
+
+  for I := 0 to TimeDependentHandlers.Count - 1 do
+  begin
+    TimeHandler := TimeDependentHandlers[I];
+
+    PartialSendBegin(TimeHandler);
+    if TimeHandler.PartialSend <> nil then
+      SomePartialSend := true;
+
+    if TimeHandler.SetTime(T, TimeIncrease, ResetTime) and
+      (TimeHandler.Node is TMovieTextureNode) then
+      SomethingVisibleChanged := true;
+
+    PartialSendEnd(TimeHandler);
+  end;
+
+  if not SomePartialSend then
+    NoPartialSend;
+
+  { If SomethingVisibleChanged (in MovieTexture nodes), we have to redisplay. }
+  if SomethingVisibleChanged then
+    VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+end;
+
 procedure TCastleSceneCore.InternalSetTime(
   const NewValue: TFloatTime; const TimeIncrease: TFloatTime; const ResetTime: boolean);
-
-  { Call SetTime on all TimeDependentHandlers. }
-  procedure UpdateTimeDependentHandlers(const ExtraTimeIncrease: TFloatTime);
-  var
-    SomethingVisibleChanged, SomePartialSend: boolean;
-    I: Integer;
-    T: TFloatTime;
-    TimeHandler: TInternalTimeDependentHandler;
-  begin
-    SomethingVisibleChanged := false;
-    T := Time;
-    SomePartialSend := false;
-
-    for I := 0 to TimeDependentHandlers.Count - 1 do
-    begin
-      TimeHandler := TimeDependentHandlers[I];
-
-      PartialSendBegin(TimeHandler);
-      if TimeHandler.PartialSend <> nil then
-        SomePartialSend := true;
-
-      if TimeHandler.SetTime(T, TimeIncrease + ExtraTimeIncrease, ResetTime) and
-        (TimeHandler.Node is TMovieTextureNode) then
-        SomethingVisibleChanged := true;
-
-      PartialSendEnd(TimeHandler);
-    end;
-
-    if not SomePartialSend then
-      NoPartialSend;
-
-    { If SomethingVisibleChanged (in MovieTexture nodes), we have to redisplay. }
-    if SomethingVisibleChanged then
-      VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
-  end;
 
   { Call UpdateTimeDependentHandlers, but only if AnimateOnlyWhenVisible logic agrees.
     When ResetTime, we force always an UpdateTimeDependentHandlers(0.0) call.
@@ -6734,7 +6737,7 @@ procedure TCastleSceneCore.InternalSetTime(
         all skipping ticks if multiple animations are reset at the beginning
         of game, making randomization in SetAnimateSkipTicks pointless). }
       FAnimateGatheredTime := 0;
-      UpdateTimeDependentHandlers(FAnimateGatheredTime);
+      UpdateTimeDependentHandlers(TimeIncrease + FAnimateGatheredTime, ResetTime);
     end else
     if NeedsUpdate then
     begin
@@ -6742,7 +6745,7 @@ procedure TCastleSceneCore.InternalSetTime(
         of AnimateSkipNextTicks. Note that we do not reset AnimateSkipNextTicks
         (to avoid synchronizing AnimateSkipNextTicks of multiple animations
         started in the sam frame). }
-      UpdateTimeDependentHandlers(FAnimateGatheredTime);
+      UpdateTimeDependentHandlers(TimeIncrease + FAnimateGatheredTime, ResetTime);
       FAnimateGatheredTime := 0;
     end else
     if FAnimateOnlyWhenVisible and (not IsVisibleNow) then
@@ -6755,7 +6758,7 @@ procedure TCastleSceneCore.InternalSetTime(
       FAnimateGatheredTime := FAnimateGatheredTime + TimeIncrease;
     end else
     begin
-      UpdateTimeDependentHandlers(FAnimateGatheredTime);
+      UpdateTimeDependentHandlers(TimeIncrease + FAnimateGatheredTime, ResetTime);
       AnimateSkipNextTicks := AnimateSkipTicks;
       FAnimateGatheredTime := 0;
     end;
@@ -8294,14 +8297,26 @@ begin
   if NewPlayingAnimationUse then
   begin
     UpdateNewPlayingAnimation(NeedsUpdateTimeDependentHandlers);
+
+    { The case of NeedsUpdateTimeDependentHandlers = true is normal,
+      and we should handle it.
+      It can easily occur if the first thing you do with Scene is call Scene.PlayAnimation(...),
+      then Scene.StopAnimation within the same frame.
+      This will cause ApplyNewPlayingAnimation that will initialize the animation,
+      only to have it stopped immediately.
+      Such ApplyNewPlayingAnimation cannot Exit(false), as it would make StopAnimation to fail,
+      see https://github.com/castle-engine/castle-engine/issues/273 .
+
+      It is tempting to do nothing and ignore NeedsUpdateTimeDependentHandlers here.
+      It could be often OK, since we stop the animation?
+      But doing UpdateTimeDependentHandlers is what is consistent with normal code flow,
+      so safest. }
+    if NeedsUpdateTimeDependentHandlers then
+      UpdateTimeDependentHandlers(0, false); // update TimeSensors
+
     if NewPlayingAnimationUse then
     begin
       WritelnWarning('StopNotification callback of an old animation initialized another animation, bypassing the CurrentAnimation. The StopAnimation will not actually stop the animation, and the StopNotification callback of the CurrentAnimation is now overridden so we cannot call it anymore.');
-      Exit(false);
-    end;
-    if NeedsUpdateTimeDependentHandlers then
-    begin
-      WritelnWarning('StopNotification callback of an old animation caused NeedsUpdateTimeDependentHandlers, suggesting it started another animation. A default animation pose may blink if AnimateSkipTicks <> 0.');
       Exit(false);
     end;
   end;
@@ -8314,30 +8329,6 @@ begin
     PlayingAnimationStopNotification := nil;
   end else
   begin
-    { TODO: We can cause NeedsUpdateTimeDependentHandlers warning from ApplyNewPlayingAnimation,
-      if the new animation occurs that never played,
-      because scene had Exists = false. Testcase:
-
-        uses SysUtils, CastleScene, CastleLog;
-        var
-          Scene: TCastleScene;
-        begin
-          InitializeLog;
-          Scene := TCastleScene.Create(nil);
-          try
-            Scene.ProcessEvents := true;
-            Scene.Load('data/walking/assets/hotel_room/hotel_room_phone/hotel_room_phone.json');
-            Scene.Exists := false;
-            Scene.PlayAnimation('vibrate', true);
-            Scene.StopAnimation;
-          finally FreeAndNil(Scene) end;
-        end.
-
-      Right now only the DisableStopNotification case avoids it (in a brutal way,
-      as it avoids calling ApplyNewPlayingAnimation,
-      as it's pointless in this case.
-    }
-
     { If new animation was requested, but not yet processed by UpdateNewPlayingAnimation:
       Make it start, to early call the "stop notification" callback
       for the previous animation (before calling the "stop notification"
