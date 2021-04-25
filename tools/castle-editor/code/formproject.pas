@@ -32,6 +32,8 @@ type
   TProjectForm = class(TForm)
     ActionNewSpriteSheet: TAction;
     ActionList: TActionList;
+    MenuItemNewCastleSpriteSheet: TMenuItem;
+    MenuItemData: TMenuItem;
     MenuItemNewSpriteSheet: TMenuItem;
     MenuItemSepraratorSLP002: TMenuItem;
     ActionRegenerateProject: TAction;
