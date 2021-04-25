@@ -1108,10 +1108,13 @@ begin
 
   if Assigned(Collider) and Assigned(Collider.FKraftShape) then
   begin
+    { Note: ksfRayCastable flag determines whether body is detected by PhysicsRayCast. }
     if FExists then
-      Collider.FKraftShape.Flags := Collider.FKraftShape.Flags + [ksfCollision]
+      Collider.FKraftShape.Flags := Collider.FKraftShape.Flags + [ksfCollision,
+        ksfRayCastable]
     else
-      Collider.FKraftShape.Flags := Collider.FKraftShape.Flags - [ksfCollision];
+      Collider.FKraftShape.Flags := Collider.FKraftShape.Flags - [ksfCollision,
+        ksfRayCastable];
   end;
 end;
 
