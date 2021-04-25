@@ -320,30 +320,16 @@ var
       UniqueParent.Scale := OldScale;
   end;
 
-const
-  AssumeNear = 1.0;
-var
-  // ViewProjectionMatrix: TMatrix4;
-  ZeroProjected, OneProjected: TVector2;
-  OneDistance, ScaleUniform: Single;
-  ZeroWorld, OneWorld, OneProjected3, ZeroProjected3, CameraPos, CameraSide: TVector3;
-  CameraNearPlane: TVector4;
-  GizmoScale: Single;
-  Camera: TCastleCamera;
-begin
-  { Adjust scale to take the same space on screen. }
-  if HasWorldTransform and
-     (World <> nil) and
-     (World.MainCamera <> nil) then
+  function GetPerspectiveGizmoScale(const Camera: TCastleCamera; const BaseGizmoScale: Single): Single;
+  const
+    AssumeNear = 1.0;
+  var
+    // ViewProjectionMatrix: TMatrix4;
+    ZeroProjected, OneProjected: TVector2;
+    OneDistance: Single;
+    ZeroWorld, OneWorld, OneProjected3, ZeroProjected3, CameraPos, CameraSide: TVector3;
+    CameraNearPlane: TVector4;
   begin
-    Camera := World.MainCamera;
-
-    if Camera.ProjectionType = ptOrthographic then
-      { We just want gizmo is about 15% of effective height }
-      GizmoScale := 0.15 * Camera.Orthographic.EffectiveHeight
-    else
-      GizmoScale := 0.25 {TODO:* Camera.Perspective.EffeectiveFieldOfViewVertical};
-
     BeginWorldTransform;
 
     { Map two points from gizmo local transformation,
@@ -373,9 +359,9 @@ begin
     CameraNearPlane.W := - TVector3.DotProduct(
       CameraPos + Camera.Direction * AssumeNear, Camera.Direction);
     if not TryPlaneLineIntersection(OneProjected3, CameraNearPlane, CameraPos, OneWorld - CameraPos) then
-      Exit;
+      Exit(1.0); // no valid value can be calculated
     if not TryPlaneLineIntersection(ZeroProjected3, CameraNearPlane, CameraPos, ZeroWorld - CameraPos) then
-      Exit;
+      Exit(1.0); // no valid value can be calculated
 
     CameraSide := TVector3.CrossProduct(Camera.Direction, Camera.Up);
     ZeroProjected := Projected(ZeroProjected3, CameraSide, Camera.Up);
@@ -384,12 +370,34 @@ begin
     // get the distance, on screen in pixels, of a 1 unit in 3D around gizmo
     OneDistance := PointsDistance(ZeroProjected, OneProjected);
 
-    if Camera.ProjectionType = ptOrthographic then
-          ScaleUniform := WorldToLocalDistance(GizmoScale)
-    else if IsZero(OneDistance) then
-      ScaleUniform := 1
+    if IsZero(OneDistance) then
+      Result := 1
     else
-      ScaleUniform := GizmoScale / OneDistance;
+      Result := BaseGizmoScale / OneDistance;
+  end;
+
+var
+  Camera: TCastleCamera;
+  GizmoScale, ScaleUniform: Single;
+begin
+  { Adjust scale to take the same space on screen. }
+  if HasWorldTransform and
+     (World <> nil) and
+     (World.MainCamera <> nil) then
+  begin
+    Camera := World.MainCamera;
+
+    if Camera.ProjectionType = ptOrthographic then
+    begin
+      { We just want gizmo is about 15% of effective height }
+      GizmoScale := 0.15 * Camera.Orthographic.EffectiveHeight;
+      ScaleUniform := WorldToLocalDistance(GizmoScale);
+    end else
+    begin
+      GizmoScale := 0.25 {TODO:* Camera.Perspective.EffeectiveFieldOfViewVertical};
+      ScaleUniform := GetPerspectiveGizmoScale(Camera, GizmoScale);
+    end;
+
     Scale := Vector3(ScaleUniform, ScaleUniform, ScaleUniform);
   end;
 end;
