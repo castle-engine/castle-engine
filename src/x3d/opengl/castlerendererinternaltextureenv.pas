@@ -320,7 +320,7 @@ procedure ModeFromString(const S: string;
     begin
       { LS = '' means that mode list was too short.
         X3D spec says explicitly that default mode is "MODULATE"
-        in this case. (Accidentaly, this also will accept
+        in this case. (Accidentally, this also will accept
         explict "" string as "MODULATE" --- not a worry, we don't
         have to produce error messages for all possible invalid VRMLs...). }
 

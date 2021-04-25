@@ -1163,7 +1163,7 @@ begin
     { Although GetTempFileName should add some randomization here,
       there's no guarantee. And we really need randomization ---
       we may load ffmpeg output using image %d pattern, so we don't want to
-      accidentaly pick up other images in the temporary directory
+      accidentally pick up other images in the temporary directory
       (e.g. leftovers from previous TRangeScreenShot.BeginCapture). }
     { System.Random, not just Random, to avoid using Random from MacOSAll unit. }
     IntToStr(System.Random(MaxInt)) + '_';

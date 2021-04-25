@@ -392,7 +392,7 @@ var
 
   { Maximum number of video frames to read, for TVideo.LoadFromFile.
 
-    This prevents using up all the memory by accidentaly trying to read
+    This prevents using up all the memory by accidentally trying to read
     a long movie. Remember that our current implementation is @bold(not)
     suited for long movies, it will load very slowly and consume a lot of memory.
     See https://castle-engine.io/x3d_implementation_texturing.php
