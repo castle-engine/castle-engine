@@ -1378,9 +1378,10 @@ type
     property RotationAccelerate: boolean
       read FRotationAccelerate write SetRotationAccelerate default true;
 
-    { Optional movement algorithm, moves the camera exactly as many units as
-      the mouse position has changed especially useful in 2D in the editor. }
-    property ExactMovement: Boolean read FExactMovement write FExactMovement default false;
+    { In orthographic projection with standard direction/up,
+      move the camera exactly as many units as the mouse position change indicates.
+      Makes the movemement in standard orthographic view most natural. }
+    property ExactMovement: Boolean read FExactMovement write FExactMovement default true;
   end;
 
   TCastle2DNavigation = class (TCastleExamineNavigation)
@@ -1391,7 +1392,6 @@ type
     property MouseButtonZoom default buttonMiddle;
   published
     property RotationEnabled default false;
-    property ExactMovement default true;
   end;
 
   TCastleWalkNavigation = class;
@@ -2226,7 +2226,6 @@ begin
   RotationEnabled := false;
   MouseButtonMove := buttonLeft;
   MouseButtonZoom := buttonMiddle;
-  FExactMovement := true;
 end;
 
 { TCastlePerspective --------------------------------------------------------- }
@@ -3100,6 +3099,7 @@ begin
   FMouseButtonRotate := buttonLeft;
   FMouseButtonMove := buttonMiddle;
   FMouseButtonZoom := buttonRight;
+  FExactMovement := true;
 
   for I := 0 to 2 do
     for B := false to true do
@@ -3759,8 +3759,10 @@ begin
      (not GoodModelBox.IsEmpty) and
      (MouseButtonMove = DraggingMouseButton) then
   begin
-    if (Camera.ProjectionType = ptOrthographic) and
-       ExactMovement and
+    if ExactMovement and
+       (Camera.ProjectionType = ptOrthographic) and
+       TVector3.Equals(Camera.Direction, DefaultCameraDirection) and
+       TVector3.Equals(Camera.Up, DefaultCameraUp) and
        (InternalViewport <> nil) then
     begin
       Translation := Translation + Vector3(
