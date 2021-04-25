@@ -391,7 +391,7 @@ begin
     begin
       { We just want gizmo is about 15% of effective height }
       GizmoScale := 0.15 * Camera.Orthographic.EffectiveHeight;
-      ScaleUniform := WorldToLocalDistance(GizmoScale);
+      ScaleUniform := UniqueParent.WorldToLocalDistance(GizmoScale);
     end else
     begin
       GizmoScale := 0.25 {TODO:* Camera.Perspective.EffeectiveFieldOfViewVertical};
