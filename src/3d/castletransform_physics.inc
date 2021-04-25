@@ -1061,7 +1061,7 @@ begin
     if Hit then
     begin
       Distance := FTransform.UniqueParent.WorldToLocalDistance(ResultingDistance);
-      Result := TCastleTransform(Shape.RigidBody.UserData);
+      Result := TRigidBody(Shape.RigidBody.UserData).FTransform;
     end else
       Result := nil;
   finally
