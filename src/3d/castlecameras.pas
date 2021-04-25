@@ -1387,7 +1387,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 
-    property MouseButtonMove default buttonRight;
+    property MouseButtonMove default buttonLeft;
     property MouseButtonZoom default buttonMiddle;
   published
     property RotationEnabled default false;
@@ -2224,7 +2224,7 @@ begin
   inherited Create(AOwner);
 
   RotationEnabled := false;
-  MouseButtonMove := buttonRight;
+  MouseButtonMove := buttonLeft;
   MouseButtonZoom := buttonMiddle;
   FExactMovement := true;
 end;
