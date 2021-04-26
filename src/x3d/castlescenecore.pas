@@ -2453,11 +2453,23 @@ type
     property PrimitiveGeometry: TPrimitiveGeometry
       read FPrimitiveGeometry write SetPrimitiveGeometry default pgNone;
 
-    { If set, this animation will be automatically played once the model
-      is loaded (each time URL changes). @link(AutoAnimationLoop) controls
-      whether it loops. }
+    { If AutoAnimation is set, this animation will be automatically played.
+      It is useful to determine the initial animation, played once the model
+      is loaded (each time URL changes). You can also change AutoAnimation
+      at any other moment at runtime (set it to something non-empty to change to a new animation;
+      set it to '' to stop any animation).
+
+      Note: Using @link(AutoAnimation) will under the hood call methods like @link(PlayAnimation),
+      @link(StopAnimation) and update @link(CurrentAnimation).
+      The reverse is not true: calling @link(PlayAnimation) doesn't change @link(AutoAnimation).
+      So you can think of @link(AutoAnimation) as "an initial animation, activated each time
+      we load the model, even if later we can change it to something else using @link(PlayAnimation)".
+
+      @seealso AutoAnimationLoop }
     property AutoAnimation: String
       read FAutoAnimation write SetAutoAnimation;
+
+    { Does the animation indicated by AutoAnimation loops. }
     property AutoAnimationLoop: Boolean
       read FAutoAnimationLoop write SetAutoAnimationLoop default true;
 
