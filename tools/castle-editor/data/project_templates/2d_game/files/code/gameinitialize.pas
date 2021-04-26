@@ -13,11 +13,11 @@ implementation
 
 uses SysUtils,
   CastleWindow, CastleLog, CastleUIState
-  { CASTLE-INITIALIZATION-USES-BEGIN }
+  {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameStateMenu
   , GameStatePlay
-  { CASTLE-INITIALIZATION-USES-END };
+  {$endregion 'Castle Initialization Uses'};
 
 var
   Window: TCastleWindowBase;
@@ -29,11 +29,11 @@ begin
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
   { Create game states and set initial state }
-  { CASTLE-STATE-CREATE-BEGIN }
+  {$region 'Castle State Creation'}
   // The content here may be automatically updated by CGE editor.
   StatePlay := TStatePlay.Create(Application);
   StateMenu := TStateMenu.Create(Application);
-  { CASTLE-STATE-CREATE-END }
+  {$endregion 'Castle State Creation'}
 
   TUIState.Current := StateMenu;
 end;

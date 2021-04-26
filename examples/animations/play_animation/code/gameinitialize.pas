@@ -26,10 +26,10 @@ uses SysUtils,
   CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleUIControls, CastleApplicationProperties, CastleUIState
-  { CASTLE-INITIALIZATION-USES-BEGIN }
+  {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameStateMain
-  { CASTLE-INITIALIZATION-USES-END };
+  {$endregion 'Castle Initialization Uses'};
 
 var
   Window: TCastleWindowBase;
@@ -46,10 +46,10 @@ begin
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
   { Create game states and set initial state }
-  { CASTLE-STATE-CREATE-BEGIN }
+  {$region 'Castle State Creation'}
   // The content here may be automatically updated by CGE editor.
   StateMain := TStateMain.Create(Application);
-  { CASTLE-STATE-CREATE-END }
+  {$endregion 'Castle State Creation'}
 
   TUIState.Current := StateMain;
 end;

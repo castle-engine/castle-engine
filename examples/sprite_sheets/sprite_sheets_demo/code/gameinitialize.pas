@@ -24,10 +24,10 @@ implementation
 
 uses SysUtils,
   CastleWindow, CastleLog, CastleUIState
-  { CASTLE-INITIALIZATION-USES-BEGIN }
+  {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameStateMain
-  { CASTLE-INITIALIZATION-USES-END };
+  {$endregion 'Castle Initialization Uses'};
 
 var
   Window: TCastleWindowBase;
@@ -43,10 +43,10 @@ begin
     e.g. TStateMainMenu ("main menu state"),
     TStatePlay ("playing the game state"),
     TStateCredits ("showing the credits state") etc. }
-  { CASTLE-STATE-CREATE-BEGIN }
+  {$region 'Castle State Creation'}
   // The content here may be automatically updated by CGE editor.
   StateMain := TStateMain.Create(Application);
-  { CASTLE-STATE-CREATE-END }
+  {$endregion 'Castle State Creation'}
 
   TUIState.Current := StateMain;
 end;

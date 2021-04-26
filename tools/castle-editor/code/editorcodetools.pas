@@ -41,10 +41,10 @@ implementation
 uses CastleStringUtils, CastleFilesUtils, CastleURIUtils, CastleLog, CastleUtils;
 
 const
-  CommentStateCreateBegin = '{ CASTLE-STATE-CREATE-BEGIN }';
-  CommentStateCreateEnd   = '{ CASTLE-STATE-CREATE-END }';
-  CommentInitializationUsesBegin = '{ CASTLE-INITIALIZATION-USES-BEGIN }';
-  CommentInitializationUsesEnd   = '{ CASTLE-INITIALIZATION-USES-END }';
+  CommentStateCreateBegin = '{$region ''Castle State Creation''}';
+  CommentStateCreateEnd   = '{$endregion ''Castle State Creation''}';
+  CommentInitializationUsesBegin = '{$region ''Castle Initialization Uses''}';
+  CommentInitializationUsesEnd   = '{$endregion ''Castle Initialization Uses''}';
 
 function CheckUnitToInitializeState(const FileName: String): Boolean;
 var
@@ -127,4 +127,3 @@ begin
 end;
 
 end.
-
