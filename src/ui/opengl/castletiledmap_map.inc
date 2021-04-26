@@ -1162,6 +1162,8 @@ end;
 
 constructor TTiledMap.Create(const Stream: TStream; const BaseUrl_: String);
 begin
+  inherited Create;
+
   FTilesets := TTilesetList.Create;
   FProperties := TPropertyList.Create;
   FLayers := TLayerList.Create(true);
@@ -1172,14 +1174,20 @@ begin
 end;
 
 constructor TTiledMap.Create(const AURL: string);
+var
+  StreamOptions: TStreamOptions;
+  Gzipped: boolean;
+  Stream: TStream;
 begin
-  FTilesets := TTilesetList.Create;
-  FProperties := TPropertyList.Create;
-  FLayers := TLayerList.Create(true);
-  BaseUrl := AURL;
-
-  //Load TMX
-  LoadTMXFile(AURL);
+  // calculate Stream from AURL, automatically gunzip if extension says it
+  StreamOptions := [];
+  URIMimeType(AURL, Gzipped);
+  if Gzipped then
+    Include(StreamOptions, soGzip);
+  Stream := Download(AURL, StreamOptions);
+  try
+    Create(Stream, AURL);
+  finally FreeAndNil(Stream) end;
 end;
 
 destructor TTiledMap.Destroy;
