@@ -425,6 +425,19 @@ function TVisualizeTransform.TGizmoScene.PointingDevicePress(
 var
   AppearanceName: String;
   CanDrag: Boolean;
+
+  function IsOrthographicTranslation: Boolean;
+  begin
+    Result := (
+       (Operation = voTranslate)
+       and HasWorldTransform
+       and (World <> nil)
+       and (World.MainCamera <> nil)
+       and (World.MainCamera.ProjectionType = ptOrthographic)
+       and (TVector3.Equals(World.MainCamera.Direction, Vector3(0, 0, -1)))
+      );
+  end;
+
 begin
   Result := inherited;
   if Result then Exit;
@@ -441,18 +454,19 @@ begin
       'MaterialZ':
         begin
           { In 2D mode dragging Z axis means translate in X and Y. }
-          if (Operation = voTranslate)
-             and HasWorldTransform
-             and (World <> nil)
-             and (World.MainCamera <> nil)
-             and (World.MainCamera.ProjectionType = ptOrthographic)
-             and (TVector3.Equals(World.MainCamera.Direction, Vector3(0, 0, -1)))
-            then
+          if IsOrthographicTranslation then
             DraggingCoord := -2
           else
             DraggingCoord := 2;
         end;
-      'MaterialCenter': DraggingCoord := -1;
+      'MaterialCenter':
+        begin
+          { In 2D mode dragging center square means translate in X and Y. }
+          if IsOrthographicTranslation then
+            DraggingCoord := -2
+          else if (Operation = voScale) then
+            DraggingCoord := -1;
+        end;
       else Exit;
     end;
 
