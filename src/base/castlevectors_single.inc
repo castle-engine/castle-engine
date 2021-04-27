@@ -2512,7 +2512,11 @@ begin
   Move(M.Data[1], M3.Data[1], SizeOf(TVector3));
   Move(M.Data[2], M3.Data[2], SizeOf(TVector3));
   D := M3.Determinant;
-  if IsZero(D) then
+  { Comparing "IsZero(D)" would not be OK,
+    see TTestCastleVectors.TestEpsilonInModelViewToNormalMatrix ,
+    https://github.com/castle-engine/view3dscene/issues/35 }
+  //if IsZero(D) then
+  if D = 0 then
     { modelview not invertible, nothing good to do but we have to continue
       without errors, since this can happen with arbitrary 3D scenes. }
     Result := M3
