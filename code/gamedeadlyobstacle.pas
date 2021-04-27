@@ -109,7 +109,7 @@ procedure TDeadlyObstacle.CollisionExit(
 begin
   if Pos('ScenePlayer', CollisionDetails.OtherTransform.Name) > 0 then
   begin
-    IsPlayerColliding := true;
+    IsPlayerColliding := false;
     CollidingTime := 0;
   end;
 end;
