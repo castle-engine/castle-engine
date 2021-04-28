@@ -183,6 +183,7 @@ end;
 
 constructor TLevelBounds.Create(AOwner: TComponent);
 begin
+  inherited Create(AOwner);
   Left := -3072;
   Right := 5120;
   Top := 3072;
@@ -1143,12 +1144,14 @@ var
   Parameters: TPlayAnimationParameters;
 begin
   Parameters := TPlayAnimationParameters.Create;
-  Parameters.Loop := false;
-  Parameters.Name := AnimationNameToPlayOnce;
-  Parameters.Forward := true;
-  Parameters.StopNotification := @OnAnimationStop;
-  PlayerAnimationToLoop := AnimationNameToLoop;
-  Scene.PlayAnimation(Parameters);
+  try
+    Parameters.Loop := false;
+    Parameters.Name := AnimationNameToPlayOnce;
+    Parameters.Forward := true;
+    Parameters.StopNotification := @OnAnimationStop;
+    PlayerAnimationToLoop := AnimationNameToLoop;
+    Scene.PlayAnimation(Parameters);
+  finally FreeAndNil(Parameters) end;
 end;
 
 procedure TStatePlay.OnAnimationStop(const Scene: TCastleSceneCore;
