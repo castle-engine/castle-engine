@@ -12,6 +12,7 @@ type
 
      procedure ClickMenu(Sender: TObject);
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
   end;
 
@@ -21,6 +22,12 @@ var
 implementation
 
 uses GameStateMenu;
+
+constructor TStateGameOver.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestategameover.castle-user-interface';
+end;
 
 procedure TStateGameOver.ClickMenu(Sender: TObject);
 begin

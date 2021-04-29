@@ -49,33 +49,16 @@ begin
   StateGameOver := TStateGameOver.Create(Application);
   {$endregion 'Castle State Creation'}
 
-  StatePlay.DesignUrl := 'castle-data:/gamestateplay.castle-user-interface';
-  StateMenu.DesignUrl := 'castle-data:/gamestatemenu.castle-user-interface';
-  StateGameOver.DesignUrl := 'castle-data:/gamestategameover.castle-user-interface';
-
   TUIState.Current := StateMenu;
 end;
 
 initialization
-  { Set ApplicationName early, as our log uses it.
-    Optionally you could also set ApplicationProperties.Version here. }
-  ApplicationProperties.ApplicationName := 'platformer_v1';
-
-  { Start logging. Do this as early as possible,
-    to log information and eventual warnings during initialization.
-
-    For programs, InitializeLog is not called here.
-    Instead InitializeLog is done by the program main file,
-    after command-line parameters are parsed. }
-  if IsLibrary then
-    InitializeLog;
-
   { Initialize Application.OnInitialize. }
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
   Window := TCastleWindowBase.Create(Application);
-  Window.Caption := 'Platformer V1';
+  Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 
   { You should not need to do *anything* more in the unit "initialization" section.

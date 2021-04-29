@@ -122,6 +122,7 @@ type
       const Animation: TTimeSensorNode);
 
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Stop; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
@@ -142,7 +143,7 @@ uses
   CastleLog,
   GameStateMenu, GameStateGameOver;
 
-{ TBullet }
+{ TBullet -------------------------------------------------------------------- }
 
 constructor TBullet.Create(AOwner: TComponent; BulletSpriteScene: TCastleScene);
 var
@@ -179,7 +180,7 @@ begin
     RemoveMe := rtRemoveAndFree;
 end;
 
-{ TLevelBounds }
+{ TLevelBounds --------------------------------------------------------------- }
 
 constructor TLevelBounds.Create(AOwner: TComponent);
 begin
@@ -192,6 +193,12 @@ begin
 end;
 
 { TStatePlay ----------------------------------------------------------------- }
+
+constructor TStatePlay.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestateplay.castle-user-interface';
+end;
 
 procedure TStatePlay.ConfigurePlatformPhysics(Platform: TCastleScene);
 var
