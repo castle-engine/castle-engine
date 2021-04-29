@@ -28,28 +28,18 @@ var
 
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
-var
-  Image: TCastleImage;
 begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
   { Adjust theme }
-  Image := LoadImage('castle-data:/ui/red_button06.png');
-  Theme.Images[tiButtonNormal] := Image;
-  Theme.OwnsImages[tiButtonNormal] := true;
-  Theme.Corners[tiButtonNormal] := Vector4(6, 6, 6, 6);
   Theme.TextColor := White;
-
-  Image := LoadImage('castle-data:/ui/red_button08.png');
-  Theme.Images[tiButtonFocused] := Image;
-  Theme.OwnsImages[tiButtonFocused] := true;
-  Theme.Corners[tiButtonFocused] := Vector4(6, 6, 6, 6);
-
-  Image := LoadImage('castle-data:/ui/red_button07.png');
-  Theme.Images[tiButtonPressed] := Image;
-  Theme.OwnsImages[tiButtonPressed] := true;
-  Theme.Corners[tiButtonPressed] := Vector4(6, 6, 6, 6);
+  Theme.ImagesPersistent[tiButtonNormal].Url := 'castle-data:/ui/red_button06.png';
+  Theme.ImagesPersistent[tiButtonNormal].ProtectedSides.AllSides := 6;
+  Theme.ImagesPersistent[tiButtonFocused].Url := 'castle-data:/ui/red_button08.png';
+  Theme.ImagesPersistent[tiButtonFocused].ProtectedSides.AllSides := 6;
+  Theme.ImagesPersistent[tiButtonPressed].Url := 'castle-data:/ui/red_button07.png';
+  Theme.ImagesPersistent[tiButtonPressed].ProtectedSides.AllSides := 6;
 
   { Create game states and set initial state }
   {$region 'Castle State Creation'}
