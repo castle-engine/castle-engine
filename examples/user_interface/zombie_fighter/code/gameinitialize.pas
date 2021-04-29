@@ -24,8 +24,14 @@ implementation
 
 uses SysUtils, Classes, CastleControls, CastleUtils, CastleFilesUtils,
   CastleColors, CastleUIControls, CastleUIState, CastleWindow,
-  CastleApplicationProperties, CastleLog,
-  GameStateMainMenu, GameStateLoading, GameStatePlay, GameStateAskDialog;
+  CastleApplicationProperties, CastleLog
+  {$region 'Castle Initialization Uses'}
+  // The content here may be automatically updated by CGE editor.
+  , GameStateMainMenu
+  , GameStateLoading
+  , GameStatePlay
+  , GameStateAskDialog
+  {$endregion 'Castle Initialization Uses'};
 
 var
   Window: TCastleWindowBase;
@@ -35,11 +41,14 @@ begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-  { create all the states }
+  { Create game states and set initial state }
+  {$region 'Castle State Creation'}
+  // The content here may be automatically updated by CGE editor.
   StateMainMenu := TStateMainMenu.Create(Application);
   StateLoading := TStateLoading.Create(Application);
   StatePlay := TStatePlay.Create(Application);
   StateAskDialog := TStateAskDialog.Create(Application);
+  {$endregion 'Castle State Creation'}
 
   { initialize first state }
   TUIState.Current := StateMainMenu;

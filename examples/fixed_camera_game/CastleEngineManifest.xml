@@ -3,6 +3,7 @@
   standalone_source="rift_standalone.lpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.rift"
+  caption="The Rift"
 >
   <version value="0.2.0" />
   <compiler_options>

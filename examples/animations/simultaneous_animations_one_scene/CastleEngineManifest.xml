@@ -3,6 +3,7 @@
   standalone_source="simultaneous_animations_one_scene_standalone.lpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.examples.simultaneous.animations.one.scene"
+  caption="Simultaneous Animations in One Scene"
 >
   <compiler_options>
     <search_paths>

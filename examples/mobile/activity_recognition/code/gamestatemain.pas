@@ -18,7 +18,8 @@ unit GameStateMain;
 
 interface
 
-uses CastleUIState, CastleScene, CastleControls,
+uses Classes,
+  CastleUIState, CastleScene, CastleControls,
   CastleKeysMouse, CastleColors, CastleViewport, CastleUIControls,
   CastleActivityRecognition;
 
@@ -35,6 +36,7 @@ type
     procedure ActivityRecognitionChange(Sender: TObject);
     procedure UpdateStatus;
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
   end;
 
@@ -43,24 +45,25 @@ var
 
 implementation
 
-uses SysUtils, Classes,
+uses SysUtils,
   CastleUtils, CastleComponentSerialize;
 
 { TStateMain ----------------------------------------------------------------- }
 
+constructor TStateMain.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestatemain.castle-user-interface';
+end;
+
 procedure TStateMain.Start;
-var
-  UiOwner: TComponent;
 begin
   inherited;
 
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/state_main.castle-user-interface', FreeAtStop, UiOwner);
-
   { Find components, by name, that we need to access from code }
-  LabelStatus := UiOwner.FindRequiredComponent('LabelStatus') as TCastleLabel;
-  ButtonStartListening := UiOwner.FindRequiredComponent('ButtonStartListening') as TCastleButton;
-  ButtonStopListening := UiOwner.FindRequiredComponent('ButtonStopListening') as TCastleButton;
+  LabelStatus := DesignedComponent('LabelStatus') as TCastleLabel;
+  ButtonStartListening := DesignedComponent('ButtonStartListening') as TCastleButton;
+  ButtonStopListening := DesignedComponent('ButtonStopListening') as TCastleButton;
 
   ButtonStartListening.OnClick := @ClickStartListening;
   ButtonStopListening.OnClick := @ClickStopListening;

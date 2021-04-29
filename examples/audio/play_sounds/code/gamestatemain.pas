@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2019 Michalis Kamburelis.
+  Copyright 2019-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -61,6 +61,7 @@ type
     procedure ClickPlayBuffer(Sender: TObject);
     procedure SoundSourceRelease(Sender: TSound);
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Stop; override;
   end;
@@ -162,6 +163,12 @@ end;
 
 { TStateMain ----------------------------------------------------------------- }
 
+constructor TStateMain.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestatemain.castle-user-interface';
+end;
+
 procedure TStateMain.Start;
 
   procedure AddSoundBufferButton(const SoundFileURL: String);
@@ -182,21 +189,16 @@ procedure TStateMain.Start;
     GroupSoundBuffers.InsertFront(Button);
   end;
 
-var
-  UiOwner: TComponent;
 begin
   inherited;
 
   SoundSourceUiOwners := TSoundSourceUiOwnerList.Create(false);
 
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/state_main.castle-user-interface', FreeAtStop, UiOwner);
-
   { Find useful components by name }
-  LabelSoundSources := UiOwner.FindRequiredComponent('LabelSoundSources') as TCastleLabel;
-  GroupSoundBuffers := UiOwner.FindRequiredComponent('GroupSoundBuffers') as TCastleVerticalGroup;
-  GroupSoundSources := UiOwner.FindRequiredComponent('GroupSoundSources') as TCastleVerticalGroup;
-  ButtonExit := UiOwner.FindRequiredComponent('ButtonExit') as TCastleButton;
+  LabelSoundSources := DesignedComponent('LabelSoundSources') as TCastleLabel;
+  GroupSoundBuffers := DesignedComponent('GroupSoundBuffers') as TCastleVerticalGroup;
+  GroupSoundSources := DesignedComponent('GroupSoundSources') as TCastleVerticalGroup;
+  ButtonExit := DesignedComponent('ButtonExit') as TCastleButton;
 
   LabelSoundSources.Caption := Format('Currently playing sound sources (max %d):',
     [SoundEngine.MaxAllocatedSources]);

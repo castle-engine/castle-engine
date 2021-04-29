@@ -696,13 +696,6 @@ begin
 end;
 
 initialization
-  { Set ApplicationName and Version early, as our log uses it. }
-  ApplicationProperties.ApplicationName := 'terrain';
-
-  { Start logging. Do this as early as possible,
-    to log information and eventual warnings during initialization. }
-  InitializeLog;
-
   { Initialize Application.OnInitialize. }
   Application.OnInitialize := @ApplicationInitialize;
 
@@ -710,8 +703,11 @@ initialization
   Window := TCastleWindowBase.Create(Application);
   Application.MainWindow := Window;
 
+  Window.ParseParameters; // allows to control window size / fullscreen on the command-line
+  { we allow 1 command-line parameter, handled in WindowOpen }
+  Parameters.CheckHighAtMost(1);
+
   Window.MainMenu := CreateMainMenu;
-  Window.Caption := ApplicationName;
 finalization
   FreeAndNil(CurrentTerrain);
   FreeAndNil(OnScreenMenuNoise);

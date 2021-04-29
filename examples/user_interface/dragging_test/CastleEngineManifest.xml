@@ -2,6 +2,7 @@
 <project name="dragging_test" 
   standalone_source="dragging_test_standalone.lpr"
   game_units="GameInitialize"
+  caption="Dragging Test"
 >
   <compiler_options>
     <search_paths>

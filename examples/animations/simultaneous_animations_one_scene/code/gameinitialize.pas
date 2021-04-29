@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2019 Michalis Kamburelis.
+  Copyright 2019-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,85 +23,14 @@ implementation
 uses SysUtils, Classes,
   CastleWindow, CastleScene, CastleControls, CastleLog, CastleVectors,
   CastleFilesUtils, CastleSceneCore, CastleViewport, CastleComponentSerialize,
-  CastleUIControls, CastleApplicationProperties, CastleUIState, X3DNodes;
-
-{ TMainState -------------------------------------------------------------- }
-
-type
-  TMainState = class(TUIState)
-  strict private
-    LabelFps: TCastleLabel;
-    ButtonAnimationSqueeze, ButtonAnimationGear: TCastleButton;
-    Scene1: TCastleScene;
-    Viewport1: TCastleViewport;
-    procedure ClickAnimationSqueeze(Sender: TObject);
-    procedure ClickAnimationGear(Sender: TObject);
-  public
-    procedure Start; override;
-    procedure Update(const SecondsPassed: Single;
-      var HandleInput: Boolean); override;
-  end;
-
-procedure TMainState.Start;
-var
-  UiOwner: TComponent;
-begin
-  inherited;
-  InsertUserInterface('castle-data:/main.castle-user-interface', FreeAtStop, UiOwner);
-
-  { Find components created in CGE Editor }
-  LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
-  ButtonAnimationSqueeze := UiOwner.FindRequiredComponent('ButtonAnimationSqueeze') as TCastleButton;
-  ButtonAnimationGear := UiOwner.FindRequiredComponent('ButtonAnimationGear') as TCastleButton;
-  Scene1 := UiOwner.FindRequiredComponent('Scene1') as TCastleScene;
-  Viewport1 := UiOwner.FindRequiredComponent('Viewport1') as TCastleViewport;
-
-  { Assign OnClick events }
-  ButtonAnimationSqueeze.OnClick := @ClickAnimationSqueeze;
-  ButtonAnimationGear.OnClick := @ClickAnimationGear;
-end;
-
-procedure TMainState.Update(const SecondsPassed: Single; var HandleInput: Boolean);
-begin
-  inherited;
-  LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
-end;
-
-procedure TMainState.ClickAnimationSqueeze(Sender: TObject);
-var
-  TimeSensor: TTimeSensorNode;
-begin
-  ButtonAnimationSqueeze.Pressed := not ButtonAnimationSqueeze.Pressed;
-  TimeSensor := Scene1.Node('squeeze') as TTimeSensorNode;
-  if ButtonAnimationSqueeze.Pressed then
-    { setting InitialTime to TimeSensor.ElapsedTimeInCycle below
-      means that we start animation from the moment it was stopped
-      (so it looks like "unpause"). }
-    TimeSensor.Start(true, true, TimeSensor.ElapsedTimeInCycle)
-  else
-    TimeSensor.Stop;
-end;
-
-procedure TMainState.ClickAnimationGear(Sender: TObject);
-var
-  TimeSensor: TTimeSensorNode;
-begin
-  ButtonAnimationGear.Pressed := not ButtonAnimationGear.Pressed;
-  TimeSensor := Scene1.Node('gear_rotate') as TTimeSensorNode;
-  if ButtonAnimationGear.Pressed then
-    { setting InitialTime to TimeSensor.ElapsedTimeInCycle below
-      means that we start animation from the moment it was stopped
-      (so it looks like "unpause"). }
-    TimeSensor.Start(true, true, TimeSensor.ElapsedTimeInCycle)
-  else
-    TimeSensor.Stop;
-end;
-
-{ routines ------------------------------------------------------------------- }
+  CastleUIControls, CastleApplicationProperties, CastleUIState, X3DNodes
+  {$region 'Castle Initialization Uses'}
+  // The content here may be automatically updated by CGE editor.
+  , GameStateMain
+  {$endregion 'Castle Initialization Uses'};
 
 var
   Window: TCastleWindowBase;
-  MainState: TMainState;
 
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
@@ -109,25 +38,22 @@ begin
   { Adjust container settings for a scalable UI. }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-  { Create instance of TMainState that will create UI, and handle events. }
-  MainState := TMainState.Create(Application);
-  TUIState.Current := MainState;
+  { Create game states and set initial state }
+  {$region 'Castle State Creation'}
+  // The content here may be automatically updated by CGE editor.
+  StateMain := TStateMain.Create(Application);
+  {$endregion 'Castle State Creation'}
+
+  TUIState.Current := StateMain;
 end;
 
 initialization
-  { Set ApplicationName early, as our log uses it.
-    Optionally you could also set ApplicationProperties.Version here. }
-  ApplicationProperties.ApplicationName := 'simultaneous_animations_one_scene';
-
-  { Start logging. Do this as early as possible,
-    to log information and eventual warnings during initialization. }
-  InitializeLog;
-
   { Initialize Application.OnInitialize. }
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
   Window := TCastleWindowBase.Create(Application);
+  Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 
   { You should not need to do *anything* more in the unit "initialization" section.

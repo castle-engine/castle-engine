@@ -3,6 +3,7 @@
   standalone_source="headlight_test_standalone.lpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.headlight.test"
+  caption="Headlight Test"
 >
   <compiler_options>
     <search_paths>

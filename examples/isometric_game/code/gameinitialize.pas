@@ -1,5 +1,5 @@
 {
-  Copyright 2011-2018 Michalis Kamburelis.
+  Copyright 2011-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -300,19 +300,12 @@ begin
 end;
 
 initialization
-  { Set ApplicationName early, as our log uses it.
-    Optionally you could also set ApplicationProperties.Version here. }
-  ApplicationProperties.ApplicationName := 'isometric_game';
-
-  { Start logging. Do this as early as possible,
-    to log information and eventual warnings during initialization. }
-  InitializeLog;
-
   { Initialize Application.OnInitialize. }
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
   Window := TCastleWindowBase.Create(Application);
+  Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 
   { Our drawing routine is not prepared to react perfectly to window size change

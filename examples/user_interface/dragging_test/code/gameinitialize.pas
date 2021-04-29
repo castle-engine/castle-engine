@@ -20,8 +20,11 @@ interface
 
 implementation
 
-uses CastleWindow, CastleLog, CastleApplicationProperties, CastleUIState,
-  GameStateMain;
+uses CastleWindow, CastleLog, CastleApplicationProperties, CastleUIState
+  {$region 'Castle Initialization Uses'}
+  // The content here may be automatically updated by CGE editor.
+  , GameStateMain
+  {$endregion 'Castle Initialization Uses'};
 
 var
   Window: TCastleWindowBase;
@@ -32,20 +35,19 @@ begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
+  { Create game states and set initial state }
+  {$region 'Castle State Creation'}
+  // The content here may be automatically updated by CGE editor.
   StateMain := TStateMain.Create(Application);
+  {$endregion 'Castle State Creation'}
+
   TUIState.Current := StateMain;
 end;
 
 initialization
-  ApplicationProperties.ApplicationName := 'dragging_test';
-  { For programs, InitializeLog is not called here.
-    Instead InitializeLog is done by the program main file,
-    after command-line parameters are parsed. }
-  if IsLibrary then
-    InitializeLog;
-
   Application.OnInitialize := @ApplicationInitialize;
 
   Window := TCastleWindowBase.Create(Application);
+  Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 end.

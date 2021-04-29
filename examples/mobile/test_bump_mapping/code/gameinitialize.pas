@@ -111,17 +111,14 @@ begin
 end;
 
 initialization
-  { Set ApplicationName early, as our log uses it. }
-  ApplicationProperties.ApplicationName := 'test_bump_mapping';
-
-  InitializeLog;
-
   { initialize Application callbacks }
   Application.OnInitialize := @ApplicationInitialize;
 
   { create Window and initialize Window callbacks }
   Window := TCastleWindowBase.Create(Application);
+  Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
+
   Window.OnRender := @WindowRender;
   Window.OnUpdate := @WindowUpdate;
 end.

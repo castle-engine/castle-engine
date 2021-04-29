@@ -79,6 +79,7 @@ type
     Player: TCastleCameraTransform;
     PlayerAlive: TCastleAliveBehavior;
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Stop; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
@@ -185,9 +186,14 @@ end;
 
 { TStatePlay ----------------------------------------------------------------- }
 
+constructor TStatePlay.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestateplay.castle-user-interface';
+end;
+
 procedure TStatePlay.Start;
 var
-  UiOwner: TComponent;
   SoldierScene: TCastleScene;
   I: Integer;
   // TODO MoveAttackBehavior: TCastleMoveAttack;
@@ -196,13 +202,10 @@ var
 begin
   inherited;
 
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/state_play.castle-user-interface', FreeAtStop, UiOwner);
-
   { Find components, by name, that we need to access from code }
-  LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
-  MainViewport := UiOwner.FindRequiredComponent('MainViewport') as TCastleViewport;
-  WalkNavigation := UiOwner.FindRequiredComponent('WalkNavigation') as TCastleWalkNavigation;
+  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
+  MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
+  WalkNavigation := DesignedComponent('WalkNavigation') as TCastleWalkNavigation;
 
   Player := TCastleCameraTransform.Create(FreeAtStop);
   Player.Camera := MainViewport.Camera;
@@ -215,7 +218,7 @@ begin
   Enemies := TCastleTransformList.Create(false);
   for I := 1 to 5 do
   begin
-    SoldierScene := UiOwner.FindRequiredComponent('SceneSoldier' + IntToStr(I)) as TCastleScene;
+    SoldierScene := DesignedComponent('SceneSoldier' + IntToStr(I)) as TCastleScene;
     Enemies.Add(SoldierScene);
 
     // TODO: TCastleMoveAttack should take care of this

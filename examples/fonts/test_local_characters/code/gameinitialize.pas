@@ -1,5 +1,5 @@
 {
-  Copyright 2017-2018 Michalis Kamburelis.
+  Copyright 2017-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -165,6 +165,10 @@ var
   TextReader: TTextReader;
   StringList: TStringList;
 begin
+  Window.Container.UIScaling := usEncloseReferenceSize;
+  Window.Container.UIReferenceWidth := 1600;
+  Window.Container.UIReferenceHeight := 900;
+
   FontContainer := TFontContainer.Create;
   FontContainer.ButtonEmbeddedFontClick(nil);
 
@@ -309,19 +313,12 @@ begin
 end;
 
 initialization
-  { Set ApplicationName early, as our log uses it. }
-  ApplicationProperties.ApplicationName := 'test_local_characters';
-
-  InitializeLog;
-
   { initialize Application callbacks }
   Application.OnInitialize := @ApplicationInitialize;
 
   { create Window }
   Window := TCastleWindowBase.Create(Application);
-  Window.Container.UIScaling := usEncloseReferenceSize;
-  Window.Container.UIReferenceWidth := 1600;
-  Window.Container.UIReferenceHeight := 900;
+  Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 finalization
   FreeAndNil(FontContainer);

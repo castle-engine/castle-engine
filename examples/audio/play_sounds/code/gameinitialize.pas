@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2019 Michalis Kamburelis.
+  Copyright 2019-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,8 +23,11 @@ implementation
 uses SysUtils,
   CastleWindow, CastleControls, CastleLog, CastleSoundEngine,
   CastleFilesUtils, CastleKeysMouse, CastleColors, CastleTimeUtils,
-  CastleUIControls, CastleApplicationProperties, CastleUIState,
-  GameStateMain;
+  CastleUIControls, CastleApplicationProperties, CastleUIState
+  {$region 'Castle Initialization Uses'}
+  // The content here may be automatically updated by CGE editor.
+  , GameStateMain
+  {$endregion 'Castle Initialization Uses'};
 
 var
   Window: TCastleWindowBase;
@@ -41,19 +44,22 @@ begin
   // Get infotmation in log when each sound is loaded.
   SoundEngine.LogSoundLoading := true;
 
+  { Create game states and set initial state }
+  {$region 'Castle State Creation'}
+  // The content here may be automatically updated by CGE editor.
   StateMain := TStateMain.Create(Application);
+  {$endregion 'Castle State Creation'}
+
   TUIState.Current := StateMain;
 end;
 
 initialization
-  ApplicationProperties.ApplicationName := 'play_sounds';
-  InitializeLog;
-
   { Initialize Application.OnInitialize. }
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
   Window := TCastleWindowBase.Create(Application);
+  Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 
   // Measure sound loading time.

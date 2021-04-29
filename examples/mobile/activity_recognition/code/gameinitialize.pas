@@ -7,8 +7,11 @@ interface
 
 implementation
 
-uses CastleWindow, CastleLog, CastleApplicationProperties, CastleUIState,
-  GameStateMain;
+uses CastleWindow, CastleLog, CastleApplicationProperties, CastleUIState
+  {$region 'Castle Initialization Uses'}
+  // The content here may be automatically updated by CGE editor.
+  , GameStateMain
+  {$endregion 'Castle Initialization Uses'};
 
 var
   Window: TCastleWindowBase;
@@ -19,24 +22,16 @@ begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
+  { Create game states and set initial state }
+  {$region 'Castle State Creation'}
+  // The content here may be automatically updated by CGE editor.
   StateMain := TStateMain.Create(Application);
+  {$endregion 'Castle State Creation'}
+
   TUIState.Current := StateMain;
 end;
 
 initialization
-  { Set ApplicationName early, as our log uses it.
-    Optionally you could also set ApplicationProperties.Version here. }
-  ApplicationProperties.ApplicationName := 'activity_recognition';
-
-  { Start logging. Do this as early as possible,
-    to log information and eventual warnings during initialization.
-
-    For programs, InitializeLog is not called here.
-    Instead InitializeLog is done by the program main file,
-    after command-line parameters are parsed. }
-  if IsLibrary then
-    InitializeLog;
-
   { Initialize Application.OnInitialize. }
   Application.OnInitialize := @ApplicationInitialize;
 
@@ -50,6 +45,8 @@ initialization
   Window.Height := Application.ScreenHeight * 5 div 6;
   Window.Width := Window.Height * 900 div 1600;
   {$endif}
+
+  Window.ParseParameters; // allows to control window size / fullscreen on the command-line
 
   { You should not need to do *anything* more in the unit "initialization" section.
     Most of your game initialization should happen inside ApplicationInitialize.

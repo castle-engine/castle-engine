@@ -3,6 +3,7 @@
   standalone_source="test_bump_mapping_standalone.lpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.test.bump.mapping"
+  caption="Test Bump Mapping"
 >
   <compiler_options>
     <search_paths>

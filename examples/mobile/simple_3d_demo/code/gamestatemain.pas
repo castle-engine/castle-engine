@@ -64,6 +64,7 @@ type
     procedure ClickVibrate(Sender: TObject);
     procedure ClickTerminate(Sender: TObject);
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
   end;
@@ -85,32 +86,33 @@ end;
 
 { TStateMain ----------------------------------------------------------------- }
 
+constructor TStateMain.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestatemain.castle-user-interface';
+end;
+
 procedure TStateMain.Start;
-var
-  UiOwner: TComponent;
 begin
   inherited;
 
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/state_main.castle-user-interface', FreeAtStop, UiOwner);
-
   { Find components, by name, that we need to access from code }
-  StatusText := UiOwner.FindRequiredComponent('StatusText') as TCastleLabel;
-  ButtonToggleShader := UiOwner.FindRequiredComponent('ButtonToggleShader') as TCastleButton;
-  ButtonToggleScreenEffect := UiOwner.FindRequiredComponent('ButtonToggleScreenEffect') as TCastleButton;
-  ButtonToggleSSAO := UiOwner.FindRequiredComponent('ButtonToggleSSAO') as TCastleButton;
-  ButtonTouchNavigation := UiOwner.FindRequiredComponent('ButtonTouchNavigation') as TCastleButton;
-  ButtonMessage := UiOwner.FindRequiredComponent('ButtonMessage') as TCastleButton;
-  ButtonProgress := UiOwner.FindRequiredComponent('ButtonProgress') as TCastleButton;
-  ButtonReopenContext := UiOwner.FindRequiredComponent('ButtonReopenContext') as TCastleButton;
-  ButtonToggleTextureUpdates := UiOwner.FindRequiredComponent('ButtonToggleTextureUpdates') as TCastleButton;
-  ButtonPlaySoundWav := UiOwner.FindRequiredComponent('ButtonPlaySoundWav') as TCastleButton;
-  ButtonPlaySoundOgg := UiOwner.FindRequiredComponent('ButtonPlaySoundOgg') as TCastleButton;
-  ButtonVibrate := UiOwner.FindRequiredComponent('ButtonVibrate') as TCastleButton;
-  ButtonTerminate := UiOwner.FindRequiredComponent('ButtonTerminate') as TCastleButton;
-  TouchNavigation := UiOwner.FindRequiredComponent('TouchNavigation') as TCastleTouchNavigation;
-  MainViewport := UiOwner.FindRequiredComponent('MainViewport') as TCastleViewport;
-  MainScene := UiOwner.FindRequiredComponent('MainScene') as TCastleScene;
+  StatusText := DesignedComponent('StatusText') as TCastleLabel;
+  ButtonToggleShader := DesignedComponent('ButtonToggleShader') as TCastleButton;
+  ButtonToggleScreenEffect := DesignedComponent('ButtonToggleScreenEffect') as TCastleButton;
+  ButtonToggleSSAO := DesignedComponent('ButtonToggleSSAO') as TCastleButton;
+  ButtonTouchNavigation := DesignedComponent('ButtonTouchNavigation') as TCastleButton;
+  ButtonMessage := DesignedComponent('ButtonMessage') as TCastleButton;
+  ButtonProgress := DesignedComponent('ButtonProgress') as TCastleButton;
+  ButtonReopenContext := DesignedComponent('ButtonReopenContext') as TCastleButton;
+  ButtonToggleTextureUpdates := DesignedComponent('ButtonToggleTextureUpdates') as TCastleButton;
+  ButtonPlaySoundWav := DesignedComponent('ButtonPlaySoundWav') as TCastleButton;
+  ButtonPlaySoundOgg := DesignedComponent('ButtonPlaySoundOgg') as TCastleButton;
+  ButtonVibrate := DesignedComponent('ButtonVibrate') as TCastleButton;
+  ButtonTerminate := DesignedComponent('ButtonTerminate') as TCastleButton;
+  TouchNavigation := DesignedComponent('TouchNavigation') as TCastleTouchNavigation;
+  MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
+  MainScene := DesignedComponent('MainScene') as TCastleScene;
 
   { assign events }
   ButtonToggleShader.OnClick := @ClickToggleShader;

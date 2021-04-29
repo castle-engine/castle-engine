@@ -69,7 +69,6 @@ end;
 
 procedure TStateMain.Start;
 var
-  UiOwner: TComponent;
   I: Integer;
   PageButtons2: TCastleDesign;
   ButtonToggle: TCastleButton;
