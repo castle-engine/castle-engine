@@ -1244,7 +1244,7 @@ begin
   for I := 0 to PlatformsRoot.Count - 1 do
   begin
     PlatformScene := PlatformsRoot.Items[I] as TCastleScene;
-    WritelnWarning('Configure platform: ' + PlatformScene.Name);
+    WritelnLog('Configure platform: ' + PlatformScene.Name);
     ConfigurePlatformPhysics(PlatformScene);
 
     { We use Tag to set distance for moving platform, so when its other than 0
@@ -1261,7 +1261,7 @@ begin
   CoinsRoot := DesignedComponent('Coins') as TCastleTransform;
   for I := 0 to CoinsRoot.Count - 1 do
   begin
-    WriteLnLog('Configure coin: ' + CoinsRoot.Items[I].Name);
+    WritelnLog('Configure coin: ' + CoinsRoot.Items[I].Name);
     ConfigureCoinsPhysics(CoinsRoot.Items[I] as TCastleScene);
   end;
 
