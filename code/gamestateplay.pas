@@ -125,6 +125,7 @@ type
       const Animation: TTimeSensorNode);
 
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Stop; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
@@ -145,7 +146,7 @@ uses
   CastleLog,
   GameStateMenu, GameStateGameOver;
 
-{ TBullet }
+{ TBullet -------------------------------------------------------------------- }
 
 constructor TBullet.Create(AOwner: TComponent; BulletSpriteScene: TCastleScene);
 var
@@ -183,10 +184,11 @@ begin
     RemoveMe := rtRemoveAndFree;
 end;
 
-{ TLevelBounds }
+{ TLevelBounds --------------------------------------------------------------- }
 
 constructor TLevelBounds.Create(AOwner: TComponent);
 begin
+  inherited Create(AOwner);
   Left := -3072;
   Right := 5120;
   Top := 3072;
@@ -195,6 +197,12 @@ begin
 end;
 
 { TStatePlay ----------------------------------------------------------------- }
+
+constructor TStatePlay.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestateplay.castle-user-interface';
+end;
 
 procedure TStatePlay.ConfigurePlatformPhysics(Platform: TCastleScene);
 var
@@ -257,7 +265,7 @@ begin
   Collider.Friction := 0.1;
   Collider.Restitution := 0.05;
 
-  WritelnWarning('Coin collider: ' + FloatToStr(Collider.Radius));
+  WriteLnLog('Coin collider: ' + FloatToStr(Collider.Radius));
 
   Coin.RigidBody := RBody;
 end;
@@ -373,8 +381,7 @@ begin
   //Collider.Restitution := 0.05;
   Collider.Mass := 50;
 
-
-  WritelnWarning('Player collider: ' + FloatToStr(ColliderBox.Size.X) + ', ' +
+  WriteLnLog('Player collider: ' + FloatToStr(ColliderBox.Size.X) + ', ' +
   FloatToStr(ColliderBox.Size.Y) + ', ' + FloatToStr(ColliderBox.Size.Z));}
 
   Player.RigidBody := RBody;
@@ -563,7 +570,7 @@ begin
   if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(0, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
     Distance) <> nil then
   begin
-    // WritelnWarning('Distance ', FloatToStr(Distance));
+    // WriteLnLog('Distance ', FloatToStr(Distance));
     PlayerOnGround := Distance < 2;
   end else
     PlayerOnGround := false;
@@ -576,7 +583,7 @@ begin
     if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.40, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
       Distance) <> nil then
     begin
-      // WritelnWarning('Distance ', FloatToStr(Distance));
+      // WriteLnLog('Distance ', FloatToStr(Distance));
       PlayerOnGround := Distance < 2;
     end else
       PlayerOnGround := false;
@@ -587,7 +594,7 @@ begin
     if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(ScenePlayer.BoundingBox.SizeX * 0.40, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
       Distance) <> nil then
     begin
-      // WritelnWarning('Distance ', FloatToStr(Distance));
+      // WriteLnLog('Distance ', FloatToStr(Distance));
       PlayerOnGround := Distance < 2;
     end else
       PlayerOnGround := false;
@@ -677,7 +684,7 @@ begin
   if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(0, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
     Distance) <> nil then
   begin
-    // WritelnWarning('Distance ', FloatToStr(Distance));
+    // WriteLnLog('Distance ', FloatToStr(Distance));
     PlayerOnGround := Distance < 2;
   end else
     PlayerOnGround := false;
@@ -690,7 +697,7 @@ begin
     if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.40 , -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
       Distance) <> nil then
     begin
-      // WritelnWarning('Distance ', FloatToStr(Distance));
+      // WriteLnLog('Distance ', FloatToStr(Distance));
       PlayerOnGround := Distance < 2;
     end else
       PlayerOnGround := false;
@@ -701,7 +708,7 @@ begin
     if ScenePlayer.RayCast(ScenePlayer.Translation + Vector3(ScenePlayer.BoundingBox.SizeX * 0.40, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0),
       Distance) <> nil then
     begin
-      // WritelnWarning('Distance ', FloatToStr(Distance));
+      // WriteLnLog('Distance ', FloatToStr(Distance));
       PlayerOnGround := Distance < 2;
     end else
       PlayerOnGround := false;
@@ -1254,7 +1261,7 @@ begin
   CoinsRoot := DesignedComponent('Coins') as TCastleTransform;
   for I := 0 to CoinsRoot.Count - 1 do
   begin
-    WritelnWarning('Configure coin: ' + CoinsRoot.Items[I].Name);
+    WriteLnLog('Configure coin: ' + CoinsRoot.Items[I].Name);
     ConfigureCoinsPhysics(CoinsRoot.Items[I] as TCastleScene);
   end;
 

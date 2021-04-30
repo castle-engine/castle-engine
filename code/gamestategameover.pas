@@ -24,6 +24,12 @@ implementation
 
 uses GameStateMenu;
 
+constructor TStateGameOver.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestategameover.castle-user-interface';
+end;
+
 procedure TStateGameOver.ClickMenu(Sender: TObject);
 begin
   TUIState.Current := StateMenu;

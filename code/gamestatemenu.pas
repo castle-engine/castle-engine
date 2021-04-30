@@ -19,6 +19,7 @@ type
     procedure ClickPlay(Sender: TObject);
     procedure ClickQuit(Sender: TObject);
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
   end;
 
@@ -31,6 +32,12 @@ uses CastleApplicationProperties, CastleWindow,
   GameStatePlay;
 
 { TStateMenu ----------------------------------------------------------------- }
+
+constructor TStateMenu.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestatemenu.castle-user-interface';
+end;
 
 procedure TStateMenu.Start;
 begin
