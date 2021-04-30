@@ -377,7 +377,7 @@ type
       procedure TStatePlay.Start;
       begin
         inherited;
-        MyButton := specialize DesignedComponent<TCastleButton>('MyButton');
+        MyButton := DesignedComponent('MyButton') as TCastleButton;
       end;
       #)
 
