@@ -846,8 +846,14 @@ end;
 
 procedure TCastleManifest.FindPascalFilesCallback(
   const FileInfo: TFileInfo; var StopSearch: boolean);
+var
+  Relative: String;
 begin
-  FindPascalFilesResult.Add(ExtractRelativePath(Path, FileInfo.AbsoluteName));
+  Relative := ExtractRelativePath(Path, FileInfo.AbsoluteName);
+  {$ifdef MSWINDOWS}
+  StringReplaceAllVar(Relative, '\', '/');
+  {$endif}
+  FindPascalFilesResult.Add(Relative);
 end;
 
 { globals -------------------------------------------------------------------- }
