@@ -28,18 +28,13 @@ constructor TStateGameOver.Create(AOwner: TComponent);
 begin
   inherited;
   DesignUrl := 'castle-data:/gamestategameover.castle-user-interface';
+
+  InterceptInput := true;
 end;
 
 procedure TStateGameOver.ClickMenu(Sender: TObject);
 begin
   TUIState.Current := StateMenu;
-end;
-
-constructor TStateGameOver.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-
-  InterceptInput := true;
 end;
 
 procedure TStateGameOver.Start;
