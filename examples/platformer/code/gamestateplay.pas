@@ -65,16 +65,16 @@ type
     { Level bounds }
     LevelBounds: TLevelBounds;
 
-    { Enemies behaviours }
+    { Enemies behaviors }
     Enemies: TEnemyList;
 
-    { Falling obstacles (spike) behaviours }
+    { Falling obstacles (spike) behaviors }
     FallingObstacles: TFallingObstaclesList;
 
-    { Deadly obstacles (spikes) behaviours }
+    { Deadly obstacles (spikes) behaviors }
     DeadlyObstacles: TDeadlyObstaclesList;
 
-    { List of moving platforms  behaviours }
+    { List of moving platforms behaviors }
     MovingPlatforms: TMovingPlatformList;
 
     GameOver: Boolean;
