@@ -847,8 +847,8 @@
                   "$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "TranslationPersistent" : {
-                  "X" : -4.1892999267578125E+002,
-                  "Y" : -2.2872999572753906E+002,
+                  "X" : -4.0773248291015625E+002,
+                  "Y" : -2.2872998046875000E+002,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
                 "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
@@ -951,6 +951,7 @@
               {
                 "AnimateOnlyWhenVisible" : true,
                 "AutoAnimation" : "idle",
+                "Exists" : false,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Spider6",
@@ -1001,6 +1002,7 @@
               {
                 "AnimateOnlyWhenVisible" : true,
                 "AutoAnimation" : "idle",
+                "Exists" : false,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Spider8",
@@ -1028,6 +1030,7 @@
               {
                 "AnimateOnlyWhenVisible" : true,
                 "AutoAnimation" : "idle",
+                "Exists" : false,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Spider9",
@@ -1055,6 +1058,7 @@
               {
                 "AnimateOnlyWhenVisible" : true,
                 "AutoAnimation" : "idle",
+                "Exists" : false,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Spider10",
@@ -1309,6 +1313,27 @@
                 "TranslationPersistent" : {
                   "X" : -1.1569838867187500E+003,
                   "Y" : 2.7480786132812500E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/platforms/ground_grass_small.png",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "ExposeTransforms" : [
+                ],
+                "Name" : "SmallPlatform4",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "Tag" : 200,
+                "TranslationPersistent" : {
+                  "X" : 1.3655761718750000E+003,
+                  "Y" : -5.0164199829101562E+002,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
                 "URL" : "castle-data:/platforms/ground_grass_small.png",
@@ -1995,7 +2020,7 @@
               {
                 "Name" : "GroundLine5",
                 "TranslationPersistent" : {
-                  "X" : 2.1111101074218750E+003,
+                  "X" : 2.1100000000000000E+003,
                   "Y" : -7.6440002441406250E+002,
                   "$ClassName" : "TCastleVector3Persistent"
                 },

@@ -11,7 +11,7 @@ uses Classes,
   CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleKeysMouse, CastleViewport, CastleScene, CastleSceneCore, CastleVectors,
   CastleTransform, X3DNodes,
-  GameEnemy, GameFallingObstacle, GameDeadlyObstacle;
+  GameEnemy, GameFallingObstacle, GameDeadlyObstacle, GameMovingPlatform;
 
 type
   TLevelBounds = class (TComponent)
@@ -73,6 +73,9 @@ type
 
     { Deadly obstacles (spikes) behaviours }
     DeadlyObstacles: TDeadlyObstaclesList;
+
+    { List of moving platforms  behaviours }
+    MovingPlatforms: TMovingPlatformList;
 
     procedure ConfigurePlatformPhysics(Platform: TCastleScene);
     procedure ConfigureCoinsPhysics(const Coin: TCastleScene);
@@ -165,6 +168,7 @@ begin
   Collider.Radius :=  BulletSpriteScene.BoundingBox.Size.X / 2;
   { Make bullet more bouncy }
   Collider.Restitution := 0.6;
+  Collider.Mass := 1;
 
   RigidBody := RBody;
 end;
@@ -200,20 +204,34 @@ var
 begin
   RBody := TRigidBody.Create(Platform);
   RBody.Dynamic := false;
+
+  { Movable platforms are animated }
+  {if Platform.Tag <> 0 then
+    RBody.Animated := true;}
+
+  if Platform.Tag <> 0 then
+    RBody.Dynamic := true;
+
   RBody.Setup2D;
   RBody.Gravity := false;
   RBody.LinearVelocityDamp := 0;
   RBody.AngularVelocityDamp := 0;
   RBody.AngularVelocity := Vector3(0, 0, 0);
   RBody.LockRotation := [0, 1, 2];
+  RBody.LockTranslation := [1, 2];
+  RBody.MaximalLinearVelocity := 0;
+  RBody.MaximalAngularVelocity := 0;
 
   Collider := TBoxCollider.Create(RBody);
 
   Size.X := Platform.BoundingBox.SizeX;
   Size.Y := Platform.BoundingBox.SizeY;
-  Size.Z := 1;
+  Size.Z := 60;
 
   Collider.Size := Size;
+  Collider.Friction := 100;
+  Collider.Restitution := 0.0;
+  Collider.Mass := 1000;
 
   Platform.RigidBody := RBody;
 end;
@@ -326,7 +344,7 @@ var
   RBody: TRigidBody;
   Collider: TCapsuleCollider;
   // ColliderSP: TSphereCollider;
-  //ColliderBox: TBoxCollider;
+  ColliderBox: TBoxCollider;
 begin
   RBody := TRigidBody.Create(Player);
   RBody.Dynamic := true;
@@ -342,16 +360,19 @@ begin
   Collider := TCapsuleCollider.Create(RBody);
   Collider.Radius := ScenePlayer.BoundingBox.SizeX * 0.45; // little smaller than 50%
   Collider.Height := ScenePlayer.BoundingBox.SizeY - Collider.Radius * 2;
-  Collider.Friction := 0.1;
-  Collider.Restitution := 0.05;
+  Collider.Friction := 0.5;
+  //Collider.Restitution := 0.05;
+  Collider.Mass := 50;
 
   {ColliderSP := TSphereCollider.Create(RBody);
   ColliderSP.Radius := ScenePlayer.BoundingBox.SizeX * 0.45;}
 
-  {ColliderBox := TBoxCollider.Create(RBody);
+{  ColliderBox := TBoxCollider.Create(RBody);
   ColliderBox.Size := Vector3(ScenePlayer.BoundingBox.SizeX, ScenePlayer.BoundingBox.SizeY, 60.0);
-  ColliderBox.Friction := 0.1;
-  ColliderBox.Restitution := 0.05;
+  Collider.Friction := 0.5;
+  //Collider.Restitution := 0.05;
+  Collider.Mass := 50;
+
 
   WritelnWarning('Player collider: ' + FloatToStr(ColliderBox.Size.X) + ', ' +
   FloatToStr(ColliderBox.Size.Y) + ', ' + FloatToStr(ColliderBox.Size.Z));}
@@ -378,6 +399,7 @@ begin
     if Pos('GoldCoin', CollisionDetails.OtherTransform.Name) > 0 then
     begin
       CollectCoin;
+      //CollisionDetails.OtherTransform.UniqueParent.Exists := false;
       CollisionDetails.OtherTransform.Exists := false;
       { TODO: When we only change OtherTransform.Exists = false, rigid body
         still exists, this is only temporary hack to fix that. }
@@ -929,6 +951,7 @@ var
   Vel: TVector3;
   PlayerOnGround: Boolean;
   InSecondJump: Boolean;
+  GroundScene: TCastleTransform;
 begin
   { This method is executed every frame.}
 
@@ -938,25 +961,27 @@ begin
   Vel := ScenePlayer.RigidBody.LinearVelocity;
 
   { Check player is on ground }
-  PlayerOnGround := ScenePlayer.RigidBody.PhysicsRayCast(ScenePlayer.Translation,
-    Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5) <> nil;
+  GroundScene := ScenePlayer.RigidBody.PhysicsRayCast(ScenePlayer.Translation,
+    Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5);
 
   { Two more checks Kraft - player should slide down when player just
     on the edge, but sometimes it stay and center ray dont "see" that we are
     on ground }
-  if PlayerOnGround = false then
+  if GroundScene = nil then
   begin
-    PlayerOnGround := ScenePlayer.RigidBody.PhysicsRayCast(ScenePlayer.Translation
+    GroundScene := ScenePlayer.RigidBody.PhysicsRayCast(ScenePlayer.Translation
       + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.40, 0, 0),
-      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5) <> nil;
+      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5);
   end;
 
-  if PlayerOnGround = false then
+  if GroundScene = nil then
   begin
-    PlayerOnGround := ScenePlayer.RigidBody.PhysicsRayCast(ScenePlayer.Translation
+    GroundScene := ScenePlayer.RigidBody.PhysicsRayCast(ScenePlayer.Translation
       + Vector3(ScenePlayer.BoundingBox.SizeX * 0.40, 0, 0),
-      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5) <> nil;
+      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5);
   end;
+
+  PlayerOnGround := (GroundScene <> nil);
 
   if PlayerOnGround then
     WasDoubleJump := false;
@@ -1163,6 +1188,7 @@ end;
 
 procedure TStatePlay.Start;
 var
+  { TCastleTransforms that groups objects in our level }
   PlatformsRoot: TCastleTransform;
   CoinsRoot: TCastleTransform;
   GroundsRoot: TCastleTransform;
@@ -1172,12 +1198,19 @@ var
   FallingObstaclesRoot: TCastleTransform;
   DeadlyObstaclesRoot: TCastleTransform;
   PowerUps: TCastleTransform;
-  Enemy: TEnemy;
+
+  { Variables used when interating each object groups }
+  PlatformScene: TCastleScene;
   EnemyScene: TCastleScene;
   FallingObstacleScene: TCastleScene;
-  FallingObstacle: TFallingObstacle;
   DeadlyObstacleScene: TCastleScene;
+
+  { Variables used to create behaviors }
+  Enemy: TEnemy;
+  FallingObstacle: TFallingObstacle;
   DeadlyObstacle: TDeadlyObstacle;
+  MovingPlatform: TMovingPlatform;
+
   I, J: Integer;
 begin
   inherited;
@@ -1197,12 +1230,24 @@ begin
 
   WasShotKeyPressed := false;
 
-  { Configure physics for platforms }
+
+  { Configure physics and behaviors for platforms }
+  MovingPlatforms := TMovingPlatformList.Create(true);
   PlatformsRoot := DesignedComponent('Platforms') as TCastleTransform;
   for I := 0 to PlatformsRoot.Count - 1 do
   begin
-    WritelnWarning('Configure platform: ' + PlatformsRoot.Items[I].Name);
-    ConfigurePlatformPhysics(PlatformsRoot.Items[I] as TCastleScene);
+    PlatformScene := PlatformsRoot.Items[I] as TCastleScene;
+    WritelnWarning('Configure platform: ' + PlatformScene.Name);
+    ConfigurePlatformPhysics(PlatformScene);
+
+    { We use Tag to set distance for moving platform, so when its other than 0
+      we need add behavior to it. }
+    if PlatformScene.Tag <> 0 then
+    begin
+      MovingPlatform := TMovingPlatform.Create(nil);
+      PlatformScene.AddBehavior(MovingPlatform);
+      MovingPlatforms.Add(MovingPlatform);
+    end;
   end;
 
   { Configure physics for coins }
@@ -1247,6 +1292,10 @@ begin
   for I := 0 to EnemiesRoot.Count - 1 do
   begin
     EnemyScene := EnemiesRoot.Items[I] as TCastleScene;
+
+    if not EnemyScene.GetExists then
+      Continue;
+
     ConfigureEnemyPhysics(EnemyScene);
     { Below using nil as Owner of TEnemy, as the Enemies list already "owns"
       instances of this class, i.e. it will free them. }
@@ -1291,6 +1340,7 @@ begin
   FreeAndNil(Enemies);
   FreeAndNil(FallingObstacles);
   FreeAndNil(DeadlyObstacles);
+  FreeAndNil(MovingPlatforms);
   inherited;
 end;
 
@@ -1302,6 +1352,9 @@ var
 begin
   inherited;
   { This virtual method is executed every frame.}
+
+  {if TUIState.CurrentTop <> Self then
+    Exit;}
 
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 

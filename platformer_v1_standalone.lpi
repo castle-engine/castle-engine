@@ -33,7 +33,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="8">
+    <Units Count="9">
       <Unit0>
         <Filename Value="platformer_v1_standalone.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -72,6 +72,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="GameStateMenu"/>
       </Unit7>
+      <Unit8>
+        <Filename Value="code/gamemovingplatform.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="GameMovingPlatform"/>
+      </Unit8>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
