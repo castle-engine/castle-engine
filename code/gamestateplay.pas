@@ -77,6 +77,8 @@ type
     { List of moving platforms  behaviours }
     MovingPlatforms: TMovingPlatformList;
 
+    GameOver: Boolean;
+
     procedure ConfigurePlatformPhysics(Platform: TCastleScene);
     procedure ConfigureCoinsPhysics(const Coin: TCastleScene);
     procedure ConfigurePowerUpsPhysics(const PowerUp: TCastleScene);
@@ -1142,11 +1144,13 @@ procedure TStatePlay.SetHitPoints(const HitPoints: Integer);
 begin
   PlayerHitPoints := HitPoints;
 
+  { Set GameOver variable, do *not* call here directly "TUIState.Current := StateGameOver".
+    Because this method may be called in the middle of TCastleViewport.Items.Update recursive
+    iteration, and doing "TUIState.Current := StateGameOver" destroys the viewport,
+    which would mean that the rest of TCastleViewport.Items.Update would try to process
+    non-existing TCastleTransform instances and crash. }
   if PlayerHitPoints < 0 then
-  begin
-    TUIState.Push(StateGameOver);
-    Exit;
-  end;
+    GameOver := true;
 
   if PlayerHitPoints > 3 then
     ImageHitPoint4.URL := 'castle-data:/ui/hud_heartFull.png'
@@ -1236,7 +1240,7 @@ begin
   ScenePlayer := DesignedComponent('ScenePlayer') as TCastleScene;
 
   WasShotKeyPressed := false;
-
+  GameOver := false;
 
   { Configure physics and behaviors for platforms }
   MovingPlatforms := TMovingPlatformList.Create(true);
@@ -1360,8 +1364,11 @@ begin
   inherited;
   { This virtual method is executed every frame.}
 
-  {if TUIState.CurrentTop <> Self then
-    Exit;}
+  if GameOver then
+  begin
+    TUIState.Current := StateGameOver;
+    Exit;
+  end;
 
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 
