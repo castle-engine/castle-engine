@@ -851,6 +851,9 @@ var
 begin
   Relative := ExtractRelativePath(Path, FileInfo.AbsoluteName);
   {$ifdef MSWINDOWS}
+  { Use forward slashes also on Windows,
+    this way LPI generated on Windows and Unix will look the same
+    (so e.g. version control systems will not report differences). }
   StringReplaceAllVar(Relative, '\', '/');
   {$endif}
   FindPascalFilesResult.Add(Relative);
