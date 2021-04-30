@@ -78,9 +78,9 @@ procedure TMovingPlatform.Update(const SecondsPassed: Single; var RemoveMe: TRem
 const
   MovingSpeed = 100;
 var
-  DeltaX: Single;
+  // DeltaX: Single;
   Vel: TVector3;
-  T: TVector3;
+  // T: TVector3;
 begin
   inherited;
 

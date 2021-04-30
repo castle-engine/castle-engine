@@ -352,7 +352,7 @@ var
   RBody: TRigidBody;
   Collider: TCapsuleCollider;
   // ColliderSP: TSphereCollider;
-  ColliderBox: TBoxCollider;
+  // ColliderBox: TBoxCollider;
 begin
   RBody := TRigidBody.Create(Player);
   RBody.Dynamic := true;
