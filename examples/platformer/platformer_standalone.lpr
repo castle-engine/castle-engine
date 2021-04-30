@@ -11,7 +11,7 @@
 { Do not specify program name below.
   It is not used anyway, and this way allows developer
   to change standalone_source in CastleEngineManifest.xml easier. }
-// program platformer_v1_standalone;
+// program platformer_standalone;
 
 {$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 

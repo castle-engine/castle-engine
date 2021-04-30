@@ -14,8 +14,8 @@ implementation
 uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
-  ApplicationProperties.ApplicationName := 'platformer_v1';
-  ApplicationProperties.Caption := 'Platformer V1';
+  ApplicationProperties.ApplicationName := 'platformer';
+  ApplicationProperties.Caption := 'Platformer';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

@@ -163,6 +163,7 @@ castle-game-engine-*.fpm
 /examples/physics/physics_2d_collisions/physics_2d_collisions
 /examples/physics/physics_2d_game_sopwith/physics_2d_game_sopwith
 /examples/physics/physics_3d_demo/physics_3d_demo
+/examples/platformer/platformer
 /examples/plugin/cge_3d_viewer/cge_3d_viewer
 /examples/plugin/cge_3d_viewer/npcge_3d_viewer.linux-i386.so
 /examples/portable_game_skeleton/my_fantastic_game

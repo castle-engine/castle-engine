@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project name="platformer_v1"
-  standalone_source="platformer_v1_standalone.lpr"
+<project name="platformer"
+  standalone_source="platformer_standalone.lpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.platformerv1"
-  caption="Platformer V1"
+  qualified_name="com.mycompany.platformer"
+  caption="Platformer"
 >
   <compiler_options>
     <search_paths>

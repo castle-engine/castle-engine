@@ -11,7 +11,7 @@
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
-      <Title Value="platformer_v1"/>
+      <Title Value="platformer"/>
     </General>
     <BuildModes Count="1">
       <Item1 Name="default" Default="True"/>
@@ -35,7 +35,7 @@
     </RequiredPackages>
     <Units Count="9">
       <Unit0>
-        <Filename Value="platformer_v1_standalone.lpr"/>
+        <Filename Value="platformer_standalone.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
@@ -82,7 +82,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="platformer_v1"/>
+      <Filename Value="platformer"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="code"/>
