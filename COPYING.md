@@ -26,7 +26,7 @@ Please note that the text above is not "legally binding". E.g. _"the need to sha
 
 # Engine core (LGPL + static linking exception)
 
-The core of the "Castle Game Engine" is available on terms of the _GNU Lesser General Public License_ (version 2 or above, whichever you like). See the `doc/licenses/COPYING.LGPL2.txt` for the exact LGPL 2 license text, see the http://www.gnu.org/copyleft/lesser.html for the current version, FAQs etc.
+The core of the "Castle Game Engine" is available on terms of the _GNU Lesser General Public License_ (version 2 or above, whichever you like). See the [doc/licenses/COPYING.LGPL2.txt](https://github.com/castle-engine/castle-engine/blob/master/doc/licenses/COPYING.LGPL2.txt) for the exact LGPL 2 license text, see the http://www.gnu.org/copyleft/lesser.html for the current version, FAQs etc.
 
 Moreover, we add the so-called _"static linking exception"_ to the LGPL terms. The idea of this exception is to allow statically linking with the engine on the same terms as dynamically linking. Static linking is what usually happens when you compile a program using the engine units (without wrapping the engine in a dynamic library (dll, so, dylib) or Delphi runtime package).
 
@@ -49,7 +49,7 @@ By "engine core" we mean everything that can be found in this directory (GitHub 
 
 # Visual editor (castle-editor), some example data, some website data (GPL)
 
-The items listed below are covered by a more strict GNU General Public License (version 2 or above, whichever you like). See the file `doc/licenses/COPYING.GPL2.txt` for the exact license text. See http://www.gnu.org/copyleft/gpl.html for more information about this license (including translations of it to various languages) and philosophy of the free software.
+The items listed below are covered by a more strict GNU General Public License (version 2 or above, whichever you like). See the file [doc/licenses/COPYING.GPL2.txt](https://github.com/castle-engine/castle-engine/blob/master/doc/licenses/COPYING.GPL2.txt) for the exact license text. See http://www.gnu.org/copyleft/gpl.html for more information about this license (including translations of it to various languages) and philosophy of the free software.
 
 In short, it means that: If you use the items listed below (modified or not) to create your own application, then you need to share the code of your entire application, as the complete work must be covered also by the GPL license.
 
@@ -80,7 +80,7 @@ The items covered by the GPL license are:
 
 This section applies to all files within the `examples/` subdirectory:
 
-The example code, and most example data (unless specified otherwise using the `AUTHORS.txt` file in example `data` subdirectory) are covered by a permissive "modified BSD (3-clause)" license. See the file `doc/licenses/COPYING.BSD-3-clause.txt` for the exact license text.
+The example code, and most example data (unless specified otherwise using the `AUTHORS.txt` file in example `data` subdirectory) are covered by a permissive "modified BSD (3-clause)" license. See the file [doc/licenses/COPYING.BSD-3-clause.txt](https://github.com/castle-engine/castle-engine/blob/master/doc/licenses/COPYING.BSD-3-clause.txt) for the exact license text.
 
 In short, you only need to retain our copyright (just keep somewhere line like _"This code is based on Castle Game Engine example"_) in sources or docs. You don't need to share anything you do (you don't need to share the sources/docs). Whatever modifications you do to the example code are yours.
 
