@@ -78,9 +78,11 @@ The items covered by the GPL license are:
 
 # Examples (BSD)
 
-The example code, and most example data (unless specified otherwise using the `AUTHORS.txt` file in example `data` subdirectory) are covered by more permissive "modified BSD (3-clause)" license. See the file `doc/licenses/COPYING.BSD-3-clause.txt` for the exact license text.
+This section applies to all files within the `examples/` subdirectory:
 
-In short, you only need to retain our copyright ("this code is based on Castle Game Engine example") in source or docs. You don't need to share anything you do. Whatever modifications you do to the example code are yours.
+The example code, and most example data (unless specified otherwise using the `AUTHORS.txt` file in example `data` subdirectory) are covered by a permissive "modified BSD (3-clause)" license. See the file `doc/licenses/COPYING.BSD-3-clause.txt` for the exact license text.
+
+In short, you only need to retain our copyright (just keep somewhere line like _"This code is based on Castle Game Engine example"_) in sources or docs. You don't need to share anything you do (you don't need to share the sources/docs). Whatever modifications you do to the example code are yours.
 
 # CASTLE_ENGINE_LGPL symbol (relevant only for Castle Game Engine <= 6.4)
 
