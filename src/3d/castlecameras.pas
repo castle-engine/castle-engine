@@ -1384,7 +1384,9 @@ type
     property ExactMovement: Boolean read FExactMovement write FExactMovement default true;
   end;
 
-  TCastle2DNavigation = class (TCastleExamineNavigation)
+  { Navigation most suitable for 2D viewports
+    (with orthographic projection and standard direction/up: -Z/+Y). }
+  TCastle2DNavigation = class(TCastleExamineNavigation)
   public
     constructor Create(AOwner: TComponent); override;
 
