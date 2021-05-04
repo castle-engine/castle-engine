@@ -225,10 +225,6 @@ begin
   RBody := TRigidBody.Create(Platform);
   RBody.Dynamic := false;
 
-  { Movable platforms are animated }
-  {if Platform.Tag <> 0 then
-    RBody.Animated := true;}
-
   if Platform.Tag <> 0 then
     RBody.Dynamic := true;
 
@@ -249,7 +245,8 @@ begin
   Size.Z := 60;
 
   Collider.Size := Size;
-  Collider.Friction := 100;
+  if Platform.Tag <> 0 then
+    Collider.Friction := 100;
   Collider.Restitution := 0.0;
   Collider.Mass := 1000;
 
