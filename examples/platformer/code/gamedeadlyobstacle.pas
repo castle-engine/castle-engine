@@ -107,6 +107,11 @@ end;
 procedure TDeadlyObstacle.HitPlayer;
 begin
   StatePlay.HitPlayer;
+  if StatePlay.IsPlayerDead then
+  begin
+    IsPlayerColliding := false;
+    CollidingTime := 0;
+  end;
 end;
 
 procedure TDeadlyObstacle.CollisionEnter(
