@@ -107,6 +107,7 @@ end;
 procedure TDeadlyObstacle.HitPlayer;
 begin
   StatePlay.HitPlayer;
+  { When player is dead stop hiting. }
   if StatePlay.IsPlayerDead then
   begin
     IsPlayerColliding := false;

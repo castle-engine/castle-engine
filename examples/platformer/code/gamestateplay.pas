@@ -493,6 +493,10 @@ var
 begin
   { This method is executed every frame.}
 
+  { When player is dead, he can't do anything }
+  if IsPlayerDead then
+    Exit;
+
   DeltaVelocity := Vector3(0, 0, 0);
   Vel := ScenePlayer.RigidBody.LinearVelocity;
 
@@ -574,6 +578,10 @@ var
   Distance: Single;
 begin
   { This method is executed every frame.}
+
+  { When player is dead, he can't do anything }
+  if IsPlayerDead then
+    Exit;
 
   DeltaVelocity := Vector3(0, 0, 0);
   Vel := ScenePlayer.RigidBody.LinearVelocity;
@@ -686,6 +694,10 @@ var
   InSecondJump: Boolean;
 begin
   { This method is executed every frame.}
+
+  { When player is dead, he can't do anything }
+  if IsPlayerDead then
+    Exit;
 
   InSecondJump := false;
 
@@ -824,6 +836,10 @@ var
   InSecondJump: Boolean;
 begin
   { This method is executed every frame.}
+
+  { When player is dead, he can't do anything }
+  if IsPlayerDead then
+    Exit;
 
   InSecondJump := false;
 
@@ -973,6 +989,10 @@ var
   GroundScene: TCastleTransform;
 begin
   { This method is executed every frame.}
+
+  { When player is dead, he can't do anything }
+  if IsPlayerDead then
+    Exit;
 
   InSecondJump := false;
 
