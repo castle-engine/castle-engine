@@ -28,11 +28,10 @@
 #     people expect by default, so we don't do it for now.)
 #
 #   examples-laz --
-#     Compile all examples and tools using Lazarus.
+#     Compile all examples and tools using Lazarus (lazbuild).
 #     This compilation method uses our .lpi project files,
 #     and compiles every program by the lazbuild utility.
-#     Lazarus and FPC installation is required, and Lazarus must know
-#     about the castle_* packages (compile them from Lazarus first).
+#     Lazarus and FPC installation is required.
 #
 #   clean --
 #     Delete FPC temporary files, Delphi temporary files,
@@ -367,45 +366,14 @@ examples-laz:
 	lazbuild packages/castle_base.lpk
 	lazbuild packages/castle_window.lpk
 	lazbuild packages/castle_components.lpk
-# lazbuild fails with access violation sometimes, so just try it 2 times:
-#  An unhandled exception occurred at $0000000000575F5F:
-#   EAccessViolation: Access violation
-#     $0000000000575F5F line 590 of exttools.pas
-#     $000000000057A027 line 1525 of exttools.pas
-#     $000000000057B231 line 1814 of exttools.pas
 	for LPI_FILENAME in $(EXAMPLES_BASE_NAMES) $(EXAMPLES_LAZARUS_BASE_NAMES); do \
-	  if ! lazbuild $${LPI_FILENAME}.lpi; then \
-	    echo '1st execution of lazbuild failed, trying again'; \
-	    make clean; \
-	    lazbuild packages/castle_base.lpk; \
-	    lazbuild packages/castle_window.lpk; \
-	    lazbuild packages/castle_components.lpk; \
-	    lazbuild $${LPI_FILENAME}.lpi; \
-	  fi; \
+	  ./tools/internal/lazbuild_retry $${LPI_FILENAME}.lpi; \
 	done
-
-# Compile only Lazarus-specific examples (that depend on LCL)
-.PHONY: examples-only-laz
-examples-only-laz:
-	lazbuild packages/castle_base.lpk
-	lazbuild packages/castle_window.lpk
-	lazbuild packages/castle_components.lpk
-# lazbuild fails with access violation sometimes, so just try it 2 times:
-#  An unhandled exception occurred at $0000000000575F5F:
-#   EAccessViolation: Access violation
-#     $0000000000575F5F line 590 of exttools.pas
-#     $000000000057A027 line 1525 of exttools.pas
-#     $000000000057B231 line 1814 of exttools.pas
-	for LPI_FILENAME in $(EXAMPLES_LAZARUS_BASE_NAMES); do \
-	  if ! lazbuild $${LPI_FILENAME}.lpi; then \
-	    echo '1st execution of lazbuild failed, trying again'; \
-	    make clean; \
-	    lazbuild packages/castle_base.lpk; \
-	    lazbuild packages/castle_window.lpk; \
-	    lazbuild packages/castle_components.lpk; \
-	    lazbuild $${LPI_FILENAME}.lpi; \
-	  fi; \
-	done
+	$(FIND) . \
+	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
+	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
+	  '(' -path ./tools/build-tool/tests/data -prune ')' -o \
+	  '(' -iname '*.lpi' -exec ./tools/internal/lazbuild_retry '{}' ';' ')'
 
 # cleaning ------------------------------------------------------------
 
