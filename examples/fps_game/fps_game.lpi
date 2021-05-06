@@ -22,7 +22,7 @@
     </RequiredPackages>
     <Units Count="3">
       <Unit0>
-        <Filename Value="fps_game_standalone.lpr"/>
+        <Filename Value="fps_game.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>

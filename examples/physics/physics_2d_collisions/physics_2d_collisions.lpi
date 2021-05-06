@@ -22,7 +22,7 @@
     </RequiredPackages>
     <Units Count="3">
       <Unit0>
-        <Filename Value="physics_2d_collisions_standalone.lpr"/>
+        <Filename Value="physics_2d_collisions.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
