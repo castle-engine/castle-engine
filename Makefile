@@ -282,12 +282,6 @@ EXAMPLES_WINDOWS_EXECUTABLES := $(addsuffix .exe,$(EXAMPLES_BASE_NAMES)) \
   $(addsuffix .exe,$(EXAMPLES_LAZARUS_BASE_NAMES)) \
   tools/castle-editor/castle-editor.exe
 
-EXAMPLES_MACOSX_APPS := $(addsuffix .app,$(EXAMPLES_BASE_NAMES)) \
-  $(addsuffix .app,$(EXAMPLES_LAZARUS_BASE_NAMES))
-
-EXAMPLES_RES_FILES := $(addsuffix .res,$(EXAMPLES_BASE_NAMES)) \
-  $(addsuffix .res,$(EXAMPLES_LAZARUS_BASE_NAMES))
-
 # Test compiling single CGE editor template.
 # Requires EDITOR_TEMPLATE_PATH to be defined.
 .PHONY: test-editor-template
@@ -366,8 +360,7 @@ examples-ignore-errors:
 
 .PHONY: cleanexamples
 cleanexamples:
-	rm -f $(EXAMPLES_UNIX_EXECUTABLES) $(EXAMPLES_WINDOWS_EXECUTABLES) $(EXAMPLES_RES_FILES)
-	rm -Rf $(EXAMPLES_MACOSX_APPS)
+	rm -f $(EXAMPLES_UNIX_EXECUTABLES) $(EXAMPLES_WINDOWS_EXECUTABLES)
 
 .PHONY: examples-laz
 examples-laz:
@@ -422,6 +415,7 @@ clean: cleanexamples
 	$(FIND) . -type f '(' -iname '*.ow'  -or -iname '*.ppw' -or -iname '*.aw' -or \
 	                   -iname '*.o'   -or -iname '*.ppu' -or -iname '*.a' -or \
 			   -iname '*.or'  -or \
+			   -iname '*.res' -or \
 			   -iname '*.rsj' -or \
 			   -iname '*.compiled' -or \
 			   -iname '*.lps' -or \
@@ -434,11 +428,12 @@ clean: cleanexamples
 	                   -iname '*.log' ')' \
 	     -print \
 	     | xargs rm -f
+# Note: *.app directory is a macOS bundle
 	$(FIND) . -type d '(' -name 'lib' -or \
-	                      -name 'castle-engine-output' ')' \
+	                      -name 'castle-engine-output' -or \
+			      -name '*.app' ')' \
 	     -exec rm -Rf '{}' ';' -prune
 	rm -Rf bin/ \
-	  'tools/castle-editor/Castle Game Engine.app' \
 	  packages/castle_base.pas \
 	  packages/castle_window.pas \
 	  packages/castle_components.pas \
