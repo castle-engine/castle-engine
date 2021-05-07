@@ -759,11 +759,62 @@ begin
 end;
 
 procedure TRigidBody.DeinitializeTransform(const Transform: TCastleTransform);
+
+  procedure RemoveSelfFromOtherRigidBodiesCollisionLists;
+  var
+    OtherRigidBody: TRigidBody;
+    CollisionDetails: TPhysicsCollisionDetails;
+    ContactPairEdge: PKraftContactPairEdge;
+  begin
+    if FKraftBody = nil then
+      Exit;
+    { We don't use here FPrevCollisions list because it can be empty when
+      this rigid body don't assign any FOnCollisionXXX event. }
+    ContactPairEdge := FKraftBody.ContactPairEdgeFirst;
+    while Assigned(ContactPairEdge) do
+    begin
+      if not (kcfColliding in ContactPairEdge^.ContactPair^.Flags) then
+      begin
+        ContactPairEdge := ContactPairEdge^.Next;
+        continue;
+      end;
+
+      OtherRigidBody := TRigidBody(ContactPairEdge^.OtherRigidBody.UserData);
+
+      { We need check that only when other body has OnCollisionExit or
+        OnCollisionStay event assigned. }
+      if Assigned(OtherRigidBody.FOnCollisionExit) or
+         Assigned(OtherRigidBody.FOnCollisionStay) then
+      begin
+        { First we need send OnCollisionExit event if needed. }
+        if Assigned(OtherRigidBody.FOnCollisionExit) then
+        begin
+          CollisionDetails.Transforms[0] := OtherRigidBody.FTransform;
+          CollisionDetails.Transforms[1] := FTransform;
+          CollisionDetails.OtherTransform := FTransform;
+          OtherRigidBody.FOnCollisionExit(CollisionDetails);
+        end;
+
+        { Now we can simply remove Self from other rigid body FPrevCollisions list }
+        OtherRigidBody.FPrevCollisions.Remove(Self);
+        { Currently not needed because it's not used directly from other functions
+          than PhysicsPostStep() but this can change in the future. }
+        OtherRigidBody.FCurrentCollisions.Remove(Self);
+      end;
+      ContactPairEdge := ContactPairEdge^.Next;
+    end;
+  end;
+
 begin
   Assert(FKraftBody <> nil, 'Second deinitialization!');
   Assert(Transform.World <> nil, 'Transform.World should be assigned at the time of TRigidBody.DeinitializeTransform call');
 
   Assert(not ((Transform.World.FKraftEngine = nil) and (FKraftBody <> nil)), 'KraftBody should not live longer than KraftEngine!');
+
+  { Deinitialize rigid body when it's in collision with other rigid body make
+    this body will be dangling pointer on it's FPrevCollisions list.
+    So other rigid body can crash when it try to send FOnCollisionExit event. }
+  RemoveSelfFromOtherRigidBodiesCollisionLists;
 
   FreeAndNil(FKraftBody);
 
