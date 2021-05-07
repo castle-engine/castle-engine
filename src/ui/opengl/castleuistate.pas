@@ -477,17 +477,12 @@ implementation
 uses SysUtils,
   CastleFilesUtils, CastleUtils, CastleTimeUtils, CastleLog;
 
-{ TODO: Change this into always exception in the future.
-  Changing state during state Start/Stop/Push/Pop is not reliable,
+{ Changing state during state Start/Stop/Push/Pop is not reliable,
   e.g. doing TUIState.Push during another TUIState.Push will not result
   in proper stack. }
 procedure ErrorStackChangeDisabled(const Message: String);
 begin
-  {$ifdef DEBUG}
   raise EInternalError.Create(Message);
-  {$else}
-  WritelnWarning('TUIState', Message);
-  {$endif}
 end;
 
 type
