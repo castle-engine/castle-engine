@@ -18,6 +18,14 @@
 
 {$ifdef read_interface}
 
+  { Information send along with TOnCollision event, like
+    TRigidBody.OnCollisionEnter, TRigidBody.OnCollisionExit. }
+  TPhysicsCollisionDetails = record
+  public
+    Transforms: array[0..1] of TCastleTransform;
+    function OtherTransform: TCastleTransform;
+  end;
+
   { Configure physics simulation calculation. }
   TPhysicsProperties = class(TComponent)
   strict private
@@ -264,9 +272,9 @@
       i.e. it considers all colliders regardless of their @link(TCastleTransform.Pickable) value.
       This is in contrast to @link(TCastleTransform.RayCast).
       In the future this method will become the basis of a new @link(TCastleTransform.RayCast)
-      implementation and the concept of "pickable" flag will change into 
+      implementation and the concept of "pickable" flag will change into
       collision layers.
-      
+
       This returns the TCastleTransform that is hit and a distance from RayOrigin
       to the hit point.
       Returns @nil (Distance is undefined in this case) if nothing was hit.
@@ -473,6 +481,13 @@ function TCapsuleCollider.CreateKraftShape(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody): TKraftShape;
 begin
   Result := TKraftShapeCapsule.Create(APhysics, ARigidBody, Radius, Height);
+end;
+
+{ TPhysicsCollisionDetails --------------------------------------------------- }
+
+function TPhysicsCollisionDetails.OtherTransform: TCastleTransform;
+begin
+  Result := Transforms[1];
 end;
 
 { TPhysicsProperties --------------------------------------------------------- }
@@ -773,33 +788,29 @@ procedure TRigidBody.DeinitializeTransform(const Transform: TCastleTransform);
     ContactPairEdge := FKraftBody.ContactPairEdgeFirst;
     while Assigned(ContactPairEdge) do
     begin
-      if not (kcfColliding in ContactPairEdge^.ContactPair^.Flags) then
+      if kcfColliding in ContactPairEdge^.ContactPair^.Flags then
       begin
-        ContactPairEdge := ContactPairEdge^.Next;
-        continue;
-      end;
+        OtherRigidBody := TRigidBody(ContactPairEdge^.OtherRigidBody.UserData);
 
-      OtherRigidBody := TRigidBody(ContactPairEdge^.OtherRigidBody.UserData);
-
-      { We need check that only when other body has OnCollisionExit or
-        OnCollisionStay event assigned. }
-      if Assigned(OtherRigidBody.FOnCollisionExit) or
-         Assigned(OtherRigidBody.FOnCollisionStay) then
-      begin
-        { First we need send OnCollisionExit event if needed. }
-        if Assigned(OtherRigidBody.FOnCollisionExit) then
+        { We need check that only when other body has OnCollisionExit or
+          OnCollisionStay event assigned. }
+        if Assigned(OtherRigidBody.FOnCollisionExit) or
+           Assigned(OtherRigidBody.FOnCollisionStay) then
         begin
-          CollisionDetails.Transforms[0] := OtherRigidBody.FTransform;
-          CollisionDetails.Transforms[1] := FTransform;
-          CollisionDetails.OtherTransform := FTransform;
-          OtherRigidBody.FOnCollisionExit(CollisionDetails);
-        end;
+          { First we need send OnCollisionExit event if needed. }
+          if Assigned(OtherRigidBody.FOnCollisionExit) then
+          begin
+            CollisionDetails.Transforms[0] := OtherRigidBody.FTransform;
+            CollisionDetails.Transforms[1] := FTransform;
+            OtherRigidBody.FOnCollisionExit(CollisionDetails);
+          end;
 
-        { Now we can simply remove Self from other rigid body FPrevCollisions list }
-        OtherRigidBody.FPrevCollisions.Remove(Self);
-        { Currently not needed because it's not used directly from other functions
-          than PhysicsPostStep() but this can change in the future. }
-        OtherRigidBody.FCurrentCollisions.Remove(Self);
+          { Now we can simply remove Self from other rigid body FPrevCollisions list }
+          OtherRigidBody.FPrevCollisions.Remove(Self);
+          { Currently not needed because it's not used directly from other functions
+            than PhysicsPostStep() but this can change in the future. }
+          OtherRigidBody.FCurrentCollisions.Remove(Self);
+        end;
       end;
       ContactPairEdge := ContactPairEdge^.Next;
     end;
@@ -836,48 +847,41 @@ begin
   ContactPairEdge := FKraftBody.ContactPairEdgeFirst;
   while Assigned(ContactPairEdge) do
   begin
-    { Without this code, OnCollisonEnter reports fake collisons when
+    { Without this check, OnCollisonEnter reports fake collisons when
       one of colliding body has non regural shape (for example when
       TBoxCollider is rotated).
       kcfColliding = From kraft source comment: "Set when contact
       collides during a step" }
-    if not (kcfColliding in ContactPairEdge^.ContactPair^.Flags) then
+    if kcfColliding in ContactPairEdge^.ContactPair^.Flags then
     begin
-      ContactPairEdge := ContactPairEdge^.Next;
-      continue;
-    end;
+      RBody := TRigidBody(ContactPairEdge^.OtherRigidBody.UserData);
 
-    RBody := TRigidBody(ContactPairEdge^.OtherRigidBody.UserData);
+      // Do not send events for next collision points with the same body.
+      if FCurrentCollisions.IndexOf(RBody) = - 1 then
+      begin
+        // Add to current collisions.
+        FCurrentCollisions.Add(RBody);
 
-    // Omit next collision point with the same body.
-    if FCurrentCollisions.IndexOf(RBody) <> - 1 then
-    begin
-      ContactPairEdge := ContactPairEdge^.Next;
-      continue;
-    end;
+        // Prepare collision data.
+        CollisionDetails.Transforms[0] := FTransform;
+        CollisionDetails.Transforms[1] := RBody.FTransform;
 
-    // Add to current collisions.
-    FCurrentCollisions.Add(RBody);
+        // New and ongoing collisions.
+        if FPrevCollisions.IndexOf(RBody) = -1 then
+        begin
+          // New collision.
+          if Assigned(FOnCollisionEnter) then
+            FOnCollisionEnter(CollisionDetails);
+        end else
+        begin
+          // Still in collision.
+          if Assigned(FOnCollisionStay) then
+            FOnCollisionStay(CollisionDetails);
 
-    // Prepare collision data.
-    CollisionDetails.OtherTransform := RBody.FTransform;
-    CollisionDetails.Transforms[0] := FTransform;
-    CollisionDetails.Transforms[1] := CollisionDetails.OtherTransform;
-
-    // New and ongoing collisions.
-    if FPrevCollisions.IndexOf(RBody) = -1 then
-    begin
-      // New collision.
-      if Assigned(FOnCollisionEnter) then
-        FOnCollisionEnter(CollisionDetails);
-    end else
-    begin
-      // Still in collision.
-      if Assigned(FOnCollisionStay) then
-        FOnCollisionStay(CollisionDetails);
-
-      // Remove used collision.
-      FPrevCollisions.Remove(RBody);
+          // Remove used collision.
+          FPrevCollisions.Remove(RBody);
+        end;
+      end;
     end;
 
     ContactPairEdge := ContactPairEdge^.Next;
@@ -890,9 +894,7 @@ begin
 
     for I := 0  to FPrevCollisions.Count - 1 do
     begin
-      CollisionDetails.OtherTransform := TRigidBody(FPrevCollisions[I]).FTransform;
-      CollisionDetails.Transforms[1] := CollisionDetails.OtherTransform;
-
+      CollisionDetails.Transforms[1] := TRigidBody(FPrevCollisions[I]).FTransform;
       FOnCollisionExit(CollisionDetails);
     end;
   end;

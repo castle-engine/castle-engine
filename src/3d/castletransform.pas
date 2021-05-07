@@ -189,12 +189,6 @@ type
     procedure Add(const Item: TCastleTransform); reintroduce;
   end;
 
-  TPhysicsCollisionDetails = record
-  public
-    Transforms: array[0..1] of TCastleTransform;
-    OtherTransform: TCastleTransform;
-  end;
-
   TRemoveType = (rtNone, rtRemove, rtRemoveAndFree);
 
   {$define read_interface}
