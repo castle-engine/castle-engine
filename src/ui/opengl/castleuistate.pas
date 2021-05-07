@@ -45,50 +45,39 @@ type
     to perform work when the state becomes the top-most state or is no longer
     the top-most state. The distinction becomes important once you play
     around with pushing/popping states.
-    The names are deliberaly similar to Android lifecycle callback names.
 
-    You can add/remove state-specific UI controls in various ways.
-    You can add them in the constructor of this state (and then free in destructor),
-    or add them in @link(Start), free in @link(Stop).
+    To define state user interface:
 
     @orderedList(
-      @item(It's simplest and best to add/keep children controls as real
-        children of the current state, so add them
-        using methods @link(TCastleUserInterface.InsertFront) and
-        @link(TCastleUserInterface.InsertBack).)
+      @item(It is simplest to set @link(DesignUrl)
+        to the design file you created using @url(https://castle-engine.io/manual_editor.php CGE editor).
+        Such user interface controls will be created right before @link(Start)
+        and destroyed right after @link(Stop) (so the state UI always "resets"
+        when state starts).)
 
-      @item(Eventually, for special tricks, you can add controls that are
-        conceptually the state "children" directly to the
-        @code(StateContainer.Controls) list.
-        This allows to keep some children on the @code(StateContainer.Controls)
-        list for a longer
-        time (not only when this state is active), which may be useful for optimization,
-        to not reinitialize GL resources too often.
-        To do this, add controls using
-        @code(StateContainer.Controls.InsertFront(...)), remove them by
-        @code(StateContainer.Controls.Remove(...)),
-        and make sure to override @link(InsertAtPosition) method such that state instance
-        is inserted in @code(StateContainer.Controls) right behind your UI.)
+      @item(You can always create more UI controls and add them to the state at any point.
+        The state is a @link(TCastleUserInterface) descendant and you can add UI to it
+        just by using @link(TCastleUserInterface.InsertFront).
+
+        UI children can be added anytime you want, e.g. in @link(Start) or in overridden
+        constructor.
+
+        UI children can be removed or destroyed anytime you want as well.
+        You can use @link(FreeAtStop) as an owner for anything you want to be automatically
+        destroyed at @link(Stop).)
     )
 
-    Current state is also placed on the list of container controls.
-    This way state is notified
-    about UI events, and can react to them. Since state-specific UI
-    should always be at the front of us, or our children,
-    so in case of events that can be "handled"
-    (like TCastleUserInterface.Press, TCastleUserInterface.Release events)
-    the state-specific UI controls will handle them @italic(before)
-    the state itself (if you override TCastleUserInterface.Press or such in state,
-    be sure to call @code(inherited) first, to make sure it really
-    happens).
-
-    This way state can
+    Current state is placed on the list of container controls.
+    This way state is notified about UI events, and can react to them.
+    Note that our children will handle events @italic(before) the state itself
+    is notified about them, following @link(TCastleUserInterface) events behavior.
+    This way state can:
 
     @unorderedList(
-      @item(catch press/release and similar events, when no other
-        state-specific control handled them,)
-      @item(catch update, GL context open/close and other useful events,)
-      @item(can have it's own render function, to directly draw UI.)
+      @item(React to @link(TCastleUserInterface.Press Press),
+        @link(TCastleUserInterface.Release Release) of keys or mouse buttons,)
+
+      @item(do something continuos in @link(TCastleUserInterface.Update Update).)
     )
 
     See the TCastleUserInterface class for a lot of useful methods that you can
@@ -148,30 +137,65 @@ type
     { When @true, state operations will send a log to CastleLog. }
     class var Log: boolean;
 
-    { Current state. In case multiple states are active (only possible
-      if you used @link(Push) method), this is the bottom state
-      (use @link(CurrentTop) to get top state).
-      Setting this resets whole state stack. }
+    { Current state. Simply assign to this property to change the current state.
+
+      In case multiple states are active (only possible
+      if you used the @link(Push) method), this property returns the @italic(bottom) state
+      (use @link(CurrentTop) to get @italic(top) state).
+      Setting this property resets whole state stack.
+
+      @bold(When is it allowed to change the state?)
+
+      While in theory you can change current state stack (assigning @link(TUIState.Current)
+      or using @link(TUIState.Push) / @link(TUIState.Pop)) at any moment,
+      but remember that stopping the state frees also the state UI.
+      So you should not change the current state stack within events/overriden methods
+      of classes like TCastleUserInterface, TCastleTransform, TCastleBehavior
+      that could be destroyed by the state stop.
+
+      The simpler advise is: @italic(Assign to @link(TUIState.Current) or use @link(TUIState.Push) / @link(TUIState.Pop)
+      only from the overridden TUIState methods.
+      Like TMyState.Update or TMyState.Press).
+
+      Note that you cannot change current state stack when another change is in progress.
+      That is, you cannot change state from within TMyState.Start/Resume/Pause/Stop.
+    }
     class property Current: TUIState read GetCurrent write SetCurrent;
+
+    { The top-most state.
+
+      In case you used @link(Push), this returns the top-most (most recently pushed) state.
+
+      If there is only one (or none) state, e.g. because you never used @link(Push),
+      then this property returns the same thing as @link(Current). }
     class property CurrentTop: TUIState read GetCurrentTop;
 
-    { Pushing the state adds it at the top of the state stack.
+    { Pushing the state adds it at the top of the state stack,
+      this makes new state to be displayed on top of previous ones.
 
       The state known as @link(Current) is conceptually at the bottom of state stack, always.
       When it is nil, then pushing new state sets the @link(Current) state.
       Otherwise @link(Current) state is left as-it-is, new state is added on top. }
     class procedure Push(const NewState: TUIState);
 
-    { Pop the current top-most state, whatever it is. }
+    { Pop the current top-most state, reversing the @link(Push) operation. }
     class procedure Pop;
 
-    { Pop the top-most state, checking it is as expected.
+    { Pop the current top-most state, reversing the @link(Push) operation,
+      also checking whether the current top-most state is as expected.
+
       Makes a warning, and does nothing, if the current top-most state
       is different than indicated. This is usually a safer (more chance
       to easily catch bugs) version of Pop than the parameter-less version. }
     class procedure Pop(const CurrentTopMostState: TUIState);
 
+    { Count of states in the state stack.
+      State stack is managed using Start / Push / Pop. }
     class function StateStackCount: Integer;
+
+    { Access any state within the state stack.
+      Use with indexes between 0 and StateStackCount - 1.
+      State stack is managed using Start / Push / Pop. }
     class property StateStack [const Index: Integer]: TUIState read GetStateStack;
 
     { Create an instance of the state.
@@ -191,8 +215,7 @@ type
         TUIState.Current := StateMain;
       #)
 
-      See https://castle-engine.io/manual_2d_user_interface.php
-      and numerous engine examples, like examples/user_interface/zombie_fighter/ .
+      See https://castle-engine.io/manual_2d_user_interface.php and numerous engine examples.
     }
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -230,7 +253,7 @@ type
     }
     constructor CreateUntilStopped;
 
-    { State becomes active, it's now part of the state stack.
+    { Executed when state becomes active, it's now part of the state stack.
 
       Started state is part of the StateStack, and will soon become
       running (top-most on the stack). When the state is set to be current,
@@ -246,7 +269,7 @@ type
       ) }
     procedure Start; virtual;
 
-    { State is no longer active, no longer part of state stack.
+    { Executed when state is no longer active, no longer part of state stack.
 
       When the state stops becoming active, this happens:
 
@@ -266,13 +289,13 @@ type
       you initialized in @link(Start). }
     procedure Stop; virtual;
 
-    { State is now the top-most state. See @link(Start) and @link(Stop)
+    { Executed when state is now the top-most state. See @link(Start) and @link(Stop)
       docs about state lifecycle methods.
       This is called after @link(Start), it is also called
       when you pop another state, making this state the top-most. }
     procedure Resume; virtual;
 
-    { State is no longer the top-most state. See @link(Start) and @link(Stop)
+    { Executed when state is no longer the top-most state. See @link(Start) and @link(Stop)
       docs about state lifecycle methods.
       This is called before @link(Stop), it is also called
       when another state is pushed over this state, so this stops
