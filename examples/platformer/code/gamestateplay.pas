@@ -88,8 +88,6 @@ type
     { List of moving platforms behaviors }
     MovingPlatforms: TMovingPlatformList;
 
-    GameOver: Boolean;
-
     procedure ConfigurePlatformPhysics(Platform: TCastleScene);
     procedure ConfigureCoinsPhysics(const Coin: TCastleScene);
     procedure ConfigurePowerUpsPhysics(const PowerUp: TCastleScene);
@@ -146,6 +144,7 @@ type
 
     { Public functions }
     procedure HitPlayer;
+    function IsPlayerDead: Boolean;
 
   end;
 
@@ -226,10 +225,6 @@ begin
   RBody := TRigidBody.Create(Platform);
   RBody.Dynamic := false;
 
-  { Movable platforms are animated }
-  {if Platform.Tag <> 0 then
-    RBody.Animated := true;}
-
   if Platform.Tag <> 0 then
     RBody.Dynamic := true;
 
@@ -250,7 +245,8 @@ begin
   Size.Z := 60;
 
   Collider.Size := Size;
-  Collider.Friction := 100;
+  if Platform.Tag <> 0 then
+    Collider.Friction := 100;
   Collider.Restitution := 0.0;
   Collider.Mass := 1000;
 
@@ -494,6 +490,10 @@ var
 begin
   { This method is executed every frame.}
 
+  { When player is dead, he can't do anything }
+  if IsPlayerDead then
+    Exit;
+
   DeltaVelocity := Vector3(0, 0, 0);
   Vel := ScenePlayer.RigidBody.LinearVelocity;
 
@@ -575,6 +575,10 @@ var
   Distance: Single;
 begin
   { This method is executed every frame.}
+
+  { When player is dead, he can't do anything }
+  if IsPlayerDead then
+    Exit;
 
   DeltaVelocity := Vector3(0, 0, 0);
   Vel := ScenePlayer.RigidBody.LinearVelocity;
@@ -687,6 +691,10 @@ var
   InSecondJump: Boolean;
 begin
   { This method is executed every frame.}
+
+  { When player is dead, he can't do anything }
+  if IsPlayerDead then
+    Exit;
 
   InSecondJump := false;
 
@@ -825,6 +833,10 @@ var
   InSecondJump: Boolean;
 begin
   { This method is executed every frame.}
+
+  { When player is dead, he can't do anything }
+  if IsPlayerDead then
+    Exit;
 
   InSecondJump := false;
 
@@ -974,6 +986,10 @@ var
   GroundScene: TCastleTransform;
 begin
   { This method is executed every frame.}
+
+  { When player is dead, he can't do anything }
+  if IsPlayerDead then
+    Exit;
 
   InSecondJump := false;
 
@@ -1146,6 +1162,11 @@ begin
   PlayAnimationOnceAndLoop(ScenePlayer, 'hurt', 'idle');
 end;
 
+function TStatePlay.IsPlayerDead: Boolean;
+begin
+  Result := PlayerHitPoints < 0;
+end;
+
 procedure TStatePlay.ResetHitPoints;
 begin
   SetHitPoints(4);
@@ -1154,14 +1175,6 @@ end;
 procedure TStatePlay.SetHitPoints(const HitPoints: Integer);
 begin
   PlayerHitPoints := HitPoints;
-
-  { Set GameOver variable, do *not* call here directly "TUIState.Current := StateGameOver".
-    Because this method may be called in the middle of TCastleViewport.Items.Update recursive
-    iteration, and doing "TUIState.Current := StateGameOver" destroys the viewport,
-    which would mean that the rest of TCastleViewport.Items.Update would try to process
-    non-existing TCastleTransform instances and crash. }
-  if PlayerHitPoints < 0 then
-    GameOver := true;
 
   if PlayerHitPoints > 3 then
     ImageHitPoint4.URL := 'castle-data:/ui/hud_heartFull.png'
@@ -1251,7 +1264,6 @@ begin
   ScenePlayer := DesignedComponent('ScenePlayer') as TCastleScene;
 
   WasShotKeyPressed := false;
-  GameOver := false;
 
   { Configure physics and behaviors for platforms }
   MovingPlatforms := TMovingPlatformList.Create(true);
@@ -1375,9 +1387,10 @@ begin
   inherited;
   { This virtual method is executed every frame.}
 
-  if GameOver then
+  { If player is dead and we did not show game over state we do that }
+  if IsPlayerDead and (TUIState.CurrentTop = Self) then
   begin
-    TUIState.Current := StateGameOver;
+    TUIState.Push(StateGameOver);
     Exit;
   end;
 

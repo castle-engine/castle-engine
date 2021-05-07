@@ -122,10 +122,10 @@ begin
   if Pos('ScenePlayer', CollisionDetails.OtherTransform.Name) > 0 then
   begin
     HitPlayer;
-  end;
-
-  if IsFalling and Scene.RigidBody.LinearVelocity.IsZero then
+  end else
   begin
+    { Once the spike hits the ground, it should no longer be able to
+      hurt the player. }
     Scene.RigidBody.Exists := false;
   end;
 end;
