@@ -18,7 +18,7 @@
 
 {$ifdef read_interface}
 
-  { Information send along with TOnCollision event, like
+  { Information send along with TCollisionEvent event, like
     TRigidBody.OnCollisionEnter, TRigidBody.OnCollisionExit. }
   TPhysicsCollisionDetails = record
   public
@@ -173,7 +173,8 @@
   T3DCoord = 0..2;
   T3DCoords = set of T3DCoord;
 
-  TOnCollision = procedure (const CollisionDetails: TPhysicsCollisionDetails) of object;
+  TCollisionEvent = procedure (const CollisionDetails: TPhysicsCollisionDetails) of object;
+  TOnCollision = TCollisionEvent deprecated 'use TCollisionEvent';
 
   TRigidBodyList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TRigidBody>;
 
@@ -190,9 +191,9 @@
     { List of collisions from current step. }
     FCurrentCollisions: TRigidBodyList;
 
-    FOnCollisionEnter: TOnCollision;
-    FOnCollisionStay: TOnCollision;
-    FOnCollisionExit: TOnCollision;
+    FOnCollisionEnter: TCollisionEvent;
+    FOnCollisionStay: TCollisionEvent;
+    FOnCollisionExit: TCollisionEvent;
 
     procedure PhysicsPostStep(const RigidBody: TKraftRigidBody; const TimeStep: TKraftTimeStep);
     { Assign or unassign PhysicsPostStep in TKraftBody.OnPostStep when needed. }
@@ -229,9 +230,9 @@
     procedure SetLinearVelocityDamp(const AValue: Single);
     procedure SetMaximalLinearVelocity(const AValue: Single);
 
-    procedure SetOnCollisionEnter(const AValue: TOnCollision);
-    procedure SetOnCollisionStay(const AValue: TOnCollision);
-    procedure SetOnCollisionExit(const AValue: TOnCollision);
+    procedure SetOnCollisionEnter(const AValue: TCollisionEvent);
+    procedure SetOnCollisionStay(const AValue: TCollisionEvent);
+    procedure SetOnCollisionExit(const AValue: TCollisionEvent);
 
     procedure SetExists(const Value: Boolean);
     procedure SetTrigger(const Value: Boolean);
@@ -308,7 +309,7 @@
       It would free the rigid body instance, which will crash the physics engine for now.
       Instead, you can set @link(TCastleTransform.Exists) to @false
       (you can free it later, e.g. during @link(TInputListener.OnUpdate)). }
-    property OnCollisionEnter: TOnCollision read FOnCollisionEnter write SetOnCollisionEnter;
+    property OnCollisionEnter: TCollisionEvent read FOnCollisionEnter write SetOnCollisionEnter;
 
     { Occurs when TRigidBody stops colliding with another TRigidBody.
 
@@ -317,7 +318,7 @@
       It would free the rigid body instance, which will crash the physics engine for now.
       Instead, you can set @link(TCastleTransform.Exists) to @false
       (you can free it later, e.g. during @link(TInputListener.OnUpdate)). }
-    property OnCollisionExit: TOnCollision read FOnCollisionExit write SetOnCollisionExit;
+    property OnCollisionExit: TCollisionEvent read FOnCollisionExit write SetOnCollisionExit;
 
     { Occurs when TRigidBody still collides with another TRigidBody.
 
@@ -326,7 +327,7 @@
       It would free the rigid body instance, which will crash the physics engine for now.
       Instead, you can set @link(TCastleTransform.Exists) to @false
       (you can free it later, e.g. during @link(TInputListener.OnUpdate)). }
-    property OnCollisionStay: TOnCollision read FOnCollisionStay write SetOnCollisionStay;
+    property OnCollisionStay: TCollisionEvent read FOnCollisionStay write SetOnCollisionStay;
 
   published
     { Does the physics simulation move and rotate this object
@@ -949,19 +950,19 @@ begin
     FKraftBody.MaximalLinearVelocity := AValue / FTransform.World.FKraftEngine.WorldFrequency;
 end;
 
-procedure TRigidBody.SetOnCollisionEnter(const AValue: TOnCollision);
+procedure TRigidBody.SetOnCollisionEnter(const AValue: TCollisionEvent);
 begin
   FOnCollisionEnter := AValue;
   CheckPhysicsPostStepNeeded;
 end;
 
-procedure TRigidBody.SetOnCollisionStay(const AValue: TOnCollision);
+procedure TRigidBody.SetOnCollisionStay(const AValue: TCollisionEvent);
 begin
   FOnCollisionStay := AValue;
   CheckPhysicsPostStepNeeded;
 end;
 
-procedure TRigidBody.SetOnCollisionExit(const AValue: TOnCollision);
+procedure TRigidBody.SetOnCollisionExit(const AValue: TCollisionEvent);
 begin
   FOnCollisionExit := AValue;
   CheckPhysicsPostStepNeeded;
