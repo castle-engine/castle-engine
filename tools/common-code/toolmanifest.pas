@@ -347,7 +347,7 @@ var
   AndroidProjectTypeStr: string;
   ChildElements: TXMLElementIterator;
   Element, ChildElement: TDOMElement;
-  NewCompilerOption, DefaultLazarusProject: String;
+  NewCompilerOption, DefaultLazarusProject, NewSearchPath: String;
 begin
   Create(APath);
 
@@ -548,7 +548,12 @@ begin
         ChildElements := ChildElement.ChildrenIterator('path');
         try
           while ChildElements.GetNext do
-            FSearchPaths.Add(ChildElements.Current.AttributeString('value'));
+          begin
+            NewSearchPath := ChildElements.Current.AttributeString('value');
+            if IsPathAbsoluteOnDrive(NewSearchPath) then
+              WritelnWarning('Search path "%s" is an absolute path, it will likely not work on other systems.', [NewSearchPath]);
+            FSearchPaths.Add(NewSearchPath);
+          end;
         finally FreeAndNil(ChildElements) end;
       end;
 
