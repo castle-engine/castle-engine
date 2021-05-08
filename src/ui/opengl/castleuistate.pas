@@ -74,10 +74,10 @@ type
     This way state can:
 
     @unorderedList(
-      @item(React to @link(TCastleUserInterface.Press Press),
-        @link(TCastleUserInterface.Release Release) of keys or mouse buttons,)
+      @item(React to @link(TInputListener.Press Press),
+        @link(TInputListener.Release Release) of keys or mouse buttons,)
 
-      @item(do something continuos in @link(TCastleUserInterface.Update Update).)
+      @item(do something continuos in @link(TInputListener.Update Update).)
     )
 
     See the TCastleUserInterface class for a lot of useful methods that you can
