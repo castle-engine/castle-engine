@@ -88,10 +88,10 @@ all:
 tools:
 # Compile build tool first, used to compile other tools and examples
 	tools/build-tool/castle-engine_compile.sh
-	tools/texture-font-to-pascal/texture-font-to-pascal_compile.sh
-	tools/image-to-pascal/image-to-pascal_compile.sh
-	tools/castle-curves/castle-curves_compile.sh
-	tools/to-data-uri/to-data-uri_compile.sh
+	tools/build-tool/castle-engine --project tools/castle-curves/ complile
+	tools/build-tool/castle-engine --project tools/image-to-pascal/ complile
+	tools/build-tool/castle-engine --project tools/texture-font-to-pascal/ complile
+	tools/build-tool/castle-engine --project tools/to-data-uri/ complile
 
 .PHONY: build-using-fpmake
 build-using-fpmake:
@@ -238,48 +238,23 @@ EXAMPLES_BASE_NAMES := \
   examples/images_videos/image_render_custom_shader \
   examples/images_videos/simple_video_editor \
   examples/images_videos/test_castleimage_draw3x3 \
-  examples/random_generator/globalrandom \
-  examples/random_generator/random_speed_test \
-  examples/random_generator/random_threads_test \
   examples/research_special_rendering_methods/radiance_transfer/precompute_radiance_transfer \
   examples/research_special_rendering_methods/radiance_transfer/radiance_transfer \
   examples/research_special_rendering_methods/radiance_transfer/show_sh \
   examples/simple_command_line_utilities/dircleaner \
-  examples/simple_command_line_utilities/stringoper \
-  examples/space_filling_curve/draw_space_filling_curve \
-  examples/window/multi_window \
-  examples/window/window_events \
-  examples/window/window_menu \
-  tools/castle-curves/castle-curves \
-  tools/image-to-pascal/image-to-pascal \
-  tools/internal/generate-persistent-vectors/generate-persistent-vectors \
-  tools/internal/teapot-to-pascal/teapot-to-pascal \
-  tools/internal/x3d-nodes-to-pascal/code/x3d-nodes-to-pascal \
-  tools/texture-font-to-pascal/texture-font-to-pascal \
-  tools/to-data-uri/to-data-uri
+  examples/simple_command_line_utilities/stringoper
 
 # Note that src/library/castleengine must be compiled before
 # cge_dynlib_tester, otherwise linking cge_dynlib_tester will fail.
 EXAMPLES_LAZARUS_BASE_NAMES := \
-  examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually \
-  examples/lazarus/model_3d_viewer/model_3d_viewer \
-  examples/lazarus/model_3d_with_2d_controls/model_3d_with_2d_controls \
-  examples/lazarus/quick_2d_game/quick_2d_game_lazarus \
-  examples/lazarus/two_controls/two_controls \
   src/library/castleengine \
-  examples/library/lazarus_library_tester/cge_dynlib_tester \
-  examples/random_generator/graphics_random_test \
-  tests/test_castle_game_engine \
-  tools/build-tool/castle-engine \
-  tools/castle-editor/castle_editor
+  examples/library/lazarus_library_tester/cge_dynlib_tester
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
-  $(EXAMPLES_LAZARUS_BASE_NAMES) \
-  tools/castle-editor/castle-editor
+  $(EXAMPLES_LAZARUS_BASE_NAMES)
 
 EXAMPLES_WINDOWS_EXECUTABLES := $(addsuffix .exe,$(EXAMPLES_BASE_NAMES)) \
-  $(addsuffix .exe,$(EXAMPLES_LAZARUS_BASE_NAMES)) \
-  tools/castle-editor/castle-editor.exe
+  $(addsuffix .exe,$(EXAMPLES_LAZARUS_BASE_NAMES))
 
 # Test compiling single CGE editor template.
 # Requires EDITOR_TEMPLATE_PATH to be defined.
@@ -352,10 +327,6 @@ examples:
 
 # Compile editor templates
 	 $(MAKE) test-editor-templates
-
-.PHONY: examples-ignore-errors
-examples-ignore-errors:
-	$(foreach NAME,$(EXAMPLES_BASE_NAMES),$(NAME)_compile.sh ; ) true
 
 .PHONY: cleanexamples
 cleanexamples:

@@ -1,8 +1,8 @@
 #!/bin/bash
 set -eu
 
-INPUT_DIR=../nodes-specification/
-OUTPUT_DIR=../../../../src/x3d/auto_generated_node_helpers/
+INPUT_DIR=./nodes-specification/
+OUTPUT_DIR=../../../src/x3d/auto_generated_node_helpers/
 
 rm -f "$OUTPUT_DIR"x3dnodes_*.inc
 

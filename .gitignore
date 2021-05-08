@@ -9,6 +9,8 @@
 *.lps
 *.lrs
 *.dbg
+*.res
+lib/
 
 # Delphi stuff
 *.dproj.local
@@ -36,8 +38,9 @@ xcuserdata
 
 # cge build tool stuff
 castle-engine-output
-automatic-windows-resources.res
-castle-auto-generated-resources.res
+# Already included by *.res above
+#automatic-windows-resources.res
+#castle-auto-generated-resources.res
 
 # fpmake stuff
 castle-game-engine-*.fpm
@@ -80,12 +83,9 @@ castle-game-engine-*.fpm
 /examples/3d_rendering_processing/transform_scenes_demos
 /examples/3d_rendering_processing/transform_speed_test/transform_speed_test
 /examples/3d_rendering_processing/triangulate_demo
-/examples/3d_rendering_processing/triangulate_demo.res
 /examples/3d_rendering_processing/view_3d_model_advanced
-/examples/3d_rendering_processing/view_3d_model_advanced.res
 /examples/3d_rendering_processing/view_3d_model_basic
 /examples/3d_sound_game/data/levels/base/devel/process_base_b
-/examples/3d_sound_game/data/levels/base/devel/process_base_b.res
 /examples/3d_sound_game/lets_take_a_walk
 /examples/advanced_editor/advanced_editor
 /examples/animations/expose_transformations_to_animate_children/expose_transformations_demo
@@ -93,7 +93,6 @@ castle-game-engine-*.fpm
 /examples/animations/resource_animations/resource_animations
 /examples/animations/simultaneous_animations_one_scene/simultaneous_animations_one_scene
 /examples/audio/audio_player_scrubber/audio_player_scrubber
-/examples/audio/audio_player_scrubber/audio_player_scrubber.res
 /examples/audio/audio_player_scrubber/lib/
 /examples/audio/doppler_demo/doppler_demo
 /examples/audio/play_sounds/play_sounds
@@ -105,7 +104,6 @@ castle-game-engine-*.fpm
 /examples/component_gallery/cge-component-gallery
 /examples/creature_behaviors/creature_behaviors
 /examples/curves/simplest_curve_read
-/examples/delphi/base_tests/base_tests.res
 /examples/fixed_camera_game/rift
 /examples/fonts/font_draw_over_image
 /examples/fonts/font_draw_over_image_output.png
@@ -133,19 +131,14 @@ castle-game-engine-*.fpm
 /examples/joystick/joystick_demo
 /examples/lazarus/load_model_and_camera_manually/lib/
 /examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually
-/examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually.res
 /examples/lazarus/model_3d_viewer/model_3d_viewer
 /examples/lazarus/model_3d_with_2d_controls/model_3d_with_2d_controls
 /examples/lazarus/quick_2d_game/lib/
 /examples/lazarus/quick_2d_game/quick_2d_game_lazarus
-/examples/lazarus/quick_2d_game/quick_2d_game_lazarus.res
 /examples/lazarus/two_controls/lib/
 /examples/lazarus/two_controls/two_controls
 /examples/lazarus/two_controls/two_controls.lps
-/examples/lazarus/two_controls/two_controls.res
 /examples/library/lazarus_library_tester/cge_dynlib_tester
-/examples/library/lazarus_library_tester/cge_dynlib_tester.res
-/examples/library/lazarus_library_tester/lib/
 /examples/localization/deprecated_custom/castle_localization
 /examples/localization/gettext/localization_test
 /examples/localization/gettext/po_files/generator/po_generator
@@ -167,12 +160,11 @@ castle-game-engine-*.fpm
 /examples/plugin/cge_3d_viewer/cge_3d_viewer
 /examples/plugin/cge_3d_viewer/npcge_3d_viewer.linux-i386.so
 /examples/portable_game_skeleton/my_fantastic_game
-/examples/random_generator/globalrandom
-/examples/random_generator/graphics_random_test
-/examples/random_generator/graphics_random_test.res
-/examples/random_generator/lib
-/examples/random_generator/random_speed_test
-/examples/random_generator/random_threads_test
+/examples/random_generator/globalrandom/globalrandom
+/examples/random_generator/graphics_random_test/graphics_random_test
+/examples/random_generator/random_speed_test/random_speed_test
+/examples/random_generator/random_threads_test/random_threads_test
+/examples/random_generator/testhash/testhash
 /examples/research_special_rendering_methods/dynamic_ambient_occlusion/dynamic_ambient_occlusion
 /examples/research_special_rendering_methods/new_renderer_skeleton/new_renderer_skeleton
 /examples/research_special_rendering_methods/plane_mirror_and_shadow/plane_mirror_and_shadow
@@ -188,7 +180,6 @@ castle-game-engine-*.fpm
 /examples/short_api_samples/transform_save_load/transform_save_load
 /examples/short_api_samples/xml_utils/bookmarks_xml_demo
 /examples/simple_command_line_utilities/dircleaner
-/examples/simple_command_line_utilities/dircleaner.res
 /examples/simple_command_line_utilities/stringoper
 /examples/space_filling_curve/draw_space_filling_curve
 /examples/sprite_sheets/sprite_sheets_demo/sprite_sheets_demo
@@ -206,15 +197,14 @@ castle-game-engine-*.fpm
 /examples/user_interface/zombie_fighter/zombie_fighter
 /examples/user_interface/zombie_fighter_alternative_short_lived_states/zombie_fighter
 /examples/visualize_triangulation/visualize_triangulation
-/examples/window/multi_window
-/examples/window/window_events
-/examples/window/window_menu
+/examples/window/multi_window/multi_window
+/examples/window/window_events/window_events
+/examples/window/window_menu/window_menu
 /packages/alternative_castle_window_based_on_lcl.pas
 /packages/castle_base.pas
 /packages/castle_components.pas
 /packages/castle_indy.pas
 /packages/castle_window.pas
-/packages/delphi/castle_base.res
 /packages/lib/
 /src/audio/fmod/test/fmod_api_test
 /src/library/build-*
@@ -234,13 +224,11 @@ castle-game-engine-*.fpm
 /tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/libGameAnalytics.a
 /tools/build-tool/tests/test_cge_build_tool
 /tools/castle-curves/castle-curves
-/tools/castle-editor/castle_editor.res
 /tools/castle-engine
 /tools/image-to-pascal/image-to-pascal
 /tools/internal/generate-persistent-vectors/generate-persistent-vectors
 /tools/internal/teapot-to-pascal/teapot-to-pascal
-/tools/internal/teapot-to-pascal/teapot-to-pascal.res
-/tools/internal/x3d-nodes-to-pascal/code/x3d-nodes-to-pascal
+/tools/internal/x3d-nodes-to-pascal/x3d-nodes-to-pascal
 /tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d
 /tools/texture-font-to-pascal/texture-font-to-pascal
 /tools/to-data-uri/to-data-uri

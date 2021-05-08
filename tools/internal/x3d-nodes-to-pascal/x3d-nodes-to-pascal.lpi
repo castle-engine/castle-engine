@@ -35,12 +35,17 @@
         <PackageName Value="castle_base"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="1">
+    <Units Count="2">
       <Unit0>
         <Filename Value="x3d-nodes-to-pascal.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="x3d-nodes-to-pascal"/>
       </Unit0>
+      <Unit1>
+        <Filename Value="code/generateprocessors.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="GenerateProcessors"/>
+      </Unit1>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -49,8 +54,9 @@
       <Filename Value="x3d-nodes-to-pascal"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="$(ProjOutDir)"/>
-      <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
+      <IncludeFiles Value="code/"/>
+      <OtherUnitFiles Value="code/"/>
+      <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
   </CompilerOptions>
   <Debugging>

@@ -1,6 +1,5 @@
-{ -*- compile-command: "./x3d-nodes-to-pascal_compile.sh && ./x3d-nodes-to-pascal_run.sh" -*- }
 {
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 

@@ -11,9 +11,8 @@ x3d-nodes-to-pascal
    So you can rerun x3d-nodes-to-pascal as often as you want.
    Like this:
 
-   cd code/
-   ./x3d-nodes-to-pascal_compile.sh
-   ./x3d-nodes-to-pascal_run.sh
+   castle-engine compile
+   ./run.sh
 
 2. x3d-nodes-to-pascal can also generate "starting templates" to define
    an Object Pascal class that defines given X3D node.

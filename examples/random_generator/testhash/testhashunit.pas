@@ -27,6 +27,8 @@ var
 
 implementation
 
+uses CastleUtils;
+
 {$R *.lfm}
 
 procedure TForm1.Button1Click(Sender: TObject);
