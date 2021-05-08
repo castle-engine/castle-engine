@@ -154,7 +154,7 @@ end;
 function IsPathAbsoluteOnDrive(const Path: string): boolean;
 begin
   Result := IsPathAbsolute(Path)
-    {$ifdef MSWINDOWS} or SCharIs(Path, 1, PathDelim) {$endif}
+    {$ifdef MSWINDOWS} or SCharIs(Path, 1, AllowDirectorySeparators) {$endif}
 end;
 
 function SpecialDirName(const DirectoryName: string): boolean;

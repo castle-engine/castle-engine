@@ -47,6 +47,8 @@ type
     procedure TestRandomIntRange;
     procedure TestRandomIntRangeInclusive;
     procedure TestStrToFloatDot;
+    procedure TestIsPathAbsolute;
+    procedure TestIsPathAbsoluteOnDrive;
   end;
 
 implementation
@@ -607,6 +609,140 @@ begin
   AssertEquals('0.1', FloatToStrDot(0.1));
 
   DecimalSeparator := OldDecimalSeparator;
+end;
+
+procedure TTestCastleUtils.TestIsPathAbsolute;
+begin
+  {$ifdef UNIX}
+  AssertTrue(IsPathAbsolute('/bla'));
+  AssertTrue(IsPathAbsolute('/bla/asdasd'));
+  AssertTrue(IsPathAbsolute('/bla/'));
+  AssertTrue(IsPathAbsolute('/bla/asdasd/'));
+
+  AssertFalse(IsPathAbsolute('\bla'));
+  AssertFalse(IsPathAbsolute('\bla\asdasd'));
+  AssertFalse(IsPathAbsolute('\bla\'));
+  AssertFalse(IsPathAbsolute('\bla\asdasd\'));
+
+  AssertFalse(IsPathAbsolute('c:/bla'));
+  AssertFalse(IsPathAbsolute('c:/bla/asdasd'));
+  AssertFalse(IsPathAbsolute('c:/bla/'));
+  AssertFalse(IsPathAbsolute('c:/bla/asdasd/'));
+
+  AssertFalse(IsPathAbsolute('c:\bla'));
+  AssertFalse(IsPathAbsolute('c:\bla\asdasd'));
+  AssertFalse(IsPathAbsolute('c:\bla\'));
+  AssertFalse(IsPathAbsolute('c:\bla\asdasd\'));
+
+  AssertFalse(IsPathAbsolute('bla'));
+  AssertFalse(IsPathAbsolute('bla/asdasd'));
+  AssertFalse(IsPathAbsolute('bla/'));
+  AssertFalse(IsPathAbsolute('bla/asdasd/'));
+
+  AssertFalse(IsPathAbsolute('bla'));
+  AssertFalse(IsPathAbsolute('bla\asdasd'));
+  AssertFalse(IsPathAbsolute('bla\'));
+  AssertFalse(IsPathAbsolute('bla\asdasd\'));
+  {$endif}
+
+  {$ifdef MSWINDOWS}
+  AssertFalse(IsPathAbsolute('/bla'));
+  AssertFalse(IsPathAbsolute('/bla/asdasd'));
+  AssertFalse(IsPathAbsolute('/bla/'));
+  AssertFalse(IsPathAbsolute('/bla/asdasd/'));
+
+  AssertFalse(IsPathAbsolute('\bla'));
+  AssertFalse(IsPathAbsolute('\bla\asdasd'));
+  AssertFalse(IsPathAbsolute('\bla\'));
+  AssertFalse(IsPathAbsolute('\bla\asdasd\'));
+
+  AssertTrue(IsPathAbsolute('c:/bla'));
+  AssertTrue(IsPathAbsolute('c:/bla/asdasd'));
+  AssertTrue(IsPathAbsolute('c:/bla/'));
+  AssertTrue(IsPathAbsolute('c:/bla/asdasd/'));
+
+  AssertTrue(IsPathAbsolute('c:\bla'));
+  AssertTrue(IsPathAbsolute('c:\bla\asdasd'));
+  AssertTrue(IsPathAbsolute('c:\bla\'));
+  AssertTrue(IsPathAbsolute('c:\bla\asdasd\'));
+
+  AssertFalse(IsPathAbsolute('bla'));
+  AssertFalse(IsPathAbsolute('bla/asdasd'));
+  AssertFalse(IsPathAbsolute('bla/'));
+  AssertFalse(IsPathAbsolute('bla/asdasd/'));
+
+  AssertFalse(IsPathAbsolute('bla'));
+  AssertFalse(IsPathAbsolute('bla\asdasd'));
+  AssertFalse(IsPathAbsolute('bla\'));
+  AssertFalse(IsPathAbsolute('bla\asdasd\'));
+  {$endif}
+end;
+
+procedure TTestCastleUtils.TestIsPathAbsoluteOnDrive;
+begin
+  {$ifdef UNIX}
+  AssertTrue(IsPathAbsoluteOnDrive('/bla'));
+  AssertTrue(IsPathAbsoluteOnDrive('/bla/asdasd'));
+  AssertTrue(IsPathAbsoluteOnDrive('/bla/'));
+  AssertTrue(IsPathAbsoluteOnDrive('/bla/asdasd/'));
+
+  AssertFalse(IsPathAbsoluteOnDrive('\bla'));
+  AssertFalse(IsPathAbsoluteOnDrive('\bla\asdasd'));
+  AssertFalse(IsPathAbsoluteOnDrive('\bla\'));
+  AssertFalse(IsPathAbsoluteOnDrive('\bla\asdasd\'));
+
+  AssertFalse(IsPathAbsoluteOnDrive('c:/bla'));
+  AssertFalse(IsPathAbsoluteOnDrive('c:/bla/asdasd'));
+  AssertFalse(IsPathAbsoluteOnDrive('c:/bla/'));
+  AssertFalse(IsPathAbsoluteOnDrive('c:/bla/asdasd/'));
+
+  AssertFalse(IsPathAbsoluteOnDrive('c:\bla'));
+  AssertFalse(IsPathAbsoluteOnDrive('c:\bla\asdasd'));
+  AssertFalse(IsPathAbsoluteOnDrive('c:\bla\'));
+  AssertFalse(IsPathAbsoluteOnDrive('c:\bla\asdasd\'));
+
+  AssertFalse(IsPathAbsoluteOnDrive('bla'));
+  AssertFalse(IsPathAbsoluteOnDrive('bla/asdasd'));
+  AssertFalse(IsPathAbsoluteOnDrive('bla/'));
+  AssertFalse(IsPathAbsoluteOnDrive('bla/asdasd/'));
+
+  AssertFalse(IsPathAbsoluteOnDrive('bla'));
+  AssertFalse(IsPathAbsoluteOnDrive('bla\asdasd'));
+  AssertFalse(IsPathAbsoluteOnDrive('bla\'));
+  AssertFalse(IsPathAbsoluteOnDrive('bla\asdasd\'));
+  {$endif}
+
+  {$ifdef MSWINDOWS}
+  AssertTrue(IsPathAbsoluteOnDrive('/bla'));
+  AssertTrue(IsPathAbsoluteOnDrive('/bla/asdasd'));
+  AssertTrue(IsPathAbsoluteOnDrive('/bla/'));
+  AssertTrue(IsPathAbsoluteOnDrive('/bla/asdasd/'));
+
+  AssertTrue(IsPathAbsoluteOnDrive('\bla'));
+  AssertTrue(IsPathAbsoluteOnDrive('\bla\asdasd'));
+  AssertTrue(IsPathAbsoluteOnDrive('\bla\'));
+  AssertTrue(IsPathAbsoluteOnDrive('\bla\asdasd\'));
+
+  AssertTrue(IsPathAbsoluteOnDrive('c:/bla'));
+  AssertTrue(IsPathAbsoluteOnDrive('c:/bla/asdasd'));
+  AssertTrue(IsPathAbsoluteOnDrive('c:/bla/'));
+  AssertTrue(IsPathAbsoluteOnDrive('c:/bla/asdasd/'));
+
+  AssertTrue(IsPathAbsoluteOnDrive('c:\bla'));
+  AssertTrue(IsPathAbsoluteOnDrive('c:\bla\asdasd'));
+  AssertTrue(IsPathAbsoluteOnDrive('c:\bla\'));
+  AssertTrue(IsPathAbsoluteOnDrive('c:\bla\asdasd\'));
+
+  AssertFalse(IsPathAbsoluteOnDrive('bla'));
+  AssertFalse(IsPathAbsoluteOnDrive('bla/asdasd'));
+  AssertFalse(IsPathAbsoluteOnDrive('bla/'));
+  AssertFalse(IsPathAbsoluteOnDrive('bla/asdasd/'));
+
+  AssertFalse(IsPathAbsoluteOnDrive('bla'));
+  AssertFalse(IsPathAbsoluteOnDrive('bla\asdasd'));
+  AssertFalse(IsPathAbsoluteOnDrive('bla\'));
+  AssertFalse(IsPathAbsoluteOnDrive('bla\asdasd\'));
+  {$endif}
 end;
 
 initialization
