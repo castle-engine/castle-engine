@@ -302,10 +302,12 @@ test-editor-templates:
 
 .PHONY: examples
 examples:
-# Compile tools, in particular build tool, first
-	$(MAKE) tools
+# Compile build tool first, used to compile other tools and examples.
+# Also copy it, as below it will recompile itself (which would be trouble on Windows).
+	tools/build-tool/castle-engine_compile.sh
+	cp -f tools/build-tool/castle-engine$(EXE_EXTENSION) tools/build-tool/castle-engine-copy$(EXE_EXTENSION)
 
-# Compile all examples using xxx_compile.sh shell script (calls build tool)
+# Compile all examples using xxx_compile.sh shell script (calls build tool), TODO: to remove
 	$(foreach NAME,$(EXAMPLES_BASE_NAMES),$(NAME)_compile.sh && ) true
 
 # Compile all examples with CastleEngineManifest.xml inside.
@@ -316,7 +318,6 @@ examples:
 # Exceptions:
 # - We do not compile examples/network/tcp_connection/ here,
 #   as it requires Indy which may not be installed.
-	cp -f tools/build-tool/castle-engine$(EXE_EXTENSION) tools/build-tool/castle-engine-copy$(EXE_EXTENSION)
 	$(FIND) . \
 	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
