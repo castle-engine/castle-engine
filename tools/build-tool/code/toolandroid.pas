@@ -341,7 +341,7 @@ var
     I: TXMLElementIterator;
     Language, StringsPath: String;
   begin
-    if not Assigned(Project.ListLocalizedAppName) then Exit;
+    if not Assigned(Project.LocalizedAppNames) then Exit;
 
     //Change default app_name to translatable:
     StringsPath := AndroidProjectPath + 'app' + PathDelim +'src' + PathDelim + 'main' + PathDelim + 'res' + PathDelim + 'values' + PathDelim + 'strings.xml';
@@ -365,7 +365,7 @@ var
     end;
 
     //Write strings for every chosen language:
-    for LocalizedAppName in Project.ListLocalizedAppName do
+    for LocalizedAppName in Project.LocalizedAppNames do
     begin
       Doc := TXMLDocument.Create;
       try

@@ -33,12 +33,12 @@ type
 
   TAndroidProjectType = (apBase, apIntegrated);
 
-  TLocalizedAppName = record
+  TLocalizedAppName = class
     Language: String;
     AppName: String;
     constructor Create(const ALanguage, AAppName: String);
   end;
-  TListLocalizedAppName = specialize TList<TLocalizedAppName>;
+  TLocalizedAppNameList = specialize TObjectList<TLocalizedAppName>;
 
   TProjectVersion = class(TComponent)
   public
@@ -116,7 +116,7 @@ type
       FAndroidProjectType: TAndroidProjectType;
       FAndroidServices, FIOSServices: TServiceList;
       FAssociateDocumentTypes: TAssociatedDocTypeList;
-      FListLocalizedAppName: TListLocalizedAppName;
+      FLocalizedAppNames: TLocalizedAppNameList;
       FIOSTeam: string;
       FindPascalFilesResult: TStringList; // valid only during FindPascalFilesCallback
 
@@ -186,7 +186,7 @@ type
     property SearchPaths: TStringList read FSearchPaths;
     property LibraryPaths: TStringList read FLibraryPaths;
     property AssociateDocumentTypes: TAssociatedDocTypeList read FAssociateDocumentTypes;
-    property ListLocalizedAppName: TListLocalizedAppName read FListLocalizedAppName;
+    property LocalizedAppNames: TLocalizedAppNameList read FLocalizedAppNames;
     property IncludePaths: TCastleStringList read FIncludePaths;
     property IncludePathsRecursive: TBooleanList read FIncludePathsRecursive;
     property ExcludePaths: TCastleStringList read FExcludePaths;
@@ -284,6 +284,7 @@ end;
 
 constructor TLocalizedAppName.Create(const ALanguage, AAppName: String);
 begin
+  inherited Create;
   Language := ALanguage;
   AppName := AAppName;
 end;
@@ -454,13 +455,15 @@ begin
     Element := Doc.DocumentElement.ChildElement('localization', false);
     if Element <> nil then
     begin
-      FListLocalizedAppName := TListLocalizedAppName.Create;
+      FLocalizedAppNames := TLocalizedAppNameList.Create(true);
       ChildElements := Element.ChildrenIterator;
       try
         while ChildElements.GetNext do
         begin
           Check(ChildElements.Current.TagName = 'caption', 'Each child of the localization node must be an <caption> element.');
-          FListLocalizedAppName.Add(TLocalizedAppName.Create(ChildElements.Current.AttributeString('lang'), ChildElements.Current.AttributeString('value')));
+          FLocalizedAppNames.Add(TLocalizedAppName.Create(
+            ChildElements.Current.AttributeString('lang'),
+            ChildElements.Current.AttributeString('value')));
         end;
       finally
         FreeAndNil(ChildElements);
@@ -601,6 +604,7 @@ begin
   FreeAndNil(FAndroidServices);
   FreeAndNil(FIOSServices);
   FreeAndNil(FAssociateDocumentTypes);
+  FreeAndNil(FLocalizedAppNames);
   inherited;
 end;
 

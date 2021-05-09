@@ -149,7 +149,7 @@ type
     function AndroidServices: TServiceList;
     function IOSServices: TServiceList;
     function AssociateDocumentTypes: TAssociatedDocTypeList;
-    function ListLocalizedAppName: TListLocalizedAppName;
+    function LocalizedAppNames: TLocalizedAppNameList;
 
     { List filenames of external libraries used by the current project,
       on given OS/CPU. }
@@ -1964,9 +1964,9 @@ begin
   Result := Manifest.AssociateDocumentTypes;
 end;
 
-function TCastleProject.ListLocalizedAppName: TListLocalizedAppName;
+function TCastleProject.LocalizedAppNames: TLocalizedAppNameList;
 begin
-  Result := Manifest.ListLocalizedAppName;
+  Result := Manifest.LocalizedAppNames;
 end;
 
 end.
