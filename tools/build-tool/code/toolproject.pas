@@ -607,10 +607,14 @@ procedure TCastleProject.DoPackage(const Target: TTarget;
 var
   Pack: TPackageDirectory;
 
+  function UnixPermissionsMatter: Boolean;
+  begin
+    Result := not (OS in AllWindowsOSes);
+  end;
+
   procedure AddExecutable;
   var
     ExecutableNameExt, ExecutableNameFull: string;
-    UnixPermissionsMatter: boolean;
   begin
     if OS in [linux, go32v2, win32, os2, freebsd, beos, netbsd,
               amiga, atari, solaris, qnx, netware, openbsd, wdosx,
@@ -620,12 +624,7 @@ var
     begin
       ExecutableNameExt := ExecutableName + ExeExtensionOS(OS);
       ExecutableNameFull := OutputPath + ExecutableNameExt;
-      Pack.Add(ExecutableNameFull, ExecutableNameExt);
-
-      { For OSes where chmod matters, make sure to set it before packing }
-      UnixPermissionsMatter := not (OS in AllWindowsOSes);
-      if UnixPermissionsMatter then
-        Pack.MakeExecutable(ExecutableNameExt);
+      Pack.Add(ExecutableNameFull, ExecutableNameExt, UnixPermissionsMatter);
     end;
   end;
 
