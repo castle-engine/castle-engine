@@ -101,7 +101,9 @@ begin
       else raise Exception.Create('CPU not supported on Windows');
     end;
   if WindresExe = '' then
-    raise Exception.Create('Cannot find "windres" executable on $PATH. On Windows, it should be installed along with FPC (Free Pascal Compiler), so just make sure FPC is installed and available on $PATH. On Linux, "windres" is usually available as part of MinGW, so install the package named like "mingw*-binutils".');
+    raise Exception.Create('Cannot find "windres" executable on $PATH.' + NL +
+      '- On Windows, it should be installed along with FPC (Free Pascal Compiler), so just make sure FPC is installed and available on $PATH.' + NL +
+      '- On Linux, "windres" is usually available as part of MinGW, so search for the package with "mingw" and "binutils" in the name. On latest Debian it is "binutils-mingw-w64".');
 
   ResName := ChangeFileExt(RcName[Plugin], '.res');
   RunCommandIndirPassthrough(OutputResourcesPath, WindresExe,
