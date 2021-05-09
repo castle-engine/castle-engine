@@ -140,9 +140,17 @@ end;
 
 { This is also defined in CastleStringUtils publicly,
   but we don't want to use CastleStringUtils here, to keep our dependencies simple. }
-function SCharIs(const s: string; index: integer; c: char): boolean;
+function SCharIs(const s: string; index: integer; c: char): boolean; overload;
 begin
   Result := (index <= Length(s)) and (s[index] = c);
+end;
+
+type
+  TSetOfChars = SysUtils.TSysCharSet;
+
+function SCharIs(const s: string; index: integer; const chars: TSetOfChars): boolean; overload;
+begin
+  Result := (index <= Length(s)) and (s[index] in chars)
 end;
 
 function IsPathAbsolute(const Path: string): boolean;
