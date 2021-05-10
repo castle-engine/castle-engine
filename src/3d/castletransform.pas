@@ -2565,8 +2565,6 @@ end;
 procedure TCastleTransform.UpdateExistRecursively(const AExists: Boolean);
 var
   I: Integer;
-  ChildTransform: TCastleTransform;
-  CurrentChildExists: Boolean;
 begin
   Assert(AExists = false, 'This funcion is only used when AExist is false');
   UpdateExist(AExists);
