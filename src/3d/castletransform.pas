@@ -341,10 +341,10 @@ type
     FLastUpdatedGetExists: Boolean;
     FLastUpdatedGetExistsValid: Boolean;
 
-    { When castle transform existance changes to false, we need update existance
+    { When castle transform existence changes to false, we need update existence
       in all castle transform children rigid bodies }
     procedure UpdateExistRecursively(const AExists: Boolean);
-    { Update rigid body existance when castle transform (or it parent) GetExists
+    { Update rigid body existence when castle transform (or it parent) GetExists
       changes. }
     procedure UpdateExist(const AExists: Boolean);
   private
