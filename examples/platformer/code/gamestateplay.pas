@@ -97,6 +97,8 @@ type
     procedure ConfigurePlayerPhysics(const Player:TCastleScene);
     procedure ConfigurePlayerAbilities(const Player:TCastleScene);
     procedure PlayerCollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
+    procedure ChangePlayerPhysicsSettingsBasedOnGround(const Player,
+      Ground: TCastleTransform);
     procedure ConfigureBulletSpriteScene;
 
     procedure ConfigureEnemyPhysics(const EnemyScene: TCastleScene);
@@ -439,6 +441,20 @@ begin
       CollisionDetails.OtherTransform.Exists := false;
     end;
   end;
+end;
+
+procedure TStatePlay.ChangePlayerPhysicsSettingsBasedOnGround(const Player,
+  Ground: TCastleTransform);
+begin
+  { When player is on moving platform he can't have Restitution > 0.0001 because
+    he will slide on it. But when he fall to other ground and Restitution is
+    small the movement looks not naturally. }
+
+  if (Ground <> nil) and (Pos('Platform', Ground.Name) > 0) and
+     (Ground.Tag <> 0) then
+    Player.RigidBody.Collider.Restitution := 0.0001
+  else
+    Player.RigidBody.Collider.Restitution := 0.05;
 end;
 
 procedure TStatePlay.ConfigureEnemyPhysics(const EnemyScene: TCastleScene);
@@ -1016,6 +1032,9 @@ begin
       + Vector3(ScenePlayer.BoundingBox.SizeX * 0.40, 0, 0),
       Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5);
   end;
+
+  // fix Restitution for moving platforms
+  ChangePlayerPhysicsSettingsBasedOnGround(ScenePlayer, GroundScene);
 
   PlayerOnGround := (GroundScene <> nil);
 
