@@ -198,7 +198,11 @@ type
 
       The copy will only contain files useful on given TargetPlatform.
       Right now this means we will exclude auto-generated textures not suitable
-      for TargetPlatform. }
+      for TargetPlatform.
+
+      The associated objects of the returned TCastleStringList,
+      if non nil, are TIncludePath instances that caused inclusion
+      of given file in the package. }
     function PackageFiles(const OnlyData: boolean;
       const TargetPlatform: TCastlePlatform): TCastleStringList;
 
@@ -691,6 +695,7 @@ var
   PackageFormatFinal: TPackageFormatNoDefault;
   WantsIOSArchive: Boolean;
   IOSArchiveType: TIosArchiveType;
+  ExecutablePermission: Boolean;
 begin
   Writeln(Format('Packaging project "%s" for %s (platform: %s).', [
     Name,
@@ -751,7 +756,10 @@ begin
     Files := PackageFiles(false, TargetPlatform);
     try
       for I := 0 to Files.Count - 1 do
-        Pack.Add(Path + Files[I], Files[I]);
+      begin
+        ExecutablePermission := (Files.Objects[I] <> nil) and (TIncludePath(Files.Objects[I]).ExecutablePermission);
+        Pack.Add(Path + Files[I], Files[I], ExecutablePermission);
+      end;
     finally FreeAndNil(Files) end;
 
     Pack.AddDataInformation(TCastleManifest.DataName);
@@ -872,6 +880,7 @@ var
   I: Integer;
   PackageFileName: string;
   Collector: TSourcePackageFiles;
+  ExecutablePermission: Boolean;
 begin
   Writeln(Format('Packaging source code of project "%s".', [Name]));
 
@@ -882,17 +891,16 @@ begin
 
   Pack := TPackageDirectory.Create(Name);
   try
-    Files := TCastleStringList.Create;
+    Collector := TSourcePackageFiles.Create(Self);
     try
-      Collector := TSourcePackageFiles.Create(Self);
-      try
-        Collector.Run;
-        Files.Assign(Collector.CollectedFiles);
-      finally FreeAndNil(Collector) end;
-
+      Collector.Run;
+      Files := Collector.CollectedFiles;
       for I := 0 to Files.Count - 1 do
-        Pack.Add(Path + Files[I], Files[I]);
-    finally FreeAndNil(Files) end;
+      begin
+        ExecutablePermission := (Files.Objects[I] <> nil) and (TIncludePath(Files.Objects[I]).ExecutablePermission);
+        Pack.Add(Path + Files[I], Files[I], ExecutablePermission);
+      end;
+    finally FreeAndNil(Collector) end;
 
     PackageFileName := SourcePackageName(PackageNameIncludeVersion);
     Pack.Make(OutputPath, PackageFileName, PackageFormatFinal);
