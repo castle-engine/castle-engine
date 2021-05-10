@@ -88,10 +88,10 @@ all:
 tools:
 # Compile build tool first, used to compile other tools and examples
 	tools/build-tool/castle-engine_compile.sh
-	tools/build-tool/castle-engine --project tools/castle-curves/ complile
-	tools/build-tool/castle-engine --project tools/image-to-pascal/ complile
-	tools/build-tool/castle-engine --project tools/texture-font-to-pascal/ complile
-	tools/build-tool/castle-engine --project tools/to-data-uri/ complile
+	tools/build-tool/castle-engine --project tools/castle-curves/ compile
+	tools/build-tool/castle-engine --project tools/image-to-pascal/ compile
+	tools/build-tool/castle-engine --project tools/texture-font-to-pascal/ compile
+	tools/build-tool/castle-engine --project tools/to-data-uri/ compile
 
 .PHONY: build-using-fpmake
 build-using-fpmake:
