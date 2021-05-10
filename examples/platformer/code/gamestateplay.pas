@@ -114,9 +114,13 @@ type
     procedure UpdatePlayerByVelocityAndRayWithDblJump(const SecondsPassed: Single;
       var HandleInput: Boolean);
 
+    { More advanced version with physics ray to check "Are we on ground?" and
+      double jump }
     procedure UpdatePlayerByVelocityAndPhysicsRayWithDblJump(const SecondsPassed: Single;
       var HandleInput: Boolean);
 
+    { More advanced version with physics ray to check "Are we on ground?",
+      double jump, shot and move acceleration frame rate independed }
     procedure UpdatePlayerByVelocityAndPhysicsRayWithDblJumpShot(const SecondsPassed: Single;
       var HandleInput: Boolean);
 

@@ -46,7 +46,7 @@ uses
   CastleLog,
   GameStatePlay;
 
-{ TEnemy }
+{ TEnemy --------------------------------------------------------------------- }
 
 constructor TEnemy.Create(AOwner: TComponent);
 begin
@@ -88,7 +88,7 @@ begin
   RayMaxDistance := Scene.BoundingBox.SizeY * 0.50 + 5;
 
   EnemyOnGround := Scene.RigidBody.PhysicsRayCast(Scene.Translation,
-  Vector3(0, -1, 0), RayMaxDistance) <> nil;
+    Vector3(0, -1, 0), RayMaxDistance) <> nil;
 
   if not EnemyOnGround then
   begin
@@ -158,7 +158,8 @@ begin
 
   if CollisionDetails.OtherTransform.Name = 'ScenePlayer' then
     HitPlayer
-  else if CollisionDetails.OtherTransform is TBullet then
+  else
+  if CollisionDetails.OtherTransform is TBullet then
     TakeDamageFromBullet(CollisionDetails.OtherTransform);
 end;
 
