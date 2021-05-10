@@ -86,47 +86,18 @@ procedure TMovingPlatform.Update(const SecondsPassed: Single; var RemoveMe: TRem
 const
   MovingSpeed = 100;
 var
-  // DeltaX: Single;
   Vel: TVector3;
-  // T: TVector3;
 begin
   inherited;
 
-  {if IsVerticalMove then
+  if IsVerticalMove then
   begin
-
+    if Scene.Translation.Y > StopPoint.Y - 20 then
+       MoveDirection := - 1
+    else
+      if Scene.Translation.Y < StartPoint.Y + 20 then
+        MoveDirection := 1;
   end else
-  begin
-    DeltaX := SecondsPassed * MovingSpeed;
-    T := Scene.Translation;
-    if MoveDirection > 0 then
-    begin
-      if Scene.Translation.X + DeltaX > StopPoint.X then
-        MoveDirection := MoveDirection * -1
-      else
-      begin
-        T.X := T.X + SecondsPassed * MovingSpeed;
-        Scene.Translation := T;
-        //Scene.RigidBody
-      end;
-    end else
-    begin
-      if Scene.Translation.X - DeltaX < StartPoint.X then
-        MoveDirection := MoveDirection * -1
-      else
-      begin
-        T.X := T.X - SecondsPassed * MovingSpeed;
-        Scene.Translation := T;
-      end;
-    end;
-  end;}
-
-  {if (IsVerticalMove and ((Scene.Translation.Y > StopPoint.Y)
-     or (Scene.Translation.Y < StartPoint.Y))) or ((IsVerticalMove = false) and
-     (
-     or (Scene.Translation.X < StartPoint.X))) then
-     MoveDirection := - MoveDirection;}
-  if IsVerticalMove = false then
   begin
     if Scene.Translation.X > StopPoint.X - 20 then
        MoveDirection := - 1

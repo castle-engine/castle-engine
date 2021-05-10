@@ -234,7 +234,13 @@ begin
   RBody.AngularVelocityDamp := 0;
   RBody.AngularVelocity := Vector3(0, 0, 0);
   RBody.LockRotation := [0, 1, 2];
-  RBody.LockTranslation := [1, 2];
+
+  { If Tag > 0 we move platform horizontal, if Tag < 0 we move platform
+    vertical. }
+  if Platform.Tag > 0 then
+    RBody.LockTranslation := [1, 2]
+  else if Platform.Tag > 0 then
+    RBody.LockTranslation := [0, 2];
   RBody.MaximalLinearVelocity := 0;
   RBody.MaximalAngularVelocity := 0;
 

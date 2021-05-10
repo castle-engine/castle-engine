@@ -1340,6 +1340,27 @@
                 "$Children" : [
                 ],
                 "$ClassName" : "TCastleScene"
+              },
+              {
+                "ExposeTransforms" : [
+                ],
+                "Name" : "SmallPlatform5",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "Tag" : -200,
+                "TranslationPersistent" : {
+                  "X" : 2.0025900878906250E+003,
+                  "Y" : -5.0164199829101562E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/platforms/ground_grass_small.png",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
               }
             ],
             "$ClassName" : "TCastleTransform"
