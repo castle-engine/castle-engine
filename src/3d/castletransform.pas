@@ -337,6 +337,16 @@ type
     See the @link(RigidBody) for a proper rigid-bidy simulation,
     with correct gravity model and collisions with other rigid bodies. }
   TCastleTransform = class(TCastleComponent)
+  strict private
+    FLastUpdatedGetExists: Boolean;
+    FLastUpdatedGetExistsValid: Boolean;
+
+    { When castle transform existance changes to false, we need update existance
+      in all castle transform children rigid bodies }
+    procedure UpdateExistRecursively(const AExists: Boolean);
+    { Update rigid body existance when castle transform (or it parent) GetExists
+      changes. }
+    procedure UpdateExist(const AExists: Boolean);
   private
     type
       TEnumerator = class
@@ -741,6 +751,10 @@ type
       It TCastleTransform class, returns @true if @link(Exists) and not disabled.
       May be modified in subclasses, to return something more complicated. }
     function GetExists: boolean; virtual;
+
+    { Check current item exist taking into account the existence of the
+      unique parents of this item }
+    function GetExistsRecursively: Boolean;
 
     { Does item really collide, see @link(Collides).
       It TCastleTransform class, returns @link(Collides) and @link(GetExists).
@@ -2548,6 +2562,37 @@ begin
   end;
 end;
 
+procedure TCastleTransform.UpdateExistRecursively(const AExists: Boolean);
+var
+  I: Integer;
+  ChildTransform: TCastleTransform;
+  CurrentChildExists: Boolean;
+begin
+  Assert(AExists = false, 'This funcion is only used when AExist is false');
+  UpdateExist(AExists);
+
+  { This function is called only when AExists is false so we don't need check
+    child GetExists() because it will be always overriden by parent GetExists() }
+  for I := 0 to Count - 1 do
+    Items[I].UpdateExistRecursively(AExists);
+end;
+
+procedure TCastleTransform.UpdateExist(const AExists: Boolean);
+begin
+  FLastUpdatedGetExistsValid := true;
+  FLastUpdatedGetExists := AExists;
+
+  if FRigidBody <> nil then
+    FRigidBody.UpdateExist(AExists);
+end;
+
+function TCastleTransform.GetExistsRecursively: Boolean;
+begin
+  Result := GetExists;
+  if Result and (UniqueParent <> nil) then
+    Result := UniqueParent.GetExistsRecursively;
+end;
+
 procedure TCastleTransform.SetCursor(const Value: TMouseCursor);
 begin
   if FCursor <> Value then
@@ -3026,7 +3071,7 @@ begin
 end;
 
 function TCastleTransform.PointingDeviceMove(const Pick: TRayCollisionNode;
-  const Distance: Single): boolean;
+  const Distance: Single): Boolean;
 begin
   { This event is not automatically passed to all children on List,
     instead the TCastleViewport has special logic which
@@ -3035,6 +3080,8 @@ begin
 end;
 
 procedure TCastleTransform.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+var
+  CurrentGetExists: Boolean;
 
   procedure UpdateBehaviors;
   var
@@ -3080,8 +3127,28 @@ procedure TCastleTransform.Update(const SecondsPassed: Single; var RemoveMe: TRe
     end;
   end;
 
+  procedure UpdateRealExistence;
+  begin
+    CurrentGetExists := GetExists;
+
+    if FLastUpdatedGetExistsValid and (FLastUpdatedGetExists = CurrentGetExists) then
+      Exit;
+
+    { When current transform stops existing we need update all children
+      existence, when it's true it will be done by update children. }
+    if CurrentGetExists then
+      UpdateExist(CurrentGetExists)
+    else
+      UpdateExistRecursively(CurrentGetExists);
+  end;
+
 begin
-  if GetExists then
+  { Currently UpdateRealExistence is used only for set rigid body exsistance,
+    so we check that only when FKraftEngine is used. }
+  if (FWorld <> nil) and (FWorld.FKraftEngine <> nil) then
+    UpdateRealExistence;
+
+  if CurrentGetExists then
   begin
     UpdateBehaviors;
     UpdateChildren;

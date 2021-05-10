@@ -218,6 +218,7 @@
     FCollisionList: TCastleTransformList;
 
     procedure UpdateCollides(const Transform: TCastleTransform);
+    procedure UpdateExist(const TransformExists: Boolean);
 
     { Sets all values from Kraft to CGE private fields. }
     procedure SynchronizeFromKraft;
@@ -720,6 +721,7 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
     FKraftBody.Finish;
 
     UpdateCollides(Transform);
+    UpdateExist(Transform.GetExistsRecursively);
 
     if (not FAngularVelocity.IsPerfectlyZero) or
        (not FLinearVelocity.IsPerfectlyZero) then
@@ -931,6 +933,28 @@ begin
   begin
     FKraftBody.CollideWithCollisionGroups := [];
     FKraftBody.CollisionGroups := [];
+  end;
+end;
+
+procedure TRigidBody.UpdateExist(const TransformExists: Boolean);
+begin
+  if Assigned(FKraftBody) then
+  begin
+    if FExists and TransformExists then
+      FKraftBody.Flags := FKraftBody.Flags + [krbfActive]
+    else
+      FKraftBody.Flags := FKraftBody.Flags - [krbfActive];
+  end;
+
+  if Assigned(Collider) and Assigned(Collider.FKraftShape) then
+  begin
+    { Note: ksfRayCastable flag determines whether body is detected by PhysicsRayCast. }
+    if FExists and TransformExists then
+      Collider.FKraftShape.Flags := Collider.FKraftShape.Flags + [ksfCollision,
+        ksfRayCastable]
+    else
+      Collider.FKraftShape.Flags := Collider.FKraftShape.Flags - [ksfCollision,
+        ksfRayCastable];
   end;
 end;
 
@@ -1151,25 +1175,7 @@ begin
     Exit;
 
   FExists := Value;
-
-  if Assigned(FKraftBody) then
-  begin
-    if FExists then
-      FKraftBody.Flags := FKraftBody.Flags + [krbfActive]
-    else
-      FKraftBody.Flags := FKraftBody.Flags - [krbfActive];
-  end;
-
-  if Assigned(Collider) and Assigned(Collider.FKraftShape) then
-  begin
-    { Note: ksfRayCastable flag determines whether body is detected by PhysicsRayCast. }
-    if FExists then
-      Collider.FKraftShape.Flags := Collider.FKraftShape.Flags + [ksfCollision,
-        ksfRayCastable]
-    else
-      Collider.FKraftShape.Flags := Collider.FKraftShape.Flags - [ksfCollision,
-        ksfRayCastable];
-  end;
+  UpdateExist(FTransform.GetExistsRecursively);
 end;
 
 procedure TRigidBody.SetTrigger(const Value: Boolean);
