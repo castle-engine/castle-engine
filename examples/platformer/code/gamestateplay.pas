@@ -377,8 +377,8 @@ begin
   Collider := TCapsuleCollider.Create(RBody);
   Collider.Radius := ScenePlayer.BoundingBox.SizeX * 0.45; // little smaller than 50%
   Collider.Height := ScenePlayer.BoundingBox.SizeY - Collider.Radius * 2;
-  Collider.Friction := 0.5;
-  //Collider.Restitution := 0.05;
+  Collider.Friction := 0.25;
+  Collider.Restitution := 0.0001;
   Collider.Mass := 50;
 
   {ColliderSP := TSphereCollider.Create(RBody);
@@ -415,29 +415,19 @@ begin
     if Pos('GoldCoin', CollisionDetails.OtherTransform.Name) > 0 then
     begin
       CollectCoin;
-      //CollisionDetails.OtherTransform.UniqueParent.Exists := false;
+      // CollisionDetails.OtherTransform.UniqueParent.Exists := false;
       CollisionDetails.OtherTransform.Exists := false;
-      { TODO: When we only change OtherTransform.Exists = false, rigid body
-        still exists, this is only temporary hack to fix that. }
-      CollisionDetails.OtherTransform.RigidBody.Exists := false;
     end else
     if Pos('DblJump', CollisionDetails.OtherTransform.Name) > 0 then
     begin
       PlayerCanDoubleJump := true;
       CollisionDetails.OtherTransform.Exists := false;
-      { TODO: When we only change OtherTransform.Exists = false, rigid body
-        still exists, this is only temporary hack to fix that. }
-      CollisionDetails.OtherTransform.RigidBody.Exists := false;
     end else
     if Pos('Shot', CollisionDetails.OtherTransform.Name) > 0 then
     begin
       PlayerCanShot := true;
       CollisionDetails.OtherTransform.Exists := false;
-      { TODO: When we only change OtherTransform.Exists = false, rigid body
-        still exists, this is only temporary hack to fix that. }
-      CollisionDetails.OtherTransform.RigidBody.Exists := false;
     end;
-
   end;
 end;
 
