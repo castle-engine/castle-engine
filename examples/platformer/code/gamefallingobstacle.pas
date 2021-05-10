@@ -111,9 +111,6 @@ procedure TFallingObstacle.HitPlayer;
 begin
   StatePlay.HitPlayer;
   Scene.Exists := false;
-  { TODO: When we only change Scene.Exists = false, rigid body
-    still exists, this is only temporary hack to fix that. }
-  Scene.RigidBody.Exists := false;
 end;
 
 procedure TFallingObstacle.CollisionEnter(
