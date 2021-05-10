@@ -510,7 +510,6 @@ begin
     try
       Collector.IncludePaths := Manifest.IncludePaths;
       Collector.ExcludePaths := Manifest.ExcludePaths;
-      Collector.IncludePathsRecursive := Manifest.IncludePathsRecursive;
       Collector.OnlyData := OnlyData;
       Collector.TargetPlatform := TargetPlatform;
       Collector.Run;

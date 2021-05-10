@@ -40,6 +40,13 @@ type
   end;
   TLocalizedAppNameList = specialize TObjectList<TLocalizedAppName>;
 
+  TIncludePath = class
+    Path: String;
+    Recursive: Boolean;
+    ExecutablePermission: Boolean;
+  end;
+  TIncludePathList = specialize TObjectList<TIncludePath>;
+
   TProjectVersion = class(TComponent)
   public
     DisplayValue: String;
@@ -100,11 +107,11 @@ type
       FUsesNonExemptEncryption: boolean;
       FDataExists: Boolean;
       FPath, FPathUrl, FDataPath: string;
-      FIncludePaths, FExcludePaths: TCastleStringList;
+      FIncludePaths: TIncludePathList;
+      FExcludePaths: TCastleStringList;
       FExtraCompilerOptions, FExtraCompilerOptionsAbsolute: TCastleStringList;
       FIcons, FLaunchImages: TImageFileNames;
       FSearchPaths, FLibraryPaths: TStringList;
-      FIncludePathsRecursive: TBooleanList;
       FStandaloneSource, FAndroidSource, FIOSSource, FPluginSource: string;
       FLazarusProject: String;
       FBuildUsingLazbuild: Boolean;
@@ -187,8 +194,7 @@ type
     property LibraryPaths: TStringList read FLibraryPaths;
     property AssociateDocumentTypes: TAssociatedDocTypeList read FAssociateDocumentTypes;
     property LocalizedAppNames: TLocalizedAppNameList read FLocalizedAppNames;
-    property IncludePaths: TCastleStringList read FIncludePaths;
-    property IncludePathsRecursive: TBooleanList read FIncludePathsRecursive;
+    property IncludePaths: TIncludePathList read FIncludePaths;
     property ExcludePaths: TCastleStringList read FExcludePaths;
     property ExtraCompilerOptions: TCastleStringList read FExtraCompilerOptions;
     property ExtraCompilerOptionsAbsolute: TCastleStringList read FExtraCompilerOptionsAbsolute;
@@ -295,8 +301,7 @@ constructor TCastleManifest.Create(const APath: String);
 begin
   inherited Create;
   OwnerComponent := TComponent.Create(nil);
-  FIncludePaths := TCastleStringList.Create;
-  FIncludePathsRecursive := TBooleanList.Create;
+  FIncludePaths := TIncludePathList.Create(true);
   FExcludePaths := TCastleStringList.Create;
   FExtraCompilerOptions := TCastleStringList.Create;
   FExtraCompilerOptionsAbsolute := TCastleStringList.Create;
@@ -349,6 +354,7 @@ var
   ChildElements: TXMLElementIterator;
   Element, ChildElement: TDOMElement;
   NewCompilerOption, DefaultLazarusProject, NewSearchPath: String;
+  IncludePath: TIncludePath;
 begin
   Create(APath);
 
@@ -411,8 +417,11 @@ begin
         while ChildElements.GetNext do
         begin
           ChildElement := ChildElements.Current;
-          FIncludePaths.Add(ChildElement.AttributeString('path'));
-          FIncludePathsRecursive.Add(ChildElement.AttributeBooleanDef('recursive', false));
+          IncludePath := TIncludePath.Create;
+          IncludePath.Path := ChildElement.AttributeString('path');
+          IncludePath.Recursive := ChildElement.AttributeBooleanDef('recursive', false);
+          IncludePath.ExecutablePermission := ChildElement.AttributeBooleanDef('executable_permission', false);
+          FIncludePaths.Add(IncludePath);
         end;
       finally FreeAndNil(ChildElements) end;
 
@@ -593,7 +602,6 @@ destructor TCastleManifest.Destroy;
 begin
   FreeAndNil(OwnerComponent);
   FreeAndNil(FIncludePaths);
-  FreeAndNil(FIncludePathsRecursive);
   FreeAndNil(FExcludePaths);
   FreeAndNil(FExtraCompilerOptions);
   FreeAndNil(FExtraCompilerOptionsAbsolute);
