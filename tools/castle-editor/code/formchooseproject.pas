@@ -250,10 +250,11 @@ end;
 
 procedure TChooseProjectForm.FormCreate(Sender: TObject);
 
-  procedure PathsConfigLoad;
+  procedure ConfigLoad;
   begin
     FpcCustomPath := UserConfig.GetValue('fpc_custom_path', '');
     LazarusCustomPath := UserConfig.GetValue('lazarus_custom_path', '');
+    CodeEditor := UserConfig.GetValue('code_editor', '');
   end;
 
 begin
@@ -261,19 +262,20 @@ begin
   RecentProjects := TCastleRecentFiles.Create(Self);
   RecentProjects.LoadFromConfig(UserConfig);
   //  RecentProjects.NextMenuItem := ; // unused for now
-  PathsConfigLoad;
+  ConfigLoad;
 end;
 
 procedure TChooseProjectForm.FormDestroy(Sender: TObject);
 
-  procedure PathsConfigSave;
+  procedure ConfigSave;
   begin
     UserConfig.SetDeleteValue('fpc_custom_path', FpcCustomPath, '');
     UserConfig.SetDeleteValue('lazarus_custom_path', LazarusCustomPath, '');
+    UserConfig.SetDeleteValue('code_editor', CodeEditor, '');
   end;
 
 begin
-  PathsConfigSave;
+  ConfigSave;
   RecentProjects.SaveToConfig(UserConfig);
   UserConfig.Save;
 end;

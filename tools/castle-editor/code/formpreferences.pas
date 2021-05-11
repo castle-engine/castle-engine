@@ -27,6 +27,9 @@ type
     ButtonPanel1: TButtonPanel;
     DirectoryEditFpc: TDirectoryEdit;
     DirectoryEditLazarus: TDirectoryEdit;
+    EditCodeEditorCommand: TFileNameEdit;
+    LabelCodeEditorCommandInstructions: TLabel;
+    LabelCodeEditorHeader: TLabel;
     LabelFpc: TLabel;
     LabelFpcAutoDetectedCaption: TLabel;
     LabelInstructions0: TLabel;
@@ -38,14 +41,21 @@ type
     LabelFpcAutoDetected: TLabel;
     LabelLazarusAutoDetected: TLabel;
     LabelLazarusWebsite: TLabel;
+    ListPages: TListBox;
+    PanelCodeEditor: TPanel;
+    PanelFpcLazarusConfig: TPanel;
+    RadioCodeEditorLazarus: TRadioButton;
+    RadioCodeEditorCommand: TRadioButton;
     procedure DirectoryEditFpcChange(Sender: TObject);
     procedure DirectoryEditLazarusChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormShow(Sender: TObject);
     procedure LabelLazarusWebsiteClick(Sender: TObject);
+    procedure ListPagesClick(Sender: TObject);
   private
     OriginalFpcCustomPath, OriginalLazarusCustomPath: String;
     procedure UpdateAutoDetectedLabels;
+    procedure UpdatePageVisible;
   public
 
   end;
@@ -56,7 +66,8 @@ var
 implementation
 
 uses CastleOpenDocument, CastleUtils, CastleLog,
-  ToolCompilerInfo, ToolFpcVersion;
+  ToolCompilerInfo, ToolFpcVersion,
+  EditorUtils;
 
 {$R *.lfm}
 
@@ -65,6 +76,11 @@ uses CastleOpenDocument, CastleUtils, CastleLog,
 procedure TPreferencesForm.LabelLazarusWebsiteClick(Sender: TObject);
 begin
   OpenURL('https://www.lazarus-ide.org/');
+end;
+
+procedure TPreferencesForm.ListPagesClick(Sender: TObject);
+begin
+  UpdatePageVisible;
 end;
 
 procedure TPreferencesForm.UpdateAutoDetectedLabels;
@@ -104,6 +120,9 @@ end;
 
 procedure TPreferencesForm.FormShow(Sender: TObject);
 begin
+  // ListPages.ItemIndex := ; // leave previous
+  UpdatePageVisible;
+
   UpdateAutoDetectedLabels;
 
   DirectoryEditFpc.Directory := FpcCustomPath;
@@ -112,13 +131,35 @@ begin
     so allow to revert them on "Cancel". }
   OriginalFpcCustomPath := FpcCustomPath;
   OriginalLazarusCustomPath := LazarusCustomPath;
+
+  if Trim(CodeEditor) <> '' then
+  begin
+    RadioCodeEditorCommand.Checked := true; // will uncheck other Radio...
+    EditCodeEditorCommand.Text := CodeEditor;
+  end else
+  begin
+    RadioCodeEditorLazarus.Checked := true; // will uncheck other Radio...
+    EditCodeEditorCommand.Text := '';
+  end;
 end;
 
 procedure TPreferencesForm.FormClose(Sender: TObject;
   var CloseAction: TCloseAction);
 begin
-  if ModalResult <> mrOK then
+  if ModalResult = mrOK then
   begin
+    { copy UI -> global variables }
+    if RadioCodeEditorCommand.Checked then
+      CodeEditor := EditCodeEditorCommand.Text
+    else
+      CodeEditor := '';
+  end else
+  begin
+    { XxxCustomPath are special.
+      They are updated all the time when you change them in UI,
+      this makes functions like FindExeLazarusIDE work OK,
+      and at the end we restore them to orignal values if user *did not*
+      accept the changes by clicking "OK". }
     FpcCustomPath := OriginalFpcCustomPath;
     LazarusCustomPath := OriginalLazarusCustomPath;
   end;
@@ -136,4 +177,18 @@ begin
   UpdateAutoDetectedLabels;
 end;
 
+procedure TPreferencesForm.UpdatePageVisible;
+var
+  SelectedPage: TPanel;
+begin
+  case ListPages.ItemIndex of
+    0: SelectedPage := PanelFpcLazarusConfig;
+    1: SelectedPage := PanelCodeEditor;
+    else raise Exception.CreateFmt('Unexpected ListPages.ItemIndex %d', [ListPages.ItemIndex]);
+  end;
+  SetEnabledVisible(PanelFpcLazarusConfig, PanelFpcLazarusConfig = SelectedPage);
+  SetEnabledVisible(PanelCodeEditor      , PanelCodeEditor       = SelectedPage);
+end;
+
 end.
+

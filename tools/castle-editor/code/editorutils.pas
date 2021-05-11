@@ -153,6 +153,11 @@ function ApiReference(const PropertyObject: TObject;
 
 procedure BuildComponentsMenu(const ParentUeserInterface, ParentTransform: TMenuItem; const OnClickEvent: TNotifyEvent);
 
+var
+  { Editor used to open Pascal files.
+    Empry to use default Lazarus. }
+  CodeEditor: String;
+
 implementation
 
 uses SysUtils, Dialogs, Graphics, TypInfo, Generics.Defaults,
