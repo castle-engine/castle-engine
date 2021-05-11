@@ -163,6 +163,8 @@ type
     procedure HitPlayer;
     function IsPlayerDead: Boolean;
 
+    procedure PauseGame;
+    procedure ResumeGame;
   end;
 
 var
@@ -173,7 +175,7 @@ implementation
 uses
   SysUtils, Math,
   CastleLog,
-  GameStateMenu, GameStateGameOver, GameStateLevelComplete;
+  GameStateMenu, GameStateGameOver, GameStateLevelComplete, GameStatePause;
 
 { TBullet -------------------------------------------------------------------- }
 
@@ -1256,6 +1258,16 @@ begin
   Result := PlayerHitPoints < 0;
 end;
 
+procedure TStatePlay.PauseGame;
+begin
+  MainViewport.Items.TimeScale := 0;
+end;
+
+procedure TStatePlay.ResumeGame;
+begin
+  MainViewport.Items.TimeScale := 1;
+end;
+
 procedure TStatePlay.ResetHitPoints;
 begin
   SetHitPoints(4);
@@ -1509,7 +1521,7 @@ begin
   if IsPlayerDead and (TUIState.CurrentTop = Self) then
   begin
     ScenePlayer.Exists := false;
-    MainViewport.Items.TimeScale := 0;
+    PauseGame;
     TUIState.Push(StateGameOver);
     Exit;
   end;
@@ -1517,7 +1529,7 @@ begin
   if LevelComplete then
   begin
     ScenePlayer.RigidBody.Exists := false;
-    MainViewport.Items.TimeScale := 0;
+    PauseGame;
     TUIState.Push(StateLevelComplete);
     Exit;
   end;
@@ -1582,7 +1594,8 @@ begin
 
   if Event.IsKey(keyEscape) then
   begin
-    TUIState.Current := StateMenu;
+    PauseGame;
+    TUIState.Push(StatePause);
     Exit(true);
   end;
 end;
