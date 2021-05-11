@@ -1417,7 +1417,8 @@ begin
   GroundsRoot := DesignedComponent('Grounds') as TCastleTransform;
   for I := 0 to GroundsRoot.Count - 1 do
   begin
-    if pos('GroundLine', GroundsRoot.Items[I].Name) = 1 then
+    if (Pos('GroundLine', GroundsRoot.Items[I].Name) = 1) or
+       (Pos('GroundOther', GroundsRoot.Items[I].Name) = 1) then
     begin
       GroundsLineRoot := GroundsRoot.Items[I];
       for J := 0 to GroundsLineRoot.Count - 1 do
