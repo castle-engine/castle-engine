@@ -3,4 +3,5 @@
   lazarus_project="graphics_random_test.lpi"
   build_using_lazbuild="true"
 >
+  <data exists="false" />
 </project>

@@ -3,4 +3,5 @@
   lazarus_project="testhash.lpi"
   build_using_lazbuild="true"
 >
+  <data exists="false" />
 </project>
