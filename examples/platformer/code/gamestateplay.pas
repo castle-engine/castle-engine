@@ -146,7 +146,7 @@ type
     procedure ResetCollectedKeys;
 
     procedure PlayAnimationOnceAndLoop(Scene: TCastleScene;
-      const AnimationNameToPlayOnce, AnimationNameToLoop: string);
+      const AnimationNameToPlayOnce, AnimationNameToLoop: String);
     procedure OnAnimationStop(const Scene: TCastleSceneCore;
       const Animation: TTimeSensorNode);
 
@@ -219,7 +219,6 @@ begin
   Left := -3072;
   Right := 5120;
   Top := 3072;
-  //Down := -1024;
   Down := -800;
 end;
 
@@ -292,11 +291,6 @@ begin
 
   Collider := TSphereCollider.Create(RBody);
   Collider.Radius := Coin.BoundingBox.SizeY / 8;
-  Collider.Friction := 0.1;
-  Collider.Restitution := 0.05;
-
-  WriteLnLog('Coin collider: ' + FloatToStr(Collider.Radius));
-
   Coin.RigidBody := RBody;
 end;
 
@@ -423,8 +417,6 @@ procedure TStatePlay.ConfigurePlayerPhysics(const Player: TCastleScene);
 var
   RBody: TRigidBody;
   Collider: TCapsuleCollider;
-  // ColliderSP: TSphereCollider;
-  // ColliderBox: TBoxCollider;
 begin
   RBody := TRigidBody.Create(Player);
   RBody.Dynamic := true;
@@ -1094,7 +1086,7 @@ begin
     Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5);
 
   { Two more checks Kraft - player should slide down when player just
-    on the edge, but sometimes it stay and center ray dont "see" that we are
+    on the edge, but sometimes it stay and center ray don't "see" that we are
     on ground }
   if GroundScene = nil then
   begin
@@ -1306,7 +1298,7 @@ begin
 end;
 
 procedure TStatePlay.PlayAnimationOnceAndLoop(Scene: TCastleScene;
-  const AnimationNameToPlayOnce, AnimationNameToLoop: string);
+  const AnimationNameToPlayOnce, AnimationNameToLoop: String);
 var
   Parameters: TPlayAnimationParameters;
 begin
@@ -1349,8 +1341,6 @@ var
   EnemyScene: TCastleScene;
   FallingObstacleScene: TCastleScene;
   DeadlyObstacleScene: TCastleScene;
-  DoorScene: TCastleScene;
-  KeyScene: TCastleScene;
 
   { Variables used to create behaviors }
   Enemy: TEnemy;
@@ -1515,6 +1505,8 @@ begin
   { If player is dead and we did not show game over state we do that }
   if IsPlayerDead and (TUIState.CurrentTop = Self) then
   begin
+    ScenePlayer.Exists := false;
+    MainViewport.Items.TimeScale := 0;
     TUIState.Push(StateGameOver);
     Exit;
   end;
