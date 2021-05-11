@@ -56,6 +56,7 @@ type
     ImageHitPoint3: TCastleImageControl;
     ImageHitPoint2: TCastleImageControl;
     ImageHitPoint1: TCastleImageControl;
+    ImageKey: TCastleImageControl;
 
     { Checks this is firs Update when W key (jump) was pressed }
     WasJumpKeyPressed: Boolean;
@@ -70,6 +71,7 @@ type
     PlayerCollectedCoins: Integer;
     PlayerHitPoints: Integer;
     PlayerAnimationToLoop: String;
+    PlayerHasKey: Boolean;
 
     BulletSpriteScene: TCastleScene;
 
@@ -93,10 +95,13 @@ type
     procedure ConfigurePowerUpsPhysics(const PowerUp: TCastleScene);
     procedure ConfigureGroundPhysics(const Ground: TCastleScene);
     procedure ConfigureStonePhysics(const Stone: TCastleScene);
+    procedure ConfigureDoorsPhysics(const Door: TCastleScene);
+    procedure ConfigureKeysPhysics(const Key: TCastleScene);
 
     procedure ConfigurePlayerPhysics(const Player:TCastleScene);
     procedure ConfigurePlayerAbilities(const Player:TCastleScene);
     procedure PlayerCollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
+    procedure PlayerCollisionExit(const CollisionDetails: TPhysicsCollisionDetails);
     procedure ChangePlayerPhysicsSettingsBasedOnGround(const Player,
       Ground: TCastleTransform);
     procedure ConfigureBulletSpriteScene;
@@ -135,6 +140,10 @@ type
     { Life support }
     procedure ResetHitPoints;
     procedure SetHitPoints(const HitPoints: Integer);
+
+    { Key support }
+    procedure CollectKey;
+    procedure ResetCollectedKeys;
 
     procedure PlayAnimationOnceAndLoop(Scene: TCastleScene;
       const AnimationNameToPlayOnce, AnimationNameToLoop: string);
@@ -368,6 +377,48 @@ begin
   Stone.RigidBody := RBody;
 end;
 
+procedure TStatePlay.ConfigureDoorsPhysics(const Door: TCastleScene);
+var
+  RBody: TRigidBody;
+  Collider: TSphereCollider;
+begin
+  RBody := TRigidBody.Create(Door);
+  RBody.Dynamic := false;
+  RBody.Setup2D;
+  RBody.Gravity := false;
+  RBody.LinearVelocityDamp := 0;
+  RBody.AngularVelocityDamp := 0;
+  RBody.AngularVelocity := Vector3(0, 0, 0);
+  RBody.LockRotation := [0, 1, 2];
+  RBody.MaximalLinearVelocity := 0;
+  RBody.Trigger := true;
+
+  Collider := TSphereCollider.Create(RBody);
+  Collider.Radius := Door.BoundingBox.SizeX / 2.1;
+  Door.RigidBody := RBody;
+end;
+
+procedure TStatePlay.ConfigureKeysPhysics(const Key: TCastleScene);
+var
+  RBody: TRigidBody;
+  Collider: TSphereCollider;
+begin
+  RBody := TRigidBody.Create(Key);
+  RBody.Dynamic := false;
+  RBody.Setup2D;
+  RBody.Gravity := false;
+  RBody.LinearVelocityDamp := 0;
+  RBody.AngularVelocityDamp := 0;
+  RBody.AngularVelocity := Vector3(0, 0, 0);
+  RBody.LockRotation := [0, 1, 2];
+  RBody.MaximalLinearVelocity := 0;
+  RBody.Trigger := true;
+
+  Collider := TSphereCollider.Create(RBody);
+  Collider.Radius := Key.BoundingBox.SizeX / 4;
+  Key.RigidBody := RBody;
+end;
+
 procedure TStatePlay.ConfigurePlayerPhysics(const Player: TCastleScene);
 var
   RBody: TRigidBody;
@@ -385,6 +436,7 @@ begin
   RBody.LockRotation := [0, 1, 2];
   RBody.MaximalLinearVelocity := 0;
   RBody.OnCollisionEnter := @PlayerCollisionEnter;
+  RBody.OnCollisionExit := @PlayerCollisionExit;
 
   Collider := TCapsuleCollider.Create(RBody);
   Collider.Radius := ScenePlayer.BoundingBox.SizeX * 0.45; // little smaller than 50%
@@ -415,8 +467,10 @@ begin
   PlayerCanDoubleJump := false;
   WasDoubleJump := false;
   PlayerCanShot := false;
-  ResetCollectedCoins;
   ResetHitPoints;
+
+  ResetCollectedCoins;
+  ResetCollectedKeys;
 end;
 
 procedure TStatePlay.PlayerCollisionEnter(
@@ -439,7 +493,30 @@ begin
     begin
       PlayerCanShot := true;
       CollisionDetails.OtherTransform.Exists := false;
+    end else
+    if Pos('Key', CollisionDetails.OtherTransform.Name) > 0 then
+    begin
+      CollectKey;
+      CollisionDetails.OtherTransform.Exists := false;
+    end else
+    if Pos('Door', CollisionDetails.OtherTransform.Name) > 0 then
+    begin
+      if PlayerHasKey then
+        // victory here
+      else
+        CollisionDetails.OtherTransform.Items[0].Exists := true;
     end;
+  end;
+end;
+
+procedure TStatePlay.PlayerCollisionExit(
+  const CollisionDetails: TPhysicsCollisionDetails);
+begin
+  if CollisionDetails.OtherTransform <> nil then
+  begin
+    if (Pos('Door', CollisionDetails.OtherTransform.Name) > 0) and
+       (not PlayerHasKey) then
+      CollisionDetails.OtherTransform.Items[0].Exists := false;
   end;
 end;
 
@@ -1216,6 +1293,18 @@ begin
     ImageHitPoint1.URL := 'castle-data:/ui/hud_heartEmpty.png';
 end;
 
+procedure TStatePlay.CollectKey;
+begin
+  PlayerHasKey := true;
+  ImageKey.Exists := true;
+end;
+
+procedure TStatePlay.ResetCollectedKeys;
+begin
+  PlayerHasKey := false;
+  ImageKey.Exists := false;
+end;
+
 procedure TStatePlay.PlayAnimationOnceAndLoop(Scene: TCastleScene;
   const AnimationNameToPlayOnce, AnimationNameToLoop: string);
 var
@@ -1252,12 +1341,16 @@ var
   FallingObstaclesRoot: TCastleTransform;
   DeadlyObstaclesRoot: TCastleTransform;
   PowerUps: TCastleTransform;
+  DoorsRoot: TCastleTransform;
+  KeysRoot: TCastleTransform;
 
   { Variables used when interating each object groups }
   PlatformScene: TCastleScene;
   EnemyScene: TCastleScene;
   FallingObstacleScene: TCastleScene;
   DeadlyObstacleScene: TCastleScene;
+  DoorScene: TCastleScene;
+  KeyScene: TCastleScene;
 
   { Variables used to create behaviors }
   Enemy: TEnemy;
@@ -1279,6 +1372,7 @@ begin
   ImageHitPoint2 := DesignedComponent('ImageHitPoint2') as TCastleImageControl;
   ImageHitPoint3 := DesignedComponent('ImageHitPoint3') as TCastleImageControl;
   ImageHitPoint4 := DesignedComponent('ImageHitPoint4') as TCastleImageControl;
+  ImageKey := DesignedComponent('GoldKey') as TCastleImageControl;
 
   ScenePlayer := DesignedComponent('ScenePlayer') as TCastleScene;
 
@@ -1338,6 +1432,18 @@ begin
   for I := 0 to PowerUps.Count - 1 do
   begin
     ConfigurePowerUpsPhysics(PowerUps.Items[I] as TCastleScene);
+  end;
+
+  DoorsRoot := DesignedComponent('Doors') as TCastleTransform;
+  for I := 0 to DoorsRoot.Count - 1 do
+  begin
+    ConfigureDoorsPhysics(DoorsRoot.Items[I] as TCastleScene);
+  end;
+
+  KeysRoot := DesignedComponent('Keys') as TCastleTransform;
+  for I := 0 to DoorsRoot.Count - 1 do
+  begin
+    ConfigureKeysPhysics(KeysRoot.Items[I] as TCastleScene);
   end;
 
   Enemies := TEnemyList.Create(true);
