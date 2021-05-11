@@ -73,6 +73,8 @@ type
     PlayerAnimationToLoop: String;
     PlayerHasKey: Boolean;
 
+    LevelComplete: Boolean;
+
     BulletSpriteScene: TCastleScene;
 
     { Level bounds }
@@ -171,7 +173,7 @@ implementation
 uses
   SysUtils, Math,
   CastleLog,
-  GameStateMenu, GameStateGameOver;
+  GameStateMenu, GameStateGameOver, GameStateLevelComplete;
 
 { TBullet -------------------------------------------------------------------- }
 
@@ -473,7 +475,6 @@ begin
     if Pos('GoldCoin', CollisionDetails.OtherTransform.Name) > 0 then
     begin
       CollectCoin;
-      // CollisionDetails.OtherTransform.UniqueParent.Exists := false;
       CollisionDetails.OtherTransform.Exists := false;
     end else
     if Pos('DblJump', CollisionDetails.OtherTransform.Name) > 0 then
@@ -494,7 +495,7 @@ begin
     if Pos('Door', CollisionDetails.OtherTransform.Name) > 0 then
     begin
       if PlayerHasKey then
-        // victory here
+        LevelComplete := true
       else
         CollisionDetails.OtherTransform.Items[0].Exists := true;
     end;
@@ -1352,6 +1353,8 @@ var
 begin
   inherited;
 
+  LevelComplete := false;
+
   { Find components, by name, that we need to access from code }
   LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
   LabelCollectedCoins := DesignedComponent('LabelCollectedCoins') as TCastleLabel;
@@ -1508,6 +1511,14 @@ begin
     ScenePlayer.Exists := false;
     MainViewport.Items.TimeScale := 0;
     TUIState.Push(StateGameOver);
+    Exit;
+  end;
+
+  if LevelComplete then
+  begin
+    ScenePlayer.RigidBody.Exists := false;
+    MainViewport.Items.TimeScale := 0;
+    TUIState.Push(StateLevelComplete);
     Exit;
   end;
 
