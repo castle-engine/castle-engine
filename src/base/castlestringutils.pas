@@ -2282,7 +2282,11 @@ begin
       {$endif}
       ReplacementsDone := C.ReplacementsDone;
     finally FreeAndNil(C) end;
-  finally FreeAndNil(R) end;
+  finally
+    {$ifdef FPC} // In Delphi, TRegEx is a record
+    FreeAndNil(R);
+    {$endif}
+  end;
 
   if (ReplacementsDone = 0) and AllowOldPercentSyntax then
     Result := FormatIndexedName(NamePattern, Index, ReplacementsDone);

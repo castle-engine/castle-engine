@@ -184,19 +184,31 @@ begin
     FRegisteredProtocols.Add('http', nil, nil, TFpHttpClientReader);
     FRegisteredProtocols.Add('https', nil, nil, TFpHttpClientReader);
     {$endif}
-    FRegisteredProtocols.Add('', @TUrlFile(nil).Read, @TUrlFile(nil).Write, nil);
-    FRegisteredProtocols.Add('file', @TUrlFile(nil).Read, @TUrlFile(nil).Write, nil);
+    FRegisteredProtocols.Add('',
+      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlFile{$ifdef CASTLE_OBJFPC}(nil){$endif}.Read,
+      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlFile{$ifdef CASTLE_OBJFPC}(nil){$endif}.Write, nil);
+    FRegisteredProtocols.Add('file',
+      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlFile{$ifdef CASTLE_OBJFPC}(nil){$endif}.Read,
+      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlFile{$ifdef CASTLE_OBJFPC}(nil){$endif}.Write, nil);
     {$if defined(ANDROID)}
-    FRegisteredProtocols.Add('assets', @TUrlCastleAndroidAssets(nil).Read, nil, nil);
-    FRegisteredProtocols.Add('castle-android-assets', @TUrlCastleAndroidAssets(nil).Read, nil, nil);
+    FRegisteredProtocols.Add('assets',
+      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlCastleAndroidAssets{$ifdef CASTLE_OBJFPC}(nil){$endif}.Read, nil, nil);
+    FRegisteredProtocols.Add('castle-android-assets',
+      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlCastleAndroidAssets{$ifdef CASTLE_OBJFPC}(nil){$endif}.Read, nil, nil);
     {$endif}
     FRegisteredProtocols.Add('castle-data', nil, nil, nil);
-    FRegisteredProtocols.Add('data', @TUrlData(nil).Read, nil, nil);
-    FRegisteredProtocols.Add('ecmascript', @TUrlEcmaScript(nil).Read, nil, nil);
-    FRegisteredProtocols.Add('javascript', @TUrlEcmaScript(nil).Read, nil, nil);
-    FRegisteredProtocols.Add('castlescript', @TUrlCastleScript(nil).Read, nil, nil);
-    FRegisteredProtocols.Add('kambiscript', @TUrlCastleScript(nil).Read, nil, nil);
-    FRegisteredProtocols.Add('compiled', @TUrlCompiled(nil).Read, nil, nil);
+    FRegisteredProtocols.Add('data',
+      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlData{$ifdef CASTLE_OBJFPC}(nil){$endif}.Read, nil, nil);
+    FRegisteredProtocols.Add('ecmascript',
+      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlEcmaScript{$ifdef CASTLE_OBJFPC}(nil){$endif}.Read, nil, nil);
+    FRegisteredProtocols.Add('javascript',
+      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlEcmaScript{$ifdef CASTLE_OBJFPC}(nil){$endif}.Read, nil, nil);
+    FRegisteredProtocols.Add('castlescript',
+      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlCastleScript{$ifdef CASTLE_OBJFPC}(nil){$endif}.Read, nil, nil);
+    FRegisteredProtocols.Add('kambiscript',
+      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlCastleScript{$ifdef CASTLE_OBJFPC}(nil){$endif}.Read, nil, nil);
+    FRegisteredProtocols.Add('compiled',
+      {$ifdef CASTLE_OBJFPC}@{$endif} TUrlCompiled{$ifdef CASTLE_OBJFPC}(nil){$endif}.Read, nil, nil);
   end;
   Result := FRegisteredProtocols;
 end;

@@ -24,6 +24,11 @@ const
 
   ExeExtension = {$ifdef MSWINDOWS} '.exe' {$else} '' {$endif};
 
+  {$ifndef FPC}
+  AllowDirectorySeparators = {$ifdef MSWINDOWS} ['/', '\'] {$else} ['/'] {$endif};
+  FileNameCaseSensitive = {$ifdef MSWINDOWS} false {$else} true {$endif};
+  {$endif}
+
 { Remove from the FileName the last extension (including the dot).
   Note that if the FileName had a couple of extensions (e.g. @code(blah.x3d.gz))
   this will remove only the last one.

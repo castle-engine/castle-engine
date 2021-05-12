@@ -757,11 +757,11 @@ function Approximate2DScale(const V: TVector2): Single; overload;
   same logic as above.
 }
 function SmoothTowards(const Source, Target, SecondsPassed,
-  Speed: Single): Single;
+  Speed: Single): Single; overload;
 function SmoothTowards(const Source, Target: TVector2;
-  const SecondsPassed, Speed: Single): TVector2;
+  const SecondsPassed, Speed: Single): TVector2; overload;
 function SmoothTowards(const Source, Target: TVector3;
-  const SecondsPassed, Speed: Single): TVector3;
+  const SecondsPassed, Speed: Single): TVector3; overload;
 
 {$endif read_interface}
 
