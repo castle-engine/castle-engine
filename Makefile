@@ -341,7 +341,7 @@ examples:
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
 	  '(' -path ./tools/build-tool/tests/data -prune ')' -o \
 	  '(' -iname CastleEngineManifest.xml -print0 ')' | \
-	  xargs -0 -n1 castle-engine-copy$(EXE_EXTENSION) \
+	  xargs -0 -n1 ./castle-engine-copy$(EXE_EXTENSION) \
 	    $(CASTLE_ENGINE_TOOL_OPTIONS) compile --project
 
 # Compile editor templates
