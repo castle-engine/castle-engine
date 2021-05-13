@@ -450,17 +450,14 @@ cleanall: cleanmore
 # tests ----------------------------------------
 
 # Build and run tests.
-# Requires the CGE build tool ("castle-engine") to be available on $PATH.
 .PHONY: tests
 tests:
 	tools/build-tool/castle-engine_compile.sh
-	cd tests/ && \
-	  $(BUILD_TOOL) clean && \
-	  ./compile_console.sh -dNO_WINDOW_SYSTEM && \
-	  ./test_castle_game_engine -a
-	cd tests/ && \
-	  $(BUILD_TOOL) clean && \
-	  ./compile_console_release.sh -dNO_WINDOW_SYSTEM && \
-	  ./test_castle_game_engine -a
+	$(BUILD_TOOL) --project tests/ clean
+	$(BUILD_TOOL) --project tests/ --mode=debug --compiler-option=-dNO_WINDOW_SYSTEM compile
+	$(BUILD_TOOL) --project tests/ run -- -a
+	$(BUILD_TOOL) --project tests/ clean
+	$(BUILD_TOOL) --project tests/ --mode=release --compiler-option=-dNO_WINDOW_SYSTEM compile
+	$(BUILD_TOOL) --project tests/ run -- -a
 
 # eof ------------------------------------------------------------
