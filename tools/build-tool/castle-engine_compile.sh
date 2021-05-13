@@ -37,4 +37,4 @@ fpc -dRELEASE @castle-fpc.cfg \
   -Futools/build-tool/embedded_images/ \
   ${CASTLE_FPC_OPTIONS:-} \
   tools/build-tool/castle-engine.lpr \
-  -va > ${WORKSPACE}/debug-fpc-output.txt
+  -va > ${WORKSPACE:-`pwd`}/debug-fpc-output.txt

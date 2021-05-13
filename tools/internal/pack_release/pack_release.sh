@@ -156,7 +156,7 @@ do_pack_platform ()
   make cleanmore $MAKE_OPTIONS
 
   # Compile most tools with FPC, and castle-editor with lazbuild
-  make tools
+  make tools BUILD_TOOL=castle-engine
   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/castle_editor.lpi
 
   # Place tools binaries in bin/ subdirectory
