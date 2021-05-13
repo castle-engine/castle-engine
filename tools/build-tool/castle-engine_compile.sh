@@ -36,5 +36,4 @@ fpc -dRELEASE @castle-fpc.cfg \
   -Futools/build-tool/code/ \
   -Futools/build-tool/embedded_images/ \
   ${CASTLE_FPC_OPTIONS:-} \
-  tools/build-tool/castle-engine.lpr \
-  -va > debug-cge-build.txt
+  tools/build-tool/castle-engine.lpr
