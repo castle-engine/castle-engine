@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eu
+set -eux
 
 # Compile the Castle Game Engine build tool
 # ("castle-engine" binary, "castle-engine.exe" on Windows).
@@ -36,4 +36,5 @@ fpc -dRELEASE @castle-fpc.cfg \
   -Futools/build-tool/code/ \
   -Futools/build-tool/embedded_images/ \
   ${CASTLE_FPC_OPTIONS:-} \
-  tools/build-tool/castle-engine.lpr
+  tools/build-tool/castle-engine.lpr \
+  -va > ${WORKSPACE}debug-fpc-output.txt

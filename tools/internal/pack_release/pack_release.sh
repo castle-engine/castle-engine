@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -euxo pipefail
 
 # Pack Castle Game Engine release (source + binaries).
 # Uses bash strict mode, see http://redsymbol.net/articles/unofficial-bash-strict-mode/
