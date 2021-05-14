@@ -7,6 +7,8 @@ castle-engine-output
 ${PROJECT_NAME}
 # Windows executable
 ${PROJECT_NAME}.exe
+# Library files placed alongside Windows executable
+*.dll
 
 # May contain secret data (your Android keystore username and password)
 AndroidAntProperties.txt
