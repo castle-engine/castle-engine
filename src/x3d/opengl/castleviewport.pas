@@ -3318,7 +3318,10 @@ begin
     RayDirection := Item.UniqueParent.WorldToLocalDirection(RayDirectionWorld);
   end else
   begin
-    WritelnWarning('TODO: Item %s is not part of World, or is present in World multiple times. PointingDeviceXxx events will receive ray in world coordinates, while they should be in local.');
+    WritelnWarning('TODO: Item %s(%s) is not part of World, or is present in the World multiple times. PointingDeviceXxx events will receive ray in world coordinates, while they should be in local.', [
+      Item.Name,
+      Item.ClassName
+    ]);
     RayOrigin := RayOriginWorld;
     RayDirection := RayDirectionWorld;
   end;
