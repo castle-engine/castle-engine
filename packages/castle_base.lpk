@@ -74,7 +74,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="5"/>
-    <Files Count="720">
+    <Files Count="721">
       <Item1>
         <Filename Value="../src/3d/castleboxes.pas"/>
         <UnitName Value="CastleBoxes"/>
@@ -2971,6 +2971,10 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/game/castlebehaviors.pas"/>
         <UnitName Value="CastleBehaviors"/>
       </Item720>
+      <Item721>
+        <Filename Value="../src/3d/castletransform_physics.inc"/>
+        <Type Value="Include"/>
+      </Item721>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>
