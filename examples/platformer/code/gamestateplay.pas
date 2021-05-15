@@ -241,10 +241,9 @@ var
   Size: TVector3;
 begin
   RBody := TRigidBody.Create(Platform);
-  RBody.Dynamic := false;
 
-  if Platform.Tag <> 0 then
-    RBody.Dynamic := true;
+  { Platforms that can move has Tag <> 0, so they are dynamic bodies }
+  RBody.Dynamic := (Platform.Tag <> 0);
 
   RBody.Setup2D;
   RBody.Gravity := false;
@@ -257,7 +256,7 @@ begin
     vertical. }
   if Platform.Tag > 0 then
     RBody.LockTranslation := [1, 2]
-  else if Platform.Tag > 0 then
+  else if Platform.Tag < 0 then
     RBody.LockTranslation := [0, 2];
   RBody.MaximalLinearVelocity := 0;
   RBody.MaximalAngularVelocity := 0;
