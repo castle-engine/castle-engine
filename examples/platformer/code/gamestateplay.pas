@@ -1078,8 +1078,6 @@ begin
   if IsPlayerDead then
     Exit;
 
-  InSecondJump := false;
-
   DeltaVelocity := Vector3(0, 0, 0);
   Vel := ScenePlayer.RigidBody.LinearVelocity;
 
@@ -1087,7 +1085,7 @@ begin
   GroundScene := ScenePlayer.RigidBody.PhysicsRayCast(ScenePlayer.Translation,
     Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5);
 
-  { Two more checks Kraft - player should slide down when player just
+  { Two more checks - player should slide down when player just
     on the edge, but sometimes it stay and center ray don't "see" that we are
     on ground }
   if GroundScene = nil then
@@ -1104,16 +1102,28 @@ begin
       Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5);
   end;
 
-  // fix Restitution for moving platforms
+  { Fix restitution for moving platforms - when player is on moving platform
+    and restitution is to big he can slide from platform because it will jumping
+    a little, but in other hand when restitution is too small jumping looks
+    not natural }
   ChangePlayerPhysicsSettingsBasedOnGround(ScenePlayer, GroundScene);
 
+  { Player is on ground when RayCasts hits something }
   PlayerOnGround := (GroundScene <> nil);
 
+  { Reset DoubleJump flag when player is on ground. }
   if PlayerOnGround then
     WasDoubleJump := false;
 
+  { Flag for velocity calculation when second jump starts in this Update }
+  InSecondJump := false;
   if Container.Pressed.Items[keyW] then
   begin
+    { Player can jump when:
+      - is on ground
+      - he can double jump and there was not WasDoubleJump
+      - here we also check if the key has just been pressed (when it is held,
+        the player should not keep jumping) }
     if (not WasJumpKeyPressed) and (PlayerOnGround or (PlayerCanDoubleJump and (not WasDoubleJump))) then
     begin
       if not PlayerOnGround then
@@ -1200,6 +1210,8 @@ begin
       ScenePlayer.PlayAnimation('idle', true);
   end;
 
+  { Here we use horizontal velocity to change player scene direction to moving
+    direction. }
   if Vel.X < -1 then
     ScenePlayer.Scale := Vector3(-1, 1, 1)
   else if Vel.X > 1 then
@@ -1219,7 +1231,6 @@ begin
     end else
       WasShotKeyPressed := false;
   end;
-
 end;
 
 procedure TStatePlay.Shot(BulletOwner: TComponent; const Origin,
