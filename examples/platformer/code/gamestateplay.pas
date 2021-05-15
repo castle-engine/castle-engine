@@ -1519,10 +1519,9 @@ begin
   { This virtual method is executed every frame.}
 
   { If player is dead and we did not show game over state we do that }
-  if IsPlayerDead and (TUIState.CurrentTop = Self) then
+  if IsPlayerDead and (TUIState.CurrentTop <> StateGameOver) then
   begin
     ScenePlayer.Exists := false;
-    PauseGame;
     TUIState.Push(StateGameOver);
     Exit;
   end;
