@@ -5803,9 +5803,8 @@
                       "$ClassName" : "TCastleScene.TSceneRenderOptions"
                     },
                     "TranslationPersistent" : {
-                      "X" : 8.7249462890625000E+002,
-                      "Y" : 1.1552764892578125E+002,
-                      "Z" : 3.0000000000000000E+000,
+                      "X" : 8.7248999023437500E+002,
+                      "Y" : 1.1552999877929688E+002,
                       "$ClassName" : "TCastleVector3Persistent"
                     },
                     "URL" : "castle-data:/ground/grass/grassCenter.png",
@@ -5887,9 +5886,8 @@
                       "$ClassName" : "TCastleScene.TSceneRenderOptions"
                     },
                     "TranslationPersistent" : {
-                      "X" : 8.7249462890625000E+002,
-                      "Y" : 2.4250892639160156E+002,
-                      "Z" : 3.0000000000000000E+000,
+                      "X" : 8.7248999023437500E+002,
+                      "Y" : 2.4250999450683594E+002,
                       "$ClassName" : "TCastleVector3Persistent"
                     },
                     "URL" : "castle-data:/ground/grass/grassCenter.png",
@@ -5908,9 +5906,8 @@
                       "$ClassName" : "TCastleScene.TSceneRenderOptions"
                     },
                     "TranslationPersistent" : {
-                      "X" : 8.7249462890625000E+002,
-                      "Y" : 3.6853143310546875E+002,
-                      "Z" : 3.0000000000000000E+000,
+                      "X" : 8.7248999023437500E+002,
+                      "Y" : 3.6852999877929688E+002,
                       "$ClassName" : "TCastleVector3Persistent"
                     },
                     "URL" : "castle-data:/ground/grass/grassCenter.png",
@@ -5929,9 +5926,8 @@
                       "$ClassName" : "TCastleScene.TSceneRenderOptions"
                     },
                     "TranslationPersistent" : {
-                      "X" : 8.7249462890625000E+002,
-                      "Y" : 4.9530859375000000E+002,
-                      "Z" : 3.0000000000000000E+000,
+                      "X" : 8.7248999023437500E+002,
+                      "Y" : 4.9530999755859375E+002,
                       "$ClassName" : "TCastleVector3Persistent"
                     },
                     "URL" : "castle-data:/ground/grass/grassCenter.png",
@@ -5950,9 +5946,8 @@
                       "$ClassName" : "TCastleScene.TSceneRenderOptions"
                     },
                     "TranslationPersistent" : {
-                      "X" : 8.7249462890625000E+002,
-                      "Y" : 6.1798004150390625E+002,
-                      "Z" : 3.0000000000000000E+000,
+                      "X" : 8.7248999023437500E+002,
+                      "Y" : 6.1797998046875000E+002,
                       "$ClassName" : "TCastleVector3Persistent"
                     },
                     "URL" : "castle-data:/ground/grass/grassMid.png",
@@ -5973,7 +5968,6 @@
                     "TranslationPersistent" : {
                       "X" : 1.0004899902343750E+003,
                       "Y" : 6.1797998046875000E+002,
-                      "Z" : 3.0000000000000000E+000,
                       "$ClassName" : "TCastleVector3Persistent"
                     },
                     "URL" : "castle-data:/ground/grass/grassMid.png",
