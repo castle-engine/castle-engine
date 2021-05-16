@@ -74,7 +74,7 @@ interface
 uses SysUtils, Classes, Math, Generics.Collections,
   { FPImage and related units }
   FPImage, FPReadPCX, FPReadGIF, FPReadPSD, FPReadTGA, FPReadTiff, FPReadXPM,
-  FPReadJPEG, FPWriteJPEG, FPReadPNM, FPReadPNG, CastleInternalFPWritePNG,
+  FPReadJPEG, FPWriteJPEG, FPReadPNM, FPReadPNG, FPWritePNG,
   { CGE units }
   CastleInternalPng, CastleUtils, CastleVectors, CastleRectangles,
   CastleFileFilters, CastleClassUtils, CastleColors;
