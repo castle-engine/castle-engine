@@ -28,7 +28,10 @@ type
     DirectoryEditFpc: TDirectoryEdit;
     DirectoryEditLazarus: TDirectoryEdit;
     EditCodeEditorCommand: TFileNameEdit;
+    EditCodeEditorCommandProject: TFileNameEdit;
     LabelCodeEditorCommandInstructions: TLabel;
+    LabelCodeEditorCommand: TLabel;
+    LabelCodeEditorCommandProjectInstructions: TLabel;
     LabelCodeEditorHeader: TLabel;
     LabelFpc: TLabel;
     LabelFpcAutoDetectedCaption: TLabel;
@@ -45,15 +48,19 @@ type
     PanelCodeEditor: TPanel;
     PanelFpcLazarusConfig: TPanel;
     RadioCodeEditorLazarus: TRadioButton;
-    RadioCodeEditorCommand: TRadioButton;
+    RadioCodeEditorCustom: TRadioButton;
     procedure DirectoryEditFpcChange(Sender: TObject);
     procedure DirectoryEditLazarusChange(Sender: TObject);
     procedure EditCodeEditorCommandAcceptFileName(Sender: TObject;
       var Value: String);
+    procedure EditCodeEditorCommandProjectAcceptFileName(Sender: TObject;
+      var Value: String);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormShow(Sender: TObject);
     procedure LabelLazarusWebsiteClick(Sender: TObject);
     procedure ListPagesClick(Sender: TObject);
+    procedure RadioCodeEditorAnyChange(Sender: TObject);
   private
     OriginalFpcCustomPath, OriginalLazarusCustomPath: String;
     procedure UpdateAutoDetectedLabels;
@@ -83,6 +90,12 @@ end;
 procedure TPreferencesForm.ListPagesClick(Sender: TObject);
 begin
   UpdatePageVisible;
+end;
+
+procedure TPreferencesForm.RadioCodeEditorAnyChange(Sender: TObject);
+begin
+  EditCodeEditorCommand.Enabled := RadioCodeEditorCustom.Checked;
+  EditCodeEditorCommandProject.Enabled := RadioCodeEditorCustom.Checked;
 end;
 
 procedure TPreferencesForm.UpdateAutoDetectedLabels;
@@ -127,6 +140,9 @@ begin
 
   UpdateAutoDetectedLabels;
 
+  { Update Enabled of edit fields }
+  RadioCodeEditorAnyChange(nil);
+
   DirectoryEditFpc.Directory := FpcCustomPath;
   DirectoryEditLazarus.Directory := LazarusCustomPath;
   { We will change the global Fpc/LazarusCustomPath during this dialog,
@@ -134,15 +150,14 @@ begin
   OriginalFpcCustomPath := FpcCustomPath;
   OriginalLazarusCustomPath := LazarusCustomPath;
 
-  if Trim(CodeEditor) <> '' then
-  begin
-    RadioCodeEditorCommand.Checked := true; // will uncheck other Radio...
-    EditCodeEditorCommand.Text := CodeEditor;
-  end else
-  begin
-    RadioCodeEditorLazarus.Checked := true; // will uncheck other Radio...
-    EditCodeEditorCommand.Text := '';
+  // Note that making any RadioCodeEditorXxx checked will uncheck the others
+  case CodeEditor of
+    ceCustom: RadioCodeEditorCustom.Checked := true;
+    ceLazarus: RadioCodeEditorLazarus.Checked := true;
+    else raise EInternalError.Create('CodeEditor?');
   end;
+  EditCodeEditorCommand.Text := CodeEditorCommand;
+  EditCodeEditorCommandProject.Text := CodeEditorCommandProject;
 end;
 
 procedure TPreferencesForm.FormClose(Sender: TObject;
@@ -151,10 +166,12 @@ begin
   if ModalResult = mrOK then
   begin
     { copy UI -> global variables }
-    if RadioCodeEditorCommand.Checked then
-      CodeEditor := EditCodeEditorCommand.Text
+    if RadioCodeEditorCustom.Checked then
+      CodeEditor := ceCustom
     else
-      CodeEditor := '';
+      CodeEditor := ceLazarus;
+    CodeEditorCommand := EditCodeEditorCommand.Text;
+    CodeEditorCommandProject := EditCodeEditorCommandProject.Text;
   end else
   begin
     { XxxCustomPath are special.
@@ -164,6 +181,20 @@ begin
       accept the changes by clicking "OK". }
     FpcCustomPath := OriginalFpcCustomPath;
     LazarusCustomPath := OriginalLazarusCustomPath;
+  end;
+end;
+
+procedure TPreferencesForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
+begin
+  if ModalResult = mrOK then
+  begin
+    if RadioCodeEditorCustom.Checked and
+       (Trim(EditCodeEditorCommand.Text) = '') then
+    begin
+      ErrorBox('You must specify some custom editor command, or switch to use "Lazarus" as code editor');
+      CanClose := false;
+      Exit;
+    end;
   end;
 end;
 
@@ -186,6 +217,13 @@ begin
   Value := '"' + Value + '" ${PAS}';
 end;
 
+procedure TPreferencesForm.EditCodeEditorCommandProjectAcceptFileName(
+  Sender: TObject; var Value: String);
+begin
+  // auto-add ${PROJECT_DIR} macro and propose quoting
+  Value := '"' + Value + '" ${PROJECT_DIR}';
+end;
+
 procedure TPreferencesForm.UpdatePageVisible;
 var
   SelectedPage: TPanel;
@@ -200,4 +238,3 @@ begin
 end;
 
 end.
-

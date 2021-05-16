@@ -1,25 +1,26 @@
 object PreferencesForm: TPreferencesForm
   Left = 527
-  Height = 776
+  Height = 761
   Top = 105
-  Width = 1095
+  Width = 1083
   Caption = 'Preferences'
-  ClientHeight = 776
-  ClientWidth = 1095
+  ClientHeight = 761
+  ClientWidth = 1083
   DesignTimePPI = 120
   OnClose = FormClose
+  OnCloseQuery = FormCloseQuery
   OnShow = FormShow
   Position = poMainFormCenter
   LCLVersion = '2.0.10.0'
   object PanelFpcLazarusConfig: TPanel
     Left = 184
-    Height = 713
+    Height = 698
     Top = 0
-    Width = 911
+    Width = 899
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 713
-    ClientWidth = 911
+    ClientHeight = 698
+    ClientWidth = 899
     TabOrder = 0
     object DirectoryEditFpc: TDirectoryEdit
       AnchorSideTop.Control = LabelFpc
@@ -27,7 +28,7 @@ object PreferencesForm: TPreferencesForm
       Left = 8
       Height = 40
       Top = 89
-      Width = 872
+      Width = 860
       ShowHidden = False
       ButtonWidth = 29
       NumGlyphs = 1
@@ -67,7 +68,7 @@ object PreferencesForm: TPreferencesForm
       Left = 8
       Height = 40
       Top = 225
-      Width = 872
+      Width = 860
       ShowHidden = False
       ButtonWidth = 29
       NumGlyphs = 1
@@ -83,7 +84,7 @@ object PreferencesForm: TPreferencesForm
       Left = 8
       Height = 46
       Top = 388
-      Width = 885
+      Width = 873
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Top = 27
       Caption = 'To compile and edit "Castle Game Engine" programs, we advise using Lazarus and FPC (Free Pascal Compiler). It is easiest to download official Lazarus (already bundled with FPC) from:'
@@ -97,7 +98,7 @@ object PreferencesForm: TPreferencesForm
       Left = 8
       Height = 138
       Top = 485
-      Width = 885
+      Width = 873
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Top = 14
       Caption = 'If you''re an advanced user, note:'#10#10'- You can install only FPC (without Lazarus) if you prefer to use other IDE. Our engine doesn''t use LCL.'#10#10'- You can also install FPC and Lazarus by FpcUpDeluxe, which is great to get cross-compilers for Android and other platforms. See the CGE documentation.'
@@ -196,13 +197,13 @@ object PreferencesForm: TPreferencesForm
   end
   object PanelCodeEditor: TPanel
     Left = 184
-    Height = 713
+    Height = 698
     Top = 0
-    Width = 911
+    Width = 899
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 713
-    ClientWidth = 911
+    ClientHeight = 698
+    ClientWidth = 899
     TabOrder = 3
     object LabelCodeEditorHeader: TLabel
       Left = 8
@@ -225,56 +226,100 @@ object PreferencesForm: TPreferencesForm
       BorderSpacing.Top = 8
       Caption = 'Lazarus'
       Checked = True
+      OnChange = RadioCodeEditorAnyChange
       TabOrder = 2
       TabStop = True
     end
-    object RadioCodeEditorCommand: TRadioButton
+    object RadioCodeEditorCustom: TRadioButton
       AnchorSideLeft.Control = LabelCodeEditorHeader
       AnchorSideTop.Control = RadioCodeEditorLazarus
       AnchorSideTop.Side = asrBottom
       Left = 8
       Height = 27
       Top = 82
-      Width = 184
+      Width = 90
       BorderSpacing.Top = 8
-      Caption = 'Execute Command:'
+      Caption = 'Custom'
+      OnChange = RadioCodeEditorAnyChange
       TabOrder = 0
     end
     object LabelCodeEditorCommandInstructions: TLabel
       AnchorSideLeft.Control = EditCodeEditorCommand
-      AnchorSideTop.Control = EditCodeEditorCommand
+      AnchorSideTop.Control = EditCodeEditorCommandProject
       AnchorSideTop.Side = asrBottom
       Left = 40
-      Height = 115
-      Top = 165
-      Width = 513
+      Height = 138
+      Top = 275
+      Width = 707
       BorderSpacing.Top = 8
-      Caption = 'Choose executable file of your editor.'#10#10'Add macros to the above command:'#10'- ${PAS} - Pascal file to edit'#10'- ${STANDALONE_SOURCE} - Main program source code (lpr)'
+      Caption = 'In both the fields above: Choose the executable file of your editor, then add macros.'#10#10'Recognized macros:'#10'- ${PAS} - Pascal file to edit'#10'- ${STANDALONE_SOURCE} - Main program source code (lpr) for standalone platform'#10'- ${PROJECT_DIR} - Project directory'
       ParentColor = False
     end
     object EditCodeEditorCommand: TFileNameEdit
-      AnchorSideLeft.Control = RadioCodeEditorCommand
-      AnchorSideTop.Control = RadioCodeEditorCommand
+      AnchorSideLeft.Control = LabelCodeEditorCommand
+      AnchorSideTop.Control = LabelCodeEditorCommand
       AnchorSideTop.Side = asrBottom
       Left = 40
       Height = 40
-      Top = 117
-      Width = 822
+      Top = 148
+      Width = 810
       OnAcceptFileName = EditCodeEditorCommandAcceptFileName
       FilterIndex = 0
       HideDirectories = False
       ButtonWidth = 29
       NumGlyphs = 1
       Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Left = 32
       BorderSpacing.Top = 8
       MaxLength = 0
       TabOrder = 1
     end
+    object LabelCodeEditorCommand: TLabel
+      AnchorSideLeft.Control = RadioCodeEditorCustom
+      AnchorSideTop.Control = RadioCodeEditorCustom
+      AnchorSideTop.Side = asrBottom
+      Left = 40
+      Height = 23
+      Top = 117
+      Width = 460
+      BorderSpacing.Left = 32
+      BorderSpacing.Top = 8
+      Caption = 'Command to open Pascal source file (unit or include file):'
+      ParentColor = False
+    end
+    object LabelCodeEditorCommandProjectInstructions: TLabel
+      AnchorSideLeft.Control = LabelCodeEditorCommand
+      AnchorSideTop.Control = EditCodeEditorCommand
+      AnchorSideTop.Side = asrBottom
+      Left = 40
+      Height = 23
+      Top = 196
+      Width = 478
+      BorderSpacing.Top = 8
+      Caption = 'Command to open whole project in a code editor (optional):'
+      ParentColor = False
+    end
+    object EditCodeEditorCommandProject: TFileNameEdit
+      AnchorSideLeft.Control = LabelCodeEditorCommandProjectInstructions
+      AnchorSideTop.Control = LabelCodeEditorCommandProjectInstructions
+      AnchorSideTop.Side = asrBottom
+      Left = 40
+      Height = 40
+      Top = 227
+      Width = 810
+      OnAcceptFileName = EditCodeEditorCommandProjectAcceptFileName
+      FilterIndex = 0
+      HideDirectories = False
+      ButtonWidth = 29
+      NumGlyphs = 1
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Top = 8
+      MaxLength = 0
+      TabOrder = 3
+    end
   end
   object ListPages: TListBox
     Left = 8
-    Height = 705
+    Height = 690
     Top = 8
     Width = 168
     Align = alLeft
@@ -292,8 +337,8 @@ object PreferencesForm: TPreferencesForm
   object ButtonPanel1: TButtonPanel
     Left = 8
     Height = 47
-    Top = 721
-    Width = 1079
+    Top = 706
+    Width = 1067
     BorderSpacing.Around = 8
     OKButton.Name = 'OKButton'
     OKButton.DefaultCaption = True

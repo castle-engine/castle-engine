@@ -242,6 +242,13 @@ type
     procedure MenuItemDesignNewCustomRootClick(Sender: TObject);
     procedure OpenPascal(const FileName: String);
     procedure RefreshFiles(const RefreshNecessary: TRefreshFiles);
+    (*Runs custom code editor.
+      Use this only when CodeEditor = ceCustom.
+      CustomCodeEditorCommand is the command to use (like CodeEditorCommand
+      or CodeEditorCommandProject).
+      PascalFileName will be used as ${PAS} macro value. *)
+    procedure RunCustomCodeEditor(const CustomCodeEditorCommand: String;
+      const PascalFileName: String);
     procedure SetEnabledCommandRun(const AEnabled: Boolean);
     procedure FreeProcess;
     procedure ShellListViewDoubleClick(Sender: TObject);
@@ -447,20 +454,40 @@ procedure TProjectForm.ActionOpenProjectCodeExecute(Sender: TObject);
 var
   Exe: String;
 begin
-  Exe := FindExeLazarusIDE;
+  case CodeEditor of
+    ceCustom:
+      begin
+        if CodeEditorCommandProject <> '' then
+          RunCustomCodeEditor(CodeEditorCommandProject, '')
+        else
+        if ProjectStandaloneSource <> '' then
+          RunCustomCodeEditor(CodeEditorCommand, ProjectStandaloneSource)
+        else
+          { We should not really pass directory name
+            as PascalFileName to RunCustomCodeEditor,
+            but in this case we kind of have no choice: we want to run custom editor
+            with something. }
+          RunCustomCodeEditor(CodeEditorCommand, ProjectPath);
+      end;
+    ceLazarus:
+      begin
+        Exe := FindExeLazarusIDE;
 
-  { Prefer to open using LPR (ProjectStandaloneSource) instead of LPI
-    (ProjectLazarus), see OpenPascal comments for reasons. }
+        { Prefer to open using LPR (ProjectStandaloneSource) instead of LPI
+          (ProjectLazarus), see OpenPascal comments for reasons. }
 
-  if ProjectStandaloneSource <> '' then
-    RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectStandaloneSource])
-  else
-  if ProjectLazarus <> '' then
-    RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus])
-  else
-    ErrorBox('Lazarus project not defined (neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml).' + NL +
-      NL +
-      'Create Lazarus project (e.g. by "castle-engine generate-program") and update CastleEngineManifest.xml.');
+        if ProjectStandaloneSource <> '' then
+          RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectStandaloneSource])
+        else
+        if ProjectLazarus <> '' then
+          RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus])
+        else
+          ErrorBox('Lazarus project not defined (neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml).' + NL +
+            NL +
+            'Create Lazarus project (e.g. by "castle-engine generate-program") and update CastleEngineManifest.xml.');
+      end;
+    else raise EInternalError.Create('CodeEditor?');
+  end;
 end;
 
 procedure TProjectForm.ActionRegenerateProjectExecute(Sender: TObject);
@@ -1159,7 +1186,9 @@ begin
   end;
 end;
 
-procedure TProjectForm.OpenPascal(const FileName: String);
+procedure TProjectForm.RunCustomCodeEditor(
+  const CustomCodeEditorCommand: String;
+  const PascalFileName: String);
 
   { Copied from FPC packages/fcl-process/src/processbody.inc
     (licence "LGPL with static linking exception", so compatible with us). }
@@ -1224,53 +1253,64 @@ procedure TProjectForm.OpenPascal(const FileName: String);
 
 var
   Exe: String;
-  CodeEditorParameters: TCastleStringList;
+  Parameters: TCastleStringList;
   I: Integer;
 begin
-  if Trim(CodeEditor) <> '' then
-  begin
-    CodeEditorParameters := TCastleStringList.Create;
-    try
-      CommandToList(Trim(CodeEditor), CodeEditorParameters);
-      if CodeEditorParameters.Count = 0 then
-        raise Exception.CreateFmt('Code editor command was split into zero items, please submit a bug: "%s"', [Trim(CodeEditor)]);
-      Exe := CodeEditorParameters[0];
-      CodeEditorParameters.Delete(0);
-      for I := 0 to CodeEditorParameters.Count - 1 do
-        CodeEditorParameters[I] := SReplacePatterns(CodeEditorParameters[I],
-          ['${PAS}', '${STANDALONE_SOURCE}'],
-          [FileName, ProjectStandaloneSource],
-          true);
-      RunCommandNoWait(CreateTemporaryDir, Exe, CodeEditorParameters.ToArray);
-    finally FreeAndNil(CodeEditorParameters) end;
-  end else
-  begin
-    Exe := FindExeLazarusIDE;
+  Parameters := TCastleStringList.Create;
+  try
+    CommandToList(CustomCodeEditorCommand, Parameters);
+    if Parameters.Count = 0 then
+      raise Exception.CreateFmt('Code editor command was split into zero items: "%s"', [CustomCodeEditorCommand]);
+    Exe := Parameters[0];
+    Parameters.Delete(0);
+    for I := 0 to Parameters.Count - 1 do
+      Parameters[I] := SReplacePatterns(Parameters[I],
+        ['${PAS}', '${STANDALONE_SOURCE}', '${PROJECT_DIR}'],
+        [PascalFileName, ProjectStandaloneSource, ProjectPath],
+        true);
+    RunCommandNoWait(CreateTemporaryDir, Exe, Parameters.ToArray);
+  finally FreeAndNil(Parameters) end;
+end;
 
-    { It would be cleaner to use LPI file, like this:
+procedure TProjectForm.OpenPascal(const FileName: String);
+var
+  Exe: String;
+begin
+  case CodeEditor of
+    ceCustom:
+      begin
+        RunCustomCodeEditor(CodeEditorCommand, FileName);
+      end;
+    ceLazarus:
+      begin
+        Exe := FindExeLazarusIDE;
 
-    // pass both project name, and particular filename, to open file within this project.
-    RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus, FileName]);
+        { It would be cleaner to use LPI file, like this:
 
-      But it doesn't work nicely: Lazarus asks for confirmation whether to open
-      LPI as XML file, or a project.
-      Instead opening LPR works better, i.e. just switches project (if necessary)
-      to new one.
-    }
+        // pass both project name, and particular filename, to open file within this project.
+        RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus, FileName]);
 
-    //if ProjectLazarus = '' then
-    if ProjectStandaloneSource = '' then // see comments below, we use ProjectStandaloneSource
-    begin
-      //WritelnWarning('Lazarus project not defined (neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
-      WritelnWarning('Lazarus project not defined ("standalone_source" was not specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
-    end;
+          But it doesn't work nicely: Lazarus asks for confirmation whether to open
+          LPI as XML file, or a project.
+          Instead opening LPR works better, i.e. just switches project (if necessary)
+          to new one.
+        }
 
-    if (ProjectStandaloneSource = '') or
-       SameFileName(ProjectStandaloneSource, FileName) then
-      RunCommandNoWait(CreateTemporaryDir, Exe, [FileName])
-    else
-      { pass both project name, and particular filename, to open file within this project. }
-      RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectStandaloneSource, FileName]);
+        //if ProjectLazarus = '' then
+        if ProjectStandaloneSource = '' then // see comments below, we use ProjectStandaloneSource
+        begin
+          //WritelnWarning('Lazarus project not defined (neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
+          WritelnWarning('Lazarus project not defined ("standalone_source" was not specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
+        end;
+
+        if (ProjectStandaloneSource = '') or
+           SameFileName(ProjectStandaloneSource, FileName) then
+          RunCommandNoWait(CreateTemporaryDir, Exe, [FileName])
+        else
+          { pass both project name, and particular filename, to open file within this project. }
+          RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectStandaloneSource, FileName]);
+      end;
+    else raise EInternalError.Create('CodeEditor?');
   end;
 end;
 

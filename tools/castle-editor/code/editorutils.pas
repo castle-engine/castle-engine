@@ -151,12 +151,28 @@ const
 function ApiReference(const PropertyObject: TObject;
   const PropertyName, PropertyNameForLink: String): String;
 
-procedure BuildComponentsMenu(const ParentUeserInterface, ParentTransform: TMenuItem; const OnClickEvent: TNotifyEvent);
+procedure BuildComponentsMenu(
+  const ParentUeserInterface, ParentTransform: TMenuItem;
+  const OnClickEvent: TNotifyEvent);
+
+type
+  TCodeEditor = (
+    { Use hardcoded logic suitable for Lazarus. }
+    ceLazarus,
+    { Use custom commands from CodeEditor, CodeEditorProject. }
+    ceCustom
+  );
+
+const
+  DefaultCodeEditor = ceLazarus;
 
 var
-  { Editor used to open Pascal files.
-    Empry to use default Lazarus. }
-  CodeEditor: String;
+  { Which code editor to use. Current user preference. }
+  CodeEditor: TCodeEditor;
+  { Code editor used to open Pascal files, when CodeEditor = ceCustom. }
+  CodeEditorCommand: String;
+  { Code editor used to open project, when CodeEditor = ceCustom. }
+  CodeEditorCommandProject: String;
 
 implementation
 

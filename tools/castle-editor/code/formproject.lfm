@@ -663,7 +663,7 @@ object ProjectForm: TProjectForm
       OnExecute = ActionNewSpriteSheetExecute
     end
     object ActionOpenProjectCode: TAction
-      Caption = 'Open Project in Lazarus'
+      Caption = 'Open Project in Code Editor'
       OnExecute = ActionOpenProjectCodeExecute
     end
     object ActionEditUnit: TAction
