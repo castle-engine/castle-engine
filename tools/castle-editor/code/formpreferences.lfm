@@ -249,7 +249,7 @@ object PreferencesForm: TPreferencesForm
       Top = 165
       Width = 513
       BorderSpacing.Top = 8
-      Caption = 'Example command: "emacs ${PAS}"'#10#10'Use macros in the above command:'#10'- ${PAS} - Pascal file to edit'#10'- ${STANDALONE_SOURCE} - Main program source code (lpr)'
+      Caption = 'Choose executable file of your editor.'#10#10'Add macros to the above command:'#10'- ${PAS} - Pascal file to edit'#10'- ${STANDALONE_SOURCE} - Main program source code (lpr)'
       ParentColor = False
     end
     object EditCodeEditorCommand: TFileNameEdit
@@ -260,6 +260,7 @@ object PreferencesForm: TPreferencesForm
       Height = 40
       Top = 117
       Width = 822
+      OnAcceptFileName = EditCodeEditorCommandAcceptFileName
       FilterIndex = 0
       HideDirectories = False
       ButtonWidth = 29

@@ -48,6 +48,8 @@ type
     RadioCodeEditorCommand: TRadioButton;
     procedure DirectoryEditFpcChange(Sender: TObject);
     procedure DirectoryEditLazarusChange(Sender: TObject);
+    procedure EditCodeEditorCommandAcceptFileName(Sender: TObject;
+      var Value: String);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormShow(Sender: TObject);
     procedure LabelLazarusWebsiteClick(Sender: TObject);
@@ -175,6 +177,13 @@ procedure TPreferencesForm.DirectoryEditLazarusChange(Sender: TObject);
 begin
   LazarusCustomPath := DirectoryEditLazarus.Directory;
   UpdateAutoDetectedLabels;
+end;
+
+procedure TPreferencesForm.EditCodeEditorCommandAcceptFileName(Sender: TObject;
+  var Value: String);
+begin
+  // auto-add ${PAS} macro and propose quoting
+  Value := '"' + Value + '" ${PAS}';
 end;
 
 procedure TPreferencesForm.UpdatePageVisible;
