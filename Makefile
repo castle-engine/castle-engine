@@ -453,9 +453,16 @@ cleanall: cleanmore
 .PHONY: tests
 tests:
 	tools/build-tool/castle-engine_compile.sh
+# Run in debug mode
 	$(BUILD_TOOL) --project tests/ clean
 	$(BUILD_TOOL) --project tests/ --mode=debug --compiler-option=-dNO_WINDOW_SYSTEM compile
 	$(BUILD_TOOL) --project tests/ run -- -a
+# Run in debug mode without LibPng
+# (useful to test image processing, e.g. TTestImages.TestLoadImage, using fcl-image, which matters for mobile now)
+	$(BUILD_TOOL) --project tests/ clean
+	$(BUILD_TOOL) --project tests/ --mode=debug --compiler-option=-dNO_WINDOW_SYSTEM --compiler-option=-dCASTLE_DISABLE_LIBPNG compile
+	$(BUILD_TOOL) --project tests/ run -- -a
+# Run in release mode, since all tests must pass the same when optimizations are enabled
 	$(BUILD_TOOL) --project tests/ clean
 	$(BUILD_TOOL) --project tests/ --mode=release --compiler-option=-dNO_WINDOW_SYSTEM compile
 	$(BUILD_TOOL) --project tests/ run -- -a
