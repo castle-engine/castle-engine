@@ -104,7 +104,7 @@ begin
 
   Scene := TCastleScene.Create(Application);
   Scene.Setup2D;
-  Scene.Load('../2d_dragon_spine_game/data/dragon/dragon.json');
+  Scene.Load('../component_gallery/data/dragon/dragon.json');
   Scene.ProcessEvents := true;
   Scene.PlayAnimation('flying', true);
   Viewport.Items.Add(Scene);
