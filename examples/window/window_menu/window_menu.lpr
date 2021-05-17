@@ -71,14 +71,14 @@ var
   Root: TX3DRootNode;
 begin
   CoordRect := TCoordinateNode.Create;
-  CoordRect.FdPoint.Send([
+  CoordRect.SetPoint([
     Vector3(-0.5, -0.5, 0),
     Vector3( 0.5, -0.5, 0),
     Vector3( 0.5,  0.5, 0),
     Vector3(-0.5,  0.5, 0)]);
 
   CoordTriangle := TCoordinateNode.Create;
-  CoordTriangle.FdPoint.Send([
+  CoordTriangle.SetPoint([
     Vector3(-0.5, -0.5, 0),
     Vector3( 0.5, -0.5, 0),
     Vector3(   0,  0.5, 0)]);
