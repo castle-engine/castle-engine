@@ -239,8 +239,6 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/triangulate_demo \
   examples/3d_rendering_processing/view_3d_model_advanced \
   examples/3d_rendering_processing/view_3d_model_basic \
-  examples/castlescript/castle_calculator \
-  examples/castlescript/image_make_by_script \
   examples/curves/simplest_curve_read \
   examples/fonts/font_draw_over_image \
   examples/fonts/font_from_texture \

@@ -99,8 +99,8 @@ castle-game-engine-*.fpm
 /examples/audio/simplest_play_sound/simplest_play_sound
 /examples/audio/test_sound_source_allocator
 /examples/audio/test_sound_source_allocator/*.obj
-/examples/castlescript/castle_calculator
-/examples/castlescript/image_make_by_script
+/examples/castlescript/castle_calculator/castle_calculator
+/examples/castlescript/image_make_by_script/image_make_by_script
 /examples/component_gallery/cge-component-gallery
 /examples/creature_behaviors/creature_behaviors
 /examples/curves/simplest_curve_read
