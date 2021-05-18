@@ -34,5 +34,5 @@ Input of this program is inside
 
 Compile and run it like
 
-  ./generate-persistent-vectors_compile.sh
-  ./generate-persistent-vectors
+  castle-engine compile
+  ./generate-persistent-vectors # or castle-engine run

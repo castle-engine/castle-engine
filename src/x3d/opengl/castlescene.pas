@@ -262,9 +262,6 @@ type
     PreparedShapesResources, PreparedRender: Boolean;
     Renderer: TGLRenderer;
     class procedure CreateComponent2D(Sender: TObject);
-    class procedure CreateComponentPrimitive2DRectangle(Sender: TObject);
-    class procedure CreateComponentPrimitiveBox(Sender: TObject);
-    class procedure CreateComponentPrimitiveSphere(Sender: TObject);
   protected
     function CreateShape(const AGeometry: TAbstractGeometryNode;
       const AState: TX3DGraphTraverseState;
@@ -539,6 +536,11 @@ const
 
 {$define read_interface}
 {$I castlescene_roottransform.inc}
+{$I castlescene_abstractprimitive.inc}
+{$I castlescene_text.inc}
+{$I castlescene_box.inc}
+{$I castlescene_sphere.inc}
+{$I castlescene_plane.inc}
 {$undef read_interface}
 
 implementation
@@ -554,6 +556,11 @@ uses CastleGLVersion, CastleImages, CastleLog,
 
 {$define read_implementation}
 {$I castlescene_roottransform.inc}
+{$I castlescene_abstractprimitive.inc}
+{$I castlescene_text.inc}
+{$I castlescene_box.inc}
+{$I castlescene_sphere.inc}
+{$I castlescene_plane.inc}
 {$undef read_implementation}
 
 procedure Register;
@@ -1581,21 +1588,6 @@ begin
   (Sender as TCastleScene).Setup2D;
 end;
 
-class procedure TCastleScene.CreateComponentPrimitive2DRectangle(Sender: TObject);
-begin
-  (Sender as TCastleScene).PrimitiveGeometry := pgRectangle2D;
-end;
-
-class procedure TCastleScene.CreateComponentPrimitiveBox(Sender: TObject);
-begin
-  (Sender as TCastleScene).PrimitiveGeometry := pgBox;
-end;
-
-class procedure TCastleScene.CreateComponentPrimitiveSphere(Sender: TObject);
-begin
-  (Sender as TCastleScene).PrimitiveGeometry := pgSphere;
-end;
-
 procedure TCastleScene.BeforeNodesFree(const InternalChangedAll: boolean);
 begin
   { Release all associations with OpenGL context before freeing the nodes.
@@ -2239,23 +2231,10 @@ initialization
   R.OnCreate := @TCastleScene(nil).CreateComponent2D;
   RegisterSerializableComponent(R);
 
-  R := TRegisteredComponent.Create;
-  R.ComponentClass := TCastleScene;
-  R.Caption := 'Scene (Primitive: 2D Rectangle)';
-  R.OnCreate := @TCastleScene(nil).CreateComponentPrimitive2DRectangle;
-  RegisterSerializableComponent(R);
-
-  R := TRegisteredComponent.Create;
-  R.ComponentClass := TCastleScene;
-  R.Caption := 'Scene (Primitive: Box)';
-  R.OnCreate := @TCastleScene(nil).CreateComponentPrimitiveBox;
-  RegisterSerializableComponent(R);
-
-  R := TRegisteredComponent.Create;
-  R.ComponentClass := TCastleScene;
-  R.Caption := 'Scene (Primitive: Sphere)';
-  R.OnCreate := @TCastleScene(nil).CreateComponentPrimitiveSphere;
-  RegisterSerializableComponent(R);
+  RegisterSerializableComponent(TCastleBox, 'Box');
+  RegisterSerializableComponent(TCastleSphere, 'Sphere');
+  RegisterSerializableComponent(TCastlePlane, 'Plane');
+  RegisterSerializableComponent(TCastleText, 'Text');
 finalization
   FreeAndNil(GLContextCache);
 end.

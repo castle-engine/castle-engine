@@ -18,9 +18,9 @@ unit VisualizeTransform;
 
 interface
 
-uses Classes, SysUtils, CastleColors, CastleVectors,
-  CastleVectorsInternalSingle, CastleTransform, CastleDebugTransform,
-  CastleScene, CastleCameras, CastleTriangles;
+uses Classes, SysUtils,
+  CastleColors, CastleVectors, CastleVectorsInternalSingle, CastleTransform,
+  CastleDebugTransform, CastleScene, CastleCameras, CastleTriangles, CastleUtils;
 
 type
   TVisualizeOperation = (voSelect, voTranslate, voRotate, voScale);
@@ -115,7 +115,7 @@ implementation
 
 uses Math,
   ProjectUtils,
-  CastleLog, CastleShapes, CastleViewport, CastleProjection, CastleUtils,
+  CastleLog, CastleShapes, CastleViewport, CastleProjection,
   CastleQuaternions, X3DNodes, CastleGLUtils, CastleRenderContext,
   CastleControl, CastleKeysMouse;
 

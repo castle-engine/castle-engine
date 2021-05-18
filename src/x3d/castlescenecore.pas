@@ -2452,6 +2452,7 @@ type
       reloads the scene (calls @link(Load) with a new X3D graph). }
     property PrimitiveGeometry: TPrimitiveGeometry
       read FPrimitiveGeometry write SetPrimitiveGeometry default pgNone;
+      deprecated 'use TCastleBox, TCastleSphere, TCastlePlane for these primitives';
 
     { If AutoAnimation is set, this animation will be automatically played.
       It is useful to determine the initial animation, played once the model
