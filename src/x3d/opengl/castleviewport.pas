@@ -3583,7 +3583,7 @@ function TCastleViewport.NavigationMoveAllowed(const Sender: TCastleNavigation;
   function PositionOutsideBoundingBox: Boolean;
   var
     Box: TBox3D;
-    GravityCoordinate, Coord1, Coord2: Integer;
+    GravityCoordinate, Coord1, Coord2: T3DAxis;
   begin
     Box := ItemsBoundingBox;
     if Box.IsEmpty then Exit(false);

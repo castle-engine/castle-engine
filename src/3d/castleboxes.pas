@@ -1270,17 +1270,17 @@ function TBox3D.TryRayClosestIntersection(
 var
   IntrProposed: boolean absolute result;
 
-  procedure ProposeBoxIntr(const PlaneConstCoord: integer;
+  procedure ProposeBoxIntr(const PlaneConstCoord: T3DAxis;
     const PlaneConstValue: Single);
   var
     NowIntersection: TVector3;
     NowIntersectionDistance: Single;
-    c1, c2: integer;
+    c1, c2: T3DAxis;
   begin
     if TrySimplePlaneRayIntersection(NowIntersection, NowIntersectionDistance,
       PlaneConstCoord, PlaneConstValue, RayOrigin, RayDirection) then
     begin
-      RestOf3dCoords(PlaneConstCoord, c1, c2);
+      RestOf3DCoords(PlaneConstCoord, c1, c2);
       if Between(NowIntersection.Data[c1], Data[0].Data[c1], Data[1].Data[c1]) and
          Between(NowIntersection.Data[c2], Data[0].Data[c2], Data[1].Data[c2]) then
       begin
@@ -1370,16 +1370,16 @@ end;
 function TBox3D.SegmentCollision(
   const Segment1, Segment2: TVector3): boolean;
 
-  function IsCollisionWithBoxPlane(const PlaneConstCoord: integer;
+  function IsCollisionWithBoxPlane(const PlaneConstCoord: T3DAxis;
     const PlaneConstValue: Single): boolean;
   var
     NowIntersection: TVector3;
-    c1, c2: integer;
+    c1, c2: T3DAxis;
   begin
     if TrySimplePlaneSegmentIntersection(NowIntersection,
       PlaneConstCoord, PlaneConstValue, Segment1, Segment2) then
     begin
-      RestOf3dCoords(PlaneConstCoord, c1, c2);
+      RestOf3DCoords(PlaneConstCoord, c1, c2);
       Result :=
         Between(NowIntersection.Data[c1], Data[0].Data[c1], Data[1].Data[c1]) and
         Between(NowIntersection.Data[c2], Data[0].Data[c2], Data[1].Data[c2]);

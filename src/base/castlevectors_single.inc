@@ -111,16 +111,16 @@ function RotatePointAroundAxis(const AxisAngle: TVector4; const Point: TVector3)
   MaxAbsVectorCoord compares the absolute value of components.
   @groupBegin }
 function MaxVectorCoord(const V: TVector2): integer; overload;
-function MaxVectorCoord(const V: TVector3): integer; overload;
+function MaxVectorCoord(const V: TVector3): T3DAxis; overload;
 function MaxVectorCoord(const V: TVector4): integer; overload;
 function MaxAbsVectorCoord(const V: TVector2): integer; overload;
-function MaxAbsVectorCoord(const V: TVector3): integer; overload;
+function MaxAbsVectorCoord(const V: TVector3): T3DAxis; overload;
 function MaxAbsVectorCoord(const V: TVector4): integer; overload;
 { @groupEnd }
 
-function MinVectorCoord(const V: TVector3): integer; overload;
+function MinVectorCoord(const V: TVector3): T3DAxis; overload;
 
-procedure SortAbsVectorCoord(const V: TVector3; out Max, Middle, Min: Integer); overload;
+procedure SortAbsVectorCoord(const V: TVector3; out Max, Middle, Min: T3DAxis); overload;
 
 { Vector orthogonal to plane and pointing in the given direction.
 
@@ -308,7 +308,7 @@ function AnyOrthogonalVector(const V: TVector3): TVector3; overload;
 function IsLineParallelToPlane(const lineVector: TVector3; const plane: TVector4): boolean; overload;
 
 function IsLineParallelToSimplePlane(const lineVector: TVector3;
-  const PlaneConstCoord: integer): boolean; overload;
+  const PlaneConstCoord: T3DAxis): boolean; overload;
 
 { Assuming that Vector1 and Vector2 are parallel,
   check do they point in the same direction.
@@ -349,7 +349,7 @@ function PointToPlaneDistance(const Point: TVector3;
 { @groupEnd }
 
 function PointToSimplePlaneDistance(const point: TVector3;
-  const PlaneConstCoord: integer; const PlaneConstValue: Single): Single; overload;
+  const PlaneConstCoord: T3DAxis; const PlaneConstValue: Single): Single; overload;
 
 function PointOnLineClosestToPoint(const line0, lineVector, point: TVector2): TVector2; overload;
 function PointOnLineClosestToPoint(const line0, lineVector, point: TVector3): TVector3; overload;
@@ -385,13 +385,13 @@ function TryPlaneLineIntersection(out t: Single;
   T is always >= 0.
   @groupBegin }
 function TrySimplePlaneRayIntersection(out Intersection: TVector3;
-  const PlaneConstCoord: integer; const PlaneConstValue: Single;
+  const PlaneConstCoord: T3DAxis; const PlaneConstValue: Single;
   const RayOrigin, RayDirection: TVector3): boolean; overload;
 function TrySimplePlaneRayIntersection(out Intersection: TVector3; out T: Single;
-  const PlaneConstCoord: integer; const PlaneConstValue: Single;
+  const PlaneConstCoord: T3DAxis; const PlaneConstValue: Single;
   const RayOrigin, RayDirection: TVector3): boolean; overload;
 function TrySimplePlaneRayIntersection(out T: Single;
-  const PlaneConstCoord: integer; const PlaneConstValue: Single;
+  const PlaneConstCoord: T3DAxis; const PlaneConstValue: Single;
   const RayOrigin, RayDirection: TVector3): boolean; overload;
 
 function TryPlaneRayIntersection(out Intersection: TVector3;
@@ -413,15 +413,15 @@ function TryPlaneRayIntersection(out Intersection: TVector3; out T: Single;
   @groupBegin }
 function TrySimplePlaneSegmentIntersection(
   out Intersection: TVector3;
-  const PlaneConstCoord: integer; const PlaneConstValue: Single;
+  const PlaneConstCoord: T3DAxis; const PlaneConstValue: Single;
   const Pos1, Pos2: TVector3): boolean; overload;
 function TrySimplePlaneSegmentIntersection(
   out Intersection: TVector3; out T: Single;
-  const PlaneConstCoord: integer; const PlaneConstValue: Single;
+  const PlaneConstCoord: T3DAxis; const PlaneConstValue: Single;
   const Pos1, Pos2: TVector3): boolean; overload;
 function TrySimplePlaneSegmentIntersection(
   out T: Single;
-  const PlaneConstCoord: integer; const PlaneConstValue: Single;
+  const PlaneConstCoord: T3DAxis; const PlaneConstValue: Single;
   const Pos1, Pos2: TVector3): boolean; overload;
 
 function TryPlaneSegmentDirIntersection(out Intersection: TVector3;
@@ -1132,7 +1132,7 @@ begin
   if V.Data[1] > V.Data[Result] then Result := 1;
 end;
 
-function MaxVectorCoord(const V: TVector3): integer;
+function MaxVectorCoord(const V: TVector3): T3DAxis;
 begin
   Result := 0;
   { order of comparisons is important. We start from 0, then 1 and 2,
@@ -1142,7 +1142,7 @@ begin
   if V.Data[2] > V.Data[Result] then Result := 2;
 end;
 
-function MinVectorCoord(const V: TVector3): integer;
+function MinVectorCoord(const V: TVector3): T3DAxis;
 begin
   Result := 0;
   if V.Data[1] < V.Data[Result] then Result := 1;
@@ -1163,7 +1163,7 @@ begin
   if Abs(V.Data[1]) > Abs(V.Data[Result]) then Result := 1;
 end;
 
-function MaxAbsVectorCoord(const V: TVector3): integer;
+function MaxAbsVectorCoord(const V: TVector3): T3DAxis;
 var
   Max, New: Single;
 begin
@@ -1185,7 +1185,7 @@ begin
 end;
 
 procedure SortAbsVectorCoord(const V: TVector3;
-  out Max, Middle, Min: Integer);
+  out Max, Middle, Min: T3DAxis);
 begin
   Max := MaxAbsVectorCoord(V);
   case Max of
@@ -1242,7 +1242,7 @@ procedure TwoPlanesIntersectionLine(const Plane0, Plane1: TVector4;
 var
   Plane0Dir: TVector3 absolute Plane0;
   Plane1Dir: TVector3 absolute Plane1;
-  NonZeroIndex, Index1, Index2: Integer;
+  NonZeroIndex, Index1, Index2: T3DAxis;
   PlaneWithNonZeroIndex1: PVector4;
   PlaneMultiply, Sum_Index2, Sum_3: Single;
 begin
@@ -1258,7 +1258,7 @@ begin
   { Since LineVector.Data[NonZeroIndex] <> 0, we know that we can find exactly
     one point on this line by assuming that Point.Data[NonZeroIndex] = 0. }
   Line0.Data[NonZeroIndex] := 0;
-  RestOf3dCoords(NonZeroIndex, Index1, Index2);
+  RestOf3DCoords(NonZeroIndex, Index1, Index2);
 
   { Now we must solve
       Plane0.Data[Index1] * Line0.Data[Index1] + Plane0.Data[Index2] * Line0.Data[Index2] + Plane0.Data[3] = 0
@@ -1502,14 +1502,14 @@ end;
 
 function VectorsParallel(const V1, V2: TVector3): boolean;
 var
-  mc, c1, c2: Integer;
+  mc, c1, c2: T3DAxis;
   Scale: Single;
 begin
   mc := MaxAbsVectorCoord(v1);
   if IsZero(V1.Data[mc]) then Exit(true);
 
   Scale := V2.Data[mc] / V1.Data[mc];
-  RestOf3dCoords(mc, c1, c2);
+  RestOf3DCoords(mc, c1, c2);
   Result := SameValue(V1.Data[c1] * Scale, V2.Data[c1]) and
             SameValue(V1.Data[c2] * Scale, V2.Data[c2]);
 end;
@@ -1589,7 +1589,7 @@ begin
 end;
 
 function IsLineParallelToSimplePlane(const lineVector: TVector3;
-  const PlaneConstCoord: integer): boolean;
+  const PlaneConstCoord: T3DAxis): boolean;
 begin
   Result := IsZero(lineVector.Data[PlaneConstCoord]);
 end;
@@ -1666,7 +1666,7 @@ begin
 end;
 
 function PointToSimplePlaneDistance(const point: TVector3;
-  const PlaneConstCoord: integer; const PlaneConstValue: Single): Single;
+  const PlaneConstCoord: T3DAxis; const PlaneConstValue: Single): Single;
 begin
   Result := Abs(point.Data[PlaneConstCoord]-PlaneConstValue);
 end;
@@ -1818,7 +1818,7 @@ end;
 { TrySimplePlaneRayIntersection ---------------------------------------------- }
 
 function TrySimplePlaneRayIntersection(out Intersection: TVector3;
-  const PlaneConstCoord: integer; const PlaneConstValue: Single;
+  const PlaneConstCoord: T3DAxis; const PlaneConstValue: Single;
   const RayOrigin, RayDirection: TVector3): boolean;
 var
   T: Single;
@@ -1830,7 +1830,7 @@ end;
 
 function TrySimplePlaneRayIntersection(
   out Intersection: TVector3; out T: Single;
-  const PlaneConstCoord: integer; const PlaneConstValue: Single;
+  const PlaneConstCoord: T3DAxis; const PlaneConstValue: Single;
   const RayOrigin, RayDirection: TVector3): boolean;
 begin
   Result := TrySimplePlaneRayIntersection(T, PlaneConstCoord, PlaneConstValue, RayOrigin, RayDirection);
@@ -1839,7 +1839,7 @@ begin
 end;
 
 function TrySimplePlaneRayIntersection(out T: Single;
-  const PlaneConstCoord: integer; const PlaneConstValue: Single;
+  const PlaneConstCoord: T3DAxis; const PlaneConstValue: Single;
   const RayOrigin, RayDirection: TVector3): boolean;
 begin
   Result := not IsLineParallelToSimplePlane(RayDirection, PlaneConstCoord);
@@ -1853,7 +1853,7 @@ end;
 { TrySimplePlaneSegmentIntersection ------------------------------------------ }
 
 function TrySimplePlaneSegmentIntersection(out Intersection: TVector3;
-  const PlaneConstCoord: integer; const PlaneConstValue: Single;
+  const PlaneConstCoord: T3DAxis; const PlaneConstValue: Single;
   const Pos1, Pos2: TVector3): boolean;
 var
   T: Single;
@@ -1865,7 +1865,7 @@ end;
 
 function TrySimplePlaneSegmentIntersection(
   out Intersection: TVector3; out T: Single;
-  const PlaneConstCoord: integer; const PlaneConstValue: Single;
+  const PlaneConstCoord: T3DAxis; const PlaneConstValue: Single;
   const Pos1, Pos2: TVector3): boolean;
 begin
   Result := TrySimplePlaneSegmentIntersection(T, PlaneConstCoord, PlaneConstValue, Pos1, Pos2);
@@ -1874,7 +1874,7 @@ begin
 end;
 
 function TrySimplePlaneSegmentIntersection(out T: Single;
-  const PlaneConstCoord: integer; const PlaneConstValue: Single;
+  const PlaneConstCoord: T3DAxis; const PlaneConstValue: Single;
   const Pos1, Pos2: TVector3): boolean;
 var
   SegmentVector: TVector3;
@@ -1893,7 +1893,7 @@ end;
 
 function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector3): boolean;
 var
-  c: integer;
+  c: T3DAxis;
 begin
   { project points on the best axis-aligned plane }
   c := MaxAbsVectorCoord(Pos1 - Pos2);
@@ -1903,7 +1903,7 @@ end;
 
 function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector2): boolean;
 var
-  c: integer;
+  c: T3DAxis;
 begin
   { project points on the best axis-aligned plane }
   c := MaxAbsVectorCoord(Pos1 - Pos2);

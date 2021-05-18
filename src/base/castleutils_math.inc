@@ -90,10 +90,14 @@ procedure MaxVar(var a: Extended; const b: Extended); overload; {$ifdef SUPPORTS
 {$endif}
 { @groupEnd }
 
+type
+  { Index of axis in 3D. }
+  T3DAxis = 0..2;
+
 { Index (0, 1 or 2) of maximum / minimum of 3 numbers.
   @groupBegin }
-function IndexMax(const a0, a1, a2: Double): Integer; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function IndexMin(const a0, a1, a2: Double): Integer; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function IndexMax(const a0, a1, a2: Double): T3DAxis; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function IndexMin(const a0, a1, a2: Double): T3DAxis; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 { @groupEnd }
 
 function Between(const a, vBegin, vEnd: Int64   ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
@@ -133,11 +137,22 @@ procedure Clamp(var a: Double  ; const vBegin, vEnd: Double  ); overload; {$ifde
 procedure Clamp(var a: Extended; const vBegin, vEnd: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
 {$endif}
 
-{ 3D coordinates (0, 1 or 2) except the given coordinate.
-  If Coord = 0, then it sets First = 1 and Second = 2.
-  And so on --- for each Coord value, we set First and Second to the remaining
-  indexes. }
-procedure RestOf3dCoords(coord: Integer; out first, second: Integer);
+{ Remaining 3D coordinates (0, 1 or 2) except the given coordinate, in the ascending order.
+
+  E.g. Coord = 0, then it sets First = 1 and Second = 2.
+
+  The coordinates are in ascending order,
+  so e.g. for Coord = 1 we return First = 0, Second = 2. }
+procedure RestOf3DCoords(const Coord: T3DAxis; out First, Second: T3DAxis);
+
+{ Remaining 3D coordinates (0, 1 or 2) except the given coordinate, in order to cycle.
+
+  E.g. Coord = 0, then it sets First = 1 and Second = 2.
+
+  The coordinates are in order to cycle, so First = (Coord + 1) mod 3,
+  Second = (Coord + 2) mod 3.
+  E.g. for Coord = 1 we return First = 2, Second = 0. }
+procedure RestOf3DCoordsCycle(const Coord: T3DAxis; out First, Second: T3DAxis);
 
 { Increase Value by Change, nicely wrapping in [0..MaxValue], accepting
   also negative Change. The final value is always in the [0..MaxValue] range,
@@ -428,7 +443,7 @@ procedure MaxVar(var a: Double  ; const b: Double  ); begin if B > A then A := B
 procedure MaxVar(var a: Extended; const b: Extended); begin if B > A then A := B end;
 {$endif}
 
-function IndexMax(const a0, a1, a2: Double): Integer;
+function IndexMax(const a0, a1, a2: Double): T3DAxis;
 begin
  if a0 > a1 then
  begin
@@ -439,7 +454,7 @@ begin
  end;
 end;
 
-function IndexMin(const a0, a1, a2: Double): Integer;
+function IndexMin(const a0, a1, a2: Double): T3DAxis;
 begin
  if a0 < a1 then
  begin
@@ -601,10 +616,19 @@ begin
 end;
 {$endif}
 
-procedure RestOf3dCoords(coord: Integer; out first, second: Integer);
+procedure RestOf3DCoords(const Coord: T3DAxis; out First, Second: T3DAxis);
 begin
- if coord = 0 then first := 1 else first := 0;
- if coord = 2 then second := 1 else second := 2;
+  if Coord = 0 then First := 1 else First := 0;
+  if Coord = 2 then Second := 1 else Second := 2;
+end;
+
+procedure RestOf3DCoordsCycle(const Coord: T3DAxis; out First, Second: T3DAxis);
+const
+  FirstArr: array [T3DAxis] of T3DAxis = (1, 2, 0);
+  SecondArr: array [T3DAxis] of T3DAxis = (2, 0, 1);
+begin
+  First := FirstArr[Coord];
+  Second := SecondArr[Coord];
 end;
 
 function ChangeIntCycle(value, change, maxValue: Integer): Integer;

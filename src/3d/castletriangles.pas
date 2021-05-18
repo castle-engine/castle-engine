@@ -1159,7 +1159,7 @@ function TTriangle3.Barycentric(const Point: TVector3): TVector3;
   end;
 
 var
-  C1, C2: Integer;
+  C1, C2: T3DAxis;
   Det: Single;
 begin
   { Map triangle and point into 2D, where the solution is simpler.

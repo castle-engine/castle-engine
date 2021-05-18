@@ -27,7 +27,7 @@
   TAbstractGeometryNode = class(TAbstractNode)
   strict private
     HasBounds2DST: boolean;
-    Bounds2DS, Bounds2DT: Integer;
+    Bounds2DS, Bounds2DT: T3DAxis;
     FIgnoredSolid: boolean; {< keeps value of Solid property when FdSolid is nil }
     FIgnoredConvex: boolean; {< keeps value of Convex property when FdConvex is nil }
     MappingWarningDone: Boolean;
@@ -410,7 +410,7 @@
       following X3D spec. We also use it for other geometry nodes,
       and even allow explicitly requesting it by TextureCoordinateGenerator.mode = "BOUNDS2D". }
     procedure GetTextureBounds2DST(const LocalBoxSizes: TVector3;
-      out S, T: Integer);
+      out S, T: T3DAxis);
 
     { Is this object lit, disregarding the material.
       Default implementation in TAbstractGeometryNode says @true. }
@@ -1245,9 +1245,9 @@ begin
 end;
 
 procedure TAbstractGeometryNode.GetTextureBounds2DST(const LocalBoxSizes: TVector3;
-  out S, T: Integer);
+  out S, T: T3DAxis);
 var
-  C1, C2: Integer;
+  C1, C2: T3DAxis;
 begin
   { Calculate SCoord and TCoord. Following VRML spec:
     SCoord is the coord where LocalBBoxSize is largest,
@@ -1261,9 +1261,10 @@ begin
   begin
     HasBounds2DST := true;
     Bounds2DS := MaxVectorCoord(LocalBoxSizes);
-    RestOf3dCoords(Bounds2DS, C1, C2);
+    RestOf3DCoords(Bounds2DS, C1, C2);
     if LocalBoxSizes[C1] >= LocalBoxSizes[C2] then
-      Bounds2DT := C1 else
+      Bounds2DT := C1
+    else
       Bounds2DT := C2;
   end;
 
