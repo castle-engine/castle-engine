@@ -19,7 +19,8 @@ unit GameStateMenu;
 interface
 
 uses Classes,
-  CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls;
+  CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls,
+  CastleSoundEngine;
 
 type
   { Simple "menu" user interface, that allows to run the game or quit. }
@@ -62,6 +63,9 @@ begin
   ButtonQuit.OnClick := @ClickQuit;
   // Hide "Quit" button on mobile/console platforms, where users don't expect such button
   ButtonQuit.Exists := ApplicationProperties.ShowUserInterfaceToQuit;
+
+  { Play menu music }
+  SoundEngine.LoopingChannel[0].Sound := SoundEngine.SoundFromName('menu_music');
 end;
 
 procedure TStateMenu.ClickPlay(Sender: TObject);

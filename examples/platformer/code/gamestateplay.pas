@@ -21,7 +21,7 @@ interface
 uses Classes,
   CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleKeysMouse, CastleViewport, CastleScene, CastleSceneCore, CastleVectors,
-  CastleTransform, X3DNodes,
+  CastleTransform, CastleSoundEngine, X3DNodes,
   GameEnemy, GameFallingObstacle, GameDeadlyObstacle, GameMovingPlatform;
 
 type
@@ -480,11 +480,13 @@ begin
     end else
     if Pos('DblJump', CollisionDetails.OtherTransform.Name) > 0 then
     begin
+      SoundEngine.Sound(SoundEngine.SoundFromName('power_up'));
       PlayerCanDoubleJump := true;
       CollisionDetails.OtherTransform.Exists := false;
     end else
     if Pos('Shot', CollisionDetails.OtherTransform.Name) > 0 then
     begin
+      SoundEngine.Sound(SoundEngine.SoundFromName('power_up'));
       PlayerCanShot := true;
       CollisionDetails.OtherTransform.Exists := false;
     end else
@@ -1126,6 +1128,7 @@ begin
         the player should not keep jumping) }
     if (not WasJumpKeyPressed) and (PlayerOnGround or (PlayerCanDoubleJump and (not WasDoubleJump))) then
     begin
+      SoundEngine.Sound(SoundEngine.SoundFromName('jump'));
       if not PlayerOnGround then
       begin
         WasDoubleJump := true;
@@ -1223,6 +1226,7 @@ begin
     begin
       if WasShotKeyPressed = false  then
       begin
+        SoundEngine.Sound(SoundEngine.SoundFromName('shot'));
         WasShotKeyPressed := true;
 
         Shot(ScenePlayer, ScenePlayer.LocalToWorld(Vector3(ScenePLayer.BoundingBox.SizeX / 2 + 5, 0, 0)),
@@ -1246,6 +1250,7 @@ end;
 
 procedure TStatePlay.CollectCoin;
 begin
+  SoundEngine.Sound(SoundEngine.SoundFromName('coin'));
   Inc(PlayerCollectedCoins);
   LabelCollectedCoins.Caption := PlayerCollectedCoins.ToString;
 end;
@@ -1259,7 +1264,7 @@ end;
 procedure TStatePlay.HitPlayer;
 begin
   SetHitPoints(PlayerHitPoints - 1);
-  //ScenePlayer.PlayAnimation('hurt', false);
+  SoundEngine.Sound(SoundEngine.SoundFromName('hurt'));
   PlayAnimationOnceAndLoop(ScenePlayer, 'hurt', 'idle');
 end;
 
@@ -1310,6 +1315,7 @@ end;
 
 procedure TStatePlay.CollectKey;
 begin
+  SoundEngine.Sound(SoundEngine.SoundFromName('power_up'));
   PlayerHasKey := true;
   ImageKey.Exists := true;
 end;
@@ -1508,6 +1514,9 @@ begin
   ConfigurePlayerAbilities(ScenePlayer);
 
   ConfigureBulletSpriteScene;
+
+  { Play game music }
+  SoundEngine.LoopingChannel[0].Sound := SoundEngine.SoundFromName('game_music');
 end;
 
 procedure TStatePlay.Stop;

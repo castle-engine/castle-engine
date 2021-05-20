@@ -23,10 +23,10 @@ interface
 implementation
 
 uses SysUtils,
-  CastleWindow, CastleScene, CastleControls, CastleLog,
-  CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
-  CastleUIControls, CastleApplicationProperties, CastleUIState, CastleImages,
-  CastleVectors
+  CastleApplicationProperties, CastleColors, CastleConfig, CastleControls,
+  CastleImages, CastleFilesUtils, CastleKeysMouse, CastleLog, CastleScene,
+  CastleSceneCore, CastleSoundEngine, CastleUIControls, CastleUIState,
+  CastleVectors, CastleWindow
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameStateMenu
@@ -44,6 +44,15 @@ procedure ApplicationInitialize;
 begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
+
+  { Load settings }
+  UserConfig.Load;
+
+  { Set up sound repository }
+  SoundEngine.RepositoryURL := 'castle-data:/audio/index.xml';
+
+  SoundEngine.Volume := UserConfig.GetFloat('volume', 1.0);
+  SoundEngine.LoopingChannel[0].Volume := UserConfig.GetFloat('music', 1.0);
 
   { Adjust theme }
   Theme.TextColor := White;

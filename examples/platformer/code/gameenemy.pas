@@ -19,7 +19,7 @@ unit GameEnemy;
 interface
 
 uses Classes, Generics.Collections,
-  CastleVectors, CastleScene, CastleTransform;
+  CastleVectors, CastleScene, CastleTransform, CastleSoundEngine;
 
 type
   TEnemy = class(TCastleBehavior)
@@ -145,6 +145,7 @@ end;
 
 procedure TEnemy.TakeDamageFromBullet(const Bullet: TCastleTransform);
 begin
+  SoundEngine.Sound(SoundEngine.SoundFromName('hit_enemy'));
   Bullet.Exists := false;
 
   Dead := true;
