@@ -854,7 +854,7 @@ begin
       DeltaVelocity.x := MaxHorizontalVelocity / 3
     else
       { This add a little control when you in the air during jumping or falling }
-      DeltaVelocity.x := MaxHorizontalVelocity / 50;
+      DeltaVelocity.x := MaxHorizontalVelocity / 20;
   end;
 
   if Container.Pressed.Items[keyA] then
@@ -867,7 +867,7 @@ begin
       DeltaVelocity.x := - MaxHorizontalVelocity / 3
     else
       { This add a little control when you in the air during jumping or falling }
-      DeltaVelocity.x := - MaxHorizontalVelocity / 50;
+      DeltaVelocity.x := - MaxHorizontalVelocity / 20;
   end;
 
   if Vel.X + DeltaVelocity.X > 0 then
@@ -915,6 +915,7 @@ procedure TStatePlay.UpdatePlayerByVelocityAndPhysicsRayWithDblJump(
 const
   JumpVelocity = 700;
   MaxHorizontalVelocity = 350;
+  AirControlFactor = 20;
 var
   DeltaVelocity: TVector3;
   Vel: TVector3;
@@ -983,7 +984,7 @@ begin
       DeltaVelocity.x := MaxHorizontalVelocity / 3
     else
       { This add a little control when you in the air during jumping or falling }
-      DeltaVelocity.x := MaxHorizontalVelocity / 50;
+      DeltaVelocity.x := MaxHorizontalVelocity / 20;
   end;
 
   if Container.Pressed.Items[keyA] then
@@ -996,7 +997,7 @@ begin
       DeltaVelocity.x := - MaxHorizontalVelocity / 3
     else
       { This add a little control when you in the air during jumping or falling }
-      DeltaVelocity.x := - MaxHorizontalVelocity / 50;
+      DeltaVelocity.x := - MaxHorizontalVelocity / 20;
   end;
 
   if Vel.X + DeltaVelocity.X > 0 then
@@ -1152,7 +1153,7 @@ begin
       DeltaVelocity.x := MaxHorizontalVelocityChange * SecondsPassed / 3
     else
       { This add a little control when you in the air during jumping or falling }
-      DeltaVelocity.x := MaxHorizontalVelocityChange * SecondsPassed / 50;
+      DeltaVelocity.x := MaxHorizontalVelocityChange * SecondsPassed / 20;
   end;
 
   if Container.Pressed.Items[keyA] then
@@ -1165,7 +1166,7 @@ begin
       DeltaVelocity.x := - MaxHorizontalVelocityChange * SecondsPassed / 3
     else
       { This add a little control when you in the air during jumping or falling }
-      DeltaVelocity.x := - MaxHorizontalVelocityChange * SecondsPassed / 50;
+      DeltaVelocity.x := - MaxHorizontalVelocityChange * SecondsPassed / 20;
   end;
 
   if Vel.X + DeltaVelocity.X > 0 then
