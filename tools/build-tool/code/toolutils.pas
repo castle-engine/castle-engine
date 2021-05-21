@@ -50,7 +50,7 @@ const
   { Interpolation to scale images with highest quality.
 
     Latest FPC breaks alpha channel at resizing using riLanczos.
-    TODO: Submit a patch to FPC to restore previous behaviour.
+    TODO: Submit a patch to FPC to restore previous behavior.
 
     Index: packages/fcl-image/src/fpinterpolation.inc
     ===================================================================

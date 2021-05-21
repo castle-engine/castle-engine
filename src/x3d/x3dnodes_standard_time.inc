@@ -359,7 +359,7 @@
       set enabled = false on previously-stopped animation).
 
       We take into account TimeSensor.cycleInterval (FdCycleInterval),
-      just like during normal TimeSensor behaviour.
+      just like during normal TimeSensor behavior.
       We send out isActive:=true, fraction_changed, elapsedTime and time X3D
       output events, and they should drive the rest of animation.
 

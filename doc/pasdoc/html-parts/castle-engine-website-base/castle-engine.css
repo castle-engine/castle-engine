@@ -684,7 +684,7 @@ div.quote {
   border-bottom: thin solid #aaaaaa;
 }
 
-/* Restore normal CSS behaviour, overriding Bootstrap weirdness */
+/* Restore normal CSS behavior, overriding Bootstrap weirdness */
 .google-search-container {
   line-height: normal;
 }

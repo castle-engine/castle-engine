@@ -124,7 +124,7 @@ type
 
       As a debugging feature, you can set this to @true
       to simulate touch devices on a desktop.
-      The idea is that when an application shows a different input behaviour
+      The idea is that when an application shows a different input behavior
       on touch devices, it should always condition it depending on
       this boolean property. So an application may do this:
 

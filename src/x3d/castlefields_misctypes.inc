@@ -43,7 +43,7 @@
   { Possible things that happen when given field is changed.
     Used by @link(TX3DField.ExecuteChange) and @link(TX3DField.ChangeAlways). }
   TX3DChange = (
-    { This field has no effect on the rendering/behaviour of anything. }
+    { This field has no effect on the rendering/behavior of anything. }
     chNone,
 
     { Something visible in the geometry changed.

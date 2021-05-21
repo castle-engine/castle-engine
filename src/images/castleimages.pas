@@ -914,7 +914,7 @@ type
       It is also supported by a small number of Android devices.
 
       Note that the tcDxt1_RGB and tcDxt1_RGBA are the same compression method.
-      Their behaviour only differs when rendering:
+      Their behavior only differs when rendering:
       in case of tcDxt1_RGB, the alpha information is not used,
       while in case of tcDxt1_RGBA, the renderer is using alpha-testing. }
     tcDxt1_RGB,
