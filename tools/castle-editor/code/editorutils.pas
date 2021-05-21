@@ -152,7 +152,7 @@ function ApiReference(const PropertyObject: TObject;
   const PropertyName, PropertyNameForLink: String): String;
 
 procedure BuildComponentsMenu(
-  const ParentUeserInterface, ParentTransform: TMenuItem;
+  const ParentUserInterface, ParentTransform: TMenuItem;
   const OnClickEvent: TNotifyEvent);
 
 type
@@ -702,7 +702,7 @@ begin
   Result := AnsiCompareStr(Left.Caption, Right.Caption);
 end;
 
-procedure BuildComponentsMenu(const ParentUeserInterface, ParentTransform: TMenuItem; const OnClickEvent: TNotifyEvent);
+procedure BuildComponentsMenu(const ParentUserInterface, ParentTransform: TMenuItem; const OnClickEvent: TNotifyEvent);
 
   function CreateMenuItemForComponent(const Owner: TComponent; const R: TRegisteredComponent): TMenuItem;
   var
@@ -735,9 +735,9 @@ begin
       if R.ComponentClass.InheritsFrom(TCastleUserInterface) and
          not R.ComponentClass.InheritsFrom(TCastleNavigation) then
       begin
-        MenuItem := CreateMenuItemForComponent(ParentUeserInterface, R);
+        MenuItem := CreateMenuItemForComponent(ParentUserInterface, R);
         MenuItem.OnClick := OnClickEvent;
-        ParentUeserInterface.Add(MenuItem);
+        ParentUserInterface.Add(MenuItem);
       end else
       if R.ComponentClass.InheritsFrom(TCastleTransform) then
       begin
@@ -751,9 +751,9 @@ begin
   Don't show deprecated -- at least in initial CGE release, keep the menu clean.
 
   { add separators from deprecated }
-  MenuItem := TMenuItem.Create(ParentUeserInterface);
+  MenuItem := TMenuItem.Create(ParentUserInterface);
   MenuItem.Caption := '-';
-  ParentUeserInterface.Add(MenuItem);
+  ParentUserInterface.Add(MenuItem);
 
   MenuItem := TMenuItem.Create(ParentTransform);
   MenuItem.Caption := '-';
@@ -766,9 +766,9 @@ begin
       if R.ComponentClass.InheritsFrom(TCastleUserInterface) and
          not R.ComponentClass.InheritsFrom(TCastleNavigation) then
       begin
-        MenuItem := CreateMenuItemForComponent(ParentUeserInterface, R);
+        MenuItem := CreateMenuItemForComponent(ParentUserInterface, R);
         MenuItem.OnClick := OnClickEvent;
-        ParentUeserInterface.Add(MenuItem);
+        ParentUserInterface.Add(MenuItem);
       end else
       if R.ComponentClass.InheritsFrom(TCastleTransform) then
       begin
