@@ -27,11 +27,19 @@ type
     FCaptionTranslate: Boolean;
     FDoubleSided: Boolean;
     TextNode: TTextNode;
+    FontStyleNode: TFontStyleNode;
+    FAlignment: THorizontalPosition;
+    FVerticalAlignment: TVerticalPosition;
+    FSize, FSpacing: Single;
     function GetCaption: String;
     procedure SetCaption(const Value: String);
     procedure TextChange(Sender: TObject);
     procedure SetText(const Value: TStrings);
     procedure SetDoubleSided(const Value: Boolean);
+    procedure SetAlignment(const Value: THorizontalPosition);
+    procedure SetVerticalAlignment(const Value: TVerticalPosition);
+    procedure SetSize(const Value: Single);
+    procedure SetSpacing(const Value: Single);
   protected
     procedure TranslateProperties(const TranslatePropertyEvent: TTranslatePropertyEvent); override;
   public
@@ -80,6 +88,24 @@ type
       so you can more easily land behind the text (and get confused why is it not displayed).
       This follows X3D TTextNode.Solid default. }
     property DoubleSided: Boolean read FDoubleSided write SetDoubleSided default true;
+
+    { Horizontal alignment of the text. }
+    property Alignment: THorizontalPosition
+      read FAlignment write SetAlignment default hpLeft;
+
+    { Vertical alignment of the text. }
+    property VerticalAlignment: TVerticalPosition
+      read FVerticalAlignment write SetVerticalAlignment default vpBottom;
+
+    { Size of the text, given as height of a single line of text.
+      See https://www.web3d.org/specifications/X3Dv4Draft/ISO-IEC19775-1v4-CD/Part01/components/text.html#FontStyle
+      for an illustrative image. }
+    property Size: Single read FSize write SetSize default 1.0;
+
+    { Spacing between lines of text, to make lines more distant (with values > 1) or more squeezed (with values < 1).
+      See https://www.web3d.org/specifications/X3Dv4Draft/ISO-IEC19775-1v4-CD/Part01/components/text.html#FontStyle
+      for an illustrative image. }
+    property Spacing: Single read FSpacing write SetSpacing default 1.0;
   end;
 
 {$endif read_interface}
@@ -95,12 +121,21 @@ begin
   TextNode := TTextNode.Create;
   ShapeNode.Geometry := TextNode;
 
+  FontStyleNode := TFontStyleNode.Create;
+  FontStyleNode.Justify := fjBegin;
+  FontStyleNode.JustifyMinor := fjEnd;
+  TextNode.FontStyle := FontStyleNode;
+
   { default properties values }
   Material := pmUnlit;
   FText := TCastleStringList.Create;
   (FText as TCastleStringList).OnChange := {$ifdef CASTLE_OBJFPC}@{$endif} TextChange;
   FCaptionTranslate := true;
   FDoubleSided := true;
+  FSize := 1;
+  FSpacing := 1;
+  FAlignment := hpLeft;
+  FVerticalAlignment := vpBottom;
 end;
 
 destructor TCastleText.Destroy;
@@ -111,7 +146,7 @@ end;
 function TCastleText.PropertySections(const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
-    'Caption', 'Text', 'DoubleSided':
+    'Caption', 'Text', 'DoubleSided', 'Size', 'Spacing', 'Alignment', 'VerticalAlignment':
       Result := [psBasic];
     else
       Result := inherited PropertySections(PropertyName);
@@ -157,6 +192,59 @@ begin
   begin
     FDoubleSided := Value;
     TextNode.Solid := not Value;
+  end;
+end;
+
+procedure TCastleText.SetAlignment(const Value: THorizontalPosition);
+begin
+  if FAlignment <> Value then
+  begin
+    FAlignment := Value;
+    case Value of
+      hpLeft  : FontStyleNode.Justify := fjBegin;
+      hpMiddle: FontStyleNode.Justify := fjMiddle;
+      hpRight : FontStyleNode.Justify := fjEnd;
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('TCastleText.SetAlignment:Value?');
+      {$endif}
+    end;
+  end;
+end;
+
+procedure TCastleText.SetVerticalAlignment(const Value: TVerticalPosition);
+begin
+  if FVerticalAlignment <> Value then
+  begin
+    FVerticalAlignment := Value;
+    case Value of
+      vpBottom: FontStyleNode.JustifyMinor := fjEnd;
+      vpMiddle: FontStyleNode.JustifyMinor := fjMiddle;
+      vpTop   : FontStyleNode.JustifyMinor := fjBegin;
+      { Note that achieving fjFirst is not possible, and that is deliberate.
+        I think fjFirst is a needless complication.
+        It is much more important to have API similar to TCastleLabel. }
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('TCastleText.SetVerticalAlignment:Value?');
+      {$endif}
+    end;
+  end;
+end;
+
+procedure TCastleText.SetSize(const Value: Single);
+begin
+  if FSize <> Value then
+  begin
+    FSize := Value;
+    FontStyleNode.Size := Value;
+  end;
+end;
+
+procedure TCastleText.SetSpacing(const Value: Single);
+begin
+  if FSpacing <> Value then
+  begin
+    FSpacing := Value;
+    FontStyleNode.Spacing := Value;
   end;
 end;
 
