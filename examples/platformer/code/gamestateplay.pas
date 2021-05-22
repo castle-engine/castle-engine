@@ -1043,8 +1043,8 @@ end;
 procedure TStatePlay.UpdatePlayerByVelocityAndPhysicsRayWithDblJumpShot(
   const SecondsPassed: Single; var HandleInput: Boolean);
 const
-  JumpVelocity = 700;
-  MaxHorizontalVelocity = 350;
+  JumpVelocity = 680;
+  MaxHorizontalVelocity = 345;
   { We need multiply any horizontal velocity speed by SecondsPassed.
     Without that when game will run 120 FPS, player will accelerated
     twice faster than on 60 FPS.
@@ -1153,7 +1153,7 @@ begin
       DeltaVelocity.x := MaxHorizontalVelocityChange * SecondsPassed / 3
     else
       { This add a little control when you in the air during jumping or falling }
-      DeltaVelocity.x := MaxHorizontalVelocityChange * SecondsPassed / 20;
+      DeltaVelocity.x := MaxHorizontalVelocityChange * SecondsPassed / 14;
   end;
 
   if Container.Pressed.Items[keyA] then
@@ -1166,7 +1166,7 @@ begin
       DeltaVelocity.x := - MaxHorizontalVelocityChange * SecondsPassed / 3
     else
       { This add a little control when you in the air during jumping or falling }
-      DeltaVelocity.x := - MaxHorizontalVelocityChange * SecondsPassed / 20;
+      DeltaVelocity.x := - MaxHorizontalVelocityChange * SecondsPassed / 14;
   end;
 
   if Vel.X + DeltaVelocity.X > 0 then
