@@ -541,6 +541,8 @@ const
 {$I castlescene_box.inc}
 {$I castlescene_sphere.inc}
 {$I castlescene_plane.inc}
+{$I castlescene_cone.inc}
+{$I castlescene_cylinder.inc}
 {$undef read_interface}
 
 implementation
@@ -561,6 +563,8 @@ uses CastleGLVersion, CastleImages, CastleLog,
 {$I castlescene_box.inc}
 {$I castlescene_sphere.inc}
 {$I castlescene_plane.inc}
+{$I castlescene_cone.inc}
+{$I castlescene_cylinder.inc}
 {$undef read_implementation}
 
 procedure Register;
@@ -2235,6 +2239,8 @@ initialization
   RegisterSerializableComponent(TCastleSphere, 'Sphere');
   RegisterSerializableComponent(TCastlePlane, 'Plane');
   RegisterSerializableComponent(TCastleText, 'Text');
+  RegisterSerializableComponent(TCastleCone, 'Cone');
+  RegisterSerializableComponent(TCastleCylinder, 'Cylinder');
 finalization
   FreeAndNil(GLContextCache);
 end.

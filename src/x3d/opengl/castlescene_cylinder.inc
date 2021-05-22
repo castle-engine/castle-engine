@@ -16,21 +16,24 @@
 {$ifdef read_interface}
 
 type
-  { Sphere with configurable size, position and material. }
-  TCastleSphere = class(TCastleAbstractPrimitive)
+  { Cylinder with configurable size, position and material. }
+  TCastleCylinder = class(TCastleAbstractPrimitive)
   strict private
-    SphereNode: TSphereNode;
-    FRadius: Single;
+    CylinderNode: TCylinderNode;
+    FRadius, FHeight: Single;
     FDoubleSided: Boolean;
     procedure SetRadius(const Value: Single);
+    procedure SetHeight(const Value: Single);
     procedure SetDoubleSided(const Value: Boolean);
   public
     constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
-    { Sphere radius. }
+    { Cylinder radius. }
     property Radius: Single read FRadius write SetRadius default 1;
+
+    { Cylinder height. }
+    property Height: Single read FHeight write SetHeight default 2;
 
     { When this is @true, the object is visible (and lit) from both sides. }
     property DoubleSided: Boolean read FDoubleSided write SetDoubleSided default false;
@@ -40,54 +43,56 @@ type
 
 {$ifdef read_implementation}
 
-{ TCastleSphere ---------------------------------------------------------------- }
+{ TCastleCylinder ---------------------------------------------------------------- }
 
-constructor TCastleSphere.Create(AOwner: TComponent);
+constructor TCastleCylinder.Create(AOwner: TComponent);
 begin
   inherited;
 
   { default properties values }
   FRadius := 1;
+  FHeight := 2;
 
-  SphereNode := TSphereNode.Create;
-  SphereNode.Radius := FRadius;
-  ShapeNode.Geometry := SphereNode;
-
-  { set CollisionSphereRadius to make collisions work better for sphere }
-  CollisionSphereRadius := FRadius;
+  CylinderNode := TCylinderNode.Create;
+  CylinderNode.Radius := FRadius;
+  CylinderNode.Height := FHeight;
+  ShapeNode.Geometry := CylinderNode;
 end;
 
-destructor TCastleSphere.Destroy;
-begin
-  inherited;
-end;
-
-function TCastleSphere.PropertySections(const PropertyName: String): TPropertySections;
+function TCastleCylinder.PropertySections(const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
-    'Radius', 'DoubleSided':
+    'Radius', 'Height', 'DoubleSided':
       Result := [psBasic];
     else
       Result := inherited PropertySections(PropertyName);
   end;
 end;
 
-procedure TCastleSphere.SetRadius(const Value: Single);
+procedure TCastleCylinder.SetRadius(const Value: Single);
 begin
   if FRadius <> Value then
   begin
     FRadius := Value;
-    SphereNode.Radius := FRadius;
-    CollisionSphereRadius := FRadius;
+    CylinderNode.Radius := FRadius;
   end;
 end;
 
-procedure TCastleSphere.SetDoubleSided(const Value: Boolean);
+procedure TCastleCylinder.SetHeight(const Value: Single);
+begin
+  if FHeight <> Value then
+  begin
+    FHeight := Value;
+    CylinderNode.Height := FHeight;
+  end;
+end;
+
+procedure TCastleCylinder.SetDoubleSided(const Value: Boolean);
 begin
   if FDoubleSided <> Value then
   begin
     FDoubleSided := Value;
-    SphereNode.Solid := not Value;
+    CylinderNode.Solid := not Value;
   end;
 end;
 

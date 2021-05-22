@@ -19,7 +19,8 @@
 {$ifdef read_interface}
 
 type
-  { Text (as TCastleTransform, inside TCastleViewport). }
+  { Text that is displayed and transformed as TCastleTransform,
+    inside TCastleViewport, and can be manipulated in 3D. }
   TCastleText = class(TCastleAbstractPrimitive)
   strict private
     FText: TStrings;

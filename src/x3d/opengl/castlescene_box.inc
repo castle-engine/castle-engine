@@ -16,7 +16,7 @@
 {$ifdef read_interface}
 
 type
-  { Box with configurable size, position, material and colliders. }
+  { Box with configurable size, position and material. }
   TCastleBox = class(TCastleAbstractPrimitive)
   strict private
     BoxNode: TBoxNode;

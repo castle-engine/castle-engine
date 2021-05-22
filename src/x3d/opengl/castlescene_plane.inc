@@ -16,7 +16,7 @@
 {$ifdef read_interface}
 
 type
-  { Plane with configurable size, position, material and colliders. }
+  { Plane with configurable size, position and material. }
   TCastlePlane = class(TCastleAbstractPrimitive)
   strict private
     FQuadSetNode: TQuadSetNode;
