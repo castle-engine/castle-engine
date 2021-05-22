@@ -17,6 +17,7 @@
             "Y" : 5.0000000000000000E-001,
             "$ClassName" : "TCastleVector2Persistent"
           },
+          "Scale" : 2.4596030712127686E+000,
           "$Children" : [
           ],
           "$ClassName" : "TCastleOrthographic"
@@ -531,7 +532,7 @@
                   "$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "TranslationPersistent" : {
-                  "X" : -3.9346191406250000E+001,
+                  "X" : -2.3171997070312500E+001,
                   "Y" : -2.3439416503906250E+002,
                   "Z" : 3.0000000000000000E+000,
                   "$ClassName" : "TCastleVector3Persistent"
@@ -791,7 +792,7 @@
                   "$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "TranslationPersistent" : {
-                  "X" : 2.6394035644531250E+003,
+                  "X" : 2.8633540039062500E+003,
                   "Y" : -4.9499667358398438E+002,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
@@ -934,7 +935,7 @@
                   "$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "TranslationPersistent" : {
-                  "X" : 2.5511542968750000E+003,
+                  "X" : 2.7863022460937500E+003,
                   "Y" : -6.5963000488281250E+002,
                   "Z" : 3.0000000000000000E+000,
                   "$ClassName" : "TCastleVector3Persistent"
@@ -1305,7 +1306,7 @@
                   "$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
-                  "X" : -1.3249584960937500E+002,
+                  "X" : -8.2729133605957031E+001,
                   "Y" : -3.6126998901367188E+002,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
@@ -1468,7 +1469,7 @@
                   "$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "TranslationPersistent" : {
-                  "X" : 3.2069671630859375E+001,
+                  "X" : 8.9301391601562500E+001,
                   "Y" : -2.2872998046875000E+002,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
@@ -1608,6 +1609,29 @@
                 "TranslationPersistent" : {
                   "X" : 3.8513220214843750E+003,
                   "Y" : 7.0850732421875000E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "AnimateOnlyWhenVisible" : true,
+                "AutoAnimation" : "idle",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Spider19",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : 3.2757182617187500E+003,
+                  "Y" : 4.7303302001953125E+002,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
                 "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
@@ -2094,8 +2118,8 @@
                 },
                 "Tag" : 400,
                 "TranslationPersistent" : {
-                  "X" : 1.9485914306640625E+003,
-                  "Y" : -2.3955584716796875E+002,
+                  "X" : 1.9100222167968750E+003,
+                  "Y" : -3.5401928710937500E+002,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
                 "URL" : "castle-data:/platforms/ground_grass.png",
@@ -2273,10 +2297,29 @@
                   ],
                   "$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
-                "Tag" : 50,
                 "TranslationPersistent" : {
                   "X" : 3.0134016113281250E+003,
                   "Y" : -6.2697998046875000E+001,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/platforms/ground_grass_small.png",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "ExposeTransforms" : [
+                ],
+                "Name" : "SmallPlatform14",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "X" : 2.6115354003906250E+003,
+                  "Y" : -5.1433099365234375E+002,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
                 "URL" : "castle-data:/platforms/ground_grass_small.png",
@@ -2355,7 +2398,7 @@
                   ],
                   "$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
-                "Tag" : -900,
+                "Tag" : -1200,
                 "TranslationPersistent" : {
                   "X" : 4.6168886718750000E+003,
                   "Y" : 1.3054711914062500E+002,
@@ -4008,7 +4051,7 @@
                 },
                 "TranslationPersistent" : {
                   "X" : -1.9122518310546875E+003,
-                  "Y" : 7.7993005371093750E+002,
+                  "Y" : 7.5000000000000000E+002,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
                 "URL" : "castle-data:/ground/stone/stoneCenter_rounded.png",
@@ -4028,7 +4071,7 @@
                 },
                 "TranslationPersistent" : {
                   "X" : -2.0644418945312500E+003,
-                  "Y" : 7.7993005371093750E+002,
+                  "Y" : 7.5000000000000000E+002,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
                 "URL" : "castle-data:/ground/stone/stoneCenter_rounded.png",
@@ -4048,7 +4091,7 @@
                 },
                 "TranslationPersistent" : {
                   "X" : -2.2132500000000000E+003,
-                  "Y" : 7.7993005371093750E+002,
+                  "Y" : 7.5000000000000000E+002,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
                 "URL" : "castle-data:/ground/stone/stoneCenter_rounded.png",
@@ -4067,8 +4110,8 @@
                   "$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "TranslationPersistent" : {
-                  "X" : -2.3620581054687500E+003,
-                  "Y" : 7.7993005371093750E+002,
+                  "X" : -2.3620600585937500E+003,
+                  "Y" : 7.5000000000000000E+002,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
                 "URL" : "castle-data:/ground/stone/stoneCenter_rounded.png",
@@ -5823,9 +5866,8 @@
                       "$ClassName" : "TCastleScene.TSceneRenderOptions"
                     },
                     "TranslationPersistent" : {
-                      "X" : 9.9961767578125000E+002,
-                      "Y" : 1.1552764892578125E+002,
-                      "Z" : 3.0000000000000000E+000,
+                      "X" : 9.9961999511718750E+002,
+                      "Y" : 1.1552999877929688E+002,
                       "$ClassName" : "TCastleVector3Persistent"
                     },
                     "URL" : "castle-data:/ground/grass/grassCenter.png",
@@ -5844,9 +5886,8 @@
                       "$ClassName" : "TCastleScene.TSceneRenderOptions"
                     },
                     "TranslationPersistent" : {
-                      "X" : 1.1276871337890625E+003,
-                      "Y" : 1.1552764892578125E+002,
-                      "Z" : 3.0000000000000000E+000,
+                      "X" : 1.1276899414062500E+003,
+                      "Y" : 1.1552999877929688E+002,
                       "$ClassName" : "TCastleVector3Persistent"
                     },
                     "URL" : "castle-data:/ground/grass/grassCenter.png",
@@ -5865,9 +5906,8 @@
                       "$ClassName" : "TCastleScene.TSceneRenderOptions"
                     },
                     "TranslationPersistent" : {
-                      "X" : 1.2515876464843750E+003,
-                      "Y" : 1.1552764892578125E+002,
-                      "Z" : 3.0000000000000000E+000,
+                      "X" : 1.2515899658203125E+003,
+                      "Y" : 1.1552999877929688E+002,
                       "$ClassName" : "TCastleVector3Persistent"
                     },
                     "URL" : "castle-data:/ground/grass/grassCenter.png",
@@ -6603,6 +6643,62 @@
                 "AutoAnimation" : "rotate",
                 "ExposeTransforms" : [
                 ],
+                "Name" : "GoldCoin43",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "ScalePersistent" : {
+                  "X" : 5.0000000000000000E-001,
+                  "Y" : 5.0000000000000000E-001,
+                  "Z" : 5.0000000000000000E-001,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "TranslationPersistent" : {
+                  "X" : 2.6900681152343750E+003,
+                  "Y" : 3.0168392944335938E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "AutoAnimation" : "rotate",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "GoldCoin44",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "ScalePersistent" : {
+                  "X" : 5.0000000000000000E-001,
+                  "Y" : 5.0000000000000000E-001,
+                  "Z" : 5.0000000000000000E-001,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "TranslationPersistent" : {
+                  "X" : 3.3249003906250000E+003,
+                  "Y" : -1.7192123413085938E+002,
+                  "$ClassName" : "TCastleVector3Persistent"
+                },
+                "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "AutoAnimation" : "rotate",
+                "ExposeTransforms" : [
+                ],
                 "Name" : "GoldCoin23",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
@@ -6954,8 +7050,8 @@
                   "$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
-                  "X" : -1.3616101074218750E+002,
-                  "Y" : -2.1791999816894531E+002,
+                  "X" : -1.1874266052246094E+002,
+                  "Y" : -1.8308329772949219E+002,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
                 "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
@@ -7039,7 +7135,7 @@
                 },
                 "TranslationPersistent" : {
                   "X" : -1.3158831787109375E+003,
-                  "Y" : -5.6515728759765625E+002,
+                  "Y" : -5.5259356689453125E+002,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
                 "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
@@ -7095,7 +7191,7 @@
                 },
                 "TranslationPersistent" : {
                   "X" : -2.3573378906250000E+003,
-                  "Y" : 8.9798565673828125E+002,
+                  "Y" : 8.7000000000000000E+002,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
                 "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
@@ -7123,7 +7219,7 @@
                 },
                 "TranslationPersistent" : {
                   "X" : -2.2119121093750000E+003,
-                  "Y" : 8.9798565673828125E+002,
+                  "Y" : 8.7000000000000000E+002,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
                 "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
@@ -7151,7 +7247,7 @@
                 },
                 "TranslationPersistent" : {
                   "X" : -2.0664863281250000E+003,
-                  "Y" : 8.9798565673828125E+002,
+                  "Y" : 8.7000000000000000E+002,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
                 "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
@@ -7179,7 +7275,7 @@
                 },
                 "TranslationPersistent" : {
                   "X" : -1.9142963867187500E+003,
-                  "Y" : 8.9798565673828125E+002,
+                  "Y" : 8.7000000000000000E+002,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
                 "URL" : "castle-data:/items/gold-coin.castle-sprite-sheet",
