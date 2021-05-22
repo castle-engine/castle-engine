@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Simple "menu" user interface, that allows to run the game or quit. }
+{ Simple options user interface, that allows to change sound settings. }
 unit GameStateOptions;
 
 interface
@@ -23,7 +23,7 @@ uses Classes,
   CastleSoundEngine;
 
 type
-  { Simple "menu" user interface, that allows to run the game or quit. }
+  { Simple options user interface, that allows to change sound settings. }
   TStateOptions = class(TUIState)
   private
     { Components designed using CGE editor, loaded from state_menu.castle-user-interface. }

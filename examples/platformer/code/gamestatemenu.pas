@@ -27,9 +27,10 @@ type
   TStateMenu = class(TUIState)
   private
     { Components designed using CGE editor, loaded from state_menu.castle-user-interface. }
-    ButtonPlay, ButtonOptions, ButtonQuit: TCastleButton;
+    ButtonPlay, ButtonOptions, ButtonCredits, ButtonQuit: TCastleButton;
     procedure ClickPlay(Sender: TObject);
     procedure ClickOptions(Sender: TObject);
+    procedure ClickCredits(Sender: TObject);
     procedure ClickQuit(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
@@ -42,7 +43,7 @@ var
 implementation
 
 uses CastleApplicationProperties, CastleWindow,
-  GameStatePlay, GameStateOptions;
+  GameStatePlay, GameStateOptions, GameStateCredits;
 
 { TStateMenu ----------------------------------------------------------------- }
 
@@ -59,10 +60,13 @@ begin
   { Find components, by name, that we need to access from code }
   ButtonPlay := DesignedComponent('ButtonPlay') as TCastleButton;
   ButtonOptions := DesignedComponent('ButtonOptions') as TCastleButton;
+  ButtonCredits := DesignedComponent('ButtonCredits') as TCastleButton;
   ButtonQuit := DesignedComponent('ButtonQuit') as TCastleButton;
 
   ButtonPlay.OnClick := @ClickPlay;
   ButtonOptions.OnClick := @ClickOptions;
+  ButtonCredits.OnClick := @ClickCredits;
+
   ButtonQuit.OnClick := @ClickQuit;
   // Hide "Quit" button on mobile/console platforms, where users don't expect such button
   ButtonQuit.Exists := ApplicationProperties.ShowUserInterfaceToQuit;
@@ -79,6 +83,11 @@ end;
 procedure TStateMenu.ClickOptions(Sender: TObject);
 begin
   TUIState.Current := StateOptions;
+end;
+
+procedure TStateMenu.ClickCredits(Sender: TObject);
+begin
+  TUIState.Current := StateCredits;
 end;
 
 procedure TStateMenu.ClickQuit(Sender: TObject);
