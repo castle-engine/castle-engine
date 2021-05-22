@@ -44,12 +44,13 @@ type
     FShapeNode: TShapeNode;
     FColor: TCastleColor;
     FMaterial: TPrimitiveMaterial;
-    FTexture: String;
+    FTexture, FTextureNormalMap: String;
     FPreciseCollisions: Boolean;
     procedure SetMaterial(const Value: TPrimitiveMaterial);
     procedure SetColor(const Value: TCastleColor);
     procedure SetTexture(const Value: String);
-    { Reflect current FColor, FMaterial, FTexture values in X3D nodes. }
+    procedure SetTextureNormalMap(const Value: String);
+    { Reflect current FColor, FMaterial, FTexture, FTextureNormalMap values in X3D nodes. }
     procedure UpdateMaterialNode;
     procedure SetPreciseCollisions(const Value: Boolean);
     function GetRenderOptions: TCastleRenderOptions;
@@ -91,6 +92,11 @@ type
       https://www.web3d.org/specifications/X3Dv4Draft/ISO-IEC19775-1v4-CD/Part01/components/geometry3D.html#Box
       describes how texture is applied to the 6 sides of the box. }
     property Texture: String read FTexture write SetTexture;
+
+    { Normal map texture URL.
+      Providing normal enhances the details visible on the surface because of lighting.
+      The normalmap texture mapping is the same as @link(Texture) mapping. }
+    property TextureNormalMap: String read FTextureNormalMap write SetTextureNormalMap;
 
     { Resolve collisions precisely with the primitive geometry.
       When this is @false we will only consider the primitive bounding box for collisions,
@@ -192,6 +198,7 @@ procedure TCastleAbstractPrimitive.UpdateMaterialNode;
     PM.BaseColor := Color.XYZ;
     PM.Transparency := 1 - Color.W;
     AdjustTexture(PM.FdBaseTexture, Texture);
+    AdjustTexture(PM.FdNormalTexture, TextureNormalMap);
   end;
 
   procedure DoPhong;
@@ -208,6 +215,7 @@ procedure TCastleAbstractPrimitive.UpdateMaterialNode;
     M.DiffuseColor := Color.XYZ;
     M.Transparency := 1 - Color.W;
     AdjustTexture(M.FdDiffuseTexture, Texture);
+    AdjustTexture(M.FdNormalTexture, TextureNormalMap);
   end;
 
   procedure DoUnlit;
@@ -224,6 +232,7 @@ procedure TCastleAbstractPrimitive.UpdateMaterialNode;
     UM.EmissiveColor := Color.XYZ;
     UM.Transparency := 1 - Color.W;
     AdjustTexture(UM.FdEmissiveTexture, Texture);
+    AdjustTexture(UM.FdNormalTexture, TextureNormalMap);
   end;
 
 begin
@@ -264,10 +273,19 @@ begin
   end;
 end;
 
+procedure TCastleAbstractPrimitive.SetTextureNormalMap(const Value: String);
+begin
+  if FTextureNormalMap <> Value then
+  begin
+    FTextureNormalMap := Value;
+    UpdateMaterialNode;
+  end;
+end;
+
 function TCastleAbstractPrimitive.PropertySections(const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
-    'ColorPersistent', 'Material', 'Texture', 'PreciseCollisions', 'RenderOptions':
+    'ColorPersistent', 'Material', 'TextureNormalMap', 'Texture', 'PreciseCollisions', 'RenderOptions':
       Result := [psBasic];
     else
       Result := inherited PropertySections(PropertyName);
