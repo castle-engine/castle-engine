@@ -501,7 +501,7 @@ type
       Shape.State.Last*, Shape.State.ShapeNode or such change.
 
       Pass InactiveOnly = @true is you know that this shape is fully in
-      inactive VRML graph part (inactive Switch, LOD etc. children).
+      inactive X3D graph part (inactive Switch, LOD etc. children).
 
       Including chTransform in Changes means something more than
       general chTransform (which means that transformation of children changed,
@@ -1929,7 +1929,7 @@ begin
     proxies. }
   if Changes * [chCoordinate, chNormal, chTangent,
     chVisibleVRML1State, chGeometryVRML1State,
-    chTextureCoordinate, chGeometry, chWireframe] <> [] then
+    chTextureCoordinate, chGeometry, chWireframe, chFontStyle] <> [] then
     FreeProxy;
 
   { When bounding volumes in global coordinates changed.
@@ -1937,14 +1937,15 @@ begin
     (testcase: upwind_turbine.x3d), as other flags already cause other changes
     that invalidate global bboxes anyway. }
   if Changes * [chTransform, chCoordinate, chGeometry, chGeometryVRML1State,
-    chEverything] <> [] then
+    chEverything, chFontStyle] <> [] then
     Validities := Validities - [svBBox, svBoundingSphere];
 
+  { Changes to actual geometry that are limited to Coordinate (topology or other things don't change). }
   if chCoordinate in Changes then
-    { Coordinate changes actual geometry. }
     LocalGeometryChanged(true);
 
-  if Changes * [chGeometry, chGeometryVRML1State, chWireframe] <> [] then
+  { Changes to actual geometry (other). }
+  if Changes * [chGeometry, chGeometryVRML1State, chWireframe, chFontStyle] <> [] then
     LocalGeometryChanged(false);
 
   if Changes * [chBBox] <> [] then

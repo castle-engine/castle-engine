@@ -5181,6 +5181,18 @@ var
     VisibleChangeHere([]);
   end;
 
+  procedure HandleFontStyle;
+  var
+    ShapeList: TShapeList;
+    Shape: TShape;
+  begin
+    ShapeList := Shapes.TraverseList({ OnlyActive } false);
+    for Shape in ShapeList do
+      if (Shape.OriginalGeometry is TTextNode) and
+         (TTextNode(Shape.OriginalGeometry).FontStyle = ANode) then
+        Shape.Changed(false, [Change]);
+  end;
+
   procedure HandleChangeHeadLightOn;
   begin
     { Recalculate HeadlightOn based on NavigationInfo.headlight. }
@@ -5363,7 +5375,7 @@ begin
       // TODO: chTexturePropertiesNode
       chShadowCasters: HandleChangeShadowCasters;
       chGeneratedTextureUpdateNeeded: HandleChangeGeneratedTextureUpdateNeeded;
-      // TODO: chFontStyle. Fortunately, FontStyle fields are not exposed, so this isn't a bug in vrml/x3d browser
+      chFontStyle: HandleFontStyle;
       chHeadLightOn: HandleChangeHeadLightOn;
       chClipPlane: HandleChangeClipPlane;
       chDragSensorEnabled: HandleChangeDragSensorEnabled;
