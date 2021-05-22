@@ -24,11 +24,13 @@ type
   strict private
     FText: TStrings;
     FCaptionTranslate: Boolean;
+    FDoubleSided: Boolean;
     TextNode: TTextNode;
     function GetCaption: String;
     procedure SetCaption(const Value: String);
     procedure TextChange(Sender: TObject);
     procedure SetText(const Value: TStrings);
+    procedure SetDoubleSided(const Value: Boolean);
   protected
     procedure TranslateProperties(const TranslatePropertyEvent: TTranslatePropertyEvent); override;
   public
@@ -65,6 +67,18 @@ type
 
     { Text is by default unlit. }
     property Material default pmUnlit;
+
+    { When this is @true, the object is visible (and lit) from both sides.
+
+      Note that the default for TCastleText is different than the default for most other primitives,
+      like TCastleBox and TCastleSphere: by default text is double-sided,
+      while most other primitives by default are not double-sided.
+      Set this property to @false for more performance in case camera may be behind the text.
+      The reason for different default is that text object doesn't have an obvious "interior",
+      unlike a box of sphere,
+      so you can more easily land behind the text (and get confused why is it not displayed).
+      This follows X3D TTextNode.Solid default. }
+    property DoubleSided: Boolean read FDoubleSided write SetDoubleSided default true;
   end;
 
 {$endif read_interface}
@@ -85,6 +99,7 @@ begin
   FText := TCastleStringList.Create;
   (FText as TCastleStringList).OnChange := {$ifdef CASTLE_OBJFPC}@{$endif} TextChange;
   FCaptionTranslate := true;
+  FDoubleSided := true;
 end;
 
 destructor TCastleText.Destroy;
@@ -95,7 +110,7 @@ end;
 function TCastleText.PropertySections(const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
-    'Caption', 'Text':
+    'Caption', 'Text', 'DoubleSided':
       Result := [psBasic];
     else
       Result := inherited PropertySections(PropertyName);
@@ -132,6 +147,15 @@ begin
     S := Caption;
     TranslatePropertyEvent(Self, 'Caption', S);
     Caption := S;
+  end;
+end;
+
+procedure TCastleText.SetDoubleSided(const Value: Boolean);
+begin
+  if FDoubleSided <> Value then
+  begin
+    FDoubleSided := Value;
+    TextNode.Solid := not Value;
   end;
 end;
 
