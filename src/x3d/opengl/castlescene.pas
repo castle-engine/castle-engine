@@ -551,7 +551,7 @@ implementation
 uses CastleGLVersion, CastleImages, CastleLog,
   CastleStringUtils, CastleApplicationProperties,
   CastleRenderingCamera, CastleShapeInternalRenderShadowVolumes,
-  CastleComponentSerialize, CastleRenderContext;
+  CastleComponentSerialize, CastleRenderContext, CastleFilesUtils;
 {$warnings on}
 
 {$define read_implementation}
