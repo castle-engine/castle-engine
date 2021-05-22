@@ -17,7 +17,6 @@
             "Y" : 5.0000000000000000E-001,
             "$ClassName" : "TCastleVector2Persistent"
           },
-          "Scale" : 2.4596030712127686E+000,
           "$Children" : [
           ],
           "$ClassName" : "TCastleOrthographic"
