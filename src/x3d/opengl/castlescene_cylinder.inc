@@ -22,9 +22,13 @@ type
     CylinderNode: TCylinderNode;
     FRadius, FHeight: Single;
     FDoubleSided: Boolean;
+    FBottom, FSide, FTop: Boolean;
     procedure SetRadius(const Value: Single);
     procedure SetHeight(const Value: Single);
     procedure SetDoubleSided(const Value: Boolean);
+    procedure SetBottom(const Value: Boolean);
+    procedure SetSide(const Value: Boolean);
+    procedure SetTop(const Value: Boolean);
   public
     constructor Create(AOwner: TComponent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
@@ -37,6 +41,21 @@ type
 
     { When this is @true, the object is visible (and lit) from both sides. }
     property DoubleSided: Boolean read FDoubleSided write SetDoubleSided default false;
+
+    { Display bottom of the cylinder.
+      When @false, you can see the cylinder interior if looking from the outside
+      (note: turn on DoubleSided to make interior visible). }
+    property Bottom: Boolean read FBottom write SetBottom default true;
+
+    { Display side of the cylinder.
+      When @false, you can see the cylinder interior if looking from the outside
+      (note: turn on DoubleSided to make interior visible). }
+    property Side: Boolean read FSide write SetSide default true;
+
+    { Display top of the cylinder.
+      When @false, you can see the cylinder interior if looking from the outside
+      (note: turn on DoubleSided to make interior visible). }
+    property Top: Boolean read FTop write SetTop default true;
   end;
 
 {$endif read_interface}
@@ -52,6 +71,9 @@ begin
   { default properties values }
   FRadius := 1;
   FHeight := 2;
+  FBottom := true;
+  FSide := true;
+  FTop := true;
 
   CylinderNode := TCylinderNode.Create;
   CylinderNode.Radius := FRadius;
@@ -62,7 +84,7 @@ end;
 function TCastleCylinder.PropertySections(const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
-    'Radius', 'Height', 'DoubleSided':
+    'Radius', 'Height', 'DoubleSided', 'Bottom', 'Side', 'Top':
       Result := [psBasic];
     else
       Result := inherited PropertySections(PropertyName);
@@ -93,6 +115,33 @@ begin
   begin
     FDoubleSided := Value;
     CylinderNode.Solid := not Value;
+  end;
+end;
+
+procedure TCastleCylinder.SetBottom(const Value: Boolean);
+begin
+  if FBottom <> Value then
+  begin
+    FBottom := Value;
+    CylinderNode.Bottom := Value;
+  end;
+end;
+
+procedure TCastleCylinder.SetSide(const Value: Boolean);
+begin
+  if FSide <> Value then
+  begin
+    FSide := Value;
+    CylinderNode.Side := Value;
+  end;
+end;
+
+procedure TCastleCylinder.SetTop(const Value: Boolean);
+begin
+  if FTop <> Value then
+  begin
+    FTop := Value;
+    CylinderNode.Top := Value;
   end;
 end;
 

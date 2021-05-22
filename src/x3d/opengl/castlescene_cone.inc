@@ -22,9 +22,12 @@ type
     ConeNode: TConeNode;
     FBottomRadius, FHeight: Single;
     FDoubleSided: Boolean;
+    FBottom, FSide: Boolean;
     procedure SetBottomRadius(const Value: Single);
     procedure SetHeight(const Value: Single);
     procedure SetDoubleSided(const Value: Boolean);
+    procedure SetBottom(const Value: Boolean);
+    procedure SetSide(const Value: Boolean);
   public
     constructor Create(AOwner: TComponent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
@@ -37,6 +40,16 @@ type
 
     { When this is @true, the object is visible (and lit) from both sides. }
     property DoubleSided: Boolean read FDoubleSided write SetDoubleSided default false;
+
+    { Display bottom of the cone.
+      When @false, you can see the cone interior if looking from the outside
+      (note: turn on DoubleSided to make interior visible). }
+    property Bottom: Boolean read FBottom write SetBottom default true;
+
+    { Display sides of the cone.
+      When this is @false, and @link(Bottom) is @true,
+      then cone bottom is effectively displayed as just a disk. }
+    property Side: Boolean read FSide write SetSide default true;
   end;
 
 {$endif read_interface}
@@ -52,6 +65,8 @@ begin
   { default properties values }
   FBottomRadius := 1;
   FHeight := 2;
+  FBottom := true;
+  FSide := true;
 
   ConeNode := TConeNode.Create;
   ConeNode.BottomRadius := FBottomRadius;
@@ -62,7 +77,7 @@ end;
 function TCastleCone.PropertySections(const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
-    'BottomRadius', 'Height', 'DoubleSided':
+    'BottomRadius', 'Height', 'DoubleSided', 'Bottom', 'Side':
       Result := [psBasic];
     else
       Result := inherited PropertySections(PropertyName);
@@ -93,6 +108,24 @@ begin
   begin
     FDoubleSided := Value;
     ConeNode.Solid := not Value;
+  end;
+end;
+
+procedure TCastleCone.SetBottom(const Value: Boolean);
+begin
+  if FBottom <> Value then
+  begin
+    FBottom := Value;
+    ConeNode.Bottom := Value;
+  end;
+end;
+
+procedure TCastleCone.SetSide(const Value: Boolean);
+begin
+  if FSide <> Value then
+  begin
+    FSide := Value;
+    ConeNode.Side := Value;
   end;
 end;
 
