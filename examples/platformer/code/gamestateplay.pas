@@ -1546,7 +1546,7 @@ begin
     Exit;
   end;
 
-  if LevelComplete then
+  if LevelComplete and (TUIState.CurrentTop <> StateLevelComplete) then
   begin
     ScenePlayer.RigidBody.Exists := false;
     PauseGame;
