@@ -1464,7 +1464,7 @@ begin
   end;
 
   KeysRoot := DesignedComponent('Keys') as TCastleTransform;
-  for I := 0 to DoorsRoot.Count - 1 do
+  for I := 0 to KeysRoot.Count - 1 do
   begin
     ConfigureKeysPhysics(KeysRoot.Items[I] as TCastleScene);
   end;
