@@ -40,7 +40,7 @@ var
 
 implementation
 
-uses GameStateMenu, GameStatePlay;
+uses CastleSoundEngine, GameStateMenu, GameStatePlay;
 
 constructor TStatePause.Create(AOwner: TComponent);
 begin
@@ -68,6 +68,9 @@ begin
 
   ButtonMenu := DesignedComponent('ButtonMenu') as TCastleButton;
   ButtonMenu.OnClick := @ClickMenu;
+
+  { Play menu music }
+  SoundEngine.LoopingChannel[0].Sound := SoundEngine.SoundFromName('menu_music');
 end;
 
 end.

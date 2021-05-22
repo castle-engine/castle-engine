@@ -156,6 +156,7 @@ type
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Stop; override;
+    procedure Resume; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
 
@@ -500,6 +501,7 @@ begin
       if PlayerHasKey then
         LevelComplete := true
       else
+        { Show no key message. }
         CollisionDetails.OtherTransform.Items[0].Exists := true;
     end;
   end;
@@ -1529,6 +1531,14 @@ begin
   inherited;
 end;
 
+procedure TStatePlay.Resume;
+begin
+  inherited Resume;
+
+  { Play game music }
+  SoundEngine.LoopingChannel[0].Sound := SoundEngine.SoundFromName('game_music');
+end;
+
 procedure TStatePlay.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 var
   CamPos: TVector3;
@@ -1546,6 +1556,7 @@ begin
     Exit;
   end;
 
+  { If level is completed and we did not show level complete we do that }
   if LevelComplete and (TUIState.CurrentTop <> StateLevelComplete) then
   begin
     ScenePlayer.RigidBody.Exists := false;
