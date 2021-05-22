@@ -34,6 +34,7 @@ uses SysUtils,
   , GameStateGameOver
   , GameStateLevelComplete
   , GameStatePause
+  , GameStateOptions
   {$endregion 'Castle Initialization Uses'};
 
 var
@@ -71,6 +72,7 @@ begin
   StateGameOver := TStateGameOver.Create(Application);
   StateLevelComplete := TStateLevelComplete.Create(Application);
   StatePause := TStatePause.Create(Application);
+  StateOptions := TStateOptions.Create(Application);
   {$endregion 'Castle State Creation'}
 
   TUIState.Current := StateMenu;
