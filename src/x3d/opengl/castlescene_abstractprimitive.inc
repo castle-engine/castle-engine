@@ -45,11 +45,14 @@ type
     FColor: TCastleColor;
     FMaterial: TPrimitiveMaterial;
     FTexture: String;
+    FPreciseCollisions: Boolean;
     procedure SetMaterial(const Value: TPrimitiveMaterial);
     procedure SetColor(const Value: TCastleColor);
     procedure SetTexture(const Value: String);
     { Reflect current FColor, FMaterial, FTexture values in X3D nodes. }
     procedure UpdateMaterialNode;
+    procedure SetPreciseCollisions(const Value: Boolean);
+    function GetRenderOptions: TCastleRenderOptions;
   protected
     { Descendants should add primitive X3D geometry node here. }
     property ShapeNode: TShapeNode read FShapeNode;
@@ -88,6 +91,15 @@ type
       https://www.web3d.org/specifications/X3Dv4Draft/ISO-IEC19775-1v4-CD/Part01/components/geometry3D.html#Box
       describes how texture is applied to the 6 sides of the box. }
     property Texture: String read FTexture write SetTexture;
+
+    { Resolve collisions precisely with the primitive geometry.
+      When this is @false we will only consider the primitive bounding box for collisions,
+      so e.g. player will not be able to move within sphere's box corners.
+      This sets @link(TCastleSceneCore.Spatial). }
+    property PreciseCollisions: Boolean read FPreciseCollisions write SetPreciseCollisions default false;
+
+    { Rendering options of the scene. }
+    property RenderOptions: TCastleRenderOptions read GetRenderOptions;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleabstractprimitive_persistent_vectors.inc}
@@ -136,11 +148,11 @@ end;
 
 procedure TCastleAbstractPrimitive.UpdateMaterialNode;
 
-  procedure AdjustTexture(const NodeField: TSFNode);
+  procedure AdjustTexture(const NodeField: TSFNode; const TextureUrl: String);
   var
     TexNode: TImageTextureNode;
   begin
-    if Texture <> '' then
+    if TextureUrl <> '' then
     begin
       if NodeField.Value is TImageTextureNode then
         TexNode := TImageTextureNode(NodeField.Value)
@@ -151,8 +163,8 @@ procedure TCastleAbstractPrimitive.UpdateMaterialNode;
         NodeField.Changed;
       end;
       if (TexNode.FdUrl.Count <> 1) or
-         (TexNode.FdUrl.Items[0] <> Texture) then
-        TexNode.SetUrl([Texture]);
+         (TexNode.FdUrl.Items[0] <> TextureUrl) then
+        TexNode.SetUrl([TextureUrl]);
     end else
     begin
       if NodeField.Value <> nil then
@@ -160,7 +172,7 @@ procedure TCastleAbstractPrimitive.UpdateMaterialNode;
         NodeField.Value := nil;
         { This causes time-consuming ChangedAll, which is why we checked
           NodeField.Value <> nil above, to not call this from every UpdateMaterialNode,
-          e.g. if you changed something else than Texture. }
+          e.g. if you changed something else than TextureUrl. }
         NodeField.Changed;
       end;
     end;
@@ -179,7 +191,7 @@ procedure TCastleAbstractPrimitive.UpdateMaterialNode;
     end;
     PM.BaseColor := Color.XYZ;
     PM.Transparency := 1 - Color.W;
-    AdjustTexture(PM.FdBaseTexture);
+    AdjustTexture(PM.FdBaseTexture, Texture);
   end;
 
   procedure DoPhong;
@@ -195,7 +207,7 @@ procedure TCastleAbstractPrimitive.UpdateMaterialNode;
     end;
     M.DiffuseColor := Color.XYZ;
     M.Transparency := 1 - Color.W;
-    AdjustTexture(M.FdDiffuseTexture);
+    AdjustTexture(M.FdDiffuseTexture, Texture);
   end;
 
   procedure DoUnlit;
@@ -211,7 +223,7 @@ procedure TCastleAbstractPrimitive.UpdateMaterialNode;
     end;
     UM.EmissiveColor := Color.XYZ;
     UM.Transparency := 1 - Color.W;
-    AdjustTexture(UM.FdEmissiveTexture);
+    AdjustTexture(UM.FdEmissiveTexture, Texture);
   end;
 
 begin
@@ -255,11 +267,30 @@ end;
 function TCastleAbstractPrimitive.PropertySections(const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
-    'ColorPersistent', 'Material', 'Texture':
+    'ColorPersistent', 'Material', 'Texture', 'PreciseCollisions', 'RenderOptions':
       Result := [psBasic];
     else
       Result := inherited PropertySections(PropertyName);
   end;
+end;
+
+procedure TCastleAbstractPrimitive.SetPreciseCollisions(const Value: Boolean);
+begin
+  if FPreciseCollisions <> Value then
+  begin
+    FPreciseCollisions := Value;
+    if Value then
+      FScene.Spatial := [ssDynamicCollisions]
+    else
+      FScene.Spatial := [];
+    { Note that we don't add ssRendering,
+      would be largely useless as primitives are usually just 1 shape in an internal scene. }
+  end;
+end;
+
+function TCastleAbstractPrimitive.GetRenderOptions: TCastleRenderOptions;
+begin
+  Result := FScene.RenderOptions;
 end;
 
 {$define read_implementation_methods}
