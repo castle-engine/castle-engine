@@ -258,8 +258,9 @@ begin
   { X3D specification comment: [0,1] }
 
   FFdBaseTexture := TSFNode.Create(Self, True, 'baseTexture', [TAbstractSingleTextureNode]);
-   FdBaseTexture.ChangeAlways := chVisibleNonGeometry;
+   FdBaseTexture.ChangeAlways := chEverything;
   AddField(FFdBaseTexture);
+  { X3D specification comment: # change: chEverything }
 
   FFdBaseTextureMapping := TSFString.Create(Self, True, 'baseTextureMapping', '');
    FdBaseTextureMapping.ChangeAlways := chVisibleNonGeometry;
@@ -271,8 +272,9 @@ begin
   { X3D specification comment: [0,1] }
 
   FFdMetallicRoughnessTexture := TSFNode.Create(Self, True, 'metallicRoughnessTexture', [TAbstractSingleTextureNode]);
-   FdMetallicRoughnessTexture.ChangeAlways := chVisibleNonGeometry;
+   FdMetallicRoughnessTexture.ChangeAlways := chEverything;
   AddField(FFdMetallicRoughnessTexture);
+  { X3D specification comment: # change: chEverything }
 
   FFdMetallicRoughnessTextureMapping := TSFString.Create(Self, True, 'metallicRoughnessTextureMapping', '');
    FdMetallicRoughnessTextureMapping.ChangeAlways := chVisibleNonGeometry;
@@ -284,8 +286,9 @@ begin
   { X3D specification comment: [0,1] }
 
   FFdOcclusionTexture := TSFNode.Create(Self, True, 'occlusionTexture', [TAbstractSingleTextureNode]);
-   FdOcclusionTexture.ChangeAlways := chVisibleNonGeometry;
+   FdOcclusionTexture.ChangeAlways := chEverything;
   AddField(FFdOcclusionTexture);
+  { X3D specification comment: # change: chEverything }
 
   FFdOcclusionTextureMapping := TSFString.Create(Self, True, 'occlusionTextureMapping', '');
    FdOcclusionTextureMapping.ChangeAlways := chVisibleNonGeometry;

@@ -562,8 +562,9 @@ begin
   { X3D specification comment: [0,1] }
 
   FFdAmbientTexture := TSFNode.Create(Self, True, 'ambientTexture', [TAbstractSingleTextureNode]);
-   FdAmbientTexture.ChangeAlways := chVisibleNonGeometry;
+   FdAmbientTexture.ChangeAlways := chEverything;
   AddField(FFdAmbientTexture);
+  { X3D specification comment: # change: chEverything }
 
   FFdAmbientTextureMapping := TSFString.Create(Self, True, 'ambientTextureMapping', '');
    FdAmbientTextureMapping.ChangeAlways := chVisibleNonGeometry;
@@ -575,8 +576,9 @@ begin
   { X3D specification comment: [0,1] }
 
   FFdDiffuseTexture := TSFNode.Create(Self, True, 'diffuseTexture', [TAbstractSingleTextureNode]);
-   FdDiffuseTexture.ChangeAlways := chVisibleNonGeometry;
+   FdDiffuseTexture.ChangeAlways := chEverything;
   AddField(FFdDiffuseTexture);
+  { X3D specification comment: # change: chEverything }
 
   FFdDiffuseTextureMapping := TSFString.Create(Self, True, 'diffuseTextureMapping', '');
    FdDiffuseTextureMapping.ChangeAlways := chVisibleNonGeometry;
@@ -588,8 +590,9 @@ begin
   { X3D specification comment: [0,1] }
 
   FFdOcclusionTexture := TSFNode.Create(Self, True, 'occlusionTexture', [TAbstractSingleTextureNode]);
-   FdOcclusionTexture.ChangeAlways := chVisibleNonGeometry;
+   FdOcclusionTexture.ChangeAlways := chEverything;
   AddField(FFdOcclusionTexture);
+  { X3D specification comment: # change: chEverything }
 
   FFdOcclusionTextureMapping := TSFString.Create(Self, True, 'occlusionTextureMapping', '');
    FdOcclusionTextureMapping.ChangeAlways := chVisibleNonGeometry;
@@ -601,8 +604,9 @@ begin
   { X3D specification comment: [0,1] }
 
   FFdShininessTexture := TSFNode.Create(Self, True, 'shininessTexture', [TAbstractSingleTextureNode]);
-   FdShininessTexture.ChangeAlways := chVisibleNonGeometry;
+   FdShininessTexture.ChangeAlways := chEverything;
   AddField(FFdShininessTexture);
+  { X3D specification comment: # change: chEverything }
 
   FFdShininessTextureMapping := TSFString.Create(Self, True, 'shininessTextureMapping', '');
    FdShininessTextureMapping.ChangeAlways := chVisibleNonGeometry;
@@ -614,8 +618,9 @@ begin
   { X3D specification comment: [0,1] }
 
   FFdSpecularTexture := TSFNode.Create(Self, True, 'specularTexture', [TAbstractSingleTextureNode]);
-   FdSpecularTexture.ChangeAlways := chVisibleNonGeometry;
+   FdSpecularTexture.ChangeAlways := chEverything;
   AddField(FFdSpecularTexture);
+  { X3D specification comment: # change: chEverything }
 
   FFdSpecularTextureMapping := TSFString.Create(Self, True, 'specularTextureMapping', '');
    FdSpecularTextureMapping.ChangeAlways := chVisibleNonGeometry;
@@ -642,42 +647,42 @@ begin
   FFdReflSpecular := TMFColor.Create(Self, True, 'reflSpecular', []);
    FdReflSpecular.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdReflSpecular);
-  { X3D specification comment: specular reflectance; NOT-SLIM }
+  { X3D specification comment: NOT-SLIM }
 {$endif not CASTLE_SLIM_NODES}
 
 {$ifndef CASTLE_SLIM_NODES}
   FFdReflDiffuse := TMFColor.Create(Self, True, 'reflDiffuse', []);
    FdReflDiffuse.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdReflDiffuse);
-  { X3D specification comment: diffuse reflectance; NOT-SLIM }
+  { X3D specification comment: NOT-SLIM }
 {$endif not CASTLE_SLIM_NODES}
 
 {$ifndef CASTLE_SLIM_NODES}
   FFdTransSpecular := TMFColor.Create(Self, True, 'transSpecular', []);
    FdTransSpecular.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdTransSpecular);
-  { X3D specification comment: specular transmittance; NOT-SLIM }
+  { X3D specification comment: NOT-SLIM }
 {$endif not CASTLE_SLIM_NODES}
 
 {$ifndef CASTLE_SLIM_NODES}
   FFdTransDiffuse := TMFColor.Create(Self, True, 'transDiffuse', []);
    FdTransDiffuse.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdTransDiffuse);
-  { X3D specification comment: diffuse transmittance; NOT-SLIM }
+  { X3D specification comment: NOT-SLIM }
 {$endif not CASTLE_SLIM_NODES}
 
 {$ifndef CASTLE_SLIM_NODES}
   FFdReflSpecularExp := TSFFloat.Create(Self, True, 'reflSpecularExp', 1000000);
    FdReflSpecularExp.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdReflSpecularExp);
-  { X3D specification comment: specular reflectance exponent; NOT-SLIM }
+  { X3D specification comment: NOT-SLIM }
 {$endif not CASTLE_SLIM_NODES}
 
 {$ifndef CASTLE_SLIM_NODES}
   FFdTransSpecularExp := TSFFloat.Create(Self, True, 'transSpecularExp', 1000000);
    FdTransSpecularExp.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdTransSpecularExp);
-  { X3D specification comment: specular transmittance exponent; NOT-SLIM }
+  { X3D specification comment: NOT-SLIM }
 {$endif not CASTLE_SLIM_NODES}
 
   DefaultContainerField := 'material';

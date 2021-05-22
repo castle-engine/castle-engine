@@ -131,8 +131,6 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure ParseAfter(Reader: TX3DReaderNames); override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
-
     { Find a suitable CommonSurfaceShader to be used when rendering this shape,
       or @nil. }
     function CommonSurfaceShader: TCommonSurfaceShaderNode;
@@ -600,21 +598,6 @@ begin
     App.LineProperties := Value;
     Appearance := App;
   end;
-end;
-
-constructor TAppearanceNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
-begin
-  inherited;
-  FdMaterial.ChangeAlways := chEverything;
-  FdBackMaterial.ChangeAlways := chNone; // not used now
-  FdShaders.ChangeAlways := chEverything;
-  FdTexture.ChangeAlways := chEverything;
-  FdTextureTransform.ChangeAlways := chEverything;
-  FdReceiveShadows.ChangeAlways := chShadowMaps;
-  FdShadowCaster.ChangeAlways := chShadowCasters;
-  FdNormalMap.ChangeAlways := chEverything;
-  FdBlendMode.ChangeAlways := chEverything;
-  FdEffects.ChangeAlways := chEverything;
 end;
 
 function TAppearanceNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;

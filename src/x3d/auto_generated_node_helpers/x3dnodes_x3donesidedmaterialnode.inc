@@ -147,16 +147,18 @@ begin
   { X3D specification comment: [0, 1] }
 
   FFdEmissiveTexture := TSFNode.Create(Self, True, 'emissiveTexture', [TAbstractSingleTextureNode]);
-   FdEmissiveTexture.ChangeAlways := chVisibleNonGeometry;
+   FdEmissiveTexture.ChangeAlways := chEverything;
   AddField(FFdEmissiveTexture);
+  { X3D specification comment: , change: chEverything }
 
   FFdEmissiveTextureMapping := TSFString.Create(Self, True, 'emissiveTextureMapping', '');
    FdEmissiveTextureMapping.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdEmissiveTextureMapping);
 
   FFdNormalTexture := TSFNode.Create(Self, True, 'normalTexture', [TAbstractTexture2DNode]);
-   FdNormalTexture.ChangeAlways := chVisibleNonGeometry;
+   FdNormalTexture.ChangeAlways := chEverything;
   AddField(FFdNormalTexture);
+  { X3D specification comment: , change: chEverything }
 
   FFdNormalTextureMapping := TSFString.Create(Self, True, 'normalTextureMapping', '');
    FdNormalTextureMapping.ChangeAlways := chVisibleNonGeometry;

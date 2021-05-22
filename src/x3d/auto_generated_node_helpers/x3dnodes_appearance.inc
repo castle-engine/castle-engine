@@ -406,24 +406,29 @@ begin
   AddField(FFdLineProperties);
 
   FFdMaterial := TSFNode.Create(Self, True, 'material', [TAbstractMaterialNode]);
-   FdMaterial.ChangeAlways := chVisibleNonGeometry;
+   FdMaterial.ChangeAlways := chEverything;
   AddField(FFdMaterial);
+  { X3D specification comment: # change: chEverything }
 
   FFdBackMaterial := TSFNode.Create(Self, True, 'backMaterial', [TAbstractOneSidedMaterialNode]);
-   FdBackMaterial.ChangeAlways := chVisibleNonGeometry;
+   FdBackMaterial.ChangeAlways := chNone;
   AddField(FFdBackMaterial);
+  { X3D specification comment: # change: chNone _ unused for now _ }
 
   FFdShaders := TMFNode.Create(Self, True, 'shaders', [TAbstractShaderNode]);
-   FdShaders.ChangeAlways := chVisibleNonGeometry;
+   FdShaders.ChangeAlways := chEverything;
   AddField(FFdShaders);
+  { X3D specification comment: # change: chEverything }
 
   FFdTexture := TSFNode.Create(Self, True, 'texture', [TAbstractTextureNode]);
-   FdTexture.ChangeAlways := chVisibleNonGeometry;
+   FdTexture.ChangeAlways := chEverything;
   AddField(FFdTexture);
+  { X3D specification comment: # change: chEverything }
 
   FFdTextureTransform := TSFNode.Create(Self, True, 'textureTransform', [TAbstractTextureTransformNode]);
-   FdTextureTransform.ChangeAlways := chVisibleNonGeometry;
+   FdTextureTransform.ChangeAlways := chEverything;
   AddField(FFdTextureTransform);
+  { X3D specification comment: # change: chEverything }
 
   FFdAlphaMode := TSFStringEnum.Create(Self, True, 'alphaMode', AlphaModeToString, Ord(amAuto));
    FdAlphaMode.ChangeAlways := chVisibleNonGeometry;
@@ -436,17 +441,19 @@ begin
   { X3D specification comment: [0,1] }
 
   FFdReceiveShadows := TMFNode.Create(Self, False, 'receiveShadows', [TAbstractPunctualLightNode]);
-   FdReceiveShadows.ChangeAlways := chVisibleNonGeometry;
+   FdReceiveShadows.ChangeAlways := chShadowMaps;
   AddField(FFdReceiveShadows);
+  { X3D specification comment: # change: chShadowMaps }
 
   FFdShadowCaster := TSFBool.Create(Self, True, 'shadowCaster', true);
-   FdShadowCaster.ChangeAlways := chVisibleNonGeometry;
+   FdShadowCaster.ChangeAlways := chShadowCasters;
   AddField(FFdShadowCaster);
+  { X3D specification comment: change: chShadowCasters }
 
   FFdNormalMap := TSFNode.Create(Self, True, 'normalMap', [TAbstractTexture2DNode]);
-   FdNormalMap.ChangeAlways := chVisibleNonGeometry;
+   FdNormalMap.ChangeAlways := chEverything;
   AddField(FFdNormalMap);
-  { X3D specification comment: # }
+  { X3D specification comment: # change: chEverything }
 
 {$ifndef CASTLE_SLIM_NODES}
   FFdHeightMap := TSFNode.Create(Self, True, 'heightMap', [TAbstractTexture2DNode]);
@@ -458,15 +465,16 @@ begin
   FFdHeightMapScale := TSFFloat.Create(Self, True, 'heightMapScale', 0.01);
    FdHeightMapScale.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdHeightMapScale);
-  { X3D specification comment: must be > 0, meaningful only if heightMap specified }
 
   FFdBlendMode := TSFNode.Create(Self, True, 'blendMode', [TBlendModeNode]);
-   FdBlendMode.ChangeAlways := chVisibleNonGeometry;
+   FdBlendMode.ChangeAlways := chEverything;
   AddField(FFdBlendMode);
+  { X3D specification comment: # change: chEverything }
 
   FFdEffects := TMFNode.Create(Self, False, 'effects', [TEffectNode]);
-   FdEffects.ChangeAlways := chVisibleNonGeometry;
+   FdEffects.ChangeAlways := chEverything;
   AddField(FFdEffects);
+  { X3D specification comment: # change: chEverything }
 
   FFdAlphaChannel := TSFStringEnum.Create(Self, True, 'alphaChannel', AlphaToString, Ord(acAuto));
    FdAlphaChannel.ChangeAlways := chVisibleNonGeometry;

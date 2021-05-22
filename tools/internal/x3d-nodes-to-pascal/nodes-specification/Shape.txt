@@ -19,10 +19,10 @@ X3DOneSidedMaterialNode : X3DMaterialNode {
   x3d-nodes-to-pascal: default-container-field material
 
   SFColor  [in,out] emissiveColor           0 0 0  # [0, 1]
-  SFNode   [in,out] emissiveTexture         NULL   # [X3DSingleTextureNode]
+  SFNode   [in,out] emissiveTexture         NULL   # [X3DSingleTextureNode], change: chEverything
   SFString [in,out] emissiveTextureMapping  ""
 
-  SFNode   [in,out] normalTexture           NULL   # [X3DTexture2DNode]
+  SFNode   [in,out] normalTexture           NULL   # [X3DTexture2DNode], change: chEverything
   SFString [in,out] normalTextureMapping    ""
 }
 
@@ -30,7 +30,7 @@ X3DShapeNode : X3DChildNode, X3DBoundedObject {
   x3d-nodes-to-pascal: auto-generate-more true
 
   # In X3D specificaction, appearance can be [X3DAppearanceNode].
-  # But X3DAppearanceNode type is not useful, asthe only possible descendant of it is Appearance,
+  # But X3DAppearanceNode type is not useful, as the only possible descendant of it is Appearance,
   # so we change the type to allow Appearance.
   # This makes accessing it easier, like "Shape.Appearance.Texture := xxx".
   SFNode  [in,out] appearance NULL     [Appearance]
@@ -59,25 +59,25 @@ Appearance : X3DAppearanceNode {
 
   SFNode [in,out] fillProperties   NULL [FillProperties] # NOT-SLIM
   SFNode [in,out] lineProperties   NULL [LineProperties]
-  SFNode [in,out] material         NULL [X3DMaterialNode]
-  SFNode [in,out] backMaterial     NULL [X3DOneSidedMaterialNode]
-  MFNode [in,out] shaders          []   [X3DShaderNode]
-  SFNode [in,out] texture          NULL [X3DTextureNode]
-  SFNode [in,out] textureTransform NULL [X3DTextureTransformNode]
+  SFNode [in,out] material         NULL [X3DMaterialNode]          # change: chEverything
+  SFNode [in,out] backMaterial     NULL [X3DOneSidedMaterialNode]  # change: chNone { unused for now }
+  MFNode [in,out] shaders          []   [X3DShaderNode]            # change: chEverything
+  SFNode [in,out] texture          NULL [X3DTextureNode]           # change: chEverything
+  SFNode [in,out] textureTransform NULL [X3DTextureTransformNode]  # change: chEverything
 
   # X3D 4
   SFString   [in,out]      alphaMode     "AUTO"      # ["AUTO"|"OPAQUE"|"MASK"|"BLEND"] enumerated-type: TAlphaMode AlphaModeToString amAuto
   SFFloat    [in,out]      alphaCutoff   0.5         # [0,1]
 
   # EXTENSIONS:
-  MFNode     []            receiveShadows  []           [X3DPunctualLightNode]
-  SFBool     [in,out]      shadowCaster     TRUE
-  SFNode     [in,out]      normalMap        NULL        [X3DTexture2DNode] #
+  MFNode     []            receiveShadows  []           [X3DPunctualLightNode] # change: chShadowMaps
+  SFBool     [in,out]      shadowCaster     TRUE        # change: chShadowCasters
+  SFNode     [in,out]      normalMap        NULL        [X3DTexture2DNode] # change: chEverything
   SFNode     [in,out]      heightMap        NULL        [X3DTexture2DNode] # NOT-SLIM
-  SFFloat    [in,out]      heightMapScale   0.01        # must be > 0, meaningful only if heightMap specified
-  SFNode     [in,out]      blendMode        NULL        [BlendMode]
-  MFNode     []            effects          []          [Effect]
-  SFString   [in,out]      alphaChannel  "AUTO"      # ["AUTO"|"NONE"|"TEST"|"BLENDING"] enumerated-type: TAutoAlphaChannel AlphaToString acAuto
+  SFFloat    [in,out]      heightMapScale   0.01
+  SFNode     [in,out]      blendMode        NULL        [BlendMode] # change: chEverything
+  MFNode     []            effects          []          [Effect] # change: chEverything
+  SFString   [in,out]      alphaChannel     "AUTO"      # ["AUTO"|"NONE"|"TEST"|"BLENDING"] enumerated-type: TAutoAlphaChannel AlphaToString acAuto
 }
 
 FillProperties : X3DAppearanceChildNode {
@@ -104,23 +104,23 @@ Material : X3DOneSidedMaterialNode {
   x3d-nodes-to-pascal: auto-generate-more true
 
   SFFloat  [in,out] ambientIntensity         0.2          [0,1]
-  SFNode   [in,out] ambientTexture           NULL         [X3DSingleTextureNode]
+  SFNode   [in,out] ambientTexture           NULL         [X3DSingleTextureNode] # change: chEverything
   SFString [in,out] ambientTextureMapping    ""
 
   SFColor  [in,out] diffuseColor             0.8 0.8 0.8  [0,1]
-  SFNode   [in,out] diffuseTexture           NULL         [X3DSingleTextureNode]
+  SFNode   [in,out] diffuseTexture           NULL         [X3DSingleTextureNode] # change: chEverything
   SFString [in,out] diffuseTextureMapping    ""
 
   SFFloat  [in,out] occlusionStrength        1            [0,1]
-  SFNode   [in,out] occlusionTexture         NULL         [X3DSingleTextureNode]
+  SFNode   [in,out] occlusionTexture         NULL         [X3DSingleTextureNode] # change: chEverything
   SFString [in,out] occlusionTextureMapping  ""
 
   SFFloat  [in,out] shininess                0.2          [0,1]
-  SFNode   [in,out] shininessTexture         NULL         [X3DSingleTextureNode]
+  SFNode   [in,out] shininessTexture         NULL         [X3DSingleTextureNode] # change: chEverything
   SFString [in,out] shininessTextureMapping  ""
 
   SFColor  [in,out] specularColor            0 0 0        [0,1]
-  SFNode   [in,out] specularTexture          NULL         [X3DSingleTextureNode]
+  SFNode   [in,out] specularTexture          NULL         [X3DSingleTextureNode] # change: chEverything
   SFString [in,out] specularTextureMapping   ""
 
   SFFloat  [in,out] transparency             0            [0,1]
@@ -128,12 +128,12 @@ Material : X3DOneSidedMaterialNode {
   # EXTENSIONS:
   SFBool     [in,out]      fogImmune             FALSE       # NOT-SLIM
   SFFloat    [in,out]      mirror                0.0         # [0.0; 1.0]
-  MFColor    [in,out]      reflSpecular          []          # specular reflectance; NOT-SLIM
-  MFColor    [in,out]      reflDiffuse           []          # diffuse reflectance; NOT-SLIM
-  MFColor    [in,out]      transSpecular         []          # specular transmittance; NOT-SLIM
-  MFColor    [in,out]      transDiffuse          []          # diffuse transmittance; NOT-SLIM
-  SFFloat    [in,out]      reflSpecularExp       1000000     # specular reflectance exponent; NOT-SLIM
-  SFFloat    [in,out]      transSpecularExp      1000000     # specular transmittance exponent; NOT-SLIM
+  MFColor    [in,out]      reflSpecular          []          # NOT-SLIM
+  MFColor    [in,out]      reflDiffuse           []          # NOT-SLIM
+  MFColor    [in,out]      transSpecular         []          # NOT-SLIM
+  MFColor    [in,out]      transDiffuse          []          # NOT-SLIM
+  SFFloat    [in,out]      reflSpecularExp       1000000     # NOT-SLIM
+  SFFloat    [in,out]      transSpecularExp      1000000     # NOT-SLIM
 }
 
 PhysicalMaterial : X3DOneSidedMaterialNode {
@@ -141,15 +141,15 @@ PhysicalMaterial : X3DOneSidedMaterialNode {
   x3d-nodes-to-pascal: default-container-field material
 
   SFColor  [in,out] baseColor                       1 1 1  [0,1]
-  SFNode   [in,out] baseTexture                     NULL   [X3DSingleTextureNode]
+  SFNode   [in,out] baseTexture                     NULL   [X3DSingleTextureNode] # change: chEverything
   SFString [in,out] baseTextureMapping              ""
 
   SFFloat  [in,out] metallic                        1      [0,1]
-  SFNode   [in,out] metallicRoughnessTexture        NULL   [X3DSingleTextureNode]
+  SFNode   [in,out] metallicRoughnessTexture        NULL   [X3DSingleTextureNode] # change: chEverything
   SFString [in,out] metallicRoughnessTextureMapping ""
 
   SFFloat  [in,out] occlusionStrength               1      [0,1]
-  SFNode   [in,out] occlusionTexture                NULL   [X3DSingleTextureNode]
+  SFNode   [in,out] occlusionTexture                NULL   [X3DSingleTextureNode] # change: chEverything
   SFString [in,out] occlusionTextureMapping         ""
 
   SFFloat  [in,out] roughness                       1      [0,1]
