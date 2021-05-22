@@ -42,6 +42,8 @@ type
     procedure SetSpacing(const Value: Single);
   protected
     procedure TranslateProperties(const TranslatePropertyEvent: TTranslatePropertyEvent); override;
+    function GetInternalText: String; override;
+    procedure SetInternalText(const Value: String); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -246,6 +248,16 @@ begin
     FSpacing := Value;
     FontStyleNode.Spacing := Value;
   end;
+end;
+
+function TCastleText.GetInternalText: String;
+begin
+  Result := Caption;
+end;
+
+procedure TCastleText.SetInternalText(const Value: String);
+begin
+  Caption := Value;
 end;
 
 {$endif read_implementation}
