@@ -223,8 +223,6 @@ begin
     else raise EInternalError.Create('TCastleAbstractPrimitive.UpdateMaterialNode:FMaterial?');
     {$endif}
   end;
-
-  FScene.Save(FileNameAutoInc('a%d.x3dv'));
 end;
 
 procedure TCastleAbstractPrimitive.SetMaterial(const Value: TPrimitiveMaterial);
