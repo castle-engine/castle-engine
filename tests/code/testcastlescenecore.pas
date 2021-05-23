@@ -56,12 +56,13 @@ type
     procedure TestCocos;
     procedure TestImageAsNode;
     procedure TestPlayStopAnim;
+    procedure TestFontStyleChanges;
   end;
 
 implementation
 
 uses X3DLoad, CastleVectors, CastleShapes,
-  CastleTimeUtils, CastleStringUtils, X3DFields, CastleSceneManager,
+  CastleTimeUtils, CastleStringUtils, X3DFields, CastleSceneManager, CastleBoxes,
   CastleFilesUtils, CastleScene, CastleTransform, CastleApplicationProperties,
   CastleURIUtils;
 
@@ -622,6 +623,46 @@ begin
 
     Scene.StopAnimation;
     AssertTrue(Scene.CurrentAnimation = nil);
+  finally FreeAndNil(Scene) end;
+end;
+
+procedure TTestSceneCore.TestFontStyleChanges;
+var
+  FontStyleNode: TFontStyleNode;
+  TextNode: TTextNode;
+  TextShape: TShapeNode;
+  RootNode: TX3DRootNode;
+  Scene: TCastleScene;
+  Box: TBox3D;
+begin
+  FontStyleNode := TFontStyleNode.Create;
+
+  TextNode := TTextNode.CreateWithShape(TextShape);
+  TextNode.FontStyle := FontStyleNode;
+  TextNode.SetString(['one line of text']);
+
+  RootNode := TX3DRootNode.Create;
+  RootNode.AddChildren(TextShape);
+
+  Scene := TCastleScene.Create(nil);
+  try
+    // Scene.ProcessEvents := true; // this should work even without process events, TCastleText depends on it
+    Scene.Load(RootNode, true);
+
+    Box := Scene.BoundingBox;
+    //Writeln(Box.ToString);
+    AssertSameValue(1, Box.Size.Y);
+
+    FontStyleNode.Size := 10;
+    Box := Scene.BoundingBox;
+    //Writeln(Box.ToString);
+    AssertSameValue(10, Box.Size.Y);
+
+    FontStyleNode.Size := 100;
+    Box := Scene.BoundingBox;
+    //Writeln(Box.ToString);
+    AssertSameValue(100, Box.Size.Y);
+
   finally FreeAndNil(Scene) end;
 end;
 
