@@ -63,7 +63,7 @@
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "Group1",
-          "VerticalAnchorDelta" : -7.4000000000000000E+001,
+          "VerticalAnchorDelta" : -7.9598747253417969E+001,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [
@@ -71,7 +71,7 @@
           "$ClassName" : "TCastleUserInterface"
         },
         {
-          "Caption" : "Menu",
+          "Caption" : "Credits",
           "CustomBackgroundDisabled" : {
             "$ClassName" : "TCastleImagePersistent"
           },
@@ -89,10 +89,10 @@
           "Image" : {
             "$ClassName" : "TCastleImagePersistent"
           },
-          "Name" : "ButtonMenu",
+          "Name" : "ButtonCredits",
           "PaddingHorizontal" : 3.0000000000000000E+001,
           "PaddingVertical" : 3.0000000000000000E+001,
-          "VerticalAnchorDelta" : -2.3400000000000000E+002,
+          "VerticalAnchorDelta" : -2.3959875488281250E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [

@@ -24,9 +24,9 @@ uses Classes,
 type
   TStateLevelComplete = class(TUIState)
   private
-    ButtonMenu: TCastleButton;
+    ButtonCredits: TCastleButton;
 
-    procedure ClickMenu(Sender: TObject);
+    procedure ClickCredits(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -38,7 +38,7 @@ var
 
 implementation
 
-uses CastleSoundEngine, GameStateMenu;
+uses CastleSoundEngine, GameStateCredits;
 
 constructor TStateLevelComplete.Create(AOwner: TComponent);
 begin
@@ -46,17 +46,17 @@ begin
   DesignUrl := 'castle-data:/gamestatelevelcomplete.castle-user-interface';
 end;
 
-procedure TStateLevelComplete.ClickMenu(Sender: TObject);
+procedure TStateLevelComplete.ClickCredits(Sender: TObject);
 begin
-  TUIState.Current := StateMenu;
+  TUIState.Current := StateCredits;
 end;
 
 procedure TStateLevelComplete.Start;
 begin
   inherited;
 
-  ButtonMenu := DesignedComponent('ButtonMenu') as TCastleButton;
-  ButtonMenu.OnClick := @ClickMenu;
+  ButtonCredits := DesignedComponent('ButtonCredits') as TCastleButton;
+  ButtonCredits.OnClick := @ClickCredits;
 
   { Play menu music }
   SoundEngine.LoopingChannel[0].Sound := SoundEngine.SoundFromName('menu_music');
