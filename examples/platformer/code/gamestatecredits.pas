@@ -26,7 +26,11 @@ type
   TStateCredits = class(TUIState)
   private
     { Components designed using CGE editor, loaded from state_menu.castle-user-interface. }
-    ButtonMenu: TCastleButton;
+    ButtonCGE, ButtonGraphics, ButtonMusic, ButtonSources, ButtonMenu: TCastleButton;
+    procedure ClickCGE(Sender: TObject);
+    procedure ClickGraphics(Sender: TObject);
+    procedure ClickMusic(Sender: TObject);
+    procedure ClickSources(Sender: TObject);
     procedure ClickMenu(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
@@ -38,7 +42,7 @@ var
 
 implementation
 
-uses CastleApplicationProperties, CastleWindow,
+uses CastleApplicationProperties, CastleWindow, CastleOpenDocument,
   GameStateMenu;
 
 { TStateMenu ----------------------------------------------------------------- }
@@ -55,13 +59,41 @@ begin
 
   { Find components, by name, that we need to access from code }
   ButtonMenu := DesignedComponent('ButtonMenu') as TCastleButton;
+  ButtonCGE := DesignedComponent('ButtonCGE') as TCastleButton;
+  ButtonGraphics := DesignedComponent('ButtonGraphics') as TCastleButton;
+  ButtonMusic := DesignedComponent('ButtonMusic') as TCastleButton;
+  ButtonSources := DesignedComponent('ButtonSources') as TCastleButton;
 
   ButtonMenu.OnClick := @ClickMenu;
+  ButtonCGE.OnClick := @ClickCGE;
+  ButtonGraphics.OnClick := @ClickGraphics;
+  ButtonMusic.OnClick := @ClickMusic;
+  ButtonSources.OnClick := @ClickSources;
 end;
 
 procedure TStateCredits.ClickMenu(Sender: TObject);
 begin
   TUIState.Current := StateMenu;
+end;
+
+procedure TStateCredits.ClickCGE(Sender: TObject);
+begin
+  CastleOpenDocument.OpenURL('https://castle-engine.io');
+end;
+
+procedure TStateCredits.ClickGraphics(Sender: TObject);
+begin
+  CastleOpenDocument.OpenURL('https://www.kenney.nl');
+end;
+
+procedure TStateCredits.ClickMusic(Sender: TObject);
+begin
+  CastleOpenDocument.OpenURL('https://www.akimaze.com');
+end;
+
+procedure TStateCredits.ClickSources(Sender: TObject);
+begin
+  CastleOpenDocument.OpenURL('https://github.com/castle-engine/castle-engine/tree/master/examples/platformer');
 end;
 
 end.
