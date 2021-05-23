@@ -868,6 +868,14 @@
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "Title",
+          "Outline" : 2,
+          "OutlineColorPersistent" : {
+            "Blue" : 9.4117648899555206E-002,
+            "Green" : 5.7647061347961426E-001,
+            "Red" : 3.8823530077934265E-001,
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "OutlineHighQuality" : true,
           "Text" : [
             "Options"
           ],

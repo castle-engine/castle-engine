@@ -41,6 +41,14 @@
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "LabelTitle",
+          "Outline" : 2,
+          "OutlineColorPersistent" : {
+            "Blue" : 6.6666670143604279E-002,
+            "Green" : 6.6666670143604279E-002,
+            "Red" : 4.7843137383460999E-001,
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "OutlineHighQuality" : true,
           "Text" : [
             "Game Over"
           ],
