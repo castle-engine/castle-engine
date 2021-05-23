@@ -5182,6 +5182,7 @@ var
   end;
 
   procedure HandleFontStyle;
+  (* Naive version to seek all shapes. Left only for educational purposes.
   var
     ShapeList: TShapeList;
     Shape: TShape;
@@ -5191,6 +5192,45 @@ var
       if (Shape.OriginalGeometry is TTextNode) and
          (TTextNode(Shape.OriginalGeometry).FontStyle = ANode) then
         Shape.Changed(false, [Change]);
+  end;
+  *)
+  var
+    ParentField: TX3DField;
+    TextNode: TX3DNode;
+    C, I, J: Integer;
+  begin
+    { ANode is TFontStyleNode, child of (maybe many) TTextNodes.
+      For each TTextNode, we want to call Changed on all TShape instances associated it.
+      This accounts for various complicated X3D setups:
+      TFontStyleNode may be referenced multiple times,
+      TTextNode may be referenced multiple times. }
+
+    Assert(ANode is TFontStyleNode, 'Only TFontStyleNode should send chFontStyle');
+    for I := 0 to ANode.ParentFieldsCount - 1 do
+    begin
+      ParentField := ANode.ParentFields[I];
+      if not (ParentField is TSFNode) then
+      begin
+        WritelnWarning('TFontStyleNode change', 'ParentField is not TSFNode. This should not happen in normal usage of TFontStyleNode, submit a bug');
+        Continue;
+      end;
+
+      TextNode := TSFNode(ParentField).ParentNode;
+      if TextNode = nil then
+      begin
+        WritelnWarning('TFontStyleNode change', 'ParentField.Node is nil. This should not happen in usual usage of TCastleScene, submit a bug');
+        Continue;
+      end;
+      if not (TextNode is TTextNode) then
+      begin
+        WritelnWarning('TFontStyleNode change', 'ParentField.Node is not TTextNode. This should not happen in normal usage of TFontStyleNode, submit a bug');
+        Continue;
+      end;
+
+      C := TShapeTree.AssociatedShapesCount(TextNode);
+      for J := 0 to C - 1 do
+        TShape(TShapeTree.AssociatedShape(TextNode, J)).Changed(false, [Change]);
+    end;
   end;
 
   procedure HandleChangeHeadLightOn;
