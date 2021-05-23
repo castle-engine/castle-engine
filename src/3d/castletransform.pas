@@ -832,9 +832,14 @@ type
       is only a shortcut for @code(SortBackToFront(bs2D, TVector3.Zero)). }
     procedure SortBackToFront2D;
 
-    { Bounding box of this object, taking into account current transformation
+    { Bounding box of this object, in the coordinate system of the parent transformation.
+      This method takes into account current transformation
       (like @link(Translation), @link(Rotation))
-      although not parent transformations (for this, see @link(WorldBoundingBox)).
+      but not parent TCastleTransform transformations.
+      Use @link(WorldBoundingBox) instead to know bounding box that accounts for all
+      TCastleTransform transformations.
+      Use @link(LocalBoundingBox) instead to know bounding box that does not account for
+      any parent or this TCastleTransform transformations.
 
       Takes into account both collidable and visible objects.
       For example, invisible walls (not visible) and fake walls
@@ -842,14 +847,23 @@ type
 
       It's a @italic(bounding) volume, it should be as large as necessary
       to include the object inside. At the same time, it should be
-      as "tight" as it can, to make various optimizations work best. }
+      as "tight" as it can, to make various optimizations work best.
+
+      @seealso WorldBoundingBox
+      @seealso LocalBoundingBox }
     function BoundingBox: TBox3D;
 
-    { Bounding box of this object, ignoring the transformations of this scene and parents. }
+    { Bounding box of this object, ignoring the transformations of this scene and parents.
+
+      @seealso BoundingBox
+      @seealso WorldBoundingBox }
     function LocalBoundingBox: TBox3D; virtual;
 
     { Bounding box of this object, taking into account
-      all transformations of this and parents. }
+      all transformations of this and parents.
+
+      @seealso BoundingBox
+      @seealso LocalBoundingBox }
     function WorldBoundingBox: TBox3D;
 
     { Render given object.
