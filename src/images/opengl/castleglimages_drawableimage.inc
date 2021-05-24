@@ -1098,6 +1098,8 @@ var
       glBufferSubData(Target, 0, ContentsSize, ContentsPtr);
   end;
 
+const
+  IndexesPerQuad = 6;
 var
   ColorTreatment: TColorTreatment;
   Prog: TImageProgram;
@@ -1124,20 +1126,20 @@ begin
   if Count <> 1 then
   begin
     {$ifdef GLIndexesShort}
-    if Integer(Count - 1) * 4 + 3 > High(Word) then
+    if Integer(Count - 1) * IndexesPerQuad + IndexesPerQuad - 1 > High(Word) then
       raise Exception.CreateFmt('Maximum index value is larger than %d (max 16-bit unsigned integer). Split your rendering into more shapes (draw calls). Or undefine GLIndexesShort in castleconf.inc to be able to render your data (but beware that it may fail on some buggy Android devices).', [High(Word)]);
     {$endif}
-    SetLength(Indexes, Count * 6);
+    SetLength(Indexes, Count * IndexesPerQuad);
     for I := 0 to Count - 1 do
     begin
       { 1st triangle of quad }
-      Indexes[I * 6    ] := I * 4;
-      Indexes[I * 6 + 1] := I * 4 + 1;
-      Indexes[I * 6 + 2] := I * 4 + 2;
+      Indexes[I * IndexesPerQuad    ] := I * 4;
+      Indexes[I * IndexesPerQuad + 1] := I * 4 + 1;
+      Indexes[I * IndexesPerQuad + 2] := I * 4 + 2;
       { 2nd triangle of quad }
-      Indexes[I * 6 + 3] := I * 4;
-      Indexes[I * 6 + 4] := I * 4 + 2;
-      Indexes[I * 6 + 5] := I * 4 + 3;
+      Indexes[I * IndexesPerQuad + 3] := I * 4;
+      Indexes[I * IndexesPerQuad + 4] := I * 4 + 2;
+      Indexes[I * IndexesPerQuad + 5] := I * 4 + 3;
     end;
   end;
 
