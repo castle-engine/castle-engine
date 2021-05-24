@@ -118,7 +118,7 @@ do_pack_platform ()
   export CASTLE_FPC_OPTIONS="-T${OS} -P${CPU}"
   export CASTLE_BUILD_TOOL_OPTIONS="--os=${OS} --cpu=${CPU}"
   local  CASTLE_LAZBUILD_OPTIONS="--os=${OS} --cpu=${CPU}"
-  local  MAKE_OPTIONS=""
+  local  MAKE_OPTIONS="BUILD_TOOL=castle-engine" # use build tool on $PATH
 
   if [ "${VERBOSE}" '!=' 'true' ]; then
     CASTLE_FPC_OPTIONS="${CASTLE_FPC_OPTIONS} -vi-"
@@ -152,11 +152,11 @@ do_pack_platform ()
   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_window.lpk
   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_components.lpk
 
-  # Make sure no leftovers from previous compilations remain, to affect tools
+  # Make sure no leftovers from previous compilations remain, to not affect tools, to not pack them in release
   make cleanmore $MAKE_OPTIONS
 
   # Compile most tools with FPC, and castle-editor with lazbuild
-  make tools BUILD_TOOL="castle-engine ${CASTLE_BUILD_TOOL_OPTIONS}"
+  make tools $MAKE_OPTIONS BUILD_TOOL="castle-engine ${CASTLE_BUILD_TOOL_OPTIONS}"
   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/castle_editor.lpi
 
   # Place tools binaries in bin/ subdirectory
