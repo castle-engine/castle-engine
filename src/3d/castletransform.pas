@@ -802,34 +802,55 @@ type
     { Sort objects back-to-front @italic(right now)
       following one of the blending sorting algorithms.
       Only the immediate list items are reordered,
-      looking at their bounding boxes.
+      looking at their bounding boxes (the sorting is not recursive).
 
-      Calling this method makes sense if you have a list
-      of objects, and some of them are partially-transparent and may
+      Calling this method makes sense if you use
+      @url(https://github.com/castle-engine/castle-engine/wiki/Blending blending)
+      and multiple partially-transparent objects may
       be visible at the same place on the screen.
-      It may even make sense to call this method every frame (like in every
-      @link(TCastleWindowBase.OnUpdate)),
-      if you move or otherwise change the objects (changing their bounding boxes),
-      or if the CameraPosition may change (note that CameraPosition is only
-      relevant if BlendingSort = bs3D).
+      Sorting avoids artifacts when rendering.
 
-      Sorting partially-transparent objects avoids artifacts when rendering.
+      @unorderedList(
+        @item(
+          In general, you should call this method whenever the correct back-to-front order
+          of objects (with respect to the current camera) changes.
+        )
+        @item(
+          In 3D, it may make sense to call this method even every frame
+          (like in every @link(TCastleWindowBase.OnUpdate)).
+          Call it if you move or otherwise change the objects (changing their bounding boxes),
+          or if the CameraPosition may change (note that CameraPosition is only
+          relevant if BlendingSort = bs3D).
+        )
+        @item(
+          In 2D, it is a bit simpler.
+          You typically need to call this only when some objects' Z value changed
+          (making this object move behind / in front of some other object),
+          or when new object is added.
+          You don't need to call this method when camera changes or when object's XY position
+          changes, as they don't affect the order.
+        )
+      )
 
       Note that this doesn't take care of sorting the shapes
       within the scenes. For this, you should set
       @link(TCastleRenderOptions.BlendingSort Scene.RenderOptions.BlendingSort)
       to a value like bs3D, to keep it sorted.
-      It is actually the default now.
+      It is the default now, so you typically don't need to worry about it.
 
       See the TBlendingSort documentation for the exact specification
-      of sorting algorithms. Using BlendingSort = bsNone does nothing. }
+      of sorting algorithms. Using BlendingSort = bsNone does nothing.
+
+      @seealso SortBackToFront2D }
     procedure SortBackToFront(const BlendingSort: TBlendingSort;
       const CameraPosition: TVector3);
 
     { Sort objects back-to-front @italic(right now)
       following the 2D blending sorting algorithm.
       See @link(SortBackToFront) for documentation, this method
-      is only a shortcut for @code(SortBackToFront(bs2D, TVector3.Zero)). }
+      is only a shortcut for @code(SortBackToFront(bs2D, TVector3.Zero)).
+
+      @seealso SortBackToFront }
     procedure SortBackToFront2D;
 
     { Bounding box of this object, in the coordinate system of the parent transformation.
