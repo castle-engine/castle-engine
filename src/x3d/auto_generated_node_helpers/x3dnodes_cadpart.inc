@@ -159,8 +159,9 @@ begin
   { X3D specification comment: (-Inf,Inf)           change: chTransform }
 
   FFdName := TSFString.Create(Self, True, 'name', '');
-   FdName.ChangeAlways := chVisibleNonGeometry;
+   FdName.ChangeAlways := chNone;
   AddField(FFdName);
+  { X3D specification comment: change: chNone }
 
   FFdRotation := TSFRotation.Create(Self, True, 'rotation', Vector3(0, 0, 1), 0);
    FdRotation.ChangeAlways := chTransform;

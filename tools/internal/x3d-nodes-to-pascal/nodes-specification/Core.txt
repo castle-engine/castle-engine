@@ -1,6 +1,6 @@
 X3DNode {
   x3d-nodes-to-pascal: auto-generate-more true
-  SFNode [in,out] metadata NULL [X3DMetadataNode] # NOT-SLIM
+  SFNode [in,out] metadata NULL [X3DMetadataNode] # NOT-SLIM, change: chNone
 }
 
 X3DBindableNode : X3DChildNode {
@@ -33,48 +33,48 @@ X3DInfoNode : X3DChildNode {
 X3DMetadataNode : X3DNode {
   x3d-nodes-to-pascal: auto-generate-more true
   x3d-nodes-to-pascal: default-container-field metadata
-  SFString [in,out] name      ""
-  SFString [in,out] reference ""
+  SFString [in,out] name      "" # change: chNone
+  SFString [in,out] reference "" # change: chNone
 }
 
 X3DSensorNode  : X3DChildNode {
   x3d-nodes-to-pascal: auto-generate-more true
-  SFBool [in,out] enabled  TRUE
+  SFBool [in,out] enabled  TRUE # change: chNone
   SFBool [out]    isActive
 }
 
 MetadataBoolean : X3DMetadataNode {
   x3d-nodes-to-pascal: auto-generate-more true
-  MFBool   [in,out] value     []
+  MFBool   [in,out] value     [] # change: chNone
 }
 
 MetadataDouble : X3DMetadataNode {
   x3d-nodes-to-pascal: auto-generate-more true
-  MFDouble [in,out] value     []
+  MFDouble [in,out] value     [] # change: chNone
 }
 
 MetadataFloat : X3DMetadataNode {
   x3d-nodes-to-pascal: auto-generate-more true
-  MFFloat  [in,out] value     []
+  MFFloat  [in,out] value     [] # change: chNone
 }
 
 MetadataInteger : X3DMetadataNode {
   x3d-nodes-to-pascal: auto-generate-more true
-  MFInt32  [in,out] value     []
+  MFInt32  [in,out] value     [] # change: chNone
 }
 
 MetadataSet : X3DMetadataNode {
   x3d-nodes-to-pascal: auto-generate-more true
-  MFNode   [in,out] value     [] # [X3DMetadataNode]
+  MFNode   [in,out] value     [] # [X3DMetadataNode], change: chNone
 }
 
 MetadataString : X3DMetadataNode {
   x3d-nodes-to-pascal: auto-generate-more true
-  MFString [in,out] value     []
+  MFString [in,out] value     [] # change: chNone
 }
 
 WorldInfo : X3DInfoNode {
   x3d-nodes-to-pascal: auto-generate-more true
-  MFString []       info     []
-  SFString []       title    ""
+  MFString []       info     [] # change: chNone
+  SFString []       title    "" # change: chNone
 }

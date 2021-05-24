@@ -63,8 +63,9 @@ begin
   inherited;
 
   FFdValue := TMFBool.Create(Self, True, 'value', []);
-   FdValue.ChangeAlways := chVisibleNonGeometry;
+   FdValue.ChangeAlways := chNone;
   AddField(FFdValue);
+  { X3D specification comment: change: chNone }
 end;
 
 {$endif read_implementation}

@@ -1,12 +1,12 @@
 X3DProductStructureChildNode : X3DChildNode {
   x3d-nodes-to-pascal: auto-generate-more true
   x3d-nodes-to-pascal: default-container-field children
-  SFString [in,out] name ""
+  SFString [in,out] name "" # change: chNone
 }
 
 CADAssembly : X3DGroupingNode, X3DProductStructureChildNode {
   x3d-nodes-to-pascal: auto-generate-more true
-  SFString [in,out] name           ""
+  SFString [in,out] name           "" # change: chNone
 }
 
 CADFace : X3DProductStructureChildNode, X3DBoundedObject {
@@ -18,18 +18,18 @@ CADFace : X3DProductStructureChildNode, X3DBoundedObject {
 
 CADLayer : X3DGroupingNode {
   x3d-nodes-to-pascal: auto-generate-more true
-  SFString [in,out] name           ""
+  SFString [in,out] name           "" # change: chNone
   # MFBool   [in,out] visible        [] # X3D 4 removed it, in favor of "SFBool visible" at X3DGroupingNode; we just follow X3D 4 spec for all X3D versions, for simplicity
 }
 
 CADPart : X3DGroupingNode, X3DProductStructureChildNode {
   x3d-nodes-to-pascal: auto-generate-more true
-  SFVec3f    [in,out] center           0 0 0    (-Inf,Inf)           change: chTransform
-  SFString   [in,out] name             ""
-  SFRotation [in,out] rotation         0 0 1 0  [-1,1] or (-Inf,Inf) change: chTransform
-  SFVec3f    [in,out] scale            1 1 1    (0,Inf)              change: chTransform
-  SFRotation [in,out] scaleOrientation 0 0 1 0  [-1,1] or (-Inf,Inf) change: chTransform
-  SFVec3f    [in,out] translation      0 0 0    (-Inf,Inf)           change: chTransform
+  SFVec3f    [in,out] center           0 0 0    # (-Inf,Inf)           change: chTransform
+  SFString   [in,out] name             ""       #                      change: chNone
+  SFRotation [in,out] rotation         0 0 1 0  # [-1,1] or (-Inf,Inf) change: chTransform
+  SFVec3f    [in,out] scale            1 1 1    # (0,Inf)              change: chTransform
+  SFRotation [in,out] scaleOrientation 0 0 1 0  # [-1,1] or (-Inf,Inf) change: chTransform
+  SFVec3f    [in,out] translation      0 0 0    # (-Inf,Inf)           change: chTransform
 }
 
 IndexedQuadSet : X3DComposedGeometryNode {

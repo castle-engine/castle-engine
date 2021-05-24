@@ -64,8 +64,9 @@ begin
   inherited;
 
   FFdName := TSFString.Create(Self, True, 'name', '');
-   FdName.ChangeAlways := chVisibleNonGeometry;
+   FdName.ChangeAlways := chNone;
   AddField(FFdName);
+  { X3D specification comment: change: chNone }
 
   DefaultContainerField := 'children';
 end;
