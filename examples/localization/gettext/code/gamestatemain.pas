@@ -169,8 +169,8 @@ begin
     TFontStyleNode.OnFont is used by TTextNode.
     Everything else uses UIFont (by default). }
   TFontStyleNode.OnFont := @GetFont;
-  UIFont := TTextureFont.Create(Self);
-  (UIFont as TTextureFont).Load(TextureFont_DejaVuSans_50, false);
+  UIFont := TCastleFont.Create(Self);
+  (UIFont as TCastleFont).Load(TextureFont_DejaVuSans_50, false);
   UIFont.Size := 20;
 
   { initialize language, InitializeLanguage will also intialize UI }

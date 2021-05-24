@@ -49,21 +49,23 @@ var
   SList: TStringList;
   W1, W2: Single;
 begin
-  F := TTextureFont.Create(TextureFont_DejaVuSansMonoBold_15);
+  F := TCastleFont.Create(nil);
+  try
+    F.Load(TextureFont_DejaVuSansMonoBold_15);
 
-  SList := TStringList.Create;
+    SList := TStringList.Create;
+    try
+      SList.Append('blah');
+      W1 := F.MaxTextWidth(SList);
 
-  SList.Append('blah');
-  W1 := F.MaxTextWidth(SList);
+      SList.Clear;
+      SList.Append('<font color="#aabbcc">blah</font>');
+      W2 := F.MaxTextWidth(SList, true);
 
-  SList.Clear;
-  SList.Append('<font color="#aabbcc">blah</font>');
-  W2 := F.MaxTextWidth(SList, true);
-
-  AssertTrue(W1 > 0);
-  AssertTrue(W1 = W2);
-  FreeAndNil(SList);
-  FreeAndNil(F);
+      AssertTrue(W1 > 0);
+      AssertTrue(W1 = W2);
+    finally FreeAndNil(SList) end;
+  finally FreeAndNil(F) end;
 end;
 
 procedure TTestCastleFonts.TestMaxTextWidthHtmlInWindow;
@@ -86,17 +88,19 @@ end;
 
 procedure TTestCastleFonts.TestSizeFontFamily;
 var
-  Font: TTextureFont;
-  Family: TFontFamily;
+  Font: TCastleFont;
+  Family: TCastleFontFamily;
   Customized: TCustomizedFont;
 begin
-  Font := TTextureFont.Create(TextureFont_DejaVuSansMonoBold_15);
+  Font := TCastleFont.Create(nil);
   try
+    Font.Load(TextureFont_DejaVuSansMonoBold_15);
+
     AssertEquals(15, Font.Size);
     AssertEquals(15, Font.EffectiveSize);
     AssertEquals(14, Font.RowHeight);
 
-    Family := TFontFamily.Create(nil);
+    Family := TCastleFontFamily.Create(nil);
     try
       Family.RegularFont := Font;
 
@@ -129,7 +133,7 @@ begin
     AssertEquals(60, Font.EffectiveSize);
     AssertEquals(56, Font.RowHeight);
 
-    Family := TFontFamily.Create(nil);
+    Family := TCastleFontFamily.Create(nil);
     try
       Family.RegularFont := Font;
 
@@ -160,7 +164,7 @@ begin
 end;
 
 type
-  TLargeDigitsFont = class(TTextureFont)
+  TLargeDigitsFont = class(TCastleFont)
     { The "Font_LatoRegular_300" font has only digits, misses other chars.
       So default calculation of RowHeight and friends doesn't work. }
     procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Single); override;
@@ -185,9 +189,9 @@ procedure TTestCastleFonts.TestOverrideFont;
 var
   LargeDigitsFont: TLargeDigitsFont;
   CustomizedFont: TCustomizedFont;
-  FontFamily: TFontFamily;
+  FontFamily: TCastleFontFamily;
 begin
-  LargeDigitsFont := TLargeDigitsFont.Create(TComponent(nil));
+  LargeDigitsFont := TLargeDigitsFont.Create(nil);
   try
     LargeDigitsFont.Load(TextureFont_LatoRegular_300);
     LargeDigitsFont.FontData.UseFallbackGlyph := false;
@@ -215,7 +219,7 @@ begin
       AssertSameValue(0, CustomizedFont.Descend);
     finally FreeAndNil(CustomizedFont) end;
 
-    FontFamily := TFontFamily.Create(nil);
+    FontFamily := TCastleFontFamily.Create(nil);
     try
       FontFamily.RegularFont := LargeDigitsFont;
       AssertSameValue(0, FontFamily.Size); // not customized yet
@@ -252,7 +256,7 @@ begin
       AssertSameValue(0, CustomizedFont.Descend);
     finally FreeAndNil(CustomizedFont) end;
 
-    FontFamily := TFontFamily.Create(nil);
+    FontFamily := TCastleFontFamily.Create(nil);
     try
       FontFamily.RegularFont := LargeDigitsFont;
       FontFamily.Size := 2000;

@@ -692,7 +692,7 @@ var
 
   { Print the string, by adding rectangles to current QuadSet.
     This is somewhat analogous to printing straight in 2D done
-    by TCastleFont.Print and TDrawableImage.Draw. }
+    by TCastleAbstractFont.Print and TDrawableImage.Draw. }
   procedure Print(X, Y: Single; const S: string; const XScale, YScale: Single);
 
     function ConvertCoordToExtraTex(const CoordIndex: Integer; const Coord: Single): Single;

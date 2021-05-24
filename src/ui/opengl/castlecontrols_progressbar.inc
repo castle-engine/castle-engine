@@ -71,7 +71,7 @@ const
 
 { Make Text shorter to fit the text width (as rendered using Font)
   inside MaxWidth (in pixels). }
-procedure MakeTextFit(var Text: string; const Font: TCastleFont;
+procedure MakeTextFit(var Text: string; const Font: TCastleAbstractFont;
   const MaxWidth: Integer);
 var
   DotsWidth: Single;

@@ -43,7 +43,7 @@ type
     procedure Load(const FontData: TTextureFontData);
   public
     MyFontData: TTextureFontData;
-    MyFont: TTextureFont;
+    MyFont: TCastleFont;
     SceneUsingText: TCastleScene;
     constructor Create;
     destructor Destroy; override;
@@ -60,7 +60,7 @@ var
 constructor TFontContainer.Create;
 begin
   inherited;
-  MyFont := TTextureFont.Create(TComponent(nil));
+  MyFont := TCastleFont.Create(nil);
 end;
 
 destructor TFontContainer.Destroy;
