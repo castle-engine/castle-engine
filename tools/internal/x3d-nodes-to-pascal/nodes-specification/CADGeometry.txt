@@ -1,36 +1,43 @@
 X3DProductStructureChildNode : X3DChildNode {
+  x3d-nodes-to-pascal: auto-generate-more true
+  x3d-nodes-to-pascal: default-container-field children
   SFString [in,out] name ""
 }
 
 CADAssembly : X3DGroupingNode, X3DProductStructureChildNode {
+  x3d-nodes-to-pascal: auto-generate-more true
   SFString [in,out] name           ""
 }
 
 CADFace : X3DProductStructureChildNode, X3DBoundedObject {
-  SFNode   [in,out] shape      NULL     [X3DShapeNode, LOD]
+  x3d-nodes-to-pascal: auto-generate-more true
+  SFNode   [in,out] shape      NULL     [X3DShapeNode, X3DLODNode]
   SFVec3f  []       bboxCenter 0 0 0    (-Inf, Inf)
   SFVec3f  []       bboxSize   -1 -1 -1 [0, Inf) or -1 -1 -1
 }
 
 CADLayer : X3DGroupingNode {
+  x3d-nodes-to-pascal: auto-generate-more true
   SFString [in,out] name           ""
-  MFBool   [in,out] visible        []
+  # MFBool   [in,out] visible        [] # X3D 4 removed it, in favor of "SFBool visible" at X3DGroupingNode; we just follow X3D 4 spec for all X3D versions, for simplicity
 }
 
 CADPart : X3DGroupingNode, X3DProductStructureChildNode {
-  SFVec3f    [in,out] center           0 0 0    (-Inf,Inf)
+  x3d-nodes-to-pascal: auto-generate-more true
+  SFVec3f    [in,out] center           0 0 0    (-Inf,Inf)           change: chTransform
   SFString   [in,out] name             ""
-  SFRotation [in,out] rotation         0 0 1 0  [-1,1] or (-Inf,Inf)
-  SFVec3f    [in,out] scale            1 1 1    (0,Inf)
-  SFRotation [in,out] scaleOrientation 0 0 1 0  [-1,1] or (-Inf,Inf)
-  SFVec3f    [in,out] translation      0 0 0    (-Inf,Inf)
+  SFRotation [in,out] rotation         0 0 1 0  [-1,1] or (-Inf,Inf) change: chTransform
+  SFVec3f    [in,out] scale            1 1 1    (0,Inf)              change: chTransform
+  SFRotation [in,out] scaleOrientation 0 0 1 0  [-1,1] or (-Inf,Inf) change: chTransform
+  SFVec3f    [in,out] translation      0 0 0    (-Inf,Inf)           change: chTransform
 }
 
 IndexedQuadSet : X3DComposedGeometryNode {
+  x3d-nodes-to-pascal: auto-generate-more true
   MFInt32 [in]     set_index       []   [0,Inf) # NOT-SLIM
-  MFInt32 []       index           []   [0,Inf)
+  MFInt32 []       index           []   [0,Inf) # change: chGeometry
 }
 
 QuadSet : X3DComposedGeometryNode {
+  x3d-nodes-to-pascal: auto-generate-more true
 }
-

@@ -39,16 +39,42 @@
     function GetTranslation: TVector3;
     procedure SetTranslation(const Value: TVector3);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdCenter: TSFVec3f;
+    { X3D field "center". } { }
+    public property FdCenter: TSFVec3f read FFdCenter;
     { X3D field "center". } { }
     property Center: TVector3 read GetCenter write SetCenter;
+
+    strict private FFdName: TSFString;
+    { X3D field "name". } { }
+    public property FdName: TSFString read FFdName;
     { X3D field "name". } { }
     property NameField: String read GetNameField write SetNameField;
+
+    strict private FFdRotation: TSFRotation;
+    { X3D field "rotation". } { }
+    public property FdRotation: TSFRotation read FFdRotation;
     { X3D field "rotation". } { }
     property Rotation: TVector4 read GetRotation write SetRotation;
+
+    strict private FFdScale: TSFVec3f;
+    { X3D field "scale". } { }
+    public property FdScale: TSFVec3f read FFdScale;
     { X3D field "scale". } { }
     property Scale: TVector3 read GetScale write SetScale;
+
+    strict private FFdScaleOrientation: TSFRotation;
+    { X3D field "scaleOrientation". } { }
+    public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
     { X3D field "scaleOrientation". } { }
     property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
+
+    strict private FFdTranslation: TSFVec3f;
+    { X3D field "translation". } { }
+    public property FdTranslation: TSFVec3f read FFdTranslation;
     { X3D field "translation". } { }
     property Translation: TVector3 read GetTranslation write SetTranslation;
 
@@ -116,6 +142,45 @@ end;
 procedure TCADPartNode.SetTranslation(const Value: TVector3);
 begin
   FdTranslation.Send(Value);
+end;
+
+class function TCADPartNode.ClassX3DType: String;
+begin
+  Result := 'CADPart';
+end;
+
+procedure TCADPartNode.CreateNode;
+begin
+  inherited;
+
+  FFdCenter := TSFVec3f.Create(Self, True, 'center', Vector3(0, 0, 0));
+   FdCenter.ChangeAlways := chTransform;
+  AddField(FFdCenter);
+  { X3D specification comment: (-Inf,Inf)           change: chTransform }
+
+  FFdName := TSFString.Create(Self, True, 'name', '');
+   FdName.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdName);
+
+  FFdRotation := TSFRotation.Create(Self, True, 'rotation', Vector3(0, 0, 1), 0);
+   FdRotation.ChangeAlways := chTransform;
+  AddField(FFdRotation);
+  { X3D specification comment: [-1,1] or (-Inf,Inf) change: chTransform }
+
+  FFdScale := TSFVec3f.Create(Self, True, 'scale', Vector3(1, 1, 1));
+   FdScale.ChangeAlways := chTransform;
+  AddField(FFdScale);
+  { X3D specification comment: (0,Inf)              change: chTransform }
+
+  FFdScaleOrientation := TSFRotation.Create(Self, True, 'scaleOrientation', Vector3(0, 0, 1), 0);
+   FdScaleOrientation.ChangeAlways := chTransform;
+  AddField(FFdScaleOrientation);
+  { X3D specification comment: [-1,1] or (-Inf,Inf) change: chTransform }
+
+  FFdTranslation := TSFVec3f.Create(Self, True, 'translation', Vector3(0, 0, 0));
+   FdTranslation.ChangeAlways := chTransform;
+  AddField(FFdTranslation);
+  { X3D specification comment: (-Inf,Inf)           change: chTransform }
 end;
 
 {$endif read_implementation}

@@ -10,6 +10,8 @@ X3DGroupingNode : X3DChildNode, X3DBoundedObject {
   MFNode  [in,out] children       []       [X3DChildNode]
   SFVec3f []       bboxCenter     0 0 0    (-Inf,Inf)
   SFVec3f []       bboxSize       -1 -1 -1 [0,Inf) or -1 -1 -1
+  SFBool  [in,out] visible        TRUE  # NOT-SLIM
+  SFBool  [in,out] bboxDisplay    FALSE # NOT-SLIM
 }
 
 Group : X3DGroupingNode {
