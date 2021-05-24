@@ -49,7 +49,7 @@ X3DShapeNode : X3DChildNode, X3DBoundedObject {
   SFVec3f [in,out] bboxSize -1 -1 -1
     range: [0,Inf) or -1 -1 -1
 
-  # EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   SFString [in,out]     shading            "DEFAULT"
     range: ["DEFAULT"|"GOURAUD"|"PHONG"|"WIREFRAME"]
     enumerated-type: TShading ShadingNames shDefault
@@ -106,7 +106,7 @@ Appearance : X3DAppearanceNode {
   SFFloat    [in,out]      alphaCutoff   0.5
     range: [0,1]
 
-  # CGE EXTENSIONS
+  # CASTLE GAME ENGINE EXTENSIONS:
   MFNode     []            receiveShadows  []
     range: X3DPunctualLightNode
     change: chShadowMaps
@@ -196,7 +196,7 @@ Material : X3DOneSidedMaterialNode {
   SFFloat  [in,out] transparency                    0
     range: [0,1]
 
-  # EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   SFBool     [in,out]      fogImmune             FALSE
     not-slim
   SFFloat    [in,out]      mirror                0.0

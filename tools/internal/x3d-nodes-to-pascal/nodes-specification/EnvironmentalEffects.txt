@@ -25,7 +25,7 @@ X3DFogObject {
   SFFloat  [in,out] visibilityRange 0
     range: [0,-Inf)
 
-  # EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   SFBool   [in,out]      volumetric                    FALSE
   SFVec3f  [in,out]      volumetricDirection           0 -1 0
     range: any non-zero vector
@@ -61,7 +61,7 @@ Fog : X3DBindableNode, X3DFogObject {
   SFFloat  [in,out] visibilityRange 0
     range: [0,Inf)
 
-  # EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   SFBool   [in,out]      volumetric                    FALSE
   SFVec3f  [in,out]      volumetricDirection           0 -1 0
     range: any non-zero vector
@@ -89,7 +89,7 @@ LocalFog : X3DChildNode, X3DFogObject {
   SFFloat  [in,out] visibilityRange 0
     range: [0,-Inf)
 
-  # EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   SFBool   [in,out]      volumetric                    FALSE
   SFVec3f  [in,out]      volumetricDirection           0 -1 0
     range: any non-zero vector

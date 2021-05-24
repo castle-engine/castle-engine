@@ -10,7 +10,7 @@ X3DSingleTextureCoordinateNode : X3DTextureCoordinateNode {
 }
 
 X3DSingleTextureNode : X3DTextureNode {
-  # EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   MFNode     []            effects          []
     range: Effect
 
@@ -31,7 +31,7 @@ X3DTexture2DNode : X3DSingleTextureNode {
   SFNode []       textureProperties NULL
     range: TextureProperties
 
-  # EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   # Commented out to not be seen by x3d-nodes-to-pascal,
   # this is implemented specially in Pascal.
   # SFString   []            alphaChannel  "AUTO"
@@ -131,7 +131,7 @@ TextureProperties : X3DNode {
     range: [0,1]
   SFBool      []       generateMipMaps     FALSE
 
-  # EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   SFBool     []            guiTexture  FALSE
 }
 

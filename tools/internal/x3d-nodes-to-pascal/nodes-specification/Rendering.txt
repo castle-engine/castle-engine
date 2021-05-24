@@ -28,7 +28,7 @@ X3DComposedGeometryNode : X3DGeometryNode {
   SFBool []       normalPerVertex TRUE
   SFBool []       solid           TRUE
 
-  # EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   MFVec3f    [in,out]      radianceTransfer  []
     not-slim
 }

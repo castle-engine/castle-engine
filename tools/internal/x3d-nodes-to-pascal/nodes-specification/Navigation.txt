@@ -9,7 +9,7 @@ X3DViewpointNode : X3DBindableNode {
     range: [-1,1],(-Inf,Inf)
   SFBool     [in,out] retainUserOffsets FALSE
 
-  # EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   SFMatrix4f [out]         cameraMatrix
   SFMatrix4f [out]         cameraInverseMatrix
   SFMatrix3f [out]         cameraRotationMatrix
@@ -73,7 +73,7 @@ Viewpoint : X3DViewpointNode {
   SFVec3f    [in,out] position          0 0 10
     range: (-Inf,Inf)
 
-  # EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   SFBool     [in,out] fieldOfViewForceVertical FALSE
 }
 

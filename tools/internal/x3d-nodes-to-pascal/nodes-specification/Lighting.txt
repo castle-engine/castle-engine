@@ -34,7 +34,7 @@ DirectionalLight : X3DLightNode {
   ###   range: (-Inf,Inf)
   # NOTE: global by default is FALSE
 
-  # EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   # Commented out to not be seen by x3d-nodes-to-pascal,
   # this is implemented specially in TAbstractDirectionalLightNode
   # SFVec4f    [in,out]      projectionRectangle   -10 10 -10 10
@@ -48,7 +48,7 @@ DirectionalLight : X3DLightNode {
 PointLight : X3DLightNode {
   # NOTE: global by default is TRUE
 
-  # EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   # Commented out to not be seen by x3d-nodes-to-pascal,
   # this is implemented specially
   # SFVec3f [in,out] attenuation      1 0 0
@@ -80,7 +80,7 @@ SpotLight : X3DLightNode {
   SFFloat [in,out] radius           100
     range: [0,Inf)
 
-  # CGE EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   SFFloat    [in,out]      projectionAngle       0
 }
 

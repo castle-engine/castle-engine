@@ -2,7 +2,7 @@ Box : X3DGeometryNode {
   SFVec3f []       size     2 2 2
     range: (0,Inf)
   SFBool  []       solid    TRUE
-  # EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   SFBool     []            ccw         TRUE
   SFNode     [in,out]      texCoord    NULL
     range: TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate
@@ -18,7 +18,7 @@ Cone : X3DGeometryNode {
     range: (0,Inf)
   SFBool  []       side         TRUE
   SFBool  []       solid        TRUE
-  # EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   SFNode     [in,out]      texCoord    NULL
     range: TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate
   SFInt32    [in,out]      slices      -1
@@ -36,7 +36,7 @@ Cylinder : X3DGeometryNode {
   SFBool  []       side     TRUE
   SFBool  []       solid    TRUE
   SFBool  []       top      TRUE
-  # EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   SFNode     [in,out]      texCoord    NULL
     range: TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate
   SFInt32    [in,out]      slices      -1
@@ -96,7 +96,7 @@ Extrusion : X3DGeometryNode {
   MFVec3f    []       spine            [0 0 0 0 1 0]
     range: (-Inf,Inf)
 
-  # EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   SFNode     [in,out]      texCoord    NULL
     range: TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate
 }
@@ -127,7 +127,7 @@ Sphere : X3DGeometryNode {
   SFFloat []       radius   1
     range: (0,Inf)
   SFBool  []       solid    TRUE
-  # EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   SFNode     [in,out]      texCoord    NULL
     range: TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate
   SFInt32    [in,out]      slices      -1
