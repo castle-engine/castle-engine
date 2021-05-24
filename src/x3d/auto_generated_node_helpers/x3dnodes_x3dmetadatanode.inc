@@ -84,12 +84,10 @@ begin
   FFdName := TSFString.Create(Self, True, 'name', '');
    FdName.ChangeAlways := chNone;
   AddField(FFdName);
-  { X3D specification comment: change: chNone }
 
   FFdReference := TSFString.Create(Self, True, 'reference', '');
    FdReference.ChangeAlways := chNone;
   AddField(FFdReference);
-  { X3D specification comment: change: chNone }
 
   DefaultContainerField := 'metadata';
 end;

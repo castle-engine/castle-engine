@@ -34,12 +34,12 @@
     procedure SetLineProperties(const Value: TLinePropertiesNode);
     function GetMaterial: TAbstractMaterialNode;
     procedure SetMaterial(const Value: TAbstractMaterialNode);
-    function GetBackMaterial: TAbstractOneSidedMaterialNode;
-    procedure SetBackMaterial(const Value: TAbstractOneSidedMaterialNode);
     function GetTexture: TAbstractTextureNode;
     procedure SetTexture(const Value: TAbstractTextureNode);
     function GetTextureTransform: TAbstractTextureTransformNode;
     procedure SetTextureTransform(const Value: TAbstractTextureTransformNode);
+    function GetBackMaterial: TAbstractOneSidedMaterialNode;
+    procedure SetBackMaterial(const Value: TAbstractOneSidedMaterialNode);
     function GetAlphaMode: TAlphaMode;
     procedure SetAlphaMode(const Value: TAlphaMode);
     function GetAlphaCutoff: Single;
@@ -84,12 +84,6 @@
     { X3D field "material". } { }
     property Material: TAbstractMaterialNode read GetMaterial write SetMaterial;
 
-    strict private FFdBackMaterial: TSFNode;
-    { X3D field "backMaterial". } { }
-    public property FdBackMaterial: TSFNode read FFdBackMaterial;
-    { X3D field "backMaterial". } { }
-    property BackMaterial: TAbstractOneSidedMaterialNode read GetBackMaterial write SetBackMaterial;
-
     strict private FFdShaders: TMFNode;
     { X3D field "shaders". } { }
     public property FdShaders: TMFNode read FFdShaders;
@@ -107,6 +101,12 @@
     public property FdTextureTransform: TSFNode read FFdTextureTransform;
     { X3D field "textureTransform". } { }
     property TextureTransform: TAbstractTextureTransformNode read GetTextureTransform write SetTextureTransform;
+
+    strict private FFdBackMaterial: TSFNode;
+    { X3D field "backMaterial". } { }
+    public property FdBackMaterial: TSFNode read FFdBackMaterial;
+    { X3D field "backMaterial". } { }
+    property BackMaterial: TAbstractOneSidedMaterialNode read GetBackMaterial write SetBackMaterial;
 
     strict private FFdAlphaMode: TSFStringEnum;
     { X3D field "alphaMode". } { }
@@ -219,19 +219,6 @@ begin
   FdMaterial.Send(Value);
 end;
 
-function TAppearanceNode.GetBackMaterial: TAbstractOneSidedMaterialNode;
-begin
-  if FdBackMaterial.Value is TAbstractOneSidedMaterialNode then
-    Result := TAbstractOneSidedMaterialNode(FdBackMaterial.Value)
-  else
-    Result := nil;
-end;
-
-procedure TAppearanceNode.SetBackMaterial(const Value: TAbstractOneSidedMaterialNode);
-begin
-  FdBackMaterial.Send(Value);
-end;
-
 procedure TAppearanceNode.SetShaders(const Value: array of TAbstractShaderNode);
 var
   L: Integer;
@@ -268,6 +255,19 @@ end;
 procedure TAppearanceNode.SetTextureTransform(const Value: TAbstractTextureTransformNode);
 begin
   FdTextureTransform.Send(Value);
+end;
+
+function TAppearanceNode.GetBackMaterial: TAbstractOneSidedMaterialNode;
+begin
+  if FdBackMaterial.Value is TAbstractOneSidedMaterialNode then
+    Result := TAbstractOneSidedMaterialNode(FdBackMaterial.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAppearanceNode.SetBackMaterial(const Value: TAbstractOneSidedMaterialNode);
+begin
+  FdBackMaterial.Send(Value);
 end;
 
 function TAppearanceNode.GetAlphaMode: TAlphaMode;
@@ -398,7 +398,6 @@ begin
   FFdFillProperties := TSFNode.Create(Self, True, 'fillProperties', [TFillPropertiesNode]);
    FdFillProperties.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdFillProperties);
-  { X3D specification comment: # NOT-SLIM }
 {$endif not CASTLE_SLIM_NODES}
 
   FFdLineProperties := TSFNode.Create(Self, True, 'lineProperties', [TLinePropertiesNode]);
@@ -408,58 +407,47 @@ begin
   FFdMaterial := TSFNode.Create(Self, True, 'material', [TAbstractMaterialNode]);
    FdMaterial.ChangeAlways := chEverything;
   AddField(FFdMaterial);
-  { X3D specification comment: # change: chEverything }
-
-  FFdBackMaterial := TSFNode.Create(Self, True, 'backMaterial', [TAbstractOneSidedMaterialNode]);
-   FdBackMaterial.ChangeAlways := chNone;
-  AddField(FFdBackMaterial);
-  { X3D specification comment: # change: chNone _ unused for now _ }
 
   FFdShaders := TMFNode.Create(Self, True, 'shaders', [TAbstractShaderNode]);
    FdShaders.ChangeAlways := chEverything;
   AddField(FFdShaders);
-  { X3D specification comment: # change: chEverything }
 
   FFdTexture := TSFNode.Create(Self, True, 'texture', [TAbstractTextureNode]);
    FdTexture.ChangeAlways := chEverything;
   AddField(FFdTexture);
-  { X3D specification comment: # change: chEverything }
 
   FFdTextureTransform := TSFNode.Create(Self, True, 'textureTransform', [TAbstractTextureTransformNode]);
    FdTextureTransform.ChangeAlways := chEverything;
   AddField(FFdTextureTransform);
-  { X3D specification comment: # change: chEverything }
+
+  FFdBackMaterial := TSFNode.Create(Self, True, 'backMaterial', [TAbstractOneSidedMaterialNode]);
+   FdBackMaterial.ChangeAlways := chNone;
+  AddField(FFdBackMaterial);
 
   FFdAlphaMode := TSFStringEnum.Create(Self, True, 'alphaMode', AlphaModeToString, Ord(amAuto));
    FdAlphaMode.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAlphaMode);
-  { X3D specification comment: ["AUTO"|"OPAQUE"|"MASK"|"BLEND"] enumerated-type: TAlphaMode AlphaModeToString amAuto }
 
   FFdAlphaCutoff := TSFFloat.Create(Self, True, 'alphaCutoff', 0.5);
    FdAlphaCutoff.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAlphaCutoff);
-  { X3D specification comment: [0,1] }
 
   FFdReceiveShadows := TMFNode.Create(Self, False, 'receiveShadows', [TAbstractPunctualLightNode]);
    FdReceiveShadows.ChangeAlways := chShadowMaps;
   AddField(FFdReceiveShadows);
-  { X3D specification comment: # change: chShadowMaps }
 
   FFdShadowCaster := TSFBool.Create(Self, True, 'shadowCaster', true);
    FdShadowCaster.ChangeAlways := chShadowCasters;
   AddField(FFdShadowCaster);
-  { X3D specification comment: change: chShadowCasters }
 
   FFdNormalMap := TSFNode.Create(Self, True, 'normalMap', [TAbstractTexture2DNode]);
    FdNormalMap.ChangeAlways := chEverything;
   AddField(FFdNormalMap);
-  { X3D specification comment: # change: chEverything }
 
 {$ifndef CASTLE_SLIM_NODES}
   FFdHeightMap := TSFNode.Create(Self, True, 'heightMap', [TAbstractTexture2DNode]);
    FdHeightMap.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdHeightMap);
-  { X3D specification comment: # NOT-SLIM }
 {$endif not CASTLE_SLIM_NODES}
 
   FFdHeightMapScale := TSFFloat.Create(Self, True, 'heightMapScale', 0.01);
@@ -469,17 +457,14 @@ begin
   FFdBlendMode := TSFNode.Create(Self, True, 'blendMode', [TBlendModeNode]);
    FdBlendMode.ChangeAlways := chEverything;
   AddField(FFdBlendMode);
-  { X3D specification comment: # change: chEverything }
 
   FFdEffects := TMFNode.Create(Self, False, 'effects', [TEffectNode]);
    FdEffects.ChangeAlways := chEverything;
   AddField(FFdEffects);
-  { X3D specification comment: # change: chEverything }
 
   FFdAlphaChannel := TSFStringEnum.Create(Self, True, 'alphaChannel', AlphaToString, Ord(acAuto));
    FdAlphaChannel.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAlphaChannel);
-  { X3D specification comment: ["AUTO"|"NONE"|"TEST"|"BLENDING"] enumerated-type: TAutoAlphaChannel AlphaToString acAuto }
 
   DefaultContainerField := 'appearance';
 end;

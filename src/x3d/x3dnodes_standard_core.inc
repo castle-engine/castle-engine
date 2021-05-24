@@ -163,6 +163,8 @@
   protected
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
+
     { "Bound" node is the node currently used, for example the "bound" background
       determines the current background look.
       Setting this to @true means that the node becomes the current node

@@ -65,7 +65,6 @@ begin
   FFdValue := TMFString.Create(Self, True, 'value', []);
    FdValue.ChangeAlways := chNone;
   AddField(FFdValue);
-  { X3D specification comment: change: chNone }
 end;
 
 {$endif read_implementation}

@@ -69,7 +69,6 @@ begin
   FFdKeyValue := TMFInt32.Create(Self, True, 'keyValue', []);
    FdKeyValue.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdKeyValue);
-  { X3D specification comment: (-Inf,Inf) }
 
   FEventValue_changed := TSFInt32Event.Create(Self, 'value_changed', false);
   AddEvent(FEventValue_changed);

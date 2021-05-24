@@ -84,12 +84,10 @@ begin
   FFdInfo := TMFString.Create(Self, False, 'info', []);
    FdInfo.ChangeAlways := chNone;
   AddField(FFdInfo);
-  { X3D specification comment: change: chNone }
 
   FFdTitle := TSFString.Create(Self, False, 'title', '');
    FdTitle.ChangeAlways := chNone;
   AddField(FFdTitle);
-  { X3D specification comment: change: chNone }
 end;
 
 {$endif read_implementation}

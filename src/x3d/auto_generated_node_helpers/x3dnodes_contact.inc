@@ -348,7 +348,6 @@ begin
   FFdAppliedParameters := TMFString.Create(Self, True, 'appliedParameters', ['BOUNCE']);
    FdAppliedParameters.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAppliedParameters);
-  { X3D specification comment: [] }
 
   FFdBody1 := TSFNode.Create(Self, True, 'body1', [TRigidBodyNode]);
    FdBody1.ChangeAlways := chVisibleNonGeometry;
@@ -361,27 +360,22 @@ begin
   FFdBounce := TSFFloat.Create(Self, True, 'bounce', 0);
    FdBounce.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBounce);
-  { X3D specification comment: [0,1] }
 
   FFdContactNormal := TSFVec3f.Create(Self, True, 'contactNormal', Vector3(0, 1, 0));
    FdContactNormal.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdContactNormal);
-  { X3D specification comment: (-Inf,Inf) }
 
   FFdDepth := TSFFloat.Create(Self, True, 'depth', 0);
    FdDepth.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDepth);
-  { X3D specification comment: (-Inf,Inf) }
 
   FFdFrictionCoefficients := TSFVec2f.Create(Self, True, 'frictionCoefficients', Vector2(0, 0));
    FdFrictionCoefficients.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdFrictionCoefficients);
-  { X3D specification comment: [0,Inf) }
 
   FFdFrictionDirection := TSFVec3f.Create(Self, True, 'frictionDirection', Vector3(0, 1, 0));
    FdFrictionDirection.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdFrictionDirection);
-  { X3D specification comment: (-Inf,Inf) }
 
   FFdGeometry1 := TSFNode.Create(Self, True, 'geometry1', [TAbstractNBodyCollidableNode]);
    FdGeometry1.ChangeAlways := chVisibleNonGeometry;
@@ -394,32 +388,26 @@ begin
   FFdMinbounceSpeed := TSFFloat.Create(Self, True, 'minbounceSpeed', 0);
    FdMinbounceSpeed.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdMinbounceSpeed);
-  { X3D specification comment: [0,Inf) }
 
   FFdPosition := TSFVec3f.Create(Self, True, 'position', Vector3(0, 0, 0));
    FdPosition.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdPosition);
-  { X3D specification comment: (-Inf,Inf) }
 
   FFdSlipCoefficients := TSFVec2f.Create(Self, True, 'slipCoefficients', Vector2(0, 0));
    FdSlipCoefficients.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSlipCoefficients);
-  { X3D specification comment: (-Inf,Inf) }
 
   FFdSoftnessConstantForceMix := TSFFloat.Create(Self, True, 'softnessConstantForceMix', 0.0001);
    FdSoftnessConstantForceMix.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSoftnessConstantForceMix);
-  { X3D specification comment: [0,1] }
 
   FFdSoftnessErrorCorrection := TSFFloat.Create(Self, True, 'softnessErrorCorrection', 0.8);
    FdSoftnessErrorCorrection.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSoftnessErrorCorrection);
-  { X3D specification comment: [0,1] }
 
   FFdSurfaceSpeed := TSFVec2f.Create(Self, True, 'surfaceSpeed', Vector2(0, 0));
    FdSurfaceSpeed.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSurfaceSpeed);
-  { X3D specification comment: (-Inf,Inf) }
 
   DefaultContainerField := 'children';
 end;

@@ -116,7 +116,6 @@ begin
   FFdForceOutput := TMFString.Create(Self, True, 'forceOutput', ['NONE']);
    FdForceOutput.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdForceOutput);
-  { X3D specification comment: ["ALL","NONE",...] }
 
   DefaultContainerField := 'joints';
 end;

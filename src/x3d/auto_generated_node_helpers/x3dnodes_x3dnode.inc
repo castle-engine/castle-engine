@@ -78,7 +78,6 @@ begin
   FFdMetadata := TSFNode.Create(Self, True, 'metadata', [TAbstractMetadataNode]);
    FdMetadata.ChangeAlways := chNone;
   AddField(FFdMetadata);
-  { X3D specification comment: # NOT-SLIM, change: chNone }
 {$endif not CASTLE_SLIM_NODES}
 end;
 

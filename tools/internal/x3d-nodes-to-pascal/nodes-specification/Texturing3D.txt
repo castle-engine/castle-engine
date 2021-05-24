@@ -2,15 +2,18 @@ X3DTexture3DNode : X3DSingleTextureNode {
   SFBool []       repeatS           FALSE
   SFBool []       repeatT           FALSE
   SFBool []       repeatR           FALSE
-  SFNode []       textureProperties NULL  [TextureProperties]
+  SFNode []       textureProperties NULL
+    range: TextureProperties
 }
 
 ComposedTexture3D : X3DTexture3DNode {
-  MFNode [in,out] texture  []    [X3DTexture2DNode]
+  MFNode [in,out] texture  []
+    range: X3DTexture2DNode
 }
 
 ImageTexture3D : X3DTexture3DNode, X3DUrlObject {
-  MFString [in,out] url               []    [URI]
+  MFString [in,out] url               []
+    range: [URI]
 }
 
 PixelTexture3D : X3DTexture3DNode {
@@ -18,21 +21,27 @@ PixelTexture3D : X3DTexture3DNode {
 }
 
 TextureCoordinate3D : X3DSingleTextureCoordinateNode {
-  MFVec3f [in,out] point    []   (-Inf,Inf)
+  MFVec3f [in,out] point    []
+    range: (-Inf,Inf)
 }
 
 TextureCoordinate4D : X3DSingleTextureCoordinateNode {
-  MFVec4f [in,out] point    []   (-Inf,Inf)
+  MFVec4f [in,out] point    []
+    range: (-Inf,Inf)
 }
 
 TextureTransformMatrix3D : X3DSingleTextureTransformNode {
-  SFMatrix4f [in,out] matrix      1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1  (-Inf,Inf)
+  SFMatrix4f [in,out] matrix      1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1
+    range: (-Inf,Inf)
 }
 
 TextureTransform3D : X3DSingleTextureTransformNode {
-  SFVec3f    [in,out] center      0 0 0   (-Inf,Inf)
-  SFRotation [in,out] rotation    0 0 1 0 (-Inf,Inf)
-  SFVec3f    [in,out] scale       1 1 1   (-Inf,Inf)
-  SFVec3f    [in,out] translation 0 0 0   (-Inf,Inf)
+  SFVec3f    [in,out] center      0 0 0
+    range: (-Inf,Inf)
+  SFRotation [in,out] rotation    0 0 1 0
+    range: (-Inf,Inf)
+  SFVec3f    [in,out] scale       1 1 1
+    range: (-Inf,Inf)
+  SFVec3f    [in,out] translation 0 0 0
+    range: (-Inf,Inf)
 }
-

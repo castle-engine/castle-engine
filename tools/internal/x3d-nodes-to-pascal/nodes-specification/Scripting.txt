@@ -1,5 +1,6 @@
 X3DScriptNode : X3DChildNode,X3DURLObject {
-  MFString [in,out] url      []   [URI]
+  MFString [in,out] url      []
+    range: [URI]
 }
 
 Script : X3DScriptNode {
@@ -7,4 +8,3 @@ Script : X3DScriptNode {
   SFBool    []       mustEvaluate FALSE
   # And any number of
 }
-

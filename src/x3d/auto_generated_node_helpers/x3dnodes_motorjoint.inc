@@ -378,37 +378,30 @@ begin
   FFdAxis1Angle := TSFFloat.Create(Self, True, 'axis1Angle', 0);
    FdAxis1Angle.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAxis1Angle);
-  { X3D specification comment: [-Pi,Pi] }
 
   FFdAxis1Torque := TSFFloat.Create(Self, True, 'axis1Torque', 0);
    FdAxis1Torque.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAxis1Torque);
-  { X3D specification comment: (-Inf,Inf) }
 
   FFdAxis2Angle := TSFFloat.Create(Self, True, 'axis2Angle', 0);
    FdAxis2Angle.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAxis2Angle);
-  { X3D specification comment: [-Pi,Pi] }
 
   FFdAxis2Torque := TSFFloat.Create(Self, True, 'axis2Torque', 0);
    FdAxis2Torque.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAxis2Torque);
-  { X3D specification comment: (-Inf,Inf) }
 
   FFdAxis3Angle := TSFFloat.Create(Self, True, 'axis3Angle', 0);
    FdAxis3Angle.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAxis3Angle);
-  { X3D specification comment: [-Pi,Pi] }
 
   FFdAxis3Torque := TSFFloat.Create(Self, True, 'axis3Torque', 0);
    FdAxis3Torque.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAxis3Torque);
-  { X3D specification comment: (-Inf,Inf) }
 
   FFdEnabledAxes := TSFInt32.Create(Self, True, 'enabledAxes', 1);
    FdEnabledAxes.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdEnabledAxes);
-  { X3D specification comment: [0,3] }
 
   FFdMotor1Axis := TSFVec3f.Create(Self, True, 'motor1Axis', Vector3(0, 0, 0));
    FdMotor1Axis.ChangeAlways := chVisibleNonGeometry;
@@ -425,32 +418,26 @@ begin
   FFdStop1Bounce := TSFFloat.Create(Self, True, 'stop1Bounce', 0);
    FdStop1Bounce.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdStop1Bounce);
-  { X3D specification comment: [0,1] }
 
   FFdStop1ErrorCorrection := TSFFloat.Create(Self, True, 'stop1ErrorCorrection', 0.8);
    FdStop1ErrorCorrection.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdStop1ErrorCorrection);
-  { X3D specification comment: [0,1] }
 
   FFdStop2Bounce := TSFFloat.Create(Self, True, 'stop2Bounce', 0);
    FdStop2Bounce.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdStop2Bounce);
-  { X3D specification comment: [0,1] }
 
   FFdStop2ErrorCorrection := TSFFloat.Create(Self, True, 'stop2ErrorCorrection', 0.8);
    FdStop2ErrorCorrection.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdStop2ErrorCorrection);
-  { X3D specification comment: [0,1] }
 
   FFdStop3Bounce := TSFFloat.Create(Self, True, 'stop3Bounce', 0);
    FdStop3Bounce.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdStop3Bounce);
-  { X3D specification comment: [0,1] }
 
   FFdStop3ErrorCorrection := TSFFloat.Create(Self, True, 'stop3ErrorCorrection', 0.8);
    FdStop3ErrorCorrection.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdStop3ErrorCorrection);
-  { X3D specification comment: [0,1] }
 
   FEventMotor1Angle := TSFFloatEvent.Create(Self, 'motor1Angle', false);
   AddEvent(FEventMotor1Angle);

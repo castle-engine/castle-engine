@@ -66,7 +66,6 @@ begin
   FFdName := TSFString.Create(Self, True, 'name', '');
    FdName.ChangeAlways := chNone;
   AddField(FFdName);
-  { X3D specification comment: change: chNone }
 end;
 
 {$endif read_implementation}

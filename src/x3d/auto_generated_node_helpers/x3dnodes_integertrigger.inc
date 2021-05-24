@@ -77,7 +77,6 @@ begin
   FFdIntegerKey := TSFInt32.Create(Self, True, 'integerKey', -1);
    FdIntegerKey.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdIntegerKey);
-  { X3D specification comment: (-Inf,Inf) }
 
   FEventTriggerValue := TSFInt32Event.Create(Self, 'triggerValue', false);
   AddEvent(FEventTriggerValue);

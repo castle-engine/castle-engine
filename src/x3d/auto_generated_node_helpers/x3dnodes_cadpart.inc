@@ -156,32 +156,26 @@ begin
   FFdCenter := TSFVec3f.Create(Self, True, 'center', Vector3(0, 0, 0));
    FdCenter.ChangeAlways := chTransform;
   AddField(FFdCenter);
-  { X3D specification comment: (-Inf,Inf)           change: chTransform }
 
   FFdName := TSFString.Create(Self, True, 'name', '');
    FdName.ChangeAlways := chNone;
   AddField(FFdName);
-  { X3D specification comment: change: chNone }
 
   FFdRotation := TSFRotation.Create(Self, True, 'rotation', Vector3(0, 0, 1), 0);
    FdRotation.ChangeAlways := chTransform;
   AddField(FFdRotation);
-  { X3D specification comment: [-1,1] or (-Inf,Inf) change: chTransform }
 
   FFdScale := TSFVec3f.Create(Self, True, 'scale', Vector3(1, 1, 1));
    FdScale.ChangeAlways := chTransform;
   AddField(FFdScale);
-  { X3D specification comment: (0,Inf)              change: chTransform }
 
   FFdScaleOrientation := TSFRotation.Create(Self, True, 'scaleOrientation', Vector3(0, 0, 1), 0);
    FdScaleOrientation.ChangeAlways := chTransform;
   AddField(FFdScaleOrientation);
-  { X3D specification comment: [-1,1] or (-Inf,Inf) change: chTransform }
 
   FFdTranslation := TSFVec3f.Create(Self, True, 'translation', Vector3(0, 0, 0));
    FdTranslation.ChangeAlways := chTransform;
   AddField(FFdTranslation);
-  { X3D specification comment: (-Inf,Inf)           change: chTransform }
 end;
 
 {$endif read_implementation}

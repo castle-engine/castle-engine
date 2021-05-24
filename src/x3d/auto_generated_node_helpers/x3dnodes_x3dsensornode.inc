@@ -70,7 +70,6 @@ begin
   FFdEnabled := TSFBool.Create(Self, True, 'enabled', true);
    FdEnabled.ChangeAlways := chNone;
   AddField(FFdEnabled);
-  { X3D specification comment: change: chNone }
 
   FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
   AddEvent(FEventIsActive);

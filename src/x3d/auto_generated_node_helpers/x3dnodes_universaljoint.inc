@@ -202,22 +202,18 @@ begin
   FFdStopBounce1 := TSFFloat.Create(Self, True, 'stopBounce1', 0);
    FdStopBounce1.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdStopBounce1);
-  { X3D specification comment: [0,1] }
 
   FFdStop1ErrorCorrection := TSFFloat.Create(Self, True, 'stop1ErrorCorrection', 0.8);
    FdStop1ErrorCorrection.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdStop1ErrorCorrection);
-  { X3D specification comment: [0,1] }
 
   FFdStop2Bounce := TSFFloat.Create(Self, True, 'stop2Bounce', 0);
    FdStop2Bounce.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdStop2Bounce);
-  { X3D specification comment: [0,1] }
 
   FFdStop2ErrorCorrection := TSFFloat.Create(Self, True, 'stop2ErrorCorrection', 0.8);
    FdStop2ErrorCorrection.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdStop2ErrorCorrection);
-  { X3D specification comment: [0,1] }
 
   FEventBody1AnchorPoint := TSFVec3fEvent.Create(Self, 'body1AnchorPoint', false);
   AddEvent(FEventBody1AnchorPoint);

@@ -76,7 +76,6 @@ begin
   FFdIndex := TMFInt32.Create(Self, False, 'index', []);
    FdIndex.ChangeAlways := chGeometry;
   AddField(FFdIndex);
-  { X3D specification comment: [0,Inf) # change: chGeometry }
 end;
 
 {$endif read_implementation}

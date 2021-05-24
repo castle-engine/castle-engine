@@ -282,52 +282,42 @@ begin
   FFdAmbientIntensity := TSFFloat.Create(Self, True, 'ambientIntensity', 0.2);
    FdAmbientIntensity.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAmbientIntensity);
-  { X3D specification comment: [0,1] }
 
   FFdBackAmbientIntensity := TSFFloat.Create(Self, True, 'backAmbientIntensity', 0.2);
    FdBackAmbientIntensity.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBackAmbientIntensity);
-  { X3D specification comment: [0,1] }
 
   FFdBackDiffuseColor := TSFColor.Create(Self, True, 'backDiffuseColor', Vector3(0.8, 0.8, 0.8));
    FdBackDiffuseColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBackDiffuseColor);
-  { X3D specification comment: [0,1] }
 
   FFdBackEmissiveColor := TSFColor.Create(Self, True, 'backEmissiveColor', Vector3(0, 0, 0));
    FdBackEmissiveColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBackEmissiveColor);
-  { X3D specification comment: [0,1] }
 
   FFdBackShininess := TSFFloat.Create(Self, True, 'backShininess', 0.2);
    FdBackShininess.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBackShininess);
-  { X3D specification comment: [0,1] }
 
   FFdBackSpecularColor := TSFColor.Create(Self, True, 'backSpecularColor', Vector3(0, 0, 0));
    FdBackSpecularColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBackSpecularColor);
-  { X3D specification comment: [0,1] }
 
   FFdBackTransparency := TSFFloat.Create(Self, True, 'backTransparency', 0);
    FdBackTransparency.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBackTransparency);
-  { X3D specification comment: [0,1] }
 
   FFdDiffuseColor := TSFColor.Create(Self, True, 'diffuseColor', Vector3(0.8, 0.8, 0.8));
    FdDiffuseColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDiffuseColor);
-  { X3D specification comment: [0,1] }
 
   FFdEmissiveColor := TSFColor.Create(Self, True, 'emissiveColor', Vector3(0, 0, 0));
    FdEmissiveColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdEmissiveColor);
-  { X3D specification comment: [0,1] }
 
   FFdShininess := TSFFloat.Create(Self, True, 'shininess', 0.2);
    FdShininess.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdShininess);
-  { X3D specification comment: [0,1] }
 
   FFdSeparateBackColor := TSFBool.Create(Self, True, 'separateBackColor', false);
    FdSeparateBackColor.ChangeAlways := chVisibleNonGeometry;
@@ -336,12 +326,10 @@ begin
   FFdSpecularColor := TSFColor.Create(Self, True, 'specularColor', Vector3(0, 0, 0));
    FdSpecularColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSpecularColor);
-  { X3D specification comment: [0,1] }
 
   FFdTransparency := TSFFloat.Create(Self, True, 'transparency', 0);
    FdTransparency.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdTransparency);
-  { X3D specification comment: [0,1] }
 end;
 
 {$endif read_implementation}
