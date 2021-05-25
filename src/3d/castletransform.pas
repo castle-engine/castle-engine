@@ -437,6 +437,7 @@ type
     procedure RemoveFromWorld(const Value: TCastleAbstractRootTransform);
     procedure RemoveBehaviorIndex(const BehaviorIndex: Integer);
     procedure SetListenPressRelease(const Value: Boolean);
+    function GetBehaviors(const Index: Integer): TCastleBehavior;
   protected
     { Called when the current @link(World) that contains this object changes.
       In the usual case, @link(World) corresponds to a @link(TCastleViewport.Items)
@@ -1848,6 +1849,16 @@ type
     { Find the first behavior of the given class, or create and add a new one if necessary.
       Never returns @nil. }
     function FindRequiredBehavior(const BehaviorClass: TCastleBehaviorClass): TCastleBehavior;
+
+    { Count of behaviors.
+      @seealso AddBehavior
+      @seealso RemoveBehavior }
+    function BehaviorsCount: Integer;
+
+    { Enumerate current behaviors.
+      @seealso AddBehavior
+      @seealso RemoveBehavior }
+    property Behaviors [const Index: Integer]: TCastleBehavior read GetBehaviors;
   published
     { Is this object visible and colliding.
 
@@ -3923,6 +3934,16 @@ begin
         FWorld.UnregisterPressRelease(Self);
     end;
   end;
+end;
+
+function TCastleTransform.BehaviorsCount: Integer;
+begin
+  Result := FBehaviors.Count;
+end;
+
+function TCastleTransform.GetBehaviors(const Index: Integer): TCastleBehavior;
+begin
+  Result := TCastleBehavior(FBehaviors[Index]);
 end;
 
 procedure TCastleTransform.AddBehavior(const Behavior: TCastleBehavior);

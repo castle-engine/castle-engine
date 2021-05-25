@@ -32,6 +32,8 @@ type
   TProjectForm = class(TForm)
     ActionNewSpriteSheet: TAction;
     ActionList: TActionList;
+    MenuItemDesignAddNonVisual: TMenuItem;
+    MenuItemDesignAddBehavior: TMenuItem;
     MenuItemNewCastleSpriteSheet: TMenuItem;
     MenuItemData: TMenuItem;
     MenuItemNewSpriteSheet: TMenuItem;
@@ -694,8 +696,17 @@ procedure TProjectForm.FormCreate(Sender: TObject);
 
 begin
   OutputList := TOutputList.Create(ListOutput);
-  BuildComponentsMenu(MenuItemDesignNewUserInterfaceCustomRoot, MenuItemDesignNewTransformCustomRoot, @MenuItemDesignNewCustomRootClick);
-  BuildComponentsMenu(MenuItemDesignAddUserInterface, MenuItemDesignAddTransform, @MenuItemAddComponentClick);
+  BuildComponentsMenu(
+    MenuItemDesignNewUserInterfaceCustomRoot,
+    MenuItemDesignNewTransformCustomRoot,
+    nil, nil,
+    @MenuItemDesignNewCustomRootClick);
+  BuildComponentsMenu(
+    MenuItemDesignAddUserInterface,
+    MenuItemDesignAddTransform,
+    MenuItemDesignAddBehavior,
+    MenuItemDesignAddNonVisual,
+    @MenuItemAddComponentClick);
   CreateShellViews;
   ApplicationProperties.OnWarning.Add(@WarningNotification);
 end;

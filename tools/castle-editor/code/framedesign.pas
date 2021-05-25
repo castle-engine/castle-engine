@@ -48,6 +48,9 @@ type
     LabelEventsInfo: TLabel;
     LabelSizeInfo: TLabel;
     LabelSelectedViewport: TLabel;
+    MenuTreeViewItemSeparator127u30130120983: TMenuItem;
+    MenuTreeViewItemAddNonVisual: TMenuItem;
+    MenuTreeViewItemAddBehavior: TMenuItem;
     MenuViewportNavigation2D: TMenuItem;
     MenuTreeViewItemRename: TMenuItem;
     MenuTreeViewItemAddTransform: TMenuItem;
@@ -1044,7 +1047,12 @@ begin
   //ChangeMode(moInteract);
   ChangeMode(moModifyUi); // most expected default, it seems
 
-  BuildComponentsMenu(MenuTreeViewItemAddUserInterface, MenuTreeViewItemAddTransform, @MenuItemAddComponentClick);
+  BuildComponentsMenu(
+    MenuTreeViewItemAddUserInterface,
+    MenuTreeViewItemAddTransform,
+    MenuTreeViewItemAddBehavior,
+    MenuTreeViewItemAddNonVisual,
+    @MenuItemAddComponentClick);
   // Input_Interact (for gizmos) reacts to both left and right
   Input_Interact.MouseButton2Use := true;
   Input_Interact.MouseButton2 := buttonRight;
@@ -1279,8 +1287,17 @@ begin
   AddComponent(ParentComponent, ComponentClass, ComponentOnCreate);
 end;
 
-function TDesignFrame.AddComponent(const ParentComponent: TComponent; const ComponentClass: TComponentClass;
+function TDesignFrame.AddComponent(const ParentComponent: TComponent;
+  const ComponentClass: TComponentClass;
   const ComponentOnCreate: TNotifyEvent): TComponent;
+
+  function CreateComponent: TComponent;
+  begin
+    Result := ComponentClass.Create(DesignOwner) as TComponent;
+    if Assigned(ComponentOnCreate) then // call ComponentOnCreate ASAP after constructor
+      ComponentOnCreate(Result);
+    Result.Name := ProposeName(ComponentClass, DesignOwner);
+  end;
 
   procedure FinishAddingComponent(const NewComponent: TComponent);
   begin
@@ -1289,34 +1306,83 @@ function TDesignFrame.AddComponent(const ParentComponent: TComponent; const Comp
     ModifiedOutsideObjectInspector('Add ' + NewComponent.Name + ' to ' + ParentComponent.Name, ucHigh);
   end;
 
-  function AddTransform(const ParentComponent: TCastleTransform): TCastleTransform;
+  function AddToTransform(const ParentComponent: TCastleTransform): TComponent;
   begin
     if ComponentClass.InheritsFrom(TCastleTransform) then
     begin
-      Result := ComponentClass.Create(DesignOwner) as TCastleTransform;
-      if Assigned(ComponentOnCreate) then // call ComponentOnCreate ASAP after constructor
-        ComponentOnCreate(Result);
-      Result.Name := ProposeName(ComponentClass, DesignOwner);
-      ParentComponent.Add(Result);
+      Result := CreateComponent;
+      ParentComponent.Add(Result as TCastleTransform);
       FinishAddingComponent(Result);
     end else
-      raise Exception.Create(Format('Cannot add component class %s when the parent is a TCastleTransform scendant (%s). Select a parent that descends from TCastleUserInterface.',
+    if ComponentClass.InheritsFrom(TCastleUserInterface) then
+    begin
+      raise Exception.Create(Format('Cannot add TCastleUserInterface descendant (%s) when the parent is a TCastleTransform descendant (%s). Select a parent that descends from TCastleUserInterface.',
         [ComponentClass.ClassName, ParentComponent.ClassName]))
+    end else
+    if ComponentClass.InheritsFrom(TCastleBehavior) then
+    begin
+      Result := CreateComponent;
+      ParentComponent.AddBehavior(Result as TCastleBehavior);
+      FinishAddingComponent(Result);
+    end else
+    begin
+      Result := CreateComponent;
+      ParentComponent.AddNonVisualComponent(Result);
+      FinishAddingComponent(Result);
+    end;
   end;
 
-  function AddUserInterface(const ParentComponent: TCastleUserInterface): TCastleUserInterface;
+  function AddToUserInterface(const ParentComponent: TCastleUserInterface): TComponent;
   begin
     if ComponentClass.InheritsFrom(TCastleUserInterface) then
     begin
-      Result := ComponentClass.Create(DesignOwner) as TCastleUserInterface;
-      if Assigned(ComponentOnCreate) then // call ComponentOnCreate ASAP after constructor
-        ComponentOnCreate(Result);
-      Result.Name := ProposeName(ComponentClass, DesignOwner);
-      ParentComponent.InsertFront(Result);
+      Result := CreateComponent;
+      ParentComponent.InsertFront(Result as TCastleUserInterface);
       FinishAddingComponent(Result);
     end else
-      raise Exception.Create(Format('Cannot add component class %s when the parent is a TCastleUserInterface descendant (%s). Select a parent that descends from TCastleTransform, for example select Viewport.Items.',
+    if ComponentClass.InheritsFrom(TCastleTransform) then
+    begin
+      raise Exception.Create(Format('Cannot add TCastleTransform descendant (%s) when the parent is a TCastleUserInterface descendant (%s). Select a parent that descends from TCastleTransform, for example select Viewport.Items.',
         [ComponentClass.ClassName, ParentComponent.ClassName]))
+    end else
+    if ComponentClass.InheritsFrom(TCastleBehavior) then
+    begin
+      raise Exception.Create(Format('Cannot add TCastleBehavior descendant (%s) when the parent is a TCastleUserInterface descendant (%s). Select a parent that descends from TCastleTransform, like TCastleTransform itself or TCastleScene.',
+        [ComponentClass.ClassName, ParentComponent.ClassName]))
+    end else
+    begin
+      Result := CreateComponent;
+      ParentComponent.AddNonVisualComponent(Result);
+      FinishAddingComponent(Result);
+    end;
+  end;
+
+  function AddToComponent(const ParentComponent: TCastleComponent): TComponent;
+  begin
+    { Note that, technically,
+      we could add TCastleUserInterface/TCastleTransform/TCastleBehavior
+      to non-visual components list.
+      But this would be confusing, so we disallow it in editor. }
+    if ComponentClass.InheritsFrom(TCastleUserInterface) then
+    begin
+      raise Exception.Create(Format('To add TCastleUserInterface descendant (%s), select a parent that descends from TCastleUserInterface.',
+        [ComponentClass.ClassName, ParentComponent.ClassName]))
+    end else
+    if ComponentClass.InheritsFrom(TCastleTransform) then
+    begin
+      raise Exception.Create(Format('Too add TCastleTransform descendant (%s), select a parent that descends from TCastleTransform, for example select Viewport.Items.',
+        [ComponentClass.ClassName, ParentComponent.ClassName]))
+    end else
+    if ComponentClass.InheritsFrom(TCastleBehavior) then
+    begin
+      raise Exception.Create(Format('Too add TCastleBehavior descendant (%s), select a parent that descends from TCastleTransform, like TCastleTransform itself or TCastleScene.',
+        [ComponentClass.ClassName, ParentComponent.ClassName]))
+    end else
+    begin
+      Result := CreateComponent;
+      ParentComponent.AddNonVisualComponent(Result);
+      FinishAddingComponent(Result);
+    end;
   end;
 
 begin
@@ -1327,11 +1393,15 @@ begin
 
   if ParentComponent is TCastleUserInterface then
   begin
-    Exit(AddUserInterface(ParentComponent as TCastleUserInterface));
+    Exit(AddToUserInterface(TCastleUserInterface(ParentComponent)));
   end else
   if ParentComponent is TCastleTransform then
   begin
-    Exit(AddTransform(ParentComponent as TCastleTransform));
+    Exit(AddToTransform(TCastleTransform(ParentComponent)));
+  end else
+  if ParentComponent is TCastleComponent then
+  begin
+    Exit(AddToComponent(ParentComponent as TCastleComponent));
   end else
     raise Exception.Create(Format('Cannot add to the parent of class %s, select other parent before adding.',
       [ParentComponent.ClassName]))
@@ -1349,8 +1419,10 @@ procedure TDesignFrame.DeleteComponent;
     Result := nil;
   end;
 
+  procedure FreeBehaviorChildren(const T: TCastleTransform); forward;
   procedure FreeTransformChildren(const T: TCastleTransform); forward;
   procedure FreeUiChildren(const C: TCastleUserInterface); forward;
+  procedure FreeNonVisualChildren(const C: TCastleComponent); forward;
 
   { Delete C and all children.
     We have to delete things recursively, otherwise they would keep existing,
@@ -1361,17 +1433,34 @@ procedure TDesignFrame.DeleteComponent;
   begin
     if not Deletable(C) then
       Exit;
-    if C is TCastleTransform then
+    if C is TCastleComponent then
     begin
-      FreeTransformChildren(TCastleTransform(C));
-    end else
-    if C is TCastleUserInterface then
-    begin
-      FreeUiChildren(TCastleUserInterface(C));
-      if C is TCastleViewport then
-        FreeTransformChildren(TCastleViewport(C).Items);
+      FreeNonVisualChildren(TCastleComponent(C));
+      if C is TCastleTransform then
+      begin
+        FreeBehaviorChildren(TCastleTransform(C));
+        FreeTransformChildren(TCastleTransform(C));
+      end else
+      if C is TCastleUserInterface then
+      begin
+        FreeUiChildren(TCastleUserInterface(C));
+        if C is TCastleViewport then
+        begin
+          FreeBehaviorChildren(TCastleViewport(C).Items);
+          FreeTransformChildren(TCastleViewport(C).Items);
+        end;
+      end;
     end;
     C.Free;
+  end;
+
+  procedure FreeNonVisualChildren(const C: TCastleComponent);
+  var
+    I: Integer;
+  begin
+    for I := C.NonVisualComponentsCount - 1 downto 0 do
+      if Deletable(C.NonVisualComponents[I]) then
+        FreeRecursively(C.NonVisualComponents[I]);
   end;
 
   procedure FreeTransformChildren(const T: TCastleTransform);
@@ -1381,6 +1470,15 @@ procedure TDesignFrame.DeleteComponent;
     for I := T.Count - 1 downto 0 do
       if Deletable(T[I]) then
         FreeRecursively(T[I]);
+  end;
+
+  procedure FreeBehaviorChildren(const T: TCastleTransform);
+  var
+    I: Integer;
+  begin
+    for I := T.BehaviorsCount - 1 downto 0 do
+      if Deletable(T.Behaviors[I]) then
+        FreeRecursively(T.Behaviors[I]);
   end;
 
   procedure FreeUiChildren(const C: TCastleUserInterface);
@@ -2882,16 +2980,19 @@ begin
   begin
     MenuTreeViewItemAddUserInterface.SetEnabledVisible(true);
     MenuTreeViewItemAddTransform.SetEnabledVisible(false);
+    MenuTreeViewItemAddBehavior.SetEnabledVisible(false);
   end else
   if (Sel is TCastleTransform) or ((Sel = nil) and (DesignRoot is TCastleTransform)) then
   begin
     MenuTreeViewItemAddUserInterface.SetEnabledVisible(false);
     MenuTreeViewItemAddTransform.SetEnabledVisible(true);
+    MenuTreeViewItemAddBehavior.SetEnabledVisible(true);
   end else
   begin
-    WritelnWarning('Unexpected situation, selected / design root have unexpected classes');
+    // on other components, you can add NonVisualComponent
     MenuTreeViewItemAddUserInterface.SetEnabledVisible(false);
     MenuTreeViewItemAddTransform.SetEnabledVisible(false);
+    MenuTreeViewItemAddBehavior.SetEnabledVisible(false);
   end;
   MenuTreeView.PopupComponent := ControlsTree; // I'm not sure what it means, something like menu owner?
 end;

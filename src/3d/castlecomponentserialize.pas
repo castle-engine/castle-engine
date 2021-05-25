@@ -752,6 +752,8 @@ begin
     raise EComponentNotFound.CreateFmt('Cannot find component named "%s"', [AName]);
 end;
 
+initialization
+  RegisterSerializableComponent(TCastleComponent, 'Component Group');
 finalization
   FreeAndNil(FRegisteredComponents);
 end.

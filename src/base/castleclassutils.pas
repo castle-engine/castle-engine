@@ -383,8 +383,16 @@ type
   TTranslatePropertyEvent = procedure (const Sender: TCastleComponent;
     const PropertyName: String; var PropertyValue: String) of object;
 
-  { Component with small CGE extensions. }
+  { Component with various CGE extensions.
+
+    Note that everywhere in CGE (in particular in editor and when serializing) we handle
+    a standard Pascal TComponent. There's no need to derive all your components from
+    TCastleComponent. Use TCastleComponent only if you want to benefit from some extra
+    features in this class.  }
   TCastleComponent = class(TComponent)
+  strict private
+    FNonVisualComponents: TComponentList;
+    function GetNonVisualComponents(const Index: Integer): TComponent;
   protected
     function GetInternalText: String; virtual;
     procedure SetInternalText(const Value: String); virtual;
@@ -414,6 +422,8 @@ type
     { Internal field used by CastleComponentSerialize.
       @exclude }
     InternalOriginalName: String;
+
+    destructor Destroy; override;
 
     { Main text property, that is synchronized with Name initially.
       @exclude }
@@ -463,6 +473,20 @@ type
       and do not publish it.
     }
     procedure SetTransient;
+
+    { Use this component as a container to easily reference any other TComponent instances,
+      and add given TComponent to it.
+      This is useful to group non-visual components, esp. in CGE editor.
+
+      @seealso NonVisualComponentsCount
+      @seealso NonVisualComponent }
+    procedure AddNonVisualComponent(const NonVisualComponent: TComponent);
+
+    { Count of components added by AddNonVisualComponent. }
+    function NonVisualComponentsCount: Integer;
+
+    { Components added by AddNonVisualComponent. }
+    property NonVisualComponents [const Index: Integer]: TComponent read GetNonVisualComponents;
   end;
 
 { Enumerate all properties that are possible to translate in this component
@@ -1351,6 +1375,12 @@ end;
 
 { TCastleComponent ----------------------------------------------------------- }
 
+destructor TCastleComponent.Destroy;
+begin
+  FreeAndNil(FNonVisualComponents);
+  inherited;
+end;
+
 procedure TCastleComponent.SetTransient;
 begin
   Include(FComponentStyle, csTransient);
@@ -1426,6 +1456,31 @@ procedure TCastleComponent.TranslateProperties(
   const TranslatePropertyEvent: TTranslatePropertyEvent);
 begin
   // nothing to do in this class
+end;
+
+function TCastleComponent.NonVisualComponentsCount: Integer;
+begin
+  if FNonVisualComponents = nil then
+    Result := 0
+  else
+    Result := FNonVisualComponents.Count;
+end;
+
+function TCastleComponent.GetNonVisualComponents(const Index: Integer): TComponent;
+begin
+  { showing ERangeError will be nicer
+    than showing EAccessViolation when accessing FNonVisualComponents below }
+  if FNonVisualComponents = nil then
+    System.Error(reRangeError);
+  Result := FNonVisualComponents[Index];
+end;
+
+procedure TCastleComponent.AddNonVisualComponent(const NonVisualComponent: TComponent);
+begin
+  // create FNonVisualComponents on-demand, to not burden typical TCastleComponent that doesn't need this
+  if FNonVisualComponents = nil then
+    FNonVisualComponents := TComponentList.Create(false);
+  FNonVisualComponents.Add(NonVisualComponent);
 end;
 
 { TComponent routines -------------------------------------------------------- }
