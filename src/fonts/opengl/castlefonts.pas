@@ -389,8 +389,7 @@ type
     property TargetImage: TCastleImage read FTargetImage write FTargetImage;
   end;
 
-  { @deprecated Deprecated name for TCastleAbstractFont. }
-  TGLBitmapFontAbstract = TCastleAbstractFont deprecated;
+  TGLBitmapFontAbstract = TCastleAbstractFont deprecated 'use TCastleAbstractFont';
 
   { Font loaded from a font file, like ttf or otf.
     This class is typically used for outline (scalable, vector) fonts in ttf or otf formats.
@@ -466,7 +465,8 @@ type
     property Scale: Single read GetScale write SetScale;
   end;
 
-  TGLBitmapFont = TCastleFont deprecated 'use TTextureFont';
+  TGLBitmapFont = TCastleFont deprecated 'use TCastleFont';
+  TTextureFont = TCastleFont deprecated 'use TCastleFont';
 
   { Bitmap font, where each character is just drawn (and may be multi-color)
     on a raster image. See https://en.wikipedia.org/wiki/Computer_font about
