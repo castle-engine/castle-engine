@@ -90,7 +90,7 @@ type
     property CustomizeOutline: boolean read FCustomizeOutline write FCustomizeOutline default false;
   end;
 
-  TFontFamily = TCastleFontFamily deprecated 'use TFontFamily';
+  TFontFamily = TCastleFontFamily deprecated 'use TCastleFontFamily';
 
   { @exclude Internal type for TRichText }
   TTextCommand = (
