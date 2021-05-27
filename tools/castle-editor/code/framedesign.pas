@@ -1920,6 +1920,14 @@ begin
     //WritelnWarning('CGE needed to explicitly tell editor to refresh hierarchy');
     ModifiedOutsideObjectInspector('', ucLow);
   end;
+
+  { Hide some tabs if they don't contain anything. }
+  TabLayout.TabVisible :=
+    (Inspector[itLayout].RowCount <> 0) or
+    PanelLayoutTransform.Visible or
+    PanelAnchors.Visible;
+  TabEvents.TabVisible :=
+    (Inspector[itEvents].RowCount <> 0);
 end;
 
 procedure TDesignFrame.CastleControlDragOver(Sender, Source: TObject; X,
