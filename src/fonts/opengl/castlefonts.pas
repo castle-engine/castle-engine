@@ -23,11 +23,11 @@ interface
 uses SysUtils, Classes, Generics.Collections, Contnrs,
   CastleGLImages, CastleStringUtils, CastleColors, CastleVectors,
   CastleTextureFontData, CastleImages, CastleUnicode, CastleRectangles,
-  CastleApplicationProperties;
+  CastleApplicationProperties, CastleClassUtils;
 
 type
   { Abstract class for a font that can be used to render text. }
-  TCastleAbstractFont = class abstract(TComponent)
+  TCastleAbstractFont = class abstract(TCastleComponent)
   strict private
   type
     TSavedProperties = class
@@ -595,7 +595,7 @@ function SimpleHtmlQuote(const S: String): String;
 implementation
 
 uses Math,
-  CastleClassUtils, CastleGLUtils, CastleUtils, CastleFontFamily, CastleComponentSerialize;
+  CastleGLUtils, CastleUtils, CastleFontFamily, CastleComponentSerialize;
 
 { TCastleAbstractFont ------------------------------------------------------}
 
