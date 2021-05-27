@@ -559,6 +559,9 @@ end;
 
 { saving to JSON ------------------------------------------------------------- }
 
+const
+  ChildPropertyName = '$Children';
+
 type
   TCastleComponentWriter = class
   strict private
@@ -574,9 +577,18 @@ type
 
 class procedure TCastleComponentWriter.AfterStreamObject(
   Sender: TObject; AObject: TObject; JSON: TJSONObject);
+var
+  ChildrenArray: TJSONArray;
 begin
-  { set _ClassName string, our reader depends on it }
+  { set $ClassName string, our reader depends on it }
   Json.Strings['$ClassName'] := AObject.ClassName;
+
+  { Remove $Children array if empty. It would only take up space in generated JSON,
+    which is bothersome when you want to view it to debug / diff. }
+  ChildrenArray := Json.Find(ChildPropertyName, jtArray) as TJSONArray;
+  if (ChildrenArray <> nil) and
+     (ChildrenArray.Count = 0) then
+    Json.Remove(ChildrenArray);
 end;
 
 class procedure TCastleComponentWriter.StreamProperty(Sender: TObject;
@@ -730,7 +742,7 @@ begin
     ];
     JsonWriter.AfterStreamObject := @TCastleComponentWriter(nil).AfterStreamObject;
     JsonWriter.OnStreamProperty := @TCastleComponentWriter(nil).StreamProperty;
-    JsonWriter.ChildProperty := '$Children';
+    JsonWriter.ChildProperty := ChildPropertyName;
     Json := JsonWriter.ObjectToJSON(C);
     try
       Result := Json.FormatJSON;
