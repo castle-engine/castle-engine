@@ -349,6 +349,23 @@ type
         function MoveNext: Boolean; inline;
         property Current: TCastleTransform read GetCurrent;
       end;
+
+      { Used by @link(TCastleTransform.BehaviorsEnumerate).
+        Do not use this type explicitly, it should only be used by for..in
+        construction like "for B in MyTranform.BehaviorsEnumerate do ...".
+        @exclude }
+      TCastleBehaviorEnumerator = record
+      strict private
+        FParent: TCastleTransform;
+        FPosition: Integer;
+        function GetCurrent: TCastleBehavior; inline;
+      public
+        constructor Create(const AParent: TCastleTransform);
+        function MoveNext: Boolean; inline;
+        property Current: TCastleBehavior read GetCurrent;
+        function GetEnumerator: TCastleBehaviorEnumerator;
+      end;
+
     class var
       NextTransformId: Cardinal;
     var

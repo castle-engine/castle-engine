@@ -69,50 +69,34 @@
     property Parent: TCastleTransform read FParent;
   end;
 
-  { Used by @link(TCastleTransform.BehaviorsEnumerate).
-    Do not use this type explicitly, it should only be used by for..in
-    construction like "for B in MyTranform.BehaviorsEnumerate do ...".
-    @exclude }
-  TCastleBehaviorEnumerator = record
-  strict private
-    FParent: TCastleTransform;
-    FPosition: Integer;
-    function GetCurrent: TCastleBehavior; inline;
-  public
-    constructor Create(const AParent: TCastleTransform);
-    function MoveNext: Boolean; inline;
-    property Current: TCastleBehavior read GetCurrent;
-    function GetEnumerator: TCastleBehaviorEnumerator;
-  end;
-
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-{ TCastleBehaviorEnumerator ------------------------------------------------- }
+{ TCastleTransform.TCastleBehaviorEnumerator ------------------------------------------------- }
 
 { TCastleBehaviorEnumerator is optimized to be a record, following
   https://hallvards.blogspot.com/2007/10/more-fun-with-enumerators.html }
 
-constructor TCastleBehaviorEnumerator.Create(const AParent: TCastleTransform);
+constructor TCastleTransform.TCastleBehaviorEnumerator.Create(const AParent: TCastleTransform);
 begin
 //  inherited Create;
   FParent := AParent;
   FPosition := -1;
 end;
 
-function TCastleBehaviorEnumerator.GetCurrent: TCastleBehavior;
+function TCastleTransform.TCastleBehaviorEnumerator.GetCurrent: TCastleBehavior;
 begin
   Result := FParent.Behaviors[FPosition];
 end;
 
-function TCastleBehaviorEnumerator.MoveNext: Boolean;
+function TCastleTransform.TCastleBehaviorEnumerator.MoveNext: Boolean;
 begin
   Inc(FPosition);
   Result := FPosition < FParent.BehaviorsCount;
 end;
 
-function TCastleBehaviorEnumerator.GetEnumerator: TCastleBehaviorEnumerator;
+function TCastleTransform.TCastleBehaviorEnumerator.GetEnumerator: TCastleBehaviorEnumerator;
 begin
   // Returns itself. See https://wiki.freepascal.org/for-in_loop
   Result := Self;
