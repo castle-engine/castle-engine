@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,49 +32,6 @@ uses SysUtils, Classes, FpJson, FpJsonRtti, Generics.Collections, TypInfo;
 
 type
   EInvalidComponentFile = class(Exception);
-
-  { Internal for InternalAddChild methods. @exclude }
-  TCastleComponentReader = class
-  private
-    type
-      TMyJSONDeStreamer = class(TJSONDeStreamer)
-      private
-        Reader: TCastleComponentReader;
-      end;
-    { Events called by FJsonReader }
-    procedure GetObject(AObject: TObject; Info: PPropInfo;
-      AData: TJSONObject; DataName: TJSONStringType; var AValue: TObject);
-  strict private
-    type
-      TResolveObjectProperty = class
-        Instance: TObject;
-        InstanceProperty: PPropInfo;
-        PropertyValue: String;
-      end;
-      TResolveObjectPropertyList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TResolveObjectProperty>;
-    var
-      FJsonReader: TMyJSONDeStreamer;
-      ResolveObjectProperties: TResolveObjectPropertyList;
-
-    { Events called by FJsonReader }
-    procedure BeforeReadObject(Sender: TObject; AObject: TObject; JSON: TJSONObject);
-    procedure AfterReadObject(Sender: TObject; AObject: TObject; JSON: TJSONObject);
-    procedure RestoreProperty(Sender: TObject; AObject: TObject; Info: PPropInfo; AValue: TJSONData; var Handled: Boolean);
-  private
-    FOwner: TComponent;
-    { Call immediately after using JsonReader to deserialize JSON.
-      Some object references may be unresolved, if the object is defined
-      in JSON after it was referred to by name.
-      In this case this method will finalize this resolution. }
-    procedure FinishResolvingObjectProperties;
-  public
-    constructor Create;
-    destructor Destroy; override;
-
-    function JsonReader: TJSONDeStreamer;
-    { Will own all deserialized components. }
-    property Owner: TComponent read FOwner;
-  end;
 
 { Save / load TComponent (or descendant)
   to a .castle-user-interface or .castle-transform file.
@@ -210,6 +167,50 @@ begin
 end;
 
 { loading from JSON ---------------------------------------------------------- }
+
+type
+  { Internal for InternalAddChild methods. @exclude }
+  TCastleComponentReader = class
+  private
+    type
+      TMyJSONDeStreamer = class(TJSONDeStreamer)
+      private
+        Reader: TCastleComponentReader;
+      end;
+    { Events called by FJsonReader }
+    procedure GetObject(AObject: TObject; Info: PPropInfo;
+      AData: TJSONObject; DataName: TJSONStringType; var AValue: TObject);
+  strict private
+    type
+      TResolveObjectProperty = class
+        Instance: TObject;
+        InstanceProperty: PPropInfo;
+        PropertyValue: String;
+      end;
+      TResolveObjectPropertyList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TResolveObjectProperty>;
+    var
+      FJsonReader: TMyJSONDeStreamer;
+      ResolveObjectProperties: TResolveObjectPropertyList;
+
+    { Events called by FJsonReader }
+    procedure BeforeReadObject(Sender: TObject; AObject: TObject; JSON: TJSONObject);
+    procedure AfterReadObject(Sender: TObject; AObject: TObject; JSON: TJSONObject);
+    procedure RestoreProperty(Sender: TObject; AObject: TObject; Info: PPropInfo; AValue: TJSONData; var Handled: Boolean);
+  private
+    FOwner: TComponent;
+    { Call immediately after using JsonReader to deserialize JSON.
+      Some object references may be unresolved, if the object is defined
+      in JSON after it was referred to by name.
+      In this case this method will finalize this resolution. }
+    procedure FinishResolvingObjectProperties;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    function JsonReader: TJSONDeStreamer;
+    { Will own all deserialized components. }
+    property Owner: TComponent read FOwner;
+  end;
 
 { Read and create suitable component class from JSON. }
 function CreateComponentFromJson(const JsonObject: TJSONObject;
