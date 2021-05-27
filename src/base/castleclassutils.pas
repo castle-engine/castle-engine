@@ -391,8 +391,25 @@ type
     features in this class.  }
   TCastleComponent = class(TComponent)
   strict private
-    FNonVisualComponents: TComponentList;
-    function GetNonVisualComponents(const Index: Integer): TComponent;
+    type
+      { Used by @link(TCastleComponent.NonVisualComponentsEnumerate).
+        Do not use this type explicitly, it should only be used by for..in
+        construction like "for C in MyComponent.NonVisualComponentsEnumerate do ...".
+        @exclude }
+      TNonVisualComponentsEnumerator = record
+      strict private
+        FParent: TCastleComponent;
+        FPosition: Integer;
+        function GetCurrent: TComponent; inline;
+      public
+        constructor Create(const AParent: TCastleComponent);
+        function MoveNext: Boolean; inline;
+        property Current: TComponent read GetCurrent;
+        function GetEnumerator: TNonVisualComponentsEnumerator;
+      end;
+    var
+      FNonVisualComponents: TComponentList;
+      function GetNonVisualComponents(const Index: Integer): TComponent;
   protected
     function GetInternalText: String; virtual;
     procedure SetInternalText(const Value: String); virtual;
@@ -479,14 +496,26 @@ type
       This is useful to group non-visual components, esp. in CGE editor.
 
       @seealso NonVisualComponentsCount
-      @seealso NonVisualComponent }
+      @seealso NonVisualComponent
+      @seealso NonVisualComponentsEnumerate }
     procedure AddNonVisualComponent(const NonVisualComponent: TComponent);
 
-    { Count of components added by AddNonVisualComponent. }
+    { Count of components added by AddNonVisualComponent.
+
+      @seealso AddNonVisualComponent
+      @seealso NonVisualComponentsCount
+      @seealso NonVisualComponentsEnumerate }
     function NonVisualComponentsCount: Integer;
 
     { Components added by AddNonVisualComponent. }
     property NonVisualComponents [const Index: Integer]: TComponent read GetNonVisualComponents;
+
+    { You can enumerate current non-visual components using loop like
+      @code(for C in MyComponent.NonVisualComponentsEnumerate do ...).
+      Do not call this method in other contexts, it is only useful for "for..in" construction.
+
+      @seealso AddNonVisualComponent }
+    function NonVisualComponentsEnumerate: TNonVisualComponentsEnumerator;
   end;
 
 { Enumerate all properties that are possible to translate in this component
@@ -1373,6 +1402,35 @@ begin
     Component := ComponentClass.Create(Owner);
 end;
 
+{ TCastleComponent.TNonVisualComponentsEnumerator ------------------------------------------------- }
+
+{ TNonVisualComponentsEnumerator is optimized to be a record, following
+  https://hallvards.blogspot.com/2007/10/more-fun-with-enumerators.html }
+
+constructor TCastleComponent.TNonVisualComponentsEnumerator.Create(const AParent: TCastleComponent);
+begin
+//  inherited Create;
+  FParent := AParent;
+  FPosition := -1;
+end;
+
+function TCastleComponent.TNonVisualComponentsEnumerator.GetCurrent: TComponent;
+begin
+  Result := FParent.NonVisualComponents[FPosition];
+end;
+
+function TCastleComponent.TNonVisualComponentsEnumerator.MoveNext: Boolean;
+begin
+  Inc(FPosition);
+  Result := FPosition < FParent.NonVisualComponentsCount;
+end;
+
+function TCastleComponent.TNonVisualComponentsEnumerator.GetEnumerator: TNonVisualComponentsEnumerator;
+begin
+  // Returns itself. See https://wiki.freepascal.org/for-in_loop
+  Result := Self;
+end;
+
 { TCastleComponent ----------------------------------------------------------- }
 
 destructor TCastleComponent.Destroy;
@@ -1481,6 +1539,11 @@ begin
   if FNonVisualComponents = nil then
     FNonVisualComponents := TComponentList.Create(false);
   FNonVisualComponents.Add(NonVisualComponent);
+end;
+
+function TCastleComponent.NonVisualComponentsEnumerate: TNonVisualComponentsEnumerator;
+begin
+  Result := TNonVisualComponentsEnumerator.Create(Self);
 end;
 
 { TComponent routines -------------------------------------------------------- }
