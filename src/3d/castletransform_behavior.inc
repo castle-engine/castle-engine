@@ -53,12 +53,12 @@
       @link(TCastleTransform.RemoveBehavior). }
     procedure ParentChanged; virtual;
 
-    { Used to check that the one and only instance of BehaviorClass in Parent
-      is Self. }
-    procedure SingleInstanceOfBehavior;
-
     { Used to check that the one and only instance of current class type is Self.
       This is a simpler overload of SingleInstanceOfBehavior. }
+    procedure SingleInstanceOfBehavior;
+
+    { Used to check that the one and only instance of BehaviorClass in Parent
+      is Self. }
     procedure SingleInstanceOfBehavior(const BehaviorClass: TCastleBehaviorClass);
   public
     { Parent TCastleTransform of this behavior.
