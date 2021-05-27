@@ -1239,14 +1239,14 @@ type
   TCastleUserInterface = class(TInputListener)
   private
     type
-      TEnumerator = class
+      TEnumerator = record
       private
         FList: TChildrenControls;
         FPosition: Integer;
-        function GetCurrent: TCastleUserInterface;
+        function GetCurrent: TCastleUserInterface; inline;
       public
         constructor Create(AList: TChildrenControls);
-        function MoveNext: Boolean;
+        function MoveNext: Boolean; inline;
         property Current: TCastleUserInterface read GetCurrent;
       end;
     var
@@ -4066,7 +4066,7 @@ end;
 
 constructor TCastleUserInterface.TEnumerator.Create(AList: TChildrenControls);
 begin
-  inherited Create;
+//  inherited Create;
   FList := AList;
   FPosition := -1;
 end;

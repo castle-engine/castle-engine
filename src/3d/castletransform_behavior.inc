@@ -70,17 +70,17 @@
   end;
 
   { Used by @link(TCastleTransform.BehaviorsEnumerate).
-    Do not create this class explicitly, it should only be used by for..in
+    Do not use this type explicitly, it should only be used by for..in
     construction like "for B in MyTranform.BehaviorsEnumerate do ...".
     @exclude }
-  TCastleBehaviorEnumerator = class
+  TCastleBehaviorEnumerator = record
   strict private
     FParent: TCastleTransform;
     FPosition: Integer;
-    function GetCurrent: TCastleBehavior;
+    function GetCurrent: TCastleBehavior; inline;
   public
     constructor Create(const AParent: TCastleTransform);
-    function MoveNext: Boolean;
+    function MoveNext: Boolean; inline;
     property Current: TCastleBehavior read GetCurrent;
     function GetEnumerator: TCastleBehaviorEnumerator;
   end;
@@ -91,9 +91,12 @@
 
 { TCastleBehaviorEnumerator ------------------------------------------------- }
 
+{ TCastleBehaviorEnumerator is optimized to be a record, following
+  https://hallvards.blogspot.com/2007/10/more-fun-with-enumerators.html }
+
 constructor TCastleBehaviorEnumerator.Create(const AParent: TCastleTransform);
 begin
-  inherited Create;
+//  inherited Create;
   FParent := AParent;
   FPosition := -1;
 end;

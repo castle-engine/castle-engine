@@ -339,14 +339,14 @@ type
   TCastleTransform = class(TCastleComponent)
   private
     type
-      TEnumerator = class
+      TEnumerator = record
       strict private
         FList: TCastleTransformList;
         FPosition: Integer;
-        function GetCurrent: TCastleTransform;
+        function GetCurrent: TCastleTransform; inline;
       public
         constructor Create(AList: TCastleTransformList);
-        function MoveNext: Boolean;
+        function MoveNext: Boolean; inline;
         property Current: TCastleTransform read GetCurrent;
       end;
     class var
@@ -2538,7 +2538,7 @@ end;
 
 constructor TCastleTransform.TEnumerator.Create(AList: TCastleTransformList);
 begin
-  inherited Create;
+//  inherited Create;
   FList := AList;
   FPosition := -1;
 end;
