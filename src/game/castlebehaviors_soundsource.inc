@@ -33,6 +33,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Play SoundType where the parent is.
 
@@ -106,6 +107,16 @@ begin
     FreeAndNil(UsedSounds);
   end;
   inherited;
+end;
+
+function TCastleSoundSource.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  case PropertyName of
+    'Sound':
+      Result := [psBasic];
+    else
+      Result := inherited PropertySections(PropertyName);
+  end;
 end;
 
 procedure TCastleSoundSource.SoundRelease(Sender: TSound);
