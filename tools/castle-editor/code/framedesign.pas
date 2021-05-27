@@ -2552,7 +2552,8 @@ begin
     before starting edit. }
   C := TComponent(Node.Data);
   AllowEdit := C <> nil; // may be nil on special tree items "Behaviors" or "Non-Visual Components"
-  Node.Text := C.Name;
+  if AllowEdit then
+    Node.Text := C.Name;
 end;
 
 procedure TDesignFrame.ControlsTreeEditingEnd(Sender: TObject; Node: TTreeNode;
@@ -2593,8 +2594,10 @@ begin
     { Do not allow to drag subcomponents (like TCastleScrollView.ScrollArea)
       or root component. }
     SrcComponent := TObject(Src.Data) as TComponent;
-    if (SrcComponent = DesignRoot) or
-       (csSubComponent in SrcComponent.ComponentStyle) then
+    // SrcComponent is nil if you try to drag special tree items "Behaviors" or "Non-Visual Components"
+    if (SrcComponent <> nil) and
+       ( (SrcComponent = DesignRoot) or
+         (csSubComponent in SrcComponent.ComponentStyle) ) then
       Result := false;
   end;
 end;
