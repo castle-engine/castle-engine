@@ -340,7 +340,7 @@ type
   private
     type
       TEnumerator = class
-      private
+      strict private
         FList: TCastleTransformList;
         FPosition: Integer;
         function GetCurrent: TCastleTransform;
@@ -1859,6 +1859,11 @@ type
       @seealso AddBehavior
       @seealso RemoveBehavior }
     property Behaviors [const Index: Integer]: TCastleBehavior read GetBehaviors;
+
+    { You can enumerate current behaviors using loop like
+      @code(for B in MyTransform.BehaviorsEnumerate do ...).
+      Do not call this method in other contexts, it is only useful for "for..in" construction. }
+    function BehaviorsEnumerate: TCastleBehaviorEnumerator;
   published
     { Is this object visible and colliding.
 
@@ -3919,6 +3924,11 @@ end;
 function TCastleTransform.GetEnumerator: TEnumerator;
 begin
   Result := TEnumerator.Create(FList);
+end;
+
+function TCastleTransform.BehaviorsEnumerate: TCastleBehaviorEnumerator;
+begin
+  Result := TCastleBehaviorEnumerator.Create(Self);
 end;
 
 procedure TCastleTransform.SetListenPressRelease(const Value: Boolean);

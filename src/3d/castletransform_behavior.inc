@@ -69,9 +69,53 @@
     property Parent: TCastleTransform read FParent;
   end;
 
+  { Used by @link(TCastleTransform.BehaviorsEnumerate).
+    Do not create this class explicitly, it should only be used by for..in
+    construction like "for B in MyTranform.BehaviorsEnumerate do ...".
+    @exclude }
+  TCastleBehaviorEnumerator = class
+  strict private
+    FParent: TCastleTransform;
+    FPosition: Integer;
+    function GetCurrent: TCastleBehavior;
+  public
+    constructor Create(const AParent: TCastleTransform);
+    function MoveNext: Boolean;
+    property Current: TCastleBehavior read GetCurrent;
+    function GetEnumerator: TCastleBehaviorEnumerator;
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+{ TCastleBehaviorEnumerator ------------------------------------------------- }
+
+constructor TCastleBehaviorEnumerator.Create(const AParent: TCastleTransform);
+begin
+  inherited Create;
+  FParent := AParent;
+  FPosition := -1;
+end;
+
+function TCastleBehaviorEnumerator.GetCurrent: TCastleBehavior;
+begin
+  Result := FParent.Behaviors[FPosition];
+end;
+
+function TCastleBehaviorEnumerator.MoveNext: Boolean;
+begin
+  Inc(FPosition);
+  Result := FPosition < FParent.BehaviorsCount;
+end;
+
+function TCastleBehaviorEnumerator.GetEnumerator: TCastleBehaviorEnumerator;
+begin
+  // Returns itself. See https://wiki.freepascal.org/for-in_loop
+  Result := Self;
+end;
+
+{ TCastleBehavior ------------------------------------------------------------ }
 
 procedure TCastleBehavior.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 begin
