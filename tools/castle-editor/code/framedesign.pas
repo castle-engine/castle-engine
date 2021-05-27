@@ -2240,6 +2240,55 @@ end;
 
 procedure TDesignFrame.UpdateDesign;
 
+  { Add given component, and its children in C.NonVisualComponents }
+  function AddNonVisualComponent(const Parent: TTreeNode; const C: TComponent): TTreeNode;
+  var
+    S: String;
+    Child: TComponent;
+  begin
+    S := ComponentCaption(C);
+    Result := ControlsTree.Items.AddChildObject(Parent, S, C);
+    TreeNodeMap.AddOrSetValue(C, Result);
+    if C is TCastleComponent then
+    begin
+      for Child in TCastleComponent(C).NonVisualComponentsEnumerate do
+        if Selectable(Child) then
+          AddNonVisualComponent(Result, Child);
+    end;
+  end;
+
+  { If C has some NonVisualComponents, then create a tree item
+    'Non-Visual Components' and add them to it. }
+  function AddNonVisualComponentsSection(const Parent: TTreeNode; const C: TCastleComponent): TTreeNode;
+  var
+    Child: TComponent;
+  begin
+    if C.NonVisualComponentsCount <> 0 then
+    begin
+      Result := ControlsTree.Items.AddChildObject(Parent, 'Non-Visual Components', nil);
+      for Child in C.NonVisualComponentsEnumerate do
+        if Selectable(Child) then
+          AddNonVisualComponent(Result, Child);
+    end;
+  end;
+
+  { If T has some Behaviors, then create a tree item
+    'Behaviors' and add them to it. }
+  function AddBehaviorsSection(const Parent: TTreeNode; const T: TCastleTransform): TTreeNode;
+  var
+    Child: TCastleBehavior;
+  begin
+    if T.BehaviorsCount <> 0 then
+    begin
+      Result := ControlsTree.Items.AddChildObject(Parent, 'Behaviors', nil);
+      for Child in T.BehaviorsEnumerate do
+        if Selectable(Child) then
+          AddNonVisualComponent(Result, Child);
+    end;
+  end;
+
+  { Add given transform, and its children
+    (transform children, T.NonVisualComponents, T.Behaviors). }
   function AddTransform(const Parent: TTreeNode; const T: TCastleTransform): TTreeNode;
   var
     S: String;
@@ -2248,6 +2297,10 @@ procedure TDesignFrame.UpdateDesign;
     S := ComponentCaption(T);
     Result := ControlsTree.Items.AddChildObject(Parent, S, T);
     TreeNodeMap.AddOrSetValue(T, Result);
+
+    AddNonVisualComponentsSection(Result, T);
+    AddBehaviorsSection(Result, T);
+
     for I := 0 to T.Count - 1 do
       if Selectable(T[I]) then
         AddTransform(Result, T[I]);
@@ -2262,6 +2315,9 @@ procedure TDesignFrame.UpdateDesign;
     S := ComponentCaption(C);
     Result := ControlsTree.Items.AddChildObject(Parent, S, C);
     TreeNodeMap.AddOrSetValue(C, Result);
+
+    AddNonVisualComponentsSection(Result, C);
+
     for I := 0 to C.ControlsCount - 1 do
     begin
       if Selectable(C.Controls[I]) then
@@ -2288,7 +2344,7 @@ begin
   if DesignRoot is TCastleTransform then
     Node := AddTransform(nil, DesignRoot as TCastleTransform)
   else
-    raise EInternalError.Create('Cannot UpdateDesign with other classes than TCastleUserInterface or TCastleTransform');
+    Node := AddNonVisualComponent(nil, DesignRoot);
 
   // show expanded by default
   Node.Expand(true);
@@ -2485,6 +2541,8 @@ end;
 
 procedure TDesignFrame.ControlsTreeEditing(Sender: TObject; Node: TTreeNode;
   var AllowEdit: Boolean);
+var
+  C: TComponent;
 begin
   { This event is fired when calling TCustomListView.CanEdit
     which itself is called in TCustomListView.ShowEditor
@@ -2492,7 +2550,9 @@ begin
 
     Here we have to "restore" the pure name of the component (without class name)
     before starting edit. }
-  Node.Text := TComponent(Node.Data).Name;
+  C := TComponent(Node.Data);
+  AllowEdit := C <> nil; // may be nil on special tree items "Behaviors" or "Non-Visual Components"
+  Node.Text := C.Name;
 end;
 
 procedure TDesignFrame.ControlsTreeEditingEnd(Sender: TObject; Node: TTreeNode;
