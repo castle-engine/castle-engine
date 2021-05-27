@@ -1245,7 +1245,7 @@ type
         FPosition: Integer;
         function GetCurrent: TCastleUserInterface; inline;
       public
-        constructor Create(AList: TChildrenControls);
+        constructor Create(const AList: TChildrenControls);
         function MoveNext: Boolean; inline;
         property Current: TCastleUserInterface read GetCurrent;
       end;
@@ -4064,7 +4064,7 @@ begin
   Result := FList[FPosition];
 end;
 
-constructor TCastleUserInterface.TEnumerator.Create(AList: TChildrenControls);
+constructor TCastleUserInterface.TEnumerator.Create(const AList: TChildrenControls);
 begin
 //  inherited Create;
   FList := AList;

@@ -345,7 +345,7 @@ type
         FPosition: Integer;
         function GetCurrent: TCastleTransform; inline;
       public
-        constructor Create(AList: TCastleTransformList);
+        constructor Create(const AList: TCastleTransformList);
         function MoveNext: Boolean; inline;
         property Current: TCastleTransform read GetCurrent;
       end;
@@ -2536,7 +2536,7 @@ begin
   Result := FList[FPosition];
 end;
 
-constructor TCastleTransform.TEnumerator.Create(AList: TCastleTransformList);
+constructor TCastleTransform.TEnumerator.Create(const AList: TCastleTransformList);
 begin
 //  inherited Create;
   FList := AList;
