@@ -233,8 +233,11 @@ begin
   if Owner = nil then
     raise Exception.Create('You must provide non-nil Owner when deserializing a component. Without an Owner, it is not possible to free the component hierarchy easily, and you will most likely have memory leaks.');
 
+  if JsonObject.Find('$$ClassName') <> nil then
+    ResultClassName := JsonObject.Strings['$$ClassName']
+  else
   if JsonObject.Find('$ClassName') <> nil then
-    ResultClassName := JsonObject.Strings['$ClassName']
+    ResultClassName := JsonObject.Strings['$ClassName'] // handle older format
   else
     ResultClassName := JsonObject.Strings['_ClassName']; // handle older format
 
@@ -264,14 +267,19 @@ var
   Child: TComponent;
 begin
   ListClear;
-  JsonChildren := CurrentlyReading.Find('$$' + Key, jtArray) as TJsonArray;
+  JsonChildren := CurrentlyReading.Find('$' + Key, jtArray) as TJsonArray;
+
+  { backward compatibily for reading old children in JSON }
+  if (Key = 'Children') and (JsonChildren = nil) then
+    JsonChildren := CurrentlyReading.Find('_Children', jtArray) as TJsonArray;
+
   if JsonChildren <> nil then
   begin
     for I := 0 to JsonChildren.Count - 1 do
     begin
       JsonChild := JsonChildren.Objects[I];
       if JsonChild = nil then
-        raise EInvalidComponentFile.Create('$$' + Key + ' must be an array of JSON objects');
+        raise EInvalidComponentFile.Create('$' + Key + ' must be an array of JSON objects');
       Child := CreateComponentFromJson(JsonChild, Reader.Owner);
       Reader.DeStreamer.JsonToObject(JsonChild, Child);
       ListAdd(Child);
@@ -302,43 +310,6 @@ procedure TCastleJsonReader.AfterReadObject(
     if (C.InternalOriginalName <> '') and
        (C.InternalOriginalName = C.InternalText) then
       C.InternalText := C.Name;
-  end;
-
-  { Call C.InternalAddChild for all children.
-    This reverses saving children returned by C.GetChildren. }
-  procedure ReadChildren(const C: TCastleComponent);
-  var
-    JsonChildren: TJsonArray;
-    JsonChild: TJsonObject;
-    I: Integer;
-    Child: TComponent;
-  begin
-    if Json.Find('$Children') <> nil then
-      JsonChildren := Json.Arrays['$Children']
-    else
-    if Json.Find('_Children') <> nil then
-      JsonChildren := Json.Arrays['_Children'] // handle older format
-    else
-      JsonChildren := nil;
-
-    if JsonChildren <> nil then
-    begin
-      for I := 0 to JsonChildren.Count - 1 do
-      begin
-        JsonChild := JsonChildren.Objects[I];
-        if JsonChild = nil then
-          raise EInvalidComponentFile.Create('$Children must be an array of JSON objects');
-        Child := CreateComponentFromJson(JsonChild, Owner);
-        FDeStreamer.JsonToObject(JsonChild, Child);
-        C.InternalAddChild(Child);
-      end;
-    end;
-
-    { Initially we did here
-        Json.Delete('_Children');
-      to not confuse TJsonDeStreamer with extra property.
-      But later: it is better to leave JSON structure unmodified
-      (allows to read it multiple times, if needed). }
   end;
 
   { Call C.CustomSerialization(SerializationProcess) }
@@ -380,7 +351,6 @@ begin
   begin
     C := TCastleComponent(AObject);
     SynchronizeNameWithInternalText(C);
-    ReadChildren(C);
     CustomSerialization(C);
     C.InternalLoaded; // remove csLoading flag from ComponentState
   end;
@@ -576,15 +546,6 @@ begin
 end;
 
 function TSerializedComponent.ComponentLoad(const Owner: TComponent): TComponent;
-
-{ Load any TComponent.
-
-  It mostly works automatically with any TComponent.
-  But it has some special connections to TCastleUserInterface and TCastleTransform.
-  It expects that they implement InternalAddChild (an analogue to GetChildren
-  method), otherwise deserializing custom children (defined by GetChildren)
-  is not possible. }
-
 var
   Reader: TCastleJsonReader;
 begin
@@ -638,9 +599,6 @@ end;
 
 { saving to JSON ------------------------------------------------------------- }
 
-const
-  ChildPropertyName = '$Children';
-
 type
   TCastleJsonWriter = class
   strict private
@@ -683,7 +641,7 @@ begin
   if CurrentlyWritingArray = nil then
   begin
     CurrentlyWritingArray := TJsonArray.Create;
-    CurrentlyWriting.Add('$$' + Key, CurrentlyWritingArray);
+    CurrentlyWriting.Add('$' + Key, CurrentlyWritingArray);
   end;
 
   CurrentlyWritingArray.Add(Writer.Streamer.ObjectToJson(C));
@@ -706,7 +664,8 @@ begin
 
   FStreamer := TJsonStreamer.Create(nil);
   Streamer.Options := [
-    jsoStreamChildren,
+    // We no longer use it. Our CustomSerialization fills this use-case in more flexible manner.
+    // jsoStreamChildren,
     { Otherwise TStrings (like TCastleLabel.Text) is written
       as a single String, and newlines are written as "\n" or "\r\n"
       depending on OS used to write the file.
@@ -718,7 +677,6 @@ begin
   ];
   Streamer.AfterStreamObject := @AfterStreamObject;
   Streamer.OnStreamProperty := @StreamProperty;
-  Streamer.ChildProperty := ChildPropertyName;
 
   for I := 0 to High(SerializationProcessPool) do
     SerializationProcessPool[I] := TSerializationProcessWriter.Create;
@@ -770,18 +728,11 @@ procedure TCastleJsonWriter.AfterStreamObject(
   end;
 
 var
-  ChildrenArray: TJsonArray;
   C: TCastleComponent;
 begin
-  { set $ClassName string, our reader depends on it }
-  Json.Strings['$ClassName'] := AObject.ClassName;
-
-  { Remove $Children array if empty. It would only take up space in generated JSON,
-    which is bothersome when you want to view it to debug / diff. }
-  ChildrenArray := Json.Find(ChildPropertyName, jtArray) as TJsonArray;
-  if (ChildrenArray <> nil) and
-     (ChildrenArray.Count = 0) then
-    Json.Remove(ChildrenArray);
+  { set $$ClassName string, our reader depends on it.
+    Uses 2 $, to differentiate from stuff written by TSerializationProcess.ReadWrite. }
+  Json.Strings['$$ClassName'] := AObject.ClassName;
 
   if AObject is TCastleComponent then
   begin

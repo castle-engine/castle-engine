@@ -415,6 +415,9 @@ type
       FLastParentWorldTransformation: TTransformation;
       FLastParentWorldTransformationId: Cardinal;
 
+    procedure SerializeChildrenAdd(const C: TComponent);
+    procedure SerializeChildrenClear;
+    procedure SerializeChildrenEnumerate(const Proc: TGetChildProc);
     procedure SerializeBehaviorsAdd(const C: TComponent);
     procedure SerializeBehaviorsClear;
     procedure SerializeBehaviorsEnumerate(const Proc: TGetChildProc);
@@ -712,8 +715,6 @@ type
     { Override this to be notified about every transformation change.
       By default, this calls VisibleChangeHere, which causes the window to redraw. }
     procedure ChangedTransform; virtual;
-
-    procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
   public
     const
       DefaultMiddleHeight = 0.5;
@@ -754,7 +755,6 @@ type
     destructor Destroy; override;
 
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
-    procedure InternalAddChild(const C: TComponent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
     function GetEnumerator: TEnumerator;
 
@@ -3754,29 +3754,40 @@ begin
   VisibleChangeHere([vcVisibleGeometry]);
 end;
 
-procedure TCastleTransform.GetChildren(Proc: TGetChildProc; Root: TComponent);
-var
-  I: Integer;
-begin
-  inherited;
-  for I := 0 to List.Count - 1 do
-    if [csSubComponent, csTransient] * List[I].ComponentStyle = [] then
-      Proc(List[I]);
-end;
-
-procedure TCastleTransform.InternalAddChild(const C: TComponent);
-begin
-  // matches TCastleTransform.GetChildren implementation
-  Add(C as TCastleTransform);
-end;
-
 procedure TCastleTransform.CustomSerialization(const SerializationProcess: TSerializationProcess);
 begin
   inherited;
+  SerializationProcess.ReadWrite('Children',
+    @SerializeChildrenEnumerate,
+    @SerializeChildrenAdd,
+    @SerializeChildrenClear);
   SerializationProcess.ReadWrite('Behaviors',
     @SerializeBehaviorsEnumerate,
     @SerializeBehaviorsAdd,
     @SerializeBehaviorsClear);
+end;
+
+procedure TCastleTransform.SerializeChildrenEnumerate(const Proc: TGetChildProc);
+var
+  I: Integer;
+begin
+  for I := 0 to List.Count - 1 do
+    if List[I].ComponentStyle * [csSubComponent, csTransient] = [] then
+      Proc(List[I]);
+end;
+
+procedure TCastleTransform.SerializeChildrenAdd(const C: TComponent);
+begin
+  Add(C as TCastleTransform);
+end;
+
+procedure TCastleTransform.SerializeChildrenClear;
+var
+  I: Integer;
+begin
+  for I := List.Count - 1 downto 0 do // downto, as list may shrink during loop
+    if List[I].ComponentStyle * [csSubComponent, csTransient] = [] then
+      List[I].Free; // will remove itself from children list
 end;
 
 procedure TCastleTransform.SerializeBehaviorsEnumerate(const Proc: TGetChildProc);

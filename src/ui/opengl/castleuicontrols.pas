@@ -1283,6 +1283,9 @@ type
       FClipChildren: Boolean;
       FOnRender, FOnInternalMouseEnter, FOnInternalMouseLeave: TUiNotifyEvent;
 
+    procedure SerializeChildrenAdd(const C: TComponent);
+    procedure SerializeChildrenClear;
+    procedure SerializeChildrenEnumerate(const Proc: TGetChildProc);
     procedure BorderChange(Sender: TObject);
     procedure SetExists(const Value: boolean);
     function GetControls(const I: Integer): TCastleUserInterface;
@@ -1384,8 +1387,6 @@ type
 
     //procedure DoCursorChange; override;
 
-    procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
-
     { Controls that have a preferred size should override this.
       By default this contains values derived from
       @link(Width), @link(WidthFraction),
@@ -1419,7 +1420,7 @@ type
     destructor Destroy; override;
     procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
       const ChangeInitiatedByChildren: boolean = false); override;
-    procedure InternalAddChild(const C: TComponent); override;
+    procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
     function GetEnumerator: TEnumerator;
 
@@ -4107,11 +4108,19 @@ begin
   inherited;
 end;
 
-procedure TCastleUserInterface.GetChildren(Proc: TGetChildProc; Root: TComponent);
+procedure TCastleUserInterface.CustomSerialization(const SerializationProcess: TSerializationProcess);
+begin
+  inherited;
+  SerializationProcess.ReadWrite('Children',
+    @SerializeChildrenEnumerate,
+    @SerializeChildrenAdd,
+    @SerializeChildrenClear);
+end;
+
+procedure TCastleUserInterface.SerializeChildrenEnumerate(const Proc: TGetChildProc);
 var
   I: Integer;
 begin
-  inherited;
   if FControls <> nil then
     for I := 0 to FControls.Count - 1 do
       { Do not save SubComponents, like TCastleScrollView.ScrollArea.
@@ -4123,10 +4132,19 @@ begin
         Proc(FControls[I]);
 end;
 
-procedure TCastleUserInterface.InternalAddChild(const C: TComponent);
+procedure TCastleUserInterface.SerializeChildrenAdd(const C: TComponent);
 begin
-  // matches TCastleUserInterface.GetChildren implementation
   InsertFront(C as TCastleUserInterface);
+end;
+
+procedure TCastleUserInterface.SerializeChildrenClear;
+var
+  I: Integer;
+begin
+  if FControls <> nil then
+    for I := FControls.Count - 1 downto 0 do // downto, as list may shrink during loop
+      if FControls[I].ComponentStyle * [csSubComponent, csTransient] = [] then
+        FControls[I].Free; // will remove itself from children list
 end;
 
 procedure TCastleUserInterface.CreateControls;
