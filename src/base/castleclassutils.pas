@@ -387,18 +387,27 @@ type
     Do not create instances of this class yourself. }
   TSerializationProcess = class abstract
   public
-    { Make the given List serialized and deserialized.
-      Supports the case when List is created only when necessary (when possibly non-empty),
-      so 1. reader can create List if necessary, 2. writer understands that List = nil
-      is equal to an empty list.
+    type
+      TListEnumerateEvent = procedure (const Proc: TGetChildProc) of object;
+      TListAddEvent = procedure (const NewComponent: TComponent) of object;
+      TListClearEvent = procedure of object;
 
-      Does not serialize children components that have @italic(any) flag common
-      with ExcludeComponents.
+    { Make a list serialized and deserialized.
+      The definition of list is very flexible here, you provide callbacks
+      that should, when called,
+
+      @unorderedList(
+        @itemSpacing compact
+        @item enumerate (call other callback for each item),
+        @item clear all items (that were possibly added by previous deserialization),
+        @item add new item.
+      )
 
       Do not worry about conflict between Key and some published property.
       We internally "mangle" keys to avoid it. }
-    procedure ReadWrite(const Key: String; var List: TComponentList;
-      const ExcludeComponents: TComponentStyle); virtual; abstract;
+    procedure ReadWrite(const Key: String;
+      const ListEnumerate: TListEnumerateEvent; const ListAdd: TListAddEvent;
+      const ListClear: TListClearEvent); virtual; abstract;
   end;
 
   { Component with various CGE extensions.
@@ -427,7 +436,10 @@ type
       end;
     var
       FNonVisualComponents: TComponentList;
-      function GetNonVisualComponents(const Index: Integer): TComponent;
+    function GetNonVisualComponents(const Index: Integer): TComponent;
+    procedure SerializeNonVisualComponentsEnumerate(const Proc: TGetChildProc);
+    procedure SerializeNonVisualComponentsAdd(const C: TComponent);
+    procedure SerializeNonVisualComponentsClear;
   protected
     function GetInternalText: String; virtual;
     procedure SetInternalText(const Value: String); virtual;
@@ -1572,7 +1584,35 @@ end;
 
 procedure TCastleComponent.CustomSerialization(const SerializationProcess: TSerializationProcess);
 begin
-  SerializationProcess.ReadWrite('NonVisualComponents', FNonVisualComponents, [csSubComponent, csTransient]);
+  SerializationProcess.ReadWrite('NonVisualComponents',
+    @SerializeNonVisualComponentsEnumerate,
+    @SerializeNonVisualComponentsAdd,
+    @SerializeNonVisualComponentsClear);
+end;
+
+procedure TCastleComponent.SerializeNonVisualComponentsEnumerate(const Proc: TGetChildProc);
+var
+  I: Integer;
+begin
+  if FNonVisualComponents <> nil then
+    for I := 0 to FNonVisualComponents.Count - 1 do
+      if FNonVisualComponents[I].ComponentStyle * [csSubComponent, csTransient] = [] then
+        Proc(FNonVisualComponents[I]);
+end;
+
+procedure TCastleComponent.SerializeNonVisualComponentsAdd(const C: TComponent);
+begin
+  AddNonVisualComponent(C);
+end;
+
+procedure TCastleComponent.SerializeNonVisualComponentsClear;
+var
+  I: Integer;
+begin
+  if FNonVisualComponents <> nil then
+    for I := FNonVisualComponents.Count - 1 downto 0 do // downto, as list may shrink during loop
+      if FNonVisualComponents[I].ComponentStyle * [csSubComponent, csTransient] = [] then
+        FNonVisualComponents[I].Free; // will remove itself from Behaviors list
 end;
 
 { TComponent routines -------------------------------------------------------- }

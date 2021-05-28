@@ -123,7 +123,7 @@ var
 
 implementation
 
-uses JsonParser, RtlConsts, StrUtils, Contnrs,
+uses JsonParser, RtlConsts, StrUtils,
   CastleFilesUtils, CastleUtils, CastleLog, CastleStringUtils, CastleClassUtils,
   CastleURIUtils, CastleVectors, CastleColors;
 
@@ -178,7 +178,7 @@ type
       end;
     { Events called by FJsonDeStreamer }
     procedure GetObject(AObject: TObject; Info: PPropInfo;
-      AData: TJsonObject; DataName: TJSONStringType; var AValue: TObject);
+      AData: TJsonObject; DataName: TJsonStringType; var AValue: TObject);
   strict private
     type
       TResolveObjectProperty = class
@@ -193,17 +193,19 @@ type
       public
         Reader: TCastleJsonReader;
         CurrentlyReading: TJsonObject;
-        procedure ReadWrite(const Key: String; var List: TComponentList;
-          const ExcludeComponents: TComponentStyle); override;
+        procedure ReadWrite(const Key: String;
+          const ListEnumerate: TListEnumerateEvent; const ListAdd: TListAddEvent;
+          const ListClear: TListClearEvent); override;
       end;
     var
       FDeStreamer: TMyJsonDeStreamer;
       ResolveObjectProperties: TResolveObjectPropertyList;
-      SerializationProcess: TSerializationProcessReader;
+      SerializationProcessPool: array [0..9] of TSerializationProcessReader;
+      SerializationProcessPoolUsed: Integer;
 
     { Events called by DeStreamer }
-    procedure BeforeReadObject(Sender: TObject; AObject: TObject; JSON: TJsonObject);
-    procedure AfterReadObject(Sender: TObject; AObject: TObject; JSON: TJsonObject);
+    procedure BeforeReadObject(Sender: TObject; AObject: TObject; Json: TJsonObject);
+    procedure AfterReadObject(Sender: TObject; AObject: TObject; Json: TJsonObject);
     procedure RestoreProperty(Sender: TObject; AObject: TObject; Info: PPropInfo; AValue: TJsonData; var Handled: Boolean);
   private
     FOwner: TComponent;
@@ -252,15 +254,16 @@ begin
   Result := ResultClass.Create(Owner);
 end;
 
-procedure TCastleJsonReader.TSerializationProcessReader.ReadWrite(
-  const Key: String; var List: TComponentList;
-  const ExcludeComponents: TComponentStyle);
+procedure TCastleJsonReader.TSerializationProcessReader.ReadWrite(const Key: String;
+  const ListEnumerate: TListEnumerateEvent; const ListAdd: TListAddEvent;
+  const ListClear: TListClearEvent);
 var
   JsonChildren: TJsonArray;
   JsonChild: TJsonObject;
   I: Integer;
   Child: TComponent;
 begin
+  ListClear;
   JsonChildren := CurrentlyReading.Find('$$' + Key, jtArray) as TJsonArray;
   if JsonChildren <> nil then
   begin
@@ -271,15 +274,13 @@ begin
         raise EInvalidComponentFile.Create('$$' + Key + ' must be an array of JSON objects');
       Child := CreateComponentFromJson(JsonChild, Reader.Owner);
       Reader.DeStreamer.JsonToObject(JsonChild, Child);
-      if List = nil then
-        List := TComponentList.Create;
-      List.Add(Child);
+      ListAdd(Child);
     end;
   end;
 end;
 
 procedure TCastleJsonReader.BeforeReadObject(
-  Sender: TObject; AObject: TObject; JSON: TJsonObject);
+  Sender: TObject; AObject: TObject; Json: TJsonObject);
 var
   C: TCastleComponent;
 begin
@@ -340,12 +341,36 @@ procedure TCastleJsonReader.AfterReadObject(
       (allows to read it multiple times, if needed). }
   end;
 
-  { Call C.CustomSerialization }
-  procedure CustomSerialization(const C: TCastleComponent);
+  { Call C.CustomSerialization(SerializationProcess) }
+  procedure CustomSerializationWithSerializationProcess(const C: TCastleComponent;
+    const SerializationProcess: TSerializationProcessReader);
   begin
     SerializationProcess.CurrentlyReading := Json;
     SerializationProcess.Reader := Self;
     C.CustomSerialization(SerializationProcess);
+  end;
+
+  { Call C.CustomSerialization }
+  procedure CustomSerialization(const C: TCastleComponent);
+  var
+     SerializationProcess: TSerializationProcessReader;
+  begin
+    if SerializationProcessPoolUsed < High(SerializationProcessPool) then
+    begin
+      // faster: use ready SerializationProcess from pool
+      Inc(SerializationProcessPoolUsed);
+      try
+        SerializationProcess := SerializationProcessPool[SerializationProcessPoolUsed];
+        CustomSerializationWithSerializationProcess(C, SerializationProcess);
+      finally Dec(SerializationProcessPoolUsed) end;
+    end else
+    begin
+      // slower: create new SerializationProcess
+      SerializationProcess := TSerializationProcessReader.Create;
+      try
+        CustomSerializationWithSerializationProcess(C, SerializationProcess);
+      finally FreeAndNil(SerializationProcess) end;
+    end;
   end;
 
 var
@@ -399,7 +424,7 @@ procedure TCastleJsonReader.RestoreProperty(Sender: TObject; AObject: TObject;
 
 var
   TI: PTypeInfo;
-  NewName: TJSONStringType;
+  NewName: TJsonStringType;
 begin
   TI := Info^.PropType;
   if (TI^.Kind in [tkSString, tkLString, tkAString]) and
@@ -423,7 +448,7 @@ begin
 end;
 
 procedure TCastleJsonReader.GetObject(AObject: TObject; Info: PPropInfo;
-  AData: TJsonObject; DataName: TJSONStringType; var AValue: TObject);
+  AData: TJsonObject; DataName: TJsonStringType; var AValue: TObject);
 var
   R: TResolveObjectProperty;
 begin
@@ -480,7 +505,7 @@ end;
 { This is a global routine because TJsonDeStreamer.OnGetObject requires global.
   We just call Reader.GetObject method. }
 procedure ReaderGetObject(Sender: TObject; AObject: TObject; Info: PPropInfo;
-  AData: TJsonObject; DataName: TJSONStringType; var AValue: TObject);
+  AData: TJsonObject; DataName: TJsonStringType; var AValue: TObject);
 var
   SenderDeStreamer: TCastleJsonReader.TMyJsonDeStreamer;
 begin
@@ -489,6 +514,8 @@ begin
 end;
 
 constructor TCastleJsonReader.Create;
+var
+  I: Integer;
 begin
   inherited;
 
@@ -501,14 +528,18 @@ begin
 
   ResolveObjectProperties := TResolveObjectPropertyList.Create(true);
 
-  SerializationProcess := TSerializationProcessReader.Create;
+  for I := 0 to High(SerializationProcessPool) do
+    SerializationProcessPool[I] := TSerializationProcessReader.Create;
 end;
 
 destructor TCastleJsonReader.Destroy;
+var
+  I: Integer;
 begin
   FreeAndNil(ResolveObjectProperties);
   FreeAndNil(FDeStreamer);
-  FreeAndNil(SerializationProcess);
+  for I := 0 to High(SerializationProcessPool) do
+    FreeAndNil(SerializationProcessPool[I]);
   inherited;
 end;
 
@@ -616,21 +647,29 @@ type
     type
       { Handle writing custom things during TCastleComponent.CustomSerialization. }
       TSerializationProcessWriter = class(TSerializationProcess)
+      strict private
+        CurrentlyWritingArray: TJsonArray;
+        Key: String;
+        procedure WriteItem(C: TComponent);
       public
         Writer: TCastleJsonWriter;
         CurrentlyWriting: TJsonObject;
-        procedure ReadWrite(const Key: String; var List: TComponentList;
-          const ExcludeComponents: TComponentStyle); override;
+        procedure ReadWrite(const AKey: String;
+          const ListEnumerate: TListEnumerateEvent; const ListAdd: TListAddEvent;
+          const ListClear: TListClearEvent); override;
       end;
 
     var
       FStreamer: TJsonStreamer;
-      SerializationProcess: TSerializationProcessWriter;
+      { Using just one TSerializationProcessWriter instance is not enough,
+        as C.CustomSerialiazion calls may happen recursively. }
+      SerializationProcessPool: array [0..9] of TSerializationProcessWriter;
+      SerializationProcessPoolUsed: Integer;
 
     { Does the property have default value. }
     class function HasDefaultValue(const Instance: TPersistent; const PropInfo: PPropInfo): Boolean; static;
 
-    procedure AfterStreamObject(Sender: TObject; AObject: TObject; JSON: TJsonObject);
+    procedure AfterStreamObject(Sender: TObject; AObject: TObject; Json: TJsonObject);
     procedure StreamProperty(Sender: TObject; AObject: TObject; Info: PPropInfo; var Res: TJsonData);
   public
     constructor Create;
@@ -638,25 +677,30 @@ type
     property Streamer: TJsonStreamer read FStreamer;
   end;
 
-procedure TCastleJsonWriter.TSerializationProcessWriter.ReadWrite(
-  const Key: String; var List: TComponentList;
-  const ExcludeComponents: TComponentStyle);
-var
-  JsonArray: TJsonArray;
-  I: Integer;
+procedure TCastleJsonWriter.TSerializationProcessWriter.WriteItem(C: TComponent);
 begin
-  if (List <> nil) and (List.Count <> 0) then
+  // create JSON array only when the list is non-empty, this way JSON is simpler.
+  if CurrentlyWritingArray = nil then
   begin
-    JsonArray := TJsonArray.Create;
-    CurrentlyWriting.Add('$$' + Key, JsonArray);
-
-    for I := 0 to List.Count - 1 do
-      if ExcludeComponents * List[I].ComponentStyle = [] then
-        JsonArray.Add(Writer.Streamer.ObjectToJSON(List[I]));
+    CurrentlyWritingArray := TJsonArray.Create;
+    CurrentlyWriting.Add('$$' + Key, CurrentlyWritingArray);
   end;
+
+  CurrentlyWritingArray.Add(Writer.Streamer.ObjectToJson(C));
+end;
+
+procedure TCastleJsonWriter.TSerializationProcessWriter.ReadWrite(const AKey: String;
+  const ListEnumerate: TListEnumerateEvent; const ListAdd: TListAddEvent;
+  const ListClear: TListClearEvent);
+begin
+  CurrentlyWritingArray := nil; // will be created on-demand
+  Key := AKey;
+  ListEnumerate(@WriteItem);
 end;
 
 constructor TCastleJsonWriter.Create;
+var
+  I: Integer;
 begin
   inherited Create;
 
@@ -676,25 +720,53 @@ begin
   Streamer.OnStreamProperty := @StreamProperty;
   Streamer.ChildProperty := ChildPropertyName;
 
-  SerializationProcess := TSerializationProcessWriter.Create;
+  for I := 0 to High(SerializationProcessPool) do
+    SerializationProcessPool[I] := TSerializationProcessWriter.Create;
 end;
 
 destructor TCastleJsonWriter.Destroy;
+var
+  I: Integer;
 begin
   FreeAndNil(FStreamer);
-  FreeAndNil(SerializationProcess);
+  for I := 0 to High(SerializationProcessPool) do
+    FreeAndNil(SerializationProcessPool[I]);
   inherited;
 end;
 
 procedure TCastleJsonWriter.AfterStreamObject(
   Sender: TObject; AObject: TObject; Json: TJsonObject);
 
-  { Call C.CustomSerialization }
-  procedure CustomSerialization(const C: TCastleComponent);
+  { Call C.CustomSerialization(SerializationProcess) }
+  procedure CustomSerializationWithSerializationProcess(const C: TCastleComponent;
+    const SerializationProcess: TSerializationProcessWriter);
   begin
     SerializationProcess.CurrentlyWriting := Json;
     SerializationProcess.Writer := Self;
     C.CustomSerialization(SerializationProcess);
+  end;
+
+  { Call C.CustomSerialization }
+  procedure CustomSerialization(const C: TCastleComponent);
+  var
+     SerializationProcess: TSerializationProcessWriter;
+  begin
+    if SerializationProcessPoolUsed < High(SerializationProcessPool) then
+    begin
+      // faster: use ready SerializationProcess from pool
+      Inc(SerializationProcessPoolUsed);
+      try
+        SerializationProcess := SerializationProcessPool[SerializationProcessPoolUsed];
+        CustomSerializationWithSerializationProcess(C, SerializationProcess);
+      finally Dec(SerializationProcessPoolUsed) end;
+    end else
+    begin
+      // slower: create new SerializationProcess
+      SerializationProcess := TSerializationProcessWriter.Create;
+      try
+        CustomSerializationWithSerializationProcess(C, SerializationProcess);
+      finally FreeAndNil(SerializationProcess) end;
+    end;
   end;
 
 var

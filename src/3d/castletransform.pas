@@ -415,6 +415,9 @@ type
       FLastParentWorldTransformation: TTransformation;
       FLastParentWorldTransformationId: Cardinal;
 
+    procedure SerializeBehaviorsAdd(const C: TComponent);
+    procedure SerializeBehaviorsClear;
+    procedure SerializeBehaviorsEnumerate(const Proc: TGetChildProc);
     procedure SetCursor(const Value: TMouseCursor);
     procedure SetCenter(const Value: TVector3);
     procedure SetRotation(const Value: TVector4);
@@ -3770,7 +3773,33 @@ end;
 procedure TCastleTransform.CustomSerialization(const SerializationProcess: TSerializationProcess);
 begin
   inherited;
-  SerializationProcess.ReadWrite('Behaviors', FBehaviors, [csSubComponent, csTransient]);
+  SerializationProcess.ReadWrite('Behaviors',
+    @SerializeBehaviorsEnumerate,
+    @SerializeBehaviorsAdd,
+    @SerializeBehaviorsClear);
+end;
+
+procedure TCastleTransform.SerializeBehaviorsEnumerate(const Proc: TGetChildProc);
+var
+  I: Integer;
+begin
+  for I := 0 to BehaviorsCount - 1 do
+    if Behaviors[I].ComponentStyle * [csSubComponent, csTransient] = [] then
+      Proc(Behaviors[I]);
+end;
+
+procedure TCastleTransform.SerializeBehaviorsAdd(const C: TComponent);
+begin
+  AddBehavior(C as TCastleBehavior);
+end;
+
+procedure TCastleTransform.SerializeBehaviorsClear;
+var
+  I: Integer;
+begin
+  for I := BehaviorsCount - 1 downto 0 do // downto, as list may shrink during loop
+    if Behaviors[I].ComponentStyle * [csSubComponent, csTransient] = [] then
+      Behaviors[I].Free; // will remove itself from Behaviors list
 end;
 
 function TCastleTransform.PropertySections(const PropertyName: String): TPropertySections;
