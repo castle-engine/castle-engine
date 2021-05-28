@@ -482,11 +482,6 @@ type
       @exclude }
     property InternalText: String read GetInternalText write SetInternalText;
 
-    { Deserialization will use this to add components that were previously
-      returned by GetChildren method.
-      @exclude }
-    procedure InternalAddChild(const C: TComponent); virtual;
-
     { Add csLoading. Used when deserializing.
       @exclude }
     procedure InternalLoading;
@@ -1487,12 +1482,6 @@ end;
 
 procedure TCastleComponent.SetInternalText(const Value: String);
 begin
-end;
-
-procedure TCastleComponent.InternalAddChild(const C: TComponent);
-begin
-  raise Exception.CreateFmt('Component of class %s is not expected to have children',
-    [ClassName]);
 end;
 
 procedure TCastleComponent.InternalLoading;
