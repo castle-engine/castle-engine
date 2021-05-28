@@ -383,6 +383,24 @@ type
   TTranslatePropertyEvent = procedure (const Sender: TCastleComponent;
     const PropertyName: String; var PropertyValue: String) of object;
 
+  { Call methods of this class within @link(TCastleComponent.CustomSerialization) override.
+    Do not create instances of this class yourself. }
+  TSerializationProcess = class abstract
+  public
+    { Make the given List serialized and deserialized.
+      Supports the case when List is created only when necessary (when possibly non-empty),
+      so 1. reader can create List if necessary, 2. writer understands that List = nil
+      is equal to an empty list.
+
+      Does not serialize children components that have @italic(any) flag common
+      with ExcludeComponents.
+
+      Do not worry about conflict between Key and some published property.
+      We internally "mangle" keys to avoid it. }
+    procedure ReadWrite(const Key: String; var List: TComponentList;
+      const ExcludeComponents: TComponentStyle); virtual; abstract;
+  end;
+
   { Component with various CGE extensions.
 
     Note that everywhere in CGE (in particular in editor and when serializing) we handle
@@ -441,6 +459,12 @@ type
     InternalOriginalName: String;
 
     destructor Destroy; override;
+
+    { Override this method to call various methods of SerializationProcess,
+      which in turn allows to serialize/deserialize things that are not published.
+      This allows to serialize/deserialize with more freedom, e.g. to serialize/deserialize
+      some private field. }
+    procedure CustomSerialization(const SerializationProcess: TSerializationProcess); virtual;
 
     { Main text property, that is synchronized with Name initially.
       @exclude }
@@ -1544,6 +1568,11 @@ end;
 function TCastleComponent.NonVisualComponentsEnumerate: TNonVisualComponentsEnumerator;
 begin
   Result := TNonVisualComponentsEnumerator.Create(Self);
+end;
+
+procedure TCastleComponent.CustomSerialization(const SerializationProcess: TSerializationProcess);
+begin
+  SerializationProcess.ReadWrite('NonVisualComponents', FNonVisualComponents, [csSubComponent, csTransient]);
 end;
 
 { TComponent routines -------------------------------------------------------- }

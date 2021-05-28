@@ -750,6 +750,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
+    procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
     procedure InternalAddChild(const C: TComponent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
     function GetEnumerator: TEnumerator;
@@ -3763,7 +3764,13 @@ end;
 procedure TCastleTransform.InternalAddChild(const C: TComponent);
 begin
   // matches TCastleTransform.GetChildren implementation
-  Add(C as TCastleTransform)
+  Add(C as TCastleTransform);
+end;
+
+procedure TCastleTransform.CustomSerialization(const SerializationProcess: TSerializationProcess);
+begin
+  inherited;
+  SerializationProcess.ReadWrite('Behaviors', FBehaviors, [csSubComponent, csTransient]);
 end;
 
 function TCastleTransform.PropertySections(const PropertyName: String): TPropertySections;
