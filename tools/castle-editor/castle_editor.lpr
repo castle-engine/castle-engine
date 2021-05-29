@@ -24,6 +24,12 @@ program castle_editor;
 
 {$mode objfpc}{$H+}
 
+{ CGE applications use threads for
+  - music streaming (when TCastleSound.Stream = @true)
+  - asynchronous downloading (TCastleDownload with protocols like http/https)
+  - and maybe more in the future. }
+{$define UseCThreads}
+
 uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,

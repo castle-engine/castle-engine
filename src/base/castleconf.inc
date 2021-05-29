@@ -402,7 +402,11 @@
 
 { Threading --------------------------------------------------------------- }
 
-{ Threading support, some platform don't have threads (implemented yet). }
+{ Threading support, as some platforms don't have threads (implemented yet).
+
+  Note: This does *not* detect the case when threads are possible on this
+  platform, but not "compiled in". That is, when using regular Unix
+  (like Linux) this symbol will be defined, regardless if you used CThreads or not. }
 {$define CASTLE_SUPPORTS_THREADING}
 {$ifdef CASTLE_NINTENDO_SWITCH} {$undef CASTLE_SUPPORTS_THREADING} {$endif}
 
