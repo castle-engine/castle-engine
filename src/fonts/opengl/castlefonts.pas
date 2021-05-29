@@ -37,7 +37,8 @@ uses SysUtils, Classes, Generics.Collections, Contnrs,
 implementation
 
 uses Math,
-  CastleGLUtils, CastleUtils, CastleComponentSerialize, CastleInternalRichText;
+  CastleGLUtils, CastleUtils, CastleComponentSerialize, CastleInternalRichText,
+  CastleLog, CastleURIUtils;
 
 {$define read_implementation}
 {$I castlefonts_miscellaneous.inc} // must be first at implementation, to define some internal consts

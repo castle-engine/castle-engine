@@ -22,6 +22,16 @@ type
     the freetype library cannot be found, and thus font files cannot be read. }
   EFreeTypeLibraryNotFound = CastleTextureFontData.EFreeTypeLibraryNotFound;
 
+const
+  { Supported font file formats.
+    Use these filters with LCL file dialog (easily set by FileFiltersToDialog)
+    or TCastleWindowBase.FileDialog. }
+  LoadFont_FileFilters =
+  'All Files|*|' +
+  '*All Font Files|*.ttf;*.otf|' +
+  'TrueType Fonts (*.ttf)|*.ttf|' +
+  'OpenType Fonts (*.otf)|*.otf';
+
 { Protect characters from being interpreted as special HTML sequences
   by TCastleAbstractFont.Print with Html = @true parameter.
   Replaces '<' with '&lt;' and so on. }

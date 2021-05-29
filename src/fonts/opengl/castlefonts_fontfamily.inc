@@ -19,12 +19,11 @@
 type
   { Font family, with different subfonts for normal, bold, italic, bold+italic
     variants. Used this together with @link(TCastleLabel.Html) that allows
-    to render HTML text with varying font styles, changing @link(Bold) and @link(Italic)
-    state during rendering.
+    to render HTML text with varying font styles.
     Or you can use this for normal font rendering (that doesn't change
     font style in the middle, e.g. TCastleLabel with TCastleLabel.Html = @false)
     and just enjoy simple Boolean properties
-    @link(Bold) and @link(Italic) to change the font style yourself at runtime or design-time.
+    @link(DefaultBold) and @link(DefaultItalic) to change the font style yourself at runtime or design-time.
 
     This class can be treated as a font itself, since it has all the measuring
     and rendering commands you expect from a font (and you could
@@ -41,13 +40,13 @@ type
     directly or by other TCustomizedFont or TCastleFontFamily wrappers). }
   TCastleFontFamily = class(TCastleAbstractFont)
   strict private
-    FRegularFont, FBoldFont, FItalicFont, FBoldItalicFont: TCastleAbstractFont;
-    FBold, FItalic: boolean;
+    FRegular, FBold, FItalic, FBoldItalic: TCastleAbstractFont;
+    FDefaultBold, FDefaultItalic: boolean;
     FCustomizeOutline: boolean;
-    procedure SetRegularFont(const Value: TCastleAbstractFont);
-    procedure SetBoldFont(const Value: TCastleAbstractFont);
-    procedure SetItalicFont(const Value: TCastleAbstractFont);
-    procedure SetBoldItalicFont(const Value: TCastleAbstractFont);
+    procedure SetRegular(const Value: TCastleAbstractFont);
+    procedure SetBold(const Value: TCastleAbstractFont);
+    procedure SetItalic(const Value: TCastleAbstractFont);
+    procedure SetBoldItalic(const Value: TCastleAbstractFont);
     procedure SubFontCustomizeBegin;
     procedure SubFontCustomizeEnd;
   private
@@ -62,13 +61,8 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    property RegularFont: TCastleAbstractFont read FRegularFont write SetRegularFont;
-    property BoldFont: TCastleAbstractFont read FBoldFont write SetBoldFont;
-    property ItalicFont: TCastleAbstractFont read FItalicFont write SetItalicFont;
-    property BoldItalicFont: TCastleAbstractFont read FBoldItalicFont write SetBoldItalicFont;
-
-    property Bold: boolean read FBold write FBold default false;
-    property Italic: boolean read FItalic write FItalic default false;
+    property DefaultBold: boolean read FDefaultBold write FDefaultBold default false;
+    property DefaultItalic: boolean read FDefaultItalic write FDefaultItalic default false;
 
     procedure PrepareResources; override;
     procedure Print(const X, Y: Single; const Color: TCastleColor;
@@ -81,6 +75,16 @@ type
 
     { Should we customize the outline of the underlying font. }
     property CustomizeOutline: boolean read FCustomizeOutline write FCustomizeOutline default false;
+
+    property RegularFont: TCastleAbstractFont read FRegular write SetRegular; deprecated 'use Regular';
+    property BoldFont: TCastleAbstractFont read FBold write SetBold; deprecated 'use Bold';
+    property ItalicFont: TCastleAbstractFont read FItalic write SetItalic; deprecated 'use Italic';
+    property BoldItalicFont: TCastleAbstractFont read FBoldItalic write SetBoldItalic; deprecated 'use BoldItalic';
+  published
+    property Regular: TCastleAbstractFont read FRegular write SetRegular;
+    property Bold: TCastleAbstractFont read FBold write SetBold;
+    property Italic: TCastleAbstractFont read FItalic write SetItalic;
+    property BoldItalic: TCastleAbstractFont read FBoldItalic write SetBoldItalic;
   end;
 
 {$endif read_interface}
@@ -97,58 +101,58 @@ end;
 destructor TCastleFontFamily.Destroy;
 begin
   // this will free FXxxFont if needed
-  RegularFont := nil;
-  BoldFont := nil;
-  ItalicFont := nil;
-  BoldItalicFont := nil;
+  Regular := nil;
+  Bold := nil;
+  Italic := nil;
+  BoldItalic := nil;
   inherited;
 end;
 
-procedure TCastleFontFamily.SetRegularFont(const Value: TCastleAbstractFont);
+procedure TCastleFontFamily.SetRegular(const Value: TCastleAbstractFont);
 begin
-  if FRegularFont <> Value then
+  if FRegular <> Value then
   begin
-    if FRegularFont <> nil then
-      FRegularFont.RemoveFreeNotification(Self);
-    FRegularFont := Value;
-    if FRegularFont <> nil then
-      FRegularFont.FreeNotification(Self);
+    if FRegular <> nil then
+      FRegular.RemoveFreeNotification(Self);
+    FRegular := Value;
+    if FRegular <> nil then
+      FRegular.FreeNotification(Self);
   end;
 end;
 
-procedure TCastleFontFamily.SetBoldFont(const Value: TCastleAbstractFont);
+procedure TCastleFontFamily.SetBold(const Value: TCastleAbstractFont);
 begin
-  if FBoldFont <> Value then
+  if FBold <> Value then
   begin
-    if FBoldFont <> nil then
-      FBoldFont.RemoveFreeNotification(Self);
-    FBoldFont := Value;
-    if FBoldFont <> nil then
-      FBoldFont.FreeNotification(Self);
+    if FBold <> nil then
+      FBold.RemoveFreeNotification(Self);
+    FBold := Value;
+    if FBold <> nil then
+      FBold.FreeNotification(Self);
   end;
 end;
 
-procedure TCastleFontFamily.SetItalicFont(const Value: TCastleAbstractFont);
+procedure TCastleFontFamily.SetItalic(const Value: TCastleAbstractFont);
 begin
-  if FItalicFont <> Value then
+  if FItalic <> Value then
   begin
-    if FItalicFont <> nil then
-      FItalicFont.RemoveFreeNotification(Self);
-    FItalicFont := Value;
-    if FItalicFont <> nil then
-      FItalicFont.FreeNotification(Self);
+    if FItalic <> nil then
+      FItalic.RemoveFreeNotification(Self);
+    FItalic := Value;
+    if FItalic <> nil then
+      FItalic.FreeNotification(Self);
   end;
 end;
 
-procedure TCastleFontFamily.SetBoldItalicFont(const Value: TCastleAbstractFont);
+procedure TCastleFontFamily.SetBoldItalic(const Value: TCastleAbstractFont);
 begin
-  if FBoldItalicFont <> Value then
+  if FBoldItalic <> Value then
   begin
-    if FBoldItalicFont <> nil then
-      FBoldItalicFont.RemoveFreeNotification(Self);
-    FBoldItalicFont := Value;
-    if FBoldItalicFont <> nil then
-      FBoldItalicFont.FreeNotification(Self);
+    if FBoldItalic <> nil then
+      FBoldItalic.RemoveFreeNotification(Self);
+    FBoldItalic := Value;
+    if FBoldItalic <> nil then
+      FBoldItalic.FreeNotification(Self);
   end;
 end;
 
@@ -157,38 +161,38 @@ begin
   inherited;
 
   { set to nil by SetXxxFont to clean nicely }
-  if (Operation = opRemove) and (AComponent = FRegularFont) then
-    RegularFont := nil;
-  if (Operation = opRemove) and (AComponent = FBoldFont) then
-    BoldFont := nil;
-  if (Operation = opRemove) and (AComponent = FItalicFont) then
-    ItalicFont := nil;
-  if (Operation = opRemove) and (AComponent = FBoldItalicFont) then
-    BoldItalicFont := nil;
+  if (Operation = opRemove) and (AComponent = FRegular) then
+    Regular := nil;
+  if (Operation = opRemove) and (AComponent = FBold) then
+    Bold := nil;
+  if (Operation = opRemove) and (AComponent = FItalic) then
+    Italic := nil;
+  if (Operation = opRemove) and (AComponent = FBoldItalic) then
+    BoldItalic := nil;
 end;
 
 procedure TCastleFontFamily.PrepareResources;
 begin
-  if FRegularFont <> nil then
-    FRegularFont.PrepareResources;
-  if FBoldFont <> nil then
-    FBoldFont.PrepareResources;
-  if FItalicFont <> nil then
-    FItalicFont.PrepareResources;
-  if FBoldItalicFont <> nil then
-    FBoldItalicFont.PrepareResources;
+  if FRegular <> nil then
+    FRegular.PrepareResources;
+  if FBold <> nil then
+    FBold.PrepareResources;
+  if FItalic <> nil then
+    FItalic.PrepareResources;
+  if FBoldItalic <> nil then
+    FBoldItalic.PrepareResources;
 end;
 
 procedure TCastleFontFamily.GLContextClose;
 begin
-  if FRegularFont <> nil then
-    FRegularFont.GLContextClose;
-  if FBoldFont <> nil then
-    FBoldFont.GLContextClose;
-  if FItalicFont <> nil then
-    FItalicFont.GLContextClose;
-  if FBoldItalicFont <> nil then
-    FBoldItalicFont.GLContextClose;
+  if FRegular <> nil then
+    FRegular.GLContextClose;
+  if FBold <> nil then
+    FBold.GLContextClose;
+  if FItalic <> nil then
+    FItalic.GLContextClose;
+  if FBoldItalic <> nil then
+    FBoldItalic.GLContextClose;
 end;
 
 procedure TCastleFontFamily.SubFontCustomizeBegin;
@@ -251,20 +255,24 @@ end;
 
 function TCastleFontFamily.SubFont(const ABold, AItalic: boolean): TCastleAbstractFont;
 begin
-  if ABold and AItalic and (BoldItalicFont <> nil) then
-    Result := BoldItalicFont else
-  if ABold and (BoldFont <> nil) then
-    Result := BoldFont else
-  if AItalic and (ItalicFont <> nil) then
-    Result := ItalicFont else
-  if RegularFont <> nil then
-    Result := RegularFont else
-    raise Exception.Create('You must set at least RegularFont of TCastleFontFamily to use it for processing and rendering');
+  if ABold and AItalic and (BoldItalic <> nil) then
+    Result := BoldItalic
+  else
+  if ABold and (Bold <> nil) then
+    Result := Bold
+  else
+  if AItalic and (Italic <> nil) then
+    Result := Italic
+  else
+  if Regular <> nil then
+    Result := Regular
+  else
+    raise Exception.Create('You must set at least Regular of TCastleFontFamily to use it for processing and rendering');
 end;
 
 function TCastleFontFamily.SubFont: TCastleAbstractFont;
 begin
-  Result := SubFont(Bold, Italic);
+  Result := SubFont(DefaultBold, DefaultItalic);
 end;
 
 function TCastleFontFamily.EffectiveSize: Single;

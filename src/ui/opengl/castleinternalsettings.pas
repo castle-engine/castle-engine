@@ -334,11 +334,11 @@ begin
       begin
         NewFontFamily := TCastleFontFamily.Create(Container);
         NewFontFamily.Name := 'CastleInternalDefaultFontFamily';
-        NewFontFamily.RegularFont := LoadFontSettings(E.Child('regular', false));
-        NewFontFamily.BoldFont := LoadFontSettings(E.Child('bold', false));
-        NewFontFamily.ItalicFont := LoadFontSettings(E.Child('italic', false));
-        NewFontFamily.BoldItalicFont := LoadFontSettings(E.Child('bold_italic', false));
-        if NewFontFamily.RegularFont = nil then
+        NewFontFamily.Regular := LoadFontSettings(E.Child('regular', false));
+        NewFontFamily.Bold := LoadFontSettings(E.Child('bold', false));
+        NewFontFamily.Italic := LoadFontSettings(E.Child('italic', false));
+        NewFontFamily.BoldItalic := LoadFontSettings(E.Child('bold_italic', false));
+        if NewFontFamily.Regular = nil then
           raise EInvalidSettingsXml.Create('The <default_font> specified in CastleSettings.xml does not have a <regular> variant');
         NewDefaultFont := NewFontFamily;
       end;

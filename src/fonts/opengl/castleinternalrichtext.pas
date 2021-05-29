@@ -362,26 +362,26 @@ begin
     tcBold:
       begin
         Inc(State.Bold);
-        Font.Bold := State.Bold <> 0;
+        Font.DefaultBold := State.Bold <> 0;
       end;
     tcBoldEnd:
       if State.Bold = 0 then
         WritelnWarning('HTML', 'Mismatched </b>') else
       begin
         Dec(State.Bold);
-        Font.Bold := State.Bold <> 0;
+        Font.DefaultBold := State.Bold <> 0;
       end;
     tcItalic:
       begin
         Inc(State.Italic);
-        Font.Italic := State.Italic <> 0;
+        Font.DefaultItalic := State.Italic <> 0;
       end;
     tcItalicEnd:
       if State.Italic = 0 then
         WritelnWarning('HTML', 'Mismatched </i>') else
       begin
         Dec(State.Italic);
-        Font.Italic := State.Italic <> 0;
+        Font.DefaultItalic := State.Italic <> 0;
       end;
     tcFontColor:
       begin
@@ -493,7 +493,7 @@ begin
   end else
   begin
     FFont := TCastleFontFamily.Create(nil);
-    FFont.RegularFont := AFont;
+    FFont.Regular := AFont;
     FOwnsFont := true;
     { Do not make this warning by default? Too talkative sometimes,
       esp. at every Print call,
@@ -833,10 +833,10 @@ begin
   Result := TTextLine.TPrintState.Create;
 
   { set FFont into Bold = Italic = false state }
-  Result.RestoreBold := FFont.Bold;
-  Result.RestoreItalic := FFont.Italic;
-  FFont.Bold := false;
-  FFont.Italic := false;
+  Result.RestoreBold := FFont.DefaultBold;
+  Result.RestoreItalic := FFont.DefaultItalic;
+  FFont.DefaultBold := false;
+  FFont.DefaultItalic := false;
 
   Result.Color := InitialColor;
   Result.DefaultSize := FFont.EffectiveSize;
@@ -844,8 +844,8 @@ end;
 
 procedure TRichText.EndProcessing(var State: TTextLine.TPrintState);
 begin
-  FFont.Bold := State.RestoreBold;
-  FFont.Italic := State.RestoreItalic;
+  FFont.DefaultBold := State.RestoreBold;
+  FFont.DefaultItalic := State.RestoreItalic;
 
   FreeAndNil(State);
 end;

@@ -289,16 +289,16 @@ begin
     begin
       { copying Result to FCustomizedFont this way allows to render with HTML
         when CustomFont and FontSize/FontScale are used together }
-      FCustomizedFont.RegularFont := TCastleFontFamily(Result).RegularFont;
-      FCustomizedFont.BoldFont := TCastleFontFamily(Result).BoldFont;
-      FCustomizedFont.ItalicFont := TCastleFontFamily(Result).ItalicFont;
-      FCustomizedFont.BoldItalicFont := TCastleFontFamily(Result).BoldItalicFont;
+      FCustomizedFont.Regular := TCastleFontFamily(Result).Regular;
+      FCustomizedFont.Bold := TCastleFontFamily(Result).Bold;
+      FCustomizedFont.Italic := TCastleFontFamily(Result).Italic;
+      FCustomizedFont.BoldItalic := TCastleFontFamily(Result).BoldItalic;
     end else
     begin
-      FCustomizedFont.RegularFont := Result;
-      FCustomizedFont.BoldFont := nil;
-      FCustomizedFont.ItalicFont := nil;
-      FCustomizedFont.BoldItalicFont := nil;
+      FCustomizedFont.Regular := Result;
+      FCustomizedFont.Bold := nil;
+      FCustomizedFont.Italic := nil;
+      FCustomizedFont.BoldItalic := nil;
     end;
     if Outline <> 0 then
     begin

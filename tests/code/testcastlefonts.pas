@@ -102,7 +102,7 @@ begin
 
     Family := TCastleFontFamily.Create(nil);
     try
-      Family.RegularFont := Font;
+      Family.Regular := Font;
 
       AssertEquals(0, Family.Size);
       AssertEquals(15, Family.EffectiveSize);
@@ -135,7 +135,7 @@ begin
 
     Family := TCastleFontFamily.Create(nil);
     try
-      Family.RegularFont := Font;
+      Family.Regular := Font;
 
       AssertEquals(0, Family.Size);
       AssertEquals(60, Family.EffectiveSize);
@@ -221,7 +221,7 @@ begin
 
     FontFamily := TCastleFontFamily.Create(nil);
     try
-      FontFamily.RegularFont := LargeDigitsFont;
+      FontFamily.Regular := LargeDigitsFont;
       AssertSameValue(0, FontFamily.Size); // not customized yet
       AssertSameValue(522, FontFamily.TextWidth('123'), 1);
       AssertSameValue(221, FontFamily.TextHeight('123'), 1);
@@ -258,7 +258,7 @@ begin
 
     FontFamily := TCastleFontFamily.Create(nil);
     try
-      FontFamily.RegularFont := LargeDigitsFont;
+      FontFamily.Regular := LargeDigitsFont;
       FontFamily.Size := 2000;
       AssertSameValue(2000, FontFamily.Size); // not customized yet
       AssertSameValue(522 * 20/3, FontFamily.TextWidth('123'), 20/3);
