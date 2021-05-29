@@ -175,3 +175,35 @@ begin
       SetStrValue(Dialog.URL);
   finally FreeAndNil(Dialog) end;
 end;
+
+{ TSoundURLPropertyEditor ---------------------------------------------------- }
+
+type
+  { Property editor for URL that refers to a sound file. }
+  TSoundURLPropertyEditor = class(TStringPropertyEditor)
+  public
+    function GetAttributes: TPropertyAttributes; override;
+    procedure Edit; override;
+  end;
+
+function TSoundURLPropertyEditor.GetAttributes: TPropertyAttributes;
+begin
+  Result := [paDialog, paRevertable, paMultiSelect];
+end;
+
+procedure TSoundURLPropertyEditor.Edit;
+var
+  Dialog: TCastleOpenDialog;
+begin
+  Dialog := TCastleOpenDialog.Create(nil);
+  try
+    Dialog.Filter := LoadSound_FileFilters;
+    Dialog.AdviceDataDirectory := PropertyEditorsAdviceDataDirectory;
+    if (GetStrValue = '') and PropertyEditorsAdviceDataDirectory then
+      Dialog.URL := 'castle-data:/' // make it easier to open files within data folder
+    else
+      Dialog.URL := GetStrValue;
+    if Dialog.Execute then
+      SetStrValue(Dialog.URL);
+  finally FreeAndNil(Dialog) end;
+end;

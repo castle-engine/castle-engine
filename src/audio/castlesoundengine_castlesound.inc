@@ -56,6 +56,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { @exclude Reserved for parent TCastleSoundSource to listen for changes. }
     property InternalOnChange: TNotifyEvent read FOnChange write FOnChange;
@@ -154,6 +155,16 @@ begin
   if FBuffer <> nil then // avoid accessing SoundEngine if not needed
     SoundEngine.FreeBuffer(FBuffer); // this sets FBuffer = nil
   inherited;
+end;
+
+function TCastleSound.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  case PropertyName of
+    'URL', 'Stream', 'Volume', 'Pitch', 'Spatial', 'MinGain', 'MaxGain':
+      Result := [psBasic];
+    else
+      Result := inherited PropertySections(PropertyName);
+  end;
 end;
 
 procedure TCastleSound.ReloadBuffer;

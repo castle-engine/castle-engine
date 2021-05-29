@@ -42,7 +42,7 @@ uses SysUtils, Classes, TypInfo, Forms,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
   CastleVectors, CastleUtils, CastleColors, CastleViewport, CastleDialogs,
   CastleTiledMap, CastleGLImages, CastleStringUtils, CastleTransformExtra,
-  CastleInternalExposeTransformsDialog;
+  CastleInternalExposeTransformsDialog, CastleSoundEngine;
 
 {$I castlepropedits_any_subproperties.inc}
 {$I castlepropedits_autoanimation.inc}
@@ -74,6 +74,8 @@ begin
     'URL', TTransformDesignURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTiledMapControl,
     'URL', TTiledMapURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleSound,
+    'URL', TSoundURLPropertyEditor);
 
   { Improved float properties }
   RegisterPropertyEditor(TypeInfo(Single), nil, '', TCastleFloatPropertyEditor);
