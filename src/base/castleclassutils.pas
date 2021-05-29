@@ -410,12 +410,13 @@ type
       const ListClear: TListClearEvent); virtual; abstract;
   end;
 
-  { Component with various CGE extensions.
+  { Component with various CGE extensions: can be a parent of other non-visual components
+    (to display them in CGE editor and serialize them to files), can be translated.
 
     Note that everywhere in CGE (in particular in editor and when serializing) we handle
     a standard Pascal TComponent. There's no need to derive all your components from
     TCastleComponent. Use TCastleComponent only if you want to benefit from some extra
-    features in this class.  }
+    features in this class. }
   TCastleComponent = class(TComponent)
   strict private
     type
