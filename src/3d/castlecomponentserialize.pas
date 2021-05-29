@@ -627,6 +627,7 @@ type
     { Does the property have default value. }
     class function HasDefaultValue(const Instance: TPersistent; const PropInfo: PPropInfo): Boolean; static;
 
+    procedure BeforeStreamObject(Sender: TObject; AObject: TObject; Json: TJsonObject);
     procedure AfterStreamObject(Sender: TObject; AObject: TObject; Json: TJsonObject);
     procedure StreamProperty(Sender: TObject; AObject: TObject; Info: PPropInfo; var Res: TJsonData);
   public
@@ -675,6 +676,7 @@ begin
     jsoDateTimeAsString,
     jsoCheckEmptyDateTime
   ];
+  Streamer.BeforeStreamObject := @BeforeStreamObject;
   Streamer.AfterStreamObject := @AfterStreamObject;
   Streamer.OnStreamProperty := @StreamProperty;
 
@@ -690,6 +692,16 @@ begin
   for I := 0 to High(SerializationProcessPool) do
     FreeAndNil(SerializationProcessPool[I]);
   inherited;
+end;
+
+procedure TCastleJsonWriter.BeforeStreamObject(
+  Sender: TObject; AObject: TObject; Json: TJsonObject);
+begin
+  { set $$ClassName string, our reader depends on it.
+    Uses 2 $, to differentiate from stuff written by TSerializationProcess.ReadWrite.
+    We do this in BeforeStreamObject (not AfterStreamObject) only because this way
+    resulting JSON is easier to read by humans ($$ClassName is at the beginning). }
+  Json.Strings['$$ClassName'] := AObject.ClassName;
 end;
 
 procedure TCastleJsonWriter.AfterStreamObject(
@@ -730,10 +742,6 @@ procedure TCastleJsonWriter.AfterStreamObject(
 var
   C: TCastleComponent;
 begin
-  { set $$ClassName string, our reader depends on it.
-    Uses 2 $, to differentiate from stuff written by TSerializationProcess.ReadWrite. }
-  Json.Strings['$$ClassName'] := AObject.ClassName;
-
   if AObject is TCastleComponent then
   begin
     C := TCastleComponent(AObject);
@@ -906,7 +914,8 @@ begin
 end;
 
 initialization
-  RegisterSerializableComponent(TCastleComponent, 'Component Group');
+  // not useful: RegisterSerializableComponent(TComponent, 'Component (Basic)');
+  RegisterSerializableComponent(TCastleComponent, 'Component (Group)');
 finalization
   FreeAndNil(FRegisteredComponents);
 end.
