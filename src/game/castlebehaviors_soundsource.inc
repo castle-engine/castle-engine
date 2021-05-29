@@ -164,7 +164,10 @@ end;
 
 function TCastleSoundSource.LerpLegsMiddle(const A: Single): TVector3;
 begin
-  Result := Lerp(A, Parent.Translation, Parent.Middle);
+  if Parent.World <> nil then // otherwise Parent.Middle not available
+    Result := Lerp(A, Parent.Translation, Parent.Middle)
+  else
+    Result := Parent.Translation;
 end;
 
 procedure TCastleSoundSource.SoundChanged(Sender: TObject);
