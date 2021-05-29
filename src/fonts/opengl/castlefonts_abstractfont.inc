@@ -47,6 +47,9 @@ type
     procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Single); virtual;
     procedure GLContextClose; virtual;
     procedure SetSize(const Value: Single); virtual;
+    { Call when the measurement of font possibly changed, and anything cached
+      should be recalculated by calling TextWidth, TextHeight etc. again. }
+    procedure FontSizesChanged;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -893,6 +896,11 @@ end;
 function TCastleAbstractFont.RealSize: Single;
 begin
   Result := EffectiveSize;
+end;
+
+procedure TCastleAbstractFont.FontSizesChanged;
+begin
+  FMeasuredSize := -1; // not measured at all
 end;
 
 {$endif read_implementation}

@@ -42,6 +42,8 @@ type
     procedure SetURL(const Value: String);
     procedure SetLoadSize(const Value: Cardinal);
     procedure SetAntiAliased(const Value: Boolean);
+    { Free stuff loaded by @link(Load). }
+    procedure Unload;
     procedure Reload;
   strict protected
     procedure SetSize(const Value: Single); override;
@@ -147,11 +149,16 @@ end;
 
 destructor TCastleFont.Destroy;
 begin
-  // free previous FFont data
-  Load(nil, { OwnsData doesn't matter } false, { AdjustParameters doesn't matter much } false);
+  Unload;
   FreeAndNil(GlyphsScreenRects);
   FreeAndNil(GlyphsImageRects);
   inherited;
+end;
+
+procedure TCastleFont.Unload;
+begin
+  // free previous FFont data
+  Load(nil, { OwnsData doesn't matter } false, { AdjustParameters } false);
 end;
 
 constructor TCastleFont.Create(const URL: String;
@@ -167,8 +174,15 @@ procedure TCastleFont.Load(const URL: String;
   const ACharacters: TUnicodeCharList;
   const AdjustProperties: Boolean = true);
 begin
-  Load(TTextureFontData.Create(URL, ASize, AnAntiAliased, ACharacters), true,
-    AdjustProperties);
+  { Although FontSizesChanged is also called by Load,
+    make sure it gets called even when TTextureFontData.Create fails
+    (e.g. loading file fails). }
+  FontSizesChanged;
+  if URL = '' then
+    Unload
+  else
+    Load(TTextureFontData.Create(URL, ASize, AnAntiAliased, ACharacters), true,
+      AdjustProperties);
 end;
 
 constructor TCastleFont.Create(const URL: String;
@@ -200,6 +214,7 @@ begin
 
   FOwnsFont := OwnsData;
   FFont := Data;
+  FontSizesChanged;
 
   if AdjustProperties then
   begin
