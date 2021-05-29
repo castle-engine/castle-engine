@@ -40,7 +40,7 @@ implementation
 
 uses SysUtils, Classes,
   {$ifdef TEST_CASTLE_WINDOW} CastleWindow, {$endif}
-  CastleFonts, CastleTextureFont_DejaVuSansMonoBold_15, CastleFontFamily,
+  CastleFonts, CastleTextureFont_DejaVuSansMonoBold_15,
   Font_LatoRegular_300;
 
 procedure TTestCastleFonts.TestMaxTextWidthHtml;

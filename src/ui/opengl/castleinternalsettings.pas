@@ -80,7 +80,7 @@ implementation
 
 uses Math, TypInfo,
   CastleLog, CastleXMLUtils, CastleStringUtils, CastleGLImages,
-  CastleFontFamily, CastleUnicode, CastleUriUtils, CastleLocalizationGetText;
+  CastleUnicode, CastleUriUtils, CastleLocalizationGetText;
 
 { TWarmupCacheFormatList ----------------------------------------------------- }
 

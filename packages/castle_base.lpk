@@ -74,7 +74,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="5"/>
-    <Files Count="737">
+    <Files Count="738">
       <Item1>
         <Filename Value="../src/3d/castleboxes.pas"/>
         <UnitName Value="CastleBoxes"/>
@@ -791,7 +791,7 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleTextureFontData"/>
       </Item176>
       <Item177>
-        <Filename Value="../src/fonts/opengl/castlefontfamily.pas"/>
+        <Filename Value="../src/deprecated_units/castlefontfamily.pas"/>
         <UnitName Value="CastleFontFamily"/>
       </Item177>
       <Item178>
@@ -3039,6 +3039,10 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/x3d/x3dtriangles_raysegment_nonleaf.inc"/>
         <Type Value="Include"/>
       </Item737>
+      <Item738>
+        <Filename Value="../src/fonts/opengl/castleinternalrichtext.pas"/>
+        <UnitName Value="CastleInternalRichText"/>
+      </Item738>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>
