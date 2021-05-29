@@ -29,6 +29,8 @@ type
   strict private
     FSourceFont: TCastleAbstractFont;
     FAlternativeSizes: TComponentList;
+    { Font for current Size, from BestSourceFont.
+      May be @nil if no font alternative yet loaded. }
     SubFont: TCastleAbstractFont;
     { Set SubFont to one of SourceFont of FAlternativeSizes,
       depending on the current Size. }
@@ -36,6 +38,7 @@ type
     procedure SubFontCustomizeBegin;
     procedure SubFontCustomizeEnd;
     procedure SetSourceFont(const Value: TCastleAbstractFont);
+    procedure SubFontFontSizeChange(Sender: TObject);
   strict protected
     procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Single); override;
     procedure GLContextClose; override;
@@ -96,19 +99,34 @@ begin
   inherited;
 end;
 
+procedure TCustomizedFont.SubFontFontSizeChange(Sender: TObject);
+begin
+  FontSizesChanged; // invalidate our MakeMeasure calculations
+end;
+
 procedure TCustomizedFont.SetSourceFont(const Value: TCastleAbstractFont);
 begin
   if FSourceFont <> Value then
   begin
     if FSourceFont <> nil then
+    begin
+      FSourceFont.RemoveFontSizeChangeNotification(@SubFontFontSizeChange);
       FSourceFont.RemoveFreeNotification(Self);
+    end;
     FSourceFont := Value;
     if FSourceFont <> nil then
+    begin
+      FSourceFont.AddFontSizeChangeNotification(@SubFontFontSizeChange);
       FSourceFont.FreeNotification(Self);
+    end;
 
     { Recalculate SubFont, since fonts changed.
+
       TODO: This will not fire when a font on FAlternativeSizes list is freed,
-      SubFont may be left pointing to one of freed fonts. }
+      SubFont may be left pointing to one of freed fonts.
+
+      TODO: Also SubFontFontSizeChange is not fired when something on FAlternativeSizes
+      changes size. }
     UpdateSubFont;
   end;
 end;
@@ -200,6 +218,7 @@ end;
 
 procedure TCustomizedFont.SubFontCustomizeBegin;
 begin
+  Assert(SubFont <> nil, 'TCustomizedFont.SubFontCustomizeBegin should only be called when SubFont <> nil');
   if Size <> 0 then
   begin
     SubFont.PushProperties;
@@ -209,6 +228,7 @@ end;
 
 procedure TCustomizedFont.SubFontCustomizeEnd;
 begin
+  Assert(SubFont <> nil, 'TCustomizedFont.SubFontCustomizeEnd should only be called when SubFont <> nil');
   if Size <> 0 then
     SubFont.PopProperties;
 end;
@@ -216,6 +236,8 @@ end;
 procedure TCustomizedFont.Print(const X, Y: Single; const Color: TCastleColor;
   const S: string);
 begin
+  if SubFont = nil then
+    Exit; // subfonts not set yet
   SubFontCustomizeBegin;
   SubFont.Print(X, Y, Color, S);
   SubFontCustomizeEnd;
@@ -232,6 +254,8 @@ begin
     so taking sizes of a different font always introduces some imprecision,
     this is visible by slightly misaligned labels etc. }
 
+  if SubFont = nil then
+    Exit(0); // subfonts not set yet
   SubFontCustomizeBegin;
   Result := SubFont.TextWidth(S);
   SubFontCustomizeEnd;
@@ -239,6 +263,8 @@ end;
 
 function TCustomizedFont.TextHeight(const S: string): Single;
 begin
+  if SubFont = nil then
+    Exit(0); // subfonts not set yet
   SubFontCustomizeBegin;
   Result := SubFont.TextHeight(S);
   SubFontCustomizeEnd;
@@ -246,6 +272,8 @@ end;
 
 function TCustomizedFont.TextHeightBase(const S: string): Single;
 begin
+  if SubFont = nil then
+    Exit(0); // subfonts not set yet
   SubFontCustomizeBegin;
   Result := SubFont.TextHeightBase(S);
   SubFontCustomizeEnd;
@@ -253,6 +281,8 @@ end;
 
 function TCustomizedFont.TextMove(const S: string): TVector2;
 begin
+  if SubFont = nil then
+    Exit(TVector2.Zero); // subfonts not set yet
   SubFontCustomizeBegin;
   Result := SubFont.TextMove(S);
   SubFontCustomizeEnd;
@@ -263,7 +293,11 @@ begin
   if Size <> 0 then
     Result := Size
   else
+  begin
+    if SubFont = nil then
+      Exit(0); // subfonts not set yet
     Result := SourceFont.EffectiveSize;
+  end;
 end;
 
 procedure TCustomizedFont.Measure(out ARowHeight, ARowHeightBase, ADescend: Single);
@@ -283,7 +317,15 @@ begin
     wrapping TLargeDigitsFont in TCustomizedFont would ignore the
     TLargeDigitsFont.Measure override.
 
-    So instead we implement our Measure we calling FSourceFont.Measure. }
+    So instead we implement our Measure by calling FSourceFont.Measure. }
+
+  if SubFont = nil then
+  begin
+    ARowHeight := 0;
+    ARowHeightBase := 0;
+    ADescend := 0;
+    Exit; // subfonts not set yet
+  end;
 
   SubFontCustomizeBegin;
   SubFont.Measure(ARowHeight, ARowHeightBase, ADescend);

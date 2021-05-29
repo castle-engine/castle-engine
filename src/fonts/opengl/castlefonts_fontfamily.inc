@@ -47,9 +47,14 @@ type
     procedure SetBold(const Value: TCastleAbstractFont);
     procedure SetItalic(const Value: TCastleAbstractFont);
     procedure SetBoldItalic(const Value: TCastleAbstractFont);
-    procedure SubFontCustomizeBegin;
-    procedure SubFontCustomizeEnd;
+    procedure SubFontCustomizeBegin(const SF: TCastleAbstractFont);
+    procedure SubFontCustomizeEnd(const SF: TCastleAbstractFont);
+    procedure SubFontFontSizeChange(Sender: TObject);
   private
+    { Font for given ABold/AItalic combination.
+      Does what it can to fallback on Regular font
+      (e.g. when you request ABold = AItalic = @true and BoldItalic is @nil)
+      but returns @nil if even Regular font is @nil. }
     function SubFont(const ABold, AItalic: boolean): TCastleAbstractFont;
     function SubFont: TCastleAbstractFont;
   strict protected
@@ -113,10 +118,16 @@ begin
   if FRegular <> Value then
   begin
     if FRegular <> nil then
+    begin
+      FRegular.RemoveFontSizeChangeNotification(@SubFontFontSizeChange);
       FRegular.RemoveFreeNotification(Self);
+    end;
     FRegular := Value;
     if FRegular <> nil then
+    begin
+      FRegular.AddFontSizeChangeNotification(@SubFontFontSizeChange);
       FRegular.FreeNotification(Self);
+    end;
   end;
 end;
 
@@ -125,10 +136,16 @@ begin
   if FBold <> Value then
   begin
     if FBold <> nil then
+    begin
+      FBold.RemoveFontSizeChangeNotification(@SubFontFontSizeChange);
       FBold.RemoveFreeNotification(Self);
+    end;
     FBold := Value;
     if FBold <> nil then
+    begin
+      FBold.AddFontSizeChangeNotification(@SubFontFontSizeChange);
       FBold.FreeNotification(Self);
+    end;
   end;
 end;
 
@@ -137,10 +154,16 @@ begin
   if FItalic <> Value then
   begin
     if FItalic <> nil then
+    begin
+      FItalic.RemoveFontSizeChangeNotification(@SubFontFontSizeChange);
       FItalic.RemoveFreeNotification(Self);
+    end;
     FItalic := Value;
     if FItalic <> nil then
+    begin
+      FItalic.AddFontSizeChangeNotification(@SubFontFontSizeChange);
       FItalic.FreeNotification(Self);
+    end;
   end;
 end;
 
@@ -149,10 +172,16 @@ begin
   if FBoldItalic <> Value then
   begin
     if FBoldItalic <> nil then
+    begin
+      FBoldItalic.RemoveFontSizeChangeNotification(@SubFontFontSizeChange);
       FBoldItalic.RemoveFreeNotification(Self);
+    end;
     FBoldItalic := Value;
     if FBoldItalic <> nil then
+    begin
+      FBoldItalic.AddFontSizeChangeNotification(@SubFontFontSizeChange);
       FBoldItalic.FreeNotification(Self);
+    end;
   end;
 end;
 
@@ -195,62 +224,89 @@ begin
     FBoldItalic.GLContextClose;
 end;
 
-procedure TCastleFontFamily.SubFontCustomizeBegin;
+procedure TCastleFontFamily.SubFontCustomizeBegin(const SF: TCastleAbstractFont);
 begin
+  Assert(SF <> nil, 'TCastleFontFamily.SubFontCustomizeBegin should only be called with SF (from SubFont) <> nil');
   if (Size <> 0) or CustomizeOutline then
   begin
-    SubFont.PushProperties;
+    SF.PushProperties;
     if Size <> 0 then
-      SubFont.Size := Size;
+      SF.Size := Size;
     if CustomizeOutline then
     begin
-      SubFont.Outline := Outline;
-      SubFont.OutlineColor := OutlineColor;
-      SubFont.OutlineHighQuality := OutlineHighQuality;
+      SF.Outline := Outline;
+      SF.OutlineColor := OutlineColor;
+      SF.OutlineHighQuality := OutlineHighQuality;
     end;
   end;
 end;
 
-procedure TCastleFontFamily.SubFontCustomizeEnd;
+procedure TCastleFontFamily.SubFontCustomizeEnd(const SF: TCastleAbstractFont);
 begin
+  Assert(SF <> nil, 'TCastleFontFamily.SubFontCustomizeEnd should only be called with SF (from SubFont) <> nil');
   if Size <> 0 then
-    SubFont.PopProperties;
+    SF.PopProperties;
 end;
 
 procedure TCastleFontFamily.Print(const X, Y: Single; const Color: TCastleColor;
   const S: string);
+var
+  SF: TCastleAbstractFont;
 begin
-  SubFontCustomizeBegin;
-  SubFont.Print(X, Y, Color, S);
-  SubFontCustomizeEnd;
+  SF := SubFont;
+  if SF = nil then
+    Exit; // subfonts not set yet
+  SubFontCustomizeBegin(SF);
+  SF.Print(X, Y, Color, S);
+  SubFontCustomizeEnd(SF);
 end;
 
 function TCastleFontFamily.TextWidth(const S: string): Single;
+var
+  SF: TCastleAbstractFont;
 begin
-  SubFontCustomizeBegin;
-  Result := SubFont.TextWidth(S);
-  SubFontCustomizeEnd;
+  SF := SubFont;
+  if SF = nil then
+    Exit(0); // subfonts not set yet
+  SubFontCustomizeBegin(SF);
+  Result := SF.TextWidth(S);
+  SubFontCustomizeEnd(SF);
 end;
 
 function TCastleFontFamily.TextHeight(const S: string): Single;
+var
+  SF: TCastleAbstractFont;
 begin
-  SubFontCustomizeBegin;
-  Result := SubFont.TextHeight(S);
-  SubFontCustomizeEnd;
+  SF := SubFont;
+  if SF = nil then
+    Exit(0); // subfonts not set yet
+  SubFontCustomizeBegin(SF);
+  Result := SF.TextHeight(S);
+  SubFontCustomizeEnd(SF);
 end;
 
 function TCastleFontFamily.TextHeightBase(const S: string): Single;
+var
+  SF: TCastleAbstractFont;
 begin
-  SubFontCustomizeBegin;
-  Result := SubFont.TextHeightBase(S);
-  SubFontCustomizeEnd;
+  SF := SubFont;
+  if SF = nil then
+    Exit(0); // subfonts not set yet
+  SubFontCustomizeBegin(SF);
+  Result := SF.TextHeightBase(S);
+  SubFontCustomizeEnd(SF);
 end;
 
 function TCastleFontFamily.TextMove(const S: string): TVector2;
+var
+  SF: TCastleAbstractFont;
 begin
-  SubFontCustomizeBegin;
-  Result := SubFont.TextMove(S);
-  SubFontCustomizeEnd;
+  SF := SubFont;
+  if SF = nil then
+    Exit(TVector2.Zero); // subfonts not set yet
+  SubFontCustomizeBegin(SF);
+  Result := SF.TextMove(S);
+  SubFontCustomizeEnd(SF);
 end;
 
 function TCastleFontFamily.SubFont(const ABold, AItalic: boolean): TCastleAbstractFont;
@@ -267,7 +323,9 @@ begin
   if Regular <> nil then
     Result := Regular
   else
-    raise Exception.Create('You must set at least Regular of TCastleFontFamily to use it for processing and rendering');
+    Result := nil;
+    // We have to gracefully accept unset font, it is a possible case esp. in editor but also at runtime
+    //raise Exception.Create('You must set at least Regular of TCastleFontFamily to use it for processing and rendering');
 end;
 
 function TCastleFontFamily.SubFont: TCastleAbstractFont;
@@ -276,20 +334,43 @@ begin
 end;
 
 function TCastleFontFamily.EffectiveSize: Single;
+var
+  SF: TCastleAbstractFont;
 begin
   if Size <> 0 then
     Result := Size
   else
-    Result := SubFont.EffectiveSize;
+  begin
+    SF := SubFont;
+    if SF = nil then
+      Exit(0); // subfonts not set yet
+    Result := SF.EffectiveSize;
+  end;
 end;
 
 procedure TCastleFontFamily.Measure(out ARowHeight, ARowHeightBase, ADescend: Single);
+var
+  SF: TCastleAbstractFont;
 begin
+  SF := SubFont;
+  if SF = nil then
+  begin
+    ARowHeight := 0;
+    ARowHeightBase := 0;
+    ADescend := 0;
+    Exit; // subfonts not set yet
+  end;
+
   { See TCustomizedFont.Measure for explanation why we need to override
     Measure. }
-  SubFontCustomizeBegin;
-  SubFont.Measure(ARowHeight, ARowHeightBase, ADescend);
-  SubFontCustomizeEnd;
+  SubFontCustomizeBegin(SF);
+  SF.Measure(ARowHeight, ARowHeightBase, ADescend);
+  SubFontCustomizeEnd(SF);
+end;
+
+procedure TCastleFontFamily.SubFontFontSizeChange(Sender: TObject);
+begin
+  FontSizesChanged; // invalidate our MakeMeasure calculations
 end;
 
 {$endif read_implementation}

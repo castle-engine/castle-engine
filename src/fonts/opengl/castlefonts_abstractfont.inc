@@ -37,6 +37,7 @@ type
     FTargetImage: TCastleImage;
     FPropertiesStack: TSavedPropertiesList;
     FSize: Single;
+    FFontSizeNotifications: TNotifyEventList;
     procedure MakeMeasure;
     procedure GLContextCloseEvent(Sender: TObject);
   strict protected
@@ -47,9 +48,13 @@ type
     procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Single); virtual;
     procedure GLContextClose; virtual;
     procedure SetSize(const Value: Single); virtual;
-    { Call when the measurement of font possibly changed, and anything cached
+    { Call this when the measurement of font possibly changed, and anything cached
       should be recalculated by calling TextWidth, TextHeight etc. again. }
     procedure FontSizesChanged;
+    { Add notification when FontSizesChanged occurs. }
+    procedure AddFontSizeChangeNotification(const Notify: TNotifyEvent);
+    { Remove notification when FontSizesChanged occurs. }
+    procedure RemoveFontSizeChangeNotification(const Notify: TNotifyEvent);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -405,6 +410,7 @@ begin
     ApplicationProperties.OnGLContextCloseObject.Remove(@GLContextCloseEvent);
   GLContextClose;
   FreeAndNil(FPropertiesStack);
+  FreeAndNil(FFontSizeNotifications);
   inherited;
 end;
 
@@ -901,6 +907,21 @@ end;
 procedure TCastleAbstractFont.FontSizesChanged;
 begin
   FMeasuredSize := -1; // not measured at all
+  if FFontSizeNotifications <> nil then
+    FFontSizeNotifications.ExecuteAll(Self);
+end;
+
+procedure TCastleAbstractFont.AddFontSizeChangeNotification(const Notify: TNotifyEvent);
+begin
+  if FFontSizeNotifications = nil then
+    FFontSizeNotifications := TNotifyEventList.Create;
+  FFontSizeNotifications.Add(Notify);
+end;
+
+procedure TCastleAbstractFont.RemoveFontSizeChangeNotification(const Notify: TNotifyEvent);
+begin
+  if FFontSizeNotifications <> nil then // may be nil when destroying, and we make notification
+    FFontSizeNotifications.Remove(Notify);
 end;
 
 {$endif read_implementation}
