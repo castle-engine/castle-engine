@@ -229,7 +229,6 @@ var
       AddEnginePath('base/unix');
       AddEnginePath('base/opengl');
       AddEnginePath('fonts');
-      AddEnginePath('fonts/windows');
       AddEnginePath('fonts/opengl');
       AddEnginePath('window');
       AddEnginePath('window/gtk');
