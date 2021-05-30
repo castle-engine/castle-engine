@@ -20,7 +20,8 @@ unit CastleShapeInternalShadowVolumes;
 interface
 
 uses Generics.Collections,
-  CastleUtils, CastleVectors, CastleTriangles;
+  CastleUtils, CastleVectors, CastleTriangles,
+  X3DNodes;
 
 type
   { Edge that is between exactly two triangles.
@@ -103,6 +104,9 @@ type
     procedure CalculateIfNeededManifoldAndBorderEdges;
   public
     FShape: TObject;
+    SceneForShadowVolumes: TObject;
+    QuadCoords: TCoordinateNode;
+    TriangleCoords: TCoordinateNode;
 
     constructor Create(const AShape: TObject);
     destructor Destroy; override;
@@ -170,7 +174,7 @@ type
 implementation
 
 uses SysUtils,
-  CastleShapes, X3DNodes, CastleLog, CastleTransformExtra, CastleTransform,
+  CastleShapes, CastleLog, CastleTransformExtra, CastleTransform,
   CastleRenderOptions;
 
 constructor TShapeShadowVolumes.Create(const AShape: TObject);
@@ -181,6 +185,7 @@ end;
 
 destructor TShapeShadowVolumes.Destroy;
 begin
+  FreeAndNil(SceneForShadowVolumes);
   { free FTrianglesList* variables }
   InvalidateTrianglesListShadowCasters;
   { frees FManifoldEdges, FBorderEdges if needed }

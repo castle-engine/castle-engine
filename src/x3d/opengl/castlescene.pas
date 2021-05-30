@@ -1622,6 +1622,8 @@ var
   Shape: TShape;
   T: TMatrix4;
   ForceOpaque: boolean;
+  Params: TBasicRenderParams;
+  Matrix: TMatrix4f;
 begin
   if GetVisible and CastShadowVolumes then
   begin
@@ -1656,6 +1658,10 @@ begin
             SVRenderer.ZFailAndLightCap,
             SVRenderer.ZFail,
             ForceOpaque);
+          {Params := TBasicRenderParams.Create;
+          Params.RenderingCamera := RenderingCamera;
+          Params.InShadow := true;
+          TCastleScene(Shape.InternalShadowVolumes.SceneForShadowVolumes).Render(Params);}
         end;
       end;
     end;

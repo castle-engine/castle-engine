@@ -690,11 +690,11 @@ begin
       glSetDepthAndColorWriteable(false);
         glStencilFunc(GL_ALWAYS, 0, 0);
 
-        if StencilTwoSided then
+        {if StencilTwoSided then
         begin
           StencilSetupKind := ssFrontAndBack;
           RenderShadowVolumes;
-        end else
+        end else}
         begin
           glEnable(GL_CULL_FACE);
 
