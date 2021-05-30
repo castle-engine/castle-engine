@@ -66,6 +66,7 @@ type
     function TextHeight(const S: string): Single; override;
     function TextHeightBase(const S: string): Single; override;
     function TextMove(const S: string): TVector2; override;
+    function Loaded: Boolean; override;
   end;
 
   TSimpleTextureFont = TCastleBitmapFont deprecated 'use TCastleBitmapFont';
@@ -264,6 +265,11 @@ end;
 function TCastleBitmapFont.TextMove(const S: string): TVector2;
 begin
   Result := Vector2(TextWidth(S), TextHeight(S));
+end;
+
+function TCastleBitmapFont.Loaded: Boolean;
+begin
+  Result := Image <> nil;
 end;
 
 {$endif read_implementation}

@@ -62,6 +62,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    function Loaded: Boolean; override;
 
     property InternalBold: boolean read FInternalBold write FInternalBold default false;
     property InternalItalic: boolean read FInternalItalic write FInternalItalic default false;
@@ -378,6 +379,11 @@ end;
 procedure TCastleFontFamily.SubFontFontSizeChange(Sender: TObject);
 begin
   FontSizesChanged; // invalidate our MakeMeasure calculations
+end;
+
+function TCastleFontFamily.Loaded: Boolean;
+begin
+  Result := (Regular <> nil) and Regular.Loaded;
 end;
 
 {$endif read_implementation}

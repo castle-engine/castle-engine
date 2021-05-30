@@ -59,6 +59,7 @@ type
     function TextHeightBase(const S: string): Single; override;
     function TextMove(const S: string): TVector2; override;
     function EffectiveSize: Single; override;
+    function Loaded: Boolean; override;
 
     { Add any number of alternative source fonts.
       Before actually using them for rendering,
@@ -363,6 +364,11 @@ begin
     else
       AddAlternativeSourceFont(F);
   end;
+end;
+
+function TCustomizedFont.Loaded: Boolean;
+begin
+  Result := (SourceFont <> nil) and SourceFont.Loaded;
 end;
 
 {$endif read_implementation}

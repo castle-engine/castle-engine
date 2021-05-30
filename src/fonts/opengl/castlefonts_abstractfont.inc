@@ -59,6 +59,9 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
+    { If the font is loaded, it can actually display and measure some characters. }
+    function Loaded: Boolean; virtual; abstract;
+
     { Desired font size to use when rendering (@link(Print)) and measuring
       (@link(TextWidth), @link(TextHeight) and related).
       Should be always > 0.
