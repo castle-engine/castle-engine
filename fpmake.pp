@@ -158,6 +158,7 @@ begin
     P.Targets.AddUnit('castleshaders.pas');
     P.Targets.AddUnit('castlewarnings.pas');
     P.Targets.AddUnit('castlewindowmodes.pas');
+    P.Targets.AddUnit('castlewindowsfonts.pas');
     P.Targets.AddUnit('castlewindowtouch.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'base');
@@ -253,11 +254,6 @@ begin
     P.Targets.AddUnit('castletexturefont_djvserifbi_20.pas');
     P.Targets.AddUnit('castletexturefont_djvserifi_20.pas');
     P.Targets.AddUnit('castletexturefontdata.pas');
-    if Defaults.OS in AllWindowsOSes then
-    begin
-      P.SourcePath.Add('src' + PathDelim + 'fonts' + PathDelim + 'windows');
-      P.Targets.AddUnit('castlewindowsfonts.pas');
-    end;
 
     P.SourcePath.Add('src' + PathDelim + 'fonts' + PathDelim + 'opengl');
     P.Targets.AddUnit('castlefonts.pas');

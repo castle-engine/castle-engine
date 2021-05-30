@@ -827,7 +827,7 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleInternalRichText"/>
       </Item185>
       <Item186>
-        <Filename Value="../src/fonts/windows/castlewindowsfonts.pas"/>
+        <Filename Value="../src/deprecated_units/castlewindowsfonts.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleWindowsFonts"/>
       </Item186>
