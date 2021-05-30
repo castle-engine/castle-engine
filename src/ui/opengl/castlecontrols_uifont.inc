@@ -24,7 +24,7 @@ function GetUIFontSmall: TCastleAbstractFont;
 procedure SetUIFontSmall(const Value: TCastleAbstractFont);
   deprecated 'use UIFont and temporarily change the size to be smaller, or use TCastleUserInterfaceFont.SmallFont';
 
-{ The default font, used throughout the engine as a fallback.
+(*The default font, used throughout the engine as a fallback.
   By default, this is a modern sans-serif font hardcoded into the engine.
 
   You can assign your own font here, to make this the new default font.
@@ -44,7 +44,7 @@ procedure SetUIFontSmall(const Value: TCastleAbstractFont);
     MyFont.Load(TextureFont_Xxxx);
     UIFont := MyFont;
   #)
-}
+*)
 property UIFont: TCastleAbstractFont read GetUIFont write SetUIFont;
 property UIFontSmall: TCastleAbstractFont read GetUIFontSmall write SetUIFontSmall;
 { @groupEnd }
