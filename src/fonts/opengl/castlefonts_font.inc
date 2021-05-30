@@ -55,7 +55,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
-    function Loaded: Boolean; override;
+    function FontLoaded: Boolean; override;
 
     constructor Create(const URL: String;
       const ASize: Cardinal; const AnAntiAliased: Boolean;
@@ -552,7 +552,7 @@ begin
   end;
 end;
 
-function TCastleFont.Loaded: Boolean;
+function TCastleFont.FontLoaded: Boolean;
 begin
   Result := FFont <> nil;
 end;

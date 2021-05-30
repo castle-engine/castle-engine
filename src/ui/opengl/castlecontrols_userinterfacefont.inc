@@ -245,7 +245,7 @@ end;
 function TCastleUserInterfaceFont.Font: TCastleAbstractFont;
 begin
   // do not use CustomFont if it is not loaded, as it would not be visible
-  if (CustomFont <> nil) and CustomFont.Loaded then
+  if (CustomFont <> nil) and CustomFont.FontLoaded then
     Result := CustomFont
   else
   if (Container <> nil) and

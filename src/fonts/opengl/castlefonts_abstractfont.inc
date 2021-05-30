@@ -60,7 +60,7 @@ type
     destructor Destroy; override;
 
     { If the font is loaded, it can actually display and measure some characters. }
-    function Loaded: Boolean; virtual; abstract;
+    function FontLoaded: Boolean; virtual; abstract;
 
     { Desired font size to use when rendering (@link(Print)) and measuring
       (@link(TextWidth), @link(TextHeight) and related).
