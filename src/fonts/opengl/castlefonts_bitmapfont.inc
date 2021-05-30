@@ -19,7 +19,7 @@
 type
   { Bitmap font, where each character is just drawn (and may be multi-color)
     on a raster image. See https://en.wikipedia.org/wiki/Computer_font about
-    "bitmap font" or (less common name) "raster font".
+    "bitmap font" or (less common name, but more valid) "raster font".
 
     By default this class makes some assumptions about how the font image looks like:
     the characters are drawn in Unicode order, starting from space, on an image.
