@@ -228,7 +228,7 @@ type
   function LoadFontSettings(const FontElement: TDOMElement): TCastleAbstractFont;
   var
     NewFontUrl: String;
-    NewFontSize, NewFontLoadSize: Cardinal;
+    NewFontSize, NewFontOptimalSize: Cardinal;
     NewFontAntiAliased: Boolean;
     AllSizesAtLoadStr: String;
     AllSizesAtLoad: TDynIntegerArray;
@@ -279,9 +279,9 @@ type
         TCustomizedFont(Result).Load(NewFontUrl, AllSizesAtLoad, NewFontAntiAliased, UnicodeCharList);
       end else
       begin
-        NewFontLoadSize := FontElement.AttributeCardinalDef('size_at_load', NewFontSize);
+        NewFontOptimalSize := FontElement.AttributeCardinalDef('size_at_load', NewFontSize);
         Result := TCastleFont.Create(Container);
-        TCastleFont(Result).Load(NewFontUrl, NewFontLoadSize, NewFontAntiAliased, UnicodeCharList);
+        TCastleFont(Result).Load(NewFontUrl, NewFontOptimalSize, NewFontAntiAliased, UnicodeCharList);
       end;
       Result.Size := NewFontSize;
       FreeAndNil(UnicodeCharList);
