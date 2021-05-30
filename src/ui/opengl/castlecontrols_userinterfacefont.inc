@@ -454,10 +454,12 @@ end;
 function TCastleUserInterfaceFont.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'FontSize') then
-    Result := [psBasic]
-  else
-    Result := inherited PropertySections(PropertyName);
+  case PropertyName of
+    'FontSize', 'CustomFont':
+      Result := [psBasic];
+    else
+      Result := inherited PropertySections(PropertyName);
+  end;
 end;
 
 {$define read_implementation_methods}
