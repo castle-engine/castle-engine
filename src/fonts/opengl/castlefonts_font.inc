@@ -108,6 +108,14 @@ type
     { Scale applied to the rendered font, compared to @link(FontData).Size.
       Changing this is equivalent to changing the Size property. }
     property Scale: Single read GetScale write SetScale;
+
+    { Load from font all characters we define as "simple ASCII" (see @link(SimpleAsciiCharacters))
+      in addition to characters listed on LoadCharacters. }
+//TODO    property LoadCharactersSimpleAscii: Boolean read FLoadCharactersSimpleAscii;
+
+    { Load from font all characters listed here. As everywhere in CGE
+      (same as in Lazarus LCL), this is an string composed from UTF-8 characters. }
+//TODO    property LoadCharacters: String read FLoadCharacters;
   published
     { Loaded font file.
       Typically this is used for outline (scalable, vector) fonts in ttf or otf formats.
