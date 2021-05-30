@@ -17,19 +17,15 @@
 {$ifdef read_interface}
 
 type
-  { Font family, with different subfonts for normal, bold, italic, bold+italic
-    variants. Used this together with @link(TCastleLabel.Html) that allows
-    to render HTML text with varying font styles.
-    Or you can use this for normal font rendering (that doesn't change
-    font style in the middle, e.g. TCastleLabel with TCastleLabel.Html = @false)
-    and just enjoy simple Boolean properties
-    @link(DefaultBold) and @link(DefaultItalic) to change the font style yourself at runtime or design-time.
+  { Font family, with possible different subfonts for
+    @link(Regular), @link(Bold), @link(Italic), @link(BoldItalic) variants.
 
-    This class can be treated as a font itself, since it has all the measuring
-    and rendering commands you expect from a font (and you could
-    even use it as a subfont of another TCastleFontFamily --- weird but works,
-    in which case the "TCastleFontFamily used as a subfont" just acts as a proxy
-    for the Regular subfont).
+    It can be generally used everywhere where we allow TCastleAbstractFont,
+    and in most cases it will just act like the @link(Regular) variant.
+    But it is especialy useful together with @link(TCastleLabel.Html) = @true.
+    In such case, using it as @link(TCastleUserInterfaceFont.CustomFont TCastleLabel.CustomFont)
+    will allow to render HTML text with varying font styles, this way bold/italic requested
+    by HTML like @code(<b>something bold</b> <i>something italic</i>) will be visible.
 
     Similar to TCustomizedFont, it can also change the subfont size.
     Simply set the @code(Size) property of this instance to non-zero
@@ -41,7 +37,7 @@ type
   TCastleFontFamily = class(TCastleAbstractFont)
   strict private
     FRegular, FBold, FItalic, FBoldItalic: TCastleAbstractFont;
-    FDefaultBold, FDefaultItalic: boolean;
+    FInternalBold, FInternalItalic: boolean;
     FCustomizeOutline: boolean;
     procedure SetRegular(const Value: TCastleAbstractFont);
     procedure SetBold(const Value: TCastleAbstractFont);
@@ -65,9 +61,10 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
-    property DefaultBold: boolean read FDefaultBold write FDefaultBold default false;
-    property DefaultItalic: boolean read FDefaultItalic write FDefaultItalic default false;
+    property InternalBold: boolean read FInternalBold write FInternalBold default false;
+    property InternalItalic: boolean read FInternalItalic write FInternalItalic default false;
 
     procedure PrepareResources; override;
     procedure Print(const X, Y: Single; const Color: TCastleColor;
@@ -111,6 +108,16 @@ begin
   Italic := nil;
   BoldItalic := nil;
   inherited;
+end;
+
+function TCastleFontFamily.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  case PropertyName of
+    'Regular', 'Bold', 'Italic', 'BoldItalic':
+      Result := [psBasic];
+    else
+      Result := inherited PropertySections(PropertyName);
+  end;
 end;
 
 procedure TCastleFontFamily.SetRegular(const Value: TCastleAbstractFont);
@@ -330,7 +337,7 @@ end;
 
 function TCastleFontFamily.SubFont: TCastleAbstractFont;
 begin
-  Result := SubFont(DefaultBold, DefaultItalic);
+  Result := SubFont(InternalBold, InternalItalic);
 end;
 
 function TCastleFontFamily.EffectiveSize: Single;

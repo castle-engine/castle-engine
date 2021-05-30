@@ -362,26 +362,26 @@ begin
     tcBold:
       begin
         Inc(State.Bold);
-        Font.DefaultBold := State.Bold <> 0;
+        Font.InternalBold := State.Bold <> 0;
       end;
     tcBoldEnd:
       if State.Bold = 0 then
         WritelnWarning('HTML', 'Mismatched </b>') else
       begin
         Dec(State.Bold);
-        Font.DefaultBold := State.Bold <> 0;
+        Font.InternalBold := State.Bold <> 0;
       end;
     tcItalic:
       begin
         Inc(State.Italic);
-        Font.DefaultItalic := State.Italic <> 0;
+        Font.InternalItalic := State.Italic <> 0;
       end;
     tcItalicEnd:
       if State.Italic = 0 then
         WritelnWarning('HTML', 'Mismatched </i>') else
       begin
         Dec(State.Italic);
-        Font.DefaultItalic := State.Italic <> 0;
+        Font.InternalItalic := State.Italic <> 0;
       end;
     tcFontColor:
       begin
@@ -833,10 +833,10 @@ begin
   Result := TTextLine.TPrintState.Create;
 
   { set FFont into Bold = Italic = false state }
-  Result.RestoreBold := FFont.DefaultBold;
-  Result.RestoreItalic := FFont.DefaultItalic;
-  FFont.DefaultBold := false;
-  FFont.DefaultItalic := false;
+  Result.RestoreBold := FFont.InternalBold;
+  Result.RestoreItalic := FFont.InternalItalic;
+  FFont.InternalBold := false;
+  FFont.InternalItalic := false;
 
   Result.Color := InitialColor;
   Result.DefaultSize := FFont.EffectiveSize;
@@ -844,8 +844,8 @@ end;
 
 procedure TRichText.EndProcessing(var State: TTextLine.TPrintState);
 begin
-  FFont.DefaultBold := State.RestoreBold;
-  FFont.DefaultItalic := State.RestoreItalic;
+  FFont.InternalBold := State.RestoreBold;
+  FFont.InternalItalic := State.RestoreItalic;
 
   FreeAndNil(State);
 end;
