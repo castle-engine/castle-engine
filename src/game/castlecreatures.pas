@@ -1066,7 +1066,7 @@ implementation
 
 uses SysUtils, DOM, Math,
   CastleFilesUtils, CastleGLUtils,
-  CastleProgress, CastleGameNotifications, CastleUIControls, CastleGLBoxes;
+  CastleProgress, CastleGameNotifications, CastleUIControls;
 
 var
   DisableCreatures: Cardinal;

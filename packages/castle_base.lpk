@@ -545,10 +545,12 @@ See https://castle-engine.io/license.php for details.
       </Item116>
       <Item117>
         <Filename Value="../src/deprecated_units/castle2dscenemanager.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="Castle2DSceneManager"/>
       </Item117>
       <Item118>
         <Filename Value="../src/deprecated_units/castlefontfamily.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleFontFamily"/>
       </Item118>
       <Item119>
@@ -558,10 +560,12 @@ See https://castle-engine.io/license.php for details.
       </Item119>
       <Item120>
         <Filename Value="../src/deprecated_units/castleglboxes.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleGLBoxes"/>
       </Item120>
       <Item121>
         <Filename Value="../src/deprecated_units/castleglcontainer.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleGLContainer"/>
       </Item121>
       <Item122>
@@ -589,14 +593,17 @@ See https://castle-engine.io/license.php for details.
       </Item126>
       <Item127>
         <Filename Value="../src/deprecated_units/castlerenderer.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleRenderer"/>
       </Item127>
       <Item128>
         <Filename Value="../src/deprecated_units/castlerendererbasetypes.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleRendererBaseTypes"/>
       </Item128>
       <Item129>
         <Filename Value="../src/deprecated_units/castlescenemanager.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleSceneManager"/>
       </Item129>
       <Item130>

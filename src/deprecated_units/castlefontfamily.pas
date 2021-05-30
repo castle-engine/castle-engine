@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-unit CastleFontFamily;
+unit CastleFontFamily deprecated 'use CastleFonts unit for TCastleFontFamily';
 
 {$I castleconf.inc}
 

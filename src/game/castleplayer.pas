@@ -523,7 +523,7 @@ implementation
 uses Math, SysUtils,
   CastleClassUtils, CastleUtils, CastleControls,
   CastleImages, CastleFilesUtils, CastleUIControls, CastleLog,
-  CastleGLBoxes, CastleGameNotifications, CastleXMLConfig,
+  CastleGameNotifications, CastleXMLConfig,
   CastleGLImages, CastleConfig, CastleRenderContext;
 
 { TPlayer.TBox ----------------------------------------------------------------- }

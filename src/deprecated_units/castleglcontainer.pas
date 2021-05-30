@@ -14,7 +14,7 @@
 }
 
 { Container for 2D controls able to render using OpenGL (TGLContainer). }
-unit CastleGLContainer;
+unit CastleGLContainer deprecated 'everything from this unit is now in CastleUIControls';
 
 {$I castleconf.inc}
 
