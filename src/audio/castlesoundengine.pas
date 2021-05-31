@@ -1249,17 +1249,12 @@ function SoundEngine: TRepoSoundEngine;
 
 implementation
 
-{ use a deprecated unit below, only to have it compiled together with Lazarus
-  castle_base.lpk package }
-{$warnings off}
 uses XMLRead, StrUtils, Generics.Defaults,
   CastleUtils, CastleLog, CastleProgress, CastleInternalVorbisFile,
   CastleParameters, CastleXMLUtils, CastleFilesUtils, CastleConfig,
   CastleURIUtils, CastleDownload, CastleMessaging, CastleApplicationProperties,
   {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_OPENAL} CastleOpenALSoundBackend, {$endif}
-  // unit below is deprecated
-  CastleSoundAllocator;
-{$warnings on}
+  CastleComponentSerialize;
 
 {$define read_implementation}
 {$I castlesoundengine_castlesound.inc}
@@ -3106,6 +3101,8 @@ begin
   Result := FSoundEngine;
 end;
 
+initialization
+  RegisterSerializableComponent(TCastleSound, 'Sound');
 finalization
   FreeAndNil(FSoundEngine);
 end.

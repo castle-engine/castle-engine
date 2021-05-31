@@ -119,7 +119,6 @@ begin
 
     P.SourcePath.Add('src' + PathDelim + 'audio');
     P.Targets.AddUnit('castleinternalsoundfile.pas');
-    P.Targets.AddUnit('castlesoundallocator.pas');
     P.Targets.AddUnit('castlesoundengine.pas');
     P.Targets.AddUnit('castlesoundbase.pas');
     P.Targets.AddUnit('castleinternalabstractsoundbackend.pas');
@@ -155,6 +154,7 @@ begin
     P.Targets.AddUnit('castlerenderer.pas');
     P.Targets.AddUnit('castlerendererbasetypes.pas');
     P.Targets.AddUnit('castlescenemanager.pas');
+    P.Targets.AddUnit('castlesoundallocator.pas');
     P.Targets.AddUnit('castleshaders.pas');
     P.Targets.AddUnit('castlewarnings.pas');
     P.Targets.AddUnit('castlewindowmodes.pas');

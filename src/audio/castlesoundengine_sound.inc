@@ -17,20 +17,18 @@
 {$ifdef read_interface}
 
 type
-  { Sound file that can be loaded from URL (possibly reusing a cache,
+  { Sound that can be loaded from URL (possibly reusing a cache,
     possibly using streaming) and played.
 
     Aside from sound file (also called "sound buffer" or "audio clip" in various APIs)
     this class allows to configue also playback values, like @link(Volume) and @link(Pitch).
 
-    This class does not handle actual playing of the sound,
-    as it doesn't manage the 3D position of sound in case of spatial sounds,
-    looping etc. To play it, use @link(TCastleSoundSource).
-    Attach @link(TCastleSoundSource) to a @link(TCastleTransform) within some @link(TCastleViewport).
-
-    This class can be nicely serialized (so you can use this as a SubComponent
-    e.g. in TCastleBehavior descendants that want to expose some sound,
-    like TCastleMoveAttack). }
+    This class does not actually play the sound.
+    It only defines something that @italic(can) be played.
+    To play the sound use @link(TCastleSoundSource).
+    Attach @link(TCastleSoundSource) to a @link(TCastleTransform) within some
+    @link(TCastleViewport) and set @link(TCastleSoundSource.Sound)
+    or call @link(TCastleSoundSource.PlayOnce). }
   TCastleSound = class(TCastleComponent)
   strict private
     FURL: string;
@@ -41,7 +39,7 @@ type
     FSpatial: Boolean;
     FMinGain: Single;
     FMaxGain: Single;
-    FOnChange: TNotifyEvent;
+    FChangeNotifications: TNotifyEventList;
     procedure SetStream(const Value: Boolean);
     procedure SetURL(const Value: String);
     procedure SetVolume(const Value: Single);
@@ -58,12 +56,28 @@ type
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
-    { @exclude Reserved for parent TCastleSoundSource to listen for changes. }
-    property InternalOnChange: TNotifyEvent read FOnChange write FOnChange;
+    { Add notification when sound property changes. }
+    procedure AddChangeNotification(const Notify: TNotifyEvent);
+    { Remove notification when sound property occurs. }
+    procedure RemoveChangeNotification(const Notify: TNotifyEvent);
 
     { Loaded sound buffer, for playing the buffer with the @link(SoundEngine).
       @nil if not loaded. }
     property Buffer: TSoundBuffer read FBuffer;
+
+    { Force a minimum sound loudness, despite what volume would
+      be calculated by the spatialization. This can be used to force sound
+      to be audible, even when it's far away from the listener.
+
+      It must be in [0, 1] range. By default it is 0. }
+    property MinGain: Single read FMinGain write SetMinGain default 0.0; platform { this feature is only available with OpenAL sound backend };
+
+    { Force a maximum sound loudness, despite what volume would
+      be calculated by the spatialization. This can be used to limit sound volume,
+      regardless of the distance attenuation calculation.
+
+      It must be in [0, 1] range. By default it is 1. }
+    property MaxGain: Single read FMaxGain write SetMaxGain default 1.0; platform { this feature is only available with OpenAL sound backend };
   published
     { URL of the sound file.
       Set this to load a new sound buffer, you can set to '' to clear the sound buffer.
@@ -94,11 +108,11 @@ type
       Note: Do not make the actual sound data (in wav, ogg and such files)
       louder/more silent for this purpose. This is usually bad for sound quality.
       Instead, keep your sound data at max loudness (normalized), and use
-      this gain property to scale sound.
+      this property to scale sound.
 
       It can be anything from 0 to +infinity. The default is 1. Note that values > 1 are allowed,
       but some sound backends (like OpenAL) may clip the resulting sound volume
-      (after all spatial calculations are be done) to 1.0. }
+      (after all spatial calculations are done) to 1.0. }
     property Volume: Single read FVolume write SetVolume default 1.0;
 
     { Sound playing speed.
@@ -119,20 +133,6 @@ type
       Note that some sound backends (like OpenAL) can only spatialize mono sounds,
       and play stereo sounds always as non-spatialized. }
     property Spatial: Boolean read FSpatial write SetSpatial default true;
-
-    { Force a minimum sound loudness, despite what volume would
-      be calculated by the spatialization. This can be used to force sound
-      to be audible, even when it's far away from the listener.
-
-      It must be in [0, 1] range. By default it is 0. }
-    property MinGain: Single read FMinGain write SetMinGain default 0.0;
-
-    { Force a maximum sound loudness, despite what volume would
-      be calculated by the spatialization. This can be used to limit sound volume,
-      regardless of the distance attenuation calculation.
-
-      It must be in [0, 1] range. By default it is 1. }
-    property MaxGain: Single read FMaxGain write SetMaxGain default 1.0;
   end;
 
 {$endif read_interface}
@@ -148,12 +148,14 @@ begin
   FSpatial := true;
   FMinGain := 0.0;
   FMaxGain := 1.0;
+  FChangeNotifications := TNotifyEventList.Create;
 end;
 
 destructor TCastleSound.Destroy;
 begin
   if FBuffer <> nil then // avoid accessing SoundEngine if not needed
     SoundEngine.FreeBuffer(FBuffer); // this sets FBuffer = nil
+  FreeAndNil(FChangeNotifications);
   inherited;
 end;
 
@@ -259,8 +261,18 @@ end;
 
 procedure TCastleSound.DoChange;
 begin
-  if Assigned(FOnChange) then
-    FOnChange(Self);
+  FChangeNotifications.ExecuteAll(Self);
+end;
+
+procedure TCastleSound.AddChangeNotification(const Notify: TNotifyEvent);
+begin
+  FChangeNotifications.Add(Notify);
+end;
+
+procedure TCastleSound.RemoveChangeNotification(const Notify: TNotifyEvent);
+begin
+  if FChangeNotifications <> nil then // may be nil when destroying, and we make notification
+    FChangeNotifications.Remove(Notify);
 end;
 
 {$endif read_implementation}

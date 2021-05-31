@@ -25,7 +25,7 @@ type
     on the same parent:
 
     @unorderedList(
-      @item(TCastleSound (to play spatial sounds;
+      @item(TCastleSoundSource (to play spatial sounds;
         this creature is silent otherwise),)
 
       @item(TCastleAliveBehavior (to account for the fact that current creature
@@ -401,11 +401,11 @@ end;
 
 procedure TCastleMoveAttack.PlaySound(const SoundType: TSoundType; const SoundHeight: Single);
 var
-  SoundBehavior: TCastleSound;
+  SoundSource: TCastleSoundSource;
 begin
   if SoundType = stNone then Exit;
 
-  SoundBehavior := Parent.FindBehavior(TCastleSound) as TCastleSound;
+  SoundBehavior := Parent.FindBehavior(TCastleSoundSource) as TCastleSoundSource;
   if SoundBehavior <> nil then
     SoundBehavior.PlayOnce(SoundType, SoundHeight);
 end;

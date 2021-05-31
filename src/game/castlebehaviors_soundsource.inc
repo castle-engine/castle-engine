@@ -26,10 +26,12 @@ type
     PlayingSound: TInternalPlayingSound; //< TInternalPlayingSound corresponding to main Sound
     procedure SoundRelease(Sender: TInternalPlayingSound);
     function LerpLegsMiddle(const A: Single): TVector3;
-    procedure SoundChanged(Sender: TObject);
     function PlayOnceCore(const Sound: TCastleSound; const Looping, Follow: Boolean): TInternalPlayingSound;
+    procedure SoundChange(Sender: TObject);
+    procedure SetSound(const Value: TCastleSound);
   protected
     procedure ParentChanged; override;
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -65,14 +67,13 @@ type
       the sound will simply start at parent's position, and then
       it will continue to be played independent of the parent existence
       or position. }
-    procedure PlayOnce(const Sound: TCastleSound; const Follow: boolean = true);
+    procedure PlayOnce(const ASound: TCastleSound; const Follow: boolean = true);
   published
-    { Optional default sound to play here, looping.
-
+    { Sound to play, looping.
       Note that this is not the only sound possible to play using this
       @link(TCastleSoundSource). You can play any other @link(TCastleSound)
       instance, defined anywhere, by calling @link(PlayOnce) here. }
-    property Sound: TCastleSound read FSound;
+    property Sound: TCastleSound read FSound write SetSound;
   end;
 
 {$endif read_interface}
@@ -94,11 +95,6 @@ constructor TCastleSoundSource.Create(AOwner: TComponent);
 begin
   inherited;
   UsedSounds := TInternalPlayingSoundList.Create(false);
-
-  FSound := TCastleSound.Create(Self);
-  FSound.InternalOnChange := @SoundChanged;
-  FSound.SetSubComponent(true);
-  FSound.Name := 'Sound';
 end;
 
 destructor TCastleSoundSource.Destroy;
@@ -130,6 +126,10 @@ begin
     end;
     FreeAndNil(UsedSounds);
   end;
+
+  // detach free notifications
+  Sound := nil;
+
   inherited;
 end;
 
@@ -249,8 +249,10 @@ begin
       Params.Looping := Looping;
       Params.Importance := DefaultSoundImportance;
       Params.Gain := Sound.Volume;
+      {$warnings off} // using unportable symbols knowingly
       Params.MinGain := Sound.MinGain;
       Params.MaxGain := Sound.MaxGain;
+      {$warnings on}
       Params.Pitch := Sound.Pitch;
 
       Result := SoundEngine.PlaySound(Params);
@@ -268,26 +270,54 @@ begin
   end;
 end;
 
-procedure TCastleSoundSource.SoundChanged(Sender: TObject);
+procedure TCastleSoundSource.SoundChange(Sender: TObject);
 begin
   if PlayingSound <> nil then
     PlayingSound.Release;
   Assert(PlayingSound = nil);
 
   { Looping and Follow = true, it seems most natural for sounds set as TCastleSoundSource.Sound. }
-  PlayingSound := PlayOnceCore(Sound, true, true);
+  if Sound <> nil then
+    PlayingSound := PlayOnceCore(Sound, true, true);
 end;
 
-procedure TCastleSoundSource.PlayOnce(const Sound: TCastleSound;
+procedure TCastleSoundSource.PlayOnce(const ASound: TCastleSound;
   const Follow: boolean);
 begin
-  PlayOnceCore(Sound, false, Follow);
+  PlayOnceCore(ASound, false, Follow);
 end;
 
 procedure TCastleSoundSource.ParentChanged;
 begin
   inherited;
-  SoundChanged(nil); // change of parent implies a change of position
+  SoundChange(nil); // change of parent implies a change of position
+end;
+
+procedure TCastleSoundSource.SetSound(const Value: TCastleSound);
+begin
+  if FSound <> Value then
+  begin
+    if FSound <> nil then
+    begin
+      FSound.RemoveChangeNotification(@SoundChange);
+      FSound.RemoveFreeNotification(Self);
+    end;
+    FSound := Value;
+    if FSound <> nil then
+    begin
+      FSound.AddChangeNotification(@SoundChange);
+      FSound.FreeNotification(Self);
+    end;
+    SoundChange(nil);
+  end;
+end;
+
+procedure TCastleSoundSource.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited;
+  { set to nil by setter to clean nicely }
+  if (Operation = opRemove) and (AComponent = FSound) then
+    Sound := nil;
 end;
 
 {$endif read_implementation}

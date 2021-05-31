@@ -30,7 +30,8 @@ uses
   CastleGooglePlayGames, CastleShaders, CastleGenericLists, CastleWarnings,
   CastleLocalization, CastleLocalizationFileLoader,
   CastleSceneManager, Castle3D, Castle2DSceneManager,
-  CastleRenderer, CastleRendererBaseTypes, CastleGLContainer, CastleGLBoxes;
+  CastleRenderer, CastleRendererBaseTypes, CastleGLContainer, CastleGLBoxes,
+  CastleSoundAllocator;
 
 implementation
 
