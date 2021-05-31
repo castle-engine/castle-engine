@@ -72,6 +72,7 @@ type
   TSoundData = class
   public
     SoundHeight: Single;
+    Spatial: Boolean;
   end;
 
 { TCastleSoundSource ------------------------------------------------------- }
@@ -144,6 +145,7 @@ begin
     NewSource.OnRelease := @SoundRelease;
     NewSource.UserData := TSoundData.Create;
     TSoundData(NewSource.UserData).SoundHeight := SoundHeight;
+    TSoundData(NewSource.UserData).Spatial := true; // always true, for PlayOnce(TSoundType)
   end;
 end;
 
@@ -151,16 +153,31 @@ procedure TCastleSoundSource.Update(const SecondsPassed: Single; var RemoveMe: T
 var
   I: Integer;
   SoundPosition: TVector3;
+  SoundData: TSoundData;
 begin
   inherited;
   for I := 0 to UsedSounds.Count - 1 do
   begin
-    SoundPosition := LerpLegsMiddle(
-      TSoundData(UsedSounds[I].UserData).SoundHeight);
-    if (Parent <> nil) and
-       (Parent.UniqueParent <> nil) then // make sound position in world coordinates
-      SoundPosition := Parent.UniqueParent.LocalToWorld(SoundPosition);
-    UsedSounds[I].Position := SoundPosition;
+    SoundData := TSoundData(UsedSounds[I].UserData);
+
+    { If not Spatial, then we don't need to update UsedSounds[I].Position.
+      Actually, we *should not* update UsedSounds[I].Position,
+      as it is realized using
+
+        TSound.Relative = true
+        TSound.Position := TVector3.Zero
+
+      so changing Position would make it sound differently (with position
+      interpreted as relative to listener). }
+
+    if SoundData.Spatial then
+    begin
+      SoundPosition := LerpLegsMiddle(SoundData.SoundHeight);
+      if (Parent <> nil) and
+         (Parent.UniqueParent <> nil) then // make sound position in world coordinates
+        SoundPosition := Parent.UniqueParent.LocalToWorld(SoundPosition);
+      UsedSounds[I].Position := SoundPosition;
+    end;
   end;
 end;
 
@@ -215,6 +232,7 @@ begin
         PlayingSound.OnRelease := @SoundRelease;
         PlayingSound.UserData := TSoundData.Create;
         TSoundData(PlayingSound.UserData).SoundHeight := SoundHeight;
+        TSoundData(PlayingSound.UserData).Spatial := Sound.Spatial;
       end;
     finally FreeAndNil(Params) end;
   end;
