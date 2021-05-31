@@ -20,7 +20,7 @@ unit CastleInternalBatchShapes;
 
 interface
 
-uses CastleSceneInternalShape, CastleShapes, X3DNodes, X3DFields;
+uses CastleSceneInternalShape, CastleShapes, X3DNodes, X3DFields, X3DLoad;
 
 type
   TCreateShapeEvent = function(const AGeometry: TAbstractGeometryNode;
@@ -634,7 +634,7 @@ procedure TBatchShapes.Commit;
     end;
 
     if RootNode.FdChildren.Count <> 0 then
-      Save3D(RootNode, 'cge_batching_output.x3d', ApplicationName);
+      SaveNode(RootNode, 'cge_batching_output.x3d', ApplicationName);
 
     for Shape in FCollected do
       Shape.Node.KeepExistingEnd;

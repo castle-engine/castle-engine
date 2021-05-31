@@ -234,7 +234,7 @@ type
 implementation
 
 uses SysUtils, Math,
-  CastleSphereSampling, CastleTimeUtils, CastleColors, CastleTextureImages;
+  CastleSphereSampling, CastleTimeUtils, CastleColors, CastleRenderOptions;
 
 { RayDirection calculations ----------------------------------------------------- }
 

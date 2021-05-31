@@ -238,6 +238,8 @@ type
 
 implementation
 
+uses CastleLog;
+
 { TShapeOctreeNode ---------------------------------------- }
 
 function TShapeOctreeNode.ItemBoundingBox(const ItemIndex: integer): TBox3D;
@@ -287,20 +289,36 @@ function TShapeOctreeNode.CommonSphereLeaf(const Pos: TVector3;
 var
   I: Integer;
   Shape: TShape;
+  SafeCollisionsSphereAsBox: Boolean;
   LocalBox: TBox3D;
+  LocalPos: TVector3;
+  LocalRadius: Single;
 begin
-  { TODO: this is bad, as 1. we take box around the sphere,
-    and 2. we transform this box, making larger box.
-    This means that collision is done vs something larger than it should be. }
   Result := nil;
   for I := 0 to ItemsIndices.Count - 1 do
   begin
     Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
     try
-      LocalBox := BoundingBox3DFromSphere(Pos, Radius).Transform(
-        Shape.State.Transformation.InverseTransform);
-      Result := Shape.InternalOctreeTriangles.BoxCollision(
-        LocalBox, TriangleToIgnore, TrianglesToIgnoreFunc);
+      { Using SafeCollisionsSphereAsBox means that sphere is actually transformed to a box.
+        This means that it collides as something more than it should.
+        OTOH, this accounts for non-uniform scale. }
+      SafeCollisionsSphereAsBox := not Shape.State.Transformation.UniformScale;
+
+      if SafeCollisionsSphereAsBox then
+      begin
+        // too verbose for normal usage
+        // WritelnWarning('Non-uniform scale, SphereCollision will not work precisely, approximating sphere with larger box');
+        LocalBox := BoundingBox3DFromSphere(Pos, Radius).Transform(
+          Shape.State.Transformation.InverseTransform);
+        Result := Shape.InternalOctreeTriangles.BoxCollision(
+          LocalBox, TriangleToIgnore, TrianglesToIgnoreFunc);
+      end else
+      begin
+        LocalPos := Shape.State.Transformation.InverseTransform.MultPoint(Pos);
+        LocalRadius := Radius / Shape.State.Transformation.Scale;
+        Result := Shape.InternalOctreeTriangles.SphereCollision(
+          LocalPos, LocalRadius, TriangleToIgnore, TrianglesToIgnoreFunc);
+      end;
     except
       on ETransformedResultInvalid do Result := nil;
     end;

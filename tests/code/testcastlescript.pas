@@ -1,5 +1,6 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleScript" -*-
 {
-  Copyright 2007-2018 Michalis Kamburelis.
+  Copyright 2007-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,9 +14,8 @@
   ----------------------------------------------------------------------------
 }
 
+{ Test CastleScript unit. }
 unit TestCastleScript;
-
-{$mode objfpc}{$H+}
 
 interface
 

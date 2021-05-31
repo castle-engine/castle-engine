@@ -58,7 +58,7 @@ uses SysUtils, DOM,
   CastleFilesUtils, CastleVectors,
   CastleGLUtils, CastleImages, CastleSoundEngine,
   CastleUIControls, CastleStringUtils, CastleXMLUtils,
-  CastleColors, CastleApplicationProperties,
+  CastleColors, CastleApplicationProperties, CastleRenderOptions,
   GameConfiguration, GameSound, GameStateMainMenu;
 
 { TStateIntro.TIntroPart ----------------------------------------------------- }
@@ -157,8 +157,6 @@ var
 begin
   inherited;
 
-  RenderContext.Clear([cbColor], Black);
-
   if IntroPartTime >= IntroParts[IntroPart].CorrodeDuration then
   begin
     IntroParts[IntroPart].ImageCorroded.Draw(Container.Rect);
@@ -191,7 +189,7 @@ begin
     TUIState.Current := StateMainMenu;
     Result := true;
   end else
-  if Event.IsMouseButton(mbLeft) or Event.IsKey(K_Space) then
+  if Event.IsMouseButton(buttonLeft) or Event.IsKey(keySpace) then
   begin
     NextIntroPart;
     Result := true;

@@ -156,7 +156,7 @@ type
     procedure Update(const SecondsPassed: Single;
       var HandleInput: Boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Makes camera be positioned with respect to the current properties and avatar.
       Always call this explicitly once.
@@ -389,10 +389,10 @@ begin
   FInput_Crouch                  := TInputShortcut.Create(Self);
   FInput_Run                     := TInputShortcut.Create(Self);
 
-  Input_Forward                 .Assign(keyW, keyUp);
-  Input_Backward                .Assign(keyS, keyDown);
-  Input_LeftRotate              .Assign(keyLeft, keyA);
-  Input_RightRotate             .Assign(keyRight, keyD);
+  Input_Forward                 .Assign(keyW, keyArrowUp);
+  Input_Backward                .Assign(keyS, keyArrowDown);
+  Input_LeftRotate              .Assign(keyArrowLeft, keyA);
+  Input_RightRotate             .Assign(keyArrowRight, keyD);
   Input_LeftStrafe              .Assign(keyNone);
   Input_RightStrafe             .Assign(keyNone);
   Input_CameraCloser            .Assign(keyNone);
@@ -892,11 +892,15 @@ begin
     begin
       Moving := true;
       A.Direction := RotatePointAroundAxisRad(-RotationSpeed * SecondsPassed, A.Direction, A.Up)
+      { TODO: when AimAvatar, this is overridden by UpdateAimAvatar soon.
+        In effect, keys AD don't work when AimAvatar <> aaNone. }
     end;
     if Input_LeftRotate.IsPressed(Container) then
     begin
       Moving := true;
       A.Direction := RotatePointAroundAxisRad(RotationSpeed * SecondsPassed, A.Direction, A.Up);
+      { TODO: when AimAvatar, this is overridden by UpdateAimAvatar soon.
+        In effect, keys AD don't work when AimAvatar <> aaNone. }
     end;
 
     if not T.IsPerfectlyZero then
@@ -1013,13 +1017,13 @@ begin
   end;
 end;
 
-function TCastleThirdPersonNavigation.PropertySection(const PropertyName: String): TPropertySection;
+function TCastleThirdPersonNavigation.PropertySections(const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
     'CameraFollows', 'AvatarTarget', 'Avatar', 'AvatarHierarchy', 'Radius', 'AimAvatar', 'InitialHeightAboveTarget', 'DistanceToAvatarTarget':
-      Result := psBasic;
+      Result := [psBasic];
     else
-      Result := inherited PropertySection(PropertyName);
+      Result := inherited PropertySections(PropertyName);
   end;
 end;
 

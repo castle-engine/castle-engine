@@ -18,6 +18,7 @@
   { Forward declarations } { }
   TX3DNodeList = class;
   TX3DNode = class;
+  TAbstractMetadataNode = class;
   TCoordinate3Node_1 = class;
   TShapeHintsNode_1 = class;
   TFontStyleNode_1 = class;
@@ -69,6 +70,7 @@
   TTexturePropertiesNode = class;
   TAbstractTextureTransformNode = class;
   TAbstractSingleTextureCoordinateNode = class;
+  TTangentNode = class;
 
   TX3DNodeClass = class of TX3DNode;
 

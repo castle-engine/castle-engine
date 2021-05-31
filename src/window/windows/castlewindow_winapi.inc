@@ -43,7 +43,7 @@ Windows, CommDlg,
 {$endif}
 
 {$ifdef read_implementation_uses}
-CastleWindowModes, CastleMessages, CastleJoysticks, CastleUnicode,
+CastleInternalWindowModes, CastleMessages, CastleJoysticks, CastleUnicode,
 {$endif}
 
 {$ifdef read_window_interface}
@@ -203,10 +203,10 @@ begin
     VK_NEXT: Result := keyPageDown;
     VK_END: Result := keyEnd;
     VK_HOME: Result := keyHome;
-    VK_LEFT: Result := keyLeft;
-    VK_UP: Result := keyUp;
-    VK_RIGHT: Result := keyRight;
-    VK_DOWN: Result := keyDown;
+    VK_LEFT: Result := keyArrowLeft;
+    VK_UP: Result := keyArrowUp;
+    VK_RIGHT: Result := keyArrowRight;
+    VK_DOWN: Result := keyArrowDown;
     VK_INSERT: Result := keyInsert;
     VK_DELETE: Result := keyDelete;
     VK_ADD: Result := keyNumpadPlus;
@@ -542,7 +542,7 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
     end;
   end;
 
-  procedure HandleMouseDown(const Button: TMouseButton);
+  procedure HandleMouseDown(const Button: TCastleMouseButton);
   begin
     MaybeCapture;
     DoMouseDown(LeftTopToCastle(
@@ -550,7 +550,7 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
       TWinParam(lParm).HiSmallint), Button, 0);
   end;
 
-  procedure HandleMouseUp(const Button: TMouseButton);
+  procedure HandleMouseUp(const Button: TCastleMouseButton);
   begin
     DoMouseUp(LeftTopToCastle(
       TWinParam(lParm).LoSmallint,
@@ -748,9 +748,9 @@ begin
       begin
         { We could refresh FMousePressed now:
             FMousePressed := [];
-            if (MK_LBUTTON and wParm) <> 0 then Include(FMousePressed, mbLeft);
-            if (MK_MBUTTON and wParm) <> 0 then Include(FMousePressed, mbMiddle);
-            if (MK_RBUTTON and wParm) <> 0 then Include(FMousePressed, mbRight);
+            if (MK_LBUTTON and wParm) <> 0 then Include(FMousePressed, buttonLeft);
+            if (MK_MBUTTON and wParm) <> 0 then Include(FMousePressed, buttonMiddle);
+            if (MK_RBUTTON and wParm) <> 0 then Include(FMousePressed, buttonRight);
           but it's not needed (we keep it current anyway in mousedown/up events). }
         DoMotion(InputMotion(MousePosition, LeftTopToCastle(
           TWinParam(lParm).LoSmallint,
@@ -758,12 +758,12 @@ begin
           MousePressed, 0));
         Exit;
       end;
-    WM_LBUTTONDOWN: begin HandleMouseDown(mbLeft  ); Exit end;
-    WM_MBUTTONDOWN: begin HandleMouseDown(mbMiddle); Exit end;
-    WM_RBUTTONDOWN: begin HandleMouseDown(mbRight ); Exit end;
-    WM_LBUTTONUP  : begin HandleMouseUp(mbLeft  ); Exit end;
-    WM_MBUTTONUP  : begin HandleMouseUp(mbMiddle); Exit end;
-    WM_RBUTTONUP  : begin HandleMouseUp(mbRight ); Exit end;
+    WM_LBUTTONDOWN: begin HandleMouseDown(buttonLeft  ); Exit end;
+    WM_MBUTTONDOWN: begin HandleMouseDown(buttonMiddle); Exit end;
+    WM_RBUTTONDOWN: begin HandleMouseDown(buttonRight ); Exit end;
+    WM_LBUTTONUP  : begin HandleMouseUp(buttonLeft  ); Exit end;
+    WM_MBUTTONUP  : begin HandleMouseUp(buttonMiddle); Exit end;
+    WM_RBUTTONUP  : begin HandleMouseUp(buttonRight ); Exit end;
     WM_COMMAND    :
       { If this comes from a menu item, call DoMenuClick }
       if TWinParam(wParm).HiWord = 0 then
@@ -1938,9 +1938,11 @@ end;
 
 { TCastleWindow -------------------------------------------------------------- }
 
+{$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
 procedure TCastleWindow.NavigationInfoChanged;
 begin
 end;
+{$endif}
 
 { TWindowContainer ----------------------------------------------------------- }
 

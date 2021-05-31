@@ -98,6 +98,6 @@ begin
   Viewport.Navigation := TCastleExamineNavigation.Create(Application);
 
   Window.OnUpdate := @Update;
-  Window.SetDemoOptions(K_F11, CharEscape, true);
+  Window.SetDemoOptions(keyF11, CharEscape, true);
   Application.Run;
 end.

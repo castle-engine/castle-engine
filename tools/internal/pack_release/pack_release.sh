@@ -104,7 +104,7 @@ do_pack_platform ()
   local OS="$1"
   local CPU="$2"
   shift 2
-  
+
   # restore CGE path, otherwise it points to a temporary (and no longer existing)
   # dir after one execution of do_pack_platform
   export CASTLE_ENGINE_PATH="${ORIGINAL_CASTLE_ENGINE_PATH}"
@@ -118,7 +118,7 @@ do_pack_platform ()
   export CASTLE_FPC_OPTIONS="-T${OS} -P${CPU}"
   export CASTLE_BUILD_TOOL_OPTIONS="--os=${OS} --cpu=${CPU}"
   local  CASTLE_LAZBUILD_OPTIONS="--os=${OS} --cpu=${CPU}"
-  local  MAKE_OPTIONS=""
+  local  MAKE_OPTIONS="BUILD_TOOL=castle-engine" # use build tool on $PATH
 
   if [ "${VERBOSE}" '!=' 'true' ]; then
     CASTLE_FPC_OPTIONS="${CASTLE_FPC_OPTIONS} -vi-"
@@ -152,12 +152,12 @@ do_pack_platform ()
   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_window.lpk
   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_components.lpk
 
-  # Make sure no leftovers from previous compilations remain, to affect tools
+  # Make sure no leftovers from previous compilations remain, to not affect tools, to not pack them in release
   make cleanmore $MAKE_OPTIONS
 
   # Compile most tools with FPC, and castle-editor with lazbuild
-  make tools
-  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/code/castle_editor.lpi
+  make tools $MAKE_OPTIONS BUILD_TOOL="castle-engine ${CASTLE_BUILD_TOOL_OPTIONS}"
+  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/castle_editor.lpi
 
   # Place tools binaries in bin/ subdirectory
   mkdir -p "${TEMP_PATH_CGE}"bin-to-keep
@@ -165,7 +165,6 @@ do_pack_platform ()
      tools/texture-font-to-pascal/texture-font-to-pascal"${EXE_EXTENSION}" \
      tools/image-to-pascal/image-to-pascal"${EXE_EXTENSION}" \
      tools/castle-curves/castle-curves"${EXE_EXTENSION}" \
-     tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d"${EXE_EXTENSION}" \
      tools/to-data-uri/to-data-uri"${EXE_EXTENSION}" \
      tools/castle-editor/castle-editor"${EXE_EXTENSION}" \
      "${TEMP_PATH_CGE}"bin-to-keep
@@ -205,6 +204,11 @@ ORIGINAL_CASTLE_ENGINE_PATH="${CASTLE_ENGINE_PATH}"
 check_fpc_version
 prepare_build_tool
 calculate_cge_version
-do_pack_platform win64 x86_64
-do_pack_platform win32 i386
-do_pack_platform linux x86_64
+if [ -n "${1:-}" ]; then
+  do_pack_platform "${1}" "${2}"
+else
+  # build for default platforms (expected by Jenkinsfile)
+  do_pack_platform win64 x86_64
+  do_pack_platform win32 i386
+  do_pack_platform linux x86_64
+fi

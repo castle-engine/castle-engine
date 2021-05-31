@@ -1,0 +1,262 @@
+{
+  "FullSize" : true,
+  "Name" : "RootGroup",
+  "$Children" : [
+    {
+      "Camera" : {
+        "InitialDirectionPersistent" : {
+          "Y" : 4.3711388286737929E-008,
+          "$ClassName" : "TCastleVector3Persistent"
+        },
+        "InitialPositionPersistent" : {
+          "Z" : 5.0000000000000000E+002,
+          "$ClassName" : "TCastleVector3Persistent"
+        },
+        "InitialUpPersistent" : {
+          "Z" : 4.3711388286737929E-008,
+          "$ClassName" : "TCastleVector3Persistent"
+        },
+        "Name" : "Camera",
+        "Orthographic" : {
+          "Height" : 4.0000000000000000E+003,
+          "Name" : "Orthographic",
+          "OriginPersistent" : {
+            "X" : 5.0000000000000000E-001,
+            "$ClassName" : "TCastleVector2Persistent"
+          },
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleOrthographic"
+        },
+        "Perspective" : {
+          "Name" : "Perspective",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastlePerspective"
+        },
+        "ProjectionFar" : 1.0000000000000000E+003,
+        "ProjectionNear" : -1.0000000000000000E+003,
+        "ProjectionType" : "ptOrthographic",
+        "$Children" : [
+        ],
+        "$ClassName" : "TCastleCamera"
+      },
+      "FullSize" : true,
+      "Items" : {
+        "Name" : "Items",
+        "PhysicsProperties" : {
+          "Name" : "PhysicsProperties",
+          "$Children" : [
+          ],
+          "$ClassName" : "TPhysicsProperties"
+        },
+        "$Children" : [
+          {
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneBackground",
+            "RenderOptions" : {
+              "Name" : "RenderOptions",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "Y" : 1.5000000000000000E+003,
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "URL" : "castle-data:/background/background.gltf",
+            "$Children" : [
+            ],
+            "$ClassName" : "TCastleScene"
+          },
+          {
+            "AutoAnimation" : "animation",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneClouds",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "Name" : "RenderOptions",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "Y" : 1.5000000000000000E+003,
+              "Z" : 5.0000000000000000E+001,
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "URL" : "castle-data:/clouds/clouds.json",
+            "$Children" : [
+            ],
+            "$ClassName" : "TCastleScene"
+          },
+          {
+            "AutoAnimation" : "idle",
+            "DefaultAnimationTransition" : 1.0000000149011612E-001,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneDragon",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "Name" : "RenderOptions",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "X" : 1.0000000000000000E+003,
+              "Y" : 1.0000000000000000E+003,
+              "Z" : 1.0000000000000000E+002,
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "URL" : "castle-data:/dragon/dragon.json",
+            "$Children" : [
+            ],
+            "$ClassName" : "TCastleScene"
+          },
+          {
+            "AutoAnimation" : "animation",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneTree1",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "Name" : "RenderOptions",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "X" : -1.0000000000000000E+003,
+              "Y" : 2.0000000000000000E+002,
+              "Z" : 2.0000000000000000E+002,
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "URL" : "castle-data:/trees/tree1.json",
+            "$Children" : [
+            ],
+            "$ClassName" : "TCastleScene"
+          },
+          {
+            "AutoAnimation" : "animation",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneTree3",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "Name" : "RenderOptions",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TimePlayingSpeed" : 1.2000000476837158E+000,
+            "TranslationPersistent" : {
+              "X" : -1.6000000000000000E+003,
+              "Y" : 2.0000000000000000E+002,
+              "Z" : 2.0000000000000000E+002,
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "URL" : "castle-data:/trees/tree1.json",
+            "$Children" : [
+            ],
+            "$ClassName" : "TCastleScene"
+          },
+          {
+            "AutoAnimation" : "animation",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneTree2",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "Name" : "RenderOptions",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "X" : 1.0000000000000000E+003,
+              "Y" : 2.0000000000000000E+002,
+              "Z" : 2.0000000000000000E+002,
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "URL" : "castle-data:/trees/tree2.json",
+            "$Children" : [
+            ],
+            "$ClassName" : "TCastleScene"
+          }
+        ],
+        "$ClassName" : "TCastleRootTransform"
+      },
+      "Name" : "MainViewport",
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleViewport"
+    },
+    {
+      "ColorPersistent" : {
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000,
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "FontSize" : 2.0000000000000000E+001,
+      "HorizontalAnchorDelta" : -2.0000000000000000E+001,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "LabelFps",
+      "Text" : [
+        "FPS: xxx"
+      ],
+      "VerticalAnchorDelta" : -2.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleLabel"
+    },
+    {
+      "Caption" : "Camera Follows Dragon",
+      "CheckboxSize" : 5.0000000000000000E+001,
+      "FontSize" : 4.0000000000000000E+001,
+      "HorizontalAnchorDelta" : 4.0000000000000000E+001,
+      "Name" : "CheckboxCameraFollow",
+      "VerticalAnchorDelta" : -5.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleCheckbox"
+    },
+    {
+      "Caption" : "Show Achievements",
+      "CustomBackgroundDisabled" : {
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundFocused" : {
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundNormal" : {
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundPressed" : {
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "FontSize" : 4.0000000000000000E+001,
+      "HorizontalAnchorDelta" : 3.0000000000000000E+001,
+      "Image" : {
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "Name" : "ButtonShowAchievements",
+      "PaddingHorizontal" : 2.0000000000000000E+001,
+      "PaddingVertical" : 2.0000000000000000E+001,
+      "VerticalAnchorDelta" : -1.2728100585937500E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleButton"
+    }
+  ],
+  "$ClassName" : "TCastleUserInterface"
+}

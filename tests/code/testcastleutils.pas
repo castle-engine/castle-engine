@@ -1,5 +1,6 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleUtils" -*-
 {
-  Copyright 2004-2018 Michalis Kamburelis.
+  Copyright 2004-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,6 +14,7 @@
   ----------------------------------------------------------------------------
 }
 
+{ Test CastleUtils unit. }
 unit TestCastleUtils;
 
 { $define CASTLEUTILS_SPEED_TESTS}
@@ -26,7 +28,7 @@ type
   TTestCastleUtils = class(TCastleTestCase)
   published
     procedure TestMilisecTime;
-    procedure TestIndexMinMax_RestOf3dCoords;
+    procedure TestIndexMinMax_RestOf3DCoords;
     procedure TestCheckIsMemCharFilled;
     procedure TestSmallest2Exp;
     procedure TestPathDelim;
@@ -45,6 +47,10 @@ type
     procedure TestRandomIntRange;
     procedure TestRandomIntRangeInclusive;
     procedure TestStrToFloatDot;
+    procedure TestIsPathAbsolute;
+    procedure TestIsPathAbsoluteOnDrive;
+    procedure TestRestOf3DCoords;
+    procedure TestRestOf3DCoordsCycle;
   end;
 
 implementation
@@ -129,22 +135,26 @@ end;
 
 {$warnings on}
 
-procedure TTestCastleUtils.TestIndexMinMax_RestOf3dCoords;
-var a: array[0..2]of Double;
-    i, c1, c2, cm: integer;
+procedure TTestCastleUtils.TestIndexMinMax_RestOf3DCoords;
+var
+  a: array[0..2]of Double;
+  i: Integer;
+  C1, C2, CM: T3DAxis;
 begin
- for i := 1 to 100 do
- begin
-  a[0] := Random; a[1] := Random; a[2] := Random;
+  for i := 1 to 100 do
+  begin
+    a[0] := Random;
+    a[1] := Random;
+    a[2] := Random;
 
-  cm := IndexMin(a[0], a[1], a[2]);
-  RestOf3dCoords(cm, c1, c2);
-  AssertTrue( (a[cm] <= a[c1]) and (a[cm] <= a[c2]) );
+    cm := IndexMin(a[0], a[1], a[2]);
+    RestOf3DCoords(cm, c1, c2);
+    AssertTrue( (a[cm] <= a[c1]) and (a[cm] <= a[c2]) );
 
-  cm := IndexMax(a[0], a[1], a[2]);
-  RestOf3dCoords(cm, c1, c2);
-  AssertTrue( (a[cm] >= a[c1]) and (a[cm] >= a[c2]) );
- end;
+    cm := IndexMax(a[0], a[1], a[2]);
+    RestOf3DCoords(cm, c1, c2);
+    AssertTrue( (a[cm] >= a[c1]) and (a[cm] >= a[c2]) );
+  end;
 end;
 
 procedure WritelnMem(const Data; Size: Integer);
@@ -605,6 +615,174 @@ begin
   AssertEquals('0.1', FloatToStrDot(0.1));
 
   DecimalSeparator := OldDecimalSeparator;
+end;
+
+procedure TTestCastleUtils.TestIsPathAbsolute;
+begin
+  {$ifdef UNIX}
+  AssertTrue(IsPathAbsolute('/bla'));
+  AssertTrue(IsPathAbsolute('/bla/asdasd'));
+  AssertTrue(IsPathAbsolute('/bla/'));
+  AssertTrue(IsPathAbsolute('/bla/asdasd/'));
+
+  AssertFalse(IsPathAbsolute('\bla'));
+  AssertFalse(IsPathAbsolute('\bla\asdasd'));
+  AssertFalse(IsPathAbsolute('\bla\'));
+  AssertFalse(IsPathAbsolute('\bla\asdasd\'));
+
+  AssertFalse(IsPathAbsolute('c:/bla'));
+  AssertFalse(IsPathAbsolute('c:/bla/asdasd'));
+  AssertFalse(IsPathAbsolute('c:/bla/'));
+  AssertFalse(IsPathAbsolute('c:/bla/asdasd/'));
+
+  AssertFalse(IsPathAbsolute('c:\bla'));
+  AssertFalse(IsPathAbsolute('c:\bla\asdasd'));
+  AssertFalse(IsPathAbsolute('c:\bla\'));
+  AssertFalse(IsPathAbsolute('c:\bla\asdasd\'));
+
+  AssertFalse(IsPathAbsolute('bla'));
+  AssertFalse(IsPathAbsolute('bla/asdasd'));
+  AssertFalse(IsPathAbsolute('bla/'));
+  AssertFalse(IsPathAbsolute('bla/asdasd/'));
+
+  AssertFalse(IsPathAbsolute('bla'));
+  AssertFalse(IsPathAbsolute('bla\asdasd'));
+  AssertFalse(IsPathAbsolute('bla\'));
+  AssertFalse(IsPathAbsolute('bla\asdasd\'));
+  {$endif}
+
+  {$ifdef MSWINDOWS}
+  AssertFalse(IsPathAbsolute('/bla'));
+  AssertFalse(IsPathAbsolute('/bla/asdasd'));
+  AssertFalse(IsPathAbsolute('/bla/'));
+  AssertFalse(IsPathAbsolute('/bla/asdasd/'));
+
+  AssertFalse(IsPathAbsolute('\bla'));
+  AssertFalse(IsPathAbsolute('\bla\asdasd'));
+  AssertFalse(IsPathAbsolute('\bla\'));
+  AssertFalse(IsPathAbsolute('\bla\asdasd\'));
+
+  AssertTrue(IsPathAbsolute('c:/bla'));
+  AssertTrue(IsPathAbsolute('c:/bla/asdasd'));
+  AssertTrue(IsPathAbsolute('c:/bla/'));
+  AssertTrue(IsPathAbsolute('c:/bla/asdasd/'));
+
+  AssertTrue(IsPathAbsolute('c:\bla'));
+  AssertTrue(IsPathAbsolute('c:\bla\asdasd'));
+  AssertTrue(IsPathAbsolute('c:\bla\'));
+  AssertTrue(IsPathAbsolute('c:\bla\asdasd\'));
+
+  AssertFalse(IsPathAbsolute('bla'));
+  AssertFalse(IsPathAbsolute('bla/asdasd'));
+  AssertFalse(IsPathAbsolute('bla/'));
+  AssertFalse(IsPathAbsolute('bla/asdasd/'));
+
+  AssertFalse(IsPathAbsolute('bla'));
+  AssertFalse(IsPathAbsolute('bla\asdasd'));
+  AssertFalse(IsPathAbsolute('bla\'));
+  AssertFalse(IsPathAbsolute('bla\asdasd\'));
+  {$endif}
+end;
+
+procedure TTestCastleUtils.TestIsPathAbsoluteOnDrive;
+begin
+  {$ifdef UNIX}
+  AssertTrue(IsPathAbsoluteOnDrive('/bla'));
+  AssertTrue(IsPathAbsoluteOnDrive('/bla/asdasd'));
+  AssertTrue(IsPathAbsoluteOnDrive('/bla/'));
+  AssertTrue(IsPathAbsoluteOnDrive('/bla/asdasd/'));
+
+  AssertFalse(IsPathAbsoluteOnDrive('\bla'));
+  AssertFalse(IsPathAbsoluteOnDrive('\bla\asdasd'));
+  AssertFalse(IsPathAbsoluteOnDrive('\bla\'));
+  AssertFalse(IsPathAbsoluteOnDrive('\bla\asdasd\'));
+
+  AssertFalse(IsPathAbsoluteOnDrive('c:/bla'));
+  AssertFalse(IsPathAbsoluteOnDrive('c:/bla/asdasd'));
+  AssertFalse(IsPathAbsoluteOnDrive('c:/bla/'));
+  AssertFalse(IsPathAbsoluteOnDrive('c:/bla/asdasd/'));
+
+  AssertFalse(IsPathAbsoluteOnDrive('c:\bla'));
+  AssertFalse(IsPathAbsoluteOnDrive('c:\bla\asdasd'));
+  AssertFalse(IsPathAbsoluteOnDrive('c:\bla\'));
+  AssertFalse(IsPathAbsoluteOnDrive('c:\bla\asdasd\'));
+
+  AssertFalse(IsPathAbsoluteOnDrive('bla'));
+  AssertFalse(IsPathAbsoluteOnDrive('bla/asdasd'));
+  AssertFalse(IsPathAbsoluteOnDrive('bla/'));
+  AssertFalse(IsPathAbsoluteOnDrive('bla/asdasd/'));
+
+  AssertFalse(IsPathAbsoluteOnDrive('bla'));
+  AssertFalse(IsPathAbsoluteOnDrive('bla\asdasd'));
+  AssertFalse(IsPathAbsoluteOnDrive('bla\'));
+  AssertFalse(IsPathAbsoluteOnDrive('bla\asdasd\'));
+  {$endif}
+
+  {$ifdef MSWINDOWS}
+  AssertTrue(IsPathAbsoluteOnDrive('/bla'));
+  AssertTrue(IsPathAbsoluteOnDrive('/bla/asdasd'));
+  AssertTrue(IsPathAbsoluteOnDrive('/bla/'));
+  AssertTrue(IsPathAbsoluteOnDrive('/bla/asdasd/'));
+
+  AssertTrue(IsPathAbsoluteOnDrive('\bla'));
+  AssertTrue(IsPathAbsoluteOnDrive('\bla\asdasd'));
+  AssertTrue(IsPathAbsoluteOnDrive('\bla\'));
+  AssertTrue(IsPathAbsoluteOnDrive('\bla\asdasd\'));
+
+  AssertTrue(IsPathAbsoluteOnDrive('c:/bla'));
+  AssertTrue(IsPathAbsoluteOnDrive('c:/bla/asdasd'));
+  AssertTrue(IsPathAbsoluteOnDrive('c:/bla/'));
+  AssertTrue(IsPathAbsoluteOnDrive('c:/bla/asdasd/'));
+
+  AssertTrue(IsPathAbsoluteOnDrive('c:\bla'));
+  AssertTrue(IsPathAbsoluteOnDrive('c:\bla\asdasd'));
+  AssertTrue(IsPathAbsoluteOnDrive('c:\bla\'));
+  AssertTrue(IsPathAbsoluteOnDrive('c:\bla\asdasd\'));
+
+  AssertFalse(IsPathAbsoluteOnDrive('bla'));
+  AssertFalse(IsPathAbsoluteOnDrive('bla/asdasd'));
+  AssertFalse(IsPathAbsoluteOnDrive('bla/'));
+  AssertFalse(IsPathAbsoluteOnDrive('bla/asdasd/'));
+
+  AssertFalse(IsPathAbsoluteOnDrive('bla'));
+  AssertFalse(IsPathAbsoluteOnDrive('bla\asdasd'));
+  AssertFalse(IsPathAbsoluteOnDrive('bla\'));
+  AssertFalse(IsPathAbsoluteOnDrive('bla\asdasd\'));
+  {$endif}
+end;
+
+procedure TTestCastleUtils.TestRestOf3DCoords;
+var
+  A, B: T3DAxis;
+begin
+  RestOf3DCoords(0, A, B);
+  AssertEquals(1, A);
+  AssertEquals(2, B);
+
+  RestOf3DCoords(1, A, B);
+  AssertEquals(0, A);
+  AssertEquals(2, B);
+
+  RestOf3DCoords(2, A, B);
+  AssertEquals(0, A);
+  AssertEquals(1, B);
+end;
+
+procedure TTestCastleUtils.TestRestOf3DCoordsCycle;
+var
+  A, B: T3DAxis;
+begin
+  RestOf3DCoordsCycle(0, A, B);
+  AssertEquals(1, A);
+  AssertEquals(2, B);
+
+  RestOf3DCoordsCycle(1, A, B);
+  AssertEquals(2, A);
+  AssertEquals(0, B);
+
+  RestOf3DCoordsCycle(2, A, B);
+  AssertEquals(0, A);
+  AssertEquals(1, B);
 end;
 
 initialization

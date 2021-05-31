@@ -31,46 +31,7 @@ type
     pmTriangleFan,
     pmTriangles
   );
-  TBlendingSourceFactor = (
-    bsSrcAlpha,
-    bsOneMinusSrcAlpha,
-    bsZero,
-    bsOne,
 
-    bsDstColor,
-    bsSrcColor, //< As a source factor only since GL 1.4, check @code(GLFeatures.Version_1_4)
-    bsDstAlpha,
-    bsOneMinusDstColor,
-    bsOneMinusSrcColor, //< As a source factor only since GL 1.4, check @code(GLFeatures.Version_1_4)
-    bsOneMinusDstAlpha,
-
-    bsSrcAlphaSaturate,
-
-    bsConstantColor,
-    bsOneMinusConstantColor,
-    bsConstantAlpha,
-    bsOneMinusConstantAlpha
-  );
-  TBlendingDestinationFactor = (
-    bdSrcAlpha,
-    bdOneMinusSrcAlpha,
-    bdZero,
-    bdOne,
-
-    bdDstColor, //< As a destination factor only since GL 1.4, check @code(GLFeatures.Version_1_4)
-    bdSrcColor,
-    bdDstAlpha,
-    bdOneMinusDstColor, //< As a destination factor only since GL 1.4, check @code(GLFeatures.Version_1_4)
-    bdOneMinusSrcColor,
-    bdOneMinusDstAlpha,
-
-    // not supported by OpenGL for destination factor: bsSrcAlphaSaturate
-    { }
-    bdConstantColor,
-    bdOneMinusConstantColor,
-    bdConstantAlpha,
-    bdOneMinusConstantAlpha
-  );
   TLineStipple = record
     { Makes pattern scaled to be longer.
       See glLineStipple parameter. }
@@ -445,7 +406,7 @@ begin
 
   if not GLFeatures.EnableFixedFunction then
   begin
-    TGLSLProgram.Current := Primitive2DRes.Prog;
+    RenderContext.CurrentProgram := Primitive2DRes.Prog;
     Primitive2DRes.AttribVertex.EnableArray(0, 2, GL_FLOAT, GL_FALSE, SizeOf(TVector2), 0);
 
     if (RenderContext.Viewport.Left <> 0) or
@@ -460,7 +421,7 @@ begin
   end else
   begin
     {$ifndef OpenGLES}
-    TGLSLProgram.Current := nil;
+    RenderContext.CurrentProgram := nil;
     glLoadIdentity();
     {$warnings off}
     glColorv(Color); // consciously using deprecated stuff; this should be internal in this unit

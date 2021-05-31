@@ -281,6 +281,10 @@ type
     function GetItemsInt(const Index: Integer): TGenericScalar; inline;
     procedure SetItemsInt(const Index: Integer; const Value: TGenericScalar); inline;
     class function GetOne(const Index: TIndex): TGenericVector4; inline; static;
+    function GetXYZ: TGenericVector3; inline;
+    function GetXY: TGenericVector2; inline;
+    procedure SetXYZ(const AValue: TGenericVector3); inline;
+    procedure SetXY(const AValue: TGenericVector2); inline;
   public
     var
       Data: array [TIndex] of TGenericScalar;
@@ -354,7 +358,11 @@ type
 
     { Get first 3 components as a 3D vector.
       This simply rejects the 4th component. }
-    function XYZ: TGenericVector3; inline;
+    property XYZ: TGenericVector3 read GetXYZ write SetXYZ;
+
+    { Get first 2 components as a 2D vector.
+      This simply rejects the remaining vector components. }
+    property XY: TGenericVector2 read GetXY write SetXY;
 
     { Linear interpolation between two vector values.
       Works analogous to @link(TGenericVector3.Lerp TVector3.Lerp) }
@@ -1295,11 +1303,30 @@ begin
   Result.Data[2] := Data[2] * Inv;
 end;
 
-function TGenericVector4.XYZ: TGenericVector3;
+function TGenericVector4.GetXYZ: TGenericVector3;
 begin
   Result.Data[0] := Data[0];
   Result.Data[1] := Data[1];
   Result.Data[2] := Data[2];
+end;
+
+function TGenericVector4.GetXY: TGenericVector2;
+begin
+  Result.Data[0] := Data[0];
+  Result.Data[1] := Data[1];
+end;
+
+procedure TGenericVector4.SetXY(const AValue: TGenericVector2);
+begin
+  Data[0] := AValue.Data[0];
+  Data[1] := AValue.Data[1];
+end;
+
+procedure TGenericVector4.SetXYZ(const AValue: TGenericVector3);
+begin
+  Data[0] := AValue.Data[0];
+  Data[1] := AValue.Data[1];
+  Data[2] := AValue.Data[2];
 end;
 
 class function TGenericVector4.Lerp(const A: TGenericScalar; const V1, V2: TGenericVector4): TGenericVector4;

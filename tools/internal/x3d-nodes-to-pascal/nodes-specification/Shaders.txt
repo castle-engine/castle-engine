@@ -2,7 +2,9 @@ X3DShaderNode : X3DAppearanceChildNode {
   SFBool   [in]     activate
   SFBool   [out]    isSelected
   SFBool   [out]    isValid
-  SFString []       language   ""   ["CG"|"GLSL"|"HLSL"|...] enumerated-type: TShaderLanguage ShaderLanguageNames slDefault
+  SFString []       language   ""
+    range: ["CG"|"GLSL"|"HLSL"|...]
+    enumerated-type: TShaderLanguage ShaderLanguageNames slDefault
 }
 
 X3DVertexAttributeNode : X3DGeometricPropertyNode {
@@ -10,39 +12,51 @@ X3DVertexAttributeNode : X3DGeometricPropertyNode {
 }
 
 ComposedShader : X3DShaderNode, X3DProgrammableShaderObject {
-  MFNode    [in,out] parts      []   [ShaderPart]
+  MFNode    [in,out] parts      []
+    range: ShaderPart
   # And any number of:
 }
 
 FloatVertexAttribute : X3DVertexAttributeNode {
-  MFFloat  [in,out] value  		  []   (-Inf,Inf)
-  SFInt32  []       numComponents 4    [1..4]
+  MFFloat  [in,out] value  		  []
+    range: (-Inf,Inf)
+  SFInt32  []       numComponents 4
+    range: [1..4]
 }
 
 Matrix3VertexAttribute : X3DVertexAttributeNode {
-  MFMatrix3f [in,out] value    []   (-Inf,Inf)
+  MFMatrix3f [in,out] value    []
+    range: (-Inf,Inf)
 }
 
 Matrix4VertexAttribute : X3DVertexAttributeNode {
-  MFMatrix4f [in,out] value    []   (-Inf,Inf)
+  MFMatrix4f [in,out] value    []
+    range: (-Inf,Inf)
 }
 
 PackagedShader : X3DShaderNode, X3DUrlObject, X3DProgrammableShaderObject {
-  MFString  [in,out] url        []   [URI]
+  MFString  [in,out] url        []
+    range: [URI]
   # And any number of:
 }
 
 ProgramShader : X3DShaderNode {
-  MFNode   [in,out] programs   []   [ShaderProgram]
+  MFNode   [in,out] programs   []
+    range: ShaderProgram
 }
 
 ShaderPart : X3DNode, X3DUrlObject {
-  MFString [in,out] url      []         [URI]
-  SFString []       type     "VERTEX"   ["VERTEX"|"FRAGMENT"] enumerated-type: TShaderType ShaderTypeNameX3D stVertex
+  MFString [in,out] url      []
+    range: [URI]
+  SFString []       type     "VERTEX"
+    range: ["VERTEX"|"FRAGMENT"]
+    enumerated-type: TShaderType ShaderTypeNameX3D stVertex
 }
 
 ShaderProgram : X3DNode, X3DUrlObject, X3DProgrammableShaderObject {
-  MFString  [in,out] url       []           [URI]
-  SFString  []       type      "VERTEX"     ["VERTEX"|"FRAGMENT"]
+  MFString  [in,out] url       []
+    range: [URI]
+  SFString  []       type      "VERTEX"
+    range: ["VERTEX"|"FRAGMENT"]
   # And any number of:
 }

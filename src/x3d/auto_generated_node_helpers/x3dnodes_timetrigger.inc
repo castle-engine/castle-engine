@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,11 +25,38 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventSet_boolean: TSFBoolEvent;
+    { X3D in event "set_boolean". } { }
+    public property EventSet_boolean: TSFBoolEvent read FEventSet_boolean;
+
+    strict private FEventTriggerTime: TSFTimeEvent;
+    { X3D out event "triggerTime". } { }
+    public property EventTriggerTime: TSFTimeEvent read FEventTriggerTime;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TTimeTriggerNode ----------------------------------------------- }
+
+class function TTimeTriggerNode.ClassX3DType: String;
+begin
+  Result := 'TimeTrigger';
+end;
+
+procedure TTimeTriggerNode.CreateNode;
+begin
+  inherited;
+
+  FEventSet_boolean := TSFBoolEvent.Create(Self, 'set_boolean', true);
+  AddEvent(FEventSet_boolean);
+
+  FEventTriggerTime := TSFTimeEvent.Create(Self, 'triggerTime', false);
+  AddEvent(FEventTriggerTime);
+end;
 
 {$endif read_implementation}

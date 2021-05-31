@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2018 Michalis Kamburelis, Tomasz Wojtyś.
+  Copyright 2009-2020 Michalis Kamburelis, Tomasz Wojtyś.
 
   This file is part of "Castle Game Engine".
 
@@ -24,7 +24,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleKeysMouse, CastleUtils, CastleClassUtils, CastleGLUtils, CastleFonts,
   CastleRectangles, CastleTimeUtils, CastleInternalPk3DConnexion, CastleColors,
   CastleImages, CastleVectors, CastleJoysticks, CastleApplicationProperties,
-  CastleGLImages;
+  CastleGLImages, CastleRenderContext, CastleComponentSerialize;
 
 const
   { Default value for container's Dpi, as is usually set on desktops. }
@@ -33,7 +33,7 @@ const
   DefaultTooltipDistance = 10;
 
 type
-  TBorder = CastleGLImages.TBorder;
+  TBorder = CastleVectors.TBorder;
 
   TInputListener = class;
   TCastleUserInterface = class;
@@ -210,10 +210,6 @@ type
 
     chCursor,
 
-    { Used by @link(TCastleCamera) descendants to notify that the current
-      camera view (position, direction, up and everything related to it) changed. }
-    chCamera,
-
     chExists,
 
     { A (direct) child control was added or removed. }
@@ -285,13 +281,13 @@ type
     FCalculatedUIScale: Single; //< set on all children
     FFps: TFramesPerSecond;
     FPressed: TKeysPressed;
-    FMousePressed: CastleKeysMouse.TMouseButtons;
+    FMousePressed: TCastleMouseButtons;
     FMouseLookIgnoreNextMotion: Boolean;
     FMouseLookWaitingForMiddle: Boolean;
     FMouseLookMotionToSubtract: TVector2;
     FFocusAndMouseCursorValid: boolean;
     FOverrideCursor: TMouseCursor;
-    FDefaultFont: TCastleFont;
+    FDefaultFont: TCastleAbstractFont;
     FContext: TRenderContext;
     FBackgroundEnable: Boolean;
     FBackgroundColor: TCastleColor;
@@ -510,7 +506,7 @@ type
 
       This value is always current, in particular it's already updated
       before we call events @link(OnPress) or @link(OnRelease). }
-    property MousePressed: TMouseButtons read FMousePressed write FMousePressed;
+    property MousePressed: TCastleMouseButtons read FMousePressed write FMousePressed;
 
     { Is the window focused now, which means that keys/mouse events
       are directed to this window. }
@@ -613,6 +609,15 @@ type
     function SaveScreen(const SaveRect: TFloatRectangle): TRGBImage; overload;
     { @groupEnd }
 
+    { Capture the current container (window) contents to an image with alpha.
+
+      An example:
+      @includeCode(../../../examples/short_api_samples/save_screen_rgba/save_screen_rgba.lpr)
+      @groupBegin }
+    function SaveScreenRgba(const SaveRect: TRectangle): TRGBAlphaImage;
+    function SaveScreenRgba: TRGBAlphaImage;
+    { @groupEnd }
+
     { Capture the current container (window) contents to an image and save it to file,
       following the current platform/user preferred directory to store screenshots.
 
@@ -672,7 +677,7 @@ type
       This is automatically used by @link(TCastleWalkNavigation.MouseLook).
       You can use it yourself for custom effects "like mouse look". The template to use this
       is below.
-      See the CGE examples examples/2d_standard_ui/dragging_test/ for a working code
+      See the CGE examples examples/user_interface/dragging_test/ for a working code
       demonstrating this.
 
       @longCode(#
@@ -682,7 +687,7 @@ type
         Result := inherited;
         if Result then Exit;
 
-        if Event.IsMouseButton(mbLeft) then
+        if Event.IsMouseButton(buttonLeft) then
         begin
           Drag := true;
           Cursor := mcForceNone;
@@ -695,7 +700,7 @@ type
         Result := inherited;
         if Result then Exit;
 
-        if Event.IsMouseButton(mbLeft) then
+        if Event.IsMouseButton(buttonLeft) then
         begin
           Drag := false;
           Cursor := mcDefault;
@@ -833,7 +838,7 @@ type
 
       If this is @nil, we use the global font @link(UIFont)
       that is always assigned. }
-    property DefaultFont: TCastleFont read FDefaultFont write FDefaultFont;
+    property DefaultFont: TCastleAbstractFont read FDefaultFont write FDefaultFont;
 
     { Before rendering anything else,
       fill the color buffer with @link(BackgroundColor).
@@ -928,7 +933,7 @@ type
           Exit(ExclusiveEvents); // ExclusiveEvents is true by default
         end;
 
-        if Event.IsMouseButton(mbLeft) then
+        if Event.IsMouseButton(buttonLeft) then
         begin
           // do something in reaction on Enter
           Exit(ExclusiveEvents); // ExclusiveEvents is true by default
@@ -1010,7 +1015,7 @@ type
       @longCode(#
         if HandleInput then
         begin
-          if Container.Pressed[K_Right] then
+          if Container.Pressed[keyArrowRight] then
             Transform.Position := Transform.Position + Vector3(SecondsPassed * 10, 0, 0);
           HandleInput := not ExclusiveEvents;
         end;
@@ -1233,38 +1238,50 @@ type
     convention that (0, 0) is left-bottom window corner. }
   TCastleUserInterface = class(TInputListener)
   private
-    FDisableContextOpenClose: Cardinal;
-    FFocused: boolean;
-    FGLInitialized: boolean;
-    FExists: boolean;
-    FControls: TChildrenControls;
-    FLeft: Single;
-    FBottom: Single;
-    FParent: TCastleUserInterface;
-    FHasHorizontalAnchor: boolean;
-    FHorizontalAnchorSelf, FHorizontalAnchorParent: THorizontalPosition;
-    FHorizontalAnchorDelta: Single;
-    FHasVerticalAnchor: boolean;
-    FVerticalAnchorSelf, FVerticalAnchorParent: TVerticalPosition;
-    FVerticalAnchorDelta: Single;
-    FEnableUIScaling: boolean;
-    FKeepInFront, FCapturesEvents: boolean;
-    FWidth, FHeight: Single;
-    FWidthFraction, FHeightFraction: Single;
-    FFullSize: boolean;
-    FBorder: TBorder;
-    FBorderColor: TCastleColor;
-    FAutoSizeToChildren: Boolean;
-    FAutoSizeToChildrenPaddingRight: Single;
-    FAutoSizeToChildrenPaddingTop: Single;
-    FSizeFromChildrenValid: Boolean;
-    FSizeFromChildrenRect: TFloatRectangle;
-    FCachedRectWithoutAnchors: TFloatRectangle;
-    FUseCachedRectWithoutAnchors: Cardinal; // <> 0 if we should use FCachedRectWithoutAnchors
-    FInsideRectWithoutAnchors: Boolean;
-    FCulling: Boolean;
-    FClipChildren: Boolean;
-    FOnRender, FOnInternalMouseEnter, FOnInternalMouseLeave: TUiNotifyEvent;
+    type
+      TEnumerator = class
+      private
+        FList: TChildrenControls;
+        FPosition: Integer;
+        function GetCurrent: TCastleUserInterface;
+      public
+        constructor Create(AList: TChildrenControls);
+        function MoveNext: Boolean;
+        property Current: TCastleUserInterface read GetCurrent;
+      end;
+    var
+      FDisableContextOpenClose: Cardinal;
+      FFocused: boolean;
+      FGLInitialized: boolean;
+      FExists: boolean;
+      FControls: TChildrenControls;
+      FLeft: Single;
+      FBottom: Single;
+      FParent: TCastleUserInterface;
+      FHasHorizontalAnchor: boolean;
+      FHorizontalAnchorSelf, FHorizontalAnchorParent: THorizontalPosition;
+      FHorizontalAnchorDelta: Single;
+      FHasVerticalAnchor: boolean;
+      FVerticalAnchorSelf, FVerticalAnchorParent: TVerticalPosition;
+      FVerticalAnchorDelta: Single;
+      FEnableUIScaling: boolean;
+      FKeepInFront, FCapturesEvents: boolean;
+      FWidth, FHeight: Single;
+      FWidthFraction, FHeightFraction: Single;
+      FFullSize: boolean;
+      FBorder: TBorder;
+      FBorderColor: TCastleColor;
+      FAutoSizeToChildren: Boolean;
+      FAutoSizeToChildrenPaddingRight: Single;
+      FAutoSizeToChildrenPaddingTop: Single;
+      FSizeFromChildrenValid: Boolean;
+      FSizeFromChildrenWidth, FSizeFromChildrenHeight: Single;
+      FCachedRectWithoutAnchors: TFloatRectangle;
+      FUseCachedRectWithoutAnchors: Cardinal; // <> 0 if we should use FCachedRectWithoutAnchors
+      FInsideRectWithoutAnchors: Boolean;
+      FCulling: Boolean;
+      FClipChildren: Boolean;
+      FOnRender, FOnInternalMouseEnter, FOnInternalMouseLeave: TUiNotifyEvent;
 
     procedure BorderChange(Sender: TObject);
     procedure SetExists(const Value: boolean);
@@ -1403,7 +1420,8 @@ type
     procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
       const ChangeInitiatedByChildren: boolean = false); override;
     procedure InternalAddChild(const C: TComponent); override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
+    function GetEnumerator: TEnumerator;
 
     property Controls [Index: Integer]: TCastleUserInterface read GetControls write SetControls;
     function ControlsCount: Integer;
@@ -1491,7 +1509,7 @@ type
         @item(@italic((For fixed-function pipeline:))
           The 2D orthographic projection is always set at the beginning.
           Useful for 2D controls, 3D controls can just override projection
-          matrix, e.g. use @link(CastleGLUtils.PerspectiveProjection).)
+          matrix, e.g. use @link(CastleRenderContext.PerspectiveProjection).)
 
         @item(@italic((For fixed-function pipeline:))
           The modelview matrix is set to identity. The matrix mode
@@ -1505,7 +1523,7 @@ type
           Texturing, lighting, fog is off.)
       )
 
-      Beware that GLSL @link(TGLSLProgram.Current) has undefined value when this is called.
+      Beware that GLSL @link(TRenderContext.CurrentProgram RenderContext.CurrentProgram) has undefined value when this is called.
       You should always set it, before making direct OpenGL drawing calls
       (all the engine drawing routines of course do it already, this is only a concern
       if you make direct OpenGL / OpenGLES calls). }
@@ -1561,7 +1579,11 @@ type
 
     property GLInitialized: boolean read FGLInitialized default false;
 
-    { When non-zero, control will not receive GLContextOpen and
+    { @exclude
+      This is dirty internal hack, and will be removed one day.
+      Please don't use this.
+
+      When non-zero, control will not receive GLContextOpen and
       GLContextClose events when it is added/removed from the
       @link(TUIContainer.Controls) list.
 
@@ -1582,12 +1604,12 @@ type
 
       Using this mechanism is only sensible if you want to reliably hide a control,
       but also allow readding it to the @link(TUIContainer.Controls) list,
-      and then you want to show it again. This is useful for CastleWindowModes,
+      and then you want to show it again. This is useful for CastleInternalWindowModes,
       that must push (and then pop) the controls, but then allows the caller
       to modify the controls list. And some games, e.g. castle1, add back
       some (but not all) of the just-hidden controls. For example the TCastleNotifications
       instance is added back, to be visible even in the menu mode.
-      This means that CastleWindowModes cannot just modify the TUIContainer.Exists
+      This means that CastleInternalWindowModes cannot just modify the TUIContainer.Exists
       value, leaving the control on the @link(TUIContainer.Controls) list:
       it would leave the TCastleUserInterface existing many times on the @link(TUIContainer.Controls)
       list, with the undefined TUIContainer.Exists value. }
@@ -1998,25 +2020,21 @@ type
 
       Our size is adjusted to all existing children sizes and positions.
 
-      Note that this works only for simple children anchors:
-      the left edge of the child to the left edge of the parent,
-      the bottom edge of the child to the bottom edge of the parent,
-      and so on.
-      It is impossible to adjust this calculation to all possible children anchors
-      values, since the interpretation of anchors depends on the parent size.
-
-      On the right and top side, we add @link(AutoSizeToChildrenPaddingTop)
-      and @link(AutoSizeToChildrenPaddingRight). To make left/bottom padding,
-      simply move all children away from the left/bottom edge.
+      We add @link(AutoSizeToChildrenPaddingTop) to the resulting height,
+      and @link(AutoSizeToChildrenPaddingRight) to the resulting width.
     }
     property AutoSizeToChildren: Boolean
       read FAutoSizeToChildren write SetAutoSizeToChildren default false;
 
-    { Padding added when @link(AutoSizeToChildren) is used. }
+    { Padding added when @link(AutoSizeToChildren) is used.
+      TODO: Should be AutoSizeToChildrenPaddingHorizontal, there's nothing that makes it specific
+      to "right" or "left" side now. }
     property AutoSizeToChildrenPaddingRight: Single
       read FAutoSizeToChildrenPaddingRight
       write SetAutoSizeToChildrenPaddingRight default 0;
-    { Padding added when @link(AutoSizeToChildren) is used. }
+    { Padding added when @link(AutoSizeToChildren) is used.
+      TODO: Should be AutoSizeToChildrenPaddingVertical, there's nothing that makes it specific
+      to "top" or "bottom" side now. }
     property AutoSizeToChildrenPaddingTop: Single
       read FAutoSizeToChildrenPaddingTop
       write SetAutoSizeToChildrenPaddingTop default 0;
@@ -2175,21 +2193,6 @@ type
       FList: TMyObjectList;
       FCaptureFreeNotifications: TCaptureFreeNotifications;
 
-    {$ifndef VER2_6}
-    { Using this causes random crashes in -dRELEASE with FPC 2.6.x. }
-    type
-      TEnumerator = class
-      private
-        FList: TChildrenControls;
-        FPosition: Integer;
-        function GetCurrent: TCastleUserInterface;
-      public
-        constructor Create(AList: TChildrenControls);
-        function MoveNext: Boolean;
-        property Current: TCastleUserInterface read GetCurrent;
-      end;
-    {$endif}
-
     function GetItem(const I: Integer): TCastleUserInterface;
     procedure SetItem(const I: Integer; const Item: TCastleUserInterface);
     { React to add/remove notifications. }
@@ -2197,10 +2200,6 @@ type
   public
     constructor Create(AParent: TCastleUserInterface);
     destructor Destroy; override;
-
-    {$ifndef VER2_6}
-    function GetEnumerator: TEnumerator;
-    {$endif}
 
     property Items[I: Integer]: TCastleUserInterface read GetItem write SetItem; default;
     function Count: Integer;
@@ -2327,12 +2326,20 @@ function RenderControlToImage(const Container: TUIContainer;
   const ViewportRect: TRectangle;
   const BackgroundColor: TCastleColor): TRGBAlphaImage; overload;
 
+{$define read_interface}
+{$I castleuicontrols_serialize.inc}
+{$undef read_interface}
+
 implementation
 
 uses DOM, TypInfo, Math,
-  CastleLog, CastleComponentSerialize, CastleXMLUtils, CastleStringUtils,
-  CastleInternalSettings, CastleFilesUtils, CastleURIUtils,
+  CastleLog, CastleXMLUtils, CastleStringUtils,
+  CastleInternalSettings, CastleFilesUtils, CastleURIUtils, CastleRenderOptions,
   {$ifdef CASTLE_OBJFPC} CastleGL {$else} GL, GLExt {$endif};
+
+{$define read_implementation}
+{$I castleuicontrols_serialize.inc}
+{$undef read_implementation}
 
 { TTouchList ----------------------------------------------------------------- }
 
@@ -2657,12 +2664,15 @@ begin
       AddInFrontOfNewFocus(ControlUnderFinger0);
 
     { update TCastleUserInterface.Focused values, based on differences between FFocus and FNewFocus }
-    for I := 0 to FNewFocus.Count - 1 do
-      if FFocus.IndexOf(FNewFocus[I]) = -1 then
-        FNewFocus[I].Focused := true;
-    for I := 0 to FFocus.Count - 1 do
-      if FNewFocus.IndexOf(FFocus[I]) = -1 then
-        FFocus[I].Focused := false;
+    if not (ApplicationProperties.TouchDevice) then
+    begin
+      for I := 0 to FNewFocus.Count - 1 do
+        if FFocus.IndexOf(FNewFocus[I]) = -1 then
+          FNewFocus[I].Focused := true;
+      for I := 0 to FFocus.Count - 1 do
+        if FNewFocus.IndexOf(FFocus[I]) = -1 then
+          FFocus[I].Focused := false;
+    end;
   end;
 
   { swap FFocus and FNewFocus, so that FFocus changes to new value,
@@ -2856,7 +2866,7 @@ procedure TUIContainer.EventUpdate;
     begin
       { go downward, from front to back.
         Important for controls watching/setting HandleInput,
-        e.g. for sliders/OnScreenMenu to block the scene manager underneath
+        e.g. for sliders/OnScreenMenu to block the navigation in TCastleViewport underneath
         from processing arrow keys. }
       I := C.ControlsCount - 1;
       while I >= 0 do
@@ -3780,6 +3790,19 @@ begin
     Result := '';
 end;
 
+function TUIContainer.SaveScreenRgba(const SaveRect: TRectangle): TRGBAlphaImage;
+begin
+  EventBeforeRender;
+  EventRender;
+  { This is correct if we use double-buffer. }
+  Result := SaveScreen_NoFlush(TRGBAlphaImage, SaveRect, cbBack) as TRGBAlphaImage;
+end;
+
+function TUIContainer.SaveScreenRgba: TRGBAlphaImage;
+begin
+  Result := SaveScreenRgba(Rect);
+end;
+
 function TUIContainer.Dpi: Single;
 begin
   { Default implementation, if you cannot query real dpi value of the screen. }
@@ -4032,6 +4055,26 @@ end;
 procedure TInputListener.SetContainer(const Value: TUIContainer);
 begin
   FContainer := Value;
+end;
+
+{ TCastleUserInterface.TEnumerator ------------------------------------------------- }
+
+function TCastleUserInterface.TEnumerator.GetCurrent: TCastleUserInterface;
+begin
+  Result := FList[FPosition];
+end;
+
+constructor TCastleUserInterface.TEnumerator.Create(AList: TChildrenControls);
+begin
+  inherited Create;
+  FList := AList;
+  FPosition := -1;
+end;
+
+function TCastleUserInterface.TEnumerator.MoveNext: Boolean;
+begin
+  Inc(FPosition);
+  Result := FPosition < FList.Count;
 end;
 
 { TCastleUserInterface ----------------------------------------------------------------- }
@@ -4577,13 +4620,14 @@ begin
     (longrec(DesignInfo).Hi<>Longrec(temp).Hi));
 end;
 
-function TCastleUserInterface.PropertySection(
-  const PropertyName: String): TPropertySection;
+function TCastleUserInterface.PropertySections(
+  const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
     'Exists':
-      Result := psBasic;
-    'FullSize',
+      Result := [psBasic];
+    'FullSize':
+      Result := [psBasic, psLayout];
     'Width',
     'Height',
     'HeightFraction',
@@ -4601,9 +4645,9 @@ begin
     'Bottom',
     'Border',
     'BorderColorPersistent':
-      Result := psLayout;
+      Result := [psLayout];
     else
-      Result := inherited PropertySection(PropertyName);
+      Result := inherited PropertySections(PropertyName);
   end;
 end;
 
@@ -4702,7 +4746,8 @@ function TCastleUserInterface.RectWithoutAnchors: TFloatRectangle;
   begin
     if FSizeFromChildrenValid then Exit;
     FSizeFromChildrenValid := true;
-    FSizeFromChildrenRect := TFloatRectangle.Empty;
+    FSizeFromChildrenWidth := 0;
+    FSizeFromChildrenHeight := 0;
 
     for I := 0 to ControlsCount - 1 do
     begin
@@ -4716,42 +4761,21 @@ function TCastleUserInterface.RectWithoutAnchors: TFloatRectangle;
         Although FSizeFromChildrenValid would prevent from entering an infinite
         loop, it would be still unreliable to use such result. }
       ChildRect := C.FastRectWithoutAnchors.ScaleAround0(1 / UIScale);
-      if not ChildRect.IsEmpty then
-      begin
-        // apply C anchors, at least some cases
+      if ChildRect.IsEmpty then
+        Continue;
 
-        if (C.HorizontalAnchorSelf = hpLeft) and
-           (C.HorizontalAnchorParent = hpLeft) then
-          ChildRect.Left := ChildRect.Left + C.HorizontalAnchorDelta
-        else
-        if (C.HorizontalAnchorSelf = hpRight) and
-           (C.HorizontalAnchorParent = hpRight) then
-          // when right anchor has delta -10, increase width + 10
-          ChildRect.Width := ChildRect.Width - C.HorizontalAnchorDelta;
+      { We had 2, much more complicated and more limited, implementations of this :)
+        Note that the instruction below makes sense both for both when
+        C.HorizontalAnchorSelf = C.HorizontalAnchorParent = hpLeft and when
+        C.HorizontalAnchorSelf = C.HorizontalAnchorParent = hpRight.
+      }
 
-        if (C.VerticalAnchorSelf = vpBottom) and
-           (C.VerticalAnchorParent = vpBottom) then
-          ChildRect.Bottom := ChildRect.Bottom + C.VerticalAnchorDelta
-        else
-        if (C.VerticalAnchorSelf = vpTop) and
-           (C.VerticalAnchorParent = vpTop) then
-          ChildRect.Height := ChildRect.Height - C.VerticalAnchorDelta;
-
-        // apply Border shift
-        ChildRect.Left := ChildRect.Left + FBorder.TotalLeft;
-        ChildRect.Bottom := ChildRect.Bottom + FBorder.TotalBottom;
-      end;
-
-      FSizeFromChildrenRect := FSizeFromChildrenRect + ChildRect;
+      MaxVar(FSizeFromChildrenWidth , ChildRect.Left   + ChildRect.Width  + Abs(C.HorizontalAnchorDelta) + FBorder.TotalWidth);
+      MaxVar(FSizeFromChildrenHeight, ChildRect.Bottom + ChildRect.Height + Abs(C.VerticalAnchorDelta)   + FBorder.TotalHeight);
     end;
 
-    if not FSizeFromChildrenRect.IsEmpty then
-    begin
-      FSizeFromChildrenRect.Width :=
-        FSizeFromChildrenRect.Width + FBorder.TotalRight + AutoSizeToChildrenPaddingRight;
-      FSizeFromChildrenRect.Height :=
-        FSizeFromChildrenRect.Height + FBorder.TotalTop + AutoSizeToChildrenPaddingTop;
-    end;
+    FSizeFromChildrenWidth  += AutoSizeToChildrenPaddingRight;
+    FSizeFromChildrenHeight += AutoSizeToChildrenPaddingTop;
   end;
 
 var
@@ -4770,17 +4794,11 @@ begin
   if AutoSizeToChildren then
   begin
     UpdateSizeFromChildren;
-    if FSizeFromChildrenRect.IsEmpty then
+    if (FSizeFromChildrenWidth <= 0) or
+       (FSizeFromChildrenHeight <= 0) then
       Result := TFloatRectangle.Empty
     else
-      { We do not use FSizeFromChildrenRect.Left/Bottom.
-        This would shift children:
-        Imagine a child with anchor (on the left) equal 100.
-        If this would increase our resulting Rect.Left by 100,
-        then child would still have to move another 100 to the left,
-        thus landing at total left = 200. }
-      Result := FloatRectangle(Left, Bottom,
-        FSizeFromChildrenRect.Right, FSizeFromChildrenRect.Top).
+      Result := FloatRectangle(Left, Bottom, FSizeFromChildrenWidth, FSizeFromChildrenHeight).
         ScaleAround0(UIScale);
   end else
   if FullSize then
@@ -5217,6 +5235,11 @@ begin
   Result := Max(0, EffectiveWidth - Border.TotalWidth);
 end;
 
+function TCastleUserInterface.GetEnumerator: TEnumerator;
+begin
+  Result := TEnumerator.Create(FControls);
+end;
+
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tcastleuserinterface_persistent_vectors.inc}
 {$undef read_implementation_methods}
@@ -5353,13 +5376,6 @@ begin
   for I := NewItems.Count - 1 downto 0 do
     InsertBack(NewItems[I]);
 end;
-
-{$ifndef VER2_6}
-function TChildrenControls.GetEnumerator: TEnumerator;
-begin
-  Result := TEnumerator.Create(Self);
-end;
-{$endif}
 
 procedure TChildrenControls.Notify(Ptr: Pointer; Action: TListNotification);
 var
@@ -5506,28 +5522,6 @@ procedure TChildrenControls.TMyObjectList.Notify(Ptr: Pointer; Action: TListNoti
 begin
   Parent.Notify(Ptr, Action);
 end;
-
-{ TChildrenControls.TEnumerator ------------------------------------------------- }
-
-{$ifndef VER2_6}
-function TChildrenControls.TEnumerator.GetCurrent: TCastleUserInterface;
-begin
-  Result := FList.Items[FPosition];
-end;
-
-constructor TChildrenControls.TEnumerator.Create(AList: TChildrenControls);
-begin
-  inherited Create;
-  FList := AList;
-  FPosition := -1;
-end;
-
-function TChildrenControls.TEnumerator.MoveNext: Boolean;
-begin
-  Inc(FPosition);
-  Result := FPosition < FList.Count;
-end;
-{$endif}
 
 { TCastleUserInterfaceList ------------------------------------------------------------- }
 

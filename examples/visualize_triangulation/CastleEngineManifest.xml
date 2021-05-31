@@ -8,4 +8,5 @@
 -->
 
 <project name="visualize_triangulation" standalone_source="visualize_triangulation.lpr">
+  <data exists="false" />
 </project>

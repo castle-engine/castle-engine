@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,11 +25,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TShapeNode ----------------------------------------------- }
+
+class function TShapeNode.ClassX3DType: String;
+begin
+  Result := 'Shape';
+end;
+
+procedure TShapeNode.CreateNode;
+begin
+  inherited;
+end;
 
 {$endif read_implementation}

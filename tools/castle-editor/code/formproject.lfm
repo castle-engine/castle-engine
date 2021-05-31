@@ -1,23 +1,26 @@
 object ProjectForm: TProjectForm
   Left = 546
-  Height = 759
+  Height = 632
   Top = 273
-  Width = 1370
+  Width = 1142
   Caption = ' my-project | Castle Game Engine'
-  ClientHeight = 727
-  ClientWidth = 1370
-  DesignTimePPI = 144
+  ClientHeight = 606
+  ClientWidth = 1142
+  DesignTimePPI = 120
   Menu = MainMenu1
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnHide = FormHide
+  OnShow = FormShow
   Position = poMainFormCenter
-  LCLVersion = '2.0.6.0'
+  ShowInTaskBar = stAlways
+  LCLVersion = '2.0.10.0'
   object PageControlBottom: TPageControl
     Left = 0
-    Height = 269
-    Top = 458
-    Width = 1370
+    Height = 224
+    Top = 382
+    Width = 1142
     ActivePage = TabFiles
     Align = alBottom
     ParentFont = False
@@ -25,20 +28,20 @@ object ProjectForm: TProjectForm
     TabOrder = 0
     object TabFiles: TTabSheet
       Caption = 'Files'
-      ClientHeight = 227
-      ClientWidth = 1364
+      ClientHeight = 186
+      ClientWidth = 1136
       ParentFont = False
       object SplitterBetweenFiles: TSplitter
         Left = 0
-        Height = 227
+        Height = 186
         Top = 0
-        Width = 7
+        Width = 6
       end
     end
     object TabOutput: TTabSheet
       Caption = 'Output'
-      ClientHeight = 227
-      ClientWidth = 1364
+      ClientHeight = 186
+      ClientWidth = 1136
       ParentFont = False
       object ListOutput: TListBox
         Left = 0
@@ -46,7 +49,7 @@ object ProjectForm: TProjectForm
         Top = 0
         Width = 1326
         Align = alClient
-        ItemHeight = 31
+        ItemHeight = 26
         OnClick = ListOutputClick
         ParentFont = False
         ScrollWidth = 1324
@@ -57,42 +60,143 @@ object ProjectForm: TProjectForm
     end
     object TabWarnings: TTabSheet
       Caption = 'Warnings'
-      ClientHeight = 227
-      ClientWidth = 1364
+      ClientHeight = 186
+      ClientWidth = 1136
       ParentFont = False
       TabVisible = False
       object ListWarnings: TListBox
         Left = 0
-        Height = 227
-        Top = 0
-        Width = 1364
+        Height = 147
+        Top = 40
+        Width = 1132
         Align = alClient
         ItemHeight = 0
         ParentFont = False
-        ScrollWidth = 1362
+        ScrollWidth = 1130
         TabOrder = 0
         TopIndex = -1
+      end
+      object PanelWarnings: TPanel
+        Left = 0
+        Height = 40
+        Top = 0
+        Width = 1132
+        Align = alTop
+        AutoSize = True
+        BevelOuter = bvNone
+        ClientHeight = 40
+        ClientWidth = 1132
+        TabOrder = 1
+        object ButtonClearWarnings: TBitBtn
+          Left = 0
+          Height = 40
+          Hint = 'Clear warnings list.'
+          Top = 0
+          Width = 87
+          AutoSize = True
+          Caption = 'Clear'
+          Constraints.MinHeight = 27
+          Constraints.MinWidth = 27
+          Glyph.Data = {
+            36090000424D3609000000000000360000002800000018000000180000000100
+            2000000000000009000064000000640000000000000000000000000000000000
+            0000000000000000000000000000000000000000000000000000000000000000
+            0000000000000000000000000000000000000000000000000000000000000000
+            0000000000000000000000000000000000000000000000000000000000000000
+            000000000000000000000000000600000089000000E5000000FF000000FF0000
+            00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+            00E5000000870000000600000000000000000000000000000000000000000000
+            0000000000000000000000000088000000FF000000FF000000FF000000FF0000
+            00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+            00FF000000FF0000008600000000000000000000000000000000000000000000
+            00000000000000000000000000E6000000FF0000003B00000000000000000000
+            0000000000000000000000000000000000000000000000000000000000000000
+            003D000000FF000000E500000000000000000000000000000000000000000000
+            00000000000000000000000000FF000000FF0000000000000000000000000000
+            0000000000000000000000000000000000000000000000000000000000000000
+            0000000000FF000000FF00000000000000000000000000000000000000000000
+            00000000000000000000000000FF000000FF0000000000000000000000000000
+            0000000000000000000000000000000000000000000000000000000000000000
+            0000000000FF000000FF00000000000000000000000000000000000000000000
+            00000000000000000000000000FF000000FF0000000000000000000000000000
+            00C3000000C30000000000000000000000C3000000C300000000000000000000
+            0000000000FF000000FF00000000000000000000000000000000000000000000
+            00000000000000000000000000FF000000FF0000000000000000000000000000
+            00FF000000FF0000000000000000000000FF000000FF00000000000000000000
+            0000000000FF000000FF00000000000000000000000000000000000000000000
+            00000000000000000000000000FF000000FF0000000000000000000000000000
+            00FF000000FF0000000000000000000000FF000000FF00000000000000000000
+            0000000000FF000000FF00000000000000000000000000000000000000000000
+            00000000000000000000000000FF000000FF0000000000000000000000000000
+            00FF000000FF0000000000000000000000FF000000FF00000000000000000000
+            0000000000FF000000FF00000000000000000000000000000000000000000000
+            00000000000000000000000000FF000000FF0000000000000000000000000000
+            00FF000000FF0000000000000000000000FF000000FF00000000000000000000
+            0000000000FF000000FF00000000000000000000000000000000000000000000
+            00000000000000000000000000FF000000FF0000000000000000000000000000
+            00FF000000FF0000000000000000000000FF000000FF00000000000000000000
+            0000000000FF000000FF00000000000000000000000000000000000000000000
+            00000000000000000000000000FF000000FF0000000000000000000000000000
+            00FF000000FF0000000000000000000000FF000000FF00000000000000000000
+            0000000000FF000000FF00000000000000000000000000000000000000000000
+            00000000000000000000000000FF000000FF0000000000000000000000000000
+            00C3000000C30000000000000000000000C3000000C300000000000000000000
+            0000000000FF000000FF00000000000000000000000000000000000000000000
+            00000000000000000000000000FF000000FF0000000000000000000000000000
+            0000000000000000000000000000000000000000000000000000000000000000
+            0000000000FF000000FF00000000000000000000000000000000000000000000
+            00000000000000000000000000FF000000FF0000000000000000000000000000
+            0000000000000000000000000000000000000000000000000000000000000000
+            0000000000FF000000FF00000000000000000000000000000000000000000000
+            00000000000000000000000000FF000000FF0000000000000000000000000000
+            0000000000000000000000000000000000000000000000000000000000000000
+            0000000000FF000000FF00000000000000000000000000000000000000000000
+            0000000000C3000000FF000000FF000000FF000000FF000000FF000000FF0000
+            00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+            00FF000000FF000000FF000000FF000000C30000000000000000000000000000
+            0000000000C3000000FF000000FF000000FF000000FF000000FF000000FF0000
+            00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+            00FF000000FF000000FF000000FF000000C30000000000000000000000000000
+            00000000000000000000000000000000000000000000000000FF000000FF0000
+            00000000000000000000000000000000000000000000000000FF000000FF0000
+            0000000000000000000000000000000000000000000000000000000000000000
+            00000000000000000000000000000000000000000000000000E6000000FF0000
+            003A000000000000000000000000000000000000003B000000FF000000E50000
+            0000000000000000000000000000000000000000000000000000000000000000
+            000000000000000000000000000000000000000000000000008A000000FF0000
+            00FF000000FF000000FF000000FF000000FF000000FF000000FF000000880000
+            0000000000000000000000000000000000000000000000000000000000000000
+            00000000000000000000000000000000000000000000000000070000008A0000
+            00E6000000FF000000FF000000FF000000FF000000E600000089000000060000
+            0000000000000000000000000000000000000000000000000000000000000000
+            0000000000000000000000000000000000000000000000000000000000000000
+            0000000000000000000000000000000000000000000000000000000000000000
+            0000000000000000000000000000000000000000000000000000
+          }
+          OnClick = ButtonClearWarningsClick
+          TabOrder = 0
+        end
       end
     end
   end
   object Splitter2: TSplitter
     Cursor = crVSplit
     Left = 0
-    Height = 7
-    Top = 451
-    Width = 1370
+    Height = 6
+    Top = 376
+    Width = 1142
     Align = alBottom
     ResizeAnchor = akBottom
   end
   object PanelAboveTabs: TPanel
     Left = 0
-    Height = 451
+    Height = 376
     Top = 0
-    Width = 1370
+    Width = 1142
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 451
-    ClientWidth = 1370
+    ClientHeight = 376
+    ClientWidth = 1142
     ParentFont = False
     TabOrder = 2
     object LabelNoDesign: TLabel
@@ -102,21 +206,21 @@ object ProjectForm: TProjectForm
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Side = asrCenter
       AnchorSideBottom.Side = asrCenter
-      Left = 313
-      Height = 192
-      Top = 129
-      Width = 745
+      Left = 296
+      Height = 144
+      Top = 116
+      Width = 551
       Alignment = taCenter
       Caption = 'To visually design'#10'user interface or 3D/2D game world, '#10'open or create a new design'#10'using the "Design" menu.'
-      Font.Height = -40
+      Font.Height = -33
       ParentColor = False
       ParentFont = False
       WordWrap = True
     end
   end
   object MainMenu1: TMainMenu
-    left = 53
-    top = 25
+    Left = 44
+    Top = 21
     object MenuItemFile: TMenuItem
       Caption = '&Project'
       object MenuItemRestartRebuildEditor: TMenuItem
@@ -188,6 +292,21 @@ object ProjectForm: TProjectForm
       object MenuItemSeparator170: TMenuItem
         Caption = '-'
       end
+      object MenuItemRename: TMenuItem
+        Caption = 'Rename'
+        ShortCut = 113
+        OnClick = MenuItemRenameClick
+      end
+      object MenuItemUndo: TMenuItem
+        Caption = 'Undo'
+        ShortCut = 49242
+        OnClick = MenuItemUndoClick
+      end
+      object MenuItemRedo: TMenuItem
+        Caption = 'Redo'
+        ShortCut = 57434
+        OnClick = MenuItemRedoClick
+      end
       object MenuItemCopyComponent: TMenuItem
         Caption = 'Copy Component'
         ShortCut = 24643
@@ -214,6 +333,39 @@ object ProjectForm: TProjectForm
       object MenuItemDesignClose: TMenuItem
         Caption = 'Close'
         OnClick = MenuItemDesignCloseClick
+      end
+    end
+    object MenuItemCode: TMenuItem
+      Caption = 'Code'
+      object MenuItemOpenProjectCode: TMenuItem
+        Action = ActionOpenProjectCode
+      end
+      object MenuItem1: TMenuItem
+        Action = ActionEditAssociatedUnit
+      end
+      object MenuItemEditUnitCode: TMenuItem
+        Action = ActionEditUnit
+      end
+      object N2: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemNewUnit: TMenuItem
+        Caption = 'New Unit'
+        object MenuItemNewUnitEmpty: TMenuItem
+          Action = ActionNewUnitEmpty
+        end
+        object MenuItemNewUnitClass: TMenuItem
+          Action = ActionNewUnitClass
+        end
+        object MenuItemNewUnitState: TMenuItem
+          Action = ActionNewUnitState
+        end
+      end
+      object MenuItemSeparator123123345: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemRegenerateProject: TMenuItem
+        Action = ActionRegenerateProject
       end
     end
     object MenuItemRun: TMenuItem
@@ -287,6 +439,12 @@ object ProjectForm: TProjectForm
         OnClick = MenuItemBreakProcessClick
       end
     end
+    object MenuItemData: TMenuItem
+      Caption = 'Data'
+      object MenuItemNewCastleSpriteSheet: TMenuItem
+        Action = ActionNewSpriteSheet
+      end
+    end
     object MenuItemHelp: TMenuItem
       Caption = '&Help'
       object MenuItemReferenceOfCurrent: TMenuItem
@@ -324,8 +482,8 @@ object ProjectForm: TProjectForm
   end
   object ProcessUpdateTimer: TTimer
     OnTimer = ProcessUpdateTimerTimer
-    left = 174
-    top = 28
+    Left = 145
+    Top = 23
   end
   object SaveDesignDialog: TCastleSaveDialog
     Title = 'Save Hierarchy As'
@@ -333,19 +491,19 @@ object ProjectForm: TProjectForm
     FilterIndex = 0
     Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
     AdviceDataDirectory = True
-    left = 174
-    top = 197
+    Left = 145
+    Top = 164
   end
   object OpenDesignDialog: TCastleOpenDialog
     Filter = 'CGE Design (*.castle-user-interface, *.castle-transform)|*.castle-user-interface;*.castle-transform|All Files|*'
     AdviceDataDirectory = True
-    left = 185
-    top = 114
+    Left = 154
+    Top = 95
   end
   object ShellListPopupMenu: TPopupMenu
     OnPopup = ShellListPopupMenuPopup
-    left = 104
-    top = 312
+    Left = 87
+    Top = 260
     object MenuItemOpenDefault: TMenuItem
       Caption = 'Open'
       Default = True
@@ -358,6 +516,12 @@ object ProjectForm: TProjectForm
     object MenuItemSeparator2303403o: TMenuItem
       Caption = '-'
     end
+    object MenuItemNewSpriteSheet: TMenuItem
+      Action = ActionNewSpriteSheet
+    end
+    object MenuItemSepraratorSLP002: TMenuItem
+      Caption = '-'
+    end
     object MenuItemRefreshDir: TMenuItem
       Caption = 'Refresh'
       OnClick = MenuItemRefreshDirClick
@@ -365,17 +529,183 @@ object ProjectForm: TProjectForm
     object MenuItemSeparator123123213: TMenuItem
       Caption = '-'
     end
+    object MenuItemNewDirectory: TMenuItem
+      Caption = 'New Directory...'
+      OnClick = MenuItemNewDirectoryClick
+    end
     object MenuItemDeleteFile: TMenuItem
-      Caption = 'Delete'
+      Caption = 'Delete...'
       OnClick = MenuItemDeleteFileClick
+    end
+    object N3: TMenuItem
+      Caption = '-'
+    end
+    object MenuItemPopupNewUnit: TMenuItem
+      Caption = 'New Unit Here'
+      object MenuItemPopupNewUnitEmpty: TMenuItem
+        Action = ActionNewUnitHereEmpty
+      end
+      object MenuItemPopupNewUnitClass: TMenuItem
+        Action = ActionNewUnitHereClass
+      end
+      object MenuItemPopupNewUnitState: TMenuItem
+        Action = ActionNewUnitHereState
+      end
     end
   end
   object ShellTreePopupMenu: TPopupMenu
-    left = 280
-    top = 344
+    Left = 233
+    Top = 288
     object MenuItemShellTreeOpenDir: TMenuItem
       Caption = 'Open in File Manager'
       OnClick = MenuItemShellTreeOpenDirClick
     end
+    object MenuItemShellTreeSeparator13123: TMenuItem
+      Caption = '-'
+    end
+    object MenuItemShellTreeRefresh: TMenuItem
+      Caption = 'Refresh'
+      OnClick = MenuItemShellTreeRefreshClick
+    end
+  end
+  object ShellIcons: TImageList
+    Height = 24
+    Width = 24
+    Left = 391
+    Top = 300
+    Bitmap = {
+      4C69010000001800000018000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000000000000000000000000000000000070000008A000000E60000
+      00FF000000FF000000FF000000FF000000FF000000C900000008000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000008A000000FF000000FF0000
+      00FF000000FF000000FF000000FF000000FF000000FF00000088000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000000000000000000000000000000000E6000000FF0000003A0000
+      000000000000000000000000000000000037000000FC000000FC000000370000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000000000000000000000000000000000FF000000FF000000000000
+      00000000000000000000000000000000000000000088000000FF000000FF0000
+      00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+      00E600000089000000060000000000000000000000FF000000FF000000000000
+      00000000000000000000000000000000000000000008000000C7000000FF0000
+      00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+      00FF000000FF000000880000000000000000000000FF000000FF000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      003B000000FF000000E50000000000000000000000FF000000FF000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000FF000000FF0000000000000000000000FF000000FF000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000FF000000FF0000000000000000000000E6000000FF0000003B0000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      003D000000FF000000E5000000000000000000000088000000FF000000FF0000
+      00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+      00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+      00FF000000FF0000008600000000000000000000000600000089000000E50000
+      00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+      00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+      00E5000000870000000600000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000
+    }
+  end
+  object ApplicationProperties1: TApplicationProperties
+    OnActivate = ApplicationProperties1Activate
+    OnException = ApplicationProperties1Exception
+    Left = 344
+    Top = 21
+  end
+  object ActionList: TActionList
+    Left = 498
+    Top = 24
+    object ActionNewSpriteSheet: TAction
+      Caption = 'New Sprite Sheet...'
+      OnExecute = ActionNewSpriteSheetExecute
+    end
+    object ActionOpenProjectCode: TAction
+      Caption = 'Open Project in Code Editor'
+      OnExecute = ActionOpenProjectCodeExecute
+    end
+    object ActionEditUnit: TAction
+      Caption = 'Edit Unit...'
+      OnExecute = ActionEditUnitExecute
+    end
+    object ActionNewUnitEmpty: TAction
+      Caption = 'Empty Unit...'
+      OnExecute = ActionNewUnitEmptyExecute
+    end
+    object ActionNewUnitClass: TAction
+      Caption = 'Unit With Class...'
+      OnExecute = ActionNewUnitClassExecute
+    end
+    object ActionNewUnitState: TAction
+      Caption = 'Unit With State...'
+      OnExecute = ActionNewUnitStateExecute
+    end
+    object ActionNewUnitHereEmpty: TAction
+      Caption = 'Empty Unit...'
+      OnExecute = ActionNewUnitHereEmptyExecute
+    end
+    object ActionNewUnitHereClass: TAction
+      Caption = 'Unit With Class...'
+      OnExecute = ActionNewUnitHereClassExecute
+    end
+    object ActionNewUnitHereState: TAction
+      Caption = 'Unit With State...'
+      OnExecute = ActionNewUnitHereStateExecute
+    end
+    object ActionEditAssociatedUnit: TAction
+      Caption = 'Edit Unit Associated With Open Design'
+      OnExecute = ActionEditAssociatedUnitExecute
+      ShortCut = 123
+    end
+    object ActionRegenerateProject: TAction
+      Caption = 'Regenerate Project (overwrites LPR, LPI, CastleAutoGenerated)'
+      OnExecute = ActionRegenerateProjectExecute
+    end
+  end
+  object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog
+    Left = 263
+    Top = 200
   end
 end

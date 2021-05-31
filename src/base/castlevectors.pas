@@ -20,8 +20,10 @@
   Here's an outline @bold(how do we represent various geometric objects):
 
   @unorderedList(
+    @item(@italic(Point in 3D) is a TVector3.)
+
     @item(
-      @italic(Plane in 3D space) is a vector of 4 values. Such vector [A, B, C, D]
+      @italic(Plane in 3D) is a TVector4. Such vector [A, B, C, D]
       defines a surface that consists of all points satisfying equation
       @code(A * x + B * y + C * z + D = 0). At least one of A, B, C must be
       different than zero.
@@ -31,7 +33,7 @@
       i.e. scaled to have length 1.)
 
     @item(
-      @italic(Line in 3D space) is represented by two 3D vectors:
+      @italic(Line in 3D space) is represented by two TVector3 values:
       Line0 and LineVector. They determine a line consisting of all
       points that can be calculated as @code(Line0 + R * LineVector)
       where R is any real value.
@@ -39,18 +41,17 @@
       LineVector must not be a zero vector.)
 
     @item(
-      @italic(Line in 2D space) is sometimes represented as 2D vectors
+      @italic(Line in 2D space) is sometimes represented as two TVector2 values called
       Line0 and LineVector (analogously like line in 3D).
 
-      And sometimes it's represented as a 3-items vector,
-      like TVector3Single (for [A, B, C] line consists of all
-      points satisfying @code(A * x + B * y + C = 0)).
+      And sometimes it's represented as one TVector3 value:
+      [A, B, C], where line consists of all points satisfying @code(A * x + B * y + C = 0).
       At least one of A, B must be different than zero.)
 
     @item(
       A @italic(tunnel) is an object that you get by moving a sphere
       along the line segment. In other words, this is like a cylinder,
-      but ended with a hemispheres. The tunnel is represented in this
+      but ends with two hemispheres. The tunnel is represented in this
       unit as two points Tunnel1, Tunnel2 (this defines a line segment)
       and a TunnelRadius.)
 
@@ -144,7 +145,6 @@
       This approach should be suitable for most use cases.)
   )
 }
-
 unit CastleVectors;
 
 {$I castleconf.inc}
@@ -169,6 +169,7 @@ uses SysUtils, Generics.Collections, Classes,
 {$I castlevectors_miscellaneous.inc}
 {$I castlevectors_persistent.inc}
 {$I castlevectors_transformation.inc}
+{$I castlevectors_border.inc}
 
 {$undef read_interface}
 
@@ -191,5 +192,6 @@ uses Math, CastleStringUtils, CastleColors, CastleLog;
 {$I castlevectors_compatibility_deprecated.inc}
 {$I castlevectors_persistent.inc}
 {$I castlevectors_transformation.inc}
+{$I castlevectors_border.inc}
 
 end.

@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Font family, with different subfonts for bold/italic variants (TFontFamily). }
+{ Font family, with different subfonts for bold/italic variants (TCastleFontFamily). }
 unit CastleFontFamily;
 
 {$I castleconf.inc}
@@ -25,18 +25,18 @@ uses Classes, Generics.Collections,
 
 type
   { Font family, with different subfonts for normal, bold, italic, bold+italic
-    variants. Used together with TRichText, that has powerful methods to render
-    and wrap text with HTML elements (<b>, <i> etc. inside).
-    During such processing and rendering, it automatically uses the correct
-    subfont. It's closely tied with the TRichText class.
+    variants. Used this together with @link(TCastleLabel.Html) that allows
+    to render HTML text with varying font styles, changing @link(Bold) and @link(Italic)
+    state during rendering.
+    Or you can use this for normal font rendering (that doesn't change
+    font style in the middle, e.g. TCastleLabel with TCastleLabel.Html = @false)
+    and just enjoy simple Boolean properties
+    @link(Bold) and @link(Italic) to change the font style yourself at runtime or design-time.
 
-    For simple operations, it simply uses the subfont indicated by the @link(Bold)
-    and @italic(Italic) properties. By default they are @false, and then we simply
-    use @link(RegularFont).
     This class can be treated as a font itself, since it has all the measuring
     and rendering commands you expect from a font (and you could
-    even use it as a subfont of another TFontFamily --- weird but works,
-    in which case the "TFontFamily used as a subfont" just acts as a proxy
+    even use it as a subfont of another TCastleFontFamily --- weird but works,
+    in which case the "TCastleFontFamily used as a subfont" just acts as a proxy
     for the Regular subfont).
 
     Similar to TCustomizedFont, it can also change the subfont size.
@@ -45,21 +45,21 @@ type
     You can also change the subfont outline, if CustomizeOutline is used.
     The underlying font properties remain unchanged for subfonts
     (so they can be still used for other purposes,
-    directly or by other TCustomizedFont or TFontFamily wrappers). }
-  TFontFamily = class(TCastleFont)
+    directly or by other TCustomizedFont or TCastleFontFamily wrappers). }
+  TCastleFontFamily = class(TCastleAbstractFont)
   strict private
-    FRegularFont, FBoldFont, FItalicFont, FBoldItalicFont: TCastleFont;
+    FRegularFont, FBoldFont, FItalicFont, FBoldItalicFont: TCastleAbstractFont;
     FBold, FItalic: boolean;
     FCustomizeOutline: boolean;
-    procedure SetRegularFont(const Value: TCastleFont);
-    procedure SetBoldFont(const Value: TCastleFont);
-    procedure SetItalicFont(const Value: TCastleFont);
-    procedure SetBoldItalicFont(const Value: TCastleFont);
+    procedure SetRegularFont(const Value: TCastleAbstractFont);
+    procedure SetBoldFont(const Value: TCastleAbstractFont);
+    procedure SetItalicFont(const Value: TCastleAbstractFont);
+    procedure SetBoldItalicFont(const Value: TCastleAbstractFont);
     procedure SubFontCustomizeBegin;
     procedure SubFontCustomizeEnd;
   private
-    function SubFont(const ABold, AItalic: boolean): TCastleFont;
-    function SubFont: TCastleFont;
+    function SubFont(const ABold, AItalic: boolean): TCastleAbstractFont;
+    function SubFont: TCastleAbstractFont;
   strict protected
     procedure GLContextClose; override;
     procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Single); override;
@@ -69,10 +69,10 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    property RegularFont: TCastleFont read FRegularFont write SetRegularFont;
-    property BoldFont: TCastleFont read FBoldFont write SetBoldFont;
-    property ItalicFont: TCastleFont read FItalicFont write SetItalicFont;
-    property BoldItalicFont: TCastleFont read FBoldItalicFont write SetBoldItalicFont;
+    property RegularFont: TCastleAbstractFont read FRegularFont write SetRegularFont;
+    property BoldFont: TCastleAbstractFont read FBoldFont write SetBoldFont;
+    property ItalicFont: TCastleAbstractFont read FItalicFont write SetItalicFont;
+    property BoldItalicFont: TCastleAbstractFont read FBoldItalicFont write SetBoldItalicFont;
 
     property Bold: boolean read FBold write FBold default false;
     property Italic: boolean read FItalic write FItalic default false;
@@ -90,6 +90,8 @@ type
     property CustomizeOutline: boolean read FCustomizeOutline write FCustomizeOutline default false;
   end;
 
+  TFontFamily = TCastleFontFamily deprecated 'use TCastleFontFamily';
+
   { @exclude Internal type for TRichText }
   TTextCommand = (
     tcBold, tcBoldEnd,
@@ -106,7 +108,7 @@ type
   strict private
     FWidthKnown: boolean;
     FWidth: Single;
-    FFont: TFontFamily;
+    FFont: TCastleFontFamily;
   public
     type
       TFontState = class
@@ -129,7 +131,7 @@ type
         destructor Destroy; override;
       end;
 
-    constructor Create(const AFont: TFontFamily);
+    constructor Create(const AFont: TCastleFontFamily);
     function Width(const State: TPrintState): Single;
     function DisplayChars(const State: TPrintState): Cardinal;
     function KnownWidth: Single;
@@ -140,20 +142,20 @@ type
 
   { @exclude Internal type for TRichText }
   TTextProperty = class abstract
-    procedure Print(const Font: TFontFamily;
+    procedure Print(const Font: TCastleFontFamily;
       const State: TTextLine.TPrintState; var X0: Single; const Y0: Single;
       var MaxDisplayChars: Integer); virtual; abstract;
-    function Wrap(const Font: TFontFamily; const State: TTextLine.TPrintState;
+    function Wrap(const Font: TCastleFontFamily; const State: TTextLine.TPrintState;
       var CurrentWidth: Single; const MaxWidth: Single;
       const CurrentLine: TTextLine; const CurrentPropertyIndex: Integer): TTextLine; virtual; abstract;
-    function Width(const Font: TFontFamily; const State: TTextLine.TPrintState): Single; virtual; abstract;
-    function DisplayChars(const Font: TFontFamily; const State: TTextLine.TPrintState): Cardinal; virtual; abstract;
+    function Width(const Font: TCastleFontFamily; const State: TTextLine.TPrintState): Single; virtual; abstract;
+    function DisplayChars(const Font: TCastleFontFamily; const State: TTextLine.TPrintState): Cardinal; virtual; abstract;
   end;
 
   { @exclude Internal type for TRichText }
   TTextPropertyString = class(TTextProperty)
     S: string;
-    procedure Print(const Font: TFontFamily;
+    procedure Print(const Font: TCastleFontFamily;
       const State: TTextLine.TPrintState; var X0: Single; const Y0: Single;
       var MaxDisplayChars: Integer); override;
     { If there's a need to break, then:
@@ -162,31 +164,31 @@ type
       - new line is returned,
       - CurrentWidth is undefined.
       Otherwise, this moves forward, increasing CurrentWidth. }
-    function Wrap(const Font: TFontFamily; const State: TTextLine.TPrintState;
+    function Wrap(const Font: TCastleFontFamily; const State: TTextLine.TPrintState;
       var CurrentWidth: Single; const MaxWidth: Single;
       const CurrentLine: TTextLine; const CurrentPropertyIndex: Integer): TTextLine; override;
-    function Width(const Font: TFontFamily; const State: TTextLine.TPrintState): Single; override;
-    function DisplayChars(const Font: TFontFamily; const State: TTextLine.TPrintState): Cardinal; override;
+    function Width(const Font: TCastleFontFamily; const State: TTextLine.TPrintState): Single; override;
+    function DisplayChars(const Font: TCastleFontFamily; const State: TTextLine.TPrintState): Cardinal; override;
   end;
 
   { @exclude Internal type for TRichText }
   TTextPropertyCommand = class(TTextProperty)
   strict private
-    procedure UpdateState(const Font: TFontFamily;
+    procedure UpdateState(const Font: TCastleFontFamily;
       const State: TTextLine.TPrintState);
   public
     Command: TTextCommand;
     Color: TCastleColor;
     HtmlSize: Integer;
     PercentSize: Single;
-    procedure Print(const Font: TFontFamily;
+    procedure Print(const Font: TCastleFontFamily;
       const State: TTextLine.TPrintState; var X0: Single; const Y0: Single;
       var MaxDisplayChars: Integer); override;
-    function Wrap(const Font: TFontFamily; const State: TTextLine.TPrintState;
+    function Wrap(const Font: TCastleFontFamily; const State: TTextLine.TPrintState;
       var CurrentWidth: Single; const MaxWidth: Single;
       const CurrentLine: TTextLine; const CurrentPropertyIndex: Integer): TTextLine; override;
-    function Width(const Font: TFontFamily; const State: TTextLine.TPrintState): Single; override;
-    function DisplayChars(const Font: TFontFamily; const State: TTextLine.TPrintState): Cardinal; override;
+    function Width(const Font: TCastleFontFamily; const State: TTextLine.TPrintState): Single; override;
+    function DisplayChars(const Font: TCastleFontFamily; const State: TTextLine.TPrintState): Cardinal; override;
   end;
 
   { Multi-line text with processing commands
@@ -194,7 +196,7 @@ type
     which is text that may contain (a subset of) HTML.
 
     Note that TRichText instance is always tied to a corresponding
-    TFontFamily used to render it. @bold(Through the lifetime of TRichText,
+    TCastleFontFamily used to render it. @bold(Through the lifetime of TRichText,
     we assume that size and other properties of this font remain constant.) }
   TRichText = class(specialize TObjectList<TTextLine>)
   strict private
@@ -203,7 +205,7 @@ type
       Using this allows to avoid recalculating this many times,
       e.g. @link(Wrap) always calculates this as a by-product of it's work. }
     FWidth: Single;
-    FFont: TFontFamily;
+    FFont: TCastleFontFamily;
     FOwnsFont: boolean;
     procedure SetTextWithoutHtml(Text: TStrings);
     procedure SetTextWithHtml(Text: TStrings);
@@ -211,9 +213,9 @@ type
     function BeginProcessing(const InitialColor: TCastleColor): TTextLine.TPrintState;
     procedure EndProcessing(var State: TTextLine.TPrintState);
   public
-    constructor Create(const AFont: TCastleFont;
+    constructor Create(const AFont: TCastleAbstractFont;
       const Text: TStrings; const Html: boolean);
-    constructor Create(const AFont: TCastleFont;
+    constructor Create(const AFont: TCastleAbstractFont;
       const S: string; const Html: boolean);
     destructor Destroy; override;
     function Width: Single;
@@ -228,16 +230,16 @@ type
 implementation
 
 uses SysUtils, StrUtils, Math,
-  CastleUtils, CastleStringUtils, CastleLog, CastleUnicode;
+  CastleUtils, CastleStringUtils, CastleLog, CastleUnicode, CastleComponentSerialize;
 
-{ TFontFamily ------------------------------------------------------------ }
+{ TCastleFontFamily ------------------------------------------------------------ }
 
-constructor TFontFamily.Create(AOwner: TComponent);
+constructor TCastleFontFamily.Create(AOwner: TComponent);
 begin
   inherited;
 end;
 
-destructor TFontFamily.Destroy;
+destructor TCastleFontFamily.Destroy;
 begin
   // this will free FXxxFont if needed
   RegularFont := nil;
@@ -247,7 +249,7 @@ begin
   inherited;
 end;
 
-procedure TFontFamily.SetRegularFont(const Value: TCastleFont);
+procedure TCastleFontFamily.SetRegularFont(const Value: TCastleAbstractFont);
 begin
   if FRegularFont <> Value then
   begin
@@ -259,7 +261,7 @@ begin
   end;
 end;
 
-procedure TFontFamily.SetBoldFont(const Value: TCastleFont);
+procedure TCastleFontFamily.SetBoldFont(const Value: TCastleAbstractFont);
 begin
   if FBoldFont <> Value then
   begin
@@ -271,7 +273,7 @@ begin
   end;
 end;
 
-procedure TFontFamily.SetItalicFont(const Value: TCastleFont);
+procedure TCastleFontFamily.SetItalicFont(const Value: TCastleAbstractFont);
 begin
   if FItalicFont <> Value then
   begin
@@ -283,7 +285,7 @@ begin
   end;
 end;
 
-procedure TFontFamily.SetBoldItalicFont(const Value: TCastleFont);
+procedure TCastleFontFamily.SetBoldItalicFont(const Value: TCastleAbstractFont);
 begin
   if FBoldItalicFont <> Value then
   begin
@@ -295,7 +297,7 @@ begin
   end;
 end;
 
-procedure TFontFamily.Notification(AComponent: TComponent; Operation: TOperation);
+procedure TCastleFontFamily.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   inherited;
 
@@ -310,7 +312,7 @@ begin
     BoldItalicFont := nil;
 end;
 
-procedure TFontFamily.PrepareResources;
+procedure TCastleFontFamily.PrepareResources;
 begin
   if FRegularFont <> nil then
     FRegularFont.PrepareResources;
@@ -322,7 +324,7 @@ begin
     FBoldItalicFont.PrepareResources;
 end;
 
-procedure TFontFamily.GLContextClose;
+procedure TCastleFontFamily.GLContextClose;
 begin
   if FRegularFont <> nil then
     FRegularFont.GLContextClose;
@@ -334,7 +336,7 @@ begin
     FBoldItalicFont.GLContextClose;
 end;
 
-procedure TFontFamily.SubFontCustomizeBegin;
+procedure TCastleFontFamily.SubFontCustomizeBegin;
 begin
   if (Size <> 0) or CustomizeOutline then
   begin
@@ -350,13 +352,13 @@ begin
   end;
 end;
 
-procedure TFontFamily.SubFontCustomizeEnd;
+procedure TCastleFontFamily.SubFontCustomizeEnd;
 begin
   if Size <> 0 then
     SubFont.PopProperties;
 end;
 
-procedure TFontFamily.Print(const X, Y: Single; const Color: TCastleColor;
+procedure TCastleFontFamily.Print(const X, Y: Single; const Color: TCastleColor;
   const S: string);
 begin
   SubFontCustomizeBegin;
@@ -364,35 +366,35 @@ begin
   SubFontCustomizeEnd;
 end;
 
-function TFontFamily.TextWidth(const S: string): Single;
+function TCastleFontFamily.TextWidth(const S: string): Single;
 begin
   SubFontCustomizeBegin;
   Result := SubFont.TextWidth(S);
   SubFontCustomizeEnd;
 end;
 
-function TFontFamily.TextHeight(const S: string): Single;
+function TCastleFontFamily.TextHeight(const S: string): Single;
 begin
   SubFontCustomizeBegin;
   Result := SubFont.TextHeight(S);
   SubFontCustomizeEnd;
 end;
 
-function TFontFamily.TextHeightBase(const S: string): Single;
+function TCastleFontFamily.TextHeightBase(const S: string): Single;
 begin
   SubFontCustomizeBegin;
   Result := SubFont.TextHeightBase(S);
   SubFontCustomizeEnd;
 end;
 
-function TFontFamily.TextMove(const S: string): TVector2;
+function TCastleFontFamily.TextMove(const S: string): TVector2;
 begin
   SubFontCustomizeBegin;
   Result := SubFont.TextMove(S);
   SubFontCustomizeEnd;
 end;
 
-function TFontFamily.SubFont(const ABold, AItalic: boolean): TCastleFont;
+function TCastleFontFamily.SubFont(const ABold, AItalic: boolean): TCastleAbstractFont;
 begin
   if ABold and AItalic and (BoldItalicFont <> nil) then
     Result := BoldItalicFont else
@@ -402,15 +404,15 @@ begin
     Result := ItalicFont else
   if RegularFont <> nil then
     Result := RegularFont else
-    raise Exception.Create('You must set at least RegularFont of TFontFamily to use it for processing and rendering');
+    raise Exception.Create('You must set at least RegularFont of TCastleFontFamily to use it for processing and rendering');
 end;
 
-function TFontFamily.SubFont: TCastleFont;
+function TCastleFontFamily.SubFont: TCastleAbstractFont;
 begin
   Result := SubFont(Bold, Italic);
 end;
 
-function TFontFamily.EffectiveSize: Single;
+function TCastleFontFamily.EffectiveSize: Single;
 begin
   if Size <> 0 then
     Result := Size
@@ -418,7 +420,7 @@ begin
     Result := SubFont.EffectiveSize;
 end;
 
-procedure TFontFamily.Measure(out ARowHeight, ARowHeightBase, ADescend: Single);
+procedure TCastleFontFamily.Measure(out ARowHeight, ARowHeightBase, ADescend: Single);
 begin
   { See TCustomizedFont.Measure for explanation why we need to override
     Measure. }
@@ -437,7 +439,7 @@ end;
 
 { TTextPropertyString -------------------------------------------------------- }
 
-procedure TTextPropertyString.Print(const Font: TFontFamily;
+procedure TTextPropertyString.Print(const Font: TCastleFontFamily;
   const State: TTextLine.TPrintState; var X0: Single; const Y0: Single;
   var MaxDisplayChars: Integer);
 var
@@ -460,7 +462,7 @@ begin
   X0 += Font.TextWidth(S);
 end;
 
-function TTextPropertyString.Wrap(const Font: TFontFamily; const State: TTextLine.TPrintState;
+function TTextPropertyString.Wrap(const Font: TCastleFontFamily; const State: TTextLine.TPrintState;
   var CurrentWidth: Single; const MaxWidth: Single;
   const CurrentLine: TTextLine; const CurrentPropertyIndex: Integer): TTextLine;
 
@@ -559,26 +561,26 @@ begin
   end;
 end;
 
-function TTextPropertyString.Width(const Font: TFontFamily; const State: TTextLine.TPrintState): Single;
+function TTextPropertyString.Width(const Font: TCastleFontFamily; const State: TTextLine.TPrintState): Single;
 begin
   Result := Font.TextWidth(S);
 end;
 
-function TTextPropertyString.DisplayChars(const Font: TFontFamily; const State: TTextLine.TPrintState): Cardinal;
+function TTextPropertyString.DisplayChars(const Font: TCastleFontFamily; const State: TTextLine.TPrintState): Cardinal;
 begin
   Result := UTF8Length(S);
 end;
 
 { TTextPropertyCommand -------------------------------------------------------- }
 
-procedure TTextPropertyCommand.Print(const Font: TFontFamily;
+procedure TTextPropertyCommand.Print(const Font: TCastleFontFamily;
   const State: TTextLine.TPrintState; var X0: Single; const Y0: Single;
   var MaxDisplayChars: Integer);
 begin
   UpdateState(Font, State);
 end;
 
-function TTextPropertyCommand.Wrap(const Font: TFontFamily; const State: TTextLine.TPrintState;
+function TTextPropertyCommand.Wrap(const Font: TCastleFontFamily; const State: TTextLine.TPrintState;
   var CurrentWidth: Single; const MaxWidth: Single;
   const CurrentLine: TTextLine; const CurrentPropertyIndex: Integer): TTextLine;
 begin
@@ -586,19 +588,19 @@ begin
   Result := nil;
 end;
 
-function TTextPropertyCommand.Width(const Font: TFontFamily; const State: TTextLine.TPrintState): Single;
+function TTextPropertyCommand.Width(const Font: TCastleFontFamily; const State: TTextLine.TPrintState): Single;
 begin
   UpdateState(Font, State);
   Result := 0;
 end;
 
-function TTextPropertyCommand.DisplayChars(const Font: TFontFamily; const State: TTextLine.TPrintState): Cardinal;
+function TTextPropertyCommand.DisplayChars(const Font: TCastleFontFamily; const State: TTextLine.TPrintState): Cardinal;
 begin
   UpdateState(Font, State);
   Result := 0;
 end;
 
-procedure TTextPropertyCommand.UpdateState(const Font: TFontFamily;
+procedure TTextPropertyCommand.UpdateState(const Font: TCastleFontFamily;
   const State: TTextLine.TPrintState);
 const
   { Chosen constant seems to match Google Chrome's <small> sizing.
@@ -698,7 +700,7 @@ end;
 
 { TTextLine ------------------------------------------------------------------ }
 
-constructor TTextLine.Create(const AFont: TFontFamily);
+constructor TTextLine.Create(const AFont: TCastleFontFamily);
 begin
   inherited Create(true);
   FFont := AFont;
@@ -744,23 +746,23 @@ end;
 
 { TRichText ------------------------------------------------------------------ }
 
-constructor TRichText.Create(const AFont: TCastleFont;
+constructor TRichText.Create(const AFont: TCastleAbstractFont;
   const Text: TStrings; const Html: boolean);
 begin
   inherited Create(true);
 
-  if AFont is TFontFamily then
+  if AFont is TCastleFontFamily then
   begin
-    FFont := AFont as TFontFamily;
+    FFont := AFont as TCastleFontFamily;
     FOwnsFont := false;
   end else
   begin
-    FFont := TFontFamily.Create(nil);
+    FFont := TCastleFontFamily.Create(nil);
     FFont.RegularFont := AFont;
     FOwnsFont := true;
     { Do not make this warning by default? Too talkative sometimes,
       esp. at every Print call,
-      and as HTML may be useful without TFontFamily sometimes.
+      and as HTML may be useful without TCastleFontFamily sometimes.
 
     if Html then
       WritelnWarning('HTML', 'Rendering HTML text with simple font (' +
@@ -774,7 +776,7 @@ begin
     SetTextWithoutHtml(Text);
 end;
 
-constructor TRichText.Create(const AFont: TCastleFont;
+constructor TRichText.Create(const AFont: TCastleAbstractFont;
   const S: string; const Html: boolean);
 var
   Text: TStringList;
@@ -1223,4 +1225,6 @@ begin
   finally EndProcessing(State) end;
 end;
 
+initialization
+  RegisterSerializableComponent(TCastleFontFamily, 'Font Family');
 end.

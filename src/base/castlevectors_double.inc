@@ -55,7 +55,7 @@ procedure TwoPlanesIntersectionLineDouble(const Plane0, Plane1: TVector4Double;
 var
   Plane0Dir: TVector3Double absolute Plane0;
   Plane1Dir: TVector3Double absolute Plane1;
-  NonZeroIndex, Index1, Index2: Integer;
+  NonZeroIndex, Index1, Index2: T3DAxis;
   PlaneWithNonZeroIndex1: PVector4Double;
   PlaneMultiply, Sum_Index2, Sum_3: Double;
 begin
@@ -71,7 +71,7 @@ begin
   { Since LineVector.Data[NonZeroIndex] <> 0, we know that we can find exactly
     one point on this line by assuming that Point.Data[NonZeroIndex] = 0. }
   Line0.Data[NonZeroIndex] := 0;
-  RestOf3dCoords(NonZeroIndex, Index1, Index2);
+  RestOf3DCoords(NonZeroIndex, Index1, Index2);
 
   { Now we must solve
       Plane0.Data[Index1] * Line0.Data[Index1] + Plane0.Data[Index2] * Line0.Data[Index2] + Plane0.Data[3] = 0

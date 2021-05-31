@@ -168,14 +168,12 @@ type
       determines what is visible in the left-bottom corner of the viewport.
       This matches the typical 2D drawing coordinates used throughout our engine.
       In other words, if the camera is at position (0,0,whatever),
-      then the (0,0) position in 2D is in the left-bottom corner of the scene manager
-      rectangle.
+      then the (0,0) position in 2D is in the left-bottom corner of the TCastleViewport.
 
       You can change it e.g. to (0.5,0.5) to move the camera to
       the middle of the viewport.
       In effect, if the camera is at position (0,0,whatever),
-      then the (0,0) position is in the center of the scene manager
-      rectangle.
+      then the (0,0) position is in the center of the TCastleViewport.
 
       Both values of @name make sense,
       it depends on the game type and how you prefer to think in 2D coordinates.
@@ -423,8 +421,7 @@ type
       Camera needs to know this to calculate @link(Frustum),
       which in turn allows rendering code to use frustum culling.
 
-      In normal circumstances, if you use our @italic(scene manager)
-      and viewport (@link(TCastleViewport)) for rendering,
+      In normal circumstances, if you use @link(TCastleViewport) for rendering,
       this is automatically correctly set for you. }
     property ProjectionMatrix: TMatrix4
       read FProjectionMatrix write SetProjectionMatrix;
@@ -650,6 +647,7 @@ type
     function GetProjectionMatrix: TMatrix4;
     procedure SetProjectionMatrix(const Value: TMatrix4);
     function GetFrustum: TFrustum;
+    function GoodModelBox: TBox3D;
   protected
     { Needed for niMouseDragging navigation.
       Checking MouseDraggingStarted means that we handle only dragging that
@@ -791,9 +789,8 @@ type
       Camera needs to know this to calculate @link(Frustum),
       which in turn allows rendering code to use frustum culling.
 
-      In normal circumstances, if you use our @italic(scene manager)
-      and viewport (@link(TCastleViewport)) for rendering,
-      this is automatically correctly set for you. }
+      In normal circumstances, if you use TCastleViewport for rendering,
+      this is automatically correctly set. }
     property ProjectionMatrix: TMatrix4
       read GetProjectionMatrix write SetProjectionMatrix; deprecated 'use Viewport.Camera.ProjectionMatrix';
 
@@ -1093,10 +1090,9 @@ type
       can be created by Collision.proxy in VRML/X3D). }
     property ClimbHeight: Single read FClimbHeight write FClimbHeight;
 
-    { Approximate size of 3D world that is viewed, used by @link(TCastleExamineNavigation)
-      descendant.
-      It is crucial to set this to make @link(TCastleExamineNavigation) behave OK.
-
+    { Approximate size of 3D world that is viewed,
+      used by @link(TCastleExamineNavigation) descendant.
+      Determines speed of movement and zooming.
       Initially this is TBox3D.Empty. }
     property ModelBox: TBox3D read FModelBox write SetModelBox;
 
@@ -1129,6 +1125,7 @@ type
       FRotationEnabled: Boolean;
       FZoomEnabled: Boolean;
       FDragMoveSpeed, FKeysMoveSpeed: Single;
+      FExactMovement: Boolean;
       { Speed of rotations. Always zero when RotationAccelerate = false.
 
         This could be implemented as a quaternion,
@@ -1155,7 +1152,7 @@ type
       FInput_Home: TInputShortcut;
       FInput_StopRotating: TInputShortcut;
 
-      FMouseButtonRotate, FMouseButtonMove, FMouseButtonZoom: TMouseButton;
+      FMouseButtonRotate, FMouseButtonMove, FMouseButtonZoom: TCastleMouseButton;
 
     procedure SetRotationsAnim(const Value: TVector3);
     function GetRotations: TQuaternion;
@@ -1188,9 +1185,7 @@ type
     function GetMouseNavigation: boolean;
     procedure SetMouseNavigation(const Value: boolean);
 
-    { Center of rotation and scale, relative to @link(Translation).
-      Zero if @link(ModelBox) empty,
-      otherwise @link(ModelBox) middle. }
+    { Center of rotation and scale, relative to @link(Translation). }
     function CenterOfRotation: TVector3;
 
     function GetExamineVectors: TExamineVectors;
@@ -1203,7 +1198,7 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-
+    function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
     function AllowSuspendForInput: boolean; override;
@@ -1214,35 +1209,11 @@ type
     function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
     function SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
 
-    { Enable rotating the camera around the model by user input.
-      When @false, no keys / mouse dragging / 3D mouse etc. can cause a rotation.
-
-      Note that this doesn't prevent from rotating by code, e.g. by setting
-      @link(Rotations) property or calling @link(SetView). }
-    property RotationEnabled: Boolean read FRotationEnabled write FRotationEnabled default true;
-
-    { Enable moving the camera by user input.
-      When @false, no keys / mouse dragging / 3D mouse etc. can make a move.
-
-      Note that this doesn't prevent from moving by code, e.g. by setting
-      @link(Translation) property or calling @link(SetView). }
-    property MoveEnabled: Boolean read FMoveEnabled write FMoveEnabled default true;
-
-    { Enable zooming the camera on the model by user input.
-      Depending on the projection, zooming either moves camera or scales
-      the projection size.
-      When @false, no keys / mouse dragging / 3d mouse etc. can make a zoom.
-
-      Note that this doesn't prevent from zooming by code, e.g. by setting
-      @link(ScaleFactor) property (to scale the projection size)
-      or calling @link(SetView) (to move closer to the model). }
-    property ZoomEnabled: Boolean read FZoomEnabled write FZoomEnabled default true;
-
     { Drag with this mouse button to rotate the model.
 
       The default values for MouseButtonRotate (left),
       MouseButtonMove (middle), MouseButtonZoom (right)
-      were chosen to 1. match as much as possible behaviour
+      were chosen to 1. match as much as possible behavior
       of other programs (like Blender) and
       2. be accessible to all users (e.g. not everyone has middle
       mouse button in comfortable place, like laptop+touchpad users).
@@ -1257,14 +1228,14 @@ type
           pressing middle mouse button.)
       )
     }
-    property MouseButtonRotate: TMouseButton
-      read FMouseButtonRotate write FMouseButtonRotate default mbLeft;
+    property MouseButtonRotate: TCastleMouseButton
+      read FMouseButtonRotate write FMouseButtonRotate default buttonLeft;
     { Drag with this mouse button to move the model. }
-    property MouseButtonMove: TMouseButton
-      read FMouseButtonMove write FMouseButtonMove default mbMiddle;
+    property MouseButtonMove: TCastleMouseButton
+      read FMouseButtonMove write FMouseButtonMove default buttonMiddle;
     { Drag with this mouse button to zoom the model (look closer / further). }
-    property MouseButtonZoom: TMouseButton
-      read FMouseButtonZoom write FMouseButtonZoom default mbRight;
+    property MouseButtonZoom: TCastleMouseButton
+      read FMouseButtonZoom write FMouseButtonZoom default buttonRight;
 
     { Current rotation of the model.
       Rotation is done around ModelBox middle (with @link(Translation) added). }
@@ -1377,11 +1348,52 @@ type
       write FRotationSpeed
       default DefaultRotationSpeed;
   published
+    { Enable rotating the camera around the model by user input.
+      When @false, no keys / mouse dragging / 3D mouse etc. can cause a rotation.
+
+      Note that this doesn't prevent from rotating by code, e.g. by setting
+      @link(Rotations) property or calling @link(SetView). }
+    property RotationEnabled: Boolean read FRotationEnabled write FRotationEnabled default true;
+
+    { Enable moving the camera by user input.
+      When @false, no keys / mouse dragging / 3D mouse etc. can make a move.
+
+      Note that this doesn't prevent from moving by code, e.g. by setting
+      @link(Translation) property or calling @link(SetView). }
+    property MoveEnabled: Boolean read FMoveEnabled write FMoveEnabled default true;
+
+    { Enable zooming the camera on the model by user input.
+      Depending on the projection, zooming either moves camera or scales
+      the projection size.
+      When @false, no keys / mouse dragging / 3d mouse etc. can make a zoom.
+
+      Note that this doesn't prevent from zooming by code, e.g. by setting
+      @link(ScaleFactor) property (to scale the projection size)
+      or calling @link(SetView) (to move closer to the model). }
+    property ZoomEnabled: Boolean read FZoomEnabled write FZoomEnabled default true;
+
     { When @true, rotation keys make the rotation faster, and the model keeps
       rotating even when you don't hold any keys. When @false, you have to
       hold rotation keys to rotate. }
     property RotationAccelerate: boolean
       read FRotationAccelerate write SetRotationAccelerate default true;
+
+    { In orthographic projection with standard direction/up,
+      move the camera exactly as many units as the mouse position change indicates.
+      Makes the movemement in standard orthographic view most natural. }
+    property ExactMovement: Boolean read FExactMovement write FExactMovement default true;
+  end;
+
+  { Navigation most suitable for 2D viewports
+    (with orthographic projection and standard direction/up: -Z/+Y). }
+  TCastle2DNavigation = class(TCastleExamineNavigation)
+  public
+    constructor Create(AOwner: TComponent); override;
+
+    property MouseButtonMove default buttonLeft;
+    property MouseButtonZoom default buttonMiddle;
+  published
+    property RotationEnabled default false;
   end;
 
   TCastleWalkNavigation = class;
@@ -1602,7 +1614,7 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-
+    function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
     function AllowSuspendForInput: boolean; override;
@@ -2207,6 +2219,17 @@ begin
   {$endif}
 end;
 
+{ TCastle2DNavigation -------------------------------------------------------- }
+
+constructor TCastle2DNavigation.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+
+  RotationEnabled := false;
+  MouseButtonMove := buttonLeft;
+  MouseButtonZoom := buttonMiddle;
+end;
+
 { TCastlePerspective --------------------------------------------------------- }
 
 constructor TCastlePerspective.Create(AOwner: TComponent);
@@ -2468,7 +2491,7 @@ end;
 procedure TCastleCamera.VisibleChange;
 begin
   if InternalViewport <> nil then
-    InternalViewport.VisibleChange([chCamera]);
+    (InternalViewport as TCastleViewport).InternalCameraChanged;
 end;
 
 function TCastleCamera.Matrix: TMatrix4;
@@ -2855,18 +2878,6 @@ begin
 end;
 
 function TCastleNavigation.ReallyEnableMouseDragging: boolean;
-
-  function ViewportItemsDragging(const V: TCastleViewport): Boolean;
-  begin
-    { Do not navigate by dragging (regardless of niMouseDragging in Navigation.Input)
-      when we're already dragging a 3D item.
-      This means that if you drag X3D sensors like TouchSensor, then your
-      dragging will not simultaneously also affect the navigation (which would be very
-      disorienting). }
-
-    Result := (V.Items <> nil) and V.Items.Dragging;
-  end;
-
 begin
   Result := (niMouseDragging in Input) and
     { Is mouse dragging allowed by viewport.
@@ -2875,7 +2886,7 @@ begin
       It is used to prevent camera navigation by
       dragging when we already drag a 3D item (like X3D TouchSensor). }
     ( (InternalViewport = nil) or
-      not ViewportItemsDragging(InternalViewport as TCastleViewport) );
+      not (InternalViewport as TCastleViewport).InternalPointingDeviceDragging );
 end;
 
 function TCastleNavigation.Press(const Event: TInputPressRelease): boolean;
@@ -3040,6 +3051,21 @@ begin
   Result := Camera.Frustum;
 end;
 
+function TCastleNavigation.GoodModelBox: TBox3D;
+begin
+  { Try hard to return non-empty bounding box, otherwise examine navigation
+    doesn't work sensibly, as movement and zooming speed must depend on box
+    sizes.
+    This is important in case you use TCastleExamineNavigation without
+    setting it's ModelBox explicitly, which happens e.g. when CGE editor
+    adds TCastleExamineNavigation. }
+  if FModelBox.IsEmpty and
+     (InternalViewport <> nil) then
+    Result := (InternalViewport as TCastleViewport).Items.BoundingBox
+  else
+    Result := FModelBox;
+end;
+
 { TCastleExamineNavigation ------------------------------------------------------------ }
 
 constructor TCastleExamineNavigation.Create(AOwner: TComponent);
@@ -3047,9 +3073,9 @@ type
   T3BoolKeys = array [0..2, boolean] of TKey;
 const
   DefaultInputs_Move: T3BoolKeys =
-    ((K_Left, K_Right), (K_Down, K_Up), (K_None, K_None));
+    ((keyArrowLeft, keyArrowRight), (keyArrowDown, keyArrowUp), (keyNone, keyNone));
   DefaultInputs_Rotate: T3BoolKeys =
-    ((K_Up, K_Down), (K_Left, K_Right), (K_None, K_None));
+    ((keyArrowUp, keyArrowDown), (keyArrowLeft, keyArrowRight), (keyNone, keyNone));
   CoordToStr: array [0..2] of string = ('X', 'Y', 'Z');
   IncreaseToStr: array [boolean] of string = ('Dec', 'Inc');
 var
@@ -3072,9 +3098,10 @@ begin
   FPinchGestureRecognizer := TCastlePinchPanGestureRecognizer.Create;
   FPinchGestureRecognizer.OnGestureChanged := @OnGestureRecognized;
 
-  FMouseButtonRotate := mbLeft;
-  FMouseButtonMove := mbMiddle;
-  FMouseButtonZoom := mbRight;
+  FMouseButtonRotate := buttonLeft;
+  FMouseButtonMove := buttonMiddle;
+  FMouseButtonZoom := buttonRight;
+  FExactMovement := true;
 
   for I := 0 to 2 do
     for B := false to true do
@@ -3095,22 +3122,22 @@ begin
   FInput_ScaleLarger  := TInputShortcut.Create(Self);
    Input_ScaleLarger.Name := 'Input_ScaleLarger';
    Input_ScaleLarger.SetSubComponent(true);
-   Input_ScaleLarger.Assign(K_Numpad_Plus, K_None, '+');
+   Input_ScaleLarger.Assign(keyNumpadPlus, keyNone, '+');
 
   FInput_ScaleSmaller := TInputShortcut.Create(Self);
    Input_ScaleSmaller.Name := 'Input_ScaleSmaller';
    Input_ScaleSmaller.SetSubComponent(true);
-   Input_ScaleSmaller.Assign(K_Numpad_Minus, K_None, '-');
+   Input_ScaleSmaller.Assign(keyNumpadMinus, keyNone, '-');
 
   FInput_Home := TInputShortcut.Create(Self);
    Input_Home.Name := 'Input_Home';
    Input_Home.SetSubComponent(true);
-   Input_Home.Assign(K_None);
+   Input_Home.Assign(keyNone);
 
   FInput_StopRotating := TInputShortcut.Create(Self);
    Input_StopRotating.Name := 'Input_StopRotating';
    Input_StopRotating.SetSubComponent(true);
-   Input_StopRotating.Assign(K_Space, K_None, '', true, mbLeft);
+   Input_StopRotating.Assign(keySpace, keyNone, '', true, buttonLeft);
 end;
 
 destructor TCastleExamineNavigation.Destroy;
@@ -3243,9 +3270,10 @@ begin
 
   if HandleInput and (niNormal in Input) then
   begin
-    if ModelBox.IsEmptyOrZero then
-      MoveChange := KeysMoveSpeed * SecondsPassed else
-      MoveChange := KeysMoveSpeed * ModelBox.AverageSize * SecondsPassed;
+    if GoodModelBox.IsEmptyOrZero then
+      MoveChange := KeysMoveSpeed * SecondsPassed
+    else
+      MoveChange := KeysMoveSpeed * GoodModelBox.AverageSize * SecondsPassed;
 
     ModsDown := ModifiersDown(Container.Pressed);
 
@@ -3345,10 +3373,10 @@ var
 begin
   if not (ni3dMouse in Input) then Exit(false);
   if not MoveEnabled then Exit(false);
-  if FModelBox.IsEmptyOrZero then Exit(false);
+  if GoodModelBox.IsEmptyOrZero then Exit(false);
   Result := true;
 
-  Size := FModelBox.AverageSize;
+  Size := GoodModelBox.AverageSize;
   MoveSize := Length * SecondsPassed / 5000;
 
   if Abs(X) > 5 then   { left / right }
@@ -3483,11 +3511,14 @@ begin
 end;
 
 function TCastleExamineNavigation.CenterOfRotation: TVector3;
+var
+  B: TBox3D;
 begin
-  if FModelBox.IsEmpty then
+  B := GoodModelBox;
+  if B.IsEmpty then
     Result := Vector3(0, 0, 0) { any dummy value }
   else
-    Result := FModelBox.Center;
+    Result := B.Center;
 end;
 
 function TCastleExamineNavigation.Press(const Event: TInputPressRelease): boolean;
@@ -3510,8 +3541,12 @@ begin
     if Input_StopRotating.IsEvent(Event) then
     begin
       { If StopRotating was useless, do not mark the event as "handled".
-        This is nice, otherwise on an empty TCastleControl/TCastleWindow mouse clicks
-        are "mysteriously" intercepted, since the default scene manager creates
+        This is necessary to avoid having mouse clicks "stolen" by the TCastleExamineNavigation
+        when an empty TCastleViewport is being used
+        (and thus, mouse clicks could instead be used by other control).
+        It was necessary with deprecated TCastleControl/TCastleWindow:
+        on empty window, mouse clicks would be "mysteriously" intercepted,
+        since the default scene manager creates
         examine camera, and it captures left mouse click as Input_StopRotating. }
       if StopRotating then
         Result := ExclusiveEvents;
@@ -3556,8 +3591,10 @@ function TCastleExamineNavigation.Zoom(const Factor: Single): boolean;
 var
   Size: Single;
   OldTranslation, OldPosition: TVector3;
+  B: TBox3D;
 begin
-  Result := not FModelBox.IsEmptyOrZero;
+  B := GoodModelBox;
+  Result := not B.IsEmptyOrZero;
   if Result then
   begin
     if OrthographicProjection then
@@ -3568,7 +3605,7 @@ begin
     end else
     begin
       { zoom by changing Translation }
-      Size := FModelBox.AverageSize;
+      Size := B.AverageSize;
 
       OldTranslation := Translation;
       OldPosition := Camera.Position;
@@ -3580,8 +3617,8 @@ begin
         so zoomin in/out inside the box is still always allowed.
         See http://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=24 }
       if (Factor > 0) and
-         (FModelBox.PointDistance(Camera.Position) >
-          FModelBox.PointDistance(OldPosition)) then
+         (B.PointDistance(Camera.Position) >
+          B.PointDistance(OldPosition)) then
       begin
         Translation := OldTranslation;
         Exit(false);
@@ -3664,7 +3701,7 @@ var
   end;
 
 var
-  DraggingMouseButton: TMouseButton;
+  DraggingMouseButton: TCastleMouseButton;
 begin
   Result := inherited;
   if Result then Exit;
@@ -3691,16 +3728,16 @@ begin
 
   { Look at Container.MousePressed and ModsDown to determine
     which mouse button is "dragging" now. }
-  if (mbLeft in Container.MousePressed) and (ModsDown = []) then
-    DraggingMouseButton := mbLeft
+  if (buttonLeft in Container.MousePressed) and (ModsDown = []) then
+    DraggingMouseButton := buttonLeft
   else
-  if ((mbRight in Container.MousePressed) and (ModsDown = [])) or
-     ((mbLeft in Container.MousePressed) and (ModsDown = [mkCtrl])) then
-    DraggingMouseButton := mbRight
+  if ((buttonRight in Container.MousePressed) and (ModsDown = [])) or
+     ((buttonLeft in Container.MousePressed) and (ModsDown = [mkCtrl])) then
+    DraggingMouseButton := buttonRight
   else
-  if ((mbMiddle in Container.MousePressed) and (ModsDown = [])) or
-     ((mbLeft in Container.MousePressed) and (ModsDown = [mkShift])) then
-    DraggingMouseButton := mbMiddle
+  if ((buttonMiddle in Container.MousePressed) and (ModsDown = [])) or
+     ((buttonLeft in Container.MousePressed) and (ModsDown = [mkShift])) then
+    DraggingMouseButton := buttonMiddle
   else
     Exit;
 
@@ -3721,14 +3758,29 @@ begin
 
   { Moving uses box size, so requires non-empty box. }
   if MoveEnabled and
-     (not FModelBox.IsEmpty) and
+     (not GoodModelBox.IsEmpty) and
      (MouseButtonMove = DraggingMouseButton) then
   begin
-    Size := FModelBox.AverageSize;
-    Translation := Translation - Vector3(
-      DragMoveSpeed * Size * (Event.OldPosition[0] - Event.Position[0]) / (2*MoveDivConst),
-      DragMoveSpeed * Size * (Event.OldPosition[1] - Event.Position[1]) / (2*MoveDivConst),
-      0);
+    if ExactMovement and
+       (Camera.ProjectionType = ptOrthographic) and
+       TVector3.Equals(Camera.Direction, DefaultCameraDirection) and
+       TVector3.Equals(Camera.Up, DefaultCameraUp) and
+       (InternalViewport <> nil) then
+    begin
+      Translation := Translation + Vector3(
+        (InternalViewport as TCastleViewport).PositionTo2DWorld(Event.Position, true) -
+        (InternalViewport as TCastleViewport).PositionTo2DWorld(Event.OldPosition, true),
+        0);
+    end else
+    begin
+      Size := GoodModelBox.AverageSize;
+      Translation := Translation - Vector3(
+        DragMoveSpeed * Size * (Event.OldPosition[0] - Event.Position[0])
+        / (2 * MoveDivConst),
+        DragMoveSpeed * Size * (Event.OldPosition[1] - Event.Position[1])
+        / (2 * MoveDivConst),
+        0);
+    end;
     Result := ExclusiveEvents;
   end;
 end;
@@ -3758,9 +3810,9 @@ begin
     Zoom(Factor / ZoomScale);
   end;
 
-  if MoveEnabled and (not FModelBox.IsEmpty) and (Recognizer.Gesture = gtPan) then
+  if MoveEnabled and (not GoodModelBox.IsEmpty) and (Recognizer.Gesture = gtPan) then
   begin
-    Size := FModelBox.AverageSize;
+    Size := GoodModelBox.AverageSize;
     Translation := Translation - Vector3(
       DragMoveSpeed * Size * (Recognizer.PanOldOffset.X - Recognizer.PanOffset.X) / (2*MoveDivConst),
       DragMoveSpeed * Size * (Recognizer.PanOldOffset.Y - Recognizer.PanOffset.Y) / (2*MoveDivConst),
@@ -3802,6 +3854,17 @@ begin
     Result := ntTurntable
   else
     Result := ntExamine;
+end;
+
+function TCastleExamineNavigation.PropertySections(
+  const PropertyName: String): TPropertySections;
+begin
+  if (PropertyName = 'MoveEnabled') or
+     (PropertyName = 'RotationEnabled') or
+     (PropertyName = 'ZoomEnabled') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 { TCastleMouseLookNavigation ------------------------------------------------- }
@@ -3924,24 +3987,24 @@ begin
   FInput_Crouch                  := TInputShortcut.Create(Self);
   FInput_Run                     := TInputShortcut.Create(Self);
 
-  Input_Forward                 .Assign(K_W, K_Up);
-  Input_Backward                .Assign(K_S, K_Down);
-  Input_LeftRotate              .Assign(K_Left);
-  Input_RightRotate             .Assign(K_Right);
-  Input_LeftStrafe              .Assign(K_A);
-  Input_RightStrafe             .Assign(K_D);
-  Input_UpRotate                .Assign(K_None);
-  Input_DownRotate              .Assign(K_None);
-  Input_IncreasePreferredHeight .Assign(K_Insert);
-  Input_DecreasePreferredHeight .Assign(K_Delete);
-  Input_GravityUp               .Assign(K_None);
+  Input_Forward                 .Assign(keyW, keyArrowUp);
+  Input_Backward                .Assign(keyS, keyArrowDown);
+  Input_LeftRotate              .Assign(keyArrowLeft);
+  Input_RightRotate             .Assign(keyArrowRight);
+  Input_LeftStrafe              .Assign(keyA);
+  Input_RightStrafe             .Assign(keyD);
+  Input_UpRotate                .Assign(keyNone);
+  Input_DownRotate              .Assign(keyNone);
+  Input_IncreasePreferredHeight .Assign(keyInsert);
+  Input_DecreasePreferredHeight .Assign(keyDelete);
+  Input_GravityUp               .Assign(keyNone);
   { For move speed we use also character codes +/-, as numpad
     may be hard to reach on some keyboards (e.g. on laptops). }
-  Input_MoveSpeedInc            .Assign(K_Numpad_Plus , K_None, '+');
-  Input_MoveSpeedDec            .Assign(K_Numpad_Minus, K_None, '-');
-  Input_Jump                    .Assign(K_Space);
-  Input_Crouch                  .Assign(K_C);
-  Input_Run                     .Assign(K_Shift);
+  Input_MoveSpeedInc            .Assign(keyNumpadPlus , keyNone, '+');
+  Input_MoveSpeedDec            .Assign(keyNumpadMinus, keyNone, '-');
+  Input_Jump                    .Assign(keySpace);
+  Input_Crouch                  .Assign(keyC);
+  Input_Run                     .Assign(keyShift);
 
   Input_Forward                .SetSubComponent(true);
   Input_Backward               .SetSubComponent(true);
@@ -4858,7 +4921,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
     else
       MoveSizeY := (Abs(Delta[1]) - Tolerance) * MouseDraggingMoveSpeed;
 
-    if mbLeft in Container.MousePressed then
+    if buttonLeft in Container.MousePressed then
     begin
       if Delta[1] < -Tolerance then
         MoveHorizontal(-MoveSizeY * SecondsPassed, 1); { forward }
@@ -4868,7 +4931,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
       if Abs(Delta[0]) > Tolerance then
         RotateHorizontal(-Delta[0] * SecondsPassed * MouseDraggingHorizontalRotationSpeed); { rotate }
     end
-    else if mbRight in Container.MousePressed then
+    else if buttonRight in Container.MousePressed then
     begin
       if Delta[0] < -Tolerance then
       begin
@@ -4983,7 +5046,7 @@ begin
     { mouse dragging navigation }
     if (MouseDraggingStarted <> -1) and
        ReallyEnableMouseDragging and
-       ((mbLeft in Container.MousePressed) or (mbRight in Container.MousePressed)) and
+       ((buttonLeft in Container.MousePressed) or (buttonRight in Container.MousePressed)) and
        { Enable dragging only when no modifiers (except Input_Run,
          which must be allowed to enable running) are pressed.
          This allows application to handle e.g. ctrl + dragging
@@ -5002,7 +5065,9 @@ begin
   FIsWalkingOnTheGround := false;
   FIsOnTheGround := false;
 
-  GravityUpdate;
+  { Disable gravity in design mode (in the future we may add optional way to enable them) }
+  if not CastleDesignMode then
+    GravityUpdate;
 end;
 
 function TCastleWalkNavigation.Jump: boolean;
@@ -5061,7 +5126,7 @@ function TCastleWalkNavigation.Press(const Event: TInputPressRelease): boolean;
   end;
 
 const
-  MouseWheelScrollSpeed = 0.03;
+  MouseWheelScrollSpeed = Pi * 3 / 180.0;
 begin
   Result := inherited;
   if Result then Exit;
@@ -5141,7 +5206,7 @@ end;
 function TCastleWalkNavigation.SensorRotation(const X, Y, Z, Angle: Double;
   const SecondsPassed: Single): boolean;
 const
-  SpeedSensor = 100;
+  SpeedSensor = 2;
 begin
   if not (ni3dMouse in Input) then Exit(false);
   Result := true;
@@ -5289,6 +5354,16 @@ begin
     Result := ntWalk
   else
     Result := ntFly;
+end;
+
+function TCastleWalkNavigation.PropertySections(
+  const PropertyName: String): TPropertySections;
+begin
+  if (PropertyName = 'Gravity') or
+     (PropertyName = 'MoveSpeed') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 { global ------------------------------------------------------------ }
@@ -5589,5 +5664,6 @@ end;
 
 initialization
   RegisterSerializableComponent(TCastleExamineNavigation, 'Examine Navigation');
+  RegisterSerializableComponent(TCastle2DNavigation, '2D Navigation');
   RegisterSerializableComponent(TCastleWalkNavigation, 'Walk Navigation');
 end.

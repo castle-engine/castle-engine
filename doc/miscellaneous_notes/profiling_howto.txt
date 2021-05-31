@@ -1,2 +1,0 @@
-This information was moved to wiki:
-https://github.com/castle-engine/castle-engine/wiki/Profiling-Using-Valgrind

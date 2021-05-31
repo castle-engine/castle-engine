@@ -71,7 +71,7 @@ type
       const AUtils: TOcclusionQueryUtilsRenderer);
     procedure Render(const RenderShape: TShapeProcedure;
       const Params: TRenderParams;
-      const RenderCameraKnown: boolean; const RenderCameraPosition: TVector3);
+      const RenderCameraPosition: TVector3);
     function WasLastVisible(const Shape: TGLShape): boolean;
   end;
 
@@ -79,7 +79,7 @@ implementation
 
 uses SysUtils,
   CastleClassUtils, CastleInternalShapeOctree, CastleGLUtils,
-  CastleRendererBaseTypes;
+  CastleRenderOptions, CastleRenderContext;
 
 { TOcclusionQueryUtilsRenderer ------------------------------------------------- }
 
@@ -150,7 +150,7 @@ begin
 
     glBindBuffer(GL_ARRAY_BUFFER, VboVertex);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VboIndex);
-    TGLSLProgram.Current := SimplestProgram;
+    RenderContext.CurrentProgram := SimplestProgram;
 
     if GLFeatures.EnableFixedFunction then
     begin
@@ -199,7 +199,7 @@ begin
     if SimplestProgram <> nil then
     begin
       AttributeVertex.DisableArray;
-      TGLSLProgram.Current := nil;
+      RenderContext.CurrentProgram := nil;
     end;
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -357,7 +357,7 @@ end;
 procedure THierarchicalOcclusionQueryRenderer.Render(
   const RenderShape: TShapeProcedure;
   const Params: TRenderParams;
-  const RenderCameraKnown: boolean; const RenderCameraPosition: TVector3);
+  const RenderCameraPosition: TVector3);
 {$ifndef OpenGLES}
 var
   { Stack of TShapeOctreeNode.
@@ -391,10 +391,7 @@ var
       { Push Node children onto TraversalStack.
         We want to Pop them front-first, so (since this is a stack)
         we want to push back first. }
-      if RenderCameraKnown then
-        Node.PushChildrenBackToFront(TraversalStack, RenderCameraPosition)
-      else
-        Node.PushChildren(TraversalStack);
+      Node.PushChildrenBackToFront(TraversalStack, RenderCameraPosition);
     end;
   end;
 

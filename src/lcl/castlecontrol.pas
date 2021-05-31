@@ -32,8 +32,12 @@ uses
 
 { Define this for new Lazarus that has Options (with ocoRenderAtDesignTime)
   (see issue https://bugs.freepascal.org/view.php?id=32026 ). }
-{$if LCL_FULLVERSION >= 1090000}
+{$ifdef PASDOC}
   {$define HAS_RENDER_AT_DESIGN_TIME}
+{$else}
+  {$if LCL_FULLVERSION >= 1090000}
+    {$define HAS_RENDER_AT_DESIGN_TIME}
+  {$endif}
 {$endif}
 
 const
@@ -54,7 +58,7 @@ type
     @link(TUIContainer.BackgroundColor Container.BackgroundColor).
   }
   TCastleControlBase = class(TCustomOpenGLControl)
-  private
+  strict private
     type
       { Non-abstract implementation of TUIContainer that cooperates with
         TCastleControlBase. }
@@ -117,7 +121,6 @@ type
 
     procedure SetMousePosition(const Value: TVector2);
     procedure SetAutoRedisplay(const Value: boolean);
-    class function GetMainContainer: TUIContainer;
 
     { Force DoUpdate and Paint (if invalidated) events to happen,
       if sufficient time (based on LimitFPS, that in this case acts like
@@ -189,6 +192,8 @@ type
       with respect to handling input, e.g. mouse move will be processed with
       a small delay). So we use MaxDesiredFPS to cap it. }
     procedure AggressiveUpdate;
+  private
+    class function GetMainContainer: TUIContainer;
   protected
     procedure DestroyHandle; override;
     procedure DoExit; override;
@@ -230,7 +235,7 @@ type
     function Pressed: TKeysPressed;
     { Mouse buttons currently pressed.
       See @link(TUIContainer.MousePressed) for details. }
-    function MousePressed: CastleKeysMouse.TMouseButtons;
+    function MousePressed: TCastleMouseButtons;
     procedure ReleaseAllKeysAndMouse;
 
     { Current mouse position.
@@ -482,7 +487,6 @@ type
 
   { Control to render everything (3D or 2D) with Castle Game Engine,
     with a default @link(TCastleSceneManager) instance already created for you.
-    This is the simplest way to render a 3D world with 2D controls above.
     Add your
     game stuff (descending from @link(TCastleTransform), like @link(TCastleScene))
     to the scene manager
@@ -496,7 +500,11 @@ type
 
     Note that if you don't plan to use the default @link(SceneManager)
     instance, then you should better create @link(TCastleControlBase) instead
-    of this class. }
+    of this class.
+
+    @deprecated This is deprecated, as such "control with default scene manager"
+    is an unnecessary API complication. Use instead TCastleControlBase
+    and just add there a TCastleViewport with FullSize = true, it is trivial. }
   TCastleControl = class(TCastleControlBase)
   private
     FSceneManager: TControlGameSceneManager;
@@ -588,7 +596,7 @@ implementation
 
 uses Math, Contnrs, LazUTF8, Clipbrd,
   CastleGLUtils, CastleStringUtils, X3DLoad, CastleLog,
-  CastleControls;
+  CastleControls, CastleRenderContext;
 
 // TODO: We never call Fps._Sleeping, so Fps.WasSleeping will be always false.
 // This may result in confusing Fps.ToString in case AutoRedisplay was false.
@@ -999,9 +1007,9 @@ end;
 
 procedure TCastleControlBase.UpdateShiftState(const Shift: TShiftState);
 begin
-  Pressed.Keys[K_Shift] := ssShift in Shift;
-  Pressed.Keys[K_Alt  ] := ssAlt   in Shift;
-  Pressed.Keys[K_Ctrl ] := ssCtrl  in Shift;
+  Pressed.Keys[keyShift] := ssShift in Shift;
+  Pressed.Keys[keyAlt  ] := ssAlt   in Shift;
+  Pressed.Keys[keyCtrl ] := ssCtrl  in Shift;
 end;
 
 procedure TCastleControlBase.KeyPressHandlerPress(Sender: TObject;
@@ -1084,7 +1092,7 @@ begin
 
   inherited KeyUp(Key, Shift); { LCL OnKeyUp before our callbacks }
 
-  if (MyKey <> K_None) or (MyKeyString <> '') then
+  if (MyKey <> keyNone) or (MyKeyString <> '') then
     if Container.EventRelease(InputKey(MousePosition, MyKey, MyKeyString)) then
       Key := 0; // handled
 end;
@@ -1092,7 +1100,7 @@ end;
 procedure TCastleControlBase.MouseDown(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
-  MyButton: CastleKeysMouse.TMouseButton;
+  MyButton: TCastleMouseButton;
 begin
   FMousePosition := Vector2(X, Height - 1 - Y);
 
@@ -1111,7 +1119,7 @@ end;
 procedure TCastleControlBase.MouseUp(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
-  MyButton: CastleKeysMouse.TMouseButton;
+  MyButton: TCastleMouseButton;
 begin
   FMousePosition := Vector2(X, Height - 1 - Y);
 
@@ -1245,7 +1253,7 @@ begin
     Mouse.CursorPos := NewCursorPos;
 end;
 
-function TCastleControlBase.MousePressed: CastleKeysMouse.TMouseButtons;
+function TCastleControlBase.MousePressed: TCastleMouseButtons;
 begin
   Result := Container.MousePressed;
 end;

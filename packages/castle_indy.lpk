@@ -9,44 +9,16 @@
       <SearchPaths>
         <IncludeFiles Value="../src/base"/>
         <OtherUnitFiles Value="../src/files/indy"/>
-        <UnitOutputDirectory Value="lib/castle_indy/$(TargetCPU)-$(TargetOS)/"/>
+        <UnitOutputDirectory Value="lib/castle_indy/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
-      <Conditionals Value="if GetProjValue('FPC_FULLVERSION') >= 30101 then
-begin
-  // do not show
-  // Note: Private type &quot;TCustomPointersEnumerator$2&lt;CASTLEVECTORSINTERNALSINGLE.TGenericVector2,CASTLEVECTORS.TCustomList$1$crc1D7BB6F0.PT>.T&quot; never used
-  CustomOptions += ' -vm5071';
-end;
-
-if GetProjValue('FPC_FULLVERSION') >= 30200 then
-begin
-  // do not show
-  // Warning: function result variable of a managed type does not seem to be initialized
-  // (a lot of false warnings since FPC 3.3.1)
-  CustomOptions += ' -vm5093';
-
-  // do not show
-  // Note:  Call to subroutine &quot;function TGenericVector3.Length:Single;&quot; marked as inline is not inlined
-  // (In FPC 3.3.1, not in FPC 3.1.1 rev 38027)
-  CustomOptions += ' -vm6058';
-end;
-
-if GetProjValue('FPC_FULLVERSION') >= 30301 then
-begin
-  // do not show
-  // Warning: Local variable &quot;$1&quot; of a managed type does not seem to be initialized
-  // (a lot of false warnings since FPC 3.3.1)
-  CustomOptions += ' -vm5089';
-
-  // do not show
-  // Warning: Variable &quot;OutputFace&quot; of a managed type does not seem to be initialized
-  // (3 false warnings since FPC 3.3.1 in Kraft)
-  CustomOptions += ' -vm5090';
-end;"/>
       <Other>
         <Verbosity>
           <ShowHints Value="False"/>
         </Verbosity>
+        <ConfigFile>
+          <CustomConfigFile Value="True"/>
+          <ConfigFilePath Value="../castle-fpc-messages.cfg"/>
+        </ConfigFile>
         <CustomOptions Value="-dCASTLE_ENGINE_LAZARUS_PACKAGE"/>
       </Other>
     </CompilerOptions>

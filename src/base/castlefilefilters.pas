@@ -73,16 +73,20 @@ type
     { One of the filtes (excluding "catch all" filters) matches given URL.
       This excludes masks like "*" and "*.*" (the latter should not really
       be used, because it will not match all files on Unix). }
-    function Matches(const URL: String): Boolean;
+    function Matches(const URL: String): Boolean; overload;
 
     { Whether the filters described in FiltersStr (like for
       @link(AddFiltersFromString)) match the given URL. }
-    class function Matches(const FiltersStr, URL: String): Boolean;
+    class function Matches(const FiltersStr, URL: String): Boolean; overload;
+
+    { Writes all recognized extensions (without * and *.*) separated
+      by semicolon. }
+    function AllExtensions: String;
   end;
 
 implementation
 
-uses StrUtils, CastleStringUtils, CastleURIUtils;
+uses StrUtils, CastleStringUtils, CastleURIUtils, CastleUtils;
 
 { TFileFilter ---------------------------------------------------------------- }
 
@@ -208,6 +212,21 @@ begin
     Filters.AddFiltersFromString(FiltersStr);
     Result := Filters.Matches(URL);
   finally FreeAndNil(Filters) end;
+end;
+
+function TFileFilterList.AllExtensions: String;
+var
+  Pattern: String;
+  Filter: TFileFilter;
+begin
+  Result := '';
+  for Filter in Self do
+    for Pattern in Filter.Patterns do
+    begin
+      if (Pattern = '*') or (Pattern = '*.*') then
+        continue;
+      Result := SAppendPart(Result, ';', Pattern);
+    end;
 end;
 
 end.

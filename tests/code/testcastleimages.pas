@@ -1,5 +1,6 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestImages" -*-
 {
-  Copyright 2004-2018 Michalis Kamburelis.
+  Copyright 2004-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,6 +14,7 @@
   ----------------------------------------------------------------------------
 }
 
+{ Test CastleImages. }
 unit TestCastleImages;
 
 {$I castleconf.inc}
@@ -33,25 +35,31 @@ type
     procedure TestResize;
     //procedure TestMimeTypesAndExtsCount;
     procedure TestLoadSavePreserveAlpha;
+    procedure TestInternalDetectClassPNG;
+    procedure TestLoadAnchors;
   end;
 
 implementation
 
-uses SysUtils,
-  CastleVectors, CastleImages, CastleFilesUtils;
+uses SysUtils, Classes,
+  CastleVectors, CastleImages, CastleFilesUtils, CastleDownload, CastleURIUtils;
 
 procedure TTestImages.TestLoadImage;
-const ImagesPath = 'data/images/';
 
   procedure DoTest(const fname: string;
     const AllowedImageClasses: array of TEncodedImageClass;
     DestClass: TCastleImageClass);
-  var Img: TCastleImage;
+  var
+    Img: TCastleImage;
   begin
-   Img := LoadImage(ImagesPath+ fname, AllowedImageClasses);
-   try
-    AssertTrue(Img is DestClass);
-   finally FreeAndNil(Img) end;
+    Img := LoadImage('castle-data:/images/' + fname, AllowedImageClasses);
+    try
+      if not (Img is DestClass) then
+        Fail(Format('We expect %s class but have %s', [
+          DestClass.ClassName,
+          Img.ClassName
+        ]));
+    finally FreeAndNil(Img) end;
   end;
 
 { Unused:
@@ -60,7 +68,7 @@ const ImagesPath = 'data/images/';
   var Img: TCastleImage;
   begin
    try
-    Img := LoadImage(ImagesPath+ fname, AllowedImageClasses);
+    Img := LoadImage('castle-data:/' + fname, AllowedImageClasses);
    except on E: EUnableToLoadImage do Exit end;
    try
     raise Exception.Create('Fail test passed - Er, I mean, failed.');
@@ -214,7 +222,7 @@ var
   end;
 
 begin
-  Orig := LoadImage('data/images/no_alpha.png', []);
+  Orig := LoadImage('castle-data:/images/no_alpha.png', []);
 
   SimpleTest(riNearest);
   SimpleTest(riBilinear);
@@ -301,6 +309,53 @@ begin
   TestImage('castle-data:/images/load-save-alpha-test/3.png');
   TestImage('castle-data:/images/load-save-alpha-test/4.png');
   TestImage('castle-data:/images/load-save-alpha-test/5.png');
+end;
+
+procedure TTestImages.TestInternalDetectClassPNG;
+var
+  Stream: TStream;
+  ImageClass: TEncodedImageClass;
+begin
+  Stream := Download('castle-data:/png_with_alpha_trns.png');
+  try
+    ImageClass := InternalDetectClassPNG(Stream);
+    AssertEquals('TRGBAlphaImage', ImageClass.ClassName);
+  finally FreeAndNil(Stream) end;
+end;
+
+procedure TTestImages.TestLoadAnchors;
+var
+  Img: TEncodedImage;
+begin
+  AssertEquals('image/png', URIMimeType('castle-data:/sprite-sheets/cocos2d_wolf/wolf.png'));
+
+  Img := LoadImage('castle-data:/sprite-sheets/cocos2d_wolf/wolf.png');
+  try
+    AssertEquals(256, Img.Width);
+    AssertEquals(256, Img.Height);
+  finally FreeAndNil(Img) end;
+
+  Img := LoadEncodedImage('castle-data:/sprite-sheets/cocos2d_wolf/wolf.png');
+  try
+    AssertEquals(256, Img.Width);
+    AssertEquals(256, Img.Height);
+  finally FreeAndNil(Img) end;
+
+  { since URIMimeType ignores anchors, so LoadImage should too }
+
+  AssertEquals('image/png', URIMimeType('castle-data:/sprite-sheets/cocos2d_wolf/wolf.png#some-anchor'));
+
+  Img := LoadImage('castle-data:/sprite-sheets/cocos2d_wolf/wolf.png#some-anchor');
+  try
+    AssertEquals(256, Img.Width);
+    AssertEquals(256, Img.Height);
+  finally FreeAndNil(Img) end;
+
+  Img := LoadEncodedImage('castle-data:/sprite-sheets/cocos2d_wolf/wolf.png#some-anchor');
+  try
+    AssertEquals(256, Img.Width);
+    AssertEquals(256, Img.Height);
+  finally FreeAndNil(Img) end;
 end;
 
 initialization

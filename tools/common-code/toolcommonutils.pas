@@ -49,6 +49,9 @@ type
     any edits to Line don't matter then). }
   TLineFiltering = function (var Line: String; const Data: Pointer): Boolean;
 
+  TRunCommandFlag = (rcNoConsole);
+  TRunCommandFlags = set of TRunCommandFlag;
+
 { Run command in the given directory with the given arguments,
   gathering the output (including error output, i.e. stdout and stderr)
   to a string.
@@ -77,7 +80,8 @@ procedure MyRunCommandIndir(
   const Options: array of string;
   out OutputString: string; out ExitStatus: integer;
   const LineFiltering: TLineFiltering = nil;
-  const LineFilteringData: Pointer = nil);
+  const LineFilteringData: Pointer = nil;
+  const Flags: TRunCommandFlags = []);
 
 { Run command in given directory with given arguments,
   gathering output and status to string, and also letting output
@@ -206,23 +210,31 @@ function GetCastleEnginePathFromExeName: String;
       DirectoryExists(Path + 'tools' + PathDelim + 'build-tool' + PathDelim + 'data');
   end;
 
+var
+  ToolDir: String;
 begin
   try
     // knowingly using deprecated ExeName, that should be non-deprecated and internal here
     {$warnings off}
+    ToolDir := ExtractFileDir(ExeName);
+    {$warnings on}
+    { in case we're inside macOS bundle, use bundle path.
+      This makes detection in case of CGE editor work OK. }
+    {$ifdef DARWIN}
+    if BundlePath <> '' then
+      ToolDir := ExclPathDelim(BundlePath);
+    {$endif}
 
     { Check ../ of current exe, makes sense in released CGE version when
       tools are precompiled in bin/ subdirectory. }
-    Result := InclPathDelim(ExtractFileDir(ExtractFileDir(ExeName)));
+    Result := InclPathDelim(ExtractFileDir(ToolDir));
     if CheckCastlePath(Result) then
       Exit;
     { Check ../ of current exe, makes sense in development when
       each tool is compiled by various scripts in tools/xxx/ subdirectory. }
-    Result := InclPathDelim(ExtractFileDir(ExtractFileDir(ExtractFileDir(ExeName))));
+    Result := InclPathDelim(ExtractFileDir(ExtractFileDir(ToolDir)));
     if CheckCastlePath(Result) then
       Exit;
-
-    {$warnings on}
 
     Result := '';
   except
@@ -268,7 +280,7 @@ type
     The TCaptureOutput class doesn't process the contents in any way.
     When it reads newline characters (#10, #13) they are treated
     just like any other character.
-    Descendants like TCaptureOutputFilter may have different behaviour. }
+    Descendants like TCaptureOutputFilter may have different behavior. }
   TCaptureOutput = class
   strict private
     const
@@ -458,7 +470,8 @@ procedure MyRunCommandIndir(const CurDir: string;
   const ExeName: string;const Options: array of string;
   out OutputString: string; out ExitStatus: integer;
   const LineFiltering: TLineFiltering = nil;
-  const LineFilteringData: Pointer = nil);
+  const LineFilteringData: Pointer = nil;
+  const Flags: TRunCommandFlags = []);
 var
   P: TProcess;
   I: Integer;
@@ -484,6 +497,8 @@ begin
     WritelnVerbose(P.Parameters.Text);
 
     P.Options := [poUsePipes, poStderrToOutPut];
+    if rcNoConsole in Flags then
+      P.Options := P.Options + [poNoConsole];
     P.Execute;
 
     Capture := TCaptureOutput.Construct(P.Output, LineFiltering, LineFilteringData);
@@ -649,27 +664,65 @@ begin
       [ExeName, AbsoluteExeName, ProcessStatus]);
 end;
 
+{ Under Unix, we need to solve the problem that
+  parent process can die (and destroy child's IO handles)
+  and the new process (executed by RunCommandNoWait) should stil be running OK.
+  This is important when you execute in "castle-editor" the option
+  to "Restart and Rebuild" editor, then "castle-editor" calls "castle-engine editor",
+  and both "castle-editor" and "castle-engine" processes die
+  (while the new CGE editor should continue running).
+
+  - First solution was to execute using nohup.
+
+    Unfortunately it doesn't work reliably enough.
+    First execution of "Restart and Rebuild" is OK,
+    but then doing again "Restart and Rebuild" from this editor
+    (that is already under nohup) makes editor instance without output redirected to nohup.out
+    (even when TempPath is random every time to make nohup.out land in different dir),
+    possibly because nohup didn't detect
+    that input/output should be redirected to file.
+
+    In effect doing *again* "Restart and Rebuild" fails, as the process doesn't have
+    access to own input/output.
+    See https://trello.com/c/lDi33IRQ/20-linuxeditor-running-custom-editor-from-editor-gui-results-in-errors-stream-write-error-when-trying-to-run-another-child-applicat
+
+  - New solution is to execute by shell, using shell to redirect to files.
+
+    This works, as it always makes the run inside process (like "castle-editor") use output to files,
+    so that parent (like "castle-engine editor" call) dying has no effect.
+}
+{$define UNIX_RUN_NO_WAIT_BY_SHELL}
+
 procedure RunCommandNoWait(
   const TempPath: string;
   const ExeName: string; const Options: array of string);
 var
   P: TProcess;
   I: Integer;
-  {$ifdef UNIX} NoHupExe: String; {$endif}
+  {$ifdef UNIX} ShCommand: String; {$endif}
 begin
   P := TProcess.Create(nil);
   try
-    P.Executable := ExeName;
-    // this is useful on Unix, to place nohup.out inside temp directory
+    // this is useful on Unix, to place output (from nohup or sh) inside temp directory
     P.CurrentDirectory := TempPath;
 
-    { Under Unix, execute using nohup.
-      This way the parent process can die (and destroy child's IO handles)
-      and the new process will keep running OK.
-      This is important when you execute in "castle-editor" the option
-      to "Restart and Rebuild" editor, then "castle-editor" calls "castle-engine editor",
-      and both "castle-editor" and "castle-engine" processes die
-      (while the new CGE editor should continue running). }
+    {$if defined(UNIX) and defined(UNIX_RUN_NO_WAIT_BY_SHELL)}
+    P.Executable := FindExe('sh');
+    if P.Executable = '' then
+      raise Exception.Create('Cannot find sh (standard shell) on $PATH');
+
+    P.Parameters.Add('-c');
+
+    ShCommand := '"' + ExeName + '"';
+    for I := 0 to High(Options) do
+      ShCommand += ' "' + Options[I] + '"';
+    ShCommand += '< /dev/null > run-process-no-wait-' + IntToStr(Random(100000)) + '.log 2>&1';
+    P.Parameters.Add(ShCommand);
+
+    {$else}
+    P.Executable := ExeName;
+
+    { Old Unix solution with nohup, see above comments at UNIX_RUN_NO_WAIT_BY_SHELL }
     {$ifdef UNIX}
     NoHupExe := FindExe('nohup');
     if NoHupExe <> '' then
@@ -681,13 +734,15 @@ begin
 
     for I := Low(Options) to High(Options) do
       P.Parameters.Add(Options[I]);
+    {$endif}
 
     { Under Windows, these options should make a process execute OK.
       Following http://wiki.lazarus.freepascal.org/Executing_External_Programs . }
     P.InheritHandles := false;
     P.ShowWindow := swoShow;
 
-    WritelnVerbose('Calling ' + ExeName);
+    WritelnVerbose('Calling ' + P.Executable); // show P.Executable, not ExeName, as code above may set other P.Executable
+    WritelnVerbose('  With Working Directory: ' + P.CurrentDirectory);
     WritelnVerbose(P.Parameters.Text);
 
     P.Execute;

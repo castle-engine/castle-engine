@@ -375,12 +375,14 @@ procedure TCastleScrollViewCustom.Update(const SecondsPassed: Single;
   begin
     if ScrollBarVisible and HandleInput then
     begin
-      if Container.Pressed[K_Up] or Container.Pressed[K_Numpad_Up] then
+      if Container.Pressed[ keyArrowUp] or
+         Container.Pressed[keyNumpadUp] then
       begin
         Scroll := Scroll - KeyScrollSpeed * SecondsPassed;
         ResetInertialForce;
       end;
-      if Container.Pressed[K_Down] or Container.Pressed[K_Numpad_Down] then
+      if Container.Pressed[ keyArrowDown] or
+         Container.Pressed[keyNumpadDown] then
       begin
         Scroll := Scroll + KeyScrollSpeed * SecondsPassed;
         ResetInertialForce;
@@ -400,7 +402,7 @@ procedure TCastleScrollViewCustom.Update(const SecondsPassed: Single;
   begin
     if ScrollbarVisible then
     begin
-      if mbLeft in Container.MousePressed then
+      if buttonLeft in Container.MousePressed then
       begin
         { note that we update DragSpeed even when DragSinceLastUpdate = 0,
           which means user keeps pressing but doesn't drag }
@@ -482,7 +484,7 @@ begin
     to children (e.g. TCastleButton inside ScrollArea). }
 
   if ScrollBarVisible and
-     Event.IsMouseButton(mbLeft) and
+     Event.IsMouseButton(buttonLeft) and
      ScrollbarFrame.Contains(Event.Position) then
   begin
     if Horizontal=False then begin
@@ -592,7 +594,7 @@ begin
   { We do not process mouse button clicks (or touches) here
     (not on an entire TCastleScrollViewCustom area -- the code in PreviewPress
     handles clicks inside ScrollbarFrame only).
-    We only process dragging (with mbLeft) inside TCastleScrollViewCustom.Update
+    We only process dragging (with buttonLeft) inside TCastleScrollViewCustom.Update
     and TCastleScrollViewCustom.Motion.
 
     But we still have to mark the mouse click as "handled" here.
@@ -605,7 +607,7 @@ begin
     (Testcase: show MessageOK or TStateDialogOK on mobile (Android, iOS)
     with a long text (to make scrolling relevant).)  }
 
-  if EnableDragging and Event.IsMouseButton(mbLeft) and ScrollBarVisible then
+  if EnableDragging and Event.IsMouseButton(buttonLeft) and ScrollBarVisible then
     Result := ExclusiveEvents;
 end;
 
@@ -614,7 +616,7 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if Event.IsMouseButton(mbLeft) then
+  if Event.IsMouseButton(buttonLeft) then
   begin
     ScrollBarDragging := false;
     Result := ExclusiveEvents;
@@ -640,7 +642,7 @@ begin
     ResetInertialForce;
     Result := ExclusiveEvents;
   end else
-  if EnableDragging and (mbLeft in Event.Pressed) then
+  if EnableDragging and (buttonLeft in Event.Pressed) then
   begin
     Drag := ((Event.Position[1] - Event.OldPosition[1]) / UIScale);
     Scroll := Scroll + Drag;

@@ -41,27 +41,22 @@
     function GetViewpointStack: TX3DBindableStackBasic; virtual; abstract;
     function Time: TFloatTime; virtual; abstract;
     function NextEventTime: TX3DTime; virtual; abstract;
-    procedure ChangedAll; virtual; abstract;
+    procedure ChangedAll(const OnlyAdditions: Boolean = false); virtual; abstract;
     procedure BeforeNodesFree(const InternalChangedAll: boolean = false); virtual; abstract;
-    procedure InternalChangedField(Field: TX3DField); virtual; abstract;
+    procedure InternalChangedField(const Field: TX3DField; const Change: TX3DChange); overload; virtual; abstract;
+    procedure InternalChangedField(const Field: TX3DField); overload;
   end;
 
   TX3DEventsEngineList = class(specialize TObjectList<TX3DEventsEngine>)
-  public
-    { Notify listeners about a field value change.
-      See TCastleSceneCore.InternalChangedField for exact specification. }
-    procedure InternalChangedField(Field: TX3DField);
   end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-procedure TX3DEventsEngineList.InternalChangedField(Field: TX3DField);
-var
-  I: Integer;
+procedure TX3DEventsEngine.InternalChangedField(const Field: TX3DField);
 begin
-  for I := 0 to Count - 1 do
-    Items[I].InternalChangedField(Field);
+  InternalChangedField(Field, Field.ExecuteChange);
 end;
 
 {$endif read_implementation}

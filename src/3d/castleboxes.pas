@@ -50,42 +50,6 @@ type
 
   TBoxCorners = array [0..7] of TVector3;
 
-  { Various ways to sort the 3D objects, in particular useful to correctly
-    render the partially-transparent objects.
-    @seealso TSceneRenderingAttributes.BlendingSort }
-  TBlendingSort = (
-    { Do not sort.
-      Using this for @link(TSceneRenderingAttributes.BlendingSort Scene.Attributes.BlendingSort)
-      is fastest, but will cause artifacts if multiple
-      partially-transparent objects may be visible on top of each other. }
-    bsNone,
-
-    { Sort objects by their Z coordinate.
-      Using this for @link(TSceneRenderingAttributes.BlendingSort Scene.Attributes.BlendingSort)
-      is very useful for 2D worlds, with flat 2D objects
-      that have zero (or near-zero) size in the Z axis,
-      and they are moved in the Z axis to specify which is on top for another.
-
-      More precisely, we take the minimum bounding box Z coordinate
-      of two objects. (We don't bother calculating the middle Z coordinate,
-      as we assume that the bounding box is infinitely small along the Z axis.)
-      The one with @italic(larger) Z coordinate is considered to be
-      @italic(closer), this is consistent with the right-handed coordinate system.
-
-      Note that the actual camera position doesn't matter for this sorting.
-      So the 2D object will look OK, @italic(even if viewed from an angle,
-      even if viewed from the other side). }
-    bs2D,
-
-    { Sort objects by the (3D) distance to the camera.
-      Using this for @link(TSceneRenderingAttributes.BlendingSort Scene.Attributes.BlendingSort)
-      is the best sorting method for 3D
-      scenes with many partially-transparent objects.
-
-      The distance is measured from the middle
-      of the bounding box to the camera posotion. }
-    bs3D);
-
   { Axis-aligned box. Rectangular prism with all sides parallel to basic planes
     X = 0, Y = 0 and Z = 0. This is sometimes called AABB, "axis-aligned bounding
     box". Many geometric operations are fast and easy on this type.
@@ -529,7 +493,7 @@ type
     { Compare two bounding boxes based
       on their distance to the SortPosition point,
       suitable for depth sorting in 3D.
-      Follows the algorithm documented at @link(TBlendingSort.bs3D).
+      Follows the algorithm documented at @link(bs3D).
       Returns -1 if A < B, 1 if A > B, 0 if A = B.
 
       Using this with a typical sorting function will result
@@ -540,7 +504,7 @@ type
 
     { Compare two bounding boxes based
       on their Z coordinates, suitable for depth sorting in 2D.
-      Follows the algorithm documented at @link(TBlendingSort.bs2D).
+      Follows the algorithm documented at @link(bs2D).
       Returns -1 if A < B, 1 if A > B, 0 if A = B.
 
       Using this with a typical sorting function will result
@@ -1306,17 +1270,17 @@ function TBox3D.TryRayClosestIntersection(
 var
   IntrProposed: boolean absolute result;
 
-  procedure ProposeBoxIntr(const PlaneConstCoord: integer;
+  procedure ProposeBoxIntr(const PlaneConstCoord: T3DAxis;
     const PlaneConstValue: Single);
   var
     NowIntersection: TVector3;
     NowIntersectionDistance: Single;
-    c1, c2: integer;
+    c1, c2: T3DAxis;
   begin
     if TrySimplePlaneRayIntersection(NowIntersection, NowIntersectionDistance,
       PlaneConstCoord, PlaneConstValue, RayOrigin, RayDirection) then
     begin
-      RestOf3dCoords(PlaneConstCoord, c1, c2);
+      RestOf3DCoords(PlaneConstCoord, c1, c2);
       if Between(NowIntersection.Data[c1], Data[0].Data[c1], Data[1].Data[c1]) and
          Between(NowIntersection.Data[c2], Data[0].Data[c2], Data[1].Data[c2]) then
       begin
@@ -1406,16 +1370,16 @@ end;
 function TBox3D.SegmentCollision(
   const Segment1, Segment2: TVector3): boolean;
 
-  function IsCollisionWithBoxPlane(const PlaneConstCoord: integer;
+  function IsCollisionWithBoxPlane(const PlaneConstCoord: T3DAxis;
     const PlaneConstValue: Single): boolean;
   var
     NowIntersection: TVector3;
-    c1, c2: integer;
+    c1, c2: T3DAxis;
   begin
     if TrySimplePlaneSegmentIntersection(NowIntersection,
       PlaneConstCoord, PlaneConstValue, Segment1, Segment2) then
     begin
-      RestOf3dCoords(PlaneConstCoord, c1, c2);
+      RestOf3DCoords(PlaneConstCoord, c1, c2);
       Result :=
         Between(NowIntersection.Data[c1], Data[0].Data[c1], Data[1].Data[c1]) and
         Between(NowIntersection.Data[c2], Data[0].Data[c2], Data[1].Data[c2]);

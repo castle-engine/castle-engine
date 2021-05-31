@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -36,6 +36,8 @@
 {$endif not CASTLE_SLIM_NODES}
     function GetNormal: TAbstractNormalNode;
     procedure SetNormal(const Value: TAbstractNormalNode);
+    function GetTangent: TTangentNode;
+    procedure SetTangent(const Value: TTangentNode);
     function GetTexCoord: TAbstractTextureCoordinateNode;
     procedure SetTexCoord(const Value: TAbstractTextureCoordinateNode);
     function GetCcw: Boolean;
@@ -59,6 +61,8 @@
 {$endif not CASTLE_SLIM_NODES}
     { X3D field "normal". } { }
     property Normal: TAbstractNormalNode read GetNormal write SetNormal;
+    { X3D field "tangent". } { }
+    property Tangent: TTangentNode read GetTangent write SetTangent;
     { X3D field "texCoord". } { }
     property TexCoord: TAbstractTextureCoordinateNode read GetTexCoord write SetTexCoord;
     { X3D field "ccw". } { }
@@ -148,6 +152,19 @@ end;
 procedure TAbstractComposedGeometryNode.SetNormal(const Value: TAbstractNormalNode);
 begin
   FdNormal.Send(Value);
+end;
+
+function TAbstractComposedGeometryNode.GetTangent: TTangentNode;
+begin
+  if FdTangent.Value is TTangentNode then
+    Result := TTangentNode(FdTangent.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAbstractComposedGeometryNode.SetTangent(const Value: TTangentNode);
+begin
+  FdTangent.Send(Value);
 end;
 
 function TAbstractComposedGeometryNode.GetTexCoord: TAbstractTextureCoordinateNode;

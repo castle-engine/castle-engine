@@ -1,6 +1,6 @@
 // -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestWindow" -*-
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,6 +14,7 @@
   ----------------------------------------------------------------------------
 }
 
+{ Test CastleWindow. }
 unit TestCastleWindow;
 
 interface
@@ -69,25 +70,25 @@ var
   M: TMenuItem;
 begin
   M := TMenuItem.Create('blah', 123, 'a');
-  AssertTrue(M.KeyMatches(K_A, 'a', []));
+  AssertTrue(M.KeyMatches(keyA, 'a', []));
   { Below may be improved in the future, for now our KeyMatches is probably too forgiving.
     Below combination is not even usually possible, with mkCtrl you would get CtrlA
     character usually. }
-  AssertTrue(M.KeyMatches(K_A, 'a', [mkCtrl]));
+  AssertTrue(M.KeyMatches(keyA, 'a', [mkCtrl]));
   FreeAndNil(M);
 
-  M := TMenuItem.Create('blah', 123, K_F11);
-  AssertTrue(M.KeyMatches(K_F11, #0, []));
-  AssertTrue(M.KeyMatches(K_F11, '', [])); // string '' and #0 should be treated equal, for backward compat
+  M := TMenuItem.Create('blah', 123, keyF11);
+  AssertTrue(M.KeyMatches(keyF11, #0, []));
+  AssertTrue(M.KeyMatches(keyF11, '', [])); // string '' and #0 should be treated equal, for backward compat
   { below may be improved in the future, for now our KeyMatches is probably too forgiving }
-  AssertTrue(M.KeyMatches(K_F11, #0, [mkCtrl]));
-  AssertTrue(M.KeyMatches(K_F11, '', [mkCtrl])); // string '' and #0 should be treated equal, for backward compat
+  AssertTrue(M.KeyMatches(keyF11, #0, [mkCtrl]));
+  AssertTrue(M.KeyMatches(keyF11, '', [mkCtrl])); // string '' and #0 should be treated equal, for backward compat
   FreeAndNil(M);
 
-  M := TMenuItem.Create('blah', 123, K_F11);
+  M := TMenuItem.Create('blah', 123, keyF11);
   M.Modifiers := [mkCtrl];
-  AssertTrue(not M.KeyMatches(K_F11, #0, []));
-  AssertTrue(M.KeyMatches(K_F11, #0, [mkCtrl]));
+  AssertTrue(not M.KeyMatches(keyF11, #0, []));
+  AssertTrue(M.KeyMatches(keyF11, #0, [mkCtrl]));
   FreeAndNil(M);
 end;
 

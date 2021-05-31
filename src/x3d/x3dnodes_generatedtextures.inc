@@ -47,20 +47,21 @@
   strict private
     FUpdateNeeded: boolean;
   public
-    constructor Create;
+    { Used by TCastleScene to track when to set InternalUpdateNeeded. }
+    InternalLastStateId: TFrameId;
 
     { When @link(Update) is upAlways, you can check this to know if really
       something visible changed since last update.
       If not, then you do not have to update the texture --- no point, since
       it would look exactly like the current one.
 
-      Scene classes (TCastleSceneCore, TCastleScene, TGLRenderer)
-      take care to set this field. After each actual update of the texture,
+      TCastleScene takes care to set this field.
+      After each actual update of the texture,
       it's set to @false. Each time something visible affecting the look
       of this texture possibly changed, it's set to @true. }
-    property UpdateNeeded: boolean read FUpdateNeeded write FUpdateNeeded
-      default true;
+    InternalUpdateNeeded: boolean;
 
+    constructor Create;
     property Update: TSFTextureUpdate read FUpdate;
   end;
 {$endif read_interface}

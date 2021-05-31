@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2018 Michalis Kamburelis.
+  Copyright 2004-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,12 +13,13 @@
   ----------------------------------------------------------------------------
 }
 
-{ Demo of TCastleFont.BreakLines method.
+{ Demo of TCastleAbstractFont.BreakLines method.
   Resize the window and watch how the text lines are automatically broken.
 
   By default we use standard UIFont.
-  Call with command-line option "--custom-font MyFontFile.ttf" to replace
-  UIFont with your own font from MyFontFile.ttf.
+  Call with command-line option --custom-font to use a custom font, like this:
+
+    ./test_font_break --custom-font data/PARPG.ttf
 }
 
 {$ifdef MSWINDOWS} {$apptype GUI} {$endif}
@@ -38,7 +39,6 @@ procedure Render(Container: TUIContainer);
 var
   X1: Integer;
 begin
-  RenderContext.Clear([cbColor], Black);
   X1 := (Window.Width - BoxWidth) div 2;
   Theme.Draw(Rectangle(X1, 0, BoxWidth, Window.Height), tiActiveFrame);
   UIFont.PrintBrokenString(x1, UIFont.Descend, White,
@@ -73,18 +73,24 @@ begin
   end;
 end;
 
+var
+  NewFont: TCastleFont;
 begin
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
   Window := TCastleWindowBase.Create(Application);
 
   Window.ParseParameters(StandardParseOptions);
   Parameters.Parse(Options, @OptionProc, nil);
+  Parameters.CheckHigh(0);
 
-  Theme.Images[tiActiveFrame] := FrameYellow;
+  Theme.ImagesPersistent[tiActiveFrame].Image := FrameYellow;
+  Theme.ImagesPersistent[tiActiveFrame].OwnsImage := false;
 
   if CustomFont <> '' then
   try
-    UIFont := TTextureFont.Create(CustomFont, 20, true);
+    NewFont := TCastleFont.Create(Application);
+    NewFont.Load(CustomFont, 20, true);
+    UIFont := NewFont;
   except
     { in case FreeType library is not available:
       make a warning, leave UIFont unchanged, and just continue }
@@ -94,7 +100,7 @@ begin
 
   Window.OnResize := @Resize;
   Window.DepthBits := 0;
-  Window.SetDemoOptions(K_F11, CharEscape, true);
+  Window.SetDemoOptions(keyF11, CharEscape, true);
   Window.Caption := 'Font.BreakLines demo';
   Window.OnRender := @Render;
   Window.OpenAndRun;

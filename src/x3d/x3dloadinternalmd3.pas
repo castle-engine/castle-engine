@@ -26,7 +26,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleInternalNodeInterpolator;
 
 { Load MD3 animation as a sequence of static X3D models. }
-function LoadMD3Sequence(const URL: string): TNodeInterpolator.TAnimationList;
+function LoadMD3Sequence(const Stream: TStream; const BaseUrl: string): TNodeInterpolator.TAnimationList;
 
 implementation
 
@@ -82,17 +82,16 @@ type
   { MD3 (Quake3 engine model format) reader. }
   TObject3DMD3 = class
   public
-    { Reads MD3 from a file.
+    { Reads MD3 from a stream, with given absolute base URL.
 
       Associated skin file is also read,
-      to get texture URL: for xxx.md3, we will try to read
-      xxx_default.skin file, looking there for a texture URL.
+      to get texture URL: for BaseUrl = 'xxx.md3', we will try to read
+      'xxx_default.skin' file, looking there for a texture URL.
       Texture URL found there will be trimmed to a name
       (i.e. without directory part, as it usually specifies directory
-      within quake/tremulous/etc. data dir, not relative to md3 model dir). }
-    constructor Create(const URL: string);
+      within quake/tremulous/etc. data dir, not relative to md3 model dir).
 
-    { Reads MD3 from a stream. The stream must be freely seekable
+      The Stream must be freely seekable
       (i.e. setting Position to any value must be supported) ---
       if unsure, you can wrap your stream in something like TMemoryStream.
 
@@ -100,7 +99,10 @@ type
       that if you created it, you should also free it, this class will not
       do it for you. You can free Stream right after constructor finished
       it's work. }
-    constructor CreateStream(Stream: TStream; const ATextureURL: string);
+    constructor Create(const Stream: TStream; const BaseUrl: string);
+
+    { Reads MD3 from a stream, knowing the texture URL (no need to parse MD3 skin file). }
+    constructor CreateWithTextureUrl(const Stream: TStream; const ATextureURL: string);
 
     destructor Destroy; override;
 
@@ -276,21 +278,17 @@ end;
 
 { TObject3DMD3 --------------------------------------------------------------- }
 
-constructor TObject3DMD3.Create(const URL: string);
+constructor TObject3DMD3.Create(const Stream: TStream; const BaseUrl: string);
 var
-  Stream: TStream;
   ATextureURL: string;
 begin
-  if not ReadSkinFile(URL, ATextureURL) then
+  if not ReadSkinFile(BaseUrl, ATextureURL) then
     ATextureURL := '';
 
-  Stream := Download(URL);
-  try
-    CreateStream(Stream, ATextureURL);
-  finally Stream.Free end;
+  CreateWithTextureUrl(Stream, ATextureURL);
 end;
 
-constructor TObject3DMD3.CreateStream(Stream: TStream; const ATextureURL: string);
+constructor TObject3DMD3.CreateWithTextureUrl(const Stream: TStream; const ATextureURL: string);
 var
   Header: TMd3Header;
   Frame: TMd3Frame;
@@ -556,10 +554,9 @@ begin
   end;
 end;
 
-function LoadMD3Sequence(const URL: string): TNodeInterpolator.TAnimationList;
+function LoadMD3Sequence(const Stream: TStream; const BaseUrl: string): TNodeInterpolator.TAnimationList;
 var
   Md3: TObject3DMD3;
-  BaseUrl: string;
   I: Integer;
   Animation: TNodeInterpolator.TAnimation;
 begin
@@ -568,8 +565,7 @@ begin
     Animation := TNodeInterpolator.TAnimation.Create;
     Result.Add(Animation);
 
-    BaseUrl := AbsoluteURI(URL);
-    Md3 := TObject3DMD3.Create(URL);
+    Md3 := TObject3DMD3.Create(Stream, BaseUrl);
     try
       { handle each MD3 frame }
       for I := 0 to Md3.FramesCount - 1 do

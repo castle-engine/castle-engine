@@ -28,4 +28,3 @@ generate_man texture-font-to-pascal texture-font-to-pascal 'convert ttf font to 
 generate_man image-to-pascal image-to-pascal 'convert image files into Pascal source code'
 generate_man castle-curves castle-curves 'create and edit curves for Castle Game Engine'
 generate_man build-tool castle-engine 'build and package Castle Game Engine programs'
-generate_man sprite-sheet-to-x3d sprite-sheet-to-x3d 'convert spritesheet files into X3D files'

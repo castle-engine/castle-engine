@@ -147,7 +147,7 @@
                            read FOnDidSelectCell write FOnDidSelectCell;
     { Height of all cells. }
     property CellHeight: Integer read FCellHeight write FCellHeight default DefaultCellHeight;
-  end;
+  end deprecated 'use instead TCastleVerticalGroup with children as TCastleHorizontalGroup to create a table layout'; // it is better to visually design in editor, it is more flexible (with cells and borders being any TCastleUserInterface control), it has more natual API (you can just add rows)
 
 {$endif read_interface}
 
@@ -230,12 +230,12 @@ begin
     if FAccessoryType = tvcaCheckmark then
     begin
       FAccessoryTypeImage.OwnsImage := false;
-      FAccessoryTypeImage.Image := Theme.Images[tiCheckmark];
+      FAccessoryTypeImage.Image := Theme.ImagesPersistent[tiCheckmark].Image;
       FAccessoryTypeImage.Color := FTextLabel.Color;
     end
     else if FAccessoryType = tvcaDisclosureIndicator then begin
       FAccessoryTypeImage.OwnsImage := false;
-      FAccessoryTypeImage.Image := Theme.Images[tiDisclosure];
+      FAccessoryTypeImage.Image := Theme.ImagesPersistent[tiDisclosure].Image;
       FAccessoryTypeImage.Color := Theme.DisabledTextColor;
     end;
   end;

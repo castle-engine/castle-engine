@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,8 +29,18 @@
     function GetEnabled: Boolean;
     procedure SetEnabled(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdEnabled: TSFBool;
+    { X3D field "enabled". } { }
+    public property FdEnabled: TSFBool read FFdEnabled;
     { X3D field "enabled". } { }
     property Enabled: Boolean read GetEnabled write SetEnabled;
+
+    strict private FEventIsActive: TSFBoolEvent;
+    { X3D out event "isActive". } { }
+    public property EventIsActive: TSFBoolEvent read FEventIsActive;
 
 {$endif read_interface}
 
@@ -46,6 +56,23 @@ end;
 procedure TAbstractSensorNode.SetEnabled(const Value: Boolean);
 begin
   FdEnabled.Send(Value);
+end;
+
+class function TAbstractSensorNode.ClassX3DType: String;
+begin
+  Result := 'X3DSensorNode';
+end;
+
+procedure TAbstractSensorNode.CreateNode;
+begin
+  inherited;
+
+  FFdEnabled := TSFBool.Create(Self, True, 'enabled', true);
+   FdEnabled.ChangeAlways := chNone;
+  AddField(FFdEnabled);
+
+  FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
+  AddEvent(FEventIsActive);
 end;
 
 {$endif read_implementation}

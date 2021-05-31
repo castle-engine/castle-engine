@@ -148,6 +148,8 @@ var
     before calling @link(InitializeLog).
     This may be an absolute or relative (to the current directory
     at the time of InitializeLog call) path.
+    Note that this variable doesn't support URLs. It is only a simple filename.
+
     It's your responsibility to choose a path that is writeable on current OS
     (you can e.g. use GetAppConfigDir function from FPC RTL). }
   LogFileName: String = '';
@@ -327,7 +329,8 @@ begin
     WriteLogCoreCore('  Version: ' + ApplicationProperties.Version + '.' + NL);
   WriteLogCoreCore('  Started on ' + DateTimeToAtStr(CastleNow) + '.' + NL);
   WriteLogCoreCore('  Castle Game Engine version: ' + CastleEngineVersion + '.' + NL);
-  WriteLogCoreCore('  Compiled with: ' + SCompilerDescription + '.' + NL);
+  WriteLogCoreCore('  Compiled with ' + SCompilerDescription + '.' + NL);
+  WriteLogCoreCore('  Platform: ' + SPlatformDescription + '.' + NL);
   if CollectedLog <> '' then
   begin
     WriteLogCoreCore(CollectedLog);

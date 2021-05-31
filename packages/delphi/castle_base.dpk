@@ -28,7 +28,8 @@ package castle_base;
 {$IMPLICITBUILD ON}
 
 requires
-  rtl;
+  rtl,
+  xmlrtl;
 
 contains
   castleapplicationproperties in '..\..\src\base\castleapplicationproperties.pas',
@@ -42,12 +43,15 @@ contains
   castleprogressconsole in '..\..\src\base\castleprogressconsole.pas',
   castleprojection in '..\..\src\base\castleprojection.pas',
   castlerectangles in '..\..\src\base\castlerectangles.pas',
-  castleshaders in '..\..\src\base\castleshaders.pas',
   castlestringutils in '..\..\src\base\castlestringutils.pas',
   castletimeutils in '..\..\src\base\castletimeutils.pas',
   castleutils in '..\..\src\base\castleutils.pas',
   castlevectors in '..\..\src\base\castlevectors.pas',
   castlevectorsinternaldouble in '..\..\src\base\castlevectorsinternaldouble.pas',
-  castlevectorsinternalsingle in '..\..\src\base\castlevectorsinternalsingle.pas';
+  castlevectorsinternalsingle in '..\..\src\base\castlevectorsinternalsingle.pas',
+  castleuriutils in '..\..\src\files\castleuriutils.pas',
+  castledownload in '..\..\src\files\castledownload.pas',
+  castlefilesutils in '..\..\src\files\castlefilesutils.pas',
+  castlefindfiles in '..\..\src\files\castlefindfiles.pas';
 
 end.

@@ -3,9 +3,11 @@ PROFILE Interactive
 
 # This file defines the complete 3D model of the level.
 #
-# - The basic level geometry and lights are exported from Blender, as 2 glTF files
-#   (example_level.gltf and water.gltf).
-#   They are used (by "Inline" node) here.
+# - The basic level geometry,
+#   and non-collidable water,
+#   and lights,
+#   are exported from Blender as one glTF file (example_level.gltf).
+#   It is used (by "Inline" node) here.
 # - This file also adds some additional nodes,
 #   to define information that cannot be expressed in Blender.
 #
@@ -64,17 +66,6 @@ Viewpoint {
   orientation -6.9152335413491528E-8 1.0000001192092896 0 0.68426263332366943
 }
 
-# Add water.
-# Water is modeled in the same Blender example_level.blend file.
-# But we export water to a separate 3D file, to wrap it inside Collision
-# node with enabled=FALSE, to make water surface not collidable.
-# In the future we will have a way to set objects non-collidable
-# from Blender.
-Collision {
-  enabled FALSE
-  children Inline { url "water.gltf" }
-}
-
 # Textured background.
 Transform {
   rotation 0 1 0 3.14
@@ -115,7 +106,7 @@ Transform {
 #   # There are advantages and disadvantages to both shadow approaches.
 #   # Also our shadow volumes implementation is a little limited now: only 1 light.
 #   # Only 2-manifold objects cast shadows by shadow volumes, which include
-#   # only medkit and shooting_eye items right now.
+#   # only medkit item right now.
 #   # Remember to add "Window.StencilBits := 8;" before "Window.Open;"
 #   # if you want to use shadow volumes.
 #

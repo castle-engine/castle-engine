@@ -3,6 +3,6 @@
   <!-- See https://developers.google.com/analytics/devguides/collection/android/v4/ -->
   <dependencies>
     <!-- See https://developers.google.com/android/guides/setup#split -->
-    <dependency>compile 'com.google.android.gms:play-services-analytics:17.0.0'</dependency>
+    <dependency>implementation 'com.google.android.gms:play-services-analytics:17.0.0'</dependency>
   </dependencies>
 </build_gradle_merge>

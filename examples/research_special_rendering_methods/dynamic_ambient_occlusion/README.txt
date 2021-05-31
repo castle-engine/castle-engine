@@ -99,12 +99,14 @@ Practice:
 
 Advantages:
 
-- Since all work is done on the fly, the scene may be absolutely dynamic. (On changes, list of elements must be updated, but this shouldn't be so bad with a few optimizations?). Any deformations, transformations, changes  --- all is allowed, nothing needs to be precomputed.
+- Since all work is done on the fly, the scene may be absolutely dynamic.
+  (Although on change, list of elements must be updated, this causes CPU work.)
   For example, see:
   data/chinchilla_awakens (timesensor animation) and
   data/dynamic_world_ifs (interactive world changing, press left mouse down, use keys werxdf, uiojkl)
 - Can make bent normals, indirect lighting almost for free.
-- Although the work is done on shaders, resulting colors are grabbed by CPU, and may be fed to fixed-function gl pipeline at the end. This is important, makes it much easier to plug this technique into existing renderer.
+- Although the work is done on shaders, resulting colors can be grabbed to CPU.
+  While this is not efficient, it allowed us to make simple implementation, and to easily debug it too.
 - Can work with practically any 3d model.
   For example, check out castle/data/levels/fountain/fountain_final.wrl
 
@@ -115,5 +117,5 @@ Disadvantages:
 - Requires a good GPU. Fragment shader must do a *lot* of work, a lot of texture lookups. Simply not possible on older GPUs.
 
 TODO: our current method of generating elements works only for nodes
-with explicit vertexes, so will not work for VRML primitives (sphere,
+with explicit vertexes, so will not work for X3D primitives (sphere,
 cone and and such).

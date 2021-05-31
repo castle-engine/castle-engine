@@ -4,8 +4,10 @@
     <Version Value="10"/>
     <General>
       <Flags>
+        <MainUnitHasUsesSectionForAllUnits Value="False"/>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
+        <MainUnitHasScaledStatement Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <Title Value="${NAME_PASCAL}"/>
@@ -18,12 +20,12 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="1">
+    <Units Count="${LAZARUS_PROJECT_ALL_UNITS_COUNT}">
       <Unit0>
-        <Filename Value="${NAME_PASCAL}_standalone.lpr"/>
+        <Filename Value="${EXPLICIT_STANDALONE_LPR}"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
-    </Units>
+${LAZARUS_PROJECT_ALL_UNITS}    </Units>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
@@ -36,6 +38,18 @@
       <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/${DOLLAR}(TargetCPU)-${DOLLAR}(TargetOS)"/>
       <Libraries Value="${LIBRARY_PATHS}" />
     </SearchPaths>
+    <Parsing>
+      <SyntaxOptions>
+        <IncludeAssertionCode Value="True"/>
+      </SyntaxOptions>
+    </Parsing>
+    <CodeGeneration>
+      <Checks>
+        <IOChecks Value="True"/>
+        <RangeChecks Value="True"/>
+        <OverflowChecks Value="True"/>
+      </Checks>
+    </CodeGeneration>
     <Other>
       <Verbosity>
         <ShowHints Value="False"/>

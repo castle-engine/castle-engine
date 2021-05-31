@@ -1,5 +1,6 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleVectors" -*-
 {
-  Copyright 2004-2018 Michalis Kamburelis.
+  Copyright 2004-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,6 +14,7 @@
   ----------------------------------------------------------------------------
 }
 
+{ Test CastleVectors. }
 unit TestCastleVectors;
 
 { $define VECTOR_MATH_SPEED_TESTS}
@@ -51,6 +53,10 @@ type
     procedure TestPlaneMoveRandom;
     procedure TestTryInverseHarder;
     procedure TestMaxAbsVectorCoord;
+    procedure TestPointOnLineClosestToLine;
+    procedure TestRotatePointAroundAxis;
+    procedure TestMakeVectorOrthogonal;
+    procedure TestEpsilonInModelViewToNormalMatrix;
   end;
 
 function RandomVector: TVector3;
@@ -923,6 +929,199 @@ begin
 
   AssertEquals(3, MaxAbsVectorCoord(Vector4(1, 2, 3, 10)));
   AssertEquals(3, MaxAbsVectorCoord(Vector4(-1, -2, -3, -10)));
+end;
+
+procedure TTestCastleVectors.TestPointOnLineClosestToLine;
+var
+  I: TVector3;
+begin
+  // lines parallel
+  AssertFalse(PointOnLineClosestToLine(I,
+    Vector3(0, 0, 0), Vector3(1, 1, 1),
+    Vector3(10, 1, 1), Vector3(1, 1, 1)
+  ));
+
+  AssertTrue(PointOnLineClosestToLine(I,
+    Vector3(0, 0, 0), Vector3(1, 1, 1),
+    Vector3(0, 0, 0), Vector3(-1, 1, 1)
+  ));
+  AssertVectorEquals(Vector3(0, 0, 0), I);
+
+  AssertTrue(PointOnLineClosestToLine(I,
+    Vector3(1, 2, 3), Vector3(1, 1, 1),
+    Vector3(1, 2, 3), Vector3(-1, 1, 1)
+  ));
+  AssertVectorEquals(Vector3(1, 2, 3), I);
+
+  AssertTrue(PointOnLineClosestToLine(I,
+    Vector3(0, 0, 0), Vector3(1, 0, 0),
+    Vector3(110, 10, 10), Vector3(1, 1, 1)
+  ));
+  AssertVectorEquals(Vector3(100, 0, 0), I);
+
+  AssertTrue(PointOnLineClosestToLine(I,
+    Vector3(0, 0, 0), Vector3(1, 0, 0),
+    Vector3(110, 10, 10), Vector3(1, 1, 0)
+  ));
+  AssertVectorEquals(Vector3(100, 0, 0), I);
+
+  AssertTrue(PointOnLineClosestToLine(I,
+    Vector3(0.00, 0.00, 0.00),
+    Vector3(0.00, 1.00, 0.00),
+    Vector3(-6.58, 1.97, -5.73),
+    Vector3(0.74, -0.16, 0.65)
+  ));
+  AssertVectorEquals(Vector3(0, 0.5, 0), I, 0.1);
+end;
+
+procedure TTestCastleVectors.TestRotatePointAroundAxis;
+begin
+  AssertVectorEquals(
+    RotatePointAroundAxis90(Vector3(1, 2, 3), Vector3(4, 5, 6)),
+    RotatePointAroundAxisRad(Pi / 2, Vector3(1, 2, 3), Vector3(4, 5, 6)));
+end;
+
+procedure TTestCastleVectors.TestMakeVectorOrthogonal;
+var
+  V, NewV: TVector3;
+begin
+  V := Vector3(Sqrt(2) / 2, Sqrt(2) / 2, 0);
+  NewV := MakeVectorOrthogonal(V, Vector3(0, 1, 0));
+  AssertVectorEquals(Vector3(1, 0, 0), NewV);
+end;
+
+procedure TTestCastleVectors.TestEpsilonInModelViewToNormalMatrix;
+var
+  Mv1, Mv2: TMatrix4;
+  Norml1Approx: TMatrix3;
+begin
+{
+Mv1 and Mv2 are 2 TMatrix4 values which are close, but not precisely equal.
+If ModelViewToNormalMatrix would use IsZero(D), then it would yield
+drastically different results for them, due to one matrix resulting
+in determinant close enough to Single epsilon, and other not.
+
+------------------------------------------------------------------------------
+Exact test input, generated from testcase on https://github.com/castle-engine/view3dscene/issues/35,
+with mesh renderer code:
+
+    if Arrays.Count = 629 then
+    begin
+      Writeln('Arrays.Count ', Arrays.Count);
+      Writeln('ModelView ', Shape.ModelView.ToString(' '));
+      Writeln('ModelViewRaw ', Shape.ModelView.ToRawString(' '));
+      Writeln('NormalMatrix ', ModelViewToNormalMatrix(Shape.ModelView).ToString(' '));
+      Writeln('NormalMatrixRaw ', ModelViewToNormalMatrix(Shape.ModelView).ToRawString(' '));
+    end;
+
+---------------------------------------------------------------------------
+ModelView  0.05 0.04 0.00 0.12
+ 0.00 -0.01 -0.02 -0.03
+ -0.02 0.09 0.00 -0.41
+ 0.00 0.00 0.00 1.00
+
+ModelViewRaw  0.04658060148358345 0.035663504153490067 -0.0014015145134180784 0.12454544752836227
+ -0.0025431409012526274 -0.0062981243245303631 -0.019934356212615967 -0.025968225672841072
+ -0.017993897199630737 0.093211852014064789 -0.0008106923196464777 -0.40757930278778076
+ 0 0 0 1
+
+NormalMatrix (ModelViewToNormalMatrix determinant 0.000100) 18.63 3.57 -3.50
+ -1.02 -0.63 -49.84
+ -7.20 9.32 -2.03
+
+NormalMatrixRaw (ModelViewToNormalMatrix determinant 0.000100) 18.632238388061523 3.5663502216339111 -3.503786563873291
+ -1.0172562599182129 -0.62981235980987549 -49.835891723632813
+ -7.1975584030151367 9.3211841583251953 -2.0267307758331299
+
+(ModelViewToNormalMatrix determinant 0.000100)(ModelViewToNormalMatrix determinant 1.000000)Arrays.Count 629
+
+ModelView  0.05 0.04 0.00 0.12
+ 0.00 -0.01 -0.02 -0.03
+ -0.02 0.09 0.00 -0.41
+ 0.00 0.00 0.00 1.00
+
+ModelViewRaw  0.046580597758293152 0.03566349670290947 -0.0014015162596479058 0.12454545497894287
+ -0.0025431474205106497 -0.0062981159426271915 -0.019934354349970818 -0.025968223810195923
+ -0.017993893474340439 0.093211852014064789 -0.00081068999134004116 -0.40757903456687927
+ 0 0 0 1
+
+NormalMatrix (ModelViewToNormalMatrix determinant 0.000100) 0.05 0.04 0.00
+ 0.00 -0.01 -0.02
+ -0.02 0.09 0.00
+------------------------------------------------------------------------------
+}
+
+  Mv1.Columns[0] := Vector4(
+    0.04658060148358345,
+   -0.0025431409012526274,
+   -0.017993897199630737,
+    0
+  );
+  Mv1.Columns[1] := Vector4(
+    0.035663504153490067,
+   -0.0062981243245303631,
+    0.093211852014064789,
+    0
+  );
+  Mv1.Columns[2] := Vector4(
+   -0.0014015145134180784,
+   -0.019934356212615967,
+   -0.0008106923196464777,
+    0
+  );
+  Mv1.Columns[3] := Vector4(
+    0.12454544752836227,
+   -0.025968225672841072,
+   -0.40757930278778076,
+    1
+  );
+
+  Mv2.Columns[0] := Vector4(
+    0.046580597758293152,
+   -0.0025431474205106497,
+   -0.017993893474340439,
+    0
+  );
+  Mv2.Columns[1] := Vector4(
+    0.03566349670290947,
+   -0.0062981159426271915,
+    0.093211852014064789,
+    0
+  );
+  Mv2.Columns[2] := Vector4(
+   -0.0014015162596479058,
+   -0.019934354349970818,
+   -0.00081068999134004116,
+    0
+  );
+  Mv2.Columns[3] := Vector4(
+    0.12454545497894287,
+   -0.025968223810195923,
+   -0.40757903456687927,
+    1
+  );
+
+  AssertTrue(TMatrix4.Equals(Mv1, Mv2));
+  // Writeln(ModelViewToNormalMatrix(Mv1).ToString(' '));
+  // Writeln(ModelViewToNormalMatrix(Mv2).ToString(' '));
+
+  Norml1Approx.Columns[0] := Vector3(
+    18.63,
+    -1.02,
+    -7.20
+  );
+  Norml1Approx.Columns[1] := Vector3(
+    3.57,
+    -0.63,
+    9.32
+  );
+  Norml1Approx.Columns[2] := Vector3(
+    -3.50,
+    -49.84,
+    -2.03
+  );
+  AssertTrue(TMatrix3.Equals(ModelViewToNormalMatrix(Mv1), Norml1Approx, 0.01));
+  AssertTrue(TMatrix3.Equals(ModelViewToNormalMatrix(Mv2), Norml1Approx, 0.01));
 end;
 
 initialization

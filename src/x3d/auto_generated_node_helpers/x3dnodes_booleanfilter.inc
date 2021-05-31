@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,11 +25,52 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventSet_boolean: TSFBoolEvent;
+    { X3D in event "set_boolean". } { }
+    public property EventSet_boolean: TSFBoolEvent read FEventSet_boolean;
+
+    strict private FEventInputFalse: TSFBoolEvent;
+    { X3D out event "inputFalse". } { }
+    public property EventInputFalse: TSFBoolEvent read FEventInputFalse;
+
+    strict private FEventInputNegate: TSFBoolEvent;
+    { X3D out event "inputNegate". } { }
+    public property EventInputNegate: TSFBoolEvent read FEventInputNegate;
+
+    strict private FEventInputTrue: TSFBoolEvent;
+    { X3D out event "inputTrue". } { }
+    public property EventInputTrue: TSFBoolEvent read FEventInputTrue;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TBooleanFilterNode ----------------------------------------------- }
+
+class function TBooleanFilterNode.ClassX3DType: String;
+begin
+  Result := 'BooleanFilter';
+end;
+
+procedure TBooleanFilterNode.CreateNode;
+begin
+  inherited;
+
+  FEventSet_boolean := TSFBoolEvent.Create(Self, 'set_boolean', true);
+  AddEvent(FEventSet_boolean);
+
+  FEventInputFalse := TSFBoolEvent.Create(Self, 'inputFalse', false);
+  AddEvent(FEventInputFalse);
+
+  FEventInputNegate := TSFBoolEvent.Create(Self, 'inputNegate', false);
+  AddEvent(FEventInputNegate);
+
+  FEventInputTrue := TSFBoolEvent.Create(Self, 'inputTrue', false);
+  AddEvent(FEventInputTrue);
+end;
 
 {$endif read_implementation}

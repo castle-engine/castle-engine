@@ -40,12 +40,28 @@ type
 
 implementation
 
-uses CastleApplicationProperties;
+uses SysUtils,
+  CastleApplicationProperties, CastleLog, CastleUtils, CastleTimeUtils;
 
 class procedure TTestFairy.InitializeRemoteLogging;
 begin
   // While it would work on all platforms, it's pointless (not handled) on other than iOS plaforms
   {$ifdef CASTLE_IOS}
+  { In case logging started before TTestFairy.InitializeRemoteLogging was called,
+    push to TestFairy some introductory messages. }
+  {$warnings off} // using deprecated knowingly, it should be renamed
+  if Log then
+  {$warnings on}
+  begin
+    TTestFairy.LogCallback('Log for "' + ApplicationName + '".' + NL);
+    if ApplicationProperties.Version <> '' then
+      TTestFairy.LogCallback('  Version: ' + ApplicationProperties.Version + '.' + NL);
+    TTestFairy.LogCallback('  TestFairy logging started on ' + DateTimeToAtStr(CastleNow) + '.' + NL);
+    TTestFairy.LogCallback('  Castle Game Engine version: ' + CastleEngineVersion + '.' + NL);
+    TTestFairy.LogCallback('  Compiled with ' + SCompilerDescription + '.' + NL);
+    TTestFairy.LogCallback('  Platform: ' + SPlatformDescription + '.' + NL);
+  end;
+
   if ApplicationProperties.OnLog.IndexOf(@LogCallback) = -1 then
     ApplicationProperties.OnLog.Add(@LogCallback);
   {$endif}

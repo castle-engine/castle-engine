@@ -11,50 +11,6 @@
         <OtherUnitFiles Value="../src/window;../src/window/windows;../src/window/unix;../src/ui/windows;../src/deprecated_units"/>
         <UnitOutputDirectory Value="lib/castle_window/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
-      <Conditionals Value="// example for adding linker options on macOS
-//if TargetOS='darwin' then
-//  LinkerOptions := ' -framework OpenGL';
-
-// example for adding a unit and include path on Windows
-//if SrcOS='win' then begin
-//  UnitPath += ';win';
-//  IncPath += ';win';
-//end;
-
-// See http://wiki.freepascal.org/Macros_and_Conditionals
-
-if GetProjValue('FPC_FULLVERSION') >= 30101 then
-begin
-  // do not show
-  // Note: Private type &quot;TCustomPointersEnumerator$2&lt;CASTLEVECTORSINTERNALSINGLE.TGenericVector2,CASTLEVECTORS.TCustomList$1$crc1D7BB6F0.PT>.T&quot; never used
-  CustomOptions += ' -vm5071';
-end;
-
-if GetProjValue('FPC_FULLVERSION') >= 30200 then
-begin
-  // do not show
-  // Warning: function result variable of a managed type does not seem to be initialized
-  // (a lot of false warnings since FPC 3.3.1)
-  CustomOptions += ' -vm5093';
-
-  // do not show
-  // Note:  Call to subroutine &quot;function TGenericVector3.Length:Single;&quot; marked as inline is not inlined
-  // (In FPC 3.3.1, not in FPC 3.1.1 rev 38027)
-  CustomOptions += ' -vm6058';
-end;
-
-if GetProjValue('FPC_FULLVERSION') >= 30301 then
-begin
-  // do not show
-  // Warning: Local variable &quot;$1&quot; of a managed type does not seem to be initialized
-  // (a lot of false warnings since FPC 3.3.1)
-  CustomOptions += ' -vm5089';
-
-  // do not show
-  // Warning: Variable &quot;OutputFace&quot; of a managed type does not seem to be initialized
-  // (3 false warnings since FPC 3.3.1 in Kraft)
-  CustomOptions += ' -vm5090';
-end;"/>
       <Parsing>
         <SyntaxOptions>
           <CStyleMacros Value="True"/>
@@ -76,6 +32,10 @@ end;"/>
         <CompilerMessages>
           <IgnoredMessages idx5063="True" idx4046="True"/>
         </CompilerMessages>
+        <ConfigFile>
+          <CustomConfigFile Value="True"/>
+          <ConfigFilePath Value="../castle-fpc-messages.cfg"/>
+        </ConfigFile>
         <CustomOptions Value="-dCASTLE_ENGINE_LAZARUS_PACKAGE"/>
       </Other>
     </CompilerOptions>
@@ -89,7 +49,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="5"/>
-    <Files Count="17">
+    <Files Count="18">
       <Item1>
         <Filename Value="../src/base/castleconf.inc"/>
         <Type Value="Include"/>
@@ -119,8 +79,8 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item7>
       <Item8>
-        <Filename Value="../src/window/castlewindowmodes.pas"/>
-        <UnitName Value="CastleWindowModes"/>
+        <Filename Value="../src/window/castleinternalwindowmodes.pas"/>
+        <UnitName Value="CastleInternalWindowModes"/>
       </Item8>
       <Item9>
         <Filename Value="../src/window/castlewindowprogress.pas"/>
@@ -159,6 +119,10 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/window/windows/castlewindow_winapi.inc"/>
         <Type Value="Include"/>
       </Item17>
+      <Item18>
+        <Filename Value="../src/deprecated_units/castlewindowmodes.pas"/>
+        <UnitName Value="CastleWindowModes"/>
+      </Item18>
     </Files>
     <RequiredPkgs Count="2">
       <Item1>

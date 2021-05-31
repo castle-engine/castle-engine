@@ -1,3 +1,4 @@
+{%MainUnit castlescene.pas}
 {
   Copyright 2010-2019 Michalis Kamburelis.
 
@@ -55,31 +56,27 @@ type
   { Root of transformations and scenes (tree of TCastleTransform and TCastleScene). }
   TCastleRootTransform = class(TCastleAbstractRootTransform)
   strict private
-    type
-      TFreeNotificationProxy = class(TComponent)
-        { Simply calls Owner.Notification(...). }
-        procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-      end;
-    var
-      FMainScene: TCastleScene;
-      { We register free notification of MainScene on MainSceneFreeNotificationProxy,
-        not on Self.
-        This way our RemoveFreeNotification doesn't accidentally remove the notification
-        which should remain because of other reasons
-        (when MainScene is our direct child, or when MainScene is part of our world,
-        which is actually almost always the case). }
-      MainSceneFreeNotificationProxy: TFreeNotificationProxy;
-      FUseHeadlight: TUseHeadlight;
-      FHeadlightNode: TAbstractLightNode;
+    FMainScene: TCastleScene;
+    { We observe freeing of MainScene using MainSceneObserver,
+      not using direct MainScene.FreeNotification(Self).
+      This way our RemoveFreeNotification doesn't accidentally remove the notification
+      which should remain because of other reasons
+      (when MainScene is our direct child, or when MainScene is part of our world,
+      which is actually almost always the case). }
+    MainSceneObserver: TFreeNotificationObserver;
+    FUseHeadlight: TUseHeadlight;
+    FHeadlightNode: TAbstractLightNode;
     procedure SetMainScene(const Value: TCastleScene);
     procedure MainScene_BoundViewpointChanged(Sender: TObject);
     procedure MainScene_BoundViewpointVectorsChanged(Sender: TObject);
     procedure MainScene_BoundNavigationInfoChanged(Sender: TObject);
     function GetHeadlightNode: TAbstractLightNode;
     procedure SetHeadlightNode(const Node: TAbstractLightNode);
+    procedure MainSceneFreeNotification(const Sender: TFreeNotificationObserver);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Determines the headlight look, if we use a headlight
       (which is determined by the algorithm described at @link(UseHeadlight) and
@@ -159,10 +156,11 @@ type
         @item(The screen effects defined inside MainScene (TScreenEffectNode)
           are automatically used.)
 
-        @item(PointingDeviceMove and PointingDeviceActivate always pass events to the MainScene,
-          even if mouse cursor is not pointing at the MainScene.
-          This way MainScene reliably knows when you move mouse such that it
-          @italic(no longer) points at the MainScene.)
+        @item(Main scene is informed about pointing device move,
+          even when the pointing device is @italic(not) over this scene,
+          and this scene is @italic(not) capturing pointing device events
+          (the scene "capturing" events once you click on it).
+        )
       )
 
       Freeing MainScene will automatically set this property to @nil. }
@@ -177,25 +175,13 @@ type
 
 {$ifdef read_implementation}
 
-{ TCastleRootTransform.TFreeNotificationProxy -------------------------------- }
-
-procedure TCastleRootTransform.TFreeNotificationProxy.Notification(
-  AComponent: TComponent; Operation: TOperation);
-var
-  O: TCastleRootTransform;
-begin
-  inherited;
-  O := Owner as TCastleRootTransform;
-  if (Operation = opRemove) and (AComponent = O.FMainScene) then
-    O.MainScene := nil;
-end;
-
 { TCastleRootTransform ------------------------------------------------------- }
 
 constructor TCastleRootTransform.Create(AOwner: TComponent);
 begin
   inherited;
-  MainSceneFreeNotificationProxy := TFreeNotificationProxy.Create(Self);
+  MainSceneObserver := TFreeNotificationObserver.Create(Self);
+  MainSceneObserver.OnFreeNotification := @MainSceneFreeNotification;
   FUseHeadlight := hlMainScene;
 end;
 
@@ -214,9 +200,10 @@ procedure TCastleRootTransform.SetMainScene(const Value: TCastleScene);
 begin
   if FMainScene <> Value then
   begin
+    MainSceneObserver.Observed := Value;
+
     if FMainScene <> nil then
     begin
-      FMainScene.RemoveFreeNotification(MainSceneFreeNotificationProxy);
       FMainScene.OnBoundViewpointVectorsChanged := nil;
       FMainScene.OnBoundNavigationInfoFieldsChanged := nil;
       { Check FMainScene.*Stack <> nil,
@@ -232,7 +219,6 @@ begin
 
     if FMainScene <> nil then
     begin
-      FMainScene.FreeNotification(MainSceneFreeNotificationProxy);
       FMainScene.OnBoundViewpointVectorsChanged := @MainScene_BoundViewpointVectorsChanged;
       FMainScene.OnBoundNavigationInfoFieldsChanged := @MainScene_BoundNavigationInfoChanged;
       FMainScene.ViewpointStack.OnBoundChanged := @MainScene_BoundViewpointChanged;
@@ -245,6 +231,12 @@ begin
     }
     VisibleChangeHere([vcVisibleNonGeometry]);
   end;
+end;
+
+procedure TCastleRootTransform.MainSceneFreeNotification(
+  const Sender: TFreeNotificationObserver);
+begin
+  MainScene := nil;
 end;
 
 procedure TCastleRootTransform.MainScene_BoundViewpointChanged(Sender: TObject);
@@ -307,6 +299,16 @@ begin
     {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create(2018081902);
     {$endif}
+  end;
+end;
+
+function TCastleRootTransform.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  case PropertyName of
+    'MainScene', 'UseHeadlight':
+      Result := [psBasic];
+    else
+      Result := inherited PropertySections(PropertyName);
   end;
 end;
 

@@ -61,7 +61,7 @@ interface
 
 uses SysUtils, Classes, Generics.Collections,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
-  CastleGLUtils, CastleUtils, CastleVectors, CastleRendererBaseTypes;
+  CastleGLUtils, CastleUtils, CastleVectors, CastleRenderOptions;
 
 type
   { Common class for exceptions related to GLSL programs. }
@@ -70,6 +70,7 @@ type
   EGLSLShaderCompileError = class(EGLSLError);
   EGLSLProgramLinkError = class(EGLSLError);
   EGLSLAttributeNotFound = class(EGLSLError);
+  EGLSLTransformFeedbackError = class(EGLSLError);
 
   EGLSLUniformInvalid = class(EGLSLError);
   EGLSLUniformNotFound = class(EGLSLUniformInvalid);
@@ -215,7 +216,7 @@ type
 
       OpenGL forces some constraints on using this, see SetUniform.
       In short: use this only after linking the program.
-      The program is automatically enabled (set as @link(TGLSLProgram.Current)) by this.
+      The program is automatically enabled (set as @link(TRenderContext.CurrentProgram RenderContext.CurrentProgram)) by this.
       And note that attributes declared but not actually used in shader code
       may be eliminated, use DebugInfo to see which attributes are actually
       used (@italic(active) in OpenGL terminology).
@@ -268,9 +269,6 @@ type
     FSource: array [TShaderType] of TStringList;
     {$endif CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
 
-    class var
-      FCurrent: TGLSLProgram;
-
     class function GetCurrent: TGLSLProgram; static;
     class procedure SetCurrent(const Value: TGLSLProgram); static;
   public
@@ -315,6 +313,10 @@ type
 
     procedure DetachAllShaders;
 
+    { Specify values to record in transform feedback buffers.
+      This must be called before @link(Link) method. }
+    procedure SetTransformFeedbackVaryings(const Varyings: array of PChar; const IsSingleBufferMode: Boolean = True);
+
     { Link the program, this should be done after attaching all shaders
       and before actually using the program.
 
@@ -324,19 +326,19 @@ type
     procedure Link; overload; virtual;
     procedure Link(Ignored: boolean); overload; deprecated 'use parameterless Link method';
 
-    { Enable (use) this program. Shortcut for @code(TGLSLProgram.Current := Self). }
+    { Enable (use) this program. Shortcut for @code(RenderContext.CurrentProgram := Self). }
     procedure Enable;
 
     { Disable this program (use the fixed function pipeline).
-      Shortcut for @code(TGLSLProgram.Current := nil). }
+      Shortcut for @code(RenderContext.CurrentProgram := nil). }
     class procedure Disable;
 
     { Override this to set uniform values, in particular to
       bind the textures used by this shader, right after each @link(Enable)
       call.
 
-      This is automatically called after every @link(Enable) by VRML renderer
-      (when it renders shapes) or scene manager (when it renders screen effects).
+      This is automatically called after every @link(Enable) by our renderer
+      (when it renders shapes) or TCastleScreenEffect (when it renders screen effects).
       If you use this TGLSLProgram directly (if you call @link(Enable)
       yourself), then it's your responsibility to call this method
       explicitly, if you want shaders using it to work.
@@ -419,7 +421,7 @@ type
       parameter follows this parameter value.
 
       @raises(EGLSLUniformNotFound If the variable is not found within
-        the program and we the behaviour (determined
+        the program and we the behavior (determined
         by AUniformTypeMismatchAction parameter or UniformTypeMismatchAction
         property) is uaException.)
 
@@ -439,7 +441,7 @@ type
 
         @item(This GLSL program must be currently enabled for this to work.
           So calling this automatically calls @link(Enable)
-          and sets @link(TGLSLProgram.Current).
+          and sets @link(TRenderContext.CurrentProgram RenderContext.CurrentProgram).
 
           This is required by OpenGL glUniform*
           commands. glGetUniformLocation take program id as parameter, so they
@@ -546,7 +548,7 @@ type
 
       OpenGL forces some constraints on using this, see SetUniform.
       In short: use this only after linking the program.
-      The program is automatically enabled (set as @link(TGLSLProgram.Current)) by this.
+      The program is automatically enabled (set as @link(TRenderContext.CurrentProgram RenderContext.CurrentProgram)) by this.
       And note that attributes declared but not actually used in shader code
       may be eliminated, use DebugInfo to see which attributes are actually
       used (@italic(active) in OpenGL terminology).
@@ -587,7 +589,7 @@ type
       Setting this property encapsulates the OpenGL glUseProgram
       (or equivalent ARB extension), additionally preventing redundant glUseProgram
       calls. }
-    class property Current: TGLSLProgram read GetCurrent write SetCurrent;
+    class property Current: TGLSLProgram read GetCurrent write SetCurrent; deprecated 'use RenderContext.CurrentProgram';
   end;
 
   TGLSLProgramList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TGLSLProgram>;
@@ -597,22 +599,27 @@ var
 
 {$ifdef CASTLE_OBJFPC}
 function GetCurrentProgram: TGLSLProgram;
-  deprecated 'use TGLSLProgram.Current';
+  deprecated 'use RenderContext.CurrentProgram';
 procedure SetCurrentProgram(const Value: TGLSLProgram);
-  deprecated 'use TGLSLProgram.Current';
+  deprecated 'use RenderContext.CurrentProgram';
 
 { Currently enabled GLSL program.
   @nil if fixed-function pipeline should be used.
   Setting this property encapsulates the OpenGL glUseProgram
   (or equivalent ARB extension), additionally preventing redundant glUseProgram
-  calls. }
+  calls.
+
+  @deprecated Use RenderContext.CurrentProgram }
 property CurrentProgram: TGLSLProgram
   read GetCurrentProgram write SetCurrentProgram;
 {$endif CASTLE_OBJFPC}
 
+// @exclude User by RenderContext.SetCurrentProgram
+procedure InternalSetCurrentProgram(const Value: TGLSLProgram);
+
 implementation
 
-uses CastleStringUtils, CastleLog, CastleGLVersion;
+uses CastleStringUtils, CastleLog, CastleGLVersion, CastleRenderContext;
 
 { Wrapper around glGetShaderInfoLog.
   Based on Dean Ellis BasicShader.dpr, but somewhat fixed ? <> 0 not > 1. }
@@ -667,12 +674,46 @@ end;
 
 function GetCurrentProgram: TGLSLProgram;
 begin
-  Result := TGLSLProgram.Current;
+  Result := RenderContext.CurrentProgram;
 end;
 
 procedure SetCurrentProgram(const Value: TGLSLProgram);
 begin
-  TGLSLProgram.Current := Value;
+  RenderContext.CurrentProgram := Value;
+end;
+
+procedure InternalSetCurrentProgram(const Value: TGLSLProgram);
+begin
+  if Value <> nil then
+  begin
+    case GLFeatures.Shaders of
+      {$ifndef ForceStandardGLSLApi}
+      gsExtension: glUseProgramObjectARB(GLhandleARB(Value.ProgramId));
+      {$endif}
+      gsStandard : glUseProgram         (Value.ProgramId);
+      else ;
+    end;
+  end else
+  begin
+    case GLFeatures.Shaders of
+      {$ifndef ForceStandardGLSLApi}
+      gsExtension:
+        begin
+          glUseProgramObjectARB(GLhandleARB(0));
+          { Workaround for fglrx bug (Radeon X1600 (chantal)).
+            Reproduce: open demo_models/x3d/anchor_test.x3dv,
+            and switch in view3dscene "Shaders -> Enable For Everything".
+            Text should be still rendered without shaders in this case
+            (we cannot currently render text through shaders).
+            Without the hack below, the shader from sphere would remain
+            active and text would look black. }
+          if GLVersion.Fglrx then glUseProgramObjectARB(GLhandleARB(0));
+        end;
+      {$endif}
+      gsStandard    : glUseProgram         (0);
+      else ;
+    end;
+  end;
 end;
 
 { TGLSLUniform --------------------------------------------------------------- }
@@ -1742,6 +1783,37 @@ begin
   AttachShader(stGeometry, S);
 end;
 
+procedure TGLSLProgram.SetTransformFeedbackVaryings(const Varyings: array of PChar; const IsSingleBufferMode: Boolean);
+var
+  {$ifndef OpenGLES}
+  TransformFeedbackBufferMode, ErrorCode: TGLuint;
+  {$endif}
+  VaryingLength: Cardinal;
+begin;
+  VaryingLength := Length(Varyings);
+  if VaryingLength > 0 then
+  begin
+    {$ifdef OpenGLES}
+    raise EGLSLTransformFeedbackError.Create('Transform feedback not supported by OpenGLES 2.0');
+    {$else}
+    if GLVersion.AtLeast(3, 0) and (FSupport = gsStandard) then
+    begin
+      if IsSingleBufferMode then
+        TransformFeedbackBufferMode := GL_INTERLEAVED_ATTRIBS
+      else
+        TransformFeedbackBufferMode := GL_SEPARATE_ATTRIBS;
+      glTransformFeedbackVaryings(ProgramId, VaryingLength, @Varyings[0], TransformFeedbackBufferMode);
+      ErrorCode := glGetError();
+      if ErrorCode = GL_INVALID_VALUE then
+      begin
+        raise EGLSLTransformFeedbackError.Create('Error occured after setting transform feedback varyings');
+      end;
+    end else
+      raise EGLSLTransformFeedbackError.Create('Transform feedback not supported by your OpenGL version');
+    {$endif}
+  end;
+end;
+
 procedure TGLSLProgram.DetachAllShaders;
 var
   I: Integer;
@@ -1845,12 +1917,12 @@ end;
 
 procedure TGLSLProgram.Enable;
 begin
-  Current := Self;
+  RenderContext.CurrentProgram := Self;
 end;
 
 class procedure TGLSLProgram.Disable;
 begin
-  Current := nil;
+  RenderContext.CurrentProgram := nil;
 end;
 
 function TGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolean;
@@ -2165,46 +2237,12 @@ end;
 
 class function TGLSLProgram.GetCurrent: TGLSLProgram;
 begin
-  Result := FCurrent;
+  Result := RenderContext.CurrentProgram;
 end;
 
 class procedure TGLSLProgram.SetCurrent(const Value: TGLSLProgram);
 begin
-  if FCurrent <> Value then
-  begin
-    FCurrent := Value;
-
-    if Value <> nil then
-    begin
-      case GLFeatures.Shaders of
-        {$ifndef ForceStandardGLSLApi}
-        gsExtension: glUseProgramObjectARB(GLhandleARB(Value.ProgramId));
-        {$endif}
-        gsStandard : glUseProgram         (Value.ProgramId);
-        else ;
-      end;
-    end else
-    begin
-      case GLFeatures.Shaders of
-        {$ifndef ForceStandardGLSLApi}
-        gsExtension:
-          begin
-            glUseProgramObjectARB(GLhandleARB(0));
-            { Workaround for fglrx bug (Radeon X1600 (chantal)).
-              Reproduce: open demo_models/x3d/anchor_test.x3dv,
-              and switch in view3dscene "Shaders -> Enable For Everything".
-              Text should be still rendered without shaders in this case
-              (we cannot currently render text through shaders).
-              Without the hack below, the shader from sphere would remain
-              active and text would look black. }
-            if GLVersion.Fglrx then glUseProgramObjectARB(GLhandleARB(0));
-          end;
-        {$endif}
-        gsStandard    : glUseProgram         (0);
-        else ;
-      end;
-    end;
-  end;
+  RenderContext.CurrentProgram := Value;
 end;
 
 end.

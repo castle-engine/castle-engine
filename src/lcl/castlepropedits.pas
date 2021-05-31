@@ -35,13 +35,14 @@ procedure Register;
 
 implementation
 
-uses SysUtils, Classes, TypInfo,
+uses SysUtils, Classes, TypInfo, Forms,
   PropEdits, ComponentEditors, LResources, Dialogs, Controls, LCLVersion,
   OpenGLContext, Graphics,
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes, CastleCameras,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
   CastleVectors, CastleUtils, CastleColors, CastleViewport, CastleDialogs,
-  CastleTiledMap, CastleGLImages, CastleStringUtils;
+  CastleTiledMap, CastleGLImages, CastleStringUtils, CastleTransformExtra,
+  CastleInternalExposeTransformsDialog;
 
 {$I castlepropedits_any_subproperties.inc}
 {$I castlepropedits_autoanimation.inc}
@@ -52,6 +53,7 @@ uses SysUtils, Classes, TypInfo,
 {$I castlepropedits_unused_controls.inc}
 {$I castlepropedits_viewport_navigation.inc}
 {$I castlepropedits_float.inc}
+{$I castlepropedits_exposetransforms.inc}
 
 procedure Register;
 begin
@@ -62,8 +64,14 @@ begin
     'URL', TImageURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleImagePersistent,
     'URL', TImageURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleAbstractPrimitive,
+    'Texture', TImageURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleAbstractPrimitive,
+    'TextureNormalMap', TImageURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleDesign,
     'URL', TDesignURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTransformDesign,
+    'URL', TTransformDesignURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTiledMapControl,
     'URL', TTiledMapURLPropertyEditor);
 
@@ -94,12 +102,16 @@ begin
     TCastleColorRGBPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector2Persistent), nil, '',
     TCastleVector2PropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), TCastleTransform, 'ScalePersistent',
+    TScalePropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), nil, '',
     TCastleVector3PropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector4Persistent), nil, '',
     TCastleVector4PropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleSceneCore, 'AutoAnimation',
     TSceneAutoAnimationPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TStrings), TCastleSceneCore, 'ExposeTransforms',
+    TExposeTransformsPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleNavigation), TCastleViewport, 'Navigation',
     TViewportNavigationEditor);
   RegisterPropertyEditor(TypeInfo(TCastleNavigation), TCastleViewport, 'Navigation',

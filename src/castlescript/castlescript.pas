@@ -2617,7 +2617,7 @@ begin
       would be incorrect: our argument may be a long-lived instance in
       TCasScriptFunction.ExecuteArgumentClasses, that is changed in
       TCasScriptFunction.CoreExecute. With a reference copy here,
-      the CoreExecute would accidentaly change also our cache state,
+      the CoreExecute would accidentally change also our cache state,
       which will cause trouble later.
 
       Testcase: demo_models/castle_script/edit_texture.x3dv,

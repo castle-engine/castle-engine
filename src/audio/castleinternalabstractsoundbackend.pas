@@ -176,7 +176,7 @@ type
     function ContextOpen(const ADevice: String; out Information: String): Boolean; virtual; abstract;
 
     { Close backend.
-      Guaranteed to be called only after successfull (returning @true) ContextOpen. }
+      Guaranteed to be called only after successful (returning @true) ContextOpen. }
     procedure ContextClose; virtual; abstract;
 
     { Create suitable non-abstract TSoundBufferBackend descendant. }

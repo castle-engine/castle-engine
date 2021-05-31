@@ -146,6 +146,7 @@
       This is in practice only sensible if this is the only edit box currently
       visible on the screen. }
     property CaptureAllInput: boolean read FCaptureAllInput write FCaptureAllInput;
+      deprecated 'use Container.ForceCaptureInput instead of this';
 
     { When true, it shows the software keyboard on Android. }
     property AutoOnScreenKeyboard: Boolean
@@ -197,7 +198,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     procedure SetFocused(const AValue: Boolean); override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     { In case of this descendant, Text is always derived from Value. }
     property Text stored false;
@@ -229,7 +230,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     procedure SetFocused(const AValue: Boolean); override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     { In case of this descendant, Text is always derived from Value. }
     property Text stored false;
@@ -409,7 +410,6 @@ procedure TCastleEdit.PreferredSize(var PreferredWidth, PreferredHeight: Single)
 var
   PaddingVerticalScaled, HeightScaled: Single;
   US: Single;
-  FrameCorners: TVector4;
 begin
   inherited;
 
@@ -421,10 +421,9 @@ begin
     HeightScaled := Font.RowHeight + 2 * PaddingVerticalScaled;
     if Frame then
     begin
-      FrameCorners := Theme.Corners[tiEdit];
       HeightScaled := HeightScaled +
-        US * FrameCorners[0] +
-        US * FrameCorners[2];
+        US * Theme.ImagesPersistent[tiEdit].ProtectedSides.TotalTop +
+        US * Theme.ImagesPersistent[tiEdit].ProtectedSides.TotalBottom;
     end;
 
     PreferredHeight := HeightScaled;
@@ -448,12 +447,12 @@ begin
   end;
 end;
 
-function TCastleEdit.PropertySection(const PropertyName: String): TPropertySection;
+function TCastleEdit.PropertySections(const PropertyName: String): TPropertySections;
 begin
   if (PropertyName = 'Text') then
-    Result := psBasic
+    Result := [psBasic]
   else
-    Result := inherited PropertySection(PropertyName);
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TCastleEdit.Render;
@@ -463,7 +462,7 @@ var
   SR, RectInside: TFloatRectangle;
   PaddingHorizontalScaled, PaddingVerticalScaled: Single;
   US, TextLeft, TextBottom: Single;
-  FrameCorners: TVector4;
+  FrameSides: TBorder;
   CaretVisible: boolean;
   S: string;
   Color: TCastleColor;
@@ -479,12 +478,12 @@ begin
   if Frame then
   begin
     { make smaller RectInside, by frame size }
-    FrameCorners := Theme.Corners[tiEdit];
+    FrameSides := Theme.ImagesPersistent[tiEdit].ProtectedSides;
     RectInside := RectInside.
-      RemoveTop(FrameCorners[0] * US).
-      RemoveRight(FrameCorners[1] * US).
-      RemoveBottom(FrameCorners[2] * US).
-      RemoveLeft(FrameCorners[3] * US);
+      RemoveTop   (FrameSides.TotalTop    * US).
+      RemoveRight (FrameSides.TotalRight  * US).
+      RemoveBottom(FrameSides.TotalBottom * US).
+      RemoveLeft  (FrameSides.TotalLeft   * US);
 
     { draw frame }
     Theme.Draw(SR, tiEdit, US);
@@ -716,9 +715,11 @@ end;
 
 function TCastleEdit.CapturesEventsAtPosition(const Position: TVector2): boolean;
 begin
+  {$warnings off} // using deprecated just to keep it working
   if CaptureAllInput then
     Result := true // always capture
   else
+  {$warnings on}
     Result := inherited CapturesEventsAtPosition(Position);
 end;
 
@@ -841,15 +842,15 @@ begin
   Value := Value;
 end;
 
-function TCastleFloatEdit.PropertySection(const PropertyName: String): TPropertySection;
+function TCastleFloatEdit.PropertySections(const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
     'Text':
-      Result := psOther; // override TCastleEdit making it psBasic
+      Result := []; // override TCastleEdit that made it [psBasic], we instead expose Value
     'Value', 'Min', 'Max':
-      Result := psBasic;
+      Result := [psBasic];
     else
-      Result := inherited PropertySection(PropertyName);
+      Result := inherited PropertySections(PropertyName);
   end;
 end;
 
@@ -899,15 +900,15 @@ begin
   Value := Value;
 end;
 
-function TCastleIntegerEdit.PropertySection(const PropertyName: String): TPropertySection;
+function TCastleIntegerEdit.PropertySections(const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
     'Text':
-      Result := psOther; // override TCastleEdit making it psBasic
+      Result := []; // override TCastleEdit that made it [psBasic], we instead expose Value
     'Value', 'Min', 'Max':
-      Result := psBasic;
+      Result := [psBasic];
     else
-      Result := inherited PropertySection(PropertyName);
+      Result := inherited PropertySections(PropertyName);
   end;
 end;
 

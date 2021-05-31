@@ -24,7 +24,7 @@ uses Classes, Generics.Collections,
   CastleVectors, CastleBoxes, CastleClassUtils, CastleUtils, CastleScene,
   CastleStringUtils, CastleResources, CastleXMLConfig, CastleTransform,
   CastleTransformExtra, CastleSoundEngine, CastleFrustum, X3DNodes, CastleColors,
-  CastleDebugTransform, CastleSectors;
+  CastleDebugTransform, CastleSectors, CastleBehaviors;
 
 type
   TCreatureState = type Integer;
@@ -225,9 +225,11 @@ type
       default DefaultKnockBackDistance;
 
     { See TCastleAlive.KnockBackSpeed. }
+    {$warnings off} // using deprecated in deprecated
     property KnockBackSpeed: Single
       read FKnockBackSpeed write FKnockBackSpeed
       default TCastleAlive.DefaultKnockBackSpeed;
+    {$warnings on}
 
     { By default dead creatures (corpses) don't collide, this usually looks better. }
     property CollidesWhenDead: boolean
@@ -844,7 +846,7 @@ type
     FResource: TCreatureResource;
     FResourceFrame: TResourceFrame;
 
-    UsedSounds: TSoundList;
+    SoundSource: TCastleSoundSource;
     FSoundDieEnabled: boolean;
 
     FDebugCaptions: TCastleScene;
@@ -858,8 +860,6 @@ type
     { Calculated @link(Radius) suitable for this creature.
       This is cached result of @link(TCreatureResource.Radius). }
     FRadius: Single;
-
-    procedure SoundRelease(Sender: TSound);
   protected
     var
       { Set by CreateCreature. }
@@ -918,7 +918,7 @@ type
       the sound will simply be done at creature's position, but then
       it will continue to be played independent of this creature. }
     procedure Sound3d(const SoundType: TSoundType; const SoundHeight: Single;
-      TiedToCreature: boolean = true);
+      const TiedToCreature: boolean = true);
 
     { Can the approximate sphere be used for some collision-detection
       tasks.
@@ -972,7 +972,7 @@ type
     WaypointsSaved_Begin: TSector;
     WaypointsSaved_End: TSector;
     WaypointsSaved: TWaypointList;
-    MiddleForceBoxTime: Single;
+    InternalMiddleForceBoxTime: Single;
 
     FDebugAlternativeTargetAxis: TDebugAxis;
     FDebugLastSensedEnemyAxis: TDebugAxis;
@@ -1079,7 +1079,9 @@ begin
   FFlying := DefaultFlying;
   FDefaultMaxLife := DefaultDefaultMaxLife;
   FKnockBackDistance := DefaultKnockBackDistance;
+  {$warnings off} // using deprecated in deprecated
   FKnockBackSpeed := TCastleAlive.DefaultKnockBackSpeed;
+  {$warnings on}
   FSoundDieTiedToCreature := DefaultSoundDieTiedToCreature;
   FAttackDamageConst := DefaultAttackDamageConst;
   FAttackDamageRandom := DefaultAttackDamageRandom;
@@ -1090,14 +1092,17 @@ begin
   FFallDamageScaleMin := DefaultFallDamageScaleMin;
   FFallDamageScaleMax := DefaultFallDamageScaleMax;
   FFallSound := SoundEngine.SoundFromName(DefaultFallSoundName, false);
+  ScaleMin := 1;
+  ScaleMax := 1;
 end;
 
 procedure TCreatureResource.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
   inherited;
 
-  KnockBackSpeed := ResourceConfig.GetFloat('knockback_speed',
-    TCastleAlive.DefaultKnockBackSpeed);
+  {$warnings off} // using deprecated in deprecated
+  KnockBackSpeed := ResourceConfig.GetFloat('knockback_speed', TCastleAlive.DefaultKnockBackSpeed);
+  {$warnings on}
   CollidesWhenDead := ResourceConfig.GetValue('collides_when_dead', false);
   ScaleMin := ResourceConfig.GetFloat('scale_min', 1);
   ScaleMax := ResourceConfig.GetFloat('scale_max', 1);
@@ -1150,7 +1155,7 @@ begin
     Note: we experimented with moving this to TCreature.PrepareResource,
     call Resource.Prepare from there. But it just doesn't fully work:
     some creatures really want Resource to be prepared
-    before PrepareResource (from scene manager BeforeRender) had a chance to work.
+    before PrepareResource (from TCastleViewport.BeforeRender) had a chance to work.
     For example, on missiles like thrown web we do Sound3d that uses LerpLegsMiddle.
     Also TCreature.Idle (which definitely needs Resource) may get called before
     PrepareResource. IOW, PrepareResource is just too late. }
@@ -1161,6 +1166,7 @@ begin
     to sensibly use the creature }
   Result.Level := ALevel;
   Result.FResource := Self;
+  Result.Orientation := Orientation; // must be set before SetView
   Result.SetView(APosition, ADirection, RootTransform.GravityUp, FlexibleUp);
   Result.Life := MaxLife;
   Result.KnockBackSpeed := KnockBackSpeed;
@@ -1443,14 +1449,6 @@ begin
   RemoveDead := ResourceConfig.GetValue('remove_dead', DefaultRemoveDead);
 end;
 
-{ TCreatureSoundData --------------------------------------------------- }
-
-type
-  TCreatureSoundData = class
-  public
-    SoundHeight: Single;
-  end;
-
 { TCreature ------------------------------------------------------------------ }
 
 constructor TCreature.Create(AOwner: TComponent; const AMaxLife: Single);
@@ -1459,7 +1457,8 @@ begin
   CollidesWithMoving := true;
   MaxLife := AMaxLife;
   FSoundDieEnabled := true;
-  UsedSounds := TSoundList.Create(false);
+  SoundSource := TCastleSoundSource.Create(Self);
+  AddBehavior(SoundSource);
 
   FDebugTransform := TDebugTransform.Create(Self);
   FDebugTransform.Parent := Self;
@@ -1481,52 +1480,16 @@ begin
 end;
 
 destructor TCreature.Destroy;
-var
-  I: Integer;
 begin
-  if UsedSounds <> nil then
-  begin
-    for I := 0 to UsedSounds.Count - 1 do
-    begin
-      UsedSounds[I].UserData.Free;
-      UsedSounds[I].UserData := nil;
-
-      { Otherwise OnRelease would call TCreature.SoundRelease,
-        and this would remove it from UsedSounds list, breaking our
-        indexing over this list here. }
-      UsedSounds[I].OnRelease := nil;
-      UsedSounds[I].Release;
-    end;
-    FreeAndNil(UsedSounds);
-  end;
-
   if Resource <> nil then
     Resource.Release;
-
   inherited;
 end;
 
-procedure TCreature.SoundRelease(Sender: TSound);
-begin
-  Sender.UserData.Free;
-  Sender.UserData := nil;
-  UsedSounds.Remove(Sender);
-end;
-
 procedure TCreature.Sound3d(const SoundType: TSoundType; const SoundHeight: Single;
-  TiedToCreature: boolean);
-var
-  NewSource: TSound;
-  SoundPosition: TVector3;
+  const TiedToCreature: boolean);
 begin
-  SoundPosition := LerpLegsMiddle(SoundHeight);
-  NewSource := SoundEngine.Sound3d(SoundType, SoundPosition);
-  if TiedToCreature and (NewSource <> nil) then
-  begin
-    UsedSounds.Add(NewSource);
-    NewSource.OnRelease := @SoundRelease;
-    NewSource.UserData := TCreatureSoundData.Create;
-  end;
+  SoundSource.PlayOnce(SoundType, SoundHeight, TiedToCreature);
 end;
 
 function TCreature.LerpLegsMiddle(const A: Single): TVector3;
@@ -1556,19 +1519,6 @@ begin
 end;
 
 procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
-
-  procedure UpdateUsedSounds;
-  var
-    I: Integer;
-    SoundPosition: TVector3;
-  begin
-    for I := 0 to UsedSounds.Count - 1 do
-    begin
-      SoundPosition := LerpLegsMiddle(
-        TCreatureSoundData(UsedSounds[I].UserData).SoundHeight);
-      UsedSounds[I].Position := SoundPosition;
-    end;
-  end;
 
   procedure UpdateDebugCaptions;
   var
@@ -1645,7 +1595,6 @@ begin
     transformation (things taken into account in TCastleTransform) stay equal. }
   VisibleChangeHere([vcVisibleGeometry]);
 
-  UpdateUsedSounds;
   FDebugTransform.Exists := RenderDebug;
   UpdateDebugCaptions;
 end;
@@ -1739,7 +1688,9 @@ end;
 
 function TWalkAttackCreature.Enemy: TCastleAlive;
 begin
+  {$warnings off} // using deprecated in deprecated
   Result := Level.GetPlayer as TCastleAlive;
+  {$warnings on}
   if (Result <> nil) and Result.Dead then
     Result := nil; { do not attack dead player }
 end;
@@ -1766,7 +1717,7 @@ begin
       Safeguards:
 
       - Don't set to "forced" when it's already forced, as then it could
-        cause MiddleForceBoxValue change after each SetState to the box
+        cause InternalMiddleForceBoxValue change after each SetState to the box
         from previous state, and we'll be in a similar trouble
         (but with box values always from previous state).
         Trouble (without this safeguard) is reproducible on fps_game
@@ -1779,13 +1730,13 @@ begin
         (I didn't actually observed a need for this safeguard so far,
         but it seems reasonable to limit this hack only to idle/walk situation.)
     }
-    if (not MiddleForceBox) and
+    if (not InternalMiddleForceBox) and
        ( ((FState = csIdle) and (Value = csWalk)) or
          ((FState = csWalk) and (Value = csIdle)) ) then
     begin
-      MiddleForceBox := true;
-      MiddleForceBoxValue := LocalBoundingBox;
-      MiddleForceBoxTime := LifeTime + 0.1;
+      InternalMiddleForceBox := true;
+      InternalMiddleForceBoxValue := LocalBoundingBox;
+      InternalMiddleForceBoxTime := LifeTime + 0.1;
     end;
 
     { Some states require special finalization here. }
@@ -2503,8 +2454,8 @@ begin
   inherited;
   if (not GetExists) or DebugTimeStopForCreatures then Exit;
 
-  { eventually turn off MiddleForceBox }
-  MiddleForceBox := MiddleForceBox and (LifeTime <= MiddleForceBoxTime);
+  { eventually turn off InternalMiddleForceBox }
+  InternalMiddleForceBox := InternalMiddleForceBox and (LifeTime <= InternalMiddleForceBoxTime);
 
   if Dead and not (State in [csDie, csDieBack]) then
   begin
@@ -2576,7 +2527,9 @@ end;
 
 procedure TWalkAttackCreature.Attack;
 var
+  {$warnings off} // using deprecated in deprecated
   E: TCastleAlive;
+  {$warnings on}
 
   function ShortRangeAttackHits: boolean;
   var
@@ -2830,7 +2783,9 @@ end;
 procedure TMissileCreature.HitPlayer;
 begin
   ForceRemoveDead := true;
+  {$warnings off} // using deprecated in deprecated
   AttackHurt(Level.GetPlayer as TCastleAlive);
+  {$warnings on}
 end;
 
 procedure TMissileCreature.HitCreature(Creature: TCreature);

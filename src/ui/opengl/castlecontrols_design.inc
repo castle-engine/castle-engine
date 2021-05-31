@@ -24,17 +24,17 @@
   TCastleDesign = class(TCastleUserInterface)
   strict private
     FDesign: TCastleUserInterface;
+    FDesignObserver: TFreeNotificationObserver;
     FURL: String;
     FStretchWhenNotLoaded: Boolean;
     procedure SetURL(const Value: String);
     function GetStretch: Boolean;
     procedure SetStretch(const Value: Boolean);
-  protected
-    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    procedure DesignFreeNotification(const Sender: TFreeNotificationObserver);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     { Load file with the user interface design.
       The file should be in the format created by Castle Game Engine Editor
@@ -88,6 +88,24 @@
 
 { TCastleDesign -------------------------------------------------------------- }
 
+constructor TCastleDesign.Create(AOwner: TComponent);
+begin
+  inherited;
+  FDesignObserver := TFreeNotificationObserver.Create(Self);
+  FDesignObserver.OnFreeNotification := @DesignFreeNotification;
+  FStretchWhenNotLoaded := true;
+end;
+
+destructor TCastleDesign.Destroy;
+begin
+  inherited;
+end;
+
+procedure TCastleDesign.DesignFreeNotification(const Sender: TFreeNotificationObserver);
+begin
+  FDesign := nil;
+end;
+
 procedure TCastleDesign.SetURL(const Value: String);
 begin
   if FURL <> Value then
@@ -126,35 +144,9 @@ begin
       }
       FDesign.SetTransient;
       FDesign.FullSize := FStretchWhenNotLoaded;
-      FDesign.FreeNotification(Self);
+      FDesignObserver.Observed := FDesign;
       InsertFront(FDesign);
     end;
-  end;
-end;
-
-constructor TCastleDesign.Create(AOwner: TComponent);
-begin
-  inherited;
-  FStretchWhenNotLoaded := true;
-end;
-
-destructor TCastleDesign.Destroy;
-begin
-  if FDesign <> nil then
-  begin
-    FDesign.RemoveFreeNotification(Self);
-    FDesign := nil;
-  end;
-  inherited;
-end;
-
-procedure TCastleDesign.Notification(AComponent: TComponent; Operation: TOperation);
-begin
-  inherited;
-  if (Operation = opRemove) and (AComponent = FDesign) then
-  begin
-    FDesign.RemoveFreeNotification(Self);
-    FDesign := nil;
   end;
 end;
 
@@ -177,14 +169,14 @@ begin
     FStretchWhenNotLoaded := Value;
 end;
 
-function TCastleDesign.PropertySection(
-  const PropertyName: String): TPropertySection;
+function TCastleDesign.PropertySections(
+  const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
     'URL', 'Stretch':
-      Result := psBasic;
+      Result := [psBasic];
     else
-      Result := inherited PropertySection(PropertyName);
+      Result := inherited PropertySections(PropertyName);
   end;
 end;
 

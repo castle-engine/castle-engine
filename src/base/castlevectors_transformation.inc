@@ -37,6 +37,10 @@ type
       causes non-uniform scaling, this value represents an average scale. }
     Scale: Single;
 
+    { Is the underlying scale uniform (which means that @link(Scale)
+      accurately represents the scaling, is not only approximate). }
+    UniformScale: Boolean;
+
     { Make no transformation (identity matrix, scale 1). }
     procedure Init;
 
@@ -64,6 +68,44 @@ type
       const ScaleVector: TVector3;
       const Translation: TVector3); overload;
 
+    { Modify transformation by an additional transformation matrix.
+
+      Using this is @bold(very discouraged), as we need to assume UniformScale=false,
+      which in turn e.g. makes sphere collisions worse (at some transformations,
+      they have to treat sphere as something larger).
+      That is because matrix can contain any transformation,
+      and even using MatrixDecompose and then analyzing whether resulting scale has X=Y=Z
+      would be unreliable. Testcases:
+
+     - Rendering ghost teeth in castle-game.
+
+       This shows that we cannot just replace matrix with translation+rotation+scale
+       by MatrixDecompose, matrix can contain other transformations like shear.
+       So we need to account whole matrix.
+       Replacing MultiplyMatrix(matrix) with MatrixDecompose + Multiply(vectors)
+       makes wrong rendering.
+
+     - Graves on "The Gate" level in castle-game.
+
+       This shows that even calculating UniformScale based on scale resulting
+       from MatrixDecompose doesn't work reliably.
+       Replacing inside MultiplyMatrix the UniformScale detection,
+       to assume true when scale (from MatrixDecompose) has X=Y=Z,
+       results in blocked movement.
+       MatrixDecompose cannot account fo arbitrary matrix that can contain anything.
+
+     - Beginng position (blocked movement) on "castle hall" level in castle-game.
+
+       Same as above.
+       Shows that we cannot detect UniformScale smartly.
+
+      Use the @link(Multiply) instead to provide separate translation,
+      rotation etc. vectors.
+      Use this method only when you are forced to do so,
+      i.e. your input is already a matrix.
+    }
+    procedure MultiplyMatrix(const Matrix: TMatrix4);
+
     { Modify transformation by an additional translation. }
     procedure Translate(const Translation: TVector3);
   end;
@@ -84,6 +126,7 @@ begin
   Transform := TMatrix4.Identity;
   InverseTransform := TMatrix4.Identity;
   Scale := 1;
+  UniformScale := true;
 end;
 
 procedure TTransformation.Translate(const Translation: TVector3);
@@ -149,6 +192,9 @@ begin
     end;
 
     Scale := Scale * Approximate3DScale(ScaleVector);
+    UniformScale := UniformScale and
+      (ScaleVector.Data[0] = ScaleVector.Data[1]) and
+      (ScaleVector.Data[1] = ScaleVector.Data[2]);
   end;
 
   MultMatricesTranslation(Transform, InverseTransform, -Center);
@@ -193,7 +239,35 @@ begin
     InverseTransform := IM * InverseTransform;
 
     Scale := Scale * Approximate3DScale(ScaleVector);
+    UniformScale := UniformScale and
+      (ScaleVector.Data[0] = ScaleVector.Data[1]) and
+      (ScaleVector.Data[1] = ScaleVector.Data[2]);
   end;
+end;
+
+procedure TTransformation.MultiplyMatrix(const Matrix: TMatrix4);
+var
+  InvertedMatrix: TMatrix4;
+begin
+  Transform := Transform * Matrix;
+
+  if TryInverseHarder(Matrix, InvertedMatrix) then
+  begin
+    InverseTransform := InvertedMatrix * InverseTransform;
+  end else
+  begin
+    WritelnLogMultiline('Matrix',
+      'Cannot invert matrix:' + NL + Matrix.ToRawString('  '));
+
+    { When determinant is zero, we treat inverted matrix
+      like identity (like in TMatrixTransformNode_1.Transformation).
+      So no need to multiply InverseTransform by anything. }
+  end;
+
+  Scale := Scale * Approximate3DScale(Matrix);
+
+   // we have to assume non-uniform matrix, see comments in the interface
+  UniformScale := false;
 end;
 
 {$endif read_implementation}

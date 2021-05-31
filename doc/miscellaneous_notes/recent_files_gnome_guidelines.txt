@@ -1,0 +1,54 @@
+The information below guided the units:
+CastleWindowRecentFiles, CastleLclRecentFiles, CastleRecentFiles.
+
+------------------------------------------------------------------------------
+How should recent files menu look and work like in GNOME program ?
+
+(I didn't found this info in any guideline on Internet,
+especially not in GNOME HIG).
+
+Inline "recent files" menu:
+- Examples: See gedit, eog, evince, totem
+- Size: At most 5 recent items
+- Placement: After "print" commands, there's a separator,
+  then a recent files list, then separator and "close" commands.
+  Menu items are sorted from 1st (the most recent one).
+- Look: "n" + ". " + basename (with extension, without path) of the filename.
+  "n" is between 1 and 5, and it's a key shortcut to this menu item.
+  Only the basename is shown, to see full filename you should move to this
+  menu item --- gedit will show full filename in status bar,
+  eog will show it as a hint, in both cases the text is
+    Opens "full-filename"
+
+--------------------
+Separate "recent files" menu:
+- Examples: See gimp
+- Size: At most 10 recent items
+- Placement: As a submenu of "Open recent" in main menu.
+  "Open recent" is right below "Open location", so it's visually
+  connected with other "Open ..." commands.
+  Menu items are sorted from the most recent one.
+- Look: just a file basename. There is no underlined menu shortcut,
+  but there is a global shortcut: Ctrl+1, Ctrl+2 etc.
+  The last (10th) item has a shortcut Ctrl+0.
+- The "Open recent" submenu ends with separator and command
+  "Document History" that displays a window with full (long) list
+  of recent files, allowing you to open files on this list and do
+  some other operations.
+
+--------------------
+There are reasons after and against separate "recent files",
+see e.g. [http://bugzilla.gnome.org/show_bug.cgi?id=349541]
+or [http://log.emmanuelebassi.net/archives/category/hacking/recent-files/].
+In short:
++ inline recent files menu allows you to avoid submenus, and avoiding
+  submenus makes it more visible and easier to navigate
+- inline recent files menu blocks you from placing too many items
+  there ("File" menu would grow too large)
+- inline recent files menu doesn't give you a clear place where you
+  could place an item like "More" ("Document History" known from GIMP).
+
+--------------------
+Somewhat related to this is
+[http://standards.freedesktop.org/recent-file-spec/recent-file-spec-0.2.html]
+but it seems to be used only by GIMP for now.

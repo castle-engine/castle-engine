@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,6 +29,16 @@
     function GetUseGeometry: Boolean;
     procedure SetUseGeometry(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdCollidables: TMFNode;
+    { X3D field "collidables". } { }
+    public property FdCollidables: TMFNode read FFdCollidables;
+
+    strict private FFdUseGeometry: TSFBool;
+    { X3D field "useGeometry". } { }
+    public property FdUseGeometry: TSFBool read FFdUseGeometry;
     { X3D field "useGeometry". } { }
     property UseGeometry: Boolean read GetUseGeometry write SetUseGeometry;
 
@@ -46,6 +56,26 @@ end;
 procedure TCollisionSpaceNode.SetUseGeometry(const Value: Boolean);
 begin
   FdUseGeometry.Send(Value);
+end;
+
+class function TCollisionSpaceNode.ClassX3DType: String;
+begin
+  Result := 'CollisionSpace';
+end;
+
+procedure TCollisionSpaceNode.CreateNode;
+begin
+  inherited;
+
+  FFdCollidables := TMFNode.Create(Self, True, 'collidables', [TAbstractNBodyCollisionSpaceNode, TAbstractNBodyCollidableNode]);
+   FdCollidables.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdCollidables);
+
+  FFdUseGeometry := TSFBool.Create(Self, True, 'useGeometry', false);
+   FdUseGeometry.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdUseGeometry);
+
+  DefaultContainerField := 'children';
 end;
 
 {$endif read_implementation}

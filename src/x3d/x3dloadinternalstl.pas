@@ -18,18 +18,18 @@ unit X3DLoadInternalSTL;
 
 interface
 
-uses X3DNodes;
+uses SysUtils, Classes,
+  X3DNodes;
 
 { Load 3D model in the STL format, converting it to an X3D nodes graph.
   This routine is internally used by the @link(LoadNode) to load an STL file.
   See https://en.wikipedia.org/wiki/STL_%28file_format%29 for
   more information about STL. }
-function LoadSTL(const URL: string): TX3DRootNode;
+function LoadSTL(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 
 implementation
 
-uses SysUtils, Classes,
-  CastleClassUtils, CastleVectors, CastleUtils, CastleDownload, CastleTriangles,
+uses CastleClassUtils, CastleVectors, CastleUtils, CastleDownload, CastleTriangles,
   CastleLog, CastleStreamUtils;
 
 { Load STL text (ASCII) variation. }
@@ -166,50 +166,46 @@ begin
   end;
 end;
 
-function LoadSTL(const URL: string): TX3DRootNode;
+function LoadSTL(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 var
   Header: array [0..4] of char;
-  Stream: TStream;
   Shape: TShapeNode;
   TriangleSet: TTriangleSetNode;
   Coordinate: TCoordinateNode;
   Normal: TNormalNode;
 begin
-  Stream := Download(URL, []);
+  Result := TX3DRootNode.Create('', BaseUrl);
   try
-    Result := TX3DRootNode.Create('', URL);
-    try
-      { setup common X3D nodes }
-      Coordinate := TCoordinateNode.Create('', URL);
+    { setup common X3D nodes }
+    Coordinate := TCoordinateNode.Create('', BaseUrl);
 
-      Normal := TNormalNode.Create('', URL);
+    Normal := TNormalNode.Create('', BaseUrl);
 
-      { The TriangleSet is perfect for STL geometry, see
-        http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/rendering.html#TriangleSet
-        Just a list of vertexes, each 3 vertexes make a triangle. }
-      TriangleSet := TTriangleSetNode.Create('', URL);
-      TriangleSet.Coord := Coordinate;
-      { TODO: NormalPerVertex := true on TriangleSet not supported (would allow
-        to be more compact) }
-      TriangleSet.NormalPerVertex := false;
-      TriangleSet.Normal := Normal;
+    { The TriangleSet is perfect for STL geometry, see
+      http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/rendering.html#TriangleSet
+      Just a list of vertexes, each 3 vertexes make a triangle. }
+    TriangleSet := TTriangleSetNode.Create('', BaseUrl);
+    TriangleSet.Coord := Coordinate;
+    { TODO: NormalPerVertex := true on TriangleSet not supported (would allow
+      to be more compact) }
+    TriangleSet.NormalPerVertex := false;
+    TriangleSet.Normal := Normal;
 
-      Shape := TShapeNode.Create('', URL);
-      { assign some Material only to make it lit }
-      Shape.Material := TMaterialNode.Create('', URL);
-      Shape.Geometry := TriangleSet;
-      Result.AddChildren(Shape);
+    Shape := TShapeNode.Create('', BaseUrl);
+    { assign some Material only to make it lit }
+    Shape.Material := TMaterialNode.Create('', BaseUrl);
+    Shape.Geometry := TriangleSet;
+    Result.AddChildren(Shape);
 
-      { actually read the file, filling Coordinate and Normal nodes }
+    { actually read the file, filling Coordinate and Normal nodes }
 
-      Stream.ReadBuffer(Header, 5);
-      if Header = 'solid' then
-        LoadSTLText(Stream, Coordinate.FdPoint.Items, Normal.FdVector.Items)
-      else
-        LoadSTLBinary(Stream, Coordinate.FdPoint.Items, Normal.FdVector.Items);
+    Stream.ReadBuffer(Header, 5);
+    if Header = 'solid' then
+      LoadSTLText(Stream, Coordinate.FdPoint.Items, Normal.FdVector.Items)
+    else
+      LoadSTLBinary(Stream, Coordinate.FdPoint.Items, Normal.FdVector.Items);
 
-    except FreeAndNil(Result); raise end;
-  finally FreeAndNil(Stream) end;
+  except FreeAndNil(Result); raise end;
 end;
 
 end.

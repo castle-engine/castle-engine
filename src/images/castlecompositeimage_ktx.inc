@@ -517,7 +517,11 @@ begin
     raise EInvalidKTX.Create('Cannot handle KTX with half-float (16-bit floats) data');
   end else
   if (Header.GlType = 0) and
-     (Header.GlTypeSize = 1) and
+     { Header.GlTypeSize is commonly 1,
+       but Header.GlTypeSize = 0 is used by Apple, see https://github.com/castle-engine/castle-view-image/issues/1.
+       Spec doesn't clarify it for compressed textures ( http://github.khronos.org/KTX-Specification/ )
+       so just ignore checking GlTypeSize below. }
+     // (Header.GlTypeSize = 1) and
      (Header.GlFormat = 0) and
      ((Header.GlBaseInternalFormat = GL_RGBA) or (Header.GlBaseInternalFormat = GL_RGB)) then // GL_RGB is needed by ETC1
   begin

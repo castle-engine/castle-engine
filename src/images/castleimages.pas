@@ -74,7 +74,7 @@ interface
 uses SysUtils, Classes, Math, Generics.Collections,
   { FPImage and related units }
   FPImage, FPReadPCX, FPReadGIF, FPReadPSD, FPReadTGA, FPReadTiff, FPReadXPM,
-  FPReadJPEG, FPWriteJPEG, FPReadPNM, FPReadPNG, CastleInternalFPWritePNG,
+  FPReadJPEG, FPWriteJPEG, FPReadPNM, FPReadPNG, FPWritePNG,
   { CGE units }
   CastleInternalPng, CastleUtils, CastleVectors, CastleRectangles,
   CastleFileFilters, CastleClassUtils, CastleColors;
@@ -133,7 +133,6 @@ type
     FURL: string;
     procedure NotImplemented(const AMethodName: string);
     procedure FromFpImage(const FPImage: TInternalCastleFpImage); virtual;
-    function ToFpImage: TInternalCastleFpImage; virtual;
   protected
     { Operate on this by Get/Realloc/FreeMem.
       It's always freed and nil'ed in destructor. }
@@ -220,6 +219,10 @@ type
 
     { Mirror image vertically. }
     procedure FlipVertical; virtual; abstract;
+
+    { Convert image contents to FpImage instance.
+      The resulting instance is owned by the caller. }
+    function ToFpImage: TInternalCastleFpImage; virtual;
   end;
 
   { Resize interpolation modes, see TCastleImage.Resize and TCastleImage.MakeResized. }
@@ -911,7 +914,7 @@ type
       It is also supported by a small number of Android devices.
 
       Note that the tcDxt1_RGB and tcDxt1_RGBA are the same compression method.
-      Their behaviour only differs when rendering:
+      Their behavior only differs when rendering:
       in case of tcDxt1_RGB, the alpha information is not used,
       while in case of tcDxt1_RGBA, the renderer is using alpha-testing. }
     tcDxt1_RGB,
@@ -1119,7 +1122,6 @@ type
     function GetPixels: PVector3Byte;
     function GetPixelsArray: PVector3ByteArray;
     procedure FromFpImage(const FPImage: TInternalCastleFpImage); override;
-    function ToFpImage: TInternalCastleFpImage; override;
   protected
     procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
@@ -1169,6 +1171,8 @@ type
     function ToRGBFloat: TRGBFloatImage;
 
     function ToGrayscale: TGrayscaleImage;
+
+    function ToFpImage: TInternalCastleFpImage; override;
 
     { Draw horizontal line. Must be y1 <= y2, else it is NOOP. }
     procedure HorizontalLine(const x1, x2, y: Integer;
@@ -1230,7 +1234,6 @@ type
     function GetPixels: PVector4Byte;
     function GetPixelsArray: PVector4ByteArray;
     procedure FromFpImage(const FPImage: TInternalCastleFpImage); override;
-    function ToFpImage: TInternalCastleFpImage; override;
   protected
     procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
@@ -1291,6 +1294,8 @@ type
 
     { Flatten to grayscale and remove alpha channel. }
     function ToGrayscaleImage: TGrayscaleImage;
+
+    function ToFpImage: TInternalCastleFpImage; override;
 
     { Premultiply the RGB channel with alpha, to make it faster
       to use this image as source for TCastleImage.DrawTo and
@@ -1381,7 +1386,6 @@ type
     function GetPixels: PByte;
     function GetPixelsArray: PByteArray;
     procedure FromFpImage(const FPImage: TInternalCastleFpImage); override;
-    function ToFpImage: TInternalCastleFpImage; override;
   protected
     procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
@@ -1419,6 +1423,8 @@ type
       except in the special case of TGrayscaleImage.TreatAsAlpha = @true
       (where the contents will be copied to alpha, and intensity set to white). }
     function ToGrayscaleAlphaImage: TGrayscaleAlphaImage;
+
+    function ToFpImage: TInternalCastleFpImage; override;
 
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
     class procedure MixColors(const OutputColor: Pointer;
@@ -1475,7 +1481,6 @@ type
     function GetPixels: PVector2Byte;
     function GetPixelsArray: PVector2ByteArray;
     procedure FromFpImage(const FPImage: TInternalCastleFpImage); override;
-    function ToFpImage: TInternalCastleFpImage; override;
   protected
     procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
@@ -1507,6 +1512,8 @@ type
 
     function AlphaChannel(
       const AlphaTolerance: Byte): TAlphaChannel; override;
+
+    function ToFpImage: TInternalCastleFpImage; override;
 
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
     class procedure MixColors(const OutputColor: Pointer;
@@ -1588,8 +1595,7 @@ type
   TLoadImageOption = (liFlipVertically);
   TLoadImageOptions = set of TLoadImageOption;
 
-{ TODO: zrobic LoadImageGuess ktore zgaduje format na podstawie
-  zawartosci. }
+{ TODO: add LoadImageGuess which guesses the format based on content. }
 
 (*The ultimate procedure to load an image from a file or URL.
 
@@ -1948,6 +1954,9 @@ procedure RemoveLoadImageListener(const Event: TLoadImageEvent);
   This is used internally by the engine. }
 function ProcessImageUrl(const URL: string): string;
 
+{ @exclude }
+function InternalDetectClassPNG(const Stream: TStream): TEncodedImageClass;
+
 {$undef read_interface}
 
 implementation
@@ -2302,7 +2311,8 @@ begin
     // TODO; ProgressTitle not supported for this
     NewFpImage := MakeResizedToFpImage(ResizeWidth, ResizeHeight, Interpolation);
     try
-      Result := CreateFromFpImage(NewFpImage, [TCastleImageClass(ClassType)]);
+      // since we request our own class as output, CreateFromFpImage must return some TCastleImage
+      Result := CreateFromFpImage(NewFpImage, [TCastleImageClass(ClassType)]) as TCastleImage;
     finally FreeAndNil(NewFpImage) end;
   end else
   begin
@@ -2407,6 +2417,9 @@ function TCastleImage.MakeRotated(Angle: Integer): TCastleImage;
     X, Y: Integer;
   begin
     Result := TCastleImageClass(ClassType).Create(Height, Width);
+    { It is nice to keep URL meaningful,
+      shown e.g. for rotated cubemap sides loaded to OpenGL, in TextureProfiler. }
+    Result.URL := URL + '[rotated]';
     for X := 0 to Width - 1 do
       for Y := 0 to Height - 1 do
         Move(PixelPtr(X, Y)^, Result.PixelPtr(Y, Width - 1 - X)^, PixelSize);
@@ -2417,6 +2430,7 @@ function TCastleImage.MakeRotated(Angle: Integer): TCastleImage;
     X, Y: Integer;
   begin
     Result := TCastleImageClass(ClassType).Create(Width, Height);
+    Result.URL := URL + '[rotated]';
     for X := 0 to Width - 1 do
       for Y := 0 to Height - 1 do
         Move(PixelPtr(X, Y)^, Result.PixelPtr(Width - 1 - X, Height - 1 - Y)^, PixelSize);
@@ -2427,6 +2441,7 @@ function TCastleImage.MakeRotated(Angle: Integer): TCastleImage;
     X, Y: Integer;
   begin
     Result := TCastleImageClass(ClassType).Create(Height, Width);
+    Result.URL := URL + '[rotated]';
     for X := 0 to Width - 1 do
       for Y := 0 to Height - 1 do
         Move(PixelPtr(X, Y)^, Result.PixelPtr(Height - 1 - Y, X)^, PixelSize);
@@ -2441,7 +2456,7 @@ begin
     1: Rotate90;
     2: Rotate180;
     3: Rotate270;
-    { else Angle = 0, nothing to do }
+    else Result := MakeCopy; // else Angle = 0
   end;
 end;
 
@@ -2449,6 +2464,8 @@ procedure TCastleImage.Rotate(const Angle: Integer);
 var
   New: TCastleImage;
 begin
+  if Angle mod 4 = 0 then Exit; // nothing to do
+
   New := MakeRotated(Angle);
   try
     Assign(New);

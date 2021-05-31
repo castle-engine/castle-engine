@@ -18,19 +18,8 @@
 type
   { Possible image file format. }
   TImageFormat = (
-    { We handle PNG file format fully, both reading and writing,
-      through the libpng library.
-
-      This format supports a full alpha channel.
-      Besides PSD, this is the only format that allows full-range
-      (partial transparency) alpha channel.
-
-      Trying to read / write PNG file when libpng is not installed
-      (through LoadImage, LoadEncodedImage, SaveImage, LoadPNG, SavePNG and others)
-      will raise exception ELibPngNotAvailable. Note that the check
-      for availability of libpng is done only once you try to load/save PNG file.
-      You can perfectly compile and even run your programs without
-      PNG installed, until you try to load/save PNG format. }
+    { We have full PNG support, for both reading and writing.
+      We will use libpng (if available on given system) or fallback on FpImage reader. }
     ifPNG,
 
     { We handle uncompressed BMP images. }
@@ -41,9 +30,8 @@ type
     { Image formats below are supported by FPImage. }
     ifJPEG, ifGIF, ifTGA, ifXPM, ifPSD, ifPCX, ifPNM,
 
-    { We handle fully DDS (DirectDraw Surface) image format.
-      See also TCompositeImage class in CastleCompositeImage unit,
-      that exposes even more features of the DDS image format. }
+    { We handle fully DDS (DirectDraw Surface) and KTX image formats.
+      They provide images in formats optimal for GPU. }
     ifDDS,
     ifKTX,
 
@@ -105,68 +93,68 @@ type
   EInvalidIPL = class(EInvalidImageFormat);
   EInvalidRGBE = class(EInvalidImageFormat);
 
-function LoadPNG(Stream: TStream;
+function LoadPNG(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
-function LoadBMP(Stream: TStream;
+function LoadBMP(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
-function LoadGIF(Stream: TStream;
+function LoadGIF(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
-function LoadTGA(Stream: TStream;
+function LoadTGA(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
-function LoadSGI(Stream: TStream;
+function LoadSGI(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
-function LoadTIFF(Stream: TStream;
+function LoadTIFF(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
-function LoadJP2(Stream: TStream;
+function LoadJP2(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
-function LoadEXR(Stream: TStream;
+function LoadEXR(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
-function LoadJPEG(Stream: TStream;
+function LoadJPEG(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
-function LoadXPM(Stream: TStream;
+function LoadXPM(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
-function LoadPSD(Stream: TStream;
+function LoadPSD(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
-function LoadPCX(Stream: TStream;
+function LoadPCX(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
 { Load PPM image.
   Loads only the first image in .ppm file. }
-function LoadPPM(Stream: TStream;
+function LoadPPM(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
 { Load PNM image (PNM, PGM, PBM, PPM) through FpImage.
   Note that for PPM, for now it's more advised to use our LoadPPM. }
-function LoadPNM(Stream: TStream;
+function LoadPNM(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
-function LoadIPL(Stream: TStream;
+function LoadIPL(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
 { Load RGBE image.
   This low-level function can load to TRGBFloatImage (preserving image data)
   or to TRGBImage (loosing floating point precision of RGBE format). }
-function LoadRGBE(Stream: TStream;
+function LoadRGBE(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
 { Load DDS image file into a single 2D image. This simply returns the first
   image found in DDS file, which should be the main image.
   If you want to investigate other images in DDS, you have to use TCompositeImage
   class. }
-function LoadDDS(Stream: TStream;
+function LoadDDS(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
-function LoadKTX(Stream: TStream;
+function LoadKTX(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
 { Saving image (format-specific) --------------------------------------------
@@ -189,24 +177,160 @@ function LoadKTX(Stream: TStream;
 }
 
 { }
-procedure SaveBMP(Img: TEncodedImage; Stream: TStream); forward;
-procedure SavePNG(Img: TEncodedImage; Stream: TStream); forward;
+procedure SaveBMP(const Img: TEncodedImage; const Stream: TStream); forward;
+procedure SavePNG(const Img: TEncodedImage; const Stream: TStream); forward;
 { }
-procedure SaveJPEG(Img: TEncodedImage; Stream: TStream); forward;
+procedure SaveJPEG(const Img: TEncodedImage; const Stream: TStream); forward;
 { }
-procedure SavePPM(Img: TEncodedImage; Stream: TStream; binary: boolean); overload; forward;
-procedure SavePPM(Img: TEncodedImage; Stream: TStream); { binary = true } overload; forward;
+procedure SavePPM(const Img: TEncodedImage; const Stream: TStream; const Binary: boolean); overload; forward;
+procedure SavePPM(const Img: TEncodedImage; const Stream: TStream); { binary = true } overload; forward;
 { }
-procedure SaveRGBE(Img: TEncodedImage; Stream: TStream); forward;
+procedure SaveRGBE(const Img: TEncodedImage; const Stream: TStream); forward;
 
-procedure SaveDDS(Img: TEncodedImage; Stream: TStream); forward;
+procedure SaveDDS(const Img: TEncodedImage; const Stream: TStream); forward;
+
+{ Detecting class ------------------------------------------------------------ }
+
+function DetectClassJPG(const Stream: TStream): TEncodedImageClass;
+begin
+  { JPG format cannot express grayscale or alpha. }
+  Result := TRGBImage;
+end;
+
+function InternalDetectClassPNG(const Stream: TStream): TEncodedImageClass;
+
+  function ChunkTypeCode(const ChunkName: String): LongWord;
+  begin
+    Assert(Length(ChunkName) = 4);
+    Result :=
+      {$ifdef FPC_LITTLE_ENDIAN}
+      LongWord(Ord(ChunkName[4])) shl 24 +
+      LongWord(Ord(ChunkName[3])) shl 16 +
+      LongWord(Ord(ChunkName[2])) shl 8 +
+      Ord(ChunkName[1])
+      {$else}
+      LongWord(Ord(ChunkName[1])) shl 24 +
+      LongWord(Ord(ChunkName[2])) shl 16 +
+      LongWord(Ord(ChunkName[3])) shl 8 +
+      Ord(ChunkName[4])
+      {$endif}
+    ;
+  end;
+
+const
+  { Color type masks and types.
+    Copied from castleinternalpng_dynamic.inc, so this compiles regardless of libpng unit. }
+  PNG_COLOR_MASK_PALETTE = 1;
+  PNG_COLOR_MASK_COLOR = 2;
+  PNG_COLOR_MASK_ALPHA = 4;
+
+  PNG_COLOR_TYPE_GRAY = 0;
+  PNG_COLOR_TYPE_PALETTE = (PNG_COLOR_MASK_COLOR or PNG_COLOR_MASK_PALETTE);
+  PNG_COLOR_TYPE_RGB = (PNG_COLOR_MASK_COLOR);
+  PNG_COLOR_TYPE_RGB_ALPHA = (PNG_COLOR_MASK_COLOR or PNG_COLOR_MASK_ALPHA);
+  PNG_COLOR_TYPE_GRAY_ALPHA = (PNG_COLOR_MASK_ALPHA);
+var
+  ReadHeader, ChunkType, ChunkSize, IWidth, IHeight: LongWord;
+  ChunkTypeIHDR, ChunkTypetRNS, ChunkTypeIEND: LongWord;
+  Bits, ColorType: Byte;
+begin
+  try
+    { See https://en.wikipedia.org/wiki/Portable_Network_Graphics about PNG header }
+
+    ChunkTypeIHDR := ChunkTypeCode('IHDR');
+    ChunkTypetRNS := ChunkTypeCode('tRNS');
+    ChunkTypeIEND := ChunkTypeCode('IEND');
+
+    Stream.ReadBuffer(ReadHeader, SizeOf(ReadHeader));
+    if BEtoN(ReadHeader) <> $89504E47 then
+      Exit(nil);
+
+    Stream.ReadBuffer(ReadHeader, SizeOf(ReadHeader));
+    if BEtoN(ReadHeader) <> $0D0A1A0A then
+      Exit(nil);
+
+    Stream.ReadBuffer(ChunkSize, SizeOf(ChunkSize));
+    if BEtoN(ChunkSize) <> 13 then
+      Exit(nil);
+
+    Stream.ReadBuffer(ChunkType, SizeOf(ChunkType));
+    if LEtoN(ChunkType) <> ChunkTypeIHDR then // chunk IHDR must be first
+      Exit(nil);
+
+    Stream.ReadBuffer(IWidth, SizeOf(IWidth));
+    // IWidth := BEtoN(IWidth); // not needed, as we don't actually use it
+    Stream.ReadBuffer(IHeight, SizeOf(IHeight));
+    // IHeight := BEtoN(IHeight); // not needed, as we don't actually use it
+    Stream.ReadBuffer(Bits, SizeOf(Bits));
+    Stream.ReadBuffer(ColorType, SizeOf(ColorType));
+
+    case ColorType of
+      PNG_COLOR_TYPE_GRAY      : Result := TGrayscaleImage;
+      PNG_COLOR_TYPE_RGB       : Result := TRGBImage;
+      PNG_COLOR_TYPE_RGB_ALPHA : Result := TRGBAlphaImage;
+      PNG_COLOR_TYPE_GRAY_ALPHA: Result := TGrayscaleAlphaImage;
+      else                       Result := nil; // unknown, possible in case of PNG_COLOR_TYPE_PALETTE
+    end;
+
+    // if Result indicates non-alpha image, scan for PNG tRNS chunk
+    if (Result = TRGBImage) or
+       (Result = TGrayscaleImage) then
+    begin
+      { skip 3 remaining bytes of IHDR chunk, + 4 for CRC }
+      Stream.Position := Stream.Position + 3 + 4;
+
+      { We need to detect whether we have tRNS chunk.
+        Libpng implementation does this by
+
+          png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS) <> 0
+
+        In this case, we have alpha information,
+        even though ColorType doesn't indicate it.
+        See png_is_alpha implementation in castleinternalpng.pas.
+      }
+
+      while ChunkType <> ChunkTypeIEND do
+      begin
+        Stream.ReadBuffer(ChunkSize, SizeOf(ChunkSize));
+        ChunkSize := BEtoN(ChunkSize);
+
+        Stream.ReadBuffer(ChunkType, SizeOf(ChunkType));
+
+        // if tRNS, then update Result class and break
+        if LEtoN(ChunkType) = ChunkTypetRNS then
+        begin
+          if Result = TRGBImage then
+          begin
+            Result := TRGBAlphaImage;
+            Break;
+          end else
+          if Result = TGrayscaleImage then
+          begin
+            Result := TGrayscaleAlphaImage;
+            Break;
+          end;
+        end;
+
+        Stream.Position := Stream.Position + ChunkSize + 4 { CRC };
+      end;
+    end;
+  finally
+    Stream.Position := 0;
+  end;
+end;
 
 { File formats list ---------------------------------------------------------- }
 
 type
-  TImageLoadFunc = function (Stream: TStream;
+  { See TImageFormatInfo.Load }
+  TImageLoadFunc = function (const Stream: TStream;
     const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
-  TImageSaveFunc = procedure (Img: TEncodedImage; Stream: TStream);
+
+  { See TImageFormatInfo.Save }
+  TImageSaveFunc = procedure (const Img: TEncodedImage; const Stream: TStream);
+
+  { See TImageFormatInfo.DetectClass }
+  TImageDetectClassFunc = function (const Stream: TStream): TEncodedImageClass;
 
   { Possible TEncodedImage classes that can be returned by Load method
     of this file format. It's assumed that appropriate Load can return
@@ -261,6 +385,7 @@ type
     (treated as "default" in some cases) file extension. }
   TImageFormatInfoExtsCount = 1..3;
 
+  { Record with information specific to TImageFormat. }
   TImageFormatInfo = record
     { Human-readable format name.
 
@@ -319,6 +444,16 @@ type
       @nil if cannot be saved. }
     Save: TImageSaveFunc;
     SavedClasses: TImageSaveHandledClasses;
+
+    { Detect the class to which load image, based on Stream.
+      Return @nil if auto-detection failed.
+
+      If this function actually reads some Stream contents,
+      it @italic(must) reset Stream.Position to 0 afterwards
+      (we don't do it automatically, to avoid exceptions in case this function
+      doesn't read from Stream, and stream doesn't support "Stream.Position := 0").
+    }
+    DetectClass: TImageDetectClassFunc;
   end;
 
 const
@@ -336,64 +471,84 @@ const
       { Regardless of using libpng or not, our PNG load/save can handle
         all possibilities. }
       Load: @LoadPNG; LoadedClasses: lcG_GA_RGB_RGBA;
-      Save: @SavePNG; SavedClasses: scG_GA_RGB_RGBA; ),
+      Save: @SavePNG; SavedClasses: scG_GA_RGB_RGBA;
+      DetectClass: @InternalDetectClassPNG;
+    ),
     ( FormatName: 'Windows BMP image';
       MimeTypesCount: 1;
       MimeTypes: ('image/bmp', '', '', '', '', '');
       ExtsCount: 1; Exts: ('bmp', '', '');
       Load: @LoadBMP; LoadedClasses: lcRGB_RGBA;
-      Save: @SaveBMP; SavedClasses: scRGB),
+      Save: @SaveBMP; SavedClasses: scRGB;
+      DetectClass: nil;
+    ),
     { Portable Pixel Map } { }
     ( FormatName: 'PPM image';
       MimeTypesCount: 1;
       MimeTypes: ('image/x-portable-pixmap', '', '', '', '', '');
       ExtsCount: 1; Exts: ('ppm', '', '');
       Load: @LoadPPM; LoadedClasses: lcRGB;
-      Save: @SavePPM; SavedClasses: scRGB; ),
+      Save: @SavePPM; SavedClasses: scRGB;
+      DetectClass: nil;
+    ),
     { JFIF, JPEG File Interchange Format } { }
     ( FormatName: 'JPEG image';
       MimeTypesCount: 2;
       MimeTypes: ('image/jpeg', 'image/jpg', '', '', '', '');
       ExtsCount: 3; Exts: ('jpg', 'jpeg', 'jpe');
       Load: @LoadJPEG; LoadedClasses: lcG_GA_RGB_RGBA;
-      Save: @SaveJPEG; SavedClasses: scG_GA_RGB_RGBA; ),
+      Save: @SaveJPEG; SavedClasses: scG_GA_RGB_RGBA;
+      DetectClass: @DetectClassJPG;
+    ),
     { Graphics Interchange Format } { }
     ( FormatName: 'GIF image';
       MimeTypesCount: 1;
       MimeTypes: ('image/gif', '', '', '', '', '');
       ExtsCount: 1; Exts: ('gif', '', '');
       Load: @LoadGIF; LoadedClasses: lcRGB_RGBA;
-      Save: nil; SavedClasses: scRGB; ),
+      Save: nil; SavedClasses: scRGB;
+      DetectClass: nil;
+    ),
     ( FormatName: 'TarGA image';
       MimeTypesCount: 2;
       MimeTypes: ('image/x-targa', 'image/x-tga', '', '', '', '');
       ExtsCount: 2; Exts: ('tga', 'tpic', '');
       Load: @LoadTGA; LoadedClasses: lcRGB_RGBA;
-      Save: nil; SavedClasses: scRGB; ),
+      Save: nil; SavedClasses: scRGB;
+      DetectClass: nil;
+    ),
     ( FormatName: 'XPM image';
       MimeTypesCount: 1;
       MimeTypes: ('image/x-xpixmap', '', '', '', '', '');
       ExtsCount: 1; Exts: ('xpm', '', '');
       Load: @LoadXPM; LoadedClasses: lcRGB_RGBA;
-      Save: nil; SavedClasses: scRGB; ),
+      Save: nil; SavedClasses: scRGB;
+      DetectClass: nil;
+    ),
     ( FormatName: 'PSD image';
       MimeTypesCount: 4;
       MimeTypes: ('image/photoshop', 'image/x-photoshop', 'image/psd', 'application/photoshop', '', '');
       ExtsCount: 1; Exts: ('psd', '', '');
       Load: @LoadPSD; LoadedClasses: lcRGB_RGBA;
-      Save: nil; SavedClasses: scRGB; ),
+      Save: nil; SavedClasses: scRGB;
+      DetectClass: nil;
+    ),
     ( FormatName: 'ZSoft PCX image';
       MimeTypesCount: 5;
       MimeTypes: ('image/pcx', 'application/pcx', 'application/x-pcx', 'image/x-pc-paintbrush', 'image/x-pcx', '');
       ExtsCount: 1; Exts: ('pcx', '', '');
       Load: @LoadPCX; LoadedClasses: lcRGB_RGBA;
-      Save: nil; SavedClasses: scRGB; ),
+      Save: nil; SavedClasses: scRGB;
+      DetectClass: nil;
+    ),
     ( FormatName: 'PNM image';
       MimeTypesCount: 6;
       MimeTypes: ('image/x-portable-anymap', 'image/x-portable-graymap', 'image/x-pgm', 'image/x-portable-bitmap', 'image/pbm', 'image/x-pbm');
       ExtsCount: 3; Exts: ('pnm', 'pgm', 'pbm');
       Load: @LoadPNM; LoadedClasses: lcRGB_RGBA;
-      Save: nil; SavedClasses: scRGB; ),
+      Save: nil; SavedClasses: scRGB;
+      DetectClass: nil;
+    ),
 
     { Direct Draw Surface } { }
     ( FormatName: 'DDS image';
@@ -401,7 +556,9 @@ const
       MimeTypes: ('image/x-dds', '', '', '', '', '');
       ExtsCount: 1; Exts: ('dds', '', '');
       Load: @LoadDDS; LoadedClasses: lcG_GA_RGB_RGBA_GPUCompressed;
-      Save: @SaveDDS; SavedClasses: scG_GA_RGB_RGBA_GPUCompressed; ),
+      Save: @SaveDDS; SavedClasses: scG_GA_RGB_RGBA_GPUCompressed;
+      DetectClass: nil;
+    ),
 
     { Khronos KTX } { }
     ( FormatName: 'Khronos KTX image';
@@ -409,7 +566,9 @@ const
       MimeTypes: ('image/ktx', '', '', '', '', '');
       ExtsCount: 1; Exts: ('ktx', '', '');
       Load: @LoadKTX; LoadedClasses: lcG_GA_RGB_RGBA_GPUCompressed;
-      Save: nil; SavedClasses: scG_GA_RGB_RGBA_GPUCompressed; ),
+      Save: nil; SavedClasses: scG_GA_RGB_RGBA_GPUCompressed;
+      DetectClass: nil;
+    ),
 
     { Image formats not well known. }
 
@@ -418,14 +577,18 @@ const
       MimeTypes: ('image/vnd.radiance', '', '', '', '', '');
       ExtsCount: 3; Exts: ('rgbe', 'pic', 'hdr');
       Load: @LoadRGBE; LoadedClasses: lcRGB_RGBFloat;
-      Save: @SaveRGBE; SavedClasses: scRGB_RGBFloat; ),
+      Save: @SaveRGBE; SavedClasses: scRGB_RGBFloat;
+      DetectClass: nil;
+    ),
     ( FormatName: 'IPLab image';
       MimeTypesCount: 1;
       { ipl MIME type invented by Kambi, to make it unique to communicate image format for LoadImage } { }
       MimeTypes: ('image/x-ipl', '', '', '', '', '');
       ExtsCount: 1; Exts: ('ipl', '', '');
       Load: @LoadIPL; LoadedClasses: lcRGB;
-      Save: nil; SavedClasses: scRGB; ),
+      Save: nil; SavedClasses: scRGB;
+      DetectClass: nil;
+    ),
 
     { Image formats loaded using ImageMagick's convert.
       Placed at the end of the list, to be at the end of open/save dialogs
@@ -437,25 +600,33 @@ const
       MimeTypes: ('image/tiff', '', '', '', '', '');
       ExtsCount: 2; Exts: ('tiff', 'tif', '');
       Load: @LoadTIFF; LoadedClasses: lcRGB_RGBA;
-      Save: nil; SavedClasses: scRGB; ),
+      Save: nil; SavedClasses: scRGB;
+      DetectClass: nil;
+    ),
     ( FormatName: 'SGI image';
       MimeTypesCount: 3;
       MimeTypes: ('image/sgi', 'image/x-sgi', 'image/x-sgi-rgba', '', '', '');
       ExtsCount: 1; Exts: ('sgi', '', '');
       Load: @LoadSGI; LoadedClasses: lcG_GA_RGB_RGBA;
-      Save: nil; SavedClasses: scRGB; ),
+      Save: nil; SavedClasses: scRGB;
+      DetectClass: nil;
+    ),
     ( FormatName: 'JPEG 2000 image';
       MimeTypesCount: 4;
       MimeTypes: ('image/jp2', 'image/jpeg2000', 'image/jpeg2000-image', 'image/x-jpeg2000-image', '', '');
       ExtsCount: 1; Exts: ('jp2', '', '');
       Load: @LoadJP2; LoadedClasses: lcG_GA_RGB_RGBA;
-      Save: nil; SavedClasses: scRGB; ),
+      Save: nil; SavedClasses: scRGB;
+      DetectClass: nil;
+    ),
     ( FormatName: 'EXR image';
       MimeTypesCount: 1;
       MimeTypes: ('image/x-exr', '', '', '', '', '');
       ExtsCount: 1; Exts: ('exr', '', '');
       Load: @LoadEXR; LoadedClasses: lcG_GA_RGB_RGBA;
-      Save: nil; SavedClasses: scRGB; )
+      Save: nil; SavedClasses: scRGB;
+      DetectClass: nil;
+    )
   );
 
 { image loading utilities --------------------------------------------------- }
@@ -563,45 +734,48 @@ begin
   Result := MimeTypeToImageFormat(MimeType, OnlyLoadable, OnlySaveable, ImgFormat);
 end;
 
-function ListImageExtsLong(OnlyLoadable, OnlySaveable: boolean; const LinePrefix: string): string;
+function ListImageExtsLong(OnlyLoadable, OnlySaveable: boolean;
+  const LinePrefix: string): string;
 var
-  iff: TImageFormat;
-  i: integer;
+  Format: TImageFormat;
+  I: integer;
 begin
   result := '';
 
-  for iff := Low(iff) to High(iff) do
-    if ((not OnlyLoadable) or Assigned(ImageFormatInfos[iff].Load)) and
-       ((not OnlySaveable) or Assigned(ImageFormatInfos[iff].Save)) then
+  for Format := Low(Format) to High(Format) do
+    if ((not OnlyLoadable) or Assigned(ImageFormatInfos[Format].Load)) and
+       ((not OnlySaveable) or Assigned(ImageFormatInfos[Format].Save)) then
     begin
-      { zwrocmy uwage ze nie chcemy doklejac nl na koncu (bo zalatwieniu
-        sprawy z formatem iff) bo tam nie byloby zbyt wygodnie rozpoznawac
-        czy jestesmy ostatnia linia czy nie (na skutek OnlySaveable/OnlyLoadable
-        nie mozna tego rozpoznac prostym sprawdzeniem iff < High(iff) }
-      if result <> '' then result := result + nl;
+      { Note that we do not want to add new line at the end because there
+        it would not be very convenient to recognize whether we are at the last
+        line or not (due to OnlySaveable / OnlyLoadable it cannot be recognized
+        by simply checking Format <High (Format)). }
+      if Result <> '' then
+        Result := Result + NL;
 
-      result := result +LinePrefix +ImageFormatInfos[iff].exts[1];
-      for i := 2 to ImageFormatInfos[iff].extsCount do
-        result := result + ', ' +ImageFormatInfos[iff].exts[i];
-      result := result + ' - '+ImageFormatInfos[iff].formatName;
+      Result := Result + LinePrefix + ImageFormatInfos[Format].Exts[1];
+      for I := 2 to ImageFormatInfos[Format].ExtsCount do
+        Result := Result + ', ' + ImageFormatInfos[Format].Exts[I];
+      Result := Result + ' - ' + ImageFormatInfos[Format].FormatName;
     end;
 end;
 
 function ListImageExtsShort(OnlyLoadable, OnlySaveable: boolean): string;
 var
-  iff: TImageFormat;
-  i: integer;
+  Format: TImageFormat;
+  I: integer;
 begin
-  result := '';
+  Result := '';
 
-  for iff := Low(iff) to High(iff) do
-    if ((not OnlyLoadable) or Assigned(ImageFormatInfos[iff].Load)) and
-       ((not OnlySaveable) or Assigned(ImageFormatInfos[iff].Save)) then
+  for Format := Low(Format) to High(Format) do
+    if ((not OnlyLoadable) or Assigned(ImageFormatInfos[Format].Load)) and
+       ((not OnlySaveable) or Assigned(ImageFormatInfos[Format].Save)) then
     begin
-      for i := 1 to ImageFormatInfos[iff].extsCount do
+      for I := 1 to ImageFormatInfos[Format].ExtsCount do
       begin
-        if result <> '' then result := result + ', ';
-        result := result + ImageFormatInfos[iff].exts[i];
+        if Result <> '' then
+          Result := Result + ', ';
+        Result := Result + ImageFormatInfos[Format].Exts[I];
       end;
     end;
 end;

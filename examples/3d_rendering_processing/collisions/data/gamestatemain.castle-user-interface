@@ -1,0 +1,306 @@
+{
+  "FullSize" : true,
+  "Name" : "RootGroup",
+  "$Children" : [
+    {
+      "AutoCamera" : true,
+      "Camera" : {
+        "InitialDirectionPersistent" : {
+          "X" : 8.7784475181251764E-004,
+          "Y" : -8.6306720972061157E-001,
+          "Z" : -5.0508826971054077E-001,
+          "$ClassName" : "TCastleVector3Persistent"
+        },
+        "InitialPositionPersistent" : {
+          "X" : -7.5183582305908203E-001,
+          "Y" : 6.7260543823242188E+001,
+          "Z" : 3.8206989288330078E+001,
+          "$ClassName" : "TCastleVector3Persistent"
+        },
+        "InitialUpPersistent" : {
+          "X" : 1.4748550020158291E-003,
+          "Y" : 5.0508904457092285E-001,
+          "Z" : -8.6306595802307129E-001,
+          "$ClassName" : "TCastleVector3Persistent"
+        },
+        "Name" : "Camera",
+        "Orthographic" : {
+          "Name" : "Orthographic",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleOrthographic"
+        },
+        "Perspective" : {
+          "FieldOfView" : 1.9979825615882874E-001,
+          "Name" : "Perspective",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastlePerspective"
+        },
+        "$Children" : [
+        ],
+        "$ClassName" : "TCastleCamera"
+      },
+      "FullSize" : true,
+      "Items" : {
+        "MainScene" : "SceneLevel",
+        "Name" : "Items",
+        "PhysicsProperties" : {
+          "Name" : "PhysicsProperties",
+          "$Children" : [
+          ],
+          "$ClassName" : "TPhysicsProperties"
+        },
+        "UseHeadlight" : "hlOn",
+        "$Children" : [
+          {
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneLevel",
+            "RenderOptions" : {
+              "Name" : "RenderOptions",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "Spatial" : [
+              "ssRendering",
+              "ssDynamicCollisions"
+            ],
+            "URL" : "castle-data:/level.gltf",
+            "$Children" : [
+            ],
+            "$ClassName" : "TCastleScene"
+          },
+          {
+            "CollisionSphereRadius" : 5.0000000000000000E-001,
+            "Name" : "TransformMoving",
+            "TranslationPersistent" : {
+              "Y" : 5.0999999046325684E-001,
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "$Children" : [
+              {
+                "ExposeTransforms" : [
+                ],
+                "Name" : "SceneMovingBox",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "URL" : "castle-data:/moving_box.gltf",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "ExposeTransforms" : [
+                ],
+                "Name" : "SceneMovingSphere",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "URL" : "castle-data:/moving_sphere.gltf",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              },
+              {
+                "Exists" : false,
+                "ExposeTransforms" : [
+                ],
+                "Name" : "SceneMovingRay",
+                "RenderOptions" : {
+                  "Name" : "RenderOptions",
+                  "$Children" : [
+                  ],
+                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "URL" : "castle-data:/moving_ray.gltf",
+                "$Children" : [
+                ],
+                "$ClassName" : "TCastleScene"
+              }
+            ],
+            "$ClassName" : "TCastleTransform"
+          }
+        ],
+        "$ClassName" : "TCastleRootTransform"
+      },
+      "Name" : "MainViewport",
+      "Navigation" : "ExamineNavigation1",
+      "Transparent" : true,
+      "$Children" : [
+        {
+          "Name" : "ExamineNavigation1",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleExamineNavigation"
+        }
+      ],
+      "$ClassName" : "TCastleViewport"
+    },
+    {
+      "ColorPersistent" : {
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000,
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "FontSize" : 2.0000000000000000E+001,
+      "HorizontalAnchorDelta" : -2.0000000000000000E+001,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "LabelFps",
+      "Text" : [
+        "FPS: xxx"
+      ],
+      "VerticalAnchorDelta" : -2.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleLabel"
+    },
+    {
+      "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+      "Name" : "VerticalGroup1",
+      "Spacing" : 1.0000000000000000E+001,
+      "VerticalAnchorDelta" : -1.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+        {
+          "Caption" : "Test Move (with wall sliding)",
+          "CustomBackgroundDisabled" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundFocused" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundNormal" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundPressed" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "Image" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "Name" : "ButtonTestMove",
+          "Toggle" : true,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleButton"
+        },
+        {
+          "Caption" : "Test WorldBoxCollision",
+          "CustomBackgroundDisabled" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundFocused" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundNormal" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundPressed" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "Image" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "Name" : "ButtonTestBox",
+          "Toggle" : true,
+          "VerticalAnchorDelta" : -4.9000000000000000E+001,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleButton"
+        },
+        {
+          "Caption" : "Test WorldSphereCollision",
+          "CustomBackgroundDisabled" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundFocused" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundNormal" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundPressed" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "Image" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "Name" : "ButtonTestSphere",
+          "Toggle" : true,
+          "VerticalAnchorDelta" : -9.8000000000000000E+001,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleButton"
+        },
+        {
+          "Caption" : "Test WorldRayCast",
+          "CustomBackgroundDisabled" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundFocused" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundNormal" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundPressed" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "Image" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "Name" : "ButtonTestRay",
+          "Toggle" : true,
+          "VerticalAnchorDelta" : -1.4700000000000000E+002,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleButton"
+        }
+      ],
+      "$ClassName" : "TCastleVerticalGroup"
+    },
+    {
+      "ColorPersistent" : {
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000,
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "HorizontalAnchorParent" : "hpMiddle",
+      "HorizontalAnchorSelf" : "hpMiddle",
+      "Name" : "Label1",
+      "Text" : [
+        "Move the object with AWSD (horizontally) and QE (vertically).",
+        "In case of Move test, the movement will be blocked in case of collision.",
+        "In case of other tests, the object will turn red in case of collision."
+      ],
+      "VerticalAnchorDelta" : -1.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleLabel"
+    }
+  ],
+  "$ClassName" : "TCastleUserInterface"
+}

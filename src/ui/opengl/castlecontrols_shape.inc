@@ -37,7 +37,7 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { The fill color, used if @link(Filled). By default, opaque white. }
     property Color: TCastleColor read FColor write SetColor;
@@ -248,14 +248,14 @@ begin
   end;
 end;
 
-function TCastleShape.PropertySection(
-  const PropertyName: String): TPropertySection;
+function TCastleShape.PropertySections(
+  const PropertyName: String): TPropertySections;
 begin
   if (PropertyName = 'ColorPersistent') or
      (PropertyName = 'ShapeType') then
-    Result := psBasic
+    Result := [psBasic]
   else
-    Result := inherited PropertySection(PropertyName);
+    Result := inherited PropertySections(PropertyName);
 end;
 
 {$define read_implementation_methods}

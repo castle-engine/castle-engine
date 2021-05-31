@@ -20,9 +20,10 @@ unit X3DLoadInternalSpine;
 
 interface
 
-uses X3DNodes;
+uses SysUtils, Classes,
+  X3DNodes;
 
-function LoadSpine(URL: string): TX3DRootNode;
+function LoadSpine(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 
 var
   { Turn this on to see some additional warnings when loading Spine models.
@@ -36,7 +37,7 @@ var
 
 implementation
 
-uses SysUtils, Classes, Generics.Collections, FpJson, JSONParser, JSONScanner, Math,
+uses Generics.Collections, FpJson, JSONParser, JSONScanner, Math,
   CastleVectors, CastleCurves, CastleUtils, CastleLog, CastleURIUtils, CastleDownload,
   CastleStringUtils, CastleClassUtils, CastleColors, X3DLoadInternalUtils,
   CastleTriangles,
@@ -89,7 +90,7 @@ type
 
 { Main loading function ------------------------------------------------------ }
 
-function LoadSpine(URL: string): TX3DRootNode;
+function LoadSpine(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 
   function CreateTextureLoader(const CustomAtlasName: String): TTextureLoader;
 
@@ -100,7 +101,7 @@ function LoadSpine(URL: string): TX3DRootNode;
       AtlasURL := InitialAtlasURL;
       if URIFileExists(AtlasURL) then Exit(true);
 
-      NoExtension := ChangeURIExt(URL, '');
+      NoExtension := ChangeURIExt(BaseUrl, '');
 
       // try with "_tex", used by Dragon Bones
       AtlasURL := NoExtension + '_tex.atlas';
@@ -129,84 +130,76 @@ function LoadSpine(URL: string): TX3DRootNode;
     Atlas: TAtlas;
   begin
     if SpineIgnoreTextures then
-      Exit(TSimpleTextureLoader.Create(URL));
+      Exit(TSimpleTextureLoader.Create(BaseUrl));
 
     // calculate StandardAtlasURL
     if CustomAtlasName <> '' then
-      StandardAtlasURL := ExtractURIPath(URL) + CustomAtlasName + '.atlas'
+      StandardAtlasURL := ExtractURIPath(BaseUrl) + CustomAtlasName + '.atlas'
     else
-      StandardAtlasURL := ChangeURIExt(URL, '.atlas');
+      StandardAtlasURL := ChangeURIExt(BaseUrl, '.atlas');
 
     if FindAtlas(StandardAtlasURL, AtlasURL) then
     begin
       Atlas := TAtlas.Create;
       try
         Atlas.Parse(AtlasURL);
-        Atlas.BuildNodes(URL);
+        Atlas.BuildNodes(BaseUrl);
         Result := Atlas;
       except FreeAndNil(Atlas); raise end;
     end else
     begin
       WritelnLog('Spine', 'Atlas not found under URL "' + StandardAtlasURL + '" (and some alternative URLs we tried), will load images without atlas, using "images/xxx.png" filenames');
-      Result := TSimpleTextureLoader.Create(URL);
+      Result := TSimpleTextureLoader.Create(BaseUrl);
     end;
   end;
 
 var
   Json: TJSONData;
   P: TJSONParser;
-  S: TStream;
   Skeleton: TSkeleton;
   SkinName, CustomAtlasName: string;
   TextureLoader: TTextureLoader;
 begin
   { strip additional info (in the URL anchor, i.e. '#xxx' suffix) }
-  URIExtractInfo(URL, SkinName, CustomAtlasName);
+  URIExtractInfo(BaseUrl, SkinName, CustomAtlasName);
 
   TextureLoader := CreateTextureLoader(CustomAtlasName);
   try
-    S := Download(URL);
+    { Should we add joUTF8?
+      - Long time ago, it failed to work on
+        tests/data/escape_from_the_universe_boss/boss.json
+        with FPC 3.1.1-r36683 [2017/07/08] for Linux x86_64.
+      - TODO: Needs retest.
+        It may have been some error on our side?
+        Later note reported joUTF8 is OK with FPC 3.0.2. }
+
+    P := TJSONParser.Create(Stream, [joComments]);
     try
-      P :=
-        {$ifdef VER2} TJSONParser.Create(S);
-        {$else}
-          {$ifdef VER3_0_0} TJSONParser.Create(S);
-          {$else} { For FPC > 3.0.0 }
-            { Do not add joUTF8, it fails to work on
-                tests/data/escape_from_the_universe_boss/boss.json
-              with FPC 3.1.1-r36683 [2017/07/08] for Linux x86_64
-              (and it may be our fault? not really sure.)
-              Works with FPC 3.0.2. }
-            TJSONParser.Create(S, [joComments]);
-          {$endif}
-        {$endif}
+      Json := P.Parse;
       try
-        Json := P.Parse;
+        Result := TX3DRootNode.Create('', BaseUrl);
         try
-          Result := TX3DRootNode.Create('', URL);
           try
-            try
-              if Assigned(Json) then
-              begin
-                Skeleton := TSkeleton.Create;
-                try
-                  Skeleton.Parse(URL, Json, SkinName);
-                  Skeleton.BuildNodes(URL, TextureLoader, Result);
-                  if Skeleton.DefaultSkin = nil then Exit;
-                  Skeleton.Animations.Exported(Result);
-                finally FreeAndNil(Skeleton) end;
-              end;
-            except
-              on E: ESpineReadError do
-              begin
-                E.Message := E.Message + ' (inside ' + URIDisplay(URL) + ')';
-                raise;
-              end;
+            if Assigned(Json) then
+            begin
+              Skeleton := TSkeleton.Create;
+              try
+                Skeleton.Parse(BaseUrl, Json, SkinName);
+                Skeleton.BuildNodes(BaseUrl, TextureLoader, Result);
+                if Skeleton.DefaultSkin = nil then Exit;
+                Skeleton.Animations.Exported(Result);
+              finally FreeAndNil(Skeleton) end;
             end;
-          except FreeAndNil(Result); raise end;
-        finally FreeAndNil(Json) end;
-      finally FreeAndNil(P) end;
-    finally FreeAndNil(S) end;
+          except
+            on E: ESpineReadError do
+            begin
+              E.Message := E.Message + ' (inside ' + URIDisplay(BaseUrl) + ')';
+              raise;
+            end;
+          end;
+        except FreeAndNil(Result); raise end;
+      finally FreeAndNil(Json) end;
+    finally FreeAndNil(P) end;
   finally FreeAndNil(TextureLoader) end;
 end;
 

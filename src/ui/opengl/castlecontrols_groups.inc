@@ -32,6 +32,7 @@
     procedure SetSpacing(const Value: Single);
     procedure SetAutoSizeWidth(const Value: Boolean);
     procedure SetAutoSizeHeight(const Value: Boolean);
+    procedure PackChildren;
   protected
     FPackingValid: boolean;
     procedure DoPackChildren(out InsideWidth, InsideHeight: Single); virtual; abstract;
@@ -43,12 +44,13 @@
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure BeforeRender; override;
     procedure Render; override;
     procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
       const ChangeInitiatedByChildren: boolean = false); override;
     procedure EditorAllowResize(out ResizeWidth, ResizeHeight: Boolean;
       out Reason: String); override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { If @link(Frame), this is the frame's color. By default white. }
     property FrameColor: TCastleColor read FFrameColor write SetFrameColor;
@@ -101,7 +103,7 @@
     procedure DoPackChildren(out W, H: Single); override;
   public
     constructor Create(AOwner: TComponent); override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     { The alignment of children inside this control. }
     property Alignment: TVerticalPosition
@@ -127,7 +129,7 @@
     procedure DoPackChildren(out W, H: Single); override;
   public
     constructor Create(AOwner: TComponent); override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     { The alignment of children inside this control. }
     property Alignment: THorizontalPosition
@@ -164,6 +166,14 @@ begin
   inherited;
 end;
 
+procedure TCastlePackedGroup.BeforeRender;
+begin
+  inherited;
+  { We prefer to pack inside PreferredSize, to set size early correctly.
+    But in case group has FullSize, the PreferredSize may never be called. }
+  PackChildren;
+end;
+
 procedure TCastlePackedGroup.Render;
 begin
   inherited;
@@ -171,16 +181,15 @@ begin
     Theme.Draw(RenderRect, tiGroup, UIScale, FrameColor);
 end;
 
+procedure TCastlePackedGroup.PackChildren;
+begin
+  if FPackingValid then Exit;
+  { setting this to true early also prevents recursively entering DoPackChildren. }
+  FPackingValid := true;
+  DoPackChildren(FInsideWidth, FInsideHeight);
+end;
+
 procedure TCastlePackedGroup.PreferredSize(var PreferredWidth, PreferredHeight: Single);
-
-  procedure PackChildren;
-  begin
-    if FPackingValid then Exit;
-    { setting this to true early also prevents recursively entering DoPackChildren. }
-    FPackingValid := true;
-    DoPackChildren(FInsideWidth, FInsideHeight);
-  end;
-
 begin
   inherited;
   PackChildren;
@@ -268,13 +277,13 @@ begin
   end;
 end;
 
-function TCastlePackedGroup.PropertySection(
-  const PropertyName: String): TPropertySection;
+function TCastlePackedGroup.PropertySections(
+  const PropertyName: String): TPropertySections;
 begin
   if (PropertyName = 'Spacing') then
-    Result := psBasic
+    Result := [psBasic, psLayout]
   else
-    Result := inherited PropertySection(PropertyName);
+    Result := inherited PropertySections(PropertyName);
 end;
 
 {$define read_implementation_methods}
@@ -345,13 +354,13 @@ begin
   H := H + 2 * Padding;
 end;
 
-function TCastleHorizontalGroup.PropertySection(
-  const PropertyName: String): TPropertySection;
+function TCastleHorizontalGroup.PropertySections(
+  const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Spacing') then
-    Result := psBasic
+  if (PropertyName = 'Alignment') then
+    Result := [psBasic, psLayout]
   else
-    Result := inherited PropertySection(PropertyName);
+    Result := inherited PropertySections(PropertyName);
 end;
 
 { TCastleVerticalGroup ----------------------------------------------------- }
@@ -418,13 +427,13 @@ begin
   H := H - Spacing + Padding;
 end;
 
-function TCastleVerticalGroup.PropertySection(
-  const PropertyName: String): TPropertySection;
+function TCastleVerticalGroup.PropertySections(
+  const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Spacing') then
-    Result := psBasic
+  if (PropertyName = 'Alignment') then
+    Result := [psBasic, psLayout]
   else
-    Result := inherited PropertySection(PropertyName);
+    Result := inherited PropertySections(PropertyName);
 end;
 
 {$endif read_implementation}

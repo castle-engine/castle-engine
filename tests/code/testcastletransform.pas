@@ -1,5 +1,6 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleTransform" -*-
 {
-  Copyright 2012-2018 Michalis Kamburelis.
+  Copyright 2012-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -49,13 +50,14 @@ type
     procedure TestPhysicsWorldOwnerEmptySphere;
     procedure TestPass;
     procedure TestPassCombine;
+    procedure TestForIn;
   end;
 
 implementation
 
 uses Math, Contnrs,
   CastleVectors, CastleBoxes, CastleTransform, CastleViewport, CastleClassUtils,
-  CastleTriangles, CastleSceneCore, X3DNodes, CastleRenderer, CastleScene;
+  CastleTriangles, CastleSceneCore, X3DNodes, CastleScene, CastleInternalRenderer;
 
 { TMy3D ---------------------------------------------------------------------- }
 
@@ -1402,6 +1404,51 @@ begin
   AssertEquals(9, GetTotalPass([1, 0, 2], [2, 2, 3]));
   AssertEquals(10, GetTotalPass([0, 1, 2], [2, 2, 3]));
   AssertEquals(11, GetTotalPass([1, 1, 2], [2, 2, 3]));
+end;
+
+procedure TTestCastleTransform.TestForIn;
+var
+  Owner: TComponent;
+  T, T1, C: TCastleTransform;
+  Y: Single;
+begin
+  Owner := TComponent.Create(nil);
+  try
+    T := TCastleTransform.Create(Owner);
+    T.Translation := Vector3(1, 0, 0);
+
+    T1 := TCastleTransform.Create(Owner);
+    T1.Translation := Vector3(1, 1, 0);
+    T.Add(T1);
+
+    T1 := TCastleTransform.Create(Owner);
+    T1.Translation := Vector3(1, 2, 0);
+    T.Add(T1);
+
+    T1 := TCastleTransform.Create(Owner);
+    T1.Translation := Vector3(1, 3, 0);
+    T.Add(T1);
+
+    T1 := TCastleTransform.Create(Owner);
+    T1.Translation := Vector3(1, 1, 1);
+    T[0].Add(T1);
+
+    T1 := TCastleTransform.Create(Owner);
+    T1.Translation := Vector3(1, 1, 2);
+    T[0].Add(T1);
+
+    T1 := TCastleTransform.Create(Owner);
+    T1.Translation := Vector3(1, 1, 3);
+    T[0].Add(T1);
+
+    Y := 1;
+    for C in T do
+    begin
+      AssertVectorEquals(C.Translation, Vector3(1, Y, 0));
+      Y += 1;
+    end;
+    AssertSameValue(Y, 4);
+  finally FreeAndNil(Owner) end;
 end;
 
 initialization

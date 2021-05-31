@@ -25,7 +25,11 @@
     forced by user (using window manager, not F11) really cleanly.
 }
 
-{$I castlewindow_glx.inc}
+{$ifdef OpenGLES}
+  {$I castlewindow_egl.inc}
+{$else}
+  {$I castlewindow_glx.inc}
+{$endif}
 
 {$ifdef read_interface_uses}
 Glib2, Gdk2, Gtk2, CastleDynLib,
@@ -33,7 +37,7 @@ Glib2, Gdk2, Gtk2, CastleDynLib,
 {$endif}
 
 {$ifdef read_implementation_uses}
-CastleWindowModes, CastleFindFiles,
+CastleInternalWindowModes, CastleFindFiles,
 {$endif}
 
 {$ifdef read_interface_types}
@@ -182,7 +186,7 @@ function gdk_screen_get_resolution(screen: PGdkScreen): gdouble;
   cdecl; external gdklib;
 
 { Converts GDK keysym (from gdkkeysyms.pp, or gdk/gdkkeysym.h) to
-  K_Xxx constant (from Keys unit). Returns K_None if no conversion is possible
+  keyXxx constant (from Keys unit). Returns keyNone if no conversion is possible
   (gdk keysym has no corresponding TKey value). }
 function GdkKeysymToKey(GdkKeysym: guint): TKey;
 begin
@@ -197,10 +201,10 @@ begin
     GDK_KEY_Page_Down: Result := keyPageDown;
     GDK_KEY_End: Result := keyEnd;
     GDK_KEY_Home: Result := keyHome;
-    GDK_KEY_Left: Result := keyLeft;
-    GDK_KEY_Up: Result := keyUp;
-    GDK_KEY_Right: Result := keyRight;
-    GDK_KEY_Down: Result := keyDown;
+    GDK_KEY_Left: Result := keyArrowLeft;
+    GDK_KEY_Up: Result := keyArrowUp;
+    GDK_KEY_Right: Result := keyArrowRight;
+    GDK_KEY_Down: Result := keyArrowDown;
     GDK_KEY_Insert: Result := keyInsert;
     GDK_KEY_Delete: Result := keyDelete;
     GDK_KEY_BracketLeft: Result := keyLeftBracket;
@@ -209,12 +213,12 @@ begin
     GDK_KEY_KP_Add: Result := keyNumpadPlus;
     GDK_KEY_KP_Subtract: Result := keyNumpadMinus;
 
-    GDK_KEY_0..GDK_KEY_9: Result := TKey(Ord(K_0) + GdkKeysym - GDK_KEY_0);
+    GDK_KEY_0..GDK_KEY_9: Result := TKey(Ord(key0) + GdkKeysym - GDK_KEY_0);
 
-    GDK_KEY_Capital_A..GDK_KEY_Capital_Z: Result := TKey(Ord(K_A) + GdkKeysym - GDK_KEY_Capital_A);
-    GDK_KEY_A        ..GDK_KEY_Z        : Result := TKey(Ord(K_A) + GdkKeysym - GDK_KEY_A);
+    GDK_KEY_Capital_A..GDK_KEY_Capital_Z: Result := TKey(Ord(keyA) + GdkKeysym - GDK_KEY_Capital_A);
+    GDK_KEY_A        ..GDK_KEY_Z        : Result := TKey(Ord(keyA) + GdkKeysym - GDK_KEY_A);
 
-    GDK_KEY_F1..GDK_KEY_F12: Result := TKey(Ord(K_F1) + GdkKeysym - GDK_KEY_F1);
+    GDK_KEY_F1..GDK_KEY_F12: Result := TKey(Ord(keyF1) + GdkKeysym - GDK_KEY_F1);
 
     GDK_KEY_Comma: Result := keyComma;
     GDK_KEY_Period: Result := keyPeriod;
@@ -262,18 +266,18 @@ begin
 end;
 
 { Converts GDK mouse button number (from GdkEventButton.button)
-  to TMouseButton. Returns false (and does not change mb) if such
-  button number cannot be represented as TMouseButton. }
-function ButtonNumberToMouseButton(bn: guint; out mb: TMouseButton): boolean;
+  to TCastleMouseButton. Returns false (and does not change mb) if such
+  button number cannot be represented as TCastleMouseButton. }
+function ButtonNumberToMouseButton(bn: guint; out mb: TCastleMouseButton): boolean;
 begin
   { No need to implement this using dirty typecasts, it's simple enough
     to do it type-safe. }
   case bn of
-    1: mb := mbLeft;
-    2: mb := mbMiddle;
-    3: mb := mbRight;
-    8: mb := mbExtra1;
-    9: mb := mbExtra2;
+    1: mb := buttonLeft;
+    2: mb := buttonMiddle;
+    3: mb := buttonRight;
+    8: mb := buttonExtra1;
+    9: mb := buttonExtra2;
     else Exit(false);
   end;
   Result := true;
@@ -447,7 +451,7 @@ SIGNAL_WINDOW_BEGIN
       Key := GdkKeysymToKey(Event^.KeyVal);
       KeyString := Event^._string;
 
-      if (Key <> K_None) or (KeyString <> '') then
+      if (Key <> keyNone) or (KeyString <> '') then
       begin
         { Fix some cases when KeyString should better correspond to Key. }
         if KeyString = '' then
@@ -501,7 +505,7 @@ SIGNAL_WINDOW_BEGIN
     else
     begin
       Key := GdkKeysymToKey(Event^.KeyVal);
-      if Key <> K_None then DoKeyUp(Key);
+      if Key <> keyNone then DoKeyUp(Key);
     end;
   end;
 
@@ -512,7 +516,7 @@ SIGNAL_WINDOW_END;
 
 function signal_button_press_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventButton;
   data: gpointer): gboolean; cdecl;
-var mb: TMouseButton;
+var mb: TCastleMouseButton;
 SIGNAL_GLAREA_BEGIN
   Result := (Event^._type = GDK_BUTTON_PRESS) and
     ButtonNumberToMouseButton(Event^.button, mb);
@@ -522,7 +526,7 @@ SIGNAL_GLAREA_END;
 
 function signal_button_release_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventButton;
   data: gpointer): gboolean; cdecl;
-var mb: TMouseButton;
+var mb: TCastleMouseButton;
 SIGNAL_GLAREA_BEGIN
   Result := (Event^._type = GDK_BUTTON_RELEASE) and
     ButtonNumberToMouseButton(Event^.button, mb);
@@ -574,7 +578,7 @@ begin
 
       { I don't want this (because, first of all, not always my
         TMenuItemChecked will have AutoCheckedToggle = true.
-        Second, when not MenuActive, I do not want such behaviour, even for
+        Second, when not MenuActive, I do not want such behavior, even for
         AutoCheckedToggle = true.)
 
         So below I'm simply returning such GTK menu item to it's previous state.
@@ -850,9 +854,11 @@ const
       [FDpi, FDpi / DefaultDpi, DefaultDpi]);
   end;
 
+{$ifndef OpenGLES}
 var
   GdkVisual: PGdkVisual;
   GdkColormap: PGdkColormap;
+{$endif}
 begin
   Application.InitializeXDisplay;
 
@@ -871,10 +877,12 @@ begin
   { Create XVisual }
   ContextCreateBegin;
 
+  {$ifndef OpenGLES}
   { Create GdkColormap using XVisual }
   GdkVisual := gdk_x11_screen_lookup_visual(Application.XScreenGdk, XVisual^.VisualId);
   GdkColormap := gdk_colormap_new(GdkVisual, gfalse);
   gtk_widget_push_colormap(GdkColormap);
+  {$endif}
 
   { Create now GLAreaGtk, which will use GdkColormap }
   GLAreaGtk := gtk_drawing_area_new;
@@ -883,6 +891,7 @@ begin
   // Cleanup after gtk_widget_push_colormap called above
   gtk_widget_pop_colormap();
 
+  {$ifndef OpenGLES}
   { We should pass WindowXID to be correct.
     But:
     - it is not ready yet (widget is not realized, and calling WindowXID
@@ -893,6 +902,7 @@ begin
     So, as a quick solution, we pass 0.
   }
   ContextCreateEnd({ WindowXID } 0);
+  {$endif}
 
   gtk_widget_show(GTK_WIDGET(GLAreaGtk));
 
@@ -1025,6 +1035,14 @@ begin
       question). }
     gtk_widget_realize(GTK_WIDGET(GLAreaGtk));
   end;
+
+  {$ifdef OpenGLES}
+  { In case of EGL (OpenGLES) we really need WindowXID.
+    So we cannot use previous workaround, instead we wait for a good time
+    to get WindowXID, when widget is realized.
+    TODO: Should we just do it with glX version too? }
+  ContextCreateEnd(WindowXID);
+  {$endif}
 
   { From this point I require that WindowGtk is realized (has associated
     GdkWindow, i.e. I can use GTK_WIDGET(WindowGtk).Window).
@@ -1817,9 +1835,11 @@ end;
 
 { TCastleWindow -------------------------------------------------------------- }
 
+{$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES}
 procedure TCastleWindow.NavigationInfoChanged;
 begin
 end;
+{$endif}
 
 { TWindowContainer ----------------------------------------------------------- }
 

@@ -1,7 +1,9 @@
 active
+activity
 add
 align
 alignment
+alpha
 anchor
 angle
 animation
@@ -212,6 +214,7 @@ max
 mesa
 message
 meta
+metadata
 middle
 mime
 min

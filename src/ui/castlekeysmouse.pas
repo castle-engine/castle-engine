@@ -88,10 +88,10 @@ type
     keyPageDown,
     keyEnd,
     keyHome,
-    keyLeft,
-    keyUp,
-    keyRight,
-    keyDown,
+    keyArrowLeft,
+    keyArrowUp,
+    keyArrowRight,
+    keyArrowDown,
     keyReserved_41,
     keyReserved_42,
     keyReserved_43,
@@ -249,116 +249,121 @@ type
 { Old key names (K_Xxx instead of keyXxx). }
 
 const
-  K_None                       = keyNone;
-  K_PrintScreen                = keyPrintScreen;
-  K_CapsLock                   = keyCapsLock;
-  K_ScrollLock                 = keyScrollLock;
-  K_NumLock                    = keyNumLock;
-  K_Pause                      = keyPause;
-  K_Apostrophe                 = keyApostrophe;
-  K_Semicolon                  = keySemicolon;
-  K_BackSpace                  = keyBackSpace;
-  K_Tab                        = keyTab;
-  K_Slash                      = keySlash;
-  K_BackQuote                  = keyBackQuote;
-  K_Minus                      = keyMinus;
-  K_Enter                      = keyEnter;
-  K_Equal                      = keyEqual;
-  K_BackSlash                  = keyBackSlash;
-  K_Shift                      = keyShift;
-  K_Ctrl                       = keyCtrl;
-  K_Alt                        = keyAlt;
-  K_Plus                       = keyPlus;
-  K_Escape                     = keyEscape;
-  K_Space                      = keySpace;
-  K_PageUp                     = keyPageUp;
-  K_PageDown                   = keyPageDown;
-  K_End                        = keyEnd;
-  K_Home                       = keyHome;
-  K_Left                       = keyLeft;
-  K_Up                         = keyUp;
-  K_Right                      = keyRight;
-  K_Down                       = keyDown;
-  K_Insert                     = keyInsert;
-  K_Delete                     = keyDelete;
-  K_0                          = key0;
-  K_1                          = key1;
-  K_2                          = key2;
-  K_3                          = key3;
-  K_4                          = key4;
-  K_5                          = key5;
-  K_6                          = key6;
-  K_7                          = key7;
-  K_8                          = key8;
-  K_9                          = key9;
-  K_A                          = keyA;
-  K_B                          = keyB;
-  K_C                          = keyC;
-  K_D                          = keyD;
-  K_E                          = keyE;
-  K_F                          = keyF;
-  K_G                          = keyG;
-  K_H                          = keyH;
-  K_I                          = keyI;
-  K_J                          = keyJ;
-  K_K                          = keyK;
-  K_L                          = keyL;
-  K_M                          = keyM;
-  K_N                          = keyN;
-  K_O                          = keyO;
-  K_P                          = keyP;
-  K_Q                          = keyQ;
-  K_R                          = keyR;
-  K_S                          = keyS;
-  K_T                          = keyT;
-  K_U                          = keyU;
-  K_V                          = keyV;
-  K_W                          = keyW;
-  K_X                          = keyX;
-  K_Y                          = keyY;
-  K_Z                          = keyZ;
-  K_LeftBracket                = keyLeftBracket;
-  K_RightBracket               = keyRightBracket;
-  K_Numpad_Plus                = keyNumpadPlus;
-  K_Numpad_Minus               = keyNumpadMinus;
-  K_F1                         = keyF1;
-  K_F2                         = keyF2;
-  K_F3                         = keyF3;
-  K_F4                         = keyF4;
-  K_F5                         = keyF5;
-  K_F6                         = keyF6;
-  K_F7                         = keyF7;
-  K_F8                         = keyF8;
-  K_F9                         = keyF9;
-  K_F10                        = keyF10;
-  K_F11                        = keyF11;
-  K_F12                        = keyF12;
-  K_Numpad_0                   = keyNumpad0;
-  K_Numpad_1                   = keyNumpad1;
-  K_Numpad_2                   = keyNumpad2;
-  K_Numpad_3                   = keyNumpad3;
-  K_Numpad_4                   = keyNumpad4;
-  K_Numpad_5                   = keyNumpad5;
-  K_Numpad_6                   = keyNumpad6;
-  K_Numpad_7                   = keyNumpad7;
-  K_Numpad_8                   = keyNumpad8;
-  K_Numpad_9                   = keyNumpad9;
-  K_Numpad_End                 = keyNumpadEnd;
-  K_Numpad_Down                = keyNumpadDown;
-  K_Numpad_PageDown            = keyNumpadPageDown;
-  K_Numpad_Left                = keyNumpadLeft;
-  K_Numpad_Begin               = keyNumpadBegin;
-  K_Numpad_Right               = keyNumpadRight;
-  K_Numpad_Home                = keyNumpadHome;
-  K_Numpad_Up                  = keyNumpadUp;
-  K_Numpad_PageUp              = keyNumpadPageUp;
-  K_Numpad_Insert              = keyNumpadInsert;
-  K_Numpad_Delete              = keyNumpadDelete;
-  K_Numpad_Enter               = keyNumpadEnter;
-  K_Numpad_Multiply            = keyNumpadMultiply;
-  K_Numpad_Divide              = keyNumpadDivide;
-  K_Comma                      = keyComma;
-  K_Period                     = keyPeriod;
+  K_None                       = keyNone deprecated;
+  K_PrintScreen                = keyPrintScreen deprecated;
+  K_CapsLock                   = keyCapsLock deprecated;
+  K_ScrollLock                 = keyScrollLock deprecated;
+  K_NumLock                    = keyNumLock deprecated;
+  K_Pause                      = keyPause deprecated;
+  K_Apostrophe                 = keyApostrophe deprecated;
+  K_Semicolon                  = keySemicolon deprecated;
+  K_BackSpace                  = keyBackSpace deprecated;
+  K_Tab                        = keyTab deprecated;
+  K_Slash                      = keySlash deprecated;
+  K_BackQuote                  = keyBackQuote deprecated;
+  K_Minus                      = keyMinus deprecated;
+  K_Enter                      = keyEnter deprecated;
+  K_Equal                      = keyEqual deprecated;
+  K_BackSlash                  = keyBackSlash deprecated;
+  K_Shift                      = keyShift deprecated;
+  K_Ctrl                       = keyCtrl deprecated;
+  K_Alt                        = keyAlt deprecated;
+  K_Plus                       = keyPlus deprecated;
+  K_Escape                     = keyEscape deprecated;
+  K_Space                      = keySpace deprecated;
+  K_PageUp                     = keyPageUp deprecated;
+  K_PageDown                   = keyPageDown deprecated;
+  K_End                        = keyEnd deprecated;
+  K_Home                       = keyHome deprecated;
+  K_Left                       = keyArrowLeft deprecated;
+  K_Up                         = keyArrowUp deprecated;
+  K_Right                      = keyArrowRight deprecated;
+  K_Down                       = keyArrowDown deprecated;
+  K_Insert                     = keyInsert deprecated;
+  K_Delete                     = keyDelete deprecated;
+  K_0                          = key0 deprecated;
+  K_1                          = key1 deprecated;
+  K_2                          = key2 deprecated;
+  K_3                          = key3 deprecated;
+  K_4                          = key4 deprecated;
+  K_5                          = key5 deprecated;
+  K_6                          = key6 deprecated;
+  K_7                          = key7 deprecated;
+  K_8                          = key8 deprecated;
+  K_9                          = key9 deprecated;
+  K_A                          = keyA deprecated;
+  K_B                          = keyB deprecated;
+  K_C                          = keyC deprecated;
+  K_D                          = keyD deprecated;
+  K_E                          = keyE deprecated;
+  K_F                          = keyF deprecated;
+  K_G                          = keyG deprecated;
+  K_H                          = keyH deprecated;
+  K_I                          = keyI deprecated;
+  K_J                          = keyJ deprecated;
+  K_K                          = keyK deprecated;
+  K_L                          = keyL deprecated;
+  K_M                          = keyM deprecated;
+  K_N                          = keyN deprecated;
+  K_O                          = keyO deprecated;
+  K_P                          = keyP deprecated;
+  K_Q                          = keyQ deprecated;
+  K_R                          = keyR deprecated;
+  K_S                          = keyS deprecated;
+  K_T                          = keyT deprecated;
+  K_U                          = keyU deprecated;
+  K_V                          = keyV deprecated;
+  K_W                          = keyW deprecated;
+  K_X                          = keyX deprecated;
+  K_Y                          = keyY deprecated;
+  K_Z                          = keyZ deprecated;
+  K_LeftBracket                = keyLeftBracket deprecated;
+  K_RightBracket               = keyRightBracket deprecated;
+  K_Numpad_Plus                = keyNumpadPlus deprecated;
+  K_Numpad_Minus               = keyNumpadMinus deprecated;
+  K_F1                         = keyF1 deprecated;
+  K_F2                         = keyF2 deprecated;
+  K_F3                         = keyF3 deprecated;
+  K_F4                         = keyF4 deprecated;
+  K_F5                         = keyF5 deprecated;
+  K_F6                         = keyF6 deprecated;
+  K_F7                         = keyF7 deprecated;
+  K_F8                         = keyF8 deprecated;
+  K_F9                         = keyF9 deprecated;
+  K_F10                        = keyF10 deprecated;
+  K_F11                        = keyF11 deprecated;
+  K_F12                        = keyF12 deprecated;
+  K_Numpad_0                   = keyNumpad0 deprecated;
+  K_Numpad_1                   = keyNumpad1 deprecated;
+  K_Numpad_2                   = keyNumpad2 deprecated;
+  K_Numpad_3                   = keyNumpad3 deprecated;
+  K_Numpad_4                   = keyNumpad4 deprecated;
+  K_Numpad_5                   = keyNumpad5 deprecated;
+  K_Numpad_6                   = keyNumpad6 deprecated;
+  K_Numpad_7                   = keyNumpad7 deprecated;
+  K_Numpad_8                   = keyNumpad8 deprecated;
+  K_Numpad_9                   = keyNumpad9 deprecated;
+  K_Numpad_End                 = keyNumpadEnd deprecated;
+  K_Numpad_Down                = keyNumpadDown deprecated;
+  K_Numpad_PageDown            = keyNumpadPageDown deprecated;
+  K_Numpad_Left                = keyNumpadLeft deprecated;
+  K_Numpad_Begin               = keyNumpadBegin deprecated;
+  K_Numpad_Right               = keyNumpadRight deprecated;
+  K_Numpad_Home                = keyNumpadHome deprecated;
+  K_Numpad_Up                  = keyNumpadUp deprecated;
+  K_Numpad_PageUp              = keyNumpadPageUp deprecated;
+  K_Numpad_Insert              = keyNumpadInsert deprecated;
+  K_Numpad_Delete              = keyNumpadDelete deprecated;
+  K_Numpad_Enter               = keyNumpadEnter deprecated;
+  K_Numpad_Multiply            = keyNumpadMultiply deprecated;
+  K_Numpad_Divide              = keyNumpadDivide deprecated;
+  K_Comma                      = keyComma deprecated;
+  K_Period                     = keyPeriod deprecated;
+
+  keyLeft                      = keyArrowLeft deprecated 'Use keyArrowLeft';
+  keyUp                        = keyArrowUp deprecated 'Use keyArrowUp';
+  keyRight                     = keyArrowRight deprecated 'Use keyArrowRight';
+  keyDown                      = keyArrowDown deprecated 'Use keyArrowDown';
 
 type
   TKeysBooleans = array [TKey] of Boolean;
@@ -369,9 +374,20 @@ type
   TCharactersBooleans = array [Char] of Boolean;
   PCharactersBooleans = ^TCharactersBooleans;
 
-  TMouseButton = (mbLeft, mbMiddle, mbRight, mbExtra1, mbExtra2);
-  TMouseButtons = set of TMouseButton;
+  TCastleMouseButton = (buttonLeft, buttonMiddle, buttonRight, buttonExtra1, buttonExtra2);
+  TCastleMouseButtons = set of TCastleMouseButton;
+  
+  TMouseButton = TCastleMouseButton deprecated 'use TCastleMouseButton';
+  TMouseButtons = TCastleMouseButtons deprecated 'use TCastleMouseButtons';
 
+const
+  mbLeft   = buttonLeft deprecated 'Use buttonLeft';
+  mbMiddle = buttonMiddle deprecated 'Use buttonMiddle';
+  mbRight = buttonRight deprecated 'Use buttonRight';
+  mbExtra1 = buttonExtra1 deprecated 'Use buttonExtra1';
+  mbExtra2 = buttonExtra2 deprecated 'Use buttonExtra2';
+
+type
   { Look of the mouse cursor.
     Used for various properties:
     TCastleUserInterface.Cursor, TCastleTransform.Cursor, TCastleWindowBase.Cursor.
@@ -420,7 +436,7 @@ type
     mcResizeBottomRight
   );
 const
-  MouseButtonStr: array [TMouseButton] of string = (
+  MouseButtonStr: array [TCastleMouseButton] of string = (
     'left', 'middle', 'right', 'extra1', 'extra2');
 
 type
@@ -652,7 +668,7 @@ type
     KeyRepeated: boolean;
 
     { When EventType is itMouseButton, this is the mouse button pressed or released.
-      Always mbLeft for touch device press/release events.
+      Always buttonLeft for touch device press/release events.
 
       CastleWindow notes (but relevant also to other interfaces, like Lazarus
       component, although in that case it's beyond our control):
@@ -662,7 +678,7 @@ type
       outside of this control), until user releases all mouse buttons.
       Note that this means that mouse positions may be outside
       of [0..Width - 1, 0..Height - 1] range. }
-    MouseButton: TMouseButton;
+    MouseButton: TCastleMouseButton;
 
     { When EventType is itMouseButton, this is the finger index pressed or
       released on a touch device. Always 0 for normal mouse events. }
@@ -711,7 +727,7 @@ type
     function IsKey(const AKey: TKey): boolean; overload;
     function IsKey(AKeyString: String): boolean; overload;
     { @groupEnd }
-    function IsMouseButton(const AMouseButton: TMouseButton): boolean;
+    function IsMouseButton(const AMouseButton: TCastleMouseButton): boolean;
     function IsMouseWheel(const AMouseWheel: TMouseWheelDirection): boolean;
 
     { Textual description of this event. }
@@ -728,7 +744,7 @@ type
   { Motion (movement) of mouse or a finger on a touch device. }
   TInputMotion = object
     OldPosition, Position: TVector2;
-    Pressed: TMouseButtons;
+    Pressed: TCastleMouseButtons;
     FingerIndex: TFingerIndex;
   end;
 
@@ -738,7 +754,7 @@ function InputKey(const Position: TVector2; const Key: TKey;
   const KeyString: string;
   const ModifiersDown: TModifierKeys = []): TInputPressRelease;
 function InputMouseButton(const Position: TVector2;
-  const MouseButton: TMouseButton; const FingerIndex: TFingerIndex;
+  const MouseButton: TCastleMouseButton; const FingerIndex: TFingerIndex;
   const ModifiersDown: TModifierKeys = []): TInputPressRelease;
 function InputMouseWheel(const Position: TVector2;
   const Scroll: Single; const Vertical: boolean;
@@ -747,7 +763,7 @@ function InputMouseWheel(const Position: TVector2;
 
 { Construct TInputMotion. }
 function InputMotion(const OldPosition, Position: TVector2;
-  const Pressed: TMouseButtons; const FingerIndex: TFingerIndex): TInputMotion;
+  const Pressed: TCastleMouseButtons; const FingerIndex: TFingerIndex): TInputMotion;
 
 type
   TCastleConfigKeysMouseHelper = class helper for TCastleConfig
@@ -1265,7 +1281,7 @@ begin
   Result := (AKeystring <> '') and (EventType = itKey) and (KeyString = AKeystring);
 end;
 
-function TInputPressRelease.IsMouseButton(const AMouseButton: TMouseButton): boolean;
+function TInputPressRelease.IsMouseButton(const AMouseButton: TCastleMouseButton): boolean;
 begin
   Result := (EventType = itMouseButton) and (MouseButton = AMouseButton);
 end;
@@ -1324,7 +1340,7 @@ begin
 end;
 
 function InputMouseButton(const Position: TVector2;
-  const MouseButton: TMouseButton; const FingerIndex: TFingerIndex;
+  const MouseButton: TCastleMouseButton; const FingerIndex: TFingerIndex;
   const ModifiersDown: TModifierKeys): TInputPressRelease;
 begin
   FillChar(Result, SizeOf(Result), 0);
@@ -1348,7 +1364,7 @@ begin
 end;
 
 function InputMotion(const OldPosition, Position: TVector2;
-  const Pressed: TMouseButtons; const FingerIndex: TFingerIndex): TInputMotion;
+  const Pressed: TCastleMouseButtons; const FingerIndex: TFingerIndex): TInputMotion;
 begin
   FillChar(Result, SizeOf(Result), 0);
   Result.OldPosition := OldPosition;

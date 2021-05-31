@@ -53,7 +53,10 @@ type
     Each custom animation is an array of frames with
     corresponding frames duration. Frames can be in any order. It is valid
     to use some particural frame many times with different
-    duration time. }
+    duration time.
+
+    @deprecated
+    Instead of this, load sprite sheets to TCastleScene from .castle-sprite-sheet format. }
   TSprite = class
   private
     type
@@ -77,6 +80,7 @@ type
     FCustomAnimTimestamp: TFloatTime;
     FHorizontalFlip, FVerticalFlip, FDiagonalFlip: Boolean;
     FSmoothScalingSafeBorder, FSmoothScaling: Boolean;
+    FOwnsImage: Boolean;
     function GetCenterX: Single;
     function GetCenterY: Single;
     function GetFrameRect: TFloatRectangle;
@@ -137,6 +141,13 @@ type
       const AFrames, AColumns, AFrameWidth, AFrameHeight: Cardinal;
       const ASmoothScaling: Boolean = True;
       const ATimeLoop: Boolean = True; const APlay: Boolean = False); overload;
+
+    { By default this class "owns" the underlying image, even when passed explicitly to
+      CreateFrameSize as TDrawableImage instance.
+      That is, the underlying TDrawableImage instance will be automatically freed when
+      the sprite will be freed.
+      You turn it off with this property. }
+    property OwnsImage: Boolean read FOwnsImage write FOwnsImage default true;
 
     destructor Destroy; override;
 
@@ -372,7 +383,10 @@ type
     property SmoothScalingSafeBorder: Boolean
       read FSmoothScalingSafeBorder write FSmoothScalingSafeBorder
       default false;
- end;
+
+  { Unfortunately deprecating it makes unavoidable warnings from TSpriteList
+    specialization, and we cannot hide them putting $warnings off/on around it. }
+  end {deprecated 'load sprite sheets to TCastleScene from .castle-sprite-sheet format'};
 
   { List of sprites. }
   TSpriteList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSprite>;
@@ -548,6 +562,7 @@ begin
   FCustomFrame := 0;
   FHorizontalFlip := False;
   FVerticalFlip := False;
+  FOwnsImage := true;
 end;
 
 constructor TSprite.CreateFrameSize(const URL: string;
@@ -583,7 +598,8 @@ end;
 
 destructor TSprite.Destroy;
 begin
-  FreeAndNil(FImage);
+  if OwnsImage then
+    FreeAndNil(FImage);
   FreeAndNil(FCustomAnimations);
   inherited;
 end;

@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Checking OpenGL version, vendors and such (GLVersion, GLUVersion).
+{ Checking OpenGL version, vendors and such (GLVersion).
   These should be initialized by calling GLInformationInitialize,
   which is done automatically when opening OpenGL context using
   TCastleWindowBase or TCastleControlBase.
@@ -25,10 +25,10 @@ unit CastleGLVersion;
 interface
 
 type
-  { OpenGL libraries (core OpenGL or GLU) version information.
+  { OpenGL(ES) library version information.
 
-    As obtained from glGetString(GL_VERSION)
-    or gluGetString(GLU_VERSION), also by glGetString(GL_VENDOR).
+    As obtained from glGetString(GL_VERSION), glGetString(GL_VENDOR) and similar
+    routines.
 
     This is usually created by CastleGLUtils.GLInformationInitialize. }
   TGenericGLVersion = class
@@ -218,14 +218,6 @@ var
   { Core OpenGL version information.
     This is usually created by CastleGLUtils.GLInformationInitialize. }
   GLVersion: TGLVersion;
-
-  {$ifndef OpenGLES}
-  {$ifdef CASTLE_OBJFPC}
-  { GLU version information.
-    This is usually created by CastleGLUtils.GLInformationInitialize. }
-  GLUVersion: TGenericGLVersion deprecated 'do not use GLU, or GLUVersion, in new applications; GLU does not exist on non-desktop platforms';
-  {$endif CASTLE_OBJFPC}
-  {$endif}
 
 function VendorTypeToStr(const VendorType: TGLVendorType): string;
 

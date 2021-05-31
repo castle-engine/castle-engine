@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="sprite_sheets_demo"
+  standalone_source="sprite_sheets_demo_standalone.lpr"
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.sprite.sheets.demo"
+  caption="Sprite Sheets Demo"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+</project>

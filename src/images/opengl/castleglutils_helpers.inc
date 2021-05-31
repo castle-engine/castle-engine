@@ -59,13 +59,13 @@ function glGetBoolean(pname: TGLEnum): TGLboolean;
 
 // Do not mark glColorv as "deprecated" for now. These have valid (although internal) usage.
 { }
-procedure glColorv(const v: TVector3ub); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TDrawableImage.Color';
+procedure glColorv(const v: TVector3ub); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleAbstractFont.Print(X,Y,Color,...) or TDrawableImage.Color';
 { }
-procedure glColorv(const v: TVector4ub); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TDrawableImage.Color';
+procedure glColorv(const v: TVector4ub); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleAbstractFont.Print(X,Y,Color,...) or TDrawableImage.Color';
 { }
-procedure glColorv(const v: TVector3f); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TDrawableImage.Color';
+procedure glColorv(const v: TVector3f); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleAbstractFont.Print(X,Y,Color,...) or TDrawableImage.Color';
 { }
-procedure glColorv(const v: TVector4f); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TDrawableImage.Color';
+procedure glColorv(const v: TVector4f); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleAbstractFont.Print(X,Y,Color,...) or TDrawableImage.Color';
 
 { }
 procedure glTranslatev(const V: TVector3f); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
@@ -122,15 +122,15 @@ procedure GLViewport(const Rect: TRectangle);
   deprecated 'use RenderContext.Viewport';
 
 var
-  { Current color, set by glColorv and used for TCastleFont font printing
-    (in case you use deprecated TCastleFont.Print overloads without
+  { Current color, set by glColorv and used for TCastleAbstractFont font printing
+    (in case you use deprecated TCastleAbstractFont.Print overloads without
     explicit colors).
 
     @deprecated Instead of this, use drawing routines that take
-    Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...)
+    Color from parameters or properties, like TCastleAbstractFont.Print(X,Y,Color,...)
     or TDrawableImage.Color. }
   CurrentColor: TCastleColor
-    deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TDrawableImage.Color';
+    deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleAbstractFont.Print(X,Y,Color,...) or TDrawableImage.Color';
 
 { ---------------------------------------------------------------------------- }
 
@@ -159,28 +159,6 @@ procedure GLHorizontalLine(x1, x2, y: TGLfloat); deprecated 'use DrawPrimitive2D
 procedure GLDrawArrow(HeadThickness: TGLfloat = 0.4;
   HeadLength: TGLfloat = 0.5); deprecated 'use DrawPrimitive2D to draw shapes';
 
-{$ifdef CASTLE_OBJFPC}
-{ Comfortable wrapper for gluNewQuadric. Sets all quadric parameters.
-  Sets also the GLU_ERROR callback to ReportGLerror.
-  @raises Exception If gluNewQuadric fails (returns nil). }
-function NewGLUQuadric(
-  Texture: boolean = true;
-  Normals: TGLenum = GLU_NONE;
-  Orientation: TGLenum = GLU_OUTSIDE;
-  DrawStyle: TGLenum = GLU_FILL): PGLUQuadric; deprecated 'use TCastleScene to draw 3D stuff';
-
-{ Render sphere in OpenGL. Radius, Slices, Stacks have the same meaning
-  as for gluSphere (in case they are not self-explanatory...).
-  Other parameters set glu quadric parameters, see glu quadric documentation. }
-procedure CastleGluSphere(
-  const Radius: TGLdouble;
-  const Slices, Stacks: TGLint;
-  Texture: boolean = true;
-  Normals: TGLenum = GLU_NONE;
-  Orientation: TGLenum = GLU_OUTSIDE;
-  DrawStyle: TGLenum = GLU_FILL); deprecated 'use TCastleScene to draw 3D stuff';
-{$endif}
-
 { Draw axis (3 lines) around given position.
   Nothing is generated besides vertex positions ---
   no normal vectors, no texture coords, nothing. }
@@ -188,10 +166,10 @@ procedure glDrawAxisWire(const Position: TVector3; Size: Single); deprecated 'us
 
 { Call glColor, taking Opacity as separate Single argument.
   Deprecated, do not use colors like that, instead pass TCastleColor
-  to appropriate routines like TCastleFont.Print.
+  to appropriate routines like TCastleAbstractFont.Print.
   @groupBegin }
-procedure glColorOpacity(const Color: TVector3; const Opacity: Single); overload; deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TDrawableImage.Color';
-procedure glColorOpacity(const Color: TVector3Byte; const Opacity: Single); overload; deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TDrawableImage.Color';
+procedure glColorOpacity(const Color: TVector3; const Opacity: Single); overload; deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleAbstractFont.Print(X,Y,Color,...) or TDrawableImage.Color';
+procedure glColorOpacity(const Color: TVector3Byte; const Opacity: Single); overload; deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleAbstractFont.Print(X,Y,Color,...) or TDrawableImage.Color';
 { @groupEnd }
 {$endif}
 
@@ -236,10 +214,10 @@ procedure glSetDepthAndColorWriteable(const Writeable: boolean);
 { Global position for drawing 2D stuff.
   @deprecated Do this use this.
   Instead of this, use drawing routines that take position as parameters,
-  like TDrawableImage.Draw(X,Y) or TCastleFont.Print(X,Y,...). }
+  like TDrawableImage.Draw(X,Y) or TCastleAbstractFont.Print(X,Y,...). }
 var
   WindowPos: TVector2Integer
-    deprecated 'use drawing routines that take position as parameters, like TDrawableImage.Draw(X,Y) or TCastleFont.Print(X,Y,...)';
+    deprecated 'use drawing routines that take position as parameters, like TDrawableImage.Draw(X,Y) or TCastleAbstractFont.Print(X,Y,...)';
 
 type
   TEnableTextureTarget = (etNone, et2D, etCubeMap, et3D);
@@ -263,6 +241,8 @@ type
   Note that this is only for fixed-function OpenGL pipeline.
   Shader pipeline completely ignores the enabled state of texture units. }
 function GLEnableTexture(const Target: TEnableTextureTarget): boolean;
+
+function BoolToGL(const Value: boolean): TGLboolean;
 
 {$endif read_interface}
 
@@ -483,41 +463,6 @@ begin
     CurrentColor);
 end;
 *)
-
-{$ifdef CASTLE_OBJFPC}
-function NewGLUQuadric(texture: boolean; normals: TGLenum;
-  orientation: TGLenum; drawStyle: TGLenum): PGLUQuadric;
-begin
-  result := gluNewQuadric();
-  if result = nil then
-    raise Exception.Create('gluNewQuadric cannot be created');
-  {$push}
-  {$warnings off}
-  // knowingly using deprecated in another deprecated
-  gluQuadricCallback(result, GLU_ERROR, TCallBack(@GLErrorRaise));
-  {$pop}
-  gluQuadricTexture(result, Ord(texture));
-  gluQuadricNormals(result, normals);
-  gluQuadricOrientation(result, orientation);
-  gluQuadricDrawStyle(result, drawStyle);
-end;
-
-procedure CastleGluSphere(
-  const Radius: TGLdouble;
-  const Slices, Stacks: TGLint;
-  Texture: boolean; Normals: TGLenum;
-  Orientation: TGLenum; DrawStyle: TGLenum);
-var
-  Q: PGLUQuadric;
-begin
-  {$warnings off} { deliberately using deprecated stuff inside another deprecated }
-  Q := NewGLUQuadric(Texture, Normals, Orientation, DrawStyle);
-  {$warnings on}
-  try
-    gluSphere(Q, Radius, Slices, Stacks);
-  finally gluDeleteQuadric(Q); end;
-end;
-{$endif CASTLE_OBJFPC}
 
 procedure glDrawAxisWire(const Position: TVector3; Size: Single);
 begin

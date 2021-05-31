@@ -23,7 +23,7 @@ interface
 
 uses X3DNodes, X3DFields, CastleImages,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
-  CastleRenderer;
+  CastleInternalRenderer, CastleRenderOptions;
 
 type
   { Shape within a scene rendered using OpenGL.
@@ -40,7 +40,7 @@ type
 
     PassedShapeCulling: Boolean;
 
-    { Used only when Attributes.ReallyUseOcclusionQuery.
+    { Used only when RenderOptions.ReallyOcclusionQuery.
       OcclusionQueryId is 0 if not initialized yet.
       When it's 0, value of OcclusionQueryAsked doesn't matter,
       OcclusionQueryAsked is always reset to @false when initializing
@@ -70,53 +70,47 @@ type
     function UseBlending: Boolean;
   end;
 
+{ Checks OcclusionQuery, existence of GL_ARB_occlusion_query,
+  and GLQueryCounterBits > 0. If @false, ARB_occlusion_query just cannot
+  be used.
+
+  Also, returns @false when HierarchicalOcclusionQuery is @true
+  --- because then HierarchicalOcclusionQuery should take precedence.
+
+  @exclude Internal. }
+function ReallyOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
+
+{ Checks HierarchicalOcclusionQuery, existence of GL_ARB_occlusion_query,
+  and GLQueryCounterBits > 0. If @false, ARB_occlusion_query just cannot
+  be used.
+
+  @exclude Internal. }
+function ReallyHierarchicalOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
+
 implementation
 
-uses CastleScene, CastleVectors;
+uses CastleScene, CastleVectors, CastleGLUtils;
 
 { TGLShape --------------------------------------------------------------- }
 
 procedure TGLShape.Changed(const InactiveOnly: boolean;
   const Changes: TX3DChanges);
-
-  { Assuming Cache <> nil, try to update the Cache VBOs fast
-    (without the need to recreate them).
-
-    This detects now for changes limited to coordinate/normal,
-    and tries using FastCoordinateNormalUpdate. }
-  function FastCacheUpdate: Boolean;
-  var
-    Coords, Normals: TVector3List;
-  begin
-    Result := false;
-
-    if { We only changed Cooordinate.coord or Normal.vector. }
-       (Changes * [chCoordinate, chNormal] = Changes) and
-       { Shape has coordinates and normals exposed in most common way,
-         by Coordinate and Normal nodes. }
-       (Geometry.CoordField <> nil) and
-       (Geometry.CoordField.Value <> nil) and
-       (Geometry.CoordField.Value is TCoordinateNode) and
-       (Geometry.NormalField <> nil) and
-       (Geometry.NormalField.Value <> nil) and
-       (Geometry.NormalField.Value is TNormalNode) then
-    begin
-      Coords := TCoordinateNode(Geometry.CoordField.Value).FdPoint.Items;
-      Normals := TNormalNode(Geometry.NormalField.Value).FdVector.Items;
-      Result := Cache.FastCoordinateNormalUpdate(Coords, Normals);
-    end;
-  end;
-
 begin
   inherited;
 
-  if (Cache <> nil) and (not FastCacheUpdate) then
+  if Cache <> nil then
   begin
     { Ignore changes that don't affect prepared arrays,
       like transformation, clip planes and everything else that is applied
       by renderer every time, and doesn't affect TGeometryArrays. }
-    if Changes * [chCoordinate, chNormal] <> [] then
-      Cache.FreeArrays([vtCoordinate]);
+
+    if Changes * [chCoordinate, chNormal, chTangent] <> [] then
+    begin
+      Cache.InvalidateVertexData([vtCoordinate]);
+
+      { Note: When bump mapping is used, upon changing normals -> we need to recalculate tangents.
+        But that is already covered: tangents are also part of vtCoordinate. }
+    end;
 
     { Note that Changes may contain both chCoordinate and chTextureCoordinate
       (e.g. in case of batching)
@@ -130,13 +124,13 @@ begin
       we need to make has changed.
       Testcase "animate_symbols", using Unholy spell effect animations.
 
-      TODO: Actually Cache.FreeArrays is often not necessary in case of chTextureImage.
+      TODO: Actually Cache.InvalidateVertexData is often not necessary in case of chTextureImage.
       It's only necessary when texture existence changed.
-      This could be optiized more.
+      This could be optimized more.
     }
     if Changes * [chTextureImage, chVisibleVRML1State, chGeometryVRML1State,
       chColorNode, chTextureCoordinate, chGeometry, chFontStyle, chWireframe] <> [] then
-      Cache.FreeArrays(AllVboTypes);
+      Cache.InvalidateVertexData(AllVboTypes);
   end;
 
   if Changes * [chTextureImage, chTextureRendererProperties] <> [] then
@@ -172,7 +166,7 @@ begin
   end;
 
   {$ifndef OpenGLES}
-  if TCastleScene(ParentScene).Attributes.ReallyUseOcclusionQuery and
+  if ReallyOcclusionQuery(TCastleScene(ParentScene).RenderOptions) and
      (OcclusionQueryId = 0) then
   begin
     glGenQueriesARB(1, @OcclusionQueryId);
@@ -207,6 +201,29 @@ end;
 function TGLShape.UseBlending: Boolean;
 begin
   Result := UseAlphaChannel = acBlending;
+end;
+
+{ global routines ------------------------------------------------------------ }
+
+function ReallyOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
+begin
+  {$warnings off}
+  Result := RenderOptions.OcclusionQuery and
+    (not RenderOptions.HierarchicalOcclusionQuery) and
+    GLFeatures.ARB_occlusion_query and
+    GLFeatures.VertexBufferObject and
+    (GLFeatures.QueryCounterBits > 0);
+  {$warnings on}
+end;
+
+function ReallyHierarchicalOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
+begin
+  {$warnings off}
+  Result := RenderOptions.HierarchicalOcclusionQuery and
+    GLFeatures.ARB_occlusion_query and
+    GLFeatures.VertexBufferObject and
+    (GLFeatures.QueryCounterBits > 0);
+  {$warnings on}
 end;
 
 end.

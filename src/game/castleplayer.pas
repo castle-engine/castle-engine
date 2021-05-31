@@ -93,6 +93,7 @@ type
       FRenderDebug: boolean;
 
       FEquippedWeapon: TItemWeapon;
+      FEquippedWeaponResourceFrame: TResourceFrame;
 
       { If Swimming = psUnderWater, then this is the time (from LifeTime)
         of setting Swimming to psUnderWater. }
@@ -156,11 +157,10 @@ type
       FSwimSoundPause: Single;
       FEnableNavigationDragging: boolean;
       FFallingEffect: boolean;
-      CurrentEquippedScene: TCastleScene;
       FWalkNavigation: TCastleWalkNavigation;
       FThirdPersonNavigation: TCastleThirdPersonNavigation;
       FUseThirdPerson: Boolean;
-      InsideSynchronizeFromNavigation: Cardinal;
+      InsideSynchronizeFromCamera: Cardinal;
 
     procedure SetEquippedWeapon(Value: TItemWeapon);
 
@@ -186,8 +186,8 @@ type
     procedure SetFlying(const AValue: Boolean);
     procedure SetFlyingTimeOut(const AValue: TFloatTime);
     procedure SetEnableNavigationDragging(const AValue: Boolean);
-    procedure SynchronizeToNavigation;
-    procedure SynchronizeFromNavigation;
+    procedure SynchronizeToCamera;
+    procedure SynchronizeFromCamera;
     procedure SetUseThirdPerson(const AValue: Boolean);
   protected
     procedure SetLife(const Value: Single); override;
@@ -229,6 +229,7 @@ type
     destructor Destroy; override;
     procedure Render(const Params: TRenderParams); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
+    property ListenPressRelease default true;
 
     { Flying.
       How it interacts with FlyingTimeout: Setting this property
@@ -519,10 +520,11 @@ var
 
 implementation
 
-uses Math, SysUtils, CastleClassUtils, CastleUtils, CastleControls,
+uses Math, SysUtils,
+  CastleClassUtils, CastleUtils, CastleControls,
   CastleImages, CastleFilesUtils, CastleUIControls, CastleLog,
   CastleGLBoxes, CastleGameNotifications, CastleXMLConfig,
-  CastleGLImages, CastleConfig;
+  CastleGLImages, CastleConfig, CastleRenderContext;
 
 { TPlayer.TBox ----------------------------------------------------------------- }
 
@@ -579,6 +581,7 @@ end;
 constructor TPlayer.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  ListenPressRelease := true;
   CollidesWithMoving := true;
   Life := DefaultLife;
   MaxLife := DefaultLife;
@@ -631,6 +634,9 @@ begin
 
   FDebugTransform := TDebugTransform.Create(Self);
   FDebugTransform.Parent := Self;
+
+  FEquippedWeaponResourceFrame := TResourceFrame.Create(Self);
+  Add(FEquippedWeaponResourceFrame);
 end;
 
 destructor TPlayer.Destroy;
@@ -776,15 +782,7 @@ begin
   if Value <> FEquippedWeapon then
   begin
     if FEquippedWeapon <> nil then
-    begin
-      { clear CurrentEquippedScene }
-      if CurrentEquippedScene <> nil then
-      begin
-        Remove(CurrentEquippedScene);
-        CurrentEquippedScene := nil;
-      end;
       FEquippedWeapon.RemoveFreeNotification(Self);
-    end;
 
     FEquippedWeapon := Value;
 
@@ -802,17 +800,23 @@ begin
   end;
 end;
 
-procedure TPlayer.SynchronizeToNavigation;
+procedure TPlayer.SynchronizeToCamera;
 var
   P, D, U: TVector3;
 begin
-  // avoid recursive calls between SynchronizeToNavigation and SynchronizeFromNavigation
-  if InsideSynchronizeFromNavigation <> 0 then Exit;
+  // avoid recursive calls between SynchronizeToCamera and SynchronizeFromCamera
+  if InsideSynchronizeFromCamera <> 0 then Exit;
 
   // synchronize Position, Direction, Up *to* Navigation
   if not UseThirdPerson then
   try
     GetView(P, D, U);
+    if UniqueParent <> nil then
+    begin
+      P := UniqueParent.LocalToWorld(P);
+      D := UniqueParent.LocalToWorldDirection(D);
+      U := UniqueParent.LocalToWorldDirection(U);
+    end;
     Navigation.Camera.SetView(P, D, U);
   except
     on EViewportNotAssigned do
@@ -820,7 +824,7 @@ begin
   end;
 end;
 
-procedure TPlayer.SynchronizeFromNavigation;
+procedure TPlayer.SynchronizeFromCamera;
 var
   P, D, U: TVector3;
 begin
@@ -828,9 +832,15 @@ begin
   if not UseThirdPerson then
   try
     Navigation.Camera.GetView(P, D, U);
-    Inc(InsideSynchronizeFromNavigation);
+    if UniqueParent <> nil then
+    begin
+      P := UniqueParent.WorldToLocal(P);
+      D := UniqueParent.WorldToLocalDirection(D);
+      U := UniqueParent.WorldToLocalDirection(U);
+    end;
+    Inc(InsideSynchronizeFromCamera);
     SetView(P, D, U);
-    Dec(InsideSynchronizeFromNavigation);
+    Dec(InsideSynchronizeFromCamera);
   except
     on EViewportNotAssigned do
       WritelnWarning('Adjusting TCastlePlayer transformation (like position) in PrepareResources is aborted if TCastleViewport.Navigation is not yet associated with TCastlePlayer.Navigation');
@@ -841,7 +851,7 @@ procedure TPlayer.ChangedTransform;
 begin
   inherited;
   { If something called Player.Translation := xxx, update Navigation }
-  SynchronizeToNavigation;
+  SynchronizeToCamera;
 end;
 
 procedure TPlayer.UpdateNavigation;
@@ -988,25 +998,6 @@ begin
 end;
 
 procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
-
-  procedure UpdateCurrentEquippedScene;
-  var
-    NewEquippedScene: TCastleScene;
-  begin
-    if EquippedWeapon <> nil then
-      NewEquippedScene := EquippedWeapon.EquippedScene(LifeTime)
-    else
-      NewEquippedScene := nil;
-
-    if CurrentEquippedScene <> NewEquippedScene then
-    begin
-      if CurrentEquippedScene <> nil then
-        Remove(CurrentEquippedScene);
-      CurrentEquippedScene := NewEquippedScene;
-      if CurrentEquippedScene <> nil then
-        Add(CurrentEquippedScene);
-    end;
-  end;
 
   { Perform various things related to player swimming. }
   procedure UpdateSwimming;
@@ -1194,9 +1185,7 @@ begin
   inherited;
   if not GetExists then Exit;
 
-  SynchronizeFromNavigation;
-
-  UpdateCurrentEquippedScene;
+  SynchronizeFromCamera;
 
   if FFlyingTimeOut > 0 then
   begin
@@ -1217,7 +1206,11 @@ begin
 
   if (EquippedWeapon <> nil) and
      (InternalLevel <> nil) then
-    EquippedWeapon.EquippedUpdate(InternalLevel, LifeTime);
+  begin
+    FEquippedWeaponResourceFrame.Exists := true;
+    EquippedWeapon.EquippedUpdate(InternalLevel, SecondsPassed, FEquippedWeaponResourceFrame);
+  end else
+    FEquippedWeaponResourceFrame.Exists := false;
 
   UpdateIsOnTheGround;
   UpdateToxic;
@@ -1278,9 +1271,12 @@ procedure TPlayer.Attack;
 begin
   if (EquippedWeapon <> nil) and
      (InternalLevel <> nil) then
-    EquippedWeapon.EquippedAttack(InternalLevel, LifeTime)
+    EquippedWeapon.EquippedAttack(InternalLevel)
   else
-    { TODO: allow to do some "punch" / "kick" here easily }
+    { Cannot attack without weapon equipped.
+      If the game will want to have some "always owned weapon"
+      (like footkick in Duke, crowbar in HalfLife)
+      that game will have to assign it to EquippedWeapon. }
     Notifications.Show('No weapon equipped');
 end;
 
@@ -1521,7 +1517,7 @@ begin
     but before rendering.
     (Testcase: move/rotate using touch control
     in fps_game when you have shooting_eye.) }
-  SynchronizeFromNavigation;
+  SynchronizeFromCamera;
 
   inherited;
 end;
@@ -1598,41 +1594,41 @@ initialization
     of menu entries in "Configure controls". }
 
   PlayerInput_Forward := TInputShortcut.Create(nil, 'Move forward', 'move_forward', igBasic);
-  PlayerInput_Forward.Assign(K_W, K_Up);
+  PlayerInput_Forward.Assign(keyW, keyArrowUp);
   PlayerInput_Backward := TInputShortcut.Create(nil, 'Move backward', 'move_backward', igBasic);
-  PlayerInput_Backward.Assign(K_S, K_Down);
+  PlayerInput_Backward.Assign(keyS, keyArrowDown);
   PlayerInput_LeftRotate := TInputShortcut.Create(nil, 'Turn left', 'turn_left', igBasic);
-  PlayerInput_LeftRotate.Assign(K_Left);
+  PlayerInput_LeftRotate.Assign(keyArrowLeft);
   PlayerInput_RightRotate := TInputShortcut.Create(nil, 'Turn right', 'turn_right', igBasic);
-  PlayerInput_RightRotate.Assign(K_Right);
+  PlayerInput_RightRotate.Assign(keyArrowRight);
   PlayerInput_LeftStrafe := TInputShortcut.Create(nil, 'Move left', 'move_left', igBasic);
-  PlayerInput_LeftStrafe.Assign(K_A);
+  PlayerInput_LeftStrafe.Assign(keyA);
   PlayerInput_RightStrafe := TInputShortcut.Create(nil, 'Move right', 'move_right', igBasic);
-  PlayerInput_RightStrafe.Assign(K_D);
+  PlayerInput_RightStrafe.Assign(keyD);
   PlayerInput_UpRotate := TInputShortcut.Create(nil, 'Look up', 'look_up', igBasic);
-  PlayerInput_UpRotate.Assign(K_None);
+  PlayerInput_UpRotate.Assign(keyNone);
   PlayerInput_DownRotate := TInputShortcut.Create(nil, 'Look down', 'look_down', igBasic);
-  PlayerInput_DownRotate.Assign(K_None);
+  PlayerInput_DownRotate.Assign(keyNone);
   PlayerInput_GravityUp := TInputShortcut.Create(nil, 'Look straight', 'look_straight', igBasic);
-  PlayerInput_GravityUp.Assign(K_None);
+  PlayerInput_GravityUp.Assign(keyNone);
   PlayerInput_Jump := TInputShortcut.Create(nil, 'Jump (or fly/swim up)', 'move_up', igBasic);
-  PlayerInput_Jump.Assign(K_Space);
+  PlayerInput_Jump.Assign(keySpace);
   PlayerInput_Crouch := TInputShortcut.Create(nil, 'Crouch (or fly/swim down)', 'move_down', igBasic);
-  PlayerInput_Crouch.Assign(K_C);
+  PlayerInput_Crouch.Assign(keyC);
 
   PlayerInput_Attack := TInputShortcut.Create(nil, 'Attack', 'attack', igBasic);
-  PlayerInput_Attack.Assign(K_Ctrl, K_None, '', false, mbLeft);
+  PlayerInput_Attack.Assign(keyCtrl, keyNone, '', false, buttonLeft);
   PlayerInput_Attack.GroupOrder := -100; { before other (player) shortcuts }
   PlayerInput_InventoryShow := TInputShortcut.Create(nil, 'Inventory show / hide', 'inventory_toggle', igItems);
-  PlayerInput_InventoryShow.Assign(K_None, K_None, '', false, mbLeft);
+  PlayerInput_InventoryShow.Assign(keyNone, keyNone, '', false, buttonLeft);
   PlayerInput_InventoryPrevious := TInputShortcut.Create(nil, 'Select previous item', 'inventory_previous', igItems);
-  PlayerInput_InventoryPrevious.Assign(K_LeftBracket, K_None, '', false, mbLeft, mwUp);
+  PlayerInput_InventoryPrevious.Assign(keyLeftBracket, keyNone, '', false, buttonLeft, mwUp);
   PlayerInput_InventoryNext := TInputShortcut.Create(nil, 'Select next item', 'inventory_next', igItems);
-  PlayerInput_InventoryNext.Assign(K_RightBracket, K_None, '', false, mbLeft, mwDown);
+  PlayerInput_InventoryNext.Assign(keyRightBracket, keyNone, '', false, buttonLeft, mwDown);
   PlayerInput_UseItem := TInputShortcut.Create(nil, 'Use (or equip) selected item', 'item_use', igItems);
-  PlayerInput_UseItem.Assign(K_Enter, K_None, '', false, mbLeft);
+  PlayerInput_UseItem.Assign(keyEnter, keyNone, '', false, buttonLeft);
   PlayerInput_DropItem := TInputShortcut.Create(nil, 'Drop selected item', 'item_drop', igItems);
-  PlayerInput_DropItem.Assign(K_None, K_None, '', false, mbLeft);
+  PlayerInput_DropItem.Assign(keyNone, keyNone, '', false, buttonLeft);
   PlayerInput_CancelFlying := TInputShortcut.Create(nil, 'Cancel flying spell', 'cancel_flying', igOther);
-  PlayerInput_CancelFlying.Assign(K_None, K_None, '', false, mbLeft);
+  PlayerInput_CancelFlying.Assign(keyNone, keyNone, '', false, buttonLeft);
 end.

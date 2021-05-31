@@ -20,7 +20,8 @@
 const
   LoadX3DXml_FileFilters =
   'All files|*|' +
-  '*X3D XML (*.x3d, *.x3dz, *.x3d.gz)|*.x3d;*.x3dz;*.x3d.gz';
+  '*X3D XML (*.x3d, *.x3dz, *.x3d.gz)|*.x3d;*.x3dz;*.x3d.gz'
+  deprecated 'use LoadNode and LoadScene_FileFilters';
 
 { Read X3D encoded in XML, and convert it to VRML/X3D nodes graph.
 
@@ -30,10 +31,17 @@ const
   but it is not used to load contents (these are inside Stream),
   it it only used to resolve relative URLs inside content and for error messages.
 
+  @exclude
+
   @groupBegin }
-function LoadX3DXml(const URL: string; Gzipped: boolean): TX3DRootNode; overload;
-function LoadX3DXml(Stream: TStream; const URL: string): TX3DRootNode; overload;
-function LoadX3DXml(X3DElement: TDOMElement; const URL: string): TX3DRootNode; overload;
+function LoadX3DXml(const URL: string; const Gzipped: boolean): TX3DRootNode; overload; deprecated 'use LoadNode';
+
+{ @exclude }
+function LoadX3DXmlInternal(const Stream: TStream; const BaseUrl: string): TX3DRootNode; overload;
+
+{ @exclude }
+function LoadX3DXmlInternal(const X3DElement: TDOMElement; const BaseUrl: string): TX3DRootNode; overload;
+
 { @groupEnd }
 
 {$endif read_interface}
@@ -517,7 +525,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function LoadX3DXml(const URL: string; Gzipped: boolean): TX3DRootNode;
+function LoadX3DXml(const URL: string; const Gzipped: boolean): TX3DRootNode;
 var
   Stream: TStream;
   StreamOptions: TStreamOptions;
@@ -527,28 +535,28 @@ begin
     Include(StreamOptions, soGzip);
   Stream := Download(URL, StreamOptions);
   try
-    Result := LoadX3DXml(Stream, AbsoluteURI(URL));
+    Result := LoadX3DXmlInternal(Stream, AbsoluteURI(URL));
   finally
     FreeAndNil(Stream);
   end;
 end;
 
-function LoadX3DXml(Stream: TStream; const URL: string): TX3DRootNode;
+function LoadX3DXmlInternal(const Stream: TStream; const BaseUrl: string): TX3DRootNode;
 var
   Doc: TXMLDocument;
 begin
   Doc := nil;
   try
-    { The ReadXMLFile receives URL only to produce nice error messages
+    { The ReadXMLFile receives BaseUrl only to produce nice error messages
       in case of errors. }
     { ReadXMLFile always sets TXMLDocument param (possibly to nil),
       even in case of exception. So place it inside try..finally. }
-    ReadXMLFile(Doc, Stream, AbsoluteURI(URL));
-    Result := LoadX3DXml(Doc.DocumentElement, URL);
+    ReadXMLFile(Doc, Stream, AbsoluteURI(BaseUrl));
+    Result := LoadX3DXmlInternal(Doc.DocumentElement, BaseUrl);
   finally FreeAndNil(Doc); end;
 end;
 
-function LoadX3DXml(X3DElement: TDOMElement; const URL: string): TX3DRootNode; overload;
+function LoadX3DXmlInternal(const X3DElement: TDOMElement; const BaseUrl: string): TX3DRootNode; overload;
 var
   SceneElement: TDOMElement;
   VersionStr: string;
@@ -577,7 +585,7 @@ begin
   SceneElement := X3DElement.ChildElement('Scene', true);
 
   { X3D XML requires AutoRemove = true below }
-  Reader := TX3DReaderNames.Create(true, URL, Version);
+  Reader := TX3DReaderNames.Create(true, BaseUrl, Version);
   try
     Result := ParseStatements(SceneElement, true, X3DElement, Reader);
     Reader.ExtractNames(Result.FPrototypeNames, Result.FExportedNames, Result.FImportedNames);

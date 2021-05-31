@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,6 +26,12 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdPoint: TMFVec2f;
+    { X3D field "point". } { }
+    public property FdPoint: TMFVec2f read FFdPoint;
     { Set X3D field "point". } { }
     procedure SetPoint(const Value: array of TVector2);
     { Set X3D field "point". } { }
@@ -45,6 +51,20 @@ end;
 procedure TPolypoint2DNode.SetPoint(const Value: TVector2List);
 begin
   FdPoint.Send(Value);
+end;
+
+class function TPolypoint2DNode.ClassX3DType: String;
+begin
+  Result := 'Polypoint2D';
+end;
+
+procedure TPolypoint2DNode.CreateNode;
+begin
+  inherited;
+
+  FFdPoint := TMFVec2f.Create(Self, True, 'point', []);
+   FdPoint.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdPoint);
 end;
 
 {$endif read_implementation}

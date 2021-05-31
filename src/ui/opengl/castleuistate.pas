@@ -21,8 +21,8 @@ unit CastleUIState;
 interface
 
 uses Classes, Generics.Collections,
-  CastleConfig, CastleKeysMouse, CastleImages, CastleUIControls,
-  CastleGLImages, CastleVectors, CastleRectangles;
+  CastleConfig, CastleKeysMouse, CastleImages, CastleUIControls, CastleClassUtils,
+  CastleGLImages, CastleVectors, CastleRectangles, CastleComponentSerialize;
 
 type
   TUIStateList = class;
@@ -45,50 +45,39 @@ type
     to perform work when the state becomes the top-most state or is no longer
     the top-most state. The distinction becomes important once you play
     around with pushing/popping states.
-    The names are deliberaly similar to Android lifecycle callback names.
 
-    You can add/remove state-specific UI controls in various ways.
-    You can add them in the constructor of this state (and then free in destructor),
-    or add them in @link(Start), free in @link(Stop).
+    To define state user interface:
 
     @orderedList(
-      @item(It's simplest and best to add/keep children controls as real
-        children of the current state, so add them
-        using methods @link(TCastleUserInterface.InsertFront) and
-        @link(TCastleUserInterface.InsertBack).)
+      @item(It is simplest to set @link(DesignUrl)
+        to the design file you created using @url(https://castle-engine.io/manual_editor.php CGE editor).
+        Such user interface controls will be created right before @link(Start)
+        and destroyed right after @link(Stop) (so the state UI always "resets"
+        when state starts).)
 
-      @item(Eventually, for special tricks, you can add controls that are
-        conceptually the state "children" directly to the
-        @code(StateContainer.Controls) list.
-        This allows to keep some children on the @code(StateContainer.Controls)
-        list for a longer
-        time (not only when this state is active), which may be useful for optimization,
-        to not reinitialize GL resources too often.
-        To do this, add controls using
-        @code(StateContainer.Controls.InsertFront(...)), remove them by
-        @code(StateContainer.Controls.Remove(...)),
-        and make sure to override @link(InsertAtPosition) method such that state instance
-        is inserted in @code(StateContainer.Controls) right behind your UI.)
+      @item(You can always create more UI controls and add them to the state at any point.
+        The state is a @link(TCastleUserInterface) descendant and you can add UI to it
+        just by using @link(TCastleUserInterface.InsertFront).
+
+        UI children can be added anytime you want, e.g. in @link(Start) or in overridden
+        constructor.
+
+        UI children can be removed or destroyed anytime you want as well.
+        You can use @link(FreeAtStop) as an owner for anything you want to be automatically
+        destroyed at @link(Stop).)
     )
 
-    Current state is also placed on the list of container controls.
-    This way state is notified
-    about UI events, and can react to them. Since state-specific UI
-    should always be at the front of us, or our children,
-    so in case of events that can be "handled"
-    (like TCastleUserInterface.Press, TCastleUserInterface.Release events)
-    the state-specific UI controls will handle them @italic(before)
-    the state itself (if you override TCastleUserInterface.Press or such in state,
-    be sure to call @code(inherited) first, to make sure it really
-    happens).
-
-    This way state can
+    Current state is placed on the list of container controls.
+    This way state is notified about UI events, and can react to them.
+    Note that our children will handle events @italic(before) the state itself
+    is notified about them, following @link(TCastleUserInterface) events behavior.
+    This way state can:
 
     @unorderedList(
-      @item(catch press/release and similar events, when no other
-        state-specific control handled them,)
-      @item(catch update, GL context open/close and other useful events,)
-      @item(can have it's own render function, to directly draw UI.)
+      @item(React to @link(TInputListener.Press Press),
+        @link(TInputListener.Release Release) of keys or mouse buttons,)
+
+      @item(do something continuos in @link(TInputListener.Update Update).)
     )
 
     See the TCastleUserInterface class for a lot of useful methods that you can
@@ -98,8 +87,28 @@ type
     FStartContainer: TUIContainer;
     FInterceptInput, FFreeWhenStopped: boolean;
     FFreeAtStop: TComponent;
+    FWaitingForRender: TNotifyEventList;
+    FCallBeforeUpdate: TNotifyEventList;
+
+    { Design* private fields }
+    FDesignUrl: String;
+    FDesignLoaded: TCastleUserInterface;
+    FDesignLoadedOwner: TComponent;
+    FDesignPreload: Boolean;
+    FDesignPreloadedSerialized: TSerializedComponent;
+    FDesignPreloaded: TCastleUserInterface;
+    FDesignPreloadedOwner: TComponent;
+
     procedure InternalStart;
     procedure InternalStop;
+
+    { Design* private routines }
+    procedure SetDesignUrl(const Value: String);
+    procedure SetDesignPreload(const Value: Boolean);
+    procedure LoadDesign;
+    procedure UnLoadDesign;
+    procedure PreloadDesign;
+    procedure UnPreloadDesign;
 
     class var FStateStack: TUIStateList;
     class var FDisableStackChange: Cardinal;
@@ -128,30 +137,65 @@ type
     { When @true, state operations will send a log to CastleLog. }
     class var Log: boolean;
 
-    { Current state. In case multiple states are active (only possible
-      if you used @link(Push) method), this is the bottom state
-      (use @link(CurrentTop) to get top state).
-      Setting this resets whole state stack. }
+    { Current state. Simply assign to this property to change the current state.
+
+      In case multiple states are active (only possible
+      if you used the @link(Push) method), this property returns the @italic(bottom) state
+      (use @link(CurrentTop) to get @italic(top) state).
+      Setting this property resets whole state stack.
+
+      @bold(When is it allowed to change the state?)
+
+      While in theory you can change current state stack (assigning @link(TUIState.Current)
+      or using @link(TUIState.Push) / @link(TUIState.Pop)) at any moment,
+      but remember that stopping the state frees also the state UI.
+      So you should not change the current state stack within events/overriden methods
+      of classes like TCastleUserInterface, TCastleTransform, TCastleBehavior
+      that could be destroyed by the state stop.
+
+      The simpler advise is: @italic(Assign to @link(TUIState.Current) or use @link(TUIState.Push) / @link(TUIState.Pop)
+      only from the overridden TUIState methods.
+      Like TMyState.Update or TMyState.Press).
+
+      Note that you cannot change current state stack when another change is in progress.
+      That is, you cannot change state from within TMyState.Start/Resume/Pause/Stop.
+    }
     class property Current: TUIState read GetCurrent write SetCurrent;
+
+    { The top-most state.
+
+      In case you used @link(Push), this returns the top-most (most recently pushed) state.
+
+      If there is only one (or none) state, e.g. because you never used @link(Push),
+      then this property returns the same thing as @link(Current). }
     class property CurrentTop: TUIState read GetCurrentTop;
 
-    { Pushing the state adds it at the top of the state stack.
+    { Pushing the state adds it at the top of the state stack,
+      this makes new state to be displayed on top of previous ones.
 
       The state known as @link(Current) is conceptually at the bottom of state stack, always.
       When it is nil, then pushing new state sets the @link(Current) state.
       Otherwise @link(Current) state is left as-it-is, new state is added on top. }
     class procedure Push(const NewState: TUIState);
 
-    { Pop the current top-most state, whatever it is. }
+    { Pop the current top-most state, reversing the @link(Push) operation. }
     class procedure Pop;
 
-    { Pop the top-most state, checking it is as expected.
+    { Pop the current top-most state, reversing the @link(Push) operation,
+      also checking whether the current top-most state is as expected.
+
       Makes a warning, and does nothing, if the current top-most state
       is different than indicated. This is usually a safer (more chance
       to easily catch bugs) version of Pop than the parameter-less version. }
     class procedure Pop(const CurrentTopMostState: TUIState);
 
+    { Count of states in the state stack.
+      State stack is managed using Start / Push / Pop. }
     class function StateStackCount: Integer;
+
+    { Access any state within the state stack.
+      Use with indexes between 0 and StateStackCount - 1.
+      State stack is managed using Start / Push / Pop. }
     class property StateStack [const Index: Integer]: TUIState read GetStateStack;
 
     { Create an instance of the state.
@@ -160,8 +204,8 @@ type
       (e.g. in Application.OnInitialize callback), like
 
       @longCode(#
-        StateMain := TStateMain.Create(Application);
-        StatePlay := TStateMain.Create(Application);
+        StateMainMenu := TStateMainMenu.Create(Application);
+        StatePlay := TStatePlay.Create(Application);
       #)
 
       Later you switch between states using @link(Current) or @link(Push) or @link(Pop),
@@ -170,6 +214,8 @@ type
       @longCode(#
         TUIState.Current := StateMain;
       #)
+
+      See https://castle-engine.io/manual_2d_user_interface.php and numerous engine examples.
     }
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -207,7 +253,7 @@ type
     }
     constructor CreateUntilStopped;
 
-    { State becomes active, it's now part of the state stack.
+    { Executed when state becomes active, it's now part of the state stack.
 
       Started state is part of the StateStack, and will soon become
       running (top-most on the stack). When the state is set to be current,
@@ -223,7 +269,7 @@ type
       ) }
     procedure Start; virtual;
 
-    { State is no longer active, no longer part of state stack.
+    { Executed when state is no longer active, no longer part of state stack.
 
       When the state stops becoming active, this happens:
 
@@ -243,13 +289,13 @@ type
       you initialized in @link(Start). }
     procedure Stop; virtual;
 
-    { State is now the top-most state. See @link(Start) and @link(Stop)
+    { Executed when state is now the top-most state. See @link(Start) and @link(Stop)
       docs about state lifecycle methods.
       This is called after @link(Start), it is also called
       when you pop another state, making this state the top-most. }
     procedure Resume; virtual;
 
-    { State is no longer the top-most state. See @link(Start) and @link(Stop)
+    { Executed when state is no longer the top-most state. See @link(Start) and @link(Stop)
       docs about state lifecycle methods.
       This is called before @link(Stop), it is also called
       when another state is pushed over this state, so this stops
@@ -284,6 +330,7 @@ type
     function Motion(const Event: TInputMotion): boolean; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
+    procedure Render; override;
 
     { Load and show a user interface from a .castle-user-interface file,
       designed in Castle Game Engine Editor.
@@ -308,11 +355,111 @@ type
       and as FinalOwner you pass @link(FreeAtStop) -- this way the user interface
       is freed when the state is stopped.
     }
-    procedure InsertUserInterface(const DesignUrl: String;
+    procedure InsertUserInterface(const ADesignUrl: String;
       const FinalOwner: TComponent;
-      out Ui: TCastleUserInterface; out UiOwner: TComponent);
-    procedure InsertUserInterface(const DesignUrl: String;
-      const FinalOwner: TComponent; out UiOwner: TComponent);
+      out Ui: TCastleUserInterface; out UiOwner: TComponent); deprecated 'instead of this, set DesignUrl in constructor';
+    procedure InsertUserInterface(const ADesignUrl: String;
+      const FinalOwner: TComponent; out UiOwner: TComponent); deprecated 'instead of this, set DesignUrl in constructor';
+
+    { Wait until the render event happens (to redraw current state),
+      and then call Event.
+
+      The scheduled Event will be called at the @link(Update) time.
+
+      If the state stopped before the scheduled events fired,
+      then the remaining events are ignored.
+      That is, the scheduled events are cleared every time you start the state.
+
+      One use-case of this is to show a loading state,
+      where you load things, but also update the loading progress from time to time.
+      Be careful in this case to not call this @italic(too often),
+      as then your loading time will be tied to rendering time.
+      For example, when the monitor refresh rate is 60, and the "vertical sync"
+      is "on", then the render events happen at most 60 times per second.
+      So if you call WaitForRenderAndCall too often during loading,
+      you may spend more time waiting for render event (each WaitForRenderAndCall
+      taking 1/60 of second) than doing actual loading. }
+    procedure WaitForRenderAndCall(const Event: TNotifyEvent);
+
+    { Load a designed user interface (from .castle-user-interface file)
+      when this state is started.
+      You typically set this property in overridden constructor, and in effect
+      the given design file will be loaded right before @link(Start) and it will be freed
+      right after @link(Stop).
+
+      Typical use-case looks like this:
+
+      @longCode(#
+      constructor TStatePlay.Create(AOwner: TComponent);
+      begin
+        inherited;
+        DesignUrl := 'castle-data:/gamestateplay.castle-user-interface';
+        // DesignPreload := true; // to make future "TUIState.Current := StatePlay" faster
+      end;
+
+      procedure TStatePlay.Start;
+      begin
+        inherited;
+        MyButton := DesignedComponent('MyButton') as TCastleButton;
+      end;
+      #)
+
+      You can also modify this property when the state has already started
+      (after @link(Start) and before @link(Stop)) in which case
+      the previous design will be freed and new one will be loaded immediately.
+
+      Set this to empty string (default) to mean "no design should be loaded".
+
+      Note that this is not the only way to load a .castle-user-interface file.
+      A more general approach is to use @link(UserInterfaceLoad),
+      and call @link(InsertFront) to add it to the state UI.
+      Using this property just adds some comfortable automatic behavior
+      (state is freed at stop, and you can use comfortable
+      @link(DesignedComponent) or @link(DesignPreload)).
+
+      @seealso DesignPreload
+      @seealso DesignedComponent
+    }
+    property DesignUrl: String read FDesignUrl write SetDesignUrl;
+
+    { Preload the design file (specified in @link(DesignUrl)) as soon as possible,
+      making starting the state much faster.
+      Using this property means that we "preload" the design file,
+      to cache the referenced images / TCastleScene instances etc. as soon as possible,
+      to make the future loading of this design (when state starts) very quick.
+
+      Typically you set this property in overridden TUIState constructor,
+      right after (or before, it doesn't matter) setting DesignUrl.
+      It will mean that constructor takes a longer time (which typically means
+      that Application.OnInitialize takes a longer time) but in exchange
+      future starting of the state (when you do e.g. @code(TUIState.Current := StateXxx)
+      or @code(TUIState.Push(StateXxx)) will be much faster.
+
+      No functional difference should be visible, regardless of the @link(DesignPreload)
+      value. Internally the designed component is added/removed from state at the same time.
+      So think of this property as pure optimization -- you decide whether to slow down
+      the state constructor, or state start.
+
+      @seealso DesignUrl }
+    property DesignPreload: Boolean read FDesignPreload write SetDesignPreload default false;
+
+    { When the DesignUrl is set, and the state is started, you can use this method to find
+      loaded components. Like this:
+
+      @longCode(#
+      MyButton := DesignedComponent('MyButton') as TCastleButton;
+      #)
+
+      See @link(DesignUrl) for full usage example.
+
+      @seealso DesignUrl }
+    function DesignedComponent(const ComponentName: String): TComponent;
+
+    { TODO: This doesn't work with FPC 3.2.0, see implementation comments.
+      It is also not that useful -- unlike Unity "GameObject.GetComponent<T>(): T",
+      in this case T would not be used as searching criteria, so it would
+      be just another way to express "as" cast. }
+    // generic function DesignedComponent<T: TComponent>(const ComponentName: String): T; overload;
   published
     { TUIState control makes most sense when it is FullSize,
       filling the whole window.
@@ -328,20 +475,30 @@ type
 implementation
 
 uses SysUtils,
-  CastleFilesUtils, CastleUtils, CastleTimeUtils, CastleLog,
-  CastleComponentSerialize;
+  CastleFilesUtils, CastleUtils, CastleTimeUtils, CastleLog;
 
-{ TODO: Change this into always exception in the future.
-  Changing state during state Start/Stop/Push/Pop is not reliable,
+{ Changing state during state Start/Stop/Push/Pop is not reliable,
   e.g. doing TUIState.Push during another TUIState.Push will not result
   in proper stack. }
 procedure ErrorStackChangeDisabled(const Message: String);
 begin
-  {$ifdef DEBUG}
   raise EInternalError.Create(Message);
-  {$else}
-  WritelnWarning('TUIState', Message);
-  {$endif}
+end;
+
+type
+  { Helper methods extending TSerializedComponent.
+    Do not use TSerializedComponentHelper from CastleViewport,
+    to not complicate unit dependencies. }
+  TSerializedComponentHelper = class helper for TSerializedComponent
+    { Instantiate component.
+      Using this is equivalent to using global @link(UserInterfaceLoad),
+      but it is much faster if you want to instantiate the same file many times. }
+    function UserInterfaceLoad(const Owner: TComponent): TCastleUserInterface;
+  end;
+
+function TSerializedComponentHelper.UserInterfaceLoad(const Owner: TComponent): TCastleUserInterface;
+begin
+  Result := ComponentLoad(Owner) as TCastleUserInterface;
 end;
 
 { TUIState --------------------------------------------------------------------- }
@@ -490,9 +647,16 @@ var
 begin
   TimeStart := Profiler.Start('Started state ' + Name + ': ' + ClassName);
 
+  FWaitingForRender.Clear;
+  FCallBeforeUpdate.Clear;
+
   { typically, the Start method will initialize some stuff,
     making the 1st SecondsPassed non-representatively large. }
   StateContainer.Fps.ZeroNextSecondsPassed;
+
+  FStartContainer := StateContainer;
+
+  LoadDesign;
 
   Start;
   { actually insert, this will also call GLContextOpen and Resize.
@@ -508,7 +672,18 @@ end;
 procedure TUIState.InternalStop;
 begin
   StateContainer.Controls.Remove(Self);
+
   Stop;
+
+  {$warnings off}
+  Finish;
+  {$warnings on}
+
+  UnLoadDesign;
+
+  FStartContainer := nil;
+  FreeAndNil(FFreeAtStop);
+
   if Log then
     WritelnLog('UIState', 'Stopped state ' + Name + ': ' + ClassName);
 end;
@@ -532,6 +707,8 @@ constructor TUIState.Create(AOwner: TComponent);
 begin
   inherited;
   FullSize := true;
+  FWaitingForRender := TNotifyEventList.Create;
+  FCallBeforeUpdate := TNotifyEventList.Create;
 end;
 
 constructor TUIState.CreateUntilStopped;
@@ -556,6 +733,10 @@ begin
       FreeAndNil(FStateStack);
   end;
 
+  UnLoadDesign;
+  UnPreloadDesign;
+  FreeAndNil(FWaitingForRender);
+  FreeAndNil(FCallBeforeUpdate);
   inherited;
 end;
 
@@ -573,17 +754,19 @@ end;
 
 procedure TUIState.Start;
 begin
-  FStartContainer := StateContainer;
+  { Do not place here any logic, to make sure TUIState works reliably even when
+    descendant doesn't have "inherited" call.
+    While we don't guarantee that our classes generally work OK in such situations
+    (you should always call "inherited" unless documented otherwise),
+    but in this special case we try to make it so, otherwise sometimes hard-to-debug
+    errors occur. }
 end;
 
 procedure TUIState.Stop;
 begin
-  {$warnings off}
-  Finish;
-  {$warnings on}
-
-  FStartContainer := nil;
-  FreeAndNil(FFreeAtStop);
+  { Do not place here any logic, to make sure TUIState works reliably even when
+    descendant doesn't have "inherited" call.
+    Same as in Start. }
 end;
 
 procedure TUIState.Finish;
@@ -617,27 +800,164 @@ end;
 procedure TUIState.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
 begin
+  inherited;
+
   { do not allow controls underneath to handle input }
   if InterceptInput then
     HandleInput := false;
+
+  if FCallBeforeUpdate.Count <> 0 then // optimize away common case
+  begin
+    { In case of using CreateUntilStopped state, you cannot change state
+      in the middle of FCallBeforeUpdate.ExecuteAll,
+      as it would free the array that is being iterated over. }
+    if FFreeWhenStopped then Inc(FDisableStackChange);
+    try
+      FCallBeforeUpdate.ExecuteAll(Self);
+      FCallBeforeUpdate.Clear;
+    finally
+      if FFreeWhenStopped then Dec(FDisableStackChange);
+    end;
+  end;
 end;
 
-procedure TUIState.InsertUserInterface(const DesignUrl: String;
+procedure TUIState.InsertUserInterface(const ADesignUrl: String;
   const FinalOwner: TComponent;
   out Ui: TCastleUserInterface; out UiOwner: TComponent);
 begin
   UiOwner := TComponent.Create(FinalOwner);
-  Ui := UserInterfaceLoad(DesignUrl, UiOwner);
+  Ui := UserInterfaceLoad(ADesignUrl, UiOwner);
   InsertFront(Ui);
 end;
 
-procedure TUIState.InsertUserInterface(const DesignUrl: String;
+procedure TUIState.InsertUserInterface(const ADesignUrl: String;
   const FinalOwner: TComponent; out UiOwner: TComponent);
 var
   Ui: TCastleUserInterface;
 begin
-  InsertUserInterface(DesignUrl, FinalOwner, Ui, UiOwner);
+  {$warnings off} // using deprecated in deprecated
+  InsertUserInterface(ADesignUrl, FinalOwner, Ui, UiOwner);
+  {$warnings on}
   // ignore the returned Ui reference
+end;
+
+procedure TUIState.Render;
+begin
+  inherited;
+  FCallBeforeUpdate.AddRange(FWaitingForRender);
+  FWaitingForRender.Clear;
+end;
+
+procedure TUIState.WaitForRenderAndCall(const Event: TNotifyEvent);
+begin
+  FWaitingForRender.Add(Event);
+end;
+
+procedure TUIState.LoadDesign;
+begin
+  if DesignUrl <> '' then
+  begin
+    FDesignLoadedOwner := TComponent.Create(nil);
+    if FDesignPreloadedSerialized <> nil then
+      FDesignLoaded := FDesignPreloadedSerialized.UserInterfaceLoad(FDesignLoadedOwner)
+    else
+      FDesignLoaded := UserInterfaceLoad(DesignUrl, FDesignLoadedOwner);
+    InsertFront(FDesignLoaded);
+  end;
+end;
+
+procedure TUIState.UnLoadDesign;
+begin
+  FreeAndNil(FDesignLoadedOwner);
+  FDesignLoaded := nil; // freeing FDesignLoadedOwner must have freed this too
+end;
+
+procedure TUIState.PreloadDesign;
+begin
+  if DesignUrl <> '' then
+  begin
+    // load FDesignPreloadedSerialized to be able to faster load design, without parsing JSON
+    FDesignPreloadedSerialized := TSerializedComponent.Create(DesignUrl);
+    // load FDesignPreloaded to cache all that's possible,
+    // like images used inside TCastleImageControl or TCastleScene.
+    FDesignPreloadedOwner := TComponent.Create(nil);
+    FDesignPreloaded := FDesignPreloadedSerialized.UserInterfaceLoad(FDesignPreloadedOwner);
+  end;
+end;
+
+procedure TUIState.UnPreloadDesign;
+begin
+  { Note that it doesn't matter whether this FDesignPreloaded was used to load
+    currently created FDesignLoaded or not.
+    So FDesignLoaded* and FDesignPreloadedxx* are completely independent.
+    This makes it easier to think about them. }
+  FreeAndNil(FDesignPreloadedOwner);
+  FDesignPreloaded := nil;// freeing FDesignPreloadedOwner must have freed this too
+  FreeAndNil(FDesignPreloadedSerialized);
+end;
+
+procedure TUIState.SetDesignUrl(const Value: String);
+begin
+  if FDesignUrl <> Value then
+  begin
+    UnLoadDesign;
+    UnPreloadDesign;
+    FDesignUrl := Value;
+    if DesignPreload then
+      PreloadDesign; // do this before LoadDesign, as LoadDesign may use it
+    if Active then
+      LoadDesign;
+  end;
+end;
+
+procedure TUIState.SetDesignPreload(const Value: Boolean);
+begin
+  if FDesignPreload <> Value then
+  begin
+    UnPreloadDesign;
+    FDesignPreload := Value;
+    if FDesignPreload then
+      PreloadDesign;
+  end;
+end;
+
+procedure ErrorDesignLoaded;
+begin
+  raise Exception.Create('DesignedComponent can only be used if the desing was loaded, which means that TUIState has started and DesignUrl is not empty');
+end;
+
+(*
+{ FPC 3.2.0 error:
+    Error: function header doesn't match the previous declaration "DesignedComponent$1(const AnsiString):T;"
+    Error: Found declaration: DesignedComponent$1(const AnsiString):T;
+}
+generic function TUIState.DesignedComponent<T: TComponent>(const ComponentName: String): T;
+begin
+  if FDesignLoaded = nil then
+    ErrorDesignLoaded;
+  Result := FDesignLoaded.FindRequiredComponent(ComponentName) as T;
+end;
+
+{ FPC 3.2.0 error:
+    Error: Global Generic template references static symtable
+  This works OK in a smaller testcase. }
+generic function TUIState.DesignedComponent<T>(const ComponentName: String): T;
+begin
+  if FDesignLoaded = nil then
+    ErrorDesignLoaded;
+  // Dirty typecast to TClass needed, otherwise we get error
+  //   Error: Class or interface type expected, but got "T"
+  // The error is valid -- which is why our first option was generic with constraints
+  // <T: TComponent> yet it failed.
+  Result := FDesignLoaded.FindRequiredComponent(ComponentName) as TClass(T);
+end;
+*)
+
+function TUIState.DesignedComponent(const ComponentName: String): TComponent;
+begin
+  if FDesignLoaded = nil then
+    ErrorDesignLoaded;
+  Result := FDesignLoadedOwner.FindRequiredComponent(ComponentName);
 end;
 
 end.

@@ -26,7 +26,7 @@
 {$I castleconf.inc}
 
 uses SysUtils, Classes,
-  CastleWindow, X3DNodes, CastleSceneCore, CastleScene, CastleRendererBaseTypes,
+  CastleWindow, X3DNodes, CastleSceneCore, CastleScene, CastleRenderOptions,
   CastleUIControls, CastleCameras, CastleQuaternions, CastleVectors,
   CastleControls, CastleLog, CastleScreenEffects, CastleViewport,
   CastleUtils, CastleGLUtils, X3DLoad, CastleGLShaders, CastleParameters,
@@ -62,9 +62,9 @@ begin
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     But this is not possible on OpenGLES. }
 
-  Items.MainScene.Attributes.WireframeEffect := weWireframeOnly;
+  Items.MainScene.RenderOptions.WireframeEffect := weWireframeOnly;
   inherited;
-  Items.MainScene.Attributes.WireframeEffect := weNormal;
+  Items.MainScene.RenderOptions.WireframeEffect := weNormal;
 end;
 
 { TScreenEffectDemoViewport -------------------------------------------------- }
@@ -230,7 +230,7 @@ var
 begin
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
-  Window.SetDemoOptions(K_F11, CharEscape, true);
+  Window.SetDemoOptions(keyF11, CharEscape, true);
   Window.OnResize := @Resize;
 
   if Parameters.High = 1 then
@@ -271,10 +271,12 @@ begin
   Viewports[2] := TScreenEffectDemoViewport.Create(Application);
   Viewports[2].Caption := 'Screen effect shader';
 
-  Theme.Images[tiActiveFrame] := FrameThickWhite;
-  Theme.Corners[tiActiveFrame] := Vector4(3, 3, 3, 3);
-  Theme.Images[tiLabel] := FrameYellowBlack;
-  Theme.Corners[tiLabel] := Vector4(1, 1, 1, 1);
+  Theme.ImagesPersistent[tiActiveFrame].Image := FrameThickWhite;
+  Theme.ImagesPersistent[tiActiveFrame].OwnsImage := false; // should be default, but just in case...
+  Theme.ImagesPersistent[tiActiveFrame].ProtectedSides.AllSides := 3;
+  Theme.ImagesPersistent[tiLabel].Image := FrameYellowBlack;
+  Theme.ImagesPersistent[tiLabel].OwnsImage := false; // should be default, but just in case...
+  Theme.ImagesPersistent[tiLabel].ProtectedSides.AllSides := 1;
 
   for I := 0 to High(Viewports) do
   begin

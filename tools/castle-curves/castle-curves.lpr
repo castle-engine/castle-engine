@@ -25,7 +25,7 @@ uses SysUtils, Classes, Math,
   CastleKeysMouse, CastleParameters, CastleClassUtils, CastleRectangles,
   CastleFilesUtils, CastleStringUtils, CastleColors, CastleURIUtils,
   CastleUIControls, CastleControls, CastleGLImages, CastleOpenDocument,
-  CastleApplicationProperties;
+  CastleApplicationProperties, CastleRenderContext;
 
 var
   Window: TCastleWindowBase;
@@ -69,7 +69,6 @@ var
   SceneMove: TVector2;
 
 const
-  Version = '2.0.0';
   CurvesToolURL = 'https://github.com/castle-engine/castle-engine/wiki/Curves-tool';
   DonateURL = 'https://castle-engine.io/donate.php';
 
@@ -247,7 +246,6 @@ var
   Color: TCastleColor;
   SelectedPointXY: TVector2;
 begin
-  RenderContext.Clear([cbColor], Black);
   if BackgroundImage <> nil then
     BackgroundImage.Draw(FloatRectangle(BackgroundImage.Rect).Translate(SceneMove).ScaleAround0(SceneZoom));
 
@@ -363,12 +361,12 @@ var
   Pos: TVector2;
 begin
   Pos := Event.Position / SceneZoom;
-  if Event.IsMouseButton(mbLeft) then
+  if Event.IsMouseButton(buttonLeft) then
   begin
     SelectClosestPoint(Pos);
     StartDragging;
   end else
-  if Event.IsMouseButton(mbRight) then
+  if Event.IsMouseButton(buttonRight) then
     AddNewPoint(Pos) else
   if Event.IsMouseWheel(mwUp) or Event.IsMouseWheel(mwLeft) then
     ChangeZoom(ZoomFactor) else
@@ -381,7 +379,7 @@ end;
 
 procedure Release(Container: TUIContainer; const Event: TInputPressRelease);
 begin
-  if Event.IsMouseButton(mbLeft) then
+  if Event.IsMouseButton(buttonLeft) then
   begin
     Dragging := false;
     Window.Invalidate;
@@ -441,13 +439,13 @@ begin
     ChangeZoom(Power(ZoomFactor, Container.Fps.SecondsPassed));
   if Container.Pressed.Characters['-'] then
     ChangeZoom(Power(1 / ZoomFactor, Container.Fps.SecondsPassed));
-  if Container.Pressed[keyUp] then
+  if Container.Pressed[keyArrowUp] then
     ChangeMove(0, 1);
-  if Container.Pressed[keyDown] then
+  if Container.Pressed[keyArrowDown] then
     ChangeMove(0, -1);
-  if Container.Pressed[keyLeft] then
+  if Container.Pressed[keyArrowLeft] then
     ChangeMove(-1, 0);
-  if Container.Pressed[keyRight] then
+  if Container.Pressed[keyArrowRight] then
     ChangeMove(1, 0);
 end;
 
@@ -638,11 +636,12 @@ begin
     1030:begin
            MessageOk(Window,
              'castle-curves: curves editor for Castle Game Engine.' +nl+
-             'Version ' + Version + '.' + NL +
+             'Version ' + ApplicationProperties.Version + '.' + NL +
              NL +
              CurvesToolURL + NL +
              NL +
-             'Compiled with ' + SCompilerDescription +'.');
+             'Compiled with ' + SCompilerDescription + '.' + NL +
+             'Platform: ' + SPlatformDescription + '.');
          end;
     else raise EInternalError.Create('not impl menu item');
   end;
@@ -662,7 +661,7 @@ begin
     M.Append(TMenuItem.Create('_Open ...',            4, CtrlO));
     M.Append(TMenuItem.Create('_Save ...',            6, CtrlS));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('Save screen ...', 8, K_F5));
+    M.Append(TMenuItem.Create('Save screen ...', 8, keyF5));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit',                10, CtrlW));
     Result.Append(M);
@@ -671,7 +670,7 @@ begin
     M.Append(TMenuItem.Create('_Clear',              202));
     Result.Append(M);
   M := TMenu.Create('_View');
-    M.Append(TMenuItemChecked.Create('Show / Hide _status', 305, K_F1,
+    M.Append(TMenuItemChecked.Create('Show / Hide _status', 305, keyF1,
       true { default of StatusText.Exists }, true));
     M.Append(TMenuItemChecked.Create(
       'Show / Hide non-selected _points',                   310,
@@ -680,7 +679,7 @@ begin
       'Show / Hide _convex hull of selected curve',         320,
       ShowSelectedCurveConvexHull, true));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('Restore Default Position/Scale' , 326, K_Home));
+    M.Append(TMenuItem.Create('Restore Default Position/Scale' , 326, keyHome));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('Set curves _rendering segments ...', 330));
     M.Append(TMenuItem.Create('Curves rendering segments x 2',      331, 's'));
@@ -741,12 +740,12 @@ begin
           'Full documentation on' + NL +
           'https://github.com/castle-engine/castle-engine/wiki/Curves-tool' + NL +
           NL +
-          SCastleEngineProgramHelpSuffix('castle-curves', Version, true));
+          ApplicationProperties.Description);
         Halt;
       end;
     1:begin
         // include ApplicationName in version, good for help2man
-        WritelnStr(ApplicationName + ' ' + Version);
+        WritelnStr(ApplicationName + ' ' + ApplicationProperties.Version);
         Halt;
       end;
     else raise EInternalError.Create('OptionProc');
@@ -798,6 +797,7 @@ end;
 
 begin
   ApplicationProperties.ApplicationName := 'castle-curves';
+  ApplicationProperties.Version := '2.0.0';
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
   InitializeLog;
 

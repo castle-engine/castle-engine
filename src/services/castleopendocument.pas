@@ -339,7 +339,8 @@ var
   lApp: string;
 begin
   Result := True;
-  if not FileExists(APath) then exit(false);
+  if not (FileExists(APath) or DirectoryExists(APath)) then
+    Exit(false);
 
   lApp:=PathFileSearch('xdg-open'); // Portland OSDL/FreeDesktop standard on Linux
   if lApp='' then

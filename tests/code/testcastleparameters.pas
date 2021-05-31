@@ -1,5 +1,6 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestParsingParameters" -*-
 {
-  Copyright 2004-2018 Michalis Kamburelis.
+  Copyright 2004-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,6 +14,7 @@
   ----------------------------------------------------------------------------
 }
 
+{ Test CastleParameters unit. }
 unit TestCastleParameters;
 
 {$I castleconf.inc}
@@ -34,9 +36,9 @@ type
 
   TTestParsingParameters = class(TTestCase)
   private
-    procedure AssertParsEqual(const ParsValues: array of string);
+    procedure AssertParsEqual(const ParsValues: array of string; const ParsTestName: string);
     procedure AssertParsedParsEqual(const ParsedPars1: TParsedOptionList;
-      const ParsedPars2: array of TParsedOption);
+      const ParsedPars2: array of TParsedOption; const ParsTestName: string);
   published
     procedure TestParsingParameters;
     procedure TestOptionDescription;
@@ -44,7 +46,7 @@ type
 
 implementation
 
-uses CastleStringUtils;
+uses CastleStringUtils, CastleLog;
 
 procedure ParseNextParam(OptionNum: Integer; HasArgument: boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
@@ -52,11 +54,11 @@ var
   ParsedArray: TParsedOptionList absolute Data;
   LastItem: PParsedOption;
 begin
- LastItem := ParsedArray.Add;
- LastItem^.OptionNum := OptionNum;
- LastItem^.HasArgument := HasArgument;
- LastItem^.Argument := Argument;
- LastItem^.SeparateArgs := SeparateArgs;
+  LastItem := ParsedArray.Add;
+  LastItem^.OptionNum := OptionNum;
+  LastItem^.HasArgument := HasArgument;
+  LastItem^.Argument := Argument;
+  LastItem^.SeparateArgs := SeparateArgs;
 end;
 
 { Parse command-line parameters returning a list of parsed options.
@@ -66,131 +68,134 @@ end;
   @groupBegin }
 function ParseParameters(
   Options: POption_Array; OptionsCount: Integer;
-  ParseOnlyKnownLongOptions: boolean = false)
-  : TParsedOptionList;
+  ParseOnlyKnownOptions: boolean = false): TParsedOptionList;
 begin
- result := TParsedOptionList.Create;
- try
-  Parameters.Parse(Options, OptionsCount,
-    {$ifdef CASTLE_OBJFPC} @ {$endif} ParseNextParam, result,
-    ParseOnlyKnownLongOptions);
- except result.Free; raise end;
+  result := TParsedOptionList.Create;
+  try
+    Parameters.Parse(Options, OptionsCount,
+      {$ifdef CASTLE_OBJFPC} @ {$endif} ParseNextParam, result,
+      ParseOnlyKnownOptions);
+  except result.Free; raise end;
 end;
 
 function ParseParameters(
-  const Options: array of TOption; ParseOnlyKnownLongOptions: boolean = false)
-  : TParsedOptionList;
+  const Options: array of TOption; ParseOnlyKnownOptions: boolean = false): TParsedOptionList;
 begin
- result := ParseParameters(@Options, High(Options)+1, ParseOnlyKnownLongOptions);
+ result := ParseParameters(@Options, High(Options)+1, ParseOnlyKnownOptions);
 end;
 
-procedure TTestParsingParameters.AssertParsEqual(const ParsValues: array of string);
-var i: Integer;
+procedure TTestParsingParameters.AssertParsEqual(const ParsValues: array of string;
+  const ParsTestName: string);
+var
+  i: Integer;
 begin
- AssertTrue(Parameters.High = High(ParsValues));
- for i := 0 to Parameters.High do AssertTrue(Parameters[i] = ParsValues[i]);
+  AssertEquals('Parameters Count at ' + ParsTestName, High(ParsValues), Parameters.High);
+  for i := 0 to Parameters.High do
+    AssertEquals('Parameters Values at ' + ParsTestName, Parameters[i], ParsValues[i]);
 end;
 
 procedure TTestParsingParameters.AssertParsedParsEqual(const ParsedPars1: TParsedOptionList;
-  const ParsedPars2: array of TParsedOption);
-var i, j: Integer;
+  const ParsedPars2: array of TParsedOption; const ParsTestName: string);
+var
+  i, j: Integer;
 begin
- AssertTrue(ParsedPars1.Count - 1 = High(ParsedPars2));
- for i := 0 to ParsedPars1.Count - 1 do
- begin
-  AssertTrue(ParsedPars1.L[i].OptionNum   = ParsedPars2[i].OptionNum);
-  AssertTrue(ParsedPars1.L[i].HasArgument = ParsedPars2[i].HasArgument);
-  AssertTrue(ParsedPars1.L[i].Argument    = ParsedPars2[i].Argument);
-  for j := Low(TSeparateArgs) to High(TSeparateArgs) do
-   AssertTrue(ParsedPars1.L[i].SeparateArgs[j] = ParsedPars2[i].SeparateArgs[j]);
- end;
+  AssertEquals('Count at ' + ParsTestName, High(ParsedPars2), ParsedPars1.Count - 1);
+  for i := 0 to ParsedPars1.Count - 1 do
+  begin
+    AssertEquals('OptionNum at '   + ParsTestName, ParsedPars1.L[i].OptionNum  , ParsedPars2[i].OptionNum  );
+    AssertEquals('HasArgument at ' + ParsTestName, ParsedPars1.L[i].HasArgument, ParsedPars2[i].HasArgument);
+    AssertEquals('Argument at '    + ParsTestName, ParsedPars1.L[i].Argument   , ParsedPars2[i].Argument   );
+    for j := Low(TSeparateArgs) to High(TSeparateArgs) do
+      AssertEquals('SeparateArgs at ' + ParsTestName, ParsedPars1.L[i].SeparateArgs[j], ParsedPars2[i].SeparateArgs[j]);
+  end;
 end;
 
 procedure TTestParsingParameters.TestParsingParameters;
 
   function DynParsedOptionArrayToStr(const name: string;
     v: TParsedOptionList): string;
-  var i: Integer;
+  var
+    i: Integer;
   begin
-   result := name + nl;
-   for i := 0 to v.Count - 1 do
-    result += Format('  [%d] OptionNum %d, HasArg %s, Argument "%s"',
-      [ i,
+    Result := name + nl;
+    for i := 0 to v.Count - 1 do
+      Result += Format('  [%d] OptionNum %d, HasArg %s, Argument "%s"',  [
+        i,
         v.L[i].OptionNum,
         BoolToStr(v.L[i].HasArgument, true),
-        v.L[i].Argument]) + nl;
+        v.L[i].Argument
+      ]) + nl;
   end;
 
   function ParsToStr: string;
-  var i: Integer;
+  var
+    i: Integer;
   begin
-   result := 'Params now = ' + nl;
-   for i := 0 to Parameters.High do
-    result += Format('  ParStr(%d) = "%s"', [i, Parameters[i]]) + nl;
+    result := 'Params now = ' + nl;
+    for i := 0 to Parameters.High do
+      result += Format('  ParStr(%d) = "%s"', [i, Parameters[i]]) + nl;
   end;
 
-  procedure CheckPars(TestName: string; const StartPars: array of string;
+  procedure CheckPars(const TestName: string; const StartPars: array of string;
     const Options: array of TOption;
     const GoodAnswer: array of TParsedOption; const GoodRest: array of string;
-    ParseOnlyKnownLongOptions: boolean);
-  var Answer: TParsedOptionList;
+    ParseOnlyKnownOptions: boolean);
+  var
+    Answer: TParsedOptionList;
   begin
-   Parameters.AssignArray(StartPars);
-   AssertParsEqual(StartPars);
+    Parameters.AssignArray(StartPars);
+    AssertParsEqual(StartPars, TestName);
 
-   try
-    Answer := ParseParameters(Options, ParseOnlyKnownLongOptions);
-   except
-    Writeln('failed na tescie ',TestName);
-    raise;
-   end;
-
-   try
     try
-     AssertParsedParsEqual(Answer, GoodAnswer);
-     AssertParsEqual(GoodRest);
+      Answer := ParseParameters(Options, ParseOnlyKnownOptions);
     except
-     Writeln('failed na Assertach w tescie ',TestName);
-     Write(DynParsedOptionArrayToStr('Answer', Answer));
-     Write(ParsToStr);
-     raise;
+      Fail('TestParsingParameters:' + TestName + ': Failed, unexpected exception');
+      raise;
     end;
-   finally Answer.Free end;
+
+    try
+      try
+        AssertParsedParsEqual(Answer, GoodAnswer, TestName);
+        AssertParsEqual(GoodRest, TestName);
+      except
+        Fail('TestParsingParameters:' + TestName + ': Failed on testcase:' + NL +
+          DynParsedOptionArrayToStr('Answer', Answer) + NL +
+          ParsToStr
+        );
+        raise;
+      end;
+    finally Answer.Free end;
   end;
 
   procedure CheckParsFail(TestName: string; const StartPars: array of string;
     const Options: array of TOption; EClass: ExceptClass; const EMessage: string);
-  var Answer: TParsedOptionList;
+  var
+    Answer: TParsedOptionList;
   begin
-   Parameters.AssignArray(StartPars);
-   AssertParsEqual(StartPars);
+    Parameters.AssignArray(StartPars);
+    AssertParsEqual(StartPars, TestName);
 
-   try
-    Answer := ParseParameters(Options);
     try
-     Writeln('CheckParsFail '+ TestName + ' przeszedl mimo ze nie powinien');
-     Write(DynParsedOptionArrayToStr('Answer', Answer));
-     Write(ParsToStr);
-     raise Exception.Create('Test fail succeded... er, I mean, failed');
-    finally Answer.Free end;
-   except
-    on E: Exception do
-    begin
-     { kazde inne niz EClass exception przepuszczamy, niech wywali test }
-     if not (E is EClass) then
-      raise else
-     begin
-      if EMessage = '' then
-       Write('failtest ok:',nl, E.Message) else
+      Answer := ParseParameters(Options);
+      try
+        Fail('TestParsingParameters:' + TestName + ': Should have raised an exception, but succeeded: ' + NL +
+          DynParsedOptionArrayToStr('Answer', Answer) + NL +
+          ParsToStr
+        );
+      finally Answer.Free end;
+    except
+      on E: Exception do
       begin
-       if EMessage <> E.Message then
-	raise Exception.Create('no i failed : powinno byc "'+EMessage+
-	  '", jest "'+E.Message+'"');
+        if not (E is EClass) then
+          raise { exception classes other than EClass are left to crash the test. }
+        else
+        if EMessage = '' then
+          WriteLnLog('TestParsingParameters:' + TestName + ': OK, exception as expected. Any message allowed. Current message: ' + E.Message)
+        else
+          AssertEquals(EMessage, E.Message);
+          //AssertEquals(EMessage, E.Message, 'TestParsingParameters:' + TestName + ': Exception as expected, but invalid message');
       end;
-     end;
     end;
-   end;
-
   end;
 
 const
@@ -269,20 +274,22 @@ const
 
   { Pars6 ------------------------------------------------------------ }
 
-  Pars6Question: array[0..3]of string = ('--zero-niewazne', '--ala spacja', '-m', '--kot');
+  Pars6Question: array[0..4]of string = ('--zero-niewazne', '--ala spacja', '-ma', '--kot', '-m');
   Pars6: array[0..1]of TOption = (
     (Short:'m'; Long:'mama'; Argument: oaOptional),
     (Short:'a'; Long:'ala spacja'; Argument: oaNone)
   );
 
-  { '--kot' powinien zostac zignorowany jesli uruchomimy z ParseOnlyLongKnownOptions.
-    Podobnie '-m' (bo mimo ze -m jest znane to jest short option).
-    Jednak '--ala spacja' powinno zostac sparsowane i usuniete. }
-  Pars6_OnlyKnown_Answer: array[0..0]of TParsedOption = (
-    (OptionNum:1; HasArgument: false; Argument:''; SeparateArgs: EmptySeparateArgs)
+  { '--kot' powinien zostac zignorowany jesli uruchomimy z ParseOnlyKnownOptions.
+    Podobnie '-ma' (mimo ze -m i -a są znane to są combined short option,
+    not supported when ParseOnlyKnownOptions).
+    Jednak '--ala spacja' powinno zostac sparsowane i usuniete, oraz '-m'. }
+  Pars6_OnlyKnown_Answer: array[0..1]of TParsedOption = (
+    (OptionNum:1; HasArgument: false; Argument:''; SeparateArgs: EmptySeparateArgs),
+    (OptionNum:0; HasArgument: false; Argument:''; SeparateArgs: EmptySeparateArgs)
   );
   Pars6_OnlyKnown_Rest: array[0..2]of string =
-  ('--zero-niewazne', '-m', '--kot');
+  ('--zero-niewazne', '-ma', '--kot');
 
   { Pars7 ------------------------------------------------------------ }
 
@@ -418,20 +425,23 @@ const
 
   { Pars20 ----------------------------------------------------------------- }
 
-  { OnlyKnown nie rusza krotkich opcji, rusza tylko znane dlugie,
-    nieznane dlugie zostawia, honoruje tez -- i za nim nie rusza
-    nawet znanych dlugich, ale samego -- nie usuwa. }
-  Pars20Question: array[0..7]of string = ('--bar', '-k', '--ble=xyz', '--1', '2', '--foo', '--', '--1');
-  Pars20: array[0..2]of TOption = (
+  { ParseOnlyKnownOptions parses short options, although not combined ones.
+    Leaves the rest (unknown options (long and short), and combined short options
+    (regardless if known or not)).
+    Honors also -- and doesn't interpret things afterwards, although doesn't remove --. }
+  Pars20Question: array[0..8]of string = ('--bar', '-sb=xyz', '--ble=xyz', '-s', '--1', '2', '--foo', '--', '--1');
+  Pars20: array[0..3]of TOption = (
     (Short:'m'; Long:'mama'; Argument: oaOptional),
     (Short:'k'; Long:'1'; Argument: oaRequired),
-    (Short:'b'; Long:'ble'; Argument: oaRequired)
+    (Short:'b'; Long:'ble'; Argument: oaRequired),
+    (Short:'s'; Long:'something'; Argument: oaNone)
   );
-  Pars20_OnlyKnown_Answer: array[0..1]of TParsedOption = (
+  Pars20_OnlyKnown_Answer: array[0..2]of TParsedOption = (
     (OptionNum:2; HasArgument: true; Argument:'xyz'; SeparateArgs: EmptySeparateArgs),
+    (OptionNum:3; HasArgument: false; Argument:''; SeparateArgs: EmptySeparateArgs),
     (OptionNum:1; HasArgument: true; Argument:'2'; SeparateArgs: EmptySeparateArgs)
   );
-  Pars20_OnlyKnown_Rest: array[0..4]of string = ('--bar', '-k', '--foo', '--', '--1');
+  Pars20_OnlyKnown_Rest: array[0..4]of string = ('--bar', '-sb=xyz', '--foo', '--', '--1');
 
   { Pars21 ----------------------------------------------------------------- }
 
@@ -449,30 +459,30 @@ const
   Pars21Rest: array[0..0]of string = ('glplotter.exe');
 
 begin
- CheckPars('1', Pars1_2Question, Pars1, Pars1Answer, Pars1Rest, false);
- CheckPars('2', Pars1_2Question, Pars2, Pars2Answer, Pars2Rest, false);
- CheckPars('3', Pars3Question, Pars3, Pars3Answer, Pars3Rest, false);
- CheckPars('4', Pars4_5Question, Pars4, Pars4Answer, Pars45Rest, false);
- CheckPars('5', Pars4_5Question, Pars5, Pars5Answer, Pars45Rest, false);
+  CheckPars('1', Pars1_2Question, Pars1, Pars1Answer, Pars1Rest, false);
+  CheckPars('2', Pars1_2Question, Pars2, Pars2Answer, Pars2Rest, false);
+  CheckPars('3', Pars3Question, Pars3, Pars3Answer, Pars3Rest, false);
+  CheckPars('4', Pars4_5Question, Pars4, Pars4Answer, Pars45Rest, false);
+  CheckPars('5', Pars4_5Question, Pars5, Pars5Answer, Pars45Rest, false);
 
- CheckParsFail('6', Pars6Question, Pars6, EInvalidLongOption, 'Invalid long option "--kot"');
- CheckPars('6_OnlyKnown', Pars6Question, Pars6, Pars6_OnlyKnown_Answer, Pars6_OnlyKnown_Rest, true);
- CheckParsFail('7', Pars7Question, Pars7, EInvalidShortOption, 'Invalid short option character "k" in parameter "-k"');
- CheckParsFail('8', Pars8Question, Pars8, EInvalidParams, 'Invalid empty parameter "--=ala spacja"');
- CheckParsFail('9', Pars9Question, Pars9, EMissingOptionArgument, 'Missing argument for option --kot');
- CheckPars('10', Pars10Question, Pars10, Pars10Answer, Pars10Rest, false);
- CheckParsFail('11', Pars11Question, Pars11, EExcessiveOptionArgument, 'Excessive argument for option --kot');
- CheckParsFail('12', Pars12Question, Pars12, EInvalidParams, 'Invalid empty parameter "-=blah"');
+  CheckParsFail('6', Pars6Question, Pars6, EInvalidLongOption, 'Invalid long option "--kot"');
+  CheckPars('6_OnlyKnown', Pars6Question, Pars6, Pars6_OnlyKnown_Answer, Pars6_OnlyKnown_Rest, true);
+  CheckParsFail('7', Pars7Question, Pars7, EInvalidShortOption, 'Invalid short option character "k" in parameter "-k"');
+  CheckParsFail('8', Pars8Question, Pars8, EInvalidParams, 'Invalid empty parameter "--=ala spacja"');
+  CheckParsFail('9', Pars9Question, Pars9, EMissingOptionArgument, 'Missing argument for option --kot');
+  CheckPars('10', Pars10Question, Pars10, Pars10Answer, Pars10Rest, false);
+  CheckParsFail('11', Pars11Question, Pars11, EExcessiveOptionArgument, 'Excessive argument for option --kot');
+  CheckParsFail('12', Pars12Question, Pars12, EInvalidParams, 'Invalid empty parameter "-=blah"');
 
- CheckPars('13', Pars13Question, Pars13, Pars13Answer, Pars13Rest, false);
- CheckPars('14', Pars14Question, Pars14, Pars14Answer, Pars14Rest, false);
- CheckParsFail('15', Pars15Question, Pars15, EMissingOptionArgument, 'Not enough arguments for option --ble, this option needs 4 arguments but we have only 3');
- CheckPars('16', Pars16Question, Pars16, Pars16Answer, Pars16Rest, false);
- CheckParsFail('17', Pars17Question, Pars17, EInvalidShortOption, 'Invalid short option character "#0 (null char)" in parameter "-'#0'"');
- CheckPars('18', Pars18Question, Pars18, Pars18Answer, Pars18Rest, false);
- CheckParsFail('19', Pars19Question, Pars19, EExcessiveOptionArgument, 'Option --baba requires 2 arguments, you cannot give them using the form --option=argument, you must give all the arguments as separate parameters');
- CheckPars('20_OnlyKnown', Pars20Question, Pars20, Pars20_OnlyKnown_Answer, Pars20_OnlyKnown_Rest, true);
- CheckPars('21', Pars21Question, Pars21, Pars21Answer, Pars21Rest, false);
+  CheckPars('13', Pars13Question, Pars13, Pars13Answer, Pars13Rest, false);
+  CheckPars('14', Pars14Question, Pars14, Pars14Answer, Pars14Rest, false);
+  CheckParsFail('15', Pars15Question, Pars15, EMissingOptionArgument, 'Not enough arguments for option --ble, this option needs 4 arguments but we have only 3');
+  CheckPars('16', Pars16Question, Pars16, Pars16Answer, Pars16Rest, false);
+  CheckParsFail('17', Pars17Question, Pars17, EInvalidShortOption, 'Invalid short option character "#0 (null char)" in parameter "-'#0'"');
+  CheckPars('18', Pars18Question, Pars18, Pars18Answer, Pars18Rest, false);
+  CheckParsFail('19', Pars19Question, Pars19, EExcessiveOptionArgument, 'Option --baba requires 2 arguments, you cannot give them using the form --option=argument, you must give all the arguments as separate parameters');
+  CheckPars('20_OnlyKnown', Pars20Question, Pars20, Pars20_OnlyKnown_Answer, Pars20_OnlyKnown_Rest, true);
+  CheckPars('21', Pars21Question, Pars21, Pars21Answer, Pars21Rest, false);
 end;
 
 procedure TTestParsingParameters.TestOptionDescription;

@@ -68,7 +68,7 @@ begin
            Possibly trying to work within the same OpenGL context
            from 2 different versions of forked process ?
            So it seems like it's TProcess Unix implementation bug,
-           that accidentaly hits also NVidia Linux driver bug.
+           that accidentally hits also NVidia Linux driver bug.
            TODO: investigate more, submit to FPC bug/patch.
 
       First implementation using TProcess:
@@ -123,25 +123,25 @@ begin
 end;
 {$endif}
 
-function LoadSGI(Stream: TStream;
+function LoadSGI(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
   Result := LoadImageExternalTool(Stream, AllowedImageClasses, 'sgi');
 end;
 
-function LoadTIFF(Stream: TStream;
+function LoadTIFF(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
   Result := LoadImageExternalTool(Stream, AllowedImageClasses, 'tiff');
 end;
 
-function LoadJP2(Stream: TStream;
+function LoadJP2(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
   Result := LoadImageExternalTool(Stream, AllowedImageClasses, 'jp2');
 end;
 
-function LoadEXR(Stream: TStream;
+function LoadEXR(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
   Result := LoadImageExternalTool(Stream, AllowedImageClasses, 'exr');

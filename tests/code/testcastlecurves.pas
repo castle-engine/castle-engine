@@ -1,5 +1,6 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleCurves" -*-
 {
-  Copyright 2016-2018 Michalis Kamburelis.
+  Copyright 2016-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 

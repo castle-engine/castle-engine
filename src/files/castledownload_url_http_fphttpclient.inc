@@ -33,6 +33,7 @@ type
     - Updates ParentJob.DownloadedBytes
     - Updates ParentJob.TotalBytes
     - Updates ParentJob.MimeType
+    - Updates ParentJob.FinalUrl
     - Terminates the client, if ParentThread is terminated
       (ParentThread can also be = nil, for non-threaded operation)
 
@@ -81,6 +82,7 @@ type
     ErrorMessage: String;
     HttpResponseCode: Integer;
     HttpResponseHeaders: TStrings;
+    FinalUrl: String;
 
     constructor Create;
     destructor Destroy; override;
@@ -119,8 +121,13 @@ end;
 
 procedure TCastleFpHttpClient.RedirectLog(Sender: TObject; const ASrc: String; var ADest: String);
 begin
-  // TODO: Not safe from thread:
+  // TODO: WritelnLog is not safe from thread:
   WritelnLog('Network', 'Following HTTP redirect to "%s"', [ADest]);
+
+  SynchronizationCS.Acquire;
+  try
+    ParentJob.FinalUrl := ADest;
+  finally SynchronizationCS.Release end;
 end;
 
 procedure TCastleFpHttpClient.DataReceived(Sender: TObject; const ContentLength, CurrentPos: Int64);
@@ -223,6 +230,9 @@ begin
           Client.AddHeader(HttpHeadersKeys[I], HttpHeadersValues[I]);
       end;
 
+      // will be updated by Client when redirect occurs
+      FinalUrl := Url;
+
       try
         case HttpMethod of
           hmGet: Client.Get(Url, Contents);
@@ -262,6 +272,16 @@ begin
     begin
       Success := false;
       ErrorMessage := Format('Error when downloading "%s": ', [URIDisplay(Url)]) + ExceptMessage(E);
+
+      {$if defined(VER3_2) and defined(DARWIN) and not defined(CASTLE_IOS)}
+      if (E is ESocketError) and (URIProtocol(Url) = 'https') then
+      begin
+        ErrorMessage += NL +
+          'Warning: Https downloading with FPC 3.2.0 on macOS is broken for many hosts.' + NL +
+          'Upgrade to FPC 3.3.1.' + NL +
+          'See https://bugs.freepascal.org/view.php?id=37747 , https://github.com/castle-engine/castle-engine/issues/184 .';
+      end;
+      {$endif}
     end;
   end;
 end;
@@ -425,6 +445,7 @@ begin
   HttpResponseCode := Job.HttpResponseCode;
   HttpResponseHeaders := Job.HttpResponseHeaders;
   Job.HttpResponseHeaders := nil; // do not free HttpResponseHeaders inside TFpHttpClientJob destructor
+  FinalUrl := Job.FinalUrl;
   if Job.Success then
   begin
     Status := dsSuccess;

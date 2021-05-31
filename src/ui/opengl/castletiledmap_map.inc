@@ -1,5 +1,5 @@
 {
-  Copyright 2015-2018 Tomasz Wojtyś, Michalis Kamburelis.
+  Copyright 2015-2021 Tomasz Wojtyś, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -85,7 +85,8 @@ type
 
       TObjectsDrawOrder = (odoIndex, odoTopDown);
 
-      TTileObjectPrimitive = (topEllipse, topPoligon, topPolyLine);
+      TTileObjectPrimitive = (topRectangle, topPoint, topEllipse, topPolygon,
+        topPolyLine);
 
       { Object definition. }
       TTiledObject = class
@@ -121,6 +122,8 @@ type
         Image: TImage;
         constructor Create;
         destructor Destroy; override;
+        { X and Y packed in a vector. }
+        function Position: TVector2;
       end;
 
       TTiledObjectList = specialize TObjectList<TTiledObject>;
@@ -149,6 +152,8 @@ type
         Height: Integer;
         constructor Create;
         destructor Destroy; override;
+        { OffsetX and OffsetY packed in a vector. }
+        function Offset: TVector2;
       end;
 
       TObjectGroupLayer = class(TLayer)
@@ -307,7 +312,12 @@ type
     FTilesets: TTilesetList;
     FProperties: TPropertyList;
     FLayers: TLayerList;
-    procedure LoadTMXFile(const AURL: string);
+    { Load TMX file from stream. }
+    procedure LoadTMXFile(const Stream: TStream; const ABaseUrl: String); overload;
+    { Load TMX file by URL. }
+    procedure LoadTMXFile(const AURL: String); overload;
+    { Load TMX file internally from XMLDocument instance. }
+    procedure LoadTMXFileInternal(const Doc: TXMLDocument);
   public
     property Layers: TLayerList read FLayers;
     { Map orientation. }
@@ -340,7 +350,8 @@ type
     property RenderOrder: TMapRenderOrder read FRenderOrder;
     { Constructor.
       @param(AURL URL to Tiled (TMX) file.) }
-    constructor Create(const AURL: string);
+    constructor Create(const Stream: TStream; const ABaseUrl: String); overload;
+    constructor Create(const AURL: string); overload;
     destructor Destroy; override;
 
     { Is the given tile number valid.
@@ -776,16 +787,22 @@ begin
     if TmpStr = '0' then
       Visible := False;
 
+  { Assume rectangle TiledObject first as it is the only element which has no
+    sub-element in TMX file which indicates its primitive type. Will be over-
+    ridden by follwing iteration, if a sub-element exists. }
+  Primitive := topRectangle;
+
   I := TXMLElementIterator.Create(Element);
   try
     while I.GetNext do
     begin
       case LowerCase(I.Current.TagName) of
         'properties': Properties.Load(I.Current, BaseUrl);
+        'point': Primitive := topPoint;
         'ellipse': Primitive := topEllipse;
         'polygon':
           begin
-            Primitive := topPoligon;
+            Primitive := topPolygon;
             ReadPoints(I.Current.AttributeStringDef('points', ''), Points);
           end;
         'polyline':
@@ -797,6 +814,11 @@ begin
       end;
     end;
   finally FreeAndNil(I) end;
+end;
+
+function TTiledMap.TTiledObject.Position: TVector2;
+begin
+  Result := Vector2(X, Y);
 end;
 
 { TLayer ------------------------------------------------------------------- }
@@ -846,6 +868,11 @@ begin
       end;
     end;
   finally FreeAndNil(I) end;
+end;
+
+function TTiledMap.TLayer.Offset: TVector2;
+begin
+  Result := Vector2(OffsetX, OffsetY);
 end;
 
 { TObjectGroupLayer ---------------------------------------------------------- }
@@ -1024,107 +1051,140 @@ end;
 
 { TTiledMap ------------------------------------------------------------------ }
 
-procedure TTiledMap.LoadTMXFile(const AURL: string);
+procedure TTiledMap.LoadTMXFile(const Stream: TStream; const ABaseUrl: String);
 var
   Doc: TXMLDocument;
+begin
+  ReadXMLFile(Doc, Stream, ABaseUrl);
+  try
+    LoadTMXFileInternal(Doc);
+  finally FreeAndNil(Doc) end;
+end;
+
+procedure TTiledMap.LoadTMXFile(const AURL: String);
+var
+  Doc: TXMLDocument;
+begin
+  Doc := URLReadXML(AURL);
+  try
+    LoadTMXFileInternal(Doc);
+  finally FreeAndNil(Doc) end;
+end;
+
+procedure TTiledMap.LoadTMXFileInternal(const Doc: TXMLDocument);
+var
   TmpStr: string;
   I: TXMLElementIterator;
   NewLayer: TLayer;
   NewTileset: TTileset;
 begin
-  Doc := URLReadXML(AURL);
+  // Parse map attributes
+  Check(LowerCase(Doc.DocumentElement.TagName) = 'map',
+    'Root element of TMX file must be <map>');
+  if Doc.DocumentElement.AttributeString('version', TmpStr) then
+    FVersion := TmpStr;
+  if Doc.DocumentElement.AttributeString('orientation', TmpStr) then
+    case TmpStr of
+      'orthogonal': FOrientation := moOrthogonal;
+      'isometric': FOrientation := moIsometric;
+      'staggered': FOrientation := moIsometricStaggered;
+      'hexagonal': FOrientation := moHexagonal;
+    end;
+  if Doc.DocumentElement.AttributeString('width', TmpStr) then
+    FWidth := StrToInt(TmpStr);
+  if Doc.DocumentElement.AttributeString('height', TmpStr) then
+    FHeight := StrToInt(TmpStr);
+  if Doc.DocumentElement.AttributeString('tilewidth', TmpStr) then
+    FTileWidth := StrToInt(TmpStr);
+  if Doc.DocumentElement.AttributeString('tileheight', TmpStr) then
+    FTileHeight := StrToInt(TmpStr);
+  if Doc.DocumentElement.AttributeString('hexsidelength', TmpStr) then
+    FHexSideLength := StrToInt(TmpStr);
+  if Doc.DocumentElement.AttributeString('staggeraxis', TmpStr) then
+    case TmpStr of
+      'x': FStaggerAxis := saX;
+      'y': FStaggerAxis := saY;
+      else WritelnWarning('Invalid staggeraxis "%s" in Tiled map file (TMX)', [TmpStr]);
+    end;
+  if Doc.DocumentElement.AttributeString('staggerindex', TmpStr) then
+    case TmpStr of
+      'odd': FStaggerIndex := siOdd;
+      'even': FStaggerIndex := siEven;
+      else WritelnWarning('Invalid staggerindex "%s" in Tiled map file (TMX)', [TmpStr]);
+    end;
+  if Doc.DocumentElement.AttributeString('backgroundcolor', TmpStr) then
+    FBackgroundColor := TiledToColor(TmpStr);
+  if Doc.DocumentElement.AttributeString('renderorder', TmpStr) then
+    case TmpStr of
+      'right-down': FRenderOrder := mroRightDown;
+      'right-up': FRenderOrder := mroRightUp;
+      'left-down': FRenderOrder := mroLeftDown;
+      'left-up': FRenderOrder := mroLeftUp;
+    end;
+  // Parse map children
+  I := TXMLElementIterator.Create(Doc.DocumentElement);
   try
-    // Parse map attributes
-    Check(LowerCase(Doc.DocumentElement.TagName) = 'map',
-      'Root element of TMX file must be <map>');
-    if Doc.DocumentElement.AttributeString('version', TmpStr) then
-      FVersion := TmpStr;
-    if Doc.DocumentElement.AttributeString('orientation', TmpStr) then
-      case TmpStr of
-        'orthogonal': FOrientation := moOrthogonal;
-        'isometric': FOrientation := moIsometric;
-        'staggered': FOrientation := moIsometricStaggered;
-        'hexagonal': FOrientation := moHexagonal;
+    while I.GetNext do
+    begin
+      case LowerCase(I.Current.TagName) of
+        'tileset':
+          begin
+            NewTileset := TTileset.Create;
+            NewTileset.Load(I.Current, BaseUrl);
+            FTilesets.Add(NewTileset);
+          end;
+        'layer':
+          begin
+            NewLayer := TLayer.Create;
+            NewLayer.Load(I.Current, BaseUrl);
+            FLayers.Add(NewLayer);
+          end;
+        'objectgroup':
+          begin
+            NewLayer := TObjectGroupLayer.Create;
+            NewLayer.Load(I.Current, BaseUrl);
+            FLayers.Add(NewLayer);
+          end;
+        'imagelayer':
+          begin
+            NewLayer := TImageLayer.Create;
+            NewLayer.Load(I.Current, BaseUrl);
+            FLayers.Add(NewLayer);
+          end;
+        'properties': FProperties.Load(I.Current, BaseUrl);
       end;
-    if Doc.DocumentElement.AttributeString('width', TmpStr) then
-      FWidth := StrToInt(TmpStr);
-    if Doc.DocumentElement.AttributeString('height', TmpStr) then
-      FHeight := StrToInt(TmpStr);
-    if Doc.DocumentElement.AttributeString('tilewidth', TmpStr) then
-      FTileWidth := StrToInt(TmpStr);
-    if Doc.DocumentElement.AttributeString('tileheight', TmpStr) then
-      FTileHeight := StrToInt(TmpStr);
-    if Doc.DocumentElement.AttributeString('hexsidelength', TmpStr) then
-      FHexSideLength := StrToInt(TmpStr);
-    if Doc.DocumentElement.AttributeString('staggeraxis', TmpStr) then
-      case TmpStr of
-        'x': FStaggerAxis := saX;
-        'y': FStaggerAxis := saY;
-        else WritelnWarning('Invalid staggeraxis "%s" in Tiled map file (TMX)', [TmpStr]);
-      end;
-    if Doc.DocumentElement.AttributeString('staggerindex', TmpStr) then
-      case TmpStr of
-        'odd': FStaggerIndex := siOdd;
-        'even': FStaggerIndex := siEven;
-        else WritelnWarning('Invalid staggerindex "%s" in Tiled map file (TMX)', [TmpStr]);
-      end;
-    if Doc.DocumentElement.AttributeString('backgroundcolor', TmpStr) then
-      FBackgroundColor := TiledToColor(TmpStr);
-    if Doc.DocumentElement.AttributeString('renderorder', TmpStr) then
-      case TmpStr of
-        'right-down': FRenderOrder := mroRightDown;
-        'right-up': FRenderOrder := mroRightUp;
-        'left-down': FRenderOrder := mroLeftDown;
-        'left-up': FRenderOrder := mroLeftUp;
-      end;
-    // Parse map children
-    I := TXMLElementIterator.Create(Doc.DocumentElement);
-    try
-      while I.GetNext do
-      begin
-        case LowerCase(I.Current.TagName) of
-          'tileset':
-            begin
-              NewTileset := TTileset.Create;
-              NewTileset.Load(I.Current, BaseUrl);
-              FTilesets.Add(NewTileset);
-            end;
-          'layer':
-            begin
-              NewLayer := TLayer.Create;
-              NewLayer.Load(I.Current, BaseUrl);
-              FLayers.Add(NewLayer);
-            end;
-          'objectgroup':
-            begin
-              NewLayer := TObjectGroupLayer.Create;
-              NewLayer.Load(I.Current, BaseUrl);
-              FLayers.Add(NewLayer);
-            end;
-          'imagelayer':
-            begin
-              NewLayer := TImageLayer.Create;
-              NewLayer.Load(I.Current, BaseUrl);
-              FLayers.Add(NewLayer);
-            end;
-          'properties': FProperties.Load(I.Current, BaseUrl);
-        end;
-      end;
-    finally FreeAndNil(I) end;
-  finally
-    FreeAndNil(Doc);
-  end;
+    end;
+  finally FreeAndNil(I) end;
 end;
 
-constructor TTiledMap.Create(const AURL: string);
+constructor TTiledMap.Create(const Stream: TStream; const ABaseUrl: String);
 begin
+  inherited Create;
+
   FTilesets := TTilesetList.Create;
   FProperties := TPropertyList.Create;
   FLayers := TLayerList.Create(true);
-  BaseUrl := AURL;
+  BaseUrl := ABaseUrl;
 
   //Load TMX
-  LoadTMXFile(AURL);
+  LoadTMXFile(Stream, ABaseUrl);
+end;
+
+constructor TTiledMap.Create(const AURL: string);
+var
+  StreamOptions: TStreamOptions;
+  Gzipped: boolean;
+  Stream: TStream;
+begin
+  // calculate Stream from AURL, automatically gunzip if extension says it
+  StreamOptions := [];
+  URIMimeType(AURL, Gzipped);
+  if Gzipped then
+    Include(StreamOptions, soGzip);
+  Stream := Download(AURL, StreamOptions);
+  try
+    Create(Stream, AURL);
+  finally FreeAndNil(Stream) end;
 end;
 
 destructor TTiledMap.Destroy;

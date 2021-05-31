@@ -36,7 +36,7 @@ pipeline {
     }
     stage('Build And Run Auto-Tests (Default FPC)') {
       steps {
-	sh 'export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/" && make tests'
+	sh 'make clean tests'
       }
     }
     stage('Build Using FpMake (Default FPC)') {
@@ -67,7 +67,7 @@ pipeline {
     }
     stage('Build And Run Auto-Tests (FPC 3.0.2)') {
       steps {
-	sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.2 && export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/" && make tests'
+	sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.2 && make clean tests'
       }
     }
     stage('Build Using FpMake (FPC 3.0.2)') {
@@ -98,7 +98,7 @@ pipeline {
     }
     stage('Build And Run Auto-Tests (FPC 3.0.4)') {
       steps {
-	sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.4 && export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/" && make tests'
+	sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.4 && make clean tests'
       }
     }
     stage('Build Using FpMake (FPC 3.0.4)') {
@@ -129,7 +129,7 @@ pipeline {
     }
     stage('Build And Run Auto-Tests (FPC trunk)') {
       steps {
-	sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/" && make tests'
+	sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean tests'
       }
     }
     stage('Build Using FpMake (FPC trunk)') {
@@ -142,13 +142,6 @@ pipeline {
       steps {
         sh 'rm -f castle-engine*.zip' /* remove previous artifacts */
         sh './tools/internal/pack_release/pack_release.sh'
-      }
-    }
-    /* update Docker image only when the "master" branch changes */
-    stage('Update Docker Image with CGE') {
-      when { branch 'master' }
-      steps {
-        build job: '../castle_game_engine_update_docker_image'
       }
     }
   }
@@ -168,7 +161,7 @@ pipeline {
     }
     fixed {
       mail to: 'michalis@castle-engine.io',
-        subject: "[jenkins] Build is again successfull: ${currentBuild.fullDisplayName}",
+        subject: "[jenkins] Build is again successful: ${currentBuild.fullDisplayName}",
         body: "See the build details on ${env.BUILD_URL}"
     }
   }

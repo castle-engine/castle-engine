@@ -51,7 +51,6 @@ procedure Render(Container: TUIContainer);
   end;
 
 begin
-  RenderContext.Clear([cbColor], Black);
   DrawPoint(ListenerPosition, Yellow);
   DrawPoint(SoundPosition, White);
 end;
@@ -65,7 +64,7 @@ end;
 
 procedure Motion(Container: TUIContainer; const Event: TInputMotion);
 begin
-  if mbLeft in Event.Pressed then
+  if buttonLeft in Event.Pressed then
   begin
     SoundPosition := Vector3(Event.Position[0], Event.Position[1], 0);
     if Sound <> nil then
@@ -104,6 +103,6 @@ begin
   Window.OnTimer := @Timer;
   Window.OnRender := @Render;
   Window.OnMotion := @Motion;
-  Window.SetDemoOptions(K_F11, CharEscape, true);
+  Window.SetDemoOptions(keyF11, CharEscape, true);
   Window.OpenAndRun;
 end.

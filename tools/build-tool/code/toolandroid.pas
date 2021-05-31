@@ -49,7 +49,8 @@ implementation
 
 uses SysUtils, DOM, XMLWrite,
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils, CastleImages,
-  ToolEmbeddedImages, ToolFPCVersion, ToolPackage, ToolCommonUtils, ToolUtils;
+  ToolEmbeddedImages, ToolFPCVersion, ToolPackage, ToolCommonUtils, ToolUtils,
+  ToolManifest;
 
 var
   DetectAndroidCPUSCached: TCPUS;
@@ -340,7 +341,7 @@ var
     I: TXMLElementIterator;
     Language, StringsPath: String;
   begin
-    if not Assigned(Project.ListLocalizedAppName) then Exit;
+    if not Assigned(Project.LocalizedAppNames) then Exit;
 
     //Change default app_name to translatable:
     StringsPath := AndroidProjectPath + 'app' + PathDelim +'src' + PathDelim + 'main' + PathDelim + 'res' + PathDelim + 'values' + PathDelim + 'strings.xml';
@@ -364,7 +365,7 @@ var
     end;
 
     //Write strings for every chosen language:
-    for LocalizedAppName in Project.ListLocalizedAppName do
+    for LocalizedAppName in Project.LocalizedAppNames do
     begin
       Doc := TXMLDocument.Create;
       try
@@ -408,6 +409,38 @@ var
       LibraryFileName := Project.AndroidLibraryFile(CPU);
       PackageSmartCopyFile(LibraryFileName,
         JniPath + CPUToAndroidArchitecture(CPU) + PathDelim + LibraryWithoutCPU);
+    end;
+  end;
+
+  procedure CopyExternalLibraries;
+  var
+    CPU: TCPU;
+    JniPath: String;
+    FmodLibraryPath, InputFile, OutputFile: String;
+  begin
+    if Project.AndroidServices.HasService('fmod') then
+    begin
+      if not Project.AndroidServices.Service('fmod').Parameters.TryGetValue('library_path', FmodLibraryPath) then
+        raise Exception.Create('Cannot find "library_path" parameter in "fmod" service for Android in CastleEngineManifest.xml');
+      FmodLibraryPath := InclPathDelim(FmodLibraryPath);
+
+      InputFile := FmodLibraryPath + 'fmod.jar';
+      OutputFile := 'app' + PathDelim + 'libs' + PathDelim + 'fmod.jar';
+      PackageSmartCopyFile(InputFile, OutputFile);
+      if Verbose then
+        Writeln('Packaging FMOD library file: ' + InputFile + ' => ' + OutputFile);
+
+      //JniPath := CombinePaths(Project.Path, AndroidProjectPath);
+      JniPath := 'app' + PathDelim + 'src' + PathDelim + 'main' + PathDelim + 'jni' + PathDelim;
+
+      for CPU in CPUS do
+      begin
+        InputFile := FmodLibraryPath + CPUToAndroidArchitecture(CPU) + PathDelim + 'libfmod.so';
+        OutputFile := JniPath + CPUToAndroidArchitecture(CPU) + PathDelim + 'libfmod.so';
+        PackageSmartCopyFile(InputFile, OutputFile);
+        if Verbose then
+          Writeln('Packaging FMOD library file: ' + InputFile + ' => ' + OutputFile);
+      end;
     end;
   end;
 
@@ -607,6 +640,7 @@ begin
   CalculateSigningProperties(PackageMode);
 
   GenerateFromTemplates;
+  CopyExternalLibraries;
   GenerateIcons;
   GenerateAssets;
   GenerateLocalization;

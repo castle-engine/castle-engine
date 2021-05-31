@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="platformer"
+  standalone_source="platformer_standalone.lpr"
+  game_units="GameInitialize"
+  qualified_name="com.mycompany.platformer"
+  caption="Platformer"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+</project>

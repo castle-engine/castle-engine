@@ -1,5 +1,6 @@
+{%MainUnit castletransform.pas}
 {
-  Copyright 2017-2018 Michalis Kamburelis.
+  Copyright 2017-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,12 +18,21 @@
 
 {$ifdef read_interface}
 
+  { Information send along with TCollisionEvent event, like
+    TRigidBody.OnCollisionEnter, TRigidBody.OnCollisionExit. }
+  TPhysicsCollisionDetails = record
+  public
+    Transforms: array[0..1] of TCastleTransform;
+    function OtherTransform: TCastleTransform;
+  end;
+
   { Configure physics simulation calculation. }
   TPhysicsProperties = class(TComponent)
   strict private
     FAngularVelocityRK4Integration: Boolean;
     FLinearVelocityRK4Integration: Boolean;
     FFrequency: Single;
+    FGravityStrength: Single;
     FMaxPhysicsTicksPerUpdate: Cardinal;
 
     procedure SetAngularVelocityRK4Integration(const AValue: Boolean);
@@ -40,6 +50,7 @@
       DefaultLinearVelocityRK4Integration = false;
       DefaultFrequency = 60.0;
       DefaultMaxPhysicsTicksPerUpdate = 5;
+      DefaultGravityStrength = 9.81;
 
     constructor Create(AOwner: TComponent); override;
 
@@ -53,6 +64,9 @@
     { How often should the physics simulation run in a second.
       Larger values increase accuracy (up to a certain point), but also increase the CPU overhead. }
     property Frequency: Single read FFrequency write SetFrequency default DefaultFrequency;
+    { Physics gravity is set using the -GravityUp vector (from main camera)
+      multiplied with GravityStrength. }
+    property GravityStrength: Single read FGravityStrength write FGravityStrength default DefaultGravityStrength;
 
     { Non-zero value avoids the "spiral of death" when the physics takes
       a long time to calculate.
@@ -145,10 +159,22 @@
     Radius: Single;
   end;
 
+  { Collide as a capsule.
+    Place this inside @link(TRigidBody.Collider) property. }
+  TCapsuleCollider = class(TCollider)
+  strict protected
+    function CreateKraftShape(const APhysics: TKraft;
+      const ARigidBody: TKraftRigidBody): TKraftShape; override;
+  public
+    Radius: Single;
+    Height: Single;
+  end;
+
   T3DCoord = 0..2;
   T3DCoords = set of T3DCoord;
 
-  TOnCollision = procedure (const CollisionDetails: TPhysicsCollisionDetails) of object;
+  TCollisionEvent = procedure (const CollisionDetails: TPhysicsCollisionDetails) of object;
+  TOnCollision = TCollisionEvent deprecated 'use TCollisionEvent';
 
   TRigidBodyList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TRigidBody>;
 
@@ -165,9 +191,9 @@
     { List of collisions from current step. }
     FCurrentCollisions: TRigidBodyList;
 
-    FOnCollisionEnter: TOnCollision;
-    FOnCollisionStay: TOnCollision;
-    FOnCollisionExit: TOnCollision;
+    FOnCollisionEnter: TCollisionEvent;
+    FOnCollisionStay: TCollisionEvent;
+    FOnCollisionExit: TCollisionEvent;
 
     procedure PhysicsPostStep(const RigidBody: TKraftRigidBody; const TimeStep: TKraftTimeStep);
     { Assign or unassign PhysicsPostStep in TKraftBody.OnPostStep when needed. }
@@ -204,9 +230,9 @@
     procedure SetLinearVelocityDamp(const AValue: Single);
     procedure SetMaximalLinearVelocity(const AValue: Single);
 
-    procedure SetOnCollisionEnter(const AValue: TOnCollision);
-    procedure SetOnCollisionStay(const AValue: TOnCollision);
-    procedure SetOnCollisionExit(const AValue: TOnCollision);
+    procedure SetOnCollisionEnter(const AValue: TCollisionEvent);
+    procedure SetOnCollisionStay(const AValue: TCollisionEvent);
+    procedure SetOnCollisionExit(const AValue: TCollisionEvent);
 
     procedure SetExists(const Value: Boolean);
     procedure SetTrigger(const Value: Boolean);
@@ -227,6 +253,38 @@
 
     { Transformations that we collide with currently. }
     function GetCollidingTransforms: TCastleTransformList;
+
+    { Cast a ray using physics engine, see what is hit.
+
+      The given RayOrigin, RayDirection are in the parent
+      coordinate system of this TCastleTransform.
+      So for example query like this works naturally:
+      @code(MyTransform.RayCast(MyTransform.Translation, MyTransform.Direction, MaxDistance)).
+      In case of the overloaded version with Distance parameter,
+      the Distance is consistently in the same, parent coordinate system.
+
+      This ignores the collider of this rigid body (to not accidentally collide
+      with your own collider), and checks collisions with the rest of the world in
+      given max distance.
+      Only collisions with the physics colliders (defined inside @link(TRigidBody.Collider))
+      are considered.
+
+      The @link(TCastleTransform.Pickable) property is ignored by this method,
+      i.e. it considers all colliders regardless of their @link(TCastleTransform.Pickable) value.
+      This is in contrast to @link(TCastleTransform.RayCast).
+      In the future this method will become the basis of a new @link(TCastleTransform.RayCast)
+      implementation and the concept of "pickable" flag will change into
+      collision layers.
+
+      This returns the TCastleTransform that is hit and a distance from RayOrigin
+      to the hit point.
+      Returns @nil (Distance is undefined in this case) if nothing was hit.
+      @groupBegin }
+    function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
+      const MaxDistance: Single): TCastleTransform;
+    function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
+      const MaxDistance: Single; out Distance: Single): TCastleTransform;
+    { @groupEnd }
 
     property AngularVelocity: TVector3 read FAngularVelocity write SetAngularVelocity;
     property AngularVelocityDamp: Single read FAngularVelocityDamp write SetAngularVelocityDamp;
@@ -251,7 +309,7 @@
       It would free the rigid body instance, which will crash the physics engine for now.
       Instead, you can set @link(TCastleTransform.Exists) to @false
       (you can free it later, e.g. during @link(TInputListener.OnUpdate)). }
-    property OnCollisionEnter: TOnCollision read FOnCollisionEnter write SetOnCollisionEnter;
+    property OnCollisionEnter: TCollisionEvent read FOnCollisionEnter write SetOnCollisionEnter;
 
     { Occurs when TRigidBody stops colliding with another TRigidBody.
 
@@ -260,7 +318,7 @@
       It would free the rigid body instance, which will crash the physics engine for now.
       Instead, you can set @link(TCastleTransform.Exists) to @false
       (you can free it later, e.g. during @link(TInputListener.OnUpdate)). }
-    property OnCollisionExit: TOnCollision read FOnCollisionExit write SetOnCollisionExit;
+    property OnCollisionExit: TCollisionEvent read FOnCollisionExit write SetOnCollisionExit;
 
     { Occurs when TRigidBody still collides with another TRigidBody.
 
@@ -269,7 +327,7 @@
       It would free the rigid body instance, which will crash the physics engine for now.
       Instead, you can set @link(TCastleTransform.Exists) to @false
       (you can free it later, e.g. during @link(TInputListener.OnUpdate)). }
-    property OnCollisionStay: TOnCollision read FOnCollisionStay write SetOnCollisionStay;
+    property OnCollisionStay: TCollisionEvent read FOnCollisionStay write SetOnCollisionStay;
 
   published
     { Does the physics simulation move and rotate this object
@@ -418,6 +476,21 @@ begin
   Move(M, Result, SizeOf(M));
 end;
 
+{ TCapsuleCollider ----------------------------------------------------------- }
+
+function TCapsuleCollider.CreateKraftShape(const APhysics: TKraft;
+  const ARigidBody: TKraftRigidBody): TKraftShape;
+begin
+  Result := TKraftShapeCapsule.Create(APhysics, ARigidBody, Radius, Height);
+end;
+
+{ TPhysicsCollisionDetails --------------------------------------------------- }
+
+function TPhysicsCollisionDetails.OtherTransform: TCastleTransform;
+begin
+  Result := Transforms[1];
+end;
+
 { TPhysicsProperties --------------------------------------------------------- }
 
 procedure TPhysicsProperties.SetFrequency(const AValue: Single);
@@ -460,6 +533,7 @@ begin
   FAngularVelocityRK4Integration := DefaultAngularVelocityRK4Integration;
   FLinearVelocityRK4Integration := DefaultLinearVelocityRK4Integration;
   FFrequency := DefaultFrequency;
+  FGravityStrength := DefaultGravityStrength;
   FPhysicsTimeStep := 1.0 / FFrequency;
   FMaxPhysicsTicksPerUpdate := DefaultMaxPhysicsTicksPerUpdate;
 end;
@@ -551,7 +625,7 @@ begin
   FAngularVelocityDamp := 0.1;
 
   FKraftBody := nil;
-  FCollisionList := TCastleTransformList.Create(false, nil);
+  FCollisionList := TCastleTransformList.Create(false);
   FPrevCollisions := TRigidBodyList.Create;
   FCurrentCollisions := TRigidBodyList.Create;
 
@@ -650,7 +724,7 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
     if (not FAngularVelocity.IsPerfectlyZero) or
        (not FLinearVelocity.IsPerfectlyZero) then
     begin
-      { The behaviour is more natural when we zero the XxxVelocity
+      { The behavior is more natural when we zero the XxxVelocity
         components that are locked. (Otherwise testing e.g. Setup2D in a 3D
         world makes a little unexpected motions). }
 
@@ -701,11 +775,58 @@ begin
 end;
 
 procedure TRigidBody.DeinitializeTransform(const Transform: TCastleTransform);
+
+  procedure RemoveSelfFromOtherRigidBodiesCollisionLists;
+  var
+    OtherRigidBody: TRigidBody;
+    CollisionDetails: TPhysicsCollisionDetails;
+    ContactPairEdge: PKraftContactPairEdge;
+  begin
+    if FKraftBody = nil then
+      Exit;
+    { We don't use here FPrevCollisions list because it can be empty when
+      this rigid body don't assign any FOnCollisionXXX event. }
+    ContactPairEdge := FKraftBody.ContactPairEdgeFirst;
+    while Assigned(ContactPairEdge) do
+    begin
+      if kcfColliding in ContactPairEdge^.ContactPair^.Flags then
+      begin
+        OtherRigidBody := TRigidBody(ContactPairEdge^.OtherRigidBody.UserData);
+
+        { We need check that only when other body has OnCollisionExit or
+          OnCollisionStay event assigned. }
+        if Assigned(OtherRigidBody.FOnCollisionExit) or
+           Assigned(OtherRigidBody.FOnCollisionStay) then
+        begin
+          { First we need send OnCollisionExit event if needed. }
+          if Assigned(OtherRigidBody.FOnCollisionExit) then
+          begin
+            CollisionDetails.Transforms[0] := OtherRigidBody.FTransform;
+            CollisionDetails.Transforms[1] := FTransform;
+            OtherRigidBody.FOnCollisionExit(CollisionDetails);
+          end;
+
+          { Now we can simply remove Self from other rigid body FPrevCollisions list }
+          OtherRigidBody.FPrevCollisions.Remove(Self);
+          { Currently not needed because it's not used directly from other functions
+            than PhysicsPostStep() but this can change in the future. }
+          OtherRigidBody.FCurrentCollisions.Remove(Self);
+        end;
+      end;
+      ContactPairEdge := ContactPairEdge^.Next;
+    end;
+  end;
+
 begin
   Assert(FKraftBody <> nil, 'Second deinitialization!');
   Assert(Transform.World <> nil, 'Transform.World should be assigned at the time of TRigidBody.DeinitializeTransform call');
 
   Assert(not ((Transform.World.FKraftEngine = nil) and (FKraftBody <> nil)), 'KraftBody should not live longer than KraftEngine!');
+
+  { Deinitialize rigid body when it's in collision with other rigid body make
+    this body will be dangling pointer on it's FPrevCollisions list.
+    So other rigid body can crash when it try to send FOnCollisionExit event. }
+  RemoveSelfFromOtherRigidBodiesCollisionLists;
 
   FreeAndNil(FKraftBody);
 
@@ -727,48 +848,41 @@ begin
   ContactPairEdge := FKraftBody.ContactPairEdgeFirst;
   while Assigned(ContactPairEdge) do
   begin
-    { Without this code, OnCollisonEnter reports fake collisons when
+    { Without this check, OnCollisonEnter reports fake collisons when
       one of colliding body has non regural shape (for example when
       TBoxCollider is rotated).
       kcfColliding = From kraft source comment: "Set when contact
       collides during a step" }
-    if not (kcfColliding in ContactPairEdge^.ContactPair^.Flags) then
+    if kcfColliding in ContactPairEdge^.ContactPair^.Flags then
     begin
-      ContactPairEdge := ContactPairEdge^.Next;
-      continue;
-    end;
+      RBody := TRigidBody(ContactPairEdge^.OtherRigidBody.UserData);
 
-    RBody := TRigidBody(ContactPairEdge^.OtherRigidBody.UserData);
+      // Do not send events for next collision points with the same body.
+      if FCurrentCollisions.IndexOf(RBody) = - 1 then
+      begin
+        // Add to current collisions.
+        FCurrentCollisions.Add(RBody);
 
-    // Omit next collision point with the same body.
-    if FCurrentCollisions.IndexOf(RBody) <> - 1 then
-    begin
-      ContactPairEdge := ContactPairEdge^.Next;
-      continue;
-    end;
+        // Prepare collision data.
+        CollisionDetails.Transforms[0] := FTransform;
+        CollisionDetails.Transforms[1] := RBody.FTransform;
 
-    // Add to current collisions.
-    FCurrentCollisions.Add(RBody);
+        // New and ongoing collisions.
+        if FPrevCollisions.IndexOf(RBody) = -1 then
+        begin
+          // New collision.
+          if Assigned(FOnCollisionEnter) then
+            FOnCollisionEnter(CollisionDetails);
+        end else
+        begin
+          // Still in collision.
+          if Assigned(FOnCollisionStay) then
+            FOnCollisionStay(CollisionDetails);
 
-    // Prepare collision data.
-    CollisionDetails.OtherTransform := RBody.FTransform;
-    CollisionDetails.Transforms[0] := FTransform;
-    CollisionDetails.Transforms[1] := CollisionDetails.OtherTransform;
-
-    // New and ongoing collisions.
-    if FPrevCollisions.IndexOf(RBody) = -1 then
-    begin
-      // New collision.
-      if Assigned(FOnCollisionEnter) then
-        FOnCollisionEnter(CollisionDetails);
-    end else
-    begin
-      // Still in collision.
-      if Assigned(FOnCollisionStay) then
-        FOnCollisionStay(CollisionDetails);
-
-      // Remove used collision.
-      FPrevCollisions.Remove(RBody);
+          // Remove used collision.
+          FPrevCollisions.Remove(RBody);
+        end;
+      end;
     end;
 
     ContactPairEdge := ContactPairEdge^.Next;
@@ -781,9 +895,7 @@ begin
 
     for I := 0  to FPrevCollisions.Count - 1 do
     begin
-      CollisionDetails.OtherTransform := TRigidBody(FPrevCollisions[I]).FTransform;
-      CollisionDetails.Transforms[1] := CollisionDetails.OtherTransform;
-
+      CollisionDetails.Transforms[1] := TRigidBody(FPrevCollisions[I]).FTransform;
       FOnCollisionExit(CollisionDetails);
     end;
   end;
@@ -838,19 +950,19 @@ begin
     FKraftBody.MaximalLinearVelocity := AValue / FTransform.World.FKraftEngine.WorldFrequency;
 end;
 
-procedure TRigidBody.SetOnCollisionEnter(const AValue: TOnCollision);
+procedure TRigidBody.SetOnCollisionEnter(const AValue: TCollisionEvent);
 begin
   FOnCollisionEnter := AValue;
   CheckPhysicsPostStepNeeded;
 end;
 
-procedure TRigidBody.SetOnCollisionStay(const AValue: TOnCollision);
+procedure TRigidBody.SetOnCollisionStay(const AValue: TCollisionEvent);
 begin
   FOnCollisionStay := AValue;
   CheckPhysicsPostStepNeeded;
 end;
 
-procedure TRigidBody.SetOnCollisionExit(const AValue: TOnCollision);
+procedure TRigidBody.SetOnCollisionExit(const AValue: TCollisionEvent);
 begin
   FOnCollisionExit := AValue;
   CheckPhysicsPostStepNeeded;
@@ -957,6 +1069,60 @@ begin
   end;
 end;
 
+function TRigidBody.PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
+  const MaxDistance: Single): TCastleTransform;
+var
+  IgnoredDistance: Single;
+begin
+  Result := PhysicsRayCast(RayOrigin, RayDirection, MaxDistance, IgnoredDistance);
+end;
+
+function TRigidBody.PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
+  const MaxDistance: Single; out Distance: Single): TCastleTransform;
+var
+  Shape: TKraftShape;
+  ResultingDistance: TKraftScalar;
+  Point: TKraftVector3;
+  Normal: TKraftVector3;
+  OldShapeFlags: TKraftShapeFlags;
+  RayOriginWorld, RayDirectionWorld: TVector3;
+  RayMaxDistanceWorld: Single;
+  Hit: Boolean;
+begin
+  if FTransform = nil then
+  begin
+    WritelnWarning(
+      'Attempt to cast a ray from TRigidBody not connected to TCastleTransform. Maybe you forgot to assign to TCastleTransform.RigidBody?');
+    Exit(nil);
+  end;
+
+  RayOriginWorld := FTransform.UniqueParent.LocalToWorld(RayOrigin);
+  RayDirectionWorld := FTransform.UniqueParent.LocalToWorldDirection(RayDirection);
+  RayMaxDistanceWorld := FTransform.UniqueParent.LocalToWorldDistance(MaxDistance);
+
+  { We use ksfRayCastable flag to not hit to caster shape. }
+  OldShapeFlags := Collider.FKraftShape.Flags;
+  try
+    Collider.FKraftShape.Flags := Collider.FKraftShape.Flags - [ksfRayCastable];
+    { Note: In Kraft, the distance parameters are called "time"
+      (MaxTime, Time instead of more natural MaxDistance, Distance).
+      But all research shows that it is actually "distance" and that is also how
+      other physics engines call it.
+      TODO: Check time depends on physics frequency? }
+    Hit := FTransform.World.FKraftEngine.RayCast(VectorToKraft(RayOriginWorld),
+      VectorToKraft(RayDirectionWorld), RayMaxDistanceWorld, Shape, ResultingDistance, Point, Normal);
+
+    if Hit then
+    begin
+      Distance := FTransform.UniqueParent.WorldToLocalDistance(ResultingDistance);
+      Result := TRigidBody(Shape.RigidBody.UserData).FTransform;
+    end else
+      Result := nil;
+  finally
+    Collider.FKraftShape.Flags := OldShapeFlags;
+  end;
+end;
+
 procedure TRigidBody.SetLinearVelocity(const LVelocity: TVector3);
 begin
   FLinearVelocity := LVelocity;
@@ -996,10 +1162,13 @@ begin
 
   if Assigned(Collider) and Assigned(Collider.FKraftShape) then
   begin
+    { Note: ksfRayCastable flag determines whether body is detected by PhysicsRayCast. }
     if FExists then
-      Collider.FKraftShape.Flags := Collider.FKraftShape.Flags + [ksfCollision]
+      Collider.FKraftShape.Flags := Collider.FKraftShape.Flags + [ksfCollision,
+        ksfRayCastable]
     else
-      Collider.FKraftShape.Flags := Collider.FKraftShape.Flags - [ksfCollision];
+      Collider.FKraftShape.Flags := Collider.FKraftShape.Flags - [ksfCollision,
+        ksfRayCastable];
   end;
 end;
 
@@ -1085,7 +1254,7 @@ begin
       next FRigidBody.Update, then next FRigidBody would recreate Kraft
       resources for this object (once it's implemented, by setting
       FRecreateKraftInstance on every change),
-      which is needless (we create Kraft resourcest
+      which is needless (we create Kraft resources
       for this transform 2 times in this case, instead of once). }
   if RigidBody <> nil then
     RigidBody.InitializeTransform(Self);
@@ -1109,7 +1278,7 @@ begin
   end;
 end;
 
-destructor TCastleAbstractRootTransform.Destroy;
+procedure TCastleAbstractRootTransform.DestroyPhysicsEngine;
 var
   CastleRigidBody: TRigidBody;
   KraftRigidBody: TKraftRigidBody;
@@ -1129,10 +1298,9 @@ begin
       end;
       KraftRigidBody := NextKraftRigidBody;
     end;
-  end;
 
-  FreeAndNil(FKraftEngine);
-  inherited;
+    FreeAndNil(FKraftEngine);
+  end;
 end;
 
 procedure TCastleAbstractRootTransform.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
@@ -1155,7 +1323,7 @@ begin
 
     // update FKraftEngine.Gravity
     // TODO: do we really need to be prepared that it changes each frame?
-    KraftGravity := -GravityUp * 9.81;
+    KraftGravity := -GravityUp * PhysicsProperties.GravityStrength;
     FKraftEngine.Gravity.Vector := VectorToKraft(KraftGravity);
 
     PhysicsTicksCount := 0;
@@ -1191,7 +1359,7 @@ begin
           TimeAccumulator := TimeAccumulator - (PhysicsProperties.FPhysicsTimeStep * Floor(TimeAccumulator / PhysicsProperties.FPhysicsTimeStep));
 
           WritelnLog('Max physics ticks in TCastleAbstractRootTransform.Update() exceeded ('
-            + IntTostr(PhysicsTicksCount) + '). TimeAcumulator reduced from '
+            + IntToStr(PhysicsTicksCount) + '). TimeAccumulator reduced from '
             + FloatToStrDot(OldTimeAccumulator) + ' to ' + FloatToStrDot(TimeAccumulator));
 
           break;
@@ -1208,7 +1376,7 @@ begin
           "FKraftEngine.Step" call (and remember to make one less
           "FKraftEngine.Step" call in the next loop run).
 
-        The contains an explanation:
+        This contains an explanation:
         http://web.archive.org/web/20160205035208/http://gafferongames.com/game-physics/fix-your-timestep/
 
         """

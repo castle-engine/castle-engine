@@ -32,22 +32,22 @@
   e.g. the example below sets the @code(Application) as owner:
 
   @longCode(#
-    MyFont := TTextureFont.Create(Application);
+    MyFont := TCastleFont.Create(Application);
     MyFont.Load(TextureFont_Xxxx);
     UIFont := MyFont;
   #)
 
   @groupBegin }
-function GetUIFont: TCastleFont;
-procedure SetUIFont(const Value: TCastleFont);
+function GetUIFont: TCastleAbstractFont;
+procedure SetUIFont(const Value: TCastleAbstractFont);
 
-function GetUIFontSmall: TCastleFont;
+function GetUIFontSmall: TCastleAbstractFont;
   deprecated 'use UIFont and temporarily change the size to be smaller, or use TCastleUserInterfaceFont.SmallFont';
-procedure SetUIFontSmall(const Value: TCastleFont);
+procedure SetUIFontSmall(const Value: TCastleAbstractFont);
   deprecated 'use UIFont and temporarily change the size to be smaller, or use TCastleUserInterfaceFont.SmallFont';
 
-property UIFont: TCastleFont read GetUIFont write SetUIFont;
-property UIFontSmall: TCastleFont read GetUIFontSmall write SetUIFontSmall;
+property UIFont: TCastleAbstractFont read GetUIFont write SetUIFont;
+property UIFontSmall: TCastleAbstractFont read GetUIFontSmall write SetUIFontSmall;
 { @groupEnd }
 
 {$endif read_interface}
@@ -60,15 +60,15 @@ type
   { Component used as owner for fonts created on-demand in UIFont and UIFontSmall. }
   TDefaultUIFont = class(TComponent)
   public
-    Normal: TCastleFont;
-    Small: TCastleFont;
+    Normal: TCastleAbstractFont;
+    Small: TCastleAbstractFont;
   end;
 
 var
   DefaultUIFont: TDefaultUIFont;
-  FUIFont, FUIFontSmall: TCastleFont;
+  FUIFont, FUIFontSmall: TCastleAbstractFont;
 
-function GetUIFont: TCastleFont;
+function GetUIFont: TCastleAbstractFont;
 begin
   if FUIFont = nil then
   begin
@@ -76,8 +76,8 @@ begin
       DefaultUIFont := TDefaultUIFont.Create(nil);
     if DefaultUIFont.Normal = nil then
     begin
-      DefaultUIFont.Normal := TTextureFont.Create(DefaultUIFont);
-      (DefaultUIFont.Normal as TTextureFont).Load(TextureFont_DejaVuSans_20);
+      DefaultUIFont.Normal := TCastleFont.Create(DefaultUIFont);
+      (DefaultUIFont.Normal as TCastleFont).Load(TextureFont_DejaVuSans_20);
     end;
     FUIFont := DefaultUIFont.Normal;
   end;
@@ -85,12 +85,12 @@ begin
   Result := FUIFont;
 end;
 
-procedure SetUIFont(const Value: TCastleFont);
+procedure SetUIFont(const Value: TCastleAbstractFont);
 begin
   FUIFont := Value;
 end;
 
-function GetUIFontSmall: TCastleFont;
+function GetUIFontSmall: TCastleAbstractFont;
 begin
   if FUIFontSmall = nil then
   begin
@@ -98,8 +98,8 @@ begin
       DefaultUIFont := TDefaultUIFont.Create(nil);
     if DefaultUIFont.Small = nil then
     begin
-      DefaultUIFont.Small := TTextureFont.Create(DefaultUIFont);
-      (DefaultUIFont.Small as TTextureFont).Load(TextureFont_DejaVuSans_10);
+      DefaultUIFont.Small := TCastleFont.Create(DefaultUIFont);
+      (DefaultUIFont.Small as TCastleFont).Load(TextureFont_DejaVuSans_10);
     end;
     FUIFontSmall := DefaultUIFont.Small;
   end;
@@ -107,7 +107,7 @@ begin
   Result := FUIFontSmall;
 end;
 
-procedure SetUIFontSmall(const Value: TCastleFont);
+procedure SetUIFontSmall(const Value: TCastleAbstractFont);
 begin
   FUIFontSmall := Value;
 end;

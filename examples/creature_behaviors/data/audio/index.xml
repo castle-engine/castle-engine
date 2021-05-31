@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<sounds>
+  <sound name="dark_music" url="dark_fallout.ogg" stream="true" />
+  <sound name="shoot_sound" url="flaunch.wav" />
+</sounds>

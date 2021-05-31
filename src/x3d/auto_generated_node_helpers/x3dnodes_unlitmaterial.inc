@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -66,7 +66,6 @@ begin
   FFdTransparency := TSFFloat.Create(Self, True, 'transparency', 0);
    FdTransparency.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdTransparency);
-  { X3D specification comment: [0,1] }
 
   DefaultContainerField := 'material';
 end;

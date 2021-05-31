@@ -8,7 +8,7 @@
     <CompilerOptions>
       <Version Value="11"/>
       <SearchPaths>
-        <IncludeFiles Value="../src/base"/>
+        <IncludeFiles Value="../src/base;../src/lcl"/>
         <OtherUnitFiles Value="../src/lcl"/>
         <UnitOutputDirectory Value="lib/castle_components/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
@@ -32,6 +32,10 @@
         <CompilerMessages>
           <IgnoredMessages idx5063="True" idx4046="True"/>
         </CompilerMessages>
+        <ConfigFile>
+          <CustomConfigFile Value="True"/>
+          <ConfigFilePath Value="../castle-fpc-messages.cfg"/>
+        </ConfigFile>
         <CustomOptions Value="-Sh
 -dCASTLE_ENGINE_LAZARUS_PACKAGE"/>
       </Other>
@@ -44,7 +48,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="5"/>
-    <Files Count="6">
+    <Files Count="17">
       <Item1>
         <Filename Value="../src/lcl/castlecontrol.pas"/>
         <HasRegisterProc Value="True"/>
@@ -56,23 +60,67 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleDialogs"/>
       </Item2>
       <Item3>
+        <Filename Value="../src/lcl/castleinternalexposetransformsdialog.pas"/>
+        <UnitName Value="CastleInternalExposeTransformsDialog"/>
+      </Item3>
+      <Item4>
         <Filename Value="../src/lcl/castlelclrecentfiles.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="CastleLCLRecentFiles"/>
-      </Item3>
-      <Item4>
-        <Filename Value="../src/lcl/castlelclutils.pas"/>
-        <UnitName Value="CastleLCLUtils"/>
       </Item4>
       <Item5>
+        <Filename Value="../src/lcl/castlelclutils.pas"/>
+        <UnitName Value="CastleLCLUtils"/>
+      </Item5>
+      <Item6>
         <Filename Value="../src/lcl/castlepropedits.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="CastlePropEdits"/>
-      </Item5>
-      <Item6>
+      </Item6>
+      <Item7>
+        <Filename Value="../src/lcl/castlepropedits_any_subproperties.inc"/>
+        <Type Value="Include"/>
+      </Item7>
+      <Item8>
+        <Filename Value="../src/lcl/castlepropedits_autoanimation.inc"/>
+        <Type Value="Include"/>
+      </Item8>
+      <Item9>
+        <Filename Value="../src/lcl/castlepropedits_color.inc"/>
+        <Type Value="Include"/>
+      </Item9>
+      <Item10>
+        <Filename Value="../src/lcl/castlepropedits_exposetransforms.inc"/>
+        <Type Value="Include"/>
+      </Item10>
+      <Item11>
+        <Filename Value="../src/lcl/castlepropedits_float.inc"/>
+        <Type Value="Include"/>
+      </Item11>
+      <Item12>
+        <Filename Value="../src/lcl/castlepropedits_image.inc"/>
+        <Type Value="Include"/>
+      </Item12>
+      <Item13>
+        <Filename Value="../src/lcl/castlepropedits_unused_controls.inc"/>
+        <Type Value="Include"/>
+      </Item13>
+      <Item14>
+        <Filename Value="../src/lcl/castlepropedits_url.inc"/>
+        <Type Value="Include"/>
+      </Item14>
+      <Item15>
+        <Filename Value="../src/lcl/castlepropedits_vector.inc"/>
+        <Type Value="Include"/>
+      </Item15>
+      <Item16>
+        <Filename Value="../src/lcl/castlepropedits_viewport_navigation.inc"/>
+        <Type Value="Include"/>
+      </Item16>
+      <Item17>
         <Filename Value="../src/lcl/icons/castleicons.lrs"/>
         <Type Value="LRS"/>
-      </Item6>
+      </Item17>
     </Files>
     <RequiredPkgs Count="4">
       <Item1>
@@ -94,7 +142,6 @@ See https://castle-engine.io/license.php for details.
     </UsageOptions>
     <PublishOptions>
       <Version Value="2"/>
-      <IgnoreBinaries Value="False"/>
     </PublishOptions>
     <CustomOptions Items="ExternHelp" Version="2">
       <_ExternHelp Items="Count"/>

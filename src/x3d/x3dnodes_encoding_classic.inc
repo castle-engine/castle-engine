@@ -23,34 +23,32 @@ const
     Suitable for TCastleWindowBase.FileDialog and such. }
   LoadX3DClassic_FileFilters =
   'All files|*|' +
-  '*VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz';
+  '*VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz'
+  deprecated 'use LoadNode and LoadScene_FileFilters';
 
 type
-  { Raised by @link(LoadX3DClassicFromString) or @link(LoadX3DClassicInternal)
-    when the stream is compressed with gzip. }
-  EX3DGzipCompressed = CastleInternalX3DLexer.EX3DGzipCompressed;
+  { Raised by classic X3D loading routines when the stream is compressed with gzip. }
+  EGzipCompressed = CastleInternalX3DLexer.EGzipCompressed;
 
 { Load VRML/X3D file in classic encoding from stream. Return it's root node.
 
-  Note that you must pass here TPeekCharStream class, not just any
-  generic TStream class. But it's not a problem, really, because
-  you can wrap any class inside TPeekCharStream descendant. E.g. do
-  @longcode(#
-    LoadX3DClassicInternal(TBufferedReadStream.Create(MyStream, false), BaseUrl)
-  #)
-
-  Note that this function can't handle compressed data (X3D files are
+  This function can't handle compressed data (X3D files are
   sometimes compressed with gzip). You should pass here a stream
   with an already uncompressed text data.
 
-  @raises(EX3DGzipCompressed If the Stream starts with gzip file header.) }
-function LoadX3DClassicInternal(Stream: TPeekCharStream;
+  The BaseUrl must be absolute URL. Use AbsoluteURI to make sure to convert
+  eventual relative URLs to absolute.
+
+  @raises(EGzipCompressed If the Stream starts with gzip file header.)
+
+  @exclude }
+function LoadX3DClassicInternal(const Stream: TStream;
   const BaseUrl: string): TX3DRootNode; overload;
 
 { Load VRML/X3D file in classic encoding from a string. Return it's root node.
-  @raises(EX3DGzipCompressed If the Stream is compressed with gzip.) }
+  @raises(EGzipCompressed If the Stream is compressed with gzip.) }
 function LoadX3DClassicFromString(const VRMLContents: string;
-  const BaseUrl: string): TX3DRootNode; overload;
+  const BaseUrl: string): TX3DRootNode; deprecated 'use LoadNode with TStringStream';
 
 { Load VRML/X3D file in classic encoding, return it's root node.
 
@@ -64,7 +62,7 @@ function LoadX3DClassicFromString(const VRMLContents: string;
   Otherwise, it can still be gzipped (.wrl files are sometimes gzipped
   without extension indicating it). }
 function LoadX3DClassic(const URL: string;
-  const Gzipped: boolean): TX3DRootNode; overload;
+  const Gzipped: boolean): TX3DRootNode; deprecated 'use LoadNode';
 
 {$endif read_interface}
 
@@ -551,34 +549,34 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function LoadX3DClassicInternal(Stream: TPeekCharStream;
+function LoadX3DClassicInternal(const Stream: TStream;
   const BaseUrl: string): TX3DRootNode;
 var
+  PeekStream: TPeekCharStream;
   Lexer: TX3DLexer;
   Reader: TX3DReaderNames;
 begin
-  Lexer := TX3DLexer.Create(Stream, false);
+  PeekStream := TBufferedReadStream.Create(Stream, false);
   try
-    Reader := TX3DReaderNames.Create(false, BaseUrl, Lexer.Version);
+    Lexer := TX3DLexer.Create(PeekStream, false);
     try
-      Result := ParseStatements(Lexer, Reader, vtEnd, true);
-      Reader.ExtractNames(Result.FPrototypeNames, Result.FExportedNames, Result.FImportedNames);
-    finally FreeAndNil(Reader) end;
-  finally FreeAndNil(Lexer) end;
+      Reader := TX3DReaderNames.Create(false, BaseUrl, Lexer.Version);
+      try
+        Result := ParseStatements(Lexer, Reader, vtEnd, true);
+        Reader.ExtractNames(Result.FPrototypeNames, Result.FExportedNames, Result.FImportedNames);
+      finally FreeAndNil(Reader) end;
+    finally FreeAndNil(Lexer) end;
+  finally FreeAndNil(PeekStream) end;
 end;
 
 function LoadX3DClassic(const URL: string;
   const Gzipped: boolean): TX3DRootNode;
 
-  function DoIt(BaseStream: TStream; const FreeBaseStream: boolean;
-    const BaseUrl: string): TX3DRootNode;
-  var
-    Stream: TPeekCharStream;
+  function DoIt(BaseStream: TStream; const BaseUrl: string): TX3DRootNode;
   begin
-    Stream := TBufferedReadStream.Create(BaseStream, FreeBaseStream);
     try
-      Result := LoadX3DClassicInternal(Stream, BaseUrl);
-    finally FreeAndNil(Stream) end;
+      Result := LoadX3DClassicInternal(BaseStream, BaseUrl);
+    finally FreeAndNil(BaseStream) end;
   end;
 
 var
@@ -587,38 +585,27 @@ begin
   BaseUrl := AbsoluteURI(URL);
 
   if Gzipped then
-    Result := DoIt(Download(URL, [soGzip]), true, BaseUrl) else
+    Result := DoIt(Download(URL, [soGzip]), BaseUrl) else
   begin
     try
-      Result := DoIt(Download(URL, []), true, BaseUrl);
+      Result := DoIt(Download(URL, []), BaseUrl);
     except
       { It's somewhat hacky solution to reopen the file, creating new stream.
         But in practice, this works OK, and it allows us to read files
         compressed by gzip but without indicating this by file extension.
-        The other idea would be to pipe the output always by gzip
-        decompression, but:
-
-        1. I simply prefer to not filter through yet another stream
-           class (we already wrap TFileStream in TBufferedReadStream)
-           when I don't have to.
-
-        2. Our Download function uses temporary files to overcome
-           the limitations of TGZFileStream (it cannot compress/decompress
-           memory data, only files on disk) for network data.
-           So it creates even more overhead. }
-      on EX3DGzipCompressed do
-        Result := DoIt(Download(URL, [soGzip]), true, BaseUrl);
+        See LoadNode comments. }
+      on EGzipCompressed do
+        Result := DoIt(Download(URL, [soGzip]), BaseUrl);
     end;
   end;
 end;
 
 function LoadX3DClassicFromString(const VRMLContents: string;
-  const BaseUrl: string): TX3DRootNode; overload;
+  const BaseUrl: string): TX3DRootNode;
 var
-  Stream: TPeekCharStream;
+  Stream: TStringStream;
 begin
-  Stream := TSimplePeekCharStream.Create(
-    TStringStream.Create(VRMLContents), true);
+  Stream := TStringStream.Create(VRMLContents);
   try
     Result := LoadX3DClassicInternal(Stream, BaseUrl);
   finally FreeAndNil(Stream) end;

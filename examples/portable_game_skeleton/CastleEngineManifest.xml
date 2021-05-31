@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<project name="my_fantastic_game"
-  standalone_source="my_fantastic_game_standalone.lpr"
-  game_units="GameInitialize"
-  qualified_name="io.castleengine.portable.game.skeleton"
->
-</project>

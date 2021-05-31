@@ -54,7 +54,7 @@ end;
 procedure TForm1.CastleControl1Press(Sender: TObject;
   const Event: TInputPressRelease);
 begin
-  if Event.IsKey(K_Space) then
+  if Event.IsKey(keySpace) then
     Y := Y - 200.0;
 end;
 
@@ -64,9 +64,9 @@ var
 begin
   SecondsPassed := CastleControl1.Fps.SecondsPassed;
   Y := Y + SecondsPassed * 100.0;
-  if CastleControl1.Pressed[K_Left] then
+  if CastleControl1.Pressed[keyArrowLeft] then
     X := X - SecondsPassed * 200.0;
-  if CastleControl1.Pressed[K_Right] then
+  if CastleControl1.Pressed[keyArrowRight] then
     X := X + SecondsPassed * 200.0;
 end;
 

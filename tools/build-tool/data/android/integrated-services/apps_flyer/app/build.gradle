@@ -12,7 +12,7 @@
          and declare version 4.8.7 explicitly.
     -->
     <!-- <dependency>implementation 'com.appsflyer:af-android-sdk:4+@aar'</dependency> -->
-    <dependency>compile 'com.appsflyer:af-android-sdk:4.8.7@aar'</dependency>
+    <dependency>api 'com.appsflyer:af-android-sdk:4.8.7@aar'</dependency>
     <dependency>implementation 'com.android.installreferrer:installreferrer:1.0'</dependency>
   </dependencies>
 </build_gradle_merge>

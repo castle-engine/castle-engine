@@ -1,0 +1,114 @@
+{
+  "FullSize" : true,
+  "Name" : "RootGroup",
+  "$Children" : [
+    {
+      "Content" : {
+        "URL" : "castle-data:/background/colored_grass.png",
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "HeightFraction" : 1.0000000000000000E+000,
+      "HorizontalAnchorParent" : "hpMiddle",
+      "HorizontalAnchorSelf" : "hpMiddle",
+      "Name" : "Background",
+      "ProportionalScaling" : "psEnclose",
+      "Stretch" : true,
+      "VerticalAnchorParent" : "vpMiddle",
+      "VerticalAnchorSelf" : "vpMiddle",
+      "WidthFraction" : 1.0000000000000000E+000,
+      "$Children" : [
+        {
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "VerticalGroup1",
+          "Spacing" : 2.0000000000000000E+001,
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle",
+          "$Children" : [
+            {
+              "Caption" : "PLAY",
+              "CustomBackgroundDisabled" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundFocused" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundNormal" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundPressed" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "Image" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "MinWidth" : 3.0000000000000000E+002,
+              "Name" : "ButtonPlay",
+              "PaddingHorizontal" : 3.0000000000000000E+001,
+              "PaddingVertical" : 3.0000000000000000E+001,
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleButton"
+            },
+            {
+              "Caption" : "QUIT",
+              "CustomBackgroundDisabled" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundFocused" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundNormal" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundPressed" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "Image" : {
+                "$ClassName" : "TCastleImagePersistent"
+              },
+              "MinWidth" : 3.0000000000000000E+002,
+              "Name" : "ButtonQuit",
+              "PaddingHorizontal" : 3.0000000000000000E+001,
+              "PaddingVertical" : 3.0000000000000000E+001,
+              "VerticalAnchorDelta" : -1.1200000000000000E+002,
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "$Children" : [
+              ],
+              "$ClassName" : "TCastleButton"
+            }
+          ],
+          "$ClassName" : "TCastleVerticalGroup"
+        },
+        {
+          "Bottom" : 3.0000000000000000E+002,
+          "ColorPersistent" : {
+            "Blue" : 1.2156862765550613E-001,
+            "Green" : 7.4509805440902710E-001,
+            "Red" : 5.0196081399917603E-001,
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "FontSize" : 1.0000000000000000E+002,
+          "Height" : 8.0000000000000000E+001,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "Title",
+          "Text" : [
+            "Platformer"
+          ],
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle",
+          "Width" : 6.0000000000000000E+002,
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleLabel"
+        }
+      ],
+      "$ClassName" : "TCastleImageControl"
+    }
+  ],
+  "$ClassName" : "TCastleUserInterface"
+}

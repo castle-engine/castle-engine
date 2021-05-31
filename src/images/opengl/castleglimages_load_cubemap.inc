@@ -48,8 +48,7 @@ function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal; overload;
     @item(Otherwise, we'll try to generate images using OpenGL GenerateMipmap.)
 
     @item(As a last resort, if GenerateMipmap is not available,
-      we will fallback to generating mipmaps on CPU by good old
-      gluBuild2DMipmaps call.)
+      we will fallback to generating mipmaps on CPU.)
   )
 
   @raises(ETextureLoadError If texture cannot be loaded for whatever reason.
@@ -161,14 +160,14 @@ end;
 
   Also, this cannot load mipmaps from Composite or use GenerateMipmap
   (GenerateMipmap call must be done for whole cube map texture target).
-  So this can create mipmaps only by gluBuild2DMipmaps. It will also
+  So this can create mipmaps only by CastleBuild2DMipmaps. It will also
   fail with @link(ECannotLoadCompressedTexture) if mipmaps will be requested ---
   we cannot generate mipmaps for compressed textures here. If you want to use
   more modern GenerateMipmap, you should use higher-level
   glTexImages2DForCubeMap (takes all six images), or pass Mipmaps = @false
   and do it yourself.
 
-  Level must be 0 is you require mipmaps.
+  Level must be 0, unless you provide mipmaps.
 
   @raises(ETextureLoadError If texture cannot be loaded for whatever reason.
     This includes @link(ECannotLoadCompressedTexture) if the compressed texture cannot be
@@ -177,10 +176,8 @@ end;
     This includes EInvalidImageForOpenGLTexture if Image class is invalid
     for an OpenGL texture.) }
 procedure glTextureCubeMapSide(
-  Target: TGLenum; const Image: TEncodedImage; Level: TGLuint; Mipmaps: boolean;
+  const Target: TGLenum; const Image: TEncodedImage; const Level: TGLuint; const Mipmaps: boolean;
   var LoadedSize: Int64);
-var
-  ImageInternalFormat: TGLuint;
 
   { Load Image through glCompressedTexImage2D[ARB].
     This checks existence of OpenGL extensions for compressed texture,
@@ -207,100 +204,51 @@ var
       doesn't affect loading compressed textures, as far as I understand.
       So no need to call it. }
     {$ifdef OpenGLES} glCompressedTexImage2D {$else} glCompressedTexImage2DARB {$endif}
-      (Target, Level, ImageInternalFormat, Image.Width, Image.Height,
+      (Target, Level, ImageGLInternalFormat(Image), Image.Width, Image.Height,
         0, Image.Size, Image.RawPixels);
     LoadedSize := LoadedSize + Image.Size;
   end;
 
-var
-  ImageFormat: TGLuint;
+  procedure LoadMipmapped(const Image: TCastleImage);
+  begin
+    { This should only be called by glTextureCubeMap when mipmaps are needed
+      but GenerateMipmap was not available.
+      We have no choice but to use old CastleBuild2DMipmaps.
+
+      Note: SGIS_generate_mipmap doesn't work on cube map texture,
+      testing on ATI Mobility Radeon X1600 (fglrx, Linux, on Mac Book Pro). }
+
+    CastleBuild2DMipmaps(Target, Image, LoadedSize);
+  end;
 
   { Calls glTexImage2D for given image.
     Takes care of OpenGL unpacking (alignment etc.).
     Takes care of Image size --- makes sure that image has the right size
     (power of 2, within OpenGL required sizes). }
-  procedure glTexImage2DImage(Image: TCastleImage);
-
-    { This is like glTexImage2DImage, but it doesn't take care
-      of Image size. }
-    procedure Core(Image: TCastleImage);
-    begin
-      { Nawet jesli ladujemy obrazek o ktorym wiemy ze ma wymiary dobre
-        dla glTexImage2d, musimy zadbac o jego aligment : bo co by bylo
-        jesli tekstura ma szerokosc 1 lub 2  ?
-        Poza tym, planuje dodac tutaj robienie borderow dla tekstury, a wtedy
-        wymiar dobry dla glTexImage2d to rownie dobrze 2^n+2 (a wiec prawie zawsze
-        niepodzielne na 4). }
-      BeforeUnpackImage(Image);
-      try
-        glTexImage2D(Target, Level, ImageInternalFormat,
-          Image.Width, Image.Height, 0, ImageFormat, ImageGLType(Image),
-          Image.RawPixels);
-        LoadedSize := LoadedSize + Image.Size;
-      finally AfterUnpackImage(Image) end;
-    end;
-
+  procedure LoadNormal(const Image: TCastleImage);
   var
     ImgGood: TCastleImage;
   begin
     if IsCubeMapTextureSized(Image) then
-      Core(Image) else
+      CastleTexImage2D(Target, Level, Image, LoadedSize)
+    else
     begin
       ImgGood := ResizeToCubeMapTextureSize(Image);
       try
-        Core(ImgGood);
+        CastleTexImage2D(Target, Level, ImgGood, LoadedSize);
       finally ImgGood.Free end;
     end;
   end;
 
-  {$ifndef OpenGLES}
-  {$ifdef CASTLE_OBJFPC}
-  { Calls gluBuild2DMipmaps for given image.
-    Takes care of OpenGL unpacking (alignment etc.).
-    gluBuild2DMipmaps doesn't require size to be a power of 2, so no problems
-    here. }
-  procedure gluBuild2DMipmapsImage(Image: TCastleImage);
-  begin
-    BeforeUnpackImage(Image);
-    try
-      gluBuild2DMipmaps(Target, ImageInternalFormat,
-        Image.Width, Image.Height, ImageFormat, ImageGLType(Image),
-        Image.RawPixels);
-    finally AfterUnpackImage(Image) end;
-  end;
-  {$endif}
-  {$endif}
-
-  procedure LoadMipmapped(const image: TCastleImage);
-  begin
-    { This should only be called by glTextureCubeMap when mipmaps are needed
-      but GenerateMipmap was not available.
-      We have no choice but to use old gluBuild2DMipmapsImage.
-
-      Note: SGIS_generate_mipmap doesn't work on cube map texture,
-      testing on ATI Mobility Radeon X1600 (fglrx, Linux, on Mac Book Pro). }
-
-    {$if defined(OpenGLES) or not defined(CASTLE_OBJFPC)}
-    raise ETextureLoadError.Create('Cannot load texture on OpenGLES using gluBuild2DMipmapsImage. On OpenGLES, GenerateMipmap should always be available, so this should not happen.');
-    {$else}
-    gluBuild2DMipmapsImage(Image);
-    {$endif}
-  end;
-
-  procedure LoadNormal(const image: TCastleImage);
-  begin
-    glTexImage2DImage(Image);
-  end;
-
 begin
-  ImageInternalFormat := ImageGLInternalFormat(Image);
   if Image is TGPUCompressedImage then
-    LoadCompressed(TGPUCompressedImage(Image)) else
+    LoadCompressed(TGPUCompressedImage(Image))
+  else
   if Image Is TCastleImage then
   begin
-    ImageFormat := ImageGLFormat(TCastleImage(Image));
     if Mipmaps then
-      LoadMipmapped(TCastleImage(Image)) else
+      LoadMipmapped(TCastleImage(Image))
+    else
       LoadNormal(TCastleImage(Image));
   end else
     raise EInvalidImageForOpenGLTexture.CreateFmt('Cannot load to OpenGL texture image class %s', [Image.ClassName]);
@@ -399,7 +347,6 @@ begin
       LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(NegativeY);
       LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(PositiveZ);
       LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(NegativeZ);
-      WritelnLog('Mipmaps', 'Generating mipmaps for cube map by GenerateMipmap (GOOD)');
     end;
   end else
   begin

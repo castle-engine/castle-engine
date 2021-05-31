@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,11 +25,49 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventSet_bind: TSFBoolEvent;
+    { X3D in event "set_bind". } { }
+    public property EventSet_bind: TSFBoolEvent read FEventSet_bind;
+
+{$ifndef CASTLE_SLIM_NODES}
+    strict private FEventBindTime: TSFTimeEvent;
+    { X3D out event "bindTime". } { }
+    public property EventBindTime: TSFTimeEvent read FEventBindTime;
+{$endif not CASTLE_SLIM_NODES}
+
+    strict private FEventIsBound: TSFBoolEvent;
+    { X3D out event "isBound". } { }
+    public property EventIsBound: TSFBoolEvent read FEventIsBound;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TAbstractBindableNode ----------------------------------------------- }
+
+class function TAbstractBindableNode.ClassX3DType: String;
+begin
+  Result := 'X3DBindableNode';
+end;
+
+procedure TAbstractBindableNode.CreateNode;
+begin
+  inherited;
+
+  FEventSet_bind := TSFBoolEvent.Create(Self, 'set_bind', true);
+  AddEvent(FEventSet_bind);
+
+{$ifndef CASTLE_SLIM_NODES}
+  FEventBindTime := TSFTimeEvent.Create(Self, 'bindTime', false);
+  AddEvent(FEventBindTime);
+{$endif not CASTLE_SLIM_NODES}
+
+  FEventIsBound := TSFBoolEvent.Create(Self, 'isBound', false);
+  AddEvent(FEventIsBound);
+end;
 
 {$endif read_implementation}

@@ -27,7 +27,7 @@
 
 }
 uses SysUtils, CastleUtils, CastleParameters, CastleFindFiles,
-  CastleFilesUtils, CastleStringUtils;
+  CastleFilesUtils, CastleStringUtils, CastleApplicationProperties;
 
 { Action ------------------------------------------------------------ }
 
@@ -205,41 +205,41 @@ const
       0: begin
            Write(
     {        '0123456789012345678901234567890123456789012345678901234567890123456789012345' }
-             'dircleaner: cleans given directory of garbage files and dirs,' +nl+
-             '  recursively.' +nl+
-             'Run as' +nl+
-             '  dircleaner (works like dircleaner ./ nothing)' +nl+
-             '  dircleaner START-DIR (works like dircleaner START-DIR nothing)' +nl+
-             '  dircleaner START-DIR ACTION' +nl+
-             '  (case ACTION:' +nl+
-             '    nothing -> print files to clear counts' +nl+
-             '    print -> print files to clean counts and names' +nl+
-             '    clean -> print files to clean counts and REMOVE them' +nl+
-             '  )' +nl+
-             nl+
-             'Also following options are allowed (as many times as you want):' +nl+
-             '  -f / --files FILE-NAME-MASK' +nl+
-             '                    Clean also files (not dirs) matching FILE-NAME-MASK' +nl+
-             '  -d / --dirs DIR-NAME-MASK' +nl+
-             '                    Clean also dirs matching DIR-NAME-MASK' +nl+
-             '  -n / --no-recursive' +nl+
-             '                    By default, dirs are cleaned recursively.'+nl+
-             '                    Use this to clear dirs non-recursively.' +nl+
-             nl+
-             'Default files to clean:' +nl);
+             'dircleaner: cleans given directory of garbage files and dirs,' + NL +
+             '  recursively.' + NL +
+             'Run as' + NL +
+             '  dircleaner (works like dircleaner ./ nothing)' + NL +
+             '  dircleaner START-DIR (works like dircleaner START-DIR nothing)' + NL +
+             '  dircleaner START-DIR ACTION' + NL +
+             '  (case ACTION:' + NL +
+             '    nothing -> print files to clear counts' + NL +
+             '    print -> print files to clean counts and names' + NL +
+             '    clean -> print files to clean counts and REMOVE them' + NL +
+             '  )' + NL +
+             NL +
+             'Also following options are allowed (as many times as you want):' + NL +
+             '  -f / --files FILE-NAME-MASK' + NL +
+             '                    Clean also files (not dirs) matching FILE-NAME-MASK' + NL +
+             '  -d / --dirs DIR-NAME-MASK' + NL +
+             '                    Clean also dirs matching DIR-NAME-MASK' + NL +
+             '  -n / --no-recursive' + NL +
+             '                    By default, dirs are cleaned recursively.'+ NL +
+             '                    Use this to clear dirs non-recursively.' + NL +
+             NL +
+             'Default files to clean:' + NL);
 
            for i := 0 to DefaultFilesToClean.Count-1 do
              Write('  '+DefaultFilesToClean[i]);
 
-           Write(nl+
-             'Default dirs to clean:' +nl);
+           Write(NL +
+             'Default dirs to clean:' + NL);
 
            for i := 0 to DefaultDirsToClean.Count-1 do
              Write('  '+DefaultDirsToClean[i]);
 
-           Writeln(nl+
-             nl+
-             SCastleEngineProgramHelpSuffix('dircleaner', '1.0.0', true));
+           Writeln(NL +
+             NL +
+             ApplicationProperties.Description);
            Halt;
          end;
       1: FilesToClean.Add(Argument);
@@ -254,6 +254,9 @@ const
 var
   i: Integer;
 begin
+  ApplicationProperties.ApplicationName := 'dircleaner';
+  ApplicationProperties.Version := '1.0';
+
   try
     FilesToClean := TCastleStringList.Create;
     DefaultFilesToClean := TCastleStringList.Create;

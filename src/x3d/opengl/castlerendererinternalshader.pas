@@ -23,8 +23,8 @@ interface
 uses Generics.Collections,
   CastleVectors, CastleGLShaders,
   X3DTime, X3DFields, X3DNodes, CastleUtils, CastleBoxes,
-  CastleRendererInternalTextureEnv, CastleStringUtils, CastleRendererBaseTypes,
-  CastleShapes, CastleRectangles, CastleTransform;
+  CastleRendererInternalTextureEnv, CastleStringUtils, CastleRenderOptions,
+  CastleShapes, CastleRectangles, CastleTransform, CastleInternalGeometryArrays;
 
 type
   TLightingModel = (lmPhong, lmPhysical, lmUnlit);
@@ -58,7 +58,7 @@ type
   public
     procedure AddString(const S: AnsiString; const Multiplier: LongWord);
     procedure AddInteger(const I: Integer);
-    procedure AddFloat(const F: Single);
+    procedure AddFloat(const F: Single; const UniquePrimeNumber: Cardinal);
     procedure AddPointer(Ptr: Pointer);
     procedure AddEffects(Nodes: TX3DNodeList);
     procedure AddEffects(Nodes: TMFNode);
@@ -89,13 +89,13 @@ type
     UniformCastle_MaterialMetallic,
     UniformCastle_MaterialRoughness,
     UniformCastle_GlobalAmbient,
-    UniformCastle_SceneColor,
     UniformCastle_UnlitColor: TGLSLUniform;
 
     { Attributes initialized after linking.
       Initializing them only once after linking allows the mesh renderer to go fast. }
     AttributeCastle_Vertex,
     AttributeCastle_Normal,
+    AttributeCastle_Tangent,
     AttributeCastle_ColorPerVertex,
     AttributeCastle_FogCoord: TGLSLAttribute;
 
@@ -326,8 +326,6 @@ type
 
   TTextureCoordinateShaderList = specialize TObjectList<TTextureCoordinateShader>;
 
-  TBumpMapping = (bmNone, bmBasic, bmParallax, bmSteepParallax, bmSteepParallaxShadowing);
-
   TDynamicUniform = class abstract
   public
     Name: string;
@@ -442,7 +440,8 @@ type
     }
     AppearanceEffects: TMFNode;
     GroupEffects: TX3DNodeList;
-    Lighting, ColorPerVertex: Boolean;
+    Lighting: Boolean;
+    ColorPerVertexType: TColorPerVertexType;
     ColorPerVertexMode: TColorMode;
 
     procedure EnableEffects(Effects: TMFNode;
@@ -594,7 +593,7 @@ type
     procedure EnableClipPlane(const ClipPlaneIndex: Cardinal;
       const Plane: TVector4);
     procedure DisableClipPlane(const ClipPlaneIndex: Cardinal);
-    procedure EnableAlphaTest;
+    procedure EnableAlphaTest(const AlphaCutoff: Single);
     procedure EnableBumpMapping(const BumpMapping: TBumpMapping;
       const NormalMapTextureUnit, NormalMapTextureCoordinatesId: Cardinal;
       const HeightMapInAlpha: boolean; const HeightMapScale: Single);
@@ -613,12 +612,12 @@ type
     procedure ModifyFog(const FogType: TFogType;
       const FogCoordinateSource: TFogCoordinateSource;
       const FogLinearEnd: Single; const FogExpDensity: Single);
-    function EnableCustomShaderCode(Shaders: TMFNodeShaders;
+    function EnableCustomShaderCode(const Shaders: TMFNode;
       out Node: TComposedShaderNode): boolean;
     procedure EnableAppearanceEffects(Effects: TMFNode);
     procedure EnableGroupEffects(Effects: TX3DNodeList);
     procedure EnableLighting;
-    procedure EnableColorPerVertex(const AMode: TColorMode);
+    procedure EnableColorPerVertex(const AMode: TColorMode; const AColorType: TColorPerVertexType);
 
     property ShadowSampling: TShadowSampling
       read FShadowSampling write FShadowSampling;
@@ -657,6 +656,7 @@ uses SysUtils, StrUtils,
   CastleGLUtils, CastleLog, CastleGLVersion,
   CastleScreenEffects, CastleInternalX3DLexer;
 
+{$ifndef OpenGLES}
 var
   { By default (when this is false),
     desktop OpenGL either use gl_ClipVertex or gl_ClipDistance.
@@ -667,6 +667,7 @@ var
     This is a global variable only to silence compiler warnings about
     unreachable code, in practice we use this as a constant. }
   ForceOpenGLESClipPlanes: Boolean = false;
+{$endif}
 
 const
   Sampler2DShadow = {$ifndef OpenGLES} 'sampler2DShadow' {$else} 'sampler2D' {$endif};
@@ -798,9 +799,9 @@ begin
   Sum += I;
 end;
 
-procedure TShaderCodeHash.AddFloat(const F: Single);
+procedure TShaderCodeHash.AddFloat(const F: Single; const UniquePrimeNumber: Cardinal);
 begin
-  Sum += Round(F * 100000);
+  Sum += (Round(F * 1000) + 1) * UniquePrimeNumber;
 end;
 
 {$include norqcheckend.inc}
@@ -940,7 +941,7 @@ begin
         Define(ldHasBeamWidth);
         LightUniformName1 := 'castle_LightSource%dBeamWidth';
         LightUniformValue1 := TSpotLightNode(Node).FdBeamWidth.Value;
-        Hash.AddFloat(LightUniformValue1);
+        Hash.AddFloat(LightUniformValue1, 2179);
       end;
     end;
 
@@ -1170,11 +1171,11 @@ begin
   UniformCastle_MaterialMetallic      := Uniform('castle_MaterialMetallic'     , uaIgnore);
   UniformCastle_MaterialRoughness     := Uniform('castle_MaterialRoughness'    , uaIgnore);
   UniformCastle_GlobalAmbient         := Uniform('castle_GlobalAmbient'        , uaIgnore);
-  UniformCastle_SceneColor            := Uniform('castle_SceneColor'           , uaIgnore);
   UniformCastle_UnlitColor            := Uniform('castle_UnlitColor'           , uaIgnore);
 
   AttributeCastle_Vertex         := AttributeOptional('castle_Vertex');
   AttributeCastle_Normal         := AttributeOptional('castle_Normal');
+  AttributeCastle_Tangent        := AttributeOptional('castle_Tangent');
   AttributeCastle_ColorPerVertex := AttributeOptional('castle_ColorPerVertex');
   AttributeCastle_FogCoord       := AttributeOptional('castle_FogCoord');
 end;
@@ -1247,7 +1248,7 @@ begin
   UniformEvent := FieldOrEvent.Event;
 
   { Set initial value for this GLSL uniform variable,
-    from VRML field or exposedField }
+    from X3D field or exposedField }
 
   if UniformField <> nil then
   try
@@ -1304,12 +1305,20 @@ begin
     SetUniform(UniformName, TSFLong(UniformValue).Value, true) else
   if UniformValue is TSFVec2f then
     SetUniform(UniformName, TSFVec2f(UniformValue).Value, true) else
-  { Check TSFColor first, otherwise TSFVec3f would also catch and handle
+
+  (*
+  { Old approach: Check TSFColor first, otherwise TSFVec3f would also catch and handle
     TSFColor. And we don't want this: for GLSL, color is passed
     as vec4 (so says the spec, I guess that the reason is that for GLSL most
-    input/output colors are vec4). }
-  if UniformValue is TSFColor then
-    SetUniform(UniformName, Vector4(TSFColor(UniformValue).Value, 1.0), true) else
+    input/output colors are vec4).
+
+    New approach: That's just nonsense in X3D spec.
+    We now pass SFColor as vec3, it can fallback TSFVec3f clause. }
+
+  // if UniformValue is TSFColor then
+  //   SetUniform(UniformName, Vector4(TSFColor(UniformValue).Value, 1.0), true) else
+  *)
+
   if UniformValue is TSFVec3f then
     SetUniform(UniformName, TSFVec3f(UniformValue).Value, true) else
   if UniformValue is TSFVec4f then
@@ -1354,6 +1363,9 @@ begin
     SetUniform(UniformName, TMFLong(UniformValue).Items, true) else
   if UniformValue is TMFVec2f then
     SetUniform(UniformName, TMFVec2f(UniformValue).Items, true) else
+  (* Old approach: follow X3D spec, and map MFColor to vec4[].
+     New approach: ignore nonsense X3D spec, and map MFColor to vec3[].
+     Just allow TMFColor to fallback to TMFVec3f.
   if UniformValue is TMFColor then
   begin
     TempVec4f := TMFColor(UniformValue).Items.ToVector4(1.0);
@@ -1361,6 +1373,7 @@ begin
       SetUniform(UniformName, TempVec4f, true);
     finally FreeAndNil(TempVec4f) end;
   end else
+  *)
   if UniformValue is TMFVec3f then
     SetUniform(UniformName, TMFVec3f(UniformValue).Items, true) else
   if UniformValue is TMFVec4f then
@@ -1972,7 +1985,7 @@ begin
   AppearanceEffects := nil;
   GroupEffects := nil;
   Lighting := false;
-  ColorPerVertex := false;
+  ColorPerVertexType := ctNone;
   ColorPerVertexMode := cmReplace;
   FPhongShading := false;
   ShapeBoundingBox := nil;
@@ -2687,11 +2700,10 @@ var
     end;
   end;
 
-  { Must be done after EnableLights (to add define COLOR_PER_VERTEX
-    also to light shader parts). }
+  { Define COLOR_PER_VERTEX* symbols for GLSL. }
   procedure EnableShaderColorPerVertex;
   begin
-    if ColorPerVertex then
+    if ColorPerVertexType <> ctNone then
     begin
       { TODO: need to pass castle_ColorPerVertexFragment onward?
       Plug(stGeometry, GeometryShaderPassColors);
@@ -2709,6 +2721,19 @@ var
           begin
             Define('COLOR_PER_VERTEX_MODULATE', stVertex);
             Define('COLOR_PER_VERTEX_MODULATE', stFragment);
+          end;
+      end;
+      case ColorPerVertexType of
+        ctNone: ;
+        ctRgb:
+          begin
+            Define('COLOR_PER_VERTEX_RGB', stVertex);
+            Define('COLOR_PER_VERTEX_RGB', stFragment);
+          end;
+        ctRgbAlpha:
+          begin
+            Define('COLOR_PER_VERTEX_RGB_ALPHA', stVertex);
+            Define('COLOR_PER_VERTEX_RGB_ALPHA', stFragment);
           end;
       end;
     end;
@@ -2744,12 +2769,7 @@ var
   procedure EnableShaderFog;
   var
     FogFactor, FogUniforms, CoordinateSource: string;
-    USingle: TDynamicUniformSingle;
-    UColor: TDynamicUniformVec3;
   begin
-    { Both OpenGLES and desktop OpenGL use castle_xxx uniforms and varying
-      to pass fog parameters, not gl_xxx. }
-
     if FFogEnabled then
     begin
       case FFogCoordinateSource of
@@ -2777,34 +2797,17 @@ var
               which is just 1.0 / gl_Fog.end for us.
               So we just divide by castle_FogLinearEnd. }
             FogFactor := 'castle_FogFragCoord / castle_FogLinearEnd';
-
-            USingle := TDynamicUniformSingle.Create;
-            USingle.Name := 'castle_FogLinearEnd';
-            USingle.Value := FFogLinearEnd;
-            DynamicUniforms.Add(USingle);
           end;
         ftExp:
           begin
             FogUniforms := 'uniform float castle_FogExpDensity;';
             FogFactor := '1.0 - exp(-castle_FogExpDensity * castle_FogFragCoord)';
-
-            USingle := TDynamicUniformSingle.Create;
-            USingle.Name := 'castle_FogExpDensity';
-            USingle.Value := FFogExpDensity;
-            DynamicUniforms.Add(USingle);
           end;
         {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('TShader.EnableShaderFog:FogType?');
         {$endif}
       end;
 
-      UColor := TDynamicUniformVec3.Create;
-      UColor.Name := 'castle_FogColor';
-      UColor.Value := FFogColor;
-      { We leave UColor.Declaration empty, just like USingle.Declaration above,
-        because we only declare them inside this plug
-        (which is a separate compilation unit for desktop OpenGL). }
-      DynamicUniforms.Add(UColor);
       Plug(stFragment,
         'varying float castle_FogFragCoord;' + NL+
         'uniform vec3 castle_FogColor;' +NL+
@@ -2944,6 +2947,7 @@ begin
   if GammaCorrection then
     Define('CASTLE_GAMMA_CORRECTION', stFragment);
   case ToneMapping of
+    tmNone: ;
     tmUncharted:
       begin
         Define('CASTLE_TONE_MAPPING', stFragment);
@@ -3373,15 +3377,20 @@ begin
   {$endif}
 end;
 
-procedure TShader.EnableAlphaTest;
+procedure TShader.EnableAlphaTest(const AlphaCutoff: Single);
+var
+  AlphaCutoffStr: String;
 begin
-  { Enable for shader pipeline. We know alpha comparison is always < 0.5 }
+  { Convert float to be a valid GLSL constant.
+    Make sure to use dot, and a fixed notation. }
+  AlphaCutoffStr := FloatToStrFDot(AlphaCutoff, ffFixed, { ignored } 0, 4);
+
   FragmentEnd +=
-    '/* Do the trick with 1.0 / 2.0, instead of comparing with 0.5, to avoid fglrx bugs */' + NL +
-    'if (2.0 * gl_FragColor.a < 1.0)' + NL +
+    'if (gl_FragColor.a < ' + AlphaCutoffStr + ')' + NL +
     '  discard;' + NL;
 
   FCodeHash.AddInteger(2011);
+  FCodeHash.AddFloat(AlphaCutoff, 2017);
 end;
 
 procedure TShader.EnableBumpMapping(const BumpMapping: TBumpMapping;
@@ -3403,7 +3412,7 @@ begin
       379 * FNormalMapTextureCoordinatesId +
       383 * Ord(FHeightMapInAlpha)
     );
-    FCodeHash.AddFloat(FHeightMapScale);
+    FCodeHash.AddFloat(FHeightMapScale, 2203);
   end;
 end;
 
@@ -3455,6 +3464,9 @@ procedure TShader.EnableFog(const FogType: TFogType;
   const FogCoordinateSource: TFogCoordinateSource;
   const FogColor: TVector3; const FogLinearEnd: Single;
   const FogExpDensity: Single);
+var
+  UColor: TDynamicUniformVec3;
+  USingle: TDynamicUniformSingle;
 begin
   FFogEnabled := true;
   FFogType := FogType;
@@ -3465,6 +3477,34 @@ begin
   FCodeHash.AddInteger(
     67 * (Ord(FFogType) + 1) +
     709 * (Ord(FFogCoordinateSource) + 1));
+
+  if FFogEnabled then
+  begin
+    case FFogType of
+      ftLinear:
+        begin
+          USingle := TDynamicUniformSingle.Create;
+          USingle.Name := 'castle_FogLinearEnd';
+          USingle.Value := FFogLinearEnd;
+          DynamicUniforms.Add(USingle);
+        end;
+      ftExp:
+        begin
+          USingle := TDynamicUniformSingle.Create;
+          USingle.Name := 'castle_FogExpDensity';
+          USingle.Value := FFogExpDensity;
+          DynamicUniforms.Add(USingle);
+        end;
+    end;
+
+    UColor := TDynamicUniformVec3.Create;
+    UColor.Name := 'castle_FogColor';
+    UColor.Value := FFogColor;
+    { We leave UColor.Declaration empty, just like USingle.Declaration above,
+      because we only declare them inside this plug
+      (which is a separate compilation unit for desktop OpenGL). }
+    DynamicUniforms.Add(UColor);
+  end;
 end;
 
 procedure TShader.ModifyFog(const FogType: TFogType;
@@ -3482,7 +3522,7 @@ begin
     433 * (Ord(FFogCoordinateSource) + 1));
 end;
 
-function TShader.EnableCustomShaderCode(Shaders: TMFNodeShaders;
+function TShader.EnableCustomShaderCode(const Shaders: TMFNode;
   out Node: TComposedShaderNode): boolean;
 var
   I, J: Integer;
@@ -3493,7 +3533,12 @@ begin
   Result := false;
   for I := 0 to Shaders.Count - 1 do
   begin
-    Node := Shaders.GLSLShader(I);
+    if (Shaders[I] is TComposedShaderNode) and
+       (TComposedShaderNode(Shaders[I]).Language in [slDefault, slGLSL]) then
+      Node := TComposedShaderNode(Shaders[I])
+    else
+      Node := nil;
+
     if Node <> nil then
     begin
       Result := true;
@@ -3576,12 +3621,16 @@ begin
   FCodeHash.AddInteger(7);
 end;
 
-procedure TShader.EnableColorPerVertex(const AMode: TColorMode);
+procedure TShader.EnableColorPerVertex(const AMode: TColorMode; const AColorType: TColorPerVertexType);
 begin
+  Assert(AColorType <> ctNone);
   { This will cause appropriate shader later }
-  ColorPerVertex := true;
+  ColorPerVertexType := AColorType;
   ColorPerVertexMode := AMode;
-  FCodeHash.AddInteger((Ord(AMode) + 1) * 29);
+  FCodeHash.AddInteger(
+    (Ord(AMode) + 1) * 29 +
+    (Ord(AColorType) + 1) * 601
+  );
 end;
 
 function TShader.DeclareShadowFunctions: string;
@@ -3629,8 +3678,10 @@ procedure TShader.AddScreenEffectCode(const Depth: boolean);
 var
   VS, FS: string;
 begin
+  {$warnings off} // using deprecated below, which should be internal
   VS := ScreenEffectVertex;
   FS := ScreenEffectFragment(Depth);
+  {$warnings on}
 
   Source[stVertex].Insert(0, VS);
   { For OpenGLES, ScreenEffectLibrary must be 1st shader,

@@ -1,5 +1,6 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestVideos" -*-
 {
-  Copyright 2013-2018 Michalis Kamburelis.
+  Copyright 2013-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,15 +14,17 @@
   ----------------------------------------------------------------------------
 }
 
+{ Test CastleVideos unit. }
 unit TestCastleVideos;
 
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleVideos;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleVideos,
+  CastleTestCase;
 
 type
-  TTestVideos = class(TTestCase)
+  TTestVideos = class(TCastleTestCase)
   published
     procedure TestLoad;
   end;

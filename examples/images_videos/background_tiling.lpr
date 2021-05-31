@@ -152,10 +152,10 @@ procedure Update(Container: TUIContainer);
   end;
 
 begin
-  if Container.Pressed[keyUp]    then Move(0,  1);
-  if Container.Pressed[keyDown]  then Move(0, -1);
-  if Container.Pressed[keyRight] then Move( 1, 0);
-  if Container.Pressed[keyLeft]  then Move(-1, 0);
+  if Container.Pressed[keyArrowUp]    then Move(0,  1);
+  if Container.Pressed[keyArrowDown]  then Move(0, -1);
+  if Container.Pressed[keyArrowRight] then Move( 1, 0);
+  if Container.Pressed[keyArrowLeft]  then Move(-1, 0);
 end;
 
 begin

@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2019 Michalis Kamburelis.
+  Copyright 2018-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,23 +21,27 @@ unit X3DLoadInternalGltf;
 interface
 
 uses Classes,
-  X3DNodes, X3DFields;
+  CastleUtils, CastleVectors, X3DNodes, X3DFields;
 
 { Load 3D model in the Gltf format, converting it to an X3D nodes graph.
-  This routine is internally used by the @link(LoadNode) to load an Gltf file.
+  This routine is internally used by the @link(LoadNode) to load an Gltf file. }
+function LoadGltf(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 
-  The overloaded version without an explicit Stream will open the URL
-  using @link(Download). }
-function LoadGltf(const URL: string): TX3DRootNode;
-function LoadGltf(const Stream: TStream; const URL: string): TX3DRootNode;
+{ Process a list of key and key values to turn linear into step interpolation.
+  This is internal, exposed only for tests. }
+procedure ProcessStepTimeline(const Times: TSingleList;
+  const Values: TVector3List); overload;
+procedure ProcessStepTimeline(const Times: TSingleList;
+  const Values: TVector4List); overload;
 
 implementation
 
 uses SysUtils, TypInfo, Math, PasGLTF, PasJSON, Generics.Collections,
-  CastleClassUtils, CastleDownload, CastleUtils, CastleURIUtils, CastleLog,
-  CastleVectors, CastleStringUtils, CastleTextureImages, CastleQuaternions,
-  CastleImages, CastleVideos, CastleTimeUtils, CastleTransform, CastleRendererBaseTypes,
-  CastleLoadGltf, X3DLoadInternalUtils, CastleBoxes, CastleColors;
+  CastleClassUtils, CastleDownload, CastleURIUtils, CastleLog,
+  CastleStringUtils, CastleTextureImages, CastleQuaternions,
+  CastleImages, CastleVideos, CastleTimeUtils, CastleTransform,
+  CastleLoadGltf, X3DLoadInternalUtils, CastleBoxes, CastleColors,
+  CastleRenderOptions;
 
 { This unit implements reading glTF into X3D.
   We're using PasGLTF from Bero: https://github.com/BeRo1985/pasgltf/
@@ -59,7 +63,7 @@ uses SysUtils, TypInfo, Math, PasGLTF, PasJSON, Generics.Collections,
     Accessor.DecodeAsXxx. Instead we should load binary data straight to GPU,
     looking at buffers, already exposed by PasGLTF.
     New X3D node, like BufferGeometry (same as X3DOM) will need to be
-    invented for this, and CastleGeometryArrays will need to be rearranged.
+    invented for this, and CastleInternalGeometryArrays will need to be rearranged.
 
   - Morph targets, or their animations, are not supported yet.
 
@@ -77,6 +81,84 @@ uses SysUtils, TypInfo, Math, PasGLTF, PasJSON, Generics.Collections,
 
   - See https://castle-engine.io/planned_features.php .
 }
+
+{ other utilities ------------------------------------------------------------ }
+
+procedure ProcessStepTimeline(const Times: TSingleList;
+  const Values: TVector3List); overload;
+var
+  C, NewC: SizeInt;
+  I: Integer;
+  TimesPtr: PSingle;
+  ValuesPtr: PVector3;
+begin
+  if Times.Count > 1 then
+  begin
+    C := Times.Count;
+    if C <> Values.Count then
+    begin
+      WritelnWarning('"Step" timeline has different number of keys than key values');
+      Exit;
+    end;
+
+    NewC := (C - 1) * 2 + 1;
+
+    Times.Count := NewC;
+    Values.Count := NewC;
+
+    TimesPtr := PSingle(Times.List);
+    ValuesPtr := PVector3(Values.List);
+
+    // fill new values, going downward, to not overwrite the useful values
+    ValuesPtr[NewC - 1] := ValuesPtr[C- 1];
+    TimesPtr[NewC - 1] := TimesPtr[C- 1];
+    for I := C - 2 downto 0 do
+    begin
+      ValuesPtr[I * 2 + 1] := ValuesPtr[I];
+      ValuesPtr[I * 2    ] := ValuesPtr[I];
+      TimesPtr [I * 2 + 1] := TimesPtr [I + 1];
+      TimesPtr [I * 2    ] := TimesPtr [I];
+    end;
+  end;
+end;
+
+procedure ProcessStepTimeline(const Times: TSingleList;
+  const Values: TVector4List); overload;
+var
+  C, NewC: SizeInt;
+  I: Integer;
+  TimesPtr: PSingle;
+  ValuesPtr: PVector4;
+begin
+  if Times.Count > 1 then
+  begin
+    C := Times.Count;
+    if C <> Values.Count then
+    begin
+      WritelnWarning('"Step" timeline has different number of keys than key values');
+      Exit;
+    end;
+
+    NewC := (C - 1) * 2 + 1;
+
+    Times.Count := NewC;
+    Values.Count := NewC;
+
+    TimesPtr := PSingle(Times.List);
+    ValuesPtr := PVector4(Values.List);
+
+    // fill new values, going downward, to not overwrite the useful values
+    ValuesPtr[NewC - 1] := ValuesPtr[C- 1];
+    TimesPtr[NewC - 1] := TimesPtr[C- 1];
+    for I := C - 2 downto 0 do
+    begin
+      ValuesPtr[I * 2 + 1] := ValuesPtr[I];
+      ValuesPtr[I * 2    ] := ValuesPtr[I];
+      TimesPtr [I * 2 + 1] := TimesPtr [I + 1];
+      TimesPtr [I * 2    ] := TimesPtr [I];
+    end;
+  end;
+end;
 
 { Convert simple types ------------------------------------------------------- }
 
@@ -827,9 +909,8 @@ end;
 { LoadGltf ------------------------------------------------------------------- }
 
 { Main routine that converts glTF -> X3D nodes, doing most of the work. }
-function LoadGltf(const Stream: TStream; const URL: string): TX3DRootNode;
+function LoadGltf(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 var
-  BaseUrl: String;
   Document: TPasGLTF.TDocument;
   // List of TGltfAppearanceNode nodes, ordered just list glTF materials
   Appearances: TX3DNodeList;
@@ -895,6 +976,31 @@ var
     *)
     if Document.ExtensionsRequired.IndexOf('KHR_draco_mesh_compression') <> -1 then
       WritelnWarning('Required extension KHR_draco_mesh_compression not supported by glTF reader');
+  end;
+
+  { Read glTF "extras" into X3D "metadata" information. }
+  procedure ReadMetadata(const Extras: TPasJSONItemObject; const Node: TAbstractNode);
+  var
+    I: Integer;
+    Key: String;
+  begin
+    for I := 0 to Extras.Count - 1 do
+    begin
+      Key := Extras.Keys[I];
+      if Extras.Values[I] is TPasJSONItemString then
+        Node.MetadataString[Key] := TPasJSONItemString(Extras.Values[I]).Value
+      else
+      if Extras.Values[I] is TPasJSONItemBoolean then
+        Node.MetadataBoolean[Key] := TPasJSONItemBoolean(Extras.Values[I]).Value
+      else
+      if Extras.Values[I] is TPasJSONItemNumber then
+        Node.MetadataDouble[Key] := TPasJSONItemNumber(Extras.Values[I]).Value
+      else
+        WritelnWarning('Cannot read glTF extra "%s", unexpected type %s', [
+          Key,
+          Extras.Values[I].ClassName
+        ]);
+    end;
   end;
 
   function ReadTextureRepeat(const Wrap: TPasGLTF.TSampler.TWrappingMode): Boolean;
@@ -1168,7 +1274,7 @@ var
 
   function ReadAppearance(const Material: TPasGLTF.TMaterial): TGltfAppearanceNode;
   var
-    AlphaChannel: TAutoAlphaChannel;
+    AlphaMode: TAlphaMode;
   begin
     Result := TGltfAppearanceNode.Create(Material.Name);
 
@@ -1179,27 +1285,22 @@ var
       Result.Material := ReadPhongMaterial(Material)
     else
       Result.Material := ReadPhysicalMaterial(Material);
+    ReadMetadata(Material.Extras, Result.Material);
 
     // read common material properties, that make sense in case of all material type
     Result.DoubleSided := Material.DoubleSided;
 
     // read alpha channel treatment
     case Material.AlphaMode of
-      TPasGLTF.TMaterial.TAlphaMode.Opaque: AlphaChannel := acNone;
-      TPasGLTF.TMaterial.TAlphaMode.Blend : AlphaChannel := acBlending;
-      TPasGLTF.TMaterial.TAlphaMode.Mask  : AlphaChannel := acTest;
+      TPasGLTF.TMaterial.TAlphaMode.Opaque: AlphaMode := amOpaque;
+      TPasGLTF.TMaterial.TAlphaMode.Blend : AlphaMode := amBlend;
+      TPasGLTF.TMaterial.TAlphaMode.Mask  : AlphaMode := amMask;
       {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('Unexpected glTF Material.AlphaMode value');
       {$endif}
     end;
-    Result.AlphaChannel := AlphaChannel;
-
-    // TODO: ignored for now:
-    // Result.AlphaClipThreshold := Material.AlphaCutOff;
-    // Implement AlphaClipThreshold from X3DOM / InstantReality:
-    // https://doc.x3dom.org/author/Shape/Appearance.html
-    // https://www.x3dom.org/news/
-    // (our default 0.5?)
+    Result.AlphaMode := AlphaMode;
+    Result.AlphaCutOff := Material.AlphaCutOff;
   end;
 
   function AccessorTypeToStr(const AccessorType: TPasGLTF.TAccessor.TType): String;
@@ -1412,11 +1513,14 @@ var
     Coord: TCoordinateNode;
     TexCoord: TTextureCoordinateNode;
     Normal: TNormalNode;
+    Tangent: TTangentNode;
     Color: TColorNode;
     ColorRGBA: TColorRGBANode;
     ColorAccessor: TPasGLTF.TAccessor;
     IndexField: TMFLong;
     Appearance: TGltfAppearanceNode;
+    Tangent4D: TVector4List;
+    MetadataCollision: String;
   begin
     // create X3D geometry and shape nodes
     if Primitive.Indices <> -1 then
@@ -1502,11 +1606,15 @@ var
           Geometry.ColorField.Value := Color;
         end;
       end else
-      if (AttributeName = 'TANGENT') then
+      if (AttributeName = 'TANGENT') and (Geometry is TAbstractComposedGeometryNode) then
       begin
-        { Don't do anything -- we don't store tangents now,
-          but we can reliably calculate them when needed,
-          so don't warn about them being unimplemented. }
+        Tangent := TTangentNode.Create;
+        Tangent4D := TVector4List.Create;
+        try
+          AccessorToVector4(Primitive.Attributes[AttributeName], Tangent4D, false);
+          Tangent.SetVector4D(Tangent4D);
+        finally FreeAndNil(Tangent4D) end;
+        TAbstractComposedGeometryNode(Geometry).FdTangent.Value := Tangent;
       end else
       if (AttributeName = 'JOINTS_0') then
       begin
@@ -1536,8 +1644,19 @@ var
     // apply additional TGltfAppearanceNode parameters, specified in X3D at geometry
     Geometry.Solid := not Appearance.DoubleSided;
 
+    Shape.GenerateTangents;
+
+    MetadataCollision := ParentGroup.MetadataString['CastleCollision'];
+    case MetadataCollision of
+      'none': Shape.Collision := scNone;
+      'box': Shape.Collision := scBox;
+      '', 'default': Shape.Collision := scDefault;
+      else WritelnWarning('Invalid value for "CastleCollision" custom property, ignoring: %s', [MetadataCollision]);
+    end;
+
     // add to X3D
     ParentGroup.AddChildren(Shape);
+    ReadMetadata(Primitive.Extras, Shape);
   end;
 
   procedure ReadMesh(const Mesh: TPasGLTF.TMesh; const ParentGroup: TAbstractX3DGroupingNode);
@@ -1548,6 +1667,8 @@ var
     Group := TGroupNode.Create;
     Group.X3DName := Mesh.Name;
     ParentGroup.AddChildren(Group);
+
+    ReadMetadata(Mesh.Extras, Group);
 
     for Primitive in Mesh.Primitives do
       ReadPrimitive(Primitive, Group);
@@ -1570,14 +1691,20 @@ var
     begin
       OrthoViewpoint := TOrthoViewpointNode.Create;
       OrthoViewpoint.X3DName := Camera.Name;
+      OrthoViewpoint.GravityTransform := false;
       ParentGroup.AddChildren(OrthoViewpoint);
+
+      ReadMetadata(Camera.Extras, OrthoViewpoint);
     end else
     begin
       Viewpoint := TViewpointNode.Create;
       Viewpoint.X3DName := Camera.Name;
       if Camera.Perspective.YFov <> 0 then
         Viewpoint.FieldOfView := Camera.Perspective.YFov / 2;
+      Viewpoint.GravityTransform := false;
       ParentGroup.AddChildren(Viewpoint);
+
+      ReadMetadata(Camera.Extras, Viewpoint);
     end;
   end;
 
@@ -1652,6 +1779,8 @@ var
       Transform.Rotation := Rotation;
       Transform.Scale := Scale;
       ParentGroup.AddChildren(Transform);
+
+      ReadMetadata(Node.Extras, Transform);
 
       if Node.Mesh <> -1 then
       begin
@@ -1759,11 +1888,24 @@ var
       TPasGLTF.TAnimation.TSampler.TSamplerType.Linear: ; // nothing to do
       TPasGLTF.TAnimation.TSampler.TSamplerType.Step:
         begin
-          WritelnWarning('Animation interpolation Step not supported now, will be Linear');
+          case Path of
+            gsTranslation, gsScale:
+              ProcessStepTimeline(
+                InterpolatePosition.FdKey.Items,
+                InterpolatePosition.FdKeyValue.Items);
+            gsRotation:
+              ProcessStepTimeline(
+                InterpolateOrientation.FdKey.Items,
+                InterpolateOrientation.FdKeyValue.Items);
+            {$ifndef COMPILER_CASE_ANALYSIS}
+            else raise EInternalError.Create('ReadSampler - Path?');
+            {$endif}
+          end;
         end;
       TPasGLTF.TAnimation.TSampler.TSamplerType.CubicSpline:
         begin
-          WritelnWarning('Animation interpolation "CubicSpline" not supported yet, approximating by "Linear"');
+          // May spam too much. Assume that our current approximation is good enough.
+          // WritelnWarning('Animation interpolation "CubicSpline" not supported yet, approximating by "Linear"');
           case Path of
             gsTranslation, gsScale:
               begin
@@ -1928,11 +2070,16 @@ var
     To the AnimatedCoords, we will add OriginalCoords.Count vertexes.
 
     We also add to AnimatedNormals if they are <> nil.
-    Both OriginalNormals and AnimatedNormals must be nil or both must be <> nil. }
-  procedure SampleSkinAnimation(const Anim: TAnimation;
+    Both OriginalNormals and AnimatedNormals must be nil or both must be <> nil.
+
+    Similarly, we also add AnimatedTangents if they are <> nil.
+    And both OriginalTangents and AnimatedTangents must be nil or both must be <> nil.
+     }
+  procedure SampleSkinAnimation(const Anim: TAnimation; const KeyIndex: Integer;
     const TimeFraction: Single;
     const OriginalCoords, AnimatedCoords: TVector3List;
     const OriginalNormals, AnimatedNormals: TVector3List;
+    const OriginalTangents, AnimatedTangents: TVector3List;
     const Joints: TX3DNodeList; const JointsGltf: TPasGLTF.TSkin.TJoints;
     const InverseBindMatrices: TMatrix4List;
     const SkeletonRootIndex: Integer;
@@ -1946,6 +2093,8 @@ var
   begin
     Assert((AnimatedNormals = nil) = (OriginalNormals = nil));
     Assert((OriginalNormals = nil) or (OriginalNormals.Count = OriginalCoords.Count));
+    Assert((AnimatedTangents = nil) = (OriginalTangents = nil));
+    Assert((OriginalTangents = nil) or (OriginalTangents.Count = OriginalCoords.Count));
 
     AnimationSampler.Animation := Anim;
     AnimationSampler.SetTime(TimeFraction);
@@ -1990,9 +2139,11 @@ var
           JointMatrix.List^[VertexJoints.Data[2]] * VertexWeights.Data[2] +
           JointMatrix.List^[VertexJoints.Data[3]] * VertexWeights.Data[3];
       end;
-      AnimatedCoords.Add(SkinMatrix.MultPoint(OriginalCoords[I]));
+      AnimatedCoords.List^[KeyIndex * OriginalCoords.Count + I] := SkinMatrix.MultPoint(OriginalCoords[I]);
       if AnimatedNormals <> nil then
-        AnimatedNormals.Add(SkinMatrix.MultDirection(OriginalNormals[I]));
+        AnimatedNormals.List^[KeyIndex * OriginalNormals.Count + I] := SkinMatrix.MultDirection(OriginalNormals[I]);
+      if AnimatedTangents <> nil then
+        AnimatedTangents.List^[KeyIndex * OriginalTangents.Count + I] := SkinMatrix.MultDirection(OriginalTangents[I]);
     end;
   end;
 
@@ -2034,11 +2185,15 @@ var
     CoordField: TSFNode;
     Coord: TCoordinateNode;
     Normal: TNormalNode;
+    Tangent: TTangentNode;
     Anim: TAnimation;
     CoordInterpolator: TCoordinateInterpolatorNode;
     NormalInterpolator: TCoordinateInterpolatorNode;
+    TangentInterpolator: TCoordinateInterpolatorNode;
     I: Integer;
     OriginalNormals, AnimatedNormals: TVector3List;
+    OriginalTangents, AnimatedTangents: TVector3List;
+    MemoryTaken: Int64;
   begin
     CoordField := Shape.Geometry.CoordField;
     if CoordField = nil then
@@ -2058,6 +2213,7 @@ var
     end;
     Coord := CoordField.Value as TCoordinateNode;
 
+    // calculate Normal
     Normal := nil;
     if (Shape.Geometry.NormalField <> nil) and
        (Shape.Geometry.NormalField.Value is TNormalNode) then
@@ -2078,6 +2234,28 @@ var
         WritelnWarning('TODO: Normal vectors are not provided for a skinned geometry (using lit material), and in effect the resulting animation will be slow as we''ll recalculate normals more often than necessary. For now it is adviced to generate glTF with normals included for skinned meshes.');
     end;
 
+    // calculate Tangent
+    Tangent := nil;
+    if (Shape.Geometry.TangentField <> nil) and
+       (Shape.Geometry.TangentField.Value is TTangentNode) then
+    begin
+      Tangent := TTangentNode(Shape.Geometry.TangentField.Value);
+      // SampleSkinAnimation assumes that tangents and coords counts are equal
+      if Tangent.FdVector.Count <> Coord.FdPoint.Count then
+      begin
+        WritelnWarning('When animating using skin geometry %s, coords and tangents counts different', [
+          Shape.Geometry.NiceName
+        ]);
+        Tangent := nil;
+      end;
+    end else
+    begin
+      if ( (Shape.Material is TMaterialNode) or
+           (Shape.Material is TPhysicalMaterialNode) ) and
+         ((Shape.Material as TAbstractOneSidedMaterialNode).NormalTexture <> nil) then
+        WritelnWarning('TODO: Tangent vectors are not provided for a skinned geometry (using lit material with normalmap), and in effect the resulting animation will be slow as we''ll recalculate tangents more often than necessary. For now it is adviced to generate glTF with tangents included for skinned meshes.');
+    end;
+
     if (Shape.Geometry.InternalSkinJoints = nil) or
        (Shape.Geometry.InternalSkinWeights = nil) then
     begin
@@ -2092,6 +2270,13 @@ var
       CoordInterpolator := TCoordinateInterpolatorNode.Create;
       CoordInterpolator.X3DName := 'SkinCoordInterpolator_' + Anim.TimeSensor.X3DName;
       GatherAnimationKeysToSample(CoordInterpolator.FdKey.Items, Anim.Interpolators);
+      { Assign count, avoids later reallocating memory when adding vectors (slow),
+        and avoids Capacity >> Count (wasted memory).
+        This is important on large models.
+        Testcase: mouse_multiple,
+        - memory use: 180 MB vs 140 MB on each animation of dancing
+        - loading time: 14 vs 10 sec total. }
+      CoordInterpolator.FdKeyValue.Count := CoordInterpolator.FdKey.Count * Coord.FdPoint.Count;
 
       ParentGroup.AddChildren(CoordInterpolator);
       ParentGroup.AddRoute(Anim.TimeSensor.EventFraction_changed, CoordInterpolator.EventSet_fraction);
@@ -2104,6 +2289,7 @@ var
         //GatherAnimationKeysToSample(NormalInterpolator.FdKey.Items, Anim.Interpolators);
         // faster:
         NormalInterpolator.FdKey.Assign(CoordInterpolator.FdKey);
+        NormalInterpolator.FdKeyValue.Count := NormalInterpolator.FdKey.Count * Normal.FdVector.Count;
 
         ParentGroup.AddChildren(NormalInterpolator);
         ParentGroup.AddRoute(Anim.TimeSensor.EventFraction_changed, NormalInterpolator.EventSet_fraction);
@@ -2113,20 +2299,55 @@ var
         AnimatedNormals := NormalInterpolator.FdKeyValue.Items;
       end else
       begin
+        NormalInterpolator := nil;
         OriginalNormals := nil;
         AnimatedNormals := nil;
       end;
 
+      if Tangent <> nil then
+      begin
+        TangentInterpolator := TCoordinateInterpolatorNode.Create;
+        TangentInterpolator.X3DName := 'SkinTangentInterpolator_' + Anim.TimeSensor.X3DName;
+        //GatherAnimationKeysToSample(TangentInterpolator.FdKey.Items, Anim.Interpolators);
+        // faster:
+        TangentInterpolator.FdKey.Assign(CoordInterpolator.FdKey);
+        TangentInterpolator.FdKeyValue.Count := TangentInterpolator.FdKey.Count * Tangent.FdVector.Count;
+
+        ParentGroup.AddChildren(TangentInterpolator);
+        ParentGroup.AddRoute(Anim.TimeSensor.EventFraction_changed, TangentInterpolator.EventSet_fraction);
+        ParentGroup.AddRoute(TangentInterpolator.EventValue_changed, Tangent.FdVector);
+
+        OriginalTangents := Tangent.FdVector.Items;
+        AnimatedTangents := TangentInterpolator.FdKeyValue.Items;
+      end else
+      begin
+        TangentInterpolator := nil;
+        OriginalTangents := nil;
+        AnimatedTangents := nil;
+      end;
+
       for I := 0 to CoordInterpolator.FdKey.Items.Count - 1 do
       begin
-        SampleSkinAnimation(Anim, CoordInterpolator.FdKey.Items[I],
+        SampleSkinAnimation(Anim, I, CoordInterpolator.FdKey.Items[I],
           Coord.FdPoint.Items, CoordInterpolator.FdKeyValue.Items,
           OriginalNormals, AnimatedNormals,
+          OriginalTangents, AnimatedTangents,
           Joints, JointsGltf, InverseBindMatrices,
           SkeletonRootIndex,
           Shape.Geometry.InternalSkinJoints,
           Shape.Geometry.InternalSkinWeights);
       end;
+
+      MemoryTaken := CoordInterpolator.FdKeyValue.Items.Capacity * SizeOf(TVector3);
+      if NormalInterpolator <> nil then
+        MemoryTaken += NormalInterpolator.FdKeyValue.Items.Capacity * SizeOf(TVector3);
+      if TangentInterpolator <> nil then
+        MemoryTaken += TangentInterpolator.FdKeyValue.Items.Capacity * SizeOf(TVector3);
+      if MemoryTaken > 10 * 1024 * 1024 then // report only when memory usage > 10 MB
+        WritelnLog('glTF', 'Memory occupied by precalculating "%s" animation: %s', [
+          Anim.TimeSensor.X3DName,
+          SizeToStr(MemoryTaken)
+        ]);
 
       { We want to use Shape.BBox for optimization (to avoid recalculating bbox).
         Simple version:
@@ -2273,15 +2494,6 @@ var
   Material: TPasGLTF.TMaterial;
   Animation: TPasGLTF.TAnimation;
 begin
-  { Make absolute URL.
-
-    This also makes the later Document.RootPath calculation correct.
-    Otherwise "InclPathDelim(ExtractFilePath(URIToFilenameSafe('my_file.gtlf')))"
-    would result in '/' (accidentally making all TPasGLTF.TImage.URI values
-    relative to root directory on Unix). This was reproducible doing
-    "view3dscene my_file.gtlf" on the command-line. }
-  BaseUrl := AbsoluteURI(URL);
-
   Result := TX3DRootNode.Create('', BaseUrl);
   try
     // Set to nil local variables, to avoid nested try..finally..end construction
@@ -2305,10 +2517,14 @@ begin
       ReadHeader;
       Lights.ReadHeader(Document);
 
-      // read appearances (called "materials" in glTF; in X3D "material" is something smaller)
+      { Initialize DefaultAppearance.
+        Testcase: floor of ~/sources/castle-engine/demo-models/gltf/punctual_lights/test_lights.gltf,
+        it should use PBR (not be affected by PhongShading attribute). }
       DefaultAppearance := TGltfAppearanceNode.Create;
-      DefaultAppearance.Material := TMaterialNode.Create;
+      DefaultAppearance.Material := TPhysicalMaterialNode.Create;
       DefaultAppearance.DoubleSided := false;
+
+      // read appearances (called "materials" in glTF; in X3D "material" is something smaller)
       Appearances := TX3DNodeList.Create(false);
       for Material in Document.Materials do
         Appearances.Add(ReadAppearance(Material));
@@ -2335,23 +2551,21 @@ begin
       FreeAndNil(AnimationSampler);
       FreeIfUnusedAndNil(DefaultAppearance);
       X3DNodeList_FreeUnusedAndNil(Appearances);
+      { Note that some Nodes[...] items may be nil.
+
+        While in glTF there are no gaps (the nodes are a list without gaps),
+        but a particular Document.Scene may refer only to a subset of nodes,
+        and our ReadNode reads them recursively.
+        Unused nodes (not referred by Document.Scene) are left unprocessed,
+        and their Nodes[...] remains nil.
+
+        Still, X3DNodeList_FreeUnusedAndNil guarantees to handle it.
+        Testcase: GLB from https://www.kenney.nl/assets/city-kit-suburban . }
       X3DNodeList_FreeUnusedAndNil(Nodes);
       FreeAndNil(Lights);
       FreeAndNil(Document);
     end;
   except FreeAndNil(Result); raise end;
-end;
-
-function LoadGltf(const URL: string): TX3DRootNode;
-var
-  Stream: TStream;
-begin
-  { Using soForceMemoryStream, because PasGLTF does seeking,
-    otherwise reading glTF from Android assets (TReadAssetStream) would fail. }
-  Stream := Download(URL, [soForceMemoryStream]);
-  try
-    Result := LoadGltf(Stream, URL);
-  finally FreeAndNil(Stream) end;
 end;
 
 end.

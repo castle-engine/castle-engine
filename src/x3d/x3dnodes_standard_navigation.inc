@@ -14,49 +14,19 @@
 }
 
 {$ifdef read_interface}
-  { Common ancestor for both VRML 1.0 camera nodes and VRML/X3D >= 2.0 viewpoint
-    nodes. }
+  { Base type for viewpoints in X3D,
+    which are locations from which the user may view the scene. }
   TAbstractViewpointNode = class(TAbstractBindableNode)
   strict private
     procedure EventSet_BindReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
     function GetPosition: TVector3;
     procedure SetPosition(const Value: TVector3);
-    function GetOrientation: TVector4;
-    procedure SetOrientation(const Value: TVector4);
   strict protected
     function PositionField: TSFVec3f; virtual; abstract;
   public
-    procedure CreateNode; override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function TransformationChange: TNodeTransformationChange; override;
-
-    strict private FFdOrientation: TSFRotation;
-    public property FdOrientation: TSFRotation read FFdOrientation;
-    property Orientation: TVector4 read GetOrientation write SetOrientation;
-
-    strict private FFdDirection: TMFVec3f;
-    public property FdDirection: TMFVec3f read FFdDirection;
-
-    strict private FFdUp: TMFVec3f;
-    public property FdUp: TMFVec3f read FFdUp;
-
-    strict private FFdGravityUp: TSFVec3f;
-    public property FdGravityUp: TSFVec3f read FFdGravityUp;
-
-    strict private FEventCameraMatrix: TSFMatrix4fEvent;
-    public property EventCameraMatrix: TSFMatrix4fEvent read FEventCameraMatrix;
-
-    strict private FEventCameraInverseMatrix: TSFMatrix4fEvent;
-    public property EventCameraInverseMatrix: TSFMatrix4fEvent read FEventCameraInverseMatrix;
-
-    strict private FEventCameraRotationMatrix: TSFMatrix3fEvent;
-    public property EventCameraRotationMatrix: TSFMatrix3fEvent read FEventCameraRotationMatrix;
-
-    strict private FEventCameraRotationInverseMatrix: TSFMatrix3fEvent;
-    public property EventCameraRotationInverseMatrix: TSFMatrix3fEvent read FEventCameraRotationInverseMatrix;
-
-    strict private FFdCameraMatrixSendAlsoOnOffscreenRendering: TSFBool;
-    public property FdCameraMatrixSendAlsoOnOffscreenRendering: TSFBool read FFdCameraMatrixSendAlsoOnOffscreenRendering;
 
     { Position of the viewpoint. }
     property Position: TVector3 read GetPosition write SetPosition;
@@ -73,7 +43,7 @@
       )
 
       They are all then transformed by the current viewpoint transformation
-      (determined by parent nodes like Transform).
+      (determined by parent nodes like TTransformNode).
 
       One conclusion from the above is that the only way to change the gravity up
       vector (this determines in which direction viewer falls down)
@@ -86,30 +56,9 @@
       Returned CamDir, CamUp, GravityUp are @italic(always normalized). }
     procedure GetView(out CamPos, CamDir, CamUp, GravityUp: TVector3);
 
-    strict private FFdDescription: TSFString;
-    public property FdDescription: TSFString read FFdDescription;
-
     { Description generated smart (trying to use FdDescription field,
       falling back on other information to help user identify the node). }
     function SmartDescription: string; virtual;
-  end;
-
-  TX3DViewpointClassNode = class of TAbstractViewpointNode;
-
-  { Base type for viewpoints in X3D,
-    which are locations from which the user may view the scene. }
-  TAbstractX3DViewpointNode = class(TAbstractViewpointNode)
-  public
-    procedure CreateNode; override;
-
-    strict private FFdCenterOfRotation: TSFVec3f;
-    public property FdCenterOfRotation: TSFVec3f read FFdCenterOfRotation;
-
-    strict private FFdJump: TSFBool;
-    public property FdJump: TSFBool read FFdJump;
-
-    strict private FFdRetainUserOffsets: TSFBool;
-    public property FdRetainUserOffsets: TSFBool read FFdRetainUserOffsets;
 
     { Matrices for projecting texture from this viewpoint,
       for ProjectedTextureCoordinate.
@@ -124,12 +73,19 @@
     {$I auto_generated_node_helpers/x3dnodes_x3dviewpointnode.inc}
   end;
 
+  TAbstractX3DViewpointNode = TAbstractViewpointNode deprecated 'use TAbstractViewpointNode';
+
+  TX3DViewpointClassNode = class of TAbstractViewpointNode;
+
   TCameraVectors = record
     Position, Direction, Up: TVector3;
   end;
 
   { Grouping node that transforms the coordinate system of its children
-    so that they always turn towards the viewer. }
+    so that they always turn towards the viewer.
+    The local Z axis of the children faces the camera,
+    rotating around @link(AxisOfRotation) (it it is non-zero)
+    or rotating freely in 3D (when @link(AxisOfRotation) is exactly zero). }
   TBillboardNode = class(TAbstractX3DGroupingNode, ITransformNode)
   strict private
     FCameraVectors: TCameraVectors;
@@ -142,7 +98,8 @@
     class function ClassX3DType: string; override;
     function TransformationChange: TNodeTransformationChange; override;
 
-    procedure CameraChanged(const ACameraVectors: TCameraVectors);
+    { Change transformation to reflect current camera. @exclude }
+    procedure InternalCameraChanged(const ACameraVectors: TCameraVectors);
 
     strict private FFdAxisOfRotation: TSFVec3f;
     public property FdAxisOfRotation: TSFVec3f read FFdAxisOfRotation;
@@ -318,7 +275,7 @@
   end;
 
   { Viewpoint that provides an orthographic view of the scene. }
-  TOrthoViewpointNode = class(TAbstractX3DViewpointNode)
+  TOrthoViewpointNode = class(TAbstractViewpointNode)
   strict private
     function GetFieldOfViewDefault(const Index: Integer): Single;
     function GetFieldOfView(const Index: Integer): Single;
@@ -375,7 +332,7 @@
   end;
 
   { Viewpoint that provides a perspective view of the scene. }
-  TViewpointNode = class(TAbstractX3DViewpointNode)
+  TViewpointNode = class(TAbstractViewpointNode)
   strict protected
     function PositionField: TSFVec3f; override;
   public
@@ -400,7 +357,7 @@
 
       In particular when FieldOfViewAxis = faSmallest then we perform
       the calculation requested by X3D specification about
-      ViewpointNode fieldOfView behaviour. }
+      ViewpointNode fieldOfView behavior. }
     class function InternalFieldOfView(FieldOfView: Single;
       const FieldOfViewAxis: TFieldOfViewAxis;
       const ViewportWidth, ViewportHeight: Single): TVector2;
@@ -447,51 +404,16 @@
 
 {$ifdef read_implementation}
 
-{ TAbstractX3DViewpointNode -------------------------------------------------- }
+{ TAbstractViewpointNode -------------------------------------------------- }
 
-procedure TAbstractViewpointNode.CreateNode;
+constructor TAbstractViewpointNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
-
-  { In X3D, this is part of X3DViewpointNode.
-    In our engine, X3DViewpointNode descends from TAbstractViewpointNode
-    inheriting "orientation" field this way. }
-  FFdOrientation := TSFRotation.Create(Self, true, 'orientation', Vector3(0, 0, 1), 0);
-   FdOrientation.ChangeAlways := chViewpointVectors;
-  AddField(FFdOrientation);
-  { X3D specification comment: [-1,1],(-Inf,Inf) }
-
-  FFdDirection := TMFVec3f.Create(Self, true, 'direction', []);
-   FdDirection.ChangeAlways := chViewpointVectors;
-  AddField(FFdDirection);
-
-  FFdUp := TMFVec3f.Create(Self, true, 'up', []);
-   FdUp.ChangeAlways := chViewpointVectors;
-  AddField(FFdUp);
-
-  FFdGravityUp := TSFVec3f.Create(Self, true, 'gravityUp', DefaultX3DGravityUp);
-   FdGravityUp.ChangeAlways := chViewpointVectors;
-  AddField(FFdGravityUp);
-
-  FEventCameraMatrix := TSFMatrix4fEvent.Create(Self, 'cameraMatrix', false);
-  AddEvent(FEventCameraMatrix);
-
-  FEventCameraInverseMatrix := TSFMatrix4fEvent.Create(Self, 'cameraInverseMatrix', false);
-  AddEvent(FEventCameraInverseMatrix);
-
-  FEventCameraRotationMatrix := TSFMatrix3fEvent.Create(Self, 'cameraRotationMatrix', false);
-  AddEvent(FEventCameraRotationMatrix);
-
-  FEventCameraRotationInverseMatrix := TSFMatrix3fEvent.Create(Self, 'cameraRotationInverseMatrix', false);
-  AddEvent(FEventCameraRotationInverseMatrix);
-
-  FFdCameraMatrixSendAlsoOnOffscreenRendering := TSFBool.Create(Self, true, 'cameraMatrixSendAlsoOnOffscreenRendering', false);
-  AddField(FFdCameraMatrixSendAlsoOnOffscreenRendering);
-
-  FFdDescription := TSFString.Create(Self, true, 'description', '');
-  AddField(FFdDescription);
-
   Eventset_bind.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
+  FdOrientation.ChangeAlways := chViewpointVectors;
+  FdDirection.ChangeAlways := chViewpointVectors;
+  FdUp.ChangeAlways := chViewpointVectors;
+  FdGravityUp.ChangeAlways := chViewpointVectors;
 end;
 
 procedure TAbstractViewpointNode.GetView(
@@ -525,14 +447,17 @@ begin
   if GravityUp.IsZero then
     GravityUp := DefaultX3DGravityUp;
 
-  { Niestety, macierz ponizej moze cos skalowac wiec nawet jesli powyzej
-    uzylismy FdOrientation.RotatedPoint( DefaultX3DCameraDirection/Up ) i wiemy ze CamDir/Up
-    jest znormalizowane - to i tak musimy je tutaj znormalizowac.
-    TODO: byloby dobrze uzyc tutaj czegos jak Transform.MultDirectionNoScale }
   CamPos    := Transform.MultPoint(CamPos);
+  { Since the Transform can contain scale,
+    we need to always normalize resulting vectors,
+    even if input (like CamDir) was already normalized. }
   CamDir    := Transform.MultDirection(CamDir).Normalize;
   CamUp     := Transform.MultDirection(CamUp).Normalize;
-  GravityUp := Transform.MultDirection(GravityUp).Normalize;
+
+  if GravityTransform then
+    GravityUp := Transform.MultDirection(GravityUp).Normalize
+  else
+    GravityUp.NormalizeMe;
 
   Assert(SameValue(CamDir.LengthSqr, 1.0, 0.0001));
   Assert(SameValue(CamUp.LengthSqr, 1.0, 0.0001));
@@ -571,39 +496,12 @@ begin
   PositionField.Send(Value);
 end;
 
-function TAbstractViewpointNode.GetOrientation: TVector4;
-begin
-  Result := FdOrientation.Value;
-end;
-
-procedure TAbstractViewpointNode.SetOrientation(const Value: TVector4);
-begin
-  FdOrientation.Send(Value);
-end;
-
-procedure TAbstractX3DViewpointNode.CreateNode;
-begin
-  inherited;
-
-  FFdCenterOfRotation := TSFVec3f.Create(Self, true, 'centerOfRotation', Vector3(0, 0, 0));
-  AddField(FFdCenterOfRotation);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdJump := TSFBool.Create(Self, true, 'jump', true);
-  AddField(FFdJump);
-
-  FFdRetainUserOffsets := TSFBool.Create(Self, true, 'retainUserOffsets', false);
-  AddField(FFdRetainUserOffsets);
-
-  DefaultContainerField := 'children';
-end;
-
-function TAbstractX3DViewpointNode.ProjectionMatrix: TMatrix4;
+function TAbstractViewpointNode.ProjectionMatrix: TMatrix4;
 begin
   Result := TMatrix4.Identity;
 end;
 
-function TAbstractX3DViewpointNode.ModelviewMatrix: TMatrix4;
+function TAbstractViewpointNode.ModelviewMatrix: TMatrix4;
 var
   CamPos, CamDir, CamUp, CamGravityUp: TVector3;
 begin
@@ -611,7 +509,7 @@ begin
   Result := LookDirMatrix(CamPos, CamDir, CamUp);
 end;
 
-function TAbstractX3DViewpointNode.GetProjectorMatrix: TMatrix4;
+function TAbstractViewpointNode.GetProjectorMatrix: TMatrix4;
 begin
   Result := ProjectionMatrix * ModelviewMatrix;
 end;
@@ -717,7 +615,7 @@ begin
   end;
 end;
 
-procedure TBillboardNode.CameraChanged(const ACameraVectors: TCameraVectors);
+procedure TBillboardNode.InternalCameraChanged(const ACameraVectors: TCameraVectors);
 begin
   FCameraVectorsKnown := true;
   FCameraVectors := ACameraVectors;
@@ -1220,7 +1118,7 @@ begin
   case FieldOfViewAxis of
     faSmallest:
       begin
-        { This follows X3D specification about ViewpointNode fieldOfView behaviour. }
+        { This follows X3D specification about ViewpointNode fieldOfView behavior. }
         ClampVar(FieldOfView, 0.01, Pi - 0.01);
         if ViewportWidth < ViewportHeight then
         begin
@@ -1280,7 +1178,7 @@ begin
   AddField(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdChildren := TMFNode.Create(Self, true, 'children', [TAbstractX3DViewpointNode, TViewpointGroupNode]);
+  FFdChildren := TMFNode.Create(Self, true, 'children', [TAbstractViewpointNode, TViewpointGroupNode]);
   AddField(FFdChildren);
 
   FFdDescription := TSFString.Create(Self, true, 'description', '');

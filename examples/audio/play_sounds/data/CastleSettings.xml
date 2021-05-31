@@ -8,7 +8,7 @@
 <castle_settings>
   <ui_scaling
     mode="EncloseReferenceSize"
-    reference_width="1600"
-    reference_height="900"
+    reference_width="1280"
+    reference_height="720"
   />
 </castle_settings>

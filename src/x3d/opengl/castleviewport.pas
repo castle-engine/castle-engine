@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2019 Michalis Kamburelis.
+  Copyright 2009-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,8 +25,8 @@ uses SysUtils, Classes, Generics.Collections,
   CastleVectors, X3DNodes, X3DTriangles, CastleScene, CastleSceneCore, CastleCameras,
   CastleInternalGLShadowVolumes, CastleUIControls, CastleTransform, CastleTriangles,
   CastleKeysMouse, CastleBoxes, CastleInternalBackground, CastleUtils, CastleClassUtils,
-  CastleGLShaders, CastleGLImages, CastleTimeUtils,
-  CastleInputs, CastleRectangles, CastleColors,
+  CastleGLShaders, CastleGLImages, CastleTimeUtils, CastleControls,
+  CastleInputs, CastleRectangles, CastleColors, CastleComponentSerialize,
   CastleProjection, CastleScreenEffects;
 
 type
@@ -106,6 +106,10 @@ type
         Viewport: TCastleViewport;
         function SetupUniforms(var BoundTextureUnits: Cardinal): Boolean; override;
       end;
+      TSSRScreenEffect = class(TGLSLScreenEffect)
+        Viewport: TCastleViewport;
+        function SetupUniforms(var BoundTextureUnits: Cardinal): Boolean; override;
+      end;
     var
       FCamera: TCastleCamera;
       FRenderParams: TManagerRenderParams;
@@ -134,6 +138,11 @@ type
       SSAOShader: TSSAOScreenEffect;
       SSAOShaderInitialized: Boolean;
 
+      FScreenSpaceReflections: Boolean;
+      SSRShader: TSSRScreenEffect;
+      SSRShaderInitialized: Boolean;
+      FScreenSpaceReflectionsSurfaceGlossiness: Single;
+
       FOnCameraChanged: TNotifyEvent;
       { Renderer of shadow volumes. You can use this to optimize rendering
         of your shadow quads in RenderShadowVolume, and you can read
@@ -142,21 +151,28 @@ type
         @nil when OpenGL context is not yet initialized. }
       FShadowVolumeRenderer: TGLShadowVolumeRenderer;
       FItems: TCastleRootTransform;
-      ScheduledVisibleChangeNotification: boolean;
-      ScheduledVisibleChangeNotificationChanges: TVisibleChanges;
+      LastVisibleStateIdForVisibleChange: TFrameId;
 
       FOnBoundViewpointChanged, FOnBoundNavigationInfoChanged: TNotifyEvent;
       FMouseRayHit: TRayCollision;
+      MouseRayOrigin, MouseRayDirection: TVector3;
       FAvoidNavigationCollisions: TCastleTransform;
       PrepareResourcesDone: Boolean;
       FPreventInfiniteFallingDown: Boolean;
+      FCapturePointingDevice: TCastleTransform;
+      FCapturePointingDeviceObserver: TFreeNotificationObserver;
+      FLastSeenMainScene: TCastleScene; // only used by editor
 
     function FillsWholeContainer: boolean;
     function IsStoredNavigation: Boolean;
     procedure SetScreenSpaceAmbientOcclusion(const Value: boolean);
+    procedure SetScreenSpaceReflections(const Value: Boolean);
+    procedure SetScreenSpaceReflectionsSurfaceGlossiness(const Value: Single);
     procedure SSAOShaderInitialize;
+    procedure SSRShaderInitialize;
     function GetNavigationType: TNavigationType;
     procedure SetAutoCamera(const Value: Boolean);
+    procedure SetAutoNavigation(const Value: Boolean);
     { Make sure to call AssignDefaultCamera, if needed because of AutoCamera. }
     procedure EnsureCameraDetected;
     procedure SetItems(const Value: TCastleRootTransform);
@@ -191,6 +207,31 @@ type
       or when Navigation uses MouseLook (in which case, returns the middle of our area,
       the actual mouse position should not be even visible to the user). }
     function GetMousePosition(out MousePosition: TVector2): Boolean;
+
+    procedure SetCapturePointingDevice(const AValue: TCastleTransform);
+    { Once a TCastleTransform will handle a PointingDevicePress event,
+      we make sure to pass subsequent PointingDeviceMove and PointingDeviceRelease to it too,
+      before other TCastleTransform instances,
+      and regardless if ray hits this TCastleTransform still.
+      This way TCastleTransform can handle e.g. dragging with mouse/touch,
+      regardless if mouse/touch stays over this transform.
+
+      The reason and implementation of this mechanism is similar to
+      TUIContainer.FCaptureInput. }
+    property CapturePointingDevice: TCastleTransform
+      read FCapturePointingDevice write SetCapturePointingDevice;
+    procedure CapturePointingDeviceFreeNotification(const Sender: TFreeNotificationObserver);
+
+    { Initialize TRayCollisionNode to specify collision with given TCastleTransform
+      without any specific Triangle/Point.
+      The given RayOrigin / RayOrigin are in world coordinates
+      (internally we will convert them to TCastleTransform coordinates). }
+    function FakeRayCollisionNode(const RayOriginWorld, RayDirectionWorld: TVector3;
+      const Item: TCastleTransform): TRayCollisionNode;
+
+    { Whether to look at AvoidNavigationCollisions.
+      Checks that AvoidNavigationCollisions is set, and it is part of current @link(Items). }
+    function UseAvoidNavigationCollisions: Boolean;
   private
     var
       FNavigation: TCastleNavigation;
@@ -216,11 +257,6 @@ type
       This takes care to always update Camera.ProjectionMatrix,
       Projection, MainScene.BackgroundSkySphereRadius. }
     procedure ApplyProjection;
-    procedure ItemsVisibleChange(const Sender: TCastleTransform; const Changes: TVisibleChanges);
-
-    { What changes happen when camera changes.
-      You may want to use it when calling Scene.CameraChanged. }
-    function CameraToChanges(const ACamera: TCastleCamera): TVisibleChanges;
 
     { Render shadow quads for all the things rendered by @link(Render3D).
       You can use here ShadowVolumeRenderer instance, which is guaranteed
@@ -229,14 +265,27 @@ type
     procedure RenderShadowVolume;
 
     { Detect position/direction of the main light that produces shadows.
-      Looks at MainScene.InternalMainLightForShadows. }
+      Looks at MainScene.InternalMainLightForShadows.
+      Returns light position (or direction, if W = 0) in world space. }
     function MainLightForShadows(out AMainLightPosition: TVector4): boolean;
 
-    { Pass pointing device (mouse) activation/deactivation event to 3D world. }
-    function PointingDeviceActivate(const Active: boolean): boolean;
+    { Pass pointing device (mouse or touch) press event
+      to TCastleTransform instances in @link(Items).
+      Depends that MouseRayHit, MouseRayOrigin, MouseRayDirection are already updated. }
+    function PointingDevicePress: boolean;
 
-    { Pass pointing device (mouse) move event to 3D world. }
-    function PointingDeviceMove(const RayOrigin, RayDirection: TVector3): boolean;
+    { Pass pointing device (mouse or touch) press event
+      to TCastleTransform instances in @link(Items).
+      Depends that MouseRayHit, MouseRayOrigin, MouseRayDirection are already updated. }
+    function PointingDeviceRelease: boolean;
+
+    { Pass pointing device (mouse or touch) move event
+      to TCastleTransform instances in @link(Items).
+      Depends that MouseRayHit, MouseRayOrigin, MouseRayDirection are already updated. }
+    function PointingDeviceMove: boolean;
+
+    { Update MouseRayHit. }
+    procedure UpdateMouseRayHit;
   protected
     { Calculate projection parameters. Determines if the view is perspective
       or orthogonal and exact field of view parameters.
@@ -301,17 +350,10 @@ type
     function InternalExtraScreenEffectsCount: Integer; override;
     function InternalExtraScreenEffectsNeedDepth: Boolean; override;
 
-    { Called when PointingDeviceActivate was not handled by any 3D object.
+    { Called when PointingDevicePress was not handled by any TCastleTransform object.
       You can override this to make a message / sound signal to notify user
       that his Input_Interact click was not successful. }
-    procedure PointingDeviceActivateFailed(const Active: boolean); virtual;
-
-    { Handle pointing device (mouse) activation/deactivation event over a given 3D
-      object. See TCastleTransform.PointingDeviceActivate method for description how it
-      should be handled. Default implementation in TCastleViewport
-      just calls TCastleTransform.PointingDeviceActivate. }
-    function PointingDeviceActivate3D(const Item: TCastleTransform; const Active: boolean;
-      const Distance: Single): boolean; virtual;
+    procedure PointingDevicePressFailed; virtual;
 
     procedure BoundNavigationInfoChanged; virtual;
     procedure BoundViewpointChanged; virtual;
@@ -320,6 +362,8 @@ type
   public
     const
       DefaultScreenSpaceAmbientOcclusion = false;
+      DefaultScreenSpaceReflections = False;
+      DefaultScreenSpaceReflectionsSurfaceGlossiness = 0.5;
       DefaultUseGlobalLights = true;
       DefaultUseGlobalFog = true;
       DefaultShadowVolumes = true;
@@ -343,6 +387,19 @@ type
         @exclude }
       InternalDistortFieldOfViewY, InternalDistortViewAspect: Single;
 
+      { Do not navigate by dragging when we're already dragging a TCastleTransform item.
+        This means that if you drag
+
+        - X3D sensors like TouchSensor,
+        - gizmo in CGE editor,
+
+        ... then your dragging will not simultaneously also affect the navigation
+        (which would be very disorienting).
+
+        Set to true when some TCastleTransform handles PointingDevicePress,
+        set to false in PointingDeviceRelease. }
+      InternalPointingDeviceDragging: Boolean;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -352,16 +409,14 @@ type
     function Motion(const Event: TInputMotion): boolean; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
-    procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
-      const ChangeInitiatedByChildren: boolean = false); override;
     procedure BeforeRender; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     function GetMainScene: TCastleScene; deprecated 'use Items.MainScene';
 
-    { Update MouseHitRay and update Items (TCastleTransform hierarchy) knowledge
-      about the current pointing device.
-      You usually don't need to call this, as it is done at every mouse move. }
-    procedure UpdateMouseRayHit;
+    { Notification done by TCastleCamera when our Camera state changed.
+      @exclude }
+    procedure InternalCameraChanged;
 
     { Current projection parameters,
       calculated by last @link(CalculateProjection) call,
@@ -447,7 +502,7 @@ type
       after a @name call. No previous cached camera instance will be used. }
     procedure ClearCameras; deprecated 'just set Navigation to nil instead of using this method; to avoid reusing previous instance, do not use WalkNavigation/ExamineNavigation methods, instead create and destroy your own TCastleWalkNavigation/TCastleExamineNavigation whenever you want';
 
-    { Camera instances used by this scene manager.
+    { Camera instances used by this viewport.
       Using these methods automatically creates these instances
       (so they are never @nil).
 
@@ -457,7 +512,7 @@ type
 
       When you switch navigation types by calling @link(ExamineCamera),
       @link(WalkCamera) or setting @link(NavigationType)
-      the scene manager keeps using these instances of cameras,
+      the viewport keeps using these instances of cameras,
       instead of creating new camera instances.
       This way all the camera properties
       (not only those copied by TCastleNavigation.Assign) are preserved when you switch
@@ -522,6 +577,12 @@ type
       You can use it e.g. to disable the menu item to switch SSAO in 3D viewer. }
     function ScreenSpaceAmbientOcclusionAvailable: boolean;
 
+    { Does the graphic card support our ScreenSpaceReflections shader.
+      This does @italic(not) depend on the current state of
+      ScreenSpaceReflections property.
+      You can use it e.g. to disable the menu item to switch SSR in 3D viewer. }
+    function ScreenSpaceReflectionsAvailable: boolean;
+
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
 
@@ -569,6 +630,15 @@ type
       read FScreenSpaceAmbientOcclusion write SetScreenSpaceAmbientOcclusion
       default DefaultScreenSpaceAmbientOcclusion;
 
+    { Enable built-in SSR screen effect in the world. }
+    property ScreenSpaceReflections: Boolean
+      read FScreenSpaceReflections write SetScreenSpaceReflections
+      default DefaultScreenSpaceReflections;
+
+    { Adjust SSR default surface glossiness. }
+    property ScreenSpaceReflectionsSurfaceGlossiness: Single
+      read FScreenSpaceReflectionsSurfaceGlossiness write SetScreenSpaceReflectionsSurfaceGlossiness;
+
     { Called on any camera change. }
     property OnCameraChanged: TNotifyEvent read FOnCameraChanged write FOnCameraChanged;
 
@@ -603,11 +673,11 @@ type
           @link(TCastleOrthographic.Width Camera.Orthographic.Width) and/or
           @link(TCastleOrthographic.Height Camera.Orthographic.Height)
           to define visible projection size (horizontal or vertical) explicitly,
-          regardless of the scene manager size.
+          regardless of the viewport size.
 
           Setting @link(TCastleOrthographic.Origin Camera.Orthographic.Origin)
           is also often useful, e.g. set it to (0.5,0.5) to make the things positioned
-          at (0,0) in the world visible at the middle of the scene manager.
+          at (0,0) in the world visible at the middle of the viewport.
 
           By default our visible Z range is [-1500, 500],
           because this sets ProjectionNear to -1000, ProjectionFar to 1000,
@@ -778,7 +848,7 @@ type
       const PlaneZ: Single; out PlanePosition: TVector3): Boolean;
 
     { Convert 2D position into "world coordinates", which is the coordinate
-      space seen by TCastleTransform / TCastleScene inside scene manager @link(Items),
+      space seen by TCastleTransform / TCastleScene inside viewport @link(Items),
       assuming that we use orthographic projection in XY axes.
 
       The interpretation of Position depends on ScreenCoordinates,
@@ -812,8 +882,8 @@ type
     function PositionTo2DWorld(const Position: TVector2;
       const ScreenCoordinates: Boolean): TVector2;
 
-    { Prepare resources, to make various methods (like @link(Render))
-      execute fast.
+    { Prepare resources, to make various methods (like @link(Render)) execute fast.
+      Call it only when rendering context is initialized (ApplicationProperties.IsGLContextOpen).
       If DisplayProgressTitle <> '', we will display progress bar during loading. }
     procedure PrepareResources(const DisplayProgressTitle: string = '';
       const Options: TPrepareResourcesOptions = DefaultPrepareOptions);
@@ -932,30 +1002,30 @@ type
     property BackgroundWireframe: boolean
       read FBackgroundWireframe write FBackgroundWireframe default false;
 
-    { If yes then we will not draw any background, letting the window contents
-      underneath be visible (in places where we do not draw our own 3D geometry,
-      or where our own geometry is transparent, e.g. by Material.transparency).
-      For this to make sense, make sure that you always place some other 2D control
-      under this viewport, that actually draws something predictable underneath.
+    { If yes then the viewport will not draw a background, letting the window contents
+      underneath be visible (on pixels which are not drawn by this viewport's @link(Items),
+      and on pixels which are drawn but with partially-transparent materials).
 
-      The normal background, derived from @link(Background) will be ignored.
-      We will also not do any RenderContext.Clear on color buffer.
-      Also BackgroundWireframe and BackgroundColor doesn't matter in this case. }
+      In effect, the @link(BackgroundColor), @link(BackgroundWireframe),
+      and any background defined using X3D nodes (like @link(TBackgroundNode),
+      @link(TTextureBackgroundNode), @link(TImageBackgroundNode)) inside
+      @link(TCastleRootTransform.MainScene MainScene) will be ignored. }
     property Transparent: boolean read FTransparent write FTransparent default false;
 
-    { At the beginning of rendering, scene manager by default clears
-      the depth buffer. This makes every scene manager draw everything
+    { At the beginning of rendering, viewport by default clears
+      the depth buffer. This makes every viewport draw everything
       on top of the previous 2D and 3D stuff (including on top
-      of previous scene managers), like a layer.
+      of previous viewport), like a layer.
 
       You can disable this, which allows to combine together the 3D objects rendered
-      by various scene managers (and by custom OpenGL rendering),
+      by various viewports (and by custom OpenGL rendering),
       such that the 3D positions determime what overlaps what.
-      This only makes sense if all these scene managers (or custom renderers)
-      use the same viewport, the same projection and the same camera.
+      This only makes sense if you have a number of TCastleViewport instances,
+      that share the same size and position on the screen,
+      same projection and the same camera.
 
       It's your responsibility in such case to clear the depth buffer.
-      E.g. place one scene manager in the back that has ClearDepth = @true.
+      E.g. place one viewport in the back that has ClearDepth = @true.
       Or place a TCastleUserInterface descendant in the back, that calls
       @code(TRenderContext.Clear RenderContext.Clear) in overridden
       @link(TCastleUserInterface.Render).
@@ -986,24 +1056,24 @@ type
       read FUseGlobalFog write FUseGlobalFog default DefaultUseGlobalFog;
 
     { Help user to activate pointing device sensors and pick items.
-      Every time you press or release Input_Interact (by default
-      just left mouse button), we look if current mouse position hits 3D object
-      that actually does something on activation. The objects may do various stuff
-      inside TCastleTransform.PointingDeviceActivate, generally this causes various
+      Every time you press Input_Interact (by default
+      just left mouse button), we look if current mouse/touch position hits an object (TCastleTransform)
+      that actually does something on activation. The object may do various stuff
+      inside TCastleTransform.PointingDevicePress, generally this causes various
       picking/interaction with the object (like pulling a level, opening a door),
       possibly dragging, possibly with the help of VRML/X3D pointing device
       and drag sensors.
 
       When this is @true, we try harder to hit some 3D object that handles
-      PointingDeviceActivate. If there's nothing interesting under mouse,
-      we will retry a couple of other positions arount the current mouse.
+      PointingDevicePress. If there's nothing interesting under mouse/touch,
+      we will retry a couple of other positions around the current mouse/touch.
 
       This should be usually used when you use TCastleMouseLookNavigation.MouseLook,
       or other navigation when mouse cursor is hidden.
       It allows user to only approximately look at interesting item and hit
       interaction button or key.
-      Otherwise, activating a small 3D object is difficult,
-      as you don't see the mouse cursor. }
+      Otherwise, activating a small object is difficult,
+      as you don't see the cursor. }
     property ApproximateActivation: boolean
       read FApproximateActivation write FApproximateActivation default false;
 
@@ -1038,12 +1108,12 @@ type
       deprecated 'adjust projection by changing Camera.ProjectionType and other projection parameters inside Camera';
 
     { Enable to drag a parent control, for example to drag a TCastleScrollView
-      that contains this scene manager, even when the scene inside contains
+      that contains this TCastleViewport, even when the scene inside contains
       clickable elements (using TouchSensor node).
 
       To do this, you need to turn on
       TCastleScrollView.EnableDragging, and set EnableParentDragging=@true
-      here. In effect, scene manager will cancel the click operation
+      here. In effect, viewport will cancel the click operation
       once you start dragging, which allows the parent to handle
       all the motion events for dragging. }
     property EnableParentDragging: boolean
@@ -1053,13 +1123,12 @@ type
       (initial position, direction, up, TCastleCamera.ProjectionNear)
       by looking at the initial world (@link(Items)) when rendering the first frame.
 
-      The @link(AssignDefaultCamera) is called only if this property is @true.
+      The @link(AssignDefaultCamera) is automatically called only if this property is @true.
 
       Also, only if this property is @true, we synchronize
       camera when X3D Viewpoint node changes, or a new X3D Viewpoint node is bound.
 
-      By default it is @true. Setting it to @false effectively means
-      that you control @link(Camera) properties on your own.
+      By default it is @false, which means you control @link(Camera) properties on your own.
     }
     property AutoCamera: Boolean
       read FAutoCamera write SetAutoCamera default false;
@@ -1070,11 +1139,10 @@ type
       This also allows to later synchronize navigation properties when X3D NavigationInfo
       node changes, or a new NavigationInfo node is bound.
 
-      By default it is @true. Setting it to @false effectively means
-      that you control @link(Navigation) on your own.
+      By default it is @false, which means that you control @link(Navigation) on your own.
     }
     property AutoNavigation: Boolean
-      read FAutoNavigation write FAutoNavigation default false;
+      read FAutoNavigation write SetAutoNavigation default false;
 
     { Called when bound Viewpoint node changes.
       Called exactly when TCastleSceneCore.ViewpointStack.OnBoundChanged is called. }
@@ -1211,6 +1279,11 @@ var
     or TInputShortcut.MouseButtonUse. }
   Input_Interact: TInputShortcut;
 
+{$define read_interface}
+{$I castleviewport_touchnavigation.inc}
+{$I castleviewport_serialize.inc}
+{$undef read_interface}
+
 implementation
 
 {$warnings off}
@@ -1220,14 +1293,19 @@ uses DOM, Math,
   CastleRenderingCamera,
   CastleGLUtils, CastleProgress, CastleLog, CastleStringUtils,
   CastleSoundEngine, CastleGLVersion, CastleShapes, CastleTextureImages,
-  CastleComponentSerialize, CastleInternalSettings, CastleXMLUtils, CastleURIUtils;
+  CastleInternalSettings, CastleXMLUtils, CastleURIUtils,
+  CastleRenderContext, CastleApplicationProperties;
 {$warnings on}
 
 procedure Register;
 begin
 end;
 
+{$define read_implementation}
+{$I castleviewport_touchnavigation.inc}
 {$I castleviewport_warmup_cache.inc}
+{$I castleviewport_serialize.inc}
+{$undef read_implementation}
 
 { TManagerRenderParams ------------------------------------------------------- }
 
@@ -1272,6 +1350,28 @@ begin
   Uniform('far').SetValue(1000.0);
 end;
 
+{ TSSRScreenEffect ---------------------------------------------------------- }
+
+function TCastleViewport.TSSRScreenEffect.SetupUniforms(var BoundTextureUnits: Cardinal): Boolean;
+var
+  ViewProjectionMatrix,
+  ViewProjectionMatrixInverse: TMatrix4;
+begin
+  Result := inherited;
+
+  { set special uniforms for SSR shader }
+
+  Uniform('near').SetValue(0.1);
+  Uniform('far').SetValue(1000.0);
+  ViewProjectionMatrix := Viewport.Camera.ProjectionMatrix * Viewport.Camera.Matrix;
+  if not ViewProjectionMatrix.TryInverse(ViewProjectionMatrixInverse) then
+    ViewProjectionMatrixInverse := TMatrix4.Identity;
+  Uniform('defaultSurfaceGlossiness').SetValue(Viewport.ScreenSpaceReflectionsSurfaceGlossiness);
+  Uniform('castle_ViewProjectionMatrix').SetValue(ViewProjectionMatrix);
+  Uniform('castle_ViewProjectionMatrixInverse').SetValue(ViewProjectionMatrixInverse);
+  Uniform('castle_CameraPosition').SetValue(Viewport.Camera.Position);
+end;
+
 { TCastleViewport ------------------------------------------------------- }
 
 constructor TCastleViewport.Create(AOwner: TComponent);
@@ -1283,6 +1383,7 @@ begin
   FRenderParams := TManagerRenderParams.Create;
   FPrepareParams := TPrepareParams.Create;
   FShadowVolumes := DefaultShadowVolumes;
+  FScreenSpaceReflectionsSurfaceGlossiness := DefaultScreenSpaceReflectionsSurfaceGlossiness;
   FClearDepth := true;
   InternalDistortFieldOfViewY := 1;
   InternalDistortViewAspect := 1;
@@ -1299,8 +1400,10 @@ begin
   FItems.SetSubComponent(true);
   FItems.Name := 'Items';
   FItems.OnCursorChange := @RecalculateCursor;
-  FItems.OnVisibleChange := @ItemsVisibleChange;
   FItems.MainCamera := Camera;
+
+  FCapturePointingDeviceObserver := TFreeNotificationObserver.Create(Self);
+  FCapturePointingDeviceObserver.OnFreeNotification := @CapturePointingDeviceFreeNotification;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
@@ -1346,6 +1449,21 @@ begin
   inherited;
 end;
 
+procedure TCastleViewport.SetCapturePointingDevice(const AValue: TCastleTransform);
+begin
+  if FCapturePointingDevice <> AValue then
+  begin
+    FCapturePointingDevice := AValue;
+    FCapturePointingDeviceObserver.Observed := AValue;
+  end;
+end;
+
+procedure TCastleViewport.CapturePointingDeviceFreeNotification(
+  const Sender: TFreeNotificationObserver);
+begin
+  CapturePointingDevice := nil;
+end;
+
 function TCastleViewport.FillsWholeContainer: boolean;
 begin
   if Container = nil then
@@ -1356,19 +1474,19 @@ end;
 
 procedure TCastleViewport.SetNavigation(const Value: TCastleNavigation);
 begin
-  { Scene manager / viewport will handle passing events to their camera,
+  { Viewport will handle passing events to their camera,
     and will also pass our own Container to Camera.Container.
     This is desired, this way events are correctly passed
     and interpreted before passing them to 3D objects.
     And this way we avoid the question whether camera should be before
-    or after the scene manager / viewport on the Controls list (as there's really
+    or after the viewport on the Controls list (as there's really
     no perfect ordering for them).
 
-    TODO: In the future it should be possible to assign
-    the same Navigation instance to multiple viewports.
-    For now, it doesn't work (last viewport will hijack some
-    navigation events, and set Navigation.Viewport,
-    making it not working in other viewports). }
+    Note that one Navigation instance can be assigned only to one TCastleViewport.
+    Not only the viewport "takes over" some navigation events,
+    and sets Navigation.Viewport,
+    but also Navigation (as any other TCastleUserInterface) cannot be present
+    multiple times in UI hierarchy. }
 
   if FNavigation <> Value then
   begin
@@ -1444,43 +1562,72 @@ begin
 end;
 
 function TCastleViewport.Press(const Event: TInputPressRelease): boolean;
+var
+  I: Integer;
 begin
   Result := inherited;
   if Result or Items.Paused then Exit;
 
-  { Update MouseHitRay and update Items (TCastleTransform hierarchy) knowledge
-    about the current pointing device.
-    Otherwise the 1st mouse down event over a 3D object (like a TouchSensor)
-    will be ignored
-    if it happens before any mouse move (which is normal on touch devices). }
+  { Make MouseRayHit valid, as our PointingDevicePress uses it.
+    Also this makes MouseRayHit valid during TCastleTransform.PointingDevicePress calls.
+    Although implementors should rather use information passed
+    as TCastleTransform.PointingDevicePress argument, not look at Viewport.MouseRayHit. }
   UpdateMouseRayHit;
 
-  LastPressEvent := TInputPressRelease(Event);
+  LastPressEvent := Event;
 
-  if (Items <> nil) and
-     Items.Press(Event) then
-    Exit(ExclusiveEvents);
+  if Items.InternalPressReleaseListeners <> nil then
+    // use downto, to work in case some Press will remove transform from list
+    for I := Items.InternalPressReleaseListeners.Count - 1 downto 0 do
+      if Items.InternalPressReleaseListeners[I].Press(Event) then
+        Exit(ExclusiveEvents);
 
   if Input_Interact.IsEvent(Event) and
-     PointingDeviceActivate(true) then
+     PointingDevicePress then
+  begin
+    InternalPointingDeviceDragging := true;
     Exit(ExclusiveEvents);
+  end;
 end;
 
 function TCastleViewport.Release(const Event: TInputPressRelease): boolean;
+var
+  I: Integer;
 begin
   Result := inherited;
   if Result or Items.Paused then Exit;
 
-  if (Items <> nil) and
-     Items.Release(Event) then
-    Exit(ExclusiveEvents);
+  { Make MouseRayHit valid, as our PointingDeviceRelease uses it. }
+  UpdateMouseRayHit;
 
-  if Input_Interact.IsEvent(Event) and
-     PointingDeviceActivate(false) then
-    Exit(ExclusiveEvents);
+  if Items.InternalPressReleaseListeners <> nil then
+    // use downto, to work in case some Release will remove transform from list
+    for I := Items.InternalPressReleaseListeners.Count - 1 downto 0 do
+      if Items.InternalPressReleaseListeners[I].Release(Event) then
+        Exit(ExclusiveEvents);
+
+  if Input_Interact.IsEvent(Event) then
+  begin
+    InternalPointingDeviceDragging := false;
+    if PointingDeviceRelease then
+      Exit(ExclusiveEvents);
+  end;
 end;
 
 function TCastleViewport.Motion(const Event: TInputMotion): boolean;
+
+  { Call Transform.PointingDeviceRelease with CancelAction = true. }
+  procedure PointingDeviceCancel(const Transform: TCastleTransform);
+  var
+    RayOrigin, RayDirection: TVector3;
+    MousePosition: TVector2;
+  begin
+    if GetMousePosition(MousePosition) then
+    begin
+      PositionToRay(MousePosition, true, RayOrigin, RayDirection);
+      Transform.PointingDeviceRelease(FakeRayCollisionNode(RayOrigin, RayDirection, Transform), MaxSingle, true { CancelAction });
+    end;
+  end;
 
   function IsTouchSensorActiveInScene(const Scene: TCastleTransform): boolean;
   var
@@ -1501,23 +1648,23 @@ function TCastleViewport.Motion(const Event: TInputMotion): boolean;
 const
   DistanceToHijackDragging = 5 * 96;
 var
-  TopMostScene: TCastleTransform;
+  TopMostTransform: TCastleTransform;
 begin
   Result := inherited;
   if (not Result) and (not Items.Paused) then
   begin
     if Navigation <> nil then
     begin
-      TopMostScene := TransformUnderMouse;
+      TopMostTransform := TransformUnderMouse;
 
       { Test if dragging TTouchSensorNode. In that case cancel its dragging
         and let navigation move instead. }
-      if (TopMostScene <> nil) and
-         IsTouchSensorActiveInScene(TopMostScene) and
+      if (TopMostTransform <> nil) and
+         IsTouchSensorActiveInScene(TopMostTransform) and
          (PointsDistance(LastPressEvent.Position, Event.Position) >
           DistanceToHijackDragging / Container.Dpi) then
       begin
-        TopMostScene.PointingDeviceActivate(false, 0, true);
+        PointingDeviceCancel(TopMostTransform);
 
         if EnableParentDragging then
         begin
@@ -1530,21 +1677,18 @@ begin
       end;
     end;
 
-    { Do PointingDeviceMove, which updates MouseRayHit, even when Navigation.Motion
-      is true. On Windows 10 with MouseLook, Navigation.Motion is always true. }
-    //if not Result then
     UpdateMouseRayHit;
 
-    { Note: UpdateMouseRayHit above calls PointingDeviceMove and ignores
-      PointingDeviceMove result.
+    { Note: we ignore PointingDeviceMove result.
       Maybe we should use PointingDeviceMove result as our Motion result?
       Answer unknown. Historically we do not do this, and I found no practical
       use-case when it would be useful to do this. }
+    PointingDeviceMove;
   end;
 
   { update the cursor, since 3D object under the cursor possibly changed.
 
-    Accidentaly, this also workarounds the problem of TCastleViewport:
+    Accidentally, this also workarounds the problem of TCastleViewport:
     when the 3D object stayed the same but it's Cursor value changed,
     Items.CursorChange notify only TCastleSceneManager (not custom viewport).
     But thanks to doing RecalculateCursor below, this isn't
@@ -1558,13 +1702,16 @@ end;
 
 procedure TCastleViewport.UpdateMouseRayHit;
 var
-  RayOrigin, RayDirection: TVector3;
   MousePosition: TVector2;
 begin
   if GetMousePosition(MousePosition) then
   begin
-    PositionToRay(MousePosition, true, RayOrigin, RayDirection);
-    PointingDeviceMove(RayOrigin, RayDirection);
+    PositionToRay(MousePosition, true, MouseRayOrigin, MouseRayDirection);
+
+    { Update MouseRayHit.
+      We know that MouseRayDirection is normalized now, which is important
+      to get correct MouseRayHit.Distance. }
+    SetMouseRayHit(CameraRayCollision(MouseRayOrigin, MouseRayDirection));
   end;
 end;
 
@@ -1646,23 +1793,38 @@ var
     { we ignore RemoveItem --- main Items list cannot be removed }
   end;
 
-  procedure DoScheduledVisibleChangeNotification;
-  var
-    Changes: TVisibleChanges;
+  procedure UpdateVisibleChange;
   begin
-    if ScheduledVisibleChangeNotification then
+    { when some TCastleTransform calls TCastleTransform.VisibleChangeHere,
+      in effect TCastleViewport will call VisibleChange. }
+    if LastVisibleStateIdForVisibleChange < Items.InternalVisibleStateId then
     begin
-      { reset state first, in case some VisibleChangeNotification will post again
-        another visible change. }
-      ScheduledVisibleChangeNotification := false;
-      Changes := ScheduledVisibleChangeNotificationChanges;
-      ScheduledVisibleChangeNotificationChanges := [];
-
-      { pass visible change notification "upward" (as a TCastleUserInterface, to container) }
+      LastVisibleStateIdForVisibleChange := Items.InternalVisibleStateId;
       VisibleChange([chRender]);
-      { pass visible change notification "downward", to all children TCastleTransform }
-      Items.VisibleChangeNotification(Changes);
     end;
+  end;
+
+  procedure WatchMainSceneChange;
+  begin
+    if CastleDesignMode then
+    begin
+      if FLastSeenMainScene <> Items.MainScene then
+      begin
+        FLastSeenMainScene := Items.MainScene;
+        AssignDefaultCameraDone := false;
+      end;
+    end;
+  end;
+
+  { Prepare information used by TCastleScene.UpdateGeneratedTextures, called from TCastleScene.Update }
+  procedure PrepareUpdateGeneratedTexturesParameters;
+  begin
+    if (FProjection.ProjectionNear = 0) or
+       (FProjection.ProjectionFar = 0) then // in case ApplyProjection was not called yet
+      FProjection := CalculateProjection;
+    Items.InternalRenderEverythingEvent := @RenderFromViewEverything;
+    Items.InternalProjectionNear := FProjection.ProjectionNear;
+    Items.InternalProjectionFar := FProjection.ProjectionFar;
   end;
 
 begin
@@ -1678,8 +1840,10 @@ begin
     so passing HandleInput there is not necessary. }
   Camera.Update(SecondsPassedScaled);
 
+  PrepareUpdateGeneratedTexturesParameters;
   ItemsUpdate;
-  DoScheduledVisibleChangeNotification;
+  UpdateVisibleChange;
+  WatchMainSceneChange;
 end;
 
 function TCastleViewport.AllowSuspendForInput: boolean;
@@ -1792,7 +1956,25 @@ begin
     does something, but here it would do something.
     Doing the same thing with AutoNavigation doesn't
     recreate navigation (if Navigation <> nil, it will stay as it was).
+
+    Later yet: This seems very useful in editor though, to see the effect
+    in editor immediately, without reloading file.
     *)
+
+    if CastleDesignMode and Value then
+      AssignDefaultCameraDone := false;
+  end;
+end;
+
+procedure TCastleViewport.SetAutoNavigation(const Value: Boolean);
+begin
+  if FAutoNavigation <> Value then
+  begin
+    FAutoNavigation := Value;
+    { Not necessary, and we actually don't have AssignDefaultNavigationDone.
+      The navigation will be auto-assigned when it is nil. }
+    // if CastleDesignMode and Value then
+    //   AssignDefaultNavigationDone := false;
   end;
 end;
 
@@ -1963,8 +2145,26 @@ end;
 function TCastleViewport.MainLightForShadows(out AMainLightPosition: TVector4): boolean;
 begin
   if Items.MainScene <> nil then
-    Result := Items.MainScene.InternalMainLightForShadows(AMainLightPosition)
-  else
+  begin
+    Result :=
+      Items.MainScene.InternalMainLightForShadows(AMainLightPosition) and
+      { We need WorldTransform for below conversion local<->world space.
+        It may not be available, if
+        - MainScene is present multiple times in Items
+        - MainScene is not present in Items at all, temporarily, but is still a MainScene.
+        Testcase: castle-game, change from level to level using debug menu.
+      }
+      Items.MainScene.HasWorldTransform;
+    { Transform AMainLightPosition to world space.
+      This matters in case MainScene (that contains shadow-casting light) has some transformation. }
+    if Result then
+    begin
+      if AMainLightPosition.W = 0 then
+        AMainLightPosition.XYZ := Items.MainScene.LocalToWorldDirection(AMainLightPosition.XYZ)
+      else
+        AMainLightPosition.XYZ := Items.MainScene.LocalToWorld(AMainLightPosition.XYZ);
+    end;
+  end else
     Result := false;
 end;
 
@@ -2154,6 +2354,9 @@ procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRende
   var
     UsedBackground: TBackground;
   begin
+    if Transparent then
+      Exit;
+
     UsedBackground := Background;
     if UsedBackground <> nil then
     begin
@@ -2248,8 +2451,6 @@ procedure TCastleViewport.RenderWithoutScreenEffects;
 begin
   inherited;
   ApplyProjection;
-  Items.UpdateGeneratedTextures(@RenderFromViewEverything,
-    FProjection.ProjectionNear, FProjection.ProjectionFar);
   RenderOnScreen(Camera);
 end;
 
@@ -2272,11 +2473,31 @@ function TCastleViewport.GetScreenEffects(const Index: Integer): TGLSLProgram;
 begin
   if ScreenSpaceAmbientOcclusion then
     SSAOShaderInitialize;
+  if ScreenSpaceReflections then
+    SSRShaderInitialize;
 
+  if ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) and ScreenSpaceReflections and (SSRShader <> nil) then
+  begin
+    if Index = 0 then
+      Result := SSAOShader
+    else
+    if Index = 1 then
+      Result := SSRShader
+    else
+      Result := Items.MainScene.ScreenEffects(Index - 2);
+  end else
   if ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) then
   begin
     if Index = 0 then
-      Result := SSAOShader else
+      Result := SSAOShader
+    else
+      Result := Items.MainScene.ScreenEffects(Index - 1);
+  end else
+  if ScreenSpaceReflections and (SSRShader <> nil) then
+  begin
+    if Index = 0 then
+      Result := SSRShader
+    else
       Result := Items.MainScene.ScreenEffects(Index - 1);
   end else
   if Items.MainScene <> nil then
@@ -2290,6 +2511,8 @@ function TCastleViewport.ScreenEffectsCount: Integer;
 begin
   if ScreenSpaceAmbientOcclusion then
     SSAOShaderInitialize;
+  if ScreenSpaceReflections then
+    SSRShaderInitialize;
 
   if Items.MainScene <> nil then
     Result := Items.MainScene.ScreenEffectsCount
@@ -2297,14 +2520,20 @@ begin
     Result := 0;
   if ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) then
     Inc(Result);
+  if ScreenSpaceReflections and (SSRShader <> nil) then
+    Inc(Result);
 end;
 
 function TCastleViewport.ScreenEffectsNeedDepth: boolean;
 begin
   if ScreenSpaceAmbientOcclusion then
     SSAOShaderInitialize;
+  if ScreenSpaceReflections then
+    SSRShaderInitialize;
 
   if ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) then
+    Exit(true);
+  if ScreenSpaceReflections and (SSRShader <> nil) then
     Exit(true);
   if Items.MainScene <> nil then
     Result := Items.MainScene.ScreenEffectsNeedDepth
@@ -2342,6 +2571,35 @@ begin
   SSAOShaderInitialized := true;
 end;
 
+procedure TCastleViewport.SSRShaderInitialize;
+begin
+  { Do not retry creating SSRShader if SSRShaderInitialize was already called.
+    Even if SSRShader is nil (when SSRShaderInitialize = true but
+    SSRShader = nil it means that compiling SSR shader fails on this GPU). }
+  if SSRShaderInitialized then Exit;
+
+  // SSAOShaderInitialized = false implies SSRShader = nil
+  Assert(SSRShader = nil);
+  if GLFeatures.Shaders <> gsNone then
+  begin
+    try
+      SSRShader := TSSRScreenEffect.Create;
+      SSRShader.Viewport := Self;
+      SSRShader.NeedsDepth := True;
+      SSRShader.ScreenEffectShader := {$I ssr.glsl.inc};
+      SSRShader.Link;
+    except
+      on E: EGLSLError do
+      begin
+        WritelnLog('GLSL', 'Error when initializing GLSL shader for ScreenSpaceReflectionsShader: ' + E.Message);
+        FreeAndNil(SSRShader);
+        ScreenSpaceReflections := False;
+      end;
+    end;
+  end;
+  SSRShaderInitialized := True;
+end;
+
 procedure TCastleViewport.GLContextOpen;
 begin
   inherited;
@@ -2373,11 +2631,35 @@ begin
   Result := (SSAOShader <> nil);
 end;
 
+function TCastleViewport.ScreenSpaceReflectionsAvailable: Boolean;
+begin
+  SSRShaderInitialize;
+  Result := (SSRShader <> nil);
+end;
+
 procedure TCastleViewport.SetScreenSpaceAmbientOcclusion(const Value: boolean);
 begin
   if FScreenSpaceAmbientOcclusion <> Value then
   begin
     FScreenSpaceAmbientOcclusion := Value;
+    VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleViewport.SetScreenSpaceReflections(const Value: Boolean);
+begin
+  if FScreenSpaceReflections <> Value then
+  begin
+    FScreenSpaceReflections := Value;
+    VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleViewport.SetScreenSpaceReflectionsSurfaceGlossiness(const Value: Single);
+begin
+  if FScreenSpaceReflectionsSurfaceGlossiness <> Value then
+  begin
+    FScreenSpaceReflectionsSurfaceGlossiness := Value;
     VisibleChange([chRender]);
   end;
 end;
@@ -2619,7 +2901,7 @@ begin
 
   { This assertion should be OK. It is commented out only to prevent
     GetNavigationType from accidentally creating something intermediate,
-    and thus making debug and release behaviour different) }
+    and thus making debug and release behavior different) }
   // Assert(GetNavigationType = Value);
 
   FWithinSetNavigationType := false;
@@ -2857,17 +3139,16 @@ begin
     if Value = nil then
       raise EInternalError.Create('Cannot set TCastleSceneManager.Items to nil');
     FItems := Value;
-  end;
-end;
+    LastVisibleStateIdForVisibleChange := 0;
 
-procedure TCastleViewport.ItemsVisibleChange(const Sender: TCastleTransform; const Changes: TVisibleChanges);
-begin
-  { merely schedule broadcasting this change to a later time.
-    This way e.g. animating a lot of transformations doesn't cause a lot of
-    "visible change notifications" repeatedly on the same 3D object within
-    the same frame. }
-  ScheduledVisibleChangeNotification := true;
-  ScheduledVisibleChangeNotificationChanges := ScheduledVisibleChangeNotificationChanges + Changes;
+    { TODO: do the same thing we did when creating internal FItems:
+    FItems.OnCursorChange := @RecalculateCursor;
+
+    // No need to change this, it's documented that MainCamera has to be manually managed if you reuse items
+    // FItems.MainCamera := Camera;
+    }
+
+  end;
 end;
 
 function TCastleViewport.GetPaused: Boolean;
@@ -2878,16 +3159,6 @@ end;
 procedure TCastleViewport.SetPaused(const Value: Boolean);
 begin
   Items.Paused := Value;
-end;
-
-function TCastleViewport.CameraToChanges(const ACamera: TCastleCamera): TVisibleChanges;
-begin
-  // headlight exists, and we changed camera controlling headlight
-  if (Items.InternalHeadlight <> nil) and
-     (ACamera = Items.MainCamera) then
-    Result := [vcVisibleNonGeometry]
-  else
-    Result := [];
 end;
 
 function TCastleViewport.GetMainScene: TCastleScene;
@@ -2956,6 +3227,15 @@ procedure TCastleViewport.PrepareResources(const Item: TCastleTransform;
 var
   MainLightPosition: TVector4; // value of this is ignored
 begin
+  if not ApplicationProperties.IsGLContextOpen then
+    raise Exception.Create('PrepareResources can only be called when rendering context is initialized.' + NL +
+      'Various events and virtual methods can be used to wait for the context:' + NL +
+      '- (if you use CastleWindow) Application.OnInitialize' + NL +
+      '- (if you use CastleWindow) TCastleWindowBase.OnOpen' + NL +
+      '- (if you use LCL CastleControl) TCastleControlBase.OnOpen' + NL +
+      '- TCasleUserInterface.GLContextOpen'
+    );
+
   if GLFeatures.ShadowVolumesPossible and
      ShadowVolumes and
      MainLightForShadows(MainLightPosition) then
@@ -3025,59 +3305,91 @@ begin
   end;
 end;
 
-function TCastleViewport.PointingDeviceActivate(const Active: boolean): boolean;
+function TCastleViewport.FakeRayCollisionNode(const RayOriginWorld, RayDirectionWorld: TVector3;
+  const Item: TCastleTransform): TRayCollisionNode;
+var
+  RayOrigin, RayDirection: TVector3;
+begin
+  if Item.HasWorldTransform and
+     (Item.UniqueParent <> nil) and
+     Item.UniqueParent.HasWorldTransform then
+  begin
+    RayOrigin := Item.UniqueParent.WorldToLocal(RayOriginWorld);
+    RayDirection := Item.UniqueParent.WorldToLocalDirection(RayDirectionWorld);
+  end else
+  begin
+    WritelnWarning('TODO: Item %s(%s) is not part of World, or is present in the World multiple times. PointingDeviceXxx events will receive ray in world coordinates, while they should be in local.', [
+      Item.Name,
+      Item.ClassName
+    ]);
+    RayOrigin := RayOriginWorld;
+    RayDirection := RayDirectionWorld;
+  end;
 
-  { Try PointingDeviceActivate on 3D stuff hit by RayHit }
-  function TryActivate(RayHit: TRayCollision): boolean;
+  { sets Triangle and Point (and any potential future fields) to zero }
+  FillChar(Result, SizeOf(Result), #0);
+  Result.Item := Item;
+  Result.RayOrigin := RayOrigin;
+  Result.RayDirection := RayDirection;
+end;
+
+function TCastleViewport.PointingDevicePress: Boolean;
+
+  { Pass pointing device (mouse or touch) press event
+    to TCastleTransform instances in @link(Items) hit by RayHit. }
+  function PointingDevicePressCore(const RayHit: TRayCollision; const RayOrigin, RayDirection: TVector3): boolean;
+
+    function CallPress(const Pick: TRayCollisionNode; const Distance: Single): Boolean;
+    begin
+      if not Pick.Item.GetExists then // prevent calling Pick.Item.PointingDeviceXxx when item GetExists=false
+        Result := false
+      else
+        Result := Pick.Item.PointingDevicePress(Pick, Distance);
+    end;
+
   var
-    PassToMainScene: boolean;
+    Distance: Single;
     I: Integer;
   begin
-    { call TCastleTransform.PointingDeviceActivate on everything, calculate Result }
     Result := false;
-    PassToMainScene := true;
 
+    if RayHit <> nil then
+      Distance := RayHit.Distance
+    else
+      Distance := MaxSingle;
+
+    // call TCastleTransform.PointingDevicePress on all items on RayHit
     if RayHit <> nil then
       for I := 0 to RayHit.Count - 1 do
       begin
-        if RayHit[I].Item = Items.MainScene then
-          PassToMainScene := false;
-        Result := PointingDeviceActivate3D(RayHit[I].Item, Active, RayHit.Distance);
+        Result := CallPress(RayHit[I], Distance);
         if Result then
         begin
-          PassToMainScene := false;
-          Break;
+          { This check avoids assigning to CapturePointingDevice something
+            that is no longer part of our Items after it handled PointingDevicePress. }
+          if RayHit[I].Item.World = Items then
+            CapturePointingDevice := RayHit[I].Item;
+          Exit;
         end;
       end;
-
-    if PassToMainScene and (Items.MainScene <> nil) then
-      Result := PointingDeviceActivate3D(Items.MainScene, Active, MaxSingle);
   end;
 
 var
   MousePosition: TVector2;
 
-  { Try PointingDeviceActivate on 3D stuff hit by ray moved by given number
-    of screen pixels from current mouse position.
-    Call only if MousePosition already assigned. }
+  { Try PointingDevicePressCore on stuff hit by ray,
+    with ray moved by given number of screen pixels from current mouse position.
+    Call only if MousePosition is already assigned. }
   function TryActivateAround(const Change: TVector2): boolean;
   var
     RayOrigin, RayDirection: TVector3;
     RayHit: TRayCollision;
   begin
     PositionToRay(MousePosition + Change, true, RayOrigin, RayDirection);
-
     RayHit := CameraRayCollision(RayOrigin, RayDirection);
-
-    { We do not really have to check "RayHit <> nil" below,
-      as TryActivate can (and should) work even with RayHit=nil case.
-      However, we know that TryActivate will not do anything new if RayHit=nil
-      (it will just pass this to MainScene, which was already done before
-      trying ApproximateActivation). }
-
-    Result := (RayHit <> nil) and TryActivate(RayHit);
-
-    FreeAndNil(RayHit);
+    try
+      Result := PointingDevicePressCore(RayHit, RayOrigin, RayDirection);
+    finally FreeAndNil(RayHit) end;
   end;
 
   function TryActivateAroundSquare(const Change: Single): boolean;
@@ -3093,7 +3405,8 @@ var
   end;
 
 begin
-  Result := TryActivate(MouseRayHit);
+  Result := PointingDevicePressCore(MouseRayHit, MouseRayOrigin, MouseRayDirection);
+
   if not Result then
   begin
     if ApproximateActivation and GetMousePosition(MousePosition) then
@@ -3104,98 +3417,163 @@ begin
   end;
 
   if not Result then
-    PointingDeviceActivateFailed(Active);
+    PointingDevicePressFailed;
 end;
 
-function TCastleViewport.PointingDeviceActivate3D(const Item: TCastleTransform;
-  const Active: boolean; const Distance: Single): boolean;
+procedure TCastleViewport.PointingDevicePressFailed;
 begin
-  Result := Item.PointingDeviceActivate(Active, Distance);
+  SoundEngine.Sound(stPlayerInteractFailed);
 end;
 
-procedure TCastleViewport.PointingDeviceActivateFailed(const Active: boolean);
-begin
-  if Active then
-    SoundEngine.Sound(stPlayerInteractFailed);
-end;
+function TCastleViewport.PointingDeviceRelease: Boolean;
 
-function TCastleViewport.PointingDeviceMove(
-  const RayOrigin, RayDirection: TVector3): boolean;
-var
-  PassToMainScene: boolean;
-  I: Integer;
-  MainSceneNode: TRayCollisionNode;
-begin
-  { update MouseRayHit.
-    We know that RayDirection is normalized now, which is important
-    to get correct MouseRayHit.Distance. }
-  SetMouseRayHit(CameraRayCollision(RayOrigin, RayDirection));
+  { Pass pointing device (mouse or touch) release event
+    to TCastleTransform instances in @link(Items) hit by RayHit. }
+  function PointingDeviceReleaseCore(const RayHit: TRayCollision; const RayOrigin, RayDirection: TVector3): boolean;
 
-  { call TCastleTransform.PointingDeviceMove on everything, calculate Result }
-  Result := false;
-  PassToMainScene := true;
-
-  if MouseRayHit <> nil then
-    for I := 0 to MouseRayHit.Count - 1 do
+    function CallRelease(const Pick: TRayCollisionNode; const Distance: Single): Boolean;
     begin
-      if MouseRayHit[I].Item = Items.MainScene then
-        PassToMainScene := false;
-      Result := MouseRayHit[I].Item.PointingDeviceMove(MouseRayHit[I], MouseRayHit.Distance);
-      if Result then
-      begin
-        PassToMainScene := false;
-        Break;
-      end;
+      if not Pick.Item.GetExists then // prevent calling Pick.Item.PointingDeviceXxx when item GetExists=false
+        Result := false
+      else
+        Result := Pick.Item.PointingDeviceRelease(Pick, Distance, false);
     end;
 
-  if PassToMainScene and (Items.MainScene <> nil) then
-  begin
-    MainSceneNode.Item := Items.MainScene;
-    { if ray hit something, then the outermost 3D object should just be our Items,
-      and it contains the 3D point picked.
-      This isn't actually used by anything now --- TRayCollisionNode.Point
-      is for now used only by TCastleSceneCore, and only when Triangle <> nil. }
-    if MouseRayHit <> nil then
-      MainSceneNode.Point := MouseRayHit.Last.Point else
-      MainSceneNode.Point := TVector3.Zero;
-    MainSceneNode.RayOrigin := RayOrigin;
-    MainSceneNode.RayDirection := RayDirection;
-    MainSceneNode.Triangle := nil;
-    Result := Items.MainScene.PointingDeviceMove(MainSceneNode, MaxSingle);
-  end;
-end;
-
-procedure TCastleViewport.VisibleChange(const Changes: TCastleUserInterfaceChanges;
-  const ChangeInitiatedByChildren: boolean = false);
-
-  procedure CameraChange;
   var
-    Pos, Dir, Up: TVector3;
-    MC: TCastleCamera;
+    Distance: Single;
+    NodeIndex, I: Integer;
   begin
-    MC := Items.MainCamera;
-    if MC = Camera then
-    begin
-      { Call CameraChanged on all TCastleTransform.
-        Note that we have to call it on all Items, not just MainScene,
-        to make ProximitySensor, Billboard etc. to work in all scenes, not just in MainScene. }
-      Items.CameraChanged(Camera);
-      { ItemsVisibleChange may again cause this VisibleChange (if we are TCastleViewport),
-        but without chCamera, so no infinite recursion. }
-      ItemsVisibleChange(Items, CameraToChanges(Camera));
+    Result := false;
 
-      Camera.GetView(Pos, Dir, Up);
-      SoundEngine.UpdateListener(Pos, Dir, Up);
+    if RayHit <> nil then
+      Distance := RayHit.Distance
+    else
+      Distance := MaxSingle;
+
+    if CapturePointingDevice <> nil then
+    begin
+      // call CapturePointingDevice.PointingDeviceRelease
+      if RayHit <> nil then
+        NodeIndex := RayHit.IndexOfItem(CapturePointingDevice)
+      else
+        NodeIndex := -1;
+      if NodeIndex <> -1 then
+        Result := CallRelease(RayHit[NodeIndex], Distance)
+      else
+        Result := CallRelease(FakeRayCollisionNode(RayOrigin, RayDirection, CapturePointingDevice), Distance);
+      CapturePointingDevice := nil; // no longer capturing, after release
+      if Result then Exit;
     end;
 
-    if Assigned(OnCameraChanged) then
-      OnCameraChanged(Self);
+    // call TCastleTransform.PointingDeviceRelease on remaining items on RayHit
+    if RayHit <> nil then
+      for I := 0 to RayHit.Count - 1 do
+        if (CapturePointingDevice = nil) or
+           (CapturePointingDevice <> RayHit[I].Item) then
+        begin
+          Result := CallRelease(RayHit[I], Distance);
+          if Result then Exit;
+        end;
   end;
 
 begin
-  inherited;
-  if chCamera in Changes then
-    CameraChange;
+  Result := PointingDeviceReleaseCore(MouseRayHit, MouseRayOrigin, MouseRayDirection);
+end;
+
+function TCastleViewport.PointingDeviceMove: boolean;
+
+  { Pass pointing device (mouse or touch) move event
+    to TCastleTransform instances in @link(Items) hit by RayHit. }
+  function PointingDeviceMoveCore(const RayHit: TRayCollision; const RayOrigin, RayDirection: TVector3): boolean;
+
+    function CallMove(const Pick: TRayCollisionNode; const Distance: Single): Boolean;
+    begin
+      if not Pick.Item.GetExists then // prevent calling Pick.Item.PointingDeviceXxx when item GetExists=false
+        Result := false
+      else
+        Result := Pick.Item.PointingDeviceMove(Pick, Distance);
+    end;
+
+  var
+    Distance: Single;
+    I, NodeIndex: Integer;
+  begin
+    Result := false;
+
+    if RayHit <> nil then
+      Distance := RayHit.Distance
+    else
+      Distance := MaxSingle;
+
+    if CapturePointingDevice <> nil then
+    begin
+      // call CapturePointingDevice.PointingDeviceMove
+      if RayHit <> nil then
+        NodeIndex := RayHit.IndexOfItem(CapturePointingDevice)
+      else
+        NodeIndex := -1;
+      if NodeIndex <> -1 then
+        Result := CallMove(RayHit[NodeIndex], Distance)
+      else
+        Result := CallMove(FakeRayCollisionNode(RayOrigin, RayDirection, CapturePointingDevice), Distance);
+      if Result then Exit;
+    end;
+
+    // call TCastleTransform.PointingDeviceMove on remaining items on RayHit
+    if RayHit <> nil then
+      for I := 0 to RayHit.Count - 1 do
+        if (CapturePointingDevice = nil) or
+           (CapturePointingDevice <> RayHit[I].Item) then
+        begin
+          Result := CallMove(RayHit[I], Distance);
+          if Result then Exit;
+        end;
+
+    // call MainScene.PointingDeviceMove, to allow to update X3D sensors "isOver"
+    if (Items.MainScene <> nil) and
+       (CapturePointingDevice <> Items.MainScene) and
+       ((RayHit = nil) or (RayHit.IndexOfItem(Items.MainScene) = -1)) then
+      CallMove(FakeRayCollisionNode(RayOrigin, RayDirection, Items.MainScene), Distance);
+  end;
+
+begin
+  Result := PointingDeviceMoveCore(MouseRayHit, MouseRayOrigin, MouseRayDirection);
+end;
+
+procedure TCastleViewport.InternalCameraChanged;
+var
+  Pos, Dir, Up: TVector3;
+  MC: TCastleCamera;
+begin
+  MC := Items.MainCamera;
+  if MC = Camera then
+  begin
+    Inc(Items.InternalMainCameraStateId);
+
+    // we should redraw soon, this will cause VisibleChange() call
+    Inc(Items.InternalVisibleStateId);
+
+    // we changed MainCamera which makes headlight -> so lighting changed
+    if Items.InternalHeadlight <> nil then
+      Inc(Items.InternalVisibleNonGeometryStateId);
+
+    Camera.GetView(Pos, Dir, Up);
+    SoundEngine.UpdateListener(Pos, Dir, Up);
+  end;
+
+  if Assigned(OnCameraChanged) then
+    OnCameraChanged(Self);
+end;
+
+function TCastleViewport.UseAvoidNavigationCollisions: Boolean;
+begin
+  { Only use AvoidNavigationCollisions when it is part of current world.
+    Otherwise using methods like TCastleTransform.Ray (by AvoidNavigationCollisions.Ray)
+    would try to access AvoidNavigationCollisions's World,
+    which is not correct now (nil, or points to something else).
+    See https://github.com/castle-engine/castle-engine/pull/220 ,
+    https://trello.com/c/iz7uvjKN/79-frogger3d-crash-when-pressing-enter-on-game-over-message-box . }
+  Result := (AvoidNavigationCollisions <> nil) and (AvoidNavigationCollisions.World = Items);
 end;
 
 function TCastleViewport.NavigationMoveAllowed(const Sender: TCastleNavigation;
@@ -3205,7 +3583,7 @@ function TCastleViewport.NavigationMoveAllowed(const Sender: TCastleNavigation;
   function PositionOutsideBoundingBox: Boolean;
   var
     Box: TBox3D;
-    GravityCoordinate, Coord1, Coord2: Integer;
+    GravityCoordinate, Coord1, Coord2: T3DAxis;
   begin
     Box := ItemsBoundingBox;
     if Box.IsEmpty then Exit(false);
@@ -3233,7 +3611,7 @@ begin
      PositionOutsideBoundingBox then
     Exit(false);
 
-  if AvoidNavigationCollisions <> nil then
+  if UseAvoidNavigationCollisions then
     Result := AvoidNavigationCollisions.MoveAllowed(OldPos, ProposedNewPos, NewPos, BecauseOfGravity)
   else
     Result := Items.WorldMoveAllowed(OldPos, ProposedNewPos, NewPos, true, Radius,
@@ -3250,7 +3628,7 @@ begin
   { Both version result in calling WorldHeight.
     AvoidNavigationCollisions version adds AvoidNavigationCollisions.Disable/Enable around. }
 
-  if AvoidNavigationCollisions <> nil then
+  if UseAvoidNavigationCollisions then
     Result := AvoidNavigationCollisions.Height(Position, AboveHeight, AboveGround)
   else
     Result := Items.WorldHeight(Position, AboveHeight, AboveGround);
@@ -3261,7 +3639,7 @@ begin
   { Both version result in calling WorldRay.
     AvoidNavigationCollisions version adds AvoidNavigationCollisions.Disable/Enable around. }
 
-  if AvoidNavigationCollisions <> nil then
+  if UseAvoidNavigationCollisions then
     Result := AvoidNavigationCollisions.Ray(RayOrigin, RayDirection)
   else
     Result := Items.WorldRay(RayOrigin, RayDirection);
@@ -3324,6 +3702,16 @@ begin
       SceneManager.Viewports.Add(Self);
   end;
   {$warnings on}
+end;
+
+function TCastleViewport.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  case PropertyName of
+    'Transparent', 'Navigation':
+      Result := [psBasic];
+    else
+      Result := inherited PropertySections(PropertyName);
+  end;
 end;
 
 {$define read_implementation_methods}
@@ -3487,7 +3875,7 @@ var
   R: TRegisteredComponent;
 initialization
   Input_Interact := TInputShortcut.Create(nil, 'Interact (press, open door)', 'interact', igOther);
-  Input_Interact.Assign(K_None, K_None, '', true, mbLeft);
+  Input_Interact.Assign(keyNone, keyNone, '', true, buttonLeft);
 
   R := TRegisteredComponent.Create;
   {$warnings off} // using deprecated, to keep reading it from castle-user-interface working
@@ -3497,6 +3885,7 @@ initialization
   R.IsDeprecated := true;
   RegisterSerializableComponent(R);
 
+  RegisterSerializableComponent(TCastleTouchNavigation, 'Touch Navigation');
   RegisterSerializableComponent(TCastleViewport, 'Viewport');
 
   R := TRegisteredComponent.Create;

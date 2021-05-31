@@ -39,8 +39,8 @@
 FWordWrap:Boolean;
     function GetTextToRender: TRichText;
     procedure SetAutoSize(const Value: boolean);
-    function GetCaption: string;
-    procedure SetCaption(const Value: string);
+    function GetCaption: String;
+    procedure SetCaption(const Value: String);
     procedure SetAlignment(const Value: THorizontalPosition);
     procedure SetVerticalAlignment(const Value: TVerticalPosition);
     procedure SetMaxDisplayChars(const Value: Integer);
@@ -73,7 +73,7 @@ FWordWrap:Boolean;
     procedure Render; override;
     procedure EditorAllowResize(
       out ResizeWidth, ResizeHeight: Boolean; out Reason: String); override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure FontChanged; override;
 
     { Text color. By default it's opaque black. }
@@ -99,7 +99,7 @@ FWordWrap:Boolean;
     property Text: TStrings read FText write SetText;
 
     { Caption displayed on the label.
-      This is just a shortcut to get/set @link(Text) as a single string.
+      This is just a shortcut to get/set @link(Text) as a single String.
 
       Use LineEnding or NL constant when setting this to indicate a newline.
       The two examples below are equivalent:
@@ -114,7 +114,7 @@ FWordWrap:Boolean;
         Label1.Caption := 'First line' + LineEnding + 'Second line';
       #)
     }
-    property Caption: string read GetCaption write SetCaption stored false;
+    property Caption: String read GetCaption write SetCaption stored false;
 
     { Inside the label rectangle, padding between rect borders and text.
       Total horizontal padding is the sum @code(PaddingHorizontal + Padding),
@@ -137,10 +137,10 @@ FWordWrap:Boolean;
 
       See the example examples/fonts/html_text.lpr and
       examples/fonts/html_text_demo.html for a demo of what HTML tags can do.
-      See @link(TCastleFont.PrintStrings) documentation for a list of support HTML markup.
+      See @link(TCastleAbstractFont.PrintStrings) documentation for a list of support HTML markup.
 
       Note that to see the bold/italic font variants in the HTML markup,
-      you need to set the font to be TFontFamily with bold/italic variants.
+      you need to set the font to be TCastleFontFamily with bold/italic variants.
       See the example mentioned above, examples/fonts/html_text.lpr,
       for a code how to do it. }
     property Html: boolean read FHtml write SetHtml default false;
@@ -382,12 +382,12 @@ begin
   end;
 end;
 
-function TCastleLabel.GetCaption: string;
+function TCastleLabel.GetCaption: String;
 begin
   Result := TrimEndingNewline(Text.Text);
 end;
 
-procedure TCastleLabel.SetCaption(const Value: string);
+procedure TCastleLabel.SetCaption(const Value: String);
 begin
   Text.Text := Value;
 end;
@@ -462,16 +462,16 @@ begin
   Caption := Value;
 end;
 
-function TCastleLabel.PropertySection(const PropertyName: String): TPropertySection;
+function TCastleLabel.PropertySections(const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
     // Note that Caption expresses the same thing as Text, but easier to access
-    'Text', 'Caption', 'ColorPersistent':
-      Result := psBasic;
-    'AutoSize':
-      Result := psLayout;
+    'Text', 'Caption', 'ColorPersistent', 'Html':
+      Result := [psBasic];
+    'Alignment', 'VerticalAlignment', 'LineSpacing', 'AutoSize':
+      Result := [psBasic, psLayout];
     else
-      Result := inherited PropertySection(PropertyName);
+      Result := inherited PropertySections(PropertyName);
   end;
 end;
 

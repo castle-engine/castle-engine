@@ -73,26 +73,38 @@ uses CastleConfig, CastleLCLUtils, CastleURIUtils, CastleUtils,
   CastleFilesUtils, CastleParameters, CastleLog, CastleStringUtils,
   ProjectUtils, EditorUtils, FormNewProject, FormPreferences,
   ToolCompilerInfo, ToolFpcVersion,
-  FormProject;
+  FormProject, FormNewUnit;
 
 { TChooseProjectForm ------------------------------------------------------------- }
 
 procedure TChooseProjectForm.Show;
 begin
-  {$ifdef MSWINDOWS}
-  Application.ShowMainForm := True;
-  {$else}
+  { Special Show/Hide on Windows, to fix taskbar button visible on Windows
+    (to keep CGE on taskbar, once project is chosen).
+
+    Comment out, this is not a good solution: while it keeps CGE in taskbar,
+    but it also prevents the ChooseProjectForm from being hidden,
+    for Lazarus 2.0.8 and 2.0.10.
+    It is even more important when running editor with project on command-line
+    (which also happens when you rebuild editor with project-specific components),
+    then the ChooseProjectForm may be on top on ProjectForm after start.
+
+    TODO: how to fix CGE on taskbar on Windows correctly? }
+
+  //{$ifdef MSWINDOWS}
+  //Application.ShowMainForm := True;
+  //{$else}
   inherited Show;
-  {$endif}
+  //{$endif}
 end;
 
 procedure TChooseProjectForm.Hide;
 begin
-  {$ifdef MSWINDOWS}
-  Application.ShowMainForm := False;
-  {$else}
+  //{$ifdef MSWINDOWS}
+  //Application.ShowMainForm := False;
+  //{$else}
   inherited Hide;
-  {$endif}
+  //{$endif}
 end;
 
 procedure TChooseProjectForm.ProjectOpen(ManifestUrl: string);
@@ -179,7 +191,8 @@ begin
       // Fill project dir
       CopyTemplate(ProjectDirUrl, TemplateName,
         NewProjectForm.EditProjectName.Text,
-        NewProjectForm.EditProjectCaption.Text);
+        NewProjectForm.EditProjectCaption.Text,
+        NewProjectForm.EditStateName.Text);
       GenerateProgramWithBuildTool(ProjectDirUrl);
 
       // Open new project
@@ -237,10 +250,13 @@ end;
 
 procedure TChooseProjectForm.FormCreate(Sender: TObject);
 
-  procedure PathsConfigLoad;
+  procedure ConfigLoad;
   begin
     FpcCustomPath := UserConfig.GetValue('fpc_custom_path', '');
     LazarusCustomPath := UserConfig.GetValue('lazarus_custom_path', '');
+    CodeEditor := TCodeEditor(UserConfig.GetValue('code_editor/setting', Ord(DefaultCodeEditor)));
+    CodeEditorCommand := UserConfig.GetValue('code_editor/command', '');
+    CodeEditorCommandProject := UserConfig.GetValue('code_editor/command_project', '');
   end;
 
 begin
@@ -248,19 +264,22 @@ begin
   RecentProjects := TCastleRecentFiles.Create(Self);
   RecentProjects.LoadFromConfig(UserConfig);
   //  RecentProjects.NextMenuItem := ; // unused for now
-  PathsConfigLoad;
+  ConfigLoad;
 end;
 
 procedure TChooseProjectForm.FormDestroy(Sender: TObject);
 
-  procedure PathsConfigSave;
+  procedure ConfigSave;
   begin
     UserConfig.SetDeleteValue('fpc_custom_path', FpcCustomPath, '');
     UserConfig.SetDeleteValue('lazarus_custom_path', LazarusCustomPath, '');
+    UserConfig.SetDeleteValue('code_editor/setting', Ord(CodeEditor), Ord(DefaultCodeEditor));
+    UserConfig.SetDeleteValue('code_editor/command', CodeEditorCommand, '');
+    UserConfig.SetDeleteValue('code_editor/command_project', CodeEditorCommandProject, '');
   end;
 
 begin
-  PathsConfigSave;
+  ConfigSave;
   RecentProjects.SaveToConfig(UserConfig);
   UserConfig.Save;
 end;

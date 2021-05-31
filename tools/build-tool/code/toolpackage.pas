@@ -59,13 +59,15 @@ type
     procedure Make(const OutputProjectPath: string; const PackageFileName: string;
       const PackageFormat: TPackageFormatNoDefault);
 
-    { Add file to the package. SourceFileName must be an absolute filename,
-      DestinationFileName must be relative within package. }
-    procedure Add(const SourceFileName, DestinationFileName: string); virtual;
+    { Add file to the package.
 
-    { Set the Unix executable bit on given file. Name is relative to package path,
-      just like DestinationFileName for @link(Add). }
-    procedure MakeExecutable(const Name: string);
+      @param SourceFileName Filename existing on disk right now, must be an absolute filename.
+
+      @param DestinationFileName Name in package, must be relative within package.
+
+      @param MakeExecutable Set the Unix executable bit on given file. }
+    procedure Add(const SourceFileName, DestinationFileName: string;
+      const MakeExecutable: Boolean = false);
 
     { Generate auto_generated/CastleDataInformation.xml file inside
       DataName subdirectory of the archive. }
@@ -154,23 +156,39 @@ begin
   end;
 end;
 
-procedure TPackageDirectory.Add(const SourceFileName, DestinationFileName: string);
+procedure TPackageDirectory.Add(const SourceFileName, DestinationFileName: string;
+  const MakeExecutable: Boolean);
+
+  procedure DoMakeExecutable(const Name: string);
+  {$ifdef UNIX}
+  var
+    ChmodResult: CInt;
+  begin
+    ChmodResult := FpChmod(Path + Name,
+      S_IRUSR or S_IWUSR or S_IXUSR or
+      S_IRGRP or            S_IXGRP or
+      S_IROTH or            S_IXOTH);
+    if ChmodResult <> 0 then
+      WritelnWarning('Package', Format('Error setting executable bit on "%s": %s', [
+        Path + Name,
+        SysErrorMessage(ChmodResult)
+      ]));
+  {$else}
+  begin
+    WritelnWarning('Package', 'Packaging for a platform where UNIX permissions matter, but we cannot set "chmod" on this platform. This usually means that you package for Unix from Windows, and means that "executable" bit inside binary in tar.gz archive may not be set --- archive may not be 100% comfortable for Unix users');
+    {$endif}
+  end;
+
 begin
   SmartCopyFile(SourceFileName, Path + DestinationFileName);
-  if Verbose then
-    Writeln('Package file: ' + DestinationFileName);
-end;
+  WritelnVerbose('Package file: ' + DestinationFileName);
 
-procedure TPackageDirectory.MakeExecutable(const Name: string);
-begin
-  {$ifdef UNIX}
-  FpChmod(Path + Name,
-    S_IRUSR or S_IWUSR or S_IXUSR or
-    S_IRGRP or            S_IXGRP or
-    S_IROTH or            S_IXOTH);
-  {$else}
-  WritelnWarning('Package', 'Packaging for a platform where UNIX permissions matter, but we cannot set "chmod" on this platform. This usually means that you package for Unix from Windows, and means that "executable" bit inside binary in tar.gz archive may not be set --- archive may not be 100% comfortable for Unix users');
-  {$endif}
+  if MakeExecutable then
+  begin
+    { For OSes where chmod matters, make sure to set it before packing }
+    WritelnVerbose('Setting Unix executable permissions: ' + DestinationFileName);
+    DoMakeExecutable(DestinationFileName);
+  end;
 end;
 
 procedure TPackageDirectory.AddDataInformation(const DataName: String);

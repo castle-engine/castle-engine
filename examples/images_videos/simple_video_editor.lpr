@@ -83,8 +83,6 @@ const
   end;
 
 begin
-  RenderContext.Clear([cbColor], Black);
-
   if Video.Loaded then
   begin
     GLVideo.DrawableImageFromTime(Time).Draw(0, 0);
@@ -278,7 +276,7 @@ begin
   M := TMenu.Create('_Playback');
     M.Append(TMenuItemChecked.Create('_Playing / Paused', 110, CtrlP,
       TimePlaying, true));
-    M.Append(TMenuItem.Create('_Rewind to Beginning',     120, K_Home));
+    M.Append(TMenuItem.Create('_Rewind to Beginning',     120, keyHome));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('_Loop',             130,
       Video.TimeLoop, true));
@@ -320,7 +318,7 @@ begin
     { We will actually handle 1st param in Init. }
     Parameters.CheckHighAtMost(1);
 
-    Window.SetDemoOptions(K_F11, #0, true);
+    Window.SetDemoOptions(keyF11, #0, true);
     Window.AutoRedisplay := true;
     Window.MainMenu := CreateMainMenu;
     Window.OnMenuClick := @MenuClick;

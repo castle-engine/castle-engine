@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="strategy_game_demo"
   standalone_source="strategy_game_demo_standalone.lpr"
-  game_units="GameInitialize">
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.strategy.game.demo"
+  caption="Strategy Game Demo"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
 </project>

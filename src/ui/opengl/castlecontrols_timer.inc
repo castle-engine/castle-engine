@@ -28,7 +28,7 @@
   public
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     { How often should we call OnTimer. Value of 0 means to call OnTimer
       in every Update event. }
@@ -94,13 +94,13 @@ begin
   end;
 end;
 
-function TCastleTimer.PropertySection(
-  const PropertyName: String): TPropertySection;
+function TCastleTimer.PropertySections(
+  const PropertyName: String): TPropertySections;
 begin
   if (PropertyName = 'IntervalSeconds') then
-    Result := psBasic
+    Result := [psBasic]
   else
-    Result := inherited PropertySection(PropertyName);
+    Result := inherited PropertySections(PropertyName);
 end;
 
 {$endif read_implementation}

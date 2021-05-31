@@ -20,7 +20,7 @@ interface
 
 uses Classes, Generics.Collections,
   CastleUtils, CastleClassUtils, CastleScene, CastleVectors, CastleTransform,
-  CastleGLImages, X3DNodes, CastleRectangles, CastleRenderer;
+  CastleGLImages, X3DNodes, CastleRectangles, CastleRenderOptions;
 
 type
   TLocation = class
@@ -88,14 +88,14 @@ implementation
 
 uses SysUtils, DOM,
   CastleProgress, CastleImages, CastleUIControls, CastleGLUtils, CastleXMLUtils,
-  CastleSceneCore, CastleApplicationProperties, X3DLoad,
+  CastleSceneCore, CastleApplicationProperties, X3DLoad, CastleRenderContext,
   GameConfiguration;
 
 { TLocation.TLocationScene --------------------------------------------------- }
 
 procedure TLocation.TLocationScene.LocalRender(const Params: TRenderParams);
 
-  { Draw Image centered on screen, to fit inside the scene manager rect,
+  { Draw Image centered on screen, to fit inside the TCastleViewport,
     matching the 3D scene projection. }
   procedure DrawImage(const Image: TDrawableImage);
   var
@@ -116,14 +116,14 @@ var
 begin
   if RenderInternalModel then
   begin
-    Attributes.Mode := rmFull;
+    RenderOptions.Mode := rmFull;
     inherited;
   end else
   begin
     { this makes a tiny (not important in case of our trivial location 3D model)
       optimization: since we only care about filling the depth buffer,
       rendering with rmDepth will not initialize some material stuff. }
-    Attributes.Mode := rmDepth;
+    RenderOptions.Mode := rmDepth;
 
     RenderContext.ColorChannels := [];
     inherited;
@@ -182,14 +182,14 @@ begin
   FScene := TLocationScene.Create(nil);
   FScene.Spatial := [ssRendering, ssDynamicCollisions];
   // two-sided lighting
-  FScene.Attributes.PhongShading := true;
+  FScene.RenderOptions.PhongShading := true;
   { The shadows are already drawn on location Image,
     so no need to cast them on location again.
     TODO: This also means that location cannot cast shadows on Player.
     A better approach would be to leave CastShadowVolumes = true (default),
     and change location Image to *not* contain location shadows "baked". }
   FScene.CastShadowVolumes := false;
-  FScene.Load(SceneURL, true);
+  FScene.Load(SceneURL);
   FScene.PrepareResources([prRenderSelf, prBoundingBox], false, PrepareParams);
   FScene.Image := Image;
   FScene.ShadowedImage := ShadowedImage;

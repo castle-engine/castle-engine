@@ -1,4 +1,19 @@
-# TAbstractX3DViewpointNode.GravityUp
+# TAbstractSequencerNode.ForceContinuousValue_Changed
+Send value_changed event on any input, even you receive set_fraction that does not
+change previous key range.
+This means that sequencer node generates output event (value_changed) more often,
+even if internal node knowledge says that "no change occurred".
+See https://castle-engine.io/x3d_implementation_eventutilities_extensions.php#section_forceContinuousValue_Changed .
+
+# TAbstractViewpointNode.Orientation
+Orientation of the viewpoint, expressed as rotation to transform default direction and up
+(DefaultX3DCameraDirection, DefaultX3DCameraUp).
+
+# TAbstractViewpointNode.GravityTransform
+Should the gravity vector be affected by the viewpoint transformation,
+that is by the @link(TTransformNode) instances that contain this TAbstractViewpointNode.
+
+# TAbstractViewpointNode.GravityUp
 Specify the gravity vector explicitly.
 See https://castle-engine.io/x3d_implementation_navigation_extensions.php .
 @deprecated
@@ -90,3 +105,52 @@ To get bounding box of a particular shape,
 enumerate @link(TCastleSceneCore.Shapes) to find the correct shape
 (using any criteria you want -- note that the same TShapeNode may be reused multiple times),
 and then read @link(TShape.BoundingBox), @link(TShape.LocalBoundingBox).
+
+# TAbstractComposedGeometryNode.Tangent
+Tangent vectors describe the tangent coordinate-space, used by the bump mapping algorithm.
+If specified, the ordering of tangents should be the same as normals,
+i.e. they should follow the NormalPerVertex and such properties.
+
+# TBillboardNode.AxisOfRotation
+Axis around which the billboard rotates to face the camera.
+Can be zero to rotate freely.
+
+# TAppearanceNode.BlendMode
+
+Determines the exact blending equation used, in case @link(AlphaMode) indicates blending.
+See https://castle-engine.io/x3d_extensions.php#section_ext_blending .
+
+# TAppearanceNode.Texture
+
+Main texture used by this appearance (diffuse texture for Phong lighting model,
+base texture for physical lighting model,
+emissive texture for the unlit lighting model).
+It is usually simpler to set the relevant texture inside material node,
+like @link(TMaterialNode.DiffuseTexture),
+@link(TPhysicalMaterialNode.BaseTexture),
+@link(TAbstractOneSidedMaterialNode.EmissiveTexture TUnlitMaterialNode.EmissiveTexture).
+
+# TAppearanceNode.NormalMap
+
+Normal map of this appearance.
+See https://castle-engine.io/x3d_implementation_texturing_extensions.php#section_ext_bump_mapping .
+
+@deprecated
+
+This is a deprecated property. It is better to set normal map within the material node,
+using the @link(TAbstractOneSidedMaterialNode.NormalTexture).
+
+# TAbstractX3DGroupingNode.Visible
+
+Is this group visible (@italic(not implemented yet)).
+
+While this is not implemented for an entire X3D group,
+note that you can use @link(TAbstractShapeNode.Render) to toggle visibility of each shape.
+
+# TAbstractX3DGroupingNode.BBoxDisplay
+
+Is the bounding box of this group visible (@italic(not implemented yet)).
+
+While this is not implemented for an X3D group,
+note that you can use @link(TDebugTransformBox)
+to easily display bounding box of a whole @link(TCastleTransform).

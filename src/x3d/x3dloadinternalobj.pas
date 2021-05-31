@@ -23,13 +23,14 @@ unit X3DLoadInternalOBJ;
 
 interface
 
-uses X3DNodes;
+uses SysUtils, Classes,
+  X3DNodes;
 
-function LoadWavefrontOBJ(const URL: string): TX3DRootNode;
+function LoadWavefrontOBJ(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 
 implementation
 
-uses SysUtils, Classes, Generics.Collections,
+uses Generics.Collections,
   CastleStringUtils, CastleFilesUtils, CastleLog, CastleVectors, CastleUtils,
   CastleClassUtils, X3DLoadInternalUtils, CastleURIUtils,
   CastleDownload;
@@ -85,7 +86,7 @@ type
     TexCoord: TTextureCoordinateNode;
     Normal: TNormalNode;
 
-    constructor Create(const URL: string);
+    constructor Create(const Stream: TStream; const BaseUrl: String);
     destructor Destroy; override;
 
     property Faces: TWavefrontFaceList read FFaces;
@@ -182,9 +183,7 @@ end;
 
 { TObject3DOBJ --------------------------------------------------------------- }
 
-constructor TObject3DOBJ.Create(const URL: string);
-var
-  BasePath: string;
+constructor TObject3DOBJ.Create(const Stream: TStream; const BaseUrl: String);
 
   procedure ReadFacesFromOBJLine(const line: string; Material: TWavefrontMaterial);
   var
@@ -317,7 +316,7 @@ var
       LineAfterMarker := Trim(SEnding(Line, SeekPosAfterMarker));
   end;
 
-  procedure ReadMaterials(const URL: string);
+  procedure ReadMaterials(const URLSuffix: string);
   var
     IsMaterial: boolean;
 
@@ -362,7 +361,7 @@ var
     IsMaterial := false;
 
     try
-      F := TTextReader.Create(CombineURI(BasePath, URL));
+      F := TTextReader.Create(CombineURI(BaseUrl, URLSuffix));
     except
       on E: Exception do
       begin
@@ -448,14 +447,12 @@ var
 begin
   inherited Create;
 
-  BasePath := AbsoluteURI(URL);
-
   FFaces := TWavefrontFaceList.Create(true);
   FMaterials := TWavefrontMaterialList.Create(true);
 
   UsedMaterial := nil;
 
-  F := TTextReader.Create(URL);
+  F := TTextReader.Create(Stream, false);
   try
     Coord := TCoordinateNode.Create('ObjCoordinates');
     TexCoord := TTextureCoordinateNode.Create('ObjTextureCoordinates');
@@ -508,14 +505,12 @@ end;
 
 { LoadWavefrontOBJ ----------------------------------------------------------- }
 
-function LoadWavefrontOBJ(const URL: string): TX3DRootNode;
+function LoadWavefrontOBJ(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 const
   { When constructing large index arrays, we use larger Capacity
     to make them faster.
     TODO: would be better to allocate necessary space once, by assigning Count. }
   IndicesCapacity = 100;
-var
-  BaseUrl: string;
 
   function MatOBJNameToX3DName(const MatOBJName: string): string;
   begin
@@ -563,7 +558,6 @@ var
   Appearances: TX3DNodeList;
   Shape: TShapeNode;
 begin
-  BaseUrl := AbsoluteURI(URL);
   Appearances := nil;
 
   Result := TX3DRootNode.Create('', BaseUrl);
@@ -571,7 +565,7 @@ begin
     Result.HasForceVersion := true;
     Result.ForceVersion := X3DVersion;
 
-    Obj := TObject3DOBJ.Create(URL);
+    Obj := TObject3DOBJ.Create(Stream, BaseUrl);
     try
       Appearances := TX3DNodeList.Create(false);
       Appearances.Count := Obj.Materials.Count;

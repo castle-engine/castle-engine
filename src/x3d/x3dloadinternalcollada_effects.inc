@@ -255,7 +255,7 @@ var
             {Mat.FdMirrorColor.Value := } ReadColorRGB(I.Current) else
           if I.Current.TagName = 'reflectivity' then
           begin
-            if AllowKambiExtensions then
+            if AllowCastleExtensions then
               Mat.FdMirror.Value := ReadFloatOrParam(I.Current)
             else
               ReadFloatOrParam(I.Current);

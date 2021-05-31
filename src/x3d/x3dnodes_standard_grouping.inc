@@ -97,11 +97,11 @@
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
     {$ifndef CASTLE_SLIM_NODES}
-    strict private FFdRender: TSFBool;
-    { This is an extension from InstantReality, see
-      [http://instant-reality.com/documentation/nodetype/ChildGroup/].
-      We simply ignore it for now. }
-    public property FdRender: TSFBool read FFdRender;
+    strict private FFdVisible: TSFBool;
+    public property FdVisible: TSFBool read FFdVisible;
+
+    strict private FFdBBoxDisplay: TSFBool;
+    public property FdBBoxDisplay: TSFBool read FFdBBoxDisplay;
     {$endif}
 
     { Add the nodes as children.
@@ -548,7 +548,7 @@ begin
   EventRemoveChildren.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventRemoveChildrenReceive);
 
   FFdChildren := TMFNode.Create(Self, true, 'children', IAbstractChildNode);
-   FdChildren.ChangeAlways := chChildren;
+   FdChildren.ChangeAlways := chGroupChildren;
   AddField(FFdChildren);
 
   FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', TVector3.Zero);
@@ -560,8 +560,15 @@ begin
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 
   {$ifndef CASTLE_SLIM_NODES}
-  FFdRender := TSFBool.Create(Self, true, 'render', true);
-  AddField(FFdRender);
+  FFdVisible := TSFBool.Create(Self, true, 'visible', true);
+  { Calling it "render" is an extension from InstantReality,
+    see [http://instant-reality.com/documentation/nodetype/ChildGroup/].
+    This extension was invented before X3D 4 added it. }
+  FFdVisible.AddAlternativeName('render', 0);
+  AddField(FFdVisible);
+
+  FFdBBoxDisplay := TSFBool.Create(Self, true, 'bboxDisplay', false);
+  AddField(FFdBBoxDisplay);
   {$endif}
 
   DefaultContainerField := 'children';
@@ -620,7 +627,7 @@ begin
       FdChildren.Add(N);
 
   if Scene <> nil then
-    Scene.ChangedAll;
+    Scene.InternalChangedField(FdChildren, chGroupChildrenAdd);
 end;
 
 procedure TAbstractX3DGroupingNode.RemoveChildren(
@@ -648,7 +655,7 @@ begin
     FdChildren.Remove(N);
 
   if Scene <> nil then
-    Scene.ChangedAll;
+    Scene.InternalChangedField(FdChildren);
 end;
 
 procedure TAbstractX3DGroupingNode.AddChildren(
@@ -889,7 +896,7 @@ begin
   inherited;
 
   FFdChildren := TMFNode.Create(Self, false, 'children', IAbstractChildNode);
-   FdChildren.ChangeAlways := chChildren;
+   FdChildren.ChangeAlways := chGroupChildren;
   AddField(FFdChildren);
 
   FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', Vector3(0, 0, 0));

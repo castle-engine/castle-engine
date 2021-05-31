@@ -67,7 +67,7 @@
     {$I auto_generated_node_helpers/x3dnodes_x3dscriptnode.inc}
   end;
 
-  { Program behaviour in a scene using scripts. }
+  { Program behavior in a scene using scripts. }
   TScriptNode = class(TAbstractScriptNode)
   strict private
     procedure IDeclEventReceive(

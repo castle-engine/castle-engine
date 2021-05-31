@@ -28,15 +28,10 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
-      override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
     procedure ApplyTransform(var Transformation: TTransformation); override;
-
-    strict private FFdMatrix: TSFMatrix4f;
-    public property FdMatrix: TSFMatrix4f read FFdMatrix;
 
     {$I auto_generated_node_helpers/x3dnodes_matrixtransform.inc}
   end;
@@ -48,20 +43,7 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdSize: TSFVec3f;
-    public property FdSize: TSFVec3f read FFdSize;
-
-    strict private FFdSolid: TSFBool;
-    public property FdSolid: TSFBool read FFdSolid;
-
-    strict private FFdManifold: TSFBool;
-    public property FdManifold: TSFBool read FFdManifold;
-
-    strict private FFdTexCoord: TSFNode;
-    public property FdTexCoord: TSFNode read FFdTexCoord;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
 
     function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
@@ -81,22 +63,8 @@
     procedure EventWriteReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
-    procedure CreateNode; override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     destructor Destroy; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdLevel: TSFInt32;
-    public property FdLevel: TSFInt32 read FFdLevel;
-
-    strict private FFdLogFile: TSFString;
-    public property FdLogFile: TSFString read FFdLogFile;
-
-    strict private FFdEnabled: TSFBool;
-    public property FdEnabled: TSFBool read FFdEnabled;
-
-    strict private FEventWrite: TXFAnyEvent;
-    public property EventWrite: TXFAnyEvent read FEventWrite;
-
     {$I auto_generated_node_helpers/x3dnodes_logger.inc}
   end;
 
@@ -575,20 +543,10 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TMatrixTransformNode.CreateNode;
+constructor TMatrixTransformNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
-
-  FFdMatrix := TSFMatrix4f.Create(Self, true, 'matrix', TMatrix4.Identity);
-   FdMatrix.ChangeAlways := chTransform;
-  AddField(FFdMatrix);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TMatrixTransformNode.ClassX3DType: string;
-begin
-  Result := 'MatrixTransform';
+  FdMatrix.ChangeAlways := chTransform;
 end;
 
 class function TMatrixTransformNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -609,29 +567,9 @@ begin
 end;
 
 procedure TMatrixTransformNode.ApplyTransform(var Transformation: TTransformation);
-var
-  M, InvertedMatrix: TMatrix4;
 begin
   inherited;
-
-  M := Matrix;
-
-  Transformation.Transform := Transformation.Transform * M;
-
-  if TryInverseHarder(M, InvertedMatrix) then
-  begin
-    Transformation.InverseTransform := InvertedMatrix * Transformation.InverseTransform;
-  end else
-  begin
-    WritelnLogMultiline('Matrix',
-      'Cannot invert matrix:' + NL + M.ToRawString('  '));
-
-    { When determinant is zero, we treat inverted matrix
-      like identity (like in TMatrixTransformNode_1.Transformation).
-      So no need to multiply Transformation.InverseTransform by anything. }
-  end;
-
-  Transformation.Scale := Transformation.Scale * FdMatrix.TransformScale;
+  Transformation.MultiplyMatrix(Matrix);
 end;
 
 function TMatrixTransformNode.TransformationChange: TNodeTransformationChange;
@@ -639,30 +577,13 @@ begin
   Result := ntcTransform;
 end;
 
-procedure TTeapotNode.CreateNode;
+constructor TTeapotNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
-
-  FFdSize := TSFVec3f.Create(Self, false, 'size', Vector3(3, 3, 3));
-   FdSize.ChangeAlways := chGeometry;
-  AddField(FFdSize);
-
-  FFdSolid := TSFBool.Create(Self, false, 'solid', true);
-   FdSolid.ChangeAlways := chGeometry;
-  AddField(FFdSolid);
-
-  FFdManifold := TSFBool.Create(Self, false, 'manifold', false);
-   FdManifold.ChangeAlways := chGeometry;
-  AddField(FFdManifold);
-
-  FFdTexCoord := TSFNode.Create(Self, true, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
-   FdTexCoord.ChangeAlways := chGeometry;
-  AddField(FFdTexCoord);
-end;
-
-class function TTeapotNode.ClassX3DType: string;
-begin
-  Result := 'Teapot';
+  FdSize.ChangeAlways := chGeometry;
+  FdSolid.ChangeAlways := chGeometry;
+  FdManifold.ChangeAlways := chGeometry;
+  FdTexCoord.ChangeAlways := chGeometry;
 end;
 
 function TTeapotNode.Proxy(var State: TX3DGraphTraverseState;
@@ -737,21 +658,9 @@ begin
   Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
 
-procedure TLoggerNode.CreateNode;
+constructor TLoggerNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
-
-  FFdLevel := TSFInt32.Create(Self, true, 'level', 1);
-  AddField(FFdLevel);
-
-  FFdLogFile := TSFString.Create(Self, false, 'logFile', '');
-  AddField(FFdLogFile);
-
-  FFdEnabled := TSFBool.Create(Self, true, 'enabled', true);
-  AddField(FFdEnabled);
-
-  FEventWrite := TXFAnyEvent.Create(Self, 'write', true);
-  AddEvent(FEventWrite);
   FEventWrite.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventWriteReceive);
 end;
 
@@ -817,11 +726,6 @@ begin
 
     WritelnLogMessage;
   end;
-end;
-
-class function TLoggerNode.ClassX3DType: string;
-begin
-  Result := 'Logger';
 end;
 
 procedure TConverterNode.CreateNode;

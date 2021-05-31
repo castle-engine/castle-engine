@@ -50,8 +50,14 @@
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
+    <Target>
+      <Filename Value="dynamic_ambient_occlusion"/>
+    </Target>
     <SearchPaths>
-      <IncludeFiles Value="../../../src/base"/>
+      <IncludeFiles Value="code/;../common_code/"/>
+      <OtherUnitFiles Value="code/;../common_code/"/>
+      <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
+      <Libraries Value="" />
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>
@@ -66,19 +72,13 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="4">
+    <Exceptions Count="2">
       <Item1>
         <Name Value="ECodetoolError"/>
       </Item1>
       <Item2>
         <Name Value="EFOpenError"/>
       </Item2>
-      <Item3>
-        <Name Value="BreakFirstViewpointFound"/>
-      </Item3>
-      <Item4>
-        <Name Value="BreakIsNodePresent"/>
-      </Item4>
     </Exceptions>
   </Debugging>
 </CONFIG>

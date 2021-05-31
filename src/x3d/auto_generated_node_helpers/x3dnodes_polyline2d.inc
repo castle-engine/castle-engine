@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,6 +26,12 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdLineSegments: TMFVec2f;
+    { X3D field "lineSegments". } { }
+    public property FdLineSegments: TMFVec2f read FFdLineSegments;
     { Set X3D field "lineSegments". } { }
     procedure SetLineSegments(const Value: array of TVector2);
     { Set X3D field "lineSegments". } { }
@@ -45,6 +51,20 @@ end;
 procedure TPolyline2DNode.SetLineSegments(const Value: TVector2List);
 begin
   FdLineSegments.Send(Value);
+end;
+
+class function TPolyline2DNode.ClassX3DType: String;
+begin
+  Result := 'Polyline2D';
+end;
+
+procedure TPolyline2DNode.CreateNode;
+begin
+  inherited;
+
+  FFdLineSegments := TMFVec2f.Create(Self, False, 'lineSegments', []);
+   FdLineSegments.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdLineSegments);
 end;
 
 {$endif read_implementation}

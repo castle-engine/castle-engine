@@ -92,7 +92,7 @@ type
   { Any error related to VRML/X3D. }
   EX3DError = class(Exception);
 
-  EX3DGzipCompressed = class(EX3DError);
+  EGzipCompressed = class(Exception);
 
 const
   TokenNumbers : TX3DTokens = [vtFloat, vtInteger];
@@ -166,7 +166,7 @@ type
       After constructor call, @link(Version) is already set,
       it's checked that file is not compressed by gzip, and the first
       Token is already read.
-      @raises(EX3DGzipCompressed If the Stream starts with gzip file header.) }
+      @raises(EGzipCompressed If the Stream starts with gzip file header.) }
     constructor Create(AStream: TPeekCharStream; AOwnsStream: boolean);
 
     { Constructor for the case when you only have part of normal
@@ -605,7 +605,7 @@ begin
     otherwise we know 100% it's not. }
   if Copy(Line, 1, Length(GzipHeader)) = GzipHeader then
   begin
-    raise EX3DGzipCompressed.Create('Stream is compressed by gzip');
+    raise EGzipCompressed.Create('Stream is compressed by gzip');
   end;
 
   { Normal (uncompressed) VRML file, continue reading ... }

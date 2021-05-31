@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,16 +25,15 @@
 
 {$ifdef read_interface}
 
-  strict private
-    function GetNameField: String;
-    procedure SetNameField(const Value: String);
-    function GetReference: String;
-    procedure SetReference(const Value: String);
   public
-    { X3D field "name". } { }
-    property NameField: String read GetNameField write SetNameField;
-    { X3D field "reference". } { }
-    property Reference: String read GetReference write SetReference;
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdValue: TMFNode;
+    { X3D field "value". } { }
+    public property FdValue: TMFNode read FFdValue;
+    { Set X3D field "value". } { }
+    procedure SetValue(const Value: array of TAbstractMetadataNode);
 
 {$endif read_interface}
 
@@ -42,24 +41,30 @@
 
 { TMetadataSetNode ----------------------------------------------- }
 
-function TMetadataSetNode.GetNameField: String;
+procedure TMetadataSetNode.SetValue(const Value: array of TAbstractMetadataNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
 begin
-  Result := FdName.Value;
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TAbstractMetadataNode));
+  FdValue.Send(A);
 end;
 
-procedure TMetadataSetNode.SetNameField(const Value: String);
+class function TMetadataSetNode.ClassX3DType: String;
 begin
-  FdName.Send(Value);
+  Result := 'MetadataSet';
 end;
 
-function TMetadataSetNode.GetReference: String;
+procedure TMetadataSetNode.CreateNode;
 begin
-  Result := FdReference.Value;
-end;
+  inherited;
 
-procedure TMetadataSetNode.SetReference(const Value: String);
-begin
-  FdReference.Send(Value);
+  FFdValue := TMFNode.Create(Self, True, 'value', [TAbstractMetadataNode]);
+   FdValue.ChangeAlways := chNone;
+  AddField(FFdValue);
 end;
 
 {$endif read_implementation}

@@ -10,37 +10,37 @@ Let's check what others use:
 
 Blender:
 - rotating: on bmMiddle
-- moving left/right/down/up: on Shift + mbMiddle
-- moving closer/further: on Ctrl + mbMiddle
+- moving left/right/down/up: on Shift + buttonMiddle
+- moving closer/further: on Ctrl + buttonMiddle
   (moving down brings closer, up brings further; horizontal move ignored)
 Both Shift and Ctrl pressed do nothing.
 
 vrweb:
-- rotating: mbMiddle
-- moving closer/further: mbRight (like in Blender: down closer, up further,
+- rotating: buttonMiddle
+- moving closer/further: buttonRight (like in Blender: down closer, up further,
   horizontal doesn't matter)
-- moving left/right/down/up: mbLeft
+- moving left/right/down/up: buttonLeft
 
 GIMP normalmap 3d preview:
-- rotating: mbLeft
-- moving closer/further: mbRight (like in Blender: down closer, up further,
+- rotating: buttonLeft
+- moving closer/further: buttonRight (like in Blender: down closer, up further,
   horizontal doesn't matter)
 - no moving left/right/down/up.
 
 My thoughts and conclusions:
 - rotating seems most natural in Examine mode (that's where this navigation
-  mode is the most comfortable), so it should be on mbLeft (like normalmap)
+  mode is the most comfortable), so it should be on buttonLeft (like normalmap)
   with no modifiers (like Blender).
 - moving closer/further: 2nd most important action in Examine mode, IMO.
-  Goes to mbRight. For people with 1 mouse button, and for Blender analogy,
-  it's also on Ctrl + mbLeft.
-- moving left/right/down/up: mbMiddle.
+  Goes to buttonRight. For people with 1 mouse button, and for Blender analogy,
+  it's also on Ctrl + buttonLeft.
+- moving left/right/down/up: buttonMiddle.
   For people with no middle button, and Blender analogy, it's also on
-  Shift + mbLeft.
+  Shift + buttonLeft.
 
 This achieves a couple of nice goals:
-- everything is available with only mbLeft, for people with 1 mouse button.
-- Blender analogy: you can say to just switch "mbMiddle" to "mbLeft",
+- everything is available with only buttonLeft, for people with 1 mouse button.
+- Blender analogy: you can say to just switch "buttonMiddle" to "buttonLeft",
   and it works the same
 - OTOH, for people with 3 mouse buttons, that do not catch the fact that
   keyboard modifiers change the navigation, also each mb (without modifier)

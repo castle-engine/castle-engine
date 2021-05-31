@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,10 +29,20 @@
     function GetTitle: String;
     procedure SetTitle(const Value: String);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdInfo: TMFString;
+    { X3D field "info". } { }
+    public property FdInfo: TMFString read FFdInfo;
     { Set X3D field "info". } { }
     procedure SetInfo(const Value: array of string);
     { Set X3D field "info". } { }
     procedure SetInfo(const Value: TCastleStringList);
+
+    strict private FFdTitle: TSFString;
+    { X3D field "title". } { }
+    public property FdTitle: TSFString read FFdTitle;
     { X3D field "title". } { }
     property Title: String read GetTitle write SetTitle;
 
@@ -60,6 +70,24 @@ end;
 procedure TWorldInfoNode.SetTitle(const Value: String);
 begin
   FdTitle.Send(Value);
+end;
+
+class function TWorldInfoNode.ClassX3DType: String;
+begin
+  Result := 'WorldInfo';
+end;
+
+procedure TWorldInfoNode.CreateNode;
+begin
+  inherited;
+
+  FFdInfo := TMFString.Create(Self, False, 'info', []);
+   FdInfo.ChangeAlways := chNone;
+  AddField(FFdInfo);
+
+  FFdTitle := TSFString.Create(Self, False, 'title', '');
+   FdTitle.ChangeAlways := chNone;
+  AddField(FFdTitle);
 end;
 
 {$endif read_implementation}

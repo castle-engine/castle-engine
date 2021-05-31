@@ -29,7 +29,7 @@ type
 
 function TSceneURLPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
-  Result := [paDialog, paRevertable];
+  Result := [paDialog, paRevertable, paMultiSelect];
 end;
 
 procedure TSceneURLPropertyEditor.Edit;
@@ -39,7 +39,10 @@ begin
   Dialog := TCastleOpen3DDialog.Create(nil);
   try
     Dialog.AdviceDataDirectory := PropertyEditorsAdviceDataDirectory;
-    Dialog.URL := GetStrValue;
+    if (GetStrValue = '') and PropertyEditorsAdviceDataDirectory then
+      Dialog.URL := 'castle-data:/' // make it easier to open files within data folder
+    else
+      Dialog.URL := GetStrValue;
     if Dialog.Execute then
       SetStrValue(Dialog.URL);
   finally FreeAndNil(Dialog) end;
@@ -58,7 +61,7 @@ type
 
 function TImageURLPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
-  Result := [paDialog, paRevertable];
+  Result := [paDialog, paRevertable, paMultiSelect];
 end;
 
 procedure TImageURLPropertyEditor.Edit;
@@ -68,7 +71,10 @@ begin
   Dialog := TCastleOpenImageDialog.Create(nil);
   try
     Dialog.AdviceDataDirectory := PropertyEditorsAdviceDataDirectory;
-    Dialog.URL := GetStrValue;
+    if (GetStrValue = '') and PropertyEditorsAdviceDataDirectory then
+      Dialog.URL := 'castle-data:/' // make it easier to open files within data folder
+    else
+      Dialog.URL := GetStrValue;
     if Dialog.Execute then
       SetStrValue(Dialog.URL);
   finally FreeAndNil(Dialog) end;
@@ -86,7 +92,7 @@ type
 
 function TDesignURLPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
-  Result := [paDialog, paRevertable];
+  Result := [paDialog, paRevertable, paMultiSelect];
 end;
 
 procedure TDesignURLPropertyEditor.Edit;
@@ -97,7 +103,42 @@ begin
   try
     Dialog.Filter := 'CGE User Interace Design (*.castle-user-interface)|*.castle-user-interface|All Files|*';
     Dialog.AdviceDataDirectory := PropertyEditorsAdviceDataDirectory;
-    Dialog.URL := GetStrValue;
+    if (GetStrValue = '') and PropertyEditorsAdviceDataDirectory then
+      Dialog.URL := 'castle-data:/' // make it easier to open files within data folder
+    else
+      Dialog.URL := GetStrValue;
+    if Dialog.Execute then
+      SetStrValue(Dialog.URL);
+  finally FreeAndNil(Dialog) end;
+end;
+
+{ TTransformDesignURLPropertyEditor ---------------------------------------------------- }
+
+type
+  { Property editor for URL that refers to a file readable by TransformLoad. }
+  TTransformDesignURLPropertyEditor = class(TStringPropertyEditor)
+  public
+    function GetAttributes: TPropertyAttributes; override;
+    procedure Edit; override;
+  end;
+
+function TTransformDesignURLPropertyEditor.GetAttributes: TPropertyAttributes;
+begin
+  Result := [paDialog, paRevertable, paMultiSelect];
+end;
+
+procedure TTransformDesignURLPropertyEditor.Edit;
+var
+  Dialog: TCastleOpenDialog;
+begin
+  Dialog := TCastleOpenDialog.Create(nil);
+  try
+    Dialog.Filter := 'CGE Transform Design (*.castle-transform)|*.castle-transform|All Files|*';
+    Dialog.AdviceDataDirectory := PropertyEditorsAdviceDataDirectory;
+    if (GetStrValue = '') and PropertyEditorsAdviceDataDirectory then
+      Dialog.URL := 'castle-data:/' // make it easier to open files within data folder
+    else
+      Dialog.URL := GetStrValue;
     if Dialog.Execute then
       SetStrValue(Dialog.URL);
   finally FreeAndNil(Dialog) end;
@@ -115,7 +156,7 @@ type
 
 function TTiledMapURLPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
-  Result := [paDialog, paRevertable];
+  Result := [paDialog, paRevertable, paMultiSelect];
 end;
 
 procedure TTiledMapURLPropertyEditor.Edit;
@@ -126,7 +167,10 @@ begin
   try
     Dialog.Filter := 'Tiled Map (*.tmx)|*.tmx|All Files|*';
     Dialog.AdviceDataDirectory := PropertyEditorsAdviceDataDirectory;
-    Dialog.URL := GetStrValue;
+    if (GetStrValue = '') and PropertyEditorsAdviceDataDirectory then
+      Dialog.URL := 'castle-data:/' // make it easier to open files within data folder
+    else
+      Dialog.URL := GetStrValue;
     if Dialog.Execute then
       SetStrValue(Dialog.URL);
   finally FreeAndNil(Dialog) end;

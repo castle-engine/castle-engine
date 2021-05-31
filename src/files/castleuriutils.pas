@@ -35,6 +35,23 @@ uses Classes,
 procedure URIExtractAnchor(var URI: string; out Anchor: string;
   const RecognizeEvenEscapedHash: boolean = false);
 
+{ Like URIExtractAnchor, but URI remains unchanged. }
+procedure URIGetAnchor(const URI: string; out Anchor: string;
+  const RecognizeEvenEscapedHash: boolean = false);
+
+{ Calculate #anchor from an URI, and split it into a key-value map.
+
+  This supports special CGE syntax within URL anchor to specify loading parameters for
+  @url(https://github.com/castle-engine/castle-engine/wiki/Spine Spine),
+  @url(https://github.com/castle-engine/castle-engine/wiki/Sprite-sheets sprite sheets),
+  @url(https://github.com/castle-engine/castle-engine/wiki/Images images).
+
+  On output, the key-value pairs from anchor are saved in TStringStringMap.
+  The SettingsFromAnchor is always cleared at the beginning.
+  If no anchor existed, SettingsFromAnchor will be empty when this ends. }
+procedure URIGetSettingsFromAnchor(const URI: string;
+  const SettingsFromAnchor: TStringStringMap);
+
 { Return URI with anchor (if was any) stripped. }
 function URIDeleteAnchor(const URI: string;
   const RecognizeEvenEscapedHash: boolean = false): string;
@@ -167,6 +184,11 @@ function URIToFilenameSafe(const URI: string): string;
   so if the FileName is relative --- it will be expanded, treating it
   as relative to the current directory). }
 function FilenameToURISafe(FileName: string): string;
+
+{ Tries change URI to use castle-data: protocol.
+  It's used in our editor to change absolute paths to relative to castle-data
+  directory. }
+function MaybeUseDataProtocol(const URL: String): String;
 
 { Get MIME type for content of the URI @italic(without downloading the file).
   For local and remote files (file, http, and similar protocols)
@@ -356,6 +378,15 @@ uses SysUtils, URIParser,
   CastleInternalDirectoryInformation
   {$ifdef CASTLE_NINTENDO_SWITCH} , CastleInternalNxBase {$endif};
 
+procedure URIGetAnchor(const URI: string; out Anchor: string;
+  const RecognizeEvenEscapedHash: boolean = false);
+var
+  U: String;
+begin
+  U := URI;
+  URIExtractAnchor(U, Anchor, RecognizeEvenEscapedHash);
+end;
+
 procedure URIExtractAnchor(var URI: string; out Anchor: string;
   const RecognizeEvenEscapedHash: boolean);
 var
@@ -387,6 +418,53 @@ begin
       SetLength(URI, HashPos - 1);
     end;
   end;
+end;
+
+procedure URIGetSettingsFromAnchor(const URI: string;
+  const SettingsFromAnchor: TStringStringMap);
+var
+  URLForDisplay: String;
+
+  procedure ProcessAnchorPart(const Part: String);
+  var
+    Semicolon: Integer;
+    PartName, PartValue: String;
+  begin
+    Semicolon := Pos(':', Part);
+
+    if Semicolon = 0 then
+    begin
+      WritelnWarning('Empty setting (%s) in anchor of "%s"', [Part, URLForDisplay]);
+      SettingsFromAnchor.Add(Part, '');
+    end else
+    begin
+      PartName := Copy(Part, 1, Semicolon - 1);
+      PartValue := SEnding(Part, Semicolon + 1);
+      SettingsFromAnchor.Add(PartName, PartValue);
+    end;
+  end;
+
+var
+  Anchor, AnchorPart: String;
+  SeekPos: Integer;
+begin
+  URLForDisplay := URIDisplay(URI);
+
+  { We need recognize escaped hash because GTK2 open dialog returns %23
+    in # position }
+  URIGetAnchor(URI, Anchor, true);
+  SettingsFromAnchor.Clear;
+
+  if Anchor = '' then
+    Exit;
+
+  SeekPos := 1;
+  repeat
+    AnchorPart := NextToken(Anchor, SeekPos, [',']);
+    if AnchorPart = '' then
+      Break;
+    ProcessAnchorPart(AnchorPart);
+  until false;
 end;
 
 function URIDeleteAnchor(const URI: string;
@@ -746,10 +824,30 @@ end;
 
 function URIMimeType(const URI: string; out Gzipped: boolean): string;
 
-  function ExtToMimeType(Ext, ExtExt: string): string;
+  function ExtToMimeType(const URI: string): string;
+  var
+    Ext, ExtExt, ExtA{, ExtExtA}, URIWithoutAnchor, URIName: String;
   begin
-    Ext := LowerCase(Ext);
-    ExtExt := LowerCase(ExtExt);
+    { We're consciously using here ExtractFileExt and ExtractFileDoubleExt on URIs,
+      although they should be used for filenames.
+      Note that this unit does not define public functions like ExtractURIExt
+      or ExtractURIDoubleExt: *everything* should operate on MIME types instead. }
+    Ext := LowerCase(ExtractFileExt(URI));
+    ExtExt := LowerCase(ExtractFileDoubleExt(URI));
+
+    { Some of our reading functions, like Spine, sprite sheets and images,
+      recognize and strip anchors from URL.
+      So recognize MIME type based on URL without anchor too.
+      Otherwise 'xxx.json#skinname' would not be detected as Spine JSON.
+      The comparison below can use ExtA / ExtExtA instead of Ext / ExtExt then.
+
+      Note that doing it here means that *all* implementations of relevant formats
+      should strip anchors, e.g. both LoadImageAsNode and LoadImage must strip anchors. }
+    URIWithoutAnchor := URIDeleteAnchor(URI, true);
+    ExtA := LowerCase(ExtractFileExt(URIWithoutAnchor));
+    // unused: ExtExtA := LowerCase(ExtractFileDoubleExt(URIWithoutAnchor));
+
+    URIName := LowerCase(ExtractURIName(URI));
 
     { This list is based on
       http://svn.freepascal.org/cgi-bin/viewvc.cgi/trunk/lcl/interfaces/customdrawn/customdrawnobject_android.inc?root=lazarus&view=co&content-type=text%2Fplain
@@ -794,7 +892,7 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
     if Ext = '.geo' then Result := 'application/x-geo' else
     if Ext = '.kanim' then Result := 'application/x-castle-anim-frames' else
     if Ext = '.castle-anim-frames' then Result := 'application/x-castle-anim-frames' else
-    if Ext = '.json' then Result := 'application/json' else
+    if ExtA = '.json' then Result := 'application/json' else
     { Various sites propose various MIME types for STL:
       https://gist.github.com/allysonsouza/1bf9d4a0295a14373979cd23d15df0a9
       application/wavefront-stl
@@ -809,6 +907,15 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
     if Ext = '.svg' then Result := 'image/svg+xml' else
     if Ext = '.ico' then Result := 'image/x-icon' else
     if Ext = '.icns' then Result := 'image/icns' else
+    if ExtA = '.castle-sprite-sheet' then Result := 'application/x-castle-sprite-sheet' else
+    { I didn't found real MIME type for Starling Texture Atlas.
+      Created as image type based on
+      https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
+    }
+    if ExtA = '.starling-xml' then Result := 'application/x-starling-sprite-sheet' else
+    if ExtA = '.cocos2d-plist' then Result := 'application/x-cocos2d-sprite-sheet' else
+    if ExtA = '.plist' then Result := 'application/x-plist' else
+
     // HTML
     if Ext = '.htm' then Result := 'text/html' else
     if Ext = '.html' then Result := 'text/html' else
@@ -824,6 +931,8 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
     if Ext = '.cpp' then Result := 'text/plain' else
     if Ext = '.java' then Result := 'text/plain' else
     if Ext = '.log' then Result := 'text/plain'  else
+    if Ext = '.md' then Result := 'text/plain' else
+    if URIName = '.gitignore' then Result := 'text/plain' else
     // Videos
     if Ext = '.mp4' then Result := 'video/mp4' else
     if Ext = '.avi' then Result := 'video/x-msvideo' else
@@ -873,14 +982,14 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
     if Ext = '.rar' then Result := 'application/x-rar-compressed' else
     if Ext = '.gz' then begin Result := 'application/gzip'; Gzipped := true; end else
     // Various
-    if Ext = '.xml' then Result := 'application/xml' else
+    if ExtA = '.xml' then Result := 'application/xml' else
     if Ext = '.castlescript' then Result := 'text/x-castlescript' else
     if Ext = '.kscript'      then Result := 'text/x-castlescript' else
     if Ext = '.js' then Result := 'application/javascript' else
     if Ext = '.castle-user-interface' then Result := 'text/x-castle-user-interface' else
     if Ext = '.castle-transform' then Result := 'text/x-castle-transform' else
       { as a last resort, check URIMimeExtensions }
-      URIMimeExtensions.TryGetValue(Ext, Result);
+      URIMimeExtensions.TryGetValue(ExtA, Result);
   end;
 
 var
@@ -902,11 +1011,7 @@ begin
      (P = 'castle-nx-contents') or
      (P = 'castle-android-assets') or
      (P = 'castle-data') then
-    { We're consciously using here ExtractFileExt and ExtractFileDoubleExt on URIs,
-      although they should be used for filenames.
-      Note that this unit does not define public functions like ExtractURIExt
-      or ExtractURIDoubleExt: *everything* should operate on MIME types instead. }
-    Result := ExtToMimeType(ExtractFileExt(URI), ExtractFileDoubleExt(URI)) else
+    Result := ExtToMimeType(URI) else
 
   if P = 'data' then
   begin
@@ -927,6 +1032,19 @@ begin
     Result := 'text/x-castlescript' else
   if P = 'compiled' then
     Result := 'text/x-castle-compiled';
+end;
+
+function MaybeUseDataProtocol(const URL: String): String;
+var
+  DataPath: String;
+begin
+  { Use below ResolveCastleDataURL, to get real location of data,
+    e.g. resolved to file:// on normal desktop. }
+  DataPath := ResolveCastleDataURL('castle-data:/');
+  if IsPrefix(DataPath, URL, not FileNameCaseSensitive) then
+    Result := 'castle-data:/' + PrefixRemove(DataPath, URL, not FileNameCaseSensitive)
+  else
+    Result := URL;
 end;
 
 function URIMimeType(const URI: string): string;
@@ -989,24 +1107,45 @@ begin
     Result := URIDisplay(AbsoluteURI(URI), true);
 end;
 
+const
+  { RecognizeEvenEscapedHash value for URI extracting functions below. }
+  DefaultRecognizeEvenEscapedHash = true;
+
 function ChangeURIExt(const URL, Extension: string): string;
+var
+  URLWithoutAnchor, Anchor: String;
 begin
-  Result := ChangeFileExt(URL, Extension);
+  URLWithoutAnchor := URL;
+  URIExtractAnchor(URLWithoutAnchor, Anchor, DefaultRecognizeEvenEscapedHash);
+  Result := ChangeFileExt(URLWithoutAnchor, Extension);
+  if Anchor <> '' then
+    Result := Result + '#' + Anchor;
 end;
 
 function DeleteURIExt(const URL: string): string;
 begin
-  Result := DeleteFileExt(URL);
+  Result := ChangeURIExt(URL, '');
 end;
 
 function ExtractURIName(const URL: string): string;
+var
+  URLWithoutAnchor: String;
 begin
-  Result := ExtractFileName(URL);
+  URLWithoutAnchor := URIDeleteAnchor(URL, DefaultRecognizeEvenEscapedHash);
+  Result := ExtractFileName(URLWithoutAnchor);
 end;
 
 function ExtractURIPath(const URL: string): string;
+var
+  URLWithoutAnchor: String;
 begin
-  Result := ExtractFilePath(URL);
+  { While on non-Windows ExtractFilePath would work on full URL as well,
+    but on Windows the ":" inside anchor (like
+    "castle-data:/starling/character_zombie_atlas.starling-xml#fps:8,anim-naming:strict-underscore")
+    would cause trouble: it would be considered a drive letter separator,
+    and change the result. }
+  URLWithoutAnchor := URIDeleteAnchor(URL, DefaultRecognizeEvenEscapedHash);
+  Result := ExtractFilePath(URLWithoutAnchor);
 end;
 
 function URIIncludeSlash(const URL: String): String;

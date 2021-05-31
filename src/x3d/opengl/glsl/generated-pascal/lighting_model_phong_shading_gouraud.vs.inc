@@ -20,12 +20,17 @@
 'uniform vec3 castle_MaterialAmbient;' + LineEnding +
 'uniform vec3 castle_MaterialSpecular;' + LineEnding +
 'uniform float castle_MaterialShininess;' + LineEnding +
-'/* Color summed with all the lights:' + LineEnding +
-'   Material emissive color + material ambient color * global (light model) ambient.' + LineEnding +
-'   (similar to old gl_Front/BackLightModelProduct.sceneColor in deprecated GLSL versions.)' + LineEnding +
-'*/' + LineEnding +
-'uniform vec3 castle_SceneColor;' + LineEnding +
+'uniform vec3 castle_MaterialEmissive;' + LineEnding +
+'uniform vec3 castle_GlobalAmbient;' + LineEnding +
+'' + LineEnding +
 'uniform vec4 castle_UnlitColor;' + LineEnding +
+'' + LineEnding +
+'/* Material ambient color * global (light model) ambient. */' + LineEnding +
+'vec3 get_ambient_color()' + LineEnding +
+'{' + LineEnding +
+'  vec3 ambient = castle_MaterialAmbient;' + LineEnding +
+'  return ambient * castle_GlobalAmbient;' + LineEnding +
+'}' + LineEnding +
 '' + LineEnding +
 'void calculate_lighting(out vec4 result, const in vec4 vertex_eye, const in vec3 normal_eye)' + LineEnding +
 '{' + LineEnding +
@@ -75,18 +80,14 @@
 '  material_info.shininess = castle_MaterialShininess;' + LineEnding +
 '  /* PLUG: material_shininess (material_info.shininess) */' + LineEnding +
 '' + LineEnding +
-'  material_info.diffuse_alpha =' + LineEnding +
-'    #if defined(COLOR_PER_VERTEX_REPLACE)' + LineEnding +
-'    castle_ColorPerVertex;' + LineEnding +
-'    #elif defined(COLOR_PER_VERTEX_MODULATE)' + LineEnding +
-'    castle_ColorPerVertex * castle_MaterialDiffuseAlpha;' + LineEnding +
-'    #else' + LineEnding +
-'    castle_MaterialDiffuseAlpha;' + LineEnding +
-'    #endif' + LineEnding +
+'  material_info.diffuse_alpha = castle_apply_color_per_vertex(castle_MaterialDiffuseAlpha);' + LineEnding +
 '' + LineEnding +
-'  result = vec4(castle_SceneColor, material_info.diffuse_alpha.a);' + LineEnding +
+'  result = vec4(get_ambient_color(), material_info.diffuse_alpha.a);' + LineEnding +
 '' + LineEnding +
 '  /* PLUG: add_light (result, vertex_eye, normal_eye, material_info) */' + LineEnding +
+'' + LineEnding +
+'  vec3 emissive = castle_MaterialEmissive;' + LineEnding +
+'  result.rgb += emissive;' + LineEnding +
 '' + LineEnding +
 '  /* Clamp sum of lights colors to be <= 1. See template_phong.fs for comments. */' + LineEnding +
 '  result.rgb = min(result.rgb, 1.0);' + LineEnding +

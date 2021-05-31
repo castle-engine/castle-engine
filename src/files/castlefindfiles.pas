@@ -179,6 +179,18 @@ uses URIParser, StrUtils,
   )
 }
 
+{ On Windows, the FindFirst/FindNext follow broken Windows API behavior
+  that only compares the first 3 letters of the extension.
+  So e.g. searching for '*.pas' will also find 'emacs-backup-file.pas~' .
+  To be sensible, and to be consistent across platforms, we fix it by
+  additional IsWild check.
+  This also matters e.g. for Pascal files list found by
+  "castle-engine generate-program" -- we don't want there
+  'emacs-backup-file.pas~'. }
+{$ifdef MSWINDOWS}
+  {$define DOUBLE_CHECK_WILDCARD}
+{$endif}
+
 { FindFiles ------------------------------------------------------------------ }
 
 { This is equivalent to FindFiles with Recursive = false
@@ -218,7 +230,11 @@ function FindFiles_NonRecursive(const Path, Mask: string;
         // do not enumarate directory names '.' and '..'
         if not (
           ((FileRec.Attr and faDirectory) <> 0) and
-          SpecialDirName(FileRec.Name)) then
+          SpecialDirName(FileRec.Name))
+          {$ifdef DOUBLE_CHECK_WILDCARD}
+          and IsWild(FileRec.Name, Mask, FileNameCaseSensitive)
+          {$endif}
+          then
         begin
           AbsoluteName := LocalPath + FileRec.Name;
           Inc(Result);
@@ -485,14 +501,18 @@ end;
 
 type
   TFoundFileMethodWrapper = record
-    Contents: TFoundFileMethod;
+    FileMethod: TFoundFileMethod;
   end;
   PFoundFileMethodWrapper = ^TFoundFileMethodWrapper;
 
 procedure FoundFileProcToMethod(
   const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
+var
+  FileMethod: TFoundFileMethod;
 begin
-  PFoundFileMethodWrapper(Data)^.Contents(FileInfo, StopSearch);
+  FileMethod := PFoundFileMethodWrapper(Data)^.FileMethod;
+  if Assigned(FileMethod) then
+    FileMethod(FileInfo, StopSearch);
 end;
 
 function FindFiles(const Path, Mask: string; const FindDirectories: boolean;
@@ -500,7 +520,7 @@ function FindFiles(const Path, Mask: string; const FindDirectories: boolean;
 var
   FileMethodWrapper: TFoundFileMethodWrapper;
 begin
-  FileMethodWrapper.Contents := FileMethod;
+  FileMethodWrapper.FileMethod := FileMethod;
   Result := FindFiles(Path, Mask, FindDirectories,
     {$ifdef CASTLE_OBJFPC}@{$endif} FoundFileProcToMethod,
     @FileMethodWrapper, Options);

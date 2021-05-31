@@ -71,7 +71,7 @@ const
 
 { Make Text shorter to fit the text width (as rendered using Font)
   inside MaxWidth (in pixels). }
-procedure MakeTextFit(var Text: string; const Font: TCastleFont;
+procedure MakeTextFit(var Text: string; const Font: TCastleAbstractFont;
   const MaxWidth: Integer);
 var
   DotsWidth: Single;
@@ -193,7 +193,7 @@ begin
 
   FillRect := BarRect.LeftPart(BarRect.Width * Progress.Position / Progress.Max);
   { it's normal that at the beginning FillRect is too small to be drawn }
-  Theme.DrawableImages[tiProgressFill].IgnoreTooLargeCorners := true;
+  Theme.ImagesPersistent[tiProgressFill].DrawableImage.IgnoreTooLargeCorners := true;
   Theme.Draw(FillRect, tiProgressFill, UIScale);
 
   MaxTextWidth := Round(BarRect.Width - PaddingHorizontal);

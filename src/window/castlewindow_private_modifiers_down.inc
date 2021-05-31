@@ -31,7 +31,7 @@
   Then you have to call SetPrivateModifiersDown with
   appropriate arguments at appropriate times. And that's all.
   SetPrivateModifiersDown will take care of calling DoKeyDown(k) and DoKeyUp(k)
-  for you for k = K_Shift, K_Ctrl, K_Alt. }
+  for you for k = keyShift, keyCtrl, keyAlt. }
   
 {$ifdef read_window_interface}
 private
@@ -40,20 +40,20 @@ private
     (in PrivateModifiersDown[mkShift, true]) and the same for Alt and Ctrl key
     (so it's like PrivateModifiersDown[TModifierKey, IsRight]).
     I have to do this because Xlib differs left and right keys.
-    And I want to set KeysDown[K_Shift] always to "one of the shift keys is down".
+    And I want to set KeysDown[keyShift] always to "one of the shift keys is down".
 
     E.g. imagine this:
-    1. user presses left shift key. We do DoKeyDown(K_Shift).
-    2. then he presses right shift key. Maybe we do DoKeyDown(K_Shift),
+    1. user presses left shift key. We do DoKeyDown(keyShift).
+    2. then he presses right shift key. Maybe we do DoKeyDown(keyShift),
        maybe not. It doesn't matter. What matters is that we have still
-       KeysDown[K_Shift] = true, no problem.
-    3. now user releases left shift. And what ? We can't do DoKeyUp(K_Shift)
-       now, because K_Shift should be still true (right shift is still down).
+       KeysDown[keyShift] = true, no problem.
+    3. now user releases left shift. And what ? We can't do DoKeyUp(keyShift)
+       now, because keyShift should be still true (right shift is still down).
        So we have to keep somewhere states of left shift and right shift
-       separately. (NOT only in KeysDown, where we have one K_Shift)
+       separately. (NOT only in KeysDown, where we have one keyShift)
 
     That's what PrivateModifiersDown is for. }
-  PrivateModifiersDown:array[TModifierKey, boolean]of boolean;
+  PrivateModifiersDown:array[TModifierKey, boolean] of boolean;
   
   { Set PrivateModifiersDown[Key, IsRight] := Value.
     Assume that k = ModifierKeyToKey[ModKey].

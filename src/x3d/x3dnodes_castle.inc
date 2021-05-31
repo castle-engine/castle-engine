@@ -270,8 +270,8 @@
     destructor Destroy; override;
     class function ClassX3DType: string; override;
 
-    strict private FFdShaders: TMFNodeShaders;
-    public property FdShaders: TMFNodeShaders read FFdShaders;
+    strict private FFdShaders: TMFNode;
+    public property FdShaders: TMFNode read FFdShaders;
 
     strict private FFdNeedsDepth: TSFBool;
     public property FdNeedsDepth: TSFBool read FFdNeedsDepth;
@@ -399,7 +399,7 @@
 
   { Viewpoint for making reflections on flat objects.
     See https://castle-engine.io/x3d_extensions_mirror_plane.php . }
-  TViewpointMirrorNode = class(TX3DNode)
+  TViewpointMirrorNode = class(TAbstractNode)
   public
     {$I auto_generated_node_helpers/x3dnodes_viewpointmirror.inc}
   end;
@@ -753,10 +753,13 @@ begin
     shine here. We don't want
     to override it's transform with transformation of this
     ProjectedTextureCoordinate. }
-  FFdProjector := TSFNode.Create(Self, true, 'projector',
-    [TSpotLightNode_1, TDirectionalLightNode_1,
-     TSpotLightNode  , TDirectionalLightNode  ,
-     TAbstractX3DViewpointNode]);
+  FFdProjector := TSFNode.Create(Self, true, 'projector', [
+    TSpotLightNode_1,
+    TDirectionalLightNode_1,
+    TSpotLightNode,
+    TDirectionalLightNode,
+    TAbstractViewpointNode
+  ]);
    FFdprojector.ChangeAlways := chTextureCoordinate;
   AddField(FFdProjector);
 end;
@@ -774,7 +777,7 @@ begin
    FdEnabled.ChangeAlways := chScreenEffectEnabled;
   AddField(FFdEnabled);
 
-  FFdShaders := TMFNodeShaders.Create(Self, true, 'shaders', [TAbstractShaderNode]);
+  FFdShaders := TMFNode.Create(Self, true, 'shaders', [TAbstractShaderNode]);
    FdShaders.ChangeAlways := chEverything;
   AddField(FFdShaders);
 

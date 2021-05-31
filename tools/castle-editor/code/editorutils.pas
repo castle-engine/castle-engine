@@ -20,8 +20,14 @@ unit EditorUtils;
 
 interface
 
-uses Classes, Types, Controls, StdCtrls, Process, Generics.Collections,
+uses Classes, Types, Controls, StdCtrls, Process, Menus, Generics.Collections,
   CastleStringUtils;
+
+type
+  TMenuItemHelper = class helper for TMenuItem
+  public
+    procedure SetEnabledVisible(const Value: Boolean);
+  end;
 
 type
   TOutputKind = (
@@ -124,9 +130,10 @@ type
 procedure ErrorBox(const Message: String);
 procedure WarningBox(const Message: String);
 function YesNoBox(const Message: String): Boolean;
+function YesNoBox(const Caption, Message: String): Boolean;
 
 { Set both C.Enabled and C.Exists. }
-procedure SetEnabledExists(const C: TControl; const Value: Boolean);
+procedure SetEnabledVisible(const C: TControl; const Value: Boolean);
 
 const
   ApiReferenceUrl = 'https://castle-engine.io/apidoc-unstable/html/';
@@ -134,21 +141,51 @@ const
   LclApiReferenceUrl = 'https://lazarus-ccr.sourceforge.io/docs/lcl/';
 
 { Get full URL to display API reference of a given property in the given
-  SelectedObject.
+  PropertyObject.
 
   PropertyName may be '', in which case the link leads to the whole class reference.
   In this case PropertyNameForLink must also be ''.
   Both PropertyName and PropertyNameForLink should be '',
   or both should be non-empty.
 }
-function ApiReference(const SelectedObject: TObject;
+function ApiReference(const PropertyObject: TObject;
   const PropertyName, PropertyNameForLink: String): String;
+
+procedure BuildComponentsMenu(
+  const ParentUserInterface, ParentTransform: TMenuItem;
+  const OnClickEvent: TNotifyEvent);
+
+type
+  TCodeEditor = (
+    { Use hardcoded logic suitable for Lazarus. }
+    ceLazarus,
+    { Use custom commands from CodeEditor, CodeEditorProject. }
+    ceCustom
+  );
+
+const
+  DefaultCodeEditor = ceLazarus;
+
+var
+  { Which code editor to use. Current user preference. }
+  CodeEditor: TCodeEditor;
+  { Code editor used to open Pascal files, when CodeEditor = ceCustom. }
+  CodeEditorCommand: String;
+  { Code editor used to open project, when CodeEditor = ceCustom. }
+  CodeEditorCommandProject: String;
 
 implementation
 
-uses SysUtils, Dialogs, Graphics, TypInfo,
+uses SysUtils, Dialogs, Graphics, TypInfo, Generics.Defaults,
   CastleUtils, CastleLog,
+  CastleComponentSerialize, CastleUiControls, CastleCameras, CastleTransform,
   ToolCompilerInfo;
+
+procedure TMenuItemHelper.SetEnabledVisible(const Value: Boolean);
+begin
+  Visible := Value;
+  Enabled := Value;
+end;
 
 { TAsynchronousProcessQueue.TQueueItem --------------------------------------- }
 
@@ -556,13 +593,18 @@ begin
   Result := MessageDlg('Question', Message, mtConfirmation, [mbYes, mbNo], 0) = mrYes;
 end;
 
-procedure SetEnabledExists(const C: TControl; const Value: Boolean);
+function YesNoBox(const Caption, Message: String): Boolean;
+begin
+  Result := MessageDlg(Caption, Message, mtConfirmation, [mbYes, mbNo], 0) = mrYes;
+end;
+
+procedure SetEnabledVisible(const C: TControl; const Value: Boolean);
 begin
   C.Enabled := Value;
   C.Visible := Value;
 end;
 
-function ApiReference(const SelectedObject: TObject;
+function ApiReference(const PropertyObject: TObject;
   const PropertyName, PropertyNameForLink: String): String;
 
   { Knowing that property PropInfo is part of class C,
@@ -611,22 +653,22 @@ var
   PropInfo: PPropInfo;
   ClassOfProperty: TClass;
 begin
-  LinkUnitName := SelectedObject.UnitName;
-  LinkClassName := SelectedObject.ClassName;
+  LinkUnitName := PropertyObject.UnitName;
+  LinkClassName := PropertyObject.ClassName;
   LinkPropertyName := '';
 
   if PropertyName <> '' then
   begin
-    { PropertyName doesn't necessarily belong to the exact SelectedObject class,
+    { PropertyName doesn't necessarily belong to the exact PropertyObject class,
       it may belong to ancestor. E.g. TCastleScene.Url is actually from
       TCastleSceneCore.
       This is important to construct API links.
       Unfortunately GetPropInfo doesn't have this info directly. }
 
-     PropInfo := GetPropInfo(SelectedObject, PropertyName);
+     PropInfo := GetPropInfo(PropertyObject, PropertyName);
      if PropInfo <> nil then
      begin
-       ClassOfProperty := ClassOfPropertyDeclaration(SelectedObject.ClassType, PropInfo);
+       ClassOfProperty := ClassOfPropertyDeclaration(PropertyObject.ClassType, PropInfo);
        LinkClassName := ClassOfProperty.ClassName;
        LinkUnitName := ClassOfProperty.UnitName;
        LinkPropertyName := PropertyNameForLink;
@@ -653,6 +695,89 @@ begin
     // adjust for PasDoc links in CGE
     Result := ApiReferenceUrl + PasDocSuffix(LinkUnitName, LinkClassName, LinkPropertyName);
   end;
+end;
+
+function CompareRegisteredComponent(constref Left, Right: TRegisteredComponent): Integer;
+begin
+  Result := AnsiCompareStr(Left.Caption, Right.Caption);
+end;
+
+procedure BuildComponentsMenu(const ParentUserInterface, ParentTransform: TMenuItem; const OnClickEvent: TNotifyEvent);
+
+  function CreateMenuItemForComponent(const Owner: TComponent; const R: TRegisteredComponent): TMenuItem;
+  var
+    S: String;
+  begin
+    Result := TMenuItem.Create(Owner);
+    S := R.Caption + ' (' + R.ComponentClass.ClassName + ')';
+    if R.IsDeprecated then
+      S := '(Deprecated) ' + S;
+    Result.Caption := S;
+    Result.Tag := PtrInt(Pointer(R));
+  end;
+
+type
+  TRegisteredComponentComparer = specialize TComparer<TRegisteredComponent>;
+var
+  MenuItem: TMenuItem;
+  R: TRegisteredComponent;
+begin
+  { While RegisteredComponents is documented as "read-only",
+    we knowingly break it here for internal CGE purposes.
+    We need some reliable order of this list (as "RegisterSerializableComponent" may be called in any order),
+    for now alphabetic order seems good enough. }
+  RegisteredComponents.Sort(TRegisteredComponentComparer.Construct(@CompareRegisteredComponent));
+
+  { add non-deprecated components }
+  for R in RegisteredComponents do
+    if not R.IsDeprecated then
+    begin
+      if R.ComponentClass.InheritsFrom(TCastleUserInterface) and
+         not R.ComponentClass.InheritsFrom(TCastleNavigation) then
+      begin
+        MenuItem := CreateMenuItemForComponent(ParentUserInterface, R);
+        MenuItem.OnClick := OnClickEvent;
+        ParentUserInterface.Add(MenuItem);
+      end else
+      if R.ComponentClass.InheritsFrom(TCastleTransform) then
+      begin
+        MenuItem := CreateMenuItemForComponent(ParentTransform, R);
+        MenuItem.OnClick := OnClickEvent;
+        ParentTransform.Add(MenuItem);
+      end;
+    end;
+
+  (*
+  Don't show deprecated -- at least in initial CGE release, keep the menu clean.
+
+  { add separators from deprecated }
+  MenuItem := TMenuItem.Create(ParentUserInterface);
+  MenuItem.Caption := '-';
+  ParentUserInterface.Add(MenuItem);
+
+  MenuItem := TMenuItem.Create(ParentTransform);
+  MenuItem.Caption := '-';
+  ParentTransform.Add(MenuItem);
+
+  { add deprecated components }
+  for R in RegisteredComponents do
+    if R.IsDeprecated then
+    begin
+      if R.ComponentClass.InheritsFrom(TCastleUserInterface) and
+         not R.ComponentClass.InheritsFrom(TCastleNavigation) then
+      begin
+        MenuItem := CreateMenuItemForComponent(ParentUserInterface, R);
+        MenuItem.OnClick := OnClickEvent;
+        ParentUserInterface.Add(MenuItem);
+      end else
+      if R.ComponentClass.InheritsFrom(TCastleTransform) then
+      begin
+        MenuItem := CreateMenuItemForComponent(ParentTransform, R);
+        MenuItem.OnClick := OnClickEvent;
+        ParentTransform.Add(MenuItem);
+      end;
+    end;
+  *)
 end;
 
 end.

@@ -155,6 +155,7 @@ type
     procedure SetCenterY(const Value: Single);
     procedure SetRepeatS(const Value: Boolean);
     procedure SetRepeatT(const Value: Boolean);
+    procedure SetURL(const Value: String);
   private
     StaticResourcesReady: boolean; static;
     { Create / destroy static stuff for rendering. }
@@ -469,13 +470,10 @@ type
       This case is also optimized when possible, to no multiplication will
       actually happen.
 
-      Note that the alpha of this color does not determine our alpha rendering
-      mode (it cannot, as you can change this color at any point,
-      and after creation the @link(Alpha) is never automatically updated).
-      If you set a color with alpha <> 1, consider setting also @link(Alpha)
-      property to whatever you need.
+      When the color's alpha is < 1, then we automatically use blending,
+      if @link(Alpha) is acAuto (regardless of the image alpha channel, in this case).
 
-      Note that if use TGrayscaleImage with TGrayscaleImage.TreatAsAlpha
+      Note that if you use TGrayscaleImage with TGrayscaleImage.TreatAsAlpha
       (which means that texture does not contain any RGB information),
       then only this color's RGB values determine the drawn RGB color. }
     property Color: TCastleColor read FColor write FColor;
@@ -643,8 +641,9 @@ type
     procedure DrawFrom(const SourceImage: TDrawableImage;
       const DestinationRect, SourceRect: TFloatRectangle);
 
-    { Non-empty only if the image was loaded from URL. }
-    property URL: String read FURL;
+    { URL of currently loaded image.
+      Non-empty only if the image was loaded from URL. }
+    property URL: String read FURL write SetURL;
 
     { Repeat or clamp texture in S (width) or T (height) dimensions.
       @groupBegin }
@@ -1099,6 +1098,8 @@ var
       glBufferSubData(Target, 0, ContentsSize, ContentsPtr);
   end;
 
+const
+  IndexesPerQuad = 6;
 var
   ColorTreatment: TColorTreatment;
   Prog: TImageProgram;
@@ -1125,20 +1126,20 @@ begin
   if Count <> 1 then
   begin
     {$ifdef GLIndexesShort}
-    if Integer(Count - 1) * 4 + 3 > High(Word) then
+    if Integer(Count - 1) * IndexesPerQuad + IndexesPerQuad - 1 > High(Word) then
       raise Exception.CreateFmt('Maximum index value is larger than %d (max 16-bit unsigned integer). Split your rendering into more shapes (draw calls). Or undefine GLIndexesShort in castleconf.inc to be able to render your data (but beware that it may fail on some buggy Android devices).', [High(Word)]);
     {$endif}
-    SetLength(Indexes, Count * 6);
+    SetLength(Indexes, Count * IndexesPerQuad);
     for I := 0 to Count - 1 do
     begin
       { 1st triangle of quad }
-      Indexes[I * 6    ] := I * 4;
-      Indexes[I * 6 + 1] := I * 4 + 1;
-      Indexes[I * 6 + 2] := I * 4 + 2;
+      Indexes[I * IndexesPerQuad    ] := I * 4;
+      Indexes[I * IndexesPerQuad + 1] := I * 4 + 1;
+      Indexes[I * IndexesPerQuad + 2] := I * 4 + 2;
       { 2nd triangle of quad }
-      Indexes[I * 6 + 3] := I * 4;
-      Indexes[I * 6 + 4] := I * 4 + 2;
-      Indexes[I * 6 + 5] := I * 4 + 3;
+      Indexes[I * IndexesPerQuad + 3] := I * 4;
+      Indexes[I * IndexesPerQuad + 4] := I * 4 + 2;
+      Indexes[I * IndexesPerQuad + 5] := I * 4 + 3;
     end;
   end;
 
@@ -1179,7 +1180,7 @@ begin
     end else
       Prog := Programs[FinalAlpha = acTest, Clip, ColorTreatment];
 
-    TGLSLProgram.Current := Prog.Prog;
+    RenderContext.CurrentProgram := Prog.Prog;
     Prog.AttribVertex.EnableArray(0, 2, GL_FLOAT, GL_FALSE,
       SizeOf(TPoint), OffsetUInt(Points[0].Position, Points[0]));
     Prog.AttribTexCoord.EnableArray(0, 2, GL_FLOAT, GL_FALSE,
@@ -1199,7 +1200,7 @@ begin
   end else
   begin
     {$ifndef OpenGLES}
-    TGLSLProgram.Current := nil;
+    RenderContext.CurrentProgram := nil;
     glLoadIdentity();
     glColorv(Color);
 
@@ -1304,14 +1305,7 @@ begin
   Draw(ScreenRect, ImageRect);
 end;
 
-{$if defined(FPC) and defined(CPUAARCH64) and defined(RELEASE)}
-  { Draw3x3 implementation is broken by optimizations on Aarch64,
-    it seems like it doesn't receive DrawWidth correctly,
-    and even when we workaround it, it calculates partial rectangles
-    (for DrawAdd) incorrectly.
-    Testcase: e.g. examples/2d_standard_ui/show_various_ui_controls/ on Android/Aarch64.
-
-    TODO: Reproduce this in a simple testcase, submit to FPC devs. }
+{$ifdef BUGGY_AARCH64_OPTIMIZATIONS}
   {$optimization OFF}
   {$info Workaround Aarch64 optimizer: TDrawableImage.Draw3x3 not optimized (begin)}
 {$endif}
@@ -1428,8 +1422,8 @@ end;
 
 { Turn optimizations back on.
   FPC $push / $pop unfortunately doesn't save/restore optimization level,
-  so we restore it if -dRELEASE. }
-{$if defined(FPC) and defined(CPUAARCH64) and defined(RELEASE)}
+  so we restore it if -dBUGGY_AARCH64_OPTIMIZATIONS. }
+{$ifdef BUGGY_AARCH64_OPTIMIZATIONS}
   {$optimization ON}
   {$info Workaround Aarch64 optimizer: TDrawableImage.Draw3x3 not optimized (end)}
 {$endif}
@@ -1637,6 +1631,19 @@ begin
       glBindTexture(GL_TEXTURE_2D, FTexture);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, CurrentWrap.Data[1]);
     end;
+  end;
+end;
+
+procedure TDrawableImage.SetURL(const Value: String);
+var
+  NewImage: TEncodedImage;
+begin
+  if FURL <> Value then
+  begin
+    NewImage := LoadEncodedImage(Value); // make exception from loading before changing URL
+    FURL := Value;
+    Load(NewImage);
+    FOwnsImage := true; // change it after Load(), so that Load frees previous image if needed
   end;
 end;
 

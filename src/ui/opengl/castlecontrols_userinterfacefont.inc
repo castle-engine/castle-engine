@@ -22,16 +22,16 @@
   strict private
     FTooltip: string;
     TooltipLabel: TCastleLabel;
-    FCustomFont: TCastleFont;
+    FCustomFont: TCastleAbstractFont;
     FOwnsCustomFont: boolean;
-    FLastSeenUIFont, FLastSeenDefaultFont: TCastleFont; //< remembered only to call FontChanged
+    FLastSeenUIFont, FLastSeenDefaultFont: TCastleAbstractFont; //< remembered only to call FontChanged
     FFontSize, FFontScale: Single;
-    FCustomizedFont: TFontFamily; //< used only when some properties make it necessary
+    FCustomizedFont: TCastleFontFamily; //< used only when some properties make it necessary
     FSmallFont: boolean;
     FOutline: Cardinal;
     FOutlineColor: TCastleColor;
     FOutlineHighQuality: boolean;
-    procedure SetCustomFont(const Value: TCastleFont);
+    procedure SetCustomFont(const Value: TCastleAbstractFont);
     procedure SetFontSize(const Value: Single);
     procedure SetFontScale(const Value: Single);
     procedure SetSmallFont(const Value: boolean);
@@ -48,7 +48,7 @@
     function TooltipExists: boolean; override;
     procedure TooltipRender(const TooltipPosition: TVector2); override;
     procedure Render; override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Copy font properties from another control. }
     procedure AssignFont(const Source: TCastleUserInterfaceFont);
@@ -57,9 +57,9 @@
 
       Depending on which one is set, this method returns
       @link(CustomFont) or @link(TUIContainer.DefaultFont) or global @link(UIFont).
-      It may also return a TFontFamily instance that wraps (and scales)
+      It may also return a TCastleFontFamily instance that wraps (and scales)
       one of them. }
-    function Font: TCastleFont;
+    function Font: TCastleAbstractFont;
 
     { Check does currently used font (see @link(Font)) changed,
       and eventually call FontChanged method @italic(now).
@@ -81,14 +81,14 @@
       or @link(TUIContainer.DefaultFont) or @link(UIFont),
       or any property that may affect the font is automatically applied.
 
-      But there are exceptions: right now, if you call @link(TTextureFont.Load Load)
+      But there are exceptions: right now, if you call @link(TCastleFont.Load Load)
       on a font, it's measurements will change but some controls using it will
       not recalculate sizes automatically. In this case, call this method. }
     procedure FontChanged; virtual;
 
     property OwnsCustomFont: boolean
       read FOwnsCustomFont write FOwnsCustomFont default false;
-      deprecated 'use TCastleFont (inherited from TComponent) owner mechanism';
+      deprecated 'use TCastleAbstractFont (inherited from TComponent) owner mechanism';
 
     { Use smaller font.
       Right now this just says to scale font by 0.5. }
@@ -108,7 +108,7 @@
     { When non-nil, this font will be used to draw this control.
       Otherwise the @link(TUIContainer.DefaultFont) will be used,
       or the global @link(UIFont). }
-    property CustomFont: TCastleFont
+    property CustomFont: TCastleAbstractFont
       read FCustomFont write SetCustomFont;
 
     { Use given font size when drawing. Leave at default zero to use
@@ -125,7 +125,7 @@
       Note that the current implementation is very simple, it will only
       look sensible for small outline values (like 1 or 2).
 
-      See TCastleFont.Outline for more details.
+      See TCastleAbstractFont.Outline for more details.
 
       Specifying a non-zero outline for a label overrides the default outline
       settings for the current font. By default, fonts do not have an outline.
@@ -242,7 +242,7 @@ begin
   inherited;
 end;
 
-function TCastleUserInterfaceFont.Font: TCastleFont;
+function TCastleUserInterfaceFont.Font: TCastleAbstractFont;
 begin
   if CustomFont <> nil then
     Result := CustomFont
@@ -265,7 +265,7 @@ begin
   else
     Result := UIFont;
 
-  { if needed, wrap Result in TFontFamily instance }
+  { if needed, wrap Result in TCastleFontFamily instance }
   if (FontSize <> 0) or
      (FontScale <> 1) or
      (UIScale <> 1) or
@@ -275,7 +275,7 @@ begin
      (Outline <> 0) then
   begin
     if FCustomizedFont = nil then
-      FCustomizedFont := TFontFamily.Create(nil);
+      FCustomizedFont := TCastleFontFamily.Create(nil);
     if FontSize <> 0 then
       FCustomizedFont.Size := FontSize
     else
@@ -285,14 +285,14 @@ begin
     if SmallFont then
       FCustomizedFont.Size := FCustomizedFont.Size * 0.5;
     {$warnings on}
-    if Result is TFontFamily then
+    if Result is TCastleFontFamily then
     begin
       { copying Result to FCustomizedFont this way allows to render with HTML
         when CustomFont and FontSize/FontScale are used together }
-      FCustomizedFont.RegularFont := TFontFamily(Result).RegularFont;
-      FCustomizedFont.BoldFont := TFontFamily(Result).BoldFont;
-      FCustomizedFont.ItalicFont := TFontFamily(Result).ItalicFont;
-      FCustomizedFont.BoldItalicFont := TFontFamily(Result).BoldItalicFont;
+      FCustomizedFont.RegularFont := TCastleFontFamily(Result).RegularFont;
+      FCustomizedFont.BoldFont := TCastleFontFamily(Result).BoldFont;
+      FCustomizedFont.ItalicFont := TCastleFontFamily(Result).ItalicFont;
+      FCustomizedFont.BoldItalicFont := TCastleFontFamily(Result).BoldItalicFont;
     end else
     begin
       FCustomizedFont.RegularFont := Result;
@@ -311,7 +311,7 @@ begin
   end;
 end;
 
-procedure TCastleUserInterfaceFont.SetCustomFont(const Value: TCastleFont);
+procedure TCastleUserInterfaceFont.SetCustomFont(const Value: TCastleAbstractFont);
 begin
   if FCustomFont <> Value then
   begin
@@ -422,7 +422,7 @@ end;
 
 procedure TCastleUserInterfaceFont.CheckFontChanged;
 var
-  NewUIFont, NewDefaultFont: TCastleFont;
+  NewUIFont, NewDefaultFont: TCastleAbstractFont;
 begin
   { we do not use here UIFont but FUIFont, to not create font without need.
     If the corresponding global font is nil now,
@@ -450,13 +450,13 @@ begin
   FontScale := Source.FontScale;
 end;
 
-function TCastleUserInterfaceFont.PropertySection(
-  const PropertyName: String): TPropertySection;
+function TCastleUserInterfaceFont.PropertySections(
+  const PropertyName: String): TPropertySections;
 begin
   if (PropertyName = 'FontSize') then
-    Result := psBasic
+    Result := [psBasic]
   else
-    Result := inherited PropertySection(PropertyName);
+    Result := inherited PropertySections(PropertyName);
 end;
 
 {$define read_implementation_methods}

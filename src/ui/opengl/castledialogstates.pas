@@ -61,7 +61,7 @@
     Result := inherited;
     if Result then Exit;
 
-    if Event.IsKey(K_Enter) then
+    if Event.IsKey(keyEnter) then
     begin
       DialogAskDeleteFile := TStateDialogYesNo.Create(Self);
       DialogAskDeleteFile.Caption := 'Are you sure you want to delete this file?';
@@ -166,7 +166,7 @@ type
       read FAlignment write FAlignment default DefaultAlignment;
 
     { Enable a subset of HTML to mark font changes inside the text.
-      See the TCastleFont.PrintStrings for a description of supported
+      See the TCastleAbstractFont.PrintStrings for a description of supported
       HTML constructs. }
     property Html: boolean read FHtml write FHtml default false;
 
@@ -518,14 +518,14 @@ begin
   Result := inherited;
   // if Result then Exit; // ignore inherited Result, always true when InterceptInput
 
-  if Event.IsKey(K_Y) or Event.IsKey(K_Enter) then
+  if Event.IsKey(keyY) or Event.IsKey(keyEnter) then
   begin
     FAnswer := true;
     DoAnswered;
     Result := true; // set Result, in case developer changed our InterceptInput to false
   end;
 
-  if Event.IsKey(K_N) or Event.IsKey(K_Escape) then
+  if Event.IsKey(keyN) or Event.IsKey(keyEscape) then
   begin
     FAnswer := false;
     DoAnswered;
@@ -606,12 +606,12 @@ end;
 
 procedure TStateDialogInput.ButtonOKClick(Sender: TObject);
 begin
-  Press(InputKey(Container.MousePosition, K_Enter, CharEnter, []));
+  Press(InputKey(Container.MousePosition, keyEnter, CharEnter, []));
 end;
 
 procedure TStateDialogInput.ButtonCancelClick(Sender: TObject);
 begin
-  Press(InputKey(Container.MousePosition, K_Escape, CharEscape, []));
+  Press(InputKey(Container.MousePosition, keyEscape, CharEscape, []));
 end;
 
 function TStateDialogInput.Press(const Event: TInputPressRelease): boolean;
@@ -622,15 +622,15 @@ begin
   Result := inherited;
   // if Result then Exit; // ignore inherited Result, always true when InterceptInput
 
-  { Under Windows, pressing Ctrl + Backspace causes key = K_BackSpace with
+  { Under Windows, pressing Ctrl + Backspace causes key = keyBackSpace with
     character = CharDelete (not CharBackSpace).
     That is, Windows automatically equates Ctrl + Backspace
     with CharDelete, assuming that we always want to do the same action for them.
 
     However, I want to detect Ctrl + Backspace, and not detect "real" delete key
     presses (that may be handled in the future to delete char in front of cursor).
-    So I just query for both CharBackSpace and K_BackSpace to detect backspace. }
-  if Event.IsKey(CharBackSpace) or Event.IsKey(K_BackSpace) then
+    So I just query for both CharBackSpace and keyBackSpace to detect backspace. }
+  if Event.IsKey(CharBackSpace) or Event.IsKey(keyBackSpace) then
   begin
     if InputText <> '' then
       if mkCtrl in Container.Pressed.Modifiers then
@@ -714,7 +714,7 @@ begin
   Result := inherited;
   // if Result then Exit; // ignore inherited Result, always true when InterceptInput
 
-  if (Event.EventType = itKey) and (Event.Key <> K_None) then
+  if (Event.EventType = itKey) and (Event.Key <> keyNone) then
   begin
     FAnswer := Event.Key;
     DoAnswered;

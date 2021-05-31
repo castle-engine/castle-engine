@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2020 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -66,7 +66,6 @@ begin
   FFdMode := TSFStringEnum.Create(Self, False, 'mode', ColorModeNames, Ord(cmReplace));
    FdMode.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdMode);
-  { X3D specification comment: ["REPLACE","MODULATE"] enumerated-type: TColorMode ColorModeNames cmReplace }
 
   DefaultContainerField := 'color';
 end;

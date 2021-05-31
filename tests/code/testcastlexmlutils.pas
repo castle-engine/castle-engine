@@ -1,5 +1,6 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleXMLUtils" -*-
 {
-  Copyright 2014-2018 Michalis Kamburelis.
+  Copyright 2014-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,10 +20,11 @@ unit TestCastleXMLUtils;
 interface
 
 uses
-  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase;
 
 type
-  TTestCastleXMLUtils = class(TTestCase)
+  TTestCastleXMLUtils = class(TCastleTestCase)
   published
     procedure TestReadResult;
     procedure TestAttributeReading;

@@ -43,7 +43,7 @@
   { Possible things that happen when given field is changed.
     Used by @link(TX3DField.ExecuteChange) and @link(TX3DField.ChangeAlways). }
   TX3DChange = (
-    { This field has no effect on the rendering/behaviour of anything. }
+    { This field has no effect on the rendering/behavior of anything. }
     chNone,
 
     { Something visible in the geometry changed.
@@ -73,11 +73,14 @@
     { Transformation of children of this node changed. }
     chTransform,
 
-    { Coordinate node (both VRML 1.0 and >= 2.0) node "point" field changed. }
+    { Coordinate node (both VRML 1.0 and >= 2.0) "point" field changed. }
     chCoordinate,
 
-    { Normal node (both VRML 1.0 and >= 2.0) node "vector" field changed. }
+    { Normal node (both VRML 1.0 and >= 2.0) "vector" field changed. }
     chNormal,
+
+    { Tangent node "vector" field changed. }
+    chTangent,
 
     { Something visible in VRML 1.0 state node (that may be present
       in TX3DGraphTraverseState.VRML1State) changed, but not geometry.
@@ -168,7 +171,7 @@
       (assuming it's "update" field value wants it too). }
     chGeneratedTextureUpdateNeeded,
 
-    { VRML >= 2.0 FontStyle changed. }
+    { VRML 2.0 / X3D FontStyle changed. The node must be TFontStyleNode. }
     chFontStyle,
 
     { HeadLight on status changed. }
@@ -211,7 +214,13 @@
     chWireframe,
 
     { Children of X3D (or VRML 2) grouping node have been added or removed. }
-    chChildren,
+    chGroupChildren,
+
+    { Children of X3D (or VRML 2) grouping node have been added (but not removed).
+      This is special case of chGroupChildren.
+      If unsure whether something was removed or not, it is always safe to use chGroupChildren.
+      If you are sure that only additions were done, use chGroupChildrenAdd to be more efficient. }
+    chGroupChildrenAdd,
 
     { Shape.bboxCenter/Size changed, so TShape.LocalBoundingBox changed. }
     chBBox

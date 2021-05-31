@@ -22,7 +22,7 @@
 }
 
 uses SysUtils,
-  CastleLog, CastleRendererBaseTypes, CastleVectors, X3DNodes, CastleWindow,
+  CastleLog, CastleRenderOptions, CastleVectors, X3DNodes, CastleWindow,
   CastleSceneCore, CastleScene, CastleUtils, CastleViewport;
 
 function BuildX3D: TX3DRootNode;

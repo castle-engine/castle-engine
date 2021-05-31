@@ -1,22 +1,22 @@
 object AboutForm: TAboutForm
   Left = 626
-  Height = 584
+  Height = 540
   Top = 213
-  Width = 629
-  BorderStyle = bsSingle
+  Width = 545
   Caption = 'About'
-  ClientHeight = 584
-  ClientWidth = 629
-  DesignTimePPI = 140
+  ClientHeight = 540
+  ClientWidth = 545
+  DesignTimePPI = 120
   OnCreate = FormCreate
   Position = poMainFormCenter
-  LCLVersion = '1.8.0.6'
+  LCLVersion = '2.0.8.0'
   object ImageLogo: TImage
-    Left = 8
+    Left = 7
     Height = 256
-    Top = 8
-    Width = 613
+    Top = 7
+    Width = 531
     Anchors = [akTop, akLeft, akRight]
+    AutoSize = True
     Center = True
     Picture.Data = {
       1754506F727461626C654E6574776F726B477261706869635735000089504E47
@@ -454,14 +454,14 @@ object AboutForm: TAboutForm
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = ImageLogo
     AnchorSideTop.Side = asrBottom
-    Left = 121
-    Height = 54
-    Top = 274
-    Width = 387
+    Left = 124
+    Height = 41
+    Top = 272
+    Width = 297
     Alignment = taCenter
-    BorderSpacing.Top = 10
+    BorderSpacing.Top = 9
     Caption = 'Castle Game Engine'
-    Font.Height = -39
+    Font.Height = -33
     Font.Style = [fsBold]
     ParentColor = False
     ParentFont = False
@@ -471,24 +471,26 @@ object AboutForm: TAboutForm
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = LabelName
     AnchorSideTop.Side = asrBottom
-    Left = 261
-    Height = 27
-    Top = 338
-    Width = 106
+    Left = 223
+    Height = 23
+    Top = 322
+    Width = 99
     Alignment = taCenter
-    BorderSpacing.Top = 10
+    BorderSpacing.Top = 9
     Caption = 'Version: 6.6'
     ParentColor = False
+    ParentFont = False
   end
   object BitBtn1: TBitBtn
-    Left = 8
-    Height = 59
-    Top = 520
-    Width = 613
+    Left = 7
+    Height = 51
+    Top = 485
+    Width = 531
     Anchors = [akLeft, akRight, akBottom]
-    BorderSpacing.InnerBorder = 10
+    BorderSpacing.InnerBorder = 9
     Caption = 'Close'
     OnClick = BitBtn1Click
+    ParentFont = False
     TabOrder = 0
   end
   object LabelCopyright: TLabel
@@ -496,14 +498,15 @@ object AboutForm: TAboutForm
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = LabelVersion
     AnchorSideTop.Side = asrBottom
-    Left = 95
-    Height = 27
-    Top = 375
-    Width = 438
+    Left = 78
+    Height = 23
+    Top = 354
+    Width = 389
     Alignment = taCenter
-    BorderSpacing.Top = 10
+    BorderSpacing.Top = 9
     Caption = 'Copyright Michalis Kamburelis and Contributors'
     ParentColor = False
+    ParentFont = False
   end
   object LabelWebsite: TLabel
     AnchorSideLeft.Control = ImageLogo
@@ -511,11 +514,11 @@ object AboutForm: TAboutForm
     AnchorSideTop.Control = LabelCopyright
     AnchorSideTop.Side = asrBottom
     Cursor = crHandPoint
-    Left = 198
-    Height = 27
-    Top = 412
-    Width = 233
-    BorderSpacing.Top = 10
+    Left = 163
+    Height = 23
+    Top = 386
+    Width = 218
+    BorderSpacing.Top = 9
     Caption = 'Website (castle-engine.io)'
     Font.Color = clBlue
     Font.Style = [fsUnderline]
@@ -529,11 +532,11 @@ object AboutForm: TAboutForm
     AnchorSideTop.Control = LabelWebsite
     AnchorSideTop.Side = asrBottom
     Cursor = crHandPoint
-    Left = 69
-    Height = 27
-    Top = 449
-    Width = 491
-    BorderSpacing.Top = 10
+    Left = 54
+    Height = 23
+    Top = 418
+    Width = 436
+    BorderSpacing.Top = 9
     Caption = 'Support the development (patreon.com/castleengine)'
     Font.Color = clBlue
     Font.Style = [fsUnderline]

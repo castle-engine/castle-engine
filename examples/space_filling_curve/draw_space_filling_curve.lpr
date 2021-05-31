@@ -53,10 +53,6 @@ procedure Render(Container: TUIContainer);
 var
   DrawableImage: TDrawableImage;
 begin
-  { If DoubleBuffer available, then use it.
-    This program should work perfectly with and without DoubleBuffer. }
-  if Window.DoubleBuffer then RenderContext.Clear([cbColor], Gray);
-
   DrawableImage := TDrawableImage.Create(CurveImage, false, false);
   try
     DrawableImage.Draw(0, 0);
@@ -147,7 +143,7 @@ begin
   Window.DoubleBuffer := true;
   Window.OnCloseQuery := @CloseQueryNotAllowed;
   Window.ParseParameters(StandardParseOptions);
-  Window.SetDemoOptions(K_F11, CharEscape, true);
+  Window.SetDemoOptions(keyF11, CharEscape, true);
   Window.Open;
 
   { init CurveImage }
