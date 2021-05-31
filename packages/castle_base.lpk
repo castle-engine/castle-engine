@@ -74,7 +74,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="5"/>
-    <Files Count="745">
+    <Files Count="753">
       <Item1>
         <Filename Value="../src/3d/castleboxes.pas"/>
         <UnitName Value="CastleBoxes"/>
@@ -3078,6 +3078,38 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/audio/castlesoundengine_sound.inc"/>
         <Type Value="Include"/>
       </Item745>
+      <Item746>
+        <Filename Value="../src/audio/castlesoundengine_allocator.inc"/>
+        <Type Value="Include"/>
+      </Item746>
+      <Item747>
+        <Filename Value="../src/audio/castlesoundengine_buffer.inc"/>
+        <Type Value="Include"/>
+      </Item747>
+      <Item748>
+        <Filename Value="../src/audio/castlesoundengine_engine.inc"/>
+        <Type Value="Include"/>
+      </Item748>
+      <Item749>
+        <Filename Value="../src/audio/castlesoundengine_initial_types.inc"/>
+        <Type Value="Include"/>
+      </Item749>
+      <Item750>
+        <Filename Value="../src/audio/castlesoundengine_loopingchannel.inc"/>
+        <Type Value="Include"/>
+      </Item750>
+      <Item751>
+        <Filename Value="../src/audio/castlesoundengine_miscellaneous.inc"/>
+        <Type Value="Include"/>
+      </Item751>
+      <Item752>
+        <Filename Value="../src/audio/castlesoundengine_playingsound.inc"/>
+        <Type Value="Include"/>
+      </Item752>
+      <Item753>
+        <Filename Value="../src/audio/castlesoundengine_repoengine.inc"/>
+        <Type Value="Include"/>
+      </Item753>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>

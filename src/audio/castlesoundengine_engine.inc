@@ -1,0 +1,1012 @@
+{%MainUnit castlesoundengine.pas}
+{
+  Copyright 2010-2021 Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{$ifdef read_interface}
+
+//type // allow type declaration to continue
+
+  { Parameters to use when playing sound, see @link(TSoundEngine.PlaySound). }
+  TPlaySoundParameters = class
+    Buffer: TSoundBuffer;
+    Spatial, Looping: boolean;
+    Importance: Cardinal;
+    { Gain is the volume of sound.
+      MinGain and MaxGain determine how it can change because of spatialization
+      (where the sound may get quieter / louder as you get further / closer to it).
+      By default, Gain and MaxGain are 1.0, and MinGain is 0.0. }
+    Gain, MinGain, MaxGain: Single;
+    { The position of sound in 3D space.
+      Used only if @link(Spatial) = @true. }
+    Position: TVector3;
+    { Pitch allows to play the sound faster. By default it is 1.0. }
+    Pitch: Single;
+    { See @link(TSoundEngine.DefaultRolloffFactor) for description.
+      The @link(TSoundEngine.DefaultRolloffFactor) is also the default value of this field. }
+    RolloffFactor: Single;
+    { See @link(TSoundEngine.DefaultReferenceDistance) for description.
+      The @link(TSoundEngine.DefaultReferenceDistance) is also the default value of this field. }
+    ReferenceDistance: Single;
+    { See @link(TSoundEngine.DefaultMaxDistance) for description.
+      The @link(TSoundEngine.DefaultMaxDistance) is also the default value of this field. }
+    MaxDistance: Single;
+    { Offset is a position in time of the sound. }
+    Offset: Single;
+    constructor Create;
+  end;
+
+  TSoundParameters = TPlaySoundParameters deprecated 'use TPlaySoundParameters';
+
+  { Sound engine, responsible for loading and playing sound.
+
+    There should always be only one instance of this class,
+    accessed through the global @link(SoundEngine) variable.
+    See docs at @link(SoundEngine) for more details.
+
+    The sound engine is actually a wrapper over a backend, like OpenAL.
+    You can explicitly initialize OpenAL context by ContextOpen,
+    and explicitly close it by ContextClose. If you did not call ContextOpen
+    explicitly (that is, IsContextOpen is @false), then the first LoadBuffer
+    or TRepoSoundEngine.Sound or TRepoSoundEngine.Sound3D
+    will automatically do it for you. If you do not call ContextClose
+    explicitly, then at destructor we'll do it automatically. }
+  TSoundEngine = class(TSoundAllocator)
+  private
+    type
+      TSoundBuffersList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSoundBuffer>;
+    var
+      FInformation: string;
+      FDevice: string;
+      FVolume: Single;
+      FEnabled: boolean;
+      FIsContextOpen: boolean;
+      FDefaultRolloffFactor: Single;
+      FDefaultReferenceDistance: Single;
+      FDefaultMaxDistance: Single;
+      FDistanceModel: TSoundDistanceModel;
+      LoadedBuffers: TSoundBuffersList;
+      FDevices: TSoundDeviceList;
+      FOnOpenClose: TNotifyEventList;
+      FResumeToInitialized, FPaused: boolean;
+      FListenerPosition, FListenerDirection, FListenerUp: TVector3;
+      FEnableSaveToConfig, DeviceSaveToConfig: boolean;
+      FInitialPitchMultiplier: Single;
+
+    procedure SetVolume(const Value: Single);
+    procedure SetDistanceModel(const Value: TSoundDistanceModel);
+    procedure SetDevice(const Value: string);
+    procedure SetEnabled(const Value: boolean);
+    procedure SetPaused(const Value: boolean);
+    procedure ReinitializeJavaActivity(Sender: TObject);
+    procedure ApplicationPause(Sender: TObject);
+    procedure ApplicationResume(Sender: TObject);
+    { Pause the sound engine, useful when Android activity gets inactive.
+      When paused, sound backend is for sure inactive, and it cannot be activated
+      (calling ContextOpen, or playing a sound, will @bold(not) activate it). }
+    property Paused: boolean read FPaused write SetPaused;
+    procedure SetInternalBackend(const Value: TSoundEngineBackend);
+
+    procedure ContextOpenCore; override;
+    procedure ContextCloseCore; override;
+
+    class function GetLogSoundLoading: Boolean; static;
+    class procedure SetLogSoundLoading(const Value: Boolean); static;
+  public
+    const
+      DefaultVolume = 1.0;
+      DefaultDefaultRolloffFactor = 1.0;
+      DefaultDefaultReferenceDistance = 1.0;
+      DefaultDefaultMaxDistance = MaxSingle;
+      DefaultDistanceModel = dmLinearDistanceClamped;
+      DefaultDevice = '';
+      DefaultEnabled = true;
+
+    constructor Create;
+    destructor Destroy; override;
+
+    { Initialize sound engine.
+      Initializes sound backend (like OpenAL library).
+      Sets @link(IsContextOpen), @link(IsContextOpenSuccess), @link(Information).
+
+      You can set @link(Device) before calling this.
+
+      Note that we continue (without any exception) if the initialization
+      failed for any reason (e.g. OpenAL library is not available,
+      or no sound output device is available).
+      You can check @link(IsContextOpenSuccess) and @link(Information) to know if
+      the initialization was actually successful. But you can also ignore it,
+      the sound engine will silently (literally) keep working even if OpenAL
+      could not be initialized. }
+    procedure ContextOpen;
+
+    { Release sound backend resources.
+      This sets @link(IsContextOpen) and @link(IsContextOpenSuccess) to @false.
+      It's allowed and harmless to call this when one of them is already @false. }
+    procedure ContextClose;
+
+    { Sound backend, like OpenAL or FMOD or SOX.
+      Do not change or access this yourself.
+      You can change this only by calling procedure like UseFMODSoundBackend
+      from CastleFMODSoundBackend unit. }
+    property InternalBackend: TSoundEngineBackend read Backend write SetInternalBackend;
+
+    procedure ALContextOpen; deprecated 'use ContextOpen';
+    procedure ALContextClose; deprecated 'use ContextClose';
+
+    procedure LoadFromConfig(const Config: TCastleConfig); override;
+    procedure SaveToConfig(const Config: TCastleConfig); override;
+
+    { Do we have active sound rendering context.
+      This is @true when you successfully
+      called ContextOpen (and you didn't call ContextClose yet).
+
+      You should not need this property much.
+      The whole CastleSoundEngine API works regardless if the context
+      was successfully open or not.
+      However, reading this is useful to display to user warning
+      e.g. "Sound could not be initialized for some reason" (use @link(Information)
+      to get the details).
+
+      In case of OpenAL backend, this also implies that OpenAL library is loaded. }
+    property IsContextOpenSuccess: boolean read FIsContextOpenSuccess;
+    property ALActive: boolean read FIsContextOpenSuccess;
+      deprecated 'use IsContextOpenSuccess';
+
+    { Did we attempt to initialize sound rendering context.
+      This indicates that ContextOpen was called,
+      and not closed with ContextClose yet.
+      Contrary to IsContextOpenSuccess,
+      this @italic(doesn't care if ContextOpen was a success). }
+    property IsContextOpen: boolean read FIsContextOpen;
+    property ALInitialized: Boolean read FIsContextOpen; deprecated 'use IsContextOpen';
+
+    property SoundInitializationReport: string read FInformation;
+      deprecated 'use Information';
+
+    property Information: string read FInformation;
+
+    { Load a sound file contents such that they can be immediately played.
+
+      This method tries to initialize backend (like OpenAL) context,
+      and loads the buffer contents. But even when it fails, it still returns
+      a valid (non-nil) TSoundBuffer instance. The @link(PlaySound) must be
+      ready anyway to always load the buffer on-demand (because OpenAL context
+      may be lost while the game is ongoing, in case of Android).
+
+      The buffer should be released by @link(FreeBuffer) later when it's not needed.
+      Although we will take care to always free remaining buffers
+      before closing OpenAL context anyway.
+
+      We have a cache of sound files here. An absolute URL
+      will be recorded as being loaded to given buffer. Loading the same
+      URL second time returns the same buffer instance. The buffer
+      is released only once you call @link(FreeBuffer) as many times as you called
+      LoadBuffer for it.
+
+      @param(ExceptionOnError When to raise exception,
+        or merely make a warning by WritelnWarning,
+        in case of error when loading.
+
+        Note that it always returns non-nil, even in case of ExceptionOnError=@false
+        and an error at loading. But in this case, TSoundBuffer is mostly a useless
+        empty instance. Do not depend on this behavior, and check for @nil
+        result in case you use ExceptionOnError=@false.
+      )
+
+      @param(SoundLoading Specifies whether to load sound at once, or use streaming.
+        See @link(TSoundLoading) for details.)
+
+      @raises(ESoundFileError If loading of this sound file failed.
+        There are many reasons why this may happen: we cannot read given URL,
+        or it may contain invalid contents,
+        or a library required to decompress e.g. OggVorbis is missing.)
+
+      @groupBegin }
+    function LoadBuffer(const URL: string; const SoundLoading: TSoundLoading;
+      const ExceptionOnError: Boolean = true): TSoundBuffer; overload;
+    function LoadBuffer(const URL: string;
+      const ExceptionOnError: Boolean = true): TSoundBuffer; overload;
+    function LoadBuffer(const URL: string; out Duration: TFloatTime): TSoundBuffer;
+      overload;
+      deprecated 'use LoadBuffer without Duration parameter, and just read TSoundBuffer.Duration after loading';
+    { @groupEnd }
+
+    { Free a sound file buffer. Ignored when buffer is @nil.
+      Buffer is always set to @nil after this.
+
+      @raises(ESoundBufferNotLoaded When invalid (not @nil,
+        and not returned by LoadBuffer) buffer identifier is given.) }
+    procedure FreeBuffer(var Buffer: TSoundBuffer);
+
+    { Play a sound from given buffer.
+
+      We use a smart sound allocator, so the sound will be actually
+      played only if resources allow. Use higher Importance to indicate
+      sounds that are more important to play.
+
+      We set the sound properties and start playing it.
+
+      Both spatialized (3D) and not spatialized sounds are possible.
+      See the @link(TPlaySoundParameters) for a full list of sound parameters.
+      You can pass all the sound parameters as a @link(TPlaySoundParameters) instance.
+      You can destroy the @link(TPlaySoundParameters) instance right after calling
+      this method, the reference to it is not saved anywhere.
+
+      @returns(The allocated sound as TInternalPlayingSound.
+
+        Returns @nil when there were no resources to play another sound
+        (and it wasn't important enough to override another sound).
+        Always returns @nil when SoundBuffer is zero (indicating that buffer
+        was not loaded).
+
+        In simple cases you can just ignore the result of this method.
+        In advanced cases, you can use it to observe and update the sound
+        later.)
+    }
+    function PlaySound(const Buffer: TSoundBuffer): TInternalPlayingSound; overload;
+    function PlaySound(const Buffer: TSoundBuffer;
+      const Spatial, Looping: boolean; const Importance: Cardinal;
+      const Gain, MinGain, MaxGain: Single;
+      const Position: TVector3;
+      const Pitch: Single = 1): TInternalPlayingSound; overload;
+    function PlaySound(const Buffer: TSoundBuffer;
+      const Spatial, Looping: boolean; const Importance: Cardinal;
+      const Gain, MinGain, MaxGain: Single;
+      const Position: TVector3;
+      const Pitch: Single;
+      const ReferenceDistance: Single;
+      const MaxDistance: Single): TInternalPlayingSound; overload; deprecated 'use PlaySound that gets TPlaySoundParameters instance';
+    function PlaySound(const Parameters: TPlaySoundParameters): TInternalPlayingSound; overload;
+
+    { Parse parameters in @link(Parameters) and interpret and remove
+      recognized options. Internally it uses Parameters.Parse with
+      ParseOnlyKnownLongOptions = @true. Recognized options:
+
+      @definitionList(
+        @itemLabel @--audio-device DEVICE-NAME
+        @item Set @link(Device) variable to given argument.
+
+        @itemLabel @--no-sound
+        @item Disable any sound (sets @link(Enable) to @false).
+      )
+
+      More user-oriented documentation for the above options is here:
+      [https://castle-engine.io/openal_notes.php#section_options] }
+    procedure ParseParameters;
+
+    { Help string for options parsed by ParseParameters.
+
+      Note that it also lists the available sound output @link(Devices),
+      as they are valid arguments for the @--audio-device option. }
+    function ParseParametersHelp: string;
+
+    { Set the sound listener position and orientation. }
+    procedure UpdateListener(const Position, Direction, Up: TVector3);
+
+    { List of available sound devices. Read-only.
+
+      Use @code(Devices[].Name) as @link(Device) values.
+
+      On some backend implementations, also some other @link(Device) values may
+      be possible. E.g. old Loki implementation of OpenAL allowed some hints
+      to be encoded in Lisp-like language inside the @link(Device) string. }
+    function Devices: TSoundDeviceList;
+
+    function DeviceNiceName: string; deprecated 'use DeviceCaption';
+    function DeviceCaption: string;
+
+    { Events fired after sound context is being open or closed.
+      More precisely, when IsContextOpen changes (and so, possibly, IsContextOpenSuccess
+      changed). }
+    property OnOpenClose: TNotifyEventList read FOnOpenClose;
+
+    { Should we save @link(Enable) to config file in SaveToConfig call.
+      This is always reset to @true after setting @link(Enable) value. }
+    property EnableSaveToConfig: boolean
+      read FEnableSaveToConfig write FEnableSaveToConfig default true;
+
+    class property LogSoundLoading: Boolean
+      read GetLogSoundLoading write SetLogSoundLoading;
+
+    { Newly played sounds will have @link(TInternalPlayingSound.Pitch) multiplied by this. }
+    property InitialPitchMultiplier: Single read FInitialPitchMultiplier write FInitialPitchMultiplier default 1.0;
+  published
+    { Sound volume, affects all sounds (effects and music).
+      This must always be within 0..1 range.
+      0.0 means that there are no effects (this case should be optimized). }
+    property Volume: Single read FVolume write SetVolume
+      default DefaultVolume;
+
+    { Sound output device, used when initializing sound context.
+
+      You can change it even when context is already initialized.
+      Then we'll close the old device (ContextClose),
+      change @link(Device) value, and initialize context again (ContextOpen).
+      Note that you will need to reload your buffers and sources again. }
+    property Device: string read FDevice write SetDevice;
+
+    { Enable sound.
+
+      If @false, then ContextOpen will not initialize any device.
+      This is useful if you simply want to disable any sound output
+      (or backend, like OpenAL, usage), even when sound library (like OpenAL)
+      is available.
+
+      If the sound context is already initialized when setting this,
+      we will eventually close it. (More precisely, we will
+      do ContextClose and then ContextOpen again. This behaves correctly.) }
+    property Enabled: boolean read FEnabled write SetEnabled default DefaultEnabled;
+
+    property Enable: boolean read FEnabled write SetEnabled default DefaultEnabled; deprecated 'Use Enabled';
+
+    { How the sound is attenuated with the distance.
+      These are used only for spatialized sounds created with PlaySound.
+      The DefaultReferenceDistance and DefaultMaxDistance values
+      are used only if you don't supply explicit values to PlaySound.
+
+      The exact interpretation of these depends on current
+      DistanceModel. See OpenAL specification for exact equations.
+      In short:
+
+      @unorderedList(
+        @item(Smaller Rolloff Factor makes the attenuation weaker.
+          In particular 0 turns off attenuation by distance.
+          Default is 1.)
+        @item(Reference Distance is the distance at which exactly sound
+          gain is heard. Default is 1.)
+        @item(Max Distance interpretation depends on the model.
+          For "inverse clamped model", the gain is no longer scaled down
+          after reaching this distance. For linear models, the gain
+          reaches zero at this distance. Default is maximum float
+          (I don't know the interpretation of this for linear model).)
+      )
+
+      Our default values follow OpenAL default values.
+      @groupBegin }
+    property DefaultRolloffFactor: Single
+      read FDefaultRolloffFactor write FDefaultRolloffFactor default DefaultDefaultRolloffFactor;
+    property DefaultReferenceDistance: Single
+      read FDefaultReferenceDistance write FDefaultReferenceDistance default DefaultDefaultReferenceDistance;
+    property DefaultMaxDistance: Single
+      read FDefaultMaxDistance write FDefaultMaxDistance default DefaultDefaultMaxDistance;
+    { @groupEnd }
+
+    { How the sources are spatialized. For precise meaning, see OpenAL
+      specification of alDistanceModel.
+
+      Note that some models are actually available only since OpenAL 1.1
+      version. Older OpenAL versions may (but don't have to) support them
+      through extensions. We will internally do everything possible to
+      request given model, but eventually may fallback on some other model.
+      This probably will not be a problem in practice, as all modern OS
+      versions (Linux distros, Windows OpenAL installers etc.) include OpenAL
+      1.1.
+
+      The default distance model, DefaultDistanceModel, is the linear model
+      most conforming to VRML/X3D sound requirements. You can change it
+      if you want (for example, OpenAL default is dmInverseDistanceClamped). }
+    property DistanceModel: TSoundDistanceModel
+      read FDistanceModel write SetDistanceModel default DefaultDistanceModel;
+  end;
+
+{$endif read_interface}
+
+{$ifdef read_implementation}
+
+{ TPlaySoundParameters ----------------------------------------------------------- }
+
+constructor TPlaySoundParameters.Create;
+begin
+  inherited;
+  Gain := 1;
+  MaxGain := 1;
+  Pitch := 1;
+  RolloffFactor     := SoundEngine.DefaultRolloffFactor;
+  ReferenceDistance := SoundEngine.DefaultReferenceDistance;
+  MaxDistance       := SoundEngine.DefaultMaxDistance;
+end;
+
+{ TSoundEngine --------------------------------------------------------------- }
+
+constructor TSoundEngine.Create;
+begin
+  inherited;
+  FVolume := DefaultVolume;
+  FDefaultRolloffFactor := DefaultDefaultRolloffFactor;
+  FDefaultReferenceDistance := DefaultDefaultReferenceDistance;
+  FDefaultMaxDistance := DefaultDefaultMaxDistance;
+  FDistanceModel := DefaultDistanceModel;
+  FEnabled := DefaultEnabled;
+  FDevice := DefaultDevice;
+  FEnableSaveToConfig := true;
+  DeviceSaveToConfig := true;
+  LoadedBuffers := TSoundBuffersList.Create(true);
+  FOnOpenClose := TNotifyEventList.Create;
+  FInitialPitchMultiplier := 1.0;
+
+  { Default listener attributes }
+  FListenerPosition := TVector3.Zero;
+  FListenerDirection := Vector3(0, 0, -1);
+  FListenerUp := Vector3(0, 1, 0);
+
+  // automatic loading/saving is more troublesome than it's worth
+  // Config.AddLoadListener(@LoadFromConfig);
+  // Config.AddSaveListener(@SaveToConfig);
+
+  ApplicationProperties.OnInitializeJavaActivity.Add(
+    {$ifdef CASTLE_OBJFPC}@{$endif} ReinitializeJavaActivity);
+  ApplicationProperties.OnPause.Add(
+    {$ifdef CASTLE_OBJFPC}@{$endif} ApplicationPause);
+  ApplicationProperties.OnResume.Add(
+    {$ifdef CASTLE_OBJFPC}@{$endif} ApplicationResume);
+end;
+
+destructor TSoundEngine.Destroy;
+begin
+  if ApplicationProperties(false) <> nil then
+  begin
+    ApplicationProperties(false).OnInitializeJavaActivity.Remove(
+      {$ifdef CASTLE_OBJFPC}@{$endif} ReinitializeJavaActivity);
+    ApplicationProperties(false).OnPause.Remove(
+      {$ifdef CASTLE_OBJFPC}@{$endif} ApplicationPause);
+    ApplicationProperties(false).OnResume.Remove(
+      {$ifdef CASTLE_OBJFPC}@{$endif} ApplicationResume);
+  end;
+
+  // automatic loading/saving is more troublesome than it's worth
+  // if Config <> nil then
+  // begin
+  //   Config.RemoveLoadListener(@LoadFromConfig);
+  //   Config.RemoveSaveListener(@SaveToConfig);
+  // end;
+
+  ContextClose;
+
+  Inc(ValidSoundBufferFree);
+  try
+    FreeAndNil(LoadedBuffers);
+  finally Dec(ValidSoundBufferFree) end;
+
+  FreeAndNil(FDevices);
+  FreeAndNil(FOnOpenClose);
+  inherited;
+end;
+
+function TSoundEngine.Devices: TSoundDeviceList;
+begin
+  { Create devices on demand (not immediately in TSoundEngine.Create),
+    because in case of OpenAL merely using alcGetString(nil, ALC_DEVICE_SPECIFIER)
+    may perform some OpenAL initialization (discovery of available devices).
+    E.g. with OpenAL Soft 1.13 in Debian. This is not very harmful,
+    but it causes like output (on stdout or stderr) like
+
+      AL lib: pulseaudio.c:612: Context did not connect: Connection refused
+      ALSA lib pcm.c:2190:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.rear
+      ALSA lib pcm.c:2190:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.center_lfe
+      ALSA lib pcm.c:2190:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.side
+      ALSA lib pcm_dmix.c:957:(snd_pcm_dmix_open) The dmix plugin supports only playback stream
+
+    and it causes a temporary slowdown. So we want to defer this (until really
+    needed, or until explicit ContextOpen call). }
+
+  if FDevices = nil then
+  begin
+    FDevices := TSoundDeviceList.Create;
+    FDevices.Add('', 'Default Device');
+    Backend.DetectDevices(FDevices);
+  end;
+  Result := FDevices;
+end;
+
+procedure TSoundEngine.ContextOpenCore;
+
+  { initialize resources inside LoadedBuffers }
+  procedure LoadedBuffersOpen;
+  var
+    Buffer: TSoundBuffer;
+  begin
+    // check LoadedBuffers.Count, because we don't want to do progress with no LoadedBuffers
+    if LoadedBuffers.Count <> 0 then
+    begin
+      if Progress.Active then
+      begin
+        { call ContextOpen on all buffers }
+        for Buffer in LoadedBuffers do
+          Buffer.ContextOpen(false);
+      end else
+      begin
+        { same as above, but with added Progress.Init / Step / Fini }
+        Progress.Init(LoadedBuffers.Count, 'Loading sounds');
+        try
+          for Buffer in LoadedBuffers do
+          begin
+            Buffer.ContextOpen(false);
+            Progress.Step;
+          end;
+        finally Progress.Fini end;
+      end;
+    end;
+  end;
+
+var
+  BackendOpenInformation: string;
+begin
+  Assert(not IsContextOpenSuccess, 'Sound context is already active');
+
+  if not Enabled then
+  begin
+    FInformation := 'Sound initialization aborted: Sound engine is disabled';
+  end else
+  begin
+    FIsContextOpenSuccess := Backend.ContextOpen(FDevice, BackendOpenInformation);
+    if not IsContextOpenSuccess then
+      FInformation :=
+        'Sound backend initialization failed:' + NL +
+        BackendOpenInformation else
+    begin
+      FInformation :=
+        'Sound backend initialized successfully:' + NL +
+        BackendOpenInformation + NL +
+        NL+
+        Format('Allocated sound sources: min %d, max %d' + NL +
+          NL+
+          'Library to decode OggVorbis available: %s', [
+            MinAllocatedSources, MaxAllocatedSources,
+            BoolToStr(VorbisFileInitialized, true)
+          ]);
+
+      try
+        Backend.SetGain(Volume);
+        Backend.SetDistanceModel(DistanceModel);
+        Backend.SetListener(
+          FListenerPosition,
+          FListenerDirection,
+          FListenerUp);
+        inherited; { initialize sound allocator }
+        LoadedBuffersOpen;
+      except
+        ContextClose;
+        raise;
+      end;
+    end;
+  end;
+
+  WritelnLogMultiline('Sound', Information);
+
+  OnOpenClose.ExecuteAll(Self);
+end;
+
+procedure TSoundEngine.ContextCloseCore;
+var
+  Buffer: TSoundBuffer;
+begin
+  if IsContextOpenSuccess then
+  begin
+    { release sound allocator first. This also stops all the sources,
+      which is required before we try to release their buffers. }
+    inherited;
+    { free backend resources allocated inside LoadedBuffers }
+    for Buffer in LoadedBuffers do
+      Buffer.ContextClose;
+    Backend.ContextClose;
+    FIsContextOpenSuccess := false;
+  end;
+
+  WritelnLog('Sound', 'Sound backend closed');
+
+  OnOpenClose.ExecuteAll(Self);
+end;
+
+procedure TSoundEngine.ContextOpen;
+begin
+  if Paused then
+    Exit; // do not even set IsContextOpen to true
+
+  if not IsContextOpen then
+  begin
+    FIsContextOpen := true; // set it early, so that OnOpenClose knows it's true
+    ContextOpenCore;
+  end;
+end;
+
+procedure TSoundEngine.ContextClose;
+begin
+  if IsContextOpen then
+  begin
+    FIsContextOpen := false; // set it early, so that OnOpenClose knows it's false
+    ContextCloseCore;
+  end;
+end;
+
+procedure TSoundEngine.ALContextOpen;
+begin
+  ContextOpen;
+end;
+
+procedure TSoundEngine.ALContextClose;
+begin
+  ContextClose;
+end;
+
+function TSoundEngine.PlaySound(const Parameters: TPlaySoundParameters): TInternalPlayingSound;
+begin
+  Result := nil;
+
+  if IsContextOpenSuccess and
+     (Parameters.Buffer <> nil) and
+     { Buffer.BackendIsOpen may be false if file failed to load, e.g. file not found }
+     Parameters.Buffer.BackendIsOpen then
+  begin
+    Result := AllocateSound(Parameters.Importance);
+    if Result <> nil then
+    begin
+      Result.Buffer  := Parameters.Buffer;
+      Result.Looping := Parameters.Looping;
+      Result.Gain    := Parameters.Gain;
+      Result.MinGain := Parameters.MinGain;
+      Result.MaxGain := Parameters.MaxGain;
+      Result.Pitch   := Parameters.Pitch * InitialPitchMultiplier;
+      Result.Offset  := Parameters.Offset;
+
+      if Parameters.Spatial then
+      begin
+        { Set default attenuation by distance. }
+        Result.RolloffFactor     := Parameters.RolloffFactor;
+        Result.ReferenceDistance := Parameters.ReferenceDistance;
+        Result.MaxDistance       := Parameters.MaxDistance;
+
+        Result.Relative := false;
+        Result.Position := Parameters.Position;
+      end else
+      begin
+        { No attenuation by distance. }
+        Result.RolloffFactor := 0;
+        { ReferenceDistance, MaxDistance don't matter in this case }
+
+        { Although AL_ROLLOFF_FACTOR := 0 turns off
+          attenuation by distance, we still have to turn off
+          any changes from player's orientation (so that the sound
+          is not played on left or right side, but normally).
+          That's why setting source position exactly on the player
+          is needed here. }
+        Result.Relative := true;
+        Result.Position := TVector3.Zero;
+      end;
+
+      Result.Backend.Play(true);
+    end;
+  end;
+end;
+
+function TSoundEngine.PlaySound(const Buffer: TSoundBuffer): TInternalPlayingSound;
+var
+  Parameters: TPlaySoundParameters;
+begin
+  Parameters := TPlaySoundParameters.Create;
+  try
+    Parameters.Buffer := Buffer;
+    Result := PlaySound(Parameters);
+  finally FreeAndNil(Parameters) end;
+end;
+
+function TSoundEngine.PlaySound(const Buffer: TSoundBuffer;
+  const Spatial, Looping: boolean; const Importance: Cardinal;
+  const Gain, MinGain, MaxGain: Single;
+  const Position: TVector3;
+  const Pitch: Single): TInternalPlayingSound;
+var
+  Parameters: TPlaySoundParameters;
+begin
+  Parameters := TPlaySoundParameters.Create;
+  try
+    Parameters.Buffer     := Buffer;
+    Parameters.Spatial    := Spatial;
+    Parameters.Looping    := Looping;
+    Parameters.Importance := Importance;
+    Parameters.Gain       := Gain;
+    Parameters.MinGain    := MinGain;
+    Parameters.MaxGain    := MaxGain;
+    Parameters.Position   := Position;
+    Parameters.Pitch      := Pitch;
+    Result := PlaySound(Parameters);
+  finally FreeAndNil(Parameters) end;
+end;
+
+function TSoundEngine.PlaySound(const Buffer: TSoundBuffer;
+  const Spatial, Looping: boolean; const Importance: Cardinal;
+  const Gain, MinGain, MaxGain: Single;
+  const Position: TVector3;
+  const Pitch, ReferenceDistance, MaxDistance: Single): TInternalPlayingSound;
+var
+  Parameters: TPlaySoundParameters;
+begin
+  Parameters := TPlaySoundParameters.Create;
+  try
+    Parameters.Buffer     := Buffer;
+    Parameters.Spatial    := Spatial;
+    Parameters.Looping    := Looping;
+    Parameters.Importance := Importance;
+    Parameters.Gain       := Gain;
+    Parameters.MinGain    := MinGain;
+    Parameters.MaxGain    := MaxGain;
+    Parameters.Position   := Position;
+    Parameters.Pitch      := Pitch;
+    Parameters.ReferenceDistance := ReferenceDistance;
+    Parameters.MaxDistance       := MaxDistance;
+    Result := PlaySound(Parameters);
+  finally FreeAndNil(Parameters) end;
+end;
+
+function TSoundEngine.LoadBuffer(const URL: string; out Duration: TFloatTime): TSoundBuffer;
+begin
+  Result := LoadBuffer(URL);
+  Duration := Result.Duration;
+end;
+
+function TSoundEngine.LoadBuffer(const URL: string; const SoundLoading: TSoundLoading; const ExceptionOnError: Boolean): TSoundBuffer;
+var
+  I: Integer;
+  FullURL: string;
+begin
+  ContextOpen;
+
+  FullURL := AbsoluteURI(URL);
+
+  { try to load from cache Result }
+  for I := 0 to LoadedBuffers.Count - 1 do
+    if LoadedBuffers[I].URL = FullURL then
+    begin
+      Result := LoadedBuffers[I];
+      Inc(Result.References);
+      if LogSoundLoading then
+        WritelnLog('Sound', Format('Loaded sound buffer "%s" from cache, now it has %d references',
+          [URIDisplay(FullURL), Result.References]));
+      Exit;
+    end;
+
+  Result := TSoundBuffer.Create(Backend, SoundLoading);
+  Result.FURL := FullURL;
+  Result.References := 1;
+  LoadedBuffers.Add(Result);
+
+  if IsContextOpenSuccess then
+    { let LoadBuffer raise exception on missing sound file }
+    Result.ContextOpen(ExceptionOnError);
+end;
+
+function TSoundEngine.LoadBuffer(const URL: string; const ExceptionOnError: Boolean): TSoundBuffer;
+begin
+  Result := LoadBuffer(URL, slComplete, ExceptionOnError);
+end;
+
+procedure TSoundEngine.FreeBuffer(var Buffer: TSoundBuffer);
+var
+  I: Integer;
+begin
+  if Buffer = nil then Exit;
+
+  I := LoadedBuffers.IndexOf(Buffer);
+  if I <> -1 then
+  begin
+    Dec(Buffer.References);
+    if Buffer.References = 0 then
+    begin
+      // this will free Buffer, also calling Buffer.ContextClose;
+      Inc(ValidSoundBufferFree);
+      try
+        LoadedBuffers.Delete(I);
+      finally Dec(ValidSoundBufferFree) end;
+    end;
+    Buffer := nil;
+  end else
+    raise ESoundBufferNotLoaded.CreateFmt('Sound buffer "%s" not loaded by this sound engine',
+      [URIDisplay(Buffer.URL)]);
+end;
+
+procedure TSoundEngine.SetVolume(const Value: Single);
+begin
+  if Value <> FVolume then
+  begin
+    FVolume := Value;
+    if IsContextOpenSuccess then
+      Backend.SetGain(Value);
+  end;
+end;
+
+procedure TSoundEngine.SetDistanceModel(const Value: TSoundDistanceModel);
+begin
+  if Value <> FDistanceModel then
+  begin
+    FDistanceModel := Value;
+    if IsContextOpenSuccess then
+      Backend.SetDistanceModel(Value);
+  end;
+end;
+
+procedure TSoundEngine.SetDevice(const Value: string);
+begin
+  if Value <> FDevice then
+  begin
+    if IsContextOpen then
+    begin
+      ContextClose;
+      FDevice := Value;
+      ContextOpen;
+    end else
+      FDevice := Value;
+    DeviceSaveToConfig := true; // caller will eventually change it to false
+  end;
+end;
+
+procedure TSoundEngine.SetEnabled(const Value: boolean);
+begin
+  if Value <> FEnabled then
+  begin
+    if IsContextOpen then
+    begin
+      ContextClose;
+      FEnabled := Value;
+      ContextOpen;
+    end else
+      FEnabled := Value;
+    FEnableSaveToConfig := true; // caller will eventually change it to false
+  end;
+end;
+
+procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+var
+  Engine: TSoundEngine;
+begin
+  Engine := TSoundEngine(Data);
+  case OptionNum of
+    0: begin
+         Engine.Device := Argument;
+         Engine.DeviceSaveToConfig := false;
+       end;
+    1: begin
+         Engine.Enabled := false;
+         Engine.EnableSaveToConfig := false;
+       end;
+    else raise EInternalError.Create('CastleSoundEngine.OptionProc');
+  end;
+end;
+
+procedure TSoundEngine.ParseParameters;
+const
+  SoundOptions: array [0..1] of TOption =
+  ( (Short: #0; Long: 'audio-device'; Argument: oaRequired),
+    (Short: #0; Long: 'no-sound'; Argument: oaNone)
+  );
+begin
+  Parameters.Parse(SoundOptions, @OptionProc, Self, true);
+end;
+
+function TSoundEngine.ParseParametersHelp: string;
+
+  function DevicesHelp: string;
+  var
+    I: Integer;
+  begin
+    Result := Format('                        Available devices (%d):', [Devices.Count]) + NL;
+    for i := 0 to Devices.Count - 1 do
+    begin
+      Result := Result + '                          ' + Devices[i].Caption;
+      if Devices[i].Name <> Devices[i].Caption then
+        Result := Result + ' (internal name: "' + Devices[i].Name + '")';
+      Result := Result + NL;
+    end;
+  end;
+
+begin
+  Result :=
+    '  --audio-device DEVICE-NAME' +nl+
+    '                        Choose sound output device.' +nl+
+    DevicesHelp +
+    '  --no-sound            Turn off sound.';
+end;
+
+procedure TSoundEngine.UpdateListener(const Position, Direction, Up: TVector3);
+begin
+  FListenerPosition := Position;
+  FListenerDirection := Direction;
+  FListenerUp := Up;
+  if IsContextOpenSuccess then
+    Backend.SetListener(Position, Direction, Up);
+end;
+
+function TSoundEngine.DeviceNiceName: string;
+begin
+  Result := DeviceCaption;
+end;
+
+function TSoundEngine.DeviceCaption: string;
+var
+  I: Integer;
+begin
+  for I := 0 to Devices.Count - 1 do
+    if Devices[I].Name = Device then
+      Exit(Devices[I].Caption);
+
+  Result := 'Unnamed Sound Device'; // some default
+end;
+
+procedure TSoundEngine.LoadFromConfig(const Config: TCastleConfig);
+begin
+  inherited;
+  Device := Config.GetValue('sound/device', DefaultDevice);
+  Enabled := Config.GetValue('sound/enable', DefaultEnabled);
+end;
+
+procedure TSoundEngine.SaveToConfig(const Config: TCastleConfig);
+begin
+  if DeviceSaveToConfig then
+    Config.SetDeleteValue('sound/device', Device, DefaultDevice);
+  if EnableSaveToConfig then
+    Config.SetDeleteValue('sound/enable', Enabled, DefaultEnabled);
+  inherited;
+end;
+
+procedure TSoundEngine.ReinitializeJavaActivity(Sender: TObject);
+begin
+  { in case Java activity got killed and is created again, be sure to resume }
+  Paused := false;
+end;
+
+procedure TSoundEngine.ApplicationPause(Sender: TObject);
+begin
+  Paused := true;
+end;
+
+procedure TSoundEngine.ApplicationResume(Sender: TObject);
+begin
+  Paused := false;
+end;
+
+procedure TSoundEngine.SetPaused(const Value: boolean);
+begin
+  if FPaused <> Value then
+  begin
+    FPaused := Value;
+    if FPaused then
+    begin
+      FResumeToInitialized := IsContextOpen;
+      ContextClose;
+    end else
+    begin
+      if FResumeToInitialized then
+        ContextOpen;
+    end;
+  end;
+end;
+
+procedure TSoundEngine.SetInternalBackend(const Value: TSoundEngineBackend);
+begin
+  ContextClose;
+  FreeAndNil(Backend);
+  Backend := Value;
+end;
+
+class function TSoundEngine.GetLogSoundLoading: Boolean;
+begin
+  Result := CastleInternalSoundFile.LogSoundLoading;
+end;
+
+class procedure TSoundEngine.SetLogSoundLoading(const Value: Boolean);
+begin
+  CastleInternalSoundFile.LogSoundLoading := Value;
+end;
+
+{$endif read_implementation}
