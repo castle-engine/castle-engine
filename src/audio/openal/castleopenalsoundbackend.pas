@@ -218,7 +218,7 @@ begin
   Buffer.ReadStreamConfig(StreamedFile);
 
   alCreateBuffers(StreamBuffersCount, ALBuffers);
-  CheckAL('Before filling buffers');
+  CheckAL('Before filling buffers', true);
 
   try
     NecessaryBuffers := 0;
@@ -616,8 +616,9 @@ begin
   if ALVersion11 then
   begin
     { We have to check alGetError now, because we need to catch
-      AL_INVALID_VALUE later. }
-    CheckAL('Checking before TOpenALSoundSourceBackend.SetOffset work');
+      AL_INVALID_VALUE later.
+      TODO: only warning now, occurs when switch Stream/URL of TCastleSound. }
+    CheckAL('Checking before TOpenALSoundSourceBackend.SetOffset work', true);
 
     alSourcef(ALSource, AL_SEC_OFFSET, Value);
 
