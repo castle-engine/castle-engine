@@ -202,6 +202,7 @@ begin
       Params.Gain := Sound.Volume;
       Params.MinGain := Sound.MinGain;
       Params.MaxGain := Sound.MaxGain;
+      Params.Pitch := Sound.Pitch;
 
       PlayingSound := SoundEngine.PlaySound(Params);
 
