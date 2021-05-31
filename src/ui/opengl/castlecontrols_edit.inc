@@ -83,7 +83,7 @@
     procedure SetFocused(const Value: boolean); override;
     procedure EditorAllowResize(
       out ResizeWidth, ResizeHeight: Boolean; out Reason: String); override;
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySection; override;
     {Index for Caret}
     property Index:integer read FIndex write SetIndex;
     property LastIndex:integer read FLastIndex write SetLastIndex;
