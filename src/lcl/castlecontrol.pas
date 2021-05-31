@@ -27,8 +27,7 @@ uses
   CastleRectangles, CastleVectors, CastleKeysMouse, CastleUtils, CastleTimeUtils,
   CastleUIControls, CastleCameras, X3DNodes, CastleScene, CastleLevels,
   CastleImages, CastleGLVersion, CastleLCLUtils, CastleViewport,
-  CastleGLImages, CastleGLContainer, Castle2DSceneManager,
-  CastleApplicationProperties;
+  CastleGLImages, Castle2DSceneManager, CastleApplicationProperties;
 
 { Define this for new Lazarus that has Options (with ocoRenderAtDesignTime)
   (see issue https://bugs.freepascal.org/view.php?id=32026 ). }
