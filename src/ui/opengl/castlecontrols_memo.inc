@@ -118,7 +118,7 @@
     procedure SetCaret(index1, indexColumn1: integer; index2: integer = -1; indexColumn2: Integer = -1);
     function GetCaret:TMemoIndexs;
     procedure Append(index1, indexColumn1: integer; Text_: String);
-    function PropertySection(const PropertyName: String): TPropertySection; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure DeleteSelectText;
     property Index:integer read FIndex write SetIndex;
     property LastIndex:integer read FLastIndex write SetLastIndex;
@@ -950,12 +950,12 @@ begin
   DoChange;
 end;
 
-function TCastleMemo.PropertySection(const PropertyName: String): TPropertySection;
+function TCastleMemo.PropertySections(const PropertyName: String): TPropertySections;
 begin
   if (PropertyName = 'Text') then
-    Result := psBasic
+    Result := [psBasic]
   else
-    Result := inherited PropertySection(PropertyName);
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TCastleMemo.DeleteSelectText;
