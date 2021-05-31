@@ -188,6 +188,7 @@ end;
 
 procedure TCastleSound.Loaded;
 begin
+  inherited; //< important, as inherited removes csLoading from ComponentState
   ReloadBuffer;
 end;
 

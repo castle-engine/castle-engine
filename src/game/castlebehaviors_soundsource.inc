@@ -124,6 +124,8 @@ begin
   Sender.UserData.Free;
   Sender.UserData := nil;
   UsedSounds.Remove(Sender);
+  if Sender = PlayingSound then
+    PlayingSound := nil;
 end;
 
 procedure TCastleSoundSource.PlayOnce(const SoundType: TSoundType; const SoundHeight: Single;
@@ -184,6 +186,7 @@ var
 begin
   if PlayingSound <> nil then
     PlayingSound.Release;
+  Assert(PlayingSound = nil);
 
   if (Sound.Buffer <> nil) and (Parent <> nil) then
   begin
