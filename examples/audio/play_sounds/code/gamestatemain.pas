@@ -43,8 +43,8 @@ type
         procedure ChangeSliderSoundPitch(Sender: TObject);
         procedure ChangeCheckboxLoop(Sender: TObject);
       public
-        SoundSource: TSound;
-        constructor Create(const AOwner: TComponent; const ASoundSource: TSound;
+        SoundSource: TInternalPlayingSound;
+        constructor Create(const AOwner: TComponent; const ASoundSource: TInternalPlayingSound;
           const UiTemplate: TSerializedComponent;
           const GroupSoundSources: TCastleVerticalGroup); reintroduce;
       end;
@@ -59,7 +59,7 @@ type
       SoundSourceUiOwners: TSoundSourceUiOwnerList;
     procedure ClickExit(Sender: TObject);
     procedure ClickPlayBuffer(Sender: TObject);
-    procedure SoundSourceRelease(Sender: TSound);
+    procedure SoundSourceRelease(Sender: TInternalPlayingSound);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -107,7 +107,7 @@ end;
 { TSoundSourceUiOwner ---------------------------------------------------------- }
 
 constructor TStateMain.TSoundSourceUiOwner.Create(const AOwner: TComponent;
-  const ASoundSource: TSound;
+  const ASoundSource: TInternalPlayingSound;
   const UiTemplate: TSerializedComponent;
   const GroupSoundSources: TCastleVerticalGroup);
 var
@@ -244,7 +244,7 @@ end;
 procedure TStateMain.ClickPlayBuffer(Sender: TObject);
 var
   SenderButton: TButtonSoundBuffer;
-  SoundSource: TSound;
+  SoundSource: TInternalPlayingSound;
   SoundSourceUiOwner: TSoundSourceUiOwner;
 begin
   inherited;
@@ -263,7 +263,7 @@ begin
   end;
 end;
 
-procedure TStateMain.SoundSourceRelease(Sender: TSound);
+procedure TStateMain.SoundSourceRelease(Sender: TInternalPlayingSound);
 var
   SoundSourceUiOwner: TSoundSourceUiOwner;
 begin

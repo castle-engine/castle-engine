@@ -59,7 +59,7 @@
     FDuration: TFloatTime;
     InsideLoadBuffer: Cardinal;
     procedure SetBufferLoaded(const Value: boolean);
-    procedure SoundRelease(ASound: TSound);
+    procedure SoundRelease(ASound: TInternalPlayingSound);
     procedure UpdatePlayingEvent(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
     procedure UpdatePlaying;
@@ -69,7 +69,7 @@
       if it's successfully loaded. }
     property BufferLoaded: boolean read FBufferLoaded write SetBufferLoaded;
   private
-    Sound: TSound;
+    Sound: TInternalPlayingSound;
   protected
     procedure ParseAfter(Reader: TX3DReaderNames); override;
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
@@ -243,7 +243,7 @@ begin
     Result := 0;
 end;
 
-procedure TAudioClipNode.SoundRelease(ASound: TSound);
+procedure TAudioClipNode.SoundRelease(ASound: TInternalPlayingSound);
 begin
   Sound := nil;
 end;
@@ -266,7 +266,7 @@ procedure TAudioClipNode.UpdatePlaying;
 
 var
   SoundNode: TSoundNode;
-  Parameters: TSoundParameters;
+  Parameters: TPlaySoundParameters;
 begin
   if IsActive and not IsPaused then
   begin
@@ -277,7 +277,7 @@ begin
       SoundNode := GetSoundNode;
       if (Buffer <> nil) and (SoundNode <> nil) then
       begin
-        Parameters := TSoundParameters.Create;
+        Parameters := TPlaySoundParameters.Create;
         try
           Parameters.Buffer := Buffer;
           Parameters.Spatial := SoundNode.Spatialize;

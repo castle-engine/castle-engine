@@ -24,7 +24,7 @@ uses SysUtils, Classes, Math, Generics.Collections,
   CastleVectors, CastleFrustum, CastleBoxes, CastleClassUtils, CastleKeysMouse,
   CastleRectangles, CastleUtils, CastleTimeUtils,
   CastleSoundEngine, CastleSectors, CastleCameras, CastleTriangles,
-  CastleTransform;
+  CastleTransform, CastleBehaviors;
 
 type
   { Transformation moving and potentially pushing other objects.
@@ -145,8 +145,7 @@ type
     FSoundGoEndPositionLooping: boolean;
     FSoundTracksCurrentPosition: boolean;
 
-    UsedSound: TSound;
-    procedure SoundRelease(Sender: TSound);
+    SoundSource: TCastleSoundSource;
     function SoundPosition: TVector3;
     procedure PlaySound(SoundType: TSoundType; Looping: boolean);
   public
@@ -539,30 +538,19 @@ begin
   FSoundGoEndPosition := stNone;
   FSoundGoBeginPosition := stNone;
 
+  SoundSource := TCastleSoundSource.Create(Self);
+  AddBehavior(SoundSource);
+
   FEndPosition := false;
 
   { We set FEndPositionStateChangeTime to a past time, to be sure
     that we don't treat the door as "closing right now". }
   FEndPositionStateChangeTime := -1000.0; { TODO: should be implemented better... }
-
-  UsedSound := nil;
 end;
 
 destructor TCastleLinearMoving.Destroy;
 begin
-  { Otherwise, if you exit from the game while some sound was played,
-    and the sound was e.g. looping (like the elevator on "Tower" level),
-    the sound will never get stopped. }
-  if UsedSound <> nil then
-    UsedSound.Release;
-
   inherited;
-end;
-
-procedure TCastleLinearMoving.SoundRelease(Sender: TSound);
-begin
-  Assert(Sender = UsedSound);
-  UsedSound := nil;
 end;
 
 function TCastleLinearMoving.SoundPosition: TVector3;
@@ -573,14 +561,17 @@ end;
 procedure TCastleLinearMoving.PlaySound(SoundType: TSoundType;
   Looping: boolean);
 begin
-  { The object can play only one sound (going to begin or end position)
-    at a time. }
-  if UsedSound <> nil then
-    UsedSound.Release;
-  UsedSound := SoundEngine.Sound3d(SoundType, SoundPosition, Looping);
-
-  if UsedSound <> nil then
-    UsedSound.OnRelease := {$ifdef CASTLE_OBJFPC}@{$endif} SoundRelease;
+  if Looping then
+  begin
+    // TODO: express SoundType as TCastleSound (or nil)
+    // TODO: SoundSource.Sound := SoundType;
+  end else
+  begin
+    // TODO: SoundSource.Sound := nil;
+    // TODO:
+    // if SoundType <> stNone then
+    //   SoundSource.PlayOnce(SoundType, SoundTracksCurrentPosition);
+  end;
 end;
 
 procedure TCastleLinearMoving.GoEndPosition;
@@ -668,16 +659,12 @@ procedure TCastleLinearMoving.Update(const SecondsPassed: Single; var RemoveMe: 
 begin
   inherited;
 
-  { Update sound position when object is moving }
-  if (UsedSound <> nil) and SoundTracksCurrentPosition then
-    UsedSound.Position := SoundPosition;
-
   { If the SoundGoBegin/EndPosition is longer than the MoveTime
     (or it's looping),
     stop this sound once we're completely in Begin/EndPosition. }
-  if (AnimationTime - EndPositionStateChangeTime > MoveTime) and
-    (UsedSound <> nil) then
-    UsedSound.Release;
+  if AnimationTime - EndPositionStateChangeTime > MoveTime then
+    // TODO: SoundSource.Sound := nil;
+    ;
 end;
 
 { TCastleAlive ------------------------------------------------------------------- }

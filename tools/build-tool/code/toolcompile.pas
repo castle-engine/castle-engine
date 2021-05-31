@@ -588,7 +588,7 @@ begin
         which has incompatible call mechanism.
 
         And indeed, doing PlaySound crashes at alSourcef call (to OpenAL)
-        from TSound.SetMinGain. Reproducible with escape_universe.
+        from TInternalPlayingSound.SetMinGain. Reproducible with escape_universe.
 
         fpcupdeluxe default cross-compiler to Android also uses this. }
       //FpcOptions.Add('-CaEABIHF');

@@ -22,12 +22,12 @@ type
   TCastleSoundSource = class(TCastleBehavior)
   strict private
     FSound: TCastleSound;
-    UsedSounds: TSoundList;
-    PlayingSound: TSound; //< TSound corresponding to main Sound
-    procedure SoundRelease(Sender: TSound);
+    UsedSounds: TInternalPlayingSoundList;
+    PlayingSound: TInternalPlayingSound; //< TInternalPlayingSound corresponding to main Sound
+    procedure SoundRelease(Sender: TInternalPlayingSound);
     function LerpLegsMiddle(const A: Single): TVector3;
     procedure SoundChanged(Sender: TObject);
-    function PlayOnceCore(const Sound: TCastleSound; const Looping, Follow: Boolean): TSound;
+    function PlayOnceCore(const Sound: TCastleSound; const Looping, Follow: Boolean): TInternalPlayingSound;
   protected
     procedure ParentChanged; override;
   public
@@ -93,7 +93,7 @@ type
 constructor TCastleSoundSource.Create(AOwner: TComponent);
 begin
   inherited;
-  UsedSounds := TSoundList.Create(false);
+  UsedSounds := TInternalPlayingSoundList.Create(false);
 
   FSound := TCastleSound.Create(Self);
   FSound.InternalOnChange := @SoundChanged;
@@ -119,7 +119,7 @@ begin
         indexing over this list here.
 
         In case of Follow = false, this is needed even more:
-        the TSound instance will survive destruction of this TCastleSoundSource,
+        the TInternalPlayingSound instance will survive destruction of this TCastleSoundSource,
         but it should not call any of TCastleSoundSource methods. }
       UsedSounds[I].OnRelease := nil;
 
@@ -143,7 +143,7 @@ begin
   end;
 end;
 
-procedure TCastleSoundSource.SoundRelease(Sender: TSound);
+procedure TCastleSoundSource.SoundRelease(Sender: TInternalPlayingSound);
 begin
   Sender.UserData.Free;
   Sender.UserData := nil;
@@ -155,21 +155,23 @@ end;
 procedure TCastleSoundSource.PlayOnce(const SoundType: TSoundType; const SoundHeight: Single;
   const Follow: boolean);
 var
-  NewSource: TSound;
+  NewPlayingSound: TInternalPlayingSound;
   SoundPosition: TVector3;
 begin
   SoundPosition := LerpLegsMiddle(SoundHeight);
   if Parent.UniqueParent <> nil then // make sound position in world coordinates
     SoundPosition := Parent.UniqueParent.LocalToWorld(SoundPosition);
-  NewSource := SoundEngine.Sound3d(SoundType, SoundPosition);
-  if NewSource <> nil then
+  {$warnings off} // using deprecated, that should be internal
+  NewPlayingSound := SoundEngine.Sound3d(SoundType, SoundPosition);
+  {$warnings on}
+  if NewPlayingSound <> nil then
   begin
-    UsedSounds.Add(NewSource);
-    NewSource.OnRelease := @SoundRelease;
-    NewSource.UserData := TSoundData.Create;
-    TSoundData(NewSource.UserData).SoundHeight := SoundHeight;
-    TSoundData(NewSource.UserData).Follow := Follow;
-    TSoundData(NewSource.UserData).Spatial := true; // always true, for PlayOnce(TSoundType) uses Sound3d
+    UsedSounds.Add(NewPlayingSound);
+    NewPlayingSound.OnRelease := @SoundRelease;
+    NewPlayingSound.UserData := TSoundData.Create;
+    TSoundData(NewPlayingSound.UserData).SoundHeight := SoundHeight;
+    TSoundData(NewPlayingSound.UserData).Follow := Follow;
+    TSoundData(NewPlayingSound.UserData).Spatial := true; // always true, for PlayOnce(TSoundType) uses Sound3d
   end;
 end;
 
@@ -193,8 +195,8 @@ begin
       Actually, we *should not* update UsedSounds[I].Position,
       as it is realized using
 
-        TSound.Relative = true
-        TSound.Position := TVector3.Zero
+        TInternalPlayingSound.Relative = true
+        TInternalPlayingSound.Position := TVector3.Zero
 
       so changing Position would make it sound differently (with position
       interpreted as relative to listener). }
@@ -221,13 +223,13 @@ begin
     Result := Parent.Translation;
 end;
 
-function TCastleSoundSource.PlayOnceCore(const Sound: TCastleSound; const Looping, Follow: Boolean): TSound;
+function TCastleSoundSource.PlayOnceCore(const Sound: TCastleSound; const Looping, Follow: Boolean): TInternalPlayingSound;
 const
   { Use always 0 for now, as it seems most natural.
     It ignores Middle, and just uses Translation. }
   SoundHeight = 0;
 var
-  Params: TSoundParameters;
+  Params: TPlaySoundParameters;
   SoundPosition: TVector3;
 begin
   Result := nil;
@@ -239,7 +241,7 @@ begin
        (Parent.UniqueParent <> nil) then // make sound position in world coordinates
       SoundPosition := Parent.UniqueParent.LocalToWorld(SoundPosition);
 
-    Params := TSoundParameters.Create;
+    Params := TPlaySoundParameters.Create;
     try
       Params.Position := SoundPosition;
       Params.Buffer := Sound.Buffer;

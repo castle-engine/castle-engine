@@ -40,7 +40,7 @@ type
   ESoundFileError = CastleSoundBase.ESoundFileError;
   EInvalidSoundRepositoryXml = class(Exception);
 
-  TSound = class;
+  TInternalPlayingSound = class;
   TSoundAllocator = class;
 
   { Sound buffer represents contents of a sound file, like Wav or OggVorbis,
@@ -84,13 +84,13 @@ type
     function Frequency: LongWord;
   end;
 
-  TSoundEvent = procedure (Sender: TSound) of object;
+  TInternalPlayingSoundEvent = procedure (Sender: TInternalPlayingSound) of object;
 
   { Sound source that can be immediately played. }
-  TSound = class
+  TInternalPlayingSound = class
   private
     FUsed: boolean;
-    FOnRelease: TSoundEvent;
+    FOnRelease: TInternalPlayingSoundEvent;
     FImportance: Integer;
     FUserData: TObject;
     FPosition, FVelocity: TVector3;
@@ -117,8 +117,8 @@ type
 
     { Call backend Update on sound source,
       and checks whether the source is still playing (or is paused).
-      If not, it calls @link(TSound.Release) (thus setting
-      TSound.Used to @false and triggering TSound.OnRelease) for this source. }
+      If not, it calls @link(TInternalPlayingSound.Release) (thus setting
+      TInternalPlayingSound.Used to @false and triggering TSound.OnRelease) for this source. }
     procedure Update(const SecondsPassed: TFloatTime);
   public
     { Create sound.
@@ -153,7 +153,7 @@ type
       and we must use this sound source for something else.
 
       When this event occurs, you should forget (e.g. set to @nil) all
-      your references to this sound instance. That's because this TSound instance
+      your references to this sound instance. That's because this TInternalPlayingSound instance
       may be freed (or reused for other sounds) after calling OnRelease.
       For the same reason, right after calling this event, we always clear it
       (set OnRelease to @nil).
@@ -166,7 +166,7 @@ type
       A source may have Used = @true state
       for a short time when it stopped playing (when PlayingOrPaused
       is already @false). }
-    property OnRelease: TSoundEvent read FOnRelease write FOnRelease;
+    property OnRelease: TInternalPlayingSoundEvent read FOnRelease write FOnRelease;
 
     { Stops playing the source,
       sets Used to @false, and calls OnRelease (if assigned).
@@ -213,7 +213,7 @@ type
     { Is the sound playing or paused. This is almost always @true for sounds
       returned by TSoundAllocator.AllocateSound, when it stops being @true
       --- the sound engine will realize it (soon), which will cause @link(Release)
-      and OnRelease being automatically called, and this TSound may then
+      and OnRelease being automatically called, and this TInternalPlayingSound may then
       be reused for playing other sounds. }
     function PlayingOrPaused: boolean;
 
@@ -227,26 +227,28 @@ type
       Once you stop calling this method, the sound will automatically stop
       (once it finishes the current cycle).
 
-      Note that you still (as always when using TSound) must observe
-      the @link(TSound.OnRelease). When it's called, it means that the sound
+      Note that you still (as always when using TInternalPlayingSound) must observe
+      the @link(TInternalPlayingSound.OnRelease). When it's called, it means that the sound
       engine (TSoundEngine) decided that this sound should be used for other purposes
       (there's also a very small chance that the sound engine "caught"
       the sound as unused, in a short time when it stopped playing but you didn't
       yet call this method).
-      In such case, you must stop doing anything with this TSound instance
+      In such case, you must stop doing anything with this TInternalPlayingSound instance
       (including calling this method, @name, on it).
       You have to start playing the sound again by @link(TSoundEngine.PlaySound)
       instead.
 
-      Note that calling this method is better than observing @link(TSound.OnRelease),
+      Note that calling this method is better than observing @link(TInternalPlayingSound.OnRelease),
       to start playing a new sound when the previous one stopped.
-      That's because @link(TSound.OnRelease) may be called with some small delay
+      That's because @link(TInternalPlayingSound.OnRelease) may be called with some small delay
       after the sound actually stopped, and it may be noticeable (e.g. in case
       of using this for a short rhytmic sound, like footsteps). }
     procedure KeepPlaying;
   end;
 
-  TSoundList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSound>)
+  TSound = TInternalPlayingSound deprecated 'play sounds using TCastleSoundSource + TCastleSound';
+
+  TInternalPlayingSoundList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TInternalPlayingSound>)
   public
     { Sort sounds by Used + Importance, descending.
       First all sounds with Used = @true are placed,
@@ -281,7 +283,7 @@ type
     @link(TRepoSoundEngine.Sound) and @link(TRepoSoundEngine.Sound3D). }
   TSoundAllocator = class
   strict private
-    FAllocatedSources: TSoundList;
+    FAllocatedSources: TInternalPlayingSoundList;
     FMinAllocatedSources: Cardinal;
     FMaxAllocatedSources: Cardinal;
     LastSoundRefresh: TTimerResult;
@@ -305,7 +307,7 @@ type
     { Internal: Allocate sound for playing. You should initialize the sound source
       properties and start playing the sound.
 
-      Note that if you don't call TSound.Backend.Play immediately, the source may be detected
+      Note that if you don't call TInternalPlayingSound.Backend.Play immediately, the source may be detected
       as unused (and recycled for another sound) at the next
       sound allocation, play, update etc.
 
@@ -322,13 +324,13 @@ type
       to implement it yourself. Or you can just set Importance of looping
       sounds high enough, and don't use too many looping sounds,
       to never let them be eliminated by other sounds. }
-    function AllocateSound(const Importance: Integer): TSound;
+    function AllocateSound(const Importance: Integer): TInternalPlayingSound;
 
     { All allocated (not necessarily used) sources.
       Accessing this is useful only for debugging tasks,
       in normal circumstances this is internal.
       This is @nil when ContextOpen was not yet called. }
-    property AllocatedSources: TSoundList read FAllocatedSources;
+    property AllocatedSources: TInternalPlayingSoundList read FAllocatedSources;
 
     procedure Refresh; deprecated 'this does not do anything now; refreshing is done automatically if you use CastleWindow unit (with TCastleApplication, TCastleWindowBase) or TCastleControlBase; in other cases, you shoud call ApplicationProperties._Update yourself';
 
@@ -383,7 +385,7 @@ type
   TSoundDevice = CastleSoundBase.TSoundDevice;
 
   { Parameters to use when playing sound, see @link(TSoundEngine.PlaySound). }
-  TSoundParameters = class
+  TPlaySoundParameters = class
     Buffer: TSoundBuffer;
     Spatial, Looping: boolean;
     Importance: Cardinal;
@@ -410,6 +412,8 @@ type
     Offset: Single;
     constructor Create;
   end;
+
+  TSoundParameters = TPlaySoundParameters deprecated 'use TPlaySoundParameters';
 
   { Sound engine, responsible for loading and playing sound.
 
@@ -601,12 +605,12 @@ type
       We set the sound properties and start playing it.
 
       Both spatialized (3D) and not spatialized sounds are possible.
-      See the @link(TSoundParameters) for a full list of sound parameters.
-      You can pass all the sound parameters as a @link(TSoundParameters) instance.
-      You can destroy the @link(TSoundParameters) instance right after calling
+      See the @link(TPlaySoundParameters) for a full list of sound parameters.
+      You can pass all the sound parameters as a @link(TPlaySoundParameters) instance.
+      You can destroy the @link(TPlaySoundParameters) instance right after calling
       this method, the reference to it is not saved anywhere.
 
-      @returns(The allocated sound as TSound.
+      @returns(The allocated sound as TInternalPlayingSound.
 
         Returns @nil when there were no resources to play another sound
         (and it wasn't important enough to override another sound).
@@ -617,20 +621,20 @@ type
         In advanced cases, you can use it to observe and update the sound
         later.)
     }
-    function PlaySound(const Buffer: TSoundBuffer): TSound; overload;
+    function PlaySound(const Buffer: TSoundBuffer): TInternalPlayingSound; overload;
     function PlaySound(const Buffer: TSoundBuffer;
       const Spatial, Looping: boolean; const Importance: Cardinal;
       const Gain, MinGain, MaxGain: Single;
       const Position: TVector3;
-      const Pitch: Single = 1): TSound; overload;
+      const Pitch: Single = 1): TInternalPlayingSound; overload;
     function PlaySound(const Buffer: TSoundBuffer;
       const Spatial, Looping: boolean; const Importance: Cardinal;
       const Gain, MinGain, MaxGain: Single;
       const Position: TVector3;
       const Pitch: Single;
       const ReferenceDistance: Single;
-      const MaxDistance: Single): TSound; overload; deprecated 'use PlaySound that gets TSoundParameters instance';
-    function PlaySound(const Parameters: TSoundParameters): TSound; overload;
+      const MaxDistance: Single): TInternalPlayingSound; overload; deprecated 'use PlaySound that gets TPlaySoundParameters instance';
+    function PlaySound(const Parameters: TPlaySoundParameters): TInternalPlayingSound; overload;
 
     { Parse parameters in @link(Parameters) and interpret and remove
       recognized options. Internally it uses Parameters.Parse with
@@ -682,7 +686,7 @@ type
     class property LogSoundLoading: Boolean
       read GetLogSoundLoading write SetLogSoundLoading;
 
-    { Newly played sounds will have @link(TSound.Pitch) multiplied by this. }
+    { Newly played sounds will have @link(TInternalPlayingSound.Pitch) multiplied by this. }
     property InitialPitchMultiplier: Single read FInitialPitchMultiplier write FInitialPitchMultiplier default 1.0;
   published
     { Sound volume, affects all sounds (effects and music).
@@ -1021,17 +1025,19 @@ type
       Returns used TSound (or nil if none was available).
       You don't have to do anything with this returned TSound. }
     function Sound(const SoundType: TSoundType;
-      const Looping: boolean = false): TSound;
+      const Looping: boolean = false): TInternalPlayingSound;
+      deprecated 'use TCastleSoundSource to play sounds';
 
     { Play given sound at appropriate position in 3D space.
 
-      Returns used TSound (or nil if none was available).
-      You don't have to do anything with this returned TSound.
+      Returns used TInternalPlayingSound (or nil if none was available).
+      You don't have to do anything with this returned TInternalPlayingSound.
 
       @noAutoLinkHere }
     function Sound3D(const SoundType: TSoundType;
       const Position: TVector3;
-      const Looping: boolean = false): TSound; overload;
+      const Looping: boolean = false): TInternalPlayingSound; overload;
+      deprecated 'use TCastleSoundSource to play sounds';
 
     { Sound importance names and values.
       Each item is a name (as a string) and a value (that is stored in Objects
@@ -1118,8 +1124,8 @@ type
     { @nil if we don't play sound right now.
       This may happen for many reasons -- e.g. because sound context is not open,
       or Sound = stNone, or had URL = '' in RepositoryURL (sounds XML file),
-      or TSound instance was necessary for higher-priority sounds. }
-    FAllocatedSource: TSound;
+      or TInternalPlayingSound instance was necessary for higher-priority sounds. }
+    FAllocatedSource: TInternalPlayingSound;
 
     FVolume, FPitch: Single;
     { Constant Gain of TSoundInfo associated with Sound,
@@ -1128,7 +1134,7 @@ type
 
     FSound: TSoundType;
     procedure SetSound(const Value: TSoundType);
-    procedure AllocatedSourceRelease(Sender: TSound);
+    procedure AllocatedSourceRelease(Sender: TInternalPlayingSound);
 
     { Called by ContextOpen. You should check here if
       Sound <> stNone and eventually initialize FAllocatedSource. }
@@ -1345,23 +1351,23 @@ begin
   inherited;
 end;
 
-{ TSound ---------------------------------------------------------- }
+{ TInternalPlayingSound ---------------------------------------------------------- }
 
-constructor TSound.Create(const SoundEngineBackend: TSoundEngineBackend);
+constructor TInternalPlayingSound.Create(const SoundEngineBackend: TSoundEngineBackend);
 begin
   inherited Create;
 
   Backend := SoundEngineBackend.CreateSource;
-  { For now, TSound always refers to an open (on backend side) sound source. }
+  { For now, TInternalPlayingSound always refers to an open (on backend side) sound source. }
   Backend.ContextOpen;
-  { This way, TSound.Destroy will not call Backend.ContextClose
+  { This way, TInternalPlayingSound.Destroy will not call Backend.ContextClose
     if Backend.ContextOpen failed.
     (So e.g. OpenAL Backend.ContextClose doesn't try to call
     alDeleteSources on invalid sound source.) }
   BackendIsOpen := true;
 end;
 
-destructor TSound.Destroy;
+destructor TInternalPlayingSound.Destroy;
 begin
   if (Backend <> nil) and BackendIsOpen then
     Backend.ContextClose;
@@ -1369,7 +1375,7 @@ begin
   inherited;
 end;
 
-procedure TSound.Release;
+procedure TInternalPlayingSound.Release;
 begin
   FUsed := false;
 
@@ -1388,49 +1394,49 @@ begin
   end;
 end;
 
-procedure TSound.SetPosition(const Value: TVector3);
+procedure TInternalPlayingSound.SetPosition(const Value: TVector3);
 begin
   FPosition := Value;
   Backend.SetPosition(Value);
 end;
 
-procedure TSound.SetVelocity(const Value: TVector3);
+procedure TInternalPlayingSound.SetVelocity(const Value: TVector3);
 begin
   FVelocity := Value;
   Backend.SetVelocity(Value);
 end;
 
-procedure TSound.SetLooping(const Value: boolean);
+procedure TInternalPlayingSound.SetLooping(const Value: boolean);
 begin
   FLooping := Value;
   Backend.SetLooping(Value);
 end;
 
-procedure TSound.SetRelative(const Value: boolean);
+procedure TInternalPlayingSound.SetRelative(const Value: boolean);
 begin
   FRelative := Value;
   Backend.SetRelative(Value);
 end;
 
-procedure TSound.SetGain(const Value: Single);
+procedure TInternalPlayingSound.SetGain(const Value: Single);
 begin
   FGain := Value;
   Backend.SetGain(Value);
 end;
 
-procedure TSound.SetMinGain(const Value: Single);
+procedure TInternalPlayingSound.SetMinGain(const Value: Single);
 begin
   FMinGain := Value;
   Backend.SetMinGain(Value);
 end;
 
-procedure TSound.SetMaxGain(const Value: Single);
+procedure TInternalPlayingSound.SetMaxGain(const Value: Single);
 begin
   FMaxGain := Value;
   Backend.SetMaxGain(Value);
 end;
 
-procedure TSound.SetBuffer(const Value: TSoundBuffer);
+procedure TInternalPlayingSound.SetBuffer(const Value: TSoundBuffer);
 begin
   FBuffer := Value;
   if (Value <> nil) and Value.BackendIsOpen then
@@ -1439,52 +1445,52 @@ begin
     Backend.SetBuffer(nil);
 end;
 
-procedure TSound.SetPitch(const Value: Single);
+procedure TInternalPlayingSound.SetPitch(const Value: Single);
 begin
   FPitch := Value;
   Backend.SetPitch(Value);
 end;
 
-procedure TSound.SetRolloffFactor(const Value: Single);
+procedure TInternalPlayingSound.SetRolloffFactor(const Value: Single);
 begin
   FRolloffFactor := Value;
   Backend.SetRolloffFactor(Value);
 end;
 
-procedure TSound.SetReferenceDistance(const Value: Single);
+procedure TInternalPlayingSound.SetReferenceDistance(const Value: Single);
 begin
   FReferenceDistance := Value;
   Backend.SetReferenceDistance(Value);
 end;
 
-procedure TSound.SetMaxDistance(const Value: Single);
+procedure TInternalPlayingSound.SetMaxDistance(const Value: Single);
 begin
   FMaxDistance := Value;
   Backend.SetMaxDistance(Value);
 end;
 
-function TSound.GetOffset: Single;
+function TInternalPlayingSound.GetOffset: Single;
 begin
   Result := Backend.Offset;
 end;
 
-procedure TSound.SetOffset(const Value: Single);
+procedure TInternalPlayingSound.SetOffset(const Value: Single);
 begin
   Backend.Offset := Value;
 end;
 
-function TSound.PlayingOrPaused: boolean;
+function TInternalPlayingSound.PlayingOrPaused: boolean;
 begin
   Result := Backend.PlayingOrPaused;
 end;
 
-procedure TSound.KeepPlaying;
+procedure TInternalPlayingSound.KeepPlaying;
 begin
   if not PlayingOrPaused then
     Backend.Play(false);
 end;
 
-procedure TSound.Update(const SecondsPassed: TFloatTime);
+procedure TInternalPlayingSound.Update(const SecondsPassed: TFloatTime);
 begin
   if Used then
   begin
@@ -1499,9 +1505,9 @@ begin
   end;
 end;
 
-{ TSoundList ----------------------------------------------------- }
+{ TInternalPlayingSoundList ----------------------------------------------------- }
 
-function IsSmallerByImportance(constref AA, BB: TSound): Integer;
+function IsSmallerByImportance(constref AA, BB: TInternalPlayingSound): Integer;
 begin
   if (AA.Used and (not BB.Used)) or
      (AA.Used and BB.Used and (AA.Importance > BB.Importance)) then
@@ -1512,11 +1518,11 @@ begin
     Result :=  0;
 end;
 
-procedure TSoundList.SortByImportance;
+procedure TInternalPlayingSoundList.SortByImportance;
 type
-  TSoundComparer = {$ifdef CASTLE_OBJFPC}specialize{$endif} TComparer<TSound>;
+  TInternalPlayingSoundComparer = {$ifdef CASTLE_OBJFPC}specialize{$endif} TComparer<TInternalPlayingSound>;
 begin
-  Sort(TSoundComparer.Construct(
+  Sort(TInternalPlayingSoundComparer.Construct(
     {$ifdef CASTLE_OBJFPC}@{$endif} IsSmallerByImportance));
 end;
 
@@ -1551,10 +1557,10 @@ procedure TSoundAllocator.ContextOpenCore;
 var
   I: Integer;
 begin
-  FAllocatedSources := TSoundList.Create(true);
+  FAllocatedSources := TInternalPlayingSoundList.Create(true);
   FAllocatedSources.Count := MinAllocatedSources;
   for I := 0 to FAllocatedSources.Count - 1 do
-    FAllocatedSources[I] := TSound.Create(Backend);
+    FAllocatedSources[I] := TInternalPlayingSound.Create(Backend);
 
   ApplicationProperties.OnUpdate.Add({$ifdef CASTLE_OBJFPC}@{$endif} Update);
 end;
@@ -1587,7 +1593,7 @@ begin
 end;
 
 function TSoundAllocator.AllocateSound(
-  const Importance: Integer): TSound;
+  const Importance: Integer): TInternalPlayingSound;
 var
   I: Integer;
   MinImportanceIndex: Integer;
@@ -1636,10 +1642,10 @@ begin
      (Cardinal(FAllocatedSources.Count) < MaxAllocatedSources) then
   begin
     try
-      Result := TSound.Create(Backend);
+      Result := TInternalPlayingSound.Create(Backend);
       FAllocatedSources.Add(Result);
     except
-      { If TSound.Create raises ENoMoreSources ---
+      { If TInternalPlayingSound.Create raises ENoMoreSources ---
         then silence the exception and leave Result = nil. }
       on ENoMoreSources do ;
     end;
@@ -1684,7 +1690,7 @@ begin
       OldAllocatedSourcesCount := FAllocatedSources.Count;
       FAllocatedSources.Count := MinAllocatedSources;
       for I := OldAllocatedSourcesCount to FAllocatedSources.Count - 1 do
-        FAllocatedSources[I] := TSound.Create(Backend);
+        FAllocatedSources[I] := TInternalPlayingSound.Create(Backend);
     end;
   end;
 end;
@@ -1779,9 +1785,9 @@ begin
     MaxAllocatedSources, DefaultMaxAllocatedSources);
 end;
 
-{ TSoundParameters ----------------------------------------------------------- }
+{ TPlaySoundParameters ----------------------------------------------------------- }
 
-constructor TSoundParameters.Create;
+constructor TPlaySoundParameters.Create;
 begin
   inherited;
   Gain := 1;
@@ -2014,7 +2020,7 @@ begin
   ContextClose;
 end;
 
-function TSoundEngine.PlaySound(const Parameters: TSoundParameters): TSound;
+function TSoundEngine.PlaySound(const Parameters: TPlaySoundParameters): TInternalPlayingSound;
 begin
   Result := nil;
 
@@ -2064,11 +2070,11 @@ begin
   end;
 end;
 
-function TSoundEngine.PlaySound(const Buffer: TSoundBuffer): TSound;
+function TSoundEngine.PlaySound(const Buffer: TSoundBuffer): TInternalPlayingSound;
 var
-  Parameters: TSoundParameters;
+  Parameters: TPlaySoundParameters;
 begin
-  Parameters := TSoundParameters.Create;
+  Parameters := TPlaySoundParameters.Create;
   try
     Parameters.Buffer := Buffer;
     Result := PlaySound(Parameters);
@@ -2079,11 +2085,11 @@ function TSoundEngine.PlaySound(const Buffer: TSoundBuffer;
   const Spatial, Looping: boolean; const Importance: Cardinal;
   const Gain, MinGain, MaxGain: Single;
   const Position: TVector3;
-  const Pitch: Single): TSound;
+  const Pitch: Single): TInternalPlayingSound;
 var
-  Parameters: TSoundParameters;
+  Parameters: TPlaySoundParameters;
 begin
-  Parameters := TSoundParameters.Create;
+  Parameters := TPlaySoundParameters.Create;
   try
     Parameters.Buffer     := Buffer;
     Parameters.Spatial    := Spatial;
@@ -2102,11 +2108,11 @@ function TSoundEngine.PlaySound(const Buffer: TSoundBuffer;
   const Spatial, Looping: boolean; const Importance: Cardinal;
   const Gain, MinGain, MaxGain: Single;
   const Position: TVector3;
-  const Pitch, ReferenceDistance, MaxDistance: Single): TSound;
+  const Pitch, ReferenceDistance, MaxDistance: Single): TInternalPlayingSound;
 var
-  Parameters: TSoundParameters;
+  Parameters: TPlaySoundParameters;
 begin
-  Parameters := TSoundParameters.Create;
+  Parameters := TPlaySoundParameters.Create;
   try
     Parameters.Buffer     := Buffer;
     Parameters.Spatial    := Spatial;
@@ -2668,7 +2674,7 @@ begin
 end;
 
 function TRepoSoundEngine.Sound(const SoundType: TSoundType;
-  const Looping: boolean): TSound;
+  const Looping: boolean): TInternalPlayingSound;
 var
   SoundInfo: TSoundInfoBuffer;
 begin
@@ -2699,7 +2705,7 @@ end;
 
 function TRepoSoundEngine.Sound3D(const SoundType: TSoundType;
   const Position: TVector3;
-  const Looping: boolean): TSound;
+  const Looping: boolean): TInternalPlayingSound;
 var
   SoundInfo: TSoundInfoBuffer;
 begin
@@ -3003,7 +3009,7 @@ end;
 procedure TLoopingChannel.AllocateSource;
 var
   SoundInfo: TRepoSoundEngine.TSoundInfoBuffer;
-  Parameters: TSoundParameters;
+  Parameters: TPlaySoundParameters;
 begin
   SoundInfo := FEngine.FinalSound(Sound);
   if SoundInfo = nil then Exit;
@@ -3011,7 +3017,7 @@ begin
   SoundInfoGain := SoundInfo.Gain;
   SoundInfoPitch := 1.0; // SoundInfo.Pitch; // for now there is no setting for it
 
-  Parameters := TSoundParameters.Create;
+  Parameters := TPlaySoundParameters.Create;
   try
     Parameters.Buffer     := SoundInfo.Buffer;
     Parameters.Spatial    := false;
@@ -3050,7 +3056,7 @@ begin
   end;
 end;
 
-procedure TLoopingChannel.AllocatedSourceRelease(Sender: TSound);
+procedure TLoopingChannel.AllocatedSourceRelease(Sender: TInternalPlayingSound);
 begin
   Assert(Sender = FAllocatedSource);
   FAllocatedSource := nil;

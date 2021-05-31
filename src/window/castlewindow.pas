@@ -305,7 +305,7 @@ uses {$define read_interface_uses}
   CastleVectors, CastleRectangles, CastleColors,
   CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, CastleGLImages,
   CastleKeysMouse, CastleStringUtils, CastleFilesUtils, CastleTimeUtils,
-  CastleFileFilters, CastleUIControls, CastleGLContainer,
+  CastleFileFilters, CastleUIControls,
   CastleInternalPk3DConnexion, CastleParameters, CastleSoundEngine,
   CastleApplicationProperties
   {$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES},

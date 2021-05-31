@@ -50,10 +50,10 @@ type
     procedure TrackVolumeChange(Sender: TObject);
   private
     SoundBuffer: TSoundBuffer;
-    Sound: TSound;
+    Sound: TInternalPlayingSound;
     SoundURL: string;
     SoundDuration: TFloatTime;
-    procedure SoundRelease(Sender: TSound);
+    procedure SoundRelease(Sender: TInternalPlayingSound);
   public
 
   end;
@@ -122,7 +122,7 @@ begin
     Sound.Gain := TrackVolume.Position / 1000;
 end;
 
-procedure TMainForm.SoundRelease(Sender: TSound);
+procedure TMainForm.SoundRelease(Sender: TInternalPlayingSound);
 begin
   // nil the Sound when it's stopped, this is assigned to Sound.OnRelease
   Sound := nil;
@@ -155,12 +155,12 @@ end;
 procedure TMainForm.ButtonPlayClick(Sender: TObject);
 var
   InitialVolume: Single;
-  Parameters: TSoundParameters;
+  Parameters: TPlaySoundParameters;
 begin
   if Sound <> nil then
     Sound.Release;
   InitialVolume := TrackVolume.Position / 1000;
-  Parameters := TSoundParameters.Create;
+  Parameters := TPlaySoundParameters.Create;
   try
     Parameters.Buffer := SoundBuffer;
     Parameters.Looping := CheckBoxLoop.Checked;

@@ -36,7 +36,7 @@ var
   { Playing sound. It may be @nil if we couldn't allocate it,
     which practically will happen only when OpenAL is not installed
     or --no-sound command-line option is used. }
-  Sound: TSound;
+  Sound: TInternalPlayingSound;
 
 procedure Render(Container: TUIContainer);
 
@@ -75,7 +75,7 @@ end;
 
 var
   Buffer: TSoundBuffer;
-  Parameters: TSoundParameters;
+  Parameters: TPlaySoundParameters;
 begin
   Window := TCastleWindowBase.Create(Application);
 
@@ -86,7 +86,7 @@ begin
 
   SoundPosition := Vector3(200, 300, 0);
   PreviousSoundPosition := SoundPosition;
-  Parameters := TSoundParameters.Create;
+  Parameters := TPlaySoundParameters.Create;
   try
     Parameters.Buffer := Buffer;
     Parameters.Spatial := true;
