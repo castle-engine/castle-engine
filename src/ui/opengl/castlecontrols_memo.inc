@@ -236,7 +236,7 @@ begin
   ScrollBar.SetTransient;
   BottomText:=0;
   LeftText:=0;
-  FIndex:=0;
+  FIndex:= 0;
   FIndexColumn:=-1;
   FFocusedColor := Black;
   FUnfocusedColor := Vector4(0.25, 0.25, 0.25, 1);
@@ -252,7 +252,6 @@ begin
   FPlaceholderTranslate := true;
   FText:= TStringList.Create;
   Index:= FText.Add('');
-  FBolScroll:= False;
   BolSelect:= False;
   FLastIndex:= -1 ;
   FTextChar:= TBooleanList.Create;
@@ -299,26 +298,21 @@ procedure TCastleMemo.SetIndex(Value: integer);
 var
   i:Single;
 begin
-i:= Font.RowHeight + UIScale * (PaddingVertical + Padding)*2;
-if (Value > -1) and (Value < Text.Count) then
-begin
-  {if Value > FIndex then
+  i:= Font.RowHeight + UIScale * (PaddingVertical + Padding)*2;
+  FBolScroll:= True;
+  if ScrollBar.CompleteSize <> (Text.Count)-(RectInside.Height/i)+1 then
+    ScrollBar.CompleteSize:= (Text.Count)-(RectInside.Height/i/2)+1;
+  if (Value > -1) and (Value < Text.Count) and (Value <> FIndex) then
   begin
-     if BottomText+RectInside.Height <= i*(Index+2) then
-       BottomText:= i*Value;
-  end else
-     if Value <> FIndex then
-       if (abs(Value-FIndex) <> 1) then
-         BottomText:= i*Index
-       else
-       begin
-         if Index <= Text.Count+1-round(RectInside.Height/(i/2)) then
-            if i*Index < 5+RenderRect.Bottom then
-               BottomText:= BottomText + i;
-         if BottomText > 0 then
-            if i*Index > RenderRect.Bottom+RenderRect.Height-7 then
-               BottomText:=BottomText - i;
-       end;  }
+    FBolScroll:= True;
+    if Value > FIndex then
+       if Value*i+BottomText > RectInside.Height-i then
+         if Value > round(ScrollBar.Scroll+ScrollBar.Scroll/i) then
+           ScrollBar.Scroll:= Value-round(RectInside.Height/i)/2;
+    //Text.Add(IntToStr(Value)+' '+FloatToStr(RectInside.Top+RectInside.Height)+'   '+FloatToStr(BottomText-Value*i)+' '+FloatToStr(BottomText));
+    if Value < FIndex then
+       if Value < round(ScrollBar.Scroll) then
+           ScrollBar.Scroll:= Value;
   FIndex:= Value;
   end else
   begin
@@ -326,15 +320,11 @@ begin
    if Value < 0 then Index:= 0;
    Exit;
   end;
-  FBolScroll:= True;
   if IndexColumn > Utf8Length(Text[Index])-1 then
      IndexColumn:= UTF8Length(Text[Index])-1;
-  if ScrollBar.CompleteSize <> (Text.Count)-(RectInside.Height/i) then
-    ScrollBar.CompleteSize:= (Text.Count)-(RectInside.Height/i); //round((Text.Count+1)-(Height/i))
-  ScrollBar.Scroll:= Index -(RectInside.Height / i)/2;  //Text.Count-Index)/(Height/i);
   if (ScrollBar.Scroll < 0) or (Index = 0) then ScrollBar.Scroll:= 0;
   if ScrollBar.Scroll > ScrollBar.CompleteSize then ScrollBar.Scroll:= ScrollBar.CompleteSize;
-  FBolScroll:= Not FBolScroll;
+  FBolScroll:= False;
 end;
 
 procedure TCastleMemo.SetSelectedColor(const Value: TCastleColor);
@@ -448,7 +438,7 @@ begin
 end else Exit;
   if LastIndexColumn > Utf8Length(Text[Index])-1 then
      LastIndexColumn:= UTF8Length(Text[Index])-1;
-  if Value <> -1 then
+  {if Value <> -1 then
   begin
     FBolScroll:= True;
     if ScrollBar.CompleteSize <> Text.Count-(RectInside.Height/i) then
@@ -457,7 +447,7 @@ end else Exit;
     if (ScrollBar.Scroll < 0) or (LastIndex = 0) then ScrollBar.Scroll:= 0;
     if ScrollBar.Scroll > ScrollBar.CompleteSize then ScrollBar.Scroll:= ScrollBar.CompleteSize;
     FBolScroll:= False;
-  end;
+  end; }
 end;
 
 procedure TCastleMemo.SetLastIndexColumn(Value: integer);
@@ -711,7 +701,7 @@ begin
       if FTextChar[i] = False then j:=j+1 else k:=k+1;
       if k >= index1 then break;
     end;
-    Index:= index1 + j;
+    FIndex:= index1 + j;
   end;
 
   if indexColumn1 <> -2 then
@@ -756,7 +746,7 @@ begin
           if FTextChar[i] = False then j:=j+1 else k:=k+1;
           if k >= index2 then break;
         end;
-      LastIndex:= index2 + j;
+      FLastIndex:= index2 + j;
     end;
 
     if indexColumn2 <> -2 then
@@ -1004,10 +994,10 @@ begin
       if Caret.Index1-Caret.Index2 > 1 then
         for i:= Caret.Index2+1 to Caret.Index1-1 do
            Lines.Delete(Caret.Index2+1);
-      s:= Lines[Caret.Index1];
+      s:= Lines[Caret.Index2+1];
       UTF8Delete(s, 1, Caret.IndexColumn1+2);
       Lines[Caret.Index2]:= Lines[Caret.Index2] + s;
-      Lines.Delete(Caret.Index1);
+      Lines.Delete(Caret.Index2+1);
       LastIndex:= -1;
       IndexColumn:= -1;
     end else
@@ -1021,10 +1011,10 @@ begin
       if Caret.Index2-Caret.Index1 > 1 then
         for i:= Caret.Index1+1 to Caret.Index2-1 do
            Lines.Delete(Caret.Index1+1);
-      s:= Lines[Caret.Index2];
+      s:= Lines[Caret.Index1+1];
       UTF8Delete(s, 1, Caret.IndexColumn2 + 2);
       Lines[Caret.Index1]:= Lines[Caret.Index1] + s;
-      Lines.Delete(Caret.Index2);
+      Lines.Delete(Caret.Index1+1);
       LastIndex:= -1;
       IndexColumn:= LastIndexColumn;
    end;
@@ -1358,8 +1348,8 @@ begin
         UndoSystem.AddAct(bool, Caret.index1, Caret.IndexColumn1, -1, -1, Text[Index], atDeleteLine);
         Text.Delete(index);
         FTextChar.Delete(index-1);
-        Index:=Index-1;
-        IndexColumn:=i;
+        Index:= Index-1;
+        IndexColumn:= i;
         end;
      end;
     DoChange;
@@ -1454,7 +1444,7 @@ begin
            FTextChar.Insert(index+i-1,True);
         end;
         for i:= 0 to s1.Count-1 do
-            index:=index + WordWrap(index+i);
+            FIndex:= FIndex + WordWrap(index+i);
        { s:= Text[Index+i];
         UTF8Insert(s1[i+1], s, IndexColumn+2);
         Text[Index+i]:= s; }
@@ -1708,7 +1698,7 @@ begin
       begin
         for i:= 0 to Text.Count-1 do
         begin
-          index:= index + WordWrap(index+i);
+          Findex:= Findex + WordWrap(index+i);
         end;
       end else WordWrap(0);
     index:= j1;
@@ -1815,13 +1805,11 @@ var
   indexVar:integer;
 begin
   i:= Font.RowHeight+UIScale * (PaddingVertical + Padding)*2;
-  if round(ScrollBar.Scroll-RectInside.Height/i) > 0 then
+  if round(TCastleScrollViewManual(Scroll).Scroll)+1 > round((RectInside.Height/i)/4) then
     indexVar:= round(TCastleScrollViewManual(Scroll).Scroll)
   else indexVar:= 0;
-  if LifeTime > 5 then if BottomText <> indexVar*i then WritelnLog(IntToStr(indexVar));
-  {if indexVar > Text.Count - round(RectInside.Height/i)+1 then
-     indexVar:= Text.Count - round(RectInside.Height/i)+1;  }
   BottomText:= indexVar*i;
+  WritelnLog(IntToStr(indexVar)+' '+FloatToStr(TCastleScrollViewManual(Scroll).Scroll));
 end;
 
 {$endif read_implementation}
