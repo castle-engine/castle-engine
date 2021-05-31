@@ -36,12 +36,16 @@ type
     FURL: String;
     FOptimalSize: Cardinal;
     FAntiAliased: Boolean;
+    FLoadCharactersSimpleAscii: Boolean;
+    FLoadCharacters: String;
     function GetSmoothScaling: boolean;
     function GetScale: Single;
     procedure SetScale(const AValue: Single);
     procedure SetURL(const Value: String);
     procedure SetOptimalSize(const Value: Cardinal);
     procedure SetAntiAliased(const Value: Boolean);
+    procedure SetLoadCharactersSimpleAscii(const Value: Boolean);
+    procedure SetLoadCharacters(const Value: String);
     { Free stuff loaded by @link(Load). }
     procedure Unload;
     procedure Reload;
@@ -76,7 +80,7 @@ type
     procedure Load(const URL: String;
       const ASize: Cardinal; const AnAntiAliased: Boolean;
       const ACharacters: TUnicodeCharList = nil;
-      const AdjustProperties: Boolean = true);
+      const AdjustProperties: Boolean = true); deprecated 'assign properties to load font: OptimalSize, LoadCharacters, AntiAliased, URL';
 
     { Load from a ready TTextureFontData instance.
       @param(Data TTextureFontData instance containing loaded image
@@ -108,14 +112,6 @@ type
     { Scale applied to the rendered font, compared to @link(FontData).Size.
       Changing this is equivalent to changing the Size property. }
     property Scale: Single read GetScale write SetScale;
-
-    { Load from font all characters we define as "simple ASCII" (see @link(SimpleAsciiCharacters))
-      in addition to characters listed on LoadCharacters. }
-//TODO    property LoadCharactersSimpleAscii: Boolean read FLoadCharactersSimpleAscii;
-
-    { Load from font all characters listed here. As everywhere in CGE
-      (same as in Lazarus LCL), this is an string composed from UTF-8 characters. }
-//TODO    property LoadCharacters: String read FLoadCharacters;
   published
     { Loaded font file.
       Typically this is used for outline (scalable, vector) fonts in ttf or otf formats.
@@ -135,7 +131,13 @@ type
       and is rendered using alpha testing. }
     property AntiAliased: Boolean read FAntiAliased write SetAntiAliased default true;
 
-    // TODO: expose "LoadCharacters: TUnicodeCharList"
+    { Load from font all characters we define as "simple ASCII" (see @link(SimpleAsciiCharacters))
+      in addition to characters listed on LoadCharacters. }
+    property LoadCharactersSimpleAscii: Boolean read FLoadCharactersSimpleAscii write SetLoadCharactersSimpleAscii default true;
+
+    { Load from font all characters listed here. As everywhere in CGE
+      (same as in Lazarus LCL), this is an string composed from UTF-8 characters. }
+    property LoadCharacters: String read FLoadCharacters write SetLoadCharacters;
   end;
 
   TGLBitmapFont = TCastleFont deprecated 'use TCastleFont';
@@ -152,6 +154,7 @@ begin
   inherited;
   GlyphsScreenRects := TFloatRectangleList.Create;
   GlyphsImageRects  := TFloatRectangleList.Create;
+  FLoadCharactersSimpleAscii := true;
   FOptimalSize := DefaultOptimalSize;
   FAntiAliased := true;
 end;
@@ -175,13 +178,17 @@ constructor TCastleFont.Create(const URL: String;
   const ACharacters: TUnicodeCharList);
 begin
   Create(nil);
+  {$warnings off} // calling deprecated from deprecated
   Load(URL, ASize, AnAntiAliased, ACharacters, true);
+  {$warnings on}
 end;
 
 procedure TCastleFont.Load(const URL: String;
   const ASize: Cardinal; const AnAntiAliased: Boolean;
   const ACharacters: TUnicodeCharList;
   const AdjustProperties: Boolean = true);
+var
+  NewFontData: TTextureFontData;
 begin
   { Although FontSizesChanged is also called by Load,
     make sure it gets called even when TTextureFontData.Create fails
@@ -190,8 +197,10 @@ begin
   if URL = '' then
     Unload
   else
-    Load(TTextureFontData.Create(URL, ASize, AnAntiAliased, ACharacters), true,
-      AdjustProperties);
+  begin
+    NewFontData := TTextureFontData.Create(URL, ASize, AnAntiAliased, ACharacters);
+    Load(NewFontData, true, AdjustProperties);
+  end;
 end;
 
 constructor TCastleFont.Create(const URL: String;
@@ -247,7 +256,7 @@ end;
 function TCastleFont.PropertySections(const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
-    'URL', 'OptimalSize', 'AntiAliased':
+    'URL', 'OptimalSize', 'AntiAliased', 'LoadCharacters', 'LoadCharactersSimpleAscii':
       Result := [psBasic];
     else
       Result := inherited PropertySections(PropertyName);
@@ -500,7 +509,7 @@ procedure TCastleFont.SetURL(const Value: String);
 begin
   if FURL <> Value then
   begin
-    { We deliberately change URL even when loading image could fail.
+    { We deliberately change URL even when loading of font file could fail.
       This way URL property is always correctly deserialized in CGE editor,
       even when loading the image failed. }
     FURL := Value;
@@ -512,9 +521,7 @@ procedure TCastleFont.SetOptimalSize(const Value: Cardinal);
 begin
   if FOptimalSize <> Value then
   begin
-    { We deliberately change OptimalSize even when loading image could fail.
-      This way OptimalSize property is always correctly deserialized in CGE editor,
-      even when loading the image failed. }
+    { As with SetURL: we deliberately change current property, even when Reload fails. }
     FOptimalSize := Value;
     Reload;
   end;
@@ -524,18 +531,61 @@ procedure TCastleFont.SetAntiAliased(const Value: Boolean);
 begin
   if FAntiAliased <> Value then
   begin
-    { We deliberately change AntiAliased even when loading image could fail.
-      This way AntiAliased property is always correctly deserialized in CGE editor,
-      even when loading the image failed. }
+    { As with SetURL: we deliberately change current property, even when Reload fails. }
     FAntiAliased := Value;
     Reload;
   end;
 end;
 
+procedure TCastleFont.SetLoadCharactersSimpleAscii(const Value: Boolean);
+begin
+  if FLoadCharactersSimpleAscii <> Value then
+  begin
+    { As with SetURL: we deliberately change current property, even when Reload fails. }
+    FLoadCharactersSimpleAscii := Value;
+    Reload;
+  end;
+end;
+
+procedure TCastleFont.SetLoadCharacters(const Value: String);
+begin
+  if FLoadCharacters <> Value then
+  begin
+    { As with SetURL: we deliberately change current property, even when Reload fails. }
+    FLoadCharacters := Value;
+    Reload;
+  end;
+end;
+
 procedure TCastleFont.Reload;
+
+  function GetCharactersList: TUnicodeCharList;
+  begin
+    if (LoadCharacters = '') and LoadCharactersSimpleAscii then
+    begin
+      { Default, and fast case. TTextureFontData.Create interprets characters list = nil
+        just like that: load only SimpleAsciiCharacters.
+        No need to create TUnicodeCharList instance to express it explicitly. }
+      Result := nil;
+    end else
+    begin
+      Result := TUnicodeCharList.Create;
+      if LoadCharactersSimpleAscii then
+        Result.Add(SimpleAsciiCharacters);
+      Result.Add(LoadCharacters);
+    end;
+  end;
+
+var
+  CharactersList: TUnicodeCharList;
 begin
   try
-    Load(URL, OptimalSize, AntiAliased);
+    CharactersList := GetCharactersList;
+    try
+      {$warnings off} // this Load is deprecated; actually it should be internal, nested here
+      Load(URL, OptimalSize, AntiAliased, CharactersList);
+      {$warnings on}
+    finally FreeAndNil(CharactersList) end;
   except
     { If loading file failed, and we're inside CGE editor,
       merely report a warning. This allows deserializing in CGE editor
