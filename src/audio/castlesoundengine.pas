@@ -1244,7 +1244,7 @@ const
 function SoundEngine: TRepoSoundEngine;
 
 {$define read_interface}
-{$I castlesoundengine_castlesound.inc}
+{$I castlesoundengine_sound.inc}
 {$undef read_interface}
 
 implementation
@@ -1257,7 +1257,7 @@ uses XMLRead, StrUtils, Generics.Defaults,
   CastleComponentSerialize;
 
 {$define read_implementation}
-{$I castlesoundengine_castlesound.inc}
+{$I castlesoundengine_sound.inc}
 {$undef read_implementation}
 
 var
