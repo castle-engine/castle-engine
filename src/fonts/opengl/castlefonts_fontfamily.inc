@@ -103,7 +103,7 @@ end;
 
 destructor TCastleFontFamily.Destroy;
 begin
-  // this will free FXxxFont if needed
+  // detach free notifications
   Regular := nil;
   Bold := nil;
   Italic := nil;
@@ -196,8 +196,7 @@ end;
 procedure TCastleFontFamily.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   inherited;
-
-  { set to nil by SetXxxFont to clean nicely }
+  { set to nil by setter to detach notifications }
   if (Operation = opRemove) and (AComponent = FRegular) then
     Regular := nil;
   if (Operation = opRemove) and (AComponent = FBold) then
