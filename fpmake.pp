@@ -158,8 +158,9 @@ begin
     P.Targets.AddUnit('castleshaders.pas');
     P.Targets.AddUnit('castlewarnings.pas');
     P.Targets.AddUnit('castlewindowmodes.pas');
-    P.Targets.AddUnit('castlewindowsfonts.pas');
     P.Targets.AddUnit('castlewindowtouch.pas');
+    if Defaults.OS in AllWindowsOSes then
+      P.Targets.AddUnit('castlewindowsfonts.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'base');
     P.Targets.AddUnit('castleapplicationproperties.pas');
