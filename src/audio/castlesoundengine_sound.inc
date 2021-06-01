@@ -128,7 +128,9 @@ type
 
       Spatial sounds are louder/more silent depending on their 3D distance to listener
       (this means a distance from TCastleTransform origin to the camera within
-      the TCastleViewport).
+      the TCastleViewport). And their relative position to the listener in 3D
+      is reflected by making them louder/more silent in the proper
+      (e.g. left or right) speaker.
 
       Note that some sound backends (like OpenAL) can only spatialize mono sounds,
       and play stereo sounds always as non-spatialized. }

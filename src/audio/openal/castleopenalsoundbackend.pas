@@ -36,7 +36,7 @@ uses SysUtils, Classes, Math, StrUtils, Generics.Collections,
   CastleInternalOpenAL, CastleVectors, CastleTimeUtils, CastleXMLConfig,
   CastleClassUtils, CastleStringUtils, CastleInternalSoundFile,
   CastleInternalAbstractSoundBackend, CastleSoundBase, CastleSoundEngine,
-  CastleInternalALUtils, CastleInternalEFX, CastleLog, CastleUtils;
+  CastleInternalALUtils, CastleInternalEFX, CastleLog, CastleUtils, CastleURIUtils;
 
 { sound backend classes interface -------------------------------------------- }
 
@@ -101,6 +101,7 @@ type
   TOpenALSoundSourceBackend = class(TSoundSourceBackend)
   strict private
     Streaming: TOpenALStreaming;
+    FRelative: Boolean; //< by default false also in OpenAL
     function ALVersion11: Boolean;
   private
     FBuffer: TSoundBufferBackend;
@@ -435,6 +436,13 @@ procedure TOpenALSoundSourceBackend.Play(const BufferChangedRecently: Boolean);
 var
   CompleteBuffer: TOpenALSoundBufferBackend;
 begin
+  // make a clear warning when trying to play stereo sound as spatial
+  if (not FRelative) and
+     (FBuffer.DataFormat in [sfStereo8, sfStereo16]) then
+    WritelnWarning('Stereo sound files are *never* played as spatial by OpenAL. Convert sound file "%s" to mono (e.g. by Audacity or SOX).', [
+      URIDisplay(FBuffer.URL)
+    ]);
+
   if FBuffer is TOpenALStreamBufferBackend then
   begin
     CheckAL('PlayStream');
@@ -526,6 +534,7 @@ end;
 
 procedure TOpenALSoundSourceBackend.SetRelative(const Value: boolean);
 begin
+  FRelative := Value;
   alSourcei(ALSource, AL_SOURCE_RELATIVE, BoolToAL[Value]);
 end;
 
