@@ -1243,7 +1243,11 @@ begin
   begin
     if Node.InternalSceneShape = nil then
     begin
-      WritelnWarning('Calling %s.UnAssociateNode on X3D node that is already not associated with anything: %s. This can happen when you manually change nodes.',
+      { TODO: Document when it may happen, seems this situation is just valid,
+        and it occurs easily with primitives like TCastleBox
+        if you change TCastleAbstractPrimitive.Material type.
+        For now change warning -> log. }
+      WritelnLog('Calling %s.UnAssociateNode on X3D node that is already not associated with anything: %s. This can happen when you manually change nodes.',
         [ClassName, Node.NiceName]);
       Exit;
     end;
