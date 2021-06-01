@@ -7565,6 +7565,7 @@ begin
   ACamera.Orthographic.Width := 0;
   ACamera.Orthographic.Height := 0;
   ACamera.Orthographic.Origin := TVector2.Zero;
+  ACamera.Orthographic.Stretch := false;
 
   ViewpointNode := ViewpointStack.Top;
   NavigationNode := NavigationInfoStack.Top;

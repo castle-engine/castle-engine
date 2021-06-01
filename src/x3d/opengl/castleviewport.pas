@@ -2031,10 +2031,11 @@ var
 
       CalculateDimensions;
 
-      Result.Dimensions := TOrthoViewpointNode.InternalFieldOfView(
-        Result.Dimensions,
-        Viewport.Width,
-        Viewport.Height);
+      if not Camera.Orthographic.Stretch then
+        Result.Dimensions := TOrthoViewpointNode.InternalFieldOfView(
+          Result.Dimensions,
+          Viewport.Width,
+          Viewport.Height);
 
       EffectiveProjectionWidth := Result.Dimensions.Width;
       EffectiveProjectionHeight := Result.Dimensions.Height;
