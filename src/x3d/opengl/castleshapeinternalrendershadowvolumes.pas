@@ -599,14 +599,13 @@ begin
 
   Params := TBasicRenderParams.Create;
   try
-  Params.RenderingCamera := RenderingCamera;
-  Params.TransformIdentity := true;
-  Params.Transparent := false;
-  Matrix := TMatrix4.Identity;
-  Params.Transform := @Matrix;
-  Params.ShadowVolumesReceivers := [true];
-  TCastleScene(SceneForShadowVolumes).InternalIgnoreFrustum := true;
-  TCastleScene(SceneForShadowVolumes).Render(Params);
+    Params.RenderingCamera := RenderingCamera;
+    Params.TransformIdentity := true;
+    Params.Transparent := false;
+    Matrix := TMatrix4.Identity;
+    Params.Transform := @Matrix;
+    Params.ShadowVolumesReceivers := [true];
+    TCastleScene(SceneForShadowVolumes).Render(Params);
   finally
     FreeAndNil(Params);
   end;
