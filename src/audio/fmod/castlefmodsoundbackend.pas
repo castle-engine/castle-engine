@@ -71,7 +71,10 @@ type
   strict private
     FMODChannel: PFMOD_CHANNEL;
     FBuffer: TFMODSoundBufferBackend;
+    FPosition, FVelocity: TVector3;
+    FLooping, FRelative: Boolean;
     function FMODSystem: PFMOD_SYSTEM;
+    function Mode: TFMOD_MODE;
   public
     procedure ContextOpen; override;
     procedure ContextClose; override;
@@ -236,6 +239,8 @@ begin
     {$endif}
     ;
 
+    { Note: it seems using FMOD_2D here doesn't cause any trouble
+      to make spatial sounds, we set FMOD_3D on FMOD sound later if needed. }
     Mode := FMOD_DEFAULT or FMOD_2D;
     if FSoundLoading = slStreaming then
       Mode := Mode or FMOD_CREATESTREAM;
@@ -330,27 +335,51 @@ end;
 
 procedure TFMODSoundSourceBackend.SetPosition(const Value: TVector3);
 begin
-  // TODO
+  FPosition := Value;
+  if FMODChannel = nil then Exit;
+  if not FRelative then // only if Spatial, otherwise FMOD raises error
+    CheckFMOD(FMOD_Channel_Set3DAttributes(FMODChannel, @FPosition, @FVelocity));
+end;
+
+function TFMODSoundSourceBackend.Mode: TFMOD_MODE;
+begin
+  Result := 0;
+
+  if FLooping then
+    Result := Result or FMOD_LOOP_NORMAL
+  else
+    Result := Result or FMOD_LOOP_OFF;
+
+  if FRelative then
+    Result := Result or FMOD_2D
+  else
+    Result := Result or FMOD_3D;
 end;
 
 procedure TFMODSoundSourceBackend.SetVelocity(const Value: TVector3);
 begin
-  // TODO
+  FVelocity := Value;
+  if FMODChannel = nil then Exit;
+  if not FRelative then // only if Spatial, otherwise FMOD raises error
+    CheckFMOD(FMOD_Channel_Set3DAttributes(FMODChannel, @FPosition, @FVelocity));
 end;
 
 procedure TFMODSoundSourceBackend.SetLooping(const Value: boolean);
 begin
+  FLooping := Value;
   if FMODChannel = nil then Exit;
-
-  if Value then
-    CheckFMOD(FMOD_Channel_SetMode(FMODChannel, FMOD_LOOP_NORMAL))
-  else
-    CheckFMOD(FMOD_Channel_SetMode(FMODChannel, FMOD_LOOP_OFF));
+  CheckFMOD(FMOD_Channel_SetMode(FMODChannel, Mode));
 end;
 
 procedure TFMODSoundSourceBackend.SetRelative(const Value: boolean);
 begin
-  // TODO
+  FRelative := Value;
+  if FMODChannel = nil then Exit;
+  CheckFMOD(FMOD_Channel_SetMode(FMODChannel, Mode));
+
+  // call FMOD_Channel_Set3DAttributes to update Position/Velocity
+  if not FRelative then // only if Spatial, otherwise FMOD raises error
+    CheckFMOD(FMOD_Channel_Set3DAttributes(FMODChannel, @FPosition, @FVelocity));
 end;
 
 procedure TFMODSoundSourceBackend.SetGain(const Value: Single);
@@ -460,7 +489,8 @@ begin
   //   FMOD_DEBUG_MODE_TTY, nil, nil), 'FMOD_Debug_Initialize', true);
 
   CheckFMOD(FMOD_System_Create(@FMODSystem), 'FMOD_System_Create');
-  CheckFMOD(FMOD_System_Init(FMODSystem, 256, FMOD_INIT_NORMAL, nil), 'FMOD_System_Init');
+  { Use FMOD_INIT_3D_RIGHTHANDED, as by default FMOD uses left-handed coordinate system. }
+  CheckFMOD(FMOD_System_Init(FMODSystem, 256, FMOD_INIT_NORMAL or FMOD_INIT_3D_RIGHTHANDED, nil), 'FMOD_System_Init');
   CheckFMOD(FMOD_System_GetVersion(FMODSystem, @Version), 'FMOD_System_GetVersion');
   Information := Format('FMOD version %d.%d.%d initialized', [
     Version shr 16,
@@ -498,8 +528,10 @@ begin
 end;
 
 procedure TFMODSoundEngineBackend.SetListener(const Position, Direction, Up: TVector3);
+const
+  ListenerVelocity: TVector3 = (Data: (0, 0, 0));
 begin
-  // TODO
+  CheckFMOD(FMOD_System_Set3DListenerAttributes(FMODSystem, 0,  @Position, @ListenerVelocity, @Direction, @Up));
 end;
 
 { globals -------------------------------------------------------------------- }
@@ -532,4 +564,7 @@ begin
   SoundEngine.InternalBackend := TFMODSoundEngineBackend.Create;
 end;
 
+initialization
+  // our TVector3 is equal in memory to TFMOD_VECTOR, we rely on it here
+  Assert(SizeOf(TFMOD_VECTOR) = SizeOf(TVector3));
 end.
