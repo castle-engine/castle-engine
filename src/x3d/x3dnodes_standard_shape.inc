@@ -76,6 +76,7 @@
     procedure SetTextureTransform(const Value: TAbstractTextureTransformNode);
     function GetLineProperties: TLinePropertiesNode;
     procedure SetLineProperties(const Value: TLinePropertiesNode);
+    procedure SetAppearanceBefore(const Value: TAppearanceNode);
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
@@ -84,7 +85,7 @@
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
 
     { The texture of this shape.
-      This is a shortcut for accessing "texture" field of Apperance,
+      This is a shortcut for accessing "texture" field of @link(Appearance),
       that is @code(TAppearanceNode(FdAppearance.Value).FdTexture.Value),
       checking whether nodes are set to appropriate types along the way.
 
@@ -100,7 +101,7 @@
       read GetTextureTransform write SetTextureTransform;
 
     { Get / set the material of this shape.
-      This is a shortcut to access @link(Appearance) and then set @code(Apperance.Material).
+      This is a shortcut to access @link(Appearance) and then set @code(Appearance.Material).
       When setting the material to something non-nil, we make sure
       to create @link(Appearance) node if necessary. }
     property Material: TAbstractMaterialNode read GetMaterial write SetMaterial;
@@ -130,6 +131,7 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure ParseAfter(Reader: TX3DReaderNames); override;
+    procedure SetMaterialBefore(const Value: TAbstractMaterialNode);
   public
     { Find a suitable CommonSurfaceShader to be used when rendering this shape,
       or @nil. }
@@ -446,6 +448,30 @@ begin
   {$endif}
 end;
 
+procedure TAbstractShapeNode.SetAppearanceBefore(const Value: TAppearanceNode);
+var
+  OldMaterial, NewMaterial: TX3DNode;
+begin
+  if (Scene <> nil) and
+     (FdAppearance.Value <> Value) then
+  begin
+    // move shape associations from old Appearance to new
+    Scene.InternalMoveShapeAssociations(FdAppearance.Value, Value, InternalSceneShape);
+
+    // move shape associations from old XxxMaterial to new
+    if FdAppearance.Value is TAppearanceNode then
+      OldMaterial := TAppearanceNode(FdAppearance.Value).FdMaterial.Value
+    else
+      OldMaterial := nil;
+    if Value is TAppearanceNode then
+      NewMaterial := TAppearanceNode(Value).FdMaterial.Value
+    else
+      NewMaterial := nil;
+    if OldMaterial <> NewMaterial then
+      Scene.InternalMoveShapeAssociations(OldMaterial, NewMaterial, InternalSceneShape);
+  end;
+end;
+
 function TAbstractShapeNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   Result := nil;
@@ -598,6 +624,13 @@ begin
     App.LineProperties := Value;
     Appearance := App;
   end;
+end;
+
+procedure TAppearanceNode.SetMaterialBefore(const Value: TAbstractMaterialNode);
+begin
+  if (Scene <> nil) and
+     (FdMaterial.Value <> Value) then
+    Scene.InternalMoveShapeAssociations(FdMaterial.Value, Value, InternalSceneShape);
 end;
 
 function TAppearanceNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;

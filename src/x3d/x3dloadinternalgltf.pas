@@ -1629,7 +1629,7 @@ var
         WritelnLog('glTF', 'Ignoring vertex attribute ' + AttributeName + ', not implemented (for this primitive mode)');
     end;
 
-    // determine Apperance
+    // determine Appearance
     if Between(Primitive.Material, 0, Appearances.Count - 1) then
       Appearance := Appearances[Primitive.Material] as TGltfAppearanceNode
     else

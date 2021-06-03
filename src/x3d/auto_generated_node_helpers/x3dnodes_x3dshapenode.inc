@@ -112,6 +112,7 @@ end;
 
 procedure TAbstractShapeNode.SetAppearance(const Value: TAppearanceNode);
 begin
+  SetAppearanceBefore(Value);
   FdAppearance.Send(Value);
 end;
 

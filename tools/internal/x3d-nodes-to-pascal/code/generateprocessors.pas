@@ -69,6 +69,7 @@ type
     ChangeAlways: String; //< Value of ChangeAlways for this field, as String
     Range: String; //< Allowed field values, in format specific to given field type
     Documentation: String;
+    SetterBefore: String;
     constructor Create;
     destructor Destroy; override;
     function AccessType: TX3DAccessType;
@@ -912,7 +913,13 @@ begin
           if Tokens[0] = 'doc:' then
           begin
             ValidatePerFieldCommand('doc');
-            LastField.Documentation := PrefixRemove('doc:', Trim(Line), false);
+            LastField.Documentation := Trim(PrefixRemove('doc:', Trim(Line), false));
+          end else
+
+          if Tokens[0] = 'setter-before:' then
+          begin
+            ValidatePerFieldCommand('setter-before');
+            LastField.SetterBefore := Trim(PrefixRemove('setter-before:', Trim(Line), false));
           end else
 
           { field/event inside node }
@@ -1062,6 +1069,7 @@ begin
           NL +
           'procedure ' + Node.PascalType + '.Set' + Field.PascalName + '(const Value: ' + AllowedPascalClass + ');' + NL +
           'begin' + NL +
+          Iff(Field.SetterBefore <> '', '  ' + Field.SetterBefore + '(Value);' + NL, '') +
           '  ' + Field.PascalNamePrefixed + '.Send(Value);' + NL +
           'end;' + NL +
           NL +
@@ -1081,6 +1089,7 @@ begin
           '  L: Integer;' + NL +
           '  A: array of TX3DNode;' + NL +
           'begin' + NL +
+          Iff(Field.SetterBefore <> '', '  ' + Field.SetterBefore + '(Value);' + NL, '') +
           '  L := High(Value) + 1;' + NL +
           '  SetLength(A, L);' + NL +
           '  if L > 0 then' + NL +
@@ -1116,6 +1125,7 @@ begin
       'var' + NL +
       '  ValueCenter, ValueSize: TVector3;' + NL +
       'begin' + NL +
+      Iff(Field.SetterBefore <> '', '  ' + Field.SetterBefore + '(Value);' + NL, '') +
       '  Value.ToCenterSize(ValueCenter, ValueSize);' + NL +
       '  FdBBoxCenter.Send(ValueCenter);' + NL +
       '  FdBBoxSize.Send(ValueSize);' + NL +
@@ -1147,6 +1157,7 @@ begin
         NL +
         'procedure ' + Node.PascalType + '.Set' + Field.PascalName + '(const Value: ' + Field.PascalHelperType + ');' + NL +
         'begin' + NL +
+        Iff(Field.SetterBefore <> '', '  ' + Field.SetterBefore + '(Value);' + NL, '') +
         Iff(Field.IsEnumString,
         '  ' + Field.PascalNamePrefixed + '.SendEnumValue(Ord(Value));',
         '  ' + Field.PascalNamePrefixed + '.Send(Value);') + NL +
@@ -1169,6 +1180,7 @@ begin
           Field.ConditionsBegin +
           'procedure ' + Node.PascalType + '.Set' + Field.PascalName + '(const Value: ' + SetterType + ');' + NL +
           'begin' + NL +
+          Iff(Field.SetterBefore <> '', '  ' + Field.SetterBefore + '(Value);' + NL, '') +
           '  ' + Field.PascalNamePrefixed + '.Send(Value);' + NL +
           'end;' + NL +
           NL +

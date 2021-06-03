@@ -23,6 +23,8 @@ uses FpcUnit, TestUtils, TestRegistry, CastleTestCase;
 
 type
   TTestWindow = class(TCastleTestCase)
+  strict private
+    procedure OnWarningRaiseException(const Category, S: string);
   published
     procedure Test1;
     procedure TestNotifications;
@@ -33,6 +35,7 @@ type
     { Test TUIContainer.Focus.
       In this unit, as it requires TCastleWindow (UI container) to make sense. }
     procedure TestFocus;
+    procedure TestEventLoop;
   end;
 
 implementation
@@ -40,7 +43,8 @@ implementation
 uses SysUtils, Classes,
   CastleWindow, CastleControls, CastleStringUtils, CastleKeysMouse,
   CastleUIControls, CastleRectangles, CastleOnScreenMenu, CastleComponentSerialize,
-  CastleInspectorControl, CastleCameras, CastleSceneManager, CastleVectors;
+  CastleInspectorControl, CastleCameras, CastleSceneManager, CastleVectors,
+  CastleTransform, CastleScene, CastleApplicationProperties;
 
 procedure TTestWindow.Test1;
 var
@@ -253,6 +257,66 @@ begin
     AssertTrue(Window.Container.Focus[4] is TCastleInspectorControl);
     AssertTrue(Window.Container.Focus[5] is TCastleRectangleControl); // internal in TCastleInspectorControl
   finally FreeAndNil(Window) end;
+end;
+
+procedure TTestWindow.OnWarningRaiseException(const Category, S: string);
+begin
+  raise Exception.CreateFmt('TTestWindow made a warning, and any warning here is an error: %s: %s', [Category, S]);
+end;
+
+procedure TTestWindow.TestEventLoop;
+var
+  Window: TCastleWindowBase;
+
+  procedure SimulateEventLoop(const T: TCastleTransform);
+  var
+    RenderParams: TRenderParams;
+    RemoveMe: TRemoveType;
+  begin
+    RenderParams := TBasicRenderParams.Create;
+    try
+      T.Render(RenderParams);
+    finally FreeAndNil(RenderParams) end;
+
+    RemoveMe := rtNone;
+    T.Update(1/60, RemoveMe);
+
+    //Window.MessageOK('Press OK to finish this event loop run', mtInfo);
+  end;
+
+var
+  Box: TCastleBox;
+  Viewport: TCastleViewport;
+begin
+  ApplicationProperties.OnWarning.Add(@OnWarningRaiseException);
+  try
+    Window := TCastleWindowBase.Create(nil);
+    try
+      // for rendering, OpenGL context must be ready, with GLFeatures initialized
+      Window.Visible := false;
+      Window.Open;
+
+      Viewport := TCastleViewport.Create(nil);
+      try
+        Viewport.FullSize := true;
+        Viewport.AutoCamera := true;
+        Window.Controls.InsertFront(Viewport);
+
+        Box := TCastleBox.Create(nil);
+        try
+          Viewport.Items.Add(Box);
+
+          SimulateEventLoop(Box);
+          Box.Material := pmUnlit;
+          SimulateEventLoop(Box);
+          Box.Material := pmPhysical;
+          SimulateEventLoop(Box);
+        finally FreeAndNil(Box) end;
+      finally FreeAndNil(Viewport) end;
+    finally FreeAndNil(Window) end;
+  finally
+    ApplicationProperties.OnWarning.Remove(@OnWarningRaiseException);
+  end;
 end;
 
 initialization
