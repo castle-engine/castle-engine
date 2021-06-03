@@ -26,6 +26,20 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventAddChildren: TMFNodeEvent;
+    { X3D in event "addChildren". } { }
+    public property EventAddChildren: TMFNodeEvent read FEventAddChildren;
+
+    strict private FEventRemoveChildren: TMFNodeEvent;
+    { X3D in event "removeChildren". } { }
+    public property EventRemoveChildren: TMFNodeEvent read FEventRemoveChildren;
+
+    strict private FFdChildren: TMFNode;
+    { X3D field "children". } { }
+    public property FdChildren: TMFNode read FFdChildren;
     { Set X3D field "children". } { }
     procedure SetChildren(const Value: array of TAbstractChildNode);
 
@@ -45,6 +59,26 @@ begin
   if L > 0 then
     Move(Value[0], A[0], L * SizeOf(TAbstractChildNode));
   FdChildren.Send(A);
+end;
+
+class function TLayerNode.ClassX3DType: String;
+begin
+  Result := 'Layer';
+end;
+
+procedure TLayerNode.CreateNode;
+begin
+  inherited;
+
+  FEventAddChildren := TMFNodeEvent.Create(Self, 'addChildren', true);
+  AddEvent(FEventAddChildren);
+
+  FEventRemoveChildren := TMFNodeEvent.Create(Self, 'removeChildren', true);
+  AddEvent(FEventRemoveChildren);
+
+  FFdChildren := TMFNode.Create(Self, True, 'children', [TAbstractChildNode]);
+   FdChildren.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdChildren);
 end;
 
 {$endif read_implementation}

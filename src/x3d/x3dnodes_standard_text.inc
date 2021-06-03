@@ -28,6 +28,9 @@
   { Font justification that can be specified by a TFontStyleNode. }
   TX3DFontJustify = (fjFirst, fjBegin, fjMiddle, fjEnd);
 
+  { Font style that can be specified by a @link(TFontStyleNode.Style). }
+  TX3DFontStyle = (fsPlain, fsBold, fsItalic, fsBoldItalic);
+
   { Defines the size, family, style and other properties used for @link(TTextNode). }
   TFontStyleNode = class(TAbstractFontStyleNode)
   strict private
@@ -87,8 +90,8 @@
     strict private FFdSpacing: TSFFloat;
     public property FdSpacing: TSFFloat read FFdSpacing;
 
-    strict private FFdStyle: TSFString;
-    public property FdStyle: TSFString read FFdStyle;
+    strict private FFdStyle: TSFStringEnum;
+    public property FdStyle: TSFStringEnum read FFdStyle;
     property Bold: boolean read GetBold write SetBold;
     property Italic: boolean read GetItalic write SetItalic;
 
@@ -206,6 +209,11 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+const
+  FontStyleNames: array [TX3DFontStyle] of String =
+  ('PLAIN', 'BOLD', 'ITALIC', '"BOLDITALIC');
+
 procedure TAbstractFontStyleNode.CreateNode;
 begin
   inherited;
@@ -250,7 +258,7 @@ begin
   AddField(FFdSpacing);
   { X3D specification comment: [0,Inf) }
 
-  FFdStyle := TSFString.Create(Self, false, 'style', 'PLAIN');
+  FFdStyle := TSFStringEnum.Create(Self, false, 'style', FontStyleNames, Ord(fsPlain));
    FdStyle.ChangeAlways := chFontStyle;
   AddField(FFdStyle);
   { X3D specification comment: ["PLAIN"|"BOLD"|"ITALIC"|"BOLDITALIC"|""] }
@@ -305,68 +313,28 @@ begin
 end;
 
 const
-  StyleBold = 'BOLD';
-  StyleBoldItalic = 'BOLDITALIC';
-  StyleItalic = 'ITALIC';
-  StylePlain = 'PLAIN';
-  StyleString: array[boolean { bold ? }, boolean { italic ? }] of string =
-  ( (StylePlain, StyleItalic),
-    (StyleBold, StyleBoldItalic) );
+  StyleEnum: array[boolean { bold ? }, boolean { italic ? }] of TX3DFontStyle =
+  ( (fsPlain, fsItalic),
+    (fsBold, fsBoldItalic) );
 
 function TFontStyleNode.GetBold: boolean;
-var
-  S: string;
 begin
-  S := FdStyle.Value;
-  Result :=
-    (S = StyleBold) or
-    (S = StyleBoldItalic);
-
-  { This is the end of calculating Result.
-    But we would like to make a warning in case of invalid FdStyle
-    value, so we do check below. }
-
-  if not Result then
-  begin
-    if not (
-      (S = StyleItalic) or
-      (S = StylePlain) or
-      (S = '')) then
-      WritelnWarning('VRML/X3D', 'Font style "' + S + '" not supported');
-  end;
+  Result := Style in [fsBold, fsBoldItalic];
 end;
 
 procedure TFontStyleNode.SetBold(const Value: boolean);
 begin
-  FdStyle.Send(StyleString[Value, Italic]);
+  Style := StyleEnum[Value, Italic];
 end;
 
 function TFontStyleNode.GetItalic: boolean;
-var
-  S: string;
 begin
-  S := FdStyle.Value;
-  Result :=
-    (S = StyleItalic) or
-    (S = StyleBoldItalic);
-
-  { This is the end of calculating Result.
-    But we would like to make a warning in case of invalid FdStyle
-    value, so we do check below. }
-
-  if not Result then
-  begin
-    if not (
-      (S = StyleBold) or
-      (S = StylePlain) or
-      (S = '')) then
-      WritelnWarning('VRML/X3D', 'Font style "' + S + '" not supported');
-  end;
+  Result := Style in [fsItalic, fsBoldItalic];
 end;
 
 procedure TFontStyleNode.SetItalic(const Value: boolean);
 begin
-  FdStyle.Send(StyleString[Bold, Value]);
+  Style := StyleEnum[Bold, Value];
 end;
 
 function TFontStyleNode.StringToJustify(const S: string;

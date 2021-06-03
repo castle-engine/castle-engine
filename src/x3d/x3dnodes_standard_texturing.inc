@@ -557,13 +557,6 @@
     {$I auto_generated_node_helpers/x3dnodes_texturecoordinategenerator.inc}
   end;
 
-  { Old BS Contact name for TextureCoordinateGenerator.
-    See examples from [http://www.bitmanagement.de/developer/contact/relnotes6.html] }
-  TTextureCoordGenNode = class(TTextureCoordinateGeneratorNode)
-  public
-    class function ClassX3DType: string; override;
-  end;
-
   { Adjust the texture application properties. }
   TTexturePropertiesNode = class(TAbstractNode)
   strict private
@@ -1363,11 +1356,6 @@ begin
   Result := 'TextureCoordinateGenerator';
 end;
 
-class function TTextureCoordGenNode.ClassX3DType: string;
-begin
-  Result := 'TextureCoordGen';
-end;
-
 procedure TTexturePropertiesNode.CreateNode;
 begin
   inherited;
@@ -1612,7 +1600,6 @@ begin
     TPixelTextureNode,
     TTextureCoordinateNode,
     TTextureCoordinateGeneratorNode,
-    TTextureCoordGenNode,
     TTexturePropertiesNode,
     TTextureTransformNode
   ]);

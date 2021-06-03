@@ -45,6 +45,7 @@
     procedure BeforeNodesFree(const InternalChangedAll: boolean = false); virtual; abstract;
     procedure InternalChangedField(const Field: TX3DField; const Change: TX3DChange); overload; virtual; abstract;
     procedure InternalChangedField(const Field: TX3DField); overload;
+    procedure InternalMoveShapeAssociations(const OldNode, NewNode: TX3DNode; const ContainingShapes: TObject); virtual; abstract;
   end;
 
   TX3DEventsEngineList = class(specialize TObjectList<TX3DEventsEngine>)

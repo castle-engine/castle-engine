@@ -40,6 +40,7 @@ X3DShapeNode : X3DChildNode, X3DBoundedObject {
   # This makes accessing it easier, like "Shape.Appearance.Texture := xxx".
   SFNode  [in,out] appearance NULL
     range: Appearance
+    setter-before: SetAppearanceBefore
   SFNode  [in,out] geometry   NULL
     range: X3DGeometryNode
   # As Castle Game Engine extension, we allow bboxCenter/Size to be modified,
@@ -82,6 +83,7 @@ Appearance : X3DAppearanceNode {
     range: X3DMaterialNode
     change: chEverything
     doc: Material determines how the shape looks, and how it interacts with lighting.
+    setter-before: SetMaterialBefore
   MFNode [in,out] shaders          []
     range: X3DShaderNode
     change: chEverything

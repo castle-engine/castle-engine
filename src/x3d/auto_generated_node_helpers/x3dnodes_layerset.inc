@@ -29,10 +29,24 @@
     function GetActiveLayer: Integer;
     procedure SetActiveLayer(const Value: Integer);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdActiveLayer: TSFInt32;
+    { X3D field "activeLayer". } { }
+    public property FdActiveLayer: TSFInt32 read FFdActiveLayer;
     { X3D field "activeLayer". } { }
     property ActiveLayer: Integer read GetActiveLayer write SetActiveLayer;
+
+    strict private FFdLayers: TMFNode;
+    { X3D field "layers". } { }
+    public property FdLayers: TMFNode read FFdLayers;
     { Set X3D field "layers". } { }
     procedure SetLayers(const Value: array of TAbstractLayerNode);
+
+    strict private FFdOrder: TMFInt32;
+    { X3D field "order". } { }
+    public property FdOrder: TMFInt32 read FFdOrder;
     { Set X3D field "order". } { }
     procedure SetOrder(const Value: array of LongInt);
     { Set X3D field "order". } { }
@@ -74,6 +88,30 @@ end;
 procedure TLayerSetNode.SetOrder(const Value: TLongIntList);
 begin
   FdOrder.Send(Value);
+end;
+
+class function TLayerSetNode.ClassX3DType: String;
+begin
+  Result := 'LayerSet';
+end;
+
+procedure TLayerSetNode.CreateNode;
+begin
+  inherited;
+
+  FFdActiveLayer := TSFInt32.Create(Self, True, 'activeLayer', 0);
+   FdActiveLayer.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdActiveLayer);
+
+  FFdLayers := TMFNode.Create(Self, True, 'layers', [TAbstractLayerNode]);
+   FdLayers.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdLayers);
+
+  FFdOrder := TMFInt32.Create(Self, True, 'order', [0]);
+   FdOrder.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdOrder);
+
+  DefaultContainerField := 'children';
 end;
 
 {$endif read_implementation}

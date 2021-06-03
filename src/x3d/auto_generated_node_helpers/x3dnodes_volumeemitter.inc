@@ -33,14 +33,36 @@
     function GetInternal: Boolean;
     procedure SetInternal(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventSet_coordIndex: TMFInt32Event;
+    { X3D in event "set_coordIndex". } { }
+    public property EventSet_coordIndex: TMFInt32Event read FEventSet_coordIndex;
+
+    strict private FFdCoord: TSFNode;
+    { X3D field "coord". } { }
+    public property FdCoord: TSFNode read FFdCoord;
     { X3D field "coord". } { }
     property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
+
+    strict private FFdDirection: TSFVec3f;
+    { X3D field "direction". } { }
+    public property FdDirection: TSFVec3f read FFdDirection;
     { X3D field "direction". } { }
     property Direction: TVector3 read GetDirection write SetDirection;
+
+    strict private FFdCoordIndex: TMFInt32;
+    { X3D field "coordIndex". } { }
+    public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
     { Set X3D field "coordIndex". } { }
     procedure SetCoordIndex(const Value: array of LongInt);
     { Set X3D field "coordIndex". } { }
     procedure SetCoordIndex(const Value: TLongIntList);
+
+    strict private FFdInternal: TSFBool;
+    { X3D field "internal". } { }
+    public property FdInternal: TSFBool read FFdInternal;
     { X3D field "internal". } { }
     property Internal: Boolean read GetInternal write SetInternal;
 
@@ -91,6 +113,35 @@ end;
 procedure TVolumeEmitterNode.SetInternal(const Value: Boolean);
 begin
   FdInternal.Send(Value);
+end;
+
+class function TVolumeEmitterNode.ClassX3DType: String;
+begin
+  Result := 'VolumeEmitter';
+end;
+
+procedure TVolumeEmitterNode.CreateNode;
+begin
+  inherited;
+
+  FEventSet_coordIndex := TMFInt32Event.Create(Self, 'set_coordIndex', true);
+  AddEvent(FEventSet_coordIndex);
+
+  FFdCoord := TSFNode.Create(Self, True, 'coord', [TAbstractCoordinateNode]);
+   FdCoord.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdCoord);
+
+  FFdDirection := TSFVec3f.Create(Self, True, 'direction', Vector3(0, 1, 0));
+   FdDirection.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDirection);
+
+  FFdCoordIndex := TMFInt32.Create(Self, False, 'coordIndex', [-1]);
+   FdCoordIndex.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdCoordIndex);
+
+  FFdInternal := TSFBool.Create(Self, False, 'internal', true);
+   FdInternal.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdInternal);
 end;
 
 {$endif read_implementation}

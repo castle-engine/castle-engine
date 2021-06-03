@@ -216,6 +216,7 @@ end;
 
 procedure TAppearanceNode.SetMaterial(const Value: TAbstractMaterialNode);
 begin
+  SetMaterialBefore(Value);
   FdMaterial.Send(Value);
 end;
 

@@ -1265,6 +1265,11 @@ type
       @exclude }
     procedure InternalChangedField(const Field: TX3DField; const Change: TX3DChange); override;
 
+    { Called before changing one node into another,
+      when old node may have beeen associated with a shape using TShapeTree.AssociateNode. }
+    procedure InternalMoveShapeAssociations(
+      const OldNode, NewNode: TX3DNode; const ContainingShapes: TObject); override;
+
     { Notification when geometry changed.
       "Geometry changed" means that the positions
       of triangles changed. This is not send when merely things like
@@ -5490,6 +5495,51 @@ begin
       LocalGeometryShape);
 end;
 
+procedure TCastleSceneCore.InternalMoveShapeAssociations(const OldNode, NewNode: TX3DNode; const ContainingShapes: TObject);
+var
+  S: TShapeTree;
+  L: TShapeTreeList;
+  I: Integer;
+begin
+  Assert(OldNode <> NewNode); // should be checked before calling InternalMoveShapeAssociations
+
+  if ContainingShapes <> nil then
+  begin
+    { For shapes on ContainingShapes, they should be removed from OldNode,
+      and added to NewNode.
+
+      Otherwise we have no chance to clean them from OldNode, as change notification
+      reaches TCastleSceneCore / TShapeTree after the old value changed into new. }
+
+    if ContainingShapes.ClassType = TShapeTreeList then
+    begin
+      // ContainingShapes is a list
+      L := TShapeTreeList(ContainingShapes);
+
+      { Using downto just for future safety,
+        in case S.UnAssociateNode would remove from L -- but it is not the case now,
+        L is from containing node InternalSceneShape (e.g. from Appearance containing this Material,
+        or Shape containing this Appearance), and its contents don't change during this loop. }
+      for I := L.Count - 1 downto 0 do
+      begin
+        S := L[I];
+        if OldNode <> nil then
+          S.UnAssociateNode(OldNode);
+        if NewNode <> nil then
+          S.AssociateNode(NewNode);
+      end;
+    end else
+    begin
+      // ContainingShapes is a single TShapeTree
+      S := TShapeTree(ContainingShapes);
+      if OldNode <> nil then
+        S.UnAssociateNode(OldNode);
+      if NewNode <> nil then
+        S.AssociateNode(NewNode);
+    end;
+  end;
+end;
+
 procedure TCastleSceneCore.DoViewpointsChanged;
 begin
   if Assigned(OnViewpointsChanged) then
@@ -7565,6 +7615,7 @@ begin
   ACamera.Orthographic.Width := 0;
   ACamera.Orthographic.Height := 0;
   ACamera.Orthographic.Origin := TVector2.Zero;
+  ACamera.Orthographic.Stretch := false;
 
   ViewpointNode := ViewpointStack.Top;
   NavigationNode := NavigationInfoStack.Top;

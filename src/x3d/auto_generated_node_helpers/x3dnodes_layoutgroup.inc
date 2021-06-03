@@ -31,8 +31,18 @@
     function GetViewport: TAbstractViewportNode;
     procedure SetViewport(const Value: TAbstractViewportNode);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdLayout: TSFNode;
+    { X3D field "layout". } { }
+    public property FdLayout: TSFNode read FFdLayout;
     { X3D field "layout". } { }
     property Layout: TAbstractLayoutNode read GetLayout write SetLayout;
+
+    strict private FFdViewport: TSFNode;
+    { X3D field "viewport". } { }
+    public property FdViewport: TSFNode read FFdViewport;
     { X3D field "viewport". } { }
     property Viewport: TAbstractViewportNode read GetViewport write SetViewport;
 
@@ -66,6 +76,24 @@ end;
 procedure TLayoutGroupNode.SetViewport(const Value: TAbstractViewportNode);
 begin
   FdViewport.Send(Value);
+end;
+
+class function TLayoutGroupNode.ClassX3DType: String;
+begin
+  Result := 'LayoutGroup';
+end;
+
+procedure TLayoutGroupNode.CreateNode;
+begin
+  inherited;
+
+  FFdLayout := TSFNode.Create(Self, True, 'layout', [TAbstractLayoutNode]);
+   FdLayout.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdLayout);
+
+  FFdViewport := TSFNode.Create(Self, True, 'viewport', [TAbstractViewportNode]);
+   FdViewport.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdViewport);
 end;
 
 {$endif read_implementation}
