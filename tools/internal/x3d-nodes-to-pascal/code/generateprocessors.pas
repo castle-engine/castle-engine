@@ -91,7 +91,7 @@ type
     function ConditionsBegin: String;
     function ConditionsEnd: String;
 
-    { Field is SFString with a strictly limited set of values. }
+    { Field is SFString / MFString with a strictly limited set of values. }
     function IsEnumString: Boolean;
 
     { Call when the field is completely parsed, e.g. Range is known. }
@@ -347,15 +347,18 @@ begin
   if AccessType in [atInputOnly, atOutputOnly] then
     Result := 'T' + X3DType + 'Event'
   else
-  if IsEnumString then
+  if (X3DType = 'SFString') and IsEnumString then
     Result := 'TSFStringEnum'
+  else
+  if (X3DType = 'MFString') and IsEnumString then
+    Result := 'TMFStringEnum' // for things like TFontStyleNode.Justify
   else
     Result := 'T' + X3DType;
 end;
 
 function TX3DFieldInformation.PascalHelperType: string;
 begin
-  if IsEnumString and (EnumType <> '') then
+  if (X3DType = 'SFString') and IsEnumString and (EnumType <> '') then
     Result := EnumType
   else
   if X3DType = 'SFFloat' then
@@ -423,6 +426,11 @@ end;
 
 procedure TX3DFieldInformation.PascalSetterTypes(const Names: TCastleStringList);
 begin
+  if (X3DType = 'MFString') and IsEnumString and (EnumType <> '') then
+  begin
+    Names.Add('array of ' + EnumType);
+    Names.Add('T' + EnumType + 'List');
+  end else
   if X3DType = 'MFFloat' then
   begin
     Names.Add('array of Single');
@@ -538,10 +546,13 @@ end;
 
 function TX3DFieldInformation.IsEnumString: Boolean;
 begin
+  { TODO: MFString is not yet detected as IsEnumString,
+    as our TMFStringEnum is not yet implemented. }
   Result :=
-    (X3DType = 'SFString') and
-    (Pos('["', Range) <> 0) and
-   ((Pos('"]', Range) <> 0) or (Pos('...]', Range) <> 0));
+   ((X3DType = 'SFString') {or (X3DType = 'MFString')}) and
+    IsPrefix('["', Range, false) and
+   (IsSuffix('"]', Range, false) or
+    IsSuffix('...]', Range, false));
 end;
 
 procedure TX3DFieldInformation.Finished;
@@ -894,7 +905,7 @@ begin
           if Tokens[0] = 'range:' then
           begin
             ValidatePerFieldCommand('range');
-            LastField.Range := PrefixRemove('range:', Trim(Line), false);
+            LastField.Range := Trim(PrefixRemove('range:', Trim(Line), false));
           end else
 
           if (Tokens.Count = 4) and
@@ -902,7 +913,7 @@ begin
           begin
             ValidatePerFieldCommand('enumerated-type');
             if not LastField.IsEnumString then
-              raise EInvalidSpecificationFile.CreateFmt('enumerated-type only available for SFString fields detected as enumerated, but used with %s', [
+              raise EInvalidSpecificationFile.CreateFmt('enumerated-type only available for SFString / MFString fields detected as enumerated, but used with %s', [
                 LastField.X3DName
               ]);
             LastField.EnumType := Tokens[1];

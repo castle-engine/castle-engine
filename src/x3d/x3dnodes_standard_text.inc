@@ -28,6 +28,9 @@
   { Font justification that can be specified by a TFontStyleNode. }
   TX3DFontJustify = (fjFirst, fjBegin, fjMiddle, fjEnd);
 
+  { Font style that can be specified by a @link(TFontStyleNode.Style). }
+  TX3DFontStyle = (fsPlain, fsBold, fsItalic, fsBoldItalic);
+
   { Defines the size, family, style and other properties used for @link(TTextNode). }
   TFontStyleNode = class(TAbstractFontStyleNode)
   strict private
@@ -305,68 +308,28 @@ begin
 end;
 
 const
-  StyleBold = 'BOLD';
-  StyleBoldItalic = 'BOLDITALIC';
-  StyleItalic = 'ITALIC';
-  StylePlain = 'PLAIN';
-  StyleString: array[boolean { bold ? }, boolean { italic ? }] of string =
-  ( (StylePlain, StyleItalic),
-    (StyleBold, StyleBoldItalic) );
+  StyleEnum: array[boolean { bold ? }, boolean { italic ? }] of TX3DFontStyle =
+  ( (fsPlain, fsItalic),
+    (fsBold, fsBoldItalic) );
 
 function TFontStyleNode.GetBold: boolean;
-var
-  S: string;
 begin
-  S := FdStyle.Value;
-  Result :=
-    (S = StyleBold) or
-    (S = StyleBoldItalic);
-
-  { This is the end of calculating Result.
-    But we would like to make a warning in case of invalid FdStyle
-    value, so we do check below. }
-
-  if not Result then
-  begin
-    if not (
-      (S = StyleItalic) or
-      (S = StylePlain) or
-      (S = '')) then
-      WritelnWarning('VRML/X3D', 'Font style "' + S + '" not supported');
-  end;
+  Result := Style in [fsBold, fsBoldItalic];
 end;
 
 procedure TFontStyleNode.SetBold(const Value: boolean);
 begin
-  FdStyle.Send(StyleString[Value, Italic]);
+  Style := StyleEnum[Value, Italic];
 end;
 
 function TFontStyleNode.GetItalic: boolean;
-var
-  S: string;
 begin
-  S := FdStyle.Value;
-  Result :=
-    (S = StyleItalic) or
-    (S = StyleBoldItalic);
-
-  { This is the end of calculating Result.
-    But we would like to make a warning in case of invalid FdStyle
-    value, so we do check below. }
-
-  if not Result then
-  begin
-    if not (
-      (S = StyleBold) or
-      (S = StylePlain) or
-      (S = '')) then
-      WritelnWarning('VRML/X3D', 'Font style "' + S + '" not supported');
-  end;
+  Result := Style in [fsItalic, fsBoldItalic];
 end;
 
 procedure TFontStyleNode.SetItalic(const Value: boolean);
 begin
-  FdStyle.Send(StyleString[Bold, Value]);
+  FdStyle.Send(StyleEnum[Bold, Value]);
 end;
 
 function TFontStyleNode.StringToJustify(const S: string;

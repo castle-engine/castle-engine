@@ -1,29 +1,37 @@
 X3DLayoutNode : X3DChildNode {
+  auto-generate-more: true
 }
 
 Layout : X3DLayoutNode {
+  auto-generate-more: true
    MFString [in,out] align       ["CENTER","CENTER"]
-     range: ["LEFT"|"CENTER"|"RIGHT","BOTTOM"|"CENTER"|"TOP"]
+     range: TODO: ["LEFT"|"CENTER"|"RIGHT","BOTTOM"|"CENTER"|"TOP"]
+     # TODO: enumerated-type: ...
    MFFloat  [in,out] offset      [0,0]
      range: (-Inf,Inf)
    MFString [in,out] offsetUnits ["WORLD","WORLD"]
-     range: ["WORLD","FRACTION","PIXEL"]
+     range: TODO: ["WORLD","FRACTION","PIXEL"]
+     # TODO: enumerated-type: ...
    MFString [in,out] scaleMode   ["NONE","NONE"]
-     range: ["NONE","FRACTION","STRETCH","PIXEL"]
+     range: TODO: ["NONE","FRACTION","STRETCH","PIXEL"]
+     # TODO: enumerated-type: ...
    MFFloat  [in,out] size        [1,1]
      range: (0,Inf)
    MFString [in,out] sizeUnits   ["WORLD","WORLD"]
-     range: ["WORLD","FRACTION","PIXEL"]
+     range: TODO: ["WORLD","FRACTION","PIXEL"]
+     # TODO: enumerated-type: ...
 }
 
 LayoutGroup : X3DGroupingNode {
-   SFNode  [in,out] layout         NULL
-     range: X3DLayoutNode
-   SFNode  [in,out] viewport       NULL
-     range: X3DViewportNode
+  auto-generate-more: true
+  SFNode  [in,out] layout         NULL
+    range: X3DLayoutNode
+  SFNode  [in,out] viewport       NULL
+    range: X3DViewportNode
 }
 
 LayoutLayer : X3DLayerNode {
+  auto-generate-more: true
   MFNode [in]     addChildren    []
     range: X3DChildNode
   MFNode [in]     removeChildren []
@@ -35,10 +43,12 @@ LayoutLayer : X3DLayerNode {
 }
 
 ScreenFontStyle : X3DFontStyleNode {
+  auto-generate-more: true
   MFString []       family      "SERIF"
   SFBool   []       horizontal  TRUE
   MFString []       justify     "BEGIN"
-    range: ["BEGIN","END","FIRST","MIDDLE",""]
+    range: TODO: ["BEGIN","END","FIRST","MIDDLE",""]
+    # TODO: enumerated-type: TX3DFontJustify JustifyToString [fjBegin]
   SFString []       language    ""
   SFBool   []       leftToRight TRUE
   SFFloat  []       pointSize   12.0
@@ -47,8 +57,10 @@ ScreenFontStyle : X3DFontStyleNode {
     range: [0,Inf)
   SFString []       style       "PLAIN"
     range: ["PLAIN"|"BOLD"|"ITALIC"|"BOLDITALIC"|""]
+    enumerated-type: TX3DFontStyle FontStyleNames fsPlain
   SFBool   []       topToBottom TRUE
 }
 
 ScreenGroup : X3DGroupingNode {
+  auto-generate-more: true
 }
