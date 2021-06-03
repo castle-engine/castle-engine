@@ -93,6 +93,10 @@
     procedure UpdateSourcePosition;
     procedure EventLocationReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+    { Location expressed in World coordinate-space, that is: transformed
+      by X3D transformations in this X3D scene graph, and then by TCastleTransform
+      transformations up to the root of TCastleViewport.Items. }
+    function WorldLocation: TVector3;
   protected
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -284,7 +288,7 @@ begin
           Parameters.Looping := Loop;
           Parameters.Importance := Clamped(Round(SoundNode.Priority * 1000), 0, 1000);
           Parameters.Gain := SoundNode.Intensity;
-          Parameters.Position := SoundNode.FTransform.MultPoint(SoundNode.Location);
+          Parameters.Position := SoundNode.WorldLocation;
           Parameters.Pitch := SafePitch;
           { We pass min/maxFront as OpenAL reference distance/max distance,
             as their meanings match for distance model = dmLinearDistanceClamped. }
@@ -426,6 +430,13 @@ begin
   FTransformScale := 1;
 end;
 
+function TSoundNode.WorldLocation: TVector3;
+begin
+  Result := FTransform.MultPoint(Location);
+  if Scene <> nil then
+    Result := Scene.LocalToWorld(Result);
+end;
+
 function TSoundNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   Result := inherited;
@@ -446,7 +457,7 @@ begin
   begin
     AudioClip := TAudioClipNode(FdSource.Value);
     if AudioClip.Sound <> nil then
-      AudioClip.Sound.Position := FTransform.MultPoint(FdLocation.Value);
+      AudioClip.Sound.Position := WorldLocation;
   end;
 end;
 
