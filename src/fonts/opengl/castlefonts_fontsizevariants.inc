@@ -358,7 +358,12 @@ begin
   for I := 0 to Length(ASizes) - 1 do
   begin
     F := TCastleFont.Create(Self);
+    {$warnings off}
+    { Using deprecated, as we have to better alternative to pass ACharacters: TUnicodeCharList.
+      In the future TCustomizedFont may be deprecated, we need to have alternative sizes
+      at TCastleFont probably. }
     F.Load(URL, ASizes[I], AnAntiAliased, ACharacters);
+    {$warnings on}
     if SourceFont = nil then
       SourceFont := F
     else

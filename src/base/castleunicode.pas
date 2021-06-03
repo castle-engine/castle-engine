@@ -43,6 +43,9 @@ type
     { Add all characters from given set. Try e.g. SimpleAsciiCharacters.
       Doesn't add duplicates. }
     procedure Add(const Characters: TSetOfChars); overload;
+
+    { Express all characters inside as one UTF-8 string. }
+    function ToString: String; override;
   end;
 
 function UTF8CharacterLength(p: PChar): integer;
@@ -100,6 +103,8 @@ implementation
 
 uses SysUtils;
 
+{ TUnicodeCharList ----------------------------------------------------------- }
+
 procedure TUnicodeCharList.Add(const C: TUnicodeChar);
 begin
   if IndexOf(C) = -1 then
@@ -129,6 +134,17 @@ begin
   for C in Characters do
     Add(Ord(C));
 end;
+
+function TUnicodeCharList.ToString: String;
+var
+  C: TUnicodeChar;
+begin
+  Result := '';
+  for C in Self do
+    Result := Result + UnicodeToUTF8(C);
+end;
+
+{ global --------------------------------------------------------------------- }
 
 function UTF8CharacterLength(p: PChar): integer;
 begin

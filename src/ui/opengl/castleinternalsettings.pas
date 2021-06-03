@@ -281,7 +281,11 @@ type
       begin
         NewFontOptimalSize := FontElement.AttributeCardinalDef('size_at_load', NewFontSize);
         Result := TCastleFont.Create(Container);
-        TCastleFont(Result).Load(NewFontUrl, NewFontOptimalSize, NewFontAntiAliased, UnicodeCharList);
+        TCastleFont(Result).OptimalSize := NewFontOptimalSize;
+        TCastleFont(Result).AntiAliased := NewFontAntiAliased;
+        TCastleFont(Result).LoadCharactersSimpleAscii := false; // if neded, they are included in UnicodeCharList
+        TCastleFont(Result).LoadCharacters := UnicodeCharList.ToString;
+        TCastleFont(Result).URL := NewFontUrl;
       end;
       Result.Size := NewFontSize;
       FreeAndNil(UnicodeCharList);
