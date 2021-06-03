@@ -179,7 +179,7 @@ procedure TScreenFontStyleNode.CreateNode;
 begin
   inherited;
 
-  FFdFamily := TMFString.Create(Self, False, 'family', 'SERIF');
+  FFdFamily := TMFString.Create(Self, False, 'family', ['SERIF']);
    FdFamily.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdFamily);
 
@@ -187,7 +187,7 @@ begin
    FdHorizontal.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdHorizontal);
 
-  FFdJustify := TMFString.Create(Self, False, 'justify', 'BEGIN');
+  FFdJustify := TMFString.Create(Self, False, 'justify', ['BEGIN']);
    FdJustify.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdJustify);
 

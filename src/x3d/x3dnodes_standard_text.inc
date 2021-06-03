@@ -90,8 +90,8 @@
     strict private FFdSpacing: TSFFloat;
     public property FdSpacing: TSFFloat read FFdSpacing;
 
-    strict private FFdStyle: TSFString;
-    public property FdStyle: TSFString read FFdStyle;
+    strict private FFdStyle: TSFStringEnum;
+    public property FdStyle: TSFStringEnum read FFdStyle;
     property Bold: boolean read GetBold write SetBold;
     property Italic: boolean read GetItalic write SetItalic;
 
@@ -209,6 +209,11 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+const
+  FontStyleNames: array [TX3DFontStyle] of String =
+  ('PLAIN', 'BOLD', 'ITALIC', '"BOLDITALIC');
+
 procedure TAbstractFontStyleNode.CreateNode;
 begin
   inherited;
@@ -253,7 +258,7 @@ begin
   AddField(FFdSpacing);
   { X3D specification comment: [0,Inf) }
 
-  FFdStyle := TSFString.Create(Self, false, 'style', 'PLAIN');
+  FFdStyle := TSFStringEnum.Create(Self, false, 'style', FontStyleNames, Ord(fsPlain));
    FdStyle.ChangeAlways := chFontStyle;
   AddField(FFdStyle);
   { X3D specification comment: ["PLAIN"|"BOLD"|"ITALIC"|"BOLDITALIC"|""] }
@@ -329,7 +334,7 @@ end;
 
 procedure TFontStyleNode.SetItalic(const Value: boolean);
 begin
-  FdStyle.Send(StyleEnum[Bold, Value]);
+  Style := StyleEnum[Bold, Value];
 end;
 
 function TFontStyleNode.StringToJustify(const S: string;
