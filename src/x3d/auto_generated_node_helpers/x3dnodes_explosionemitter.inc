@@ -29,6 +29,12 @@
     function GetPosition: TVector3;
     procedure SetPosition(const Value: TVector3);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdPosition: TSFVec3f;
+    { X3D field "position". } { }
+    public property FdPosition: TSFVec3f read FFdPosition;
     { X3D field "position". } { }
     property Position: TVector3 read GetPosition write SetPosition;
 
@@ -46,6 +52,20 @@ end;
 procedure TExplosionEmitterNode.SetPosition(const Value: TVector3);
 begin
   FdPosition.Send(Value);
+end;
+
+class function TExplosionEmitterNode.ClassX3DType: String;
+begin
+  Result := 'ExplosionEmitter';
+end;
+
+procedure TExplosionEmitterNode.CreateNode;
+begin
+  inherited;
+
+  FFdPosition := TSFVec3f.Create(Self, True, 'position', Vector3(0, 0, 0));
+   FdPosition.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdPosition);
 end;
 
 {$endif read_implementation}

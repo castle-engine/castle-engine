@@ -35,12 +35,30 @@
     function GetSurfaceArea: Single;
     procedure SetSurfaceArea(const Value: Single);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdSpeed: TSFFloat;
+    { X3D field "speed". } { }
+    public property FdSpeed: TSFFloat read FFdSpeed;
     { X3D field "speed". } { }
     property Speed: Single read GetSpeed write SetSpeed;
+
+    strict private FFdVariation: TSFFloat;
+    { X3D field "variation". } { }
+    public property FdVariation: TSFFloat read FFdVariation;
     { X3D field "variation". } { }
     property Variation: Single read GetVariation write SetVariation;
+
+    strict private FFdMass: TSFFloat;
+    { X3D field "mass". } { }
+    public property FdMass: TSFFloat read FFdMass;
     { X3D field "mass". } { }
     property Mass: Single read GetMass write SetMass;
+
+    strict private FFdSurfaceArea: TSFFloat;
+    { X3D field "surfaceArea". } { }
+    public property FdSurfaceArea: TSFFloat read FFdSurfaceArea;
     { X3D field "surfaceArea". } { }
     property SurfaceArea: Single read GetSurfaceArea write SetSurfaceArea;
 
@@ -88,6 +106,34 @@ end;
 procedure TAbstractParticleEmitterNode.SetSurfaceArea(const Value: Single);
 begin
   FdSurfaceArea.Send(Value);
+end;
+
+class function TAbstractParticleEmitterNode.ClassX3DType: String;
+begin
+  Result := 'X3DParticleEmitterNode';
+end;
+
+procedure TAbstractParticleEmitterNode.CreateNode;
+begin
+  inherited;
+
+  FFdSpeed := TSFFloat.Create(Self, True, 'speed', 0);
+   FdSpeed.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSpeed);
+
+  FFdVariation := TSFFloat.Create(Self, True, 'variation', 0.25);
+   FdVariation.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdVariation);
+
+  FFdMass := TSFFloat.Create(Self, False, 'mass', 0);
+   FdMass.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMass);
+
+  FFdSurfaceArea := TSFFloat.Create(Self, False, 'surfaceArea', 0);
+   FdSurfaceArea.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSurfaceArea);
+
+  DefaultContainerField := 'emitter';
 end;
 
 {$endif read_implementation}

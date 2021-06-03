@@ -29,6 +29,12 @@
     function GetEnabled: Boolean;
     procedure SetEnabled(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdEnabled: TSFBool;
+    { X3D field "enabled". } { }
+    public property FdEnabled: TSFBool read FFdEnabled;
     { X3D field "enabled". } { }
     property Enabled: Boolean read GetEnabled write SetEnabled;
 
@@ -46,6 +52,22 @@ end;
 procedure TAbstractParticlePhysicsModelNode.SetEnabled(const Value: Boolean);
 begin
   FdEnabled.Send(Value);
+end;
+
+class function TAbstractParticlePhysicsModelNode.ClassX3DType: String;
+begin
+  Result := 'X3DParticlePhysicsModelNode';
+end;
+
+procedure TAbstractParticlePhysicsModelNode.CreateNode;
+begin
+  inherited;
+
+  FFdEnabled := TSFBool.Create(Self, True, 'enabled', true);
+   FdEnabled.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdEnabled);
+
+  DefaultContainerField := 'physics';
 end;
 
 {$endif read_implementation}

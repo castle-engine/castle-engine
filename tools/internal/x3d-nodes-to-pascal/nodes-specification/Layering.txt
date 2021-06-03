@@ -1,13 +1,17 @@
 X3DLayerNode : X3DNode {
+  auto-generate-more: true
+  default-container-field: layers
   SFBool [in,out] isPickable TRUE
   SFNode [in,out] viewport NULL
     range: X3DViewportNode
 }
 
 X3DViewportNode : X3DGroupingNode {
+  auto-generate-more: true
 }
 
 Layer : X3DLayerNode {
+  auto-generate-more: true
   MFNode [in]     addChildren    []
     range: X3DChildNode
   MFNode [in]     removeChildren []
@@ -17,6 +21,8 @@ Layer : X3DLayerNode {
 }
 
 LayerSet : X3DNode {
+  auto-generate-more: true
+  default-container-field: children
   SFInt32 [in,out]  activeLayer 0
     range: (-Inf,Inf)
   MFNode  [in,out]  layers      []
@@ -26,6 +32,7 @@ LayerSet : X3DNode {
 }
 
 Viewport : X3DGroupingNode, X3DBoundedObject {
-  MFFloat [in,out] clipBoundary   [0 1 0 1]
+  auto-generate-more: true
+  MFFloat [in,out] clipBoundary   [0, 1, 0, 1]
     range: [0,1]
 }
