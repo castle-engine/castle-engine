@@ -124,6 +124,7 @@ begin
   ShapeNode.Geometry := TextNode;
 
   FontStyleNode := TFontStyleNode.Create;
+  FontStyleNode.Family := ffSans; // not modifiable now, as we may disable loading by default serif/typewriter fonts in X3D
   FontStyleNode.Justify := fjBegin;
   FontStyleNode.JustifyMinor := fjEnd;
   TextNode.FontStyle := FontStyleNode;
