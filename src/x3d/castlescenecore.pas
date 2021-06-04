@@ -5419,7 +5419,11 @@ begin
       // TODO: chTexturePropertiesNode
       chShadowCasters: HandleChangeShadowCasters;
       chGeneratedTextureUpdateNeeded: HandleChangeGeneratedTextureUpdateNeeded;
-      chFontStyle: HandleFontStyle;
+      { The HandleFontStyle implementation matches
+        both chFontStyle, chFontStyleFontChanged.
+        Onlt the TShape.Changed processing handles
+        chFontStyle, chFontStyleFontChanged differently. }
+      chFontStyle, chFontStyleFontChanged: HandleFontStyle;
       chHeadLightOn: HandleChangeHeadLightOn;
       chClipPlane: HandleChangeClipPlane;
       chDragSensorEnabled: HandleChangeDragSensorEnabled;

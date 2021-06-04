@@ -16,9 +16,6 @@
 {$ifdef read_interface}
   { Base node type for all font style nodes. }
   TAbstractFontStyleNode = class(TAbstractNode)
-  public
-    procedure CreateNode; override;
-
     {$I auto_generated_node_helpers/x3dnodes_x3dfontstylenode.inc}
   end;
 
@@ -36,8 +33,6 @@
   strict private
     JustifyWarningUppercaseDone, JustifyWarningObsoleteDone,
       JustifyWarningNotSupportedDone: boolean;
-    function GetBlending: boolean;
-    procedure SetBlending(const Value: boolean);
     function StringToJustify(const S: string;
       const DefaultValue: TX3DFontJustify): TX3DFontJustify;
     function GetFamily: TX3DFontFamily;
@@ -61,48 +56,11 @@
       DefaultJustifyMinor = fjFirst;
       DefaultBlending = true;
 
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdFamily: TMFString;
-    public property FdFamily: TMFString read FFdFamily;
     property Family: TX3DFontFamily read GetFamily write SetFamily;
-
-    strict private FFdHorizontal: TSFBool;
-    public property FdHorizontal: TSFBool read FFdHorizontal;
-
-    strict private FFdJustify: TMFString;
-    public property FdJustify: TMFString read FFdJustify;
     property Justify: TX3DFontJustify read GetJustify write SetJustify;
     property JustifyMinor: TX3DFontJustify read GetJustifyMinor write SetJustifyMinor;
-
-    {$ifndef CASTLE_SLIM_NODES}
-    strict private FFdLanguage: TSFString;
-    public property FdLanguage: TSFString read FFdLanguage;
-
-    strict private FFdLeftToRight: TSFBool;
-    public property FdLeftToRight: TSFBool read FFdLeftToRight;
-    {$endif}
-
-    strict private FFdSize: TSFFloat;
-    public property FdSize: TSFFloat read FFdSize;
-
-    strict private FFdSpacing: TSFFloat;
-    public property FdSpacing: TSFFloat read FFdSpacing;
-
-    strict private FFdStyle: TSFStringEnum;
-    public property FdStyle: TSFStringEnum read FFdStyle;
     property Bold: boolean read GetBold write SetBold;
     property Italic: boolean read GetItalic write SetItalic;
-
-    {$ifndef CASTLE_SLIM_NODES}
-    strict private FFdTopToBottom: TSFBool;
-    public property FdTopToBottom: TSFBool read FFdTopToBottom;
-    {$endif}
-
-    strict private FFdBlending: TSFBool;
-    public property FdBlending: TSFBool read FFdBlending;
-    property Blending: boolean read GetBlending write SetBlending;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
@@ -142,45 +100,8 @@
   strict private
     FFontTextureNode: TPixelTextureNode;
     function Font: TTextureFontData;
-    function GetFontStyle: TFontStyleNode;
-    procedure SetFontStyle(const Value: TFontStyleNode);
   public
-    procedure CreateNode; override;
     destructor Destroy; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdFontStyle: TSFNode;
-    public property FdFontStyle: TSFNode read FFdFontStyle;
-
-    strict private FFdLength: TMFFloat;
-    public property FdLength: TMFFloat read FFdLength;
-
-    strict private FFdMaxExtent: TSFFloat;
-    public property FdMaxExtent: TSFFloat read FFdMaxExtent;
-
-    strict private FFdMaxDisplayChars: TSFInt32;
-    public property FdMaxDisplayChars: TSFInt32 read FFdMaxDisplayChars;
-
-    strict private FFdString: TMFString;
-    public property FdString: TMFString read FFdString;
-
-    { Event out } { }
-    strict private FEventLineBounds: TMFVec2fEvent;
-    public property EventLineBounds: TMFVec2fEvent read FEventLineBounds;
-
-    { Event out } { }
-    strict private FEventOrigin: TSFVec3fEvent;
-    public property EventOrigin: TSFVec3fEvent read FEventOrigin;
-
-    { Event out } { }
-    strict private FEventTextBounds: TSFVec2fEvent;
-    public property EventTextBounds: TSFVec2fEvent read FEventTextBounds;
-
-    strict private FFdSolid: TSFBool;
-    public property FdSolid: TSFBool read FFdSolid;
-
-    strict private FFdTexCoord: TSFNode;
-    public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
 
     function Proxy(var State: TX3DGraphTraverseState;
@@ -191,16 +112,11 @@
     function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
 
-    { The font rendering style. Returns @nil if not assigned,
-      or if the underlying X3D field has invalid node type assigned. }
-    property FontStyle: TFontStyleNode read GetFontStyle write SetFontStyle;
-
     function SolidField: TSFBool; override;
     function FontTextureNode: TAbstractTexture2DNode; override;
 
-    { Force recalculating the shape when font changed.
-      For now, we don't detect font changes (when TFontStyleNode.OnFont
-      returns something different) outselves. }
+    { Force recalculating the shape and font texture.
+      Call this when TFontStyleNode.OnFont returns something different. }
     procedure FontChanged;
 
     {$I auto_generated_node_helpers/x3dnodes_text.inc}
@@ -214,70 +130,11 @@ const
   FontStyleNames: array [TX3DFontStyle] of String =
   ('PLAIN', 'BOLD', 'ITALIC', 'BOLDITALIC');
 
-procedure TAbstractFontStyleNode.CreateNode;
-begin
-  inherited;
+  FontFamilyNames: array [TX3DFontFamily] of string =
+  ('SERIF', 'SANS', 'TYPEWRITER');
 
-  DefaultContainerField := 'fontStyle';
-end;
-
-procedure TFontStyleNode.CreateNode;
-begin
-  inherited;
-
-  FFdFamily := TMFString.Create(Self, false, 'family', ['SERIF']);
-   FdFamily.ChangeAlways := chFontStyle;
-  AddField(FFdFamily);
-
-  FFdHorizontal := TSFBool.Create(Self, false, 'horizontal', true);
-   FdHorizontal.ChangeAlways := chFontStyle;
-  AddField(FFdHorizontal);
-
-  FFdJustify := TMFString.Create(Self, false, 'justify', ['BEGIN']);
-   FdJustify.ChangeAlways := chFontStyle;
-  AddField(FFdJustify);
-  { X3D specification comment: ["BEGIN","END","FIRST","MIDDLE",""] }
-
-  {$ifndef CASTLE_SLIM_NODES}
-  FFdLanguage := TSFString.Create(Self, false, 'language', '');
-   FdLanguage.ChangeAlways := chFontStyle;
-  AddField(FFdLanguage);
-
-  FFdLeftToRight := TSFBool.Create(Self, false, 'leftToRight', true);
-   FdLeftToRight.ChangeAlways := chFontStyle;
-  AddField(FFdLeftToRight);
-  {$endif}
-
-  FFdSize := TSFFloat.Create(Self, false, 'size', DefaultSize);
-   FdSize.ChangeAlways := chFontStyle;
-  AddField(FFdSize);
-  { X3D specification comment: (0,Inf) }
-
-  FFdSpacing := TSFFloat.Create(Self, false, 'spacing', DefaultSpacing);
-   FdSpacing.ChangeAlways := chFontStyle;
-  AddField(FFdSpacing);
-  { X3D specification comment: [0,Inf) }
-
-  FFdStyle := TSFStringEnum.Create(Self, false, 'style', FontStyleNames, Ord(fsPlain));
-   FdStyle.ChangeAlways := chFontStyle;
-  AddField(FFdStyle);
-  { X3D specification comment: ["PLAIN"|"BOLD"|"ITALIC"|"BOLDITALIC"|""] }
-
-  {$ifndef CASTLE_SLIM_NODES}
-  FFdTopToBottom := TSFBool.Create(Self, false, 'topToBottom', true);
-   FdTopToBottom.ChangeAlways := chFontStyle;
-  AddField(FFdTopToBottom);
-  {$endif}
-
-  FFdBlending := TSFBool.Create(Self, false, 'blending', DefaultBlending);
-   FdBlending.ChangeAlways := chFontStyle;
-  AddField(FFdBlending);
-end;
-
-class function TFontStyleNode.ClassX3DType: string;
-begin
-  Result := 'FontStyle';
-end;
+  JustifyToString: array[TX3DFontJustify] of string =
+  ('FIRST', 'BEGIN', 'MIDDLE', 'END');
 
 class function TFontStyleNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
@@ -305,9 +162,6 @@ begin
 end;
 
 procedure TFontStyleNode.SetFamily(const Value: TX3DFontFamily);
-const
-  FontFamilyNames: array [TX3DFontFamily] of string =
-  ('SERIF', 'SANS', 'TYPEWRITER');
 begin
   FdFamily.Send(FontFamilyNames[Value]);
 end;
@@ -399,10 +253,6 @@ begin
   end;
 end;
 
-const
-  JustifyToString: array[TX3DFontJustify] of string =
-  ('FIRST', 'BEGIN', 'MIDDLE', 'END');
-
 function TFontStyleNode.GetJustify: TX3DFontJustify;
 begin
   if FdJustify.Items.Count > 0 then
@@ -429,60 +279,6 @@ begin
   FdJustify.Send([JustifyToString[Justify], JustifyToString[Value]]);
 end;
 
-function TFontStyleNode.GetBlending: boolean;
-begin
-  Result := FdBlending.Value;
-end;
-
-procedure TFontStyleNode.SetBlending(const Value: boolean);
-begin
-  FdBlending.Send(Value);
-end;
-
-procedure TTextNode.CreateNode;
-begin
-  inherited;
-
-  FFdFontStyle := TSFNode.Create(Self, true, 'fontStyle', [TAbstractFontStyleNode]);
-   FdFontStyle.ChangeAlways := chGeometry;
-  AddField(FFdFontStyle);
-
-  FFdLength := TMFFloat.Create(Self, true, 'length', []);
-   FdLength.ChangeAlways := chGeometry;
-  AddField(FFdLength);
-  { X3D specification comment: [0,Inf) }
-
-  FFdMaxExtent := TSFFloat.Create(Self, true, 'maxExtent', 0.0);
-   FdMaxExtent.ChangeAlways := chGeometry;
-  AddField(FFdMaxExtent);
-  { X3D specification comment: [0,Inf) }
-
-  FFdMaxDisplayChars := TSFInt32.Create(Self, true, 'maxDisplayChars', -1);
-   FdMaxDisplayChars.ChangeAlways := chGeometry;
-  AddField(FdMaxDisplayChars);
-
-  FFdString := TMFString.Create(Self, true, 'string', []);
-   FdString.ChangeAlways := chGeometry;
-  AddField(FFdString);
-
-  FEventLineBounds := TMFVec2fEvent.Create(Self, 'lineBounds', false);
-  AddEvent(FEventLineBounds);
-
-  FEventOrigin := TSFVec3fEvent.Create(Self, 'origin', false);
-  AddEvent(FEventOrigin);
-
-  FEventTextBounds := TSFVec2fEvent.Create(Self, 'textBounds', false);
-  AddEvent(FEventTextBounds);
-
-  FFdSolid := TSFBool.Create(Self, false, 'solid', false);
-   FdSolid.ChangeAlways := chGeometry;
-  AddField(FFdSolid);
-
-  FFdTexCoord := TSFNode.Create(Self, true, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
-   FdTexCoord.ChangeAlways := chGeometry;
-  AddField(FFdTexCoord);
-end;
-
 destructor TTextNode.Destroy;
 begin
   if X3DCache <> nil then
@@ -496,27 +292,9 @@ begin
     X3DCache.FreeFontTexture(FFontTextureNode);
 end;
 
-class function TTextNode.ClassX3DType: string;
-begin
-  Result := 'Text';
-end;
-
 function TTextNode.TexCoordField: TSFNode;
 begin
   Result := FdTexCoord;
-end;
-
-function TTextNode.GetFontStyle: TFontStyleNode;
-begin
-  if (FdFontStyle.Value <> nil) and
-     (FdFontStyle.Value is TFontStyleNode) then
-    Result := TFontStyleNode(FdFontStyle.Value) else
-    Result := nil;
-end;
-
-procedure TTextNode.SetFontStyle(const Value: TFontStyleNode);
-begin
-  FdFontStyle.Send(Value);
 end;
 
 function TTextNode.SolidField: TSFBool;
@@ -860,18 +638,18 @@ var
   I: Integer;
   ExtraTexCoordField: TMFVec2f;
 begin
-  if FontStyle = nil then
+  if FontStyle is TFontStyleNode then // also checks FontStyle <> nil
+  begin
+    Size := TFontStyleNode(FontStyle).FdSize.Value;
+    Spacing := TFontStyleNode(FontStyle).FdSpacing.Value;
+    Justify := TFontStyleNode(FontStyle).Justify;
+    JustifyMinor := TFontStyleNode(FontStyle).JustifyMinor;
+  end else
   begin
     Size := TFontStyleNode.DefaultSize;
     Spacing := TFontStyleNode.DefaultSpacing;
     Justify := TFontStyleNode.DefaultJustify;
     JustifyMinor := TFontStyleNode.DefaultJustifyMinor;
-  end else
-  begin
-    Size := FontStyle.FdSize.Value;
-    Spacing := FontStyle.FdSpacing.Value;
-    Justify := FontStyle.Justify;
-    JustifyMinor := FontStyle.JustifyMinor;
   end;
 
   FaceSet := TQuadSetNode.Create(X3DName, BaseUrl);
@@ -984,8 +762,8 @@ function TTextNode.Font: TTextureFontData;
 var
   TemporaryFontStyle: TFontStyleNode;
 begin
-  if FontStyle <> nil then
-    Result := FontStyle.Font
+  if FontStyle is TFontStyleNode then // also checks FontStyle <> nil
+    Result := TFontStyleNode(FontStyle).Font
   else
   begin
     TemporaryFontStyle := TFontStyleNode.Create('', BaseUrl);
@@ -1010,8 +788,8 @@ begin
     chGeometry does now) and it should provoke recreating FontTextureNode. }
   if FFontTextureNode = nil then
   begin
-    if FontStyle <> nil then
-      Blending := FontStyle.Blending
+    if FontStyle is TFontStyleNode then // also checks FontStyle <> nil
+      Blending := TFontStyleNode(FontStyle).Blending
     else
       Blending := TFontStyleNode.DefaultBlending;
     FFontTextureNode := X3DCache.LoadFontTexture(Font, Blending);

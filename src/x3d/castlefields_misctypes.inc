@@ -171,8 +171,15 @@
       (assuming it's "update" field value wants it too). }
     chGeneratedTextureUpdateNeeded,
 
-    { VRML 2.0 / X3D FontStyle changed. The node must be TFontStyleNode. }
+    { VRML 2.0 / X3D FontStyle changed, and it requires recreating TTextNode
+      geometry (but not texture).
+      The node must be TFontStyleNode. }
     chFontStyle,
+
+    { VRML 2.0 / X3D FontStyle changed, and it requires recreating TTextNode
+      geometry and texture (so underlying font changed).
+      The node must be TFontStyleNode. }
+    chFontStyleFontChanged,
 
     { HeadLight on status changed. }
     chHeadLightOn,

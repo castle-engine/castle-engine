@@ -298,18 +298,18 @@ var
   Size, Spacing: Single;
   Justify, JustifyMinor: TX3DFontJustify;
 begin
-  if FontStyle = nil then
+  if FontStyle is TFontStyleNode then // also checks FontStyle <> nil
+  begin
+    Size := TFontStyleNode(FontStyle).FdSize.Value;
+    Spacing := TFontStyleNode(FontStyle).FdSpacing.Value;
+    Justify := TFontStyleNode(FontStyle).Justify;
+    JustifyMinor := TFontStyleNode(FontStyle).JustifyMinor;
+  end else
   begin
     Size := TFontStyleNode.DefaultSize;
     Spacing := TFontStyleNode.DefaultSpacing;
     Justify := TFontStyleNode.DefaultJustify;
     JustifyMinor := TFontStyleNode.DefaultJustifyMinor;
-  end else
-  begin
-    Size := FontStyle.FdSize.Value;
-    Spacing := FontStyle.FdSpacing.Value;
-    Justify := FontStyle.Justify;
-    JustifyMinor := FontStyle.JustifyMinor;
   end;
 
   Result := Text_LocalBoundingBox(State,

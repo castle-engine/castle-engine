@@ -60,6 +60,7 @@ const
     'Shadow caster',
     'Generated texture update',
     'FontStyle',
+    'FontStyle with FontChanged',
     'HeadLight on',
     'ClipPlane',
     'X3DDragSensorNode.enabled',

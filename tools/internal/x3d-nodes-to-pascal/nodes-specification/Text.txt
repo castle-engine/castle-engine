@@ -1,39 +1,66 @@
 X3DFontStyleNode : X3DNode {
+  auto-generate-more: true
+  default-container-field: fontStyle
 }
 
 FontStyle : X3DFontStyleNode {
-  MFString []       family      "SERIF"
+  auto-generate-more: true
+  MFString []       family      ["SERIF"]
+    range: ["SERIF"|"SANS"|"TYPEWRITER"]
+    # enumerated-type: TX3DFontFamily FontFamilyNames ffSerif
+    change: chFontStyleFontChanged
   SFBool   []       horizontal  TRUE
-  MFString []       justify     "BEGIN"
+    change: chFontStyle
+  MFString []       justify     ["BEGIN"]
     range: ["BEGIN","END","FIRST","MIDDLE",""]
     # TODO: enumerated-type: TX3DFontJustify JustifyToString fjBegin
+    change: chFontStyle
   SFString []       language    ""
     not-slim
+    change: chFontStyle
   SFBool   []       leftToRight TRUE
     not-slim
+    change: chFontStyle
   SFFloat  []       size        1.0
     range: (0,Inf)
+    change: chFontStyle
   SFFloat  []       spacing     1.0
     range: [0,Inf)
+    change: chFontStyle
   SFString []       style       "PLAIN"
     range: ["PLAIN"|"BOLD"|"ITALIC"|"BOLDITALIC"|""]
     enumerated-type: TX3DFontStyle FontStyleNames fsPlain
+    change: chFontStyleFontChanged
   SFBool   []       topToBottom TRUE
     not-slim
+    change: chFontStyle
+
+  # CASTLE GAME ENGINE EXTENSIONS:
+  SFBool   []       blending    TRUE
 }
 
 Text : X3DGeometryNode {
+  auto-generate-more: true
   SFNode   [in,out] fontStyle  NULL
     range: X3DFontStyleNode
+    change: chGeometry
   MFFloat  [in,out] length     []
     range: [0,Inf)
+    change: chGeometry
   SFFloat  [in,out] maxExtent  0.0
     range: [0,Inf)
+    change: chGeometry
   SFInt32  [in,out] maxDisplayChars -1
     range: [-1,Inf)
+    change: chGeometry
   MFString [in,out] string     []
+    change: chGeometry
   MFVec2f  [out]    lineBounds
   SFVec3f  [out]    origin
   SFVec2f  [out]    textBounds
   SFBool   []       solid      FALSE
+
+  # CASTLE GAME ENGINE EXTENSIONS:
+  SFNode     [in,out]      texCoord    NULL
+    range: TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate
 }

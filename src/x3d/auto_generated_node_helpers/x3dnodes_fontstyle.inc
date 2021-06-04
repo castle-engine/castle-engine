@@ -46,27 +46,79 @@
     function GetTopToBottom: Boolean;
     procedure SetTopToBottom(const Value: Boolean);
 {$endif not CASTLE_SLIM_NODES}
+    function GetBlending: Boolean;
+    procedure SetBlending(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdFamily: TMFString;
+    { X3D field "family". } { }
+    public property FdFamily: TMFString read FFdFamily;
+
+    strict private FFdHorizontal: TSFBool;
+    { X3D field "horizontal". } { }
+    public property FdHorizontal: TSFBool read FFdHorizontal;
     { X3D field "horizontal". } { }
     property Horizontal: Boolean read GetHorizontal write SetHorizontal;
+
+    strict private FFdJustify: TMFString;
+    { X3D field "justify". } { }
+    public property FdJustify: TMFString read FFdJustify;
+
+{$ifndef CASTLE_SLIM_NODES}
+    strict private FFdLanguage: TSFString;
+    { X3D field "language". } { }
+    public property FdLanguage: TSFString read FFdLanguage;
+{$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
     { X3D field "language". } { }
     property Language: String read GetLanguage write SetLanguage;
+{$endif not CASTLE_SLIM_NODES}
+
+{$ifndef CASTLE_SLIM_NODES}
+    strict private FFdLeftToRight: TSFBool;
+    { X3D field "leftToRight". } { }
+    public property FdLeftToRight: TSFBool read FFdLeftToRight;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
     { X3D field "leftToRight". } { }
     property LeftToRight: Boolean read GetLeftToRight write SetLeftToRight;
 {$endif not CASTLE_SLIM_NODES}
+
+    strict private FFdSize: TSFFloat;
+    { X3D field "size". } { }
+    public property FdSize: TSFFloat read FFdSize;
     { X3D field "size". } { }
     property Size: Single read GetSize write SetSize;
+
+    strict private FFdSpacing: TSFFloat;
+    { X3D field "spacing". } { }
+    public property FdSpacing: TSFFloat read FFdSpacing;
     { X3D field "spacing". } { }
     property Spacing: Single read GetSpacing write SetSpacing;
+
+    strict private FFdStyle: TSFStringEnum;
+    { X3D field "style". } { }
+    public property FdStyle: TSFStringEnum read FFdStyle;
     { X3D field "style". } { }
     property Style: TX3DFontStyle read GetStyle write SetStyle;
+
+{$ifndef CASTLE_SLIM_NODES}
+    strict private FFdTopToBottom: TSFBool;
+    { X3D field "topToBottom". } { }
+    public property FdTopToBottom: TSFBool read FFdTopToBottom;
+{$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
     { X3D field "topToBottom". } { }
     property TopToBottom: Boolean read GetTopToBottom write SetTopToBottom;
 {$endif not CASTLE_SLIM_NODES}
+
+    strict private FFdBlending: TSFBool;
+    { X3D field "blending". } { }
+    public property FdBlending: TSFBool read FFdBlending;
+    { X3D field "blending". } { }
+    property Blending: Boolean read GetBlending write SetBlending;
 
 {$endif read_interface}
 
@@ -150,4 +202,70 @@ begin
 end;
 
 {$endif not CASTLE_SLIM_NODES}
+function TFontStyleNode.GetBlending: Boolean;
+begin
+  Result := FdBlending.Value;
+end;
+
+procedure TFontStyleNode.SetBlending(const Value: Boolean);
+begin
+  FdBlending.Send(Value);
+end;
+
+class function TFontStyleNode.ClassX3DType: String;
+begin
+  Result := 'FontStyle';
+end;
+
+procedure TFontStyleNode.CreateNode;
+begin
+  inherited;
+
+  FFdFamily := TMFString.Create(Self, False, 'family', ['SERIF']);
+   FdFamily.ChangeAlways := chFontStyleFontChanged;
+  AddField(FFdFamily);
+
+  FFdHorizontal := TSFBool.Create(Self, False, 'horizontal', true);
+   FdHorizontal.ChangeAlways := chFontStyle;
+  AddField(FFdHorizontal);
+
+  FFdJustify := TMFString.Create(Self, False, 'justify', ['BEGIN']);
+   FdJustify.ChangeAlways := chFontStyle;
+  AddField(FFdJustify);
+
+{$ifndef CASTLE_SLIM_NODES}
+  FFdLanguage := TSFString.Create(Self, False, 'language', '');
+   FdLanguage.ChangeAlways := chFontStyle;
+  AddField(FFdLanguage);
+{$endif not CASTLE_SLIM_NODES}
+
+{$ifndef CASTLE_SLIM_NODES}
+  FFdLeftToRight := TSFBool.Create(Self, False, 'leftToRight', true);
+   FdLeftToRight.ChangeAlways := chFontStyle;
+  AddField(FFdLeftToRight);
+{$endif not CASTLE_SLIM_NODES}
+
+  FFdSize := TSFFloat.Create(Self, False, 'size', 1.0);
+   FdSize.ChangeAlways := chFontStyle;
+  AddField(FFdSize);
+
+  FFdSpacing := TSFFloat.Create(Self, False, 'spacing', 1.0);
+   FdSpacing.ChangeAlways := chFontStyle;
+  AddField(FFdSpacing);
+
+  FFdStyle := TSFStringEnum.Create(Self, False, 'style', FontStyleNames, Ord(fsPlain));
+   FdStyle.ChangeAlways := chFontStyleFontChanged;
+  AddField(FFdStyle);
+
+{$ifndef CASTLE_SLIM_NODES}
+  FFdTopToBottom := TSFBool.Create(Self, False, 'topToBottom', true);
+   FdTopToBottom.ChangeAlways := chFontStyle;
+  AddField(FFdTopToBottom);
+{$endif not CASTLE_SLIM_NODES}
+
+  FFdBlending := TSFBool.Create(Self, False, 'blending', true);
+   FdBlending.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBlending);
+end;
+
 {$endif read_implementation}
