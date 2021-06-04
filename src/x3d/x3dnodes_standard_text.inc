@@ -353,9 +353,35 @@ var
       {$endif}
     end;
     Result := Result * (Font.RowHeight * Spacing);
-    { Add font descend, to account for the fact that baseline is a bit higher than 0.
-      This makes similar layout as TCastleLabel,
-      and makes the result match Text_LocalBoundingBox. }
+
+    { For JustifyMinor <> fjFirst add font descend,
+      to account for the fact that baseline is a bit higher than 0.
+
+      This means that (for JustifyMinor <> fjFirst) vertical level = 0 is not "baseline".
+      Vertical level = 0 is "where bounding box starts". This has advantages:
+
+      - It is similar behavior to TCastleLabel. So user has consistent behavior,
+        and you can even easily match TCastleLabel coordinates with TCastleText coordinates
+        in the viewport.
+      - It is more comfortable when you want to fit the text somewhere.
+        No text geometry goes underneath vertical level = 0, ever.
+      - This makes the fjBegin and fjEnd behave consistently,
+        and for both horizontal and vertical cases.
+        They all mean "this is the edge of the bounding box".
+
+      In contrast, fjFirst logic is a bit special.
+      It means that vertical level = 0 is "baseline".
+      This makes the bottom of the font special:
+
+      - Font may have some geometry below 0.
+      - This is unlike the horizontal fjFirst (that determines just "left edge of bbox"
+        and is equal to fjBegin).
+
+      Of course fjFirst (vertical level = 0 is "baseline") has one big advantage:
+      making larger/smaller Descend of the font doesn't shift where the baseline is rendered.
+
+      It matches Text_LocalBoundingBox logic, that also accounts for
+      JustifyMinor=fjFirst as a special case. }
     if JustifyMinor <> fjFirst then
       Result := Result + Font.Descend * Spacing;
   end;
