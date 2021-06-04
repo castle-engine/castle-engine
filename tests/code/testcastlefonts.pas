@@ -42,8 +42,8 @@ implementation
 
 uses SysUtils, Classes,
   {$ifdef TEST_CASTLE_WINDOW} CastleWindow, {$endif}
-  CastleFonts, CastleTextureFont_DejaVuSansMonoBold_15,
-  Font_LatoRegular_300;
+  CastleFonts, CastleTextureFont_DejaVuSansMonoBold_15, CastleLog,
+  Font_LatoRegular_300, CastleInternalFreeTypeH;
 
 procedure TTestCastleFonts.TestMaxTextWidthHtml;
 var
@@ -279,6 +279,12 @@ var
   F: TCastleFont;
   FF: TCastleFontFamily;
 begin
+  // if not FreeTypeLibraryInitialized then
+  // begin
+  //   WritelnWarning('FreeType library not available, aborting TTestCastleFonts.TestSizeChangeNotificationFontFamily');
+  //   Exit;
+  // end;
+
   F := TCastleFont.Create(nil);
   AssertEquals(0, F.RowHeight);
 
@@ -302,6 +308,12 @@ var
   F: TCastleFont;
   CF: TCastleFontFamily;
 begin
+  // if not FreeTypeLibraryInitialized then
+  // begin
+  //   WritelnWarning('FreeType library not available, aborting TTestCastleFonts.TestSizeChangeNotificationCustomized');
+  //   Exit;
+  // end;
+
   F := TCastleFont.Create(nil);
   AssertEquals(0, F.RowHeight);
 
