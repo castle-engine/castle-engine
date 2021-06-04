@@ -353,6 +353,11 @@ var
       {$endif}
     end;
     Result := Result * (Font.RowHeight * Spacing);
+    { Add font descend, to account for the fact that baseline is a bit higher than 0.
+      This makes similar layout as TCastleLabel,
+      and makes the result match Text_LocalBoundingBox. }
+    if JustifyMinor <> fjFirst then
+      Result := Result + Font.Descend * Spacing;
   end;
 
 var
@@ -369,15 +374,7 @@ var
     if (EventOrigin <> nil) and
        (OriginalNode.Scene <> nil) then
     begin
-      { This is all simple, since we ignore topToBottom, leftToRight.
-        Also, we don't honour the rule that the upper line of the text
-        is exactly on Y = 0 (instead, our *row* (which is slightly higher
-        than the upper text line) is on Y = 0, this is documented
-        on [https://castle-engine.io/x3d_implementation_status.php]
-        by failed NIST test about it.
-
-        So the lacks of current Text rendering implementation
-        make this somewhat simple :) }
+      { TODO: We ignore topToBottom, leftToRight. }
 
       FinalRowHeight := Font.RowHeight * Spacing * YScale;
 

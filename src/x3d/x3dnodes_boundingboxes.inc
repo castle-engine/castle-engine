@@ -244,7 +244,7 @@ function Text_LocalBoundingBox(State: TX3DGraphTraverseState;
   const Font: TTextureFontData;
   const Strings: TCastleStringList): TBox3D;
 var
-  YScale, XScale, MaxRowWidth, MinX, MinY, MaxX, MaxY: Single;
+  YScale, XScale, MaxRowWidth, MinX, MinY, MaxX, MaxY, Descend: Single;
   I: integer;
 begin
   YScale := Size / Font.RowHeight;
@@ -275,6 +275,14 @@ begin
   end;
   MinY := MinY * (Size * Spacing);
   MaxY := MaxY * (Size * Spacing);
+
+  // for JustifyMinor = fjFirst, the level 0 is at baseline, so lower bbox
+  if JustifyMinor = fjFirst then
+  begin
+    Descend := Size * Font.Descend / Font.RowHeight;
+    MinY := MinY - (Descend * Spacing);
+    MaxY := MaxY - (Descend * Spacing);
+  end;
 
   Result := Box3D(
     Vector3(MinX, MinY, 0),
