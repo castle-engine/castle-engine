@@ -467,7 +467,9 @@ begin
   // Windows
   {$ifdef MSWINDOWS}
     {$define ft_found_platform}
-    FreeTypeLibrary := TDynLib.Load('freetype-6.dll', false);
+    FreeTypeLibrary := TDynLib.Load('freetype.dll', false);
+    if FreeTypeLibrary = nil then
+      FreeTypeLibrary := TDynLib.Load('freetype-6.dll', false);
   {$endif}
 
   // macOS

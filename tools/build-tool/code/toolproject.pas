@@ -549,7 +549,7 @@ begin
     win32:
       begin
         if depFreetype in Dependencies then
-          AddExternalLibrary('freetype-6.dll');
+          AddExternalLibrary('freetype.dll');
         if depZlib in Dependencies then
           AddExternalLibrary('zlib1.dll');
         if depPng in Dependencies then
@@ -576,7 +576,7 @@ begin
     win64:
       begin
         if depFreetype in Dependencies then
-          AddExternalLibrary('freetype-6.dll');
+          AddExternalLibrary('freetype.dll');
         if depZlib in Dependencies then
           AddExternalLibrary('zlib1.dll');
         if depPng in Dependencies then
