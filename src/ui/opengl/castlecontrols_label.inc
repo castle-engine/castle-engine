@@ -284,6 +284,16 @@ begin
       Font.RowHeight * TextToRenderCount +
       LineSpacingScaled * (TextToRenderCount - 1) +
       2 * PaddingVerticalScaled +
+      { This additional Font.Descend is actually always an empty space on top of
+        the text. So we do not have to increase PreferredHeight by this Font.Descend,
+        strictly speaking (if we treat PreferredHeight as a "minimum bounding box height").
+
+        But adding it makes the text looks nicer centered vertically in the bbox.
+        Visually you have an ~empty space at the bottom (not really empty,
+        but usually empty) of height Font.Descend and empty space at top
+        (really always empty) of height Font.Descend.
+
+        So anchoring this TCastleLabel with vpMiddle to something else looks better. }
       Font.Descend;
   end;
 end;
