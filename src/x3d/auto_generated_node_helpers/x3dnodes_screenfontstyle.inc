@@ -36,19 +36,61 @@
     procedure SetPointSize(const Value: Single);
     function GetSpacing: Single;
     procedure SetSpacing(const Value: Single);
+    function GetStyle: TX3DFontStyle;
+    procedure SetStyle(const Value: TX3DFontStyle);
     function GetTopToBottom: Boolean;
     procedure SetTopToBottom(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdFamily: TMFString;
+    { X3D field "family". } { }
+    public property FdFamily: TMFString read FFdFamily;
+
+    strict private FFdHorizontal: TSFBool;
+    { X3D field "horizontal". } { }
+    public property FdHorizontal: TSFBool read FFdHorizontal;
     { X3D field "horizontal". } { }
     property Horizontal: Boolean read GetHorizontal write SetHorizontal;
+
+    strict private FFdJustify: TMFString;
+    { X3D field "justify". } { }
+    public property FdJustify: TMFString read FFdJustify;
+
+    strict private FFdLanguage: TSFString;
+    { X3D field "language". } { }
+    public property FdLanguage: TSFString read FFdLanguage;
     { X3D field "language". } { }
     property Language: String read GetLanguage write SetLanguage;
+
+    strict private FFdLeftToRight: TSFBool;
+    { X3D field "leftToRight". } { }
+    public property FdLeftToRight: TSFBool read FFdLeftToRight;
     { X3D field "leftToRight". } { }
     property LeftToRight: Boolean read GetLeftToRight write SetLeftToRight;
+
+    strict private FFdPointSize: TSFFloat;
+    { X3D field "pointSize". } { }
+    public property FdPointSize: TSFFloat read FFdPointSize;
     { X3D field "pointSize". } { }
     property PointSize: Single read GetPointSize write SetPointSize;
+
+    strict private FFdSpacing: TSFFloat;
+    { X3D field "spacing". } { }
+    public property FdSpacing: TSFFloat read FFdSpacing;
     { X3D field "spacing". } { }
     property Spacing: Single read GetSpacing write SetSpacing;
+
+    strict private FFdStyle: TSFStringEnum;
+    { X3D field "style". } { }
+    public property FdStyle: TSFStringEnum read FFdStyle;
+    { X3D field "style". } { }
+    property Style: TX3DFontStyle read GetStyle write SetStyle;
+
+    strict private FFdTopToBottom: TSFBool;
+    { X3D field "topToBottom". } { }
+    public property FdTopToBottom: TSFBool read FFdTopToBottom;
     { X3D field "topToBottom". } { }
     property TopToBottom: Boolean read GetTopToBottom write SetTopToBottom;
 
@@ -108,6 +150,16 @@ begin
   FdSpacing.Send(Value);
 end;
 
+function TScreenFontStyleNode.GetStyle: TX3DFontStyle;
+begin
+  Result := TX3DFontStyle(FdStyle.EnumValue);
+end;
+
+procedure TScreenFontStyleNode.SetStyle(const Value: TX3DFontStyle);
+begin
+  FdStyle.SendEnumValue(Ord(Value));
+end;
+
 function TScreenFontStyleNode.GetTopToBottom: Boolean;
 begin
   Result := FdTopToBottom.Value;
@@ -116,6 +168,52 @@ end;
 procedure TScreenFontStyleNode.SetTopToBottom(const Value: Boolean);
 begin
   FdTopToBottom.Send(Value);
+end;
+
+class function TScreenFontStyleNode.ClassX3DType: String;
+begin
+  Result := 'ScreenFontStyle';
+end;
+
+procedure TScreenFontStyleNode.CreateNode;
+begin
+  inherited;
+
+  FFdFamily := TMFString.Create(Self, False, 'family', ['SERIF']);
+   FdFamily.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdFamily);
+
+  FFdHorizontal := TSFBool.Create(Self, False, 'horizontal', true);
+   FdHorizontal.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdHorizontal);
+
+  FFdJustify := TMFString.Create(Self, False, 'justify', ['BEGIN']);
+   FdJustify.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdJustify);
+
+  FFdLanguage := TSFString.Create(Self, False, 'language', '');
+   FdLanguage.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdLanguage);
+
+  FFdLeftToRight := TSFBool.Create(Self, False, 'leftToRight', true);
+   FdLeftToRight.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdLeftToRight);
+
+  FFdPointSize := TSFFloat.Create(Self, False, 'pointSize', 12.0);
+   FdPointSize.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdPointSize);
+
+  FFdSpacing := TSFFloat.Create(Self, False, 'spacing', 1.0);
+   FdSpacing.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSpacing);
+
+  FFdStyle := TSFStringEnum.Create(Self, False, 'style', FontStyleNames, Ord(fsPlain));
+   FdStyle.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdStyle);
+
+  FFdTopToBottom := TSFBool.Create(Self, False, 'topToBottom', true);
+   FdTopToBottom.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdTopToBottom);
 end;
 
 {$endif read_implementation}

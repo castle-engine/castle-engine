@@ -31,8 +31,18 @@
     function GetViewport: TAbstractViewportNode;
     procedure SetViewport(const Value: TAbstractViewportNode);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdIsPickable: TSFBool;
+    { X3D field "isPickable". } { }
+    public property FdIsPickable: TSFBool read FFdIsPickable;
     { X3D field "isPickable". } { }
     property IsPickable: Boolean read GetIsPickable write SetIsPickable;
+
+    strict private FFdViewport: TSFNode;
+    { X3D field "viewport". } { }
+    public property FdViewport: TSFNode read FFdViewport;
     { X3D field "viewport". } { }
     property Viewport: TAbstractViewportNode read GetViewport write SetViewport;
 
@@ -63,6 +73,26 @@ end;
 procedure TAbstractLayerNode.SetViewport(const Value: TAbstractViewportNode);
 begin
   FdViewport.Send(Value);
+end;
+
+class function TAbstractLayerNode.ClassX3DType: String;
+begin
+  Result := 'X3DLayerNode';
+end;
+
+procedure TAbstractLayerNode.CreateNode;
+begin
+  inherited;
+
+  FFdIsPickable := TSFBool.Create(Self, True, 'isPickable', true);
+   FdIsPickable.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdIsPickable);
+
+  FFdViewport := TSFNode.Create(Self, True, 'viewport', [TAbstractViewportNode]);
+   FdViewport.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdViewport);
+
+  DefaultContainerField := 'layers';
 end;
 
 {$endif read_implementation}

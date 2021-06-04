@@ -247,6 +247,7 @@ type
 
       - TShape is associated with
         TShapeNode,
+        TAppearanceNode,
         TAbstractGeometryNode,
         TCoordinateNode (anything that can be inside TAbstractGeometryNode.CoordField),
         TNormalNode (anything that can be inside TAbstractGeometryNode.NormalField),
@@ -1455,6 +1456,8 @@ begin
     if AState.ShapeNode <> nil then
     begin
       AssociateNode(AState.ShapeNode);
+      if AState.ShapeNode.Appearance <> nil then
+        AssociateNode(AState.ShapeNode.Appearance);
       if AState.ShapeNode.Material <> nil then
         AssociateNode(AState.ShapeNode.Material);
     end;
@@ -1501,6 +1504,8 @@ begin
     if AState.ShapeNode <> nil then
     begin
       UnAssociateNode(AState.ShapeNode);
+      if AState.ShapeNode.Appearance <> nil then
+        UnAssociateNode(AState.ShapeNode.Appearance);
       if AState.ShapeNode.Material <> nil then
         UnAssociateNode(AState.ShapeNode.Material);
     end;

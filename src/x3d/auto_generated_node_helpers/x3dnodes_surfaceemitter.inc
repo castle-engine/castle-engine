@@ -29,10 +29,24 @@
     function GetSurface: TAbstractGeometryNode;
     procedure SetSurface(const Value: TAbstractGeometryNode);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventSet_coordIndex: TMFInt32Event;
+    { X3D in event "set_coordIndex". } { }
+    public property EventSet_coordIndex: TMFInt32Event read FEventSet_coordIndex;
+
+    strict private FFdCoordIndex: TMFInt32;
+    { X3D field "coordIndex". } { }
+    public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
     { Set X3D field "coordIndex". } { }
     procedure SetCoordIndex(const Value: array of LongInt);
     { Set X3D field "coordIndex". } { }
     procedure SetCoordIndex(const Value: TLongIntList);
+
+    strict private FFdSurface: TSFNode;
+    { X3D field "surface". } { }
+    public property FdSurface: TSFNode read FFdSurface;
     { X3D field "surface". } { }
     property Surface: TAbstractGeometryNode read GetSurface write SetSurface;
 
@@ -63,6 +77,27 @@ end;
 procedure TSurfaceEmitterNode.SetSurface(const Value: TAbstractGeometryNode);
 begin
   FdSurface.Send(Value);
+end;
+
+class function TSurfaceEmitterNode.ClassX3DType: String;
+begin
+  Result := 'SurfaceEmitter';
+end;
+
+procedure TSurfaceEmitterNode.CreateNode;
+begin
+  inherited;
+
+  FEventSet_coordIndex := TMFInt32Event.Create(Self, 'set_coordIndex', true);
+  AddEvent(FEventSet_coordIndex);
+
+  FFdCoordIndex := TMFInt32.Create(Self, False, 'coordIndex', [ -1]);
+   FdCoordIndex.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdCoordIndex);
+
+  FFdSurface := TSFNode.Create(Self, False, 'surface', [TAbstractGeometryNode]);
+   FdSurface.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSurface);
 end;
 
 {$endif read_implementation}

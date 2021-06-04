@@ -26,6 +26,12 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdClipBoundary: TMFFloat;
+    { X3D field "clipBoundary". } { }
+    public property FdClipBoundary: TMFFloat read FFdClipBoundary;
     { Set X3D field "clipBoundary". } { }
     procedure SetClipBoundary(const Value: array of Single);
     { Set X3D field "clipBoundary". } { }
@@ -45,6 +51,20 @@ end;
 procedure TViewportNode.SetClipBoundary(const Value: TSingleList);
 begin
   FdClipBoundary.Send(Value);
+end;
+
+class function TViewportNode.ClassX3DType: String;
+begin
+  Result := 'Viewport';
+end;
+
+procedure TViewportNode.CreateNode;
+begin
+  inherited;
+
+  FFdClipBoundary := TMFFloat.Create(Self, True, 'clipBoundary', [0, 1, 0, 1]);
+   FdClipBoundary.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdClipBoundary);
 end;
 
 {$endif read_implementation}

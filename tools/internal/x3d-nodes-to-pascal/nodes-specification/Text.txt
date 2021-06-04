@@ -6,6 +6,7 @@ FontStyle : X3DFontStyleNode {
   SFBool   []       horizontal  TRUE
   MFString []       justify     "BEGIN"
     range: ["BEGIN","END","FIRST","MIDDLE",""]
+    # TODO: enumerated-type: TX3DFontJustify JustifyToString fjBegin
   SFString []       language    ""
     not-slim
   SFBool   []       leftToRight TRUE
@@ -16,6 +17,7 @@ FontStyle : X3DFontStyleNode {
     range: [0,Inf)
   SFString []       style       "PLAIN"
     range: ["PLAIN"|"BOLD"|"ITALIC"|"BOLDITALIC"|""]
+    enumerated-type: TX3DFontStyle FontStyleNames fsPlain
   SFBool   []       topToBottom TRUE
     not-slim
 }
