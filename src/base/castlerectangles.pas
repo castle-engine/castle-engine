@@ -443,6 +443,13 @@ type
     { Alternative way to access @link(Width) and @link(Height).
       Name consistent with TBoxNode.Size, TBox3D.Size. }
     property Size: TVector2 read GetSize write SetSize;
+
+    { Add 4 corners of this rectangle to the list, in CCW order, starting from left-bottom. }
+    procedure AddToCoords(const Coords: TVector2List);
+
+    { Add 4 corners of this rectangle to the list, in CCW order, starting from left-bottom.
+      Set the Z coordinate of all added (3D) points to the one you specify by the Z parameter. }
+    procedure AddToCoords(const Coords: TVector3List; const Z: Single);
   end;
 
   PFloatRectangle = ^TFloatRectangle;
@@ -1574,6 +1581,22 @@ begin
     end else
       Result := TFloatRectangle.Empty;
   end;
+end;
+
+procedure TFloatRectangle.AddToCoords(const Coords: TVector2List);
+begin
+  Coords.Add(Vector2(Left , Bottom));
+  Coords.Add(Vector2(Right, Bottom));
+  Coords.Add(Vector2(Right, Top));
+  Coords.Add(Vector2(Left , Top));
+end;
+
+procedure TFloatRectangle.AddToCoords(const Coords: TVector3List; const Z: Single);
+begin
+  Coords.Add(Vector3(Left , Bottom, Z));
+  Coords.Add(Vector3(Right, Bottom, Z));
+  Coords.Add(Vector3(Right, Top   , Z));
+  Coords.Add(Vector3(Left , Top   , Z));
 end;
 
 { TRectangleList -------------------------------------------------------------- }

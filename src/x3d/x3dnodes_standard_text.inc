@@ -659,9 +659,10 @@ var
   end;
 
   { Print the string, by adding rectangles to current QuadSet.
-    This is somewhat analogous to printing straight in 2D done
-    by TCastleAbstractFont.Print and TDrawableImage.Draw. }
-  procedure Print(X, Y: Single; const S: string; const XScale, YScale: Single);
+    This is analogous to printing straight in 2D done by TCastleFont.Print.
+    Some pieces of code below are deliberately similar, and we prepare to make outlines
+    too. }
+  procedure Print(const X, Y: Single; const S: string; const XScale, YScale: Single);
 
     function ConvertCoordToExtraTex(const CoordIndex: Integer; const Coord: Single): Single;
     begin
@@ -671,15 +672,112 @@ var
         0, 1);
     end;
 
+  // TODO: Outline not done yet.
+  // Outline requires a different X3D shape for different color, or using ColorRGBA.
+  const
+    Outline = 0;
+    OutlineHighQuality = true;
+  var
+    ScreenX, ScreenY: Single;
+    G: TTextureFontData.TGlyph;
+
+    procedure GlyphDraw(const OutlineMoveX, OutlineMoveY: Integer);
+    var
+      ScreenRect, ImageRect, ExtraTexRect: TFloatRectangle;
+    begin
+      { Use a small margin around every glyph to allow bilinear
+        filtering to smoothly go from opaque to fully transparent
+        at glyph border. This prevents glyph border from ending suddenly,
+        it looks much better in the case of blending.
+
+        This cooperates with TTextureFontData.Create (used by
+        texture-font-to-pascal) that makes sure that each letter is
+        surrounded with a padding that allows such border,
+        see GlyphPadding in castletexturefontdata.pas. }
+      {$define EXTRA_GLYPH_SPACE}
+
+      ScreenRect := FloatRectangle(
+        XScale * (ScreenX - G.X + OutlineMoveX * Outline {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif}),
+        YScale * (ScreenY - G.Y + OutlineMoveY * Outline {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif}),
+        XScale * (G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif}),
+        YScale * (G.Height {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif}));
+
+      ImageRect := FloatRectangle(
+        (G.ImageX {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif}) / Font.Image.Width,
+        (G.ImageY {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif}) / Font.Image.Height,
+        (G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif}) / Font.Image.Width,
+        (G.Height {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif}) / Font.Image.Height);
+
+      ScreenRect.AddToCoords(OutCoord.Items, 0);
+      ImageRect.AddToCoords(OutTexCoord.Items);
+
+      { if we want extra texture coordinates, generate them knowing
+        ExtraTexOrigin and current Coord* values. This is enough,
+        see the specification:
+
+          The texture origin is at the origin of the first string,
+          as determined by the justification. The texture is scaled
+          equally in both S and T dimensions, with the font height
+          representing 1 unit. S increases to the right, and T increases up. }
+
+      if OutExtraTexCoord <> nil then
+      begin
+        ExtraTexRect := FloatRectangle(
+          ConvertCoordToExtraTex(0, ScreenRect.Left  ),
+          ConvertCoordToExtraTex(1, ScreenRect.Bottom),
+          ConvertCoordToExtraTex(0, ScreenRect.Right ) - ConvertCoordToExtraTex(0, ScreenRect.Left),
+          ConvertCoordToExtraTex(1, ScreenRect.Top   ) - ConvertCoordToExtraTex(1, ScreenRect.Bottom)
+        );
+        ExtraTexRect.AddToCoords(OutExtraTexCoord.Items);
+      end;
+    end;
+
   var
     C: TUnicodeChar;
     TextPtr: PChar;
     CharLen: Integer;
-    G: TTextureFontData.TGlyph;
-    CoordX0, CoordX1, CoordY0, CoordY1,
-      TexX0, TexX1, TexY0, TexY1,
-      ExtraTexX0, ExtraTexX1, ExtraTexY0, ExtraTexY1: Single;
   begin
+    { first pass, to render Outline. }
+    if Outline <> 0 then
+    begin
+      ScreenX := X;
+      ScreenY := Y;
+
+      TextPtr := PChar(S);
+      C := UTF8CharacterToUnicode(TextPtr, CharLen);
+      while (C > 0) and (CharLen > 0) do
+      begin
+        Inc(TextPtr, CharLen);
+
+        G := Font.Glyph(C);
+        if G <> nil then
+        begin
+          if (G.Width <> 0) and (G.Height <> 0) then
+          begin
+            GlyphDraw(0, 0);
+            GlyphDraw(0, 2);
+            GlyphDraw(2, 2);
+            GlyphDraw(2, 0);
+
+            if OutlineHighQuality then
+            begin
+              GlyphDraw(1, 0);
+              GlyphDraw(1, 2);
+              GlyphDraw(0, 1);
+              GlyphDraw(2, 1);
+            end;
+          end;
+          ScreenX += G.AdvanceX + Outline * 2;
+          ScreenY += G.AdvanceY;
+        end;
+
+        C := UTF8CharacterToUnicode(TextPtr, CharLen);
+      end;
+    end;
+
+    ScreenX := X;
+    ScreenY := Y;
+
     TextPtr := PChar(S);
     C := UTF8CharacterToUnicode(TextPtr, CharLen);
     while (C > 0) and (CharLen > 0) do
@@ -690,67 +788,12 @@ var
       if G <> nil then
       begin
         if (G.Width <> 0) and (G.Height <> 0) then
-        begin
-          { Use a small margin around every glyph to allow bilinear
-            filtering to smoothly go from opaque to fully transparent
-            at glyph border. This prevents glyph border from ending suddenly,
-            it looks much better in the case of blending.
-
-            This cooperates with TTextureFontData.Create (used by
-            texture-font-to-pascal) that makes sure that each letter is
-            surrounded with a padding that allows such border,
-            see GlyphPadding in castletexturefontdata.pas. }
-          {$define EXTRA_GLYPH_SPACE}
-
-          CoordX0 := X - G.X {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif};
-          CoordY0 := Y - G.Y {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif};
-          CoordX1 := CoordX0 + G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif};
-          CoordY1 := CoordY0 + G.Height {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif};
-
-          CoordX0 := CoordX0 * XScale;
-          CoordX1 := CoordX1 * XScale;
-          CoordY0 := CoordY0 * YScale;
-          CoordY1 := CoordY1 * YScale;
-
-          OutCoord.Items.Add(Vector3(CoordX0, CoordY0, 0));
-          OutCoord.Items.Add(Vector3(CoordX1, CoordY0, 0));
-          OutCoord.Items.Add(Vector3(CoordX1, CoordY1, 0));
-          OutCoord.Items.Add(Vector3(CoordX0, CoordY1, 0));
-
-          TexX0 := (G.ImageX {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif}) / Font.Image.Width;
-          TexY0 := (G.ImageY {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif}) / Font.Image.Height;
-          TexX1 := (G.ImageX + G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif}) / Font.Image.Width;
-          TexY1 := (G.ImageY + G.Height {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif}) / Font.Image.Height;
-
-          OutTexCoord.Items.Add(Vector2(TexX0, TexY0));
-          OutTexCoord.Items.Add(Vector2(TexX1, TexY0));
-          OutTexCoord.Items.Add(Vector2(TexX1, TexY1));
-          OutTexCoord.Items.Add(Vector2(TexX0, TexY1));
-
-          { if we want extra texture coordinates, generate them knowing
-            ExtraTexOrigin and current Coord* values. This is enough,
-            see the specification:
-
-              The texture origin is at the origin of the first string,
-              as determined by the justification. The texture is scaled
-              equally in both S and T dimensions, with the font height
-              representing 1 unit. S increases to the right, and T increases up. }
-
-          if OutExtraTexCoord <> nil then
-          begin
-            ExtraTexX0 := ConvertCoordToExtraTex(0, CoordX0);
-            ExtraTexY0 := ConvertCoordToExtraTex(1, CoordY0);
-            ExtraTexX1 := ConvertCoordToExtraTex(0, CoordX1);
-            ExtraTexY1 := ConvertCoordToExtraTex(1, CoordY1);
-
-            OutExtraTexCoord.Items.Add(Vector2(ExtraTexX0, ExtraTexY0));
-            OutExtraTexCoord.Items.Add(Vector2(ExtraTexX1, ExtraTexY0));
-            OutExtraTexCoord.Items.Add(Vector2(ExtraTexX1, ExtraTexY1));
-            OutExtraTexCoord.Items.Add(Vector2(ExtraTexX0, ExtraTexY1));
-          end;
-        end;
-        X := X + G.AdvanceX;
-        Y := Y + G.AdvanceY;
+          if Outline <> 0 then
+            GlyphDraw(1, 1)
+          else
+            GlyphDraw(0, 0);
+        ScreenX += G.AdvanceX + Outline * 2;
+        ScreenY += G.AdvanceY;
       end;
 
       C := UTF8CharacterToUnicode(TextPtr, CharLen);
