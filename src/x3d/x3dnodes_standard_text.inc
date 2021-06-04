@@ -212,7 +212,7 @@
 
 const
   FontStyleNames: array [TX3DFontStyle] of String =
-  ('PLAIN', 'BOLD', 'ITALIC', '"BOLDITALIC');
+  ('PLAIN', 'BOLD', 'ITALIC', 'BOLDITALIC');
 
 procedure TAbstractFontStyleNode.CreateNode;
 begin
