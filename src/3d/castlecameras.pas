@@ -150,12 +150,10 @@ type
     FOrigin: TVector2;
     FWidth, FHeight, FScale: Single;
     FEffectiveWidth, FEffectiveHeight: Single;
-    FStretch: Boolean;
     procedure SetOrigin(const Value: TVector2);
     procedure SetWidth(const Value: Single);
     procedure SetHeight(const Value: Single);
     procedure SetScale(const Value: Single);
-    procedure SetStretch(const Value: Boolean);
   private
     Camera: TCastleCamera;
   public
@@ -224,27 +222,17 @@ type
           of the viewport control.
         )
 
-        @item(When both @link(Width) and @link(Height) are non-zero, then
-          they determine the projection width and height.
-          This also allows to easily display the same piece of the game world,
+        @item(When both @link(Width) and @link(Height) are non-zero,
+          then they explicitly determine the @italic(minimum)
+          projection width and height along the given axis.
+
+          This, again, allows to easily display the same piece of the game world,
           regardless of the viewport size.
 
-          @unorderedList(
-            @item(When @link(Stretch) = @false (default), they determine the @italic(minimum)
-              projection width and height along the given axis.
-
-              If the displayed viewport aspect ratio wil be different than given
-              @link(Width) and @link(Height) ratio, then these value will be
-              treated as minimum values, and they will be adjusted.
-              This follows the X3D OrthoViewpoint.fieldOfView specification.)
-
-            @item(When @link(Stretch) = @true, these values are used directly,
-              even if it means that aspect ratio of the projection
-              will not reflect the aspect ratio of the viewport on screen.
-
-              This allows for some tricks, like @italic(Military Projection),
-              https://github.com/castle-engine/castle-engine/issues/290 .)
-          )
+          If the displayed viewport aspect ratio wil be different than given
+          @link(Width) and @link(Height) ratio, then these value will be
+          treated as minimum values, and they will be adjusted.
+          This follows the X3D OrthoViewpoint.fieldOfView specification.
         )
       )
 
@@ -268,12 +256,6 @@ type
       When @link(Origin) is (0.5,0.5), this behaves like scaling around
       the middle of the viewport. }
     property Scale: Single read FScale write SetScale default 1;
-
-    { Allow non-proportional stretch of projection.
-      In effect the @link(Width) and @link(Height)
-      (if both non-zero) are applied directly, without correcting them to follow
-      aspect ratio of the viewport. }
-    property Stretch: Boolean read FStretch write SetStretch default false;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleorthographic_persistent_vectors.inc}
@@ -2334,15 +2316,6 @@ begin
   if FScale <> Value then
   begin
     FScale := Value;
-    Camera.VisibleChange;
-  end;
-end;
-
-procedure TCastleOrthographic.SetStretch(const Value: Boolean);
-begin
-  if FStretch <> Value then
-  begin
-    FStretch := Value;
     Camera.VisibleChange;
   end;
 end;
