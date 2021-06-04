@@ -313,7 +313,7 @@ begin
     if Value < FIndex then
        if Value < round(ScrollBar.Scroll) then
            ScrollBar.Scroll:= Value;
-  FIndex:= Value;
+    FIndex:= Value;
   end else
   begin
    if Value > Text.Count-1 then Index:= Text.Count-1;
@@ -750,6 +750,11 @@ begin
     end;
 
     if indexColumn2 <> -2 then
+     if indexColumn2 <> -1 then
+      begin
+        LastIndexColumn:= -1;
+      end
+      else
     begin
       j:=UTF8Length(Text[LastIndex]);
       LastIndexColumn:=0;
@@ -885,6 +890,7 @@ begin
 
   j1:= 0;
   Result.IndexColumn2:= LastIndexColumn;
+  if LastIndexColumn <> -1 then
   if FTextChar.Count > 0 then
   begin
     for i:= Result.Index2+k to j do
@@ -1012,12 +1018,13 @@ begin
         for i:= Caret.Index1+1 to Caret.Index2-1 do
            Lines.Delete(Caret.Index1+1);
       s:= Lines[Caret.Index1+1];
-      UTF8Delete(s, 1, Caret.IndexColumn2 + 2);
+      UTF8Delete(s, 1, Caret.IndexColumn2); // Caret.IndexColumn2 + 2
       Lines[Caret.Index1]:= Lines[Caret.Index1] + s;
       Lines.Delete(Caret.Index1+1);
       LastIndex:= -1;
       IndexColumn:= LastIndexColumn;
    end;
+   WordWrap(-1);
 end;
   DoChange;
 end;
@@ -2011,7 +2018,7 @@ function TMemoUndo.ActionFleep(Action: TMemoUndoAction): TMemoUndoAction;
     begin
      if LastIndex < 0 then
      begin
-      Lines:=TStringList.Create;
+      Lines:= TStringList.Create;
       Lines.Assign(Memo^.Lines);
       s:= Lines[Index];
       UTF8Delete(s, indexColumn+2, 1);
@@ -2025,24 +2032,25 @@ function TMemoUndo.ActionFleep(Action: TMemoUndoAction): TMemoUndoAction;
       Memo^.BolSelect:= True;
       Memo^.DeleteSelectText;
     end;
+      Memo^.Lines.Append('GGGGGGG'+IntToStr(LastIndexColumn));
     end else if ActionType = atEnter then
      begin
         Lines:=TStringList.Create;
         Lines.Assign(Memo^.Lines);
         Memo^.SetCaret(index, indexColumn);
-        Lines.Insert(Index+1, UTF8Copy(Lines[Index],IndexColumn+2, UTF8Length(Lines[Index])-IndexColumn));   //UTF8Copy(Text[Index],IndexColumn+2,Length(Text[index])-IndexColumn+Length(Text[Index][Length(Text[Index])])));
+        Lines.Insert(Index+1, UTF8Copy(Lines[Index], IndexColumn, UTF8Length(Lines[Index])-IndexColumn));   //UTF8Copy(Text[Index],IndexColumn+2,Length(Text[index])-IndexColumn+Length(Text[Index][Length(Text[Index])])));
         s:= Lines[Index];
         Utf8Delete(s, IndexColumn+2, UTF8Length(Lines[Index]) - IndexColumn+1);
         Lines[Index]:= s;
         Memo^.SetCaret(LastIndex, LastIndexColumn);
         Memo^.Lines.Assign(Lines);
         Lines.Free;
-
      end else if ActionType = atDeleteLine then
      begin
       Memo^.SetCaret(index, -1, index-1, indexColumn);
       Memo^.BolSelect:= True;
       Memo^.DeleteSelectText;
+      Memo^.SetCaret(index, indexColumn);
       Memo^.BolSelect:= False;
      end;
     end;
