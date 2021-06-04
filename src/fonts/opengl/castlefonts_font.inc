@@ -450,7 +450,8 @@ begin
     begin
       if (G.Width <> 0) and (G.Height <> 0) then
         if Outline <> 0 then
-          GlyphDraw(1, 1) else
+          GlyphDraw(1, 1)
+        else
           GlyphDraw(0, 0);
       ScreenX += G.AdvanceX * Scale + Outline * 2;
       ScreenY += G.AdvanceY * Scale;
