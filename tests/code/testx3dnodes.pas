@@ -55,9 +55,9 @@ type
 
     procedure TestGeometryNodesImplemented;
 
-    { Test all geometry nodes should have Change = chGeometry
+    { Test all geometry nodes should have Change = chGeometryXxx
       on all fields (except "metadata").
-      All non-geometry nodes should not have chGeometry on any field. }
+      All non-geometry nodes should not have chGeometryXxx on any field. }
     procedure TestGeometryNodesChanges;
 
     { All Color nodes should have Changes = [chColorNode] }
@@ -995,7 +995,7 @@ begin
         for J := 0 to N.FieldsCount - 1 do
           if N.Fields[J].X3DName <> 'metadata' then
           try
-            AssertTrue(N.Fields[J].ExecuteChange = chGeometry);
+            AssertTrue(N.Fields[J].ExecuteChange in [chGeometry, chGeometryFontChanged]);
           except
             Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].X3DName);
             raise;
@@ -1004,7 +1004,7 @@ begin
       begin
         for J := 0 to N.FieldsCount - 1 do
         try
-          AssertTrue(chGeometry <> N.Fields[J].ExecuteChange);
+          AssertTrue(not (N.Fields[J].ExecuteChange in [chGeometry, chGeometryFontChanged]));
         except
           Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].X3DName);
           raise;

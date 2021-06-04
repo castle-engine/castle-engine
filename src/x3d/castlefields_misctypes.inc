@@ -141,6 +141,9 @@
       Use for fields of the geometry node. }
     chGeometry,
 
+    { Like chGeometry and in addition font texture changed. Only on TTextNode. }
+    chGeometryFontChanged,
+
     { X3DEnvironmentalSensorNode bounds (size/center) changed. }
     chEnvironmentalSensorBounds,
 

@@ -43,7 +43,7 @@ Text : X3DGeometryNode {
   auto-generate-more: true
   SFNode   [in,out] fontStyle  NULL
     range: X3DFontStyleNode
-    change: chGeometry
+    change: chGeometryFontChanged
   MFFloat  [in,out] length     []
     range: [0,Inf)
     change: chGeometry

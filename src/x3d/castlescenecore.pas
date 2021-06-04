@@ -5410,7 +5410,7 @@ begin
       chColorNode: HandleChangeColorNode;
       chTextureCoordinate: HandleChangeTextureCoordinate;
       chTextureTransform: HandleChangeTextureTransform;
-      chGeometry: HandleChangeGeometry;
+      chGeometry, chGeometryFontChanged: HandleChangeGeometry;
       chEnvironmentalSensorBounds: HandleChangeEnvironmentalSensorBounds;
       chTimeStopStart: HandleChangeTimeStopStart;
       chViewpointVectors: HandleChangeViewpointVectors;

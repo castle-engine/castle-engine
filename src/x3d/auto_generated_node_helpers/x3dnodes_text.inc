@@ -159,7 +159,7 @@ begin
   inherited;
 
   FFdFontStyle := TSFNode.Create(Self, True, 'fontStyle', [TAbstractFontStyleNode]);
-   FdFontStyle.ChangeAlways := chGeometry;
+   FdFontStyle.ChangeAlways := chGeometryFontChanged;
   AddField(FFdFontStyle);
 
   FFdLength := TMFFloat.Create(Self, True, 'length', []);

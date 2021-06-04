@@ -1940,6 +1940,7 @@ begin
        chGeometryVRML1State,
        chTextureCoordinate,
        chGeometry,
+       chGeometryFontChanged,
        chWireframe,
        chFontStyle,
        chFontStyleFontChanged
@@ -1954,6 +1955,7 @@ begin
        chTransform,
        chCoordinate,
        chGeometry,
+       chGeometryFontChanged,
        chGeometryVRML1State,
        chEverything,
        chFontStyle,
@@ -1968,6 +1970,7 @@ begin
   { Changes to actual geometry (other). }
   if Changes * [
        chGeometry,
+       chGeometryFontChanged,
        chGeometryVRML1State,
        chWireframe,
        chFontStyle,
@@ -1984,7 +1987,10 @@ begin
 
   { Recreate TTextNode.FontTextureNode when FontStyle parameters,
     like font family/bold/italic changed. }
-  if Changes * [chFontStyleFontChanged] <> [] then
+  if Changes * [
+       chGeometryFontChanged,
+       chFontStyleFontChanged
+     ] <> [] then
     (FOriginalGeometry as TTextNode).FontChanged;
 
   if not InactiveOnly then
