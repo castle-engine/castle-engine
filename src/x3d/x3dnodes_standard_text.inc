@@ -778,14 +778,6 @@ function TTextNode.FontTextureNode: TAbstractTexture2DNode;
 var
   Blending: boolean;
 begin
-  { For now, we assume that font value never changes,
-    and so FFontTextureNode is neved changed once it's initially
-    created. This is correct for normal X3D usage, since FontStyle
-    fields, like family and style, are initializeOnly.
-
-    In the future, if we want to handle FontStyle field changes,
-    then chFontStyle should provoke recreating proxy (just like
-    chGeometry does now) and it should provoke recreating FontTextureNode. }
   if FFontTextureNode = nil then
   begin
     if FontStyle is TFontStyleNode then // also checks FontStyle <> nil
