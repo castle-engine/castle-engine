@@ -59,8 +59,10 @@ Text : X3DGeometryNode {
   SFVec3f  [out]    origin
   SFVec2f  [out]    textBounds
   SFBool   []       solid      FALSE
+    change: chGeometry
 
   # CASTLE GAME ENGINE EXTENSIONS:
   SFNode     [in,out]      texCoord    NULL
     range: TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate
+    change: chGeometry
 }

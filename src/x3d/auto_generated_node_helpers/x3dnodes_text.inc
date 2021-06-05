@@ -188,11 +188,11 @@ begin
   AddEvent(FEventTextBounds);
 
   FFdSolid := TSFBool.Create(Self, False, 'solid', false);
-   FdSolid.ChangeAlways := chVisibleNonGeometry;
+   FdSolid.ChangeAlways := chGeometry;
   AddField(FFdSolid);
 
   FFdTexCoord := TSFNode.Create(Self, True, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiGeneratedTextureCoordinateNode]);
-   FdTexCoord.ChangeAlways := chVisibleNonGeometry;
+   FdTexCoord.ChangeAlways := chGeometry;
   AddField(FFdTexCoord);
 end;
 

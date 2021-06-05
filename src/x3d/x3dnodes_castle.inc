@@ -51,16 +51,6 @@
   { Text with 3D depth.
     @bold(The depth is not implemented now -- this is equivalent to @link(TTextNode) now.) }
   TText3DNode = class(TTextNode)
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    { Fields added compared to normal Text node: }
-
-    { }
-    strict private FFdDepth: TSFFloat;
-    public property FdDepth: TSFFloat read FFdDepth;
-
     {$I auto_generated_node_helpers/x3dnodes_text3d.inc}
   end;
 
@@ -96,10 +86,6 @@
     Useful if you want to use EXTERNPROTO to declare Castle Game Engine
     extensions the Appearance in a clean way. }
   TKambiAppearanceNode = class(TAppearanceNode)
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
     {$I auto_generated_node_helpers/x3dnodes_kambiappearance.inc}
   end;
 
@@ -113,15 +99,6 @@
   protected
     procedure AfterLoadInlined; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdReplaceNames: TMFString;
-    public property FdReplaceNames: TMFString read FFdReplaceNames;
-
-    strict private FFdReplaceNodes: TMFNode;
-    public property FdReplaceNodes: TMFNode read FFdReplaceNodes;
-
     {$I auto_generated_node_helpers/x3dnodes_kambiinline.inc}
   end;
 
@@ -400,7 +377,6 @@
   { Viewpoint for making reflections on flat objects.
     See https://castle-engine.io/x3d_extensions_mirror_plane.php . }
   TViewpointMirrorNode = class(TAbstractNode)
-  public
     {$I auto_generated_node_helpers/x3dnodes_viewpointmirror.inc}
   end;
 
@@ -472,20 +448,6 @@ begin
   AddField(FFdSpotDropOffRate);
 end;
 
-class function TText3DNode.ClassX3DType: string;
-begin
-  Result := 'Text3D';
-end;
-
-procedure TText3DNode.CreateNode;
-begin
-  inherited;
-
-  FFdDepth := TSFFloat.Create(Self, true, 'depth', 0.1, true);
-   FdDepth.ChangeAlways := chGeometry;
-  AddField(FFdDepth);
-end;
-
 { TBlendModeNode ------------------------------------------------------------- }
 
 class function TBlendModeNode.ClassX3DType: string;
@@ -514,32 +476,6 @@ begin
   AddField(FFdColorTransparency);
 
   DefaultContainerField := 'blendMode';
-end;
-
-class function TKambiAppearanceNode.ClassX3DType: string;
-begin
-  Result := 'KambiAppearance';
-end;
-
-procedure TKambiAppearanceNode.CreateNode;
-begin
-  inherited;
-end;
-
-procedure TKambiInlineNode.CreateNode;
-begin
-  inherited;
-
-  FFdReplaceNames := TMFString.Create(Self, true, 'replaceNames', []);
-  AddField(FFdReplaceNames);
-
-  FFdReplaceNodes := TMFNode.Create(Self, true, 'replaceNodes', [TX3DNode]);
-  AddField(FFdReplaceNodes);
-end;
-
-class function TKambiInlineNode.ClassX3DType: string;
-begin
-  Result := 'KambiInline';
 end;
 
 procedure TKambiInlineNode.AfterLoadInlined;
