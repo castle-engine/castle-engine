@@ -283,7 +283,7 @@ type
         Result := TCastleFont.Create(Container);
         TCastleFont(Result).OptimalSize := NewFontOptimalSize;
         TCastleFont(Result).AntiAliased := NewFontAntiAliased;
-        TCastleFont(Result).LoadCharactersSimpleAscii := false; // if neded, they are included in UnicodeCharList
+        TCastleFont(Result).LoadBasicCharacters := false; // if neded, they are included in UnicodeCharList
         TCastleFont(Result).LoadCharacters := UnicodeCharList.ToString;
         TCastleFont(Result).URL := NewFontUrl;
       end;

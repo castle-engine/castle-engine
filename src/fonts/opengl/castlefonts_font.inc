@@ -36,7 +36,7 @@ type
     FURL: String;
     FOptimalSize: Cardinal;
     FAntiAliased: Boolean;
-    FLoadCharactersSimpleAscii: Boolean;
+    FLoadBasicCharacters: Boolean;
     FLoadCharacters: String;
     function GetSmoothScaling: boolean;
     function GetScale: Single;
@@ -44,7 +44,7 @@ type
     procedure SetURL(const Value: String);
     procedure SetOptimalSize(const Value: Cardinal);
     procedure SetAntiAliased(const Value: Boolean);
-    procedure SetLoadCharactersSimpleAscii(const Value: Boolean);
+    procedure SetLoadBasicCharacters(const Value: Boolean);
     procedure SetLoadCharacters(const Value: String);
     { Free stuff loaded by @link(Load). }
     procedure Unload;
@@ -131,9 +131,11 @@ type
       and is rendered using alpha testing. }
     property AntiAliased: Boolean read FAntiAliased write SetAntiAliased default true;
 
-    { Load from font all characters we define as "simple ASCII" (see @link(SimpleAsciiCharacters))
-      in addition to characters listed on LoadCharacters. }
-    property LoadCharactersSimpleAscii: Boolean read FLoadCharactersSimpleAscii write SetLoadCharactersSimpleAscii default true;
+    { Load from font all "basic" characters, which include digits,
+      English letters and standard ASCII symbols.
+      See @link(SimpleAsciiCharacters) for exact definition.
+      These are loaded in addition to characters listed on LoadCharacters. }
+    property LoadBasicCharacters: Boolean read FLoadBasicCharacters write SetLoadBasicCharacters default true;
 
     { Load from font all characters listed here. As everywhere in CGE
       (same as in Lazarus LCL), this is an string composed from UTF-8 characters. }
@@ -154,7 +156,7 @@ begin
   inherited;
   GlyphsScreenRects := TFloatRectangleList.Create;
   GlyphsImageRects  := TFloatRectangleList.Create;
-  FLoadCharactersSimpleAscii := true;
+  FLoadBasicCharacters := true;
   FOptimalSize := DefaultOptimalSize;
   FAntiAliased := true;
 end;
@@ -256,7 +258,7 @@ end;
 function TCastleFont.PropertySections(const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
-    'URL', 'OptimalSize', 'AntiAliased', 'LoadCharacters', 'LoadCharactersSimpleAscii':
+    'URL', 'OptimalSize', 'AntiAliased', 'LoadCharacters', 'LoadBasicCharacters':
       Result := [psBasic];
     else
       Result := inherited PropertySections(PropertyName);
@@ -538,12 +540,12 @@ begin
   end;
 end;
 
-procedure TCastleFont.SetLoadCharactersSimpleAscii(const Value: Boolean);
+procedure TCastleFont.SetLoadBasicCharacters(const Value: Boolean);
 begin
-  if FLoadCharactersSimpleAscii <> Value then
+  if FLoadBasicCharacters <> Value then
   begin
     { As with SetURL: we deliberately change current property, even when Reload fails. }
-    FLoadCharactersSimpleAscii := Value;
+    FLoadBasicCharacters := Value;
     Reload;
   end;
 end;
@@ -562,7 +564,7 @@ procedure TCastleFont.Reload;
 
   function GetCharactersList: TUnicodeCharList;
   begin
-    if (LoadCharacters = '') and LoadCharactersSimpleAscii then
+    if (LoadCharacters = '') and LoadBasicCharacters then
     begin
       { Default, and fast case. TTextureFontData.Create interprets characters list = nil
         just like that: load only SimpleAsciiCharacters.
@@ -571,7 +573,7 @@ procedure TCastleFont.Reload;
     end else
     begin
       Result := TUnicodeCharList.Create;
-      if LoadCharactersSimpleAscii then
+      if LoadBasicCharacters then
         Result.Add(SimpleAsciiCharacters);
       Result.Add(LoadCharacters);
     end;
