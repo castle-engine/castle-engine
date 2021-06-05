@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2019 Michalis Kamburelis.
+  Copyright 2010-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -181,6 +181,10 @@ const
     AL_FORMAT_STEREO16
   );
 
+{ Check and report (as warnings) OpenAL errors as often as possible.
+  This is useful to localize faulty OpenAL command, that causes OpenAL error. }
+{.$define CASTLE_OPENAL_DEBUG}
+
 { TOpenALStreaming ----------------------------------------- }
 
 constructor TOpenALStreaming.Create(
@@ -219,7 +223,7 @@ begin
   Buffer.ReadStreamConfig(StreamedFile);
 
   alCreateBuffers(StreamBuffersCount, ALBuffers);
-  CheckAL('Before filling buffers', true);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alCreateBuffers ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 
   try
     NecessaryBuffers := 0;
@@ -233,18 +237,17 @@ begin
       if FillBuffer(ALBuffers[I]) = 0 then
         Break;
       Inc(NecessaryBuffers);
-      CheckAL('After filling buffer '+IntToStr(I));
     end;
   except
     alDeleteBuffers(StreamBuffersCount, @ALBuffers);
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alDeleteBuffers ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
     raise;
   end;
-  CheckAL('After filling all buffers');
 
   Assert(NecessaryBuffers > 0);
   Assert(NecessaryBuffers <= StreamBuffersCount);
   alSourceQueueBuffers(Source.ALSource, NecessaryBuffers, ALBuffers);
-  CheckAL('After queue');
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourceQueueBuffers ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 destructor TOpenALStreaming.Destroy;
@@ -271,10 +274,13 @@ begin
 
   { Stoping sound source mark all buffers as processed so we can delete them safely. }
   alGetSourcei(Source.ALSource, AL_BUFFERS_PROCESSED, @ALBuffersProcessed);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alGetSourcei(.., AL_BUFFERS_PROCESSED, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   for I := 0 to ALBuffersProcessed - 1 do
     alSourceUnqueueBuffers(Source.ALSource, 1, @ALBuffer);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourceUnqueueBuffers ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 
   alDeleteBuffers(StreamBuffersCount, ALBuffers);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alDeleteBuffers ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 
   FreeAndNil(StreamedFile);
 
@@ -309,6 +315,7 @@ begin
   begin
     alBufferData(ALBuffer, ALDataFormat[StreamedFile.DataFormat],
       HelperBufferPtr, Result, StreamedFile.Frequency);
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alBufferData ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   end else
   if Source.FLooping then
   begin
@@ -332,14 +339,18 @@ begin
     Sleep(10);
 
     alGetSourcei(ALSource, AL_BUFFERS_PROCESSED, @ALBuffersProcessed);
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alGetSourcei(.., AL_BUFFERS_PROCESSED, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 
     while ALBuffersProcessed > 0 do
     begin
       alSourceUnqueueBuffers(ALSource, 1, @ALBuffer);
+      {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourceUnqueueBuffers ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 
       if Streaming.FillBuffer(ALBuffer) > 0 then
-        alSourceQueueBuffers(ALSource, 1, @ALBuffer)
-      else
+      begin
+        alSourceQueueBuffers(ALSource, 1, @ALBuffer);
+        {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourceQueueBuffers ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+      end else
         Exit;
 
       Dec(ALBuffersProcessed);
@@ -348,6 +359,7 @@ begin
     if not Streaming.Source.PlayingOrPaused then
     begin
       alSourcePlay(ALSource);
+      {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcePlay ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
     end;
   end;
 end;
@@ -372,15 +384,22 @@ begin
   inherited;
 
   alCreateBuffers(1, @ALBuffer);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alCreateBuffers ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   try
     alBufferData(ALBuffer, ALDataFormat[SoundFile.DataFormat],
       SoundFile.Data, SoundFile.DataSize, SoundFile.Frequency);
-  except alDeleteBuffers(1, @ALBuffer); raise end;
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alBufferData ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+  except
+    alFreeBuffer(ALBuffer);
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alFreeBuffer ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+    raise;
+  end;
 end;
 
 procedure TOpenALSoundBufferBackend.ContextClose;
 begin
   alFreeBuffer(ALBuffer);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alFreeBuffer ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   inherited;
 end;
 
@@ -397,6 +416,7 @@ begin
     alSourcei(ALSource, AL_LOOPING, BoolToAL[false])
   else
     alSourcei(ALSource, AL_LOOPING, BoolToAL[FLooping]);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcei(.., AL_LOOPING, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 procedure TOpenALSoundSourceBackend.ContextOpen;
@@ -422,6 +442,7 @@ procedure TOpenALSoundSourceBackend.ContextClose;
 begin
   FreeAndNil(Streaming);
   alDeleteSources(1, @ALSource);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alDeleteSources ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 function TOpenALSoundSourceBackend.PlayingOrPaused: boolean;
@@ -429,6 +450,7 @@ var
   SourceState: TALuint;
 begin
   SourceState := alGetSource1i(ALSource, AL_SOURCE_STATE);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alGetSource1i(.., AL_SOURCE_STATE) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   Result := (SourceState = AL_PLAYING) or (SourceState = AL_PAUSED);
 end;
 
@@ -445,8 +467,8 @@ begin
 
   if FBuffer is TOpenALStreamBufferBackend then
   begin
-    CheckAL('PlayStream');
     alSourcePlay(ALSource);
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcePlay ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 
     // start feed buffers thread
     Assert(Streaming <> nil);
@@ -490,11 +512,13 @@ begin
 
       { We have to do CheckAL first, to catch eventual errors.
         Otherwise the loop could hang. }
-      CheckAL('PlaySound');
+      CheckAL('TOpenALSoundSourceBackend.Play');
       while CompleteBuffer.ALBuffer <> alGetSource1ui(ALSource, AL_BUFFER) do
         Sleep(10);
     end;
+
     alSourcePlay(ALSource);
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcePlay ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   end else
 
     raise EInternalError.CreateFmt('Cannot play buffer class type %s', [FBuffer.ClassName]);
@@ -507,16 +531,19 @@ begin
     (like CurrentState := alGetSource1i(ALSource, AL_SOURCE_STATE))
     and simply always call alSourceStop. }
   alSourceStop(ALSource);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourceStop ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 procedure TOpenALSoundSourceBackend.SetPosition(const Value: TVector3);
 begin
   alSourceVector3f(ALSource, AL_POSITION, Value);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourceVector3f(.., AL_POSITION, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 procedure TOpenALSoundSourceBackend.SetVelocity(const Value: TVector3);
 begin
   alSourceVector3f(ALSource, AL_VELOCITY, Value);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourceVector3f(.., AL_VELOCITY, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 procedure TOpenALSoundSourceBackend.SetLooping(const Value: boolean);
@@ -536,21 +563,25 @@ procedure TOpenALSoundSourceBackend.SetRelative(const Value: boolean);
 begin
   FRelative := Value;
   alSourcei(ALSource, AL_SOURCE_RELATIVE, BoolToAL[Value]);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcei(.., AL_SOURCE_RELATIVE, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 procedure TOpenALSoundSourceBackend.SetGain(const Value: Single);
 begin
   alSourcef(ALSource, AL_GAIN, Value);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_GAIN, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 procedure TOpenALSoundSourceBackend.SetMinGain(const Value: Single);
 begin
   alSourcef(ALSource, AL_MIN_GAIN, Value);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_MIN_GAIN, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 procedure TOpenALSoundSourceBackend.SetMaxGain(const Value: Single);
 begin
   alSourcef(ALSource, AL_MAX_GAIN, Value);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_MAX_GAIN, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 procedure TOpenALSoundSourceBackend.SetBuffer(const Value: TSoundBufferBackend);
@@ -575,6 +606,7 @@ begin
         whatever alSourcei requires. }
       {$I norqcheckbegin.inc}
       alSourcei(ALSource, AL_BUFFER, CompleteBuffer.ALBuffer);
+      {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcei(.., AL_BUFFER, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
       {$I norqcheckend.inc}
     end else
 
@@ -587,34 +619,43 @@ begin
 
       raise EInternalError.CreateFmt('Cannot assign buffer class type %s', [FBuffer.ClassName]);
   end else
+  begin
     alSourcei(ALSource, AL_BUFFER, 0);
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcei(.., AL_BUFFER, 0) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+  end;
 end;
 
 procedure TOpenALSoundSourceBackend.SetPitch(const Value: Single);
 begin
   alSourcef(ALSource, AL_PITCH, Value);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_PITCH, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 procedure TOpenALSoundSourceBackend.SetRolloffFactor(const Value: Single);
 begin
   alSourcef(ALSource, AL_ROLLOFF_FACTOR, Value);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_ROLLOFF_FACTOR, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 procedure TOpenALSoundSourceBackend.SetReferenceDistance(const Value: Single);
 begin
   alSourcef(ALSource, AL_REFERENCE_DISTANCE, Value);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_REFERENCE_DISTANCE, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 procedure TOpenALSoundSourceBackend.SetMaxDistance(const Value: Single);
 begin
   alSourcef(ALSource, AL_MAX_DISTANCE, Value);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_MAX_DISTANCE, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 function TOpenALSoundSourceBackend.GetOffset: Single;
 begin
   if ALVersion11 then
-    Result := alGetSource1f(ALSource, AL_SEC_OFFSET)
-  else
+  begin
+    Result := alGetSource1f(ALSource, AL_SEC_OFFSET);
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alGetSource1f(.., AL_SEC_OFFSET) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+  end else
     Result := 0;
 end;
 
@@ -804,6 +845,7 @@ function TOpenALSoundEngineBackend.ContextOpen(const ADevice: String;
         alGetString(AL_VENDOR),
         alGetString(AL_EXTENSIONS)
       ]);
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alGetString ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   end;
 
 var
@@ -954,7 +996,9 @@ end;
 procedure TOpenALSoundEngineBackend.SetListener(const Position, Direction, Up: TVector3);
 begin
   alListenerVector3f(AL_POSITION, Position);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alListenerVector3f(AL_POSITION, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   alListenerOrientation(Direction, Up);
+  {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alListenerOrientation ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 function TOpenALSoundEngineBackend.CreateBuffer(const SoundLoading: TSoundLoading): TSoundBufferBackend;
