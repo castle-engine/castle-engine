@@ -17,6 +17,27 @@
 {$ifdef read_interface}
 
 type
+  TCastleSound = class;
+
+  { @exclude Used with TCastleSound notifications (TCastleSound.InternalAddChangeNotification). }
+  TSoundChange = (
+    { TCastleSound.Buffer, and maybe other values, changed. }
+    scAfterBufferCreated,
+    { TCastleSound.Buffer may be destroyed now, stop related sounds. }
+    scBeforeBufferDestroyed,
+    { TCastleSound values, but not Buffer, changed. }
+    scAfterOther
+  );
+
+  { @exclude Used with TCastleSound notifications (TCastleSound.InternalAddChangeNotification). }
+  TCastleSoundChangeEvent = procedure (const Sender: TCastleSound; const Change: TSoundChange) of object;
+
+  { @exclude Used with TCastleSound notifications (TCastleSound.InternalAddChangeNotification). }
+  TCastleSoundChangeEventList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TCastleSoundChangeEvent>)
+  public
+    procedure ExecuteAll(const Sender: TCastleSound; const Change: TSoundChange);
+  end;
+
   { Sound that can be loaded from URL (possibly reusing a cache,
     possibly using streaming) and played.
 
@@ -39,7 +60,7 @@ type
     FSpatial: Boolean;
     FMinGain: Single;
     FMaxGain: Single;
-    FChangeNotifications: TNotifyEventList;
+    FChangeNotifications: TCastleSoundChangeEventList;
     procedure SetStream(const Value: Boolean);
     procedure SetURL(const Value: String);
     procedure SetVolume(const Value: Single);
@@ -48,18 +69,18 @@ type
     procedure SetMinGain(const Value: Single);
     procedure SetMaxGain(const Value: Single);
     procedure ReloadBuffer;
+    procedure DoChange(const Change: TSoundChange);
   protected
     procedure Loaded; override;
-    procedure DoChange; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
-    { Add notification when sound property changes. }
-    procedure AddChangeNotification(const Notify: TNotifyEvent);
-    { Remove notification when sound property occurs. }
-    procedure RemoveChangeNotification(const Notify: TNotifyEvent);
+    { @exclude Add notification when sound property changes. }
+    procedure InternalAddChangeNotification(const Notify: TCastleSoundChangeEvent);
+    { @exclude Remove notification when sound property occurs. }
+    procedure InternalRemoveChangeNotification(const Notify: TCastleSoundChangeEvent);
 
     { Loaded sound buffer, for playing the buffer with the @link(SoundEngine).
       @nil if not loaded. }
@@ -141,6 +162,18 @@ type
 
 {$ifdef read_implementation}
 
+{ TCastleSoundChangeEventList ------------------------------------------------ }
+
+procedure TCastleSoundChangeEventList.ExecuteAll(const Sender: TCastleSound; const Change: TSoundChange);
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    Items[I](Sender, Change);
+end;
+
+{ TCastleSound --------------------------------------------------------------- }
+
 constructor TCastleSound.Create(AOwner: TComponent);
 begin
   inherited;
@@ -150,7 +183,7 @@ begin
   FSpatial := true;
   FMinGain := 0.0;
   FMaxGain := 1.0;
-  FChangeNotifications := TNotifyEventList.Create;
+  FChangeNotifications := TCastleSoundChangeEventList.Create;
 end;
 
 destructor TCastleSound.Destroy;
@@ -175,8 +208,14 @@ procedure TCastleSound.ReloadBuffer;
 var
   SoundLoading: TSoundLoading;
 begin
-  if FBuffer <> nil then // avoid accessing SoundEngine if not needed
+  if FBuffer <> nil then // check nil to avoid accessing SoundEngine if not needed
+  begin
+    { We first make scBeforeBufferDestroyed notification, so that sound sources playing
+      this TCastleSound can be stopped.
+      OpenAL makes warning if trying to free buffer used by playing sources. }
+    DoChange(scBeforeBufferDestroyed);
     SoundEngine.FreeBuffer(FBuffer); // this sets FBuffer = nil
+  end;
 
   if URL <> '' then
   begin
@@ -185,9 +224,8 @@ begin
     else
       SoundLoading := slComplete;
     FBuffer := SoundEngine.LoadBuffer(URL, SoundLoading);
+    DoChange(scAfterBufferCreated);
   end;
-
-  DoChange;
 end;
 
 procedure TCastleSound.Loaded;
@@ -221,7 +259,7 @@ begin
   if FVolume <> Value then
   begin
     FVolume := Value;
-    DoChange;
+    DoChange(scAfterOther);
   end;
 end;
 
@@ -230,7 +268,7 @@ begin
   if FPitch <> Value then
   begin
     FPitch := Value;
-    DoChange;
+    DoChange(scAfterOther);
   end;
 end;
 
@@ -239,7 +277,7 @@ begin
   if FSpatial <> Value then
   begin
     FSpatial := Value;
-    DoChange;
+    DoChange(scAfterOther);
   end;
 end;
 
@@ -248,7 +286,7 @@ begin
   if FMinGain <> Value then
   begin
     FMinGain := Value;
-    DoChange;
+    DoChange(scAfterOther);
   end;
 end;
 
@@ -257,21 +295,21 @@ begin
   if FMaxGain <> Value then
   begin
     FMaxGain := Value;
-    DoChange;
+    DoChange(scAfterOther);
   end;
 end;
 
-procedure TCastleSound.DoChange;
+procedure TCastleSound.DoChange(const Change: TSoundChange);
 begin
-  FChangeNotifications.ExecuteAll(Self);
+  FChangeNotifications.ExecuteAll(Self, Change);
 end;
 
-procedure TCastleSound.AddChangeNotification(const Notify: TNotifyEvent);
+procedure TCastleSound.InternalAddChangeNotification(const Notify: TCastleSoundChangeEvent);
 begin
   FChangeNotifications.Add(Notify);
 end;
 
-procedure TCastleSound.RemoveChangeNotification(const Notify: TNotifyEvent);
+procedure TCastleSound.InternalRemoveChangeNotification(const Notify: TCastleSoundChangeEvent);
 begin
   if FChangeNotifications <> nil then // may be nil when destroying, and we make notification
     FChangeNotifications.Remove(Notify);

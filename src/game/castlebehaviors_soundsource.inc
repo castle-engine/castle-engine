@@ -27,7 +27,7 @@ type
     procedure SoundRelease(Sender: TInternalPlayingSound);
     function LerpLegsMiddle(const A: Single): TVector3;
     function PlayOnceCore(const Sound: TCastleSound; const Looping, Follow: Boolean): TInternalPlayingSound;
-    procedure SoundChange(Sender: TObject);
+    procedure SoundChange(const Sender: TCastleSound; const Change: TSoundChange);
     procedure SetSound(const Value: TCastleSound);
   protected
     procedure ParentChanged; override;
@@ -270,15 +270,47 @@ begin
   end;
 end;
 
-procedure TCastleSoundSource.SoundChange(Sender: TObject);
+procedure TCastleSoundSource.SoundChange(const Sender: TCastleSound; const Change: TSoundChange);
 begin
-  if PlayingSound <> nil then
-    PlayingSound.Release;
-  Assert(PlayingSound = nil);
+  case Change of
+    scBeforeBufferDestroyed:
+      begin
+        if PlayingSound <> nil then
+          PlayingSound.Release;
+        Assert(PlayingSound = nil);
+      end;
 
-  { Looping and Follow = true, it seems most natural for sounds set as TCastleSoundSource.Sound. }
-  if Sound <> nil then
-    PlayingSound := PlayOnceCore(Sound, true, true);
+    scAfterBufferCreated:
+      begin
+        { Looping and Follow = true, it seems most natural for sounds set as TCastleSoundSource.Sound. }
+        if Sound <> nil then
+          PlayingSound := PlayOnceCore(Sound, true, true);
+      end;
+
+    scAfterOther:
+      begin
+        if Sound <> nil then
+        begin
+          if PlayingSound <> nil then
+          begin
+            PlayingSound.Gain := Sound.Volume;
+            PlayingSound.Pitch := Sound.Pitch;
+            PlayingSound.Relative := not Sound.Spatial;
+            if not Sound.Spatial then
+              PlayingSound.Position := TVector3.Zero;
+            {$warnings off} // using unportable symbols knowingly
+            PlayingSound.MinGain := Sound.MinGain;
+            PlayingSound.MaxGain := Sound.MaxGain;
+            {$warnings on}
+          end else
+            { start playing, just like after scAfterBufferCreated }
+            PlayingSound := PlayOnceCore(Sound, true, true);
+        end;
+      end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else raise EInternalError.Create('TCastleSoundSource.SoundChange:Change');
+    {$endif}
+  end;
 end;
 
 procedure TCastleSoundSource.PlayOnce(const ASound: TCastleSound;
@@ -290,7 +322,13 @@ end;
 procedure TCastleSoundSource.ParentChanged;
 begin
   inherited;
-  SoundChange(nil); // change of parent implies a change of position
+
+  { Change of parent implies a change of position.
+    For now commented out -- position is updated in Update, for all sounds.
+    No need to do this here
+    (also scAfterOther doesn't update PlayingSound.Position for now for spatial sounds).
+
+  SoundChange(nil, scAfterOther);  }
 end;
 
 procedure TCastleSoundSource.SetSound(const Value: TCastleSound);
@@ -299,16 +337,17 @@ begin
   begin
     if FSound <> nil then
     begin
-      FSound.RemoveChangeNotification(@SoundChange);
+      SoundChange(FSound, scBeforeBufferDestroyed);
+      FSound.InternalRemoveChangeNotification(@SoundChange);
       FSound.RemoveFreeNotification(Self);
     end;
     FSound := Value;
     if FSound <> nil then
     begin
-      FSound.AddChangeNotification(@SoundChange);
+      FSound.InternalAddChangeNotification(@SoundChange);
       FSound.FreeNotification(Self);
+      SoundChange(FSound, scAfterBufferCreated);
     end;
-    SoundChange(nil);
   end;
 end;
 

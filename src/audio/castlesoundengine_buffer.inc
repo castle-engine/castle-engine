@@ -23,6 +23,8 @@
 
     It can be only allocated by @link(TSoundEngine.LoadBuffer)
     and freed by @link(TSoundEngine.FreeBuffer).
+    You should first stop all the sound sources using this buffer before freeing it
+    (with OpenAL, not doing it may cause a warning: OpenAL error at alDeleteBuffers).
     @bold(Do not create or free TSoundBuffer instances yourself.) }
   TSoundBuffer = class
   private
