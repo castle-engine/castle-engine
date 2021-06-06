@@ -24,7 +24,7 @@
     by the TRepoSoundEngine, always use this through
     @link(TRepoSoundEngine.MusicPlayer)
     or @link(TRepoSoundEngine.LoopingChannel). }
-  TLoopingChannel = class
+  TLoopingChannel = class(TComponent)
   private
     { Engine that owns this. }
     FEngine: TRepoSoundEngine;
@@ -36,11 +36,8 @@
     FAllocatedSource: TInternalPlayingSound;
 
     FVolume, FPitch: Single;
-    { Values of TSoundInfo associated with Sound, will be multiplied by our Volume/Pitch. }
-    SoundInfoVolume, SoundInfoPitch: Single;
-
-    FSound: TSoundType;
-    procedure SetSound(const Value: TSoundType);
+    FSound: TCastleSound;
+    procedure SetSound(const Value: TCastleSound);
     procedure AllocatedSourceRelease(Sender: TInternalPlayingSound);
 
     { Called by ContextOpen. You should check here if
@@ -50,23 +47,19 @@
     procedure SetVolume(const Value: Single);
     function GetPitch: Single;
     procedure SetPitch(const Value: Single);
+    procedure SoundChange(const Sender: TCastleSound; const Change: TSoundChange);
+  protected
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     const
       DefaultVolume = 1.0;
       DefaultMusicVolume = 1.0 deprecated 'use DefaultVolume';
 
-    constructor Create(AnEngine: TRepoSoundEngine);
+    constructor Create(AnEngine: TRepoSoundEngine); reintroduce;
     destructor Destroy; override;
 
-    { Currently played sound.
-      Set to stNone to stop playing.
-      Set to anything else to play.
-
-      Changing value of this property (when both the old and new values
-      are <> stNone and are different) restarts playing the sound.
-
-      By default none (stNone). }
-    property Sound: TSoundType read FSound write SetSound;
+    { Currently played looping sound. Set to @nil to just stop playing. }
+    property Sound: TCastleSound read FSound write SetSound;
 
     { Volume. This must always be within 0..1 range.
       0.0 means that there is no music (this case should be optimized).}
@@ -88,7 +81,7 @@
 
 constructor TLoopingChannel.Create(AnEngine: TRepoSoundEngine);
 begin
-  inherited Create;
+  inherited Create(nil); // TRepoSoundEngine will free us manually
   FVolume := DefaultVolume;
   FPitch := 1.0;
   FEngine := AnEngine;
@@ -107,21 +100,18 @@ var
 begin
   if Sound = nil then Exit;
 
-  SoundInfoVolume := Sound.Volume;
-  SoundInfoPitch := Sound.Pitch;
-
   Parameters := TPlaySoundParameters.Create;
   try
     Parameters.Buffer     := Sound.Buffer;
     Parameters.Spatial    := false;
     Parameters.Looping    := true;
     Parameters.Importance := { TODO SoundInfo.DefaultImportance } DefaultSoundImportance;
-    Parameters.Volume     := Volume * SoundInfoVolume;
+    Parameters.Pitch      := Pitch * Sound.Pitch;
+    Parameters.Volume     := Volume * Sound.Volume;
     {$warnings off} // using unportable symbols knowingly
     Parameters.MinGain    := Sound.MinGain;
     Parameters.MaxGain    := Sound.MaxGain;
     {$warnings on}
-    Parameters.Pitch      := Pitch * SoundInfoPitch;
     FAllocatedSource := FEngine.PlaySound(Parameters);
   finally FreeAndNil(Parameters) end;
 
@@ -134,20 +124,68 @@ begin
     ]);
 end;
 
-procedure TLoopingChannel.SetSound(const Value: TSoundType);
+procedure TLoopingChannel.SetSound(const Value: TCastleSound);
 begin
   if Value <> FSound then
   begin
-    if FAllocatedSource <> nil then
+    if FSound <> nil then
     begin
-      FAllocatedSource.Release;
-      { AllocatedSourceRelease should set FAllocatedSource to nil. }
-      Assert(FAllocatedSource = nil);
+      FSound.InternalRemoveChangeNotification(@SoundChange);
+      FSound.RemoveFreeNotification(Self);
+      if FAllocatedSource <> nil then
+      begin
+        FAllocatedSource.Release;
+        { AllocatedSourceRelease should set FAllocatedSource to nil. }
+        Assert(FAllocatedSource = nil);
+      end;
     end;
 
     FSound := Value;
 
-    AllocateSource;
+    if FSound <> nil then
+    begin
+      FSound.InternalAddChangeNotification(@SoundChange);
+      FSound.FreeNotification(Self);
+      AllocateSource;
+    end;
+  end;
+end;
+
+procedure TLoopingChannel.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited;
+  { set to nil by setter to clean nicely, and stop playing }
+  if (Operation = opRemove) and (AComponent = FSound) then
+    Sound := nil;
+end;
+
+procedure TLoopingChannel.SoundChange(const Sender: TCastleSound; const Change: TSoundChange);
+begin
+  case Change of
+    scBeforeBufferDestroyed:
+      begin
+        if FAllocatedSource <> nil then
+          FAllocatedSource.Release;
+        Assert(FAllocatedSource = nil);
+      end;
+    scAfterBufferCreated:
+      AllocateSource;
+    scAfterOther:
+      begin
+        if FAllocatedSource <> nil then
+        begin
+          // FAllocatedSource.Importance := { TODO SoundInfo.DefaultImportance } DefaultSoundImportance;
+          FAllocatedSource.Pitch   := Pitch * Sound.Pitch;
+          FAllocatedSource.Volume  := Volume * Sound.Volume;
+          {$warnings off} // using unportable symbols knowingly
+          FAllocatedSource.MinGain := Sound.MinGain;
+          FAllocatedSource.MaxGain := Sound.MaxGain;
+          {$warnings on}
+        end;
+      end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else raise EInternalError.Create('TLoopingChannel.SoundChange:Change');
+    {$endif}
   end;
 end;
 
@@ -168,7 +206,7 @@ begin
   begin
     FVolume := Value;
     if FAllocatedSource <> nil then
-      FAllocatedSource.Volume := Volume * SoundInfoVolume;
+      FAllocatedSource.Volume := Volume * Sound.Volume;
   end;
 end;
 
@@ -183,7 +221,7 @@ begin
   begin
     FPitch := Value;
     if FAllocatedSource <> nil then
-      FAllocatedSource.Pitch := Pitch * SoundInfoPitch;
+      FAllocatedSource.Pitch := Pitch * Sound.Pitch;
   end;
 end;
 
