@@ -84,8 +84,8 @@ type
     FEnemyObserver: TFreeNotificationObserver;
     FSoundAttackHit: String;
     FSoundAttackStart: String;
-    FSoundTypeAttackHit: TSoundType;
-    FSoundTypeAttackStart: TSoundType;
+    FSoundTypeAttackHit: TCastleSound;
+    FSoundTypeAttackStart: TCastleSound;
     FAnimationIdle: String;
     FAnimationMove: String;
     FAnimationAttack: String;
@@ -97,7 +97,7 @@ type
     property StateChangeTime: TFloatTime read FStateChangeTime;
     procedure SetEnemy(const Value: TCastleAliveBehavior);
     procedure EnemyFreeNotification(const Sender: TFreeNotificationObserver);
-    procedure PlaySound(const SoundType: TSoundType; const SoundHeight: Single);
+    procedure PlaySound(const SoundType: TCastleSound; const SoundHeight: Single);
     procedure SetSoundAttackHit(const Value: String);
     procedure SetSoundAttackStart(const Value: String);
     procedure UpdateAnimation;
@@ -399,7 +399,7 @@ begin
   end;
 end;
 
-procedure TCastleMoveAttack.PlaySound(const SoundType: TSoundType; const SoundHeight: Single);
+procedure TCastleMoveAttack.PlaySound(const SoundType: TCastleSound; const SoundHeight: Single);
 var
   SoundSource: TCastleSoundSource;
 begin

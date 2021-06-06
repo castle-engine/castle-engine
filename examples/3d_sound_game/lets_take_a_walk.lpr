@@ -51,7 +51,7 @@ var
   TntScene, Rat, Level: TCastleScene;
   RatAngle: Single;
 
-  stRatSound, stRatSqueak, stKaboom, stCricket: TSoundType;
+  stRatSound, stRatSqueak, stKaboom, stCricket: TCastleSound;
   RatSound: TInternalPlayingSound;
 
   HelpMessage: TCastleLabel;

@@ -130,7 +130,7 @@ type
         if and only if
           FootstepsSoundPlaying <> stNone. }
       FootstepsSound: TInternalPlayingSound;
-      FootstepsSoundPlaying: TSoundType;
+      FootstepsSoundPlaying: TCastleSound;
       ReallyWalkingOnTheGroundTime: Single;
 
       FInventoryCurrentItem: Integer;
@@ -149,7 +149,7 @@ type
       FFallMinHeightToDamage: Single;
       FFallDamageScaleMin: Single;
       FFallDamageScaleMax: Single;
-      FFallSound: TSoundType;
+      FFallSound: TCastleSound;
       FHeadBobbing: Single;
       FSwimBreath: Single;
       FDrownPause: Single;
@@ -389,7 +389,7 @@ type
       read FFallDamageScaleMax write FFallDamageScaleMax default DefaultFallDamageScaleMax;
     { Sound when falling.
       The default is the sound named 'player_fall'. }
-    property FallSound: TSoundType
+    property FallSound: TCastleSound
       read FFallSound write FFallSound;
     { Controls head bobbing, but only when player is walking.
       See TCastleWalkNavigation.HeadBobbing for exact meaning of this.
@@ -983,7 +983,7 @@ procedure TPlayer.FootstepsSoundRelease(Sender: TInternalPlayingSound);
 begin
   Assert(Sender = FootstepsSound);
   FootstepsSound := nil;
-  FootstepsSoundPlaying := stNone;
+  FootstepsSoundPlaying := nil;
 end;
 
 procedure TPlayer.SwimmingChangeSoundRelease(Sender: TInternalPlayingSound);
@@ -1093,7 +1093,7 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
   const
     TimeToChangeFootstepsSoundPlaying = 0.5;
   var
-    NewFootstepsSoundPlaying: TSoundType;
+    NewFootstepsSoundPlaying: TCastleSound;
   begin
     { The meaning of ReallyWalkingOnTheGroundTime and
       TimeToChangeFootstepsSoundPlaying:
@@ -1122,19 +1122,19 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
         WalkNavigation.IsOnTheGround, so UpdateIsOnTheGround updated
         GroundProperty field. }
       if (GroundProperty <> nil) and
-         (GroundProperty.FootstepsSound <> stNone) then
+         (GroundProperty.FootstepsSound <> nil) then
         NewFootstepsSoundPlaying := GroundProperty.FootstepsSound else
         NewFootstepsSoundPlaying := stPlayerFootstepsDefault;
     end else
     if LifeTime - ReallyWalkingOnTheGroundTime >
       TimeToChangeFootstepsSoundPlaying then
-      NewFootstepsSoundPlaying := stNone else
+      NewFootstepsSoundPlaying := nil else
       NewFootstepsSoundPlaying := FootstepsSoundPlaying;
 
     { Once I had an idea here to use AL_LOOPING sound for footsteps.
       But this is not good, because then I would have to manually
       stop this sound whenever player stops walking. This is not so easy.
-      This occurs when FootstepsSoundPlaying changes from non-stNone to stNone,
+      This occurs when FootstepsSoundPlaying changes from non-nil to nil,
       but this occurs also when CastlePlay starts loading new level, enters
       game menu etc. --- in all these cases player footsteps must stop.
       So it's better (simpler) to simply use non-looping sound for footsteps.
@@ -1143,7 +1143,7 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
 
     if FootstepsSoundPlaying <> NewFootstepsSoundPlaying then
     begin
-      if FootstepsSoundPlaying <> stNone then
+      if FootstepsSoundPlaying <> nil then
       begin
         { Stop footsteps sound. }
         FootstepsSound.Release;
@@ -1151,7 +1151,7 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
         Assert(FootstepsSound = nil);
       end;
 
-      if NewFootstepsSoundPlaying <> stNone then
+      if NewFootstepsSoundPlaying <> nil then
       begin
         { Start footsteps sound. }
         FootstepsSound := SoundEngine.Sound(NewFootstepsSoundPlaying, false);
@@ -1162,13 +1162,13 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
           FootstepsSound.OnRelease := @FootstepsSoundRelease;
         end else
           { Failed to allocate sound, so force new
-            NewFootstepsSoundPlaying to stNone. }
-          NewFootstepsSoundPlaying := stNone;
+            NewFootstepsSoundPlaying to nil. }
+          NewFootstepsSoundPlaying := nil;
       end;
 
       FootstepsSoundPlaying := NewFootstepsSoundPlaying;
     end else
-    if FootstepsSoundPlaying <> stNone then
+    if FootstepsSoundPlaying <> nil then
     begin
       { So FootstepsSoundPlaying = NewFootstepsSoundPlaying for sure.
         Make sure that the sound is really playing. }
@@ -1177,7 +1177,7 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
 
     Assert(
       (FootstepsSound <> nil) =
-      (FootstepsSoundPlaying <> stNone));
+      (FootstepsSoundPlaying <> nil));
   end;
 
 const
@@ -1382,14 +1382,14 @@ begin
     standing still after new level loaded. }
   ReallyWalkingOnTheGroundTime := -1000.0;
 
-  if FootstepsSoundPlaying <> stNone then
+  if FootstepsSoundPlaying <> nil then
   begin
     { Stop footsteps sound. }
     FootstepsSound.Release;
     { FootstepsSoundRelease should set this to nil. }
     Assert(FootstepsSound = nil);
 
-    FootstepsSoundPlaying := stNone;
+    FootstepsSoundPlaying := nil;
   end;
 
   ReallyIsOnTheGroundTime := -1000;

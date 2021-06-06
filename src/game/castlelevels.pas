@@ -47,7 +47,7 @@ type
     FLoadingBarYPosition: Single;
     FPlaceholderName: TPlaceholderName;
     FPlaceholderReferenceDirection: TVector3;
-    FMusicSound: TSoundType;
+    FMusicSound: TCastleSound;
     { We keep XML Document reference through the lifetime of this object,
       to allow the particular level logic (TLevelLogic descendant)
       to read some level-logic-specific variables from it. }
@@ -243,7 +243,7 @@ type
 
     { Music played when entering the level.
       None (stNone) by default. }
-    property MusicSound: TSoundType read FMusicSound write FMusicSound;
+    property MusicSound: TCastleSound read FMusicSound write FMusicSound;
   end;
 
   TLevelInfoList = class(specialize TObjectList<TLevelInfo>)

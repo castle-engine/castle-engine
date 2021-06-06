@@ -165,22 +165,22 @@ type
     or fire a missile. }
   TItemWeaponResource = class(TItemResource)
   private
-    FEquippingSound: TSoundType;
+    FEquippingSound: TCastleSound;
     FAttackAnimation: T3DResourceAnimation;
     FReadyAnimation: T3DResourceAnimation;
     FReloadAnimation: T3DResourceAnimation;
     FAttackTime: Single;
     FReloadTime: Single;
-    FAttackSoundStart: TSoundType;
+    FAttackSoundStart: TCastleSound;
     FAttackAmmo: String;
     FAttackAmmoCapacity: Cardinal;
-    FAttackSoundHit: TSoundType;
+    FAttackSoundHit: TCastleSound;
     FAttackDamageConst: Single;
     FAttackDamageRandom: Single;
     FAttackKnockbackDistance: Single;
     FAttackShoot: Boolean;
     FFireMissileName: String;
-    FFireMissileSound: TSoundType;
+    FFireMissileSound: TCastleSound;
   protected
     function ItemClass: TInventoryItemClass; override;
   public
@@ -196,7 +196,7 @@ type
 
     { Sound to make on equipping. Each weapon can have it's own
       equipping sound. }
-    property EquippingSound: TSoundType
+    property EquippingSound: TCastleSound
       read FEquippingSound write FEquippingSound;
 
     { Animation of attack with this weapon. }
@@ -224,7 +224,7 @@ type
       and it means that we already checked that you have necessary ammunition
       (see AttackAmmo).
       None (stNone) by default. }
-    property AttackSoundStart: TSoundType
+    property AttackSoundStart: TCastleSound
       read FAttackSoundStart write FAttackSoundStart;
 
     { Ammunition required to make an attack (applies to both immediate attack,
@@ -279,7 +279,7 @@ type
       default DefaultAttackShoot;
 
     { Sound on successful hit by an immediate attack (short-range/shoot). }
-    property AttackSoundHit: TSoundType read FAttackSoundHit write FAttackSoundHit;
+    property AttackSoundHit: TCastleSound read FAttackSoundHit write FAttackSoundHit;
 
     { Creature resource name to be created (like 'Arrow') when firing a missile.
       Must be set to something not empty to actually fire a missile. }
@@ -287,7 +287,7 @@ type
 
     { Sound on missile fired.
       None (stNone) by default. }
-    property FireMissileSound: TSoundType read FFireMissileSound write FFireMissileSound;
+    property FireMissileSound: TCastleSound read FFireMissileSound write FFireMissileSound;
 
     procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
   end;

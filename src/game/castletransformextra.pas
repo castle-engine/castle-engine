@@ -139,15 +139,14 @@ type
     FEndPosition: boolean;
     FEndPositionStateChangeTime: Single;
 
-    FSoundGoBeginPosition: TSoundType;
-    FSoundGoEndPosition: TSoundType;
+    FSoundGoBeginPosition: TCastleSound;
+    FSoundGoEndPosition: TCastleSound;
     FSoundGoBeginPositionLooping: boolean;
     FSoundGoEndPositionLooping: boolean;
     FSoundTracksCurrentPosition: boolean;
 
     SoundSource: TCastleSoundSource;
-    function SoundPosition: TVector3;
-    procedure PlaySound(SoundType: TSoundType; Looping: boolean);
+    procedure PlaySound(const SoundType: TCastleSound; const Looping: boolean);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -197,9 +196,9 @@ type
       this goes back to @italic(end position). }
     procedure GoOtherPosition;
 
-    property SoundGoBeginPosition: TSoundType
+    property SoundGoBeginPosition: TCastleSound
       read FSoundGoBeginPosition write FSoundGoBeginPosition;
-    property SoundGoEndPosition: TSoundType
+    property SoundGoEndPosition: TCastleSound
       read FSoundGoEndPosition write FSoundGoEndPosition;
 
     property SoundGoBeginPositionLooping: boolean
@@ -535,9 +534,6 @@ constructor TCastleLinearMoving.Create(AOwner: TComponent);
 begin
   inherited;
 
-  FSoundGoEndPosition := stNone;
-  FSoundGoBeginPosition := stNone;
-
   SoundSource := TCastleSoundSource.Create(Self);
   AddBehavior(SoundSource);
 
@@ -553,24 +549,17 @@ begin
   inherited;
 end;
 
-function TCastleLinearMoving.SoundPosition: TVector3;
-begin
-  Result := BoundingBox.Center;
-end;
-
-procedure TCastleLinearMoving.PlaySound(SoundType: TSoundType;
-  Looping: boolean);
+procedure TCastleLinearMoving.PlaySound(const SoundType: TCastleSound;
+  const Looping: boolean);
 begin
   if Looping then
   begin
-    // TODO: express SoundType as TCastleSound (or nil)
-    // TODO: SoundSource.Sound := SoundType;
+    SoundSource.Sound := SoundType;
   end else
   begin
-    // TODO: SoundSource.Sound := nil;
-    // TODO:
-    // if SoundType <> stNone then
-    //   SoundSource.PlayOnce(SoundType, SoundTracksCurrentPosition);
+    SoundSource.Sound := nil;
+    if SoundType <> nil then
+      SoundSource.PlayOnce(SoundType, SoundTracksCurrentPosition);
   end;
 end;
 

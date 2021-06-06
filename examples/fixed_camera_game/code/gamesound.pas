@@ -23,7 +23,7 @@ uses CastleSoundEngine;
 var
   stIntroMusic,
   stMainMenuMusic
-  : TSoundType;
+  : TCastleSound;
 
 procedure InitializeSound;
 

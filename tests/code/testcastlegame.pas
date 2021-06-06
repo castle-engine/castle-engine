@@ -47,7 +47,7 @@ procedure TTestGame.TestGameData;
     AssertEquals(ExtractURIName(A), B);
   end;
 
-  procedure AssertSound(const A: TSoundType; const B: string);
+  procedure AssertSound(const A: TCastleSound; const B: string);
   begin
     AssertTrue(A = SoundEngine.SoundFromName(B));
   end;
@@ -60,7 +60,7 @@ procedure TTestGame.TestGameData;
 var
   Player: TPlayer;
   RemovePlayer: TRemoveType;
-  //SoundType: TSoundType;
+  //SoundType: TCastleSound;
   C: TWalkAttackCreatureResource;
   MatProp: TMaterialProperty;
 begin
