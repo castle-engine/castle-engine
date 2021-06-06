@@ -129,7 +129,7 @@ begin
   ButtonStop.OnClick := @ClickStop;
 
   SliderSoundVolume := FindRequiredComponent('SliderSoundVolume') as TCastleFloatSlider;
-  SliderSoundVolume.Value := SoundSource.Gain;
+  SliderSoundVolume.Value := SoundSource.Volume;
   SliderSoundVolume.OnChange := @ChangeSliderSoundVolume;
 
   SliderSoundPitch := FindRequiredComponent('SliderSoundPitch') as TCastleFloatSlider;
@@ -148,7 +148,7 @@ end;
 
 procedure TStateMain.TSoundSourceUiOwner.ChangeSliderSoundVolume(Sender: TObject);
 begin
-  SoundSource.Gain := SliderSoundVolume.Value;
+  SoundSource.Volume := SliderSoundVolume.Value;
 end;
 
 procedure TStateMain.TSoundSourceUiOwner.ChangeSliderSoundPitch(Sender: TObject);

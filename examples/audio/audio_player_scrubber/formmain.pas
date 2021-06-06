@@ -119,7 +119,7 @@ procedure TMainForm.TrackVolumeChange(Sender: TObject);
 begin
   // if the sound is currently playing, adjust the volume
   if Sound <> nil then
-    Sound.Gain := TrackVolume.Position / 1000;
+    Sound.Volume := TrackVolume.Position / 1000;
 end;
 
 procedure TMainForm.SoundRelease(Sender: TInternalPlayingSound);
@@ -164,7 +164,7 @@ begin
   try
     Parameters.Buffer := SoundBuffer;
     Parameters.Looping := CheckBoxLoop.Checked;
-    Parameters.Gain := InitialVolume;
+    Parameters.Volume := InitialVolume;
     Parameters.Offset := TrackOffset.Position;
     Sound := SoundEngine.PlaySound(Parameters);
   finally FreeAndNil(Parameters) end;
