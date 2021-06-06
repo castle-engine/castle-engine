@@ -29,7 +29,7 @@
     FUserData: TObject;
     FPosition, FVelocity: TVector3;
     FLooping, FRelative: boolean;
-    FGain, FMinGain, FMaxGain, FPitch: Single;
+    FVolume, FMinGain, FMaxGain, FPitch: Single;
     FBuffer: TSoundBuffer;
     FRolloffFactor, FReferenceDistance, FMaxDistance: Single;
     Backend: TSoundSourceBackend;
@@ -38,7 +38,7 @@
     procedure SetVelocity(const Value: TVector3);
     procedure SetLooping(const Value: boolean);
     procedure SetRelative(const Value: boolean);
-    procedure SetGain(const Value: Single);
+    procedure SetVolume(const Value: Single);
     procedure SetMinGain(const Value: Single);
     procedure SetMaxGain(const Value: Single);
     procedure SetBuffer(const Value: TSoundBuffer);
@@ -116,7 +116,8 @@
     property Velocity: TVector3 read FVelocity write SetVelocity;
     property Looping: boolean read FLooping write SetLooping;
     property Relative: boolean read FRelative write SetRelative;
-    property Gain: Single read FGain write SetGain;
+    property Volume: Single read FVolume write SetVolume;
+    property Gain: Single read FVolume write SetVolume; deprecated 'use Volume';
     property MinGain: Single read FMinGain write SetMinGain;
     property MaxGain: Single read FMaxGain write SetMaxGain;
     property Buffer: TSoundBuffer read FBuffer write SetBuffer;
@@ -265,10 +266,10 @@ begin
   Backend.SetRelative(Value);
 end;
 
-procedure TInternalPlayingSound.SetGain(const Value: Single);
+procedure TInternalPlayingSound.SetVolume(const Value: Single);
 begin
-  FGain := Value;
-  Backend.SetGain(Value);
+  FVolume := Value;
+  Backend.SetVolume(Value);
 end;
 
 procedure TInternalPlayingSound.SetMinGain(const Value: Single);

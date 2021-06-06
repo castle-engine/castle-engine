@@ -150,7 +150,7 @@ type
     procedure SetVelocity(const Value: TVector3); virtual; abstract;
     procedure SetLooping(const Value: boolean); virtual; abstract;
     procedure SetRelative(const Value: boolean); virtual; abstract;
-    procedure SetGain(const Value: Single); virtual; abstract;
+    procedure SetVolume(const Value: Single); virtual; abstract;
     procedure SetMinGain(const Value: Single); virtual; abstract;
     procedure SetMaxGain(const Value: Single); virtual; abstract;
     { We guarantee that SetBuffer is only called on a stopped sound source
@@ -193,7 +193,7 @@ type
     procedure Update; virtual;
 
     { All the methods below are guaranteed to be called only after ContextOpen. }
-    procedure SetGain(const Value: Single); virtual; abstract;
+    procedure SetVolume(const Value: Single); virtual; abstract;
     procedure SetDistanceModel(const Value: TSoundDistanceModel); virtual; abstract;
     procedure SetListener(const Position, Direction, Up: TVector3); virtual; abstract;
   end;

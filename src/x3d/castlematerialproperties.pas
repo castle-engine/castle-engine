@@ -30,7 +30,7 @@ type
   TMaterialProperty = class
   strict private
     FTextureBaseName: String;
-    FFootstepsSound: TSoundType;
+    FFootstepsSound: TCastleSound;
     FToxic: Boolean;
     FToxicDamageConst, FToxicDamageRandom, FToxicDamageTime: Single;
     FNormalMap: String;
@@ -44,8 +44,8 @@ type
     property TextureBaseName: String read FTextureBaseName write FTextureBaseName;
 
     { Footsteps sound to make when player is walking on this material.
-      stNone is no information is available. }
-    property FootstepsSound: TSoundType read FFootstepsSound write FFootstepsSound;
+      nil if no information is available. }
+    property FootstepsSound: TCastleSound read FFootstepsSound write FFootstepsSound;
 
     { Is the floor toxic when walking on it.
       Taken into account only if you assign @link(TLevel.Player).
@@ -339,8 +339,9 @@ begin
   FootstepsSoundName := '';
   if Element.AttributeString('footsteps_sound', FootstepsSoundName) and
      (FootstepsSoundName <> '') then
-    FFootstepsSound := SoundEngine.SoundFromName(FootstepsSoundName) else
-    FFootstepsSound := stNone;
+    FFootstepsSound := SoundEngine.SoundFromName(FootstepsSoundName)
+  else
+    FFootstepsSound := nil;
 
   if Element.AttributeString('normal_map', FNormalMap) and (FNormalMap <> '') then
     FNormalMap := CombineURI(BaseURL, FNormalMap) else
@@ -507,7 +508,7 @@ begin
       begin
         Scale.Value := StrToScale(ScalesIterator.Current.AttributeString('value'));
 	Scale.Platforms := AllPlatforms;
-	
+
         PlatformsElement := ScalesIterator.Current.ChildElement('platforms', false);
         if PlatformsElement <> nil then
         begin
@@ -520,7 +521,7 @@ begin
             FreeAndNil(PlatformsIterator);
           end;
         end;
-          
+
         FScales.Add(Scale);
       end;
     finally

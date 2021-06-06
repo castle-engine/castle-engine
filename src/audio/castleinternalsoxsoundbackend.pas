@@ -61,7 +61,7 @@ type
     procedure SetVelocity(const Value: TVector3); override;
     procedure SetLooping(const Value: boolean); override;
     procedure SetRelative(const Value: boolean); override;
-    procedure SetGain(const Value: Single); override;
+    procedure SetVolume(const Value: Single); override;
     procedure SetMinGain(const Value: Single); override;
     procedure SetMaxGain(const Value: Single); override;
     procedure SetBuffer(const Value: TSoundBufferBackend); override;
@@ -81,7 +81,7 @@ type
     procedure ContextClose; override;
     function CreateBuffer(const SoundLoading: TSoundLoading): TSoundBufferBackend; override;
     function CreateSource: TSoundSourceBackend; override;
-    procedure SetGain(const Value: Single); override;
+    procedure SetVolume(const Value: Single); override;
     procedure SetDistanceModel(const Value: TSoundDistanceModel); override;
     procedure SetListener(const Position, Direction, Up: TVector3); override;
   end;
@@ -168,7 +168,7 @@ procedure TSoxSoundSourceBackend.SetRelative(const Value: boolean);
 begin
 end;
 
-procedure TSoxSoundSourceBackend.SetGain(const Value: Single);
+procedure TSoxSoundSourceBackend.SetVolume(const Value: Single);
 begin
 end;
 
@@ -241,7 +241,7 @@ procedure TSoxSoundEngineBackend.ContextClose;
 begin
 end;
 
-procedure TSoxSoundEngineBackend.SetGain(const Value: Single);
+procedure TSoxSoundEngineBackend.SetVolume(const Value: Single);
 begin
 end;
 

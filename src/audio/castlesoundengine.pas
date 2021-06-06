@@ -37,11 +37,11 @@ type
 {$I castlesoundengine_initial_types.inc}
 {$I castlesoundengine_buffer.inc}
 {$I castlesoundengine_playingsound.inc}
+{$I castlesoundengine_sound.inc}
 {$I castlesoundengine_allocator.inc}
 {$I castlesoundengine_engine.inc}
 {$I castlesoundengine_repoengine.inc}
 {$I castlesoundengine_loopingchannel.inc}
-{$I castlesoundengine_sound.inc}
 {$I castlesoundengine_miscellaneous.inc}
 {$undef read_interface}
 
@@ -58,11 +58,11 @@ uses XMLRead, StrUtils, Generics.Defaults,
 {$I castlesoundengine_miscellaneous.inc} // must be first, as defines some internal globals
 {$I castlesoundengine_buffer.inc}
 {$I castlesoundengine_playingsound.inc}
+{$I castlesoundengine_sound.inc}
 {$I castlesoundengine_allocator.inc}
 {$I castlesoundengine_engine.inc}
 {$I castlesoundengine_repoengine.inc}
 {$I castlesoundengine_loopingchannel.inc}
-{$I castlesoundengine_sound.inc}
 {$undef read_implementation}
 
 initialization

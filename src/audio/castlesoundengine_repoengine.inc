@@ -19,13 +19,7 @@
 //type // allow type declaration to continue
 
   { Unique sound type identifier for sounds used within TRepoSoundEngine. }
-  TSoundType = record
-  private
-    { Index to TRepoSoundEngine.FSounds array. }
-    Index: Cardinal;
-  public
-    class operator {$ifdef FPC}={$else}Equals{$endif} (const SoundType1, SoundType2: TSoundType): boolean;
-  end;
+  TSoundType = TCastleSound deprecated 'use TCastleSound';
 
   { Sound engine that keeps a repository of sounds, defined in a nice XML file.
     This allows to have simple @link(Sound) and @link(Sound3D) methods,
@@ -103,40 +97,14 @@
         function FinalSound(const RecursionDepth: Cardinal): TSoundInfoBuffer; override;
       end;
 
-      { Sound that can be played, with a buffer.
-        Most fields of this classs correspond to appropriate attributes in
-        the XML file loaded by setting @link(TRepoSoundEngine.RepositoryURL). }
+      { Sound that can be played, with a buffer. }
       TSoundInfoBuffer = class(TSoundInfo)
       public
-        { Buffer of this sound. @nil if buffer is not yet loaded,
-          which may happen only if TRepoSoundEngine.ContextOpen was not yet
-          called or when sound has URL = ''. }
-        Buffer: TSoundBuffer;
+        Sound: TCastleSound;
 
-        { URL from which to load sound data.
-          Absolute (including parent group URL parts).
-
-          Empty means that the sound data is not defined,
-          so the OpenAL buffer will not be initialized and trying to play
-          this sound (with methods like TSoundEngine.Sound or TSoundEngine.Sound3D)
-          will do nothing. This is useful if you want to use a sound name
-          in code, but you do not have the actual sound file for this yet. }
-        URL: string;
-
-        { Gain (how loud the sound is).
-          See https://castle-engine.io/manual_sound.php .
-
-          When this sound is used for @link(TLoopingChannel.Sound),
-          effective Gain is the
-          @link(TLoopingChannel.Volume) multiplied by this @link(Gain). }
-        Gain: Single;
-
-        { Limit gain after spatial calculation.
-          See https://castle-engine.io/manual_sound.php . }
-        MinGain, MaxGain: Single;
-
+        // TODO: move to TCastleSound.Priority
         { How important the sound is. Influences what happens when we have a lot
-          of sounds playing at once. See TSound.Importance. }
+          of sounds playing at once. See TInternalPlayingSound.Importance. }
         DefaultImportance: Cardinal;
 
         procedure ReadElement(const Element: TDOMElement;
@@ -188,7 +156,6 @@
     procedure RestartLoopingChannels;
     function GetMusicPlayer: TLoopingChannel;
     function GetLoopingChannel(const Index: Cardinal): TLoopingChannel;
-    function FinalSound(const SoundType: TSoundType): TSoundInfoBuffer;
     procedure ContextOpenCore; override;
   public
     constructor Create;
@@ -363,14 +330,6 @@
 
 {$ifdef read_implementation}
 
-{ TSoundType ----------------------------------------------------------------- }
-
-class operator TSoundType.{$ifdef FPC}={$else}Equals{$endif}
-  (const SoundType1, SoundType2: TSoundType): boolean;
-begin
-  Result := SoundType1.Index = SoundType2.Index;
-end;
-
 { TSoundInfoList ------------------------------------------------------------- }
 
 function TRepoSoundEngine.TSoundInfoList.IndexOfName(const SoundName: String): Integer;
@@ -488,18 +447,13 @@ procedure TRepoSoundEngine.TSoundInfoBuffer.ReadElement(const Element: TDOMEleme
   const AParentGroup: TSoundGroup;
   const BaseUrl: String; const ASoundEngine: TRepoSoundEngine);
 var
-  ImportanceStr, URLPrefix: String;
+  URL, ImportanceStr, URLPrefix: String;
   SoundImportanceIndex: Integer;
-  Streaming: Boolean;
-  SoundLoading: TSoundLoading;
 begin
   inherited;
 
-  { init to default values }
-  Gain := 1;
-  MinGain := 0;
-  MaxGain := 1;
-  DefaultImportance := DefaultSoundImportance;
+  FreeAndNil(Sound);
+  Sound := TCastleSound.Create(nil);
 
   { retrieve URL using AttributeString
     (that internally uses Element.Attributes.GetNamedItem),
@@ -508,11 +462,12 @@ begin
     and when it's present and set to empty string
     (in this case URL must also be set to empty string).
     Standard Element.GetAttribute wouldn't allow me this. }
+  URL := '';
   if (Element.AttributeString('url', URL) or
       Element.AttributeString('file_name', URL)) and
      (URL <> '') then
   begin
-    URL := CombineURI(BaseUrl, URL)
+    URL := CombineURI(BaseUrl, URL);
   end else
   begin
     URLPrefix := CombineURI(BaseUrl, ShortName);
@@ -525,16 +480,28 @@ begin
       WritelnWarning('No matching sound file found for sound "%s"', [Name]);
   end;
 
-  Element.AttributeSingle('gain', Gain);
-  Element.AttributeSingle('min_gain', MinGain);
-  Element.AttributeSingle('max_gain', MaxGain);
+  Sound.URL := URL;
+
+  if Element.HasAttribute('gain') then
+  begin
+    Sound.Volume := Element.AttributeSingleDef('gain', 1);
+    WritelnWarning('Sound "%s": "gain" has been deprecated in sounds XML, use "volume" now', [Name]);
+  end else
+    Sound.Volume := Element.AttributeSingleDef('volume', 1);
+  {$warnings off} // using unportable symbols knowingly
+  Sound.MinGain := Element.AttributeSingleDef('min_gain', 0);
+  Sound.MaxGain := Element.AttributeSingleDef('max_gain', 1);
 
   { MaxGain is max 1. Although some sound backends (like some OpenAL backends)
     implementations allow > 1,
     Windows implementation of OpenAL (from Creative) doesn't.
     For consistent results, we don't allow it anywhere. }
-  if MaxGain > 1 then
-    MaxGain := 1;
+  if Sound.MaxGain > 1 then
+  begin
+    WritelnWarning('Sound "%s": "max_gain" max value is 1.0', [Name]);
+    Sound.MaxGain := 1;
+  end;
+  {$warnings on}
 
   if Element.AttributeString('default_importance', ImportanceStr) then
   begin
@@ -546,15 +513,7 @@ begin
   end;
 
   { set Buffer at the end, when URL is set }
-  if URL <> '' then
-  begin
-    Streaming := Element.AttributeBooleanDef('stream', false);
-    if Streaming then
-      SoundLoading := slStreaming
-    else
-      SoundLoading := slComplete;
-    Buffer := ASoundEngine.LoadBuffer(URL, SoundLoading, false);
-  end;
+  Sound.Stream := Element.AttributeBooleanDef('stream', false);
 end;
 
 function TRepoSoundEngine.TSoundInfoBuffer.FinalSound(const RecursionDepth: Cardinal): TSoundInfoBuffer;
@@ -564,8 +523,7 @@ end;
 
 destructor TRepoSoundEngine.TSoundInfoBuffer.Destroy;
 begin
-  if OwningSoundEngine <> nil then
-    OwningSoundEngine.FreeBuffer(Buffer);
+  FreeAndNil(Sound);
   inherited;
 end;
 
@@ -637,67 +595,59 @@ begin
         L.AllocateSource;
 end;
 
-function TRepoSoundEngine.FinalSound(const SoundType: TSoundType): TSoundInfoBuffer;
-begin
-  if SoundType.Index = 0 then
-    Exit(nil);
-
-  Result := FSounds[SoundType.Index].FinalSound(0);
-  if Result.URL = '' then
-    Exit(nil);
-end;
-
 function TRepoSoundEngine.Sound(const SoundType: TSoundType;
   const Looping: boolean): TInternalPlayingSound;
-var
-  SoundInfo: TSoundInfoBuffer;
 begin
   { If there is no actual sound, exit early without initializing sound backend.
-    - SoundType is stNone (which includes sound names not defined in sounds.xml,
-      since SoundFromName returns stNone for them).
-    - SoundType is <> stNone but URL = '' (if sound name is defined in
+    - SoundType is nil (which includes sound name not defined in sounds.xml,
+      since SoundFromName returns nil for them).
+    - SoundType is <> nil but URL = '' (if sound name is defined in
       sounds.xml with explicit url="", like this:
       <sound name="player_sudden_pain" url="" />)
   }
-  SoundInfo := FinalSound(SoundType);
-  if SoundInfo = nil then Exit(nil);
+  if (SoundType = nil) or (SoundType.URL = '') then Exit(nil);
 
   ContextOpen;
 
   { Check this only after ContextOpen,
     since before ContextOpen the Buffer always = nil. }
-  if SoundInfo.Buffer = nil then Exit(nil);
+  if SoundType.Buffer = nil then Exit(nil);
 
   Result := PlaySound(
-    SoundInfo.Buffer, false, Looping,
-    SoundInfo.DefaultImportance,
-    SoundInfo.Gain,
-    SoundInfo.MinGain,
-    SoundInfo.MaxGain,
+    SoundType.Buffer,
+    { spatial } false,
+    Looping,
+    { TODO: SoundType.DefaultImportance } DefaultSoundImportance,
+    SoundType.Volume,
+    {$warnings off} // using unportable symbols knowingly
+    SoundType.MinGain,
+    SoundType.MaxGain,
+    {$warnings on}
     TVector3.Zero);
 end;
 
 function TRepoSoundEngine.Sound3D(const SoundType: TSoundType;
   const Position: TVector3;
   const Looping: boolean): TInternalPlayingSound;
-var
-  SoundInfo: TSoundInfoBuffer;
 begin
   { If there is no actual sound, exit early without initializing sound backend.
     See Sound for more comments why we do this. }
-  SoundInfo := FinalSound(SoundType);
-  if SoundInfo = nil then Exit(nil);
+  if (SoundType = nil) or (SoundType.URL = '') then Exit(nil);
 
   ContextOpen;
 
-  if SoundInfo.Buffer = nil then Exit(nil);
+  if SoundType.Buffer = nil then Exit(nil);
 
   Result := PlaySound(
-    SoundInfo.Buffer, true, Looping,
-    SoundInfo.DefaultImportance,
-    SoundInfo.Gain,
-    SoundInfo.MinGain,
-    SoundInfo.MaxGain,
+    SoundType.Buffer,
+    { spatial } true,
+    Looping,
+    { TODO: SoundType.DefaultImportance } DefaultSoundImportance,
+    SoundType.Volume,
+    {$warnings off} // using unportable symbols knowingly
+    SoundType.MinGain,
+    SoundType.MaxGain,
+    {$warnings on}
     Position);
 end;
 
@@ -863,6 +813,7 @@ begin
     ResolveNames;
 
     { read common sound names }
+    {$warnings off} // initialize deprecated symbols knowingly
     stPlayerInteractFailed       := SoundFromName('player_interact_failed', false);
     stPlayerSuddenPain           := SoundFromName('player_sudden_pain', false);
     stPlayerPickItem             := SoundFromName('player_pick_item', false);
@@ -876,6 +827,7 @@ begin
 
     stMenuCurrentItemChanged := SoundFromName('menu_current_item_changed', false);
     stMenuClick              := SoundFromName('menu_click'               , false);
+    {$warnings on}
 
     { in case you set RepositoryURL when sound context is already
       initialized, start playing music immediately if necessary }
@@ -904,13 +856,12 @@ begin
   SoundIndex := FSounds.IndexOfName(SoundName);
   if SoundIndex <> -1 then
   begin
-    Result.Index := SoundIndex;
-    Exit;
+    Result := FSounds[SoundIndex].FinalSound(0).Sound;
+  end else
+  begin
+    if Required then
+      WritelnWarning('Sound', Format('Unknown sound name "%s"', [SoundName]));
   end;
-
-  if Required then
-    WritelnWarning('Sound', Format('Unknown sound name "%s"', [SoundName]));
-  Result.Index := 0;
 end;
 
 procedure TRepoSoundEngine.AddSoundImportanceName(const Name: string;

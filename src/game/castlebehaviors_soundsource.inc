@@ -248,7 +248,7 @@ begin
       Params.Spatial := Sound.Spatial;
       Params.Looping := Looping;
       Params.Importance := DefaultSoundImportance;
-      Params.Gain := Sound.Volume;
+      Params.Volume := Sound.Volume;
       {$warnings off} // using unportable symbols knowingly
       Params.MinGain := Sound.MinGain;
       Params.MaxGain := Sound.MaxGain;
@@ -293,7 +293,7 @@ begin
         begin
           if PlayingSound <> nil then
           begin
-            PlayingSound.Gain := Sound.Volume;
+            PlayingSound.Volume := Sound.Volume;
             PlayingSound.Pitch := Sound.Pitch;
             PlayingSound.Relative := not Sound.Spatial;
             if not Sound.Spatial then

@@ -58,13 +58,13 @@ var
   stMenuCurrentItemChanged,
   stMenuClick
   { @groupEnd }
-    :TSoundType;
+    :TCastleSound deprecated 'these predefined sounds should not be used';
 
 const
   { Special sound type that indicates that there is actually no sound.
     @link(TRepoSoundEngine.Sound) and @link(TRepoSoundEngine.Sound3D)
     will do nothing when called with this sound type. }
-  stNone: TSoundType = (Index: 0);
+  stNone: TCastleSound = nil deprecated 'use nil';
 
   MaxSoundImportance = MaxInt;
   LevelEventSoundImportance      = 100000;
@@ -94,6 +94,10 @@ const
   engine class. Created on first call to this function. }
 function SoundEngine: TRepoSoundEngine;
 
+{ The sound engine, but may be @nil very early in initialiazation / very late in finalization.
+  @exclude }
+function InternalSoundEngine: TRepoSoundEngine;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -112,6 +116,11 @@ begin
     Assert(FSoundEngine <> nil);
   end;
 
+  Result := FSoundEngine;
+end;
+
+function InternalSoundEngine: TRepoSoundEngine;
+begin
   Result := FSoundEngine;
 end;
 

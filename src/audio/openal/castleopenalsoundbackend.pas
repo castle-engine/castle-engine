@@ -121,7 +121,7 @@ type
     procedure SetVelocity(const Value: TVector3); override;
     procedure SetLooping(const Value: boolean); override;
     procedure SetRelative(const Value: boolean); override;
-    procedure SetGain(const Value: Single); override;
+    procedure SetVolume(const Value: Single); override;
     procedure SetMinGain(const Value: Single); override;
     procedure SetMaxGain(const Value: Single); override;
     procedure SetBuffer(const Value: TSoundBufferBackend); override;
@@ -157,7 +157,7 @@ type
     function CreateBuffer(const SoundLoading: TSoundLoading): TSoundBufferBackend; override;
     function CreateSource: TSoundSourceBackend; override;
 
-    procedure SetGain(const Value: Single); override;
+    procedure SetVolume(const Value: Single); override;
     procedure SetDistanceModel(const Value: TSoundDistanceModel); override;
     procedure SetListener(const Position, Direction, Up: TVector3); override;
 
@@ -566,7 +566,7 @@ begin
   {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcei(.., AL_SOURCE_RELATIVE, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
-procedure TOpenALSoundSourceBackend.SetGain(const Value: Single);
+procedure TOpenALSoundSourceBackend.SetVolume(const Value: Single);
 begin
   alSourcef(ALSource, AL_GAIN, Value);
   {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_GAIN, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
@@ -967,7 +967,7 @@ begin
   end;
 end;
 
-procedure TOpenALSoundEngineBackend.SetGain(const Value: Single);
+procedure TOpenALSoundEngineBackend.SetVolume(const Value: Single);
 begin
   alListenerf(AL_GAIN, Value);
 end;

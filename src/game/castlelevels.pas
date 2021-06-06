@@ -1592,8 +1592,9 @@ begin
   AddAlwaysPreparedResources;
 
   if Element.AttributeString('music_sound', SoundName) then
-    MusicSound := SoundEngine.SoundFromName(SoundName) else
-    MusicSound := stNone;
+    MusicSound := SoundEngine.SoundFromName(SoundName)
+  else
+    MusicSound := nil;
 end;
 
 { TLevelInfoList ------------------------------------------------------- }

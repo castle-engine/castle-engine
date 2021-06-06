@@ -23,11 +23,16 @@
     Buffer: TSoundBuffer;
     Spatial, Looping: boolean;
     Importance: Cardinal;
-    { Gain is the volume of sound.
-      MinGain and MaxGain determine how it can change because of spatialization
+
+    { How loud is the sound. By default 1.0. }
+    Volume: Single;
+
+    { MinGain and MaxGain determine how volume can change because of spatialization
       (where the sound may get quieter / louder as you get further / closer to it).
-      By default, Gain and MaxGain are 1.0, and MinGain is 0.0. }
-    Gain, MinGain, MaxGain: Single;
+      By default MinGain is 0.0, MaxGain is 1.0. }
+    MinGain: Single platform { this feature is only available with OpenAL sound backend };
+    MaxGain: Single platform { this feature is only available with OpenAL sound backend };
+
     { The position of sound in 3D space.
       Used only if @link(Spatial) = @true. }
     Position: TVector3;
@@ -44,6 +49,7 @@
     MaxDistance: Single;
     { Offset is a position in time of the sound. }
     Offset: Single;
+    property Gain: Single read Volume write Volume; deprecated 'use Volume';
     constructor Create;
   end;
 
@@ -258,12 +264,12 @@
     function PlaySound(const Buffer: TSoundBuffer): TInternalPlayingSound; overload;
     function PlaySound(const Buffer: TSoundBuffer;
       const Spatial, Looping: boolean; const Importance: Cardinal;
-      const Gain, MinGain, MaxGain: Single;
+      const Volume, MinGain, MaxGain: Single;
       const Position: TVector3;
       const Pitch: Single = 1): TInternalPlayingSound; overload;
     function PlaySound(const Buffer: TSoundBuffer;
       const Spatial, Looping: boolean; const Importance: Cardinal;
-      const Gain, MinGain, MaxGain: Single;
+      const Volume, MinGain, MaxGain: Single;
       const Position: TVector3;
       const Pitch: Single;
       const ReferenceDistance: Single;
@@ -365,10 +371,10 @@
           In particular 0 turns off attenuation by distance.
           Default is 1.)
         @item(Reference Distance is the distance at which exactly sound
-          gain is heard. Default is 1.)
+          volume is heard. Default is 1.)
         @item(Max Distance interpretation depends on the model.
-          For "inverse clamped model", the gain is no longer scaled down
-          after reaching this distance. For linear models, the gain
+          For "inverse clamped model", the Volume is no longer scaled down
+          after reaching this distance. For linear models, the Volume
           reaches zero at this distance. Default is maximum float
           (I don't know the interpretation of this for linear model).)
       )
@@ -410,8 +416,10 @@
 constructor TPlaySoundParameters.Create;
 begin
   inherited;
-  Gain := 1;
+  Volume := 1;
+  {$warnings off} // using unportable symbols knowingly
   MaxGain := 1;
+  {$warnings on}
   Pitch := 1;
   RolloffFactor     := SoundEngine.DefaultRolloffFactor;
   ReferenceDistance := SoundEngine.DefaultReferenceDistance;
@@ -568,7 +576,7 @@ begin
           ]);
 
       try
-        Backend.SetGain(Volume);
+        Backend.SetVolume(Volume);
         Backend.SetDistanceModel(DistanceModel);
         Backend.SetListener(
           FListenerPosition,
@@ -654,9 +662,11 @@ begin
     begin
       Result.Buffer  := Parameters.Buffer;
       Result.Looping := Parameters.Looping;
-      Result.Gain    := Parameters.Gain;
+      Result.Volume  := Parameters.Volume;
+      {$warnings off} // using unportable symbols knowingly
       Result.MinGain := Parameters.MinGain;
       Result.MaxGain := Parameters.MaxGain;
+      {$warnings on}
       Result.Pitch   := Parameters.Pitch * InitialPitchMultiplier;
       Result.Offset  := Parameters.Offset;
 
@@ -703,7 +713,7 @@ end;
 
 function TSoundEngine.PlaySound(const Buffer: TSoundBuffer;
   const Spatial, Looping: boolean; const Importance: Cardinal;
-  const Gain, MinGain, MaxGain: Single;
+  const Volume, MinGain, MaxGain: Single;
   const Position: TVector3;
   const Pitch: Single): TInternalPlayingSound;
 var
@@ -715,9 +725,11 @@ begin
     Parameters.Spatial    := Spatial;
     Parameters.Looping    := Looping;
     Parameters.Importance := Importance;
-    Parameters.Gain       := Gain;
+    Parameters.Volume     := Volume;
+    {$warnings off} // using unportable symbols knowingly
     Parameters.MinGain    := MinGain;
     Parameters.MaxGain    := MaxGain;
+    {$warnings on}
     Parameters.Position   := Position;
     Parameters.Pitch      := Pitch;
     Result := PlaySound(Parameters);
@@ -726,7 +738,7 @@ end;
 
 function TSoundEngine.PlaySound(const Buffer: TSoundBuffer;
   const Spatial, Looping: boolean; const Importance: Cardinal;
-  const Gain, MinGain, MaxGain: Single;
+  const Volume, MinGain, MaxGain: Single;
   const Position: TVector3;
   const Pitch, ReferenceDistance, MaxDistance: Single): TInternalPlayingSound;
 var
@@ -738,9 +750,11 @@ begin
     Parameters.Spatial    := Spatial;
     Parameters.Looping    := Looping;
     Parameters.Importance := Importance;
-    Parameters.Gain       := Gain;
+    Parameters.Volume     := Volume;
+    {$warnings off} // using unportable symbols knowingly
     Parameters.MinGain    := MinGain;
     Parameters.MaxGain    := MaxGain;
+    {$warnings on}
     Parameters.Position   := Position;
     Parameters.Pitch      := Pitch;
     Parameters.ReferenceDistance := ReferenceDistance;
@@ -821,7 +835,7 @@ begin
   begin
     FVolume := Value;
     if IsContextOpenSuccess then
-      Backend.SetGain(Value);
+      Backend.SetVolume(Value);
   end;
 end;
 

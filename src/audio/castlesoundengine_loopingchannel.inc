@@ -36,9 +36,8 @@
     FAllocatedSource: TInternalPlayingSound;
 
     FVolume, FPitch: Single;
-    { Constant Gain of TSoundInfo associated with Sound,
-      will be multiplied by Volume. }
-    SoundInfoGain, SoundInfoPitch: Single;
+    { Values of TSoundInfo associated with Sound, will be multiplied by our Volume/Pitch. }
+    SoundInfoVolume, SoundInfoPitch: Single;
 
     FSound: TSoundType;
     procedure SetSound(const Value: TSoundType);
@@ -104,24 +103,24 @@ end;
 
 procedure TLoopingChannel.AllocateSource;
 var
-  SoundInfo: TRepoSoundEngine.TSoundInfoBuffer;
   Parameters: TPlaySoundParameters;
 begin
-  SoundInfo := FEngine.FinalSound(Sound);
-  if SoundInfo = nil then Exit;
+  if Sound = nil then Exit;
 
-  SoundInfoGain := SoundInfo.Gain;
-  SoundInfoPitch := 1.0; // SoundInfo.Pitch; // for now there is no setting for it
+  SoundInfoVolume := Sound.Volume;
+  SoundInfoPitch := Sound.Pitch;
 
   Parameters := TPlaySoundParameters.Create;
   try
-    Parameters.Buffer     := SoundInfo.Buffer;
+    Parameters.Buffer     := Sound.Buffer;
     Parameters.Spatial    := false;
     Parameters.Looping    := true;
-    Parameters.Importance := SoundInfo.DefaultImportance;
-    Parameters.Gain       := Volume * SoundInfoGain;
-    Parameters.MinGain    := SoundInfo.MinGain;
-    Parameters.MaxGain    := SoundInfo.MaxGain;
+    Parameters.Importance := { TODO SoundInfo.DefaultImportance } DefaultSoundImportance;
+    Parameters.Volume     := Volume * SoundInfoVolume;
+    {$warnings off} // using unportable symbols knowingly
+    Parameters.MinGain    := Sound.MinGain;
+    Parameters.MaxGain    := Sound.MaxGain;
+    {$warnings on}
     Parameters.Pitch      := Pitch * SoundInfoPitch;
     FAllocatedSource := FEngine.PlaySound(Parameters);
   finally FreeAndNil(Parameters) end;
@@ -131,7 +130,7 @@ begin
       {$ifdef CASTLE_OBJFPC}@{$endif} AllocatedSourceRelease
   else
     WritelnWarning('Could not allocate sound source, to play looping sound %s', [
-      SoundInfo.Name
+      Sound.Name
     ]);
 end;
 
@@ -169,7 +168,7 @@ begin
   begin
     FVolume := Value;
     if FAllocatedSource <> nil then
-      FAllocatedSource.Gain := Volume * SoundInfoGain;
+      FAllocatedSource.Volume := Volume * SoundInfoVolume;
   end;
 end;
 

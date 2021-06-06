@@ -287,7 +287,7 @@ begin
           Parameters.Spatial := SoundNode.Spatialize;
           Parameters.Looping := Loop;
           Parameters.Importance := Clamped(Round(SoundNode.Priority * 1000), 0, 1000);
-          Parameters.Gain := SoundNode.Intensity;
+          Parameters.Volume := SoundNode.Intensity;
           Parameters.Position := SoundNode.WorldLocation;
           Parameters.Pitch := SafePitch;
           { We pass min/maxFront as OpenAL reference distance/max distance,

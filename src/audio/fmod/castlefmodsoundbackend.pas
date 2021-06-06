@@ -85,7 +85,7 @@ type
     procedure SetVelocity(const Value: TVector3); override;
     procedure SetLooping(const Value: boolean); override;
     procedure SetRelative(const Value: boolean); override;
-    procedure SetGain(const Value: Single); override;
+    procedure SetVolume(const Value: Single); override;
     procedure SetMinGain(const Value: Single); override;
     procedure SetMaxGain(const Value: Single); override;
     procedure SetBuffer(const Value: TSoundBufferBackend); override;
@@ -107,7 +107,7 @@ type
     function CreateSource: TSoundSourceBackend; override;
 
     procedure Update; override;
-    procedure SetGain(const Value: Single); override;
+    procedure SetVolume(const Value: Single); override;
     procedure SetDistanceModel(const Value: TSoundDistanceModel); override;
     procedure SetListener(const Position, Direction, Up: TVector3); override;
   end;
@@ -382,7 +382,7 @@ begin
     CheckFMOD(FMOD_Channel_Set3DAttributes(FMODChannel, @FPosition, @FVelocity));
 end;
 
-procedure TFMODSoundSourceBackend.SetGain(const Value: Single);
+procedure TFMODSoundSourceBackend.SetVolume(const Value: Single);
 begin
   if FMODChannel = nil then Exit;
 
@@ -514,7 +514,7 @@ begin
   CheckFMOD(FMOD_System_Update(FMODSystem));
 end;
 
-procedure TFMODSoundEngineBackend.SetGain(const Value: Single);
+procedure TFMODSoundEngineBackend.SetVolume(const Value: Single);
 var
   MasterChannel: PFMOD_CHANNELGROUP;
 begin

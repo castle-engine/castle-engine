@@ -188,8 +188,11 @@ end;
 
 destructor TCastleSound.Destroy;
 begin
-  if FBuffer <> nil then // avoid accessing SoundEngine if not needed
-    SoundEngine.FreeBuffer(FBuffer); // this sets FBuffer = nil
+  { Use InternalSoundEngine instead of SoundEngine to avoid creating
+    2nd SoundEngine instance, if this would be called at finalization
+    (after 1st singleton SoundEngine destroyed). }
+  if InternalSoundEngine <> nil then
+    InternalSoundEngine.FreeBuffer(FBuffer); // this sets FBuffer = nil
   FreeAndNil(FChangeNotifications);
   inherited;
 end;
