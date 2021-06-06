@@ -26,7 +26,7 @@ type
     PlayingSound: TInternalPlayingSound; //< TInternalPlayingSound corresponding to main Sound
     procedure SoundRelease(Sender: TInternalPlayingSound);
     function LerpLegsMiddle(const A: Single): TVector3;
-    function PlayOnceCore(const Sound: TCastleSound; const Looping, Follow: Boolean;
+    function PlayOnceCore(const ASound: TCastleSound; const Looping, Follow: Boolean;
       const SoundHeight: Single): TInternalPlayingSound;
     procedure SoundChange(const Sender: TCastleSound; const Change: TSoundChange);
     procedure SetSound(const Value: TCastleSound);
@@ -184,7 +184,7 @@ begin
     Result := Parent.Translation;
 end;
 
-function TCastleSoundSource.PlayOnceCore(const Sound: TCastleSound;
+function TCastleSoundSource.PlayOnceCore(const ASound: TCastleSound;
   const Looping, Follow: Boolean; const SoundHeight: Single): TInternalPlayingSound;
 var
   Params: TPlaySoundParameters;
@@ -192,7 +192,7 @@ var
 begin
   Result := nil;
 
-  if (Sound.Buffer <> nil) and (Parent <> nil) then
+  if (ASound.Buffer <> nil) and (Parent <> nil) then
   begin
     SoundPosition := LerpLegsMiddle(SoundHeight);
     if (Parent <> nil) and
@@ -202,16 +202,16 @@ begin
     Params := TPlaySoundParameters.Create;
     try
       Params.Position := SoundPosition;
-      Params.Buffer := Sound.Buffer;
-      Params.Spatial := Sound.Spatial;
+      Params.Buffer := ASound.Buffer;
+      Params.Spatial := ASound.Spatial;
       Params.Looping := Looping;
       Params.Importance := DefaultSoundImportance;
-      Params.Volume := Sound.Volume;
+      Params.Volume := ASound.Volume;
       {$warnings off} // using unportable symbols knowingly
-      Params.MinGain := Sound.MinGain;
-      Params.MaxGain := Sound.MaxGain;
+      Params.MinGain := ASound.MinGain;
+      Params.MaxGain := ASound.MaxGain;
       {$warnings on}
-      Params.Pitch := Sound.Pitch;
+      Params.Pitch := ASound.Pitch;
 
       Result := SoundEngine.PlaySound(Params);
 
@@ -221,7 +221,7 @@ begin
         Result.OnRelease := @SoundRelease;
         Result.UserData := TSoundData.Create;
         TSoundData(Result.UserData).SoundHeight := SoundHeight;
-        TSoundData(Result.UserData).Spatial := Sound.Spatial;
+        TSoundData(Result.UserData).Spatial := ASound.Spatial;
         TSoundData(Result.UserData).Follow := Follow;
       end;
     finally FreeAndNil(Params) end;
