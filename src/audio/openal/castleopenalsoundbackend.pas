@@ -101,7 +101,7 @@ type
   TOpenALSoundSourceBackend = class(TSoundSourceBackend)
   strict private
     Streaming: TOpenALStreaming;
-    FRelative: Boolean; //< by default false also in OpenAL
+    FSpatial: Boolean; //< by default true, as this is OpenAL default
     function ALVersion11: Boolean;
   private
     FBuffer: TSoundBufferBackend;
@@ -112,6 +112,7 @@ type
       otherwise, one buffer will be looped. This procedure cares about that. }
     procedure AdjustALLooping;
   public
+    constructor Create(const ASoundEngine: TSoundEngineBackend);
     procedure ContextOpen; override;
     procedure ContextClose; override;
     function PlayingOrPaused: boolean; override;
@@ -120,7 +121,7 @@ type
     procedure SetPosition(const Value: TVector3); override;
     procedure SetVelocity(const Value: TVector3); override;
     procedure SetLooping(const Value: boolean); override;
-    procedure SetRelative(const Value: boolean); override;
+    procedure SetSpatial(const Value: boolean); override;
     procedure SetVolume(const Value: Single); override;
     procedure SetMinGain(const Value: Single); override;
     procedure SetMaxGain(const Value: Single); override;
@@ -405,6 +406,12 @@ end;
 
 { TOpenALSoundSourceBackend -------------------------------------------------- }
 
+constructor TOpenALSoundSourceBackend.Create(const ASoundEngine: TSoundEngineBackend);
+begin
+  inherited;
+  FSpatial := true;
+end;
+
 function TOpenALSoundSourceBackend.ALVersion11: Boolean;
 begin
   Result := (SoundEngine as TOpenALSoundEngineBackend).ALVersion11;
@@ -459,7 +466,7 @@ var
   CompleteBuffer: TOpenALSoundBufferBackend;
 begin
   // make a clear warning when trying to play stereo sound as spatial
-  if (not FRelative) and
+  if FSpatial and
      (FBuffer.DataFormat in [sfStereo8, sfStereo16]) then
     WritelnWarning('Stereo sound files are *never* played as spatial by OpenAL. Convert sound file "%s" to mono (e.g. by Audacity or SOX).', [
       URIDisplay(FBuffer.URL)
@@ -536,12 +543,16 @@ end;
 
 procedure TOpenALSoundSourceBackend.SetPosition(const Value: TVector3);
 begin
+  if not FSpatial then Exit; // apply this only if Spatial
+
   alSourceVector3f(ALSource, AL_POSITION, Value);
   {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourceVector3f(.., AL_POSITION, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 procedure TOpenALSoundSourceBackend.SetVelocity(const Value: TVector3);
 begin
+  if not FSpatial then Exit; // apply this only if Spatial
+
   alSourceVector3f(ALSource, AL_VELOCITY, Value);
   {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourceVector3f(.., AL_VELOCITY, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
@@ -559,11 +570,31 @@ begin
   AdjustALLooping;
 end;
 
-procedure TOpenALSoundSourceBackend.SetRelative(const Value: boolean);
+procedure TOpenALSoundSourceBackend.SetSpatial(const Value: boolean);
 begin
-  FRelative := Value;
-  alSourcei(ALSource, AL_SOURCE_RELATIVE, BoolToAL[Value]);
+  FSpatial := Value;
+
+  alSourcei(ALSource, AL_SOURCE_RELATIVE, BoolToAL[not Value]);
   {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcei(.., AL_SOURCE_RELATIVE, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+
+  if not Value then
+  begin
+    { No attenuation by distance. }
+    alSourcef(ALSource, AL_ROLLOFF_FACTOR, 0);
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_ROLLOFF_FACTOR, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+
+    { Note: source's AL_REFERENCE_DISTANCE , AL_MAX_DISTANCE don't matter in this case. }
+
+    { Although AL_ROLLOFF_FACTOR := 0 turns off
+      attenuation by distance, we still have to turn off
+      any changes from player's orientation (so that the sound
+      is not played on left or right side, but normally). }
+    alSourceVector3f(ALSource, AL_POSITION, TVector3.Zero);
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourceVector3f(.., AL_POSITION, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+
+    alSourceVector3f(ALSource, AL_VELOCITY, TVector3.Zero);
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourceVector3f(.., AL_VELOCITY, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+  end;
 end;
 
 procedure TOpenALSoundSourceBackend.SetVolume(const Value: Single);
@@ -633,18 +664,24 @@ end;
 
 procedure TOpenALSoundSourceBackend.SetRolloffFactor(const Value: Single);
 begin
+  if not FSpatial then Exit; // apply this only if Spatial
+
   alSourcef(ALSource, AL_ROLLOFF_FACTOR, Value);
   {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_ROLLOFF_FACTOR, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 procedure TOpenALSoundSourceBackend.SetReferenceDistance(const Value: Single);
 begin
+  if not FSpatial then Exit; // apply this only if Spatial
+
   alSourcef(ALSource, AL_REFERENCE_DISTANCE, Value);
   {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_REFERENCE_DISTANCE, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 procedure TOpenALSoundSourceBackend.SetMaxDistance(const Value: Single);
 begin
+  if not FSpatial then Exit; // apply this only if Spatial
+
   alSourcef(ALSource, AL_MAX_DISTANCE, Value);
   {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_MAX_DISTANCE, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;

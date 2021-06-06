@@ -191,15 +191,8 @@ begin
       they are not stoppe in destruction.
       But they could be useful in the future, so we add all sounds we made to UsedSounds. }
 
-    { If not Spatial, then we don't need to update UsedSounds[I].Position.
-      Actually, we *should not* update UsedSounds[I].Position,
-      as it is realized using
-
-        TInternalPlayingSound.Relative = true
-        TInternalPlayingSound.Position := TVector3.Zero
-
-      so changing Position would make it sound differently (with position
-      interpreted as relative to listener). }
+    { If not Spatial, then we don't need to update UsedSounds[I].Position
+      (it is ignored by backends). }
 
     if SoundData.Spatial and SoundData.Follow then
     begin
@@ -295,9 +288,7 @@ begin
           begin
             PlayingSound.Volume := Sound.Volume;
             PlayingSound.Pitch := Sound.Pitch;
-            PlayingSound.Relative := not Sound.Spatial;
-            if not Sound.Spatial then
-              PlayingSound.Position := TVector3.Zero;
+            PlayingSound.Spatial := Sound.Spatial;
             {$warnings off} // using unportable symbols knowingly
             PlayingSound.MinGain := Sound.MinGain;
             PlayingSound.MaxGain := Sound.MaxGain;

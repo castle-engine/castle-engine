@@ -669,31 +669,13 @@ begin
       {$warnings on}
       Result.Pitch   := Parameters.Pitch * InitialPitchMultiplier;
       Result.Offset  := Parameters.Offset;
+      Result.Spatial := Parameters.Spatial;
 
-      if Parameters.Spatial then
-      begin
-        { Set default attenuation by distance. }
-        Result.RolloffFactor     := Parameters.RolloffFactor;
-        Result.ReferenceDistance := Parameters.ReferenceDistance;
-        Result.MaxDistance       := Parameters.MaxDistance;
-
-        Result.Relative := false;
-        Result.Position := Parameters.Position;
-      end else
-      begin
-        { No attenuation by distance. }
-        Result.RolloffFactor := 0;
-        { ReferenceDistance, MaxDistance don't matter in this case }
-
-        { Although AL_ROLLOFF_FACTOR := 0 turns off
-          attenuation by distance, we still have to turn off
-          any changes from player's orientation (so that the sound
-          is not played on left or right side, but normally).
-          That's why setting source position exactly on the player
-          is needed here. }
-        Result.Relative := true;
-        Result.Position := TVector3.Zero;
-      end;
+      Result.Position := Parameters.Position; // will be ignored when Spatial = false, which is OK
+      { Set default attenuation by distance. }
+      Result.RolloffFactor     := Parameters.RolloffFactor; // will be ignored when Spatial = false, which is OK
+      Result.ReferenceDistance := Parameters.ReferenceDistance; // will be ignored when Spatial = false, which is OK
+      Result.MaxDistance       := Parameters.MaxDistance; // will be ignored when Spatial = false, which is OK
 
       Result.Backend.Play(true);
     end;

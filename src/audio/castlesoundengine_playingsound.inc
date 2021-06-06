@@ -28,7 +28,7 @@
     FImportance: Integer;
     FUserData: TObject;
     FPosition, FVelocity: TVector3;
-    FLooping, FRelative: boolean;
+    FLooping, FSpatial: boolean;
     FVolume, FMinGain, FMaxGain, FPitch: Single;
     FBuffer: TSoundBuffer;
     FRolloffFactor, FReferenceDistance, FMaxDistance: Single;
@@ -37,7 +37,7 @@
     procedure SetPosition(const Value: TVector3);
     procedure SetVelocity(const Value: TVector3);
     procedure SetLooping(const Value: boolean);
-    procedure SetRelative(const Value: boolean);
+    procedure SetSpatial(const Value: boolean);
     procedure SetVolume(const Value: Single);
     procedure SetMinGain(const Value: Single);
     procedure SetMaxGain(const Value: Single);
@@ -115,7 +115,7 @@
     property Position: TVector3 read FPosition write SetPosition;
     property Velocity: TVector3 read FVelocity write SetVelocity;
     property Looping: boolean read FLooping write SetLooping;
-    property Relative: boolean read FRelative write SetRelative;
+    property Spatial: boolean read FSpatial write SetSpatial;
     property Volume: Single read FVolume write SetVolume;
     property Gain: Single read FVolume write SetVolume; deprecated 'use Volume';
     property MinGain: Single read FMinGain write SetMinGain;
@@ -260,10 +260,10 @@ begin
   Backend.SetLooping(Value);
 end;
 
-procedure TInternalPlayingSound.SetRelative(const Value: boolean);
+procedure TInternalPlayingSound.SetSpatial(const Value: boolean);
 begin
-  FRelative := Value;
-  Backend.SetRelative(Value);
+  FSpatial := Value;
+  Backend.SetSpatial(Value);
 end;
 
 procedure TInternalPlayingSound.SetVolume(const Value: Single);

@@ -60,7 +60,7 @@ type
     procedure SetPosition(const Value: TVector3); override;
     procedure SetVelocity(const Value: TVector3); override;
     procedure SetLooping(const Value: boolean); override;
-    procedure SetRelative(const Value: boolean); override;
+    procedure SetSpatial(const Value: boolean); override;
     procedure SetVolume(const Value: Single); override;
     procedure SetMinGain(const Value: Single); override;
     procedure SetMaxGain(const Value: Single); override;
@@ -164,7 +164,7 @@ procedure TSoxSoundSourceBackend.SetLooping(const Value: boolean);
 begin
 end;
 
-procedure TSoxSoundSourceBackend.SetRelative(const Value: boolean);
+procedure TSoxSoundSourceBackend.SetSpatial(const Value: boolean);
 begin
 end;
 

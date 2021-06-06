@@ -149,7 +149,7 @@ type
     procedure SetPosition(const Value: TVector3); virtual; abstract;
     procedure SetVelocity(const Value: TVector3); virtual; abstract;
     procedure SetLooping(const Value: boolean); virtual; abstract;
-    procedure SetRelative(const Value: boolean); virtual; abstract;
+    procedure SetSpatial(const Value: boolean); virtual; abstract;
     procedure SetVolume(const Value: Single); virtual; abstract;
     procedure SetMinGain(const Value: Single); virtual; abstract;
     procedure SetMaxGain(const Value: Single); virtual; abstract;

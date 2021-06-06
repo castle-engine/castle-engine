@@ -72,7 +72,7 @@ type
     FMODChannel: PFMOD_CHANNEL;
     FBuffer: TFMODSoundBufferBackend;
     FPosition, FVelocity: TVector3;
-    FLooping, FRelative: Boolean;
+    FLooping, FSpatial: Boolean;
     function FMODSystem: PFMOD_SYSTEM;
     function Mode: TFMOD_MODE;
   public
@@ -84,7 +84,7 @@ type
     procedure SetPosition(const Value: TVector3); override;
     procedure SetVelocity(const Value: TVector3); override;
     procedure SetLooping(const Value: boolean); override;
-    procedure SetRelative(const Value: boolean); override;
+    procedure SetSpatial(const Value: boolean); override;
     procedure SetVolume(const Value: Single); override;
     procedure SetMinGain(const Value: Single); override;
     procedure SetMaxGain(const Value: Single); override;
@@ -337,7 +337,7 @@ procedure TFMODSoundSourceBackend.SetPosition(const Value: TVector3);
 begin
   FPosition := Value;
   if FMODChannel = nil then Exit;
-  if not FRelative then // only if Spatial, otherwise FMOD raises error
+  if FSpatial then // only if Spatial, otherwise FMOD raises error
     CheckFMOD(FMOD_Channel_Set3DAttributes(FMODChannel, @FPosition, @FVelocity));
 end;
 
@@ -350,17 +350,17 @@ begin
   else
     Result := Result or FMOD_LOOP_OFF;
 
-  if FRelative then
-    Result := Result or FMOD_2D
+  if FSpatial then
+    Result := Result or FMOD_3D
   else
-    Result := Result or FMOD_3D;
+    Result := Result or FMOD_2D;
 end;
 
 procedure TFMODSoundSourceBackend.SetVelocity(const Value: TVector3);
 begin
   FVelocity := Value;
   if FMODChannel = nil then Exit;
-  if not FRelative then // only if Spatial, otherwise FMOD raises error
+  if FSpatial then // only if Spatial, otherwise FMOD raises error
     CheckFMOD(FMOD_Channel_Set3DAttributes(FMODChannel, @FPosition, @FVelocity));
 end;
 
@@ -371,14 +371,14 @@ begin
   CheckFMOD(FMOD_Channel_SetMode(FMODChannel, Mode));
 end;
 
-procedure TFMODSoundSourceBackend.SetRelative(const Value: boolean);
+procedure TFMODSoundSourceBackend.SetSpatial(const Value: boolean);
 begin
-  FRelative := Value;
+  FSpatial := Value;
   if FMODChannel = nil then Exit;
   CheckFMOD(FMOD_Channel_SetMode(FMODChannel, Mode));
 
   // call FMOD_Channel_Set3DAttributes to update Position/Velocity
-  if not FRelative then // only if Spatial, otherwise FMOD raises error
+  if FSpatial then // only if Spatial, otherwise FMOD raises error
     CheckFMOD(FMOD_Channel_Set3DAttributes(FMODChannel, @FPosition, @FVelocity));
 end;
 
@@ -423,16 +423,19 @@ end;
 
 procedure TFMODSoundSourceBackend.SetRolloffFactor(const Value: Single);
 begin
+  if not FSpatial then Exit; // apply this only if Spatial
   // TODO
 end;
 
 procedure TFMODSoundSourceBackend.SetReferenceDistance(const Value: Single);
 begin
+  if not FSpatial then Exit; // apply this only if Spatial
   // TODO
 end;
 
 procedure TFMODSoundSourceBackend.SetMaxDistance(const Value: Single);
 begin
+  if not FSpatial then Exit; // apply this only if Spatial
   // TODO
 end;
 
