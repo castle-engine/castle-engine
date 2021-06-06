@@ -276,6 +276,32 @@
       const MaxDistance: Single): TInternalPlayingSound; overload; deprecated 'use PlaySound that gets TPlaySoundParameters instance';
     function PlaySound(const Parameters: TPlaySoundParameters): TInternalPlayingSound; overload;
 
+    { Simply play given TCastleSound. This should be used to play sounds
+      that are not spatial, i.e. have no place in 3D space.
+
+      Returns used TInternalPlayingSound (or nil if none was available)
+      to further control the sound. It is deprecated: You should not use this
+      TInternalPlayingSound instance anymore.
+      If you need more elaborate sound control, use TCastleSoundSource to play sounds,
+      that also automaticall applies TCastleSound changes to the playing sound.
+
+      @noAutoLinkHere }
+    function Sound(const SoundType: TCastleSound;
+      const Looping: boolean = false): TInternalPlayingSound;
+
+    { Play given sound at appropriate position in 3D space.
+
+      Returns used TInternalPlayingSound (or nil if none was available)
+      to further control the sound. It is deprecated: You should not use this
+      TInternalPlayingSound instance anymore.
+      If you need more elaborate sound control, use TCastleSoundSource to play sounds,
+      that also automaticall applies TCastleSound changes to the playing sound.
+
+      @noAutoLinkHere }
+    function Sound3D(const SoundType: TCastleSound;
+      const Position: TVector3;
+      const Looping: boolean = false): TInternalPlayingSound; overload;
+
     { Parse parameters in @link(Parameters) and interpret and remove
       recognized options. Internally it uses Parameters.Parse with
       ParseOnlyKnownLongOptions = @true. Recognized options:
@@ -743,6 +769,62 @@ begin
     Parameters.MaxDistance       := MaxDistance;
     Result := PlaySound(Parameters);
   finally FreeAndNil(Parameters) end;
+end;
+
+function TSoundEngine.Sound(const SoundType: TCastleSound;
+  const Looping: boolean): TInternalPlayingSound;
+begin
+  { If there is no actual sound, exit early without initializing sound backend.
+    - SoundType is nil (which includes sound name not defined in sounds.xml,
+      since SoundFromName returns nil for them).
+    - SoundType is <> nil but URL = '' (if sound name is defined in
+      sounds.xml with explicit url="", like this:
+      <sound name="player_sudden_pain" url="" />)
+  }
+  if (SoundType = nil) or (SoundType.URL = '') then Exit(nil);
+
+  ContextOpen;
+
+  { Check this only after ContextOpen,
+    since before ContextOpen the Buffer always = nil. }
+  if SoundType.Buffer = nil then Exit(nil);
+
+  Result := PlaySound(
+    SoundType.Buffer,
+    { spatial } false,
+    Looping,
+    { TODO: SoundType.DefaultImportance } DefaultSoundImportance,
+    SoundType.Volume,
+    {$warnings off} // using unportable symbols knowingly
+    SoundType.MinGain,
+    SoundType.MaxGain,
+    {$warnings on}
+    TVector3.Zero);
+end;
+
+function TSoundEngine.Sound3D(const SoundType: TCastleSound;
+  const Position: TVector3;
+  const Looping: boolean): TInternalPlayingSound;
+begin
+  { If there is no actual sound, exit early without initializing sound backend.
+    See Sound for more comments why we do this. }
+  if (SoundType = nil) or (SoundType.URL = '') then Exit(nil);
+
+  ContextOpen;
+
+  if SoundType.Buffer = nil then Exit(nil);
+
+  Result := PlaySound(
+    SoundType.Buffer,
+    { spatial } true,
+    Looping,
+    { TODO: SoundType.DefaultImportance } DefaultSoundImportance,
+    SoundType.Volume,
+    {$warnings off} // using unportable symbols knowingly
+    SoundType.MinGain,
+    SoundType.MaxGain,
+    {$warnings on}
+    Position);
 end;
 
 function TSoundEngine.LoadBuffer(const URL: string; out Duration: TFloatTime): TSoundBuffer;

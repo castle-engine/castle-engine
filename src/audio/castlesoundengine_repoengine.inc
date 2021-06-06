@@ -141,9 +141,8 @@
         the XML file and for SoundFromName function.
 
         At the beginning, this list always contains exactly one sound: empty stNone.
-        This is a special "sound type" that has index 0 (should be always
-        expressed as TSoundType value stNone) and name ''.
-        stNone is a special sound as it actually means "no sound" in many cases. }
+        This is a special TSoundInfoBuffer that has Sound=nil and Name=''.
+        It means "no sound" in many cases. }
       FSounds: TSoundInfoList;
       FSoundGroups: TSoundGroupList;
       FRepositoryURL: string;
@@ -174,8 +173,8 @@
       given XML file. You usually set RepositoryURL at the very beginning
       of the application.
       Right after setting RepositoryURL you usually call SoundFromName
-      a couple of times to convert some names into TSoundType values,
-      to later use these TSoundType values with @link(Sound) and @link(Sound3D)
+      a couple of times to convert some names into TCastleSound values,
+      to later use these TCastleSound values with @link(Sound) and @link(Sound3D)
       methods.
 
       When the sound context is initialized (or when you set this property,
@@ -192,11 +191,11 @@
 
       @longCode(#
         SoundEngine.RepositoryURL := 'castle-data:/sounds.xml';
-        stMySound1 := SoundEngine.SoundFromName('my_sound_1');
-        stMySound2 := SoundEngine.SoundFromName('my_sound_2');
+        MySound1 := SoundEngine.SoundFromName('my_sound_1');
+        MySound2 := SoundEngine.SoundFromName('my_sound_2');
         // ... and later in your game you can do stuff like this:
-        SoundEngine.Sound(stMySound1);
-        SoundEngine.Sound3D(stMySound1, Vector3(0, 0, 10));
+        SoundEngine.Sound(MySound1);
+        SoundEngine.Sound3D(MySound1, Vector3(0, 0, 10));
       #)
 
       See https://castle-engine.io/manual_data_directory.php
@@ -233,27 +232,7 @@
         So the Required parameter only determines whether we make a warning,
         or not.)
     }
-    function SoundFromName(const SoundName: string; const Required: boolean = true): TSoundType;
-
-    { Play given sound. This should be used to play sounds
-      that are not spatial, i.e. have no place in 3D space.
-
-      Returns used TSound (or nil if none was available).
-      You don't have to do anything with this returned TSound. }
-    function Sound(const SoundType: TSoundType;
-      const Looping: boolean = false): TInternalPlayingSound;
-      deprecated 'use TCastleSoundSource to play sounds';
-
-    { Play given sound at appropriate position in 3D space.
-
-      Returns used TInternalPlayingSound (or nil if none was available).
-      You don't have to do anything with this returned TInternalPlayingSound.
-
-      @noAutoLinkHere }
-    function Sound3D(const SoundType: TSoundType;
-      const Position: TVector3;
-      const Looping: boolean = false): TInternalPlayingSound; overload;
-      deprecated 'use TCastleSoundSource to play sounds';
+    function SoundFromName(const SoundName: string; const Required: boolean = true): TCastleSound;
 
     { Sound importance names and values.
       Each item is a name (as a string) and a value (that is stored in Objects
@@ -599,62 +578,6 @@ begin
         L.AllocateSource;
 end;
 
-function TRepoSoundEngine.Sound(const SoundType: TSoundType;
-  const Looping: boolean): TInternalPlayingSound;
-begin
-  { If there is no actual sound, exit early without initializing sound backend.
-    - SoundType is nil (which includes sound name not defined in sounds.xml,
-      since SoundFromName returns nil for them).
-    - SoundType is <> nil but URL = '' (if sound name is defined in
-      sounds.xml with explicit url="", like this:
-      <sound name="player_sudden_pain" url="" />)
-  }
-  if (SoundType = nil) or (SoundType.URL = '') then Exit(nil);
-
-  ContextOpen;
-
-  { Check this only after ContextOpen,
-    since before ContextOpen the Buffer always = nil. }
-  if SoundType.Buffer = nil then Exit(nil);
-
-  Result := PlaySound(
-    SoundType.Buffer,
-    { spatial } false,
-    Looping,
-    { TODO: SoundType.DefaultImportance } DefaultSoundImportance,
-    SoundType.Volume,
-    {$warnings off} // using unportable symbols knowingly
-    SoundType.MinGain,
-    SoundType.MaxGain,
-    {$warnings on}
-    TVector3.Zero);
-end;
-
-function TRepoSoundEngine.Sound3D(const SoundType: TSoundType;
-  const Position: TVector3;
-  const Looping: boolean): TInternalPlayingSound;
-begin
-  { If there is no actual sound, exit early without initializing sound backend.
-    See Sound for more comments why we do this. }
-  if (SoundType = nil) or (SoundType.URL = '') then Exit(nil);
-
-  ContextOpen;
-
-  if SoundType.Buffer = nil then Exit(nil);
-
-  Result := PlaySound(
-    SoundType.Buffer,
-    { spatial } true,
-    Looping,
-    { TODO: SoundType.DefaultImportance } DefaultSoundImportance,
-    SoundType.Volume,
-    {$warnings off} // using unportable symbols knowingly
-    SoundType.MinGain,
-    SoundType.MaxGain,
-    {$warnings on}
-    Position);
-end;
-
 procedure TRepoSoundEngine.SetRepositoryURL(const Value: string);
 
   { Check that SoundInfo.Name is unique. }
@@ -853,7 +776,7 @@ begin
 end;
 
 function TRepoSoundEngine.SoundFromName(const SoundName: string;
-  const Required: boolean): TSoundType;
+  const Required: boolean): TCastleSound;
 var
   SoundIndex: Integer;
 begin
