@@ -343,10 +343,15 @@ type
 
     { When castle transform existence changes to false, we need update existence
       in all castle transform children rigid bodies }
-    procedure UpdateExistRecursively(const AExists: Boolean);
+    procedure UpdateExistsRecursively(const AExists: Boolean);
     { Update rigid body existence when castle transform (or it parent) GetExists
       changes. }
-    procedure UpdateExist(const AExists: Boolean);
+    procedure UpdateExists(const AExists: Boolean);
+
+    { Check current item exist taking into account the existence of the
+      unique parents of this item, needed only before first Update() call.
+      See GetRealExistance(). }
+    function GetExistsRecursively: Boolean;
   private
     type
       TEnumerator = class
@@ -447,6 +452,10 @@ type
     procedure RemoveFromWorld(const Value: TCastleAbstractRootTransform);
     procedure RemoveBehaviorIndex(const BehaviorIndex: Integer);
     procedure SetListenPressRelease(const Value: Boolean);
+
+    { Check current item exist taking into account the existence of the
+      unique parents of this item }
+    function GetRealExistance: Boolean;
   protected
     { Called when the current @link(World) that contains this object changes.
       In the usual case, @link(World) corresponds to a @link(TCastleViewport.Items)
@@ -751,10 +760,6 @@ type
       It TCastleTransform class, returns @true if @link(Exists) and not disabled.
       May be modified in subclasses, to return something more complicated. }
     function GetExists: boolean; virtual;
-
-    { Check current item exist taking into account the existence of the
-      unique parents of this item }
-    function GetExistsRecursively: Boolean;
 
     { Does item really collide, see @link(Collides).
       It TCastleTransform class, returns @link(Collides) and @link(GetExists).
@@ -2562,20 +2567,20 @@ begin
   end;
 end;
 
-procedure TCastleTransform.UpdateExistRecursively(const AExists: Boolean);
+procedure TCastleTransform.UpdateExistsRecursively(const AExists: Boolean);
 var
   I: Integer;
 begin
   Assert(AExists = false, 'This funcion is only used when AExist is false');
-  UpdateExist(AExists);
+  UpdateExists(AExists);
 
   { This function is called only when AExists is false so we don't need check
     child GetExists() because it will be always overriden by parent GetExists() }
   for I := 0 to Count - 1 do
-    Items[I].UpdateExistRecursively(AExists);
+    Items[I].UpdateExistsRecursively(AExists);
 end;
 
-procedure TCastleTransform.UpdateExist(const AExists: Boolean);
+procedure TCastleTransform.UpdateExists(const AExists: Boolean);
 begin
   FLastUpdatedGetExistsValid := true;
   FLastUpdatedGetExists := AExists;
@@ -2589,6 +2594,15 @@ begin
   Result := GetExists;
   if Result and (UniqueParent <> nil) then
     Result := UniqueParent.GetExistsRecursively;
+end;
+
+function TCastleTransform.GetRealExistance: Boolean;
+begin
+  if FLastUpdatedGetExistsValid then
+    Exit(FLastUpdatedGetExists);
+
+  { Only needed when you call GetRealExistance() before first update. }
+  Exit(GetExistsRecursively);
 end;
 
 procedure TCastleTransform.SetCursor(const Value: TMouseCursor);
@@ -2692,6 +2706,7 @@ begin
         FWorld.RemoveFreeNotification(Self);
     end;
 
+    FLastUpdatedGetExistsValid := false;
     FWorld := Value;
     FWorldReferences := Iff(Value <> nil, 1, 0);
 
@@ -3133,11 +3148,11 @@ var
       Exit;
 
     { When current transform stops existing we need update all children
-      existence, when it's true it will be done by update children. }
+      existence, when it's true it will be done by update() in children. }
     if CurrentGetExists then
-      UpdateExist(CurrentGetExists)
+      UpdateExists(CurrentGetExists)
     else
-      UpdateExistRecursively(CurrentGetExists);
+      UpdateExistsRecursively(CurrentGetExists);
   end;
 
 begin
