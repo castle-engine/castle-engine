@@ -712,6 +712,8 @@ type
     procedure ChangedTransform; virtual;
 
     procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
+
+    procedure UpdateRealExistence(const CurrentGetExists: Boolean);
   public
     const
       DefaultMiddleHeight = 0.5;
@@ -2589,6 +2591,19 @@ begin
     FRigidBody.UpdateExist(AExists);
 end;
 
+procedure TCastleTransform.UpdateRealExistence(const CurrentGetExists: Boolean);
+begin
+  if FLastUpdatedGetExistsValid and (FLastUpdatedGetExists = CurrentGetExists) then
+    Exit;
+
+  { When current transform stops existing we need update all children
+    existence, when it's true it will be done by update() in children. }
+  if CurrentGetExists then
+    UpdateExists(CurrentGetExists)
+  else
+    UpdateExistsRecursively(CurrentGetExists);
+end;
+
 function TCastleTransform.GetExistsRecursively: Boolean;
 begin
   Result := GetExists;
@@ -3140,26 +3155,13 @@ var
     end;
   end;
 
-  procedure UpdateRealExistence;
-  begin
-    CurrentGetExists := GetExists;
-
-    if FLastUpdatedGetExistsValid and (FLastUpdatedGetExists = CurrentGetExists) then
-      Exit;
-
-    { When current transform stops existing we need update all children
-      existence, when it's true it will be done by update() in children. }
-    if CurrentGetExists then
-      UpdateExists(CurrentGetExists)
-    else
-      UpdateExistsRecursively(CurrentGetExists);
-  end;
-
 begin
+  CurrentGetExists := GetExists;
+
   { Currently UpdateRealExistence is used only for set rigid body exsistance,
     so we check that only when FKraftEngine is used. }
   if (FWorld <> nil) and (FWorld.FKraftEngine <> nil) then
-    UpdateRealExistence;
+    UpdateRealExistence(CurrentGetExists);
 
   if CurrentGetExists then
   begin

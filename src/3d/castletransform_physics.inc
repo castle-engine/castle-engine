@@ -1314,8 +1314,15 @@ var
   KraftGravity: TVector3;
   PhysicsTicksCount:Integer;
   OldTimeAccumulator: TFloatTime;
+  CurrentGetExists: Boolean;
 begin
-  if not GetExists then Exit;
+  CurrentGetExists := GetExists;
+
+  if ((FWorld.FKraftEngine <> nil) and
+     (UpdateFrameId = TFramesPerSecond.FrameId)) then
+    UpdateRealExistence(CurrentGetExists);
+
+  if not CurrentGetExists then Exit;
 
   { Avoid doing this two times within the same FrameId.
     Important if the same TCastleAbstractRootTransform is present in multiple viewports. }
