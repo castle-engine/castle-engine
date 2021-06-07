@@ -34,7 +34,7 @@ type
     Scene: TCastleScene;
     Image: TCastleImageControl;
     SoundSource: TInternalPlayingSound;
-    SoundBuffer: TSoundBuffer;
+    SoundBuffer: TInternalSoundBuffer;
     SoundButton: TCastleButton;
     procedure ClickSoundButton(Sender: TObject);
     procedure SoundSourceRelease(Sound: TInternalPlayingSound);

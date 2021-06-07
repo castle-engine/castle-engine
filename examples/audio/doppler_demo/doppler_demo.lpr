@@ -74,7 +74,7 @@ begin
 end;
 
 var
-  Buffer: TSoundBuffer;
+  Buffer: TInternalSoundBuffer;
   Parameters: TPlaySoundParameters;
 begin
   Window := TCastleWindowBase.Create(Application);
@@ -96,7 +96,7 @@ begin
   finally FreeAndNil(Parameters) end;
 
   ListenerPosition := Vector3(300, 300, 0);
-  SoundEngine.UpdateListener(ListenerPosition * ALDistanceScaling,
+  SoundEngine.InternalUpdateListener(ListenerPosition * ALDistanceScaling,
     Vector3(0, 1, 0), Vector3(0, 0, 1));
 
   Application.TimerMilisec := 1000;

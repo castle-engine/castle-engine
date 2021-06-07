@@ -53,7 +53,7 @@ type
   TCastleSound = class(TCastleComponent)
   strict private
     FURL: string;
-    FBuffer: TSoundBuffer;
+    FBuffer: TInternalSoundBuffer;
     FStream: Boolean;
     FVolume: Single;
     FPitch: Single;
@@ -83,8 +83,9 @@ type
     procedure InternalRemoveChangeNotification(const Notify: TCastleSoundChangeEvent);
 
     { Loaded sound buffer, for playing the buffer with the @link(SoundEngine).
-      @nil if not loaded. }
-    property Buffer: TSoundBuffer read FBuffer;
+      @nil if not loaded.
+      @exclude }
+    property InternalBuffer: TInternalSoundBuffer read FBuffer;
 
     { Force a minimum sound loudness, despite what volume would
       be calculated by the spatialization. This can be used to force sound
@@ -192,7 +193,9 @@ begin
     2nd SoundEngine instance, if this would be called at finalization
     (after 1st singleton SoundEngine destroyed). }
   if InternalSoundEngine <> nil then
+    {$warnings off} // using deprecated that should be internal
     InternalSoundEngine.FreeBuffer(FBuffer); // this sets FBuffer = nil
+    {$warnings on}
   FreeAndNil(FChangeNotifications);
   inherited;
 end;
@@ -217,7 +220,9 @@ begin
       this TCastleSound can be stopped.
       OpenAL makes warning if trying to free buffer used by playing sources. }
     DoChange(scBeforeBufferDestroyed);
+    {$warnings off} // using deprecated that should be internal
     SoundEngine.FreeBuffer(FBuffer); // this sets FBuffer = nil
+    {$warnings on}
   end;
 
   if URL <> '' then
@@ -226,7 +231,9 @@ begin
       SoundLoading := slStreaming
     else
       SoundLoading := slComplete;
+    {$warnings off} // using deprecated that should be internal
     FBuffer := SoundEngine.LoadBuffer(URL, SoundLoading);
+    {$warnings on}
     DoChange(scAfterBufferCreated);
   end;
 end;

@@ -3559,7 +3559,7 @@ begin
       Inc(Items.InternalVisibleNonGeometryStateId);
 
     Camera.GetView(Pos, Dir, Up);
-    SoundEngine.UpdateListener(Pos, Dir, Up);
+    SoundEngine.InternalUpdateListener(Pos, Dir, Up);
   end;
 
   if Assigned(OnCameraChanged) then

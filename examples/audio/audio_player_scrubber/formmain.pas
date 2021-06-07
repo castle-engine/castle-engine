@@ -49,7 +49,7 @@ type
     procedure TrackOffsetChange(Sender: TObject);
     procedure TrackVolumeChange(Sender: TObject);
   private
-    SoundBuffer: TSoundBuffer;
+    SoundBuffer: TInternalSoundBuffer;
     Sound: TInternalPlayingSound;
     SoundURL: string;
     SoundDuration: TFloatTime;

@@ -30,7 +30,7 @@ type
     type
       TButtonSoundBuffer = class(TCastleButton)
       public
-        Buffer: TSoundBuffer;
+        Buffer: TInternalSoundBuffer;
         constructor Create(const AOwner: TComponent; const SoundFileURL: String); reintroduce;
       end;
 

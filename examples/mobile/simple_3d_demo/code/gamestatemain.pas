@@ -48,7 +48,7 @@ type
     { Other fields, initialized in Start }
     MyShaderEffect: TEffectNode;
     MyScreenEffect: TScreenEffectNode;
-    SoundBufferWav, SoundBufferOgg: TSoundBuffer;
+    SoundBufferWav, SoundBufferOgg: TInternalSoundBuffer;
 
     procedure ClickToggleShader(Sender: TObject);
     procedure ClickToggleScreenEffect(Sender: TObject);

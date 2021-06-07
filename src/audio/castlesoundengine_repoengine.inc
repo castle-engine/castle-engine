@@ -205,7 +205,7 @@
     property RepositoryURL: string read FRepositoryURL write SetRepositoryURL;
 
     { Deprecated name for RepositoryURL. @deprecated }
-    property SoundsFileName: string read FRepositoryURL write SetRepositoryURL; deprecated;
+    property SoundsFileName: string read FRepositoryURL write SetRepositoryURL; deprecated 'use RepositoryURL';
 
     { Reload the RepositoryURL and all referenced buffers.
       Useful as a tool for game designers, to reload the sounds XML file

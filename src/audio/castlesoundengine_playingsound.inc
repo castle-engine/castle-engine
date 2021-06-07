@@ -20,7 +20,17 @@
 
   TInternalPlayingSoundEvent = procedure (Sender: TInternalPlayingSound) of object;
 
-  { Sound source that can be immediately played. }
+  { Sound source that is allocated (on the sound backend) and can be immediately played.
+    One instance of TInternalPlayingSound is is not permanently connected
+    to a particular use (like a particular TCastleSound), it is only temporarily allocated
+    for given use (e.g. play a particular TCastleSound), and then it becomes "unused"
+    (see @link(Used), @link(OnRelease)) and can be used for other purposes.
+
+    This is internal now. Use TCastleSound and TCastleSoundSource
+    to manage playback of a sound.
+
+    @exclude
+  }
   TInternalPlayingSound = class
   private
     FUsed: boolean;
@@ -30,7 +40,7 @@
     FPosition, FVelocity: TVector3;
     FLooping, FSpatial: boolean;
     FVolume, FMinGain, FMaxGain, FPitch: Single;
-    FBuffer: TSoundBuffer;
+    FBuffer: TInternalSoundBuffer;
     FRolloffFactor, FReferenceDistance, FMaxDistance: Single;
     Backend: TSoundSourceBackend;
     BackendIsOpen: Boolean;
@@ -41,7 +51,7 @@
     procedure SetVolume(const Value: Single);
     procedure SetMinGain(const Value: Single);
     procedure SetMaxGain(const Value: Single);
-    procedure SetBuffer(const Value: TSoundBuffer);
+    procedure SetBuffer(const Value: TInternalSoundBuffer);
     procedure SetPitch(const Value: Single);
     procedure SetRolloffFactor(const Value: Single);
     procedure SetReferenceDistance(const Value: Single);
@@ -120,7 +130,7 @@
     property Gain: Single read FVolume write SetVolume; deprecated 'use Volume';
     property MinGain: Single read FMinGain write SetMinGain;
     property MaxGain: Single read FMaxGain write SetMaxGain;
-    property Buffer: TSoundBuffer read FBuffer write SetBuffer;
+    property Buffer: TInternalSoundBuffer read FBuffer write SetBuffer;
     property Pitch: Single read FPitch write SetPitch;
     property RolloffFactor: Single read FRolloffFactor write SetRolloffFactor;
     property ReferenceDistance: Single read FReferenceDistance write SetReferenceDistance;
@@ -284,7 +294,7 @@ begin
   Backend.SetMaxGain(Value);
 end;
 
-procedure TInternalPlayingSound.SetBuffer(const Value: TSoundBuffer);
+procedure TInternalPlayingSound.SetBuffer(const Value: TInternalSoundBuffer);
 begin
   FBuffer := Value;
   if (Value <> nil) and Value.BackendIsOpen then

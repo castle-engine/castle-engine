@@ -98,11 +98,11 @@ procedure TLoopingChannel.AllocateSource;
 var
   Parameters: TPlaySoundParameters;
 begin
-  if Sound = nil then Exit;
+  if (Sound = nil) or (Sound.InternalBuffer = nil) then Exit;
 
   Parameters := TPlaySoundParameters.Create;
   try
-    Parameters.Buffer     := Sound.Buffer;
+    Parameters.Buffer     := Sound.InternalBuffer;
     Parameters.Spatial    := false;
     Parameters.Looping    := true;
     Parameters.Importance := { TODO SoundInfo.DefaultImportance } DefaultSoundImportance;
@@ -112,7 +112,9 @@ begin
     Parameters.MinGain    := Sound.MinGain;
     Parameters.MaxGain    := Sound.MaxGain;
     {$warnings on}
+    {$warnings off} // using deprecated that should be internal
     FAllocatedSource := FEngine.PlaySound(Parameters);
+    {$warnings on}
   finally FreeAndNil(Parameters) end;
 
   if FAllocatedSource <> nil then

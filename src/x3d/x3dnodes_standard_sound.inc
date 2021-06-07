@@ -55,7 +55,7 @@
   TAudioClipNode = class(TAbstractSoundSourceNode, IAbstractUrlObject)
   strict private
     FBufferLoaded: boolean;
-    Buffer: TSoundBuffer;
+    Buffer: TInternalSoundBuffer;
     FDuration: TFloatTime;
     InsideLoadBuffer: Cardinal;
     procedure SetBufferLoaded(const Value: boolean);

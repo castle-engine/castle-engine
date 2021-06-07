@@ -21,7 +21,7 @@ uses SysUtils, CastleUtils,
   CastleApplicationProperties;
 
 var
-  Buffer: TSoundBuffer;
+  Buffer: TInternalSoundBuffer;
   URL: string;
 begin
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);

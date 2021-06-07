@@ -19,14 +19,22 @@
 //type // allow type declaration to continue
 
   { Sound buffer represents contents of a sound file, like Wav or OggVorbis,
-    that (may be) played.
+    that (may be) played. The loading parameters, like streaming and URL,
+    cannot change after loading buffer.
 
     It can be only allocated by @link(TSoundEngine.LoadBuffer)
     and freed by @link(TSoundEngine.FreeBuffer).
     You should first stop all the sound sources using this buffer before freeing it
     (with OpenAL, not doing it may cause a warning: OpenAL error at alDeleteBuffers).
-    @bold(Do not create or free TSoundBuffer instances yourself.) }
-  TSoundBuffer = class
+    @bold(Do not create or free TInternalSoundBuffer instances yourself.)
+
+    This is internal now. Use TCastleSound to load a sound comfortably,
+    it hides dealing with TInternalSoundBuffer from you (and TCastleSound has more properties,
+    and allows to change TCastleSound.URL / TCastleSound.Stream at any point).
+
+    @exclude
+  }
+  TInternalSoundBuffer = class
   private
     FURL: string;
     FSoundLoading: TSoundLoading;
@@ -44,7 +52,7 @@
     function Duration: TFloatTime;
 
     { Absolute sound file URL.
-      Never empty (do not create TSoundBuffer instances for invalid / empty URL,
+      Never empty (do not create TInternalSoundBuffer instances for invalid / empty URL,
       like the ones that can be created by TRepoSoundEngine for not defined sounds.) }
     property URL: string read FURL;
 
@@ -61,13 +69,15 @@
     function Frequency: LongWord;
   end;
 
+  TSoundBuffer = TInternalSoundBuffer deprecated 'use TInternalSoundBuffer';
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-{ TSoundBuffer --------------------------------------------------------------- }
+{ TInternalSoundBuffer --------------------------------------------------------------- }
 
-constructor TSoundBuffer.Create(const SoundEngineBackend: TSoundEngineBackend;
+constructor TInternalSoundBuffer.Create(const SoundEngineBackend: TSoundEngineBackend;
   const SoundLoading: TSoundLoading);
 begin
   inherited Create;
@@ -75,7 +85,7 @@ begin
   Backend := SoundEngineBackend.CreateBuffer(SoundLoading);
 end;
 
-function TSoundBuffer.DataFormat: TSoundDataFormat;
+function TInternalSoundBuffer.DataFormat: TSoundDataFormat;
 begin
   if BackendIsOpen then
     Result := Backend.DataFormat
@@ -83,7 +93,7 @@ begin
     Result := Default(TSoundDataFormat);
 end;
 
-function TSoundBuffer.Frequency: LongWord;
+function TInternalSoundBuffer.Frequency: LongWord;
 begin
   if BackendIsOpen then
     Result := Backend.Frequency
@@ -91,7 +101,7 @@ begin
     Result := 0;
 end;
 
-function TSoundBuffer.Duration: TFloatTime;
+function TInternalSoundBuffer.Duration: TFloatTime;
 begin
   if BackendIsOpen then
     Result := Backend.Duration
@@ -99,7 +109,7 @@ begin
     Result := -1;
 end;
 
-procedure TSoundBuffer.ContextOpen(const ExceptionOnError: boolean);
+procedure TInternalSoundBuffer.ContextOpen(const ExceptionOnError: boolean);
 
   procedure OpenCore;
   begin
@@ -127,7 +137,7 @@ begin
   end;
 end;
 
-procedure TSoundBuffer.ContextClose;
+procedure TInternalSoundBuffer.ContextClose;
 begin
   if BackendIsOpen then
   begin
@@ -139,10 +149,10 @@ end;
 var
   ValidSoundBufferFree: Cardinal;
 
-destructor TSoundBuffer.Destroy;
+destructor TInternalSoundBuffer.Destroy;
 begin
   if ValidSoundBufferFree = 0 then
-    raise EInvalidSoundBufferFree.Create('Do not free TSoundBuffer instance directly, use SoundEngine.FreeBuffer');
+    raise EInvalidSoundBufferFree.Create('Do not free TInternalSoundBuffer instance directly, use SoundEngine.FreeBuffer');
   ContextClose;
   FreeAndNil(Backend);
   inherited;

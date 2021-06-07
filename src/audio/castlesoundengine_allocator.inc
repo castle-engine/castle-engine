@@ -54,15 +54,8 @@
     FIsContextOpenSuccess: boolean;
     procedure ContextOpenCore; virtual;
     procedure ContextCloseCore; virtual;
-  public
-    const
-      DefaultMinAllocatedSources = 4;
-      DefaultMaxAllocatedSources = 16;
 
-    constructor Create;
-    destructor Destroy; override;
-
-    { Internal: Allocate sound for playing. You should initialize the sound source
+    { Allocate sound for playing. You should initialize the sound source
       properties and start playing the sound.
 
       Note that if you don't call TInternalPlayingSound.Backend.Play immediately, the source may be detected
@@ -88,13 +81,20 @@
       Accessing this is useful only for debugging tasks,
       in normal circumstances this is internal.
       This is @nil when ContextOpen was not yet called. }
-    property AllocatedSources: TInternalPlayingSoundList read FAllocatedSources;
-
-    procedure Refresh; deprecated 'this does not do anything now; refreshing is done automatically if you use CastleWindow unit (with TCastleApplication, TCastleWindowBase) or TCastleControlBase; in other cases, you shoud call ApplicationProperties._Update yourself';
+    //property AllocatedSources: TInternalPlayingSoundList read FAllocatedSources;
 
     { Stop all the sources currently playing. Especially useful since
       you have to stop a source before releasing it's associated buffer. }
     procedure StopAllSources;
+  public
+    const
+      DefaultMinAllocatedSources = 4;
+      DefaultMaxAllocatedSources = 16;
+
+    constructor Create;
+    destructor Destroy; override;
+
+    procedure Refresh; deprecated 'this does not do anything now; refreshing is done automatically if you use CastleWindow unit (with TCastleApplication, TCastleWindowBase) or TCastleControlBase; in other cases, you shoud call ApplicationProperties._Update yourself';
 
     { Load and save into the config file sound engine properties.
       For example use with @link(UserConfig) to store sound preferences
@@ -110,7 +110,7 @@
     procedure LoadFromConfig(const Config: TCastleConfig); virtual;
     procedure SaveToConfig(const Config: TCastleConfig); virtual;
     { @groupEnd }
-  published
+
     { Minimum / maximum number of allocated sources.
       Always keep MinAllocatedSources <= MaxAllocatedSources.
 

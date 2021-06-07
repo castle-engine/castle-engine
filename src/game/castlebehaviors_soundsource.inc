@@ -192,7 +192,7 @@ var
 begin
   Result := nil;
 
-  if (ASound.Buffer <> nil) and (Parent <> nil) then
+  if (ASound.InternalBuffer <> nil) and (Parent <> nil) then
   begin
     SoundPosition := LerpLegsMiddle(SoundHeight);
     if (Parent <> nil) and
@@ -202,7 +202,7 @@ begin
     Params := TPlaySoundParameters.Create;
     try
       Params.Position := SoundPosition;
-      Params.Buffer := ASound.Buffer;
+      Params.Buffer := ASound.InternalBuffer;
       Params.Spatial := ASound.Spatial;
       Params.Looping := Looping;
       Params.Importance := DefaultSoundImportance;
@@ -213,7 +213,9 @@ begin
       {$warnings on}
       Params.Pitch := ASound.Pitch;
 
+      {$warnings off} // using deprecated that should be internal
       Result := SoundEngine.PlaySound(Params);
+      {$warnings on}
 
       if Result <> nil then
       begin

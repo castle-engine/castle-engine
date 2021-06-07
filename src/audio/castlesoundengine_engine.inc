@@ -20,7 +20,7 @@
 
   { Parameters to use when playing sound, see @link(TSoundEngine.PlaySound). }
   TPlaySoundParameters = class
-    Buffer: TSoundBuffer;
+    Buffer: TInternalSoundBuffer;
     Spatial, Looping: boolean;
     Importance: Cardinal;
 
@@ -71,7 +71,7 @@
   TSoundEngine = class(TSoundAllocator)
   private
     type
-      TSoundBuffersList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSoundBuffer>;
+      TInternalSoundBuffersList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TInternalSoundBuffer>;
     var
       FInformation: string;
       FDevice: string;
@@ -82,7 +82,7 @@
       FDefaultReferenceDistance: Single;
       FDefaultMaxDistance: Single;
       FDistanceModel: TSoundDistanceModel;
-      LoadedBuffers: TSoundBuffersList;
+      LoadedBuffers: TInternalSoundBuffersList;
       FDevices: TSoundDeviceList;
       FOnOpenClose: TNotifyEventList;
       FResumeToInitialized, FPaused: boolean;
@@ -187,7 +187,7 @@
 
       This method tries to initialize backend (like OpenAL) context,
       and loads the buffer contents. But even when it fails, it still returns
-      a valid (non-nil) TSoundBuffer instance. The @link(PlaySound) must be
+      a valid (non-nil) TInternalSoundBuffer instance. The @link(PlaySound) must be
       ready anyway to always load the buffer on-demand (because OpenAL context
       may be lost while the game is ongoing, in case of Android).
 
@@ -206,7 +206,7 @@
         in case of error when loading.
 
         Note that it always returns non-nil, even in case of ExceptionOnError=@false
-        and an error at loading. But in this case, TSoundBuffer is mostly a useless
+        and an error at loading. But in this case, TInternalSoundBuffer is mostly a useless
         empty instance. Do not depend on this behavior, and check for @nil
         result in case you use ExceptionOnError=@false.
       )
@@ -221,12 +221,14 @@
 
       @groupBegin }
     function LoadBuffer(const URL: string; const SoundLoading: TSoundLoading;
-      const ExceptionOnError: Boolean = true): TSoundBuffer; overload;
+      const ExceptionOnError: Boolean = true): TInternalSoundBuffer; overload;
+      deprecated 'use TCastleSound to load sound buffers (just assign TCastleSound.URL)';
     function LoadBuffer(const URL: string;
-      const ExceptionOnError: Boolean = true): TSoundBuffer; overload;
-    function LoadBuffer(const URL: string; out Duration: TFloatTime): TSoundBuffer;
+      const ExceptionOnError: Boolean = true): TInternalSoundBuffer; overload;
+      deprecated 'use TCastleSound to load sound buffers (just assign TCastleSound.URL)';
+    function LoadBuffer(const URL: string; out Duration: TFloatTime): TInternalSoundBuffer;
       overload;
-      deprecated 'use LoadBuffer without Duration parameter, and just read TSoundBuffer.Duration after loading';
+      deprecated 'use TCastleSound to load sound buffers (just assign TCastleSound.URL)';
     { @groupEnd }
 
     { Free a sound file buffer. Ignored when buffer is @nil.
@@ -234,7 +236,8 @@
 
       @raises(ESoundBufferNotLoaded When invalid (not @nil,
         and not returned by LoadBuffer) buffer identifier is given.) }
-    procedure FreeBuffer(var Buffer: TSoundBuffer);
+    procedure FreeBuffer(var Buffer: TInternalSoundBuffer);
+      deprecated 'use TCastleSound to load and free sound buffers (just assign TCastleSound.URL)';
 
     { Play a sound from given buffer.
 
@@ -261,20 +264,24 @@
         In advanced cases, you can use it to observe and update the sound
         later.)
     }
-    function PlaySound(const Buffer: TSoundBuffer): TInternalPlayingSound; overload;
-    function PlaySound(const Buffer: TSoundBuffer;
+    function PlaySound(const Buffer: TInternalSoundBuffer): TInternalPlayingSound; overload;
+      deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.PlayOnce to play sounds';
+    function PlaySound(const Buffer: TInternalSoundBuffer;
       const Spatial, Looping: boolean; const Importance: Cardinal;
       const Volume, MinGain, MaxGain: Single;
       const Position: TVector3;
       const Pitch: Single = 1): TInternalPlayingSound; overload;
-    function PlaySound(const Buffer: TSoundBuffer;
+      deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.PlayOnce to play sounds';
+    function PlaySound(const Buffer: TInternalSoundBuffer;
       const Spatial, Looping: boolean; const Importance: Cardinal;
       const Volume, MinGain, MaxGain: Single;
       const Position: TVector3;
       const Pitch: Single;
       const ReferenceDistance: Single;
-      const MaxDistance: Single): TInternalPlayingSound; overload; deprecated 'use PlaySound that gets TPlaySoundParameters instance';
+      const MaxDistance: Single): TInternalPlayingSound; overload;
+      deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.PlayOnce to play sounds';
     function PlaySound(const Parameters: TPlaySoundParameters): TInternalPlayingSound; overload;
+      deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.PlayOnce to play sounds';
 
     { Simply play given TCastleSound. This should be used to play sounds
       that are not spatial, i.e. have no place in 3D space.
@@ -288,6 +295,7 @@
       @noAutoLinkHere }
     function Sound(const SoundType: TCastleSound;
       const Looping: boolean = false): TInternalPlayingSound;
+      deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.PlayOnce to play sounds';
 
     { Play given sound at appropriate position in 3D space.
 
@@ -301,6 +309,7 @@
     function Sound3D(const SoundType: TCastleSound;
       const Position: TVector3;
       const Looping: boolean = false): TInternalPlayingSound; overload;
+      deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.PlayOnce to play sounds';
 
     { Parse parameters in @link(Parameters) and interpret and remove
       recognized options. Internally it uses Parameters.Parse with
@@ -324,8 +333,8 @@
       as they are valid arguments for the @--audio-device option. }
     function ParseParametersHelp: string;
 
-    { Set the sound listener position and orientation. }
-    procedure UpdateListener(const Position, Direction, Up: TVector3);
+    { Set the sound listener position and orientation. @exclude }
+    procedure InternalUpdateListener(const Position, Direction, Up: TVector3);
 
     { List of available sound devices. Read-only.
 
@@ -354,7 +363,7 @@
 
     { Newly played sounds will have @link(TInternalPlayingSound.Pitch) multiplied by this. }
     property InitialPitchMultiplier: Single read FInitialPitchMultiplier write FInitialPitchMultiplier default 1.0;
-  published
+
     { Sound volume, affects all sounds (effects and music).
       This must always be within 0..1 range.
       0.0 means that there are no effects (this case should be optimized). }
@@ -466,7 +475,7 @@ begin
   FDevice := DefaultDevice;
   FEnableSaveToConfig := true;
   DeviceSaveToConfig := true;
-  LoadedBuffers := TSoundBuffersList.Create(true);
+  LoadedBuffers := TInternalSoundBuffersList.Create(true);
   FOnOpenClose := TNotifyEventList.Create;
   FInitialPitchMultiplier := 1.0;
 
@@ -549,7 +558,7 @@ procedure TSoundEngine.ContextOpenCore;
   { initialize resources inside LoadedBuffers }
   procedure LoadedBuffersOpen;
   var
-    Buffer: TSoundBuffer;
+    Buffer: TInternalSoundBuffer;
   begin
     // check LoadedBuffers.Count, because we don't want to do progress with no LoadedBuffers
     if LoadedBuffers.Count <> 0 then
@@ -624,7 +633,7 @@ end;
 
 procedure TSoundEngine.ContextCloseCore;
 var
-  Buffer: TSoundBuffer;
+  Buffer: TInternalSoundBuffer;
 begin
   if IsContextOpenSuccess then
   begin
@@ -708,18 +717,20 @@ begin
   end;
 end;
 
-function TSoundEngine.PlaySound(const Buffer: TSoundBuffer): TInternalPlayingSound;
+function TSoundEngine.PlaySound(const Buffer: TInternalSoundBuffer): TInternalPlayingSound;
 var
   Parameters: TPlaySoundParameters;
 begin
   Parameters := TPlaySoundParameters.Create;
   try
     Parameters.Buffer := Buffer;
+    {$warnings off} // using deprecated from another deprecated
     Result := PlaySound(Parameters);
+    {$warnings on}
   finally FreeAndNil(Parameters) end;
 end;
 
-function TSoundEngine.PlaySound(const Buffer: TSoundBuffer;
+function TSoundEngine.PlaySound(const Buffer: TInternalSoundBuffer;
   const Spatial, Looping: boolean; const Importance: Cardinal;
   const Volume, MinGain, MaxGain: Single;
   const Position: TVector3;
@@ -740,11 +751,13 @@ begin
     {$warnings on}
     Parameters.Position   := Position;
     Parameters.Pitch      := Pitch;
+    {$warnings off} // using deprecated from another deprecated
     Result := PlaySound(Parameters);
+    {$warnings on}
   finally FreeAndNil(Parameters) end;
 end;
 
-function TSoundEngine.PlaySound(const Buffer: TSoundBuffer;
+function TSoundEngine.PlaySound(const Buffer: TInternalSoundBuffer;
   const Spatial, Looping: boolean; const Importance: Cardinal;
   const Volume, MinGain, MaxGain: Single;
   const Position: TVector3;
@@ -767,7 +780,9 @@ begin
     Parameters.Pitch      := Pitch;
     Parameters.ReferenceDistance := ReferenceDistance;
     Parameters.MaxDistance       := MaxDistance;
+    {$warnings off} // using deprecated from another deprecated
     Result := PlaySound(Parameters);
+    {$warnings on}
   finally FreeAndNil(Parameters) end;
 end;
 
@@ -787,19 +802,19 @@ begin
 
   { Check this only after ContextOpen,
     since before ContextOpen the Buffer always = nil. }
-  if SoundType.Buffer = nil then Exit(nil);
+  if SoundType.InternalBuffer = nil then Exit(nil);
 
+  {$warnings off} // using deprecated from another deprecated
   Result := PlaySound(
-    SoundType.Buffer,
+    SoundType.InternalBuffer,
     { spatial } false,
     Looping,
     { TODO: SoundType.DefaultImportance } DefaultSoundImportance,
     SoundType.Volume,
-    {$warnings off} // using unportable symbols knowingly
     SoundType.MinGain,
     SoundType.MaxGain,
-    {$warnings on}
     TVector3.Zero);
+  {$warnings on}
 end;
 
 function TSoundEngine.Sound3D(const SoundType: TCastleSound;
@@ -812,28 +827,30 @@ begin
 
   ContextOpen;
 
-  if SoundType.Buffer = nil then Exit(nil);
+  if SoundType.InternalBuffer = nil then Exit(nil);
 
+  {$warnings off} // using deprecated from another deprecated
   Result := PlaySound(
-    SoundType.Buffer,
+    SoundType.InternalBuffer,
     { spatial } true,
     Looping,
     { TODO: SoundType.DefaultImportance } DefaultSoundImportance,
     SoundType.Volume,
-    {$warnings off} // using unportable symbols knowingly
     SoundType.MinGain,
     SoundType.MaxGain,
-    {$warnings on}
     Position);
+  {$warnings on}
 end;
 
-function TSoundEngine.LoadBuffer(const URL: string; out Duration: TFloatTime): TSoundBuffer;
+function TSoundEngine.LoadBuffer(const URL: string; out Duration: TFloatTime): TInternalSoundBuffer;
 begin
+  {$warnings off} // using deprecated that should be internal
   Result := LoadBuffer(URL);
+  {$warnings on}
   Duration := Result.Duration;
 end;
 
-function TSoundEngine.LoadBuffer(const URL: string; const SoundLoading: TSoundLoading; const ExceptionOnError: Boolean): TSoundBuffer;
+function TSoundEngine.LoadBuffer(const URL: string; const SoundLoading: TSoundLoading; const ExceptionOnError: Boolean): TInternalSoundBuffer;
 var
   I: Integer;
   FullURL: string;
@@ -854,7 +871,7 @@ begin
       Exit;
     end;
 
-  Result := TSoundBuffer.Create(Backend, SoundLoading);
+  Result := TInternalSoundBuffer.Create(Backend, SoundLoading);
   Result.FURL := FullURL;
   Result.References := 1;
   LoadedBuffers.Add(Result);
@@ -864,12 +881,14 @@ begin
     Result.ContextOpen(ExceptionOnError);
 end;
 
-function TSoundEngine.LoadBuffer(const URL: string; const ExceptionOnError: Boolean): TSoundBuffer;
+function TSoundEngine.LoadBuffer(const URL: string; const ExceptionOnError: Boolean): TInternalSoundBuffer;
 begin
+  {$warnings off} // using deprecated that should be internal
   Result := LoadBuffer(URL, slComplete, ExceptionOnError);
+  {$warnings on}
 end;
 
-procedure TSoundEngine.FreeBuffer(var Buffer: TSoundBuffer);
+procedure TSoundEngine.FreeBuffer(var Buffer: TInternalSoundBuffer);
 var
   I: Integer;
 begin
@@ -996,7 +1015,7 @@ begin
     '  --no-sound            Turn off sound.';
 end;
 
-procedure TSoundEngine.UpdateListener(const Position, Direction, Up: TVector3);
+procedure TSoundEngine.InternalUpdateListener(const Position, Direction, Up: TVector3);
 begin
   FListenerPosition := Position;
   FListenerDirection := Direction;
