@@ -350,7 +350,7 @@ type
 
     { Check current item exist taking into account the existence of the
       unique parents of this item, needed only before first Update() call.
-      See GetRealExistance(). }
+      See GetRealExistence(). }
     function GetExistsRecursively: Boolean;
   private
     type
@@ -454,8 +454,18 @@ type
     procedure SetListenPressRelease(const Value: Boolean);
 
     { Check current item exist taking into account the existence of the
-      unique parents of this item }
-    function GetRealExistance: Boolean;
+      unique parents of this item.
+
+      This return true when this transform, and all its parents, have Exists = true.
+      Return value is *undefined* when some transformation along the way has multiple
+      parents, so you should only use this when you require "single parent" anyway
+      (e.g. physics requires it).
+
+      For performance, this is valid now only if "FWorld.FKraftEngine <> nil",
+      as calculating it requires sometimes iterating inside an inactive
+      transform tree (which is not otherwise needed).
+      But if needed, it could be updated in the future in other situations too.}
+    function GetRealExistence: Boolean;
   protected
     { Called when the current @link(World) that contains this object changes.
       In the usual case, @link(World) corresponds to a @link(TCastleViewport.Items)
@@ -2611,12 +2621,12 @@ begin
     Result := UniqueParent.GetExistsRecursively;
 end;
 
-function TCastleTransform.GetRealExistance: Boolean;
+function TCastleTransform.GetRealExistence: Boolean;
 begin
   if FLastUpdatedGetExistsValid then
     Exit(FLastUpdatedGetExists);
 
-  { Only needed when you call GetRealExistance() before first update. }
+  { Only needed when you call GetRealExistence() before first update. }
   Exit(GetExistsRecursively);
 end;
 

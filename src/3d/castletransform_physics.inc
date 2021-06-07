@@ -721,7 +721,7 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
     FKraftBody.Finish;
 
     UpdateCollides(Transform);
-    UpdateExist(Transform.GetRealExistance);
+    UpdateExist(Transform.GetRealExistence);
 
     if (not FAngularVelocity.IsPerfectlyZero) or
        (not FLinearVelocity.IsPerfectlyZero) then
@@ -1175,7 +1175,7 @@ begin
     Exit;
 
   FExists := Value;
-  UpdateExist(FTransform.GetRealExistance);
+  UpdateExist(FTransform.GetRealExistence);
 end;
 
 procedure TRigidBody.SetTrigger(const Value: Boolean);
