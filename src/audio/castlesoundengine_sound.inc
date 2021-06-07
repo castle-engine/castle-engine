@@ -100,6 +100,10 @@ type
 
       It must be in [0, 1] range. By default it is 1. }
     property MaxGain: Single read FMaxGain write SetMaxGain default 1.0; platform { this feature is only available with OpenAL sound backend };
+
+    { Duration of the sound, in seconds. -1 if not loaded yet.
+      The sound is loaded once you set @link(URL) and don't get any loading exceptions. }
+    function Duration: Single;
   published
     { URL of the sound file.
       Set this to load a new sound buffer, you can set to '' to clear the sound buffer.
@@ -323,6 +327,14 @@ procedure TCastleSound.InternalRemoveChangeNotification(const Notify: TCastleSou
 begin
   if FChangeNotifications <> nil then // may be nil when destroying, and we make notification
     FChangeNotifications.Remove(Notify);
+end;
+
+function TCastleSound.Duration: Single;
+begin
+  if FBuffer <> nil then
+    Result := FBuffer.Duration
+  else
+    Result := -1;
 end;
 
 {$endif read_implementation}
