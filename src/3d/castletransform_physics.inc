@@ -126,6 +126,9 @@
 
     property Restitution: Single read FRestitution write FRestitution default DefaultRestitution;
     property Friction: Single read FFriction write FFriction default DefaultFriction;
+
+    { @exclude Only for testing. }
+    property InternalKraftShape: TKraftShape read FKraftShape;
   end;
 
   { Collide as an infinite plane.
@@ -436,6 +439,9 @@
       When this is @false, the rigid body is not updated by the physics engine,
       and it does not cause collisions with other rigid bodies. }
     property Exists: Boolean read FExists write SetExists default true;
+
+    { @exclude Only for testing. }
+    property InternalKraftBody: TKraftRigidBody read FKraftBody;
   end;
 
 {$endif read_interface}

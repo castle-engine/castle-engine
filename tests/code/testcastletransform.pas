@@ -48,6 +48,7 @@ type
     procedure TestPhysicsWorldOwner;
     procedure TestPhysicsWorldOwnerEmptyBox;
     procedure TestPhysicsWorldOwnerEmptySphere;
+    procedure TestPhysicsExistsAfterParentTransformExistenceChange;
     procedure TestPass;
     procedure TestPassCombine;
     procedure TestForIn;
@@ -55,7 +56,7 @@ type
 
 implementation
 
-uses Math, Contnrs,
+uses Math, Contnrs, Kraft,
   CastleVectors, CastleBoxes, CastleTransform, CastleViewport, CastleClassUtils,
   CastleTriangles, CastleSceneCore, X3DNodes, CastleScene, CastleInternalRenderer;
 
@@ -1309,6 +1310,52 @@ begin
 
     // Fail('This should raise EPhysicsError, as TSphereCollider is empty');
   //except on EPhysicsError do end;
+end;
+
+procedure TTestCastleTransform.TestPhysicsExistsAfterParentTransformExistenceChange;
+var
+  Viewport: TCastleViewport;
+  ParentTransform: TCastleTransform;
+  TransformWithRigidBody: TCastleTransform;
+  Body: TRigidBody;
+  Collider: TBoxCollider;
+  FakeRemoveMe: TRemoveType;
+begin
+  Viewport := TCastleViewport.Create(nil);
+  try
+    ParentTransform := TCastleTransform.Create(Viewport.Items);
+    Viewport.Items.Add(ParentTransform);
+
+    TransformWithRigidBody := TCastleTransform.Create(Viewport.Items);
+
+    Body := TRigidBody.Create(Viewport.Items);
+
+    Collider := TBoxCollider.Create(Body);
+    Collider.Size := Vector3(2, 2, 2);
+
+    TransformWithRigidBody.RigidBody := Body;
+
+    ParentTransform.Add(TransformWithRigidBody);
+
+    if not ((krbfActive in Body.InternalKraftBody.Flags) or
+       (ksfCollision in Body.Collider.InternalKraftShape.Flags) or
+       (ksfRayCastable in Body.Collider.InternalKraftShape.Flags)) then
+    begin
+         Fail('Wrong Kraft flags in rigid body that exist.');
+    end;
+
+    ParentTransform.Exists := false;
+
+    Viewport.Items.Update(1, FakeRemoveMe);
+
+    if (krbfActive in Body.InternalKraftBody.Flags) or
+       (ksfCollision in Body.Collider.InternalKraftShape.Flags) or
+       (ksfRayCastable in Body.Collider.InternalKraftShape.Flags) then
+    begin
+      Fail('Wrong Kraft flags in rigid body that parent not exist.');
+    end;
+
+  finally FreeAndNil(Viewport) end;
 end;
 
 procedure TTestCastleTransform.TestPhysicsWorldOwner;
