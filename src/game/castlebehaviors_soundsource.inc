@@ -206,12 +206,12 @@ begin
       Params.Spatial := ASound.Spatial;
       Params.Looping := Looping;
       Params.Importance := DefaultSoundImportance;
+      Params.Pitch := ASound.Pitch;
       Params.Volume := ASound.Volume;
       {$warnings off} // using unportable symbols knowingly
       Params.MinGain := ASound.MinGain;
       Params.MaxGain := ASound.MaxGain;
       {$warnings on}
-      Params.Pitch := ASound.Pitch;
 
       {$warnings off} // using deprecated that should be internal
       Result := SoundEngine.PlaySound(Params);

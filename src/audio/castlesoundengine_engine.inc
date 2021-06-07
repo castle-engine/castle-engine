@@ -311,6 +311,14 @@
       const Looping: boolean = false): TInternalPlayingSound; overload;
       deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.PlayOnce to play sounds';
 
+    { Play given sound once.
+      If the sound is spatial (TCastleSound.Spatial), the sound source Position is (0, 0, 0). }
+    procedure PlayOnce(const ASound: TCastleSound);
+
+    { Play given sound once.
+      If the sound is spatial (TCastleSound.Spatial), we use the given sound source Position. }
+    procedure PlayOnce(const ASound: TCastleSound; const Position: TVector3);
+
     { Parse parameters in @link(Parameters) and interpret and remove
       recognized options. Internally it uses Parameters.Parse with
       ParseOnlyKnownLongOptions = @true. Recognized options:
@@ -687,6 +695,16 @@ function TSoundEngine.PlaySound(const Parameters: TPlaySoundParameters): TIntern
 begin
   Result := nil;
 
+  { Open context, if not open yet.
+    In general loading a buffer (LoadBuffer) should cause this already,
+    and loading a buffer should happen before this call (since you need to initialize Parameters.Buffer),
+    so usually calling ContextOpen here does nothing.
+
+    But in case you later close the audio context, and want to reopen it at PlaySound
+    -- we should call ContextOpen here.
+    Doing ContextOpen also calls TInternalSoundBuffer.ContextOpen on all open buffers. }
+  ContextOpen;
+
   if IsContextOpenSuccess and
      (Parameters.Buffer <> nil) and
      { Buffer.BackendIsOpen may be false if file failed to load, e.g. file not found }
@@ -697,12 +715,12 @@ begin
     begin
       Result.Buffer  := Parameters.Buffer;
       Result.Looping := Parameters.Looping;
+      Result.Pitch   := Parameters.Pitch * InitialPitchMultiplier;
       Result.Volume  := Parameters.Volume;
       {$warnings off} // using unportable symbols knowingly
       Result.MinGain := Parameters.MinGain;
       Result.MaxGain := Parameters.MaxGain;
       {$warnings on}
-      Result.Pitch   := Parameters.Pitch * InitialPitchMultiplier;
       Result.Offset  := Parameters.Offset;
       Result.Spatial := Parameters.Spatial;
 
@@ -744,13 +762,13 @@ begin
     Parameters.Spatial    := Spatial;
     Parameters.Looping    := Looping;
     Parameters.Importance := Importance;
+    Parameters.Pitch      := Pitch;
     Parameters.Volume     := Volume;
     {$warnings off} // using unportable symbols knowingly
     Parameters.MinGain    := MinGain;
     Parameters.MaxGain    := MaxGain;
     {$warnings on}
     Parameters.Position   := Position;
-    Parameters.Pitch      := Pitch;
     {$warnings off} // using deprecated from another deprecated
     Result := PlaySound(Parameters);
     {$warnings on}
@@ -771,13 +789,13 @@ begin
     Parameters.Spatial    := Spatial;
     Parameters.Looping    := Looping;
     Parameters.Importance := Importance;
+    Parameters.Pitch      := Pitch;
     Parameters.Volume     := Volume;
     {$warnings off} // using unportable symbols knowingly
     Parameters.MinGain    := MinGain;
     Parameters.MaxGain    := MaxGain;
     {$warnings on}
     Parameters.Position   := Position;
-    Parameters.Pitch      := Pitch;
     Parameters.ReferenceDistance := ReferenceDistance;
     Parameters.MaxDistance       := MaxDistance;
     {$warnings off} // using deprecated from another deprecated
@@ -792,17 +810,13 @@ begin
   { If there is no actual sound, exit early without initializing sound backend.
     - SoundType is nil (which includes sound name not defined in sounds.xml,
       since SoundFromName returns nil for them).
-    - SoundType is <> nil but URL = '' (if sound name is defined in
+    - SoundType is <> nil but InternalBuffer = nil (if sound name is defined in
       sounds.xml with explicit url="", like this:
       <sound name="player_sudden_pain" url="" />)
   }
-  if (SoundType = nil) or (SoundType.URL = '') then Exit(nil);
-
-  ContextOpen;
-
-  { Check this only after ContextOpen,
-    since before ContextOpen the Buffer always = nil. }
-  if SoundType.InternalBuffer = nil then Exit(nil);
+  if (SoundType = nil) or
+     (SoundType.InternalBuffer = nil) then
+    Exit(nil);
 
   {$warnings off} // using deprecated from another deprecated
   Result := PlaySound(
@@ -823,11 +837,9 @@ function TSoundEngine.Sound3D(const SoundType: TCastleSound;
 begin
   { If there is no actual sound, exit early without initializing sound backend.
     See Sound for more comments why we do this. }
-  if (SoundType = nil) or (SoundType.URL = '') then Exit(nil);
-
-  ContextOpen;
-
-  if SoundType.InternalBuffer = nil then Exit(nil);
+  if (SoundType = nil) or
+     (SoundType.InternalBuffer = nil) then
+    Exit(nil);
 
   {$warnings off} // using deprecated from another deprecated
   Result := PlaySound(
@@ -840,6 +852,41 @@ begin
     SoundType.MaxGain,
     Position);
   {$warnings on}
+end;
+
+procedure TSoundEngine.PlayOnce(const ASound: TCastleSound);
+begin
+  PlayOnce(ASound, TVector3.Zero);
+end;
+
+procedure TSoundEngine.PlayOnce(const ASound: TCastleSound; const Position: TVector3);
+var
+  Params: TPlaySoundParameters;
+begin
+  { If there is no actual sound, exit early without initializing sound backend. }
+  Assert(ASound <> nil);
+  if ASound.InternalBuffer = nil then Exit;
+
+  { Create TPlaySoundParameters similar to TCastleSoundSource.PlayOnceCore }
+
+  Params := TPlaySoundParameters.Create;
+  try
+    Params.Position   := Position;
+    Params.Buffer     := ASound.InternalBuffer;
+    Params.Spatial    := ASound.Spatial;
+    Params.Looping    := false;
+    Params.Importance := DefaultSoundImportance; // TODO
+    Params.Pitch      := ASound.Pitch;
+    Params.Volume     := ASound.Volume;
+    {$warnings off} // using unportable symbols knowingly
+    Params.MinGain    := ASound.MinGain;
+    Params.MaxGain    := ASound.MaxGain;
+    {$warnings on}
+
+    {$warnings off} // using deprecated that should be internal
+    PlaySound(Params);
+    {$warnings on}
+  finally FreeAndNil(Params) end;
 end;
 
 function TSoundEngine.LoadBuffer(const URL: string; out Duration: TFloatTime): TInternalSoundBuffer;
