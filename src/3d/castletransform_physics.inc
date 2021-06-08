@@ -727,7 +727,7 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
     FKraftBody.Finish;
 
     UpdateCollides(Transform);
-    UpdateExist(Transform.GetRealExistence);
+    UpdateExist(Transform.GetExistsInRoot);
 
     if (not FAngularVelocity.IsPerfectlyZero) or
        (not FLinearVelocity.IsPerfectlyZero) then
@@ -1181,7 +1181,7 @@ begin
     Exit;
 
   FExists := Value;
-  UpdateExist(FTransform.GetRealExistence);
+  UpdateExist(FTransform.GetExistsInRoot);
 end;
 
 procedure TRigidBody.SetTrigger(const Value: Boolean);
@@ -1325,8 +1325,8 @@ begin
   CurrentGetExists := GetExists;
 
   if ((FWorld.FKraftEngine <> nil) and
-     (UpdateFrameId = TFramesPerSecond.FrameId)) then
-    UpdateRealExistence(CurrentGetExists);
+     (UpdateFrameId <> TFramesPerSecond.FrameId)) then
+    UpdateExistsInRoot(CurrentGetExists);
 
   if not CurrentGetExists then Exit;
 

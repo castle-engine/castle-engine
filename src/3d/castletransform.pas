@@ -338,8 +338,8 @@ type
     with correct gravity model and collisions with other rigid bodies. }
   TCastleTransform = class(TCastleComponent)
   strict private
-    FLastUpdatedGetExists: Boolean;
-    FLastUpdatedGetExistsValid: Boolean;
+    FLastGetExistsInRoot: Boolean;
+    FLastGetExistsInRootValid: Boolean;
 
     { When castle transform existence changes to false, we need update existence
       in all castle transform children rigid bodies }
@@ -347,11 +347,6 @@ type
     { Update rigid body existence when castle transform (or it parent) GetExists
       changes. }
     procedure UpdateExists(const AExists: Boolean);
-
-    { Check current item exist taking into account the existence of the
-      unique parents of this item, needed only before first Update() call.
-      See GetRealExistence(). }
-    function GetExistsRecursively: Boolean;
   private
     type
       TEnumerator = class
@@ -465,7 +460,7 @@ type
       as calculating it requires sometimes iterating inside an inactive
       transform tree (which is not otherwise needed).
       But if needed, it could be updated in the future in other situations too.}
-    function GetRealExistence: Boolean;
+    function GetExistsInRoot: Boolean;
   protected
     { Called when the current @link(World) that contains this object changes.
       In the usual case, @link(World) corresponds to a @link(TCastleViewport.Items)
@@ -723,7 +718,7 @@ type
 
     procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
 
-    procedure UpdateRealExistence(const CurrentGetExists: Boolean);
+    procedure UpdateExistsInRoot(const CurrentGetExists: Boolean);
   public
     const
       DefaultMiddleHeight = 0.5;
@@ -1932,6 +1927,15 @@ type
       This usually makes dynamic objects, like player and creatures, collide better. }
     property CollisionSphereRadius: Single read FCollisionSphereRadius write FCollisionSphereRadius;
 
+    { @exclude Only for testing. }
+    property InternalLastGetExistsInRoot: Boolean read FLastGetExistsInRoot;
+
+    { @exclude Only for testing. }
+    property InternalLastGetExistsInRootValid: Boolean read FLastGetExistsInRootValid;
+
+    { @exclude Only for testing. }
+    property InternalGetExistsInRoot: Boolean read GetExistsInRoot;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -2594,16 +2598,16 @@ end;
 
 procedure TCastleTransform.UpdateExists(const AExists: Boolean);
 begin
-  FLastUpdatedGetExistsValid := true;
-  FLastUpdatedGetExists := AExists;
+  FLastGetExistsInRootValid := true;
+  FLastGetExistsInRoot := AExists;
 
   if FRigidBody <> nil then
     FRigidBody.UpdateExist(AExists);
 end;
 
-procedure TCastleTransform.UpdateRealExistence(const CurrentGetExists: Boolean);
+procedure TCastleTransform.UpdateExistsInRoot(const CurrentGetExists: Boolean);
 begin
-  if FLastUpdatedGetExistsValid and (FLastUpdatedGetExists = CurrentGetExists) then
+  if FLastGetExistsInRootValid and (FLastGetExistsInRoot = CurrentGetExists) then
     Exit;
 
   { When current transform stops existing we need update all children
@@ -2614,20 +2618,11 @@ begin
     UpdateExistsRecursively(CurrentGetExists);
 end;
 
-function TCastleTransform.GetExistsRecursively: Boolean;
+function TCastleTransform.GetExistsInRoot: Boolean;
 begin
   Result := GetExists;
   if Result and (UniqueParent <> nil) then
-    Result := UniqueParent.GetExistsRecursively;
-end;
-
-function TCastleTransform.GetRealExistence: Boolean;
-begin
-  if FLastUpdatedGetExistsValid then
-    Exit(FLastUpdatedGetExists);
-
-  { Only needed when you call GetRealExistence() before first update. }
-  Exit(GetExistsRecursively);
+    Result := UniqueParent.GetExistsInRoot;
 end;
 
 procedure TCastleTransform.SetCursor(const Value: TMouseCursor);
@@ -2731,7 +2726,7 @@ begin
         FWorld.RemoveFreeNotification(Self);
     end;
 
-    FLastUpdatedGetExistsValid := false;
+    FLastGetExistsInRootValid := false;
     FWorld := Value;
     FWorldReferences := Iff(Value <> nil, 1, 0);
 
@@ -3168,10 +3163,10 @@ var
 begin
   CurrentGetExists := GetExists;
 
-  { Currently UpdateRealExistence is used only for set rigid body exsistance,
+  { Currently UpdateExistsInRoot is used only for set rigid body exsistance,
     so we check that only when FKraftEngine is used. }
   if (FWorld <> nil) and (FWorld.FKraftEngine <> nil) then
-    UpdateRealExistence(CurrentGetExists);
+    UpdateExistsInRoot(CurrentGetExists);
 
   if CurrentGetExists then
   begin

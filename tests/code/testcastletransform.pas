@@ -49,6 +49,12 @@ type
     procedure TestPhysicsWorldOwnerEmptyBox;
     procedure TestPhysicsWorldOwnerEmptySphere;
     procedure TestPhysicsExistsAfterParentTransformExistenceChange;
+    procedure TestPhysicsExistsAfterWorldExistenceChange;
+    procedure TestPhysicsExistsRemoveAndAddChildTransformAgain;
+    procedure TestPhysicsExistsRemoveAndAddChildTransformAgainAfterFirstUpdate;
+    procedure TestPhysicsExistsRemoveAndAddChildTransformAgainAfterFirstUpdate2;
+    procedure TestGetExistsInRoot;
+    procedure TestGetExistsInRootParentChangeExistCheckChild;
     procedure TestPass;
     procedure TestPassCombine;
     procedure TestForIn;
@@ -58,7 +64,8 @@ implementation
 
 uses Math, Contnrs, Kraft,
   CastleVectors, CastleBoxes, CastleTransform, CastleViewport, CastleClassUtils,
-  CastleTriangles, CastleSceneCore, X3DNodes, CastleScene, CastleInternalRenderer;
+  CastleTriangles, CastleSceneCore, X3DNodes, CastleScene, CastleInternalRenderer,
+  CastleTimeUtils;
 
 { TMy3D ---------------------------------------------------------------------- }
 
@@ -1341,21 +1348,560 @@ begin
        (ksfCollision in Body.Collider.InternalKraftShape.Flags) or
        (ksfRayCastable in Body.Collider.InternalKraftShape.Flags)) then
     begin
-         Fail('Wrong Kraft flags in rigid body that exist.');
+         Fail('Wrong Kraft flags in rigid body that exists.');
     end;
 
     ParentTransform.Exists := false;
 
+    { At this moment Kraft flags don't change, because we need update to change. }
+
+    if not ((krbfActive in Body.InternalKraftBody.Flags) or
+       (ksfCollision in Body.Collider.InternalKraftShape.Flags) or
+       (ksfRayCastable in Body.Collider.InternalKraftShape.Flags)) then
+    begin
+         Fail('Wrong Kraft flags in rigid body that not exists (before update).');
+    end;
+
     Viewport.Items.Update(1, FakeRemoveMe);
+
+    { After update Kraft flags should change. }
 
     if (krbfActive in Body.InternalKraftBody.Flags) or
        (ksfCollision in Body.Collider.InternalKraftShape.Flags) or
        (ksfRayCastable in Body.Collider.InternalKraftShape.Flags) then
     begin
-      Fail('Wrong Kraft flags in rigid body that parent not exist.');
+      Fail('Wrong Kraft flags in rigid body that parent not exists (after update).');
     end;
 
   finally FreeAndNil(Viewport) end;
+end;
+
+procedure TTestCastleTransform.TestPhysicsExistsAfterWorldExistenceChange;
+var
+  Viewport: TCastleViewport;
+  ParentTransform: TCastleTransform;
+  TransformWithRigidBody: TCastleTransform;
+  Body: TRigidBody;
+  Collider: TBoxCollider;
+  FakeRemoveMe: TRemoveType;
+begin
+  Viewport := TCastleViewport.Create(nil);
+  try
+    ParentTransform := TCastleTransform.Create(Viewport.Items);
+    Viewport.Items.Add(ParentTransform);
+
+    TransformWithRigidBody := TCastleTransform.Create(Viewport.Items);
+
+    Body := TRigidBody.Create(Viewport.Items);
+
+    Collider := TBoxCollider.Create(Body);
+    Collider.Size := Vector3(2, 2, 2);
+
+    TransformWithRigidBody.RigidBody := Body;
+
+    ParentTransform.Add(TransformWithRigidBody);
+
+    if not ((krbfActive in Body.InternalKraftBody.Flags) or
+       (ksfCollision in Body.Collider.InternalKraftShape.Flags) or
+       (ksfRayCastable in Body.Collider.InternalKraftShape.Flags)) then
+    begin
+         Fail('Wrong Kraft flags in rigid body that exists.');
+    end;
+
+    Viewport.Items.Exists := false;
+
+    { At this moment Kraft flags don't change, because we need update to change. }
+
+    if not ((krbfActive in Body.InternalKraftBody.Flags) or
+       (ksfCollision in Body.Collider.InternalKraftShape.Flags) or
+       (ksfRayCastable in Body.Collider.InternalKraftShape.Flags)) then
+    begin
+         Fail('Wrong Kraft flags in rigid body that not exists (before update).');
+    end;
+
+    Viewport.Items.Update(1, FakeRemoveMe);
+
+    { After update Kraft flags should change. }
+
+    if (krbfActive in Body.InternalKraftBody.Flags) or
+       (ksfCollision in Body.Collider.InternalKraftShape.Flags) or
+       (ksfRayCastable in Body.Collider.InternalKraftShape.Flags) then
+    begin
+      Fail('Wrong Kraft flags in rigid body that world not exists (after update).');
+    end;
+
+  finally FreeAndNil(Viewport) end;
+end;
+
+procedure TTestCastleTransform.TestPhysicsExistsRemoveAndAddChildTransformAgain;
+var
+  Viewport: TCastleViewport;
+  ParentTransform: TCastleTransform;
+  TransformWithRigidBody: TCastleTransform;
+  ChildOfTransformWithRigidBody: TCastleTransform;
+  Body: TRigidBody;
+  Collider: TBoxCollider;
+  FakeRemoveMe: TRemoveType;
+begin
+  Viewport := TCastleViewport.Create(nil);
+  try
+    ParentTransform := TCastleTransform.Create(Viewport.Items);
+    Viewport.Items.Add(ParentTransform);
+
+    TransformWithRigidBody := TCastleTransform.Create(Viewport.Items);
+
+    Body := TRigidBody.Create(Viewport.Items);
+
+    Collider := TBoxCollider.Create(Body);
+    Collider.Size := Vector3(2, 2, 2);
+
+    TransformWithRigidBody.RigidBody := Body;
+
+    ParentTransform.Add(TransformWithRigidBody);
+
+    ChildOfTransformWithRigidBody := TCastleTransform.Create(Viewport.Items);
+
+    TransformWithRigidBody.Add(ChildOfTransformWithRigidBody);
+
+    if not ((krbfActive in Body.InternalKraftBody.Flags) or
+       (ksfCollision in Body.Collider.InternalKraftShape.Flags) or
+       (ksfRayCastable in Body.Collider.InternalKraftShape.Flags)) then
+    begin
+         Fail('Wrong Kraft flags in rigid body that exists.');
+    end;
+
+    ParentTransform.Remove(TransformWithRigidBody);
+
+    Viewport.Items.Exists := false;
+
+    ParentTransform.Add(TransformWithRigidBody);
+
+    { At this moment Kraft flags shuld be okay becouse kraft is recreated
+      when removed/aded to hierarchy and use GetExistsInRoot }
+
+    if (krbfActive in Body.InternalKraftBody.Flags) or
+       (ksfCollision in Body.Collider.InternalKraftShape.Flags) or
+       (ksfRayCastable in Body.Collider.InternalKraftShape.Flags) then
+    begin
+         Fail('Wrong Kraft flags in rigid body that not exists (before update).');
+    end;
+
+    { But LastGetExistsInRootValid flag should be not valid. }
+    if TransformWithRigidBody.InternalLastGetExistsInRootValid then
+      Fail('Wrong FLastGetExistsInRootValid flag value (before update)');
+
+    { Child should be also updated }
+    if ChildOfTransformWithRigidBody.InternalGetExistsInRoot then
+      Fail('Wrong GetExistsInRoot value in ChildOfTransformWithRigidBody (before update)');
+
+    FakeRemoveMe := rtNone;
+    Viewport.Items.Update(1, FakeRemoveMe);
+
+    { After update Kraft flags should still be valid. }
+
+    if (krbfActive in Body.InternalKraftBody.Flags) or
+       (ksfCollision in Body.Collider.InternalKraftShape.Flags) or
+       (ksfRayCastable in Body.Collider.InternalKraftShape.Flags) then
+    begin
+      Fail('Wrong Kraft flags in rigid body that world not exists (after update).');
+    end;
+
+    { LastGetExistsInRootValid flag should be now valid. }
+    if not TransformWithRigidBody.InternalLastGetExistsInRootValid then
+      Fail('Wrong FLastGetExistsInRootValid flag value (after update)');
+
+    { LastGetExistsInRoot flag should be false now. }
+    if TransformWithRigidBody.InternalLastGetExistsInRoot then
+      Fail('Wrong FLastGetExistsInRootValid flag value (after update)');
+
+  finally FreeAndNil(Viewport) end;
+end;
+
+procedure TTestCastleTransform.TestPhysicsExistsRemoveAndAddChildTransformAgainAfterFirstUpdate;
+var
+  Viewport: TCastleViewport;
+  ParentTransform: TCastleTransform;
+  TransformWithRigidBody: TCastleTransform;
+  ChildOfTransformWithRigidBody: TCastleTransform;
+  Body: TRigidBody;
+  Collider: TBoxCollider;
+  FakeRemoveMe: TRemoveType;
+  FPS: TFramesPerSecond;
+begin
+  Viewport := nil;
+  FPS := nil;
+  try
+    Viewport := TCastleViewport.Create(nil);
+    FPS := TFramesPerSecond.Create;
+
+    ParentTransform := TCastleTransform.Create(Viewport.Items);
+    Viewport.Items.Add(ParentTransform);
+
+    TransformWithRigidBody := TCastleTransform.Create(Viewport.Items);
+
+    Body := TRigidBody.Create(Viewport.Items);
+
+    Collider := TBoxCollider.Create(Body);
+    Collider.Size := Vector3(2, 2, 2);
+
+    TransformWithRigidBody.RigidBody := Body;
+
+    ParentTransform.Add(TransformWithRigidBody);
+
+    ChildOfTransformWithRigidBody := TCastleTransform.Create(Viewport.Items);
+
+    TransformWithRigidBody.Add(ChildOfTransformWithRigidBody);
+
+    if not ((krbfActive in Body.InternalKraftBody.Flags) or
+       (ksfCollision in Body.Collider.InternalKraftShape.Flags) or
+       (ksfRayCastable in Body.Collider.InternalKraftShape.Flags)) then
+    begin
+         Fail('Wrong Kraft flags in rigid body that exists.');
+    end;
+
+    { Here we make first update to make all flags valid }
+    FakeRemoveMe := rtNone;
+    FPS._UpdateBegin;
+    Viewport.Items.Update(1, FakeRemoveMe);
+
+    if not TransformWithRigidBody.InternalLastGetExistsInRootValid then
+      Fail('Wrong FLastGetExistsInRootValid flag value (after first update)');
+
+    if not ChildOfTransformWithRigidBody.InternalLastGetExistsInRootValid then
+      Fail('Wrong FLastGetExistsInRootValid flag value (after first update)');
+
+    ParentTransform.Remove(TransformWithRigidBody);
+
+    Viewport.Items.Exists := false;
+
+    ParentTransform.Add(TransformWithRigidBody);
+
+    { At this moment Kraft flags shuld be okay becouse kraft is recreated
+      when removed/aded to hierarchy and use GetExistsInRoot }
+
+    if (krbfActive in Body.InternalKraftBody.Flags) or
+       (ksfCollision in Body.Collider.InternalKraftShape.Flags) or
+       (ksfRayCastable in Body.Collider.InternalKraftShape.Flags) then
+    begin
+         Fail('Wrong Kraft flags in rigid body that not exists (after first update).');
+    end;
+
+    { But LastGetExistsInRootValid flag should be not valid. }
+    if TransformWithRigidBody.InternalLastGetExistsInRootValid then
+      Fail('Wrong FLastGetExistsInRootValid flag value (after first update)');
+
+    { But LastGetExistsInRootValid flag should be not valid. }
+    if ChildOfTransformWithRigidBody.InternalLastGetExistsInRootValid then
+      Fail('Wrong FLastGetExistsInRootValid flag value (after first update)');
+
+    { Child should be also updated }
+    if ChildOfTransformWithRigidBody.InternalGetExistsInRoot then
+      Fail('Wrong GetExistsInRoot value in ChildOfTransformWithRigidBody (after first update)');
+
+    FakeRemoveMe := rtNone;
+    FPS._UpdateBegin;
+    Viewport.Items.Update(2, FakeRemoveMe);
+
+    { After update Kraft flags should still be valid. }
+
+    if (krbfActive in Body.InternalKraftBody.Flags) or
+       (ksfCollision in Body.Collider.InternalKraftShape.Flags) or
+       (ksfRayCastable in Body.Collider.InternalKraftShape.Flags) then
+    begin
+      Fail('Wrong Kraft flags in rigid body that world not exists (after second update).');
+    end;
+
+    { LastGetExistsInRootValid flag should be now valid. }
+    if not TransformWithRigidBody.InternalLastGetExistsInRootValid then
+      Fail('Wrong FLastGetExistsInRootValid flag value (after second update)');
+
+    if not ChildOfTransformWithRigidBody.InternalLastGetExistsInRootValid then
+      Fail('Wrong FLastGetExistsInRootValid flag value (after second update)');
+
+    { LastGetExistsInRoot flag should be false now. }
+    if TransformWithRigidBody.InternalLastGetExistsInRoot then
+      Fail('Wrong FLastGetExistsInRootValid flag value (after second update)');
+
+    { LastGetExistsInRoot flag should be false now. }
+    if ChildOfTransformWithRigidBody.InternalLastGetExistsInRoot then
+      Fail('Wrong FLastGetExistsInRootValid flag value (after second update)');
+
+  finally
+    FreeAndNil(Viewport);
+    FreeAndNil(FPS);
+  end;
+end;
+
+procedure TTestCastleTransform.TestPhysicsExistsRemoveAndAddChildTransformAgainAfterFirstUpdate2;
+var
+  Viewport: TCastleViewport;
+  ParentTransform: TCastleTransform;
+  TransformWithRigidBody: TCastleTransform;
+  ChildOfTransformWithRigidBody: TCastleTransform;
+  Body: TRigidBody;
+  Collider: TBoxCollider;
+  FakeRemoveMe: TRemoveType;
+  FPS: TFramesPerSecond;
+begin
+  Viewport := nil;
+  FPS := nil;
+  try
+    Viewport := TCastleViewport.Create(nil);
+    FPS := TFramesPerSecond.Create;
+
+    ParentTransform := TCastleTransform.Create(Viewport.Items);
+    Viewport.Items.Add(ParentTransform);
+
+    TransformWithRigidBody := TCastleTransform.Create(Viewport.Items);
+
+    Body := TRigidBody.Create(Viewport.Items);
+
+    Collider := TBoxCollider.Create(Body);
+    Collider.Size := Vector3(2, 2, 2);
+
+    TransformWithRigidBody.RigidBody := Body;
+
+    ParentTransform.Add(TransformWithRigidBody);
+
+    ChildOfTransformWithRigidBody := TCastleTransform.Create(Viewport.Items);
+
+    TransformWithRigidBody.Add(ChildOfTransformWithRigidBody);
+
+    if not ((krbfActive in Body.InternalKraftBody.Flags) or
+       (ksfCollision in Body.Collider.InternalKraftShape.Flags) or
+       (ksfRayCastable in Body.Collider.InternalKraftShape.Flags)) then
+    begin
+         Fail('Wrong Kraft flags in rigid body that exists.');
+    end;
+
+    { Here we make first update to make all flags valid }
+    FakeRemoveMe := rtNone;
+    FPS._UpdateBegin;
+    Viewport.Items.Update(1, FakeRemoveMe);
+
+    if not TransformWithRigidBody.InternalLastGetExistsInRootValid then
+      Fail('Wrong FLastGetExistsInRootValid flag value (after first update)');
+
+    if not ChildOfTransformWithRigidBody.InternalLastGetExistsInRootValid then
+      Fail('Wrong FLastGetExistsInRootValid flag value (after first update)');
+
+    { Change first level exists }
+
+    TransformWithRigidBody.Exists := false;
+
+    if ChildOfTransformWithRigidBody.InternalGetExistsInRoot then
+      Fail('Wrong GetExistsInRoot value in ChildOfTransformWithRigidBody (after first update)');
+
+    ParentTransform.Remove(TransformWithRigidBody);
+
+    FakeRemoveMe := rtNone;
+    FPS._UpdateBegin;
+    Viewport.Items.Update(2, FakeRemoveMe);
+
+    TransformWithRigidBody.Exists := true;
+
+    ParentTransform.Add(TransformWithRigidBody);
+
+    { At this moment Kraft flags should be okay becouse kraft is recreated
+      when removed/aded to hierarchy and use GetExistsInRoot }
+
+    if not ((krbfActive in Body.InternalKraftBody.Flags) or
+       (ksfCollision in Body.Collider.InternalKraftShape.Flags) or
+       (ksfRayCastable in Body.Collider.InternalKraftShape.Flags)) then
+    begin
+         Fail('Wrong Kraft flags in rigid body that not exists (after second update).');
+    end;
+
+    { But LastGetExistsInRootValid flag should be not valid. }
+    if TransformWithRigidBody.InternalLastGetExistsInRootValid then
+      Fail('Wrong FLastGetExistsInRootValid flag value (after second update)');
+
+    { But LastGetExistsInRootValid flag should be not valid. }
+    if ChildOfTransformWithRigidBody.InternalLastGetExistsInRootValid then
+      Fail('Wrong FLastGetExistsInRootValid flag value (after second update)');
+
+    { Child should be also updated }
+    if not ChildOfTransformWithRigidBody.InternalGetExistsInRoot then
+      Fail('Wrong GetExistsInRoot value in ChildOfTransformWithRigidBody (after second update)');
+
+    ChildOfTransformWithRigidBody.Exists := false;
+
+    { But LastGetExistsInRootValid flag should be not valid. }
+    if ChildOfTransformWithRigidBody.InternalLastGetExistsInRootValid then
+      Fail('Wrong FLastGetExistsInRootValid flag value (after second update)');
+
+    { Child should be also updated }
+    if ChildOfTransformWithRigidBody.InternalGetExistsInRoot then
+      Fail('Wrong GetExistsInRoot value in ChildOfTransformWithRigidBody (after second update)');
+
+    FakeRemoveMe := rtNone;
+    FPS._UpdateBegin;
+    Viewport.Items.Update(3, FakeRemoveMe);
+
+    TransformWithRigidBody.Exists := false;
+    ChildOfTransformWithRigidBody.Exists := true;
+
+    { After update Kraft flags should still be valid. }
+
+    if not((krbfActive in Body.InternalKraftBody.Flags) or
+       (ksfCollision in Body.Collider.InternalKraftShape.Flags) or
+       (ksfRayCastable in Body.Collider.InternalKraftShape.Flags)) then
+    begin
+      Fail('Wrong Kraft flags in rigid body that world not exists (after second update).');
+    end;
+
+    { LastGetExistsInRootValid flag should be now valid. }
+    if not TransformWithRigidBody.InternalLastGetExistsInRootValid then
+      Fail('Wrong FLastGetExistsInRootValid flag value (after second update)');
+
+    if not ChildOfTransformWithRigidBody.InternalLastGetExistsInRootValid then
+      Fail('Wrong FLastGetExistsInRootValid flag value (after second update)');
+
+    { GetExistsInRoot flag should be false now. }
+    if TransformWithRigidBody.InternalGetExistsInRoot then
+      Fail('Wrong FLastGetExistsInRootValid flag value (after second update)');
+
+    { GetExistsInRoot flag should be false now. }
+    if ChildOfTransformWithRigidBody.InternalGetExistsInRoot then
+      Fail('Wrong FLastGetExistsInRootValid flag value (after second update)');
+
+    FPS._UpdateBegin;
+    Viewport.Items.Update(3, FakeRemoveMe);
+
+    { LastGetExistsInRoot flag should be false now. }
+    if TransformWithRigidBody.InternalLastGetExistsInRoot then
+      Fail('Wrong FLastGetExistsInRootValid flag value (after second update)');
+
+    { LastGetExistsInRoot flag should be false now. }
+    if ChildOfTransformWithRigidBody.InternalLastGetExistsInRoot then
+      Fail('Wrong FLastGetExistsInRootValid flag value (after second update)');
+
+  finally
+    FreeAndNil(Viewport);
+    FreeAndNil(FPS);
+  end;
+end;
+
+procedure TTestCastleTransform.TestGetExistsInRoot;
+var
+  ParentTransform: TCastleTransform;
+  Body: TRigidBody;
+  Collider: TBoxCollider;
+  ChildTransform: TCastleTransform;
+  FakeRemoveMe: TRemoveType;
+  Viewport: TCastleViewport;
+begin
+  Viewport := TCastleViewport.Create(nil);
+  try
+    ParentTransform := TCastleTransform.Create(Viewport.Items);
+    Viewport.Items.Add(ParentTransform);
+
+    ChildTransform := TCastleTransform.Create(Viewport.Items);
+
+    { We still need TRigidBody here becouse GetExistsInRoot works
+      fast only with that }
+    Body := TRigidBody.Create(Viewport.Items);
+
+    Collider := TBoxCollider.Create(Body);
+    Collider.Size := Vector3(2, 2, 2);
+
+    ChildTransform.RigidBody := Body;
+
+    ParentTransform.Add(ChildTransform);
+
+    ParentTransform.Exists := false;
+
+    { At this moment FLastGetExistsInRootValid should be false,
+      so we need use GetExistsRecursively() }
+
+    if ChildTransform.InternalLastGetExistsInRootValid then
+      Fail('Wrong FLastGetExistsInRootValid flag value (before update)');
+
+    { So GetExistsInRoot() should return false, based on GetExistsRecursively() }
+
+    if ChildTransform.InternalGetExistsInRoot then
+      Fail('Wrong GetExistsInRoot value (before update).');
+
+    FakeRemoveMe := rtNone;
+    Viewport.Items.Update(1, FakeRemoveMe);
+
+    { After Update FLastGetExistsInRootValid and FLastGetExistsInRoot should have
+      correct value }
+
+    if not ChildTransform.InternalLastGetExistsInRootValid then
+      Fail('Wrong FLastGetExistsInRootValid flag value (after update)');
+
+    if ChildTransform.InternalLastGetExistsInRoot then
+      Fail('Wrong FLastGetExistsInRootValid flag value (after update)');
+
+    { So GetExistsInRoot() should use those values and return false }
+
+    if ChildTransform.InternalGetExistsInRoot then
+      Fail('Wrong GetExistsInRoot value (after update).');
+
+  finally FreeAndNil(Viewport) end;
+end;
+
+procedure TTestCastleTransform.TestGetExistsInRootParentChangeExistCheckChild;
+var
+  Viewport: TCastleViewport;
+  ParentTransform: TCastleTransform;
+  TransformWithRigidBody: TCastleTransform;
+  ChildOfTransformWithRigidBody: TCastleTransform;
+  Body: TRigidBody;
+  Collider: TBoxCollider;
+  FakeRemoveMe: TRemoveType;
+  FPS: TFramesPerSecond;
+begin
+  Viewport := nil;
+  FPS := nil;
+  try
+    Viewport := TCastleViewport.Create(nil);
+    FPS := TFramesPerSecond.Create;
+
+    ParentTransform := TCastleTransform.Create(Viewport.Items);
+    Viewport.Items.Add(ParentTransform);
+
+    TransformWithRigidBody := TCastleTransform.Create(Viewport.Items);
+
+    Body := TRigidBody.Create(Viewport.Items);
+
+    Collider := TBoxCollider.Create(Body);
+    Collider.Size := Vector3(2, 2, 2);
+
+    TransformWithRigidBody.RigidBody := Body;
+
+    ParentTransform.Add(TransformWithRigidBody);
+
+    ChildOfTransformWithRigidBody := TCastleTransform.Create(Viewport.Items);
+
+    TransformWithRigidBody.Add(ChildOfTransformWithRigidBody);
+
+    { Here we make first update to make all flags valid }
+    FakeRemoveMe := rtNone;
+    FPS._UpdateBegin;
+    Viewport.Items.Update(1, FakeRemoveMe);
+
+    if not TransformWithRigidBody.InternalLastGetExistsInRootValid then
+      Fail('Wrong FLastGetExistsInRootValid flag value (after first update)');
+
+    if not ChildOfTransformWithRigidBody.InternalLastGetExistsInRootValid then
+      Fail('Wrong FLastGetExistsInRootValid flag value (after first update)');
+
+    { Change first level exists }
+
+    TransformWithRigidBody.Exists := false;
+
+    {FPS._UpdateBegin;
+    Viewport.Items.Update(2, FakeRemoveMe);}
+
+    { Get child exists }
+    if ChildOfTransformWithRigidBody.InternalGetExistsInRoot then
+      Fail('Wrong GetExistsInRoot value in ChildOfTransformWithRigidBody (after first update)');
+  finally
+    FreeAndNil(Viewport);
+    FreeAndNil(FPS);
+  end;
 end;
 
 procedure TTestCastleTransform.TestPhysicsWorldOwner;
