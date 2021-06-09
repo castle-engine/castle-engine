@@ -33,11 +33,11 @@ type
     Viewport: TCastleViewport;
     Scene: TCastleScene;
     Image: TCastleImageControl;
-    SoundSource: TInternalSoundSource;
-    SoundBuffer: TInternalSoundBuffer;
+    Sound: TCastleSound;
+    PlayingSound: TCastlePlayingSound;
     SoundButton: TCastleButton;
     procedure ClickSoundButton(Sender: TObject);
-    procedure SoundSourceRelease(Sound: TInternalSoundSource);
+    procedure SoundStop(Sender: TObject);
     procedure FinishLoading(const AURL: String);
   protected
     procedure Loaded; override;
@@ -75,17 +75,8 @@ begin
   FreeAndNil(Scene);
   FreeAndNil(Image);
   FreeAndNil(SoundButton);
-  if SoundSource <> nil then
-  begin
-    SoundSource.OnRelease := nil;
-    SoundSource.Release;
-    SoundSource := nil;
-  end;
-  if SoundBuffer <> nil then
-  begin
-    SoundEngine.FreeBuffer(SoundBuffer);
-    SoundBuffer := nil;
-  end;
+  FreeAndNil(PlayingSound);
+  FreeAndNil(Sound);
 
   { Save and restore InternalCastleDesignInvalidate here,
     for the same reason as in LoadXxx.
@@ -97,29 +88,29 @@ end;
 
 procedure TViewFileFrame.ClickSoundButton(Sender: TObject);
 begin
-  if SoundBuffer = nil then Exit;
-
-  if SoundSource <> nil then
+  if PlayingSound <> nil then
   begin
-    SoundSource.Release; // will call SoundSourceRelease which will nil SoundSource
+    PlayingSound.Stop;// will call SoundStop which will set PlayingSound := nil
+    Assert(PlayingSound = nil);
     SoundButton.Caption := 'PLAY';
   end else
   begin
-    SoundSource := SoundEngine.PlaySound(SoundBuffer);
-    if SoundSource <> nil then
-    begin
-      SoundSource.OnRelease := @SoundSourceRelease;
-      SoundButton.Caption := 'STOP';
-    end;
+    SoundButton.Caption := 'STOP';
+    PlayingSound := TCastlePlayingSound.Create(Self);
+    PlayingSound.Sound := Sound;
+    PlayingSound.FreeOnStop := true;
+    PlayingSound.OnStop := @SoundStop;
+    { Note: In special cases, if we don't have enough audio sources, the Play immediately
+      stops the sound (calling OnStop (changing SoundButton.Caption) and applying FreeOnStop). }
+    SoundEngine.Play(PlayingSound);
   end;
 end;
 
-procedure TViewFileFrame.SoundSourceRelease(Sound: TInternalSoundSource);
+procedure TViewFileFrame.SoundStop(Sender: TObject);
 begin
-  Sound.OnRelease := nil;
   if SoundButton <> nil then
     SoundButton.Caption := 'PLAY';
-  SoundSource := nil;
+  PlayingSound := nil;
 end;
 
 procedure TViewFileFrame.FinishLoading(const AURL: String);
@@ -275,10 +266,12 @@ begin
   SoundButton.MinHeight := 100;
   PreviewLayer.InsertFront(SoundButton);
 
+  Sound := TCastleSound.Create(Self);
   try
-    SoundBuffer := SoundEngine.LoadBuffer(AURL);
+    Sound.Spatial := false;
+    Sound.URL := AURL;
 
-    // without this check, LoadBuffer fails silently e.g. when OpenAL dll not found
+    // without this check, loading fails silently e.g. when OpenAL dll not found
     if not SoundEngine.IsContextOpenSuccess then
       raise Exception.Create('Sound engine backend cannot be initialized.' + NL +
         SoundEngine.Information);
@@ -287,9 +280,9 @@ begin
       'Duration: %f' + NL +
       'Format: %s' + NL +
       'Frequency: %d', [
-      SoundBuffer.Duration,
-      DataFormatToStr(SoundBuffer.DataFormat),
-      SoundBuffer.Frequency
+      Sound.Duration,
+      DataFormatToStr(Sound.DataFormat),
+      Sound.Frequency
     ]);
     SoundButton.Enabled := true;
   except
