@@ -71,6 +71,7 @@ begin
 
     PlayingSound := TCastlePlayingSound.Create(nil);
     PlayingSound.Sound := Sound;
+    PlayingSound.FreeOnStop := true;
     SoundEngine.Play(PlayingSound);
     while PlayingSound.Playing do
     begin
