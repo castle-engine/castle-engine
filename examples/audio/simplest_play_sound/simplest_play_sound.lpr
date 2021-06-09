@@ -58,13 +58,27 @@ begin
 
     { Wait enough time to finish playing.
       In this simple program, we just sleep enough time
-      to finish playing sound, with some margin.
+      to finish playing the sound + 0.1 second delay. }
+    Sleep(Round(Sound.Duration * 1000) + 100);
 
-      Alternative, more precise way to do this would be to query is sound playing.
-      TODO: For now, to do this you'd need to use deprecatd Sound.PlaySound,
-      get the resulting TInternalSoundSource,
-      and register callback on TInternalSoundSource.OnRelease. }
-    Sleep(Round(Sound.Duration * 1000) + 500);
+    { The above approach to wait is not suitable for most real applications,
+      where you don't want to call Sleep as it just hangs your process.
+      The proper solution is to use TCastlePlayingSound,
+      and watch until TCastlePlayingSound.Playing is false,
+      or register event on TCastlePlayingSound.OnStop.
+
+      Example:
+
+    PlayingSound := TCastlePlayingSound.Create(nil);
+    PlayingSound.Sound := Sound;
+    SoundEngine.Play(PlayingSound);
+    while PlayingSound.Playing do
+    begin
+      // do anything, like
+      // Sleep(10);
+      // Appplication.ProcessAllMessages;
+    end;
+    }
   finally
     FreeAndNil(Sound);
   end;
