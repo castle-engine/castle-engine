@@ -1494,6 +1494,7 @@ begin
   if SoundType <> nil then
   begin
     PlayingSound := TCastlePlayingSoundSource.Create(nil);
+    PlayingSound.Sound := SoundType;
     PlayingSound.FreeOnStop := true;
     PlayingSound.Follow := TiedToCreature;
     PlayingSound.SoundHeight := SoundHeight;
