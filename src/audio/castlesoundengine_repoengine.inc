@@ -463,8 +463,6 @@ begin
       WritelnWarning('No matching sound file found for sound "%s"', [Name]);
   end;
 
-  Sound.URL := URL;
-
   if Element.HasAttribute('gain') then
   begin
     Sound.Volume := Element.AttributeSingleDef('gain', 1);
@@ -495,8 +493,10 @@ begin
       DefaultImportance := PtrUInt(ASoundEngine.SoundImportanceNames.Objects[SoundImportanceIndex]);
   end;
 
-  { set Buffer at the end, when URL is set }
   Sound.Stream := Element.AttributeBooleanDef('stream', false);
+
+  { set URL at the end, to avoid reloading when Sound.Stream changes }
+  Sound.URL := URL;
 end;
 
 function TRepoSoundEngine.TSoundInfoBuffer.FinalSound(const RecursionDepth: Cardinal): TSoundInfoBuffer;
