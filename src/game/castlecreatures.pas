@@ -1489,11 +1489,11 @@ end;
 procedure TCreature.Sound3d(const SoundType: TCastleSound; const SoundHeight: Single;
   const TiedToCreature: boolean);
 var
-  PlayingSound: TCastlePlayingSoundFromSource;
+  PlayingSound: TCastlePlayingSoundSource;
 begin
   if SoundType <> nil then
   begin
-    PlayingSound := TCastlePlayingSoundFromSource.Create(nil);
+    PlayingSound := TCastlePlayingSoundSource.Create(nil);
     PlayingSound.FreeOnStop := true;
     PlayingSound.Follow := TiedToCreature;
     PlayingSound.SoundHeight := SoundHeight;

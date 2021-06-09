@@ -402,14 +402,14 @@ end;
 procedure TCastleMoveAttack.PlaySound(const SoundType: TCastleSound; const SoundHeight: Single);
 var
   SoundSource: TCastleSoundSource;
-  PlayingSound: TCastlePlayingSoundFromSource;
+  PlayingSound: TCastlePlayingSoundSource;
 begin
   if SoundType = nil then Exit;
 
   SoundSource := Parent.FindBehavior(TCastleSoundSource) as TCastleSoundSource;
   if SoundBehavior <> nil then
   begin
-    PlayingSound := TCastlePlayingSoundFromSource.Create(nil);
+    PlayingSound := TCastlePlayingSoundSource.Create(nil);
     PlayingSound.Sound := SoundType;
     PlayingSound.FreeOnStop := true;
     PlayingSound.SoundHeight := SoundHeight;

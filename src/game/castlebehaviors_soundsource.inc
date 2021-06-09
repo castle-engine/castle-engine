@@ -23,7 +23,7 @@ type
     See the ancestor TCastlePlayingSound for most important documentation.
     This class simply extends the ancestor with some properties useful only
     together with the TCastleSoundSource. }
-  TCastlePlayingSoundFromSource = class(TCastlePlayingSound)
+  TCastlePlayingSoundSource = class(TCastlePlayingSound)
   strict private
     FFollow: Boolean;
     FSoundHeight: Single;
@@ -81,10 +81,10 @@ type
     procedure SetSound(const Value: TCastleSound);
   private
     type
-      TCastlePlayingSoundFromSourceList = specialize TObjectList<TCastlePlayingSoundFromSource>;
+      TCastlePlayingSoundSourceList = specialize TObjectList<TCastlePlayingSoundSource>;
     var
-      AllPlayingSounds: TCastlePlayingSoundFromSourceList;
-      MainPlayingSound: TCastlePlayingSoundFromSource; //< TCastlePlayingSoundFromSource corresponding to main Sound
+      AllPlayingSounds: TCastlePlayingSoundSourceList;
+      MainPlayingSound: TCastlePlayingSoundSource; //< TCastlePlayingSoundSource corresponding to main Sound
     function GetSoundPosition(const SoundHeight: Single): TVector3;
   protected
     procedure ParentChanged; override;
@@ -114,7 +114,7 @@ type
 
       Consider using @link(TCastlePlayingSound.FreeOnStop) if you don't want
       to manage the lifetime of the @link(TCastlePlayingSound) instance. }
-    procedure Play(const PlayingSound: TCastlePlayingSoundFromSource);
+    procedure Play(const PlayingSound: TCastlePlayingSoundSource);
   published
     { Sound to play, looping.
       Note that this is not the only sound possible to play using this
@@ -127,15 +127,15 @@ type
 
 {$ifdef read_implementation}
 
-{ TCastlePlayingSoundFromSource ---------------------------------------------- }
+{ TCastlePlayingSoundSource ---------------------------------------------- }
 
-constructor TCastlePlayingSoundFromSource.Create(AOwner: TComponent);
+constructor TCastlePlayingSoundSource.Create(AOwner: TComponent);
 begin
   inherited;
   FFollow := true;
 end;
 
-procedure TCastlePlayingSoundFromSource.DoStop;
+procedure TCastlePlayingSoundSource.DoStop;
 begin
   // we override DoStop, instead of using OnStop, to allow user code to assign OnStop as needed
   if SourceBehavior <> nil then
@@ -148,7 +148,7 @@ begin
   inherited;
 end;
 
-procedure TCastlePlayingSoundFromSource.Update;
+procedure TCastlePlayingSoundSource.Update;
 begin
   if (SourceBehavior <> nil) and
      (InternalSource <> nil) and
@@ -166,12 +166,12 @@ end;
 constructor TCastleSoundSource.Create(AOwner: TComponent);
 begin
   inherited;
-  AllPlayingSounds := TCastlePlayingSoundFromSourceList.Create(false);
+  AllPlayingSounds := TCastlePlayingSoundSourceList.Create(false);
 end;
 
 destructor TCastleSoundSource.Destroy;
 var
-  Playing: TCastlePlayingSoundFromSource;
+  Playing: TCastlePlayingSoundSource;
 begin
   if AllPlayingSounds <> nil then
   begin
@@ -214,7 +214,7 @@ end;
 
 procedure TCastleSoundSource.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
-  Playing: TCastlePlayingSoundFromSource;
+  Playing: TCastlePlayingSoundSource;
 begin
   inherited;
   for Playing in AllPlayingSounds do
@@ -243,15 +243,15 @@ end;
 
 procedure TCastleSoundSource.Play(const ASound: TCastleSound);
 var
-  SoundPlaying: TCastlePlayingSoundFromSource;
+  SoundPlaying: TCastlePlayingSoundSource;
 begin
-  SoundPlaying := TCastlePlayingSoundFromSource.Create(nil);
+  SoundPlaying := TCastlePlayingSoundSource.Create(nil);
   SoundPlaying.Sound := ASound;
   SoundPlaying.FreeOnStop := true;
   Play(SoundPlaying);
 end;
 
-procedure TCastleSoundSource.Play(const PlayingSound: TCastlePlayingSoundFromSource);
+procedure TCastleSoundSource.Play(const PlayingSound: TCastlePlayingSoundSource);
 var
   Params: TPlaySoundParameters;
   ASound: TCastleSound;
@@ -334,7 +334,7 @@ begin
         { Looping and Follow = true, it seems most natural for sounds set as TCastleSoundSource.Sound. }
         if (Sound <> nil) and (Parent <> nil) then
         begin
-          MainPlayingSound := TCastlePlayingSoundFromSource.Create(nil);
+          MainPlayingSound := TCastlePlayingSoundSource.Create(nil);
           MainPlayingSound.Sound := Sound;
           MainPlayingSound.FreeOnStop := true;
           MainPlayingSound.Looping := true;
@@ -348,7 +348,7 @@ begin
         begin
           if MainPlayingSound.InternalSource <> nil then
           begin
-            // TODO: move this updating to TCastlePlayingSoundFromSource.Update?
+            // TODO: move this updating to TCastlePlayingSoundSource.Update?
             MainPlayingSound.InternalSource.Volume := Sound.Volume;
             MainPlayingSound.InternalSource.Pitch := Sound.Pitch;
             MainPlayingSound.InternalSource.Spatial := Sound.Spatial;
