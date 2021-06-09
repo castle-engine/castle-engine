@@ -178,14 +178,13 @@ begin
     for Playing in AllPlayingSounds do
     begin
       { In case of Playing.Follow = true, this is needed:
-        Otherwise Playing.OnStop would call our SoundStop,
+        Otherwise Playing.DoStop would call our SoundStop,
         and this would remove it from AllPlayingSounds list, breaking our
         indexing over this list here.
 
         In case of Playing.Follow = false, this is needed even more:
         the TCastlePlayingSound instance will survive destruction of this TCastleSoundSource,
         but it should not call any of TCastleSoundSource methods. }
-      Playing.OnStop := nil;
       Playing.SourceBehavior := nil;
       if Playing.Follow then
         Playing.Stop;
@@ -193,7 +192,10 @@ begin
     FreeAndNil(AllPlayingSounds);
   end;
 
-  // we now for sure stopped it, but we detached OnStop so we need to nil it manually
+  { We now for sure stopped this sound.
+    But we cleared SourceBehavior above, so it didn't set itself to nil
+    in TCastlePlayingSoundSource.DoStop.
+    So we need to nil it manually. }
   MainPlayingSound := nil;
 
   // detach free notifications
