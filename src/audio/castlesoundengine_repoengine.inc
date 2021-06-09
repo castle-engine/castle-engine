@@ -104,7 +104,7 @@
 
         // TODO: move to TCastleSound.Priority
         { How important the sound is. Influences what happens when we have a lot
-          of sounds playing at once. See TInternalPlayingSound.Importance. }
+          of sounds playing at once. See TInternalSoundSource.Importance. }
         DefaultImportance: Cardinal;
 
         procedure ReadElement(const Element: TDOMElement;

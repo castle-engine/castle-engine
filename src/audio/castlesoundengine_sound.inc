@@ -16,8 +16,7 @@
 
 {$ifdef read_interface}
 
-type
-  TCastleSound = class;
+//type // allow type declaration to continue
 
   { @exclude Used with TCastleSound notifications (TCastleSound.InternalAddChangeNotification). }
   TSoundChange = (
@@ -46,10 +45,10 @@ type
 
     This class does not actually play the sound.
     It only defines something that @italic(can) be played.
-    To play the sound use @link(TCastleSoundSource).
-    Attach @link(TCastleSoundSource) to a @link(TCastleTransform) within some
+    To play the sound use @link(TSoundEngine.Play SoundEngine.Play) or @link(TCastleSoundSource).
+    For spatial sounds, attach @link(TCastleSoundSource) to a @link(TCastleTransform) within some
     @link(TCastleViewport) and set @link(TCastleSoundSource.Sound)
-    or call @link(TCastleSoundSource.PlayOnce). }
+    or call @link(TCastleSoundSource.Play). }
   TCastleSound = class(TCastleComponent)
   strict private
     FURL: string;

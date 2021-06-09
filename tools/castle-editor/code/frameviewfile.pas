@@ -33,11 +33,11 @@ type
     Viewport: TCastleViewport;
     Scene: TCastleScene;
     Image: TCastleImageControl;
-    SoundSource: TInternalPlayingSound;
+    SoundSource: TInternalSoundSource;
     SoundBuffer: TInternalSoundBuffer;
     SoundButton: TCastleButton;
     procedure ClickSoundButton(Sender: TObject);
-    procedure SoundSourceRelease(Sound: TInternalPlayingSound);
+    procedure SoundSourceRelease(Sound: TInternalSoundSource);
     procedure FinishLoading(const AURL: String);
   protected
     procedure Loaded; override;
@@ -114,7 +114,7 @@ begin
   end;
 end;
 
-procedure TViewFileFrame.SoundSourceRelease(Sound: TInternalPlayingSound);
+procedure TViewFileFrame.SoundSourceRelease(Sound: TInternalSoundSource);
 begin
   Sound.OnRelease := nil;
   if SoundButton <> nil then

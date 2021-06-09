@@ -116,8 +116,8 @@ type
       ToxicLastDamageTime: Single;
 
 // TODO: express as TCastleSound
-      SwimmingChangeSound: TInternalPlayingSound;
-      SwimmingSound: TInternalPlayingSound;
+      SwimmingChangeSound: TInternalSoundSource;
+      SwimmingSound: TInternalSoundSource;
 
       { Did last @link(Update) detected that we are on the ground. }
       IsOnTheGround: boolean;
@@ -129,7 +129,7 @@ type
           FootstepsSound <> nil
         if and only if
           FootstepsSoundPlaying <> stNone. }
-      FootstepsSound: TInternalPlayingSound;
+      FootstepsSound: TInternalSoundSource;
       FootstepsSoundPlaying: TCastleSound;
       ReallyWalkingOnTheGroundTime: Single;
 
@@ -179,11 +179,11 @@ type
     procedure SetLifeCustomFadeOut(const Value: Single;
       const Color: TCastleColor);
 
-    procedure SwimmingChangeSoundRelease(Sender: TInternalPlayingSound);
-    procedure SwimmingSoundRelease(Sender: TInternalPlayingSound);
+    procedure SwimmingChangeSoundRelease(Sender: TInternalSoundSource);
+    procedure SwimmingSoundRelease(Sender: TInternalSoundSource);
     procedure SetSwimming(const Value: TPlayerSwimming);
 
-    procedure FootstepsSoundRelease(Sender: TInternalPlayingSound);
+    procedure FootstepsSoundRelease(Sender: TInternalSoundSource);
     procedure SetFlying(const AValue: Boolean);
     procedure SetFlyingTimeOut(const AValue: TFloatTime);
     procedure SetEnableNavigationDragging(const AValue: Boolean);
@@ -979,20 +979,20 @@ begin
   end;
 end;
 
-procedure TPlayer.FootstepsSoundRelease(Sender: TInternalPlayingSound);
+procedure TPlayer.FootstepsSoundRelease(Sender: TInternalSoundSource);
 begin
   Assert(Sender = FootstepsSound);
   FootstepsSound := nil;
   FootstepsSoundPlaying := nil;
 end;
 
-procedure TPlayer.SwimmingChangeSoundRelease(Sender: TInternalPlayingSound);
+procedure TPlayer.SwimmingChangeSoundRelease(Sender: TInternalSoundSource);
 begin
   Assert(Sender = SwimmingChangeSound);
   SwimmingChangeSound := nil;
 end;
 
-procedure TPlayer.SwimmingSoundRelease(Sender: TInternalPlayingSound);
+procedure TPlayer.SwimmingSoundRelease(Sender: TInternalSoundSource);
 begin
   Assert(Sender = SwimmingSound);
   SwimmingSound := nil;

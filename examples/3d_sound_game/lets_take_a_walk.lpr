@@ -52,7 +52,7 @@ var
   RatAngle: Single;
 
   stRatSound, stRatSqueak, stKaboom, stCricket: TCastleSound;
-  RatSound: TInternalPlayingSound;
+  RatSound: TInternalSoundSource;
 
   HelpMessage: TCastleLabel;
   MuteImage: TCastleImageControl;

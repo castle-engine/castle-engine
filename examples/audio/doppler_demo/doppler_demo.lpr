@@ -36,7 +36,7 @@ var
   { Playing sound. It may be @nil if we couldn't allocate it,
     which practically will happen only when OpenAL is not installed
     or --no-sound command-line option is used. }
-  Sound: TInternalPlayingSound;
+  Sound: TInternalSoundSource;
 
 procedure Render(Container: TUIContainer);
 

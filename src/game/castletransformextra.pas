@@ -551,6 +551,8 @@ end;
 
 procedure TCastleLinearMoving.PlaySound(const SoundType: TCastleSound;
   const Looping: boolean);
+var
+  PlayingSound: TCastlePlayingSoundFromSource;
 begin
   if Looping then
   begin
@@ -559,7 +561,13 @@ begin
   begin
     SoundSource.Sound := nil;
     if SoundType <> nil then
-      SoundSource.PlayOnce(SoundType, SoundTracksCurrentPosition);
+    begin
+      PlayingSound := TCastlePlayingSoundFromSource.Create(nil);
+      PlayingSound.Sound := SoundType;
+      PlayingSound.FreeOnStop := true;
+      PlayingSound.Follow := SoundTracksCurrentPosition;
+      SoundSource.Play(PlayingSound);
+    end;
   end;
 end;
 

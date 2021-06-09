@@ -54,7 +54,7 @@ begin
     Sound.Spatial := false;
     Sound.URL := URL;
     Writeln('Sound loaded, duration in seconds: ', Sound.Duration:1:2);
-    SoundEngine.PlayOnce(Sound);
+    SoundEngine.Play(Sound);
 
     { Wait enough time to finish playing.
       In this simple program, we just sleep enough time
@@ -62,8 +62,8 @@ begin
 
       Alternative, more precise way to do this would be to query is sound playing.
       TODO: For now, to do this you'd need to use deprecatd Sound.PlaySound,
-      get the resulting TInternalPlayingSound,
-      and register callback on TInternalPlayingSound.OnRelease. }
+      get the resulting TInternalSoundSource,
+      and register callback on TInternalSoundSource.OnRelease. }
     Sleep(Round(Sound.Duration * 1000) + 500);
   finally
     FreeAndNil(Sound);

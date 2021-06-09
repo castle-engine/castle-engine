@@ -253,7 +253,7 @@
       You can destroy the @link(TPlaySoundParameters) instance right after calling
       this method, the reference to it is not saved anywhere.
 
-      @returns(The allocated sound as TInternalPlayingSound.
+      @returns(The allocated sound as TInternalSoundSource.
 
         Returns @nil when there were no resources to play another sound
         (and it wasn't important enough to override another sound).
@@ -264,60 +264,86 @@
         In advanced cases, you can use it to observe and update the sound
         later.)
     }
-    function PlaySound(const Buffer: TInternalSoundBuffer): TInternalPlayingSound; overload;
-      deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.PlayOnce to play sounds';
+    function PlaySound(const Buffer: TInternalSoundBuffer): TInternalSoundSource; overload;
+      deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.Play to play sounds';
     function PlaySound(const Buffer: TInternalSoundBuffer;
       const Spatial, Looping: boolean; const Importance: Cardinal;
       const Volume, MinGain, MaxGain: Single;
       const Position: TVector3;
-      const Pitch: Single = 1): TInternalPlayingSound; overload;
-      deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.PlayOnce to play sounds';
+      const Pitch: Single = 1): TInternalSoundSource; overload;
+      deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.Play to play sounds';
     function PlaySound(const Buffer: TInternalSoundBuffer;
       const Spatial, Looping: boolean; const Importance: Cardinal;
       const Volume, MinGain, MaxGain: Single;
       const Position: TVector3;
       const Pitch: Single;
       const ReferenceDistance: Single;
-      const MaxDistance: Single): TInternalPlayingSound; overload;
-      deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.PlayOnce to play sounds';
-    function PlaySound(const Parameters: TPlaySoundParameters): TInternalPlayingSound; overload;
-      deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.PlayOnce to play sounds';
+      const MaxDistance: Single): TInternalSoundSource; overload;
+      deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.Play to play sounds';
+    function PlaySound(const Parameters: TPlaySoundParameters): TInternalSoundSource; overload;
+      deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.Play to play sounds';
 
     { Simply play given TCastleSound. This should be used to play sounds
       that are not spatial, i.e. have no place in 3D space.
 
-      Returns used TInternalPlayingSound (or nil if none was available)
+      Returns used TInternalSoundSource (or nil if none was available)
       to further control the sound. It is deprecated: You should not use this
-      TInternalPlayingSound instance anymore.
+      TInternalSoundSource instance anymore.
       If you need more elaborate sound control, use TCastleSoundSource to play sounds,
       that also automaticall applies TCastleSound changes to the playing sound.
 
       @noAutoLinkHere }
     function Sound(const SoundType: TCastleSound;
-      const Looping: boolean = false): TInternalPlayingSound;
-      deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.PlayOnce to play sounds';
+      const Looping: boolean = false): TInternalSoundSource;
+      deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.Play to play sounds';
 
     { Play given sound at appropriate position in 3D space.
 
-      Returns used TInternalPlayingSound (or nil if none was available)
+      Returns used TInternalSoundSource (or nil if none was available)
       to further control the sound. It is deprecated: You should not use this
-      TInternalPlayingSound instance anymore.
+      TInternalSoundSource instance anymore.
       If you need more elaborate sound control, use TCastleSoundSource to play sounds,
       that also automaticall applies TCastleSound changes to the playing sound.
 
       @noAutoLinkHere }
     function Sound3D(const SoundType: TCastleSound;
       const Position: TVector3;
-      const Looping: boolean = false): TInternalPlayingSound; overload;
-      deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.PlayOnce to play sounds';
+      const Looping: boolean = false): TInternalSoundSource; overload;
+      deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.Play to play sounds';
 
-    { Play given sound once.
-      If the sound is spatial (TCastleSound.Spatial), the sound source Position is (0, 0, 0). }
-    procedure PlayOnce(const ASound: TCastleSound);
+    { Play given sound once (not looping).
+      If the sound is spatial (TCastleSound.Spatial),
+      the sound source Position will be (0, 0, 0).
 
-    { Play given sound once.
-      If the sound is spatial (TCastleSound.Spatial), we use the given sound source Position. }
-    procedure PlayOnce(const ASound: TCastleSound; const Position: TVector3);
+      This is the simplest method to just play the sound and "forget about it"
+      (no need to manage the playback afterwards).
+
+      Note: Instead of this method, use @code(Play(TCastlePlayingSound))
+      overload to have more control over the sound
+      (before and after it starts playing).
+
+      Note: Another alternative to this method is using TCastleSoundSource
+      (attached to some TCastleTransform) for spatial sounds to control their 3D position. }
+    procedure Play(const ASound: TCastleSound);
+
+    { Play given sound.
+      If the sound is spatial (TCastleSound.Spatial),
+      the sound source Position will be (0, 0, 0).
+
+      You have to set @link(TCastlePlayingSound.Sound) before passing it to this method.
+
+      Use the PlayingSound (TCastlePlayingSound) properties to provide additional information
+      about the sound playback.
+      E.g. assign @link(TCastlePlayingSound.Looping)
+      @link(TCastlePlayingSound.OnStop) or control sound afterwards by
+      @link(TCastlePlayingSound.Stop), @link(TCastlePlayingSound.Offset).
+
+      Consider using @link(TCastlePlayingSound.FreeOnStop) if you don't want
+      to manage the lifetime of the @link(TCastlePlayingSound) instance.
+
+      Note: Instead of this method, use TCastleSoundSource
+      (attached to some TCastleTransform) for spatial sounds to control their 3D position. }
+    procedure Play(const PlayingSound: TCastlePlayingSound);
 
     { Parse parameters in @link(Parameters) and interpret and remove
       recognized options. Internally it uses Parameters.Parse with
@@ -369,7 +395,7 @@
     class property LogSoundLoading: Boolean
       read GetLogSoundLoading write SetLogSoundLoading;
 
-    { Newly played sounds will have @link(TInternalPlayingSound.Pitch) multiplied by this. }
+    { Newly played sounds will have @link(TInternalSoundSource.Pitch) multiplied by this. }
     property InitialPitchMultiplier: Single read FInitialPitchMultiplier write FInitialPitchMultiplier default 1.0;
 
     { Sound volume, affects all sounds (effects and music).
@@ -691,7 +717,7 @@ begin
   ContextClose;
 end;
 
-function TSoundEngine.PlaySound(const Parameters: TPlaySoundParameters): TInternalPlayingSound;
+function TSoundEngine.PlaySound(const Parameters: TPlaySoundParameters): TInternalSoundSource;
 begin
   Result := nil;
 
@@ -735,7 +761,7 @@ begin
   end;
 end;
 
-function TSoundEngine.PlaySound(const Buffer: TInternalSoundBuffer): TInternalPlayingSound;
+function TSoundEngine.PlaySound(const Buffer: TInternalSoundBuffer): TInternalSoundSource;
 var
   Parameters: TPlaySoundParameters;
 begin
@@ -752,7 +778,7 @@ function TSoundEngine.PlaySound(const Buffer: TInternalSoundBuffer;
   const Spatial, Looping: boolean; const Importance: Cardinal;
   const Volume, MinGain, MaxGain: Single;
   const Position: TVector3;
-  const Pitch: Single): TInternalPlayingSound;
+  const Pitch: Single): TInternalSoundSource;
 var
   Parameters: TPlaySoundParameters;
 begin
@@ -779,7 +805,7 @@ function TSoundEngine.PlaySound(const Buffer: TInternalSoundBuffer;
   const Spatial, Looping: boolean; const Importance: Cardinal;
   const Volume, MinGain, MaxGain: Single;
   const Position: TVector3;
-  const Pitch, ReferenceDistance, MaxDistance: Single): TInternalPlayingSound;
+  const Pitch, ReferenceDistance, MaxDistance: Single): TInternalSoundSource;
 var
   Parameters: TPlaySoundParameters;
 begin
@@ -805,7 +831,7 @@ begin
 end;
 
 function TSoundEngine.Sound(const SoundType: TCastleSound;
-  const Looping: boolean): TInternalPlayingSound;
+  const Looping: boolean): TInternalSoundSource;
 begin
   { If there is no actual sound, exit early without initializing sound backend.
     - SoundType is nil (which includes sound name not defined in sounds.xml,
@@ -833,7 +859,7 @@ end;
 
 function TSoundEngine.Sound3D(const SoundType: TCastleSound;
   const Position: TVector3;
-  const Looping: boolean): TInternalPlayingSound;
+  const Looping: boolean): TInternalSoundSource;
 begin
   { If there is no actual sound, exit early without initializing sound backend.
     See Sound for more comments why we do this. }
@@ -854,24 +880,42 @@ begin
   {$warnings on}
 end;
 
-procedure TSoundEngine.PlayOnce(const ASound: TCastleSound);
+procedure TSoundEngine.Play(const ASound: TCastleSound);
+var
+  PlayingSound: TCastlePlayingSound;
 begin
-  PlayOnce(ASound, TVector3.Zero);
+  PlayingSound := TCastlePlayingSound.Create(nil);
+  PlayingSound.Sound := ASound;
+  PlayingSound.FreeOnStop := true;
+  Play(PlayingSound);
+
+  { Note: we could make this a function and return TCastlePlayingSound.
+    But it could be risky for user not aware that (s)he @italic(must)
+    change FreeOnStop := false, otherwise TCastlePlayingSound instance
+    could be freed at any point in the future. }
 end;
 
-procedure TSoundEngine.PlayOnce(const ASound: TCastleSound; const Position: TVector3);
+procedure TSoundEngine.Play(const PlayingSound: TCastlePlayingSound);
 var
+  ASound: TCastleSound;
   Params: TPlaySoundParameters;
+  Source: TInternalSoundSource;
 begin
   { If there is no actual sound, exit early without initializing sound backend. }
-  Assert(ASound <> nil);
-  if ASound.InternalBuffer = nil then Exit;
+  Assert(PlayingSound <> nil);
 
-  { Create TPlaySoundParameters similar to TCastleSoundSource.PlayOnceCore }
+  ASound := PlayingSound.Sound;
+  Assert(ASound <> nil);
+
+  if ASound.InternalBuffer = nil then
+  begin
+    // sound cannot be played, as not loaded
+    PlayingSound.DoStop; // apply PlayingSound.OnStop, FreeOnStop
+    Exit;
+  end;
 
   Params := TPlaySoundParameters.Create;
   try
-    Params.Position   := Position;
     Params.Buffer     := ASound.InternalBuffer;
     Params.Spatial    := ASound.Spatial;
     Params.Looping    := false;
@@ -884,8 +928,23 @@ begin
     {$warnings on}
 
     {$warnings off} // using deprecated that should be internal
-    PlaySound(Params);
+    Source := PlaySound(Params);
     {$warnings on}
+
+    if Source <> nil then
+    begin
+      PlayingSound.Start(Source);
+      { TODO:
+        PlayingSounds.Add(PlayingSound);
+        and call Update on all PlayingSounds, to update their volume, pitch etc.
+        and in our destructor free all of them (with FreeOnStop, including the ones created by parameterless Play)
+          or at least stop them
+      }
+    end else
+    begin
+      // sound cannot be played, as no free TInternalSoundSource slot
+      PlayingSound.DoStop; // apply PlayingSound.OnStop, FreeOnStop
+    end;
   finally FreeAndNil(Params) end;
 end;
 

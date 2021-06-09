@@ -1,6 +1,6 @@
 {%MainUnit castlesoundengine.pas}
 {
-  Copyright 2010-2021 Michalis Kamburelis.
+  Copyright 2021-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,370 +18,240 @@
 
 //type // allow type declaration to continue
 
-  TInternalPlayingSoundEvent = procedure (Sender: TInternalPlayingSound) of object;
+  TCastleSound = class;
 
-  { Sound source that is allocated (on the sound backend) and can be immediately played.
-    One instance of TInternalPlayingSound is is not permanently connected
-    to a particular use (like a particular TCastleSound), it is only temporarily allocated
-    for given use (e.g. play a particular TCastleSound), and then it becomes "unused"
-    (see @link(Used), @link(OnRelease)) and can be used for other purposes.
+  { Controls a sound playback.
+    You can pass an instance of it to
+    @link(TSoundEngine.Play) or @link(TCastleSoundSource.Play).
+    It allows to control sound playback before you start playing (like @link(OnStop))
+    and after (like @link(Offset)).
 
-    This is internal now. Use TCastleSound and TCastleSoundSource
-    to manage playback of a sound.
+    You can reuse the same instance of TCastlePlayingSound for playback many times,
+    but you can start new playback only if the previous one finished.
+    IOW, you can pass to @link(TSoundEngine.Play) or @link(TCastleSoundSource.Play)
+    only instances when @link(Playing) is @false.
+    If you don't want to wait, just create a new instance of TCastlePlayingSound -- they
+    are designed to be lightweight, you can create them during runtime.
 
-    @exclude
-  }
-  TInternalPlayingSound = class
-  private
-    FUsed: boolean;
-    FOnRelease: TInternalPlayingSoundEvent;
-    FImportance: Integer;
-    FUserData: TObject;
-    FPosition, FVelocity: TVector3;
-    FLooping, FSpatial: boolean;
-    FVolume, FMinGain, FMaxGain, FPitch: Single;
-    FBuffer: TInternalSoundBuffer;
-    FRolloffFactor, FReferenceDistance, FMaxDistance: Single;
-    Backend: TSoundSourceBackend;
-    BackendIsOpen: Boolean;
-    procedure SetPosition(const Value: TVector3);
-    procedure SetVelocity(const Value: TVector3);
-    procedure SetLooping(const Value: boolean);
-    procedure SetSpatial(const Value: boolean);
-    procedure SetVolume(const Value: Single);
-    procedure SetMinGain(const Value: Single);
-    procedure SetMaxGain(const Value: Single);
-    procedure SetBuffer(const Value: TInternalSoundBuffer);
-    procedure SetPitch(const Value: Single);
-    procedure SetRolloffFactor(const Value: Single);
-    procedure SetReferenceDistance(const Value: Single);
-    procedure SetMaxDistance(const Value: Single);
+    Destroying this class always stops the associated sound playback.
+    Note that it is a TComponent descendant, so you can make it automatically destroyed
+    when some owner TComponent is destroyed.
+
+    You can make your own descendants of this class, to associate any additional information
+    with the playback of the sound. }
+  TCastlePlayingSound = class(TComponent)
+  strict private
+    FSound: TCastleSound; // @nil => not playing (when not playing, it can be nil or non-nil)
+    FSource: TInternalSoundSource; //< @nil <=> not playing; we only keep FSource with Used=true
+    FFreeOnStop: Boolean;
+    FOnStop: TNotifyEvent;
+    FLooping: Boolean;
+    procedure SetSound(const Value: TCastleSound);
     function GetOffset: Single;
     procedure SetOffset(const Value: Single);
+    procedure SetOnStop(const Value: TNotifyEvent);
+    procedure SetFreeOnStop(const Value: Boolean);
+    procedure SetLooping(const Value: Boolean);
+    procedure SourceRelease(Source: TInternalSoundSource);
+  protected
+    { Do the necessary job after source stopped, due to any reason.
+      In this class it handles OnStop and FreeOnStop.
 
-    { Call backend Update on sound source,
-      and checks whether the source is still playing (or is paused).
-      If not, it calls @link(TInternalPlayingSound.Release) (thus setting
-      TInternalPlayingSound.Used to @false and triggering TSound.OnRelease) for this source. }
-    procedure Update(const SecondsPassed: TFloatTime);
+      If you override this: Since FreeOnStop may free the instance,
+      you should add your code @italic(before) calling inherited. }
+    procedure DoStop; virtual;
   public
-    { Create sound.
-      This allocates sound source using the sound backend (like OpenAL source).
-      @raises(ENoMoreSources If no more sources available.
-        It should be caught and silenced by TSoundAllocator.AllocateSound.) }
-    constructor Create(const SoundEngineBackend: TSoundEngineBackend);
     destructor Destroy; override;
 
-    { Do we play something.
-      Sources that are not Used are still allocated on the sound backend (like
-      OpenAL), and will be used when we will need them. }
-    property Used: boolean read FUsed default false;
+    { Used internally to start playing this. }
+    procedure Start(const ASource: TInternalSoundSource);
 
-    { The priority of keeping this source, relevant only when @link(Used).
+    { Associated sound used for playing.
+      You have to set it before playing.
+      Cannot be changed while playing. }
+    property Sound: TCastleSound read FSound write SetSound;
 
-      Higher Importance means that it's more important to keep it.
-      (I didn't name this property "Priority" so that it's obvious
-      that higher Importance means more important sound). }
-    property Importance: Integer read FImportance default 0;
+    { If provided, we will call this event when sound stops playing.
 
-    { Any data comfortable to keep here by the caller of
-      TSoundAllocator.AllocateSound. It should be initialized
-      after calling TSoundAllocator.AllocateSound, and should
-      be finalized in OnRelease. }
-    property UserData: TObject read FUserData write FUserData;
+      Note that in some cases the sound cannot be played at all.
+      For example when TCastleSound is not loaded (no TCastleSound.URL provided,
+      or invalid TCastleSound.URL provided) or when there are no free sound sources
+      (these are limited in sound backends; the new sound may "steal" some sound source
+      but only if the @link(TCastleSound.Priority) is high enough).
+      Then @link(TSoundEngine.Play) or @link(TCastleSoundSource.Play)
+      call the OnStop event immediately, from within Play call.
 
-    { Called when this sound will no longer be used.
-      This may happen because it simply finished playing,
-      or when there are more demanding
-      sounds (see @link(Importance) and to keep MaxAllocatedSources)
-      and we must use this sound source for something else.
+      If the object owning the notification method may be destroyed before
+      TCastlePlayingSound is destroyed, be sure to set this callback to @nil.
+      Otherwise the callback could try calling method of a non-existent object.
 
-      When this event occurs, you should forget (e.g. set to @nil) all
-      your references to this sound instance. That's because this TInternalPlayingSound instance
-      may be freed (or reused for other sounds) after calling OnRelease.
-      For the same reason, right after calling this event, we always clear it
-      (set OnRelease to @nil).
+      You can only set this when sound is not playing
+      (as otherwise it would be an easy source of bugs --
+      sometimes @link(TSoundEngine.Play) wants to immediately stop sound playback). }
+    property OnStop: TNotifyEvent read FOnStop write SetOnStop;
 
-      It's guaranteed that when this will be called,
-      @link(Used) will be @false and @link(PlayingOrPaused) will be @false.
+    { Automatically free when the playback finishes.
+      If the playback is not yet started, it will wait for it to start, and then finish.
 
-      Note that we do not guarantee that sources that
-      stopped playing will be immediately reported to OnRelease.
-      A source may have Used = @true state
-      for a short time when it stopped playing (when PlayingOrPaused
-      is already @false). }
-    property OnRelease: TInternalPlayingSoundEvent read FOnRelease write FOnRelease;
+      You can only set this when sound is not playing
+      (as otherwise it would be an easy source of bugs --
+      sometimes @link(TSoundEngine.Play) wants to immediately stop sound playback). }
+    property FreeOnStop: Boolean read FFreeOnStop write SetFreeOnStop default false;
 
-    { Stops playing the source,
-      sets Used to @false, and calls OnRelease (if assigned).
+    { Is the playback looping.
+      Can change this on a playing or stopped sound. }
+    property Looping: Boolean read FLooping write SetLooping default false;
 
-      You can call this if you want to stop playing the sound.
-      This will also immediately set Used property
-      to @false and will call OnRelease.
-
-      You can call this only when Used = @true. }
-    procedure Release; virtual;
-
-    property Position: TVector3 read FPosition write SetPosition;
-    property Velocity: TVector3 read FVelocity write SetVelocity;
-    property Looping: boolean read FLooping write SetLooping;
-    property Spatial: boolean read FSpatial write SetSpatial;
-    property Volume: Single read FVolume write SetVolume;
-    property Gain: Single read FVolume write SetVolume; deprecated 'use Volume';
-    property MinGain: Single read FMinGain write SetMinGain;
-    property MaxGain: Single read FMaxGain write SetMaxGain;
-    property Buffer: TInternalSoundBuffer read FBuffer write SetBuffer;
-    property Pitch: Single read FPitch write SetPitch;
-    property RolloffFactor: Single read FRolloffFactor write SetRolloffFactor;
-    property ReferenceDistance: Single read FReferenceDistance write SetReferenceDistance;
-    property MaxDistance: Single read FMaxDistance write SetMaxDistance;
+    { Is the sound playing now.
+      Using @link(TSoundEngine.Play) or @link(TCastleSoundSource.Play)
+      makes it @true for some time, then (right before OnStop) it switches back to @false. }
+    function Playing: Boolean;
 
     { Playback time of this sound, expressed in seconds.
 
       This value will loop back to zero for looping sound sources.
-      Setting this to something larger than the @italic(sound buffer duration)
-      is ignored.
+      Setting this to something larger than the sound duration
+      (which you can read from @link(TCastleSound.Duration)) is ignored.
 
-      This offset refers to the sound like it had a @link(Pitch) equal 1.0
+      This offset refers to the sound like it had a @link(TCastleSound.Pitch Pitch) equal 1.0
       (when the sound is not slowed down or sped up).
-      So this offset will vary from 0 to the @italic(sound buffer duration),
-      regardless of the current @link(Pitch) value.
+      So this offset will vary from 0 to the @link(TCastleSound.Duration),
+      regardless of the initial/current @link(TCastleSound.Pitch) value.
       The @italic(actual) seconds passed since the sound started
-      playing may be different, if you will change the @link(Pitch)
+      playing may be different, if you change the @link(TCastleSound.Pitch)
       to something else than 1.0.
 
-      Setting this on a not-yet playing sound source
-      (this is done by @link(TSoundEngine.PlaySound))
-      causes the sound to start playing from that offset. }
+      Using this on a sound that is not playing is allowed.
+      Getting this value always returns zero in this case, and setting it is ignored. }
     property Offset: Single read GetOffset write SetOffset;
 
-    { Is the sound playing or paused. This is almost always @true for sounds
-      returned by TSoundAllocator.AllocateSound, when it stops being @true
-      --- the sound engine will realize it (soon), which will cause @link(Release)
-      and OnRelease being automatically called, and this TInternalPlayingSound may then
-      be reused for playing other sounds. }
-    function PlayingOrPaused: boolean;
+    { Associated sound source, to change parameters of this sound at runtime.
+      @nil if not playing.
+      @exclude }
+    property InternalSource: TInternalSoundSource read FSource;
 
-    { Make sure that the sound keeps playing, in case it stopped playing.
+    { Stop playing now. Note that you can also free the TCastlePlayingSound instance,
+      it will always automatically stop the playback.
 
-      This is an alternative approach to play a sound many times,
-      like in a loop, but without using the @link(Looping) property.
-      The idea is that you leave @link(Looping) set to @false,
-      and you keep calling this method from some "update" event
-      (like some @link(TInputListener.Update) implementation).
-      Once you stop calling this method, the sound will automatically stop
-      (once it finishes the current cycle).
-
-      Note that you still (as always when using TInternalPlayingSound) must observe
-      the @link(TInternalPlayingSound.OnRelease). When it's called, it means that the sound
-      engine (TSoundEngine) decided that this sound should be used for other purposes
-      (there's also a very small chance that the sound engine "caught"
-      the sound as unused, in a short time when it stopped playing but you didn't
-      yet call this method).
-      In such case, you must stop doing anything with this TInternalPlayingSound instance
-      (including calling this method, @name, on it).
-      You have to start playing the sound again by @link(TSoundEngine.PlaySound)
-      instead.
-
-      Note that calling this method is better than observing @link(TInternalPlayingSound.OnRelease),
-      to start playing a new sound when the previous one stopped.
-      That's because @link(TInternalPlayingSound.OnRelease) may be called with some small delay
-      after the sound actually stopped, and it may be noticeable (e.g. in case
-      of using this for a short rhytmic sound, like footsteps). }
-    procedure KeepPlaying;
-  end;
-
-  TSound = TInternalPlayingSound deprecated 'play sounds using TCastleSoundSource + TCastleSound';
-
-  TInternalPlayingSoundList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TInternalPlayingSound>)
-  public
-    { Sort sounds by Used + Importance, descending.
-      First all sounds with Used = @true are placed,
-      starting from the sound with largest Importance, and so on
-      until the sound with smallest Importance.
-      Then all sounds with Used = @false are placed (in any, arbitrary order).
-
-      List must not contain nil values when calling this. }
-    procedure SortByImportance;
+      Calling this on a sound that is not playing is allowed, and ignored. }
+    procedure Stop;
   end;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-{ TInternalPlayingSound ---------------------------------------------------------- }
+{ Design note: The TCastlePlayingSound class is somewhat similar in features
+  to TInternalSoundSource.
+  In fact we used to expose TInternalSoundSource under deprecated TSound name
+  for a very similar use-cases that TCastlePlayingSound now handles.
 
-constructor TInternalPlayingSound.Create(const SoundEngineBackend: TSoundEngineBackend);
+  However the lifetime of TInternalSoundSource was less under user control.
+  It generally existed for a long time, unless you decreased SoundEngine.MaxAllocatedSources.
+  TCastlePlayingSoundXxx has clearer lifetime:
+  controlled by user, has FreeOnStop, stops automatically when freed. }
+
+destructor TCastlePlayingSound.Destroy;
 begin
-  inherited Create;
-
-  Backend := SoundEngineBackend.CreateSource;
-  { For now, TInternalPlayingSound always refers to an open (on backend side) sound source. }
-  Backend.ContextOpen;
-  { This way, TInternalPlayingSound.Destroy will not call Backend.ContextClose
-    if Backend.ContextOpen failed.
-    (So e.g. OpenAL Backend.ContextClose doesn't try to call
-    alDeleteSources on invalid sound source.) }
-  BackendIsOpen := true;
-end;
-
-destructor TInternalPlayingSound.Destroy;
-begin
-  if (Backend <> nil) and BackendIsOpen then
-    Backend.ContextClose;
-  FreeAndNil(Backend);
+  FFreeOnStop := false; // we are already freeing, don't let DoStop call destructor recursively
+  Stop;
   inherited;
 end;
 
-procedure TInternalPlayingSound.Release;
+procedure TCastlePlayingSound.SetSound(const Value: TCastleSound);
 begin
-  FUsed := false;
-
-  Backend.Stop;
-
-  { Detach the buffer from source. Otherwise we couldn't free the buffer
-    while it's associated with the source. Also, this would be a problem
-    once we implement streaming on some sources: you have to reset
-    buffer to 0 before queing buffers on source. }
-  Buffer := nil;
-
-  if Assigned(OnRelease) then
+  if FSound <> Value then
   begin
-    OnRelease(Self);
-    OnRelease := nil;
+    if Playing then
+      raise Exception.Create('Cannot change TCastlePlayingSound.Sound during playback');
+    FSound := Value;
   end;
 end;
 
-procedure TInternalPlayingSound.SetPosition(const Value: TVector3);
+function TCastlePlayingSound.GetOffset: Single;
 begin
-  FPosition := Value;
-  Backend.SetPosition(Value);
-end;
-
-procedure TInternalPlayingSound.SetVelocity(const Value: TVector3);
-begin
-  FVelocity := Value;
-  Backend.SetVelocity(Value);
-end;
-
-procedure TInternalPlayingSound.SetLooping(const Value: boolean);
-begin
-  FLooping := Value;
-  Backend.SetLooping(Value);
-end;
-
-procedure TInternalPlayingSound.SetSpatial(const Value: boolean);
-begin
-  FSpatial := Value;
-  Backend.SetSpatial(Value);
-end;
-
-procedure TInternalPlayingSound.SetVolume(const Value: Single);
-begin
-  FVolume := Value;
-  Backend.SetVolume(Value);
-end;
-
-procedure TInternalPlayingSound.SetMinGain(const Value: Single);
-begin
-  FMinGain := Value;
-  Backend.SetMinGain(Value);
-end;
-
-procedure TInternalPlayingSound.SetMaxGain(const Value: Single);
-begin
-  FMaxGain := Value;
-  Backend.SetMaxGain(Value);
-end;
-
-procedure TInternalPlayingSound.SetBuffer(const Value: TInternalSoundBuffer);
-begin
-  FBuffer := Value;
-  if (Value <> nil) and Value.BackendIsOpen then
-    Backend.SetBuffer(Value.Backend)
+  if FSource <> nil then
+    Result := FSource.Offset
   else
-    Backend.SetBuffer(nil);
+    Result := 0;
 end;
 
-procedure TInternalPlayingSound.SetPitch(const Value: Single);
+procedure TCastlePlayingSound.SetOffset(const Value: Single);
 begin
-  FPitch := Value;
-  Backend.SetPitch(Value);
+  if FSource <> nil then
+    FSource.Offset := Value;
 end;
 
-procedure TInternalPlayingSound.SetRolloffFactor(const Value: Single);
+function TCastlePlayingSound.Playing: Boolean;
 begin
-  FRolloffFactor := Value;
-  Backend.SetRolloffFactor(Value);
+  Result := FSource <> nil;
 end;
 
-procedure TInternalPlayingSound.SetReferenceDistance(const Value: Single);
+procedure TCastlePlayingSound.SetOnStop(const Value: TNotifyEvent);
 begin
-  FReferenceDistance := Value;
-  Backend.SetReferenceDistance(Value);
-end;
-
-procedure TInternalPlayingSound.SetMaxDistance(const Value: Single);
-begin
-  FMaxDistance := Value;
-  Backend.SetMaxDistance(Value);
-end;
-
-function TInternalPlayingSound.GetOffset: Single;
-begin
-  Result := Backend.Offset;
-end;
-
-procedure TInternalPlayingSound.SetOffset(const Value: Single);
-begin
-  Backend.Offset := Value;
-end;
-
-function TInternalPlayingSound.PlayingOrPaused: boolean;
-begin
-  Result := Backend.PlayingOrPaused;
-end;
-
-procedure TInternalPlayingSound.KeepPlaying;
-begin
-  if not PlayingOrPaused then
-    Backend.Play(false);
-end;
-
-procedure TInternalPlayingSound.Update(const SecondsPassed: TFloatTime);
-begin
-  if Used then
+  if not SameMethods(TMethod(FOnStop), TMethod(Value)) then
   begin
-    if not BackendIsOpen then
-      Release
-    else
-    begin
-      Backend.Update(SecondsPassed);
-      if not PlayingOrPaused then
-        Release;
-    end;
+    if Playing then
+      raise Exception.Create('Cannot change TCastlePlayingSound.OnStop during playback');
+    FOnStop := Value;
   end;
 end;
 
-{ TInternalPlayingSoundList ----------------------------------------------------- }
-
-function IsSmallerByImportance(constref AA, BB: TInternalPlayingSound): Integer;
+procedure TCastlePlayingSound.SetFreeOnStop(const Value: Boolean);
 begin
-  if (AA.Used and (not BB.Used)) or
-     (AA.Used and BB.Used and (AA.Importance > BB.Importance)) then
-    Result := -1 else
-  if (BB.Used and (not AA.Used)) or
-     (BB.Used and AA.Used and (BB.Importance > AA.Importance)) then
-    Result :=  1 else
-    Result :=  0;
+  if FFreeOnStop <> Value then
+  begin
+    if Playing then
+      raise Exception.Create('Cannot change TCastlePlayingSound.FreeOnStop during playback');
+    FFreeOnStop := Value;
+  end;
 end;
 
-procedure TInternalPlayingSoundList.SortByImportance;
-type
-  TInternalPlayingSoundComparer = {$ifdef CASTLE_OBJFPC}specialize{$endif} TComparer<TInternalPlayingSound>;
+procedure TCastlePlayingSound.SetLooping(const Value: Boolean);
 begin
-  Sort(TInternalPlayingSoundComparer.Construct(
-    {$ifdef CASTLE_OBJFPC}@{$endif} IsSmallerByImportance));
+  if FLooping <> Value then
+  begin
+    FLooping := Value;
+    if FSource <> nil then
+      FSource.Looping := Value;
+  end;
+end;
+
+procedure TCastlePlayingSound.Stop;
+begin
+  if FSource <> nil then
+  begin
+    Assert(FSource.Used); // we only keep FSource with Used=true
+    FSource.Release;
+    Assert(FSource = nil); // the SourceRelease should already set this to nil
+  end;
+end;
+
+procedure TCastlePlayingSound.Start(const ASource: TInternalSoundSource);
+begin
+  if FSource <> nil then
+    raise Exception.Create('Cannot start new TCastlePlayingSound playback before previous one finished');
+  Assert(FSound <> nil);
+  Assert(ASource <> nil);
+  Assert(ASource.Buffer = FSound.InternalBuffer);
+  FSource := ASource;
+  FSource.OnRelease := @SourceRelease;
+end;
+
+procedure TCastlePlayingSound.SourceRelease(Source: TInternalSoundSource);
+begin
+  Assert(Source = FSource); // we should only ever get callback about current FSource
+  Source.OnRelease := nil;
+  FSource := nil;
+  DoStop;
+end;
+
+procedure TCastlePlayingSound.DoStop;
+begin
+  if Assigned(OnStop) then
+    OnStop(Self);
+  if FreeOnStop then
+    Self.Destroy;
 end;
 
 {$endif read_implementation}

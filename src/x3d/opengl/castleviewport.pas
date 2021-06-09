@@ -3234,7 +3234,7 @@ begin
       '- (if you use CastleWindow) Application.OnInitialize' + NL +
       '- (if you use CastleWindow) TCastleWindowBase.OnOpen' + NL +
       '- (if you use LCL CastleControl) TCastleControlBase.OnOpen' + NL +
-      '- TCasleUserInterface.GLContextOpen'
+      '- TCastleUserInterface.GLContextOpen'
     );
 
   if GLFeatures.ShadowVolumesPossible and

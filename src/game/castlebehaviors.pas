@@ -21,7 +21,7 @@ unit CastleBehaviors;
 
 interface
 
-uses Classes,
+uses Classes, Generics.Collections,
   CastleVectors, CastleTransform, CastleTimeUtils, CastleClassUtils, CastleSectors,
   CastleSoundEngine;
 

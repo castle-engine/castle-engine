@@ -32,13 +32,13 @@
     { @nil if we don't play sound right now.
       This may happen for many reasons -- e.g. because sound context is not open,
       or Sound = stNone, or had URL = '' in RepositoryURL (sounds XML file),
-      or TInternalPlayingSound instance was necessary for higher-priority sounds. }
-    FAllocatedSource: TInternalPlayingSound;
+      or TInternalSoundSource instance was necessary for higher-priority sounds. }
+    FAllocatedSource: TInternalSoundSource;
 
     FVolume, FPitch: Single;
     FSound: TCastleSound;
     procedure SetSound(const Value: TCastleSound);
-    procedure AllocatedSourceRelease(Sender: TInternalPlayingSound);
+    procedure AllocatedSourceRelease(Sender: TInternalSoundSource);
 
     { Called by ContextOpen. You should check here if
       Sound <> stNone and eventually initialize FAllocatedSource. }
@@ -191,7 +191,7 @@ begin
   end;
 end;
 
-procedure TLoopingChannel.AllocatedSourceRelease(Sender: TInternalPlayingSound);
+procedure TLoopingChannel.AllocatedSourceRelease(Sender: TInternalSoundSource);
 begin
   Assert(Sender = FAllocatedSource);
   FAllocatedSource := nil;

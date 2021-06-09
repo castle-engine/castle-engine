@@ -41,7 +41,7 @@
     @link(TRepoSoundEngine.Sound) and @link(TRepoSoundEngine.Sound3D). }
   TSoundAllocator = class
   strict private
-    FAllocatedSources: TInternalPlayingSoundList;
+    FAllocatedSources: TInternalSoundSourceList;
     FMinAllocatedSources: Cardinal;
     FMaxAllocatedSources: Cardinal;
     LastSoundRefresh: TTimerResult;
@@ -58,7 +58,7 @@
     { Allocate sound for playing. You should initialize the sound source
       properties and start playing the sound.
 
-      Note that if you don't call TInternalPlayingSound.Backend.Play immediately, the source may be detected
+      Note that if you don't call TInternalSoundSource.Backend.Play immediately, the source may be detected
       as unused (and recycled for another sound) at the next
       sound allocation, play, update etc.
 
@@ -75,13 +75,13 @@
       to implement it yourself. Or you can just set Importance of looping
       sounds high enough, and don't use too many looping sounds,
       to never let them be eliminated by other sounds. }
-    function AllocateSound(const Importance: Integer): TInternalPlayingSound;
+    function AllocateSound(const Importance: Integer): TInternalSoundSource;
 
     { All allocated (not necessarily used) sources.
       Accessing this is useful only for debugging tasks,
       in normal circumstances this is internal.
       This is @nil when ContextOpen was not yet called. }
-    //property AllocatedSources: TInternalPlayingSoundList read FAllocatedSources;
+    //property AllocatedSources: TInternalSoundSourceList read FAllocatedSources;
 
     { Stop all the sources currently playing. Especially useful since
       you have to stop a source before releasing it's associated buffer. }
@@ -173,10 +173,10 @@ procedure TSoundAllocator.ContextOpenCore;
 var
   I: Integer;
 begin
-  FAllocatedSources := TInternalPlayingSoundList.Create(true);
+  FAllocatedSources := TInternalSoundSourceList.Create(true);
   FAllocatedSources.Count := MinAllocatedSources;
   for I := 0 to FAllocatedSources.Count - 1 do
-    FAllocatedSources[I] := TInternalPlayingSound.Create(Backend);
+    FAllocatedSources[I] := TInternalSoundSource.Create(Backend);
 
   ApplicationProperties.OnUpdate.Add({$ifdef CASTLE_OBJFPC}@{$endif} Update);
 end;
@@ -209,7 +209,7 @@ begin
 end;
 
 function TSoundAllocator.AllocateSound(
-  const Importance: Integer): TInternalPlayingSound;
+  const Importance: Integer): TInternalSoundSource;
 var
   I: Integer;
   MinImportanceIndex: Integer;
@@ -258,10 +258,10 @@ begin
      (Cardinal(FAllocatedSources.Count) < MaxAllocatedSources) then
   begin
     try
-      Result := TInternalPlayingSound.Create(Backend);
+      Result := TInternalSoundSource.Create(Backend);
       FAllocatedSources.Add(Result);
     except
-      { If TInternalPlayingSound.Create raises ENoMoreSources ---
+      { If TInternalSoundSource.Create raises ENoMoreSources ---
         then silence the exception and leave Result = nil. }
       on ENoMoreSources do ;
     end;
@@ -306,7 +306,7 @@ begin
       OldAllocatedSourcesCount := FAllocatedSources.Count;
       FAllocatedSources.Count := MinAllocatedSources;
       for I := OldAllocatedSourcesCount to FAllocatedSources.Count - 1 do
-        FAllocatedSources[I] := TInternalPlayingSound.Create(Backend);
+        FAllocatedSources[I] := TInternalSoundSource.Create(Backend);
     end;
   end;
 end;

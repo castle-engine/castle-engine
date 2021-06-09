@@ -18,7 +18,7 @@
 
 //type // allow type declaration to continue
 
-  TInternalPlayingSound = class;
+  TInternalSoundSource = class;
   TSoundAllocator = class;
   TLoopingChannel = class;
 

@@ -17,19 +17,75 @@
 {$ifdef read_interface}
 
 type
+  TCastleSoundSource = class;
+
+  { Controls a sound playback initiated by @link(TCastleSoundSource.Play).
+    See the ancestor TCastlePlayingSound for most important documentation.
+    This class simply extends the ancestor with some properties useful only
+    together with the TCastleSoundSource. }
+  TCastlePlayingSoundFromSource = class(TCastlePlayingSound)
+  strict private
+    FFollow: Boolean;
+    FSoundHeight: Single;
+  private
+    SourceBehavior: TCastleSoundSource; //< non-nil while TCastleSoundSource exists
+    procedure Update;
+  protected
+    procedure DoStop; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+
+    { If Follow then the sound position will be updated
+      as the parent TCastleTransform moves. Moreover, when TCastleSoundSource
+      will be destroyed, the sound will stop.
+      An example would be a walking sound of a creature -- the sound moves
+      together with the creature.
+
+      If not Follow, then
+      the sound will start at the parent's position, and then
+      it will continue to be played independent of the parent existence
+      or position changes.
+      An example would be an explosion sound -- the sound stays
+      at the position it happened, regardless if the object moved.
+
+      This matters only for spatial sounds (TCastleSound.Spatial). }
+    property Follow: Boolean read FFollow write FFollow default true;
+
+    { The exact sound position reflects the transformation of the TCastleSoundSource,
+      either
+      @link(TCastleTransform.Translation Parent.Translation) or
+      @link(TCastleTransform.Middle Parent.Middle).
+      Use this property to control which one, it makes a linear interpolation
+      between them.
+
+      SoundHeight = 0 means to use
+      @link(TCastleTransform.Translation Parent.Translation),
+      SoundHeight = 1 means @link(TCastleTransform.Middle Parent.Middle)
+      other values imply a linear interpolation between the above two values.
+
+      You can conigure @link(TCastleTransform.Middle Parent.Middle)
+      using @link(TCastleTransform.MiddleHeight Parent.MiddleHeight). }
+    property SoundHeight: Single read FSoundHeight write FSoundHeight default 0.0;
+  end;
+
   { Behavior to play spatial sounds, that automatically follow
-    the parent @link(TCastleTransform) transformation. }
+    the parent @link(TCastleTransform) transformation.
+    Multiple such behaviors may be attached to a single TCastleTransform
+    (if you need to play multiple looping sounds, or have multiple playback settings
+    like Volume). }
   TCastleSoundSource = class(TCastleBehavior)
   strict private
-    FSound: TCastleSound;
-    UsedSounds: TInternalPlayingSoundList;
-    PlayingSound: TInternalPlayingSound; //< TInternalPlayingSound corresponding to main Sound
-    procedure SoundRelease(Sender: TInternalPlayingSound);
-    function LerpLegsMiddle(const A: Single): TVector3;
-    function PlayOnceCore(const ASound: TCastleSound; const Looping, Follow: Boolean;
-      const SoundHeight: Single): TInternalPlayingSound;
+    var
+      FSound: TCastleSound;
     procedure SoundChange(const Sender: TCastleSound; const Change: TSoundChange);
     procedure SetSound(const Value: TCastleSound);
+  private
+    type
+      TCastlePlayingSoundFromSourceList = specialize TObjectList<TCastlePlayingSoundFromSource>;
+    var
+      AllPlayingSounds: TCastlePlayingSoundFromSourceList;
+      MainPlayingSound: TCastlePlayingSoundFromSource; //< TCastlePlayingSoundFromSource corresponding to main Sound
+    function GetSoundPosition(const SoundHeight: Single): TVector3;
   protected
     procedure ParentChanged; override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -39,31 +95,31 @@ type
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
-    { Play given Sound. If Sound has TCastleSound.Spatial = @true,
-      it's 3D position will reflect the @link(Parent) (TCastleTransform) position,
+    { Play given sound once (not looping).
+      If the sound is spatial (TCastleSound.Spatial),
+      it's 3D position will reflect the @link(Parent) (TCastleTransform) position. }
+    procedure Play(const ASound: TCastleSound);
 
-      If Follow then the sound position will be updated
-      as the parent TCastleTransform will move, and when TCastleSoundSource
-      will be destroyed, sound will stop. If not Follow, then
-      the sound will simply start at parent's position, and then
-      it will continue to be played independent of the parent existence
-      or position.
+    { Play given sound.
+      If the sound is spatial (TCastleSound.Spatial),
+      it's 3D position will reflect the @link(Parent) (TCastleTransform) position.
 
-      In case of spatial sounds (TCastleSound.Spatial = @true)
-      the exact sound position is between
-      @link(TCastleTransform.Translation Parent.Translation) and
-      @link(TCastleTransform.Middle Parent.Middle).
-      SoundHeight = 0 means to use
-      @link(TCastleTransform.Translation Parent.Translation),
-      SoundHeight = 1 means @link(TCastleTransform.Middle Parent.Middle),
-      other values imply a linear interpolation between the above two values. }
-    procedure PlayOnce(const ASound: TCastleSound;
-      const Follow: boolean = true; const SoundHeight: Single = 0);
+      You have to set @link(TCastlePlayingSound.Sound) before passing it to this method.
+
+      Use the TCastlePlayingSound properties to provide additional information
+      about the sound playback.
+      E.g. assign @link(TCastlePlayingSound.Looping)
+      @link(TCastlePlayingSound.OnStop) or control sound afterwards by
+      @link(TCastlePlayingSound.Stop), @link(TCastlePlayingSound.Offset).
+
+      Consider using @link(TCastlePlayingSound.FreeOnStop) if you don't want
+      to manage the lifetime of the @link(TCastlePlayingSound) instance. }
+    procedure Play(const PlayingSound: TCastlePlayingSoundFromSource);
   published
     { Sound to play, looping.
       Note that this is not the only sound possible to play using this
       @link(TCastleSoundSource). You can play any other @link(TCastleSound)
-      instance, defined anywhere, by calling @link(PlayOnce) here. }
+      instance, defined anywhere, by calling @link(Play) here. }
     property Sound: TCastleSound read FSound write SetSound;
   end;
 
@@ -71,52 +127,74 @@ type
 
 {$ifdef read_implementation}
 
-{ TSoundData ----------------------------------------------------------------- }
+{ TCastlePlayingSoundFromSource ---------------------------------------------- }
 
-type
-  TSoundData = class
-  public
-    SoundHeight: Single;
-    Spatial, Follow: Boolean;
+constructor TCastlePlayingSoundFromSource.Create(AOwner: TComponent);
+begin
+  inherited;
+  FFollow := true;
+end;
+
+procedure TCastlePlayingSoundFromSource.DoStop;
+begin
+  // we override DoStop, instead of using OnStop, to allow user code to assign OnStop as needed
+  if SourceBehavior <> nil then
+  begin
+    SourceBehavior.AllPlayingSounds.Remove(Self);
+    if SourceBehavior.MainPlayingSound = Self then
+      SourceBehavior.MainPlayingSound := nil;
+    SourceBehavior := nil;
   end;
+  inherited;
+end;
+
+procedure TCastlePlayingSoundFromSource.Update;
+begin
+  if (SourceBehavior <> nil) and
+     (InternalSource <> nil) and
+     { If not Spatial, then we don't need to update Source.Position
+       (it is ignored by backends). }
+     Sound.Spatial and
+     Follow then
+  begin
+    InternalSource.Position := SourceBehavior.GetSoundPosition(SoundHeight);
+  end;
+end;
 
 { TCastleSoundSource ------------------------------------------------------- }
 
 constructor TCastleSoundSource.Create(AOwner: TComponent);
 begin
   inherited;
-  UsedSounds := TInternalPlayingSoundList.Create(false);
+  AllPlayingSounds := TCastlePlayingSoundFromSourceList.Create(false);
 end;
 
 destructor TCastleSoundSource.Destroy;
 var
-  I: Integer;
-  SoundData: TSoundData;
+  Playing: TCastlePlayingSoundFromSource;
 begin
-  if UsedSounds <> nil then
+  if AllPlayingSounds <> nil then
   begin
-    for I := 0 to UsedSounds.Count - 1 do
+    for Playing in AllPlayingSounds do
     begin
-      SoundData := TSoundData(UsedSounds[I].UserData);
-      UsedSounds[I].UserData := nil;
-
-      { In case of Follow = true, this is needed:
-        Otherwise OnRelease would call SoundRelease,
-        and this would remove it from UsedSounds list, breaking our
+      { In case of Playing.Follow = true, this is needed:
+        Otherwise Playing.OnStop would call our SoundStop,
+        and this would remove it from AllPlayingSounds list, breaking our
         indexing over this list here.
 
-        In case of Follow = false, this is needed even more:
-        the TInternalPlayingSound instance will survive destruction of this TCastleSoundSource,
+        In case of Playing.Follow = false, this is needed even more:
+        the TCastlePlayingSound instance will survive destruction of this TCastleSoundSource,
         but it should not call any of TCastleSoundSource methods. }
-      UsedSounds[I].OnRelease := nil;
-
-      if SoundData.Follow then
-        UsedSounds[I].Release;
-
-      FreeAndNil(SoundData);
+      Playing.OnStop := nil;
+      Playing.SourceBehavior := nil;
+      if Playing.Follow then
+        Playing.Stop;
     end;
-    FreeAndNil(UsedSounds);
+    FreeAndNil(AllPlayingSounds);
   end;
+
+  // we now for sure stopped it, but we detached OnStop so we need to nil it manually
+  MainPlayingSound := nil;
 
   // detach free notifications
   Sound := nil;
@@ -134,100 +212,111 @@ begin
   end;
 end;
 
-procedure TCastleSoundSource.SoundRelease(Sender: TInternalPlayingSound);
-begin
-  Sender.UserData.Free;
-  Sender.UserData := nil;
-  UsedSounds.Remove(Sender);
-  if Sender = PlayingSound then
-    PlayingSound := nil;
-end;
-
 procedure TCastleSoundSource.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
-  I: Integer;
-  SoundPosition: TVector3;
-  SoundData: TSoundData;
+  Playing: TCastlePlayingSoundFromSource;
 begin
   inherited;
-  for I := 0 to UsedSounds.Count - 1 do
+  for Playing in AllPlayingSounds do
+    Playing.Update;
+end;
+
+function TCastleSoundSource.GetSoundPosition(const SoundHeight: Single): TVector3;
+
+  function LerpLegsMiddle(const A: Single): TVector3;
   begin
-    SoundData := TSoundData(UsedSounds[I].UserData);
-
-    { Note that right now, things that have Follow = false are not really
-      necessary on UsedSounds: they are not updated here,
-      they are not stoppe in destruction.
-      But they could be useful in the future, so we add all sounds we made to UsedSounds. }
-
-    { If not Spatial, then we don't need to update UsedSounds[I].Position
-      (it is ignored by backends). }
-
-    if SoundData.Spatial and SoundData.Follow then
-    begin
-      SoundPosition := LerpLegsMiddle(SoundData.SoundHeight);
-      if (Parent <> nil) and
-         (Parent.UniqueParent <> nil) then // make sound position in world coordinates
-        SoundPosition := Parent.UniqueParent.LocalToWorld(SoundPosition);
-      UsedSounds[I].Position := SoundPosition;
-    end;
+    { Check "Parent.World <> nil", otherwise Parent.Middle not available.
+      Check also A <> 0, as just optimization -- A = 0 is an often case,
+      that avoids the need to calculate Parent.Middle. }
+    if (Parent.World <> nil) and (A <> 0) then
+      Result := Lerp(A, Parent.Translation, Parent.Middle)
+    else
+      Result := Parent.Translation;
   end;
-end;
 
-function TCastleSoundSource.LerpLegsMiddle(const A: Single): TVector3;
 begin
-  { Check "Parent.World <> nil", otherwise Parent.Middle not available.
-    Check also A <> 0, as just optimization -- A = 0 is an often case,
-    that avoids the need to calculate Parent.Middle. }
-  if (Parent.World <> nil) and (A <> 0) then
-    Result := Lerp(A, Parent.Translation, Parent.Middle)
-  else
-    Result := Parent.Translation;
+  Result := LerpLegsMiddle(SoundHeight);
+  if (Parent <> nil) and
+     (Parent.UniqueParent <> nil) then // make sound position in world coordinates
+    Result := Parent.UniqueParent.LocalToWorld(Result);
 end;
 
-function TCastleSoundSource.PlayOnceCore(const ASound: TCastleSound;
-  const Looping, Follow: Boolean; const SoundHeight: Single): TInternalPlayingSound;
+procedure TCastleSoundSource.Play(const ASound: TCastleSound);
+var
+  SoundPlaying: TCastlePlayingSoundFromSource;
+begin
+  SoundPlaying := TCastlePlayingSoundFromSource.Create(nil);
+  SoundPlaying.Sound := ASound;
+  SoundPlaying.FreeOnStop := true;
+  Play(SoundPlaying);
+end;
+
+procedure TCastleSoundSource.Play(const PlayingSound: TCastlePlayingSoundFromSource);
 var
   Params: TPlaySoundParameters;
+  ASound: TCastleSound;
   SoundPosition: TVector3;
+  Source: TInternalSoundSource;
 begin
-  Result := nil;
+  if Parent = nil then
+    raise Exception.Create('Do not play sounds from a TCastleSoundSource not attached to any TCastleTransform; use SoundEngine.Play for sound playback without TCastleSoundSource');
 
-  if (ASound.InternalBuffer <> nil) and (Parent <> nil) then
+  SoundPosition := GetSoundPosition(PlayingSound.SoundHeight);
+
+  ASound := PlayingSound.Sound;
+  Assert(ASound <> nil);
+
+  { TODO:
+    - The check of ASound.InternalBuffer,
+    - manual calling of PlayingSound.DoStop in case of early stop
+    - setting TPlaySoundParameters
+    - calling PlayingSound.InternalStart
+
+    ... should all be done only by TSoundEngine.Play.
+    Here we really only want to set some params before starting sound playback,
+    but after TInternalSoundSource is allocated. }
+
+  if ASound.InternalBuffer = nil then
   begin
-    SoundPosition := LerpLegsMiddle(SoundHeight);
-    if (Parent <> nil) and
-       (Parent.UniqueParent <> nil) then // make sound position in world coordinates
-      SoundPosition := Parent.UniqueParent.LocalToWorld(SoundPosition);
-
-    Params := TPlaySoundParameters.Create;
-    try
-      Params.Position := SoundPosition;
-      Params.Buffer := ASound.InternalBuffer;
-      Params.Spatial := ASound.Spatial;
-      Params.Looping := Looping;
-      Params.Importance := DefaultSoundImportance;
-      Params.Pitch := ASound.Pitch;
-      Params.Volume := ASound.Volume;
-      {$warnings off} // using unportable symbols knowingly
-      Params.MinGain := ASound.MinGain;
-      Params.MaxGain := ASound.MaxGain;
-      {$warnings on}
-
-      {$warnings off} // using deprecated that should be internal
-      Result := SoundEngine.PlaySound(Params);
-      {$warnings on}
-
-      if Result <> nil then
-      begin
-        UsedSounds.Add(Result);
-        Result.OnRelease := @SoundRelease;
-        Result.UserData := TSoundData.Create;
-        TSoundData(Result.UserData).SoundHeight := SoundHeight;
-        TSoundData(Result.UserData).Spatial := ASound.Spatial;
-        TSoundData(Result.UserData).Follow := Follow;
-      end;
-    finally FreeAndNil(Params) end;
+    // sound cannot be played, as not loaded
+    PlayingSound.DoStop; // apply PlayingSound.OnStop, FreeOnStop
+    Exit;
   end;
+
+  Params := TPlaySoundParameters.Create;
+  try
+    Params.Position   := SoundPosition;
+    Params.Buffer     := ASound.InternalBuffer;
+    Params.Spatial    := ASound.Spatial;
+    Params.Looping    := PlayingSound.Looping;
+    Params.Importance := DefaultSoundImportance;
+    Params.Pitch      := ASound.Pitch;
+    Params.Volume     := ASound.Volume;
+    {$warnings off} // using unportable symbols knowingly
+    Params.MinGain    := ASound.MinGain;
+    Params.MaxGain    := ASound.MaxGain;
+    {$warnings on}
+
+    {$warnings off} // using deprecated that should be internal
+    Source := SoundEngine.PlaySound(Params);
+    {$warnings on}
+
+    if Source <> nil then
+    begin
+      PlayingSound.Start(Source);
+      { TODO:
+        SoundEngine.PlayingSounds.Add(PlayingSound);
+        ... and see TSoundEngine.Play TODOs.
+      }
+    end else
+    begin
+      // sound cannot be played, as no free TInternalSoundSource slot
+      PlayingSound.DoStop; // apply PlayingSound.OnStop, FreeOnStop
+    end;
+
+    PlayingSound.SourceBehavior := Self;
+    AllPlayingSounds.Add(PlayingSound);
+  finally FreeAndNil(Params) end;
 end;
 
 procedure TCastleSoundSource.SoundChange(const Sender: TCastleSound; const Change: TSoundChange);
@@ -235,34 +324,40 @@ begin
   case Change of
     scBeforeBufferDestroyed:
       begin
-        if PlayingSound <> nil then
-          PlayingSound.Release;
-        Assert(PlayingSound = nil);
+        if MainPlayingSound <> nil then
+          MainPlayingSound.Stop;
+        Assert(MainPlayingSound = nil);
       end;
 
     scAfterBufferCreated:
       begin
         { Looping and Follow = true, it seems most natural for sounds set as TCastleSoundSource.Sound. }
-        if Sound <> nil then
-          PlayingSound := PlayOnceCore(Sound, { looping } true, { follow } true, { SoundHeight } 0);
+        if (Sound <> nil) and (Parent <> nil) then
+        begin
+          MainPlayingSound := TCastlePlayingSoundFromSource.Create(nil);
+          MainPlayingSound.Sound := Sound;
+          MainPlayingSound.FreeOnStop := true;
+          MainPlayingSound.Looping := true;
+          Play(MainPlayingSound);
+        end;
       end;
 
     scAfterOther:
       begin
-        if Sound <> nil then
+        if MainPlayingSound <> nil then
         begin
-          if PlayingSound <> nil then
+          if MainPlayingSound.InternalSource <> nil then
           begin
-            PlayingSound.Volume := Sound.Volume;
-            PlayingSound.Pitch := Sound.Pitch;
-            PlayingSound.Spatial := Sound.Spatial;
+            // TODO: move this updating to TCastlePlayingSoundFromSource.Update?
+            MainPlayingSound.InternalSource.Volume := Sound.Volume;
+            MainPlayingSound.InternalSource.Pitch := Sound.Pitch;
+            MainPlayingSound.InternalSource.Spatial := Sound.Spatial;
             {$warnings off} // using unportable symbols knowingly
-            PlayingSound.MinGain := Sound.MinGain;
-            PlayingSound.MaxGain := Sound.MaxGain;
+            MainPlayingSound.InternalSource.MinGain := Sound.MinGain;
+            MainPlayingSound.InternalSource.MaxGain := Sound.MaxGain;
             {$warnings on}
           end else
-            { start playing, just like after scAfterBufferCreated }
-            PlayingSound := PlayOnceCore(Sound, { looping } true, { follow } true, { SoundHeight } 0);
+            Play(MainPlayingSound); // retry allocating TInternalSoundSource for it
         end;
       end;
     {$ifndef COMPILER_CASE_ANALYSIS}
@@ -271,22 +366,25 @@ begin
   end;
 end;
 
-procedure TCastleSoundSource.PlayOnce(const ASound: TCastleSound;
-  const Follow: boolean; const SoundHeight: Single);
-begin
-  PlayOnceCore(ASound, { looping } false, Follow, SoundHeight);
-end;
-
 procedure TCastleSoundSource.ParentChanged;
 begin
   inherited;
 
-  { Change of parent implies a change of position.
-    For now commented out -- position is updated in Update, for all sounds.
-    No need to do this here
-    (also scAfterOther doesn't update PlayingSound.Position for now for spatial sounds).
+  if Parent <> nil then
+  begin
+    // start playing, once we have Parent assigned
+    if (Sound <> nil) and (MainPlayingSound = nil) then
+      SoundChange(FSound, scAfterBufferCreated);
+  end else
+  begin
+    // stop playing when Parent detached,
+    // we could not realize Follow in this case (GetSoundPosition would crash)
+    if MainPlayingSound <> nil then
+      MainPlayingSound.Stop;
+  end;
 
-  SoundChange(nil, scAfterOther);  }
+  { Change of parent implies also a change of position.
+    For now position is updated in Update, for all sounds, so we don't do anything here. }
 end;
 
 procedure TCastleSoundSource.SetSound(const Value: TCastleSound);

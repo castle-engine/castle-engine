@@ -1488,9 +1488,17 @@ end;
 
 procedure TCreature.Sound3d(const SoundType: TCastleSound; const SoundHeight: Single;
   const TiedToCreature: boolean);
+var
+  PlayingSound: TCastlePlayingSoundFromSource;
 begin
   if SoundType <> nil then
-    SoundSource.PlayOnce(SoundType, TiedToCreature, SoundHeight);
+  begin
+    PlayingSound := TCastlePlayingSoundFromSource.Create(nil);
+    PlayingSound.FreeOnStop := true;
+    PlayingSound.Follow := TiedToCreature;
+    PlayingSound.SoundHeight := SoundHeight;
+    SoundSource.Play(PlayingSound);
+  end;
 end;
 
 function TCreature.LerpLegsMiddle(const A: Single): TVector3;

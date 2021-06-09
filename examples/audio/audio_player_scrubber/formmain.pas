@@ -50,10 +50,10 @@ type
     procedure TrackVolumeChange(Sender: TObject);
   private
     SoundBuffer: TInternalSoundBuffer;
-    Sound: TInternalPlayingSound;
+    Sound: TInternalSoundSource;
     SoundURL: string;
     SoundDuration: TFloatTime;
-    procedure SoundRelease(Sender: TInternalPlayingSound);
+    procedure SoundRelease(Sender: TInternalSoundSource);
   public
 
   end;
@@ -122,7 +122,7 @@ begin
     Sound.Volume := TrackVolume.Position / 1000;
 end;
 
-procedure TMainForm.SoundRelease(Sender: TInternalPlayingSound);
+procedure TMainForm.SoundRelease(Sender: TInternalSoundSource);
 begin
   // nil the Sound when it's stopped, this is assigned to Sound.OnRelease
   Sound := nil;

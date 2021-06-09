@@ -59,7 +59,7 @@
     FDuration: TFloatTime;
     InsideLoadBuffer: Cardinal;
     procedure SetBufferLoaded(const Value: boolean);
-    procedure SoundRelease(ASound: TInternalPlayingSound);
+    procedure SoundRelease(ASound: TInternalSoundSource);
     procedure UpdatePlayingEvent(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
     procedure UpdatePlaying;
@@ -69,7 +69,7 @@
       if it's successfully loaded. }
     property BufferLoaded: boolean read FBufferLoaded write SetBufferLoaded;
   private
-    Sound: TInternalPlayingSound;
+    Sound: TInternalSoundSource;
   protected
     procedure ParseAfter(Reader: TX3DReaderNames); override;
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
@@ -247,7 +247,7 @@ begin
     Result := 0;
 end;
 
-procedure TAudioClipNode.SoundRelease(ASound: TInternalPlayingSound);
+procedure TAudioClipNode.SoundRelease(ASound: TInternalSoundSource);
 begin
   Sound := nil;
 end;

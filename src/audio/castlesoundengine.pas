@@ -35,7 +35,8 @@ uses SysUtils, Classes, Math, Generics.Collections, DOM,
 {$define read_interface}
 type
 {$I castlesoundengine_initial_types.inc}
-{$I castlesoundengine_buffer.inc}
+{$I castlesoundengine_internalsoundbuffer.inc}
+{$I castlesoundengine_internalsoundsource.inc}
 {$I castlesoundengine_playingsound.inc}
 {$I castlesoundengine_sound.inc}
 {$I castlesoundengine_allocator.inc}
@@ -56,7 +57,8 @@ uses XMLRead, StrUtils, Generics.Defaults,
 
 {$define read_implementation}
 {$I castlesoundengine_miscellaneous.inc} // must be first, as defines some internal globals
-{$I castlesoundengine_buffer.inc}
+{$I castlesoundengine_internalsoundbuffer.inc}
+{$I castlesoundengine_internalsoundsource.inc}
 {$I castlesoundengine_playingsound.inc}
 {$I castlesoundengine_sound.inc}
 {$I castlesoundengine_allocator.inc}
