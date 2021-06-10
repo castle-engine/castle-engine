@@ -660,8 +660,7 @@ begin
     (or it's looping),
     stop this sound once we're completely in Begin/EndPosition. }
   if AnimationTime - EndPositionStateChangeTime > MoveTime then
-    // TODO: SoundSource.Sound := nil;
-    ;
+    SoundSource.Sound := nil;
 end;
 
 { TCastleAlive ------------------------------------------------------------------- }
