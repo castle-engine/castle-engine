@@ -222,8 +222,12 @@ begin
   if FSource <> nil then
   begin
     Assert(FSource.Used); // we only keep FSource with Used=true
-    FSource.Release;
-    Assert(FSource = nil); // the SourceRelease should already set this to nil
+    FSource.Release; // note: this can destroy our instance (if FreeOnStop)
+    { The SourceRelease should already set FSource to nil
+      (but we cannnot make Assert below, as we possibly no longer exist after
+      FSource.Release, due to FreeOnStop; testcase: castle1 tower level, let ball missile
+      explode on player). }
+    // Assert(FSource = nil);
   end;
 end;
 
@@ -243,7 +247,7 @@ begin
   Assert(Source = FSource); // we should only ever get callback about current FSource
   Source.OnRelease := nil;
   FSource := nil;
-  DoStop;
+  DoStop; // note: this can destroy our instance (if FreeOnStop)
 end;
 
 procedure TCastlePlayingSound.DoStop;
