@@ -312,8 +312,11 @@
       deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.Play to play sounds';
 
     { Play given sound once (not looping).
-      If the sound is spatial (TCastleSound.Spatial),
-      the sound source Position will be (0, 0, 0).
+
+      This is only suitable for non-spatial sounds, as it doesn't give any control over
+      the sound 3D position. Thus, it raises an exception if you try to use it
+      with ASound that has TCastleSound.Spatial = @true.
+      Make sure to set TCastleSound.Spatial = @false.
 
       This is the simplest method to just play the sound and "forget about it"
       (no need to manage the playback afterwards).
@@ -327,8 +330,11 @@
     procedure Play(const ASound: TCastleSound);
 
     { Play given sound.
-      If the sound is spatial (TCastleSound.Spatial),
-      the sound source Position will be (0, 0, 0).
+
+      This is only suitable for non-spatial sounds, as it doesn't give any control over
+      the sound 3D position. Thus, it raises an exception if you try to use it
+      with ASound that has TCastleSound.Spatial = @true.
+      Make sure to set TCastleSound.Spatial = @false.
 
       You have to set @link(TCastlePlayingSound.Sound) before passing it to this method.
 
@@ -906,6 +912,9 @@ begin
 
   ASound := PlayingSound.Sound;
   Assert(ASound <> nil);
+
+  if ASound.Spatial then
+    raise Exception.Create('Use only non-spatial sounds (with TCastleSound.Spatial = false) with SoundEngine.LoopingChannel');
 
   if ASound.InternalBuffer = nil then
   begin
