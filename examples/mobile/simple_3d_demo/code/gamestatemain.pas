@@ -48,7 +48,7 @@ type
     { Other fields, initialized in Start }
     MyShaderEffect: TEffectNode;
     MyScreenEffect: TScreenEffectNode;
-    SoundBufferWav, SoundBufferOgg: TInternalSoundBuffer;
+    SoundWav, SoundOgg: TCastleSound;
 
     procedure ClickToggleShader(Sender: TObject);
     procedure ClickToggleScreenEffect(Sender: TObject);
@@ -144,10 +144,14 @@ begin
     TScreenEffectNode, 'MyScreenEffect', false) as TScreenEffectNode;
   ButtonToggleScreenEffect.Pressed := (MyScreenEffect <> nil) and MyScreenEffect.Enabled;
 
-  SoundBufferWav := SoundEngine.LoadBuffer('castle-data:/sounds/player_potion_drink.wav');
+  SoundWav := TCastleSound.Create(nil);
+  SoundWav.Spatial := false;
+  SoundWav.URL := 'castle-data:/sounds/player_potion_drink.wav';
 
   try
-    SoundBufferOgg := SoundEngine.LoadBuffer('castle-data:/sounds/werewolf_howling.ogg');
+    SoundOgg := TCastleSound.Create(nil);
+    SoundOgg.Spatial := false;
+    SoundOgg.URL := 'castle-data:/sounds/werewolf_howling.ogg';
   except
     on E: ESoundFileError do
       WritelnWarning('OggVorbis loading failed: ' + E.Message);
@@ -290,12 +294,12 @@ end;
 
 procedure TStateMain.ClickPlaySoundWav(Sender: TObject);
 begin
-  SoundEngine.PlaySound(SoundBufferWav);
+  SoundEngine.Play(SoundWav);
 end;
 
 procedure TStateMain.ClickPlaySoundOgg(Sender: TObject);
 begin
-  SoundEngine.PlaySound(SoundBufferOgg);
+  SoundEngine.Play(SoundOgg);
 end;
 
 procedure TStateMain.ClickVibrate(Sender: TObject);
