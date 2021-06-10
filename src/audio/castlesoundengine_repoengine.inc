@@ -301,7 +301,7 @@
 
       Note that, if this does nothing, but you later set @link(RepositoryURL)
       or do @link(LoadBuffer) or @link(PlaySound), then sound context will
-      be createdon-demand anyway. So calling this is always optional. }
+      be created on-demand anyway. So calling this is always optional. }
     procedure PrepareResources;
   end;
 
