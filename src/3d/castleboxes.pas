@@ -343,8 +343,22 @@ type
     function IsTriangleCollision(
       const Triangle: TTriangle3): boolean;
 
-    { Smallest possible sphere completely enclosing given Box.
-      When Box is empty we return SphereRadiusSqr = 0 and undefined SphereCenter. }
+    { Smallest possible sphere completely enclosing the current box.
+      When this is empty (@link(IsEmpty)) we return
+      SphereRadiusSqr = 0 and an undefined SphereCenter.
+
+      @param(SphereCenter The calculated sphere center.)
+      @param(SphereRadiusSqr The calculated sphere radius, squared.
+
+        Use @code(Sqrt) to get the actual value.
+        Often the square of the radius is enough, and this way you can avoid
+        calculating expensive @code(Sqrt), and thus gain some speed.
+
+        But please remember the general guideline: "do not optimize when there's no need".
+        Sometimes it is simpler to just use @code(Sqrt) to get the actual radius,
+        and there's no measurable difference in performance.
+        So don't worry and do @code(SphereRadius := Sqrt(SphereRadiusSqr)).)
+    }
     procedure BoundingSphere(
       var SphereCenter: TVector3; var SphereRadiusSqr: Single);
 
