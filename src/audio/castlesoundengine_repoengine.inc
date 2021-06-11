@@ -786,6 +786,7 @@ begin
     Result := FSounds[SoundIndex].FinalSound(0).Sound;
   end else
   begin
+    Result := nil;
     if Required then
       WritelnWarning('Sound', Format('Unknown sound name "%s"', [SoundName]));
   end;
