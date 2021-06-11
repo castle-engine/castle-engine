@@ -32,7 +32,7 @@ var
     All engine units can use them if you define them in your sounds XML file.
     If they are not defined in your XML file (or if you don't even have
     an XML file, that is you leave TRepoSoundEngine.RepositoryURL empty)
-    then they remain stNone (and nothing will happen if anything will try
+    then they remain nil (and nothing will happen if anything will try
     to play them by TRepoSoundEngine.Sound or TRepoSoundEngine.Sound3D).
 
     Simply define them in your sounds XML file (see

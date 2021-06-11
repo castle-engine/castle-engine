@@ -52,7 +52,7 @@
       strict protected
         property OwningSoundEngine: TSoundEngine read FOwningSoundEngine;
       public
-        { Unique sound name (including parent group names). Empty for the special sound stNone. }
+        { Unique sound name (including parent group names). Empty for the special sound stNone = nil. }
         Name: String;
 
         { Like Name, but without parent group names.
@@ -140,7 +140,7 @@
         Each sound has a unique name, used to identify sound in
         the XML file and for SoundFromName function.
 
-        At the beginning, this list always contains exactly one sound: empty stNone.
+        At the beginning, this list always contains exactly one sound, empty.
         This is a special TSoundInfoBuffer that has Sound=nil and Name=''.
         It means "no sound" in many cases. }
       FSounds: TSoundInfoList;
@@ -215,7 +215,7 @@
     { Return sound with given name.
       Available names are given in SoundNames, defined in XML file pointed
       by RepositoryURL.
-      Always for SoundName = '' it will return stNone.
+      Always for SoundName = '' it will return nil.
 
       @param(Required
 
@@ -228,7 +228,7 @@
         When Required = @false, missing sound is silently ignored,
         which is sensible if it was optional.
 
-        Regardless of the Required value, we return stNone for missing sound.
+        Regardless of the Required value, we return nil for missing sound.
         So the Required parameter only determines whether we make a warning,
         or not.)
     }
@@ -259,7 +259,7 @@
 
     { Comfortable way to play and control the music.
       Simply assign @link(TLoopingChannel.Sound MusicPlayer.Sound)
-      to play music. Set it to @link(stNone) to stop playing music.
+      to play music. Set it to @link(nil) to stop playing music.
       This is just a shortcut for @link(LoopingChannel LoopingChannel[0]). }
     property MusicPlayer: TLoopingChannel read GetMusicPlayer;
 
@@ -274,10 +274,10 @@
       @longCode(# LoopingChannel[0].Sound := SoundFromName('my_music'); #)
 
       You stop by setting @link(TLoopingChannel.Sound) to something else,
-      which can be @link(stNone) to just stop playing any looping
+      which can be @link(nil) to just stop playing any looping
       sound on this channel. For example:
 
-      @longCode(# LoopingChannel[0].Sound := stNone; #)
+      @longCode(# LoopingChannel[0].Sound := nil; #)
 
       Each channel has it's own @link(TLoopingChannel.Volume)
       that can be changed at any point.
@@ -535,7 +535,7 @@ begin
   FSoundGroups := TSoundGroupList.Create;
 
   FSounds := TSoundInfoList.Create;
-  { add stNone sound }
+  { add stNone = nil sound }
   FSounds.Add(TSoundInfoBuffer.Create);
 
   FLoopingChannels := TLoopingChannelList.Create(true);
@@ -700,7 +700,7 @@ begin
 
   FSoundGroups.Clear;
   FSounds.Clear;
-  { add stNone sound }
+  { add stNone = nil sound }
   FSounds.Add(TSoundInfoBuffer.Create);
 
   { if no sounds XML file, then that's it --- no more sounds }

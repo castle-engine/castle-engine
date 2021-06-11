@@ -31,7 +31,7 @@
 
     { @nil if we don't play sound right now.
       This may happen for many reasons -- e.g. because sound context is not open,
-      or Sound = stNone, or had URL = '' in RepositoryURL (sounds XML file),
+      or Sound = nil, or had URL = '' in RepositoryURL (sounds XML file),
       or TInternalSoundSource instance was necessary for higher-priority sounds. }
     FAllocatedSource: TInternalSoundSource;
 
@@ -41,7 +41,7 @@
     procedure AllocatedSourceRelease(Sender: TInternalSoundSource);
 
     { Called by ContextOpen. You should check here if
-      Sound <> stNone and eventually initialize FAllocatedSource. }
+      Sound <> nil and eventually initialize FAllocatedSource. }
     procedure AllocateSource;
     function GetVolume: Single;
     procedure SetVolume(const Value: Single);

@@ -242,7 +242,7 @@ type
       read FPlaceholderReferenceDirection write FPlaceholderReferenceDirection;
 
     { Music played when entering the level.
-      None (stNone) by default. }
+      None (nil) by default. }
     property MusicSound: TCastleSound read FMusicSound write FMusicSound;
   end;
 

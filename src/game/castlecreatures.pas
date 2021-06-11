@@ -577,7 +577,7 @@ type
       default DefaultAttackMaxAngle;
 
     { Sound played when short-range attack hits.
-      None (stNone) by default. }
+      None (nil) by default. }
     property AttackSoundHit: TCastleSound
       read FAttackSoundHit write FAttackSoundHit;
 
@@ -585,7 +585,7 @@ type
       that is when entering csAttack state.
       To play a sound when the actual hit happens (at AttackTime)
       see AttackSoundHit.
-      None (stNone) by default. }
+      None (nil) by default. }
     property AttackSoundStart: TCastleSound
       read FAttackSoundStart write FAttackSoundStart;
 
@@ -628,7 +628,7 @@ type
       read FFireMissileHeight write FFireMissileHeight default DefaultFireMissileHeight;
 
     { Sound played when missile is fired, see FireMissileName.
-      None (stNone) by default. }
+      None (nil) by default. }
     property FireMissileSound: TCastleSound
       read FFireMissileSound write FFireMissileSound;
 
@@ -764,7 +764,7 @@ type
       default DefaultMoveSpeed;
 
     { Sound when missile hits anything.
-      None (stNone) by default. }
+      None (nil) by default. }
     property SoundHit: TCastleSound
       read FSoundHit write FSoundHit;
 
@@ -776,7 +776,7 @@ type
       default DefaultCloseDirectionToTargetSpeed;
 
     { Sound played continuously when the missile is going.
-      None (stNone) by default.
+      None (nil) by default.
       @seealso PauseBetweenSoundIdle }
     property SoundIdle: TCastleSound
       read FSoundIdle write FSoundIdle;
