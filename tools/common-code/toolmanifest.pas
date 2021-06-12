@@ -263,12 +263,13 @@ uses SysUtils,
 
 function TImageFileNames.FindExtension(const Extensions: array of string): string;
 var
-  I: Integer;
+  I, J: Integer;
 begin
   Result := '';
-  for I := 0 to Count - 1 do
-    if AnsiSameText(ExtractFileExt(Strings[I]), '.ico') then
-      Exit(Strings[I]);
+  for J := 0 to Length(Extensions) - 1 do
+    for I := 0 to Count - 1 do
+      if AnsiSameText(ExtractFileExt(Strings[I]), Extensions[J]) then
+        Exit(Strings[I]);
 end;
 
 function TImageFileNames.FindReadable: TCastleImage;
