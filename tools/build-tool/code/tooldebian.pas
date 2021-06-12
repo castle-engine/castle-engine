@@ -176,6 +176,10 @@ begin
   //RunCommandSimple('sh ' + OutputProjectPath + 'package-debian.sh', []);
   RunCommand('/bin/bash', ['package-debian.sh'], OutString);
   WriteLn(OutString);
+
+  // And finally clean up the temporary files
+  RemoveNonEmptyDir(PackageFileName);
+  DeleteFile(OutputProjectPath + 'package-debian.sh');
 end;
 
 end.
