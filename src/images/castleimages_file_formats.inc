@@ -524,7 +524,7 @@ const
       MimeTypes: ('image/x-xpixmap', '', '', '', '', '');
       ExtsCount: 1; Exts: ('xpm', '', '');
       Load: @LoadXPM; LoadedClasses: lcRGB_RGBA;
-      Save: @SaveXPM; SavedClasses: scG_GA_RGB_RGBA;
+      Save: @SaveXPM; SavedClasses: scRGB;
       DetectClass: nil;
     ),
     ( FormatName: 'PSD image';
