@@ -71,11 +71,6 @@ procedure TPackageDebian.Make(const OutputProjectPath: String; const PackageFile
   end;
 
 var
-  AppCategoryFolder: String = 'games';
-  AppCategoryDebian: String = 'Games/Adventure';
-  ProjectComment: String = 'Roguelite hide-and-seek game on an infinite map';
-  CategoriesString: String = 'Game;RolePlaying;';
-
   PathToExecutableLocal, PathToExecutableUnix: String;
   PathToIconFileLocal, PathToIconFileUnix: String;
   ShareDir: String;
@@ -89,7 +84,7 @@ begin
 
   // Copy the binaries
 
-  PathToExecutableUnix := '/usr/' + AppCategoryFolder + '/' + Manifest.Name;
+  PathToExecutableUnix := '/usr/' + Manifest.DebianInstallFolder + '/' + Manifest.Name;
   PathToExecutableLocal := StringReplace(PathToExecutableUnix, '/', PathDelim, [rfReplaceAll]);
   CopyDirectory(Path, PackageFolder + PathToExecutableLocal);
   ShareDir := PackageFolder + PathDelim + 'usr' + PathDelim + 'share';
@@ -123,7 +118,7 @@ begin
   TextWriter.Write(
     '?package(' + Manifest.Name + '): \' + NL +
     'needs="X11" \' + NL +
-    'section="' + AppCategoryDebian + '" \' + NL +
+    'section="' + Manifest.DebianSection + '" \' + NL +
     'title="' + Manifest.Caption + '" \' + NL +
     'command="bash -c ''cd ' + PathToExecutableUnix + ' && ./' + Manifest.ExecutableName + '''" \' + NL +
     'icon="' + PathToIconFileUnix +'"'
@@ -139,9 +134,9 @@ begin
     'Exec=bash -c ''cd ' + PathToExecutableUnix + ' && ./' + Manifest.ExecutableName + '''' + NL +
     'Icon=' + PathToIconFileUnix + NL +
     'Type=Application' + NL +
-    'Categories=' + CategoriesString + NL +
+    'Categories=' + Manifest.DebianCategories + NL +
     'Name=' + Manifest.Caption + NL +
-    'Comment=' + ProjectComment
+    'Comment=' + Manifest.DebianComment
     );
   FreeAndNil(TextWriter);
 
@@ -150,14 +145,14 @@ begin
   TextWriter.Write(
     'Package: ' + Manifest.Name + NL +
     'Version: ' + Manifest.Version.DisplayValue + NL +
-    'Section: ' + AppCategoryFolder + NL +
+    'Section: ' + Manifest.DebianInstallFolder + NL +
     'Priority: optional' + NL +
     'Architecture: ' + CpuToArchitectureString(Cpu) + NL +
     'Maintainer: ' + Manifest.Author + NL +
     'Installed-Size: ' + IntToStr(BinariesSize div 1024) + NL +
     'Depends: libopenal1, libpng16-16, zlib1g, libvorbis0a, libvorbisfile3, libfreetype6, libgl1-mesa-dri, libgtk2.0-0' + NL +
     'Description: ' + Manifest.Caption + NL +
-    ' ' + ProjectComment + NL //final new line
+    ' ' + Manifest.DebianComment + NL //final new line
     );
   FreeAndNil(TextWriter);
 

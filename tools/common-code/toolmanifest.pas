@@ -127,6 +127,11 @@ type
       FIOSTeam: string;
       FindPascalFilesResult: TStringList; // valid only during FindPascalFilesCallback
 
+      FDebianInstallFolder: String;
+      FDebianSection: String;
+      FDebianCategories: String;
+      FDebianComment: String;
+
     function DefaultQualifiedName(const AName: String): String;
     procedure CheckMatches(const Name, Value: string; const AllowedChars: TSetOfChars);
     procedure CheckValidQualifiedName(const OptionName: string; const QualifiedName: string);
@@ -232,6 +237,23 @@ type
       Most build tool code should use TCastleProject.PluginSourceFile instead,
       that can optionally auto-create the source file. }
     property PluginSource: string read FPluginSource;
+
+    { Debian-specific things }
+    { Subfolder of /usr into which the app will be installed:
+      'games' will mean /usr/games/(projectname)
+      We make sure this directory will be set as a working directory when launched
+      Default: games }
+    property DebianInstallFolder: String read FDebianInstallFolder;
+    { App menu section, see man menufile for more information,
+      Default: Games }
+    property DebianSection: String read FDebianSection;
+    { Freedesktop category of the app,
+      see https://www.freedesktop.org/wiki/Specifications/menu-spec/ for more info
+      Default: Game }
+    property DebianCategories: String read FDebianCategories;
+    { A short description of the project.
+      See https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html for more info }
+    property DebianComment: String read FDebianComment;
 
     { Find a file with given BaseName (contains filename, with extension, but without any path)
       among SearchPaths of this project.
@@ -589,6 +611,20 @@ begin
 
     if FAndroidServices.HasService('open_associated_urls') then
       FAndroidServices.AddService('download_urls'); // downloading is needed when opening files from web
+
+    // read Debian-specific metadata
+    FDebianInstallFolder := 'games';
+    FDebianSection := 'Games';
+    FDebianCategories := 'Game';
+    FDebianComment := '';
+    Element := Doc.DocumentElement.ChildElement('debian', false);
+    if Element <> nil then
+    begin
+      FDebianInstallFolder := Element.AttributeStringDef('install_folder', FDebianInstallFolder);
+      FDebianSection := Element.AttributeStringDef('section', FDebianSection);
+      FDebianCategories := Element.AttributeStringDef('categories', FDebianCategories);
+      FDebianComment := Element.AttributeStringDef('comment', FDebianComment);
+    end;
   finally FreeAndNil(Doc) end;
 
   CreateFinish;
