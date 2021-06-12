@@ -25,7 +25,7 @@ type
 implementation
 uses
   SysUtils, Process, {$ifdef UNIX} BaseUnix, {$endif}
-  CastleUtils, CastleFilesUtils, CastleDownload, CastleLog;
+  CastleUtils, CastleFilesUtils, CastleDownload, CastleImages;
 
 procedure TPackageDebian.FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
 begin
@@ -43,14 +43,14 @@ procedure TPackageDebian.Make(const OutputProjectPath: String; const PackageFile
       aarch64: Result := 'arm64';
       arm: begin
           Result := 'armel';
-          WriteLnWarning('Architecture ' + CpuToString(Cpu) + ' is ambiguous between "armel" and "armhf" in Debian.');
+          WriteLn('WARNING: Architecture ' + CpuToString(Cpu) + ' is ambiguous between "armel" and "armhf" in Debian.');
         end;
       i386: Result := 'i386';
       mips: Result := 'mips';
       mipsel: Result := 'mipsel';
       powerpc64: begin
           Result := 'ppc64el';
-          WriteLnWarning('Architecture ' + CpuToString(Cpu) + ' is ambiguous between "ppc64el" and "ppc64" in Debian.');
+          WriteLn('WARNING: Architecture ' + CpuToString(Cpu) + ' is ambiguous between "ppc64el" and "ppc64" in Debian.');
         end;
       // "mips64el"
       // "s390x"
@@ -64,7 +64,7 @@ procedure TPackageDebian.Make(const OutputProjectPath: String; const PackageFile
       else {powerpc,sparc,avr,jvm,i8086,riscv32,armeb}
       begin
         Result := CpuToString(Cpu);
-        WriteLnWarning('Architecture ' + CpuToString(Cpu) + ' is not officially supported by Debian.');
+        WriteLn('WARNING: Architecture ' + CpuToString(Cpu) + ' is not officially supported by Debian.');
       end;
     end;
   end;
@@ -74,10 +74,9 @@ var
   AppCategoryDebian: String = 'Games/Adventure';
   ProjectComment: String = 'Roguelite hide-and-seek game on an infinite map';
   CategoriesString: String = 'Game;RolePlaying;';
-  ProjectIconFile: String = 'icon.xpm';
 
   PathToExecutableLocal, PathToExecutableUnix: String;
-  PathToIconFileLocal, PathToIconFileUnix: String;
+  PathToIconFileUnix: String;
   ShareDir: String;
   TextWriter: TTextWriter;
   OutString: String;
@@ -104,8 +103,8 @@ begin
 
   CreateDir(ShareDir + PathDelim + 'pixmaps');
   PathToIconFileUnix := '/usr/share/pixmaps/' + Manifest.ExecutableName + '.xpm';
-  PathToIconFileLocal := StringReplace(PathToIconFileUnix, '/', PathDelim, [rfReplaceAll]);
-  CheckCopyFile(ProjectIconFile, PackageFolder + PathToIconFileLocal);
+  SaveImage(Manifest.Icons.FindReadable, 'castle-engine-output/' + PackageFileName + PathToIconFileUnix);
+  //CheckCopyFile(ProjectIconFile, PackageFolder + PathToIconFileLocal);
 
   // Create menu item for the game
 
@@ -165,22 +164,23 @@ begin
 
   // Workaround, we need to execute a shell script somehow
 
-  TextWriter := TTextWriter.Create(OutputProjectPath + 'package-debian.sh');
+  TextWriter := TTextWriter.Create('castle-engine-output' + PathDelim + 'package-debian.sh');
   TextWriter.Write(
-    'cd ' + PackageFolder + NL +
+    'cd castle-engine-output' + NL +
+    'cd ' + PackageFileName + NL +
     'find -type f | egrep -v ''^\./DEBIAN'' | xargs --replace=hh -n1 md5sum "hh" | sed ''s/\ \.\///'' > DEBIAN/md5sums' + NL +
     'cd ..' + NL +
-    'dpkg-deb --build ' + PackageFolder
+    'dpkg-deb --build ' + PackageFileName
     );
   FreeAndNil(TextWriter);
 
-  //RunCommandSimple('sh ' + OutputProjectPath + 'package-debian.sh', []);
-  RunCommand('/bin/bash', ['package-debian.sh'], OutString);
+  RunCommand('/bin/bash', ['castle-engine-output/package-debian.sh'], OutString);
   WriteLn(OutString);
+  RenameFile(PackageFolder + '.deb', PackageFileName + '.deb');
 
   // And finally clean up the temporary files
   RemoveNonEmptyDir(PackageFolder);
-  DeleteFile(OutputProjectPath + 'package-debian.sh');
+  DeleteFile('castle-engine-output' + PathDelim + 'package-debian.sh');
 end;
 
 end.
