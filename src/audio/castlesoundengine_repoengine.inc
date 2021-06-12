@@ -493,6 +493,7 @@ begin
       DefaultImportance := PtrUInt(ASoundEngine.SoundImportanceNames.Objects[SoundImportanceIndex]);
   end;
 
+  Sound.Spatial := Element.AttributeBooleanDef('spatial', false); // TODO: Sound.Spatial should disappear
   Sound.Stream := Element.AttributeBooleanDef('stream', false);
 
   { set URL at the end, to avoid reloading when Sound.Stream changes }
