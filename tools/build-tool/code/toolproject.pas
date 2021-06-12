@@ -244,7 +244,7 @@ implementation
 
 uses StrUtils, DOM, Process,
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils,
-  ToolResources, ToolAndroid, ToolWindowsRegistry,
+  ToolResources, ToolAndroid, ToolWindowsRegistry, ToolDebian,
   ToolTextureGeneration, ToolIOS, ToolAndroidMerging, ToolNintendoSwitch,
   ToolCommonUtils, ToolMacros, ToolCompilerInfo, ToolPackageCollectFiles;
 
@@ -608,7 +608,7 @@ procedure TCastleProject.DoPackage(const Target: TTarget;
   const Mode: TCompilationMode; const PackageFormat: TPackageFormat;
   const PackageNameIncludeVersion, UpdateOnlyCode: Boolean);
 var
-  Pack: TPackageDirectory;
+  Pack: TPackageDirectoryAbstract;
 
   function UnixPermissionsMatter: Boolean;
   begin
@@ -718,6 +718,37 @@ begin
     Exit;
   end;
 
+  if PackageFormat = pfDeb then
+  begin
+    if (OS <> Linux) then
+      raise Exception.Create('Cannot package DEB for OS = ' + OSToString(OS) + ' Expected: Linux.');
+    {$ifndef Linux}
+    raise Exception.Create('Currently DEB package can only be created under Linux OS, as it depends on several Linux-specific tools.');
+    {$endif}
+    Pack := TPackageDebian.Create(Name);
+    try
+      { executable is added 1st, since it's the most likely file
+        to not exist, so we'll fail earlier }
+      AddExecutable;
+      AddExternalLibraries;
+
+      Files := PackageFiles(false, TargetPlatform);
+      try
+        for I := 0 to Files.Count - 1 do
+        begin
+          ExecutablePermission := (Files.Objects[I] <> nil) and (TIncludePath(Files.Objects[I]).ExecutablePermission);
+          Pack.Add(Path + Files[I], Files[I], ExecutablePermission);
+        end;
+      finally FreeAndNil(Files) end;
+
+      Pack.AddDataInformation(TCastleManifest.DataName);
+
+      PackageFileName := PackageName(OS, CPU, pfDeb, PackageNameIncludeVersion);
+      (Pack as TPackageDebian).Make(OutputPath, PackageFileName, Cpu, Manifest);
+    finally FreeAndNil(Pack) end;
+    Exit;
+  end;
+
   if PackageFormat = pfDefault then
   begin
     { for Android, the packaging process is special }
@@ -765,7 +796,7 @@ begin
     Pack.AddDataInformation(TCastleManifest.DataName);
 
     PackageFileName := PackageName(OS, CPU, PackageFormatFinal, PackageNameIncludeVersion);
-    Pack.Make(OutputPath, PackageFileName, PackageFormatFinal);
+    (Pack as TPackageDirectory).Make(OutputPath, PackageFileName, PackageFormatFinal);
   finally FreeAndNil(Pack) end;
 end;
 
