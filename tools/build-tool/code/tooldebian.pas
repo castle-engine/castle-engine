@@ -25,7 +25,8 @@ type
 implementation
 uses
   SysUtils, Process, {$ifdef UNIX} BaseUnix, {$endif}
-  CastleUtils, CastleFilesUtils, CastleDownload, CastleImages;
+  CastleUtils, CastleFilesUtils, CastleDownload, CastleImages,
+  ToolCommonUtils;
 
 procedure TPackageDebian.FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
 begin
@@ -76,7 +77,7 @@ var
   CategoriesString: String = 'Game;RolePlaying;';
 
   PathToExecutableLocal, PathToExecutableUnix: String;
-  PathToIconFileUnix: String;
+  PathToIconFileLocal, PathToIconFileUnix: String;
   ShareDir: String;
   TextWriter: TTextWriter;
   OutString: String;
@@ -103,8 +104,17 @@ begin
 
   CreateDir(ShareDir + PathDelim + 'pixmaps');
   PathToIconFileUnix := '/usr/share/pixmaps/' + Manifest.ExecutableName + '.xpm';
-  SaveImage(Manifest.Icons.FindReadable, 'castle-engine-output/' + PackageFileName + PathToIconFileUnix);
-  //CheckCopyFile(ProjectIconFile, PackageFolder + PathToIconFileLocal);
+  PathToIconFileLocal := StringReplace(PathToIconFileUnix, '/', PathDelim, [rfReplaceAll]);
+  if Manifest.Icons.FindExtension(['.xpm']) <> '' then
+    CheckCopyFile(Manifest.Icons.FindExtension(['.xpm']), PackageFolder + PathToIconFileLocal)
+  else
+  begin
+    // using ImageMagic - FPWriteXPM first doesn't properly write alpha channel, second uses palette char size = 2 which is not a good idea for an icon
+    //RunCommandSimple(FindExe('convert'), [Manifest.Icons.FindExtension(['.png']), PackageFolder + PathToIconFileLocal]);
+    if not RunCommand('/bin/convert', [Manifest.Icons.FindExtension(['.png']), PackageFolder + PathToIconFileLocal], OutString) then
+      WriteLn('ImageMagick failed.');
+    WriteLn(OutString);
+  end;
 
   // Create menu item for the game
 
