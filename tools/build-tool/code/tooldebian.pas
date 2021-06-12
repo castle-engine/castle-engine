@@ -88,7 +88,7 @@ begin
 
   // Copy the binaries
 
-  PathToExecutableUnix := '/usr/' + AppCategoryFolder + '/' + LowerCase(Manifest.Name);
+  PathToExecutableUnix := '/usr/' + AppCategoryFolder + '/' + Manifest.Name;
   PathToExecutableLocal := StringReplace(PathToExecutableUnix, '/', PathDelim, [rfReplaceAll]);
   CopyDirectory(Path, PackageFileName + PathToExecutableLocal);
   ShareDir := PackageFileName + PathDelim + 'usr' + PathDelim + 'share';
@@ -109,12 +109,12 @@ begin
   // Create menu item for the game
 
   CreateDir(ShareDir + PathDelim + 'menu');
-  TextWriter := TTextWriter.Create(ShareDir + PathDelim + 'menu' + PathDelim + LowerCase(Manifest.Name));
+  TextWriter := TTextWriter.Create(ShareDir + PathDelim + 'menu' + PathDelim + Manifest.Name);
   TextWriter.Write(
-    '?package(' + LowerCase(Manifest.Name) + '): \' + NL +
+    '?package(' + Manifest.Name + '): \' + NL +
     'needs="X11" \' + NL +
     'section="' + AppCategoryDebian + '" \' + NL +
-    'title="' + Manifest.Name + '" \' + NL +
+    'title="' + Manifest.Caption + '" \' + NL +
     'command="bash -c ''cd ' + PathToExecutableUnix + ' && ./' + Manifest.ExecutableName + '''" \' + NL +
     'icon="' + PathToIconFileUnix +'"'
     );
@@ -130,7 +130,7 @@ begin
     'Icon=' + PathToIconFileUnix + NL +
     'Type=Application' + NL +
     'Categories=' + CategoriesString + NL +
-    'Name=' + Manifest.Name + NL +
+    'Name=' + Manifest.Caption + NL +
     'Comment=' + ProjectComment
     );
   FreeAndNil(TextWriter);
@@ -138,7 +138,7 @@ begin
   CreateDir(PackageFileName + PathDelim + 'DEBIAN');
   TextWriter := TTextWriter.Create(PackageFileName + PathDelim + 'DEBIAN' + PathDelim + 'control');
   TextWriter.Write(
-    'Package: ' + LowerCase(Manifest.Name) + NL +
+    'Package: ' + Manifest.Name + NL +
     'Version: ' + Manifest.Version.DisplayValue + NL +
     'Section: ' + AppCategoryFolder + NL +
     'Priority: optional' + NL +
@@ -146,7 +146,7 @@ begin
     'Maintainer: ' + Manifest.Author + NL +
     'Installed-Size: ' + IntToStr(BinariesSize div 1024) + NL +
     'Depends: libopenal1, libpng16-16, zlib1g, libvorbis0a, libvorbisfile3, libfreetype6, libgl1-mesa-dri, libgtk2.0-0' + NL +
-    'Description: ' + Manifest.Name + NL +
+    'Description: ' + Manifest.Caption + NL +
     ' ' + ProjectComment + NL //final new line
     );
   FreeAndNil(TextWriter);
