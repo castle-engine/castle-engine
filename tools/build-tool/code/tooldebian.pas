@@ -76,35 +76,36 @@ var
   CategoriesString: String = 'Game;RolePlaying;';
   ProjectIconFile: String = 'icon.xpm';
 
-
   PathToExecutableLocal, PathToExecutableUnix: String;
   PathToIconFileLocal, PathToIconFileUnix: String;
   ShareDir: String;
   TextWriter: TTextWriter;
   OutString: String;
+  PackageFolder: String;
 begin
-  if DirectoryExists(PackageFileName) then
-    RemoveNonEmptyDir(PackageFileName);
+  PackageFolder := 'castle-engine-output' + PathDelim + PackageFileName;
+  if DirectoryExists(PackageFolder) then
+    RemoveNonEmptyDir(PackageFolder);
 
   // Copy the binaries
 
   PathToExecutableUnix := '/usr/' + AppCategoryFolder + '/' + Manifest.Name;
   PathToExecutableLocal := StringReplace(PathToExecutableUnix, '/', PathDelim, [rfReplaceAll]);
-  CopyDirectory(Path, PackageFileName + PathToExecutableLocal);
-  ShareDir := PackageFileName + PathDelim + 'usr' + PathDelim + 'share';
+  CopyDirectory(Path, PackageFolder + PathToExecutableLocal);
+  ShareDir := PackageFolder + PathDelim + 'usr' + PathDelim + 'share';
   CreateDir(ShareDir);
 
   // Calculate binaries size
 
   BinariesSize := 0;
-  FindFiles(PackageFileName + PathToExecutableLocal, '*', false, {$ifdef CASTLE_OBJFPC}@{$endif} FoundFile, [ffRecursive]);
+  FindFiles(PackageFolder + PathToExecutableLocal, '*', false, {$ifdef CASTLE_OBJFPC}@{$endif} FoundFile, [ffRecursive]);
 
   // Copy XPM icon
 
   CreateDir(ShareDir + PathDelim + 'pixmaps');
   PathToIconFileUnix := '/usr/share/pixmaps/' + Manifest.ExecutableName + '.xpm';
   PathToIconFileLocal := StringReplace(PathToIconFileUnix, '/', PathDelim, [rfReplaceAll]);
-  CheckCopyFile(ProjectIconFile, PackageFileName + PathToIconFileLocal);
+  CheckCopyFile(ProjectIconFile, PackageFolder + PathToIconFileLocal);
 
   // Create menu item for the game
 
@@ -135,8 +136,8 @@ begin
     );
   FreeAndNil(TextWriter);
 
-  CreateDir(PackageFileName + PathDelim + 'DEBIAN');
-  TextWriter := TTextWriter.Create(PackageFileName + PathDelim + 'DEBIAN' + PathDelim + 'control');
+  CreateDir(PackageFolder + PathDelim + 'DEBIAN');
+  TextWriter := TTextWriter.Create(PackageFolder + PathDelim + 'DEBIAN' + PathDelim + 'control');
   TextWriter.Write(
     'Package: ' + Manifest.Name + NL +
     'Version: ' + Manifest.Version.DisplayValue + NL +
@@ -153,23 +154,23 @@ begin
 
   // Post-installation running - assign executable permissions
 
-  TextWriter := TTextWriter.Create(PackageFileName + PathDelim + 'DEBIAN' + PathDelim + 'postinst');
+  TextWriter := TTextWriter.Create(PackageFolder + PathDelim + 'DEBIAN' + PathDelim + 'postinst');
   TextWriter.Write(
     '#!/bin/sh' + NL + NL +
     'chmod +x ' + PathToExecutableUnix + '/' + Manifest.ExecutableName + NL + NL +
     'exit 0'
     );
   FreeAndNil(TextWriter);
-  fpChmod(PackageFileName + PathDelim + 'DEBIAN' + PathDelim + 'postinst', &555);
+  fpChmod(PackageFolder + PathDelim + 'DEBIAN' + PathDelim + 'postinst', &555);
 
   // Workaround, we need to execute a shell script somehow
 
   TextWriter := TTextWriter.Create(OutputProjectPath + 'package-debian.sh');
   TextWriter.Write(
-    'cd ' + PackageFileName + NL +
+    'cd ' + PackageFolder + NL +
     'find -type f | egrep -v ''^\./DEBIAN'' | xargs --replace=hh -n1 md5sum "hh" | sed ''s/\ \.\///'' > DEBIAN/md5sums' + NL +
     'cd ..' + NL +
-    'dpkg-deb --build ' + PackageFileName
+    'dpkg-deb --build ' + PackageFolder
     );
   FreeAndNil(TextWriter);
 
@@ -178,7 +179,7 @@ begin
   WriteLn(OutString);
 
   // And finally clean up the temporary files
-  RemoveNonEmptyDir(PackageFileName);
+  RemoveNonEmptyDir(PackageFolder);
   DeleteFile(OutputProjectPath + 'package-debian.sh');
 end;
 
