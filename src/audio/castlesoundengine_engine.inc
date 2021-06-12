@@ -927,7 +927,7 @@ begin
   try
     Params.Buffer     := ASound.InternalBuffer;
     Params.Spatial    := ASound.Spatial;
-    Params.Looping    := false;
+    Params.Looping    := PlayingSound.Looping;
     Params.Importance := DefaultSoundImportance; // TODO
     Params.Pitch      := ASound.Pitch;
     Params.Volume     := ASound.Volume;
