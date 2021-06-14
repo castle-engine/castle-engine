@@ -5905,7 +5905,7 @@
                 "Name" : "GroundLine1",
                 "TranslationPersistent" : {
                   "X" : 2.9315517578125000E+003,
-                  "Y" : -3.7281518554687500E+002,
+                  "Y" : -9.3588452148437500E+002,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
                 "$Children" : [
@@ -6133,7 +6133,7 @@
                       "$ClassName" : "TCastleScene.TSceneRenderOptions"
                     },
                     "TranslationPersistent" : {
-                      "X" : 1.1276899414062500E+003,
+                      "X" : 1.1270000000000000E+003,
                       "Y" : 1.1552999877929688E+002,
                       "$ClassName" : "TCastleVector3Persistent"
                     },

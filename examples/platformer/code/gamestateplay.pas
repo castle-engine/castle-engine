@@ -57,6 +57,7 @@ type
     ImageHitPoint2: TCastleImageControl;
     ImageHitPoint1: TCastleImageControl;
     ImageKey: TCastleImageControl;
+    CoinsRoot: TCastleTransform;
 
     { Checks this is firs Update when W key (jump) was pressed }
     WasJumpKeyPressed: Boolean;
@@ -478,23 +479,31 @@ begin
     begin
       CollectCoin;
       CollisionDetails.OtherTransform.Exists := false;
+      //TODO: Exists in root problem workaround (https://github.com/castle-engine/castle-engine/pull/292)
+      CollisionDetails.OtherTransform.RigidBody.Exists := false;
     end else
     if Pos('DblJump', CollisionDetails.OtherTransform.Name) > 0 then
     begin
       SoundEngine.Sound(SoundEngine.SoundFromName('power_up'));
       PlayerCanDoubleJump := true;
       CollisionDetails.OtherTransform.Exists := false;
+      //TODO: Exists in root problem workaround (https://github.com/castle-engine/castle-engine/pull/292)
+      CollisionDetails.OtherTransform.RigidBody.Exists := false;
     end else
     if Pos('Shot', CollisionDetails.OtherTransform.Name) > 0 then
     begin
       SoundEngine.Sound(SoundEngine.SoundFromName('power_up'));
       PlayerCanShot := true;
       CollisionDetails.OtherTransform.Exists := false;
+      //TODO: Exists in root problem workaround (https://github.com/castle-engine/castle-engine/pull/292)
+      CollisionDetails.OtherTransform.RigidBody.Exists := false;
     end else
     if Pos('Key', CollisionDetails.OtherTransform.Name) > 0 then
     begin
       CollectKey;
       CollisionDetails.OtherTransform.Exists := false;
+      //TODO: Exists in root problem workaround (https://github.com/castle-engine/castle-engine/pull/292)
+      CollisionDetails.OtherTransform.RigidBody.Exists := false;
     end else
     if Pos('Door', CollisionDetails.OtherTransform.Name) > 0 then
     begin
@@ -510,6 +519,7 @@ end;
 procedure TStatePlay.PlayerCollisionExit(
   const CollisionDetails: TPhysicsCollisionDetails);
 begin
+  { Hide no key message. }
   if CollisionDetails.OtherTransform <> nil then
   begin
     if (Pos('Door', CollisionDetails.OtherTransform.Name) > 0) and
@@ -1357,7 +1367,7 @@ procedure TStatePlay.Start;
 var
   { TCastleTransforms that groups objects in our level }
   PlatformsRoot: TCastleTransform;
-  CoinsRoot: TCastleTransform;
+
   GroundsRoot: TCastleTransform;
   GroundsLineRoot: TCastleTransform;
   StonesRoot: TCastleTransform;
@@ -1520,6 +1530,8 @@ begin
 
   { Play game music }
   SoundEngine.LoopingChannel[0].Sound := SoundEngine.SoundFromName('game_music');
+
+  WritelnLog('Configuration done');
 end;
 
 procedure TStatePlay.Stop;
@@ -1552,6 +1564,9 @@ begin
   if IsPlayerDead and (TUIState.CurrentTop <> StateGameOver) then
   begin
     ScenePlayer.Exists := false;
+    //TODO: Exists in root problem workaround (https://github.com/castle-engine/castle-engine/pull/292)
+    ScenePlayer.RigidBody.Exists := false;
+
     TUIState.Push(StateGameOver);
     Exit;
   end;
@@ -1622,6 +1637,10 @@ begin
     Container.SaveScreenToDefaultFile;
     Exit(true);
   end;
+
+  // This will be working when exists in root will be fixed
+  {if Event.IsKey(keyF6) then
+    CoinsRoot.Exists := not CoinsRoot.Exists;}
 
   if Event.IsKey(keyEscape) then
   begin
