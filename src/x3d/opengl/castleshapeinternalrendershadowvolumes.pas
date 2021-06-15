@@ -60,7 +60,15 @@ type
       const Transform: TMatrix4;
       const LightCap, DarkCap: boolean;
       const ForceOpaque: boolean);
+
+
+    procedure RenderSilhouetteShadowVolumeOld(
+      const LightPos: TVector4;
+      const Transform: TMatrix4;
+      const LightCap, DarkCap: boolean;
+      const ForceOpaque: boolean);
   end;
+
 
 implementation
 
@@ -70,7 +78,7 @@ implementation
 uses SysUtils,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleRenderingCamera, CastleGLUtils, CastleUtils, CastleScene, CastleShapes,
-  CastleImages, CastleRenderContext, CastleColors,
+  CastleImages, CastleRenderContext, CastleColors, CastleInternalGLShadowVolumes,
   X3DNodes;
 {$warnings on}
 
@@ -154,15 +162,11 @@ begin
 end;
 
 
-// start nowa
-
 procedure TRenderShapeShadowVolumes.RenderSilhouetteShadowVolume(
   const LightPos: TVector4;
   const Transform: TMatrix4;
   const LightCap, DarkCap: boolean;
   const ForceOpaque: boolean);
-
-//{$ifndef OpenGLES} //TODO-es
 
 { Is it worth preparing ManifoldEdges list: yes.
 
@@ -208,34 +212,19 @@ var
     V0 := Transform.MultPoint(EdgeV0^);
     V1 := Transform.MultPoint(EdgeV1^);
 
-    {glVertexv(V0);
-    glVertexv(V1);}
-
     if LightPos[3] <> 0 then
     begin
-    QuadCoords.FdPoint.Items.Add(V0);
-    QuadCoords.FdPoint.Items.Add(V1);
+      QuadCoords.FdPoint.Items.Add(V0);
+      QuadCoords.FdPoint.Items.Add(V1);
 
-    QuadCoords.FdPoint.Items.Add(ExtrudeVertex(V1, LightPos));
-    QuadCoords.FdPoint.Items.Add(ExtrudeVertex(V0, LightPos));
+      QuadCoords.FdPoint.Items.Add(ExtrudeVertex(V1, LightPos));
+      QuadCoords.FdPoint.Items.Add(ExtrudeVertex(V0, LightPos));
     end else
     begin
       TriangleCoords.FdPoint.Items.Add(V0);
       TriangleCoords.FdPoint.Items.Add(V1);
       TriangleCoords.FdPoint.Items.Add(Vector3(LightPos[0], LightPos[1], LightPos[2]));
     end;
-
-    {WritelnLog('V0: ' + V0.ToString);
-    WritelnLog('V1: ' + V1.ToString);
-    WritelnLog('V1E: ' + ExtrudeVertex(V1, LightPos).ToString);
-    WritelnLog('V0E: ' + ExtrudeVertex(V0, LightPos).ToString);}
-
-    {if LightPos[3] <> 0 then
-    begin
-      glVertexv(ExtrudeVertex(V1, LightPos));
-      glVertexv(ExtrudeVertex(V0, LightPos));
-    end else
-      glVertexv(LightPos);}
   end;
 
   procedure RenderShadowQuad(EdgePtr: PBorderEdge;
@@ -252,30 +241,20 @@ var
     V0 := Transform.MultPoint(EdgeV0^);
     V1 := Transform.MultPoint(EdgeV1^);
 
-    //glVertexv(V0);
-    //glVertexv(V1);
-
     /// border
     if LightPos[3] <> 0 then
     begin
-    QuadCoords.FdPoint.Items.Add(V0);
-    QuadCoords.FdPoint.Items.Add(V1);
+      QuadCoords.FdPoint.Items.Add(V0);
+      QuadCoords.FdPoint.Items.Add(V1);
 
-    QuadCoords.FdPoint.Items.Add(ExtrudeVertex(V1, LightPos));
-    QuadCoords.FdPoint.Items.Add(ExtrudeVertex(V0, LightPos));
+      QuadCoords.FdPoint.Items.Add(ExtrudeVertex(V1, LightPos));
+      QuadCoords.FdPoint.Items.Add(ExtrudeVertex(V0, LightPos));
     end else
     begin
       TriangleCoords.FdPoint.Items.Add(V0);
       TriangleCoords.FdPoint.Items.Add(V1);
       TriangleCoords.FdPoint.Items.Add(Vector3(LightPos[0], LightPos[1], LightPos[2]));
     end;
-
-    {if LightPos[3] <> 0 then
-    begin
-      glVertexv(ExtrudeVertex(V1, LightPos));
-      glVertexv(ExtrudeVertex(V0, LightPos));
-    end else
-      glVertexv(LightPos);}
   end;
 
   { We initialize TrianglesPlaneSide and render caps in one step,
@@ -286,36 +265,40 @@ var
     TrianglesPlaneSide: TBooleanList;
     LightCap, DarkCap: boolean);
 
+  var
+    DepthNever: Boolean;
+
     procedure RenderCaps(const T: TTriangle3);
     begin
       if LightCap then
       begin
-        {glVertexv(T.Data[0]);
-        glVertexv(T.Data[1]);
-        glVertexv(T.Data[2]);}
-        TriangleCoords.FdPoint.Items.Add(T.Data[0]);
-        TriangleCoords.FdPoint.Items.Add(T.Data[1]);
-        TriangleCoords.FdPoint.Items.Add(T.Data[2]);
-
-        {TriangleCoords.FdPoint.Items.Add(T.Data[2]);
-        TriangleCoords.FdPoint.Items.Add(T.Data[1]);
-        TriangleCoords.FdPoint.Items.Add(T.Data[0]);}
-
+        if DepthNever then
+        begin
+          TriangleCoordsDepthNever.FdPoint.Items.Add(T.Data[0]);
+          TriangleCoordsDepthNever.FdPoint.Items.Add(T.Data[1]);
+          TriangleCoordsDepthNever.FdPoint.Items.Add(T.Data[2]);
+        end else
+        begin
+          TriangleCoords.FdPoint.Items.Add(T.Data[0]);
+          TriangleCoords.FdPoint.Items.Add(T.Data[1]);
+          TriangleCoords.FdPoint.Items.Add(T.Data[2]);
+        end;
       end;
 
       if DarkCap then
       begin
-        {glVertexv(ExtrudeVertex(T.Data[2], LightPos));
-        glVertexv(ExtrudeVertex(T.Data[1], LightPos));
-        glVertexv(ExtrudeVertex(T.Data[0], LightPos));}
-        TriangleCoords.FdPoint.Items.Add(ExtrudeVertex(T.Data[2], LightPos));
-        TriangleCoords.FdPoint.Items.Add(ExtrudeVertex(T.Data[1], LightPos));
-        TriangleCoords.FdPoint.Items.Add(ExtrudeVertex(T.Data[0], LightPos));
-
-        {TriangleCoords.FdPoint.Items.Add(ExtrudeVertex(T.Data[0], LightPos));
-        TriangleCoords.FdPoint.Items.Add(ExtrudeVertex(T.Data[1], LightPos));
-        TriangleCoords.FdPoint.Items.Add(ExtrudeVertex(T.Data[2], LightPos));}
-
+        if DepthNever then
+        begin
+          TriangleCoordsDepthNever.FdPoint.Items.Add(ExtrudeVertex(T.Data[2], LightPos));
+          TriangleCoordsDepthNever.FdPoint.Items.Add(ExtrudeVertex(T.Data[1], LightPos));
+          TriangleCoordsDepthNever.FdPoint.Items.Add(ExtrudeVertex(T.Data[0], LightPos));
+        end
+        else
+          begin
+            TriangleCoords.FdPoint.Items.Add(ExtrudeVertex(T.Data[2], LightPos));
+            TriangleCoords.FdPoint.Items.Add(ExtrudeVertex(T.Data[1], LightPos));
+            TriangleCoords.FdPoint.Items.Add(ExtrudeVertex(T.Data[0], LightPos));
+          end;
       end;
     end;
 
@@ -429,35 +412,21 @@ var
     procedure OpaqueTrianglesBegin;
     begin
       if LightCap or DarkCap then
-      begin
-        ///glPushAttrib(GL_DEPTH_BUFFER_BIT); { to save glDepthFunc call below }
-        ///glDepthFunc(GL_NEVER);
-        ///glBegin(GL_TRIANGLES);
-      end;
+        DepthNever := true;
     end;
 
     procedure OpaqueTrianglesEnd;
     begin
       if LightCap or DarkCap then
-      begin
-        ///glEnd;
-        ///glPopAttrib;
-      end;
+        DepthNever := false;
     end;
 
-    procedure TransparentTrianglesBegin;
+    procedure TransparentTriangles;
     begin
       { Caps are always needed, doesn't depend on zpass/zfail.
         Well, for dark cap we can avoid them if the light is directional. }
       LightCap := true;
       DarkCap := LightPos.Data[3] <> 0;
-
-      ///glBegin(GL_TRIANGLES);
-    end;
-
-    procedure TransparentTrianglesEnd;
-    begin
-      ///glEnd;
     end;
 
   var
@@ -472,7 +441,7 @@ var
 
     if ForceOpaque or not (TShape(FShape).AlphaChannel = acBlending) then
       OpaqueTrianglesBegin else
-      TransparentTrianglesBegin;
+      TransparentTriangles;
 
     for I := 0 to Triangles.Count - 1 do
     begin
@@ -481,8 +450,96 @@ var
     end;
 
     if ForceOpaque or not (TShape(FShape).AlphaChannel = acBlending) then
-      OpaqueTrianglesEnd else
-      TransparentTrianglesEnd;
+      OpaqueTrianglesEnd;
+  end;
+
+  procedure InitializeInternalScenes;
+  var
+    RootNode: TX3DRootNode;
+    QuadSetNode: TQuadSetNode;
+    TriangleSetNode: TTriangleSetNode;
+    ShapeNode: TShapeNode;
+    MaterialNode: TMaterialNode;
+    ApperanceNode: TAppearanceNode;
+  begin
+    if SceneForShadowVolumes = nil then
+    begin
+      SceneForShadowVolumes := TCastleScene.Create(nil);
+
+      RootNode := TX3DRootNode.Create;
+
+      MaterialNode := TMaterialNode.Create;
+      MaterialNode.EmissiveColor := RedRGB;
+
+      ApperanceNode := TAppearanceNode.Create;
+      ApperanceNode.Material := MaterialNode;
+
+      QuadCoords := TCoordinateNode.Create;
+      QuadSetNode := TQuadSetNode.Create;
+      QuadSetNode.Solid := false;
+      QuadSetNode.Coord := QuadCoords;
+
+      ShapeNode := TShapeNode.Create;
+      ShapeNode.Geometry := QuadSetNode;
+      ShapeNode.Appearance := ApperanceNode;
+
+      RootNode.AddChildren(ShapeNode);
+
+      TriangleCoords := TCoordinateNode.Create;
+
+      TriangleSetNode := TTriangleSetNode.Create;
+      TriangleSetNode.Solid := false;
+      TriangleSetNode.Coord := TriangleCoords;
+
+      ShapeNode := TShapeNode.Create;
+      ShapeNode.Geometry := TriangleSetNode;
+      ShapeNode.Appearance := ApperanceNode;
+
+      RootNode.AddChildren(ShapeNode);
+
+      TCastleScene(SceneForShadowVolumes).Load(RootNode, true);
+    end;
+
+    if SceneDepthNever = nil then
+    begin
+      SceneDepthNever := TCastleScene.Create(nil);
+
+      RootNode := TX3DRootNode.Create;
+
+      MaterialNode := TMaterialNode.Create;
+      MaterialNode.EmissiveColor := RedRGB;
+
+      ApperanceNode := TAppearanceNode.Create;
+      ApperanceNode.Material := MaterialNode;
+
+      TriangleCoordsDepthNever := TCoordinateNode.Create;
+
+      TriangleSetNode := TTriangleSetNode.Create;
+      TriangleSetNode.Solid := false;
+      TriangleSetNode.Coord := TriangleCoordsDepthNever;
+
+      ShapeNode := TShapeNode.Create;
+      ShapeNode.Geometry := TriangleSetNode;
+      ShapeNode.Appearance := ApperanceNode;
+
+      RootNode.AddChildren(ShapeNode);
+
+      TCastleScene(SceneDepthNever).Load(RootNode, true);
+    end;
+  end;
+
+  procedure ClearInternalScenes;
+  begin
+    TriangleCoordsDepthNever.FdPoint.Items.Clear;
+    TriangleCoords.FdPoint.Items.Clear;
+    QuadCoords.FdPoint.Items.Clear;
+  end;
+
+  procedure UpdateInternalScenes;
+  begin
+    TriangleCoordsDepthNever.FdPoint.Changed;
+    TriangleCoords.FdPoint.Changed;
+    QuadCoords.FdPoint.Changed;
   end;
 
 var
@@ -493,15 +550,16 @@ var
   ManifoldEdgePtr: PManifoldEdge;
   BorderEdgesNow: TBorderEdgeList;
   BorderEdgePtr: PBorderEdge;
-  Root: TX3DRootNode;
-  QuadSet: TQuadSetNode;
-  TriangleSet: TTriangleSetNode;
-  Sh: TShapeNode;
   Params: TBasicRenderParams;
-  Material: TMaterialNode;
-  Apperance: TAppearanceNode;
-  Matrix: TMatrix4;
 begin
+  {$ifndef OpenGLES}
+  if InternalUseOldShadowVolumes then
+  begin
+    RenderSilhouetteShadowVolumeOld(LightPos, Transform, LightCap, DarkCap, ForceOpaque);
+    Exit;
+  end;
+  {$endif not OpenGLES}
+
   Assert(ManifoldEdges <> nil);
 
   { if the model is not perfect 2-manifold, do not render it's shadow volumes.
@@ -512,46 +570,9 @@ begin
 
   Triangles := TrianglesListShadowCasters;
 
-  if SceneForShadowVolumes = nil then
-  begin
-    SceneForShadowVolumes := TCastleScene.Create(nil);
+  InitializeInternalScenes;
 
-    Root := TX3DRootNode.Create;
-
-    Material := TMaterialNode.Create;
-    Material.EmissiveColor := RedRGB;
-
-    Apperance := TAppearanceNode.Create;
-    Apperance.Material := Material;
-
-    QuadCoords := TCoordinateNode.Create;
-    QuadSet := TQuadSetNode.Create;
-    QuadSet.Solid := false;
-    QuadSet.Coord := QuadCoords;
-
-    Sh := TShapeNode.Create;
-    Sh.Geometry := QuadSet;
-    Sh.Appearance := Apperance;
-
-    Root.AddChildren(Sh);
-
-    TriangleCoords := TCoordinateNode.Create;
-
-    TriangleSet := TTriangleSetNode.Create;
-    TriangleSet.Solid := false;
-    TriangleSet.Coord := TriangleCoords;
-
-    Sh := TShapeNode.Create;
-    Sh.Geometry := TriangleSet;
-    Sh.Appearance := Apperance;
-
-    Root.AddChildren(Sh);
-
-    TCastleScene(SceneForShadowVolumes).Load(Root, true);
-  end;
-
-  TriangleCoords.FdPoint.Items.Clear;
-  QuadCoords.FdPoint.Items.Clear;
+  ClearInternalScenes;
 
   TrianglesPlaneSide := TBooleanList.Create;
   try
@@ -594,27 +615,31 @@ begin
 
   finally FreeAndNil(TrianglesPlaneSide) end;
 
-  TriangleCoords.FdPoint.Changed;
-  QuadCoords.FdPoint.Changed;
+  UpdateInternalScenes;
 
   Params := TBasicRenderParams.Create;
   try
     Params.RenderingCamera := RenderingCamera;
     Params.TransformIdentity := true;
     Params.Transparent := false;
-    Matrix := TMatrix4.Identity;
-    Params.Transform := @Matrix;
+    //Matrix := TMatrix4.Identity;
+    //Params.Transform := @Matrix;
     Params.ShadowVolumesReceivers := [true];
+
+    RenderContext.DepthFunc := dfNever;
+    TCastleScene(SceneDepthNever).Render(Params);
+
+    RenderContext.DepthFunc := dfLessEqual;
     TCastleScene(SceneForShadowVolumes).Render(Params);
+
   finally
     FreeAndNil(Params);
   end;
 end;
 
 
-{
-// start stara
-procedure TRenderShapeShadowVolumes.RenderSilhouetteShadowVolume(
+
+procedure TRenderShapeShadowVolumes.RenderSilhouetteShadowVolumeOld(
   const LightPos: TVector4;
   const Transform: TMatrix4;
   const LightCap, DarkCap: boolean;
@@ -668,10 +693,6 @@ var
 
     glVertexv(V0);
     glVertexv(V1);
-    {WritelnLog('V0: ' + V0.ToString);
-    WritelnLog('V1: ' + V1.ToString);
-    WritelnLog('V1E: ' + ExtrudeVertex(V1, LightPos).ToString);
-    WritelnLog('V0E: ' + ExtrudeVertex(V0, LightPos).ToString);}
 
     if LightPos[3] <> 0 then
     begin
@@ -1003,6 +1024,6 @@ begin
 begin
 {$endif}
 end;
-}
+
 
 end.

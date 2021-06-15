@@ -2052,7 +2052,7 @@ begin
   end else
     LineType := ltSolid;
 
-  GLSetEnabled(GL_DEPTH_TEST, Beginning and RenderOptions.DepthTest);
+  RenderContext.DepthTest := Beginning and RenderOptions.DepthTest;
 
   if GLFeatures.EnableFixedFunction and (RenderOptions.Mode in [rmDepth, rmFull]) then
   begin

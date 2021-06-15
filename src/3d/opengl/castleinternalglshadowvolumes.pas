@@ -229,11 +229,14 @@ type
       const DrawShadowVolumes: boolean);
   end;
 
+var
+  InternalUseOldShadowVolumes: Boolean = false;
+
 implementation
 
 uses SysUtils,
   CastleUtils, CastleStringUtils, CastleLog, CastleGLVersion,
-  CastleTriangles, CastleRenderOptions;
+  CastleTriangles, CastleRenderOptions, CastleRenderContext;
 
 constructor TGLShadowVolumeRenderer.Create;
 begin
@@ -638,13 +641,6 @@ procedure TGLShadowVolumeRenderer.Render(
   const Render3D: TSVRenderParamsProc;
   const RenderShadowVolumes: TSVRenderProc;
   const DrawShadowVolumes: boolean);
-///{$ifdef OpenGLES}
-///begin
-  // TODO-es
-///  Params.Transparent := false; Params.ShadowVolumesReceivers := [false, true]; Render3D(Params);
-///  Params.Transparent := true ; Params.ShadowVolumesReceivers := [false, true]; Render3D(Params);
-/// {$else}
-
 const
   { Which stencil bits should be tested when determining which things
     are in the scene ?
@@ -667,8 +663,9 @@ const
   StencilShadowBits = $FF;
 var
   OldCount: boolean;
-  OldDepthTest: TGLboolean;
-  OldDepthFunc: TGLint;
+  OldCullFace: Boolean;
+  OldDepthTest: Boolean;
+  OldDepthFunc: TDepthFunction;
 begin
   Params.InShadow := false;
   Params.Transparent := false;
@@ -681,44 +678,42 @@ begin
   Render3D(Params);
 
   glEnable(GL_STENCIL_TEST);
-    { Note that stencil buffer is set to all 0 now. }
+  { Note that stencil buffer is set to all 0 now. }
 
-    ///glPushAttrib(GL_ENABLE_BIT
-    ///  { saves Enable(GL_DEPTH_TEST), Enable(GL_CULL_FACE) });
-      OldDepthTest := glGetBoolean(GL_DEPTH_TEST);
-      glEnable(GL_DEPTH_TEST);
+  OldDepthTest := RenderContext.DepthTest;
+  RenderContext.DepthTest := true;
 
-      { Calculate shadows to the stencil buffer.
-        Don't write anything to depth or color buffers. }
-      glSetDepthAndColorWriteable(false);
-        glStencilFunc(GL_ALWAYS, 0, 0);
+  { Calculate shadows to the stencil buffer. Don't write anything to depth or
+  color buffers. }
+  glSetDepthAndColorWriteable(false);
+  glStencilFunc(GL_ALWAYS, 0, 0);
 
-        if StencilTwoSided then
-        begin
-          StencilSetupKind := ssFrontAndBack;
-          RenderShadowVolumes;
-        end else
-        begin
-          glEnable(GL_CULL_FACE);
+  if StencilTwoSided then
+  begin
+    StencilSetupKind := ssFrontAndBack;
+    RenderShadowVolumes;
+  end else
+  begin
+    OldCullFace := RenderContext.CullFace;
+    RenderContext.CullFace := true;
 
-          { Render front facing shadow shadow volume faces. }
-          StencilSetupKind := ssFront;
-          glCullFace(GL_BACK);
-          RenderShadowVolumes;
+    { Render front facing shadow shadow volume faces. }
+    StencilSetupKind := ssFront;
+    glCullFace(GL_BACK);
+    RenderShadowVolumes;
 
-          { Render back facing shadow shadow volume faces. }
-          StencilSetupKind := ssBack;
-          OldCount := Count;
-          Count := false;
-          glCullFace(GL_FRONT);
-          RenderShadowVolumes;
-          Count := OldCount;
-        end;
+    { Render back facing shadow shadow volume faces. }
+    StencilSetupKind := ssBack;
+    OldCount := Count;
+    Count := false;
+    glCullFace(GL_FRONT);
+    RenderShadowVolumes;
+    Count := OldCount;
+  end;
 
-      glSetDepthAndColorWriteable(true);
-    ///glPopAttrib;
-    if OldDepthTest = GL_FALSE then
-      glDisable(GL_DEPTH_TEST);
+  glSetDepthAndColorWriteable(true);
+  RenderContext.DepthTest := OldDepthTest;
+  RenderContext.CullFace := OldCullFace;
   glDisable(GL_STENCIL_TEST);
 
   { Now render everything once again, with lights turned on.
@@ -784,23 +779,21 @@ begin
   Assert(Params.InternalPass = 0);
   Inc(Params.InternalPass);
 
-  ///glPushAttrib(GL_DEPTH_BUFFER_BIT { for glDepthFunc });
-    OldDepthFunc := glGetInteger(GL_DEPTH_FUNC);
-    glDepthFunc(GL_LEQUAL);
+  OldDepthFunc := RenderContext.DepthFunc;
+  RenderContext.DepthFunc := dfLessEqual;
 
-    { setup stencil : don't modify stencil, stencil test passes only for =0 }
-    glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-    glStencilFunc(GL_EQUAL, 0, StencilShadowBits);
-    glEnable(GL_STENCIL_TEST);
-      Inc(Params.StencilTest);
-      Params.InShadow := false;
-      Params.Transparent := false;
-      Params.ShadowVolumesReceivers := [true];
-      Render3D(Params);
-      Dec(Params.StencilTest);
-    glDisable(GL_STENCIL_TEST);
-  ///glPopAttrib();
-  glDepthFunc(OldDepthFunc);
+  { setup stencil : don't modify stencil, stencil test passes only for =0 }
+  glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+  glStencilFunc(GL_EQUAL, 0, StencilShadowBits);
+  glEnable(GL_STENCIL_TEST);
+    Inc(Params.StencilTest);
+    Params.InShadow := false;
+    Params.Transparent := false;
+    Params.ShadowVolumesReceivers := [true];
+    Render3D(Params);
+    Dec(Params.StencilTest);
+  glDisable(GL_STENCIL_TEST);
+  RenderContext.DepthFunc := OldDepthFunc;
 
   if DrawShadowVolumes then
   begin
@@ -808,14 +801,20 @@ begin
     Count := false;
     /// TODO
     ///glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_ENABLE_BIT);
-      glEnable(GL_DEPTH_TEST);
-      ///glDisable(GL_LIGHTING);
-      ///glColor4f(1, 1, 0, 0.3);
+    OldDepthTest := RenderContext.DepthTest;
+    RenderContext.DepthTest := true;
+    if InternalUseOldShadowVolumes then
+    begin
+      glDisable(GL_LIGHTING);
+      glColor4f(1, 1, 0, 0.3);
+
       glDepthMask(GL_FALSE);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       glEnable(GL_BLEND);
-      RenderShadowVolumes;
+    end;
+    RenderShadowVolumes;
     ///glPopAttrib;
+    RenderContext.DepthTest := OldDepthTest;
     Count := OldCount;
   end;
 
@@ -828,7 +827,6 @@ begin
   Params.Transparent := true;
   Params.ShadowVolumesReceivers := [false];
   Render3D(Params);
-/// {$endif}
 end;
 
 end.

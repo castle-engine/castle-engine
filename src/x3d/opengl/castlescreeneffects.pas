@@ -749,7 +749,7 @@ var
       {$ifndef OpenGLES}
       glPushAttrib(GL_ENABLE_BIT);
       glDisable(GL_LIGHTING);
-      glDisable(GL_DEPTH_TEST);
+      RenderContext.DepthTest := false;
 
       glActiveTexture(GL_TEXTURE0);
       glDisable(GL_TEXTURE_2D);
