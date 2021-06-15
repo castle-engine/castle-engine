@@ -268,7 +268,6 @@ begin
 
   Sound := TCastleSound.Create(Self);
   try
-    Sound.Spatial := false;
     Sound.URL := AURL;
 
     // without this check, loading fails silently e.g. when OpenAL dll not found
