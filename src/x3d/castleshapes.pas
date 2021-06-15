@@ -247,6 +247,7 @@ type
 
       - TShape is associated with
         TShapeNode,
+        TAppearanceNode,
         TAbstractGeometryNode,
         TCoordinateNode (anything that can be inside TAbstractGeometryNode.CoordField),
         TNormalNode (anything that can be inside TAbstractGeometryNode.NormalField),
@@ -501,7 +502,7 @@ type
       Shape.State.Last*, Shape.State.ShapeNode or such change.
 
       Pass InactiveOnly = @true is you know that this shape is fully in
-      inactive VRML graph part (inactive Switch, LOD etc. children).
+      inactive X3D graph part (inactive Switch, LOD etc. children).
 
       Including chTransform in Changes means something more than
       general chTransform (which means that transformation of children changed,
@@ -1455,6 +1456,8 @@ begin
     if AState.ShapeNode <> nil then
     begin
       AssociateNode(AState.ShapeNode);
+      if AState.ShapeNode.Appearance <> nil then
+        AssociateNode(AState.ShapeNode.Appearance);
       if AState.ShapeNode.Material <> nil then
         AssociateNode(AState.ShapeNode.Material);
     end;
@@ -1501,6 +1504,8 @@ begin
     if AState.ShapeNode <> nil then
     begin
       UnAssociateNode(AState.ShapeNode);
+      if AState.ShapeNode.Appearance <> nil then
+        UnAssociateNode(AState.ShapeNode.Appearance);
       if AState.ShapeNode.Material <> nil then
         UnAssociateNode(AState.ShapeNode.Material);
     end;
@@ -1929,7 +1934,7 @@ begin
     proxies. }
   if Changes * [chCoordinate, chNormal, chTangent,
     chVisibleVRML1State, chGeometryVRML1State,
-    chTextureCoordinate, chGeometry, chWireframe] <> [] then
+    chTextureCoordinate, chGeometry, chWireframe, chFontStyle] <> [] then
     FreeProxy;
 
   { When bounding volumes in global coordinates changed.
@@ -1937,14 +1942,15 @@ begin
     (testcase: upwind_turbine.x3d), as other flags already cause other changes
     that invalidate global bboxes anyway. }
   if Changes * [chTransform, chCoordinate, chGeometry, chGeometryVRML1State,
-    chEverything] <> [] then
+    chEverything, chFontStyle] <> [] then
     Validities := Validities - [svBBox, svBoundingSphere];
 
+  { Changes to actual geometry that are limited to Coordinate (topology or other things don't change). }
   if chCoordinate in Changes then
-    { Coordinate changes actual geometry. }
     LocalGeometryChanged(true);
 
-  if Changes * [chGeometry, chGeometryVRML1State, chWireframe] <> [] then
+  { Changes to actual geometry (other). }
+  if Changes * [chGeometry, chGeometryVRML1State, chWireframe, chFontStyle] <> [] then
     LocalGeometryChanged(false);
 
   if Changes * [chBBox] <> [] then
@@ -2034,11 +2040,12 @@ function TShape.CreateTriangleOctree(
 
   procedure LocalTriangulateBox(const Box: TBox3D);
 
-    procedure LocalTriangulateRect(const constCoord: integer;
+    procedure LocalTriangulateRect(const constCoord: T3DAxis;
       const constCoordValue, x1, y1, x2, y2: Single);
     var
       Position, Normal: TTriangle3;
-      i, c1, c2: integer;
+      i: Integer;
+      c1, c2: T3DAxis;
 
       procedure TriAssign(TriIndex: integer; c1value, c2value: Single);
       begin
@@ -2047,7 +2054,7 @@ function TShape.CreateTriangleOctree(
       end;
 
     begin
-      RestOf3dCoords(constCoord, c1, c2);
+      RestOf3DCoords(constCoord, c1, c2);
 
       for I := 0 to 2 do
       begin
@@ -2068,11 +2075,11 @@ function TShape.CreateTriangleOctree(
     end;
 
   var
-    I, XCoord, YCoord: Integer;
+    I, XCoord, YCoord: T3DAxis;
   begin
     for I := 0 to 2 do
     begin
-      RestOf3dCoords(I, XCoord, YCoord);
+      RestOf3DCoords(I, XCoord, YCoord);
       LocalTriangulateRect(I, Box.Data[0][I], Box.Data[0][XCoord], Box.Data[0][YCoord], Box.Data[1][XCoord], Box.Data[1][YCoord]);
       LocalTriangulateRect(I, Box.Data[1][I], Box.Data[0][XCoord], Box.Data[0][YCoord], Box.Data[1][XCoord], Box.Data[1][YCoord]);
     end;

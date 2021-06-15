@@ -49,8 +49,6 @@
     function GetMetadataDouble(const Key: String): Double;
     procedure SetMetadataDouble(const Key: String; const Value: Double);
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
-
     { Find a "metadata" information within this node with given key.
       Returns @nil if not found.
 
@@ -143,8 +141,6 @@
 
   { Basis for all metadata nodes. }
   TAbstractMetadataNode = class(TAbstractNode)
-  public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_x3dmetadatanode.inc}
   end;
 
@@ -152,7 +148,6 @@
     a child of a grouping node,
     e.g. inside @link(TAbstractX3DGroupingNode.FdChildren). }
   TAbstractChildNode = class(TAbstractNode, IAbstractChildNode)
-  public
     {$I auto_generated_node_helpers/x3dnodes_x3dchildnode.inc}
   end;
 
@@ -168,7 +163,7 @@
   protected
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
 
     { "Bound" node is the node currently used, for example the "bound" background
       determines the current background look.
@@ -249,53 +244,39 @@
 
   { Base abstract class for all sensors. }
   TAbstractSensorNode = class(TAbstractChildNode, IAbstractSensorNode)
-  public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_x3dsensornode.inc}
   end;
 
   { A metadata (extra, custom information at a node) with a boolean type. }
   TMetadataBooleanNode = class(TAbstractMetadataNode)
-  public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_metadataboolean.inc}
   end;
 
   { A metadata (extra, custom information at a node) with
     a double-precision floating point number type. }
   TMetadataDoubleNode = class(TAbstractMetadataNode)
-  public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_metadatadouble.inc}
   end;
 
   { A metadata (extra, custom information at a node) with
     a single-precision floating point number type. }
   TMetadataFloatNode = class(TAbstractMetadataNode)
-  public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_metadatafloat.inc}
   end;
 
   { A metadata (extra, custom information at a node) with an integer type. }
   TMetadataIntegerNode = class(TAbstractMetadataNode)
-  public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_metadatainteger.inc}
   end;
 
   { A metadata (extra, custom information at a node) set,
     to reference of collection of other metadata nodes. }
   TMetadataSetNode = class(TAbstractMetadataNode)
-  public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_metadataset.inc}
   end;
 
   { A metadata (extra, custom information at a node) with a string type. }
   TMetadataStringNode = class(TAbstractMetadataNode)
-  public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_metadatastring.inc}
   end;
 
@@ -303,8 +284,6 @@
     This node is strictly for documentation purposes
     and has no effect on the visual appearance or behavior of the world. }
   TWorldInfoNode = class(TAbstractInfoNode)
-  public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_worldinfo.inc}
   end;
 
@@ -313,14 +292,6 @@
 {$ifdef read_implementation}
 
 { TAbstractNode -------------------------------------------------------------- }
-
-constructor TAbstractNode.Create(const AX3DName, ABaseUrl: String);
-begin
-  inherited;
-  {$ifndef CASTLE_SLIM_NODES}
-  FdMetadata.ChangeAlways := chNone;
-  {$endif}
-end;
 
 function TAbstractNode.FindMetadata(const Key: String): TAbstractMetadataNode;
 
@@ -635,80 +606,6 @@ end;
 procedure TAbstractBindableNode.SetBound(const Value: Boolean);
 begin
   EventSet_bind.Send(Value);
-end;
-
-{ TAbstractSensorNode -------------------------------------------------------- }
-
-constructor TAbstractSensorNode.Create(const AX3DName, ABaseUrl: String);
-begin
-  inherited;
-  FdEnabled.ChangeAlways := chNone;
-end;
-
-{ TAbstractMetadataNode ------------------------------------------------------ }
-
-constructor TAbstractMetadataNode.Create(const AX3DName, ABaseUrl: String);
-begin
-  inherited;
-  FdName.ChangeAlways := chNone;
-  FdReference.ChangeAlways := chNone;
-end;
-
-{ TMetadataBooleanNode ------------------------------------------------------- }
-
-constructor TMetadataBooleanNode.Create(const AX3DName, ABaseUrl: String);
-begin
-  inherited;
-  FdValue.ChangeAlways := chNone;
-end;
-
-{ TMetadataDoubleNode -------------------------------------------------------- }
-
-constructor TMetadataDoubleNode.Create(const AX3DName, ABaseUrl: String);
-begin
-  inherited;
-  FdValue.ChangeAlways := chNone;
-end;
-
-{ TMetadataFloatNode --------------------------------------------------------- }
-
-constructor TMetadataFloatNode.Create(const AX3DName, ABaseUrl: String);
-begin
-  inherited;
-  FdValue.ChangeAlways := chNone;
-end;
-
-{ TMetadataIntegerNode ------------------------------------------------------- }
-
-constructor TMetadataIntegerNode.Create(const AX3DName, ABaseUrl: String);
-begin
-  inherited;
-  FdValue.ChangeAlways := chNone;
-end;
-
-{ TMetadataSetNode ----------------------------------------------------------- }
-
-constructor TMetadataSetNode.Create(const AX3DName, ABaseUrl: String);
-begin
-  inherited;
-  FdValue.ChangeAlways := chNone;
-end;
-
-{ TMetadataStringNode -------------------------------------------------------- }
-
-constructor TMetadataStringNode.Create(const AX3DName, ABaseUrl: String);
-begin
-  inherited;
-  FdValue.ChangeAlways := chNone;
-end;
-
-{ TWorldInfoNode ------------------------------------------------------------- }
-
-constructor TWorldInfoNode.Create(const AX3DName, ABaseUrl: String);
-begin
-  inherited;
-  FdInfo.ChangeAlways := chNone;
-  FdTitle.ChangeAlways := chNone;
 end;
 
 { registration --------------------------------------------------------------- }

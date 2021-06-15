@@ -2,23 +2,35 @@ X3DEnvironmentTextureNode : X3DSingleTextureNode {
 }
 
 ComposedCubeMapTexture : X3DEnvironmentTextureNode {
-  SFNode [in,out] back     NULL [X3DTexture2DNode]
-  SFNode [in,out] bottom   NULL [X3DTexture2DNode]
-  SFNode [in,out] front    NULL [X3DTexture2DNode]
-  SFNode [in,out] left     NULL [X3DTexture2DNode]
-  SFNode [in,out] right    NULL [X3DTexture2DNode]
-  SFNode [in,out] top      NULL [X3DTexture2DNode]
-  SFNode   []       textureProperties NULL [TextureProperties]
+  SFNode [in,out] back     NULL
+    range: X3DTexture2DNode
+  SFNode [in,out] bottom   NULL
+    range: X3DTexture2DNode
+  SFNode [in,out] front    NULL
+    range: X3DTexture2DNode
+  SFNode [in,out] left     NULL
+    range: X3DTexture2DNode
+  SFNode [in,out] right    NULL
+    range: X3DTexture2DNode
+  SFNode [in,out] top      NULL
+    range: X3DTexture2DNode
+  SFNode   []       textureProperties NULL
+    range: TextureProperties
 }
 
 GeneratedCubeMapTexture : X3DEnvironmentTextureNode {
-  SFString [in,out] update            "NONE" ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"]
-  SFInt32  []       size              128    (0,Inf)
-  SFNode   []       textureProperties NULL   [TextureProperties]
+  SFString [in,out] update            "NONE"
+    range: ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"]
+    # TODO: use enumerated-type
+  SFInt32  []       size              128
+    range: (0,Inf)
+  SFNode   []       textureProperties NULL
+    range: TextureProperties
 }
 
 ImageCubeMapTexture : X3DEnvironmentTextureNode, X3DUrlObject {
-  MFString [in,out] url               []   [URI]
-  SFNode   []       textureProperties NULL [TextureProperties]
+  MFString [in,out] url               []
+    range: [URI]
+  SFNode   []       textureProperties NULL
+    range: TextureProperties
 }
-

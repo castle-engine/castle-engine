@@ -112,6 +112,7 @@ end;
 
 procedure TAbstractShapeNode.SetAppearance(const Value: TAppearanceNode);
 begin
+  SetAppearanceBefore(Value);
   FdAppearance.Send(Value);
 end;
 
@@ -207,23 +208,19 @@ begin
   FFdBboxCenter := TSFVec3f.Create(Self, True, 'bboxCenter', Vector3(0, 0, 0));
    FdBboxCenter.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBboxCenter);
-  { X3D specification comment: (-Inf,Inf) }
 
   FFdBboxSize := TSFVec3f.Create(Self, True, 'bboxSize', Vector3(-1, -1, -1));
    FdBboxSize.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBboxSize);
-  { X3D specification comment: [0,Inf) or -1 -1 -1 }
 
   FFdShading := TSFStringEnum.Create(Self, True, 'shading', ShadingNames, Ord(shDefault));
    FdShading.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdShading);
-  { X3D specification comment: ["DEFAULT"|"GOURAUD"|"PHONG"|"WIREFRAME"] enumerated-type: TShading ShadingNames shDefault }
 
 {$ifndef CASTLE_SLIM_NODES}
   FFdOctreeTriangles := TSFNode.Create(Self, False, 'octreeTriangles', [TKambiOctreePropertiesNode]);
    FdOctreeTriangles.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdOctreeTriangles);
-  { X3D specification comment: # NOT-SLIM }
 {$endif not CASTLE_SLIM_NODES}
 
   FFdRender := TSFBool.Create(Self, True, 'render', true);
@@ -233,7 +230,6 @@ begin
   FFdCollision := TSFStringEnum.Create(Self, False, 'collision', ShapeCollisionNames, Ord(scDefault));
    FdCollision.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdCollision);
-  { X3D specification comment: ["DEFAULT"|"BOX"|"NONE"] enumerated-type: TShapeCollision ShapeCollisionNames scDefault }
 end;
 
 {$endif read_implementation}

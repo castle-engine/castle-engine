@@ -56,12 +56,18 @@ type
     procedure TestCocos;
     procedure TestImageAsNode;
     procedure TestPlayStopAnim;
+    procedure TestFontStyleChanges;
+    procedure TestUnassociate;
+    procedure TestUnassociate2;
+    procedure TestUnassociateChangeMaterialOneLeft;
+    procedure TestUnassociateChangeMaterialSharedAppearance;
+    procedure TestUnassociateChangeAppearance;
   end;
 
 implementation
 
 uses X3DLoad, CastleVectors, CastleShapes,
-  CastleTimeUtils, CastleStringUtils, X3DFields, CastleSceneManager,
+  CastleTimeUtils, CastleStringUtils, X3DFields, CastleSceneManager, CastleBoxes,
   CastleFilesUtils, CastleScene, CastleTransform, CastleApplicationProperties,
   CastleURIUtils;
 
@@ -623,6 +629,255 @@ begin
     Scene.StopAnimation;
     AssertTrue(Scene.CurrentAnimation = nil);
   finally FreeAndNil(Scene) end;
+end;
+
+procedure TTestSceneCore.TestFontStyleChanges;
+var
+  FontStyleNode: TFontStyleNode;
+  TextNode: TTextNode;
+  TextShape: TShapeNode;
+  RootNode: TX3DRootNode;
+  Scene: TCastleScene;
+  Box: TBox3D;
+begin
+  FontStyleNode := TFontStyleNode.Create;
+
+  TextNode := TTextNode.CreateWithShape(TextShape);
+  TextNode.FontStyle := FontStyleNode;
+  TextNode.SetString(['one line of text']);
+
+  RootNode := TX3DRootNode.Create;
+  RootNode.AddChildren(TextShape);
+
+  Scene := TCastleScene.Create(nil);
+  try
+    // Scene.ProcessEvents := true; // this should work even without process events, TCastleText depends on it
+    Scene.Load(RootNode, true);
+
+    Box := Scene.BoundingBox;
+    //Writeln(Box.ToString);
+    AssertSameValue(1, Box.Size.Y);
+
+    FontStyleNode.Size := 10;
+    Box := Scene.BoundingBox;
+    //Writeln(Box.ToString);
+    AssertSameValue(10, Box.Size.Y);
+
+    FontStyleNode.Size := 100;
+    Box := Scene.BoundingBox;
+    //Writeln(Box.ToString);
+    AssertSameValue(100, Box.Size.Y);
+
+  finally FreeAndNil(Scene) end;
+end;
+
+procedure TTestSceneCore.TestUnassociate;
+var
+  Box: TCastleBox;
+begin
+  ApplicationProperties.OnWarning.Add(@OnWarningRaiseException);
+  try
+    Box := TCastleBox.Create(nil);
+    try
+      Box.Material := pmUnlit;
+      Box.Material := pmPhysical;
+    finally FreeAndNil(Box) end;
+  finally
+    ApplicationProperties.OnWarning.Remove(@OnWarningRaiseException);
+  end;
+end;
+
+procedure TTestSceneCore.TestUnassociate2;
+var
+  Shape: TShapeNode;
+  NewMaterial: TMaterialNode;
+  Scene: TCastleScene;
+begin
+  ApplicationProperties.OnWarning.Add(@OnWarningRaiseException);
+  try
+    Scene := TCastleScene.Create(nil);
+    try
+      Scene.Load('castle-data:/test_for_material_change.x3dv');
+      Scene.Spatial := [ssRendering, ssDynamicCollisions];
+      Scene.ProcessEvents := true;
+
+      Shape := Scene.Node('MyShape') as TShapeNode;
+
+      NewMaterial := TMaterialNode.Create;
+      NewMaterial.Scene := Scene;
+      NewMaterial.DiffuseColor := Vector3(0, 1, 1);
+      Shape.Material := NewMaterial;
+    finally FreeAndNil(Scene) end;
+  finally
+    ApplicationProperties.OnWarning.Remove(@OnWarningRaiseException);
+  end;
+end;
+
+procedure TTestSceneCore.TestUnassociateChangeMaterialOneLeft;
+var
+  RootNode: TX3DRootNode;
+  Shape1, Shape2: TShapeNode;
+  OldMaterial: TMaterialNode;
+  NewMaterial: TUnlitMaterialNode;
+  Scene: TCastleScene;
+begin
+  ApplicationProperties.OnWarning.Add(@OnWarningRaiseException);
+  try
+    Scene := TCastleScene.Create(nil);
+    try
+      RootNode := TX3DRootNode.Create;
+
+      OldMaterial := TMaterialNode.Create;
+
+      Shape1 := TShapeNode.Create;
+      Shape1.Material := OldMaterial; // will also auto-create Shape.Appearance, OK
+      Shape1.Geometry := TBoxNode.Create; // anything non-nil, otherwise it's ignored in Scene.Shapes tree
+      RootNode.AddChildren(Shape1);
+
+      Shape2 := TShapeNode.Create;
+      Shape2.Geometry := TBoxNode.Create; // anything non-nil, otherwise it's ignored in Scene.Shapes tree
+      Shape2.Material := OldMaterial; // will also auto-create Shape.Appearance, OK
+      RootNode.AddChildren(Shape2);
+
+      Scene.Load(RootNode, true);
+      Scene.Spatial := [ssRendering, ssDynamicCollisions];
+      Scene.ProcessEvents := true;
+
+      NewMaterial := TUnlitMaterialNode.Create;
+
+      AssertTrue(OldMaterial.Scene <> nil);
+      AssertTrue(NewMaterial.Scene = nil);
+      AssertEquals(2, TShapeTree.AssociatedShapesCount(OldMaterial));
+      AssertEquals(0, TShapeTree.AssociatedShapesCount(NewMaterial));
+      AssertEquals(1, TShapeTree.AssociatedShapesCount(Shape1.Appearance));
+      AssertEquals(1, TShapeTree.AssociatedShapesCount(Shape2.Appearance));
+
+      // NewMaterial.Scene := Scene; // should work with and without this
+      Shape1.Material := NewMaterial; // but leave Shape2 unchanged
+
+      AssertEquals(1, TShapeTree.AssociatedShapesCount(OldMaterial));
+      AssertEquals(1, TShapeTree.AssociatedShapesCount(NewMaterial));
+      AssertEquals(1, TShapeTree.AssociatedShapesCount(Shape1.Appearance));
+      AssertEquals(1, TShapeTree.AssociatedShapesCount(Shape2.Appearance));
+    finally FreeAndNil(Scene) end;
+  finally
+    ApplicationProperties.OnWarning.Remove(@OnWarningRaiseException);
+  end;
+end;
+
+procedure TTestSceneCore.TestUnassociateChangeMaterialSharedAppearance;
+var
+  RootNode: TX3DRootNode;
+  Shape1, Shape2: TShapeNode;
+  OldMaterial: TMaterialNode;
+  NewMaterial: TUnlitMaterialNode;
+  SharedAppearance: TAppearanceNode;
+  Scene: TCastleScene;
+begin
+  ApplicationProperties.OnWarning.Add(@OnWarningRaiseException);
+  try
+    Scene := TCastleScene.Create(nil);
+    try
+      RootNode := TX3DRootNode.Create;
+
+      OldMaterial := TMaterialNode.Create;
+      OldMaterial.KeepExistingBegin; // otherwise it would be destroyed by assigning other node
+
+      SharedAppearance := TAppearanceNode.Create;
+      SharedAppearance.Material := OldMaterial;
+
+      Shape1 := TShapeNode.Create;
+      Shape1.Appearance := SharedAppearance;
+      Shape1.Geometry := TBoxNode.Create; // anything non-nil, otherwise it's ignored in Scene.Shapes tree
+      RootNode.AddChildren(Shape1);
+
+      Shape2 := TShapeNode.Create;
+      Shape2.Appearance := SharedAppearance;
+      Shape2.Geometry := TBoxNode.Create; // anything non-nil, otherwise it's ignored in Scene.Shapes tree
+      RootNode.AddChildren(Shape2);
+
+      Scene.Load(RootNode, true);
+      Scene.Spatial := [ssRendering, ssDynamicCollisions];
+      Scene.ProcessEvents := true;
+
+      NewMaterial := TUnlitMaterialNode.Create;
+
+      AssertTrue(SharedAppearance.Scene <> nil);
+      AssertTrue(OldMaterial.Scene <> nil);
+      AssertTrue(NewMaterial.Scene = nil);
+      AssertEquals(2, TShapeTree.AssociatedShapesCount(SharedAppearance));
+      AssertEquals(2, TShapeTree.AssociatedShapesCount(OldMaterial));
+      AssertEquals(0, TShapeTree.AssociatedShapesCount(NewMaterial));
+
+      // NewMaterial.Scene := Scene; // should work with and without this
+      Shape1.Material := NewMaterial; // equivalent to SharedAppearance.Material := NewMaterial;
+      //SharedAppearance.Material := NewMaterial;
+
+      AssertEquals(2, TShapeTree.AssociatedShapesCount(SharedAppearance));
+      AssertEquals(0, TShapeTree.AssociatedShapesCount(OldMaterial));
+      AssertEquals(2, TShapeTree.AssociatedShapesCount(NewMaterial));
+
+      // OldMaterial now unused
+      OldMaterial.KeepExistingEnd;
+      FreeIfUnusedAndNil(OldMaterial);
+      AssertTrue(OldMaterial = nil);
+    finally FreeAndNil(Scene) end;
+  finally
+    ApplicationProperties.OnWarning.Remove(@OnWarningRaiseException);
+  end;
+end;
+
+procedure TTestSceneCore.TestUnassociateChangeAppearance;
+var
+  RootNode: TX3DRootNode;
+  Shape1, Shape2: TShapeNode;
+  OldAppearance: TAppearanceNode;
+  NewAppearance: TAppearanceNode;
+  Scene: TCastleScene;
+begin
+  ApplicationProperties.OnWarning.Add(@OnWarningRaiseException);
+  try
+    Scene := TCastleScene.Create(nil);
+    try
+      RootNode := TX3DRootNode.Create;
+
+      OldAppearance := TAppearanceNode.Create;
+      OldAppearance.Material := TMaterialNode.Create;
+
+      NewAppearance := TAppearanceNode.Create;
+      NewAppearance.Material := TMaterialNode.Create;
+
+      Shape1 := TShapeNode.Create;
+      Shape1.Appearance := OldAppearance;
+      Shape1.Geometry := TBoxNode.Create; // anything non-nil, otherwise it's ignored in Scene.Shapes tree
+      RootNode.AddChildren(Shape1);
+
+      Shape2 := TShapeNode.Create;
+      Shape2.Appearance := OldAppearance;
+      Shape2.Geometry := TBoxNode.Create; // anything non-nil, otherwise it's ignored in Scene.Shapes tree
+      RootNode.AddChildren(Shape2);
+
+      Scene.Load(RootNode, true);
+      Scene.Spatial := [ssRendering, ssDynamicCollisions];
+      Scene.ProcessEvents := true;
+
+      AssertTrue(OldAppearance.Scene <> nil);
+      AssertTrue(NewAppearance.Scene = nil);
+      AssertEquals(2, TShapeTree.AssociatedShapesCount(OldAppearance));
+      AssertEquals(0, TShapeTree.AssociatedShapesCount(NewAppearance));
+      AssertEquals(2, TShapeTree.AssociatedShapesCount(OldAppearance.Material));
+      AssertEquals(0, TShapeTree.AssociatedShapesCount(NewAppearance.Material));
+
+      Shape1.Appearance := NewAppearance; // but leave Shape2 unchanged
+
+      AssertEquals(1, TShapeTree.AssociatedShapesCount(OldAppearance));
+      AssertEquals(1, TShapeTree.AssociatedShapesCount(NewAppearance));
+      AssertEquals(1, TShapeTree.AssociatedShapesCount(OldAppearance.Material));
+      AssertEquals(1, TShapeTree.AssociatedShapesCount(NewAppearance.Material));
+    finally FreeAndNil(Scene) end;
+  finally
+    ApplicationProperties.OnWarning.Remove(@OnWarningRaiseException);
+  end;
 end;
 
 initialization

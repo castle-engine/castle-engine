@@ -18,9 +18,9 @@ unit VisualizeTransform;
 
 interface
 
-uses Classes, SysUtils, CastleColors, CastleVectors,
-  CastleVectorsInternalSingle, CastleTransform, CastleDebugTransform,
-  CastleScene, CastleCameras, CastleTriangles;
+uses Classes, SysUtils,
+  CastleColors, CastleVectors, CastleVectorsInternalSingle, CastleTransform,
+  CastleDebugTransform, CastleScene, CastleCameras, CastleTriangles, CastleUtils;
 
 type
   TVisualizeOperation = (voSelect, voTranslate, voRotate, voScale);
@@ -57,7 +57,7 @@ type
           of this routine in practice always want to subtract 2 values of such
           angle, so it doesn't matter "where is Angle = 0". }
         function AngleOnPlane(out Angle: Single;
-          const Pick: TRayCollisionNode; const Coord: Integer): Boolean;
+          const Pick: TRayCollisionNode; const Coord: T3DAxis): Boolean;
 
         procedure DoParentModified;
         procedure DoGizmoStopDrag;
@@ -115,7 +115,7 @@ implementation
 
 uses Math,
   ProjectUtils,
-  CastleLog, CastleShapes, CastleViewport, CastleProjection, CastleUtils,
+  CastleLog, CastleShapes, CastleViewport, CastleProjection,
   CastleQuaternions, X3DNodes, CastleGLUtils, CastleRenderContext,
   CastleControl, CastleKeysMouse;
 
@@ -134,9 +134,12 @@ begin
   Intersection := Pick.Point;
 
   // leave only Intersection[Axis] non-zero
-  RestOf3DCoords(Axis, Axis1, Axis2);
-  Intersection[Axis1] := 0;
-  Intersection[Axis2] := 0;
+  if Axis >= 0 then
+  begin
+    RestOf3DCoords(Axis, Axis1, Axis2);
+    Intersection[Axis1] := 0;
+    Intersection[Axis2] := 0;
+  end;
 end;
 *)
 
@@ -183,30 +186,20 @@ begin
 end;
 
 function TVisualizeTransform.TGizmoScene.AngleOnPlane(out Angle: Single;
-  const Pick: TRayCollisionNode; const Coord: Integer): Boolean;
-
-  { Return other 3D coords, in the lopping order X-Y-Z.
-    This results in consistent ArcTan2 results, that makes rotating around
-    any coord in TVisualizeTransform.TGizmoScene.PointingDeviceMove
-    have the same behavior (no need to invert angle sign for Y coord,
-    as with CastleUtils.RestOf3dCoords). }
-  procedure RestOf3dCoords(const Coord: Integer; out First, Second: Integer);
-  begin
-    case Coord of
-      0: begin First := 1; Second := 2; end;
-      1: begin First := 2; Second := 0; end;
-      2: begin First := 0; Second := 1; end;
-    end;
-  end;
-
+  const Pick: TRayCollisionNode; const Coord: T3DAxis): Boolean;
 var
-  C1, C2: Integer;
+  C1, C2: T3DAxis;
   PointProjected: TVector2;
   Intersection: TVector3;
 begin
   if not TrySimplePlaneRayIntersection(Intersection, Coord, 0, Pick.RayOrigin, Pick.RayDirection) then
     Exit(false);
-  RestOf3dCoords(Coord, C1, C2);
+  { Use RestOf3DCoordsCycle, in the lopping order X-Y-Z.
+    This results in consistent ArcTan2 results, that makes rotating around
+    any coord in TVisualizeTransform.TGizmoScene.PointingDeviceMove
+    have the same behavior (no need to invert angle sign for Y coord,
+    as with RestOf3DCoords). }
+  RestOf3DCoordsCycle(Coord, C1, C2);
   PointProjected[0] := Intersection[C1];
   PointProjected[1] := Intersection[C2];
   Angle := ArcTan2(PointProjected[1], PointProjected[0]);

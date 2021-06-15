@@ -50,11 +50,11 @@ type
     function Exists: Boolean;
     function HasDefaultValue: Boolean;
   published
-    property Top: Single read FTop write SetTop default 0;
-    property Right: Single read FRight write SetRight default 0;
-    property Bottom: Single read FBottom write SetBottom default 0;
-    property Left: Single read FLeft write SetLeft default 0;
-    property AllSides: Single read FAllSides write SetAllSides default 0;
+    property Top: Single      read FTop      write SetTop      {$ifdef FPC} default 0 {$endif};
+    property Right: Single    read FRight    write SetRight    {$ifdef FPC} default 0 {$endif};
+    property Bottom: Single   read FBottom   write SetBottom   {$ifdef FPC} default 0 {$endif};
+    property Left: Single     read FLeft     write SetLeft     {$ifdef FPC} default 0 {$endif};
+    property AllSides: Single read FAllSides write SetAllSides {$ifdef FPC} default 0 {$endif};
   end;
 
 {$endif read_interface}

@@ -28,7 +28,7 @@ procedure Box_Proxy(CoordIndex: TLongIntList;
 var
   Detail: TVector3Cardinal;
 
-  { Make a rectangle that changes along the RestOf3dCoords(ConstCoord, ...).
+  { Make a rectangle that changes along the RestOf3DCoords(ConstCoord, ...).
     E.g. for ConstCoord = 0, it changes along YZ (so X below corresponds
     actually to global Y, and Y below corresponds actually to global Z).
 
@@ -38,7 +38,7 @@ var
 
     @param(TextureSIsY By default, texture S goes along X and texture T
       goes along Y. Pass TextureSIsY = @true to change it.) }
-  procedure MakeRect(const ConstCoord: integer; const ConstCoordValue: Single;
+  procedure MakeRect(const ConstCoord: T3DAxis; const ConstCoordValue: Single;
     const X1, Y1: Single; const TexX1, TexY1: Single;
     const FaceMaterialIndex: Integer;
     const TextureSIsY: boolean = false);
@@ -57,12 +57,13 @@ var
     end;
 
   var
-    FaceIndex, Index, C1, C2: integer;
+    FaceIndex, Index: Integer;
+    C1, C2: T3DAxis;
     X2, Y2, TexX2, TexY2: Single;
     I, J, NewCoords, ThisIndex: Integer;
     N: TVector3;
   begin
-    RestOf3dCoords(ConstCoord, C1, C2);
+    RestOf3DCoords(ConstCoord, C1, C2);
 
     Index := Coord.Count;
     NewCoords := (Detail[C1] + 2) * (Detail[C2] + 2);

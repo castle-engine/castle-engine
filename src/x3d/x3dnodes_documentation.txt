@@ -139,3 +139,18 @@ See https://castle-engine.io/x3d_implementation_texturing_extensions.php#section
 
 This is a deprecated property. It is better to set normal map within the material node,
 using the @link(TAbstractOneSidedMaterialNode.NormalTexture).
+
+# TAbstractX3DGroupingNode.Visible
+
+Is this group visible (@italic(not implemented yet)).
+
+While this is not implemented for an entire X3D group,
+note that you can use @link(TAbstractShapeNode.Render) to toggle visibility of each shape.
+
+# TAbstractX3DGroupingNode.BBoxDisplay
+
+Is the bounding box of this group visible (@italic(not implemented yet)).
+
+While this is not implemented for an X3D group,
+note that you can use @link(TDebugTransformBox)
+to easily display bounding box of a whole @link(TCastleTransform).

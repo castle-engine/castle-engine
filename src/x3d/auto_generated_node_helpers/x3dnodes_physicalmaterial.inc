@@ -255,10 +255,9 @@ begin
   FFdBaseColor := TSFColor.Create(Self, True, 'baseColor', Vector3(1, 1, 1));
    FdBaseColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBaseColor);
-  { X3D specification comment: [0,1] }
 
   FFdBaseTexture := TSFNode.Create(Self, True, 'baseTexture', [TAbstractSingleTextureNode]);
-   FdBaseTexture.ChangeAlways := chVisibleNonGeometry;
+   FdBaseTexture.ChangeAlways := chEverything;
   AddField(FFdBaseTexture);
 
   FFdBaseTextureMapping := TSFString.Create(Self, True, 'baseTextureMapping', '');
@@ -268,10 +267,9 @@ begin
   FFdMetallic := TSFFloat.Create(Self, True, 'metallic', 1);
    FdMetallic.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdMetallic);
-  { X3D specification comment: [0,1] }
 
   FFdMetallicRoughnessTexture := TSFNode.Create(Self, True, 'metallicRoughnessTexture', [TAbstractSingleTextureNode]);
-   FdMetallicRoughnessTexture.ChangeAlways := chVisibleNonGeometry;
+   FdMetallicRoughnessTexture.ChangeAlways := chEverything;
   AddField(FFdMetallicRoughnessTexture);
 
   FFdMetallicRoughnessTextureMapping := TSFString.Create(Self, True, 'metallicRoughnessTextureMapping', '');
@@ -281,10 +279,9 @@ begin
   FFdOcclusionStrength := TSFFloat.Create(Self, True, 'occlusionStrength', 1);
    FdOcclusionStrength.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdOcclusionStrength);
-  { X3D specification comment: [0,1] }
 
   FFdOcclusionTexture := TSFNode.Create(Self, True, 'occlusionTexture', [TAbstractSingleTextureNode]);
-   FdOcclusionTexture.ChangeAlways := chVisibleNonGeometry;
+   FdOcclusionTexture.ChangeAlways := chEverything;
   AddField(FFdOcclusionTexture);
 
   FFdOcclusionTextureMapping := TSFString.Create(Self, True, 'occlusionTextureMapping', '');
@@ -294,12 +291,10 @@ begin
   FFdRoughness := TSFFloat.Create(Self, True, 'roughness', 1);
    FdRoughness.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdRoughness);
-  { X3D specification comment: [0,1] }
 
   FFdTransparency := TSFFloat.Create(Self, True, 'transparency', 0);
    FdTransparency.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdTransparency);
-  { X3D specification comment: [0,1] }
 
   DefaultContainerField := 'material';
 end;

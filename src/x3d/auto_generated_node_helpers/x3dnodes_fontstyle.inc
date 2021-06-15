@@ -40,6 +40,8 @@
     procedure SetSize(const Value: Single);
     function GetSpacing: Single;
     procedure SetSpacing(const Value: Single);
+    function GetStyle: TX3DFontStyle;
+    procedure SetStyle(const Value: TX3DFontStyle);
 {$ifndef CASTLE_SLIM_NODES}
     function GetTopToBottom: Boolean;
     procedure SetTopToBottom(const Value: Boolean);
@@ -59,6 +61,8 @@
     property Size: Single read GetSize write SetSize;
     { X3D field "spacing". } { }
     property Spacing: Single read GetSpacing write SetSpacing;
+    { X3D field "style". } { }
+    property Style: TX3DFontStyle read GetStyle write SetStyle;
 {$ifndef CASTLE_SLIM_NODES}
     { X3D field "topToBottom". } { }
     property TopToBottom: Boolean read GetTopToBottom write SetTopToBottom;
@@ -122,6 +126,16 @@ end;
 procedure TFontStyleNode.SetSpacing(const Value: Single);
 begin
   FdSpacing.Send(Value);
+end;
+
+function TFontStyleNode.GetStyle: TX3DFontStyle;
+begin
+  Result := TX3DFontStyle(FdStyle.EnumValue);
+end;
+
+procedure TFontStyleNode.SetStyle(const Value: TX3DFontStyle);
+begin
+  FdStyle.SendEnumValue(Ord(Value));
 end;
 
 {$ifndef CASTLE_SLIM_NODES}

@@ -124,17 +124,14 @@ begin
   FFdClosureType := TSFStringEnum.Create(Self, False, 'closureType', ArcClosureTypeNames, Ord(acPie));
    FdClosureType.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdClosureType);
-  { X3D specification comment: ["PIE"|"CHORD"] enumerated-type: TArcClosureType ArcClosureTypeNames acPie }
 
   FFdEndAngle := TSFFloat.Create(Self, False, 'endAngle', Pi/2);
    FdEndAngle.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdEndAngle);
-  { X3D specification comment: [-2Pi,2Pi] }
 
   FFdRadius := TSFFloat.Create(Self, False, 'radius', 1);
    FdRadius.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdRadius);
-  { X3D specification comment: (0,Inf) }
 
   FFdSolid := TSFBool.Create(Self, False, 'solid', false);
    FdSolid.ChangeAlways := chVisibleNonGeometry;
@@ -143,7 +140,6 @@ begin
   FFdStartAngle := TSFFloat.Create(Self, False, 'startAngle', 0);
    FdStartAngle.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdStartAngle);
-  { X3D specification comment: [-2Pi,2Pi] }
 end;
 
 {$endif read_implementation}

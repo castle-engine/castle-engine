@@ -87,6 +87,8 @@ type
       user has switched a window (e.g. with Alt-Tab) while dragging.
       This value will be purged when recording a new Undo record. }
     ScheduleRecordUndoOnRelease: Boolean;
+    { Verbose log to WritelnLog. }
+    VerboseLog: Boolean;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     { Should be called after every significant change, including initial loading of the design. }
@@ -110,6 +112,9 @@ type
     function RedoComment: String;
     { Clear all Undo History. }
     procedure ClearUndoHistory;
+    { Log, following VerboseLog flag. }
+    procedure DoLog(const S: String);
+    procedure DoLog(const SPattern: String; const Args: array of const);
   end;
 
 implementation
@@ -167,13 +172,13 @@ begin
   begin
     if (SelectedComponent <> UndoHistory[CurrentUndo].Selected) then
     begin
-      WriteLnLog('New Undo is identical to previous Undo record. Only selection has changed from ' + UndoHistory[CurrentUndo].Selected + ' to ' + SelectedComponent + '. This change has been saved.');
+      DoLog('New Undo is identical to previous Undo record. Only selection has changed from ' + UndoHistory[CurrentUndo].Selected + ' to ' + SelectedComponent + '. This change has been saved.');
       UndoHistory[CurrentUndo].Selected := SelectedComponent;
       OnUpdateUndo(Self);
     end;
     if (UndoCommentPriority > CurrentUndoCommentPriority) then
     begin
-      WriteLnLog('Overwriting previous Undo recrod "' + UndoHistory[CurrentUndo].Comment +
+      DoLog('Overwriting previous Undo record "' + UndoHistory[CurrentUndo].Comment +
         '" with a higher priority comment: "' + UndoComment + '".');
       UndoHistory[CurrentUndo].Comment := UndoComment;
       OnUpdateUndo(Self); // It is safe to call OnUpdateUndo multiple times - it only updates menu captions
@@ -181,7 +186,7 @@ begin
     Exit;
   end;
 
-  WriteLnLog('Saving Undo record. CurrentUndo = ' + IntToStr(CurrentUndo));
+  DoLog('Saving Undo record. CurrentUndo = ' + IntToStr(CurrentUndo));
   // Clean all next undo records if available;
   UndoHistory.Count := CurrentUndo + 1;
   // Add new UndoElement
@@ -211,7 +216,7 @@ begin
   end;
   Assert(UndoHistorySize = NewUndoHistorySize);
   OnUpdateUndo(Self);
-  WriteLnLog('Undo record saved. CurrentUndo = ' + IntToStr(CurrentUndo) + '; Undo History Size = ' + SizeToStr(NewUndoHistorySize));
+  DoLog('Undo record saved. CurrentUndo = ' + IntToStr(CurrentUndo) + '; Undo History Size = ' + SizeToStr(NewUndoHistorySize));
 end;
 
 function TUndoSystem.Undo: TUndoHistoryElement;
@@ -219,7 +224,7 @@ begin
   ScheduleRecordUndoOnRelease := false;
   if IsUndoPossible then
   begin
-    WriteLnLog('Performing Undo from ' + IntToStr(CurrentUndo) + ' to ' + IntToStr(CurrentUndo - 1));
+    DoLog('Performing Undo from ' + IntToStr(CurrentUndo) + ' to ' + IntToStr(CurrentUndo - 1));
     Dec(CurrentUndo);
     Result := UndoHistory[CurrentUndo];
     CurrentUndoCommentPriority := High(TUndoCommentPriority); // Whatever happens next this Undo record cannot be overwritten
@@ -233,7 +238,7 @@ begin
   ScheduleRecordUndoOnRelease := false;
   if IsRedoPossible then
   begin
-    WriteLnLog('Performing Redo from ' + IntToStr(CurrentUndo) + ' to ' + IntToStr(CurrentUndo + 1));
+    DoLog('Performing Redo from ' + IntToStr(CurrentUndo) + ' to ' + IntToStr(CurrentUndo + 1));
     Inc(CurrentUndo);
     Result := UndoHistory[CurrentUndo];
     CurrentUndoCommentPriority := High(TUndoCommentPriority); // Whatever happens next this Undo record cannot be overwritten
@@ -284,8 +289,18 @@ begin
   CurrentUndoCommentPriority := High(TUndoCommentPriority); // Just for consistency
   if Assigned(OnUpdateUndo) then
     OnUpdateUndo(Self);
-  WriteLnLog('Clearing Undo hisotry.');
+  DoLog('Clearing Undo hisotry.');
+end;
+
+procedure TUndoSystem.DoLog(const S: String);
+begin
+  if VerboseLog then
+    WriteLnLog(S);
+end;
+
+procedure TUndoSystem.DoLog(const SPattern: String; const Args: array of const);
+begin
+  DoLog(Format(SPattern, Args));
 end;
 
 end.
-

@@ -18,7 +18,7 @@
 }
 
 function main()
-  helper_img := image_load('/usr/share/images/desktop-base/debian-blueish-wallpaper-640x480.png');
+  helper_img := image_load('castle-data:/test_texture.png');
 
   { copy helper_img, to copy it's size and alpha channel }
   result := helper_img;

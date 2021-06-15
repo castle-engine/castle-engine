@@ -1,5 +1,5 @@
 MatrixTransform : X3DGroupingNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
   SFMatrix4f [in,out] matrix identity
 }
 
@@ -8,56 +8,70 @@ CommonSurfaceShader :  X3DShaderNode {
   SFInt32         [in,out]     alphaTextureId                   -1
   SFInt32         [in,out]     alphaTextureCoordinatesId        0
   SFString        [in,out]     alphaTextureChannelMask          "a"
-  SFNode          [in,out]     alphaTexture                     NULL # [X3DTextureNode]
+  SFNode          [in,out]     alphaTexture                     NULL
+    range: X3DTextureNode
 
   SFVec3f         [in,out]     ambientFactor                    0.2 0.2 0.2
   SFInt32         [in,out]     ambientTextureId                 -1
   SFInt32         [in,out]     ambientTextureCoordinatesId      0
   SFString        [in,out]     ambientTextureChannelMask        "rgb"
-  SFNode          [in,out]     ambientTexture                   NULL # [X3DTextureNode]
+  SFNode          [in,out]     ambientTexture                   NULL
+    range: X3DTextureNode
 
   SFVec3f         [in,out]     diffuseFactor                    0.8 0.8 0.8
   SFInt32         [in,out]     diffuseTextureId                 -1
   SFInt32         [in,out]     diffuseTextureCoordinatesId      0
   SFString        [in,out]     diffuseTextureChannelMask        "rgb"
-  SFNode          [in,out]     diffuseTexture                   NULL # [X3DTextureNode]
+  SFNode          [in,out]     diffuseTexture                   NULL
+    range: X3DTextureNode
 
   # Added in X3DOM
-  SFNode          [in,out]     diffuseDisplacementTexture       NULL # [X3DTextureNode]
+  SFNode          [in,out]     diffuseDisplacementTexture       NULL
+    range: X3DTextureNode
 
   # Added in X3DOM
   SFString        [in,out]     displacementAxis                 "y"
   SFFloat         [in,out]     displacementFactor               255.0
   SFInt32         [in,out]     displacementTextureId            -1
   SFInt32         [in,out]     displacementTextureCoordinatesId 0
-  SFNode          [in,out]     displacementTexture              NULL # [X3DTextureNode]
+  SFNode          [in,out]     displacementTexture              NULL
+    range: X3DTextureNode
 
   SFVec3f         [in,out]     emissiveFactor                   0 0 0
   SFInt32         [in,out]     emissiveTextureId                -1
   SFInt32         [in,out]     emissiveTextureCoordinatesId     0
   SFString        [in,out]     emissiveTextureChannelMask       "rgb"
-  SFNode          [in,out]     emissiveTexture                  NULL # [X3DTextureNode]
+  SFNode          [in,out]     emissiveTexture                  NULL
+    range: X3DTextureNode
 
   SFVec3f         [in,out]     environmentFactor                1 1 1
   SFInt32         [in,out]     environmentTextureId             -1
   SFInt32         [in,out]     environmentTextureCoordinatesId  0
   SFString        [in,out]     environmentTextureChannelMask    "rgb"
-  SFNode          [in,out]     environmentTexture               NULL # [X3DEnvironmentTextureNode]
+  SFNode          [in,out]     environmentTexture               NULL
+    range: X3DEnvironmentTextureNode
 
   # Added in X3DOM
-  SFNode          [in,out]     multiDiffuseAlphaTexture             NULL # [X3DTextureNode]
-  SFNode          [in,out]     multiEmmisiveAmbientIntensityTexture NULL # [X3DTextureNode]
-  SFNode          [in,out]     multiSpecularShininessTexture        NULL # [X3DTextureNode]
-  SFNode          [in,out]     multiVisibilityTexture               NULL # [X3DTextureNode]
+  SFNode          [in,out]     multiDiffuseAlphaTexture             NULL
+    range: X3DTextureNode
+  SFNode          [in,out]     multiEmmisiveAmbientIntensityTexture NULL
+    range: X3DTextureNode
+  SFNode          [in,out]     multiSpecularShininessTexture        NULL
+    range: X3DTextureNode
+  SFNode          [in,out]     multiVisibilityTexture               NULL
+    range: X3DTextureNode
 
-  SFString        [in,out]     normalFormat                     "UNORM"   # ["UNORM"]
-  SFString        [in,out]     normalSpace                      "TANGENT" # ["TANGENT"]
+  SFString        [in,out]     normalFormat                     "UNORM"
+    range: ["UNORM"]
+  SFString        [in,out]     normalSpace                      "TANGENT"
+    range: ["TANGENT"]
   SFInt32         [in,out]     normalTextureId                  -1
   SFInt32         [in,out]     normalTextureCoordinatesId       0
   SFString        [in,out]     normalTextureChannelMask         "rgb"
   SFVec3f         []           normalScale                      2 2 2
   SFVec3f         []           normalBias                       -1 -1 -1
-  SFNode          [in,out]     normalTexture                    NULL # [X3DTextureNode]
+  SFNode          [in,out]     normalTexture                    NULL
+    range: X3DTextureNode
 
   # Added in Castle Game Engine
   SFFloat         [in,out]     normalTextureParallaxHeight      0
@@ -66,25 +80,29 @@ CommonSurfaceShader :  X3DShaderNode {
   SFInt32         [in,out]     reflectionTextureId              -1
   SFInt32         [in,out]     reflectionTextureCoordinatesId   0
   SFString        [in,out]     reflectionTextureChannelMask     "rgb"
-  SFNode          [in,out]     reflectionTexture                NULL # [X3DTextureNode]
+  SFNode          [in,out]     reflectionTexture                NULL
+    range: X3DTextureNode
 
   SFFloat         [in,out]     shininessFactor                  0.2
   SFInt32         [in,out]     shininessTextureId               -1
   SFInt32         [in,out]     shininessTextureCoordinatesId    0
   SFString        [in,out]     shininessTextureChannelMask      "a"
-  SFNode          [in,out]     shininessTexture                 NULL # [X3DTextureNode]
+  SFNode          [in,out]     shininessTexture                 NULL
+    range: X3DTextureNode
 
   SFVec3f         [in,out]     specularFactor                   0 0 0
   SFInt32         [in,out]     specularTextureId                -1
   SFInt32         [in,out]     specularTextureCoordinatesId     0
   SFString        [in,out]     specularTextureChannelMask       "rgb"
-  SFNode          [in,out]     specularTexture                  NULL # [X3DTextureNode]
+  SFNode          [in,out]     specularTexture                  NULL
+    range: X3DTextureNode
 
   SFVec3f         [in,out]     transmissionFactor               0 0 0
   SFInt32         [in,out]     transmissionTextureId            -1
   SFInt32         [in,out]     transmissionTextureCoordinatesId 0
   SFString        [in,out]     transmissionTextureChannelMask   "rgb"
-  SFNode          [in,out]     transmissionTexture              NULL # [X3DTextureNode]
+  SFNode          [in,out]     transmissionTexture              NULL
+    range: X3DTextureNode
 
   # Additional fields (not in alphabetical order)
 
@@ -104,6 +122,7 @@ CommonSurfaceShader :  X3DShaderNode {
 
 ImageBackground : X3DBackgroundNode {
   SFColorRGBA [in,out] color     1 1 1 1
-  SFNode      [in,out] texture   NULL                    # [X3DTextureNode]
+  SFNode      [in,out] texture   NULL
+    range: X3DTextureNode
   MFVec2f     [in,out] texCoords [ 0 0, 1 0, 1 1, 0 1 ]
 }

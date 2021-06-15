@@ -190,7 +190,8 @@
        Inc(SortedPlaneIntersectsCount);
       end;
 
-    var c1, c2, cm: integer;
+    var
+      C1, C2, CM: T3DAxis;
     begin
      SortedPlaneIntersectsCount := 0;
 
@@ -200,7 +201,7 @@
       cm := IndexMin(PlaneIntersects[0].PlaneIntersectionDistance,
                      PlaneIntersects[1].PlaneIntersectionDistance,
                      PlaneIntersects[2].PlaneIntersectionDistance);
-      RestOf3dCoords(cm, c1, c2);
+      RestOf3DCoords(CM, C1, C2);
       NextIntersect(cm);
      end else
      if not PlaneIntersects[0].Exists then

@@ -144,10 +144,9 @@ begin
   FFdEmissiveColor := TSFColor.Create(Self, True, 'emissiveColor', Vector3(0, 0, 0));
    FdEmissiveColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdEmissiveColor);
-  { X3D specification comment: [0, 1] }
 
   FFdEmissiveTexture := TSFNode.Create(Self, True, 'emissiveTexture', [TAbstractSingleTextureNode]);
-   FdEmissiveTexture.ChangeAlways := chVisibleNonGeometry;
+   FdEmissiveTexture.ChangeAlways := chEverything;
   AddField(FFdEmissiveTexture);
 
   FFdEmissiveTextureMapping := TSFString.Create(Self, True, 'emissiveTextureMapping', '');
@@ -155,7 +154,7 @@ begin
   AddField(FFdEmissiveTextureMapping);
 
   FFdNormalTexture := TSFNode.Create(Self, True, 'normalTexture', [TAbstractTexture2DNode]);
-   FdNormalTexture.ChangeAlways := chVisibleNonGeometry;
+   FdNormalTexture.ChangeAlways := chEverything;
   AddField(FFdNormalTexture);
 
   FFdNormalTextureMapping := TSFString.Create(Self, True, 'normalTextureMapping', '');

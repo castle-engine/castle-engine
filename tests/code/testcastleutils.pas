@@ -28,7 +28,7 @@ type
   TTestCastleUtils = class(TCastleTestCase)
   published
     procedure TestMilisecTime;
-    procedure TestIndexMinMax_RestOf3dCoords;
+    procedure TestIndexMinMax_RestOf3DCoords;
     procedure TestCheckIsMemCharFilled;
     procedure TestSmallest2Exp;
     procedure TestPathDelim;
@@ -49,6 +49,8 @@ type
     procedure TestStrToFloatDot;
     procedure TestIsPathAbsolute;
     procedure TestIsPathAbsoluteOnDrive;
+    procedure TestRestOf3DCoords;
+    procedure TestRestOf3DCoordsCycle;
   end;
 
 implementation
@@ -133,22 +135,26 @@ end;
 
 {$warnings on}
 
-procedure TTestCastleUtils.TestIndexMinMax_RestOf3dCoords;
-var a: array[0..2]of Double;
-    i, c1, c2, cm: integer;
+procedure TTestCastleUtils.TestIndexMinMax_RestOf3DCoords;
+var
+  a: array[0..2]of Double;
+  i: Integer;
+  C1, C2, CM: T3DAxis;
 begin
- for i := 1 to 100 do
- begin
-  a[0] := Random; a[1] := Random; a[2] := Random;
+  for i := 1 to 100 do
+  begin
+    a[0] := Random;
+    a[1] := Random;
+    a[2] := Random;
 
-  cm := IndexMin(a[0], a[1], a[2]);
-  RestOf3dCoords(cm, c1, c2);
-  AssertTrue( (a[cm] <= a[c1]) and (a[cm] <= a[c2]) );
+    cm := IndexMin(a[0], a[1], a[2]);
+    RestOf3DCoords(cm, c1, c2);
+    AssertTrue( (a[cm] <= a[c1]) and (a[cm] <= a[c2]) );
 
-  cm := IndexMax(a[0], a[1], a[2]);
-  RestOf3dCoords(cm, c1, c2);
-  AssertTrue( (a[cm] >= a[c1]) and (a[cm] >= a[c2]) );
- end;
+    cm := IndexMax(a[0], a[1], a[2]);
+    RestOf3DCoords(cm, c1, c2);
+    AssertTrue( (a[cm] >= a[c1]) and (a[cm] >= a[c2]) );
+  end;
 end;
 
 procedure WritelnMem(const Data; Size: Integer);
@@ -743,6 +749,40 @@ begin
   AssertFalse(IsPathAbsoluteOnDrive('bla\'));
   AssertFalse(IsPathAbsoluteOnDrive('bla\asdasd\'));
   {$endif}
+end;
+
+procedure TTestCastleUtils.TestRestOf3DCoords;
+var
+  A, B: T3DAxis;
+begin
+  RestOf3DCoords(0, A, B);
+  AssertEquals(1, A);
+  AssertEquals(2, B);
+
+  RestOf3DCoords(1, A, B);
+  AssertEquals(0, A);
+  AssertEquals(2, B);
+
+  RestOf3DCoords(2, A, B);
+  AssertEquals(0, A);
+  AssertEquals(1, B);
+end;
+
+procedure TTestCastleUtils.TestRestOf3DCoordsCycle;
+var
+  A, B: T3DAxis;
+begin
+  RestOf3DCoordsCycle(0, A, B);
+  AssertEquals(1, A);
+  AssertEquals(2, B);
+
+  RestOf3DCoordsCycle(1, A, B);
+  AssertEquals(2, A);
+  AssertEquals(0, B);
+
+  RestOf3DCoordsCycle(2, A, B);
+  AssertEquals(0, A);
+  AssertEquals(1, B);
 end;
 
 initialization

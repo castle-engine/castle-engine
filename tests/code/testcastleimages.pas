@@ -49,12 +49,17 @@ procedure TTestImages.TestLoadImage;
   procedure DoTest(const fname: string;
     const AllowedImageClasses: array of TEncodedImageClass;
     DestClass: TCastleImageClass);
-  var Img: TCastleImage;
+  var
+    Img: TCastleImage;
   begin
-   Img := LoadImage('castle-data:/images/' + fname, AllowedImageClasses);
-   try
-    AssertTrue(Img is DestClass);
-   finally FreeAndNil(Img) end;
+    Img := LoadImage('castle-data:/images/' + fname, AllowedImageClasses);
+    try
+      if not (Img is DestClass) then
+        Fail(Format('We expect %s class but have %s', [
+          DestClass.ClassName,
+          Img.ClassName
+        ]));
+    finally FreeAndNil(Img) end;
   end;
 
 { Unused:

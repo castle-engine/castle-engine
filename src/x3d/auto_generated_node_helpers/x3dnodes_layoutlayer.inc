@@ -29,8 +29,26 @@
     function GetLayout: TAbstractLayoutNode;
     procedure SetLayout(const Value: TAbstractLayoutNode);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventAddChildren: TMFNodeEvent;
+    { X3D in event "addChildren". } { }
+    public property EventAddChildren: TMFNodeEvent read FEventAddChildren;
+
+    strict private FEventRemoveChildren: TMFNodeEvent;
+    { X3D in event "removeChildren". } { }
+    public property EventRemoveChildren: TMFNodeEvent read FEventRemoveChildren;
+
+    strict private FFdChildren: TMFNode;
+    { X3D field "children". } { }
+    public property FdChildren: TMFNode read FFdChildren;
     { Set X3D field "children". } { }
     procedure SetChildren(const Value: array of TAbstractChildNode);
+
+    strict private FFdLayout: TSFNode;
+    { X3D field "layout". } { }
+    public property FdLayout: TSFNode read FFdLayout;
     { X3D field "layout". } { }
     property Layout: TAbstractLayoutNode read GetLayout write SetLayout;
 
@@ -63,6 +81,30 @@ end;
 procedure TLayoutLayerNode.SetLayout(const Value: TAbstractLayoutNode);
 begin
   FdLayout.Send(Value);
+end;
+
+class function TLayoutLayerNode.ClassX3DType: String;
+begin
+  Result := 'LayoutLayer';
+end;
+
+procedure TLayoutLayerNode.CreateNode;
+begin
+  inherited;
+
+  FEventAddChildren := TMFNodeEvent.Create(Self, 'addChildren', true);
+  AddEvent(FEventAddChildren);
+
+  FEventRemoveChildren := TMFNodeEvent.Create(Self, 'removeChildren', true);
+  AddEvent(FEventRemoveChildren);
+
+  FFdChildren := TMFNode.Create(Self, True, 'children', [TAbstractChildNode]);
+   FdChildren.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdChildren);
+
+  FFdLayout := TSFNode.Create(Self, True, 'layout', [TAbstractLayoutNode]);
+   FdLayout.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdLayout);
 end;
 
 {$endif read_implementation}

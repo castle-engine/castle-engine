@@ -346,7 +346,7 @@ end;
 
 procedure CGEApp_SendMessageToPascal(Message: PCChar); cdecl;
 begin
-  { For consistent behaviour with Android, do not receive and process messages synchronously. }
+  { For consistent behavior with Android, do not receive and process messages synchronously. }
   // Messaging.ReceiveStr(AnsiString(PChar(Message)));
 
   Messaging.ToPascal.Add(AnsiString(PChar(Message)));

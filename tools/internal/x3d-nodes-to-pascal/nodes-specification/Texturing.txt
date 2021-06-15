@@ -5,52 +5,63 @@ X3DTextureNode : X3DAppearanceChildNode {
 }
 
 X3DSingleTextureCoordinateNode : X3DTextureCoordinateNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
   SFString [in,out] mapping  ""
 }
 
 X3DSingleTextureNode : X3DTextureNode {
-  # EXTENSIONS:
-  MFNode     []            effects          []          # [Effect]
+  # CASTLE GAME ENGINE EXTENSIONS:
+  MFNode     []            effects          []
+    range: Effect
 
   # X3DOM EXTENSIONS (https://doc.x3dom.org/author/Texturing/X3DTextureNode.html):
   # (note: X3DOM spec doesn't say if it's inputOutput or initializeOnly, below is just a guess)
-  SFString   []   crossOrigin  "" # NOT-SLIM
+  SFString   []   crossOrigin  ""
+    not-slim
 }
 
 X3DSingleTextureTransformNode : X3DTextureTransformNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
   SFString [in,out] mapping  ""
 }
 
 X3DTexture2DNode : X3DSingleTextureNode {
   SFBool []       repeatS           TRUE
   SFBool []       repeatT           TRUE
-  SFNode []       textureProperties NULL [TextureProperties]
+  SFNode []       textureProperties NULL
+    range: TextureProperties
 
-  # EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   # Commented out to not be seen by x3d-nodes-to-pascal,
   # this is implemented specially in Pascal.
-  # SFString   []            alphaChannel  "AUTO"      # ["AUTO"|"NONE"|"TEST"|"BLENDING"]
+  # SFString   []            alphaChannel  "AUTO"
+  #   range: ["AUTO"|"NONE"|"TEST"|"BLENDING"]
 }
 
 X3DTextureTransformNode : X3DAppearanceChildNode {
 }
 
 ImageTexture : X3DTexture2DNode, X3DUrlObject {
-  MFString [in,out] url               []   [URI]
+  MFString [in,out] url               []
+    range: [URI]
   SFBool   []       flipVertically    FALSE
 }
 
 MovieTexture : X3DTexture2DNode, X3DSoundSourceNode, X3DUrlObject {
   SFString [in,out] description       ""
   SFBool   [in,out] loop              FALSE
-  SFTime   [in,out] pauseTime         0     (-Inf,Inf)
-  SFTime   [in,out] resumeTime        0     (-Inf,Inf)
-  SFFloat  [in,out] speed             1.0   (-Inf,Inf)
-  SFTime   [in,out] startTime         0     (-Inf,Inf)
-  SFTime   [in,out] stopTime          0     (-Inf,Inf)
-  MFString [in,out] url               []    [URI]
+  SFTime   [in,out] pauseTime         0
+    range: (-Inf,Inf)
+  SFTime   [in,out] resumeTime        0
+    range: (-Inf,Inf)
+  SFFloat  [in,out] speed             1.0
+    range: (-Inf,Inf)
+  SFTime   [in,out] startTime         0
+    range: (-Inf,Inf)
+  SFTime   [in,out] stopTime          0
+    range: (-Inf,Inf)
+  MFString [in,out] url               []
+    range: [URI]
   SFBool   []       flipVertically    FALSE
   SFTime   [out]    duration_changed
   SFTime   [out]    elapsedTime
@@ -59,55 +70,78 @@ MovieTexture : X3DTexture2DNode, X3DSoundSourceNode, X3DUrlObject {
 }
 
 MultiTexture : X3DTextureNode {
-  SFFloat  [in,out] alpha    1     [0,1]
-  SFColor  [in,out] color    1 1 1 [0,1]
+  SFFloat  [in,out] alpha    1
+    range: [0,1]
+  SFColor  [in,out] color    1 1 1
+    range: [0,1]
   MFString [in,out] function []
   MFString [in,out] mode     []
   MFString [in,out] source   []
-  MFNode   [in,out] texture  []    [X3DSingleTextureNode]
+  MFNode   [in,out] texture  []
+    range: X3DSingleTextureNode
 }
 
 MultiTextureCoordinate : X3DTextureCoordinateNode {
-  MFNode [in,out] texCoord NULL [X3DSingleTextureCoordinateNode]
+  MFNode [in,out] texCoord NULL
+    range: X3DSingleTextureCoordinateNode
 }
 
 MultiTextureTransform : X3DTextureTransformNode {
-  MFNode [in,out] textureTransform NULL [X3DSingleTextureTransformNode]
+  MFNode [in,out] textureTransform NULL
+    range: X3DSingleTextureTransformNode
 }
 
 PixelTexture : X3DTexture2DNode {
-  SFImage [in,out] image             0 0 0
+  SFImage [in,out] image             no-image
+    # our x3d-nodes-to-pascal ignores the SFImage default value for now, it is always no-image
 }
 
 TextureCoordinate : X3DSingleTextureCoordinateNode {
-  MFVec2f [in,out] point    []   (-Inf,Inf)
+  MFVec2f [in,out] point    []
+    range: (-Inf,Inf)
 }
 
 TextureCoordinateGenerator : X3DSingleTextureCoordinateNode {
-  SFString [in,out] mode      "SPHERE" [see Table 18.6]
-  MFFloat  [in,out] parameter []       [see Table 18.6]
+  SFString [in,out] mode      "SPHERE"
+    range: see Table 18.6
+  MFFloat  [in,out] parameter []
+    range: see Table 18.6
 }
 
 TextureProperties : X3DNode {
-  SFFloat     [in,out] anisotropicDegree   1.0       [1,Inf)
-  SFColorRGBA [in,out] borderColor         0 0 0 0   [0,1]
-  SFInt32     [in,out] borderWidth         0         [0,1]
-  SFString    [in,out] boundaryModeS       "REPEAT"  [see Table 18.7]
-  SFString    [in,out] boundaryModeT       "REPEAT"  [see Table 18.7]
-  SFString    [in,out] boundaryModeR       "REPEAT"  [see Table 18.7]
-  SFString    [in,out] magnificationFilter "FASTEST" [see Table 18.8]
-  SFString    [in,out] minificationFilter  "FASTEST" [see Table 18.9]
-  SFString    [in,out] textureCompression  "FASTEST" [see Table 18.10]
-  SFFloat     [in,out] texturePriority     0         [0,1]
+  SFFloat     [in,out] anisotropicDegree   1.0
+    range: [1,Inf)
+  SFColorRGBA [in,out] borderColor         0 0 0 0
+    range: [0,1]
+  SFInt32     [in,out] borderWidth         0
+    range: [0,1]
+  SFString    [in,out] boundaryModeS       "REPEAT"
+    range: [see Table 18.7]
+  SFString    [in,out] boundaryModeT       "REPEAT"
+    range: [see Table 18.7]
+  SFString    [in,out] boundaryModeR       "REPEAT"
+    range: [see Table 18.7]
+  SFString    [in,out] magnificationFilter "FASTEST"
+    range: [see Table 18.8]
+  SFString    [in,out] minificationFilter  "FASTEST"
+    range: [see Table 18.9]
+  SFString    [in,out] textureCompression  "FASTEST"
+    range: [see Table 18.10]
+  SFFloat     [in,out] texturePriority     0
+    range: [0,1]
   SFBool      []       generateMipMaps     FALSE
 
-  # EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   SFBool     []            guiTexture  FALSE
 }
 
 TextureTransform : X3DSingleTextureTransformNode {
-  SFVec2f [in,out] center      0 0  (-Inf,Inf)
-  SFFloat [in,out] rotation    0    (-Inf,Inf)
-  SFVec2f [in,out] scale       1 1  (-Inf,Inf)
-  SFVec2f [in,out] translation 0 0  (-Inf,Inf)
+  SFVec2f [in,out] center      0 0
+    range: (-Inf,Inf)
+  SFFloat [in,out] rotation    0
+    range: (-Inf,Inf)
+  SFVec2f [in,out] scale       1 1
+    range: (-Inf,Inf)
+  SFVec2f [in,out] translation 0 0
+    range: (-Inf,Inf)
 }

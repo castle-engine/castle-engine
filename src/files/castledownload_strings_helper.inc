@@ -22,7 +22,7 @@ type
       Uses Castle Game Engine @link(Download) to get the contents,
       then uses standard LoadFromStream to load them.
 
-      The meaning (and default behaviour) of optional AEncoding
+      The meaning (and default behavior) of optional AEncoding
       is the same as for TStrings.LoadFromFile and TStrings.LoadFromStream. }
     procedure LoadFromURL(const URL: string); overload;
     procedure LoadFromURL(const URL: string; const AEncoding: TEncoding); overload;

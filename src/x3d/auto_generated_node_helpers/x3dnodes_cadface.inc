@@ -29,8 +29,22 @@
     function GetBBox: TBox3D;
     procedure SetBBox(const Value: TBox3D);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdShape: TSFNode;
+    { X3D field "shape". } { }
+    public property FdShape: TSFNode read FFdShape;
+
+    strict private FFdBboxCenter: TSFVec3f;
+    { X3D field "bboxCenter". } { }
+    public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
     { X3D fields "bboxCenter" and "bboxSize" are get/set as TBox3D. } { }
     property BBox: TBox3D read GetBBox write SetBBox;
+
+    strict private FFdBboxSize: TSFVec3f;
+    { X3D field "bboxSize". } { }
+    public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
 {$endif read_interface}
 
@@ -50,6 +64,28 @@ begin
   Value.ToCenterSize(ValueCenter, ValueSize);
   FdBBoxCenter.Send(ValueCenter);
   FdBBoxSize.Send(ValueSize);
+end;
+
+class function TCADFaceNode.ClassX3DType: String;
+begin
+  Result := 'CADFace';
+end;
+
+procedure TCADFaceNode.CreateNode;
+begin
+  inherited;
+
+  FFdShape := TSFNode.Create(Self, True, 'shape', [TAbstractShapeNode, TAbstractLODNode]);
+   FdShape.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdShape);
+
+  FFdBboxCenter := TSFVec3f.Create(Self, False, 'bboxCenter', Vector3(0, 0, 0));
+   FdBboxCenter.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBboxCenter);
+
+  FFdBboxSize := TSFVec3f.Create(Self, False, 'bboxSize', Vector3(-1, -1, -1));
+   FdBboxSize.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBboxSize);
 end;
 
 {$endif read_implementation}

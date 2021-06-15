@@ -69,7 +69,6 @@ begin
   FFdVertices := TMFVec2f.Create(Self, True, 'vertices', []);
    FdVertices.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdVertices);
-  { X3D specification comment: (-Inf,Inf) }
 
   FFdSolid := TSFBool.Create(Self, False, 'solid', false);
    FdSolid.ChangeAlways := chVisibleNonGeometry;

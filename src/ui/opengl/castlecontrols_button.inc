@@ -180,10 +180,10 @@
 
       See the example examples/fonts/html_text.lpr and
       examples/fonts/html_text_demo.html for a demo of what HTML tags can do.
-      See @link(TCastleFont.PrintStrings) documentation for a list of support HTML markup.
+      See @link(TCastleAbstractFont.PrintStrings) documentation for a list of support HTML markup.
 
       Note that to see the bold/italic font variants in the HTML markup,
-      you need to set the font to be TFontFamily with bold/italic variants.
+      you need to set the font to be TCastleFontFamily with bold/italic variants.
       See the example mentioned above, examples/fonts/html_text.lpr,
       for a code how to do it. }
     property Html: boolean read FHtml write SetHtml default false;

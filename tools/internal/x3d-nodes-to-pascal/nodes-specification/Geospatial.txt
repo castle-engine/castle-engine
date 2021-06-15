@@ -1,62 +1,101 @@
 GeoCoordinate : X3DCoordinateNode {
-  MFVec3d  [in,out] point     []          (-Inf,Inf)
-  SFNode   []       geoOrigin NULL        [GeoOrigin]
-  MFString []       geoSystem ["GD","WE"] [see 25.2.3]  
+  MFVec3d  [in,out] point     []
+    range: (-Inf,Inf)
+  SFNode   []       geoOrigin NULL
+    range: GeoOrigin
+  MFString []       geoSystem ["GD","WE"]
+    range: see 25.2.3
 }
 
 GeoElevationGrid : X3DGeometryNode {
   MFDouble [in]     set_height
-  SFNode   [in,out] color           NULL        [X3DColorNode]
-  SFNode   [in,out] normal          NULL        [X3DNormalNode]
-  SFNode   [in,out] texCoord        NULL        [X3DTextureCoordinateNode]
-  SFFloat  [in,out] yScale          1.0         [0,Inf)
+  SFNode   [in,out] color           NULL
+    range: X3DColorNode
+  SFNode   [in,out] normal          NULL
+    range: X3DNormalNode
+  SFNode   [in,out] texCoord        NULL
+    range: X3DTextureCoordinateNode
+  SFFloat  [in,out] yScale          1.0
+    range: [0,Inf)
   SFBool   []       ccw             TRUE
   SFBool   []       colorPerVertex  TRUE
-  SFDouble []       creaseAngle     0           [0,Inf)
-  SFVec3d  []       geoGridOrigin   0 0 0       (-Inf,Inf)
-  SFNode   []       geoOrigin       NULL        [GeoOrigin]
-  MFString []       geoSystem       ["GD","WE"] [see 25.2.3]
-  MFDouble []       height          [0 0]       (-Inf,Inf)
+  SFDouble []       creaseAngle     0
+    range: [0,Inf)
+  SFVec3d  []       geoGridOrigin   0 0 0
+    range: (-Inf,Inf)
+  SFNode   []       geoOrigin       NULL
+    range: GeoOrigin
+  MFString []       geoSystem       ["GD","WE"]
+    range: see 25.2.3
+  MFDouble []       height
+    range: [0 0]       (-Inf,Inf)
   SFBool   []       normalPerVertex TRUE
   SFBool   []       solid           TRUE
-  SFInt32  []       xDimension      0           (0,Inf)
-  SFDouble []       xSpacing        1.0         [0,Inf)
-  SFInt32  []       zDimension      0           (0,Inf)
-  SFDouble []       zSpacing        1.0         [0,Inf)
+  SFInt32  []       xDimension      0
+    range: (0,Inf)
+  SFDouble []       xSpacing        1.0
+    range: [0,Inf)
+  SFInt32  []       zDimension      0
+    range: (0,Inf)
+  SFDouble []       zSpacing        1.0
+    range: [0,Inf)
 }
 
 GeoLocation : X3DGroupingNode {
-  SFVec3d  [in,out] geoCoords      0 0 0       (-Inf,Inf)
-  SFNode   []       geoOrigin      NULL        [GeoOrigin]
-  MFString []       geoSystem      ["GD","WE"] [see 25.2.3]
+  SFVec3d  [in,out] geoCoords      0 0 0
+    range: (-Inf,Inf)
+  SFNode   []       geoOrigin      NULL
+    range: GeoOrigin
+  MFString []       geoSystem      ["GD","WE"]
+    range: see 25.2.3
 }
 
 GeoLOD : X3DChildNode, X3DBoundedObject {
-  MFNode   [out]    children       []          [X3DChildNode]
+  MFNode   [out]    children       []
+    range: X3DChildNode
   SFInt32  [out]    level_changed
-  SFVec3d  []       center         0 0 0       (-Inf,Inf)
-  MFString []       child1Url      []          [URI]
-  MFString []       child2Url      []          [URI]
-  MFString []       child3Url      []          [URI]
-  MFString []       child4Url      []          [URI]
-  SFNode   []       geoOrigin      NULL        [GeoOrigin]
-  MFString []       geoSystem      ["GD","WE"] [see 25.2.3]
-  SFFloat  []       range          10          [0,Inf)
-  MFString []       rootUrl        []          [URI]
-  MFNode   []       rootNode       []          [X3DChildNode]
-  SFVec3f  []       bboxCenter     0 0 0       (-Inf,Inf)
-  SFVec3f  []       bboxSize       -1 -1 -1    [0,Inf) or -1 -1 -1
+  SFVec3d  []       center         0 0 0
+    range: (-Inf,Inf)
+  MFString []       child1Url      []
+    range: [URI]
+  MFString []       child2Url      []
+    range: [URI]
+  MFString []       child3Url      []
+    range: [URI]
+  MFString []       child4Url      []
+    range: [URI]
+  SFNode   []       geoOrigin      NULL
+    range: GeoOrigin
+  MFString []       geoSystem      ["GD","WE"]
+    range: see 25.2.3
+  SFFloat  []       range          10
+    range: [0,Inf)
+  MFString []       rootUrl        []
+    range: [URI]
+  MFNode   []       rootNode       []
+    range: X3DChildNode
+  SFVec3f  []       bboxCenter     0 0 0
+    range: (-Inf,Inf)
+  SFVec3f  []       bboxSize       -1 -1 -1
+    range: [0,Inf) or -1 -1 -1
 }
 
 GeoMetadata : X3DInfoNode {
-  MFNode   [in,out] data     []   []
+  MFNode   [in,out] data     []
+    range: X3DNode
+    change: chNone
   MFString [in,out] summary  []
-  MFString [in,out] url      []   [URI]
+    change: chNone
+  MFString [in,out] url      []
+    range: [URI]
+    change: chNone
 }
 
 GeoOrigin : X3DNode {
-  SFVec3d  [in,out] geoCoords 0 0 0       (-Inf,Inf)
-  MFString []       geoSystem ["GD","WE"] [see 25.2.3]
+  SFVec3d  [in,out] geoCoords 0 0 0
+    range: (-Inf,Inf)
+  MFString []       geoSystem ["GD","WE"]
+    range: see 25.2.3
   SFBool   []       rotateYUp FALSE
 }
 
@@ -64,18 +103,23 @@ GeoPositionInterpolator : X3DInterpolatorNode {
   MFVec3d  [in,out] keyValue         []
   SFVec3d  [out]    geovalue_changed
   SFVec3f  [out]    value_changed
-  SFNode   []       geoOrigin        NULL        [GeoOrigin]
-  MFString []       geoSystem        ["GD","WE"] [see 25.2.3]
+  SFNode   []       geoOrigin        NULL
+    range: GeoOrigin
+  MFString []       geoSystem        ["GD","WE"]
+    range: see 25.2.3
 }
 
 GeoProximitySensor : X3DEnvironmentalSensorNode {
-  SFVec3d    [in,out] geoCenter                0 0 0       (-Inf,Inf)
+  SFVec3d    [in,out] geoCenter                0 0 0
+    range: (-Inf,Inf)
   SFVec3f    [out]    centerOfRotation_changed
   SFVec3d    [out]    geoCoord_changed
   SFRotation [out]    orientation_changed
   SFVec3f    [out]    position_changed
-  SFNode     []       geoOrigin                NULL        [GeoOrigin]
-  MFString   []       geoSystem                ["GD","WE"] [see 25.2.3]
+  SFNode     []       geoOrigin                NULL
+    range: GeoOrigin
+  MFString   []       geoSystem                ["GD","WE"]
+    range: see 25.2.3
 }
 
 GeoTouchSensor : X3DTouchSensorNode {
@@ -83,29 +127,42 @@ GeoTouchSensor : X3DTouchSensorNode {
   SFVec3f  [out]    hitPoint_changed
   SFVec2f  [out]    hitTexCoord_changed
   SFVec3d  [out]    hitGeoCoord_changed
-  SFNode   []       geoOrigin           NULL        [GeoOrigin]
-  MFString []       geoSystem           ["GD","WE"] [see 25.2.3]
+  SFNode   []       geoOrigin           NULL
+    range: GeoOrigin
+  MFString []       geoSystem           ["GD","WE"]
+    range: see 25.2.3
 }
 
 GeoTransform : X3DGroupingNode {
-  SFVec3d    [in,out] geoCenter        0 0 0    (-Inf,Inf)
-  SFRotation [in,out] rotation         0 0 1 0  [-1,1] or (-Inf,Inf)
-  SFVec3f    [in,out] scale            1 1 1    (0,Inf)
-  SFRotation [in,out] scaleOrientation 0 0 1 0  [-1,1] or (-Inf,Inf)
-  SFVec3f    [in,out] translation      0 0 0    (-Inf,Inf)
-  SFNode     []       geoOrigin                 NULL        [GeoOrigin]
-  MFString   []       geoSystem                 ["GD","WE"] [see 25.2.3]
+  SFVec3d    [in,out] geoCenter        0 0 0
+    range: (-Inf,Inf)
+  SFRotation [in,out] rotation         0 0 1 0
+    range: [-1,1] or (-Inf,Inf)
+  SFVec3f    [in,out] scale            1 1 1
+    range: (0,Inf)
+  SFRotation [in,out] scaleOrientation 0 0 1 0
+    range: [-1,1] or (-Inf,Inf)
+  SFVec3f    [in,out] translation      0 0 0
+    range: (-Inf,Inf)
+  SFNode     []       geoOrigin                 NULL
+    range: GeoOrigin
+  MFString   []       geoSystem                 ["GD","WE"]
+    range: see 25.2.3
 }
 
 GeoViewpoint : X3DViewpointNode {
   SFRotation [in]     set_orientation
   SFVec3d    [in]     set_position
-  SFFloat    [in,out] fieldOfView     Pi/4               (0,Pi)
+  SFFloat    [in,out] fieldOfView     Pi/4
+    range: (0,Pi)
   SFBool     [in,out] headlight       TRUE
   MFString   [in,out] navType         ["EXAMINE","ANY"]
-  SFNode     []       geoOrigin       NULL              [GeoOrigin]
-  MFString   []       geoSystem       ["GD","WE"]       [see 25.2.3]
-  SFVec3d    []       position        0 0 100000        (-Inf,Inf)
-  SFFloat    []       speedFactor     1.0               [0,Inf)
+  SFNode     []       geoOrigin       NULL
+    range: GeoOrigin
+  MFString   []       geoSystem       ["GD","WE"]
+    range: see 25.2.3
+  SFVec3d    []       position        0 0 100000
+    range: (-Inf,Inf)
+  SFFloat    []       speedFactor     1.0
+    range: [0,Inf)
 }
-

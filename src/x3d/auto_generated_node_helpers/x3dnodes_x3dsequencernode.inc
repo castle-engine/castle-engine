@@ -105,7 +105,6 @@ begin
   FFdKey := TMFFloat.Create(Self, True, 'key', []);
    FdKey.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdKey);
-  { X3D specification comment: (-Inf,Inf) }
 
   FFdForceContinuousValue_changed := TSFBool.Create(Self, True, 'forceContinuousValue_changed', false);
    FdForceContinuousValue_changed.ChangeAlways := chVisibleNonGeometry;

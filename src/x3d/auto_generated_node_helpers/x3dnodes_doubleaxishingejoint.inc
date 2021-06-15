@@ -344,57 +344,46 @@ begin
   FFdDesiredAngularVelocity1 := TSFFloat.Create(Self, True, 'desiredAngularVelocity1', 0);
    FdDesiredAngularVelocity1.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDesiredAngularVelocity1);
-  { X3D specification comment: (-Inf,Inf) }
 
   FFdDesiredAngularVelocity2 := TSFFloat.Create(Self, True, 'desiredAngularVelocity2', 0);
    FdDesiredAngularVelocity2.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDesiredAngularVelocity2);
-  { X3D specification comment: (-Inf,Inf) }
 
   FFdMaxAngle1 := TSFFloat.Create(Self, True, 'maxAngle1', Pi);
    FdMaxAngle1.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdMaxAngle1);
-  { X3D specification comment: [-Pi,Pi] }
 
   FFdMaxTorque1 := TSFFloat.Create(Self, True, 'maxTorque1', 0);
    FdMaxTorque1.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdMaxTorque1);
-  { X3D specification comment: (-Inf,Inf) }
 
   FFdMaxTorque2 := TSFFloat.Create(Self, True, 'maxTorque2', 0);
    FdMaxTorque2.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdMaxTorque2);
-  { X3D specification comment: (-Inf,Inf) }
 
   FFdMinAngle1 := TSFFloat.Create(Self, True, 'minAngle1', -Pi);
    FdMinAngle1.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdMinAngle1);
-  { X3D specification comment: [-Pi,Pi] }
 
   FFdStopBounce1 := TSFFloat.Create(Self, True, 'stopBounce1', 0);
    FdStopBounce1.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdStopBounce1);
-  { X3D specification comment: [0,1] }
 
   FFdStopConstantForceMix1 := TSFFloat.Create(Self, True, 'stopConstantForceMix1', 0.001);
    FdStopConstantForceMix1.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdStopConstantForceMix1);
-  { X3D specification comment: [0,Inf) }
 
   FFdStopErrorCorrection1 := TSFFloat.Create(Self, True, 'stopErrorCorrection1', 0.8);
    FdStopErrorCorrection1.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdStopErrorCorrection1);
-  { X3D specification comment: [0,1] }
 
   FFdSuspensionErrorCorrection := TSFFloat.Create(Self, True, 'suspensionErrorCorrection', 0.8);
    FdSuspensionErrorCorrection.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSuspensionErrorCorrection);
-  { X3D specification comment: [0,1] }
 
   FFdSuspensionForce := TSFFloat.Create(Self, True, 'suspensionForce', 0);
    FdSuspensionForce.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSuspensionForce);
-  { X3D specification comment: [0,Inf) }
 
   FEventBody1AnchorPoint := TSFVec3fEvent.Create(Self, 'body1AnchorPoint', false);
   AddEvent(FEventBody1AnchorPoint);

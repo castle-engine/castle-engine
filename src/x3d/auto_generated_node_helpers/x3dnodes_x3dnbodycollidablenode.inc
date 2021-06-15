@@ -132,22 +132,18 @@ begin
   FFdRotation := TSFRotation.Create(Self, True, 'rotation', Vector3(0, 0, 1), 0);
    FdRotation.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdRotation);
-  { X3D specification comment: [0,1] }
 
   FFdTranslation := TSFVec3f.Create(Self, True, 'translation', Vector3(0, 0, 0));
    FdTranslation.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdTranslation);
-  { X3D specification comment: (-Inf,Inf) }
 
   FFdBboxCenter := TSFVec3f.Create(Self, False, 'bboxCenter', Vector3(0, 0, 0));
    FdBboxCenter.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBboxCenter);
-  { X3D specification comment: (-Inf,Inf) }
 
   FFdBboxSize := TSFVec3f.Create(Self, False, 'bboxSize', Vector3(-1, -1, -1));
    FdBboxSize.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBboxSize);
-  { X3D specification comment: [0,Inf) or -1 -1 -1 }
 end;
 
 {$endif read_implementation}

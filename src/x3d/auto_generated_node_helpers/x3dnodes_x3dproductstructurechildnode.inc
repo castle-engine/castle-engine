@@ -29,6 +29,12 @@
     function GetNameField: String;
     procedure SetNameField(const Value: String);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdName: TSFString;
+    { X3D field "name". } { }
+    public property FdName: TSFString read FFdName;
     { X3D field "name". } { }
     property NameField: String read GetNameField write SetNameField;
 
@@ -46,6 +52,22 @@ end;
 procedure TAbstractProductStructureChildNode.SetNameField(const Value: String);
 begin
   FdName.Send(Value);
+end;
+
+class function TAbstractProductStructureChildNode.ClassX3DType: String;
+begin
+  Result := 'X3DProductStructureChildNode';
+end;
+
+procedure TAbstractProductStructureChildNode.CreateNode;
+begin
+  inherited;
+
+  FFdName := TSFString.Create(Self, True, 'name', '');
+   FdName.ChangeAlways := chNone;
+  AddField(FFdName);
+
+  DefaultContainerField := 'children';
 end;
 
 {$endif read_implementation}

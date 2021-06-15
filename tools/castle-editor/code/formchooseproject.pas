@@ -250,10 +250,13 @@ end;
 
 procedure TChooseProjectForm.FormCreate(Sender: TObject);
 
-  procedure PathsConfigLoad;
+  procedure ConfigLoad;
   begin
     FpcCustomPath := UserConfig.GetValue('fpc_custom_path', '');
     LazarusCustomPath := UserConfig.GetValue('lazarus_custom_path', '');
+    CodeEditor := TCodeEditor(UserConfig.GetValue('code_editor/setting', Ord(DefaultCodeEditor)));
+    CodeEditorCommand := UserConfig.GetValue('code_editor/command', '');
+    CodeEditorCommandProject := UserConfig.GetValue('code_editor/command_project', '');
   end;
 
 begin
@@ -261,19 +264,22 @@ begin
   RecentProjects := TCastleRecentFiles.Create(Self);
   RecentProjects.LoadFromConfig(UserConfig);
   //  RecentProjects.NextMenuItem := ; // unused for now
-  PathsConfigLoad;
+  ConfigLoad;
 end;
 
 procedure TChooseProjectForm.FormDestroy(Sender: TObject);
 
-  procedure PathsConfigSave;
+  procedure ConfigSave;
   begin
     UserConfig.SetDeleteValue('fpc_custom_path', FpcCustomPath, '');
     UserConfig.SetDeleteValue('lazarus_custom_path', LazarusCustomPath, '');
+    UserConfig.SetDeleteValue('code_editor/setting', Ord(CodeEditor), Ord(DefaultCodeEditor));
+    UserConfig.SetDeleteValue('code_editor/command', CodeEditorCommand, '');
+    UserConfig.SetDeleteValue('code_editor/command_project', CodeEditorCommandProject, '');
   end;
 
 begin
-  PathsConfigSave;
+  ConfigSave;
   RecentProjects.SaveToConfig(UserConfig);
   UserConfig.Save;
 end;

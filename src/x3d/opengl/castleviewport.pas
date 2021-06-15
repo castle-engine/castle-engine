@@ -2031,10 +2031,11 @@ var
 
       CalculateDimensions;
 
-      Result.Dimensions := TOrthoViewpointNode.InternalFieldOfView(
-        Result.Dimensions,
-        Viewport.Width,
-        Viewport.Height);
+      if not Camera.Orthographic.Stretch then
+        Result.Dimensions := TOrthoViewpointNode.InternalFieldOfView(
+          Result.Dimensions,
+          Viewport.Width,
+          Viewport.Height);
 
       EffectiveProjectionWidth := Result.Dimensions.Width;
       EffectiveProjectionHeight := Result.Dimensions.Height;
@@ -3318,7 +3319,10 @@ begin
     RayDirection := Item.UniqueParent.WorldToLocalDirection(RayDirectionWorld);
   end else
   begin
-    WritelnWarning('TODO: Item %s is not part of World, or is present in World multiple times. PointingDeviceXxx events will receive ray in world coordinates, while they should be in local.');
+    WritelnWarning('TODO: Item %s(%s) is not part of World, or is present in the World multiple times. PointingDeviceXxx events will receive ray in world coordinates, while they should be in local.', [
+      Item.Name,
+      Item.ClassName
+    ]);
     RayOrigin := RayOriginWorld;
     RayDirection := RayDirectionWorld;
   end;
@@ -3580,7 +3584,7 @@ function TCastleViewport.NavigationMoveAllowed(const Sender: TCastleNavigation;
   function PositionOutsideBoundingBox: Boolean;
   var
     Box: TBox3D;
-    GravityCoordinate, Coord1, Coord2: Integer;
+    GravityCoordinate, Coord1, Coord2: T3DAxis;
   begin
     Box := ItemsBoundingBox;
     if Box.IsEmpty then Exit(false);

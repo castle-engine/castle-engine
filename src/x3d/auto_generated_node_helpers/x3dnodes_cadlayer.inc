@@ -29,12 +29,14 @@
     function GetNameField: String;
     procedure SetNameField(const Value: String);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdName: TSFString;
+    { X3D field "name". } { }
+    public property FdName: TSFString read FFdName;
     { X3D field "name". } { }
     property NameField: String read GetNameField write SetNameField;
-    { Set X3D field "visible". } { }
-    procedure SetVisible(const Value: array of boolean);
-    { Set X3D field "visible". } { }
-    procedure SetVisible(const Value: TBooleanList);
 
 {$endif read_interface}
 
@@ -52,14 +54,18 @@ begin
   FdName.Send(Value);
 end;
 
-procedure TCADLayerNode.SetVisible(const Value: array of boolean);
+class function TCADLayerNode.ClassX3DType: String;
 begin
-  FdVisible.Send(Value);
+  Result := 'CADLayer';
 end;
 
-procedure TCADLayerNode.SetVisible(const Value: TBooleanList);
+procedure TCADLayerNode.CreateNode;
 begin
-  FdVisible.Send(Value);
+  inherited;
+
+  FFdName := TSFString.Create(Self, True, 'name', '');
+   FdName.ChangeAlways := chNone;
+  AddField(FFdName);
 end;
 
 {$endif read_implementation}

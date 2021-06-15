@@ -26,6 +26,8 @@
 {$ifdef read_interface}
 
   public
+    { Set X3D field "data". } { }
+    procedure SetData(const Value: array of TAbstractNode);
     { Set X3D field "summary". } { }
     procedure SetSummary(const Value: array of string);
     { Set X3D field "summary". } { }
@@ -40,6 +42,18 @@
 {$ifdef read_implementation}
 
 { TGeoMetadataNode ----------------------------------------------- }
+
+procedure TGeoMetadataNode.SetData(const Value: array of TAbstractNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TAbstractNode));
+  FdData.Send(A);
+end;
 
 procedure TGeoMetadataNode.SetSummary(const Value: array of string);
 begin

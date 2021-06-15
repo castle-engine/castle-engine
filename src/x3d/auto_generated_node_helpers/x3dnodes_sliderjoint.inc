@@ -150,22 +150,18 @@ begin
   FFdMaxSeparation := TSFFloat.Create(Self, True, 'maxSeparation', 1);
    FdMaxSeparation.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdMaxSeparation);
-  { X3D specification comment: [0,Inf) }
 
   FFdMinSeparation := TSFFloat.Create(Self, True, 'minSeparation', 0);
    FdMinSeparation.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdMinSeparation);
-  { X3D specification comment: [0,Inf) }
 
   FFdStopBounce := TSFFloat.Create(Self, True, 'stopBounce', 0);
    FdStopBounce.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdStopBounce);
-  { X3D specification comment: [0,1] }
 
   FFdStopErrorCorrection := TSFFloat.Create(Self, True, 'stopErrorCorrection', 1);
    FdStopErrorCorrection.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdStopErrorCorrection);
-  { X3D specification comment: [0,1] }
 
   FEventSeparation := TSFFloatEvent.Create(Self, 'separation', false);
   AddEvent(FEventSeparation);

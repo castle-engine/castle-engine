@@ -145,7 +145,7 @@ type
       Do not call this when some time measure is started but not yet stopped
       Currently, this will cause such time measure to be rejected,
       and stopping it will cause a one-time warning,
-      but don't depend on this exact behaviour in the future.
+      but don't depend on this exact behavior in the future.
       We will always gracefully accept this case (not crash). }
     procedure Clear; deprecated 'This method is not reliable (may cause crashes when used between Start/Stop) and also not comfortable. To display partial profile information, better use Stop with 2nd argument true.';
 

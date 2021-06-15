@@ -28,11 +28,27 @@
   strict private
     function GetBBox: TBox3D;
     procedure SetBBox(const Value: TBox3D);
+{$ifndef CASTLE_SLIM_NODES}
+    function GetVisible: Boolean;
+    procedure SetVisible(const Value: Boolean);
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
+    function GetBboxDisplay: Boolean;
+    procedure SetBboxDisplay(const Value: Boolean);
+{$endif not CASTLE_SLIM_NODES}
   public
     { Set X3D field "children". } { }
     procedure SetChildren(const Value: array of TAbstractChildNode);
     { X3D fields "bboxCenter" and "bboxSize" are get/set as TBox3D. } { }
     property BBox: TBox3D read GetBBox write SetBBox;
+{$ifndef CASTLE_SLIM_NODES}
+    { X3D field "visible". } { }
+    property Visible: Boolean read GetVisible write SetVisible;
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
+    { X3D field "bboxDisplay". } { }
+    property BboxDisplay: Boolean read GetBboxDisplay write SetBboxDisplay;
+{$endif not CASTLE_SLIM_NODES}
 
 {$endif read_interface}
 
@@ -66,4 +82,28 @@ begin
   FdBBoxSize.Send(ValueSize);
 end;
 
+{$ifndef CASTLE_SLIM_NODES}
+function TAbstractX3DGroupingNode.GetVisible: Boolean;
+begin
+  Result := FdVisible.Value;
+end;
+
+procedure TAbstractX3DGroupingNode.SetVisible(const Value: Boolean);
+begin
+  FdVisible.Send(Value);
+end;
+
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
+function TAbstractX3DGroupingNode.GetBboxDisplay: Boolean;
+begin
+  Result := FdBboxDisplay.Value;
+end;
+
+procedure TAbstractX3DGroupingNode.SetBboxDisplay(const Value: Boolean);
+begin
+  FdBboxDisplay.Send(Value);
+end;
+
+{$endif not CASTLE_SLIM_NODES}
 {$endif read_implementation}

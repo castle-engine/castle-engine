@@ -1359,7 +1359,7 @@ begin
           TimeAccumulator := TimeAccumulator - (PhysicsProperties.FPhysicsTimeStep * Floor(TimeAccumulator / PhysicsProperties.FPhysicsTimeStep));
 
           WritelnLog('Max physics ticks in TCastleAbstractRootTransform.Update() exceeded ('
-            + IntTostr(PhysicsTicksCount) + '). TimeAcumulator reduced from '
+            + IntToStr(PhysicsTicksCount) + '). TimeAccumulator reduced from '
             + FloatToStrDot(OldTimeAccumulator) + ' to ' + FloatToStrDot(TimeAccumulator));
 
           break;
@@ -1376,7 +1376,7 @@ begin
           "FKraftEngine.Step" call (and remember to make one less
           "FKraftEngine.Step" call in the next loop run).
 
-        The contains an explanation:
+        This contains an explanation:
         http://web.archive.org/web/20160205035208/http://gafferongames.com/game-physics/fix-your-timestep/
 
         """

@@ -84,12 +84,10 @@ begin
   FFdRadius := TSFFloat.Create(Self, False, 'radius', 1);
    FdRadius.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdRadius);
-  { X3D specification comment: (0,Inf) }
 
   FFdSlices := TSFInt32.Create(Self, True, 'slices', -1);
    FdSlices.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSlices);
-  { X3D specification comment: _-1_ + [3, infinity) }
 end;
 
 {$endif read_implementation}

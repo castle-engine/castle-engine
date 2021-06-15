@@ -70,7 +70,6 @@ begin
   FFdSize := TSFVec2f.Create(Self, False, 'size', Vector2(2, 2));
    FdSize.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSize);
-  { X3D specification comment: (0,Inf) }
 
   FFdSolid := TSFBool.Create(Self, False, 'solid', false);
    FdSolid.ChangeAlways := chVisibleNonGeometry;

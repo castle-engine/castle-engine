@@ -1,22 +1,26 @@
 X3DNode {
-  x3d-nodes-to-pascal: auto-generate-more true
-  SFNode [in,out] metadata NULL [X3DMetadataNode] # NOT-SLIM
+  auto-generate-more: true
+  SFNode [in,out] metadata NULL
+    range: X3DMetadataNode
+    not-slim
+    change: chNone
 }
 
 X3DBindableNode : X3DChildNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
   SFBool [in]     set_bind
-  SFTime [out]    bindTime # NOT-SLIM
+  SFTime [out]    bindTime
+    not-slim
   SFBool [out]    isBound
 }
 
 X3DChildNode : X3DNode {
-  x3d-nodes-to-pascal: auto-generate-more true
-  x3d-nodes-to-pascal: default-container-field children
+  auto-generate-more: true
+  default-container-field: children
 }
 
 X3DInfoNode : X3DChildNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
 }
 
 # Note that we change hierarchy from X3D spec:
@@ -31,50 +35,62 @@ X3DInfoNode : X3DChildNode {
 # Note that we rename X3DMetadataObject -> X3DMetadataNode, makes it a natural class.
 
 X3DMetadataNode : X3DNode {
-  x3d-nodes-to-pascal: auto-generate-more true
-  x3d-nodes-to-pascal: default-container-field metadata
+  auto-generate-more: true
+  default-container-field: metadata
   SFString [in,out] name      ""
+    change: chNone
   SFString [in,out] reference ""
+    change: chNone
 }
 
 X3DSensorNode  : X3DChildNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
   SFBool [in,out] enabled  TRUE
+    change: chNone
   SFBool [out]    isActive
 }
 
 MetadataBoolean : X3DMetadataNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
   MFBool   [in,out] value     []
+    change: chNone
 }
 
 MetadataDouble : X3DMetadataNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
   MFDouble [in,out] value     []
+    change: chNone
 }
 
 MetadataFloat : X3DMetadataNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
   MFFloat  [in,out] value     []
+    change: chNone
 }
 
 MetadataInteger : X3DMetadataNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
   MFInt32  [in,out] value     []
+    change: chNone
 }
 
 MetadataSet : X3DMetadataNode {
-  x3d-nodes-to-pascal: auto-generate-more true
-  MFNode   [in,out] value     [] # [X3DMetadataNode]
+  auto-generate-more: true
+  MFNode   [in,out] value     []
+    range: X3DMetadataNode
+    change: chNone
 }
 
 MetadataString : X3DMetadataNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
   MFString [in,out] value     []
+    change: chNone
 }
 
 WorldInfo : X3DInfoNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
   MFString []       info     []
+    change: chNone
   SFString []       title    ""
+    change: chNone
 }

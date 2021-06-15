@@ -82,11 +82,11 @@ begin
   inherited;
 
   FFdInfo := TMFString.Create(Self, False, 'info', []);
-   FdInfo.ChangeAlways := chVisibleNonGeometry;
+   FdInfo.ChangeAlways := chNone;
   AddField(FFdInfo);
 
   FFdTitle := TSFString.Create(Self, False, 'title', '');
-   FdTitle.ChangeAlways := chVisibleNonGeometry;
+   FdTitle.ChangeAlways := chNone;
   AddField(FFdTitle);
 end;
 

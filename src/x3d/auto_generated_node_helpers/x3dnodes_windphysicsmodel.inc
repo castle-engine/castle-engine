@@ -35,12 +35,30 @@
     function GetTurbulence: Single;
     procedure SetTurbulence(const Value: Single);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdDirection: TSFVec3f;
+    { X3D field "direction". } { }
+    public property FdDirection: TSFVec3f read FFdDirection;
     { X3D field "direction". } { }
     property Direction: TVector3 read GetDirection write SetDirection;
+
+    strict private FFdGustiness: TSFFloat;
+    { X3D field "gustiness". } { }
+    public property FdGustiness: TSFFloat read FFdGustiness;
     { X3D field "gustiness". } { }
     property Gustiness: Single read GetGustiness write SetGustiness;
+
+    strict private FFdSpeed: TSFFloat;
+    { X3D field "speed". } { }
+    public property FdSpeed: TSFFloat read FFdSpeed;
     { X3D field "speed". } { }
     property Speed: Single read GetSpeed write SetSpeed;
+
+    strict private FFdTurbulence: TSFFloat;
+    { X3D field "turbulence". } { }
+    public property FdTurbulence: TSFFloat read FFdTurbulence;
     { X3D field "turbulence". } { }
     property Turbulence: Single read GetTurbulence write SetTurbulence;
 
@@ -88,6 +106,32 @@ end;
 procedure TWindPhysicsModelNode.SetTurbulence(const Value: Single);
 begin
   FdTurbulence.Send(Value);
+end;
+
+class function TWindPhysicsModelNode.ClassX3DType: String;
+begin
+  Result := 'WindPhysicsModel';
+end;
+
+procedure TWindPhysicsModelNode.CreateNode;
+begin
+  inherited;
+
+  FFdDirection := TSFVec3f.Create(Self, True, 'direction', Vector3(0, 0, 0));
+   FdDirection.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDirection);
+
+  FFdGustiness := TSFFloat.Create(Self, True, 'gustiness', 0.1);
+   FdGustiness.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdGustiness);
+
+  FFdSpeed := TSFFloat.Create(Self, True, 'speed', 0.1);
+   FdSpeed.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSpeed);
+
+  FFdTurbulence := TSFFloat.Create(Self, True, 'turbulence', 0);
+   FdTurbulence.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdTurbulence);
 end;
 
 {$endif read_implementation}

@@ -287,7 +287,7 @@ type
     FMouseLookMotionToSubtract: TVector2;
     FFocusAndMouseCursorValid: boolean;
     FOverrideCursor: TMouseCursor;
-    FDefaultFont: TCastleFont;
+    FDefaultFont: TCastleAbstractFont;
     FContext: TRenderContext;
     FBackgroundEnable: Boolean;
     FBackgroundColor: TCastleColor;
@@ -838,7 +838,7 @@ type
 
       If this is @nil, we use the global font @link(UIFont)
       that is always assigned. }
-    property DefaultFont: TCastleFont read FDefaultFont write FDefaultFont;
+    property DefaultFont: TCastleAbstractFont read FDefaultFont write FDefaultFont;
 
     { Before rendering anything else,
       fill the color buffer with @link(BackgroundColor).

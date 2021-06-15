@@ -73,11 +73,11 @@ type
     { One of the filtes (excluding "catch all" filters) matches given URL.
       This excludes masks like "*" and "*.*" (the latter should not really
       be used, because it will not match all files on Unix). }
-    function Matches(const URL: String): Boolean;
+    function Matches(const URL: String): Boolean; overload;
 
     { Whether the filters described in FiltersStr (like for
       @link(AddFiltersFromString)) match the given URL. }
-    class function Matches(const FiltersStr, URL: String): Boolean;
+    class function Matches(const FiltersStr, URL: String): Boolean; overload;
 
     { Writes all recognized extensions (without * and *.*) separated
       by semicolon. }
@@ -86,7 +86,7 @@ type
 
 implementation
 
-uses StrUtils, CastleStringUtils, CastleURIUtils;
+uses StrUtils, CastleStringUtils, CastleURIUtils, CastleUtils;
 
 { TFileFilter ---------------------------------------------------------------- }
 

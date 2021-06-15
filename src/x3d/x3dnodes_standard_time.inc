@@ -348,15 +348,7 @@
       given time, but you do not want to activate sensor and generally you do
       not want to initialize anything that would continue animating on it's own.
 
-      Using TimeSensor this way is contrary to the VRML/X3D specified behavior.
-      But it's useful when we have VRML/X3D scene inside T3DResource,
-      that is shared by many T3D instances (like creatures and items) that want to
-      simultaneusly display different time moments of the same scene within
-      a single frame. In other words, this is useful when a single scene is shared
-      (if you have a 100 creatures in your game using the same 3D model,
-      you don't want to create 100 copies of this 3D model in memory).
-
-      We ignore TimeSensor.loop (FdLoop) field,
+      Note: We ignore TimeSensor.loop (FdLoop) field,
       instead we follow our own ALoop parameter.
       We also ignore TimeSensor.fractionIncreasing field,
       instead we follow our own AFractionIncreasing parameter.
@@ -367,9 +359,31 @@
       set enabled = false on previously-stopped animation).
 
       We take into account TimeSensor.cycleInterval (FdCycleInterval),
-      just like during normal TimeSensor behaviour.
+      just like during normal TimeSensor behavior.
       We send out isActive:=true, fraction_changed, elapsedTime and time X3D
       output events, and they should drive the rest of animation.
+
+      @italic(About the TimeOfEvents parameter):
+
+      In X3D, if you send a message (which is what happens when various X3D nodes communicate,
+      e.g. TimeSensors send messages to interpolators) the message will be ignored
+      if it already passed through the same route (@link(TX3DRoute))
+      with the timestamp >= than current.
+      This is a simple mechanism to avoid route loops in X3D.
+
+      It means you need to use increasing time each time you initiate an X3D event.
+
+      The implementation of FakeTime without @code(TimeOfEvents) parameter
+      solves it by using an internal, always increasing, time value.
+      It will work, but only if you don't process events in your X3D graphs
+      by any other means than this FakeTime time call.
+
+      In general case, when using FakeTime together with @link(TCastleScene)
+      that has active events (@link(TCastleSceneCore.ProcessEvents) = @true),
+      you should call overloaded TTimeSensorNode.FakeTime with @code(TimeOfEvents) parameter.
+      Use @link(TCastleSceneCore.NextEventTime MyScene.NextEventTime)
+      as the value of @code(TimeOfEvents). NextEventTime internally returns current time,
+      and also increases it by some special epsilon used only for comparison.
 
       @groupBegin }
     procedure FakeTime(const TimeInAnimation: TFloatTime;

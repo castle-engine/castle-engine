@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Demo of TCastleFont.BreakLines method.
+{ Demo of TCastleAbstractFont.BreakLines method.
   Resize the window and watch how the text lines are automatically broken.
 
   By default we use standard UIFont.
@@ -74,7 +74,7 @@ begin
 end;
 
 var
-  NewFont: TTextureFont;
+  NewFont: TCastleFont;
 begin
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
   Window := TCastleWindowBase.Create(Application);
@@ -88,7 +88,7 @@ begin
 
   if CustomFont <> '' then
   try
-    NewFont := TTextureFont.Create(Application);
+    NewFont := TCastleFont.Create(Application);
     NewFont.Load(CustomFont, 20, true);
     UIFont := NewFont;
   except

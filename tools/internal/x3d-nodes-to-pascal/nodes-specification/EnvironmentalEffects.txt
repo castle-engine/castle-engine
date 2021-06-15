@@ -4,31 +4,47 @@ X3DBackgroundNode : X3DBindableNode {
 # We split X3D into one empty abstract class, and X3D3DBackgroundNode.
 # This allows to cleanly define ImageBackground.
 X3D3DBackgroundNode : X3DBindableNode {
-  MFFloat [in,out] groundAngle   []      [0,Pi/2]
-  MFColor [in,out] groundColor   []      [0,1]
-  MFFloat [in,out] skyAngle      []      [0,Pi]
-  MFColor [in,out] skyColor      0 0 0   [0,1]
-  SFFloat [in,out] transparency  0       [0,1]
+  MFFloat [in,out] groundAngle   []
+    range: [0,Pi/2]
+  MFColor [in,out] groundColor   []
+    range: [0,1]
+  MFFloat [in,out] skyAngle      []
+    range: [0,Pi]
+  MFColor [in,out] skyColor      0 0 0
+    range: [0,1]
+  SFFloat [in,out] transparency  0
+    range: [0,1]
 }
 
 X3DFogObject {
-  SFColor  [in,out] color           1 1 1    [0,1]
-  SFString [in,out] fogType         "LINEAR" ["LINEAR"|"EXPONENTIAL"]
-  SFFloat  [in,out] visibilityRange 0        [0,-Inf)
+  SFColor  [in,out] color           1 1 1
+    range: [0,1]
+  SFString [in,out] fogType         "LINEAR"
+    range: ["LINEAR"|"EXPONENTIAL"]
+    # TODO: enumerated-type
+  SFFloat  [in,out] visibilityRange 0
+    range: [0,-Inf)
 
-  # EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   SFBool   [in,out]      volumetric                    FALSE
-  SFVec3f  [in,out]      volumetricDirection           0 -1 0    # any non-zero vector
+  SFVec3f  [in,out]      volumetricDirection           0 -1 0
+    range: any non-zero vector
   SFFloat  [in,out]      volumetricVisibilityStart     0
 }
 
 Background : X3D3DBackgroundNode {
-  MFString [in,out] backUrl      []    [URI]
-  MFString [in,out] bottomUrl    []    [URI]
-  MFString [in,out] frontUrl     []    [URI]
-  MFString [in,out] leftUrl      []    [URI]
-  MFString [in,out] rightUrl     []    [URI]
-  MFString [in,out] topUrl       []    [URI]
+  MFString [in,out] backUrl      []
+    range: [URI]
+  MFString [in,out] bottomUrl    []
+    range: [URI]
+  MFString [in,out] frontUrl     []
+    range: [URI]
+  MFString [in,out] leftUrl      []
+    range: [URI]
+  MFString [in,out] rightUrl     []
+    range: [URI]
+  MFString [in,out] topUrl       []
+    range: [URI]
 }
 
 Fog : X3DBindableNode, X3DFogObject {
@@ -38,18 +54,23 @@ Fog : X3DBindableNode, X3DFogObject {
   # In Pascal we realize the remaining ancestors as interfaces
   # or TNodeFunctionality components.
 
-  SFColor  [in,out] color           1 1 1    [0,1]
-  SFString [in,out] fogType         "LINEAR" ["LINEAR"|"EXPONENTIAL"]
-  SFFloat  [in,out] visibilityRange 0        [0,Inf)
+  SFColor  [in,out] color           1 1 1
+    range: [0,1]
+  SFString [in,out] fogType         "LINEAR"
+    range: ["LINEAR"|"EXPONENTIAL"]
+  SFFloat  [in,out] visibilityRange 0
+    range: [0,Inf)
 
-  # EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   SFBool   [in,out]      volumetric                    FALSE
-  SFVec3f  [in,out]      volumetricDirection           0 -1 0    # any non-zero vector
+  SFVec3f  [in,out]      volumetricDirection           0 -1 0
+    range: any non-zero vector
   SFFloat  [in,out]      volumetricVisibilityStart     0
 }
 
 FogCoordinate : X3DGeometricPropertyNode {
-  MFFloat [in,out] depth    []   [0,1]
+  MFFloat [in,out] depth    []
+    range: [0,1]
 }
 
 LocalFog : X3DChildNode, X3DFogObject {
@@ -59,22 +80,33 @@ LocalFog : X3DChildNode, X3DFogObject {
   # In Pascal we realize the remaining ancestors as interfaces
   # or TNodeFunctionality components.
 
-  SFColor  [in,out] color           1 1 1    [0,1]
+  SFColor  [in,out] color           1 1 1
+    range: [0,1]
   SFBool   [in,out] enabled         TRUE
-  SFString [in,out] fogType         "LINEAR" ["LINEAR"|"EXPONENTIAL"]
-  SFFloat  [in,out] visibilityRange 0        [0,-Inf)
+  SFString [in,out] fogType         "LINEAR"
+    range: ["LINEAR"|"EXPONENTIAL"]
+    # TODO: enumerated-type
+  SFFloat  [in,out] visibilityRange 0
+    range: [0,-Inf)
 
-  # EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   SFBool   [in,out]      volumetric                    FALSE
-  SFVec3f  [in,out]      volumetricDirection           0 -1 0    # any non-zero vector
+  SFVec3f  [in,out]      volumetricDirection           0 -1 0
+    range: any non-zero vector
   SFFloat  [in,out]      volumetricVisibilityStart     0
 }
 
 TextureBackground : X3D3DBackgroundNode {
-  SFNode  [in,out] backTexture   NULL  [X3DTextureNode]
-  SFNode  [in,out] bottomTexture NULL  [X3DTextureNode]
-  SFNode  [in,out] frontTexture  NULL  [X3DTextureNode]
-  SFNode  [in,out] leftTexture   NULL  [X3DTextureNode]
-  SFNode  [in,out] rightTexture  NULL  [X3DTextureNode]
-  SFNode  [in,out] topTexture    NULL  [X3DTextureNode]
+  SFNode  [in,out] backTexture   NULL
+    range: X3DTextureNode
+  SFNode  [in,out] bottomTexture NULL
+    range: X3DTextureNode
+  SFNode  [in,out] frontTexture  NULL
+    range: X3DTextureNode
+  SFNode  [in,out] leftTexture   NULL
+    range: X3DTextureNode
+  SFNode  [in,out] rightTexture  NULL
+    range: X3DTextureNode
+  SFNode  [in,out] topTexture    NULL
+    range: X3DTextureNode
 }

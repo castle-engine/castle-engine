@@ -225,7 +225,7 @@ type
     finally Profiler.Stop(TimeStart) end;
   end;
 
-  function LoadFontSettings(const FontElement: TDOMElement): TCastleFont;
+  function LoadFontSettings(const FontElement: TDOMElement): TCastleAbstractFont;
   var
     NewFontUrl: String;
     NewFontSize, NewFontLoadSize: Cardinal;
@@ -280,8 +280,8 @@ type
       end else
       begin
         NewFontLoadSize := FontElement.AttributeCardinalDef('size_at_load', NewFontSize);
-        Result := TTextureFont.Create(Container);
-        TTextureFont(Result).Load(NewFontUrl, NewFontLoadSize, NewFontAntiAliased, UnicodeCharList);
+        Result := TCastleFont.Create(Container);
+        TCastleFont(Result).Load(NewFontUrl, NewFontLoadSize, NewFontAntiAliased, UnicodeCharList);
       end;
       Result.Size := NewFontSize;
       FreeAndNil(UnicodeCharList);
@@ -297,8 +297,8 @@ var
   SettingsDoc: TXMLDocument;
   E: TDOMElement;
 
-  NewDefaultFont: TCastleFont;
-  NewFontFamily: TFontFamily;
+  NewDefaultFont: TCastleAbstractFont;
+  NewFontFamily: TCastleFontFamily;
 
   NewUIScaling: TUIScaling;
   NewUIReferenceWidth, NewUIReferenceHeight: Single;
@@ -332,7 +332,7 @@ begin
         NewDefaultFont := LoadFontSettings(E)
       else
       begin
-        NewFontFamily := TFontFamily.Create(Container);
+        NewFontFamily := TCastleFontFamily.Create(Container);
         NewFontFamily.Name := 'CastleInternalDefaultFontFamily';
         NewFontFamily.RegularFont := LoadFontSettings(E.Child('regular', false));
         NewFontFamily.BoldFont := LoadFontSettings(E.Child('bold', false));

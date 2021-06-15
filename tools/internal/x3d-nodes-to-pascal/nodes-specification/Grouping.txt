@@ -1,34 +1,54 @@
 # Special abstract.
 # X3DBoundedObject {
-#   SFVec3f [] bboxCenter 0 0 0    (-Inf,Inf)
-#   SFVec3f [] bboxSize   -1 -1 -1 [0,Inf) or -1 -1 -1
+#   SFVec3f [] bboxCenter 0 0 0
+#     range: (-Inf,Inf)
+#   SFVec3f [] bboxSize   -1 -1 -1
+#     range: [0,Inf) or -1 -1 -1
 # }
 
 X3DGroupingNode : X3DChildNode, X3DBoundedObject {
-  MFNode  [in]     addChildren             [X3DChildNode]
-  MFNode  [in]     removeChildren          [X3DChildNode]
-  MFNode  [in,out] children       []       [X3DChildNode]
-  SFVec3f []       bboxCenter     0 0 0    (-Inf,Inf)
-  SFVec3f []       bboxSize       -1 -1 -1 [0,Inf) or -1 -1 -1
+  MFNode  [in]     addChildren
+    range: X3DChildNode
+  MFNode  [in]     removeChildren
+    range: X3DChildNode
+  MFNode  [in,out] children       []
+    range: X3DChildNode
+  SFVec3f []       bboxCenter     0 0 0
+    range: (-Inf,Inf)
+  SFVec3f []       bboxSize       -1 -1 -1
+    range: [0,Inf) or -1 -1 -1
+  SFBool  [in,out] visible        TRUE
+    not-slim
+  SFBool  [in,out] bboxDisplay    FALSE
+    not-slim
 }
 
 Group : X3DGroupingNode {
 }
 
 StaticGroup : X3DChildNode, X3DBoundedObject {
-  MFNode  []       children   []       [X3DChildNode]
-  SFVec3f []       bboxCenter 0 0 0    (-Inf,Inf)
-  SFVec3f []       bboxSize   -1 -1 -1 [0,Inf) or -1 -1 -1
+  MFNode  []       children   []
+    range: X3DChildNode
+  SFVec3f []       bboxCenter 0 0 0
+    range: (-Inf,Inf)
+  SFVec3f []       bboxSize   -1 -1 -1
+    range: [0,Inf) or -1 -1 -1
 }
 
 Switch : X3DGroupingNode {
-  SFInt32 [in,out] whichChoice    -1       [-1,Inf)
+  SFInt32 [in,out] whichChoice    -1
+    range: [-1,Inf)
 }
 
 Transform : X3DGroupingNode {
-  SFVec3f    [in,out] center           0 0 0    (-Inf,Inf)
-  SFRotation [in,out] rotation         0 0 1 0  [-1,1] or (-Inf,Inf)
-  SFVec3f    [in,out] scale            1 1 1    (-Inf, Inf)
-  SFRotation [in,out] scaleOrientation 0 0 1 0  [-1,1] or (-Inf,Inf)
-  SFVec3f    [in,out] translation      0 0 0    (-Inf,Inf)
+  SFVec3f    [in,out] center           0 0 0
+    range: (-Inf,Inf)
+  SFRotation [in,out] rotation         0 0 1 0
+    range: [-1,1] or (-Inf,Inf)
+  SFVec3f    [in,out] scale            1 1 1
+    range: (-Inf, Inf)
+  SFRotation [in,out] scaleOrientation 0 0 1 0
+    range: [-1,1] or (-Inf,Inf)
+  SFVec3f    [in,out] translation      0 0 0
+    range: (-Inf,Inf)
 }

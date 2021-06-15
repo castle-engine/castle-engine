@@ -150,7 +150,6 @@ begin
   //TODO: Exists in root problem workaround (https://github.com/castle-engine/castle-engine/pull/292)
   Bullet.RigidBody.Exists := false;
 
-
   Dead := true;
   Parent.RigidBody.Exists := false;
 end;

@@ -1,60 +1,76 @@
 Arc2D : X3DGeometryNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
 
-  SFFloat []       endAngle   Pi/2   [-2Pi,2Pi]
-  SFFloat []       radius     1     (0,Inf)
-  SFFloat []       startAngle 0     [-2Pi,2Pi]
+  SFFloat []       endAngle   Pi/2
+    range: [-2Pi,2Pi]
+  SFFloat []       radius     1
+    range: (0,Inf)
+  SFFloat []       startAngle 0
+    range: [-2Pi,2Pi]
 }
 
 ArcClose2D : X3DGeometryNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
 
-  SFString []       closureType "PIE" ["PIE"|"CHORD"] enumerated-type: TArcClosureType ArcClosureTypeNames acPie
-  SFFloat  []       endAngle    Pi/2   [-2Pi,2Pi]
-  SFFloat  []       radius      1     (0,Inf)
+  SFString []       closureType "PIE"
+    range: ["PIE"|"CHORD"]
+    enumerated-type: TArcClosureType ArcClosureTypeNames acPie
+  SFFloat  []       endAngle    Pi/2
+    range: [-2Pi,2Pi]
+  SFFloat  []       radius      1
+    range: (0,Inf)
   SFBool   []       solid       FALSE
-  SFFloat  []       startAngle  0     [-2Pi,2Pi]
+  SFFloat  []       startAngle  0
+    range: [-2Pi,2Pi]
 }
 
 Circle2D : X3DGeometryNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
 
-  SFFloat []       radius   1     (0,Inf)
+  SFFloat []       radius   1
+    range: (0,Inf)
 
-  # EXTENSIONS:
-  SFInt32    [in,out]      slices      -1          # {-1} + [3, infinity)
+  # CASTLE GAME ENGINE EXTENSIONS:
+  SFInt32    [in,out]      slices      -1
+    range: {-1} + [3, infinity)
 }
 
 Disk2D : X3DGeometryNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
 
-  SFFloat []       innerRadius 0     [0,Inf)
-  SFFloat []       outerRadius 1     (0,Inf)
+  SFFloat []       innerRadius 0
+    range: [0,Inf)
+  SFFloat []       outerRadius 1
+    range: (0,Inf)
   SFBool  []       solid       FALSE
 }
 
 Polyline2D : X3DGeometryNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
 
-  MFVec2f []       lineSegments []    (-Inf,Inf)
+  MFVec2f []       lineSegments []
+    range: (-Inf,Inf)
 }
 
 Polypoint2D : X3DGeometryNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
 
-  MFVec2f [in,out] point    []    (-Inf,Inf)
+  MFVec2f [in,out] point    []
+    range: (-Inf,Inf)
 }
 
 Rectangle2D : X3DGeometryNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
 
-  SFVec2f []       size     2 2   (0,Inf)
+  SFVec2f []       size     2 2
+    range: (0,Inf)
   SFBool  []       solid    FALSE
 }
 
 TriangleSet2D : X3DGeometryNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
 
-  MFVec2f [in,out] vertices []    (-Inf,Inf)
+  MFVec2f [in,out] vertices []
+    range: (-Inf,Inf)
   SFBool  []       solid    FALSE
 }

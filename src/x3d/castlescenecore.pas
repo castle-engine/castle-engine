@@ -1265,6 +1265,11 @@ type
       @exclude }
     procedure InternalChangedField(const Field: TX3DField; const Change: TX3DChange); override;
 
+    { Called before changing one node into another,
+      when old node may have beeen associated with a shape using TShapeTree.AssociateNode. }
+    procedure InternalMoveShapeAssociations(
+      const OldNode, NewNode: TX3DNode; const ContainingShapes: TObject); override;
+
     { Notification when geometry changed.
       "Geometry changed" means that the positions
       of triangles changed. This is not send when merely things like
@@ -2452,6 +2457,7 @@ type
       reloads the scene (calls @link(Load) with a new X3D graph). }
     property PrimitiveGeometry: TPrimitiveGeometry
       read FPrimitiveGeometry write SetPrimitiveGeometry default pgNone;
+      deprecated 'use TCastleBox, TCastleSphere, TCastlePlane for these primitives';
 
     { If AutoAnimation is set, this animation will be automatically played.
       It is useful to determine the initial animation, played once the model
@@ -5180,6 +5186,58 @@ var
     VisibleChangeHere([]);
   end;
 
+  procedure HandleFontStyle;
+  (* Naive version to seek all shapes. Left only for educational purposes.
+  var
+    ShapeList: TShapeList;
+    Shape: TShape;
+  begin
+    ShapeList := Shapes.TraverseList({ OnlyActive } false);
+    for Shape in ShapeList do
+      if (Shape.OriginalGeometry is TTextNode) and
+         (TTextNode(Shape.OriginalGeometry).FontStyle = ANode) then
+        Shape.Changed(false, [Change]);
+  end;
+  *)
+  var
+    ParentField: TX3DField;
+    TextNode: TX3DNode;
+    C, I, J: Integer;
+  begin
+    { ANode is TFontStyleNode, child of (maybe many) TTextNodes.
+      For each TTextNode, we want to call Changed on all TShape instances associated it.
+      This accounts for various complicated X3D setups:
+      TFontStyleNode may be referenced multiple times,
+      TTextNode may be referenced multiple times. }
+
+    Assert(ANode is TFontStyleNode, 'Only TFontStyleNode should send chFontStyle');
+    for I := 0 to ANode.ParentFieldsCount - 1 do
+    begin
+      ParentField := ANode.ParentFields[I];
+      if not (ParentField is TSFNode) then
+      begin
+        WritelnWarning('TFontStyleNode change', 'ParentField is not TSFNode. This should not happen in normal usage of TFontStyleNode, submit a bug');
+        Continue;
+      end;
+
+      TextNode := TSFNode(ParentField).ParentNode;
+      if TextNode = nil then
+      begin
+        WritelnWarning('TFontStyleNode change', 'ParentField.Node is nil. This should not happen in usual usage of TCastleScene, submit a bug');
+        Continue;
+      end;
+      if not (TextNode is TTextNode) then
+      begin
+        WritelnWarning('TFontStyleNode change', 'ParentField.Node is not TTextNode. This should not happen in normal usage of TFontStyleNode, submit a bug');
+        Continue;
+      end;
+
+      C := TShapeTree.AssociatedShapesCount(TextNode);
+      for J := 0 to C - 1 do
+        TShape(TShapeTree.AssociatedShape(TextNode, J)).Changed(false, [Change]);
+    end;
+  end;
+
   procedure HandleChangeHeadLightOn;
   begin
     { Recalculate HeadlightOn based on NavigationInfo.headlight. }
@@ -5362,7 +5420,7 @@ begin
       // TODO: chTexturePropertiesNode
       chShadowCasters: HandleChangeShadowCasters;
       chGeneratedTextureUpdateNeeded: HandleChangeGeneratedTextureUpdateNeeded;
-      // TODO: chFontStyle. Fortunately, FontStyle fields are not exposed, so this isn't a bug in vrml/x3d browser
+      chFontStyle: HandleFontStyle;
       chHeadLightOn: HandleChangeHeadLightOn;
       chClipPlane: HandleChangeClipPlane;
       chDragSensorEnabled: HandleChangeDragSensorEnabled;
@@ -5435,6 +5493,51 @@ begin
       { We know LocalGeometryShape is nil now if Change does not contain
         gcLocalGeometryChanged*. }
       LocalGeometryShape);
+end;
+
+procedure TCastleSceneCore.InternalMoveShapeAssociations(const OldNode, NewNode: TX3DNode; const ContainingShapes: TObject);
+var
+  S: TShapeTree;
+  L: TShapeTreeList;
+  I: Integer;
+begin
+  Assert(OldNode <> NewNode); // should be checked before calling InternalMoveShapeAssociations
+
+  if ContainingShapes <> nil then
+  begin
+    { For shapes on ContainingShapes, they should be removed from OldNode,
+      and added to NewNode.
+
+      Otherwise we have no chance to clean them from OldNode, as change notification
+      reaches TCastleSceneCore / TShapeTree after the old value changed into new. }
+
+    if ContainingShapes.ClassType = TShapeTreeList then
+    begin
+      // ContainingShapes is a list
+      L := TShapeTreeList(ContainingShapes);
+
+      { Using downto just for future safety,
+        in case S.UnAssociateNode would remove from L -- but it is not the case now,
+        L is from containing node InternalSceneShape (e.g. from Appearance containing this Material,
+        or Shape containing this Appearance), and its contents don't change during this loop. }
+      for I := L.Count - 1 downto 0 do
+      begin
+        S := L[I];
+        if OldNode <> nil then
+          S.UnAssociateNode(OldNode);
+        if NewNode <> nil then
+          S.AssociateNode(NewNode);
+      end;
+    end else
+    begin
+      // ContainingShapes is a single TShapeTree
+      S := TShapeTree(ContainingShapes);
+      if OldNode <> nil then
+        S.UnAssociateNode(OldNode);
+      if NewNode <> nil then
+        S.AssociateNode(NewNode);
+    end;
+  end;
 end;
 
 procedure TCastleSceneCore.DoViewpointsChanged;
@@ -7512,6 +7615,7 @@ begin
   ACamera.Orthographic.Width := 0;
   ACamera.Orthographic.Height := 0;
   ACamera.Orthographic.Origin := TVector2.Zero;
+  ACamera.Orthographic.Stretch := false;
 
   ViewpointNode := ViewpointStack.Top;
   NavigationNode := NavigationInfoStack.Top;

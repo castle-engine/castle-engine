@@ -1132,9 +1132,9 @@ begin
     Pointer(png_get_header_version) := PngLibrary.Symbol('png_get_header_version');
 
     { Allow png_set_expand_gray_1_2_4_to_8 to be nil when not found in library }
-    PngLibrary.SymbolErrorBehaviour := seReturnNil;
+    PngLibrary.SymbolError := seReturnNil;
     Pointer(png_set_expand_gray_1_2_4_to_8) := PngLibrary.Symbol('png_set_expand_gray_1_2_4_to_8');
-    PngLibrary.SymbolErrorBehaviour := seRaise;
+    PngLibrary.SymbolError := seRaise;
 
     {$ifdef LIBPNG_DEPRECATED}
     Pointer(png_check_sig) := PngLibrary.Symbol('png_check_sig');

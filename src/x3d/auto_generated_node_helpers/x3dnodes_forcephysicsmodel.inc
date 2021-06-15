@@ -29,6 +29,12 @@
     function GetForce: TVector3;
     procedure SetForce(const Value: TVector3);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdForce: TSFVec3f;
+    { X3D field "force". } { }
+    public property FdForce: TSFVec3f read FFdForce;
     { X3D field "force". } { }
     property Force: TVector3 read GetForce write SetForce;
 
@@ -46,6 +52,20 @@ end;
 procedure TForcePhysicsModelNode.SetForce(const Value: TVector3);
 begin
   FdForce.Send(Value);
+end;
+
+class function TForcePhysicsModelNode.ClassX3DType: String;
+begin
+  Result := 'ForcePhysicsModel';
+end;
+
+procedure TForcePhysicsModelNode.CreateNode;
+begin
+  inherited;
+
+  FFdForce := TSFVec3f.Create(Self, True, 'force', Vector3(0, -9.8, 0));
+   FdForce.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdForce);
 end;
 
 {$endif read_implementation}

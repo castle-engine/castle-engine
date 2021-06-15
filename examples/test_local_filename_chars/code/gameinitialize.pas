@@ -88,9 +88,9 @@ procedure ApplicationInitialize;
     { Test reading font (as it goes through FreeType library). }
     procedure TestReadingFont(const FontUrl: String);
     var
-      MyNewFont: TTextureFont;
+      MyNewFont: TCastleFont;
     begin
-      MyNewFont := TTextureFont.Create(TComponent(nil));
+      MyNewFont := TCastleFont.Create(nil);
       try
         MyNewFont.Load(FontUrl, 20, true);
       finally FreeAndNil(MyNewFont) end;

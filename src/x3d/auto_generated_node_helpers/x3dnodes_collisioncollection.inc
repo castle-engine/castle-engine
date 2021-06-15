@@ -214,12 +214,10 @@ begin
   FFdAppliedParameters := TMFString.Create(Self, True, 'appliedParameters', ['BOUNCE']);
    FdAppliedParameters.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAppliedParameters);
-  { X3D specification comment: [] }
 
   FFdBounce := TSFFloat.Create(Self, True, 'bounce', 0);
    FdBounce.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBounce);
-  { X3D specification comment: [0,1] }
 
   FFdCollidables := TMFNode.Create(Self, True, 'collidables', [TAbstractNBodyCollisionSpaceNode, TAbstractNBodyCollidableNode]);
    FdCollidables.ChangeAlways := chVisibleNonGeometry;
@@ -232,32 +230,26 @@ begin
   FFdFrictionCoefficients := TSFVec2f.Create(Self, True, 'frictionCoefficients', Vector2(0, 0));
    FdFrictionCoefficients.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdFrictionCoefficients);
-  { X3D specification comment: [0,Inf) }
 
   FFdMinBounceSpeed := TSFFloat.Create(Self, True, 'minBounceSpeed', 0.1);
    FdMinBounceSpeed.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdMinBounceSpeed);
-  { X3D specification comment: [0,Inf) }
 
   FFdSlipFactors := TSFVec2f.Create(Self, True, 'slipFactors', Vector2(0, 0));
    FdSlipFactors.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSlipFactors);
-  { X3D specification comment: (-Inf,Inf) }
 
   FFdSoftnessConstantForceMix := TSFFloat.Create(Self, True, 'softnessConstantForceMix', 0.0001);
    FdSoftnessConstantForceMix.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSoftnessConstantForceMix);
-  { X3D specification comment: [0,1] }
 
   FFdSoftnessErrorCorrection := TSFFloat.Create(Self, True, 'softnessErrorCorrection', 0.8);
    FdSoftnessErrorCorrection.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSoftnessErrorCorrection);
-  { X3D specification comment: [0,1] }
 
   FFdSurfaceSpeed := TSFVec2f.Create(Self, True, 'surfaceSpeed', Vector2(0, 0));
    FdSurfaceSpeed.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSurfaceSpeed);
-  { X3D specification comment: (-Inf,Inf) }
 end;
 
 {$endif read_implementation}

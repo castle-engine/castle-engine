@@ -92,12 +92,10 @@ begin
   FFdLinetype := TSFInt32.Create(Self, True, 'linetype', 1);
    FdLinetype.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdLinetype);
-  { X3D specification comment: [1,Inf) }
 
   FFdLinewidthScaleFactor := TSFFloat.Create(Self, True, 'linewidthScaleFactor', 0);
    FdLinewidthScaleFactor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdLinewidthScaleFactor);
-  { X3D specification comment: (-Inf,Inf) }
 
   DefaultContainerField := 'lineProperties';
 end;

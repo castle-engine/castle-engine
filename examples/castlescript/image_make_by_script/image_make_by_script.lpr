@@ -7,7 +7,7 @@
   Run with two parameters: script URL (usually just a filename),
   and output image URL (usualy just a filename).
   For example
-    image_make_by_script mkimage_gradient.castlescript new_image.png
+    image_make_by_script data/mkimage_gradient.castlescript new_image.png
 
   Within the script, you have variables:
   - result, helper_img (type image),

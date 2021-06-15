@@ -357,7 +357,7 @@
 
       In particular when FieldOfViewAxis = faSmallest then we perform
       the calculation requested by X3D specification about
-      ViewpointNode fieldOfView behaviour. }
+      ViewpointNode fieldOfView behavior. }
     class function InternalFieldOfView(FieldOfView: Single;
       const FieldOfViewAxis: TFieldOfViewAxis;
       const ViewportWidth, ViewportHeight: Single): TVector2;
@@ -1118,7 +1118,7 @@ begin
   case FieldOfViewAxis of
     faSmallest:
       begin
-        { This follows X3D specification about ViewpointNode fieldOfView behaviour. }
+        { This follows X3D specification about ViewpointNode fieldOfView behavior. }
         ClampVar(FieldOfView, 0.01, Pi - 0.01);
         if ViewportWidth < ViewportHeight then
         begin

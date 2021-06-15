@@ -124,7 +124,6 @@ begin
   FFdHatchColor := TSFColor.Create(Self, True, 'hatchColor', Vector3(1, 1, 1));
    FdHatchColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdHatchColor);
-  { X3D specification comment: [0,1] }
 
   FFdHatched := TSFBool.Create(Self, True, 'hatched', true);
    FdHatched.ChangeAlways := chVisibleNonGeometry;
@@ -133,7 +132,6 @@ begin
   FFdHatchStyle := TSFInt32.Create(Self, True, 'hatchStyle', 1);
    FdHatchStyle.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdHatchStyle);
-  { X3D specification comment: [0,Inf) }
 
   DefaultContainerField := 'fillProperties';
 end;
