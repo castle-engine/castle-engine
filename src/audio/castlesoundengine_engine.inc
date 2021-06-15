@@ -313,30 +313,25 @@
 
     { Play given sound once (not looping).
 
-      This is only suitable for non-spatial sounds, as it doesn't give any control over
-      the sound 3D position. Thus, it raises an exception if you try to use it
-      with ASound that has TCastleSound.Spatial = @true.
-      Make sure to set TCastleSound.Spatial = @false.
-
       This is the simplest method to just play the sound and "forget about it"
       (no need to manage the playback afterwards).
+
+      It is allowed to set ASound to @nil. Nothing will be played then.
 
       Note: Instead of this method, use @code(Play(TCastlePlayingSound))
       overload to have more control over the sound
       (before and after it starts playing).
 
-      Note: Another alternative to this method is using TCastleSoundSource
+      This only plays non-spatial sounds, as it doesn't give any control over
+      the sound 3D position.
+      Instead of this method, use TCastleSoundSource
       (attached to some TCastleTransform) for spatial sounds to control their 3D position. }
     procedure Play(const ASound: TCastleSound);
 
     { Play given sound.
 
-      This is only suitable for non-spatial sounds, as it doesn't give any control over
-      the sound 3D position. Thus, it raises an exception if you try to use it
-      with ASound that has TCastleSound.Spatial = @true.
-      Make sure to set TCastleSound.Spatial = @false.
-
-      You have to set @link(TCastlePlayingSound.Sound) before passing it to this method.
+      Set @link(TCastlePlayingSound.Sound) before passing it to this method.
+      Otherwise, if @link(TCastlePlayingSound.Sound) is left @nil, nothing will be played.
 
       Use the PlayingSound (TCastlePlayingSound) properties to provide additional information
       about the sound playback.
@@ -347,7 +342,9 @@
       Consider using @link(TCastlePlayingSound.FreeOnStop) if you don't want
       to manage the lifetime of the @link(TCastlePlayingSound) instance.
 
-      Note: Instead of this method, use TCastleSoundSource
+      This only plays non-spatial sounds, as it doesn't give any control over
+      the sound 3D position.
+      Instead of this method, use TCastleSoundSource
       (attached to some TCastleTransform) for spatial sounds to control their 3D position. }
     procedure Play(const PlayingSound: TCastlePlayingSound);
 
@@ -907,14 +904,15 @@ var
   Params: TPlaySoundParameters;
   Source: TInternalSoundSource;
 begin
-  { If there is no actual sound, exit early without initializing sound backend. }
   Assert(PlayingSound <> nil);
-
   ASound := PlayingSound.Sound;
-  Assert(ASound <> nil);
 
-  if ASound.Spatial then
-    raise Exception.Create('Use only non-spatial sounds (with TCastleSound.Spatial = false) with SoundEngine.LoopingChannel');
+  if ASound = nil then
+  begin
+    // sound cannot be played, as nil
+    PlayingSound.DoStop; // apply PlayingSound.OnStop, FreeOnStop
+    Exit;
+  end;
 
   if ASound.InternalBuffer = nil then
   begin
@@ -926,7 +924,7 @@ begin
   Params := TPlaySoundParameters.Create;
   try
     Params.Buffer     := ASound.InternalBuffer;
-    Params.Spatial    := ASound.Spatial;
+    Params.Spatial    := false;
     Params.Looping    := PlayingSound.Looping;
     Params.Importance := DefaultSoundImportance; // TODO
     Params.Pitch      := ASound.Pitch;

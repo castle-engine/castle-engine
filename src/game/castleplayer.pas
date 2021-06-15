@@ -1054,7 +1054,7 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
         ToxicLastDamageTime := LifeTime;
         if not Dead then
         begin
-          SoundEngine.Sound(stPlayerToxicPain);
+          SoundEngine.Play(stPlayerToxicPain);
           SetLifeCustomFadeOut(Life - (GroundProperty.ToxicDamageConst +
             Random * GroundProperty.ToxicDamageRandom), Green);
         end;
@@ -1174,8 +1174,9 @@ procedure TPlayer.Fall(const FallHeight: Single);
 begin
   inherited;
 
-  if (FSwimming = psNo) and (FallHeight > FallMinHeightToSound) then
-    SoundEngine.Sound(FallSound);
+  if (FSwimming = psNo) and
+     (FallHeight > FallMinHeightToSound) then
+    SoundEngine.Play(FallSound);
 
   if (FSwimming = psNo) and (FallHeight > FallMinHeightToDamage) then
     Life := Life - Max(0, FallHeight *
@@ -1188,13 +1189,13 @@ begin
   if (Life > 0) and (Value <= 0) then
   begin
     Notifications.Show('You die');
-    SoundEngine.Sound(stPlayerDies);
+    SoundEngine.Play(stPlayerDies);
     WalkNavigation.FallOnTheGround;
   end else
   if (Life - Value) > 1 then
   begin
     FadeOut(Color);
-    SoundEngine.Sound(stPlayerSuddenPain);
+    SoundEngine.Play(stPlayerSuddenPain);
   end;
   inherited SetLife(Value);
 end;

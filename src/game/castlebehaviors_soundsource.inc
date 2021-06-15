@@ -77,8 +77,10 @@ type
   strict private
     var
       FSound: TCastleSound;
+      FSpatial: Boolean;
     procedure SoundChange(const Sender: TCastleSound; const Change: TSoundChange);
     procedure SetSound(const Value: TCastleSound);
+    procedure SetSpatial(const Value: Boolean);
   private
     type
       TCastlePlayingSoundSourceList = specialize TObjectList<TCastlePlayingSoundSource>;
@@ -121,6 +123,19 @@ type
       @link(TCastleSoundSource). You can play any other @link(TCastleSound)
       instance, defined anywhere, by calling @link(Play) here. }
     property Sound: TCastleSound read FSound write SetSound;
+
+    { Is the sound playback spatialized. Affects sounds played by assigning @link(Sound)
+      or calling @link(Play) here.
+
+      Spatial sounds are louder/more silent depending on their 3D distance to listener
+      (this means a distance from TCastleTransform origin to the camera within
+      the TCastleViewport). And their relative position to the listener in 3D
+      is reflected by making them louder/more silent in the proper
+      (e.g. left or right) speaker.
+
+      Note that some sound backends (like OpenAL) can only spatialize mono sounds,
+      and play stereo sounds always as non-spatialized. }
+    property Spatial: Boolean read FSpatial write SetSpatial default true;
   end;
 
 {$endif read_interface}
@@ -154,7 +169,7 @@ begin
      (InternalSource <> nil) and
      { If not Spatial, then we don't need to update Source.Position
        (it is ignored by backends). }
-     Sound.Spatial and
+     InternalSource.Spatial and
      Follow then
   begin
     InternalSource.Position := SourceBehavior.GetSoundPosition(SoundHeight);
@@ -167,6 +182,7 @@ constructor TCastleSoundSource.Create(AOwner: TComponent);
 begin
   inherited;
   AllPlayingSounds := TCastlePlayingSoundSourceList.Create(false);
+  FSpatial := true;
 end;
 
 destructor TCastleSoundSource.Destroy;
@@ -207,7 +223,7 @@ end;
 function TCastleSoundSource.PropertySections(const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
-    'Sound':
+    'Sound', 'Spatial':
       Result := [psBasic];
     else
       Result := inherited PropertySections(PropertyName);
@@ -289,7 +305,7 @@ begin
   try
     Params.Position   := SoundPosition;
     Params.Buffer     := ASound.InternalBuffer;
-    Params.Spatial    := ASound.Spatial;
+    Params.Spatial    := Spatial;
     Params.Looping    := PlayingSound.Looping;
     Params.Importance := DefaultSoundImportance;
     Params.Pitch      := ASound.Pitch;
@@ -353,7 +369,7 @@ begin
             // TODO: move this updating to TCastlePlayingSoundSource.Update?
             MainPlayingSound.InternalSource.Volume := Sound.Volume;
             MainPlayingSound.InternalSource.Pitch := Sound.Pitch;
-            MainPlayingSound.InternalSource.Spatial := Sound.Spatial;
+            MainPlayingSound.InternalSource.Spatial := Spatial;
             {$warnings off} // using unportable symbols knowingly
             MainPlayingSound.InternalSource.MinGain := Sound.MinGain;
             MainPlayingSound.InternalSource.MaxGain := Sound.MaxGain;
@@ -415,6 +431,16 @@ begin
   { set to nil by setter to clean nicely }
   if (Operation = opRemove) and (AComponent = FSound) then
     Sound := nil;
+end;
+
+procedure TCastleSoundSource.SetSpatial(const Value: Boolean);
+begin
+  if FSpatial <> Value then
+  begin
+    FSpatial := Value;
+    if FSound <> nil then
+      SoundChange(FSound, scAfterOther);
+  end;
 end;
 
 {$endif read_implementation}

@@ -51,7 +51,6 @@ begin
   { Load and play sound, without any spatialization. }
   Sound := TCastleSound.Create(nil);
   try
-    Sound.Spatial := false;
     Sound.URL := URL;
     Writeln('Sound loaded, duration in seconds: ', Sound.Duration:1:2);
     SoundEngine.Play(Sound);

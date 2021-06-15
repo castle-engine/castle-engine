@@ -609,7 +609,7 @@ begin
   if Menu <> nil then
     Menu.Click; // keep deprecated Menu.Click working
   {$warnings on}
-  SoundEngine.Sound(stMenuClick);
+  SoundEngine.Play(stMenuClick);
   if Assigned(OnClick) then
     OnClick(Self);
 end;
@@ -900,7 +900,7 @@ end;
 
 procedure TCastleOnScreenMenu.CurrentItemChangedByUser;
 begin
-  SoundEngine.Sound(stMenuCurrentItemChanged);
+  SoundEngine.Play(stMenuCurrentItemChanged);
 end;
 
 procedure TCastleOnScreenMenu.CurrentItemSelected;

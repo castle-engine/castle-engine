@@ -60,10 +60,10 @@
 
     { Currently played looping sound. Set to @nil to just stop playing.
 
-      This is only suitable for non-spatial sounds, as it doesn't give any control over
-      the sound 3D position. Thus, it raises an exception if you try to use it
-      with a sound that has TCastleSound.Spatial = @true.
-      Make sure to set TCastleSound.Spatial = @false. }
+      This only plays non-spatial sounds, as it doesn't give any control over
+      the sound 3D position.
+      Instead of this method, use TCastleSoundSource
+      (attached to some TCastleTransform) for spatial sounds to control their 3D position. }
     property Sound: TCastleSound read FSound write SetSound;
 
     { Volume. This must always be within 0..1 range.
@@ -104,9 +104,6 @@ var
   Parameters: TPlaySoundParameters;
 begin
   if (Sound = nil) or (Sound.InternalBuffer = nil) then Exit;
-
-  if Sound.Spatial then
-    raise Exception.Create('Use only non-spatial sounds (with TCastleSound.Spatial = false) with SoundEngine.LoopingChannel');
 
   Parameters := TPlaySoundParameters.Create;
   try

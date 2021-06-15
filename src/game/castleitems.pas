@@ -838,7 +838,7 @@ var
   begin
     if not AttackSoundHitDone then
     begin
-      SoundEngine.Sound(Resource.AttackSoundHit);
+      SoundEngine.Play(Resource.AttackSoundHit);
       AttackSoundHitDone := true;
     end;
     Enemy.Hurt(AttackDC + Random * AttackDR, Attacker.Direction, AttackKD, Attacker);
@@ -899,7 +899,7 @@ var
   begin
     (Resources.FindName(Resource.FireMissileName) as TCreatureResource).
       CreateCreature(Level, Attacker.Translation, Attacker.Direction);
-    SoundEngine.Sound(Resource.FireMissileSound);
+    SoundEngine.Play(Resource.FireMissileSound);
   end;
 
 begin
@@ -947,7 +947,7 @@ end;
 
 procedure TItemWeapon.Equip;
 begin
-  SoundEngine.Sound(Resource.EquippingSound);
+  SoundEngine.Play(Resource.EquippingSound);
   { Just in case we had different State from previous weapon usage, clear it }
   FState := wsReady;
   FStateChangeTime := LifeTime;
@@ -984,7 +984,7 @@ procedure TItemWeapon.EquippedAttack(const Level: TAbstractLevel);
         end else
         begin
           Notifications.Show('You have no ammunition');
-          SoundEngine.Sound(stPlayerInteractFailed);
+          SoundEngine.Play(stPlayerInteractFailed);
         end;
       end else
         Result := false; // other creatures cannot have ammo for now
@@ -995,7 +995,7 @@ procedure TItemWeapon.EquippedAttack(const Level: TAbstractLevel);
 begin
   if (FState = wsReady) and CheckAmmo then
   begin
-    SoundEngine.Sound(Resource.AttackSoundStart);
+    SoundEngine.Play(Resource.AttackSoundStart);
     FState := wsAttack;
     FStateChangeTime := LifeTime;
     AttackDone := false;

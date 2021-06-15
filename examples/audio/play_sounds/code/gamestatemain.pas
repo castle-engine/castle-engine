@@ -82,7 +82,6 @@ constructor TStateMain.TButtonSound.Create(const AOwner: TComponent;
 begin
   inherited Create(AOwner);
   Sound := TCastleSound.Create(Self);
-  Sound.Spatial := false;
   { Uncomment this to allow streaming loading.
     This means that sound file will be loaded partially, on-demand,
     instead of being loaded to memory all at once.

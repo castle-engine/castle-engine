@@ -3423,7 +3423,7 @@ end;
 
 procedure TCastleViewport.PointingDevicePressFailed;
 begin
-  SoundEngine.Sound(stPlayerInteractFailed);
+  SoundEngine.Play(stPlayerInteractFailed);
 end;
 
 function TCastleViewport.PointingDeviceRelease: Boolean;

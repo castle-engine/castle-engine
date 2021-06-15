@@ -56,7 +56,6 @@
     FStream: Boolean;
     FVolume: Single;
     FPitch: Single;
-    FSpatial: Boolean;
     FMinGain: Single;
     FMaxGain: Single;
     FChangeNotifications: TCastleSoundChangeEventList;
@@ -64,7 +63,6 @@
     procedure SetURL(const Value: String);
     procedure SetVolume(const Value: Single);
     procedure SetPitch(const Value: Single);
-    procedure SetSpatial(const Value: Boolean);
     procedure SetMinGain(const Value: Single);
     procedure SetMaxGain(const Value: Single);
     procedure ReloadBuffer;
@@ -158,18 +156,6 @@
 
       Any value > 0 it allowed. }
     property Pitch: Single read FPitch write SetPitch default 1.0;
-
-    { Is the sound playback spatialized.
-
-      Spatial sounds are louder/more silent depending on their 3D distance to listener
-      (this means a distance from TCastleTransform origin to the camera within
-      the TCastleViewport). And their relative position to the listener in 3D
-      is reflected by making them louder/more silent in the proper
-      (e.g. left or right) speaker.
-
-      Note that some sound backends (like OpenAL) can only spatialize mono sounds,
-      and play stereo sounds always as non-spatialized. }
-    property Spatial: Boolean read FSpatial write SetSpatial default true;
   end;
 
 {$endif read_interface}
@@ -194,7 +180,6 @@ begin
   FStream := false;
   FVolume := 1.0;
   FPitch := 1.0;
-  FSpatial := true;
   FMinGain := 0.0;
   FMaxGain := 1.0;
   FChangeNotifications := TCastleSoundChangeEventList.Create;
@@ -216,7 +201,7 @@ end;
 function TCastleSound.PropertySections(const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
-    'URL', 'Stream', 'Volume', 'Pitch', 'Spatial', 'MinGain', 'MaxGain':
+    'URL', 'Stream', 'Volume', 'Pitch', 'MinGain', 'MaxGain':
       Result := [psBasic];
     else
       Result := inherited PropertySections(PropertyName);
@@ -291,15 +276,6 @@ begin
   if FPitch <> Value then
   begin
     FPitch := Value;
-    DoChange(scAfterOther);
-  end;
-end;
-
-procedure TCastleSound.SetSpatial(const Value: Boolean);
-begin
-  if FSpatial <> Value then
-  begin
-    FSpatial := Value;
     DoChange(scAfterOther);
   end;
 end;
