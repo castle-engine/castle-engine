@@ -78,22 +78,22 @@ end;
 
 procedure TStateCredits.ClickCGE(Sender: TObject);
 begin
-  CastleOpenDocument.OpenURL('https://castle-engine.io');
+  OpenURL('https://castle-engine.io');
 end;
 
 procedure TStateCredits.ClickGraphics(Sender: TObject);
 begin
-  CastleOpenDocument.OpenURL('https://www.kenney.nl');
+  OpenURL('https://www.kenney.nl');
 end;
 
 procedure TStateCredits.ClickMusic(Sender: TObject);
 begin
-  CastleOpenDocument.OpenURL('https://www.akimaze.com');
+  OpenURL('https://www.akimaze.com');
 end;
 
 procedure TStateCredits.ClickSources(Sender: TObject);
 begin
-  CastleOpenDocument.OpenURL('https://github.com/castle-engine/castle-engine/tree/master/examples/platformer');
+  OpenURL('https://github.com/castle-engine/castle-engine/tree/master/examples/platformer');
 end;
 
 end.
