@@ -1642,7 +1642,7 @@ begin
   {if Event.IsKey(keyF6) then
     CoinsRoot.Exists := not CoinsRoot.Exists;}
 
-  if Event.IsKey(keyEscape) then
+  if Event.IsKey(keyEscape) and (TUIState.CurrentTop = StatePlay) then
   begin
     PauseGame;
     TUIState.Push(StatePause);
