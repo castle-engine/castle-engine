@@ -1,36 +1,39 @@
 object SoundEngineInfoForm: TSoundEngineInfoForm
   Left = 327
-  Height = 327
+  Height = 559
   Top = 187
-  Width = 413
+  Width = 946
   Caption = 'Sound Engine Information'
-  ClientHeight = 327
-  ClientWidth = 413
+  ClientHeight = 559
+  ClientWidth = 946
+  DesignTimePPI = 120
   OnShow = FormShow
-  LCLVersion = '1.9.0.0'
+  LCLVersion = '2.0.10.0'
   object MemoInfo: TMemo
     AnchorSideBottom.Control = ButtonClose
-    Left = 8
-    Height = 260
-    Top = 16
-    Width = 393
+    Left = 10
+    Height = 477
+    Top = 20
+    Width = 921
     Anchors = [akTop, akLeft, akRight, akBottom]
-    BorderSpacing.Bottom = 10
+    BorderSpacing.Bottom = 12
     Lines.Strings = (
       'MemoInfo'
     )
+    ParentFont = False
     ScrollBars = ssAutoVertical
     TabOrder = 0
   end
   object ButtonClose: TButton
-    Left = 344
-    Height = 32
-    Top = 286
-    Width = 57
+    Left = 869
+    Height = 39
+    Top = 509
+    Width = 62
     Anchors = [akRight, akBottom]
     AutoSize = True
     Caption = 'Close'
     OnClick = ButtonCloseClick
+    ParentFont = False
     TabOrder = 1
   end
 end
