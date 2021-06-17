@@ -2333,6 +2333,10 @@ procedure TCastleOrthographic.SetScale(const Value: Single);
 begin
   if FScale <> Value then
   begin
+    if Value <= 0 then
+      WritelnWarning('Orthographic projection scale should be > 0, but is being set to %f', [
+        Value
+      ]);
     FScale := Value;
     Camera.VisibleChange;
   end;
