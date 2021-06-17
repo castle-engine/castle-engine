@@ -150,7 +150,7 @@ type
     FOrigin: TVector2;
     FWidth, FHeight, FScale: Single;
     FEffectiveWidth, FEffectiveHeight: Single;
-    FStretch: Boolean;
+    FStretch, WarningEffectiveSizeZeroDone: Boolean;
     procedure SetOrigin(const Value: TVector2);
     procedure SetWidth(const Value: Single);
     procedure SetHeight(const Value: Single);
@@ -2349,6 +2349,13 @@ end;
 
 procedure TCastleOrthographic.InternalSetEffectiveSize(const W, H: Single);
 begin
+  if ((W <= 0) or (H <= 0)) and (not WarningEffectiveSizeZeroDone) then
+  begin
+    WritelnWarning('Orthographic projection width and height should be > 0, but are %f x %f (further warnings about it will be supressed, to not spam log)', [
+      W, H
+    ]);
+    WarningEffectiveSizeZeroDone := true;
+  end;
   FEffectiveWidth := W;
   FEffectiveHeight := H;
 end;
