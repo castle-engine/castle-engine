@@ -32,6 +32,7 @@ type
     ButtonStop: TButton;
     CheckBoxLoop: TCheckBox;
     LabelOffset: TLabel;
+    LabelOffset1: TLabel;
     LabelVolume: TLabel;
     OpenDialogSound: TCastleOpenDialog;
     LabelCaption: TLabel;
@@ -152,9 +153,9 @@ end;
 procedure TMainForm.ButtonPlayClick(Sender: TObject);
 begin
   PlayingSound.Stop;
+  { start playback from InitialOffset }
+  PlayingSound.InitialOffset := TrackOffset.Position / 1000;
   SoundEngine.Play(PlayingSound);
-  { TODO: start playback from InitialOffset: }
-  //PlayingSound.InitialOffset := TrackOffset.Position / 1000;
 end;
 
 end.

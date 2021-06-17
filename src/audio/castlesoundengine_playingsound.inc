@@ -46,6 +46,7 @@
     FFreeOnStop: Boolean;
     FOnStop: TNotifyEvent;
     FLooping: Boolean;
+    FInitialOffset: Single;
     procedure SetSound(const Value: TCastleSound);
     function GetOffset: Single;
     procedure SetOffset(const Value: Single);
@@ -122,8 +123,17 @@
       to something else than 1.0.
 
       Using this on a sound that is not playing is allowed.
-      Getting this value always returns zero in this case, and setting it is ignored. }
+      Getting this value always returns zero in this case, and setting it is ignored.
+
+      Note: you can adjust InitialOffset to determine the offset for starting new sound.
+      It is deliberately a separate property from current @link(Offset),
+      otherwise it was too easy to accidentally start playing in the middle when
+      you wanted to play from start. }
     property Offset: Single read GetOffset write SetOffset;
+
+    { Initial position, in seconds, within the sound when we start playing it.
+      You can get/set this property regardless of whether sound is playing. }
+    property InitialOffset: Single read FInitialOffset write FInitialOffset;
 
     { Associated sound source, to change parameters of this sound at runtime.
       @nil if not playing.

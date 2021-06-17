@@ -314,6 +314,7 @@ begin
     Params.MinGain    := ASound.MinGain;
     Params.MaxGain    := ASound.MaxGain;
     {$warnings on}
+    Params.Offset     := PlayingSound.InitialOffset;
 
     {$warnings off} // using deprecated that should be internal
     Source := SoundEngine.PlaySound(Params);
