@@ -49,11 +49,7 @@ type
     procedure TrackOffsetChange(Sender: TObject);
     procedure TrackVolumeChange(Sender: TObject);
   private
-    SoundBuffer: TInternalSoundBuffer;
-    Sound: TInternalSoundSource;
-    SoundURL: string;
-    SoundDuration: TFloatTime;
-    procedure SoundRelease(Sender: TInternalSoundSource);
+    PlayingSound: TCastlePlayingSound;
   public
 
   end;
@@ -63,7 +59,8 @@ var
 
 implementation
 
-uses CastleUtils, CastleVectors, CastleLCLUtils,
+uses CastleUtils, CastleVectors, CastleLCLUtils, CastleURIUtils,
+  CastleApplicationProperties,
   FormSoundEngineInfo;
 
 {$R *.lfm}
@@ -75,101 +72,89 @@ end;
 
 procedure TMainForm.ButtonStopClick(Sender: TObject);
 begin
-  if Sound <> nil then
-    Sound.Release;
+  PlayingSound.Stop;
 end;
 
 procedure TMainForm.CheckBoxLoopChange(Sender: TObject);
 begin
-  if Sound <> nil then
-    Sound.Looping := CheckBoxLoop.Checked;
+  PlayingSound.Looping := CheckBoxLoop.Checked;
 end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
+  PlayingSound := TCastlePlayingSound.Create(Self);
+  PlayingSound.Sound := TCastleSound.Create(Self);
   FileFiltersToDialog(LoadSound_FileFilters, OpenDialogSound);
 end;
 
 procedure TMainForm.Timer1Timer(Sender: TObject);
 begin
-  if Sound <> nil then
-  begin
-    LabelOffset.Caption := Format('Offset within played sound: %fs', [Sound.Offset]);
+  { When application doesn't use any TCastleWindowBase or TCastleControlBase,
+    this must be called manually to update some CGE state,
+    e.g. detect unused sounds. }
+  ApplicationProperties._Update;
 
-    { temporary unassign the TrackOffset.OnChange handler, otherwise
+  if PlayingSound.Playing then
+  begin
+    LabelOffset.Caption := Format('Offset within played sound: %fs', [PlayingSound.Offset]);
+
+    { Show PlayingSound.Offset in UI.
+
+      Temporary unassign the TrackOffset.OnChange handler, otherwise
       we would change sound offset in reaction to this, causing slight "popping"
-      in the sound. }
+      in the sound.
+
+      Note: This is OK even when not playing,
+      PlayingSound.Offset is guaranteed to be zero then. }
     TrackOffset.OnChange := nil;
-    TrackOffset.Position := Round(Sound.Offset * 1000);
+    TrackOffset.Position := Round(PlayingSound.Offset * 1000);
     TrackOffset.OnChange := @TrackOffsetChange;
   end else
   begin
     LabelOffset.Caption := 'Offset within played sound: Not Playing';
-    TrackOffset.Position := 0;
+
+    { Do not update TrackOffset.Position in this case,
+      let user manipulate TrackOffset to set InitialOffset. }
   end;
 end;
 
 procedure TMainForm.TrackOffsetChange(Sender: TObject);
 begin
-  if Sound <> nil then
-    Sound.Offset := TrackOffset.Position / 1000;
+  { Note: This is OK even when not playing,
+    setting PlayingSound.Offset is guaranteed to be ignored then. }
+  PlayingSound.Offset := TrackOffset.Position / 1000;
 end;
 
 procedure TMainForm.TrackVolumeChange(Sender: TObject);
 begin
-  // if the sound is currently playing, adjust the volume
-  if Sound <> nil then
-    Sound.Volume := TrackVolume.Position / 1000;
-end;
-
-procedure TMainForm.SoundRelease(Sender: TInternalSoundSource);
-begin
-  // nil the Sound when it's stopped, this is assigned to Sound.OnRelease
-  Sound := nil;
+  PlayingSound.Sound.Volume := TrackVolume.Position / 1000;
 end;
 
 procedure TMainForm.ButtonOpenClick(Sender: TObject);
-var
-  NewDuration: TFloatTime;
 begin
-  OpenDialogSound.URL := SoundURL;
+  OpenDialogSound.URL := PlayingSound.Sound.URL;
   if OpenDialogSound.Execute then
   begin
-    SoundBuffer := SoundEngine.LoadBuffer(OpenDialogSound.URL, NewDuration);
-    { only when LoadBuffer suceeded without exception, change our fields
-      to point to the new sound }
-    SoundURL := OpenDialogSound.URL;
-    SoundDuration := NewDuration;
+    PlayingSound.Stop;
+    PlayingSound.Sound.URL := OpenDialogSound.URL;
     LabelSoundInfo.Caption := Format('Sound File:' + NL +
       '%s' + NL +
-      'Duration: %f', [SoundURL, SoundDuration]);
-    if Sound <> nil then
-      Sound.Release;
-    Assert(Sound = nil); // SoundRelease should free it above
+      'Duration: %f', [
+      URIDisplay(PlayingSound.Sound.URL),
+      PlayingSound.Sound.Duration
+    ]);
     TrackOffset.Min := 0;
-    TrackOffset.Max := Round(SoundDuration * 1000);
+    TrackOffset.Max := Round(PlayingSound.Sound.Duration * 1000);
     TrackOffset.Position := 0;
   end;
 end;
 
 procedure TMainForm.ButtonPlayClick(Sender: TObject);
-var
-  InitialVolume: Single;
-  Parameters: TPlaySoundParameters;
 begin
-  if Sound <> nil then
-    Sound.Release;
-  InitialVolume := TrackVolume.Position / 1000;
-  Parameters := TPlaySoundParameters.Create;
-  try
-    Parameters.Buffer := SoundBuffer;
-    Parameters.Looping := CheckBoxLoop.Checked;
-    Parameters.Volume := InitialVolume;
-    Parameters.Offset := TrackOffset.Position;
-    Sound := SoundEngine.PlaySound(Parameters);
-  finally FreeAndNil(Parameters) end;
-  if Sound <> nil then
-    Sound.OnRelease := @SoundRelease;
+  PlayingSound.Stop;
+  SoundEngine.Play(PlayingSound);
+  { TODO: start playback from InitialOffset: }
+  //PlayingSound.InitialOffset := TrackOffset.Position / 1000;
 end;
 
 end.
