@@ -66,6 +66,9 @@ type
 
     { Projection matrix, adjusted to given viewport aspect ratio (width/height). }
     function Matrix(const AspectRatio: Single): TMatrix4;
+
+    { Detect whether any sensible projection values are initialized. }
+    function Initialized: Boolean;
   end;
 
 { Calculate second viewing angle for perspective projection.
@@ -156,6 +159,15 @@ begin
     else raise EInternalError.Create(2018081901);
     {$endif}
   end;
+end;
+
+function TProjection.Initialized: Boolean;
+begin
+  Result :=
+    (ProjectionNear <> 0) and
+    (ProjectionFarFinite <> 0) and
+    (Dimensions.Width <> 0) and
+    (Dimensions.Height <> 0);
 end;
 
 { global routines ------------------------------------------------------------ }

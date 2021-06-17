@@ -36,6 +36,7 @@ type
       In this unit, as it requires TCastleWindow (UI container) to make sense. }
     procedure TestFocus;
     procedure TestEventLoop;
+    procedure TestViewportPositionTo;
   end;
 
 implementation
@@ -317,6 +318,74 @@ begin
   finally
     ApplicationProperties.OnWarning.Remove(@OnWarningRaiseException);
   end;
+end;
+
+procedure TTestWindow.TestViewportPositionTo;
+var
+  Viewport: TCastleViewport;
+
+{ Non-interactive version of a testcase on
+  https://gist.github.com/michaliskambi/2b8faee73df9f3a12351736cabcad1ee
+  for https://github.com/castle-engine/castle-engine/issues/295 :
+  Viewport.PositionToXxx should return correct values even when used before
+  and resize/render event. }
+
+  procedure TestQueryPosition(const ScreenPos: TVector2;
+    const CorrectRayOrigin, CorrectRayDirection, CorrectCameraPlaneResult, CorrectWorldPlaneResult: TVector3;
+    const CorrectPos2D: TVector2);
+  var
+    CameraPlaneResult, RayOrigin, RayDirection, WorldPlaneResult: TVector3;
+    Pos2D: TVector2;
+  begin
+    //WritelnLog('Testing on ', ScreenPos.ToString);
+
+    Viewport.PositionToRay(ScreenPos, true, RayOrigin, RayDirection);
+    AssertVectorEquals(CorrectRayOrigin, RayOrigin, 0.1);
+    AssertVectorEquals(CorrectRayDirection, RayDirection, 0.1);
+
+    AssertTrue(Viewport.PositionToCameraPlane(ScreenPos, true, 2, CameraPlaneResult));
+    AssertVectorEquals(CorrectCameraPlaneResult, CameraPlaneResult, 0.1);
+
+    AssertTrue(Viewport.PositionToWorldPlane(ScreenPos, true, -10, WorldPlaneResult));
+    AssertVectorEquals(CorrectWorldPlaneResult, WorldPlaneResult, 0.1);
+
+    Pos2D := Viewport.PositionTo2DWorld(ScreenPos, true);
+    AssertVectorEquals(CorrectPos2D, Pos2D, 0.1);
+  end;
+
+var
+  Window: TCastleWindowBase;
+begin
+  Window := TCastleWindowBase.Create(nil);
+  try
+    Window.Width := 300;
+    Window.Height := 300;
+    Window.Open;
+
+    Viewport := TCastleViewport.Create(Window);
+    Viewport.FullSize := true;
+
+    // too early to use
+    // TestQueryPosition(Vector2(100, 100));
+    // TestQueryPosition(Vector2(Window.Width / 2, Window.Height / 2));
+
+    Window.Controls.InsertFront(Viewport);
+
+    TestQueryPosition(Vector2(100, 100),
+      Vector3(0.00, 0.00, 0.00),
+      Vector3(-0.13, -0.13, -0.98),
+      Vector3(-0.27, -0.27, -2.00),
+      Vector3(-1.37, -1.37, -10.00),
+      Vector2(100.00, 100.00)
+    );
+    TestQueryPosition(Vector2(Window.Width / 2, Window.Height / 2),
+      Vector3(0.00, 0.00, 0.00),
+      Vector3(0.00, 0.00, -1.00),
+      Vector3(0.00, 0.00, -2.00),
+      Vector3(0.01, 0.01, -10.00),
+      Vector2(150.00, 150.00)
+    );
+  finally FreeAndNil(Window) end;
 end;
 
 initialization

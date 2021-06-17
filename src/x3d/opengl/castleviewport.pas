@@ -232,6 +232,9 @@ type
     { Whether to look at AvoidNavigationCollisions.
       Checks that AvoidNavigationCollisions is set, and it is part of current @link(Items). }
     function UseAvoidNavigationCollisions: Boolean;
+
+    { Ensure Camera and FProjection are initialized for PositionToXxx family of methods. }
+    procedure PositionToPrerequisites;
   private
     var
       FNavigation: TCastleNavigation;
@@ -2999,6 +3002,26 @@ begin
   AutoCamera := false;
 end;
 
+procedure TCastleViewport.PositionToPrerequisites;
+begin
+  if not FProjection.Initialized then
+  begin
+    if (EffectiveWidth = 0) or
+       (EffectiveHeight = 0) then
+      raise Exception.Create('Cannot use TCastleViewport.PositionToXxx when viewport has effectively empty size. The typical solution is to add TCastleViewport to some UI hierarchy, like "Window.Container.InsertFront(MyViewport)", although you could also set TCastleViewport.Width/Height explicitly.');
+
+    EnsureCameraDetected;
+
+    FProjection := CalculateProjection;
+    {$warnings off} // using deprecated to keep it working
+    if Assigned(OnProjection) then
+      OnProjection(FProjection);
+    {$warnings on}
+
+    Assert(FProjection.Initialized);
+  end;
+end;
+
 procedure TCastleViewport.PositionToRay(const Position: TVector2;
   const ScreenCoordinates: Boolean;
   out RayOrigin, RayDirection: TVector3);
@@ -3006,6 +3029,8 @@ var
   R: TFloatRectangle;
   ScreenPosition: TVector2;
 begin
+  PositionToPrerequisites;
+
   R := RenderRect;
 
   if ScreenCoordinates then
@@ -3119,6 +3144,8 @@ var
   CameraToWorldMatrix: TMatrix4;
   P: TVector2;
 begin
+  PositionToPrerequisites;
+
   CameraToWorldMatrix := Camera.MatrixInverse;
 
   if ScreenCoordinates then
