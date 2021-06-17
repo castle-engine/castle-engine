@@ -2334,7 +2334,7 @@ begin
   if FScale <> Value then
   begin
     if Value <= 0 then
-      WritelnWarning('Orthographic projection scale should be > 0, but is being set to %f', [
+      WritelnWarning('Orthographic projection scale (Camera.Orthographic.Scale) should be > 0, but is being set to %f', [
         Value
       ]);
     FScale := Value;
@@ -2355,7 +2355,7 @@ procedure TCastleOrthographic.InternalSetEffectiveSize(const W, H: Single);
 begin
   if ((W <= 0) or (H <= 0)) and (not WarningEffectiveSizeZeroDone) then
   begin
-    WritelnWarning('Orthographic projection width and height should be > 0, but are %f x %f (further warnings about it will be supressed, to not spam log)', [
+    WritelnWarning('Orthographic projection effective width and height (calculated based on Camera.Orthographic.Width,Height,Scale and viewport size) should be > 0, but are %f x %f (further warnings about it will be supressed, to not spam log)', [
       W, H
     ]);
     WarningEffectiveSizeZeroDone := true;
