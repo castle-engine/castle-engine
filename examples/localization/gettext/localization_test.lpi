@@ -22,7 +22,7 @@
     </RequiredPackages>
     <Units Count="5">
       <Unit0>
-        <Filename Value="localization_test_standalone.lpr"/>
+        <Filename Value="localization_test.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>

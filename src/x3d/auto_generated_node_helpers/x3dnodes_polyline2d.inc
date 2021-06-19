@@ -65,7 +65,6 @@ begin
   FFdLineSegments := TMFVec2f.Create(Self, False, 'lineSegments', []);
    FdLineSegments.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdLineSegments);
-  { X3D specification comment: (-Inf,Inf) }
 end;
 
 {$endif read_implementation}

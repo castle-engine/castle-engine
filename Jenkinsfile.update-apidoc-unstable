@@ -4,7 +4,7 @@
 */
 
 pipeline {
-  agent { label 'web-jenkins' }
+  agent { label 'jenkins-cge-apidoc-uploader' }
   environment {
     PATH = "${PATH}:${WORKSPACE}/pasdoc/bin/"
   }

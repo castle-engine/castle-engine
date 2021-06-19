@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2019 Michalis Kamburelis, Andrzej Kilijański.
+  Copyright 2019-2021 Michalis Kamburelis, Andrzej Kilijański.
 
   This file is part of "Castle Game Engine".
 
@@ -321,17 +321,14 @@ begin
 end;
 
 initialization
-  { Set ApplicationName early, as our log uses it. }
-  ApplicationProperties.ApplicationName := 'physics_2d_collisions';
-
-  InitializeLog;
-
   { initialize Application callbacks }
   Application.OnInitialize := @ApplicationInitialize;
 
   { create Window and initialize Window callbacks }
   Window := TCastleWindowBase.Create(Application);
+  Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
+
   Window.OnUpdate := @WindowUpdate;
   Window.OnPress := @WindowPress;
 end.

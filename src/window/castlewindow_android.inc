@@ -169,7 +169,7 @@ begin
   AndroidLibrary := TDynLib.Load(CastleAndroidInternalConfiguration.LibName, false);
   if Assigned(AndroidLibrary) then
   begin
-    AndroidLibrary.SymbolErrorBehaviour := seReturnNil;
+    AndroidLibrary.SymbolError := seReturnNil;
     AConfiguration_getScreenHeightDp := TAConfiguration_getScreenHeightDp(AndroidLibrary.Symbol('AConfiguration_getScreenHeightDp'));
     if Assigned(AConfiguration_getScreenHeightDp) then
     begin

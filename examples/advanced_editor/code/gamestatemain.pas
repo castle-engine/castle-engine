@@ -40,6 +40,7 @@ type
     procedure ClickDesignedButton1(Sender: TObject);
     procedure ClickDesignedButton2(Sender: TObject);
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
   end;
@@ -55,6 +56,12 @@ uses SysUtils,
   GameControls;
 
 { TStateMain ----------------------------------------------------------------- }
+
+constructor TStateMain.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestatemain.castle-user-interface';
+end;
 
 procedure TStateMain.Start;
 
@@ -95,23 +102,19 @@ procedure TStateMain.Start;
   end;
 
 var
-  UiOwner: TComponent;
   TableRowTemplate: TSerializedComponent;
   SoldierWithCapeTemplate: TSerializedComponent;
 begin
   inherited;
 
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/state_main.castle-user-interface', FreeAtStop, UiOwner);
-
   { Find components, by name, that we need to access from code }
-  LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
-  DesignedButton1 := UiOwner.FindRequiredComponent('DesignedButton1') as TCastleDesign;
-  DesignedButton2 := UiOwner.FindRequiredComponent('DesignedButton2') as TCastleDesign;
-  Notifications := UiOwner.FindRequiredComponent('Notifications') as TCastleNotifications;
-  ScrollViewTable := UiOwner.FindRequiredComponent('ScrollViewTable') as TCastleScrollView;
-  VerticalGroupTable := UiOwner.FindRequiredComponent('VerticalGroupTable') as TCastleVerticalGroup;
-  ViewportForSoldiers := UiOwner.FindRequiredComponent('ViewportForSoldiers') as TCastleViewport;
+  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
+  DesignedButton1 := DesignedComponent('DesignedButton1') as TCastleDesign;
+  DesignedButton2 := DesignedComponent('DesignedButton2') as TCastleDesign;
+  Notifications := DesignedComponent('Notifications') as TCastleNotifications;
+  ScrollViewTable := DesignedComponent('ScrollViewTable') as TCastleScrollView;
+  VerticalGroupTable := DesignedComponent('VerticalGroupTable') as TCastleVerticalGroup;
+  ViewportForSoldiers := DesignedComponent('ViewportForSoldiers') as TCastleViewport;
 
   { Find the components inside TCastleDesigns -- need another FindRequiredComponent call }
   DesignedButton1Button := DesignedButton1.FindRequiredComponent('RootButton') as TCastleButton;

@@ -1,11 +1,15 @@
 X3DChaserNode : X3DFollowerNode {
-  SFTime       []       duration           0     [0,Inf)
+  SFTime       []       duration           0
+    range: [0,Inf)
 }
 
 X3DDamperNode : X3DFollowerNode {
-  SFTime       [in,out] tau                0      [0,Inf)
-  SFFloat      [in,out] tolerance          -1     -1 or [0,Inf)
-  SFInt32      []       order              0     [0..5]
+  SFTime       [in,out] tau                0
+    range: [0,Inf)
+  SFFloat      [in,out] tolerance          -1
+    range:  -1 or [0,Inf)
+  SFInt32      []       order              0
+    range: [0..5]
 }
 
 X3DFollowerNode : X3DChildNode {
@@ -24,7 +28,7 @@ CoordinateDamper : X3DDamperNode {
   MFVec3f [in]     set_destination
   MFVec3f [in]     set_value
   MFVec3f [out]    value_changed
-  MFVec3f []       initialDestination 0 0 0
+  MFVec3f []       initialDestination [0 0 0]
   MFVec3f []       initialValue       0 0 0
 }
 
@@ -56,8 +60,8 @@ PositionChaser2D : X3DChaserNode {
   SFVec2f [in]     set_destination
   SFVec2f [in]     set_value
   SFVec2f [out]    value_changed
-  SFVec2f []       initialDestination 0 0 0
-  SFVec2f []       initialValue       0 0 0
+  SFVec2f []       initialDestination 0 0
+  SFVec2f []       initialValue       0 0
 }
 
 PositionDamper : X3DDamperNode {

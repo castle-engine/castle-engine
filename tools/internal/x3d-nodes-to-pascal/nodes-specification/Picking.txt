@@ -1,15 +1,21 @@
 X3DPickableObject {
-  MFString [in,out] objectType "ALL" ["ALL"|"NONE"|"TERRAIN"|...]
+  MFString [in,out] objectType "ALL"
+    range: ["ALL"|"NONE"|"TERRAIN"|...]
   SFBool   [in,out] pickable   TRUE
 }
 
 X3DPickSensorNode : X3DSensorNode {
-  MFString [in,out] objectType       "ALL"     ["ALL","NONE","TERRAIN",...]
-  SFNode   [in,out] pickingGeometry  NULL      [X3DGeometryNode]
-  MFNode   [in,out] pickTarget       []        [X3DGroupingNode|X3DShapeNode|X3DInlineNode]
+  MFString [in,out] objectType       "ALL"
+    range: ["ALL","NONE","TERRAIN",...]
+  SFNode   [in,out] pickingGeometry  NULL
+    range: X3DGeometryNode
+  MFNode   [in,out] pickTarget       []
+    range: X3DGroupingNode|X3DShapeNode|X3DInlineNode
   MFNode   [out]    pickedGeometry
-  SFString []       intersectionType "BOUNDS"  ["GEOMETRY"|"BOUNDS"]
-  SFString []       sortOrder        "CLOSEST" ["ANY"|"CLOSEST"|"ALL"|"ALL_SORTED"]
+  SFString []       intersectionType "BOUNDS"
+    range: ["GEOMETRY"|"BOUNDS"]
+  SFString []       sortOrder        "CLOSEST"
+    range: ["ANY"|"CLOSEST"|"ALL"|"ALL_SORTED"]
 }
 
 LinePickSensor : X3DPickSensorNode {
@@ -19,7 +25,8 @@ LinePickSensor : X3DPickSensorNode {
 }
 
 PickableGroup : X3DGroupingNode, X3DPickableObject {
-  MFString [in,out] objectType     "ALL"    ["ALL","NONE","TERRAIN",...]
+  MFString [in,out] objectType     "ALL"
+    range: ["ALL","NONE","TERRAIN",...]
   SFBool   [in,out] pickable       TRUE
 }
 

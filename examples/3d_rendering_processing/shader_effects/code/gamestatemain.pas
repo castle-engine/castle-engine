@@ -36,6 +36,7 @@ type
     EffectColorField: TSFVec3f;
     procedure ClickRandomizeColor(Sender: TObject);
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
   end;
@@ -49,6 +50,12 @@ uses SysUtils,
   CastleVectors, CastleRenderOptions;
 
 { TStateMain ----------------------------------------------------------------- }
+
+constructor TStateMain.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestatemain.castle-user-interface';
+end;
 
 procedure TStateMain.Start;
 
@@ -87,19 +94,14 @@ procedure TStateMain.Start;
     Scene.RootNode.AddChildren([Effect]);
   end;
 
-var
-  UiOwner: TComponent;
 begin
   inherited;
 
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/state_main.castle-user-interface', FreeAtStop, UiOwner);
-
   { Find components, by name, that we need to access from code }
-  LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
-  ButtonRandomizeColor := UiOwner.FindRequiredComponent('ButtonRandomizeColor') as TCastleButton;
-  SceneForEffects := UiOwner.FindRequiredComponent('SceneForEffects') as TCastleScene;
-  RectCurrentColor := UiOwner.FindRequiredComponent('RectCurrentColor') as TCastleRectangleControl;
+  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
+  ButtonRandomizeColor := DesignedComponent('ButtonRandomizeColor') as TCastleButton;
+  SceneForEffects := DesignedComponent('SceneForEffects') as TCastleScene;
+  RectCurrentColor := DesignedComponent('RectCurrentColor') as TCastleRectangleControl;
 
   CreateEffect(SceneForEffects);
 

@@ -50,6 +50,7 @@ type
     procedure ClickAlignMiddle(Sender: TObject);
     procedure ClickAlignRight(Sender: TObject);
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Resize; override;
   end;
@@ -61,23 +62,24 @@ implementation
 
 { TStateMain ----------------------------------------------------------------- }
 
+constructor TStateMain.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestatemain.castle-user-interface';
+end;
+
 procedure TStateMain.Start;
-var
-  UiOwner: TComponent;
 begin
   inherited;
 
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/state_main.castle-user-interface', FreeAtStop, UiOwner);
-
   { Find components, by name, that we need to access from code }
-  LabelMain := UiOwner.FindRequiredComponent('LabelMain') as TCastleLabel;
-  ButtonHtml := UiOwner.FindRequiredComponent('ButtonHtml') as TCastleButton;
-  ButtonWrap := UiOwner.FindRequiredComponent('ButtonWrap') as TCastleButton;
-  ButtonAlignLeft := UiOwner.FindRequiredComponent('ButtonAlignLeft') as TCastleButton;
-  ButtonAlignMiddle := UiOwner.FindRequiredComponent('ButtonAlignMiddle') as TCastleButton;
-  ButtonAlignRight := UiOwner.FindRequiredComponent('ButtonAlignRight') as TCastleButton;
-  ScrollView := UiOwner.FindRequiredComponent('ScrollView') as TCastleScrollView;
+  LabelMain := DesignedComponent('LabelMain') as TCastleLabel;
+  ButtonHtml := DesignedComponent('ButtonHtml') as TCastleButton;
+  ButtonWrap := DesignedComponent('ButtonWrap') as TCastleButton;
+  ButtonAlignLeft := DesignedComponent('ButtonAlignLeft') as TCastleButton;
+  ButtonAlignMiddle := DesignedComponent('ButtonAlignMiddle') as TCastleButton;
+  ButtonAlignRight := DesignedComponent('ButtonAlignRight') as TCastleButton;
+  ScrollView := DesignedComponent('ScrollView') as TCastleScrollView;
 
   { Assign buttons OnClick handlers }
   ButtonHtml.OnClick := @ClickHtml;

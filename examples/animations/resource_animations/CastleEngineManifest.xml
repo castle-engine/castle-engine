@@ -3,6 +3,7 @@
   standalone_source="resource_animations_standalone.lpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.resource.animations"
+  caption="Demo of creature animations defined in resource.xml"
 >
   <compiler_options>
     <search_paths>

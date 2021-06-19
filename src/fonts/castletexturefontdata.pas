@@ -26,9 +26,7 @@ uses Generics.Collections,
 
 type
   { Raised by
-    @link(TTextureFontData.Create) or
-    @link(TTextureFont.Create TTextureFont.Create(URL, ...)) or
-    @link(TTextureFont.Load TTextureFont.Load(URL, ...)) when
+    @link(TTextureFontData.Create) or @link(TCastleFont.Load) when
     the freetype library cannot be found, and thus font files cannot be read. }
   EFreeTypeLibraryNotFound = CastleInternalFreeType.EFreeTypeLibraryNotFound;
 

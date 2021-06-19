@@ -3,6 +3,7 @@
   standalone_source="read_game_data_from_zip_standalone.lpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.read.game.data.from.zip"
+  caption="Read Game Data from ZIP"
 >
   <compiler_options>
     <search_paths>

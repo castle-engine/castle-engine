@@ -2,6 +2,7 @@
 <project name="html_text"
   qualified_name="io.castleengine.html.text"
   game_units="GameInitialize"
+  standalone_source="html_text_standalone.lpr"
   author="Michalis Kamburelis"
 >
   <compiler_options>

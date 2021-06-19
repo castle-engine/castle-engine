@@ -63,7 +63,7 @@ begin
   inherited;
 
   FFdValue := TMFDouble.Create(Self, True, 'value', []);
-   FdValue.ChangeAlways := chVisibleNonGeometry;
+   FdValue.ChangeAlways := chNone;
   AddField(FFdValue);
 end;
 

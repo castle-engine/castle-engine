@@ -349,6 +349,8 @@ begin
         raise EInvalidParams.CreateFmt('Invalid COMMAND to perform: "%s". Use --help to get usage information', [Command]);
     finally FreeAndNil(Project) end;
   end;
+
+  FreeAndNil(CompilerExtraOptions);
 end;
 
 begin

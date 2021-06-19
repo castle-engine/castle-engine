@@ -276,7 +276,6 @@ begin
     P.SourcePath.Add('src' + PathDelim + 'images');
     P.Targets.AddUnit('castlecompositeimage.pas');
     P.Targets.AddUnit('castleimages.pas');
-    P.Targets.AddUnit('castleinternalfpwritepng.pas');
     P.Targets.AddUnit('castleinternalpng.pas');
     P.Targets.AddUnit('castletextureimages.pas');
     P.Targets.AddUnit('castlevideos.pas');

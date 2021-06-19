@@ -1,19 +1,21 @@
 X3DSequencerNode : X3DChildNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
 
   SFBool       [in]     next
   SFBool       [in]     previous
-  SFFloat      [in]     set_fraction       # (-Inf,Inf)
-  MFFloat      [in,out] key           []   # (-Inf,Inf)
+  SFFloat      [in]     set_fraction
+    range: (-Inf,Inf)
+  MFFloat      [in,out] key           []
+    range: (-Inf,Inf)
   SFBool       [in,out] forceContinuousValue_changed  FALSE
 }
 
 X3DTriggerNode : X3DChildNode  {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
 }
 
 BooleanFilter : X3DChildNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
   SFBool [in]     set_boolean
   SFBool [out]    inputFalse
   SFBool [out]    inputNegate
@@ -21,45 +23,47 @@ BooleanFilter : X3DChildNode {
 }
 
 BooleanSequencer : X3DSequencerNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
   MFBool  [in,out] keyValue      []
   SFBool  [out]    value_changed
 }
 
 BooleanToggle : X3DChildNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
   SFBool [in]     set_boolean
   SFBool [in,out] toggle      FALSE
 }
 
 BooleanTrigger : X3DTriggerNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
   SFTime [in]     set_triggerTime
   SFBool [out]    triggerTrue
 }
 
 IntegerSequencer : X3DSequencerNode {
-  x3d-nodes-to-pascal: auto-generate-more true
-  MFInt32 [in,out] keyValue      []   (-Inf,Inf)
+  auto-generate-more: true
+  MFInt32 [in,out] keyValue      []
+    range: (-Inf,Inf)
   SFInt32 [out]    value_changed
 }
 
 IntegerTrigger : X3DTriggerNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
   SFBool  [in]     set_boolean
-  SFInt32 [in,out] integerKey     -1   (-Inf,Inf)
+  SFInt32 [in,out] integerKey     -1
+    range: (-Inf,Inf)
   SFInt32 [out]    triggerValue
 }
 
 TimeTrigger : X3DTriggerNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
   SFBool [in]     set_boolean
   SFTime [out]    triggerTime
 }
 
 # InstantReality extension http://doc.instantreality.org/documentation/nodetype/ValueTrigger/
 ValueTrigger : X3DTriggerNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
   SFBool  [in,out]  enabled  TRUE
   SFBool  [in]      trigger
 }

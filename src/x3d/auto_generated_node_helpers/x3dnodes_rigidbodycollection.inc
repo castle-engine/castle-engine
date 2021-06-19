@@ -336,27 +336,22 @@ begin
   FFdConstantForceMix := TSFFloat.Create(Self, True, 'constantForceMix', 0.0001);
    FdConstantForceMix.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdConstantForceMix);
-  { X3D specification comment: [0,Inf) }
 
   FFdContactSurfaceThickness := TSFFloat.Create(Self, True, 'contactSurfaceThickness', 0);
    FdContactSurfaceThickness.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdContactSurfaceThickness);
-  { X3D specification comment: [0,Inf) }
 
   FFdDisableAngularSpeed := TSFFloat.Create(Self, True, 'disableAngularSpeed', 0);
    FdDisableAngularSpeed.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDisableAngularSpeed);
-  { X3D specification comment: [0,Inf) }
 
   FFdDisableLinearSpeed := TSFFloat.Create(Self, True, 'disableLinearSpeed', 0);
    FdDisableLinearSpeed.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDisableLinearSpeed);
-  { X3D specification comment: [0,Inf) }
 
   FFdDisableTime := TSFFloat.Create(Self, True, 'disableTime', 0);
    FdDisableTime.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDisableTime);
-  { X3D specification comment: [0,Inf) }
 
   FFdEnabled := TSFBool.Create(Self, True, 'enabled', true);
    FdEnabled.ChangeAlways := chVisibleNonGeometry;
@@ -365,7 +360,6 @@ begin
   FFdErrorCorrection := TSFFloat.Create(Self, True, 'errorCorrection', 0.8);
    FdErrorCorrection.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdErrorCorrection);
-  { X3D specification comment: [0,1] }
 
   FFdGravity := TSFVec3f.Create(Self, True, 'gravity', Vector3(0, -9.8, 0));
    FdGravity.ChangeAlways := chVisibleNonGeometry;
@@ -374,7 +368,6 @@ begin
   FFdIterations := TSFInt32.Create(Self, True, 'iterations', 10);
    FdIterations.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdIterations);
-  { X3D specification comment: [0,Inf) }
 
   FFdJoints := TMFNode.Create(Self, True, 'joints', [TAbstractRigidJointNode]);
    FdJoints.ChangeAlways := chVisibleNonGeometry;
@@ -383,7 +376,6 @@ begin
   FFdMaxCorrectionSpeed := TSFFloat.Create(Self, True, 'maxCorrectionSpeed', -1);
    FdMaxCorrectionSpeed.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdMaxCorrectionSpeed);
-  { X3D specification comment: [0,Inf) or -1 }
 
   FFdPreferAccuracy := TSFBool.Create(Self, True, 'preferAccuracy', false);
    FdPreferAccuracy.ChangeAlways := chVisibleNonGeometry;

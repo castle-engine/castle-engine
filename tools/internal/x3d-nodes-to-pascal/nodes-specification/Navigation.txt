@@ -1,13 +1,15 @@
 X3DViewpointNode : X3DBindableNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
 
-  SFVec3f    [in,out] centerOfRotation  0 0 0     (-Inf,Inf)
+  SFVec3f    [in,out] centerOfRotation  0 0 0
+    range: (-Inf,Inf)
   SFString   [in,out] description       ""
   SFBool     [in,out] jump              TRUE
-  SFRotation [in,out] orientation       0 0 1 0   [-1,1],(-Inf,Inf)
+  SFRotation [in,out] orientation       0 0 1 0
+    range: [-1,1],(-Inf,Inf)
   SFBool     [in,out] retainUserOffsets FALSE
 
-  # EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   SFMatrix4f [out]         cameraMatrix
   SFMatrix4f [out]         cameraInverseMatrix
   SFMatrix3f [out]         cameraRotationMatrix
@@ -20,52 +22,69 @@ X3DViewpointNode : X3DBindableNode {
 }
 
 Billboard : X3DGroupingNode {
-  SFVec3f [in,out] axisOfRotation 0 1 0    (-Inf,Inf)
+  SFVec3f [in,out] axisOfRotation 0 1 0
+    range: (-Inf,Inf)
 }
 
 Collision : X3DGroupingNode, X3DSensorNode {
   SFBool  [in,out] enabled
   SFTime  [out]    collideTime
   SFBool  [out]    isActive
-  SFNode  []       proxy          NULL     [X3DChildNode]
+  SFNode  []       proxy          NULL
+    range: X3DChildNode
 }
 
 LOD : X3DGroupingNode {
   SFInt32 [out]    level_changed
-  SFVec3f []       center           0 0 0    (-Inf,Inf)
+  SFVec3f []       center           0 0 0
+    range: (-Inf,Inf)
   SFBool  []       forceTransitions FALSE
-  MFFloat []       range            []       [0,Inf) or -1
+  MFFloat []       range            []
+    range: [0,Inf) or -1
 }
 
 NavigationInfo : X3DBindableNode {
-  MFFloat  [in,out] avatarSize      [0.25 1.6 0.75]   [0,Inf)
+  MFFloat  [in,out] avatarSize      [0.25 1.6 0.75]
+    range: [0,Inf)
   SFBool   [in,out] headlight       TRUE
-  SFFloat  [in,out] speed           1.0               [0,Inf)
-  SFTime   [in,out] transitionTime  1.0               [0, Inf)
-  MFString [in,out] transitionType  ["LINEAR"]        ["TELEPORT","LINEAR","ANIMATE",...]
-  MFString [in,out] type            ["EXAMINE" "ANY"] ["ANY","WALK","EXAMINE","FLY","LOOKAT","NONE",...]
-  SFFloat  [in,out] visibilityLimit 0.0               [0,Inf)
+  SFFloat  [in,out] speed           1.0
+    range: [0,Inf)
+  SFTime   [in,out] transitionTime  1.0
+    range: [0, Inf)
+  MFString [in,out] transitionType  ["LINEAR"]
+    range: ["TELEPORT","LINEAR","ANIMATE",...]
+  MFString [in,out] type            ["EXAMINE" "ANY"]
+    range: ["ANY","WALK","EXAMINE","FLY","LOOKAT","NONE",...]
+  SFFloat  [in,out] visibilityLimit 0.0
+    range: [0,Inf)
   SFBool   [out]    transitionComplete
 }
 
 OrthoViewpoint : X3DViewpointNode {
-  MFFloat    [in,out] fieldOfView       -1, -1, 1, 1  (-Inf,Inf)
-  SFVec3f    [in,out] position          0 0 10        (-Inf,Inf)
+  MFFloat    [in,out] fieldOfView       [-1, -1, 1, 1]
+    range: (-Inf,Inf)
+  SFVec3f    [in,out] position          0 0 10
+    range: (-Inf,Inf)
 }
 
 Viewpoint : X3DViewpointNode {
-  SFFloat    [in,out] fieldOfView       Pi/4     (0,Pi)
-  SFVec3f    [in,out] position          0 0 10  (-Inf,Inf)
+  SFFloat    [in,out] fieldOfView       Pi/4
+    range: (0,Pi)
+  SFVec3f    [in,out] position          0 0 10
+    range: (-Inf,Inf)
 
-  # EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   SFBool     [in,out] fieldOfViewForceVertical FALSE
 }
 
 ViewpointGroup : X3DChildNode {
-  SFVec3f  [in,out] center            0 0 0 (-Inf,Inf)
-  MFNode   [in,out] children          []  [X3DViewpointNode | ViewpointGroup]
+  SFVec3f  [in,out] center            0 0 0
+    range: (-Inf,Inf)
+  MFNode   [in,out] children          []
+    range: X3DViewpointNode | ViewpointGroup
   SFString [in,out] description       ""
   SFBool   [in,out] displayed         TRUE
   SFBool   [in,out] retainUserOffsets FALSE
-  SFVec3f  [in,out] size              0 0 0 (-Inf,Inf)
+  SFVec3f  [in,out] size              0 0 0
+    range: (-Inf,Inf)
 }

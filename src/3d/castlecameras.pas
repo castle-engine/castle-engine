@@ -150,10 +150,12 @@ type
     FOrigin: TVector2;
     FWidth, FHeight, FScale: Single;
     FEffectiveWidth, FEffectiveHeight: Single;
+    FStretch, WarningEffectiveSizeZeroDone: Boolean;
     procedure SetOrigin(const Value: TVector2);
     procedure SetWidth(const Value: Single);
     procedure SetHeight(const Value: Single);
     procedure SetScale(const Value: Single);
+    procedure SetStretch(const Value: Boolean);
   private
     Camera: TCastleCamera;
   public
@@ -222,17 +224,27 @@ type
           of the viewport control.
         )
 
-        @item(When both @link(Width) and @link(Height) are non-zero,
-          then they explicitly determine the @italic(minimum)
-          projection width and height along the given axis.
-
-          This, again, allows to easily display the same piece of the game world,
+        @item(When both @link(Width) and @link(Height) are non-zero, then
+          they determine the projection width and height.
+          This also allows to easily display the same piece of the game world,
           regardless of the viewport size.
 
-          If the displayed viewport aspect ratio wil be different than given
-          @link(Width) and @link(Height) ratio, then these value will be
-          treated as minimum values, and they will be adjusted.
-          This follows the X3D OrthoViewpoint.fieldOfView specification.
+          @unorderedList(
+            @item(When @link(Stretch) = @false (default), they determine the @italic(minimum)
+              projection width and height along the given axis.
+
+              If the displayed viewport aspect ratio wil be different than given
+              @link(Width) and @link(Height) ratio, then these value will be
+              treated as minimum values, and they will be adjusted.
+              This follows the X3D OrthoViewpoint.fieldOfView specification.)
+
+            @item(When @link(Stretch) = @true, these values are used directly,
+              even if it means that aspect ratio of the projection
+              will not reflect the aspect ratio of the viewport on screen.
+
+              This allows for some tricks, like @italic(Military Projection),
+              https://github.com/castle-engine/castle-engine/issues/290 .)
+          )
         )
       )
 
@@ -256,6 +268,12 @@ type
       When @link(Origin) is (0.5,0.5), this behaves like scaling around
       the middle of the viewport. }
     property Scale: Single read FScale write SetScale default 1;
+
+    { Allow non-proportional stretch of projection.
+      In effect the @link(Width) and @link(Height)
+      (if both non-zero) are applied directly, without correcting them to follow
+      aspect ratio of the viewport. }
+    property Stretch: Boolean read FStretch write SetStretch default false;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleorthographic_persistent_vectors.inc}
@@ -1125,6 +1143,7 @@ type
       FRotationEnabled: Boolean;
       FZoomEnabled: Boolean;
       FDragMoveSpeed, FKeysMoveSpeed: Single;
+      FExactMovement: Boolean;
       { Speed of rotations. Always zero when RotationAccelerate = false.
 
         This could be implemented as a quaternion,
@@ -1376,6 +1395,23 @@ type
       hold rotation keys to rotate. }
     property RotationAccelerate: boolean
       read FRotationAccelerate write SetRotationAccelerate default true;
+
+    { In orthographic projection with standard direction/up,
+      move the camera exactly as many units as the mouse position change indicates.
+      Makes the movemement in standard orthographic view most natural. }
+    property ExactMovement: Boolean read FExactMovement write FExactMovement default true;
+  end;
+
+  { Navigation most suitable for 2D viewports
+    (with orthographic projection and standard direction/up: -Z/+Y). }
+  TCastle2DNavigation = class(TCastleExamineNavigation)
+  public
+    constructor Create(AOwner: TComponent); override;
+
+    property MouseButtonMove default buttonLeft;
+    property MouseButtonZoom default buttonMiddle;
+  published
+    property RotationEnabled default false;
   end;
 
   TCastleWalkNavigation = class;
@@ -2201,6 +2237,17 @@ begin
   {$endif}
 end;
 
+{ TCastle2DNavigation -------------------------------------------------------- }
+
+constructor TCastle2DNavigation.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+
+  RotationEnabled := false;
+  MouseButtonMove := buttonLeft;
+  MouseButtonZoom := buttonMiddle;
+end;
+
 { TCastlePerspective --------------------------------------------------------- }
 
 constructor TCastlePerspective.Create(AOwner: TComponent);
@@ -2286,13 +2333,33 @@ procedure TCastleOrthographic.SetScale(const Value: Single);
 begin
   if FScale <> Value then
   begin
+    if Value <= 0 then
+      WritelnWarning('Orthographic projection scale (Camera.Orthographic.Scale) should be > 0, but is being set to %f', [
+        Value
+      ]);
     FScale := Value;
+    Camera.VisibleChange;
+  end;
+end;
+
+procedure TCastleOrthographic.SetStretch(const Value: Boolean);
+begin
+  if FStretch <> Value then
+  begin
+    FStretch := Value;
     Camera.VisibleChange;
   end;
 end;
 
 procedure TCastleOrthographic.InternalSetEffectiveSize(const W, H: Single);
 begin
+  if ((W <= 0) or (H <= 0)) and (not WarningEffectiveSizeZeroDone) then
+  begin
+    WritelnWarning('Orthographic projection effective width and height (calculated based on Camera.Orthographic.Width,Height,Scale and viewport size) should be > 0, but are %f x %f (further warnings about it will be supressed, to not spam log)', [
+      W, H
+    ]);
+    WarningEffectiveSizeZeroDone := true;
+  end;
   FEffectiveWidth := W;
   FEffectiveHeight := H;
 end;
@@ -3072,6 +3139,7 @@ begin
   FMouseButtonRotate := buttonLeft;
   FMouseButtonMove := buttonMiddle;
   FMouseButtonZoom := buttonRight;
+  FExactMovement := true;
 
   for I := 0 to 2 do
     for B := false to true do
@@ -3731,11 +3799,26 @@ begin
      (not GoodModelBox.IsEmpty) and
      (MouseButtonMove = DraggingMouseButton) then
   begin
-    Size := GoodModelBox.AverageSize;
-    Translation := Translation - Vector3(
-      DragMoveSpeed * Size * (Event.OldPosition[0] - Event.Position[0]) / (2*MoveDivConst),
-      DragMoveSpeed * Size * (Event.OldPosition[1] - Event.Position[1]) / (2*MoveDivConst),
-      0);
+    if ExactMovement and
+       (Camera.ProjectionType = ptOrthographic) and
+       TVector3.Equals(Camera.Direction, DefaultCameraDirection) and
+       TVector3.Equals(Camera.Up, DefaultCameraUp) and
+       (InternalViewport <> nil) then
+    begin
+      Translation := Translation + Vector3(
+        (InternalViewport as TCastleViewport).PositionTo2DWorld(Event.Position, true) -
+        (InternalViewport as TCastleViewport).PositionTo2DWorld(Event.OldPosition, true),
+        0);
+    end else
+    begin
+      Size := GoodModelBox.AverageSize;
+      Translation := Translation - Vector3(
+        DragMoveSpeed * Size * (Event.OldPosition[0] - Event.Position[0])
+        / (2 * MoveDivConst),
+        DragMoveSpeed * Size * (Event.OldPosition[1] - Event.Position[1])
+        / (2 * MoveDivConst),
+        0);
+    end;
     Result := ExclusiveEvents;
   end;
 end;
@@ -5619,5 +5702,6 @@ end;
 
 initialization
   RegisterSerializableComponent(TCastleExamineNavigation, 'Examine Navigation');
+  RegisterSerializableComponent(TCastle2DNavigation, '2D Navigation');
   RegisterSerializableComponent(TCastleWalkNavigation, 'Walk Navigation');
 end.

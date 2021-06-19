@@ -25,8 +25,11 @@ implementation
 uses SysUtils,
   CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
-  CastleUIControls, CastleApplicationProperties, CastleUIState,
-  GameStateMain;
+  CastleUIControls, CastleApplicationProperties, CastleUIState
+  {$region 'Castle Initialization Uses'}
+  // The content here may be automatically updated by CGE editor.
+  , GameStateMain
+  {$endregion 'Castle Initialization Uses'};
 
 var
   Window: TCastleWindowBase;
@@ -37,35 +40,22 @@ begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-  { Create TStateMain that will handle "main" state of the game.
-    Larger games may use multiple states,
-    e.g. TStateMainMenu ("main menu state"),
-    TStatePlay ("playing the game state"),
-    TStateCredits ("showing the credits state") etc. }
+  { Create game states and set initial state }
+  {$region 'Castle State Creation'}
+  // The content here may be automatically updated by CGE editor.
   StateMain := TStateMain.Create(Application);
+  {$endregion 'Castle State Creation'}
+
   TUIState.Current := StateMain;
 end;
 
 initialization
-  { Set ApplicationName early, as our log uses it.
-    Optionally you could also set ApplicationProperties.Version here. }
-  ApplicationProperties.ApplicationName := 'collisions';
-
-  { Start logging. Do this as early as possible,
-    to log information and eventual warnings during initialization.
-
-    For programs, InitializeLog is not called here.
-    Instead InitializeLog is done by the program main file,
-    after command-line parameters are parsed. }
-  if IsLibrary then
-    InitializeLog;
-
   { Initialize Application.OnInitialize. }
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
   Window := TCastleWindowBase.Create(Application);
-  Window.Caption := 'Collisions Test';
+  Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 
   { You should not need to do *anything* more in the unit "initialization" section.

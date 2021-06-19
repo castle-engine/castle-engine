@@ -35,7 +35,6 @@ type
     TextTransform: TTransformNode;
 
     TextNode: TTextNode;
-    UiOwner: TComponent;
 
     { Load GetText MO files for new language,
       recreate user interface to show new language (calling InitializeUserInterface). }
@@ -50,6 +49,7 @@ type
     procedure ClickButtonRussian(Sender: TObject);
     procedure ClickButtonUkrainian(Sender: TObject);
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     { Animate text rotation. }
     procedure Update(const SecondsPassed: Single;
@@ -76,6 +76,12 @@ resourcestring
 
 { TStateMain ----------------------------------------------------------------- }
 
+constructor TStateMain.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestatemain.castle-user-interface';
+end;
+
 procedure TStateMain.InitializeLanguage(const NewLanguage: string);
 begin
   Language := NewLanguage;
@@ -93,7 +99,8 @@ begin
     avoid reloading the existing UI, and translate it using "TranslateDesign(UiRoot)".
     TextNode can also be updated without reloading, by "TextNode.SetString([Text3D])".
     You could also preserve the TCastleEdit contents around it. }
-  FreeAndNil(UiOwner);
+  DesignUrl := '';
+  DesignUrl := 'castle-data:/gamestatemain.castle-user-interface';
   InitializeUserInterface;
 end;
 
@@ -130,16 +137,13 @@ var
     ButtonSwitchRussian, ButtonSwitchUkrainian: TCastleButton;
   ButtonMessage: TCastleButton;
 begin
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/gamestatemain.castle-user-interface', FreeAtStop, UiOwner);
-
-  Viewport := UiOwner.FindRequiredComponent('Viewport') as TCastleViewport;
-  ButtonSwitchEnglish := UiOwner.FindRequiredComponent('ButtonSwitchEnglish') as TCastleButton;
-  ButtonSwitchGerman := UiOwner.FindRequiredComponent('ButtonSwitchGerman') as TCastleButton;
-  ButtonSwitchPolish := UiOwner.FindRequiredComponent('ButtonSwitchPolish') as TCastleButton;
-  ButtonSwitchRussian := UiOwner.FindRequiredComponent('ButtonSwitchRussian') as TCastleButton;
-  ButtonSwitchUkrainian := UiOwner.FindRequiredComponent('ButtonSwitchUkrainian') as TCastleButton;
-  ButtonMessage := UiOwner.FindRequiredComponent('ButtonMessage') as TCastleButton;
+  Viewport := DesignedComponent('Viewport') as TCastleViewport;
+  ButtonSwitchEnglish := DesignedComponent('ButtonSwitchEnglish') as TCastleButton;
+  ButtonSwitchGerman := DesignedComponent('ButtonSwitchGerman') as TCastleButton;
+  ButtonSwitchPolish := DesignedComponent('ButtonSwitchPolish') as TCastleButton;
+  ButtonSwitchRussian := DesignedComponent('ButtonSwitchRussian') as TCastleButton;
+  ButtonSwitchUkrainian := DesignedComponent('ButtonSwitchUkrainian') as TCastleButton;
+  ButtonMessage := DesignedComponent('ButtonMessage') as TCastleButton;
 
   { build 3D view }
   Scene := TCastleScene.Create(Application);
@@ -165,8 +169,8 @@ begin
     TFontStyleNode.OnFont is used by TTextNode.
     Everything else uses UIFont (by default). }
   TFontStyleNode.OnFont := @GetFont;
-  UIFont := TTextureFont.Create(Self);
-  (UIFont as TTextureFont).Load(TextureFont_DejaVuSans_50, false);
+  UIFont := TCastleFont.Create(Self);
+  (UIFont as TCastleFont).Load(TextureFont_DejaVuSans_50, false);
   UIFont.Size := 20;
 
   { initialize language, InitializeLanguage will also intialize UI }

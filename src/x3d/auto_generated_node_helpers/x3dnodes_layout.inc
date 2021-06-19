@@ -26,26 +26,52 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdAlign: TMFString;
+    { X3D field "align". } { }
+    public property FdAlign: TMFString read FFdAlign;
     { Set X3D field "align". } { }
     procedure SetAlign(const Value: array of string);
     { Set X3D field "align". } { }
     procedure SetAlign(const Value: TCastleStringList);
+
+    strict private FFdOffset: TMFFloat;
+    { X3D field "offset". } { }
+    public property FdOffset: TMFFloat read FFdOffset;
     { Set X3D field "offset". } { }
     procedure SetOffset(const Value: array of Single);
     { Set X3D field "offset". } { }
     procedure SetOffset(const Value: TSingleList);
+
+    strict private FFdOffsetUnits: TMFString;
+    { X3D field "offsetUnits". } { }
+    public property FdOffsetUnits: TMFString read FFdOffsetUnits;
     { Set X3D field "offsetUnits". } { }
     procedure SetOffsetUnits(const Value: array of string);
     { Set X3D field "offsetUnits". } { }
     procedure SetOffsetUnits(const Value: TCastleStringList);
+
+    strict private FFdScaleMode: TMFString;
+    { X3D field "scaleMode". } { }
+    public property FdScaleMode: TMFString read FFdScaleMode;
     { Set X3D field "scaleMode". } { }
     procedure SetScaleMode(const Value: array of string);
     { Set X3D field "scaleMode". } { }
     procedure SetScaleMode(const Value: TCastleStringList);
+
+    strict private FFdSize: TMFFloat;
+    { X3D field "size". } { }
+    public property FdSize: TMFFloat read FFdSize;
     { Set X3D field "size". } { }
     procedure SetSize(const Value: array of Single);
     { Set X3D field "size". } { }
     procedure SetSize(const Value: TSingleList);
+
+    strict private FFdSizeUnits: TMFString;
+    { X3D field "sizeUnits". } { }
+    public property FdSizeUnits: TMFString read FFdSizeUnits;
     { Set X3D field "sizeUnits". } { }
     procedure SetSizeUnits(const Value: array of string);
     { Set X3D field "sizeUnits". } { }
@@ -115,6 +141,40 @@ end;
 procedure TLayoutNode.SetSizeUnits(const Value: TCastleStringList);
 begin
   FdSizeUnits.Send(Value);
+end;
+
+class function TLayoutNode.ClassX3DType: String;
+begin
+  Result := 'Layout';
+end;
+
+procedure TLayoutNode.CreateNode;
+begin
+  inherited;
+
+  FFdAlign := TMFString.Create(Self, True, 'align', ['CENTER','CENTER']);
+   FdAlign.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAlign);
+
+  FFdOffset := TMFFloat.Create(Self, True, 'offset', [0,0]);
+   FdOffset.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdOffset);
+
+  FFdOffsetUnits := TMFString.Create(Self, True, 'offsetUnits', ['WORLD','WORLD']);
+   FdOffsetUnits.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdOffsetUnits);
+
+  FFdScaleMode := TMFString.Create(Self, True, 'scaleMode', ['NONE','NONE']);
+   FdScaleMode.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdScaleMode);
+
+  FFdSize := TMFFloat.Create(Self, True, 'size', [1,1]);
+   FdSize.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSize);
+
+  FFdSizeUnits := TMFString.Create(Self, True, 'sizeUnits', ['WORLD','WORLD']);
+   FdSizeUnits.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSizeUnits);
 end;
 
 {$endif read_implementation}

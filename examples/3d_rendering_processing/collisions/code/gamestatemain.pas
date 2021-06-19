@@ -51,6 +51,7 @@ type
     procedure ClickTestSphere(Sender: TObject);
     procedure ClickTestRay(Sender: TObject);
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
@@ -66,26 +67,27 @@ uses SysUtils,
 
 { TStateMain ----------------------------------------------------------------- }
 
+constructor TStateMain.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestatemain.castle-user-interface';
+end;
+
 procedure TStateMain.Start;
-var
-  UiOwner: TComponent;
 begin
   inherited;
 
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/state_main.castle-user-interface', FreeAtStop, UiOwner);
-
   { Find components, by name, that we need to access from code }
-  LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
-  TransformMoving := UiOwner.FindRequiredComponent('TransformMoving') as TCastleTransform;
-  SceneMovingBox := UiOwner.FindRequiredComponent('SceneMovingBox') as TCastleScene;
-  SceneMovingSphere := UiOwner.FindRequiredComponent('SceneMovingSphere') as TCastleScene;
-  SceneMovingRay := UiOwner.FindRequiredComponent('SceneMovingRay') as TCastleScene;
-  ButtonTestMove := UiOwner.FindRequiredComponent('ButtonTestMove') as TCastleButton;
-  ButtonTestBox := UiOwner.FindRequiredComponent('ButtonTestBox') as TCastleButton;
-  ButtonTestSphere := UiOwner.FindRequiredComponent('ButtonTestSphere') as TCastleButton;
-  ButtonTestRay := UiOwner.FindRequiredComponent('ButtonTestRay') as TCastleButton;
-  MainViewport := UiOwner.FindRequiredComponent('MainViewport') as TCastleViewport;
+  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
+  TransformMoving := DesignedComponent('TransformMoving') as TCastleTransform;
+  SceneMovingBox := DesignedComponent('SceneMovingBox') as TCastleScene;
+  SceneMovingSphere := DesignedComponent('SceneMovingSphere') as TCastleScene;
+  SceneMovingRay := DesignedComponent('SceneMovingRay') as TCastleScene;
+  ButtonTestMove := DesignedComponent('ButtonTestMove') as TCastleButton;
+  ButtonTestBox := DesignedComponent('ButtonTestBox') as TCastleButton;
+  ButtonTestSphere := DesignedComponent('ButtonTestSphere') as TCastleButton;
+  ButtonTestRay := DesignedComponent('ButtonTestRay') as TCastleButton;
+  MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
 
   ButtonTestMove.OnClick := @ClickTestMove;
   ButtonTestBox.OnClick := @ClickTestBox;

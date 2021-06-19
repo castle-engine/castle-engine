@@ -65,7 +65,6 @@ begin
   FFdVector := TMFVec3f.Create(Self, True, 'vector', []);
    FdVector.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdVector);
-  { X3D specification comment: [-1,1] }
 
   DefaultContainerField := 'tangent';
 end;

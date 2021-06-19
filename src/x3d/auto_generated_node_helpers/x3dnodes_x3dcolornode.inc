@@ -66,7 +66,6 @@ begin
   FFdMode := TSFStringEnum.Create(Self, False, 'mode', ColorModeNames, Ord(cmReplace));
    FdMode.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdMode);
-  { X3D specification comment: ["REPLACE","MODULATE"] enumerated-type: TColorMode ColorModeNames cmReplace }
 
   DefaultContainerField := 'color';
 end;

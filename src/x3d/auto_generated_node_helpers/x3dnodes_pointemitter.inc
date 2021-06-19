@@ -31,8 +31,18 @@
     function GetPosition: TVector3;
     procedure SetPosition(const Value: TVector3);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdDirection: TSFVec3f;
+    { X3D field "direction". } { }
+    public property FdDirection: TSFVec3f read FFdDirection;
     { X3D field "direction". } { }
     property Direction: TVector3 read GetDirection write SetDirection;
+
+    strict private FFdPosition: TSFVec3f;
+    { X3D field "position". } { }
+    public property FdPosition: TSFVec3f read FFdPosition;
     { X3D field "position". } { }
     property Position: TVector3 read GetPosition write SetPosition;
 
@@ -60,6 +70,24 @@ end;
 procedure TPointEmitterNode.SetPosition(const Value: TVector3);
 begin
   FdPosition.Send(Value);
+end;
+
+class function TPointEmitterNode.ClassX3DType: String;
+begin
+  Result := 'PointEmitter';
+end;
+
+procedure TPointEmitterNode.CreateNode;
+begin
+  inherited;
+
+  FFdDirection := TSFVec3f.Create(Self, True, 'direction', Vector3(0, 1, 0));
+   FdDirection.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDirection);
+
+  FFdPosition := TSFVec3f.Create(Self, True, 'position', Vector3(0, 0, 0));
+   FdPosition.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdPosition);
 end;
 
 {$endif read_implementation}

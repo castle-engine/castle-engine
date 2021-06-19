@@ -63,7 +63,7 @@ begin
   inherited;
 
   FFdValue := TMFInt32.Create(Self, True, 'value', []);
-   FdValue.ChangeAlways := chVisibleNonGeometry;
+   FdValue.ChangeAlways := chNone;
   AddField(FFdValue);
 end;
 

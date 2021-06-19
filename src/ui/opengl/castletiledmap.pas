@@ -45,7 +45,7 @@ implementation
 
 uses Math,
   CastleComponentSerialize, CastleImages,
-  CastleGLUtils;
+  CastleGLUtils, CastleDownload;
 
 {$define read_implementation}
 {$I castletiledmap_map.inc}

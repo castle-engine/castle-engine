@@ -1,39 +1,66 @@
 X3DLayoutNode : X3DChildNode {
+  auto-generate-more: true
 }
 
 Layout : X3DLayoutNode {
-   MFString [in,out] align       ["CENTER","CENTER"] ["LEFT"|"CENTER"|"RIGHT","BOTTOM"|"CENTER"|"TOP"]
-   MFFloat  [in,out] offset      [0,0]               (-Inf,Inf)
-   MFString [in,out] offsetUnits ["WORLD","WORLD"]   ["WORLD","FRACTION","PIXEL"]
-   MFString [in,out] scaleMode   ["NONE","NONE"]     ["NONE","FRACTION","STRETCH","PIXEL"]
-   MFFloat  [in,out] size        [1,1]               (0,Inf)
-   MFString [in,out] sizeUnits   ["WORLD","WORLD"]   ["WORLD","FRACTION","PIXEL"]
+  auto-generate-more: true
+   MFString [in,out] align       ["CENTER","CENTER"]
+     range: TODO: ["LEFT"|"CENTER"|"RIGHT","BOTTOM"|"CENTER"|"TOP"]
+     # TODO: enumerated-type: ...
+   MFFloat  [in,out] offset      [0,0]
+     range: (-Inf,Inf)
+   MFString [in,out] offsetUnits ["WORLD","WORLD"]
+     range: TODO: ["WORLD","FRACTION","PIXEL"]
+     # TODO: enumerated-type: ...
+   MFString [in,out] scaleMode   ["NONE","NONE"]
+     range: TODO: ["NONE","FRACTION","STRETCH","PIXEL"]
+     # TODO: enumerated-type: ...
+   MFFloat  [in,out] size        [1,1]
+     range: (0,Inf)
+   MFString [in,out] sizeUnits   ["WORLD","WORLD"]
+     range: TODO: ["WORLD","FRACTION","PIXEL"]
+     # TODO: enumerated-type: ...
 }
 
 LayoutGroup : X3DGroupingNode {
-   SFNode  [in,out] layout         NULL  [X3DLayoutNode]
-   SFNode  [in,out] viewport       NULL  [X3DViewportNode]
+  auto-generate-more: true
+  SFNode  [in,out] layout         NULL
+    range: X3DLayoutNode
+  SFNode  [in,out] viewport       NULL
+    range: X3DViewportNode
 }
 
 LayoutLayer : X3DLayerNode {
-  MFNode [in]     addChildren    []   [X3DChildNode]
-  MFNode [in]     removeChildren []   [X3DChildNode]
-  MFNode [in,out] children       []   [X3DChildNode]
-  SFNode [in,out] layout         NULL [X3DLayoutNode]
+  auto-generate-more: true
+  MFNode [in]     addChildren    []
+    range: X3DChildNode
+  MFNode [in]     removeChildren []
+    range: X3DChildNode
+  MFNode [in,out] children       []
+    range: X3DChildNode
+  SFNode [in,out] layout         NULL
+    range: X3DLayoutNode
 }
 
 ScreenFontStyle : X3DFontStyleNode {
-  MFString []       family      "SERIF"
+  auto-generate-more: true
+  MFString []       family      ["SERIF"]
   SFBool   []       horizontal  TRUE
-  MFString []       justify     "BEGIN" ["BEGIN","END","FIRST","MIDDLE",""]
+  MFString []       justify     ["BEGIN"]
+    range: TODO: ["BEGIN","END","FIRST","MIDDLE",""]
+    # TODO: enumerated-type: TX3DFontJustify JustifyToString [fjBegin]
   SFString []       language    ""
   SFBool   []       leftToRight TRUE
-  SFFloat  []       pointSize   12.0    (0,Inf)
-  SFFloat  []       spacing     1.0     [0,Inf)
-  SFString []       style       "PLAIN" ["PLAIN"|"BOLD"|"ITALIC"|"BOLDITALIC"|""]
+  SFFloat  []       pointSize   12.0
+    range: (0,Inf)
+  SFFloat  []       spacing     1.0
+    range: [0,Inf)
+  SFString []       style       "PLAIN"
+    range: ["PLAIN"|"BOLD"|"ITALIC"|"BOLDITALIC"|""]
+    enumerated-type: TX3DFontStyle FontStyleNames fsPlain
   SFBool   []       topToBottom TRUE
 }
 
 ScreenGroup : X3DGroupingNode {
+  auto-generate-more: true
 }
-

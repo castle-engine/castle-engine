@@ -63,7 +63,7 @@ begin
   inherited;
 
   FFdValue := TMFNode.Create(Self, True, 'value', [TAbstractMetadataNode]);
-   FdValue.ChangeAlways := chVisibleNonGeometry;
+   FdValue.ChangeAlways := chNone;
   AddField(FFdValue);
 end;
 

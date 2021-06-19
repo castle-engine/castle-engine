@@ -731,7 +731,7 @@ type
 implementation
 
 uses {$ifdef UNIX} Unix {$endif} {$ifdef MSWINDOWS} Windows {$endif},
-  StrUtils, Math {$ifdef FPC}, StreamIO {$endif}, RTTIUtils, TypInfo;
+  StrUtils, Math {$ifdef FPC}, StreamIO, RTTIUtils {$endif}, TypInfo;
 
 { TStrings helpers ------------------------------------------------------- }
 
@@ -1456,6 +1456,7 @@ procedure TranslateProperties(const C: TComponent;
       of TCollection and TObjectList, like TJSONStreamer.StreamClassProperty. }
   end;
 
+{$ifdef FPC}
 var
   PropInfos: TPropInfoList;
   PropInfo: PPropInfo;
@@ -1488,6 +1489,10 @@ begin
         TranslateChildClass(GetObjectProp(C, PropInfo));
     end;
   finally FreeAndNil(PropInfos) end;
+{$else}
+begin
+  // TODO: not yet implemented for Delphi
+{$endif}
 end;
 
 { initialization / finalization ---------------------------------------------- }

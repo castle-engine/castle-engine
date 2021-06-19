@@ -40,7 +40,7 @@ type
   { }
   EDynLibError = class(Exception);
 
-  TDynLibSymbolErrorBehaviour = (seRaise, seReturnNil, seWarnAndReturnNil);
+  TDynLibSymbolError = (seRaise, seReturnNil, seWarnAndReturnNil);
 
   (*Load functions from dynamic libraries.
 
@@ -53,7 +53,7 @@ type
       @item(The @link(Load) and @link(Symbol) functions
         @italic(by default do error checking) (and raise necessary exceptions).)
 
-      @item(The field SymbolErrorBehaviour allows to
+      @item(The field SymbolError allows to
         specify @italic(once for all subsequent Symbol calls)
         what error checking we want.
         Default is to check errors and raise exceptions.
@@ -88,7 +88,7 @@ type
     { In this class, we always have a valid FHandle. }
     FHandle: TDynLibHandle;
     FName: string;
-    FSymbolErrorBehaviour: TDynLibSymbolErrorBehaviour;
+    FSymbolError: TDynLibSymbolError;
   public
     { Standard constructor, requires a valid TDynLibHandle already.
       Usually you will prefer to use @link(Load) method instead of
@@ -124,12 +124,13 @@ type
     class function Load(const AName: string; RaiseExceptionOnError: boolean = true): TDynLib;
 
     { What happens when @link(Symbol) fails. }
-    property SymbolErrorBehaviour: TDynLibSymbolErrorBehaviour
-      read FSymbolErrorBehaviour write FSymbolErrorBehaviour
-      default seRaise;
+    property SymbolError: TDynLibSymbolError
+      read FSymbolError write FSymbolError default seRaise;
+    property SymbolErrorBehaviour: TDynLibSymbolError
+      read FSymbolError write FSymbolError default seRaise; deprecated 'use SymbolError';
 
     { Return address of given symbol (function name etc.) from loaded dynamic
-      library. If the symbol doesn't exist, then SymbolErrorBehaviour
+      library. If the symbol doesn't exist, then SymbolError
       says what happens:
 
       @unorderedList(
@@ -146,7 +147,7 @@ type
       )
 
       @raises(EDynLibError If SymbolName doesn't exist and
-        SymbolErrorBehaviour is seRaise.)
+        SymbolError is seRaise.)
 
     }
     function Symbol(SymbolName: PChar): Pointer;
@@ -188,7 +189,7 @@ begin
   FHandle := AHandle;
   Check(AHandle <> InvalidDynLibHandle,
     'TDynLib can not be created with invalid DynLibHandle');
-  SymbolErrorBehaviour := seRaise;
+  SymbolError := seRaise;
 end;
 
 destructor TDynLib.Destroy;
@@ -250,12 +251,12 @@ function TDynLib.Symbol(SymbolName: PChar): Pointer;
 begin
   Result := GetProcAddress(FHandle, SymbolName);
   if Result = nil then
-    case SymbolErrorBehaviour of
+    case SymbolError of
       seRaise: raise EDynLibError.Create(ErrStr);
       seReturnNil: ;
       seWarnAndReturnNil: WarningWrite(ErrStr);
       {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('SymbolErrorBehaviour=?');
+      else raise EInternalError.Create('SymbolError=?');
       {$endif}
     end;
 end;

@@ -61,6 +61,7 @@ type
     procedure UpdateResourceButtons;
     procedure SetCreatureResource(const NewCreatureResource: TCreatureResource);
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Stop; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
@@ -82,6 +83,12 @@ end;
 
 { TStateMain ----------------------------------------------------------------- }
 
+constructor TStateMain.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestatemain.castle-user-interface';
+end;
+
 procedure TStateMain.Start;
 
   { An example of creating a resource (TStillCreatureResource in this case)
@@ -97,20 +104,15 @@ procedure TStateMain.Start;
     Resources.Add(Res);
   end;
 
-var
-  UiOwner: TComponent;
 begin
   inherited;
 
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/state_main.castle-user-interface', FreeAtStop, UiOwner);
-
   { Find components, by name, that we need to access from code }
-  LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
-  MainViewport := UiOwner.FindRequiredComponent('MainViewport') as TCastleViewport;
-  ButtonLoadResourceXml := UiOwner.FindRequiredComponent('ButtonLoadResourceXml') as TCastleButton;
-  CheckboxShowDebug := UiOwner.FindRequiredComponent('CheckboxShowDebug') as TCastleCheckbox;
-  GroupResources := UiOwner.FindRequiredComponent('GroupResources') as TCastleVerticalGroup;
+  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
+  MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
+  ButtonLoadResourceXml := DesignedComponent('ButtonLoadResourceXml') as TCastleButton;
+  CheckboxShowDebug := DesignedComponent('CheckboxShowDebug') as TCastleCheckbox;
+  GroupResources := DesignedComponent('GroupResources') as TCastleVerticalGroup;
 
   ButtonLoadResourceXml.OnClick := @ClickButtonLoadResourceXml;
   CheckboxShowDebug.OnChange := @ChangedCheckboxShowDebug;

@@ -1,7 +1,6 @@
 Demo game using maps designed in Tiled and Castle Game Engine.
 
-Shows also how to use TUIState together with designs done in
-Castle Game Engine editor. Namely, in each overridden TUIState.Start,
-just call "InsertUserInterface('castle-data:/xxxx.castle-user-interface', ...)".
+All the states (TUIState descendants) are designed visually
+using Castle Game Engine editor.
 
-The actual game logic is mostly inside GameStatePlay and GameUnit units.
+The actual game logic is mostly inside `GameStatePlay` and `GameUnit` units.

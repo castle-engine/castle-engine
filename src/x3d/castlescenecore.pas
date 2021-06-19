@@ -673,6 +673,9 @@ type
       in practice too?) }
     procedure UpdateNewPlayingAnimation(out NeedsUpdateTimeDependentHandlers: Boolean);
 
+    { Call SetTime on all TimeDependentHandlers. }
+    procedure UpdateTimeDependentHandlers(const TimeIncrease: TFloatTime; const ResetTime: boolean);
+
     function SensibleCameraRadius(const WorldBox: TBox3D;
       out RadiusAutomaticallyDerivedFromBox: Boolean): Single;
 
@@ -1261,6 +1264,11 @@ type
 
       @exclude }
     procedure InternalChangedField(const Field: TX3DField; const Change: TX3DChange); override;
+
+    { Called before changing one node into another,
+      when old node may have beeen associated with a shape using TShapeTree.AssociateNode. }
+    procedure InternalMoveShapeAssociations(
+      const OldNode, NewNode: TX3DNode; const ContainingShapes: TObject); override;
 
     { Notification when geometry changed.
       "Geometry changed" means that the positions
@@ -1977,7 +1985,7 @@ type
 
     function Animations: TStringList; deprecated 'use AnimationsList (and do not free it''s result)';
 
-    { Forcefully, immediately, set 3D pose from given animation,
+    { Forcefully, immediately, set pose from given animation,
       with given time in animation.
 
       This avoids the normal passage of time in X3D scenes,
@@ -2449,12 +2457,25 @@ type
       reloads the scene (calls @link(Load) with a new X3D graph). }
     property PrimitiveGeometry: TPrimitiveGeometry
       read FPrimitiveGeometry write SetPrimitiveGeometry default pgNone;
+      deprecated 'use TCastleBox, TCastleSphere, TCastlePlane for these primitives';
 
-    { If set, this animation will be automatically played once the model
-      is loaded (each time URL changes). @link(AutoAnimationLoop) controls
-      whether it loops. }
+    { If AutoAnimation is set, this animation will be automatically played.
+      It is useful to determine the initial animation, played once the model
+      is loaded (each time URL changes). You can also change AutoAnimation
+      at any other moment at runtime (set it to something non-empty to change to a new animation;
+      set it to '' to stop any animation).
+
+      Note: Using @link(AutoAnimation) will under the hood call methods like @link(PlayAnimation),
+      @link(StopAnimation) and update @link(CurrentAnimation).
+      The reverse is not true: calling @link(PlayAnimation) doesn't change @link(AutoAnimation).
+      So you can think of @link(AutoAnimation) as "an initial animation, activated each time
+      we load the model, even if later we can change it to something else using @link(PlayAnimation)".
+
+      @seealso AutoAnimationLoop }
     property AutoAnimation: String
       read FAutoAnimation write SetAutoAnimation;
+
+    { Does the animation indicated by AutoAnimation loops. }
     property AutoAnimationLoop: Boolean
       read FAutoAnimationLoop write SetAutoAnimationLoop default true;
 
@@ -5165,6 +5186,58 @@ var
     VisibleChangeHere([]);
   end;
 
+  procedure HandleFontStyle;
+  (* Naive version to seek all shapes. Left only for educational purposes.
+  var
+    ShapeList: TShapeList;
+    Shape: TShape;
+  begin
+    ShapeList := Shapes.TraverseList({ OnlyActive } false);
+    for Shape in ShapeList do
+      if (Shape.OriginalGeometry is TTextNode) and
+         (TTextNode(Shape.OriginalGeometry).FontStyle = ANode) then
+        Shape.Changed(false, [Change]);
+  end;
+  *)
+  var
+    ParentField: TX3DField;
+    TextNode: TX3DNode;
+    C, I, J: Integer;
+  begin
+    { ANode is TFontStyleNode, child of (maybe many) TTextNodes.
+      For each TTextNode, we want to call Changed on all TShape instances associated it.
+      This accounts for various complicated X3D setups:
+      TFontStyleNode may be referenced multiple times,
+      TTextNode may be referenced multiple times. }
+
+    Assert(ANode is TFontStyleNode, 'Only TFontStyleNode should send chFontStyle');
+    for I := 0 to ANode.ParentFieldsCount - 1 do
+    begin
+      ParentField := ANode.ParentFields[I];
+      if not (ParentField is TSFNode) then
+      begin
+        WritelnWarning('TFontStyleNode change', 'ParentField is not TSFNode. This should not happen in normal usage of TFontStyleNode, submit a bug');
+        Continue;
+      end;
+
+      TextNode := TSFNode(ParentField).ParentNode;
+      if TextNode = nil then
+      begin
+        WritelnWarning('TFontStyleNode change', 'ParentField.Node is nil. This should not happen in usual usage of TCastleScene, submit a bug');
+        Continue;
+      end;
+      if not (TextNode is TTextNode) then
+      begin
+        WritelnWarning('TFontStyleNode change', 'ParentField.Node is not TTextNode. This should not happen in normal usage of TFontStyleNode, submit a bug');
+        Continue;
+      end;
+
+      C := TShapeTree.AssociatedShapesCount(TextNode);
+      for J := 0 to C - 1 do
+        TShape(TShapeTree.AssociatedShape(TextNode, J)).Changed(false, [Change]);
+    end;
+  end;
+
   procedure HandleChangeHeadLightOn;
   begin
     { Recalculate HeadlightOn based on NavigationInfo.headlight. }
@@ -5347,7 +5420,7 @@ begin
       // TODO: chTexturePropertiesNode
       chShadowCasters: HandleChangeShadowCasters;
       chGeneratedTextureUpdateNeeded: HandleChangeGeneratedTextureUpdateNeeded;
-      // TODO: chFontStyle. Fortunately, FontStyle fields are not exposed, so this isn't a bug in vrml/x3d browser
+      chFontStyle: HandleFontStyle;
       chHeadLightOn: HandleChangeHeadLightOn;
       chClipPlane: HandleChangeClipPlane;
       chDragSensorEnabled: HandleChangeDragSensorEnabled;
@@ -5420,6 +5493,51 @@ begin
       { We know LocalGeometryShape is nil now if Change does not contain
         gcLocalGeometryChanged*. }
       LocalGeometryShape);
+end;
+
+procedure TCastleSceneCore.InternalMoveShapeAssociations(const OldNode, NewNode: TX3DNode; const ContainingShapes: TObject);
+var
+  S: TShapeTree;
+  L: TShapeTreeList;
+  I: Integer;
+begin
+  Assert(OldNode <> NewNode); // should be checked before calling InternalMoveShapeAssociations
+
+  if ContainingShapes <> nil then
+  begin
+    { For shapes on ContainingShapes, they should be removed from OldNode,
+      and added to NewNode.
+
+      Otherwise we have no chance to clean them from OldNode, as change notification
+      reaches TCastleSceneCore / TShapeTree after the old value changed into new. }
+
+    if ContainingShapes.ClassType = TShapeTreeList then
+    begin
+      // ContainingShapes is a list
+      L := TShapeTreeList(ContainingShapes);
+
+      { Using downto just for future safety,
+        in case S.UnAssociateNode would remove from L -- but it is not the case now,
+        L is from containing node InternalSceneShape (e.g. from Appearance containing this Material,
+        or Shape containing this Appearance), and its contents don't change during this loop. }
+      for I := L.Count - 1 downto 0 do
+      begin
+        S := L[I];
+        if OldNode <> nil then
+          S.UnAssociateNode(OldNode);
+        if NewNode <> nil then
+          S.AssociateNode(NewNode);
+      end;
+    end else
+    begin
+      // ContainingShapes is a single TShapeTree
+      S := TShapeTree(ContainingShapes);
+      if OldNode <> nil then
+        S.UnAssociateNode(OldNode);
+      if NewNode <> nil then
+        S.AssociateNode(NewNode);
+    end;
+  end;
 end;
 
 procedure TCastleSceneCore.DoViewpointsChanged;
@@ -6684,43 +6802,43 @@ begin
   end;
 end;
 
+procedure TCastleSceneCore.UpdateTimeDependentHandlers(
+  const TimeIncrease: TFloatTime; const ResetTime: boolean);
+var
+  SomethingVisibleChanged, SomePartialSend: boolean;
+  I: Integer;
+  T: TFloatTime;
+  TimeHandler: TInternalTimeDependentHandler;
+begin
+  SomethingVisibleChanged := false;
+  T := Time;
+  SomePartialSend := false;
+
+  for I := 0 to TimeDependentHandlers.Count - 1 do
+  begin
+    TimeHandler := TimeDependentHandlers[I];
+
+    PartialSendBegin(TimeHandler);
+    if TimeHandler.PartialSend <> nil then
+      SomePartialSend := true;
+
+    if TimeHandler.SetTime(T, TimeIncrease, ResetTime) and
+      (TimeHandler.Node is TMovieTextureNode) then
+      SomethingVisibleChanged := true;
+
+    PartialSendEnd(TimeHandler);
+  end;
+
+  if not SomePartialSend then
+    NoPartialSend;
+
+  { If SomethingVisibleChanged (in MovieTexture nodes), we have to redisplay. }
+  if SomethingVisibleChanged then
+    VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+end;
+
 procedure TCastleSceneCore.InternalSetTime(
   const NewValue: TFloatTime; const TimeIncrease: TFloatTime; const ResetTime: boolean);
-
-  { Call SetTime on all TimeDependentHandlers. }
-  procedure UpdateTimeDependentHandlers(const ExtraTimeIncrease: TFloatTime);
-  var
-    SomethingVisibleChanged, SomePartialSend: boolean;
-    I: Integer;
-    T: TFloatTime;
-    TimeHandler: TInternalTimeDependentHandler;
-  begin
-    SomethingVisibleChanged := false;
-    T := Time;
-    SomePartialSend := false;
-
-    for I := 0 to TimeDependentHandlers.Count - 1 do
-    begin
-      TimeHandler := TimeDependentHandlers[I];
-
-      PartialSendBegin(TimeHandler);
-      if TimeHandler.PartialSend <> nil then
-        SomePartialSend := true;
-
-      if TimeHandler.SetTime(T, TimeIncrease + ExtraTimeIncrease, ResetTime) and
-        (TimeHandler.Node is TMovieTextureNode) then
-        SomethingVisibleChanged := true;
-
-      PartialSendEnd(TimeHandler);
-    end;
-
-    if not SomePartialSend then
-      NoPartialSend;
-
-    { If SomethingVisibleChanged (in MovieTexture nodes), we have to redisplay. }
-    if SomethingVisibleChanged then
-      VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
-  end;
 
   { Call UpdateTimeDependentHandlers, but only if AnimateOnlyWhenVisible logic agrees.
     When ResetTime, we force always an UpdateTimeDependentHandlers(0.0) call.
@@ -6734,7 +6852,7 @@ procedure TCastleSceneCore.InternalSetTime(
         all skipping ticks if multiple animations are reset at the beginning
         of game, making randomization in SetAnimateSkipTicks pointless). }
       FAnimateGatheredTime := 0;
-      UpdateTimeDependentHandlers(FAnimateGatheredTime);
+      UpdateTimeDependentHandlers(TimeIncrease + FAnimateGatheredTime, ResetTime);
     end else
     if NeedsUpdate then
     begin
@@ -6742,7 +6860,7 @@ procedure TCastleSceneCore.InternalSetTime(
         of AnimateSkipNextTicks. Note that we do not reset AnimateSkipNextTicks
         (to avoid synchronizing AnimateSkipNextTicks of multiple animations
         started in the sam frame). }
-      UpdateTimeDependentHandlers(FAnimateGatheredTime);
+      UpdateTimeDependentHandlers(TimeIncrease + FAnimateGatheredTime, ResetTime);
       FAnimateGatheredTime := 0;
     end else
     if FAnimateOnlyWhenVisible and (not IsVisibleNow) then
@@ -6755,7 +6873,7 @@ procedure TCastleSceneCore.InternalSetTime(
       FAnimateGatheredTime := FAnimateGatheredTime + TimeIncrease;
     end else
     begin
-      UpdateTimeDependentHandlers(FAnimateGatheredTime);
+      UpdateTimeDependentHandlers(TimeIncrease + FAnimateGatheredTime, ResetTime);
       AnimateSkipNextTicks := AnimateSkipTicks;
       FAnimateGatheredTime := 0;
     end;
@@ -7497,6 +7615,7 @@ begin
   ACamera.Orthographic.Width := 0;
   ACamera.Orthographic.Height := 0;
   ACamera.Orthographic.Origin := TVector2.Zero;
+  ACamera.Orthographic.Stretch := false;
 
   ViewpointNode := ViewpointStack.Top;
   NavigationNode := NavigationInfoStack.Top;
@@ -8294,14 +8413,26 @@ begin
   if NewPlayingAnimationUse then
   begin
     UpdateNewPlayingAnimation(NeedsUpdateTimeDependentHandlers);
+
+    { The case of NeedsUpdateTimeDependentHandlers = true is normal,
+      and we should handle it.
+      It can easily occur if the first thing you do with Scene is call Scene.PlayAnimation(...),
+      then Scene.StopAnimation within the same frame.
+      This will cause ApplyNewPlayingAnimation that will initialize the animation,
+      only to have it stopped immediately.
+      Such ApplyNewPlayingAnimation cannot Exit(false), as it would make StopAnimation to fail,
+      see https://github.com/castle-engine/castle-engine/issues/273 .
+
+      It is tempting to do nothing and ignore NeedsUpdateTimeDependentHandlers here.
+      It could be often OK, since we stop the animation?
+      But doing UpdateTimeDependentHandlers is what is consistent with normal code flow,
+      so safest. }
+    if NeedsUpdateTimeDependentHandlers then
+      UpdateTimeDependentHandlers(0, false); // update TimeSensors
+
     if NewPlayingAnimationUse then
     begin
       WritelnWarning('StopNotification callback of an old animation initialized another animation, bypassing the CurrentAnimation. The StopAnimation will not actually stop the animation, and the StopNotification callback of the CurrentAnimation is now overridden so we cannot call it anymore.');
-      Exit(false);
-    end;
-    if NeedsUpdateTimeDependentHandlers then
-    begin
-      WritelnWarning('StopNotification callback of an old animation caused NeedsUpdateTimeDependentHandlers, suggesting it started another animation. A default animation pose may blink if AnimateSkipTicks <> 0.');
       Exit(false);
     end;
   end;
@@ -8314,30 +8445,6 @@ begin
     PlayingAnimationStopNotification := nil;
   end else
   begin
-    { TODO: We can cause NeedsUpdateTimeDependentHandlers warning from ApplyNewPlayingAnimation,
-      if the new animation occurs that never played,
-      because scene had Exists = false. Testcase:
-
-        uses SysUtils, CastleScene, CastleLog;
-        var
-          Scene: TCastleScene;
-        begin
-          InitializeLog;
-          Scene := TCastleScene.Create(nil);
-          try
-            Scene.ProcessEvents := true;
-            Scene.Load('data/walking/assets/hotel_room/hotel_room_phone/hotel_room_phone.json');
-            Scene.Exists := false;
-            Scene.PlayAnimation('vibrate', true);
-            Scene.StopAnimation;
-          finally FreeAndNil(Scene) end;
-        end.
-
-      Right now only the DisableStopNotification case avoids it (in a brutal way,
-      as it avoids calling ApplyNewPlayingAnimation,
-      as it's pointless in this case.
-    }
-
     { If new animation was requested, but not yet processed by UpdateNewPlayingAnimation:
       Make it start, to early call the "stop notification" callback
       for the previous animation (before calling the "stop notification"

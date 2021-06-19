@@ -232,7 +232,6 @@ type
   {$I x3dnodes_97_nurbs.inc}
   {$I x3dnodes_castle.inc}
   {$I x3dnodes_instantreality.inc}
-  {$I x3dnodes_bitmanagement.inc}
 
   {$I x3dnodes_x3dunknownnode.inc}
   {$I x3dnodes_x3dinterfacedeclaration.inc}
@@ -371,7 +370,6 @@ uses
 {$I x3dnodes_97_nurbs.inc}
 {$I x3dnodes_castle.inc}
 {$I x3dnodes_instantreality.inc}
-{$I x3dnodes_bitmanagement.inc}
 
 { Auto-generated nodes code }
 {$I auto_generated_node_helpers/x3dnodes_anchor.inc}
@@ -716,7 +714,6 @@ initialization
   RegisterVRML97NodesNurbs;
   RegisterKambiNodes;
   RegisterInstantRealityNodes;
-  RegisterBitManagementNodes;
 
   { X3D components registration : }
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2017-2018 Michalis Kamburelis.
+  Copyright 2017-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -123,6 +123,7 @@ begin
   Navigation.Gravity := true;
   // rotating by dragging would cause trouble when clicking to spawn boxes/spheres
   Navigation.Input := Navigation.Input - [niMouseDragging];
+  Navigation.MoveSpeed := 10;
   Viewport.Navigation := Navigation;
 
   // easy way to make the simulation feel more dynamic
@@ -220,17 +221,14 @@ begin
 end;
 
 initialization
-  { Set ApplicationName early, as our log uses it. }
-  ApplicationProperties.ApplicationName := 'physics_3d_demo';
-
-  InitializeLog;
-
   { initialize Application callbacks }
   Application.OnInitialize := @ApplicationInitialize;
 
   { create Window and initialize Window callbacks }
   Window := TCastleWindowBase.Create(Application);
+  Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
+
   Window.OnRender := @WindowRender;
   Window.OnPress := @WindowPress;
 end.

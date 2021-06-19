@@ -39,6 +39,7 @@ type
 
       StarsCount: Cardinal;
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
   end;
@@ -62,6 +63,12 @@ begin
 end;
 
 { TStateMain ----------------------------------------------------------------- }
+
+constructor TStateMain.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestatemain.castle-user-interface';
+end;
 
 procedure TStateMain.Start;
 var
@@ -104,17 +111,12 @@ var
       end;
   end;
 
-var
-  UiOwner: TComponent;
 begin
   inherited;
 
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/state_main.castle-user-interface', FreeAtStop, UiOwner);
-
   { Find components, by name, that we need to access from code }
-  LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
-  MainViewport := UiOwner.FindRequiredComponent('MainViewport') as TCastleViewport;
+  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
+  MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
 
   StarTemplate := TCastleScene.Create(FreeAtStop);
   StarTemplate.Load('castle-data:/star.gltf');

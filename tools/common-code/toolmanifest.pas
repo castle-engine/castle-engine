@@ -33,12 +33,19 @@ type
 
   TAndroidProjectType = (apBase, apIntegrated);
 
-  TLocalizedAppName = record
+  TLocalizedAppName = class
     Language: String;
     AppName: String;
     constructor Create(const ALanguage, AAppName: String);
   end;
-  TListLocalizedAppName = specialize TList<TLocalizedAppName>;
+  TLocalizedAppNameList = specialize TObjectList<TLocalizedAppName>;
+
+  TIncludePath = class
+    Path: String;
+    Recursive: Boolean;
+    ExecutablePermission: Boolean;
+  end;
+  TIncludePathList = specialize TObjectList<TIncludePath>;
 
   TProjectVersion = class(TComponent)
   public
@@ -100,11 +107,11 @@ type
       FUsesNonExemptEncryption: boolean;
       FDataExists: Boolean;
       FPath, FPathUrl, FDataPath: string;
-      FIncludePaths, FExcludePaths: TCastleStringList;
+      FIncludePaths: TIncludePathList;
+      FExcludePaths: TCastleStringList;
       FExtraCompilerOptions, FExtraCompilerOptionsAbsolute: TCastleStringList;
       FIcons, FLaunchImages: TImageFileNames;
       FSearchPaths, FLibraryPaths: TStringList;
-      FIncludePathsRecursive: TBooleanList;
       FStandaloneSource, FAndroidSource, FIOSSource, FPluginSource: string;
       FLazarusProject: String;
       FBuildUsingLazbuild: Boolean;
@@ -116,7 +123,7 @@ type
       FAndroidProjectType: TAndroidProjectType;
       FAndroidServices, FIOSServices: TServiceList;
       FAssociateDocumentTypes: TAssociatedDocTypeList;
-      FListLocalizedAppName: TListLocalizedAppName;
+      FLocalizedAppNames: TLocalizedAppNameList;
       FIOSTeam: string;
       FindPascalFilesResult: TStringList; // valid only during FindPascalFilesCallback
 
@@ -186,9 +193,8 @@ type
     property SearchPaths: TStringList read FSearchPaths;
     property LibraryPaths: TStringList read FLibraryPaths;
     property AssociateDocumentTypes: TAssociatedDocTypeList read FAssociateDocumentTypes;
-    property ListLocalizedAppName: TListLocalizedAppName read FListLocalizedAppName;
-    property IncludePaths: TCastleStringList read FIncludePaths;
-    property IncludePathsRecursive: TBooleanList read FIncludePathsRecursive;
+    property LocalizedAppNames: TLocalizedAppNameList read FLocalizedAppNames;
+    property IncludePaths: TIncludePathList read FIncludePaths;
     property ExcludePaths: TCastleStringList read FExcludePaths;
     property ExtraCompilerOptions: TCastleStringList read FExtraCompilerOptions;
     property ExtraCompilerOptionsAbsolute: TCastleStringList read FExtraCompilerOptionsAbsolute;
@@ -284,6 +290,7 @@ end;
 
 constructor TLocalizedAppName.Create(const ALanguage, AAppName: String);
 begin
+  inherited Create;
   Language := ALanguage;
   AppName := AAppName;
 end;
@@ -294,8 +301,7 @@ constructor TCastleManifest.Create(const APath: String);
 begin
   inherited Create;
   OwnerComponent := TComponent.Create(nil);
-  FIncludePaths := TCastleStringList.Create;
-  FIncludePathsRecursive := TBooleanList.Create;
+  FIncludePaths := TIncludePathList.Create(true);
   FExcludePaths := TCastleStringList.Create;
   FExtraCompilerOptions := TCastleStringList.Create;
   FExtraCompilerOptionsAbsolute := TCastleStringList.Create;
@@ -347,7 +353,8 @@ var
   AndroidProjectTypeStr: string;
   ChildElements: TXMLElementIterator;
   Element, ChildElement: TDOMElement;
-  NewCompilerOption, DefaultLazarusProject: String;
+  NewCompilerOption, DefaultLazarusProject, NewSearchPath: String;
+  IncludePath: TIncludePath;
 begin
   Create(APath);
 
@@ -410,8 +417,11 @@ begin
         while ChildElements.GetNext do
         begin
           ChildElement := ChildElements.Current;
-          FIncludePaths.Add(ChildElement.AttributeString('path'));
-          FIncludePathsRecursive.Add(ChildElement.AttributeBooleanDef('recursive', false));
+          IncludePath := TIncludePath.Create;
+          IncludePath.Path := ChildElement.AttributeString('path');
+          IncludePath.Recursive := ChildElement.AttributeBooleanDef('recursive', false);
+          IncludePath.ExecutablePermission := ChildElement.AttributeBooleanDef('executable_permission', false);
+          FIncludePaths.Add(IncludePath);
         end;
       finally FreeAndNil(ChildElements) end;
 
@@ -454,13 +464,15 @@ begin
     Element := Doc.DocumentElement.ChildElement('localization', false);
     if Element <> nil then
     begin
-      FListLocalizedAppName := TListLocalizedAppName.Create;
+      FLocalizedAppNames := TLocalizedAppNameList.Create(true);
       ChildElements := Element.ChildrenIterator;
       try
         while ChildElements.GetNext do
         begin
           Check(ChildElements.Current.TagName = 'caption', 'Each child of the localization node must be an <caption> element.');
-          FListLocalizedAppName.Add(TLocalizedAppName.Create(ChildElements.Current.AttributeString('lang'), ChildElements.Current.AttributeString('value')));
+          FLocalizedAppNames.Add(TLocalizedAppName.Create(
+            ChildElements.Current.AttributeString('lang'),
+            ChildElements.Current.AttributeString('value')));
         end;
       finally
         FreeAndNil(ChildElements);
@@ -548,7 +560,12 @@ begin
         ChildElements := ChildElement.ChildrenIterator('path');
         try
           while ChildElements.GetNext do
-            FSearchPaths.Add(ChildElements.Current.AttributeString('value'));
+          begin
+            NewSearchPath := ChildElements.Current.AttributeString('value');
+            if IsPathAbsoluteOnDrive(NewSearchPath) then
+              WritelnWarning('Search path "%s" is an absolute path, it will likely not work on other systems.', [NewSearchPath]);
+            FSearchPaths.Add(NewSearchPath);
+          end;
         finally FreeAndNil(ChildElements) end;
       end;
 
@@ -585,7 +602,6 @@ destructor TCastleManifest.Destroy;
 begin
   FreeAndNil(OwnerComponent);
   FreeAndNil(FIncludePaths);
-  FreeAndNil(FIncludePathsRecursive);
   FreeAndNil(FExcludePaths);
   FreeAndNil(FExtraCompilerOptions);
   FreeAndNil(FExtraCompilerOptionsAbsolute);
@@ -596,6 +612,7 @@ begin
   FreeAndNil(FAndroidServices);
   FreeAndNil(FIOSServices);
   FreeAndNil(FAssociateDocumentTypes);
+  FreeAndNil(FLocalizedAppNames);
   inherited;
 end;
 
@@ -846,8 +863,17 @@ end;
 
 procedure TCastleManifest.FindPascalFilesCallback(
   const FileInfo: TFileInfo; var StopSearch: boolean);
+var
+  Relative: String;
 begin
-  FindPascalFilesResult.Add(ExtractRelativePath(Path, FileInfo.AbsoluteName));
+  Relative := ExtractRelativePath(Path, FileInfo.AbsoluteName);
+  {$ifdef MSWINDOWS}
+  { Use forward slashes also on Windows,
+    this way LPI generated on Windows and Unix will look the same
+    (so e.g. version control systems will not report differences). }
+  StringReplaceAllVar(Relative, '\', '/');
+  {$endif}
+  FindPascalFilesResult.Add(Relative);
 end;
 
 { globals -------------------------------------------------------------------- }

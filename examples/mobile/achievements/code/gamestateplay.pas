@@ -41,6 +41,7 @@ type
     procedure ChangeCheckboxCameraFollow(Sender: TObject);
     procedure ClickShowAchievements(Sender: TObject);
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
@@ -56,21 +57,22 @@ uses SysUtils, Math,
 
 { TStatePlay ----------------------------------------------------------------- }
 
+constructor TStatePlay.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestateplay.castle-user-interface';
+end;
+
 procedure TStatePlay.Start;
-var
-  UiOwner: TComponent;
 begin
   inherited;
 
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/state_play.castle-user-interface', FreeAtStop, UiOwner);
-
   { Find components, by name, that we need to access from code }
-  LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
-  MainViewport := UiOwner.FindRequiredComponent('MainViewport') as TCastleViewport;
-  SceneDragon := UiOwner.FindRequiredComponent('SceneDragon') as TCastleScene;
-  CheckboxCameraFollow := UiOwner.FindRequiredComponent('CheckboxCameraFollow') as TCastleCheckbox;
-  ButtonShowAchievements := UiOwner.FindRequiredComponent('ButtonShowAchievements') as TCastleButton;
+  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
+  MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
+  SceneDragon := DesignedComponent('SceneDragon') as TCastleScene;
+  CheckboxCameraFollow := DesignedComponent('CheckboxCameraFollow') as TCastleCheckbox;
+  ButtonShowAchievements := DesignedComponent('ButtonShowAchievements') as TCastleButton;
 
   CheckboxCameraFollow.OnChange := @ChangeCheckboxCameraFollow;
   ButtonShowAchievements.OnClick := @ClickShowAchievements;

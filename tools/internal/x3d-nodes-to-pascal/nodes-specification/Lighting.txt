@@ -1,73 +1,94 @@
 X3DLightNode : X3DChildNode {
-  SFFloat [in,out] ambientIntensity 0     [0,1]
-  SFColor [in,out] color            1 1 1 [0,1]
+  SFFloat [in,out] ambientIntensity 0
+    range: [0,1]
+  SFColor [in,out] color            1 1 1
+    range: [0,1]
   SFBool  [in,out] global           FALSE
-  SFFloat [in,out] intensity        1     [0,1]
+  SFFloat [in,out] intensity        1
+    range: [0,1]
   SFBool  [in,out] on               TRUE
 
-  # EXTENSIONS:
-  MFNode     []            effects               []          # [Effect]
+  # CASTLE GAME ENGINE EXTENSIONS:
+  MFNode     []            effects               []
+    range: Effect
   SFBool     [in,out]      shadowVolumes         FALSE
 }
 
 X3DPunctualLightNode : X3DLightNode {
-  # EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   SFBool     []            shadows               FALSE
-  SFBool     [in,out]      shadowVolumesMain     FALSE       # meaningfull only when shadowVolumes = TRUE
-  SFFloat    [in,out]      projectionNear        1           # > 0
-  SFFloat    [in,out]      projectionFar         100         # anything > projectionNear
+  # meaningfull only when shadowVolumes = TRUE
+  SFBool     [in,out]      shadowVolumesMain     FALSE
+  SFFloat    [in,out]      projectionNear        1
+    range: > 0
+  SFFloat    [in,out]      projectionFar         100
+    range: anything > projectionNear
   SFVec3f    [in,out]      up                    0 1 0
-  SFNode     []            defaultShadowMap      NULL        # [GeneratedShadowMap]
+  SFNode     []            defaultShadowMap      NULL
+    range: GeneratedShadowMap
 }
 
 DirectionalLight : X3DLightNode {
   # Commented out, for CGE this is special in TAbstractDirectionalLightNode
-  ### SFVec3f [in,out] direction        0 0 -1 (-Inf,Inf)
+  ### SFVec3f [in,out] direction        0 0 -1
+  ###   range: (-Inf,Inf)
   # NOTE: global by default is FALSE
 
-  # EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   # Commented out to not be seen by x3d-nodes-to-pascal,
   # this is implemented specially in TAbstractDirectionalLightNode
-  # SFVec4f    [in,out]      projectionRectangle   -10 10 -10 10  # left, bottom, right, top; must be left < right and bottom < top
+  # SFVec4f    [in,out]      projectionRectangle   -10 10 -10 10
+  #   range: left, bottom, right, top; must be left < right and bottom < top
 
   # Commented out to not be seen by x3d-nodes-to-pascal,
   # this is implemented specially in TAbstractDirectionalLightNode
-  # SFVec3f    [in,out]      projectionLocation    0 0 0          # affected by node's transformation
+  # SFVec3f    [in,out]      projectionLocation    0 0 0
 }
 
 PointLight : X3DLightNode {
   # NOTE: global by default is TRUE
 
-  # EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   # Commented out to not be seen by x3d-nodes-to-pascal,
   # this is implemented specially
-  # SFVec3f [in,out] attenuation      1 0 0 [0,Inf)
+  # SFVec3f [in,out] attenuation      1 0 0
+  #   range: 0,Inf)
 
   # Commented out to not be seen by x3d-nodes-to-pascal,
   # this is implemented specially
-  # SFVec3f [in,out] location         0 0 0 (-Inf,Inf)
+  # SFVec3f [in,out] location
+  #   range: 0 0 0 (-Inf,Inf)
 
   # Commented out to not be seen by x3d-nodes-to-pascal,
   # this is implemented specially
-  # SFFloat [in,out] radius           100   [0,Inf)
+  # SFFloat [in,out] radius           100
+  #   range: [0,Inf)
 }
 
 SpotLight : X3DLightNode {
-  SFVec3f [in,out] attenuation      1 0 0    [0,Inf)
-  SFFloat [in,out] beamWidth        Pi/2      (0,Pi/2]
-  SFFloat [in,out] cutOffAngle      Pi/4      (0,Pi/2]
-  SFVec3f [in,out] direction        0 0 -1   (-Inf,Inf)
+  SFVec3f [in,out] attenuation      1 0 0
+    range: [0,Inf)
+  SFFloat [in,out] beamWidth        Pi/2
+    range: (0,Pi/2]
+  SFFloat [in,out] cutOffAngle      Pi/4
+    range: (0,Pi/2]
+  SFVec3f [in,out] direction        0 0 -1
+    range: (-Inf,Inf)
   # NOTE: global by default is TRUE
-  SFVec3f [in,out] location         0 0 0    (-Inf,Inf)
-  SFFloat [in,out] radius           100      [0,Inf)
+  SFVec3f [in,out] location         0 0 0
+    range: (-Inf,Inf)
+  SFFloat [in,out] radius           100
+    range: [0,Inf)
 
-  # EXTENSIONS:
+  # CASTLE GAME ENGINE EXTENSIONS:
   SFFloat    [in,out]      projectionAngle       0
 }
 
 EnvironmentLight : X3DLightNode {
-  x3d-nodes-to-pascal: auto-generate-more true
+  auto-generate-more: true
 
-  SFNode  [in,out]  diffuseTexture   NULL  [X3DEnvironmentTextureNode]
-  SFNode  [in,out]  specularTexture  NULL  [X3DEnvironmentTextureNode]
+  SFNode  [in,out]  diffuseTexture   NULL
+    range: X3DEnvironmentTextureNode
+  SFNode  [in,out]  specularTexture  NULL
+    range: X3DEnvironmentTextureNode
 }

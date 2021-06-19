@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2020 Michalis Kamburelis, Andrzej Kilijański.
+  Copyright 2018-2021 Michalis Kamburelis, Andrzej Kilijański.
 
   This file is part of "Castle Game Engine".
 
@@ -55,6 +55,7 @@ type
       see ClickButtonOpen2DStarling for more info. }
     function CurrentUIStarlingSettingsToAnchor: String;
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
   end;
@@ -68,34 +69,35 @@ uses CastleWindow, CastleComponentSerialize;
 
 { TStateMain ----------------------------------------------------------------- }
 
+constructor TStateMain.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestatemain.castle-user-interface';
+end;
+
 procedure TStateMain.Start;
-var
-  UiOwner: TComponent;
 begin
   inherited;
 
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/state_main.castle-user-interface', FreeAtStop, UiOwner);
-
   { Find components, by name, that we need to access from code }
-  LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
-  Viewport := UiOwner.FindRequiredComponent('Viewport') as TCastleViewport;
-  Scene := UiOwner.FindRequiredComponent('Scene') as TCastleScene;
-  ButtonOpen3D := UiOwner.FindRequiredComponent('ButtonOpen3D') as TCastleButton;
-  ButtonOpen2DSpine := UiOwner.FindRequiredComponent('ButtonOpen2DSpine') as TCastleButton;
-  ButtonOpen2DStarling := UiOwner.FindRequiredComponent('ButtonOpen2DStarling') as TCastleButton;
-  ButtonOpen2DCocos2d := UiOwner.FindRequiredComponent('ButtonOpen2DCocos2d') as TCastleButton;
-  ButtonOpen2DImage := UiOwner.FindRequiredComponent('ButtonOpen2DImage') as TCastleButton;
-  ButtonOpenDialog := UiOwner.FindRequiredComponent('ButtonOpenDialog') as TCastleButton;
-  SliderFPSLoadOpt := UiOwner.FindRequiredComponent('SliderFPSLoadOpt') as TCastleFloatSlider;
-  CheckboxAnimationNamingLoadOpt := UiOwner.FindRequiredComponent('CheckboxAnimationNamingLoadOpt') as TCastleCheckbox;
-  CheckboxForward := UiOwner.FindRequiredComponent('CheckboxForward') as TCastleCheckbox;
-  CheckboxLoop := UiOwner.FindRequiredComponent('CheckboxLoop') as TCastleCheckbox;
-  SliderTransition := UiOwner.FindRequiredComponent('SliderTransition') as TCastleFloatSlider;
-  CheckboxMagFilterNearest := UiOwner.FindRequiredComponent('CheckboxMagFilterNearest') as TCastleCheckbox;
-  CheckboxMinFilterNearest := UiOwner.FindRequiredComponent('CheckboxMinFilterNearest') as TCastleCheckbox;
-  SliderScale := UiOwner.FindRequiredComponent('SliderScale') as TCastleFloatSlider;
-  SceneAnimationButtons := UiOwner.FindRequiredComponent('SceneAnimationButtons') as TCastleUserInterface;
+  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
+  Viewport := DesignedComponent('Viewport') as TCastleViewport;
+  Scene := DesignedComponent('Scene') as TCastleScene;
+  ButtonOpen3D := DesignedComponent('ButtonOpen3D') as TCastleButton;
+  ButtonOpen2DSpine := DesignedComponent('ButtonOpen2DSpine') as TCastleButton;
+  ButtonOpen2DStarling := DesignedComponent('ButtonOpen2DStarling') as TCastleButton;
+  ButtonOpen2DCocos2d := DesignedComponent('ButtonOpen2DCocos2d') as TCastleButton;
+  ButtonOpen2DImage := DesignedComponent('ButtonOpen2DImage') as TCastleButton;
+  ButtonOpenDialog := DesignedComponent('ButtonOpenDialog') as TCastleButton;
+  SliderFPSLoadOpt := DesignedComponent('SliderFPSLoadOpt') as TCastleFloatSlider;
+  CheckboxAnimationNamingLoadOpt := DesignedComponent('CheckboxAnimationNamingLoadOpt') as TCastleCheckbox;
+  CheckboxForward := DesignedComponent('CheckboxForward') as TCastleCheckbox;
+  CheckboxLoop := DesignedComponent('CheckboxLoop') as TCastleCheckbox;
+  SliderTransition := DesignedComponent('SliderTransition') as TCastleFloatSlider;
+  CheckboxMagFilterNearest := DesignedComponent('CheckboxMagFilterNearest') as TCastleCheckbox;
+  CheckboxMinFilterNearest := DesignedComponent('CheckboxMinFilterNearest') as TCastleCheckbox;
+  SliderScale := DesignedComponent('SliderScale') as TCastleFloatSlider;
+  SceneAnimationButtons := DesignedComponent('SceneAnimationButtons') as TCastleUserInterface;
 
   { attach events }
   ButtonOpen3D.OnClick := @ClickButtonOpen3D;

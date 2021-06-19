@@ -26,8 +26,13 @@ uses SysUtils,
   CastleUIControls, CastleApplicationProperties, CastleWindowProgress,
   CastleProgress, CastleGameNotifications, CastleVectors, CastleSoundEngine,
   CastleTransform, CastleConfig, CastleUIState,
-  GameStateIntro, GameStateMainMenu, GameStatePlay, GameSound,
-  GameConfiguration, GameCreatures, GameLocations;
+  GameSound, GameConfiguration, GameCreatures, GameLocations
+  {$region 'Castle Initialization Uses'}
+  // The content here may be automatically updated by CGE editor.
+  , GameStateIntro
+  , GameStateMainMenu
+  , GameStatePlay
+  {$endregion 'Castle Initialization Uses'};
 
 var
   Window: TCastleWindowBase;
@@ -63,22 +68,18 @@ begin
   CreatureKinds := TCreatureKindList.Create;
   Locations := TLocationList.Create;
 
+  { Create game states and set initial state }
+  {$region 'Castle State Creation'}
+  // The content here may be automatically updated by CGE editor.
   StateIntro := TStateIntro.Create(Application);
   StateMainMenu := TStateMainMenu.Create(Application);
   StatePlay := TStatePlay.Create(Application);
+  {$endregion 'Castle State Creation'}
 
   TUIState.Current := StateIntro;
 end;
 
 initialization
-  { Set ApplicationName and Version early, as our log uses it. }
-  ApplicationProperties.ApplicationName := 'rift';
-  ApplicationProperties.Version := '0.1.0';
-
-  { Start logging. Do this as early as possible,
-    to log information and eventual warnings during initialization. }
-  InitializeLog;
-
   { Initialize Application.OnInitialize. }
   Application.OnInitialize := @ApplicationInitialize;
 
@@ -88,11 +89,11 @@ initialization
 
   { Assign initial window size and configuration.
     This can be overridden by parsing command-line options for standalone platform. }
-  Window.Width := DefaultWindowWidth;
-  Window.Height := DefaultWindowHeight;
-  Window.FullScreen := true;
-  Window.Caption := 'The Rift';
   Window.FpsShowOnCaption := true;
   // for shadow volumes to be possible
   Window.StencilBits := 8;
+  Window.Width := DefaultWindowWidth;
+  Window.Height := DefaultWindowHeight;
+  Window.FullScreen := true;
+  Window.ParseParameters; // allows to control window size / fullscreen on the command-line
 end.

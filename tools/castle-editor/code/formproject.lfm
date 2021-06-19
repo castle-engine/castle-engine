@@ -439,6 +439,12 @@ object ProjectForm: TProjectForm
         OnClick = MenuItemBreakProcessClick
       end
     end
+    object MenuItemData: TMenuItem
+      Caption = 'Data'
+      object MenuItemNewCastleSpriteSheet: TMenuItem
+        Action = ActionNewSpriteSheet
+      end
+    end
     object MenuItemHelp: TMenuItem
       Caption = '&Help'
       object MenuItemReferenceOfCurrent: TMenuItem
@@ -657,7 +663,7 @@ object ProjectForm: TProjectForm
       OnExecute = ActionNewSpriteSheetExecute
     end
     object ActionOpenProjectCode: TAction
-      Caption = 'Open Project in Lazarus'
+      Caption = 'Open Project in Code Editor'
       OnExecute = ActionOpenProjectCodeExecute
     end
     object ActionEditUnit: TAction

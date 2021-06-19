@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -175,15 +175,9 @@ begin
 end;
 
 initialization
-  ApplicationProperties.ApplicationName := 'headlight_test';
-
-  { For programs, InitializeLog is not called here.
-    Instead InitializeLog is done by the program main file,
-    after command-line parameters are parsed. }
-  if IsLibrary then
-    InitializeLog;
-
   Application.OnInitialize := @ApplicationInitialize;
+
   Window := TCastleWindowBase.Create(Application);
+  Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 end.

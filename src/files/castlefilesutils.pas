@@ -397,33 +397,57 @@ procedure RemoveNonEmptyDir(const DirName: string; const Warn: Boolean = false);
 }
 procedure CopyDirectory(SourcePath, DestinationPath: string);
 
-{ Substitute %d in given FileName (or URL) pattern with successive numbers,
-  until the FileName doesn't exist.
+{ Substitute @code(%d) in given URL (UrlPattern) with successive numbers,
+  until the resulting URL (which can be just a filename) doesn't exist.
 
-  The idea is to start with number = 0 and do
-  @code(Format(FileNamePattern, [number])), until you find non-existing
-  FileName. Example FileName pattern is @code(screenshot_%d.png),
-  by saving to this FileName you're relatively sure that each save goes
-  to a new file. Since we use standard @code(Format) function,
-  you can use e.g. @code(screenshot_%04d.png) to have a number inside
-  the FileName always at least 4 digits long.
+  We start with number = 0 and do @code(Url := Format(UrlPattern, [Number])),
+  until we find non-existing URL. Example UrlPattern is @code('screenshot_%d.png'),
+  by saving to this UrlPattern you're relatively sure that each save goes
+  to a new file.
+
+  Since we use standard @code(Format) function,
+  you can use any @url(https://www.freepascal.org/docs-html/rtl/sysutils/format.html Format placeholder syntax).
+  E.g. use @code('screenshot_%.04d.png') to have a number padded with zeros,
+  with results like @code('screenshot_0005.png').
 
   Note that it's possible on every OS that some other program,
-  or a second copy of your own program, will write to the FileName
+  or a second copy of your own program, will write to the resulting URL
   between FileNameAutoInc determined it doesn't exist and you opened the file.
   So using this cannot guarantee that you really always write to a new file
-  (use proper file open modes for this).
+  -- as always, be prepared for anything happening in parallel
+  when dealing with a filesystem.
 
-  The overloaded version with separate Prefix and SuffixWithPattern
-  replaces %d in SuffixWithPattern, and then appends (unmodified) Prefix.
+  The overloaded version with separate UrlPrefix and UrlSuffixWithPattern
+  replaces @code(%d) in UrlSuffixWithPattern,
+  and then glues (unmodified) UrlPrefix with (processed) UrlSuffixWithPattern.
   This is useful when you have a user-specified path,
   where you don't want to perform %d substitution.
   Alternative is to wrap the string in @link(SUnformattable).
-}
-function FileNameAutoInc(const FileNamePattern: string): string; overload;
-function FileNameAutoInc(const Prefix, SuffixWithPattern: string): string; overload;
 
-function FnameAutoInc(const FileNamePattern: string): string;
+  Example usage to save a screenshot:
+
+  @longCode(#
+    ScreenshotUrl := FileNameAutoInc(SaveScreenPath, 'screenshot_%d.png');
+  #)
+
+  Note that to save a screenshot in the most cross-platform way possible, we advise using
+  @link(TUIContainer.SaveScreenToDefaultFile Window.Container.SaveScreenToDefaultFile)
+  instead, it will use @link(SaveScreenPath) or more elebarate mechanism to work on all platforms.
+
+  Example usage to save anything else to user config:
+
+  @longCode(#
+    SaveSomethingUrl := FileNameAutoInc(ApplicationConfig('save_something_%d.png'));
+  #)
+
+  Note that it will be replaced soon by @code(SaveSomethingUrl := FileNameAutoInc('castle-config:/', 'save_something_%d.png'))
+  which also deals with the (unlikely, but still) possibility that ApplicationConfig
+  will contain a percent sign.
+}
+function FileNameAutoInc(const UrlPattern: string): string; overload;
+function FileNameAutoInc(const UrlPrefix, UrlSuffixWithPattern: string): string; overload;
+
+function FnameAutoInc(const UrlPattern: string): string;
   deprecated 'use FileNameAutoInc';
 
 { Parent directory name.
@@ -883,29 +907,29 @@ begin
   finally FreeAndNil(Handler) end;
 end;
 
-{ dir handling -------------------------------------------------------- }
+{ various -------------------------------------------------------------------- }
 
-function FileNameAutoInc(const FileNamePattern: string): string;
+function FileNameAutoInc(const UrlPattern: string): string;
 begin
-  Result := FileNameAutoInc('', FileNamePattern);
+  Result := FileNameAutoInc('', UrlPattern);
 end;
 
-function FileNameAutoInc(const Prefix, SuffixWithPattern: string): string;
+function FileNameAutoInc(const UrlPrefix, UrlSuffixWithPattern: string): string;
 var
   I: Integer;
 begin
   I := 0;
   repeat
-    Result := Prefix + Format(SuffixWithPattern, [I]);
+    Result := UrlPrefix + Format(UrlSuffixWithPattern, [I]);
     if URIExists(Result) in [ueNotExists, ueUnknown] then
       Exit;
     Inc(I);
   until false;
 end;
 
-function FnameAutoInc(const FileNamePattern: string): string;
+function FnameAutoInc(const UrlPattern: string): string;
 begin
-  Result := FileNameAutoInc(FileNamePattern);
+  Result := FileNameAutoInc(UrlPattern);
 end;
 
 { Note: the only things here that makes this function belong to
@@ -1163,7 +1187,7 @@ begin
     { Although GetTempFileName should add some randomization here,
       there's no guarantee. And we really need randomization ---
       we may load ffmpeg output using image %d pattern, so we don't want to
-      accidentaly pick up other images in the temporary directory
+      accidentally pick up other images in the temporary directory
       (e.g. leftovers from previous TRangeScreenShot.BeginCapture). }
     { System.Random, not just Random, to avoid using Random from MacOSAll unit. }
     IntToStr(System.Random(MaxInt)) + '_';

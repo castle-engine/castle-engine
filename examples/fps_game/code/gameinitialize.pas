@@ -692,29 +692,16 @@ begin
 end;
 
 initialization
-  { This unit's initialization *must* initialize Application.MainWindow value.
-    Usually it also initializes things related to logging
-    (ApplicationProperties.ApplicationName, ApplicationProperties.Version,
-    InitializeLog), because it's beneficial to initialize them as early as possible.
-
-    The rest of initialization should usually be done inside
-    Application.OnInitialize callback (ApplicationInitialize in this unit). }
-
-  { Set ApplicationName early, as our log uses it.
-    Optionally you could also set ApplicationProperties.Version here. }
-  ApplicationProperties.ApplicationName := 'fps_game';
-
-  { Enable log.
-    See https://castle-engine.io/manual_log.php
-    to know where it's going. }
-  InitializeLog;
+  Application.OnInitialize := @ApplicationInitialize;
 
   { Create a window. }
   Window := TCastleWindowBase.Create(Application);
+  { Set default Window size, and parse command-line parameters
+    that may also affect Window size. }
+  Window.FullScreen := true; { by default we open in fullscreen }
+  Window.ParseParameters; // allows to control window size / fullscreen on the command-line
 
   Application.MainWindow := Window;
-  Application.OnInitialize := @ApplicationInitialize;
-
 finalization
   { In a desktop game, it's OK to store the preferences
     in the finalization section, when the program stops.

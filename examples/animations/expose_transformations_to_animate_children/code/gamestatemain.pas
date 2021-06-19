@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2020 Michalis Kamburelis.
+  Copyright 2020-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -44,6 +44,7 @@ type
     procedure ClickWeaponSword(Sender: TObject);
     procedure ClickWeaponNone(Sender: TObject);
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
@@ -58,26 +59,27 @@ uses SysUtils;
 
 { TStateMain ----------------------------------------------------------------- }
 
+constructor TStateMain.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestatemain.castle-user-interface';
+end;
+
 procedure TStateMain.Start;
-var
-  UiOwner: TComponent;
 begin
   inherited;
 
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/state_main.castle-user-interface', FreeAtStop, UiOwner);
-
   { Find components, by name, that we need to access from code }
-  LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
-  ButtonAnimationWalk := UiOwner.FindRequiredComponent('ButtonAnimationWalk') as TCastleButton;
-  ButtonAnimationAttack := UiOwner.FindRequiredComponent('ButtonAnimationAttack') as TCastleButton;
-  ButtonAnimationStop := UiOwner.FindRequiredComponent('ButtonAnimationStop') as TCastleButton;
-  ButtonWeaponAxe := UiOwner.FindRequiredComponent('ButtonWeaponAxe') as TCastleButton;
-  ButtonWeaponSword := UiOwner.FindRequiredComponent('ButtonWeaponSword') as TCastleButton;
-  ButtonWeaponNone := UiOwner.FindRequiredComponent('ButtonWeaponNone') as TCastleButton;
-  SceneHumanoid := UiOwner.FindRequiredComponent('SceneHumanoid') as TCastleScene;
-  SceneAxe := UiOwner.FindRequiredComponent('SceneAxe') as TCastleScene;
-  SceneSword := UiOwner.FindRequiredComponent('SceneSword') as TCastleScene;
+  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
+  ButtonAnimationWalk := DesignedComponent('ButtonAnimationWalk') as TCastleButton;
+  ButtonAnimationAttack := DesignedComponent('ButtonAnimationAttack') as TCastleButton;
+  ButtonAnimationStop := DesignedComponent('ButtonAnimationStop') as TCastleButton;
+  ButtonWeaponAxe := DesignedComponent('ButtonWeaponAxe') as TCastleButton;
+  ButtonWeaponSword := DesignedComponent('ButtonWeaponSword') as TCastleButton;
+  ButtonWeaponNone := DesignedComponent('ButtonWeaponNone') as TCastleButton;
+  SceneHumanoid := DesignedComponent('SceneHumanoid') as TCastleScene;
+  SceneAxe := DesignedComponent('SceneAxe') as TCastleScene;
+  SceneSword := DesignedComponent('SceneSword') as TCastleScene;
 
   ButtonAnimationWalk.OnClick := @ClickAnimationWalk;
   ButtonAnimationAttack.OnClick := @ClickAnimationAttack;

@@ -1,8 +1,19 @@
-{ Main state, where most of the application logic takes place.
+{
+  Copyright 2020-2021 Michalis Kamburelis.
 
-  Feel free to use this code as a starting point for your own projects.
-  (This code is in public domain, unlike most other CGE code which
-  is covered by the LGPL license variant, see the COPYING.txt file.) }
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Main state, where most of the application logic takes place. }
 unit GameStateMain;
 
 interface
@@ -27,7 +38,7 @@ type
       );
 
     var
-      { Components designed using CGE editor, loaded from state_main.castle-user-interface. }
+      { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
       LabelFps: TCastleLabel;
       PageButtons: array [1..PagesCount] of TCastleButton;
       Pages: array [1..PagesCount] of TCastleUserInterface;
@@ -35,6 +46,7 @@ type
     procedure ClickPageButton(Sender: TObject);
     procedure ClickToggle(Sender: TObject);
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
   end;
@@ -49,30 +61,32 @@ uses SysUtils,
 
 { TStateMain ----------------------------------------------------------------- }
 
+constructor TStateMain.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gamestatemain.castle-user-interface';
+end;
+
 procedure TStateMain.Start;
 var
-  UiOwner: TComponent;
   I: Integer;
   PageButtons2: TCastleDesign;
   ButtonToggle: TCastleButton;
 begin
   inherited;
 
-  { Load designed user interface }
-  InsertUserInterface('castle-data:/state_main.castle-user-interface', FreeAtStop, UiOwner);
-
   { Find components, by name, that we need to access from code }
-  LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
+  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
   for I := 1 to PagesCount do
   begin
-    PageButtons[I] := UiOwner.FindRequiredComponent('Button' + PageNames[I]) as TCastleButton;
+    PageButtons[I] := DesignedComponent('Button' + PageNames[I]) as TCastleButton;
     PageButtons[I].Tag := I; // use button's tag to store page index
     PageButtons[I].OnClick := @ClickPageButton;
-    Pages[I] := UiOwner.FindRequiredComponent('Page' + PageNames[I]) as TCastleUserInterface;
+    Pages[I] := DesignedComponent('Page' + PageNames[I]) as TCastleUserInterface;
   end;
 
   { Find components inside TCastleDesigns, this needs 2 steps }
-  PageButtons2 := UiOwner.FindRequiredComponent('PageButtons2') as TCastleDesign;
+  PageButtons2 := DesignedComponent('PageButtons2') as TCastleDesign;
   ButtonToggle := PageButtons2.FindRequiredComponent('ButtonToggle') as TCastleButton;
 
   ButtonToggle.OnClick := @ClickToggle;

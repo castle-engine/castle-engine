@@ -1,24 +1,36 @@
 X3DColorNode : X3DGeometricPropertyNode {
-  x3d-nodes-to-pascal: auto-generate-more true
-  x3d-nodes-to-pascal: default-container-field color
-  SFString   []   mode   "REPLACE"   # ["REPLACE","MODULATE"] enumerated-type: TColorMode ColorModeNames cmReplace
+  auto-generate-more: true
+  default-container-field: color
+  SFString   []   mode   "REPLACE"
+    range: ["REPLACE","MODULATE"]
+    enumerated-type: TColorMode ColorModeNames cmReplace
 }
 
 X3DComposedGeometryNode : X3DGeometryNode {
-  MFNode [in,out] attrib          []   [X3DVertexAttributeNode] # NOT-SLIM
-  SFNode [in,out] color           NULL [X3DColorNode]
-  SFNode [in,out] coord           NULL [X3DCoordinateNode]
-  SFNode [in,out] fogCoord        NULL [FogCoordinate] # NOT-SLIM
-  SFNode [in,out] normal          NULL [X3DNormalNode]
-  SFNode [in,out] tangent         NULL [Tangent]
-  SFNode [in,out] texCoord        NULL [X3DTextureCoordinateNode]
+  MFNode [in,out] attrib          []
+    range: X3DVertexAttributeNode
+    not-slim
+  SFNode [in,out] color           NULL
+    range: X3DColorNode
+  SFNode [in,out] coord           NULL
+    range: X3DCoordinateNode
+  SFNode [in,out] fogCoord        NULL
+    range: FogCoordinate
+    not-slim
+  SFNode [in,out] normal          NULL
+    range: X3DNormalNode
+  SFNode [in,out] tangent         NULL
+    range: Tangent
+  SFNode [in,out] texCoord        NULL
+    range: X3DTextureCoordinateNode
   SFBool []       ccw             TRUE
   SFBool []       colorPerVertex  TRUE
   SFBool []       normalPerVertex TRUE
   SFBool []       solid           TRUE
 
-  # EXTENSIONS:
-  MFVec3f    [in,out]      radianceTransfer  [] # NOT-SLIM
+  # CASTLE GAME ENGINE EXTENSIONS:
+  MFVec3f    [in,out]      radianceTransfer  []
+    not-slim
 }
 
 X3DCoordinateNode : X3DGeometricPropertyNode {
@@ -31,85 +43,120 @@ X3DGeometryNode : X3DNode {
 }
 
 X3DNormalNode : X3DGeometricPropertyNode {
-  x3d-nodes-to-pascal: default-container-field normal
+  default-container-field: normal
 }
 
 ClipPlane : X3DChildNode {
   SFBool  [in,out] enabled  TRUE
-  SFVec4f [in,out] plane    0 1 0 0 [0,1]
+  SFVec4f [in,out] plane    0 1 0 0
+    range: [0,1]
 }
 
 Color : X3DColorNode {
-  MFColor [in,out] color    [] [0,1]
+  MFColor [in,out] color    []
+    range: [0,1]
 }
 
 ColorRGBA : X3DColorNode {
-  MFColorRGBA [in,out] color    [] [0,1]
+  MFColorRGBA [in,out] color    []
+    range: [0,1]
 }
 
 Coordinate : X3DCoordinateNode {
-  MFVec3f [in,out] point    [] (-Inf,Inf)
+  MFVec3f [in,out] point    []
+    range: (-Inf,Inf)
 }
 
 IndexedLineSet : X3DGeometryNode {
   MFInt32 [in]     set_colorIndex
   MFInt32 [in]     set_coordIndex
-  MFNode  [in,out] attrib         []   [X3DVertexAttributeNode] # NOT-SLIM
-  SFNode  [in,out] color          NULL [X3DColorNode]
-  SFNode  [in,out] coord          NULL [X3DCoordinateNode]
-  SFNode  [in,out] fogCoord       []   [FogCoordinate] # NOT-SLIM
-  MFInt32 []       colorIndex     []   [0,Inf) or -1
+  MFNode  [in,out] attrib         []
+    range: X3DVertexAttributeNode
+    not-slim
+  SFNode  [in,out] color          NULL
+    range: X3DColorNode
+  SFNode  [in,out] coord          NULL
+    range: X3DCoordinateNode
+  SFNode  [in,out] fogCoord       []
+    range: FogCoordinate
+    not-slim
+  MFInt32 []       colorIndex     []
+    range: [0,Inf) or -1
   SFBool  []       colorPerVertex TRUE
-  MFInt32 []       coordIndex     []   [0,Inf) or -1
+  MFInt32 []       coordIndex     []
+    range:  [0,Inf) or -1
 }
 
 IndexedTriangleFanSet : X3DComposedGeometryNode {
-  MFInt32 [in]     set_index       []   [0,Inf) or -1
-  MFInt32 []       index           []   [0,Inf) or -1
+  MFInt32 [in]     set_index       []
+    range: [0,Inf) or -1
+  MFInt32 []       index           []
+    range: [0,Inf) or -1
 }
 
 IndexedTriangleSet : X3DComposedGeometryNode {
-  MFInt32 [in]     set_index       []   [0,Inf)
-  MFInt32 []       index           []   [0,Inf)
+  MFInt32 [in]     set_index       []
+    range: [0,Inf)
+  MFInt32 []       index           []
+    range: [0,Inf)
 }
 
 IndexedTriangleStripSet : X3DComposedGeometryNode {
-  MFInt32 [in]     set_index       []   [0,Inf) or -1
-  MFInt32 []       index           []   [0,Inf) or -1
+  MFInt32 [in]     set_index       []
+    range: [0,Inf) or -1
+  MFInt32 []       index           []
+    range: [0,Inf) or -1
 }
 
 LineSet : X3DGeometryNode {
-  MFNode  [in,out] attrib         []   [X3DVertexAttributeNode] # NOT-SLIM
-  SFNode  [in,out] color          NULL [X3DColorNode]
-  SFNode  [in,out] coord          NULL [X3DCoordinateNode]
-  SFNode  [in,out] fogCoord       []   [FogCoordinate] # NOT-SLIM
-  MFInt32 [in,out] vertexCount    []   [2,Inf)
+  MFNode  [in,out] attrib         []
+    range: X3DVertexAttributeNode
+    not-slim
+  SFNode  [in,out] color          NULL
+    range: X3DColorNode
+  SFNode  [in,out] coord          NULL
+    range: X3DCoordinateNode
+  SFNode  [in,out] fogCoord       []
+    range: FogCoordinate
+    not-slim
+  MFInt32 [in,out] vertexCount    []
+    range: [2,Inf)
 }
 
 Normal : X3DNormalNode {
-  MFVec3f [in,out] vector   []   [-1,1]
+  MFVec3f [in,out] vector   []
+    range: [-1,1]
 }
 
 Tangent : X3DGeometricPropertyNode {
-  x3d-nodes-to-pascal: auto-generate-more true
-  x3d-nodes-to-pascal: default-container-field tangent
-  MFVec3f [in,out] vector   []   [-1,1]
+  auto-generate-more: true
+  default-container-field: tangent
+  MFVec3f [in,out] vector   []
+    range: [-1,1]
 }
 
 PointSet : X3DGeometryNode {
-  MFNode [in,out] attrib   []   [X3DVertexAttributeNode] # NOT-SLIM
-  SFNode [in,out] color    NULL [X3DColorNode]
-  SFNode [in,out] coord    NULL [X3DCoordinateNode]
-  SFNode [in,out] fogCoord []   [FogCoordinate] # NOT-SLIM
+  MFNode [in,out] attrib   []
+    range: X3DVertexAttributeNode
+    not-slim
+  SFNode [in,out] color    NULL
+    range: X3DColorNode
+  SFNode [in,out] coord    NULL
+    range: X3DCoordinateNode
+  SFNode [in,out] fogCoord []
+    range: FogCoordinate
+    not-slim
 }
 
 TriangleFanSet : X3DComposedGeometryNode {
-  MFInt32 [in,out] fanCount        []   [3,Inf)
+  MFInt32 [in,out] fanCount        []
+    range: [3,Inf)
 }
 
 TriangleSet : X3DComposedGeometryNode {
 }
 
 TriangleStripSet : X3DComposedGeometryNode {
-  MFInt32 [in,out] stripCount      []   [3,Inf)
+  MFInt32 [in,out] stripCount      []
+    range: [3,Inf)
 }

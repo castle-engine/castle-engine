@@ -88,12 +88,10 @@ begin
   FFdInnerRadius := TSFFloat.Create(Self, False, 'innerRadius', 0);
    FdInnerRadius.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdInnerRadius);
-  { X3D specification comment: [0,Inf) }
 
   FFdOuterRadius := TSFFloat.Create(Self, False, 'outerRadius', 1);
    FdOuterRadius.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdOuterRadius);
-  { X3D specification comment: (0,Inf) }
 
   FFdSolid := TSFBool.Create(Self, False, 'solid', false);
    FdSolid.ChangeAlways := chVisibleNonGeometry;

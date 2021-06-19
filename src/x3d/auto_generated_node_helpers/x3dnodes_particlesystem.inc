@@ -42,33 +42,95 @@
     procedure SetColorRamp(const Value: TAbstractColorNode);
     function GetEmitter: TAbstractParticleEmitterNode;
     procedure SetEmitter(const Value: TAbstractParticleEmitterNode);
+    function GetGeometryType: TParticlesGeometry;
+    procedure SetGeometryType(const Value: TParticlesGeometry);
     function GetTexCoordRamp: TTextureCoordinateNode;
     procedure SetTexCoordRamp(const Value: TTextureCoordinateNode);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdCreateParticles: TSFBool;
+    { X3D field "createParticles". } { }
+    public property FdCreateParticles: TSFBool read FFdCreateParticles;
     { X3D field "createParticles". } { }
     property CreateParticles: Boolean read GetCreateParticles write SetCreateParticles;
+
+    strict private FFdEnabled: TSFBool;
+    { X3D field "enabled". } { }
+    public property FdEnabled: TSFBool read FFdEnabled;
     { X3D field "enabled". } { }
     property Enabled: Boolean read GetEnabled write SetEnabled;
+
+    strict private FFdLifetimeVariation: TSFFloat;
+    { X3D field "lifetimeVariation". } { }
+    public property FdLifetimeVariation: TSFFloat read FFdLifetimeVariation;
     { X3D field "lifetimeVariation". } { }
     property LifetimeVariation: Single read GetLifetimeVariation write SetLifetimeVariation;
+
+    strict private FFdMaxParticles: TSFInt32;
+    { X3D field "maxParticles". } { }
+    public property FdMaxParticles: TSFInt32 read FFdMaxParticles;
     { X3D field "maxParticles". } { }
     property MaxParticles: Integer read GetMaxParticles write SetMaxParticles;
+
+    strict private FFdParticleLifetime: TSFFloat;
+    { X3D field "particleLifetime". } { }
+    public property FdParticleLifetime: TSFFloat read FFdParticleLifetime;
     { X3D field "particleLifetime". } { }
     property ParticleLifetime: Single read GetParticleLifetime write SetParticleLifetime;
+
+    strict private FFdParticleSize: TSFVec2f;
+    { X3D field "particleSize". } { }
+    public property FdParticleSize: TSFVec2f read FFdParticleSize;
     { X3D field "particleSize". } { }
     property ParticleSize: TVector2 read GetParticleSize write SetParticleSize;
+
+    strict private FEventIsActive: TSFBoolEvent;
+    { X3D out event "isActive". } { }
+    public property EventIsActive: TSFBoolEvent read FEventIsActive;
+
+    strict private FFdColorRamp: TSFNode;
+    { X3D field "colorRamp". } { }
+    public property FdColorRamp: TSFNode read FFdColorRamp;
     { X3D field "colorRamp". } { }
     property ColorRamp: TAbstractColorNode read GetColorRamp write SetColorRamp;
+
+    strict private FFdColorKey: TMFFloat;
+    { X3D field "colorKey". } { }
+    public property FdColorKey: TMFFloat read FFdColorKey;
     { Set X3D field "colorKey". } { }
     procedure SetColorKey(const Value: array of Single);
     { Set X3D field "colorKey". } { }
     procedure SetColorKey(const Value: TSingleList);
+
+    strict private FFdEmitter: TSFNode;
+    { X3D field "emitter". } { }
+    public property FdEmitter: TSFNode read FFdEmitter;
     { X3D field "emitter". } { }
     property Emitter: TAbstractParticleEmitterNode read GetEmitter write SetEmitter;
+
+    strict private FFdGeometryType: TSFStringEnum;
+    { X3D field "geometryType". } { }
+    public property FdGeometryType: TSFStringEnum read FFdGeometryType;
+    { X3D field "geometryType". } { }
+    property GeometryType: TParticlesGeometry read GetGeometryType write SetGeometryType;
+
+    strict private FFdPhysics: TMFNode;
+    { X3D field "physics". } { }
+    public property FdPhysics: TMFNode read FFdPhysics;
     { Set X3D field "physics". } { }
     procedure SetPhysics(const Value: array of TAbstractParticlePhysicsModelNode);
+
+    strict private FFdTexCoordRamp: TSFNode;
+    { X3D field "texCoordRamp". } { }
+    public property FdTexCoordRamp: TSFNode read FFdTexCoordRamp;
     { X3D field "texCoordRamp". } { }
     property TexCoordRamp: TTextureCoordinateNode read GetTexCoordRamp write SetTexCoordRamp;
+
+    strict private FFdTexCoordKey: TMFFloat;
+    { X3D field "texCoordKey". } { }
+    public property FdTexCoordKey: TMFFloat read FFdTexCoordKey;
     { Set X3D field "texCoordKey". } { }
     procedure SetTexCoordKey(const Value: array of Single);
     { Set X3D field "texCoordKey". } { }
@@ -176,6 +238,16 @@ begin
   FdEmitter.Send(Value);
 end;
 
+function TParticleSystemNode.GetGeometryType: TParticlesGeometry;
+begin
+  Result := TParticlesGeometry(FdGeometryType.EnumValue);
+end;
+
+procedure TParticleSystemNode.SetGeometryType(const Value: TParticlesGeometry);
+begin
+  FdGeometryType.SendEnumValue(Ord(Value));
+end;
+
 procedure TParticleSystemNode.SetPhysics(const Value: array of TAbstractParticlePhysicsModelNode);
 var
   L: Integer;
@@ -209,6 +281,71 @@ end;
 procedure TParticleSystemNode.SetTexCoordKey(const Value: TSingleList);
 begin
   FdTexCoordKey.Send(Value);
+end;
+
+class function TParticleSystemNode.ClassX3DType: String;
+begin
+  Result := 'ParticleSystem';
+end;
+
+procedure TParticleSystemNode.CreateNode;
+begin
+  inherited;
+
+  FFdCreateParticles := TSFBool.Create(Self, True, 'createParticles', true);
+   FdCreateParticles.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdCreateParticles);
+
+  FFdEnabled := TSFBool.Create(Self, True, 'enabled', true);
+   FdEnabled.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdEnabled);
+
+  FFdLifetimeVariation := TSFFloat.Create(Self, True, 'lifetimeVariation', 0.25);
+   FdLifetimeVariation.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdLifetimeVariation);
+
+  FFdMaxParticles := TSFInt32.Create(Self, True, 'maxParticles', 200);
+   FdMaxParticles.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMaxParticles);
+
+  FFdParticleLifetime := TSFFloat.Create(Self, True, 'particleLifetime', 5);
+   FdParticleLifetime.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdParticleLifetime);
+
+  FFdParticleSize := TSFVec2f.Create(Self, True, 'particleSize', Vector2(0.02, 0.02));
+   FdParticleSize.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdParticleSize);
+
+  FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
+  AddEvent(FEventIsActive);
+
+  FFdColorRamp := TSFNode.Create(Self, False, 'colorRamp', [TAbstractColorNode]);
+   FdColorRamp.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdColorRamp);
+
+  FFdColorKey := TMFFloat.Create(Self, False, 'colorKey', []);
+   FdColorKey.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdColorKey);
+
+  FFdEmitter := TSFNode.Create(Self, False, 'emitter', [TAbstractParticleEmitterNode]);
+   FdEmitter.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdEmitter);
+
+  FFdGeometryType := TSFStringEnum.Create(Self, False, 'geometryType', ParticlesGeometryNames, Ord(pgQuad));
+   FdGeometryType.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdGeometryType);
+
+  FFdPhysics := TMFNode.Create(Self, False, 'physics', [TAbstractParticlePhysicsModelNode]);
+   FdPhysics.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdPhysics);
+
+  FFdTexCoordRamp := TSFNode.Create(Self, False, 'texCoordRamp', [TTextureCoordinateNode]);
+   FdTexCoordRamp.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdTexCoordRamp);
+
+  FFdTexCoordKey := TMFFloat.Create(Self, False, 'texCoordKey', []);
+   FdTexCoordKey.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdTexCoordKey);
 end;
 
 {$endif read_implementation}

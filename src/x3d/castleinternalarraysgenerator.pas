@@ -1052,7 +1052,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
     end;
 
   var
-    SCoord, TCoord: integer;
+    SCoord, TCoord: T3DAxis;
   begin
     LocalBBox := Shape.LocalBoundingBox;
 

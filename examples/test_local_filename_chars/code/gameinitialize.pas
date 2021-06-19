@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2020 Michalis Kamburelis.
+  Copyright 2020-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -88,9 +88,9 @@ procedure ApplicationInitialize;
     { Test reading font (as it goes through FreeType library). }
     procedure TestReadingFont(const FontUrl: String);
     var
-      MyNewFont: TTextureFont;
+      MyNewFont: TCastleFont;
     begin
-      MyNewFont := TTextureFont.Create(TComponent(nil));
+      MyNewFont := TCastleFont.Create(nil);
       try
         MyNewFont.Load(FontUrl, 20, true);
       finally FreeAndNil(MyNewFont) end;
@@ -158,18 +158,11 @@ begin
 end;
 
 initialization
-  ApplicationProperties.ApplicationName := 'test_local_filename_chars';
-
-  { Start logging.
-    For programs, InitializeLog is done by the program main file,
-    after command-line parameters are parsed. }
-  if IsLibrary then
-    InitializeLog;
-
   { Initialize Application.OnInitialize. }
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
   Window := TCastleWindowBase.Create(Application);
+  Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Application.MainWindow := Window;
 end.

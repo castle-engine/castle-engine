@@ -48,6 +48,7 @@ type
     LabelEventsInfo: TLabel;
     LabelSizeInfo: TLabel;
     LabelSelectedViewport: TLabel;
+    MenuViewportNavigation2D: TMenuItem;
     MenuTreeViewItemRename: TMenuItem;
     MenuTreeViewItemAddTransform: TMenuItem;
     MenuTreeViewItemAddUserInterface: TMenuItem;
@@ -136,6 +137,7 @@ type
     procedure MenuItemViewportSort2DClick(Sender: TObject);
     procedure MenuTreeViewItemPasteClick(Sender: TObject);
     procedure MenuTreeViewPopup(Sender: TObject);
+    procedure MenuViewportNavigation2DClick(Sender: TObject);
     procedure MenuViewportNavigationExamineClick(Sender: TObject);
     procedure MenuViewportNavigationFlyClick(Sender: TObject);
     procedure MenuViewportNavigationNoneClick(Sender: TObject);
@@ -977,6 +979,7 @@ constructor TDesignFrame.Create(TheOwner: TComponent);
     Result.PreferredSplitterX := 150;
     Result.ValueFont.Bold := true;
     Result.ShowGutter := false;
+    Result.ReadOnlyColor := clWindowText;
   end;
 
 begin
@@ -2111,8 +2114,7 @@ begin
     SelectedName := '';
 
   UndoSystem.RecordUndo(ComponentToString(FDesignRoot), SelectedName, ItemIndex, ControlProperties.TabIndex, UndoComment, UndoCommentPriority);
-
-  WriteLnLog('Undo "%s" recorded in %fs for "%s".', [UndoComment, StartTimer.ElapsedTime, SelectedName]);
+  UndoSystem.DoLog('Undo "%s" recorded in %fs for "%s".', [UndoComment, StartTimer.ElapsedTime, SelectedName]);
 end;
 
 procedure TDesignFrame.MarkModified;
@@ -2892,6 +2894,11 @@ begin
     MenuTreeViewItemAddTransform.SetEnabledVisible(false);
   end;
   MenuTreeView.PopupComponent := ControlsTree; // I'm not sure what it means, something like menu owner?
+end;
+
+procedure TDesignFrame.MenuViewportNavigation2DClick(Sender: TObject);
+begin
+  ChangeViewportNavigation(TCastle2DNavigation.Create(DesignOwner));
 end;
 
 procedure TDesignFrame.MenuTreeViewItemDuplicateClick(Sender: TObject);

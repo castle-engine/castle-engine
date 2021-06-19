@@ -268,7 +268,7 @@ begin
       PNG_COLOR_TYPE_GRAY      : Result := TGrayscaleImage;
       PNG_COLOR_TYPE_RGB       : Result := TRGBImage;
       PNG_COLOR_TYPE_RGB_ALPHA : Result := TRGBAlphaImage;
-      PNG_COLOR_TYPE_GRAY_ALPHA: Result := TGrayscaleImage;
+      PNG_COLOR_TYPE_GRAY_ALPHA: Result := TGrayscaleAlphaImage;
       else                       Result := nil; // unknown, possible in case of PNG_COLOR_TYPE_PALETTE
     end;
 

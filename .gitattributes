@@ -15,6 +15,7 @@
 *.pas text eol=auto
 *.lpk text eol=auto
 *.xml text eol=auto
+*.dpk text eol=auto
 # Even on Windows, shell scripts line endings must be Unix, to work with Cygwin's bash.
 *.sh text eol=lf
 *gradlew text eol=lf

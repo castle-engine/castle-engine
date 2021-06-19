@@ -159,10 +159,16 @@ begin
   { TODO }
 end;
 
+const
+  { Because of deprecated CastleKeysMouse conflict (deprecated CastleKeysMouse.mbLeft),
+    we need to write "Controls.mbLeft" not just "mbLeft".
+    But we cannot use inside TForm1 method, as there it is a property that calls GetControl. }
+  LeftMouseButton = Controls.mbLeft;
+
 procedure TForm1.OpenGLControl1MouseDown(Sender: TObject; Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
-  CGE_MouseDown(x, OpenGLControl1.Height - 1 - y, Button=Controls.mbLeft, 0);
+  CGE_MouseDown(x, OpenGLControl1.Height - 1 - y, Button=LeftMouseButton, 0);
 end;
 
 procedure TForm1.OpenGLControl1MouseMove(Sender: TObject; Shift: TShiftState;
@@ -174,7 +180,7 @@ end;
 procedure TForm1.OpenGLControl1MouseUp(Sender: TObject; Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
-  CGE_MouseUp(x, OpenGLControl1.Height - 1 - y, Button=Controls.mbLeft, 0, true);
+  CGE_MouseUp(x, OpenGLControl1.Height - 1 - y, Button=LeftMouseButton, 0, true);
 end;
 
 procedure TForm1.OpenGLControl1MouseWheel(Sender: TObject; Shift: TShiftState;
@@ -208,4 +214,3 @@ begin
 end;
 
 end.
-

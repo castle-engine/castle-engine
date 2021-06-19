@@ -11,6 +11,7 @@ type
     { Components designed using CGE editor, loaded from the castle-user-interface file. }
     // ButtonXxx: TCastleButton;
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Start; override;
   end;
 
@@ -19,17 +20,17 @@ var
 
 implementation
 
-procedure ${STATE_CLASS_NAME}.Start;
-var
-  UiOwner: TComponent;
+constructor ${STATE_CLASS_NAME}.Create(AOwner: TComponent);
 begin
   inherited;
+  DesignUrl := '${DESIGN_FILE_URL}';
+end;
 
-  { Load designed user interface }
-  InsertUserInterface('${DESIGN_FILE_URL}', FreeAtStop, UiOwner);
-
+procedure ${STATE_CLASS_NAME}.Start;
+begin
+  inherited;
   { Find components, by name, that we need to access from code }
-  // ButtonXxx := UiOwner.FindRequiredComponent('ButtonXxx') as TCastleButton;
+  // ButtonXxx := DesignedComponent('ButtonXxx') as TCastleButton;
 end;
 
 end.

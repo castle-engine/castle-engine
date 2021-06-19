@@ -21,7 +21,7 @@
   TCastleTheme = class
   strict private
     FImagesPersistent: array [TThemeImage] of TCastleImagePersistent;
-    FMessageFont: TCastleFont;
+    FMessageFont: TCastleAbstractFont;
     FOwnsMessageFont: boolean;
     function GetImages(const ImageType: TThemeImage): TCastleImage;
     procedure SetImages(const ImageType: TThemeImage; const Value: TCastleImage);
@@ -30,7 +30,7 @@
     function GetImagePersistent(const ImageType: TThemeImage): TCastleImagePersistent;
     function GetCorners(const ImageType: TThemeImage): TVector4;
     procedure SetCorners(const ImageType: TThemeImage; const Value: TVector4);
-    procedure SetMessageFont(const Value: TCastleFont);
+    procedure SetMessageFont(const Value: TCastleAbstractFont);
   public
     TooltipTextColor: TCastleColor;
     TextColor, DisabledTextColor: TCastleColor;
@@ -154,7 +154,7 @@
 
     { Font used by dialogs.
       Leave @nil to use @link(TUIContainer.DefaultFont). }
-    property MessageFont: TCastleFont read FMessageFont write SetMessageFont;
+    property MessageFont: TCastleAbstractFont read FMessageFont write SetMessageFont;
 
     property OwnsMessageFont: boolean
       read FOwnsMessageFont write FOwnsMessageFont default true;
@@ -350,7 +350,7 @@ begin
   Draw(FloatRectangle(Rect), ImageType, UIScale, Color);
 end;
 
-procedure TCastleTheme.SetMessageFont(const Value: TCastleFont);
+procedure TCastleTheme.SetMessageFont(const Value: TCastleAbstractFont);
 begin
   if FMessageFont <> Value then
   begin

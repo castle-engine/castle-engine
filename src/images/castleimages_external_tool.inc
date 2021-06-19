@@ -68,7 +68,7 @@ begin
            Possibly trying to work within the same OpenGL context
            from 2 different versions of forked process ?
            So it seems like it's TProcess Unix implementation bug,
-           that accidentaly hits also NVidia Linux driver bug.
+           that accidentally hits also NVidia Linux driver bug.
            TODO: investigate more, submit to FPC bug/patch.
 
       First implementation using TProcess:

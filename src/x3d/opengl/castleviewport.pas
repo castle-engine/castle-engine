@@ -232,6 +232,9 @@ type
     { Whether to look at AvoidNavigationCollisions.
       Checks that AvoidNavigationCollisions is set, and it is part of current @link(Items). }
     function UseAvoidNavigationCollisions: Boolean;
+
+    { Ensure Camera and FProjection are initialized for PositionToXxx family of methods. }
+    procedure PositionToPrerequisites;
   private
     var
       FNavigation: TCastleNavigation;
@@ -1688,7 +1691,7 @@ begin
 
   { update the cursor, since 3D object under the cursor possibly changed.
 
-    Accidentaly, this also workarounds the problem of TCastleViewport:
+    Accidentally, this also workarounds the problem of TCastleViewport:
     when the 3D object stayed the same but it's Cursor value changed,
     Items.CursorChange notify only TCastleSceneManager (not custom viewport).
     But thanks to doing RecalculateCursor below, this isn't
@@ -2031,10 +2034,11 @@ var
 
       CalculateDimensions;
 
-      Result.Dimensions := TOrthoViewpointNode.InternalFieldOfView(
-        Result.Dimensions,
-        Viewport.Width,
-        Viewport.Height);
+      if not Camera.Orthographic.Stretch then
+        Result.Dimensions := TOrthoViewpointNode.InternalFieldOfView(
+          Result.Dimensions,
+          Viewport.Width,
+          Viewport.Height);
 
       EffectiveProjectionWidth := Result.Dimensions.Width;
       EffectiveProjectionHeight := Result.Dimensions.Height;
@@ -2998,6 +3002,26 @@ begin
   AutoCamera := false;
 end;
 
+procedure TCastleViewport.PositionToPrerequisites;
+begin
+  if not FProjection.Initialized then
+  begin
+    if (EffectiveWidth = 0) or
+       (EffectiveHeight = 0) then
+      raise Exception.Create('Cannot use TCastleViewport.PositionToXxx when viewport has effectively empty size. The typical solution is to add TCastleViewport to some UI hierarchy, like "Window.Container.InsertFront(MyViewport)", although you could also set TCastleViewport.Width/Height explicitly.');
+
+    EnsureCameraDetected;
+
+    FProjection := CalculateProjection;
+    {$warnings off} // using deprecated to keep it working
+    if Assigned(OnProjection) then
+      OnProjection(FProjection);
+    {$warnings on}
+
+    Assert(FProjection.Initialized);
+  end;
+end;
+
 procedure TCastleViewport.PositionToRay(const Position: TVector2;
   const ScreenCoordinates: Boolean;
   out RayOrigin, RayDirection: TVector3);
@@ -3005,6 +3029,8 @@ var
   R: TFloatRectangle;
   ScreenPosition: TVector2;
 begin
+  PositionToPrerequisites;
+
   R := RenderRect;
 
   if ScreenCoordinates then
@@ -3118,6 +3144,8 @@ var
   CameraToWorldMatrix: TMatrix4;
   P: TVector2;
 begin
+  PositionToPrerequisites;
+
   CameraToWorldMatrix := Camera.MatrixInverse;
 
   if ScreenCoordinates then
@@ -3318,7 +3346,10 @@ begin
     RayDirection := Item.UniqueParent.WorldToLocalDirection(RayDirectionWorld);
   end else
   begin
-    WritelnWarning('TODO: Item %s is not part of World, or is present in World multiple times. PointingDeviceXxx events will receive ray in world coordinates, while they should be in local.');
+    WritelnWarning('TODO: Item %s(%s) is not part of World, or is present in the World multiple times. PointingDeviceXxx events will receive ray in world coordinates, while they should be in local.', [
+      Item.Name,
+      Item.ClassName
+    ]);
     RayOrigin := RayOriginWorld;
     RayDirection := RayDirectionWorld;
   end;
@@ -3580,7 +3611,7 @@ function TCastleViewport.NavigationMoveAllowed(const Sender: TCastleNavigation;
   function PositionOutsideBoundingBox: Boolean;
   var
     Box: TBox3D;
-    GravityCoordinate, Coord1, Coord2: Integer;
+    GravityCoordinate, Coord1, Coord2: T3DAxis;
   begin
     Box := ItemsBoundingBox;
     if Box.IsEmpty then Exit(false);

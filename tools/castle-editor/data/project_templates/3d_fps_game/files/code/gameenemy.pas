@@ -1,4 +1,4 @@
-{ Enemy behaviour.
+{ Enemy behavior.
 
   Feel free to use this code as a starting point for your own projects.
   (This code is in public domain, unlike most other CGE code which
@@ -15,7 +15,7 @@ type
     It controls the parent Scene (TCastleScene): moves it, runs animations of it etc.
 
     This is a TCastleBehavior descendant,
-    and is inserted to parent like EnemyScene.AddBehaviour(...).
+    and is inserted to parent like EnemyScene.AddBehavior(...).
     You can get the TEnemy instance of a TCastleScene,
     by taking "Scene.FindBehavior(TEnemy)".
 

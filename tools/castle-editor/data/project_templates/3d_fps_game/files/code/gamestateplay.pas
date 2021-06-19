@@ -22,7 +22,7 @@ type
     MainViewport: TCastleViewport;
     WalkNavigation: TCastleWalkNavigation;
 
-    { Enemies behaviours }
+    { Enemies behaviors }
     Enemies: TEnemyList;
   public
     constructor Create(AOwner: TComponent); override;

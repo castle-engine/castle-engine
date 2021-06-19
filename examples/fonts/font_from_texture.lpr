@@ -16,11 +16,11 @@
 { Demo of using fonts from a texture:
 
   - Simple constant-width font with colorful glyphs,
-    using TSimpleTextureFont class.
+    using TCastleBitmapFont class.
     Font data is supplied as an image (see data/sonic_asalga_0.png,
     null_terminator_0.png).
 
-  - Font initialized from a FreeType font, using TTextureFont class.
+  - Font initialized from a ttf font file, using TCastleFont class.
     Font data is supplied as a ttf file (see data/DejaVuSans.ttf).
 }
 
@@ -40,8 +40,8 @@ var
     LabelStylish, LabelStylishBW, LabelStylishLarge: TCastleLabel;
 
 var
-  MyTextureFont: TTextureFont;
-  MySimpleTextureFont: TSimpleTextureFont;
+  MyTextureFont: TCastleFont;
+  MySimpleTextureFont: TCastleBitmapFont;
   LabelsGroup: TCastleVerticalGroup;
 begin
   InitializeLog;
@@ -56,7 +56,7 @@ begin
   LabelsGroup.Spacing := 10;
   Window.Controls.InsertFront(LabelsGroup);
 
-  MySimpleTextureFont := TSimpleTextureFont.Create(Application);
+  MySimpleTextureFont := TCastleBitmapFont.Create(Application);
   MySimpleTextureFont.Load(LoadImage('castle-data:/sonic_asalga_0.png'), 8, 12, 2, 2);
   UIFont := MySimpleTextureFont;
 //  UIFont.Scale := 4; // test font Scale
@@ -78,7 +78,7 @@ begin
   Label1.Color := White;
   LabelsGroup.InsertFront(Label1);
 
-  MySimpleTextureFont := TSimpleTextureFont.Create(Application);
+  MySimpleTextureFont := TCastleBitmapFont.Create(Application);
   MySimpleTextureFont.Load(LoadImage('castle-data:/null_terminator_0.png'), 8, 12, 1, 1);
 
   Label2 := TCastleLabel.Create(Application);
@@ -97,7 +97,7 @@ begin
   Label2.Frame := true;
   LabelsGroup.InsertFront(Label2);
 
-  MyTextureFont := TTextureFont.Create(Application);
+  MyTextureFont := TCastleFont.Create(Application);
   MyTextureFont.Load('castle-data:/DejaVuSans.ttf', 15, true);
 
   LabelDeja := TCastleLabel.Create(Application);
@@ -116,7 +116,7 @@ begin
   LabelDeja.Color := White;
   LabelsGroup.InsertFront(LabelDeja);
 
-  MyTextureFont := TTextureFont.Create(Application);
+  MyTextureFont := TCastleFont.Create(Application);
   MyTextureFont.Load('castle-data:/DejaVuSans.ttf', 15, false);
 
   LabelDejaBW := TCastleLabel.Create(Application);
@@ -135,7 +135,7 @@ begin
   LabelDejaBW.Color := White;
   LabelsGroup.InsertFront(LabelDejaBW);
 
-  MyTextureFont := TTextureFont.Create(Application);
+  MyTextureFont := TCastleFont.Create(Application);
   MyTextureFont.Load('castle-data:/DejaVuSans.ttf', 30, true);
 
   LabelDejaLarge := TCastleLabel.Create(Application);
@@ -154,7 +154,7 @@ begin
   LabelDejaLarge.Frame := true;
   LabelsGroup.InsertFront(LabelDejaLarge);
 
-  MyTextureFont := TTextureFont.Create(Application);
+  MyTextureFont := TCastleFont.Create(Application);
   MyTextureFont.Load('castle-data:/DejaVuSans.ttf', 30, true);
   MyTextureFont.Outline := 2;
   MyTextureFont.OutlineHighQuality := true;
@@ -177,7 +177,7 @@ begin
   LabelDejaLargeOutline.Frame := true;
   LabelsGroup.InsertFront(LabelDejaLargeOutline);
 
-  MyTextureFont := TTextureFont.Create(Application);
+  MyTextureFont := TCastleFont.Create(Application);
   MyTextureFont.Load('castle-data:/PARPG.ttf', 15, true);
 
   LabelStylish := TCastleLabel.Create(Application);
@@ -196,7 +196,7 @@ begin
   LabelStylish.Color := White;
   LabelsGroup.InsertFront(LabelStylish);
 
-  MyTextureFont := TTextureFont.Create(Application);
+  MyTextureFont := TCastleFont.Create(Application);
   MyTextureFont.Load('castle-data:/PARPG.ttf', 15, false);
 
   LabelStylishBW := TCastleLabel.Create(Application);
@@ -215,7 +215,7 @@ begin
   LabelStylishBW.Color := White;
   LabelsGroup.InsertFront(LabelStylishBW);
 
-  MyTextureFont := TTextureFont.Create(Application);
+  MyTextureFont := TCastleFont.Create(Application);
   MyTextureFont.Load('castle-data:/PARPG.ttf', 30, true);
 //  MyTextureFont.Scale := 4; // test font Scale
 

@@ -216,7 +216,6 @@ begin
   FFdCenterOfRotation := TSFVec3f.Create(Self, True, 'centerOfRotation', Vector3(0, 0, 0));
    FdCenterOfRotation.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdCenterOfRotation);
-  { X3D specification comment: (-Inf,Inf) }
 
   FFdDescription := TSFString.Create(Self, True, 'description', '');
    FdDescription.ChangeAlways := chVisibleNonGeometry;
@@ -229,7 +228,6 @@ begin
   FFdOrientation := TSFRotation.Create(Self, True, 'orientation', Vector3(0, 0, 1), 0);
    FdOrientation.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdOrientation);
-  { X3D specification comment: [-1,1],(-Inf,Inf) }
 
   FFdRetainUserOffsets := TSFBool.Create(Self, True, 'retainUserOffsets', false);
    FdRetainUserOffsets.ChangeAlways := chVisibleNonGeometry;

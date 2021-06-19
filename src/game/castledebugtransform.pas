@@ -216,6 +216,7 @@ uses CastleLog;
 constructor TDebugAxis.Create(const AOwner: TComponent; const Color: TCastleColorRGB);
 var
   Material: TUnlitMaterialNode;
+  Appearance: TAppearanceNode;
 begin
   inherited Create(AOwner);
 
@@ -233,9 +234,13 @@ begin
   Material := TUnlitMaterialNode.Create;
   Material.EmissiveColor := Color;
 
+  Appearance := TAppearanceNode.Create;
+  Appearance.ShadowCaster := false;
+  Appearance.Material := Material;
+
   FShape := TShapeNode.Create;
   FShape.Geometry := FGeometry;
-  FShape.Material := Material;
+  FShape.Appearance := Appearance;
 
   FTransform := TTransformNode.Create;
   FTransform.AddChildren(FShape);
@@ -273,6 +278,8 @@ begin
 end;
 
 constructor TDebugBox.Create(AOwner: TComponent);
+var
+  Appearance: TAppearanceNode;
 begin
   inherited Create(AOwner);
 
@@ -280,14 +287,18 @@ begin
 
   FGeometry := TBoxNode.Create;
 
-  FShape := TShapeNode.Create;
-  FShape.Geometry := FGeometry;
-  FShape.Shading := shWireframe;
-
   FMaterial := TUnlitMaterialNode.Create;
   FMaterial.EmissiveColor := FColor.XYZ;
   FMaterial.Transparency := 1 - FColor.W;
-  FShape.Material := FMaterial;
+
+  Appearance := TAppearanceNode.Create;
+  Appearance.ShadowCaster := false;
+  Appearance.Material := FMaterial;
+
+  FShape := TShapeNode.Create;
+  FShape.Geometry := FGeometry;
+  FShape.Shading := shWireframe;
+  FShape.Appearance := Appearance;
 
   FTransform := TTransformNode.Create;
   FTransform.AddChildren(FShape);
@@ -316,6 +327,7 @@ end;
 constructor TDebugSphere.Create(const AOwner: TComponent; const Color: TCastleColorRGB);
 var
   Material: TUnlitMaterialNode;
+  Appearance: TAppearanceNode;
 begin
   inherited Create(AOwner);
 
@@ -323,13 +335,17 @@ begin
   FGeometry.Slices := 10;
   FGeometry.Stacks := 10;
 
+  Material := TUnlitMaterialNode.Create;
+  Material.EmissiveColor := Color;
+
+  Appearance := TAppearanceNode.Create;
+  Appearance.ShadowCaster := false;
+  Appearance.Material := Material;
+
   FShape := TShapeNode.Create;
   FShape.Geometry := FGeometry;
   FShape.Shading := shWireframe;
-
-  Material := TUnlitMaterialNode.Create;
-  Material.EmissiveColor := Color;
-  FShape.Material := Material;
+  FShape.Appearance := Appearance;
 
   FTransform := TTransformNode.Create;
   FTransform.AddChildren(FShape);
@@ -360,6 +376,7 @@ end;
 constructor TDebugArrow.Create(const AOwner: TComponent; const Color: TCastleColorRGB);
 var
   Material: TUnlitMaterialNode;
+  Appearance: TAppearanceNode;
   FGeometry: TLineSetNode;
 begin
   inherited Create(AOwner);
@@ -368,7 +385,12 @@ begin
 
   Material := TUnlitMaterialNode.Create;
   Material.EmissiveColor := Color;
-  FShape.Material := Material;
+
+  Appearance := TAppearanceNode.Create;
+  Appearance.ShadowCaster := false;
+  Appearance.Material := Material;
+
+  FShape.Appearance := Appearance;
 
   Coord := TCoordinateNode.Create;
 

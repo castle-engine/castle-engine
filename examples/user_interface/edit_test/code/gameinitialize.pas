@@ -121,11 +121,10 @@ begin
 end;
 
 initialization
-  { Set ApplicationName early, as our log uses it. }
-  ApplicationProperties.ApplicationName := 'edit_test';
+  Application.OnInitialize := @ApplicationInitialize;
 
   Window := TCastleWindowBase.Create(Application);
+  Window.ParseParameters; // allows to control window size / fullscreen on the command-line
   Window.OnResize := @WindowResize;
   Application.MainWindow := Window;
-  Application.OnInitialize := @ApplicationInitialize;
 end.

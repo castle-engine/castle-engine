@@ -448,12 +448,10 @@ begin
   FFdAngularDampingFactor := TSFFloat.Create(Self, True, 'angularDampingFactor', 0.001);
    FdAngularDampingFactor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAngularDampingFactor);
-  { X3D specification comment: [0,1] }
 
   FFdAngularVelocity := TSFVec3f.Create(Self, True, 'angularVelocity', Vector3(0, 0, 0));
    FdAngularVelocity.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAngularVelocity);
-  { X3D specification comment: (-Inf,Inf) }
 
   FFdAutoDamp := TSFBool.Create(Self, True, 'autoDamp', false);
    FdAutoDamp.ChangeAlways := chVisibleNonGeometry;
@@ -466,22 +464,18 @@ begin
   FFdCenterOfMass := TSFVec3f.Create(Self, True, 'centerOfMass', Vector3(0, 0, 0));
    FdCenterOfMass.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdCenterOfMass);
-  { X3D specification comment: (-Inf,Inf) }
 
   FFdDisableAngularSpeed := TSFFloat.Create(Self, True, 'disableAngularSpeed', 0);
    FdDisableAngularSpeed.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDisableAngularSpeed);
-  { X3D specification comment: [0,Inf) }
 
   FFdDisableLinearSpeed := TSFFloat.Create(Self, True, 'disableLinearSpeed', 0);
    FdDisableLinearSpeed.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDisableLinearSpeed);
-  { X3D specification comment: [0,Inf) }
 
   FFdDisableTime := TSFFloat.Create(Self, True, 'disableTime', 0);
    FdDisableTime.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDisableTime);
-  { X3D specification comment: [0,Inf) }
 
   FFdEnabled := TSFBool.Create(Self, True, 'enabled', true);
    FdEnabled.ChangeAlways := chVisibleNonGeometry;
@@ -490,7 +484,6 @@ begin
   FFdFiniteRotationAxis := TSFVec3f.Create(Self, True, 'finiteRotationAxis', Vector3(0, 0, 0));
    FdFiniteRotationAxis.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdFiniteRotationAxis);
-  { X3D specification comment: [-1,1] }
 
   FFdFixed := TSFBool.Create(Self, True, 'fixed', false);
    FdFixed.ChangeAlways := chVisibleNonGeometry;
@@ -511,17 +504,14 @@ begin
   FFdLinearDampingFactor := TSFFloat.Create(Self, True, 'linearDampingFactor', 0.001);
    FdLinearDampingFactor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdLinearDampingFactor);
-  { X3D specification comment: [0,1] }
 
   FFdLinearVelocity := TSFVec3f.Create(Self, True, 'linearVelocity', Vector3(0, 0, 0));
    FdLinearVelocity.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdLinearVelocity);
-  { X3D specification comment: (-Inf,Inf) }
 
   FFdMass := TSFFloat.Create(Self, True, 'mass', 1);
    FdMass.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdMass);
-  { X3D specification comment: (0,Inf) }
 
   FFdMassDensityModel := TSFNode.Create(Self, True, 'massDensityModel', [TSphereNode, TBoxNode, TConeNode]);
    FdMassDensityModel.ChangeAlways := chVisibleNonGeometry;
@@ -530,12 +520,10 @@ begin
   FFdOrientation := TSFRotation.Create(Self, True, 'orientation', Vector3(0, 0, 1), 0);
    FdOrientation.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdOrientation);
-  { X3D specification comment: [0,1] }
 
   FFdPosition := TSFVec3f.Create(Self, True, 'position', Vector3(0, 0, 0));
    FdPosition.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdPosition);
-  { X3D specification comment: (-Inf,Inf) }
 
   FFdTorques := TMFVec3f.Create(Self, True, 'torques', []);
    FdTorques.ChangeAlways := chVisibleNonGeometry;

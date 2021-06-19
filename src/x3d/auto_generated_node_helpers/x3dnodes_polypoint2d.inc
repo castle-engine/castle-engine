@@ -65,7 +65,6 @@ begin
   FFdPoint := TMFVec2f.Create(Self, True, 'point', []);
    FdPoint.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdPoint);
-  { X3D specification comment: (-Inf,Inf) }
 end;
 
 {$endif read_implementation}

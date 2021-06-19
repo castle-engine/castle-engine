@@ -24,6 +24,11 @@ const
 
   ExeExtension = {$ifdef MSWINDOWS} '.exe' {$else} '' {$endif};
 
+  {$ifndef FPC}
+  AllowDirectorySeparators = {$ifdef MSWINDOWS} ['/', '\'] {$else} ['/'] {$endif};
+  FileNameCaseSensitive = {$ifdef MSWINDOWS} false {$else} true {$endif};
+  {$endif}
+
 { Remove from the FileName the last extension (including the dot).
   Note that if the FileName had a couple of extensions (e.g. @code(blah.x3d.gz))
   this will remove only the last one.
@@ -140,9 +145,17 @@ end;
 
 { This is also defined in CastleStringUtils publicly,
   but we don't want to use CastleStringUtils here, to keep our dependencies simple. }
-function SCharIs(const s: string; index: integer; c: char): boolean;
+function SCharIs(const s: string; index: integer; c: char): boolean; overload;
 begin
   Result := (index <= Length(s)) and (s[index] = c);
+end;
+
+type
+  TSetOfChars = SysUtils.TSysCharSet;
+
+function SCharIs(const s: string; index: integer; const chars: TSetOfChars): boolean; overload;
+begin
+  Result := (index <= Length(s)) and (s[index] in chars)
 end;
 
 function IsPathAbsolute(const Path: string): boolean;
@@ -154,7 +167,7 @@ end;
 function IsPathAbsoluteOnDrive(const Path: string): boolean;
 begin
   Result := IsPathAbsolute(Path)
-    {$ifdef MSWINDOWS} or SCharIs(Path, 1, PathDelim) {$endif}
+    {$ifdef MSWINDOWS} or SCharIs(Path, 1, AllowDirectorySeparators) {$endif}
 end;
 
 function SpecialDirName(const DirectoryName: string): boolean;

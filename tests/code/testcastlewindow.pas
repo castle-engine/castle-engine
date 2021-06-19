@@ -23,6 +23,8 @@ uses FpcUnit, TestUtils, TestRegistry, CastleTestCase;
 
 type
   TTestWindow = class(TCastleTestCase)
+  strict private
+    procedure OnWarningRaiseException(const Category, S: string);
   published
     procedure Test1;
     procedure TestNotifications;
@@ -33,6 +35,8 @@ type
     { Test TUIContainer.Focus.
       In this unit, as it requires TCastleWindow (UI container) to make sense. }
     procedure TestFocus;
+    procedure TestEventLoop;
+    procedure TestViewportPositionTo;
   end;
 
 implementation
@@ -40,7 +44,8 @@ implementation
 uses SysUtils, Classes,
   CastleWindow, CastleControls, CastleStringUtils, CastleKeysMouse,
   CastleUIControls, CastleRectangles, CastleOnScreenMenu, CastleComponentSerialize,
-  CastleInspectorControl, CastleCameras, CastleSceneManager, CastleVectors;
+  CastleInspectorControl, CastleCameras, CastleSceneManager, CastleVectors,
+  CastleTransform, CastleScene, CastleApplicationProperties;
 
 procedure TTestWindow.Test1;
 var
@@ -252,6 +257,134 @@ begin
     AssertTrue(Window.Container.Focus[3] = Button2);
     AssertTrue(Window.Container.Focus[4] is TCastleInspectorControl);
     AssertTrue(Window.Container.Focus[5] is TCastleRectangleControl); // internal in TCastleInspectorControl
+  finally FreeAndNil(Window) end;
+end;
+
+procedure TTestWindow.OnWarningRaiseException(const Category, S: string);
+begin
+  raise Exception.CreateFmt('TTestWindow made a warning, and any warning here is an error: %s: %s', [Category, S]);
+end;
+
+procedure TTestWindow.TestEventLoop;
+var
+  Window: TCastleWindowBase;
+
+  procedure SimulateEventLoop(const T: TCastleTransform);
+  var
+    RenderParams: TRenderParams;
+    RemoveMe: TRemoveType;
+  begin
+    RenderParams := TBasicRenderParams.Create;
+    try
+      T.Render(RenderParams);
+    finally FreeAndNil(RenderParams) end;
+
+    RemoveMe := rtNone;
+    T.Update(1/60, RemoveMe);
+
+    //Window.MessageOK('Press OK to finish this event loop run', mtInfo);
+  end;
+
+var
+  Box: TCastleBox;
+  Viewport: TCastleViewport;
+begin
+  ApplicationProperties.OnWarning.Add(@OnWarningRaiseException);
+  try
+    Window := TCastleWindowBase.Create(nil);
+    try
+      // for rendering, OpenGL context must be ready, with GLFeatures initialized
+      Window.Visible := false;
+      Window.Open;
+
+      Viewport := TCastleViewport.Create(nil);
+      try
+        Viewport.FullSize := true;
+        Viewport.AutoCamera := true;
+        Window.Controls.InsertFront(Viewport);
+
+        Box := TCastleBox.Create(nil);
+        try
+          Viewport.Items.Add(Box);
+
+          SimulateEventLoop(Box);
+          Box.Material := pmUnlit;
+          SimulateEventLoop(Box);
+          Box.Material := pmPhysical;
+          SimulateEventLoop(Box);
+        finally FreeAndNil(Box) end;
+      finally FreeAndNil(Viewport) end;
+    finally FreeAndNil(Window) end;
+  finally
+    ApplicationProperties.OnWarning.Remove(@OnWarningRaiseException);
+  end;
+end;
+
+procedure TTestWindow.TestViewportPositionTo;
+var
+  Viewport: TCastleViewport;
+
+{ Non-interactive version of a testcase on
+  https://gist.github.com/michaliskambi/2b8faee73df9f3a12351736cabcad1ee
+  for https://github.com/castle-engine/castle-engine/issues/295 :
+  Viewport.PositionToXxx should return correct values even when used before
+  and resize/render event. }
+
+  procedure TestQueryPosition(const ScreenPos: TVector2;
+    const CorrectRayOrigin, CorrectRayDirection, CorrectCameraPlaneResult, CorrectWorldPlaneResult: TVector3;
+    const CorrectPos2D: TVector2);
+  var
+    CameraPlaneResult, RayOrigin, RayDirection, WorldPlaneResult: TVector3;
+    Pos2D: TVector2;
+  begin
+    //WritelnLog('Testing on ', ScreenPos.ToString);
+
+    Viewport.PositionToRay(ScreenPos, true, RayOrigin, RayDirection);
+    AssertVectorEquals(CorrectRayOrigin, RayOrigin, 0.1);
+    AssertVectorEquals(CorrectRayDirection, RayDirection, 0.1);
+
+    AssertTrue(Viewport.PositionToCameraPlane(ScreenPos, true, 2, CameraPlaneResult));
+    AssertVectorEquals(CorrectCameraPlaneResult, CameraPlaneResult, 0.1);
+
+    AssertTrue(Viewport.PositionToWorldPlane(ScreenPos, true, -10, WorldPlaneResult));
+    AssertVectorEquals(CorrectWorldPlaneResult, WorldPlaneResult, 0.1);
+
+    Pos2D := Viewport.PositionTo2DWorld(ScreenPos, true);
+    AssertVectorEquals(CorrectPos2D, Pos2D, 0.1);
+  end;
+
+var
+  Window: TCastleWindowBase;
+begin
+  Window := TCastleWindowBase.Create(nil);
+  try
+    Window.Width := 300;
+    Window.Height := 300;
+    Window.Open;
+
+    Viewport := TCastleViewport.Create(Window);
+    Viewport.FullSize := true;
+
+    // too early to use
+    // TestQueryPosition(Vector2(100, 100));
+    // TestQueryPosition(Vector2(Window.Width / 2, Window.Height / 2));
+
+    Window.Controls.InsertFront(Viewport);
+
+    TestQueryPosition(Vector2(100, 100),
+      Vector3(0.00, 0.00, 0.00),
+      Vector3(-0.13, -0.13, -0.98),
+      Vector3(-0.27, -0.27, -2.00),
+      Vector3(-1.37, -1.37, -10.00),
+      Vector2(100.00, 100.00)
+    );
+    TestQueryPosition(Vector2(Window.Width / 2, Window.Height / 2),
+      Vector3(0.00, 0.00, 0.00),
+      Vector3(0.00, 0.00, -1.00),
+      Vector3(0.00, 0.00, -2.00),
+      Vector3(0.01, 0.01, -10.00),
+      Vector2(150.00, 150.00)
+    );
   finally FreeAndNil(Window) end;
 end;
 
