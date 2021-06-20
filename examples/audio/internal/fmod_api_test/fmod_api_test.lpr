@@ -1,6 +1,5 @@
-{ -*- compile-command: "castle-engine simple-compile fmod_api_test.lpr && ./fmod_api_test" -*- }
 {
-  Copyright 2019-2019 Michalis Kamburelis.
+  Copyright 2019-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -61,7 +60,7 @@ end;
 var
   FMODSystem: PFMOD_SYSTEM;
 
-function PlaySound(const URL: String; const Looping: Boolean): PFMOD_CHANNEL;
+function PlaySound(const URL: String; const Loop: Boolean): PFMOD_CHANNEL;
 var
   // SoundInfo: TFMOD_CREATESOUNDEXINFO; // not needed now
   Sound: PFMOD_SOUND;
@@ -86,7 +85,7 @@ begin
 
   // Start in paused state, allows to adjust parameters like loop before starting
   CheckFMOD(FMOD_System_PlaySound(FMODSystem, Sound, nil, { paused } 1, @Result));
-  if Looping then
+  if Loop then
     CheckFMOD(FMOD_Channel_SetMode(Result, FMOD_LOOP_NORMAL))
   else
     CheckFMOD(FMOD_Channel_SetMode(Result, FMOD_LOOP_OFF));
@@ -97,7 +96,7 @@ function IsPlaying(const Channel: PFMOD_CHANNEL): Boolean;
 var
   B: TFMOD_BOOL;
 begin
-  { Note that Looping sound will have IsPlaying forever until it's explicitly stopped,
+  { Note that looping sound will have IsPlaying forever until it's explicitly stopped,
     and that's what we want. }
   CheckFMOD(FMOD_Channel_IsPlaying(Channel, @B));
   Result := B <> 0;
@@ -116,8 +115,8 @@ begin
 
   CheckFMOD(FMOD_System_Init(FMODSystem, 256, FMOD_INIT_NORMAL, nil));
 
-  PlaySound('../../../../examples/audio/data/tone.wav', true);
-  ChannelWaiting := PlaySound('../../../../examples/audio/data/temple-adam-goh.ogg', false);
+  PlaySound('../../simplest_play_sound/data/tone.wav', true);
+  ChannelWaiting := PlaySound('../../simplest_play_sound/data/temple-adam-goh.ogg', false);
 
   TimeStart := Timer;
 

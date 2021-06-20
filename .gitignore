@@ -95,6 +95,7 @@ castle-game-engine-*.fpm
 /examples/audio/audio_player_scrubber/audio_player_scrubber
 /examples/audio/audio_player_scrubber/lib/
 /examples/audio/doppler_demo/doppler_demo
+/examples/audio/internal/fmod_api_test/fmod_api_test
 /examples/audio/play_sounds/play_sounds
 /examples/audio/simplest_play_sound/simplest_play_sound
 /examples/audio/test_sound_source_allocator
@@ -206,7 +207,6 @@ castle-game-engine-*.fpm
 /packages/castle_indy.pas
 /packages/castle_window.pas
 /packages/lib/
-/src/audio/fmod/test/fmod_api_test
 /src/library/build-*
 /src/library/ios-output/
 /src/library/libcastleengine.dylib
