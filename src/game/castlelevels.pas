@@ -1094,7 +1094,7 @@ begin
   if (Player <> nil) then
     Player.LevelChanged;
 
-  SoundEngine.MusicPlayer.Sound := Info.MusicSound;
+  SoundEngine.LoopingChannel[0].Sound := Info.MusicSound;
   SoundEngine.PrepareResources;
 
   Items.MainScene.ProcessEvents := true;

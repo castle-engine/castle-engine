@@ -38,7 +38,7 @@
     FImportance: Integer;
     FUserData: TObject;
     FPosition, FVelocity: TVector3;
-    FLooping, FSpatial: boolean;
+    FLoop, FSpatial: boolean;
     FVolume, FMinGain, FMaxGain, FPitch: Single;
     FBuffer: TInternalSoundBuffer;
     FRolloffFactor, FReferenceDistance, FMaxDistance: Single;
@@ -46,7 +46,7 @@
     BackendIsOpen: Boolean;
     procedure SetPosition(const Value: TVector3);
     procedure SetVelocity(const Value: TVector3);
-    procedure SetLooping(const Value: boolean);
+    procedure SetLoop(const Value: boolean);
     procedure SetSpatial(const Value: boolean);
     procedure SetVolume(const Value: Single);
     procedure SetMinGain(const Value: Single);
@@ -124,7 +124,8 @@
 
     property Position: TVector3 read FPosition write SetPosition;
     property Velocity: TVector3 read FVelocity write SetVelocity;
-    property Looping: boolean read FLooping write SetLooping;
+    property Loop: boolean read FLoop write SetLoop;
+    property Looping: boolean read FLoop write SetLoop; deprecated 'use Loop';
     property Spatial: boolean read FSpatial write SetSpatial;
     property Volume: Single read FVolume write SetVolume;
     property Gain: Single read FVolume write SetVolume; deprecated 'use Volume';
@@ -165,8 +166,8 @@
     { Make sure that the sound keeps playing, in case it stopped playing.
 
       This is an alternative approach to play a sound many times,
-      like in a loop, but without using the @link(Looping) property.
-      The idea is that you leave @link(Looping) set to @false,
+      like in a loop, but without using the @link(Loop) property.
+      The idea is that you leave @link(Loop) set to @false,
       and you keep calling this method from some "update" event
       (like some @link(TInputListener.Update) implementation).
       Once you stop calling this method, the sound will automatically stop
@@ -188,7 +189,7 @@
       That's because @link(TInternalSoundSource.OnRelease) may be called with some small delay
       after the sound actually stopped, and it may be noticeable (e.g. in case
       of using this for a short rhytmic sound, like footsteps). }
-    procedure KeepPlaying;
+    procedure KeepPlaying; deprecated 'use Loop to play looping sound. This method is a hack -- as you shall not operate on stopped TInternalSoundSource, as it may be repurposed.';
   end;
 
   TSound = TInternalSoundSource deprecated 'play sounds using TCastleSoundSource + TCastleSound';
@@ -264,10 +265,10 @@ begin
   Backend.SetVelocity(Value);
 end;
 
-procedure TInternalSoundSource.SetLooping(const Value: boolean);
+procedure TInternalSoundSource.SetLoop(const Value: boolean);
 begin
-  FLooping := Value;
-  Backend.SetLooping(Value);
+  FLoop := Value;
+  Backend.SetLoop(Value);
 end;
 
 procedure TInternalSoundSource.SetSpatial(const Value: boolean);

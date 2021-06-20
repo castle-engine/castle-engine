@@ -106,7 +106,7 @@ type
   private
     FBuffer: TSoundBufferBackend;
     ALSource: TALuint;
-    FLooping: Boolean;
+    FLoop: Boolean;
 
     { When buffer is stremed, OpenAL source looping need to be off,
       otherwise, one buffer will be looped. This procedure cares about that. }
@@ -120,7 +120,7 @@ type
     procedure Stop; override;
     procedure SetPosition(const Value: TVector3); override;
     procedure SetVelocity(const Value: TVector3); override;
-    procedure SetLooping(const Value: boolean); override;
+    procedure SetLoop(const Value: boolean); override;
     procedure SetSpatial(const Value: boolean); override;
     procedure SetVolume(const Value: Single); override;
     procedure SetMinGain(const Value: Single); override;
@@ -318,7 +318,7 @@ begin
       HelperBufferPtr, Result, StreamedFile.Frequency);
     {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alBufferData ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   end else
-  if Source.FLooping then
+  if Source.FLoop then
   begin
     StreamedFile.Rewind;
     Result := FillBuffer(ALBuffer);
@@ -422,7 +422,7 @@ begin
   if FBuffer is TOpenALStreamBufferBackend then
     alSourcei(ALSource, AL_LOOPING, BoolToAL[false])
   else
-    alSourcei(ALSource, AL_LOOPING, BoolToAL[FLooping]);
+    alSourcei(ALSource, AL_LOOPING, BoolToAL[FLoop]);
   {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcei(.., AL_LOOPING, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
@@ -557,7 +557,7 @@ begin
   {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourceVector3f(.., AL_VELOCITY, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
-procedure TOpenALSoundSourceBackend.SetLooping(const Value: boolean);
+procedure TOpenALSoundSourceBackend.SetLoop(const Value: boolean);
 begin
   { This variable is set from main thread but can be read by 2 threads (main and
     TOpenALStreamFeedThread, but I think this is Boolean and changeing Boolean
@@ -566,7 +566,7 @@ begin
     More info:
     https://stackoverflow.com/questions/5481030/are-delphi-simple-types-thread-safe
     }
-  FLooping := Value;
+  FLoop := Value;
   AdjustALLooping;
 end;
 

@@ -135,7 +135,7 @@ begin
   SliderSoundPitch.OnChange := @ChangeSliderSoundPitch;
 
   CheckboxLoop := FindRequiredComponent('CheckboxLoop') as TCastleCheckbox;
-  CheckboxLoop.Checked := PlayingSound.Looping;
+  CheckboxLoop.Checked := PlayingSound.Loop;
   CheckboxLoop.OnChange := @ChangeCheckboxLoop;
 end;
 
@@ -158,7 +158,7 @@ end;
 
 procedure TStateMain.TPlayingSoundUiOwner.ChangeCheckboxLoop(Sender: TObject);
 begin
-  PlayingSound.Looping := CheckboxLoop.Checked;
+  PlayingSound.Loop := CheckboxLoop.Checked;
 end;
 
 { TStateMain ----------------------------------------------------------------- }

@@ -636,7 +636,7 @@ begin
     at most 1 swimming sound etc. }
 
   FootstepsPlayingSound := TCastlePlayingSound.Create(nil);
-  FootstepsPlayingSound.Looping := true;
+  FootstepsPlayingSound.Loop := true;
   //FootstepsPlayingSound.Sound := ... // will be assigned based on ground type
 
   SwimmingChangePlayingSound := TCastlePlayingSound.Create(nil);

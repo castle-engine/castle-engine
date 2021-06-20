@@ -72,7 +72,7 @@ type
     FMODChannel: PFMOD_CHANNEL;
     FBuffer: TFMODSoundBufferBackend;
     FPosition, FVelocity: TVector3;
-    FLooping, FSpatial: Boolean;
+    FLoop, FSpatial: Boolean;
     function FMODSystem: PFMOD_SYSTEM;
     function Mode: TFMOD_MODE;
   public
@@ -83,7 +83,7 @@ type
     procedure Stop; override;
     procedure SetPosition(const Value: TVector3); override;
     procedure SetVelocity(const Value: TVector3); override;
-    procedure SetLooping(const Value: boolean); override;
+    procedure SetLoop(const Value: boolean); override;
     procedure SetSpatial(const Value: boolean); override;
     procedure SetVolume(const Value: Single); override;
     procedure SetMinGain(const Value: Single); override;
@@ -297,7 +297,7 @@ var
 begin
   if FMODChannel = nil then Exit(false);
 
-  { Note that Looping sound will have IsPlaying forever until it's explicitly stopped,
+  { Note that Loop sound will have IsPlaying forever until it's explicitly stopped,
     and that's what we want. }
   IsPlayingError := FMOD_Channel_IsPlaying(FMODChannel, @B);
 
@@ -345,7 +345,7 @@ function TFMODSoundSourceBackend.Mode: TFMOD_MODE;
 begin
   Result := 0;
 
-  if FLooping then
+  if FLoop then
     Result := Result or FMOD_LOOP_NORMAL
   else
     Result := Result or FMOD_LOOP_OFF;
@@ -364,9 +364,9 @@ begin
     CheckFMOD(FMOD_Channel_Set3DAttributes(FMODChannel, @FPosition, @FVelocity));
 end;
 
-procedure TFMODSoundSourceBackend.SetLooping(const Value: boolean);
+procedure TFMODSoundSourceBackend.SetLoop(const Value: boolean);
 begin
-  FLooping := Value;
+  FLoop := Value;
   if FMODChannel = nil then Exit;
   CheckFMOD(FMOD_Channel_SetMode(FMODChannel, Mode));
 end;

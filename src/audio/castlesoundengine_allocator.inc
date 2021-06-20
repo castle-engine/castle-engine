@@ -106,9 +106,30 @@
       (unless Enable was set by @--no-sound command-line option).
       Descendant TRepoSoundEngine additionally saves sound and music volume.
 
+      @deprecated This is deprecated, as in actual applications it is more
+      obvious to just load/save the necessary sound properties explicitly.
+      E.g. do this to load volume:
+
+      @longCode(#
+        Volume := UserConfig.GetFloat('sound/volume', 1.0);
+      #)
+
+      Do this to save volume:
+
+      @longCode(#
+        UserConfig.SetDeleteFloat('sound/volume', Volume, 1.0);
+      #)
+
+      This way you control which properties are saved.
+      E.g. in most cases you don't need to save MinAllocatedSources, MaxAllocatedSources
+      as most applications don't modify it.
+      And it is your choice how to save music volume
+      (in simplest case you can  just load/save @code(LoopingChannel[0].Volume),
+      if you use @code(LoopingChannel[0]) for the music track).
+
       @groupBegin }
-    procedure LoadFromConfig(const Config: TCastleConfig); virtual;
-    procedure SaveToConfig(const Config: TCastleConfig); virtual;
+    procedure LoadFromConfig(const Config: TCastleConfig); virtual; deprecated 'load sound properties explicitly from UserConfig';
+    procedure SaveToConfig(const Config: TCastleConfig); virtual; deprecated 'save sound properties explicitly to UserConfig';
     { @groupEnd }
 
     { Minimum / maximum number of allocated sources.

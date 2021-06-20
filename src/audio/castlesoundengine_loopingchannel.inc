@@ -109,7 +109,7 @@ begin
   try
     Parameters.Buffer     := Sound.InternalBuffer;
     Parameters.Spatial    := false;
-    Parameters.Looping    := true;
+    Parameters.Loop       := true;
     Parameters.Importance := { TODO SoundInfo.DefaultImportance } DefaultSoundImportance;
     Parameters.Pitch      := Pitch * Sound.Pitch;
     Parameters.Volume     := Volume * Sound.Volume;

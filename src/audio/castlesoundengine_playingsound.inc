@@ -45,14 +45,14 @@
     FSource: TInternalSoundSource; //< @nil <=> not playing; we only keep FSource with Used=true
     FFreeOnStop: Boolean;
     FOnStop: TNotifyEvent;
-    FLooping: Boolean;
+    FLoop: Boolean;
     FInitialOffset: Single;
     procedure SetSound(const Value: TCastleSound);
     function GetOffset: Single;
     procedure SetOffset(const Value: Single);
     procedure SetOnStop(const Value: TNotifyEvent);
     procedure SetFreeOnStop(const Value: Boolean);
-    procedure SetLooping(const Value: Boolean);
+    procedure SetLoop(const Value: Boolean);
     procedure SourceRelease(Source: TInternalSoundSource);
   protected
     { Do the necessary job after source stopped, due to any reason.
@@ -100,8 +100,8 @@
     property FreeOnStop: Boolean read FFreeOnStop write SetFreeOnStop default false;
 
     { Is the playback looping.
-      Can change this on a playing or stopped sound. }
-    property Looping: Boolean read FLooping write SetLooping default false;
+      You can change this on a playing or stopped sound. }
+    property Loop: Boolean read FLoop write SetLoop default false;
 
     { Is the sound playing now.
       Using @link(TSoundEngine.Play) or @link(TCastleSoundSource.Play)
@@ -217,13 +217,13 @@ begin
   end;
 end;
 
-procedure TCastlePlayingSound.SetLooping(const Value: Boolean);
+procedure TCastlePlayingSound.SetLoop(const Value: Boolean);
 begin
-  if FLooping <> Value then
+  if FLoop <> Value then
   begin
-    FLooping := Value;
+    FLoop := Value;
     if FSource <> nil then
-      FSource.Looping := Value;
+      FSource.Loop := Value;
   end;
 end;
 

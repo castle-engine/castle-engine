@@ -185,7 +185,7 @@ begin
       SoundNode := GetSoundNode;
       if SoundNode <> nil then
       begin
-        PlayingSound.Looping := Loop;
+        PlayingSound.Loop := Loop;
         // TODO: PlayingSound.Importance := Clamped(Round(SoundNode.Priority * 1000), 0, 1000);
         PlayingSound.Sound.Volume := SoundNode.Intensity;
         PlayingSound.Sound.Pitch := SafePitch;

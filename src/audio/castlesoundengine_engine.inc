@@ -21,7 +21,7 @@
   { Parameters to use when playing sound, see @link(TSoundEngine.PlaySound). }
   TPlaySoundParameters = class
     Buffer: TInternalSoundBuffer;
-    Spatial, Looping: boolean;
+    Spatial, Loop: boolean;
     Importance: Cardinal;
 
     { How loud is the sound. By default 1.0. }
@@ -50,6 +50,7 @@
     { Offset is a position in time of the sound. }
     Offset: Single;
     property Gain: Single read Volume write Volume; deprecated 'use Volume';
+    property Looping: Boolean read Loop write Loop; deprecated 'use Loop';
     constructor Create;
   end;
 
@@ -151,8 +152,8 @@
     procedure ALContextOpen; deprecated 'use ContextOpen';
     procedure ALContextClose; deprecated 'use ContextClose';
 
-    procedure LoadFromConfig(const Config: TCastleConfig); override;
-    procedure SaveToConfig(const Config: TCastleConfig); override;
+    procedure LoadFromConfig(const Config: TCastleConfig); override; deprecated 'load sound properties explicitly from UserConfig';
+    procedure SaveToConfig(const Config: TCastleConfig); override; deprecated 'save sound properties explicitly to UserConfig';
 
     { Do we have active sound rendering context.
       This is @true when you successfully
@@ -267,13 +268,13 @@
     function PlaySound(const Buffer: TInternalSoundBuffer): TInternalSoundSource; overload;
       deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.Play to play sounds';
     function PlaySound(const Buffer: TInternalSoundBuffer;
-      const Spatial, Looping: boolean; const Importance: Cardinal;
+      const Spatial, Loop: boolean; const Importance: Cardinal;
       const Volume, MinGain, MaxGain: Single;
       const Position: TVector3;
       const Pitch: Single = 1): TInternalSoundSource; overload;
       deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.Play to play sounds';
     function PlaySound(const Buffer: TInternalSoundBuffer;
-      const Spatial, Looping: boolean; const Importance: Cardinal;
+      const Spatial, Loop: boolean; const Importance: Cardinal;
       const Volume, MinGain, MaxGain: Single;
       const Position: TVector3;
       const Pitch: Single;
@@ -294,7 +295,7 @@
 
       @noAutoLinkHere }
     function Sound(const SoundType: TCastleSound;
-      const Looping: boolean = false): TInternalSoundSource;
+      const Loop: boolean = false): TInternalSoundSource;
       deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.Play to play sounds';
 
     { Play given sound at appropriate position in 3D space.
@@ -308,7 +309,7 @@
       @noAutoLinkHere }
     function Sound3D(const SoundType: TCastleSound;
       const Position: TVector3;
-      const Looping: boolean = false): TInternalSoundSource; overload;
+      const Loop: boolean = false): TInternalSoundSource; overload;
       deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.Play to play sounds';
 
     { Play given sound once (not looping).
@@ -335,7 +336,7 @@
 
       Use the PlayingSound (TCastlePlayingSound) properties to provide additional information
       about the sound playback.
-      E.g. assign @link(TCastlePlayingSound.Looping)
+      E.g. assign @link(TCastlePlayingSound.Loop)
       @link(TCastlePlayingSound.OnStop) or control sound afterwards by
       @link(TCastlePlayingSound.Stop), @link(TCastlePlayingSound.Offset).
 
@@ -743,7 +744,7 @@ begin
     if Result <> nil then
     begin
       Result.Buffer  := Parameters.Buffer;
-      Result.Looping := Parameters.Looping;
+      Result.Loop    := Parameters.Loop;
       Result.Pitch   := Parameters.Pitch * InitialPitchMultiplier;
       Result.Volume  := Parameters.Volume;
       {$warnings off} // using unportable symbols knowingly
@@ -778,7 +779,7 @@ begin
 end;
 
 function TSoundEngine.PlaySound(const Buffer: TInternalSoundBuffer;
-  const Spatial, Looping: boolean; const Importance: Cardinal;
+  const Spatial, Loop: boolean; const Importance: Cardinal;
   const Volume, MinGain, MaxGain: Single;
   const Position: TVector3;
   const Pitch: Single): TInternalSoundSource;
@@ -789,7 +790,7 @@ begin
   try
     Parameters.Buffer     := Buffer;
     Parameters.Spatial    := Spatial;
-    Parameters.Looping    := Looping;
+    Parameters.Loop       := Loop;
     Parameters.Importance := Importance;
     Parameters.Pitch      := Pitch;
     Parameters.Volume     := Volume;
@@ -805,7 +806,7 @@ begin
 end;
 
 function TSoundEngine.PlaySound(const Buffer: TInternalSoundBuffer;
-  const Spatial, Looping: boolean; const Importance: Cardinal;
+  const Spatial, Loop: boolean; const Importance: Cardinal;
   const Volume, MinGain, MaxGain: Single;
   const Position: TVector3;
   const Pitch, ReferenceDistance, MaxDistance: Single): TInternalSoundSource;
@@ -816,7 +817,7 @@ begin
   try
     Parameters.Buffer     := Buffer;
     Parameters.Spatial    := Spatial;
-    Parameters.Looping    := Looping;
+    Parameters.Loop       := Loop;
     Parameters.Importance := Importance;
     Parameters.Pitch      := Pitch;
     Parameters.Volume     := Volume;
@@ -834,7 +835,7 @@ begin
 end;
 
 function TSoundEngine.Sound(const SoundType: TCastleSound;
-  const Looping: boolean): TInternalSoundSource;
+  const Loop: boolean): TInternalSoundSource;
 begin
   { If there is no actual sound, exit early without initializing sound backend.
     - SoundType is nil (which includes sound name not defined in sounds.xml,
@@ -851,7 +852,7 @@ begin
   Result := PlaySound(
     SoundType.InternalBuffer,
     { spatial } false,
-    Looping,
+    Loop,
     { TODO: SoundType.DefaultImportance } DefaultSoundImportance,
     SoundType.Volume,
     SoundType.MinGain,
@@ -862,7 +863,7 @@ end;
 
 function TSoundEngine.Sound3D(const SoundType: TCastleSound;
   const Position: TVector3;
-  const Looping: boolean): TInternalSoundSource;
+  const Loop: boolean): TInternalSoundSource;
 begin
   { If there is no actual sound, exit early without initializing sound backend.
     See Sound for more comments why we do this. }
@@ -874,7 +875,7 @@ begin
   Result := PlaySound(
     SoundType.InternalBuffer,
     { spatial } true,
-    Looping,
+    Loop,
     { TODO: SoundType.DefaultImportance } DefaultSoundImportance,
     SoundType.Volume,
     SoundType.MinGain,
@@ -925,7 +926,7 @@ begin
   try
     Params.Buffer     := ASound.InternalBuffer;
     Params.Spatial    := false;
-    Params.Looping    := PlayingSound.Looping;
+    Params.Loop       := PlayingSound.Loop;
     Params.Importance := DefaultSoundImportance; // TODO
     Params.Pitch      := ASound.Pitch;
     Params.Volume     := ASound.Volume;
@@ -1156,7 +1157,10 @@ end;
 
 procedure TSoundEngine.LoadFromConfig(const Config: TCastleConfig);
 begin
+  {$warnings off} // using deprecated from deprecated
   inherited;
+  {$warnings on}
+
   Device := Config.GetValue('sound/device', DefaultDevice);
   Enabled := Config.GetValue('sound/enable', DefaultEnabled);
 end;
@@ -1167,7 +1171,10 @@ begin
     Config.SetDeleteValue('sound/device', Device, DefaultDevice);
   if EnableSaveToConfig then
     Config.SetDeleteValue('sound/enable', Enabled, DefaultEnabled);
+
+  {$warnings off} // using deprecated from deprecated
   inherited;
+  {$warnings on}
 end;
 
 procedure TSoundEngine.ReinitializeJavaActivity(Sender: TObject);

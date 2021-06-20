@@ -159,8 +159,8 @@
   public
     constructor Create;
     destructor Destroy; override;
-    procedure LoadFromConfig(const Config: TCastleConfig); override;
-    procedure SaveToConfig(const Config: TCastleConfig); override;
+    procedure LoadFromConfig(const Config: TCastleConfig); override; deprecated 'load sound properties explicitly from UserConfig';
+    procedure SaveToConfig(const Config: TCastleConfig); override; deprecated 'save sound properties explicitly to UserConfig';
 
     { The XML file that contains description of your sounds.
       This should be an URL (in simple cases, just a filename)
@@ -261,17 +261,15 @@
       Simply assign @link(TLoopingChannel.Sound MusicPlayer.Sound)
       to play music. Set it to @link(nil) to stop playing music.
       This is just a shortcut for @link(LoopingChannel LoopingChannel[0]). }
-    property MusicPlayer: TLoopingChannel read GetMusicPlayer;
+    property MusicPlayer: TLoopingChannel read GetMusicPlayer; deprecated 'use LoopingChannel[0]';
 
-    { Comfortable way to play and control looping sounds, like a music track.
-      Using this is an alternative way to playing looping sounds using
-      @link(Sound) with Looping=true parameter.
+    { Comfortable way to play and control looping non-spatial sounds, like music tracks, ambience.
 
       The TLoopingChannel instance automatically remembers the sound it plays.
-      You start playing by setting @link(TLoopingChannel.Sound)
+      You start playing just by setting @link(TLoopingChannel.Sound)
       to some sound. For example:
 
-      @longCode(# LoopingChannel[0].Sound := SoundFromName('my_music'); #)
+      @longCode(# LoopingChannel[0].Sound := MyMusicTrack; #)
 
       You stop by setting @link(TLoopingChannel.Sound) to something else,
       which can be @link(nil) to just stop playing any looping
@@ -282,9 +280,11 @@
       Each channel has it's own @link(TLoopingChannel.Volume)
       that can be changed at any point.
 
-      All the looping channels (managed through this) play simultaneously,
-      in addition to all other (looping and non-looping) sounds created
-      by @link(Sound). }
+      All the looping channels play simultaneously.
+
+      Note: Alternative way to play looping non-spatial sounds
+      is to use @link(Play) with @link(TCastlePlayingSound) (setting
+      @link(TCastlePlayingSound.Loop) to @true). }
     property LoopingChannel [const Index: Cardinal]: TLoopingChannel
       read GetLoopingChannel;
 
@@ -806,21 +806,31 @@ end;
 
 procedure TRepoSoundEngine.LoadFromConfig(const Config: TCastleConfig);
 begin
+  {$warnings off} // using deprecated from deprecated
   inherited;
+  {$warnings on}
+
   Volume := Config.GetFloat('sound/volume', DefaultVolume);
+  {$warnings off} // using deprecated from deprecated
   MusicPlayer.Volume := Config.GetFloat('sound/music/volume',
     TLoopingChannel.DefaultVolume);
+  {$warnings on}
 end;
 
 procedure TRepoSoundEngine.SaveToConfig(const Config: TCastleConfig);
 begin
   Config.SetDeleteFloat('sound/volume', Volume, DefaultVolume);
+  {$warnings off} // using deprecated from deprecated
   { This may be called from destructors and the like, so better check
     that MusicPlayer is not nil. }
   if FLoopingChannels <> nil then
     Config.SetDeleteFloat('sound/music/volume',
       MusicPlayer.Volume, TLoopingChannel.DefaultVolume);
+  {$warnings on}
+
+  {$warnings off} // using deprecated from deprecated
   inherited;
+  {$warnings on}
 end;
 
 function TRepoSoundEngine.GetLoopingChannel(const Index: Cardinal): TLoopingChannel;

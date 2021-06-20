@@ -71,8 +71,8 @@ type
   { Behavior to play spatial sounds, that automatically follow
     the parent @link(TCastleTransform) transformation.
     Multiple such behaviors may be attached to a single TCastleTransform
-    (if you need to play multiple looping sounds, or have multiple playback settings
-    like Volume). }
+    (if you need to play multiple looping sounds, or want to have multiple
+    playback settings like different @link(Volume) control). }
   TCastleSoundSource = class(TCastleBehavior)
   strict private
     var
@@ -110,7 +110,7 @@ type
 
       Use the TCastlePlayingSound properties to provide additional information
       about the sound playback.
-      E.g. assign @link(TCastlePlayingSound.Looping)
+      E.g. assign @link(TCastlePlayingSound.Loop)
       @link(TCastlePlayingSound.OnStop) or control sound afterwards by
       @link(TCastlePlayingSound.Stop), @link(TCastlePlayingSound.Offset).
 
@@ -118,10 +118,12 @@ type
       to manage the lifetime of the @link(TCastlePlayingSound) instance. }
     procedure Play(const PlayingSound: TCastlePlayingSoundSource);
   published
-    { Sound to play, looping.
+    { Sound to play, always looping.
+
       Note that this is not the only sound possible to play using this
       @link(TCastleSoundSource). You can play any other @link(TCastleSound)
-      instance, defined anywhere, by calling @link(Play) here. }
+      or @link(TCastlePlayingSoundSource) instance (looping or not looping)
+      by calling @link(Play) method. }
     property Sound: TCastleSound read FSound write SetSound;
 
     { Is the sound playback spatialized. Affects sounds played by assigning @link(Sound)
@@ -306,7 +308,7 @@ begin
     Params.Position   := SoundPosition;
     Params.Buffer     := ASound.InternalBuffer;
     Params.Spatial    := Spatial;
-    Params.Looping    := PlayingSound.Looping;
+    Params.Loop       := PlayingSound.Loop;
     Params.Importance := DefaultSoundImportance;
     Params.Pitch      := ASound.Pitch;
     Params.Volume     := ASound.Volume;
@@ -350,13 +352,13 @@ begin
 
     scAfterBufferCreated:
       begin
-        { Looping and Follow = true, it seems most natural for sounds set as TCastleSoundSource.Sound. }
+        { Loop and Follow = true, it seems most natural for sounds set as TCastleSoundSource.Sound. }
         if (Sound <> nil) and (Parent <> nil) then
         begin
           MainPlayingSound := TCastlePlayingSoundSource.Create(nil);
           MainPlayingSound.Sound := Sound;
           MainPlayingSound.FreeOnStop := true;
-          MainPlayingSound.Looping := true;
+          MainPlayingSound.Loop := true;
           Play(MainPlayingSound);
         end;
       end;
