@@ -1010,6 +1010,7 @@ begin
     ///glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_ENABLE_BIT);
     OldDepthTest := RenderContext.DepthTest;
     RenderContext.DepthTest := true;
+    {$ifndef OpenGLES}
     if InternalUseOldShadowVolumes then
     begin
       glDisable(GL_LIGHTING);
@@ -1019,6 +1020,7 @@ begin
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       glEnable(GL_BLEND);
     end;
+    {$endif not OpenGLES}
     RenderShadowVolumes;
     ///glPopAttrib;
     RenderContext.DepthTest := OldDepthTest;
