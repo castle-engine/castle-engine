@@ -85,6 +85,7 @@ type
   TUIState = class(TCastleUserInterface)
   private
     FStartContainer: TUIContainer;
+    FStartContainerObserver: TFreeNotificationObserver;
     FInterceptInput, FFreeWhenStopped: boolean;
     FFreeAtStop: TComponent;
     FWaitingForRender: TNotifyEventList;
@@ -101,6 +102,9 @@ type
 
     procedure InternalStart;
     procedure InternalStop;
+    procedure StartContainerFreeNotification(const Sender: TFreeNotificationObserver);
+    { Stop yourself and remove from FStateStack, if present there. }
+    procedure StopIfStarted;
 
     { Design* private routines }
     procedure SetDesignUrl(const Value: String);
@@ -655,6 +659,7 @@ begin
   StateContainer.Fps.ZeroNextSecondsPassed;
 
   FStartContainer := StateContainer;
+  FStartContainerObserver.Observed := FStartContainer;
 
   LoadDesign;
 
@@ -671,7 +676,9 @@ end;
 
 procedure TUIState.InternalStop;
 begin
-  StateContainer.Controls.Remove(Self);
+  // when container is csDestroying, the StateContainer.Controls may be invalid
+  if not (csDestroying in StateContainer.ComponentState) then
+    StateContainer.Controls.Remove(Self);
 
   Stop;
 
@@ -682,10 +689,24 @@ begin
   UnLoadDesign;
 
   FStartContainer := nil;
+  FStartContainerObserver.Observed := nil;
   FreeAndNil(FFreeAtStop);
 
   if Log then
     WritelnLog('UIState', 'Stopped state ' + Name + ': ' + ClassName);
+end;
+
+procedure TUIState.StartContainerFreeNotification(
+  const Sender: TFreeNotificationObserver);
+begin
+  { If FStartContainer is being freed, we need to stop now.
+    Otherwise later, InternalStop would surely fail, as it would try
+    to access invalid FStartContainer reference.
+    See https://github.com/castle-engine/castle-engine/issues/307 . }
+  StopIfStarted;
+
+  { Through InternalStop, above always sets FStartContainer to nil }
+  Assert(FStartContainer = nil);
 end;
 
 function TUIState.StateContainer: TUIContainer;
@@ -709,6 +730,8 @@ begin
   FullSize := true;
   FWaitingForRender := TNotifyEventList.Create;
   FCallBeforeUpdate := TNotifyEventList.Create;
+  FStartContainerObserver := TFreeNotificationObserver.Create(Self);
+  FStartContainerObserver.OnFreeNotification := @StartContainerFreeNotification;
 end;
 
 constructor TUIState.CreateUntilStopped;
@@ -717,9 +740,8 @@ begin
   FFreeWhenStopped := true;
 end;
 
-destructor TUIState.Destroy;
+procedure TUIState.StopIfStarted;
 begin
-  { finish yourself and remove from FStateStack, if present there }
   if (FStateStack <> nil) and
      (FStateStack.IndexOf(Self) <> -1) then
   begin
@@ -732,7 +754,11 @@ begin
     if FStateStack.Count = 0 then
       FreeAndNil(FStateStack);
   end;
+end;
 
+destructor TUIState.Destroy;
+begin
+  StopIfStarted;
   UnLoadDesign;
   UnPreloadDesign;
   FreeAndNil(FWaitingForRender);
