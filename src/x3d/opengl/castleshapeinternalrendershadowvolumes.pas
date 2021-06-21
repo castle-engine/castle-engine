@@ -270,35 +270,56 @@ var
 
     procedure RenderCaps(const T: TTriangle3);
     begin
-      if LightCap then
-      begin
-        if DepthNever then
-        begin
-          TriangleCoordsDepthNever.FdPoint.Items.Add(T.Data[0]);
-          TriangleCoordsDepthNever.FdPoint.Items.Add(T.Data[1]);
-          TriangleCoordsDepthNever.FdPoint.Items.Add(T.Data[2]);
-        end else
-        begin
-          TriangleCoords.FdPoint.Items.Add(T.Data[0]);
-          TriangleCoords.FdPoint.Items.Add(T.Data[1]);
-          TriangleCoords.FdPoint.Items.Add(T.Data[2]);
-        end;
-      end;
 
-      if DarkCap then
+      if not InternalShadowVolumesUseDepth then
       begin
-        {if DepthNever then
+        if LightCap then
         begin
-          TriangleCoordsDepthNever.FdPoint.Items.Add(ExtrudeVertex(T.Data[2], LightPos));
-          TriangleCoordsDepthNever.FdPoint.Items.Add(ExtrudeVertex(T.Data[1], LightPos));
-          TriangleCoordsDepthNever.FdPoint.Items.Add(ExtrudeVertex(T.Data[0], LightPos));
-        end
-        else}
+          if DepthNever then
           begin
-            TriangleCoords.FdPoint.Items.Add(ExtrudeVertex(T.Data[2], LightPos));
-            TriangleCoords.FdPoint.Items.Add(ExtrudeVertex(T.Data[1], LightPos));
-            TriangleCoords.FdPoint.Items.Add(ExtrudeVertex(T.Data[0], LightPos));
+            TriangleCoordsCups.FdPoint.Items.Add(T.Data[0]);
+            TriangleCoordsCups.FdPoint.Items.Add(T.Data[1]);
+            TriangleCoordsCups.FdPoint.Items.Add(T.Data[2]);
+          end else
+          begin
+            TriangleCoords.FdPoint.Items.Add(T.Data[0]);
+            TriangleCoords.FdPoint.Items.Add(T.Data[1]);
+            TriangleCoords.FdPoint.Items.Add(T.Data[2]);
           end;
+        end;
+
+        if DarkCap then
+        begin
+          {if DepthNever then
+          begin
+            TriangleCoordsCups.FdPoint.Items.Add(ExtrudeVertex(T.Data[2], LightPos));
+            TriangleCoordsCups.FdPoint.Items.Add(ExtrudeVertex(T.Data[1], LightPos));
+            TriangleCoordsCups.FdPoint.Items.Add(ExtrudeVertex(T.Data[0], LightPos));
+          end
+          else}
+            begin
+              TriangleCoords.FdPoint.Items.Add(ExtrudeVertex(T.Data[2], LightPos));
+              TriangleCoords.FdPoint.Items.Add(ExtrudeVertex(T.Data[1], LightPos));
+              TriangleCoords.FdPoint.Items.Add(ExtrudeVertex(T.Data[0], LightPos));
+            end;
+        end;
+      end else
+      begin
+        // for Depth
+
+        if LightCap then
+        begin
+          TriangleCoordsCups.FdPoint.Items.Add(T.Data[0]);
+          TriangleCoordsCups.FdPoint.Items.Add(T.Data[1]);
+          TriangleCoordsCups.FdPoint.Items.Add(T.Data[2]);
+        end;
+
+        if DarkCap then
+        begin
+          TriangleCoordsCups.FdPoint.Items.Add(ExtrudeVertex(T.Data[2], LightPos));
+          TriangleCoordsCups.FdPoint.Items.Add(ExtrudeVertex(T.Data[1], LightPos));
+          TriangleCoordsCups.FdPoint.Items.Add(ExtrudeVertex(T.Data[0], LightPos));
+        end;
       end;
     end;
 
@@ -412,13 +433,38 @@ var
     procedure OpaqueTrianglesBegin;
     begin
       if LightCap or DarkCap then
-        DepthNever := true;
+        if InternalShadowVolumesUseDepth then
+          TriangleCoordsCups.FdPoint.Items.Clear
+        else
+          DepthNever := true;
     end;
 
     procedure OpaqueTrianglesEnd;
+    var
+      Params: TBasicRenderParams;
+      Matrix: TMatrix4;
     begin
       if LightCap or DarkCap then
-        DepthNever := false;
+        if InternalShadowVolumesUseDepth then
+        begin
+          TriangleCoordsCups.FdPoint.Changed;
+
+          Params := TBasicRenderParams.Create;
+          try
+            Params.RenderingCamera := RenderingCamera;
+            Params.TransformIdentity := true;
+            Params.Transparent := false;
+            Matrix := TMatrix4.Identity;
+            Params.Transform := @Matrix;
+            Params.ShadowVolumesReceivers := [true];
+
+            RenderContext.DepthFunc := dfNever;
+            TCastleScene(SceneForShadowVolumesCups).Render(Params);
+          finally
+            FreeAndNil(Params);
+          end;
+        end else
+          DepthNever := false;
     end;
 
     procedure TransparentTriangles;
@@ -431,10 +477,42 @@ var
       DarkCap := LightPos.Data[3] <> 0;
     end;
 
+    procedure TransparentTrianglesBegin;
+    begin
+      { Caps are always needed, doesn't depend on zpass/zfail.
+        Well, for dark cap we can avoid them if the light is directional. }
+      LightCap := true;
+      DarkCap := LightPos.Data[3] <> 0;
+      TriangleCoordsCups.FdPoint.Items.Clear;
+    end;
+
+    procedure TransparentTrianglesEnd;
+    var
+      Params : TBasicRenderParams;
+      Matrix: TMatrix4;
+    begin
+      TriangleCoordsCups.FdPoint.Changed;
+
+      Params := TBasicRenderParams.Create;
+      try
+        Params.RenderingCamera := RenderingCamera;
+        Params.TransformIdentity := true;
+        Params.Transparent := false;
+        Matrix := TMatrix4.Identity;
+        Params.Transform := @Matrix;
+        Params.ShadowVolumesReceivers := [true];
+
+        RenderContext.DepthFunc := dfLessEqual;
+        TCastleScene(SceneForShadowVolumesCups).Render(Params);
+      finally
+        FreeAndNil(Params);
+      end;
+    end;
+
   var
     TrianglePtr: PTriangle3;
     I: Integer;
-    Opaque: Boolean;
+//    Opaque: Boolean;
   begin
     TrianglesPlaneSide.Count := Triangles.Count;
     TrianglePtr := PTriangle3(Triangles.List);
@@ -442,10 +520,14 @@ var
     { If light is directional, no need to render dark cap }
     DarkCap := DarkCap and (LightPos.Data[3] <> 0);
 
-    Opaque := ForceOpaque or not (TShape(FShape).AlphaChannel = acBlending);
+    //Opaque := ForceOpaque or not (TShape(FShape).AlphaChannel = acBlending);
     if ForceOpaque or not (TShape(FShape).AlphaChannel = acBlending) then
-      OpaqueTrianglesBegin else
-      TransparentTriangles;
+      OpaqueTrianglesBegin
+    else
+      if InternalShadowVolumesUseDepth then
+        TransparentTrianglesBegin
+      else
+        TransparentTriangles;
 
     //if Opaque then
     for I := 0 to Triangles.Count - 1 do
@@ -455,7 +537,12 @@ var
     end;
 
     if ForceOpaque or not (TShape(FShape).AlphaChannel = acBlending) then
-      OpaqueTrianglesEnd;
+      OpaqueTrianglesEnd
+    else
+      if InternalShadowVolumesUseDepth then
+        TransparentTrianglesEnd
+      else
+        TransparentTriangles;
   end;
 
   procedure InitializeInternalScenes;
@@ -505,9 +592,9 @@ var
       TCastleScene(SceneForShadowVolumes).Load(RootNode, true);
     end;
 
-    if SceneDepthNever = nil then
+    if SceneForShadowVolumesCups = nil then
     begin
-      SceneDepthNever := TCastleScene.Create(nil);
+      SceneForShadowVolumesCups := TCastleScene.Create(nil);
 
       RootNode := TX3DRootNode.Create;
 
@@ -517,11 +604,11 @@ var
       ApperanceNode := TAppearanceNode.Create;
       ApperanceNode.Material := MaterialNode;
 
-      TriangleCoordsDepthNever := TCoordinateNode.Create;
+      TriangleCoordsCups := TCoordinateNode.Create;
 
       TriangleSetNode := TTriangleSetNode.Create;
       TriangleSetNode.Solid := false;
-      TriangleSetNode.Coord := TriangleCoordsDepthNever;
+      TriangleSetNode.Coord := TriangleCoordsCups;
 
       ShapeNode := TShapeNode.Create;
       ShapeNode.Geometry := TriangleSetNode;
@@ -529,21 +616,21 @@ var
 
       RootNode.AddChildren(ShapeNode);
 
-      TCastleScene(SceneDepthNever).Load(RootNode, true);
+      TCastleScene(SceneForShadowVolumesCups).Load(RootNode, true);
     end;
 
   end;
 
   procedure ClearInternalScenes;
   begin
-    TriangleCoordsDepthNever.FdPoint.Items.Clear;
+    TriangleCoordsCups.FdPoint.Items.Clear;
     TriangleCoords.FdPoint.Items.Clear;
     QuadCoords.FdPoint.Items.Clear;
   end;
 
   procedure UpdateInternalScenes;
   begin
-    TriangleCoordsDepthNever.FdPoint.Changed;
+    TriangleCoordsCups.FdPoint.Changed;
     TriangleCoords.FdPoint.Changed;
     QuadCoords.FdPoint.Changed;
   end;
@@ -633,12 +720,16 @@ begin
     Params.Transform := @Matrix;
     Params.ShadowVolumesReceivers := [true];
 
-    //RenderContext.DepthFunc := dfNever;
-    glEnable(GL_POLYGON_OFFSET_FILL);
-    glPolygonOffset(1, 1);
-    TCastleScene(SceneDepthNever).Render(Params);
-    glDisable(GL_POLYGON_OFFSET_FILL);
-    //RenderContext.DepthFunc := dfLessEqual;
+    if not InternalShadowVolumesUseDepth then
+    begin
+      glEnable(GL_POLYGON_OFFSET_FILL);
+      glPolygonOffset(1, 1);
+
+      TCastleScene(SceneForShadowVolumesCups).Render(Params);
+      glDisable(GL_POLYGON_OFFSET_FILL);
+    end else
+      RenderContext.DepthFunc := dfLessEqual;
+
     TCastleScene(SceneForShadowVolumes).Render(Params);
   finally
     FreeAndNil(Params);

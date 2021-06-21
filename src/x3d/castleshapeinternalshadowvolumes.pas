@@ -108,8 +108,8 @@ type
     QuadCoords: TCoordinateNode;
     TriangleCoords: TCoordinateNode;
 
-    SceneDepthNever: TObject;
-    TriangleCoordsDepthNever: TCoordinateNode;
+    SceneForShadowVolumesCups: TObject;
+    TriangleCoordsCups: TCoordinateNode;
 
     constructor Create(const AShape: TObject);
     destructor Destroy; override;
@@ -189,7 +189,7 @@ end;
 destructor TShapeShadowVolumes.Destroy;
 begin
   FreeAndNil(SceneForShadowVolumes);
-  FreeAndNil(SceneDepthNever);
+  FreeAndNil(SceneForShadowVolumesCups);
   { free FTrianglesList* variables }
   InvalidateTrianglesListShadowCasters;
   { frees FManifoldEdges, FBorderEdges if needed }

@@ -238,6 +238,7 @@ type
 var
   InternalUseOldShadowVolumes: Boolean = false;
   InternalRenderOld: Boolean = false;
+  InternalShadowVolumesUseDepth: Boolean = false;
 
 implementation
 
