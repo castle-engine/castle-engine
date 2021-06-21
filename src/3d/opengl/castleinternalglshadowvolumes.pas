@@ -227,10 +227,17 @@ type
       const Render3D: TSVRenderParamsProc;
       const RenderShadowVolumes: TSVRenderProc;
       const DrawShadowVolumes: boolean);
+
+    procedure RenderOld(
+      const Params: TRenderParams;
+      const Render3D: TSVRenderParamsProc;
+      const RenderShadowVolumes: TSVRenderProc;
+      const DrawShadowVolumes: boolean);
   end;
 
 var
   InternalUseOldShadowVolumes: Boolean = false;
+  InternalRenderOld: Boolean = false;
 
 implementation
 
@@ -636,6 +643,197 @@ begin
   end;
 end;
 
+procedure TGLShadowVolumeRenderer.RenderOld(
+  const Params: TRenderParams;
+  const Render3D: TSVRenderParamsProc;
+  const RenderShadowVolumes: TSVRenderProc;
+  const DrawShadowVolumes: boolean);
+{$ifdef OpenGLES}
+begin
+  // TODO-es
+  Params.Transparent := false; Params.ShadowVolumesReceivers := [false, true]; Render3D(Params);
+  Params.Transparent := true ; Params.ShadowVolumesReceivers := [false, true]; Render3D(Params);
+{$else}
+
+const
+  { Which stencil bits should be tested when determining which things
+    are in the scene ?
+
+    Not only *while rendering* shadow quads but also *after this rendering*
+    value in stencil buffer may be > 1 (so you need more than 1 bit
+    to hold it in stencil buffer).
+
+    Why ? It's obvious that *while rendering* (e.g. right after rendering
+    all front quads) this value may be > 1. But when the point
+    is in the shadow because it's inside more than one shadow
+    (cast by 2 different shadow quads) then even *after rendering*
+    this point will have value > 1.
+
+    So it's important that this constant spans a couple of bits.
+    More precisely, it should be the maximum number of possibly overlapping
+    front shadow quads from any possible camera view. Practically speaking,
+    it will always be too little (for complicated shadow casters),
+    but stencil_wrap will hopefully in this case minimize artifacts. }
+  StencilShadowBits = $FF;
+var
+  OldCount: boolean;
+begin
+  Params.InShadow := false;
+  Params.Transparent := false;
+  Params.ShadowVolumesReceivers := [false];
+  Render3D(Params);
+
+  Params.InShadow := true;
+  Params.Transparent := false;
+  Params.ShadowVolumesReceivers := [true];
+  Render3D(Params);
+
+  glEnable(GL_STENCIL_TEST);
+    { Note that stencil buffer is set to all 0 now. }
+
+    glPushAttrib(GL_ENABLE_BIT
+      { saves Enable(GL_DEPTH_TEST), Enable(GL_CULL_FACE) });
+      glEnable(GL_DEPTH_TEST);
+
+      { Calculate shadows to the stencil buffer.
+        Don't write anything to depth or color buffers. }
+      glSetDepthAndColorWriteable(false);
+        glStencilFunc(GL_ALWAYS, 0, 0);
+
+        if StencilTwoSided then
+        begin
+          StencilSetupKind := ssFrontAndBack;
+          RenderShadowVolumes;
+        end else
+        begin
+          glEnable(GL_CULL_FACE);
+
+          { Render front facing shadow shadow volume faces. }
+          StencilSetupKind := ssFront;
+          glCullFace(GL_BACK);
+          RenderShadowVolumes;
+
+          { Render back facing shadow shadow volume faces. }
+          StencilSetupKind := ssBack;
+          OldCount := Count;
+          Count := false;
+          glCullFace(GL_FRONT);
+          RenderShadowVolumes;
+          Count := OldCount;
+        end;
+
+      glSetDepthAndColorWriteable(true);
+    glPopAttrib;
+  glDisable(GL_STENCIL_TEST);
+
+  { Now render everything once again, with lights turned on.
+    But render only things not in shadow.
+
+    ----------------------------------------
+    Long (but maybe educational) explanation why glDepthFunc(GL_LEQUAL)
+    below is crucial:
+
+    What should I do with depth buffer ? Now it contains opaque
+    never-shadowed things, and all shadowed things.
+    At some time (see revision 2048 in Kambi SVN repository on kocury) I called
+    glClear(GL_DEPTH_BUFFER_BIT) before rendering shadowed things for the
+    second time. While this seems to work, the 2nd pass leaves the depth-buffer
+    untouched on shadowed places. So it creates a whole
+    lot of problems for rendering transparent things at the end:
+    1. I have to render them before glClear(GL_DEPTH_BUFFER_BIT),
+       since they can be occluded by any level parts (shadowed on not).
+    2. I have to render them once again (but only into depth buffer,
+       i.e. with temporary
+       glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE))
+       after glClear(GL_DEPTH_BUFFER_BIT), since they can occlude
+       non-shadowed level parts.
+
+    This is easy doable for opaque parts. But what about transparent
+    things? In other words, where should we call
+    Render3D(Transparent=true, ShadowVolumesReceivers=false)
+    and Render3D(Transparent=true, InShadow=false, ShadowVolumesReceivers=true)?
+    They should be rendered but they don't affect depth buffer.
+    Well, clearly, they have to be rendered
+    before glClear(GL_DEPTH_BUFFER_BIT) (for the same reason that
+    opaque parts must: because they can be occluded by any level
+    part, shadowed or not). But rendering non-shadowed parts may then
+    cover them (since they cannot be rendered to depth buffer).
+    So I should render them once again, but *only at the places
+    where Render_Shadowed_Lights below passed the stencil test (=0) and the depth test*.
+    But the second condition is not so easy (I would have to change stencil
+    buffer once again, based on Level.Render hits).
+
+    The simpler version, to just render them second time everywhere where
+    were not in shadow, i.e. stencil test (=0) passes would be no good:
+    we would render transparent things twice in the places on the level
+    when they are not in shadow.
+
+    So basically, it's all doable, but not trivial, and (more important)
+    I'm losing rendering time on handling this. And without taking proper care
+    about transparent parts, transparent things
+    may be e.g. visible through the walls,
+    in the places where shadow falls on the wall.
+
+    This was all talking assuming that we do glClear(GL_DEPTH_BUFFER_BIT)
+    before the 2nd pass. But do we really have to ? No!
+    It's enough to just set depth test GL_LEQUAL (instead of default
+    GL_LESS) and then the 2nd pass will naturally cover the level
+    rendered in the 1st pass. That's all, it's easy to implement,
+    works perfectly, and is fast.
+
+    End of long explanation about glDepthFunc(GL_LEQUAL).
+    ----------------------------------------
+  }
+
+  { for now, InternalPass is only 0 or 1, and 1 is used only here }
+  Assert(Params.InternalPass = 0);
+  Inc(Params.InternalPass);
+
+  glPushAttrib(GL_DEPTH_BUFFER_BIT { for glDepthFunc });
+    glDepthFunc(GL_LEQUAL);
+
+    { setup stencil : don't modify stencil, stencil test passes only for =0 }
+    glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+    glStencilFunc(GL_EQUAL, 0, StencilShadowBits);
+    glEnable(GL_STENCIL_TEST);
+      Inc(Params.StencilTest);
+      Params.InShadow := false;
+      Params.Transparent := false;
+      Params.ShadowVolumesReceivers := [true];
+      Render3D(Params);
+      Dec(Params.StencilTest);
+    glDisable(GL_STENCIL_TEST);
+  glPopAttrib();
+
+  if DrawShadowVolumes then
+  begin
+    OldCount := Count;
+    Count := false;
+    glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_ENABLE_BIT);
+      glEnable(GL_DEPTH_TEST);
+      glDisable(GL_LIGHTING);
+      glColor4f(1, 1, 0, 0.3);
+      glDepthMask(GL_FALSE);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      glEnable(GL_BLEND);
+      RenderShadowVolumes;
+    glPopAttrib;
+    Count := OldCount;
+  end;
+
+  Params.InShadow := false;
+  Params.Transparent := true;
+  Params.ShadowVolumesReceivers := [true];
+  Render3D(Params);
+
+  Params.InShadow := false;
+  Params.Transparent := true;
+  Params.ShadowVolumesReceivers := [false];
+  Render3D(Params);
+{$endif}
+end;
+
+
 procedure TGLShadowVolumeRenderer.Render(
   const Params: TRenderParams;
   const Render3D: TSVRenderParamsProc;
@@ -667,6 +865,14 @@ var
   OldDepthTest: Boolean;
   OldDepthFunc: TDepthFunction;
 begin
+  {$ifndef OpenGLES}
+  if InternalRenderOld then
+  begin
+    RenderOld(Params, Render3D, RenderShadowVolumes, DrawShadowVolumes);
+    Exit;
+  end;
+  {$endif not OpenGLES}
+
   Params.InShadow := false;
   Params.Transparent := false;
   Params.ShadowVolumesReceivers := [false];
