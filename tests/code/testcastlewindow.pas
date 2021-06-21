@@ -37,6 +37,7 @@ type
     procedure TestFocus;
     procedure TestEventLoop;
     procedure TestViewportPositionTo;
+    procedure TestStateAutoStop;
   end;
 
 implementation
@@ -45,7 +46,7 @@ uses SysUtils, Classes,
   CastleWindow, CastleControls, CastleStringUtils, CastleKeysMouse,
   CastleUIControls, CastleRectangles, CastleOnScreenMenu, CastleComponentSerialize,
   CastleInspectorControl, CastleCameras, CastleSceneManager, CastleVectors,
-  CastleTransform, CastleScene, CastleApplicationProperties;
+  CastleTransform, CastleScene, CastleApplicationProperties, CastleUIState;
 
 procedure TTestWindow.Test1;
 var
@@ -386,6 +387,46 @@ begin
       Vector2(150.00, 150.00)
     );
   finally FreeAndNil(Window) end;
+end;
+
+procedure TTestWindow.TestStateAutoStop;
+
+{ Test something similar to https://github.com/castle-engine/castle-engine/issues/307 .
+
+  However, this was always working, it does *not* reproduce what
+  https://github.com/castle-engine/castle-engine/issues/307 did.
+  There is TCastleControlBase that does
+
+    procedure TCastleForm.WindowOpen(Sender: TObject);
+    begin
+      TCastleControlBase.MainControl := Window;
+      CastleApp := TCastleApp.Create(Window);
+      TUIState.Current := CastleApp;
+      Window.Container.UIScaling := usNone;
+    end;
+}
+
+var
+  Window: TCastleWindowBase;
+  SomeState: TUIState;
+begin
+  Window := TCastleWindowBase.Create(nil);
+  try
+    Application.MainWindow := Window;
+
+    Window.Open;
+    SomeState := TUIState.Create(Window);
+    TUIState.Current := SomeState;
+  finally
+    { let freeing Window cause everything else:
+      - freeing of SomeState
+      - stopping of SomeState
+      - closing of Window
+    }
+    FreeAndNil(Window);
+  end;
+
+  Application.MainWindow := nil;
 end;
 
 initialization
