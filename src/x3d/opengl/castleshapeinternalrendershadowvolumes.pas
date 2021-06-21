@@ -279,9 +279,13 @@ var
           TriangleCoordsDepthNever.FdPoint.Items.Add(T.Data[2]);
         end else
         begin
-          TriangleCoords.FdPoint.Items.Add(T.Data[0]);
+          TriangleCoordsDepthOK.FdPoint.Items.Add(T.Data[0]);
+          TriangleCoordsDepthOK.FdPoint.Items.Add(T.Data[1]);
+          TriangleCoordsDepthOK.FdPoint.Items.Add(T.Data[2]);
+
+          {TriangleCoords.FdPoint.Items.Add(T.Data[0]);
           TriangleCoords.FdPoint.Items.Add(T.Data[1]);
-          TriangleCoords.FdPoint.Items.Add(T.Data[2]);
+          TriangleCoords.FdPoint.Items.Add(T.Data[2]);}
         end;
       end;
 
@@ -295,9 +299,13 @@ var
         end
         else
           begin
-            TriangleCoords.FdPoint.Items.Add(ExtrudeVertex(T.Data[2], LightPos));
+            TriangleCoordsDepthOK.FdPoint.Items.Add(ExtrudeVertex(T.Data[2], LightPos));
+            TriangleCoordsDepthOK.FdPoint.Items.Add(ExtrudeVertex(T.Data[1], LightPos));
+            TriangleCoordsDepthOK.FdPoint.Items.Add(ExtrudeVertex(T.Data[0], LightPos));
+
+            {TriangleCoords.FdPoint.Items.Add(ExtrudeVertex(T.Data[2], LightPos));
             TriangleCoords.FdPoint.Items.Add(ExtrudeVertex(T.Data[1], LightPos));
-            TriangleCoords.FdPoint.Items.Add(ExtrudeVertex(T.Data[0], LightPos));
+            TriangleCoords.FdPoint.Items.Add(ExtrudeVertex(T.Data[0], LightPos));}
           end;
       end;
     end;
@@ -425,6 +433,8 @@ var
     begin
       { Caps are always needed, doesn't depend on zpass/zfail.
         Well, for dark cap we can avoid them if the light is directional. }
+      //LightCap := false;
+      //DarkCap := false;
       LightCap := true;
       DarkCap := LightPos.Data[3] <> 0;
     end;
@@ -432,6 +442,7 @@ var
   var
     TrianglePtr: PTriangle3;
     I: Integer;
+    Opaque: Boolean;
   begin
     TrianglesPlaneSide.Count := Triangles.Count;
     TrianglePtr := PTriangle3(Triangles.List);
@@ -439,10 +450,12 @@ var
     { If light is directional, no need to render dark cap }
     DarkCap := DarkCap and (LightPos.Data[3] <> 0);
 
+    Opaque := ForceOpaque or not (TShape(FShape).AlphaChannel = acBlending);
     if ForceOpaque or not (TShape(FShape).AlphaChannel = acBlending) then
       OpaqueTrianglesBegin else
       TransparentTriangles;
 
+    //if Opaque then
     for I := 0 to Triangles.Count - 1 do
     begin
       TrianglesPlaneSide.L[I] := PlaneSide(TrianglePtr^);
@@ -526,6 +539,35 @@ var
 
       TCastleScene(SceneDepthNever).Load(RootNode, true);
     end;
+
+    if SceneDepthOK = nil then
+    begin
+      SceneDepthOK := TCastleScene.Create(nil);
+
+      RootNode := TX3DRootNode.Create;
+
+      MaterialNode := TMaterialNode.Create;
+      MaterialNode.EmissiveColor := RedRGB;
+
+      ApperanceNode := TAppearanceNode.Create;
+      ApperanceNode.Material := MaterialNode;
+
+      TriangleCoordsDepthOK := TCoordinateNode.Create;
+
+      TriangleSetNode := TTriangleSetNode.Create;
+      TriangleSetNode.Solid := false;
+      TriangleSetNode.Coord := TriangleCoordsDepthOK;
+
+      ShapeNode := TShapeNode.Create;
+      ShapeNode.Geometry := TriangleSetNode;
+      ShapeNode.Appearance := ApperanceNode;
+
+      RootNode.AddChildren(ShapeNode);
+
+      TCastleScene(SceneDepthOK).Load(RootNode, true);
+    end;
+
+
   end;
 
   procedure ClearInternalScenes;
@@ -533,6 +575,7 @@ var
     TriangleCoordsDepthNever.FdPoint.Items.Clear;
     TriangleCoords.FdPoint.Items.Clear;
     QuadCoords.FdPoint.Items.Clear;
+    TriangleCoordsDepthOK.FdPoint.Items.Clear;
   end;
 
   procedure UpdateInternalScenes;
@@ -540,6 +583,7 @@ var
     TriangleCoordsDepthNever.FdPoint.Changed;
     TriangleCoords.FdPoint.Changed;
     QuadCoords.FdPoint.Changed;
+    TriangleCoordsDepthOK.FdPoint.Changed;
   end;
 
 var
@@ -551,6 +595,7 @@ var
   BorderEdgesNow: TBorderEdgeList;
   BorderEdgePtr: PBorderEdge;
   Params: TBasicRenderParams;
+  Matrix: TMatrix4;
 begin
   {$ifndef OpenGLES}
   if InternalUseOldShadowVolumes then
@@ -622,16 +667,21 @@ begin
     Params.RenderingCamera := RenderingCamera;
     Params.TransformIdentity := true;
     Params.Transparent := false;
-    //Matrix := TMatrix4.Identity;
-    //Params.Transform := @Matrix;
+    Matrix := TMatrix4.Identity;
+    Params.Transform := @Matrix;
     Params.ShadowVolumesReceivers := [true];
+    //Params.;
 
-    RenderContext.DepthFunc := dfNever;
+
+    //RenderContext.DepthFunc := dfNever;
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    glPolygonOffset(1, 1);
     TCastleScene(SceneDepthNever).Render(Params);
-
+    glDisable(GL_POLYGON_OFFSET_FILL);
+    TCastleScene(SceneDepthOK).Render(Params);
     RenderContext.DepthFunc := dfLessEqual;
+    //
     TCastleScene(SceneForShadowVolumes).Render(Params);
-
   finally
     FreeAndNil(Params);
   end;

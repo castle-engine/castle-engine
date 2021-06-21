@@ -111,6 +111,9 @@ type
     SceneDepthNever: TObject;
     TriangleCoordsDepthNever: TCoordinateNode;
 
+    SceneDepthOK: TObject;
+    TriangleCoordsDepthOK: TCoordinateNode;
+
     constructor Create(const AShape: TObject);
     destructor Destroy; override;
 
