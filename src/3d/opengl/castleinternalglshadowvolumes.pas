@@ -915,11 +915,11 @@ begin
     glCullFace(GL_FRONT);
     RenderShadowVolumes;
     Count := OldCount;
+    RenderContext.CullFace := OldCullFace;
   end;
 
   glSetDepthAndColorWriteable(true);
   RenderContext.DepthTest := OldDepthTest;
-  RenderContext.CullFace := OldCullFace;
   glDisable(GL_STENCIL_TEST);
 
   { Now render everything once again, with lights turned on.
