@@ -279,33 +279,25 @@ var
           TriangleCoordsDepthNever.FdPoint.Items.Add(T.Data[2]);
         end else
         begin
-          TriangleCoordsDepthOK.FdPoint.Items.Add(T.Data[0]);
-          TriangleCoordsDepthOK.FdPoint.Items.Add(T.Data[1]);
-          TriangleCoordsDepthOK.FdPoint.Items.Add(T.Data[2]);
-
-          {TriangleCoords.FdPoint.Items.Add(T.Data[0]);
+          TriangleCoords.FdPoint.Items.Add(T.Data[0]);
           TriangleCoords.FdPoint.Items.Add(T.Data[1]);
-          TriangleCoords.FdPoint.Items.Add(T.Data[2]);}
+          TriangleCoords.FdPoint.Items.Add(T.Data[2]);
         end;
       end;
 
       if DarkCap then
       begin
-        if DepthNever then
+        {if DepthNever then
         begin
           TriangleCoordsDepthNever.FdPoint.Items.Add(ExtrudeVertex(T.Data[2], LightPos));
           TriangleCoordsDepthNever.FdPoint.Items.Add(ExtrudeVertex(T.Data[1], LightPos));
           TriangleCoordsDepthNever.FdPoint.Items.Add(ExtrudeVertex(T.Data[0], LightPos));
         end
-        else
+        else}
           begin
-            TriangleCoordsDepthOK.FdPoint.Items.Add(ExtrudeVertex(T.Data[2], LightPos));
-            TriangleCoordsDepthOK.FdPoint.Items.Add(ExtrudeVertex(T.Data[1], LightPos));
-            TriangleCoordsDepthOK.FdPoint.Items.Add(ExtrudeVertex(T.Data[0], LightPos));
-
-            {TriangleCoords.FdPoint.Items.Add(ExtrudeVertex(T.Data[2], LightPos));
+            TriangleCoords.FdPoint.Items.Add(ExtrudeVertex(T.Data[2], LightPos));
             TriangleCoords.FdPoint.Items.Add(ExtrudeVertex(T.Data[1], LightPos));
-            TriangleCoords.FdPoint.Items.Add(ExtrudeVertex(T.Data[0], LightPos));}
+            TriangleCoords.FdPoint.Items.Add(ExtrudeVertex(T.Data[0], LightPos));
           end;
       end;
     end;
@@ -540,34 +532,6 @@ var
       TCastleScene(SceneDepthNever).Load(RootNode, true);
     end;
 
-    if SceneDepthOK = nil then
-    begin
-      SceneDepthOK := TCastleScene.Create(nil);
-
-      RootNode := TX3DRootNode.Create;
-
-      MaterialNode := TMaterialNode.Create;
-      MaterialNode.EmissiveColor := RedRGB;
-
-      ApperanceNode := TAppearanceNode.Create;
-      ApperanceNode.Material := MaterialNode;
-
-      TriangleCoordsDepthOK := TCoordinateNode.Create;
-
-      TriangleSetNode := TTriangleSetNode.Create;
-      TriangleSetNode.Solid := false;
-      TriangleSetNode.Coord := TriangleCoordsDepthOK;
-
-      ShapeNode := TShapeNode.Create;
-      ShapeNode.Geometry := TriangleSetNode;
-      ShapeNode.Appearance := ApperanceNode;
-
-      RootNode.AddChildren(ShapeNode);
-
-      TCastleScene(SceneDepthOK).Load(RootNode, true);
-    end;
-
-
   end;
 
   procedure ClearInternalScenes;
@@ -575,7 +539,6 @@ var
     TriangleCoordsDepthNever.FdPoint.Items.Clear;
     TriangleCoords.FdPoint.Items.Clear;
     QuadCoords.FdPoint.Items.Clear;
-    TriangleCoordsDepthOK.FdPoint.Items.Clear;
   end;
 
   procedure UpdateInternalScenes;
@@ -583,7 +546,6 @@ var
     TriangleCoordsDepthNever.FdPoint.Changed;
     TriangleCoords.FdPoint.Changed;
     QuadCoords.FdPoint.Changed;
-    TriangleCoordsDepthOK.FdPoint.Changed;
   end;
 
 var
@@ -678,9 +640,7 @@ begin
     glPolygonOffset(1, 1);
     TCastleScene(SceneDepthNever).Render(Params);
     glDisable(GL_POLYGON_OFFSET_FILL);
-    TCastleScene(SceneDepthOK).Render(Params);
     RenderContext.DepthFunc := dfLessEqual;
-    //
     TCastleScene(SceneForShadowVolumes).Render(Params);
   finally
     FreeAndNil(Params);
