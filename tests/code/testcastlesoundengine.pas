@@ -24,8 +24,6 @@ uses
 
 type
   TTestCastleSoundEngine = class(TCastleTestCase)
-  private
-    procedure WavNonPcmWarning(const Category, S: string);
   published
     procedure TestLoadBufferException;
     procedure TestNotPcmEncodingWarning;
@@ -71,27 +69,23 @@ begin
   except on ESoundFileError do ; end;
 end;
 
-type
-  EWavNonPcm = class(Exception);
-
-procedure TTestCastleSoundEngine.WavNonPcmWarning(const Category, S: string);
-begin
-  if Pos('Loading WAV files not in PCM format not implemented', S) <> 0 then
-    raise EWavNonPcm.Create('Good, we have warning: ' + S);
-end;
-
 procedure TTestCastleSoundEngine.TestNotPcmEncodingWarning;
 begin
   if SoundEngine.IsContextOpenSuccess then
   begin
-    ApplicationProperties.OnWarning.Add(@WavNonPcmWarning);
     try
       SoundEngine.RepositoryURL := 'castle-data:/sound/not_pcm_encoding/index.xml';
-      Fail('Should have raised EWavNonPcm');
+      Fail('Should have raised EWavLoadError');
     except
-      on EWavNonPcm do ; // good, we expect this
+      on E: Exception do
+      begin
+        if Pos('Loading WAV files not in PCM format not implemented', E.Message) > 0 then
+        begin
+          // good, we expect this
+        end else
+          raise;
+      end;
     end;
-    ApplicationProperties.OnWarning.Remove(@WavNonPcmWarning);
   end else
     Writeln('OpenAL cannot be initialized, TestNotPcmEncodingWarning doesn''t really do anything');
 end;
@@ -102,6 +96,10 @@ var
 begin
   Params := TPlaySoundParameters.Create;
   try
+    AssertSameValue(0.5, Params.Priority);
+    AssertTrue(Params.Importance > 0);
+
+    Params.Importance := 0;
     AssertSameValue(0.0, Params.Priority);
     AssertEquals(0.0, Params.Importance);
 
@@ -114,7 +112,7 @@ begin
     AssertEquals(PlayerSoundImportance, Params.Importance);
 
     Params.Importance := DefaultSoundImportance;
-    AssertSameValue(0.1, Params.Priority, 0.01);
+    AssertSameValue(0.01, Params.Priority, 0.001);
     AssertEquals(DefaultSoundImportance, Params.Importance);
   finally FreeAndNil(Params) end;
 end;
