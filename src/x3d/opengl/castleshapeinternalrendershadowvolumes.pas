@@ -632,15 +632,13 @@ begin
     Matrix := TMatrix4.Identity;
     Params.Transform := @Matrix;
     Params.ShadowVolumesReceivers := [true];
-    //Params.;
-
 
     //RenderContext.DepthFunc := dfNever;
     glEnable(GL_POLYGON_OFFSET_FILL);
     glPolygonOffset(1, 1);
     TCastleScene(SceneDepthNever).Render(Params);
     glDisable(GL_POLYGON_OFFSET_FILL);
-    RenderContext.DepthFunc := dfLessEqual;
+    //RenderContext.DepthFunc := dfLessEqual;
     TCastleScene(SceneForShadowVolumes).Render(Params);
   finally
     FreeAndNil(Params);
