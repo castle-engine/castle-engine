@@ -92,8 +92,7 @@ castle-game-engine-*.fpm
 /examples/animations/play_animation/play_animation
 /examples/animations/resource_animations/resource_animations
 /examples/animations/simultaneous_animations_one_scene/simultaneous_animations_one_scene
-/examples/audio/audio_player_scrubber/audio_player_scrubber
-/examples/audio/audio_player_scrubber/lib/
+/examples/audio/audio_player/audio_player
 /examples/audio/doppler_demo/doppler_demo
 /examples/audio/internal/fmod_api_test/fmod_api_test
 /examples/audio/play_sounds/play_sounds

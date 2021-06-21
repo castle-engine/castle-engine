@@ -1,4 +1,4 @@
-program audio_player_scrubber;
+program audio_player;
 
 {$mode objfpc}{$H+}
 
