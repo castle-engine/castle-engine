@@ -35,7 +35,7 @@
   private
     FUsed: boolean;
     FOnRelease: TInternalSoundSourceEvent;
-    FImportance: Integer;
+    FPriority: Single;
     FUserData: TObject;
     FPosition, FVelocity: TVector3;
     FLoop, FSpatial: boolean;
@@ -56,6 +56,7 @@
     procedure SetRolloffFactor(const Value: Single);
     procedure SetReferenceDistance(const Value: Single);
     procedure SetMaxDistance(const Value: Single);
+    procedure SetPriority(const Value: Single);
     function GetOffset: Single;
     procedure SetOffset(const Value: Single);
 
@@ -78,11 +79,8 @@
     property Used: boolean read FUsed default false;
 
     { The priority of keeping this source, relevant only when @link(Used).
-
-      Higher Importance means that it's more important to keep it.
-      (I didn't name this property "Priority" so that it's obvious
-      that higher Importance means more important sound). }
-    property Importance: Integer read FImportance default 0;
+      See TCastleSound.Priority for the exact meaning and range. }
+    property Priority: Single read FPriority write SetPriority default 0.0;
 
     { Any data comfortable to keep here by the caller of
       TSoundAllocator.AllocateSound. It should be initialized
@@ -93,7 +91,7 @@
     { Called when this sound will no longer be used.
       This may happen because it simply finished playing,
       or when there are more demanding
-      sounds (see @link(Importance) and to keep MaxAllocatedSources)
+      sounds (see @link(Priority) and to keep MaxAllocatedSources)
       and we must use this sound source for something else.
 
       When this event occurs, you should forget (e.g. set to @nil) all
@@ -196,14 +194,14 @@
 
   TInternalSoundSourceList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TInternalSoundSource>)
   public
-    { Sort sounds by Used + Importance, descending.
+    { Sort sounds by Used + Priority, descending.
       First all sounds with Used = @true are placed,
-      starting from the sound with largest Importance, and so on
-      until the sound with smallest Importance.
+      starting from the sound with largest Priority, and so on
+      until the sound with smallest Priority.
       Then all sounds with Used = @false are placed (in any, arbitrary order).
 
       List must not contain nil values when calling this. }
-    procedure SortByImportance;
+    procedure SortByPriority;
   end;
 
 {$endif read_interface}
@@ -328,6 +326,12 @@ begin
   Backend.SetMaxDistance(Value);
 end;
 
+procedure TInternalSoundSource.SetPriority(const Value: Single);
+begin
+  FPriority := Value;
+  Backend.SetPriority(Value);
+end;
+
 function TInternalSoundSource.GetOffset: Single;
 begin
   Result := Backend.Offset;
@@ -366,23 +370,23 @@ end;
 
 { TInternalSoundSourceList ----------------------------------------------------- }
 
-function IsSmallerByImportance(constref AA, BB: TInternalSoundSource): Integer;
+function IsSmallerByPriority(constref AA, BB: TInternalSoundSource): Integer;
 begin
   if (AA.Used and (not BB.Used)) or
-     (AA.Used and BB.Used and (AA.Importance > BB.Importance)) then
+     (AA.Used and BB.Used and (AA.Priority > BB.Priority)) then
     Result := -1 else
   if (BB.Used and (not AA.Used)) or
-     (BB.Used and AA.Used and (BB.Importance > AA.Importance)) then
+     (BB.Used and AA.Used and (BB.Priority > AA.Priority)) then
     Result :=  1 else
     Result :=  0;
 end;
 
-procedure TInternalSoundSourceList.SortByImportance;
+procedure TInternalSoundSourceList.SortByPriority;
 type
   TInternalSoundSourceComparer = {$ifdef CASTLE_OBJFPC}specialize{$endif} TComparer<TInternalSoundSource>;
 begin
   Sort(TInternalSoundSourceComparer.Construct(
-    {$ifdef CASTLE_OBJFPC}@{$endif} IsSmallerByImportance));
+    {$ifdef CASTLE_OBJFPC}@{$endif} IsSmallerByPriority));
 end;
 
 {$endif read_implementation}

@@ -161,6 +161,7 @@ type
     procedure SetRolloffFactor(const Value: Single); virtual; abstract;
     procedure SetReferenceDistance(const Value: Single); virtual; abstract;
     procedure SetMaxDistance(const Value: Single); virtual; abstract;
+    procedure SetPriority(const Value: Single); virtual; abstract;
     function GetOffset: Single; virtual; abstract;
     procedure SetOffset(const Value: Single); virtual; abstract;
     property Offset: Single read GetOffset write SetOffset;

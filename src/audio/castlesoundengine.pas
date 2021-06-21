@@ -40,6 +40,7 @@ type
 {$I castlesoundengine_playingsound.inc}
 {$I castlesoundengine_sound.inc}
 {$I castlesoundengine_allocator.inc}
+{$I castlesoundengine_playsoundparameters.inc}
 {$I castlesoundengine_engine.inc}
 {$I castlesoundengine_repoengine.inc}
 {$I castlesoundengine_loopingchannel.inc}
@@ -62,6 +63,7 @@ uses XMLRead, StrUtils, Generics.Defaults,
 {$I castlesoundengine_playingsound.inc}
 {$I castlesoundengine_sound.inc}
 {$I castlesoundengine_allocator.inc}
+{$I castlesoundengine_playsoundparameters.inc}
 {$I castlesoundengine_engine.inc}
 {$I castlesoundengine_repoengine.inc}
 {$I castlesoundengine_loopingchannel.inc}

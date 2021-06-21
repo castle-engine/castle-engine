@@ -186,7 +186,7 @@ begin
       if SoundNode <> nil then
       begin
         PlayingSound.Loop := Loop;
-        // TODO: PlayingSound.Importance := Clamped(Round(SoundNode.Priority * 1000), 0, 1000);
+        PlayingSound.Sound.Priority := SoundNode.Priority;
         PlayingSound.Sound.Volume := SoundNode.Intensity;
         PlayingSound.Sound.Pitch := SafePitch;
         { We pass min/maxFront as OpenAL reference distance/max distance,

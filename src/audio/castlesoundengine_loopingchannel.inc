@@ -110,7 +110,7 @@ begin
     Parameters.Buffer     := Sound.InternalBuffer;
     Parameters.Spatial    := false;
     Parameters.Loop       := true;
-    Parameters.Importance := { TODO SoundInfo.DefaultImportance } DefaultSoundImportance;
+    Parameters.Priority   := Sound.Priority;
     Parameters.Pitch      := Pitch * Sound.Pitch;
     Parameters.Volume     := Volume * Sound.Volume;
     {$warnings off} // using unportable symbols knowingly
@@ -181,7 +181,7 @@ begin
       begin
         if FAllocatedSource <> nil then
         begin
-          // FAllocatedSource.Importance := { TODO SoundInfo.DefaultImportance } DefaultSoundImportance;
+          FAllocatedSource.Priority := Sound.Priority;
           FAllocatedSource.Pitch   := Pitch * Sound.Pitch;
           FAllocatedSource.Volume  := Volume * Sound.Volume;
           {$warnings off} // using unportable symbols knowingly

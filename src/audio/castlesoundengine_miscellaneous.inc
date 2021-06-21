@@ -66,12 +66,12 @@ const
     will do nothing when called with this sound type. }
   stNone: TCastleSound = nil deprecated 'use nil';
 
-  MaxSoundImportance = MaxInt;
-  LevelEventSoundImportance      = 100000;
-  PlayerSoundImportance          = 10000;
-  DefaultCreatureSoundImportance = 1000;
-  MinorNonSpatialSoundImportance = 100;
-  DefaultSoundImportance         = 10;
+  MaxSoundImportance             = MaxInt deprecated 'use TCastleSound.Priority, which is float, and figure out good priorities for your game';
+  LevelEventSoundImportance      = 100000 deprecated 'use TCastleSound.Priority, which is float, and figure out good priorities for your game';
+  PlayerSoundImportance          = 10000  deprecated 'use TCastleSound.Priority, which is float, and figure out good priorities for your game';
+  DefaultCreatureSoundImportance = 1000   deprecated 'use TCastleSound.Priority, which is float, and figure out good priorities for your game';
+  MinorNonSpatialSoundImportance = 100    deprecated 'use TCastleSound.Priority, which is float, and figure out good priorities for your game';
+  DefaultSoundImportance         = 10     deprecated 'use TCastleSound.Priority, which is float, and figure out good priorities for your game';
 
   dmNone                    = CastleSoundBase.dmNone;
   dmInverseDistance         = CastleSoundBase.dmInverseDistance;
@@ -94,7 +94,7 @@ const
   engine class. Created on first call to this function. }
 function SoundEngine: TRepoSoundEngine;
 
-{ The sound engine, but may be @nil very early in initialiazation / very late in finalization.
+{ The sound engine, but may be @nil very early in initialization / very late in finalization.
   @exclude }
 function InternalSoundEngine: TRepoSoundEngine;
 
@@ -122,6 +122,38 @@ end;
 function InternalSoundEngine: TRepoSoundEngine;
 begin
   Result := FSoundEngine;
+end;
+
+function ImportanceToPriority(const Importance: Cardinal): Single;
+begin
+  { Deprecated importance is translated to priority using the equation
+
+      priority = sqrt(importance) / sqrt(100 * 1000) ~= sqrt(importance) / 316
+
+    Note: 100 * 1000 = LevelEventSoundImportance. So we practically assume
+    it is the maximum.
+
+    Thus
+    - importance = 100 * 1000 is equivalent to priority = 1.0 (max).
+    - importance = 10 * 1000 is equivalent to priority = 0.31.
+    - importance = 10 (DefaultSoundImportance) is equivalent to priority = 0.01.
+
+    This maps the expected importance values into sensible range.
+    And it means that DefaultSoundImportance will not get rounded to zero
+    even with backends like FMOD or Wwise that put limits on priority granularity
+    (FMOD has only 257 levels, Wwise has only 100 levels). }
+
+  {$warnings off} // using deprecated LevelEventSoundImportance
+  Result := Sqrt(Importance) / Sqrt(LevelEventSoundImportance);
+  {$warnings on}
+end;
+
+function PriorityToImportance(const Priority: Single): Cardinal;
+begin
+  // just invert ImportanceToPriority
+  {$warnings off} // using deprecated LevelEventSoundImportance
+  Result := Round(Sqr(Priority * Sqrt(LevelEventSoundImportance)));
+  {$warnings on}
 end;
 
 {$endif read_implementation}

@@ -18,44 +18,6 @@
 
 //type // allow type declaration to continue
 
-  { Parameters to use when playing sound, see @link(TSoundEngine.PlaySound). }
-  TPlaySoundParameters = class
-    Buffer: TInternalSoundBuffer;
-    Spatial, Loop: boolean;
-    Importance: Cardinal;
-
-    { How loud is the sound. By default 1.0. }
-    Volume: Single;
-
-    { MinGain and MaxGain determine how volume can change because of spatialization
-      (where the sound may get quieter / louder as you get further / closer to it).
-      By default MinGain is 0.0, MaxGain is 1.0. }
-    MinGain: Single platform { this feature is only available with OpenAL sound backend };
-    MaxGain: Single platform { this feature is only available with OpenAL sound backend };
-
-    { The position of sound in 3D space.
-      Used only if @link(Spatial) = @true. }
-    Position: TVector3;
-    { Pitch allows to play the sound faster. By default it is 1.0. }
-    Pitch: Single;
-    { See @link(TSoundEngine.DefaultRolloffFactor) for description.
-      The @link(TSoundEngine.DefaultRolloffFactor) is also the default value of this field. }
-    RolloffFactor: Single;
-    { See @link(TSoundEngine.DefaultReferenceDistance) for description.
-      The @link(TSoundEngine.DefaultReferenceDistance) is also the default value of this field. }
-    ReferenceDistance: Single;
-    { See @link(TSoundEngine.DefaultMaxDistance) for description.
-      The @link(TSoundEngine.DefaultMaxDistance) is also the default value of this field. }
-    MaxDistance: Single;
-    { Offset is a position in time of the sound. }
-    Offset: Single;
-    property Gain: Single read Volume write Volume; deprecated 'use Volume';
-    property Looping: Boolean read Loop write Loop; deprecated 'use Loop';
-    constructor Create;
-  end;
-
-  TSoundParameters = TPlaySoundParameters deprecated 'use TPlaySoundParameters';
-
   { Sound engine, responsible for loading and playing sound.
 
     There should always be only one instance of this class,
@@ -243,7 +205,7 @@
     { Play a sound from given buffer.
 
       We use a smart sound allocator, so the sound will be actually
-      played only if resources allow. Use higher Importance to indicate
+      played only if resources allow. Use higher priority to indicate
       sounds that are more important to play.
 
       We set the sound properties and start playing it.
@@ -268,13 +230,13 @@
     function PlaySound(const Buffer: TInternalSoundBuffer): TInternalSoundSource; overload;
       deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.Play to play sounds';
     function PlaySound(const Buffer: TInternalSoundBuffer;
-      const Spatial, Loop: boolean; const Importance: Cardinal;
+      const Spatial, Loop: boolean; const Priority: Single;
       const Volume, MinGain, MaxGain: Single;
       const Position: TVector3;
       const Pitch: Single = 1): TInternalSoundSource; overload;
       deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.Play to play sounds';
     function PlaySound(const Buffer: TInternalSoundBuffer;
-      const Spatial, Loop: boolean; const Importance: Cardinal;
+      const Spatial, Loop: boolean; const Priority: Single;
       const Volume, MinGain, MaxGain: Single;
       const Position: TVector3;
       const Pitch: Single;
@@ -484,21 +446,6 @@
 
 {$ifdef read_implementation}
 
-{ TPlaySoundParameters ----------------------------------------------------------- }
-
-constructor TPlaySoundParameters.Create;
-begin
-  inherited;
-  Volume := 1;
-  {$warnings off} // using unportable symbols knowingly
-  MaxGain := 1;
-  {$warnings on}
-  Pitch := 1;
-  RolloffFactor     := SoundEngine.DefaultRolloffFactor;
-  ReferenceDistance := SoundEngine.DefaultReferenceDistance;
-  MaxDistance       := SoundEngine.DefaultMaxDistance;
-end;
-
 { TSoundEngine --------------------------------------------------------------- }
 
 constructor TSoundEngine.Create;
@@ -571,7 +518,7 @@ begin
     because in case of OpenAL merely using alcGetString(nil, ALC_DEVICE_SPECIFIER)
     may perform some OpenAL initialization (discovery of available devices).
     E.g. with OpenAL Soft 1.13 in Debian. This is not very harmful,
-    but it causes like output (on stdout or stderr) like
+    but it causes output (on stdout or stderr) like
 
       AL lib: pulseaudio.c:612: Context did not connect: Connection refused
       ALSA lib pcm.c:2190:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.rear
@@ -740,7 +687,7 @@ begin
      { Buffer.BackendIsOpen may be false if file failed to load, e.g. file not found }
      Parameters.Buffer.BackendIsOpen then
   begin
-    Result := AllocateSound(Parameters.Importance);
+    Result := AllocateSound(Parameters.Priority);
     if Result <> nil then
     begin
       Result.Buffer  := Parameters.Buffer;
@@ -779,7 +726,7 @@ begin
 end;
 
 function TSoundEngine.PlaySound(const Buffer: TInternalSoundBuffer;
-  const Spatial, Loop: boolean; const Importance: Cardinal;
+  const Spatial, Loop: boolean; const Priority: Single;
   const Volume, MinGain, MaxGain: Single;
   const Position: TVector3;
   const Pitch: Single): TInternalSoundSource;
@@ -791,7 +738,7 @@ begin
     Parameters.Buffer     := Buffer;
     Parameters.Spatial    := Spatial;
     Parameters.Loop       := Loop;
-    Parameters.Importance := Importance;
+    Parameters.Priority   := Priority;
     Parameters.Pitch      := Pitch;
     Parameters.Volume     := Volume;
     {$warnings off} // using unportable symbols knowingly
@@ -806,7 +753,7 @@ begin
 end;
 
 function TSoundEngine.PlaySound(const Buffer: TInternalSoundBuffer;
-  const Spatial, Loop: boolean; const Importance: Cardinal;
+  const Spatial, Loop: boolean; const Priority: Single;
   const Volume, MinGain, MaxGain: Single;
   const Position: TVector3;
   const Pitch, ReferenceDistance, MaxDistance: Single): TInternalSoundSource;
@@ -818,7 +765,7 @@ begin
     Parameters.Buffer     := Buffer;
     Parameters.Spatial    := Spatial;
     Parameters.Loop       := Loop;
-    Parameters.Importance := Importance;
+    Parameters.Priority   := Priority;
     Parameters.Pitch      := Pitch;
     Parameters.Volume     := Volume;
     {$warnings off} // using unportable symbols knowingly
@@ -853,7 +800,7 @@ begin
     SoundType.InternalBuffer,
     { spatial } false,
     Loop,
-    { TODO: SoundType.DefaultImportance } DefaultSoundImportance,
+    SoundType.Priority,
     SoundType.Volume,
     SoundType.MinGain,
     SoundType.MaxGain,
@@ -876,7 +823,7 @@ begin
     SoundType.InternalBuffer,
     { spatial } true,
     Loop,
-    { TODO: SoundType.DefaultImportance } DefaultSoundImportance,
+    SoundType.Priority,
     SoundType.Volume,
     SoundType.MinGain,
     SoundType.MaxGain,
@@ -927,7 +874,7 @@ begin
     Params.Buffer     := ASound.InternalBuffer;
     Params.Spatial    := false;
     Params.Loop       := PlayingSound.Loop;
-    Params.Importance := DefaultSoundImportance; // TODO
+    Params.Priority   := ASound.Priority;
     Params.Pitch      := ASound.Pitch;
     Params.Volume     := ASound.Volume;
     {$warnings off} // using unportable symbols knowingly

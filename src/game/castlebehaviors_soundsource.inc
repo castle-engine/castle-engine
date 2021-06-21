@@ -309,7 +309,7 @@ begin
     Params.Buffer     := ASound.InternalBuffer;
     Params.Spatial    := Spatial;
     Params.Loop       := PlayingSound.Loop;
-    Params.Importance := DefaultSoundImportance;
+    Params.Priority   := ASound.Priority;
     Params.Pitch      := ASound.Pitch;
     Params.Volume     := ASound.Volume;
     {$warnings off} // using unportable symbols knowingly

@@ -29,6 +29,7 @@ type
   published
     procedure TestLoadBufferException;
     procedure TestNotPcmEncodingWarning;
+    procedure TestImportancePriority;
   end;
 
 implementation
@@ -93,6 +94,29 @@ begin
     ApplicationProperties.OnWarning.Remove(@WavNonPcmWarning);
   end else
     Writeln('OpenAL cannot be initialized, TestNotPcmEncodingWarning doesn''t really do anything');
+end;
+
+procedure TTestCastleSoundEngine.TestImportancePriority;
+var
+  Params: TPlaySoundParameters;
+begin
+  Params := TPlaySoundParameters.Create;
+  try
+    AssertSameValue(0.0, Params.Priority);
+    AssertEquals(0.0, Params.Importance);
+
+    Params.Importance := LevelEventSoundImportance;
+    AssertSameValue(1.0, Params.Priority);
+    AssertEquals(LevelEventSoundImportance, Params.Importance);
+
+    Params.Importance := PlayerSoundImportance;
+    AssertSameValue(0.31, Params.Priority, 0.01);
+    AssertEquals(PlayerSoundImportance, Params.Importance);
+
+    Params.Importance := DefaultSoundImportance;
+    AssertSameValue(0.1, Params.Priority, 0.01);
+    AssertEquals(DefaultSoundImportance, Params.Importance);
+  finally FreeAndNil(Params) end;
 end;
 
 initialization

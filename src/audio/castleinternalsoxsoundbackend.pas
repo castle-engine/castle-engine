@@ -69,6 +69,7 @@ type
     procedure SetRolloffFactor(const Value: Single); override;
     procedure SetReferenceDistance(const Value: Single); override;
     procedure SetMaxDistance(const Value: Single); override;
+    procedure SetPriority(const Value: Single); override;
     function GetOffset: Single; override;
     procedure SetOffset(const Value: Single); override;
   end;
@@ -198,6 +199,10 @@ begin
 end;
 
 procedure TSoxSoundSourceBackend.SetMaxDistance(const Value: Single);
+begin
+end;
+
+procedure TSoxSoundSourceBackend.SetPriority(const Value: Single);
 begin
 end;
 

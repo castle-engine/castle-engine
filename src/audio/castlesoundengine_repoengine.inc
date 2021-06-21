@@ -101,12 +101,6 @@
       TSoundInfoBuffer = class(TSoundInfo)
       public
         Sound: TCastleSound;
-
-        // TODO: move to TCastleSound.Priority
-        { How important the sound is. Influences what happens when we have a lot
-          of sounds playing at once. See TInternalSoundSource.Importance. }
-        DefaultImportance: Cardinal;
-
         procedure ReadElement(const Element: TDOMElement;
           const AParentGroup: TSoundGroup;
           const BaseUrl: String; const ASoundEngine: TRepoSoundEngine); override;
@@ -254,8 +248,10 @@
         @item 'default' - DefaultSoundImportance
       ) }
     property SoundImportanceNames: TStringList read FSoundImportanceNames;
+      deprecated 'use Priority, with numeric values';
 
     procedure AddSoundImportanceName(const Name: string; Importance: Integer);
+      deprecated 'use Priority, with numeric values';
 
     { Comfortable way to play and control the music.
       Simply assign @link(TLoopingChannel.Sound MusicPlayer.Sound)
@@ -486,12 +482,19 @@ begin
 
   if Element.AttributeString('default_importance', ImportanceStr) then
   begin
+    WritelnWarning('Sound "%s": Use "priority" (float, in 0..1 range) instead of "importance" in sounds XML file', [
+      Name
+    ]);
+    {$warnings off} // using deprecated, to keep it working
     SoundImportanceIndex := ASoundEngine.SoundImportanceNames.IndexOf(ImportanceStr);
     if SoundImportanceIndex = -1 then
-      DefaultImportance := StrToInt(ImportanceStr)
+      Sound.Priority := ImportanceToPriority(StrToInt(ImportanceStr))
     else
-      DefaultImportance := PtrUInt(ASoundEngine.SoundImportanceNames.Objects[SoundImportanceIndex]);
-  end;
+      Sound.Priority := ImportanceToPriority(
+        PtrUInt(ASoundEngine.SoundImportanceNames.Objects[SoundImportanceIndex]));
+    {$warnings on}
+  end else
+    Sound.Priority := Element.AttributeSingleDef('priority', 0.5);
 
   Sound.Stream := Element.AttributeBooleanDef('stream', false);
 
@@ -525,12 +528,14 @@ begin
     there's no definite reason actually to not let them ignore case. }
   FSoundImportanceNames := TStringList.Create;
   FSoundImportanceNames.CaseSensitive := true;
+  {$warnings off} // using deprecated to keep it working
   AddSoundImportanceName('max', MaxSoundImportance);
   AddSoundImportanceName('level_event', LevelEventSoundImportance);
   AddSoundImportanceName('player', PlayerSoundImportance);
   AddSoundImportanceName('default_creature', DefaultCreatureSoundImportance);
   AddSoundImportanceName('minor_non_spatial', MinorNonSpatialSoundImportance);
   AddSoundImportanceName('default', DefaultSoundImportance);
+  {$warnings on}
 
   FSoundGroups := TSoundGroupList.Create;
 

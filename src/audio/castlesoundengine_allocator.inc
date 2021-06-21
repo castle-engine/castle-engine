@@ -67,15 +67,15 @@
       It may also happen if we cannot create more sources (because
       we hit MaxAllocatedSources limit, or backend (like OpenAL) just refuses to create
       more sources) and all existing sounds are used and their
-      Importance is > given here Importance.
+      Priority is > given here Priority.
 
       Note for looping sounds: just like any other sound, looping sound
       may be stopped because the sounds are needed for other sounds.
       If you want to try to restart the looping sound, you will have
-      to implement it yourself. Or you can just set Importance of looping
+      to implement it yourself. Or you can just set Priority of looping
       sounds high enough, and don't use too many looping sounds,
       to never let them be eliminated by other sounds. }
-    function AllocateSound(const Importance: Integer): TInternalSoundSource;
+    function AllocateSound(const Priority: Single): TInternalSoundSource;
 
     { All allocated (not necessarily used) sources.
       Accessing this is useful only for debugging tasks,
@@ -145,7 +145,7 @@
       which would be bad for speed (not to mention that it may
       be impossible under some backends, like OpenAL on Windows).
       When all MaxAllocatedSources sources are playing, the only way
-      to play another sound is to use appropriately high @code(Importance)
+      to play another sound is to use appropriately high @code(Priority)
       to AllocateSound.
 
       @groupBegin }
@@ -230,10 +230,10 @@ begin
 end;
 
 function TSoundAllocator.AllocateSound(
-  const Importance: Integer): TInternalSoundSource;
+  const Priority: Single): TInternalSoundSource;
 var
   I: Integer;
-  MinImportanceIndex: Integer;
+  MinPriorityIndex: Integer;
 begin
   Result := nil;
 
@@ -242,24 +242,24 @@ begin
 
   { Try: maybe we have already allocated unused sound ?
     If no unused sound will be found, it will calculate
-    MinImportanceIndex, this will be useful later. }
-  MinImportanceIndex := -1;
+    MinPriorityIndex, this will be useful later. }
+  MinPriorityIndex := -1;
   for I := 0 to FAllocatedSources.Count - 1 do
     if not FAllocatedSources[I].Used then
     begin
       Result := FAllocatedSources[I];
-      { Breaking here means that MinImportanceIndex will not be calculated
+      { Breaking here means that MinPriorityIndex will not be calculated
         correctly (because we did not iterate to the end of FAllocatedSources
         list). But that's OK, because if Result <> nil here, then we will
-        not need MinImportanceIndex later. }
+        not need MinPriorityIndex later. }
       Break;
     end else
     begin
-      { Update MinImportanceIndex }
-      if (MinImportanceIndex = -1) or
-         (FAllocatedSources[I].Importance <
-          FAllocatedSources[MinImportanceIndex].Importance) then
-         MinImportanceIndex := I;
+      { Update MinPriorityIndex }
+      if (MinPriorityIndex = -1) or
+         (FAllocatedSources[I].Priority <
+          FAllocatedSources[MinPriorityIndex].Priority) then
+         MinPriorityIndex := I;
     end;
 
   { Try: maybe one of the allocated sounds is marked as Used,
@@ -290,17 +290,17 @@ begin
 
   { Try: maybe we can remove one more sound ?
 
-    If Result = nil then we know that MinImportanceIndex <> -1, because
+    If Result = nil then we know that MinPriorityIndex <> -1, because
     all sounds must be used and MinAllocatedSources is always > 0,
     so some sound must be used.
 
-    Note that if FAllocatedSources[MinImportanceIndex].Importance
-    is equal to Importance, we *do* interrupt already playing sound.
+    Note that if FAllocatedSources[MinPriorityIndex].Priority
+    is equal to Priority, we *do* interrupt already playing sound.
     The assumption is here that the newer sound is more imoportant. }
   if (Result = nil) and
-     (FAllocatedSources[MinImportanceIndex].Importance <= Importance) then
+     (FAllocatedSources[MinPriorityIndex].Priority <= Priority) then
   begin
-    Result := FAllocatedSources[MinImportanceIndex];
+    Result := FAllocatedSources[MinPriorityIndex];
   end;
 
   if Result <> nil then
@@ -308,7 +308,7 @@ begin
     { Prepare Result }
     if Result.Used then
       Result.Release;
-    Result.FImportance := Importance;
+    Result.FPriority := Priority;
     Result.FUsed := true;
   end;
 end;
@@ -342,7 +342,7 @@ begin
     if (FAllocatedSources <> nil) and
        (Cardinal(FAllocatedSources.Count) > MaxAllocatedSources) then
     begin
-      FAllocatedSources.SortByImportance;
+      FAllocatedSources.SortByPriority;
 
       for I := MaxAllocatedSources to FAllocatedSources.Count - 1 do
       begin

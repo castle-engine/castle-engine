@@ -58,6 +58,7 @@
     FPitch: Single;
     FMinGain: Single;
     FMaxGain: Single;
+    FPriority: Single;
     FChangeNotifications: TCastleSoundChangeEventList;
     procedure SetStream(const Value: Boolean);
     procedure SetURL(const Value: String);
@@ -65,6 +66,7 @@
     procedure SetPitch(const Value: Single);
     procedure SetMinGain(const Value: Single);
     procedure SetMaxGain(const Value: Single);
+    procedure SetPriority(const Value: Single);
     procedure ReloadBuffer;
     procedure DoChange(const Change: TSoundChange);
   protected
@@ -156,6 +158,22 @@
 
       Any value > 0 it allowed. }
     property Pitch: Single read FPitch write SetPitch default 1.0;
+
+    { How important is the sound, between 0.0 (least important) to 1.0 (most important).
+
+      The sound engine sometimes has to interrupt (or even not start at all)
+      playback of some non-important sound, to have a good performance of audio mixing.
+      In these cases, the sound with higher priority always "wins" over sound with lower
+      priority. That is, sound with lower priority will be interrupted (the slot will be "stolen")
+      to make room for sound with higher priority.
+
+      Note: Many sound APIs (Unity, FMOD, Wwise, X3D...) have a similar property,
+      with inconsistent range (minimum, maximum) and inconsistent meaning (some say "lower is more important",
+      some say "higher is more important"). Our treatment of this property is similar to X3D,
+      as it satisfies a number of important points: it defines easy to remember min/max (0 and 1),
+      it is agnostic to the underlying precision (e.g. it has to map to 257 levels in FMOD,
+      100 levels in Wwise). Also, "higher is more important" seems just more natural. }
+    property Priority: Single read FPriority write SetPriority default 0.5;
   end;
 
 {$endif read_interface}
@@ -182,6 +200,7 @@ begin
   FPitch := 1.0;
   FMinGain := 0.0;
   FMaxGain := 1.0;
+  FPriority := 0.5;
   FChangeNotifications := TCastleSoundChangeEventList.Create;
 end;
 
@@ -201,7 +220,7 @@ end;
 function TCastleSound.PropertySections(const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
-    'URL', 'Stream', 'Volume', 'Pitch', 'MinGain', 'MaxGain':
+    'URL', 'Stream', 'Volume', 'Pitch', 'Priority':
       Result := [psBasic];
     else
       Result := inherited PropertySections(PropertyName);
@@ -294,6 +313,15 @@ begin
   if FMaxGain <> Value then
   begin
     FMaxGain := Value;
+    DoChange(scAfterOther);
+  end;
+end;
+
+procedure TCastleSound.SetPriority(const Value: Single);
+begin
+  if FPriority <> Value then
+  begin
+    FPriority := Value;
     DoChange(scAfterOther);
   end;
 end;

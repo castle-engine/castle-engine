@@ -93,6 +93,7 @@ type
     procedure SetRolloffFactor(const Value: Single); override;
     procedure SetReferenceDistance(const Value: Single); override;
     procedure SetMaxDistance(const Value: Single); override;
+    procedure SetPriority(const Value: Single); override;
     function GetOffset: Single; override;
     procedure SetOffset(const Value: Single); override;
   end;
@@ -437,6 +438,17 @@ procedure TFMODSoundSourceBackend.SetMaxDistance(const Value: Single);
 begin
   if not FSpatial then Exit; // apply this only if Spatial
   // TODO
+end;
+
+procedure TFMODSoundSourceBackend.SetPriority(const Value: Single);
+begin
+  { TODO: although we pass it to FMOD, we also manually manage limited sources
+    in TSoundAllocator.
+    We should instead allocate many sound sources (MaxAllocatedSources large?)
+    at let FMOD to do its job. }
+
+  if FMODChannel = nil then Exit;
+  CheckFMOD(FMOD_Channel_SetPriority(FMODChannel, Round(Value * 256)));
 end;
 
 function TFMODSoundSourceBackend.GetOffset: Single;

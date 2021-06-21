@@ -130,6 +130,7 @@ type
     procedure SetRolloffFactor(const Value: Single); override;
     procedure SetReferenceDistance(const Value: Single); override;
     procedure SetMaxDistance(const Value: Single); override;
+    procedure SetPriority(const Value: Single); override;
     function GetOffset: Single; override;
     procedure SetOffset(const Value: Single); override;
   end;
@@ -684,6 +685,12 @@ begin
 
   alSourcef(ALSource, AL_MAX_DISTANCE, Value);
   {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_MAX_DISTANCE, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+end;
+
+procedure TOpenALSoundSourceBackend.SetPriority(const Value: Single);
+begin
+  { Ignored by OpenAL backend,
+    as it depends on our manual management of sound sources in TSoundAllocator. }
 end;
 
 function TOpenALSoundSourceBackend.GetOffset: Single;
