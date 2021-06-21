@@ -78,7 +78,7 @@ end;
 
 procedure TMainForm.CheckBoxLoopChange(Sender: TObject);
 begin
-  PlayingSound.Looping := CheckBoxLoop.Checked;
+  PlayingSound.Loop := CheckBoxLoop.Checked;
 end;
 
 procedure TMainForm.FormCreate(Sender: TObject);

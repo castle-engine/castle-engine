@@ -205,6 +205,7 @@ location
 log
 logic
 long
+loop
 looping
 major
 material
