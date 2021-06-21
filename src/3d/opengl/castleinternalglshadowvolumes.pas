@@ -237,7 +237,7 @@ type
 
 var
   InternalUseOldShadowVolumes: Boolean = false;
-  InternalRenderOld: Boolean = false;
+  InternalShadowVolumesOldRender: Boolean = false;
   InternalShadowVolumesUseDepth: Boolean = false;
 
 implementation
@@ -867,7 +867,7 @@ var
   OldDepthFunc: TDepthFunction;
 begin
   {$ifndef OpenGLES}
-  if InternalRenderOld then
+  if InternalShadowVolumesOldRender then
   begin
     RenderOld(Params, Render3D, RenderShadowVolumes, DrawShadowVolumes);
     Exit;
