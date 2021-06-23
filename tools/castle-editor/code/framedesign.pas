@@ -246,7 +246,13 @@ type
     //procedure SelectionRestoreAndFree(var Selection: Classes.TList);
     //function SelectionSave: Classes.TList;
 
-    { Calculate Selected list, non-nil <=> non-empty }
+    { Get selected component from tree node.
+      Should be used directly only by GetSelected and GetSelectedComponent,
+      and everything else should look at GetSelected and GetSelectedComponent
+      to know selection. }
+    function SelectedFromNode(Node: TTreeNode): TComponent;
+
+    { Calculate all selected components as a list, non-nil <=> non-empty. }
     procedure GetSelected(out Selected: TComponentList;
       out SelectedCount: Integer);
 
@@ -299,6 +305,14 @@ type
     class function Selectable(const Child: TComponent): Boolean; static;
     { Is Child deletable by user (this implies it is also selectable). }
     function Deletable(const Child: TComponent): Boolean;
+    { Rebuild from scratch the hierarchy tree (ControlsTree),
+      also clearing the selection along the way.
+
+      This guarantees that editor UI shows the correct state of everything
+      -- but it is also rather "brutal" solution, rebuilding the hierarchy tree
+      from scratch, resetting tree expand/collapsed state, resetting selection.
+      When possible, use a different, "less brutal" solution
+      to update the hierarchy. }
     procedure UpdateDesign;
     procedure UpdateSelectedControl;
     function ProposeName(const ComponentClass: TComponentClass;
@@ -2120,65 +2134,94 @@ begin
 end;
 
 procedure TDesignFrame.PropertyGridModified(Sender: TObject);
-var
-  Sel: TComponent;
-  UI: TCastleUserInterface;
-begin
-  { Workaround possible ControlsTree.Selected = nil when the user deselects
-    the currently edited component by clicking somewhere else.
-    See https://trello.com/c/V6v2rBwv/75-bug-access-violation-in-castle-editor . }
-  if ControlsTree.Selected = nil then
-  begin
-    UpdateDesign; // Something has changed, but we don't know what exactly. Maybe it's some component's name? Let's rebuild everything to be safe
-    //if not UndoSystem.ScheduleRecordUndoOnRelease then // We don't care here, this situation is an error, so we're saving what we can
-    RecordUndo('', ucLow); // We're recording a generic Undo message
-    Exit;
-  end;
-  // This knows we have selected *at least one* component.
-  // When you modify component Name in PropertyGrid, update it in the ControlsTree.
-  Assert(ControlsTree.Selected <> nil);
-  Assert(ControlsTree.Selected.Data <> nil);
-  Assert(TObject(ControlsTree.Selected.Data) is TComponent);
-  Sel := TComponent(ControlsTree.Selected.Data);
-  ControlsTree.Selected.Text := ComponentCaption(Sel);
 
-  // This checks we have selected *exactly one* component.
-  Sel := SelectedComponent;
-  if Sel <> nil then
-  begin
-    // update also LabelControlSelected
-    LabelControlSelected.Caption := 'Selected:' + NL + ComponentCaption(Sel);
+  { Do a subset of work that UpdateSelectedControl also does:
+    update UI to reflect the current state of selected object,
+    when the properties of the selected object possibly changed
+    (but the selected object stays the same -- otherwise
+    UpdateSelectedControl would do the full job.)
 
-    // update also LabelSizeInfo
-    if Sel is TCastleUserInterface then
+    It also updates ControlsTree,
+    in case you changed the TComponent.Name. }
+  procedure UpdateSelectedControlModified;
+  var
+    Sel: TComponent;
+    SelUI: TCastleUserInterface;
+    SelNode: TTreeNode;
+  begin
+    // This checks we have selected *exactly one* component.
+    Sel := SelectedComponent;
+
+    if Sel <> nil then
     begin
-      UI := Sel as TCastleUserInterface;
-      UpdateLabelSizeInfo(UI);
-      UpdateAnchors(UI, true);
+      // update also LabelControlSelected
+      LabelControlSelected.Caption := 'Selected:' + NL + ComponentCaption(Sel);
+
+      // update also LabelSizeInfo
+      if Sel is TCastleUserInterface then
+      begin
+        SelUI := Sel as TCastleUserInterface;
+        UpdateLabelSizeInfo(SelUI);
+        UpdateAnchors(SelUI, true);
+      end;
+
+      { Note that we use TreeNodeMap to find SelNode,
+        not just assume that SelNode := ControlsTree.Selected.
+        That is because in case of special tree items "Behaviors" or "Non-Visual Components",
+        the ControlsTree.Selected could be different. }
+      if TreeNodeMap.TryGetValue(Sel, SelNode) then
+        SelNode.Text := ComponentCaption(Sel);
     end;
   end;
+
+  procedure DoRecordUndo;
+  var
+    Selected: TComponentList;
+    Sel: TComponent;
+    SelectedCount: Integer;
+  begin
+    GetSelected(Selected, SelectedCount);
+    try
+      if SelectedCount = 0 then
+      begin
+        // Something has changed, but we don't know what exactly. Let's rebuild everything to be safe.
+        UpdateDesign;
+        RecordUndo('', ucLow); // We're recording a generic Undo message
+      end else
+      begin
+        if SelectedCount = 1 then
+          Sel := Selected[0]
+        else
+          Sel := nil;
+
+        if Sender is TOICustomPropertyGrid then
+        begin
+          RecordUndo(
+            UndoMessageModified(Sel, TOICustomPropertyGrid(Sender).GetActiveRow.Name,
+            TOICustomPropertyGrid(Sender).CurrentEditValue, SelectedCount),
+            ucHigh, TOICustomPropertyGrid(Sender).ItemIndex);
+        end else
+        { Sender is nil when PropertyGridModified is called
+          by ModifiedOutsideObjectInspector. }
+        if Sel <> nil then // so SelectedCount = 1
+          RecordUndo('Change ' + Sel.Name, ucLow)
+        else
+        begin
+          // we handled SelectedCount = 0 or 1 above
+          Assert(SelectedCount > 1);
+          RecordUndo('Change multiple components', ucLow)
+        end;
+      end;
+    finally FreeAndNil(Selected) end;
+  end;
+
+begin
+  UpdateSelectedControlModified;
 
   { When UndoSystem.ScheduleRecordUndoOnRelease we ignore changes,
     otherwise we would record an undo for every OnMotion of dragging. }
   if not UndoSystem.ScheduleRecordUndoOnRelease then
-  begin
-    if Sender is TOICustomPropertyGrid then
-    begin
-      RecordUndo(
-        UndoMessageModified(Sel, TOICustomPropertyGrid(Sender).GetActiveRow.Name,
-        TOICustomPropertyGrid(Sender).CurrentEditValue, ControlsTree.SelectionCount),
-        ucHigh, TOICustomPropertyGrid(Sender).ItemIndex);
-    end else
-      { Sender is nil when PropertyGridModified is called
-        by ModifiedOutsideObjectInspector. }
-      if Sel <> nil then
-        RecordUndo('Change ' + Sel.Name, ucLow)
-      else
-      if ControlsTree.SelectionCount > 1 then
-        RecordUndo('Change multiple components', ucLow)
-      else
-        RecordUndo('', ucLow)
-  end;
+    DoRecordUndo;
 
   MarkModified;
 end;
@@ -2362,23 +2405,38 @@ begin
   InternalCastleDesignInvalidate := false;
 end;
 
+function TDesignFrame.SelectedFromNode(Node: TTreeNode): TComponent;
+begin
+  // This should never be called with Node = nil
+  Assert(Node <> nil);
+
+  { In case of special tree items "Behaviors" or "Non-Visual Components",
+    treat parent as selected. }
+  if Node.Data = nil then
+  begin
+    Node := Node.Parent;
+    if Node = nil then
+    begin
+      WritelnWarning('No parent of special node (without the associated TComponent), this should not happen');
+      Exit(nil);
+    end;
+    if Node.Data = nil then
+    begin
+      WritelnWarning('Parent of special node (without the associated TComponent) also has no associated TComponent, this should not happen');
+      Exit(nil);
+    end;
+  end;
+
+  Assert(Node.Data <> nil);
+  Assert(TObject(Node.Data) is TComponent); // we only store nil or TComponent instance in Node.Data
+  Result := TComponent(Node.Data);
+end;
+
 procedure TDesignFrame.GetSelected(out Selected: TComponentList;
   out SelectedCount: Integer);
 
-  function SelectedFromNode(const Node: TTreeNode): TComponent;
-  var
-    SelectedObject: TObject;
-  begin
-    SelectedObject := nil;
-    Result := nil;
-
-    if Node <> nil then
-    begin
-      SelectedObject := TObject(Node.Data);
-      if SelectedObject is TComponent then
-        Result := TComponent(SelectedObject);
-    end;
-  end;
+{ This implementation is synchronized with GetSelectedComponent closely,
+  as GetSelectedComponent needs to do something similar. }
 
 var
   I: Integer;
@@ -2393,7 +2451,10 @@ begin
     begin
       if Selected = nil then
         Selected := TComponentList.Create(false);
-      Selected.Add(C);
+      { Avoid duplicates that could occur if you select a component
+        and special tree item "Behaviors" or "Non-Visual Components" within. }
+      if Selected.IndexOf(C) = -1 then
+        Selected.Add(C);
     end;
   end;
 
@@ -2436,11 +2497,55 @@ begin
 end;
 
 function TDesignFrame.GetSelectedComponent: TComponent;
+
+{ This implementation is synchronized with GetSelected closely.
+  Naive version (creating TComponentList, that also registers notifications
+  -- so it has some cost) is defined below, and you can use Assert
+  to make sure it is equal to the optimized one. }
+
+  function GetSelectedComponentNaive: TComponent;
+  var
+    Selected: TComponentList;
+    SelectedCount: Integer;
+  begin
+    GetSelected(Selected, SelectedCount);
+    try
+      if SelectedCount = 1 then
+        Result := Selected[0]
+      else
+        Result := nil;
+    finally FreeAndNil(Selected) end;
+  end;
+
+var
+  I: Integer;
+  C: TComponent;
 begin
-  if ControlsTree.SelectionCount = 1 then
-    Result := TComponent(ControlsTree.Selections[0].Data)
-  else
-    Result := nil;
+  Result := nil;
+
+  for I := 0 to ControlsTree.SelectionCount - 1 do
+  begin
+    C := SelectedFromNode(ControlsTree.Selections[I]);
+    if C <> nil then
+    begin
+      if Result <> nil then
+      begin
+        if Result <> C then
+        begin
+          { more than one component selected -> exit nil }
+          Assert(nil = GetSelectedComponentNaive);
+          Exit(nil);
+        end;
+        { else C is the same thing as already selected
+          (possible when you select both the component and its special child like "Behaviors"),
+          so do nothing }
+      end else
+        { at least one component is selected }
+        Result := C;
+    end;
+  end;
+
+  Assert(Result = GetSelectedComponentNaive);
 end;
 
 procedure TDesignFrame.SetSelectedComponent(const Value: TComponent);
@@ -2572,6 +2677,13 @@ var
 begin
   try
     Sel := TComponent(Node.Data);
+    if Sel = nil then
+    begin
+      // may be nil on special tree items "Behaviors" or "Non-Visual Components"
+      WritelnWarning('Node data is nil at ControlsTreeEditingEnd, this should not happen');
+      Exit;
+    end;
+
     UndoComment := 'Rename ' + Sel.Name + ' into ' + Node.Text;
     { Without this check, one could change Sel.Name to empty ('').
       Although TComponent.SetName checks that it's a valid Pascal identifier already,
@@ -2671,7 +2783,13 @@ end;
 
 function TDesignFrame.RenamePossible: Boolean;
 begin
-  Result := ControlsTree.SelectionCount = 1;
+  { Note: do not check GetSelectedComponent <> nil,
+    as a component may also be selected indirectly by selecting
+    special tree items "Behaviors" or "Non-Visual Components" underneath.
+    For rename, it has to be selected directly. }
+  Result :=
+    (ControlsTree.SelectionCount = 1) and
+    (ControlsTree.Selections[0].Data <> nil);
 end;
 
 procedure TDesignFrame.RenameSelectedItem;
