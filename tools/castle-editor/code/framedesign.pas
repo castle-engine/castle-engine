@@ -2499,10 +2499,15 @@ end;
 function TDesignFrame.GetSelectedComponent: TComponent;
 
 { This implementation is synchronized with GetSelected closely.
-  Naive version (creating TComponentList, that also registers notifications
-  -- so it has some cost) is defined below, and you can use Assert
-  to make sure it is equal to the optimized one. }
 
+  Naive version (using GetSelected to create TComponentList,
+  that also registers notifications -- so it has some cost) is defined below,
+  and you can use Assert to make sure it is equal to the optimized one.
+  But it is commented out now, as the editor just uses debug mode now always,
+  for simplicity -- as there are no practical points when it needs optimization.
+  *This* optimization is also not practical, i.e. not proven by any test. }
+
+{
   function GetSelectedComponentNaive: TComponent;
   var
     Selected: TComponentList;
@@ -2516,6 +2521,7 @@ function TDesignFrame.GetSelectedComponent: TComponent;
         Result := nil;
     finally FreeAndNil(Selected) end;
   end;
+}
 
 var
   I: Integer;
@@ -2533,7 +2539,7 @@ begin
         if Result <> C then
         begin
           { more than one component selected -> exit nil }
-          Assert(nil = GetSelectedComponentNaive);
+          // Assert(nil = GetSelectedComponentNaive);
           Exit(nil);
         end;
         { else C is the same thing as already selected
@@ -2545,7 +2551,7 @@ begin
     end;
   end;
 
-  Assert(Result = GetSelectedComponentNaive);
+  // Assert(Result = GetSelectedComponentNaive);
 end;
 
 procedure TDesignFrame.SetSelectedComponent(const Value: TComponent);
