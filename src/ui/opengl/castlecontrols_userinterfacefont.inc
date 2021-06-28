@@ -105,9 +105,9 @@
       TCastleUserInterface.TooltipRender to customize the tooltip drawing. }
     property Tooltip: string read FTooltip write FTooltip;
 
-    { When non-nil, this font will be used to draw this control.
-      Otherwise the @link(TUIContainer.DefaultFont) will be used,
-      or the global @link(UIFont). }
+    { Font used to render text of this control.
+      When this is @nil then the @link(TUIContainer.DefaultFont) is used,
+      or (when @link(TUIContainer.DefaultFont) is also @nil) the global @link(UIFont). }
     property CustomFont: TCastleAbstractFont
       read FCustomFont write SetCustomFont;
 

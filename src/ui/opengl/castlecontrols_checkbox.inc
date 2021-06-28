@@ -39,6 +39,8 @@
     procedure SetAutoSize(const Value: Boolean);
     procedure SetFontSize(const Value: Single);
     procedure SetCheckboxSize(const Value: Single);
+    function GetCustomFont: TCastleAbstractFont;
+    procedure SetCustomFont(const Value: TCastleAbstractFont);
   protected
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
     function GetInternalText: String; override;
@@ -84,6 +86,12 @@
     { Size of the square checkbox. }
     property CheckboxSize: Single read FCheckboxSize write SetCheckboxSize
       default DefaultCheckboxSize;
+
+    { Font used for the caption.
+      When this is @nil then the @link(TUIContainer.DefaultFont) is used,
+      or (when @link(TUIContainer.DefaultFont) is also @nil) the global @link(UIFont). }
+    property CustomFont: TCastleAbstractFont
+      read GetCustomFont write SetCustomFont;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlecheckbox_persistent_vectors.inc}
@@ -333,7 +341,7 @@ function TCastleCheckbox.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
-    'Caption', 'Checked':
+    'Caption', 'Checked', 'CustomFont', 'FontSize':
       Result := [psBasic];
     'AutoSize':
       Result := [psLayout];
@@ -359,6 +367,19 @@ begin
     TranslatePropertyEvent(Self, 'Caption', S);
     Caption := S;
   end;
+end;
+
+function TCastleCheckbox.GetCustomFont: TCastleAbstractFont;
+begin
+  Result := FLabelCaption.CustomFont;
+end;
+
+procedure TCastleCheckbox.SetCustomFont(const Value: TCastleAbstractFont);
+begin
+  { Note: we do not have local FCustomFont field in TCastleCheckbox,
+    as then we'd need free notification to nil it.
+    It is easier to just get/set FLabelCaption.CustomFont now. }
+  FLabelCaption.CustomFont := Value;
 end;
 
 {$define read_implementation_methods}
