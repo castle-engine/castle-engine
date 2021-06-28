@@ -463,7 +463,7 @@ begin
   for Layer in Map.Layers do
   begin
     if not Layer.Visible then Continue;
-    if (Layer is TTiledMap.TObjectGroupLayer) or
+    if (Layer is TTiledMap.TObjectGroupLayer) or   // Why not render here? See below.*
        (Layer is TTiledMap.TImageLayer) then
       Continue;
 
@@ -474,6 +474,11 @@ begin
         RenderTile(Layer, X, Y);
   end;
 
+  { *Redundant? Better to render the layer at cond. above at
+    (Layer is TTiledMap.TObjectGroupLayer). Would make redundant property
+    ObjectsVisible obsolete. This property is not found in the tmx tile specs.,
+    but covered by TLayer.Visible already. See:
+    https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#objectgroup }
   if FObjectsVisible then
     RenderObjects;
 end;

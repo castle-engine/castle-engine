@@ -238,7 +238,7 @@ uses CastleClassUtils, CastleImages, CastleURIUtils, CastleStringUtils,
   X3DLoadInternalCollada, X3DLoadInternalSpine, X3DLoadInternalSTL,
   X3DLoadInternalMD3, X3DLoadInternalGLTF, X3DLoadInternalImage,
   X3DLoadInternalCocos2d, CastleInternalNodeInterpolator,
-  CastleInternalSpritesheet, CastleDownload;
+  CastleInternalSpritesheet, CastleDownload, X3DLoadInternalTiledMap;
 
 { Load a sequence of nodes to an animation suitable for TNodeInterpolator.
   Allows to read sequence of static models as an animation,
@@ -467,6 +467,10 @@ begin
   if (MimeType = 'application/x-plist') or
      (MimeType = 'application/x-cocos2d-sprite-sheet') then
     Result := LoadCocos2d(Stream, BaseUrl)
+  else
+
+  if MimeType = 'application/x-tiled-map' then
+    Result := LoadTiledMap2d(Stream, BaseUrl)
   else
 
   { Support for simple graphics images like PNG }
