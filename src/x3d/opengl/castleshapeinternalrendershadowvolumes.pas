@@ -201,7 +201,7 @@ var
   procedure RenderShadowQuad(EdgePtr: PManifoldEdge;
     const P0Index, P1Index: Cardinal); overload;
   var
-    V0, V1: TVector3;
+    V0, V1, DirectionalLight: TVector3;
     EdgeV0, EdgeV1: PVector3;
     TrianglePtr: PTriangle3;
   begin
@@ -223,7 +223,11 @@ var
     begin
       TriangleCoords.FdPoint.Items.Add(V0);
       TriangleCoords.FdPoint.Items.Add(V1);
-      TriangleCoords.FdPoint.Items.Add(Vector3(LightPos[0], LightPos[1], LightPos[2]));
+      // When we will have 4 coordinates support we can do simply:
+      // TriangleCoords.FdPoint.Items.Add(LightPos);
+      DirectionalLight := Vector3(LightPos[0], LightPos[1], LightPos[2]);
+      DirectionalLight.NormalizeMe;
+      TriangleCoords.FdPoint.Items.Add(DirectionalLight * 1000000);
     end;
   end;
 
