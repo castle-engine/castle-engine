@@ -441,97 +441,53 @@ end;
 { TData ---------------------------------------------------------------------- }
 
 procedure TTiledMap.TData.Load(const Element: TDOMElement; const BaseUrl: String);
-const
-  BufferSize = 16;
-  CSVDataSeparator = Char(',');
-var
-  I: TXMLElementIterator;
-  TmpStr, RawData: string;
-  Decompressor: TStream;
-  Decoder: TBase64DecodingStream;
-  Buffer: array[0..BufferSize-1] of Cardinal;
-  DataCount, DataLength: Longint;
-  CSVItem: string;
-  tmpChar, p: PChar;
-  CSVDataCount: Cardinal;
-  UsePlainXML: Boolean;
-begin
-  UsePlainXML := False;
-  Decoder := nil;
-  try
-    Encoding := etNone;
-    Compression := ctNone;
-    if Element.AttributeString('encoding', TmpStr) then
-      case TmpStr of
-        'base64': Encoding := etBase64;
-        'csv': Encoding := etCSV;
-      end;
-    if Element.AttributeString('compression', TmpStr) then
-      case TmpStr of
-        'gzip': Compression := ctGzip;
-        'zlib': Compression := ctZLib;
-      end;
 
-    if (Encoding = etNone) and (Compression = ctNone) then
-    begin
-      UsePlainXML := True;
-    end else begin
-      RawData := Element.TextData;
-      case Encoding of
-        etBase64: begin
-          Decoder := TBase64DecodingStream.Create(TStringStream.Create(RawData));
-          Decoder.SourceOwner := true;
-        end;
-        etCSV: begin
-          // remove EOLs
-          RawData := StringReplace(RawData, #10, '', [rfReplaceAll]);
-          RawData := StringReplace(RawData, #13, '', [rfReplaceAll]);
-          // count data
-          CSVDataCount := 0;
-          tmpChar := StrScan(PChar(RawData), CSVDataSeparator);
-          while tmpChar <> nil do
-          begin
-            Inc(CSVDataCount);
-            tmpChar := StrScan(StrPos(tmpChar, CSVDataSeparator) + 1, CSVDataSeparator);
-          end;
-          // read data
-          SetLength(Data, CSVDataCount + 1);
-          p := PChar(RawData);
-          DataCount := 0;
-          repeat
-            tmpChar := StrPos(p, CSVDataSeparator);
-            if tmpChar = nil then tmpChar := StrScan(p, #0);
-            SetString(CSVItem, p, tmpChar - p);
-            { Note that any value in 32-bit unsigned range is OK,
-              even values > 32-bit signed range.
-              E.g. test_hexagonal_tile_60x60x30.tmx on
-              https://github.com/bjorn/tiled/tree/master/examples
-              has values like 3221225473 . }
-            Data[DataCount] := StrToDWord(CSVItem);
-            Inc(DataCount);
-            p := tmpChar + 1;
-          until tmpChar^ = #0;
-        end;
+  procedure ReadEncodingNone;
+  var
+    I: TXMLElementIterator;
+  begin
+    I := TXMLElementFilteringIterator.Create(Element, 'tile');
+    try
+      while I.GetNext do
+      begin
+        SetLength(Data, Length(Data)+1);
+        Data[High(Data)] := I.Current.AttributeCardinalDef('gid', 0);
       end;
+    finally FreeAndNil(I) end;
+  end;
+
+  procedure ReadEncodingBase64;
+  const
+    BufferSize = 16;
+  var
+    Decoder: TBase64DecodingStream;
+    Decompressor: TStream;
+    Buffer: array[0..BufferSize-1] of Cardinal;
+    DataCount, DataLength: Longint;
+  begin
+    Decoder := TBase64DecodingStream.Create(TStringStream.Create(Element.TextData));
+    try
+      Decoder.SourceOwner := true;
+
       case Compression of
         ctGzip: WritelnWarning('TData.Load', 'TODO: Gzip format not implemented');
-        ctZLib: begin
-          Decompressor := TDecompressionStream.Create(Decoder);
-          try
-            repeat
-              DataCount := Decompressor.Read(Buffer, BufferSize * SizeOf(Cardinal));
-              DataLength := Length(Data);
-              SetLength(Data, DataLength+(DataCount div SizeOf(Cardinal)));
-              if DataCount > 0 then // because if DataCount=0 then ERangeCheck error
-                Move(Buffer, Data[DataLength], DataCount);
-            until DataCount < SizeOf(Buffer);
-          finally
-            Decompressor.Free;
+        ctZLib:
+          begin
+            Decompressor := TDecompressionStream.Create(Decoder);
+            try
+              repeat
+                DataCount := Decompressor.Read(Buffer, BufferSize * SizeOf(Cardinal));
+                DataLength := Length(Data);
+                SetLength(Data, DataLength+(DataCount div SizeOf(Cardinal)));
+                if DataCount > 0 then // because if DataCount=0 then ERangeCheck error
+                  Move(Buffer, Data[DataLength], DataCount);
+              until DataCount < SizeOf(Buffer);
+            finally
+              Decompressor.Free;
+            end;
           end;
-        end;
-        ctNone: begin
-          // Base64 only
-          if Encoding = etBase64 then
+        ctNone:
+          begin
             repeat
               DataCount := Decoder.Read(Buffer, BufferSize * SizeOf(Cardinal));
               DataLength := Length(Data);
@@ -539,25 +495,74 @@ begin
               if DataCount > 0 then // because if DataCount=0 then ERangeCheck error
                 Move(Buffer, Data[DataLength], DataCount);
             until DataCount < SizeOf(Buffer);
-        end;
+          end;
       end;
+    finally FreeAndNil(Decoder) end;
+  end;
+
+  procedure ReadEncodingCSV;
+  const
+    CSVDataSeparator = Char(',');
+  var
+    RawData: String;
+    CSVItem: string;
+    tmpChar, p: PChar;
+    CSVDataCount: Cardinal;
+    DataCount: Longint;
+  begin
+    RawData := Element.TextData;
+
+    // remove EOLs
+    RawData := StringReplace(RawData, #10, '', [rfReplaceAll]);
+    RawData := StringReplace(RawData, #13, '', [rfReplaceAll]);
+    // count data
+    CSVDataCount := 0;
+    tmpChar := StrScan(PChar(RawData), CSVDataSeparator);
+    while tmpChar <> nil do
+    begin
+      Inc(CSVDataCount);
+      tmpChar := StrScan(StrPos(tmpChar, CSVDataSeparator) + 1, CSVDataSeparator);
+    end;
+    // read data
+    SetLength(Data, CSVDataCount + 1);
+    p := PChar(RawData);
+    DataCount := 0;
+    repeat
+      tmpChar := StrPos(p, CSVDataSeparator);
+      if tmpChar = nil then tmpChar := StrScan(p, #0);
+      SetString(CSVItem, p, tmpChar - p);
+      { Note that any value in 32-bit unsigned range is OK,
+        even values > 32-bit signed range.
+        E.g. test_hexagonal_tile_60x60x30.tmx on
+        https://github.com/bjorn/tiled/tree/master/examples
+        has values like 3221225473 . }
+      Data[DataCount] := StrToDWord(CSVItem);
+      Inc(DataCount);
+      p := tmpChar + 1;
+    until tmpChar^ = #0;
+  end;
+
+var
+  TmpStr: string;
+begin
+  Encoding := etNone;
+  Compression := ctNone;
+  if Element.AttributeString('encoding', TmpStr) then
+    case TmpStr of
+      'base64': Encoding := etBase64;
+      'csv': Encoding := etCSV;
+    end;
+  if Element.AttributeString('compression', TmpStr) then
+    case TmpStr of
+      'gzip': Compression := ctGzip;
+      'zlib': Compression := ctZLib;
     end;
 
-    I := TXMLElementIterator.Create(Element);
-    try
-      while I.GetNext do
-      begin
-        case LowerCase(I.Current.TagName) of
-          'tile':
-            if UsePlainXML then
-            begin
-              SetLength(Data, Length(Data)+1);
-              Data[High(Data)] := I.Current.AttributeCardinalDef('gid', 0);
-            end;
-        end;
-      end;
-    finally FreeAndNil(I) end;
-  finally FreeAndNil(Decoder) end;
+  case Encoding of
+    etNone: ReadEncodingNone;
+    etBase64: ReadEncodingBase64;
+    etCSV: ReadEncodingCSV;
+  end;
 end;
 
 { TImage --------------------------------------------------------------------- }
