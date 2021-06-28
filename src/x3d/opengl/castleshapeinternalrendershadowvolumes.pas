@@ -450,7 +450,8 @@ var
       Matrix: TMatrix4;
     begin
       if LightCap or DarkCap then
-        if InternalShadowVolumesUseDepth then
+        if InternalShadowVolumesUseDepth and
+           (TriangleCoordsCups.FdPoint.Count > 0) then
         begin
           TriangleCoordsCups.FdPoint.Changed;
 
@@ -496,21 +497,25 @@ var
       Params : TBasicRenderParams;
       Matrix: TMatrix4;
     begin
-      TriangleCoordsCups.FdPoint.Changed;
+      if TriangleCoordsCups.FdPoint.Count > 0 then
+      begin
+        TriangleCoordsCups.FdPoint.Changed;
 
-      Params := TBasicRenderParams.Create;
-      try
-        Params.RenderingCamera := RenderingCamera;
-        Params.TransformIdentity := true;
-        Params.Transparent := false;
-        Matrix := TMatrix4.Identity;
-        Params.Transform := @Matrix;
-        Params.ShadowVolumesReceivers := [true];
 
-        RenderContext.DepthFunc := dfLessEqual;
-        TCastleScene(SceneForShadowVolumesCups).Render(Params);
-      finally
-        FreeAndNil(Params);
+        Params := TBasicRenderParams.Create;
+        try
+          Params.RenderingCamera := RenderingCamera;
+          Params.TransformIdentity := true;
+          Params.Transparent := false;
+          Matrix := TMatrix4.Identity;
+          Params.Transform := @Matrix;
+          Params.ShadowVolumesReceivers := [true];
+
+          RenderContext.DepthFunc := dfLessEqual;
+          TCastleScene(SceneForShadowVolumesCups).Render(Params);
+        finally
+          FreeAndNil(Params);
+        end;
       end;
     end;
 
@@ -647,7 +652,8 @@ var
 
   procedure UpdateInternalScenes;
   begin
-    TriangleCoordsCups.FdPoint.Changed;
+    if TriangleCoordsCups.FdPoint.Items.Count > 0 then
+      TriangleCoordsCups.FdPoint.Changed;
     TriangleCoords.FdPoint.Changed;
     QuadCoords.FdPoint.Changed;
   end;
@@ -684,56 +690,54 @@ begin
      (InternalUpdateShadowVolumes = true) or
      (SceneForShadowVolumes = nil) then
   begin
+    Triangles := TrianglesListShadowCasters;
 
-  Triangles := TrianglesListShadowCasters;
+    InitializeInternalScenes;
 
-  InitializeInternalScenes;
+    ClearInternalScenes;
 
-  ClearInternalScenes;
+    TrianglesPlaneSide := TBooleanList.Create;
+    try
+      InitializeTrianglesPlaneSideAndRenderCaps(TrianglesPlaneSide,
+        LightCap, DarkCap);
 
-  TrianglesPlaneSide := TBooleanList.Create;
-  try
-    InitializeTrianglesPlaneSideAndRenderCaps(TrianglesPlaneSide,
-      LightCap, DarkCap);
+      ManifoldEdgesNow := ManifoldEdges;
+      ManifoldEdgePtr := PManifoldEdge(ManifoldEdgesNow.List);
+      for I := 0 to ManifoldEdgesNow.Count - 1 do
+      begin
+        PlaneSide0 := TrianglesPlaneSide.L[ManifoldEdgePtr^.Triangles[0]];
+        PlaneSide1 := TrianglesPlaneSide.L[ManifoldEdgePtr^.Triangles[1]];
 
-    ManifoldEdgesNow := ManifoldEdges;
-    ManifoldEdgePtr := PManifoldEdge(ManifoldEdgesNow.List);
-    for I := 0 to ManifoldEdgesNow.Count - 1 do
-    begin
-      PlaneSide0 := TrianglesPlaneSide.L[ManifoldEdgePtr^.Triangles[0]];
-      PlaneSide1 := TrianglesPlaneSide.L[ManifoldEdgePtr^.Triangles[1]];
+        { Only if PlaneSide0 <> PlaneSide1 it's a silhouette edge,
+          so only then render it's shadow quad.
 
-      { Only if PlaneSide0 <> PlaneSide1 it's a silhouette edge,
-        so only then render it's shadow quad.
+          We want to have consistent CCW orientation of shadow quads faces,
+          so that face is oriented CCW <=> you're looking at it from outside
+          (i.e. it's considered front face of this shadow quad).
+          This is needed, since user of this method may want to do culling
+          to eliminate back or front faces.
 
-        We want to have consistent CCW orientation of shadow quads faces,
-        so that face is oriented CCW <=> you're looking at it from outside
-        (i.e. it's considered front face of this shadow quad).
-        This is needed, since user of this method may want to do culling
-        to eliminate back or front faces.
+          TriangleDirection(T) indicates direction that goes from CCW triangle side
+          (that's guaranteed by the way TriangleDir calculates plane dir).
+          So PlaneSideX is @true if LightPos is on CCW side of appropriate
+          triangle. So if PlaneSide0 the shadow quad is extended
+          in reversed Triangles[0] order, i.e. like 1, 0, Extruded0, Extruded1.
+          Otherwise, in normal Triangles[0], i.e. 0, 1, Extruded1, Extruded0.
 
-        TriangleDirection(T) indicates direction that goes from CCW triangle side
-        (that's guaranteed by the way TriangleDir calculates plane dir).
-        So PlaneSideX is @true if LightPos is on CCW side of appropriate
-        triangle. So if PlaneSide0 the shadow quad is extended
-        in reversed Triangles[0] order, i.e. like 1, 0, Extruded0, Extruded1.
-        Otherwise, in normal Triangles[0], i.e. 0, 1, Extruded1, Extruded0.
+          Just draw it, the triangle corners numbered with 0,1,2 in CCW and
+          imagine that you want the shadow quad to be also CCW on the outside,
+          it will make sense then :) }
+        if PlaneSide0 and not PlaneSide1 then
+          RenderShadowQuad(ManifoldEdgePtr, 1, 0) else
+        if PlaneSide1 and not PlaneSide0 then
+          RenderShadowQuad(ManifoldEdgePtr, 0, 1);
 
-        Just draw it, the triangle corners numbered with 0,1,2 in CCW and
-        imagine that you want the shadow quad to be also CCW on the outside,
-        it will make sense then :) }
-      if PlaneSide0 and not PlaneSide1 then
-        RenderShadowQuad(ManifoldEdgePtr, 1, 0) else
-      if PlaneSide1 and not PlaneSide0 then
-        RenderShadowQuad(ManifoldEdgePtr, 0, 1);
+        Inc(ManifoldEdgePtr);
+      end;
 
-      Inc(ManifoldEdgePtr);
-    end;
+    finally FreeAndNil(TrianglesPlaneSide) end;
 
-  finally FreeAndNil(TrianglesPlaneSide) end;
-
-  UpdateInternalScenes;
-
+    UpdateInternalScenes;
   end;
 
   Params := TBasicRenderParams.Create;
@@ -747,11 +751,14 @@ begin
 
     if not InternalShadowVolumesUseDepth then
     begin
-      glEnable(GL_POLYGON_OFFSET_FILL);
-      glPolygonOffset(1, 1);
+      if TriangleCoordsCups.FdPoint.Items.Count > 0 then
+      begin
+        glEnable(GL_POLYGON_OFFSET_FILL);
+        glPolygonOffset(1, 1);
 
-      TCastleScene(SceneForShadowVolumesCups).Render(Params);
-      glDisable(GL_POLYGON_OFFSET_FILL);
+        TCastleScene(SceneForShadowVolumesCups).Render(Params);
+        glDisable(GL_POLYGON_OFFSET_FILL);
+      end;
     end else
       RenderContext.DepthFunc := dfLessEqual;
 
