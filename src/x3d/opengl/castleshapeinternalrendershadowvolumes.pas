@@ -79,6 +79,7 @@ uses SysUtils,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleRenderingCamera, CastleGLUtils, CastleUtils, CastleScene, CastleShapes,
   CastleImages, CastleRenderContext, CastleColors, CastleInternalGLShadowVolumes,
+  CastleRenderOptions,
   X3DNodes;
 {$warnings on}
 
@@ -594,6 +595,12 @@ var
       RootNode.AddChildren(ShapeNode);
 
       TCastleScene(SceneForShadowVolumes).Load(RootNode, true);
+      TCastleScene(SceneForShadowVolumes).RenderOptions.Mode := rmDepth;
+      TCastleScene(SceneForShadowVolumes).ShapeFrustumCulling := false;
+      TCastleScene(SceneForShadowVolumes).Spatial := [];
+      TCastleScene(SceneForShadowVolumes).SceneFrustumCulling := false;
+      TCastleScene(SceneForShadowVolumes).ShadowMaps := false;
+      TCastleScene(SceneForShadowVolumes).InternalIgnoreFrustum := true;
     end;
 
     if SceneForShadowVolumesCups = nil then
@@ -621,6 +628,12 @@ var
       RootNode.AddChildren(ShapeNode);
 
       TCastleScene(SceneForShadowVolumesCups).Load(RootNode, true);
+      TCastleScene(SceneForShadowVolumesCups).RenderOptions.Mode := rmDepth;
+      TCastleScene(SceneForShadowVolumesCups).ShapeFrustumCulling := false;
+      TCastleScene(SceneForShadowVolumesCups).Spatial := [];
+      TCastleScene(SceneForShadowVolumesCups).SceneFrustumCulling := false;
+      TCastleScene(SceneForShadowVolumesCups).ShadowMaps := false;
+      TCastleScene(SceneForShadowVolumesCups).InternalIgnoreFrustum := true;
     end;
 
   end;
