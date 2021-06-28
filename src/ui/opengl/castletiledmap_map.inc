@@ -442,6 +442,15 @@ end;
 
 procedure TTiledMap.TData.Load(const Element: TDOMElement; const BaseUrl: String);
 
+  procedure AddData(const Item: Cardinal);
+  var
+    L: Integer;
+  begin
+    L := Length(Data);
+    SetLength(Data, L + 1);
+    Data[L] := Item;
+  end;
+
   procedure ReadEncodingNone;
   var
     I: TXMLElementIterator;
@@ -449,10 +458,7 @@ procedure TTiledMap.TData.Load(const Element: TDOMElement; const BaseUrl: String
     I := TXMLElementFilteringIterator.Create(Element, 'tile');
     try
       while I.GetNext do
-      begin
-        SetLength(Data, Length(Data)+1);
-        Data[High(Data)] := I.Current.AttributeCardinalDef('gid', 0);
-      end;
+        AddData(I.Current.AttributeCardinalDef('gid', 0));
     finally FreeAndNil(I) end;
   end;
 
@@ -501,45 +507,22 @@ procedure TTiledMap.TData.Load(const Element: TDOMElement; const BaseUrl: String
   end;
 
   procedure ReadEncodingCSV;
-  const
-    CSVDataSeparator = Char(',');
   var
-    RawData: String;
-    CSVItem: string;
-    tmpChar, p: PChar;
-    CSVDataCount: Cardinal;
-    DataCount: Longint;
+    RawData, Token: String;
+    SeekPos: Integer;
   begin
     RawData := Element.TextData;
-
-    // remove EOLs
-    RawData := StringReplace(RawData, #10, '', [rfReplaceAll]);
-    RawData := StringReplace(RawData, #13, '', [rfReplaceAll]);
-    // count data
-    CSVDataCount := 0;
-    tmpChar := StrScan(PChar(RawData), CSVDataSeparator);
-    while tmpChar <> nil do
-    begin
-      Inc(CSVDataCount);
-      tmpChar := StrScan(StrPos(tmpChar, CSVDataSeparator) + 1, CSVDataSeparator);
-    end;
-    // read data
-    SetLength(Data, CSVDataCount + 1);
-    p := PChar(RawData);
-    DataCount := 0;
+    SeekPos := 1;
     repeat
-      tmpChar := StrPos(p, CSVDataSeparator);
-      if tmpChar = nil then tmpChar := StrScan(p, #0);
-      SetString(CSVItem, p, tmpChar - p);
-      { Note that any value in 32-bit unsigned range is OK,
+      Token := NextToken(RawData, SeekPos, [','] + WhiteSpaces);
+      if Token = '' then break;
+      { We use StrToDWord, as any value in 32-bit unsigned range is OK,
         even values > 32-bit signed range.
         E.g. test_hexagonal_tile_60x60x30.tmx on
         https://github.com/bjorn/tiled/tree/master/examples
         has values like 3221225473 . }
-      Data[DataCount] := StrToDWord(CSVItem);
-      Inc(DataCount);
-      p := tmpChar + 1;
-    until tmpChar^ = #0;
+      AddData(StrToDWord(Token));
+    until false;
   end;
 
 var
