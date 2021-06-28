@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -66,26 +66,55 @@ procedure InfoWriteParts(const TitleFormat: string; const Messages: array of str
   This ensures that program always behaves in the same way.
 }
 
-{$warnings off}
-{ These use some deprecated procedures on Windows.
-  It's Ok, they will be just removed from unit public interface
-  and undeprecated then in the future. }
+{$ifdef MSWINDOWS}
+{ Simple standard Windows message boxes.
+  If Parent is 0 (default), the box will be a modal box for the whole process
+  (all our windows), since we use MB_TASKMODAL.
+
+  Internal. Instead of these it's much better to use:
+  - TCastleWindowBase.MessageOK, TCastleWindowBase.MessageYesNo if you use
+    CastleWindow.
+  - or LCL dialog routines (like ShowMessage and everything in Dialogs unit)
+    if you use LCL.
+
+  @groupBegin }
+procedure WindowsErrorBox  (const Text:string; const caption:string ='Error'      ; parent:HWND =0); forward;
+procedure WindowsInfoBox   (const Text:string; const caption:string ='Information'; parent:HWND =0); forward;
+procedure WindowsWarningBox(const Text:string; const caption:string ='Warning'    ; parent:HWND =0); forward;
+{ @groupEnd }
+
+procedure WindowsErrorBox(const Text:string; const caption:string; parent:HWND);
+begin
+ MessageBox(parent,PChar(Text),PChar(caption),MB_OK or MB_ICONERROR or MB_TASKMODAL);
+end;
+
+procedure WindowsInfoBox(const Text:string; const caption:string;parent:HWND);
+begin
+ MessageBox(parent,PChar(Text),PChar(caption),MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
+end;
+
+procedure WindowsWarningBox(const Text:string; const caption:string;parent:HWND);
+begin
+ MessageBox(parent,PChar(Text),PChar(caption),MB_OK or MB_ICONWARNING or MB_TASKMODAL);
+end;
+
+{$endif}
 
 procedure ErrorWrite(const s: string);
 begin
-  {$ifdef MSWINDOWS} if not IsConsole then ErrorBox(s) else {$endif}
+  {$ifdef MSWINDOWS} if not IsConsole then WindowsErrorBox(s) else {$endif}
   Writeln(ErrOutput, s);
 end;
 
 procedure WarningWrite(const s: string);
 begin
-  {$ifdef MSWINDOWS} if not IsConsole then WarningBox(s) else {$endif}
+  {$ifdef MSWINDOWS} if not IsConsole then WindowsWarningBox(s) else {$endif}
   Writeln(ErrOutput, s);
 end;
 
 procedure InfoWrite(const s: string);
 begin
-  {$ifdef MSWINDOWS} if not IsConsole then InfoBox(s) else {$endif}
+  {$ifdef MSWINDOWS} if not IsConsole then WindowsInfoBox(s) else {$endif}
   Writeln(s);
 end;
 
@@ -103,14 +132,12 @@ begin
  if not IsConsole then
  begin
   for i := 0 to High(Messages) do
-   InfoBox(Messages[i], Format(TitleFormat, [i+1, High(Messages)+1]));
+   WindowsInfoBox(Messages[i], Format(TitleFormat, [i+1, High(Messages)+1]));
  end else
  {$endif}
  begin
   for i := 0 to High(Messages) do Writeln(Messages[i]);
  end;
 end;
-
-{$warnings on}
 
 {$endif read_implementation}
