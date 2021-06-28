@@ -947,7 +947,7 @@ begin
 
   if FSpriteSheet.HasAnimation(AValue) then
   begin
-    EditorUtils.ErrorBox('Animation "' + AValue + '" already exist.');
+    ErrorBox('Animation "' + AValue + '" already exist.');
     AValue := Animation.Name;
     Exit;
   end;

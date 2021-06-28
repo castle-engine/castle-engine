@@ -1336,7 +1336,7 @@ procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
     Exe := FindExeCastleTool(ToolName);
     if Exe = '' then
     begin
-      EditorUtils.ErrorBox(Format('Cannot find Castle Game Engine tool "%s", opening "%s" failed. Make sure CGE is installed correctly, the tool should be distributed along with engine binary.',
+      ErrorBox(Format('Cannot find Castle Game Engine tool "%s", opening "%s" failed. Make sure CGE is installed correctly, the tool should be distributed along with engine binary.',
         [ToolName, SelectedURL]));
       Exit;
     end;
@@ -1416,7 +1416,7 @@ begin
     end;
 
     if not OpenDocument(SelectedFileName) then
-      EditorUtils.ErrorBox(Format('Opening "%s" failed.', [SelectedFileName]));
+      ErrorBox(Format('Opening "%s" failed.', [SelectedFileName]));
   end;
 end;
 
@@ -1432,7 +1432,7 @@ begin
   BuildToolExe := FindExeCastleTool('castle-engine');
   if BuildToolExe = '' then
   begin
-    EditorUtils.ErrorBox('Cannot find build tool (castle-engine) on $PATH environment variable.');
+    ErrorBox('Cannot find build tool (castle-engine) on $PATH environment variable.');
     Exit;
   end;
 
