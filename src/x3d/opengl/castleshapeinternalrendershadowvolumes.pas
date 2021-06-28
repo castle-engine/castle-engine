@@ -666,6 +666,12 @@ begin
     See demo_models/shadow_volumes/not_manifold/README.txt }
   if BorderEdges.Count <> 0 then Exit;
 
+  // InternalUpdateShadowVolumes := false;
+  if (InternalShadowVolumesUseDepth = true) or
+     (InternalUpdateShadowVolumes = true) or
+     (SceneForShadowVolumes = nil) then
+  begin
+
   Triangles := TrianglesListShadowCasters;
 
   InitializeInternalScenes;
@@ -714,6 +720,8 @@ begin
   finally FreeAndNil(TrianglesPlaneSide) end;
 
   UpdateInternalScenes;
+
+  end;
 
   Params := TBasicRenderParams.Create;
   try
