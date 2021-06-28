@@ -112,7 +112,7 @@ type
         { The rotation of the object in degrees clockwise (defaults to 0). (since 0.10) }
         Rotation: Single;
         { An reference to a tile (optional). }
-        GId: Integer;
+        GId: Cardinal;
         { Whether the object is shown (1) or hidden (0). Defaults to 1. (since 0.9) }
         Visible: Boolean;
         Properties: TPropertyList;
@@ -770,7 +770,7 @@ begin
   if Element.AttributeString('rotation', TmpStr) then
     Rotation := StrToFloatDot(TmpStr);
   if Element.AttributeString('gid', TmpStr) then
-    GId := StrToInt(TmpStr);
+    GId := StrToDWord(TmpStr);
   if Element.AttributeString('visible', TmpStr) then
     if TmpStr = '0' then
       Visible := False;
@@ -980,7 +980,7 @@ begin
   Margin := 0;
 
   if Element.AttributeString('firstgid', TmpStr) then
-    FirstGID := StrToInt(TmpStr)
+    FirstGID := StrToDWord(TmpStr)
   else
     FirstGID := 1;
   if Element.AttributeString('source', TmpStr) then
