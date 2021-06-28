@@ -113,14 +113,6 @@ private
 {$I castlewindow_winapi_menu.inc}
 {$I castlewindow_winapi_sendinput.inc}
 
-const
-  UserDLL = 'user32.dll';
-
-{ WinAPI ChangeDisplaySettings declaration. (Was wrong/missing in old
-  FPC versions? TODO: check and probably remove this.) }
-function ChangeDisplaySettings(lpDevMode:PDEVMODE; dwFlags:DWORD):longint;
-  stdcall; external userDLL name 'ChangeDisplaySettingsA';
-
 { Describe ChangeDisplaySettings result. }
 function DispChangeToStr(L: LongInt): string;
 begin
