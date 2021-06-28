@@ -255,7 +255,7 @@ procedure TStateMainMenu.Start;
 begin
   inherited;
 
-  SoundEngine.MusicPlayer.Sound := stMainMenuMusic;
+  SoundEngine.LoopingChannel[0].Sound := stMainMenuMusic;
 
   MenuBg := TCastleImageControl.Create(FreeAtStop);
   MenuBg.URL := GameConfig.GetURL('main_menu/image');

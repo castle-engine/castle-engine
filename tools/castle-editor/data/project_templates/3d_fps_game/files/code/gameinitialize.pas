@@ -38,7 +38,7 @@ begin
   TUIState.Current := StateMenu;
 
   SoundEngine.RepositoryURL := 'castle-data:/audio/index.xml';
-  SoundEngine.MusicPlayer.Sound := SoundEngine.SoundFromName('dark_music');
+  SoundEngine.LoopingChannel[0].Sound := SoundEngine.SoundFromName('dark_music');
 end;
 
 initialization
