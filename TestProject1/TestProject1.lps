@@ -1,0 +1,533 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectSession>
+    <PathDelim Value="\"/>
+    <Version Value="11"/>
+    <BuildModes Active="Default"/>
+    <Units Count="68">
+      <Unit0>
+        <Filename Value="TestProject1.pas"/>
+        <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
+        <CursorPos X="21" Y="6"/>
+        <UsageCount Value="168"/>
+        <Loaded Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="..\..\..\CGE\x3dtiledmap_branch\build-funcs.txt"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="4" Y="246"/>
+        <UsageCount Value="54"/>
+        <DefaultSyntaxHighlighter Value="None"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="..\..\castle-engine\src\ui\opengl\castletiledmap_map.inc"/>
+        <EditorIndex Value="14"/>
+        <TopLine Value="306"/>
+        <CursorPos X="15" Y="316"/>
+        <UsageCount Value="138"/>
+        <Loaded Value="True"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="..\castleconverttiledmap.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="CastleConvertTiledMap"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="19"/>
+        <CursorPos X="6" Y="11"/>
+        <UsageCount Value="25"/>
+        <Loaded Value="True"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="..\..\castle-engine\src\ui\opengl\castletiledmap.pas"/>
+        <UnitName Value="CastleTiledMap"/>
+        <EditorIndex Value="13"/>
+        <TopLine Value="24"/>
+        <CursorPos X="17" Y="29"/>
+        <UsageCount Value="80"/>
+        <Loaded Value="True"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="..\..\castle-engine\src\ui\opengl\castletiledmap_control.inc"/>
+        <EditorIndex Value="15"/>
+        <CursorPos X="32" Y="29"/>
+        <UsageCount Value="80"/>
+        <Loaded Value="True"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="..\..\castle-engine\src\ui\opengl\castleuicontrols.pas"/>
+        <UnitName Value="CastleUIControls"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="1877"/>
+        <CursorPos X="14" Y="2014"/>
+        <UsageCount Value="16"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="..\..\castle-engine\src\files\castledownload_synchronous.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="123"/>
+        <CursorPos Y="148"/>
+        <UsageCount Value="7"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="..\..\castle-engine\src\x3d\x3dnodes_standard_geometry2d.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="91"/>
+        <CursorPos X="3" Y="81"/>
+        <UsageCount Value="3"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="..\..\castle-engine\src\x3d\x3dnodes_standard_rendering.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="337"/>
+        <CursorPos X="3" Y="27"/>
+        <UsageCount Value="7"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="..\..\castle-engine\src\x3d\auto_generated_node_helpers\x3dnodes_x3donesidedmaterialnode.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="32"/>
+        <CursorPos X="36" Y="47"/>
+        <UsageCount Value="7"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="..\..\castle-engine\src\base\castlecolors.pas"/>
+        <UnitName Value="CastleColors"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="55"/>
+        <CursorPos X="3" Y="63"/>
+        <UsageCount Value="1"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="..\..\castle-engine\src\x3d\auto_generated_node_helpers\x3dnodes_polyline2d.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="34"/>
+        <CursorPos X="15" Y="38"/>
+        <UsageCount Value="8"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="..\..\castle-engine\src\x3d\x3dnodes_standard_grouping.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="457"/>
+        <CursorPos X="21" Y="397"/>
+        <UsageCount Value="10"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="..\..\castle-engine\src\x3d\castlefields_x3dsinglefield_descendants.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="326"/>
+        <CursorPos X="15" Y="475"/>
+        <UsageCount Value="7"/>
+      </Unit14>
+      <Unit15>
+        <Filename Value="..\..\..\CGE\test2\data\test.tmx"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="7"/>
+        <DefaultSyntaxHighlighter Value="None"/>
+      </Unit15>
+      <Unit16>
+        <Filename Value="..\..\castle-engine\src\base\castlevectors_lists.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="12"/>
+        <CursorPos X="7" Y="39"/>
+        <UsageCount Value="2"/>
+      </Unit16>
+      <Unit17>
+        <Filename Value="..\..\castle-engine\src\base\castleutils_struct_list.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="13"/>
+        <CursorPos X="68" Y="24"/>
+        <UsageCount Value="7"/>
+      </Unit17>
+      <Unit18>
+        <Filename Value="..\..\..\Lazarus\fpc\3.2.0\source\packages\rtl-generics\src\generics.collections.pas"/>
+        <UnitName Value="Generics.Collections"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="1423"/>
+        <CursorPos Y="1439"/>
+        <UsageCount Value="5"/>
+      </Unit18>
+      <Unit19>
+        <Filename Value="..\..\castle-engine\src\x3d\opengl\castlescene.pas"/>
+        <UnitName Value="CastleScene"/>
+        <EditorIndex Value="7"/>
+        <TopLine Value="2079"/>
+        <CursorPos Y="2102"/>
+        <UsageCount Value="40"/>
+        <Loaded Value="True"/>
+      </Unit19>
+      <Unit20>
+        <Filename Value="..\..\castle-engine\src\x3d\castlescenecore.pas"/>
+        <UnitName Value="CastleSceneCore"/>
+        <EditorIndex Value="4"/>
+        <TopLine Value="3344"/>
+        <CursorPos X="24" Y="3363"/>
+        <UsageCount Value="61"/>
+        <Loaded Value="True"/>
+      </Unit20>
+      <Unit21>
+        <Filename Value="..\..\castle-engine\src\x3d\x3dload.pas"/>
+        <UnitName Value="X3DLoad"/>
+        <EditorIndex Value="6"/>
+        <TopLine Value="433"/>
+        <CursorPos X="3" Y="447"/>
+        <UsageCount Value="36"/>
+        <Loaded Value="True"/>
+      </Unit21>
+      <Unit22>
+        <Filename Value="..\..\castle-engine\src\x3d\x3dloadinternal3ds.pas"/>
+        <UnitName Value="X3DLoadInternal3DS"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="930"/>
+        <CursorPos X="3" Y="1113"/>
+        <UsageCount Value="40"/>
+      </Unit22>
+      <Unit23>
+        <Filename Value="..\..\castle-engine\src\files\castleuriutils.pas"/>
+        <UnitName Value="CastleURIUtils"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="940"/>
+        <CursorPos X="60" Y="953"/>
+        <UsageCount Value="1"/>
+      </Unit23>
+      <Unit24>
+        <Filename Value="..\..\castle-engine\src\x3d\castleshapes.pas"/>
+        <UnitName Value="CastleShapes"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="111"/>
+        <CursorPos X="26" Y="100"/>
+        <UsageCount Value="14"/>
+      </Unit24>
+      <Unit25>
+        <Filename Value="..\..\castle-engine\src\x3d\x3dnodes.pas"/>
+        <UnitName Value="X3DNodes"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="144"/>
+        <CursorPos X="2" Y="160"/>
+        <UsageCount Value="39"/>
+        <Loaded Value="True"/>
+      </Unit25>
+      <Unit26>
+        <Filename Value="G:\x3dloadinternaltiledmap.pas"/>
+        <UnitName Value="X3DLoadInternalTiledMap"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="24"/>
+        <CursorPos X="7" Y="44"/>
+        <FoldState Value=" TLob0F@"/>
+        <UsageCount Value="25"/>
+      </Unit26>
+      <Unit27>
+        <Filename Value="..\..\..\CGE\test3\data\test.tmx"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="63" Y="15"/>
+        <UsageCount Value="12"/>
+        <DefaultSyntaxHighlighter Value="None"/>
+      </Unit27>
+      <Unit28>
+        <Filename Value="..\..\castle-engine\src\base\castlevectors_float.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="8"/>
+        <CursorPos X="50" Y="23"/>
+        <UsageCount Value="6"/>
+      </Unit28>
+      <Unit29>
+        <Filename Value="..\..\castle-engine\src\base\castlevectors_generic_float_record.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="141"/>
+        <CursorPos X="3" Y="46"/>
+        <UsageCount Value="2"/>
+      </Unit29>
+      <Unit30>
+        <Filename Value="..\..\castle-engine\src\x3d\x3dloadinternalcocos2d.pas"/>
+        <UnitName Value="X3DLoadInternalCocos2d"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="144"/>
+        <CursorPos X="29" Y="26"/>
+        <UsageCount Value="26"/>
+      </Unit30>
+      <Unit31>
+        <Filename Value="..\..\..\CGE\test3\data\test2.tmx"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="12" Y="10"/>
+        <UsageCount Value="24"/>
+        <DefaultSyntaxHighlighter Value="None"/>
+      </Unit31>
+      <Unit32>
+        <Filename Value="..\..\castle-engine\src\x3d\x3dnodes_x3dnode.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="1164"/>
+        <CursorPos Y="1190"/>
+        <UsageCount Value="4"/>
+      </Unit32>
+      <Unit33>
+        <Filename Value="..\..\castle-engine\src\files\castlexmlutils.pas"/>
+        <UnitName Value="CastleXMLUtils"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="130"/>
+        <CursorPos X="14" Y="144"/>
+        <UsageCount Value="23"/>
+      </Unit33>
+      <Unit34>
+        <Filename Value="..\..\castle-engine\examples\tiled\map_viewer\data\maps\desert_with_objects.tmx"/>
+        <EditorIndex Value="9"/>
+        <UsageCount Value="64"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="None"/>
+      </Unit34>
+      <Unit35>
+        <Filename Value="..\..\castle-engine\examples\tiled\map_viewer\data\maps\orthogonal-outside.tmx"/>
+        <EditorIndex Value="10"/>
+        <CursorPos X="21" Y="22"/>
+        <UsageCount Value="60"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="None"/>
+      </Unit35>
+      <Unit36>
+        <Filename Value="..\..\castle-engine\examples\tiled\map_viewer\data\maps\desert.tsx"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="19"/>
+        <DefaultSyntaxHighlighter Value="None"/>
+      </Unit36>
+      <Unit37>
+        <Filename Value="..\..\castle-engine\examples\sprite_sheets\sprite_sheet_animation\sprite_sheet_animation.lpr"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="59"/>
+        <CursorPos X="16" Y="25"/>
+        <UsageCount Value="18"/>
+      </Unit37>
+      <Unit38>
+        <Filename Value="..\..\castle-engine\src\images\opengl\castleglimages_sprite.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="640"/>
+        <CursorPos X="3" Y="644"/>
+        <UsageCount Value="18"/>
+      </Unit38>
+      <Unit39>
+        <Filename Value="..\..\cge-tiledmap\src\CastleTiledMapScene.pas"/>
+        <EditorIndex Value="8"/>
+        <TopLine Value="22"/>
+        <CursorPos X="7" Y="38"/>
+        <UsageCount Value="56"/>
+        <Loaded Value="True"/>
+      </Unit39>
+      <Unit40>
+        <Filename Value="..\..\castle-engine\src\x3d\x3dnodes_standard_core.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="316"/>
+        <CursorPos X="48" Y="317"/>
+        <UsageCount Value="4"/>
+      </Unit40>
+      <Unit41>
+        <Filename Value="..\..\castle-engine\src\x3d\castlefields_x3dfileitem.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="82"/>
+        <CursorPos Y="101"/>
+        <UsageCount Value="4"/>
+      </Unit41>
+      <Unit42>
+        <Filename Value="C:\Users\Matthias\AppData\Local\Temp\7zO42B720E5\FFPlay4Laz2_MINIMALST.lpr"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="15"/>
+        <UsageCount Value="4"/>
+      </Unit42>
+      <Unit43>
+        <Filename Value="..\..\castle-engine\src\x3d\auto_generated_node_helpers\x3dnodes_imagetexture.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="27"/>
+        <UsageCount Value="6"/>
+      </Unit43>
+      <Unit44>
+        <Filename Value="..\..\castle-engine\src\x3d\castlefields_x3dsimplemultfield.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="457"/>
+        <CursorPos X="3" Y="457"/>
+        <UsageCount Value="6"/>
+      </Unit44>
+      <Unit45>
+        <Filename Value="..\..\castle-engine\src\x3d\x3dnodes_standard_texturing.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="282"/>
+        <CursorPos X="56" Y="307"/>
+        <UsageCount Value="5"/>
+      </Unit45>
+      <Unit46>
+        <Filename Value="..\..\castle-engine\src\x3d\auto_generated_node_helpers\x3dnodes_textureproperties.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="4"/>
+        <UsageCount Value="5"/>
+      </Unit46>
+      <Unit47>
+        <Filename Value="..\..\castle-engine\src\base\castlerenderoptions.pas"/>
+        <UnitName Value="CastleRenderOptions"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="164"/>
+        <CursorPos X="3" Y="183"/>
+        <UsageCount Value="5"/>
+      </Unit47>
+      <Unit48>
+        <Filename Value="..\..\castle-engine\examples\3d_rendering_processing\view_3d_model_basic.lpr"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="30"/>
+        <CursorPos X="11" Y="61"/>
+        <UsageCount Value="5"/>
+      </Unit48>
+      <Unit49>
+        <Filename Value="..\..\castle-engine\examples\3d_rendering_processing\render_3d_to_image.lpr"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="88"/>
+        <UsageCount Value="4"/>
+      </Unit49>
+      <Unit50>
+        <Filename Value="..\..\castle-engine\examples\3d_rendering_processing\render_3d_to_texture_and_use_as_quad.lpr"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="151"/>
+        <UsageCount Value="5"/>
+      </Unit50>
+      <Unit51>
+        <Filename Value="..\..\castle-engine\src\x3d\x3dloadinternalspine_simpletextureloader.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="28"/>
+        <UsageCount Value="5"/>
+      </Unit51>
+      <Unit52>
+        <Filename Value="..\..\castle-engine\src\x3d\x3dloadinternalimage.pas"/>
+        <UnitName Value="X3DLoadInternalImage"/>
+        <EditorIndex Value="5"/>
+        <CursorPos Y="19"/>
+        <UsageCount Value="45"/>
+        <Loaded Value="True"/>
+      </Unit52>
+      <Unit53>
+        <Filename Value="..\..\castle-engine\src\x3d\x3dnodes_eventsengine.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="19"/>
+        <CursorPos X="3" Y="34"/>
+        <UsageCount Value="10"/>
+      </Unit53>
+      <Unit54>
+        <Filename Value="..\..\..\CGE\test4\data\desert.tmx"/>
+        <EditorIndex Value="11"/>
+        <UsageCount Value="45"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="None"/>
+      </Unit54>
+      <Unit55>
+        <Filename Value="..\..\..\CGE\test4\data\desert.tsx"/>
+        <EditorIndex Value="12"/>
+        <UsageCount Value="45"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="None"/>
+      </Unit55>
+      <Unit56>
+        <Filename Value="..\..\..\CGE\castle_game_engine\examples\tiled\map_viewer\data\maps\desert.tmx"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="4"/>
+        <DefaultSyntaxHighlighter Value="None"/>
+      </Unit56>
+      <Unit57>
+        <Filename Value="..\..\..\CGE\tiledmapscene\build-funcs.txt"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="7"/>
+        <DefaultSyntaxHighlighter Value="None"/>
+      </Unit57>
+      <Unit58>
+        <Filename Value="..\..\castle-engine\packages\castle_base.lpk"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="58"/>
+        <CursorPos X="22" Y="77"/>
+        <UsageCount Value="7"/>
+        <DefaultSyntaxHighlighter Value="XML"/>
+      </Unit58>
+      <Unit59>
+        <Filename Value="..\..\castle-engine\src\window\castlewindow.pas"/>
+        <UnitName Value="CastleWindow"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="271"/>
+        <CursorPos X="2" Y="305"/>
+        <UsageCount Value="20"/>
+      </Unit59>
+      <Unit60>
+        <Filename Value="..\..\castle-engine\src\x3d\x3dloadinternaltiledmap.pas"/>
+        <UnitName Value="X3DLoadInternalTiledMap"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="7" Y="16"/>
+        <UsageCount Value="19"/>
+      </Unit60>
+      <Unit61>
+        <Filename Value="..\..\..\CGE\x3dtiledmap_branch\x3dloadinternaltiledmap-backup.pas"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="7"/>
+        <CursorPos X="45" Y="26"/>
+        <UsageCount Value="27"/>
+        <Loaded Value="True"/>
+      </Unit61>
+      <Unit62>
+        <Filename Value="..\..\castle-engine\src\x3d\auto_generated_node_helpers\x3dnodes_appearance.inc"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="4" Y="15"/>
+        <UsageCount Value="9"/>
+      </Unit62>
+      <Unit63>
+        <Filename Value="C:\Users\Matthias\AppData\Local\Temp\Temp1_SDL2_ttf-2.0.15.zip\SDL2_ttf-2.0.15\SDL_ttf.h"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="69"/>
+        <UsageCount Value="9"/>
+        <DefaultSyntaxHighlighter Value="C++"/>
+      </Unit63>
+      <Unit64>
+        <Filename Value="..\..\castle-engine\src\base\castleconf.inc"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="11"/>
+      </Unit64>
+      <Unit65>
+        <Filename Value="..\..\castle-engine\packages\castle_window.lpk"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+        <DefaultSyntaxHighlighter Value="XML"/>
+      </Unit65>
+      <Unit66>
+        <Filename Value="..\..\castle-engine\packages\castle_base.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="59"/>
+        <UsageCount Value="10"/>
+      </Unit66>
+      <Unit67>
+        <Filename Value="build-funcs.txt"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+        <DefaultSyntaxHighlighter Value="None"/>
+      </Unit67>
+    </Units>
+    <JumpHistory Count="2" HistoryIndex="1">
+      <Position1>
+        <Filename Value="..\..\castle-engine\src\x3d\x3dnodes.pas"/>
+        <Caret Line="160" Column="2" TopLine="147"/>
+      </Position1>
+      <Position2>
+        <Filename Value="..\..\castle-engine\src\x3d\x3dnodes.pas"/>
+        <Caret Line="160" Column="2" TopLine="144"/>
+      </Position2>
+    </JumpHistory>
+    <RunParams>
+      <FormatVersion Value="2"/>
+      <Modes Count="0" ActiveMode=""/>
+    </RunParams>
+  </ProjectSession>
+  <Debugging>
+    <Watches Count="2">
+      <Item1>
+        <Expression Value="Tileset"/>
+      </Item1>
+      <Item2>
+        <Expression Value="FMap"/>
+      </Item2>
+    </Watches>
+  </Debugging>
+</CONFIG>

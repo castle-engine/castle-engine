@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.4" tiledversion="1.4.3" orientation="orthogonal" renderorder="right-down" compressionlevel="0" width="2" height="2" tilewidth="256" tileheight="256" infinite="0" nextlayerid="5" nextobjectid="14">
+ <objectgroup id="4" name="Objektebene 2" offsetx="100" offsety="100">
+  <object id="9" x="-0.103577" y="1.12971" width="387.869" height="396.502"/>
+  <object id="10" x="387.149" y="395.166" width="123.329" height="85.097"/>
+  <object id="11" x="479.029" y="480.263" width="30.8322" height="30.2156"/>
+  <object id="12" x="511.711" y="-0.720222">
+   <polyline points="0,0 -511.198,511.815"/>
+  </object>
+ </objectgroup>
+ <objectgroup color="#0055ff" id="2" name="Objektebene 1">
+  <object id="1" x="98.1654" y="88.0602" width="147.248" height="127.038"/>
+  <object id="2" x="304.602" y="88.0602">
+   <point/>
+  </object>
+  <object id="4" x="82.2857" y="453.293">
+   <polygon points="0,0 -8.66165,-38.9774 30.3158,-49.0827 76.5113,-20.2105 60.6316,11.5489 30.3158,24.5414 -23.0977,28.8722 -37.5338,-4.33083"/>
+  </object>
+  <object id="5" x="248.301" y="451.85">
+   <polyline points="0,0 105.383,-40.4211 138.586,12.9925 187.669,-125.594"/>
+  </object>
+  <object id="6" x="414.316" y="256.962" width="51.9699" height="50.5263"/>
+  <object id="7" x="181.895" y="362.346">
+   <point/>
+  </object>
+  <object id="8" x="2.88722" y="508.15">
+   <polygon points="0,0 0,-508.15 506.707,0 508.15,-505.263"/>
+  </object>
+ </objectgroup>
+</map>
