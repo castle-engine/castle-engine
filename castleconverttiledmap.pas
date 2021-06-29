@@ -26,7 +26,8 @@
   4. Load X3D scene directly by X3D representation (use Scene.Load).
 
   TODO:
-  1. Integrate unit with Castle Game Engine
+  1. Integrate unit with Castle Game Engine (e.g. add to pack., use castle conf.
+     inc., ...)
 
 }
 unit CastleConvertTiledMap;
