@@ -58,8 +58,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    property Map: TTiledMap read FMap;
-
+    property Map: TTiledMap read FMap write FMap;
     { Holds the X3D representation of the Tiled map. Is not free'd
       automatically.
 
@@ -87,8 +86,12 @@ var
 begin
   Result := nil;
 
+  if not Assigned(ATiledMap) then
+    Exit;
+
   try
     ATiledMapConverter := TTiledMapConverter.Create;
+    ATiledMapConverter.Map := ATiledMap;
     Result := ATiledMapConverter.MapNode;
   finally
     FreeAndNil(ATiledMapConverter);
