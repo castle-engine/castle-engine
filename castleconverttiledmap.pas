@@ -25,6 +25,9 @@
   3. Convert Tiled map by this unit (CastleConvertTiledMap).
   4. Load X3D scene directly by X3D representation (use Scene.Load).
 
+  TODO:
+  1. Integrate unit with Castle Game Engine
+
 }
 unit CastleConvertTiledMap;
 
