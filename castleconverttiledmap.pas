@@ -41,6 +41,12 @@ uses
   X3DNodes, CastleTiledMap, CastleVectors, CastleTransform, CastleColors,
   CastleRenderOptions, X3DLoadInternalImage;
 
+{ Converts a Tiled map into a X3D representation for the Castle Game Engine.
+  The result can be returned to Scene.Load method. }
+function ConvertTiledMap(ATiledMap: TTiledMap): TX3DRootNode;
+
+implementation
+
 type
   { Converter class to convert Tiled map into X3D representations. }
   TTiledMapConverter = class
@@ -61,14 +67,6 @@ type
       Improve by getter func.! }
     property MapNode: TX3DRootNode read FMapNode;
   end;
-
-{ Converts a Tiled map into a X3D representation for the Castle Game Engine.
-  The result can be returned to Scene.Load method. }
-function ConvertTiledMap(ATiledMap: TTiledMap): TX3DRootNode;
-
-implementation
-
-{ TTiledMapConverter }
 
 constructor TTiledMapConverter.Create;
 begin
