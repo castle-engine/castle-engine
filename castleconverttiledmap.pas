@@ -41,13 +41,61 @@ uses
   X3DNodes, CastleTiledMap, CastleVectors, CastleTransform, CastleColors,
   CastleRenderOptions, X3DLoadInternalImage;
 
-function ConvertTiledMap(TiledMap: TTiledMap): TX3DRootNode;
+type
+  { Converter class to convert Tiled map into X3D representations. }
+  TTiledMapConverter = class
+  strict private
+    FMap: TTiledMap;
+    FMapNode: TX3DRootNode;
+
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    property Map: TTiledMap read FMap;
+
+    { Holds the X3D representation of the Tiled map. Is not free'd
+      automatically.
+
+      TODO : What if MapNode is never returned and manually free'd?
+      Improve by getter func.! }
+    property MapNode: TX3DRootNode read FMapNode;
+  end;
+
+{ Converts a Tiled map into a X3D representation for the Castle Game Engine.
+  The result can be returned to Scene.Load method. }
+function ConvertTiledMap(ATiledMap: TTiledMap): TX3DRootNode;
 
 implementation
 
-function ConvertTiledMap(TiledMap: TTiledMap): TX3DRootNode;
+{ TTiledMapConverter }
+
+constructor TTiledMapConverter.Create;
 begin
-  Result := TX3DRootNode.Create;
+  inherited Create;
+
+  FMapNode := TX3DRootNode.Create;
+end;
+
+destructor TTiledMapConverter.Destroy;
+begin
+
+  inherited Destroy;
+end;
+
+function ConvertTiledMap(ATiledMap: TTiledMap): TX3DRootNode;
+var
+  ATiledMapConverter: TTiledMapConverter;
+begin
+  Result := nil;
+
+  try
+    ATiledMapConverter := TTiledMapConverter.Create;
+    Result := ATiledMapConverter.MapNode;
+  finally
+    FreeAndNil(ATiledMapConverter);
+  end;
+
 end;
 
 end.
