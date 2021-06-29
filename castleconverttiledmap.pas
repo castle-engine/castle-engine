@@ -28,13 +28,13 @@
 }
 unit CastleConvertTiledMap;
 
-{$I castleconf.inc}
+//{$I castleconf.inc}
 
 interface
 
 uses
   Classes, SysUtils, Math,
-  CastleTiledMap, CastleVectors, CastleTransform, CastleColors,
+  X3DNodes, CastleTiledMap, CastleVectors, CastleTransform, CastleColors,
   CastleRenderOptions, X3DLoadInternalImage;
 
 function ConvertTiledMap(TiledMap: TTiledMap): TX3DRootNode;
