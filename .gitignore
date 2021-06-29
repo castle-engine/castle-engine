@@ -1,2 +1,37 @@
+# FPC, Lazarus stuff
+*.compiled
+*.rsj
+*.rst
+*.o
+*.or
+*.ppu
+*.a
+*.lps
+*.lrs
+*.dbg
+*.res
+*.bak
+lib/
 
+# Delphi stuff
+*.dproj.local
+*.identcache
+*.stat
+*.dcu
+
+# Other backups
+*.blend1
+*.blend2
+*~
+backup
+
+# Other unwanted
+*.apk
+*.log
+*.exe
+*.dll
+.DS_Store
+/bin/
+
+# Project specific
 TestProject1/
