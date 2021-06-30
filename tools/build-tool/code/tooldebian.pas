@@ -25,7 +25,7 @@ type
 implementation
 uses
   SysUtils, Process, {$ifdef UNIX} BaseUnix, {$endif}
-  CastleUtils, CastleFilesUtils, CastleDownload, CastleImages,
+  CastleUtils, CastleFilesUtils, CastleDownload, CastleImages, CastleLog,
   ToolCommonUtils, ToolUtils;
 
 procedure TPackageDebian.FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
@@ -44,14 +44,14 @@ procedure TPackageDebian.Make(const OutputProjectPath: String; const PackageFile
       aarch64: Result := 'arm64';
       arm: begin
           Result := 'armel';
-          WriteLn('WARNING: Architecture ' + CpuToString(Cpu) + ' is ambiguous between "armel" and "armhf" in Debian.');
+          WriteLnWarning('Architecture ' + CpuToString(Cpu) + ' is ambiguous between "armel" and "armhf" in Debian.');
         end;
       i386: Result := 'i386';
       mips: Result := 'mips';
       mipsel: Result := 'mipsel';
       powerpc64: begin
           Result := 'ppc64el';
-          WriteLn('WARNING: Architecture ' + CpuToString(Cpu) + ' is ambiguous between "ppc64el" and "ppc64" in Debian.');
+          WriteLnWarning('Architecture ' + CpuToString(Cpu) + ' is ambiguous between "ppc64el" and "ppc64" in Debian.');
         end;
       // "mips64el"
       // "s390x"
@@ -65,7 +65,7 @@ procedure TPackageDebian.Make(const OutputProjectPath: String; const PackageFile
       else {powerpc,sparc,avr,jvm,i8086,riscv32,armeb}
       begin
         Result := CpuToString(Cpu);
-        WriteLn('WARNING: Architecture ' + CpuToString(Cpu) + ' is not officially supported by Debian.');
+        WriteLnWarning('Architecture ' + CpuToString(Cpu) + ' is not officially supported by Debian.');
       end;
     end;
   end;
@@ -109,7 +109,7 @@ begin
     // using ImageMagic - FPWriteXPM first doesn't properly write alpha channel, second uses palette char size = 2 which is not a good idea for an icon
     //RunCommandSimple(FindExe('convert'), [Manifest.Icons.FindExtension(['.png']), PackageDirLocal + PathToIconFileLocal]);
     if not RunCommand('/bin/convert', [Manifest.Icons.FindExtension(['.png']), PackageDirLocal + PathToIconFileLocal], OutString) then
-      WriteLn('ImageMagick failed.');
+      WriteLnWarning('ImageMagick failed.');
     WriteLn(OutString);
   end;
 
