@@ -70,6 +70,12 @@ procedure TPackageDebian.Make(const OutputProjectPath: String; const TempPath: S
     end;
   end;
 
+  procedure CreateDirCheck(const Dir: String);
+  begin
+    if not CreateDir(Dir) then
+      raise Exception.Create('Cannot create directory: ' + Dir);
+  end;
+
 var
   PathToExecutableLocal, PathToExecutableUnix: String;
   PathToIconFileLocal, PathToIconFileUnix: String;
@@ -92,7 +98,7 @@ begin
 
   ShareDirLocal := PackageDirLocal + PathDelim + 'usr' + PathDelim + 'share';
   ShareDirUrl := StringReplace(ShareDirLocal, PathDelim, '/', [rfReplaceAll]);
-  CreateDir(ShareDirLocal);
+  CreateDirCheck(ShareDirLocal);
 
   // Calculate binaries size
 
@@ -101,7 +107,7 @@ begin
 
   // Copy XPM icon
 
-  CreateDir(ShareDirLocal + PathDelim + 'pixmaps');
+  CreateDirCheck(ShareDirLocal + PathDelim + 'pixmaps');
   PathToIconFileUnix := '/usr/share/pixmaps/' + Manifest.ExecutableName + '.xpm';
   PathToIconFileLocal := StringReplace(PathToIconFileUnix, '/', PathDelim, [rfReplaceAll]);
   if Manifest.Icons.FindExtension(['.xpm']) <> '' then
@@ -117,7 +123,7 @@ begin
 
   // Create menu item for the game
 
-  CreateDir(ShareDirLocal + PathDelim + 'menu');
+  CreateDirCheck(ShareDirLocal + PathDelim + 'menu');
   StringToFile(
     ShareDirUrl + '/menu/' + Manifest.Name,
     '?package(' + Manifest.Name + '): \' + NL +
@@ -128,7 +134,7 @@ begin
     'icon="' + PathToIconFileUnix +'"'
   );
 
-  CreateDir(ShareDirLocal + PathDelim + 'applications');
+  CreateDirCheck(ShareDirLocal + PathDelim + 'applications');
   StringToFile(
     ShareDirUrl + '/applications/' + Manifest.ExecutableName + '.desktop',
     '[Desktop Entry]' + NL +
@@ -142,7 +148,7 @@ begin
     'Comment=' + Manifest.DebianComment
   );
 
-  CreateDir(PackageDirLocal + PathDelim + 'DEBIAN');
+  CreateDirCheck(PackageDirLocal + PathDelim + 'DEBIAN');
   StringToFile(
     PackageDirUrl + '/DEBIAN/control',
     'Package: ' + Manifest.Name + NL +
