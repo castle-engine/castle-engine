@@ -86,7 +86,7 @@ function StringToPackageFormat(const S: string): TPackageFormat;
 
 implementation
 
-uses SysUtils, Process, {$ifdef UNIX} BaseUnix, {$endif}
+uses SysUtils, Process,
   CastleFilesUtils, CastleLog, CastleFindFiles, CastleURIUtils,
   CastleStringUtils, CastleInternalDirectoryInformation,
   ToolCommonUtils, ToolUtils;
@@ -160,27 +160,6 @@ end;
 
 procedure TPackageDirectory.Add(const SourceFileName, DestinationFileName: string;
   const MakeExecutable: Boolean);
-
-  procedure DoMakeExecutable(const Name: string);
-  {$ifdef UNIX}
-  var
-    ChmodResult: CInt;
-  begin
-    ChmodResult := FpChmod(Path + Name,
-      S_IRUSR or S_IWUSR or S_IXUSR or
-      S_IRGRP or            S_IXGRP or
-      S_IROTH or            S_IXOTH);
-    if ChmodResult <> 0 then
-      WritelnWarning('Package', Format('Error setting executable bit on "%s": %s', [
-        Path + Name,
-        SysErrorMessage(ChmodResult)
-      ]));
-  {$else}
-  begin
-    WritelnWarning('Package', 'Packaging for a platform where UNIX permissions matter, but we cannot set "chmod" on this platform. This usually means that you package for Unix from Windows, and means that "executable" bit inside binary in tar.gz archive may not be set --- archive may not be 100% comfortable for Unix users');
-    {$endif}
-  end;
-
 begin
   SmartCopyFile(SourceFileName, Path + DestinationFileName);
   WritelnVerbose('Package file: ' + DestinationFileName);
@@ -189,7 +168,7 @@ begin
   begin
     { For OSes where chmod matters, make sure to set it before packing }
     WritelnVerbose('Setting Unix executable permissions: ' + DestinationFileName);
-    DoMakeExecutable(DestinationFileName);
+    DoMakeExecutable(Path + DestinationFileName);
   end;
 end;
 
