@@ -744,7 +744,7 @@ begin
       Pack.AddDataInformation(TCastleManifest.DataName);
 
       PackageFileName := PackageName(OS, CPU, pfDeb, PackageNameIncludeVersion);
-      (Pack as TPackageDebian).Make(OutputPath, PackageFileName, Cpu, Manifest);
+      (Pack as TPackageDebian).Make(OutputPath, TempOutputPath(Path), PackageFileName, Cpu, Manifest);
     finally FreeAndNil(Pack) end;
     Exit;
   end;

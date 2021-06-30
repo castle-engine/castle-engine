@@ -18,8 +18,8 @@ type
       To satisfy FindFile syntax has to be of Object }
     procedure FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
   public
-    procedure Make(const OutputProjectPath: String; const PackageFileName: String;
-      const Cpu: TCpu; const Manifest: TCastleManifest);
+    procedure Make(const OutputProjectPath: String; const TempPath: String;
+      const PackageFileName: String; const Cpu: TCpu; const Manifest: TCastleManifest);
   end;
 
 implementation
@@ -33,8 +33,8 @@ begin
   BinariesSize += FileInfo.Size;
 end;
 
-procedure TPackageDebian.Make(const OutputProjectPath: String; const PackageFileName: String;
-      const Cpu: TCpu; const Manifest: TCastleManifest);
+procedure TPackageDebian.Make(const OutputProjectPath: String; const TempPath: String;
+      const PackageFileName: String; const Cpu: TCpu; const Manifest: TCastleManifest);
 
   function CpuToArchitectureString(const Cpu: TCpu): String;
   begin
@@ -76,9 +76,11 @@ var
   ShareDirLocal, ShareDirUrl: String;
   OutString: String;
   PackageDirLocal, PackageDirUrl: String;
+  TempOutputPathUrl: String;
 begin
-  PackageDirLocal := 'castle-engine-output' + PathDelim + PackageFileName;
+  PackageDirLocal := TempPath + PackageFileName;
   PackageDirUrl := StringReplace(PackageDirLocal, PathDelim, '/', [rfReplaceAll]);
+  TempOutputPathUrl := StringReplace(TempPath, PathDelim, '/', [rfReplaceAll]);
   if DirectoryExists(PackageDirLocal) then
     RemoveNonEmptyDir(PackageDirLocal);
 
@@ -168,21 +170,21 @@ begin
   // Workaround, we need to execute a shell script somehow
 
   StringToFile(
-    'castle-engine-output/package-debian.sh',
-    'cd castle-engine-output' + NL +
+    TempOutputPathUrl + 'package-debian.sh',
+    'cd ' + TempOutputPathUrl + NL +
     'cd ' + PackageFileName + NL +
     'find -type f | egrep -v ''^\./DEBIAN'' | xargs --replace=hh -n1 md5sum "hh" | sed ''s/\ \.\///'' > DEBIAN/md5sums' + NL +
     'cd ..' + NL +
     'dpkg-deb --build ' + PackageFileName
   );
 
-  RunCommand('/bin/bash', ['castle-engine-output/package-debian.sh'], OutString);
+  RunCommand('/bin/bash', [TempOutputPathUrl + 'package-debian.sh'], OutString);
   WriteLn(OutString);
   RenameFile(PackageDirLocal + '.deb', PackageFileName + '.deb');
 
   // And finally clean up the temporary files
   RemoveNonEmptyDir(PackageDirLocal);
-  DeleteFile('castle-engine-output' + PathDelim + 'package-debian.sh');
+  DeleteFile(TempPath + 'package-debian.sh');
 end;
 
 end.
