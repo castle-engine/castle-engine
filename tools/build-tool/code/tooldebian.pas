@@ -70,60 +70,54 @@ procedure TPackageDebian.Make(const OutputProjectPath: String; const PackageFile
     end;
   end;
 
-  procedure StringToFileLocal(const LocalPath: String; const Content: String);
-  var
-    TextWriter: TTextWriter;
-  begin
-    TextWriter := TTextWriter.Create(LocalPath);
-    TextWriter.Write(Content);
-    FreeAndNil(TextWriter);
-  end;
-
 var
   PathToExecutableLocal, PathToExecutableUnix: String;
   PathToIconFileLocal, PathToIconFileUnix: String;
-  ShareDir: String;
+  ShareDirLocal, ShareDirUrl: String;
   OutString: String;
-  PackageFolder: String;
+  PackageDirLocal, PackageDirUrl: String;
 begin
-  PackageFolder := 'castle-engine-output' + PathDelim + PackageFileName;
-  if DirectoryExists(PackageFolder) then
-    RemoveNonEmptyDir(PackageFolder);
+  PackageDirLocal := 'castle-engine-output' + PathDelim + PackageFileName;
+  PackageDirUrl := StringReplace(PackageDirLocal, PathDelim, '/', [rfReplaceAll]);
+  if DirectoryExists(PackageDirLocal) then
+    RemoveNonEmptyDir(PackageDirLocal);
 
   // Copy the binaries
 
   PathToExecutableUnix := '/usr/' + Manifest.DebianInstallFolder + '/' + Manifest.Name;
   PathToExecutableLocal := StringReplace(PathToExecutableUnix, '/', PathDelim, [rfReplaceAll]);
-  CopyDirectory(Path, PackageFolder + PathToExecutableLocal);
-  ShareDir := PackageFolder + PathDelim + 'usr' + PathDelim + 'share';
-  CreateDir(ShareDir);
+  CopyDirectory(Path, PackageDirLocal + PathToExecutableLocal);
+
+  ShareDirLocal := PackageDirLocal + PathDelim + 'usr' + PathDelim + 'share';
+  ShareDirUrl := StringReplace(ShareDirLocal, PathDelim, '/', [rfReplaceAll]);
+  CreateDir(ShareDirLocal);
 
   // Calculate binaries size
 
   BinariesSize := 0;
-  FindFiles(PackageFolder + PathToExecutableLocal, '*', false, {$ifdef CASTLE_OBJFPC}@{$endif} FoundFile, [ffRecursive]);
+  FindFiles(PackageDirLocal + PathToExecutableLocal, '*', false, {$ifdef CASTLE_OBJFPC}@{$endif} FoundFile, [ffRecursive]);
 
   // Copy XPM icon
 
-  CreateDir(ShareDir + PathDelim + 'pixmaps');
+  CreateDir(ShareDirLocal + PathDelim + 'pixmaps');
   PathToIconFileUnix := '/usr/share/pixmaps/' + Manifest.ExecutableName + '.xpm';
   PathToIconFileLocal := StringReplace(PathToIconFileUnix, '/', PathDelim, [rfReplaceAll]);
   if Manifest.Icons.FindExtension(['.xpm']) <> '' then
-    CheckCopyFile(Manifest.Icons.FindExtension(['.xpm']), PackageFolder + PathToIconFileLocal)
+    CheckCopyFile(Manifest.Icons.FindExtension(['.xpm']), PackageDirLocal + PathToIconFileLocal)
   else
   begin
     // using ImageMagic - FPWriteXPM first doesn't properly write alpha channel, second uses palette char size = 2 which is not a good idea for an icon
-    //RunCommandSimple(FindExe('convert'), [Manifest.Icons.FindExtension(['.png']), PackageFolder + PathToIconFileLocal]);
-    if not RunCommand('/bin/convert', [Manifest.Icons.FindExtension(['.png']), PackageFolder + PathToIconFileLocal], OutString) then
+    //RunCommandSimple(FindExe('convert'), [Manifest.Icons.FindExtension(['.png']), PackageDirLocal + PathToIconFileLocal]);
+    if not RunCommand('/bin/convert', [Manifest.Icons.FindExtension(['.png']), PackageDirLocal + PathToIconFileLocal], OutString) then
       WriteLn('ImageMagick failed.');
     WriteLn(OutString);
   end;
 
   // Create menu item for the game
 
-  CreateDir(ShareDir + PathDelim + 'menu');
-  StringToFileLocal(
-    ShareDir + PathDelim + 'menu' + PathDelim + Manifest.Name,
+  CreateDir(ShareDirLocal + PathDelim + 'menu');
+  StringToFile(
+    ShareDirUrl + '/menu/' + Manifest.Name,
     '?package(' + Manifest.Name + '): \' + NL +
     'needs="X11" \' + NL +
     'section="' + Manifest.DebianSection + '" \' + NL +
@@ -132,9 +126,9 @@ begin
     'icon="' + PathToIconFileUnix +'"'
   );
 
-  CreateDir(ShareDir + PathDelim + 'applications');
-  StringToFileLocal(
-    ShareDir + PathDelim + 'applications' + PathDelim + Manifest.ExecutableName + '.desktop',
+  CreateDir(ShareDirLocal + PathDelim + 'applications');
+  StringToFile(
+    ShareDirUrl + '/applications/' + Manifest.ExecutableName + '.desktop',
     '[Desktop Entry]' + NL +
     'Version=' + Manifest.Version.DisplayValue + NL +
     'Terminal=false' + NL +
@@ -146,9 +140,9 @@ begin
     'Comment=' + Manifest.DebianComment
   );
 
-  CreateDir(PackageFolder + PathDelim + 'DEBIAN');
-  StringToFileLocal(
-    PackageFolder + PathDelim + 'DEBIAN' + PathDelim + 'control',
+  CreateDir(PackageDirLocal + PathDelim + 'DEBIAN');
+  StringToFile(
+    PackageDirUrl + '/DEBIAN/control',
     'Package: ' + Manifest.Name + NL +
     'Version: ' + Manifest.Version.DisplayValue + NL +
     'Section: ' + Manifest.DebianInstallFolder + NL +
@@ -163,18 +157,18 @@ begin
 
   // Post-installation running - assign executable permissions
 
-  StringToFileLocal(
-    PackageFolder + PathDelim + 'DEBIAN' + PathDelim + 'postinst',
+  StringToFile(
+    PackageDirUrl + '/DEBIAN/postinst',
     '#!/bin/sh' + NL + NL +
     'chmod +x ' + PathToExecutableUnix + '/' + Manifest.ExecutableName + NL + NL +
     'exit 0'
   );
-  DoMakeExecutable(PackageFolder + PathDelim + 'DEBIAN' + PathDelim + 'postinst');
+  DoMakeExecutable(PackageDirLocal + PathDelim + 'DEBIAN' + PathDelim + 'postinst');
 
   // Workaround, we need to execute a shell script somehow
 
-  StringToFileLocal(
-    'castle-engine-output' + PathDelim + 'package-debian.sh',
+  StringToFile(
+    'castle-engine-output/package-debian.sh',
     'cd castle-engine-output' + NL +
     'cd ' + PackageFileName + NL +
     'find -type f | egrep -v ''^\./DEBIAN'' | xargs --replace=hh -n1 md5sum "hh" | sed ''s/\ \.\///'' > DEBIAN/md5sums' + NL +
@@ -184,10 +178,10 @@ begin
 
   RunCommand('/bin/bash', ['castle-engine-output/package-debian.sh'], OutString);
   WriteLn(OutString);
-  RenameFile(PackageFolder + '.deb', PackageFileName + '.deb');
+  RenameFile(PackageDirLocal + '.deb', PackageFileName + '.deb');
 
   // And finally clean up the temporary files
-  RemoveNonEmptyDir(PackageFolder);
+  RemoveNonEmptyDir(PackageDirLocal);
   DeleteFile('castle-engine-output' + PathDelim + 'package-debian.sh');
 end;
 
