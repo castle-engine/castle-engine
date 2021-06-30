@@ -26,7 +26,7 @@ implementation
 uses
   SysUtils, Process, {$ifdef UNIX} BaseUnix, {$endif}
   CastleUtils, CastleFilesUtils, CastleDownload, CastleImages,
-  ToolCommonUtils;
+  ToolCommonUtils, ToolUtils;
 
 procedure TPackageDebian.FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
 begin
@@ -165,7 +165,7 @@ begin
     'exit 0'
     );
   FreeAndNil(TextWriter);
-  fpChmod(PackageFolder + PathDelim + 'DEBIAN' + PathDelim + 'postinst', &555);
+  DoMakeExecutable(PackageFolder + PathDelim + 'DEBIAN' + PathDelim + 'postinst');
 
   // Workaround, we need to execute a shell script somehow
 

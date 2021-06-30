@@ -83,9 +83,14 @@ procedure ParametersAddMacros(const Macros, Parameters: TStringStringMap;
   (it's not the TProcess.ProcessID of "fpc" process, at least under Windows). }
 function FindLinkRes(const Path: String): String;
 
+{ Set Unix executable bit.
+  It will not be able to perform the CHMOD operation on non-Unix OS
+  and will log a corresponding warning instead. }
+procedure DoMakeExecutable(const PathAndName: String);
+
 implementation
 
-uses Classes, Process, SysUtils,
+uses Classes, Process, SysUtils, {$ifdef UNIX} BaseUnix, {$endif}
   CastleFilesUtils, CastleUtils, CastleURIUtils, CastleLog, CastleXMLUtils,
   CastleFindFiles,
   ToolCommonUtils;
@@ -184,6 +189,26 @@ begin
     FindFiles(Path, 'link*.res', false, @Handler.FoundFile, []);
     Result := Handler.FileName;
   finally FreeAndNil(Handler) end;
+end;
+
+procedure DoMakeExecutable(const PathAndName: String);
+{$ifdef UNIX}
+var
+  ChmodResult: CInt;
+begin
+  ChmodResult := FpChmod(PathAndName,
+    S_IRUSR or S_IWUSR or S_IXUSR or
+    S_IRGRP or            S_IXGRP or
+    S_IROTH or            S_IXOTH);
+  if ChmodResult <> 0 then
+    WritelnWarning('Package', Format('Error setting executable bit on "%s": %s', [
+      PathAndName,
+      SysErrorMessage(ChmodResult)
+    ]));
+{$else}
+begin
+  WritelnWarning('Package', 'Packaging for a platform where UNIX permissions matter, but we cannot set "chmod" on this platform. This usually means that you package for Unix from Windows, and means that "executable" bit inside binary in tar.gz archive may not be set --- archive may not be 100% comfortable for Unix users');
+  {$endif}
 end;
 
 end.
