@@ -70,11 +70,19 @@ procedure TPackageDebian.Make(const OutputProjectPath: String; const PackageFile
     end;
   end;
 
+  procedure StringToFileLocal(const LocalPath: String; const Content: String);
+  var
+    TextWriter: TTextWriter;
+  begin
+    TextWriter := TTextWriter.Create(LocalPath);
+    TextWriter.Write(Content);
+    FreeAndNil(TextWriter);
+  end;
+
 var
   PathToExecutableLocal, PathToExecutableUnix: String;
   PathToIconFileLocal, PathToIconFileUnix: String;
   ShareDir: String;
-  TextWriter: TTextWriter;
   OutString: String;
   PackageFolder: String;
 begin
@@ -114,20 +122,19 @@ begin
   // Create menu item for the game
 
   CreateDir(ShareDir + PathDelim + 'menu');
-  TextWriter := TTextWriter.Create(ShareDir + PathDelim + 'menu' + PathDelim + Manifest.Name);
-  TextWriter.Write(
+  StringToFileLocal(
+    ShareDir + PathDelim + 'menu' + PathDelim + Manifest.Name,
     '?package(' + Manifest.Name + '): \' + NL +
     'needs="X11" \' + NL +
     'section="' + Manifest.DebianSection + '" \' + NL +
     'title="' + Manifest.Caption + '" \' + NL +
     'command="bash -c ''cd ' + PathToExecutableUnix + ' && ./' + Manifest.ExecutableName + '''" \' + NL +
     'icon="' + PathToIconFileUnix +'"'
-    );
-  FreeAndNil(TextWriter);
+  );
 
   CreateDir(ShareDir + PathDelim + 'applications');
-  TextWriter := TTextWriter.Create(ShareDir + PathDelim + 'applications' + PathDelim + Manifest.ExecutableName + '.desktop');
-  TextWriter.Write(
+  StringToFileLocal(
+    ShareDir + PathDelim + 'applications' + PathDelim + Manifest.ExecutableName + '.desktop',
     '[Desktop Entry]' + NL +
     'Version=' + Manifest.Version.DisplayValue + NL +
     'Terminal=false' + NL +
@@ -137,12 +144,11 @@ begin
     'Categories=' + Manifest.DebianCategories + NL +
     'Name=' + Manifest.Caption + NL +
     'Comment=' + Manifest.DebianComment
-    );
-  FreeAndNil(TextWriter);
+  );
 
   CreateDir(PackageFolder + PathDelim + 'DEBIAN');
-  TextWriter := TTextWriter.Create(PackageFolder + PathDelim + 'DEBIAN' + PathDelim + 'control');
-  TextWriter.Write(
+  StringToFileLocal(
+    PackageFolder + PathDelim + 'DEBIAN' + PathDelim + 'control',
     'Package: ' + Manifest.Name + NL +
     'Version: ' + Manifest.Version.DisplayValue + NL +
     'Section: ' + Manifest.DebianInstallFolder + NL +
@@ -153,31 +159,28 @@ begin
     'Depends: libopenal1, libpng16-16, zlib1g, libvorbis0a, libvorbisfile3, libfreetype6, libgl1-mesa-dri, libgtk2.0-0' + NL +
     'Description: ' + Manifest.Caption + NL +
     ' ' + Manifest.DebianComment + NL //final new line
-    );
-  FreeAndNil(TextWriter);
+  );
 
   // Post-installation running - assign executable permissions
 
-  TextWriter := TTextWriter.Create(PackageFolder + PathDelim + 'DEBIAN' + PathDelim + 'postinst');
-  TextWriter.Write(
+  StringToFileLocal(
+    PackageFolder + PathDelim + 'DEBIAN' + PathDelim + 'postinst',
     '#!/bin/sh' + NL + NL +
     'chmod +x ' + PathToExecutableUnix + '/' + Manifest.ExecutableName + NL + NL +
     'exit 0'
-    );
-  FreeAndNil(TextWriter);
+  );
   DoMakeExecutable(PackageFolder + PathDelim + 'DEBIAN' + PathDelim + 'postinst');
 
   // Workaround, we need to execute a shell script somehow
 
-  TextWriter := TTextWriter.Create('castle-engine-output' + PathDelim + 'package-debian.sh');
-  TextWriter.Write(
+  StringToFileLocal(
+    'castle-engine-output' + PathDelim + 'package-debian.sh',
     'cd castle-engine-output' + NL +
     'cd ' + PackageFileName + NL +
     'find -type f | egrep -v ''^\./DEBIAN'' | xargs --replace=hh -n1 md5sum "hh" | sed ''s/\ \.\///'' > DEBIAN/md5sums' + NL +
     'cd ..' + NL +
     'dpkg-deb --build ' + PackageFileName
-    );
-  FreeAndNil(TextWriter);
+  );
 
   RunCommand('/bin/bash', ['castle-engine-output/package-debian.sh'], OutString);
   WriteLn(OutString);
