@@ -29,6 +29,7 @@
   1. Integrate unit with Castle Game Engine (e.g. add to pack., use castle conf.
      inc., ...)
   2. Turn off debug mode.
+  3. Check SetDebugMode: RemoveChildren free's instance of node?
 
 }
 unit CastleConvertTiledMap;
@@ -59,6 +60,7 @@ type
   TTiledMapConverter = class
   strict private
     FDebugMode: Boolean;
+    FDebugNode: TX3DRootNode;
 
     FMap: TTiledMap;
     FMapNode: TX3DRootNode;
@@ -78,7 +80,12 @@ type
 
     { Build a rectangluar debug object at pos. X,Y with dim. W,H. }
     procedure BuildDebugObject(const X, Y, W, H: Cardinal; const AName: String);
-
+    { Makes sure that a Debug node is added/removed from Map node list and
+      is constructed/destroyed accordingly. }
+    procedure SetDebugMode(AValue: Boolean);
+    { This node holds all debug nodes and is added to MapNode if debug mode is
+      on. This is important for automatic free'ing of all debug objects. }
+    property DebugNode: TX3DRootNode read FDebugNode write FDebugNode;
   public
     constructor Create;
     destructor Destroy; override;
@@ -95,7 +102,7 @@ type
     property MapNode: TX3DRootNode read FMapNode;
 
     { If true, all objects are represented in debug mode. }
-    property DebugMode: Boolean read FDebugMode write FDebugMode;
+    property DebugMode: Boolean read FDebugMode write SetDebugMode;
   end;
 
 procedure TTiledMapConverter.ConvertMap;
@@ -183,31 +190,56 @@ end;
 procedure TTiledMapConverter.BuildDebugObject(const X, Y, W, H: Cardinal;
   const AName: String);
 var
-  DebugGeometry: TRectangle2DNode;
-  DebugShape: TShapeNode;
-  DebugMaterial: TMaterialNode;
-  DebugFillProperties: TFillPropertiesNode;
-  DebugLineProperties: TLinePropertiesNode;
+
+  DebugGeometry: TPolyline2DNode = nil; // TRectangle2DNode is always filled,
+                                        // even if TFillPropertiesNode says
+                                        // otherwise.
+  DebugShape: TShapeNode = nil;
+  DebugMaterial: TMaterialNode = nil;
+  DebugLineProperties: TLinePropertiesNode = nil;
 begin
-  DebugGeometry := TRectangle2DNode.CreateWithShape(DebugShape);
-  DebugGeometry.Size := Vector2(Single(W), Single(H));
+  DebugGeometry := TPolyline2DNode.CreateWithShape(DebugShape);
+
+  { Create anti-clockwise rectangle. }
+  DebugGeometry.SetLineSegments([Vector2(Single(X), Single(Y)),
+  Vector2(Single(X+W), Single(Y)), Vector2(Single(X+W), Single(Y+H)),
+  Vector2(Single(X), Single(Y+H)), Vector2(Single(X), Single(Y))]);
 
   DebugMaterial := TMaterialNode.Create;
   DebugMaterial.EmissiveColor := YellowRGB;
 
-  DebugFillProperties := TFillPropertiesNode.Create;
-  DebugFillProperties.Filled := False;
-  DebugFillProperties.Hatched := False;
-
   DebugLineProperties := TLinePropertiesNode.Create;
-  DebugLineProperties.LinewidthScaleFactor := 3.0;
+  DebugLineProperties.LinewidthScaleFactor := 4.0;
 
   DebugShape.Appearance := TAppearanceNode.Create;
   DebugShape.Appearance.Material := DebugMaterial;
-  DebugShape.Appearance.FillProperties := DebugFillProperties;
   DebugShape.Appearance.LineProperties := DebugLineProperties;
 
-  MapNode.AddChildren(DebugShape);
+  DebugNode.AddChildren(DebugShape);
+end;
+
+procedure TTiledMapConverter.SetDebugMode(AValue: Boolean);
+begin
+  if FDebugMode = AValue then
+    Exit;
+  FDebugMode:=AValue;
+  case FDebugMode of
+    True:
+      begin
+        if Assigned(DebugNode) then
+          FreeAndNil(FDebugNode);
+        DebugNode := TX3DRootNode.Create;
+        MapNode.AddChildren(DebugNode);
+      end;
+    False:
+      begin
+        MapNode.RemoveChildren(DebugNode);
+        { TODO: Check if RemoveChildren also free's instance of the node.
+          Would make manual free'ing here obsolete. }
+        if Assigned(DebugNode) then
+          FreeAndNil(FDebugNode);
+      end;
+  end;
 end;
 
 function ConvertTiledMap(ATiledMap: TTiledMap): TX3DRootNode;
