@@ -190,32 +190,60 @@ end;
 procedure TTiledMapConverter.BuildDebugObject(const X, Y, W, H: Cardinal;
   const AName: String);
 var
+  { All Debug objects are based on a Transform node. }
+  DebugTransformNode: TTransformNode = nil;
+  { Outline-Debug object. }
+  { Hint: TRectangle2DNode is always filled, even if TFillPropertiesNode has
+    property filled set to false. }
+  DebugGeometryOutline: TPolyline2DNode = nil;
+  DebugShapeOutline: TShapeNode = nil;
+  { Name-Debug object. }
+  DebugGeometryName: TTextNode = nil;
+  DebugShapeName: TShapeNode = nil;
 
-  DebugGeometry: TPolyline2DNode = nil; // TRectangle2DNode is always filled,
-                                        // even if TFillPropertiesNode says
-                                        // otherwise.
-  DebugShape: TShapeNode = nil;
   DebugMaterial: TMaterialNode = nil;
   DebugLineProperties: TLinePropertiesNode = nil;
 begin
-  DebugGeometry := TPolyline2DNode.CreateWithShape(DebugShape);
-
+  { Build Outline-Debug object. }
+  DebugGeometryOutline := TPolyline2DNode.CreateWithShape(DebugShapeOutline);
   { Create anti-clockwise rectangle. }
-  DebugGeometry.SetLineSegments([Vector2(Single(X), Single(Y)),
-  Vector2(Single(X+W), Single(Y)), Vector2(Single(X+W), Single(Y+H)),
-  Vector2(Single(X), Single(Y+H)), Vector2(Single(X), Single(Y))]);
+  DebugGeometryOutline.SetLineSegments([Vector2(0.0, 0.0),
+  Vector2(Single(W), 0.0), Vector2(Single(W), Single(H)),
+  Vector2(0.0, Single(H)), Vector2(0.0, 0.0)]);
 
+  { Build Name-Debug object. }
+  DebugGeometryName := TTextNode.CreateWithShape(DebugShapeName);
+  DebugGeometryName.SetString(AName);
+  DebugGeometryName.FontStyle := TFontStyleNode.Create;
+  DebugGeometryName.FontStyle.Size := 20.0;
+
+  { Use the same material and line property node for Outline- and
+    Name-Debug object. }
   DebugMaterial := TMaterialNode.Create;
   DebugMaterial.EmissiveColor := YellowRGB;
 
   DebugLineProperties := TLinePropertiesNode.Create;
   DebugLineProperties.LinewidthScaleFactor := 4.0;
 
-  DebugShape.Appearance := TAppearanceNode.Create;
-  DebugShape.Appearance.Material := DebugMaterial;
-  DebugShape.Appearance.LineProperties := DebugLineProperties;
+  DebugShapeOutline.Appearance := TAppearanceNode.Create;
+  DebugShapeOutline.Appearance.Material := DebugMaterial;
+  DebugShapeOutline.Appearance.LineProperties := DebugLineProperties;
 
-  DebugNode.AddChildren(DebugShape);
+  DebugShapeName.Appearance := TAppearanceNode.Create;
+  DebugShapeName.Appearance.Material := DebugMaterial;
+  DebugShapeName.Appearance.LineProperties := DebugLineProperties;
+
+  { Create Debug transform node for Outline- and NameDebug nodes. Add them to
+    the Debug node. }
+  DebugTransformNode := TTransformNode.Create;
+  DebugTransformNode.Translation := Vector3(Single(X), Single(Y), 0.0);
+  DebugTransformNode.AddChildren(DebugShapeOutline);
+  DebugNode.AddChildren(DebugTransformNode);
+
+  DebugTransformNode := TTransformNode.Create;
+  DebugTransformNode.Translation := Vector3(Single(X+10), Single(Y+10), 0.0);
+  DebugTransformNode.AddChildren(DebugShapeName);
+  DebugNode.AddChildren(DebugTransformNode);
 end;
 
 procedure TTiledMapConverter.SetDebugMode(AValue: Boolean);
