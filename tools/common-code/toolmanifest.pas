@@ -129,8 +129,8 @@ type
 
       FDebianInstallFolder: String;
       FDebianSection: String;
-      FDebianCategories: String;
-      FDebianComment: String;
+      FFreeDesktopCategories: String;
+      FFreeDesktopComment: String;
 
     function DefaultQualifiedName(const AName: String): String;
     procedure CheckMatches(const Name, Value: string; const AllowedChars: TSetOfChars);
@@ -250,10 +250,10 @@ type
     { Freedesktop category of the app,
       see https://www.freedesktop.org/wiki/Specifications/menu-spec/ for more info
       Default: Game }
-    property DebianCategories: String read FDebianCategories;
+    property FreeDesktopCategories: String read FFreeDesktopCategories;
     { A short description of the project.
       See https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html for more info }
-    property DebianComment: String read FDebianComment;
+    property FreeDesktopComment: String read FFreeDesktopComment;
 
     { Find a file with given BaseName (contains filename, with extension, but without any path)
       among SearchPaths of this project.
@@ -615,15 +615,15 @@ begin
     // read Debian-specific metadata
     FDebianInstallFolder := 'games';
     FDebianSection := 'Games';
-    FDebianCategories := 'Game';
-    FDebianComment := '';
+    FFreeDesktopCategories := 'Game';
+    FFreeDesktopComment := '';
     Element := Doc.DocumentElement.ChildElement('debian', false);
     if Element <> nil then
     begin
       FDebianInstallFolder := Element.AttributeStringDef('install_folder', FDebianInstallFolder);
       FDebianSection := Element.AttributeStringDef('section', FDebianSection);
-      FDebianCategories := Element.AttributeStringDef('categories', FDebianCategories);
-      FDebianComment := Element.AttributeStringDef('comment', FDebianComment);
+      FFreeDesktopCategories := Element.AttributeStringDef('categories', FFreeDesktopCategories);
+      FFreeDesktopComment := Element.AttributeStringDef('comment', FFreeDesktopComment);
     end;
   finally FreeAndNil(Doc) end;
 

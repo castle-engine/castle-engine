@@ -154,9 +154,9 @@ begin
     'Exec=bash -c ''cd ' + PathToExecutableUnix + ' && ./' + Manifest.ExecutableName + '''' + NL +
     'Icon=' + PathToIconFileUnix + NL +
     'Type=Application' + NL +
-    'Categories=' + Manifest.DebianCategories + NL +
+    'Categories=' + Manifest.FreeDesktopCategories + NL +
     'Name=' + Manifest.Caption + NL +
-    'Comment=' + Manifest.DebianComment
+    'Comment=' + Manifest.FreeDesktopComment
   );
 
   CreateDirCheck(PackageDirLocal + PathDelim + 'DEBIAN');
@@ -171,7 +171,7 @@ begin
     'Installed-Size: ' + IntToStr(BinariesSize div 1024) + NL +
     'Depends: libopenal1, libpng16-16, zlib1g, libvorbis0a, libvorbisfile3, libfreetype6, libgl1-mesa-dri, libgtk2.0-0' + NL +
     'Description: ' + Manifest.Caption + NL +
-    ' ' + Manifest.DebianComment + NL //final new line
+    ' ' + Manifest.FreeDesktopComment + NL //final new line
   );
 
   // Post-installation running - assign executable permissions
