@@ -115,11 +115,8 @@ begin
   else
   begin
     WriteLnWarning('XPM icon not found. Attempting conversion.');
-    // using ImageMagic - FPWriteXPM first doesn't properly write alpha channel, second uses palette char size = 2 which is not a good idea for an icon
-    //RunCommandSimple(FindExe('convert'), [Manifest.Icons.FindExtension(['.png']), PackageDirLocal + PathToIconFileLocal]);
-    if not RunCommand('/bin/convert', [Manifest.Icons.FindExtension(['.png']), PackageDirLocal + PathToIconFileLocal], OutString) then
-      WriteLnWarning('ImageMagick failed.');
-    WriteLn(OutString);
+    // using ImageMagic - FPWriteXPM first doesn't properly write alpha channel, second uses palette char size = 2 which results in large files
+    RunCommandSimple(FindExe('convert'), [Manifest.Icons.FindExtension(['.png']), PackageDirLocal + PathToIconFileLocal]);
   end;
 
   // Create menu item for the game
