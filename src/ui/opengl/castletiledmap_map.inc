@@ -85,7 +85,7 @@ type
 
       TObjectsDrawOrder = (odoIndex, odoTopDown);
 
-      TTileObjectPrimitive = (topRectangle, topPoint, topEllipse, topPolygon,
+      TTiledObjectPrimitive = (topRectangle, topPoint, topEllipse, topPolygon,
         topPolyLine);
 
       { Object definition. }
