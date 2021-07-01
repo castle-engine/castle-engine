@@ -97,6 +97,7 @@ var
   PathToIconFileLocal, PathToIconFileUnix: String;
   ShareDirLocal, ShareDirUrl: String;
   PackageDirLocal, PackageDirUrl: String;
+  ImageMagickExe: String;
 begin
   PackageDirLocal := TempPath + PackageFileName;
   PackageDirUrl := StringReplace(PackageDirLocal, PathDelim, '/', [rfReplaceAll]);
@@ -127,9 +128,16 @@ begin
     CheckCopyFile(Manifest.Icons.FindExtension(['.xpm']), PackageDirLocal + PathToIconFileLocal)
   else
   begin
-    WriteLnWarning('XPM icon not found. Attempting conversion.');
-    // using ImageMagic - FPWriteXPM first doesn't properly write alpha channel, second uses palette char size = 2 which results in large files
-    RunCommandSimple(FindExe('convert'), [Manifest.Icons.FindExtension(['.png']), PackageDirLocal + PathToIconFileLocal]);
+    ImageMagickExe = FindExe('convert');
+    if ConvertExe <> '' then
+    begin
+      WriteLnWarning('XPM icon not found. Attempting conversion.');
+      // 96 colors in XPM still produces 1 symbol per color, larger values double the file size
+      RunCommandSimple(ImageMagickExe, [Manifest.Icons.FindExtension(['.png']), PackageDirLocal + PathToIconFileLocal])
+    end else
+      WriteLnWarning('XPM icon not found and no ImageMagick found for automatic conversion.');
+
+    // using ImageMagick - FPWriteXPM first doesn't properly write alpha channel, second uses palette char size = 2 which results in large files
   end;
 
   // Create menu item for the game
