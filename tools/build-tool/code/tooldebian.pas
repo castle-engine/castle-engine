@@ -119,7 +119,7 @@ begin
   BinariesSize := 0;
   FindFiles(PackageDirLocal + PathToExecutableLocal, '*', false, {$ifdef CASTLE_OBJFPC}@{$endif} FoundFile, [ffRecursive]);
 
-  // Copy XPM icon
+  // Copy or generate XPM icon
 
   CreateDirCheck(ShareDirLocal + PathDelim + 'pixmaps');
   PathToIconFileUnix := '/usr/share/pixmaps/' + Manifest.ExecutableName + '.xpm';
@@ -128,6 +128,7 @@ begin
     CheckCopyFile(Manifest.Icons.FindExtension(['.xpm']), PackageDirLocal + PathToIconFileLocal)
   else
   begin
+    // using ImageMagick - FPWriteXPM first doesn't properly write alpha channel, second uses palette char size = 2 which results in large files
     ImageMagickExe := FindExe('convert');
     if ImageMagickExe <> '' then
     begin
@@ -139,7 +140,6 @@ begin
       WriteLnWarning('XPM icon not found and no ImageMagick found for automatic conversion. Using default icon');
       StringToFile(PackageDirLocal + PathToIconFileLocal, XpmIconString);
     end;
-    // using ImageMagick - FPWriteXPM first doesn't properly write alpha channel, second uses palette char size = 2 which results in large files
   end;
 
   // Create menu item for the game
@@ -194,10 +194,14 @@ begin
   );
   DoMakeExecutable(PackageDirLocal + PathDelim + 'DEBIAN' + PathDelim + 'postinst');
 
+  // Calculate MD5 checksums
+
   RunCommandSimple(TempPath + PackageFileName, 'bash', ['-c',
     'find -type f | egrep -v ''^\./DEBIAN'' | xargs --replace=hh -n1 md5sum "hh" | sed ''s/\ \.\///'' > DEBIAN/md5sums']);
-  RunCommandSimple(TempPath, 'dpkg-deb', ['--build', PackageFileName]);
 
+  // Package DEB
+
+  RunCommandSimple(TempPath, 'dpkg-deb', ['--build', PackageFileName]);
   RenameFile(PackageDirLocal + '.deb', PackageFileName + '.deb');
 
   // And finally clean up the temporary files
