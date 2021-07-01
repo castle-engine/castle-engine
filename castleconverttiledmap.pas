@@ -119,7 +119,8 @@ begin
   for Layer in Map.Layers do
   begin
     if DebugMode then
-      BuildDebugObject(Round(Layer.OffsetX), Round(Layer.OffsetY), MapWidth, MapHeight, Layer.Name);
+      BuildDebugObject(Round(Layer.OffsetX), Round(Layer.OffsetY), MapWidth,
+        MapHeight, Layer.Name);
 
     if not Layer.Visible then
       Continue;
@@ -152,8 +153,86 @@ end;
 
 function TTiledMapConverter.BuildObjectGroupLayerNode(
   const ALayer: TTiledMap.TLayer): TTransformNode;
+var
+  TiledObjectMaterial: TMaterialNode = nil;    // Material node of a Tiled obj.
+  TiledObjectInstance: TTiledMap.TTiledObject; // A Tiled object instance (as
+                                               // saved in TTiledMap).
+  TiledObject: TTransformNode = nil;           // Transform node of a Tiled object.
+  TiledObjectGeometry: TPolyline2DNode = nil;  // Geometry node of a TiledObject primitive.
+  TiledObjectShape: TShapeNode = nil;          // Shape node of a TiledObject.
+  //ObjVector2List: TVector2List = nil;     // Helper list.
+
 begin
-  Result := TTransformNode.Create;
+  Result := nil;
+
+  for TiledObjectInstance in (ALayer as TTiledMap.TObjectGroupLayer).Objects do
+  begin
+
+    if not TiledObjectInstance.Visible then
+      Continue;
+
+    { At this point it is clear that at least one visible Tiled object is
+      present on the Object group layer. Hence the layer node and the material
+      node is created. }
+    if not Assigned(Result) then
+      Result := TTransformNode.Create;   // Tiled object group layer node.
+
+    { All Tiled objects of this layer share the same material node. The color
+      depends on the layer color in accordance with handling of Tiled editor. }
+    if not Assigned(TiledObjectMaterial) then
+    begin
+      TiledObjectMaterial := TMaterialNode.Create;
+      TiledObjectMaterial.EmissiveColor := ALayer.Color;
+    end;
+
+    { Every Tiled object is based on a transform node. }
+    TiledObject := TTransformNode.Create;
+    TiledObject.Translation := Vector3(ALayer.Offset.X +
+      TiledObjectInstance.Position.X, ALayer.Offset.Y +
+      TiledObjectInstance.Position.Y, 0);
+
+    { Every primitive is implemented as polyline node. Hint: For better
+      performance rectangle and point could be implemented as rect. node?}
+    TiledObjectGeometry := TPolyline2DNode.CreateWithShape(TiledObjectShape);
+    case TiledObjectInstance.Primitive of
+      topPolyline:
+        begin
+          //ObjVector2List.Clear;
+          //ObjVector2List.Assign(TiledObj.Points);
+          //ObjPolyNode.SetLineSegments(ObjVector2List);
+        end;
+      topPolygon:
+        begin
+          //ObjVector2List.Clear;
+          //ObjVector2List.Assign(TiledObj.Points);
+          //{ add point with index 0 to points list to get a closed polygon }
+          //ObjVector2List.Add(ObjVector2List.Items[0]);
+          //ObjPolyNode.SetLineSegments(ObjVector2List);
+        end;
+      topRectangle:
+        begin
+          //ObjVector2List.Clear;
+          //CalcVectorListFromRect(ObjVector2List, TiledObj.Width,
+          //  TiledObj.Height);
+          TiledObjectGeometry.SetLineSegments([Vector2(0.0, 0.0), Vector2(
+            TiledObjectInstance.Width , 0.0), Vector2(TiledObjectInstance.Width,
+            TiledObjectInstance.Height), Vector2(0.0,
+            TiledObjectInstance.Height), Vector2(0.0, 0.0)]);
+        end;
+      topPoint:
+        begin
+          //ObjVector2List.Clear;
+          //CalcVectorListFromRect(ObjVector2List, 1, 1);
+          //{ A point is a rectangle with width and height of 1 unit. }
+          //ObjPolyNode.SetLineSegments(ObjVector2List);
+        end;
+      // TODO: handle ellipse
+    end;
+    TiledObjectShape.Material := TiledObjectMaterial;
+    TiledObject.AddChildren(TiledObjectShape);
+    Result.AddChildren(TiledObject);
+  end;
+    //FreeAndNil(ObjVector2List);
 end;
 
 function TTiledMapConverter.BuildTileLayerNode(const ALayer: TTiledMap.TLayer
@@ -191,7 +270,7 @@ procedure TTiledMapConverter.BuildDebugObject(const X, Y, W, H: Cardinal;
   const AName: String);
 var
   { All Debug objects are based on a Transform node. }
-  DebugTransformNode: TTransformNode = nil;
+  DebugObject: TTransformNode = nil;
   { Outline-Debug object. }
   { Hint: TRectangle2DNode is always filled, even if TFillPropertiesNode has
     property filled set to false. }
@@ -235,15 +314,15 @@ begin
 
   { Create Debug transform node for Outline- and NameDebug nodes. Add them to
     the Debug node. }
-  DebugTransformNode := TTransformNode.Create;
-  DebugTransformNode.Translation := Vector3(Single(X), Single(Y), 0.0);
-  DebugTransformNode.AddChildren(DebugShapeOutline);
-  DebugNode.AddChildren(DebugTransformNode);
+  DebugObject := TTransformNode.Create;
+  DebugObject.Translation := Vector3(Single(X), Single(Y), 0.0);
+  DebugObject.AddChildren(DebugShapeOutline);
+  DebugNode.AddChildren(DebugObject);
 
-  DebugTransformNode := TTransformNode.Create;
-  DebugTransformNode.Translation := Vector3(Single(X+10), Single(Y+10), 0.0);
-  DebugTransformNode.AddChildren(DebugShapeName);
-  DebugNode.AddChildren(DebugTransformNode);
+  DebugObject := TTransformNode.Create;
+  DebugObject.Translation := Vector3(Single(X+10), Single(Y+10), 0.0);
+  DebugObject.AddChildren(DebugShapeName);
+  DebugNode.AddChildren(DebugObject);
 end;
 
 procedure TTiledMapConverter.SetDebugMode(AValue: Boolean);
