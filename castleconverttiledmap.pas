@@ -31,6 +31,14 @@
   2. Turn off debug mode.
   3. Check SetDebugMode: RemoveChildren free's instance of node?
 
+  REMARKS:
+  1. Coordinate systems: The Tiled editor uses a classical coordinate system
+     with origin (0,0) at top-left position. The CGE uses the OpenGL coordinate
+     system with origin (0,0) at bottom-left. The conversion of coordinates
+     works as follows: The top-left position of the Tiled map is placed at the
+     origin of the CGE coordinate system. A simple translation of the Map node
+     by height, it can be switched to CGE convention.
+
 }
 unit CastleConvertTiledMap;
 
@@ -78,6 +86,9 @@ type
     { Map height in pixels. }
     function MapHeight: Cardinal;
 
+    { Build a reference 3d coordinate system with description of axis and
+      origin. It is slightly moved along Z-axis to be infront of everything. }
+    procedure BuildDebugCoordinateSystem;
     { Build a rectangluar debug object at pos. X,Y with dim. W,H. }
     procedure BuildDebugObject(const X, Y, W, H: Cardinal; const AName: String);
     { Makes sure that a Debug node is added/removed from Map node list and
@@ -108,6 +119,9 @@ type
 procedure TTiledMapConverter.ConvertMap;
 begin
   ConvertLayers;
+  if DebugMode then
+    BuildDebugCoordinateSystem;
+  ;
 end;
 
 procedure TTiledMapConverter.ConvertLayers;
@@ -266,6 +280,86 @@ begin
   Result := Map.TileHeight * Map.Height;
 end;
 
+procedure TTiledMapConverter.BuildDebugCoordinateSystem;
+var
+  { Axis objects. }
+  DebugAxisGeom: array[0..2] of TLineSetNode;
+  DebugAxisCoord: array[0..2] of TCoordinateNode;
+  DebugAxisShape: array[0..2] of TShapeNode;
+
+  { Naming objects. }
+  DebugAxisName: array[0..3] of TTransformNode;
+  DebugAxisNameGeom: array[0..3] of TTextNode;
+  DebugAxisNameShape: array[0..3] of TShapeNode;
+
+  { General objects (and vars.) }
+  DebugAxisMaterial: TMaterialNode;
+  DebugAxisLineProperties: TLinePropertiesNode;
+  I: Byte;
+  OriginVector: TVector3;
+const
+  AxisLength = 50.0;
+  AxisNameGap = 10.0; // Gap between end of axis and name
+begin
+  OriginVector := Vector3(0.0, 0.0, 0.1);
+
+  DebugAxisMaterial := TMaterialNode.Create;
+  DebugAxisMaterial.EmissiveColor := RedRGB;
+
+  DebugAxisLineProperties := TLinePropertiesNode.Create;
+  DebugAxisLineProperties.LinewidthScaleFactor := 2.0;
+
+  for I := 0 to 2 do
+  begin
+    { Construct three axis at origin along X, Y and Z. }
+    DebugAxisGeom[I] := TLineSetNode.CreateWithShape(DebugAxisShape[I]);
+    DebugAxisShape[I].Appearance := TAppearanceNode.Create;
+    DebugAxisShape[I].Appearance.Material := DebugAxisMaterial;
+    DebugAxisShape[I].Appearance.LineProperties := DebugAxisLineProperties;
+    DebugAxisCoord[I] := TCoordinateNode.Create;
+    case I of
+      0: DebugAxisCoord[I].SetPoint([OriginVector, Vector3(AxisLength, 0.0, 0.1)
+           ]); // X-Axis
+      1: DebugAxisCoord[I].SetPoint([OriginVector, Vector3(0.0, AxisLength, 0.1)
+           ]); // Y-Axis
+      2: DebugAxisCoord[I].SetPoint([OriginVector, Vector3(0.0, 0.0,
+           0.1 + AxisLength)]); // Z-Axis
+    end;
+    DebugAxisGeom[I].SetVertexCount([DebugAxisCoord[I].CoordCount]);
+    DebugAxisGeom[I].Coord := DebugAxisCoord[I];
+    DebugNode.AddChildren(DebugAxisShape[I]);
+  end;
+
+  for I := 0 to 3 do
+  begin
+    { Construct axis description for X-, Y- and Z-axis and origin. }
+    DebugAxisNameGeom[I] := TTextNode.CreateWithShape(DebugAxisNameShape[I]);
+    DebugAxisNameShape[I].Appearance := TAppearanceNode.Create;
+    DebugAxisNameShape[I].Appearance.Material := DebugAxisMaterial;
+    case I of
+      0: DebugAxisNameGeom[I].SetString(['X']);
+      1: DebugAxisNameGeom[I].SetString(['Y']);
+      2: DebugAxisNameGeom[I].SetString(['Z']);
+      3: DebugAxisNameGeom[I].SetString(['O']);
+    end;
+    DebugAxisNameGeom[I].FontStyle := TFontStyleNode.Create;
+    DebugAxisNameGeom[I].FontStyle.Size := 10.0;
+    DebugAxisName[I] := TTransformNode.Create;
+    case I of
+      0: DebugAxisName[I].Translation := Vector3(AxisLength + AxisNameGap, 0.0,
+           0.1);
+      1: DebugAxisName[I].Translation := Vector3(0.0, AxisLength + AxisNameGap,
+           0.1);
+      2: DebugAxisName[I].Translation := Vector3(0.0, 0.0, AxisLength +
+           AxisNameGap);
+      3: DebugAxisName[I].Translation := Vector3(-AxisNameGap, -AxisNameGap,
+           0.1);
+    end;
+    DebugAxisName[I].AddChildren(DebugAxisNameShape[I]);
+    DebugNode.AddChildren(DebugAxisName[I]);
+  end;
+end;
+
 procedure TTiledMapConverter.BuildDebugObject(const X, Y, W, H: Cardinal;
   const AName: String);
 var
@@ -302,7 +396,7 @@ begin
   DebugMaterial.EmissiveColor := YellowRGB;
 
   DebugLineProperties := TLinePropertiesNode.Create;
-  DebugLineProperties.LinewidthScaleFactor := 4.0;
+  DebugLineProperties.LinewidthScaleFactor := 2.0;
 
   DebugShapeOutline.Appearance := TAppearanceNode.Create;
   DebugShapeOutline.Appearance.Material := DebugMaterial;
