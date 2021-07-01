@@ -118,7 +118,7 @@ type
         Properties: TPropertyList;
         { List of points for poligon and poliline. }
         Points: TVector2List;
-        Primitive: TTileObjectPrimitive;
+        Primitive: TTiledObjectPrimitive;
         Image: TImage;
         constructor Create;
         destructor Destroy; override;
