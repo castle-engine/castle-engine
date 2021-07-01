@@ -42,7 +42,7 @@ implementation
 uses
   SysUtils, Process, {$ifdef UNIX} BaseUnix, {$endif}
   CastleUtils, CastleFilesUtils, CastleDownload, CastleImages, CastleLog,
-  ToolCommonUtils, ToolUtils;
+  ToolCommonUtils, ToolUtils, ToolEmbeddedXpmIcon;
 
 procedure TPackageDebian.FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
 begin
@@ -128,15 +128,17 @@ begin
     CheckCopyFile(Manifest.Icons.FindExtension(['.xpm']), PackageDirLocal + PathToIconFileLocal)
   else
   begin
-    ImageMagickExe = FindExe('convert');
-    if ConvertExe <> '' then
+    ImageMagickExe := FindExe('convert');
+    if ImageMagickExe <> '' then
     begin
       WriteLnWarning('XPM icon not found. Attempting conversion.');
       // 96 colors in XPM still produces 1 symbol per color, larger values double the file size
       RunCommandSimple(ImageMagickExe, ['-colors 96', Manifest.Icons.FindExtension(['.png']), PackageDirLocal + PathToIconFileLocal])
     end else
-      WriteLnWarning('XPM icon not found and no ImageMagick found for automatic conversion.');
-
+    begin
+      WriteLnWarning('XPM icon not found and no ImageMagick found for automatic conversion. Using default icon');
+      StringToFile(PackageDirLocal + PathToIconFileLocal, XpmIconString);
+    end;
     // using ImageMagick - FPWriteXPM first doesn't properly write alpha channel, second uses palette char size = 2 which results in large files
   end;
 
