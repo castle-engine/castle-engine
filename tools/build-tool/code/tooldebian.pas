@@ -96,13 +96,10 @@ var
   PathToExecutableLocal, PathToExecutableUnix: String;
   PathToIconFileLocal, PathToIconFileUnix: String;
   ShareDirLocal, ShareDirUrl: String;
-  OutString: String;
   PackageDirLocal, PackageDirUrl: String;
-  TempOutputPathUrl: String;
 begin
   PackageDirLocal := TempPath + PackageFileName;
   PackageDirUrl := StringReplace(PackageDirLocal, PathDelim, '/', [rfReplaceAll]);
-  TempOutputPathUrl := StringReplace(TempPath, PathDelim, '/', [rfReplaceAll]);
   if DirectoryExists(PackageDirLocal) then
     RemoveNonEmptyDir(PackageDirLocal);
 
@@ -187,19 +184,10 @@ begin
   );
   DoMakeExecutable(PackageDirLocal + PathDelim + 'DEBIAN' + PathDelim + 'postinst');
 
-  // Workaround, we need to execute a shell script somehow
+  RunCommandSimple(TempPath + PackageFileName, 'bash', ['-c',
+    'find -type f | egrep -v ''^\./DEBIAN'' | xargs --replace=hh -n1 md5sum "hh" | sed ''s/\ \.\///'' > DEBIAN/md5sums']);
+  RunCommandSimple(TempPath, 'dpkg-deb', ['--build', PackageFileName]);
 
-  StringToFile(
-    TempOutputPathUrl + 'package-debian.sh',
-    'cd ' + TempOutputPathUrl + NL +
-    'cd ' + PackageFileName + NL +
-    'find -type f | egrep -v ''^\./DEBIAN'' | xargs --replace=hh -n1 md5sum "hh" | sed ''s/\ \.\///'' > DEBIAN/md5sums' + NL +
-    'cd ..' + NL +
-    'dpkg-deb --build ' + PackageFileName
-  );
-
-  RunCommand('/bin/bash', [TempOutputPathUrl + 'package-debian.sh'], OutString);
-  WriteLn(OutString);
   RenameFile(PackageDirLocal + '.deb', PackageFileName + '.deb');
 
   // And finally clean up the temporary files
