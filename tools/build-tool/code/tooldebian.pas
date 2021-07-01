@@ -133,7 +133,7 @@ begin
     begin
       WriteLnWarning('XPM icon not found. Attempting conversion.');
       // 96 colors in XPM still produces 1 symbol per color, larger values double the file size
-      RunCommandSimple(ImageMagickExe, [Manifest.Icons.FindExtension(['.png']), PackageDirLocal + PathToIconFileLocal])
+      RunCommandSimple(ImageMagickExe, ['-colors 96', Manifest.Icons.FindExtension(['.png']), PackageDirLocal + PathToIconFileLocal])
     end else
       WriteLnWarning('XPM icon not found and no ImageMagick found for automatic conversion.');
 
