@@ -36,8 +36,10 @@
      with origin (0,0) at top-left position. The CGE uses the OpenGL coordinate
      system with origin (0,0) at bottom-left. The conversion of coordinates
      works as follows: The top-left position of the Tiled map is placed at the
-     origin of the CGE coordinate system. A simple translation of the Map node
-     by height, it can be switched to CGE convention.
+     origin of the CGE coordinate system. In short: the origins are placed onto
+     each other.
+     A simple translation of the Map node by the map height allows it to follow
+     CGE/OpenGL convention.
 
 }
 unit CastleConvertTiledMap;
@@ -85,6 +87,9 @@ type
     function MapWidth: Cardinal;
     { Map height in pixels. }
     function MapHeight: Cardinal;
+    { Convert Tiled Y-values to Y-values according to definition, see remarks
+      above. }
+    function ConvY(TiledY: Single): Single;
 
     { Build a reference 3d coordinate system with description of axis and
       origin. It is slightly moved along Z-axis to be infront of everything. }
@@ -202,8 +207,8 @@ begin
     { Every Tiled object is based on a transform node. }
     TiledObject := TTransformNode.Create;
     TiledObject.Translation := Vector3(ALayer.Offset.X +
-      TiledObjectInstance.Position.X, ALayer.Offset.Y +
-      TiledObjectInstance.Position.Y, 0);
+      TiledObjectInstance.Position.X, ConvY(ALayer.Offset.Y +
+      TiledObjectInstance.Position.Y), 0);
 
     { Every primitive is implemented as polyline node. Hint: For better
       performance rectangle and point could be implemented as rect. node?}
@@ -228,10 +233,10 @@ begin
           //ObjVector2List.Clear;
           //CalcVectorListFromRect(ObjVector2List, TiledObj.Width,
           //  TiledObj.Height);
-          TiledObjectGeometry.SetLineSegments([Vector2(0.0, 0.0), Vector2(
-            TiledObjectInstance.Width , 0.0), Vector2(TiledObjectInstance.Width,
-            TiledObjectInstance.Height), Vector2(0.0,
-            TiledObjectInstance.Height), Vector2(0.0, 0.0)]);
+          TiledObjectGeometry.SetLineSegments([Vector2(0.0, ConvY(0.0)), Vector2(
+            TiledObjectInstance.Width , ConvY(0.0)), Vector2(TiledObjectInstance.Width,
+            ConvY(TiledObjectInstance.Height)), Vector2(0.0,
+            ConvY(TiledObjectInstance.Height)), Vector2(0.0, ConvY(0.0))]);
         end;
       topPoint:
         begin
@@ -278,6 +283,11 @@ end;
 function TTiledMapConverter.MapHeight: Cardinal;
 begin
   Result := Map.TileHeight * Map.Height;
+end;
+
+function TTiledMapConverter.ConvY(TiledY: Single): Single;
+begin
+  Result := -TiledY;
 end;
 
 procedure TTiledMapConverter.BuildDebugCoordinateSystem;
@@ -380,9 +390,9 @@ begin
   { Build Outline-Debug object. }
   DebugGeometryOutline := TPolyline2DNode.CreateWithShape(DebugShapeOutline);
   { Create anti-clockwise rectangle. }
-  DebugGeometryOutline.SetLineSegments([Vector2(0.0, 0.0),
-  Vector2(Single(W), 0.0), Vector2(Single(W), Single(H)),
-  Vector2(0.0, Single(H)), Vector2(0.0, 0.0)]);
+  DebugGeometryOutline.SetLineSegments([Vector2(0.0, ConvY(0.0)),
+  Vector2(Single(W), ConvY(0.0)), Vector2(Single(W), ConvY(Single(H))),
+  Vector2(0.0, ConvY(Single(H))), Vector2(0.0, ConvY(0.0))]);
 
   { Build Name-Debug object. }
   DebugGeometryName := TTextNode.CreateWithShape(DebugShapeName);
@@ -409,12 +419,12 @@ begin
   { Create Debug transform node for Outline- and NameDebug nodes. Add them to
     the Debug node. }
   DebugObject := TTransformNode.Create;
-  DebugObject.Translation := Vector3(Single(X), Single(Y), 0.0);
+  DebugObject.Translation := Vector3(Single(X), ConvY(Single(Y)), 0.0);
   DebugObject.AddChildren(DebugShapeOutline);
   DebugNode.AddChildren(DebugObject);
 
   DebugObject := TTransformNode.Create;
-  DebugObject.Translation := Vector3(Single(X+10), Single(Y+10), 0.0);
+  DebugObject.Translation := Vector3(Single(X+10), ConvY(Single(Y+10)), 0.0);
   DebugObject.AddChildren(DebugShapeName);
   DebugNode.AddChildren(DebugObject);
 end;
