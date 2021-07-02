@@ -236,14 +236,6 @@ begin
 
           TiledObjectGeometry.SetLineSegments(AVector2List);
         end;
-      //topPolygon:
-      //  begin
-      //    //ObjVector2List.Clear;
-      //    //ObjVector2List.Assign(TiledObj.Points);
-      //    //{ add point with index 0 to points list to get a closed polygon }
-      //    //ObjVector2List.Add(ObjVector2List.Items[0]);
-      //    //ObjPolyNode.SetLineSegments(ObjVector2List);
-      //  end;
       topRectangle:
         begin
           TiledObjectGeometry.SetLineSegments([Vector2(0.0, ConvY(0.0)),
@@ -411,6 +403,8 @@ var
 
   DebugMaterial: TMaterialNode = nil;
   DebugLineProperties: TLinePropertiesNode = nil;
+const
+  NameGap = 20;
 begin
   { Build Outline-Debug object. }
   DebugGeometryOutline := TPolyline2DNode.CreateWithShape(DebugShapeOutline);
@@ -449,7 +443,8 @@ begin
   DebugNode.AddChildren(DebugObject);
 
   DebugObject := TTransformNode.Create;
-  DebugObject.Translation := Vector3(Single(X+10), ConvY(Single(Y+10)), 0.0);
+  DebugObject.Translation := Vector3(Single(X) + NameGap, ConvY(Single(Y)) +
+    NameGap, 0.0);
   DebugObject.AddChildren(DebugShapeName);
   DebugNode.AddChildren(DebugObject);
 end;
