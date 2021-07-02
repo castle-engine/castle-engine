@@ -49,7 +49,7 @@ unit CastleConvertTiledMap;
 interface
 
 uses
-  Classes, Math,
+  Classes,
   X3DNodes, CastleTiledMap, CastleVectors, CastleTransform, CastleColors,
   CastleRenderOptions, X3DLoadInternalImage;
 
@@ -75,6 +75,8 @@ type
     FMap: TTiledMap;
     FMapNode: TX3DRootNode;
 
+    FConvYMatrix: TMatrix2;
+
     { Tries to construct X3D nodes for each layer. }
     procedure ConvertLayers;
     { Builds Object Group layer node from TTiledMap data. }
@@ -89,7 +91,8 @@ type
     function MapHeight: Cardinal;
     { Convert Tiled Y-values to Y-values according to definition, see remarks
       above. }
-    function ConvY(TiledY: Single): Single;
+    function ConvY(TiledY: Single): Single; overload;
+    function ConvY(TiledYVector2: TVector2): TVector2; overload;
 
     { Build a reference 3d coordinate system with description of axis and
       origin. It is slightly moved along Z-axis to be infront of everything. }
@@ -102,6 +105,9 @@ type
     { This node holds all debug nodes and is added to MapNode if debug mode is
       on. This is important for automatic free'ing of all debug objects. }
     property DebugNode: TX3DRootNode read FDebugNode write FDebugNode;
+    { Mirrors 2d-vector at X-axis in XY-plane. Necessary for conversion of
+      Tiled Y-values according to definition, see remarks above. }
+    property ConvYMatrix: TMatrix2 read FConvYMatrix;
   public
     constructor Create;
     destructor Destroy; override;
@@ -179,10 +185,13 @@ var
   TiledObject: TTransformNode = nil;           // Transform node of a Tiled object.
   TiledObjectGeometry: TPolyline2DNode = nil;  // Geometry node of a TiledObject primitive.
   TiledObjectShape: TShapeNode = nil;          // Shape node of a TiledObject.
-  //ObjVector2List: TVector2List = nil;     // Helper list.
+  AVector2List: TVector2List = nil;            // Helper list.
+  I: Cardinal;
 
 begin
   Result := nil;
+
+  AVector2List := TVector2List.Create;
 
   for TiledObjectInstance in (ALayer as TTiledMap.TObjectGroupLayer).Objects do
   begin
@@ -216,9 +225,11 @@ begin
     case TiledObjectInstance.Primitive of
       topPolyline:
         begin
-          //ObjVector2List.Clear;
-          //ObjVector2List.Assign(TiledObj.Points);
-          //ObjPolyNode.SetLineSegments(ObjVector2List);
+          AVector2List.Clear;
+          AVector2List.Assign(TiledObjectInstance.Points);
+          for I := 0 to AVector2List.Count-1 do
+            AVector2List.Items[I] :=  ConvY(AVector2List.Items[I]);
+          TiledObjectGeometry.SetLineSegments(AVector2List);
         end;
       topPolygon:
         begin
@@ -230,13 +241,12 @@ begin
         end;
       topRectangle:
         begin
-          //ObjVector2List.Clear;
-          //CalcVectorListFromRect(ObjVector2List, TiledObj.Width,
-          //  TiledObj.Height);
-          TiledObjectGeometry.SetLineSegments([Vector2(0.0, ConvY(0.0)), Vector2(
-            TiledObjectInstance.Width , ConvY(0.0)), Vector2(TiledObjectInstance.Width,
-            ConvY(TiledObjectInstance.Height)), Vector2(0.0,
-            ConvY(TiledObjectInstance.Height)), Vector2(0.0, ConvY(0.0))]);
+          TiledObjectGeometry.SetLineSegments([Vector2(0.0, ConvY(0.0)),
+            Vector2(TiledObjectInstance.Width , ConvY(0.0)),
+            Vector2(TiledObjectInstance.Width,
+            ConvY(TiledObjectInstance.Height)),
+            Vector2(0.0, ConvY(TiledObjectInstance.Height)), Vector2(0.0,
+            ConvY(0.0))]);
         end;
       topPoint:
         begin
@@ -251,7 +261,7 @@ begin
     TiledObject.AddChildren(TiledObjectShape);
     Result.AddChildren(TiledObject);
   end;
-    //FreeAndNil(ObjVector2List);
+    FreeAndNil(AVector2List);
 end;
 
 function TTiledMapConverter.BuildTileLayerNode(const ALayer: TTiledMap.TLayer
@@ -267,6 +277,11 @@ begin
   FMapNode := TX3DRootNode.Create;
 
   DebugMode := True;  // DebugMode := False; // Default
+
+  ConvYMatrix.Items[0,0] := 1;
+  ConvYMatrix.Items[1,0] := 0;
+  ConvYMatrix.Items[0,1] := 0;
+  ConvYMatrix.Items[1,1] := -1;
 end;
 
 destructor TTiledMapConverter.Destroy;
@@ -288,6 +303,11 @@ end;
 function TTiledMapConverter.ConvY(TiledY: Single): Single;
 begin
   Result := -TiledY;
+end;
+
+function TTiledMapConverter.ConvY(TiledYVector2: TVector2): TVector2;
+begin
+  Result :=  ConvYMatrix * TiledYVector2;
 end;
 
 procedure TTiledMapConverter.BuildDebugCoordinateSystem;
