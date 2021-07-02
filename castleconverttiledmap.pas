@@ -223,22 +223,27 @@ begin
       performance rectangle and point could be implemented as rect. node?}
     TiledObjectGeometry := TPolyline2DNode.CreateWithShape(TiledObjectShape);
     case TiledObjectInstance.Primitive of
-      topPolyline:
+      topPolyline, topPolygon:
         begin
           AVector2List.Clear;
           AVector2List.Assign(TiledObjectInstance.Points);
           for I := 0 to AVector2List.Count-1 do
             AVector2List.Items[I] :=  ConvY(AVector2List.Items[I]);
+
+          { Polygon: Add point with index 0 to points list to get a closed polygon }
+          if TiledObjectInstance.Primitive = topPolygon then
+            AVector2List.Add(AVector2List.Items[0]);
+
           TiledObjectGeometry.SetLineSegments(AVector2List);
         end;
-      topPolygon:
-        begin
-          //ObjVector2List.Clear;
-          //ObjVector2List.Assign(TiledObj.Points);
-          //{ add point with index 0 to points list to get a closed polygon }
-          //ObjVector2List.Add(ObjVector2List.Items[0]);
-          //ObjPolyNode.SetLineSegments(ObjVector2List);
-        end;
+      //topPolygon:
+      //  begin
+      //    //ObjVector2List.Clear;
+      //    //ObjVector2List.Assign(TiledObj.Points);
+      //    //{ add point with index 0 to points list to get a closed polygon }
+      //    //ObjVector2List.Add(ObjVector2List.Items[0]);
+      //    //ObjPolyNode.SetLineSegments(ObjVector2List);
+      //  end;
       topRectangle:
         begin
           TiledObjectGeometry.SetLineSegments([Vector2(0.0, ConvY(0.0)),
