@@ -311,6 +311,10 @@
       (attached to some TCastleTransform) for spatial sounds to control their 3D position. }
     procedure Play(const PlayingSound: TCastlePlayingSound);
 
+    { Internal, a bit more flexible, variant of @link(Play). @exclude }
+    procedure InternalPlay(const PlayingSound: TCastlePlayingSound;
+      const ASpatial: Boolean; const APosition: TVector3);
+
     { Parse parameters in @link(Parameters) and interpret and remove
       recognized options. Internally it uses Parameters.Parse with
       ParseOnlyKnownLongOptions = @true. Recognized options:
@@ -847,6 +851,12 @@ begin
 end;
 
 procedure TSoundEngine.Play(const PlayingSound: TCastlePlayingSound);
+begin
+  InternalPlay(PlayingSound, false, { APosition doesn't matter when spatial = false } TVector3.Zero);
+end;
+
+procedure TSoundEngine.InternalPlay(const PlayingSound: TCastlePlayingSound;
+  const ASpatial: Boolean; const APosition: TVector3);
 var
   ASound: TCastleSound;
   Params: TPlaySoundParameters;
@@ -872,11 +882,12 @@ begin
   Params := TPlaySoundParameters.Create;
   try
     Params.Buffer     := ASound.InternalBuffer;
-    Params.Spatial    := false;
+    Params.Spatial    := ASpatial;
+    Params.Position   := APosition;
     Params.Loop       := PlayingSound.Loop;
     Params.Priority   := ASound.Priority;
-    Params.Pitch      := ASound.Pitch;
-    Params.Volume     := ASound.Volume;
+    Params.Pitch      := PlayingSound.InternalFinalPitch;
+    Params.Volume     := PlayingSound.InternalFinalVolume;
     {$warnings off} // using unportable symbols knowingly
     Params.MinGain    := ASound.MinGain;
     Params.MaxGain    := ASound.MaxGain;

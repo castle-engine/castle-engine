@@ -111,7 +111,8 @@ type
       If the sound is spatial (TCastleSound.Spatial),
       it's 3D position will reflect the @link(Parent) (TCastleTransform) position.
 
-      You have to set @link(TCastlePlayingSound.Sound) before passing it to this method.
+      Set @link(TCastlePlayingSound.Sound) before passing it to this method.
+      Otherwise, if @link(TCastlePlayingSound.Sound) is left @nil, nothing will be played.
 
       Use the TCastlePlayingSound properties to provide additional information
       about the sound playback.
@@ -313,71 +314,20 @@ end;
 
 procedure TCastleSoundSource.Play(const PlayingSound: TCastlePlayingSoundSource);
 var
-  Params: TPlaySoundParameters;
-  ASound: TCastleSound;
   SoundPosition: TVector3;
-  Source: TInternalSoundSource;
 begin
   if Parent = nil then
     raise Exception.Create('Do not play sounds from a TCastleSoundSource not attached to any TCastleTransform; use SoundEngine.Play for sound playback without TCastleSoundSource');
 
   SoundPosition := GetSoundPosition(PlayingSound.SoundHeight);
 
-  ASound := PlayingSound.Sound;
-  Assert(ASound <> nil);
+  { Add to AllPlayingSounds and set PlayingSound.SourceBehavior early,
+    before calling SoundEngine.Play, as SoundEngine.Play may immediately stop it
+    (e.g. if no free TInternalSoundSource slots). }
+  PlayingSound.SourceBehavior := Self;
+  AllPlayingSounds.Add(PlayingSound);
 
-  { TODO:
-    - The check of ASound.InternalBuffer,
-    - manual calling of PlayingSound.DoStop in case of early stop
-    - setting TPlaySoundParameters
-    - calling PlayingSound.InternalStart
-
-    ... should all be done only by TSoundEngine.Play.
-    Here we really only want to set some params before starting sound playback,
-    but after TInternalSoundSource is allocated. }
-
-  if ASound.InternalBuffer = nil then
-  begin
-    // sound cannot be played, as not loaded
-    PlayingSound.DoStop; // apply PlayingSound.OnStop, FreeOnStop
-    Exit;
-  end;
-
-  Params := TPlaySoundParameters.Create;
-  try
-    Params.Position   := SoundPosition;
-    Params.Buffer     := ASound.InternalBuffer;
-    Params.Spatial    := Spatial;
-    Params.Loop       := PlayingSound.Loop;
-    Params.Priority   := ASound.Priority;
-    Params.Pitch      := PlayingSound.InternalFinalPitch;
-    Params.Volume     := PlayingSound.InternalFinalVolume;
-    {$warnings off} // using unportable symbols knowingly
-    Params.MinGain    := ASound.MinGain;
-    Params.MaxGain    := ASound.MaxGain;
-    {$warnings on}
-    Params.Offset     := PlayingSound.InitialOffset;
-
-    {$warnings off} // using deprecated that should be internal
-    Source := SoundEngine.PlaySound(Params);
-    {$warnings on}
-
-    if Source <> nil then
-    begin
-      PlayingSound.Start(Source);
-      { TODO:
-        SoundEngine.PlayingSounds.Add(PlayingSound);
-        ... and see TSoundEngine.Play TODOs.
-      }
-    end else
-    begin
-      // sound cannot be played, as no free TInternalSoundSource slot
-      PlayingSound.DoStop; // apply PlayingSound.OnStop, FreeOnStop
-    end;
-
-    PlayingSound.SourceBehavior := Self;
-    AllPlayingSounds.Add(PlayingSound);
-  finally FreeAndNil(Params) end;
+  SoundEngine.InternalPlay(PlayingSound, Spatial, SoundPosition);
 end;
 
 procedure TCastleSoundSource.SoundChange(const Sender: TCastleSound; const Change: TSoundChange);
