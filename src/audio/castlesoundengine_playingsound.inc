@@ -58,6 +58,9 @@
     procedure SetPitch(const Value: Single);
     { React to sound parameters changes during playback (when FSource <> nil). }
     procedure SoundChangeDuringPlayback(const Sender: TCastleSound; const Change: TSoundChange);
+  private
+    { Used internally by TSoundEngine to notify we started playing this, using given ASource. }
+    procedure Start(const ASource: TInternalSoundSource);
   protected
     { Do the necessary job after source stopped, due to any reason.
       In this class it handles OnStop and FreeOnStop.
@@ -68,9 +71,6 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-
-    { Used internally to start playing this. }
-    procedure Start(const ASource: TInternalSoundSource);
 
     { Associated sound used for playing.
       You have to set it before playing.
