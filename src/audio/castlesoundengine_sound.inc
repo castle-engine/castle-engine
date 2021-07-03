@@ -229,9 +229,15 @@ begin
     2nd SoundEngine instance, if this would be called at finalization
     (after 1st singleton SoundEngine destroyed). }
   if InternalSoundEngine <> nil then
+  begin
+    { Just like in ReloadBuffer, we need to call scBeforeBufferDestroyed notification.
+      This allows related TCastlePlayingSound to stop playback automatically
+      when TCastleSound is destroyed. }
+    DoChange(scBeforeBufferDestroyed);
     {$warnings off} // using deprecated that should be internal
     InternalSoundEngine.FreeBuffer(FBuffer); // this sets FBuffer = nil
     {$warnings on}
+  end;
   FreeAndNil(FChangeNotifications);
   inherited;
 end;

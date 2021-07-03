@@ -383,13 +383,6 @@ end;
 procedure TCastleSoundSource.SoundChange(const Sender: TCastleSound; const Change: TSoundChange);
 begin
   case Change of
-    scBeforeBufferDestroyed:
-      begin
-        if MainPlayingSound <> nil then
-          MainPlayingSound.Stop;
-        Assert(MainPlayingSound = nil);
-      end;
-
     scAfterBufferCreated:
       begin
         { Loop and Follow = true, it seems most natural for sounds set as TCastleSoundSource.Sound. }
@@ -403,7 +396,9 @@ begin
         end;
       end;
 
-    else ; // scAfterOther handled by TCastlePlayingSound.SoundChangeDuringPlayback
+    else ;
+      // scAfterOther handled by TCastlePlayingSound
+      // scBeforeBufferDestroyed also handled by TCastlePlayingSound, it will stop sound making MainPlayingSound -> nil
   end;
 end;
 

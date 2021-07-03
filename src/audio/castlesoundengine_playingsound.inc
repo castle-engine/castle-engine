@@ -319,16 +319,21 @@ end;
 
 procedure TCastlePlayingSound.SoundChangeDuringPlayback(const Sender: TCastleSound; const Change: TSoundChange);
 begin
-  if Change = scAfterOther then // other Change values handled by TCastleSoundSource.SoundChange
-  begin
-    Assert(FSource <> nil);
-    Assert(Sender = FSound);
-    FSource.Volume := InternalFinalVolume;
-    FSource.Pitch  := InternalFinalPitch;
-    {$warnings off} // using unportable symbols knowingly
-    FSource.MinGain := FSound.MinGain;
-    FSource.MaxGain := FSound.MaxGain;
-    {$warnings on}
+  Assert(FSource <> nil);
+  Assert(Sender = FSound);
+
+  case Change of
+    scAfterOther:
+      begin
+        FSource.Volume := InternalFinalVolume;
+        FSource.Pitch  := InternalFinalPitch;
+        {$warnings off} // using unportable symbols knowingly
+        FSource.MinGain := FSound.MinGain;
+        FSource.MaxGain := FSound.MaxGain;
+        {$warnings on}
+      end;
+    scBeforeBufferDestroyed:
+      Stop;
   end;
 end;
 
