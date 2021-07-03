@@ -139,24 +139,36 @@
 
       Use this to indicate that e.g. a plane engine is louder than a mouse squeak
       (when heard from the same distance).
+      Note: Do not make the actual sound data (in sound files)
+      louder/more silent to express that something is louder/more silent in reality.
+      This would usually lower the sound quality.
+      Instead, keep your sound file data at max loudness ("normalized"), and use
+      this property to adjust the volume associated with the sound.
 
-      Note: Do not make the actual sound data (in wav, ogg and such files)
-      louder/more silent for this purpose. This is usually bad for sound quality.
-      Instead, keep your sound data at max loudness (normalized), and use
-      this property to scale sound.
+      The effective sound volume is a multiplication of @link(TCastleSound.Volume),
+      @link(TCastlePlayingSound.Volume) and @link(TCastleSoundSource.Volume)
+      (if the sound is played through @link(TCastleSoundSource)).
+      It is also affected by spatial calculations (if the sound is played
+      through @link(TCastleSoundSource) with @link(TCastleSoundSource.Spatial) = @true)
+      and finally by a master @link(TSoundEngine.Volume SoundEngine.Volume).
 
-      It can be anything from 0 to +infinity. The default is 1. Note that values > 1 are allowed,
+      Any value > 0 is allowed. The default is 1. Note that,
+      while values > 1 are allowed,
       but some sound backends (like OpenAL) may clip the resulting sound volume
-      (after all spatial calculations are done) to 1.0. }
+      (after all volume influences, including spatial calculations are done) to 1.0. }
     property Volume: Single read FVolume write SetVolume default 1.0;
 
     { Sound playing speed.
+
+      The effective sound pitch is a multiplication of @link(TCastleSound.Pitch),
+      @link(TCastlePlayingSound.Pitch) and @link(TCastleSoundSource.Pitch)
+      (if the sound is played through @link(TCastleSoundSource)).
 
       Changing this naturally also changes the audible sound.
       Each reduction by 50 percent equals a pitchshift of -12 semitones (one octave reduction).
       Each doubling equals a pitch shift of 12 semitones (one octave increase).
 
-      Any value > 0 it allowed. }
+      Any value > 0 is allowed. }
     property Pitch: Single read FPitch write SetPitch default 1.0;
 
     { How important is the sound, between 0.0 (least important) to 1.0 (most important).

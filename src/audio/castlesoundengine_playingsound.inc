@@ -47,6 +47,8 @@
     FOnStop: TNotifyEvent;
     FLoop: Boolean;
     FInitialOffset: Single;
+    FVolume: Single;
+    FPitch: Single;
     procedure SetSound(const Value: TCastleSound);
     function GetOffset: Single;
     procedure SetOffset(const Value: Single);
@@ -54,6 +56,8 @@
     procedure SetFreeOnStop(const Value: Boolean);
     procedure SetLoop(const Value: Boolean);
     procedure SourceRelease(Source: TInternalSoundSource);
+    procedure SetVolume(const Value: Single);
+    procedure SetPitch(const Value: Single);
   protected
     { Do the necessary job after source stopped, due to any reason.
       In this class it handles OnStop and FreeOnStop.
@@ -62,6 +66,7 @@
       you should add your code @italic(before) calling inherited. }
     procedure DoStop; virtual;
   public
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     { Used internally to start playing this. }
@@ -71,6 +76,18 @@
       You have to set it before playing.
       Cannot be changed while playing. }
     property Sound: TCastleSound read FSound write SetSound;
+
+    { Volume, a multiplication of @link(TCastleSound.Volume),
+      @link(TCastlePlayingSound.Volume) and @link(TCastleSoundSource.Volume)
+      (if the sound is played through @link(TCastleSoundSource)).
+      @exclude }
+    function InternalFinalVolume: Single; virtual;
+
+    { Pitch, a multiplication of @link(TCastleSound.Pitch),
+      @link(TCastlePlayingSound.Pitch) and @link(TCastleSoundSource.Pitch)
+      (if the sound is played through @link(TCastleSoundSource)).
+      @exclude }
+    function InternalFinalPitch: Single; virtual;
 
     { If provided, we will call this event when sound stops playing.
 
@@ -108,6 +125,27 @@
       makes it @true for some time, then (right before OnStop) it switches back to @false. }
     function Playing: Boolean;
 
+    { Volume (how loud the playing sound is).
+
+      The effective sound volume is a multiplication of @link(TCastleSound.Volume),
+      @link(TCastlePlayingSound.Volume) and @link(TCastleSoundSource.Volume)
+      (if the sound is played through @link(TCastleSoundSource)).
+      It is also affected by spatial calculations (if the sound is played
+      through @link(TCastleSoundSource) with @link(TCastleSoundSource.Spatial) = @true)
+      and finally by a master @link(TSoundEngine.Volume SoundEngine.Volume).
+
+      Any value > 0 is allowed. }
+    property Volume: Single read FVolume write SetVolume default 1.0;
+
+    { Sound playing speed.
+
+      The effective sound pitch is a multiplication of @link(TCastleSound.Pitch),
+      @link(TCastlePlayingSound.Pitch) and @link(TCastleSoundSource.Pitch)
+      (if the sound is played through @link(TCastleSoundSource)).
+
+      Any value > 0 is allowed. }
+    property Pitch: Single read FPitch write SetPitch default 1.0;
+
     { Playback time of this sound, expressed in seconds.
 
       This value will loop back to zero for looping sound sources.
@@ -127,8 +165,8 @@
 
       Note: you can adjust InitialOffset to determine the offset for starting new sound.
       It is deliberately a separate property from current @link(Offset),
-      otherwise it was too easy to accidentally start playing in the middle when
-      you wanted to play from start. }
+      otherwise it would be too easy to accidentally start playing in the middle when
+      you wanted to play from the start. }
     property Offset: Single read GetOffset write SetOffset;
 
     { Initial position, in seconds, within the sound when we start playing it.
@@ -160,6 +198,13 @@
   It generally existed for a long time, unless you decreased SoundEngine.MaxAllocatedSources.
   TCastlePlayingSoundXxx has clearer lifetime:
   controlled by user, has FreeOnStop, stops automatically when freed. }
+
+constructor TCastlePlayingSound.Create(AOwner: TComponent);
+begin
+  inherited;
+  FVolume := 1.0;
+  FPitch := 1.0;
+end;
 
 destructor TCastlePlayingSound.Destroy;
 begin
@@ -266,6 +311,38 @@ begin
     OnStop(Self);
   if FreeOnStop then
     Self.Destroy;
+end;
+
+function TCastlePlayingSound.InternalFinalVolume: Single;
+begin
+  Result := FVolume;
+  if Sound <> nil then
+    Result := Result * Sound.Volume;
+end;
+
+function TCastlePlayingSound.InternalFinalPitch: Single;
+begin
+  Result := FPitch;
+  if Sound <> nil then
+    Result := Result * Sound.Pitch;
+end;
+
+procedure TCastlePlayingSound.SetVolume(const Value: Single);
+begin
+  if FVolume <> Value then
+  begin
+    FVolume := Value;
+    // TODO
+  end;
+end;
+
+procedure TCastlePlayingSound.SetPitch(const Value: Single);
+begin
+  if FPitch <> Value then
+  begin
+    FPitch := Value;
+    // TODO
+  end;
 end;
 
 {$endif read_implementation}

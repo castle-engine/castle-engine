@@ -34,6 +34,8 @@ type
     procedure DoStop; override;
   public
     constructor Create(AOwner: TComponent); override;
+    function InternalFinalVolume: Single; override;
+    function InternalFinalPitch: Single; override;
 
     { If Follow then the sound position will be updated
       as the parent TCastleTransform moves. Moreover, when TCastleSoundSource
@@ -75,12 +77,15 @@ type
     playback settings like different @link(Volume) control). }
   TCastleSoundSource = class(TCastleBehavior)
   strict private
-    var
-      FSound: TCastleSound;
-      FSpatial: Boolean;
+    FSound: TCastleSound;
+    FSpatial: Boolean;
+    FVolume: Single;
+    FPitch: Single;
     procedure SoundChange(const Sender: TCastleSound; const Change: TSoundChange);
     procedure SetSound(const Value: TCastleSound);
     procedure SetSpatial(const Value: Boolean);
+    procedure SetVolume(const Value: Single);
+    procedure SetPitch(const Value: Single);
   private
     type
       TCastlePlayingSoundSourceList = specialize TObjectList<TCastlePlayingSoundSource>;
@@ -138,6 +143,25 @@ type
       Note that some sound backends (like OpenAL) can only spatialize mono sounds,
       and play stereo sounds always as non-spatialized. }
     property Spatial: Boolean read FSpatial write SetSpatial default true;
+
+    { Volume (how loud the playing sound is).
+
+      The effective sound volume is a multiplication of @link(TCastleSound.Volume),
+      @link(TCastlePlayingSound.Volume) and @link(TCastleSoundSource.Volume).
+      It is also affected by spatial calculations (if the sound is played
+      with @link(TCastleSoundSource.Spatial) = @true)
+      and finally by a master @link(TSoundEngine.Volume SoundEngine.Volume).
+
+      Any value > 0 is allowed. }
+    property Volume: Single read FVolume write SetVolume default 1.0;
+
+    { Sound playing speed.
+
+      The effective sound pitch is a multiplication of @link(TCastleSound.Pitch),
+      @link(TCastlePlayingSound.Pitch) and @link(TCastleSoundSource.Pitch).
+
+      Any value > 0 is allowed. }
+    property Pitch: Single read FPitch write SetPitch default 1.0;
   end;
 
 {$endif read_interface}
@@ -178,6 +202,20 @@ begin
   end;
 end;
 
+function TCastlePlayingSoundSource.InternalFinalVolume: Single;
+begin
+  Result := inherited;
+  if SourceBehavior <> nil then
+    Result := Result * SourceBehavior.Volume;
+end;
+
+function TCastlePlayingSoundSource.InternalFinalPitch: Single;
+begin
+  Result := inherited;
+  if SourceBehavior <> nil then
+    Result := Result * SourceBehavior.Pitch;
+end;
+
 { TCastleSoundSource ------------------------------------------------------- }
 
 constructor TCastleSoundSource.Create(AOwner: TComponent);
@@ -185,6 +223,8 @@ begin
   inherited;
   AllPlayingSounds := TCastlePlayingSoundSourceList.Create(false);
   FSpatial := true;
+  FVolume := 1.0;
+  FPitch := 1.0;
 end;
 
 destructor TCastleSoundSource.Destroy;
@@ -225,7 +265,7 @@ end;
 function TCastleSoundSource.PropertySections(const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
-    'Sound', 'Spatial':
+    'Sound', 'Spatial', 'Volume', 'Pitch':
       Result := [psBasic];
     else
       Result := inherited PropertySections(PropertyName);
@@ -310,8 +350,8 @@ begin
     Params.Spatial    := Spatial;
     Params.Loop       := PlayingSound.Loop;
     Params.Priority   := ASound.Priority;
-    Params.Pitch      := ASound.Pitch;
-    Params.Volume     := ASound.Volume;
+    Params.Pitch      := PlayingSound.InternalFinalPitch;
+    Params.Volume     := PlayingSound.InternalFinalVolume;
     {$warnings off} // using unportable symbols knowingly
     Params.MinGain    := ASound.MinGain;
     Params.MaxGain    := ASound.MaxGain;
@@ -370,8 +410,8 @@ begin
           if MainPlayingSound.InternalSource <> nil then
           begin
             // TODO: move this updating to TCastlePlayingSoundSource.Update?
-            MainPlayingSound.InternalSource.Volume := Sound.Volume;
-            MainPlayingSound.InternalSource.Pitch := Sound.Pitch;
+            MainPlayingSound.InternalSource.Volume := MainPlayingSound.InternalFinalVolume;
+            MainPlayingSound.InternalSource.Pitch := MainPlayingSound.InternalFinalPitch;
             MainPlayingSound.InternalSource.Spatial := Spatial;
             {$warnings off} // using unportable symbols knowingly
             MainPlayingSound.InternalSource.MinGain := Sound.MinGain;
@@ -441,6 +481,26 @@ begin
   if FSpatial <> Value then
   begin
     FSpatial := Value;
+    if FSound <> nil then
+      SoundChange(FSound, scAfterOther);
+  end;
+end;
+
+procedure TCastleSoundSource.SetVolume(const Value: Single);
+begin
+  if FVolume <> Value then
+  begin
+    FVolume := Value;
+    if FSound <> nil then
+      SoundChange(FSound, scAfterOther);
+  end;
+end;
+
+procedure TCastleSoundSource.SetPitch(const Value: Single);
+begin
+  if FPitch <> Value then
+  begin
+    FPitch := Value;
     if FSound <> nil then
       SoundChange(FSound, scAfterOther);
   end;
