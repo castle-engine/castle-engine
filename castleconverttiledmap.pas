@@ -30,6 +30,7 @@
      inc., ...)
   2. Turn off debug mode.
   3. Check SetDebugMode: RemoveChildren free's instance of node?
+  4. Update topPoint (see there) + handle ellipsoids (see there)
 
   REMARKS:
   1. Coordinate systems: The Tiled editor uses a classical coordinate system
@@ -93,6 +94,9 @@ type
       above. }
     function ConvY(TiledY: Single): Single; overload;
     function ConvY(TiledYVector2: TVector2): TVector2; overload;
+    { Converts two float values into TVector2 and Y-value (CY: Convert Y)
+      according to def., see remarks above. }
+    function Vector2CY(const X, Y: Single): TVector2;
 
     { Build a reference 3d coordinate system with description of axis and
       origin. It is slightly moved along Z-axis to be infront of everything. }
@@ -215,9 +219,8 @@ begin
 
     { Every Tiled object is based on a transform node. }
     TiledObject := TTransformNode.Create;
-    TiledObject.Translation := Vector3(ALayer.Offset.X +
-      TiledObjectInstance.Position.X, ConvY(ALayer.Offset.Y +
-      TiledObjectInstance.Position.Y), 0);
+    TiledObject.Translation := Vector3(ConvY(ALayer.Offset +
+      TiledObjectInstance.Position), 0);
 
     { Every primitive is implemented as polyline node. Hint: For better
       performance rectangle and point could be implemented as rect. node?}
@@ -238,19 +241,22 @@ begin
         end;
       topRectangle:
         begin
-          TiledObjectGeometry.SetLineSegments([Vector2(0.0, ConvY(0.0)),
-            Vector2(TiledObjectInstance.Width , ConvY(0.0)),
-            Vector2(TiledObjectInstance.Width,
-            ConvY(TiledObjectInstance.Height)),
-            Vector2(0.0, ConvY(TiledObjectInstance.Height)), Vector2(0.0,
-            ConvY(0.0))]);
+          TiledObjectGeometry.SetLineSegments([Vector2CY(0.0, 0.0), Vector2CY(
+            TiledObjectInstance.Width, 0.0), Vector2CY(
+            TiledObjectInstance.Width, TiledObjectInstance.Height), Vector2CY(
+            0.0, TiledObjectInstance.Height), Vector2CY(0.0, 0.0)]);
         end;
       topPoint:
         begin
-          //ObjVector2List.Clear;
-          //CalcVectorListFromRect(ObjVector2List, 1, 1);
-          //{ A point is a rectangle with width and height of 1 unit. }
-          //ObjPolyNode.SetLineSegments(ObjVector2List);
+          { TODO : Use rectangle as representation of point. }
+          AVector2List.Clear;
+          { Construct a rectangle around position of point. }
+          AVector2List.Add(Vector2CY(-1, -1));
+          AVector2List.Add(Vector2CY(-1, 1));
+          AVector2List.Add(Vector2CY(1, 1));
+          AVector2List.Add(Vector2CY(1,-1));
+          AVector2List.Add(Vector2CY(-1, -1));
+          TiledObjectGeometry.SetLineSegments(AVector2List);
         end;
       // TODO: handle ellipse
     end;
@@ -305,6 +311,11 @@ end;
 function TTiledMapConverter.ConvY(TiledYVector2: TVector2): TVector2;
 begin
   Result :=  ConvYMatrix * TiledYVector2;
+end;
+
+function TTiledMapConverter.Vector2CY(const X, Y: Single): TVector2;
+begin
+  Result := ConvY(Vector2(X, Y));
 end;
 
 procedure TTiledMapConverter.BuildDebugCoordinateSystem;
