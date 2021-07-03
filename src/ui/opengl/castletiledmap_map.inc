@@ -85,7 +85,7 @@ type
 
       TObjectsDrawOrder = (odoIndex, odoTopDown);
 
-      TTileObjectPrimitive = (topRectangle, topPoint, topEllipse, topPolygon,
+      TTiledObjectPrimitive = (topRectangle, topPoint, topEllipse, topPolygon,
         topPolyLine);
 
       { Object definition. }
@@ -118,7 +118,7 @@ type
         Properties: TPropertyList;
         { List of points for poligon and poliline. }
         Points: TVector2List;
-        Primitive: TTileObjectPrimitive;
+        Primitive: TTiledObjectPrimitive;
         Image: TImage;
         constructor Create;
         destructor Destroy; override;
@@ -833,6 +833,10 @@ begin
   Visible := True;
   OffsetX := 0;
   OffsetY := 0;
+  if Element.AttributeString('color', TmpStr) then
+    Color := TiledToColorRGB(TmpStr)
+  else
+    Color := BlackRGB; // Default layer color in Tiled editor if no color is set.
   Name := Element.AttributeStringDef('name', '');
   if Element.AttributeString('opacity', TmpStr) then
     Opacity := StrToFloatDot(TmpStr);
