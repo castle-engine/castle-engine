@@ -219,16 +219,7 @@ begin
 end;
 
 procedure TStateMain.Stop;
-
-  procedure StopAllSounds;
-  begin
-    while PlayingSoundUiOwners.Count <> 0 do
-      // this calls PlayingSoundRelease that will remove this item from list
-      PlayingSoundUiOwners[0].PlayingSound.Stop;
-  end;
-
 begin
-  StopAllSounds;
   FreeAndNil(PlayingSoundUiOwners);
   FreeAndNil(PlayingSoundUiTemplate);
   inherited;
@@ -248,7 +239,10 @@ begin
   inherited;
   SenderButton := Sender as TButtonSound;
 
-  PlayingSound := TCastlePlayingSound.Create(Self);
+  { Note: by freeing TCastlePlayingSound at state stop (using FreeAtStop)
+    we make sure sound stops at state Stop too. }
+  PlayingSound := TCastlePlayingSound.Create(FreeAtStop);
+  PlayingSound.FreeOnStop := true;
   PlayingSound.Sound := SenderButton.Sound;
   { It's better to make PlayingSoundStop a method of TStateMain,
     not TPlayingSoundUiOwner, because when it occurs the whole instance
@@ -265,6 +259,12 @@ procedure TStateMain.PlayingSoundStop(Sender: TObject);
 var
   PlayingSoundUiOwner: TPlayingSoundUiOwner;
 begin
+  { This may happen when TCastlePlayingSound is freed by FreeAtStop,
+    when our PlayingSoundUiOwners is freed. So secure from it.
+    Testcase: start some longer sound, and then just close application by Alt+F4. }
+  if PlayingSoundUiOwners = nil then
+    Exit;
+
   for PlayingSoundUiOwner in PlayingSoundUiOwners do
     if PlayingSoundUiOwner.PlayingSound = Sender then
     begin
