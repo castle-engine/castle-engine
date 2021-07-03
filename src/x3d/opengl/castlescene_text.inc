@@ -124,10 +124,7 @@ begin
   ShapeNode.Geometry := TextNode;
 
   FontStyleNode := TFontStyleNode.Create;
-  // TODO: this breaks font rendering.
-  // fixed on branch already, https://github.com/castle-engine/castle-engine/commit/126698aa325b85a292494de1b1766e80ee33a36f ,
-  // will be fixed properly when merging.
-//  FontStyleNode.Family := ffSans; // not modifiable now, as we may disable loading by default serif/typewriter fonts in X3D
+  FontStyleNode.Family := ffSans; // not modifiable now, as we may disable loading by default serif/typewriter fonts in X3D
   FontStyleNode.Justify := fjBegin;
   FontStyleNode.JustifyMinor := fjEnd;
   TextNode.FontStyle := FontStyleNode;
