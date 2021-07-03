@@ -367,6 +367,7 @@
 
     { Newly played sounds will have @link(TInternalSoundSource.Pitch) multiplied by this. }
     property InitialPitchMultiplier: Single read FInitialPitchMultiplier write FInitialPitchMultiplier default 1.0;
+      deprecated 'use TCastlePlayingSound and set TCastlePlayingSound.Pitch before playing, to influence initial pitch; this property is not reliable when combined with TCastlePlayingSound.Pitch usage';
 
     { Sound volume, affects all sounds (effects and music).
       This must always be within 0..1 range.
@@ -696,7 +697,12 @@ begin
     begin
       Result.Buffer  := Parameters.Buffer;
       Result.Loop    := Parameters.Loop;
+      { Note: the InitialPitchMultiplier will be effectively overridden
+        by TCastlePlayingSound.InternalFinalPitch on various changes,
+        which is why we deprecated InitialPitchMultiplier. }
+      {$warnings off} // using deprecated to keep it working
       Result.Pitch   := Parameters.Pitch * InitialPitchMultiplier;
+      {$warnings on}
       Result.Volume  := Parameters.Volume;
       {$warnings off} // using unportable symbols knowingly
       Result.MinGain := Parameters.MinGain;
@@ -878,6 +884,16 @@ begin
     PlayingSound.DoStop; // apply PlayingSound.OnStop, FreeOnStop
     Exit;
   end;
+
+  { TODO: This should not create deprecated TPlaySoundParameters
+    or call deprecated PlaySound.
+    It should be the other way around: deprecated PlaySound should call this.
+
+    However, for now deprecated PlaySound supports more options that we have exposed:
+    - InitialPitchMultiplier (deprecated)
+    - RolloffFactor, ReferenceDistancem MaxDistance -- unsure what to do with them yet,
+      depends on how portable they are across OpenAL, FMOD, Wwise.
+  }
 
   Params := TPlaySoundParameters.Create;
   try
