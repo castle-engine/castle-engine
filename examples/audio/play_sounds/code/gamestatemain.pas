@@ -127,11 +127,11 @@ begin
   ButtonStop.OnClick := @ClickStop;
 
   SliderSoundVolume := FindRequiredComponent('SliderSoundVolume') as TCastleFloatSlider;
-  // TODO: SliderSoundVolume.Value := PlayingSound.Volume;
+  SliderSoundVolume.Value := PlayingSound.Volume;
   SliderSoundVolume.OnChange := @ChangeSliderSoundVolume;
 
   SliderSoundPitch := FindRequiredComponent('SliderSoundPitch') as TCastleFloatSlider;
-  // TODO: SliderSoundPitch.Value := PlayingSound.Pitch;
+  SliderSoundPitch.Value := PlayingSound.Pitch;
   SliderSoundPitch.OnChange := @ChangeSliderSoundPitch;
 
   CheckboxLoop := FindRequiredComponent('CheckboxLoop') as TCastleCheckbox;
@@ -146,14 +146,12 @@ end;
 
 procedure TStateMain.TPlayingSoundUiOwner.ChangeSliderSoundVolume(Sender: TObject);
 begin
-  // TODO:
-  // PlayingSound.Volume := SliderSoundVolume.Value;
+  PlayingSound.Volume := SliderSoundVolume.Value;
 end;
 
 procedure TStateMain.TPlayingSoundUiOwner.ChangeSliderSoundPitch(Sender: TObject);
 begin
-  // TODO:
-  // PlayingSound.Pitch := SliderSoundPitch.Value;
+  PlayingSound.Pitch := SliderSoundPitch.Value;
 end;
 
 procedure TStateMain.TPlayingSoundUiOwner.ChangeCheckboxLoop(Sender: TObject);

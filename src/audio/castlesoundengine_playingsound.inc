@@ -351,7 +351,9 @@ begin
   if FVolume <> Value then
   begin
     FVolume := Value;
-    // TODO
+    // as InternalFinalVolume changed, update playback (InternalSource) properties
+    if FSource <> nil then
+      SoundChangeDuringPlayback(FSound, scAfterOther);
   end;
 end;
 
@@ -360,7 +362,9 @@ begin
   if FPitch <> Value then
   begin
     FPitch := Value;
-    // TODO
+    // as InternalFinalPitch changed, update playback (InternalSource) properties
+    if FSource <> nil then
+      SoundChangeDuringPlayback(FSound, scAfterOther);
   end;
 end;
 
