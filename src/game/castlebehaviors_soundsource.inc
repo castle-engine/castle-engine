@@ -403,27 +403,7 @@ begin
         end;
       end;
 
-    scAfterOther:
-      begin
-        if MainPlayingSound <> nil then
-        begin
-          if MainPlayingSound.InternalSource <> nil then
-          begin
-            // TODO: move this updating to TCastlePlayingSoundSource.Update?
-            MainPlayingSound.InternalSource.Volume := MainPlayingSound.InternalFinalVolume;
-            MainPlayingSound.InternalSource.Pitch := MainPlayingSound.InternalFinalPitch;
-            MainPlayingSound.InternalSource.Spatial := Spatial;
-            {$warnings off} // using unportable symbols knowingly
-            MainPlayingSound.InternalSource.MinGain := Sound.MinGain;
-            MainPlayingSound.InternalSource.MaxGain := Sound.MaxGain;
-            {$warnings on}
-          end else
-            Play(MainPlayingSound); // retry allocating TInternalSoundSource for it
-        end;
-      end;
-    {$ifndef COMPILER_CASE_ANALYSIS}
-    else raise EInternalError.Create('TCastleSoundSource.SoundChange:Change');
-    {$endif}
+    else ; // scAfterOther handled by TCastlePlayingSound.SoundChangeDuringPlayback
   end;
 end;
 
@@ -481,8 +461,9 @@ begin
   if FSpatial <> Value then
   begin
     FSpatial := Value;
-    if FSound <> nil then
-      SoundChange(FSound, scAfterOther);
+    if (MainPlayingSound <> nil) and
+       (MainPlayingSound.InternalSource <> nil) then
+      MainPlayingSound.InternalSource.Spatial := Spatial;
   end;
 end;
 
@@ -491,8 +472,11 @@ begin
   if FVolume <> Value then
   begin
     FVolume := Value;
-    if FSound <> nil then
-      SoundChange(FSound, scAfterOther);
+    { Update because MainPlayingSound.InternalFinalVolume changed,
+      just like TCastlePlayingSound.SoundChangeDuringPlayback does. }
+    if (MainPlayingSound <> nil) and
+       (MainPlayingSound.InternalSource <> nil) then
+      MainPlayingSound.InternalSource.Volume := MainPlayingSound.InternalFinalVolume;
   end;
 end;
 
@@ -501,8 +485,11 @@ begin
   if FPitch <> Value then
   begin
     FPitch := Value;
-    if FSound <> nil then
-      SoundChange(FSound, scAfterOther);
+    { Update because MainPlayingSound.InternalFinalVolume changed,
+      just like TCastlePlayingSound.SoundChangeDuringPlayback does. }
+    if (MainPlayingSound <> nil) and
+       (MainPlayingSound.InternalSource <> nil) then
+      MainPlayingSound.InternalSource.Pitch := MainPlayingSound.InternalFinalPitch;
   end;
 end;
 

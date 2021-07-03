@@ -18,8 +18,6 @@
 
 //type // allow type declaration to continue
 
-  TCastleSound = class;
-
   { Controls a sound playback.
     You can pass an instance of it to
     @link(TSoundEngine.Play) or @link(TCastleSoundSource.Play).
@@ -58,6 +56,8 @@
     procedure SourceRelease(Source: TInternalSoundSource);
     procedure SetVolume(const Value: Single);
     procedure SetPitch(const Value: Single);
+    { React to sound parameters changes during playback (when FSource <> nil). }
+    procedure SoundChangeDuringPlayback(const Sender: TCastleSound; const Change: TSoundChange);
   protected
     { Do the necessary job after source stopped, due to any reason.
       In this class it handles OnStop and FreeOnStop.
@@ -295,10 +295,14 @@ begin
   Assert(ASource.Buffer = FSound.InternalBuffer);
   FSource := ASource;
   FSource.OnRelease := @SourceRelease;
+
+  FSound.InternalAddChangeNotification(@SoundChangeDuringPlayback);
 end;
 
 procedure TCastlePlayingSound.SourceRelease(Source: TInternalSoundSource);
 begin
+  FSound.InternalRemoveChangeNotification(@SoundChangeDuringPlayback);
+
   Assert(Source = FSource); // we should only ever get callback about current FSource
   Source.OnRelease := nil;
   FSource := nil;
@@ -311,6 +315,21 @@ begin
     OnStop(Self);
   if FreeOnStop then
     Self.Destroy;
+end;
+
+procedure TCastlePlayingSound.SoundChangeDuringPlayback(const Sender: TCastleSound; const Change: TSoundChange);
+begin
+  if Change = scAfterOther then // other Change values handled by TCastleSoundSource.SoundChange
+  begin
+    Assert(FSource <> nil);
+    Assert(Sender = FSound);
+    FSource.Volume := InternalFinalVolume;
+    FSource.Pitch  := InternalFinalPitch;
+    {$warnings off} // using unportable symbols knowingly
+    FSource.MinGain := FSound.MinGain;
+    FSource.MaxGain := FSound.MaxGain;
+    {$warnings on}
+  end;
 end;
 
 function TCastlePlayingSound.InternalFinalVolume: Single;

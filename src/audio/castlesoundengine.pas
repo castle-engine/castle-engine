@@ -37,8 +37,8 @@ type
 {$I castlesoundengine_initial_types.inc}
 {$I castlesoundengine_internalsoundbuffer.inc}
 {$I castlesoundengine_internalsoundsource.inc}
-{$I castlesoundengine_playingsound.inc}
 {$I castlesoundengine_sound.inc}
+{$I castlesoundengine_playingsound.inc}
 {$I castlesoundengine_allocator.inc}
 {$I castlesoundengine_playsoundparameters.inc}
 {$I castlesoundengine_engine.inc}
@@ -60,8 +60,8 @@ uses XMLRead, StrUtils, Generics.Defaults,
 {$I castlesoundengine_miscellaneous.inc} // must be first, as defines some internal globals
 {$I castlesoundengine_internalsoundbuffer.inc}
 {$I castlesoundengine_internalsoundsource.inc}
-{$I castlesoundengine_playingsound.inc}
 {$I castlesoundengine_sound.inc}
+{$I castlesoundengine_playingsound.inc}
 {$I castlesoundengine_allocator.inc}
 {$I castlesoundengine_playsoundparameters.inc}
 {$I castlesoundengine_engine.inc}

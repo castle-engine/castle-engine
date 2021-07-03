@@ -28,6 +28,8 @@
     scAfterOther
   );
 
+  TCastleSound = class;
+
   { @exclude Used with TCastleSound notifications (TCastleSound.InternalAddChangeNotification). }
   TCastleSoundChangeEvent = procedure (const Sender: TCastleSound; const Change: TSoundChange) of object;
 
@@ -42,6 +44,11 @@
 
     Aside from sound file (also called "sound buffer" or "audio clip" in various APIs)
     this class allows to configue also playback values, like @link(Volume) and @link(Pitch).
+    These playback values are intended to reflect preferences specific to this sound file.
+    They are multiplied by playback values of the @link(TCastleSoundSource)
+    (@link(TCastleSoundSource.Volume), @link(TCastleSoundSource.Pitch))
+    and @link(TCastlePlayingSound) (to adjust it per-playback, using
+    @link(TCastlePlayingSound.Volume), @link(TCastlePlayingSound.Pitch)).
 
     This class does not actually play the sound.
     It only defines something that @italic(can) be played.

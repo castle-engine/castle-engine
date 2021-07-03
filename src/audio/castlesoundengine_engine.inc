@@ -890,12 +890,6 @@ begin
     if Source <> nil then
     begin
       PlayingSound.Start(Source);
-      { TODO:
-        PlayingSounds.Add(PlayingSound);
-        and call Update on all PlayingSounds, to update their volume, pitch etc.
-        and in our destructor free all of them (with FreeOnStop, including the ones created by parameterless Play)
-          or at least stop them
-      }
     end else
     begin
       // sound cannot be played, as no free TInternalSoundSource slot
