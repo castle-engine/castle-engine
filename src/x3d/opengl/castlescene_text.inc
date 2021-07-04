@@ -143,6 +143,7 @@ end;
 
 destructor TCastleText.Destroy;
 begin
+  FreeAndNil(FText);
   inherited;
 end;
 
