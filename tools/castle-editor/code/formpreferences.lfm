@@ -327,6 +327,7 @@ object PreferencesForm: TPreferencesForm
     Items.Strings = (
       'FPC and Lazarus'
       'Code Editor'
+      'Sound'
     )
     ItemHeight = 29
     ItemIndex = 0
@@ -350,5 +351,52 @@ object PreferencesForm: TPreferencesForm
     CancelButton.DefaultCaption = True
     TabOrder = 2
     ShowButtons = [pbOK, pbCancel]
+  end
+  object PanelSound: TPanel
+    Left = 184
+    Height = 698
+    Top = 0
+    Width = 899
+    Align = alClient
+    BevelOuter = bvNone
+    ClientHeight = 698
+    ClientWidth = 899
+    TabOrder = 4
+    object LabelSound: TLabel
+      Left = 8
+      Height = 23
+      Top = 16
+      Width = 132
+      Caption = 'Sound Settings:'
+      Font.Style = [fsBold]
+      ParentColor = False
+      ParentFont = False
+    end
+    object TrackVolume: TTrackBar
+      Left = 8
+      Height = 55
+      Top = 82
+      Width = 309
+      Position = 0
+      ScalePos = trRight
+      TickStyle = tsNone
+      TabOrder = 0
+    end
+    object LabelVolume: TLabel
+      Left = 8
+      Height = 23
+      Top = 56
+      Width = 68
+      Caption = 'Volume:'
+      ParentColor = False
+    end
+    object CheckBoxMuteOnRun: TCheckBox
+      Left = 8
+      Height = 27
+      Top = 148
+      Width = 321
+      Caption = 'Stay mute when the application runs'
+      TabOrder = 1
+    end
   end
 end

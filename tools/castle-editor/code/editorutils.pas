@@ -118,7 +118,7 @@ type
     var
       Queue: TQueueItemList;
       OutputList: TOutputList;
-      OnSuccessfullyFinishedAll: TNotifyEvent;
+      OnFinished, OnSuccessfullyFinishedAll: TNotifyEvent;
 
     constructor Create;
     destructor Destroy; override;
@@ -179,6 +179,19 @@ var
   CodeEditorCommand: String;
   { Code editor used to open project, when CodeEditor = ceCustom. }
   CodeEditorCommandProject: String;
+
+const
+  DefaultMuteOnRun = true;
+  DefaultEditorVolume = 1.0;
+
+var
+  { Mute/restore when you run the application. }
+  MuteOnRun: Boolean;
+  EditorVolume: Single;
+
+  { Current state on "running application" for the purpose of implementing
+    MuteOnRun. }
+  RunningApplication: Boolean;
 
 implementation
 
@@ -272,7 +285,13 @@ begin
 
       // create next process in queue
       if FQueuePosition < Queue.Count then
-        CreateAsyncProcess;
+        CreateAsyncProcess
+      else
+      begin
+        // no more processes (regardless if we done all, or interrupted because of some error)
+        if Assigned(OnFinished) then
+          OnFinished(Self);
+      end;
 
       if SuccessfullyFinishedAll and Assigned(OnSuccessfullyFinishedAll) then
         OnSuccessfullyFinishedAll(Self);

@@ -240,6 +240,7 @@ type
       SplitterBetweenViewFile: TSplitter;
     procedure BuildToolCall(const Commands: array of String;
       const ExitOnSuccess: Boolean = false);
+    procedure BuildToolCallFinished(Sender: TObject);
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuItemDesignNewCustomRootClick(Sender: TObject);
     procedure OpenPascal(const FileName: String);
@@ -909,7 +910,12 @@ end;
 procedure TProjectForm.MenuItemCompileRunClick(Sender: TObject);
 begin
   if ProposeSaveDesign then
+  begin
+    RunningApplication := true;
+    if MuteOnRun then
+      SoundEngine.Volume := 0;
     BuildToolCall(['compile', 'run']);
+  end;
 end;
 
 procedure TProjectForm.MenuItemCopyComponentClick(Sender: TObject);
@@ -1059,7 +1065,12 @@ end;
 procedure TProjectForm.MenuItemOnlyRunClick(Sender: TObject);
 begin
   if ProposeSaveDesign then
+  begin
+    RunningApplication := true;
+    if MuteOnRun then
+      SoundEngine.Volume := 0;
     BuildToolCall(['run']);
+  end;
 end;
 
 procedure TProjectForm.MenuItemOpenDesignClick(Sender: TObject);
@@ -1461,9 +1472,18 @@ begin
   end;
 
   if ExitOnSuccess then
-    RunningProcess.OnSuccessfullyFinishedAll := @MenuItemQuitClick;
+    RunningProcess.OnSuccessfullyFinishedAll := @MenuItemQuitClick
+  else
+    RunningProcess.OnFinished := @BuildToolCallFinished;
 
   RunningProcess.Start;
+end;
+
+procedure TProjectForm.BuildToolCallFinished(Sender: TObject);
+begin
+  // bring back, in case MuteOnRun
+  SoundEngine.Volume := EditorVolume;
+  RunningApplication := false;
 end;
 
 procedure TProjectForm.MenuItemAddComponentClick(Sender: TObject);
