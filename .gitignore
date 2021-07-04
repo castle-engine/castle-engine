@@ -198,7 +198,7 @@ castle-game-engine-*.fpm
 /examples/user_interface/zombie_fighter_alternative_short_lived_states/zombie_fighter
 /examples/visualize_triangulation/visualize_triangulation
 /examples/window/multi_window/multi_window
-/examples/window/window_events/window_events
+/examples/window/state_events/state_events
 /examples/window/window_menu/window_menu
 /packages/alternative_castle_window_based_on_lcl.pas
 /packages/castle_base.pas

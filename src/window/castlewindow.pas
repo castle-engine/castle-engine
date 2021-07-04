@@ -1637,6 +1637,7 @@ type
 
       Under Lazarus, you can of course also use LCL timers. }
     property OnTimer: TContainerEvent read FOnTimer write FOnTimer;
+      deprecated 'use TCastleTimer to perform periodic operations, or track time delay in OnUpdate';
 
     { Called when user drag and drops file(s) on the window.
       In case of macOS bundle, this is also called when user opens a document
@@ -2566,7 +2567,9 @@ type
       when some windows are already open.
       @groupBegin }
     property OnTimer: TProcedure read FOnTimer write FOnTimer;
+      deprecated 'use TCastleTimer to perform periodic operations, or track time delay in OnUpdate';
     property TimerMilisec: Cardinal read FTimerMilisec write FTimerMilisec default 1000;
+      deprecated 'use TCastleTimer to perform periodic operations, or track time delay in OnUpdate';
     { @groupEnd }
 
     { Main window used for various purposes.

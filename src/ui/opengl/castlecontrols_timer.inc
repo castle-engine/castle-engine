@@ -97,10 +97,12 @@ end;
 function TCastleTimer.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'IntervalSeconds') then
-    Result := [psBasic]
-  else
-    Result := inherited PropertySections(PropertyName);
+  case PropertyName of
+    'IntervalSeconds', 'CounteractDelays':
+      Result := [psBasic];
+    else
+      Result := inherited PropertySections(PropertyName);
+  end;
 end;
 
 {$endif read_implementation}
