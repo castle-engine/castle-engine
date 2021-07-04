@@ -912,8 +912,7 @@ begin
   if ProposeSaveDesign then
   begin
     RunningApplication := true;
-    if MuteOnRun then
-      SoundEngine.Volume := 0;
+    SoundEngineSetVolume;
     BuildToolCall(['compile', 'run']);
   end;
 end;
@@ -1067,8 +1066,7 @@ begin
   if ProposeSaveDesign then
   begin
     RunningApplication := true;
-    if MuteOnRun then
-      SoundEngine.Volume := 0;
+    SoundEngineSetVolume;
     BuildToolCall(['run']);
   end;
 end;
@@ -1481,9 +1479,9 @@ end;
 
 procedure TProjectForm.BuildToolCallFinished(Sender: TObject);
 begin
-  // bring back, in case MuteOnRun
-  SoundEngine.Volume := EditorVolume;
+  // bring back volume, in case MuteOnRun
   RunningApplication := false;
+  SoundEngineSetVolume;
 end;
 
 procedure TProjectForm.MenuItemAddComponentClick(Sender: TObject);

@@ -66,6 +66,7 @@ type
     procedure LabelLazarusWebsiteClick(Sender: TObject);
     procedure ListPagesClick(Sender: TObject);
     procedure RadioCodeEditorAnyChange(Sender: TObject);
+    procedure TrackVolumeChange(Sender: TObject);
   private
     OriginalFpcCustomPath, OriginalLazarusCustomPath: String;
     procedure UpdateAutoDetectedLabels;
@@ -101,6 +102,14 @@ procedure TPreferencesForm.RadioCodeEditorAnyChange(Sender: TObject);
 begin
   EditCodeEditorCommand.Enabled := RadioCodeEditorCustom.Checked;
   EditCodeEditorCommandProject.Enabled := RadioCodeEditorCustom.Checked;
+end;
+
+procedure TPreferencesForm.TrackVolumeChange(Sender: TObject);
+begin
+  { While the volume will be adjusted in TPreferencesForm.FormClose too,
+    along with EditorVolume, but it is natural to also modify the audible
+    volume immediately. }
+  SoundEngineSetVolume(TrackVolume.Position / TrackVolume.Max);
 end;
 
 procedure TPreferencesForm.UpdateAutoDetectedLabels;
@@ -186,8 +195,6 @@ begin
 
     // sound tab
     EditorVolume := TrackVolume.Position / TrackVolume.Max;
-    if (not CheckBoxMuteOnRun.Checked) or (not RunningApplication) then
-      SoundEngine.Volume := EditorVolume;
     MuteOnRun := CheckBoxMuteOnRun.Checked;
   end else
   begin
@@ -199,6 +206,11 @@ begin
     FpcCustomPath := OriginalFpcCustomPath;
     LazarusCustomPath := OriginalLazarusCustomPath;
   end;
+
+  { Set SoundEngine.Volume regardless if we accepted
+    (so MuteOnRun, EditorVolume changed) or not (so they are unchanged)
+    to revert any immediate changes to volume in TPreferencesForm.TrackVolumeChange. }
+  SoundEngineSetVolume;
 end;
 
 procedure TPreferencesForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);

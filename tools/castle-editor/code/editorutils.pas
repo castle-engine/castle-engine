@@ -193,10 +193,18 @@ var
     MuteOnRun. }
   RunningApplication: Boolean;
 
+{ Update SoundEngine.Volume based on
+  global MuteOnRun, EditorVolume, RunningApplication. }
+procedure SoundEngineSetVolume;
+
+{ Update SoundEngine.Volume based on
+  global MuteOnRun, RunningApplication and parameter FakeVolume. }
+procedure SoundEngineSetVolume(const FakeVolume: Single);
+
 implementation
 
 uses SysUtils, Dialogs, Graphics, TypInfo, Generics.Defaults,
-  CastleUtils, CastleLog,
+  CastleUtils, CastleLog, CastleSoundEngine,
   CastleComponentSerialize, CastleUiControls, CastleCameras, CastleTransform,
   ToolCompilerInfo;
 
@@ -798,6 +806,19 @@ begin
       ... same code as above
     end;
   *)
+end;
+
+procedure SoundEngineSetVolume;
+begin
+  SoundEngineSetVolume(EditorVolume);
+end;
+
+procedure SoundEngineSetVolume(const FakeVolume: Single);
+begin
+  if MuteOnRun and RunningApplication then
+    SoundEngine.Volume := 0
+  else
+    SoundEngine.Volume := FakeVolume;
 end;
 
 end.

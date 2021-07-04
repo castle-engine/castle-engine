@@ -377,6 +377,7 @@ object PreferencesForm: TPreferencesForm
       Height = 55
       Top = 82
       Width = 309
+      OnChange = TrackVolumeChange
       Position = 0
       ScalePos = trRight
       TickStyle = tsNone
