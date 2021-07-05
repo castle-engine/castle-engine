@@ -978,6 +978,7 @@ begin
 
   UpdateUndo(nil);
   UpdateRenameItem(nil);
+  UpdateFormCaption(nil);
 
   if (Design <> nil) and UserConfig.GetValue('ProjectForm_DesignSaved', false) then
   begin
@@ -1601,7 +1602,7 @@ begin
   MenuItemModeDebug.Checked := true;
 
   DesignExistenceChanged;
-  UpdateFormCaption(nil); // make form Caption reflect project name
+  UpdateFormCaption(nil); // make form Caption reflect project name (although this is now done also by DesignExistenceChanged)
 end;
 
 procedure TProjectForm.RefreshFiles(const RefreshNecessary: TRefreshFiles);
