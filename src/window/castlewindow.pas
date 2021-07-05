@@ -3570,8 +3570,10 @@ end;
 procedure TCastleWindowBase.DoTimer;
 begin
   MakeCurrent;
+  {$warnings off} // keep deprecated working
   if Assigned(OnTimer) then
     OnTimer(Container);
+  {$warnings on}
 end;
 
 procedure TCastleWindowBase.DoMenuClick(Item: TMenuItem);
@@ -3612,8 +3614,10 @@ end;
 
 function TCastleWindowBase.AllowSuspendForInput: boolean;
 begin
+  {$warnings off} // keep deprecated working - OnTimer
   Result := Container.AllowSuspendForInput and
     not (Invalidated or Assigned(OnUpdate) or Assigned(OnTimer) or FpsShowOnCaption);
+  {$warnings on}
 end;
 
 { Menu things ------------------------------------------------------------ }
@@ -4945,10 +4949,12 @@ function TCastleApplication.AllowSuspendForInput: boolean;
 var
   I: Integer;
 begin
+  {$warnings off} // keep deprecated working - OnTimer
   Result := not (
     Assigned(OnUpdate) or
     Assigned(OnTimer) or
     (ApplicationProperties.OnUpdate.Count <> 0));
+  {$warnings on}
   if not Result then Exit;
 
   for I := 0 to OpenWindowsCount - 1 do
