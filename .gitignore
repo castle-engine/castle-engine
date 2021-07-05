@@ -85,8 +85,6 @@ castle-game-engine-*.fpm
 /examples/3d_rendering_processing/triangulate_demo
 /examples/3d_rendering_processing/view_3d_model_advanced
 /examples/3d_rendering_processing/view_3d_model_basic
-/examples/3d_sound_game/data/levels/base/devel/process_base_b
-/examples/3d_sound_game/lets_take_a_walk
 /examples/advanced_editor/advanced_editor
 /examples/animations/expose_transformations_to_animate_children/expose_transformations_demo
 /examples/animations/play_animation/play_animation
@@ -94,6 +92,7 @@ castle-game-engine-*.fpm
 /examples/animations/simultaneous_animations_one_scene/simultaneous_animations_one_scene
 /examples/audio/audio_player/audio_player
 /examples/audio/doppler_demo/doppler_demo
+/examples/audio/game_3d_sound/game_3d_sound
 /examples/audio/internal/fmod_api_test/fmod_api_test
 /examples/audio/play_sounds/play_sounds
 /examples/audio/simplest_play_sound/simplest_play_sound
