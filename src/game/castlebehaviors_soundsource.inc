@@ -27,9 +27,11 @@ type
   strict private
     FFollow: Boolean;
     FSoundHeight: Single;
+    LastPosition: TVector3;
   private
     SourceBehavior: TCastleSoundSource; //< non-nil while TCastleSoundSource exists
-    procedure Update;
+    HasLastPosition: Boolean;
+    procedure Update(const SecondsPassed: Single);
   protected
     procedure DoStop; override;
   public
@@ -81,6 +83,7 @@ type
     FSpatial: Boolean;
     FVolume: Single;
     FPitch: Single;
+    FDopplerEffect: Single;
     procedure SoundChange(const Sender: TCastleSound; const Change: TSoundChange);
     procedure SetSound(const Value: TCastleSound);
     procedure SetSpatial(const Value: Boolean);
@@ -163,6 +166,17 @@ type
 
       Any value > 0 is allowed. }
     property Pitch: Single read FPitch write SetPitch default 1.0;
+
+    { Emphasize or deemphasize the Doppler effect.
+      See https://en.wikipedia.org/wiki/Doppler_effect and CGE demo
+      examples/audio/doppler_effect to see what it is.
+
+      Value 0 (default) disables the Doppler effect.
+      This is the default, otherwise the default Doppler effect would be incorrect in many 2D games.
+      Value 1 makes a correct Doppler effect if the distance in your world of 1 unit
+      corresponds to 1 meter.
+      Larger values allow to emphasize the effect more. }
+    property DopplerEffect: Single read FDopplerEffect write FDopplerEffect default 0.0;
   end;
 
 {$endif read_interface}
@@ -190,7 +204,9 @@ begin
   inherited;
 end;
 
-procedure TCastlePlayingSoundSource.Update;
+procedure TCastlePlayingSoundSource.Update(const SecondsPassed: Single);
+var
+  NewPosition: TVector3;
 begin
   if (SourceBehavior <> nil) and
      (InternalSource <> nil) and
@@ -199,8 +215,17 @@ begin
      InternalSource.Spatial and
      Follow then
   begin
-    InternalSource.Position := SourceBehavior.GetSoundPosition(SoundHeight);
-  end;
+    NewPosition := SourceBehavior.GetSoundPosition(SoundHeight);
+    InternalSource.Position := NewPosition;
+
+    { update InternalSource.Velocity, to hear Doppler effect. }
+    if HasLastPosition and (SecondsPassed > SingleEpsilon) then
+      InternalSource.Velocity := (NewPosition - LastPosition) *
+        SourceBehavior.DopplerEffect / SecondsPassed;
+    HasLastPosition := true;
+    LastPosition := NewPosition;
+  end else
+    HasLastPosition := false;
 end;
 
 function TCastlePlayingSoundSource.InternalFinalVolume: Single;
@@ -224,8 +249,8 @@ begin
   inherited;
   AllPlayingSounds := TCastlePlayingSoundSourceList.Create(false);
   FSpatial := true;
-  FVolume := 1.0;
-  FPitch := 1.0;
+  FVolume := 1;
+  FPitch := 1;
 end;
 
 destructor TCastleSoundSource.Destroy;
@@ -266,7 +291,7 @@ end;
 function TCastleSoundSource.PropertySections(const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
-    'Sound', 'Spatial', 'Volume', 'Pitch':
+    'Sound', 'Spatial', 'Volume', 'Pitch', 'DopplerEffect':
       Result := [psBasic];
     else
       Result := inherited PropertySections(PropertyName);
@@ -279,7 +304,7 @@ var
 begin
   inherited;
   for Playing in AllPlayingSounds do
-    Playing.Update;
+    Playing.Update(SecondsPassed);
 end;
 
 function TCastleSoundSource.GetSoundPosition(const SoundHeight: Single): TVector3;
@@ -353,6 +378,8 @@ begin
 end;
 
 procedure TCastleSoundSource.ParentChanged;
+var
+  Playing: TCastlePlayingSoundSource;
 begin
   inherited;
 
@@ -369,8 +396,10 @@ begin
       MainPlayingSound.Stop;
   end;
 
-  { Change of parent implies also a change of position.
-    For now position is updated in Update, for all sounds, so we don't do anything here. }
+  { Change of parent implies also a sudden change of position,
+    so do not use last position for Doppler effect calculation. }
+  for Playing in AllPlayingSounds do
+    Playing.HasLastPosition := false;
 end;
 
 procedure TCastleSoundSource.SetSound(const Value: TCastleSound);
