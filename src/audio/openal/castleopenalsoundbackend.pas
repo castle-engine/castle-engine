@@ -102,6 +102,8 @@ type
   strict private
     Streaming: TOpenALStreaming;
     FSpatial: Boolean; //< by default true, as this is OpenAL default
+    FPosition, FVelocity: TVector3;
+    FRolloffFactor, FReferenceDistance, FMaxDistance: Single;
     function ALVersion11: Boolean;
   private
     FBuffer: TSoundBufferBackend;
@@ -411,6 +413,10 @@ constructor TOpenALSoundSourceBackend.Create(const ASoundEngine: TSoundEngineBac
 begin
   inherited;
   FSpatial := true;
+  // correspond to OpenAL defaults, https://www.openal.org/documentation/openal-1.1-specification.pdf
+  FRolloffFactor := 1;
+  FReferenceDistance := 1;
+  FMaxDistance := MaxSingle;
 end;
 
 function TOpenALSoundSourceBackend.ALVersion11: Boolean;
@@ -544,16 +550,18 @@ end;
 
 procedure TOpenALSoundSourceBackend.SetPosition(const Value: TVector3);
 begin
-  if not FSpatial then Exit; // apply this only if Spatial
+  FPosition := Value;
 
+  if not FSpatial then Exit; // apply this only if Spatial
   alSourceVector3f(ALSource, AL_POSITION, Value);
   {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourceVector3f(.., AL_POSITION, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 procedure TOpenALSoundSourceBackend.SetVelocity(const Value: TVector3);
 begin
-  if not FSpatial then Exit; // apply this only if Spatial
+  FVelocity := Value;
 
+  if not FSpatial then Exit; // apply this only if Spatial
   alSourceVector3f(ALSource, AL_VELOCITY, Value);
   {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourceVector3f(.., AL_VELOCITY, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
@@ -595,6 +603,15 @@ begin
 
     alSourceVector3f(ALSource, AL_VELOCITY, TVector3.Zero);
     {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourceVector3f(.., AL_VELOCITY, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+  end else
+  begin
+    { Set everything that was kept constant when Spatial was false.
+      We rely here on the fact that SetXxx here do not ignore "setting to the same value as previous". }
+    SetPosition(FPosition);
+    SetVelocity(FVelocity);
+    SetRolloffFactor(FRolloffFactor);
+    SetReferenceDistance(FReferenceDistance);
+    SetMaxDistance(FMaxDistance);
   end;
 end;
 
@@ -665,24 +682,27 @@ end;
 
 procedure TOpenALSoundSourceBackend.SetRolloffFactor(const Value: Single);
 begin
-  if not FSpatial then Exit; // apply this only if Spatial
+  FRolloffFactor := Value;
 
+  if not FSpatial then Exit; // apply this only if Spatial
   alSourcef(ALSource, AL_ROLLOFF_FACTOR, Value);
   {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_ROLLOFF_FACTOR, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 procedure TOpenALSoundSourceBackend.SetReferenceDistance(const Value: Single);
 begin
-  if not FSpatial then Exit; // apply this only if Spatial
+  FReferenceDistance := Value;
 
+  if not FSpatial then Exit; // apply this only if Spatial
   alSourcef(ALSource, AL_REFERENCE_DISTANCE, Value);
   {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_REFERENCE_DISTANCE, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
 procedure TOpenALSoundSourceBackend.SetMaxDistance(const Value: Single);
 begin
-  if not FSpatial then Exit; // apply this only if Spatial
+  FMaxDistance := Value;
 
+  if not FSpatial then Exit; // apply this only if Spatial
   alSourcef(ALSource, AL_MAX_DISTANCE, Value);
   {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_MAX_DISTANCE, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
