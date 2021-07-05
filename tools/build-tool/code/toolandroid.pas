@@ -635,7 +635,7 @@ var
   end;
 
 var
-  ApkName: string;
+  PackageName: string;
   PackageMode: TCompilationMode;
 begin
   { calculate clean AndroidProjectPath }
@@ -660,34 +660,34 @@ begin
   case PackageFormat of
     pfAndroidApk:
       begin
-        ApkName := Project.Name + '-' + PackageModeToName[PackageMode] + '.apk';
+        PackageName := Project.Name + '-' + PackageModeToName[PackageMode] + '.apk';
         CheckRenameFile(AndroidProjectPath + 'app' + PathDelim +
           'build' +  PathDelim +
           'outputs' + PathDelim +
           'apk' + PathDelim +
           PackageModeToName[PackageMode] + PathDelim +
           'app-' + PackageModeToName[PackageMode] + '.apk',
-          Project.OutputPath + ApkName);
+          Project.OutputPath + PackageName);
       end;
     pfAndroidAppBundle:
       begin
-        ApkName := Project.Name + '-' + PackageModeToName[PackageMode] + '.aab';
+        PackageName := Project.Name + '-' + PackageModeToName[PackageMode] + '.aab';
         CheckRenameFile(AndroidProjectPath + 'app' + PathDelim +
           'build' +  PathDelim +
           'outputs' + PathDelim +
           'bundle' + PathDelim +
           PackageModeToName[PackageMode] + PathDelim +
           'app-' + PackageModeToName[PackageMode] + '.aab',
-          Project.OutputPath + ApkName);
+          Project.OutputPath + PackageName);
         {$IFDEF UNIX}
-        Writeln('FpChmod = ' + FpChmod(Project.OutputPath + ApkName, &777).ToString);
+        Writeln('FpChmod = ' + FpChmod(Project.OutputPath + PackageName, &777).ToString);
         {$ENDIF}
       end;
     else
       raise Exception.Create('Unexpected PackageFormat in PackageAndroid: ' + PackageFormatToString(PackageFormat));
   end;
 
-  Writeln('Build ' + ApkName);
+  Writeln('Build ' + PackageName);
 end;
 
 procedure InstallAndroid(const Name, QualifiedName, OutputPath: string);
