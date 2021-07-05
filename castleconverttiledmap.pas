@@ -52,7 +52,7 @@ interface
 uses
   Classes,
   X3DNodes, CastleTiledMap, CastleVectors, CastleTransform, CastleColors,
-  CastleRenderOptions, X3DLoadInternalImage;
+  CastleRenderOptions, CastleControls, CastleStringUtils, X3DLoadInternalImage;
 
 { Converts a Tiled map into a X3D representation for the Castle Game Engine.
   The result can be returned to Scene.Load method. }
@@ -98,6 +98,9 @@ type
       according to def., see remarks above. }
     function Vector2CY(const X, Y: Single): TVector2;
 
+    { Build a label which displays a lot of useful information about the map
+      data for debugging. }
+    procedure BuildDebugInformationLabel;
     { Build a reference 3d coordinate system with description of axis and
       origin. It is slightly moved along Z-axis to be infront of everything. }
     procedure BuildDebugCoordinateSystem;
@@ -135,8 +138,10 @@ procedure TTiledMapConverter.ConvertMap;
 begin
   ConvertLayers;
   if DebugMode then
+  begin
+    BuildDebugInformationLabel;
     BuildDebugCoordinateSystem;
-  ;
+  end;
 end;
 
 procedure TTiledMapConverter.ConvertLayers;
@@ -316,6 +321,48 @@ end;
 function TTiledMapConverter.Vector2CY(const X, Y: Single): TVector2;
 begin
   Result := ConvY(Vector2(X, Y));
+end;
+
+procedure TTiledMapConverter.BuildDebugInformationLabel;
+var
+  { Label objects. }
+  DebugInfoLabel: TTransformNode;
+  DebugInfoLabelGeom: TTextNode;
+  DebugInfoLabelShape: TShapeNode;
+  DebugInfoLabelShapeMaterial: TMaterialNode;
+  InfoLabelStringList: TCastleStringList;
+  I: Cardinal;
+begin
+  DebugInfoLabelGeom := TTextNode.CreateWithShape(DebugInfoLabelShape);
+  DebugInfoLabelGeom.FontStyle := TFontStyleNode.Create;
+  DebugInfoLabelGeom.FontStyle.Size := 10.0;
+  DebugInfoLabelShapeMaterial := TMaterialNode.Create;
+  DebugInfoLabelShapeMaterial.EmissiveColor := WhiteRGB;
+  DebugInfoLabelShape.Appearance := TAppearanceNode.Create;
+  DebugInfoLabelShape.Appearance.Material := DebugInfoLabelShapeMaterial;
+  DebugInfoLabel := TTransformNode.Create;
+  DebugInfoLabel.AddChildren(DebugInfoLabelShape);
+  DebugInfoLabel.Translation := Vector3(MapWidth + 20.0, 0.0, 0.1);
+  InfoLabelStringList := TCastleStringList.Create;
+  try
+    InfoLabelStringList.Add('Map width/height (in tiles | in px): ' +
+      IntToStr(Map.Width) + '/' + IntToStr(Map.Height) + ' | ' +
+      IntToStr(MapWidth) + '/' + IntToStr(MapHeight));
+    InfoLabelStringList.Add('Tilesets (First GID):');
+    for I := 0 to Map.Tilesets.Count - 1 do
+      InfoLabelStringList.Add('  ' + IntToStr(I) + ': ' +
+        (Map.Tilesets.Items[I] as TTiledMap.TTileset).Name + ' (' +
+        IntToStr((Map.Tilesets.Items[I] as TTiledMap.TTileset).FirstGID) +
+        ' - ' + IntToStr((Map.Tilesets.Items[I] as TTiledMap.TTileset).FirstGID
+        + (Map.Tilesets.Items[I] as TTiledMap.TTileset).TileCount - 1) +
+        ')');
+    { TODO : Why doesn't the tsx file store the tile information... (see Test512.tsx) }
+    DebugInfoLabelGeom.SetString(InfoLabelStringList);
+  finally
+    FreeAndNil(InfoLabelStringList);
+  end;
+  DebugNode.AddChildren(DebugInfoLabel);
+
 end;
 
 procedure TTiledMapConverter.BuildDebugCoordinateSystem;
