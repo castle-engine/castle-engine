@@ -48,7 +48,9 @@ procedure RunAndroid(const Project: TCastleProject);
 
 implementation
 
-uses SysUtils, DOM, XMLWrite, BaseUnix,
+uses SysUtils, DOM, XMLWrite,
+  // TODO: Should not be needed after https://github.com/castle-engine/castle-engine/pull/302/commits/888690fdac181b6f140a71fd0d5ac20a7d7b59e6
+  {$IFDEF UNIX}BaseUnix, {$ENDIF}
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils, CastleImages,
   ToolEmbeddedImages, ToolFPCVersion, ToolCommonUtils, ToolUtils,
   ToolManifest;
@@ -680,6 +682,7 @@ begin
           'app-' + PackageModeToName[PackageMode] + '.aab',
           Project.OutputPath + PackageName);
         {$IFDEF UNIX}
+        // TODO: Should be replaced by DoMakeExecutable from https://github.com/castle-engine/castle-engine/pull/302/commits/888690fdac181b6f140a71fd0d5ac20a7d7b59e6
         Writeln('FpChmod = ' + FpChmod(Project.OutputPath + PackageName, &777).ToString);
         {$ENDIF}
       end;
