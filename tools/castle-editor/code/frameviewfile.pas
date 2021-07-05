@@ -36,9 +36,12 @@ type
     Sound: TCastleSound;
     PlayingSound: TCastlePlayingSound;
     SoundButton: TCastleButton;
+    LabelVolume: TCastleLabel;
     procedure ClickSoundButton(Sender: TObject);
     procedure SoundStop(Sender: TObject);
     procedure FinishLoading(const AURL: String);
+    procedure UpdateLabelVolume(const Sender: TInputListener;
+      const SecondsPassed: Single; var HandleInput: Boolean);
   protected
     procedure Loaded; override;
   public
@@ -55,7 +58,8 @@ type
 implementation
 
 uses CastleColors, CastleUtils, CastleSoundBase, CastleVectors, CastleCameras,
-  CastleURIUtils;
+  CastleURIUtils,
+  EditorUtils;
 
 {$R *.lfm}
 
@@ -75,6 +79,7 @@ begin
   FreeAndNil(Scene);
   FreeAndNil(Image);
   FreeAndNil(SoundButton);
+  FreeAndNil(LabelVolume);
   FreeAndNil(PlayingSound);
   FreeAndNil(Sound);
 
@@ -266,6 +271,14 @@ begin
   SoundButton.MinHeight := 100;
   PreviewLayer.InsertFront(SoundButton);
 
+  LabelVolume := TCastleLabel.Create(Self);
+  LabelVolume.FontSize := 20;
+  LabelVolume.Color := Gray;
+  LabelVolume.Anchor(hpMiddle);
+  LabelVolume.Anchor(vpTop, vpBottom, -5);
+  LabelVolume.OnUpdate := @UpdateLabelVolume;
+  SoundButton.InsertFront(LabelVolume);
+
   Sound := TCastleSound.Create(Self);
   try
     Sound.URL := AURL;
@@ -294,6 +307,21 @@ begin
 
   FinishLoading(AURL);
   InternalCastleDesignInvalidate := OldInternalCastleDesignInvalidate;
+end;
+
+procedure TViewFileFrame.UpdateLabelVolume(const Sender: TInputListener;
+  const SecondsPassed: Single; var HandleInput: Boolean);
+var
+  S: String;
+begin
+  if SoundEngine.Volume = 0 then
+  begin
+    S := 'Volume: mute';
+    if RunningApplication and MuteOnRun then
+      S := S + ' (application running)';
+  end else
+    S := Format('Volume: %f', [SoundEngine.Volume]);
+  LabelVolume.Caption := S;
 end;
 
 end.
