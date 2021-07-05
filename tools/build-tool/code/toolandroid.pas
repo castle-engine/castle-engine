@@ -47,7 +47,7 @@ procedure RunAndroid(const Project: TCastleProject);
 
 implementation
 
-uses SysUtils, DOM, XMLWrite,
+uses SysUtils, DOM, XMLWrite, BaseUnix,
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils, CastleImages,
   ToolEmbeddedImages, ToolFPCVersion, ToolPackage, ToolCommonUtils, ToolUtils,
   ToolManifest;
@@ -575,7 +575,8 @@ var
   begin
     Args := TCastleStringList.Create;
     try
-      Args.Add('assemble' + Capitalize(PackageModeToName[PackageMode]));
+      Args.Add(':app:bundleDebug');
+      //Args.Add('assemble' + Capitalize(PackageModeToName[PackageMode]));
       if not Verbose then
         Args.Add('--quiet');
       if PackageMode <> cmDebug then
@@ -648,7 +649,7 @@ begin
   RunNdkBuild;
   RunGradle(PackageMode);
 
-  ApkName := Project.Name + '-' + PackageModeToName[PackageMode] + '.apk';
+  {ApkName := Project.Name + '-' + PackageModeToName[PackageMode] + '.apk';
   CheckRenameFile(AndroidProjectPath + 'app' + PathDelim +
     'build' +  PathDelim +
     'outputs' + PathDelim +
@@ -656,6 +657,13 @@ begin
     PackageModeToName[PackageMode] + PathDelim +
     'app-' + PackageModeToName[PackageMode] + '.apk',
     Project.OutputPath + ApkName);
+
+  Writeln('Build ' + ApkName);}
+
+  ApkName := Project.Name + '-' + PackageModeToName[PackageMode] + '.aab';
+  CheckRenameFile(AndroidProjectPath + 'app/build/outputs/bundle/debug/app-debug.aab',
+    Project.OutputPath + ApkName);
+  Writeln(FpChmod(Project.OutputPath + ApkName, 777));
 
   Writeln('Build ' + ApkName);
 end;
