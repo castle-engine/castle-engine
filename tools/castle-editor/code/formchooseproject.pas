@@ -259,6 +259,7 @@ procedure TChooseProjectForm.FormCreate(Sender: TObject);
     CodeEditorCommandProject := UserConfig.GetValue('code_editor/command_project', '');
     MuteOnRun := UserConfig.GetValue('sound/mute_on_run', DefaultMuteOnRun);
     EditorVolume := UserConfig.GetFloat('sound/editor_volume', DefaultEditorVolume);
+    SoundEngineSetVolume;
   end;
 
 begin
@@ -280,7 +281,6 @@ procedure TChooseProjectForm.FormDestroy(Sender: TObject);
     UserConfig.SetDeleteValue('code_editor/command_project', CodeEditorCommandProject, '');
     UserConfig.SetDeleteValue('sound/mute_on_run', MuteOnRun, DefaultMuteOnRun);
     UserConfig.SetDeleteFloat('sound/editor_volume', EditorVolume, DefaultEditorVolume);
-    SoundEngineSetVolume;
   end;
 
 begin
