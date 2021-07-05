@@ -679,7 +679,9 @@ begin
           PackageModeToName[PackageMode] + PathDelim +
           'app-' + PackageModeToName[PackageMode] + '.aab',
           Project.OutputPath + ApkName);
+        {$IFDEF UNIX}
         Writeln('FpChmod = ' + FpChmod(Project.OutputPath + ApkName, &777).ToString);
+        {$ENDIF}
       end;
     else
       raise Exception.Create('Unexpected PackageFormat in PackageAndroid: ' + PackageFormatToString(PackageFormat));
