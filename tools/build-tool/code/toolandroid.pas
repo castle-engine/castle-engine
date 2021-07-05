@@ -581,7 +581,7 @@ var
         pfAndroidApk:
           Args.Add('assemble' + Capitalize(PackageModeToName[PackageMode]));
         pfAndroidAppBundle:
-          Args.Add(':app:bundleDebug');
+          Args.Add(':app:bundle' + Capitalize(PackageModeToName[PackageMode]));
         else
           raise Exception.Create('Unexpected PackageFormat in PackageAndroid: ' + PackageFormatToString(PackageFormat));
       end;
@@ -672,7 +672,12 @@ begin
     pfAndroidAppBundle:
       begin
         ApkName := Project.Name + '-' + PackageModeToName[PackageMode] + '.aab';
-        CheckRenameFile(AndroidProjectPath + 'app/build/outputs/bundle/debug/app-debug.aab',
+        CheckRenameFile(AndroidProjectPath + 'app' + PathDelim +
+          'build' +  PathDelim +
+          'outputs' + PathDelim +
+          'bundle' + PathDelim +
+          PackageModeToName[PackageMode] + PathDelim +
+          'app-' + PackageModeToName[PackageMode] + '.aab',
           Project.OutputPath + ApkName);
         Writeln('FpChmod = ' + FpChmod(Project.OutputPath + ApkName, &777).ToString);
       end;
