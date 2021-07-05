@@ -2,7 +2,7 @@
 <project name="shader-effects"
   standalone_source="shader_effects_standalone.lpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.shadereffects"
+  qualified_name="io.castleengine.shader.effects"
   caption="Shader Effects Demo"
 >
   <compiler_options>

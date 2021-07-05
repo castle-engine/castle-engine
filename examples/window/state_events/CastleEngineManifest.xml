@@ -2,7 +2,7 @@
 <project name="state_events"
   standalone_source="state_events_standalone.lpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.stateevents"
+  qualified_name="io.castleengine.state.events"
   caption="Important State Events"
 >
   <compiler_options>

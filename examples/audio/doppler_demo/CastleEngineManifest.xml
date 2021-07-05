@@ -2,7 +2,7 @@
 <project name="doppler_demo"
   standalone_source="doppler_demo_standalone.lpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.dopplerdemo"
+  qualified_name="io.castleengine.doppler.demo"
   caption="Doppler Effect Demo"
 >
   <compiler_options>

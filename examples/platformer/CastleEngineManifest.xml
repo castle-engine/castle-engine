@@ -2,7 +2,7 @@
 <project name="platformer"
   standalone_source="platformer_standalone.lpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.platformer"
+  qualified_name="io.castleengine.platformer"
   caption="Platformer"
 >
   <compiler_options>

@@ -2,7 +2,7 @@
 <project name="collisions"
   standalone_source="collisions_standalone.lpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.collisions"
+  qualified_name="io.castleengine.collisions"
   caption="Collisions Test"
 >
   <compiler_options>
