@@ -674,7 +674,7 @@ begin
         ApkName := Project.Name + '-' + PackageModeToName[PackageMode] + '.aab';
         CheckRenameFile(AndroidProjectPath + 'app/build/outputs/bundle/debug/app-debug.aab',
           Project.OutputPath + ApkName);
-        Writeln('FpChmod = ' + FpChmod(Project.OutputPath + ApkName, 777).ToString);
+        Writeln('FpChmod = ' + FpChmod(Project.OutputPath + ApkName, &777).ToString);
       end;
     else
       raise Exception.Create('Unexpected PackageFormat in PackageAndroid: ' + PackageFormatToString(PackageFormat));
