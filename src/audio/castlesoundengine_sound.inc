@@ -224,8 +224,16 @@ procedure TCastleSoundChangeEventList.ExecuteAll(const Sender: TCastleSound; con
 var
   I: Integer;
 begin
-  for I := 0 to Count - 1 do
-    Items[I](Sender, Change);
+  { We do this weird inverted "for" with extra condition, to work even when a notification
+    may remove its own listener from the list. This can actually happen:
+    in case of scBeforeBufferDestroyed, it notifies TCastlePlayingSound,
+    and it will stop the sound, removing itself from notifications list.
+
+    Testcase: examples/audio/game_3d_sound/ and exit while many "kaboom" sounds are playing. }
+
+  for I := Count - 1 downto 0 do
+    if I < Count then
+       Items[I](Sender, Change);
 end;
 
 { TCastleSound --------------------------------------------------------------- }
