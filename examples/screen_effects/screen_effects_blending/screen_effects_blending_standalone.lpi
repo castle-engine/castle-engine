@@ -56,7 +56,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="screen-effects-blending"/>
+      <Filename Value="screen_effects_blending"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="code"/>

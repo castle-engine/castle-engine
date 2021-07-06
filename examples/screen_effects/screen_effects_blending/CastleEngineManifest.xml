@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project name="screen-effects-blending"
+<project name="screen_effects_blending"
   standalone_source="screen_effects_blending_standalone.lpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.screen.effects.blending"
