@@ -41,7 +41,7 @@ type
     const
       { Max number of TNT items. }
       MaxTntsCount = 40;
-      InitialTntsCount = 10;
+      InitialTntsCount = MaxTntsCount;
 
     var
       { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
