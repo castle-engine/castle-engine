@@ -132,7 +132,8 @@
           "$$ClassName" : "TCastleWalkNavigation",
           "MoveSpeed" : 1.0000000000000000E+001,
           "Name" : "Navigation",
-          "PreferredHeight" : 5.6000000238418579E-001
+          "PreferredHeight" : 5.6000000238418579E-001,
+          "Radius" : 5.0000000745058060E-002
         }
       ]
     },

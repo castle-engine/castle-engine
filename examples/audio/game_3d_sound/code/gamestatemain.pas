@@ -147,9 +147,6 @@ begin
   Rat := DesignedComponent('Rat') as TCastleScene;
   SceneLevel := DesignedComponent('SceneLevel') as TCastleScene;
 
-  // TODO should be done by editor
-  Navigation.Radius := 0.05;
-
   { initialize Rat }
   UpdateRatPosition;
 
