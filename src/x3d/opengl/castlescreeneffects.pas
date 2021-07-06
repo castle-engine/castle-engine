@@ -23,7 +23,8 @@ interface
 uses SysUtils, Classes,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleVectors, CastleGLShaders, CastleUIControls, X3DNodes, CastleGLImages,
-  CastleRectangles, CastleScene, CastleTransform, CastleCameras;
+  CastleRectangles, CastleScene, CastleTransform, CastleCameras,
+  CastleRenderOptions;
 
 { Standard GLSL vertex shader for screen effect.
   @bold(In your own programs, it's usually easier to use TGLSLScreenEffect,
@@ -123,6 +124,9 @@ type
         TexCoord: TVector2;
       end;
     var
+      FBlending: Boolean;
+      FBlendingSourceFactor: TBlendingSourceFactor;
+      FBlendingDestinationFactor: TBlendingDestinationFactor;
       { Scene containing screen effects }
       ScreenEffectsScene: TCastleScene;
       ScreenEffectsRoot: TX3DRootNode;
@@ -181,6 +185,27 @@ type
     { @exclude }
     function InternalExtraScreenEffectsNeedDepth: Boolean; virtual;
   public
+    const
+      DefaultBlendingSourceFactor = bsSrcAlpha;
+      DefaultBlendingDestinationFactor = bdOneMinusSrcAlpha;
+
+    { Use blending for this screen effect,
+      Note that for correct alpha channel treatment the buffer contents
+      must be cleared, e.g. by using @link(TCastleSimpleBackground) }
+    property Blending: Boolean read FBlending write FBlending default false;
+
+    { Blending source factor, if we use @link(Blending). }
+    property BlendingSourceFactor: TBlendingSourceFactor
+      read FBlendingSourceFactor
+      write FBlendingSourceFactor
+      default DefaultBlendingSourceFactor;
+
+    { Blending destination factor, if we use @link(Blending). }
+    property BlendingDestinationFactor: TBlendingDestinationFactor
+      read FBlendingDestinationFactor
+      write FBlendingDestinationFactor
+      default DefaultBlendingDestinationFactor;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -264,7 +289,7 @@ type
 
 implementation
 
-uses CastleUtils, CastleGLUtils, CastleLog, CastleRenderContext, CastleRenderOptions;
+uses CastleUtils, CastleGLUtils, CastleLog, CastleRenderContext;
 
 function ScreenEffectVertex: string;
 begin
@@ -324,6 +349,9 @@ begin
   inherited;
   FScreenEffectsTimeScale := 1;
   FScreenEffectsEnable := true;
+  FBlending := false;
+  FBlendingSourceFactor := DefaultBlendingSourceFactor;
+  FBlendingDestinationFactor := DefaultBlendingDestinationFactor;
 end;
 
 destructor TCastleScreenEffects.Destroy;
@@ -696,7 +724,14 @@ var
       AttribTexCoord.EnableArrayVector2(SizeOf(TScreenPoint),
         OffsetUInt(ScreenPoint[0].TexCoord, ScreenPoint[0]));
 
-      glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+      if Blending then
+      begin
+        GLBlendFunction(BlendingSourceFactor, BlendingDestinationFactor);
+        glEnable(GL_BLEND);
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+        glDisable(GL_BLEND);
+      end else
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
       AttribVertex.DisableArray;
       AttribTexCoord.DisableArray;
