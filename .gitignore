@@ -173,7 +173,8 @@ castle-game-engine-*.fpm
 /examples/research_special_rendering_methods/radiance_transfer/show_sh
 /examples/research_special_rendering_methods/shadow_fields/precompute_shadow_field
 /examples/research_special_rendering_methods/shadow_fields/shadow_fields
-/examples/screen_effects_demo/screen_effects_demo
+/examples/screen_effects/screen_effects_demo/screen_effects_demo
+/examples/screen_effects/screen_effects_blending/screen-effects-blending
 /examples/short_api_samples/metadata/metadata_use
 /examples/short_api_samples/save_screen_rgba/save_screen_rgba
 /examples/short_api_samples/transform_save_load/aaa.castle-transform
