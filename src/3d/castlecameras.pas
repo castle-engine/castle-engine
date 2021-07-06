@@ -740,6 +740,7 @@ type
     constructor Create(AOwner: TComponent); override;
     procedure Assign(Source: TPersistent); override;
     function GetExists: boolean; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Used by @link(MoveAllowed), see there for description.
       You can assign this property. }
@@ -818,7 +819,7 @@ type
       @unorderedList(
         @item(Collision detection routines use this.)
         @item(It determines the projection near plane (that must be slightly
-          smaller than this radius) for 3D rendering.)
+          smaller than this radius), see also @link(TCastleCamera.ProjectionNear).)
         @item(
           Walk navigation uses this for automatically correcting
           PreferredHeight, otherwise weird things could happen
@@ -2081,6 +2082,7 @@ type
     property MoveHorizontalSpeed;
     property MoveVerticalSpeed;
     property MoveSpeed;
+    property Radius;
   end;
 
   TUniversalCamera = TCastleNavigation deprecated 'complicated TUniversalCamera class is removed; use TCastleNavigation as base class, or TCastleWalkNavigation or TCastleExamineNavigation for particular type, and Viewport.NavigationType to switch type';
@@ -3104,6 +3106,18 @@ begin
     Result := FModelBox;
 end;
 
+function TCastleNavigation.PropertySections(
+  const PropertyName: String): TPropertySections;
+begin
+// not sure if useful enough:
+  // case PropertyName of
+  //   'Input':
+  //     Result := [psBasic];
+  //   else
+      Result := inherited PropertySections(PropertyName);
+  // end;
+end;
+
 { TCastleExamineNavigation ------------------------------------------------------------ }
 
 constructor TCastleExamineNavigation.Create(AOwner: TComponent);
@@ -3897,12 +3911,12 @@ end;
 function TCastleExamineNavigation.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'MoveEnabled') or
-     (PropertyName = 'RotationEnabled') or
-     (PropertyName = 'ZoomEnabled') then
-    Result := [psBasic]
-  else
-    Result := inherited PropertySections(PropertyName);
+  case PropertyName of
+    'MoveEnabled', 'RotationEnabled', 'ZoomEnabled', 'RotationAccelerate', 'ExactMovement':
+      Result := [psBasic];
+    else
+      Result := inherited PropertySections(PropertyName);
+  end;
 end;
 
 { TCastleMouseLookNavigation ------------------------------------------------- }
@@ -5397,11 +5411,16 @@ end;
 function TCastleWalkNavigation.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Gravity') or
-     (PropertyName = 'MoveSpeed') then
-    Result := [psBasic]
-  else
-    Result := inherited PropertySections(PropertyName);
+  case PropertyName of
+    'Gravity', 'MoveSpeed', 'Radius', 'PreferredHeight', 'MoveHorizontalSpeed', 'MoveVerticalSpeed',
+    'MouseDraggingHorizontalRotationSpeed', 'MouseDraggingVerticalRotationSpeed',
+    'MouseDraggingMoveSpeed', 'MouseDragMode', 'RotationHorizontalSpeed', 'RotationVerticalSpeed',
+    // 'MouseLook', // hard to get out of it, as it captures mouse
+    'MouseLookHorizontalSensitivity', 'MouseLookVerticalSensitivity', 'InvertVerticalMouseLook':
+      Result := [psBasic];
+    else
+      Result := inherited PropertySections(PropertyName);
+  end;
 end;
 
 { global ------------------------------------------------------------ }
