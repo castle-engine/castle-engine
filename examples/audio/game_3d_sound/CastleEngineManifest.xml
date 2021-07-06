@@ -5,6 +5,7 @@
   qualified_name="io.castleengine.game3dsound"
   caption="3D Sound Game Demo"
 >
+  <version value="2.0.0" code="2" />
   <compiler_options>
     <search_paths>
       <path value="code/" />
