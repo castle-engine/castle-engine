@@ -205,8 +205,10 @@ begin
 end;
 
 procedure TCastlePlayingSoundSource.Update(const SecondsPassed: Single);
+const
+  MaxVelocityLength = 20;
 var
-  NewPosition: TVector3;
+  NewPosition, NewVelocity: TVector3;
 begin
   if (SourceBehavior <> nil) and
      (InternalSource <> nil) and
@@ -220,8 +222,16 @@ begin
 
     { update InternalSource.Velocity, to hear Doppler effect. }
     if HasLastPosition and (SecondsPassed > SingleEpsilon) then
-      InternalSource.Velocity := (NewPosition - LastPosition) *
+    begin
+      NewVelocity := (NewPosition - LastPosition) *
         SourceBehavior.DopplerEffect / SecondsPassed;
+      { Clamp NewVelocity length, to not cause too crazy Doppler because
+        of temporary high speed.
+        Testcase: examples/audio/doppler_demo, drag with mouse fast. }
+      if NewVelocity.LengthSqr > Sqr(MaxVelocityLength) then
+        NewVelocity := NewVelocity.AdjustToLength(MaxVelocityLength);
+      InternalSource.Velocity := NewVelocity;
+    end;
     HasLastPosition := true;
     LastPosition := NewPosition;
   end else
