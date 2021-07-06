@@ -113,7 +113,7 @@ begin
   if T.Y > 0 then
   begin
     T.Y := T.Y - 5 * SecondsPassed;
-    if T.Y > 0 then
+    if T.Y < 0 then
       T.Y := 0;
     Translation := T;
   end;
