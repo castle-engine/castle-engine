@@ -66,7 +66,6 @@ type
     procedure SetMaxGain(const Value: Single); override;
     procedure SetBuffer(const Value: TSoundBufferBackend); override;
     procedure SetPitch(const Value: Single); override;
-    procedure SetRolloffFactor(const Value: Single); override;
     procedure SetReferenceDistance(const Value: Single); override;
     procedure SetMaxDistance(const Value: Single); override;
     procedure SetPriority(const Value: Single); override;
@@ -187,10 +186,6 @@ begin
 end;
 
 procedure TSoxSoundSourceBackend.SetPitch(const Value: Single);
-begin
-end;
-
-procedure TSoxSoundSourceBackend.SetRolloffFactor(const Value: Single);
 begin
 end;
 

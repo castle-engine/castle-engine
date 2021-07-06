@@ -158,7 +158,6 @@ type
       was explicitly called). }
     procedure SetBuffer(const Value: TSoundBufferBackend); virtual; abstract;
     procedure SetPitch(const Value: Single); virtual; abstract;
-    procedure SetRolloffFactor(const Value: Single); virtual; abstract;
     procedure SetReferenceDistance(const Value: Single); virtual; abstract;
     procedure SetMaxDistance(const Value: Single); virtual; abstract;
     procedure SetPriority(const Value: Single); virtual; abstract;

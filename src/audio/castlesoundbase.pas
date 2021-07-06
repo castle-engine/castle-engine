@@ -26,10 +26,36 @@ type
   ENoMoreSources = class(Exception);
   ESoundFileError = class(Exception);
 
-  TSoundDistanceModel = (dmNone,
-    dmInverseDistance , dmInverseDistanceClamped,
-    dmLinearDistance  , dmLinearDistanceClamped,
-    dmExponentDistance, dmExponentDistanceClamped);
+  { How does distance affect spatial sounds, used for @link(TSoundEngine.DistanceModel). }
+  TSoundDistanceModel = (
+    { Sound is fully audible (with @link(TCastleSound.Volume)) at the distance
+      @link(TCastleSound.ReferenceDistance), and then it drops down with distance
+      following a realistic curve.
+      Sound is not attenuated more when it is further than @link(TCastleSound.MaxDistance).
+
+      This is the default distance model, that is realistic and is easy to use.
+
+      The description above is not 100% precise, because different sound backends have
+      different details how is this realized.
+      For OpenAL, this means using default AL_INVERSE_DISTANCE_CLAMPED
+      (the exact equation is on https://www.openal.org/documentation/openal-1.1-specification.pdf ).
+      For FMOD, this means using default FMOD_3D_INVERSEROLLOFF
+      (see https://www.fmod.com/resources/documentation-api?version=2.01&page=core-api-common.html#fmod_3d_inverserolloff ,
+      https://www.fmod.com/resources/documentation-api?version=2.01&page=white-papers-3d-sounds.html#inverse ,
+      "for every doubling of this mindistance, the sound volume will halve" -- so it is inverse squared). }
+    dmInverse,
+
+    { Sound is fully audible (with @link(TCastleSound.Volume)) at the distance
+      @link(TCastleSound.ReferenceDistance), and then it drops down linearly to 0
+      at @link(TCastleSound.MaxDistance).
+      Sound is no more audible at @link(TCastleSound.MaxDistance).
+
+      It is easy to control, but remember to set @link(TCastleSound.MaxDistance)
+      to sensibly large value.
+
+      This matches the X3D sound model most. }
+    dmLinear
+  );
 
   TSoundDevice = class
   private

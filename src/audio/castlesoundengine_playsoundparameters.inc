@@ -47,14 +47,9 @@
     Position: TVector3;
     { Pitch allows to play the sound faster. By default it is 1.0. }
     Pitch: Single;
-    { See @link(TSoundEngine.DefaultRolloffFactor) for description.
-      The @link(TSoundEngine.DefaultRolloffFactor) is also the default value of this field. }
-    RolloffFactor: Single;
-    { See @link(TSoundEngine.DefaultReferenceDistance) for description.
-      The @link(TSoundEngine.DefaultReferenceDistance) is also the default value of this field. }
+    { See @link(TCastleSound.ReferenceDistance), by default 1. }
     ReferenceDistance: Single;
-    { See @link(TSoundEngine.DefaultMaxDistance) for description.
-      The @link(TSoundEngine.DefaultMaxDistance) is also the default value of this field. }
+    { See @link(TCastleSound.MaxDistance), by default 10000. }
     MaxDistance: Single;
     { Offset is a position in time of the sound. }
     Offset: Single;
@@ -86,9 +81,8 @@ begin
   MaxGain := 1;
   {$warnings on}
   Pitch := 1;
-  RolloffFactor     := SoundEngine.DefaultRolloffFactor;
-  ReferenceDistance := SoundEngine.DefaultReferenceDistance;
-  MaxDistance       := SoundEngine.DefaultMaxDistance;
+  ReferenceDistance := TCastleSound.DefaultReferenceDistance;
+  MaxDistance       := TCastleSound.DefaultMaxDistance;
 end;
 
 function TPlaySoundParameters.GetImportance: Cardinal;

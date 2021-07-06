@@ -73,13 +73,12 @@ const
   MinorNonSpatialSoundImportance = 100    deprecated 'use TCastleSound.Priority, which is float, and figure out good priorities for your game';
   DefaultSoundImportance         = 10     deprecated 'use TCastleSound.Priority, which is float, and figure out good priorities for your game';
 
-  dmNone                    = CastleSoundBase.dmNone;
-  dmInverseDistance         = CastleSoundBase.dmInverseDistance;
-  dmInverseDistanceClamped  = CastleSoundBase.dmInverseDistanceClamped;
-  dmLinearDistance          = CastleSoundBase.dmLinearDistance;
-  dmLinearDistanceClamped   = CastleSoundBase.dmLinearDistanceClamped;
-  dmExponentDistance        = CastleSoundBase.dmExponentDistance;
-  dmExponentDistanceClamped = CastleSoundBase.dmExponentDistanceClamped;
+  dmInverse = CastleSoundBase.dmInverse;
+  dmLinear  = CastleSoundBase.dmLinear;
+  dmInverseDistance        = dmInverse deprecated 'use dmInverse';
+  dmInverseDistanceClamped = dmInverse deprecated 'use dmInverse';
+  dmLinearDistance         = dmLinear deprecated 'use dmLinear';
+  dmLinearDistanceClamped  = dmLinear deprecated 'use dmLinear';
 
   { Supported sound file formats.
     Use these filters with LCL file dialog (easily set by FileFiltersToDialog)

@@ -73,6 +73,7 @@ type
     FBuffer: TFMODSoundBufferBackend;
     FPosition, FVelocity: TVector3;
     FLoop, FSpatial: Boolean;
+    FReferenceDistance, FMaxDistance: Single;
     function FMODSystem: PFMOD_SYSTEM;
     function Mode: TFMOD_MODE;
   public
@@ -90,7 +91,6 @@ type
     procedure SetMaxGain(const Value: Single); override;
     procedure SetBuffer(const Value: TSoundBufferBackend); override;
     procedure SetPitch(const Value: Single); override;
-    procedure SetRolloffFactor(const Value: Single); override;
     procedure SetReferenceDistance(const Value: Single); override;
     procedure SetMaxDistance(const Value: Single); override;
     procedure SetPriority(const Value: Single); override;
@@ -378,9 +378,12 @@ begin
   if FMODChannel = nil then Exit;
   CheckFMOD(FMOD_Channel_SetMode(FMODChannel, Mode));
 
-  // call FMOD_Channel_Set3DAttributes to update Position/Velocity
+  // call FMOD_Channel_Set3DXxx to update settings
   if FSpatial then // only if Spatial, otherwise FMOD raises error
+  begin
     CheckFMOD(FMOD_Channel_Set3DAttributes(FMODChannel, @FPosition, @FVelocity));
+    CheckFMOD(FMOD_Channel_Set3DMinMaxDistance(FMODChannel, FReferenceDistance, FMaxDistance));
+  end;
 end;
 
 procedure TFMODSoundSourceBackend.SetVolume(const Value: Single);
@@ -422,22 +425,20 @@ begin
   CheckFMOD(FMOD_Channel_SetPitch(FMODChannel, Value));
 end;
 
-procedure TFMODSoundSourceBackend.SetRolloffFactor(const Value: Single);
-begin
-  if not FSpatial then Exit; // apply this only if Spatial
-  // TODO
-end;
-
 procedure TFMODSoundSourceBackend.SetReferenceDistance(const Value: Single);
 begin
+  FReferenceDistance := Value;
+  if FMODChannel = nil then Exit;
   if not FSpatial then Exit; // apply this only if Spatial
-  // TODO
+  CheckFMOD(FMOD_Channel_Set3DMinMaxDistance(FMODChannel, FReferenceDistance, FMaxDistance));
 end;
 
 procedure TFMODSoundSourceBackend.SetMaxDistance(const Value: Single);
 begin
+  FMaxDistance := Value;
+  if FMODChannel = nil then Exit;
   if not FSpatial then Exit; // apply this only if Spatial
-  // TODO
+  CheckFMOD(FMOD_Channel_Set3DMinMaxDistance(FMODChannel, FReferenceDistance, FMaxDistance));
 end;
 
 procedure TFMODSoundSourceBackend.SetPriority(const Value: Single);

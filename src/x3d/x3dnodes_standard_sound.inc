@@ -189,10 +189,10 @@ begin
         PlayingSound.Sound.Priority := SoundNode.Priority;
         PlayingSound.Sound.Volume := SoundNode.Intensity;
         PlayingSound.Sound.Pitch := SafePitch;
-        { We pass min/maxFront as OpenAL reference distance/max distance,
-          as their meanings match for distance model = dmLinearDistanceClamped. }
-        // TODO: Parameters.ReferenceDistance := SoundNode.FTransformScale * SoundNode.MinFront;
-        // TODO: Parameters.MaxDistance       := SoundNode.FTransformScale * SoundNode.MaxFront;
+        { We pass min/maxFront as ReferenceDistance/MaxDistance
+          as their meaning matches for SoundEngine.DistanceModel = dmLinear. }
+        PlayingSound.Sound.ReferenceDistance := SoundNode.FTransformScale * SoundNode.MinFront;
+        PlayingSound.Sound.MaxDistance       := SoundNode.FTransformScale * SoundNode.MaxFront;
         // TODO: we could set here Parameters.Offset to not always start playing from start
         SoundNode.SoundSource.Play(PlayingSound);
       end;

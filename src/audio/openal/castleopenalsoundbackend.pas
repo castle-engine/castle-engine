@@ -103,7 +103,7 @@ type
     Streaming: TOpenALStreaming;
     FSpatial: Boolean; //< by default true, as this is OpenAL default
     FPosition, FVelocity: TVector3;
-    FRolloffFactor, FReferenceDistance, FMaxDistance: Single;
+    FReferenceDistance, FMaxDistance: Single;
     function ALVersion11: Boolean;
   private
     FBuffer: TSoundBufferBackend;
@@ -129,7 +129,6 @@ type
     procedure SetMaxGain(const Value: Single); override;
     procedure SetBuffer(const Value: TSoundBufferBackend); override;
     procedure SetPitch(const Value: Single); override;
-    procedure SetRolloffFactor(const Value: Single); override;
     procedure SetReferenceDistance(const Value: Single); override;
     procedure SetMaxDistance(const Value: Single); override;
     procedure SetPriority(const Value: Single); override;
@@ -414,7 +413,6 @@ begin
   inherited;
   FSpatial := true;
   // correspond to OpenAL defaults, https://www.openal.org/documentation/openal-1.1-specification.pdf
-  FRolloffFactor := 1;
   FReferenceDistance := 1;
   FMaxDistance := MaxSingle;
 end;
@@ -590,7 +588,7 @@ begin
   begin
     { No attenuation by distance. }
     alSourcef(ALSource, AL_ROLLOFF_FACTOR, 0);
-    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_ROLLOFF_FACTOR, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_ROLLOFF_FACTOR, 0) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 
     { Note: source's AL_REFERENCE_DISTANCE , AL_MAX_DISTANCE don't matter in this case. }
 
@@ -605,11 +603,14 @@ begin
     {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourceVector3f(.., AL_VELOCITY, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
   end else
   begin
+    { Attenuation by distance. }
+    alSourcef(ALSource, AL_ROLLOFF_FACTOR, 1);
+    {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_ROLLOFF_FACTOR, 1) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
+
     { Set everything that was kept constant when Spatial was false.
       We rely here on the fact that SetXxx here do not ignore "setting to the same value as previous". }
     SetPosition(FPosition);
     SetVelocity(FVelocity);
-    SetRolloffFactor(FRolloffFactor);
     SetReferenceDistance(FReferenceDistance);
     SetMaxDistance(FMaxDistance);
   end;
@@ -680,6 +681,7 @@ begin
   {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_PITCH, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
 
+(*
 procedure TOpenALSoundSourceBackend.SetRolloffFactor(const Value: Single);
 begin
   FRolloffFactor := Value;
@@ -688,6 +690,7 @@ begin
   alSourcef(ALSource, AL_ROLLOFF_FACTOR, Value);
   {$ifdef CASTLE_OPENAL_DEBUG} CheckAL('alSourcef(.., AL_ROLLOFF_FACTOR, ..) ' + {$include %FILE%} + ':' + {$include %LINE%}, true); {$endif}
 end;
+*)
 
 procedure TOpenALSoundSourceBackend.SetReferenceDistance(const Value: Single);
 begin
@@ -1039,20 +1042,54 @@ end;
 procedure TOpenALSoundEngineBackend.SetDistanceModel(const Value: TSoundDistanceModel);
 const
   ALDistanceModelConsts: array [TSoundDistanceModel] of TALenum = (
-    AL_NONE,
-    AL_INVERSE_DISTANCE,
     AL_INVERSE_DISTANCE_CLAMPED,
-    AL_LINEAR_DISTANCE,
-    AL_LINEAR_DISTANCE_CLAMPED,
-    AL_EXPONENT_DISTANCE,
-    AL_EXPONENT_DISTANCE_CLAMPED
+    AL_LINEAR_DISTANCE_CLAMPED
   );
 begin
+  { Note:
+
+    Initially we supported all OpenAL distance models:
+
+      TSoundDistanceModel = (dmNone,
+        dmInverseDistance , dmInverseDistanceClamped,
+        dmLinearDistance  , dmLinearDistanceClamped,
+        dmExponentDistance, dmExponentDistanceClamped);
+
+    mapping to
+
+      const
+        ALDistanceModelConsts: array [TSoundDistanceModel] of TALenum = (
+          AL_NONE,
+          AL_INVERSE_DISTANCE,
+          AL_INVERSE_DISTANCE_CLAMPED,
+          AL_LINEAR_DISTANCE,              //< only OpenAL >= 1.1
+          AL_LINEAR_DISTANCE_CLAMPED,      //< only OpenAL >= 1.1
+          AL_EXPONENT_DISTANCE,            //< only OpenAL >= 1.1
+          AL_EXPONENT_DISTANCE_CLAMPED     //< only OpenAL >= 1.1
+        );
+
+    Now we support only a subset of distance models, that is common to
+    OpenAL ( https://www.openal.org/documentation/openal-1.1-specification.pdf ),
+    FMOD ( https://www.fmod.com/resources/documentation-api?version=2.01&page=white-papers-3d-sounds.html#inverse ).
+
+    Some models are actually available only since OpenAL 1.1
+    version. We eventually may fallback on some other model.
+    This is not be a problem in practice, as all modern OS
+    versions (Linux distros, Windows OpenAL installers etc.) include OpenAL 1.1. }
+
+(* Old version, for all models:
+
   if (not ALVersion11) and (Value in [dmLinearDistance, dmExponentDistance]) then
     alDistanceModel(AL_INVERSE_DISTANCE)
   else
   if (not ALVersion11) and (Value in [dmLinearDistanceClamped, dmExponentDistanceClamped]) then
     alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED)
+  else
+    alDistanceModel(ALDistanceModelConsts[Value]);
+*)
+
+  if (not ALVersion11) and (Value = dmLinear) then
+    alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED) // OpenAL < 1.1 doesn't support AL_LINEAR_DISTANCE* models.
   else
     alDistanceModel(ALDistanceModelConsts[Value]);
 end;

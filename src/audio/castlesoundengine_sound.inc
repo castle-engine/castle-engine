@@ -66,6 +66,7 @@
     FMinGain: Single;
     FMaxGain: Single;
     FPriority: Single;
+    FReferenceDistance, FMaxDistance: Single;
     FChangeNotifications: TCastleSoundChangeEventList;
     procedure SetStream(const Value: Boolean);
     procedure SetURL(const Value: String);
@@ -74,11 +75,17 @@
     procedure SetMinGain(const Value: Single);
     procedure SetMaxGain(const Value: Single);
     procedure SetPriority(const Value: Single);
+    procedure SetReferenceDistance(const Value: Single);
+    procedure SetMaxDistance(const Value: Single);
     procedure ReloadBuffer;
     procedure DoChange(const Change: TSoundChange);
   protected
     procedure Loaded; override;
   public
+    const
+      DefaultReferenceDistance = 1.0;
+      DefaultMaxDistance = 10000.0;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
@@ -193,6 +200,18 @@
       it is agnostic to the underlying precision (e.g. it has to map to 257 levels in FMOD,
       100 levels in Wwise). Also, "higher is more important" seems just more natural. }
     property Priority: Single read FPriority write SetPriority default 0.5;
+
+    { Spatial sound is fully audible (with @link(Gain)) at this distance.
+      See TSoundDistanceModel for a description how distance affects the sound volume. }
+    property ReferenceDistance: Single read FReferenceDistance write SetReferenceDistance
+      default DefaultReferenceDistance;
+
+    { Distance at which sound volume stops attenuating.
+      For the linear distance model (@link(TSoundEngine.DistanceModel SoundEngine.DistanceModel) = dmLinear)
+      this is also a distance at which sound volume drops to zero (completely silent).
+      See TSoundDistanceModel for a description how distance affects the sound volume. }
+    property MaxDistance: Single read FMaxDistance write SetMaxDistance
+      default DefaultMaxDistance;
   end;
 
 {$endif read_interface}
@@ -220,6 +239,8 @@ begin
   FMinGain := 0.0;
   FMaxGain := 1.0;
   FPriority := 0.5;
+  FReferenceDistance := DefaultReferenceDistance;
+  FMaxDistance := DefaultMaxDistance;
   FChangeNotifications := TCastleSoundChangeEventList.Create;
 end;
 
@@ -245,7 +266,7 @@ end;
 function TCastleSound.PropertySections(const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
-    'URL', 'Stream', 'Volume', 'Pitch', 'Priority':
+    'URL', 'Stream', 'Volume', 'Pitch', 'Priority', 'ReferenceDistance', 'MaxDistance':
       Result := [psBasic];
     else
       Result := inherited PropertySections(PropertyName);
@@ -347,6 +368,24 @@ begin
   if FPriority <> Value then
   begin
     FPriority := Value;
+    DoChange(scAfterOther);
+  end;
+end;
+
+procedure TCastleSound.SetReferenceDistance(const Value: Single);
+begin
+  if FReferenceDistance <> Value then
+  begin
+    FReferenceDistance := Value;
+    DoChange(scAfterOther);
+  end;
+end;
+
+procedure TCastleSound.SetMaxDistance(const Value: Single);
+begin
+  if FMaxDistance <> Value then
+  begin
+    FMaxDistance := Value;
     DoChange(scAfterOther);
   end;
 end;

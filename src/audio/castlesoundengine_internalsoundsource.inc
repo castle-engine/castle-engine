@@ -41,7 +41,7 @@
     FLoop, FSpatial: boolean;
     FVolume, FMinGain, FMaxGain, FPitch: Single;
     FBuffer: TInternalSoundBuffer;
-    FRolloffFactor, FReferenceDistance, FMaxDistance: Single;
+    FReferenceDistance, FMaxDistance: Single;
     Backend: TSoundSourceBackend;
     BackendIsOpen: Boolean;
     procedure SetPosition(const Value: TVector3);
@@ -53,7 +53,6 @@
     procedure SetMaxGain(const Value: Single);
     procedure SetBuffer(const Value: TInternalSoundBuffer);
     procedure SetPitch(const Value: Single);
-    procedure SetRolloffFactor(const Value: Single);
     procedure SetReferenceDistance(const Value: Single);
     procedure SetMaxDistance(const Value: Single);
     procedure SetPriority(const Value: Single);
@@ -131,7 +130,6 @@
     property MaxGain: Single read FMaxGain write SetMaxGain;
     property Buffer: TInternalSoundBuffer read FBuffer write SetBuffer;
     property Pitch: Single read FPitch write SetPitch;
-    property RolloffFactor: Single read FRolloffFactor write SetRolloffFactor;
     property ReferenceDistance: Single read FReferenceDistance write SetReferenceDistance;
     property MaxDistance: Single read FMaxDistance write SetMaxDistance;
 
@@ -306,12 +304,6 @@ procedure TInternalSoundSource.SetPitch(const Value: Single);
 begin
   FPitch := Value;
   Backend.SetPitch(Value);
-end;
-
-procedure TInternalSoundSource.SetRolloffFactor(const Value: Single);
-begin
-  FRolloffFactor := Value;
-  Backend.SetRolloffFactor(Value);
 end;
 
 procedure TInternalSoundSource.SetReferenceDistance(const Value: Single);

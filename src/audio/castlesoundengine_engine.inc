@@ -41,9 +41,6 @@
       FVolume: Single;
       FEnabled: boolean;
       FIsContextOpen: boolean;
-      FDefaultRolloffFactor: Single;
-      FDefaultReferenceDistance: Single;
-      FDefaultMaxDistance: Single;
       FDistanceModel: TSoundDistanceModel;
       LoadedBuffers: TInternalSoundBuffersList;
       FDevices: TSoundDeviceList;
@@ -75,10 +72,7 @@
   public
     const
       DefaultVolume = 1.0;
-      DefaultDefaultRolloffFactor = 1.0;
-      DefaultDefaultReferenceDistance = 1.0;
-      DefaultDefaultMaxDistance = MaxSingle;
-      DefaultDistanceModel = dmLinearDistanceClamped;
+      DefaultDistanceModel = dmInverse;
       DefaultDevice = '';
       DefaultEnabled = true;
 
@@ -397,52 +391,8 @@
 
     property Enable: boolean read FEnabled write SetEnabled default DefaultEnabled; deprecated 'Use Enabled';
 
-    { How the sound is attenuated with the distance.
-      These are used only for spatialized sounds created with PlaySound.
-      The DefaultReferenceDistance and DefaultMaxDistance values
-      are used only if you don't supply explicit values to PlaySound.
-
-      The exact interpretation of these depends on current
-      DistanceModel. See OpenAL specification for exact equations.
-      In short:
-
-      @unorderedList(
-        @item(Smaller Rolloff Factor makes the attenuation weaker.
-          In particular 0 turns off attenuation by distance.
-          Default is 1.)
-        @item(Reference Distance is the distance at which exactly sound
-          volume is heard. Default is 1.)
-        @item(Max Distance interpretation depends on the model.
-          For "inverse clamped model", the Volume is no longer scaled down
-          after reaching this distance. For linear models, the Volume
-          reaches zero at this distance. Default is maximum float
-          (I don't know the interpretation of this for linear model).)
-      )
-
-      Our default values follow OpenAL default values.
-      @groupBegin }
-    property DefaultRolloffFactor: Single
-      read FDefaultRolloffFactor write FDefaultRolloffFactor default DefaultDefaultRolloffFactor;
-    property DefaultReferenceDistance: Single
-      read FDefaultReferenceDistance write FDefaultReferenceDistance default DefaultDefaultReferenceDistance;
-    property DefaultMaxDistance: Single
-      read FDefaultMaxDistance write FDefaultMaxDistance default DefaultDefaultMaxDistance;
-    { @groupEnd }
-
-    { How the sources are spatialized. For precise meaning, see OpenAL
-      specification of alDistanceModel.
-
-      Note that some models are actually available only since OpenAL 1.1
-      version. Older OpenAL versions may (but don't have to) support them
-      through extensions. We will internally do everything possible to
-      request given model, but eventually may fallback on some other model.
-      This probably will not be a problem in practice, as all modern OS
-      versions (Linux distros, Windows OpenAL installers etc.) include OpenAL
-      1.1.
-
-      The default distance model, DefaultDistanceModel, is the linear model
-      most conforming to VRML/X3D sound requirements. You can change it
-      if you want (for example, OpenAL default is dmInverseDistanceClamped). }
+    { How does the distance affect spatial sounds (with @link(TCastleSoundSource.Spatial)).
+      See TSoundDistanceModel for the description of possible options. }
     property DistanceModel: TSoundDistanceModel
       read FDistanceModel write SetDistanceModel default DefaultDistanceModel;
   end;
@@ -457,9 +407,6 @@ constructor TSoundEngine.Create;
 begin
   inherited;
   FVolume := DefaultVolume;
-  FDefaultRolloffFactor := DefaultDefaultRolloffFactor;
-  FDefaultReferenceDistance := DefaultDefaultReferenceDistance;
-  FDefaultMaxDistance := DefaultDefaultMaxDistance;
   FDistanceModel := DefaultDistanceModel;
   FEnabled := DefaultEnabled;
   FDevice := DefaultDevice;
@@ -713,7 +660,6 @@ begin
 
       Result.Position := Parameters.Position; // will be ignored when Spatial = false, which is OK
       { Set default attenuation by distance. }
-      Result.RolloffFactor     := Parameters.RolloffFactor; // will be ignored when Spatial = false, which is OK
       Result.ReferenceDistance := Parameters.ReferenceDistance; // will be ignored when Spatial = false, which is OK
       Result.MaxDistance       := Parameters.MaxDistance; // will be ignored when Spatial = false, which is OK
 
@@ -891,8 +837,6 @@ begin
 
     However, for now deprecated PlaySound supports more options that we have exposed:
     - InitialPitchMultiplier (deprecated)
-    - RolloffFactor, ReferenceDistancem MaxDistance -- unsure what to do with them yet,
-      depends on how portable they are across OpenAL, FMOD, Wwise.
   }
 
   Params := TPlaySoundParameters.Create;
@@ -909,6 +853,8 @@ begin
     Params.MaxGain    := ASound.MaxGain;
     {$warnings on}
     Params.Offset     := PlayingSound.InitialOffset;
+    Params.ReferenceDistance := ASound.ReferenceDistance; // will be ignored when Spatial = false, which is OK
+    Params.MaxDistance       := ASound.MaxDistance; // will be ignored when Spatial = false, which is OK
 
     {$warnings off} // using deprecated that should be internal
     Source := PlaySound(Params);

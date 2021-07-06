@@ -331,6 +331,8 @@ begin
         FSource.MinGain := FSound.MinGain;
         FSource.MaxGain := FSound.MaxGain;
         {$warnings on}
+        FSource.ReferenceDistance := FSound.ReferenceDistance;
+        FSource.MaxDistance       := FSound.MaxDistance;
       end;
     scBeforeBufferDestroyed:
       Stop;
