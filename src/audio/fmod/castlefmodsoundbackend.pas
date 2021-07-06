@@ -284,6 +284,9 @@ end;
 
 procedure TFMODSoundSourceBackend.ContextOpen;
 begin
+  // reflect FMOD defaults
+  FReferenceDistance := 1;
+  FMaxDistance := 10000;
 end;
 
 procedure TFMODSoundSourceBackend.ContextClose;
