@@ -476,12 +476,7 @@ begin
       begin
         Exe := FindExeLazarusIDE;
 
-        { Prefer to open using LPR (ProjectStandaloneSource) instead of LPI
-          (ProjectLazarus), see OpenPascal comments for reasons. }
-
-        if ProjectStandaloneSource <> '' then
-          RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectStandaloneSource])
-        else
+        { Open through LPI to change the project. }
         if ProjectLazarus <> '' then
           RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus])
         else
@@ -1308,28 +1303,28 @@ begin
 
         { It would be cleaner to use LPI file, like this:
 
-        // pass both project name, and particular filename, to open file within this project.
-        RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus, FileName]);
+            if ProjectLazarus <> '' then
+              // pass both project name, and particular filename, to open file within this project.
+              RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus, FileName])
+            else
+            begin
+              WritelnWarning('Lazarus project not defined (neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
+              RunCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
+            end;
 
-          But it doesn't work nicely: Lazarus asks for confirmation whether to open
-          LPI as XML file, or a project.
-          Instead opening LPR works better, i.e. just switches project (if necessary)
-          to new one.
+          But it doesn't work: Lazarus opens LPI as a regular XML file then,
+          without changing the project.
+          There seems to be no solution:
+          - using LPR doesn't change the project either
+          - using *only* LPI asks to change the project, even if it's already the current project
+            (so we cannot fix the problem by executing it twice in a row, once with LPI once with PAS
+            -- it would show dialog box every time)
         }
 
-        //if ProjectLazarus = '' then
-        if ProjectStandaloneSource = '' then // see comments below, we use ProjectStandaloneSource
-        begin
-          //WritelnWarning('Lazarus project not defined (neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
-          WritelnWarning('Lazarus project not defined ("standalone_source" was not specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
-        end;
+        // if ProjectStandaloneSource = '' then // see comments below, we use ProjectStandaloneSource
+        //   WritelnWarning('Lazarus project not defined ("standalone_source" was not specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
 
-        if (ProjectStandaloneSource = '') or
-           SameFileName(ProjectStandaloneSource, FileName) then
-          RunCommandNoWait(CreateTemporaryDir, Exe, [FileName])
-        else
-          { pass both project name, and particular filename, to open file within this project. }
-          RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectStandaloneSource, FileName]);
+        RunCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
       end;
     else raise EInternalError.Create('CodeEditor?');
   end;
