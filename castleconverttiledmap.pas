@@ -280,7 +280,7 @@ end;
 function TTiledMapConverter.BuildTileLayerNode(const ALayer: TTiledMap.TLayer
   ): TTiledLayerNode;
 begin
-  Result := TTransformNode.Create;
+  Result := TTiledLayerNode.Create;
 end;
 
 constructor TTiledMapConverter.Create;
@@ -517,22 +517,19 @@ begin
   if FDebugMode = AValue then
     Exit;
   FDebugMode:=AValue;
-  case FDebugMode of
-    True:
-      begin
-        if Assigned(DebugNode) then
-          FreeAndNil(FDebugNode);
-        DebugNode := TX3DRootNode.Create;
-        MapNode.AddChildren(DebugNode);
-      end;
-    False:
-      begin
-        MapNode.RemoveChildren(DebugNode);
-        { TODO: Check if RemoveChildren also free's instance of the node.
-          Would make manual free'ing here obsolete. }
-        if Assigned(DebugNode) then
-          FreeAndNil(FDebugNode);
-      end;
+  if DebugMode = True then
+  begin
+    if Assigned(DebugNode) then
+      FreeAndNil(FDebugNode);
+    DebugNode := TX3DRootNode.Create;
+    MapNode.AddChildren(DebugNode);
+  end else
+  begin
+    MapNode.RemoveChildren(DebugNode);
+    { TODO: Check if RemoveChildren also free's instance of the node.
+      Would make manual free'ing here obsolete. }
+    if Assigned(DebugNode) then
+      FreeAndNil(FDebugNode);
   end;
 end;
 
