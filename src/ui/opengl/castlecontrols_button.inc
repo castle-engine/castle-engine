@@ -68,6 +68,7 @@
     FLineSpacing: Single;
     FHtml: boolean;
     FCaptionTranslate: Boolean;
+    FImageScale: Single;
     { Make sure FCalculatedSize is true and if necessary
       calculate TextWidth, TextHeight, FCalculatedPreferredWidth/Height. }
     procedure CalculateSizeIfNecessary;
@@ -90,7 +91,9 @@
     function GetTextToRender: TRichText;
     procedure SetPaddingHorizontal(const Value: Single);
     procedure SetPaddingVertical(const Value: Single);
-    procedure SomeImageChanged(Sender: TObject);
+    procedure CustomBackgroundImageChanged(Sender: TObject);
+    procedure ImageChanged(Sender: TObject);
+    procedure SetImageScale(const Value: Single);
   protected
     procedure SetPressed(const Value: boolean); virtual;
     procedure UIScaleChanged; override;
@@ -205,6 +208,9 @@
 
     { Optional image displayed on the button. }
     property Image: TCastleImagePersistent read FImage;
+
+    { Scaling of @link(Image). }
+    property ImageScale: Single read FImageScale write SetImageScale default 1.0;
 
     { Background image on the pressed button. See @link(CustomBackground) for details. }
     property CustomBackgroundPressed: TCastleImagePersistent read FCustomBackgroundPressed;
@@ -334,17 +340,18 @@ begin
   FTextAlignment := DefaultTextAlignment;
   FCustomTextColor := Black;
   FCaptionTranslate := true;
+  FImageScale := 1.0;
 
   FImage := TCastleImagePersistent.Create;
-  FImage.OnChange := @SomeImageChanged;
+  FImage.OnChange := @ImageChanged;
   FCustomBackgroundPressed := TCastleImagePersistent.Create;
-  FCustomBackgroundPressed.OnChange := @SomeImageChanged;
+  FCustomBackgroundPressed.OnChange := @CustomBackgroundImageChanged;
   FCustomBackgroundDisabled := TCastleImagePersistent.Create;
-  FCustomBackgroundDisabled.OnChange := @SomeImageChanged;
+  FCustomBackgroundDisabled.OnChange := @CustomBackgroundImageChanged;
   FCustomBackgroundFocused := TCastleImagePersistent.Create;
-  FCustomBackgroundFocused.OnChange := @SomeImageChanged;
+  FCustomBackgroundFocused.OnChange := @CustomBackgroundImageChanged;
   FCustomBackgroundNormal := TCastleImagePersistent.Create;
-  FCustomBackgroundNormal.OnChange := @SomeImageChanged;
+  FCustomBackgroundNormal.OnChange := @CustomBackgroundImageChanged;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlebutton_persistent_vectors.inc}
@@ -459,7 +466,7 @@ begin
       CustomBackgroundImage.ScaleCorners := UIScale;
       CustomBackgroundImage.Draw(SR);
       CustomBackgroundImage.Color := OriginalColor;
-      CustomBackgroundImage.OnChange := @SomeImageChanged;
+      CustomBackgroundImage.OnChange := @CustomBackgroundImageChanged;
     end else
     begin
       if Pressed then
@@ -493,8 +500,8 @@ begin
   UseImage := not FImage.Empty;
   if UseImage then
   begin
-    ImgScreenWidth  := UIScale * FImage.Width;
-    ImgScreenHeight := UIScale * FImage.Height;
+    ImgScreenWidth  := FImageScale * UIScale * FImage.Width;
+    ImgScreenHeight := FImageScale * UIScale * FImage.Height;
   end else
   begin
     { Not really necessary,
@@ -727,9 +734,15 @@ begin
   VisibleChange([chRectangle]);
 end;
 
-procedure TCastleButton.SomeImageChanged(Sender: TObject);
+procedure TCastleButton.CustomBackgroundImageChanged(Sender: TObject);
 begin
   VisibleChange([chRender]);
+end;
+
+procedure TCastleButton.ImageChanged(Sender: TObject);
+begin
+  // this must do more than CustomBackgroundImageChanged, as changing Image affects button size
+  VisibleChange([chRectangle]);
 end;
 
 function TCastleButton.GetTextToRender: TRichText;
@@ -829,6 +842,15 @@ begin
   end;
 end;
 
+procedure TCastleButton.SetImageScale(const Value: Single);
+begin
+  if FImageScale <> Value then
+  begin
+    FImageScale := Value;
+    VisibleChange([chRectangle]);
+  end;
+end;
+
 procedure TCastleButton.SetMinWidth(const Value: Single);
 begin
   if FMinWidth <> Value then
@@ -864,7 +886,6 @@ begin
     VisibleChange([chRender]);
   end;
 end;
-
 
 procedure TCastleButton.CalculateSizeIfNecessary;
 
@@ -915,7 +936,7 @@ procedure TCastleButton.CalculateSizeIfNecessary;
       if not FImage.Empty then
         ImgSize := Max(FImage.Width, MinImageWidth) else
         ImgSize := MinImageWidth;
-      ImgSize := ImgSize * UIScale;
+      ImgSize := FImageScale * ImgSize * UIScale;
       case ImageLayout of
         ilLeft, ilRight: FCalculatedPreferredWidth := FCalculatedPreferredWidth + ImgSize + ImageMarginScaled;
         ilTop, ilBottom: FCalculatedPreferredWidth := Max(FCalculatedPreferredWidth, ImgSize + PaddingHorizontalScaled * 2);
@@ -924,7 +945,7 @@ procedure TCastleButton.CalculateSizeIfNecessary;
       if not FImage.Empty then
         ImgSize := Max(FImage.Height, MinImageHeight) else
         ImgSize := MinImageHeight;
-      ImgSize := ImgSize * UIScale;
+      ImgSize := FImageScale * ImgSize * UIScale;
       case ImageLayout of
         ilLeft, ilRight: FCalculatedPreferredHeight := Max(FCalculatedPreferredHeight, ImgSize + PaddingVerticalScaled * 2);
         ilTop, ilBottom: FCalculatedPreferredHeight := FCalculatedPreferredHeight + ImgSize + ImageMarginScaled;
@@ -997,7 +1018,11 @@ function TCastleButton.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
-    'Caption':
+    'Caption', 'TextAlignment', 'LineSpacing', 'Html',
+    'TintPressed', 'TintDisabled', 'TintFocused', 'TintNormal',
+    'Image', 'ImageScale', 'ImageLayout', 'ImageMargin',
+    'CustomTextColorUse', 'CustomTextColorPersistent','Toggle', 'Pressed',
+    'Enabled':
       Result := [psBasic];
     'AutoSize', 'AutoSizeWidth', 'AutoSizeHeight', 'PaddingHorizontal', 'PaddingVertical':
       Result := [psBasic, psLayout];
