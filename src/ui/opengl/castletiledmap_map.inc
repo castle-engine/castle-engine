@@ -1034,6 +1034,18 @@ begin
     end;
   finally FreeAndNil(I) end;
 
+  { TODO : Handle tiles which are not explicitly found in the tsx-file.
+    Hint : Tiles which have no special setting (probability equals 1.0,
+           no terrains set, no type set) are not explicitly written down
+           in the tsx file. This means they are not loaded by the iteration
+           above and consequently are not found in the Tiles list. }
+  if not (TileCount = Tiles.Count) then
+  begin
+    WritelnWarning(URL + ': Could not load all tiles of tileset');
+    WritelnWarning('Expected tiles: ' + IntToStr(TileCount) +
+      ' Loaded tiles: ' + IntToStr(Tiles.Count));
+  end;
+
   if TileCount = 0 then
   begin
     Image.DetermineSize;
