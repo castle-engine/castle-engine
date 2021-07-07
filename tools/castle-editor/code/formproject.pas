@@ -1295,8 +1295,9 @@ begin
           without changing the project.
           There seems to be no solution:
           - using LPR doesn't change the project either
-          - using *only* LPI asks to change the project (so we cannot fix the problem by executing
-            it twice in a row, once with LPI once with PAS)
+          - using *only* LPI asks to change the project, even if it's already the current project
+            (so we cannot fix the problem by executing it twice in a row, once with LPI once with PAS
+            -- it would show dialog box every time)
         }
 
         // if ProjectStandaloneSource = '' then // see comments below, we use ProjectStandaloneSource
