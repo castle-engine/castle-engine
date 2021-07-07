@@ -65,6 +65,10 @@ uses
   CastleRenderOptions, CastleControls, CastleStringUtils, X3DLoadInternalImage;
 
 type
+  TTiledLayerNode = TTransformNode;
+  TTiledObjectNode = TTransformNode;
+  TTiledTileNode = TTransformNode;
+
   { Converter class to convert Tiled map into X3D representations. }
 
   { TTiledMapConverter }
@@ -82,9 +86,9 @@ type
     { Tries to construct X3D nodes for each layer. }
     procedure ConvertLayers;
     { Builds Object Group layer node from TTiledMap data. }
-    function BuildObjectGroupLayerNode(const ALayer: TTiledMap.TLayer): TTransformNode;
+    function BuildObjectGroupLayerNode(const ALayer: TTiledMap.TLayer): TTiledLayerNode;
     { Builds Tile layer node from TTiledMap data. }
-    function BuildTileLayerNode(const ALayer: TTiledMap.TLayer): TTransformNode;
+    function BuildTileLayerNode(const ALayer: TTiledMap.TLayer): TTiledLayerNode;
 
     { Helper functions }
     { Map width in pixels. }
@@ -147,8 +151,8 @@ end;
 
 procedure TTiledMapConverter.ConvertLayers;
 var
-  Layer: TTiledMap.TLayer;            // A (tile, object, image) layer
-  LayerTransformNode: TTransformNode; // Node of a (tile, object, image) layer.
+  Layer: TTiledMap.TLayer;             // A (tile, object, image) layer
+  LayerNode: TTiledLayerNode; // Node of a (tile, object, image) layer.
 begin
 
   for Layer in Map.Layers do
@@ -161,11 +165,11 @@ begin
       Continue;
 
     { Every Layer has an individual layer node. }
-    LayerTransformNode := nil;
+    LayerNode := nil;
 
     if (Layer is TTiledMap.TObjectGroupLayer) then
     begin
-      LayerTransformNode := BuildObjectGroupLayerNode(Layer);
+      LayerNode := BuildObjectGroupLayerNode(Layer);
     end else
     if (Layer is TTiledMap.TImageLayer) then
     begin
@@ -173,11 +177,11 @@ begin
         LayerTransformNode := BuildImageLayer(Layer); }
     end else
     begin
-      LayerTransformNode := BuildTileLayerNode(Layer);
+      LayerNode := BuildTileLayerNode(Layer);
     end;
 
-    if Assigned(LayerTransformNode) then
-      MapNode.AddChildren(LayerTransformNode);
+    if Assigned(LayerNode) then
+      MapNode.AddChildren(LayerNode);
   end;
 
   //RootTransformNode.Rotation := Vector4(1, 0, 0, Pi);  // rotate scene by 180 deg around x-axis
@@ -187,12 +191,12 @@ begin
 end;
 
 function TTiledMapConverter.BuildObjectGroupLayerNode(
-  const ALayer: TTiledMap.TLayer): TTransformNode;
+  const ALayer: TTiledMap.TLayer): TTiledLayerNode;
 var
   TiledObjectMaterial: TMaterialNode = nil;    // Material node of a Tiled obj.
-  TiledObjectInstance: TTiledMap.TTiledObject; // A Tiled object instance (as
+  TiledObject: TTiledMap.TTiledObject;         // A Tiled object instance (as
                                                // saved in TTiledMap).
-  TiledObject: TTransformNode = nil;           // Transform node of a Tiled object.
+  TiledObjectNode: TTiledObjectNode = nil;     // Node of a Tiled object.
   TiledObjectGeometry: TPolyline2DNode = nil;  // Geometry node of a TiledObject primitive.
   TiledObjectShape: TShapeNode = nil;          // Shape node of a TiledObject.
   AVector2List: TVector2List = nil;            // Helper list.
@@ -203,17 +207,17 @@ begin
 
   AVector2List := TVector2List.Create;
 
-  for TiledObjectInstance in (ALayer as TTiledMap.TObjectGroupLayer).Objects do
+  for TiledObject in (ALayer as TTiledMap.TObjectGroupLayer).Objects do
   begin
 
-    if not TiledObjectInstance.Visible then
+    if not TiledObject.Visible then
       Continue;
 
     { At this point it is clear that at least one visible Tiled object is
       present on the Object group layer. Hence the layer node and the material
       node is created. }
     if not Assigned(Result) then
-      Result := TTransformNode.Create;   // Tiled object group layer node.
+      Result := TTiledLayerNode.Create;   // Tiled object group layer node.
 
     { All Tiled objects of this layer share the same material node. The color
       depends on the layer color in accordance with handling of Tiled editor. }
@@ -224,23 +228,23 @@ begin
     end;
 
     { Every Tiled object is based on a transform node. }
-    TiledObject := TTransformNode.Create;
-    TiledObject.Translation := Vector3(ConvY(ALayer.Offset +
-      TiledObjectInstance.Position), 0);
+    TiledObjectNode := TTiledObjectNode.Create;
+    TiledObjectNode.Translation := Vector3(ConvY(ALayer.Offset +
+      TiledObject.Position), 0);
 
     { Every primitive is implemented as polyline node. Hint: For better
       performance rectangle and point could be implemented as rect. node?}
     TiledObjectGeometry := TPolyline2DNode.CreateWithShape(TiledObjectShape);
-    case TiledObjectInstance.Primitive of
+    case TiledObject.Primitive of
       topPolyline, topPolygon:
         begin
           AVector2List.Clear;
-          AVector2List.Assign(TiledObjectInstance.Points);
+          AVector2List.Assign(TiledObject.Points);
           for I := 0 to AVector2List.Count-1 do
             AVector2List.Items[I] :=  ConvY(AVector2List.Items[I]);
 
           { Polygon: Add point with index 0 to points list to get a closed polygon }
-          if TiledObjectInstance.Primitive = topPolygon then
+          if TiledObject.Primitive = topPolygon then
             AVector2List.Add(AVector2List.Items[0]);
 
           TiledObjectGeometry.SetLineSegments(AVector2List);
@@ -248,9 +252,9 @@ begin
       topRectangle:
         begin
           TiledObjectGeometry.SetLineSegments([Vector2CY(0.0, 0.0), Vector2CY(
-            TiledObjectInstance.Width, 0.0), Vector2CY(
-            TiledObjectInstance.Width, TiledObjectInstance.Height), Vector2CY(
-            0.0, TiledObjectInstance.Height), Vector2CY(0.0, 0.0)]);
+            TiledObject.Width, 0.0), Vector2CY(
+            TiledObject.Width, TiledObject.Height), Vector2CY(
+            0.0, TiledObject.Height), Vector2CY(0.0, 0.0)]);
         end;
       topPoint:
         begin
@@ -267,14 +271,14 @@ begin
       // TODO: handle ellipse
     end;
     TiledObjectShape.Material := TiledObjectMaterial;
-    TiledObject.AddChildren(TiledObjectShape);
-    Result.AddChildren(TiledObject);
+    TiledObjectNode.AddChildren(TiledObjectShape);
+    Result.AddChildren(TiledObjectNode);
   end;
     FreeAndNil(AVector2List);
 end;
 
 function TTiledMapConverter.BuildTileLayerNode(const ALayer: TTiledMap.TLayer
-  ): TTransformNode;
+  ): TTiledLayerNode;
 begin
   Result := TTransformNode.Create;
 end;
