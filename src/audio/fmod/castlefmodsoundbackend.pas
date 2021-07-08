@@ -101,6 +101,7 @@ type
   TFMODSoundEngineBackend = class(TSoundEngineBackend)
   private
     FMODSystem: PFMOD_SYSTEM;
+    FDistanceModel: TSoundDistanceModel;
   public
     function ContextOpen(const ADevice: String; out Information: String): Boolean; override;
     procedure ContextClose; override;
@@ -109,6 +110,8 @@ type
 
     procedure Update; override;
     procedure SetVolume(const Value: Single); override;
+    { TODO: This just sets default distance model for all newly created sounds.
+      So it will only work if executed early. }
     procedure SetDistanceModel(const Value: TSoundDistanceModel); override;
     procedure SetListener(const Position, Direction, Up: TVector3); override;
   end;
@@ -355,8 +358,14 @@ begin
     Result := Result or FMOD_LOOP_OFF;
 
   if FSpatial then
-    Result := Result or FMOD_3D
-  else
+  begin
+    Result := Result or FMOD_3D;
+    { These flags are only allowed with FMOD_3D }
+    case (SoundEngine as TFMODSoundEngineBackend).FDistanceModel of
+      dmInverse: Result := Result or FMOD_3D_INVERSEROLLOFF;
+      dmLinear : Result := Result or FMOD_3D_LINEARROLLOFF;
+    end;
+  end else
     Result := Result or FMOD_2D;
 end;
 
@@ -543,7 +552,7 @@ end;
 
 procedure TFMODSoundEngineBackend.SetDistanceModel(const Value: TSoundDistanceModel);
 begin
-  // TODO
+  FDistanceModel := Value;
 end;
 
 procedure TFMODSoundEngineBackend.SetListener(const Position, Direction, Up: TVector3);
