@@ -984,7 +984,9 @@ procedure TItemWeapon.EquippedAttack(const Level: TAbstractLevel);
         end else
         begin
           Notifications.Show('You have no ammunition');
+          {$warnings off} // just to keep deprecated working
           SoundEngine.Play(stPlayerInteractFailed);
+          {$warnings on}
         end;
       end else
         Result := false; // other creatures cannot have ammo for now

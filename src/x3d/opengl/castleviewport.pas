@@ -3450,7 +3450,9 @@ end;
 
 procedure TCastleViewport.PointingDevicePressFailed;
 begin
+  {$warnings off} // just to keep deprecated working
   SoundEngine.Play(stPlayerInteractFailed);
+  {$warnings on}
 end;
 
 function TCastleViewport.PointingDeviceRelease: Boolean;

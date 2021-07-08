@@ -640,10 +640,14 @@ begin
   //FootstepsPlayingSound.Sound := ... // will be assigned based on ground type
 
   SwimmingChangePlayingSound := TCastlePlayingSound.Create(nil);
+  {$warnings off} // just to keep deprecated working
   SwimmingChangePlayingSound.Sound := stPlayerSwimmingChange;
+  {$warnings on}
 
   SwimmingPlayingSound := TCastlePlayingSound.Create(nil);
+  {$warnings off} // just to keep deprecated working
   SwimmingPlayingSound.Sound := stPlayerSwimming;
+  {$warnings on}
 end;
 
 destructor TPlayer.Destroy;
@@ -691,7 +695,9 @@ begin
     S += Format(' (quantity %d)', [Item.Quantity]);
   Notifications.Show(S);
 
+  {$warnings off} // just to keep deprecated working
   SoundEngine.Play(stPlayerPickItem);
+  {$warnings on}
 
   Result := inherited PickItemUpdate(Item);
 
@@ -723,7 +729,9 @@ begin
       S += Format(' (quantity %d)', [Result.Item.Quantity]);
     Notifications.Show(S);
 
+    {$warnings off} // just to keep deprecated working
     SoundEngine.Play(stPlayerDropItem);
+    {$warnings on}
 
     { update InventoryCurrentItem.
       Note that if Inventory.Count = 0 now, then this will
@@ -999,7 +1007,9 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
               Notifications.Show('You''re drowning');
             SwimLastDrownTime := LifeTime;
             Life := Life - (DrownDamageConst + Random * DrownDamageRandom);
+            {$warnings off} // just to keep deprecated working
             SoundEngine.Play(stPlayerDrowning);
+            {$warnings on}
           end;
         end;
       end;
@@ -1054,7 +1064,9 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
         ToxicLastDamageTime := LifeTime;
         if not Dead then
         begin
+          {$warnings off} // just to keep deprecated working
           SoundEngine.Play(stPlayerToxicPain);
+          {$warnings on}
           SetLifeCustomFadeOut(Life - (GroundProperty.ToxicDamageConst +
             Random * GroundProperty.ToxicDamageRandom), Green);
         end;
@@ -1101,7 +1113,9 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
          (GroundProperty.FootstepsSound <> nil) then
         NewFootstepsSound := GroundProperty.FootstepsSound
       else
+        {$warnings off} // just to keep deprecated working
         NewFootstepsSound := stPlayerFootstepsDefault;
+        {$warnings on}
     end else
     if LifeTime - ReallyWalkingOnTheGroundTime >
       TimeToChangeFootstepsSound then
@@ -1189,13 +1203,17 @@ begin
   if (Life > 0) and (Value <= 0) then
   begin
     Notifications.Show('You die');
+    {$warnings off} // just to keep deprecated working
     SoundEngine.Play(stPlayerDies);
+    {$warnings on}
     WalkNavigation.FallOnTheGround;
   end else
   if (Life - Value) > 1 then
   begin
     FadeOut(Color);
+    {$warnings off} // just to keep deprecated working
     SoundEngine.Play(stPlayerSuddenPain);
+    {$warnings on}
   end;
   inherited SetLife(Value);
 end;
