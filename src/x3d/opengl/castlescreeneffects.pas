@@ -189,9 +189,28 @@ type
       DefaultBlendingSourceFactor = bsSrcAlpha;
       DefaultBlendingDestinationFactor = bdOneMinusSrcAlpha;
 
-    { Use blending for this screen effect,
-      Note that for correct alpha channel treatment the buffer contents
-      must be cleared, e.g. by using @link(TCastleSimpleBackground) }
+    { Use blending when drawing the result of this screen effect on the screen.
+      This is useful if the screen effect writes some non-trivial (not equal 1.0)
+      alpha values to the color buffer, and in the end you want to use these
+      alpha values for blending with the screen contents underneath the TCastleScreenEffect.
+      
+      Note that, in order to preserve the alpha values during the screen effect,
+      the screen effect color buffer must have some alpha storage.
+      Make sure that your @link(TCastleWindowBase) or @link(TCastleControlBase)
+      request alpha storage, e.g. by setting @code(Window.AlphaBits := 1)
+      in the "initialization" section of the typical GameInitialize unit.
+      This way the screen effect color buffer is also guaranteed to have alpha storage.
+      
+      When rendering things with alpha inside the TCastleScreenEffect
+      (that is, when TCastleScreenEffect children use blending)
+      remember that the initial screen effect color buffer contents are undefined.
+      You have to make sure they are defined -- e.g. by always drawing something
+      opaque in TCastleScreenEffect (e.g. using TCastleRectangleControl as the first
+      TCastleScreenEffect child) or filling the contents with something define
+      (e.g. using @link(TCastleSimpleBackground) as the first
+      TCastleScreenEffect child, to set all pixels to specified RGBA value.)
+      
+      See the examples/screen_effects/screen_effects_blending for demo. }
     property Blending: Boolean read FBlending write FBlending default false;
 
     { Blending source factor, if we use @link(Blending). }
