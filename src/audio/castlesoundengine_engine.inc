@@ -138,6 +138,8 @@
     property SoundInitializationReport: string read FInformation;
       deprecated 'use Information';
 
+    { Multiline information about the currently initialized
+      sound backend (OpenAL, FMOD etc.). }
     property Information: string read FInformation;
 
     { Load a sound file contents such that they can be immediately played.
