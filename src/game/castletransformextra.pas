@@ -145,6 +145,7 @@ type
     FSoundGoEndPositionLooping: boolean;
     FSoundTracksCurrentPosition: boolean;
 
+    SoundSourceTransform: TCastleTransform;
     SoundSource: TCastleSoundSource;
     procedure PlaySound(const SoundType: TCastleSound; const Looping: boolean);
   public
@@ -534,8 +535,11 @@ constructor TCastleLinearMoving.Create(AOwner: TComponent);
 begin
   inherited;
 
+  SoundSourceTransform := TCastleTransform.Create(Self);
+  Add(SoundSourceTransform);
+
   SoundSource := TCastleSoundSource.Create(Self);
-  AddBehavior(SoundSource);
+  SoundSourceTransform.AddBehavior(SoundSource);
 
   FEndPosition := false;
 
@@ -653,8 +657,16 @@ begin
 end;
 
 procedure TCastleLinearMoving.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+var
+  B: TBox3D;
 begin
   inherited;
+
+  B := LocalBoundingBox;
+  if B.IsEmpty then
+    SoundSourceTransform.Translation := TVector3.Zero
+  else
+    SoundSourceTransform.Translation := B.Center;
 
   { If the SoundGoBegin/EndPosition is longer than the MoveTime
     (or it's looping),
