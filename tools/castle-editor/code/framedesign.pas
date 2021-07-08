@@ -379,7 +379,7 @@ uses // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
   Castle2DSceneManager, CastleComponentSerialize, CastleFileFilters,
   CastleGLUtils, CastleImages, CastleLog,  CastleProjection, CastleScene,
   CastleShellCtrls, CastleStringUtils, CastleThirdPersonNavigation,
-  CastleTimeUtils, CastleURIUtils, CastleUtils,
+  CastleTimeUtils, CastleURIUtils, CastleUtils, CastleBehaviors, CastleSoundEngine,
   X3DLoad,
   EditorUtils, FormProject;
 
@@ -1971,25 +1971,72 @@ begin
       SelectedFileName := ShellList.GetPathFromItem(ShellList.Selected);
       SelectedURL := FilenameToURISafe(SelectedFileName);
 
-      Accept := TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL);
+      Accept :=
+        TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) or
+        TFileFilterList.Matches(LoadSound_FileFilters, SelectedURL);
     end;
   end;
 end;
 
 procedure TDesignFrame.CastleControlDragDrop(Sender, Source: TObject; X, Y: Integer);
 var
+  Viewport: TCastleViewport;
+
+  { Calculate 3D position of a TCastleTransform created by drag-and-drop on a vieport. }
+  function DropPosition(out DropPos: TVector3): Boolean;
+  var
+    RayOrigin, RayDirection: TVector3;
+    RayHit: TRayCollision;
+    Distance: Single;
+    OldPickable: Boolean;
+    PlaneZ: Single;
+  begin
+    Result := true;
+
+    { Make gizmos not pickable when looking for new scene position,
+      because ray can hit on gizmo. }
+    OldPickable := VisualizeTransformSelected.Pickable;
+    try
+      VisualizeTransformSelected.Pickable := false;
+      Viewport.PositionToRay(Vector2(X, CastleControl.Height - Y), true, RayOrigin, RayDirection);
+      RayHit := Viewport.Items.WorldRay(RayOrigin, RayDirection);
+    finally
+      VisualizeTransformSelected.Pickable := OldPickable;
+    end;
+
+    if (RayHit = nil) and (Viewport.Camera.ProjectionType = ptOrthographic) then
+    begin
+      PlaneZ := (Viewport.Camera.EffectiveProjectionNear + Viewport.Camera.EffectiveProjectionFar) / 2;
+      if not TrySimplePlaneRayIntersection(DropPos, 2, PlaneZ, RayOrigin, RayDirection) then
+        Exit(false); // camera direction parallel to 3D plane with Z = constant
+    end else
+    begin
+      if RayHit <> nil then
+      begin
+        Distance := RayHit.Distance;
+        FreeAndNil(RayHit);
+      end else
+      begin
+        { If we don't hit any other scene set Distance to default value. }
+        Distance := 10;
+      end;
+      DropPos := RayOrigin + (RayDirection * Distance);
+
+      { In case of 2D game move scene a little closser to camera }
+      if Viewport.Camera.ProjectionType = ptOrthographic then
+        DropPos := DropPos - Viewport.Camera.Direction;
+    end;
+  end;
+
+var
   ShellList: TCastleShellListView;
   SelectedFileName: String;
   SelectedURL: String;
-  Scene: TCastleScene;
   UI: TCastleUserInterface;
-  Viewport: TCastleViewport;
-  ScenePos: TVector3;
-  RayOrigin, RayDirection: TVector3;
-  RayHit: TRayCollision;
-  Distance: Single;
-  OldPickable: Boolean;
-  PlaneZ: Single;
+  Transform: TCastleTransform;
+  DropPos: TVector3;
+  SoundSource: TCastleSoundSource;
+  Sound: TCastleSound;
 begin
   if Source is TCastleShellListView then
   begin
@@ -1999,52 +2046,30 @@ begin
       SelectedFileName := ShellList.GetPathFromItem(ShellList.Selected);
       SelectedURL := MaybeUseDataProtocol(FilenameToURISafe(SelectedFileName));
 
-      if not TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) then
-        Exit;
-
       UI := FDesignerLayer.HoverUserInterface(Vector2(X, Y));
       if not (UI is TCastleViewport) then
         Exit;
-
       Viewport := TCastleViewport(UI);
 
-      Scene := AddComponent(Viewport.Items, TCastleScene, nil) as TCastleScene;
-      Scene.URL := SelectedURL;
+      if not DropPosition(DropPos) then
+        Exit;
 
-      { Make gizmos not pickable when looking for new scene position,
-        because ray can hit on gizmo. }
-      OldPickable := VisualizeTransformSelected.Pickable;
-      try
-        VisualizeTransformSelected.Pickable := false;
-        Viewport.PositionToRay(Vector2(X, CastleControl.Height - Y), true, RayOrigin, RayDirection);
-        RayHit := Viewport.Items.WorldRay(RayOrigin, RayDirection);
-      finally
-        VisualizeTransformSelected.Pickable := OldPickable;
-      end;
-      if (RayHit = nil) and (Viewport.Camera.ProjectionType = ptOrthographic) then
+      if TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) then
       begin
-        PlaneZ := (Viewport.Camera.EffectiveProjectionNear + Viewport.Camera.EffectiveProjectionFar) / 2;
-        if not TrySimplePlaneRayIntersection(ScenePos, 2, PlaneZ, RayOrigin, RayDirection) then
-          Exit; // camera direction parallel to 3D plane with Z = constant
+        Transform := AddComponent(Viewport.Items, TCastleScene, nil) as TCastleScene;
+        (Transform as TCastleScene).URL := SelectedURL;
       end else
+      if TFileFilterList.Matches(LoadSound_FileFilters, SelectedURL) then
       begin
-        if RayHit <> nil then
-        begin
-          Distance := RayHit.Distance;
-          FreeAndNil(RayHit);
-        end else
-        begin
-          { If we don't hit any other scene set Distance to default value. }
-          Distance := 10;
-        end;
-        ScenePos := RayOrigin + (RayDirection * Distance);
+        Transform := AddComponent(Viewport.Items, TCastleTransform, nil) as TCastleTransform;
+        SoundSource := AddComponent(Transform, TCastleSoundSource, nil) as TCastleSoundSource;
+        Sound := AddComponent(SoundSource, TCastleSound, nil) as TCastleSound;
+        Sound.URL := SelectedURL;
+        SoundSource.Sound := Sound;
+      end else
+        Exit; // cannot drop such file type
 
-        { In case of 2D game move scene a little closser to camera }
-        if Viewport.Camera.ProjectionType = ptOrthographic then
-          ScenePos := ScenePos - Viewport.Camera.Direction;
-      end;
-
-      Scene.Translation := ScenePos;
+      Transform.Translation := DropPos;
     end;
   end;
 end;
