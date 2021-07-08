@@ -18,26 +18,15 @@ unit GameStateMain;
 
 interface
 
-uses Classes,
+uses Classes, Contnrs,
   CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleKeysMouse, CastleTransform, CastleSoundEngine, CastleScene, CastleCameras,
-  CastleViewport, CastleVectors;
+  CastleViewport, CastleVectors, CastleBehaviors;
 
 type
   { Main state, where most of the application logic takes place. }
   TStateMain = class(TUIState)
   private
-    type
-      TTnt = class(TCastleTransform)
-      private
-        ToRemove: boolean;
-      public
-        State: TStateMain;
-        function PointingDevicePress(const Pick: TRayCollisionNode;
-          const Distance: Single): Boolean; override;
-        procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
-      end;
-
     const
       { Max number of TNT items. }
       MaxTntsCount = 40;
@@ -54,12 +43,13 @@ type
       Viewport: TCastleViewport;
       Navigation: TCastleWalkNavigation;
       Rat: TCastleScene;
+      RatSoundSource: TCastleSoundSource;
       SceneLevel: TCastleScene;
 
       { Other }
       RatAngle: Single;
-      TntScene: TCastleScene;
-      TntsCount: Integer;
+      TntTemplate: TSerializedComponent;
+      Tnts: TComponentList;
 
     procedure NewTnt(const Y: Single);
     { Update Rat.Translation based on RatAngle }
@@ -68,6 +58,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
+    procedure Stop; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
   end;
@@ -78,48 +69,58 @@ var
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleBoxes, CastleWindow;
+  CastleUtils, CastleBoxes, CastleWindow, CastleSceneCore;
 
-{ TStateMain.TTnt ------------------------------------------------------------------------ }
+{ utils ---------------------------------------------------------------------- }
 
-{ TODO: TNT should use physics, and use .castle-transform }
-
-function TStateMain.TTnt.PointingDevicePress(const Pick: TRayCollisionNode;
-  const Distance: Single): Boolean;
+{ Setup TRigidBody and TMeshCollider on the Scene.
+  TODO: This will be possible to be created in CGE editor soon. }
+procedure SetupPhysicsStaticMesh(const Scene: TCastleScene);
+var
+  RigidBody: TRigidBody;
+  Collider: TMeshCollider;
 begin
-  inherited;
+  RigidBody := TRigidBody.Create(Scene);
+  RigidBody.Dynamic := false;
 
-  if ToRemove then
-    Exit(false);
+  Collider := TMeshCollider.Create(RigidBody);
+  Collider.Scene := Scene;
+  Collider.Restitution := 0.3;
 
-  // TODO: make it 3D at tnt, or at rat:
-  SoundEngine.Play(State.SoundKaboom);
-  if PointsDistanceSqr(Translation, State.Rat.Translation) < 1.0 then
-    SoundEngine.Play(State.SoundRatSqueak);
-
-  Result := true;
-  ToRemove := true;
-  Dec(State.TntsCount);
+  Scene.RigidBody := RigidBody;
 end;
 
-procedure TStateMain.TTnt.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+{ Setup TRigidBody and TMeshCollider on the Scene.
+  TODO: This will be possible to be created in CGE editor soon. }
+procedure SetupPhysicsStaticPlane(const Scene: TCastleScene);
 var
-  T: TVector3;
+  RigidBody: TRigidBody;
+  Collider: TPlaneCollider;
 begin
-  inherited;
+  RigidBody := TRigidBody.Create(Scene);
+  RigidBody.Dynamic := false;
 
-  { make gravity }
-  T := Translation;
-  if T.Y > 0 then
-  begin
-    T.Y := T.Y - 5 * SecondsPassed;
-    if T.Y < 0 then
-      T.Y := 0;
-    Translation := T;
-  end;
+  Collider := TPlaneCollider.Create(RigidBody);
+  Collider.Normal := Vector3(0, 1, 0);
+  Collider.Distance := 0;
+  Collider.Restitution := 0.3;
 
-  if ToRemove then
-    RemoveMe := rtRemoveAndFree;
+  Scene.RigidBody := RigidBody;
+end;
+
+{ Setup TRigidBody and TBoxCollider on the Scene.
+  TODO: This will be possible to be created in CGE editor soon. }
+procedure SetupPhysicsDynamicBox(const Transform: TCastleTransform);
+var
+  RigidBody: TRigidBody;
+  Collider: TBoxCollider;
+begin
+  RigidBody := TRigidBody.Create(Transform);
+
+  Collider := TBoxCollider.Create(RigidBody);
+  Collider.Size := Transform.BoundingBox.Size * 0.9;
+
+  Transform.RigidBody := RigidBody;
 end;
 
 { TStateMain ----------------------------------------------------------------- }
@@ -145,37 +146,47 @@ begin
   Viewport := DesignedComponent('Viewport') as TCastleViewport;
   Navigation := DesignedComponent('Navigation') as TCastleWalkNavigation;
   Rat := DesignedComponent('Rat') as TCastleScene;
+  RatSoundSource := Rat.FindBehavior(TCastleSoundSource) as TCastleSoundSource;
   SceneLevel := DesignedComponent('SceneLevel') as TCastleScene;
 
   { initialize Rat }
   UpdateRatPosition;
 
   { initialize Tnt }
-  TntScene := TCastleScene.Create(FreeAtStop);
-  TntScene.Load('castle-data:/extra_objects/tnt.gltf');
-  while TntsCount < InitialTntsCount do
+  Tnts := TComponentList.Create(false);
+  TntTemplate := TSerializedComponent.Create('castle-data:/extra_objects/tnt_final.castle-transform');
+  while Tnts.Count < InitialTntsCount do
     NewTnt(0.0);
 
   TimerSpawnTnts.OnTimer := @DoTimerSpawnTnts;
+
+  SetupPhysicsStaticPlane(SceneLevel);
+  //SetupPhysicsStaticMesh(SceneLevel); // mesh collider not reliable on this
+end;
+
+procedure TStateMain.Stop;
+begin
+  FreeAndNil(TntTemplate);
+  FreeAndNil(Tnts);
+  inherited;
 end;
 
 procedure TStateMain.NewTnt(const Y: Single);
 var
-  TntSize: Single;
-  Tnt: TTnt;
-  Box: TBox3D;
+  TntExtent: Single;
+  Tnt: TCastleTransform;
+  LevelBox: TBox3D;
 begin
-  TntSize := TntScene.BoundingBox.MaxSize;
-  Tnt := TTnt.Create(FreeAtStop);
-  Tnt.State := Self;
-  Tnt.Add(TntScene);
-  Box := SceneLevel.BoundingBox;
+  Tnt := TntTemplate.TransformLoad(FreeAtStop);
+  TntExtent := Tnt.BoundingBox.MaxSize / 2;
+  LevelBox := SceneLevel.BoundingBox;
   Tnt.Translation := Vector3(
-    RandomFloatRange(Box.Data[0].X, Box.Data[1].X - TntSize),
-    Y,
-    RandomFloatRange(Box.Data[0].Z, Box.Data[1].Z - TntSize));
+    RandomFloatRange(LevelBox.Data[0].X + TntExtent, LevelBox.Data[1].X - TntExtent),
+    Y + TntExtent,
+    RandomFloatRange(LevelBox.Data[0].Z + TntExtent, LevelBox.Data[1].Z - TntExtent));
+  SetupPhysicsDynamicBox(Tnt);
   Viewport.Items.Add(Tnt);
-  Inc(TntsCount);
+  Tnts.Add(Tnt);
 end;
 
 procedure TStateMain.UpdateRatPosition;
@@ -223,10 +234,35 @@ end;
 
 procedure TStateMain.DoTimerSpawnTnts(Sender: TObject);
 begin
-  while TntsCount < MaxTntsCount do NewTnt(3.0);
+  while Tnts.Count < MaxTntsCount do
+    NewTnt(3.0);
 end;
 
 function TStateMain.Press(const Event: TInputPressRelease): Boolean;
+
+  procedure TntHit(TntTransform: TCastleTransform);
+  var
+    TntSoundSource: TCastleSoundSource;
+    SoundKaboomPlaying: TCastlePlayingSoundSource;
+  begin
+    TntSoundSource := TntTransform.FindBehavior(TCastleSoundSource) as TCastleSoundSource;
+
+    { Create TCastlePlayingSoundSource instance, because we want to adjust Follow
+      from default true to false.
+      This way sound will continue playing regardless if the TCastleSoundSource
+      will be destroyed. }
+    SoundKaboomPlaying := TCastlePlayingSoundSource.Create(FreeAtStop);
+    SoundKaboomPlaying.FreeOnStop := true;
+    SoundKaboomPlaying.Follow := false;
+    SoundKaboomPlaying.Sound := SoundKaboom;
+    TntSoundSource.Play(SoundKaboomPlaying);
+
+    if PointsDistanceSqr(TntTransform.Translation, Rat.Translation) < 1.0 then
+      RatSoundSource.Play(SoundRatSqueak);
+
+    FreeAndNil(TntTransform); // will automatically remove itself from Tnts list
+  end;
+
 begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
@@ -243,6 +279,18 @@ begin
       keyF5: Container.SaveScreenToDefaultFile;
       keyEscape: Application.Terminate;
     end;
+
+  if Event.IsMouseButton(buttonLeft) then
+  begin
+    { Detect clicks on TNT scene.
+      We look at TransformUnderMouse.UniqueParent, because that is how tnt_final.castle-transform
+      was designed: we will detect clicks on SceneTntBox, which is the child of the root
+      of tnt_final.castle-transform . }
+    if (Viewport.TransformUnderMouse <> nil) and
+       (Viewport.TransformUnderMouse.UniqueParent <> nil) and
+       (Tnts.IndexOf(Viewport.TransformUnderMouse.UniqueParent) <> -1) then
+      TntHit(Viewport.TransformUnderMouse.UniqueParent);
+  end;
 end;
 
 end.
