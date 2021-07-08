@@ -539,6 +539,10 @@ var
     CharLen: Integer;
   begin
     { first pass, to render Outline. }
+
+    // TODO: Outline not done yet.
+    // Outline requires a different X3D shape for different color, or using ColorRGBA.
+    (*
     if Outline <> 0 then
     begin
       ScreenX := X;
@@ -575,6 +579,7 @@ var
         C := UTF8CharacterToUnicode(TextPtr, CharLen);
       end;
     end;
+    *)
 
     ScreenX := X;
     ScreenY := Y;
@@ -589,9 +594,13 @@ var
       if G <> nil then
       begin
         if (G.Width <> 0) and (G.Height <> 0) then
+          // TODO: Outline not done yet.
+          // Outline requires a different X3D shape for different color, or using ColorRGBA.
+          (*
           if Outline <> 0 then
             GlyphDraw(1, 1)
           else
+          *)
             GlyphDraw(0, 0);
         ScreenX += G.AdvanceX + Outline * 2;
         ScreenY += G.AdvanceY;
