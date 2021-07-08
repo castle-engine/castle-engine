@@ -1034,6 +1034,14 @@ begin
     end;
   finally FreeAndNil(I) end;
 
+  { Fallback: TileCount determination if is not found in (old) tsx-files prior
+    to version 0.13 (Aug 2015). }
+  if TileCount = 0 then
+  begin
+    Image.DetermineSize;
+    TileCount := (Image.Width div TileWidth) * (Image.Height div TileHeight);
+  end;
+
   { TODO : Handle tiles which are not explicitly found in the tsx-file.
     Hint : Tiles which have no special setting (probability equals 1.0,
            no terrains set, no type set) are not explicitly written down
@@ -1046,12 +1054,6 @@ begin
       TileCount,
       Tiles.Count
     ]);
-  end;
-
-  if TileCount = 0 then
-  begin
-    Image.DetermineSize;
-    TileCount := (Image.Width div TileWidth) * (Image.Height div TileHeight);
   end;
 end;
 
