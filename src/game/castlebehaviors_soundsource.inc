@@ -89,6 +89,11 @@ type
     procedure SetSpatial(const Value: Boolean);
     procedure SetVolume(const Value: Single);
     procedure SetPitch(const Value: Single);
+    { Start playing current @link(Sound) (ignored if Sound = @nil).
+      MainPlayingSound must be @nil when calling this, so the sound cannot be already playing. }
+    procedure SoundStart;
+    { Stop playing current @link(Sound), if currently playing. }
+    procedure SoundStop;
   private
     type
       TCastlePlayingSoundSourceList = specialize TObjectList<TCastlePlayingSoundSource>;
@@ -365,22 +370,31 @@ begin
   SoundEngine.InternalPlay(PlayingSound, Spatial, SoundPosition);
 end;
 
+procedure TCastleSoundSource.SoundStop;
+begin
+  if MainPlayingSound <> nil then
+    MainPlayingSound.Stop;
+end;
+
+procedure TCastleSoundSource.SoundStart;
+begin
+  Assert(MainPlayingSound = nil);
+  if (Sound <> nil) and (Parent <> nil) then
+  begin
+    MainPlayingSound := TCastlePlayingSoundSource.Create(nil);
+    MainPlayingSound.Sound := Sound;
+    MainPlayingSound.FreeOnStop := true;
+    { Loop and Follow = true in this case,
+      it seems most natural for sounds set as TCastleSoundSource.Sound. }
+    MainPlayingSound.Loop := true;
+    Play(MainPlayingSound);
+  end;
+end;
+
 procedure TCastleSoundSource.SoundChange(const Sender: TCastleSound; const Change: TSoundChange);
 begin
   case Change of
-    scAfterBufferCreated:
-      begin
-        { Loop and Follow = true, it seems most natural for sounds set as TCastleSoundSource.Sound. }
-        if (Sound <> nil) and (Parent <> nil) then
-        begin
-          MainPlayingSound := TCastlePlayingSoundSource.Create(nil);
-          MainPlayingSound.Sound := Sound;
-          MainPlayingSound.FreeOnStop := true;
-          MainPlayingSound.Loop := true;
-          Play(MainPlayingSound);
-        end;
-      end;
-
+    scAfterBufferCreated: SoundStart;
     else ;
       // scAfterOther handled by TCastlePlayingSound
       // scBeforeBufferDestroyed also handled by TCastlePlayingSound, it will stop sound making MainPlayingSound -> nil
@@ -396,14 +410,13 @@ begin
   if Parent <> nil then
   begin
     // start playing, once we have Parent assigned
-    if (Sound <> nil) and (MainPlayingSound = nil) then
-      SoundChange(FSound, scAfterBufferCreated);
+    if MainPlayingSound = nil then
+      SoundStart;
   end else
   begin
     // stop playing when Parent detached,
     // we could not realize Follow in this case (GetSoundPosition would crash)
-    if MainPlayingSound <> nil then
-      MainPlayingSound.Stop;
+    SoundStop;
   end;
 
   { Change of parent implies also a sudden change of position,
@@ -418,7 +431,7 @@ begin
   begin
     if FSound <> nil then
     begin
-      SoundChange(FSound, scBeforeBufferDestroyed);
+      SoundStop;
       FSound.InternalRemoveChangeNotification(@SoundChange);
       FSound.RemoveFreeNotification(Self);
     end;
@@ -427,7 +440,7 @@ begin
     begin
       FSound.InternalAddChangeNotification(@SoundChange);
       FSound.FreeNotification(Self);
-      SoundChange(FSound, scAfterBufferCreated);
+      SoundStart;
     end;
   end;
 end;
