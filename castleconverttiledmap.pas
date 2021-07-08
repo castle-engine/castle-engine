@@ -41,6 +41,17 @@
      each other.
      A simple translation of the Map node by the map height allows it to follow
      CGE/OpenGL convention.
+  2. Naming convention: Objects that derive from TTiledMap (TTile, TLayer, ...)
+     are called accordingly. Nodes which are derived/converted from these
+     objects should explicitly have the name-suffix "Node" in it. To make these
+     destinctions easier, new node types (usually derived from TTransformNode)
+     are introduced.
+
+       Ex. for layers:
+         var
+           ALayer, Layer, TiledLayer, ... : TTiledMap.TLayer;
+       but
+           ALayerNode, LayerNode, TiledLayerNode, ... : TTiledLayerNode;
 
 }
 unit CastleConvertTiledMap;
