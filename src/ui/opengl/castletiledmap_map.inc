@@ -1039,7 +1039,7 @@ begin
            no terrains set, no type set) are not explicitly written down
            in the tsx file. This means they are not loaded by the iteration
            above and consequently are not found in the Tiles list. }
-  if not (TileCount = Tiles.Count) then
+  if TileCount <> Tiles.Count then
   begin
     WritelnWarning('%s: Could not load all tiles of a tileset. Expected tiles: %d, loaded tiles: %d', [
       URIDisplay(URL),
