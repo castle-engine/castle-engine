@@ -686,7 +686,7 @@ var
 
   procedure RenderWithScreenEffectsCore;
 
-    procedure RenderOneEffect(Shader: TGLSLProgram);
+    procedure RenderOneEffect(Shader: TGLSLProgram; const RenderToScreen: Boolean);
     var
       BoundTextureUnits: Cardinal;
       AttribVertex, AttribTexCoord: TGLSLAttribute;
@@ -743,7 +743,7 @@ var
       AttribTexCoord.EnableArrayVector2(SizeOf(TScreenPoint),
         OffsetUInt(ScreenPoint[0].TexCoord, ScreenPoint[0]));
 
-      if Blending then
+      if Blending and RenderToScreen then
       begin
         GLBlendFunction(BlendingSourceFactor, BlendingDestinationFactor);
         glEnable(GL_BLEND);
@@ -778,7 +778,7 @@ var
     begin
       ScreenEffectRTT.RenderBegin;
       ScreenEffectRTT.SetTexture(ScreenEffectTextureDest, ScreenEffectTextureTarget);
-      RenderOneEffect(GetScreenEffect(I));
+      RenderOneEffect(GetScreenEffect(I), false);
       ScreenEffectRTT.RenderEnd;
 
       SwapValues(ScreenEffectTextureDest, ScreenEffectTextureSrc);
@@ -787,7 +787,7 @@ var
     { the last effect gets a texture, and renders straight into screen }
     RenderContext.ViewportDelta := TVector2Integer.Zero;
     RenderContext.Viewport := RenderRect.Round;
-    RenderOneEffect(GetScreenEffect(CurrentScreenEffectsCount - 1));
+    RenderOneEffect(GetScreenEffect(CurrentScreenEffectsCount - 1), true);
   end;
 
   procedure EndRenderingToTexture;
