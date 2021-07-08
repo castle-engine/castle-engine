@@ -465,14 +465,26 @@ begin
 end;
 
 function TFMODSoundSourceBackend.GetOffset: Single;
+var
+  Pos: CUInt;
 begin
-  // TODO
-  Result := 0;
+  { Make sure to set FMODChannel to nil if not playing now,
+    otherwise FMOD would report error FMOD_ERR_INVALID_HANDLE when the sound is near the end.
+    Testcase: fmod-test-editor, play sound using button. }
+  PlayingOrPaused;
+
+  if FMODChannel = nil then Exit(0);
+  CheckFMOD(FMOD_Channel_GetPosition(FMODChannel, @Pos, FMOD_TIMEUNIT_MS));
+  Result := Pos / 1000;
 end;
 
 procedure TFMODSoundSourceBackend.SetOffset(const Value: Single);
+var
+  Pos: CUInt;
 begin
-  // TODO
+  if FMODChannel = nil then Exit;
+  Pos := Round(Value * 1000);
+  CheckFMOD(FMOD_Channel_SetPosition(FMODChannel, Pos, FMOD_TIMEUNIT_MS));
 end;
 
 { TFMODSoundEngineBackend -------------------------------------------------- }
