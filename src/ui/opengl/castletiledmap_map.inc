@@ -1041,9 +1041,11 @@ begin
            above and consequently are not found in the Tiles list. }
   if not (TileCount = Tiles.Count) then
   begin
-    WritelnWarning(URIDisplay(URL) + ': Could not load all tiles of tileset!' +
-      ' Expected tiles: ' + IntToStr(TileCount) + ' Loaded tiles: ' +
-      IntToStr(Tiles.Count));
+    WritelnWarning('%s: Could not load all tiles of a tileset. Expected tiles: %d, loaded tiles: %d', [
+      URIDisplay(URL),
+      TileCount,
+      Tiles.Count
+    ]);
   end;
 
   if TileCount = 0 then
