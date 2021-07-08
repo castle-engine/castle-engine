@@ -49,6 +49,8 @@
       FListenerPosition, FListenerDirection, FListenerUp: TVector3;
       FEnableSaveToConfig, DeviceSaveToConfig: boolean;
       FInitialPitchMultiplier: Single;
+      FDefaultRolloffFactor: Single;
+      FDefaultReferenceDistance: Single;
 
     procedure SetVolume(const Value: Single);
     procedure SetDistanceModel(const Value: TSoundDistanceModel);
@@ -397,6 +399,11 @@
       See TSoundDistanceModel for the description of possible options. }
     property DistanceModel: TSoundDistanceModel
       read FDistanceModel write SetDistanceModel default DefaultDistanceModel;
+
+    property DefaultRolloffFactor: Single read FDefaultRolloffFactor write FDefaultRolloffFactor;
+      deprecated 'does nothing now; use SoundEngine.DistanceModel, TCastleSound.ReferenceDistance, TCastleSound.MaxDistance to control sound rolloff (spatialization)';
+    property DefaultReferenceDistance: Single read FDefaultReferenceDistance write FDefaultReferenceDistance;
+      deprecated 'does nothing now; use SoundEngine.DistanceModel, TCastleSound.ReferenceDistance, TCastleSound.MaxDistance to control sound rolloff (spatialization)';
   end;
 
 {$endif read_interface}
