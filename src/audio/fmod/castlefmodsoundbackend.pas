@@ -407,12 +407,12 @@ end;
 
 procedure TFMODSoundSourceBackend.SetMinGain(const Value: Single);
 begin
-  // TODO
+  // not possible (well, not straightforward) with FMOD backend
 end;
 
 procedure TFMODSoundSourceBackend.SetMaxGain(const Value: Single);
 begin
-  // TODO
+  // not possible (well, not straightforward) with FMOD backend
 end;
 
 procedure TFMODSoundSourceBackend.SetBuffer(const Value: TSoundBufferBackend);
