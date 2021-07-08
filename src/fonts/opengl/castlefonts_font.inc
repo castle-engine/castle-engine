@@ -335,17 +335,33 @@ var
     begin
       Assert(GlyphsToRender < GlyphsScreenRects.Count);
 
+      { Use a small margin around every glyph to allow bilinear
+        filtering to smoothly go from opaque to fully transparent
+        at glyph border. This prevents glyph border from ending suddenly,
+        it looks much better in the case of blending.
+
+        This cooperates with TTextureFontData.Create (used by
+        texture-font-to-pascal) that makes sure that each letter is
+        surrounded with a padding that allows such border,
+        see GlyphPadding in castletexturefontdata.pas. }
+      { TODO; Not used now. While there's a visible improvement in some cases
+        (when optimal font size mismatches final font size),
+        there's also regression in view3dscene
+        (when optimal font size matches final font size closely):
+        the "A" in "Animations" button in view3dscene gets weird artifact. }
+      {.$define EXTRA_GLYPH_SPACE}
+
       ScreenRect := GlyphsScreenRects.Ptr(GlyphsToRender);
-      ScreenRect^.Left   := ScreenX - G.X * Scale + OutlineMoveX * Outline;
-      ScreenRect^.Bottom := ScreenY - G.Y * Scale + OutlineMoveY * Outline;
-      ScreenRect^.Width  := G.Width  * Scale;
-      ScreenRect^.Height := G.Height * Scale;
+      ScreenRect^.Left   := ScreenX - (G.X {$ifdef EXTRA_GLYPH_SPACE} + 0.5 {$endif}) * Scale + OutlineMoveX * Outline;
+      ScreenRect^.Bottom := ScreenY - (G.Y {$ifdef EXTRA_GLYPH_SPACE} + 0.5 {$endif}) * Scale + OutlineMoveY * Outline;
+      ScreenRect^.Width  := (G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif}) * Scale;
+      ScreenRect^.Height := (G.Height {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif}) * Scale;
 
       ImageRect := GlyphsImageRects.Ptr(GlyphsToRender);
-      ImageRect^.Left   := G.ImageX;
-      ImageRect^.Bottom := G.ImageY;
-      ImageRect^.Width  := G.Width;
-      ImageRect^.Height := G.Height;
+      ImageRect^.Left   := G.ImageX {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif};
+      ImageRect^.Bottom := G.ImageY {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif};
+      ImageRect^.Width  := G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif};
+      ImageRect^.Height := G.Height {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif};
 
       Inc(GlyphsToRender);
     end;
