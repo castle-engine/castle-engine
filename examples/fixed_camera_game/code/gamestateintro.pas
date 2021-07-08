@@ -125,7 +125,7 @@ begin
   IntroPart := 0;
   IntroPartTime := 0.0;
 
-  SoundEngine.LoopingChannel[0].Sound := stIntroMusic;
+  SoundEngine.LoopingChannel[0].Sound := SoundIntroMusic;
 
   InfoLabel := TCastleLabel.Create(FreeAtStop);
   InfoLabel.Color := White;

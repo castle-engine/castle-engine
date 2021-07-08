@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2018 Michalis Kamburelis.
+  Copyright 2007-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Sound. }
+{ Initialize sounds (TCastleSound instances). }
 unit GameSound;
 
 interface
@@ -21,21 +21,32 @@ interface
 uses CastleSoundEngine;
 
 var
-  stIntroMusic,
-  stMainMenuMusic
+  SoundIntroMusic,
+  SoundMainMenuMusic,
+  SoundMenuClick,
+  SoundMenuCurrentItemChanged
   : TCastleSound;
 
 procedure InitializeSound;
 
 implementation
 
-uses SysUtils, CastleFilesUtils;
+uses SysUtils, Classes,
+  CastleComponentSerialize;
+
+var
+  AllSoundsOwner: TComponent;
 
 procedure InitializeSound;
 begin
-  SoundEngine.RepositoryURL := 'castle-data:/sounds/index.xml';
-  stIntroMusic    := SoundEngine.SoundFromName('intro_music');
-  stMainMenuMusic := SoundEngine.SoundFromName('main_menu_music');
+  AllSoundsOwner := TComponent.Create(nil);
+  ComponentLoad('castle-data:/sounds/all_sounds.castle-component', AllSoundsOwner);
+  SoundIntroMusic             := AllSoundsOwner.FindRequiredComponent('SoundIntroMusic') as TCastleSound;
+  SoundMainMenuMusic          := AllSoundsOwner.FindRequiredComponent('SoundMainMenuMusic') as TCastleSound;
+  SoundMenuClick              := AllSoundsOwner.FindRequiredComponent('SoundMenuClick') as TCastleSound;
+  SoundMenuCurrentItemChanged := AllSoundsOwner.FindRequiredComponent('SoundMenuCurrentItemChanged') as TCastleSound;
 end;
 
+finalization
+  FreeAndNil(AllSoundsOwner);
 end.
