@@ -301,6 +301,7 @@ end;
 
 procedure TCastlePlayingSound.SourceRelease(Source: TInternalSoundSource);
 begin
+  // FSound must always exist during playback, since we stop playback when FSound is freed.
   FSound.InternalRemoveChangeNotification(@SoundChangeDuringPlayback);
 
   Assert(Source = FSource); // we should only ever get callback about current FSource
