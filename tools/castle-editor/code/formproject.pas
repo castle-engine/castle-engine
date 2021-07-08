@@ -32,6 +32,8 @@ type
   TProjectForm = class(TForm)
     ActionNewSpriteSheet: TAction;
     ActionList: TActionList;
+    MenuItemDesignNewNonVisualCustomRoot: TMenuItem;
+    MenuItemDesignNewNonVisual: TMenuItem;
     MenuItemDesignAddNonVisual: TMenuItem;
     MenuItemDesignAddBehavior: TMenuItem;
     MenuItemNewCastleSpriteSheet: TMenuItem;
@@ -170,6 +172,7 @@ type
     procedure FormHide(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ListOutputClick(Sender: TObject);
+    procedure MenuItemDesignNewNonVisualClick(Sender: TObject);
     procedure MenuItemNewDirectoryClick(Sender: TObject);
     procedure MenuItemRenameClick(Sender: TObject);
     procedure MenuItemShellTreeRefreshClick(Sender: TObject);
@@ -296,6 +299,7 @@ uses TypInfo, LCLType,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
+  CastleClassUtils,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
   ToolCompilerInfo, ToolCommonUtils;
 
@@ -354,7 +358,10 @@ begin
     SaveDesignDialog.DefaultExt := 'castle-transform';
     SaveDesignDialog.Filter := 'CGE Transform Design (*.castle-transform)|*.castle-transform|All Files|*';
   end else
-    raise EInternalError.Create('DesignRoot does not descend from TCastleUserInterface or TCastleTransform');
+  begin
+    SaveDesignDialog.DefaultExt := 'castle-component';
+    SaveDesignDialog.Filter := 'CGE Component Design (*.castle-component)|*.castle-component|All Files|*';
+  end;
 
   SaveDesignDialog.Url := Design.DesignUrl;
   if SaveDesignDialog.Execute then
@@ -695,7 +702,8 @@ begin
   BuildComponentsMenu(
     MenuItemDesignNewUserInterfaceCustomRoot,
     MenuItemDesignNewTransformCustomRoot,
-    nil, nil,
+    nil,
+    MenuItemDesignNewNonVisualCustomRoot,
     @MenuItemDesignNewCustomRootClick);
   BuildComponentsMenu(
     MenuItemDesignAddUserInterface,
@@ -786,6 +794,12 @@ end;
 procedure TProjectForm.ListOutputClick(Sender: TObject);
 begin
   // TODO: just to source code line in case of error message here
+end;
+
+procedure TProjectForm.MenuItemDesignNewNonVisualClick(Sender: TObject);
+begin
+  if ProposeSaveDesign then
+    NewDesign(TCastleComponent, nil);
 end;
 
 procedure TProjectForm.MenuItemNewDirectoryClick(Sender: TObject);
@@ -1397,7 +1411,8 @@ begin
     end;
 
     if AnsiSameText(Ext, '.castle-user-interface') or
-       AnsiSameText(Ext, '.castle-transform') then
+       AnsiSameText(Ext, '.castle-transform') or
+       AnsiSameText(Ext, '.castle-component') then
     begin
       if ProposeSaveDesign then
         OpenDesign(SelectedURL);

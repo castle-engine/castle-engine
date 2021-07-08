@@ -33,10 +33,11 @@ uses SysUtils, Classes, FpJson, FpJsonRtti, Generics.Collections, TypInfo;
 type
   EInvalidComponentFile = class(Exception);
 
-{ Save / load TComponent (or descendant)
-  to a .castle-user-interface or .castle-transform file.
+{ Save / load TComponent (or any descendant)
+  to a .castle-component, .castle-user-interface or .castle-transform file.
 
-  Usually it is more comfortable to use stronger typed
+  If you have a TCastleUserInterface or TCastleTransform then it is advised
+  to use instead stronger typed
   @link(UserInterfaceSave), @link(UserInterfaceLoad),
   @link(TransformSave), @link(TransformLoad). }
 procedure ComponentSave(const C: TComponent; const Url: String);
@@ -44,7 +45,7 @@ function ComponentLoad(const Url: String; const Owner: TComponent): TComponent;
 
 { Save / load TComponent (or descendant) to a string.
   The string contents have the same format
-  as a .castle-user-interface or .castle-transform file. }
+  as a .castle-component, .castle-user-interface or .castle-transform file. }
 function ComponentToString(const C: TComponent): String;
 function StringToComponent(const Contents: String; const Owner: TComponent): TComponent;
 

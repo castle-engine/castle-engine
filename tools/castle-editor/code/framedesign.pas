@@ -14,7 +14,7 @@
 }
 
 { Frame where you can design
-  a xxx.castle-user-interface or xxx.castle-transform file. }
+  a xxx.castle-user-interface, xxx.castle-transform, xxx.castle-component file. }
 unit FrameDesign;
 
 {$mode objfpc}{$H+}
@@ -1086,7 +1086,7 @@ begin
   if DesignRoot is TCastleTransform then
     TransformSave(TCastleTransform(DesignRoot), Url)
   else
-    raise EInternalError.Create('We can only save DesignRoot that descends from TCastleUserInterface or TCastleTransform');
+    ComponentSave(DesignRoot, Url);
   FDesignModified := false;
   FDesignUrl := Url; // after successfull save
   OnUpdateFormCaption(Self);
@@ -1173,6 +1173,8 @@ procedure TDesignFrame.OpenDesign(const NewDesignRoot, NewDesignOwner: TComponen
 var
   Background: TCastleRectangleControl;
   TempViewport: TCastleViewport;
+  //LabelNonVisualHint: TCastleLabel;
+  DesignRootVisual: Boolean;
 begin
   ClearDesign;
 
@@ -1181,7 +1183,8 @@ begin
 
   if NewDesignRoot is TCastleUserInterface then
   begin
-    CastleControl.Controls.InsertBack(NewDesignRoot as TCastleUserInterface)
+    CastleControl.Controls.InsertBack(NewDesignRoot as TCastleUserInterface);
+    DesignRootVisual := true;
   end else
   if NewDesignRoot is TCastleTransform then
   begin
@@ -1193,8 +1196,26 @@ begin
     TempViewport.AutoCamera := true;
     TempViewport.AutoNavigation := true;
     CastleControl.Controls.InsertBack(TempViewport);
+    DesignRootVisual := true;
   end else
-    raise EInternalError.Create('DesignRoot from file does not descend from TCastleUserInterface or TCastleTransform');
+  begin
+    { This is normal situation for non-visual components. }
+    (*
+    LabelNonVisualHint := TCastleLabel.Create(NewDesignOwner);
+    LabelNonVisualHint.Caption := 'This design does not contain any visual components.' + NL +
+      'The root of this design has class:' + NL +
+      NL +
+      NewDesignRoot.ClassName;
+    LabelNonVisualHint.Anchor(hpMiddle);
+    LabelNonVisualHint.Anchor(vpMiddle);
+    LabelNonVisualHint.FontSize := 40;
+    CastleControl.Controls.InsertBack(LabelNonVisualHint);
+    *)
+    DesignRootVisual := false;
+  end;
+
+  SetEnabledVisible(CastleControl, DesignRootVisual);
+  SetEnabledVisible(PanelMiddleTop, DesignRootVisual);
 
   // make background defined
   Background := TCastleRectangleControl.Create(NewDesignOwner);
@@ -1230,6 +1251,9 @@ begin
     else
     if Mime = 'text/x-castle-transform' then
       NewDesignRoot := TransformLoad(NewDesignUrl, NewDesignOwner)
+    else
+    if Mime = 'text/x-castle-component' then
+      NewDesignRoot := ComponentLoad(NewDesignUrl, NewDesignOwner)
     else
       raise Exception.CreateFmt('Unrecognized file extension %s (MIME type %s)',
         [ExtractFileExt(NewDesignUrl), Mime]);

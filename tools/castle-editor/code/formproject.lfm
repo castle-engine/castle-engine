@@ -15,7 +15,7 @@ object ProjectForm: TProjectForm
   OnShow = FormShow
   Position = poMainFormCenter
   ShowInTaskBar = stAlways
-  LCLVersion = '2.0.10.0'
+  LCLVersion = '2.0.13.0'
   object PageControlBottom: TPageControl
     Left = 0
     Height = 224
@@ -263,6 +263,13 @@ object ProjectForm: TProjectForm
       object MenuItemDesignNewTransformCustomRoot: TMenuItem
         Caption = 'New Transform (Custom Root)'
       end
+      object MenuItemDesignNewNonVisual: TMenuItem
+        Caption = 'New Non-Visual Component (Empty Component As Root)'
+        OnClick = MenuItemDesignNewNonVisualClick
+      end
+      object MenuItemDesignNewNonVisualCustomRoot: TMenuItem
+        Caption = 'New Non-Visual Component (Custom Root)'
+      end
       object MenuItemSeparator201: TMenuItem
         Caption = '-'
       end
@@ -493,17 +500,16 @@ object ProjectForm: TProjectForm
   end
   object SaveDesignDialog: TCastleSaveDialog
     Title = 'Save Hierarchy As'
-    Filter = 'CGE Design (*.castle-user-interface, *.castle-transform)|*.castle-user-interface;*.castle-transform|All Files|*'
-    FilterIndex = 0
+    Filter = 'CGE Design (*.castle-user-interface, *.castle-transform, *.castle-component)|*.castle-user-interface;*.castle-transform;*.castle-component|All Files|*'
     Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
     AdviceDataDirectory = True
     Left = 145
     Top = 164
   end
   object OpenDesignDialog: TCastleOpenDialog
-    Filter = 'CGE Design (*.castle-user-interface, *.castle-transform)|*.castle-user-interface;*.castle-transform|All Files|*'
+    Filter = 'CGE Design (*.castle-user-interface, *.castle-transform, *.castle-component)|*.castle-user-interface;*.castle-transform;*.castle-component|All Files|*'
     AdviceDataDirectory = True
-    Left = 154
+    Left = 145
     Top = 95
   end
   object ShellListPopupMenu: TPopupMenu
