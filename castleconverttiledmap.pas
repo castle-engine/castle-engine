@@ -163,7 +163,7 @@ end;
 procedure TTiledMapConverter.ConvertLayers;
 var
   Layer: TTiledMap.TLayer;             // A (tile, object, image) layer
-  LayerNode: TTiledLayerNode; // Node of a (tile, object, image) layer.
+  LayerNode: TTiledLayerNode;          // Node of a (tile, object, image) layer.
 begin
 
   for Layer in Map.Layers do
