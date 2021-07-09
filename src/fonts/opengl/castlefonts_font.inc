@@ -234,7 +234,6 @@ begin
 
   FOwnsFont := OwnsData;
   FFont := Data;
-  FontSizesChanged;
 
   if AdjustProperties then
   begin
@@ -253,6 +252,9 @@ begin
     // synchronize Size with OptimalSize
     Size := OptimalSize;
   end;
+
+  // call this at the end, when our state is consistent
+  FontSizesChanged;
 end;
 
 function TCastleFont.PropertySections(const PropertyName: String): TPropertySections;

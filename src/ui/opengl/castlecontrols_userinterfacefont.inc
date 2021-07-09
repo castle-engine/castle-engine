@@ -38,6 +38,7 @@
     procedure SetOutline(const Value: Cardinal);
     procedure SetOutlineColor(const Value: TCastleColor);
     procedure SetOutlineHighQuality(const Value: boolean);
+    procedure CustomFontSizeChanged(Sender: TObject);
   protected
     procedure UIScaleChanged; override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -317,7 +318,10 @@ begin
   if FCustomFont <> Value then
   begin
     if FCustomFont <> nil then
+    begin
       FCustomFont.RemoveFreeNotification(Self);
+      FCustomFont.RemoveFontSizeChangeNotification(@CustomFontSizeChanged);
+    end;
     {$warnings off}
     if OwnsCustomFont then
       FreeAndNil(FCustomFont) else
@@ -325,7 +329,15 @@ begin
     {$warnings on}
     FCustomFont := Value;
     if FCustomFont <> nil then
+    begin
       FCustomFont.FreeNotification(Self);
+      { We need to be notified about font size changes,
+        in particular when new font file is loaded in TCastleFont.
+        Testcase: assing to TCastleLabel.CustomFont some TCastleFont,
+        then change the TCastleFont.URL (without changing anything
+        at TCastleLabel directly) -- the TCastleLabel size should change. }
+      FCustomFont.AddFontSizeChangeNotification(@CustomFontSizeChanged);
+    end;
     { don't call virtual function, that may try to measure the text by accessing Font
       (needlessly using UIFont, possibly even recreating UIFont if "finalization"
       of this unit already run, possibly even accessing invalid freed
@@ -460,6 +472,11 @@ begin
     else
       Result := inherited PropertySections(PropertyName);
   end;
+end;
+
+procedure TCastleUserInterfaceFont.CustomFontSizeChanged(Sender: TObject);
+begin
+  FontChanged;
 end;
 
 {$define read_implementation_methods}

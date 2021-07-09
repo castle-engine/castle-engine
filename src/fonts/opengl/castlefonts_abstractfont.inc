@@ -51,10 +51,6 @@ type
     { Call this when the measurement of font possibly changed, and anything cached
       should be recalculated by calling TextWidth, TextHeight etc. again. }
     procedure FontSizesChanged;
-    { Add notification when FontSizesChanged occurs. }
-    procedure AddFontSizeChangeNotification(const Notify: TNotifyEvent);
-    { Remove notification when FontSizesChanged occurs. }
-    procedure RemoveFontSizeChangeNotification(const Notify: TNotifyEvent);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -389,6 +385,11 @@ type
       This will get fixed one day --- TCastleImage.Draw just needs to support scaling.
     }
     property TargetImage: TCastleImage read FTargetImage write FTargetImage;
+
+    { Add notification when FontSizesChanged occurs. }
+    procedure AddFontSizeChangeNotification(const Notify: TNotifyEvent);
+    { Remove notification when FontSizesChanged occurs. }
+    procedure RemoveFontSizeChangeNotification(const Notify: TNotifyEvent);
   end;
 
   TGLBitmapFontAbstract = TCastleAbstractFont deprecated 'use TCastleAbstractFont';
