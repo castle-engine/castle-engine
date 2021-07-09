@@ -22,7 +22,7 @@
   to display text: instead of drawing it on screen, you can draw it on an image,
   and then display the image.
 
-  See also font_from_texture.lpr demo, that draws text directly on screen,
+  See also text_tests demo, that draws text directly on screen,
   and instead of the "PrintStrings" calls it uses TCastleLabel components. }
 
 {$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
