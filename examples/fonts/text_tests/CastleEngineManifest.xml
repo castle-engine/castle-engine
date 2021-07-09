@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="text_tests"
+  standalone_source="text_tests_standalone.lpr"
+  game_units="GameInitialize"
+  qualified_name="com.mycompany.texttests"
+  caption="Demo of text and font rendering"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+</project>

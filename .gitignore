@@ -106,9 +106,8 @@ castle-game-engine-*.fpm
 /examples/fixed_camera_game/rift
 /examples/fonts/font_draw_over_image
 /examples/fonts/font_draw_over_image_output.png
-/examples/fonts/font_from_texture
+/examples/fonts/text_tests/text_tests
 /examples/fonts/html_text/html_text
-/examples/fonts/test_font_break
 /examples/fonts/test_local_characters/test_local_characters
 /examples/fonts/texture-font-to-pascal
 /examples/fps_game/fps_game

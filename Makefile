@@ -241,8 +241,6 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/view_3d_model_basic \
   examples/curves/simplest_curve_read \
   examples/fonts/font_draw_over_image \
-  examples/fonts/font_from_texture \
-  examples/fonts/test_font_break \
   examples/images_videos/background_tiling \
   examples/images_videos/dds_decompose \
   examples/images_videos/draw_images_on_gpu \
