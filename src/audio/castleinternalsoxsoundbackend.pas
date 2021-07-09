@@ -83,6 +83,7 @@ type
     function CreateSource: TSoundSourceBackend; override;
     procedure SetVolume(const Value: Single); override;
     procedure SetDistanceModel(const Value: TSoundDistanceModel); override;
+    procedure SetDopplerFactor(const Value: Single); override;
     procedure SetListener(const Position, Direction, Up: TVector3); override;
   end;
 
@@ -246,6 +247,10 @@ begin
 end;
 
 procedure TSoxSoundEngineBackend.SetDistanceModel(const Value: TSoundDistanceModel);
+begin
+end;
+
+procedure TSoxSoundEngineBackend.SetDopplerFactor(const Value: Single);
 begin
 end;
 

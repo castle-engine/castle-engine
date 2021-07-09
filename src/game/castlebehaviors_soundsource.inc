@@ -83,7 +83,6 @@ type
     FSpatial: Boolean;
     FVolume: Single;
     FPitch: Single;
-    FDopplerEffect: Single;
     procedure SoundChange(const Sender: TCastleSound; const Change: TSoundChange);
     procedure SetSound(const Value: TCastleSound);
     procedure SetSpatial(const Value: Boolean);
@@ -171,17 +170,6 @@ type
 
       Any value > 0 is allowed. }
     property Pitch: Single read FPitch write SetPitch default 1.0;
-
-    { Emphasize or deemphasize the Doppler effect.
-      See https://en.wikipedia.org/wiki/Doppler_effect and CGE demo
-      examples/audio/doppler_effect to see what it is.
-
-      Value 0 (default) disables the Doppler effect.
-      This is the default, otherwise the default Doppler effect would be incorrect in many 2D games.
-      Value 1 makes a correct Doppler effect if the distance in your world of 1 unit
-      corresponds to 1 meter.
-      Larger values allow to emphasize the effect more. }
-    property DopplerEffect: Single read FDopplerEffect write FDopplerEffect default 0.0;
   end;
 
 {$endif read_interface}
@@ -228,8 +216,7 @@ begin
     { update InternalSource.Velocity, to hear Doppler effect. }
     if HasLastPosition and (SecondsPassed > SingleEpsilon) then
     begin
-      NewVelocity := (NewPosition - LastPosition) *
-        SourceBehavior.DopplerEffect / SecondsPassed;
+      NewVelocity := (NewPosition - LastPosition) / SecondsPassed;
       { Clamp NewVelocity length, to not cause too crazy Doppler because
         of temporary high speed.
         Testcase: examples/audio/doppler_demo, drag with mouse fast. }
@@ -306,7 +293,7 @@ end;
 function TCastleSoundSource.PropertySections(const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
-    'Sound', 'Spatial', 'Volume', 'Pitch', 'DopplerEffect':
+    'Sound', 'Spatial', 'Volume', 'Pitch':
       Result := [psBasic];
     else
       Result := inherited PropertySections(PropertyName);

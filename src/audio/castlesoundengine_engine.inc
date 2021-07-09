@@ -51,6 +51,7 @@
       FInitialPitchMultiplier: Single;
       FDefaultRolloffFactor: Single;
       FDefaultReferenceDistance: Single;
+      FDopplerFactor: Single;
 
     procedure SetVolume(const Value: Single);
     procedure SetDistanceModel(const Value: TSoundDistanceModel);
@@ -65,6 +66,7 @@
       (calling ContextOpen, or playing a sound, will @bold(not) activate it). }
     property Paused: boolean read FPaused write SetPaused;
     procedure SetInternalBackend(const Value: TSoundEngineBackend);
+    procedure SetDopplerFactor(const Value: Single);
 
     procedure ContextOpenCore; override;
     procedure ContextCloseCore; override;
@@ -400,6 +402,18 @@
     property DistanceModel: TSoundDistanceModel
       read FDistanceModel write SetDistanceModel default DefaultDistanceModel;
 
+    { Emphasize or deemphasize the Doppler effect.
+      See https://en.wikipedia.org/wiki/Doppler_effect and CGE demo
+      examples/audio/doppler_effect to see what it is.
+
+      Allowed values are anything > 0.
+      Value 0 disables the Doppler effect.
+      This is the default, otherwise the Doppler effect would be way too audible in 2D games.
+      Value 1 makes a correct Doppler effect if the distance in your world of 1 unit
+      corresponds to 1 meter.
+      Larger values allow to emphasize the effect more. }
+    property DopplerFactor: Single read FDopplerFactor write SetDopplerFactor default 0.0;
+
     property DefaultRolloffFactor: Single read FDefaultRolloffFactor write FDefaultRolloffFactor;
       deprecated 'does nothing now; use SoundEngine.DistanceModel, TCastleSound.ReferenceDistance, TCastleSound.MaxDistance to control sound rolloff (spatialization)';
     property DefaultReferenceDistance: Single read FDefaultReferenceDistance write FDefaultReferenceDistance;
@@ -417,6 +431,7 @@ begin
   inherited;
   FVolume := DefaultVolume;
   FDistanceModel := DefaultDistanceModel;
+  FDopplerFactor := 0.0;
   FEnabled := DefaultEnabled;
   FDevice := DefaultDevice;
   FEnableSaveToConfig := true;
@@ -559,6 +574,7 @@ begin
       try
         Backend.SetVolume(Volume);
         Backend.SetDistanceModel(DistanceModel);
+        Backend.SetDopplerFactor(DopplerFactor);
         Backend.SetListener(
           FListenerPosition,
           FListenerDirection,
@@ -967,6 +983,16 @@ begin
     FDistanceModel := Value;
     if IsContextOpenSuccess then
       Backend.SetDistanceModel(Value);
+  end;
+end;
+
+procedure TSoundEngine.SetDopplerFactor(const Value: Single);
+begin
+  if FDopplerFactor <> Value then
+  begin
+    FDopplerFactor := Value;
+    if IsContextOpenSuccess then
+      Backend.SetDopplerFactor(Value);
   end;
 end;
 

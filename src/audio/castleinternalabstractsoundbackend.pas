@@ -195,6 +195,7 @@ type
     { All the methods below are guaranteed to be called only after ContextOpen. }
     procedure SetVolume(const Value: Single); virtual; abstract;
     procedure SetDistanceModel(const Value: TSoundDistanceModel); virtual; abstract;
+    procedure SetDopplerFactor(const Value: Single); virtual; abstract;
     procedure SetListener(const Position, Direction, Up: TVector3); virtual; abstract;
   end;
 

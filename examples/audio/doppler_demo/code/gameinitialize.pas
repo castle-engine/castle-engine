@@ -23,7 +23,7 @@ interface
 implementation
 
 uses SysUtils,
-  CastleWindow, CastleLog, CastleUIState
+  CastleWindow, CastleLog, CastleUIState, CastleSoundEngine
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameStateMain
@@ -37,6 +37,10 @@ procedure ApplicationInitialize;
 begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
+
+  { For 2D game the distances are huge (not like 1 meter = 1 unit), Doppler effect strength
+    needs to be adjusted for this. }
+  SoundEngine.DopplerFactor := 0.02;
 
   { Create TStateMain that will handle "main" state of the game.
     Larger games may use multiple states,

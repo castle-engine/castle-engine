@@ -143,13 +143,13 @@
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleSoundSource",
-                "DopplerEffect" : 1.9999999552965164E-002,
                 "Name" : "SoundSource1",
                 "Sound" : "SoundTone",
                 "$NonVisualComponents" : [
                   {
                     "$$ClassName" : "TCastleSound",
                     "Name" : "SoundTone",
+                    "ReferenceDistance" : 5.0000000000000000E+001,
                     "URL" : "castle-data:/tone.wav"
                   }
                 ]

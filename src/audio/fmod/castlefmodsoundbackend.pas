@@ -113,6 +113,7 @@ type
     { TODO: This just sets default distance model for all newly created sounds.
       So it will only work if executed early. }
     procedure SetDistanceModel(const Value: TSoundDistanceModel); override;
+    procedure SetDopplerFactor(const Value: Single); override;
     procedure SetListener(const Position, Direction, Up: TVector3); override;
   end;
 
@@ -565,6 +566,11 @@ end;
 procedure TFMODSoundEngineBackend.SetDistanceModel(const Value: TSoundDistanceModel);
 begin
   FDistanceModel := Value;
+end;
+
+procedure TFMODSoundEngineBackend.SetDopplerFactor(const Value: Single);
+begin
+  CheckFMOD(FMOD_System_Set3DSettings(FMODSystem, Value, 1, 1));
 end;
 
 procedure TFMODSoundEngineBackend.SetListener(const Position, Direction, Up: TVector3);

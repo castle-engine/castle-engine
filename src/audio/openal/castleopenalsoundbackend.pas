@@ -162,6 +162,7 @@ type
 
     procedure SetVolume(const Value: Single); override;
     procedure SetDistanceModel(const Value: TSoundDistanceModel); override;
+    procedure SetDopplerFactor(const Value: Single); override;
     procedure SetListener(const Position, Direction, Up: TVector3); override;
 
     { Is the OpenAL version at least @code(AMajor.AMinor).
@@ -1092,6 +1093,11 @@ begin
     alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED) // OpenAL < 1.1 doesn't support AL_LINEAR_DISTANCE* models.
   else
     alDistanceModel(ALDistanceModelConsts[Value]);
+end;
+
+procedure TOpenALSoundEngineBackend.SetDopplerFactor(const Value: Single);
+begin
+  alDopplerFactor(Value);
 end;
 
 procedure TOpenALSoundEngineBackend.SetListener(const Position, Direction, Up: TVector3);
