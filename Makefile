@@ -448,6 +448,10 @@ cleanall: cleanmore
 .PHONY: tests
 tests:
 	tools/build-tool/castle-engine_compile.sh
+# Build and run check_lazarus_packages
+	$(BUILD_TOOL) --project tools/internal/check_lazarus_packages/ clean
+	$(BUILD_TOOL) --project tools/internal/check_lazarus_packages/ --mode=debug compile
+	$(BUILD_TOOL) --project tools/internal/check_lazarus_packages/ run -- ../../../
 # Run in debug mode
 	$(BUILD_TOOL) --project tests/ clean
 	$(BUILD_TOOL) --project tests/ --mode=debug --compiler-option=-dNO_WINDOW_SYSTEM compile
