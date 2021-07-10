@@ -71,7 +71,7 @@ function ConvertTiledMap(ATiledMap: TTiledMap): TX3DRootNode;
 implementation
 
 uses
-  SysUtils,
+  SysUtils, Math,
   CastleVectors, CastleTransform, CastleColors,
   CastleRenderOptions, CastleControls, CastleStringUtils, X3DLoadInternalImage;
 
@@ -79,11 +79,9 @@ type
   TTiledLayerNode = TTransformNode;
   TTiledObjectNode = TTransformNode;
   TTiledTileNode = TTransformNode;
+  TImageTextureNodeArray = array of TImageTextureNode;
 
   { Converter class to convert Tiled map into X3D representations. }
-
-  { TTiledMapConverter }
-
   TTiledMapConverter = class
   strict private
     FDebugMode: Boolean;
@@ -91,6 +89,7 @@ type
 
     FMap: TTiledMap;
     FMapNode: TX3DRootNode;
+    FTilesetTextureNodeArray: TImageTextureNodeArray;
 
     FConvYMatrix: TMatrix2;
 
@@ -106,6 +105,10 @@ type
     function MapWidth: Cardinal;
     { Map height in pixels. }
     function MapHeight: Cardinal;
+    { Tile width of map tile (not necessarily tileset tile!) in pixels. }
+    function TileWidth: Cardinal;
+    { Tile height of map tile (not necessarily tileset tile!) in pixels. }
+    function TileHeight: Cardinal;
     { Convert Tiled Y-values to Y-values according to definition, see remarks
       above. }
     function ConvY(TiledY: Single): Single; overload;
@@ -121,7 +124,7 @@ type
       origin. It is slightly moved along Z-axis to be infront of everything. }
     procedure BuildDebugCoordinateSystem;
     { Build a rectangluar debug object at pos. X,Y with dim. W,H. }
-    procedure BuildDebugObject(const X, Y, W, H: Cardinal; const AName: String);
+    procedure BuildDebugObject(const X, Y, W, H: Longint; const AName: String);
     { Makes sure that a Debug node is added/removed from Map node list and
       is constructed/destroyed accordingly. }
     procedure SetDebugMode(AValue: Boolean);
@@ -131,10 +134,14 @@ type
     { Mirrors 2d-vector at X-axis in XY-plane. Necessary for conversion of
       Tiled Y-values according to definition, see remarks above. }
     property ConvYMatrix: TMatrix2 read FConvYMatrix;
+    property TilesetTextureNodeArray: TImageTextureNodeArray
+      read FTilesetTextureNodeArray write FTilesetTextureNodeArray;
   public
     constructor Create;
     destructor Destroy; override;
 
+    { Converts tilesets to texture nodes. }
+    procedure ConvertTilesets;
     { Tries to construct X3D representation from TTiledMap data. }
     procedure ConvertMap;
 
@@ -152,6 +159,7 @@ type
 
 procedure TTiledMapConverter.ConvertMap;
 begin
+  ConvertTilesets;
   ConvertLayers;
   if DebugMode then
   begin
@@ -290,8 +298,188 @@ end;
 
 function TTiledMapConverter.BuildTileLayerNode(const ALayer: TTiledMap.TLayer
   ): TTiledLayerNode;
+var
+  DebugTile: TTiledMap.TTile;              // A tile for debugging.
+  DebugTileset: TTiledMap.TTileset;        // A tileset for debuggin.
+  I: Cardinal;
+
+  { The X3D tile node are constructred from these nodes. }
+  TileNode: TTiledTileNode;
+
+  { Get the associated tileset of a specific tile by the tileset's FirstGID.
+
+    Hint: A map tile isn't always associated with a tileset tile, e. g.
+          if the tileset tile is larger than the tiles of the map an therefore
+          covers several map tiles. For these tiles the is GID = 0. This
+          function evaluates to nil for these tiles.
+
+    Note: The lowest real GID starts with GID = 1.
+
+    TODO : Handle flipped tiles. The tileset alloction may be wrong otherwise! }
+  function GetTilesetOfTile(const ATileGID: Cardinal): TTiledMap.TTileset;
+  var
+    J: Cardinal;
+  begin
+    Result := nil;
+      { "In order to find out from which tileset the tile is you need to find
+        the tileset with the highest firstgid that is still lower or equal
+        than the gid.The tilesets are always stored with increasing
+        firstgids."
+        (https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#tmx-data) }
+      for J := 0 to Map.Tilesets.Count - 1 do
+      begin
+        if ATileGID >= (Map.Tilesets.Items[J] as TTiledMap.TTileset).FirstGID then
+          Result := Map.Tilesets.Items[J];
+      end;
+      { "The highest three bits of the gid store the flipped states. Bit 32 is
+        used for storing whether the tile is horizontally flipped, bit 31 is used
+        for the vertically flipped tiles and bit 30 indicates whether the tile is
+        flipped (anti) diagonally, enabling tile rotation. These bits have to be
+        read and cleared before you can find out which tileset a tile belongs to."
+        https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#data }
+
+      { TODO : Handle flipped tiles! }
+
+    //Writeln('GetTilesetOfTile: ', IntToStr(J));
+  end;
+
+  { Get a specific tile by its GID from a specific tileset. }
+  function GetTileFromTileset(ATileGID: Cardinal; ATileset: TTiledMap.TTileset): TTiledMap.TTile;
+  var
+    J: Cardinal;
+    TilesetTileID: Cardinal; // This is the (G)ID of a tile from the tileset
+                             // Note: TTile.Id is local with resp. to tileset
+  begin
+    Result := nil;
+    for J := 0 to ATileset.TileCount - 1 do
+    begin
+      { Convert local tile id to GID. }
+      TilesetTileID := ATileset.FirstGID + J;
+
+      if TilesetTileID = ATileGID then
+      begin
+        //Writeln('GetTileFromTileset: Result = ', IntToStr(J));
+        Result := ATileset.Tiles.Items[J];
+        Exit;
+      end;
+    end;
+  end;
+
+  { This function generates an anchor (parameter list) to load the
+    corresponding part from the tileset image.
+
+    Important: For this to work the tsx files have to be of recent version!
+    Older tsx files do not contain the columns property of the tileset which
+    is used in this function.
+
+    Ex. for anchor format:
+      my_image.png#left:100,bottom:100,width:256,height:256 }
+  function GenerateTileImageAnchor(ATile: TTiledMap.TTile; ATileset:
+    TTiledMap.TTileset): String;
+
+    function RowCountOfTileset: Cardinal;
+    begin
+      Result := ATileset.TileCount div ATileset.Columns;
+    end;
+
+    { Zero-based. }
+    function RowOfTileInTileset: Cardinal;
+    begin
+      Result := Floor(ATile.Id / ATileset.Columns);
+    end;
+
+    { Zero-based. }
+    function ColumnOfTileInTileset: Cardinal;
+    begin
+      if ATile.Id < ATileset.Columns then
+        Result := ATile.Id
+      else
+        Result := ATile.Id mod ATileset.Columns;
+    end;
+
+  begin
+    Result := '';
+    Result := Result + '#';
+    Result := Result + 'left:' + IntToStr(ColumnOfTileInTileset * ATileset.TileWidth + ATileset.Margin + ColumnOfTileInTileset * ATileSet.Spacing) + ',';
+    Result := Result + 'bottom:' + IntToStr((RowCountOfTileset - RowOfTileInTileset - 1) * ATileset.TileHeight + ATileset.Margin + (RowCountOfTileset - RowOfTileInTileset - 1) * ATileSet.Spacing) + ',';
+    Result := Result + 'width:' + IntToStr(Map.TileWidth) + ',';
+    Result := Result + 'height:' + IntToStr(Map.TileHeight);
+  end;
+
+  { Zero-based. }
+  function RowOfTileInMap: Cardinal;
+  begin
+    Result := Floor(I / Map.Width);
+    //Writeln('RowOfTileInMap: ', Result);
+  end;
+
+  { Zero-based. }
+  function ColumnOfTileInMap: Cardinal;
+  begin
+    if I < Map.Width then
+      Result := I
+    else
+      Result := I mod Map.Width;
+    //Writeln('ColumnOfTileInMap: ', Result);
+  end;
+
+  { The actual conversion of a tile. }
+  procedure ConvertTile;
+  var
+    Tile: TTiledMap.TTile;                  // A Tile.
+    Tileset: TTiledMap.TTileset;            // A Tileset.
+  begin
+    { Get tileset and tile ready to prepare tile node. }
+    Tileset := GetTilesetOfTile(ALayer.Data.Data[I]);
+    if Assigned(Tileset) then
+      Tile := GetTileFromTileset(ALayer.Data.Data[I], Tileset);
+  end;
+
 begin
-  Result := TTiledLayerNode.Create;
+  Result := TTiledLayerNode.Create;        // The resulting layer node.
+
+  if DebugMode then
+  begin
+    for I := 0 to High(ALayer.Data.Data) do
+    begin
+      //Writeln(I, ' --> GID: ', ALayer.Data.Data[GID]);
+      DebugTileset := GetTilesetOfTile(ALayer.Data.Data[I]);
+      if Assigned(DebugTileset) then
+      begin
+        DebugTile := GetTileFromTileset(ALayer.Data.Data[I], DebugTileset);
+        BuildDebugObject(
+          ColumnOfTileInMap * TileWidth,
+          (RowOfTileInMap + 1) * TileHeight - DebugTileset.TileHeight, // Y: The tiles of tilesets are "anchored" bottom-left
+          DebugTileset.TileWidth,
+          DebugTileset.TileHeight, 'GID: ' + IntToStr(DebugTile.Id));
+      end;
+    end;
+  end;
+
+  { Run through tile GIDs of this tile layer. }
+  for I := 0 to High(ALayer.Data.Data) do
+  begin
+    //ConvertTile;
+  end;
+    //writeln('Local Tile ID: ', Tile.Id, ' --> Tileset: ',
+    //  Tileset.Name, ' (FGID: ', Tileset.FirstGID, ')');
+
+    { Create "x3d tile node" for each tile. }
+    // For testing only the first tile should be handled! Delete later!
+    { if I > 64 then
+      Continue; }
+    {
+    TileTransformNode := TTransformNode.Create;
+    //TileTransformNode.AddChildren(LoadImageAsNode(Tileset.Image.URL +
+    //  GenerateTileImageAnchor(Tile, Tileset)));
+    TileTransformNode.Translation := Vector3(
+      ColumnOfTileInMap * Map.TileWidth,
+      RowOfTileInMap * Map.TileHeight,
+      0
+      );
+    Result.AddChildren(TileTransformNode);
+  end;
+      }
 end;
 
 constructor TTiledMapConverter.Create;
@@ -314,14 +502,42 @@ begin
   inherited Destroy;
 end;
 
+procedure TTiledMapConverter.ConvertTilesets;
+var
+  Tileset: TTiledMap.TTileset;    // A tileset
+  TilesetTextureNode: TImageTextureNode;
+begin
+  for Tileset in Map.Tilesets do
+  begin
+    writeln('Convert tileset: ',Tileset.Name);
+
+    if Assigned(Tileset.Image) then
+    begin
+      //TilesetTextureNode := TImageTextureNode.Create;
+      //TilesetTextureNode.LoadFromImage(Tileset.Image, False, '');   // Ownership stays at TTiledMap
+      //writeln('Image successfully loaded: ', TilesetTextureNode.IsTextureLoaded);
+    end;
+  end;
+end;
+
 function TTiledMapConverter.MapWidth: Cardinal;
 begin
-  Result := Map.TileWidth * Map.Width;
+  Result := TileWidth * Map.Width;
 end;
 
 function TTiledMapConverter.MapHeight: Cardinal;
 begin
-  Result := Map.TileHeight * Map.Height;
+  Result := TileHeight * Map.Height;
+end;
+
+function TTiledMapConverter.TileWidth: Cardinal;
+begin
+  Result := Map.TileWidth;
+end;
+
+function TTiledMapConverter.TileHeight: Cardinal;
+begin
+  Result := Map.TileHeight;
 end;
 
 function TTiledMapConverter.ConvY(TiledY: Single): Single;
@@ -461,7 +677,7 @@ begin
   end;
 end;
 
-procedure TTiledMapConverter.BuildDebugObject(const X, Y, W, H: Cardinal;
+procedure TTiledMapConverter.BuildDebugObject(const X, Y, W, H: Longint;
   const AName: String);
 var
   { All Debug objects are based on a Transform node. }
@@ -499,7 +715,7 @@ begin
   DebugMaterial.EmissiveColor := YellowRGB;
 
   DebugLineProperties := TLinePropertiesNode.Create;
-  DebugLineProperties.LinewidthScaleFactor := 2.0;
+  DebugLineProperties.LinewidthScaleFactor := 1.0;
 
   DebugShapeOutline.Appearance := TAppearanceNode.Create;
   DebugShapeOutline.Appearance.Material := DebugMaterial;
