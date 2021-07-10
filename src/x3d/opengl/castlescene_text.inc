@@ -40,6 +40,8 @@ type
     procedure SetVerticalAlignment(const Value: TVerticalPosition);
     procedure SetSize(const Value: Single);
     procedure SetSpacing(const Value: Single);
+    function GetCustomFont: TCastleFont;
+    procedure SetCustomFont(const Value: TCastleFont);
   protected
     procedure TranslateProperties(const TranslatePropertyEvent: TTranslatePropertyEvent); override;
     function GetInternalText: String; override;
@@ -108,6 +110,9 @@ type
       See https://www.web3d.org/specifications/X3Dv4Draft/ISO-IEC19775-1v4-CD/Part01/components/text.html#FontStyle
       for an illustrative image. }
     property Spacing: Single read FSpacing write SetSpacing default 1.0;
+
+    { Adjust the font. }
+    property CustomFont: TCastleFont read GetCustomFont write SetCustomFont;
   end;
 
 {$endif read_interface}
@@ -260,6 +265,18 @@ end;
 procedure TCastleText.SetInternalText(const Value: String);
 begin
   Caption := Value;
+end;
+
+function TCastleText.GetCustomFont: TCastleFont;
+begin
+  { We get/set FontStyleNode.CustomFont, without any own field like FCustomFont.
+    This way we don't need to do any free notification for the custom font instance here. }
+  Result := FontStyleNode.CustomFont;
+end;
+
+procedure TCastleText.SetCustomFont(const Value: TCastleFont);
+begin
+  FontStyleNode.CustomFont := Value;
 end;
 
 {$endif read_implementation}

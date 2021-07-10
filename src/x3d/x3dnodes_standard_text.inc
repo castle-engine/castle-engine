@@ -33,6 +33,8 @@
   strict private
     JustifyWarningUppercaseDone, JustifyWarningObsoleteDone,
       JustifyWarningNotSupportedDone: boolean;
+    FCustomFont: TCastleFont;
+    FCustomFontObserver: TFreeNotificationObserver;
     function StringToJustify(const S: string;
       const DefaultValue: TX3DFontJustify): TX3DFontJustify;
     function GetFamily: TX3DFontFamily;
@@ -45,6 +47,8 @@
     procedure SetJustify(const Value: TX3DFontJustify);
     function GetJustifyMinor: TX3DFontJustify;
     procedure SetJustifyMinor(const Value: TX3DFontJustify);
+    procedure SetCustomFont(const Value: TCastleFont);
+    procedure CustomFontFreeNotification(const Sender: TFreeNotificationObserver);
   public
     const
       DefaultSize = 1.0;
@@ -55,6 +59,9 @@
       DefaultJustify = fjBegin;
       DefaultJustifyMinor = fjFirst;
       DefaultBlending = true;
+
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    destructor Destroy; override;
 
     property Family: TX3DFontFamily read GetFamily write SetFamily;
     property Justify: TX3DFontJustify read GetJustify write SetJustify;
@@ -68,7 +75,7 @@
     type
       TFontEvent = procedure (const FontStyle: TFontStyleNode; var Font: TTextureFontData) of object;
 
-    { Adjust the font used for a given FontStyle node.
+    { Adjust the font.
       Assign here a callback which can modify a font.
       You can look at any font style properties to decide how to adjust
       the font, like @link(Bold), @link(Italic), @link(Family).
@@ -85,11 +92,20 @@
       In the first case, remember that it is your resposibility
       to free this font later, but only after all possible Text nodes
       using this font are destroyed. }
-    class var OnFont: TFontEvent;
+    class var OnFont: TFontEvent
+      deprecated 'use TFontStyleNode.CustomFont or TCastleText.CustomFont';
 
     { Font used by this node, determined by our fields (like @link(Bold))
       and @link(OnFont). }
     function Font: TTextureFontData;
+
+    { Adjust the font.
+
+      TODO: Currently this only allows TCastleFont.
+      In the future it should allow any TCastleAbstractFont,
+      like TCastleFontFamily (thus have different options for bold/italic variants)
+      or TCastleBitmapFont. }
+    property CustomFont: TCastleFont read FCustomFont write SetCustomFont;
 
     {$I auto_generated_node_helpers/x3dnodes_fontstyle.inc}
   end;
@@ -126,181 +142,7 @@
 
 {$ifdef read_implementation}
 
-const
-  FontStyleNames: array [TX3DFontStyle] of String =
-  ('PLAIN', 'BOLD', 'ITALIC', 'BOLDITALIC');
-
-  FontFamilyNames: array [TX3DFontFamily] of string =
-  ('SERIF', 'SANS', 'TYPEWRITER');
-
-  JustifyToString: array[TX3DFontJustify] of string =
-  ('FIRST', 'BEGIN', 'MIDDLE', 'END');
-
-class function TFontStyleNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
-begin
-  Result := Version.Major >= 2;
-end;
-
-function TFontStyleNode.GetFamily: TX3DFontFamily;
-var
-  I: Integer;
-begin
-  for I := 0 to FdFamily.Items.Count - 1 do
-    if FdFamily.Items[I] = 'SERIF' then
-      Exit(ffSerif)
-    else
-    if FdFamily.Items[I] = 'SANS' then
-      Exit(ffSans)
-    else
-    if FdFamily.Items[I] = 'TYPEWRITER' then
-      Exit(ffTypeWriter)
-    else
-      WritelnWarning('VRML/X3D', 'Font family "' + FdFamily.Items[I] + '" not supported');
-
-  { If no supported values on FdFamily.Items then fall back to serif }
-  Result := ffSerif;
-end;
-
-procedure TFontStyleNode.SetFamily(const Value: TX3DFontFamily);
-begin
-  FdFamily.Send(FontFamilyNames[Value]);
-end;
-
-const
-  StyleEnum: array[boolean { bold ? }, boolean { italic ? }] of TX3DFontStyle =
-  ( (fsPlain, fsItalic),
-    (fsBold, fsBoldItalic) );
-
-function TFontStyleNode.GetBold: boolean;
-begin
-  Result := Style in [fsBold, fsBoldItalic];
-end;
-
-procedure TFontStyleNode.SetBold(const Value: boolean);
-begin
-  Style := StyleEnum[Value, Italic];
-end;
-
-function TFontStyleNode.GetItalic: boolean;
-begin
-  Result := Style in [fsItalic, fsBoldItalic];
-end;
-
-procedure TFontStyleNode.SetItalic(const Value: boolean);
-begin
-  Style := StyleEnum[Bold, Value];
-end;
-
-function TFontStyleNode.StringToJustify(const S: string;
-  const DefaultValue: TX3DFontJustify): TX3DFontJustify;
-const
-  SJustifyObsolete = 'Font justify "%s" should not be used in VRML >= 2.0, use "%s" instead';
-var
-  J: string;
-begin
-  { Some X3D models use lowercase names, like [http://instant-reality.com/]
-    test models. }
-  J := UpperCase(S);
-  if (J <> S) and not JustifyWarningUppercaseDone then
-  begin
-    WritelnWarning('VRML/X3D', Format('Font justify value "%s" should be specified in uppercase',
-      [S]));
-    JustifyWarningUppercaseDone := true;
-  end;
-
-  if J = ''       then Result := DefaultValue else
-  if J = 'BEGIN'  then Result := fjBegin else
-  if J = 'FIRST'  then Result := fjFirst else
-  if J = 'MIDDLE' then Result := fjMiddle else
-  if J = 'END'    then Result := fjEnd else
-
-  { Some X3D models use old justify names, like cic.nist.gov X3D demos. }
-  if J = 'LEFT' then
-  begin
-    if not JustifyWarningObsoleteDone then
-    begin
-      WritelnWarning('VRML/X3D', Format(SJustifyObsolete, ['LEFT', 'BEGIN']));
-      JustifyWarningObsoleteDone := true;
-    end;
-    Result := fjBegin;
-  end else
-  if J = 'CENTER' then
-  begin
-    if not JustifyWarningObsoleteDone then
-    begin
-      WritelnWarning('VRML/X3D', Format(SJustifyObsolete, ['CENTER', 'MIDDLE']));
-      JustifyWarningObsoleteDone := true;
-    end;
-    Result := fjMiddle;
-  end else
-  if J = 'RIGHT' then
-  begin
-    if not JustifyWarningObsoleteDone then
-    begin
-      WritelnWarning('VRML/X3D', Format(SJustifyObsolete, ['RIGHT', 'END']));
-      JustifyWarningObsoleteDone := true;
-    end;
-    Result := fjEnd;
-  end else
-
-  begin
-    Result := DefaultValue;
-    if not JustifyWarningNotSupportedDone then
-    begin
-      WritelnWarning('VRML/X3D', 'Font justify "' + S + '" not supported');
-      JustifyWarningNotSupportedDone := true;
-    end;
-  end;
-end;
-
-function TFontStyleNode.GetJustify: TX3DFontJustify;
-begin
-  if FdJustify.Items.Count > 0 then
-    Result := StringToJustify(FdJustify.Items[0], DefaultJustify)
-  else
-    Result := DefaultJustify;
-end;
-
-function TFontStyleNode.GetJustifyMinor: TX3DFontJustify;
-begin
-  if FdJustify.Items.Count > 1 then
-    Result := StringToJustify(FdJustify.Items[1], DefaultJustifyMinor)
-  else
-    Result := DefaultJustifyMinor;
-end;
-
-procedure TFontStyleNode.SetJustify(const Value: TX3DFontJustify);
-begin
-  FdJustify.Send([JustifyToString[Value], JustifyToString[JustifyMinor]]);
-end;
-
-procedure TFontStyleNode.SetJustifyMinor(const Value: TX3DFontJustify);
-begin
-  FdJustify.Send([JustifyToString[Justify], JustifyToString[Value]]);
-end;
-
-destructor TTextNode.Destroy;
-begin
-  if X3DCache <> nil then
-    X3DCache.FreeFontTexture(FFontTextureNode);
-  inherited;
-end;
-
-procedure TTextNode.FontChanged;
-begin
-  if X3DCache <> nil then
-    X3DCache.FreeFontTexture(FFontTextureNode);
-end;
-
-function TTextNode.TexCoordField: TSFNode;
-begin
-  Result := FdTexCoord;
-end;
-
-function TTextNode.SolidField: TSFBool;
-begin
-  Result := FdSolid;
-end;
+{ internal routine to create proxy ------------------------------------------- }
 
 {$ifdef BUGGY_AARCH64_OPTIMIZATIONS}
   {$optimization OFF}
@@ -745,9 +587,188 @@ end;
   {$info Workaround Aarch64 optimizer: TextProxy not optimized (end)}
 {$endif}
 
-function TTextNode.ProxyUsesOverTriangulate: boolean;
+{ constants ------------------------------------------------------------------ }
+
+const
+  FontStyleNames: array [TX3DFontStyle] of String =
+  ('PLAIN', 'BOLD', 'ITALIC', 'BOLDITALIC');
+
+  FontFamilyNames: array [TX3DFontFamily] of string =
+  ('SERIF', 'SANS', 'TYPEWRITER');
+
+  JustifyToString: array[TX3DFontJustify] of string =
+  ('FIRST', 'BEGIN', 'MIDDLE', 'END');
+
+{ TFontStyleNode ------------------------------------------------------------- }
+
+constructor TFontStyleNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
-  Result := false;
+  inherited;
+  FCustomFontObserver := TFreeNotificationObserver.Create(nil);
+  FCustomFontObserver.OnFreeNotification := @CustomFontFreeNotification;
+end;
+
+destructor TFontStyleNode.Destroy;
+begin
+  FreeAndNil(FCustomFontObserver);
+  inherited;
+end;
+
+procedure TFontStyleNode.SetCustomFont(const Value: TCastleFont);
+begin
+  if FCustomFont <> Value then
+  begin
+    FCustomFont := Value;
+    FCustomFontObserver.Observed := Value;
+  end;
+end;
+
+procedure TFontStyleNode.CustomFontFreeNotification(const Sender: TFreeNotificationObserver);
+begin
+  FCustomFont := nil;
+end;
+
+class function TFontStyleNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
+begin
+  Result := Version.Major >= 2;
+end;
+
+function TFontStyleNode.GetFamily: TX3DFontFamily;
+var
+  I: Integer;
+begin
+  for I := 0 to FdFamily.Items.Count - 1 do
+    if FdFamily.Items[I] = 'SERIF' then
+      Exit(ffSerif)
+    else
+    if FdFamily.Items[I] = 'SANS' then
+      Exit(ffSans)
+    else
+    if FdFamily.Items[I] = 'TYPEWRITER' then
+      Exit(ffTypeWriter)
+    else
+      WritelnWarning('VRML/X3D', 'Font family "' + FdFamily.Items[I] + '" not supported');
+
+  { If no supported values on FdFamily.Items then fall back to serif }
+  Result := ffSerif;
+end;
+
+procedure TFontStyleNode.SetFamily(const Value: TX3DFontFamily);
+begin
+  FdFamily.Send(FontFamilyNames[Value]);
+end;
+
+const
+  StyleEnum: array[boolean { bold ? }, boolean { italic ? }] of TX3DFontStyle =
+  ( (fsPlain, fsItalic),
+    (fsBold, fsBoldItalic) );
+
+function TFontStyleNode.GetBold: boolean;
+begin
+  Result := Style in [fsBold, fsBoldItalic];
+end;
+
+procedure TFontStyleNode.SetBold(const Value: boolean);
+begin
+  Style := StyleEnum[Value, Italic];
+end;
+
+function TFontStyleNode.GetItalic: boolean;
+begin
+  Result := Style in [fsItalic, fsBoldItalic];
+end;
+
+procedure TFontStyleNode.SetItalic(const Value: boolean);
+begin
+  Style := StyleEnum[Bold, Value];
+end;
+
+function TFontStyleNode.StringToJustify(const S: string;
+  const DefaultValue: TX3DFontJustify): TX3DFontJustify;
+const
+  SJustifyObsolete = 'Font justify "%s" should not be used in VRML >= 2.0, use "%s" instead';
+var
+  J: string;
+begin
+  { Some X3D models use lowercase names, like [http://instant-reality.com/]
+    test models. }
+  J := UpperCase(S);
+  if (J <> S) and not JustifyWarningUppercaseDone then
+  begin
+    WritelnWarning('VRML/X3D', Format('Font justify value "%s" should be specified in uppercase',
+      [S]));
+    JustifyWarningUppercaseDone := true;
+  end;
+
+  if J = ''       then Result := DefaultValue else
+  if J = 'BEGIN'  then Result := fjBegin else
+  if J = 'FIRST'  then Result := fjFirst else
+  if J = 'MIDDLE' then Result := fjMiddle else
+  if J = 'END'    then Result := fjEnd else
+
+  { Some X3D models use old justify names, like cic.nist.gov X3D demos. }
+  if J = 'LEFT' then
+  begin
+    if not JustifyWarningObsoleteDone then
+    begin
+      WritelnWarning('VRML/X3D', Format(SJustifyObsolete, ['LEFT', 'BEGIN']));
+      JustifyWarningObsoleteDone := true;
+    end;
+    Result := fjBegin;
+  end else
+  if J = 'CENTER' then
+  begin
+    if not JustifyWarningObsoleteDone then
+    begin
+      WritelnWarning('VRML/X3D', Format(SJustifyObsolete, ['CENTER', 'MIDDLE']));
+      JustifyWarningObsoleteDone := true;
+    end;
+    Result := fjMiddle;
+  end else
+  if J = 'RIGHT' then
+  begin
+    if not JustifyWarningObsoleteDone then
+    begin
+      WritelnWarning('VRML/X3D', Format(SJustifyObsolete, ['RIGHT', 'END']));
+      JustifyWarningObsoleteDone := true;
+    end;
+    Result := fjEnd;
+  end else
+
+  begin
+    Result := DefaultValue;
+    if not JustifyWarningNotSupportedDone then
+    begin
+      WritelnWarning('VRML/X3D', 'Font justify "' + S + '" not supported');
+      JustifyWarningNotSupportedDone := true;
+    end;
+  end;
+end;
+
+function TFontStyleNode.GetJustify: TX3DFontJustify;
+begin
+  if FdJustify.Items.Count > 0 then
+    Result := StringToJustify(FdJustify.Items[0], DefaultJustify)
+  else
+    Result := DefaultJustify;
+end;
+
+function TFontStyleNode.GetJustifyMinor: TX3DFontJustify;
+begin
+  if FdJustify.Items.Count > 1 then
+    Result := StringToJustify(FdJustify.Items[1], DefaultJustifyMinor)
+  else
+    Result := DefaultJustifyMinor;
+end;
+
+procedure TFontStyleNode.SetJustify(const Value: TX3DFontJustify);
+begin
+  FdJustify.Send([JustifyToString[Value], JustifyToString[JustifyMinor]]);
+end;
+
+procedure TFontStyleNode.SetJustifyMinor(const Value: TX3DFontJustify);
+begin
+  FdJustify.Send([JustifyToString[Justify], JustifyToString[Value]]);
 end;
 
 function TFontStyleNode.Font: TTextureFontData;
@@ -790,6 +811,36 @@ begin
     OnFont(Self, Result);
 end;
 
+{ TTextNode ------------------------------------------------------------------ }
+
+destructor TTextNode.Destroy;
+begin
+  if X3DCache <> nil then
+    X3DCache.FreeFontTexture(FFontTextureNode);
+  inherited;
+end;
+
+procedure TTextNode.FontChanged;
+begin
+  if X3DCache <> nil then
+    X3DCache.FreeFontTexture(FFontTextureNode);
+end;
+
+function TTextNode.TexCoordField: TSFNode;
+begin
+  Result := FdTexCoord;
+end;
+
+function TTextNode.SolidField: TSFBool;
+begin
+  Result := FdSolid;
+end;
+
+function TTextNode.ProxyUsesOverTriangulate: boolean;
+begin
+  Result := false;
+end;
+
 function TTextNode.Font: TTextureFontData;
 var
   TemporaryFontStyle: TFontStyleNode;
@@ -820,6 +871,8 @@ begin
   end;
   Result := FFontTextureNode;
 end;
+
+{ registration --------------------------------------------------------------- }
 
 procedure RegisterTextNodes;
 begin
