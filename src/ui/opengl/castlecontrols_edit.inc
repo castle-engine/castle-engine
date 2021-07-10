@@ -46,6 +46,7 @@
     FPasswordChar: Char;
     FTextTranslate, FPlaceholderTranslate: Boolean;
     FAlignment: THorizontalPosition;
+    FEnabled: boolean;
     procedure SetText(const Value: string);
     procedure SetFocusedColor(const Value: TCastleColor);
     procedure SetUnfocusedColor(const Value: TCastleColor);
@@ -59,6 +60,7 @@
     procedure SetPlaceholder(const Value: String);
     procedure SetPasswordChar(const Value: Char);
     procedure SetAlignment(const Value: THorizontalPosition);
+    procedure SetEnabled(const Value: boolean);
   protected
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
     function GetInternalText: String; override;
@@ -172,6 +174,9 @@
     property Alignment: THorizontalPosition
       read FAlignment write SetAlignment default hpLeft;
 
+    { Enabled control can be focused and edited, is not grayed-out. }
+    property Enabled: boolean read FEnabled write SetEnabled default true;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleedit_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -260,6 +265,7 @@ begin
   FAutoSizeHeight := true;
   FTextTranslate := true;
   FPlaceholderTranslate := true;
+  FEnabled := true;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleedit_persistent_vectors.inc}
@@ -410,7 +416,7 @@ end;
 function TCastleEdit.PropertySections(const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
-    'Text', 'Alignment':
+    'Text', 'Alignment', 'Enabled':
       Result := [psBasic];
     else
       Result := inherited PropertySections(PropertyName);
@@ -468,7 +474,7 @@ begin
     if PasswordChar <> #0 then
       S := StringOfChar(PasswordChar, Length(S));
 
-    if Focused then
+    if Focused and Enabled then
     begin
       { Note that S here may be already processed by PasswordChar. }
       CaretShift := Font.TextWidth(S);
@@ -494,7 +500,7 @@ begin
     hpRight :
       begin
         TextLeft := RectInside.Right - Font.TextWidth(S);
-        if Focused then
+        if Focused and Enabled then
           TextLeft := TextLeft - Font.TextWidth(CaretChar);
       end;
     {$ifndef COMPILER_CASE_ANALYSIS}
@@ -508,7 +514,7 @@ begin
   Font.Print(TextLeft, TextBottom, Color, S);
 
   { Note that we have to display Caret even when Text = '' and S = Placeholder. }
-  if Focused then
+  if Focused and Enabled then
   begin
     CaretVisible := FloatModulo(LifeTime * CaretSpeed, 1.0) < 0.5;
     if CaretVisible then
@@ -532,7 +538,7 @@ end;
 function TCastleEdit.Press(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
-  if Result or (not GetExists) then Exit;
+  if Result or (not GetExists) or (not Enabled) then Exit;
 
   if Event.IsKey(CharBackSpace) or Event.IsKey(keyBackSpace) then
   begin
@@ -652,6 +658,15 @@ begin
   if FAlignment <> Value then
   begin
     FAlignment := Value;
+    VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleEdit.SetEnabled(const Value: boolean);
+begin
+  if FEnabled <> Value then
+  begin
+    FEnabled := Value;
     VisibleChange([chRender]);
   end;
 end;

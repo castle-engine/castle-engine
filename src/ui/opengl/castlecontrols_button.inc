@@ -298,6 +298,7 @@
     property ImageMargin: Single read FImageMargin write SetImageMargin
       default DefaultImageMargin;
 
+    { Enabled button can be focused and clicked, is not grayed-out. }
     property Enabled: boolean read FEnabled write SetEnabled default true;
 
     { Enable to drag a parent control, for example to drag a TCastleScrollView
