@@ -8,7 +8,7 @@
     <CompilerOptions>
       <Version Value="11"/>
       <SearchPaths>
-        <IncludeFiles Value="../src/base;../src/lcl"/>
+        <IncludeFiles Value="../src/common_includes;../src/lcl"/>
         <OtherUnitFiles Value="../src/lcl"/>
         <UnitOutputDirectory Value="lib/castle_components/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>

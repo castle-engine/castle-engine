@@ -224,6 +224,7 @@ var
         as Lazarus packages could not compile otherwise. }
 
       AddEnginePath('base');
+      AddEnginePath('common_includes');
       AddEnginePath('base/android');
       AddEnginePath('base/windows');
       AddEnginePath('base/unix');

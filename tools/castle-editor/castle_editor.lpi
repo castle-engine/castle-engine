@@ -172,7 +172,7 @@
       <Filename Value="castle-editor"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="../../src/base;$(ProjOutDir)"/>
+      <IncludeFiles Value="../../src/common_includes;$(ProjOutDir)"/>
       <OtherUnitFiles Value="../common-code;code"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>

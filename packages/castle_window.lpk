@@ -7,7 +7,7 @@
     <CompilerOptions>
       <Version Value="11"/>
       <SearchPaths>
-        <IncludeFiles Value="../src/window/unix;../src/window/windows;../src/window/gtk;../src/base;../src/window;../src/deprecated_units"/>
+        <IncludeFiles Value="../src/window/unix;../src/window/windows;../src/window/gtk;../src/common_includes;../src/window;../src/deprecated_units"/>
         <OtherUnitFiles Value="../src/window;../src/window/windows;../src/window/unix;../src/ui/windows;../src/deprecated_units;../src/window/deprecated_units"/>
         <UnitOutputDirectory Value="lib/castle_window/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>

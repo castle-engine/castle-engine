@@ -160,6 +160,9 @@ begin
     if Defaults.OS in AllWindowsOSes then
       P.Targets.AddUnit('castlewindowsfonts.pas');
 
+    P.SourcePath.Add('src' + PathDelim + 'common_includes');
+    // No units inside
+
     P.SourcePath.Add('src' + PathDelim + 'base');
     P.Targets.AddUnit('castleapplicationproperties.pas');
     P.Targets.AddUnit('castleclassutils.pas');

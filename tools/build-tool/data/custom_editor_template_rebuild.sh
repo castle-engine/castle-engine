@@ -20,7 +20,7 @@ sed --in-place \
   -e 's|</RequiredPackages>|<Item3> <PackageName Value="castle_editor_automatic_package"/> </Item3> </RequiredPackages>|' \
   -e 's|<Filename Value="\(code/[_a-zA-Z0-9]\+.pas\)"|<Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/\1"|' \
   -e 's|<Filename Value="../common-code/|<Filename Value="${CASTLE_ENGINE_PATH}tools/common-code/|' \
-  -e 's|<IncludeFiles Value="../../src/base;$(ProjOutDir)"/>|<IncludeFiles Value="${CASTLE_ENGINE_PATH}src/base;$(ProjOutDir)"/>|' \
+  -e 's|<IncludeFiles Value="../../src/common_includes;$(ProjOutDir)"/>|<IncludeFiles Value="${CASTLE_ENGINE_PATH}src/common_includes;$(ProjOutDir)"/>|' \
   -e 's|<OtherUnitFiles Value="../common-code;code"/>|<OtherUnitFiles Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code;${CASTLE_ENGINE_PATH}tools/common-code"/>|' \
   -e 's|</SearchPaths>|<Libraries Value="${ABSOLUTE_LIBRARY_PATHS}" /> </SearchPaths>|' \
   -e 's|<ConfigFilePath Value="../../castle-fpc-messages.cfg"/>|<ConfigFilePath Value="${CASTLE_ENGINE_PATH}castle-fpc-messages.cfg"/>|' \
