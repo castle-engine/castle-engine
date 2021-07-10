@@ -4,6 +4,12 @@
 */
 
 pipeline {
+  options {
+    /* While concurrent builds of CGE work OK,
+       they stuck Jenkins much with too many long-running builds.
+       Better to wait for previous build to finish. */
+    disableConcurrentBuilds()
+  }
   agent {
     docker {
       image 'kambi/castle-engine-cloud-builds-tools:cge-none'
