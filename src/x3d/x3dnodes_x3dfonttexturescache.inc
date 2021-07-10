@@ -85,7 +85,7 @@ begin
       Inc(C.References);
 
       if Log then
-        WritelnLog('++ : Font texture %s, blending %s : %d', [
+        WritelnLog('++', 'Font texture %s, blending %s : %d', [
           URIDisplay(Font.Image.URL),
           BoolToStr(Blending, true),
           C.References
@@ -121,7 +121,7 @@ begin
   C.FontTexture := Result;
 
   if Log then
-    WritelnLog('++ : Font texture %s, blending %s : %d', [
+    WritelnLog('++', 'Font texture %s, blending %s : %d', [
       URIDisplay(Font.Image.URL),
       BoolToStr(Blending, true),
       1
@@ -141,7 +141,7 @@ begin
     if C.FontTexture = FontTexture then
     begin
       if Log then
-        WritelnLog('-- : Font texture %s, blending %s : %d', [
+        WritelnLog('--', ': Font texture %s, blending %s : %d', [
           URIDisplay(C.Font.Image.URL),
           BoolToStr(C.Blending, true),
           C.References - 1
