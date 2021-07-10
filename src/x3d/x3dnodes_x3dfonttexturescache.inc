@@ -155,12 +155,10 @@ begin
           be a child of another node in X3D graph.
           (Being a TTextNode.FontTextureNode value doesn't make it a normal child,
           i.e. TX3DNode internal child-parent references are not set.)
-          But for safety we call FreeIfUnusedAndNil. }
-        //FreeIfUnusedAndNil(C.FontTexture);
-        { TODO: Contrary to above comment, we need to call FreeAndNil now,
-          otherwise it is leaking (which means that FreeIfUnusedAndNil doesn't
-          free it). Testcase: "The Unholy Society". Why? }
-        FreeAndNil(C.FontTexture);
+          But for safety we use "nice way" with KeepExistingEnd + FreeIfUnusedAndNil. }
+        C.FontTexture.KeepExistingEnd;
+        FreeIfUnusedAndNil(C.FontTexture);
+
         CachedFontTextures.Delete(I);
         CheckEmpty;
       end else
