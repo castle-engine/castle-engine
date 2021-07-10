@@ -3203,6 +3203,70 @@ begin
   AddComponent(R.ComponentClass, R.OnCreate);
 end;
 
+(* Bad place here, move to some Utils unit *)
+procedure CopyProperties(const FromClass, ToClass: TCastleUserInterface);
+begin
+  //ToClass.Name := FromClass.Name;
+  ToClass.Tag := FromClass.Tag;
+  ToClass.Cursor := FromClass.Cursor;
+  ToClass.OnUpdate := FromClass.OnUpdate;
+  ToClass.OnPress := FromClass.OnPress;
+  ToClass.OnRelease := FromClass.OnRelease;
+  ToClass.OnMotion := FromClass.OnMotion;
+  ToClass.OnRender := FromClass.OnRender;
+  ToClass.Exists := FromClass.Exists;
+  ToClass.Left := FromClass.Left;
+  ToClass.Bottom := FromClass.Bottom;
+  ToClass.FullSize := FromClass.FullSize;
+  ToClass.Width := FromClass.Width;
+  ToClass.Height := FromClass.Height;
+  ToClass.WidthFraction := FromClass.WidthFraction;
+  ToClass.HeightFraction := FromClass.HeightFraction;
+  ToClass.AutoSizeToChildren := FromClass.AutoSizeToChildren;
+  ToClass.AutoSizeToChildrenPaddingRight := FromClass.AutoSizeToChildrenPaddingRight;
+  ToClass.AutoSizeToChildrenPaddingTop := FromClass.AutoSizeToChildrenPaddingTop;
+  ToClass.HorizontalAnchorSelf := FromClass.HorizontalAnchorSelf;
+  ToClass.HorizontalAnchorParent := FromClass.HorizontalAnchorParent;
+  ToClass.HorizontalAnchorDelta := FromClass.HorizontalAnchorDelta;
+  ToClass.VerticalAnchorSelf := FromClass.VerticalAnchorSelf;
+  ToClass.VerticalAnchorParent := FromClass.VerticalAnchorParent;
+  ToClass.VerticalAnchorDelta := FromClass.VerticalAnchorDelta;
+  ToClass.Culling := FromClass.Culling;
+  ToClass.ClipChildren := FromClass.ClipChildren;
+  //ToClass.Border := FromClass.Border;
+  //ToClass.BorderColorPersistent := FromClass.BorderColorPersistent;
+end;
+{
+function CopyProperties(const FromClass, ToClass: TObject): String;
+  function GetPropertyByName(const APropList: PPropList; const ACount: Integer; const AName: String): PPropInfo;
+  var
+    P: Integer;
+  begin
+    for P := 0 to ACount - 1 do
+      if APropList^[P]^.Name = AName then
+        Exit(APropList^[P]);
+    Result := nil;
+  end;
+
+var
+  FromProperties, ToProperties: PPropList;
+  FromCount, ToCount: Integer;
+  PropInfo: PPropInfo;
+  I: Integer;
+begin
+  ToCount := GetPropList(ToClass, ToProperties);
+  FromCount := GetPropList(FromClass, FromProperties);
+  Result := '';
+  for I := 0 to ToCount - 1 do
+  begin
+    PropInfo := GetPropertyByName(FromProperties, FromCount, ToProperties^[I]^.Name);
+    if PropInfo <> nil then
+    begin
+      WriteLnLog(ToProperties^[I]^.Name);
+    end;
+  end;
+end;}
+
 procedure TDesignFrame.MenuItemChangeClassClick(Sender: TObject);
 var
   Selected: TComponentList;
@@ -3255,9 +3319,9 @@ begin
   NewUi.Name := ProposeName(R.ComponentClass, DesignOwner);
 
   for I := 0 to SelUi.ControlsCount - 1 do
-  begin
     NewUi.InsertFront(SelUi.ExtractControl(0));
-  end;
+
+  CopyProperties(SelUi, NewUi);
 
   if ParentUi <> nil then
   begin
