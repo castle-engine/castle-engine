@@ -1445,6 +1445,9 @@ type
     { Remove control added by @link(InsertFront) or @link(InsertBack). }
     procedure RemoveControl(const Item: TCastleUserInterface);
 
+    { Extract a control from list of controls without freeing it and return the result }
+    function ExtractControl(const Index: Integer): TCastleUserInterface;
+
     { Index of child control, or -1 if not present. }
     function IndexOfControl(const Item: TCastleUserInterface): Integer;
 
@@ -2210,6 +2213,7 @@ type
       (it is not allowed to add it multiple times), so there's no @code(RemoveAll)
       method. }
     procedure Remove(const Item: TCastleUserInterface);
+    function Extract(const Index: Integer): TCastleUserInterface;
     procedure Clear;
     procedure Add(const Item: TCastleUserInterface); deprecated 'use InsertFront or InsertBack';
     procedure Insert(Index: Integer; const Item: TCastleUserInterface);
@@ -4204,6 +4208,14 @@ begin
     FControls.Remove(Item);
 end;
 
+function TCastleUserInterface.ExtractControl(const Index: Integer): TCastleUserInterface;
+begin
+  if FControls <> nil then
+    Result := FControls.Extract(Index)
+  else
+    raise Exception.Create('Unable to extract a control, because Controls = nil.');
+end;
+
 function TCastleUserInterface.IndexOfControl(const Item: TCastleUserInterface
   ): Integer;
 begin
@@ -5464,6 +5476,11 @@ end;
 procedure TChildrenControls.Remove(const Item: TCastleUserInterface);
 begin
   FList.Remove(Item);
+end;
+
+function TChildrenControls.Extract(const Index: Integer): TCastleUserInterface;
+begin
+  Result := FList.Extract(Index) as TCastleUserInterface;
 end;
 
 procedure TChildrenControls.Clear;
