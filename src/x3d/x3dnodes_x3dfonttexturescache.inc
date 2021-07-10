@@ -141,7 +141,7 @@ begin
     if C.FontTexture = FontTexture then
     begin
       if Log then
-        WritelnLog('--', ': Font texture %s, blending %s : %d', [
+        WritelnLog('--', 'Font texture %s, blending %s : %d', [
           URIDisplay(C.Font.Image.URL),
           BoolToStr(C.Blending, true),
           C.References - 1
