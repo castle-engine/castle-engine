@@ -3213,6 +3213,7 @@ var
   NewUi: TCastleUserInterface;
   I: Integer;
   R: TRegisteredComponent;
+  PreviousName, PreviousClassName: String;
 begin
   { Cancel editing the component name, when adding a component.
     See https://trello.com/c/IC6NQx0X/59-bug-adding-a-component-to-a-component-that-is-being-currently-renamed-triggers-and-exception . }
@@ -3236,9 +3237,17 @@ begin
     WriteLnWarning('Selected component is nil, more than one or not a child of TCastleUserInterface. This is not supported yet.');
     Exit;
   end;
+  if Sel.ClassType = R.ComponentClass then
+  begin
+    WriteLnLog('Tried to change class of the component ' + Sel.Name + ', but the class is the same - no operation was performed.');
+    Exit;
+  end;
 
   SelUi := TCastleUserInterface(Sel);
   ParentUi := SelUi.Parent; // can be nil if this is root
+
+  PreviousName := SelUi.Name;
+  PreviousClassName := SelUi.ClassName;
 
   NewUi := R.ComponentClass.Create(DesignOwner) as TCastleUserInterface;
   if Assigned(R.OnCreate) then // call ComponentOnCreate ASAP after constructor
@@ -3262,7 +3271,10 @@ begin
 
   UpdateDesign;
   SelectedComponent := NewUi;
-  ModifiedOutsideObjectInspector('Change class', ucHigh, false);
+  ModifiedOutsideObjectInspector('Change ' +
+    PreviousName + '(' + PreviousClassName + ') into ' +
+    NewUi.Name + '(' + NewUi.ClassName + ')',
+    ucHigh, false);
 end;
 
 procedure TDesignFrame.MenuTreeViewItemRenameClick(Sender: TObject);
