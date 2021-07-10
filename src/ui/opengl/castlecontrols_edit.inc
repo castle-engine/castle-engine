@@ -45,6 +45,7 @@
     FOnChange: TNotifyEvent;
     FPasswordChar: Char;
     FTextTranslate, FPlaceholderTranslate: Boolean;
+    FAlignment: THorizontalPosition;
     procedure SetText(const Value: string);
     procedure SetFocusedColor(const Value: TCastleColor);
     procedure SetUnfocusedColor(const Value: TCastleColor);
@@ -57,6 +58,7 @@
     procedure SetAutoSizeHeight(const Value: Boolean);
     procedure SetPlaceholder(const Value: String);
     procedure SetPasswordChar(const Value: Char);
+    procedure SetAlignment(const Value: THorizontalPosition);
   protected
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
     function GetInternalText: String; override;
@@ -165,6 +167,10 @@
       Determines if the property is enumerated by @link(TCastleComponent.TranslateProperties),
       which affects the rest of localization routines. }
     property PlaceholderTranslate: Boolean read FPlaceholderTranslate write FPlaceholderTranslate default true;
+
+    { Horizontal alignment of the text. }
+    property Alignment: THorizontalPosition
+      read FAlignment write SetAlignment default hpLeft;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleedit_persistent_vectors.inc}
@@ -403,10 +409,12 @@ end;
 
 function TCastleEdit.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Text') then
-    Result := [psBasic]
-  else
-    Result := inherited PropertySections(PropertyName);
+  case PropertyName of
+    'Text', 'Alignment':
+      Result := [psBasic];
+    else
+      Result := inherited PropertySections(PropertyName);
+  end;
 end;
 
 procedure TCastleEdit.Render;
@@ -480,7 +488,20 @@ begin
   Scissor.Rect := RectInside.Round;
   Scissor.Enabled := true;
 
-  TextLeft := RectInside.Left;
+  case Alignment of
+    hpLeft  : TextLeft := RectInside.Left;
+    hpMiddle: TextLeft := (RectInside.Left + RectInside.Right - Font.TextWidth(S)) / 2;
+    hpRight :
+      begin
+        TextLeft := RectInside.Right - Font.TextWidth(S);
+        if Focused then
+          TextLeft := TextLeft - Font.TextWidth(CaretChar);
+      end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else raise EInternalError.Create('TCastleLabel.Render: Alignment?');
+    {$endif}
+  end;
+
   // center in RectInside, important when AutoSize = false
   TextBottom := RectInside.Bottom +
     (RectInside.Height - Font.RowHeight) / 2 + Font.Descend;
@@ -623,6 +644,15 @@ begin
     S := Placeholder;
     TranslatePropertyEvent(Self, 'Placeholder', S);
     Placeholder := S;
+  end;
+end;
+
+procedure TCastleEdit.SetAlignment(const Value: THorizontalPosition);
+begin
+  if FAlignment <> Value then
+  begin
+    FAlignment := Value;
+    VisibleChange([chRender]);
   end;
 end;
 
