@@ -157,8 +157,6 @@ begin
     P.Targets.AddUnit('castlesoundallocator.pas');
     P.Targets.AddUnit('castleshaders.pas');
     P.Targets.AddUnit('castlewarnings.pas');
-    P.Targets.AddUnit('castlewindowmodes.pas');
-    P.Targets.AddUnit('castlewindowtouch.pas');
     if Defaults.OS in AllWindowsOSes then
       P.Targets.AddUnit('castlewindowsfonts.pas');
 
@@ -343,6 +341,10 @@ begin
       P.SourcePath.Add('src' + PathDelim + 'window' + PathDelim + 'unix');
       P.Targets.AddUnit('castleinternalxlib.pas');
     end;
+
+    P.SourcePath.Add('src' + PathDelim + 'window' + PathDelim + 'deprecated_units');
+    P.Targets.AddUnit('castlewindowmodes.pas');
+    P.Targets.AddUnit('castlewindowtouch.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'x3d');
     P.Targets.AddUnit('castleinternalarraysgenerator.pas');

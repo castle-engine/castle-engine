@@ -234,6 +234,7 @@ var
       AddEnginePath('window/gtk');
       AddEnginePath('window/windows');
       AddEnginePath('window/unix');
+      AddEnginePath('window/deprecated_units');
       AddEnginePath('images');
       AddEnginePath('images/opengl');
       AddEnginePath('images/opengl/glsl/generated-pascal');

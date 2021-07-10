@@ -213,15 +213,14 @@ begin
      'physics',
      'services',
      'ui',
-     'x3d'
+     'x3d',
+     'deprecated_units'
     ],
     [
       'base/android',
       'files/indy'
     ],
-    [
-      'deprecated_units'
-    ]);
+    [ ]);
   finally FreeAndNil(Lpk) end;
 
   Lpk := TLazarusPackage.Create(InclPathDelim(CgePath) + 'packages' + PathDelim + 'castle_window.lpk');
@@ -229,10 +228,8 @@ begin
     Lpk.CheckFiles([
      'window'
     ],
-    [],
-    [
-      'deprecated_units'
-    ]);
+    [ ],
+    [ ]);
   finally FreeAndNil(Lpk) end;
 
   Lpk := TLazarusPackage.Create(InclPathDelim(CgePath) + 'packages' + PathDelim + 'castle_components.lpk');
@@ -241,9 +238,7 @@ begin
      'lcl'
     ],
     [],
-    [
-      'deprecated_units'
-    ]);
+    [ ]);
   finally FreeAndNil(Lpk) end;
 
   if HasWarnings then
