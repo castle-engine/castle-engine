@@ -73,7 +73,8 @@ implementation
 uses
   SysUtils, Math,
   CastleVectors, CastleTransform, CastleColors,
-  CastleRenderOptions, CastleControls, CastleStringUtils, X3DLoadInternalImage;
+  CastleRenderOptions, CastleControls, CastleStringUtils, X3DLoadInternalImage,
+  CastleImages;
 
 type
   TTiledLayerNode = TTransformNode;
@@ -93,6 +94,8 @@ type
 
     FConvYMatrix: TMatrix2;
 
+    { Converts tilesets to texture nodes. }
+    procedure ConvertTilesets;
     { Tries to construct X3D nodes for each layer. }
     procedure ConvertLayers;
     { Builds Object Group layer node from TTiledMap data. }
@@ -140,8 +143,6 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    { Converts tilesets to texture nodes. }
-    procedure ConvertTilesets;
     { Tries to construct X3D representation from TTiledMap data. }
     procedure ConvertMap;
 
@@ -165,6 +166,39 @@ begin
   begin
     BuildDebugInformationLabel;
     BuildDebugCoordinateSystem;
+  end;
+end;
+
+procedure TTiledMapConverter.ConvertTilesets;
+var
+  Tileset: TTiledMap.TTileset;            // A tileset
+  TilesetTextureNode: TImageTextureNode;  // For better code readability
+  TilesetCastleImage: TCastleImage;       // Load uncompressed image data.
+begin
+  for Tileset in Map.Tilesets do
+  begin
+    //Writeln('Convert tileset: ',Tileset.Name);
+    if Assigned(Tileset.Image) then
+    begin
+      //Writeln('  Image source: ', Tileset.Image.URL);
+      TilesetCastleImage := LoadImage(Tileset.Image.URL);  // Load temporary as TCastleImage
+      if Assigned(TilesetCastleImage) then
+      begin
+        { Create texture node from tileset. }
+        TilesetTextureNode := TImageTextureNode.Create;
+        TilesetTextureNode.RepeatS := False;
+        TilesetTextureNode.RepeatT := False;
+        TilesetTextureNode.LoadFromImage(TilesetCastleImage, False, '');   // False: Temporary TCastleImage is free'd below.
+        //Writeln('  Texture loaded: ', TilesetTextureNode.IsTextureLoaded);
+
+        { Add texture node to array. }
+        SetLength(FTilesetTextureNodeArray, Length(TilesetTextureNodeArray) + 1);
+        FTilesetTextureNodeArray[High(TilesetTextureNodeArray)] := TilesetTextureNode;
+
+        { Free temporary TCastleImage. }
+        FreeAndNil(TilesetCastleImage);
+      end;
+    end;
   end;
 end;
 
@@ -497,27 +531,13 @@ begin
 end;
 
 destructor TTiledMapConverter.Destroy;
+var
+  I: Cardinal;
 begin
+  for I := High(TilesetTextureNodeArray) downto  Low(TilesetTextureNodeArray) do
+    FreeAndNil(TilesetTextureNodeArray[I]);
 
   inherited Destroy;
-end;
-
-procedure TTiledMapConverter.ConvertTilesets;
-var
-  Tileset: TTiledMap.TTileset;    // A tileset
-  TilesetTextureNode: TImageTextureNode;
-begin
-  for Tileset in Map.Tilesets do
-  begin
-    writeln('Convert tileset: ',Tileset.Name);
-
-    if Assigned(Tileset.Image) then
-    begin
-      //TilesetTextureNode := TImageTextureNode.Create;
-      //TilesetTextureNode.LoadFromImage(Tileset.Image, False, '');   // Ownership stays at TTiledMap
-      //writeln('Image successfully loaded: ', TilesetTextureNode.IsTextureLoaded);
-    end;
-  end;
 end;
 
 function TTiledMapConverter.MapWidth: Cardinal;
