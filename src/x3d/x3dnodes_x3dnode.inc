@@ -1198,6 +1198,9 @@ begin
   if AnyNodeDestructionNotifications <> nil then
     AnyNodeDestructionNotifications.ExecuteAll(Self);
 
+  { Note that we call AnyNodeDestructionNotifications and FDestructionNotifications
+    early in the destructor, to allow callbacks to work on still properly initialized
+    instances. }
   if FDestructionNotifications <> nil then
   begin
     FDestructionNotifications.ExecuteAll(Self);
