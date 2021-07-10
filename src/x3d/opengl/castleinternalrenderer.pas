@@ -892,7 +892,7 @@ begin
     begin
       Inc(TextureCached.References);
       if LogRendererCache then
-        WritelnLog('++', '%s: %d', [TextureFullUrl, TextureCached.References]);
+        WritelnLog('++', 'TextureImage %s: %d', [TextureFullUrl, TextureCached.References]);
       Exit(TextureCached.GLName);
     end;
   end;
@@ -917,7 +917,7 @@ begin
   TextureCached.GLName := Result;
 
   if LogRendererCache then
-    WritelnLog('++', '%s: %d', [TextureFullUrl, 1]);
+    WritelnLog('++', 'TextureImage %s: %d', [TextureFullUrl, 1]);
 end;
 
 procedure TGLRendererContextCache.TextureImage_DecReference(
@@ -930,7 +930,7 @@ begin
     begin
       Dec(TextureImageCaches[I].References);
       if LogRendererCache then
-        WritelnLog('--', '%s: %d', [TextureImageCaches[I].FullUrl,
+        WritelnLog('--', 'TextureImage %s: %d', [TextureImageCaches[I].FullUrl,
                                     TextureImageCaches[I].References]);
       if TextureImageCaches[I].References = 0 then
       begin
@@ -971,7 +971,7 @@ begin
     begin
       Inc(TextureCached.References);
       if LogRendererCache then
-        WritelnLog('++', '%s: %d', [TextureFullUrl, TextureCached.References]);
+        WritelnLog('++', 'TextureVideo %s: %d', [TextureFullUrl, TextureCached.References]);
       Exit(TextureCached.GLVideo);
     end;
   end;
@@ -994,7 +994,7 @@ begin
   TextureCached.GLVideo := Result;
 
   if LogRendererCache then
-    WritelnLog('++', '%s: %d', [TextureFullUrl, 1]);
+    WritelnLog('++', 'TextureVideo %s: %d', [TextureFullUrl, 1]);
 end;
 
 procedure TGLRendererContextCache.TextureVideo_DecReference(
@@ -1007,7 +1007,7 @@ begin
     begin
       Dec(TextureVideoCaches[I].References);
       if LogRendererCache then
-        WritelnLog('--', '%s: %d', [
+        WritelnLog('--', 'TextureVideo %s: %d', [
           TextureVideoCaches[I].FullUrl,
           TextureVideoCaches[I].References
         ]);
@@ -1047,7 +1047,7 @@ begin
     begin
       Inc(TextureCached.References);
       if LogRendererCache then
-        WritelnLog('++', 'cube map %s: %d', [
+        WritelnLog('++', 'Cube map %s: %d', [
           TextureFullUrl,
           TextureCached.References
         ]);
@@ -1080,7 +1080,7 @@ begin
   TextureCached.GLName := Result;
 
   if LogRendererCache then
-    WritelnLog('++', 'cube map %s: %d', [TextureFullUrl, 1]);
+    WritelnLog('++', 'Cube map %s: %d', [TextureFullUrl, 1]);
 end;
 
 procedure TGLRendererContextCache.TextureCubeMap_DecReference(
@@ -1093,7 +1093,7 @@ begin
     begin
       Dec(TextureCubeMapCaches[I].References);
       if LogRendererCache then
-        WritelnLog('--', 'cube map %s: %d', [
+        WritelnLog('--', 'Cube map %s: %d', [
           TextureCubeMapCaches[I].FullUrl,
           TextureCubeMapCaches[I].References
         ]);
@@ -1133,7 +1133,7 @@ begin
     begin
       Inc(TextureCached.References);
       if LogRendererCache then
-        WritelnLog('++', '3d texture %s: %d', [TextureFullUrl, TextureCached.References]);
+        WritelnLog('++', 'Texture3D %s: %d', [TextureFullUrl, TextureCached.References]);
       Exit(TextureCached.GLName);
     end;
   end;
@@ -1161,7 +1161,7 @@ begin
   TextureCached.GLName := Result;
 
   if LogRendererCache then
-    WritelnLog('++', '3d texture %s: %d', [TextureFullUrl, 1]);
+    WritelnLog('++', 'Texture3D %s: %d', [TextureFullUrl, 1]);
 end;
 
 procedure TGLRendererContextCache.Texture3D_DecReference(
@@ -1174,7 +1174,7 @@ begin
     begin
       Dec(Texture3DCaches[I].References);
       if LogRendererCache then
-        WritelnLog('--', '3d texture %s: %d', [
+        WritelnLog('--', 'Texture3D %s: %d', [
           Texture3DCaches[I].FullUrl,
           Texture3DCaches[I].References
         ]);
