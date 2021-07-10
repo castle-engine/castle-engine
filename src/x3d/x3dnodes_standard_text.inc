@@ -132,7 +132,7 @@
     function FontTextureNode: TAbstractTexture2DNode; override;
 
     { Force recalculating the shape and font texture.
-      Call this when TFontStyleNode.OnFont returns something different. }
+      Call this when TFontStyleNode.CustomFont, TFontStyleNode.OnFont returns something different. }
     procedure FontChanged;
 
     {$I auto_generated_node_helpers/x3dnodes_text.inc}
@@ -807,8 +807,15 @@ begin
 begin
   Result := TextureFont_DejaVuSans_20;
 {$endif}
+  if CustomFont <> nil then
+    {$warnings off} // FontData is deprecated, it should be internal
+    Result := CustomFont.FontData
+    {$warnings on}
+  else
+  {$warnings off} // keep deprecated working
   if Assigned(OnFont) then
     OnFont(Self, Result);
+  {$warnings on}
 end;
 
 { TTextNode ------------------------------------------------------------------ }

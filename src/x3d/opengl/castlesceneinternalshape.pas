@@ -147,7 +147,13 @@ begin
       Cache.InvalidateVertexData(AllVboTypes);
   end;
 
-  if Changes * [chTextureImage, chTextureRendererProperties] <> [] then
+  if Changes * [
+       chTextureImage,
+       chTextureRendererProperties,
+       { Needed to make TCastleText.CustomFont change applied OK,
+         otherwise TCastleText could be rendered without blending. }
+       chFontStyleFontChanged
+     ] <> [] then
   begin
     Renderer.UnprepareTexture(State.MainTexture);
     PreparedForRenderer := false;

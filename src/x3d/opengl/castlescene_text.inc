@@ -31,6 +31,8 @@ type
     FAlignment: THorizontalPosition;
     FVerticalAlignment: TVerticalPosition;
     FSize, FSpacing: Single;
+    FCustomFont: TCastleFont;
+    FCustomFontObserver: TFreeNotificationObserver;
     function GetCaption: String;
     procedure SetCaption(const Value: String);
     procedure TextChange(Sender: TObject);
@@ -40,8 +42,10 @@ type
     procedure SetVerticalAlignment(const Value: TVerticalPosition);
     procedure SetSize(const Value: Single);
     procedure SetSpacing(const Value: Single);
-    function GetCustomFont: TCastleFont;
     procedure SetCustomFont(const Value: TCastleFont);
+    procedure CustomFontFreeNotification(const Sender: TFreeNotificationObserver);
+    procedure CustomFontSizeChanged(Sender: TObject);
+    procedure FontStyleFontChanged;
   protected
     procedure TranslateProperties(const TranslatePropertyEvent: TTranslatePropertyEvent); override;
     function GetInternalText: String; override;
@@ -112,7 +116,7 @@ type
     property Spacing: Single read FSpacing write SetSpacing default 1.0;
 
     { Adjust the font. }
-    property CustomFont: TCastleFont read GetCustomFont write SetCustomFont;
+    property CustomFont: TCastleFont read FCustomFont write SetCustomFont;
   end;
 
 {$endif read_interface}
@@ -144,6 +148,9 @@ begin
   FSpacing := 1;
   FAlignment := hpLeft;
   FVerticalAlignment := vpBottom;
+
+  FCustomFontObserver := TFreeNotificationObserver.Create(Self);
+  FCustomFontObserver.OnFreeNotification := @CustomFontFreeNotification;
 end;
 
 destructor TCastleText.Destroy;
@@ -155,7 +162,8 @@ end;
 function TCastleText.PropertySections(const PropertyName: String): TPropertySections;
 begin
   case PropertyName of
-    'Caption', 'Text', 'DoubleSided', 'Size', 'Spacing', 'Alignment', 'VerticalAlignment':
+    'Caption', 'Text', 'DoubleSided', 'Size', 'Spacing', 'Alignment', 'VerticalAlignment',
+    'CustomFont':
       Result := [psBasic];
     else
       Result := inherited PropertySections(PropertyName);
@@ -267,16 +275,44 @@ begin
   Caption := Value;
 end;
 
-function TCastleText.GetCustomFont: TCastleFont;
+procedure TCastleText.CustomFontFreeNotification(const Sender: TFreeNotificationObserver);
 begin
-  { We get/set FontStyleNode.CustomFont, without any own field like FCustomFont.
-    This way we don't need to do any free notification for the custom font instance here. }
-  Result := FontStyleNode.CustomFont;
+  FCustomFont := nil;
+end;
+
+procedure TCastleText.CustomFontSizeChanged(Sender: TObject);
+begin
+  { When CustomFont properties, like OptimalSize, changed -- rebuild also displayed font texture. }
+  FontStyleFontChanged;
+end;
+
+procedure TCastleText.FontStyleFontChanged;
+var
+  I: Integer;
+  Shape: TShape;
+begin
+  // TextNode.FontChanged; // no need to, TShape.Changed will call it, also freeing TextProxy
+  for I := 0 to TShapeTree.AssociatedShapesCount(TextNode) - 1 do
+  begin
+    Shape := TShapeTree.AssociatedShape(TextNode, I) as TShape;
+    Shape.Changed(false, [chFontStyleFontChanged]);
+  end;
 end;
 
 procedure TCastleText.SetCustomFont(const Value: TCastleFont);
 begin
-  FontStyleNode.CustomFont := Value;
+  if FCustomFont <> Value then
+  begin
+    if FCustomFont <> nil then
+      FCustomFont.RemoveFontSizeChangeNotification(@CustomFontSizeChanged);
+    FCustomFont := Value;
+    if FCustomFont <> nil then
+      FCustomFont.AddFontSizeChangeNotification(@CustomFontSizeChanged);
+
+    // modify X3D nodes
+    FontStyleNode.CustomFont := Value;
+    FontStyleFontChanged;
+  end;
 end;
 
 {$endif read_implementation}
