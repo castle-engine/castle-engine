@@ -170,7 +170,7 @@ begin
       [PointerToStr(Node)]);
 
   if Log then
-    WritelnLog('--', ': Node %s : %d', [URIDisplay(C.URL), C.References - 1]);
+    WritelnLog('--', 'Node %s : %d', [URIDisplay(C.URL), C.References - 1]);
 
   Node := nil;
 
