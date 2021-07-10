@@ -48,6 +48,11 @@ type
     LabelEventsInfo: TLabel;
     LabelSizeInfo: TLabel;
     LabelSelectedViewport: TLabel;
+    MenuTreeViewItemChangeClassTransform: TMenuItem;
+    MenuTreeViewItemChangeClassBehavior: TMenuItem;
+    MenuTreeViewItemChangeClassNonVisual: TMenuItem;
+    MenuTreeViewItemChangeClassUserInterface: TMenuItem;
+    MenuTreeViewItemSeparator1: TMenuItem;
     MenuTreeViewItemSeparator127u30130120983: TMenuItem;
     MenuTreeViewItemAddNonVisual: TMenuItem;
     MenuTreeViewItemAddBehavior: TMenuItem;
@@ -129,6 +134,7 @@ type
     procedure ButtonInteractModeClick(Sender: TObject);
     procedure ButtonModifyUiModeClick(Sender: TObject);
     procedure MenuItemAddComponentClick(Sender: TObject);
+    procedure MenuItemChangeClassClick(Sender: TObject);
     procedure MenuTreeViewItemRenameClick(Sender: TObject);
     procedure MenuTreeViewItemDeleteClick(Sender: TObject);
     procedure MenuTreeViewItemCopyClick(Sender: TObject);
@@ -1067,6 +1073,12 @@ begin
     MenuTreeViewItemAddBehavior,
     MenuTreeViewItemAddNonVisual,
     @MenuItemAddComponentClick);
+  BuildComponentsMenu(
+    MenuTreeViewItemChangeClassUserInterface,
+    MenuTreeViewItemChangeClassTransform,
+    MenuTreeViewItemChangeClassBehavior,
+    MenuTreeViewItemChangeClassNonVisual,
+    @MenuItemChangeClassClick);
   // Input_Interact (for gizmos) reacts to both left and right
   Input_Interact.MouseButton2Use := true;
   Input_Interact.MouseButton2 := buttonRight;
@@ -1311,7 +1323,7 @@ procedure TDesignFrame.AddComponent(const ComponentClass: TComponentClass;
 var
   Selected: TComponentList;
   SelectedCount: Integer;
-  ParentComponent:TComponent;
+  ParentComponent: TComponent;
 begin
   // calculate ParentComponent
   GetSelected(Selected, SelectedCount);
@@ -3191,6 +3203,68 @@ begin
   AddComponent(R.ComponentClass, R.OnCreate);
 end;
 
+procedure TDesignFrame.MenuItemChangeClassClick(Sender: TObject);
+var
+  Selected: TComponentList;
+  SelectedCount: Integer;
+  Sel: TComponent;
+  SelUi: TCastleUserInterface;
+  ParentUi: TCastleUserInterface;
+  NewUi: TCastleUserInterface;
+  I: Integer;
+  R: TRegisteredComponent;
+begin
+  { Cancel editing the component name, when adding a component.
+    See https://trello.com/c/IC6NQx0X/59-bug-adding-a-component-to-a-component-that-is-being-currently-renamed-triggers-and-exception . }
+  if ControlsTree.Selected <> nil then
+    ControlsTree.Selected.EndEdit(true);
+
+  R := TRegisteredComponent(Pointer((Sender as TComponent).Tag));
+
+  GetSelected(Selected, SelectedCount);
+  try
+    if SelectedCount = 1 then
+      Sel := Selected.First
+    else
+      Sel := DesignRoot;
+  finally
+    FreeAndNil(Selected);
+  end;
+
+  if not (Sel is TCastleUserInterface) or (SelectedCount > 1) then
+  begin
+    WriteLnWarning('Selected component is nil, more than one or not a child of TCastleUserInterface. This is not supported yet.');
+    Exit;
+  end;
+
+  SelUi := TCastleUserInterface(Sel);
+  ParentUi := SelUi.Parent; // can be nil if this is root
+
+  NewUi := R.ComponentClass.Create(DesignOwner) as TCastleUserInterface;
+  if Assigned(R.OnCreate) then // call ComponentOnCreate ASAP after constructor
+    R.OnCreate(NewUi);
+  NewUi.Name := ProposeName(R.ComponentClass, DesignOwner);
+
+  for I := 0 to SelUi.ControlsCount - 1 do
+  begin
+    NewUi.InsertFront(SelUi.ExtractControl(0));
+  end;
+
+  if ParentUi <> nil then
+  begin
+    ParentUi.InsertControl(ParentUi.IndexOfControl(SelUi), NewUi);
+    ParentUi.RemoveControl(SelUi);
+  end else
+  begin
+    //FreeAndNil(FDesignRoot); - TODO - it will remain dangling in the memory (also stealing name), but won't create memory leak
+    FDesignRoot := NewUi;
+  end;
+
+  UpdateDesign;
+  SelectedComponent := NewUi;
+  ModifiedOutsideObjectInspector('Change class', ucHigh, false);
+end;
+
 procedure TDesignFrame.MenuTreeViewItemRenameClick(Sender: TObject);
 begin
   RenameSelectedItem;
@@ -3219,24 +3293,51 @@ begin
   MenuTreeViewItemRename.Enabled := RenamePossible;
   MenuTreeViewItemDuplicate.Enabled := Sel <> nil;
   MenuTreeViewItemCopy.Enabled := Sel <> nil;
-  MenuTreeViewItemDelete.Enabled := ControlsTree.SelectionCount > 0; // delete can handle multiple objects
+  MenuTreeViewItemDelete.Enabled := ControlsTree.SelectionCount > 0; // Delete can handle multiple objects
   if (Sel is TCastleUserInterface) or ((Sel = nil) and (DesignRoot is TCastleUserInterface)) then
   begin
     MenuTreeViewItemAddUserInterface.SetEnabledVisible(true);
     MenuTreeViewItemAddTransform.SetEnabledVisible(false);
     MenuTreeViewItemAddBehavior.SetEnabledVisible(false);
+    MenuTreeViewItemAddNonVisual.SetEnabledVisible(false);
+    MenuTreeViewItemChangeClassUserInterface.SetEnabledVisible(true);
+    MenuTreeViewItemChangeClassTransform.SetEnabledVisible(false);
+    MenuTreeViewItemChangeClassBehavior.SetEnabledVisible(false);
+    MenuTreeViewItemChangeClassNonVisual.SetEnabledVisible(false);
   end else
   if (Sel is TCastleTransform) or ((Sel = nil) and (DesignRoot is TCastleTransform)) then
   begin
     MenuTreeViewItemAddUserInterface.SetEnabledVisible(false);
     MenuTreeViewItemAddTransform.SetEnabledVisible(true);
     MenuTreeViewItemAddBehavior.SetEnabledVisible(true);
+    MenuTreeViewItemAddNonVisual.SetEnabledVisible(false);
+    MenuTreeViewItemChangeClassUserInterface.SetEnabledVisible(false);
+    MenuTreeViewItemChangeClassTransform.SetEnabledVisible(false); // TODO
+    MenuTreeViewItemChangeClassBehavior.SetEnabledVisible(false);
+    MenuTreeViewItemChangeClassNonVisual.SetEnabledVisible(false);
   end else
+  if (Sel is TCastleBehavior) or ((Sel = nil) and (DesignRoot is TCastleBehavior)) then
   begin
     // on other components, you can add NonVisualComponent
     MenuTreeViewItemAddUserInterface.SetEnabledVisible(false);
     MenuTreeViewItemAddTransform.SetEnabledVisible(false);
     MenuTreeViewItemAddBehavior.SetEnabledVisible(false);
+    MenuTreeViewItemAddNonVisual.SetEnabledVisible(true);
+    MenuTreeViewItemChangeClassUserInterface.SetEnabledVisible(false);
+    MenuTreeViewItemChangeClassTransform.SetEnabledVisible(false);
+    MenuTreeViewItemChangeClassBehavior.SetEnabledVisible(false); // TODO
+    MenuTreeViewItemChangeClassNonVisual.SetEnabledVisible(false);
+  end else
+  begin
+    // NonVisualComponent
+    MenuTreeViewItemAddUserInterface.SetEnabledVisible(false);
+    MenuTreeViewItemAddTransform.SetEnabledVisible(false);
+    MenuTreeViewItemAddBehavior.SetEnabledVisible(false);
+    MenuTreeViewItemAddNonVisual.SetEnabledVisible(true);
+    MenuTreeViewItemChangeClassUserInterface.SetEnabledVisible(false);
+    MenuTreeViewItemChangeClassTransform.SetEnabledVisible(false);
+    MenuTreeViewItemChangeClassBehavior.SetEnabledVisible(false);
+    MenuTreeViewItemChangeClassNonVisual.SetEnabledVisible(false); // TODO
   end;
   MenuTreeView.PopupComponent := ControlsTree; // I'm not sure what it means, something like menu owner?
 end;

@@ -1568,6 +1568,21 @@ object DesignFrame: TDesignFrame
     object MenuTreeViewItemAddNonVisual: TMenuItem
       Caption = 'Add Non-Visual Component'
     end
+    object MenuTreeViewItemSeparator1: TMenuItem
+      Caption = '-'
+    end
+    object MenuTreeViewItemChangeClassUserInterface: TMenuItem
+      Caption = 'Change Class ...'
+    end
+    object MenuTreeViewItemChangeClassTransform: TMenuItem
+      Caption = 'Change Class ...'
+    end
+    object MenuTreeViewItemChangeClassBehavior: TMenuItem
+      Caption = 'Change Class ...'
+    end
+    object MenuTreeViewItemChangeClassNonVisual: TMenuItem
+      Caption = 'Change Class ...'
+    end
     object MenuTreeViewItemSeparator127u30130120983: TMenuItem
       Caption = '-'
     end
