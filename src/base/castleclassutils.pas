@@ -774,21 +774,84 @@ type
     because you can get it from @code(Sender.Observed) if needed. }
   TFreeNotificationEvent = procedure (const Sender: TFreeNotificationObserver) of object;
 
-  { Observe when something is freed, call an event then.
+  (*Observe when something is freed, and call an event then.
     You need to set @link(Observed) of this component
     to make it notified about freeing of something.
-    (It will use standard FreeNotification / RemoveFreeNotification under the hood.)
     When the @link(Observed) is freed, this component will make OnFreeNotification event.
 
-    Using this is useful if one class wants to observe freeing of multiple properties,
-    and some of those properties may be sometimes equal.
-    In this case using FreeNotification / RemoveFreeNotification with the main class
-    would be unreliable (as RemoveFreeNotification removes the notification,
-    even if you registered to it twice by FreeNotification), and requires complicated
-    code to handles these special cases.
+    An example code using it:
 
-    Using this component as a "proxy" to track each property is simpler.
-    See e.g. TCastleThirdPersonNavigation implementation for example. }
+    @longCode(#
+    type
+      TChild = class(TComponent)
+      end;
+
+      TContainer = class(TComponent)
+      private
+        FChild: TChild;
+        FChildObserver: TFreeNotificationObserver;
+        procedure SetChild(const Value: TChild);
+        procedure ChildFreeNotification(const Sender: TFreeNotificationObserver);
+      public
+        constructor Create(AOwner: TComponent);
+        property Child: TChild read FChild write SetChild;
+      end;
+
+    implementation
+
+    constructor TContainer.Create(AOwner: TComponent);
+    begin
+      inherited;
+      FChildObserver := TFreeNotificationObserver.Create(Self);
+      FChildObserver.OnFreeNotification := @ChildFreeNotification;
+    end;
+
+    procedure TContainer.SetChild(const Value: TChild);
+    begin
+      if FChild <> Value then
+      begin
+        FChild := Value;
+        FChildObserver.Observed := Value;
+      end;
+    end;
+
+    procedure TContainer.ChildFreeNotification(const Sender: TFreeNotificationObserver);
+    begin
+      FChild := nil;
+    end;
+    #)
+
+    Using this is an alternative to observing freeing using
+    standard TComponent.FreeNotification / TComponent.RemoveFreeNotification mechanism
+    https://castle-engine.io/modern_pascal_introduction.html#_free_notification .
+    Using TFreeNotificationObserver is:
+
+    @unorderedList(
+      @item(A bit simpler and it's harder to make a mistake.
+
+        E.g. the line @code(FChildObserver.Observed := Value) is simpler
+        than the typical equivalent lines required to unregister notification
+        of the old value and register notification of the new value.
+        (See https://castle-engine.io/modern_pascal_introduction.html#_free_notification
+        example of FreeNotification usage.)
+      )
+
+      @item(The TContainer doesn't need to descend from TComponent.
+
+        You can manually free FChildObserver in the TContainer.Destroy.)
+
+      @item(Reliable if one class wants to observe freeing of multiple properties,
+        and some of those properties may be sometimes equal.
+        In this case using FreeNotification / RemoveFreeNotification with the main class
+        would be unreliable (as RemoveFreeNotification removes the notification,
+        even if you registered to it twice by FreeNotification), and requires complicated
+        code to handles these special cases.
+
+        Using this component as a "proxy" to track each property is simpler,
+        there's no additional code to handle this case. You just need different
+        observer for each property to be observed.)
+    )
+  *)
   TFreeNotificationObserver = class(TComponent)
   strict private
     FObserved: TComponent;
