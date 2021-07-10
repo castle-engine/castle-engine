@@ -201,6 +201,7 @@ begin
   Lpk := TLazarusPackage.Create(InclPathDelim(CgePath) + 'packages' + PathDelim + 'castle_base.lpk');
   try
     Lpk.CheckFiles([
+     'common_includes',
      '3d',
      'audio',
      'base',

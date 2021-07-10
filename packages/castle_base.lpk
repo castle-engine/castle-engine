@@ -366,7 +366,7 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item72>
       <Item73>
-        <Filename Value="../src/base/castleconf.inc"/>
+        <Filename Value="../src/common_includes/castleconf.inc"/>
         <Type Value="Include"/>
       </Item73>
       <Item74>
