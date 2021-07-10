@@ -807,7 +807,7 @@ begin
 begin
   Result := TextureFont_DejaVuSans_20;
 {$endif}
-  if CustomFont <> nil then
+  if (CustomFont <> nil) and CustomFont.FontLoaded then // when not FontLoaded, FontData is nil
     {$warnings off} // FontData is deprecated, it should be internal
     Result := CustomFont.FontData
     {$warnings on}
