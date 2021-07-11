@@ -836,50 +836,62 @@ begin
   for I := 0 to ToCount - 1 do
   begin
     PropInfo := GetSameProperty(FromProperties, FromCount, ToProperties^[I]);
-    if (PropInfo <> nil) and IsWriteableProp(ToClass, ToProperties^[I]^.Name) then
-    begin
-      //WriteLnLog(ToProperties^[I]^.Name);
-      case ToProperties^[I]^.PropType^.Kind of
-        tkDynArray:
-          SetDynArrayProp(ToClass, ToProperties^[I], GetDynArrayProp(FromClass, PropInfo));
-        tkEnumeration:
-          SetEnumProp(ToClass, ToProperties^[I], GetEnumProp(FromClass, PropInfo));
-        tkInteger, tkBool:
-          SetOrdProp(ToClass, ToProperties^[I], GetOrdProp(FromClass, PropInfo)); //shouldn't it be also for tkEnumeration and tkSet according to documentation???
-        tkFloat:
-          SetFloatProp(ToClass, ToProperties^[I], GetFloatProp(FromClass, PropInfo));
-        tkInt64:
-          SetInt64Prop(ToClass, ToProperties^[I], GetInt64Prop(FromClass, PropInfo));
-        tkInterface:
-          SetInterfaceProp(ToClass, ToProperties^[I], GetInterfaceProp(FromClass, PropInfo));
-        tkMethod:
-          SetMethodProp(ToClass, ToProperties^[I], GetMethodProp(FromClass, PropInfo));
-        {
-        tkObject, tkClass:
-          SetObjectProp(ToClass, ToProperties^[I], GetObjectProp(FromClass, PropInfo));
-        TODO: Not working
-        }
-          //SetRawByteStrProp
-        tkInterfaceRaw:
-          SetRawInterfaceProp(ToClass, ToProperties^[I], GetRawInterfaceProp(FromClass, PropInfo));
-        {tkSet:
-          SetSetProp(ToClass, ToProperties^[I], GetSetProp(FromClass, PropInfo));}
-        tkAString:
-          if (PropInfo^.Name <> 'Name') and (PropInfo^.Name <> 'URL') then // otherwise exception "duplicate name"
-            SetStrProp(ToClass, ToProperties^[I], GetStrProp(FromClass, PropInfo))
+    if (PropInfo <> nil) then
+      if IsWriteableProp(ToClass, ToProperties^[I]^.Name) then
+      begin
+        case ToProperties^[I]^.PropType^.Kind of
+          tkDynArray:
+            SetDynArrayProp(ToClass, ToProperties^[I], GetDynArrayProp(FromClass, PropInfo));
+          tkEnumeration:
+            SetEnumProp(ToClass, ToProperties^[I], GetEnumProp(FromClass, PropInfo));
+          tkInteger, tkBool:
+            SetOrdProp(ToClass, ToProperties^[I], GetOrdProp(FromClass, PropInfo)); //shouldn't it be also for tkEnumeration and tkSet according to documentation???
+          tkFloat:
+            SetFloatProp(ToClass, ToProperties^[I], GetFloatProp(FromClass, PropInfo));
+          tkInt64:
+            SetInt64Prop(ToClass, ToProperties^[I], GetInt64Prop(FromClass, PropInfo));
+          tkInterface:
+            SetInterfaceProp(ToClass, ToProperties^[I], GetInterfaceProp(FromClass, PropInfo));
+          tkMethod:
+            SetMethodProp(ToClass, ToProperties^[I], GetMethodProp(FromClass, PropInfo));
+          tkObject, tkClass:
+            //SetObjectProp(ToClass, ToProperties^[I], GetObjectProp(FromClass, PropInfo));
+            //Result += CopyProperties(GetObjectProp(ToClass, ToProperties^[I]), GetObjectProp(FromClass, PropInfo));
+            Result += 'Can''t copy class property ' + PropInfo^.Name + NL;
+          //TODO:
+            //SetRawByteStrProp
+          tkInterfaceRaw:
+            SetRawInterfaceProp(ToClass, ToProperties^[I], GetRawInterfaceProp(FromClass, PropInfo));
+          {tkSet:
+            SetSetProp(ToClass, ToProperties^[I], GetSetProp(FromClass, PropInfo));}
+          tkAString:
+            begin
+              if (PropInfo^.Name = 'Name') then
+                Result += '' // Avoid Duplicate component exception, no need to report it to the User
+              else
+              if (PropInfo^.Name = 'URL') then
+                Result += 'Can''t copy URL as it varies on context' + NL
+              else
+                SetStrProp(ToClass, ToProperties^[I], GetStrProp(FromClass, PropInfo));
+            end;
+          tkUString:
+            SetUnicodeStrProp(ToClass, ToProperties^[I], GetUnicodeStrProp(FromClass, PropInfo));
+          tkVariant:
+            SetVariantProp(ToClass, ToProperties^[I], GetVariantProp(FromClass, PropInfo));
+            //SetPropValue - a bizzare way to set a Variant propery?
+          tkWString:
+            SetWideStrProp(ToClass, ToProperties^[I], GetWideStrProp(FromClass, PropInfo));
           else
-            Result += 'Can''t copy: ' + PropInfo^.Name + NL;
-        tkUString:
-          SetUnicodeStrProp(ToClass, ToProperties^[I], GetUnicodeStrProp(FromClass, PropInfo));
-        tkVariant:
-          SetVariantProp(ToClass, ToProperties^[I], GetVariantProp(FromClass, PropInfo));
-          //SetPropValue - a bizzare way to set a Variant propery?
-        tkWString:
-          SetWideStrProp(ToClass, ToProperties^[I], GetWideStrProp(FromClass, PropInfo));
-        else
-          Result += 'Can''t copy ' + GetEnumName(TypeInfo(TTypeKind), Ord(ToProperties^[I]^.PropType^.Kind)) + ':' + PropInfo^.Name + NL;
-      end;
-    end;
+            Result += 'Can''t copy ' + GetEnumName(TypeInfo(TTypeKind), Ord(ToProperties^[I]^.PropType^.Kind)) + ':' + PropInfo^.Name + NL;
+        end;
+      end else
+        case ToProperties^[I]^.PropType^.Kind of
+          tkObject, tkClass:
+            //Result += CopyProperties(GetObjectProp(ToClass, ToProperties^[I]), GetObjectProp(FromClass, PropInfo));
+            Result += 'Can''t copy readonly class property ' + PropInfo^.Name + NL;
+          else
+            Result += 'Can''t copy readonly ' + PropInfo^.Name + NL;
+        end;
   end;
   for I := 0 to FromCount - 1 do
   begin
