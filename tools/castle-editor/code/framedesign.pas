@@ -3228,6 +3228,9 @@ var
 
     for I := 0 to SelUi.ControlsCount - 1 do
       NewUi.InsertFront(SelUi.ExtractControl(0));
+    // This doesn't look safe, but it works.
+    for I := 0 to SelUi.NonVisualComponentsCount - 1 do
+      NewUi.AddNonVisualComponent(SelUi.NonVisualComponents[I]);
 
     ConversionResult := CopyProperties(SelUi, NewUi);
 
@@ -3262,10 +3265,13 @@ var
 
     NewTransform.Name := ProposeName(R.ComponentClass, DesignOwner);
 
-    {for I := 0 to SelTransform.BehaviorsCount - 1 do
-      NewTransform.AddBehavior(SelTransform.ExtractBehavior(0));}
     for I := 0 to SelTransform.List.Count - 1 do
       NewTransform.Add(SelTransform.List.Extract(0) as TCastleTransform);
+    // This doesn't look safe, but it works.
+    for I := 0 to SelTransform.NonVisualComponentsCount - 1 do
+      NewTransform.AddNonVisualComponent(SelTransform.NonVisualComponents[I]);
+    for I := 0 to SelTransform.BehaviorsCount - 1 do
+      NewTransform.AddBehavior(SelTransform.Behaviors[I]);
 
     ConversionResult := CopyProperties(SelTransform, NewTransform);
 
