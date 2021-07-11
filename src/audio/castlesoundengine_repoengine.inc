@@ -188,8 +188,7 @@
         MySound1 := SoundEngine.SoundFromName('my_sound_1');
         MySound2 := SoundEngine.SoundFromName('my_sound_2');
         // ... and later in your game you can do stuff like this:
-        SoundEngine.Sound(MySound1);
-        SoundEngine.Sound3D(MySound1, Vector3(0, 0, 10));
+        SoundEngine.Play(MySound1);
       #)
 
       See https://castle-engine.io/manual_data_directory.php

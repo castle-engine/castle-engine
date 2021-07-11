@@ -275,7 +275,7 @@ begin
 
   if Event.IsMouseButton(buttonLeft) then
   begin
-    SoundEngine.Sound(SoundEngine.SoundFromName('shoot_sound'));
+    SoundEngine.Play(SoundEngine.SoundFromName('shoot_sound'));
 
     { We clicked on enemy if
       - TransformUnderMouse indicates we hit something
