@@ -193,6 +193,8 @@ var
     MuteOnRun. }
   RunningApplication: Boolean;
 
+{ Copy (most of) published properties from one class to another
+  Returns list of fields lost during copying }
 function CopyProperties(const FromClass, ToClass: TObject): String;
 
 { Update SoundEngine.Volume based on
@@ -863,8 +865,10 @@ begin
         {tkSet:
           SetSetProp(ToClass, ToProperties^[I], GetSetProp(FromClass, PropInfo));}
         tkAString:
-          if PropInfo^.Name <> 'Name' then // otherwise exception "duplicate name"
-            SetStrProp(ToClass, ToProperties^[I], GetStrProp(FromClass, PropInfo));
+          if (PropInfo^.Name <> 'Name') and (PropInfo^.Name <> 'URL') then // otherwise exception "duplicate name"
+            SetStrProp(ToClass, ToProperties^[I], GetStrProp(FromClass, PropInfo))
+          else
+            Result += 'Can''t copy: ' + PropInfo^.Name + NL;
         tkUString:
           SetUnicodeStrProp(ToClass, ToProperties^[I], GetUnicodeStrProp(FromClass, PropInfo));
         tkVariant:
@@ -873,7 +877,7 @@ begin
         tkWString:
           SetWideStrProp(ToClass, ToProperties^[I], GetWideStrProp(FromClass, PropInfo));
         else
-          Result += GetEnumName(TypeInfo(TTypeKind), Ord(ToProperties^[I]^.PropType^.Kind)) + ':' + PropInfo^.Name + NL;
+          Result += 'Can''t copy ' + GetEnumName(TypeInfo(TTypeKind), Ord(ToProperties^[I]^.PropType^.Kind)) + ':' + PropInfo^.Name + NL;
       end;
     end;
   end;
@@ -881,7 +885,7 @@ begin
   begin
     PropInfo := GetSameProperty(ToProperties, ToCount, FromProperties^[I]);
     if PropInfo = nil then
-      Result += GetEnumName(TypeInfo(TTypeKind), Ord(FromProperties^[I]^.PropType^.Kind)) + ':' +FromProperties^[I]^.Name + NL;
+      Result += 'Lost: ' + FromProperties^[I]^.Name + NL;
   end;
   FreeMem(ToProperties);
   FreeMem(FromProperties);
