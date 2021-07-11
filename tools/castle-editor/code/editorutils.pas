@@ -812,6 +812,10 @@ begin
   *)
 end;
 
+{$if (FPC_VERSION > 3) or ((FPC_VERSION = 3) and (FPC_RELEASE >= 2))}
+{$define rtti_advanced}
+{$endif}
+
 function CopyProperties(const FromClass, ToClass: TObject): String;
 
   function GetSameProperty(const APropList: PPropList; const ACount: Integer; const APropInfo: PPropInfo): PPropInfo;
@@ -837,11 +841,13 @@ begin
   begin
     PropInfo := GetSameProperty(FromProperties, FromCount, ToProperties^[I]);
     if (PropInfo <> nil) then
-      if IsWriteableProp(ToClass, ToProperties^[I]^.Name) then
+      {$ifdef rtti_advanced}if IsWriteableProp(ToClass, ToProperties^[I]^.Name) then{$endif}
       begin
         case ToProperties^[I]^.PropType^.Kind of
+          {$ifdef rtti_advanced}
           tkDynArray:
             SetDynArrayProp(ToClass, ToProperties^[I], GetDynArrayProp(FromClass, PropInfo));
+          {$endif}
           tkEnumeration:
             SetEnumProp(ToClass, ToProperties^[I], GetEnumProp(FromClass, PropInfo));
           tkInteger, tkBool:
@@ -884,7 +890,9 @@ begin
           else
             Result += 'Can''t copy ' + GetEnumName(TypeInfo(TTypeKind), Ord(ToProperties^[I]^.PropType^.Kind)) + ':' + PropInfo^.Name + NL;
         end;
-      end else
+      end
+      {$ifdef rtti_advanced}
+      else
         case ToProperties^[I]^.PropType^.Kind of
           tkObject, tkClass:
             //Result += CopyProperties(GetObjectProp(ToClass, ToProperties^[I]), GetObjectProp(FromClass, PropInfo));
@@ -892,6 +900,7 @@ begin
           else
             Result += 'Can''t copy readonly ' + PropInfo^.Name + NL;
         end;
+      {$endif}
   end;
   for I := 0 to FromCount - 1 do
   begin
