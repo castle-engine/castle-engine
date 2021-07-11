@@ -3218,10 +3218,8 @@ var
     SelUi: TCastleUserInterface;
     ParentUi: TCastleUserInterface;
     NewUi: TCastleUserInterface;
-    PreviousName: String;
   begin
     SelUi := TCastleUserInterface(Sel);
-    PreviousName := SelUi.Name;
     ParentUi := SelUi.Parent; // can be nil if this is root
     NewUi := NewComponent as TCastleUserInterface;
 
@@ -3246,7 +3244,7 @@ var
       CastleControl.Controls.InsertBack(FDesignRoot as TCastleUserInterface);
     end;
     DesignOwner.RemoveComponent(Sel);
-    NewUi.Name := PreviousName;
+    NewUi.Name := SelUi.Name;
   end;
 
 begin
