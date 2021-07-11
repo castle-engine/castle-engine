@@ -3214,6 +3214,7 @@ var
   I: Integer;
   R: TRegisteredComponent;
   PreviousName, PreviousClassName: String;
+  ConversionResult: String;
 begin
   { Cancel editing the component name, when adding a component.
     See https://trello.com/c/IC6NQx0X/59-bug-adding-a-component-to-a-component-that-is-being-currently-renamed-triggers-and-exception . }
@@ -3259,7 +3260,7 @@ begin
   for I := 0 to SelUi.ControlsCount - 1 do
     NewUi.InsertFront(SelUi.ExtractControl(0));
 
-  WriteLnLog(CopyProperties(SelUi, NewUi));
+  ConversionResult := CopyProperties(SelUi, NewUi);
 
   ControlsTree.Items.Clear;
   UpdateSelectedControl;
@@ -3283,6 +3284,8 @@ begin
     PreviousName + '(' + PreviousClassName + ') into ' +
     NewUi.Name + '(' + NewUi.ClassName + ')',
     ucHigh, false);
+
+  ShowMessage('Converted ' + PreviousClassName + ' into ' + NewUi.ClassName + ':' + NL + ConversionResult);
 end;
 
 procedure TDesignFrame.MenuTreeViewItemRenameClick(Sender: TObject);
