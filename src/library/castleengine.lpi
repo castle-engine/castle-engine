@@ -27,7 +27,7 @@
             <Filename Value="castleengine"/>
           </Target>
           <SearchPaths>
-            <IncludeFiles Value="$(ProjOutDir);..\base"/>
+            <IncludeFiles Value="$(ProjOutDir);..\common_includes"/>
             <OtherUnitFiles Value="..\window;..\deprecated_units"/>
             <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
@@ -150,8 +150,8 @@
       <Filename Value="castleengine"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="$(ProjOutDir);..\base"/>
-      <OtherUnitFiles Value="..\window;..\deprecated_units"/>
+      <IncludeFiles Value="$(ProjOutDir);..\common_includes"/>
+      <OtherUnitFiles Value="..\window;..\window\deprecated_units"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Parsing>
