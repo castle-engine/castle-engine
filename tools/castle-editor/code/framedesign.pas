@@ -3221,7 +3221,7 @@ var
   begin
     SelUi := TCastleUserInterface(Sel);
     ParentUi := SelUi.Parent; // can be nil if this is root
-    NewUi := NewComponent as TCastleUserInterface;
+    NewUi := TCastleUserInterface(NewComponent);
 
     // Assign a temporary non-colliding name
     NewUi.Name := ProposeName(R.ComponentClass, DesignOwner);
@@ -3242,9 +3242,40 @@ var
       CastleControl.Controls.Clear;
       FDesignRoot := NewUi;
       CastleControl.Controls.InsertBack(FDesignRoot as TCastleUserInterface);
-    end;
-    DesignOwner.RemoveComponent(Sel);
-    NewUi.Name := SelUi.Name;
+    end; 
+  end;
+
+  procedure ChangeClassOfCastleTransform;
+  var
+    I: Integer;
+    SelTransform: TCastleTransform;
+    ParentTransform: TCastleTransform;
+    NewTransform: TCastleTransform;
+    TempViewport: TCastleViewport;
+  begin
+    SelTransform := TCastleTransform(Sel);
+    ParentTransform := SelTransform.UniqueParent; // can be nil if this is root
+    NewTransform := TCastleTransform(NewComponent);
+
+    // this situation should have been handled in the parent procedure, if it gets to it now, it's an error
+    if (ParentTransform = nil) and (ParentTransform <> ParentTransform.World) then
+      raise Exception.Create('Cannot change class of TCastleTransform which is inserted multiple times in the World.');
+
+    NewTransform.Name := ProposeName(R.ComponentClass, DesignOwner);
+
+    {for I := 0 to SelTransform.BehaviorsCount - 1 do
+      NewTransform.AddBehavior(SelTransform.ExtractBehavior(0));}
+    for I := 0 to SelTransform.List.Count - 1 do
+      NewTransform.Add(SelTransform.List.Extract(0) as TCastleTransform);
+
+    ConversionResult := CopyProperties(SelTransform, NewTransform);
+
+    ControlsTree.Items.Clear;
+    UpdateSelectedControl;
+
+    //TODO: Special handling if ParentTransform is TCastleRootTransform
+    ParentTransform.List.Add(NewTransform); //TODO: will break the order here
+    ParentTransform.Remove(SelTransform);
   end;
 
 begin
@@ -3252,8 +3283,6 @@ begin
     See https://trello.com/c/IC6NQx0X/59-bug-adding-a-component-to-a-component-that-is-being-currently-renamed-triggers-and-exception . }
   if ControlsTree.Selected <> nil then
     ControlsTree.Selected.EndEdit(true);
-
-  R := TRegisteredComponent(Pointer((Sender as TComponent).Tag));
 
   GetSelected(Selected, SelectedCount);
   try
@@ -3270,24 +3299,47 @@ begin
     WriteLnWarning('Selected more than one component. This is not supported.');
     Exit;
   end;
+  if (Sel is TCastleTransform) and (TCastleTransform(Sel).UniqueParent = nil) and (Sel <> TCastleTransform(Sel).World) then
+  begin
+    ShowMessage('Selected CastleTransform ' + Sel.Name + ' is inserted multiple times in the World. Cannot change its class.');
+    Exit;
+  end;
+  if (Sel is TCastleTransform) and (TCastleTransform(Sel).UniqueParent = nil) then
+  begin
+    ShowMessage('Unimplemented: Parent must be at least TCastleRootTransform.');
+    Exit;
+  end;
+  if (Sel is TCastleTransform) and (TCastleTransform(Sel).UniqueParent is TCastleRootTransform) then
+  begin
+    ShowMessage('Unimplemented: Parent must be at least TCastleRootTransform.');
+    Exit;
+  end;
+
+  R := TRegisteredComponent(Pointer((Sender as TComponent).Tag));
+
   if Sel.ClassType = R.ComponentClass then
   begin
     WriteLnLog('Tried to change class of the component ' + Sel.Name + ', but the class is the same - no operation was performed.');
     Exit;
   end;
 
-  NewComponent := R.ComponentClass.Create(DesignOwner) as TCastleUserInterface;
+  NewComponent := R.ComponentClass.Create(DesignOwner);
   if Assigned(R.OnCreate) then // call ComponentOnCreate ASAP after constructor
     R.OnCreate(NewComponent);
 
   if Sel is TCastleUserInterface then
     ChangeClassOfCastleUserInterface
   else
+  if Sel is TCastleTransform then
+    ChangeClassOfCastleTransform
+  else
   begin
-    WriteLnWarning('Selected component is not a child of TCastleUserInterface. This is not supported yet.');
+    WriteLnWarning('Selected component is not a child of TCastleUserInterface or TCastleTransform. This is not supported yet.');
     Exit;
   end;
 
+  DesignOwner.RemoveComponent(Sel);
+  NewComponent.Name := Sel.Name;
   UpdateDesign;
   SelectedComponent := NewComponent;
 
@@ -3347,7 +3399,7 @@ begin
     MenuTreeViewItemAddBehavior.SetEnabledVisible(true);
     MenuTreeViewItemAddNonVisual.SetEnabledVisible(false);
     MenuTreeViewItemChangeClassUserInterface.SetEnabledVisible(false);
-    MenuTreeViewItemChangeClassTransform.SetEnabledVisible(false); // TODO
+    MenuTreeViewItemChangeClassTransform.SetEnabledVisible(true);
     MenuTreeViewItemChangeClassBehavior.SetEnabledVisible(false);
     MenuTreeViewItemChangeClassNonVisual.SetEnabledVisible(false);
   end else
