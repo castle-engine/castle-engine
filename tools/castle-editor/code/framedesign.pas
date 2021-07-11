@@ -3252,6 +3252,8 @@ begin
   NewUi := R.ComponentClass.Create(DesignOwner) as TCastleUserInterface;
   if Assigned(R.OnCreate) then // call ComponentOnCreate ASAP after constructor
     R.OnCreate(NewUi);
+
+  // Assign a temporary non-colliding name
   NewUi.Name := ProposeName(R.ComponentClass, DesignOwner);
 
   for I := 0 to SelUi.ControlsCount - 1 do
@@ -3259,15 +3261,21 @@ begin
 
   WriteLnLog(CopyProperties(SelUi, NewUi));
 
+  ControlsTree.Items.Clear;
+  UpdateSelectedControl;
   if ParentUi <> nil then
   begin
     ParentUi.InsertControl(ParentUi.IndexOfControl(SelUi), NewUi);
     ParentUi.RemoveControl(SelUi);
   end else
   begin
-    //FreeAndNil(FDesignRoot); - TODO - it will remain dangling in the memory (also stealing name), but won't create memory leak
+    CastleControl.Controls.Clear;
     FDesignRoot := NewUi;
+    CastleControl.Controls.InsertBack(FDesignRoot as TCastleUserInterface);
   end;
+  DesignOwner.RemoveComponent(SelUi);
+  FreeAndNil(SelUi);
+  NewUi.Name := PreviousName;
 
   UpdateDesign;
   SelectedComponent := NewUi;
