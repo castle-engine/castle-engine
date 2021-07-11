@@ -3212,10 +3212,43 @@ var
   SelUi: TCastleUserInterface;
   ParentUi: TCastleUserInterface;
   NewUi: TCastleUserInterface;
-  I: Integer;
   R: TRegisteredComponent;
   PreviousName, PreviousClassName: String;
   ConversionResult: String;
+
+  procedure ChangeClassOfCastleUserInterface;
+  var
+    I: Integer;
+  begin
+    SelUi := TCastleUserInterface(Sel);
+    PreviousName := SelUi.Name;
+    ParentUi := SelUi.Parent; // can be nil if this is root
+    NewUi := NewComponent as TCastleUserInterface;
+
+    // Assign a temporary non-colliding name
+    NewUi.Name := ProposeName(R.ComponentClass, DesignOwner);
+
+    for I := 0 to SelUi.ControlsCount - 1 do
+      NewUi.InsertFront(SelUi.ExtractControl(0));
+
+    ConversionResult := CopyProperties(SelUi, NewUi);
+
+    ControlsTree.Items.Clear;
+    UpdateSelectedControl;
+    if ParentUi <> nil then
+    begin
+      ParentUi.InsertControl(ParentUi.IndexOfControl(SelUi), NewUi);
+      ParentUi.RemoveControl(SelUi);
+    end else
+    begin
+      CastleControl.Controls.Clear;
+      FDesignRoot := NewUi;
+      CastleControl.Controls.InsertBack(FDesignRoot as TCastleUserInterface);
+    end;
+    DesignOwner.RemoveComponent(Sel);
+    NewUi.Name := PreviousName;
+  end;
+
 begin
   { Cancel editing the component name, when adding a component.
     See https://trello.com/c/IC6NQx0X/59-bug-adding-a-component-to-a-component-that-is-being-currently-renamed-triggers-and-exception . }
@@ -3251,41 +3284,14 @@ begin
   if Assigned(R.OnCreate) then // call ComponentOnCreate ASAP after constructor
     R.OnCreate(NewComponent);
 
-  {==========}
-
-  if not (Sel is TCastleUserInterface) then
+  if Sel is TCastleUserInterface then
+    ChangeClassOfCastleUserInterface
+  else
   begin
-    WriteLnWarning('Selected component is a child of TCastleUserInterface. This is not supported yet.');
+    WriteLnWarning('Selected component is not a child of TCastleUserInterface. This is not supported yet.');
     Exit;
   end;
 
-  SelUi := TCastleUserInterface(Sel);
-  PreviousName := SelUi.Name;
-  ParentUi := SelUi.Parent; // can be nil if this is root
-  NewUi := NewComponent as TCastleUserInterface;
-
-  // Assign a temporary non-colliding name
-  NewUi.Name := ProposeName(R.ComponentClass, DesignOwner);
-
-  for I := 0 to SelUi.ControlsCount - 1 do
-    NewUi.InsertFront(SelUi.ExtractControl(0));
-
-  ConversionResult := CopyProperties(SelUi, NewUi);
-
-  ControlsTree.Items.Clear;
-  UpdateSelectedControl;
-  if ParentUi <> nil then
-  begin
-    ParentUi.InsertControl(ParentUi.IndexOfControl(SelUi), NewUi);
-    ParentUi.RemoveControl(SelUi);
-  end else
-  begin
-    CastleControl.Controls.Clear;
-    FDesignRoot := NewUi;
-    CastleControl.Controls.InsertBack(FDesignRoot as TCastleUserInterface);
-  end;
-  DesignOwner.RemoveComponent(Sel);
-  NewUi.Name := PreviousName;
 
   FreeAndNil(Sel);
   UpdateDesign;
