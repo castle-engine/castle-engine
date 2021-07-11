@@ -3204,8 +3204,9 @@ begin
 end;
 
 (* Bad place here, move to some Utils unit *)
-procedure CopyProperties(const FromClass, ToClass: TCastleUserInterface);
+{procedure CopyProperties(const FromClass, ToClass: TCastleUserInterface);
 begin
+
   //ToClass.Name := FromClass.Name;
   ToClass.Tag := FromClass.Tag;
   ToClass.Cursor := FromClass.Cursor;
@@ -3235,15 +3236,16 @@ begin
   ToClass.ClipChildren := FromClass.ClipChildren;
   //ToClass.Border := FromClass.Border;
   //ToClass.BorderColorPersistent := FromClass.BorderColorPersistent;
-end;
-{
+end; }
+
 function CopyProperties(const FromClass, ToClass: TObject): String;
-  function GetPropertyByName(const APropList: PPropList; const ACount: Integer; const AName: String): PPropInfo;
+
+  function GetSameProperty(const APropList: PPropList; const ACount: Integer; const APropInfo: PPropInfo): PPropInfo;
   var
     P: Integer;
   begin
     for P := 0 to ACount - 1 do
-      if APropList^[P]^.Name = AName then
+      if (APropList^[P]^.Name = APropInfo^.Name) and (APropList^[P]^.PropType^.Kind = APropInfo^.PropType^.Kind) then
         Exit(APropList^[P]);
     Result := nil;
   end;
@@ -3259,13 +3261,59 @@ begin
   Result := '';
   for I := 0 to ToCount - 1 do
   begin
-    PropInfo := GetPropertyByName(FromProperties, FromCount, ToProperties^[I]^.Name);
-    if PropInfo <> nil then
+    PropInfo := GetSameProperty(FromProperties, FromCount, ToProperties^[I]);
+    if (PropInfo <> nil) and IsWriteableProp(ToClass, ToProperties^[I]^.Name) then
     begin
-      WriteLnLog(ToProperties^[I]^.Name);
+      //WriteLnLog(ToProperties^[I]^.Name);
+      case ToProperties^[I]^.PropType^.Kind of
+        tkDynArray:
+          SetDynArrayProp(ToClass, ToProperties^[I], GetDynArrayProp(FromClass, PropInfo));
+        tkEnumeration:
+          SetEnumProp(ToClass, ToProperties^[I], GetEnumProp(FromClass, PropInfo));
+        tkInteger, tkBool:
+          SetOrdProp(ToClass, ToProperties^[I], GetOrdProp(FromClass, PropInfo)); //shouldn't it be also for tkEnumeration and tkSet according to documentation???
+        tkFloat:
+          SetFloatProp(ToClass, ToProperties^[I], GetFloatProp(FromClass, PropInfo));
+        tkInt64:
+          SetInt64Prop(ToClass, ToProperties^[I], GetInt64Prop(FromClass, PropInfo));
+        tkInterface:
+          SetInterfaceProp(ToClass, ToProperties^[I], GetInterfaceProp(FromClass, PropInfo));
+        tkMethod:
+          SetMethodProp(ToClass, ToProperties^[I], GetMethodProp(FromClass, PropInfo));
+        {
+        tkObject, tkClass:
+          SetObjectProp(ToClass, ToProperties^[I], GetObjectProp(FromClass, PropInfo));
+        TODO: Not working
+        }
+          //SetRawByteStrProp
+        tkInterfaceRaw:
+          SetRawInterfaceProp(ToClass, ToProperties^[I], GetRawInterfaceProp(FromClass, PropInfo));
+        {tkSet:
+          SetSetProp(ToClass, ToProperties^[I], GetSetProp(FromClass, PropInfo));}
+        tkAString:
+          if PropInfo^.Name <> 'Name' then // otherwise exception "duplicate name"
+            SetStrProp(ToClass, ToProperties^[I], GetStrProp(FromClass, PropInfo));
+        tkUString:
+          SetUnicodeStrProp(ToClass, ToProperties^[I], GetUnicodeStrProp(FromClass, PropInfo));
+        tkVariant:
+          SetVariantProp(ToClass, ToProperties^[I], GetVariantProp(FromClass, PropInfo));
+          //SetPropValue - a bizzare way to set a Variant propery?
+        tkWString:
+          SetWideStrProp(ToClass, ToProperties^[I], GetWideStrProp(FromClass, PropInfo));
+        else
+          Result += GetEnumName(TypeInfo(TTypeKind), Ord(ToProperties^[I]^.PropType^.Kind)) + ':' + PropInfo^.Name + NL;
+      end;
     end;
   end;
-end;}
+  for I := 0 to FromCount - 1 do
+  begin
+    PropInfo := GetSameProperty(ToProperties, ToCount, FromProperties^[I]);
+    if PropInfo = nil then
+      Result += GetEnumName(TypeInfo(TTypeKind), Ord(FromProperties^[I]^.PropType^.Kind)) + ':' +FromProperties^[I]^.Name + NL;
+  end;
+  FreeMem(ToProperties);
+  FreeMem(FromProperties);
+end;
 
 procedure TDesignFrame.MenuItemChangeClassClick(Sender: TObject);
 var
@@ -3321,7 +3369,7 @@ begin
   for I := 0 to SelUi.ControlsCount - 1 do
     NewUi.InsertFront(SelUi.ExtractControl(0));
 
-  CopyProperties(SelUi, NewUi);
+  WriteLnLog(CopyProperties(SelUi, NewUi));
 
   if ParentUi <> nil then
   begin
