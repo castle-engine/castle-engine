@@ -130,7 +130,6 @@
   published
     { URL of the sound file.
       Set this to load a new sound buffer, you can set to '' to clear the sound buffer.
-      Changing this also changes @link(Buffer).
 
       If you plan to change @link(Stream), note that it is best to do it before
       setting @link(URL). Changing @link(Stream) while @link(URL) is already set
@@ -201,7 +200,7 @@
       100 levels in Wwise). Also, "higher is more important" seems just more natural. }
     property Priority: Single read FPriority write SetPriority default 0.5;
 
-    { Spatial sound is fully audible (with @link(Gain)) at this distance.
+    { Spatial sound is fully audible (with @link(Volume)) at this distance.
       See TSoundDistanceModel for a description how distance affects the sound volume. }
     property ReferenceDistance: Single read FReferenceDistance write SetReferenceDistance
       default DefaultReferenceDistance;

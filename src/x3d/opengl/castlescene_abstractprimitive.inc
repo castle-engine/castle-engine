@@ -31,7 +31,7 @@ type
     is not useful. Instead descend from TCastleTransform.
 
     Using this class is somewhat similar to using TCastleScene,
-    and loading (using @link(TCastleScene.Load)) an X3D nodes graph
+    and loading (using @link(TCastleSceneCore.Load)) an X3D nodes graph
     with appropriate primitives. In fact, that is exactly what happens internally.
     But using this class is simpler (it hides X3D nodes from you, although it also
     hides some possibilities) and you can customize such primitives
@@ -65,7 +65,7 @@ type
     { Color of the text. Opaque white by default.
 
       What exactly it means, depends on @link(Material):
-      @underedList(
+      @unorderedList(
         @item(When Material is pmPhysical, then Color determines TPhysicalMaterialNode.BaseColor and TPhysicalMaterialNode.Transparency.)
         @item(When Material is pmPhong, then Color determines TMaterialNode.DiffuseColor and TMaterialNode.Transparency.)
         @item(When Material is pmUnlit, then Color determines TUnlitMaterialNode.EmissiveColor and TUnlitMaterialNode.Transparency.)
@@ -79,7 +79,7 @@ type
     { Texture URL.
 
       The way texture interacts with lighting depends on the @link(Material) type:
-      @underedList(
+      @unorderedList(
         @item(When Material is pmPhysical, then Texture determines TPhysicalMaterialNode.BaseTexture.)
         @item(When Material is pmPhong, then Texture determines TMaterialNode.DiffuseTexture.)
         @item(When Material is pmUnlit, then Texture determines TUnlitMaterialNode.EmissiveTexture.)

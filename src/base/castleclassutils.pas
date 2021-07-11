@@ -528,14 +528,14 @@ type
       This is useful to group non-visual components, esp. in CGE editor.
 
       @seealso NonVisualComponentsCount
-      @seealso NonVisualComponent
+      @seealso NonVisualComponents
       @seealso NonVisualComponentsEnumerate }
     procedure AddNonVisualComponent(const NonVisualComponent: TComponent);
 
     { Count of components added by AddNonVisualComponent.
 
       @seealso AddNonVisualComponent
-      @seealso NonVisualComponentsCount
+      @seealso NonVisualComponents
       @seealso NonVisualComponentsEnumerate }
     function NonVisualComponentsCount: Integer;
 

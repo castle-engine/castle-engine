@@ -150,9 +150,9 @@
 
       This method tries to initialize backend (like OpenAL) context,
       and loads the buffer contents. But even when it fails, it still returns
-      a valid (non-nil) TInternalSoundBuffer instance. The @link(PlaySound) must be
-      ready anyway to always load the buffer on-demand (because OpenAL context
-      may be lost while the game is ongoing, in case of Android).
+      a valid (non-nil) TInternalSoundBuffer instance. As the OpenAL context
+      may be lost while the game is ongoing (in case of Android) we take care
+      to reload it when necessary.
 
       The buffer should be released by @link(FreeBuffer) later when it's not needed.
       Although we will take care to always free remaining buffers
@@ -226,6 +226,8 @@
         In simple cases you can just ignore the result of this method.
         In advanced cases, you can use it to observe and update the sound
         later.)
+
+      @exclude
     }
     function PlaySound(const Buffer: TInternalSoundBuffer): TInternalSoundSource; overload;
       deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.Play to play sounds';
@@ -365,7 +367,7 @@
     class property LogSoundLoading: Boolean
       read GetLogSoundLoading write SetLogSoundLoading;
 
-    { Newly played sounds will have @link(TInternalSoundSource.Pitch) multiplied by this. }
+    { Newly played sounds will have @code(TInternalSoundSource.Pitch) multiplied by this. }
     property InitialPitchMultiplier: Single read FInitialPitchMultiplier write FInitialPitchMultiplier default 1.0;
       deprecated 'use TCastlePlayingSound and set TCastlePlayingSound.Pitch before playing, to influence initial pitch; this property is not reliable when combined with TCastlePlayingSound.Pitch usage';
 

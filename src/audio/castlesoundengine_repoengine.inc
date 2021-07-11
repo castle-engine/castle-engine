@@ -255,7 +255,7 @@
 
     { Comfortable way to play and control the music.
       Simply assign @link(TLoopingChannel.Sound MusicPlayer.Sound)
-      to play music. Set it to @link(nil) to stop playing music.
+      to play music. Set it to @nil to stop playing music.
       This is just a shortcut for @link(LoopingChannel LoopingChannel[0]). }
     property MusicPlayer: TLoopingChannel read GetMusicPlayer; deprecated 'use LoopingChannel[0]';
 
@@ -268,7 +268,7 @@
       @longCode(# LoopingChannel[0].Sound := MyMusicTrack; #)
 
       You stop by setting @link(TLoopingChannel.Sound) to something else,
-      which can be @link(nil) to just stop playing any looping
+      which can be @nil to just stop playing any looping
       sound on this channel. For example:
 
       @longCode(# LoopingChannel[0].Sound := nil; #)
@@ -296,7 +296,7 @@
       in game.
 
       Note that, if this does nothing, but you later set @link(RepositoryURL)
-      or do @link(LoadBuffer) or @link(PlaySound), then sound context will
+      or do @link(LoadBuffer) or @link(Play), then sound context will
       be created on-demand anyway. So calling this is always optional. }
     procedure PrepareResources;
   end;
