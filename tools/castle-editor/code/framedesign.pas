@@ -3208,6 +3208,7 @@ var
   Selected: TComponentList;
   SelectedCount: Integer;
   Sel: TComponent;
+  NewComponent: TComponent;
   SelUi: TCastleUserInterface;
   ParentUi: TCastleUserInterface;
   NewUi: TCastleUserInterface;
@@ -3233,9 +3234,9 @@ begin
     FreeAndNil(Selected);
   end;
 
-  if not (Sel is TCastleUserInterface) or (SelectedCount > 1) then
+  if (SelectedCount > 1) then
   begin
-    WriteLnWarning('Selected component is nil, more than one or not a child of TCastleUserInterface. This is not supported yet.');
+    WriteLnWarning('Selected more than one component. This is not supported.');
     Exit;
   end;
   if Sel.ClassType = R.ComponentClass then
@@ -3244,15 +3245,24 @@ begin
     Exit;
   end;
 
-  SelUi := TCastleUserInterface(Sel);
-  ParentUi := SelUi.Parent; // can be nil if this is root
+  PreviousClassName := Sel.ClassName;
 
-  PreviousName := SelUi.Name;
-  PreviousClassName := SelUi.ClassName;
-
-  NewUi := R.ComponentClass.Create(DesignOwner) as TCastleUserInterface;
+  NewComponent := R.ComponentClass.Create(DesignOwner) as TCastleUserInterface;
   if Assigned(R.OnCreate) then // call ComponentOnCreate ASAP after constructor
-    R.OnCreate(NewUi);
+    R.OnCreate(NewComponent);
+
+  {==========}
+
+  if not (Sel is TCastleUserInterface) then
+  begin
+    WriteLnWarning('Selected component is a child of TCastleUserInterface. This is not supported yet.');
+    Exit;
+  end;
+
+  SelUi := TCastleUserInterface(Sel);
+  PreviousName := SelUi.Name;
+  ParentUi := SelUi.Parent; // can be nil if this is root
+  NewUi := NewComponent as TCastleUserInterface;
 
   // Assign a temporary non-colliding name
   NewUi.Name := ProposeName(R.ComponentClass, DesignOwner);
@@ -3274,18 +3284,20 @@ begin
     FDesignRoot := NewUi;
     CastleControl.Controls.InsertBack(FDesignRoot as TCastleUserInterface);
   end;
-  DesignOwner.RemoveComponent(SelUi);
-  FreeAndNil(SelUi);
+  DesignOwner.RemoveComponent(Sel);
   NewUi.Name := PreviousName;
 
+  FreeAndNil(Sel);
   UpdateDesign;
-  SelectedComponent := NewUi;
+  SelectedComponent := NewComponent;
+
   ModifiedOutsideObjectInspector('Change ' +
     PreviousName + '(' + PreviousClassName + ') into ' +
     NewUi.Name + '(' + NewUi.ClassName + ')',
     ucHigh, false);
 
-  ShowMessage('Converted ' + PreviousClassName + ' into ' + NewUi.ClassName + ':' + NL + ConversionResult);
+  if ConversionResult <> '' then
+    ShowMessage('Converted ' + PreviousClassName + ' into ' + NewUi.ClassName + ':' + NL + ConversionResult);
 end;
 
 procedure TDesignFrame.MenuTreeViewItemRenameClick(Sender: TObject);
