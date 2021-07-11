@@ -193,6 +193,8 @@ var
     MuteOnRun. }
   RunningApplication: Boolean;
 
+function CopyProperties(const FromClass, ToClass: TObject): String;
+
 { Update SoundEngine.Volume based on
   global MuteOnRun, EditorVolume, RunningApplication. }
 procedure SoundEngineSetVolume;
@@ -806,6 +808,83 @@ begin
       ... same code as above
     end;
   *)
+end;
+
+function CopyProperties(const FromClass, ToClass: TObject): String;
+
+  function GetSameProperty(const APropList: PPropList; const ACount: Integer; const APropInfo: PPropInfo): PPropInfo;
+  var
+    P: Integer;
+  begin
+    for P := 0 to ACount - 1 do
+      if (APropList^[P]^.Name = APropInfo^.Name) and (APropList^[P]^.PropType^.Kind = APropInfo^.PropType^.Kind) then
+        Exit(APropList^[P]);
+    Result := nil;
+  end;
+
+var
+  FromProperties, ToProperties: PPropList;
+  FromCount, ToCount: Integer;
+  PropInfo: PPropInfo;
+  I: Integer;
+begin
+  ToCount := GetPropList(ToClass, ToProperties);
+  FromCount := GetPropList(FromClass, FromProperties);
+  Result := '';
+  for I := 0 to ToCount - 1 do
+  begin
+    PropInfo := GetSameProperty(FromProperties, FromCount, ToProperties^[I]);
+    if (PropInfo <> nil) and IsWriteableProp(ToClass, ToProperties^[I]^.Name) then
+    begin
+      //WriteLnLog(ToProperties^[I]^.Name);
+      case ToProperties^[I]^.PropType^.Kind of
+        tkDynArray:
+          SetDynArrayProp(ToClass, ToProperties^[I], GetDynArrayProp(FromClass, PropInfo));
+        tkEnumeration:
+          SetEnumProp(ToClass, ToProperties^[I], GetEnumProp(FromClass, PropInfo));
+        tkInteger, tkBool:
+          SetOrdProp(ToClass, ToProperties^[I], GetOrdProp(FromClass, PropInfo)); //shouldn't it be also for tkEnumeration and tkSet according to documentation???
+        tkFloat:
+          SetFloatProp(ToClass, ToProperties^[I], GetFloatProp(FromClass, PropInfo));
+        tkInt64:
+          SetInt64Prop(ToClass, ToProperties^[I], GetInt64Prop(FromClass, PropInfo));
+        tkInterface:
+          SetInterfaceProp(ToClass, ToProperties^[I], GetInterfaceProp(FromClass, PropInfo));
+        tkMethod:
+          SetMethodProp(ToClass, ToProperties^[I], GetMethodProp(FromClass, PropInfo));
+        {
+        tkObject, tkClass:
+          SetObjectProp(ToClass, ToProperties^[I], GetObjectProp(FromClass, PropInfo));
+        TODO: Not working
+        }
+          //SetRawByteStrProp
+        tkInterfaceRaw:
+          SetRawInterfaceProp(ToClass, ToProperties^[I], GetRawInterfaceProp(FromClass, PropInfo));
+        {tkSet:
+          SetSetProp(ToClass, ToProperties^[I], GetSetProp(FromClass, PropInfo));}
+        tkAString:
+          if PropInfo^.Name <> 'Name' then // otherwise exception "duplicate name"
+            SetStrProp(ToClass, ToProperties^[I], GetStrProp(FromClass, PropInfo));
+        tkUString:
+          SetUnicodeStrProp(ToClass, ToProperties^[I], GetUnicodeStrProp(FromClass, PropInfo));
+        tkVariant:
+          SetVariantProp(ToClass, ToProperties^[I], GetVariantProp(FromClass, PropInfo));
+          //SetPropValue - a bizzare way to set a Variant propery?
+        tkWString:
+          SetWideStrProp(ToClass, ToProperties^[I], GetWideStrProp(FromClass, PropInfo));
+        else
+          Result += GetEnumName(TypeInfo(TTypeKind), Ord(ToProperties^[I]^.PropType^.Kind)) + ':' + PropInfo^.Name + NL;
+      end;
+    end;
+  end;
+  for I := 0 to FromCount - 1 do
+  begin
+    PropInfo := GetSameProperty(ToProperties, ToCount, FromProperties^[I]);
+    if PropInfo = nil then
+      Result += GetEnumName(TypeInfo(TTypeKind), Ord(FromProperties^[I]^.PropType^.Kind)) + ':' +FromProperties^[I]^.Name + NL;
+  end;
+  FreeMem(ToProperties);
+  FreeMem(FromProperties);
 end;
 
 procedure SoundEngineSetVolume;
