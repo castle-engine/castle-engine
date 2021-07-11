@@ -3251,7 +3251,6 @@ var
     SelTransform: TCastleTransform;
     ParentTransform: TCastleTransform;
     NewTransform: TCastleTransform;
-    TempViewport: TCastleViewport;
   begin
     SelTransform := TCastleTransform(Sel);
     ParentTransform := SelTransform.UniqueParent; // can be nil if this is root
@@ -3272,10 +3271,16 @@ var
 
     ControlsTree.Items.Clear;
     UpdateSelectedControl;
-
-    //TODO: Special handling if ParentTransform is TCastleRootTransform
-    ParentTransform.List.Add(NewTransform); //TODO: will break the order here
-    ParentTransform.Remove(SelTransform);
+    if ParentTransform is TCastleRootTransform then
+    begin
+      ParentTransform.Add(NewTransform);
+      ParentTransform.Remove(SelTransform);
+      FDesignRoot := NewTransform;
+    end else
+    begin
+      ParentTransform.Add(NewTransform); //TODO: will break the order here
+      ParentTransform.Remove(SelTransform);
+    end;
   end;
 
 begin
@@ -3305,11 +3310,6 @@ begin
     Exit;
   end;
   if (Sel is TCastleTransform) and (TCastleTransform(Sel).UniqueParent = nil) then
-  begin
-    ShowMessage('Unimplemented: Parent must be at least TCastleRootTransform.');
-    Exit;
-  end;
-  if (Sel is TCastleTransform) and (TCastleTransform(Sel).UniqueParent is TCastleRootTransform) then
   begin
     ShowMessage('Unimplemented: Parent must be at least TCastleRootTransform.');
     Exit;
