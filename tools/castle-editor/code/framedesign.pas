@@ -3209,16 +3209,16 @@ var
   SelectedCount: Integer;
   Sel: TComponent;
   NewComponent: TComponent;
-  SelUi: TCastleUserInterface;
-  ParentUi: TCastleUserInterface;
-  NewUi: TCastleUserInterface;
   R: TRegisteredComponent;
-  PreviousName, PreviousClassName: String;
   ConversionResult: String;
 
   procedure ChangeClassOfCastleUserInterface;
   var
     I: Integer;
+    SelUi: TCastleUserInterface;
+    ParentUi: TCastleUserInterface;
+    NewUi: TCastleUserInterface;
+    PreviousName: String;
   begin
     SelUi := TCastleUserInterface(Sel);
     PreviousName := SelUi.Name;
@@ -3278,8 +3278,6 @@ begin
     Exit;
   end;
 
-  PreviousClassName := Sel.ClassName;
-
   NewComponent := R.ComponentClass.Create(DesignOwner) as TCastleUserInterface;
   if Assigned(R.OnCreate) then // call ComponentOnCreate ASAP after constructor
     R.OnCreate(NewComponent);
@@ -3292,18 +3290,16 @@ begin
     Exit;
   end;
 
-
-  FreeAndNil(Sel);
   UpdateDesign;
   SelectedComponent := NewComponent;
 
-  ModifiedOutsideObjectInspector('Change ' +
-    PreviousName + '(' + PreviousClassName + ') into ' +
-    NewUi.Name + '(' + NewUi.ClassName + ')',
+  ModifiedOutsideObjectInspector('Changed ' + Sel.ClassName + ' into ' + NewComponent.ClassName + ' for ' + NewComponent.Name,
     ucHigh, false);
 
   if ConversionResult <> '' then
-    ShowMessage('Converted ' + PreviousClassName + ' into ' + NewUi.ClassName + ':' + NL + ConversionResult);
+    ShowMessage('Converted ' + Sel.ClassName + ' into ' + NewComponent.ClassName + ':' + NL + ConversionResult);
+
+  FreeAndNil(Sel);
 end;
 
 procedure TDesignFrame.MenuTreeViewItemRenameClick(Sender: TObject);
