@@ -3260,7 +3260,7 @@ var
     NewTransform := TCastleTransform(NewComponent);
 
     // this situation should have been handled in the parent procedure, if it gets to it now, it's an error
-    if (ParentTransform = nil) and (ParentTransform <> ParentTransform.World) then
+    if (ParentTransform = nil) and (SelTransform <> SelTransform.World) then
       raise Exception.Create('Cannot change class of TCastleTransform which is inserted multiple times in the World.');
 
     NewTransform.Name := ProposeName(R.ComponentClass, DesignOwner);
@@ -3317,7 +3317,7 @@ begin
   end;
   if (Sel is TCastleTransform) and (TCastleTransform(Sel).UniqueParent = nil) then
   begin
-    ShowMessage('Unimplemented: Parent must be at least TCastleRootTransform.');
+    ShowMessage('Unimplemented: Parent must be at least TCastleRootTransform.'); // I'm not even sure if it's possible in the Editor
     Exit;
   end;
 
@@ -3340,7 +3340,8 @@ begin
     ChangeClassOfCastleTransform
   else
   begin
-    WriteLnWarning('Selected component is not a child of TCastleUserInterface or TCastleTransform. This is not supported yet.');
+    ShowMessage('Selected component is not a TCastleUserInterface or TCastleTransform. This is not supported yet.');
+    FreeAndNil(NewComponent);
     Exit;
   end;
 
