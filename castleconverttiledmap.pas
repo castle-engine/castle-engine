@@ -447,6 +447,21 @@ var
     //Writeln('ColumnOfTileInMap: ', Result);
   end;
 
+  { Determines the position of a tile by index (used in Column-/Row-function). }
+  function PositionOfTileByIndex(ATileset: TTiledMap.TTileset): TVector2;
+  begin
+    if not Assigned(ATileset) then
+    begin
+      Result := Vector2(0, 0);
+      Exit;
+    end;
+
+    Result := Vector2CY(
+      ColumnOfTileInMap * TileWidth,                           // X
+      (RowOfTileInMap + 1) * TileHeight - ATileset.TileHeight  // Y: The tiles of tilesets are "anchored" bottom-left
+       );
+  end;
+
   { The actual conversion of a tile. }
   procedure ConvertTile;
   var
@@ -468,13 +483,27 @@ var
     if Assigned(Tileset) then
     begin
       TileNode := TTiledTileNode.Create;
-      TileNode.Translation := Vector3(0, 0, I);
+      TileNode.Translation := Vector3(PositionOfTileByIndex(Tileset), 0);
       TileGeometryNode := TRectangle2DNode.CreateWithShape(TileShapeNode);
       TileGeometryNode.Size := Vector2(Tileset.TileWidth, Tileset.TileHeight);
 
       TileShapeNode.Appearance := TAppearanceNode.Create;
       { TODO : Use more than one tileset with index 0! }
       TileShapeNode.Appearance.Texture := FTilesetTextureNodeList.Items[0];
+      TilesetTextureTransformNode := TTextureTransformNode.Create;
+
+      { ? }
+      //Tile := GetTileFromTileset(ALayer.Data.Data[I], Tileset);
+      //TilesetTextureTransformNode.Translation := Vector2(Tile.Id * Tileset.TileWidth * 2, 0);
+      //Writeln(Tile.Id);
+
+      { Divide Tileset Tile width/height by full Tileset width/height.
+        The latter is extracted from the texture node. }
+      TilesetTextureTransformNode.Scale := Vector2(Tileset.TileWidth / ((FTilesetTextureNodeList.Items[0] as TImageTextureNode).TextureImage).Width,
+
+      Tileset.TileHeight / ((FTilesetTextureNodeList.Items[0] as TImageTextureNode).TextureImage).Height);
+      //TileShapeNode.Appearance.TextureTransform := TTextureTransformNode.Create;
+      TileShapeNode.Appearance.TextureTransform := TilesetTextureTransformNode;
 
       TileNode.AddChildren(TileShapeNode);
       Result.AddChildren(TileNode);
