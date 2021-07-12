@@ -31,6 +31,7 @@
   2. Turn off debug mode.
   3. Check SetDebugMode: RemoveChildren free's instance of node?
   4. Update topPoint (see there) + handle ellipsoids (see there)
+  5. Shift TImageTextureNodeList (generic) to x3dnodes_standard_texturing.inc?
 
   REMARKS:
   1. Coordinate systems: The Tiled editor uses a classical coordinate system
@@ -56,7 +57,7 @@
 }
 unit CastleConvertTiledMap;
 
-//{$I castleconf.inc}
+{$I castleconf.inc}
 
 interface
 
@@ -71,7 +72,7 @@ function ConvertTiledMap(ATiledMap: TTiledMap): TX3DRootNode;
 implementation
 
 uses
-  SysUtils, Math,
+  SysUtils, Math, Generics.Collections,
   CastleVectors, CastleTransform, CastleColors,
   CastleRenderOptions, CastleControls, CastleStringUtils, X3DLoadInternalImage,
   CastleImages;
@@ -80,7 +81,7 @@ type
   TTiledLayerNode = TTransformNode;
   TTiledObjectNode = TTransformNode;
   TTiledTileNode = TTransformNode;
-  TImageTextureNodeArray = array of TImageTextureNode;
+  TImageTextureNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TImageTextureNode>;
 
   { Converter class to convert Tiled map into X3D representations. }
   TTiledMapConverter = class
@@ -90,7 +91,7 @@ type
 
     FMap: TTiledMap;
     FMapNode: TX3DRootNode;
-    FTilesetTextureNodeArray: TImageTextureNodeArray;
+    FTilesetTextureNodeList: TImageTextureNodeList;
 
     FConvYMatrix: TMatrix2;
 
@@ -137,8 +138,7 @@ type
     { Mirrors 2d-vector at X-axis in XY-plane. Necessary for conversion of
       Tiled Y-values according to definition, see remarks above. }
     property ConvYMatrix: TMatrix2 read FConvYMatrix;
-    property TilesetTextureNodeArray: TImageTextureNodeArray
-      read FTilesetTextureNodeArray write FTilesetTextureNodeArray;
+    property TilesetTextureNodeList: TImageTextureNodeList read FTilesetTextureNodeList write FTilesetTextureNodeList;
   public
     constructor Create;
     destructor Destroy; override;
@@ -172,8 +172,8 @@ end;
 procedure TTiledMapConverter.ConvertTilesets;
 var
   Tileset: TTiledMap.TTileset;            // A tileset
-  TilesetTextureNode: TImageTextureNode;  // For better code readability
-  TilesetCastleImage: TCastleImage;       // Load uncompressed image data.
+  TilesetTextureNode: TImageTextureNode;  // A tileset node
+  TilesetTexturePropertiesNode: TTexturePropertiesNode;
 begin
   for Tileset in Map.Tilesets do
   begin
@@ -181,23 +181,13 @@ begin
     if Assigned(Tileset.Image) then
     begin
       //Writeln('  Image source: ', Tileset.Image.URL);
-      TilesetCastleImage := LoadImage(Tileset.Image.URL);  // Load temporary as TCastleImage
-      if Assigned(TilesetCastleImage) then
-      begin
-        { Create texture node from tileset. }
-        TilesetTextureNode := TImageTextureNode.Create;
-        TilesetTextureNode.RepeatS := False;
-        TilesetTextureNode.RepeatT := False;
-        TilesetTextureNode.LoadFromImage(TilesetCastleImage, False, '');   // False: Temporary TCastleImage is free'd below.
-        //Writeln('  Texture loaded: ', TilesetTextureNode.IsTextureLoaded);
-
-        { Add texture node to array. }
-        SetLength(FTilesetTextureNodeArray, Length(TilesetTextureNodeArray) + 1);
-        FTilesetTextureNodeArray[High(TilesetTextureNodeArray)] := TilesetTextureNode;
-
-        { Free temporary TCastleImage. }
-        FreeAndNil(TilesetCastleImage);
-      end;
+      TilesetTextureNode := TImageTextureNode.Create(Tileset.Name, '');
+      TilesetTextureNode.SetUrl([Tileset.Image.URL]);
+      TilesetTextureNode.TextureProperties := TTexturePropertiesNode.Create;
+      TilesetTextureNode.TextureProperties.MagnificationFilter := magDefault;
+      TilesetTextureNode.TextureProperties.MinificationFilter := minDefault;
+      //Writeln('  Texture image loaded: ',TilesetTextureNode.IsTextureImage);
+      TilesetTextureNodeList.Add(TilesetTextureNode);
     end;
   end;
 end;
@@ -462,11 +452,33 @@ var
   var
     Tile: TTiledMap.TTile;                  // A Tile.
     Tileset: TTiledMap.TTileset;            // A Tileset.
+
+    { Tile nodes. }
+    TileNode: TTiledTileNode;
+    TileGeometryNode: TRectangle2DNode;
+    TileShapeNode: TShapeNode;
+    TileMaterialNode: TUnlitMaterialNode;
+    TilesetTextureNode: TImageTextureNode;
+    TilesetTextureTransformNode: TTextureTransformNode;
+    TileCoordinateNode: TCoordinateNode;
   begin
-    { Get tileset and tile ready to prepare tile node. }
+    { Try to get tileset. Only if it exists for this tile,
+      an actual tile node is created. }
     Tileset := GetTilesetOfTile(ALayer.Data.Data[I]);
     if Assigned(Tileset) then
-      Tile := GetTileFromTileset(ALayer.Data.Data[I], Tileset);
+    begin
+      TileNode := TTiledTileNode.Create;
+      TileNode.Translation := Vector3(0, 0, I);
+      TileGeometryNode := TRectangle2DNode.CreateWithShape(TileShapeNode);
+      TileGeometryNode.Size := Vector2(Tileset.TileWidth, Tileset.TileHeight);
+
+      TileShapeNode.Appearance := TAppearanceNode.Create;
+      { TODO : Use more than one tileset with index 0! }
+      TileShapeNode.Appearance.Texture := FTilesetTextureNodeList.Items[0];
+
+      TileNode.AddChildren(TileShapeNode);
+      Result.AddChildren(TileNode);
+    end;
   end;
 
 begin
@@ -493,7 +505,7 @@ begin
   { Run through tile GIDs of this tile layer. }
   for I := 0 to High(ALayer.Data.Data) do
   begin
-    //ConvertTile;
+    ConvertTile;
   end;
     //writeln('Local Tile ID: ', Tile.Id, ' --> Tileset: ',
     //  Tileset.Name, ' (FGID: ', Tileset.FirstGID, ')');
@@ -521,6 +533,9 @@ begin
   inherited Create;
 
   FMapNode := TX3DRootNode.Create;
+  TilesetTextureNodeList := TImageTextureNodeList.Create;
+  TilesetTextureNodeList.OwnsObjects := False; // Very important!
+                                               // Competes with access of X3D node list!
 
   DebugMode := True;  // DebugMode := False; // Default
 
@@ -534,8 +549,10 @@ destructor TTiledMapConverter.Destroy;
 var
   I: Cardinal;
 begin
-  for I := High(TilesetTextureNodeArray) downto  Low(TilesetTextureNodeArray) do
-    FreeAndNil(TilesetTextureNodeArray[I]);
+  //for I := High(TilesetTextureNodeArray) downto  Low(TilesetTextureNodeArray) do
+  //  FreeAndNil(TilesetTextureNodeArray[I]);
+
+  FreeAndNil(FTilesetTextureNodeList);
 
   inherited Destroy;
 end;
