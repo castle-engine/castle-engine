@@ -194,7 +194,11 @@ var
   RunningApplication: Boolean;
 
 { Copy (most of) published properties from one class to another
-  Returns list of fields lost during copying }
+  Returns list of fields lost during copying
+  The properties are copied by name and type.
+  Properties that have identical name and type
+  but have different meaning in the context (e.g. URL property)
+  must be manually excluded. }
 function CopyProperties(const FromClass, ToClass: TObject): String;
 
 { Update SoundEngine.Volume based on
