@@ -22,7 +22,7 @@ interface
 
 uses Classes,
   CastleUtils, CastleStringUtils,
-  ToolArchitectures, ToolCompile, ToolProject;
+  ToolArchitectures, ToolCompile, ToolPackage, ToolProject;
 
 { Compile (for all possible Android CPUs) Android unit or library.
   When Project <> nil, we assume we compile libraries (one of more .so files),
@@ -39,7 +39,8 @@ function DetectAndroidCPUS: TCPUS;
 function CPUToAndroidArchitecture(const CPU: TCPU): String;
 
 procedure PackageAndroid(const Project: TCastleProject;
-  const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode);
+  const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode;
+  const PackageFormat: TPackageFormatNoDefault);
 
 procedure InstallAndroid(const Name, QualifiedName, OutputPath: string);
 
@@ -48,8 +49,10 @@ procedure RunAndroid(const Project: TCastleProject);
 implementation
 
 uses SysUtils, DOM, XMLWrite,
+  // TODO: Should not be needed after https://github.com/castle-engine/castle-engine/pull/302/commits/888690fdac181b6f140a71fd0d5ac20a7d7b59e6
+  {$IFDEF UNIX}BaseUnix, {$ENDIF}
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils, CastleImages,
-  ToolEmbeddedImages, ToolFPCVersion, ToolPackage, ToolCommonUtils, ToolUtils,
+  ToolEmbeddedImages, ToolFPCVersion, ToolCommonUtils, ToolUtils,
   ToolManifest;
 
 var
@@ -153,7 +156,8 @@ begin
 end;
 
 procedure PackageAndroid(const Project: TCastleProject;
-  const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode);
+  const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode;
+  const PackageFormat: TPackageFormatNoDefault);
 var
   AndroidProjectPath: string;
 
@@ -507,7 +511,14 @@ var
   begin
     Args := TCastleStringList.Create;
     try
-      Args.Add('assemble' + Capitalize(PackageModeToName[PackageMode]));
+      case PackageFormat of
+        pfAndroidApk:
+          Args.Add('assemble' + Capitalize(PackageModeToName[PackageMode]));
+        pfAndroidAppBundle:
+          Args.Add(':app:bundle' + Capitalize(PackageModeToName[PackageMode]));
+        else
+          raise Exception.Create('Unexpected PackageFormat in PackageAndroid: ' + PackageFormatToString(PackageFormat));
+      end;
       if not Verbose then
         Args.Add('--quiet');
       if PackageMode <> cmDebug then
@@ -558,7 +569,7 @@ var
   end;
 
 var
-  ApkName: string;
+  PackageName: string;
   PackageMode: TCompilationMode;
 begin
   { calculate clean AndroidProjectPath }
@@ -579,16 +590,38 @@ begin
   GenerateLibrary;
   RunGradle(PackageMode);
 
-  ApkName := Project.Name + '-' + PackageModeToName[PackageMode] + '.apk';
-  CheckRenameFile(AndroidProjectPath + 'app' + PathDelim +
-    'build' +  PathDelim +
-    'outputs' + PathDelim +
-    'apk' + PathDelim +
-    PackageModeToName[PackageMode] + PathDelim +
-    'app-' + PackageModeToName[PackageMode] + '.apk',
-    Project.OutputPath + ApkName);
+  case PackageFormat of
+    pfAndroidApk:
+      begin
+        PackageName := Project.Name + '-' + PackageModeToName[PackageMode] + '.apk';
+        CheckRenameFile(AndroidProjectPath + 'app' + PathDelim +
+          'build' +  PathDelim +
+          'outputs' + PathDelim +
+          'apk' + PathDelim +
+          PackageModeToName[PackageMode] + PathDelim +
+          'app-' + PackageModeToName[PackageMode] + '.apk',
+          Project.OutputPath + PackageName);
+      end;
+    pfAndroidAppBundle:
+      begin
+        PackageName := Project.Name + '-' + PackageModeToName[PackageMode] + '.aab';
+        CheckRenameFile(AndroidProjectPath + 'app' + PathDelim +
+          'build' +  PathDelim +
+          'outputs' + PathDelim +
+          'bundle' + PathDelim +
+          PackageModeToName[PackageMode] + PathDelim +
+          'app-' + PackageModeToName[PackageMode] + '.aab',
+          Project.OutputPath + PackageName);
+        {$IFDEF UNIX}
+        // TODO: Should be replaced by DoMakeExecutable from https://github.com/castle-engine/castle-engine/pull/302/commits/888690fdac181b6f140a71fd0d5ac20a7d7b59e6
+        Writeln('FpChmod = ' + FpChmod(Project.OutputPath + PackageName, &777).ToString);
+        {$ENDIF}
+      end;
+    else
+      raise Exception.Create('Unexpected PackageFormat in PackageAndroid: ' + PackageFormatToString(PackageFormat));
+  end;
 
-  Writeln('Build ' + ApkName);
+  Writeln('Build ' + PackageName);
 end;
 
 procedure InstallAndroid(const Name, QualifiedName, OutputPath: string);

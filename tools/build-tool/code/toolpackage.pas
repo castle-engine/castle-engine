@@ -28,6 +28,8 @@ type
     pfDirectory,
     pfZip,
     pfTarGz,
+    pfAndroidApk,
+    pfAndroidAppBundle,
     pfIosArchiveDevelopment,
     pfIosArchiveAdHoc,
     pfIosArchiveAppStore
@@ -232,6 +234,8 @@ const
     'directory',
     'zip',
     'targz',
+    'android-apk',
+    'android-app-bundle',
     'ios-archive-development',
     'ios-archive-ad-hoc',
     'ios-archive-app-store'
