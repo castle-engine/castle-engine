@@ -53,7 +53,7 @@
       <Filename Value="multiple_viewports"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="../../src/base"/>
+      <IncludeFiles Value="../../src/common_includes"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>
