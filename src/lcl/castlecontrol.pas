@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1027,9 +1027,12 @@ begin
     // KeyString already pressed
     ((NewEvent.KeyString = '') or Pressed.Strings[NewEvent.KeyString]);
 
+  { Note that Event has invalid position (TLCLKeyPressHandler always sends
+    zero). So all the following code has to use NewEvent instead. }
+
   Pressed.KeyDown(NewEvent.Key, NewEvent.KeyString);
 
-  Container.EventPress(Event);
+  Container.EventPress(NewEvent);
 
   { The result of "Container.EventPress" (whether the key was handled)
     is for now not used anywhere.
