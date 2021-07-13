@@ -28,6 +28,7 @@ type
     pfDirectory,
     pfZip,
     pfTarGz,
+    pfDeb,
     pfIosArchiveDevelopment,
     pfIosArchiveAdHoc,
     pfIosArchiveAppStore
@@ -35,8 +36,8 @@ type
   TPackageFormatNoDefault = pfDirectory..High(TPackageFormat);
 
   { Package a project to a directory. }
-  TPackageDirectory = class
-  private
+  TPackageDirectoryAbstract = class
+  protected
     TemporaryDir: string;
     FPath: string;
     FTopDirectoryName: string;
@@ -54,11 +55,6 @@ type
     constructor Create(const ATopDirectoryName: string);
     destructor Destroy; override;
 
-    { Create final archive. It will be placed within OutputProjectPath.
-      PackageName should contain only the base name, without extension. }
-    procedure Make(const OutputProjectPath: string; const PackageFileName: string;
-      const PackageFormat: TPackageFormatNoDefault);
-
     { Add file to the package.
 
       @param SourceFileName Filename existing on disk right now, must be an absolute filename.
@@ -74,6 +70,14 @@ type
     procedure AddDataInformation(const DataName: String);
   end;
 
+  TPackageDirectory = class(TPackageDirectoryAbstract)
+  public
+    { Create final archive. It will be placed within OutputProjectPath.
+      PackageName should contain only the base name, without extension. }
+    procedure Make(const OutputProjectPath: string; const PackageFileName: string;
+      const PackageFormat: TPackageFormatNoDefault);
+  end;
+
 { Generate auto_generated/CastleDataInformation.xml file inside
   CurrentDataPath, if it exists.
   CurrentDataPath may but doesn't have to end with PathDelim. }
@@ -84,14 +88,14 @@ function StringToPackageFormat(const S: string): TPackageFormat;
 
 implementation
 
-uses SysUtils, Process, {$ifdef UNIX} BaseUnix, {$endif}
-  CastleFilesUtils, CastleLog, CastleFindFiles, CastleURIUtils,
+uses SysUtils,
+  CastleFilesUtils, CastleLog, CastleURIUtils,
   CastleStringUtils, CastleInternalDirectoryInformation,
   ToolCommonUtils, ToolUtils;
 
 { TPackageDirectory ---------------------------------------------------------- }
 
-constructor TPackageDirectory.Create(const ATopDirectoryName: string);
+constructor TPackageDirectoryAbstract.Create(const ATopDirectoryName: string);
 begin
   inherited Create;
   FTopDirectoryName := ATopDirectoryName;
@@ -103,7 +107,7 @@ begin
   FPath += PathDelim;
 end;
 
-destructor TPackageDirectory.Destroy;
+destructor TPackageDirectoryAbstract.Destroy;
 begin
   RemoveNonEmptyDir(TemporaryDir, true);
   inherited;
@@ -156,29 +160,8 @@ begin
   end;
 end;
 
-procedure TPackageDirectory.Add(const SourceFileName, DestinationFileName: string;
+procedure TPackageDirectoryAbstract.Add(const SourceFileName, DestinationFileName: string;
   const MakeExecutable: Boolean);
-
-  procedure DoMakeExecutable(const Name: string);
-  {$ifdef UNIX}
-  var
-    ChmodResult: CInt;
-  begin
-    ChmodResult := FpChmod(Path + Name,
-      S_IRUSR or S_IWUSR or S_IXUSR or
-      S_IRGRP or            S_IXGRP or
-      S_IROTH or            S_IXOTH);
-    if ChmodResult <> 0 then
-      WritelnWarning('Package', Format('Error setting executable bit on "%s": %s', [
-        Path + Name,
-        SysErrorMessage(ChmodResult)
-      ]));
-  {$else}
-  begin
-    WritelnWarning('Package', 'Packaging for a platform where UNIX permissions matter, but we cannot set "chmod" on this platform. This usually means that you package for Unix from Windows, and means that "executable" bit inside binary in tar.gz archive may not be set --- archive may not be 100% comfortable for Unix users');
-    {$endif}
-  end;
-
 begin
   SmartCopyFile(SourceFileName, Path + DestinationFileName);
   WritelnVerbose('Package file: ' + DestinationFileName);
@@ -187,11 +170,11 @@ begin
   begin
     { For OSes where chmod matters, make sure to set it before packing }
     WritelnVerbose('Setting Unix executable permissions: ' + DestinationFileName);
-    DoMakeExecutable(DestinationFileName);
+    DoMakeExecutable(Path + DestinationFileName);
   end;
 end;
 
-procedure TPackageDirectory.AddDataInformation(const DataName: String);
+procedure TPackageDirectoryAbstract.AddDataInformation(const DataName: String);
 begin
   GenerateDataInformation(Path + DataName);
 end;
@@ -232,6 +215,7 @@ const
     'directory',
     'zip',
     'targz',
+    'deb',
     'ios-archive-development',
     'ios-archive-ad-hoc',
     'ios-archive-app-store'

@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="11"/>
+    <Version Value="12"/>
     <General>
       <Flags>
         <MainUnitHasUsesSectionForAllUnits Value="False"/>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
         <MainUnitHasScaledStatement Value="False"/>
+        <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InIDEConfig"/>
-      <MainUnit Value="0"/>
       <ResourceType Value="res"/>
     </General>
     <BuildModes Count="1">
@@ -37,7 +37,7 @@
         <PackageName Value="castle_base"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="23">
+    <Units Count="24">
       <Unit0>
         <Filename Value="castle-engine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -50,6 +50,7 @@
       <Unit2>
         <Filename Value="code/toolpackage.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="ToolPackage"/>
       </Unit2>
       <Unit3>
         <Filename Value="code/toolproject.pas"/>
@@ -59,6 +60,7 @@
       <Unit4>
         <Filename Value="../common-code/toolarchitectures.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="ToolArchitectures"/>
       </Unit4>
       <Unit5>
         <Filename Value="code/toolutils.pas"/>
@@ -67,6 +69,7 @@
       <Unit6>
         <Filename Value="code/toolandroid.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="ToolAndroid"/>
       </Unit6>
       <Unit7>
         <Filename Value="code/toolandroidmerging.pas"/>
@@ -115,10 +118,12 @@
       <Unit18>
         <Filename Value="../common-code/toolcommonutils.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="ToolCommonUtils"/>
       </Unit18>
       <Unit19>
         <Filename Value="../common-code/toolcompilerinfo.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="ToolCompilerInfo"/>
       </Unit19>
       <Unit20>
         <Filename Value="../common-code/toolfpcversion.pas"/>
@@ -127,11 +132,17 @@
       <Unit21>
         <Filename Value="../common-code/toolmanifest.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="ToolManifest"/>
       </Unit21>
       <Unit22>
         <Filename Value="../common-code/toolservices.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit22>
+      <Unit23>
+        <Filename Value="code/tooldebian.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="ToolDebian"/>
+      </Unit23>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

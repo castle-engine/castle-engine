@@ -477,6 +477,11 @@ begin
   SaveFpImage(Img, Stream, Writer);
 end;
 
+procedure SaveXPM(const Img: TEncodedImage; const Stream: TStream);
+begin
+  SaveFpImage(Img, Stream, TFPWriterXPM.Create);
+end;
+
 { resizing ------------------------------------------------------------------- }
 
 function TCastleImage.MakeResizedToFpImage(ResizeWidth, ResizeHeight: Cardinal;

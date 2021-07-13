@@ -127,6 +127,11 @@ type
       FIOSTeam: string;
       FindPascalFilesResult: TStringList; // valid only during FindPascalFilesCallback
 
+      FDebianInstallFolder: String;
+      FDebianSection: String;
+      FFreeDesktopCategories: String;
+      FFreeDesktopComment: String;
+
     function DefaultQualifiedName(const AName: String): String;
     procedure CheckMatches(const Name, Value: string; const AllowedChars: TSetOfChars);
     procedure CheckValidQualifiedName(const OptionName: string; const QualifiedName: string);
@@ -233,6 +238,23 @@ type
       that can optionally auto-create the source file. }
     property PluginSource: string read FPluginSource;
 
+    { Debian-specific things }
+    { Subfolder of /usr into which the app will be installed:
+      'games' will mean /usr/games/(projectname)
+      We make sure this directory will be set as a working directory when launched
+      Default: games }
+    property DebianInstallFolder: String read FDebianInstallFolder;
+    { App menu section, see man menufile for more information,
+      Default: Games }
+    property DebianSection: String read FDebianSection;
+    { Freedesktop category of the app,
+      see https://www.freedesktop.org/wiki/Specifications/menu-spec/ for more info
+      Default: Game }
+    property FreeDesktopCategories: String read FFreeDesktopCategories;
+    { A short description of the project.
+      See https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html for more info }
+    property FreeDesktopComment: String read FFreeDesktopComment;
+
     { Find a file with given BaseName (contains filename, with extension, but without any path)
       among SearchPaths of this project.
       Returns absolute filename, or '' if not found. }
@@ -263,12 +285,13 @@ uses SysUtils,
 
 function TImageFileNames.FindExtension(const Extensions: array of string): string;
 var
-  I: Integer;
+  I, J: Integer;
 begin
   Result := '';
-  for I := 0 to Count - 1 do
-    if AnsiSameText(ExtractFileExt(Strings[I]), '.ico') then
-      Exit(Strings[I]);
+  for J := 0 to Length(Extensions) - 1 do
+    for I := 0 to Count - 1 do
+      if AnsiSameText(ExtractFileExt(Strings[I]), Extensions[J]) then
+        Exit(Strings[I]);
 end;
 
 function TImageFileNames.FindReadable: TCastleImage;
@@ -588,6 +611,20 @@ begin
 
     if FAndroidServices.HasService('open_associated_urls') then
       FAndroidServices.AddService('download_urls'); // downloading is needed when opening files from web
+
+    // read Debian-specific metadata
+    FDebianInstallFolder := 'games';
+    FDebianSection := 'Games';
+    FFreeDesktopCategories := 'Game';
+    FFreeDesktopComment := '';
+    Element := Doc.DocumentElement.ChildElement('debian', false);
+    if Element <> nil then
+    begin
+      FDebianInstallFolder := Element.AttributeStringDef('install_folder', FDebianInstallFolder);
+      FDebianSection := Element.AttributeStringDef('section', FDebianSection);
+      FFreeDesktopCategories := Element.AttributeStringDef('categories', FFreeDesktopCategories);
+      FFreeDesktopComment := Element.AttributeStringDef('comment', FFreeDesktopComment);
+    end;
   finally FreeAndNil(Doc) end;
 
   CreateFinish;
