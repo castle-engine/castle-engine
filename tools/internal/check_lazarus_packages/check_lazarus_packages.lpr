@@ -22,6 +22,7 @@ uses SysUtils, DOM,
 
 var
   CgePath: String;
+  CgePathExpanded: String;
   HasWarnings: Boolean = false;
 
 type
@@ -96,8 +97,9 @@ var
   FileName, CgePrefix: String;
 begin
   FileName := FileInfo.AbsoluteName;
+  FileName := SReplaceChars(FileName, PathDelim, '/'); // replace backslashes with slashes on Windows
 
-  CgePrefix := InclPathDelim(ExpandFileName(CgePath)) + 'src' + PathDelim;
+  CgePrefix := CgePathExpanded + 'src/';
   if not IsPrefix(CgePrefix, FileName, false) then
     PackageWarning('All found files must be in CGE src, invalid: %s', [FileName]);
   FileName := PrefixRemove(CgePrefix, FileName, false);
@@ -111,8 +113,9 @@ var
   I: Integer;
 begin
   FileName := FileInfo.AbsoluteName;
+  FileName := SReplaceChars(FileName, PathDelim, '/'); // replace backslashes with slashes on Windows
 
-  CgePrefix := InclPathDelim(ExpandFileName(CgePath)) + 'src' + PathDelim;
+  CgePrefix := CgePathExpanded + 'src/';
   if not IsPrefix(CgePrefix, FileName, false) then
     PackageWarning('All found files must be in CGE src, invalid: %s', [FileName]);
   FileName := PrefixRemove(CgePrefix, FileName, false);
@@ -143,7 +146,7 @@ begin
   RequiredFilesList := TCastleStringList.Create;
   for I := 0 to High(RequiredFiles) do
   begin
-    FindPath := InclPathDelim(ExpandFileName(CgePath)) + 'src' + PathDelim + RequiredFiles[I] + PathDelim;
+    FindPath := CgePathExpanded + 'src' + PathDelim + RequiredFiles[I] + PathDelim;
     FindFiles(FindPath, '*.inc', false, @GatherRequiredFiles, [ffRecursive]);
     FindFiles(FindPath, '*.pas', false, @GatherRequiredFiles, [ffRecursive]);
     FindFiles(FindPath, '*.image_data', false, @GatherRequiredFiles, [ffRecursive]);
@@ -154,7 +157,7 @@ begin
   { remove ExcludedFromRequiredFiles }
   for I := 0 to High(ExcludedFromRequiredFiles) do
   begin
-    FindPath := InclPathDelim(ExpandFileName(CgePath)) + 'src' + PathDelim + ExcludedFromRequiredFiles[I] + PathDelim;
+    FindPath := CgePathExpanded + 'src' + PathDelim + ExcludedFromRequiredFiles[I] + PathDelim;
     FindFiles(FindPath, '*.inc', false, @ExcludeFromRequiredFiles, [ffRecursive]);
     FindFiles(FindPath, '*.pas', false, @ExcludeFromRequiredFiles, [ffRecursive]);
     FindFiles(FindPath, '*.image_data', false, @ExcludeFromRequiredFiles, [ffRecursive]);
@@ -198,7 +201,10 @@ begin
   Parameters.CheckHigh(1);
   CgePath := Parameters[1];
 
-  Lpk := TLazarusPackage.Create(InclPathDelim(CgePath) + 'packages' + PathDelim + 'castle_base.lpk');
+  CgePathExpanded := InclPathDelim(ExpandFileName(CgePath));
+  CgePathExpanded := SReplaceChars(CgePathExpanded, PathDelim, '/'); // replace backslashes with slashes on Windows
+
+  Lpk := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'castle_base.lpk');
   try
     Lpk.CheckFiles([
      'common_includes',
@@ -224,7 +230,7 @@ begin
     [ ]);
   finally FreeAndNil(Lpk) end;
 
-  Lpk := TLazarusPackage.Create(InclPathDelim(CgePath) + 'packages' + PathDelim + 'castle_window.lpk');
+  Lpk := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'castle_window.lpk');
   try
     Lpk.CheckFiles([
      'window'
@@ -233,12 +239,30 @@ begin
     [ ]);
   finally FreeAndNil(Lpk) end;
 
-  Lpk := TLazarusPackage.Create(InclPathDelim(CgePath) + 'packages' + PathDelim + 'castle_components.lpk');
+  Lpk := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'alternative_castle_window_based_on_lcl.lpk');
+  try
+    Lpk.CheckFiles([
+     'window'
+    ],
+    [ ],
+    [ ]);
+  finally FreeAndNil(Lpk) end;
+
+  Lpk := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'castle_components.lpk');
   try
     Lpk.CheckFiles([
      'lcl'
     ],
     [],
+    [ ]);
+  finally FreeAndNil(Lpk) end;
+
+  Lpk := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'castle_indy.lpk');
+  try
+    Lpk.CheckFiles([
+     'files/indy'
+    ],
+    [ ],
     [ ]);
   finally FreeAndNil(Lpk) end;
 
