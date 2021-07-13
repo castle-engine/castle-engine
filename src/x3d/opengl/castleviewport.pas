@@ -162,6 +162,7 @@ type
       FCapturePointingDevice: TCastleTransform;
       FCapturePointingDeviceObserver: TFreeNotificationObserver;
       FLastSeenMainScene: TCastleScene; // only used by editor
+      FInternalShadowVolumeUpdateFactorCounter: Integer; // Used to count frames to update shadow volumes
 
     function FillsWholeContainer: boolean;
     function IsStoredNavigation: Boolean;
@@ -402,6 +403,10 @@ type
         Set to true when some TCastleTransform handles PointingDevicePress,
         set to false in PointingDeviceRelease. }
       InternalPointingDeviceDragging: Boolean;
+
+      { How often the shadows should be updated. When set to 0 every frame,
+        when 1 every second frame etc. }
+      InternalShadowVolumeUpdateFactor: Integer;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1390,6 +1395,8 @@ begin
   FClearDepth := true;
   InternalDistortFieldOfViewY := 1;
   InternalDistortViewAspect := 1;
+  InternalShadowVolumeUpdateFactor := 0; // update every frame by default
+  FInternalShadowVolumeUpdateFactorCounter := 0;
 
   FCamera := TCastleCamera.Create(Self);
   FCamera.InternalViewport := Self;
@@ -2182,6 +2189,17 @@ end;
 
 procedure TCastleViewport.RenderShadowVolume;
 begin
+  if InternalShadowVolumeUpdateFactor = 0 then
+    InternalUpdateShadowVolumes := true
+  else
+  begin
+    InternalUpdateShadowVolumes := (FInternalShadowVolumeUpdateFactorCounter = 0);
+
+    if FInternalShadowVolumeUpdateFactorCounter >= InternalShadowVolumeUpdateFactor then
+      FInternalShadowVolumeUpdateFactorCounter := 0
+    else
+      Inc(FInternalShadowVolumeUpdateFactorCounter);
+  end;
   Items.RenderShadowVolume(FShadowVolumeRenderer, true, TMatrix4.Identity);
 end;
 
