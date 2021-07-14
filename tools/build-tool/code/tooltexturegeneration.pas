@@ -205,7 +205,7 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
   var
     ToolExe: string;
   begin
-    ToolExe := '';
+    ToolExe := FindExeCastleTool('PVRTexToolCLI');
     {$ifdef UNIX}
     { Try the standard installation path on Linux.
       On x86_64, try the 64-bit version first, otherwise fallback on 32-bit. }

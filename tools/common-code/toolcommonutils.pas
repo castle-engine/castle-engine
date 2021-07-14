@@ -140,7 +140,8 @@ var
 implementation
 
 uses Classes, SysUtils, Process,
-  CastleFilesUtils, CastleUtils, CastleURIUtils, CastleLog;
+  CastleFilesUtils, CastleUtils, CastleURIUtils, CastleLog,
+  ToolArchitectures;
 
 procedure WritelnVerbose(const S: String);
 begin
@@ -155,6 +156,11 @@ begin
   if CastleEnginePath <> '' then
   begin
     Result := CastleEnginePath + 'bin' + PathDelim + ExeName + ExeExtension;
+    if RegularFileExists(Result) then
+      Exit;
+    Result := CastleEnginePath + 'tools' + PathDelim + 'contrib' + PathDelim +
+      CPUToString(DefaultCPU) + '-' + OSToString(DefaultOS) + PathDelim +
+      ExeName + ExeExtension;
     if RegularFileExists(Result) then
       Exit;
   end;
