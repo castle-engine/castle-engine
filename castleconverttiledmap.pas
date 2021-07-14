@@ -84,6 +84,9 @@ type
   TImageTextureNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TImageTextureNode>;
 
   { Converter class to convert Tiled map into X3D representations. }
+
+  { TTiledMapConverter }
+
   TTiledMapConverter = class
   strict private
     FDebugMode: Boolean;
@@ -104,7 +107,8 @@ type
     { Builds Tile layer node from TTiledMap data. }
     function BuildTileLayerNode(const ALayer: TTiledMap.TLayer): TTiledLayerNode;
 
-    { Helper functions }
+    {   Helper functions   }
+
     { Map width in pixels. }
     function MapWidth: Cardinal;
     { Map height in pixels. }
@@ -120,6 +124,12 @@ type
     { Converts two float values into TVector2 and Y-value (CY: Convert Y)
       according to def., see remarks above. }
     function Vector2CY(const X, Y: Single): TVector2;
+    { Get the index of a tileset from texture node list.
+      This function is important to resolve the relation between
+      Tileset <--> Tileset Texture node. }
+    function GetTilesetTextureNode(ATileset: TTiledMap.TTileset): TImageTextureNode;
+
+    {   Debug functions    }
 
     { Build a label which displays a lot of useful information about the map
       data for debugging. }
@@ -132,6 +142,9 @@ type
     { Makes sure that a Debug node is added/removed from Map node list and
       is constructed/destroyed accordingly. }
     procedure SetDebugMode(AValue: Boolean);
+
+    {   Properties   }
+
     { This node holds all debug nodes and is added to MapNode if debug mode is
       on. This is important for automatic free'ing of all debug objects. }
     property DebugNode: TX3DRootNode read FDebugNode write FDebugNode;
@@ -406,7 +419,8 @@ var
     Result := ATileset.TileCount div ATileset.Columns;
   end;
 
-  { Determines the position of a tile by index (the index is used in Column-/Row-function). }
+  { Determines the position of a tile in the map
+    by index (the index is used in Column-/Row-function). }
   function PositionOfTileByIndex(ATileset: TTiledMap.TTileset): TVector2;
   begin
     if not Assigned(ATileset) then
@@ -442,7 +456,8 @@ var
     { Try to get tileset. Only if it exists for this tile,
       an actual tile node is created. }
     Tileset := GetTilesetOfTile(ALayer.Data.Data[I]);
-    if Assigned(Tileset) then
+    TilesetTextureNode := GetTilesetTextureNode(Tileset);
+    if (Assigned(Tileset)) and (Assigned(TilesetTextureNode)) then
     begin
       TileNode := TTiledTileNode.Create;
       TileNode.Translation := Vector3(PositionOfTileByIndex(Tileset), 0);
@@ -450,8 +465,7 @@ var
       TileGeometryNode.Size := Vector2(Tileset.TileWidth, Tileset.TileHeight);
 
       TileShapeNode.Appearance := TAppearanceNode.Create;
-      { TODO : Use more than one tileset with index 0! }
-      TileShapeNode.Appearance.Texture := FTilesetTextureNodeList.Items[0];
+      TileShapeNode.Appearance.Texture := TilesetTextureNode;
       TilesetTextureTransformNode := TTextureTransformNode.Create;
 
       { Translate tileset texture:
@@ -468,8 +482,8 @@ var
         The latter is extracted from the texture node.
 
         TODO: Easier just to use rows/columns? Vec2(1/Rows, 1/Cols) }
-      TilesetWidth :=  ((FTilesetTextureNodeList.Items[0] as TImageTextureNode).TextureImage).Width;
-      TilesetHeight := ((FTilesetTextureNodeList.Items[0] as TImageTextureNode).TextureImage).Height;
+      TilesetWidth :=  TilesetTextureNode.TextureImage.Width;
+      TilesetHeight := TilesetTextureNode.TextureImage.Height;
       TilesetTextureTransformNode.Scale := Vector2(
         Tileset.TileWidth / TilesetWidth,
         Tileset.TileHeight / TilesetHeight
@@ -519,7 +533,7 @@ begin
   TilesetTextureNodeList.OwnsObjects := False; // Very important!
                                                // Competes with access of X3D node list!
 
-  DebugMode := True;
+  DebugMode := False; //True;
 
   ConvYMatrix.Items[0,0] := 1;
   ConvYMatrix.Items[1,0] := 0;
@@ -567,6 +581,26 @@ end;
 function TTiledMapConverter.Vector2CY(const X, Y: Single): TVector2;
 begin
   Result := ConvY(Vector2(X, Y));
+end;
+
+function TTiledMapConverter.GetTilesetTextureNode(ATileset: TTiledMap.TTileset
+  ): TImageTextureNode;
+var
+  Tileset: TTiledMap.TTileset;
+  TilesetTextureNode: TImageTextureNode;
+begin
+  Result := nil;
+  for Tileset in Map.Tilesets do
+  begin
+    for TilesetTextureNode in TilesetTextureNodeList do
+    begin
+      if Tileset.Name = TilesetTextureNode.NodeName then
+      begin
+        Result := TilesetTextureNode;
+        Exit;
+      end;
+    end;
+  end;
 end;
 
 procedure TTiledMapConverter.BuildDebugInformationLabel;
