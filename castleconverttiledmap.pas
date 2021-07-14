@@ -447,7 +447,7 @@ var
     //Writeln('ColumnOfTileInMap: ', Result);
   end;
 
-  { Determines the position of a tile by index (used in Column-/Row-function). }
+  { Determines the position of a tile by index (the index is used in Column-/Row-function). }
   function PositionOfTileByIndex(ATileset: TTiledMap.TTileset): TVector2;
   begin
     if not Assigned(ATileset) then
@@ -467,6 +467,9 @@ var
   var
     Tile: TTiledMap.TTile;                  // A Tile.
     Tileset: TTiledMap.TTileset;            // A Tileset.
+    TilesetWidth: Cardinal = 0;                 // Width of tileset in pixels.
+    TilesetHeight: Cardinal = 0;                // Height of tileset in pixels.
+
 
     { Tile nodes. }
     TileNode: TTiledTileNode;
@@ -492,16 +495,31 @@ var
       TileShapeNode.Appearance.Texture := FTilesetTextureNodeList.Items[0];
       TilesetTextureTransformNode := TTextureTransformNode.Create;
 
-      { ? }
-      //Tile := GetTileFromTileset(ALayer.Data.Data[I], Tileset);
-      //TilesetTextureTransformNode.Translation := Vector2(Tile.Id * Tileset.TileWidth * 2, 0);
-      //Writeln(Tile.Id);
+      TilesetWidth :=  ((FTilesetTextureNodeList.Items[0] as TImageTextureNode).TextureImage).Width;
+      TilesetHeight := ((FTilesetTextureNodeList.Items[0] as TImageTextureNode).TextureImage).Height;
 
-      { Divide Tileset Tile width/height by full Tileset width/height.
-        The latter is extracted from the texture node. }
-      TilesetTextureTransformNode.Scale := Vector2(Tileset.TileWidth / ((FTilesetTextureNodeList.Items[0] as TImageTextureNode).TextureImage).Width,
+      { Translate tileset texture:
+        Important: Origin of tex. coordinate is bottom-left!}
+      Tile := GetTileFromTileset(ALayer.Data.Data[I], Tileset);
+      TilesetTextureTransformNode.Translation := Vector2(
+        (Tile.Id mod Tileset.Columns),
+        (Tileset.TileCount div Tileset.Columns - 1) - Floor(Tile.Id / Tileset.Columns)
+        );
 
-      Tileset.TileHeight / ((FTilesetTextureNodeList.Items[0] as TImageTextureNode).TextureImage).Height);
+      { Scale tileset texture:
+        Scale factor is inverted: E. g. 0.5 means 2x dimension.
+        Divide Tileset Tile width/height by full Tileset width/height.
+        The latter is extracted from the texture node.
+
+        TODO: Easier just to use rows/columns? Vec2(1/Rows, 1/Cols) }
+      TilesetTextureTransformNode.Scale := Vector2(
+        Tileset.TileWidth / TilesetWidth,
+        Tileset.TileHeight / TilesetHeight
+        );
+
+      Writeln(Tile.Id);
+      Writeln((Tile.Id mod Tileset.Columns) * (Tileset.TileWidth / TilesetWidth));
+
       //TileShapeNode.Appearance.TextureTransform := TTextureTransformNode.Create;
       TileShapeNode.Appearance.TextureTransform := TilesetTextureTransformNode;
 
@@ -566,7 +584,7 @@ begin
   TilesetTextureNodeList.OwnsObjects := False; // Very important!
                                                // Competes with access of X3D node list!
 
-  DebugMode := True;  // DebugMode := False; // Default
+  DebugMode := False;
 
   ConvYMatrix.Items[0,0] := 1;
   ConvYMatrix.Items[1,0] := 0;
