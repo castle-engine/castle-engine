@@ -400,6 +400,12 @@ var
     //Writeln('ColumnOfTileInMap: ', Result);
   end;
 
+  { Calculate the number of rows (of tiles) of a tileset. }
+  function RowsInTileset(ATileset: TTiledMap.TTileset): Cardinal;
+  begin
+    Result := ATileset.TileCount div ATileset.Columns;
+  end;
+
   { Determines the position of a tile by index (the index is used in Column-/Row-function). }
   function PositionOfTileByIndex(ATileset: TTiledMap.TTileset): TVector2;
   begin
@@ -453,7 +459,7 @@ var
       Tile := GetTileFromTileset(ALayer.Data.Data[I], Tileset);
       TilesetTextureTransformNode.Translation := Vector2(
         (Tile.Id mod Tileset.Columns),
-        (Tileset.TileCount div Tileset.Columns - 1) - Floor(Tile.Id / Tileset.Columns)
+        (RowsInTileset(Tileset) - 1) - Floor(Tile.Id / Tileset.Columns)
         );
 
       { Scale tileset texture:
@@ -469,7 +475,6 @@ var
         Tileset.TileHeight / TilesetHeight
         );
 
-      //TileShapeNode.Appearance.TextureTransform := TTextureTransformNode.Create;
       TileShapeNode.Appearance.TextureTransform := TilesetTextureTransformNode;
 
       TileNode.AddChildren(TileShapeNode);
