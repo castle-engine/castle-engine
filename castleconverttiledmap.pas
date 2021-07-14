@@ -423,11 +423,9 @@ var
     by index (the index is used in Column-/Row-function). }
   function PositionOfTileByIndex(ATileset: TTiledMap.TTileset): TVector2;
   begin
+    Result := Vector2(0, 0);
     if not Assigned(ATileset) then
-    begin
-      Result := Vector2(0, 0);
       Exit;
-    end;
 
     Result := Vector2CY(
       ColumnOfTileInMap * TileWidth,                           // X
