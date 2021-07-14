@@ -586,15 +586,14 @@ end;
 function TTiledMapConverter.GetTilesetTextureNode(ATileset: TTiledMap.TTileset
   ): TImageTextureNode;
 var
-  Tileset: TTiledMap.TTileset;
   TilesetTextureNode: TImageTextureNode;
 begin
   Result := nil;
-  for Tileset in Map.Tilesets do
+  for ATileset in Map.Tilesets do
   begin
     for TilesetTextureNode in TilesetTextureNodeList do
     begin
-      if Tileset.Name = TilesetTextureNode.NodeName then
+      if ATileset.Name = TilesetTextureNode.X3DName then
       begin
         Result := TilesetTextureNode;
         Exit;
