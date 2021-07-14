@@ -327,9 +327,6 @@ var
   DebugTileset: TTiledMap.TTileset;        // A tileset for debuggin.
   I: Cardinal;
 
-  { The X3D tile node are constructred from these nodes. }
-  TileNode: TTiledTileNode;
-
   { Get the associated tileset of a specific tile by the tileset's FirstGID.
 
     Hint: A map tile isn't always associated with a tileset tile, e. g.
@@ -389,47 +386,6 @@ var
     end;
   end;
 
-  { This function generates an anchor (parameter list) to load the
-    corresponding part from the tileset image.
-
-    Important: For this to work the tsx files have to be of recent version!
-    Older tsx files do not contain the columns property of the tileset which
-    is used in this function.
-
-    Ex. for anchor format:
-      my_image.png#left:100,bottom:100,width:256,height:256 }
-  function GenerateTileImageAnchor(ATile: TTiledMap.TTile; ATileset:
-    TTiledMap.TTileset): String;
-
-    function RowCountOfTileset: Cardinal;
-    begin
-      Result := ATileset.TileCount div ATileset.Columns;
-    end;
-
-    { Zero-based. }
-    function RowOfTileInTileset: Cardinal;
-    begin
-      Result := Floor(ATile.Id / ATileset.Columns);
-    end;
-
-    { Zero-based. }
-    function ColumnOfTileInTileset: Cardinal;
-    begin
-      if ATile.Id < ATileset.Columns then
-        Result := ATile.Id
-      else
-        Result := ATile.Id mod ATileset.Columns;
-    end;
-
-  begin
-    Result := '';
-    Result := Result + '#';
-    Result := Result + 'left:' + IntToStr(ColumnOfTileInTileset * ATileset.TileWidth + ATileset.Margin + ColumnOfTileInTileset * ATileSet.Spacing) + ',';
-    Result := Result + 'bottom:' + IntToStr((RowCountOfTileset - RowOfTileInTileset - 1) * ATileset.TileHeight + ATileset.Margin + (RowCountOfTileset - RowOfTileInTileset - 1) * ATileSet.Spacing) + ',';
-    Result := Result + 'width:' + IntToStr(Map.TileWidth) + ',';
-    Result := Result + 'height:' + IntToStr(Map.TileHeight);
-  end;
-
   { Zero-based. }
   function RowOfTileInMap: Cardinal;
   begin
@@ -440,10 +396,7 @@ var
   { Zero-based. }
   function ColumnOfTileInMap: Cardinal;
   begin
-    if I < Map.Width then
-      Result := I
-    else
-      Result := I mod Map.Width;
+    Result := I mod Map.Width;
     //Writeln('ColumnOfTileInMap: ', Result);
   end;
 
@@ -495,9 +448,6 @@ var
       TileShapeNode.Appearance.Texture := FTilesetTextureNodeList.Items[0];
       TilesetTextureTransformNode := TTextureTransformNode.Create;
 
-      TilesetWidth :=  ((FTilesetTextureNodeList.Items[0] as TImageTextureNode).TextureImage).Width;
-      TilesetHeight := ((FTilesetTextureNodeList.Items[0] as TImageTextureNode).TextureImage).Height;
-
       { Translate tileset texture:
         Important: Origin of tex. coordinate is bottom-left!}
       Tile := GetTileFromTileset(ALayer.Data.Data[I], Tileset);
@@ -512,13 +462,12 @@ var
         The latter is extracted from the texture node.
 
         TODO: Easier just to use rows/columns? Vec2(1/Rows, 1/Cols) }
+      TilesetWidth :=  ((FTilesetTextureNodeList.Items[0] as TImageTextureNode).TextureImage).Width;
+      TilesetHeight := ((FTilesetTextureNodeList.Items[0] as TImageTextureNode).TextureImage).Height;
       TilesetTextureTransformNode.Scale := Vector2(
         Tileset.TileWidth / TilesetWidth,
         Tileset.TileHeight / TilesetHeight
         );
-
-      Writeln(Tile.Id);
-      Writeln((Tile.Id mod Tileset.Columns) * (Tileset.TileWidth / TilesetWidth));
 
       //TileShapeNode.Appearance.TextureTransform := TTextureTransformNode.Create;
       TileShapeNode.Appearance.TextureTransform := TilesetTextureTransformNode;
@@ -554,25 +503,6 @@ begin
   begin
     ConvertTile;
   end;
-    //writeln('Local Tile ID: ', Tile.Id, ' --> Tileset: ',
-    //  Tileset.Name, ' (FGID: ', Tileset.FirstGID, ')');
-
-    { Create "x3d tile node" for each tile. }
-    // For testing only the first tile should be handled! Delete later!
-    { if I > 64 then
-      Continue; }
-    {
-    TileTransformNode := TTransformNode.Create;
-    //TileTransformNode.AddChildren(LoadImageAsNode(Tileset.Image.URL +
-    //  GenerateTileImageAnchor(Tile, Tileset)));
-    TileTransformNode.Translation := Vector3(
-      ColumnOfTileInMap * Map.TileWidth,
-      RowOfTileInMap * Map.TileHeight,
-      0
-      );
-    Result.AddChildren(TileTransformNode);
-  end;
-      }
 end;
 
 constructor TTiledMapConverter.Create;
@@ -584,7 +514,7 @@ begin
   TilesetTextureNodeList.OwnsObjects := False; // Very important!
                                                // Competes with access of X3D node list!
 
-  DebugMode := False;
+  DebugMode := True;
 
   ConvYMatrix.Items[0,0] := 1;
   ConvYMatrix.Items[1,0] := 0;
@@ -593,12 +523,7 @@ begin
 end;
 
 destructor TTiledMapConverter.Destroy;
-var
-  I: Cardinal;
 begin
-  //for I := High(TilesetTextureNodeArray) downto  Low(TilesetTextureNodeArray) do
-  //  FreeAndNil(TilesetTextureNodeArray[I]);
-
   FreeAndNil(FTilesetTextureNodeList);
 
   inherited Destroy;
