@@ -82,7 +82,8 @@ type
   TTiledObjectNode = TTransformNode;
   TTiledTileNode = TTransformNode;
   TImageTextureNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TImageTextureNode>;
-
+  TShapeNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TShapeNode>;
+  TShapeNodeListList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TShapeNodeList>;
   { Converter class to convert Tiled map into X3D representations. }
 
   { TTiledMapConverter }
@@ -95,6 +96,7 @@ type
     FMap: TTiledMap;
     FMapNode: TX3DRootNode;
     FTilesetTextureNodeList: TImageTextureNodeList;
+    FTilesetShapeNodeListList: TShapeNodeListList;
 
     FConvYMatrix: TMatrix2;
 
@@ -152,6 +154,7 @@ type
       Tiled Y-values according to definition, see remarks above. }
     property ConvYMatrix: TMatrix2 read FConvYMatrix;
     property TilesetTextureNodeList: TImageTextureNodeList read FTilesetTextureNodeList write FTilesetTextureNodeList;
+    property TilesetShapeNodeListList: TShapeNodeListList read FTilesetShapeNodeListList write FTilesetShapeNodeListList;
   public
     constructor Create;
     destructor Destroy; override;
@@ -184,15 +187,30 @@ end;
 
 procedure TTiledMapConverter.ConvertTilesets;
 var
+  Tile: TTiledMap.TTile;
   Tileset: TTiledMap.TTileset;            // A tileset
+  TilesetWidth: Cardinal = 0;             // Width of tileset in pixels.
+  TilesetHeight: Cardinal = 0;            // Height of tileset in pixels.
   TilesetTextureNode: TImageTextureNode;  // A tileset node
-  TilesetTexturePropertiesNode: TTexturePropertiesNode;
+  TileGeometryNode: TRectangle2DNode;     // A tile geometry node (of tileset)
+  TileShapeNode: TShapeNode;              // A shape node (of tileset)
+  TilesetTextureTransformNode: TTextureTransformNode; // A transform node for
+                                                      // the tileset texture
+  TilesetShapeNodeList: TShapeNodeList;
+
+  { Calculate the number of rows (of tiles) of a tileset. }
+  function RowsInTileset: Cardinal;
+  begin
+    Result := Tileset.TileCount div Tileset.Columns;
+  end;
+
 begin
   for Tileset in Map.Tilesets do
   begin
     //Writeln('Convert tileset: ',Tileset.Name);
     if Assigned(Tileset.Image) then
     begin
+      { Prepare texture node of tileset. }
       //Writeln('  Image source: ', Tileset.Image.URL);
       TilesetTextureNode := TImageTextureNode.Create(Tileset.Name, '');
       TilesetTextureNode.SetUrl([Tileset.Image.URL]);
@@ -200,7 +218,49 @@ begin
       TilesetTextureNode.TextureProperties.MagnificationFilter := magDefault;
       TilesetTextureNode.TextureProperties.MinificationFilter := minDefault;
       //Writeln('  Texture image loaded: ',TilesetTextureNode.IsTextureImage);
-      TilesetTextureNodeList.Add(TilesetTextureNode);
+
+      TilesetShapeNodeList := TShapeNodeList.Create(False);
+      TilesetShapeNodeList.N
+      for Tile in Tileset.Tiles do
+      begin
+        { Make tiles of tileset rectangular and with correct dimensions. }
+        TileGeometryNode := TRectangle2DNode.CreateWithShape(TileShapeNode);
+        TileGeometryNode.Size := Vector2(Tileset.TileWidth, Tileset.TileHeight);
+
+        { Make tiles textured and find correct texture coordinates. }
+        TileShapeNode.Appearance := TAppearanceNode.Create;
+        TileShapeNode.Appearance.Texture := TilesetTextureNode;
+        TilesetTextureTransformNode := TTextureTransformNode.Create;
+
+        { Translate tileset texture:
+        Important: Origin of tex. coordinate is bottom-left! }
+        //Tile := GetTileFromTileset(ALayer.Data.Data[I], Tileset);
+        TilesetTextureTransformNode.Translation := Vector2(
+          (Tile.Id mod Tileset.Columns),
+          (RowsInTileset - 1) - Floor(Tile.Id / Tileset.Columns)
+        );
+
+        { Scale tileset texture:
+          Scale factor is inverted: E. g. 0.5 means 2x dimension.
+          Divide Tileset Tile width/height by full Tileset width/height.
+          The latter is extracted from the texture node.
+
+          TODO: Easier just to use rows/columns? Vec2(1/Rows, 1/Cols) }
+        TilesetWidth :=  TilesetTextureNode.TextureImage.Width;
+        TilesetHeight := TilesetTextureNode.TextureImage.Height;
+        TilesetTextureTransformNode.Scale := Vector2(
+          Tileset.TileWidth / TilesetWidth,
+          Tileset.TileHeight / TilesetHeight
+        );
+
+        TileShapeNode.Appearance.TextureTransform := TilesetTextureTransformNode;
+
+
+        TilesetShapeNodeList.Add(TileShapeNode);
+      end;
+
+
+      TilesetShapeNodeListList.Add(TilesetShapeNodeList);
     end;
   end;
 end;
@@ -413,12 +473,6 @@ var
     //Writeln('ColumnOfTileInMap: ', Result);
   end;
 
-  { Calculate the number of rows (of tiles) of a tileset. }
-  function RowsInTileset(ATileset: TTiledMap.TTileset): Cardinal;
-  begin
-    Result := ATileset.TileCount div ATileset.Columns;
-  end;
-
   { Determines the position of a tile in the map
     by index (the index is used in Column-/Row-function). }
   function PositionOfTileByIndex(ATileset: TTiledMap.TTileset): TVector2;
@@ -433,14 +487,22 @@ var
        );
   end;
 
+  function GetTileShapeNode(ATileset: TTiledMap.TTileset; ATile: TTiledMap.TTile): TShapeNode;
+  var
+    Tileset: TTiledMap.TTileset;
+  begin
+    { Get tileset's shape node list. }
+    //for Tileset in T
+
+    { Get correct shape node from tileset list. }
+
+  end;
+
   { The actual conversion of a tile. }
   procedure ConvertTile;
   var
     Tile: TTiledMap.TTile;                  // A Tile.
     Tileset: TTiledMap.TTileset;            // A Tileset.
-    TilesetWidth: Cardinal = 0;                 // Width of tileset in pixels.
-    TilesetHeight: Cardinal = 0;                // Height of tileset in pixels.
-
 
     { Tile nodes. }
     TileNode: TTiledTileNode;
@@ -454,41 +516,19 @@ var
     { Try to get tileset. Only if it exists for this tile,
       an actual tile node is created. }
     Tileset := GetTilesetOfTile(ALayer.Data.Data[I]);
-    TilesetTextureNode := GetTilesetTextureNode(Tileset);
-    if (Assigned(Tileset)) and (Assigned(TilesetTextureNode)) then
+    Tile := GetTileFromTileset(Tileset);
+    //TilesetTextureNode := GetTilesetTextureNode(Tileset);
+    if Assigned(Tileset) then
     begin
       TileNode := TTiledTileNode.Create;
       TileNode.Translation := Vector3(PositionOfTileByIndex(Tileset), 0);
-      TileGeometryNode := TRectangle2DNode.CreateWithShape(TileShapeNode);
-      TileGeometryNode.Size := Vector2(Tileset.TileWidth, Tileset.TileHeight);
-
-      TileShapeNode.Appearance := TAppearanceNode.Create;
-      TileShapeNode.Appearance.Texture := TilesetTextureNode;
-      TilesetTextureTransformNode := TTextureTransformNode.Create;
-
-      { Translate tileset texture:
-        Important: Origin of tex. coordinate is bottom-left!}
-      Tile := GetTileFromTileset(ALayer.Data.Data[I], Tileset);
-      TilesetTextureTransformNode.Translation := Vector2(
-        (Tile.Id mod Tileset.Columns),
-        (RowsInTileset(Tileset) - 1) - Floor(Tile.Id / Tileset.Columns)
-        );
-
-      { Scale tileset texture:
-        Scale factor is inverted: E. g. 0.5 means 2x dimension.
-        Divide Tileset Tile width/height by full Tileset width/height.
-        The latter is extracted from the texture node.
-
-        TODO: Easier just to use rows/columns? Vec2(1/Rows, 1/Cols) }
-      TilesetWidth :=  TilesetTextureNode.TextureImage.Width;
-      TilesetHeight := TilesetTextureNode.TextureImage.Height;
-      TilesetTextureTransformNode.Scale := Vector2(
-        Tileset.TileWidth / TilesetWidth,
-        Tileset.TileHeight / TilesetHeight
-        );
-
-      TileShapeNode.Appearance.TextureTransform := TilesetTextureTransformNode;
-
+      //TileGeometryNode := TRectangle2DNode.CreateWithShape(TileShapeNode);
+      //TileGeometryNode.Size := Vector2(Tileset.TileWidth, Tileset.TileHeight);
+      //
+      //TileShapeNode.Appearance := TAppearanceNode.Create;
+      //TileShapeNode.Appearance.Texture := TilesetTextureNode;
+      //TilesetTextureTransformNode := TTextureTransformNode.Create;
+      TileShapeNode := GetTileShapeNode(Tileset, Tile);
       TileNode.AddChildren(TileShapeNode);
       Result.AddChildren(TileNode);
     end;
@@ -530,6 +570,9 @@ begin
   TilesetTextureNodeList := TImageTextureNodeList.Create;
   TilesetTextureNodeList.OwnsObjects := False; // Very important!
                                                // Competes with access of X3D node list!
+  TilesetShapeNodeListList := TShapeNodeListList.Create;
+   TilesetShapeNodeListList.OwnsObjects := False;  // Very important!
+                                                   // Competes with access of X3D node list!
 
   DebugMode := False; //True;
 
@@ -542,6 +585,7 @@ end;
 destructor TTiledMapConverter.Destroy;
 begin
   FreeAndNil(FTilesetTextureNodeList);
+  FreeAndNil(FTilesetShapeNodeListList);
 
   inherited Destroy;
 end;
