@@ -100,7 +100,15 @@ type
 
     FConvYMatrix: TMatrix2;
 
-    { Converts tilesets to texture nodes. }
+    { Converts tilesets to shape node lists.
+
+      For every tileset in Map.Tilesets there is one TShapeNodeList created
+      which holds one shape nodes for every tile of the tileset.
+
+      IMPORTANT: This procedure must ensure that the number of shape node lists
+      is always the same as the actual tilesets in Map.Tilesets.
+      This crucial for retrieving the correct tileset shape node list from
+      TilesetShapeNodeListList later! }
     procedure ConvertTilesets;
     { Tries to construct X3D nodes for each layer. }
     procedure ConvertLayers;
@@ -208,6 +216,12 @@ begin
   for Tileset in Map.Tilesets do
   begin
     //Writeln('Convert tileset: ',Tileset.Name);
+
+    { Make sure for each tileset there is a shape node list created
+      for consistency and retrieving of correct item-indices later. }
+    TilesetShapeNodeList := TShapeNodeList.Create(False);
+    TilesetTextureNode := nil;
+
     if Assigned(Tileset.Image) then
     begin
       { Prepare texture node of tileset. }
@@ -218,17 +232,18 @@ begin
       TilesetTextureNode.TextureProperties.MagnificationFilter := magDefault;
       TilesetTextureNode.TextureProperties.MinificationFilter := minDefault;
       //Writeln('  Texture image loaded: ',TilesetTextureNode.IsTextureImage);
+    end;
 
-      TilesetShapeNodeList := TShapeNodeList.Create(False);
-      TilesetShapeNodeList.N
-      for Tile in Tileset.Tiles do
+    for Tile in Tileset.Tiles do
+    begin
+      { Make tiles of tileset rectangular and with correct dimensions. }
+      TileGeometryNode := TRectangle2DNode.CreateWithShape(TileShapeNode);
+      TileGeometryNode.Size := Vector2(Tileset.TileWidth, Tileset.TileHeight);
+
+      { Make tiles textured and find correct texture coordinates. }
+      TileShapeNode.Appearance := TAppearanceNode.Create;
+      if Assigned(TilesetTextureNode) then
       begin
-        { Make tiles of tileset rectangular and with correct dimensions. }
-        TileGeometryNode := TRectangle2DNode.CreateWithShape(TileShapeNode);
-        TileGeometryNode.Size := Vector2(Tileset.TileWidth, Tileset.TileHeight);
-
-        { Make tiles textured and find correct texture coordinates. }
-        TileShapeNode.Appearance := TAppearanceNode.Create;
         TileShapeNode.Appearance.Texture := TilesetTextureNode;
         TilesetTextureTransformNode := TTextureTransformNode.Create;
 
@@ -254,14 +269,14 @@ begin
         );
 
         TileShapeNode.Appearance.TextureTransform := TilesetTextureTransformNode;
-
-
-        TilesetShapeNodeList.Add(TileShapeNode);
       end;
 
-
-      TilesetShapeNodeListList.Add(TilesetShapeNodeList);
+      TilesetShapeNodeList.Add(TileShapeNode);
     end;
+
+    { Add list of shape nodes of this tileset to
+      list of tileset shape node lists. }
+    TilesetShapeNodeListList.Add(TilesetShapeNodeList);
   end;
 end;
 
@@ -438,25 +453,58 @@ var
   end;
 
   { Get a specific tile by its GID from a specific tileset. }
+  //function GetTileFromTileset(ATileGID: Cardinal; ATileset: TTiledMap.TTileset): TTiledMap.TTile;
+  //var
+  //  J: Cardinal;
+  //  TilesetTileID: Cardinal; // This is the (G)ID of a tile from the tileset
+  //                           // Note: TTile.Id is local with resp. to tileset
+  //begin
+  //  Result := nil;
+  //  for J := 0 to ATileset.TileCount - 1 do
+  //  begin
+  //    { Convert local tile id to GID. }
+  //    TilesetTileID := ATileset.FirstGID + J;
+  //
+  //    if TilesetTileID = ATileGID then
+  //    begin
+  //      //Writeln('GetTileFromTileset: Result = ', IntToStr(J));
+  //      Result := ATileset.Tiles.Items[J];
+  //      Exit;
+  //    end;
+  //  end;
+  //end;
+
+  { V. 2 }
   function GetTileFromTileset(ATileGID: Cardinal; ATileset: TTiledMap.TTileset): TTiledMap.TTile;
   var
-    J: Cardinal;
+    Tile: TTiledMap.TTile;
     TilesetTileID: Cardinal; // This is the (G)ID of a tile from the tileset
                              // Note: TTile.Id is local with resp. to tileset
   begin
     Result := nil;
-    for J := 0 to ATileset.TileCount - 1 do
-    begin
-      { Convert local tile id to GID. }
-      TilesetTileID := ATileset.FirstGID + J;
+    if (not Assigned(ATileset)) then
+      Exit;
 
-      if TilesetTileID = ATileGID then
+    for Tile in ATileset.Tiles do
+    begin
+      if (ATileset.FirstGID + Tile.Id) = ATileGID then
       begin
-        //Writeln('GetTileFromTileset: Result = ', IntToStr(J));
-        Result := ATileset.Tiles.Items[J];
+        Result := Tile;
         Exit;
       end;
     end;
+    //for J := 0 to ATileset.TileCount - 1 do
+    //begin
+    //  { Convert local tile id to GID. }
+    //  TilesetTileID := ATileset.FirstGID + J;
+    //
+    //  if TilesetTileID = ATileGID then
+    //  begin
+    //    //Writeln('GetTileFromTileset: Result = ', IntToStr(J));
+    //    Result := ATileset.Tiles.Items[J];
+    //    Exit;
+    //  end;
+    //end;
   end;
 
   { Zero-based. }
@@ -487,15 +535,29 @@ var
        );
   end;
 
+  //function GetIndexOfTileset(ATileset: TTiledMap.TTileset): Longint;
+  //var
+  //  I: Cardinal;
+  //begin
+  //  Result := -1;
+  //  for I := 0 to High(Map.Tilesets) do
+  //  begin
+  //    if ATileset = Map.Tilesets.I
+  //  end;
+  //end;
+
   function GetTileShapeNode(ATileset: TTiledMap.TTileset; ATile: TTiledMap.TTile): TShapeNode;
   var
-    Tileset: TTiledMap.TTileset;
+    ATilesetShapeNodeList: TShapeNodeList;
   begin
+    Result := nil;
     { Get tileset's shape node list. }
-    //for Tileset in T
+    ATilesetShapeNodeList := TilesetShapeNodeListList.Items[Map.Tilesets.IndexOf(ATileset)];
+    if not Assigned(ATilesetShapeNodeList) then
+      Exit;
 
     { Get correct shape node from tileset list. }
-
+    Result := ATilesetShapeNodeList.Items[ATileset.Tiles.IndexOf(ATile)];
   end;
 
   { The actual conversion of a tile. }
@@ -516,7 +578,7 @@ var
     { Try to get tileset. Only if it exists for this tile,
       an actual tile node is created. }
     Tileset := GetTilesetOfTile(ALayer.Data.Data[I]);
-    Tile := GetTileFromTileset(Tileset);
+    Tile := GetTileFromTileset(ALayer.Data.Data[I], Tileset);
     //TilesetTextureNode := GetTilesetTextureNode(Tileset);
     if Assigned(Tileset) then
     begin
