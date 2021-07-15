@@ -109,7 +109,7 @@ type
     { Builds Tile layer node from TTiledMap data. }
     function BuildTileLayerNode(const ALayer: TTiledMap.TLayer): TTiledLayerNode;
 
-    {   Helper functions   }
+    {   HELPER FUNCTIONS   }
 
     { Map width in pixels. }
     function MapWidth: Cardinal;
@@ -131,7 +131,7 @@ type
       Tileset <--> Tileset Texture node. }
     function GetTilesetTextureNode(ATileset: TTiledMap.TTileset): TImageTextureNode;
 
-    {   Debug functions    }
+    {   DEBUG FUNCTIONS    }
 
     { Build a label which displays a lot of useful information about the map
       data for debugging. }
@@ -145,7 +145,7 @@ type
       is constructed/destroyed accordingly. }
     procedure SetDebugMode(AValue: Boolean);
 
-    {   Properties   }
+    {   PROPERTIES   }
 
     { This node holds all debug nodes and is added to MapNode if debug mode is
       on. This is important for automatic free'ing of all debug objects. }
