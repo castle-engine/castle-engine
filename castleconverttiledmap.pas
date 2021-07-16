@@ -81,7 +81,6 @@ type
   TTiledLayerNode = TTransformNode;
   TTiledObjectNode = TTransformNode;
   TTiledTileNode = TTransformNode;
-  TImageTextureNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TImageTextureNode>;
   TShapeNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TShapeNode>;
   TShapeNodeListList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TShapeNodeList>;
   { Converter class to convert Tiled map into X3D representations. }
@@ -450,8 +449,6 @@ var
   function GetTileFromTileset(ATileGID: Cardinal; ATileset: TTiledMap.TTileset): TTiledMap.TTile;
   var
     Tile: TTiledMap.TTile;
-    TilesetTileID: Cardinal; // This is the (G)ID of a tile from the tileset
-                             // Note: TTile.Id is local with resp. to tileset
   begin
     Result := nil;
     if (not Assigned(ATileset)) then
@@ -581,7 +578,6 @@ end;
 
 destructor TTiledMapConverter.Destroy;
 begin
-  TilesetShapeNodeListList.Clear;
   FreeAndNil(FTilesetShapeNodeListList);
 
   inherited Destroy;
