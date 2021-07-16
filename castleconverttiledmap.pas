@@ -199,6 +199,12 @@ var
                                                       // the tileset texture
   TilesetShapeNodeList: TShapeNodeList;
 
+  { The ghost node holds all shape nodes of all tilesets and is added
+    to the map node.
+    If the map node is free'd, all tiles of the tilesets are free'd via
+    the ghost node, even if they were not used as actual map tiles. }
+  GhostNode: TX3DRootNode;
+
   { Calculate the number of rows (of tiles) of a tileset. }
   function RowsInTileset: Cardinal;
   begin
@@ -206,9 +212,11 @@ var
   end;
 
 begin
+  GhostNode := TX3DRootNode.Create;
+
   for Tileset in Map.Tilesets do
   begin
-    //Writeln('Convert tileset: ',Tileset.Name);
+    Writeln('Convert tileset: ',Tileset.Name);
 
     { Make sure for each tileset there is a shape node list created
       for consistency and retrieving of correct item-indices later. }
@@ -220,13 +228,13 @@ begin
     if Assigned(Tileset.Image) then
     begin
       { Prepare texture node of tileset. }
-      //Writeln('  Image source: ', Tileset.Image.URL);
+      Writeln('  Image source: ', Tileset.Image.URL);
       TilesetTextureNode := TImageTextureNode.Create(Tileset.Name, '');
       TilesetTextureNode.SetUrl([Tileset.Image.URL]);
       TilesetTextureNode.TextureProperties := TTexturePropertiesNode.Create;
       TilesetTextureNode.TextureProperties.MagnificationFilter := magDefault;
       TilesetTextureNode.TextureProperties.MinificationFilter := minDefault;
-      //Writeln('  Texture image loaded: ',TilesetTextureNode.IsTextureImage);
+      Writeln('  Texture image loaded: ',TilesetTextureNode.IsTextureImage);
     end;
 
     for Tile in Tileset.Tiles do
@@ -244,7 +252,6 @@ begin
 
         { Translate tileset texture:
         Important: Origin of tex. coordinate is bottom-left! }
-        //Tile := GetTileFromTileset(ALayer.Data.Data[I], Tileset);
         TilesetTextureTransformNode.Translation := Vector2(
           (Tile.Id mod Tileset.Columns),
           (RowsInTileset - 1) - Floor(Tile.Id / Tileset.Columns)
@@ -267,11 +274,14 @@ begin
       end;
 
       TilesetShapeNodeList.Add(TileShapeNode);
+      GhostNode.AddChildren(TileShapeNode);
     end;
 
     { Add list of shape nodes of this tileset to
       list of tileset shape node lists. }
     TilesetShapeNodeListList.Add(TilesetShapeNodeList);
+
+    MapNode.AddChildren(GhostNode);
   end;
 end;
 
@@ -422,29 +432,34 @@ var
     TODO : Handle flipped tiles. The tileset alloction may be wrong otherwise! }
   function GetTilesetOfTile(const ATileGID: Cardinal): TTiledMap.TTileset;
   var
-    J: Cardinal;
+    Tileset: TTiledMap.TTileset;
   begin
     Result := nil;
-      { "In order to find out from which tileset the tile is you need to find
-        the tileset with the highest firstgid that is still lower or equal
-        than the gid.The tilesets are always stored with increasing
-        firstgids."
-        (https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#tmx-data) }
-      for J := 0 to Map.Tilesets.Count - 1 do
-      begin
-        if ATileGID >= (Map.Tilesets.Items[J] as TTiledMap.TTileset).FirstGID then
-          Result := Map.Tilesets.Items[J];
-      end;
-      { "The highest three bits of the gid store the flipped states. Bit 32 is
-        used for storing whether the tile is horizontally flipped, bit 31 is used
-        for the vertically flipped tiles and bit 30 indicates whether the tile is
-        flipped (anti) diagonally, enabling tile rotation. These bits have to be
-        read and cleared before you can find out which tileset a tile belongs to."
-        https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#data }
+    { GID = 0 means there is no tileset associated with the tile. }
+    if ATileGID = 0 then
+      Exit;
 
-      { TODO : Handle flipped tiles! }
+    { "In order to find out from which tileset the tile is you need to find
+      the tileset with the highest firstgid that is still lower or equal
+      than the gid.The tilesets are always stored with increasing
+      firstgids."
+      (https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#tmx-data) }
+    for Tileset in Map.Tilesets do
+    begin
+      if ATileGID >= Tileset.FirstGID then
+        Result := Tileset;
+    end;
 
-    //Writeln('GetTilesetOfTile: ', IntToStr(J));
+    { "The highest three bits of the gid store the flipped states. Bit 32 is
+      used for storing whether the tile is horizontally flipped, bit 31 is used
+      for the vertically flipped tiles and bit 30 indicates whether the tile is
+      flipped (anti) diagonally, enabling tile rotation. These bits have to be
+      read and cleared before you can find out which tileset a tile belongs to."
+      https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#data }
+
+    { TODO : Handle flipped tiles! }
+
+    //Writeln('  GetTilesetOfTile(GID: ' + IntToStr(ATileGID) + ') --> ', Result.Name, ' (FirstGID = ', Result.FirstGID, ')');
   end;
 
   { Get a specific tile obj. by its global ID from a specific tileset. }
@@ -453,7 +468,7 @@ var
     Tile: TTiledMap.TTile;
   begin
     Result := nil;
-    if (not Assigned(ATileset)) then
+    if not Assigned(ATileset) then
       Exit;
 
     for Tile in ATileset.Tiles do
@@ -523,7 +538,7 @@ var
       an actual tile node is created. }
     Tileset := GetTilesetOfTile(ALayer.Data.Data[I]);
     Tile := GetTileFromTileset(ALayer.Data.Data[I], Tileset);
-    if Assigned(Tileset) then
+    if Assigned(Tileset) and Assigned(Tile) then
     begin
       TileNode := TTiledTileNode.Create;
       TileNode.Translation := Vector3(PositionOfTileByIndex(Tileset), 0);
@@ -542,9 +557,9 @@ begin
     begin
       //Writeln(I, ' --> GID: ', ALayer.Data.Data[GID]);
       DebugTileset := GetTilesetOfTile(ALayer.Data.Data[I]);
-      if Assigned(DebugTileset) then
+      DebugTile := GetTileFromTileset(ALayer.Data.Data[I], DebugTileset);
+      if Assigned(DebugTileset) and Assigned(DebugTile) then
       begin
-        DebugTile := GetTileFromTileset(ALayer.Data.Data[I], DebugTileset);
         BuildDebugObject(
           ColumnOfTileInMap * TileWidth,
           (RowOfTileInMap + 1) * TileHeight - DebugTileset.TileHeight, // Y: The tiles of tilesets are "anchored" bottom-left
