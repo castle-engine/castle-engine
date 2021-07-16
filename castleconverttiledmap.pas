@@ -212,6 +212,8 @@ begin
 
     { Make sure for each tileset there is a shape node list created
       for consistency and retrieving of correct item-indices later. }
+    { False arg. at Create: Very important!
+      Competes otherweise with access of X3D node list. }
     TilesetShapeNodeList := TShapeNodeList.Create(False);
     TilesetTextureNode := nil;
 
@@ -565,9 +567,7 @@ begin
 
   FMapNode := TX3DRootNode.Create;
 
-  { False arg.: Very important!
-    Competes otherweise with access of X3D node list. }
-  TilesetShapeNodeListList := TShapeNodeListList.Create(False);
+  TilesetShapeNodeListList := TShapeNodeListList.Create(True);
 
   DebugMode := True;
 
