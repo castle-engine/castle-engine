@@ -947,6 +947,7 @@ begin
   Properties := TPropertyList.Create;
   Tiles := TTileList.Create;
   Image := TImage.Create;
+  FirstGID := 1;
 end;
 
 destructor TTiledMap.TTileset.Destroy;
@@ -984,9 +985,7 @@ begin
   Margin := 0;
 
   if Element.AttributeString('firstgid', TmpStr) then
-    FirstGID := StrToDWord(TmpStr)
-  else
-    FirstGID := 1;
+    FirstGID := StrToDWord(TmpStr);
   if Element.AttributeString('source', TmpStr) then
   begin
     URL := CombineURI(BaseUrl, TmpStr);
