@@ -474,7 +474,7 @@ var
   //  end;
   //end;
 
-  { V. 2 }
+  { Get a specific tile obj. by its global ID from a specific tileset. }
   function GetTileFromTileset(ATileGID: Cardinal; ATileset: TTiledMap.TTileset): TTiledMap.TTile;
   var
     Tile: TTiledMap.TTile;
@@ -493,18 +493,6 @@ var
         Exit;
       end;
     end;
-    //for J := 0 to ATileset.TileCount - 1 do
-    //begin
-    //  { Convert local tile id to GID. }
-    //  TilesetTileID := ATileset.FirstGID + J;
-    //
-    //  if TilesetTileID = ATileGID then
-    //  begin
-    //    //Writeln('GetTileFromTileset: Result = ', IntToStr(J));
-    //    Result := ATileset.Tiles.Items[J];
-    //    Exit;
-    //  end;
-    //end;
   end;
 
   { Zero-based. }
