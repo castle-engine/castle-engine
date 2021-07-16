@@ -127,8 +127,8 @@ type
     function TileHeight: Cardinal;
     { Convert Tiled Y-values to Y-values according to definition, see remarks
       above. }
-    function ConvY(TiledY: Single): Single; overload;
-    function ConvY(TiledYVector2: TVector2): TVector2; overload;
+    function ConvY(const TiledY: Single): Single; overload;
+    function ConvY(const TiledYVector2: TVector2): TVector2; overload;
     { Converts two float values into TVector2 and Y-value (CY: Convert Y)
       according to def., see remarks above. }
     function Vector2CY(const X, Y: Single): TVector2;
@@ -145,7 +145,7 @@ type
     procedure BuildDebugObject(const X, Y, W, H: Longint; const AName: String);
     { Makes sure that a Debug node is added/removed from Map node list and
       is constructed/destroyed accordingly. }
-    procedure SetDebugMode(AValue: Boolean);
+    procedure SetDebugMode(const AValue: Boolean);
 
     {   PROPERTIES   }
 
@@ -480,7 +480,7 @@ var
 
   { Determines the position of a tile in the map
     by index (the index is used in Column-/Row-function). }
-  function PositionOfTileByIndex(ATileset: TTiledMap.TTileset): TVector2;
+  function PositionOfTileByIndex(const ATileset: TTiledMap.TTileset): TVector2;
   begin
     Result := Vector2(0, 0);
     if not Assigned(ATileset) then
@@ -492,7 +492,8 @@ var
        );
   end;
 
-  function GetTileShapeNode(ATileset: TTiledMap.TTileset; ATile: TTiledMap.TTile): TShapeNode;
+  function GetTileShapeNode(const ATileset: TTiledMap.TTileset;
+    const ATile: TTiledMap.TTile): TShapeNode;
   var
     ATilesetShapeNodeList: TShapeNodeList;
   begin
@@ -568,7 +569,7 @@ begin
     Competes otherweise with access of X3D node list. }
   TilesetShapeNodeListList := TShapeNodeListList.Create(False);
 
-  DebugMode := False; //True;
+  DebugMode := True;
 
   ConvYMatrix.Items[0,0] := 1;
   ConvYMatrix.Items[1,0] := 0;
@@ -603,12 +604,12 @@ begin
   Result := Map.TileHeight;
 end;
 
-function TTiledMapConverter.ConvY(TiledY: Single): Single;
+function TTiledMapConverter.ConvY(const TiledY: Single): Single;
 begin
   Result := -TiledY;
 end;
 
-function TTiledMapConverter.ConvY(TiledYVector2: TVector2): TVector2;
+function TTiledMapConverter.ConvY(const TiledYVector2: TVector2): TVector2;
 begin
   Result :=  ConvYMatrix * TiledYVector2;
 end;
@@ -802,7 +803,7 @@ begin
   DebugNode.AddChildren(DebugObject);
 end;
 
-procedure TTiledMapConverter.SetDebugMode(AValue: Boolean);
+procedure TTiledMapConverter.SetDebugMode(const AValue: Boolean);
 begin
   if FDebugMode = AValue then
     Exit;
