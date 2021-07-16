@@ -95,7 +95,6 @@ type
 
     FMap: TTiledMap;
     FMapNode: TX3DRootNode;
-    FTilesetTextureNodeList: TImageTextureNodeList;
     FTilesetShapeNodeListList: TShapeNodeListList;
 
     FConvYMatrix: TMatrix2;
@@ -134,10 +133,6 @@ type
     { Converts two float values into TVector2 and Y-value (CY: Convert Y)
       according to def., see remarks above. }
     function Vector2CY(const X, Y: Single): TVector2;
-    { Get the index of a tileset from texture node list.
-      This function is important to resolve the relation between
-      Tileset <--> Tileset Texture node. }
-    function GetTilesetTextureNode(ATileset: TTiledMap.TTileset): TImageTextureNode;
 
     {   DEBUG FUNCTIONS    }
 
@@ -161,7 +156,6 @@ type
     { Mirrors 2d-vector at X-axis in XY-plane. Necessary for conversion of
       Tiled Y-values according to definition, see remarks above. }
     property ConvYMatrix: TMatrix2 read FConvYMatrix;
-    property TilesetTextureNodeList: TImageTextureNodeList read FTilesetTextureNodeList write FTilesetTextureNodeList;
     property TilesetShapeNodeListList: TShapeNodeListList read FTilesetShapeNodeListList write FTilesetShapeNodeListList;
   public
     constructor Create;
@@ -452,28 +446,6 @@ var
     //Writeln('GetTilesetOfTile: ', IntToStr(J));
   end;
 
-  { Get a specific tile by its GID from a specific tileset. }
-  //function GetTileFromTileset(ATileGID: Cardinal; ATileset: TTiledMap.TTileset): TTiledMap.TTile;
-  //var
-  //  J: Cardinal;
-  //  TilesetTileID: Cardinal; // This is the (G)ID of a tile from the tileset
-  //                           // Note: TTile.Id is local with resp. to tileset
-  //begin
-  //  Result := nil;
-  //  for J := 0 to ATileset.TileCount - 1 do
-  //  begin
-  //    { Convert local tile id to GID. }
-  //    TilesetTileID := ATileset.FirstGID + J;
-  //
-  //    if TilesetTileID = ATileGID then
-  //    begin
-  //      //Writeln('GetTileFromTileset: Result = ', IntToStr(J));
-  //      Result := ATileset.Tiles.Items[J];
-  //      Exit;
-  //    end;
-  //  end;
-  //end;
-
   { Get a specific tile obj. by its global ID from a specific tileset. }
   function GetTileFromTileset(ATileGID: Cardinal; ATileset: TTiledMap.TTileset): TTiledMap.TTile;
   var
@@ -522,17 +494,6 @@ var
       (RowOfTileInMap + 1) * TileHeight - ATileset.TileHeight  // Y: The tiles of tilesets are "anchored" bottom-left
        );
   end;
-
-  //function GetIndexOfTileset(ATileset: TTiledMap.TTileset): Longint;
-  //var
-  //  I: Cardinal;
-  //begin
-  //  Result := -1;
-  //  for I := 0 to High(Map.Tilesets) do
-  //  begin
-  //    if ATileset = Map.Tilesets.I
-  //  end;
-  //end;
 
   function GetTileShapeNode(ATileset: TTiledMap.TTileset; ATile: TTiledMap.TTile): TShapeNode;
   var
@@ -617,12 +578,10 @@ begin
   inherited Create;
 
   FMapNode := TX3DRootNode.Create;
-  TilesetTextureNodeList := TImageTextureNodeList.Create;
-  TilesetTextureNodeList.OwnsObjects := False; // Very important!
-                                               // Competes with access of X3D node list!
-  TilesetShapeNodeListList := TShapeNodeListList.Create;
-   TilesetShapeNodeListList.OwnsObjects := False;  // Very important!
-                                                   // Competes with access of X3D node list!
+
+  { False arg.: Very important!
+    Competes otherweise with access of X3D node list. }
+  TilesetShapeNodeListList := TShapeNodeListList.Create(False);
 
   DebugMode := False; //True;
 
@@ -634,7 +593,7 @@ end;
 
 destructor TTiledMapConverter.Destroy;
 begin
-  FreeAndNil(FTilesetTextureNodeList);
+  TilesetShapeNodeListList.Clear;
   FreeAndNil(FTilesetShapeNodeListList);
 
   inherited Destroy;
@@ -673,25 +632,6 @@ end;
 function TTiledMapConverter.Vector2CY(const X, Y: Single): TVector2;
 begin
   Result := ConvY(Vector2(X, Y));
-end;
-
-function TTiledMapConverter.GetTilesetTextureNode(ATileset: TTiledMap.TTileset
-  ): TImageTextureNode;
-var
-  TilesetTextureNode: TImageTextureNode;
-begin
-  Result := nil;
-  for ATileset in Map.Tilesets do
-  begin
-    for TilesetTextureNode in TilesetTextureNodeList do
-    begin
-      if ATileset.Name = TilesetTextureNode.X3DName then
-      begin
-        Result := TilesetTextureNode;
-        Exit;
-      end;
-    end;
-  end;
 end;
 
 procedure TTiledMapConverter.BuildDebugInformationLabel;
