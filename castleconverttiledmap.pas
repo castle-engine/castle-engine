@@ -517,28 +517,16 @@ var
 
     { Tile nodes. }
     TileNode: TTiledTileNode;
-    TileGeometryNode: TRectangle2DNode;
     TileShapeNode: TShapeNode;
-    TileMaterialNode: TUnlitMaterialNode;
-    TilesetTextureNode: TImageTextureNode;
-    TilesetTextureTransformNode: TTextureTransformNode;
-    TileCoordinateNode: TCoordinateNode;
   begin
     { Try to get tileset. Only if it exists for this tile,
       an actual tile node is created. }
     Tileset := GetTilesetOfTile(ALayer.Data.Data[I]);
     Tile := GetTileFromTileset(ALayer.Data.Data[I], Tileset);
-    //TilesetTextureNode := GetTilesetTextureNode(Tileset);
     if Assigned(Tileset) then
     begin
       TileNode := TTiledTileNode.Create;
       TileNode.Translation := Vector3(PositionOfTileByIndex(Tileset), 0);
-      //TileGeometryNode := TRectangle2DNode.CreateWithShape(TileShapeNode);
-      //TileGeometryNode.Size := Vector2(Tileset.TileWidth, Tileset.TileHeight);
-      //
-      //TileShapeNode.Appearance := TAppearanceNode.Create;
-      //TileShapeNode.Appearance.Texture := TilesetTextureNode;
-      //TilesetTextureTransformNode := TTextureTransformNode.Create;
       TileShapeNode := GetTileShapeNode(Tileset, Tile);
       TileNode.AddChildren(TileShapeNode);
       Result.AddChildren(TileNode);
