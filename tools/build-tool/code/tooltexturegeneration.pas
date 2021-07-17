@@ -268,7 +268,8 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
   end;
 
   procedure AstcEncTool(const InputFile, OutputFile: String;
-    const C: TTextureCompression; const CompressionNameForTool: String);
+    const C: TTextureCompression; const CompressionNameForTool: String;
+    const ColorspaceOption: String);
   var
     ToolExe: String;
     ToolName: String;
@@ -291,7 +292,7 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
     TryToolExePath(ToolExe, ToolName, C);
 
     RunCommandSimple(ToolExe,
-      ['-cl', // linear colorspace
+      [ColorspaceOption,
        InputFile,
        OutputFile,
        CompressionNameForTool,
@@ -452,35 +453,35 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
         tcETC1:             PVRTexTool(InputFile, OutputFile, C, 'ETC1');
                       // or Compressonator(InputFile, OutputFile, C, 'ETC_RGB');
 
-        tcASTC_4x4_RGBA:           AstcEncTool(InputFile, OutputFile, C, '4x4');
-        tcASTC_5x4_RGBA:           AstcEncTool(InputFile, OutputFile, C, '5x4');
-        tcASTC_5x5_RGBA:           AstcEncTool(InputFile, OutputFile, C, '5x5');
-        tcASTC_6x5_RGBA:           AstcEncTool(InputFile, OutputFile, C, '6x5');
-        tcASTC_6x6_RGBA:           AstcEncTool(InputFile, OutputFile, C, '6x6');
-        tcASTC_8x5_RGBA:           AstcEncTool(InputFile, OutputFile, C, '8x5');
-        tcASTC_8x6_RGBA:           AstcEncTool(InputFile, OutputFile, C, '8x6');
-        tcASTC_8x8_RGBA:           AstcEncTool(InputFile, OutputFile, C, '8x8');
-        tcASTC_10x5_RGBA:          AstcEncTool(InputFile, OutputFile, C, '10x5');
-        tcASTC_10x6_RGBA:          AstcEncTool(InputFile, OutputFile, C, '10x6');
-        tcASTC_10x8_RGBA:          AstcEncTool(InputFile, OutputFile, C, '10x8');
-        tcASTC_10x10_RGBA:         AstcEncTool(InputFile, OutputFile, C, '10x10');
-        tcASTC_12x10_RGBA:         AstcEncTool(InputFile, OutputFile, C, '12x10');
-        tcASTC_12x12_RGBA:         AstcEncTool(InputFile, OutputFile, C, '12x12');
-        // TODO : here we have to pass -ch to ASTCENC
-        tcASTC_4x4_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_4x4,UBN,sRGB');
-        tcASTC_5x4_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_5x4,UBN,sRGB');
-        tcASTC_5x5_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_5x5,UBN,sRGB');
-        tcASTC_6x5_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_6x5,UBN,sRGB');
-        tcASTC_6x6_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_6x6,UBN,sRGB');
-        tcASTC_8x5_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_8x5,UBN,sRGB');
-        tcASTC_8x6_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_8x6,UBN,sRGB');
-        tcASTC_8x8_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_8x8,UBN,sRGB');
-        tcASTC_10x5_SRGB8_ALPHA8:  PVRTexTool(InputFile, OutputFile, C, 'ASTC_10x5,UBN,sRGB');
-        tcASTC_10x6_SRGB8_ALPHA8:  PVRTexTool(InputFile, OutputFile, C, 'ASTC_10x6,UBN,sRGB');
-        tcASTC_10x8_SRGB8_ALPHA8:  PVRTexTool(InputFile, OutputFile, C, 'ASTC_10x8,UBN,sRGB');
-        tcASTC_10x10_SRGB8_ALPHA8: PVRTexTool(InputFile, OutputFile, C, 'ASTC_10x10,UBN,sRGB');
-        tcASTC_12x10_SRGB8_ALPHA8: PVRTexTool(InputFile, OutputFile, C, 'ASTC_12x10,UBN,sRGB');
-        tcASTC_12x12_SRGB8_ALPHA8: PVRTexTool(InputFile, OutputFile, C, 'ASTC_12x12,UBN,sRGB');
+        tcASTC_4x4_RGBA:           AstcEncTool(InputFile, OutputFile, C, '4x4', '-cl');
+        tcASTC_5x4_RGBA:           AstcEncTool(InputFile, OutputFile, C, '5x4', '-cl');
+        tcASTC_5x5_RGBA:           AstcEncTool(InputFile, OutputFile, C, '5x5', '-cl');
+        tcASTC_6x5_RGBA:           AstcEncTool(InputFile, OutputFile, C, '6x5', '-cl');
+        tcASTC_6x6_RGBA:           AstcEncTool(InputFile, OutputFile, C, '6x6', '-cl');
+        tcASTC_8x5_RGBA:           AstcEncTool(InputFile, OutputFile, C, '8x5', '-cl');
+        tcASTC_8x6_RGBA:           AstcEncTool(InputFile, OutputFile, C, '8x6', '-cl');
+        tcASTC_8x8_RGBA:           AstcEncTool(InputFile, OutputFile, C, '8x8', '-cl');
+        tcASTC_10x5_RGBA:          AstcEncTool(InputFile, OutputFile, C, '10x5', '-cl');
+        tcASTC_10x6_RGBA:          AstcEncTool(InputFile, OutputFile, C, '10x6', '-cl');
+        tcASTC_10x8_RGBA:          AstcEncTool(InputFile, OutputFile, C, '10x8', '-cl');
+        tcASTC_10x10_RGBA:         AstcEncTool(InputFile, OutputFile, C, '10x10', '-cl');
+        tcASTC_12x10_RGBA:         AstcEncTool(InputFile, OutputFile, C, '12x10', '-cl');
+        tcASTC_12x12_RGBA:         AstcEncTool(InputFile, OutputFile, C, '12x12', '-cl');
+
+        tcASTC_4x4_SRGB8_ALPHA8:   AstcEncTool(InputFile, OutputFile, C, '4x4', '-ch');
+        tcASTC_5x4_SRGB8_ALPHA8:   AstcEncTool(InputFile, OutputFile, C, '5x4', '-ch');
+        tcASTC_5x5_SRGB8_ALPHA8:   AstcEncTool(InputFile, OutputFile, C, '5x5', '-ch');
+        tcASTC_6x5_SRGB8_ALPHA8:   AstcEncTool(InputFile, OutputFile, C, '6x5', '-ch');
+        tcASTC_6x6_SRGB8_ALPHA8:   AstcEncTool(InputFile, OutputFile, C, '6x6', '-ch');
+        tcASTC_8x5_SRGB8_ALPHA8:   AstcEncTool(InputFile, OutputFile, C, '8x5', '-ch');
+        tcASTC_8x6_SRGB8_ALPHA8:   AstcEncTool(InputFile, OutputFile, C, '8x6', '-ch');
+        tcASTC_8x8_SRGB8_ALPHA8:   AstcEncTool(InputFile, OutputFile, C, '8x8', '-ch');
+        tcASTC_10x5_SRGB8_ALPHA8:  AstcEncTool(InputFile, OutputFile, C, '10x5', '-ch');
+        tcASTC_10x6_SRGB8_ALPHA8:  AstcEncTool(InputFile, OutputFile, C, '10x6', '-ch');
+        tcASTC_10x8_SRGB8_ALPHA8:  AstcEncTool(InputFile, OutputFile, C, '10x8', '-ch');
+        tcASTC_10x10_SRGB8_ALPHA8: AstcEncTool(InputFile, OutputFile, C, '10x10', '-ch');
+        tcASTC_12x10_SRGB8_ALPHA8: AstcEncTool(InputFile, OutputFile, C, '12x10', '-ch');
+        tcASTC_12x12_SRGB8_ALPHA8: AstcEncTool(InputFile, OutputFile, C, '12x12', '-ch');
 
         {$ifndef COMPILER_CASE_ANALYSIS}
         else WritelnWarning('GPUCompression', Format('Compressing to GPU format %s not implemented (to update "%s")',
