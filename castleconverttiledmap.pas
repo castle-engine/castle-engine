@@ -155,6 +155,8 @@ type
     { Mirrors 2d-vector at X-axis in XY-plane. Necessary for conversion of
       Tiled Y-values according to definition, see remarks above. }
     property ConvYMatrix: TMatrix2 read FConvYMatrix;
+    { The elements of this list are themselves lists which contain
+      the shape node of a tileset each. }
     property TilesetShapeNodeListList: TShapeNodeListList read FTilesetShapeNodeListList write FTilesetShapeNodeListList;
   public
     constructor Create;
