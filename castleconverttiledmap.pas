@@ -77,6 +77,9 @@ uses
   CastleRenderOptions, CastleControls, CastleStringUtils, X3DLoadInternalImage,
   CastleImages;
 
+const
+  LayerZDistanceDefault: Single = 0.1;
+
 type
   TTiledLayerNode = TTransformNode;
   TTiledObjectNode = TTransformNode;
@@ -94,6 +97,7 @@ type
 
     FMap: TTiledMap;
     FMapNode: TX3DRootNode;
+    FLayerZDistance: Single;
     FTilesetShapeNodeListList: TShapeNodeListList;
 
     FConvYMatrix: TMatrix2;
@@ -172,6 +176,11 @@ type
       TODO : What if MapNode is never returned and manually free'd?
       Improve by getter func.! }
     property MapNode: TX3DRootNode read FMapNode;
+
+    { The different layers are rendered in a certain order (last to first).
+      This effect is achieved in x3d model by shifting these layers by
+      this distance along the Z-axis. }
+    property LayerZDistance: Single read FLayerZDistance write FLayerZDistance;
 
     { If true, all objects are represented in debug mode. }
     property DebugMode: Boolean read FDebugMode write SetDebugMode;
@@ -319,7 +328,10 @@ begin
     end;
 
     if Assigned(LayerNode) then
+    begin
       MapNode.AddChildren(LayerNode);
+      LayerZDistance := LayerZDistance + LayerZDistanceDefault;
+    end;
   end;
 
   //RootTransformNode.Rotation := Vector4(1, 0, 0, Pi);  // rotate scene by 180 deg around x-axis
@@ -368,7 +380,7 @@ begin
     { Every Tiled object is based on a transform node. }
     TiledObjectNode := TTiledObjectNode.Create;
     TiledObjectNode.Translation := Vector3(ConvY(ALayer.Offset +
-      TiledObject.Position), 0);
+      TiledObject.Position), LayerZDistance);
 
     { Every primitive is implemented as polyline node. Hint: For better
       performance rectangle and point could be implemented as rect. node?}
@@ -551,7 +563,7 @@ var
     if Assigned(Tileset) and Assigned(Tile) then
     begin
       TileNode := TTiledTileNode.Create;
-      TileNode.Translation := Vector3(PositionOfTileByIndex(Tileset), 0);
+      TileNode.Translation := Vector3(PositionOfTileByIndex(Tileset), LayerZDistance);
       TileShapeNode := GetTileShapeNode(Tileset, Tile);
       TileNode.AddChildren(TileShapeNode);
       Result.AddChildren(TileNode);
@@ -591,8 +603,9 @@ begin
   inherited Create;
 
   FMapNode := TX3DRootNode.Create;
-
+  LayerZDistance := 0.0; // The first layer is at Z = 0.0.
   TilesetShapeNodeListList := TShapeNodeListList.Create(True);
+
 
   DebugMode := True;
 
