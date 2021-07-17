@@ -381,6 +381,11 @@ begin
   if Target.Count = 0 then
     raise EInvalidSoundRepositoryXml.CreateFmt('Alias "%s" does not define any targets',
       [Name]);
+
+  if Target.Count > 1 then
+    WritelnWarning('Choosing sound at random is no longer supported, alias "%s" is no longer a random sound', [
+      Name
+    ]);
 end;
 
 procedure TRepoSoundEngine.TSoundInfoAlias.ResolveNames(const AllSounds: TSoundInfoList);
@@ -405,10 +410,6 @@ const
 var
   RandomTarget: TSoundInfo;
 begin
-  if Target.Count > 1 then
-    WritelnWarning('Choosing sound at random is no longer supported, alias "%s" is no longer a random sound', [
-      Name
-    ]);
   RandomTarget := Target.Objects[Random(Target.Count)] as TSoundInfo;
   { Instead of returning RandomTarget, we return RandomTarget.FinalSound.
     This way an <alias> may point to another <alias>.
