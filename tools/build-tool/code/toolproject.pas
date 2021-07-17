@@ -1856,6 +1856,8 @@ begin
   if { avoid Android packages }
      SameFileName(FileName, Name + '-debug.apk') or
      SameFileName(FileName, Name + '-release.apk') or
+     SameFileName(FileName, Name + '-debug.aab') or
+     SameFileName(FileName, Name + '-release.aab') or
      { do not pack AndroidAntProperties.txt with private stuff }
      SameFileName(FileName, 'AndroidAntProperties.txt') then
     Exit(true);
