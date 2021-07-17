@@ -734,7 +734,7 @@ begin
       AndroidCPUS := DetectAndroidCPUS
     else
       AndroidCPUS := [CPU];
-    PackageAndroid(Self, OS, AndroidCPUS, Mode, PackageFormatFinal);
+    PackageAndroid(Self, OS, AndroidCPUS, Mode, PackageFormatFinal, PackageNameIncludeVersion);
     Exit;
   end;
 

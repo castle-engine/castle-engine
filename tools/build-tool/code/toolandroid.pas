@@ -40,7 +40,7 @@ function CPUToAndroidArchitecture(const CPU: TCPU): String;
 
 procedure PackageAndroid(const Project: TCastleProject;
   const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode;
-  const PackageFormat: TPackageFormatNoDefault);
+  const PackageFormat: TPackageFormatNoDefault; const PackageNameIncludeVersion: Boolean);
 
 procedure InstallAndroid(const Name, QualifiedName, OutputPath: string);
 
@@ -157,7 +157,7 @@ end;
 
 procedure PackageAndroid(const Project: TCastleProject;
   const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode;
-  const PackageFormat: TPackageFormatNoDefault);
+  const PackageFormat: TPackageFormatNoDefault; const PackageNameIncludeVersion: Boolean);
 var
   AndroidProjectPath: string;
 
@@ -590,10 +590,16 @@ begin
   GenerateLibrary;
   RunGradle(PackageMode);
 
+  PackageName := Project.Name;
+  if PackageNameIncludeVersion and (Project.Version.DisplayValue <> '') then
+    PackageName += '-' + Project.Version.DisplayValue;
+  PackageName += '-android';
+  if PackageMode <> cmRelease then
+    PackageName += '-' + PackageModeToName[PackageMode];
   case PackageFormat of
     pfAndroidApk:
       begin
-        PackageName := Project.Name + '-' + PackageModeToName[PackageMode] + '.apk';
+        PackageName += '.apk';
         CheckRenameFile(AndroidProjectPath + 'app' + PathDelim +
           'build' +  PathDelim +
           'outputs' + PathDelim +
@@ -604,7 +610,7 @@ begin
       end;
     pfAndroidAppBundle:
       begin
-        PackageName := Project.Name + '-' + PackageModeToName[PackageMode] + '.aab';
+        PackageName += '.aab';
         CheckRenameFile(AndroidProjectPath + 'app' + PathDelim +
           'build' +  PathDelim +
           'outputs' + PathDelim +
