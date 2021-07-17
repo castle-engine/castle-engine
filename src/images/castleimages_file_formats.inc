@@ -35,6 +35,9 @@ type
     ifDDS,
     ifKTX,
 
+    { Reading ASTC image format }
+    ifASTC,
+
     { High-dynamic range image format, originally used by Radiance.
       See e.g. the pfilt and ximage programs from the Radiance package
       for processing such images.
@@ -92,6 +95,7 @@ type
   EInvalidPPM = class(EInvalidImageFormat);
   EInvalidIPL = class(EInvalidImageFormat);
   EInvalidRGBE = class(EInvalidImageFormat);
+  EInvalidASTC = class(EInvalidImageFormat);
 
 function LoadPNG(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
@@ -155,6 +159,9 @@ function LoadRGBE(const Stream: TStream;
 function LoadDDS(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 function LoadKTX(const Stream: TStream;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
+
+function LoadASTC(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
 { Saving image (format-specific) --------------------------------------------
@@ -566,6 +573,16 @@ const
       MimeTypes: ('image/ktx', '', '', '', '', '');
       ExtsCount: 1; Exts: ('ktx', '', '');
       Load: @LoadKTX; LoadedClasses: lcG_GA_RGB_RGBA_GPUCompressed;
+      Save: nil; SavedClasses: scG_GA_RGB_RGBA_GPUCompressed;
+      DetectClass: nil;
+    ),
+
+    { ASTC } { }
+    ( FormatName: 'ASTC image';
+      MimeTypesCount: 1;
+      MimeTypes: ('image/astc', '', '', '', '', '');
+      ExtsCount: 1; Exts: ('astc', '', '');
+      Load: @LoadASTC; LoadedClasses: lcG_GA_RGB_RGBA_GPUCompressed;
       Save: nil; SavedClasses: scG_GA_RGB_RGBA_GPUCompressed;
       DetectClass: nil;
     ),

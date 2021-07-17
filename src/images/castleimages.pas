@@ -1963,13 +1963,15 @@ implementation
 
 uses ExtInterpolation, FPCanvas, FPImgCanv,
   CastleProgress, CastleStringUtils, CastleFilesUtils, CastleLog,
-  CastleCompositeImage, CastleDownload, CastleURIUtils, CastleTimeUtils;
+  CastleCompositeImage, CastleDownload, CastleURIUtils, CastleTimeUtils,
+  CastleStreamUtils;
 
 { parts ---------------------------------------------------------------------- }
 
 {$I castleimages_file_formats.inc}
 {$I castleimages_draw.inc}
 {$I castleimages_paint.inc}
+{$I castleimages_astc.inc}
 {$I castleimages_bmp.inc}
 {$I castleimages_libpng.inc}
 {$I castleimages_fpimage.inc}
