@@ -499,13 +499,21 @@ var
     by index (the index is used in Column-/Row-function). }
   function PositionOfTileByIndex(const ATileset: TTiledMap.TTileset): TVector2;
   begin
+    { "The Rectangle2D node specifies a rectangle centred at (0, 0)
+      in the current local 2D coordinate system and aligned with
+      the local coordinate axes. By default, the box measures 2 units
+      in each dimension, from -1 to +1.0"
+      (https://www.web3d.org/specifications/X3Dv4Draft/
+       ISO-IEC19775-1v4-CD/Part01/components/geometry2D.html#Rectangle2D) }
     Result := Vector2(0, 0);
     if not Assigned(ATileset) then
       Exit;
 
     Result := Vector2CY(
-      ColumnOfTileInMap * TileWidth,                           // X
-      (RowOfTileInMap + 1) * TileHeight - ATileset.TileHeight  // Y: The tiles of tilesets are "anchored" bottom-left
+      ColumnOfTileInMap * TileWidth       // X
+      + ATileset.TileWidth div 2,         // Compensate centring of rect. 2d node (see quote above)
+      (RowOfTileInMap + 1) * TileHeight   // Y
+      - ATileset.TileHeight * 0.5         // Tileset tiles are "anchored" bottom-left and compensate centring
        );
   end;
 
