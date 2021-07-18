@@ -1,0 +1,8 @@
+object DesignForm: TDesignForm
+  Left = 256
+  Height = 240
+  Top = 128
+  Width = 320
+  Caption = 'Design'
+  LCLVersion = '2.0.10.0'
+end

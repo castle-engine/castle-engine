@@ -39,7 +39,7 @@ uses
   castle_components,
   // This line will be automatically uncommented by tools/build-tool/data/custom_editor_template_rebuild.sh
   //castle_editor_automatic_package,
-  Forms, FormChooseProject, ProjectUtils, FormNewProject,
+  Forms, anchordockpkg, FormChooseProject, ProjectUtils, FormNewProject,
   EditorUtils, FormProject, FrameDesign, FormAbout, FrameViewFile,
   FormPreferences, VisualizeTransform, FormSpriteSheetEditor, DataModuleIcons,
   FormImportAtlas, FormImportStarling, FormNewUnit, EditorCodeTools;

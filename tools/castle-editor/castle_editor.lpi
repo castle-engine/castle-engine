@@ -3,7 +3,7 @@
   <ProjectOptions>
     <Version Value="11"/>
     <General>
-      <SessionStorage Value="InProjectDir"/>
+      <SessionStorage Value="InIDEConfig"/>
       <MainUnit Value="0"/>
       <Title Value="castle_editor"/>
       <Scaled Value="True"/>
@@ -26,15 +26,18 @@
       <FormatVersion Value="2"/>
       <Modes Count="0"/>
     </RunParams>
-    <RequiredPackages Count="2">
+    <RequiredPackages Count="3">
       <Item1>
-        <PackageName Value="castle_components"/>
+        <PackageName Value="AnchorDocking"/>
       </Item1>
       <Item2>
-        <PackageName Value="LCL"/>
+        <PackageName Value="castle_components"/>
       </Item2>
+      <Item3>
+        <PackageName Value="LCL"/>
+      </Item3>
     </RequiredPackages>
-    <Units Count="20">
+    <Units Count="24">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -164,6 +167,35 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="EditorCodeTools"/>
       </Unit19>
+      <Unit20>
+        <Filename Value="code/formdesignhierarchy.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="DesignHierarchyForm"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="FormDesignHierarchy"/>
+      </Unit20>
+      <Unit21>
+        <Filename Value="code/formdesignproperties.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="DesignPropertiesForm"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="FormDesignProperties"/>
+      </Unit21>
+      <Unit22>
+        <Filename Value="code/formdesignexplorer.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="DesignExplorerForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="FormDesignExplorer"/>
+      </Unit22>
+      <Unit23>
+        <Filename Value="code/formdesign.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="DesignForm"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="FormDesign"/>
+      </Unit23>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

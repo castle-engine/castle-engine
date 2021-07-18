@@ -1,0 +1,8 @@
+object DesignPropertiesForm: TDesignPropertiesForm
+  Left = 347
+  Height = 240
+  Top = 18
+  Width = 320
+  Caption = 'Properties'
+  LCLVersion = '2.0.10.0'
+end

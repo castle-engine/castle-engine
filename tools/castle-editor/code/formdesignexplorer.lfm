@@ -1,0 +1,8 @@
+object DesignExplorerForm: TDesignExplorerForm
+  Left = 3
+  Height = 240
+  Top = 438
+  Width = 877
+  Caption = 'Explorer'
+  LCLVersion = '2.0.10.0'
+end

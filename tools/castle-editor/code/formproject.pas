@@ -23,15 +23,32 @@ interface
 uses
   Classes, SysUtils, DOM, FileUtil, Forms, Controls, Graphics, Dialogs, Menus,
   ExtCtrls, ComCtrls, CastleShellCtrls, StdCtrls, ValEdit, ActnList, Buttons,
+  AnchorDocking, XMLPropStorage,
   ProjectUtils, Types, Contnrs, CastleControl, CastleUIControls,
   CastlePropEdits, CastleDialogs, X3DNodes, CastleFindFiles,
-  EditorUtils, FrameDesign, FrameViewFile, FormNewUnit, ToolManifest;
+  EditorUtils, FrameDesign, FrameViewFile, FormNewUnit, ToolManifest,
+  FormDesignHierarchy, FormDesignProperties, FormDesignExplorer, FormDesign;
+
+const
+  DockLayoutFileName = 'dock_layout.xml';
 
 type
   { Main project management. }
+
+  { TProjectForm }
+
   TProjectForm = class(TForm)
     ActionNewSpriteSheet: TAction;
     ActionList: TActionList;
+    MenuItemUIRestoreDefaultDockSettings: TMenuItem;
+    MenuItemEnableDisableDocking: TMenuItem;
+    MenuItemUIProperties: TMenuItem;
+    MenuItem5: TMenuItem;
+    MenuItemUIHierarchy: TMenuItem;
+    MenuItemUIExplorer: TMenuItem;
+    MenuItemUIDesign: TMenuItem;
+    MenuItem9: TMenuItem;
+    MenuItemWindow: TMenuItem;
     MenuItemDesignNewNonVisualCustomRoot: TMenuItem;
     MenuItemDesignNewNonVisual: TMenuItem;
     MenuItemDesignAddNonVisual: TMenuItem;
@@ -166,6 +183,7 @@ type
     procedure ApplicationProperties1Activate(Sender: TObject);
     procedure ApplicationProperties1Exception(Sender: TObject; E: Exception);
     procedure ButtonClearWarningsClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -173,9 +191,15 @@ type
     procedure FormShow(Sender: TObject);
     procedure ListOutputClick(Sender: TObject);
     procedure MenuItemDesignNewNonVisualClick(Sender: TObject);
+    procedure MenuItemEnableDisableDockingClick(Sender: TObject);
     procedure MenuItemNewDirectoryClick(Sender: TObject);
     procedure MenuItemRenameClick(Sender: TObject);
     procedure MenuItemShellTreeRefreshClick(Sender: TObject);
+    procedure MenuItemUIDesignClick(Sender: TObject);
+    procedure MenuItemUIExplorerClick(Sender: TObject);
+    procedure MenuItemUIHierarchyClick(Sender: TObject);
+    procedure MenuItemUIPropertiesClick(Sender: TObject);
+    procedure MenuItemUIRestoreDefaultDockSettingsClick(Sender: TObject);
     procedure UpdateUndo(Sender: TObject);
     procedure UpdateRenameItem(Sender: TObject);
     procedure MenuItemRedoClick(Sender: TObject);
@@ -241,6 +265,10 @@ type
       ShellTreeView1: TCastleShellTreeView;
       ViewFileFrame: TViewFileFrame;
       SplitterBetweenViewFile: TSplitter;
+      IsDockUIEnabled: Boolean;
+      IsDockUIEnabledChanged: Boolean;
+      IsDockUIEnabledRequested: Boolean;
+      IsRestoreDefaultDockUIRequested: Boolean;
     procedure BuildToolCall(const Commands: array of String;
       const ExitOnSuccess: Boolean = false);
     procedure BuildToolCallFinished(Sender: TObject);
@@ -442,6 +470,42 @@ end;
 procedure TProjectForm.ButtonClearWarningsClick(Sender: TObject);
 begin
   ClearAllWarnings;
+end;
+
+procedure TProjectForm.FormClose(Sender: TObject; var CloseAction: TCloseAction
+  );
+
+  procedure SaveDockLayout;
+  var
+    XMLConfig: TXMLConfigStorage;
+  begin
+    if not IsDockUIEnabled then Exit;
+    try
+      XMLConfig := TXMLConfigStorage.Create(DockLayoutFileName, False);
+      try
+        DockMaster.SaveLayoutToConfig(XMLConfig);
+        XMLConfig.WriteToDisk;
+      finally
+        XMLConfig.Free;
+      end;
+    except
+      on E: Exception do
+        MessageDlg(
+          'Error',
+          'Error saving layout:'#13 + E.Message,
+          mtError,
+          [mbCancel], 0);
+    end;
+  end;
+
+begin
+  { Simply remove the dock ui config file in order to restore default settings }
+  if IsRestoreDefaultDockUIRequested then
+  begin
+    if FileExists(DockLayoutFileName) then
+      DeleteFile(DockLayoutFileName);
+  end else
+    SaveDockLayout;
 end;
 
 procedure TProjectForm.ActionNewSpriteSheetExecute(Sender: TObject);
@@ -697,7 +761,37 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     ShellListView1.ShellTreeView := ShellTreeView1;
   end;
 
+  procedure LoadDockLayout;
+  var
+    XMLConfig: TXMLConfigStorage;
+    Site: TAnchorDockHostSite;
+  begin
+    if not IsDockUIEnabled then Exit;
+    if not FileExists(DockLayoutFileName) then
+    begin
+      Site := DockMaster.GetAnchorSite(DesignForm);
+      DockMaster.ManualDock(Site, Self, alClient);
+      Exit;
+    end;
+    try
+      XMLConfig := TXMLConfigStorage.Create(DockLayoutFileName, True);
+      try
+        DockMaster.LoadLayoutFromConfig(XMLConfig, True);
+      finally
+        XMLConfig.Free;
+      end;
+    except
+      on E: Exception do
+        MessageDlg(
+          'Error',
+          'Error loading layout:'#13 + E.Message,
+          mtError,
+          [mbCancel], 0);
+    end;
+  end;
+
 begin
+  IsDockUIEnabled := UserConfig.GetValue('ProjectForm_DockUI', False);
   OutputList := TOutputList.Create(ListOutput);
   BuildComponentsMenu(
     MenuItemDesignNewUserInterfaceCustomRoot,
@@ -713,16 +807,52 @@ begin
     @MenuItemAddComponentClick);
   CreateShellViews;
   ApplicationProperties.OnWarning.Add(@WarningNotification);
+  if IsDockUIEnabled then
+  begin
+    // Create dockable forms
+    DockMaster.MakeDockSite(Self, [akBottom], admrpNone);
+    DesignForm := TDesignForm.Create(nil);
+    DesignHierarchyForm := TDesignHierarchyForm.Create(nil);
+    DesignPropertiesForm := TDesignPropertiesForm.Create(nil);
+    DesignExplorerForm := TDesignExplorerForm.Create(nil);
+    DockMaster.MakeDockable(DesignForm, True, True);
+    DockMaster.MakeDockable(DesignHierarchyForm, True, True);
+    DockMaster.MakeDockable(DesignPropertiesForm, True, True);
+    DockMaster.MakeDockable(DesignExplorerForm, True, True);
+    //
+    PageControlBottom.Parent := DesignExplorerForm;
+    PageControlBottom.Align := alClient;
+    // Hide splitters, as they dont need anymore since we use docked forms
+    Splitter2.Visible := False;
+    //
+    LoadDockLayout;
+    MenuItemEnableDisableDocking.Caption := 'Disable docking';
+  end;
+  MenuItemUIDesign.Enabled := IsDockUIEnabled; 
+  MenuItemUIExplorer.Enabled := IsDockUIEnabled;
+  MenuItemUIHierarchy.Enabled := IsDockUIEnabled;
+  MenuItemUIProperties.Enabled := IsDockUIEnabled;
 end;
 
 procedure TProjectForm.FormDestroy(Sender: TObject);
 begin
+  { Only save ProjectForm_DockUI when close the application, to make sure
+    dock ui disable/enable only take effect after application restart }
+  if IsDockUIEnabledRequested then
+    UserConfig.SetValue('ProjectForm_DockUI', IsDockUIEnabledChanged);
   FormHide(Self); //to save config properly
   ApplicationProperties.OnWarning.Remove(@WarningNotification);
   ApplicationDataOverride := '';
   FreeProcess;
   FreeAndNil(OutputList);
   FreeAndNil(Manifest);
+  if IsDockUIEnabled then
+  begin
+    FreeAndNil(DesignForm);
+    FreeAndNil(DesignHierarchyForm);
+    FreeAndNil(DesignPropertiesForm);
+    FreeAndNil(DesignExplorerForm);
+  end;
 end;
 
 procedure TProjectForm.FormHide(Sender: TObject);
@@ -802,6 +932,15 @@ begin
     NewDesign(TCastleComponent, nil);
 end;
 
+procedure TProjectForm.MenuItemEnableDisableDockingClick(Sender: TObject);
+begin
+  IsDockUIEnabledRequested := True;
+  IsDockUIEnabledChanged := not IsDockUIEnabled;
+  MessageDlg('', 'Please restart the editor in order for the changes to take effect.',
+    mtInformation, [mbYes], 0);
+  MenuItemEnableDisableDocking.Enabled := False;
+end;
+
 procedure TProjectForm.MenuItemNewDirectoryClick(Sender: TObject);
 var
   NewDir, FullNewDir: String;
@@ -824,6 +963,34 @@ end;
 procedure TProjectForm.MenuItemShellTreeRefreshClick(Sender: TObject);
 begin
   RefreshFiles(rfEverything);
+end;
+
+procedure TProjectForm.MenuItemUIDesignClick(Sender: TObject);
+begin
+  DockMaster.MakeDockable(DesignForm, True, True);
+end;
+
+procedure TProjectForm.MenuItemUIExplorerClick(Sender: TObject);
+begin
+  DockMaster.MakeDockable(DesignExplorerForm, True, True);
+end;
+
+procedure TProjectForm.MenuItemUIHierarchyClick(Sender: TObject);
+begin
+  DockMaster.MakeDockable(DesignHierarchyForm, True, True);
+end;
+
+procedure TProjectForm.MenuItemUIPropertiesClick(Sender: TObject);
+begin
+  DockMaster.MakeDockable(DesignPropertiesForm, True, True);
+end;
+
+procedure TProjectForm.MenuItemUIRestoreDefaultDockSettingsClick(Sender: TObject
+  );
+begin
+  IsRestoreDefaultDockUIRequested := True;
+  MessageDlg('', 'Please restart the editor in order for the changes to take effect.',
+    mtInformation, [mbYes], 0);
 end;
 
 procedure TProjectForm.UpdateRenameItem(Sender: TObject);
@@ -1015,6 +1182,19 @@ begin
     Design.UndoSystem.OnUpdateUndo := @UpdateUndo;
     Design.OnSelectionChanged := @UpdateRenameItem;
     DesignExistenceChanged;
+    if IsDockUIEnabled then
+    begin
+      // Transfer controls to dock forms, and modify it's align rule
+      Design.Parent := DesignForm;
+      Design.PanelLeft.Parent := DesignHierarchyForm;
+      Design.PanelRight.Parent := DesignPropertiesForm;
+      Design.Align := alClient;
+      Design.PanelLeft.Align := alClient;
+      Design.PanelRight.Align := alClient;
+      // Hide splitters, as they dont need anymore since we use docked forms
+      Design.SplitterLeft.Visible := False;
+      Design.SplitterRight.Visible := False;
+    end;
   end;
 end;
 
