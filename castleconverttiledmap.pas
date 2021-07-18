@@ -100,6 +100,9 @@ type
   TShapeNodeListList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TShapeNodeList>;
 
   { Converter class to convert Tiled map into X3D representations. }
+
+  { TTiledMapConverter }
+
   TTiledMapConverter = class
   strict private
     FDebugMode: Boolean;
@@ -177,7 +180,7 @@ type
       the shape node of a tileset each. }
     property TilesetShapeNodeListList: TShapeNodeListList read FTilesetShapeNodeListList write FTilesetShapeNodeListList;
   public
-    constructor Create;
+    constructor Create(ATiledMap: TTiledMap);
     destructor Destroy; override;
 
     { Tries to construct X3D representation from TTiledMap data. }
@@ -621,11 +624,13 @@ begin
   end;
 end;
 
-constructor TTiledMapConverter.Create;
+constructor TTiledMapConverter.Create(ATiledMap: TTiledMap);
 var
   SwitchNode: TSwitchNode;
 begin
   inherited Create;
+
+  Map := ATiledMap;
 
   { Create scene's initial node structure: Root --> Switch --> Map }
   RootNode := TX3DRootNode.Create;
@@ -639,7 +644,8 @@ begin
   TilesetShapeNodeListList := TShapeNodeListList.Create(True);
 
 
-  DebugMode := True;
+  //DebugMode := True;
+  DebugMode := False; // Default
 
   ConvYMatrix.Items[0,0] := 1;
   ConvYMatrix.Items[1,0] := 0;
@@ -905,8 +911,7 @@ begin
     Exit;
 
   try
-    ATiledMapConverter := TTiledMapConverter.Create;
-    ATiledMapConverter.Map := ATiledMap;
+    ATiledMapConverter := TTiledMapConverter.Create(ATiledMap);
     ATiledMapConverter.ConvertMap;
     Result := ATiledMapConverter.RootNode;
   finally
