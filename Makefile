@@ -61,6 +61,7 @@
 
 SED := sed
 FIND := find
+INSTALL := install
 EXE_EXTENSION :=
 
 ifeq ($(OS),Windows_NT)
@@ -71,9 +72,13 @@ else
   # Only on Unix, you can use "uname" to further detect Unix variants,
   # see https://stackoverflow.com/questions/714100/os-detecting-makefile
   UNAME_S := $(shell uname -s)
-  # On macOS, use gsed (e.g. from Homebrew)
+
+  # On macOS, use gsed and ginstall (e.g. from Homebrew).
+  # See https://www.topbug.net/blog/2013/04/14/install-and-use-gnu-command-line-tools-in-mac-os-x/
+  # http://www.legendu.net/en/blog/install-gnu-utils-using-homebrew/
   ifeq ($(UNAME_S),Darwin)
     SED := gsed
+    INSTALL := ginstall
   endif
 endif
 
@@ -157,16 +162,16 @@ DATADIR=$(DATAROOTDIR)
 
 .PHONY: install
 install:
-	install -d $(BINDIR)
-	install tools/texture-font-to-pascal/texture-font-to-pascal$(EXE_EXTENSION) $(BINDIR)
-	install tools/image-to-pascal/image-to-pascal$(EXE_EXTENSION) $(BINDIR)
-	install tools/castle-curves/castle-curves$(EXE_EXTENSION) $(BINDIR)
-	install tools/build-tool/castle-engine$(EXE_EXTENSION) $(BINDIR)
-	install tools/to-data-uri/to-data-uri$(EXE_EXTENSION) $(BINDIR)
+	$(INSTALL) -d $(BINDIR)
+	$(INSTALL) tools/texture-font-to-pascal/texture-font-to-pascal$(EXE_EXTENSION) $(BINDIR)
+	$(INSTALL) tools/image-to-pascal/image-to-pascal$(EXE_EXTENSION) $(BINDIR)
+	$(INSTALL) tools/castle-curves/castle-curves$(EXE_EXTENSION) $(BINDIR)
+	$(INSTALL) tools/build-tool/castle-engine$(EXE_EXTENSION) $(BINDIR)
+	$(INSTALL) tools/to-data-uri/to-data-uri$(EXE_EXTENSION) $(BINDIR)
 #	cp -R tools/build-tool/data $(DATADIR)/castle-engine
-	install -d  $(DATADIR)
+	$(INSTALL) -d  $(DATADIR)
 	cd tools/build-tool/data/ && \
-	  $(FIND) . -type f -exec install --mode 644 -D '{}' $(DATADIR)/castle-engine/'{}' ';'
+	  $(FIND) . -type f -exec $(INSTALL) --mode 644 -D '{}' $(DATADIR)/castle-engine/'{}' ';'
 
 .PHONY: uninstall
 uninstall:
