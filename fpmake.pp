@@ -19,7 +19,7 @@ uses
 
 var
   P: TPackage;
-  IOS: boolean; //< compiling for iOS target
+  LikeIOS: boolean; //< compiling for iOS target (physical or simulator)
   Xlib: boolean; //< OS has working Xlib packages
 begin
   with Installer do
@@ -35,9 +35,9 @@ begin
     P.Options.Text := '@castle-fpc.cfg';
 
     { Some variables derived from Defaults.OS/CPU. }
-    IOS := (Defaults.OS = IPhoneSim) or
+    LikeIOS := (Defaults.OS = IPhoneSim) or
       {$ifdef HAS_SEPARATE_IOS}
-      (Defaults.OS = iOS) or
+      (Defaults.OS = iOS)
       {$else}
       ((Defaults.OS = Darwin) and (Defaults.CPU in [Arm, AArch64]))
       {$endif};
@@ -48,7 +48,7 @@ begin
       point to them anyway. They are needed only when compiling with --nofpccfg.
       Anyway, maybe this is a good place to document my dependencies
       on FPC packages --- so let's do this. }
-    if (Defaults.OS <> Android) and (not IOS) then
+    if (Defaults.OS <> Android) and (not LikeIOS) then
       P.Dependencies.Add('opengl');
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-image');
