@@ -27,7 +27,8 @@ uses
   ProjectUtils, Types, Contnrs, CastleControl, CastleUIControls,
   CastlePropEdits, CastleDialogs, X3DNodes, CastleFindFiles,
   EditorUtils, FrameDesign, FrameViewFile, FormNewUnit, ToolManifest,
-  FormDesignHierarchy, FormDesignProperties, FormDesignExplorer, FormDesign;
+  FormDesignHierarchy, FormDesignProperties, FormDesignExplorer, FormDesign,
+  FormDesignFiles;
 
 const
   DockLayoutFileName = 'dock_layout.xml';
@@ -40,6 +41,7 @@ type
   TProjectForm = class(TForm)
     ActionNewSpriteSheet: TAction;
     ActionList: TActionList;
+    MenuItemUIFiles: TMenuItem;
     MenuItemUIRestoreDefaultDockSettings: TMenuItem;
     MenuItemEnableDisableDocking: TMenuItem;
     MenuItemUIProperties: TMenuItem;
@@ -197,6 +199,7 @@ type
     procedure MenuItemShellTreeRefreshClick(Sender: TObject);
     procedure MenuItemUIDesignClick(Sender: TObject);
     procedure MenuItemUIExplorerClick(Sender: TObject);
+    procedure MenuItemUIFilesClick(Sender: TObject);
     procedure MenuItemUIHierarchyClick(Sender: TObject);
     procedure MenuItemUIPropertiesClick(Sender: TObject);
     procedure MenuItemUIRestoreDefaultDockSettingsClick(Sender: TObject);
@@ -814,16 +817,22 @@ begin
     DesignForm := TDesignForm.Create(nil);
     DesignHierarchyForm := TDesignHierarchyForm.Create(nil);
     DesignPropertiesForm := TDesignPropertiesForm.Create(nil);
-    DesignExplorerForm := TDesignExplorerForm.Create(nil);
+    DesignExplorerForm := TDesignExplorerForm.Create(nil);     
+    DesignFilesForm := TDesignFilesForm.Create(nil);
     DockMaster.MakeDockable(DesignForm, True, True);
     DockMaster.MakeDockable(DesignHierarchyForm, True, True);
     DockMaster.MakeDockable(DesignPropertiesForm, True, True);
     DockMaster.MakeDockable(DesignExplorerForm, True, True);
+    DockMaster.MakeDockable(DesignFilesForm, True, True);
     //
     PageControlBottom.Parent := DesignExplorerForm;
     PageControlBottom.Align := alClient;
+    ShellListView1.Parent := DesignFilesForm;
+    ShellTreeView1.Align := alClient;
+    ShellListView1.Align := alClient;
     // Hide splitters, as they dont need anymore since we use docked forms
     Splitter2.Visible := False;
+    SplitterBetweenFiles.Visible := False;
     //
     LoadDockLayout;
     MenuItemEnableDisableDocking.Caption := 'Disable docking';
@@ -973,6 +982,11 @@ end;
 procedure TProjectForm.MenuItemUIExplorerClick(Sender: TObject);
 begin
   DockMaster.MakeDockable(DesignExplorerForm, True, True);
+end;
+
+procedure TProjectForm.MenuItemUIFilesClick(Sender: TObject);
+begin
+  DockMaster.MakeDockable(DesignFilesForm, True, True);
 end;
 
 procedure TProjectForm.MenuItemUIHierarchyClick(Sender: TObject);

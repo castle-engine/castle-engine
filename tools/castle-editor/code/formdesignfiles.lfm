@@ -1,0 +1,8 @@
+object DesignFilesForm: TDesignFilesForm
+  Left = 935
+  Height = 240
+  Top = 560
+  Width = 320
+  Caption = 'Files'
+  LCLVersion = '2.0.10.0'
+end

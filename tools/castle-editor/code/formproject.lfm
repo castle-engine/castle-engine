@@ -40,14 +40,14 @@ object ProjectForm: TProjectForm
     end
     object TabOutput: TTabSheet
       Caption = 'Output'
-      ClientHeight = 187
-      ClientWidth = 1132
+      ClientHeight = 151
+      ClientWidth = 906
       ParentFont = False
       object ListOutput: TListBox
         Left = 0
-        Height = 217
+        Height = 151
         Top = 0
-        Width = 1326
+        Width = 906
         Align = alClient
         ItemHeight = 21
         OnClick = ListOutputClick
@@ -55,7 +55,6 @@ object ProjectForm: TProjectForm
         ScrollWidth = 1324
         Style = lbOwnerDrawFixed
         TabOrder = 0
-        TopIndex = -1
       end
     end
     object TabWarnings: TTabSheet
@@ -475,6 +474,10 @@ object ProjectForm: TProjectForm
       object MenuItemUIExplorer: TMenuItem
         Caption = 'Explorer'
         OnClick = MenuItemUIExplorerClick
+      end
+      object MenuItemUIFiles: TMenuItem
+        Caption = 'Files'
+        OnClick = MenuItemUIFilesClick
       end
       object MenuItemUIHierarchy: TMenuItem
         Caption = 'Hierarchy'

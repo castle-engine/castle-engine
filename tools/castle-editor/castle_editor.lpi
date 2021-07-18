@@ -37,7 +37,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="24">
+    <Units Count="25">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -171,6 +171,7 @@
         <Filename Value="code/formdesignhierarchy.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="DesignHierarchyForm"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="FormDesignHierarchy"/>
       </Unit20>
@@ -178,6 +179,7 @@
         <Filename Value="code/formdesignproperties.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="DesignPropertiesForm"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="FormDesignProperties"/>
       </Unit21>
@@ -196,6 +198,13 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="FormDesign"/>
       </Unit23>
+      <Unit24>
+        <Filename Value="code/formdesignfiles.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="DesignFilesForm"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="FormDesignFiles"/>
+      </Unit24>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
