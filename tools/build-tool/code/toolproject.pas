@@ -621,7 +621,7 @@ var
   begin
     if OS in [linux, go32v2, win32, os2, freebsd, beos, netbsd,
               amiga, atari, solaris, qnx, netware, openbsd, wdosx,
-              palmos, macos, darwin, emx, watcom, morphos, netwlibc,
+              palmos, macosclassic, darwin, emx, watcom, morphos, netwlibc,
               win64, wince, gba,nds, embedded, symbian, haiku, {iphonesim,}
               aix, java, {android,} nativent, msdos, wii] then
     begin
@@ -659,11 +659,14 @@ var
 
         This logic is used both at build, and inside the application.
 
-    - iOS: When OS is iPhoneSim or OS/architecture are Darwin/Arm or Darwin/Aarch64.
+    - iOS: When
+           (OS is iPhoneSim) or
+           (FPC >= 3.2.2 and OS = iOS) or
+           (FPC  < 3.2.2 and OS/architecture are Darwin/Arm or Darwin/Aarch64).
 
-        In total this has 4 currently possible values: iPhoneSim/i386, iPhoneSim/x86_64, Darwin/Arm, Darwin/Aarch64.
-
-        This logic is used both at build, and inside the application.
+        This logic is used inside the application.
+        At build, it is simpler, as our build tool just says "darwin is not iOS"
+        (just like FPC >= 3.2.2 says) to support new macOS 11 (desktop on arm).
 
     - desktop: everything else.
   }
@@ -678,9 +681,7 @@ var
         if OS = Android then
           Result := cpAndroid
         else
-        if (OS = iphonesim) or
-           ((OS = darwin) and (CPU = arm)) or
-           ((OS = darwin) and (CPU = aarch64)) then
+        if OS in [iphonesim, iOS] then
           Result := cpIOS
         else
           Result := cpDesktop;

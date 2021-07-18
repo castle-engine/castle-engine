@@ -128,8 +128,8 @@ begin
       CompileLibrary(iphonesim, i386);
       CompileLibrary(iphonesim, x86_64);
     end;
-    CompileLibrary(darwin, arm);
-    CompileLibrary(darwin, aarch64);
+    CompileLibrary(iOS, arm);
+    CompileLibrary(iOS, aarch64);
 
   finally FreeAndNil(FinalExtraOptions) end;
 end;
@@ -148,8 +148,8 @@ begin
       Options.Add(CompilationOutputPath(iphonesim, i386   , CompilationWorkingDirectory) + IOSPartialLibraryName);
       Options.Add(CompilationOutputPath(iphonesim, x86_64 , CompilationWorkingDirectory) + IOSPartialLibraryName);
     end;
-    Options.Add(CompilationOutputPath(darwin   , arm    , CompilationWorkingDirectory) + IOSPartialLibraryName);
-    Options.Add(CompilationOutputPath(darwin   , aarch64, CompilationWorkingDirectory) + IOSPartialLibraryName);
+    Options.Add(CompilationOutputPath(iOS   , arm    , CompilationWorkingDirectory) + IOSPartialLibraryName);
+    Options.Add(CompilationOutputPath(iOS   , aarch64, CompilationWorkingDirectory) + IOSPartialLibraryName);
     RunCommandSimple('libtool', Options.ToArray);
   finally FreeAndNil(Options) end;
 end;

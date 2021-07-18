@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2019 Michalis Kamburelis.
+  Copyright 2002-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -128,7 +128,7 @@
 
 {$define TOBJECT_HAS_EQUALS}
 
-{ Define CPU32/64, like FPC. }
+{ Delphi compatibility: Define in Delphi CPU32/64, like FPC does. }
 {$ifndef FPC}
   {$ifdef CPUX86} {$define CPU32} {$endif}
   {$ifdef CPU32BITS} {$define CPU32} {$endif}
@@ -145,31 +145,50 @@
   {$define CPUARM64}
 {$endif}
 
+{ Define CASTLE_IOS when appropriate ----------------------------------------- }
+
+{ Build tool defines CASTLE_IOS automatically.
+  This include file defines CASTLE_IOS too, to have it regardless of compilation method.
+
+  Note: FPC >= 3.2.2 introduced own IOS symbol.
+  It only indicates "real" physical iOS, not iPhoneSimulator. }
+
+// FPC defines iOS as a separate OS since FPC 3.2.2.
+{$define HAS_SEPARATE_IOS}
+{$ifdef VER3_0} {$undef HAS_SEPARATE_IOS} {$endif}
+{$ifdef VER3_2_0} {$undef HAS_SEPARATE_IOS} {$endif}
+
 {$ifndef PASDOC} // Avoid Pasdoc warnings, as Pasdoc cannot calculate $if below
-  {$if defined(iPHONESIM) or (defined(DARWIN) and (defined(CPUARM) or defined(CPUAARCH64)))}
-    { Build tool defines CASTLE_IOS automatically.
-      This include file defines IOS, and CASTLE_IOS.
-      We advise to use CASTLE_IOS everywhere (in engine code and user applications),
-      to make it simple. }
-    {$define CASTLE_IOS}
-    {$define iOS}
+  {$ifdef HAS_SEPARATE_IOS}
+    {$if defined(iPHONESIM) or defined(iOS)}
+      {$define CASTLE_IOS}
+    {$endif}
+  {$else}
+    {$if defined(iPHONESIM) or (defined(DARWIN) and (defined(CPUARM) or defined(CPUAARCH64)))}
+      {$define CASTLE_IOS}
+    {$endif}
   {$endif}
 {$endif}
+
+{ Define COMPILER_CASE_ANALYSIS when appropriate --------------------------- }
+
+{ Compiler automatically detects and warns when "case" doesn't cover
+  all possibilities. This means we do not have to, and actually
+  we should not have to (as it would cause "Warning: Unreachable code" warning),
+  add a clause like "else raise EInternalError.Create('xxx');"
+  to "case" statements that should always have a matching possibility.
+
+  This is true for FPC >= 3.2 now. }
 
 {$ifdef FPC}
   {$ifndef VER3_0}
     {$ifndef VER3_1}
-      { Compiler automatically detects and warns when "case" doesn't cover
-        all possibilities. This means we do not have to, and actually
-        we should not have to (as it would cause "Warning: Unreachable code" warning),
-        add a clause like "else raise EInternalError.Create('xxx');"
-        to "case" statements that should always have a matching possibility.
-
-        This is true for FPC >= 3.2 now. }
       {$define COMPILER_CASE_ANALYSIS}
     {$endif}
   {$endif}
 {$endif}
+
+{ Define BUGGY_AARCH64_OPTIMIZATIONS when appropriate --------------------------- }
 
 { Various things are broken when older FPC < 3.3.1 (rev 48104)
   is used with optimizations=on on Aarch64.
@@ -185,6 +204,7 @@
     and even when we workaround it, it calculates partial rectangles
     (for DrawAdd) incorrectly.
     Testcase: e.g. examples/user_interface/show_various_ui_controls/ on Android/Aarch64. }
+
 {$if defined(FPC) and defined(CPUAARCH64) and defined(RELEASE) and (defined(VER3_0) or defined(VER3_1) or defined(VER3_2))}
   {$define BUGGY_AARCH64_OPTIMIZATIONS}
 {$endif}
@@ -222,7 +242,7 @@
   Put "CastleGL" in uses clause to include the appropriate OpenGL API. }
 { $define OpenGLES}
 {$ifdef ANDROID} {$define OpenGLES} {$endif}
-{$ifdef iOS} {$define OpenGLES} {$endif}
+{$ifdef CASTLE_IOS} {$define OpenGLES} {$endif}
 
 { NX supports OpenGL and OpenGLES (that's public information,
   https://wccftech.com/nintendo-switch-supports-vulkan/ ).
@@ -353,7 +373,7 @@
 
   { On most platforms, try dynamic libpng (will fallback on FpImage at runtime).
     Except on platforms where we know it would not work. }
-  {$if not (defined(iOS) or defined(ANDROID) or defined(CASTLE_NINTENDO_SWITCH))}
+  {$if not (defined(CASTLE_IOS) or defined(ANDROID) or defined(CASTLE_NINTENDO_SWITCH))}
     {$define CASTLE_PNG_DYNAMIC}
   {$endif}
 
@@ -414,7 +434,7 @@
 
 { Although Tremolo is largely compatible with VorbisFile, there are small differences,
   e.g. ov_time_total returns Int64 with Tremolo instead of Double with VorbisFile. }
-{$if defined(IOS) or defined(ANDROID) or defined(CASTLE_NINTENDO_SWITCH)}
+{$if defined(CASTLE_IOS) or defined(ANDROID) or defined(CASTLE_NINTENDO_SWITCH)}
   {$define CASTLE_TREMOLO}
 {$endif}
 

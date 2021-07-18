@@ -189,7 +189,7 @@ uses SysUtils,
   once the activity starts. }
 {$define CASTLE_USE_GETAPPCONFIGDIR_FOR_LOG}
 {$ifdef ANDROID} {$undef CASTLE_USE_GETAPPCONFIGDIR_FOR_LOG} {$endif}
-{$ifdef iOS} {$undef CASTLE_USE_GETAPPCONFIGDIR_FOR_LOG} {$endif}
+{$ifdef CASTLE_IOS} {$undef CASTLE_USE_GETAPPCONFIGDIR_FOR_LOG} {$endif}
 
 var
   FLog: boolean = false;
