@@ -31,7 +31,7 @@
   2. Turn off debug mode.
   3. Check SetDebugMode: RemoveChildren free's instance of node?
   4. Update topPoint (see there) + handle ellipsoids (see there)
-  5. Shift TImageTextureNodeList (generic) to x3dnodes_standard_texturing.inc?
+  5. Shift TShapeNodeList(+ListList) (generic) to x3dnodes_standard_texturing.inc?
 
   EXPECTED X3D HIERARCHY:
 
