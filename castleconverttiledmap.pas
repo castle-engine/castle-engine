@@ -97,10 +97,8 @@ type
   TTiledTileNode = TTransformNode;
   TShapeNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TShapeNode>;
   TShapeNodeListList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TShapeNodeList>;
+
   { Converter class to convert Tiled map into X3D representations. }
-
-  { TTiledMapConverter }
-
   TTiledMapConverter = class
   strict private
     FDebugMode: Boolean;
@@ -551,7 +549,8 @@ var
   begin
     Result := nil;
     { Get tileset's shape node list. }
-    ATilesetShapeNodeList := TilesetShapeNodeListList.Items[Map.Tilesets.IndexOf(ATileset)];
+    ATilesetShapeNodeList := TilesetShapeNodeListList.Items[
+      Map.Tilesets.IndexOf(ATileset)];
     if not Assigned(ATilesetShapeNodeList) then
       Exit;
 
@@ -576,7 +575,8 @@ var
     if Assigned(Tileset) and Assigned(Tile) then
     begin
       TileNode := TTiledTileNode.Create;
-      TileNode.Translation := Vector3(PositionOfTileByIndex(Tileset), LayerZDistance);
+      TileNode.Translation := Vector3(PositionOfTileByIndex(Tileset),
+        LayerZDistance);
       TileShapeNode := GetTileShapeNode(Tileset, Tile);
       TileNode.AddChildren(TileShapeNode);
       Result.AddChildren(TileNode);
