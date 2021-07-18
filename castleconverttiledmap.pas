@@ -33,6 +33,17 @@
   4. Update topPoint (see there) + handle ellipsoids (see there)
   5. Shift TImageTextureNodeList (generic) to x3dnodes_standard_texturing.inc?
 
+  EXPECTED X3D HIERARCHY:
+
+  Root Node --> [0] Switch Node --> [0] Map Node --> [0] Layer Node 1 --> ...
+                                                 --> [1] Layer Node 2 --> ...
+                                                 ...
+                                                 --> [n] Layer Node n+1 --> ...
+                                --> [1] Ghost Node --> [0] Tileset Shape Node 1
+                                                   --> [1] Tileset Shape Node 2
+                                                   ...
+                                                   --> [m] Tileset Shape Node m+1
+
   REMARKS:
   1. Coordinate systems: The Tiled editor uses a classical coordinate system
      with origin (0,0) at top-left position. The CGE uses the OpenGL coordinate
@@ -96,8 +107,9 @@ type
     FDebugNode: TX3DRootNode;
 
     FMap: TTiledMap;
-    FMapNode: TX3DRootNode;
+    FMapNode: TTransformNode;
     FLayerZDistance: Single;
+    FRootNode: TX3DRootNode;
     FTilesetShapeNodeListList: TShapeNodeListList;
 
     FConvYMatrix: TMatrix2;
@@ -175,8 +187,8 @@ type
 
       TODO : What if MapNode is never returned and manually free'd?
       Improve by getter func.! }
-    property MapNode: TX3DRootNode read FMapNode;
-
+    property MapNode: TTransformNode read FMapNode write FMapNode;
+    property RootNode: TX3DRootNode read FRootNode write FRootNode;
     { The different layers are rendered in a certain order (last to first).
       This effect is achieved in x3d model by shifting these layers by
       this distance along the Z-axis. }
@@ -292,7 +304,8 @@ begin
       list of tileset shape node lists. }
     TilesetShapeNodeListList.Add(TilesetShapeNodeList);
 
-    MapNode.AddChildren(GhostNode);
+    { Add ghost nodes to switch node. }
+    (RootNode.FdChildren.Items[0] as TSwitchNode).AddChildren(GhostNode);
   end;
 end;
 
@@ -599,10 +612,19 @@ begin
 end;
 
 constructor TTiledMapConverter.Create;
+var
+  SwitchNode: TSwitchNode;
 begin
   inherited Create;
 
-  FMapNode := TX3DRootNode.Create;
+  { Create scene's initial node structure: Root --> Switch --> Map }
+  RootNode := TX3DRootNode.Create;
+  SwitchNode := TSwitchNode.Create;
+  RootNode.AddChildren(SwitchNode);
+  MapNode := TTransformNode.Create;
+  SwitchNode.AddChildren(MapNode);
+  SwitchNode.WhichChoice := 0;
+
   LayerZDistance := 0.0; // The first layer is at Z = 0.0.
   TilesetShapeNodeListList := TShapeNodeListList.Create(True);
 
@@ -875,7 +897,7 @@ begin
     ATiledMapConverter := TTiledMapConverter.Create;
     ATiledMapConverter.Map := ATiledMap;
     ATiledMapConverter.ConvertMap;
-    Result := ATiledMapConverter.MapNode;
+    Result := ATiledMapConverter.RootNode;
   finally
     FreeAndNil(ATiledMapConverter);
   end;
