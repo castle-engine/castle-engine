@@ -3,7 +3,7 @@
   <ProjectOptions>
     <Version Value="11"/>
     <General>
-      <SessionStorage Value="InIDEConfig"/>
+      <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
       <Title Value="castle_editor"/>
       <Scaled Value="True"/>
