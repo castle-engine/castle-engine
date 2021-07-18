@@ -593,9 +593,7 @@ begin
   PackageName := Project.Name;
   if PackageNameIncludeVersion and (Project.Version.DisplayValue <> '') then
     PackageName += '-' + Project.Version.DisplayValue;
-  PackageName += '-android';
-  if PackageMode <> cmRelease then
-    PackageName += '-' + PackageModeToName[PackageMode];
+  PackageName += '-android' + '-' + PackageModeToName[PackageMode];
   case PackageFormat of
     pfAndroidApk:
       begin
