@@ -85,7 +85,7 @@ implementation
 uses
   SysUtils, Math, Generics.Collections,
   CastleVectors, CastleTransform, CastleColors,
-  CastleRenderOptions, CastleControls, CastleStringUtils, X3DLoadInternalImage,
+  CastleRenderOptions, CastleControls, CastleStringUtils,
   CastleImages;
 
 const
@@ -852,13 +852,14 @@ begin
   { Create Debug transform node for Outline- and NameDebug nodes. Add them to
     the Debug node. }
   DebugObject := TTransformNode.Create;
-  DebugObject.Translation := Vector3(Single(X), ConvY(Single(Y)), 0.0);
+  DebugObject.Translation := Vector3(Single(X), ConvY(Single(Y)),
+    LayerZDistance);
   DebugObject.AddChildren(DebugShapeOutline);
   DebugNode.AddChildren(DebugObject);
 
   DebugObject := TTransformNode.Create;
   DebugObject.Translation := Vector3(Single(X) + NameGap, ConvY(Single(Y)) +
-    NameGap, 0.0);
+    NameGap, LayerZDistance);
   DebugObject.AddChildren(DebugShapeName);
   DebugNode.AddChildren(DebugObject);
 end;
