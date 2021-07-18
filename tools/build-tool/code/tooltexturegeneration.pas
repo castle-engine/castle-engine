@@ -296,7 +296,8 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
        InputFile,
        OutputFile,
        CompressionNameForTool,
-       '-exhaustive']);
+       '-exhaustive',
+       '-yflip']);
   end;
 
   procedure NVCompress(const InputFile, OutputFile: string;

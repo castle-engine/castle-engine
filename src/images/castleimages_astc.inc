@@ -64,7 +64,7 @@ begin
           tcASTC_6x6_RGBA);
     try
       Stream.ReadBuffer(Res.RawPixels^, Res.Size);
-      Res.FlipVertical;
+      //Res.FlipVertical; Not implemented
     { on unhandled error, make sure to free result }
     except
       FreeAndNil(Result);
