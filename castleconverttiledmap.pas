@@ -141,9 +141,12 @@ type
     { Tile height of map tile (not necessarily tileset tile!) in pixels. }
     function TileHeight: Cardinal;
     { Convert Tiled Y-values to Y-values according to definition, see remarks
-      above. }
+      above.
+      @groupBegin }
     function ConvY(const TiledY: Single): Single; overload;
     function ConvY(const TiledYVector2: TVector2): TVector2; overload;
+    { @groupEnd }
+
     { Converts two float values into TVector2 and Y-value (CY: Convert Y)
       according to def., see remarks above. }
     function Vector2CY(const X, Y: Single): TVector2;
@@ -238,7 +241,7 @@ begin
 
   for Tileset in Map.Tilesets do
   begin
-    Writeln('Convert tileset: ',Tileset.Name);
+    //Writeln('Convert tileset: ',Tileset.Name);
 
     { Make sure for each tileset there is a shape node list created
       for consistency and retrieving of correct item-indices later. }
@@ -250,13 +253,13 @@ begin
     if Assigned(Tileset.Image) then
     begin
       { Prepare texture node of tileset. }
-      Writeln('  Image source: ', Tileset.Image.URL);
+      //Writeln('  Image source: ', Tileset.Image.URL);
       TilesetTextureNode := TImageTextureNode.Create(Tileset.Name, '');
       TilesetTextureNode.SetUrl([Tileset.Image.URL]);
       TilesetTextureNode.TextureProperties := TTexturePropertiesNode.Create;
       TilesetTextureNode.TextureProperties.MagnificationFilter := magDefault;
       TilesetTextureNode.TextureProperties.MinificationFilter := minDefault;
-      Writeln('  Texture image loaded: ',TilesetTextureNode.IsTextureImage);
+      //Writeln('  Texture image loaded: ',TilesetTextureNode.IsTextureImage);
     end;
 
     for Tile in Tileset.Tiles do
