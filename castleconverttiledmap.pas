@@ -488,7 +488,7 @@ var
   end;
 
   { Get a specific tile obj. by its global ID from a specific tileset. }
-  function GetTileFromTileset(ATileGID: Cardinal; ATileset: TTiledMap.TTileset): TTiledMap.TTile;
+  function GetTileFromTileset(const ATileGID: Cardinal; const ATileset: TTiledMap.TTileset): TTiledMap.TTile;
   var
     Tile: TTiledMap.TTile;
   begin
@@ -504,6 +504,15 @@ var
         Exit;
       end;
     end;
+  end;
+
+  { Returns the tile and the associated tileset of a certain tile GID.
+    Returns nil respectively, if not found. }
+  procedure GetTilesetAndTileByGID(const ATileGID: Cardinal;
+    out ATileset: TTiledMap.TTileset; out ATile: TTiledMap.TTile);
+  begin
+    ATileset := GetTilesetOfTile(ATileGID);
+    ATile := GetTileFromTileset(ATileGID, ATileset);
   end;
 
   { Zero-based. }
@@ -570,8 +579,7 @@ var
   begin
     { Try to get tileset. Only if it exists for this tile,
       an actual tile node is created. }
-    Tileset := GetTilesetOfTile(ALayer.Data.Data[I]);
-    Tile := GetTileFromTileset(ALayer.Data.Data[I], Tileset);
+    GetTilesetAndTileByGID(ALayer.Data.Data[I], Tileset, Tile);
     if Assigned(Tileset) and Assigned(Tile) then
     begin
       TileNode := TTiledTileNode.Create;
@@ -590,9 +598,7 @@ begin
   begin
     for I := 0 to High(ALayer.Data.Data) do
     begin
-      //Writeln(I, ' --> GID: ', ALayer.Data.Data[GID]);
-      DebugTileset := GetTilesetOfTile(ALayer.Data.Data[I]);
-      DebugTile := GetTileFromTileset(ALayer.Data.Data[I], DebugTileset);
+      GetTilesetAndTileByGID(ALayer.Data.Data[I], DebugTileset, DebugTile);
       if Assigned(DebugTileset) and Assigned(DebugTile) then
       begin
         BuildDebugObject(
