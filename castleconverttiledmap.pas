@@ -296,7 +296,8 @@ begin
         { Translate tileset texture:
         Important: Origin (0/0) of tex. coordinate is bottom-left! }
         TilesetTextureTransformNode.Translation := Vector2(
-          { X: Calc. Column (e. g. 0, 1, 2, ...)
+          { X: Calc. Column (e. g. 0, 1, 2, ...) = No. of full tile widths
+                 in tex. coord. space (0,0 to 1,0)
                + Spacing: Col. * No. of spacings in tex. coord. space
                + Margin in Tex. coord. space }
           (Tile.Id mod Tileset.Columns)
