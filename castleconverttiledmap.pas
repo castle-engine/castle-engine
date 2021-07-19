@@ -278,14 +278,7 @@ begin
         TileShapeNode.Appearance.Texture := TilesetTextureNode;
         TilesetTextureTransformNode := TTextureTransformNode.Create;
 
-        { Translate tileset texture:
-        Important: Origin of tex. coordinate is bottom-left! }
-        TilesetTextureTransformNode.Translation := Vector2(
-          (Tile.Id mod Tileset.Columns),
-          (RowsInTileset - 1) - Floor(Tile.Id / Tileset.Columns)
-        );
-
-        { Scale tileset texture:
+        { Scale tileset texture to fit tile size:
           Scale factor is inverted: E. g. 0.5 means 2x dimension.
           Divide Tileset Tile width/height by full Tileset width/height.
           The latter is extracted from the texture node.
@@ -296,6 +289,25 @@ begin
         TilesetTextureTransformNode.Scale := Vector2(
           Tileset.TileWidth / TilesetWidth,
           Tileset.TileHeight / TilesetHeight
+        );
+
+        TilesetWidth :=  TilesetTextureNode.TextureImage.Width;
+        TilesetHeight := TilesetTextureNode.TextureImage.Height;
+        { Translate tileset texture:
+        Important: Origin (0/0) of tex. coordinate is bottom-left! }
+        TilesetTextureTransformNode.Translation := Vector2(
+          { X: Calc. Column (e. g. 0, 1, 2, ...)
+               + Spacing: Col. * No. of spacings in tex. coord. space
+               + Margin in Tex. coord. space }
+          (Tile.Id mod Tileset.Columns)
+          + (Tile.Id mod Tileset.Columns) * (Tileset.Spacing / Tileset.TileWidth)
+          + (Tileset.Margin / Tileset.TileWidth),
+          { Y: Calc. Row (e. g. 3, 2, 1, 0 if 4 rows exist)
+               + Spacing: Row * Spacing in tex. coord. space
+               + Margin in Tex. coord. space }
+          ((RowsInTileset - 1) - Floor(Tile.Id / Tileset.Columns))
+          + ((RowsInTileset - 1) - Floor(Tile.Id / Tileset.Columns)) * (Tileset.Spacing / Tileset.TileWidth)
+          + (Tileset.Margin / Tileset.TileHeight)
         );
 
         TileShapeNode.Appearance.TextureTransform := TilesetTextureTransformNode;
