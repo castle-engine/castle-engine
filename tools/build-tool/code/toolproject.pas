@@ -45,7 +45,8 @@ type
     procedure DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
     function PackageName(const OS: TOS; const CPU: TCPU; const PackageFormat: TPackageFormatNoDefault;
       const PackageNameIncludeVersion: Boolean): string;
-    function SourcePackageName(const PackageNameIncludeVersion: Boolean): string;
+    function SourcePackageName(const PackageNameIncludeVersion: Boolean;
+      const PackageFormatFinal: TPackageFormatNoDefault): string;
     procedure ExtractTemplateFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
 
     { Convert Name to a valid Pascal identifier. }
@@ -912,7 +913,7 @@ begin
       end;
     finally FreeAndNil(Collector) end;
 
-    PackageFileName := SourcePackageName(PackageNameIncludeVersion);
+    PackageFileName := SourcePackageName(PackageNameIncludeVersion, PackageFormatFinal);
     Pack.Make(OutputPath, PackageFileName, PackageFormatFinal);
   finally FreeAndNil(Pack) end;
 end;
@@ -932,13 +933,21 @@ begin
   end;
 end;
 
-function TCastleProject.SourcePackageName(const PackageNameIncludeVersion: Boolean): string;
+function TCastleProject.SourcePackageName(const PackageNameIncludeVersion: Boolean;
+  const PackageFormatFinal: TPackageFormatNoDefault): string;
 begin
   Result := Name;
   if PackageNameIncludeVersion and (Version.DisplayValue <> '') then
     Result += '-' + Version.DisplayValue;
   Result += '-src';
-  Result += '.tar.gz';
+
+  case PackageFormatFinal of
+    pfZip  : Result += '.zip';
+    pfTarGz: Result += '.tar.gz';
+    else raise Exception.CreateFmt('Package format "%s" not supported for source package', [
+      PackageFormatToString(PackageFormatFinal)
+    ]);
+  end;
 end;
 
 procedure TCastleProject.DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
@@ -1851,7 +1860,9 @@ begin
               Exit(true);
 
   for HasVersion in Boolean do
-    if SameFileName(FileName, SourcePackageName(HasVersion)) then
+    // list all package formats allowed for source packages now
+    if SameFileName(FileName, SourcePackageName(HasVersion, pfZip)) or
+       SameFileName(FileName, SourcePackageName(HasVersion, pfTarGz)) then
       Exit(true);
 
   if { avoid Android packages }
