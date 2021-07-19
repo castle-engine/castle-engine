@@ -497,7 +497,7 @@ object ProjectForm: TProjectForm
         Caption = '-'
       end
       object MenuItemUIRestoreDefaultDockSettings: TMenuItem
-        Caption = 'Restore default dock settings'
+        Caption = 'Restore default dock layout'
         OnClick = MenuItemUIRestoreDefaultDockSettingsClick
       end
     end
