@@ -28,7 +28,7 @@ uses
   CastlePropEdits, CastleDialogs, X3DNodes, CastleFindFiles,
   EditorUtils, FrameDesign, FrameViewFile, FormNewUnit, ToolManifest,
   FormDesignHierarchy, FormDesignProperties, FormDesignExplorer, FormDesign,
-  FormDesignFiles;
+  FormDesignFiles, FormDesignOutput, FormDesignWarnings;
 
 const
   DockLayoutFileName = 'dock_layout.xml';
@@ -41,6 +41,8 @@ type
   TProjectForm = class(TForm)
     ActionNewSpriteSheet: TAction;
     ActionList: TActionList;
+    MenuItemUIOutput: TMenuItem;
+    MenuItemUIWarnings: TMenuItem;
     MenuItemUIFiles: TMenuItem;
     MenuItemUIRestoreDefaultDockSettings: TMenuItem;
     MenuItemEnableDisableDocking: TMenuItem;
@@ -201,8 +203,10 @@ type
     procedure MenuItemUIExplorerClick(Sender: TObject);
     procedure MenuItemUIFilesClick(Sender: TObject);
     procedure MenuItemUIHierarchyClick(Sender: TObject);
+    procedure MenuItemUIOutputClick(Sender: TObject);
     procedure MenuItemUIPropertiesClick(Sender: TObject);
     procedure MenuItemUIRestoreDefaultDockSettingsClick(Sender: TObject);
+    procedure MenuItemUIWarningsClick(Sender: TObject);
     procedure UpdateUndo(Sender: TObject);
     procedure UpdateRenameItem(Sender: TObject);
     procedure MenuItemRedoClick(Sender: TObject);
@@ -772,6 +776,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     if not IsDockUIEnabled then Exit;
     if not FileExists(DockLayoutFileName) then
     begin
+      // If no layout setting is found, we manually dock design form to main form
       Site := DockMaster.GetAnchorSite(DesignForm);
       DockMaster.ManualDock(Site, Self, alClient);
       Exit;
@@ -820,20 +825,29 @@ begin
     DesignPropertiesForm := TDesignPropertiesForm.Create(nil);
     DesignExplorerForm := TDesignExplorerForm.Create(nil);     
     DesignFilesForm := TDesignFilesForm.Create(nil);
+    DesignOutputForm := TDesignOutputForm.Create(nil);
+    DesignWarningsForm := TDesignWarningsForm.Create(nil);
     DockMaster.MakeDockable(DesignForm, True, True);
     DockMaster.MakeDockable(DesignHierarchyForm, True, True);
     DockMaster.MakeDockable(DesignPropertiesForm, True, True);
     DockMaster.MakeDockable(DesignExplorerForm, True, True);
     DockMaster.MakeDockable(DesignFilesForm, True, True);
+    DockMaster.MakeDockable(DesignOutputForm, True, True);
+    DockMaster.MakeDockable(DesignWarningsForm, True, True);
     //
     PageControlBottom.Parent := DesignExplorerForm;
     PageControlBottom.Align := alClient;
     ShellListView1.Parent := DesignFilesForm;
     ShellTreeView1.Align := alClient;
     ShellListView1.Align := alClient;
+    ListOutput.Parent := DesignOutputForm;
+    ListWarnings.Parent := DesignWarningsForm;
+    PanelWarnings.Parent := DesignWarningsForm;
     // Hide splitters, as they dont need anymore since we use docked forms
     Splitter2.Visible := False;
     SplitterBetweenFiles.Visible := False;
+    // Hide bottom tab's header
+    PageControlBottom.ShowTabs := False;
     //
     LoadDockLayout;
     MenuItemEnableDisableDocking.Caption := 'Disable docking';
@@ -862,6 +876,8 @@ begin
     FreeAndNil(DesignHierarchyForm);
     FreeAndNil(DesignPropertiesForm);
     FreeAndNil(DesignExplorerForm);
+    FreeAndNil(DesignOutputForm);
+    FreeAndNil(DesignWarningsForm);
   end;
 end;
 
@@ -995,6 +1011,11 @@ begin
   DockMaster.MakeDockable(DesignHierarchyForm, True, True);
 end;
 
+procedure TProjectForm.MenuItemUIOutputClick(Sender: TObject);
+begin
+  DockMaster.MakeDockable(DesignOutputForm, True, True);
+end;
+
 procedure TProjectForm.MenuItemUIPropertiesClick(Sender: TObject);
 begin
   DockMaster.MakeDockable(DesignPropertiesForm, True, True);
@@ -1006,6 +1027,11 @@ begin
   IsRestoreDefaultDockUIRequested := True;
   MessageDlg('', 'Please restart the editor in order for the changes to take effect.',
     mtInformation, [mbYes], 0);
+end;
+
+procedure TProjectForm.MenuItemUIWarningsClick(Sender: TObject);
+begin
+  DockMaster.MakeDockable(DesignWarningsForm, True, True);
 end;
 
 procedure TProjectForm.UpdateRenameItem(Sender: TObject);
