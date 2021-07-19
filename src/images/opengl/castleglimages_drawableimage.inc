@@ -27,7 +27,6 @@ type
     @link(TCastleControlBase.OnRender).
 
     See the manual about drawing using TDrawableImage:
-    https://castle-engine.io/manual_quick_2d_game.php ,
     https://castle-engine.io/manual_2d_ui_custom_drawn.php .
     See the description how to render 2D stuff using Castle Game Engine:
     https://github.com/castle-engine/castle-engine/wiki/2D-Games .
