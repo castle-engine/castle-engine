@@ -10,7 +10,7 @@ A complete demo of a platformer game, with
 
 - Sound and music.
 
-- All UI states you expect from a usual game — main menu, options (with volume configuration), pause, credits, and of course the actual game.
+- All UI states you expect from a usual game — main menu, options (with volume configuration), pause, credits, game over and of course the actual game.
 
 Using [Castle Game Engine](https://castle-engine.io/).
 
