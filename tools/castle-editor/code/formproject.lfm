@@ -4,7 +4,7 @@ object ProjectForm: TProjectForm
   Top = 273
   Width = 914
   Caption = ' my-project | Castle Game Engine'
-  ClientHeight = 506
+  ClientHeight = 486
   ClientWidth = 914
   Menu = MainMenu1
   OnClose = FormClose
@@ -15,10 +15,11 @@ object ProjectForm: TProjectForm
   OnShow = FormShow
   Position = poMainFormCenter
   ShowInTaskBar = stAlways
+  LCLVersion = '2.3.0.0'
   object PageControlBottom: TPageControl
     Left = 0
     Height = 179
-    Top = 327
+    Top = 307
     Width = 914
     ActivePage = TabFiles
     Align = alBottom
@@ -182,19 +183,19 @@ object ProjectForm: TProjectForm
     Cursor = crVSplit
     Left = 0
     Height = 5
-    Top = 322
+    Top = 302
     Width = 914
     Align = alBottom
     ResizeAnchor = akBottom
   end
   object PanelAboveTabs: TPanel
     Left = 0
-    Height = 322
+    Height = 302
     Top = 0
     Width = 914
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 322
+    ClientHeight = 302
     ClientWidth = 914
     ParentFont = False
     TabOrder = 2
@@ -207,7 +208,7 @@ object ProjectForm: TProjectForm
       AnchorSideBottom.Side = asrCenter
       Left = 246
       Height = 144
-      Top = 89
+      Top = 79
       Width = 423
       Alignment = taCenter
       Caption = 'To visually design'#10'user interface or 3D/2D game world, '#10'open or create a new design'#10'using the "Design" menu.'

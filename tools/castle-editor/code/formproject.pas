@@ -31,7 +31,7 @@ uses
   FormDesignFiles, FormDesignOutput, FormDesignWarnings;
 
 const
-  DockLayoutFileName = 'dock_layout.xml';
+  DockLayoutFileName = 'layout.dock-layout';
 
 type
   { Main project management. }
@@ -488,7 +488,7 @@ procedure TProjectForm.FormClose(Sender: TObject; var CloseAction: TCloseAction
   begin
     if not IsDockUIEnabled then Exit;
     try
-      XMLConfig := TXMLConfigStorage.Create(DockLayoutFileName, False);
+      XMLConfig := TXMLConfigStorage.Create(URIToFilenameSafe(ApplicationConfig(DockLayoutFileName)), False);
       try
         DockMaster.SaveLayoutToConfig(XMLConfig);
         XMLConfig.WriteToDisk;
@@ -509,8 +509,8 @@ begin
   { Simply remove the dock ui config file in order to restore default settings }
   if IsRestoreDefaultDockUIRequested then
   begin
-    if FileExists(DockLayoutFileName) then
-      DeleteFile(DockLayoutFileName);
+    if URIFileExists(ApplicationConfig(DockLayoutFileName)) then
+      DeleteFile(URIToFilenameSafe(ApplicationConfig(DockLayoutFileName)));
   end else
     SaveDockLayout;
 end;
@@ -774,7 +774,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     Site: TAnchorDockHostSite;
   begin
     if not IsDockUIEnabled then Exit;
-    if not FileExists(DockLayoutFileName) then
+    if not URIFileExists(ApplicationConfig(DockLayoutFileName)) then
     begin
       // If no layout setting is found, we manually dock design form to main form
       Site := DockMaster.GetAnchorSite(DesignForm);
@@ -782,7 +782,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
       Exit;
     end;
     try
-      XMLConfig := TXMLConfigStorage.Create(DockLayoutFileName, True);
+      XMLConfig := TXMLConfigStorage.Create(URIToFilenameSafe(ApplicationConfig(DockLayoutFileName)), True);
       try
         DockMaster.LoadLayoutFromConfig(XMLConfig, True);
       finally
