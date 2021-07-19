@@ -33,6 +33,7 @@
   4. Update topPoint (see there) + handle ellipsoids (see there)
   5. Shift TShapeNodeList(+ListList) (generic) to x3dnodes_standard_texturing.inc?
   6. How to handle overlapping tiles of the same layer (Z-buffer fighting)?
+  7. Refine spacing/margin calculations, still borders in desert example.
 
   EXPECTED X3D HIERARCHY:
 
