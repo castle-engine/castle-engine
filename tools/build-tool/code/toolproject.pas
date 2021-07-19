@@ -1871,7 +1871,8 @@ begin
      IsWild(FileName, Name + '*-android-release.apk', true) or
      IsWild(FileName, Name + '*-android-release.aab', true) or
      { do not pack AndroidAntProperties.txt with private stuff }
-     SameFileName(FileName, 'AndroidAntProperties.txt') then
+     SameFileName(FileName, 'AndroidAntProperties.txt') or
+     SameFileName(FileName, 'AndroidSigningProperties.txt') then
     Exit(true);
 
   Result := false;
