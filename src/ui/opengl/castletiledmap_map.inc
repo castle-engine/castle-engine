@@ -650,6 +650,9 @@ begin
   Properties := TPropertyList.Create;
   Animation := TAnimation.Create;
   Image := TImage.Create;
+
+  { Default values }
+  Probability := 1.0;
 end;
 
 destructor TTiledMap.TTile.Destroy;
