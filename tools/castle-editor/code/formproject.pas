@@ -32,6 +32,7 @@ uses
 
 const
   DockLayoutFileName = 'layout.dock-layout';
+  DockLayoutFileNameDefault = 'default.dock-layout';
 
 type
   { Main project management. }
@@ -772,17 +773,24 @@ procedure TProjectForm.FormCreate(Sender: TObject);
   var
     XMLConfig: TXMLConfigStorage;
     Site: TAnchorDockHostSite;
+    URLFileName: String;
   begin
     if not IsDockUIEnabled then Exit;
-    if not URIFileExists(ApplicationConfig(DockLayoutFileName)) then
+    URLFileName := ApplicationConfig(DockLayoutFileName);
+    if not URIFileExists(URLFileName) then
     begin
-      // If no layout setting is found, we manually dock design form to main form
-      Site := DockMaster.GetAnchorSite(DesignForm);
-      DockMaster.ManualDock(Site, Self, alClient);
-      Exit;
+      URLFileName := EditorApplicationData + 'layouts/' + DockLayoutFileNameDefault;
+      if not URIFileExists(URLFileName) then
+      begin                
+        // If no layout setting is found, we manually dock design form to main
+        // form, and let other forms scatter around
+        Site := DockMaster.GetAnchorSite(DesignForm);
+        DockMaster.ManualDock(Site, Self, alClient);
+        Exit;
+      end;
     end;
     try
-      XMLConfig := TXMLConfigStorage.Create(URIToFilenameSafe(ApplicationConfig(DockLayoutFileName)), True);
+      XMLConfig := TXMLConfigStorage.Create(URIToFilenameSafe(URLFileName), True);
       try
         DockMaster.LoadLayoutFromConfig(XMLConfig, True);
       finally
