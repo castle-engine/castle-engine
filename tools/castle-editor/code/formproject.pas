@@ -876,6 +876,7 @@ begin
     FreeAndNil(DesignHierarchyForm);
     FreeAndNil(DesignPropertiesForm);
     FreeAndNil(DesignExplorerForm);
+    FreeAndNil(DesignFilesForm);
     FreeAndNil(DesignOutputForm);
     FreeAndNil(DesignWarningsForm);
   end;
