@@ -89,7 +89,7 @@ begin
   try
     Stream.ReadLE(Magic);
     if Magic <> MagicAstc then
-      raise Exception.Create('Invalid ASTC header: ' + IntToHex(QWord(Magic), 8) + ' expected: ' + IntToHex(QWord(MagicAstc), 8));
+      raise Exception.Create('Invalid ASTC header: $' + IntToHex(Magic, 8) + ' expected: $' + IntToHex(MagicAstc, 8));
 
     Stream.ReadBuffer(Info.BlockdimX, 1);
     Stream.ReadBuffer(Info.BlockdimY, 1);
