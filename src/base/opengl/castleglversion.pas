@@ -653,7 +653,7 @@ begin
     Tested: it works OK on 'Apple A12 GPU' and 'Apple A13 GPU', and crashes on 'Apple A10 GPU'.
     For safety, assume it crashes too on 'Apple A11 GPU' (not tested). }
   FBuggyTextureSizeAbove2048 :=
-    {$ifdef IOS}
+    {$ifdef CASTLE_IOS}
     AppleRendererOlderThan(12)
     {$else}
     false

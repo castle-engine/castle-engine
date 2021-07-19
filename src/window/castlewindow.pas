@@ -203,7 +203,7 @@ unit CastleWindow;
          {$elseif defined(UNIX)}
            {$if defined(ANDROID)}
              {$define CASTLE_WINDOW_ANDROID}
-           {$elseif defined(IOS) or defined(CASTLE_NINTENDO_SWITCH)}
+           {$elseif defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH)}
              {$define CASTLE_WINDOW_LIBRARY}
            {$elseif defined(DARWIN)}
              // various possible backends on macOS (desktop):

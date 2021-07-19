@@ -18,35 +18,43 @@ unit GameSound;
 
 interface
 
-uses CastleSoundEngine;
+uses Classes, CastleSoundEngine;
+
+type
+  TAllSounds = class(TComponent)
+    SoundIntroMusic,
+      SoundMainMenuMusic,
+      SoundMenuClick,
+      SoundMenuCurrentItemChanged: TCastleSound;
+    constructor Create(AOwner: TComponent); override;
+  end;
 
 var
-  SoundIntroMusic,
-  SoundMainMenuMusic,
-  SoundMenuClick,
-  SoundMenuCurrentItemChanged
-  : TCastleSound;
+  { Create in InitializeSound, destroyed in finalization. }
+  AllSounds: TAllSounds;
 
 procedure InitializeSound;
 
 implementation
 
-uses SysUtils, Classes,
+uses SysUtils,
   CastleComponentSerialize;
-
-var
-  AllSoundsOwner: TComponent;
 
 procedure InitializeSound;
 begin
-  AllSoundsOwner := TComponent.Create(nil);
-  ComponentLoad('castle-data:/sounds/all_sounds.castle-component', AllSoundsOwner);
-  SoundIntroMusic             := AllSoundsOwner.FindRequiredComponent('SoundIntroMusic') as TCastleSound;
-  SoundMainMenuMusic          := AllSoundsOwner.FindRequiredComponent('SoundMainMenuMusic') as TCastleSound;
-  SoundMenuClick              := AllSoundsOwner.FindRequiredComponent('SoundMenuClick') as TCastleSound;
-  SoundMenuCurrentItemChanged := AllSoundsOwner.FindRequiredComponent('SoundMenuCurrentItemChanged') as TCastleSound;
+  AllSounds := TAllSounds.Create(nil);
+end;
+
+constructor TAllSounds.Create(AOwner: TComponent);
+begin
+  inherited;
+  ComponentLoad('castle-data:/sounds/all_sounds.castle-component', Self);
+  SoundIntroMusic             := FindRequiredComponent('SoundIntroMusic') as TCastleSound;
+  SoundMainMenuMusic          := FindRequiredComponent('SoundMainMenuMusic') as TCastleSound;
+  SoundMenuClick              := FindRequiredComponent('SoundMenuClick') as TCastleSound;
+  SoundMenuCurrentItemChanged := FindRequiredComponent('SoundMenuCurrentItemChanged') as TCastleSound;
 end;
 
 finalization
-  FreeAndNil(AllSoundsOwner);
+  FreeAndNil(AllSounds);
 end.

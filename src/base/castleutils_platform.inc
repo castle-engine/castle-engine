@@ -57,7 +57,7 @@ begin
   Exit(cpNintendoSwitch);
   {$elseif defined(ANDROID)}
   Exit(cpAndroid);
-  {$elseif defined(IOS)}
+  {$elseif defined(CASTLE_IOS)}
   Exit(cpIOS);
   {$else}
   Exit(cpDesktop);

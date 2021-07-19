@@ -45,7 +45,8 @@ type
     procedure DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
     function PackageName(const OS: TOS; const CPU: TCPU; const PackageFormat: TPackageFormatNoDefault;
       const PackageNameIncludeVersion: Boolean): string;
-    function SourcePackageName(const PackageNameIncludeVersion: Boolean): string;
+    function SourcePackageName(const PackageNameIncludeVersion: Boolean;
+      const PackageFormatFinal: TPackageFormatNoDefault): string;
     procedure ExtractTemplateFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
 
     { Convert Name to a valid Pascal identifier. }
@@ -621,7 +622,7 @@ var
   begin
     if OS in [linux, go32v2, win32, os2, freebsd, beos, netbsd,
               amiga, atari, solaris, qnx, netware, openbsd, wdosx,
-              palmos, macos, darwin, emx, watcom, morphos, netwlibc,
+              palmos, macosclassic, darwin, emx, watcom, morphos, netwlibc,
               win64, wince, gba,nds, embedded, symbian, haiku, {iphonesim,}
               aix, java, {android,} nativent, msdos, wii] then
     begin
@@ -659,11 +660,14 @@ var
 
         This logic is used both at build, and inside the application.
 
-    - iOS: When OS is iPhoneSim or OS/architecture are Darwin/Arm or Darwin/Aarch64.
+    - iOS: When
+           (OS is iPhoneSim) or
+           (FPC >= 3.2.2 and OS = iOS) or
+           (FPC  < 3.2.2 and OS/architecture are Darwin/Arm or Darwin/Aarch64).
 
-        In total this has 4 currently possible values: iPhoneSim/i386, iPhoneSim/x86_64, Darwin/Arm, Darwin/Aarch64.
-
-        This logic is used both at build, and inside the application.
+        This logic is used inside the application.
+        At build, it is simpler, as our build tool just says "darwin is not iOS"
+        (just like FPC >= 3.2.2 says) to support new macOS 11 (desktop on arm).
 
     - desktop: everything else.
   }
@@ -678,9 +682,7 @@ var
         if OS = Android then
           Result := cpAndroid
         else
-        if (OS = iphonesim) or
-           ((OS = darwin) and (CPU = arm)) or
-           ((OS = darwin) and (CPU = aarch64)) then
+        if OS in [iphonesim, iOS] then
           Result := cpIOS
         else
           Result := cpDesktop;
@@ -911,7 +913,7 @@ begin
       end;
     finally FreeAndNil(Collector) end;
 
-    PackageFileName := SourcePackageName(PackageNameIncludeVersion);
+    PackageFileName := SourcePackageName(PackageNameIncludeVersion, PackageFormatFinal);
     Pack.Make(OutputPath, PackageFileName, PackageFormatFinal);
   finally FreeAndNil(Pack) end;
 end;
@@ -931,13 +933,21 @@ begin
   end;
 end;
 
-function TCastleProject.SourcePackageName(const PackageNameIncludeVersion: Boolean): string;
+function TCastleProject.SourcePackageName(const PackageNameIncludeVersion: Boolean;
+  const PackageFormatFinal: TPackageFormatNoDefault): string;
 begin
   Result := Name;
   if PackageNameIncludeVersion and (Version.DisplayValue <> '') then
     Result += '-' + Version.DisplayValue;
   Result += '-src';
-  Result += '.tar.gz';
+
+  case PackageFormatFinal of
+    pfZip  : Result += '.zip';
+    pfTarGz: Result += '.tar.gz';
+    else raise Exception.CreateFmt('Package format "%s" not supported for source package', [
+      PackageFormatToString(PackageFormatFinal)
+    ]);
+  end;
 end;
 
 procedure TCastleProject.DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
@@ -1850,12 +1860,16 @@ begin
               Exit(true);
 
   for HasVersion in Boolean do
-    if SameFileName(FileName, SourcePackageName(HasVersion)) then
+    // list all package formats allowed for source packages now
+    if SameFileName(FileName, SourcePackageName(HasVersion, pfZip)) or
+       SameFileName(FileName, SourcePackageName(HasVersion, pfTarGz)) then
       Exit(true);
 
   if { avoid Android packages }
      SameFileName(FileName, Name + '-debug.apk') or
      SameFileName(FileName, Name + '-release.apk') or
+     SameFileName(FileName, Name + '-debug.aab') or
+     SameFileName(FileName, Name + '-release.aab') or
      { do not pack AndroidAntProperties.txt with private stuff }
      SameFileName(FileName, 'AndroidAntProperties.txt') then
     Exit(true);

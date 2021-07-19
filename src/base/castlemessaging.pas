@@ -24,7 +24,7 @@ interface
 
 uses
   {$ifdef ANDROID} JNI, SyncObjs, {$endif}
-  {$ifdef IOS} CTypes, {$endif}
+  {$ifdef CASTLE_IOS} CTypes, {$endif}
   Generics.Collections, Classes,
   CastleStringUtils, CastleTimeUtils;
 
@@ -72,7 +72,7 @@ type
     FromPascal: TCastleStringList;
     {$endif}
 
-    {$ifdef IOS}
+    {$ifdef CASTLE_IOS}
     type
       TReceiveMessageFromPascalCallback = procedure (Message: PCChar); cdecl;
     class var
@@ -123,7 +123,7 @@ function Java_net_sourceforge_castleengine_MainActivity_jniMessage(
   MessageToPascalStream: jbyteArray): jstring; cdecl;
 {$endif}
 
-{$ifdef IOS}
+{$ifdef CASTLE_IOS}
 procedure CGEApp_SetReceiveMessageFromPascalCallback(
   ACallback: TMessaging.TReceiveMessageFromPascalCallback); cdecl;
 procedure CGEApp_SendMessageToPascal(Message: PCChar); cdecl;
@@ -181,7 +181,7 @@ begin
   {$endif ANDROID}
 
   { Only register the Update on platforms where CastleMessaging is actually used. }
-  {$if defined(ANDROID) or defined(IOS)}
+  {$if defined(ANDROID) or defined(CASTLE_IOS)}
   ApplicationProperties.OnUpdate.Add({$ifdef CASTLE_OBJFPC}@{$endif} Update);
   {$endif}
 end;
@@ -228,12 +228,12 @@ procedure TMessaging.Send(const Strings: array of string);
     finally JavaCommunicationCS.Release end;
     {$endif ANDROID}
 
-    {$ifdef IOS}
+    {$ifdef CASTLE_IOS}
     if Assigned(FReceiveMessageFromPascalCallback) then
       FReceiveMessageFromPascalCallback(PCChar(Message))
     else
       WritelnWarning('Messaging', 'Message cannot be delivered, iOS application not finished loading yet');
-    {$endif IOS}
+    {$endif CASTLE_IOS}
   end;
 
 begin
@@ -337,7 +337,7 @@ end;
 
 { iOS specific --------------------------------------------------------------- }
 
-{$ifdef IOS}
+{$ifdef CASTLE_IOS}
 procedure CGEApp_SetReceiveMessageFromPascalCallback(
   ACallback: TMessaging.TReceiveMessageFromPascalCallback); cdecl;
 begin
@@ -351,7 +351,7 @@ begin
 
   Messaging.ToPascal.Add(AnsiString(PChar(Message)));
 end;
-{$endif IOS}
+{$endif CASTLE_IOS}
 
 { Android specific ----------------------------------------------------------- }
 

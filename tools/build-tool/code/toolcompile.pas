@@ -300,8 +300,8 @@ var
   begin
     Result :=
       (OS = iphonesim) or
-      ((OS = darwin) and (CPU = arm)) or
-      ((OS = darwin) and (CPU = aarch64));
+      ((OS = iOS) and (CPU = arm)) or
+      ((OS = iOS) and (CPU = aarch64));
   end;
 
   procedure AddIOSOptions;
@@ -311,14 +311,14 @@ var
     DeviceSdk = '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk';
   {$endif}
   var
-    IOS: boolean;
+    LikeIOS: boolean; // physical iOS or iPhoneSimulator
     VersionForSimulator: string;
   begin
-    IOS := false;
+    LikeIOS := false;
 
     if OS = iphonesim then
     begin
-      IOS := true;
+      LikeIOS := true;
       VersionForSimulator := TFpcVersionForIPhoneSimulatorChecked.Value(FpcVer);
       if VersionForSimulator <> '' then
         FpcOptions.Add('-V' + VersionForSimulator);
@@ -327,9 +327,9 @@ var
       {$endif}
     end;
 
-    if (OS = darwin) and (CPU = arm) then
+    if (OS = iOS) and (CPU = arm) then
     begin
-      IOS := true;
+      LikeIOS := true;
       FpcOptions.Add('-Cparmv7');
       FpcOptions.Add('-Cfvfpv3');
       {$ifdef DARWIN}
@@ -337,18 +337,18 @@ var
       {$endif}
     end;
 
-    if (OS = darwin) and (CPU = aarch64) then
+    if (OS = iOS) and (CPU = aarch64) then
     begin
-      IOS := true;
+      LikeIOS := true;
       {$ifdef DARWIN}
       FpcOptions.Add('-XR' + DeviceSdk);
       {$endif}
     end;
 
-    Assert(IOS = IsIOS);
+    Assert(LikeIOS = IsIOS);
 
-    // options for all iOS platforms
-    if IOS then
+    // options for all iOS-like platforms
+    if LikeIOS then
     begin
       FpcOptions.Add('-Cn');
       FpcOptions.Add('-dCASTLE_IOS');
@@ -478,7 +478,12 @@ begin
       FpcOptions.Add('-vm5090');
     end;
 
-    FpcOptions.Add('-T' + OSToString(OS));
+    if (OS = iOS) and not FpcVer.AtLeast(3, 2, 2) then
+      // Before FPC 3.2.2, the OS=iOS was designated as OS=darwin for FPC
+      FpcOptions.Add('-Tdarwin')
+    else
+      FpcOptions.Add('-T' + OSToString(OS));
+
     FpcOptions.Add('-P' + CPUToString(CPU));
 
     { Release build and valgrind build are quite similar, they share many options. }
@@ -490,7 +495,7 @@ begin
 
         - iOS:
 
-          With FPC 3.0.3 on Darwin/aarch64 (physical iOS, 64-bit)
+          With FPC 3.0.3 on iOS/aarch64 (physical iOS, 64-bit)
           it seems all programs compiled with -O1 or -O2 crash at start.
 
         - Android:

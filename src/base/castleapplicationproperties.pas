@@ -385,7 +385,7 @@ begin
   FOnLog := TLogEventList.Create;
   FFileAccessSafe := true;
   FTouchDevice :=
-    {$if defined(ANDROID) or defined(IOS) or defined(CASTLE_NINTENDO_SWITCH)}
+    {$if defined(ANDROID) or defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH)}
       true
     {$else}
       false
@@ -395,7 +395,7 @@ begin
     E.g. on other consoles, FTouchDevice may be false,
     but FShowUserInterfaceToQuit may be true. }
   FShowUserInterfaceToQuit :=
-    {$if defined(ANDROID) or defined(IOS) or defined(CASTLE_NINTENDO_SWITCH)}
+    {$if defined(ANDROID) or defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH)}
       false
     {$else}
       true

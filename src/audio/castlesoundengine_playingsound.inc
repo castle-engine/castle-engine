@@ -337,6 +337,7 @@ begin
       end;
     scBeforeBufferDestroyed:
       Stop;
+    else ;
   end;
 end;
 
