@@ -1,15 +1,26 @@
-{ Main state, where most of the application logic takes place.
+{
+  Copyright 2021-2021 Michalis Kamburelis.
 
-  Feel free to use this code as a starting point for your own projects.
-  (This code is in public domain, unlike most other CGE code which
-  is covered by the LGPL license variant, see the COPYING.txt file.) }
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Main state, where most of the application logic takes place. }
 unit GameStateMain;
 
 interface
 
-uses Classes,
+uses Classes, Math,
   CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls,
-  CastleKeysMouse;
+  CastleKeysMouse, CastleVectors;
 
 type
   { Main state, where most of the application logic takes place. }
@@ -17,6 +28,7 @@ type
   private
     { Components designed using CGE editor, loaded from gamestatemain.castle-user-interface. }
     LabelFps: TCastleLabel;
+    ImagePlayer: TCastleImageControl;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -45,13 +57,20 @@ begin
 
   { Find components, by name, that we need to access from code }
   LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
+  ImagePlayer := DesignedComponent('ImagePlayer') as TCastleImageControl;
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
+var
+  PlayerPosition: TVector2;
 begin
   inherited;
-  { This virtual method is executed every frame.}
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
+
+  { update player position to fall down }
+  PlayerPosition := ImagePlayer.AnchorDelta;
+  PlayerPosition.Y := Max(PlayerPosition.Y - SecondsPassed * 400, 0);
+  ImagePlayer.AnchorDelta := PlayerPosition;
 end;
 
 function TStateMain.Press(const Event: TInputPressRelease): Boolean;
