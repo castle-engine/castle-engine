@@ -276,7 +276,6 @@ type
       IsDockUIEnabled: Boolean;
       IsDockUIEnabledChanged: Boolean;
       IsDockUIEnabledRequested: Boolean;
-      IsRestoreDefaultDockUIRequested: Boolean;
     procedure BuildToolCall(const Commands: array of String;
       const ExitOnSuccess: Boolean = false);
     procedure BuildToolCallFinished(Sender: TObject);
@@ -316,6 +315,8 @@ type
     procedure WarningNotification(const Category, Message: string);
     { Clears all warnings and hides warnings tab }
     procedure ClearAllWarnings;
+    procedure LoadDockLayout;
+    procedure SaveDockLayout;
   public
     { Open a project, given an absolute path to CastleEngineManifest.xml }
     procedure OpenProject(const ManifestUrl: String);
@@ -482,38 +483,8 @@ end;
 
 procedure TProjectForm.FormClose(Sender: TObject; var CloseAction: TCloseAction
   );
-
-  procedure SaveDockLayout;
-  var
-    XMLConfig: TXMLConfigStorage;
-  begin
-    if not IsDockUIEnabled then Exit;
-    try
-      XMLConfig := TXMLConfigStorage.Create(URIToFilenameSafe(ApplicationConfig(DockLayoutFileName)), False);
-      try
-        DockMaster.SaveLayoutToConfig(XMLConfig);
-        XMLConfig.WriteToDisk;
-      finally
-        XMLConfig.Free;
-      end;
-    except
-      on E: Exception do
-        MessageDlg(
-          'Error',
-          'Error saving layout:'#13 + E.Message,
-          mtError,
-          [mbCancel], 0);
-    end;
-  end;
-
 begin
-  { Simply remove the dock ui config file in order to restore default settings }
-  if IsRestoreDefaultDockUIRequested then
-  begin
-    if URIFileExists(ApplicationConfig(DockLayoutFileName)) then
-      DeleteFile(URIToFilenameSafe(ApplicationConfig(DockLayoutFileName)));
-  end else
-    SaveDockLayout;
+  SaveDockLayout;
 end;
 
 procedure TProjectForm.ActionNewSpriteSheetExecute(Sender: TObject);
@@ -714,6 +685,66 @@ begin
   ErrorBox(E.Message);
 end;
 
+procedure TProjectForm.LoadDockLayout;
+var
+  XMLConfig: TXMLConfigStorage;
+  Site: TAnchorDockHostSite;
+  URLFileName: String;
+begin
+  if not IsDockUIEnabled then Exit;
+  URLFileName := ApplicationConfig(DockLayoutFileName);
+  if not URIFileExists(URLFileName) then
+  begin
+    URLFileName := EditorApplicationData + 'layouts/' + DockLayoutFileNameDefault;
+    if not URIFileExists(URLFileName) then
+    begin
+      // If no layout setting is found, we manually dock design form to main
+      // form, and let other forms scatter around
+      Site := DockMaster.GetAnchorSite(DesignForm);
+      DockMaster.ManualDock(Site, Self, alClient);
+      Exit;
+    end;
+  end;
+  try
+    XMLConfig := TXMLConfigStorage.Create(URIToFilenameSafe(URLFileName), True);
+    try
+      DockMaster.LoadLayoutFromConfig(XMLConfig, True);
+    finally
+      XMLConfig.Free;
+    end;
+  except
+    on E: Exception do
+      MessageDlg(
+        'Error',
+        'Error loading layout:'#13 + E.Message,
+        mtError,
+        [mbCancel], 0);
+  end;
+end;
+
+procedure TProjectForm.SaveDockLayout;
+var
+  XMLConfig: TXMLConfigStorage;
+begin
+  if not IsDockUIEnabled then Exit;
+  try
+    XMLConfig := TXMLConfigStorage.Create(URIToFilenameSafe(ApplicationConfig(DockLayoutFileName)), False);
+    try
+      DockMaster.SaveLayoutToConfig(XMLConfig);
+      XMLConfig.WriteToDisk;
+    finally
+      XMLConfig.Free;
+    end;
+  except
+    on E: Exception do
+      MessageDlg(
+        'Error',
+        'Error saving layout:'#13 + E.Message,
+        mtError,
+        [mbCancel], 0);
+  end;
+end;
+
 procedure TProjectForm.FormCreate(Sender: TObject);
 
   { We create some components by code, this way we don't have to put
@@ -767,43 +798,6 @@ procedure TProjectForm.FormCreate(Sender: TObject);
 
     ShellTreeView1.ShellListView := ShellListView1;
     ShellListView1.ShellTreeView := ShellTreeView1;
-  end;
-
-  procedure LoadDockLayout;
-  var
-    XMLConfig: TXMLConfigStorage;
-    Site: TAnchorDockHostSite;
-    URLFileName: String;
-  begin
-    if not IsDockUIEnabled then Exit;
-    URLFileName := ApplicationConfig(DockLayoutFileName);
-    if not URIFileExists(URLFileName) then
-    begin
-      URLFileName := EditorApplicationData + 'layouts/' + DockLayoutFileNameDefault;
-      if not URIFileExists(URLFileName) then
-      begin                
-        // If no layout setting is found, we manually dock design form to main
-        // form, and let other forms scatter around
-        Site := DockMaster.GetAnchorSite(DesignForm);
-        DockMaster.ManualDock(Site, Self, alClient);
-        Exit;
-      end;
-    end;
-    try
-      XMLConfig := TXMLConfigStorage.Create(URIToFilenameSafe(URLFileName), True);
-      try
-        DockMaster.LoadLayoutFromConfig(XMLConfig, True);
-      finally
-        XMLConfig.Free;
-      end;
-    except
-      on E: Exception do
-        MessageDlg(
-          'Error',
-          'Error loading layout:'#13 + E.Message,
-          mtError,
-          [mbCancel], 0);
-    end;
   end;
 
 begin
@@ -1033,9 +1027,10 @@ end;
 procedure TProjectForm.MenuItemUIRestoreDefaultDockSettingsClick(Sender: TObject
   );
 begin
-  IsRestoreDefaultDockUIRequested := True;
-  MessageDlg('', 'Please restart the editor in order for the changes to take effect.',
-    mtInformation, [mbYes], 0);
+  { Simply remove the dock ui config file in order to restore default settings }
+  if URIFileExists(ApplicationConfig(DockLayoutFileName)) then
+    DeleteFile(URIToFilenameSafe(ApplicationConfig(DockLayoutFileName)));
+  LoadDockLayout;
 end;
 
 procedure TProjectForm.MenuItemUIWarningsClick(Sender: TObject);
