@@ -701,13 +701,13 @@ end;
 function TCastleImageControl.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'URL') or
-     (PropertyName = 'Stretch') or
-     (PropertyName = 'ProportionalScaling') or
-     (PropertyName = 'ColorPersistent') then
-    Result := [psBasic]
-  else
-    Result := inherited PropertySections(PropertyName);
+  case PropertyName of
+    'URL', 'Stretch', 'ProportionalScaling', 'ColorPersistent', 'SmoothScaling', 'AlphaChannel',
+    'FlipHorizontal', 'FlipVertical', 'ProtectedSides', 'Rotation':
+      Result := [psBasic]
+    else
+      Result := inherited PropertySections(PropertyName);
+  end;
 end;
 
 function TCastleImageControl.GetCenterX: Single;
