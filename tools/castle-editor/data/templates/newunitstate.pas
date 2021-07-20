@@ -3,7 +3,7 @@ unit ${UNIT_NAME};
 interface
 
 uses Classes,
-  CastleUIState, CastleControls;
+  CastleVectors, CastleUIState, CastleUIControls, CastleControls, CastleKeysMouse;
 
 type
   ${STATE_CLASS_NAME} = class(TUIState)
