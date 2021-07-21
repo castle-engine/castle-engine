@@ -98,6 +98,8 @@ uses
 const
   LayerZDistanceDefault: Single = 0.1;
 
+  OrangeRedRGB   : TCastleColorRGB = (Data: ( 1.0 , 0.27 , 0.0));
+
 type
   TTiledLayerNode = TTransformNode;
   TTiledObjectNode = TTransformNode;
@@ -113,7 +115,7 @@ type
   strict private
     FDebugMode: Boolean;
     FDebugNode: TX3DRootNode;
-    FDebugMaterialNode: TMaterialNode;
+    FDebugMaterialNode: TUnlitMaterialNode;
     FDebugLinePropertiesNode: TLinePropertiesNode;
     FDebugAppearanceNode: TAppearanceNode;
     FDebugFontStyleNode: TFontStyleNode;
@@ -184,7 +186,7 @@ type
 
       @groupBegin }
     property DebugNode: TX3DRootNode read FDebugNode write FDebugNode;
-    property DebugMaterialNode: TMaterialNode read FDebugMaterialNode write FDebugMaterialNode;
+    property DebugMaterialNode: TUnlitMaterialNode read FDebugMaterialNode write FDebugMaterialNode;
     property DebugLinePropertiesNode: TLinePropertiesNode read FDebugLinePropertiesNode write FDebugLinePropertiesNode;
     property DebugAppearanceNode: TAppearanceNode read FDebugAppearanceNode write FDebugAppearanceNode;
     property DebugFontStyleNode: TFontStyleNode read FDebugFontStyleNode write FDebugFontStyleNode;
@@ -679,8 +681,8 @@ begin
     DebugNode := TX3DRootNode.Create;
     MapNode.AddChildren(DebugNode);
 
-    DebugMaterialNode := TMaterialNode.Create;
-    DebugMaterialNode.EmissiveColor := YellowRGB;
+    DebugMaterialNode := TUnlitMaterialNode.Create;
+    DebugMaterialNode.EmissiveColor := OrangeRedRGB;
     DebugLinePropertiesNode := TLinePropertiesNode.Create;
     DebugLinePropertiesNode.LinewidthScaleFactor := 1.0;
     DebugAppearanceNode := TAppearanceNode.Create;
@@ -789,7 +791,7 @@ var
   DebugAxisNameShape: array[0..3] of TShapeNode;
 
   { General objects (and vars.) }
-  DebugAxisMaterial: TMaterialNode;
+  DebugAxisMaterial: TUnlitMaterialNode;
   DebugAxisLineProperties: TLinePropertiesNode;
   I: Byte;
   OriginVector: TVector3;
@@ -799,8 +801,8 @@ begin
   AxisLength := 0.5 * (MapWidth + MapHeight) / 3;
   AxisNameGap := 0.5 * (MapWidth + MapHeight) / 10;
 
-  DebugAxisMaterial := TMaterialNode.Create;
-  DebugAxisMaterial.EmissiveColor := RedRGB;
+  DebugAxisMaterial := TUnlitMaterialNode.Create;
+  DebugAxisMaterial.EmissiveColor := WhiteRGB;
 
   DebugAxisLineProperties := TLinePropertiesNode.Create;
   DebugAxisLineProperties.LinewidthScaleFactor := 2.0;
