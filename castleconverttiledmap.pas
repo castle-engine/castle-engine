@@ -28,8 +28,8 @@
   TODO:
   1. Integrate unit with Castle Game Engine (e.g. add to pack., use castle conf.
      inc., ...)
-  2. Turn off debug mode.
-  3. Check SetDebugMode: RemoveChildren free's instance of node?
+  2. (obsolete)
+  3. (obsolete)
   4. Update topPoint (see there) + handle ellipsoids (see there)
   5. Shift TShapeNodeList(+ListList) (generic) to x3dnodes_standard_texturing.inc?
   6. How to handle overlapping tiles of the same layer (Z-buffer fighting)?
@@ -81,7 +81,10 @@ uses
 { Converts a Tiled map into a X3D representation for the Castle Game Engine.
   The result can be returned to Scene.Load method.
 
-  Hint: The debug mode needs considerably more ressources. }
+  The debug mode needs considerably more ressources.
+
+  @param(ATiledMap must be a Tiled map as loaded by the CastleTiledMap unit.)
+  @param(ADebugMode turns the debug mode on or off.) }
 function ConvertTiledMap(ATiledMap: TTiledMap; ADebugMode: Boolean = False): TX3DRootNode;
 
 implementation
