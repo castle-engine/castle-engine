@@ -739,7 +739,7 @@ begin
         ' - ' + IntToStr((Map.Tilesets.Items[I] as TTiledMap.TTileset).FirstGID
         + (Map.Tilesets.Items[I] as TTiledMap.TTileset).TileCount - 1) +
         ')');
-    { TODO : Why doesn't the tsx file store the tile information... (see Test512.tsx) }
+
     DebugInfoLabelGeom.SetString(InfoLabelStringList);
   finally
     FreeAndNil(InfoLabelStringList);
