@@ -263,8 +263,6 @@ begin
 
   for Tileset in Map.Tilesets do
   begin
-    //Writeln('Convert tileset: ',Tileset.Name);
-
     { Make sure for each tileset there is a shape node list created
       for consistency and retrieving of correct item-indices later. }
     { False arg. at Create: Very important!
@@ -275,13 +273,11 @@ begin
     if Assigned(Tileset.Image) then
     begin
       { Prepare texture node of tileset. }
-      //Writeln('  Image source: ', Tileset.Image.URL);
       TilesetTextureNode := TImageTextureNode.Create(Tileset.Name, '');
       TilesetTextureNode.SetUrl([Tileset.Image.URL]);
       TilesetTextureNode.TextureProperties := TTexturePropertiesNode.Create;
       TilesetTextureNode.TextureProperties.MagnificationFilter := magDefault;
       TilesetTextureNode.TextureProperties.MinificationFilter := minDefault;
-      //Writeln('  Texture image loaded: ',TilesetTextureNode.IsTextureImage);
     end;
 
     for Tile in Tileset.Tiles do
@@ -522,7 +518,8 @@ var
   end;
 
   { Get a specific tile obj. by its global ID from a specific tileset. }
-  function GetTileFromTileset(const ATileGID: Cardinal; const ATileset: TTiledMap.TTileset): TTiledMap.TTile;
+  function GetTileFromTileset(const ATileGID: Cardinal;
+    const ATileset: TTiledMap.TTileset): TTiledMap.TTile;
   var
     Tile: TTiledMap.TTile;
   begin
