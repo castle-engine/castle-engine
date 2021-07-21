@@ -868,8 +868,7 @@ var
   { Name-Debug object. }
   DebugGeometryName: TTextNode = nil;
   DebugShapeName: TShapeNode = nil;
-const
-  NameGap = 20;
+  DebugNameGap: Single;
 begin
   { Build Outline-Debug object. }
   DebugGeometryOutline := TPolyline2DNode.CreateWithShape(DebugShapeOutline);
@@ -884,18 +883,23 @@ begin
   DebugGeometryName.SetString(AName);
   DebugGeometryName.FontStyle := DebugFontStyleNode;
   DebugShapeName.Appearance := DebugAppearanceNode;
+  DebugNameGap := 0.5 * (W + H) / 10;
 
   { Create Debug transform node for Outline- and NameDebug nodes. Add them to
     the Debug node. }
   DebugObject := TTransformNode.Create;
-  DebugObject.Translation := Vector3(Single(X), ConvY(Single(Y)),
+  DebugObject.Translation := Vector3(
+    Single(X),
+    ConvY(Single(Y)),
     LayerZDistance);
   DebugObject.AddChildren(DebugShapeOutline);
   DebugNode.AddChildren(DebugObject);
 
   DebugObject := TTransformNode.Create;
-  DebugObject.Translation := Vector3(Single(X) + NameGap, ConvY(Single(Y)) +
-    NameGap, LayerZDistance);
+  DebugObject.Translation := Vector3(
+    Single(X) + DebugNameGap,
+    ConvY(Single(Y)) + DebugNameGap,
+    LayerZDistance);
   DebugObject.AddChildren(DebugShapeName);
   DebugNode.AddChildren(DebugObject);
 end;
