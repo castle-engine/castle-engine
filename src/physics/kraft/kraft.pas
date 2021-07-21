@@ -157,7 +157,25 @@ unit kraft;
  {$define NonSIMD}
 {$endif}
 
-{-$define NonSIMD}
+{ CGE: Define NonSIMD. Without this symbol, Kraft uses some i386-only assembler,
+  that causes crashes (access violation at TRigidBody.SynchronizeFromKraft
+  when doing "FLinearVelocity := VectorFromKraft(FKraftBody.LinearVelocity)"). 
+  Testcase:
+
+    castle-engine --os=win32 --cpu=i386 compile --mode=debug
+    wine ./*.exe
+
+  on all physics examples it seems,
+
+    examples/physics/physics_2d_game_sopwith
+    examples/physics/physics_3d_game
+    examples/platformer
+
+  With at least FPC 3.2.0 (but did not check other FPC versions).
+  As this is an i386-specific optimization only (and our focus is on 64-bit platforms
+  as these are, and will be, majority) so disabling it is not a problem in practice
+  anyway. }
+{$define NonSIMD}
 
 {$ifdef NonSIMD}
  {$undef CPU386ASMForSinglePrecision}
