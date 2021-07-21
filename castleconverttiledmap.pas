@@ -658,8 +658,8 @@ begin
   TilesetShapeNodeListList := TShapeNodeListList.Create(True);
 
 
-  //DebugMode := True;
-  DebugMode := False; // Default
+  DebugMode := True;
+  //DebugMode := False; // Default
 
   ConvYMatrix.Items[0,0] := 1;
   ConvYMatrix.Items[1,0] := 0;
@@ -716,12 +716,14 @@ var
   DebugInfoLabelGeom: TTextNode;
   DebugInfoLabelShape: TShapeNode;
   DebugInfoLabelShapeMaterial: TMaterialNode;
+  DebugFontStyle: TFontStyleNode;
   InfoLabelStringList: TCastleStringList;
   I: Cardinal;
 begin
   DebugInfoLabelGeom := TTextNode.CreateWithShape(DebugInfoLabelShape);
-  DebugInfoLabelGeom.FontStyle := TFontStyleNode.Create;
-  DebugInfoLabelGeom.FontStyle.Size := 10.0;
+  DebugFontStyle := TFontStyleNode.Create;
+  DebugFontStyle.Size := 10.0;
+  DebugInfoLabelGeom.FontStyle := DebugFontStyle;
   DebugInfoLabelShapeMaterial := TMaterialNode.Create;
   DebugInfoLabelShapeMaterial.EmissiveColor := WhiteRGB;
   DebugInfoLabelShape.Appearance := TAppearanceNode.Create;
@@ -814,7 +816,7 @@ begin
       3: DebugAxisNameGeom[I].SetString(['O']);
     end;
     DebugAxisNameGeom[I].FontStyle := TFontStyleNode.Create;
-    DebugAxisNameGeom[I].FontStyle.Size := 10.0;
+    //DebugAxisNameGeom[I].FontStyle.Size := 10.0;
     DebugAxisName[I] := TTransformNode.Create;
     case I of
       0: DebugAxisName[I].Translation := Vector3(AxisLength + AxisNameGap, 0.0,
@@ -844,7 +846,7 @@ var
   { Name-Debug object. }
   DebugGeometryName: TTextNode = nil;
   DebugShapeName: TShapeNode = nil;
-
+  DebugFontStyle: TFontStyleNode;
   DebugMaterial: TMaterialNode = nil;
   DebugLineProperties: TLinePropertiesNode = nil;
 const
@@ -860,8 +862,9 @@ begin
   { Build Name-Debug object. }
   DebugGeometryName := TTextNode.CreateWithShape(DebugShapeName);
   DebugGeometryName.SetString(AName);
-  DebugGeometryName.FontStyle := TFontStyleNode.Create;
-  DebugGeometryName.FontStyle.Size := 20.0;
+  DebugFontStyle := TFontStyleNode.Create;
+  DebugFontStyle.Size := 20.0;
+  DebugGeometryName.FontStyle := DebugFontStyle;
 
   { Use the same material and line property node for Outline- and
     Name-Debug object. }
