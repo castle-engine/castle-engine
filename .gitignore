@@ -36,3 +36,11 @@ backup
 # Project specific
 TestProject1/
 missing_tiles/
+two_tilesets/data/image3x3-missing-tiles.png
+two_tilesets/data/image3x3-missing-tiles.tsx
+two_tilesets/data/image3x3-regular.tsx
+two_tilesets/data/image3x3.png
+two_tilesets/data/map64-two-tilesets.tmx
+two_tilesets/data/map64-two-tilesets.tmx.txt
+two_tilesets/two_tilesets.lpi
+two_tilesets/two_tilesets.pas
