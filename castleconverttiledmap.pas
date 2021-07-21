@@ -79,8 +79,10 @@ uses
   X3DNodes, CastleTiledMap;
 
 { Converts a Tiled map into a X3D representation for the Castle Game Engine.
-  The result can be returned to Scene.Load method. }
-function ConvertTiledMap(ATiledMap: TTiledMap): TX3DRootNode;
+  The result can be returned to Scene.Load method.
+
+  Hint: The debug mode needs considerably more ressources. }
+function ConvertTiledMap(ATiledMap: TTiledMap; ADebugMode: Boolean = False): TX3DRootNode;
 
 implementation
 
@@ -686,7 +688,7 @@ begin
     DebugAppearanceNode.LineProperties := DebugLinePropertiesNode;
 
     DebugFontStyleNode := TFontStyleNode.Create;
-    DebugFontStyleNode.Size := 0.5 * (MapWidth + MapHeight) / 25; // TODO: Scales good? (Test!)
+    DebugFontStyleNode.Size := 0.5 * (MapWidth + MapHeight) / 25;
   end;
 
   ConvYMatrix.Items[0,0] := 1;
@@ -898,7 +900,8 @@ begin
   DebugNode.AddChildren(DebugObject);
 end;
 
-function ConvertTiledMap(ATiledMap: TTiledMap): TX3DRootNode;
+function ConvertTiledMap(ATiledMap: TTiledMap; ADebugMode: Boolean
+  ): TX3DRootNode;
 var
   ATiledMapConverter: TTiledMapConverter;
 begin
@@ -908,7 +911,7 @@ begin
     Exit;
 
   try
-    ATiledMapConverter := TTiledMapConverter.Create(ATiledMap, True);
+    ATiledMapConverter := TTiledMapConverter.Create(ATiledMap, ADebugMode);
     ATiledMapConverter.ConvertMap;
     Result := ATiledMapConverter.RootNode;
   finally
