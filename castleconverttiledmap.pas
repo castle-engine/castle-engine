@@ -108,6 +108,10 @@ type
   strict private
     FDebugMode: Boolean;
     FDebugNode: TX3DRootNode;
+    FDebugMaterialNode: TMaterialNode;
+    FDebugLinePropertiesNode: TLinePropertiesNode;
+    FDebugAppearanceNode: TAppearanceNode;
+    FDebugFontStyleNode: TFontStyleNode;
 
     FMap: TTiledMap;
     FMapNode: TTransformNode;
@@ -165,15 +169,24 @@ type
     procedure BuildDebugCoordinateSystem;
     { Build a rectangluar debug object at pos. X,Y with dim. W,H. }
     procedure BuildDebugObject(const X, Y, W, H: Longint; const AName: String);
-    { Makes sure that a Debug node is added/removed from Map node list and
-      is constructed/destroyed accordingly. }
-    procedure SetDebugMode(const AValue: Boolean);
 
-    {   PROPERTIES   }
+    {   DEBUG PROPERTIES   }
 
-    { This node holds all debug nodes and is added to MapNode if debug mode is
-      on. This is important for automatic free'ing of all debug objects. }
+    { The DebugNode holds all debug nodes and is added to MapNode if debug mode is
+      on. This is important for automatic free'ing of all debug objects.
+
+      The other "global" nodes are shared by most debug objects.
+
+      @groupBegin }
     property DebugNode: TX3DRootNode read FDebugNode write FDebugNode;
+    property DebugMaterialNode: TMaterialNode read FDebugMaterialNode write FDebugMaterialNode;
+    property DebugLinePropertiesNode: TLinePropertiesNode read FDebugLinePropertiesNode write FDebugLinePropertiesNode;
+    property DebugAppearanceNode: TAppearanceNode read FDebugAppearanceNode write FDebugAppearanceNode;
+    property DebugFontStyleNode: TFontStyleNode read FDebugFontStyleNode write FDebugFontStyleNode;
+    { @groupEnd }
+
+    {   MAP PROPERTIES   }
+
     { Mirrors 2d-vector at X-axis in XY-plane. Necessary for conversion of
       Tiled Y-values according to definition, see remarks above. }
     property ConvYMatrix: TMatrix2 read FConvYMatrix;
@@ -181,7 +194,7 @@ type
       the shape node of a tileset each. }
     property TilesetShapeNodeListList: TShapeNodeListList read FTilesetShapeNodeListList write FTilesetShapeNodeListList;
   public
-    constructor Create(ATiledMap: TTiledMap);
+    constructor Create(ATiledMap: TTiledMap; ADebugMode: Boolean = False);
     destructor Destroy; override;
 
     { Tries to construct X3D representation from TTiledMap data. }
@@ -201,7 +214,7 @@ type
     property LayerZDistance: Single read FLayerZDistance write FLayerZDistance;
 
     { If true, all objects are represented in debug mode. }
-    property DebugMode: Boolean read FDebugMode write SetDebugMode;
+    property DebugMode: Boolean read FDebugMode;
   end;
 
 procedure TTiledMapConverter.ConvertMap;
@@ -633,7 +646,8 @@ begin
   end;
 end;
 
-constructor TTiledMapConverter.Create(ATiledMap: TTiledMap);
+constructor TTiledMapConverter.Create(ATiledMap: TTiledMap; ADebugMode: Boolean
+  );
 var
   SwitchNode: TSwitchNode;
 begin
@@ -652,9 +666,28 @@ begin
   LayerZDistance := 0.0; // The first layer is at Z = 0.0.
   TilesetShapeNodeListList := TShapeNodeListList.Create(True);
 
+  FDebugMode := ADebugMode;
+  DebugNode := nil;
+  DebugMaterialNode := nil;
+  DebugLinePropertiesNode := nil;
+  DebugAppearanceNode := nil;
+  DebugFontStyleNode := nil;
+  if DebugMode then
+  begin
+    DebugNode := TX3DRootNode.Create;
+    MapNode.AddChildren(DebugNode);
 
-  DebugMode := True;
-  //DebugMode := False; // Default
+    DebugMaterialNode := TMaterialNode.Create;
+    DebugMaterialNode.EmissiveColor := YellowRGB;
+    DebugLinePropertiesNode := TLinePropertiesNode.Create;
+    DebugLinePropertiesNode.LinewidthScaleFactor := 1.0;
+    DebugAppearanceNode := TAppearanceNode.Create;
+    DebugAppearanceNode.Material := DebugMaterialNode;
+    DebugAppearanceNode.LineProperties := DebugLinePropertiesNode;
+
+    DebugFontStyleNode := TFontStyleNode.Create;
+    DebugFontStyleNode.Size := Map.Width / 3; // TODO: Scales good? (Test!)
+  end;
 
   ConvYMatrix.Items[0,0] := 1;
   ConvYMatrix.Items[1,0] := 0;
@@ -710,19 +743,12 @@ var
   DebugInfoLabel: TTransformNode;
   DebugInfoLabelGeom: TTextNode;
   DebugInfoLabelShape: TShapeNode;
-  DebugInfoLabelShapeMaterial: TMaterialNode;
-  DebugFontStyle: TFontStyleNode;
   InfoLabelStringList: TCastleStringList;
   I: Cardinal;
 begin
   DebugInfoLabelGeom := TTextNode.CreateWithShape(DebugInfoLabelShape);
-  DebugFontStyle := TFontStyleNode.Create;
-  DebugFontStyle.Size := 10.0;
-  DebugInfoLabelGeom.FontStyle := DebugFontStyle;
-  DebugInfoLabelShapeMaterial := TMaterialNode.Create;
-  DebugInfoLabelShapeMaterial.EmissiveColor := WhiteRGB;
-  DebugInfoLabelShape.Appearance := TAppearanceNode.Create;
-  DebugInfoLabelShape.Appearance.Material := DebugInfoLabelShapeMaterial;
+  DebugInfoLabelGeom.FontStyle := DebugFontStyleNode;
+  DebugInfoLabelShape.Appearance := DebugAppearanceNode;
   DebugInfoLabel := TTransformNode.Create;
   DebugInfoLabel.AddChildren(DebugInfoLabelShape);
   DebugInfoLabel.Translation := Vector3(MapWidth + 20.0, 0.0, 0.1);
@@ -769,7 +795,7 @@ const
   AxisLength = 50.0;
   AxisNameGap = 10.0; // Gap between end of axis and name
 begin
-  OriginVector := Vector3(0.0, 0.0, 0.1);
+  OriginVector := Vector3(0.0, 0.0, 0.1); // Z = 0.1 to be visible against layer
 
   DebugAxisMaterial := TMaterialNode.Create;
   DebugAxisMaterial.EmissiveColor := RedRGB;
@@ -810,8 +836,7 @@ begin
       2: DebugAxisNameGeom[I].SetString(['Z']);
       3: DebugAxisNameGeom[I].SetString(['O']);
     end;
-    DebugAxisNameGeom[I].FontStyle := TFontStyleNode.Create;
-    //DebugAxisNameGeom[I].FontStyle.Size := 10.0;
+    DebugAxisNameGeom[I].FontStyle := DebugFontStyleNode;
     DebugAxisName[I] := TTransformNode.Create;
     case I of
       0: DebugAxisName[I].Translation := Vector3(AxisLength + AxisNameGap, 0.0,
@@ -841,14 +866,12 @@ var
   { Name-Debug object. }
   DebugGeometryName: TTextNode = nil;
   DebugShapeName: TShapeNode = nil;
-  DebugFontStyle: TFontStyleNode;
-  DebugMaterial: TMaterialNode = nil;
-  DebugLineProperties: TLinePropertiesNode = nil;
 const
   NameGap = 20;
 begin
   { Build Outline-Debug object. }
   DebugGeometryOutline := TPolyline2DNode.CreateWithShape(DebugShapeOutline);
+  DebugShapeOutline.Appearance := DebugAppearanceNode;
   { Create anti-clockwise rectangle. }
   DebugGeometryOutline.SetLineSegments([Vector2(0.0, ConvY(0.0)),
   Vector2(Single(W), ConvY(0.0)), Vector2(Single(W), ConvY(Single(H))),
@@ -857,25 +880,8 @@ begin
   { Build Name-Debug object. }
   DebugGeometryName := TTextNode.CreateWithShape(DebugShapeName);
   DebugGeometryName.SetString(AName);
-  DebugFontStyle := TFontStyleNode.Create;
-  DebugFontStyle.Size := 20.0;
-  DebugGeometryName.FontStyle := DebugFontStyle;
-
-  { Use the same material and line property node for Outline- and
-    Name-Debug object. }
-  DebugMaterial := TMaterialNode.Create;
-  DebugMaterial.EmissiveColor := YellowRGB;
-
-  DebugLineProperties := TLinePropertiesNode.Create;
-  DebugLineProperties.LinewidthScaleFactor := 1.0;
-
-  DebugShapeOutline.Appearance := TAppearanceNode.Create;
-  DebugShapeOutline.Appearance.Material := DebugMaterial;
-  DebugShapeOutline.Appearance.LineProperties := DebugLineProperties;
-
-  DebugShapeName.Appearance := TAppearanceNode.Create;
-  DebugShapeName.Appearance.Material := DebugMaterial;
-  DebugShapeName.Appearance.LineProperties := DebugLineProperties;
+  DebugGeometryName.FontStyle := DebugFontStyleNode;
+  DebugShapeName.Appearance := DebugAppearanceNode;
 
   { Create Debug transform node for Outline- and NameDebug nodes. Add them to
     the Debug node. }
@@ -892,27 +898,6 @@ begin
   DebugNode.AddChildren(DebugObject);
 end;
 
-procedure TTiledMapConverter.SetDebugMode(const AValue: Boolean);
-begin
-  if FDebugMode = AValue then
-    Exit;
-  FDebugMode:=AValue;
-  if DebugMode = True then
-  begin
-    if Assigned(DebugNode) then
-      FreeAndNil(FDebugNode);
-    DebugNode := TX3DRootNode.Create;
-    MapNode.AddChildren(DebugNode);
-  end else
-  begin
-    MapNode.RemoveChildren(DebugNode);
-    { TODO: Check if RemoveChildren also free's instance of the node.
-      Would make manual free'ing here obsolete. }
-    if Assigned(DebugNode) then
-      FreeAndNil(FDebugNode);
-  end;
-end;
-
 function ConvertTiledMap(ATiledMap: TTiledMap): TX3DRootNode;
 var
   ATiledMapConverter: TTiledMapConverter;
@@ -923,7 +908,7 @@ begin
     Exit;
 
   try
-    ATiledMapConverter := TTiledMapConverter.Create(ATiledMap);
+    ATiledMapConverter := TTiledMapConverter.Create(ATiledMap, True);
     ATiledMapConverter.ConvertMap;
     Result := ATiledMapConverter.RootNode;
   finally
