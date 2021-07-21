@@ -978,6 +978,41 @@ procedure TTiledMap.TTileset.Load(const Element: TDOMElement; const BaseUrl: Str
     end;
   end;
 
+  { Generate complete tileset tiles list (Tileset.Tiles).
+    Should only be called if not all tiles are found in the tsx-file! }
+  procedure GenerateCompleteTileList(ATileset: TTileset);
+  var
+    NewTile, Tile: TTile;
+    IncompleteTileList: TTileList;
+    Index: Cardinal;
+  begin
+    { "Copy" old, incomplete tile list and create a new one for the tileset. }
+    IncompleteTileList := ATileset.Tiles;
+    ATileset.Tiles := nil;
+    ATileset.Tiles := TTileList.Create;
+    IncompleteTileList.OwnsObjects := False;
+
+    { Create for every "missing" tile a new tile and add it to tile list. }
+    for Index := 0 to ATileset.TileCount - IncompleteTileList.Count - 1 do
+    begin
+      NewTile := TTile.Create;
+      NewTile.Id := Index;
+      ATileset.Tiles.Add(NewTile);
+    end;
+
+    { Insert all existing tiles (if any) from the iincomplete tile list
+      at the correct position (Tile.Id corresponds to item index). }
+    for Tile in IncompleteTileList do
+      ATileset.Tiles.Insert(Tile.Id, Tile);
+
+    { Give all tiles the correct id. This is esp. important for the new
+      tiles, as they have no id set on creation. }
+    for Index := 0 to ATileset.TileCount - 1 do
+      (ATileset.Tiles.Items[Index] as TTile).Id := Index;
+
+    FreeAndNil(IncompleteTileList);
+  end;
+
 var
   I: TXMLElementIterator;
   NewTile: TTile;
@@ -1044,18 +1079,28 @@ begin
     TileCount := (Image.Width div TileWidth) * (Image.Height div TileHeight);
   end;
 
-  { TODO : Handle tiles which are not explicitly found in the tsx-file.
-    Hint : Tiles which have no special setting (probability equals 1.0,
-           no terrains set, no type set) are not explicitly written down
-           in the tsx file. This means they are not loaded by the iteration
-           above and consequently are not found in the Tiles list. }
   if TileCount <> Tiles.Count then
+  { Hint 1: Tiles which have no special setting (probability equals 1.0,
+            no terrains set, no type set) are not explicitly written down
+            in the tsx-file (like "<tile id="0" ... />").
+            This means they are not loaded by the iteration above
+            and consequently are not found in the tiles list of the tileset.
+            (This means Tiles.Count is smaller than TileCount!)
+
+    Hint 2: This does not affect loading/displaying via TCastleTiledMapControl
+            because this control class determines the tiles from tilesets
+            solely by width/height/column/row-calculations.
+
+    Hint 3: A complete tile list is necessary for X3D loading. (To come)
+            Also, developers can expect to find all tiles in this list. }
   begin
-    WritelnWarning('%s: Could not load all tiles of a tileset. Expected tiles: %d, loaded tiles: %d', [
+    WritelnLog('%s: Could not load all tiles of a tileset. Expected tiles: %d, loaded tiles: %d', [
       URIDisplay(URL),
       TileCount,
       Tiles.Count
     ]);
+
+    GenerateCompleteTileList(Self);
   end;
 end;
 
