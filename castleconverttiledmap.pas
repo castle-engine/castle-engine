@@ -686,7 +686,7 @@ begin
     DebugAppearanceNode.LineProperties := DebugLinePropertiesNode;
 
     DebugFontStyleNode := TFontStyleNode.Create;
-    DebugFontStyleNode.Size := Map.Width / 3; // TODO: Scales good? (Test!)
+    DebugFontStyleNode.Size := 0.5 * (MapWidth + MapHeight) / 25; // TODO: Scales good? (Test!)
   end;
 
   ConvYMatrix.Items[0,0] := 1;
@@ -791,11 +791,11 @@ var
   DebugAxisLineProperties: TLinePropertiesNode;
   I: Byte;
   OriginVector: TVector3;
-const
-  AxisLength = 50.0;
-  AxisNameGap = 10.0; // Gap between end of axis and name
+  AxisLength, AxisNameGap: Single;
 begin
   OriginVector := Vector3(0.0, 0.0, 0.1); // Z = 0.1 to be visible against layer
+  AxisLength := 0.5 * (MapWidth + MapHeight) / 3;
+  AxisNameGap := 0.5 * (MapWidth + MapHeight) / 10;
 
   DebugAxisMaterial := TMaterialNode.Create;
   DebugAxisMaterial.EmissiveColor := RedRGB;
