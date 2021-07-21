@@ -365,11 +365,6 @@ begin
       LayerZDistance := LayerZDistance + LayerZDistanceDefault;
     end;
   end;
-
-  //RootTransformNode.Rotation := Vector4(1, 0, 0, Pi);  // rotate scene by 180 deg around x-axis
-
-  //Result := TX3DRootNode.Create;
-  //Result.AddChildren(RootTransformNode);
 end;
 
 function TTiledMapConverter.BuildObjectGroupLayerNode(
