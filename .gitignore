@@ -49,3 +49,4 @@ flipped_tiles/data/image3x3.tsx
 flipped_tiles/data/map64-flipped-tiles.tmx
 flipped_tiles/flipped_tiles.lpi
 flipped_tiles/flipped_tiles.pas
+castleconf.inc
