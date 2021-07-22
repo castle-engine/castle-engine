@@ -18,25 +18,23 @@
       "Stretch" : true,
       "VerticalAnchorParent" : "vpMiddle",
       "VerticalAnchorSelf" : "vpMiddle",
-      "Width" : 1.6000000000000000E+003
-    },
-    {
-      "$$ClassName" : "TCastleImageControl",
-      "Content" : {
-        "$$ClassName" : "TCastleImagePersistent",
-        "URL" : "castle-data:/biplane.png"
-      },
-      "Height" : 1.6000000000000000E+002,
-      "HorizontalAnchorDelta" : -2.6390411376953125E+002,
-      "HorizontalAnchorParent" : "hpMiddle",
-      "HorizontalAnchorSelf" : "hpMiddle",
-      "Name" : "ImagePlayer",
-      "ProportionalScaling" : "psEnclose",
-      "Stretch" : true,
-      "VerticalAnchorDelta" : 1.9372119140625000E+002,
-      "VerticalAnchorParent" : "vpMiddle",
-      "VerticalAnchorSelf" : "vpMiddle",
-      "Width" : 2.9000000000000000E+002
+      "Width" : 1.6000000000000000E+003,
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleImageControl",
+          "Content" : {
+            "$$ClassName" : "TCastleImagePersistent",
+            "URL" : "castle-data:/biplane.png"
+          },
+          "Height" : 1.6000000000000000E+002,
+          "HorizontalAnchorDelta" : 3.8930688476562500E+002,
+          "Name" : "ImagePlayer",
+          "ProportionalScaling" : "psEnclose",
+          "Stretch" : true,
+          "VerticalAnchorDelta" : 5.8430932617187500E+002,
+          "Width" : 2.9000000000000000E+002
+        }
+      ]
     },
     {
       "$$ClassName" : "TCastleLabel",
