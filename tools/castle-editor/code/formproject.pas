@@ -820,7 +820,7 @@ begin
   if IsDockUIEnabled then
   begin
     // Create dockable forms
-    DockMaster.DockSitesCanBeMinimized := True;
+    //  DockMaster.DockSitesCanBeMinimized := True;
     DockMaster.MakeDockSite(Self, [akBottom], admrpNone);
     DesignForm := TDesignForm.Create(nil);
     DesignHierarchyForm := TDesignHierarchyForm.Create(nil);
