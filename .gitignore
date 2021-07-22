@@ -44,3 +44,8 @@ two_tilesets/data/map64-two-tilesets.tmx
 two_tilesets/data/map64-two-tilesets.tmx.txt
 two_tilesets/two_tilesets.lpi
 two_tilesets/two_tilesets.pas
+flipped_tiles/data/image3x3.png
+flipped_tiles/data/image3x3.tsx
+flipped_tiles/data/map64-flipped-tiles.tmx
+flipped_tiles/flipped_tiles.lpi
+flipped_tiles/flipped_tiles.pas
