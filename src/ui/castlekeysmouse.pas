@@ -693,7 +693,8 @@ type
       The position is in final device coordinates, i.e. it ignores
       @link(TUIContainer.UIScaling).
       Use e.g. @link(TCastleUserInterface.ContainerToLocalPosition)
-      to easily convert this position into a position suitable for given UI control.
+      to easily convert this position into a position suitable for given UI control
+      children.
 
       For normal backends that simply support a single mouse device,
       this is just equivalent to TCastleWindowBase.MousePosition

@@ -96,7 +96,7 @@ begin
 
   if Event.IsMouseButton(buttonLeft) then
   begin
-    ImagePlayer.AnchorDelta := ImagePlayer.ContainerToLocalPosition(Event.Position);
+    ImagePlayer.AnchorDelta := ImagePlayer.Parent.ContainerToLocalPosition(Event.Position);
     Exit(true); // event was handled
   end;
 end;
