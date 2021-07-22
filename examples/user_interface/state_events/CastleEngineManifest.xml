@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project name="basic_state_events"
-  standalone_source="basic_state_events_standalone.lpr"
+<project name="state_events"
+  standalone_source="state_events_standalone.lpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.basicstateevents"
-  caption="Basic State Events"
+  qualified_name="io.castleengine.state.events"
+  caption="State Events"
 >
   <compiler_options>
     <search_paths>

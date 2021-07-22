@@ -14,8 +14,8 @@ implementation
 uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
-  ApplicationProperties.ApplicationName := 'basic_state_events';
-  ApplicationProperties.Caption := 'Basic State Events';
+  ApplicationProperties.ApplicationName := 'state_events';
+  ApplicationProperties.Caption := 'State Events';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

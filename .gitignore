@@ -184,7 +184,8 @@ castle-game-engine-*.fpm
 /examples/third_person_camera/third_person_camera
 /examples/tiled/map_viewer/map_viewer
 /examples/tiled/strategy_game_demo/strategy_game_demo
-/examples/user_interface/basic_state_events/basic_state_events
+/examples/user_interface/state_events/state_events
+/examples/user_interface/test_all_state_events/test_all_state_events
 /examples/user_interface/dragging_test/dragging_test
 /examples/user_interface/edit_test/edit_test
 /examples/user_interface/show_various_ui_controls/show_various_ui_controls
@@ -193,7 +194,6 @@ castle-game-engine-*.fpm
 /examples/user_interface/zombie_fighter_alternative_short_lived_states/zombie_fighter
 /examples/visualize_triangulation/visualize_triangulation
 /examples/window/multi_window/multi_window
-/examples/window/state_events/state_events
 /examples/window/window_menu/window_menu
 /packages/alternative_castle_window_based_on_lcl.pas
 /packages/castle_base.pas

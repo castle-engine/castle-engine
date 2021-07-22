@@ -11,7 +11,7 @@
 { Do not specify program name below.
   It is not used anyway, and this way allows developer
   to change standalone_source in CastleEngineManifest.xml easier. }
-// program basic_state_events_standalone;
+// program test_all_state_events_standalone;
 
 {$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 

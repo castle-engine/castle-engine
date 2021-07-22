@@ -10,7 +10,7 @@
         <MainUnitHasScaledStatement Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="basic_state_events"/>
+      <Title Value="test_all_state_events"/>
     </General>
     <RequiredPackages Count="2">
       <Item1>
@@ -22,7 +22,7 @@
     </RequiredPackages>
     <Units Count="4">
       <Unit0>
-        <Filename Value="basic_state_events_standalone.lpr"/>
+        <Filename Value="test_all_state_events_standalone.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
@@ -45,7 +45,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="basic_state_events"/>
+      <Filename Value="test_all_state_events"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="code/"/>
