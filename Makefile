@@ -229,7 +229,6 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/cars_demo \
   examples/3d_rendering_processing/combine_multiple_x3d_into_one \
   examples/3d_rendering_processing/custom_input_shortcuts_saved_to_config \
-  examples/3d_rendering_processing/detect_scene_clicks \
   examples/3d_rendering_processing/display_box_custom_shaders \
   examples/3d_rendering_processing/fog_culling \
   examples/3d_rendering_processing/listen_on_x3d_events \
