@@ -1369,6 +1369,8 @@ type
     { Like @link(RectWithoutAnchors) but with anchors effect applied. }
     function RectWithAnchors(
       const CalculateEvenWithoutContainer: boolean = false): TFloatRectangle;
+    { Like LocalToScreenTranslation but also add additional shift because of Parent.Border. }
+    function LocalToScreenTranslationShiftBorder: TVector2;
 
     procedure RecursiveRender(const ViewportRect: TRectangle);
 
@@ -1778,10 +1780,33 @@ type
 
     function ScreenRect: TRectangle; deprecated 'use RenderRect';
 
-    { How to translate local coords to screen.
+    { How to translate local coordinates to the container (aka screen).
+      Looks at parent anchors (AnchorDelta) and positon (Left, Bottom),
+      not at the anchors and position of @italic(this) UI control.
+
+      As such it is useful to modify the current UI control position,
+      not the children of current UI control.
+
       If you use UI scaling, this works in final coordinates
       (after scaling, real pixels on screen). }
     function LocalToScreenTranslation: TVector2;
+
+    { Convert position relative to container (in final device coordinates, without UI scaling)
+      into position relative to this parent's UI control (in coordinates with UI scaling).
+      Useful e.g. to convert mouse/touch position from
+      @link(TInputPressRelease.Position) into position useful for this UI control.
+
+      The exact definition is that using the result of this to set our
+      AnchorDelta, assuming we are anchored to left-bottom (the default state)
+      and our Left = Bottom = 0, sets our position exactly to
+      the indicated point on the screen.
+    }
+    function ContainerToLocalPosition(const ContainerPosition: TVector2): TVector2;
+
+    { Convert position relative to this parent's UI control (in coordinates with UI scaling)
+      into relative to container (in final device coordinates, without UI scaling).
+      Reverses @link(ContainerToLocalPosition). }
+    function LocalToContainerPosition(const LocalPosition: TVector2): TVector2;
 
     { Rectangle filling the parent control (or container), in local coordinates.
       Since this is in local coordinates, the returned rectangle Left and Bottom
@@ -4988,6 +5013,26 @@ begin
     Result.Data[1] := Result.Data[1] + RA.Bottom;
   end else
     Result := TVector2.Zero;
+end;
+
+function TCastleUserInterface.LocalToScreenTranslationShiftBorder: TVector2;
+begin
+  Result := LocalToScreenTranslation;
+  if (Parent <> nil) and Parent.FBorder.Exists then // optimize common case
+  begin
+    Result.Data[0] += Parent.FBorder.TotalLeft   * UIScale;
+    Result.Data[1] += Parent.FBorder.TotalBottom * UIScale;
+  end;
+end;
+
+function TCastleUserInterface.ContainerToLocalPosition(const ContainerPosition: TVector2): TVector2;
+begin
+  Result := (ContainerPosition - LocalToScreenTranslationShiftBorder) / UIScale;
+end;
+
+function TCastleUserInterface.LocalToContainerPosition(const LocalPosition: TVector2): TVector2;
+begin
+  Result := LocalPosition * UIScale + LocalToScreenTranslationShiftBorder;
 end;
 
 function TCastleUserInterface.ParentRect: TFloatRectangle;

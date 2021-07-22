@@ -88,14 +88,17 @@ begin
     not handled in children controls.
   }
 
-  // Use this to handle keys:
-  {
-  if Event.IsKey(keyXxx) then
+  if Event.IsKey(keySpace) then
   begin
-    // DoSomething;
-    Exit(true); // key was handled
+    ImagePlayer.Color := Vector4(Random, Random, Random, 1);
+    Exit(true); // event was handled
   end;
-  }
+
+  if Event.IsMouseButton(buttonLeft) then
+  begin
+    ImagePlayer.AnchorDelta := ImagePlayer.ContainerToLocalPosition(Event.Position);
+    Exit(true); // event was handled
+  end;
 end;
 
 end.
