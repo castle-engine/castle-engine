@@ -265,8 +265,9 @@ begin
 end;
 
 { List filenames of external libraries used by the Dependencies, on given OS/CPU. }
-procedure ExternalLibraries(const OS: TOS; const CPU: TCPU; const List: TStrings;
-  const Dependencies: TDependencies; const CheckFilesExistence: Boolean);
+procedure ExternalLibraries(const OS: TOS; const CPU: TCPU;
+  const Dependencies: TDependencies; const List: TStrings;
+  const CheckFilesExistence: Boolean = true);
 
   { Path to the external library in data/external_libraries/ .
     Right now, these host various Windows-specific DLL files.
@@ -635,7 +636,7 @@ var
   begin
     List := TCastleStringList.Create;
     try
-      ExternalLibraries(OS, CPU, List);
+      ExternalLibraries(OS, CPU, Dependencies, List);
       for FileName in List do
         Pack.Add(FileName, ExtractFileName(FileName));
     finally FreeAndNil(List) end;
@@ -1209,7 +1210,7 @@ procedure TCastleProject.DoClean;
     try
       { CheckFilesExistence parameter for ExternalLibraries may be false.
         This way you can run "castle-engine clean" without setting $CASTLE_ENGINE_PATH . }
-      ExternalLibraries(OS, CPU, List, false);
+      ExternalLibraries(OS, CPU, Dependencies, List, false);
       for FileName in List do
       begin
         OutputFile := LibrariesOutputPath + ExtractFileName(FileName);
@@ -1343,7 +1344,7 @@ procedure TCastleProject.DoEditor;
   begin
     List := TCastleStringList.Create;
     try
-      ExternalLibraries(OS, CPU, [
+      ExternalLibraries(DefaultOS, DefaultCPU, [
         // to read fonts
         depFreetype,
         // to read PNG
