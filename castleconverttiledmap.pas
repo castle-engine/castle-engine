@@ -638,7 +638,7 @@ begin
           ColumnOfTileInMap * TileWidth,
           (RowOfTileInMap + 1) * TileHeight - DebugTileset.TileHeight, // Y: The tiles of tilesets are "anchored" bottom-left
           DebugTileset.TileWidth,
-          DebugTileset.TileHeight, 'GID: ' + IntToStr(DebugTile.Id));
+          DebugTileset.TileHeight, 'GID: ' + IntToStr(DebugTile.Id + 1));
       end;
     end;
   end;
