@@ -477,6 +477,43 @@ var
   DebugTileset: TTiledMap.TTileset;        // A tileset for debuggin.
   I: Cardinal;
 
+  { Resolves the GID consdering potential horizontal, vertical and/or
+    diagonal bits. Returns the resolved GID.
+
+    Only the resolved GID can be used to detect the correct tileset/tiles
+    if these bits are set.
+
+    See also:
+    "The highest three bits of the gid store the flipped states. Bit 32 is
+    used for storing whether the tile is horizontally flipped, bit 31 is used
+    for the vertically flipped tiles and bit 30 indicates whether the tile is
+    flipped (anti) diagonally, enabling tile rotation. These bits have to be
+    read and cleared before you can find out which tileset a tile belongs to."
+    https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#data }
+  function GetResolvedGID(const ATileGID: Cardinal;
+    out HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean): Cardinal; overload;
+  const
+    HorizontalFlag = $80000000;
+    VerticalFlag   = $40000000;
+    DiagonalFlag   = $20000000;
+    ClearFlag      = $1FFFFFFF;
+  begin
+    { Check which flags are set. }
+    HorizontalFlip := ATileGID and HorizontalFlag > 0;
+    VerticalFlip := ATileGID and VerticalFlag > 0;
+    DiagonalFlip := ATileGID and DiagonalFlag > 0;
+
+    { Clear GID }
+    Result := ATileGID and ClearFlag;
+  end;
+
+  function GetResolvedGID(const ATileGID: Cardinal): Cardinal; overload;
+  var
+    Trash: Boolean;  // Just there to call overloaded function.
+  begin
+    Result := GetResolvedGID(ATileGID, Trash, Trash, Trash);
+  end;
+
   { Get the associated tileset of a specific tile by the tileset's FirstGID.
 
     Hint: A map tile isn't always associated with a tileset tile, e. g.
@@ -484,10 +521,8 @@ var
           covers several map tiles. For these tiles the is GID = 0. This
           function evaluates to nil for these tiles.
 
-    Note: The lowest real GID starts with GID = 1.
-
-    TODO : Handle flipped tiles. The tileset alloction may be wrong otherwise! }
-  function GetTilesetOfTile(const ATileGID: Cardinal): TTiledMap.TTileset;
+    Note: The lowest real GID starts with GID = 1. }
+  function GetTilesetOfTile(ATileGID: Cardinal): TTiledMap.TTileset;
   var
     Tileset: TTiledMap.TTileset;
   begin
@@ -503,18 +538,9 @@ var
       (https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#tmx-data) }
     for Tileset in Map.Tilesets do
     begin
-      if ATileGID >= Tileset.FirstGID then
+      if GetResolvedGID(ATileGID) >= Tileset.FirstGID then
         Result := Tileset;
     end;
-
-    { "The highest three bits of the gid store the flipped states. Bit 32 is
-      used for storing whether the tile is horizontally flipped, bit 31 is used
-      for the vertically flipped tiles and bit 30 indicates whether the tile is
-      flipped (anti) diagonally, enabling tile rotation. These bits have to be
-      read and cleared before you can find out which tileset a tile belongs to."
-      https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#data }
-
-    { TODO : Handle flipped tiles! }
 
     //Writeln('  GetTilesetOfTile(GID: ' + IntToStr(ATileGID) + ') --> ', Result.Name, ' (FirstGID = ', Result.FirstGID, ')');
   end;
@@ -531,7 +557,7 @@ var
 
     for Tile in ATileset.Tiles do
     begin
-      if (ATileset.FirstGID + Tile.Id) = ATileGID then
+      if (ATileset.FirstGID + Tile.Id) = GetResolvedGID(ATileGID) then
       begin
         Result := Tile;
         Exit;
