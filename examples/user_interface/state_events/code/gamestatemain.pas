@@ -61,14 +61,26 @@ begin
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
+const
+  MoveSpeed = 800;
 var
   PlayerPosition: TVector2;
 begin
   inherited;
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 
-  { update player position to fall down }
   PlayerPosition := ImagePlayer.AnchorDelta;
+
+  if Container.Pressed[keyArrowLeft] then
+    PlayerPosition := PlayerPosition + Vector2(-MoveSpeed * SecondsPassed, 0);
+  if Container.Pressed[keyArrowRight] then
+    PlayerPosition := PlayerPosition + Vector2( MoveSpeed * SecondsPassed, 0);
+  if Container.Pressed[keyArrowDown] then
+    PlayerPosition := PlayerPosition + Vector2(0, -MoveSpeed * SecondsPassed);
+  if Container.Pressed[keyArrowUp] then
+    PlayerPosition := PlayerPosition + Vector2(0,  MoveSpeed * SecondsPassed);
+
+  { update player position to fall down }
   PlayerPosition.Y := Max(PlayerPosition.Y - SecondsPassed * 400, 0);
   ImagePlayer.AnchorDelta := PlayerPosition;
 end;
