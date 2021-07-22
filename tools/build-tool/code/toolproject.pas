@@ -152,11 +152,6 @@ type
     function AssociateDocumentTypes: TAssociatedDocTypeList;
     function LocalizedAppNames: TLocalizedAppNameList;
 
-    { List filenames of external libraries used by the current project,
-      on given OS/CPU. }
-    procedure ExternalLibraries(const OS: TOS; const CPU: TCPU; const List: TStrings;
-      const CheckFilesExistence: Boolean = true);
-
     function ReplaceMacros(const Source: string): string;
 
     { Recursively copy a directory from TemplatePath (this is relative
@@ -267,6 +262,88 @@ begin
   Result := ChangeFileExt(S, LibraryExtensionOS(OS));
   if OS in AllUnixOSes then
     Result := InsertLibPrefix(Result);
+end;
+
+{ List filenames of external libraries used by the Dependencies, on given OS/CPU. }
+procedure ExternalLibraries(const OS: TOS; const CPU: TCPU; const List: TStrings;
+  const Dependencies: TDependencies; const CheckFilesExistence: Boolean);
+
+  { Path to the external library in data/external_libraries/ .
+    Right now, these host various Windows-specific DLL files.
+    If CheckFilesExistence then this checks existence of appropriate files along the way,
+    and raises exception in case of trouble. }
+  function ExternalLibraryPath(const OS: TOS; const CPU: TCPU; const LibraryName: string): string;
+  var
+    LibraryURL: string;
+  begin
+    LibraryURL := ApplicationData('external_libraries/' + CPUToString(CPU) + '-' + OSToString(OS) + '/' + LibraryName);
+    Result := URIToFilenameSafe(LibraryURL);
+    if CheckFilesExistence and (not RegularFileExists(Result)) then
+      raise Exception.Create('Cannot find dependency library in "' + Result + '". ' + SErrDataDir);
+  end;
+
+  procedure AddExternalLibrary(const LibraryName: string);
+  begin
+    List.Add(ExternalLibraryPath(OS, CPU, LibraryName));
+  end;
+
+begin
+  case OS of
+    win32:
+      begin
+        if depFreetype in Dependencies then
+          AddExternalLibrary('freetype.dll');
+        if depZlib in Dependencies then
+          AddExternalLibrary('zlib1.dll');
+        if depPng in Dependencies then
+          AddExternalLibrary('libpng12.dll');
+        if depSound in Dependencies then
+        begin
+          AddExternalLibrary('OpenAL32.dll');
+          AddExternalLibrary('wrap_oal.dll');
+        end;
+        if depOggVorbis in Dependencies then
+        begin
+          AddExternalLibrary('ogg.dll');
+          AddExternalLibrary('vorbis.dll');
+          AddExternalLibrary('vorbisenc.dll');
+          AddExternalLibrary('vorbisfile.dll');
+        end;
+        if depHttps in Dependencies then
+        begin
+          AddExternalLibrary('openssl/libeay32.dll');
+          AddExternalLibrary('openssl/ssleay32.dll');
+        end;
+      end;
+
+    win64:
+      begin
+        if depFreetype in Dependencies then
+          AddExternalLibrary('freetype.dll');
+        if depZlib in Dependencies then
+          AddExternalLibrary('zlib1.dll');
+        if depPng in Dependencies then
+          AddExternalLibrary('libpng14-14.dll');
+        if depSound in Dependencies then
+        begin
+          AddExternalLibrary('OpenAL32.dll');
+          AddExternalLibrary('wrap_oal.dll');
+        end;
+        if depOggVorbis in Dependencies then
+        begin
+          AddExternalLibrary('libogg.dll');
+          AddExternalLibrary('libvorbis.dll');
+          { AddExternalLibrary('vorbisenc.dll'); not present? }
+          AddExternalLibrary('vorbisfile.dll');
+        end;
+        if depHttps in Dependencies then
+        begin
+          AddExternalLibrary('openssl/libeay32.dll');
+          AddExternalLibrary('openssl/ssleay32.dll');
+        end;
+      end;
+    else ; { no need to do anything on other OSes }
+  end;
 end;
 
 { TCastleProject ------------------------------------------------------------- }
@@ -388,7 +465,7 @@ procedure TCastleProject.DoCompile(const Target: TTarget;
   begin
     List := TCastleStringList.Create;
     try
-      ExternalLibraries(OS, CPU, List);
+      ExternalLibraries(OS, CPU, Dependencies, List);
       for FileName in List do
       begin
         OutputFile := LibrariesOutputPath + ExtractFileName(FileName);
@@ -521,87 +598,6 @@ begin
       Result.Assign(Collector.CollectedFiles);
     finally FreeAndNil(Collector) end;
   except FreeAndNil(Result); raise; end;
-end;
-
-procedure TCastleProject.ExternalLibraries(const OS: TOS; const CPU: TCPU; const List: TStrings;
-  const CheckFilesExistence: Boolean);
-
-  { Path to the external library in data/external_libraries/ .
-    Right now, these host various Windows-specific DLL files.
-    If CheckFilesExistence then this checks existence of appropriate files along the way,
-    and raises exception in case of trouble. }
-  function ExternalLibraryPath(const OS: TOS; const CPU: TCPU; const LibraryName: string): string;
-  var
-    LibraryURL: string;
-  begin
-    LibraryURL := ApplicationData('external_libraries/' + CPUToString(CPU) + '-' + OSToString(OS) + '/' + LibraryName);
-    Result := URIToFilenameSafe(LibraryURL);
-    if CheckFilesExistence and (not RegularFileExists(Result)) then
-      raise Exception.Create('Cannot find dependency library in "' + Result + '". ' + SErrDataDir);
-  end;
-
-  procedure AddExternalLibrary(const LibraryName: string);
-  begin
-    List.Add(ExternalLibraryPath(OS, CPU, LibraryName));
-  end;
-
-begin
-  case OS of
-    win32:
-      begin
-        if depFreetype in Dependencies then
-          AddExternalLibrary('freetype.dll');
-        if depZlib in Dependencies then
-          AddExternalLibrary('zlib1.dll');
-        if depPng in Dependencies then
-          AddExternalLibrary('libpng12.dll');
-        if depSound in Dependencies then
-        begin
-          AddExternalLibrary('OpenAL32.dll');
-          AddExternalLibrary('wrap_oal.dll');
-        end;
-        if depOggVorbis in Dependencies then
-        begin
-          AddExternalLibrary('ogg.dll');
-          AddExternalLibrary('vorbis.dll');
-          AddExternalLibrary('vorbisenc.dll');
-          AddExternalLibrary('vorbisfile.dll');
-        end;
-        if depHttps in Dependencies then
-        begin
-          AddExternalLibrary('openssl/libeay32.dll');
-          AddExternalLibrary('openssl/ssleay32.dll');
-        end;
-      end;
-
-    win64:
-      begin
-        if depFreetype in Dependencies then
-          AddExternalLibrary('freetype.dll');
-        if depZlib in Dependencies then
-          AddExternalLibrary('zlib1.dll');
-        if depPng in Dependencies then
-          AddExternalLibrary('libpng14-14.dll');
-        if depSound in Dependencies then
-        begin
-          AddExternalLibrary('OpenAL32.dll');
-          AddExternalLibrary('wrap_oal.dll');
-        end;
-        if depOggVorbis in Dependencies then
-        begin
-          AddExternalLibrary('libogg.dll');
-          AddExternalLibrary('libvorbis.dll');
-          { AddExternalLibrary('vorbisenc.dll'); not present? }
-          AddExternalLibrary('vorbisfile.dll');
-        end;
-        if depHttps in Dependencies then
-        begin
-          AddExternalLibrary('openssl/libeay32.dll');
-          AddExternalLibrary('openssl/ssleay32.dll');
-        end;
-      end;
-    else ; { no need to do anything on other OSes }
-  end;
 end;
 
 procedure TCastleProject.DoPackage(const Target: TTarget;
@@ -1338,6 +1334,36 @@ begin
 end;
 
 procedure TCastleProject.DoEditor;
+
+  { Copy external libraries to LibrariesOutputPath. }
+  procedure AddExternalLibraries(const LibrariesOutputPath: String);
+  var
+    List: TCastleStringList;
+    OutputFile, FileName: String;
+  begin
+    List := TCastleStringList.Create;
+    try
+      ExternalLibraries(OS, CPU, [
+        // to read fonts
+        depFreetype,
+        // to read PNG
+        depZlib, depPng,
+        // to play sound
+        depSound,
+        // to read OggVorbis
+        depOggVorbis,
+        // not used now by the editor -- but likely will be used in the future, e.g. to check for new version by HTTPS query.
+        depHttps
+      ], List);
+      for FileName in List do
+      begin
+        OutputFile := LibrariesOutputPath + ExtractFileName(FileName);
+        WritelnVerbose('Copying library to ' + OutputFile);
+        CheckCopyFile(FileName, OutputFile);
+      end;
+    finally FreeAndNil(List) end;
+  end;
+
 var
   EditorExe, CgePath, EditorPath, LazbuildExe: String;
 begin
@@ -1369,6 +1395,8 @@ begin
     RunCommandSimple(LazbuildExe, CgePath + 'packages' + PathDelim + 'castle_components.lpk');
     RunCommandSimple(LazbuildExe, EditorPath + 'castle_editor_automatic_package.lpk');
     RunCommandSimple(LazbuildExe, EditorPath + 'castle_editor.lpi');
+
+    AddExternalLibraries(EditorPath);
 
     EditorExe := EditorPath + 'castle-editor' + ExeExtension;
     if not RegularFileExists(EditorExe) then
