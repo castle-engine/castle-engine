@@ -249,6 +249,7 @@ var
       AddEnginePath('audio/openal');
       AddEnginePath('audio/ogg_vorbis');
       AddEnginePath('files');
+      AddEnginePath('files/indy');
       AddEnginePath('castlescript');
       AddEnginePath('ui');
       AddEnginePath('ui/windows');

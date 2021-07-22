@@ -201,7 +201,7 @@ var
 const
   { To avoid wasting time in applications that just never call InitializeLog,
     stop adding things to CollectedLog when it reaches certain length. }
-  MaxCollectedLogLength = 80 * 10;
+  MaxCollectedLogLength = 80 * 100;
 
 procedure WriteLogCoreCore(const S: string); forward;
 

@@ -276,6 +276,7 @@ type
       IsDockUIEnabled: Boolean;
       IsDockUIEnabledChanged: Boolean;
       IsDockUIEnabledRequested: Boolean;
+      ErrorShownRefreshFilesMissingDirectory: Boolean;
     procedure BuildToolCall(const Commands: array of String;
       const ExitOnSuccess: Boolean = false);
     procedure BuildToolCallFinished(Sender: TObject);
@@ -1842,8 +1843,26 @@ end;
 
 procedure TProjectForm.RefreshFiles(const RefreshNecessary: TRefreshFiles);
 var
-  TreeViewPath: String;
+  DirToRefresh, ErrorStr, TreeViewPath: String;
 begin
+  DirToRefresh := CombinePaths(ShellTreeView1.Root, ShellTreeView1.Path);
+  if not DirectoryExists(DirToRefresh) then
+  begin
+    ErrorStr := Format('Directory "%s" no longer exists.', [DirToRefresh]);
+    if not ErrorShownRefreshFilesMissingDirectory then
+    begin
+      { Set it before showing ErrorBox,
+        as going back from ErrorBox can again cause this method to be called,
+        so it may be in recursive call. }
+      ErrorShownRefreshFilesMissingDirectory := true;
+      ErrorBox(ErrorStr + NL +
+        NL +
+        'Further errors about this will be only shown as warnings.');
+    end else
+      WritelnWarning(ErrorStr);
+    Exit;
+  end;
+
   ShellListView1.RefreshContents;
 
   { It is important to refresh ShellTreeView1 e.g. when new directory
