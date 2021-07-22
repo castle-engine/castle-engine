@@ -761,7 +761,9 @@ begin
     InfoLabelStringList.Add('Map width/height (in tiles | in px): ' +
       IntToStr(Map.Width) + '/' + IntToStr(Map.Height) + ' | ' +
       IntToStr(MapWidth) + '/' + IntToStr(MapHeight));
-    InfoLabelStringList.Add('Tilesets (First GID):');
+    InfoLabelStringList.Add(' ');
+
+    InfoLabelStringList.Add('Tilesets (GIDs):');
     for I := 0 to Map.Tilesets.Count - 1 do
       InfoLabelStringList.Add('  ' + IntToStr(I) + ': ' +
         (Map.Tilesets.Items[I] as TTiledMap.TTileset).Name + ' (' +
@@ -769,6 +771,14 @@ begin
         ' - ' + IntToStr((Map.Tilesets.Items[I] as TTiledMap.TTileset).FirstGID
         + (Map.Tilesets.Items[I] as TTiledMap.TTileset).TileCount - 1) +
         ')');
+    InfoLabelStringList.Add(' ');
+
+    InfoLabelStringList.Add('Layers:');
+    for I := 0 to Map.Layers.Count - 1 do
+    begin
+      InfoLabelStringList.Add('  ' + IntToStr(I) + ': ' +
+        (Map.Layers.Items[I] as TTiledMap.TLayer).Name);
+    end;
 
     DebugInfoLabelGeom.SetString(InfoLabelStringList);
   finally
