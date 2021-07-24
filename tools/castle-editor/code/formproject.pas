@@ -980,6 +980,8 @@ begin
   MenuItemDesignClose.Enabled := Design <> nil;
   MenuItemDesignAddTransform.Enabled := Design <> nil;
   MenuItemDesignAddUserInterface.Enabled := Design <> nil;
+  MenuItemDesignAddBehavior.Enabled := Design <> nil;
+  MenuItemDesignAddNonVisual.Enabled := Design <> nil;
   MenuItemDesignDeleteComponent.Enabled := Design <> nil;
   MenuItemCopyComponent.Enabled := Design <> nil;
   MenuItemPasteComponent.Enabled := Design <> nil;
