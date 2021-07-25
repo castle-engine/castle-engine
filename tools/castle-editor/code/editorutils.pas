@@ -394,7 +394,7 @@ begin
   { In case Process.Running=false, set our own FRunning and FExitStatus.
     Note that we don't make a method like TAsynchronousProcess.Running that
     simply returnsProcess.Running, as then we could report as Running=false
-    a processthat didn't yet dump all it's output to OutputList. }
+    a process that didn't yet dump all it's output to OutputList. }
   if not Process.Running then
   begin
     FRunning := false;

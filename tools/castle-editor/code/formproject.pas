@@ -242,6 +242,9 @@ type
       ViewFileFrame: TViewFileFrame;
       SplitterBetweenViewFile: TSplitter;
       ErrorShownRefreshFilesMissingDirectory: Boolean;
+      { Non-zero prevents the ShellListViewSelectItem from updating
+        preview window (ViewFileFrame). }
+      ShellListViewUpdating: Cardinal;
     procedure BuildToolCall(const Commands: array of String;
       const ExitOnSuccess: Boolean = false);
     procedure BuildToolCallFinished(Sender: TObject);
@@ -281,6 +284,9 @@ type
     procedure WarningNotification(const Category, Message: string);
     { Clears all warnings and hides warnings tab }
     procedure ClearAllWarnings;
+    { Update ViewFileFrame existence and visibility to show currently
+      selected item in ShellListView1. }
+    procedure ViewFileFrameUpdate;
   public
     { Open a project, given an absolute path to CastleEngineManifest.xml }
     procedure OpenProject(const ManifestUrl: String);
@@ -794,7 +800,7 @@ end;
 
 procedure TProjectForm.ListOutputClick(Sender: TObject);
 begin
-  // TODO: just to source code line in case of error message here
+  // TODO: jump to source code line in case of error message here
 end;
 
 procedure TProjectForm.MenuItemDesignNewNonVisualClick(Sender: TObject);
@@ -813,7 +819,8 @@ begin
     if not CreateDir(FullNewDir) then
       raise Exception.CreateFmt('Creating new directory "%s" failed', [FullNewDir]);
     RefreshFiles(rfEverythingInCurrentDir);
-    // TODO: Select newly added dir, not so easy in ShellListView1
+    // Select newly added dir
+    ShellListView1.SelectedFileNameInRoot := NewDir;
   end;
 end;
 
@@ -1155,6 +1162,12 @@ end;
 
 procedure TProjectForm.ShellListViewSelectItem(Sender: TObject;
   Item: TListItem; Selected: Boolean);
+begin
+  if ShellListViewUpdating = 0 then
+    ViewFileFrameUpdate;
+end;
+
+procedure TProjectForm.ViewFileFrameUpdate;
 
   { Make sure ViewFileFrame is created and visible.
     For now we create ViewFileFrame on-demand, just in case there's a problem
@@ -1620,7 +1633,8 @@ end;
 
 procedure TProjectForm.RefreshFiles(const RefreshNecessary: TRefreshFiles);
 var
-  DirToRefresh, ErrorStr, TreeViewPath: String;
+  DirToRefresh, ErrorStr, TreeViewPath, SavedSelectedFileNameInRoot: String;
+  SavedListViewOrigin: TPoint;
 begin
   DirToRefresh := CombinePaths(ShellTreeView1.Root, ShellTreeView1.Path);
   if not DirectoryExists(DirToRefresh) then
@@ -1640,23 +1654,41 @@ begin
     Exit;
   end;
 
-  ShellListView1.RefreshContents;
+  { save and restore selected file when refreshing.
+    This way Alt+Tab doesn't deselect file. }
+  SavedSelectedFileNameInRoot := ShellListView1.SelectedFileNameInRoot;
+  SavedListViewOrigin := ShellListView1.ViewOrigin;
+  Inc(ShellListViewUpdating);
 
-  { It is important to refresh ShellTreeView1 e.g. when new directory
-    was added, otherwise user could not navigate
-    into newly created directories, since they must exist in ShellTreeView1. }
+  try
+    ShellListView1.RefreshContents;
 
-  case RefreshNecessary of
-    { Unfortunately this special implementation of "refresh current dir"
-      doesn't work for non-root directories. }
-    //rfEverythingInCurrentDir:
-    //  ShellTreeView1.Refresh(ShellTreeView1.Selected);
-    rfEverythingInCurrentDir, rfEverything:
-      begin
-        TreeViewPath := ShellTreeView1.Path;
-        ShellTreeView1.Refresh(nil);
-        ShellTreeView1.Path := TreeViewPath;
-      end;
+    { It is important to refresh ShellTreeView1 e.g. when new directory
+      was added, otherwise user could not navigate
+      into newly created directories, since they must exist in ShellTreeView1. }
+
+    case RefreshNecessary of
+      { Unfortunately this special implementation of "refresh current dir"
+        doesn't work for non-root directories. }
+      //rfEverythingInCurrentDir:
+      //  ShellTreeView1.Refresh(ShellTreeView1.Selected);
+      rfEverythingInCurrentDir, rfEverything:
+        begin
+          TreeViewPath := ShellTreeView1.Path;
+          ShellTreeView1.Refresh(nil);
+          ShellTreeView1.Path := TreeViewPath;
+        end;
+    end;
+
+    ShellListView1.SelectedFileNameInRoot := SavedSelectedFileNameInRoot;
+    ShellListView1.ViewOrigin := SavedListViewOrigin;
+
+  finally
+    { we update ViewFileFrame after everything is done,
+      this way it doesn't blink off/on when doing Alt+Tab }
+    Dec(ShellListViewUpdating);
+    if ShellListViewUpdating = 0 then
+      ViewFileFrameUpdate;
   end;
 end;
 
