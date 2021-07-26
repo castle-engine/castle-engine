@@ -426,8 +426,17 @@ var
       Result.Frame := Frame;
       Result.HorizontalFlip := HorizontalFlip;
       Result.VerticalFlip := VerticalFlip;
-      // TODO: test flipping diagonally
-      Result.DiagonalFlip := DiagonalFlip;
+      { TODO: this makes diagonal flip too late, effectively *after* HorizontalFlip and VerticalFlip.
+        Tiled expects (https://doc.mapeditor.org/en/stable/reference/tmx-map-format/):
+
+        - The diagonal flip (x/y axis swap) is done first,
+        - followed by the horizontal
+        - and vertical flips.
+      }
+      if DiagonalFlip then
+        Result.Rotation := Pi / 2
+      else
+        Result.Rotation := 0;
     end;
   end;
 
