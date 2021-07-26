@@ -34,6 +34,8 @@
   5. Shift TShapeNodeList(+ListList) (generic) to x3dnodes_standard_texturing.inc?
   6. How to handle overlapping tiles of the same layer (Z-buffer fighting)?
   7. Refine spacing/margin calculations, still borders in desert example.
+  8. Texture flipped tiles correctly (needs support of MIRRORED_REPEAT mode).
+     See: https://github.com/castle-engine/castle-engine/issues/324.
 
   EXPECTED X3D HIERARCHY:
 
@@ -151,12 +153,23 @@ type
     function MapWidth: Cardinal;
     { Map height in pixels. }
     function MapHeight: Cardinal;
+
+    { Get the dimensions of the tileset image in pixels.
+
+      TODO: Easier just to use rows/columns? Vec2(1/Rows, 1/Cols)
+
+      @groupBegin }
+    function TilesetWidth(const AImageTextureNode: TImageTextureNode): Cardinal;
+    function TilesetHeight(const AImageTextureNode: TImageTextureNode): Cardinal;
+    { @groupEnd }
+
     { Tile width of map tile (not necessarily tileset tile!) in pixels. }
     function TileWidth: Cardinal;
     { Tile height of map tile (not necessarily tileset tile!) in pixels. }
     function TileHeight: Cardinal;
     { Convert Tiled Y-values to Y-values according to definition, see remarks
       above.
+
       @groupBegin }
     function ConvY(const TiledY: Single): Single; overload;
     function ConvY(const TiledYVector2: TVector2): TVector2; overload;
@@ -239,8 +252,6 @@ procedure TTiledMapConverter.ConvertTilesets;
 var
   Tile: TTiledMap.TTile;
   Tileset: TTiledMap.TTileset;            // A tileset
-  TilesetWidth: Cardinal = 0;             // Width of tileset in pixels.
-  TilesetHeight: Cardinal = 0;            // Height of tileset in pixels.
   TilesetTextureNode: TImageTextureNode;  // A tileset node
   TileGeometryNode: TRectangle2DNode;     // A tile geometry node (of tileset)
   TileShapeNode: TShapeNode;              // A shape node (of tileset)
@@ -280,6 +291,13 @@ begin
       TilesetTextureNode.TextureProperties := TTexturePropertiesNode.Create;
       TilesetTextureNode.TextureProperties.MagnificationFilter := magDefault;
       TilesetTextureNode.TextureProperties.MinificationFilter := minDefault;
+
+      { TODO : Update after implementation of MIRROR_REPEAT mode.
+        See: https://github.com/castle-engine/castle-engine/issues/324
+
+        This setting here does nothing at the moment! }
+      TilesetTextureNode.TextureProperties.BoundaryModeS := 'MIRRORED_REPEAT';
+      TilesetTextureNode.TextureProperties.BoundaryModeT := 'MIRRORED_REPEAT';
     end;
 
     for Tile in Tileset.Tiles do
@@ -298,18 +316,12 @@ begin
         { Scale tileset texture to fit tile size:
           Scale factor is inverted: E. g. 0.5 means 2x dimension.
           Divide Tileset Tile width/height by full Tileset width/height.
-          The latter is extracted from the texture node.
-
-          TODO: Easier just to use rows/columns? Vec2(1/Rows, 1/Cols) }
-        TilesetWidth :=  TilesetTextureNode.TextureImage.Width;
-        TilesetHeight := TilesetTextureNode.TextureImage.Height;
+          The latter is extracted from the texture node. }
         TilesetTextureTransformNode.Scale := Vector2(
-          Tileset.TileWidth / TilesetWidth,
-          Tileset.TileHeight / TilesetHeight
+          Tileset.TileWidth / TilesetWidth(TilesetTextureNode),
+          Tileset.TileHeight / TilesetHeight(TilesetTextureNode)
         );
 
-        TilesetWidth :=  TilesetTextureNode.TextureImage.Width;
-        TilesetHeight := TilesetTextureNode.TextureImage.Height;
         { Translate tileset texture:
         Important: Origin (0/0) of tex. coordinate is bottom-left! }
         TilesetTextureTransformNode.Translation := Vector2(
@@ -514,6 +526,63 @@ var
     Result := GetResolvedGID(ATileGID, Trash, Trash, Trash);
   end;
 
+  function GetResolvedTileShapeNode(const ATileShapeNode: TShapeNode;
+    const ATileset: TTiledMap.TTileset; const ATileGID: Cardinal): TShapeNode;
+  var
+    HFlip, VFlip, DFlip: Boolean;
+    ATextureTransformNode: TTextureTransformNode;
+    //TextureTransformMatrix: TMatrix2;
+  begin
+    Result := ATileShapeNode;
+    if ((not Assigned(ATileShapeNode)) or (ATileGID = 0)) then
+      Exit;
+
+    HFlip := False;
+    VFlip := False;
+    DFlip := False;
+
+    GetResolvedGID(ATileGID, HFlip, VFlip, DFlip);
+
+    if (HFlip or VFlip or DFlip) = False then
+      Exit;
+
+    { TODO : Implement flipping and rotation according to flip bits.
+      See: https://cseweb.ucsd.edu/classes/wi18/cse167-a/lec9.pdf (Page 16)
+
+      Needs implementation of MIRRORED_REPEAT mode.
+      See: https://github.com/castle-engine/castle-engine/issues/324
+
+      The following code block is a first idea to be extended and refined
+      if MIRRORED_REPEAT is implemented. It is no finished code! }
+
+    //if ((HFlip = False) and (VFlip = False) and (DFlip = True)) then
+    //begin
+    //  ATextureTransformNode := ATileShapeNode.TextureTransform.DeepCopy as TTextureTransformNode;
+
+    { This for rotation. Probably not necessary. }
+    //  ATextureTransformNode.Rotation := pi;
+
+    { This for flipping. Probably sufficent for rotations, too. }
+    //  Writeln((ATextureTransformNode.Translation).X);
+    //  Writeln((ATextureTransformNode.Translation).Y);
+
+    { Solution 1 (Matrix) }
+    //  TextureTransformMatrix.Items[0,0] := 1.0;
+    //  TextureTransformMatrix.Items[1,0] := 0;
+    //  TextureTransformMatrix.Items[0,1] := 0;
+    //  TextureTransformMatrix.Items[1,1] := 1;
+    //  ATextureTransformNode.Translation := TextureTransformMatrix * ATextureTransformNode.Translation;
+
+    { Solution 2 (Vector) }
+    //  ATextureTransformNode.Translation := ATextureTransformNode.Translation + Vector2(1.0, 0.0);
+
+    //  Writeln((ATextureTransformNode.Translation).X);
+    //  Writeln((ATextureTransformNode.Translation).Y);
+
+    //  ATileShapeNode.TextureTransform := ATextureTransformNode;
+    //end;
+  end;
+
   { Get the associated tileset of a specific tile by the tileset's FirstGID.
 
     Hint: A map tile isn't always associated with a tileset tile, e. g.
@@ -645,6 +714,17 @@ var
       TileNode.Translation := Vector3(PositionOfTileByIndex(Tileset),
         LayerZDistance);
       TileShapeNode := GetTileShapeNode(Tileset, Tile);
+
+      { Consider horizontal-, vertical-, diagonal flipping.
+
+      "When rendering a tile, the order of operation matters.
+       The diagonal flip (x/y axis swap) is done first, followed
+       by the horizontal and vertical flips."
+      (https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#layer)
+      }
+      TileShapeNode := GetResolvedTileShapeNode(TileShapeNode, Tileset, ALayer.Data.Data[I]);
+
+
       TileNode.AddChildren(TileShapeNode);
       Result.AddChildren(TileNode);
     end;
@@ -740,6 +820,24 @@ end;
 function TTiledMapConverter.MapHeight: Cardinal;
 begin
   Result := TileHeight * Map.Height;
+end;
+
+function TTiledMapConverter.TilesetWidth(
+  const AImageTextureNode: TImageTextureNode): Cardinal;
+begin
+  Result := 0;
+  if not Assigned(AImageTextureNode) then
+    Exit;
+  Result :=  AImageTextureNode.TextureImage.Width;
+end;
+
+function TTiledMapConverter.TilesetHeight(
+  const AImageTextureNode: TImageTextureNode): Cardinal;
+begin
+  Result := 0;
+  if not Assigned(AImageTextureNode) then
+    Exit;
+  Result :=  AImageTextureNode.TextureImage.Height;
 end;
 
 function TTiledMapConverter.TileWidth: Cardinal;
