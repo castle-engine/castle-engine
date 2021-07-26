@@ -526,6 +526,8 @@ var
     Result := GetResolvedGID(ATileGID, Trash, Trash, Trash);
   end;
 
+  { The resolved tile shape node is textured correctly considering
+    all the flipping bits (horizontal, vertical, diagonal bit). }
   function GetResolvedTileShapeNode(const ATileShapeNode: TShapeNode;
     const ATileset: TTiledMap.TTileset; const ATileGID: Cardinal): TShapeNode;
   var
