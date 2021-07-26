@@ -12,6 +12,10 @@ A complete demo of a platformer game, with
 
 - All UI states you expect from a usual game — main menu, options (with volume configuration), pause, credits, game over and of course the actual game.
 
+You can watch the movie with a playthrough on https://www.youtube.com/watch?v=yVTxr9tTHxg .
+
+You can download the precompiled version from https://castle-engine.itch.io/platformer .
+
 Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Building

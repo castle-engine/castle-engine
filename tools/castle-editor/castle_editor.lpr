@@ -42,7 +42,8 @@ uses
   Forms, anchordockpkg, FormChooseProject, ProjectUtils, FormNewProject,
   EditorUtils, FormProject, FrameDesign, FormAbout, FrameViewFile,
   FormPreferences, VisualizeTransform, FormSpriteSheetEditor, DataModuleIcons,
-  FormImportAtlas, FormImportStarling, FormNewUnit, EditorCodeTools;
+  FormImportAtlas, FormImportStarling, FormNewUnit, EditorCodeTools,
+  CastleShellCtrls;
 
 {$R *.res}
 

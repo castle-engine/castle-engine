@@ -5,6 +5,7 @@
   qualified_name="io.castleengine.platformer"
   caption="Platformer"
 >
+  <version value="1.0.0" code="1" />
   <compiler_options>
     <search_paths>
       <path value="code/" />

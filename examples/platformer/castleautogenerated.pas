@@ -16,7 +16,7 @@ uses CastleApplicationProperties, CastleWindow, CastleLog;
 initialization
   ApplicationProperties.ApplicationName := 'platformer';
   ApplicationProperties.Caption := 'Platformer';
-  ApplicationProperties.Version := '0.1';
+  ApplicationProperties.Version := '1.0.0';
 
   if not IsLibrary then
     Application.ParseStandardParameters;
