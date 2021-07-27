@@ -65,7 +65,9 @@ type
     { Intel GPU with Intel drivers. }
     gvIntel,
     { Imagination Technologies (PowerVR) GPU, common on mobile devices. }
-    gvImaginationTechnologies
+    gvImaginationTechnologies,
+    { Qualcomm Adreno, mobile devices }
+    gvQualcomm
   );
 
   TGLVersion = class(TGenericGLVersion)
@@ -92,6 +94,7 @@ type
     FBuggyGLSLReadVarying: boolean;
     FBuggyPureShaderPipeline: boolean;
     FBuggyTextureSizeAbove2048: Boolean;
+    FBuggyGLSLBumpMappingNumSteps: Boolean;
     function AppleRendererOlderThan(const VersionNumber: Cardinal): Boolean;
   public
     constructor Create(const VersionString, AVendor, ARenderer: string);
@@ -212,6 +215,19 @@ type
 
     { MaxTextureSize above 2048 shall not be trusted. }
     property BuggyTextureSizeAbove2048: Boolean read FBuggyTextureSizeAbove2048;
+
+    { Buggy num_steps value in bmSteepParallax and bmSteepParallaxShadowing
+      BumpMapping modes on Adreno mobile GPU's (random crashes, sometimes
+      variable in shader has wrong value. Observed on:
+      - Xiaomi Mi 10 Lite (M2002J9G), Snapdragon 765G, Adreno 620:
+      - Motorola Moto G8 (XT2045-2), Snapdragon 665, Adreno 610
+      - Motorola Moto G7 Plus (XT2081-2), Snapdragon 460, Adreno 610
+      - Xiaomi Redmi Note 8, Snapdragon 665, Adreno 610
+      - Xiaomi Redmi Note 7A Snapdragon 439, Adreno 505
+      More info in comment TGLVersion.Create().
+
+      It can be tested by https://github.com/and3md/castle-adreno-tests }
+    property BuggyGLSLBumpMappingNumSteps: Boolean read FBuggyGLSLBumpMappingNumSteps;
   end;
 
 var
@@ -464,6 +480,8 @@ begin
     FVendorType := gvIntel else
   if (Vendor = 'Imagination Technologies') then
     FVendorType := gvImaginationTechnologies else
+  if (Vendor = 'Qualcomm') then
+    FVendorType := gvQualcomm else
     FVendorType := gvUnknown;
 
   FFglrx := {$ifdef LINUX} VendorType = gvATI {$else} false {$endif};
@@ -658,6 +676,56 @@ begin
     {$else}
     false
     {$endif};
+
+  { BuggyGLSLBumpMappingNumSteps - affected devices:
+
+    Xiaomi Mi 10 Lite (M2002J9G), Snapdragon 765G, Adreno 620:
+    Version string: OpenGL ES 3.2 V@444.0 (GIT@1fbdf4e, Ia04d082869, 1585724642) (Date:04/01/20)
+    Version parsed: major: 3, minor: 2, release exists: False, release: 0, vendor-specific information: "V@444.0 (GIT@1fbdf4e, Ia04d082869, 1585724642) (Date:04/01/20)"
+    Vendor-specific version parsed: major: 1, minor: 0, release: 0
+    Vendor: Qualcomm
+    Vendor type: Unknown
+    Renderer: Adreno (TM) 620
+
+    Redmi Note 8, Snapdragon 665, Adreno 610
+    Version string: OpenGL ES 3.2 V@378.0 (GIT@6c0fbe4, I4f6179b11f) (Date:03/05/20)
+    Version parsed: major: 3, minor: 2, release exists: False, release: 0, vendor-specific information: "V@378.0 (GIT@6c0fbe4, I4f6179b11f) (Date:03/05/20)"
+    Vendor-specific version parsed: major: 6, minor: 0, release: 0
+    Vendor: Qualcomm
+    Vendor type: Qualcomm
+    Renderer: Adreno (TM) 610
+
+    Motorola Moto G8 (XT2045-2), Snapdragon 665, Adreno 610
+    Version:
+    Version string: OpenGL ES 3.2 V@0502.0 (GIT@d4cfdf3, Ic907de5ed0, 1601055299) (Date:09/25/20)
+    Version parsed: major: 3, minor: 2, release exists: False, release: 0, vendor-specific information: "V@0502.0 (GIT@d4cfdf3, Ic907de5ed0, 1601055299) (Date:09/25/20)"
+    Vendor-specific version parsed: major: 4, minor: 0, release: 0
+    Vendor: Qualcomm
+    Vendor type: Qualcomm
+    Renderer: Adreno (TM) 610
+
+    Motorola Moto G7 Plus (XT2081-2), Snapdragon 460, Adreno 610
+    Version:
+    Version string: OpenGL ES 3.2 V@444.0 (GIT@39a1dfd, Ic628754133, 1593471350) (Date:06/29/20)
+    Version parsed: major: 3, minor: 2, release exists: False, release: 0, vendor-specific information: "V@444.0 (GIT@39a1dfd, Ic628754133, 1593471350) (Date:06/29/20)"
+    Vendor-specific version parsed: major: 39, minor: 0, release: 0
+    Vendor: Qualcomm
+    Vendor type: Qualcomm
+    Renderer: Adreno (TM) 610
+
+    Redmi Note 7A Snapdragon 439, Adreno 505
+    Version:
+    Version string: OpenGL ES 3.2 V@415.0 (GIT@c692a3f, Ie3bb699d95, 1601378470) (Date:09/29/20)
+    Version parsed: major: 3, minor: 2, release exists: False, release: 0, vendor-specific information: "V@415.0 (GIT@c692a3f, Ie3bb699d95, 1601378470) (Date:09/29/20)"
+    Vendor-specific version parsed: major: 692, minor: 0, release: 0
+    Vendor: Qualcomm
+    Vendor type: Qualcomm
+    Renderer: Adreno (TM) 505 }
+  FBuggyGLSLBumpMappingNumSteps :=
+    {$ifdef ANDROID}
+    (VendorType = gvQualcomm)
+    {$else} false
+    {$endif};
 end;
 
 function TGLVersion.AppleRendererOlderThan(const VersionNumber: Cardinal): Boolean;
@@ -676,7 +744,8 @@ const
     'ATI',
     'Nvidia',
     'Intel',
-    'Imagination Technologies'
+    'Imagination Technologies',
+    'Qualcomm'
   );
 
 function VendorTypeToStr(const VendorType: TGLVendorType): string;
