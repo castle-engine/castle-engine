@@ -2099,7 +2099,14 @@ begin
   { We need infinite ZFar in case of shadow volumes.
     But only perspective projection supports ZFar in infinity. }
   if (Result.ProjectionType = ptPerspective) and
-     GLFeatures.ShadowVolumesPossible and
+     { Check "GLFeatures = nil" to allow using CalculateProjection and
+       things depending on it when no OpenGL context available.
+
+       Testcase: open CGE editor, open a project with any sprite sheet,
+       open sprite sheet editor with some .castle-sprite-sheet file,
+       then do "Close Project" (without closing sprite sheet editor
+       explicitly). It should not crash. }
+     ((GLFeatures = nil) or GLFeatures.ShadowVolumesPossible) and
      ShadowVolumes then
     Result.ProjectionFar := ZFarInfinity;
 
