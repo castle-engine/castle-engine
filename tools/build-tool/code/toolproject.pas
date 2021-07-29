@@ -733,7 +733,7 @@ begin
       AndroidCPUS := DetectAndroidCPUS
     else
       AndroidCPUS := [CPU];
-    PackageAndroid(Self, OS, AndroidCPUS, Mode, PackageFormatFinal);
+    PackageAndroid(Self, OS, AndroidCPUS, Mode, PackageFormatFinal, PackageNameIncludeVersion);
     Exit;
   end;
 
@@ -1895,12 +1895,13 @@ begin
       Exit(true);
 
   if { avoid Android packages }
-     SameFileName(FileName, Name + '-debug.apk') or
-     SameFileName(FileName, Name + '-release.apk') or
-     SameFileName(FileName, Name + '-debug.aab') or
-     SameFileName(FileName, Name + '-release.aab') or
+     IsWild(FileName, Name + '*-android-debug.apk', true) or
+     IsWild(FileName, Name + '*-android-debug.aab', true) or
+     IsWild(FileName, Name + '*-android-release.apk', true) or
+     IsWild(FileName, Name + '*-android-release.aab', true) or
      { do not pack AndroidAntProperties.txt with private stuff }
-     SameFileName(FileName, 'AndroidAntProperties.txt') then
+     SameFileName(FileName, 'AndroidAntProperties.txt') or
+     SameFileName(FileName, 'AndroidSigningProperties.txt') then
     Exit(true);
 
   Result := false;
