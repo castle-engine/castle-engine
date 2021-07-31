@@ -31,11 +31,20 @@ type
     See the description how to render 2D stuff using Castle Game Engine:
     https://github.com/castle-engine/castle-engine/wiki/2D-Games .
 
-    An alternative way to show a 2D image is to use the full-featured
-    2D control @link(TCastleImageControl). This will perform the drawing
-    by itself, you only add it to
-    @link(TCastleWindowBase.Controls) or
-    @link(TCastleControlBase.Controls). }
+    We have a few (probably too many) ways to show a 2D image.
+    Alternatives to TDrawableImage are:
+
+    @unorderedList(
+      @item(TCastleImagePersistent: Wraps TEncodedImage and TDrawableImage in a class
+        that has comfortable published properties (so it can be edited in CGE editor,
+        can be saved to CGE design files). Also adds caching.)
+
+      @item(TCastleImageControl: UI control to draw an image, using TCastleImagePersistent.
+        This will perform the drawing by itself.)
+
+      @item(TCastleScene: You can also load an image to TCastleScene.Load to create
+        a rectangle displaying this texture, which can be rendered in 2D and 3D.)
+    ) }
   TDrawableImage = class(TNoParameterlessContructor)
   strict private
     type
@@ -685,9 +694,6 @@ constructor TDrawableImage.Create(const AImage: TEncodedImage;
   const ASmoothScaling, AOwnsImage: boolean);
 begin
   inherited Create;
-
-  // TODO: use texture cache here, like GL renderer does for textures for 3D.
-  // no need to create new OpenGL texture for the same image.
 
   FColor := White;
   FScaleCorners := 1;
