@@ -2289,6 +2289,12 @@ begin
       UndoMessageModified(Sel, TPropertyEditor(Sender).GetName,
         TPropertyEditor(Sender).GetValue, TPropertyEditor(Sender).PropCount),
       ucHigh);
+
+    { Need to set modified flag.
+      PropertyGridModified also does this, but not everything causes PropertyGridModified,
+      e.g. setting URL property (done by TPropertyEditor.SetStrValue that calls
+      TPropertyEditor.Modified) only results in PropertyEditorModified call. }
+    MarkModified;
   end else
     raise EInternalError.Create('PropertyEditorModified can only be called with TPropertyEditor as a Sender.');
 end;
