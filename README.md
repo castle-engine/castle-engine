@@ -13,15 +13,13 @@ for the complete list of engine features.
 
 Documentation:
 
-- The [Getting Started](https://castle-engine.io/documentation.php) page describes what to install and how to compile. See also the "Compiling" section below for a short version.
-
 - [Manual](https://castle-engine.io/manual_intro.php) is the most recommended way to learn the engine.
 
 - [API reference](https://castle-engine.io/apidoc-unstable/html/index.html).
 
-  It is also available offline in the engine archive (if you downloaded the zip engine release), just open the file `doc/reference/index.html` in your WWW browser.
+    It is also available offline in the engine archive (if you downloaded the binary engine release), just open the file `doc/reference/index.html` in your WWW browser.
 
-- Numerous examples are provided in the `examples/` subdirectory. For example take a look at a simple FPS game example in the `examples/fps_game/` subdirectory.
+- Numerous examples are provided in the `examples/` subdirectory.
 
 - [Guide to creating game data](https://castle-engine.io/creating_data_intro.php).
 
@@ -29,23 +27,24 @@ Questions? Talk to us on [forum or Discord chat](https://castle-engine.io/talk.p
 
 [Support us on Patreon](https://www.patreon.com/castleengine).
 
-Compiling
+Installation and building your first application
 ---------
 
-There are a couple of options. See the ["Getting Started" page](https://castle-engine.io/documentation.php) for details. In short:
+See the [Installation and building your first application](https://castle-engine.io/manual_install_run_first.php) manual page.
 
-- Use our Castle Game Engine Editor to design and build your applications.
-  See https://castle-engine.io/documentation.php for a short introduction
-  and https://castle-engine.io/manual_editor.php for details.
+If you got this source code straight from our [GitHub repository](https://github.com/castle-engine/castle-engine/) then read first [Compiling from source](https://castle-engine.io/compiling_from_source.php).
 
-- Use our Castle Game Engine command-line build tool to build your applications.
-  See https://github.com/castle-engine/castle-engine/wiki/Build-Tool .
+In short:
 
-    The build tool and editor use the project settings
+- Our [editor](https://castle-engine.io/manual_editor.php) is used to design and build your applications.
+
+- Our [build tool](https://github.com/castle-engine/castle-engine/wiki/Build-Tool) is used to build your applications from the command-line.
+
+    Both the build tool and editor use the project settings
     from the [CastleEngineManifest.xml](https://github.com/castle-engine/castle-engine/wiki/CastleEngineManifest.xml-examples)
     file.
 
-- Use Lazarus ( https://www.lazarus-ide.org/ ).
+- You can also use Lazarus ( https://www.lazarus-ide.org/ ).
 
     Install in Lazarus two packages:
 
@@ -56,7 +55,7 @@ There are a couple of options. See the ["Getting Started" page](https://castle-e
 
     - packages/castle_window.lpk
 
-- Use FPC fpmake / fppkg.
+- You can also use FPC fpmake / fppkg.
   See https://github.com/castle-engine/castle-engine/wiki/FpMake
 
 License
