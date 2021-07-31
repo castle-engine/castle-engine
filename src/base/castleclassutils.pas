@@ -1195,13 +1195,17 @@ end;
 function TPeekCharStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
 begin
   raise EStreamNotImplementedSeek.Create('TPeekCharStream.Seek not supported');
+  {$ifdef FPC}
   Result := 0; { just to get rid of dummy fpc warning }
+  {$endif}
 end;
 
 function TPeekCharStream.Write(const Buffer; Count: Longint): Longint;
 begin
   raise EStreamNotImplementedWrite.Create('TPeekCharStream.Write not supported');
+  {$ifdef FPC}
   Result := 0; { just to get rid of dummy fpc warning }
+  {$endif}
 end;
 
 procedure TPeekCharStream.UpdateLineColumn(const C: AnsiChar);
