@@ -436,7 +436,7 @@ var
 begin
   L := Length(s);
   for i := 1 to Length(s) do
-    if not (s[i] in Allowed) then Inc(L,2);
+    if not CharInSet(s[i], Allowed) then Inc(L,2);
   if L = Length(s) then
   begin
     Result := s;
@@ -447,7 +447,7 @@ begin
   P := @Result[1];
   for i := 1 to Length(s) do
   begin
-    if not (s[i] in Allowed) then
+    if not CharInSet(s[i], Allowed) then
     begin
       P^ := '%'; Inc(P);
       StrFmt(P, '%.2x', [ord(s[i])]); Inc(P);
@@ -573,12 +573,16 @@ function RawURIDecode(const S: string): string;
     { Assume C is valid hex digit, return it's value (in 0..15 range). }
     function HexDigit(const C: char): Byte;
     begin
-      if C in ['0'..'9'] then
-        Result := Ord(C) - Ord('0') else
-      if C in ['a'..'f'] then
-        Result := 10 + Ord(C) - Ord('a') else
-      if C in ['A'..'F'] then
-        Result := 10 + Ord(C) - Ord('A');
+      if CharInSet(C, ['0'..'9']) then
+        Result := Ord(C) - Ord('0')
+      else
+      if CharInSet(C, ['a'..'f']) then
+        Result := 10 + Ord(C) - Ord('a')
+      else
+      if CharInSet(C, ['A'..'F']) then
+        Result := 10 + Ord(C) - Ord('A')
+      else
+        raise EInternalError.Create('Invalid hex character');
     end;
 
   begin
@@ -592,8 +596,8 @@ function RawURIDecode(const S: string): string;
         Exit(false);
       end;
 
-      if (not (S[Position + 1] in ValidHexaChars)) or
-         (not (S[Position + 2] in ValidHexaChars)) then
+      if (not CharInSet(S[Position + 1], ValidHexaChars)) or
+         (not CharInSet(S[Position + 2], ValidHexaChars)) then
       begin
         WritelnWarning('URI', Format(
           'URI "%s" incorrectly encoded, %s if not a valid hexadecimal number',
@@ -663,16 +667,16 @@ begin
         ecmascript:..." }
     *)
     FirstCharacter := 1;
-    while (FirstCharacter < Colon) and (S[FirstCharacter] in WhiteSpaces) do
+    while (FirstCharacter < Colon) and CharInSet(S[FirstCharacter], WhiteSpaces) do
       Inc(FirstCharacter);
     if FirstCharacter >= Colon then
       Exit;
 
     { Protocol name can only contain specific characters. }
-    if not (S[FirstCharacter] in ProtoFirstChar) then
+    if not CharInSet(S[FirstCharacter], ProtoFirstChar) then
       Exit;
     for I := FirstCharacter + 1 to Colon - 1 do
-      if not (S[I] in ProtoChar) then
+      if not CharInSet(S[I], ProtoChar) then
         Exit;
 
     { Do not treat drive names in Windows filenames as protocol.
@@ -1221,7 +1225,7 @@ var
   L: Integer;
 begin
   L := Length(URL);
-  if (L <> 0) and (URL[L] in ['/', '\']) then
+  if (L <> 0) and CharInSet(URL[L], ['/', '\']) then
     Result := Copy(URL, 1, L - 1)
   else
     Result := URL;

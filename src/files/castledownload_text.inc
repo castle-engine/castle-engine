@@ -168,7 +168,7 @@ begin
       Exit;
     end;
 
-    if ReadBuf[I] in [#10, #13] then
+    if CharInSet(ReadBuf[I], [#10, #13]) then
     begin
       Result := Copy(ReadBuf, 1, I - 1);
       DeleteCount := I;
@@ -200,7 +200,7 @@ begin
   repeat
     if (I > Length(ReadBuf)) and not IncreaseReadBuf then
       Exit('');
-    if not (ReadBuf[I] in WhiteSpaces) then
+    if not CharInSet(ReadBuf[I], WhiteSpaces) then
       Break;
     Inc(I);
   until false;
@@ -210,7 +210,7 @@ begin
   repeat
     if (I > Length(ReadBuf)) and not IncreaseReadBuf then
       Break;
-    if ReadBuf[I] in WhiteSpaces then
+    if CharInSet(ReadBuf[I], WhiteSpaces) then
       Break;
     Inc(I);
   until false;
