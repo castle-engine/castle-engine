@@ -1638,9 +1638,9 @@ end;
 procedure TCastleComponent.CustomSerialization(const SerializationProcess: TSerializationProcess);
 begin
   SerializationProcess.ReadWrite('NonVisualComponents',
-    @SerializeNonVisualComponentsEnumerate,
-    @SerializeNonVisualComponentsAdd,
-    @SerializeNonVisualComponentsClear);
+    {$ifdef CASTLE_OBJFPC}@{$endif} SerializeNonVisualComponentsEnumerate,
+    {$ifdef CASTLE_OBJFPC}@{$endif} SerializeNonVisualComponentsAdd,
+    {$ifdef CASTLE_OBJFPC}@{$endif} SerializeNonVisualComponentsClear);
 end;
 
 procedure TCastleComponent.SerializeNonVisualComponentsEnumerate(const Proc: TGetChildProc);
