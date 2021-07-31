@@ -1401,12 +1401,12 @@ begin
   LabelCollectedCoins := DesignedComponent('LabelCollectedCoins') as TCastleLabel;
   MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
   CheckboxCameraFollow := DesignedComponent('CheckboxCameraFollow') as TCastleCheckbox;
-  CheckboxAdvancedPlayer := DesignedComponent('AdvancedPlayer') as TCastleCheckbox;
+  CheckboxAdvancedPlayer := DesignedComponent('CheckboxAdvancedPlayer') as TCastleCheckbox;
   ImageHitPoint1 := DesignedComponent('ImageHitPoint1') as TCastleImageControl;
   ImageHitPoint2 := DesignedComponent('ImageHitPoint2') as TCastleImageControl;
   ImageHitPoint3 := DesignedComponent('ImageHitPoint3') as TCastleImageControl;
   ImageHitPoint4 := DesignedComponent('ImageHitPoint4') as TCastleImageControl;
-  ImageKey := DesignedComponent('GoldKey') as TCastleImageControl;
+  ImageKey := DesignedComponent('ImageKey') as TCastleImageControl;
 
   ScenePlayer := DesignedComponent('ScenePlayer') as TCastleScene;
 
