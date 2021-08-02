@@ -32,6 +32,10 @@ type
   TProjectForm = class(TForm)
     ActionNewSpriteSheet: TAction;
     ActionList: TActionList;
+    MenuItemSeparator12312332424: TMenuItem;
+    MenuItemInstall: TMenuItem;
+    MenuItemSeparator12312131: TMenuItem;
+    MenuItemPlatform: TMenuItem;
     MenuItemDesignNewNonVisualCustomRoot: TMenuItem;
     MenuItemDesignNewNonVisual: TMenuItem;
     MenuItemDesignAddNonVisual: TMenuItem;
@@ -173,6 +177,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure ListOutputClick(Sender: TObject);
     procedure MenuItemDesignNewNonVisualClick(Sender: TObject);
+    procedure MenuItemInstallClick(Sender: TObject);
     procedure MenuItemNewDirectoryClick(Sender: TObject);
     procedure MenuItemRenameClick(Sender: TObject);
     procedure MenuItemShellTreeRefreshClick(Sender: TObject);
@@ -245,6 +250,8 @@ type
       { Non-zero prevents the ShellListViewSelectItem from updating
         preview window (ViewFileFrame). }
       ShellListViewUpdating: Cardinal;
+      PlatformsInfo: TPlatformInfoList;
+      CurrentPlatformInfo: Integer; //< Index to PlatformsInfo
     procedure BuildToolCall(const Commands: array of String;
       const ExitOnSuccess: Boolean = false);
     procedure BuildToolCallFinished(Sender: TObject);
@@ -287,6 +294,7 @@ type
     { Update ViewFileFrame existence and visibility to show currently
       selected item in ShellListView1. }
     procedure ViewFileFrameUpdate;
+    procedure MenuItemPlatformChangeClick(Sender: TObject);
   public
     { Open a project, given an absolute path to CastleEngineManifest.xml }
     procedure OpenProject(const ManifestUrl: String);
@@ -308,7 +316,7 @@ uses TypInfo, LCLType,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
   CastleClassUtils,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
-  ToolCompilerInfo, ToolCommonUtils;
+  ToolCompilerInfo, ToolCommonUtils, ToolArchitectures;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
 begin
@@ -703,6 +711,66 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     ShellListView1.ShellTreeView := ShellTreeView1;
   end;
 
+  procedure BuildPlatformsMenu;
+
+    procedure AddPlatform(const Name: String; const Target: TTarget; const OS: TOS; const CPU: TCPU);
+    var
+      Mi: TMenuItem;
+      MiCaption: String;
+      P: TPlatformInfo;
+    begin
+      Mi := TMenuItem.Create(MenuItemPlatform);
+      MiCaption := Name;
+      if Target = targetCustom then
+        MiCaption += ' (' + OSToString(OS) + ' / ' + CPUToString(CPU) + ')';
+      Mi.Caption := MiCaption;
+      Mi.Tag := PlatformsInfo.Count;
+      Mi.OnClick := @MenuItemPlatformChangeClick;
+      Mi.GroupIndex := 200;
+      Mi.RadioItem := true;
+      Mi.ShowAlwaysCheckable := true;
+      Mi.Checked := Mi.Tag = CurrentPlatformInfo;
+      MenuItemPlatform.Add(Mi);
+
+      P := TPlatformInfo.Create;
+      P.Target := Target;
+      P.OS := OS;
+      P.CPU := CPU;
+      PlatformsInfo.Add(P);
+    end;
+
+    procedure AddPlatformSeparator;
+    var
+      Mi: TMenuItem;
+    begin
+      Mi := TMenuItem.Create(MenuItemPlatform);
+      Mi.Caption := '-';
+      MenuItemPlatform.Add(Mi);
+    end;
+
+  begin
+    PlatformsInfo := TPlatformInfoList.Create(true);
+    AddPlatform('Default', targetCustom, DefaultOS, DefaultCPU);
+    AddPlatformSeparator;
+    AddPlatform('Android (Arm 32-bit and 64-bit)', targetAndroid, { OS and CPU ignored } DefaultOS, DefaultCPU);
+    AddPlatformSeparator;
+    AddPlatform('iOS (Arm 32-bit and 64-bit)', targetIOS, { OS and CPU ignored } DefaultOS, DefaultCPU);
+    AddPlatformSeparator;
+    AddPlatform('Linux 32-bit', targetCustom, Linux, i386);
+    AddPlatform('Linux 64-bit', targetCustom, Linux, x86_64);
+    AddPlatform('Linux Arm 32-bit', targetCustom, Linux, Arm);
+    AddPlatform('Linux Arm 64-bit', targetCustom, Linux, Aarch64);
+    AddPlatformSeparator;
+    AddPlatform('Windows 32-bit', targetCustom, Win32, i386);
+    AddPlatform('Windows 64-bit', targetCustom, Win64, x86_64);
+    AddPlatformSeparator;
+    AddPlatform('macOS 64-bit', targetCustom, Darwin, i386);
+    AddPlatform('macOS Arm 64-bit', targetCustom, Darwin, i386);
+    AddPlatformSeparator;
+    AddPlatform('FreeBSD 32-bit', targetCustom, FreeBSD, i386);
+    AddPlatform('FreeBSD 64-bit', targetCustom, FreeBSD, x86_64);
+  end;
+
 begin
   OutputList := TOutputList.Create(ListOutput);
   BuildComponentsMenu(
@@ -718,6 +786,7 @@ begin
     MenuItemDesignAddNonVisual,
     @MenuItemAddComponentClick);
   CreateShellViews;
+  BuildPlatformsMenu;
   ApplicationProperties.OnWarning.Add(@WarningNotification);
 end;
 
@@ -729,6 +798,7 @@ begin
   FreeProcess;
   FreeAndNil(OutputList);
   FreeAndNil(Manifest);
+  FreeAndNil(PlatformsInfo);
 end;
 
 procedure TProjectForm.FormHide(Sender: TObject);
@@ -806,6 +876,11 @@ procedure TProjectForm.MenuItemDesignNewNonVisualClick(Sender: TObject);
 begin
   if ProposeSaveDesign then
     NewDesign(TCastleComponent, nil);
+end;
+
+procedure TProjectForm.MenuItemInstallClick(Sender: TObject);
+begin
+  BuildToolCall(['install']);
 end;
 
 procedure TProjectForm.MenuItemNewDirectoryClick(Sender: TObject);
@@ -1457,6 +1532,25 @@ end;
 
 procedure TProjectForm.BuildToolCall(const Commands: array of String;
   const ExitOnSuccess: Boolean);
+
+  procedure AddPlatformParameters(const Params: TStrings; const PlatformInfo: TPlatformInfo);
+  begin
+    if (PlatformInfo.Target = targetCustom) and
+       (PlatformInfo.OS = DefaultOS) and
+       (PlatformInfo.CPU = DefaultCPU) then
+      // keep command-line simple, to be simpler for user; no point is adding extra parameters
+      Exit;
+
+    if PlatformInfo.Target <> targetCustom then
+    begin
+      Params.Add('--target=' + TargetToString(PlatformInfo.Target));
+    end else
+    begin
+      Params.Add('--os=' + OSToString(PlatformInfo.OS));
+      Params.Add('--cpu=' + CPUToString(PlatformInfo.CPU));
+    end;
+  end;
+
 var
   BuildToolExe, ModeString, Command: String;
   QueueItem: TAsynchronousProcessQueue.TQueueItem;
@@ -1492,6 +1586,14 @@ begin
     QueueItem.CurrentDirectory := ProjectPath;
     QueueItem.Parameters.Add(ModeString);
     QueueItem.Parameters.Add(Command);
+    if (Command = 'compile') or
+       (Command = 'run') or
+       (Command = 'package') or
+       (Command = 'install') then
+      AddPlatformParameters(QueueItem.Parameters, PlatformsInfo[CurrentPlatformInfo]);
+    // editor always does --fast, as its more comfortable for normal development
+    if (Command = 'package') then
+      QueueItem.Parameters.Add('--fast');
     RunningProcess.Queue.Add(QueueItem);
   end;
 
@@ -1537,6 +1639,7 @@ begin
   MenuItemClean.Enabled := AEnabled;
   MenuItemPackage.Enabled := AEnabled;
   MenuItemPackageSource.Enabled := AEnabled;
+  MenuItemInstall.Enabled := AEnabled;
   MenuItemAutoGenerateTextures.Enabled := AEnabled;
   MenuItemAutoGenerateClean.Enabled := AEnabled;
   MenuItemRestartRebuildEditor.Enabled := AEnabled;
@@ -1689,6 +1792,15 @@ begin
     if ShellListViewUpdating = 0 then
       ViewFileFrameUpdate;
   end;
+end;
+
+procedure TProjectForm.MenuItemPlatformChangeClick(Sender: TObject);
+var
+  Mi: TMenuItem;
+begin
+  Mi := Sender as TMenuItem;
+  CurrentPlatformInfo := Mi.Tag;
+  Mi.Checked := true;
 end;
 
 initialization

@@ -21,7 +21,8 @@ unit EditorUtils;
 interface
 
 uses Classes, Types, Controls, StdCtrls, Process, Menus, Generics.Collections,
-  CastleStringUtils;
+  CastleStringUtils,
+  ToolArchitectures;
 
 type
   TMenuItemHelper = class helper for TMenuItem
@@ -29,7 +30,6 @@ type
     procedure SetEnabledVisible(const Value: Boolean);
   end;
 
-type
   TOutputKind = (
     okInfo,
     okImportantInfo,
@@ -126,6 +126,13 @@ type
     procedure Update;
     function Running: Boolean;
   end;
+
+  TPlatformInfo = class
+    Target: TTarget;
+    OS: TOS;
+    CPU: TCPU;
+  end;
+  TPlatformInfoList = specialize TObjectList<TPlatformInfo>;
 
 procedure ErrorBox(const Message: String);
 procedure WarningBox(const Message: String);

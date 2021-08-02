@@ -15,7 +15,7 @@ object ProjectForm: TProjectForm
   OnShow = FormShow
   Position = poMainFormCenter
   ShowInTaskBar = stAlways
-  LCLVersion = '2.0.13.0'
+  LCLVersion = '2.0.10.0'
   object PageControlBottom: TPageControl
     Left = 0
     Height = 224
@@ -220,7 +220,7 @@ object ProjectForm: TProjectForm
   end
   object MainMenu1: TMainMenu
     Left = 44
-    Top = 23
+    Top = 24
     object MenuItemFile: TMenuItem
       Caption = '&Project'
       object MenuItemRestartRebuildEditor: TMenuItem
@@ -414,6 +414,12 @@ object ProjectForm: TProjectForm
         RadioItem = True
         OnClick = MenuItemModeReleaseClick
       end
+      object MenuItemSeparator12312131: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemPlatform: TMenuItem
+        Caption = 'Platform (To Build And Run)'
+      end
       object MenuItemSeparator2: TMenuItem
         Caption = '-'
       end
@@ -431,6 +437,13 @@ object ProjectForm: TProjectForm
       object MenuItemPackageSource: TMenuItem
         Caption = 'Package Source'
         OnClick = MenuItemPackageSourceClick
+      end
+      object MenuItemSeparator12312332424: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemInstall: TMenuItem
+        Caption = 'Install  (only for Android now)'
+        OnClick = MenuItemInstallClick
       end
       object MenuItemSeparator3: TMenuItem
         Caption = '-'
