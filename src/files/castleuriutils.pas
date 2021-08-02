@@ -379,7 +379,7 @@ var
     It is slow (searching for case-insensitive match at each subdirectory and filename).
     But it is a quick way to run applications prepared for case-insensitive
     systems (like Windows) on Unix. }
-  CastleDataIgnoreCase: Boolean = false experimental;
+  CastleDataIgnoreCase: Boolean = false;
 
 implementation
 
