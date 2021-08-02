@@ -853,8 +853,36 @@ procedure TCastleProject.DoRun(const Target: TTarget;
     end;
   end;
 
+  procedure MaybeUseWineToRun(var ExeName: String; const NewParams: TStrings);
+  var
+    WineExe: String;
+  begin
+    if (OS in AllWindowsOSes) and (DefaultOS in AllUnixOSes) then
+    begin
+      Writeln('Running Windows EXE on Unix, trying to use WINE.');
+
+      WineExe := '';
+      // try to find with suffix 32 or 64
+      case CPU of
+        i386: WineExe := FindExe('wine32');
+        x86_64: WineExe := FindExe('wine64');
+        else ;
+      end;
+      // try to use wine without a suffix
+      if WineExe = '' then
+        WineExe := FindExe('wine');
+
+      if WineExe <> '' then
+      begin
+        NewParams.Insert(0, ExeName);
+        ExeName := WineExe;
+      end;
+    end;
+  end;
+
 var
   ExeName: string;
+  NewParams: TCastleStringList;
 begin
   Writeln(Format('Running project "%s" for %s.',
     [Name, TargetCompleteToString(Target, OS, CPU, Plugin)]));
@@ -873,8 +901,14 @@ begin
     ExeName := Path + ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
     MaybeUseWrapperToRun(ExeName);
     Writeln('Running ' + ExeName);
-    { We set current path to Path, not OutputPath, because data/ subdirectory is under Path. }
-    RunCommandSimple(Path, ExeName, Params.ToArray, 'CASTLE_LOG', 'stdout');
+    NewParams := TCastleStringList.Create;
+    try
+      NewParams.Assign(Params);
+      MaybeUseWineToRun(ExeName, NewParams);
+      Flush(Output); // needed to see "Running Windows EXE on Unix, trying to use WINE." in right order in editor
+      { We set current path to Path, not OutputPath, because data/ subdirectory is under Path. }
+      RunCommandSimple(Path, ExeName, NewParams.ToArray, 'CASTLE_LOG', 'stdout');
+    finally FreeAndNil(NewParams) end;
   end else
     raise Exception.Create('The "run" command is not useful for this OS / CPU right now. Run the application manually.');
 end;
