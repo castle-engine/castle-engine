@@ -883,3 +883,31 @@ div.download .download_platform {
 .panel-body::after {
   clear: none !important;
 }
+
+/* talk page ---------------------------------------------------------------- */
+
+.talk-buttons-row {
+  text-align: center;
+}
+
+.talk-button {
+  display: inline-block;
+  width: 300px; /* buttons have hardcoded size, as one of them is Discord iframe, no other way to size it */
+  height: 300px;
+  margin-left: 1em;
+  margin-right: 1em;
+  margin-bottom: 1em;
+  margin-top: 1em;
+  vertical-align: top; /* align iframe with normal buttons vertically OK */
+}
+
+.talk-button > p {
+  margin-top: 75px; /* buttons have hardcoded size, so hardcode margin is OK too */
+  line-height: 50px;
+  font-weight: bold;
+}
+
+.talk-button > p > img {
+  width: 100px;
+  height: 100px;
+}
