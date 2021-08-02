@@ -691,11 +691,10 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     ShellListView1.OnSelectItem := @ShellListViewSelectItem;
     ShellListView1.Hint := 'Double-click to open.' + NL +
       NL +
-      '- Scenes open in engine viewer (view3dscene).' + NL +
-      '- Images open in engine viewer (castle-view-image).' + NL +
-      '- Design opens in this editor window.' + NL +
-      '- Pascal files open in Lazarus.' + NL +
-      '- Other files open in external applications.';
+      '- Scenes and images open in engine viewers (view3dscene, castle-view-image).' + NL +
+      '- Designs open in this editor.' + NL +
+      '- Pascal files open in the code editor.' + NL +
+      '- Other files open in OS default applications.';
     ShellListView1.PopupMenu := ShellListPopupMenu;
     ShellListView1.SmallImages := ShellIcons;
     ShellListView1.DragMode := dmAutomatic;
