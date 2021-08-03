@@ -246,7 +246,7 @@ type
     These include @link(TInputListener.Update), @link(TCastleUserInterface.Render),
     @link(TInputListener.Resize). }
   TUIContainer = class abstract(TComponent)
-  private
+  strict private
     type
       TFingerIndexCaptureMap = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<TFingerIndex, TCastleUserInterface>;
     var
@@ -257,9 +257,6 @@ type
     FOnPress, FOnRelease: TInputPressReleaseEvent;
     FOnMotion: TInputMotionEvent;
     FOnUpdate: TContainerEvent;
-    { FControls cannot be declared as TChildrenControls to avoid
-      http://bugs.freepascal.org/view.php?id=22495 }
-    FControls: TObject;
     FFocus, FNewFocus: TCastleUserInterfaceList;
     { Capture controls, for each FingerIndex.
       The values in this map are never nil. }
@@ -278,7 +275,7 @@ type
     FUIReferenceWidth: Single;
     FUIReferenceHeight: Single;
     FUIExplicitScale: Single;
-    FCalculatedUIScale: Single; //< set on all children
+    FUIScale: Single;
     FFps: TFramesPerSecond;
     FPressed: TKeysPressed;
     FMousePressed: TCastleMouseButtons;
@@ -292,10 +289,6 @@ type
     FBackgroundEnable: Boolean;
     FBackgroundColor: TCastleColor;
 
-    procedure ControlsVisibleChange(const Sender: TInputListener;
-      const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean);
-    { Called when the control C is destroyed or just removed from Controls list. }
-    procedure DetachNotification(const C: TCastleUserInterface);
     function UseForceCaptureInput: boolean;
     function TryGetFingerOfControl(const C: TCastleUserInterface; out Finger: TFingerIndex): boolean;
     procedure SetUIScaling(const Value: TUIScaling);
@@ -304,7 +297,6 @@ type
     procedure SetUIExplicitScale(const Value: Single);
     procedure UpdateUIScale;
     procedure SetForceCaptureInput(const Value: TCastleUserInterface);
-    class procedure RenderControlPrepare(const ViewportRect: TRectangle); static;
     function PassEvents(const C: TCastleUserInterface;
       const CheckMousePosition: Boolean = true): Boolean;
     function PassEvents(const C: TCastleUserInterface;
@@ -316,6 +308,15 @@ type
     function PassEvents(const C: TCastleUserInterface;
       const Event: TInputMotion;
       const CheckEventPosition: Boolean = true): Boolean;
+  private
+    { FControls cannot be declared as TChildrenControls to avoid
+      http://bugs.freepascal.org/view.php?id=22495 }
+    FControls: TObject;
+    procedure ControlsVisibleChange(const Sender: TInputListener;
+      const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean);
+    class procedure RenderControlPrepare(const ViewportRect: TRectangle); static;
+    { Called when the control C is destroyed or just removed from Controls list. }
+    procedure DetachNotification(const C: TCastleUserInterface);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -352,14 +353,6 @@ type
       Just run examples/window/window_events.lpr,
       move mouse around, and press "5" (this does "MousePosition := window middle"). }
     function SettingMousePositionCausesMotion: Boolean; virtual;
-
-    { Get the default UI scale of controls.
-      Useful only when GLInitialized, when we know that our size is sensible.
-      Almost all UI code should rather be placed in TCastleUserInterface,
-      and use TCastleUserInterface.UIScale,
-      not directly accessing Container.DefaultUIScale or
-      Container.FCalculatedUIScale. }
-    function DefaultUIScale: Single;
   public
     const
       DefaultBackgroundColor: TVector4 = (Data: (0.1, 0.1, 0.1, 1));
@@ -400,6 +393,14 @@ type
     function EventSensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; virtual;
     function EventSensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; virtual;
     { @groupEnd }
+
+    { Get the default UI scale of controls.
+      Useful only when GLInitialized, when we know that our size is sensible.
+
+      UI code should prefer to use TCastleUserInterface.UIScale,
+      not directly accessing this TUIContainer.UIScale
+      (this way the code respects the TCastleUserInterface.EnableUIScaling value). }
+    property UIScale: Single read FUIScale;
 
     { Controls listening for events (user input, resize, and such) of this container.
 
@@ -1895,11 +1896,11 @@ type
       In contrast, adjusting position using this method
       will typically need to be repeated at each window on resize,
       like in @link(TCastleWindowBase.OnResize). }
-    procedure Center;
+    procedure Center; deprecated 'use Anchor(hpMiddle); Anchor(vpMiddle); to reliably center the control';
 
     { UI scale of this control, derived from container
       (see @link(TUIContainer.UIScaling) and @link(EnableUIScaling)). }
-    property UIScale: Single read FLastSeenUIScale;
+    function UIScale: Single; virtual;
 
     { Override this to prevent resizing some dimension in CGE editor. }
     procedure EditorAllowResize(out ResizeWidth, ResizeHeight: Boolean;
@@ -1917,7 +1918,7 @@ type
       when inserting.
 
       TODO: Do not change this property while the control is already
-      a children of something. }
+      a child of something. }
     property KeepInFront: boolean read FKeepInFront write FKeepInFront
       default false;
 
@@ -2424,7 +2425,7 @@ begin
   FCaptureInput := TFingerIndexCaptureMap.Create;
   FUIScaling := usNone;
   FUIExplicitScale := 1.0;
-  FCalculatedUIScale := 1.0; // default safe value, in case some TCastleUserInterface will look here
+  FUIScale := 1.0; // default safe value, in case some TCastleUserInterface will look here
   FFocus := TCastleUserInterfaceList.Create(false);
   FNewFocus := TCastleUserInterfaceList.Create(false);
   FFps := TFramesPerSecond.Create;
@@ -3491,7 +3492,7 @@ procedure TUIContainer.EventResize;
 begin
   if UIScaling in [usEncloseReferenceSize, usFitReferenceSize] then
     { usXxxReferenceSize adjust current Width/Height to reference,
-      so the FCalculatedUIScale must be adjusted on each resize. }
+      so the FUIScale must be adjusted on each resize. }
     UpdateUIScale;
 
   { Note that we don't cause TCastleUserInterface.Resize calls now.
@@ -3700,44 +3701,45 @@ begin
   end;
 end;
 
-function TUIContainer.DefaultUIScale: Single;
-begin
-  case UIScaling of
-    usNone         : Result := 1;
-    usExplicitScale: Result := UIExplicitScale;
-    usDpiScale     : Result := Dpi / DefaultDpi;
-    usEncloseReferenceSize, usFitReferenceSize:
-      begin
-        Result := 1;
-
-        { don't do adjustment before our Width/Height are sensible }
-        if not GLInitialized then Exit;
-
-        if (UIReferenceWidth <> 0) and (Width > 0) then
-        begin
-          Result := Width / UIReferenceWidth;
-          if (UIReferenceHeight <> 0) and (Height > 0) then
-            if UIScaling = usEncloseReferenceSize then
-              MinVar(Result, Height / UIReferenceHeight) else
-              MaxVar(Result, Height / UIReferenceHeight);
-        end else
-        if (UIReferenceHeight <> 0) and (Height > 0) then
-          Result := Height / UIReferenceHeight;
-        // Too talkative when resizing a window (also in castle-editor)
-        // WritelnLog('Scaling', 'Automatic scaling to reference sizes %f x %f in effect. Actual window size is %d x %d. Calculated scale is %f, which simulates surface of size %f x %f.',
-        //   [UIReferenceWidth, UIReferenceHeight,
-        //    Width, Height,
-        //    Result, Width / Result, Height / Result]);
-      end;
-    {$ifndef COMPILER_CASE_ANALYSIS}
-    else raise EInternalError.Create('UIScaling unknown');
-    {$endif}
-  end;
-end;
-
 procedure TUIContainer.UpdateUIScale;
+
+  function CalculateUIScale: Single;
+  begin
+    case UIScaling of
+      usNone         : Result := 1;
+      usExplicitScale: Result := UIExplicitScale;
+      usDpiScale     : Result := Dpi / DefaultDpi;
+      usEncloseReferenceSize, usFitReferenceSize:
+        begin
+          Result := 1;
+
+          { don't do adjustment before our Width/Height are sensible }
+          if not GLInitialized then Exit;
+
+          if (UIReferenceWidth <> 0) and (Width > 0) then
+          begin
+            Result := Width / UIReferenceWidth;
+            if (UIReferenceHeight <> 0) and (Height > 0) then
+              if UIScaling = usEncloseReferenceSize then
+                MinVar(Result, Height / UIReferenceHeight) else
+                MaxVar(Result, Height / UIReferenceHeight);
+          end else
+          if (UIReferenceHeight <> 0) and (Height > 0) then
+            Result := Height / UIReferenceHeight;
+          // Too talkative when resizing a window (also in castle-editor)
+          // WritelnLog('Scaling', 'Automatic scaling to reference sizes %f x %f in effect. Actual window size is %d x %d. Calculated scale is %f, which simulates surface of size %f x %f.',
+          //   [UIReferenceWidth, UIReferenceHeight,
+          //    Width, Height,
+          //    Result, Width / Result, Height / Result]);
+        end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('UIScaling unknown');
+      {$endif}
+    end;
+  end;
+
 begin
-  FCalculatedUIScale := DefaultUIScale;
+  FUIScale := CalculateUIScale;
 
   { Note that we don't cause TCastleUserInterface.UIScaleChanged calls now.
     They are done before BeforeRender, this way culled UI controls
@@ -3749,12 +3751,12 @@ end;
 
 function TUIContainer.UnscaledWidth: Single;
 begin
-  Result := Width / FCalculatedUIScale;
+  Result := Width / FUIScale;
 end;
 
 function TUIContainer.UnscaledHeight: Single;
 begin
-  Result := Height / FCalculatedUIScale;
+  Result := Height / FUIScale;
 end;
 
 function TUIContainer.UnscaledRect: TFloatRectangle;
@@ -3762,14 +3764,14 @@ begin
   Result := FloatRectangle(Rect);
   if not Result.IsEmpty then
   begin
-    Result.Width  := Result.Width  / FCalculatedUIScale;
-    Result.Height := Result.Height / FCalculatedUIScale;
+    Result.Width  := Result.Width  / FUIScale;
+    Result.Height := Result.Height / FUIScale;
   end;
 end;
 
 function TUIContainer.StatusBarHeight: Single;
 begin
-  Result := ScaledStatusBarHeight / FCalculatedUIScale;
+  Result := ScaledStatusBarHeight / FUIScale;
 end;
 
 function TUIContainer.SaveScreen(const SaveRect: TRectangle): TRGBImage;
@@ -4319,12 +4321,17 @@ begin
   Result := false;
 end;
 
+function TCastleUserInterface.UIScale: Single;
+begin
+  Result := FLastSeenUIScale;
+end;
+
 procedure TCastleUserInterface.CheckUIScaleChanged;
 var
   NewUIScale: Single;
 begin
   if (Container <> nil) and EnableUIScaling then
-    NewUIScale := Container.FCalculatedUIScale
+    NewUIScale := Container.UIScale
   else
     NewUIScale := 1;
   if FLastSeenUIScale <> NewUIScale then
