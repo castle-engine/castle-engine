@@ -121,6 +121,17 @@ type
     class function GetCurrentTop: TUIState; static;
     class function GetStateStack(const Index: Integer): TUIState; static;
   protected
+    { As the state knows about the container it will be put in (StateContainer),
+      the state size is always known.
+      It is known regardless if we are between Start / Stop,
+      regardless if the state is already added to some Container.Items.
+      This makes all other routines, like ParentRect, EffectiveRect, EffectiveWidth,
+      EffectiveHeight also work. }
+    function ContainerWidth: Cardinal; override;
+    function ContainerHeight: Cardinal; override;
+    function ContainerRect: TRectangle; override;
+    function ContainerSizeKnown: boolean; override;
+
     { Container on which state works. By default, this is
       @link(TCastleApplication.MainWindow Application.MainWindow)
       if you use CastleWindow or
@@ -335,6 +346,7 @@ type
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
     procedure Render; override;
+    function UIScale: Single; override;
 
     { Load and show a user interface from a .castle-user-interface file,
       designed in Castle Game Engine Editor.
@@ -984,6 +996,34 @@ begin
   if FDesignLoaded = nil then
     ErrorDesignLoaded;
   Result := FDesignLoadedOwner.FindRequiredComponent(ComponentName);
+end;
+
+function TUIState.ContainerWidth: Cardinal;
+begin
+  Result := StateContainer.Width;
+end;
+
+function TUIState.ContainerHeight: Cardinal;
+begin
+  Result := StateContainer.Height;
+end;
+
+function TUIState.ContainerRect: TRectangle;
+begin
+  Result := StateContainer.Rect;
+end;
+
+function TUIState.ContainerSizeKnown: boolean;
+begin
+  Result := true;
+end;
+
+function TUIState.UIScale: Single;
+begin
+  if EnableUIScaling then
+    Result := StateContainer.UIScale
+  else
+    Result := 1.0;
 end;
 
 end.

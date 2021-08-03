@@ -902,10 +902,10 @@ type
   protected
     { Container sizes.
       @groupBegin }
-    function ContainerWidth: Cardinal;
-    function ContainerHeight: Cardinal;
-    function ContainerRect: TRectangle;
-    function ContainerSizeKnown: boolean;
+    function ContainerWidth: Cardinal; virtual;
+    function ContainerHeight: Cardinal; virtual;
+    function ContainerRect: TRectangle; virtual;
+    function ContainerSizeKnown: boolean; virtual;
     { @groupEnd }
 
     procedure SetContainer(const Value: TUIContainer); virtual;
