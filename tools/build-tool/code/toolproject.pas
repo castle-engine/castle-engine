@@ -1400,7 +1400,7 @@ procedure TCastleProject.DoEditor;
   end;
 
 var
-  EditorExe, CgePath, EditorPath, LazbuildExe: String;
+  EditorExe, CgePath, EditorPath: String;
 begin
   if Trim(Manifest.EditorUnits) = '' then
   begin
@@ -1423,13 +1423,10 @@ begin
     ExtractTemplate('custom_editor_template/', EditorPath, true);
 
     // use lazbuild to compile CGE packages and CGE editor
-    LazbuildExe := FindExeLazarus('lazbuild');
-    if LazbuildExe = '' then
-      raise Exception.Create('Cannot find "lazbuild" program on $PATH. It is needed to build a custom CGE editor version.');
-    RunCommandSimple(LazbuildExe, CgePath + 'packages' + PathDelim + 'castle_base.lpk');
-    RunCommandSimple(LazbuildExe, CgePath + 'packages' + PathDelim + 'castle_components.lpk');
-    RunCommandSimple(LazbuildExe, EditorPath + 'castle_editor_automatic_package.lpk');
-    RunCommandSimple(LazbuildExe, EditorPath + 'castle_editor.lpi');
+    RunLazbuild(Path, [CgePath + 'packages' + PathDelim + 'castle_base.lpk']);
+    RunLazbuild(Path, [CgePath + 'packages' + PathDelim + 'castle_components.lpk']);
+    RunLazbuild(Path, [EditorPath + 'castle_editor_automatic_package.lpk']);
+    RunLazbuild(Path, [EditorPath + 'castle_editor.lpi']);
 
     AddExternalLibraries(EditorPath);
 
