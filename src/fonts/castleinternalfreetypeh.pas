@@ -467,7 +467,9 @@ begin
   // Windows
   {$ifdef MSWINDOWS}
     {$define ft_found_platform}
-    FreeTypeLibrary := TDynLib.Load('freetype-6.dll', false);
+    FreeTypeLibrary := TDynLib.Load('freetype.dll', false);
+    if FreeTypeLibrary = nil then
+      FreeTypeLibrary := TDynLib.Load('freetype-6.dll', false);
   {$endif}
 
   // macOS
@@ -476,6 +478,11 @@ begin
     FreeTypeLibrary := TDynLib.Load('libfreetype.dylib', false);
     if FreeTypeLibrary = nil then
       FreeTypeLibrary := TDynLib.Load('libfreetype.6.dylib', false);
+    // try in typical location
+    if FreeTypeLibrary = nil then
+      FreeTypeLibrary := TDynLib.Load('/usr/X11/lib/libfreetype.dylib', false);
+    if FreeTypeLibrary = nil then
+      FreeTypeLibrary := TDynLib.Load('/usr/X11/lib/libfreetype.dylib.6', false);
   {$endif}
 
   // UNIX

@@ -38,7 +38,7 @@ var
 
 implementation
 
-uses GameStateMenu;
+uses CastleSoundEngine, GameStateMenu;
 
 constructor TStateGameOver.Create(AOwner: TComponent);
 begin
@@ -57,6 +57,9 @@ begin
 
   ButtonMenu := DesignedComponent('ButtonMenu') as TCastleButton;
   ButtonMenu.OnClick := @ClickMenu;
+
+  { Play menu music }
+  SoundEngine.LoopingChannel[0].Sound := SoundEngine.SoundFromName('menu_music');
 end;
 
 end.

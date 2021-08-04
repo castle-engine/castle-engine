@@ -125,7 +125,7 @@ var
 implementation
 
 uses Math,
-  CastleLog, CastleGLUtils, CastleUIControls, CastleGLBoxes, CastleSceneCore,
+  CastleLog, CastleGLUtils, CastleUIControls, CastleSceneCore,
   GameConfiguration;
 
 const

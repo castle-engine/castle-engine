@@ -38,6 +38,7 @@
     procedure SetOutline(const Value: Cardinal);
     procedure SetOutlineColor(const Value: TCastleColor);
     procedure SetOutlineHighQuality(const Value: boolean);
+    procedure CustomFontSizeChanged(Sender: TObject);
   protected
     procedure UIScaleChanged; override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -105,9 +106,9 @@
       TCastleUserInterface.TooltipRender to customize the tooltip drawing. }
     property Tooltip: string read FTooltip write FTooltip;
 
-    { When non-nil, this font will be used to draw this control.
-      Otherwise the @link(TUIContainer.DefaultFont) will be used,
-      or the global @link(UIFont). }
+    { Font used to render text of this control.
+      When this is @nil then the @link(TUIContainer.DefaultFont) is used,
+      or (when @link(TUIContainer.DefaultFont) is also @nil) the global @link(UIFont). }
     property CustomFont: TCastleAbstractFont
       read FCustomFont write SetCustomFont;
 
@@ -244,7 +245,8 @@ end;
 
 function TCastleUserInterfaceFont.Font: TCastleAbstractFont;
 begin
-  if CustomFont <> nil then
+  // do not use CustomFont if it is not loaded, as it would not be visible
+  if (CustomFont <> nil) and CustomFont.FontLoaded then
     Result := CustomFont
   else
   if (Container <> nil) and
@@ -289,16 +291,16 @@ begin
     begin
       { copying Result to FCustomizedFont this way allows to render with HTML
         when CustomFont and FontSize/FontScale are used together }
-      FCustomizedFont.RegularFont := TCastleFontFamily(Result).RegularFont;
-      FCustomizedFont.BoldFont := TCastleFontFamily(Result).BoldFont;
-      FCustomizedFont.ItalicFont := TCastleFontFamily(Result).ItalicFont;
-      FCustomizedFont.BoldItalicFont := TCastleFontFamily(Result).BoldItalicFont;
+      FCustomizedFont.Regular := TCastleFontFamily(Result).Regular;
+      FCustomizedFont.Bold := TCastleFontFamily(Result).Bold;
+      FCustomizedFont.Italic := TCastleFontFamily(Result).Italic;
+      FCustomizedFont.BoldItalic := TCastleFontFamily(Result).BoldItalic;
     end else
     begin
-      FCustomizedFont.RegularFont := Result;
-      FCustomizedFont.BoldFont := nil;
-      FCustomizedFont.ItalicFont := nil;
-      FCustomizedFont.BoldItalicFont := nil;
+      FCustomizedFont.Regular := Result;
+      FCustomizedFont.Bold := nil;
+      FCustomizedFont.Italic := nil;
+      FCustomizedFont.BoldItalic := nil;
     end;
     if Outline <> 0 then
     begin
@@ -316,7 +318,10 @@ begin
   if FCustomFont <> Value then
   begin
     if FCustomFont <> nil then
+    begin
       FCustomFont.RemoveFreeNotification(Self);
+      FCustomFont.RemoveFontSizeChangeNotification(@CustomFontSizeChanged);
+    end;
     {$warnings off}
     if OwnsCustomFont then
       FreeAndNil(FCustomFont) else
@@ -324,7 +329,15 @@ begin
     {$warnings on}
     FCustomFont := Value;
     if FCustomFont <> nil then
+    begin
       FCustomFont.FreeNotification(Self);
+      { We need to be notified about font size changes,
+        in particular when new font file is loaded in TCastleFont.
+        Testcase: assing to TCastleLabel.CustomFont some TCastleFont,
+        then change the TCastleFont.URL (without changing anything
+        at TCastleLabel directly) -- the TCastleLabel size should change. }
+      FCustomFont.AddFontSizeChangeNotification(@CustomFontSizeChanged);
+    end;
     { don't call virtual function, that may try to measure the text by accessing Font
       (needlessly using UIFont, possibly even recreating UIFont if "finalization"
       of this unit already run, possibly even accessing invalid freed
@@ -453,10 +466,17 @@ end;
 function TCastleUserInterfaceFont.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'FontSize') then
-    Result := [psBasic]
-  else
-    Result := inherited PropertySections(PropertyName);
+  case PropertyName of
+    'FontSize', 'CustomFont':
+      Result := [psBasic];
+    else
+      Result := inherited PropertySections(PropertyName);
+  end;
+end;
+
+procedure TCastleUserInterfaceFont.CustomFontSizeChanged(Sender: TObject);
+begin
+  FontChanged;
 end;
 
 {$define read_implementation_methods}

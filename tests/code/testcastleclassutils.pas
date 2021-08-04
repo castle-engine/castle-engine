@@ -39,6 +39,7 @@ type
     procedure TestNotifyEventArray;
     procedure TestLineColumn_SimplePeekCharStream;
     procedure TestLineColumn_BufferedReadStream;
+    procedure TestForIn;
   end;
 
   TFoo = class
@@ -307,6 +308,50 @@ begin
   TestLineColumnStreamCore(@BufferedReadStreamFromStream);
   BufferSize := 1; // assign before using BufferedReadStreamFromStream
   TestLineColumnStreamCore(@BufferedReadStreamFromStream);
+end;
+
+procedure TTestCastleClassUtils.TestForIn;
+var
+  C1, C2, C3, C: TComponent;
+  T: TCastleComponent;
+  I: Integer;
+begin
+  T := TCastleComponent.Create(nil);
+
+  C1 := TComponent.Create(nil);
+  C1.Name := 'B1';
+  T.AddNonVisualComponent(C1);
+
+  C2 := TComponent.Create(nil);
+  C2.Name := 'B2';
+  T.AddNonVisualComponent(C2);
+
+  { This actually adds C1 again, as we don't have a problem with it
+    on NonVisualComponents list, unlike AddBehavior. }
+  T.AddNonVisualComponent(C1);
+
+  C3 := TComponent.Create(nil);
+  C3.Name := 'C3';
+  T.AddNonVisualComponent(C3);
+
+  AssertEquals(4, T.NonVisualComponentsCount);
+  AssertTrue(T.NonVisualComponents[0] = C1);
+  AssertTrue(T.NonVisualComponents[1] = C2);
+  AssertTrue(T.NonVisualComponents[2] = C1);
+  AssertTrue(T.NonVisualComponents[3] = C3);
+
+  I := 0;
+  for C in T.NonVisualComponentsEnumerate do
+  begin
+    AssertTrue(T.NonVisualComponents[I] = C);
+    Inc(I);
+  end;
+  AssertEquals(4, I);
+
+  FreeAndNil(T);
+  FreeAndNil(C1);
+  FreeAndNil(C2);
+  FreeAndNil(C3);
 end;
 
 initialization

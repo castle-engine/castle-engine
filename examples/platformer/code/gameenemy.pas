@@ -19,7 +19,7 @@ unit GameEnemy;
 interface
 
 uses Classes, Generics.Collections,
-  CastleVectors, CastleScene, CastleTransform;
+  CastleVectors, CastleScene, CastleTransform, CastleSoundEngine;
 
 type
   TEnemy = class(TCastleBehavior)
@@ -46,7 +46,7 @@ uses
   CastleLog,
   GameStatePlay;
 
-{ TEnemy }
+{ TEnemy --------------------------------------------------------------------- }
 
 constructor TEnemy.Create(AOwner: TComponent);
 begin
@@ -88,7 +88,7 @@ begin
   RayMaxDistance := Scene.BoundingBox.SizeY * 0.50 + 5;
 
   EnemyOnGround := Scene.RigidBody.PhysicsRayCast(Scene.Translation,
-  Vector3(0, -1, 0), RayMaxDistance) <> nil;
+    Vector3(0, -1, 0), RayMaxDistance) <> nil;
 
   if not EnemyOnGround then
   begin
@@ -145,9 +145,9 @@ end;
 
 procedure TEnemy.TakeDamageFromBullet(const Bullet: TCastleTransform);
 begin
+  SoundEngine.Play(SoundEngine.SoundFromName('hit_enemy'));
   Bullet.Exists := false;
-  { TODO: When we only change Bullet.Exists = false, rigid body
-    still exists, this is only temporary hack to fix that. }
+  //TODO: Exists in root problem workaround (https://github.com/castle-engine/castle-engine/pull/292)
   Bullet.RigidBody.Exists := false;
 
   Dead := true;
@@ -161,7 +161,8 @@ begin
 
   if CollisionDetails.OtherTransform.Name = 'ScenePlayer' then
     HitPlayer
-  else if CollisionDetails.OtherTransform is TBullet then
+  else
+  if CollisionDetails.OtherTransform is TBullet then
     TakeDamageFromBullet(CollisionDetails.OtherTransform);
 end;
 

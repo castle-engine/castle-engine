@@ -524,7 +524,7 @@ begin
   Quantity := Quantity - 1;
   Notifications.Show(Format('You use "%s"', [Resource.Caption]));
   { A simplest demo how to play sound defined in sounds/index.xml }
-  SoundEngine.Sound(SoundEngine.SoundFromName('medkit_use'));
+  SoundEngine.Play(SoundEngine.SoundFromName('medkit_use'));
 end;
 
 { If you want to do something immediately at pickup, you can override

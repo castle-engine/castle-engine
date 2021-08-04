@@ -29,13 +29,13 @@ type
     we need to work with FPC 3.0.4. }
   TSerializedComponentHelper = class helper for TSerializedComponent
     { Instantiate component.
-      Using this is equivalent to using global @link(UserInterfaceLoad),
-      but it is much faster if you want to instantiate the same file many times. }
+      Using this is equivalent to using global @link(CastleUIControls.UserInterfaceLoad),
+      but this is much faster if you want to instantiate the same file many times. }
     function UserInterfaceLoad(const Owner: TComponent): TCastleUserInterface;
 
     { Instantiate component.
-      Using this is equivalent to using global @link(TransformLoad),
-      but it is much faster if you want to instantiate the same file many times. }
+      Using this is equivalent to using global @link(CastleTransform.TransformLoad),
+      but this is much faster if you want to instantiate the same file many times. }
     function TransformLoad(const Owner: TComponent): TCastleTransform;
   end;
 

@@ -47,24 +47,66 @@
     function GetSpatialize: Boolean;
     procedure SetSpatialize(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdDirection: TSFVec3f;
+    { X3D field "direction". } { }
+    public property FdDirection: TSFVec3f read FFdDirection;
     { X3D field "direction". } { }
     property Direction: TVector3 read GetDirection write SetDirection;
+
+    strict private FFdIntensity: TSFFloat;
+    { X3D field "intensity". } { }
+    public property FdIntensity: TSFFloat read FFdIntensity;
     { X3D field "intensity". } { }
     property Intensity: Single read GetIntensity write SetIntensity;
+
+    strict private FFdLocation: TSFVec3f;
+    { X3D field "location". } { }
+    public property FdLocation: TSFVec3f read FFdLocation;
     { X3D field "location". } { }
     property Location: TVector3 read GetLocation write SetLocation;
+
+    strict private FFdMaxBack: TSFFloat;
+    { X3D field "maxBack". } { }
+    public property FdMaxBack: TSFFloat read FFdMaxBack;
     { X3D field "maxBack". } { }
     property MaxBack: Single read GetMaxBack write SetMaxBack;
+
+    strict private FFdMaxFront: TSFFloat;
+    { X3D field "maxFront". } { }
+    public property FdMaxFront: TSFFloat read FFdMaxFront;
     { X3D field "maxFront". } { }
     property MaxFront: Single read GetMaxFront write SetMaxFront;
+
+    strict private FFdMinBack: TSFFloat;
+    { X3D field "minBack". } { }
+    public property FdMinBack: TSFFloat read FFdMinBack;
     { X3D field "minBack". } { }
     property MinBack: Single read GetMinBack write SetMinBack;
+
+    strict private FFdMinFront: TSFFloat;
+    { X3D field "minFront". } { }
+    public property FdMinFront: TSFFloat read FFdMinFront;
     { X3D field "minFront". } { }
     property MinFront: Single read GetMinFront write SetMinFront;
+
+    strict private FFdPriority: TSFFloat;
+    { X3D field "priority". } { }
+    public property FdPriority: TSFFloat read FFdPriority;
     { X3D field "priority". } { }
     property Priority: Single read GetPriority write SetPriority;
+
+    strict private FFdSource: TSFNode;
+    { X3D field "source". } { }
+    public property FdSource: TSFNode read FFdSource;
     { X3D field "source". } { }
     property Source: TAbstractSoundSourceNode read GetSource write SetSource;
+
+    strict private FFdSpatialize: TSFBool;
+    { X3D field "spatialize". } { }
+    public property FdSpatialize: TSFBool read FFdSpatialize;
     { X3D field "spatialize". } { }
     property Spatialize: Boolean read GetSpatialize write SetSpatialize;
 
@@ -175,6 +217,56 @@ end;
 procedure TSoundNode.SetSpatialize(const Value: Boolean);
 begin
   FdSpatialize.Send(Value);
+end;
+
+class function TSoundNode.ClassX3DType: String;
+begin
+  Result := 'Sound';
+end;
+
+procedure TSoundNode.CreateNode;
+begin
+  inherited;
+
+  FFdDirection := TSFVec3f.Create(Self, True, 'direction', Vector3(0, 0, 1));
+   FdDirection.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDirection);
+
+  FFdIntensity := TSFFloat.Create(Self, True, 'intensity', 1);
+   FdIntensity.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdIntensity);
+
+  FFdLocation := TSFVec3f.Create(Self, True, 'location', Vector3(0, 0, 0));
+   FdLocation.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdLocation);
+
+  FFdMaxBack := TSFFloat.Create(Self, True, 'maxBack', 10);
+   FdMaxBack.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMaxBack);
+
+  FFdMaxFront := TSFFloat.Create(Self, True, 'maxFront', 10);
+   FdMaxFront.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMaxFront);
+
+  FFdMinBack := TSFFloat.Create(Self, True, 'minBack', 1);
+   FdMinBack.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMinBack);
+
+  FFdMinFront := TSFFloat.Create(Self, True, 'minFront', 1);
+   FdMinFront.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMinFront);
+
+  FFdPriority := TSFFloat.Create(Self, True, 'priority', 0);
+   FdPriority.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdPriority);
+
+  FFdSource := TSFNode.Create(Self, True, 'source', [TAbstractSoundSourceNode]);
+   FdSource.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSource);
+
+  FFdSpatialize := TSFBool.Create(Self, False, 'spatialize', true);
+   FdSpatialize.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSpatialize);
 end;
 
 {$endif read_implementation}

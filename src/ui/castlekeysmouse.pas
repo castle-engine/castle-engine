@@ -376,7 +376,7 @@ type
 
   TCastleMouseButton = (buttonLeft, buttonMiddle, buttonRight, buttonExtra1, buttonExtra2);
   TCastleMouseButtons = set of TCastleMouseButton;
-  
+
   TMouseButton = TCastleMouseButton deprecated 'use TCastleMouseButton';
   TMouseButtons = TCastleMouseButtons deprecated 'use TCastleMouseButtons';
 
@@ -684,14 +684,23 @@ type
       released on a touch device. Always 0 for normal mouse events. }
     FingerIndex: TFingerIndex;
 
-    { The position of the current mouse/finger on the window,
+    { The position of the current mouse/finger on the container,
       for EventType = itMouseButton (in case of mouse press/release).
+
+      The position is relative to the whole container (rendering area
+      of TCastleWindowBase or TCastleControlBase). With left-bottom being
+      (0,0) and X growing to the right and Y growing up.
+      The position is in final device coordinates, i.e. it ignores
+      @link(TUIContainer.UIScaling).
+      Use e.g. @link(TCastleUserInterface.ContainerToLocalPosition)
+      to easily convert this position into a position suitable for given UI control
+      children.
 
       For normal backends that simply support a single mouse device,
       this is just equivalent to TCastleWindowBase.MousePosition
-      and TCastleControlBase.MousePosition, so it's not really interesting.
+      and TCastleControlBase.MousePosition.
 
-      For multi-touch devices, this is very useful, as it describes
+      For multi-touch devices, this describes
       the position of the current finger (corresponding to FingerIndex).
 
       For other EventType values (not itMouseButton),
@@ -743,8 +752,16 @@ type
 
   { Motion (movement) of mouse or a finger on a touch device. }
   TInputMotion = object
+    { Old and new positions of the mouse or finger.
+      In the same coordinate system as @link(TInputPressRelease.Position). }
     OldPosition, Position: TVector2;
+
+    { Currently pressed mouse buttons.
+      On touch devices, this is always just [buttonLeft]. }
     Pressed: TCastleMouseButtons;
+
+    { Finger that is moving, on touch devices.
+      If you use mouse, this is always just 0. }
     FingerIndex: TFingerIndex;
   end;
 

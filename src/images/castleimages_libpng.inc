@@ -519,7 +519,9 @@ begin
     ]);
     WritelnLog('LibPng detected (version %s).', [FCurrentLibpngVersion]);
   end else
-    WritelnLog('LibPng not found. We will use slower FPImage to load PNG format.');
+    WritelnLog('LibPng not found.' + NL +
+      '  This also happens when a dependency of LibPng, like Zlib, is missing.' + NL +
+      '  We will use slower FPImage to load PNG format.');
 end;
 
 { error / warning handlers --------------------------------------------------- }

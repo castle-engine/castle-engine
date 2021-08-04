@@ -61,8 +61,9 @@ type
     constructor Create(AALCErrorNum: TALenum; const AMessage: string);
   end;
 
-{ @raises(EALError if alGetError returned something <> AL_NO_ERROR) }
-procedure CheckAL(const situation: string);
+{ Check current OpenAL state,
+  if error raise exception (by default) or make warning (if Warning = @true). }
+procedure CheckAL(const Situation: String; const Warning: Boolean = false);
 
 { ---------------------------------------------------------------------------- }
 { @section(Query AL state) }
@@ -196,14 +197,24 @@ begin
   inherited Create(AMessage);
 end;
 
-procedure CheckAL(const situation: string);
+procedure CheckAL(const Situation: String; const Warning: Boolean);
 var
   Err: TALenum;
+  ErrorStr: String;
 begin
   Err := alGetError();
   if Err <> AL_NO_ERROR then
-    raise EALError.Create(Err,
-      'OpenAL error AL_xxx at ' + Situation + ' : ' + alGetString(Err));
+  begin
+    ErrorStr := Format('OpenAL error when doing %s: (%d) %s', [
+      Situation,
+      Err,
+      alGetString(Err)
+    ]);
+    if Warning then
+      WritelnWarning(ErrorStr)
+    else
+      raise EALError.Create(Err, ErrorStr);
+  end;
 end;
 
 { EALCError ------------------------------------------------------------------ }

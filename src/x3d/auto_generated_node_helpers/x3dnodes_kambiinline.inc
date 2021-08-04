@@ -26,10 +26,20 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdReplaceNames: TMFString;
+    { X3D field "replaceNames". } { }
+    public property FdReplaceNames: TMFString read FFdReplaceNames;
     { Set X3D field "replaceNames". } { }
     procedure SetReplaceNames(const Value: array of string);
     { Set X3D field "replaceNames". } { }
     procedure SetReplaceNames(const Value: TCastleStringList);
+
+    strict private FFdReplaceNodes: TMFNode;
+    { X3D field "replaceNodes". } { }
+    public property FdReplaceNodes: TMFNode read FFdReplaceNodes;
     { Set X3D field "replaceNodes". } { }
     procedure SetReplaceNodes(const Value: array of TAbstractNode);
 
@@ -59,6 +69,24 @@ begin
   if L > 0 then
     Move(Value[0], A[0], L * SizeOf(TAbstractNode));
   FdReplaceNodes.Send(A);
+end;
+
+class function TKambiInlineNode.ClassX3DType: String;
+begin
+  Result := 'KambiInline';
+end;
+
+procedure TKambiInlineNode.CreateNode;
+begin
+  inherited;
+
+  FFdReplaceNames := TMFString.Create(Self, True, 'replaceNames', []);
+   FdReplaceNames.ChangeAlways := chEverything;
+  AddField(FFdReplaceNames);
+
+  FFdReplaceNodes := TMFNode.Create(Self, True, 'replaceNodes', [TAbstractNode]);
+   FdReplaceNodes.ChangeAlways := chEverything;
+  AddField(FFdReplaceNodes);
 end;
 
 {$endif read_implementation}

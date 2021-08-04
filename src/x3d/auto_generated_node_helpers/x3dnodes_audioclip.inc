@@ -26,6 +26,12 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdUrl: TMFString;
+    { X3D field "url". } { }
+    public property FdUrl: TMFString read FFdUrl;
     { Set X3D field "url". } { }
     procedure SetUrl(const Value: array of string);
     { Set X3D field "url". } { }
@@ -45,6 +51,22 @@ end;
 procedure TAudioClipNode.SetUrl(const Value: TCastleStringList);
 begin
   FdUrl.Send(Value);
+end;
+
+class function TAudioClipNode.ClassX3DType: String;
+begin
+  Result := 'AudioClip';
+end;
+
+procedure TAudioClipNode.CreateNode;
+begin
+  inherited;
+
+  FFdUrl := TMFString.Create(Self, True, 'url', []);
+   FdUrl.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdUrl);
+
+  DefaultContainerField := 'source';
 end;
 
 {$endif read_implementation}

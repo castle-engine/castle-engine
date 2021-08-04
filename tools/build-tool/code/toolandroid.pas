@@ -22,7 +22,7 @@ interface
 
 uses Classes,
   CastleUtils, CastleStringUtils,
-  ToolArchitectures, ToolCompile, ToolProject;
+  ToolArchitectures, ToolCompile, ToolPackage, ToolProject;
 
 { Compile (for all possible Android CPUs) Android unit or library.
   When Project <> nil, we assume we compile libraries (one of more .so files),
@@ -39,7 +39,8 @@ function DetectAndroidCPUS: TCPUS;
 function CPUToAndroidArchitecture(const CPU: TCPU): String;
 
 procedure PackageAndroid(const Project: TCastleProject;
-  const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode);
+  const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode;
+  const PackageFormat: TPackageFormatNoDefault; const PackageNameIncludeVersion: Boolean);
 
 procedure InstallAndroid(const Name, QualifiedName, OutputPath: string);
 
@@ -48,8 +49,10 @@ procedure RunAndroid(const Project: TCastleProject);
 implementation
 
 uses SysUtils, DOM, XMLWrite,
+  // TODO: Should not be needed after https://github.com/castle-engine/castle-engine/pull/302/commits/888690fdac181b6f140a71fd0d5ac20a7d7b59e6
+  {$IFDEF UNIX}BaseUnix, {$ENDIF}
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils, CastleImages,
-  ToolEmbeddedImages, ToolFPCVersion, ToolPackage, ToolCommonUtils, ToolUtils,
+  ToolEmbeddedImages, ToolFPCVersion, ToolCommonUtils, ToolUtils,
   ToolManifest;
 
 var
@@ -128,41 +131,6 @@ begin
     raise Exception.Create('Cannot find "' + ExeName + '" executable on $PATH, or within $' + EnvVarName + '. Install Android ' + BundleName + ' and make sure that "' + ExeName + '" executable is on $PATH, or that $' + EnvVarName + ' environment variable is set correctly.');
 end;
 
-{ Try to find "ndk-build" tool executable.
-  If not found -> exception (if Required) or return '' (if not Required). }
-function NdkBuildExe(const Required: boolean = true): string;
-const
-  ExeName = 'ndk-build';
-  BundleName = 'NDK';
-  EnvVarName = 'ANDROID_NDK_HOME';
-var
-  Env: string;
-begin
-  Result := '';
-  { try to find in $ANDROID_NDK_HOME }
-  Env := GetEnvironmentVariable(EnvVarName);
-  if Env <> '' then
-  begin
-    Result := AddExeExtension(InclPathDelim(Env) + ExeName);
-    if not RegularFileExists(Result) then
-      Result := '';
-  end;
-  { try to find in $ANDROID_HOME }
-  if Result = '' then
-  begin
-    Env := GetEnvironmentVariable('ANDROID_HOME');
-    if Env <> '' then
-    begin
-      Result := AddExeExtension(InclPathDelim(Env) + 'ndk-bundle' + PathDelim + ExeName);
-      if not RegularFileExists(Result) then
-        Result := '';
-    end;
-  end;
-  { try to find on $PATH }
-  if Result = '' then
-    Result := FinishExeSearch(ExeName, BundleName, EnvVarName, Required);
-end;
-
 { Try to find "adb" tool executable.
   If not found -> exception (if Required) or return '' (if not Required). }
 function AdbExe(const Required: boolean = true): string;
@@ -188,7 +156,8 @@ begin
 end;
 
 procedure PackageAndroid(const Project: TCastleProject;
-  const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode);
+  const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode;
+  const PackageFormat: TPackageFormatNoDefault; const PackageNameIncludeVersion: Boolean);
 var
   AndroidProjectPath: string;
 
@@ -400,8 +369,10 @@ var
     JniPath, LibraryWithoutCPU, LibraryFileName: String;
   begin
     JniPath := 'app' + PathDelim + 'src' + PathDelim + 'main' + PathDelim +
-      { Place precompiled libs in jni/ , ndk-build will find them there. }
-      'jni' + PathDelim;
+      { Place precompiled libs in jniLibs/ .
+        This is where precompiled native libs should be, according to
+        https://developer.android.com/studio/projects/gradle-external-native-builds . }
+      'jniLibs' + PathDelim;
     LibraryWithoutCPU := ExtractFileName(Project.AndroidLibraryFile(cpuNone));
 
     for CPU in CPUS do
@@ -431,7 +402,7 @@ var
         Writeln('Packaging FMOD library file: ' + InputFile + ' => ' + OutputFile);
 
       //JniPath := CombinePaths(Project.Path, AndroidProjectPath);
-      JniPath := 'app' + PathDelim + 'src' + PathDelim + 'main' + PathDelim + 'jni' + PathDelim;
+      JniPath := 'app' + PathDelim + 'src' + PathDelim + 'main' + PathDelim + 'jniLibs' + PathDelim;
 
       for CPU in CPUS do
       begin
@@ -533,41 +504,6 @@ var
     end;
   end;
 
-  { Run "ndk-build", this moves our .so to the final location in jniLibs,
-    also preserving our debug symbols, so that ndk-gdb remains useful.
-
-    TODO: Calling ndk-build directly is a hack,
-    since Gradle will later call ndk-build anyway.
-    But without calling ndk-build directly
-    it seems impossible to have debug symbols to our prebuilt
-    library correctly preserced, such that ndk-gdb works and sees our symbols.
-  }
-  procedure RunNdkBuild;
-  var
-    Args: TCastleStringList;
-  begin
-    { Place precompiled .so files in jniLibs/ to make them picked up by Gradle.
-      See http://stackoverflow.com/questions/27532062/include-pre-compiled-static-library-using-ndk
-      http://stackoverflow.com/a/28430178
-
-      Possibly we could also let the ndk-build to place them in libs/,
-      as it does by default.
-
-      We know we should not let them be only in jni/ subdir,
-      as they would not be picked by Gradle from there. But that's
-      what ndk-build does: it copies them from jni/ to another directory. }
-
-    Args := TCastleStringList.Create;
-    try
-      if not Verbose then
-        Args.Add('--silent');
-      Args.Add('NDK_LIBS_OUT=./jniLibs');
-
-      RunCommandSimple(AndroidProjectPath + 'app' + PathDelim + 'src' + PathDelim + 'main',
-        NdkBuildExe, Args.ToArray);
-    finally FreeAndNil(Args) end;
-  end;
-
   { Run Gradle to actually build the final apk. }
   procedure RunGradle(const PackageMode: TCompilationMode);
   var
@@ -575,7 +511,14 @@ var
   begin
     Args := TCastleStringList.Create;
     try
-      Args.Add('assemble' + Capitalize(PackageModeToName[PackageMode]));
+      case PackageFormat of
+        pfAndroidApk:
+          Args.Add('assemble' + Capitalize(PackageModeToName[PackageMode]));
+        pfAndroidAppBundle:
+          Args.Add(':app:bundle' + Capitalize(PackageModeToName[PackageMode]));
+        else
+          raise Exception.Create('Unexpected PackageFormat in PackageAndroid: ' + PackageFormatToString(PackageFormat));
+      end;
       if not Verbose then
         Args.Add('--quiet');
       if PackageMode <> cmDebug then
@@ -626,7 +569,7 @@ var
   end;
 
 var
-  ApkName: string;
+  PackageName: string;
   PackageMode: TCompilationMode;
 begin
   { calculate clean AndroidProjectPath }
@@ -645,19 +588,44 @@ begin
   GenerateAssets;
   GenerateLocalization;
   GenerateLibrary;
-  RunNdkBuild;
   RunGradle(PackageMode);
 
-  ApkName := Project.Name + '-' + PackageModeToName[PackageMode] + '.apk';
-  CheckRenameFile(AndroidProjectPath + 'app' + PathDelim +
-    'build' +  PathDelim +
-    'outputs' + PathDelim +
-    'apk' + PathDelim +
-    PackageModeToName[PackageMode] + PathDelim +
-    'app-' + PackageModeToName[PackageMode] + '.apk',
-    Project.OutputPath + ApkName);
+  PackageName := Project.Name;
+  if PackageNameIncludeVersion and (Project.Version.DisplayValue <> '') then
+    PackageName += '-' + Project.Version.DisplayValue;
+  PackageName += '-android' + '-' + PackageModeToName[PackageMode];
+  case PackageFormat of
+    pfAndroidApk:
+      begin
+        PackageName += '.apk';
+        CheckRenameFile(AndroidProjectPath + 'app' + PathDelim +
+          'build' +  PathDelim +
+          'outputs' + PathDelim +
+          'apk' + PathDelim +
+          PackageModeToName[PackageMode] + PathDelim +
+          'app-' + PackageModeToName[PackageMode] + '.apk',
+          Project.OutputPath + PackageName);
+      end;
+    pfAndroidAppBundle:
+      begin
+        PackageName += '.aab';
+        CheckRenameFile(AndroidProjectPath + 'app' + PathDelim +
+          'build' +  PathDelim +
+          'outputs' + PathDelim +
+          'bundle' + PathDelim +
+          PackageModeToName[PackageMode] + PathDelim +
+          'app-' + PackageModeToName[PackageMode] + '.aab',
+          Project.OutputPath + PackageName);
+        {$IFDEF UNIX}
+        // TODO: Should be replaced by DoMakeExecutable from https://github.com/castle-engine/castle-engine/pull/302/commits/888690fdac181b6f140a71fd0d5ac20a7d7b59e6
+        Writeln('FpChmod = ' + FpChmod(Project.OutputPath + PackageName, &777).ToString);
+        {$ENDIF}
+      end;
+    else
+      raise Exception.Create('Unexpected PackageFormat in PackageAndroid: ' + PackageFormatToString(PackageFormat));
+  end;
 
-  Writeln('Build ' + ApkName);
+  Writeln('Build ' + PackageName);
 end;
 
 procedure InstallAndroid(const Name, QualifiedName, OutputPath: string);

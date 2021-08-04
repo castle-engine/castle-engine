@@ -16,28 +16,6 @@
 
 {$ifdef read_interface}
 
-{ The 2D fonts used throughout UI interface.
-
-  By default, this is a modern sans-serif font hardcoded into the engine.
-  It will be automatically created and freed if needed. This is comfortable
-  for simple applications, you can just start "drawing text"
-  without initializing anything.
-
-  You can assign your own font here, to make this the default
-  font used by all 2D controls.
-
-  Note that assigning font here @italic(does not)
-  make it automatically freed (this would cause more trouble than comfort).
-  To make sure your own fonts are always freed, set the font "owner" at creation,
-  e.g. the example below sets the @code(Application) as owner:
-
-  @longCode(#
-    MyFont := TCastleFont.Create(Application);
-    MyFont.Load(TextureFont_Xxxx);
-    UIFont := MyFont;
-  #)
-
-  @groupBegin }
 function GetUIFont: TCastleAbstractFont;
 procedure SetUIFont(const Value: TCastleAbstractFont);
 
@@ -46,6 +24,27 @@ function GetUIFontSmall: TCastleAbstractFont;
 procedure SetUIFontSmall(const Value: TCastleAbstractFont);
   deprecated 'use UIFont and temporarily change the size to be smaller, or use TCastleUserInterfaceFont.SmallFont';
 
+(*The default font, used throughout the engine as a fallback.
+  By default, this is a modern sans-serif font hardcoded into the engine.
+
+  You can assign your own font here, to make this the new default font.
+
+  Although in most cases it is better to leave @link(UIFont) unchanged
+  (treat it like "engine default font"), and instead set your default font by
+  setting @link(TUIContainer.DefaultFont Window.Container.DefaultFont).
+  You can do it by code, or by editing CastleSettings.xml (this way editor
+  will be aware of this new default), see https://castle-engine.io/manual_castle_settings.php .
+
+  Note that assigning font here @italic(does not) make it automatically freed.
+  Use the ownership mechanism to make sure it is freed,
+  i.e. assign some owner to your font instance, like this:
+
+  @longCode(#
+    MyFont := TCastleFont.Create({ owner } Application);
+    MyFont.Load(TextureFont_Xxxx);
+    UIFont := MyFont;
+  #)
+*)
 property UIFont: TCastleAbstractFont read GetUIFont write SetUIFont;
 property UIFontSmall: TCastleAbstractFont read GetUIFontSmall write SetUIFontSmall;
 { @groupEnd }

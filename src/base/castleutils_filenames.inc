@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -153,9 +153,9 @@ end;
 type
   TSetOfChars = SysUtils.TSysCharSet;
 
-function SCharIs(const s: string; index: integer; const chars: TSetOfChars): boolean; overload;
+function SCharIs(const S: String; Index: Integer; const Chars: TSetOfChars): Boolean; overload;
 begin
-  Result := (index <= Length(s)) and (s[index] in chars)
+  Result := (Index <= Length(s)) and CharInSet(S[index], Chars);
 end;
 
 function IsPathAbsolute(const Path: string): boolean;

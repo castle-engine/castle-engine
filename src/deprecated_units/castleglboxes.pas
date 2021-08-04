@@ -14,7 +14,7 @@
 }
 
 { Boxes and OpenGL. }
-unit CastleGLBoxes;
+unit CastleGLBoxes deprecated 'this unit no longer contains anything useful; use TCastleBox to draw boxes';
 
 {$I castleconf.inc}
 
@@ -27,7 +27,7 @@ uses CastleBoxes;
 { Draw the wireframe box.
   Nothing is generated besides vertex positions ---
   no normal vectors, no texture coords, nothing. }
-procedure glDrawBox3DWire(const Box: TBox3D); deprecated 'do not draw like this, instead create TCastleScene with Cube node inside';
+procedure glDrawBox3DWire(const Box: TBox3D); deprecated 'do not draw like this; instead use TCastleBox or TCastleScene with TBoxNode';
 
 {$endif}
 

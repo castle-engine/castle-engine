@@ -113,6 +113,20 @@ private
 {$I castlewindow_winapi_menu.inc}
 {$I castlewindow_winapi_sendinput.inc}
 
+{ Describe ChangeDisplaySettings result. }
+function DispChangeToStr(L: LongInt): string;
+begin
+ case L of
+  DISP_CHANGE_SUCCESSFUL: Result := 'DISP_CHANGE_SUCCESSFUL';
+  DISP_CHANGE_RESTART: Result := 'DISP_CHANGE_RESTART';
+  DISP_CHANGE_BADFLAGS: Result := 'DISP_CHANGE_BADFLAGS';
+  DISP_CHANGE_FAILED: Result := 'DISP_CHANGE_FAILED';
+  DISP_CHANGE_BADMODE: Result := 'DISP_CHANGE_BADMODE';
+  DISP_CHANGE_NOTUPDATED: Result := 'DISP_CHANGE_NOTUPDATED';
+  else Result := IntToStr(L);
+ end;
+end;
+
 { WMSizing ------------------------------------------------------------------- }
 
 type

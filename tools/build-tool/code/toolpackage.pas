@@ -29,6 +29,8 @@ type
     pfZip,
     pfTarGz,
     pfDeb,
+    pfAndroidApk,
+    pfAndroidAppBundle,
     pfIosArchiveDevelopment,
     pfIosArchiveAdHoc,
     pfIosArchiveAppStore
@@ -88,8 +90,8 @@ function StringToPackageFormat(const S: string): TPackageFormat;
 
 implementation
 
-uses SysUtils,
-  CastleFilesUtils, CastleLog, CastleURIUtils,
+uses SysUtils, Process,
+  CastleFilesUtils, CastleLog, CastleFindFiles, CastleURIUtils,
   CastleStringUtils, CastleInternalDirectoryInformation,
   ToolCommonUtils, ToolUtils;
 
@@ -216,6 +218,8 @@ const
     'zip',
     'targz',
     'deb',
+    'android-apk',
+    'android-app-bundle',
     'ios-archive-development',
     'ios-archive-ad-hoc',
     'ios-archive-app-store'

@@ -1,0 +1,64 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "RootGroup",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleRectangleControl",
+      "FullSize" : true,
+      "Name" : "BgColor"
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Red" : 1.0000000000000000E+000
+      },
+      "FontSize" : 2.0000000000000000E+001,
+      "HorizontalAnchorDelta" : -2.0000000000000000E+001,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "LabelFps",
+      "Text" : [
+        "FPS: xxx"
+      ],
+      "VerticalAnchorDelta" : -2.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleTimer",
+      "CounteractDelays" : true,
+      "IntervalSeconds" : 5.0000000000000000E+000,
+      "Name" : "Timer"
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 5.0196081399917603E-001,
+        "Red" : 5.0196081399917603E-001
+      },
+      "HorizontalAnchorDelta" : 4.0000000000000000E+001,
+      "Name" : "LabelCharsPressed",
+      "Text" : [
+        "LabelCharsPressed"
+      ],
+      "VerticalAnchorDelta" : 1.3000000000000000E+002
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 5.0196081399917603E-001,
+        "Green" : 5.0196081399917603E-001
+      },
+      "HorizontalAnchorDelta" : 4.0000000000000000E+001,
+      "Name" : "LabelKeysPressed",
+      "Text" : [
+        "LabelKeysPressed"
+      ],
+      "VerticalAnchorDelta" : 2.2000000000000000E+002
+    }
+  ]
+}

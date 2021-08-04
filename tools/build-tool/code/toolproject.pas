@@ -45,7 +45,8 @@ type
     procedure DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
     function PackageName(const OS: TOS; const CPU: TCPU; const PackageFormat: TPackageFormatNoDefault;
       const PackageNameIncludeVersion: Boolean): string;
-    function SourcePackageName(const PackageNameIncludeVersion: Boolean): string;
+    function SourcePackageName(const PackageNameIncludeVersion: Boolean;
+      const PackageFormatFinal: TPackageFormatNoDefault): string;
     procedure ExtractTemplateFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
 
     { Convert Name to a valid Pascal identifier. }
@@ -150,11 +151,6 @@ type
     function IOSServices: TServiceList;
     function AssociateDocumentTypes: TAssociatedDocTypeList;
     function LocalizedAppNames: TLocalizedAppNameList;
-
-    { List filenames of external libraries used by the current project,
-      on given OS/CPU. }
-    procedure ExternalLibraries(const OS: TOS; const CPU: TCPU; const List: TStrings;
-      const CheckFilesExistence: Boolean = true);
 
     function ReplaceMacros(const Source: string): string;
 
@@ -266,6 +262,89 @@ begin
   Result := ChangeFileExt(S, LibraryExtensionOS(OS));
   if OS in AllUnixOSes then
     Result := InsertLibPrefix(Result);
+end;
+
+{ List filenames of external libraries used by the Dependencies, on given OS/CPU. }
+procedure ExternalLibraries(const OS: TOS; const CPU: TCPU;
+  const Dependencies: TDependencies; const List: TStrings;
+  const CheckFilesExistence: Boolean = true);
+
+  { Path to the external library in data/external_libraries/ .
+    Right now, these host various Windows-specific DLL files.
+    If CheckFilesExistence then this checks existence of appropriate files along the way,
+    and raises exception in case of trouble. }
+  function ExternalLibraryPath(const OS: TOS; const CPU: TCPU; const LibraryName: string): string;
+  var
+    LibraryURL: string;
+  begin
+    LibraryURL := ApplicationData('external_libraries/' + CPUToString(CPU) + '-' + OSToString(OS) + '/' + LibraryName);
+    Result := URIToFilenameSafe(LibraryURL);
+    if CheckFilesExistence and (not RegularFileExists(Result)) then
+      raise Exception.Create('Cannot find dependency library in "' + Result + '". ' + SErrDataDir);
+  end;
+
+  procedure AddExternalLibrary(const LibraryName: string);
+  begin
+    List.Add(ExternalLibraryPath(OS, CPU, LibraryName));
+  end;
+
+begin
+  case OS of
+    win32:
+      begin
+        if depFreetype in Dependencies then
+          AddExternalLibrary('freetype.dll');
+        if depZlib in Dependencies then
+          AddExternalLibrary('zlib1.dll');
+        if depPng in Dependencies then
+          AddExternalLibrary('libpng12.dll');
+        if depSound in Dependencies then
+        begin
+          AddExternalLibrary('OpenAL32.dll');
+          AddExternalLibrary('wrap_oal.dll');
+        end;
+        if depOggVorbis in Dependencies then
+        begin
+          AddExternalLibrary('ogg.dll');
+          AddExternalLibrary('vorbis.dll');
+          AddExternalLibrary('vorbisenc.dll');
+          AddExternalLibrary('vorbisfile.dll');
+        end;
+        if depHttps in Dependencies then
+        begin
+          AddExternalLibrary('openssl/libeay32.dll');
+          AddExternalLibrary('openssl/ssleay32.dll');
+        end;
+      end;
+
+    win64:
+      begin
+        if depFreetype in Dependencies then
+          AddExternalLibrary('freetype.dll');
+        if depZlib in Dependencies then
+          AddExternalLibrary('zlib1.dll');
+        if depPng in Dependencies then
+          AddExternalLibrary('libpng14-14.dll');
+        if depSound in Dependencies then
+        begin
+          AddExternalLibrary('OpenAL32.dll');
+          AddExternalLibrary('wrap_oal.dll');
+        end;
+        if depOggVorbis in Dependencies then
+        begin
+          AddExternalLibrary('libogg.dll');
+          AddExternalLibrary('libvorbis.dll');
+          { AddExternalLibrary('vorbisenc.dll'); not present? }
+          AddExternalLibrary('vorbisfile.dll');
+        end;
+        if depHttps in Dependencies then
+        begin
+          AddExternalLibrary('openssl/libeay32.dll');
+          AddExternalLibrary('openssl/ssleay32.dll');
+        end;
+      end;
+    else ; { no need to do anything on other OSes }
+  end;
 end;
 
 { TCastleProject ------------------------------------------------------------- }
@@ -387,7 +466,7 @@ procedure TCastleProject.DoCompile(const Target: TTarget;
   begin
     List := TCastleStringList.Create;
     try
-      ExternalLibraries(OS, CPU, List);
+      ExternalLibraries(OS, CPU, Dependencies, List);
       for FileName in List do
       begin
         OutputFile := LibrariesOutputPath + ExtractFileName(FileName);
@@ -522,87 +601,6 @@ begin
   except FreeAndNil(Result); raise; end;
 end;
 
-procedure TCastleProject.ExternalLibraries(const OS: TOS; const CPU: TCPU; const List: TStrings;
-  const CheckFilesExistence: Boolean);
-
-  { Path to the external library in data/external_libraries/ .
-    Right now, these host various Windows-specific DLL files.
-    If CheckFilesExistence then this checks existence of appropriate files along the way,
-    and raises exception in case of trouble. }
-  function ExternalLibraryPath(const OS: TOS; const CPU: TCPU; const LibraryName: string): string;
-  var
-    LibraryURL: string;
-  begin
-    LibraryURL := ApplicationData('external_libraries/' + CPUToString(CPU) + '-' + OSToString(OS) + '/' + LibraryName);
-    Result := URIToFilenameSafe(LibraryURL);
-    if CheckFilesExistence and (not RegularFileExists(Result)) then
-      raise Exception.Create('Cannot find dependency library in "' + Result + '". ' + SErrDataDir);
-  end;
-
-  procedure AddExternalLibrary(const LibraryName: string);
-  begin
-    List.Add(ExternalLibraryPath(OS, CPU, LibraryName));
-  end;
-
-begin
-  case OS of
-    win32:
-      begin
-        if depFreetype in Dependencies then
-          AddExternalLibrary('freetype-6.dll');
-        if depZlib in Dependencies then
-          AddExternalLibrary('zlib1.dll');
-        if depPng in Dependencies then
-          AddExternalLibrary('libpng12.dll');
-        if depSound in Dependencies then
-        begin
-          AddExternalLibrary('OpenAL32.dll');
-          AddExternalLibrary('wrap_oal.dll');
-        end;
-        if depOggVorbis in Dependencies then
-        begin
-          AddExternalLibrary('ogg.dll');
-          AddExternalLibrary('vorbis.dll');
-          AddExternalLibrary('vorbisenc.dll');
-          AddExternalLibrary('vorbisfile.dll');
-        end;
-        if depHttps in Dependencies then
-        begin
-          AddExternalLibrary('openssl/libeay32.dll');
-          AddExternalLibrary('openssl/ssleay32.dll');
-        end;
-      end;
-
-    win64:
-      begin
-        if depFreetype in Dependencies then
-          AddExternalLibrary('freetype-6.dll');
-        if depZlib in Dependencies then
-          AddExternalLibrary('zlib1.dll');
-        if depPng in Dependencies then
-          AddExternalLibrary('libpng14-14.dll');
-        if depSound in Dependencies then
-        begin
-          AddExternalLibrary('OpenAL32.dll');
-          AddExternalLibrary('wrap_oal.dll');
-        end;
-        if depOggVorbis in Dependencies then
-        begin
-          AddExternalLibrary('libogg.dll');
-          AddExternalLibrary('libvorbis.dll');
-          { AddExternalLibrary('vorbisenc.dll'); not present? }
-          AddExternalLibrary('vorbisfile.dll');
-        end;
-        if depHttps in Dependencies then
-        begin
-          AddExternalLibrary('openssl/libeay32.dll');
-          AddExternalLibrary('openssl/ssleay32.dll');
-        end;
-      end;
-    else ; { no need to do anything on other OSes }
-  end;
-end;
-
 procedure TCastleProject.DoPackage(const Target: TTarget;
   const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const Mode: TCompilationMode; const PackageFormat: TPackageFormat;
@@ -621,7 +619,7 @@ var
   begin
     if OS in [linux, go32v2, win32, os2, freebsd, beos, netbsd,
               amiga, atari, solaris, qnx, netware, openbsd, wdosx,
-              palmos, macos, darwin, emx, watcom, morphos, netwlibc,
+              palmos, macosclassic, darwin, emx, watcom, morphos, netwlibc,
               win64, wince, gba,nds, embedded, symbian, haiku, {iphonesim,}
               aix, java, {android,} nativent, msdos, wii] then
     begin
@@ -638,7 +636,7 @@ var
   begin
     List := TCastleStringList.Create;
     try
-      ExternalLibraries(OS, CPU, List);
+      ExternalLibraries(OS, CPU, Dependencies, List);
       for FileName in List do
         Pack.Add(FileName, ExtractFileName(FileName));
     finally FreeAndNil(List) end;
@@ -659,11 +657,14 @@ var
 
         This logic is used both at build, and inside the application.
 
-    - iOS: When OS is iPhoneSim or OS/architecture are Darwin/Arm or Darwin/Aarch64.
+    - iOS: When
+           (OS is iPhoneSim) or
+           (FPC >= 3.2.2 and OS = iOS) or
+           (FPC  < 3.2.2 and OS/architecture are Darwin/Arm or Darwin/Aarch64).
 
-        In total this has 4 currently possible values: iPhoneSim/i386, iPhoneSim/x86_64, Darwin/Arm, Darwin/Aarch64.
-
-        This logic is used both at build, and inside the application.
+        This logic is used inside the application.
+        At build, it is simpler, as our build tool just says "darwin is not iOS"
+        (just like FPC >= 3.2.2 says) to support new macOS 11 (desktop on arm).
 
     - desktop: everything else.
   }
@@ -678,9 +679,7 @@ var
         if OS = Android then
           Result := cpAndroid
         else
-        if (OS = iphonesim) or
-           ((OS = darwin) and (CPU = arm)) or
-           ((OS = darwin) and (CPU = aarch64)) then
+        if OS in [iphonesim, iOS] then
           Result := cpIOS
         else
           Result := cpDesktop;
@@ -749,19 +748,28 @@ begin
     Exit;
   end;
 
+  { for Android, the packaging process is special }
+  if (Target = targetAndroid) or (OS = Android) then
+  begin
+    if (PackageFormat = pfDefault) then
+      PackageFormatFinal := pfAndroidApk
+    else
+      PackageFormatFinal := PackageFormat;
+    if not (PackageFormatFinal in [pfAndroidApk, pfAndroidAppBundle]) then
+      raise Exception.Create('Trying to package for Android, but package format is ' +
+        PackageFormatToString(PackageFormatFinal) + '. Expected: ' +
+        PackageFormatToString(pfAndroidApk) + ' or ' +
+        PackageFormatToString(pfAndroidAppBundle) + '.');
+    if Target = targetAndroid then
+      AndroidCPUS := DetectAndroidCPUS
+    else
+      AndroidCPUS := [CPU];
+    PackageAndroid(Self, OS, AndroidCPUS, Mode, PackageFormatFinal, PackageNameIncludeVersion);
+    Exit;
+  end;
+
   if PackageFormat = pfDefault then
   begin
-    { for Android, the packaging process is special }
-    if (Target = targetAndroid) or (OS = Android) then
-    begin
-      if Target = targetAndroid then
-        AndroidCPUS := DetectAndroidCPUS
-      else
-        AndroidCPUS := [CPU];
-      PackageAndroid(Self, OS, AndroidCPUS, Mode);
-      Exit;
-    end;
-
     { for Nintendo Switch, the packaging process is special }
     if Target = targetNintendoSwitch then
     begin
@@ -876,8 +884,36 @@ procedure TCastleProject.DoRun(const Target: TTarget;
     end;
   end;
 
+  procedure MaybeUseWineToRun(var ExeName: String; const NewParams: TStrings);
+  var
+    WineExe: String;
+  begin
+    if (OS in AllWindowsOSes) and (DefaultOS in AllUnixOSes) then
+    begin
+      Writeln('Running Windows EXE on Unix, trying to use WINE.');
+
+      WineExe := '';
+      // try to find with suffix 32 or 64
+      case CPU of
+        i386: WineExe := FindExe('wine32');
+        x86_64: WineExe := FindExe('wine64');
+        else ;
+      end;
+      // try to use wine without a suffix
+      if WineExe = '' then
+        WineExe := FindExe('wine');
+
+      if WineExe <> '' then
+      begin
+        NewParams.Insert(0, ExeName);
+        ExeName := WineExe;
+      end;
+    end;
+  end;
+
 var
   ExeName: string;
+  NewParams: TCastleStringList;
 begin
   Writeln(Format('Running project "%s" for %s.',
     [Name, TargetCompleteToString(Target, OS, CPU, Plugin)]));
@@ -896,8 +932,14 @@ begin
     ExeName := Path + ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
     MaybeUseWrapperToRun(ExeName);
     Writeln('Running ' + ExeName);
-    { We set current path to Path, not OutputPath, because data/ subdirectory is under Path. }
-    RunCommandSimple(Path, ExeName, Params.ToArray, 'CASTLE_LOG', 'stdout');
+    NewParams := TCastleStringList.Create;
+    try
+      NewParams.Assign(Params);
+      MaybeUseWineToRun(ExeName, NewParams);
+      Flush(Output); // needed to see "Running Windows EXE on Unix, trying to use WINE." in right order in editor
+      { We set current path to Path, not OutputPath, because data/ subdirectory is under Path. }
+      RunCommandSimple(Path, ExeName, NewParams.ToArray, 'CASTLE_LOG', 'stdout');
+    finally FreeAndNil(NewParams) end;
   end else
     raise Exception.Create('The "run" command is not useful for this OS / CPU right now. Run the application manually.');
 end;
@@ -933,7 +975,7 @@ begin
       end;
     finally FreeAndNil(Collector) end;
 
-    PackageFileName := SourcePackageName(PackageNameIncludeVersion);
+    PackageFileName := SourcePackageName(PackageNameIncludeVersion, PackageFormatFinal);
     Pack.Make(OutputPath, PackageFileName, PackageFormatFinal);
   finally FreeAndNil(Pack) end;
 end;
@@ -953,13 +995,21 @@ begin
   end;
 end;
 
-function TCastleProject.SourcePackageName(const PackageNameIncludeVersion: Boolean): string;
+function TCastleProject.SourcePackageName(const PackageNameIncludeVersion: Boolean;
+  const PackageFormatFinal: TPackageFormatNoDefault): string;
 begin
   Result := Name;
   if PackageNameIncludeVersion and (Version.DisplayValue <> '') then
     Result += '-' + Version.DisplayValue;
   Result += '-src';
-  Result += '.tar.gz';
+
+  case PackageFormatFinal of
+    pfZip  : Result += '.zip';
+    pfTarGz: Result += '.tar.gz';
+    else raise Exception.CreateFmt('Package format "%s" not supported for source package', [
+      PackageFormatToString(PackageFormatFinal)
+    ]);
+  end;
 end;
 
 procedure TCastleProject.DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
@@ -1225,7 +1275,7 @@ procedure TCastleProject.DoClean;
     try
       { CheckFilesExistence parameter for ExternalLibraries may be false.
         This way you can run "castle-engine clean" without setting $CASTLE_ENGINE_PATH . }
-      ExternalLibraries(OS, CPU, List, false);
+      ExternalLibraries(OS, CPU, Dependencies, List, false);
       for FileName in List do
       begin
         OutputFile := LibrariesOutputPath + ExtractFileName(FileName);
@@ -1350,8 +1400,38 @@ begin
 end;
 
 procedure TCastleProject.DoEditor;
+
+  { Copy external libraries to LibrariesOutputPath. }
+  procedure AddExternalLibraries(const LibrariesOutputPath: String);
+  var
+    List: TCastleStringList;
+    OutputFile, FileName: String;
+  begin
+    List := TCastleStringList.Create;
+    try
+      ExternalLibraries(DefaultOS, DefaultCPU, [
+        // to read fonts
+        depFreetype,
+        // to read PNG
+        depZlib, depPng,
+        // to play sound
+        depSound,
+        // to read OggVorbis
+        depOggVorbis,
+        // not used now by the editor -- but likely will be used in the future, e.g. to check for new version by HTTPS query.
+        depHttps
+      ], List);
+      for FileName in List do
+      begin
+        OutputFile := LibrariesOutputPath + ExtractFileName(FileName);
+        WritelnVerbose('Copying library to ' + OutputFile);
+        CheckCopyFile(FileName, OutputFile);
+      end;
+    finally FreeAndNil(List) end;
+  end;
+
 var
-  EditorExe, CgePath, EditorPath, LazbuildExe: String;
+  EditorExe, CgePath, EditorPath: String;
 begin
   if Trim(Manifest.EditorUnits) = '' then
   begin
@@ -1374,13 +1454,12 @@ begin
     ExtractTemplate('custom_editor_template/', EditorPath, true);
 
     // use lazbuild to compile CGE packages and CGE editor
-    LazbuildExe := FindExeLazarus('lazbuild');
-    if LazbuildExe = '' then
-      raise Exception.Create('Cannot find "lazbuild" program on $PATH. It is needed to build a custom CGE editor version.');
-    RunCommandSimple(LazbuildExe, CgePath + 'packages' + PathDelim + 'castle_base.lpk');
-    RunCommandSimple(LazbuildExe, CgePath + 'packages' + PathDelim + 'castle_components.lpk');
-    RunCommandSimple(LazbuildExe, EditorPath + 'castle_editor_automatic_package.lpk');
-    RunCommandSimple(LazbuildExe, EditorPath + 'castle_editor.lpi');
+    RunLazbuild(Path, [CgePath + 'packages' + PathDelim + 'castle_base.lpk']);
+    RunLazbuild(Path, [CgePath + 'packages' + PathDelim + 'castle_components.lpk']);
+    RunLazbuild(Path, [EditorPath + 'castle_editor_automatic_package.lpk']);
+    RunLazbuild(Path, [EditorPath + 'castle_editor.lpi']);
+
+    AddExternalLibraries(EditorPath);
 
     EditorExe := EditorPath + 'castle-editor' + ExeExtension;
     if not RegularFileExists(EditorExe) then
@@ -1872,14 +1951,19 @@ begin
               Exit(true);
 
   for HasVersion in Boolean do
-    if SameFileName(FileName, SourcePackageName(HasVersion)) then
+    // list all package formats allowed for source packages now
+    if SameFileName(FileName, SourcePackageName(HasVersion, pfZip)) or
+       SameFileName(FileName, SourcePackageName(HasVersion, pfTarGz)) then
       Exit(true);
 
   if { avoid Android packages }
-     SameFileName(FileName, Name + '-debug.apk') or
-     SameFileName(FileName, Name + '-release.apk') or
+     IsWild(FileName, Name + '*-android-debug.apk', true) or
+     IsWild(FileName, Name + '*-android-debug.aab', true) or
+     IsWild(FileName, Name + '*-android-release.apk', true) or
+     IsWild(FileName, Name + '*-android-release.aab', true) or
      { do not pack AndroidAntProperties.txt with private stuff }
-     SameFileName(FileName, 'AndroidAntProperties.txt') then
+     SameFileName(FileName, 'AndroidAntProperties.txt') or
+     SameFileName(FileName, 'AndroidSigningProperties.txt') then
     Exit(true);
 
   Result := false;

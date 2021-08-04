@@ -40,10 +40,10 @@ type
       strict private
         ImageEnemy: TCastleImageControl;
         ButtonRun, ButtonFight: TCastleButton;
-        State: TStateAskDialog;
         procedure ClickRun(Sender: TObject);
         procedure ClickFight(Sender: TObject);
       public
+        State: TStateAskDialog; //< set after creation
         constructor Create(AOwner: TComponent; const Male: boolean); reintroduce;
       end;
     var
@@ -128,6 +128,7 @@ begin
   InterceptInput := true;
 
   Dialog := TZombieDialog.Create(FreeAtStop, Male);
+  Dialog.State := Self;
   Dialog.Anchor(hpMiddle);
   Dialog.Anchor(vpMiddle);
   InsertFront(Dialog);

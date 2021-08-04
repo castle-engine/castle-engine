@@ -1556,6 +1556,21 @@ object DesignFrame: TDesignFrame
     OnPopup = MenuTreeViewPopup
     Left = 653
     Top = 139
+    object MenuTreeViewItemAddUserInterface: TMenuItem
+      Caption = 'Add User Interface'
+    end
+    object MenuTreeViewItemAddTransform: TMenuItem
+      Caption = 'Add Transform'
+    end
+    object MenuTreeViewItemAddBehavior: TMenuItem
+      Caption = 'Add Behavior (Extends Parent Transform)'
+    end
+    object MenuTreeViewItemAddNonVisual: TMenuItem
+      Caption = 'Add Non-Visual Component'
+    end
+    object MenuTreeViewItemSeparator127u30130120983: TMenuItem
+      Caption = '-'
+    end
     object MenuTreeViewItemRename: TMenuItem
       Caption = 'Rename'
       OnClick = MenuTreeViewItemRenameClick
@@ -1575,12 +1590,6 @@ object DesignFrame: TDesignFrame
     object MenuTreeViewItemDelete: TMenuItem
       Caption = 'Delete'
       OnClick = MenuTreeViewItemDeleteClick
-    end
-    object MenuTreeViewItemAddUserInterface: TMenuItem
-      Caption = 'Add'
-    end
-    object MenuTreeViewItemAddTransform: TMenuItem
-      Caption = 'Add'
     end
   end
   object UpdateObjectInspector: TTimer

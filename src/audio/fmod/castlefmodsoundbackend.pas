@@ -71,7 +71,11 @@ type
   strict private
     FMODChannel: PFMOD_CHANNEL;
     FBuffer: TFMODSoundBufferBackend;
+    FPosition, FVelocity: TVector3;
+    FLoop, FSpatial: Boolean;
+    FReferenceDistance, FMaxDistance: Single;
     function FMODSystem: PFMOD_SYSTEM;
+    function Mode: TFMOD_MODE;
   public
     procedure ContextOpen; override;
     procedure ContextClose; override;
@@ -80,16 +84,16 @@ type
     procedure Stop; override;
     procedure SetPosition(const Value: TVector3); override;
     procedure SetVelocity(const Value: TVector3); override;
-    procedure SetLooping(const Value: boolean); override;
-    procedure SetRelative(const Value: boolean); override;
-    procedure SetGain(const Value: Single); override;
+    procedure SetLoop(const Value: boolean); override;
+    procedure SetSpatial(const Value: boolean); override;
+    procedure SetVolume(const Value: Single); override;
     procedure SetMinGain(const Value: Single); override;
     procedure SetMaxGain(const Value: Single); override;
     procedure SetBuffer(const Value: TSoundBufferBackend); override;
     procedure SetPitch(const Value: Single); override;
-    procedure SetRolloffFactor(const Value: Single); override;
     procedure SetReferenceDistance(const Value: Single); override;
     procedure SetMaxDistance(const Value: Single); override;
+    procedure SetPriority(const Value: Single); override;
     function GetOffset: Single; override;
     procedure SetOffset(const Value: Single); override;
   end;
@@ -97,6 +101,7 @@ type
   TFMODSoundEngineBackend = class(TSoundEngineBackend)
   private
     FMODSystem: PFMOD_SYSTEM;
+    FDistanceModel: TSoundDistanceModel;
   public
     function ContextOpen(const ADevice: String; out Information: String): Boolean; override;
     procedure ContextClose; override;
@@ -104,8 +109,11 @@ type
     function CreateSource: TSoundSourceBackend; override;
 
     procedure Update; override;
-    procedure SetGain(const Value: Single); override;
+    procedure SetVolume(const Value: Single); override;
+    { TODO: This just sets default distance model for all newly created sounds.
+      So it will only work if executed early. }
     procedure SetDistanceModel(const Value: TSoundDistanceModel); override;
+    procedure SetDopplerFactor(const Value: Single); override;
     procedure SetListener(const Position, Direction, Up: TVector3); override;
   end;
 
@@ -236,6 +244,8 @@ begin
     {$endif}
     ;
 
+    { Note: it seems using FMOD_2D here doesn't cause any trouble
+      to make spatial sounds, we set FMOD_3D on FMOD sound later if needed. }
     Mode := FMOD_DEFAULT or FMOD_2D;
     if FSoundLoading = slStreaming then
       Mode := Mode or FMOD_CREATESTREAM;
@@ -278,6 +288,9 @@ end;
 
 procedure TFMODSoundSourceBackend.ContextOpen;
 begin
+  // reflect FMOD defaults
+  FReferenceDistance := 1;
+  FMaxDistance := 10000;
 end;
 
 procedure TFMODSoundSourceBackend.ContextClose;
@@ -292,7 +305,7 @@ var
 begin
   if FMODChannel = nil then Exit(false);
 
-  { Note that Looping sound will have IsPlaying forever until it's explicitly stopped,
+  { Note that Loop sound will have IsPlaying forever until it's explicitly stopped,
     and that's what we want. }
   IsPlayingError := FMOD_Channel_IsPlaying(FMODChannel, @B);
 
@@ -330,30 +343,63 @@ end;
 
 procedure TFMODSoundSourceBackend.SetPosition(const Value: TVector3);
 begin
-  // TODO
+  FPosition := Value;
+  if FMODChannel = nil then Exit;
+  if FSpatial then // only if Spatial, otherwise FMOD raises error
+    CheckFMOD(FMOD_Channel_Set3DAttributes(FMODChannel, @FPosition, @FVelocity));
+end;
+
+function TFMODSoundSourceBackend.Mode: TFMOD_MODE;
+begin
+  Result := 0;
+
+  if FLoop then
+    Result := Result or FMOD_LOOP_NORMAL
+  else
+    Result := Result or FMOD_LOOP_OFF;
+
+  if FSpatial then
+  begin
+    Result := Result or FMOD_3D;
+    { These flags are only allowed with FMOD_3D }
+    case (SoundEngine as TFMODSoundEngineBackend).FDistanceModel of
+      dmInverse: Result := Result or FMOD_3D_INVERSEROLLOFF;
+      dmLinear : Result := Result or FMOD_3D_LINEARROLLOFF;
+    end;
+  end else
+    Result := Result or FMOD_2D;
 end;
 
 procedure TFMODSoundSourceBackend.SetVelocity(const Value: TVector3);
 begin
-  // TODO
-end;
-
-procedure TFMODSoundSourceBackend.SetLooping(const Value: boolean);
-begin
+  FVelocity := Value;
   if FMODChannel = nil then Exit;
-
-  if Value then
-    CheckFMOD(FMOD_Channel_SetMode(FMODChannel, FMOD_LOOP_NORMAL))
-  else
-    CheckFMOD(FMOD_Channel_SetMode(FMODChannel, FMOD_LOOP_OFF));
+  if FSpatial then // only if Spatial, otherwise FMOD raises error
+    CheckFMOD(FMOD_Channel_Set3DAttributes(FMODChannel, @FPosition, @FVelocity));
 end;
 
-procedure TFMODSoundSourceBackend.SetRelative(const Value: boolean);
+procedure TFMODSoundSourceBackend.SetLoop(const Value: boolean);
 begin
-  // TODO
+  FLoop := Value;
+  if FMODChannel = nil then Exit;
+  CheckFMOD(FMOD_Channel_SetMode(FMODChannel, Mode));
 end;
 
-procedure TFMODSoundSourceBackend.SetGain(const Value: Single);
+procedure TFMODSoundSourceBackend.SetSpatial(const Value: boolean);
+begin
+  FSpatial := Value;
+  if FMODChannel = nil then Exit;
+  CheckFMOD(FMOD_Channel_SetMode(FMODChannel, Mode));
+
+  // call FMOD_Channel_Set3DXxx to update settings
+  if FSpatial then // only if Spatial, otherwise FMOD raises error
+  begin
+    CheckFMOD(FMOD_Channel_Set3DAttributes(FMODChannel, @FPosition, @FVelocity));
+    CheckFMOD(FMOD_Channel_Set3DMinMaxDistance(FMODChannel, FReferenceDistance, FMaxDistance));
+  end;
+end;
+
+procedure TFMODSoundSourceBackend.SetVolume(const Value: Single);
 begin
   if FMODChannel = nil then Exit;
 
@@ -362,12 +408,12 @@ end;
 
 procedure TFMODSoundSourceBackend.SetMinGain(const Value: Single);
 begin
-  // TODO
+  // not possible (well, not straightforward) with FMOD backend
 end;
 
 procedure TFMODSoundSourceBackend.SetMaxGain(const Value: Single);
 begin
-  // TODO
+  // not possible (well, not straightforward) with FMOD backend
 end;
 
 procedure TFMODSoundSourceBackend.SetBuffer(const Value: TSoundBufferBackend);
@@ -392,30 +438,54 @@ begin
   CheckFMOD(FMOD_Channel_SetPitch(FMODChannel, Value));
 end;
 
-procedure TFMODSoundSourceBackend.SetRolloffFactor(const Value: Single);
-begin
-  // TODO
-end;
-
 procedure TFMODSoundSourceBackend.SetReferenceDistance(const Value: Single);
 begin
-  // TODO
+  FReferenceDistance := Value;
+  if FMODChannel = nil then Exit;
+  if not FSpatial then Exit; // apply this only if Spatial
+  CheckFMOD(FMOD_Channel_Set3DMinMaxDistance(FMODChannel, FReferenceDistance, FMaxDistance));
 end;
 
 procedure TFMODSoundSourceBackend.SetMaxDistance(const Value: Single);
 begin
-  // TODO
+  FMaxDistance := Value;
+  if FMODChannel = nil then Exit;
+  if not FSpatial then Exit; // apply this only if Spatial
+  CheckFMOD(FMOD_Channel_Set3DMinMaxDistance(FMODChannel, FReferenceDistance, FMaxDistance));
+end;
+
+procedure TFMODSoundSourceBackend.SetPriority(const Value: Single);
+begin
+  { TODO: although we pass it to FMOD, we also manually manage limited sources
+    in TSoundAllocator.
+    We should instead allocate many sound sources (MaxAllocatedSources large?)
+    at let FMOD to do its job. }
+
+  if FMODChannel = nil then Exit;
+  CheckFMOD(FMOD_Channel_SetPriority(FMODChannel, Round(Value * 256)));
 end;
 
 function TFMODSoundSourceBackend.GetOffset: Single;
+var
+  Pos: CUInt;
 begin
-  // TODO
-  Result := 0;
+  { Make sure to set FMODChannel to nil if not playing now,
+    otherwise FMOD would report error FMOD_ERR_INVALID_HANDLE when the sound is near the end.
+    Testcase: fmod-test-editor, play sound using button. }
+  PlayingOrPaused;
+
+  if FMODChannel = nil then Exit(0);
+  CheckFMOD(FMOD_Channel_GetPosition(FMODChannel, @Pos, FMOD_TIMEUNIT_MS));
+  Result := Pos / 1000;
 end;
 
 procedure TFMODSoundSourceBackend.SetOffset(const Value: Single);
+var
+  Pos: CUInt;
 begin
-  // TODO
+  if FMODChannel = nil then Exit;
+  Pos := Round(Value * 1000);
+  CheckFMOD(FMOD_Channel_SetPosition(FMODChannel, Pos, FMOD_TIMEUNIT_MS));
 end;
 
 { TFMODSoundEngineBackend -------------------------------------------------- }
@@ -460,7 +530,8 @@ begin
   //   FMOD_DEBUG_MODE_TTY, nil, nil), 'FMOD_Debug_Initialize', true);
 
   CheckFMOD(FMOD_System_Create(@FMODSystem), 'FMOD_System_Create');
-  CheckFMOD(FMOD_System_Init(FMODSystem, 256, FMOD_INIT_NORMAL, nil), 'FMOD_System_Init');
+  { Use FMOD_INIT_3D_RIGHTHANDED, as by default FMOD uses left-handed coordinate system. }
+  CheckFMOD(FMOD_System_Init(FMODSystem, 256, FMOD_INIT_NORMAL or FMOD_INIT_3D_RIGHTHANDED, nil), 'FMOD_System_Init');
   CheckFMOD(FMOD_System_GetVersion(FMODSystem, @Version), 'FMOD_System_GetVersion');
   Information := Format('FMOD version %d.%d.%d initialized', [
     Version shr 16,
@@ -484,7 +555,7 @@ begin
   CheckFMOD(FMOD_System_Update(FMODSystem));
 end;
 
-procedure TFMODSoundEngineBackend.SetGain(const Value: Single);
+procedure TFMODSoundEngineBackend.SetVolume(const Value: Single);
 var
   MasterChannel: PFMOD_CHANNELGROUP;
 begin
@@ -494,12 +565,19 @@ end;
 
 procedure TFMODSoundEngineBackend.SetDistanceModel(const Value: TSoundDistanceModel);
 begin
-  // TODO
+  FDistanceModel := Value;
+end;
+
+procedure TFMODSoundEngineBackend.SetDopplerFactor(const Value: Single);
+begin
+  CheckFMOD(FMOD_System_Set3DSettings(FMODSystem, Value, 1, 1));
 end;
 
 procedure TFMODSoundEngineBackend.SetListener(const Position, Direction, Up: TVector3);
+const
+  ListenerVelocity: TVector3 = (Data: (0, 0, 0));
 begin
-  // TODO
+  CheckFMOD(FMOD_System_Set3DListenerAttributes(FMODSystem, 0,  @Position, @ListenerVelocity, @Direction, @Up));
 end;
 
 { globals -------------------------------------------------------------------- }
@@ -532,4 +610,7 @@ begin
   SoundEngine.InternalBackend := TFMODSoundEngineBackend.Create;
 end;
 
+initialization
+  // our TVector3 is equal in memory to TFMOD_VECTOR, we rely on it here
+  Assert(SizeOf(TFMOD_VECTOR) = SizeOf(TVector3));
 end.

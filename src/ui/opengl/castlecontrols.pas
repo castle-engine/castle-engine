@@ -23,7 +23,7 @@ interface
 uses Classes, Generics.Collections,
   CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontData,
   CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages, CastleRectangles,
-  CastleColors, CastleProgress, CastleTimeUtils, CastleFontFamily, CastleGLUtils,
+  CastleColors, CastleProgress, CastleTimeUtils, CastleInternalRichText, CastleGLUtils,
   CastleURIUtils, CastleLog, CastleStringUtils, CastleGLShaders, CastleClassUtils,
   CastleRenderContext;
 

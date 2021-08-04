@@ -36,15 +36,19 @@ type
       In this unit, as it requires TCastleWindow (UI container) to make sense. }
     procedure TestFocus;
     procedure TestEventLoop;
+    procedure TestViewportPositionTo;
+    procedure TestStateAutoStop;
+    procedure TestStateSize;
+    procedure TestStateSize2;
   end;
 
 implementation
 
-uses SysUtils, Classes,
+uses SysUtils, Classes, Math,
   CastleWindow, CastleControls, CastleStringUtils, CastleKeysMouse,
   CastleUIControls, CastleRectangles, CastleOnScreenMenu, CastleComponentSerialize,
   CastleInspectorControl, CastleCameras, CastleSceneManager, CastleVectors,
-  CastleTransform, CastleScene, CastleApplicationProperties;
+  CastleTransform, CastleScene, CastleApplicationProperties, CastleUIState;
 
 procedure TTestWindow.Test1;
 var
@@ -317,6 +321,252 @@ begin
   finally
     ApplicationProperties.OnWarning.Remove(@OnWarningRaiseException);
   end;
+end;
+
+procedure TTestWindow.TestViewportPositionTo;
+var
+  Viewport: TCastleViewport;
+
+{ Non-interactive version of a testcase on
+  https://gist.github.com/michaliskambi/2b8faee73df9f3a12351736cabcad1ee
+  for https://github.com/castle-engine/castle-engine/issues/295 :
+  Viewport.PositionToXxx should return correct values even when used before
+  and resize/render event. }
+
+  procedure TestQueryPosition(const ScreenPos: TVector2;
+    const CorrectRayOrigin, CorrectRayDirection, CorrectCameraPlaneResult, CorrectWorldPlaneResult: TVector3;
+    const CorrectPos2D: TVector2);
+  var
+    CameraPlaneResult, RayOrigin, RayDirection, WorldPlaneResult: TVector3;
+    Pos2D: TVector2;
+  begin
+    //WritelnLog('Testing on ', ScreenPos.ToString);
+
+    Viewport.PositionToRay(ScreenPos, true, RayOrigin, RayDirection);
+    AssertVectorEquals(CorrectRayOrigin, RayOrigin, 0.1);
+    AssertVectorEquals(CorrectRayDirection, RayDirection, 0.1);
+
+    AssertTrue(Viewport.PositionToCameraPlane(ScreenPos, true, 2, CameraPlaneResult));
+    AssertVectorEquals(CorrectCameraPlaneResult, CameraPlaneResult, 0.1);
+
+    AssertTrue(Viewport.PositionToWorldPlane(ScreenPos, true, -10, WorldPlaneResult));
+    AssertVectorEquals(CorrectWorldPlaneResult, WorldPlaneResult, 0.1);
+
+    Pos2D := Viewport.PositionTo2DWorld(ScreenPos, true);
+    AssertVectorEquals(CorrectPos2D, Pos2D, 0.1);
+  end;
+
+var
+  Window: TCastleWindowBase;
+begin
+  Window := TCastleWindowBase.Create(nil);
+  try
+    Window.Width := 300;
+    Window.Height := 300;
+    Window.Open;
+
+    Viewport := TCastleViewport.Create(Window);
+    Viewport.FullSize := true;
+
+    // too early to use
+    // TestQueryPosition(Vector2(100, 100));
+    // TestQueryPosition(Vector2(Window.Width / 2, Window.Height / 2));
+
+    Window.Controls.InsertFront(Viewport);
+
+    TestQueryPosition(Vector2(100, 100),
+      Vector3(0.00, 0.00, 0.00),
+      Vector3(-0.13, -0.13, -0.98),
+      Vector3(-0.27, -0.27, -2.00),
+      Vector3(-1.37, -1.37, -10.00),
+      Vector2(100.00, 100.00)
+    );
+    TestQueryPosition(Vector2(Window.Width / 2, Window.Height / 2),
+      Vector3(0.00, 0.00, 0.00),
+      Vector3(0.00, 0.00, -1.00),
+      Vector3(0.00, 0.00, -2.00),
+      Vector3(0.01, 0.01, -10.00),
+      Vector2(150.00, 150.00)
+    );
+  finally FreeAndNil(Window) end;
+end;
+
+procedure TTestWindow.TestStateAutoStop;
+
+{ Test something similar to https://github.com/castle-engine/castle-engine/issues/307 .
+
+  However, this was always working, it does *not* reproduce what
+  https://github.com/castle-engine/castle-engine/issues/307 did.
+  There is TCastleControlBase that does
+
+    procedure TCastleForm.WindowOpen(Sender: TObject);
+    begin
+      TCastleControlBase.MainControl := Window;
+      CastleApp := TCastleApp.Create(Window);
+      TUIState.Current := CastleApp;
+      Window.Container.UIScaling := usNone;
+    end;
+}
+
+var
+  Window: TCastleWindowBase;
+  SomeState: TUIState;
+begin
+  Window := TCastleWindowBase.Create(nil);
+  try
+    Application.MainWindow := Window;
+
+    Window.Open;
+    SomeState := TUIState.Create(Window);
+    TUIState.Current := SomeState;
+  finally
+    { let freeing Window cause everything else:
+      - freeing of SomeState
+      - stopping of SomeState
+      - closing of Window
+    }
+    FreeAndNil(Window);
+  end;
+
+  Application.MainWindow := nil;
+end;
+
+type
+  TStateTestingSize = class(TUIState)
+  public
+    W, H: Single;
+    TestCase: TCastleTestCase;
+    procedure Start; override;
+    procedure Resize; override;
+  end;
+
+procedure TStateTestingSize.Start;
+begin
+  inherited;
+  W := EffectiveWidth;
+  H := EffectiveHeight;
+  TestCase.AssertTrue(
+    SameValue(EffectiveWidth, 160) or
+    SameValue(EffectiveHeight, 90));
+  TestCase.AssertTrue(
+    SameValue(EffectiveRect.Width, 160) or
+    SameValue(EffectiveRect.Height, 90));
+end;
+
+procedure TStateTestingSize.Resize;
+begin
+  inherited;
+  TestCase.AssertTrue(
+    SameValue(EffectiveWidth, 160) or
+    SameValue(EffectiveHeight, 90));
+  TestCase.AssertTrue(
+    SameValue(EffectiveRect.Width, 160) or
+    SameValue(EffectiveRect.Height, 90));
+  // size didn't change from Start to 1st Resize call
+  TestCase.AssertSameValue(W, EffectiveWidth);
+  TestCase.AssertSameValue(H, EffectiveHeight);
+end;
+
+procedure TTestWindow.TestStateSize;
+var
+  Window: TCastleWindowBase;
+  StateTesting: TStateTestingSize;
+begin
+  Window := TCastleWindowBase.Create(nil);
+  try
+    Application.MainWindow := Window;
+
+    Window.Open;
+    Window.Container.UIScaling := usEncloseReferenceSize;
+    Window.Container.UIReferenceWidth := 160;
+    Window.Container.UIReferenceHeight := 90;
+
+    StateTesting := TStateTestingSize.Create(Window);
+    StateTesting.TestCase := Self;
+
+    // already state EffectiveXxx for size should work
+    AssertTrue(
+      SameValue(StateTesting.EffectiveWidth, 160) or
+      SameValue(StateTesting.EffectiveHeight, 90));
+    AssertTrue(
+      SameValue(StateTesting.EffectiveRect.Width, 160) or
+      SameValue(StateTesting.EffectiveRect.Height, 90));
+
+    TUIState.Current := StateTesting;
+  finally
+    FreeAndNil(Window);
+  end;
+
+  Application.MainWindow := nil;
+end;
+
+type
+  TStateTestingSize2 = class(TUIState)
+  public
+    W, H: Single;
+    TestCase: TCastleTestCase;
+    procedure Start; override;
+    procedure Resize; override;
+  end;
+
+procedure TStateTestingSize2.Start;
+begin
+  inherited;
+  W := EffectiveWidth;
+  H := EffectiveHeight;
+  TestCase.AssertTrue(
+    SameValue(EffectiveWidth, 200) or
+    SameValue(EffectiveHeight, 400));
+  TestCase.AssertTrue(
+    SameValue(EffectiveRect.Width, 200) or
+    SameValue(EffectiveRect.Height, 400));
+end;
+
+procedure TStateTestingSize2.Resize;
+begin
+  inherited;
+  TestCase.AssertTrue(
+    SameValue(EffectiveWidth, 200) or
+    SameValue(EffectiveHeight, 400));
+  TestCase.AssertTrue(
+    SameValue(EffectiveRect.Width, 200) or
+    SameValue(EffectiveRect.Height, 400));
+  // size didn't change from Start to 1st Resize call
+  TestCase.AssertSameValue(W, EffectiveWidth);
+  TestCase.AssertSameValue(H, EffectiveHeight);
+end;
+
+procedure TTestWindow.TestStateSize2;
+var
+  Window: TCastleWindowBase;
+  StateTesting: TStateTestingSize2;
+begin
+  Window := TCastleWindowBase.Create(nil);
+  try
+    Application.MainWindow := Window;
+
+    Window.Width := 200;
+    Window.Height := 400;
+    Window.Open;
+    { No UI scaling this time. }
+
+    StateTesting := TStateTestingSize2.Create(Window);
+    StateTesting.TestCase := Self;
+
+    // already state EffectiveXxx for size should work
+    AssertTrue(
+      SameValue(StateTesting.EffectiveWidth, 200) or
+      SameValue(StateTesting.EffectiveHeight, 400));
+    AssertTrue(
+      SameValue(StateTesting.EffectiveRect.Width, 200) or
+      SameValue(StateTesting.EffectiveRect.Height, 400));
+
+    TUIState.Current := StateTesting;
+  finally
+    FreeAndNil(Window);
+  end;
+
+  Application.MainWindow := nil;
 end;
 
 initialization

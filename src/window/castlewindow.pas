@@ -203,7 +203,7 @@ unit CastleWindow;
          {$elseif defined(UNIX)}
            {$if defined(ANDROID)}
              {$define CASTLE_WINDOW_ANDROID}
-           {$elseif defined(IOS) or defined(CASTLE_NINTENDO_SWITCH)}
+           {$elseif defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH)}
              {$define CASTLE_WINDOW_LIBRARY}
            {$elseif defined(DARWIN)}
              // various possible backends on macOS (desktop):
@@ -305,7 +305,7 @@ uses {$define read_interface_uses}
   CastleVectors, CastleRectangles, CastleColors,
   CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, CastleGLImages,
   CastleKeysMouse, CastleStringUtils, CastleFilesUtils, CastleTimeUtils,
-  CastleFileFilters, CastleUIControls, CastleGLContainer,
+  CastleFileFilters, CastleUIControls,
   CastleInternalPk3DConnexion, CastleParameters, CastleSoundEngine,
   CastleApplicationProperties
   {$ifdef CASTLE_DEPRECATED_WINDOW_CLASSES},
@@ -1637,6 +1637,7 @@ type
 
       Under Lazarus, you can of course also use LCL timers. }
     property OnTimer: TContainerEvent read FOnTimer write FOnTimer;
+      deprecated 'use TCastleTimer to perform periodic operations, or track time delay in OnUpdate';
 
     { Called when user drag and drops file(s) on the window.
       In case of macOS bundle, this is also called when user opens a document
@@ -2566,7 +2567,9 @@ type
       when some windows are already open.
       @groupBegin }
     property OnTimer: TProcedure read FOnTimer write FOnTimer;
+      deprecated 'use TCastleTimer to perform periodic operations, or track time delay in OnUpdate';
     property TimerMilisec: Cardinal read FTimerMilisec write FTimerMilisec default 1000;
+      deprecated 'use TCastleTimer to perform periodic operations, or track time delay in OnUpdate';
     { @groupEnd }
 
     { Main window used for various purposes.
@@ -3567,8 +3570,10 @@ end;
 procedure TCastleWindowBase.DoTimer;
 begin
   MakeCurrent;
+  {$warnings off} // keep deprecated working
   if Assigned(OnTimer) then
     OnTimer(Container);
+  {$warnings on}
 end;
 
 procedure TCastleWindowBase.DoMenuClick(Item: TMenuItem);
@@ -3609,8 +3614,10 @@ end;
 
 function TCastleWindowBase.AllowSuspendForInput: boolean;
 begin
+  {$warnings off} // keep deprecated working - OnTimer
   Result := Container.AllowSuspendForInput and
     not (Invalidated or Assigned(OnUpdate) or Assigned(OnTimer) or FpsShowOnCaption);
+  {$warnings on}
 end;
 
 { Menu things ------------------------------------------------------------ }
@@ -4942,10 +4949,12 @@ function TCastleApplication.AllowSuspendForInput: boolean;
 var
   I: Integer;
 begin
+  {$warnings off} // keep deprecated working - OnTimer
   Result := not (
     Assigned(OnUpdate) or
     Assigned(OnTimer) or
     (ApplicationProperties.OnUpdate.Count <> 0));
+  {$warnings on}
   if not Result then Exit;
 
   for I := 0 to OpenWindowsCount - 1 do

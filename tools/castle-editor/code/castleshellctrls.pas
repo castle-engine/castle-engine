@@ -218,6 +218,8 @@ type
     procedure SetShellTreeView(const Value: TCustomCastleShellTreeView);
     procedure SetRoot(const Value: string);
     procedure ExcludedCountChanged;
+    function GetSelectedFileNameInRoot: String;
+    procedure SetSelectedFileNameInRoot(const Value: String);
   protected
     { Methods specific to Lazarus }
     procedure PopulateWithRoot();
@@ -228,7 +230,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     { Methods specific to Lazarus }
-    function GetPathFromItem(ANode: TListItem): string;
+    function GetPathFromItem(ANode: TListItem; const Absolute: Boolean = true): string;
     procedure RefreshContents;
     { Properties }
     property Mask: string read FMask write SetMask;
@@ -239,6 +241,9 @@ type
     property FileSortType: TFileSortType read FFileSortType write SetFileSortType;
     { Protected properties which users may want to access, see bug 15374 }
     property Items;
+    { Selected name in the list, without any path (the path is in @link(Root)).
+      Setting this to non-existing item is ignored without any errors. }
+    property SelectedFileNameInRoot: String read GetSelectedFileNameInRoot write SetSelectedFileNameInRoot;
   end;
 
   { TCastleShellListView }
@@ -956,7 +961,9 @@ begin
     //Yes, we want to remove the backslash,so don't use ChompPathDelim here
     TShellTreeNode(NewNode).FFileInfo.Name := ExcludeTrailingBackslash(pDrive);
     //On NT platforms drive-roots really have these attributes
+    {$warnings off} // do not warn that faSysFile unportable
     TShellTreeNode(NewNode).FFileInfo.Attr := faDirectory + faSysFile + flagHidden;
+    {$warnings on}
     TShellTreeNode(NewNode).SetBasePath('');
     NewNode.HasChildren := True;
     Inc(pDrive, 4);
@@ -1479,12 +1486,6 @@ begin
   inherited Destroy;
 end;
 
-const
-  //DirCaptionPrefix = '<';
-  //DirCaptionSuffix = '>';
-  DirCaptionPrefix = '';
-  DirCaptionSuffix = '';
-
 procedure TCustomCastleShellListView.PopulateWithRoot();
 var
   i: Integer;
@@ -1513,7 +1514,7 @@ begin
       CurFilePath := IncludeTrailingPathDelimiter(FRoot) + CurFileName;
       if DirectoryExists(CurFilePath) then
       begin
-        NewItem.Caption := DirCaptionPrefix + CurFileName + DirCaptionSuffix;
+        NewItem.Caption := CurFileName;
         NewItem.SubItems.Add('');
         NewItem.SubItems.Add('');
         NewItem.Data := ShellListItemDirectory;
@@ -1579,20 +1580,42 @@ begin
   {$endif}
 end;
 
-function TCustomCastleShellListView.GetPathFromItem(ANode: TListItem): string;
+function TCustomCastleShellListView.GetPathFromItem(ANode: TListItem; const Absolute: Boolean): string;
 var
   FileName: String;
 begin
   FileName := ANode.Caption;
-  { TODO: This is hack,
-    we revert to additional characters added to ANode.Caption when displaying it.
-    It would be cleaner to store the original filename somewhere in TListItem. }
-  if ANode.Data = ShellListItemDirectory then
+  if Absolute then
+    Result := IncludeTrailingPathDelimiter(FRoot) + FileName
+  else
+    Result := FileName;
+end;
+
+function TCustomCastleShellListView.GetSelectedFileNameInRoot: String;
+begin
+  if Selected <> nil then
+    Result := GetPathFromItem(Selected, false)
+  else
+    Result := '';
+end;
+
+procedure TCustomCastleShellListView.SetSelectedFileNameInRoot(const Value: String);
+begin
+  if Value = '' then
+    Selected := nil
+  else
   begin
-    FileName := PrefixRemove(DirCaptionPrefix, FileName, false);
-    FileName := SuffixRemove(DirCaptionSuffix, FileName, false);
+    // See LCL source lazarus/lcl/include/listitems.inc for the meaning of Items.FindCaption parameters.
+    // Items.FindCaption returns nil when not found.
+    Selected := Items.FindCaption(
+      0, // StartIndex, 0 to search all items
+      Value,
+      false, // Partial, would find values that only contain Value
+      true, // Inclusive, otherwise StartIndex would actually be interpreted as 1
+      false, // Wrap, ignored when StartIndex = 0
+      false // PartStart, ignored when Partial = false (would make Partial to match only prefix)
+    );
   end;
-  Result := IncludeTrailingPathDelimiter(FRoot) + FileName;
 end;
 
 procedure Register;

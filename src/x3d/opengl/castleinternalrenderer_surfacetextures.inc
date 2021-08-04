@@ -339,7 +339,7 @@ procedure TGLRenderer.SurfaceTexturesEnable(const Shape: TX3DRendererShape;
       'void PLUG_material_occlusion(inout vec4 color)' + NL +
       '{' + NL +
       '  float occlusion = texture2D({uniform_texture_name}, {coord_name}.st).r;' + NL +
-      '  color = mix(color, color * occlusion, castle_MaterialOcclusionStrength);' + NL +
+      '  color.rgb = mix(color.rgb, color.rgb * occlusion, castle_MaterialOcclusionStrength);' + NL +
       '}');
 
     { This procedure is called even with Texture = nil.

@@ -1,3 +1,8 @@
+body {
+  /* Override Bootstrap to add Inter https://fonts.google.com/specimen/Inter */
+  font-family: Inter,"Helvetica Neue",Helvetica,Arial,sans-serif !important;
+}
+
 @media only screen and (max-width : 767px) {
     .sidebar {
         /* vertical margin between sidebar and content,
@@ -275,7 +280,6 @@ article.post .entry-content ul.list-no-margin {
     margin-bottom: 1em;
 }
 .download-hints p {
-    font-size: 87% !important;
     margin-top: 0; /* .download-hints already makes margins */
     margin-bottom: 0; /* .download-hints already makes margins */
 }
@@ -283,6 +287,7 @@ article.post .entry-content ul.list-no-margin {
 .centered-download-wrapper .main-cge-download .btn-primary {
   padding-left: 1em;
   padding-right: 1em;
+  min-width: 10em; /* makes all icons equal width now */
 }
 
 div.main-cge-download {
@@ -873,4 +878,36 @@ div.download .download_platform {
 
 .convert-output p {
   text-align: center;
+}
+
+.panel-body::after {
+  clear: none !important;
+}
+
+/* talk page ---------------------------------------------------------------- */
+
+.talk-buttons-row {
+  text-align: center;
+}
+
+.talk-button {
+  display: inline-block;
+  width: 300px; /* buttons have hardcoded size, as one of them is Discord iframe, no other way to size it */
+  height: 300px;
+  margin-left: 1em;
+  margin-right: 1em;
+  margin-bottom: 1em;
+  margin-top: 1em;
+  vertical-align: top; /* align iframe with normal buttons vertically OK */
+}
+
+.talk-button > p {
+  margin-top: 75px; /* buttons have hardcoded size, so hardcode margin is OK too */
+  line-height: 50px;
+  font-weight: bold;
+}
+
+.talk-button > p > img {
+  width: 100px;
+  height: 100px;
 }

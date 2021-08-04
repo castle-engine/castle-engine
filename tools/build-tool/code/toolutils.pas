@@ -77,10 +77,15 @@ procedure ParametersAddMacros(const Macros, Parameters: TStringStringMap;
 
 { Find the filename of linker input produced by FPC when called with -Cn .
   Path must contain a final path delimiter.
+  Raises exception if not found (or found too many, and it is ambiguous what to use).
 
   For old FPC, it is just link.res.
-  For new FPC 3.3.1 it may be any link<id>.res and unfortunately we don't know the <id>
-  (it's not the TProcess.ProcessID of "fpc" process, at least under Windows). }
+
+  During FPC 3.2.0 -> 3.2.2 development:
+  it may be any link<id>.res and unfortunately we don't know the <id>
+  (it's not the TProcess.ProcessID of "fpc" process, at least under Windows).
+
+  Since FPC 3.2.2 it is linkfiles<id>.res (and we ignore link<id>.res and linksyms<id>.res). }
 function FindLinkRes(const Path: String): String;
 
 { Set Unix executable bit.
@@ -184,11 +189,49 @@ begin
     Exit(LinkFilesRes);
   end;
 
+  { First try to match linkfiles*.res, ignoring other link*.res.
+    This is good for FPC >= 3.2.2. }
+  Handler := TFindLinkResHandler.Create;
+  try
+    FindFiles(Path, 'linkfiles*.res', false, @Handler.FoundFile, []);
+    Result := Handler.FileName;
+    if Result <> '' then
+      Exit;
+  finally FreeAndNil(Handler) end;
+
+  { If no linkfiles*.res found, try to match any link*.res.
+    This is good for FPC development between 3.2.0 and 3.2.2. }
   Handler := TFindLinkResHandler.Create;
   try
     FindFiles(Path, 'link*.res', false, @Handler.FoundFile, []);
     Result := Handler.FileName;
+    if Result <> '' then
+      Exit;
   finally FreeAndNil(Handler) end;
+
+  raise Exception.CreateFmt('Cannot find any linker input file in the directory "%s"', [
+    Path
+  ]);
+end;
+
+procedure DoMakeExecutable(const PathAndName: String);
+{$ifdef UNIX}
+var
+  ChmodResult: CInt;
+begin
+  ChmodResult := FpChmod(PathAndName,
+    S_IRUSR or S_IWUSR or S_IXUSR or
+    S_IRGRP or            S_IXGRP or
+    S_IROTH or            S_IXOTH);
+  if ChmodResult <> 0 then
+    WritelnWarning('Package', Format('Error setting executable bit on "%s": %s', [
+      PathAndName,
+      SysErrorMessage(ChmodResult)
+    ]));
+{$else}
+begin
+  WritelnWarning('Package', 'Packaging for a platform where UNIX permissions matter, but we cannot set "chmod" on this platform. This usually means that you package for Unix from Windows, and means that "executable" bit inside binary in tar.gz archive may not be set --- archive may not be 100% comfortable for Unix users');
+  {$endif}
 end;
 
 procedure DoMakeExecutable(const PathAndName: String);

@@ -1015,8 +1015,8 @@ begin
      (Node.X3DType + '.' + Field.X3DName = 'GeoViewpoint.position') or
      (Node.X3DType + '.' + Field.X3DName = 'TextureProperties.magnificationFilter') or
      (Node.X3DType + '.' + Field.X3DName = 'TextureProperties.minificationFilter') or
-     (Node.X3DType + '.' + Field.X3DName = 'Text.fontStyle') or
      (Node.X3DType + '.' + Field.X3DName = 'HAnimHumanoid.skinCoord') or
+     // Family and Justify have custom helpers
      (Node.X3DType + '.' + Field.X3DName = 'FontStyle.family') or
      (Node.X3DType + '.' + Field.X3DName = 'FontStyle.justify') or
      // ScreenFontStyle does not have better helpers yet, but it will, just like FontStyle

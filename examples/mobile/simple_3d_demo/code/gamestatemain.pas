@@ -44,11 +44,11 @@ type
     TouchNavigation: TCastleTouchNavigation;
     MainViewport: TCastleViewport;
     MainScene: TCastleScene;
+    SoundWav, SoundOgg: TCastleSound;
 
     { Other fields, initialized in Start }
     MyShaderEffect: TEffectNode;
     MyScreenEffect: TScreenEffectNode;
-    SoundBufferWav, SoundBufferOgg: TSoundBuffer;
 
     procedure ClickToggleShader(Sender: TObject);
     procedure ClickToggleScreenEffect(Sender: TObject);
@@ -113,6 +113,8 @@ begin
   TouchNavigation := DesignedComponent('TouchNavigation') as TCastleTouchNavigation;
   MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
   MainScene := DesignedComponent('MainScene') as TCastleScene;
+  SoundWav := DesignedComponent('SoundWav') as TCastleSound;
+  SoundOgg := DesignedComponent('SoundOgg') as TCastleSound;
 
   { assign events }
   ButtonToggleShader.OnClick := @ClickToggleShader;
@@ -143,15 +145,6 @@ begin
   MyScreenEffect := MainScene.RootNode.TryFindNodeByName(
     TScreenEffectNode, 'MyScreenEffect', false) as TScreenEffectNode;
   ButtonToggleScreenEffect.Pressed := (MyScreenEffect <> nil) and MyScreenEffect.Enabled;
-
-  SoundBufferWav := SoundEngine.LoadBuffer('castle-data:/sounds/player_potion_drink.wav');
-
-  try
-    SoundBufferOgg := SoundEngine.LoadBuffer('castle-data:/sounds/werewolf_howling.ogg');
-  except
-    on E: ESoundFileError do
-      WritelnWarning('OggVorbis loading failed: ' + E.Message);
-  end;
 
   { Test that FindFiles works also on Android asset filesystem.
     These calls don't do anything (they merely output some log messages about found files). }
@@ -290,12 +283,12 @@ end;
 
 procedure TStateMain.ClickPlaySoundWav(Sender: TObject);
 begin
-  SoundEngine.PlaySound(SoundBufferWav);
+  SoundEngine.Play(SoundWav);
 end;
 
 procedure TStateMain.ClickPlaySoundOgg(Sender: TObject);
 begin
-  SoundEngine.PlaySound(SoundBufferOgg);
+  SoundEngine.Play(SoundOgg);
 end;
 
 procedure TStateMain.ClickVibrate(Sender: TObject);

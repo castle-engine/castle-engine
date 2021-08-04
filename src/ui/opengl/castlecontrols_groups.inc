@@ -341,7 +341,7 @@ begin
       vpTop   : AlignmentDelta := -Padding;
       vpMiddle: AlignmentDelta := 0;
       {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('TCastleVerticalGroup.DoPackChildren:Alignment');
+      else raise EInternalError.Create('TCastleHorizontalGroup.DoPackChildren:Alignment');
       {$endif}
     end;
     C.Anchor(Alignment, AlignmentDelta);

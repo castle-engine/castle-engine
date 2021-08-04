@@ -1012,6 +1012,10 @@ type
     procedure LocalRender(const Params: TRenderParams); override;
     procedure Loaded; override;
 
+    { Called before changing one node into another,
+      when old node may have beeen associated with a shape using TShapeTree.AssociateNode. }
+    procedure InternalMoveShapeAssociations(
+      const OldNode, NewNode: TX3DNode; const ContainingShapes: TObject); override;
   public
     var
       { Nonzero value prevents rendering of this scene,
@@ -1264,11 +1268,6 @@ type
 
       @exclude }
     procedure InternalChangedField(const Field: TX3DField; const Change: TX3DChange); override;
-
-    { Called before changing one node into another,
-      when old node may have beeen associated with a shape using TShapeTree.AssociateNode. }
-    procedure InternalMoveShapeAssociations(
-      const OldNode, NewNode: TX3DNode; const ContainingShapes: TObject); override;
 
     { Notification when geometry changed.
       "Geometry changed" means that the positions
@@ -5411,7 +5410,7 @@ begin
       chColorNode: HandleChangeColorNode;
       chTextureCoordinate: HandleChangeTextureCoordinate;
       chTextureTransform: HandleChangeTextureTransform;
-      chGeometry: HandleChangeGeometry;
+      chGeometry, chGeometryFontChanged: HandleChangeGeometry;
       chEnvironmentalSensorBounds: HandleChangeEnvironmentalSensorBounds;
       chTimeStopStart: HandleChangeTimeStopStart;
       chViewpointVectors: HandleChangeViewpointVectors;
@@ -5420,7 +5419,11 @@ begin
       // TODO: chTexturePropertiesNode
       chShadowCasters: HandleChangeShadowCasters;
       chGeneratedTextureUpdateNeeded: HandleChangeGeneratedTextureUpdateNeeded;
-      chFontStyle: HandleFontStyle;
+      { The HandleFontStyle implementation matches
+        both chFontStyle, chFontStyleFontChanged.
+        Onlt the TShape.Changed processing handles
+        chFontStyle, chFontStyleFontChanged differently. }
+      chFontStyle, chFontStyleFontChanged: HandleFontStyle;
       chHeadLightOn: HandleChangeHeadLightOn;
       chClipPlane: HandleChangeClipPlane;
       chDragSensorEnabled: HandleChangeDragSensorEnabled;

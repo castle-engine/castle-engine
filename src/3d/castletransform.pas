@@ -339,16 +339,33 @@ type
   TCastleTransform = class(TCastleComponent)
   private
     type
-      TEnumerator = class
-      private
+      TEnumerator = record
+      strict private
         FList: TCastleTransformList;
         FPosition: Integer;
-        function GetCurrent: TCastleTransform;
+        function GetCurrent: TCastleTransform; inline;
       public
-        constructor Create(AList: TCastleTransformList);
-        function MoveNext: Boolean;
+        constructor Create(const AList: TCastleTransformList);
+        function MoveNext: Boolean; inline;
         property Current: TCastleTransform read GetCurrent;
       end;
+
+      { Used by @link(TCastleTransform.BehaviorsEnumerate).
+        Do not use this type explicitly, it should only be used by for..in
+        construction like "for B in MyTranform.BehaviorsEnumerate do ...".
+        @exclude }
+      TCastleBehaviorEnumerator = record
+      strict private
+        FParent: TCastleTransform;
+        FPosition: Integer;
+        function GetCurrent: TCastleBehavior; inline;
+      public
+        constructor Create(const AParent: TCastleTransform);
+        function MoveNext: Boolean; inline;
+        property Current: TCastleBehavior read GetCurrent;
+        function GetEnumerator: TCastleBehaviorEnumerator;
+      end;
+
     class var
       NextTransformId: Cardinal;
     var
@@ -398,6 +415,12 @@ type
       FLastParentWorldTransformation: TTransformation;
       FLastParentWorldTransformationId: Cardinal;
 
+    procedure SerializeChildrenAdd(const C: TComponent);
+    procedure SerializeChildrenClear;
+    procedure SerializeChildrenEnumerate(const Proc: TGetChildProc);
+    procedure SerializeBehaviorsAdd(const C: TComponent);
+    procedure SerializeBehaviorsClear;
+    procedure SerializeBehaviorsEnumerate(const Proc: TGetChildProc);
     procedure SetCursor(const Value: TMouseCursor);
     procedure SetCenter(const Value: TVector3);
     procedure SetRotation(const Value: TVector4);
@@ -437,6 +460,7 @@ type
     procedure RemoveFromWorld(const Value: TCastleAbstractRootTransform);
     procedure RemoveBehaviorIndex(const BehaviorIndex: Integer);
     procedure SetListenPressRelease(const Value: Boolean);
+    function GetBehaviors(const Index: Integer): TCastleBehavior;
   protected
     { Called when the current @link(World) that contains this object changes.
       In the usual case, @link(World) corresponds to a @link(TCastleViewport.Items)
@@ -691,8 +715,6 @@ type
     { Override this to be notified about every transformation change.
       By default, this calls VisibleChangeHere, which causes the window to redraw. }
     procedure ChangedTransform; virtual;
-
-    procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
   public
     const
       DefaultMiddleHeight = 0.5;
@@ -732,7 +754,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    procedure InternalAddChild(const C: TComponent); override;
+    procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
     function GetEnumerator: TEnumerator;
 
@@ -1833,7 +1855,10 @@ type
       In effect, the virtual methods of TCastleBehavior, like @link(TCastleBehavior.Update),
       will be automatically called.
       Also the @link(TCastleBehavior.Parent) gets assigned.
-      If the TCastleBehavior was part of another TCastleTransform, it is removed from it. }
+      If the TCastleBehavior was part of another TCastleTransform, it is removed from it.
+
+      @seealso FindBehavior
+      @seealso BehaviorsEnumerate }
     procedure AddBehavior(const Behavior: TCastleBehavior);
 
     { Remove TCastleBehavior from this TCastleTransform.
@@ -1848,6 +1873,21 @@ type
     { Find the first behavior of the given class, or create and add a new one if necessary.
       Never returns @nil. }
     function FindRequiredBehavior(const BehaviorClass: TCastleBehaviorClass): TCastleBehavior;
+
+    { Count of behaviors.
+      @seealso AddBehavior
+      @seealso RemoveBehavior }
+    function BehaviorsCount: Integer;
+
+    { Enumerate current behaviors.
+      @seealso AddBehavior
+      @seealso RemoveBehavior }
+    property Behaviors [const Index: Integer]: TCastleBehavior read GetBehaviors;
+
+    { You can enumerate current behaviors using loop like
+      @code(for B in MyTransform.BehaviorsEnumerate do ...).
+      Do not call this method in other contexts, it is only useful for "for..in" construction. }
+    function BehaviorsEnumerate: TCastleBehaviorEnumerator;
   published
     { Is this object visible and colliding.
 
@@ -2520,9 +2560,9 @@ begin
   Result := FList[FPosition];
 end;
 
-constructor TCastleTransform.TEnumerator.Create(AList: TCastleTransformList);
+constructor TCastleTransform.TEnumerator.Create(const AList: TCastleTransformList);
 begin
-  inherited Create;
+//  inherited Create;
   FList := AList;
   FPosition := -1;
 end;
@@ -3714,20 +3754,63 @@ begin
   VisibleChangeHere([vcVisibleGeometry]);
 end;
 
-procedure TCastleTransform.GetChildren(Proc: TGetChildProc; Root: TComponent);
+procedure TCastleTransform.CustomSerialization(const SerializationProcess: TSerializationProcess);
+begin
+  inherited;
+  SerializationProcess.ReadWrite('Children',
+    @SerializeChildrenEnumerate,
+    @SerializeChildrenAdd,
+    @SerializeChildrenClear);
+  SerializationProcess.ReadWrite('Behaviors',
+    @SerializeBehaviorsEnumerate,
+    @SerializeBehaviorsAdd,
+    @SerializeBehaviorsClear);
+end;
+
+procedure TCastleTransform.SerializeChildrenEnumerate(const Proc: TGetChildProc);
 var
   I: Integer;
 begin
-  inherited;
   for I := 0 to List.Count - 1 do
-    if [csSubComponent, csTransient] * List[I].ComponentStyle = [] then
+    if List[I].ComponentStyle * [csSubComponent, csTransient] = [] then
       Proc(List[I]);
 end;
 
-procedure TCastleTransform.InternalAddChild(const C: TComponent);
+procedure TCastleTransform.SerializeChildrenAdd(const C: TComponent);
 begin
-  // matches TCastleTransform.GetChildren implementation
-  Add(C as TCastleTransform)
+  Add(C as TCastleTransform);
+end;
+
+procedure TCastleTransform.SerializeChildrenClear;
+var
+  I: Integer;
+begin
+  for I := List.Count - 1 downto 0 do // downto, as list may shrink during loop
+    if List[I].ComponentStyle * [csSubComponent, csTransient] = [] then
+      List[I].Free; // will remove itself from children list
+end;
+
+procedure TCastleTransform.SerializeBehaviorsEnumerate(const Proc: TGetChildProc);
+var
+  I: Integer;
+begin
+  for I := 0 to BehaviorsCount - 1 do
+    if Behaviors[I].ComponentStyle * [csSubComponent, csTransient] = [] then
+      Proc(Behaviors[I]);
+end;
+
+procedure TCastleTransform.SerializeBehaviorsAdd(const C: TComponent);
+begin
+  AddBehavior(C as TCastleBehavior);
+end;
+
+procedure TCastleTransform.SerializeBehaviorsClear;
+var
+  I: Integer;
+begin
+  for I := BehaviorsCount - 1 downto 0 do // downto, as list may shrink during loop
+    if Behaviors[I].ComponentStyle * [csSubComponent, csTransient] = [] then
+      Behaviors[I].Free; // will remove itself from Behaviors list
 end;
 
 function TCastleTransform.PropertySections(const PropertyName: String): TPropertySections;
@@ -3910,6 +3993,11 @@ begin
   Result := TEnumerator.Create(FList);
 end;
 
+function TCastleTransform.BehaviorsEnumerate: TCastleBehaviorEnumerator;
+begin
+  Result := TCastleBehaviorEnumerator.Create(Self);
+end;
+
 procedure TCastleTransform.SetListenPressRelease(const Value: Boolean);
 begin
   if FListenPressRelease <> Value then
@@ -3923,6 +4011,16 @@ begin
         FWorld.UnregisterPressRelease(Self);
     end;
   end;
+end;
+
+function TCastleTransform.BehaviorsCount: Integer;
+begin
+  Result := FBehaviors.Count;
+end;
+
+function TCastleTransform.GetBehaviors(const Index: Integer): TCastleBehavior;
+begin
+  Result := TCastleBehavior(FBehaviors[Index]);
 end;
 
 procedure TCastleTransform.AddBehavior(const Behavior: TCastleBehavior);

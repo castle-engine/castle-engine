@@ -1,0 +1,164 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "RootGroup",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000
+      },
+      "FontSize" : 2.0000000000000000E+001,
+      "HorizontalAnchorDelta" : -2.0000000000000000E+001,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "LabelFps",
+      "Text" : [
+        "FPS: xxx"
+      ],
+      "VerticalAnchorDelta" : -2.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleViewport",
+      "Camera" : {
+        "$$ClassName" : "TCastleCamera",
+        "InitialPositionPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "Z" : 5.0000000000000000E+002
+        },
+        "Name" : "Camera",
+        "Orthographic" : {
+          "$$ClassName" : "TCastleOrthographic",
+          "Name" : "Orthographic",
+          "OriginPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 5.0000000000000000E-001,
+            "Y" : 5.0000000000000000E-001
+          }
+        },
+        "Perspective" : {
+          "$$ClassName" : "TCastlePerspective",
+          "Name" : "Perspective"
+        },
+        "ProjectionFar" : 1.0000000000000000E+003,
+        "ProjectionNear" : -1.0000000000000000E+003,
+        "ProjectionType" : "ptOrthographic"
+      },
+      "FullSize" : true,
+      "Items" : {
+        "$$ClassName" : "TCastleRootTransform",
+        "Name" : "Items",
+        "PhysicsProperties" : {
+          "$$ClassName" : "TPhysicsProperties",
+          "Name" : "PhysicsProperties"
+        },
+        "$Children" : [
+          {
+            "$$ClassName" : "TCastlePlane",
+            "Axis" : 2,
+            "ColorPersistent" : {
+              "$$ClassName" : "TCastleColorPersistent",
+              "Blue" : 0.0000000000000000E+000
+            },
+            "Material" : "pmUnlit",
+            "Name" : "PlaneListener",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "Name" : "RenderOptions"
+            },
+            "SizePersistent" : {
+              "$$ClassName" : "TCastleVector2Persistent",
+              "X" : 2.0000000000000000E+001,
+              "Y" : 2.0000000000000000E+001
+            },
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleText",
+                "Alignment" : "hpMiddle",
+                "Name" : "Text1",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "Name" : "RenderOptions"
+                },
+                "Size" : 4.0000000000000000E+001,
+                "Text" : [
+                  "Listener",
+                  "(Viewport.Camera.Position)"
+                ],
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : 2.8421066284179688E+001
+                }
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastlePlane",
+            "Axis" : 2,
+            "ColorPersistent" : {
+              "$$ClassName" : "TCastleColorPersistent",
+              "Blue" : 9.4117647409439087E-001,
+              "Green" : 7.9215687513351440E-001,
+              "Red" : 6.5098041296005249E-001
+            },
+            "Material" : "pmUnlit",
+            "Name" : "PlaneSoundSource",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "Name" : "RenderOptions"
+            },
+            "SizePersistent" : {
+              "$$ClassName" : "TCastleVector2Persistent",
+              "X" : 2.0000000000000000E+001,
+              "Y" : 2.0000000000000000E+001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Y" : 1.8789472961425781E+002
+            },
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleText",
+                "Alignment" : "hpMiddle",
+                "Name" : "Text2",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "Name" : "RenderOptions"
+                },
+                "Size" : 4.0000000000000000E+001,
+                "Text" : [
+                  "Sound Source.",
+                  "Drag with mouse to move."
+                ],
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : 2.8421066284179688E+001
+                }
+              }
+            ],
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleSoundSource",
+                "Name" : "SoundSource1",
+                "Sound" : "SoundTone",
+                "$NonVisualComponents" : [
+                  {
+                    "$$ClassName" : "TCastleSound",
+                    "Name" : "SoundTone",
+                    "ReferenceDistance" : 5.0000000000000000E+001,
+                    "URL" : "castle-data:/tone.wav"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "Name" : "Viewport"
+    }
+  ]
+}

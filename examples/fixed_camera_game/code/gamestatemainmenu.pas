@@ -106,6 +106,10 @@ begin
   { Since we always capture clicks on the entire screen,
     no point in visualizing focused. }
   DrawFocusedBorder := false;
+
+  { Assign TCastleSound instances loaded in GameSound unit. }
+  SoundClick := AllSounds.SoundMenuClick;
+  SoundCurrentItemChanged := AllSounds.SoundMenuCurrentItemChanged;
 end;
 
 { TStateMainMenu.TRiftMainMenu -------------------------------------------------------------- }
@@ -255,7 +259,7 @@ procedure TStateMainMenu.Start;
 begin
   inherited;
 
-  SoundEngine.MusicPlayer.Sound := stMainMenuMusic;
+  SoundEngine.LoopingChannel[0].Sound := AllSounds.SoundMainMenuMusic;
 
   MenuBg := TCastleImageControl.Create(FreeAtStop);
   MenuBg.URL := GameConfig.GetURL('main_menu/image');

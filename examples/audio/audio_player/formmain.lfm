@@ -1,0 +1,193 @@
+object MainForm: TMainForm
+  Left = 459
+  Height = 508
+  Top = 166
+  Width = 865
+  Caption = 'Audio Player | Castle Game Engine'
+  ClientHeight = 508
+  ClientWidth = 865
+  DesignTimePPI = 120
+  OnCreate = FormCreate
+  LCLVersion = '2.0.10.0'
+  object ButtonOpen: TButton
+    AnchorSideTop.Control = LabelCaption
+    AnchorSideTop.Side = asrBottom
+    Left = 10
+    Height = 39
+    Top = 42
+    Width = 150
+    AutoSize = True
+    BorderSpacing.Top = 9
+    Caption = 'Open Sound File'
+    OnClick = ButtonOpenClick
+    ParentFont = False
+    TabOrder = 0
+  end
+  object LabelSoundInfo: TLabel
+    AnchorSideTop.Control = ButtonOpen
+    AnchorSideTop.Side = asrBottom
+    Left = 10
+    Height = 69
+    Top = 90
+    Width = 189
+    BorderSpacing.Top = 9
+    Caption = 'Sound File:'#10'None'#10'Duration: Not Available'
+    ParentColor = False
+    ParentFont = False
+  end
+  object ButtonPlay: TButton
+    AnchorSideTop.Control = LabelSoundInfo
+    AnchorSideTop.Side = asrBottom
+    Left = 10
+    Height = 39
+    Top = 168
+    Width = 50
+    AutoSize = True
+    BorderSpacing.Top = 9
+    Caption = 'Play'
+    OnClick = ButtonPlayClick
+    ParentFont = False
+    TabOrder = 2
+  end
+  object ButtonStop: TButton
+    AnchorSideLeft.Control = ButtonPlay
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = LabelSoundInfo
+    AnchorSideTop.Side = asrBottom
+    Left = 69
+    Height = 39
+    Top = 168
+    Width = 54
+    AutoSize = True
+    BorderSpacing.Left = 9
+    BorderSpacing.Top = 9
+    Caption = 'Stop'
+    OnClick = ButtonStopClick
+    ParentFont = False
+    TabOrder = 3
+  end
+  object TrackOffset: TTrackBar
+    AnchorSideLeft.Control = LabelOffset
+    AnchorSideTop.Control = LabelOffset1
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Side = asrBottom
+    Left = 10
+    Height = 55
+    Top = 280
+    Width = 852
+    OnChange = TrackOffsetChange
+    Position = 0
+    ShowSelRange = False
+    TickStyle = tsNone
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 9
+    ParentFont = False
+    TabOrder = 4
+  end
+  object ButtonSoundEngineInformation: TButton
+    AnchorSideLeft.Control = ButtonOpen
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = ButtonOpen
+    Left = 169
+    Height = 39
+    Top = 42
+    Width = 226
+    AutoSize = True
+    BorderSpacing.Left = 9
+    Caption = 'Sound Engine Information'
+    OnClick = ButtonSoundEngineInformationClick
+    ParentFont = False
+    TabOrder = 1
+  end
+  object LabelCaption: TLabel
+    Left = 10
+    Height = 23
+    Top = 10
+    Width = 274
+    Caption = 'Castle Game Engine Audio Player'
+    Font.Style = [fsBold]
+    ParentColor = False
+    ParentFont = False
+  end
+  object LabelOffset: TLabel
+    AnchorSideTop.Control = ButtonPlay
+    AnchorSideTop.Side = asrBottom
+    Left = 10
+    Height = 23
+    Top = 216
+    Width = 320
+    BorderSpacing.Top = 9
+    Caption = 'Offset within played sound: Not Playing'
+    ParentColor = False
+    ParentFont = False
+  end
+  object LabelVolume: TLabel
+    AnchorSideTop.Control = TrackOffset
+    AnchorSideTop.Side = asrBottom
+    Left = 10
+    Height = 23
+    Top = 344
+    Width = 68
+    BorderSpacing.Top = 9
+    Caption = 'Volume:'
+    ParentColor = False
+    ParentFont = False
+  end
+  object TrackVolume: TTrackBar
+    AnchorSideLeft.Control = LabelVolume
+    AnchorSideTop.Control = LabelVolume
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Side = asrBottom
+    Left = 10
+    Height = 55
+    Top = 376
+    Width = 848
+    Max = 1000
+    OnChange = TrackVolumeChange
+    Position = 500
+    ShowSelRange = False
+    TickStyle = tsNone
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 9
+    ParentFont = False
+    TabOrder = 5
+  end
+  object CheckBoxLoop: TCheckBox
+    AnchorSideTop.Control = TrackVolume
+    AnchorSideTop.Side = asrBottom
+    Left = 10
+    Height = 27
+    Top = 432
+    Width = 66
+    BorderSpacing.Top = 1
+    Caption = 'Loop'
+    OnChange = CheckBoxLoopChange
+    ParentFont = False
+    TabOrder = 6
+  end
+  object LabelOffset1: TLabel
+    AnchorSideTop.Control = LabelOffset
+    AnchorSideTop.Side = asrBottom
+    Left = 10
+    Height = 23
+    Top = 248
+    Width = 680
+    BorderSpacing.Top = 9
+    Caption = '(You can drag this slider, even during playback, to control position within the sound.)'
+    Font.Style = [fsItalic]
+    ParentColor = False
+    ParentFont = False
+  end
+  object OpenDialogSound: TCastleOpenDialog
+    Title = 'Open Existing Sound File'
+    FilterIndex = 0
+    Left = 324
+    Top = 69
+  end
+  object Timer1: TTimer
+    Interval = 1
+    OnTimer = Timer1Timer
+    Left = 417
+    Top = 82
+  end
+end

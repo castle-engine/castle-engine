@@ -115,8 +115,8 @@ type
         always valid when IsToxic. }
       ToxicLastDamageTime: Single;
 
-      SwimmingChangeSound: TSound;
-      SwimmingSound: TSound;
+      SwimmingChangePlayingSound: TCastlePlayingSound;
+      SwimmingPlayingSound: TCastlePlayingSound;
 
       { Did last @link(Update) detected that we are on the ground. }
       IsOnTheGround: boolean;
@@ -124,12 +124,8 @@ type
       GroundProperty: TMaterialProperty;
       ReallyIsOnTheGroundTime: Single;
 
-      { There always must be satisfied:
-          FootstepsSound <> nil
-        if and only if
-          FootstepsSoundPlaying <> stNone. }
-      FootstepsSound: TSound;
-      FootstepsSoundPlaying: TSoundType;
+      FootstepsPlayingSound: TCastlePlayingSound;
+      FootstepsSound: TCastleSound;
       ReallyWalkingOnTheGroundTime: Single;
 
       FInventoryCurrentItem: Integer;
@@ -148,7 +144,7 @@ type
       FFallMinHeightToDamage: Single;
       FFallDamageScaleMin: Single;
       FFallDamageScaleMax: Single;
-      FFallSound: TSoundType;
+      FFallSound: TCastleSound;
       FHeadBobbing: Single;
       FSwimBreath: Single;
       FDrownPause: Single;
@@ -178,11 +174,8 @@ type
     procedure SetLifeCustomFadeOut(const Value: Single;
       const Color: TCastleColor);
 
-    procedure SwimmingChangeSoundRelease(Sender: TSound);
-    procedure SwimmingSoundRelease(Sender: TSound);
     procedure SetSwimming(const Value: TPlayerSwimming);
 
-    procedure FootstepsSoundRelease(Sender: TSound);
     procedure SetFlying(const AValue: Boolean);
     procedure SetFlyingTimeOut(const AValue: TFloatTime);
     procedure SetEnableNavigationDragging(const AValue: Boolean);
@@ -388,7 +381,7 @@ type
       read FFallDamageScaleMax write FFallDamageScaleMax default DefaultFallDamageScaleMax;
     { Sound when falling.
       The default is the sound named 'player_fall'. }
-    property FallSound: TSoundType
+    property FallSound: TCastleSound
       read FFallSound write FFallSound;
     { Controls head bobbing, but only when player is walking.
       See TCastleWalkNavigation.HeadBobbing for exact meaning of this.
@@ -523,7 +516,7 @@ implementation
 uses Math, SysUtils,
   CastleClassUtils, CastleUtils, CastleControls,
   CastleImages, CastleFilesUtils, CastleUIControls, CastleLog,
-  CastleGLBoxes, CastleGameNotifications, CastleXMLConfig,
+  CastleGameNotifications, CastleXMLConfig,
   CastleGLImages, CastleConfig, CastleRenderContext;
 
 { TPlayer.TBox ----------------------------------------------------------------- }
@@ -637,21 +630,33 @@ begin
 
   FEquippedWeaponResourceFrame := TResourceFrame.Create(Self);
   Add(FEquippedWeaponResourceFrame);
+
+  { We allocate 1 TCastlePlayingSound instance for each of these sounds,
+    which reflects the usage: at most 1 footsteps sound is played at a given time,
+    at most 1 swimming sound etc. }
+
+  FootstepsPlayingSound := TCastlePlayingSound.Create(nil);
+  FootstepsPlayingSound.Loop := true;
+  //FootstepsPlayingSound.Sound := ... // will be assigned based on ground type
+
+  SwimmingChangePlayingSound := TCastlePlayingSound.Create(nil);
+  {$warnings off} // just to keep deprecated working
+  SwimmingChangePlayingSound.Sound := stPlayerSwimmingChange;
+  {$warnings on}
+
+  SwimmingPlayingSound := TCastlePlayingSound.Create(nil);
+  {$warnings off} // just to keep deprecated working
+  SwimmingPlayingSound.Sound := stPlayerSwimming;
+  {$warnings on}
 end;
 
 destructor TPlayer.Destroy;
 begin
   EquippedWeapon := nil; { unregister free notification }
 
-  if FootstepsSound <> nil then
-    FootstepsSound.Release;
-
-  if SwimmingChangeSound <> nil then
-    SwimmingChangeSound.Release;
-
-  if SwimmingSound <> nil then
-    SwimmingSound.Release;
-
+  FreeAndNil(FootstepsPlayingSound);
+  FreeAndNil(SwimmingChangePlayingSound);
+  FreeAndNil(SwimmingPlayingSound);
   FreeAndNil(FWalkNavigation);
   FreeAndNil(FThirdPersonNavigation);
   inherited;
@@ -690,7 +695,9 @@ begin
     S += Format(' (quantity %d)', [Item.Quantity]);
   Notifications.Show(S);
 
-  SoundEngine.Sound(stPlayerPickItem);
+  {$warnings off} // just to keep deprecated working
+  SoundEngine.Play(stPlayerPickItem);
+  {$warnings on}
 
   Result := inherited PickItemUpdate(Item);
 
@@ -722,7 +729,9 @@ begin
       S += Format(' (quantity %d)', [Result.Item.Quantity]);
     Notifications.Show(S);
 
-    SoundEngine.Sound(stPlayerDropItem);
+    {$warnings off} // just to keep deprecated working
+    SoundEngine.Play(stPlayerDropItem);
+    {$warnings on}
 
     { update InventoryCurrentItem.
       Note that if Inventory.Count = 0 now, then this will
@@ -978,25 +987,6 @@ begin
   end;
 end;
 
-procedure TPlayer.FootstepsSoundRelease(Sender: TSound);
-begin
-  Assert(Sender = FootstepsSound);
-  FootstepsSound := nil;
-  FootstepsSoundPlaying := stNone;
-end;
-
-procedure TPlayer.SwimmingChangeSoundRelease(Sender: TSound);
-begin
-  Assert(Sender = SwimmingChangeSound);
-  SwimmingChangeSound := nil;
-end;
-
-procedure TPlayer.SwimmingSoundRelease(Sender: TSound);
-begin
-  Assert(Sender = SwimmingSound);
-  SwimmingSound := nil;
-end;
-
 procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 
   { Perform various things related to player swimming. }
@@ -1017,23 +1007,20 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
               Notifications.Show('You''re drowning');
             SwimLastDrownTime := LifeTime;
             Life := Life - (DrownDamageConst + Random * DrownDamageRandom);
-            SoundEngine.Sound(stPlayerDrowning);
+            {$warnings off} // just to keep deprecated working
+            SoundEngine.Play(stPlayerDrowning);
+            {$warnings on}
           end;
         end;
       end;
 
       { Take care of playing stPlayerSwimming }
-      { See comments at creation of SwimmingChangeSound
-        for reasons why I should safeguard here and play this sound
-        only when SwimmingSound = nil. }
-      if (SwimmingSound = nil) and
+      if (not SwimmingPlayingSound.Playing) and
          ( (SwimLastSoundTime = 0.0) or
            (LifeTime - SwimLastSoundTime > SwimSoundPause) ) then
       begin
         SwimLastSoundTime := LifeTime;
-        SwimmingSound := SoundEngine.Sound(stPlayerSwimming);
-        if SwimmingSound <> nil then
-          SwimmingSound.OnRelease := @SwimmingSoundRelease;
+        SoundEngine.Play(SwimmingPlayingSound);
       end;
     end;
   end;
@@ -1043,7 +1030,7 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
   const
     { TimeToChangeOnTheGround and ReallyIsOnTheGroundTime play here the
       analogous role as ReallyWalkingOnTheGroundTime and
-      TimeToChangeFootstepsSoundPlaying, see UpdateFootstepsSoundPlaying. }
+      TimeToChangeFootstepsSound, see UpdateFootstepsSound. }
     TimeToChangeIsOnTheGround = 0.5;
   begin
     if WalkNavigation.IsOnTheGround then
@@ -1077,7 +1064,9 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
         ToxicLastDamageTime := LifeTime;
         if not Dead then
         begin
-          SoundEngine.Sound(stPlayerToxicPain);
+          {$warnings off} // just to keep deprecated working
+          SoundEngine.Play(stPlayerToxicPain);
+          {$warnings on}
           SetLifeCustomFadeOut(Life - (GroundProperty.ToxicDamageConst +
             Random * GroundProperty.ToxicDamageRandom), Green);
         end;
@@ -1086,34 +1075,34 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
     IsToxic := NewIsToxic;
   end;
 
-  { Update FootstepsSoundPlaying and related variables.
+  { Update FootstepsSound and related variables.
     Must be called after UpdateIsOnTheGround (depends on GroundProperty). }
-  procedure UpdateFootstepsSoundPlaying;
+  procedure UpdateFootstepsSound;
   const
-    TimeToChangeFootstepsSoundPlaying = 0.5;
+    TimeToChangeFootstepsSound = 0.5;
   var
-    NewFootstepsSoundPlaying: TSoundType;
+    NewFootstepsSound: TCastleSound;
   begin
     { The meaning of ReallyWalkingOnTheGroundTime and
-      TimeToChangeFootstepsSoundPlaying:
+      TimeToChangeFootstepsSound:
       WalkNavigation.IsWalkingOnTheGround can change quite rapidly
       (when player quickly presses and releases up/down keys,
       or when he're walking up the stairs, or when he's walking
       on un-flat terrain --- then WalkNavigation.IsWalkingOnTheGround
       switches between @true and @false quite often).
-      But it is undesirable to change FootstepsSoundPlaying
+      But it is undesirable to change FootstepsSound
       so often, as this causes footsteps to suddenly stop, then play,
       then stop again etc. --- this doesn't sound good.
 
       So I use ReallyWalkingOnTheGroundTime to mark myself
       the time when WalkNavigation.IsWalkingOnTheGround was true.
-      In normal situation I would set NewFootstepsSoundPlaying to stNone
+      In normal situation I would set NewFootstepsSound to nil
       when WalkNavigation.IsWalkingOnTheGround = @false.
-      But now I set NewFootstepsSoundPlaying to stNone only if
+      But now I set NewFootstepsSound to nil only if
       WalkNavigation.IsWalkingOnTheGround = @false
-      for at least TimeToChangeFootstepsSoundPlaying seconds. }
+      for at least TimeToChangeFootstepsSound seconds. }
 
-    { calculate NewFootstepsSoundPlaying }
+    { calculate NewFootstepsSound }
     if WalkNavigation.IsWalkingOnTheGround then
     begin
       ReallyWalkingOnTheGroundTime := LifeTime;
@@ -1121,62 +1110,27 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
         WalkNavigation.IsOnTheGround, so UpdateIsOnTheGround updated
         GroundProperty field. }
       if (GroundProperty <> nil) and
-         (GroundProperty.FootstepsSound <> stNone) then
-        NewFootstepsSoundPlaying := GroundProperty.FootstepsSound else
-        NewFootstepsSoundPlaying := stPlayerFootstepsDefault;
+         (GroundProperty.FootstepsSound <> nil) then
+        NewFootstepsSound := GroundProperty.FootstepsSound
+      else
+        {$warnings off} // just to keep deprecated working
+        NewFootstepsSound := stPlayerFootstepsDefault;
+        {$warnings on}
     end else
     if LifeTime - ReallyWalkingOnTheGroundTime >
-      TimeToChangeFootstepsSoundPlaying then
-      NewFootstepsSoundPlaying := stNone else
-      NewFootstepsSoundPlaying := FootstepsSoundPlaying;
+      TimeToChangeFootstepsSound then
+      NewFootstepsSound := nil
+    else
+      NewFootstepsSound := FootstepsSound;
 
-    { Once I had an idea here to use AL_LOOPING sound for footsteps.
-      But this is not good, because then I would have to manually
-      stop this sound whenever player stops walking. This is not so easy.
-      This occurs when FootstepsSoundPlaying changes from non-stNone to stNone,
-      but this occurs also when CastlePlay starts loading new level, enters
-      game menu etc. --- in all these cases player footsteps must stop.
-      So it's better (simpler) to simply use non-looping sound for footsteps.
-      Whenever old sound for footsteps will end, this procedure will just
-      allocate and start new footsteps sound. }
-
-    if FootstepsSoundPlaying <> NewFootstepsSoundPlaying then
+    if FootstepsSound <> NewFootstepsSound then
     begin
-      if FootstepsSoundPlaying <> stNone then
-      begin
-        { Stop footsteps sound. }
-        FootstepsSound.Release;
-        { FootstepsSoundRelease should set this to nil. }
-        Assert(FootstepsSound = nil);
-      end;
-
-      if NewFootstepsSoundPlaying <> stNone then
-      begin
-        { Start footsteps sound. }
-        FootstepsSound := SoundEngine.Sound(NewFootstepsSoundPlaying, false);
-        if FootstepsSound <> nil then
-        begin
-          { Lower the position, to be on our feet. }
-          FootstepsSound.Position := Vector3(0, 0, -1.0);
-          FootstepsSound.OnRelease := @FootstepsSoundRelease;
-        end else
-          { Failed to allocate sound, so force new
-            NewFootstepsSoundPlaying to stNone. }
-          NewFootstepsSoundPlaying := stNone;
-      end;
-
-      FootstepsSoundPlaying := NewFootstepsSoundPlaying;
-    end else
-    if FootstepsSoundPlaying <> stNone then
-    begin
-      { So FootstepsSoundPlaying = NewFootstepsSoundPlaying for sure.
-        Make sure that the sound is really playing. }
-      FootstepsSound.KeepPlaying;
+      FootstepsPlayingSound.Stop;
+      FootstepsPlayingSound.Sound := NewFootstepsSound;
+      if NewFootstepsSound <> nil then
+        SoundEngine.Play(FootstepsPlayingSound);
+      FootstepsSound := NewFootstepsSound;
     end;
-
-    Assert(
-      (FootstepsSound <> nil) =
-      (FootstepsSoundPlaying <> stNone));
   end;
 
 const
@@ -1214,7 +1168,7 @@ begin
 
   UpdateIsOnTheGround;
   UpdateToxic;
-  UpdateFootstepsSoundPlaying;
+  UpdateFootstepsSound;
 
   FDebugTransform.Exists := RenderDebug;
 end;
@@ -1234,8 +1188,9 @@ procedure TPlayer.Fall(const FallHeight: Single);
 begin
   inherited;
 
-  if (FSwimming = psNo) and (FallHeight > FallMinHeightToSound) then
-    SoundEngine.Sound(FallSound);
+  if (FSwimming = psNo) and
+     (FallHeight > FallMinHeightToSound) then
+    SoundEngine.Play(FallSound);
 
   if (FSwimming = psNo) and (FallHeight > FallMinHeightToDamage) then
     Life := Life - Max(0, FallHeight *
@@ -1248,13 +1203,17 @@ begin
   if (Life > 0) and (Value <= 0) then
   begin
     Notifications.Show('You die');
-    SoundEngine.Sound(stPlayerDies);
+    {$warnings off} // just to keep deprecated working
+    SoundEngine.Play(stPlayerDies);
+    {$warnings on}
     WalkNavigation.FallOnTheGround;
   end else
   if (Life - Value) > 1 then
   begin
     FadeOut(Color);
-    SoundEngine.Sound(stPlayerSuddenPain);
+    {$warnings off} // just to keep deprecated working
+    SoundEngine.Play(stPlayerSuddenPain);
+    {$warnings on}
   end;
   inherited SetLife(Value);
 end;
@@ -1288,18 +1247,8 @@ begin
     if (FSwimming = psUnderWater) <>
        (Value = psUnderWater) then
     begin
-      { If SwimmingChangeSound <> nil, then the
-        stPlayerSwimmingChange sound is already played (this may be caused
-        when player tries to stay above the water --- he will then repeatedly
-        go under and above the water). So do not start it again, to avoid
-        bad sound atrifacts (the same sound playing a couple times on top
-        of each other). }
-      if SwimmingChangeSound = nil then
-      begin
-        SwimmingChangeSound := SoundEngine.Sound(stPlayerSwimmingChange);
-        if SwimmingChangeSound <> nil then
-          SwimmingChangeSound.OnRelease := @SwimmingChangeSoundRelease;
-      end;
+      if not SwimmingChangePlayingSound.Playing then
+        SoundEngine.Play(SwimmingChangePlayingSound); // play once
     end;
 
     if (FSwimming = psNo) and (Value <> psNo) then
@@ -1381,15 +1330,9 @@ begin
     standing still after new level loaded. }
   ReallyWalkingOnTheGroundTime := -1000.0;
 
-  if FootstepsSoundPlaying <> stNone then
-  begin
-    { Stop footsteps sound. }
-    FootstepsSound.Release;
-    { FootstepsSoundRelease should set this to nil. }
-    Assert(FootstepsSound = nil);
-
-    FootstepsSoundPlaying := stNone;
-  end;
+  FootstepsPlayingSound.Stop;
+  FootstepsPlayingSound.Sound := nil;
+  FootstepsSound := nil;
 
   ReallyIsOnTheGroundTime := -1000;
   IsOnTheGround := false;

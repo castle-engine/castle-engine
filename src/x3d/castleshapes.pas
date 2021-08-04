@@ -1932,17 +1932,35 @@ begin
   { When Proxy needs to be recalculated.
     Include chVisibleVRML1State, since even MaterialBinding may change VRML 1.0
     proxies. }
-  if Changes * [chCoordinate, chNormal, chTangent,
-    chVisibleVRML1State, chGeometryVRML1State,
-    chTextureCoordinate, chGeometry, chWireframe, chFontStyle] <> [] then
+  if Changes * [
+       chCoordinate,
+       chNormal,
+       chTangent,
+       chVisibleVRML1State,
+       chGeometryVRML1State,
+       chTextureCoordinate,
+       chGeometry,
+       chGeometryFontChanged,
+       chWireframe,
+       chFontStyle,
+       chFontStyleFontChanged
+     ] <> [] then
     FreeProxy;
 
   { When bounding volumes in global coordinates changed.
     Probably only chTransform is really needed here
     (testcase: upwind_turbine.x3d), as other flags already cause other changes
     that invalidate global bboxes anyway. }
-  if Changes * [chTransform, chCoordinate, chGeometry, chGeometryVRML1State,
-    chEverything, chFontStyle] <> [] then
+  if Changes * [
+       chTransform,
+       chCoordinate,
+       chGeometry,
+       chGeometryFontChanged,
+       chGeometryVRML1State,
+       chEverything,
+       chFontStyle,
+       chFontStyleFontChanged
+     ] <> [] then
     Validities := Validities - [svBBox, svBoundingSphere];
 
   { Changes to actual geometry that are limited to Coordinate (topology or other things don't change). }
@@ -1950,7 +1968,14 @@ begin
     LocalGeometryChanged(true);
 
   { Changes to actual geometry (other). }
-  if Changes * [chGeometry, chGeometryVRML1State, chWireframe, chFontStyle] <> [] then
+  if Changes * [
+       chGeometry,
+       chGeometryFontChanged,
+       chGeometryVRML1State,
+       chWireframe,
+       chFontStyle,
+       chFontStyleFontChanged
+     ] <> [] then
     LocalGeometryChanged(false);
 
   if Changes * [chBBox] <> [] then
@@ -1959,6 +1984,14 @@ begin
     if (Node <> nil) and (Node.Collision in [scBox, scNone]) then
       FreeOctreeTriangles; // bbox changed, so simple octree based on bbox also changed
   end;
+
+  { Recreate TTextNode.FontTextureNode when FontStyle parameters,
+    like font family/bold/italic changed. }
+  if Changes * [
+       chGeometryFontChanged,
+       chFontStyleFontChanged
+     ] <> [] then
+    (FOriginalGeometry as TTextNode).FontChanged;
 
   if not InactiveOnly then
     TCastleSceneCore(ParentScene).VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);

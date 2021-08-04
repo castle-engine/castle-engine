@@ -152,19 +152,19 @@ begin
   Caption := 'Music volume';
 
   FSlider := TMenuVolumeSlider.Create(Self);
-  FSlider.Value := SoundEngine.MusicPlayer.Volume;
+  FSlider.Value := SoundEngine.LoopingChannel[0].Volume;
   FSlider.OnChange := @SliderValueChanged;
   InsertFront(FSlider);
 end;
 
 procedure TMusicVolumeMenuItem.SliderValueChanged(Sender: TObject);
 begin
-  SoundEngine.MusicPlayer.Volume := Slider.Value;
+  SoundEngine.LoopingChannel[0].Volume := Slider.Value;
 end;
 
 procedure TMusicVolumeMenuItem.Refresh;
 begin
-  Slider.Value := SoundEngine.MusicPlayer.Volume;
+  Slider.Value := SoundEngine.LoopingChannel[0].Volume;
 end;
 
 end.

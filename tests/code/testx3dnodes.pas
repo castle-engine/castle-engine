@@ -55,9 +55,9 @@ type
 
     procedure TestGeometryNodesImplemented;
 
-    { Test all geometry nodes should have Change = chGeometry
+    { Test all geometry nodes should have Change = chGeometryXxx
       on all fields (except "metadata").
-      All non-geometry nodes should not have chGeometry on any field. }
+      All non-geometry nodes should not have chGeometryXxx on any field. }
     procedure TestGeometryNodesChanges;
 
     { All Color nodes should have Changes = [chColorNode] }
@@ -355,18 +355,22 @@ begin
       begin
         CurrentName := N.Fields[J].X3DName;
         for K := 0 to N.FieldsCount - 1 do
-          AssertTrue((K = J) or (not N.Fields[K].IsName(CurrentName)));
+          AssertTrue(CurrentName + ' must be unique field name',
+            (K = J) or (not N.Fields[K].IsName(CurrentName)));
         for K := 0 to N.EventsCount - 1 do
-          AssertTrue(not N.Events[K].IsName(CurrentName));
+          AssertTrue(CurrentName + ' must be unique event name',
+            not N.Events[K].IsName(CurrentName));
       end;
 
       for J := 0 to N.EventsCount - 1 do
       begin
         CurrentName := N.Events[J].X3DName;
         for K := 0 to N.FieldsCount - 1 do
-          AssertTrue(not N.Fields[K].IsName(CurrentName));
+          AssertTrue(CurrentName + ' must be unique field name',
+            not N.Fields[K].IsName(CurrentName));
         for K := 0 to N.EventsCount - 1 do
-          AssertTrue((K = J) or (not N.Events[K].IsName(CurrentName)));
+          AssertTrue(CurrentName + ' must be unique event name',
+            (K = J) or (not N.Events[K].IsName(CurrentName)));
       end;
     finally FreeAndNil(N) end;
   end;
@@ -994,21 +998,15 @@ begin
       begin
         for J := 0 to N.FieldsCount - 1 do
           if N.Fields[J].X3DName <> 'metadata' then
-          try
-            AssertTrue(N.Fields[J].ExecuteChange = chGeometry);
-          except
-            Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].X3DName);
-            raise;
-          end;
+            AssertTrue(
+              Format('Geometry node %s, field %s, must use chGeometryXxx', [N.X3DType, N.Fields[J].X3DName]),
+              N.Fields[J].ExecuteChange in [chGeometry, chGeometryFontChanged]);
       end else
       begin
         for J := 0 to N.FieldsCount - 1 do
-        try
-          AssertTrue(chGeometry <> N.Fields[J].ExecuteChange);
-        except
-          Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].X3DName);
-          raise;
-        end;
+          AssertTrue(
+            Format('Non-geometry node %s, field %s, must NOT use chGeometryXxx', [N.X3DType, N.Fields[J].X3DName]),
+            not (N.Fields[J].ExecuteChange in [chGeometry, chGeometryFontChanged]));
       end
 
     finally FreeAndNil(N) end;

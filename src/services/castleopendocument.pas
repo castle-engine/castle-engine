@@ -128,7 +128,7 @@ implementation
 }
 
 uses
-  {$if not(defined(ANDROID) or defined(IOS))}
+  {$if not(defined(ANDROID) or defined(CASTLE_IOS))}
     {$ifdef UNIX} BaseUnix, {$endif}
     {$ifdef MSWINDOWS} Windows, {$endif}
     {$ifdef DARWIN} MacOSAll, {$endif}
@@ -189,7 +189,7 @@ end;
 
 {$ifdef UNIX}
 
-{$if defined(ANDROID) or defined(IOS)}
+{$if defined(ANDROID) or defined(CASTLE_IOS)}
 function OpenURL(AURL: String): Boolean;
 begin
   Messaging.Send(['view-url', AURL]);
@@ -252,7 +252,7 @@ begin
   end;
 end;
 
-  {$if defined(darwin) and not defined(iOS) and not defined(CPUX86_64)}
+  {$if defined(darwin) and not defined(CASTLE_IOS) and not defined(CPUX86_64)}
 
 { lcl/include/sysenvapis_mac.inc --------------------------------------------- }
 
@@ -366,7 +366,7 @@ procedure OpenApplicationStore(const ApplicationId: string);
 begin
   {$ifdef ANDROID} OpenURL('market://details?id=' + ApplicationId); {$endif}
 
-  {$ifdef IOS} Messaging.Send(['open-application-store', ApplicationId]); {$endif}
+  {$ifdef CASTLE_IOS} Messaging.Send(['open-application-store', ApplicationId]); {$endif}
 end;
 
 procedure Vibrate(const Miliseconds: Cardinal);

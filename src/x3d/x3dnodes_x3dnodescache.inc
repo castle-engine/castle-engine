@@ -15,9 +15,8 @@
 
 {$ifdef read_interface}
 
-  { Cache for resources not specific to renderer (OpenGL).
-    Includes all TTexturesVideosCache resources (texture, movie
-    data) and adds cache for files loaded as X3D nodes. }
+  { Cache for X3D nodes.
+    Descends from TTexturesVideosCache, so can also cache textures and movies. }
   TX3DNodesCache = class(TTexturesVideosCache)
   strict private
     type
@@ -32,6 +31,8 @@
       CachedNodes: TCachedNodeDictionary;
     function FindCachedNode(const Node: TX3DRootNode): TCachedNode;
   public
+    Log: Boolean;
+
     constructor Create;
     destructor Destroy; override;
 
@@ -67,8 +68,6 @@
 {$ifdef read_implementation}
 
 { TX3DNodesCache ------------------------------------------------------------ }
-
-{ $define DEBUG_CACHE}
 
 var
   CurrentlyLoading: TCastleStringList;
@@ -108,9 +107,8 @@ begin
   begin
     Inc(C.References);
 
-    {$ifdef DEBUG_CACHE}
-    Writeln('++ : node ', URL, ' : ', C.References);
-    {$endif}
+    if Log then
+      WritelnLog('++', 'Node %s : %d', [URIDisplay(URL), C.References]);
 
     Exit(C.Node);
   end;
@@ -142,9 +140,8 @@ begin
   C.URL := URL;
   C.Node := Result;
 
-  {$ifdef DEBUG_CACHE}
-  Writeln('++ : node ', URL, ' : ', 1);
-  {$endif}
+  if Log then
+    WritelnLog('++', 'Node %s : %d', [URIDisplay(URL), 1]);
 end;
 
 function TX3DNodesCache.IsCached(const URL: String): Boolean;
@@ -172,9 +169,8 @@ begin
     raise EInternalError.CreateFmt('FreeNode: no reference found for node %s',
       [PointerToStr(Node)]);
 
-  {$ifdef DEBUG_CACHE}
-  Writeln('-- : node ', C.URL, ' : ', C.References - 1);
-  {$endif}
+  if Log then
+    WritelnLog('--', 'Node %s : %d', [URIDisplay(C.URL), C.References - 1]);
 
   Node := nil;
 

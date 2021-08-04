@@ -47,7 +47,7 @@ type
     FLoadingBarYPosition: Single;
     FPlaceholderName: TPlaceholderName;
     FPlaceholderReferenceDirection: TVector3;
-    FMusicSound: TSoundType;
+    FMusicSound: TCastleSound;
     { We keep XML Document reference through the lifetime of this object,
       to allow the particular level logic (TLevelLogic descendant)
       to read some level-logic-specific variables from it. }
@@ -242,8 +242,8 @@ type
       read FPlaceholderReferenceDirection write FPlaceholderReferenceDirection;
 
     { Music played when entering the level.
-      None (stNone) by default. }
-    property MusicSound: TSoundType read FMusicSound write FMusicSound;
+      None (nil) by default. }
+    property MusicSound: TCastleSound read FMusicSound write FMusicSound;
   end;
 
   TLevelInfoList = class(specialize TObjectList<TLevelInfo>)
@@ -1094,7 +1094,7 @@ begin
   if (Player <> nil) then
     Player.LevelChanged;
 
-  SoundEngine.MusicPlayer.Sound := Info.MusicSound;
+  SoundEngine.LoopingChannel[0].Sound := Info.MusicSound;
   SoundEngine.PrepareResources;
 
   Items.MainScene.ProcessEvents := true;
@@ -1592,8 +1592,9 @@ begin
   AddAlwaysPreparedResources;
 
   if Element.AttributeString('music_sound', SoundName) then
-    MusicSound := SoundEngine.SoundFromName(SoundName) else
-    MusicSound := stNone;
+    MusicSound := SoundEngine.SoundFromName(SoundName)
+  else
+    MusicSound := nil;
 end;
 
 { TLevelInfoList ------------------------------------------------------- }

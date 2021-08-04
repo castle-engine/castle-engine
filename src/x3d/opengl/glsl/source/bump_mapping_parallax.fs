@@ -39,6 +39,9 @@ void PLUG_texture_coord_shift(inout vec2 tex_coord)
   /* At smaller view angles, much more iterations needed, otherwise ugly
      aliasing artifacts quickly appear. */
   float num_steps = mix(30.0, 10.0, v_to_eye.z);
+#ifdef CASTLE_BUGGY_BUMP_MAPPING_NUM_STEPS
+  num_steps = clamp(num_steps, 10.0, 30.0);
+#endif
   float step = 1.0 / num_steps;
 
   /* Should we remove "v_to_eye.z" below, i.e. should we apply

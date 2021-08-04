@@ -83,7 +83,7 @@ OK if after nearest release:
 
 * Make files browser with features as documented.
     * allow dropping scenes/images on UI design - done, but show preview when dropping
-	* on audio files, you can open them with `examples/audio/audio_player_scrubber/` (should this be moved to tools directory? probably!)
+	* on audio files, you can open them with `examples/audio/audio_player/` (should this be moved to tools directory? probably!)
 
 * build tool integration:
     * For "run", colorized CastleLog warnings
@@ -124,8 +124,7 @@ OK if after nearest release:
     * Output ListBox has some width (and horiz scrollbar) on Windows, unrelated to anything?
     * remember ProjectForm state of maximized/not
 
-* move CastleComponentSerialize to src/base/
-  And UserInterfaceLoad, TransformLoad move to appropriate units with these classes.
+* move CastleComponentSerialize to src/files/
 
 * Project options:
     * Allow to configure project qualified name from "Project Options" in editor

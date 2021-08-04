@@ -25,11 +25,26 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TAbstractFontStyleNode ----------------------------------------------- }
+
+class function TAbstractFontStyleNode.ClassX3DType: String;
+begin
+  Result := 'X3DFontStyleNode';
+end;
+
+procedure TAbstractFontStyleNode.CreateNode;
+begin
+  inherited;
+
+  DefaultContainerField := 'fontStyle';
+end;
 
 {$endif read_implementation}

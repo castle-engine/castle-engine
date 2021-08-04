@@ -7,6 +7,11 @@
 
 program fpmake;
 
+// FPC defines iOS as a separate OS since FPC 3.2.2.
+{$define HAS_SEPARATE_IOS}
+{$ifdef VER3_0} {$undef HAS_SEPARATE_IOS} {$endif}
+{$ifdef VER3_2_0} {$undef HAS_SEPARATE_IOS} {$endif}
+
 uses
   { It seems that FPC > 3.0.x requires thread support for FpMkUnit. }
   {$ifdef UNIX} {$ifndef VER3_0} CThreads, {$endif} {$endif}
@@ -14,7 +19,7 @@ uses
 
 var
   P: TPackage;
-  IOS: boolean; //< compiling for iOS target
+  LikeIOS: boolean; //< compiling for iOS target (physical or simulator)
   Xlib: boolean; //< OS has working Xlib packages
 begin
   with Installer do
@@ -23,13 +28,20 @@ begin
 
     { Should work on AllUnixOSes, actually.
       But let's limit the list only to the OSes actually tested. }
-    P.OSes := [Darwin, Linux, Freebsd, Win32, Win64, IPhoneSim, Android];
+    P.OSes := [Darwin, Linux, Freebsd, Win32, Win64, IPhoneSim, Android
+      {$ifdef HAS_SEPARATE_IOS} , iOS {$endif}
+    ];
 
     P.Options.Text := '@castle-fpc.cfg';
 
     { Some variables derived from Defaults.OS/CPU. }
-    IOS := (Defaults.OS = IPhoneSim) or
-      ((Defaults.OS = Darwin) and (Defaults.CPU = Arm));
+    LikeIOS := (Defaults.OS = IPhoneSim) or
+      {$ifdef HAS_SEPARATE_IOS}
+      (Defaults.OS = iOS)
+      {$else}
+      // FPC 3.0.2 and 3.0.4 do not define AArch64
+      ((Defaults.OS = Darwin) and (Defaults.CPU in [Arm {$ifndef VER3_0} , AArch64 {$endif}]))
+      {$endif};
     Xlib := Defaults.OS in (AllUnixOSes - [Android]);
 
     { Add dependencies on FPC packages.
@@ -37,7 +49,7 @@ begin
       point to them anyway. They are needed only when compiling with --nofpccfg.
       Anyway, maybe this is a good place to document my dependencies
       on FPC packages --- so let's do this. }
-    if (Defaults.OS <> Android) and (not IOS) then
+    if (Defaults.OS <> Android) and (not LikeIOS) then
       P.Dependencies.Add('opengl');
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-image');
@@ -119,7 +131,6 @@ begin
 
     P.SourcePath.Add('src' + PathDelim + 'audio');
     P.Targets.AddUnit('castleinternalsoundfile.pas');
-    P.Targets.AddUnit('castlesoundallocator.pas');
     P.Targets.AddUnit('castlesoundengine.pas');
     P.Targets.AddUnit('castlesoundbase.pas');
     P.Targets.AddUnit('castleinternalabstractsoundbackend.pas');
@@ -142,6 +153,7 @@ begin
     P.Targets.AddUnit('castleinternalvorbisfile.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'deprecated_units');
+    P.Targets.AddUnit('castlefontfamily.pas');
     P.Targets.AddUnit('castle2dscenemanager.pas');
     P.Targets.AddUnit('castle3d.pas');
     P.Targets.AddUnit('castlegenericlists.pas');
@@ -154,10 +166,14 @@ begin
     P.Targets.AddUnit('castlerenderer.pas');
     P.Targets.AddUnit('castlerendererbasetypes.pas');
     P.Targets.AddUnit('castlescenemanager.pas');
+    P.Targets.AddUnit('castlesoundallocator.pas');
     P.Targets.AddUnit('castleshaders.pas');
     P.Targets.AddUnit('castlewarnings.pas');
-    P.Targets.AddUnit('castlewindowmodes.pas');
-    P.Targets.AddUnit('castlewindowtouch.pas');
+    if Defaults.OS in AllWindowsOSes then
+      P.Targets.AddUnit('castlewindowsfonts.pas');
+
+    P.SourcePath.Add('src' + PathDelim + 'common_includes');
+    // No units inside
 
     P.SourcePath.Add('src' + PathDelim + 'base');
     P.Targets.AddUnit('castleapplicationproperties.pas');
@@ -252,15 +268,10 @@ begin
     P.Targets.AddUnit('castletexturefont_djvserifbi_20.pas');
     P.Targets.AddUnit('castletexturefont_djvserifi_20.pas');
     P.Targets.AddUnit('castletexturefontdata.pas');
-    if Defaults.OS in AllWindowsOSes then
-    begin
-      P.SourcePath.Add('src' + PathDelim + 'fonts' + PathDelim + 'windows');
-      P.Targets.AddUnit('castlewindowsfonts.pas');
-    end;
 
     P.SourcePath.Add('src' + PathDelim + 'fonts' + PathDelim + 'opengl');
     P.Targets.AddUnit('castlefonts.pas');
-    P.Targets.AddUnit('castlefontfamily.pas');
+    P.Targets.AddUnit('castleinternalrichtext.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'game');
     P.Targets.AddUnit('castlebehaviors.pas');
@@ -345,6 +356,10 @@ begin
       P.SourcePath.Add('src' + PathDelim + 'window' + PathDelim + 'unix');
       P.Targets.AddUnit('castleinternalxlib.pas');
     end;
+
+    P.SourcePath.Add('src' + PathDelim + 'window' + PathDelim + 'deprecated_units');
+    P.Targets.AddUnit('castlewindowmodes.pas');
+    P.Targets.AddUnit('castlewindowtouch.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'x3d');
     P.Targets.AddUnit('castleinternalarraysgenerator.pas');

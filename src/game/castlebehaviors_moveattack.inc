@@ -25,7 +25,7 @@ type
     on the same parent:
 
     @unorderedList(
-      @item(TCastleSound (to play spatial sounds;
+      @item(TCastleSoundSource (to play spatial sounds;
         this creature is silent otherwise),)
 
       @item(TCastleAliveBehavior (to account for the fact that current creature
@@ -84,8 +84,8 @@ type
     FEnemyObserver: TFreeNotificationObserver;
     FSoundAttackHit: String;
     FSoundAttackStart: String;
-    FSoundTypeAttackHit: TSoundType;
-    FSoundTypeAttackStart: TSoundType;
+    FSoundTypeAttackHit: TCastleSound;
+    FSoundTypeAttackStart: TCastleSound;
     FAnimationIdle: String;
     FAnimationMove: String;
     FAnimationAttack: String;
@@ -97,7 +97,7 @@ type
     property StateChangeTime: TFloatTime read FStateChangeTime;
     procedure SetEnemy(const Value: TCastleAliveBehavior);
     procedure EnemyFreeNotification(const Sender: TFreeNotificationObserver);
-    procedure PlaySound(const SoundType: TSoundType; const SoundHeight: Single);
+    procedure PlaySound(const SoundType: TCastleSound; const SoundHeight: Single);
     procedure SetSoundAttackHit(const Value: String);
     procedure SetSoundAttackStart(const Value: String);
     procedure UpdateAnimation;
@@ -399,15 +399,22 @@ begin
   end;
 end;
 
-procedure TCastleMoveAttack.PlaySound(const SoundType: TSoundType; const SoundHeight: Single);
+procedure TCastleMoveAttack.PlaySound(const SoundType: TCastleSound; const SoundHeight: Single);
 var
-  SoundBehavior: TCastleSound;
+  SoundSource: TCastleSoundSource;
+  PlayingSound: TCastlePlayingSoundSource;
 begin
-  if SoundType = stNone then Exit;
+  if SoundType = nil then Exit;
 
-  SoundBehavior := Parent.FindBehavior(TCastleSound) as TCastleSound;
+  SoundSource := Parent.FindBehavior(TCastleSoundSource) as TCastleSoundSource;
   if SoundBehavior <> nil then
-    SoundBehavior.PlayOnce(SoundType, SoundHeight);
+  begin
+    PlayingSound := TCastlePlayingSoundSource.Create(nil);
+    PlayingSound.Sound := SoundType;
+    PlayingSound.FreeOnStop := true;
+    PlayingSound.SoundHeight := SoundHeight;
+    SoundSource.Play(PlayingSound);
+  end;
 end;
 
 procedure TCastleMoveAttack.UpdateAnimation;

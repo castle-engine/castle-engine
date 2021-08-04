@@ -39,6 +39,12 @@ procedure CompileLazbuild(const OS: TOS; const CPU: TCPU;
   const Mode: TCompilationMode;
   const WorkingDirectory, LazarusProjectFile: string);
 
+{ Run lazbuild with specified command-line options.
+  Warning: This @italic(may) modify LazbuildOptions contents,
+  consider them undefined after this call. }
+procedure RunLazbuild(const WorkingDirectory: String; const LazbuildOptions: TCastleStringList);
+procedure RunLazbuild(const WorkingDirectory: String; const LazbuildOptions: array of String);
+
 { Output path, where temporary things like units (and iOS stuff)
   are placed. }
 function CompilationOutputPath(const OS: TOS; const CPU: TCPU;
@@ -224,17 +230,18 @@ var
         as Lazarus packages could not compile otherwise. }
 
       AddEnginePath('base');
+      AddEnginePath('common_includes');
       AddEnginePath('base/android');
       AddEnginePath('base/windows');
       AddEnginePath('base/unix');
       AddEnginePath('base/opengl');
       AddEnginePath('fonts');
-      AddEnginePath('fonts/windows');
       AddEnginePath('fonts/opengl');
       AddEnginePath('window');
       AddEnginePath('window/gtk');
       AddEnginePath('window/windows');
       AddEnginePath('window/unix');
+      AddEnginePath('window/deprecated_units');
       AddEnginePath('images');
       AddEnginePath('images/opengl');
       AddEnginePath('images/opengl/glsl/generated-pascal');
@@ -248,6 +255,7 @@ var
       AddEnginePath('audio/openal');
       AddEnginePath('audio/ogg_vorbis');
       AddEnginePath('files');
+      AddEnginePath('files/indy');
       AddEnginePath('castlescript');
       AddEnginePath('ui');
       AddEnginePath('ui/windows');
@@ -299,8 +307,8 @@ var
   begin
     Result :=
       (OS = iphonesim) or
-      ((OS = darwin) and (CPU = arm)) or
-      ((OS = darwin) and (CPU = aarch64));
+      ((OS = iOS) and (CPU = arm)) or
+      ((OS = iOS) and (CPU = aarch64));
   end;
 
   procedure AddIOSOptions;
@@ -310,14 +318,14 @@ var
     DeviceSdk = '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk';
   {$endif}
   var
-    IOS: boolean;
+    LikeIOS: boolean; // physical iOS or iPhoneSimulator
     VersionForSimulator: string;
   begin
-    IOS := false;
+    LikeIOS := false;
 
     if OS = iphonesim then
     begin
-      IOS := true;
+      LikeIOS := true;
       VersionForSimulator := TFpcVersionForIPhoneSimulatorChecked.Value(FpcVer);
       if VersionForSimulator <> '' then
         FpcOptions.Add('-V' + VersionForSimulator);
@@ -326,9 +334,9 @@ var
       {$endif}
     end;
 
-    if (OS = darwin) and (CPU = arm) then
+    if (OS = iOS) and (CPU = arm) then
     begin
-      IOS := true;
+      LikeIOS := true;
       FpcOptions.Add('-Cparmv7');
       FpcOptions.Add('-Cfvfpv3');
       {$ifdef DARWIN}
@@ -336,18 +344,18 @@ var
       {$endif}
     end;
 
-    if (OS = darwin) and (CPU = aarch64) then
+    if (OS = iOS) and (CPU = aarch64) then
     begin
-      IOS := true;
+      LikeIOS := true;
       {$ifdef DARWIN}
       FpcOptions.Add('-XR' + DeviceSdk);
       {$endif}
     end;
 
-    Assert(IOS = IsIOS);
+    Assert(LikeIOS = IsIOS);
 
-    // options for all iOS platforms
-    if IOS then
+    // options for all iOS-like platforms
+    if LikeIOS then
     begin
       FpcOptions.Add('-Cn');
       FpcOptions.Add('-dCASTLE_IOS');
@@ -477,7 +485,12 @@ begin
       FpcOptions.Add('-vm5090');
     end;
 
-    FpcOptions.Add('-T' + OSToString(OS));
+    if (OS = iOS) and not FpcVer.AtLeast(3, 2, 2) then
+      // Before FPC 3.2.2, the OS=iOS was designated as OS=darwin for FPC
+      FpcOptions.Add('-Tdarwin')
+    else
+      FpcOptions.Add('-T' + OSToString(OS));
+
     FpcOptions.Add('-P' + CPUToString(CPU));
 
     { Release build and valgrind build are quite similar, they share many options. }
@@ -489,7 +502,7 @@ begin
 
         - iOS:
 
-          With FPC 3.0.3 on Darwin/aarch64 (physical iOS, 64-bit)
+          With FPC 3.0.3 on iOS/aarch64 (physical iOS, 64-bit)
           it seems all programs compiled with -O1 or -O2 crash at start.
 
         - Android:
@@ -589,7 +602,7 @@ begin
         which has incompatible call mechanism.
 
         And indeed, doing PlaySound crashes at alSourcef call (to OpenAL)
-        from TSound.SetMinGain. Reproducible with escape_universe.
+        from TInternalSoundSource.SetMinGain. Reproducible with escape_universe.
 
         fpcupdeluxe default cross-compiler to Android also uses this. }
       //FpcOptions.Add('-CaEABIHF');
@@ -653,64 +666,74 @@ begin
   finally FreeAndNil(FpcOptions) end;
 end;
 
-procedure CompileLazbuild(const OS: TOS; const CPU: TCPU;
-  const Mode: TCompilationMode;
-  const WorkingDirectory, LazarusProjectFile: string);
+procedure RunLazbuild(const WorkingDirectory: String; const LazbuildOptions: TCastleStringList);
 var
   LazbuildExe: String;
-  LazbuildOptions: TCastleStringList;
-
-  procedure RunLazbuild;
-  var
-    LazbuildOutput: String;
-    LazbuildExitStatus: Integer;
-  begin
-    RunCommandIndirPassthrough(WorkingDirectory,
-      LazbuildExe, LazbuildOptions.ToArray, LazbuildOutput, LazbuildExitStatus, '', '', @FilterFpcOutput);
-    if LazbuildExitStatus <> 0 then
-    begin
-      { Old lazbuild can fail with exception like this:
-
-          An unhandled exception occurred at $0000000000575F5F:
-          EAccessViolation: Access violation
-            $0000000000575F5F line 590 of exttools.pas
-            $000000000057A027 line 1525 of exttools.pas
-            $000000000057B231 line 1814 of exttools.pas
-
-        Simply retrying works.
-      }
-      if (Pos('Fatal: Internal error', LazbuildOutput) <> 0) or
-         (Pos('EAccessViolation: Access violation', LazbuildOutput) <> 0) then
-      begin
-        FpcLazarusCrashRetry(WorkingDirectory, 'Lazarus (lazbuild)', 'Lazarus');
-        RunCommandIndirPassthrough(WorkingDirectory,
-          LazbuildExe, LazbuildOptions.ToArray, LazbuildOutput, LazbuildExitStatus, '', '', @FilterFpcOutput);
-        if LazbuildExitStatus <> 0 then
-          { do not retry compiling in a loop, give up }
-          raise Exception.Create('Failed to compile');
-      end else
-        raise Exception.Create('Failed to compile');
-    end else
-
-    // lazbuild from Lazarus 1.6.4 doesn't support add-package-link
-    if (Pos('Invalid option at position 3: "add-package-link"', LazbuildOutput) <> 0) and
-       (LazbuildOptions.IndexOf('--add-package-link') <> -1) then
-    begin
-      Writeln('lazbuild does not support --add-package-link, retrying without it');
-      LazbuildOptions.Delete(LazbuildOptions.IndexOf('--add-package-link'));
-      RunCommandIndirPassthrough(WorkingDirectory,
-        LazbuildExe, LazbuildOptions.ToArray, LazbuildOutput, LazbuildExitStatus, '', '', @FilterFpcOutput);
-      if LazbuildExitStatus <> 0 then
-        { do not retry compiling in a loop, give up }
-        raise Exception.Create('Failed to compile');
-    end;
-  end;
-
+  LazbuildOutput: String;
+  LazbuildExitStatus: Integer;
 begin
   LazbuildExe := FindExeLazarus('lazbuild');
   if LazbuildExe = '' then
     raise EExecutableNotFound.Create('Cannot find "lazbuild" program. Make sure it is installed, and available on environment variable $PATH. If you use the CGE editor, you can also set Lazarus location in "Preferences".');
 
+  RunCommandIndirPassthrough(WorkingDirectory,
+    LazbuildExe, LazbuildOptions.ToArray, LazbuildOutput, LazbuildExitStatus, '', '', @FilterFpcOutput);
+  if LazbuildExitStatus <> 0 then
+  begin
+    { Old lazbuild can fail with exception like this:
+
+        An unhandled exception occurred at $0000000000575F5F:
+        EAccessViolation: Access violation
+          $0000000000575F5F line 590 of exttools.pas
+          $000000000057A027 line 1525 of exttools.pas
+          $000000000057B231 line 1814 of exttools.pas
+
+      Simply retrying works.
+    }
+    if (Pos('Fatal: Internal error', LazbuildOutput) <> 0) or
+       (Pos('EAccessViolation: Access violation', LazbuildOutput) <> 0) then
+    begin
+      FpcLazarusCrashRetry(WorkingDirectory, 'Lazarus (lazbuild)', 'Lazarus');
+      RunCommandIndirPassthrough(WorkingDirectory,
+        LazbuildExe, LazbuildOptions.ToArray, LazbuildOutput, LazbuildExitStatus, '', '', @FilterFpcOutput);
+      if LazbuildExitStatus <> 0 then
+        { do not retry compiling in a loop, give up }
+        raise Exception.Create('Failed to compile');
+    end else
+      raise Exception.Create('Failed to compile');
+  end else
+
+  // lazbuild from Lazarus 1.6.4 doesn't support add-package-link
+  if (Pos('Invalid option at position 3: "add-package-link"', LazbuildOutput) <> 0) and
+     (LazbuildOptions.IndexOf('--add-package-link') <> -1) then
+  begin
+    Writeln('lazbuild does not support --add-package-link, retrying without it');
+    LazbuildOptions.Delete(LazbuildOptions.IndexOf('--add-package-link'));
+    RunCommandIndirPassthrough(WorkingDirectory,
+      LazbuildExe, LazbuildOptions.ToArray, LazbuildOutput, LazbuildExitStatus, '', '', @FilterFpcOutput);
+    if LazbuildExitStatus <> 0 then
+      { do not retry compiling in a loop, give up }
+      raise Exception.Create('Failed to compile');
+  end;
+end;
+
+procedure RunLazbuild(const WorkingDirectory: String; const LazbuildOptions: array of String);
+var
+  L: TCastleStringList;
+begin
+  L := TCastleStringList.Create;
+  try
+    L.Assign(LazbuildOptions);
+    RunLazbuild(WorkingDirectory, L);
+  finally FreeAndNil(L) end;
+end;
+
+procedure CompileLazbuild(const OS: TOS; const CPU: TCPU;
+  const Mode: TCompilationMode;
+  const WorkingDirectory, LazarusProjectFile: string);
+var
+  LazbuildOptions: TCastleStringList;
+begin
   LazbuildOptions := TCastleStringList.Create;
   try
     // register CGE packages first
@@ -719,17 +742,17 @@ begin
       LazbuildOptions.Clear;
       LazbuildOptions.Add('--add-package-link');
       LazbuildOptions.Add(CastleEnginePath + 'packages' + PathDelim + 'castle_base.lpk');
-      RunLazbuild;
+      RunLazbuild(WorkingDirectory, LazbuildOptions);
 
       LazbuildOptions.Clear;
       LazbuildOptions.Add('--add-package-link');
       LazbuildOptions.Add(CastleEnginePath + 'packages' + PathDelim + 'castle_window.lpk');
-      RunLazbuild;
+      RunLazbuild(WorkingDirectory, LazbuildOptions);
 
       LazbuildOptions.Clear;
       LazbuildOptions.Add('--add-package-link');
       LazbuildOptions.Add(CastleEnginePath + 'packages' + PathDelim + 'castle_components.lpk');
-      RunLazbuild;
+      RunLazbuild(WorkingDirectory, LazbuildOptions);
     end;
 
     LazbuildOptions.Clear;
@@ -771,7 +794,7 @@ begin
       LazbuildOptions.Add('--widgetset=cocoa');
     LazbuildOptions.Add(LazarusProjectFile);
 
-    RunLazbuild;
+    RunLazbuild(WorkingDirectory, LazbuildOptions);
   finally FreeAndNil(LazbuildOptions) end;
 end;
 

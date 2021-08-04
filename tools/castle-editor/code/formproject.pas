@@ -32,6 +32,14 @@ type
   TProjectForm = class(TForm)
     ActionNewSpriteSheet: TAction;
     ActionList: TActionList;
+    MenuItemSeparator12312332424: TMenuItem;
+    MenuItemInstall: TMenuItem;
+    MenuItemSeparator12312131: TMenuItem;
+    MenuItemPlatform: TMenuItem;
+    MenuItemDesignNewNonVisualCustomRoot: TMenuItem;
+    MenuItemDesignNewNonVisual: TMenuItem;
+    MenuItemDesignAddNonVisual: TMenuItem;
+    MenuItemDesignAddBehavior: TMenuItem;
     MenuItemNewCastleSpriteSheet: TMenuItem;
     MenuItemData: TMenuItem;
     MenuItemNewSpriteSheet: TMenuItem;
@@ -168,6 +176,8 @@ type
     procedure FormHide(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ListOutputClick(Sender: TObject);
+    procedure MenuItemDesignNewNonVisualClick(Sender: TObject);
+    procedure MenuItemInstallClick(Sender: TObject);
     procedure MenuItemNewDirectoryClick(Sender: TObject);
     procedure MenuItemRenameClick(Sender: TObject);
     procedure MenuItemShellTreeRefreshClick(Sender: TObject);
@@ -236,8 +246,15 @@ type
       ShellTreeView1: TCastleShellTreeView;
       ViewFileFrame: TViewFileFrame;
       SplitterBetweenViewFile: TSplitter;
+      ErrorShownRefreshFilesMissingDirectory: Boolean;
+      { Non-zero prevents the ShellListViewSelectItem from updating
+        preview window (ViewFileFrame). }
+      ShellListViewUpdating: Cardinal;
+      PlatformsInfo: TPlatformInfoList;
+      CurrentPlatformInfo: Integer; //< Index to PlatformsInfo
     procedure BuildToolCall(const Commands: array of String;
       const ExitOnSuccess: Boolean = false);
+    procedure BuildToolCallFinished(Sender: TObject);
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuItemDesignNewCustomRootClick(Sender: TObject);
     procedure OpenPascal(const FileName: String);
@@ -274,6 +291,10 @@ type
     procedure WarningNotification(const Category, Message: string);
     { Clears all warnings and hides warnings tab }
     procedure ClearAllWarnings;
+    { Update ViewFileFrame existence and visibility to show currently
+      selected item in ShellListView1. }
+    procedure ViewFileFrameUpdate;
+    procedure MenuItemPlatformChangeClick(Sender: TObject);
   public
     { Open a project, given an absolute path to CastleEngineManifest.xml }
     procedure OpenProject(const ManifestUrl: String);
@@ -293,8 +314,9 @@ uses TypInfo, LCLType,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
+  CastleClassUtils,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
-  ToolCompilerInfo, ToolCommonUtils;
+  ToolCompilerInfo, ToolCommonUtils, ToolArchitectures;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
 begin
@@ -351,7 +373,10 @@ begin
     SaveDesignDialog.DefaultExt := 'castle-transform';
     SaveDesignDialog.Filter := 'CGE Transform Design (*.castle-transform)|*.castle-transform|All Files|*';
   end else
-    raise EInternalError.Create('DesignRoot does not descend from TCastleUserInterface or TCastleTransform');
+  begin
+    SaveDesignDialog.DefaultExt := 'castle-component';
+    SaveDesignDialog.Filter := 'CGE Component Design (*.castle-component)|*.castle-component|All Files|*';
+  end;
 
   SaveDesignDialog.Url := Design.DesignUrl;
   if SaveDesignDialog.Execute then
@@ -473,12 +498,7 @@ begin
       begin
         Exe := FindExeLazarusIDE;
 
-        { Prefer to open using LPR (ProjectStandaloneSource) instead of LPI
-          (ProjectLazarus), see OpenPascal comments for reasons. }
-
-        if ProjectStandaloneSource <> '' then
-          RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectStandaloneSource])
-        else
+        { Open through LPI to change the project. }
         if ProjectLazarus <> '' then
           RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus])
         else
@@ -679,11 +699,10 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     ShellListView1.OnSelectItem := @ShellListViewSelectItem;
     ShellListView1.Hint := 'Double-click to open.' + NL +
       NL +
-      '- Scenes open in engine viewer (view3dscene).' + NL +
-      '- Images open in engine viewer (castle-view-image).' + NL +
-      '- Design opens in this editor window.' + NL +
-      '- Pascal files open in Lazarus.' + NL +
-      '- Other files open in external applications.';
+      '- Scenes and images open in engine viewers (view3dscene, castle-view-image).' + NL +
+      '- Designs open in this editor.' + NL +
+      '- Pascal files open in the code editor.' + NL +
+      '- Other files open in OS default applications.';
     ShellListView1.PopupMenu := ShellListPopupMenu;
     ShellListView1.SmallImages := ShellIcons;
     ShellListView1.DragMode := dmAutomatic;
@@ -692,11 +711,82 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     ShellListView1.ShellTreeView := ShellTreeView1;
   end;
 
+  procedure BuildPlatformsMenu;
+
+    procedure AddPlatform(const Name: String; const Target: TTarget; const OS: TOS; const CPU: TCPU);
+    var
+      Mi: TMenuItem;
+      MiCaption: String;
+      P: TPlatformInfo;
+    begin
+      Mi := TMenuItem.Create(MenuItemPlatform);
+      MiCaption := Name;
+      if Target = targetCustom then
+        MiCaption += ' (' + OSToString(OS) + ' / ' + CPUToString(CPU) + ')';
+      Mi.Caption := MiCaption;
+      Mi.Tag := PlatformsInfo.Count;
+      Mi.OnClick := @MenuItemPlatformChangeClick;
+      Mi.GroupIndex := 200;
+      Mi.RadioItem := true;
+      Mi.ShowAlwaysCheckable := true;
+      Mi.Checked := Mi.Tag = CurrentPlatformInfo;
+      MenuItemPlatform.Add(Mi);
+
+      P := TPlatformInfo.Create;
+      P.Target := Target;
+      P.OS := OS;
+      P.CPU := CPU;
+      PlatformsInfo.Add(P);
+    end;
+
+    procedure AddPlatformSeparator;
+    var
+      Mi: TMenuItem;
+    begin
+      Mi := TMenuItem.Create(MenuItemPlatform);
+      Mi.Caption := '-';
+      MenuItemPlatform.Add(Mi);
+    end;
+
+  begin
+    PlatformsInfo := TPlatformInfoList.Create(true);
+    AddPlatform('Default', targetCustom, DefaultOS, DefaultCPU);
+    AddPlatformSeparator;
+    AddPlatform('Android (Arm 32-bit and 64-bit)', targetAndroid, { OS and CPU ignored } DefaultOS, DefaultCPU);
+    AddPlatformSeparator;
+    AddPlatform('iOS (Arm 32-bit and 64-bit)', targetIOS, { OS and CPU ignored } DefaultOS, DefaultCPU);
+    AddPlatformSeparator;
+    AddPlatform('Linux 32-bit', targetCustom, Linux, i386);
+    AddPlatform('Linux 64-bit', targetCustom, Linux, x86_64);
+    AddPlatform('Linux Arm 32-bit', targetCustom, Linux, Arm);
+    AddPlatform('Linux Arm 64-bit', targetCustom, Linux, Aarch64);
+    AddPlatformSeparator;
+    AddPlatform('Windows 32-bit', targetCustom, Win32, i386);
+    AddPlatform('Windows 64-bit', targetCustom, Win64, x86_64);
+    AddPlatformSeparator;
+    AddPlatform('macOS 64-bit', targetCustom, Darwin, i386);
+    AddPlatform('macOS Arm 64-bit', targetCustom, Darwin, i386);
+    AddPlatformSeparator;
+    AddPlatform('FreeBSD 32-bit', targetCustom, FreeBSD, i386);
+    AddPlatform('FreeBSD 64-bit', targetCustom, FreeBSD, x86_64);
+  end;
+
 begin
   OutputList := TOutputList.Create(ListOutput);
-  BuildComponentsMenu(MenuItemDesignNewUserInterfaceCustomRoot, MenuItemDesignNewTransformCustomRoot, @MenuItemDesignNewCustomRootClick);
-  BuildComponentsMenu(MenuItemDesignAddUserInterface, MenuItemDesignAddTransform, @MenuItemAddComponentClick);
+  BuildComponentsMenu(
+    MenuItemDesignNewUserInterfaceCustomRoot,
+    MenuItemDesignNewTransformCustomRoot,
+    nil,
+    MenuItemDesignNewNonVisualCustomRoot,
+    @MenuItemDesignNewCustomRootClick);
+  BuildComponentsMenu(
+    MenuItemDesignAddUserInterface,
+    MenuItemDesignAddTransform,
+    MenuItemDesignAddBehavior,
+    MenuItemDesignAddNonVisual,
+    @MenuItemAddComponentClick);
   CreateShellViews;
+  BuildPlatformsMenu;
   ApplicationProperties.OnWarning.Add(@WarningNotification);
 end;
 
@@ -708,6 +798,7 @@ begin
   FreeProcess;
   FreeAndNil(OutputList);
   FreeAndNil(Manifest);
+  FreeAndNil(PlatformsInfo);
 end;
 
 procedure TProjectForm.FormHide(Sender: TObject);
@@ -778,7 +869,18 @@ end;
 
 procedure TProjectForm.ListOutputClick(Sender: TObject);
 begin
-  // TODO: just to source code line in case of error message here
+  // TODO: jump to source code line in case of error message here
+end;
+
+procedure TProjectForm.MenuItemDesignNewNonVisualClick(Sender: TObject);
+begin
+  if ProposeSaveDesign then
+    NewDesign(TCastleComponent, nil);
+end;
+
+procedure TProjectForm.MenuItemInstallClick(Sender: TObject);
+begin
+  BuildToolCall(['install']);
 end;
 
 procedure TProjectForm.MenuItemNewDirectoryClick(Sender: TObject);
@@ -791,7 +893,8 @@ begin
     if not CreateDir(FullNewDir) then
       raise Exception.CreateFmt('Creating new directory "%s" failed', [FullNewDir]);
     RefreshFiles(rfEverythingInCurrentDir);
-    // TODO: Select newly added dir, not so easy in ShellListView1
+    // Select newly added dir
+    ShellListView1.SelectedFileNameInRoot := NewDir;
   end;
 end;
 
@@ -898,7 +1001,11 @@ end;
 procedure TProjectForm.MenuItemCompileRunClick(Sender: TObject);
 begin
   if ProposeSaveDesign then
+  begin
+    RunningApplication := true;
+    SoundEngineSetVolume;
     BuildToolCall(['compile', 'run']);
+  end;
 end;
 
 procedure TProjectForm.MenuItemCopyComponentClick(Sender: TObject);
@@ -954,6 +1061,8 @@ begin
   MenuItemDesignClose.Enabled := Design <> nil;
   MenuItemDesignAddTransform.Enabled := Design <> nil;
   MenuItemDesignAddUserInterface.Enabled := Design <> nil;
+  MenuItemDesignAddBehavior.Enabled := Design <> nil;
+  MenuItemDesignAddNonVisual.Enabled := Design <> nil;
   MenuItemDesignDeleteComponent.Enabled := Design <> nil;
   MenuItemCopyComponent.Enabled := Design <> nil;
   MenuItemPasteComponent.Enabled := Design <> nil;
@@ -962,6 +1071,7 @@ begin
 
   UpdateUndo(nil);
   UpdateRenameItem(nil);
+  UpdateFormCaption(nil);
 
   if (Design <> nil) and UserConfig.GetValue('ProjectForm_DesignSaved', false) then
   begin
@@ -1048,7 +1158,11 @@ end;
 procedure TProjectForm.MenuItemOnlyRunClick(Sender: TObject);
 begin
   if ProposeSaveDesign then
+  begin
+    RunningApplication := true;
+    SoundEngineSetVolume;
     BuildToolCall(['run']);
+  end;
 end;
 
 procedure TProjectForm.MenuItemOpenDesignClick(Sender: TObject);
@@ -1122,6 +1236,12 @@ end;
 
 procedure TProjectForm.ShellListViewSelectItem(Sender: TObject;
   Item: TListItem; Selected: Boolean);
+begin
+  if ShellListViewUpdating = 0 then
+    ViewFileFrameUpdate;
+end;
+
+procedure TProjectForm.ViewFileFrameUpdate;
 
   { Make sure ViewFileFrame is created and visible.
     For now we create ViewFileFrame on-demand, just in case there's a problem
@@ -1287,28 +1407,28 @@ begin
 
         { It would be cleaner to use LPI file, like this:
 
-        // pass both project name, and particular filename, to open file within this project.
-        RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus, FileName]);
+            if ProjectLazarus <> '' then
+              // pass both project name, and particular filename, to open file within this project.
+              RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus, FileName])
+            else
+            begin
+              WritelnWarning('Lazarus project not defined (neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
+              RunCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
+            end;
 
-          But it doesn't work nicely: Lazarus asks for confirmation whether to open
-          LPI as XML file, or a project.
-          Instead opening LPR works better, i.e. just switches project (if necessary)
-          to new one.
+          But it doesn't work: Lazarus opens LPI as a regular XML file then,
+          without changing the project.
+          There seems to be no solution:
+          - using LPR doesn't change the project either
+          - using *only* LPI asks to change the project, even if it's already the current project
+            (so we cannot fix the problem by executing it twice in a row, once with LPI once with PAS
+            -- it would show dialog box every time)
         }
 
-        //if ProjectLazarus = '' then
-        if ProjectStandaloneSource = '' then // see comments below, we use ProjectStandaloneSource
-        begin
-          //WritelnWarning('Lazarus project not defined (neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
-          WritelnWarning('Lazarus project not defined ("standalone_source" was not specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
-        end;
+        // if ProjectStandaloneSource = '' then // see comments below, we use ProjectStandaloneSource
+        //   WritelnWarning('Lazarus project not defined ("standalone_source" was not specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
 
-        if (ProjectStandaloneSource = '') or
-           SameFileName(ProjectStandaloneSource, FileName) then
-          RunCommandNoWait(CreateTemporaryDir, Exe, [FileName])
-        else
-          { pass both project name, and particular filename, to open file within this project. }
-          RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectStandaloneSource, FileName]);
+        RunCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
       end;
     else raise EInternalError.Create('CodeEditor?');
   end;
@@ -1325,7 +1445,7 @@ procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
     Exe := FindExeCastleTool(ToolName);
     if Exe = '' then
     begin
-      EditorUtils.ErrorBox(Format('Cannot find Castle Game Engine tool "%s", opening "%s" failed. Make sure CGE is installed correctly, the tool should be distributed along with engine binary.',
+      ErrorBox(Format('Cannot find Castle Game Engine tool "%s", opening "%s" failed. Make sure CGE is installed correctly, the tool should be distributed along with engine binary.',
         [ToolName, SelectedURL]));
       Exit;
     end;
@@ -1381,7 +1501,8 @@ begin
     end;
 
     if AnsiSameText(Ext, '.castle-user-interface') or
-       AnsiSameText(Ext, '.castle-transform') then
+       AnsiSameText(Ext, '.castle-transform') or
+       AnsiSameText(Ext, '.castle-component') then
     begin
       if ProposeSaveDesign then
         OpenDesign(SelectedURL);
@@ -1405,12 +1526,31 @@ begin
     end;
 
     if not OpenDocument(SelectedFileName) then
-      EditorUtils.ErrorBox(Format('Opening "%s" failed.', [SelectedFileName]));
+      ErrorBox(Format('Opening "%s" failed.', [SelectedFileName]));
   end;
 end;
 
 procedure TProjectForm.BuildToolCall(const Commands: array of String;
   const ExitOnSuccess: Boolean);
+
+  procedure AddPlatformParameters(const Params: TStrings; const PlatformInfo: TPlatformInfo);
+  begin
+    if (PlatformInfo.Target = targetCustom) and
+       (PlatformInfo.OS = DefaultOS) and
+       (PlatformInfo.CPU = DefaultCPU) then
+      // keep command-line simple, to be simpler for user; no point is adding extra parameters
+      Exit;
+
+    if PlatformInfo.Target <> targetCustom then
+    begin
+      Params.Add('--target=' + TargetToString(PlatformInfo.Target));
+    end else
+    begin
+      Params.Add('--os=' + OSToString(PlatformInfo.OS));
+      Params.Add('--cpu=' + CPUToString(PlatformInfo.CPU));
+    end;
+  end;
+
 var
   BuildToolExe, ModeString, Command: String;
   QueueItem: TAsynchronousProcessQueue.TQueueItem;
@@ -1421,7 +1561,7 @@ begin
   BuildToolExe := FindExeCastleTool('castle-engine');
   if BuildToolExe = '' then
   begin
-    EditorUtils.ErrorBox('Cannot find build tool (castle-engine) on $PATH environment variable.');
+    ErrorBox('Cannot find build tool (castle-engine) on $PATH environment variable.');
     Exit;
   end;
 
@@ -1446,13 +1586,30 @@ begin
     QueueItem.CurrentDirectory := ProjectPath;
     QueueItem.Parameters.Add(ModeString);
     QueueItem.Parameters.Add(Command);
+    if (Command = 'compile') or
+       (Command = 'run') or
+       (Command = 'package') or
+       (Command = 'install') then
+      AddPlatformParameters(QueueItem.Parameters, PlatformsInfo[CurrentPlatformInfo]);
+    // editor always does --fast, as its more comfortable for normal development
+    if (Command = 'package') then
+      QueueItem.Parameters.Add('--fast');
     RunningProcess.Queue.Add(QueueItem);
   end;
 
   if ExitOnSuccess then
-    RunningProcess.OnSuccessfullyFinishedAll := @MenuItemQuitClick;
+    RunningProcess.OnSuccessfullyFinishedAll := @MenuItemQuitClick
+  else
+    RunningProcess.OnFinished := @BuildToolCallFinished;
 
   RunningProcess.Start;
+end;
+
+procedure TProjectForm.BuildToolCallFinished(Sender: TObject);
+begin
+  // bring back volume, in case MuteOnRun
+  RunningApplication := false;
+  SoundEngineSetVolume;
 end;
 
 procedure TProjectForm.MenuItemAddComponentClick(Sender: TObject);
@@ -1482,6 +1639,7 @@ begin
   MenuItemClean.Enabled := AEnabled;
   MenuItemPackage.Enabled := AEnabled;
   MenuItemPackageSource.Enabled := AEnabled;
+  MenuItemInstall.Enabled := AEnabled;
   MenuItemAutoGenerateTextures.Enabled := AEnabled;
   MenuItemAutoGenerateClean.Enabled := AEnabled;
   MenuItemRestartRebuildEditor.Enabled := AEnabled;
@@ -1572,31 +1730,77 @@ begin
   MenuItemModeDebug.Checked := true;
 
   DesignExistenceChanged;
-  UpdateFormCaption(nil); // make form Caption reflect project name
+  UpdateFormCaption(nil); // make form Caption reflect project name (although this is now done also by DesignExistenceChanged)
 end;
 
 procedure TProjectForm.RefreshFiles(const RefreshNecessary: TRefreshFiles);
 var
-  TreeViewPath: String;
+  DirToRefresh, ErrorStr, TreeViewPath, SavedSelectedFileNameInRoot: String;
+  SavedListViewOrigin: TPoint;
 begin
-  ShellListView1.RefreshContents;
-
-  { It is important to refresh ShellTreeView1 e.g. when new directory
-    was added, otherwise user could not navigate
-    into newly created directories, since they must exist in ShellTreeView1. }
-
-  case RefreshNecessary of
-    { Unfortunately this special implementation of "refresh current dir"
-      doesn't work for non-root directories. }
-    //rfEverythingInCurrentDir:
-    //  ShellTreeView1.Refresh(ShellTreeView1.Selected);
-    rfEverythingInCurrentDir, rfEverything:
-      begin
-        TreeViewPath := ShellTreeView1.Path;
-        ShellTreeView1.Refresh(nil);
-        ShellTreeView1.Path := TreeViewPath;
-      end;
+  DirToRefresh := CombinePaths(ShellTreeView1.Root, ShellTreeView1.Path);
+  if not DirectoryExists(DirToRefresh) then
+  begin
+    ErrorStr := Format('Directory "%s" no longer exists.', [DirToRefresh]);
+    if not ErrorShownRefreshFilesMissingDirectory then
+    begin
+      { Set it before showing ErrorBox,
+        as going back from ErrorBox can again cause this method to be called,
+        so it may be in recursive call. }
+      ErrorShownRefreshFilesMissingDirectory := true;
+      ErrorBox(ErrorStr + NL +
+        NL +
+        'Further errors about this will be only shown as warnings.');
+    end else
+      WritelnWarning(ErrorStr);
+    Exit;
   end;
+
+  { save and restore selected file when refreshing.
+    This way Alt+Tab doesn't deselect file. }
+  SavedSelectedFileNameInRoot := ShellListView1.SelectedFileNameInRoot;
+  SavedListViewOrigin := ShellListView1.ViewOrigin;
+  Inc(ShellListViewUpdating);
+
+  try
+    ShellListView1.RefreshContents;
+
+    { It is important to refresh ShellTreeView1 e.g. when new directory
+      was added, otherwise user could not navigate
+      into newly created directories, since they must exist in ShellTreeView1. }
+
+    case RefreshNecessary of
+      { Unfortunately this special implementation of "refresh current dir"
+        doesn't work for non-root directories. }
+      //rfEverythingInCurrentDir:
+      //  ShellTreeView1.Refresh(ShellTreeView1.Selected);
+      rfEverythingInCurrentDir, rfEverything:
+        begin
+          TreeViewPath := ShellTreeView1.Path;
+          ShellTreeView1.Refresh(nil);
+          ShellTreeView1.Path := TreeViewPath;
+        end;
+    end;
+
+    ShellListView1.SelectedFileNameInRoot := SavedSelectedFileNameInRoot;
+    ShellListView1.ViewOrigin := SavedListViewOrigin;
+
+  finally
+    { we update ViewFileFrame after everything is done,
+      this way it doesn't blink off/on when doing Alt+Tab }
+    Dec(ShellListViewUpdating);
+    if ShellListViewUpdating = 0 then
+      ViewFileFrameUpdate;
+  end;
+end;
+
+procedure TProjectForm.MenuItemPlatformChangeClick(Sender: TObject);
+var
+  Mi: TMenuItem;
+begin
+  Mi := Sender as TMenuItem;
+  CurrentPlatformInfo := Mi.Tag;
+  Mi.Checked := true;
 end;
 
 initialization

@@ -86,7 +86,8 @@ uses
   TestCastleDownload,
   TestCastleUnicode,
   TestCastleResources,
-  TestX3DLoadGltf
+  TestX3DLoadGltf,
+  TestCastleTiledMap
 
   {$ifdef TEXT_RUNNER} {$ifndef NO_WINDOW_SYSTEM},
   TestCastleWindow,

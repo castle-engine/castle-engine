@@ -85,6 +85,7 @@ type
   TUIState = class(TCastleUserInterface)
   private
     FStartContainer: TUIContainer;
+    FStartContainerObserver: TFreeNotificationObserver;
     FInterceptInput, FFreeWhenStopped: boolean;
     FFreeAtStop: TComponent;
     FWaitingForRender: TNotifyEventList;
@@ -101,6 +102,9 @@ type
 
     procedure InternalStart;
     procedure InternalStop;
+    procedure StartContainerFreeNotification(const Sender: TFreeNotificationObserver);
+    { Stop yourself and remove from FStateStack, if present there. }
+    procedure StopIfStarted;
 
     { Design* private routines }
     procedure SetDesignUrl(const Value: String);
@@ -117,6 +121,17 @@ type
     class function GetCurrentTop: TUIState; static;
     class function GetStateStack(const Index: Integer): TUIState; static;
   protected
+    { As the state knows about the container it will be put in (StateContainer),
+      the state size is always known.
+      It is known regardless if we are between Start / Stop,
+      regardless if the state is already added to some Container.Items.
+      This makes all other routines, like ParentRect, EffectiveRect, EffectiveWidth,
+      EffectiveHeight also work. }
+    function ContainerWidth: Cardinal; override;
+    function ContainerHeight: Cardinal; override;
+    function ContainerRect: TRectangle; override;
+    function ContainerSizeKnown: boolean; override;
+
     { Container on which state works. By default, this is
       @link(TCastleApplication.MainWindow Application.MainWindow)
       if you use CastleWindow or
@@ -331,6 +346,7 @@ type
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
     procedure Render; override;
+    function UIScale: Single; override;
 
     { Load and show a user interface from a .castle-user-interface file,
       designed in Castle Game Engine Editor.
@@ -655,6 +671,7 @@ begin
   StateContainer.Fps.ZeroNextSecondsPassed;
 
   FStartContainer := StateContainer;
+  FStartContainerObserver.Observed := FStartContainer;
 
   LoadDesign;
 
@@ -671,7 +688,9 @@ end;
 
 procedure TUIState.InternalStop;
 begin
-  StateContainer.Controls.Remove(Self);
+  // when container is csDestroying, the StateContainer.Controls may be invalid
+  if not (csDestroying in StateContainer.ComponentState) then
+    StateContainer.Controls.Remove(Self);
 
   Stop;
 
@@ -682,10 +701,24 @@ begin
   UnLoadDesign;
 
   FStartContainer := nil;
+  FStartContainerObserver.Observed := nil;
   FreeAndNil(FFreeAtStop);
 
   if Log then
     WritelnLog('UIState', 'Stopped state ' + Name + ': ' + ClassName);
+end;
+
+procedure TUIState.StartContainerFreeNotification(
+  const Sender: TFreeNotificationObserver);
+begin
+  { If FStartContainer is being freed, we need to stop now.
+    Otherwise later, InternalStop would surely fail, as it would try
+    to access invalid FStartContainer reference.
+    See https://github.com/castle-engine/castle-engine/issues/307 . }
+  StopIfStarted;
+
+  { Through InternalStop, above always sets FStartContainer to nil }
+  Assert(FStartContainer = nil);
 end;
 
 function TUIState.StateContainer: TUIContainer;
@@ -709,6 +742,8 @@ begin
   FullSize := true;
   FWaitingForRender := TNotifyEventList.Create;
   FCallBeforeUpdate := TNotifyEventList.Create;
+  FStartContainerObserver := TFreeNotificationObserver.Create(Self);
+  FStartContainerObserver.OnFreeNotification := @StartContainerFreeNotification;
 end;
 
 constructor TUIState.CreateUntilStopped;
@@ -717,9 +752,8 @@ begin
   FFreeWhenStopped := true;
 end;
 
-destructor TUIState.Destroy;
+procedure TUIState.StopIfStarted;
 begin
-  { finish yourself and remove from FStateStack, if present there }
   if (FStateStack <> nil) and
      (FStateStack.IndexOf(Self) <> -1) then
   begin
@@ -732,7 +766,11 @@ begin
     if FStateStack.Count = 0 then
       FreeAndNil(FStateStack);
   end;
+end;
 
+destructor TUIState.Destroy;
+begin
+  StopIfStarted;
   UnLoadDesign;
   UnPreloadDesign;
   FreeAndNil(FWaitingForRender);
@@ -958,6 +996,34 @@ begin
   if FDesignLoaded = nil then
     ErrorDesignLoaded;
   Result := FDesignLoadedOwner.FindRequiredComponent(ComponentName);
+end;
+
+function TUIState.ContainerWidth: Cardinal;
+begin
+  Result := StateContainer.Width;
+end;
+
+function TUIState.ContainerHeight: Cardinal;
+begin
+  Result := StateContainer.Height;
+end;
+
+function TUIState.ContainerRect: TRectangle;
+begin
+  Result := StateContainer.Rect;
+end;
+
+function TUIState.ContainerSizeKnown: boolean;
+begin
+  Result := true;
+end;
+
+function TUIState.UIScale: Single;
+begin
+  if EnableUIScaling then
+    Result := StateContainer.UIScale
+  else
+    Result := 1.0;
 end;
 
 end.

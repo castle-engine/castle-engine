@@ -61,6 +61,7 @@
 
 SED := sed
 FIND := find
+INSTALL := install
 EXE_EXTENSION :=
 
 ifeq ($(OS),Windows_NT)
@@ -71,9 +72,13 @@ else
   # Only on Unix, you can use "uname" to further detect Unix variants,
   # see https://stackoverflow.com/questions/714100/os-detecting-makefile
   UNAME_S := $(shell uname -s)
-  # On macOS, use gsed (e.g. from Homebrew)
+
+  # On macOS, use gsed and ginstall (e.g. from Homebrew).
+  # See https://www.topbug.net/blog/2013/04/14/install-and-use-gnu-command-line-tools-in-mac-os-x/
+  # http://www.legendu.net/en/blog/install-gnu-utils-using-homebrew/
   ifeq ($(UNAME_S),Darwin)
     SED := gsed
+    INSTALL := ginstall
   endif
 endif
 
@@ -157,16 +162,16 @@ DATADIR=$(DATAROOTDIR)
 
 .PHONY: install
 install:
-	install -d $(BINDIR)
-	install tools/texture-font-to-pascal/texture-font-to-pascal$(EXE_EXTENSION) $(BINDIR)
-	install tools/image-to-pascal/image-to-pascal$(EXE_EXTENSION) $(BINDIR)
-	install tools/castle-curves/castle-curves$(EXE_EXTENSION) $(BINDIR)
-	install tools/build-tool/castle-engine$(EXE_EXTENSION) $(BINDIR)
-	install tools/to-data-uri/to-data-uri$(EXE_EXTENSION) $(BINDIR)
+	$(INSTALL) -d $(BINDIR)
+	$(INSTALL) tools/texture-font-to-pascal/texture-font-to-pascal$(EXE_EXTENSION) $(BINDIR)
+	$(INSTALL) tools/image-to-pascal/image-to-pascal$(EXE_EXTENSION) $(BINDIR)
+	$(INSTALL) tools/castle-curves/castle-curves$(EXE_EXTENSION) $(BINDIR)
+	$(INSTALL) tools/build-tool/castle-engine$(EXE_EXTENSION) $(BINDIR)
+	$(INSTALL) tools/to-data-uri/to-data-uri$(EXE_EXTENSION) $(BINDIR)
 #	cp -R tools/build-tool/data $(DATADIR)/castle-engine
-	install -d  $(DATADIR)
+	$(INSTALL) -d  $(DATADIR)
 	cd tools/build-tool/data/ && \
-	  $(FIND) . -type f -exec install --mode 644 -D '{}' $(DATADIR)/castle-engine/'{}' ';'
+	  $(FIND) . -type f -exec $(INSTALL) --mode 644 -D '{}' $(DATADIR)/castle-engine/'{}' ';'
 
 .PHONY: uninstall
 uninstall:
@@ -224,7 +229,6 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/cars_demo \
   examples/3d_rendering_processing/combine_multiple_x3d_into_one \
   examples/3d_rendering_processing/custom_input_shortcuts_saved_to_config \
-  examples/3d_rendering_processing/detect_scene_clicks \
   examples/3d_rendering_processing/display_box_custom_shaders \
   examples/3d_rendering_processing/fog_culling \
   examples/3d_rendering_processing/listen_on_x3d_events \
@@ -240,9 +244,6 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/view_3d_model_advanced \
   examples/3d_rendering_processing/view_3d_model_basic \
   examples/curves/simplest_curve_read \
-  examples/fonts/font_draw_over_image \
-  examples/fonts/font_from_texture \
-  examples/fonts/test_font_break \
   examples/images_videos/background_tiling \
   examples/images_videos/dds_decompose \
   examples/images_videos/draw_images_on_gpu \
@@ -451,6 +452,10 @@ cleanall: cleanmore
 .PHONY: tests
 tests:
 	tools/build-tool/castle-engine_compile.sh
+# Build and run check_lazarus_packages
+	$(BUILD_TOOL) --project tools/internal/check_lazarus_packages/ clean
+	$(BUILD_TOOL) --project tools/internal/check_lazarus_packages/ --mode=debug compile
+	$(BUILD_TOOL) --project tools/internal/check_lazarus_packages/ run -- ../../../
 # Run in debug mode
 	$(BUILD_TOOL) --project tests/ clean
 	$(BUILD_TOOL) --project tests/ --mode=debug --compiler-option=-dNO_WINDOW_SYSTEM compile

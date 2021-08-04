@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<project name="audio_player_scrubber"
-  lazarus_project="audio_player_scrubber.lpi"
-  build_using_lazbuild="true"
->
-  <data exists="false"/>
-</project>

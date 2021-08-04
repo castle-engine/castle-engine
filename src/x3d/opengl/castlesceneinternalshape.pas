@@ -104,7 +104,11 @@ begin
       like transformation, clip planes and everything else that is applied
       by renderer every time, and doesn't affect TGeometryArrays. }
 
-    if Changes * [chCoordinate, chNormal, chTangent] <> [] then
+    if Changes * [
+         chCoordinate,
+         chNormal,
+         chTangent
+       ] <> [] then
     begin
       Cache.InvalidateVertexData([vtCoordinate]);
 
@@ -128,12 +132,28 @@ begin
       It's only necessary when texture existence changed.
       This could be optimized more.
     }
-    if Changes * [chTextureImage, chVisibleVRML1State, chGeometryVRML1State,
-      chColorNode, chTextureCoordinate, chGeometry, chFontStyle, chWireframe] <> [] then
+    if Changes * [
+         chTextureImage,
+         chVisibleVRML1State,
+         chGeometryVRML1State,
+         chColorNode,
+         chTextureCoordinate,
+         chGeometry,
+         chGeometryFontChanged,
+         chFontStyle,
+         chFontStyleFontChanged,
+         chWireframe
+       ] <> [] then
       Cache.InvalidateVertexData(AllVboTypes);
   end;
 
-  if Changes * [chTextureImage, chTextureRendererProperties] <> [] then
+  if Changes * [
+       chTextureImage,
+       chTextureRendererProperties,
+       { Needed to make TCastleText.CustomFont change applied OK,
+         otherwise TCastleText could be rendered without blending. }
+       chFontStyleFontChanged
+     ] <> [] then
   begin
     Renderer.UnprepareTexture(State.MainTexture);
     PreparedForRenderer := false;
