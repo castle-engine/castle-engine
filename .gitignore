@@ -214,6 +214,7 @@ castle-game-engine-*.fpm
 /tools/build-tool/data/android/integrated-services/heyzap/app/libs/*.aar
 /tools/build-tool/data/android/integrated-services/heyzap/app/libs/*.jar
 /tools/build-tool/data/android/integrated-services/startapp/app/libs/*.jar
+/tools/build-tool/data/android/integrated-services/tenjin/app/libs/*.aar
 /tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/GameAnalytics.h
 /tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/libGameAnalytics.a
 /tools/build-tool/tests/test_cge_build_tool

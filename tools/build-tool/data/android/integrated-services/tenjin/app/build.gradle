@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<build_gradle_merge>
+  <!-- https://docs.tenjin.com/en/send-events/android.html -->
+  <dependencies>
+    <!--dependency>compile project(":tenjin")</dependency-->
+    <!-- This works better in CGE -->
+    <dependency>compile(name:'tenjin', ext:'aar')</dependency>
+
+    <!-- Tenjin docs say to use any version: https://docs.tenjin.com/en/send-events/android.html
+         We use version matching our google_analytics service.
+         See also https://developers.google.com/android/guides/setup -->
+    <dependency>implementation 'com.google.android.gms:play-services-analytics:17.0.0'</dependency>
+    <!-- Tenjin docs say to use any version.
+         See https://developer.android.com/google/play/installreferrer/library -->
+    <dependency>implementation 'com.android.installreferrer:installreferrer:2.2'</dependency>
+  </dependencies>
+</build_gradle_merge>

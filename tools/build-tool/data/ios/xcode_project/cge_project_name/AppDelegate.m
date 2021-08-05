@@ -177,10 +177,11 @@ AppDelegate* getAppDelegate()
 }
 
 - (void)onPurchase:(AvailableProduct*) product
+  withTransaction:(SKPaymentTransaction*) transaction
 {
     for (int i = 0; i < [services count]; i++) {
         ServiceAbstract* service = [services objectAtIndex: i];
-        [service onPurchase: product];
+        [service onPurchase: product withTransaction: transaction];
     }
 }
 
