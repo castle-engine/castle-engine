@@ -10,7 +10,7 @@ You will need to:
 
 - You also need to allow Tenjin to verify purchases done on Google Play. See https://docs.tenjin.com/en/send-events/android.html , section _"Purchase Events"_.
 
-- You also need to download latest release from https://github.com/tenjin/tenjin-android-sdk/releases, unpack it, and put `tenjin.aar` in CGE `app/libs/` subdirectory of this service (`tools/build-tool/data/android/integrated-services/tenjin/app/libs/` subdirectory of CGE).
+- You also need to download latest release from https://github.com/tenjin/tenjin-android-sdk/releases, unpack it somewhere. Indicate the location of the directory that contains the `tenjin.aar` and `tenjin.jar` files using the parameter `library_path` shown below. (It can be a directory relative to your project, or an absolute path.)
 
 ## Declare in CastleEngineManifest.xml
 
@@ -22,6 +22,7 @@ Declare it like this in [CastleEngineManifest.xml](https://github.com/castle-eng
   <android min_sdk_version="21">
     <services>
       <service name="tenjin">
+        <parameter key="library_path" value="tenjin-android-sdk/" />
         <parameter key="api_key" value="xxx" />
       </service>
     </services>

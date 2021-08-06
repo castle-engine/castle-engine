@@ -59,7 +59,8 @@ implementation
 
 uses SysUtils, DOM,
   CastleImages, CastleURIUtils, CastleLog, CastleFilesUtils, CastleXMLUtils,
-  ToolEmbeddedImages, ToolIosPbxGeneration, ToolServices, ToolCommonUtils;
+  ToolEmbeddedImages, ToolIosPbxGeneration, ToolServices, ToolCommonUtils,
+  ToolServicesOperations;
 
 const
   IOSPartialLibraryName = 'lib_cge_project.a';
@@ -162,6 +163,7 @@ var
     Project.ExtractTemplate('ios/xcode_project/', XcodeProject);
   end;
 
+  { Generate files for iOS project from templates, adding services. }
   procedure GenerateServicesFromTemplates;
 
     procedure ExtractService(const ServiceName: string);
@@ -357,6 +359,7 @@ var
       PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('GLKit.framework'));
       PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('OpenAL.framework'));
 
+      // TODO: These service-specific things should be defined in respective service CastleEngineService.xml
       if Project.IOSServices.HasService('apple_game_center') then
         PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('GameKit.framework'));
       if Project.IOSServices.HasService('in_app_purchases') then
@@ -396,22 +399,6 @@ var
       RunCommandSimple(XcodeProject, 'pod', ['install']);
   end;
 
-  procedure CopyExternalLibraries;
-  var
-    InputFile, OutputFile, OutputFileBase: String;
-  begin
-    if Project.IOSServices.HasService('fmod') then
-    begin
-      if not Project.IOSServices.Service('fmod').Parameters.TryGetValue('library_file', InputFile) then
-        raise Exception.Create('Cannot find "library_file" parameter in "fmod" service for iOS in CastleEngineManifest.xml');
-      OutputFileBase := ExtractFileName(InputFile);
-      OutputFile := XcodeProject + OutputFileBase;
-      SmartCopyFile(InputFile, OutputFile);
-      if Verbose then
-        Writeln('Packaging FMOD library file: ' + OutputFileBase);
-    end;
-  end;
-
 begin
   UsesCocoaPods := false;
   XcodeProject := TempOutputPath(Project.Path) +
@@ -431,12 +418,13 @@ begin
 
     GenerateFromTemplates;
     GenerateServicesFromTemplates;
-    FixPbxProjectFile; // must be done *after* all files for services are created
+    PackageServices(Project, Project.IOSServices,
+      'castle-data:/ios/services/', XcodeProject);
+    FixPbxProjectFile; // must be done *after* all files for services are created, so also after ServiceOperations
     GenerateIcons;
     GenerateLaunchImages;
     GenerateData;
     GenerateLibrary;
-    CopyExternalLibraries;
     GenerateCocoaPods; // should be at the end, to allow CocoaPods to see our existing project
 
     Writeln('Xcode project has been created in:');

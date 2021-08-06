@@ -52,8 +52,8 @@ uses SysUtils, DOM, XMLWrite,
   // TODO: Should not be needed after https://github.com/castle-engine/castle-engine/pull/302/commits/888690fdac181b6f140a71fd0d5ac20a7d7b59e6
   {$IFDEF UNIX}BaseUnix, {$ENDIF}
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils, CastleImages,
-  ToolEmbeddedImages, ToolFPCVersion, ToolCommonUtils, ToolUtils,
-  ToolManifest;
+  ToolEmbeddedImages, ToolFPCVersion, ToolCommonUtils, ToolUtils, ToolManifest,
+  ToolServicesOperations;
 
 var
   DetectAndroidCPUSCached: TCPUS;
@@ -205,25 +205,8 @@ var
   { Generate files for Android project from templates. }
   procedure GenerateFromTemplates;
   var
-    DestinationPath: string;
-
-    procedure ExtractService(const ServiceName: string);
-    var
-      TemplatePath: string;
-    begin
-      TemplatePath := 'android/integrated-services/' + ServiceName;
-      Project.ExtractTemplate(TemplatePath, DestinationPath);
-    end;
-
-  var
     TemplatePath: string;
-    I: Integer;
   begin
-    { calculate absolute DestinationPath.
-      Use CombinePaths, in case AndroidProjectPath is relative to project dir
-      (although it's not possible now). }
-    DestinationPath := CombinePaths(Project.Path, AndroidProjectPath);
-
     { add Android project core directory }
     case Project.AndroidProjectType of
       apBase      : TemplatePath := 'android/base/';
@@ -232,28 +215,40 @@ var
       else raise EInternalError.Create('GenerateFromTemplates:Project.AndroidProjectType unhandled');
       {$endif}
     end;
-    Project.ExtractTemplate(TemplatePath, DestinationPath);
+    Project.ExtractTemplate(TemplatePath, AndroidProjectPath);
+  end;
 
-    if Project.AndroidProjectType = apIntegrated then
+  { Generate files for Android project from templates, adding services. }
+  procedure GenerateServicesFromTemplates;
+
+    procedure ExtractService(const ServiceName: string);
+    var
+      TemplatePath: string;
     begin
-      { add declared services }
-      for I := 0 to Project.AndroidServices.Count - 1 do
-        ExtractService(Project.AndroidServices[I].Name);
-
-      { add automatic services }
-      if (depSound in Project.Dependencies) and
-         not Project.AndroidServices.HasService('sound') then
-        ExtractService('sound');
-      if (depOggVorbis in Project.Dependencies) and
-         not Project.AndroidServices.HasService('ogg_vorbis') then
-        ExtractService('ogg_vorbis');
-      if (depFreeType in Project.Dependencies) and
-         not Project.AndroidServices.HasService('freetype') then
-        ExtractService('freetype');
-      if (depHttps in Project.Dependencies) and
-         not Project.AndroidServices.HasService('download_urls') then
-        ExtractService('download_urls');
+      TemplatePath := 'android/integrated-services/' + ServiceName;
+      Project.ExtractTemplate(TemplatePath, AndroidProjectPath);
     end;
+
+  var
+    I: Integer;
+  begin
+    { add declared services }
+    for I := 0 to Project.AndroidServices.Count - 1 do
+      ExtractService(Project.AndroidServices[I].Name);
+
+    { add automatic services }
+    if (depSound in Project.Dependencies) and
+       not Project.AndroidServices.HasService('sound') then
+      ExtractService('sound');
+    if (depOggVorbis in Project.Dependencies) and
+       not Project.AndroidServices.HasService('ogg_vorbis') then
+      ExtractService('ogg_vorbis');
+    if (depFreeType in Project.Dependencies) and
+       not Project.AndroidServices.HasService('freetype') then
+      ExtractService('freetype');
+    if (depHttps in Project.Dependencies) and
+       not Project.AndroidServices.HasService('download_urls') then
+      ExtractService('download_urls');
   end;
 
   procedure GenerateIcons;
@@ -380,38 +375,6 @@ var
       LibraryFileName := Project.AndroidLibraryFile(CPU);
       PackageSmartCopyFile(LibraryFileName,
         JniPath + CPUToAndroidArchitecture(CPU) + PathDelim + LibraryWithoutCPU);
-    end;
-  end;
-
-  procedure CopyExternalLibraries;
-  var
-    CPU: TCPU;
-    JniPath: String;
-    FmodLibraryPath, InputFile, OutputFile: String;
-  begin
-    if Project.AndroidServices.HasService('fmod') then
-    begin
-      if not Project.AndroidServices.Service('fmod').Parameters.TryGetValue('library_path', FmodLibraryPath) then
-        raise Exception.Create('Cannot find "library_path" parameter in "fmod" service for Android in CastleEngineManifest.xml');
-      FmodLibraryPath := InclPathDelim(FmodLibraryPath);
-
-      InputFile := FmodLibraryPath + 'fmod.jar';
-      OutputFile := 'app' + PathDelim + 'libs' + PathDelim + 'fmod.jar';
-      PackageSmartCopyFile(InputFile, OutputFile);
-      if Verbose then
-        Writeln('Packaging FMOD library file: ' + InputFile + ' => ' + OutputFile);
-
-      //JniPath := CombinePaths(Project.Path, AndroidProjectPath);
-      JniPath := 'app' + PathDelim + 'src' + PathDelim + 'main' + PathDelim + 'jniLibs' + PathDelim;
-
-      for CPU in CPUS do
-      begin
-        InputFile := FmodLibraryPath + CPUToAndroidArchitecture(CPU) + PathDelim + 'libfmod.so';
-        OutputFile := JniPath + CPUToAndroidArchitecture(CPU) + PathDelim + 'libfmod.so';
-        PackageSmartCopyFile(InputFile, OutputFile);
-        if Verbose then
-          Writeln('Packaging FMOD library file: ' + InputFile + ' => ' + OutputFile);
-      end;
     end;
   end;
 
@@ -583,7 +546,12 @@ begin
   CalculateSigningProperties(PackageMode);
 
   GenerateFromTemplates;
-  CopyExternalLibraries;
+  if Project.AndroidProjectType = apIntegrated then
+  begin
+    GenerateServicesFromTemplates;
+    PackageServices(Project, Project.AndroidServices,
+      'castle-data:/android/integrated-services/', AndroidProjectPath);
+  end;
   GenerateIcons;
   GenerateAssets;
   GenerateLocalization;

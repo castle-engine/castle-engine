@@ -1803,8 +1803,13 @@ var
   DestinationRelativeFileNameSlashes, Contents, Ext: string;
   BinaryFile: boolean;
 begin
-  if SameText(DestinationRelativeFileName, 'README.md') then
-    Exit; // do not copy README.md, most services define it and would just overwrite each other
+  { Do not copy README.md, most services define it and would just overwrite each other.
+    It is for informational purposes in CGE sources.
+    Similarly do not copy CastleEngineService.xml, most services define it,
+    it is internal info for build tool. }
+  if SameText(DestinationRelativeFileName, 'README.md') or
+     SameText(DestinationRelativeFileName, 'CastleEngineService.xml') then
+    Exit;
 
   if (not OverrideExisting) and RegularFileExists(DestinationFileName) then
   begin

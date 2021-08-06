@@ -440,7 +440,6 @@ cleanmore: clean
 	       tools/build-tool/data/android/integrated-services/heyzap/app/libs/*.jar \
 	       tools/build-tool/data/android/integrated-services/heyzap/app/libs/*.aar \
 	       tools/build-tool/data/android/integrated-services/startapp/app/libs/*.jar \
-	       tools/build-tool/data/android/integrated-services/tenjin/app/libs/*.aar \
 	       tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/GameAnalytics.h \
 	       tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/libGameAnalytics.a
 	rm -f castle-engine*.zip tools/internal/pack_release/castle-engine*.zip
