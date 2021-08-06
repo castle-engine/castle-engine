@@ -4,6 +4,6 @@
   This describes a modification to the AppDelegate.m in the Xcode project
   to insert TenjinService.
 -->
-<import>#import "TenjinSDK.h"</import>
+<import>#import "TenjinService.h"</import>
 <class>TenjinService</class>
 </app_delegate_patch>

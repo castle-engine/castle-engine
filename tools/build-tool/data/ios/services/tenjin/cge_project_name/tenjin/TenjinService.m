@@ -18,14 +18,19 @@
    integration with Castle Game Engine https://castle-engine.io/ .
 */
 
+#import "TenjinService.h"
+#import "../AvailableProduct.h"
+
 #import "TenjinSDK.h"
+
+#import <AppTrackingTransparency/AppTrackingTransparency.h>
 
 @implementation TenjinService
 
 - (void)application:(UIApplication *) application
     didFinishLaunchingWithOptions:(NSDictionary *) launchOptions
 {
-    [TenjinSDK init:@"${IOS.TENJIN.APP_KEY}"];
+    [TenjinSDK initialize:@"${IOS.TENJIN.API_KEY}"];
 
     connected = FALSE;
 
