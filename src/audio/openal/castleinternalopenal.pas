@@ -335,10 +335,10 @@ initialization
     Note that the GL unit in FPC already does this,
     but it is still important for applications that don't use OpenGL
     (but use OpenAL), like
-    examples/audio/alplay.lpr
-    examples/audio/audio_player_scrubber/audio_player_scrubber.lpr
+      examples/audio/simplest_play_sound/
+      examples/audio/audio_player/
 
-    Otherwise alplay on Linux/x86_64 always exits with
+    Otherwise simplest_play_sound on Linux/x86_64 always exits with
     An unhandled exception occurred at $00007FC4771DF69B:
     EInvalidOp: Invalid floating point operation
       $00007FC4771DF69B

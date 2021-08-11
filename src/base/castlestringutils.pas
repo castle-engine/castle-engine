@@ -1,5 +1,5 @@
 {
-  Copyright 2000-2018 Michalis Kamburelis.
+  Copyright 2000-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -232,8 +232,8 @@ function SDeleteChars(const s: string; const excludedChars: TSetOfChars): string
   @groupBegin
 }
 function SReplaceChars(const s, FromChars, ToChars: string): string; overload;
-function SReplaceChars(const s: string; FromChars: TSetOfChars; ToChar: char): string; overload;
-function SReplaceChars(const s: string; FromChar, ToChar: char): string; overload;
+function SReplaceChars(const s: string; const FromChars: TSetOfChars; const ToChar: char): string; overload;
+function SReplaceChars(const s: string; const FromChar, ToChar: char): string; overload;
 { @groupEnd }
 
 { Pad (fill from the left with character C) string S, until length
@@ -251,7 +251,7 @@ function SZeroPad(const s: string; len: integer): string;
   Doesn't change other characters. Just like UpCase, this doesn't
   take current locale into account, and works only on English
   A-Z -> a-z letters. }
-function LoCase(c: char): char;
+function LoCase(const C: Char): Char;
 
 function CharPos(c: char; const s: string; Offset: Integer = 1): integer;
   deprecated 'use SysUtils.Pos or StrUtils.PosEx instead';
@@ -268,10 +268,10 @@ function CharPos(c: char; const s: string; Offset: Integer = 1): integer;
   They all return 0 if not found.
 
   @groupBegin }
-function CharsPos(const chars: TSetOfChars; const s: string): integer;
-function CharsPosEx(const chars: TSetOfChars; const s: string;
-  Offset: Integer): integer;
-function BackCharsPos(const chars: TSetOfChars; const s: string): integer;
+function CharsPos(const Chars: TSetOfChars; const S: string): Integer;
+function CharsPosEx(const Chars: TSetOfChars; const S: string;
+  const Offset: Integer): Integer;
+function BackCharsPos(const Chars: TSetOfChars; const s: string): Integer;
 { @groupEnd }
 
 { Find @bold(last) occurrence of SubString within S.
@@ -313,14 +313,14 @@ function SChar(const s: string; CharNum: integer): PChar; deprecated 'this funct
   Return false if S is too short, or the chatacter differs.
 
   @groupBegin }
-function SCharIs(const s: string; index: integer; c: char): boolean; overload;
-function SCharIs(const s: string; index: integer; const chars: TSetOfChars): boolean; overload;
+function SCharIs(const S: String; const Index: Integer; const C: char): Boolean; overload;
+function SCharIs(const S: String; const Index: Integer; const chars: TSetOfChars): Boolean; overload;
 { @groupEnd }
 
 { Replace typically unreadable characters in string S with #number notation.
   Useful for printing strings with some unprintable chars for
   debugging purposes. }
-function SReadableForm(const s: string): string; overload;
+function SReadableForm(const S: string): string; overload;
 function SReadableForm(const C: char): string; overload;
 
 { Return S[StartPosition..EndPosition].
@@ -1261,7 +1261,7 @@ begin
   i := 1;
   while i <= Length(s) do
   begin
-    if s[i] in [#10, #13] then
+    if CharInSet(S[i], [#10, #13]) then
     begin
       { niech i obejmie cale zakonczenie linii ktore moze byc 2-znakowe #13#10 lub #10#13 }
       case s[i] of
@@ -1278,7 +1278,7 @@ begin
         { we got line s[done+1..i] that we have to break somewhere. }
         BrokenSuccess := false;
         for brk := i downto Done + 1 do
-          if s[brk] in AllowedBreakChars then
+          if CharInSet(s[brk], AllowedBreakChars) then
           begin
             Result := Result + CopyPos(s, Done+1, Brk-1) + Newline + Indent;
             Done := brk; { we left the rest : s[brk+1..i] to be done }
@@ -1309,7 +1309,7 @@ begin
   SetLength(result, length(s));
   j := 1;
   for i := 1 to length(s) do
-    if not (s[i] in excludedChars) then
+    if not CharInSet(s[i], excludedChars) then
       begin result[j] := s[i]; Inc(j); end;
   SetLength(result, j-1);
 end;
@@ -1327,16 +1327,17 @@ begin
   end;
 end;
 
-function SReplaceChars(const s: string; FromChars: TSetOfChars; ToChar: char): string;
+function SReplaceChars(const s: string; const FromChars: TSetOfChars; const ToChar: char): string;
 var
-  i: integer;
+  I: integer;
 begin
-  result := s;
-  for i := 1 to Length(result) do
-    if result[i] in FromChars then result[i] := ToChar;
+  Result := s;
+  for I := 1 to Length(Result) do
+    if CharInSet(Result[i], FromChars) then
+      Result[i] := ToChar;
 end;
 
-function SReplaceChars(const s: string; FromChar, ToChar: char): string;
+function SReplaceChars(const s: string; const FromChar, ToChar: char): string;
 var
   i: Integer;
 begin
@@ -1358,11 +1359,12 @@ end;
 function SZeroPad(const s: string; len: integer): string;
 begin result := SPad(s, len, '0') end;
 
-function LoCase(c: char): char;
+function LoCase(const C: Char): Char;
 begin
-  if c in ['A'..'Z'] then
-    result := chr(ord(c)-ord('A')+ord('a')) else
-    result := c;
+  if CharInSet(C, ['A'..'Z']) then
+    Result := Chr(Ord(C) - Ord('A') + Ord('a'))
+  else
+    Result := C;
 end;
 
 function CharPos(c: char; const s: string; Offset: Integer): integer;
@@ -1374,26 +1376,29 @@ begin
   result := 0;
 end;
 
-function CharsPos(const chars: TSetOfChars; const s: string): integer;
+function CharsPos(const Chars: TSetOfChars; const S: String): Integer;
 begin
-  for result := 1 to Length(s) do
-    if s[result] in chars then exit;
-  result := 0;
+  for Result := 1 to Length(S) do
+    if CharInSet(S[result], Chars) then
+      Exit;
+  Result := 0;
 end;
 
 function CharsPosEx(const Chars: TSetOfChars; const S: string;
-  Offset: Integer): integer;
+  const Offset: Integer): Integer;
 begin
   for Result := Offset to Length(S) do
-    if S[Result] in Chars then Exit;
+    if CharInSet(S[Result], Chars) then
+      Exit;
   Result := 0;
 end;
 
 function BackCharsPos(const chars: TSetOfChars; const s: string): integer;
 begin
-  for result := Length(s) downto 1 do
-    if s[result] in chars then exit;
-  result := 0;
+  for Result := Length(S) downto 1 do
+    if CharInSet(S[Result], Chars) then
+      Exit;
+  Result := 0;
 end;
 
 function BackPos(const SubString, S: string): integer;
@@ -1473,14 +1478,14 @@ begin
 end;
 {$Include NoRQCheckEnd.inc}
 
-function SCharIs(const s: string; index: integer; c: char): boolean;
+function SCharIs(const S: String; const Index: Integer; const C: Char): Boolean;
 begin
-  Result := (index <= Length(s)) and (s[index] = c)
+  Result := (Index <= Length(S)) and (S[Index] = C)
 end;
 
-function SCharIs(const s: string; index: integer; const chars: TSetOfChars): boolean;
+function SCharIs(const S: string; const Index: integer; const Chars: TSetOfChars): Boolean;
 begin
-  Result := (index <= Length(s)) and (s[index] in chars)
+  Result := (Index <= Length(S)) and CharInSet(S[Index], chars);
 end;
 
 function SReadableForm(const S: string): string;
@@ -1516,11 +1521,16 @@ var
 begin
   repeat
     if SeekPos > Length(s) then begin Result := ''; Exit end;
-    if S[SeekPos] in TokenDelims then Inc(SeekPos) else Break;
+    if CharInSet(S[SeekPos], TokenDelims) then
+      Inc(SeekPos)
+    else
+      Break;
   until false;
   TokStart := SeekPos; { TokStart := first character not in TokenDelims }
 
-  while (SeekPos <= Length(s)) and not(S[SeekPos] in TokenDelims) do Inc(SeekPos);
+  while (SeekPos <= Length(s)) and
+    not CharInSet(S[SeekPos], TokenDelims) do
+    Inc(SeekPos);
 
   { Calculate result := s[TokStart, ... , SeekPos-1] }
   result := Copy(s, TokStart, SeekPos-TokStart);
@@ -1650,8 +1660,8 @@ var S, SubS: string;
     if soWholeWord in Options then
     begin
      realI := i+StartPosition-1;
-     if ( (realI = 1) or (Text[realI-1] in wordBorders) ) and
-        ( (realI+length(subS)-1 = length(Text)) or (Text[realI+length(subS)] in WordBorders) )
+     if ( (realI = 1) or CharInSet(Text[realI-1], wordBorders) ) and
+        ( (realI+length(subS)-1 = length(Text)) or CharInSet(Text[realI+length(subS)], WordBorders) )
      then result := true
     end else result := true;
    end;
@@ -1715,11 +1725,12 @@ var datapos, formpos: integer;
   var dataposstart: integer;
   begin
    {pierwszy znak liczby moze byc + lub -. Potem musza byc same cyfry.}
-   if not (data[datapos] in ['0'..'9', '+', '-']) then
+   if not CharInSet(data[datapos], ['0'..'9', '+', '-']) then
     raise EDeformatError.CreateFmt('float not found in data ''%s'' on position %d', [data, datapos]);
    dataposstart := datapos;
    Inc(datapos);
-   while (datapos <= Length(data)) and (data[datapos] in ['0'..'9','.', 'e','E', '-', '+']) do
+   while (datapos <= Length(data)) and
+     CharInSet(data[datapos], ['0'..'9','.', 'e','E', '-', '+']) do
     Inc(datapos);
    { Note that StrToFloatDot may still raise EConvertError.
      The argument contains only valid characters, but they may not form a valid number,
@@ -1731,11 +1742,11 @@ var datapos, formpos: integer;
   var dataposstart: integer;
   begin
    {pierwszy znak integera moze byc + lub -. Potem musza byc same cyfry.}
-   if not (data[datapos] in ['0'..'9', '+', '-']) then
+   if not CharInSet(data[datapos], ['0'..'9', '+', '-']) then
     raise EDeformatError.CreateFmt('integer not found in data ''%s'' on position %d', [data, datapos]);
    dataposstart := datapos;
    Inc(datapos);
-   while (datapos <= Length(data)) and (data[datapos] in ['0'..'9']) do
+   while (datapos <= Length(data)) and CharInSet(data[datapos], ['0'..'9']) do
     Inc(datapos);
    {ponizszy StrToInt tez moze spowodowac blad jesli np.
     wyszedl nam string '-' lub '+'}
@@ -1747,7 +1758,7 @@ var datapos, formpos: integer;
   begin
    dataposstart := datapos;
    while (datapos <= Length(data)) and
-         (not (data[datapos] in WhiteSpaces)) do Inc(datapos);
+         (not CharInSet(data[datapos], WhiteSpaces)) do Inc(datapos);
    result := CopyPos(data, dataposstart, datapos-1);
   end;
 
@@ -1819,7 +1830,7 @@ begin
   end;
 
   {1 or more whitespace in format means 1 or more whitespaces in data}
-  if RelaxedWhitespaceChecking and (format[formpos] in WhiteSpaces) then
+  if RelaxedWhitespaceChecking and CharInSet(format[formpos], WhiteSpaces) then
   begin
    if not SCharIs(Data, datapos, WhiteSpaces) then
     raise EDeformatError.Create('Whitespace not found in data "' + data +
@@ -2013,15 +2024,17 @@ begin
   for I := 1 to Length(s) do if S[I] = C then Inc(Result);
 end;
 
-function SCharsCount(const s: string; const Chars: TSetOfChars): Cardinal;
+function SCharsCount(const S: string; const Chars: TSetOfChars): Cardinal;
 var
-  i: Integer;
+  I: Integer;
 begin
   Result := 0;
-  for I := 1 to Length(s) do if S[I] in Chars then Inc(Result);
+  for I := 1 to Length(s) do
+    if CharInSet(S[I], Chars) then
+      Inc(Result);
 end;
 
-function STruncateHash(const s: string): string;
+function STruncateHash(const S: string): string;
 var
   p: integer;
 begin
@@ -2172,7 +2185,7 @@ begin
         Result := Result + IntToStr(Index);
         Inc(ReplacementsDone);
       end else
-      if Format[P + 1] in ['0'..'9'] then
+      if CharInSet(Format[P + 1], ['0'..'9']) then
       begin
         Inc(P);
         StartP := P;
@@ -2507,7 +2520,7 @@ var
 begin
   Result := '[';
   for C := Low(C) to High(C) do
-    if C in SetVariable then
+    if CharInSet(C, SetVariable) then
       if Result = '[' then
         Result := '[' + SReadableForm(C) else
         Result := Result + ',' + SReadableForm(C);
@@ -2545,13 +2558,13 @@ begin
 
   while SPos <= Length(S) do
   begin
-    Assert(not (S[SPos] in WhiteSpaces));
+    Assert(not CharInSet(S[SPos], WhiteSpaces));
 
     { read next non-white-space chunk }
 
     NextSPos := SPos + 1;
     while (NextSPos <= Length(S)) and
-          not (S[NextSPos] in WhiteSpaces) do
+          not CharInSet(S[NextSPos], WhiteSpaces) do
       Inc(NextSPos);
 
     Move(S[SPos], Result[ResultPos], NextSPos - SPos);
@@ -2595,7 +2608,7 @@ begin
   for I := 1 to Length(S) do
   begin
     C := S[I];
-    if not (C in ValidChars) then
+    if not CharInSet(C, ValidChars) then
       ReportInvalid;
   end;
 end;

@@ -28,13 +28,13 @@ type
   TStateMain = class(TUIState)
   private
     type
-      TButtonSoundBuffer = class(TCastleButton)
+      TButtonSound = class(TCastleButton)
       public
-        Buffer: TSoundBuffer;
+        Sound: TCastleSound;
         constructor Create(const AOwner: TComponent; const SoundFileURL: String); reintroduce;
       end;
 
-      TSoundSourceUiOwner = class(TComponent)
+      TPlayingSoundUiOwner = class(TComponent)
       strict private
         SliderSoundVolume, SliderSoundPitch: TCastleFloatSlider;
         CheckboxLoop: TCastleCheckbox;
@@ -43,23 +43,23 @@ type
         procedure ChangeSliderSoundPitch(Sender: TObject);
         procedure ChangeCheckboxLoop(Sender: TObject);
       public
-        SoundSource: TSound;
-        constructor Create(const AOwner: TComponent; const ASoundSource: TSound;
+        PlayingSound: TCastlePlayingSound;
+        constructor Create(const AOwner: TComponent; const APlayingSound: TCastlePlayingSound;
           const UiTemplate: TSerializedComponent;
-          const GroupSoundSources: TCastleVerticalGroup); reintroduce;
+          const GroupPlayingSounds: TCastleVerticalGroup); reintroduce;
       end;
 
-      TSoundSourceUiOwnerList = specialize TObjectList<TSoundSourceUiOwner>;
+      TPlayingSoundUiOwnerList = specialize TObjectList<TPlayingSoundUiOwner>;
 
     var
-      SoundSourceUiTemplate: TSerializedComponent;
-      LabelSoundSources: TCastleLabel;
-      GroupSoundBuffers, GroupSoundSources: TCastleVerticalGroup;
+      PlayingSoundUiTemplate: TSerializedComponent;
+      LabelPlayingSounds: TCastleLabel;
+      GroupSoundBuffers, GroupPlayingSounds: TCastleVerticalGroup;
       ButtonExit: TCastleButton;
-      SoundSourceUiOwners: TSoundSourceUiOwnerList;
+      PlayingSoundUiOwners: TPlayingSoundUiOwnerList;
     procedure ClickExit(Sender: TObject);
     procedure ClickPlayBuffer(Sender: TObject);
-    procedure SoundSourceRelease(Sender: TSound);
+    procedure PlayingSoundStop(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -75,90 +75,88 @@ uses SysUtils,
   CastleLog, CastleUIControls, CastleWindow, CastleURIUtils, CastleTimeUtils,
   CastleSoundBase, CastleViewport;
 
-{ TButtonSoundBuffer --------------------------------------------------------- }
+{ TButtonSound --------------------------------------------------------- }
 
-constructor TStateMain.TButtonSoundBuffer.Create(const AOwner: TComponent;
+constructor TStateMain.TButtonSound.Create(const AOwner: TComponent;
   const SoundFileURL: String);
 begin
   inherited Create(AOwner);
-  Buffer := SoundEngine.LoadBuffer(SoundFileURL
-    { Uncomment this (pass slStreaming argument) to allow streaming loading.
-      This means that sound file will be loaded partially, on-demand,
-      instead of being loaded to memory all at once.
+  Sound := TCastleSound.Create(Self);
+  { Uncomment this to allow streaming loading.
+    This means that sound file will be loaded partially, on-demand,
+    instead of being loaded to memory all at once.
 
-      The upside is much faster initialization (loading of a sound file
-      with slStreaming is almost instant, even for large files).
+    The upside is much faster initialization (loading of a sound file
+    with slStreaming is almost instant, even for large files).
 
-      The downside is a possible additional work at run-time
-      (but it's done in a thread and should not matter in normal use-cases).
-    }
-    // , slStreaming
-  );
+    The downside is a possible additional work at run-time
+    (but it's done in a thread and should not matter in normal use-cases).
+  }
+  // Sound.Stream := true;
+  Sound.URL := SoundFileURL;
+
   Caption := Format('%s (%f)', [
     // extract last URL component, i.e. just the filename
     URIDisplay(SoundFileURL, true),
-    Buffer.Duration
+    Sound.Duration
   ]);
-  { Note: We could also free the buffer in destructor, by SoundEngine.FreeBuffer.
-    In this simple example, there's no need for it, as SoundEngine will free
-    all the buffers anyway at application exit. }
 end;
 
-{ TSoundSourceUiOwner ---------------------------------------------------------- }
+{ TPlayingSoundUiOwner ---------------------------------------------------------- }
 
-constructor TStateMain.TSoundSourceUiOwner.Create(const AOwner: TComponent;
-  const ASoundSource: TSound;
+constructor TStateMain.TPlayingSoundUiOwner.Create(const AOwner: TComponent;
+  const APlayingSound: TCastlePlayingSound;
   const UiTemplate: TSerializedComponent;
-  const GroupSoundSources: TCastleVerticalGroup);
+  const GroupPlayingSounds: TCastleVerticalGroup);
 var
   Ui: TCastleUserInterface;
   LabelSoundName: TCastleLabel;
   ButtonStop: TCastleButton;
 begin
   inherited Create(AOwner);
-  SoundSource := ASoundSource;
+  PlayingSound := APlayingSound;
 
   // use Self as Owner of Ui, so below we just call Self.FindRequiredComponent
   Ui := UiTemplate.UserInterfaceLoad(Self);
-  GroupSoundSources.InsertFront(Ui);
+  GroupPlayingSounds.InsertFront(Ui);
 
   LabelSoundName := FindRequiredComponent('LabelSoundName') as TCastleLabel;
-  LabelSoundName.Caption := URIDisplay(SoundSource.Buffer.URL, true);
+  LabelSoundName.Caption := URIDisplay(PlayingSound.Sound.URL, true);
 
   ButtonStop := FindRequiredComponent('ButtonStop') as TCastleButton;
   ButtonStop.OnClick := @ClickStop;
 
   SliderSoundVolume := FindRequiredComponent('SliderSoundVolume') as TCastleFloatSlider;
-  SliderSoundVolume.Value := SoundSource.Gain;
+  SliderSoundVolume.Value := PlayingSound.Volume;
   SliderSoundVolume.OnChange := @ChangeSliderSoundVolume;
 
   SliderSoundPitch := FindRequiredComponent('SliderSoundPitch') as TCastleFloatSlider;
-  SliderSoundPitch.Value := SoundSource.Pitch;
+  SliderSoundPitch.Value := PlayingSound.Pitch;
   SliderSoundPitch.OnChange := @ChangeSliderSoundPitch;
 
   CheckboxLoop := FindRequiredComponent('CheckboxLoop') as TCastleCheckbox;
-  CheckboxLoop.Checked := SoundSource.Looping;
+  CheckboxLoop.Checked := PlayingSound.Loop;
   CheckboxLoop.OnChange := @ChangeCheckboxLoop;
 end;
 
-procedure TStateMain.TSoundSourceUiOwner.ClickStop(Sender: TObject);
+procedure TStateMain.TPlayingSoundUiOwner.ClickStop(Sender: TObject);
 begin
-  SoundSource.Release; // this will also call SoundSourceRelease
+  PlayingSound.Stop; // this will also call PlayingSoundStop
 end;
 
-procedure TStateMain.TSoundSourceUiOwner.ChangeSliderSoundVolume(Sender: TObject);
+procedure TStateMain.TPlayingSoundUiOwner.ChangeSliderSoundVolume(Sender: TObject);
 begin
-  SoundSource.Gain := SliderSoundVolume.Value;
+  PlayingSound.Volume := SliderSoundVolume.Value;
 end;
 
-procedure TStateMain.TSoundSourceUiOwner.ChangeSliderSoundPitch(Sender: TObject);
+procedure TStateMain.TPlayingSoundUiOwner.ChangeSliderSoundPitch(Sender: TObject);
 begin
-  SoundSource.Pitch := SliderSoundPitch.Value;
+  PlayingSound.Pitch := SliderSoundPitch.Value;
 end;
 
-procedure TStateMain.TSoundSourceUiOwner.ChangeCheckboxLoop(Sender: TObject);
+procedure TStateMain.TPlayingSoundUiOwner.ChangeCheckboxLoop(Sender: TObject);
 begin
-  SoundSource.Looping := CheckboxLoop.Checked;
+  PlayingSound.Loop := CheckboxLoop.Checked;
 end;
 
 { TStateMain ----------------------------------------------------------------- }
@@ -173,10 +171,10 @@ procedure TStateMain.Start;
 
   procedure AddSoundBufferButton(const SoundFileURL: String);
   var
-    Button: TButtonSoundBuffer;
+    Button: TButtonSound;
   begin
     try
-      Button := TButtonSoundBuffer.Create(FreeAtStop, SoundFileURL);
+      Button := TButtonSound.Create(FreeAtStop, SoundFileURL);
     except
       on E: Exception do
       begin
@@ -192,15 +190,15 @@ procedure TStateMain.Start;
 begin
   inherited;
 
-  SoundSourceUiOwners := TSoundSourceUiOwnerList.Create(false);
+  PlayingSoundUiOwners := TPlayingSoundUiOwnerList.Create(false);
 
   { Find useful components by name }
-  LabelSoundSources := DesignedComponent('LabelSoundSources') as TCastleLabel;
+  LabelPlayingSounds := DesignedComponent('LabelPlayingSounds') as TCastleLabel;
   GroupSoundBuffers := DesignedComponent('GroupSoundBuffers') as TCastleVerticalGroup;
-  GroupSoundSources := DesignedComponent('GroupSoundSources') as TCastleVerticalGroup;
+  GroupPlayingSounds := DesignedComponent('GroupPlayingSounds') as TCastleVerticalGroup;
   ButtonExit := DesignedComponent('ButtonExit') as TCastleButton;
 
-  LabelSoundSources.Caption := Format('Currently playing sound sources (max %d):',
+  LabelPlayingSounds.Caption := Format('Currently playing sounds (max %d):',
     [SoundEngine.MaxAllocatedSources]);
   ButtonExit.OnClick := @ClickExit;
 
@@ -217,22 +215,13 @@ begin
   AddSoundBufferButton('castle-data:/sounds/stereo_test.wav');
   AddSoundBufferButton('castle-data:/sounds/temple_adam_goh-44000Hz-16bit-mono.ogg');
 
-  SoundSourceUiTemplate := TSerializedComponent.Create('castle-data:/part_sound_source.castle-user-interface');
+  PlayingSoundUiTemplate := TSerializedComponent.Create('castle-data:/part_playing_sound.castle-user-interface');
 end;
 
 procedure TStateMain.Stop;
-
-  procedure StopAllSounds;
-  begin
-    while SoundSourceUiOwners.Count <> 0 do
-      // this calls SoundSourceRelease that will remove this item from list
-      SoundSourceUiOwners[0].SoundSource.Release;
-  end;
-
 begin
-  StopAllSounds;
-  FreeAndNil(SoundSourceUiOwners);
-  FreeAndNil(SoundSourceUiTemplate);
+  FreeAndNil(PlayingSoundUiOwners);
+  FreeAndNil(PlayingSoundUiTemplate);
   inherited;
 end;
 
@@ -243,36 +232,45 @@ end;
 
 procedure TStateMain.ClickPlayBuffer(Sender: TObject);
 var
-  SenderButton: TButtonSoundBuffer;
-  SoundSource: TSound;
-  SoundSourceUiOwner: TSoundSourceUiOwner;
+  SenderButton: TButtonSound;
+  PlayingSound: TCastlePlayingSound;
+  PlayingSoundUiOwner: TPlayingSoundUiOwner;
 begin
   inherited;
-  SenderButton := Sender as TButtonSoundBuffer;
-  SoundSource := SoundEngine.PlaySound(SenderButton.Buffer);
+  SenderButton := Sender as TButtonSound;
 
-  if SoundSource <> nil then // SoundSource may be nil if we cannot play yet another sound
-  begin
-    SoundSourceUiOwner := TSoundSourceUiOwner.Create(FreeAtStop, SoundSource,
-      SoundSourceUiTemplate, GroupSoundSources);
-    SoundSourceUiOwners.Add(SoundSourceUiOwner);
-    { It's better to make SoundSourceRelease a method of TStateMain,
-      not TSoundSourceUiOwner, because when it occurs the whole instance
-      of TSoundSourceUiOwner (along with the UI) should be destroyed. }
-    SoundSourceUiOwner.SoundSource.OnRelease := @SoundSourceRelease;
-  end;
+  { Note: by freeing TCastlePlayingSound at state stop (using FreeAtStop)
+    we make sure sound stops at state Stop too. }
+  PlayingSound := TCastlePlayingSound.Create(FreeAtStop);
+  PlayingSound.FreeOnStop := true;
+  PlayingSound.Sound := SenderButton.Sound;
+  { It's better to make PlayingSoundStop a method of TStateMain,
+    not TPlayingSoundUiOwner, because when it occurs the whole instance
+    of TPlayingSoundUiOwner (along with the UI) should be destroyed. }
+  PlayingSound.OnStop := @PlayingSoundStop;
+  SoundEngine.Play(PlayingSound);
+
+  PlayingSoundUiOwner := TPlayingSoundUiOwner.Create(FreeAtStop, PlayingSound,
+    PlayingSoundUiTemplate, GroupPlayingSounds);
+  PlayingSoundUiOwners.Add(PlayingSoundUiOwner);
 end;
 
-procedure TStateMain.SoundSourceRelease(Sender: TSound);
+procedure TStateMain.PlayingSoundStop(Sender: TObject);
 var
-  SoundSourceUiOwner: TSoundSourceUiOwner;
+  PlayingSoundUiOwner: TPlayingSoundUiOwner;
 begin
-  for SoundSourceUiOwner in SoundSourceUiOwners do
-    if SoundSourceUiOwner.SoundSource = Sender then
+  { This may happen when TCastlePlayingSound is freed by FreeAtStop,
+    when our PlayingSoundUiOwners is freed. So secure from it.
+    Testcase: start some longer sound, and then just close application by Alt+F4. }
+  if PlayingSoundUiOwners = nil then
+    Exit;
+
+  for PlayingSoundUiOwner in PlayingSoundUiOwners do
+    if PlayingSoundUiOwner.PlayingSound = Sender then
     begin
-      SoundSourceUiOwners.Remove(SoundSourceUiOwner);
-      // This frees TSoundSourceUiOwner, along with UI
-      SoundSourceUiOwner.Free;
+      PlayingSoundUiOwners.Remove(PlayingSoundUiOwner);
+      // This frees TPlayingSoundUiOwner, along with UI
+      PlayingSoundUiOwner.Free;
       Break;
     end;
 end;

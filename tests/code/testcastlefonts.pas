@@ -28,6 +28,8 @@ type
     procedure TestMaxTextWidthHtmlInWindow;
     procedure TestSizeFontFamily;
     procedure TestOverrideFont;
+    procedure TestSizeChangeNotificationFontFamily;
+    procedure TestSizeChangeNotificationCustomized;
   end;
 
 implementation
@@ -40,8 +42,8 @@ implementation
 
 uses SysUtils, Classes,
   {$ifdef TEST_CASTLE_WINDOW} CastleWindow, {$endif}
-  CastleFonts, CastleTextureFont_DejaVuSansMonoBold_15, CastleFontFamily,
-  Font_LatoRegular_300;
+  CastleFonts, CastleTextureFont_DejaVuSansMonoBold_15, CastleLog,
+  Font_LatoRegular_300, CastleInternalFreeTypeH;
 
 procedure TTestCastleFonts.TestMaxTextWidthHtml;
 var
@@ -102,7 +104,7 @@ begin
 
     Family := TCastleFontFamily.Create(nil);
     try
-      Family.RegularFont := Font;
+      Family.Regular := Font;
 
       AssertEquals(0, Family.Size);
       AssertEquals(15, Family.EffectiveSize);
@@ -135,7 +137,7 @@ begin
 
     Family := TCastleFontFamily.Create(nil);
     try
-      Family.RegularFont := Font;
+      Family.Regular := Font;
 
       AssertEquals(0, Family.Size);
       AssertEquals(60, Family.EffectiveSize);
@@ -221,7 +223,7 @@ begin
 
     FontFamily := TCastleFontFamily.Create(nil);
     try
-      FontFamily.RegularFont := LargeDigitsFont;
+      FontFamily.Regular := LargeDigitsFont;
       AssertSameValue(0, FontFamily.Size); // not customized yet
       AssertSameValue(522, FontFamily.TextWidth('123'), 1);
       AssertSameValue(221, FontFamily.TextHeight('123'), 1);
@@ -258,7 +260,7 @@ begin
 
     FontFamily := TCastleFontFamily.Create(nil);
     try
-      FontFamily.RegularFont := LargeDigitsFont;
+      FontFamily.Regular := LargeDigitsFont;
       FontFamily.Size := 2000;
       AssertSameValue(2000, FontFamily.Size); // not customized yet
       AssertSameValue(522 * 20/3, FontFamily.TextWidth('123'), 20/3);
@@ -270,6 +272,64 @@ begin
       AssertSameValue(0, FontFamily.Descend);
     finally FreeAndNil(FontFamily) end;
   finally FreeAndNil(LargeDigitsFont) end;
+end;
+
+procedure TTestCastleFonts.TestSizeChangeNotificationFontFamily;
+var
+  F: TCastleFont;
+  FF: TCastleFontFamily;
+begin
+  // if not FreeTypeLibraryInitialized then
+  // begin
+  //   WritelnWarning('FreeType library not available, aborting TTestCastleFonts.TestSizeChangeNotificationFontFamily');
+  //   Exit;
+  // end;
+
+  F := TCastleFont.Create(nil);
+  AssertEquals(0, F.RowHeight);
+
+  FF := TCastleFontFamily.Create(nil);
+  AssertEquals(0, FF.RowHeight);
+  FF.Regular := F;
+  AssertEquals(0, FF.RowHeight);
+
+  F.Url := 'castle-data:/fonts/PARPG.ttf';
+  AssertSameValue(21, F.RowHeight);
+  AssertSameValue(21, FF.RowHeight);
+  // writeln(F.RowHeight:1:2);
+  // writeln(FF.RowHeight:1:2);
+
+  FreeAndNil(F);
+  FreeAndNil(FF);
+end;
+
+procedure TTestCastleFonts.TestSizeChangeNotificationCustomized;
+var
+  F: TCastleFont;
+  CF: TCastleFontFamily;
+begin
+  // if not FreeTypeLibraryInitialized then
+  // begin
+  //   WritelnWarning('FreeType library not available, aborting TTestCastleFonts.TestSizeChangeNotificationCustomized');
+  //   Exit;
+  // end;
+
+  F := TCastleFont.Create(nil);
+  AssertEquals(0, F.RowHeight);
+
+  CF := TCastleFontFamily.Create(nil);
+  AssertEquals(0, CF.RowHeight);
+  CF.Regular := F;
+  AssertEquals(0, CF.RowHeight);
+
+  F.Url := 'castle-data:/fonts/PARPG.ttf';
+  AssertSameValue(21, F.RowHeight);
+  AssertSameValue(21, CF.RowHeight);
+  // writeln(F.RowHeight:1:2);
+  // writeln(CF.RowHeight:1:2);
+
+  FreeAndNil(F);
+  FreeAndNil(CF);
 end;
 
 initialization

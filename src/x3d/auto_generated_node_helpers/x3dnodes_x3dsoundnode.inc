@@ -25,11 +25,26 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TAbstractSoundNode ----------------------------------------------- }
+
+class function TAbstractSoundNode.ClassX3DType: String;
+begin
+  Result := 'X3DSoundNode';
+end;
+
+procedure TAbstractSoundNode.CreateNode;
+begin
+  inherited;
+
+  DefaultContainerField := 'children';
+end;
 
 {$endif read_implementation}

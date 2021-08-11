@@ -47,7 +47,7 @@ procedure TTestGame.TestGameData;
     AssertEquals(ExtractURIName(A), B);
   end;
 
-  procedure AssertSound(const A: TSoundType; const B: string);
+  procedure AssertSound(const A: TCastleSound; const B: string);
   begin
     AssertTrue(A = SoundEngine.SoundFromName(B));
   end;
@@ -60,24 +60,11 @@ procedure TTestGame.TestGameData;
 var
   Player: TPlayer;
   RemovePlayer: TRemoveType;
-  //SoundType: TSoundType;
+  //SoundType: TCastleSound;
   C: TWalkAttackCreatureResource;
   MatProp: TMaterialProperty;
 begin
   SoundEngine.RepositoryURL := 'data/game/sounds.xml';
-
-{ InternalInfo is private now.
-
-  AssertTrue(stNone.InternalInfo.Name = '');
-  AssertTrue(stNone.InternalInfo.URL = '');
-  SoundType := SoundEngine.SoundFromName('player_sudden_pain');
-  AssertTrue(SoundType.InternalInfo.Name = 'player_sudden_pain');
-  AssertURL(SoundType.InternalInfo.URL, 'test_name.wav');
-  AssertTrue(SoundType.InternalInfo.DefaultImportance = PlayerSoundImportance);
-  AssertFloat(SoundType.InternalInfo.Gain, 1);
-  AssertFloat(SoundType.InternalInfo.MinGain, 0.8);
-  AssertFloat(SoundType.InternalInfo.MaxGain, 1);
-}
 
   Resources.LoadFromFiles('data/game/');
 
@@ -179,7 +166,7 @@ begin
 
   MatProp := MaterialProperties.FindTextureBaseName('test_texture_2');
   AssertTrue(MatProp.TextureBaseName = 'test_texture_2');
-  AssertTrue(MatProp.FootstepsSound = stNone);
+  AssertTrue(MatProp.FootstepsSound = nil);
   AssertTrue(MatProp.Toxic = false);
   AssertFloat(MatProp.ToxicDamageConst, 0.0);
   AssertFloat(MatProp.ToxicDamageRandom, 0.0);

@@ -1,0 +1,931 @@
+{%MainUnit castlefonts.pas}
+{
+  Copyright 2001-2021 Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{$ifdef read_interface}
+
+type
+  { Abstract class for a font that can be used to render text. }
+  TCastleAbstractFont = class abstract(TCastleComponent)
+  strict private
+  type
+    TSavedProperties = class
+      Size: Single;
+      Outline: Cardinal;
+      OutlineColor: TCastleColor;
+      OutlineHighQuality: boolean;
+      TargetImage: TCastleImage;
+    end;
+    TSavedPropertiesList = specialize TObjectList<TSavedProperties>;
+  var
+    FMeasuredSize, FMeasuredRowHeight, FMeasuredRowHeightBase, FMeasuredDescend: Single;
+    FOutline: Cardinal;
+    FOutlineColor: TCastleColor;
+    FOutlineHighQuality: boolean;
+    FTargetImage: TCastleImage;
+    FPropertiesStack: TSavedPropertiesList;
+    FSize: Single;
+    FFontSizeNotifications: TNotifyEventList;
+    procedure MakeMeasure;
+    procedure GLContextCloseEvent(Sender: TObject);
+  strict protected
+    { Calculate properties based on measuring the current font
+      (with current @link(Size)).
+      The default implementation in TCastleAbstractFont looks at TextHeight of sample texts
+      to determine the parameter values. }
+    procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Single); virtual;
+    procedure GLContextClose; virtual;
+    procedure SetSize(const Value: Single); virtual;
+    { Call this when the measurement of font possibly changed, and anything cached
+      should be recalculated by calling TextWidth, TextHeight etc. again. }
+    procedure FontSizesChanged;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
+    { If the font is loaded, it can actually display and measure some characters. }
+    function FontLoaded: Boolean; virtual; abstract;
+
+    { Desired font size to use when rendering (@link(Print)) and measuring
+      (@link(TextWidth), @link(TextHeight) and related).
+      Should be always > 0.
+
+      The font size should correspond to the font height (@link(RowHeight)),
+      but actually we don't assume it, and querying @link(RowHeightBase)
+      and @link(RowHeight) is independent from this property. }
+    property Size: Single read FSize write SetSize;
+
+    { Draw text at the current WindowPos, and move
+      the WindowPos at the end. This way you can immediately
+      call another PrintAndMove again, to add something at the end.
+
+      It is not adviced to use it, as using the global WindowPos leads
+      sooner or later to messy in code, that has to deal with global state.
+      If you need to know how to move after printing text, use TextMove.
+
+      May require 1 free slot on the attributes stack.
+      May only be called when current matrix is modelview.
+      Doesn't modify any OpenGL state or matrix, except it moves raster position. }
+    procedure PrintAndMove(const s: string); deprecated 'use Print(X, Y, ...), and move the (X, Y) yourself based on TextMove, instead of this';
+
+    { Draw text at the given position with given color.
+      If the last Color component is not 1, the text is rendered
+      with blending.
+
+      Overloaded version without X, Y uses WindowPos (but doesn't modify
+      it, in contrast to PrintAndMove).
+      Overloaded version without Color uses CurrentColor,
+      last color set by glColorv.
+      It is not adviced to use overloaded versions without X, Y or Color
+      --- using global state leads to messy code.
+      You should upgrade your code to use the version that gets X,Y,Color
+      explicitly.
+
+      May require 1 free slot on the attributes stack.
+      May only be called when current matrix is modelview.
+      Doesn't modify any OpenGL state or matrix, except it moves raster position. }
+    procedure Print(const X, Y: Single; const Color: TCastleColor;
+      const S: string); overload; virtual; abstract;
+    procedure Print(const Pos: TVector2Integer; const Color: TCastleColor;
+      const S: string); overload;
+    procedure Print(const Pos: TVector2; const Color: TCastleColor;
+      const S: string); overload;
+
+    procedure Print(const X, Y: Single; const S: string); overload; deprecated 'instead of this, use Print overload that takes explicit X,Y,Color parameters';
+    procedure Print(const s: string); overload; deprecated 'instead of this, use Print overload that takes explicit X,Y,Color parameters';
+
+    { Print text, aligning within given rectangle.
+
+      Hint: Use TRectangle.Grow(-10) or similar to align within a rectangle
+      with padding. }
+    procedure PrintRect(const Rect: TRectangle; const Color: TCastleColor;
+      const S: string;
+      const HorizontalAlignment: THorizontalPosition;
+      const VerticalAlignment: TVerticalPosition);
+    procedure PrintRect(const Rect: TFloatRectangle; const Color: TCastleColor;
+      const S: string;
+      const HorizontalAlignment: THorizontalPosition;
+      const VerticalAlignment: TVerticalPosition);
+
+    { Print text, aligning within given rectangle.
+      Newlines within the text will be automatically honored,
+      the text will be rendered as multiple lines.
+      See @link(PrintStrings) for description of parameters Html,
+      LineSpacing, TextHorizontalAlignment. }
+    procedure PrintRectMultiline(const Rect: TRectangle; const Color: TCastleColor;
+      const S: string;
+      const HorizontalAlignment: THorizontalPosition;
+      const VerticalAlignment: TVerticalPosition;
+      const Html: boolean;
+      const LineSpacing: Integer;
+      const TextHorizontalAlignment: THorizontalPosition = hpLeft);
+    procedure PrintRectMultiline(const Rect: TFloatRectangle; const Color: TCastleColor;
+      const S: string;
+      const HorizontalAlignment: THorizontalPosition;
+      const VerticalAlignment: TVerticalPosition;
+      const Html: boolean;
+      const LineSpacing: Integer;
+      const TextHorizontalAlignment: THorizontalPosition = hpLeft);
+
+    { The font may require some OpenGL resources for drawing.
+      You can explicitly create them using PrepareResources (although it is never
+      needed, resources will be automatically created if needed).
+      There's no public method to explicitly destroy them,
+      they are always destroyed automatically.
+      @groupBegin }
+    procedure PrepareResources; virtual;
+    { @groupEnd }
+
+    function TextWidth(const S: string): Single; virtual; abstract;
+    function TextHeight(const S: string): Single; virtual; abstract;
+    { The height (above the baseline) of the text.
+      This doesn't take into account height of the text below the baseline
+      (for example letter "y" has the tail below the baseline in most fonts). }
+    function TextHeightBase(const S: string): Single; virtual; abstract;
+    function TextMove(const S: string): TVector2; virtual; abstract;
+    function TextSize(const S: string): TVector2;
+
+    { Height of a row of text in this font.
+      This may be calculated as simply @code(TextHeight('Wy')) for most
+      normal fonts. }
+    function RowHeight: Single;
+
+    { Height (above the baseline) of a row of text in this font.
+      Similar to TextHeightBase and TextHeight,
+      note that RowHeightBase is generally smaller than RowHeight,
+      because RowHeightBase doesn't care how low the letter may go below
+      the baseline. }
+    function RowHeightBase: Single;
+
+    { How low the text may go below the baseline. }
+    function Descend: Single;
+
+    { Break lines (possibly break one long string into more strings)
+      to fit the text with given MaxLineWidth.
+
+      This takes into account current font information (works also
+      for non-monospace fonts, of course), and converts your Unbroken
+      text into Broken text, such that TextWidth of the longest Broken
+      line fits within MaxLineWidth.
+
+      Tries to break on white characters. If not possible (there's
+      a long stream of non-white characters that really has to be broken),
+      it will break in the middle of normal (non-white) characters.
+      The only situation when we have to fail, and the resulting
+      Broken text is wider than required MaxLineWidth, is when
+      @italic(a single character in your font) is wider than MaxLineWidth.
+      In such case, there's really no solution, and we'll just let such
+      character stay.
+
+      If you use the overloaded version where Unbroken is just a string,
+      then note that already existing newlines (NL) inside Unbroken
+      will be correctly preserved.
+
+      If you use the overloaded version with separate Unbroken and
+      Broken parameters, then the previous Broken contents are not modified.
+      We only append to Broken new strings, coming from Unbroken text.
+      The overloaded version that takes only Broken parameter
+      (no Unbroken parameter) simply modifies it's Broken parameter
+      (from the line FirstToBreak).
+
+      @groupBegin }
+    procedure BreakLines(const unbroken: string; broken: TStrings; MaxLineWidth: Single); overload;
+    procedure BreakLines(unbroken, broken: TStrings; MaxLineWidth: Single); overload;
+    procedure BreakLines(broken: TStrings; MaxLineWidth: Single; FirstToBreak: integer); overload;
+    { @groupEnd }
+
+    { Largest width of the line of text in given list.
+
+      @param(Html Indicates that strings inside SList use a subset of HTML,
+        the same ones as interpreted by PrintStrings.
+        If your SList uses these elements (for example, you plan to call later
+        PrintStrings with the same SList and Html = @true) then make
+        sure you pass Html = @true to this method.
+        Otherwise, MaxTextWidth will treat HTML markup (like @code(<font ...>))
+        like a normal text, usually making the width incorrectly large.)
+    }
+    function MaxTextWidth(SList: TStrings; const Html: boolean = false): Single;
+
+    { Print all strings from the list.
+
+      @param(X0 The X position of the whole text block.
+        It's exact interpretation depends on TextHorizontalAlignment value.)
+
+      @param(Y0 The bottom position of the whole text block.
+        That is, this is the bottom position of the last string.)
+
+      @param(Color The color of the text. Alpha value of the color is honored,
+        value < 1 renders partially-transparent text.
+
+        Overloaded and deprecated versions without
+        explicit Color parameter use CurrentColor.)
+
+      @param(Strs The text to display. Can be given as either TStringList,
+        or a simple array of strings.)
+
+      @param(Html Enable a subset of HTML to mark font changes inside the text.
+        See the example examples/fonts/html_text_demo.html for a demo, supported
+        HTML constructs now are:
+        @unorderedList(
+          @item <b> (bold)
+          @item <i> (italic)
+          @item <font color="#rrggbb">, <font color="#rrggbbaa"> (change color, with or without alpha)
+          @item <font size="xxx">, <small> (change size)
+          @item <br> <br/> <br /> <p> (newlines; paragraph makes 2 newlines)
+          @item &amp; &lt; &gt; &apos; &quot; (entities)
+          @item <!-- xxx --> (comments)
+        )
+      )
+
+      @param(LineSpacing Extra space between lines.
+        Distance between each line is determined by RowHeight + LineSpacing
+        pixels.
+
+        Note that LineSpacing can be < 0 (as well as > 0),
+        this may be sometimes useful if you really want to squeeze
+        more text into the available space. Still, make sure that
+        (RowHeight + LineSpacing) is > 0.)
+
+      @groupBegin }
+    procedure PrintStrings(const X0, Y0: Single; const Color: TCastleColor;
+      const Strs: TStrings; const Html: boolean;
+      const LineSpacing: Single;
+      const TextHorizontalAlignment: THorizontalPosition = hpLeft); overload;
+    procedure PrintStrings(const X0, Y0: Single; const Color: TCastleColor;
+      const Strs: array of string; const Html: boolean;
+      const LineSpacing: Single;
+      const TextHorizontalAlignment: THorizontalPosition = hpLeft); overload;
+    procedure PrintStrings(const Strs: TStrings;
+      const Html: boolean; const LineSpacing: Single;
+      const X0: Single = 0; const Y0: Single = 0); overload; deprecated 'instead of this, use PrintStrings version that takes explicit Color parameter';
+    procedure PrintStrings(const Strs: array of string;
+      const Html: boolean; const LineSpacing: Single;
+      const X0: Single = 0; const Y0: Single = 0); overload; deprecated 'instead of this, use PrintStrings version that takes explicit Color parameter';
+    { @groupEnd }
+
+    { Print the string, broken such that it fits within MaxLineWidth.
+      The string is broken into many lines using BreakLines,
+      so the original newlines insides are correctly used,
+      and the length of lines fits inside MaxLineWidth.
+
+      The strings are printed on the screen, just like by PrintStrings.
+      If PositionsFirst then the X0, Y0 determine
+      the position of the first (top) line, otherwise they determine
+      the position of the last (bottom) line.
+
+      LineSpacing has the same meaning as for PrintStrings:
+      it adds an additional space between lines (if positive) or forces
+      the lines to be more tightly squeezed (if negative). Always make
+      sure that (RowHeight + LineSpacing) > 0.
+
+      Returns the number of lines printed, that is the number of lines
+      after breaking the text into lines. This may be useful e.g. to calculate
+      the height of the printed text.
+
+      May require 1 free slot on the attributes stack.
+      May only be called when current matrix is modelview.
+      Doesn't modify any OpenGL state or matrix.
+
+      Overloaded and deprecated version without
+      explicit Color parameter uses CurrentColor.
+
+      Overloaded version that takes rectangle as a parameter can
+      align the resulting string box within the rectangle.
+
+      @groupBegin }
+    function PrintBrokenString(const Rect: TRectangle; const Color: TCastleColor;
+      const S: string;
+      const LineSpacing: Single;
+      const AlignHorizontal: THorizontalPosition;
+      const AlignVertical: TVerticalPosition;
+      const Html: boolean = false): Integer;
+    function PrintBrokenString(const Rect: TFloatRectangle; const Color: TCastleColor;
+      const S: string;
+      const LineSpacing: Single;
+      const AlignHorizontal: THorizontalPosition;
+      const AlignVertical: TVerticalPosition;
+      const Html: boolean = false): Integer;
+    function PrintBrokenString(X0, Y0: Single; const Color: TCastleColor;
+      const S: string; const MaxLineWidth: Single;
+      const PositionsFirst: boolean;
+      const LineSpacing: Single;
+      const Html: boolean = false): Integer;
+    function PrintBrokenString(const S: string;
+      const MaxLineWidth, X0, Y0: Single;
+      const PositionsFirst: boolean;
+      const LineSpacing: Single): Integer; deprecated 'instead of this, use PrintBrokenString that takes explicit Color parameter';
+    { @groupEnd }
+
+    { Outline size around the normal text.
+      Note that the current implementation is very simple, it will only
+      look sensible for small outline values (like 1 or 2).
+
+      Note that outline size, in pixels, is not scaled along with font size.
+      Which makes sense: whether you load TTF with size 10 and then set size 20,
+      or you load TTF with size 40 and then set size 20
+      --- the font is internally scaled differently, but the resulting sizes
+      and outline sizes remain the same.
+
+      @seealso OutlineHighQuality }
+    property Outline: Cardinal read FOutline write FOutline default 0;
+
+    { Optionally force better outline quality. Used only if Outline <> 0.
+      High quality outline looks better, but is about 2x more expensive to draw.
+      @seealso Outline }
+    property OutlineHighQuality: boolean
+      read FOutlineHighQuality write FOutlineHighQuality default false;
+
+    { Outline color, used only if Outline <> 0. Default is black.
+      @seealso Outline }
+    property OutlineColor: TCastleColor read FOutlineColor write FOutlineColor;
+
+    { Save draw properties to a stack. Saves:
+      @link(Size), @link(Outline), @link(OutlineColor), @link(OutlineHighQuality),
+      @link(TargetImage). }
+    procedure PushProperties;
+    procedure PopProperties;
+
+    { Non-zero font size. Usually same thing as @link(Size), but in case of proxy
+      font classes (like TCustomizedFont and TCastleFontFamily) it makes sure to
+      never return zero (which, in case of font proxies,
+      is allowed value for @link(Size) and means "use underlying font size"). }
+    function EffectiveSize: Single; virtual;
+
+    function RealSize: Single; deprecated 'use EffectiveSize';
+
+    { The image where we render the font.
+      Usually (when this is @nil) our rendering routines render to the screen
+      (or the current FBO, if you use @link(TGLRenderToTexture)).
+      By setting this to non-nil, you make the rendering by done on CPU
+      (without libraries like OpenGL/OpenGLES), and the text is drawn on the given image.
+
+      The PushProperties and PopProperties methods save/restore this.
+
+      TODO: Font scaling (normally done by TCastleFont and TCastleBitmapFont
+      if you change @link(Size) from default)
+      is not done when drawing font to an image.
+      So don't touch the @link(Size)
+      if you plan on rendering to image. Also, when using HTML tags,
+      do not change the font size by them.
+      Otherwise TextWidth / TextHeight will be unsynchronized
+      with what @link(Print) actually does --- so not only your font will
+      remain constant size, also it will overlap with itself.
+      This will get fixed one day --- TCastleImage.Draw just needs to support scaling.
+    }
+    property TargetImage: TCastleImage read FTargetImage write FTargetImage;
+
+    { Add notification when FontSizesChanged occurs. }
+    procedure AddFontSizeChangeNotification(const Notify: TNotifyEvent);
+    { Remove notification when FontSizesChanged occurs. }
+    procedure RemoveFontSizeChangeNotification(const Notify: TNotifyEvent);
+  end;
+
+  TGLBitmapFontAbstract = TCastleAbstractFont deprecated 'use TCastleAbstractFont';
+
+{$endif read_interface}
+
+{$ifdef read_implementation}
+
+{ TCastleAbstractFont ------------------------------------------------------}
+
+constructor TCastleAbstractFont.Create(AOwner: TComponent);
+begin
+  inherited;
+  FMeasuredSize := -1; // not measured at all
+  FOutlineColor := Black;
+  ApplicationProperties.OnGLContextCloseObject.Add(@GLContextCloseEvent);
+end;
+
+destructor TCastleAbstractFont.Destroy;
+begin
+  if ApplicationProperties <> nil then
+    ApplicationProperties.OnGLContextCloseObject.Remove(@GLContextCloseEvent);
+  GLContextClose;
+  FreeAndNil(FPropertiesStack);
+  FreeAndNil(FFontSizeNotifications);
+  inherited;
+end;
+
+procedure TCastleAbstractFont.SetSize(const Value: Single);
+begin
+  if FSize <> Value then
+  begin
+    Assert(not IsInfinite(Value));
+    FSize := Value;
+  end;
+end;
+
+procedure TCastleAbstractFont.GLContextCloseEvent(Sender: TObject);
+begin
+  GLContextClose;
+end;
+
+procedure TCastleAbstractFont.PrepareResources;
+begin
+end;
+
+procedure TCastleAbstractFont.GLContextClose;
+begin
+end;
+
+function TCastleAbstractFont.TextSize(const S: string): TVector2;
+begin
+  Result := Vector2(TextWidth(S), TextHeight(S));
+end;
+
+procedure TCastleAbstractFont.Print(const Pos: TVector2Integer;
+  const Color: TCastleColor; const S: string);
+begin
+  Print(Pos[0], Pos[1], Color, S);
+end;
+
+procedure TCastleAbstractFont.Print(const Pos: TVector2;
+  const Color: TCastleColor; const S: string);
+begin
+  Print(Pos[0], Pos[1], Color, S);
+end;
+
+procedure TCastleAbstractFont.Print(const s: string);
+begin
+  { Deprecated method uses other deprecated method here, don't warn }
+  {$warnings off}
+  Print(WindowPos[0], WindowPos[1], CurrentColor, S);
+  {$warnings on}
+end;
+
+procedure TCastleAbstractFont.PrintAndMove(const s: string);
+var
+  M: TVector2;
+begin
+  { Deprecated method uses other deprecated method here, don't warn }
+  {$warnings off}
+  Print(S);
+  M := TextMove(S);
+  WindowPos := WindowPos + Vector2Integer(Round(M.X), Round(M.Y));
+  {$warnings on}
+end;
+
+procedure TCastleAbstractFont.Print(const X, Y: Single; const S: string);
+begin
+  { Deprecated method uses other deprecated method here, don't warn }
+  {$warnings off}
+  Print(X, Y, CurrentColor, S);
+  {$warnings on}
+end;
+
+procedure TCastleAbstractFont.PrintRectMultiline(const Rect: TFloatRectangle; const Color: TCastleColor;
+  const S: string;
+  const HorizontalAlignment: THorizontalPosition;
+  const VerticalAlignment: TVerticalPosition;
+  const Html: boolean;
+  const LineSpacing: Integer;
+  const TextHorizontalAlignment: THorizontalPosition);
+var
+  Strings: TStringList;
+  ThisRect: TFloatRectangle;
+  X: Single;
+begin
+  Strings := TStringList.Create;
+  try
+    Strings.Text := S;
+    if Strings.Count <> 0 then
+    begin
+      ThisRect := FloatRectangle(0, 0, MaxTextWidth(Strings, Html),
+        Strings.Count * (LineSpacing + RowHeight) - LineSpacing);
+      ThisRect := ThisRect.
+        Align(HorizontalAlignment, Rect, HorizontalAlignment).
+        Align(VerticalAlignment, Rect, VerticalAlignment);
+      case TextHorizontalAlignment of
+        hpLeft   : X := ThisRect.Left;
+        hpMiddle : X := ThisRect.Center[0];
+        hpRight  : X := ThisRect.Right;
+        {$ifndef COMPILER_CASE_ANALYSIS}
+        else raise EInternalError.Create('TextHorizontalAlignment? in TCastleAbstractFont.PrintRectMultiline');
+        {$endif}
+      end;
+      PrintStrings(X, ThisRect.Bottom, Color, Strings,
+        Html, LineSpacing, TextHorizontalAlignment);
+    end;
+  finally FreeAndNil(Strings) end;
+end;
+
+procedure TCastleAbstractFont.PrintRectMultiline(const Rect: TRectangle; const Color: TCastleColor;
+  const S: string;
+  const HorizontalAlignment: THorizontalPosition;
+  const VerticalAlignment: TVerticalPosition;
+  const Html: boolean;
+  const LineSpacing: Integer;
+  const TextHorizontalAlignment: THorizontalPosition);
+begin
+  PrintRectMultiline(FloatRectangle(Rect), Color, S,
+    HorizontalAlignment, VerticalAlignment, Html, LineSpacing, TextHorizontalAlignment);
+end;
+
+procedure TCastleAbstractFont.PrintRect(
+  const Rect: TFloatRectangle; const Color: TCastleColor;
+  const S: string;
+  const HorizontalAlignment: THorizontalPosition;
+  const VerticalAlignment: TVerticalPosition);
+var
+  ThisRect: TFloatRectangle;
+begin
+  ThisRect :=
+    FloatRectangle(0, 0, TextWidth(S), TextHeight(S)).
+    Align(HorizontalAlignment, Rect, HorizontalAlignment).
+    Align(VerticalAlignment, Rect, VerticalAlignment);
+  Print(ThisRect.Left, ThisRect.Bottom, Color, S);
+end;
+
+procedure TCastleAbstractFont.PrintRect(
+  const Rect: TRectangle; const Color: TCastleColor;
+  const S: string;
+  const HorizontalAlignment: THorizontalPosition;
+  const VerticalAlignment: TVerticalPosition);
+begin
+  PrintRect(FloatRectangle(Rect), Color, S, HorizontalAlignment, VerticalAlignment);
+end;
+
+procedure TCastleAbstractFont.BreakLines(const unbroken: string;
+  broken: TStrings; MaxLineWidth: Single);
+var
+  unbrokenlist: TStringList;
+begin
+  unbrokenlist := TStringList.Create;
+  try
+    Strings_SetText(unbrokenlist, unbroken);
+    BreakLines(unbrokenlist, broken, MaxLineWidth);
+  finally unbrokenlist.Free end;
+end;
+
+procedure TCastleAbstractFont.BreakLines(unbroken, broken: TStrings;
+  MaxLineWidth: Single);
+var
+  i, FirstToBreak: Integer;
+begin
+  FirstToBreak := broken.count;
+  for I := 0 to unbroken.count-1 do broken.Append(unbroken[i]);
+  BreakLines(broken, MaxLineWidth, FirstToBreak);
+end;
+
+procedure TCastleAbstractFont.BreakLines(broken: TStrings;
+  MaxLineWidth: Single; FirstToBreak: integer);
+var
+  I: Integer;
+  LineWidthBytes: Integer;
+  LineWidth: Single;
+  P: Integer;
+  BreakInput, BreakOutput1, BreakOutput2, HardBreakOutput: string;
+  C: TUnicodeChar;
+  BreakInputPtr: PChar;
+  CharLen: Integer;
+begin
+  { break the strings on Broken list.
+    We look at MaxLineWidth in pixels, taking into account that font
+    does not have to be mono-spaced.  }
+
+  I := FirstToBreak;
+  { instead of "for" use "while" because Broken.Count will be changing }
+  while I < Broken.Count do
+  begin
+    BreakInput := Broken[I];
+
+    { Try breaking line number I. If it's empty, there's no need to break it. }
+    BreakInputPtr := PChar(BreakInput);
+
+    C := UTF8CharacterToUnicode(BreakInputPtr, CharLen);
+    if (C > 0) and (CharLen > 0) then
+    begin
+      { the first character C is always considered to fit into BreakOutput1,
+        regardless of MaxLineWidth --- after all, we have to place this character
+        somewhere (otherwise we would have to reject this character
+        or raise an error). }
+      Inc(BreakInputPtr, CharLen);
+      LineWidthBytes := CharLen;
+      LineWidth := TextWidth(UnicodeToUTF8(C));
+
+      C := UTF8CharacterToUnicode(BreakInputPtr, CharLen);
+      while (C > 0) and (CharLen > 0) and
+            (LineWidth + TextWidth(UnicodeToUTF8(C)) <= MaxLineWidth) do
+      begin
+        Inc(BreakInputPtr, CharLen);
+        LineWidthBytes += CharLen;
+        LineWidth += TextWidth(UnicodeToUTF8(C));
+
+        C := UTF8CharacterToUnicode(BreakInputPtr, CharLen);
+      end;
+
+      if (C > 0) and (CharLen > 0) then // then above loop stopped because we have to break
+      begin
+        { HardBreakOutput is BreakOutput1 in case we don't find a whitespace
+          on which to break }
+        HardBreakOutput := Copy(BreakInput, 1, LineWidthBytes);
+        { We have to break this line now. }
+        P := BackCharsPos(WhiteSpaces, HardBreakOutput);
+        if P > 0 then
+        begin
+          BreakOutput1 := Copy(BreakInput, 1, P - 1);
+          BreakOutput2 := SEnding(BreakInput, P + 1) { break at pos p, delete p-th char }
+        end else
+        begin
+          BreakOutput1 := HardBreakOutput;
+          BreakOutput2 := SEnding(BreakInput, Length(HardBreakOutput) + 1);
+        end;
+        Broken[I] := BreakOutput1;
+        Broken.Insert(I + 1, BreakOutput2); // next iteration will break BreakOutput2
+      end;
+    end;
+
+    Inc(I);
+  end;
+end;
+
+function TCastleAbstractFont.MaxTextWidth(SList: TStrings; const Html: boolean): Single;
+var
+  I: Integer;
+  Text: TRichText;
+begin
+  if not Html then
+  begin
+    { simple and fast implementation in case TRichText not needed }
+    Result := 0;
+    for I := 0 to SList.Count-1 do
+      MaxVar(Result, TextWidth(SList[I]));
+  end else
+  begin
+    Text := TRichText.Create(Self, SList, Html);
+    try
+      Result := Text.Width;
+    finally FreeAndNil(Text) end;
+  end;
+end;
+
+procedure TCastleAbstractFont.PrintStrings(const X0, Y0: Single;
+  const Color: TCastleColor; const Strs: TStrings;
+  const Html: boolean; const LineSpacing: Single;
+  const TextHorizontalAlignment: THorizontalPosition);
+
+  function XPos(const Line: Integer; const S: string): Single;
+  begin
+    case TextHorizontalAlignment of
+      hpLeft  : Result := X0;
+      hpMiddle: Result := X0 - TextWidth(S) / 2;
+      hpRight : Result := X0 - TextWidth(S);
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('TCastleAbstractFont.PrintStrings: TextHorizontalAlignment unknown');
+      {$endif}
+    end;
+  end;
+
+  function YPos(const Line: Integer): Single;
+  begin
+    Result := (Strs.Count - 1 - Line) * (RowHeight + LineSpacing) + Y0;
+  end;
+
+var
+  S: string;
+  Line: Integer;
+  Text: TRichText;
+begin
+  if not Html then
+  begin
+    { simple and fast implementation in case TRichText not needed }
+    for Line := 0 to Strs.Count - 1 do
+    begin
+      S := Strs[Line];
+      Print(XPos(Line, S), YPos(Line), Color, S);
+    end;
+  end else
+  begin
+    Text := TRichText.Create(Self, Strs, Html);
+    try
+      Text.Print(X0, Y0, Color, LineSpacing, TextHorizontalAlignment);
+    finally FreeAndNil(Text) end;
+  end;
+end;
+
+procedure TCastleAbstractFont.PrintStrings(const X0, Y0: Single;
+  const Color: TCastleColor; const Strs: array of string;
+  const Html: boolean; const LineSpacing: Single;
+  const TextHorizontalAlignment: THorizontalPosition);
+var
+  SList: TStringList;
+begin
+  SList := TStringList.Create;
+  try
+    AddStrArrayToStrings(Strs, SList);
+    PrintStrings(X0, Y0, Color, SList, Html, LineSpacing, TextHorizontalAlignment);
+  finally FreeAndNil(SList) end;
+end;
+
+procedure TCastleAbstractFont.PrintStrings(const Strs: TStrings;
+  const Html: boolean; const LineSpacing: Single;
+  const X0: Single; const Y0: Single);
+begin
+  { Deprecated stuff uses other deprecated stuff here, don't warn }
+  {$warnings off}
+  PrintStrings(X0, Y0, CurrentColor, Strs, Html, LineSpacing);
+  {$warnings on}
+end;
+
+procedure TCastleAbstractFont.PrintStrings(const Strs: array of string;
+  const Html: boolean; const LineSpacing: Single; const X0: Single;
+  const Y0: Single);
+var
+  SList: TStringList;
+begin
+  { Deprecated stuff uses other deprecated stuff here, don't warn }
+  {$warnings off}
+  SList := TStringList.Create;
+  try
+    AddStrArrayToStrings(Strs, SList);
+    PrintStrings(X0, Y0, CurrentColor, SList, Html, LineSpacing);
+  finally SList.Free end;
+  {$warnings on}
+end;
+
+function TCastleAbstractFont.PrintBrokenString(X0, Y0: Single;
+  const Color: TCastleColor; const S: string; const MaxLineWidth: Single;
+  const PositionsFirst: boolean; const LineSpacing: Single;
+  const Html: boolean): Integer;
+var
+  Text: TRichText;
+begin
+  Text := TRichText.Create(Self, S, Html);
+  try
+    Text.Wrap(MaxLineWidth);
+    if PositionsFirst then
+      Y0 -= (Text.Count-1) * (RowHeight + LineSpacing);
+    Text.Print(X0, Y0, Color, LineSpacing);
+    Result := Text.Count;
+  finally FreeAndNil(Text) end;
+end;
+
+function TCastleAbstractFont.PrintBrokenString(const Rect: TFloatRectangle;
+  const Color: TCastleColor; const S: string;
+  const LineSpacing: Single;
+  const AlignHorizontal: THorizontalPosition;
+  const AlignVertical: TVerticalPosition;
+  const Html: boolean): Integer;
+var
+  Text: TRichText;
+  X0, Y0, BrokenHeight: Single;
+begin
+  Text := TRichText.Create(Self, S, Html);
+  try
+    Text.Wrap(Rect.Width);
+    { calculate X0 based on Rect and Text.Width }
+    case AlignHorizontal of
+      hpLeft  : X0 := Rect.Left;
+      hpMiddle: X0 := Rect.Left + (Rect.Width - Text.Width) / 2;
+      hpRight : X0 := Rect.Right - Text.Width;
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('PrintBrokenString.AlignHorizontal?');
+      {$endif}
+    end;
+    { calculate Y0 based on Rect and BrokenHeight }
+    BrokenHeight := Text.Count * (LineSpacing + RowHeight);
+    case AlignVertical of
+      vpBottom: Y0 := Rect.Bottom;
+      vpMiddle: Y0 := Rect.Bottom + (Rect.Height - BrokenHeight) / 2;
+      vpTop   : Y0 := Rect.Top - BrokenHeight;
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('PrintBrokenString.AlignVertical?');
+      {$endif}
+    end;
+    Text.Print(X0, Y0, Color, LineSpacing);
+    Result := Text.Count;
+  finally FreeAndNil(Text) end;
+end;
+
+function TCastleAbstractFont.PrintBrokenString(const Rect: TRectangle; const Color: TCastleColor;
+  const S: string;
+  const LineSpacing: Single;
+  const AlignHorizontal: THorizontalPosition;
+  const AlignVertical: TVerticalPosition;
+  const Html: boolean = false): Integer;
+begin
+  Result := PrintBrokenString(FloatRectangle(Rect), Color, S, LineSpacing,
+    AlignHorizontal, AlignVertical, Html);
+end;
+
+function TCastleAbstractFont.PrintBrokenString(const S: string;
+  const MaxLineWidth, X0, Y0: Single;
+  const PositionsFirst: boolean;
+  const LineSpacing: Single): Integer; deprecated;
+begin
+  { Deprecated stuff uses other deprecated stuff here, don't warn }
+  {$warnings off}
+  Result := PrintBrokenString(X0, Y0, CurrentColor, S, MaxLineWidth,
+    PositionsFirst, LineSpacing);
+  {$warnings on}
+end;
+
+procedure TCastleAbstractFont.Measure(out ARowHeight, ARowHeightBase, ADescend: Single);
+begin
+  ARowHeight := TextHeight('Wy');
+  ARowHeightBase := TextHeightBase('W');
+  ADescend := Max(0, TextHeight('y') - TextHeight('a'));
+end;
+
+procedure TCastleAbstractFont.MakeMeasure;
+begin
+  if FMeasuredSize <> Size then
+  begin
+    Measure(FMeasuredRowHeight, FMeasuredRowHeightBase, FMeasuredDescend);
+    FMeasuredSize := Size;
+  end;
+end;
+
+function TCastleAbstractFont.RowHeight: Single;
+begin
+  MakeMeasure;
+  Result := FMeasuredRowHeight;
+end;
+
+function TCastleAbstractFont.RowHeightBase: Single;
+begin
+  MakeMeasure;
+  Result := FMeasuredRowHeightBase;
+end;
+
+function TCastleAbstractFont.Descend: Single;
+begin
+  MakeMeasure;
+  Result := FMeasuredDescend;
+end;
+
+procedure TCastleAbstractFont.PushProperties;
+var
+  SavedProperites: TSavedProperties;
+begin
+  if FPropertiesStack = nil then
+    FPropertiesStack := TSavedPropertiesList.Create;
+
+  SavedProperites := TSavedProperties.Create;
+  SavedProperites.Size := Size;
+  SavedProperites.Outline := Outline;
+  SavedProperites.OutlineColor := OutlineColor;
+  SavedProperites.OutlineHighQuality := OutlineHighQuality;
+  SavedProperites.TargetImage := TargetImage;
+  FPropertiesStack.Add(SavedProperites);
+end;
+
+procedure TCastleAbstractFont.PopProperties;
+var
+  SavedProperites: TSavedProperties;
+begin
+  if (FPropertiesStack = nil) or (FPropertiesStack.Count = 0) then
+    raise Exception.Create('Cannot do TCastleAbstractFont.PopProperties, stack empty. Every PopProperties should match previous PushProperties');
+
+  SavedProperites := FPropertiesStack.Last;
+  Size         := SavedProperites.Size;
+  Outline      := SavedProperites.Outline;
+  OutlineColor := SavedProperites.OutlineColor;
+  OutlineHighQuality := SavedProperites.OutlineHighQuality;
+  TargetImage  := SavedProperites.TargetImage;
+  FPropertiesStack.Delete(FPropertiesStack.Count - 1);
+end;
+
+function TCastleAbstractFont.EffectiveSize: Single;
+begin
+  Result := Size;
+end;
+
+function TCastleAbstractFont.RealSize: Single;
+begin
+  Result := EffectiveSize;
+end;
+
+procedure TCastleAbstractFont.FontSizesChanged;
+begin
+  FMeasuredSize := -1; // not measured at all
+  if FFontSizeNotifications <> nil then
+    FFontSizeNotifications.ExecuteAll(Self);
+end;
+
+procedure TCastleAbstractFont.AddFontSizeChangeNotification(const Notify: TNotifyEvent);
+begin
+  if FFontSizeNotifications = nil then
+    FFontSizeNotifications := TNotifyEventList.Create;
+  FFontSizeNotifications.Add(Notify);
+end;
+
+procedure TCastleAbstractFont.RemoveFontSizeChangeNotification(const Notify: TNotifyEvent);
+begin
+  if FFontSizeNotifications <> nil then // may be nil when destroying, and we make notification
+    FFontSizeNotifications.Remove(Notify);
+end;
+
+{$endif read_implementation}

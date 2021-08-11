@@ -132,6 +132,7 @@ else
 fi
 
 PASDOC_INCLUDE_DIRS="\
+  --include common_includes/\
   --include 3d/\
   --include 3d/opengl/\
   --include x3d/\

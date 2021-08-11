@@ -22,7 +22,7 @@ interface
 
 uses Classes, CastleVectors, CastleFonts, CastleControls,
   CastleGLUtils, CastleUIControls, CastleKeysMouse, CastleColors,
-  CastleRectangles, CastleClassUtils;
+  CastleRectangles, CastleClassUtils, CastleSoundEngine;
 
 type
   TCastleOnScreenMenu = class;
@@ -179,9 +179,18 @@ type
       FDrawFocusedBorder: boolean;
       FBackgroundOpacityFocused, FBackgroundOpacityNotFocused: Single;
       FMenuItems: TCastleVerticalGroup;
+      FSoundClick: TCastleSound;
+      FSoundClickObserver: TFreeNotificationObserver;
+      FSoundCurrentItemChanged: TCastleSound;
+      FSoundCurrentItemChangedObserver: TFreeNotificationObserver;
+
     function GetCurrentItem: Integer;
     procedure SetCurrentItem(const Value: Integer);
     procedure SetRegularSpaceBetweenItems(const Value: Single);
+    procedure SetSoundClick(const Value: TCastleSound);
+    procedure SoundClickFreeNotification(const Sender: TFreeNotificationObserver);
+    procedure SetSoundCurrentItemChanged(const Value: TCastleSound);
+    procedure SoundCurrentItemChangedFreeNotification(const Sender: TFreeNotificationObserver);
   protected
     procedure BeforeSizing; override;
   public
@@ -346,6 +355,11 @@ type
     property CaptureAllEvents: boolean
       read FCaptureAllEvents write FCaptureAllEvents default false;
 
+    property SoundClick: TCastleSound
+      read FSoundClick write SetSoundClick;
+    property SoundCurrentItemChanged: TCastleSound
+      read FSoundCurrentItemChanged write SetSoundCurrentItemChanged;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleonscreenmenu_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -356,7 +370,7 @@ procedure Register;
 implementation
 
 uses SysUtils, CastleUtils, CastleImages, CastleFilesUtils,
-  CastleStringUtils, CastleGLImages, CastleSoundEngine, CastleComponentSerialize;
+  CastleStringUtils, CastleGLImages, CastleComponentSerialize;
 
 procedure Register;
 begin
@@ -609,7 +623,12 @@ begin
   if Menu <> nil then
     Menu.Click; // keep deprecated Menu.Click working
   {$warnings on}
-  SoundEngine.Sound(stMenuClick);
+  if Menu.SoundClick <> nil then
+    SoundEngine.Play(Menu.SoundClick)
+  else
+    {$warnings off} // keep deprecated working
+    SoundEngine.Play(stMenuClick);
+    {$warnings on}
   if Assigned(OnClick) then
     OnClick(Self);
 end;
@@ -694,6 +713,11 @@ begin
   FDrawBackgroundRectangle := true;
   FDrawFocusedBorder := true;
   AutoSizeToChildren := true;
+
+  FSoundClickObserver := TFreeNotificationObserver.Create(Self);
+  FSoundClickObserver.OnFreeNotification := @SoundClickFreeNotification;
+  FSoundCurrentItemChangedObserver := TFreeNotificationObserver.Create(Self);
+  FSoundCurrentItemChangedObserver.OnFreeNotification := @SoundCurrentItemChangedFreeNotification;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleonscreenmenu_persistent_vectors.inc}
@@ -900,7 +924,12 @@ end;
 
 procedure TCastleOnScreenMenu.CurrentItemChangedByUser;
 begin
-  SoundEngine.Sound(stMenuCurrentItemChanged);
+  if SoundCurrentItemChanged <> nil then
+    SoundEngine.Play(SoundCurrentItemChanged)
+  else
+    {$warnings off} // keep deprecated working
+    SoundEngine.Play(stMenuCurrentItemChanged);
+    {$warnings on}
 end;
 
 procedure TCastleOnScreenMenu.CurrentItemSelected;
@@ -964,6 +993,34 @@ begin
   Item.Caption := S;
   Item.OnClick := ItemOnClick;
   Add(Item);
+end;
+
+procedure TCastleOnScreenMenu.SetSoundClick(const Value: TCastleSound);
+begin
+  if FSoundClick <> Value then
+  begin
+    FSoundClick := Value;
+    FSoundClickObserver.Observed := Value;
+  end;
+end;
+
+procedure TCastleOnScreenMenu.SoundClickFreeNotification(const Sender: TFreeNotificationObserver);
+begin
+  FSoundClick := nil;
+end;
+
+procedure TCastleOnScreenMenu.SetSoundCurrentItemChanged(const Value: TCastleSound);
+begin
+  if FSoundCurrentItemChanged <> Value then
+  begin
+    FSoundCurrentItemChanged := Value;
+    FSoundCurrentItemChangedObserver.Observed := Value;
+  end;
+end;
+
+procedure TCastleOnScreenMenu.SoundCurrentItemChangedFreeNotification(const Sender: TFreeNotificationObserver);
+begin
+  FSoundCurrentItemChanged := nil;
 end;
 
 {$define read_implementation_methods}

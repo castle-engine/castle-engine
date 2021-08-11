@@ -21,7 +21,8 @@ unit EditorUtils;
 interface
 
 uses Classes, Types, Controls, StdCtrls, Process, Menus, Generics.Collections,
-  CastleStringUtils;
+  CastleStringUtils,
+  ToolArchitectures;
 
 type
   TMenuItemHelper = class helper for TMenuItem
@@ -29,7 +30,6 @@ type
     procedure SetEnabledVisible(const Value: Boolean);
   end;
 
-type
   TOutputKind = (
     okInfo,
     okImportantInfo,
@@ -118,7 +118,7 @@ type
     var
       Queue: TQueueItemList;
       OutputList: TOutputList;
-      OnSuccessfullyFinishedAll: TNotifyEvent;
+      OnFinished, OnSuccessfullyFinishedAll: TNotifyEvent;
 
     constructor Create;
     destructor Destroy; override;
@@ -126,6 +126,13 @@ type
     procedure Update;
     function Running: Boolean;
   end;
+
+  TPlatformInfo = class
+    Target: TTarget;
+    OS: TOS;
+    CPU: TCPU;
+  end;
+  TPlatformInfoList = specialize TObjectList<TPlatformInfo>;
 
 procedure ErrorBox(const Message: String);
 procedure WarningBox(const Message: String);
@@ -151,8 +158,14 @@ const
 function ApiReference(const PropertyObject: TObject;
   const PropertyName, PropertyNameForLink: String): String;
 
+{ Add to given submenus (TMenuItem) items for each registered serializable
+  component. Thus it allows to construct menu to add all possible
+  TCastleTransform instances, all possible TCastleUserInterface instances etc.
+  Any ParentXxx may be nil, then relevant components are not added.
+
+  All created menu items have OnClick set to OnClickEvent. }
 procedure BuildComponentsMenu(
-  const ParentUserInterface, ParentTransform: TMenuItem;
+  const ParentUserInterface, ParentTransform, ParentBehavior, ParentNonVisual: TMenuItem;
   const OnClickEvent: TNotifyEvent);
 
 type
@@ -174,10 +187,31 @@ var
   { Code editor used to open project, when CodeEditor = ceCustom. }
   CodeEditorCommandProject: String;
 
+const
+  DefaultMuteOnRun = true;
+  DefaultEditorVolume = 1.0;
+
+var
+  { Mute/restore when you run the application. }
+  MuteOnRun: Boolean;
+  EditorVolume: Single;
+
+  { Current state on "running application" for the purpose of implementing
+    MuteOnRun. }
+  RunningApplication: Boolean;
+
+{ Update SoundEngine.Volume based on
+  global MuteOnRun, EditorVolume, RunningApplication. }
+procedure SoundEngineSetVolume;
+
+{ Update SoundEngine.Volume based on
+  global MuteOnRun, RunningApplication and parameter FakeVolume. }
+procedure SoundEngineSetVolume(const FakeVolume: Single);
+
 implementation
 
 uses SysUtils, Dialogs, Graphics, TypInfo, Generics.Defaults,
-  CastleUtils, CastleLog,
+  CastleUtils, CastleLog, CastleSoundEngine,
   CastleComponentSerialize, CastleUiControls, CastleCameras, CastleTransform,
   ToolCompilerInfo;
 
@@ -266,7 +300,13 @@ begin
 
       // create next process in queue
       if FQueuePosition < Queue.Count then
-        CreateAsyncProcess;
+        CreateAsyncProcess
+      else
+      begin
+        // no more processes (regardless if we done all, or interrupted because of some error)
+        if Assigned(OnFinished) then
+          OnFinished(Self);
+      end;
 
       if SuccessfullyFinishedAll and Assigned(OnSuccessfullyFinishedAll) then
         OnSuccessfullyFinishedAll(Self);
@@ -361,7 +401,7 @@ begin
   { In case Process.Running=false, set our own FRunning and FExitStatus.
     Note that we don't make a method like TAsynchronousProcess.Running that
     simply returnsProcess.Running, as then we could report as Running=false
-    a processthat didn't yet dump all it's output to OutputList. }
+    a process that didn't yet dump all it's output to OutputList. }
   if not Process.Running then
   begin
     FRunning := false;
@@ -474,10 +514,50 @@ begin
   C := List.Canvas;
   OutputInfo := List.Items.Objects[Index] as TOutputInfo;
 
-  case OutputInfo.Kind of
-    okImportantInfo: C.Font.Bold := true;
-    okWarning      : C.Brush.Color := clYellow;
-    okError        : C.Brush.Color := clRed;
+  { (On Windows only)
+    For unknown reason (LCL bug? our bug?), sometimes OutputInfo is nil,
+    even though we clear the List.Items and we always add to it by
+    AddLine (List.Items.AddObject(S, OutputInfoPerKind[Kind])).
+
+    This can be reproduced in various situations if you hit F9:
+    1. after switching from Lazarus -> CGE editor
+    2. open CGE editor, some project, and use "Restart Editor (with custom components)"
+    3. open CGE editor, some project, open some design, hit F9
+
+    It is *not* 100% reproducible always. Case 1. and 2. was definitely
+    observed (by Michalis and others) but the crash can just disappear by itself
+    after you reproduce it a few times.
+    Case 3. proved to be most reliably reproducible.
+
+    Seen with
+    - Lazarus 2.0.10 + FPC 3.2.0
+    - Lazarus 2.0.12 + FPC 3.2.2
+    Only seen on Windows/x86_64 (though we make a workaround general).
+
+    The log confirms the problem:
+    - AddLine added
+        'Running "...\castle-engine.exe --mode=debug compile"'
+      with OutputInfo <> nil
+    - But then TOutputList.DrawItem is executed with
+        Index = 0
+        List.Items[Index] = 'Running "...\castle-engine.exe --mode=debug compile"'
+        OutputInfo = nil
+  }
+
+  if OutputInfo <> nil then
+  begin
+    case OutputInfo.Kind of
+      okImportantInfo: C.Font.Bold := true;
+      okWarning      : C.Brush.Color := clYellow;
+      okError        : C.Brush.Color := clRed;
+    end;
+  end else
+  begin
+    WritelnLog('Missing OutputInfo for the line "%s", known bug (probably in LCL) on Windows', [
+      List.Items[Index]
+    ]);
+    // assuming okImportantInfo, as the problem occurs with 1st line in list
+    C.Font.Bold := true;
   end;
 
   C.FillRect(ARect);
@@ -702,24 +782,30 @@ begin
   Result := AnsiCompareStr(Left.Caption, Right.Caption);
 end;
 
-procedure BuildComponentsMenu(const ParentUserInterface, ParentTransform: TMenuItem; const OnClickEvent: TNotifyEvent);
+procedure BuildComponentsMenu(
+  const ParentUserInterface, ParentTransform, ParentBehavior, ParentNonVisual: TMenuItem;
+  const OnClickEvent: TNotifyEvent);
 
-  function CreateMenuItemForComponent(const Owner: TComponent; const R: TRegisteredComponent): TMenuItem;
+  function CreateMenuItemForComponent(const OwnerAndParent: TMenuItem;
+    const R: TRegisteredComponent): TMenuItem;
   var
     S: String;
   begin
-    Result := TMenuItem.Create(Owner);
+    if OwnerAndParent = nil then
+      Exit; // exit if relevant ParentXxx is nil
+    Result := TMenuItem.Create(OwnerAndParent);
     S := R.Caption + ' (' + R.ComponentClass.ClassName + ')';
     if R.IsDeprecated then
       S := '(Deprecated) ' + S;
     Result.Caption := S;
     Result.Tag := PtrInt(Pointer(R));
+    Result.OnClick := OnClickEvent;
+    OwnerAndParent.Add(Result);
   end;
 
 type
   TRegisteredComponentComparer = specialize TComparer<TRegisteredComponent>;
 var
-  MenuItem: TMenuItem;
   R: TRegisteredComponent;
 begin
   { While RegisteredComponents is documented as "read-only",
@@ -732,23 +818,24 @@ begin
   for R in RegisteredComponents do
     if not R.IsDeprecated then
     begin
-      if R.ComponentClass.InheritsFrom(TCastleUserInterface) and
-         not R.ComponentClass.InheritsFrom(TCastleNavigation) then
+      if R.ComponentClass.InheritsFrom(TCastleNavigation) then
       begin
-        MenuItem := CreateMenuItemForComponent(ParentUserInterface, R);
-        MenuItem.OnClick := OnClickEvent;
-        ParentUserInterface.Add(MenuItem);
+        { do nothing, TCastleNavigation are in viewport "hamburger" menu }
       end else
+      if R.ComponentClass.InheritsFrom(TCastleUserInterface) then
+        CreateMenuItemForComponent(ParentUserInterface, R)
+      else
       if R.ComponentClass.InheritsFrom(TCastleTransform) then
-      begin
-        MenuItem := CreateMenuItemForComponent(ParentTransform, R);
-        MenuItem.OnClick := OnClickEvent;
-        ParentTransform.Add(MenuItem);
-      end;
+        CreateMenuItemForComponent(ParentTransform, R)
+      else
+      if R.ComponentClass.InheritsFrom(TCastleBehavior) then
+        CreateMenuItemForComponent(ParentBehavior, R)
+      else
+        CreateMenuItemForComponent(ParentNonVisual, R);
     end;
 
   (*
-  Don't show deprecated -- at least in initial CGE release, keep the menu clean.
+  Don't show deprecated for now, keep the menu clean.
 
   { add separators from deprecated }
   MenuItem := TMenuItem.Create(ParentUserInterface);
@@ -763,21 +850,22 @@ begin
   for R in RegisteredComponents do
     if R.IsDeprecated then
     begin
-      if R.ComponentClass.InheritsFrom(TCastleUserInterface) and
-         not R.ComponentClass.InheritsFrom(TCastleNavigation) then
-      begin
-        MenuItem := CreateMenuItemForComponent(ParentUserInterface, R);
-        MenuItem.OnClick := OnClickEvent;
-        ParentUserInterface.Add(MenuItem);
-      end else
-      if R.ComponentClass.InheritsFrom(TCastleTransform) then
-      begin
-        MenuItem := CreateMenuItemForComponent(ParentTransform, R);
-        MenuItem.OnClick := OnClickEvent;
-        ParentTransform.Add(MenuItem);
-      end;
+      ... same code as above
     end;
   *)
+end;
+
+procedure SoundEngineSetVolume;
+begin
+  SoundEngineSetVolume(EditorVolume);
+end;
+
+procedure SoundEngineSetVolume(const FakeVolume: Single);
+begin
+  if MuteOnRun and RunningApplication then
+    SoundEngine.Volume := 0
+  else
+    SoundEngine.Volume := FakeVolume;
 end;
 
 end.

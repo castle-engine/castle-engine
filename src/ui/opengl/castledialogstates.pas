@@ -92,7 +92,7 @@ uses Classes, Math,
   CastleGLUtils, CastleUtils,
   CastleStringUtils, CastleVectors, CastleKeysMouse, CastleControls,
   CastleRectangles, CastleUIState, CastleColors, CastleUIControls,
-  CastleFonts, CastleFontFamily, CastleTimeUtils;
+  CastleFonts, CastleInternalRichText, CastleTimeUtils;
 
 type
   { Abstract class for a modal dialog user-interface state.

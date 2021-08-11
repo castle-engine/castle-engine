@@ -23,48 +23,5 @@ android {
             // Not using proguard now
             // proguardFiles.add(file('proguard-rules.txt'))
         }
-
-        // Is this needed to be debuggable?
-        // https://google.github.io/android-gradle-dsl/current/com.android.build.gradle.internal.dsl.BuildType.html#com.android.build.gradle.internal.dsl.BuildType:jniDebuggable
-        // https://developer.android.com/studio/build/build-variants.html
-        // It seems that jniDebuggable passes NDK_DEBUG=1.
-        //
-        // Unfortunately, using this doesn't seem to preserve debug symbols
-        // in prebuilt libraries.
-        // So this is unused for now.
-        // For now, CGE build tool calls ndk-build directly,
-        // see RunNdkBuild in ToolAndroidPackage comments,
-        // this way ndk-gdb remains useful.
-        debug {
-            debuggable true
-            jniDebuggable true
-        }
     }
-
-    // See https://developer.android.com/studio/projects/gradle-external-native-builds
-    externalNativeBuild {
-        ndkBuild {
-            path "src/main/jni/Android.mk"
-        }
-    }
-
-    // For some reason, when ndk-build is run by Gradle,
-    // it is unable to transfer our precompiled libraries
-    // (library from CGE, extra libs with OpenAL, Tremolo, FreeType...)
-    // into the final APK automatically.
-    // So we follow official docs:
-    // https://developer.android.com/studio/projects/gradle-external-native-builds
-    // to insert the libraries by jniLibs.srcDirs.
-    //
-    // For now this is unused, since it is not perfect anyway:
-    // prebuilt libraries were used, but their debug symbols not preserved.
-    // For now, CGE build tool calls ndk-build directly,
-    // see RunNdkBuild in ToolAndroidPackage comments,
-    // this way ndk-gdb remains useful.
-    //
-    // sourceSets {
-    //     main {
-    //         jniLibs.srcDirs 'src/main/jni/'
-    //     }
-    // }
 }

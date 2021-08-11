@@ -7,7 +7,7 @@
     <CompilerOptions>
       <Version Value="11"/>
       <SearchPaths>
-        <IncludeFiles Value="../src/base"/>
+        <IncludeFiles Value="../src/common_includes"/>
         <OtherUnitFiles Value="../src/files/indy"/>
         <UnitOutputDirectory Value="lib/castle_indy/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>

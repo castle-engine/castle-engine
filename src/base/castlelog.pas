@@ -189,7 +189,7 @@ uses SysUtils,
   once the activity starts. }
 {$define CASTLE_USE_GETAPPCONFIGDIR_FOR_LOG}
 {$ifdef ANDROID} {$undef CASTLE_USE_GETAPPCONFIGDIR_FOR_LOG} {$endif}
-{$ifdef iOS} {$undef CASTLE_USE_GETAPPCONFIGDIR_FOR_LOG} {$endif}
+{$ifdef CASTLE_IOS} {$undef CASTLE_USE_GETAPPCONFIGDIR_FOR_LOG} {$endif}
 
 var
   FLog: boolean = false;
@@ -201,7 +201,7 @@ var
 const
   { To avoid wasting time in applications that just never call InitializeLog,
     stop adding things to CollectedLog when it reaches certain length. }
-  MaxCollectedLogLength = 80 * 10;
+  MaxCollectedLogLength = 80 * 100;
 
 procedure WriteLogCoreCore(const S: string); forward;
 

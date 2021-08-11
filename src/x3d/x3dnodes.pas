@@ -162,13 +162,13 @@ unit X3DNodes;
 interface
 
 uses SysUtils, Generics.Collections, Classes, XMLRead, DOM,
-  CastleVectors, CastleRectangles, CastleTimeUtils,
+  CastleVectors, CastleRectangles, CastleTimeUtils, CastleFonts,
   CastleInternalX3DLexer, CastleUtils, CastleClassUtils,
   X3DFields, CastleBoxes, CastleImages, CastleColors, CastleCameras,
   CastleVideos, X3DTime, CastleTransform, CastleMaterialProperties,
   CastleScript, X3DCastleScript, CastleInternalOctree, CastleCompositeImage,
   CastleTextureImages, CastleKeysMouse, CastleSoundEngine, CastleStringUtils,
-  CastleTextureFontData, CastleRenderOptions, CastleProjection;
+  CastleTextureFontData, CastleRenderOptions, CastleProjection, CastleBehaviors;
 
 {$define read_interface}
 
@@ -278,8 +278,7 @@ uses
   CastleFilesUtils, StrUtils, CastleURIUtils, CastleUnicode, CastleCurves,
   CastleLog, CastleScriptParser, CastleDataURI, URIParser, CastleDownload,
   CastleNURBS, CastleQuaternions, CastleXMLUtils, CastleOpenDocument,
-  CastleSoundBase, CastleTriangles,
-  X3DLoadInternalUtils;
+  CastleSoundBase, CastleTriangles, X3DLoadInternalUtils;
 
 {$warnings on}
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2019 Michalis Kamburelis.
+  Copyright 2019-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,35 +20,43 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, EditBtn, StdCtrls,
-  ExtCtrls, ButtonPanel;
+  ExtCtrls, ButtonPanel, ComCtrls;
 
 type
   TPreferencesForm = class(TForm)
+    ButtonRegisterLazarusPackages: TButton;
     ButtonPanel1: TButtonPanel;
+    CheckBoxMuteOnRun: TCheckBox;
     DirectoryEditFpc: TDirectoryEdit;
     DirectoryEditLazarus: TDirectoryEdit;
     EditCodeEditorCommand: TFileNameEdit;
     EditCodeEditorCommandProject: TFileNameEdit;
+    LabelInstructions0: TLabel;
+    LabelInstructions1: TLabel;
+    LabelInstructions2: TLabel;
+    LabelLazarusWebsite: TLabel;
+    LabelVolume: TLabel;
     LabelCodeEditorCommandInstructions: TLabel;
     LabelCodeEditorCommand: TLabel;
     LabelCodeEditorCommandProjectInstructions: TLabel;
     LabelCodeEditorHeader: TLabel;
+    LabelSound: TLabel;
     LabelFpc: TLabel;
     LabelFpcAutoDetectedCaption: TLabel;
-    LabelInstructions0: TLabel;
     LabelLazarus: TLabel;
-    LabelInstructions1: TLabel;
     LabelLazarusAutoDetectedCaption: TLabel;
     LabelTitle: TLabel;
-    LabelInstructions2: TLabel;
     LabelFpcAutoDetected: TLabel;
     LabelLazarusAutoDetected: TLabel;
-    LabelLazarusWebsite: TLabel;
     ListPages: TListBox;
+    PanelInstructions: TPanel;
     PanelCodeEditor: TPanel;
+    PanelSound: TPanel;
     PanelFpcLazarusConfig: TPanel;
     RadioCodeEditorLazarus: TRadioButton;
     RadioCodeEditorCustom: TRadioButton;
+    TrackVolume: TTrackBar;
+    procedure ButtonRegisterLazarusPackagesClick(Sender: TObject);
     procedure DirectoryEditFpcChange(Sender: TObject);
     procedure DirectoryEditLazarusChange(Sender: TObject);
     procedure EditCodeEditorCommandAcceptFileName(Sender: TObject;
@@ -61,6 +69,7 @@ type
     procedure LabelLazarusWebsiteClick(Sender: TObject);
     procedure ListPagesClick(Sender: TObject);
     procedure RadioCodeEditorAnyChange(Sender: TObject);
+    procedure TrackVolumeChange(Sender: TObject);
   private
     OriginalFpcCustomPath, OriginalLazarusCustomPath: String;
     procedure UpdateAutoDetectedLabels;
@@ -74,8 +83,8 @@ var
 
 implementation
 
-uses CastleOpenDocument, CastleUtils, CastleLog,
-  ToolCompilerInfo, ToolFpcVersion,
+uses CastleOpenDocument, CastleUtils, CastleLog, CastleSoundEngine,
+  ToolCompilerInfo, ToolFpcVersion, ToolCommonUtils,
   EditorUtils;
 
 {$R *.lfm}
@@ -96,6 +105,14 @@ procedure TPreferencesForm.RadioCodeEditorAnyChange(Sender: TObject);
 begin
   EditCodeEditorCommand.Enabled := RadioCodeEditorCustom.Checked;
   EditCodeEditorCommandProject.Enabled := RadioCodeEditorCustom.Checked;
+end;
+
+procedure TPreferencesForm.TrackVolumeChange(Sender: TObject);
+begin
+  { While the volume will be adjusted in TPreferencesForm.FormClose too,
+    along with EditorVolume, but it is natural to also modify the audible
+    volume immediately. }
+  SoundEngineSetVolume(TrackVolume.Position / TrackVolume.Max);
 end;
 
 procedure TPreferencesForm.UpdateAutoDetectedLabels;
@@ -158,6 +175,10 @@ begin
   end;
   EditCodeEditorCommand.Text := CodeEditorCommand;
   EditCodeEditorCommandProject.Text := CodeEditorCommandProject;
+
+  // sound tab
+  TrackVolume.Position := Round(EditorVolume * TrackVolume.Max);
+  CheckBoxMuteOnRun.Checked := MuteOnRun;
 end;
 
 procedure TPreferencesForm.FormClose(Sender: TObject;
@@ -166,12 +187,18 @@ begin
   if ModalResult = mrOK then
   begin
     { copy UI -> global variables }
+
+    // code editor tab
     if RadioCodeEditorCustom.Checked then
       CodeEditor := ceCustom
     else
       CodeEditor := ceLazarus;
     CodeEditorCommand := EditCodeEditorCommand.Text;
     CodeEditorCommandProject := EditCodeEditorCommandProject.Text;
+
+    // sound tab
+    EditorVolume := TrackVolume.Position / TrackVolume.Max;
+    MuteOnRun := CheckBoxMuteOnRun.Checked;
   end else
   begin
     { XxxCustomPath are special.
@@ -182,6 +209,11 @@ begin
     FpcCustomPath := OriginalFpcCustomPath;
     LazarusCustomPath := OriginalLazarusCustomPath;
   end;
+
+  { Set SoundEngine.Volume regardless if we accepted
+    (so MuteOnRun, EditorVolume changed) or not (so they are unchanged)
+    to revert any immediate changes to volume in TPreferencesForm.TrackVolumeChange. }
+  SoundEngineSetVolume;
 end;
 
 procedure TPreferencesForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
@@ -202,6 +234,53 @@ procedure TPreferencesForm.DirectoryEditFpcChange(Sender: TObject);
 begin
   FpcCustomPath := DirectoryEditFpc.Directory;
   UpdateAutoDetectedLabels;
+end;
+
+procedure TPreferencesForm.ButtonRegisterLazarusPackagesClick(Sender: TObject);
+var
+  ExecutionLog: String;
+
+  procedure RegisterPackage(const Name: String);
+  var
+    LazbuildExe, LazbuildOutput, PackageFileName, CommandLog: String;
+    LazbuildExitStatus: integer;
+  begin
+    LazbuildExe := FindExeLazarus('lazbuild');
+    if LazbuildExe = '' then
+      raise EExecutableNotFound.Create('Cannot find "lazbuild" program. Make sure it is installed, and set Lazarus location in CGE editor "Preferences".');
+
+    PackageFileName := CastleEnginePath + 'packages' + PathDelim + Name + '.lpk';
+
+    MyRunCommandIndir(
+      GetCurrentDir { no better directory, but also should not matter },
+      LazbuildExe, [
+        '--add-package-link',
+        PackageFileName
+      ], LazbuildOutput, LazbuildExitStatus);
+
+    CommandLog := 'lazbuild --add-package-link "' + PackageFileName + '"';
+    ExecutionLog := ExecutionLog + NL + NL + CommandLog;
+    WritelnLog('lazbuild status %d, output:' + NL + '%s', [LazbuildExitStatus, LazbuildOutput]);
+
+    if (LazbuildExitStatus <> 0) or
+       (Pos('Invalid option', LazbuildOutput) <> 0) { lazbuild has exit status 0 in this case } then
+      raise Exception.Create('Executing lazbuild failed:' + NL + NL + LazbuildOutput);
+  end;
+
+begin
+  ExecutionLog := 'Lazarus packages registed successfully.' + NL + NL +
+    'Executed the following commands:';
+  try
+    RegisterPackage('castle_base');
+    RegisterPackage('castle_window');
+    RegisterPackage('castle_components');
+    RegisterPackage('alternative_castle_window_based_on_lcl');
+    RegisterPackage('castle_indy');
+    ShowMessage(ExecutionLog);
+  except
+    on E: Exception do
+      ErrorBox(E.Message);
+  end;
 end;
 
 procedure TPreferencesForm.DirectoryEditLazarusChange(Sender: TObject);
@@ -231,10 +310,12 @@ begin
   case ListPages.ItemIndex of
     0: SelectedPage := PanelFpcLazarusConfig;
     1: SelectedPage := PanelCodeEditor;
+    2: SelectedPage := PanelSound;
     else raise Exception.CreateFmt('Unexpected ListPages.ItemIndex %d', [ListPages.ItemIndex]);
   end;
   SetEnabledVisible(PanelFpcLazarusConfig, PanelFpcLazarusConfig = SelectedPage);
   SetEnabledVisible(PanelCodeEditor      , PanelCodeEditor       = SelectedPage);
+  SetEnabledVisible(PanelSound           , PanelSound            = SelectedPage);
 end;
 
 end.

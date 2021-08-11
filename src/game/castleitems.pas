@@ -165,22 +165,22 @@ type
     or fire a missile. }
   TItemWeaponResource = class(TItemResource)
   private
-    FEquippingSound: TSoundType;
+    FEquippingSound: TCastleSound;
     FAttackAnimation: T3DResourceAnimation;
     FReadyAnimation: T3DResourceAnimation;
     FReloadAnimation: T3DResourceAnimation;
     FAttackTime: Single;
     FReloadTime: Single;
-    FAttackSoundStart: TSoundType;
+    FAttackSoundStart: TCastleSound;
     FAttackAmmo: String;
     FAttackAmmoCapacity: Cardinal;
-    FAttackSoundHit: TSoundType;
+    FAttackSoundHit: TCastleSound;
     FAttackDamageConst: Single;
     FAttackDamageRandom: Single;
     FAttackKnockbackDistance: Single;
     FAttackShoot: Boolean;
     FFireMissileName: String;
-    FFireMissileSound: TSoundType;
+    FFireMissileSound: TCastleSound;
   protected
     function ItemClass: TInventoryItemClass; override;
   public
@@ -196,7 +196,7 @@ type
 
     { Sound to make on equipping. Each weapon can have it's own
       equipping sound. }
-    property EquippingSound: TSoundType
+    property EquippingSound: TCastleSound
       read FEquippingSound write FEquippingSound;
 
     { Animation of attack with this weapon. }
@@ -223,8 +223,8 @@ type
     { Sound when attack starts. This is played when attack animation starts,
       and it means that we already checked that you have necessary ammunition
       (see AttackAmmo).
-      None (stNone) by default. }
-    property AttackSoundStart: TSoundType
+      None (nil) by default. }
+    property AttackSoundStart: TCastleSound
       read FAttackSoundStart write FAttackSoundStart;
 
     { Ammunition required to make an attack (applies to both immediate attack,
@@ -279,15 +279,15 @@ type
       default DefaultAttackShoot;
 
     { Sound on successful hit by an immediate attack (short-range/shoot). }
-    property AttackSoundHit: TSoundType read FAttackSoundHit write FAttackSoundHit;
+    property AttackSoundHit: TCastleSound read FAttackSoundHit write FAttackSoundHit;
 
     { Creature resource name to be created (like 'Arrow') when firing a missile.
       Must be set to something not empty to actually fire a missile. }
     property FireMissileName: string read FFireMissileName write FFireMissileName;
 
     { Sound on missile fired.
-      None (stNone) by default. }
-    property FireMissileSound: TSoundType read FFireMissileSound write FFireMissileSound;
+      None (nil) by default. }
+    property FireMissileSound: TCastleSound read FFireMissileSound write FFireMissileSound;
 
     procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
   end;
@@ -838,7 +838,7 @@ var
   begin
     if not AttackSoundHitDone then
     begin
-      SoundEngine.Sound(Resource.AttackSoundHit);
+      SoundEngine.Play(Resource.AttackSoundHit);
       AttackSoundHitDone := true;
     end;
     Enemy.Hurt(AttackDC + Random * AttackDR, Attacker.Direction, AttackKD, Attacker);
@@ -899,7 +899,7 @@ var
   begin
     (Resources.FindName(Resource.FireMissileName) as TCreatureResource).
       CreateCreature(Level, Attacker.Translation, Attacker.Direction);
-    SoundEngine.Sound(Resource.FireMissileSound);
+    SoundEngine.Play(Resource.FireMissileSound);
   end;
 
 begin
@@ -947,7 +947,7 @@ end;
 
 procedure TItemWeapon.Equip;
 begin
-  SoundEngine.Sound(Resource.EquippingSound);
+  SoundEngine.Play(Resource.EquippingSound);
   { Just in case we had different State from previous weapon usage, clear it }
   FState := wsReady;
   FStateChangeTime := LifeTime;
@@ -984,7 +984,9 @@ procedure TItemWeapon.EquippedAttack(const Level: TAbstractLevel);
         end else
         begin
           Notifications.Show('You have no ammunition');
-          SoundEngine.Sound(stPlayerInteractFailed);
+          {$warnings off} // just to keep deprecated working
+          SoundEngine.Play(stPlayerInteractFailed);
+          {$warnings on}
         end;
       end else
         Result := false; // other creatures cannot have ammo for now
@@ -995,7 +997,7 @@ procedure TItemWeapon.EquippedAttack(const Level: TAbstractLevel);
 begin
   if (FState = wsReady) and CheckAmmo then
   begin
-    SoundEngine.Sound(Resource.AttackSoundStart);
+    SoundEngine.Play(Resource.AttackSoundStart);
     FState := wsAttack;
     FStateChangeTime := LifeTime;
     AttackDone := false;

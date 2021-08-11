@@ -25,11 +25,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TKambiAppearanceNode ----------------------------------------------- }
+
+class function TKambiAppearanceNode.ClassX3DType: String;
+begin
+  Result := 'KambiAppearance';
+end;
+
+procedure TKambiAppearanceNode.CreateNode;
+begin
+  inherited;
+end;
 
 {$endif read_implementation}

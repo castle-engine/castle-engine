@@ -69,8 +69,8 @@ type
   TCreatureResource = class(T3DResource)
   strict private
     FFlying: boolean;
-    FSoundSuddenPain: TSoundType;
-    FSoundDie: TSoundType;
+    FSoundSuddenPain: TCastleSound;
+    FSoundDie: TCastleSound;
     FSoundDieTiedToCreature: boolean;
     FDefaultMaxLife: Single;
     FKnockBackDistance: Single;
@@ -88,7 +88,7 @@ type
     FFallMinHeightToDamage: Single;
     FFallDamageScaleMin: Single;
     FFallDamageScaleMax: Single;
-    FFallSound: TSoundType;
+    FFallSound: TCastleSound;
 
     FMiddleHeight: Single;
   protected
@@ -146,10 +146,10 @@ type
       calculated) are suitable for both flying and non-flying states. }
     property Flying: boolean read FFlying write FFlying default DefaultFlying;
 
-    property SoundSuddenPain: TSoundType
+    property SoundSuddenPain: TCastleSound
       read FSoundSuddenPain write FSoundSuddenPain;
 
-    property SoundDie: TSoundType
+    property SoundDie: TCastleSound
       read FSoundDie write FSoundDie;
 
     { See TCreature.Sound3d TiedToCreature parameter docs.
@@ -315,7 +315,7 @@ type
 
     { Sound when falling.
       The default is the sound named 'creature_fall'. }
-    property FallSound: TSoundType
+    property FallSound: TCastleSound
       read FFallSound write FFallSound;
 
     { Radius used for resolving (some) collisions with the alive creature.
@@ -403,15 +403,15 @@ type
     FAttackMaxDistance: Single;
     FAttackMaxAngle: Single;
     FAttackTime: Single;
-    FAttackSoundHit: TSoundType;
-    FAttackSoundStart: TSoundType;
+    FAttackSoundHit: TCastleSound;
+    FAttackSoundStart: TCastleSound;
     FFireMissileTime: Single;
     FFireMissileMinDelay: Single;
     FFireMissileMaxDistance: Single;
     FFireMissileMaxAngle: Single;
     FFireMissileName: string;
     FFireMissileHeight: Single;
-    FFireMissileSound: TSoundType;
+    FFireMissileSound: TCastleSound;
   protected
     function FlexibleUp: boolean; override;
   public
@@ -577,16 +577,16 @@ type
       default DefaultAttackMaxAngle;
 
     { Sound played when short-range attack hits.
-      None (stNone) by default. }
-    property AttackSoundHit: TSoundType
+      None (nil) by default. }
+    property AttackSoundHit: TCastleSound
       read FAttackSoundHit write FAttackSoundHit;
 
     { Played at the start of attack animation,
       that is when entering csAttack state.
       To play a sound when the actual hit happens (at AttackTime)
       see AttackSoundHit.
-      None (stNone) by default. }
-    property AttackSoundStart: TSoundType
+      None (nil) by default. }
+    property AttackSoundStart: TCastleSound
       read FAttackSoundStart write FAttackSoundStart;
 
     { The time (in seconds) since the FireMissileAnimation start when we actually
@@ -628,8 +628,8 @@ type
       read FFireMissileHeight write FFireMissileHeight default DefaultFireMissileHeight;
 
     { Sound played when missile is fired, see FireMissileName.
-      None (stNone) by default. }
-    property FireMissileSound: TSoundType
+      None (nil) by default. }
+    property FireMissileSound: TCastleSound
       read FFireMissileSound write FFireMissileSound;
 
     { Portion of life and distance when the creature decides it's best to run away
@@ -721,10 +721,10 @@ type
     FFlyAnimation: T3DResourceAnimation;
     FDieAnimation: T3DResourceAnimation;
     FMoveSpeed: Single;
-    FSoundHit: TSoundType;
+    FSoundHit: TCastleSound;
     FCloseDirectionToTargetSpeed: Single;
     FPauseBetweenSoundIdle: Single;
-    FSoundIdle: TSoundType;
+    FSoundIdle: TCastleSound;
     FHitsPlayer: boolean;
     FHitsCreatures: boolean;
     FDirectionFallSpeed: Single;
@@ -764,8 +764,8 @@ type
       default DefaultMoveSpeed;
 
     { Sound when missile hits anything.
-      None (stNone) by default. }
-    property SoundHit: TSoundType
+      None (nil) by default. }
+    property SoundHit: TCastleSound
       read FSoundHit write FSoundHit;
 
     { For "homing" missiles, how fast direction to the target is corrected.
@@ -776,9 +776,9 @@ type
       default DefaultCloseDirectionToTargetSpeed;
 
     { Sound played continuously when the missile is going.
-      None (stNone) by default.
+      None (nil) by default.
       @seealso PauseBetweenSoundIdle }
-    property SoundIdle: TSoundType
+    property SoundIdle: TCastleSound
       read FSoundIdle write FSoundIdle;
 
     { This should be synchonized with length of SoundIdle sound. }
@@ -917,7 +917,7 @@ type
       be destroyed, sound will stop. If not TiedToCreature, then
       the sound will simply be done at creature's position, but then
       it will continue to be played independent of this creature. }
-    procedure Sound3d(const SoundType: TSoundType; const SoundHeight: Single;
+    procedure Sound3d(const SoundType: TCastleSound; const SoundHeight: Single;
       const TiedToCreature: boolean = true);
 
     { Can the approximate sphere be used for some collision-detection
@@ -1066,7 +1066,7 @@ implementation
 
 uses SysUtils, DOM, Math,
   CastleFilesUtils, CastleGLUtils,
-  CastleProgress, CastleGameNotifications, CastleUIControls, CastleGLBoxes;
+  CastleProgress, CastleGameNotifications, CastleUIControls;
 
 var
   DisableCreatures: Cardinal;
@@ -1486,10 +1486,20 @@ begin
   inherited;
 end;
 
-procedure TCreature.Sound3d(const SoundType: TSoundType; const SoundHeight: Single;
+procedure TCreature.Sound3d(const SoundType: TCastleSound; const SoundHeight: Single;
   const TiedToCreature: boolean);
+var
+  PlayingSound: TCastlePlayingSoundSource;
 begin
-  SoundSource.PlayOnce(SoundType, SoundHeight, TiedToCreature);
+  if SoundType <> nil then
+  begin
+    PlayingSound := TCastlePlayingSoundSource.Create(nil);
+    PlayingSound.Sound := SoundType;
+    PlayingSound.FreeOnStop := true;
+    PlayingSound.Follow := TiedToCreature;
+    PlayingSound.SoundHeight := SoundHeight;
+    SoundSource.Play(PlayingSound);
+  end;
 end;
 
 function TCreature.LerpLegsMiddle(const A: Single): TVector3;

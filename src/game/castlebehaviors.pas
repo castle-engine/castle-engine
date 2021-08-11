@@ -21,7 +21,7 @@ unit CastleBehaviors;
 
 interface
 
-uses Classes,
+uses Classes, Generics.Collections,
   CastleVectors, CastleTransform, CastleTimeUtils, CastleClassUtils, CastleSectors,
   CastleSoundEngine;
 
@@ -45,8 +45,8 @@ uses SysUtils, Math,
 // TODO {$I castlebehaviors_moveattack.inc}
 
 initialization
-  RegisterSerializableComponent(TCastleAliveBehavior, 'Alive');
-  RegisterSerializableComponent(TCastleSound, 'Sound');
+  // TODO-works but API not finalized yet: RegisterSerializableComponent(TCastleAliveBehavior, 'Alive');
+  RegisterSerializableComponent(TCastleSoundSource, 'Sound Source');
   RegisterSerializableComponent(TCastleBillboard, 'Billboard');
   // TODO RegisterSerializableComponent(TCastleMoveAttack, 'Move Attack');
 end.

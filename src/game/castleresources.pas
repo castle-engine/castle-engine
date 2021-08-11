@@ -1264,6 +1264,14 @@ begin
   begin
     Resource := Items[I];
     Assert(Resource.UsageCount > 0);
+    {
+    if Resource.UsageCount = 0 then
+    begin
+      WritelnWarning('Resources', Format(
+        'Resource "%s" is already unused, but it is being released. Make sure T3DResource.Released are matched 1-1 with T3DResource.Prepare calls.', [Resource.Name]));
+      Continue;
+    end;
+    }
 
     Resource.UsageCount := Resource.UsageCount - 1;
     if Resource.UsageCount = 0 then

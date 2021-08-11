@@ -26,21 +26,15 @@
 {$ifdef read_interface}
 
   strict private
-    function GetMaxExtent: Single;
-    procedure SetMaxExtent(const Value: Single);
     function GetDepth: Single;
     procedure SetDepth(const Value: Single);
   public
-    { Set X3D field "string". } { }
-    procedure SetString(const Value: array of string);
-    { Set X3D field "string". } { }
-    procedure SetString(const Value: TCastleStringList);
-    { Set X3D field "length". } { }
-    procedure SetLength(const Value: array of Single);
-    { Set X3D field "length". } { }
-    procedure SetLength(const Value: TSingleList);
-    { X3D field "maxExtent". } { }
-    property MaxExtent: Single read GetMaxExtent write SetMaxExtent;
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdDepth: TSFFloat;
+    { X3D field "depth". } { }
+    public property FdDepth: TSFFloat read FFdDepth;
     { X3D field "depth". } { }
     property Depth: Single read GetDepth write SetDepth;
 
@@ -50,36 +44,6 @@
 
 { TText3DNode ----------------------------------------------- }
 
-procedure TText3DNode.SetString(const Value: array of string);
-begin
-  FdString.Send(Value);
-end;
-
-procedure TText3DNode.SetString(const Value: TCastleStringList);
-begin
-  FdString.Send(Value);
-end;
-
-procedure TText3DNode.SetLength(const Value: array of Single);
-begin
-  FdLength.Send(Value);
-end;
-
-procedure TText3DNode.SetLength(const Value: TSingleList);
-begin
-  FdLength.Send(Value);
-end;
-
-function TText3DNode.GetMaxExtent: Single;
-begin
-  Result := FdMaxExtent.Value;
-end;
-
-procedure TText3DNode.SetMaxExtent(const Value: Single);
-begin
-  FdMaxExtent.Send(Value);
-end;
-
 function TText3DNode.GetDepth: Single;
 begin
   Result := FdDepth.Value;
@@ -88,6 +52,20 @@ end;
 procedure TText3DNode.SetDepth(const Value: Single);
 begin
   FdDepth.Send(Value);
+end;
+
+class function TText3DNode.ClassX3DType: String;
+begin
+  Result := 'Text3D';
+end;
+
+procedure TText3DNode.CreateNode;
+begin
+  inherited;
+
+  FFdDepth := TSFFloat.Create(Self, True, 'depth', 0.1);
+   FdDepth.ChangeAlways := chGeometry;
+  AddField(FFdDepth);
 end;
 
 {$endif read_implementation}

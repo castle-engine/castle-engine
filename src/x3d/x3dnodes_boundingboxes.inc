@@ -244,7 +244,7 @@ function Text_LocalBoundingBox(State: TX3DGraphTraverseState;
   const Font: TTextureFontData;
   const Strings: TCastleStringList): TBox3D;
 var
-  YScale, XScale, MaxRowWidth, MinX, MinY, MaxX, MaxY: Single;
+  YScale, XScale, MaxRowWidth, MinX, MinY, MaxX, MaxY, Descend: Single;
   I: integer;
 begin
   YScale := Size / Font.RowHeight;
@@ -276,6 +276,14 @@ begin
   MinY := MinY * (Size * Spacing);
   MaxY := MaxY * (Size * Spacing);
 
+  // for JustifyMinor = fjFirst, the level 0 is at baseline, so lower bbox
+  if JustifyMinor = fjFirst then
+  begin
+    Descend := Size * Font.Descend / Font.RowHeight;
+    MinY := MinY - (Descend * Spacing);
+    MaxY := MaxY - (Descend * Spacing);
+  end;
+
   Result := Box3D(
     Vector3(MinX, MinY, 0),
     Vector3(MaxX, MaxY, 0));
@@ -298,18 +306,18 @@ var
   Size, Spacing: Single;
   Justify, JustifyMinor: TX3DFontJustify;
 begin
-  if FontStyle = nil then
+  if FontStyle is TFontStyleNode then // also checks FontStyle <> nil
+  begin
+    Size := TFontStyleNode(FontStyle).FdSize.Value;
+    Spacing := TFontStyleNode(FontStyle).FdSpacing.Value;
+    Justify := TFontStyleNode(FontStyle).Justify;
+    JustifyMinor := TFontStyleNode(FontStyle).JustifyMinor;
+  end else
   begin
     Size := TFontStyleNode.DefaultSize;
     Spacing := TFontStyleNode.DefaultSpacing;
     Justify := TFontStyleNode.DefaultJustify;
     JustifyMinor := TFontStyleNode.DefaultJustifyMinor;
-  end else
-  begin
-    Size := FontStyle.FdSize.Value;
-    Spacing := FontStyle.FdSpacing.Value;
-    Justify := FontStyle.Justify;
-    JustifyMinor := FontStyle.JustifyMinor;
   end;
 
   Result := Text_LocalBoundingBox(State,

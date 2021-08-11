@@ -31,10 +31,24 @@
     function GetPitch: Single;
     procedure SetPitch(const Value: Single);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdDescription: TSFString;
+    { X3D field "description". } { }
+    public property FdDescription: TSFString read FFdDescription;
     { X3D field "description". } { }
     property Description: String read GetDescription write SetDescription;
+
+    strict private FFdPitch: TSFFloat;
+    { X3D field "pitch". } { }
+    public property FdPitch: TSFFloat read FFdPitch;
     { X3D field "pitch". } { }
     property Pitch: Single read GetPitch write SetPitch;
+
+    strict private FEventDuration_changed: TSFTimeEvent;
+    { X3D out event "duration_changed". } { }
+    public property EventDuration_changed: TSFTimeEvent read FEventDuration_changed;
 
 {$endif read_interface}
 
@@ -60,6 +74,29 @@ end;
 procedure TAbstractSoundSourceNode.SetPitch(const Value: Single);
 begin
   FdPitch.Send(Value);
+end;
+
+class function TAbstractSoundSourceNode.ClassX3DType: String;
+begin
+  Result := 'X3DSoundSourceNode';
+end;
+
+procedure TAbstractSoundSourceNode.CreateNode;
+begin
+  inherited;
+
+  FFdDescription := TSFString.Create(Self, True, 'description', '');
+   FdDescription.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDescription);
+
+  FFdPitch := TSFFloat.Create(Self, True, 'pitch', 1.0);
+   FdPitch.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdPitch);
+
+  FEventDuration_changed := TSFTimeEvent.Create(Self, 'duration_changed', false);
+  AddEvent(FEventDuration_changed);
+
+  DefaultContainerField := 'children';
 end;
 
 {$endif read_implementation}

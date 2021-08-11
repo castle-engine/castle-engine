@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2019 Michalis Kamburelis.
+  Copyright 2014-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -183,8 +183,28 @@ begin
               'Where to place the output executables, packages, and the "castle-engine-output" directory with temporary generated files.') +NL+
             OptionDescription('--project=DIR',
               'Where to search for the project (CastleEngineManifest.xml file). By default we search in the current directory. The argument can either be a directory, or a filename of CastleEngineManifest.xml file.') +NL+
+            OptionDescription('--package-format=FORMAT',
+              'Use with "package" command to customize the result.' + NL +
+              'Available FORMAT values: ' +NL+
+              NL +
+              '- default (platform specific; on most platforms creates a zip/tar.gz archive; on Android creates APK; on iOS creates Xcode project)' +NL+
+              '- zip (pack all files into zip)' +NL+
+              '- tar.gz (pack all files into tar.gz)' +NL+
+              '- directory (put all files into a new subdirectory)' +NL+
+              '- android-apk (only on Android: create APK)' +NL+
+              '- android-app-bundle (only on Android: create AAB)' +NL+
+              '- ios-archive-ad-hoc (only on iOS: archive using "ad-hoc" method to IPA file)' +NL+
+              '- ios-archive-development (only on iOS: archive using "development" method)' +NL+
+              '- ios-archive-app-store (only on iOS: distributes the application to the TestFlight and the AppStore)' +NL+
+              '') + NL +
+            OptionDescription('--package-name-no-version',
+              'Use with "package" command. The resulting file/directory name will not contain the version number.') + NL +
+            OptionDescription('--update-only-code',
+              'Use with "package" command. Makes the packaging faster, as you guarantee that only the Pascal code have changed since last packaging (so you did not change e.g. data/ or CastleEngineManifest.xml).') + NL +
+            OptionDescription('--ios-simulator',
+              'Use with "package" command when --target=iOS. Allows to run the project on iOS simulator.') + NL +
             OptionDescription('--all',
-              'Use by "auto-generate-clean", indicates to clean everything auto-generated. By default we only clean unused files from "auto_generated" directories.') +NL+
+              'Use with "auto-generate-clean" command. Indicates to clean everything auto-generated. By default we only clean unused files from "auto_generated" directories.') +NL+
             OptionDescription('--manifest-name=AlternativeManifest.xml',
               'Search and use given "AlternativeManifest.xml" file instead of standard "CastleEngineManifest.xml". Useful if you need to maintain completely different project configurations for any reason.') +NL+
             TargetOptionHelp + NL +

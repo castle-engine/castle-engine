@@ -7,8 +7,8 @@
     <CompilerOptions>
       <Version Value="11"/>
       <SearchPaths>
-        <IncludeFiles Value="../src/window/unix;../src/window/windows;../src/window/gtk;../src/base;../src/window;../src/deprecated_units"/>
-        <OtherUnitFiles Value="../src/window;../src/window/windows;../src/window/unix;../src/ui/windows;../src/deprecated_units"/>
+        <IncludeFiles Value="../src/window/unix;../src/window/windows;../src/window/gtk;../src/common_includes;../src/window"/>
+        <OtherUnitFiles Value="../src/window;../src/window/windows;../src/window/unix;../src/window/deprecated_units"/>
         <UnitOutputDirectory Value="lib/castle_window/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Parsing>
@@ -49,10 +49,10 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="5"/>
-    <Files Count="18">
+    <Files Count="32">
       <Item1>
-        <Filename Value="../src/base/castleconf.inc"/>
-        <Type Value="Include"/>
+        <Filename Value="../src/window/castleinternalwindowmodes.pas"/>
+        <UnitName Value="CastleInternalWindowModes"/>
       </Item1>
       <Item2>
         <Filename Value="../src/window/castlemessages.pas"/>
@@ -67,62 +67,121 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleWindow"/>
       </Item4>
       <Item5>
-        <Filename Value="../src/window/castlewindow_egl.inc"/>
+        <Filename Value="../src/window/castlewindow_android.inc"/>
         <Type Value="Include"/>
       </Item5>
       <Item6>
-        <Filename Value="../src/window/castlewindow_lcl.inc"/>
+        <Filename Value="../src/window/castlewindow_backend_template.inc"/>
         <Type Value="Include"/>
       </Item6>
       <Item7>
-        <Filename Value="../src/window/castlewindow_winsystem.inc"/>
+        <Filename Value="../src/window/castlewindow_dialogs_by_messages.inc"/>
         <Type Value="Include"/>
       </Item7>
       <Item8>
-        <Filename Value="../src/window/castleinternalwindowmodes.pas"/>
-        <UnitName Value="CastleInternalWindowModes"/>
+        <Filename Value="../src/window/castlewindow_egl.inc"/>
+        <Type Value="Include"/>
       </Item8>
       <Item9>
-        <Filename Value="../src/window/castlewindowprogress.pas"/>
-        <UnitName Value="CastleWindowProgress"/>
+        <Filename Value="../src/window/castlewindow_lcl.inc"/>
+        <Type Value="Include"/>
       </Item9>
       <Item10>
-        <Filename Value="../src/window/castlewindowrecentfiles.pas"/>
-        <UnitName Value="CastleWindowRecentFiles"/>
+        <Filename Value="../src/window/castlewindow_library.inc"/>
+        <Type Value="Include"/>
       </Item10>
       <Item11>
-        <Filename Value="../src/deprecated_units/castlewindowtouch.pas"/>
-        <UnitName Value="CastleWindowTouch"/>
+        <Filename Value="../src/window/castlewindow_npapi.inc"/>
+        <Type Value="Include"/>
       </Item11>
       <Item12>
-        <Filename Value="../src/window/gtk/castlewindow_gtk.inc"/>
+        <Filename Value="../src/window/castlewindow_private_modifiers_down.inc"/>
         <Type Value="Include"/>
       </Item12>
       <Item13>
-        <Filename Value="../src/window/gtk/castlewindow_gtk_menu.inc"/>
+        <Filename Value="../src/window/castlewindow_winsystem.inc"/>
         <Type Value="Include"/>
       </Item13>
       <Item14>
-        <Filename Value="../src/window/unix/castleinternalxlib.pas"/>
-        <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="CastleInternalXlib"/>
+        <Filename Value="../src/window/castlewindowmenu.inc"/>
+        <Type Value="Include"/>
       </Item14>
       <Item15>
-        <Filename Value="../src/window/unix/castlewindow_xf86vmode.inc"/>
-        <Type Value="Include"/>
+        <Filename Value="../src/window/castlewindowprogress.pas"/>
+        <UnitName Value="CastleWindowProgress"/>
       </Item15>
       <Item16>
-        <Filename Value="../src/window/unix/castlewindow_xlib.inc"/>
-        <Type Value="Include"/>
+        <Filename Value="../src/window/castlewindowrecentfiles.pas"/>
+        <UnitName Value="CastleWindowRecentFiles"/>
       </Item16>
       <Item17>
-        <Filename Value="../src/window/windows/castlewindow_winapi.inc"/>
+        <Filename Value="../src/window/gtk/castlewindow_gtk.inc"/>
         <Type Value="Include"/>
       </Item17>
       <Item18>
-        <Filename Value="../src/deprecated_units/castlewindowmodes.pas"/>
-        <UnitName Value="CastleWindowModes"/>
+        <Filename Value="../src/window/gtk/castlewindow_gtk_menu.inc"/>
+        <Type Value="Include"/>
       </Item18>
+      <Item19>
+        <Filename Value="../src/window/unix/castleinternalxlib.pas"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="CastleInternalXlib"/>
+      </Item19>
+      <Item20>
+        <Filename Value="../src/window/unix/castlewindow_glx.inc"/>
+        <Type Value="Include"/>
+      </Item20>
+      <Item21>
+        <Filename Value="../src/window/unix/castlewindow_xf86vmode.inc"/>
+        <Type Value="Include"/>
+      </Item21>
+      <Item22>
+        <Filename Value="../src/window/unix/castlewindow_xlib.inc"/>
+        <Type Value="Include"/>
+      </Item22>
+      <Item23>
+        <Filename Value="../src/window/windows/castlewindow_wgl.inc"/>
+        <Type Value="Include"/>
+      </Item23>
+      <Item24>
+        <Filename Value="../src/window/windows/castlewindow_winapi.inc"/>
+        <Type Value="Include"/>
+      </Item24>
+      <Item25>
+        <Filename Value="../src/window/windows/castlewindow_winapi_menu.inc"/>
+        <Type Value="Include"/>
+      </Item25>
+      <Item26>
+        <Filename Value="../src/window/windows/castlewindow_winapi_sendinput.inc"/>
+        <Type Value="Include"/>
+      </Item26>
+      <Item27>
+        <Filename Value="../src/window/castle_npapi.inc"/>
+        <Type Value="Include"/>
+      </Item27>
+      <Item28>
+        <Filename Value="../src/window/castlewindow_backend.inc"/>
+        <Type Value="Include"/>
+      </Item28>
+      <Item29>
+        <Filename Value="../src/window/castleinternalnpapi.pas"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="CastleInternalNPAPI"/>
+      </Item29>
+      <Item30>
+        <Filename Value="../src/window/deprecated_units/castleinternalusewindowdeprecatedunits.pas"/>
+        <UnitName Value="CastleInternalUseWindowDeprecatedUnits"/>
+      </Item30>
+      <Item31>
+        <Filename Value="../src/window/deprecated_units/castlewindowmodes.pas"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="CastleWindowModes"/>
+      </Item31>
+      <Item32>
+        <Filename Value="../src/window/deprecated_units/castlewindowtouch.pas"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="CastleWindowTouch"/>
+      </Item32>
     </Files>
     <RequiredPkgs Count="2">
       <Item1>

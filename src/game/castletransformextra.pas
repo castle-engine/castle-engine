@@ -24,7 +24,7 @@ uses SysUtils, Classes, Math, Generics.Collections,
   CastleVectors, CastleFrustum, CastleBoxes, CastleClassUtils, CastleKeysMouse,
   CastleRectangles, CastleUtils, CastleTimeUtils,
   CastleSoundEngine, CastleSectors, CastleCameras, CastleTriangles,
-  CastleTransform;
+  CastleTransform, CastleBehaviors;
 
 type
   { Transformation moving and potentially pushing other objects.
@@ -139,16 +139,15 @@ type
     FEndPosition: boolean;
     FEndPositionStateChangeTime: Single;
 
-    FSoundGoBeginPosition: TSoundType;
-    FSoundGoEndPosition: TSoundType;
+    FSoundGoBeginPosition: TCastleSound;
+    FSoundGoEndPosition: TCastleSound;
     FSoundGoBeginPositionLooping: boolean;
     FSoundGoEndPositionLooping: boolean;
     FSoundTracksCurrentPosition: boolean;
 
-    UsedSound: TSound;
-    procedure SoundRelease(Sender: TSound);
-    function SoundPosition: TVector3;
-    procedure PlaySound(SoundType: TSoundType; Looping: boolean);
+    SoundSourceTransform: TCastleTransform;
+    SoundSource: TCastleSoundSource;
+    procedure PlaySound(const SoundType: TCastleSound; const Looping: boolean);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -198,9 +197,9 @@ type
       this goes back to @italic(end position). }
     procedure GoOtherPosition;
 
-    property SoundGoBeginPosition: TSoundType
+    property SoundGoBeginPosition: TCastleSound
       read FSoundGoBeginPosition write FSoundGoBeginPosition;
-    property SoundGoEndPosition: TSoundType
+    property SoundGoEndPosition: TCastleSound
       read FSoundGoEndPosition write FSoundGoEndPosition;
 
     property SoundGoBeginPositionLooping: boolean
@@ -536,51 +535,44 @@ constructor TCastleLinearMoving.Create(AOwner: TComponent);
 begin
   inherited;
 
-  FSoundGoEndPosition := stNone;
-  FSoundGoBeginPosition := stNone;
+  SoundSourceTransform := TCastleTransform.Create(Self);
+  Add(SoundSourceTransform);
+
+  SoundSource := TCastleSoundSource.Create(Self);
+  SoundSourceTransform.AddBehavior(SoundSource);
 
   FEndPosition := false;
 
   { We set FEndPositionStateChangeTime to a past time, to be sure
     that we don't treat the door as "closing right now". }
   FEndPositionStateChangeTime := -1000.0; { TODO: should be implemented better... }
-
-  UsedSound := nil;
 end;
 
 destructor TCastleLinearMoving.Destroy;
 begin
-  { Otherwise, if you exit from the game while some sound was played,
-    and the sound was e.g. looping (like the elevator on "Tower" level),
-    the sound will never get stopped. }
-  if UsedSound <> nil then
-    UsedSound.Release;
-
   inherited;
 end;
 
-procedure TCastleLinearMoving.SoundRelease(Sender: TSound);
+procedure TCastleLinearMoving.PlaySound(const SoundType: TCastleSound;
+  const Looping: boolean);
+var
+  PlayingSound: TCastlePlayingSoundSource;
 begin
-  Assert(Sender = UsedSound);
-  UsedSound := nil;
-end;
-
-function TCastleLinearMoving.SoundPosition: TVector3;
-begin
-  Result := BoundingBox.Center;
-end;
-
-procedure TCastleLinearMoving.PlaySound(SoundType: TSoundType;
-  Looping: boolean);
-begin
-  { The object can play only one sound (going to begin or end position)
-    at a time. }
-  if UsedSound <> nil then
-    UsedSound.Release;
-  UsedSound := SoundEngine.Sound3d(SoundType, SoundPosition, Looping);
-
-  if UsedSound <> nil then
-    UsedSound.OnRelease := {$ifdef CASTLE_OBJFPC}@{$endif} SoundRelease;
+  if Looping then
+  begin
+    SoundSource.Sound := SoundType;
+  end else
+  begin
+    SoundSource.Sound := nil;
+    if SoundType <> nil then
+    begin
+      PlayingSound := TCastlePlayingSoundSource.Create(nil);
+      PlayingSound.Sound := SoundType;
+      PlayingSound.FreeOnStop := true;
+      PlayingSound.Follow := SoundTracksCurrentPosition;
+      SoundSource.Play(PlayingSound);
+    end;
+  end;
 end;
 
 procedure TCastleLinearMoving.GoEndPosition;
@@ -665,19 +657,22 @@ begin
 end;
 
 procedure TCastleLinearMoving.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+var
+  B: TBox3D;
 begin
   inherited;
 
-  { Update sound position when object is moving }
-  if (UsedSound <> nil) and SoundTracksCurrentPosition then
-    UsedSound.Position := SoundPosition;
+  B := LocalBoundingBox;
+  if B.IsEmpty then
+    SoundSourceTransform.Translation := TVector3.Zero
+  else
+    SoundSourceTransform.Translation := B.Center;
 
   { If the SoundGoBegin/EndPosition is longer than the MoveTime
     (or it's looping),
     stop this sound once we're completely in Begin/EndPosition. }
-  if (AnimationTime - EndPositionStateChangeTime > MoveTime) and
-    (UsedSound <> nil) then
-    UsedSound.Release;
+  if AnimationTime - EndPositionStateChangeTime > MoveTime then
+    SoundSource.Sound := nil;
 end;
 
 { TCastleAlive ------------------------------------------------------------------- }

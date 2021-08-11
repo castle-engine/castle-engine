@@ -4,7 +4,7 @@ object ProjectForm: TProjectForm
   Top = 273
   Width = 1142
   Caption = ' my-project | Castle Game Engine'
-  ClientHeight = 606
+  ClientHeight = 601
   ClientWidth = 1142
   DesignTimePPI = 120
   Menu = MainMenu1
@@ -19,7 +19,7 @@ object ProjectForm: TProjectForm
   object PageControlBottom: TPageControl
     Left = 0
     Height = 224
-    Top = 382
+    Top = 377
     Width = 1142
     ActivePage = TabFiles
     Align = alBottom
@@ -28,20 +28,20 @@ object ProjectForm: TProjectForm
     TabOrder = 0
     object TabFiles: TTabSheet
       Caption = 'Files'
-      ClientHeight = 186
-      ClientWidth = 1136
+      ClientHeight = 187
+      ClientWidth = 1132
       ParentFont = False
       object SplitterBetweenFiles: TSplitter
         Left = 0
-        Height = 186
+        Height = 187
         Top = 0
         Width = 6
       end
     end
     object TabOutput: TTabSheet
       Caption = 'Output'
-      ClientHeight = 186
-      ClientWidth = 1136
+      ClientHeight = 187
+      ClientWidth = 1132
       ParentFont = False
       object ListOutput: TListBox
         Left = 0
@@ -60,8 +60,8 @@ object ProjectForm: TProjectForm
     end
     object TabWarnings: TTabSheet
       Caption = 'Warnings'
-      ClientHeight = 186
-      ClientWidth = 1136
+      ClientHeight = 187
+      ClientWidth = 1132
       ParentFont = False
       TabVisible = False
       object ListWarnings: TListBox
@@ -183,19 +183,19 @@ object ProjectForm: TProjectForm
     Cursor = crVSplit
     Left = 0
     Height = 6
-    Top = 376
+    Top = 371
     Width = 1142
     Align = alBottom
     ResizeAnchor = akBottom
   end
   object PanelAboveTabs: TPanel
     Left = 0
-    Height = 376
+    Height = 371
     Top = 0
     Width = 1142
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 376
+    ClientHeight = 371
     ClientWidth = 1142
     ParentFont = False
     TabOrder = 2
@@ -206,10 +206,10 @@ object ProjectForm: TProjectForm
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Side = asrCenter
       AnchorSideBottom.Side = asrCenter
-      Left = 296
-      Height = 144
-      Top = 116
-      Width = 551
+      Left = 304
+      Height = 164
+      Top = 103
+      Width = 535
       Alignment = taCenter
       Caption = 'To visually design'#10'user interface or 3D/2D game world, '#10'open or create a new design'#10'using the "Design" menu.'
       Font.Height = -33
@@ -220,7 +220,7 @@ object ProjectForm: TProjectForm
   end
   object MainMenu1: TMainMenu
     Left = 44
-    Top = 21
+    Top = 24
     object MenuItemFile: TMenuItem
       Caption = '&Project'
       object MenuItemRestartRebuildEditor: TMenuItem
@@ -254,14 +254,21 @@ object ProjectForm: TProjectForm
         OnClick = MenuItemDesignNewUserInterfaceRectClick
       end
       object MenuItemDesignNewUserInterfaceCustomRoot: TMenuItem
-        Caption = 'New User Interface (Chosen Root)'
+        Caption = 'New User Interface (Custom Root)'
       end
       object MenuItemDesignNewTransform: TMenuItem
         Caption = 'New Transform (Empty Transform as Root)'
         OnClick = MenuItemDesignNewTransformClick
       end
       object MenuItemDesignNewTransformCustomRoot: TMenuItem
-        Caption = 'New Transform (Chosen Root)'
+        Caption = 'New Transform (Custom Root)'
+      end
+      object MenuItemDesignNewNonVisual: TMenuItem
+        Caption = 'New Non-Visual Component (Empty Component As Root)'
+        OnClick = MenuItemDesignNewNonVisualClick
+      end
+      object MenuItemDesignNewNonVisualCustomRoot: TMenuItem
+        Caption = 'New Non-Visual Component (Custom Root)'
       end
       object MenuItemSeparator201: TMenuItem
         Caption = '-'
@@ -284,10 +291,16 @@ object ProjectForm: TProjectForm
         Caption = '-'
       end
       object MenuItemDesignAddUserInterface: TMenuItem
-        Caption = 'Add User Interface Component'
+        Caption = 'Add User Interface'
       end
       object MenuItemDesignAddTransform: TMenuItem
-        Caption = 'Add Transform Component'
+        Caption = 'Add Transform'
+      end
+      object MenuItemDesignAddBehavior: TMenuItem
+        Caption = 'Add Behavior (Extends Parent Transform)'
+      end
+      object MenuItemDesignAddNonVisual: TMenuItem
+        Caption = 'Add Non-Visual Component'
       end
       object MenuItemSeparator170: TMenuItem
         Caption = '-'
@@ -401,6 +414,12 @@ object ProjectForm: TProjectForm
         RadioItem = True
         OnClick = MenuItemModeReleaseClick
       end
+      object MenuItemSeparator12312131: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemPlatform: TMenuItem
+        Caption = 'Platform (To Build And Run)'
+      end
       object MenuItemSeparator2: TMenuItem
         Caption = '-'
       end
@@ -418,6 +437,13 @@ object ProjectForm: TProjectForm
       object MenuItemPackageSource: TMenuItem
         Caption = 'Package Source'
         OnClick = MenuItemPackageSourceClick
+      end
+      object MenuItemSeparator12312332424: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemInstall: TMenuItem
+        Caption = 'Install  (only for Android now)'
+        OnClick = MenuItemInstallClick
       end
       object MenuItemSeparator3: TMenuItem
         Caption = '-'
@@ -487,17 +513,16 @@ object ProjectForm: TProjectForm
   end
   object SaveDesignDialog: TCastleSaveDialog
     Title = 'Save Hierarchy As'
-    Filter = 'CGE Design (*.castle-user-interface, *.castle-transform)|*.castle-user-interface;*.castle-transform|All Files|*'
-    FilterIndex = 0
+    Filter = 'CGE Design (*.castle-user-interface, *.castle-transform, *.castle-component)|*.castle-user-interface;*.castle-transform;*.castle-component|All Files|*'
     Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
     AdviceDataDirectory = True
     Left = 145
     Top = 164
   end
   object OpenDesignDialog: TCastleOpenDialog
-    Filter = 'CGE Design (*.castle-user-interface, *.castle-transform)|*.castle-user-interface;*.castle-transform|All Files|*'
+    Filter = 'CGE Design (*.castle-user-interface, *.castle-transform, *.castle-component)|*.castle-user-interface;*.castle-transform;*.castle-component|All Files|*'
     AdviceDataDirectory = True
-    Left = 154
+    Left = 145
     Top = 95
   end
   object ShellListPopupMenu: TPopupMenu

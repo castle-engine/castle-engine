@@ -36,6 +36,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Axis around which the billboard rotates to face the camera.
       The rotation is free in 3D (with undefined up vector) when this is zero.
@@ -76,6 +77,16 @@ begin
   {$I auto_generated_persistent_vectors/tcastlebillboard_persistent_vectors.inc}
   {$undef read_implementation_destructor}
   inherited;
+end;
+
+function TCastleBillboard.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  case PropertyName of
+    'AxisOfRotationPersistent':
+      Result := [psBasic];
+    else
+      Result := inherited PropertySections(PropertyName);
+  end;
 end;
 
 procedure TCastleBillboard.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);

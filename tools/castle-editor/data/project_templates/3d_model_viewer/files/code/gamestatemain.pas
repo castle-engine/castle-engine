@@ -8,8 +8,8 @@ unit GameState${MAIN_STATE};
 interface
 
 uses Classes,
-  CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls,
-  CastleKeysMouse, CastleViewport, CastleScene;
+  CastleVectors, CastleUIState, CastleComponentSerialize, CastleUIControls,
+  CastleControls, CastleKeysMouse, CastleViewport, CastleScene;
 
 type
   { Main state, where most of the application logic takes place. }

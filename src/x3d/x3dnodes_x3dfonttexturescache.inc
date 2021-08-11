@@ -17,9 +17,8 @@
 
   TPixelTextureNode = class;
 
-  { Cache for resources not specific to renderer (OpenGL).
-    Includes all TTexturesVideosCache resources (texture, movie
-    data) and adds cache for 3D models. }
+  { Cache for font texture nodes (TPixelTextureNode that we need for each font).
+    Descends from TX3DNodesCache, so can also cache textures, movies, any X3D nodes. }
   TX3DFontTexturesCache = class(TX3DNodesCache)
   strict private
     type
@@ -55,8 +54,6 @@
 
 { TX3DFontTexturesCache ------------------------------------------------------------ }
 
-{ $define DEBUG_FONT_TEXTURE_CACHE}
-
 constructor TX3DFontTexturesCache.Create;
 begin
   inherited;
@@ -87,9 +84,12 @@ begin
     begin
       Inc(C.References);
 
-      {$ifdef DEBUG_FONT_TEXTURE_CACHE}
-      Writeln('++ : font texture ', Font.Image.URL, ', blending ', Blending, ' : ', C.References);
-      {$endif}
+      if Log then
+        WritelnLog('++', 'Font texture %s, blending %s : %d', [
+          URIDisplay(Font.Image.URL),
+          BoolToStr(Blending, true),
+          C.References
+        ]);
 
       Exit(C.FontTexture);
     end;
@@ -120,9 +120,12 @@ begin
   C.Blending := Blending;
   C.FontTexture := Result;
 
-  {$ifdef DEBUG_FONT_TEXTURE_CACHE}
-  Writeln('++ : font texture ', Font.Image.URL, ', blending ', Blending, ' : ', 1);
-  {$endif}
+  if Log then
+    WritelnLog('++', 'Font texture %s, blending %s : %d', [
+      URIDisplay(Font.Image.URL),
+      BoolToStr(Blending, true),
+      1
+    ]);
 end;
 
 procedure TX3DFontTexturesCache.FreeFontTexture(var FontTexture: TPixelTextureNode);
@@ -137,9 +140,12 @@ begin
     C := CachedFontTextures[I];
     if C.FontTexture = FontTexture then
     begin
-      {$ifdef DEBUG_FONT_TEXTURE_CACHE}
-      Writeln('-- : font texture ', C.Font.Image.URL, ', blending ', C.Blending, ' : ', C.References - 1);
-      {$endif}
+      if Log then
+        WritelnLog('--', 'Font texture %s, blending %s : %d', [
+          URIDisplay(C.Font.Image.URL),
+          BoolToStr(C.Blending, true),
+          C.References - 1
+        ]);
 
       FontTexture := nil;
 
@@ -149,12 +155,10 @@ begin
           be a child of another node in X3D graph.
           (Being a TTextNode.FontTextureNode value doesn't make it a normal child,
           i.e. TX3DNode internal child-parent references are not set.)
-          But for safety we call FreeIfUnusedAndNil. }
-        //FreeIfUnusedAndNil(C.FontTexture);
-        { TODO: Contrary to above comment, we need to call FreeAndNil now,
-          otherwise it is leaking (which means that FreeIfUnusedAndNil doesn't
-          free it). Testcase: "The Unholy Society". Why? }
-        FreeAndNil(C.FontTexture);
+          But for safety we use "nice way" with KeepExistingEnd + FreeIfUnusedAndNil. }
+        C.FontTexture.KeepExistingEnd;
+        FreeIfUnusedAndNil(C.FontTexture);
+
         CachedFontTextures.Delete(I);
         CheckEmpty;
       end else

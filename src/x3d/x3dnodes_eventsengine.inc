@@ -26,14 +26,16 @@
     procedure Set_Bind(Node: TAbstractBindableNode; const Value: boolean); virtual; abstract;
   end;
 
-  { Abstract scene handling VRML/X3D events.
-    Is also notified about changes to VRML/X3D nodes/fields.
-
+  { Abstract class representing a scene that renders and processed events of the X3D nodes.
     See TCastleSceneCore for documentation of these methods,
-    TCastleSceneCore is the only implementation of this interface in practice. }
+    TCastleSceneCore is the only implementation of this abstract class in practice. }
   TX3DEventsEngine = class(TCastleTransform)
   protected
     procedure ExecuteCompiledScript(const HandlerName: string;  ReceivedValue: TX3DField); virtual; abstract;
+
+    { Called before changing one node into another,
+      when old node may have beeen associated with a shape using TShapeTree.AssociateNode. }
+    procedure InternalMoveShapeAssociations(const OldNode, NewNode: TX3DNode; const ContainingShapes: TObject); virtual; abstract;
   public
     function GetBackgroundStack: TX3DBindableStackBasic; virtual; abstract;
     function GetFogStack: TX3DBindableStackBasic; virtual; abstract;
@@ -45,7 +47,6 @@
     procedure BeforeNodesFree(const InternalChangedAll: boolean = false); virtual; abstract;
     procedure InternalChangedField(const Field: TX3DField; const Change: TX3DChange); overload; virtual; abstract;
     procedure InternalChangedField(const Field: TX3DField); overload;
-    procedure InternalMoveShapeAssociations(const OldNode, NewNode: TX3DNode; const ContainingShapes: TObject); virtual; abstract;
   end;
 
   TX3DEventsEngineList = class(specialize TObjectList<TX3DEventsEngine>)

@@ -484,7 +484,7 @@ begin
     end else
     if Pos('DblJump', CollisionDetails.OtherTransform.Name) > 0 then
     begin
-      SoundEngine.Sound(SoundEngine.SoundFromName('power_up'));
+      SoundEngine.Play(SoundEngine.SoundFromName('power_up'));
       PlayerCanDoubleJump := true;
       CollisionDetails.OtherTransform.Exists := false;
       //TODO: Exists in root problem workaround (https://github.com/castle-engine/castle-engine/pull/292)
@@ -492,7 +492,7 @@ begin
     end else
     if Pos('Shot', CollisionDetails.OtherTransform.Name) > 0 then
     begin
-      SoundEngine.Sound(SoundEngine.SoundFromName('power_up'));
+      SoundEngine.Play(SoundEngine.SoundFromName('power_up'));
       PlayerCanShot := true;
       CollisionDetails.OtherTransform.Exists := false;
       //TODO: Exists in root problem workaround (https://github.com/castle-engine/castle-engine/pull/292)
@@ -1141,7 +1141,7 @@ begin
         the player should not keep jumping) }
     if (not WasJumpKeyPressed) and (PlayerOnGround or (PlayerCanDoubleJump and (not WasDoubleJump))) then
     begin
-      SoundEngine.Sound(SoundEngine.SoundFromName('jump'));
+      SoundEngine.Play(SoundEngine.SoundFromName('jump'));
       if not PlayerOnGround then
       begin
         WasDoubleJump := true;
@@ -1239,7 +1239,7 @@ begin
     begin
       if WasShotKeyPressed = false  then
       begin
-        SoundEngine.Sound(SoundEngine.SoundFromName('shot'));
+        SoundEngine.Play(SoundEngine.SoundFromName('shot'));
         WasShotKeyPressed := true;
 
         Shot(ScenePlayer, ScenePlayer.LocalToWorld(Vector3(ScenePLayer.BoundingBox.SizeX / 2 + 5, 0, 0)),
@@ -1263,7 +1263,7 @@ end;
 
 procedure TStatePlay.CollectCoin;
 begin
-  SoundEngine.Sound(SoundEngine.SoundFromName('coin'));
+  SoundEngine.Play(SoundEngine.SoundFromName('coin'));
   Inc(PlayerCollectedCoins);
   LabelCollectedCoins.Caption := PlayerCollectedCoins.ToString;
 end;
@@ -1277,7 +1277,7 @@ end;
 procedure TStatePlay.HitPlayer;
 begin
   SetHitPoints(PlayerHitPoints - 1);
-  SoundEngine.Sound(SoundEngine.SoundFromName('hurt'));
+  SoundEngine.Play(SoundEngine.SoundFromName('hurt'));
   PlayAnimationOnceAndLoop(ScenePlayer, 'hurt', 'idle');
 end;
 
@@ -1328,7 +1328,7 @@ end;
 
 procedure TStatePlay.CollectKey;
 begin
-  SoundEngine.Sound(SoundEngine.SoundFromName('power_up'));
+  SoundEngine.Play(SoundEngine.SoundFromName('power_up'));
   PlayerHasKey := true;
   ImageKey.Exists := true;
 end;
@@ -1401,12 +1401,12 @@ begin
   LabelCollectedCoins := DesignedComponent('LabelCollectedCoins') as TCastleLabel;
   MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
   CheckboxCameraFollow := DesignedComponent('CheckboxCameraFollow') as TCastleCheckbox;
-  CheckboxAdvancedPlayer := DesignedComponent('AdvancedPlayer') as TCastleCheckbox;
+  CheckboxAdvancedPlayer := DesignedComponent('CheckboxAdvancedPlayer') as TCastleCheckbox;
   ImageHitPoint1 := DesignedComponent('ImageHitPoint1') as TCastleImageControl;
   ImageHitPoint2 := DesignedComponent('ImageHitPoint2') as TCastleImageControl;
   ImageHitPoint3 := DesignedComponent('ImageHitPoint3') as TCastleImageControl;
   ImageHitPoint4 := DesignedComponent('ImageHitPoint4') as TCastleImageControl;
-  ImageKey := DesignedComponent('GoldKey') as TCastleImageControl;
+  ImageKey := DesignedComponent('ImageKey') as TCastleImageControl;
 
   ScenePlayer := DesignedComponent('ScenePlayer') as TCastleScene;
 

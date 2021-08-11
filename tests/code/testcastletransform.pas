@@ -51,6 +51,7 @@ type
     procedure TestPass;
     procedure TestPassCombine;
     procedure TestForIn;
+    procedure TestForInBehaviors;
   end;
 
 implementation
@@ -1449,6 +1450,50 @@ begin
     end;
     AssertSameValue(Y, 4);
   finally FreeAndNil(Owner) end;
+end;
+
+procedure TTestCastleTransform.TestForInBehaviors;
+var
+  B1, B2, B3, B: TCastleBehavior;
+  T: TCastleTransform;
+  I: Integer;
+begin
+  T := TCastleTransform.Create(nil);
+
+  B1 := TCastleBehavior.Create(nil);
+  B1.Name := 'B1';
+  T.AddBehavior(B1);
+
+  B2 := TCastleBehavior.Create(nil);
+  B2.Name := 'B2';
+  T.AddBehavior(B2);
+
+  T.AddBehavior(B1); // does nothing, as B1.Parent is already T
+
+  B3 := TCastleBehavior.Create(nil);
+  B3.Name := 'B3';
+  T.AddBehavior(B3);
+
+  // for I := 0 to T.BehaviorsCount - 1 do
+  //   Writeln(I, ' => ', T.Behaviors[I].Name);
+
+  AssertEquals(3, T.BehaviorsCount);
+  AssertTrue(T.Behaviors[0] = B1);
+  AssertTrue(T.Behaviors[1] = B2);
+  AssertTrue(T.Behaviors[2] = B3);
+
+  I := 0;
+  for B in T.BehaviorsEnumerate do
+  begin
+    AssertTrue(T.Behaviors[I] = B);
+    Inc(I);
+  end;
+  AssertEquals(3, I);
+
+  FreeAndNil(T);
+  FreeAndNil(B1);
+  FreeAndNil(B2);
+  FreeAndNil(B3);
 end;
 
 initialization

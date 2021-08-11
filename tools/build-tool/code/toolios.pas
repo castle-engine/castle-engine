@@ -82,36 +82,32 @@ var
     { now use libtool to create a static library .a }
 
     CompilationOutput := CompilationOutputPath(OS, CPU, WorkingDirectory);
+
+    // will raise exception if not found, or ambiguous
     LinkRes := FindLinkRes(CompilationOutput);
-    if not RegularFileExists(LinkRes) then
-    begin
-      if Verbose then
-        Writeln('link.res not found inside "', LinkRes, '", probably what we compiled was only a unit, not a library');
-    end else
-    begin
-      OutputLibrary := CompilationOutput + IOSPartialLibraryName;
 
-      { grep '\.o$' link.res > lib_cge_project_object_files.txt }
-      LinkResContents := TCastleStringList.Create;
+    OutputLibrary := CompilationOutput + IOSPartialLibraryName;
+
+    { grep '\.o$' link.res > lib_cge_project_object_files.txt }
+    LinkResContents := TCastleStringList.Create;
+    try
+      LinkResContents.LoadFromFile(LinkRes);
+
+      ObjectFiles := TCastleStringList.Create;
       try
-        LinkResContents.LoadFromFile(LinkRes);
+        for I := 0 to LinkResContents.Count - 1 do
+          if IsSuffix('.o', LinkResContents[I]) then
+            ObjectFiles.Add(LinkResContents[I]);
+        ObjectFiles.SaveToFile(CompilationOutput + 'lib_cge_project_object_files.txt');
+      finally FreeAndNil(ObjectFiles) end;
+    finally FreeAndNil(LinkResContents) end;
 
-        ObjectFiles := TCastleStringList.Create;
-        try
-          for I := 0 to LinkResContents.Count - 1 do
-            if IsSuffix('.o', LinkResContents[I]) then
-              ObjectFiles.Add(LinkResContents[I]);
-          ObjectFiles.SaveToFile(CompilationOutput + 'lib_cge_project_object_files.txt');
-        finally FreeAndNil(ObjectFiles) end;
-      finally FreeAndNil(LinkResContents) end;
+    DeleteFile(LinkRes); // delete it, to allow later FindLinkRes to work
 
-      DeleteFile(LinkRes); // delete it, to allow later FindLinkRes to work
-
-      RunCommandSimple('libtool', ['-static', '-o', OutputLibrary, '-filelist',
-        CompilationOutput + 'lib_cge_project_object_files.txt']);
-      if not RegularFileExists(OutputLibrary) then
-        raise Exception.CreateFmt('Creating library "%s" failed', [OutputLibrary]);
-    end;
+    RunCommandSimple('libtool', ['-static', '-o', OutputLibrary, '-filelist',
+      CompilationOutput + 'lib_cge_project_object_files.txt']);
+    if not RegularFileExists(OutputLibrary) then
+      raise Exception.CreateFmt('Creating library "%s" failed', [OutputLibrary]);
   end;
 
 begin
@@ -128,8 +124,8 @@ begin
       CompileLibrary(iphonesim, i386);
       CompileLibrary(iphonesim, x86_64);
     end;
-    CompileLibrary(darwin, arm);
-    CompileLibrary(darwin, aarch64);
+    CompileLibrary(iOS, arm);
+    CompileLibrary(iOS, aarch64);
 
   finally FreeAndNil(FinalExtraOptions) end;
 end;
@@ -148,8 +144,8 @@ begin
       Options.Add(CompilationOutputPath(iphonesim, i386   , CompilationWorkingDirectory) + IOSPartialLibraryName);
       Options.Add(CompilationOutputPath(iphonesim, x86_64 , CompilationWorkingDirectory) + IOSPartialLibraryName);
     end;
-    Options.Add(CompilationOutputPath(darwin   , arm    , CompilationWorkingDirectory) + IOSPartialLibraryName);
-    Options.Add(CompilationOutputPath(darwin   , aarch64, CompilationWorkingDirectory) + IOSPartialLibraryName);
+    Options.Add(CompilationOutputPath(iOS   , arm    , CompilationWorkingDirectory) + IOSPartialLibraryName);
+    Options.Add(CompilationOutputPath(iOS   , aarch64, CompilationWorkingDirectory) + IOSPartialLibraryName);
     RunCommandSimple('libtool', Options.ToArray);
   finally FreeAndNil(Options) end;
 end;

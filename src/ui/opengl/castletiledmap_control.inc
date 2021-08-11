@@ -58,10 +58,11 @@ type
 
     { Detect tile under given position.
 
-      The interpretation of Position depends on ScreenCoordinates:
+      The interpretation of Position depends on ContainerCoordinates,
+      and is similar to e.g. @link(TCastleViewport.PositionToCameraPlane):
 
       @unorderedList(
-        @item(When ScreenCoordinates = @true,
+        @item(When ContainerCoordinates = @true,
           then Position is relative to the whole container
           (like TCastleWindowBase or TCastleControlBase).
 
@@ -71,7 +72,7 @@ type
           when mouse is moved.
         )
 
-        @item(When ScreenCoordinates = @false,
+        @item(When ContainerCoordinates = @false,
           then Position is relative to this UI control.
 
           And it is expressed in coordinates after UI scaling.
@@ -84,13 +85,13 @@ type
       or even outside of the container.
       They will return correct map tiles, as if the map was rendered there.
       If you want to avoid this, you can e.g. check whether Position
-      is inside the @link(RenderRect) (if it's a position in screen coordinates,
-      with ScreenCoordinates = @true).
+      is inside the @link(RenderRect) (if it's a position in container coordinates,
+      with ContainerCoordinates = @true).
 
       This method returns @false if the position is outside of the map.
       Valid map tiles are from (0, 0) (lower-left) to
       (@link(TTiledMap.Width) - 1, @link(TTiledMap.Height) - 1) (upper-right). }
-    function PositionToTile(const Position: TVector2; const ScreenCoordinates: Boolean;
+    function PositionToTile(const Position: TVector2; const ContainerCoordinates: Boolean;
       out TilePosition: TVector2Integer): Boolean;
 
     { Rectangle where the given map tile is rendered.
@@ -100,12 +101,12 @@ type
       In some way, this method is an inverse of the @link(PositionToTile) method.
       It converts map (tile) coordinates back into coordinates useful to display
       something.
-      The ScreenCoordinates value determines the coordinate system of the resulting
-      rectangle. It's meaning is similar to the ScreenCoordinates parameter
+      The ContainerCoordinates value determines the coordinate system of the resulting
+      rectangle. It's meaning is similar to the ContainerCoordinates parameter
       of the @link(PositionToTile) method.
 
       @unorderedList(
-        @item(When ScreenCoordinates = @true,
+        @item(When ContainerCoordinates = @true,
           the resulting rectangle is relative to the whole container
           (like TCastleWindowBase or TCastleControlBase).
           And is expressed in real device coordinates.
@@ -116,7 +117,7 @@ type
           to draw something over this tile.
         )
 
-        @item(When ScreenCoordinates = @false,
+        @item(When ContainerCoordinates = @false,
           the resulting rectangle is specified in local coordinates of this
           control, and is expressed in coordinates after UI scaling.
 
@@ -142,9 +143,9 @@ type
       You can pass ForceTileWidth and ForceTileHeight to set particular size.
     }
     function TileRectangle(const TilePosition: TVector2Integer;
-      const ScreenCoordinates: Boolean): TFloatRectangle; overload;
+      const ContainerCoordinates: Boolean): TFloatRectangle; overload;
     function TileRectangle(const TilePosition: TVector2Integer;
-      const ScreenCoordinates: Boolean;
+      const ContainerCoordinates: Boolean;
       const ForceTileWidth, ForceTileHeight: Single): TFloatRectangle; overload;
   published
     property ClipChildren default true;
@@ -226,15 +227,15 @@ var
 
   { Transform point from Tiled position to our render position.
     This is similar to TCastleTiledMapControl.TileRectangle, but works only for simple point. }
-  function RenderPosition(V: TVector2; const ScreenCoordinates: Boolean = true): TVector2;
+  function RenderPosition(V: TVector2; const ContainerCoordinates: Boolean = true): TVector2;
   begin
     V.Y := Map.Height * Map.TileHeight - V.Y; // convert to be relative to bottom
     // Apply Origin and Scale
     Result := (V - Origin) * Scale;
-    if ScreenCoordinates then
+    if ContainerCoordinates then
     begin
-      // Apply UIScale and RenderRect (anchors etc.) to honor standard TCastleUserInterface conventions
-      Result := (Result * UIScale) + RenderRect.LeftBottom;
+      // Apply UI scaling and anchors to get position on the final container
+      Result := LocalToContainerPosition(Result);
     end;
   end;
 
@@ -425,8 +426,17 @@ var
       Result.Frame := Frame;
       Result.HorizontalFlip := HorizontalFlip;
       Result.VerticalFlip := VerticalFlip;
-      // TODO: test flipping diagonally
-      Result.DiagonalFlip := DiagonalFlip;
+      { TODO: this makes diagonal flip too late, effectively *after* HorizontalFlip and VerticalFlip.
+        Tiled expects (https://doc.mapeditor.org/en/stable/reference/tmx-map-format/):
+
+        - The diagonal flip (x/y axis swap) is done first,
+        - followed by the horizontal
+        - and vertical flips.
+      }
+      if DiagonalFlip then
+        Result.Rotation := Pi / 2
+      else
+        Result.Rotation := 0;
     end;
   end;
 
@@ -540,33 +550,32 @@ begin
 end;
 
 function TCastleTiledMapControl.PositionToTile(const Position: TVector2;
-  const ScreenCoordinates: Boolean;
+  const ContainerCoordinates: Boolean;
   out TilePosition: TVector2Integer): Boolean;
+var
+  LocalPosition: TVector2;
 begin
   if Map = nil then Exit(false);
 
-  if ScreenCoordinates then
-  begin
-    { recursive call with ScreenCoordinates = false }
-    Result := PositionToTile((Position - RenderRect.LeftBottom) / UIScale,
-      false, TilePosition);
-  end else
-  begin
-    Result := Map.PositionToTile((Position / Scale) + Origin, TilePosition);
-  end;
+  if ContainerCoordinates then
+    LocalPosition := ContainerToLocalPosition(Position)
+  else
+    LocalPosition := Position;
+
+  Result := Map.PositionToTile((LocalPosition / Scale) + Origin, TilePosition);
 end;
 
 function TCastleTiledMapControl.TileRectangle(const TilePosition: TVector2Integer;
-  const ScreenCoordinates: Boolean): TFloatRectangle;
+  const ContainerCoordinates: Boolean): TFloatRectangle;
 begin
   if Map = nil then
     Result := TFloatRectangle.Empty
   else
-    Result := TileRectangle(TilePosition, ScreenCoordinates, Map.TileWidth, Map.TileHeight);
+    Result := TileRectangle(TilePosition, ContainerCoordinates, Map.TileWidth, Map.TileHeight);
 end;
 
 function TCastleTiledMapControl.TileRectangle(const TilePosition: TVector2Integer;
-  const ScreenCoordinates: Boolean;
+  const ContainerCoordinates: Boolean;
   const ForceTileWidth, ForceTileHeight: Single): TFloatRectangle;
 begin
   if Map = nil then
@@ -580,7 +589,7 @@ begin
       // Apply Origin and Scale
       Translate(-Origin).
       ScaleAround0(Scale);
-    if ScreenCoordinates then
+    if ContainerCoordinates then
     begin
       Result := Result.
         // Apply UIScale and RenderRect (anchors etc.)

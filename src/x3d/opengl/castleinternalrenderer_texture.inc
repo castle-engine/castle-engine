@@ -34,18 +34,11 @@
     { Decide if this class can handle given texture Node. }
     class function IsClassForTextureNode(
       ANode: TAbstractTextureNode): boolean; virtual; abstract;
-
-    { Do the time-consuming preparations before rendering this texture.
-      Called from TGLRenderer.Prepare, always through our
-      Prepare method. Our Prepare method takes care to catch
-      common exceptions from this (EFramebufferError, ETextureLoadError),
-      convert them to WritelnWarning and make Unprepare to undo the preparations.
-      So Prepare-Unprepare work like constructor-destructor, with Unprepare
-      having to be prepared to finilizing incomplete instance. }
-    procedure PrepareCore(State: TX3DGraphTraverseState); virtual; abstract;
   public
     { ANode must be TAbstractTextureNode }
-    constructor Create(ARenderer: TGLRenderer; ANode: TX3DNode); override;
+    constructor Create(const ARenderer: TGLRenderer;
+      const AList: TResourceRendererList;
+      const ANode: TX3DNode); override;
 
     { Reference to handled texture node.
       Never @nil.
@@ -59,10 +52,6 @@
       to be correctly recognized by this. }
     class function ClassForTextureNode(
       ANode: TAbstractTextureNode): TGLTextureNodeClass;
-
-    { Do the time-consuming preparations before rendering this texture.
-      Calls PrepareCore. }
-    procedure Prepare(State: TX3DGraphTraverseState);
   public
     { Bind texture for OpenGL (without enabling it).
 
@@ -156,9 +145,9 @@
 
       Returns @nil if Node not suitable for TGLTextureNode (not handled,
       or not really a texture node at all). }
-    function Prepare(State: TX3DGraphTraverseState;
-      ANode: TAbstractTextureNode;
-      ARenderer: TGLRenderer): TGLTextureNode;
+    function Prepare(const State: TX3DGraphTraverseState;
+      const ANode: TAbstractTextureNode;
+      const ARenderer: TGLRenderer): TGLTextureNode;
 
     { Only bind texture node. Calls TGLTextureNode.Enable method.
       If no texture renderer is prepared for this node,
@@ -198,15 +187,14 @@
     handlers to handle single textures inside --- but this is completely
     hidden from the interface. }
   TGLMultiTextureNode = class(TGLTextureNode)
-  private
-    PreparedTextureChildren: TX3DNodeList;
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
     procedure PrepareCore(State: TX3DGraphTraverseState); override;
   public
     { ANode must be TMultiTextureNode }
-    constructor Create(ARenderer: TGLRenderer; ANode: TX3DNode); override;
-    destructor Destroy; override;
+    constructor Create(const ARenderer: TGLRenderer;
+      const AList: TResourceRendererList;
+      const ANode: TX3DNode); override;
 
     function TextureNode: TMultiTextureNode;
 
@@ -443,7 +431,9 @@ end;
 
 { TGLTextureNode ------------------------------------------------------------- }
 
-constructor TGLTextureNode.Create(ARenderer: TGLRenderer; ANode: TX3DNode);
+constructor TGLTextureNode.Create(const ARenderer: TGLRenderer;
+  const AList: TResourceRendererList;
+  const ANode: TX3DNode);
 begin
   Assert(ANode is TAbstractTextureNode, 'TGLTextureNode.Create acceps as Node only TAbstractTextureNode');
   inherited;
@@ -547,26 +537,6 @@ begin
     Result := nil;
 end;
 
-procedure TGLTextureNode.Prepare(State: TX3DGraphTraverseState);
-begin
-  try
-    PrepareCore(State);
-  except
-    on E: EFramebufferError do
-    begin
-      Unprepare;
-      WritelnWarning('VRML/X3D', 'Framebuffer error, generated texture not possible: '
-        + E.Message);
-    end;
-
-    on E: ETextureLoadError do
-    begin
-      Unprepare;
-      WritelnWarning('VRML/X3D', 'Cannot load texture to OpenGL: ' + E.Message);
-    end;
-  end;
-end;
-
 function TGLTextureNode.TextureNode: TAbstractTextureNode;
 begin
   Result := TAbstractTextureNode(inherited Node);
@@ -589,9 +559,9 @@ begin
   Result := TGLTextureNode(inherited Items[Index]);
 end;
 
-function TGLTextureNodes.Prepare(State: TX3DGraphTraverseState;
-  ANode: TAbstractTextureNode;
-  ARenderer: TGLRenderer): TGLTextureNode;
+function TGLTextureNodes.Prepare(const State: TX3DGraphTraverseState;
+  const ANode: TAbstractTextureNode;
+  const ARenderer: TGLRenderer): TGLTextureNode;
 var
   GLTextureNodeClass: TGLTextureNodeClass;
 begin
@@ -604,7 +574,7 @@ begin
     if (GLTextureNodeClass <> nil { Ignore if not handled node. }) and
        (TextureNodeIndex(ANode) = -1) then
     begin
-      Result := GLTextureNodeClass.Create(ARenderer, ANode);
+      Result := GLTextureNodeClass.Create(ARenderer, Self, ANode);
       Result.Prepare(State);
       Add(Result);
     end;
@@ -695,16 +665,11 @@ end;
 
 { TGLMultiTextureNode -------------------------------------------------------- }
 
-constructor TGLMultiTextureNode.Create(ARenderer: TGLRenderer; ANode: TX3DNode);
+constructor TGLMultiTextureNode.Create(const ARenderer: TGLRenderer;
+  const AList: TResourceRendererList;
+  const ANode: TX3DNode);
 begin
   Assert(ANode is TMultiTextureNode, 'TGLMultiTextureNode.Create acceps as Node only TMultiTextureNode');
-  inherited;
-  PreparedTextureChildren := TX3DNodeList.Create(false);
-end;
-
-destructor TGLMultiTextureNode.Destroy;
-begin
-  FreeAndNil(PreparedTextureChildren);
   inherited;
 end;
 
@@ -724,21 +689,14 @@ var
   ChildTex: TX3DNode;
   I: Integer;
 begin
-  { Prepare all children.
-    Fill PreparedTextureChildren along the way,
-    they will be used in Unprepare. }
-  PreparedTextureChildren.Count := 0;
-
   for I := 0 to TextureNode.FdTexture.Count - 1 do
   begin
     ChildTex := TextureNode.FdTexture[I];
-    if (ChildTex <> nil) and
-       (ChildTex is TAbstractTextureNode) then
+    if ChildTex is TAbstractTextureNode then // also checks ChildTex <> nil
     begin
       if ChildTex is TMultiTextureNode then
         WritelnWarning('VRML/X3D', 'Child of MultiTexture node cannot be another MultiTexture node') else
       begin
-        PreparedTextureChildren.Add(ChildTex);
         Renderer.GLTextureNodes.Prepare(State, TAbstractTextureNode(ChildTex), Renderer);
       end;
     end;
@@ -747,32 +705,17 @@ end;
 
 procedure TGLMultiTextureNode.Unprepare;
 var
+  ChildTex: TX3DNode;
   I: Integer;
 begin
-  { Below comments concerns engine before 2.0.0. After 2.0.0 this could actually
-    by simplified, no need for PreparedTextureChildren.
-
-    We cannot look at TextureNode.FdTexture here.
-
-    Reason: TextureNode may be already freed at the Unprepare time.
-    CastleRenderer explicitly allows to free VRML/X3D nodes before
-    unpreparing them. This is used e.g. by doing TCastleSceneCore.Load
-    (that calls ChangedAll, that calls Unprepare, only at the end,
-    *after* old nodes have been already freed.)
-
-    Accessing here TextureNode.FdTexture.Count e.g. crashes on
-    multiple_viewports: open data/bridge_final.x3dv, then open
-    data/boxes.x3dv. (Note that multiple_viewports loads new scene
-    by simple Scene.Load.)
-
-    That's why we use PreparedTextureChildren saved.
-
-    Note: we cannot save TGLTextureNode values, as they could be freed
-    by something beside our control. So PreparedTextureChildren holds
-    only vrml nodes, passed to Renderer.GLTextureNodes.Unprepare. }
-
-  for I := 0 to PreparedTextureChildren.Count - 1 do
-    Renderer.GLTextureNodes.Unprepare(PreparedTextureChildren[I]);
+  for I := 0 to TextureNode.FdTexture.Count - 1 do
+  begin
+    ChildTex := TextureNode.FdTexture[I];
+    if (ChildTex is TAbstractTextureNode) and // also checks ChildTex <> nil
+       (not (ChildTex is TMultiTextureNode)) then
+      Renderer.GLTextureNodes.Unprepare(ChildTex);
+  end;
+  inherited;
 end;
 
 function TGLMultiTextureNode.Bind(const TextureUnit: Cardinal): boolean;
@@ -970,6 +913,7 @@ begin
     Renderer.Cache.TextureImage_DecReference(FGLName);
     FGLName := 0;
   end;
+  inherited;
 end;
 
 function TGLImageTextureNode.Bind(const TextureUnit: Cardinal): boolean;
@@ -1048,6 +992,7 @@ procedure TGLMovieTextureNode.Unprepare;
 begin
   if GLVideo <> nil then
     Renderer.Cache.TextureVideo_DecReference(GLVideo);
+  inherited;
 end;
 
 function TGLMovieTextureNode.GLName: TGLTextureId;
@@ -1238,6 +1183,7 @@ begin
       Renderer.Cache.TextureImage_DecReference(FGLName);
     FGLName := 0;
   end;
+  inherited;
 end;
 
 function TGLRenderedTextureNode.Bind(const TextureUnit: Cardinal): boolean;
@@ -1617,6 +1563,7 @@ begin
     Renderer.Cache.TextureCubeMap_DecReference(GLName);
     GLName := 0;
   end;
+  inherited;
 end;
 
 function TGLCubeMapTextureNode.Bind(const TextureUnit: Cardinal): boolean;
@@ -1951,6 +1898,7 @@ begin
     Renderer.Cache.Texture3D_DecReference(GLName);
     GLName := 0;
   end;
+  inherited;
 end;
 
 function TGL3DTextureNode.Bind(const TextureUnit: Cardinal): boolean;
@@ -2076,6 +2024,7 @@ begin
       Renderer.Cache.TextureDepth_DecReference(FGLName);
     FGLName := 0;
   end;
+  inherited;
 end;
 
 function TGLGeneratedShadowMap.Bind(const TextureUnit: Cardinal): boolean;
@@ -2199,6 +2148,7 @@ end;
 procedure TGLShaderTexture.Unprepare;
 begin
   { no need to do anything }
+  inherited;
 end;
 
 function TGLShaderTexture.Bind(const TextureUnit: Cardinal): boolean;

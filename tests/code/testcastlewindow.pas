@@ -38,11 +38,13 @@ type
     procedure TestEventLoop;
     procedure TestViewportPositionTo;
     procedure TestStateAutoStop;
+    procedure TestStateSize;
+    procedure TestStateSize2;
   end;
 
 implementation
 
-uses SysUtils, Classes,
+uses SysUtils, Classes, Math,
   CastleWindow, CastleControls, CastleStringUtils, CastleKeysMouse,
   CastleUIControls, CastleRectangles, CastleOnScreenMenu, CastleComponentSerialize,
   CastleInspectorControl, CastleCameras, CastleSceneManager, CastleVectors,
@@ -423,6 +425,144 @@ begin
       - stopping of SomeState
       - closing of Window
     }
+    FreeAndNil(Window);
+  end;
+
+  Application.MainWindow := nil;
+end;
+
+type
+  TStateTestingSize = class(TUIState)
+  public
+    W, H: Single;
+    TestCase: TCastleTestCase;
+    procedure Start; override;
+    procedure Resize; override;
+  end;
+
+procedure TStateTestingSize.Start;
+begin
+  inherited;
+  W := EffectiveWidth;
+  H := EffectiveHeight;
+  TestCase.AssertTrue(
+    SameValue(EffectiveWidth, 160) or
+    SameValue(EffectiveHeight, 90));
+  TestCase.AssertTrue(
+    SameValue(EffectiveRect.Width, 160) or
+    SameValue(EffectiveRect.Height, 90));
+end;
+
+procedure TStateTestingSize.Resize;
+begin
+  inherited;
+  TestCase.AssertTrue(
+    SameValue(EffectiveWidth, 160) or
+    SameValue(EffectiveHeight, 90));
+  TestCase.AssertTrue(
+    SameValue(EffectiveRect.Width, 160) or
+    SameValue(EffectiveRect.Height, 90));
+  // size didn't change from Start to 1st Resize call
+  TestCase.AssertSameValue(W, EffectiveWidth);
+  TestCase.AssertSameValue(H, EffectiveHeight);
+end;
+
+procedure TTestWindow.TestStateSize;
+var
+  Window: TCastleWindowBase;
+  StateTesting: TStateTestingSize;
+begin
+  Window := TCastleWindowBase.Create(nil);
+  try
+    Application.MainWindow := Window;
+
+    Window.Open;
+    Window.Container.UIScaling := usEncloseReferenceSize;
+    Window.Container.UIReferenceWidth := 160;
+    Window.Container.UIReferenceHeight := 90;
+
+    StateTesting := TStateTestingSize.Create(Window);
+    StateTesting.TestCase := Self;
+
+    // already state EffectiveXxx for size should work
+    AssertTrue(
+      SameValue(StateTesting.EffectiveWidth, 160) or
+      SameValue(StateTesting.EffectiveHeight, 90));
+    AssertTrue(
+      SameValue(StateTesting.EffectiveRect.Width, 160) or
+      SameValue(StateTesting.EffectiveRect.Height, 90));
+
+    TUIState.Current := StateTesting;
+  finally
+    FreeAndNil(Window);
+  end;
+
+  Application.MainWindow := nil;
+end;
+
+type
+  TStateTestingSize2 = class(TUIState)
+  public
+    W, H: Single;
+    TestCase: TCastleTestCase;
+    procedure Start; override;
+    procedure Resize; override;
+  end;
+
+procedure TStateTestingSize2.Start;
+begin
+  inherited;
+  W := EffectiveWidth;
+  H := EffectiveHeight;
+  TestCase.AssertTrue(
+    SameValue(EffectiveWidth, 200) or
+    SameValue(EffectiveHeight, 400));
+  TestCase.AssertTrue(
+    SameValue(EffectiveRect.Width, 200) or
+    SameValue(EffectiveRect.Height, 400));
+end;
+
+procedure TStateTestingSize2.Resize;
+begin
+  inherited;
+  TestCase.AssertTrue(
+    SameValue(EffectiveWidth, 200) or
+    SameValue(EffectiveHeight, 400));
+  TestCase.AssertTrue(
+    SameValue(EffectiveRect.Width, 200) or
+    SameValue(EffectiveRect.Height, 400));
+  // size didn't change from Start to 1st Resize call
+  TestCase.AssertSameValue(W, EffectiveWidth);
+  TestCase.AssertSameValue(H, EffectiveHeight);
+end;
+
+procedure TTestWindow.TestStateSize2;
+var
+  Window: TCastleWindowBase;
+  StateTesting: TStateTestingSize2;
+begin
+  Window := TCastleWindowBase.Create(nil);
+  try
+    Application.MainWindow := Window;
+
+    Window.Width := 200;
+    Window.Height := 400;
+    Window.Open;
+    { No UI scaling this time. }
+
+    StateTesting := TStateTestingSize2.Create(Window);
+    StateTesting.TestCase := Self;
+
+    // already state EffectiveXxx for size should work
+    AssertTrue(
+      SameValue(StateTesting.EffectiveWidth, 200) or
+      SameValue(StateTesting.EffectiveHeight, 400));
+    AssertTrue(
+      SameValue(StateTesting.EffectiveRect.Width, 200) or
+      SameValue(StateTesting.EffectiveRect.Height, 400));
+
+    TUIState.Current := StateTesting;
+  finally
     FreeAndNil(Window);
   end;
 

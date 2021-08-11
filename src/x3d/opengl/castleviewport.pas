@@ -73,7 +73,7 @@ type
     or just move/rotate the camera by calling @link(TCastleCamera.SetView) from anywhere).
     The inital navigation method may be auto-detected if @link(AutoNavigation).
 
-    Viewport may clear the screen at the beginning,
+    Viewport may clear its area at the beginning of rendering,
     with a solid color or using a TAbstractBackgroundNode defined in
     @link(TCastleRootTransform.MainScene Items.MainScene).
     This way you can use e.g. a skybox.
@@ -743,13 +743,12 @@ type
       Use Depth > 0 for positions in front of the camera.
 
       This is similar to "Unproject" GLU routine.
-      It allows to map points from the screen back to the 3D space inside viewport.
+      It allows to map points from the 2D viewport back to the 3D space inside viewport.
 
-      The interpretation of Position depends on ScreenCoordinates,
-      and is similar to e.g. @link(TCastleTiledMapControl.PositionToTile):
+      The interpretation of Position depends on ContainerCoordinates:
 
       @unorderedList(
-        @item(When ScreenCoordinates = @true,
+        @item(When ContainerCoordinates = @true,
           then Position is relative to the whole container
           (like TCastleWindowBase or TCastleControlBase).
 
@@ -759,7 +758,7 @@ type
           when mouse is moved.
         )
 
-        @item(When ScreenCoordinates = @false,
+        @item(When ContainerCoordinates = @false,
           then Position is relative to this UI control.
 
           And it is expressed in coordinates after UI scaling.
@@ -773,16 +772,16 @@ type
       should not be possible, unless camera field of view is larger than 180 degrees).
     }
     function PositionToCameraPlane(const Position: TVector2;
-      const ScreenCoordinates: Boolean;
+      const ContainerCoordinates: Boolean;
       const Depth: Single; out PlanePosition: TVector3): Boolean;
 
     { Convert 2D position on the viewport into 3D ray.
 
-      The interpretation of Position depends on ScreenCoordinates,
+      The interpretation of Position depends on ContainerCoordinates,
       and is similar to e.g. @link(TCastleTiledMapControl.PositionToTile):
 
       @unorderedList(
-        @item(When ScreenCoordinates = @true,
+        @item(When ContainerCoordinates = @true,
           then Position is relative to the whole container
           (like TCastleWindowBase or TCastleControlBase).
 
@@ -792,7 +791,7 @@ type
           when mouse is moved.
         )
 
-        @item(When ScreenCoordinates = @false,
+        @item(When ContainerCoordinates = @false,
           then Position is relative to this UI control.
 
           And it is expressed in coordinates after UI scaling.
@@ -802,7 +801,7 @@ type
       )
     }
     procedure PositionToRay(const Position: TVector2;
-      const ScreenCoordinates: Boolean; out RayOrigin, RayDirection: TVector3);
+      const ContainerCoordinates: Boolean; out RayOrigin, RayDirection: TVector3);
 
     { Convert 2D position on the viewport into 3D "world coordinates",
       by colliding camera ray with a plane at constant Z.
@@ -815,11 +814,11 @@ type
       use 3D (and maybe even perspective camera),
       but most of the game world is placed around some plane with constant Z.
 
-      The interpretation of Position depends on ScreenCoordinates,
+      The interpretation of Position depends on ContainerCoordinates,
       and is similar to e.g. @link(TCastleTiledMapControl.PositionToTile):
 
       @unorderedList(
-        @item(When ScreenCoordinates = @true,
+        @item(When ContainerCoordinates = @true,
           then Position is relative to the whole container
           (like TCastleWindowBase or TCastleControlBase).
 
@@ -829,7 +828,7 @@ type
           when mouse is moved.
         )
 
-        @item(When ScreenCoordinates = @false,
+        @item(When ContainerCoordinates = @false,
           then Position is relative to this UI control.
 
           And it is expressed in coordinates after UI scaling.
@@ -847,18 +846,18 @@ type
       the camera looks in the other direction).
     }
     function PositionToWorldPlane(const Position: TVector2;
-      const ScreenCoordinates: Boolean;
+      const ContainerCoordinates: Boolean;
       const PlaneZ: Single; out PlanePosition: TVector3): Boolean;
 
     { Convert 2D position into "world coordinates", which is the coordinate
       space seen by TCastleTransform / TCastleScene inside viewport @link(Items),
       assuming that we use orthographic projection in XY axes.
 
-      The interpretation of Position depends on ScreenCoordinates,
+      The interpretation of Position depends on ContainerCoordinates,
       and is similar to e.g. @link(TCastleTiledMapControl.PositionToTile):
 
       @unorderedList(
-        @item(When ScreenCoordinates = @true,
+        @item(When ContainerCoordinates = @true,
           then Position is relative to the whole container
           (like TCastleWindowBase or TCastleControlBase).
 
@@ -868,7 +867,7 @@ type
           when mouse is moved.
         )
 
-        @item(When ScreenCoordinates = @false,
+        @item(When ContainerCoordinates = @false,
           then Position is relative to this UI control.
 
           And it is expressed in coordinates after UI scaling.
@@ -883,7 +882,7 @@ type
       These are default camera direction, up and projection types set
       by @link(Setup2D). }
     function PositionTo2DWorld(const Position: TVector2;
-      const ScreenCoordinates: Boolean): TVector2;
+      const ContainerCoordinates: Boolean): TVector2;
 
     { Prepare resources, to make various methods (like @link(Render)) execute fast.
       Call it only when rendering context is initialized (ApplicationProperties.IsGLContextOpen).
@@ -991,16 +990,7 @@ type
 
     { If yes then the scene background will be rendered wireframe,
       over the background filled with BackgroundColor.
-
-      There's a catch here: this works only if the background is actually
-      internally rendered as a geometry. If the background is rendered
-      by clearing the screen (this is an optimized case of sky color
-      being just one simple color, and no textures),
-      then it will just cover the screen as normal, like without wireframe.
-      This is uncertain situation anyway (what should the wireframe
-      look like in this case anyway?), so I don't consider it a bug.
-
-      Useful especially for debugging when you want to see how your background
+      Useful for debugging when you want to see how your background
       geometry looks like. }
     property BackgroundWireframe: boolean
       read FBackgroundWireframe write FBackgroundWireframe default false;
@@ -2109,7 +2099,14 @@ begin
   { We need infinite ZFar in case of shadow volumes.
     But only perspective projection supports ZFar in infinity. }
   if (Result.ProjectionType = ptPerspective) and
-     GLFeatures.ShadowVolumesPossible and
+     { Check "GLFeatures = nil" to allow using CalculateProjection and
+       things depending on it when no OpenGL context available.
+
+       Testcase: open CGE editor, open a project with any sprite sheet,
+       open sprite sheet editor with some .castle-sprite-sheet file,
+       then do "Close Project" (without closing sprite sheet editor
+       explicitly). It should not crash. }
+     ((GLFeatures = nil) or GLFeatures.ShadowVolumesPossible) and
      ShadowVolumes then
     Result.ProjectionFar := ZFarInfinity;
 
@@ -3023,32 +3020,32 @@ begin
 end;
 
 procedure TCastleViewport.PositionToRay(const Position: TVector2;
-  const ScreenCoordinates: Boolean;
+  const ContainerCoordinates: Boolean;
   out RayOrigin, RayDirection: TVector3);
 var
   R: TFloatRectangle;
-  ScreenPosition: TVector2;
+  ContainerPosition: TVector2;
 begin
   PositionToPrerequisites;
 
   R := RenderRect;
 
-  if ScreenCoordinates then
-    ScreenPosition := Position
+  if ContainerCoordinates then
+    ContainerPosition := Position
   else
-    ScreenPosition := Position * UIScale + R.LeftBottom;
+    ContainerPosition := LocalToContainerPosition(Position);
 
-  Camera.CustomRay(R, ScreenPosition, FProjection, RayOrigin, RayDirection);
+  Camera.CustomRay(R, ContainerPosition, FProjection, RayOrigin, RayDirection);
 end;
 
 function TCastleViewport.PositionToCameraPlane(const Position: TVector2;
-  const ScreenCoordinates: Boolean;
+  const ContainerCoordinates: Boolean;
   const Depth: Single; out PlanePosition: TVector3): Boolean;
 var
   RayOrigin, RayDirection: TVector3;
   Plane: TVector4;
 begin
-  PositionToRay(Position, ScreenCoordinates, RayOrigin, RayDirection);
+  PositionToRay(Position, ContainerCoordinates, RayOrigin, RayDirection);
 
   Plane := Vector4(Camera.Direction,
     { We know that Camera.Direction, which is used as Plane.XYZ, is normalized.
@@ -3060,19 +3057,19 @@ begin
 end;
 
 function TCastleViewport.PositionToWorldPlane(const Position: TVector2;
-  const ScreenCoordinates: Boolean;
+  const ContainerCoordinates: Boolean;
   const PlaneZ: Single; out PlanePosition: TVector3): Boolean;
 var
   RayOrigin, RayDirection: TVector3;
 begin
-  PositionToRay(Position, ScreenCoordinates, RayOrigin, RayDirection);
+  PositionToRay(Position, ContainerCoordinates, RayOrigin, RayDirection);
 
   Result := TrySimplePlaneRayIntersection(PlanePosition, 2, PlaneZ,
     RayOrigin, RayDirection);
 end;
 
 function TCastleViewport.PositionTo2DWorld(const Position: TVector2;
-  const ScreenCoordinates: Boolean): TVector2;
+  const ContainerCoordinates: Boolean): TVector2;
 
 { Version 1:
   This makes sense, but ignores TCastleExamineNavigation.ScaleFactor (assumes unscaled camera).
@@ -3082,7 +3079,7 @@ var
   Proj: TProjection;
   ProjRect: TFloatRectangle;
 begin
-  if ScreenCoordinates then
+  if ContainerCoordinates then
     P := (Position - RenderRect.LeftBottom) / UIScale
   else
     P := Position;
@@ -3128,7 +3125,7 @@ begin
   if not WorldToScreenMatrix.TryInverse(ScreenToWorldMatrix) then
     raise Exception.Create('Cannot invert projection * camera matrix. Possibly one of them was not initialized, or camera contains scale to zero.');
 
-  if ScreenCoordinates then
+  if ContainerCoordinates then
     P := (Position - RenderRect.LeftBottom) / UIScale
   else
     P := Position;
@@ -3148,8 +3145,8 @@ begin
 
   CameraToWorldMatrix := Camera.MatrixInverse;
 
-  if ScreenCoordinates then
-    P := (Position - RenderRect.LeftBottom) / UIScale
+  if ContainerCoordinates then
+    P := ContainerToLocalPosition(Position)
   else
     P := Position;
   P := Vector2(
@@ -3261,7 +3258,7 @@ begin
       '- (if you use CastleWindow) Application.OnInitialize' + NL +
       '- (if you use CastleWindow) TCastleWindowBase.OnOpen' + NL +
       '- (if you use LCL CastleControl) TCastleControlBase.OnOpen' + NL +
-      '- TCasleUserInterface.GLContextOpen'
+      '- TCastleUserInterface.GLContextOpen'
     );
 
   if GLFeatures.ShadowVolumesPossible and
@@ -3450,7 +3447,9 @@ end;
 
 procedure TCastleViewport.PointingDevicePressFailed;
 begin
-  SoundEngine.Sound(stPlayerInteractFailed);
+  {$warnings off} // just to keep deprecated working
+  SoundEngine.Play(stPlayerInteractFailed);
+  {$warnings on}
 end;
 
 function TCastleViewport.PointingDeviceRelease: Boolean;
@@ -3586,7 +3585,7 @@ begin
       Inc(Items.InternalVisibleNonGeometryStateId);
 
     Camera.GetView(Pos, Dir, Up);
-    SoundEngine.UpdateListener(Pos, Dir, Up);
+    SoundEngine.InternalUpdateListener(Pos, Dir, Up);
   end;
 
   if Assigned(OnCameraChanged) then

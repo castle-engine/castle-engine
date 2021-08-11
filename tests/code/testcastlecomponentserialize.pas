@@ -29,6 +29,7 @@ type
     procedure TestSaveLoad1;
     procedure TestSaveLoad2;
     procedure TestDeserializeObjectReferences;
+    procedure TestDepth;
   end;
 
 implementation
@@ -297,7 +298,72 @@ begin
   finally FreeAndNil(UiOwner) end;
 end;
 
+procedure TTestCastleComponentSerialize.TestDepth;
+{ Internally, CastleComponentSerialize must increase SerializationProcessPool
+  for larger depths. Make sure it works OK. }
+var
+  I: Integer;
+  UiOwner, C: TComponent;
+  RootLabel, ParentLabel: TCastleLabel;
+  ChildLabel: TCastleLabel;
+  TempFileName: String;
+begin
+  UiOwner := TComponent.Create(nil);
+  try
+    RootLabel := TCastleLabel.Create(UiOwner);
+    RootLabel.Tag := 1000;
+
+    C := TComponent.Create(UiOwner);
+    C.Tag := 2000;
+    RootLabel.AddNonVisualComponent(C);
+
+    ParentLabel := RootLabel;
+    for I := 1 to 100 do
+    begin
+      ChildLabel := TCastleLabel.Create(UiOwner);
+      ChildLabel.Tag := 1000 + I;
+      ParentLabel.InsertFront(ChildLabel);
+
+      C := TComponent.Create(UiOwner);
+      C.Tag := 2000 + I;
+      ChildLabel.AddNonVisualComponent(C);
+
+      ParentLabel := ChildLabel;
+    end;
+
+    TempFileName := GetTempFileNameCheck;
+    ComponentSave(RootLabel, TempFileName);
+    Writeln('TTestCastleComponentSerialize.TestDepth: Saved to ' + TempFileName);
+  finally FreeAndNil(UiOwner) end;
+
+  { Now load, and see if we have the same structure }
+  UiOwner := TComponent.Create(nil);
+  try
+    RootLabel := ComponentLoad(TempFileName, UiOwner) as TCastleLabel;
+
+    AssertEquals(1000, RootLabel.Tag);
+    AssertEquals(1, RootLabel.NonVisualComponentsCount);
+    C := RootLabel.NonVisualComponents[0];
+    AssertEquals(2000, C.Tag);
+
+    ParentLabel := RootLabel;
+    for I := 1 to 100 do
+    begin
+      AssertEquals(1, ParentLabel.ControlsCount);
+      ChildLabel := ParentLabel.Controls[0] as TCastleLabel;
+      AssertEquals(1000 + I, ChildLabel.Tag);
+
+      AssertEquals(1, ChildLabel.NonVisualComponentsCount);
+      C := ChildLabel.NonVisualComponents[0];
+      AssertEquals(2000 + I, C.Tag);
+
+      ParentLabel := ChildLabel;
+    end;
+  finally FreeAndNil(UiOwner) end;
+end;
+
 initialization
   RegisterTest(TTestCastleComponentSerialize);
   RegisterSerializableComponent(TMyComponent, 'My Test Component');
+  RegisterSerializableComponent(TComponent, 'Component (Basic)');
 end.

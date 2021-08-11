@@ -16,13 +16,18 @@
 { Simply load and play sound using CastleSoundEngine. }
 program simplest_play_sound;
 
-uses SysUtils, CastleUtils,
-  CastleLog, CastleSoundEngine, CastleParameters, CastleTimeUtils, CastleVectors,
-  CastleApplicationProperties;
+uses
+  {$ifndef CASTLE_DISABLE_THREADS}
+    {$info Thread support enabled.}
+    {$ifdef UNIX} CThreads, {$endif}
+  {$endif}
+  SysUtils,
+  CastleUtils, CastleLog, CastleSoundEngine, CastleParameters, CastleTimeUtils,
+  CastleVectors, CastleApplicationProperties;
 
 var
-  Buffer: TSoundBuffer;
   URL: string;
+  Sound: TCastleSound;
 begin
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
@@ -39,19 +44,42 @@ begin
     URL := 'castle-data:/temple-adam-goh.ogg';
     //'castle-data:/tone.wav';
 
-  { Load and play sound, without any spatialization.
-    Sound backend (like OpenAL) will be automatically initialized when needed below.
+  { Sound backend (like OpenAL) will be automatically initialized when needed below.
     Although you could also initialize it explicitly by SoundEngine.ContextOpen,
     check SoundEngine.Information, SoundEngine.IsContextOpenSuccess etc. }
-  Buffer := SoundEngine.LoadBuffer(URL);
-  Writeln('Sound loaded, duration in seconds: ', Buffer.Duration:1:2);
-  SoundEngine.PlaySound(Buffer);
 
-  { Wait enough time to finish playing. (because PlaySound above doesn't block).
-    In this simple program, we just sleep enough time
-    to finish playing sound, with some margin. Alternative, more precise way
-    to do this would be query is sound playing (call SoundEngine.Refresh
-    from time to time, and watch out for TSound.OnRelease event;
-    PlaySound returns TSound instance for such purposes). }
-  Sleep(Round(Buffer.Duration * 1000) + 500);
+  { Load and play sound, without any spatialization. }
+  Sound := TCastleSound.Create(nil);
+  try
+    Sound.URL := URL;
+    Writeln('Sound loaded, duration in seconds: ', Sound.Duration:1:2);
+    SoundEngine.Play(Sound);
+
+    { Wait enough time to finish playing.
+      In this simple program, we just sleep enough time
+      to finish playing the sound + 0.1 second delay. }
+    Sleep(Round(Sound.Duration * 1000) + 100);
+
+    { The above approach to wait is not suitable for most real applications,
+      where you don't want to call Sleep as it just hangs your process.
+      The proper solution is to use TCastlePlayingSound,
+      and watch until TCastlePlayingSound.Playing is false,
+      or register event on TCastlePlayingSound.OnStop.
+
+      Example:
+
+    PlayingSound := TCastlePlayingSound.Create(nil);
+    PlayingSound.Sound := Sound;
+    PlayingSound.FreeOnStop := true;
+    SoundEngine.Play(PlayingSound);
+    while PlayingSound.Playing do
+    begin
+      // do anything, like
+      // Sleep(10);
+      // Appplication.ProcessAllMessages;
+    end;
+    }
+  finally
+    FreeAndNil(Sound);
+  end;
 end.

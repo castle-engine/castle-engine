@@ -53,7 +53,7 @@
       <Filename Value="castle-curves"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="code/;../../src/base"/>
+      <IncludeFiles Value="code/;../../src/common_includes"/>
       <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Parsing>

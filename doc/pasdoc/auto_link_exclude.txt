@@ -205,6 +205,7 @@ location
 log
 logic
 long
+loop
 looping
 major
 material
@@ -259,6 +260,7 @@ pitch
 plane
 planes
 platform
+play
 played
 player
 playing

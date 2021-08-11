@@ -140,7 +140,7 @@
       <Filename Value="castle-engine"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="$(ProjOutDir);../../src/base"/>
+      <IncludeFiles Value="$(ProjOutDir);../../src/common_includes"/>
       <OtherUnitFiles Value="embedded_images;../common-code;code"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>

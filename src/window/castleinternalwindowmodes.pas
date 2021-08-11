@@ -269,7 +269,9 @@ begin
   OldCloseQuery := Window.OnCloseQuery;
   OldResize := Window.OnResize;
   OldUpdate := Window.OnUpdate;
+  {$warnings off} // keep deprecated working
   OldTimer := Window.OnTimer;
+  {$warnings on}
   OldMenuClick := Window.OnMenuClick;
   oldCaption := Window.Caption;
   oldUserdata := Window.Userdata;
@@ -312,7 +314,9 @@ begin
   Window.OnCloseQuery := OldCloseQuery;
   Window.OnResize := OldResize;
   Window.OnUpdate := OldUpdate;
+  {$warnings off} // keep deprecated working
   Window.OnTimer := OldTimer;
+  {$warnings on}
   Window.OnMenuClick := OldMenuClick;
   Window.Caption := oldCaption;
   Window.Userdata := oldUserdata;
@@ -393,7 +397,9 @@ begin
   Window.OnRender := nil;
   Window.OnCloseQuery := nil;
   Window.OnUpdate := nil;
+  {$warnings off} // keep deprecated working
   Window.OnTimer := nil;
+  {$warnings on}
   Window.OnResize := nil;
   Window.OnMenuClick := nil;
   Window.OnRender := NewRender;

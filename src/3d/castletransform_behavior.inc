@@ -53,12 +53,12 @@
       @link(TCastleTransform.RemoveBehavior). }
     procedure ParentChanged; virtual;
 
-    { Used to check that the one and only instance of BehaviorClass in Parent
-      is Self. }
-    procedure SingleInstanceOfBehavior;
-
     { Used to check that the one and only instance of current class type is Self.
       This is a simpler overload of SingleInstanceOfBehavior. }
+    procedure SingleInstanceOfBehavior;
+
+    { Used to check that the one and only instance of BehaviorClass in Parent
+      is Self. }
     procedure SingleInstanceOfBehavior(const BehaviorClass: TCastleBehaviorClass);
   public
     { Parent TCastleTransform of this behavior.
@@ -72,6 +72,37 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+{ TCastleTransform.TCastleBehaviorEnumerator ------------------------------------------------- }
+
+{ TCastleBehaviorEnumerator is optimized to be a record, following
+  https://hallvards.blogspot.com/2007/10/more-fun-with-enumerators.html }
+
+constructor TCastleTransform.TCastleBehaviorEnumerator.Create(const AParent: TCastleTransform);
+begin
+//  inherited Create;
+  FParent := AParent;
+  FPosition := -1;
+end;
+
+function TCastleTransform.TCastleBehaviorEnumerator.GetCurrent: TCastleBehavior;
+begin
+  Result := FParent.Behaviors[FPosition];
+end;
+
+function TCastleTransform.TCastleBehaviorEnumerator.MoveNext: Boolean;
+begin
+  Inc(FPosition);
+  Result := FPosition < FParent.BehaviorsCount;
+end;
+
+function TCastleTransform.TCastleBehaviorEnumerator.GetEnumerator: TCastleBehaviorEnumerator;
+begin
+  // Returns itself. See https://wiki.freepascal.org/for-in_loop
+  Result := Self;
+end;
+
+{ TCastleBehavior ------------------------------------------------------------ }
 
 procedure TCastleBehavior.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 begin

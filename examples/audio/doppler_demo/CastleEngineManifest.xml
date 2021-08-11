@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="doppler_demo"
-  standalone_source="doppler_demo.lpr"
+  standalone_source="doppler_demo_standalone.lpr"
+  game_units="GameInitialize"
   qualified_name="io.castleengine.doppler.demo"
+  caption="Doppler Effect Demo"
 >
   <compiler_options>
     <search_paths>

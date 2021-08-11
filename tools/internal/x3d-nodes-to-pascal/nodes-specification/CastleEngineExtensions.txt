@@ -23,6 +23,7 @@
 # to declare KambiAppearance by EXTERNPROTO and fallback on standard
 # Appearance.
 KambiAppearance : Appearance {
+  auto-generate-more: true
 }
 
 GeneratedShadowMap : X3DSingleTextureNode {
@@ -37,20 +38,20 @@ GeneratedShadowMap : X3DSingleTextureNode {
     range: ["COMPARE_R_LEQUAL"|"COMPARE_R_GEQUAL"|"NONE"]
 }
 
-Text3D : X3DGeometryNode {
-  MFString   [in,out]      string      []
-  SFNode     [in,out]      fontStyle   NULL
-  MFFloat    [in,out]      length      []
-  SFFloat    [in,out]      maxExtent   0
+Text3D : Text {
+  auto-generate-more: true
   SFFloat    [in,out]      depth       0.1
     range: >= 0
-  SFBool     [in,out]      solid       TRUE
+    change: chGeometry
 }
 
 KambiInline : Inline {
+  auto-generate-more: true
   MFString   [in,out]      replaceNames  []
+    change: chEverything
   MFNode     [in,out]      replaceNodes  []
     range: X3DNode
+    change: chEverything
 }
 
 KambiNavigationInfo : NavigationInfo {
