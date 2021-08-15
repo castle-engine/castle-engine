@@ -584,10 +584,7 @@ begin
           PackageModeToName[PackageMode] + PathDelim +
           'app-' + PackageModeToName[PackageMode] + '.aab',
           Project.OutputPath + PackageName);
-        {$IFDEF UNIX}
-        // TODO: Should be replaced by DoMakeExecutable from https://github.com/castle-engine/castle-engine/pull/302/commits/888690fdac181b6f140a71fd0d5ac20a7d7b59e6
-        Writeln('FpChmod = ' + FpChmod(Project.OutputPath + PackageName, &777).ToString);
-        {$ENDIF}
+        DoMakeExecutable(Project.OutputPath + PackageName);
       end;
     else
       raise Exception.Create('Unexpected PackageFormat in PackageAndroid: ' + PackageFormatToString(PackageFormat));
