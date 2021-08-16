@@ -28,15 +28,21 @@ unit CastlePropEdits;
 
 interface
 
+uses PropEdits;
+
 var
   PropertyEditorsAdviceDataDirectory: Boolean;
+
+{$define read_interface}
+{$I castlepropedits_url.inc}
+{$undef read_interface}
 
 procedure Register;
 
 implementation
 
 uses SysUtils, Classes, TypInfo, Forms,
-  PropEdits, ComponentEditors, LResources, Dialogs, Controls, LCLVersion,
+  ComponentEditors, LResources, Dialogs, Controls, LCLVersion,
   OpenGLContext, Graphics,
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes, CastleCameras,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
@@ -44,9 +50,13 @@ uses SysUtils, Classes, TypInfo, Forms,
   CastleTiledMap, CastleGLImages, CastleStringUtils, CastleTransformExtra,
   CastleInternalExposeTransformsDialog, CastleSoundEngine, CastleFonts;
 
+{$define read_implementation}
+{$I castlepropedits_url.inc}
+
+{ These include files are only used in the implementation,
+  they don't look at read_interface/read_implementation symbols. }
 {$I castlepropedits_any_subproperties.inc}
 {$I castlepropedits_autoanimation.inc}
-{$I castlepropedits_url.inc}
 {$I castlepropedits_color.inc}
 {$I castlepropedits_vector.inc}
 {$I castlepropedits_image.inc}
