@@ -49,6 +49,8 @@ function StringsReplace(const S: string; OldPattern, NewPattern: array of string
 function StrToQWord(const S: String): QWord;
 
 function IsWild(InputStr, Wilds: string; IgnoreCase: Boolean): Boolean;
+
+procedure FillDWord(var X; const Count: SizeInt; const Value: DWord);
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -289,6 +291,20 @@ begin
     Wilds:=AnsiUpperCase(Wilds);
     end;
   Result:=isMatch(1,inputStr,wilds,1,1,MaxinputWord, MaxWilds,EOS);
+end;
+
+procedure FillDWord(var X; const Count: SizeInt; const Value: DWord);
+var
+  I: SizeInt;
+  PX: PDWord;
+begin
+  // TODO: Find better solution
+  PX := Pointer(X);
+  for I := 0 to Count - 1 do
+  begin
+    Move(Value, PX^, SizeOf(Value));
+    Inc(PX);
+  end;
 end;
 {$endif read_implementation}
 

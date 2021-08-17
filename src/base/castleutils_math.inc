@@ -379,6 +379,10 @@ function NtoBE(const Value: Double): Double; overload;
 function LEtoN(const Value: Single): Single; overload;
 function LEtoN(const Value: Double): Double; overload;
 
+{$ifndef FPC}
+function BEtoN(const Value: DWord): DWord; overload;
+function BEtoN(const Value: QWord): QWord; overload;
+{$endif}
 function BEtoN(const Value: Single): Single; overload;
 function BEtoN(const Value: Double): Double; overload;
 { @groupEnd }
@@ -1172,6 +1176,27 @@ begin
   Result := Value;
 {$endif ENDIAN_BIG}
 end;
+
+{$ifndef FPC}
+  function BEtoN(const Value: DWord): DWord;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Value;
+  {$else ENDIAN_BIG}
+    Result := Swap32(Value);
+  {$endif ENDIAN_BIG}
+  end;
+
+  function BEtoN(const Value: QWord): QWord;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Value;
+  {$else ENDIAN_BIG}
+    Result := Swap64(Value);
+  {$endif ENDIAN_BIG}
+  end;
+{$endif}
+
 
 function BEtoN(const Value: Single): Single;
 begin

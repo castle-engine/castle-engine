@@ -158,6 +158,7 @@ type
       ReleaseCachedResources --- only the ones that affect TShapeCache. }
     function EqualForShapeCache(SecondValue: TCastleRenderOptions): boolean; virtual;
 
+    {$ifdef FPC}
     { @deprecated @exclude Old name for @link(Textures). }
     property EnableTextures: boolean
       read FTextures write SetTextures default true; deprecated 'use Textures';
@@ -193,6 +194,7 @@ type
       @exclude }
     property CustomShaderAlphaTest: TObject read FCustomShaderAlphaTest write FCustomShaderAlphaTest;
       deprecated 'use Effect node to define GLSL shaders that are more flexible';
+    {$endif FPC}
 
     { Rendering mode, can be used to disable many rendering features at once. }
     property Mode: TRenderingMode read FMode write SetMode default rmFull;
@@ -233,6 +235,7 @@ type
       read FSolidColorBlendingPipeline
       write FSolidColorBlendingPipeline;
 
+    {$ifdef FPC}
     { @deprecated @exclude Ignored now.
 
       Set to @true to make diffuse texture affect only material diffuse color
@@ -255,6 +258,7 @@ type
       read FSeparateDiffuseTexture
       write FSeparateDiffuseTexture default false;
       deprecated 'rendering always behaves as if this was true now, with Phong shading';
+    {$endif FPC}
 
     { Wireframe color, used with some WireframeEffect values.
       Default value is DefaultWireframeColor. }
@@ -288,7 +292,7 @@ type
     property HierarchicalOcclusionQuery: boolean
       read FHierarchicalOcclusionQuery
       write FHierarchicalOcclusionQuery default false;
-      experimental;
+      {$ifdef FPC}experimental;{$endif FPC}
 
     { View only the shapes that were detected as visible by occlusion query
       in last Render.
@@ -353,13 +357,13 @@ type
     { Size of points. This has an effect on TPointSetNode rendering.
       Must be > 0. }
     property PointSize: Single
-      read FPointSize write FPointSize default DefaultPointSize;
+      read FPointSize write FPointSize {$ifdef FPC}default DefaultPointSize{$endif};
 
     { Line width. This has an effect on TLineSetNode rendering,
       and on wireframe rendering when @link(TCastleRenderOptions.WireframeEffect) indicates it.
       Must be > 0. }
     property LineWidth: Single
-      read FLineWidth write FLineWidth default DefaultLineWidth;
+      read FLineWidth write FLineWidth {$ifdef FPC}default DefaultLineWidth{$endif};
 
     { Use bump mapping. The bump mapping is only done when particular shape
       defines a normal map (and a height map, if you want parallax bump mapping).
@@ -484,10 +488,10 @@ type
     property WireframeEffect: TWireframeEffect
       read FWireframeEffect write FWireframeEffect default weNormal;
 
-    property SolidWireframeScale: Single read FSolidWireframeScale write FSolidWireframeScale default DefaultSolidWireframeScale;
-    property SolidWireframeBias: Single read FSolidWireframeBias write FSolidWireframeBias default DefaultSolidWireframeBias;
-    property SilhouetteScale: Single read FSilhouetteScale write FSilhouetteScale default DefaultSilhouetteScale;
-    property SilhouetteBias: Single read FSilhouetteBias write FSilhouetteBias default DefaultSilhouetteBias;
+    property SolidWireframeScale: Single read FSolidWireframeScale write FSolidWireframeScale {$ifdef FPC}default DefaultSolidWireframeScale{$endif};
+    property SolidWireframeBias: Single read FSolidWireframeBias write FSolidWireframeBias {$ifdef FPC}default DefaultSolidWireframeBias{$endif};
+    property SilhouetteScale: Single read FSilhouetteScale write FSilhouetteScale {$ifdef FPC}default DefaultSilhouetteScale{$endif};
+    property SilhouetteBias: Single read FSilhouetteBias write FSilhouetteBias {$ifdef FPC}default DefaultSilhouetteBias{$endif};
 
     { Should we use ARB_occlusion_query (if available) to avoid rendering
       shapes that didn't pass occlusion test in previous frame.

@@ -37,7 +37,9 @@
 { note: this unit's definitions conflict with other definitions used in this file
   But we need it for RegisterDeviceNotification, therefore adding it to the very
   first position in the uses list to be overwritten by subsequent used units }
+{$ifdef FPC}
 JwaWinUser, JwaDbt,
+{$endif}
 { /note }
 Windows, CommDlg,
 {$endif}

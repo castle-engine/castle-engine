@@ -1,5 +1,4 @@
 package castle_base;
-
 {$R *.res}
 {$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
 {$ALIGN 8}
@@ -52,6 +51,10 @@ contains
   castleuriutils in '..\..\src\files\castleuriutils.pas',
   castledownload in '..\..\src\files\castledownload.pas',
   castlefilesutils in '..\..\src\files\castlefilesutils.pas',
-  castlefindfiles in '..\..\src\files\castlefindfiles.pas';
+  castlefindfiles in '..\..\src\files\castlefindfiles.pas',
+  castleglutils in '..\..\src\images\opengl\castleglutils.pas',
+  castleimages in '..\..\src\images\castleimages.pas',
+  castleinternalpng in '..\..\src\images\castleinternalpng.pas',
+  castlecompositeimage in '..\..\src\images\castlecompositeimage.pas';
 
 end.

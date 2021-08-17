@@ -31,12 +31,14 @@ end.
 
 interface
 
-{$ifndef DELPHI}
+{$ifdef FPC}
   { for linux for linking with libc }
   {$ifdef unix}
     {$linklib c}
   {$endif}
   {$PACKRECORDS 4}
+{$else}
+  {$ALIGN 4}
 {$endif}
 
 const
@@ -237,6 +239,7 @@ begin
   ZLibrary := TDynLib.Load(ZLibraryName, false);
   if ZLibrary <> nil then
   begin
+  {$ifdef FPC}
     Pointer(zlibVersionpchar) := ZLibrary.Symbol('zlibVersion');
     Pointer(deflate) := ZLibrary.Symbol('deflate');
     Pointer(deflateEnd) := ZLibrary.Symbol('deflateEnd');
@@ -278,6 +281,49 @@ begin
     Pointer(zErrorpchar) := ZLibrary.Symbol('zError');
     Pointer(inflateSyncPoint) := ZLibrary.Symbol('inflateSyncPoint');
     Pointer(get_crc_table) := ZLibrary.Symbol('get_crc_table');
+    {$else}
+    zlibVersionpchar := ZLibrary.Symbol('zlibVersion');
+    deflate := ZLibrary.Symbol('deflate');
+    deflateEnd := ZLibrary.Symbol('deflateEnd');
+    inflate := ZLibrary.Symbol('inflate');
+    inflateEnd := ZLibrary.Symbol('inflateEnd');
+    deflateSetDictionary := ZLibrary.Symbol('deflateSetDictionary');
+    deflateCopy := ZLibrary.Symbol('deflateCopy');
+    deflateReset := ZLibrary.Symbol('deflateReset');
+    deflateParams := ZLibrary.Symbol('deflateParams');
+    inflateSetDictionary := ZLibrary.Symbol('inflateSetDictionary');
+    inflateSync := ZLibrary.Symbol('inflateSync');
+    inflateReset := ZLibrary.Symbol('inflateReset');
+    compress := ZLibrary.Symbol('compress');
+    compress2 := ZLibrary.Symbol('compress2');
+    uncompress := ZLibrary.Symbol('uncompress');
+    gzopen := ZLibrary.Symbol('gzopen');
+    gzdopen := ZLibrary.Symbol('gzdopen');
+    gzsetparams := ZLibrary.Symbol('gzsetparams');
+    gzread := ZLibrary.Symbol('gzread');
+    gzwrite := ZLibrary.Symbol('gzwrite');
+  //  Pointer(gzprintf) := ZLibrary.Symbol('gzprintf');
+    gzputs := ZLibrary.Symbol('gzputs');
+    gzgets := ZLibrary.Symbol('gzgets');
+    gzputc := ZLibrary.Symbol('gzputc');
+    gzgetc := ZLibrary.Symbol('gzgetc');
+    gzflush := ZLibrary.Symbol('gzflush');
+    gzseek := ZLibrary.Symbol('gzseek');
+    gzrewind := ZLibrary.Symbol('gzrewind');
+    gztell := ZLibrary.Symbol('gztell');
+    gzeof := ZLibrary.Symbol('gzeof');
+    gzclose := ZLibrary.Symbol('gzclose');
+    gzerror := ZLibrary.Symbol('gzerror');
+    adler32 := ZLibrary.Symbol('adler32');
+    crc32 := ZLibrary.Symbol('crc32');
+    deflateInit_ := ZLibrary.Symbol('deflateInit_');
+    inflateInit_ := ZLibrary.Symbol('inflateInit_');
+    deflateInit2_ := ZLibrary.Symbol('deflateInit2_');
+    inflateInit2_ := ZLibrary.Symbol('inflateInit2_');
+    zErrorpchar := ZLibrary.Symbol('zError');
+    inflateSyncPoint := ZLibrary.Symbol('inflateSyncPoint');
+    get_crc_table := ZLibrary.Symbol('get_crc_table');
+    {$endif}
   end;
 
   if not CastleZLibInitialized then

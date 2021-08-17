@@ -69,11 +69,11 @@ procedure glColorv(const v: TVector4f); overload; //deprecated 'instead of this,
 
 { }
 procedure glTranslatev(const V: TVector3f); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
-procedure glTranslatev(const V: TVector3_Single); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
+{$ifdef FPC} procedure glTranslatev(const V: TVector3_Single); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';{$endif}
 
 procedure glScalev(const V: Single); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
 procedure glScalev(const V: TVector3f); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
-procedure glScalev(const V: TVector3_Single); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
+{$ifdef FPC}procedure glScalev(const V: TVector3_Single); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';{$endif}
 
 procedure glRotatev(const Angle: TGLfloat;  const V: TVector3f); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
 
@@ -90,9 +90,11 @@ procedure glVertexv(const v: TVector3i); overload;
 procedure glVertexv(const v: TVector4f); overload;
 procedure glVertexv(const v: TVector4i); overload;
 
+{$ifdef FPC}
 procedure glVertexv(const v: TVector2_Single); overload;
 procedure glVertexv(const v: TVector3_Single); overload;
 procedure glVertexv(const v: TVector4_Single); overload;
+{$endif FPC}
 
 procedure glTexCoordv(const v: TVector2f); overload;
 procedure glTexCoordv(const v: TVector3f); overload;

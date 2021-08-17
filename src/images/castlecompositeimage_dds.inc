@@ -620,7 +620,7 @@ var
     { We could do this code *always*, not only on big-endian machines.
       But it does nothing on little-endian machines, so it's a waste of time
       there, so only do it in -dDEBUG mode. }
-    {$if defined(ENDIAN_BIG) or defined(DEBUG)}
+    {$if defined(FPC) and (defined(ENDIAN_BIG) or defined(DEBUG))}
     Header.Size                    := LEToN(Header.Size                   );
     Header.Flags                   := LEToN(Header.Flags                  );
     Header.Height                  := LEToN(Header.Height                 );
@@ -719,7 +719,7 @@ var
       { We could do this code *always*, not only on big-endian machines.
         But it does nothing on little-endian machines, so it's a waste of time
         there, so only do it in -dDEBUG mode. }
-      {$if defined(ENDIAN_BIG) or defined(DEBUG)}
+      {$if defined(FPC) and (defined(ENDIAN_BIG) or defined(DEBUG))}
       HeaderDxt10.DxgiFormat        := LEToN(HeaderDxt10.DxgiFormat       );
       HeaderDxt10.ResourceDimension := LEToN(HeaderDxt10.ResourceDimension);
       HeaderDxt10.MiscFlag          := LEToN(HeaderDxt10.MiscFlag         );
@@ -1354,7 +1354,7 @@ procedure TDDSHandler.SaveToStream(const Stream: TStream);
     { We could do this code *always*, not only on big-endian machines.
       But it does nothing on little-endian machines, so it's a waste of time
       there, so only do it in -dDEBUG mode. }
-    {$if defined(ENDIAN_BIG) or defined(DEBUG)}
+    {$if defined(FPC) and (defined(ENDIAN_BIG) or defined(DEBUG))}
     Header.Size                    := NToLE(Header.Size                   );
     Header.Flags                   := NToLE(Header.Flags                  );
     Header.Height                  := NToLE(Header.Height                 );

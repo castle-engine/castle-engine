@@ -60,7 +60,7 @@ unit CastleGLShaders;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  {$ifdef FPC}{$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif} {$else} OpenGL, OpenGLext, {$endif}
   CastleGLUtils, CastleUtils, CastleVectors, CastleRenderOptions;
 
 type
@@ -275,7 +275,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    property Support: TGLSupport read FSupport; deprecated 'use GLFeatures.Shaders';
+    {$ifdef FPC}property Support: TGLSupport read FSupport; deprecated 'use GLFeatures.Shaders';{$endif}
 
     { Create shader from given string, compile it and attach to current program.
 
@@ -398,6 +398,7 @@ type
       read FUniformNotFoundAction write FUniformNotFoundAction
       default uaException;
 
+    {$ifdef FPC}
     { What to do when GLSL uniform variable is set
       (by @link(TGLSLUniform.SetValue) or @link(SetUniform))
       but is declared with an incompatible type in the shader source.
@@ -410,6 +411,7 @@ type
       read FUniformTypeMismatchAction write FUniformTypeMismatchAction
       default utGLError;
       deprecated 'do not use this, it is ignored (old implementation was prohibitively slow)';
+    {$endif}
 
     { Get the uniform instance. It can be used to make repeated
       @link(TGLSLUniform.SetValue) calls. You must link the program first.
@@ -584,12 +586,14 @@ type
     {$endif}
     { @groupEnd }
 
+    {$ifdef FPC}
     { Currently enabled GLSL program.
       @nil if fixed-function pipeline should be used.
       Setting this property encapsulates the OpenGL glUseProgram
       (or equivalent ARB extension), additionally preventing redundant glUseProgram
       calls. }
     class property Current: TGLSLProgram read GetCurrent write SetCurrent; deprecated 'use RenderContext.CurrentProgram';
+    {$endif}
   end;
 
   TGLSLProgramList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TGLSLProgram>;
@@ -632,7 +636,7 @@ begin
   if Len <> 0 then
   begin
     SetLength(Result, Len);
-    glGetShaderInfoLog(ShaderId, Len, @Len2, PChar(Result));
+    glGetShaderInfoLog(ShaderId, Len, @Len2, PAnsiChar(Result));
     StringReplaceAllVar(Result, #0, NL);
   end else
     Result := '';

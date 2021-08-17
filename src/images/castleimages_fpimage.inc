@@ -27,6 +27,7 @@
   /usr/share/pixmaps/flamerobin.xpm
 }
 
+{$ifdef FPC}
 { TInternalCastleFpImage ----------------------------------------------------- }
 
 function CreateFpImage(const Width, Height: Integer): TInternalCastleFpImage;
@@ -395,19 +396,29 @@ begin
     FreeAndNil(Writer);
   end;
 end;
-
+{$endif}
 { LoadXxx, SaveXxx for particular image file formats ------------------------- }
 
 function LoadGIF(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderGIF.Create, ifGIF);
+  {$ifdef FPC}
+    Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderGIF.Create, ifGIF);
+  {$else}
+    // TODO: Delphi support
+    raise Exception.Create('Not implemented (Delphi)!');
+  {$endif}
 end;
 
 function LoadTGA(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderTarga.Create, ifTGA);
+  {$ifdef FPC}
+    Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderTarga.Create, ifTGA);
+  {$else}
+    // TODO: Delphi support
+    raise Exception.Create('Not implemented (Delphi)!');
+  {$endif}
 end;
 
 {
@@ -424,44 +435,80 @@ end;
 function LoadXPM(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderXPM.Create, ifXPM);
+  {$ifdef FPC}
+    Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderXPM.Create, ifXPM);
+  {$else}
+    // TODO: Delphi support
+    raise Exception.Create('Not implemented (Delphi)!');
+  {$endif}
 end;
 
 function LoadPSD(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPSD.Create, ifPSD);
+  {$ifdef FPC}
+    Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPSD.Create, ifPSD);
+  {$else}
+    // TODO: Delphi support
+    raise Exception.Create('Not implemented (Delphi)!');
+  {$endif}
 end;
 
 function LoadPCX(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPCX.Create, ifPCX);
+  {$ifdef FPC}
+    Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPCX.Create, ifPCX);
+  {$else}
+    // TODO: Delphi support
+    raise Exception.Create('Not implemented (Delphi)!');
+  {$endif}
 end;
 
 function LoadJPEG(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderJPEG.Create, ifJPEG);
+  {$ifdef FPC}
+    Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderJPEG.Create, ifJPEG);
+  {$else}
+    // TODO: Delphi support
+    raise Exception.Create('Not implemented (Delphi)!');
+  {$endif}
 end;
 
 function LoadPNG_FPImage(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPNG.Create, ifPNG);
+  {$ifdef FPC}
+    Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPNG.Create, ifPNG);
+  {$else}
+    // TODO: Delphi support
+    raise Exception.Create('Not implemented (Delphi)!');
+  {$endif}
 end;
 
 function LoadPNM(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPNM.Create, ifPNM);
+  {$ifdef FPC}
+    Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPNM.Create, ifPNM);
+  {$else}
+    // TODO: Delphi support
+    raise Exception.Create('Not implemented (Delphi)!');
+  {$endif}
 end;
 
 procedure SaveJPEG(const Img: TEncodedImage; const Stream: TStream);
 begin
-  SaveFpImage(Img, Stream, TFPWriterJPEG.Create);
+  {$ifdef FPC}
+    SaveFpImage(Img, Stream, TFPWriterJPEG.Create);
+  {$else}
+    // TODO: Delphi support
+    raise Exception.Create('Not implemented (Delphi)!');
+  {$endif}
 end;
 
+{$ifdef FPC}
 procedure SavePNG_FPImage(const Img: TEncodedImage; const Stream: TStream);
 var
   Writer: TFPWriterPNG;
@@ -530,3 +577,4 @@ begin
     finally FreeAndNil(Interpolator) end;
   finally FreeAndNil(FPImageSource) end;
 end;
+{$endif FPC}

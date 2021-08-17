@@ -547,7 +547,7 @@ png_malloc_ptr = Function (Arg1 : png_structp; Arg2 : png_size_t) : png_voidp ;{
 png_free_ptr = Procedure (Arg1 : png_structp; Arg2 : png_voidp) ; {$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
 
    png_struct_def = record
-        jmpbuf : jmp_buf;
+        jmpbuf : {$ifdef FPC} jmp_buf {$else} pointer {$endif};
         error_fn : png_error_ptr;
         warning_fn : png_error_ptr;
         error_ptr : png_voidp;
@@ -971,6 +971,7 @@ begin
 
   if PngLibrary <> nil then
   begin
+  {$ifdef FPC}
     Pointer(png_access_version_number) := PngLibrary.Symbol('png_access_version_number');
     Pointer(png_set_sig_bytes) := PngLibrary.Symbol('png_set_sig_bytes');
     Pointer(png_sig_cmp) := PngLibrary.Symbol('png_sig_cmp');
@@ -1149,6 +1150,186 @@ begin
     Pointer(png_set_sCAL_s) := PngLibrary.Symbol('png_set_sCAL_s');
     Pointer(png_set_dither) := PngLibrary.Symbol('png_set_dither');
     {$endif LIBPNG_DEPRECATED}
+    {$else}
+    png_access_version_number := PngLibrary.Symbol('png_access_version_number');
+    png_set_sig_bytes := PngLibrary.Symbol('png_set_sig_bytes');
+    png_sig_cmp := PngLibrary.Symbol('png_sig_cmp');
+    png_create_read_struct := PngLibrary.Symbol('png_create_read_struct');
+    png_create_write_struct := PngLibrary.Symbol('png_create_write_struct');
+    png_get_compression_buffer_size := PngLibrary.Symbol('png_get_compression_buffer_size');
+    png_set_compression_buffer_size := PngLibrary.Symbol('png_set_compression_buffer_size');
+    png_reset_zstream := PngLibrary.Symbol('png_reset_zstream');
+    png_write_chunk := PngLibrary.Symbol('png_write_chunk');
+    png_write_chunk_start := PngLibrary.Symbol('png_write_chunk_start');
+    png_write_chunk_data := PngLibrary.Symbol('png_write_chunk_data');
+    png_write_chunk_end := PngLibrary.Symbol('png_write_chunk_end');
+    png_create_info_struct := PngLibrary.Symbol('png_create_info_struct');
+    png_write_info_before_PLTE := PngLibrary.Symbol('png_write_info_before_PLTE');
+    png_write_info := PngLibrary.Symbol('png_write_info');
+    png_read_info := PngLibrary.Symbol('png_read_info');
+    png_convert_to_rfc1123 := PngLibrary.Symbol('png_convert_to_rfc1123');
+    png_convert_from_struct_tm := PngLibrary.Symbol('png_convert_from_struct_tm');
+    png_convert_from_time_t := PngLibrary.Symbol('png_convert_from_time_t');
+    png_set_expand := PngLibrary.Symbol('png_set_expand');
+    png_set_palette_to_rgb := PngLibrary.Symbol('png_set_palette_to_rgb');
+    png_set_tRNS_to_alpha := PngLibrary.Symbol('png_set_tRNS_to_alpha');
+    png_set_bgr := PngLibrary.Symbol('png_set_bgr');
+    png_set_gray_to_rgb := PngLibrary.Symbol('png_set_gray_to_rgb');
+    png_set_rgb_to_gray := PngLibrary.Symbol('png_set_rgb_to_gray');
+    png_set_rgb_to_gray_fixed := PngLibrary.Symbol('png_set_rgb_to_gray_fixed');
+    png_get_rgb_to_gray_status := PngLibrary.Symbol('png_get_rgb_to_gray_status');
+    png_build_grayscale_palette := PngLibrary.Symbol('png_build_grayscale_palette');
+    png_set_strip_alpha := PngLibrary.Symbol('png_set_strip_alpha');
+    png_set_swap_alpha := PngLibrary.Symbol('png_set_swap_alpha');
+    png_set_invert_alpha := PngLibrary.Symbol('png_set_invert_alpha');
+    png_set_filler := PngLibrary.Symbol('png_set_filler');
+    png_set_swap := PngLibrary.Symbol('png_set_swap');
+    png_set_packing := PngLibrary.Symbol('png_set_packing');
+    png_set_packswap := PngLibrary.Symbol('png_set_packswap');
+    png_set_shift := PngLibrary.Symbol('png_set_shift');
+    png_set_interlace_handling := PngLibrary.Symbol('png_set_interlace_handling');
+    png_set_invert_mono := PngLibrary.Symbol('png_set_invert_mono');
+    png_set_background := PngLibrary.Symbol('png_set_background');
+    png_set_strip_16 := PngLibrary.Symbol('png_set_strip_16');
+    png_set_gamma := PngLibrary.Symbol('png_set_gamma');
+    png_set_flush := PngLibrary.Symbol('png_set_flush');
+    png_write_flush := PngLibrary.Symbol('png_write_flush');
+    png_start_read_image := PngLibrary.Symbol('png_start_read_image');
+    png_read_update_info := PngLibrary.Symbol('png_read_update_info');
+    png_read_rows := PngLibrary.Symbol('png_read_rows');
+    png_read_row := PngLibrary.Symbol('png_read_row');
+    png_read_image := PngLibrary.Symbol('png_read_image');
+    png_write_row := PngLibrary.Symbol('png_write_row');
+    png_write_rows := PngLibrary.Symbol('png_write_rows');
+    png_write_image := PngLibrary.Symbol('png_write_image');
+    png_write_end := PngLibrary.Symbol('png_write_end');
+    png_read_end := PngLibrary.Symbol('png_read_end');
+    png_destroy_info_struct := PngLibrary.Symbol('png_destroy_info_struct');
+    png_destroy_read_struct := PngLibrary.Symbol('png_destroy_read_struct');
+    png_destroy_write_struct := PngLibrary.Symbol('png_destroy_write_struct');
+    png_set_crc_action := PngLibrary.Symbol('png_set_crc_action');
+    png_set_filter := PngLibrary.Symbol('png_set_filter');
+    png_set_filter_heuristics := PngLibrary.Symbol('png_set_filter_heuristics');
+    png_set_compression_level := PngLibrary.Symbol('png_set_compression_level');
+    png_set_compression_mem_level := PngLibrary.Symbol('png_set_compression_mem_level');
+    png_set_compression_strategy := PngLibrary.Symbol('png_set_compression_strategy');
+    png_set_compression_window_bits := PngLibrary.Symbol('png_set_compression_window_bits');
+    png_set_compression_method := PngLibrary.Symbol('png_set_compression_method');
+    png_init_io := PngLibrary.Symbol('png_init_io');
+    png_set_error_fn := PngLibrary.Symbol('png_set_error_fn');
+    png_get_error_ptr := PngLibrary.Symbol('png_get_error_ptr');
+    png_set_write_fn := PngLibrary.Symbol('png_set_write_fn');
+    png_set_read_fn := PngLibrary.Symbol('png_set_read_fn');
+    png_get_io_ptr := PngLibrary.Symbol('png_get_io_ptr');
+    png_set_read_status_fn := PngLibrary.Symbol('png_set_read_status_fn');
+    png_set_write_status_fn := PngLibrary.Symbol('png_set_write_status_fn');
+    png_set_read_user_transform_fn := PngLibrary.Symbol('png_set_read_user_transform_fn');
+    png_set_write_user_transform_fn := PngLibrary.Symbol('png_set_write_user_transform_fn');
+    png_set_user_transform_info := PngLibrary.Symbol('png_set_user_transform_info');
+    png_get_user_transform_ptr := PngLibrary.Symbol('png_get_user_transform_ptr');
+    png_set_read_user_chunk_fn := PngLibrary.Symbol('png_set_read_user_chunk_fn');
+    png_get_user_chunk_ptr := PngLibrary.Symbol('png_get_user_chunk_ptr');
+    png_set_progressive_read_fn := PngLibrary.Symbol('png_set_progressive_read_fn');
+    png_get_progressive_ptr := PngLibrary.Symbol('png_get_progressive_ptr');
+    png_process_data := PngLibrary.Symbol('png_process_data');
+    png_progressive_combine_row := PngLibrary.Symbol('png_progressive_combine_row');
+    png_malloc := PngLibrary.Symbol('png_malloc');
+    png_free := PngLibrary.Symbol('png_free');
+    png_free_data := PngLibrary.Symbol('png_free_data');
+    png_data_freer := PngLibrary.Symbol('png_data_freer');
+    png_error := PngLibrary.Symbol('png_error');
+    png_chunk_error := PngLibrary.Symbol('png_chunk_error');
+    png_warning := PngLibrary.Symbol('png_warning');
+    png_chunk_warning := PngLibrary.Symbol('png_chunk_warning');
+    png_get_valid := PngLibrary.Symbol('png_get_valid');
+    png_get_rowbytes := PngLibrary.Symbol('png_get_rowbytes');
+    png_get_rows := PngLibrary.Symbol('png_get_rows');
+    png_set_rows := PngLibrary.Symbol('png_set_rows');
+    png_get_channels := PngLibrary.Symbol('png_get_channels');
+    png_get_image_width := PngLibrary.Symbol('png_get_image_width');
+    png_get_image_height := PngLibrary.Symbol('png_get_image_height');
+    png_get_bit_depth := PngLibrary.Symbol('png_get_bit_depth');
+    png_get_color_type := PngLibrary.Symbol('png_get_color_type');
+    png_get_filter_type := PngLibrary.Symbol('png_get_filter_type');
+    png_get_interlace_type := PngLibrary.Symbol('png_get_interlace_type');
+    png_get_compression_type := PngLibrary.Symbol('png_get_compression_type');
+    png_get_pixels_per_meter := PngLibrary.Symbol('png_get_pixels_per_meter');
+    png_get_x_pixels_per_meter := PngLibrary.Symbol('png_get_x_pixels_per_meter');
+    png_get_y_pixels_per_meter := PngLibrary.Symbol('png_get_y_pixels_per_meter');
+    png_get_pixel_aspect_ratio := PngLibrary.Symbol('png_get_pixel_aspect_ratio');
+    png_get_x_offset_pixels := PngLibrary.Symbol('png_get_x_offset_pixels');
+    png_get_y_offset_pixels := PngLibrary.Symbol('png_get_y_offset_pixels');
+    png_get_x_offset_microns := PngLibrary.Symbol('png_get_x_offset_microns');
+    png_get_y_offset_microns := PngLibrary.Symbol('png_get_y_offset_microns');
+    png_get_signature := PngLibrary.Symbol('png_get_signature');
+    png_get_bKGD := PngLibrary.Symbol('png_get_bKGD');
+    png_set_bKGD := PngLibrary.Symbol('png_set_bKGD');
+    png_get_cHRM := PngLibrary.Symbol('png_get_cHRM');
+    png_get_cHRM_fixed := PngLibrary.Symbol('png_get_cHRM_fixed');
+    png_set_cHRM := PngLibrary.Symbol('png_set_cHRM');
+    png_set_cHRM_fixed := PngLibrary.Symbol('png_set_cHRM_fixed');
+    png_get_gAMA := PngLibrary.Symbol('png_get_gAMA');
+    png_get_gAMA_fixed := PngLibrary.Symbol('png_get_gAMA_fixed');
+    png_set_gAMA := PngLibrary.Symbol('png_set_gAMA');
+    png_set_gAMA_fixed := PngLibrary.Symbol('png_set_gAMA_fixed');
+    png_get_hIST := PngLibrary.Symbol('png_get_hIST');
+    png_set_hIST := PngLibrary.Symbol('png_set_hIST');
+    png_get_IHDR := PngLibrary.Symbol('png_get_IHDR');
+    png_set_IHDR := PngLibrary.Symbol('png_set_IHDR');
+    png_get_oFFs := PngLibrary.Symbol('png_get_oFFs');
+    png_set_oFFs := PngLibrary.Symbol('png_set_oFFs');
+    png_get_pCAL := PngLibrary.Symbol('png_get_pCAL');
+    png_set_pCAL := PngLibrary.Symbol('png_set_pCAL');
+    png_get_pHYs := PngLibrary.Symbol('png_get_pHYs');
+    png_set_pHYs := PngLibrary.Symbol('png_set_pHYs');
+    png_get_PLTE := PngLibrary.Symbol('png_get_PLTE');
+    png_set_PLTE := PngLibrary.Symbol('png_set_PLTE');
+    png_get_sBIT := PngLibrary.Symbol('png_get_sBIT');
+    png_set_sBIT := PngLibrary.Symbol('png_set_sBIT');
+    png_get_sRGB := PngLibrary.Symbol('png_get_sRGB');
+    png_set_sRGB := PngLibrary.Symbol('png_set_sRGB');
+    png_set_sRGB_gAMA_and_cHRM := PngLibrary.Symbol('png_set_sRGB_gAMA_and_cHRM');
+    png_get_iCCP := PngLibrary.Symbol('png_get_iCCP');
+    png_set_iCCP := PngLibrary.Symbol('png_set_iCCP');
+    png_get_sPLT := PngLibrary.Symbol('png_get_sPLT');
+    png_set_sPLT := PngLibrary.Symbol('png_set_sPLT');
+    png_get_text := PngLibrary.Symbol('png_get_text');
+    png_set_text := PngLibrary.Symbol('png_set_text');
+    png_get_tIME := PngLibrary.Symbol('png_get_tIME');
+    png_set_tIME := PngLibrary.Symbol('png_set_tIME');
+    png_get_tRNS := PngLibrary.Symbol('png_get_tRNS');
+    png_set_tRNS := PngLibrary.Symbol('png_set_tRNS');
+    png_get_sCAL := PngLibrary.Symbol('png_get_sCAL');
+    png_set_sCAL := PngLibrary.Symbol('png_set_sCAL');
+    png_set_keep_unknown_chunks := PngLibrary.Symbol('png_set_keep_unknown_chunks');
+    png_set_unknown_chunks := PngLibrary.Symbol('png_set_unknown_chunks');
+    png_set_unknown_chunk_location := PngLibrary.Symbol('png_set_unknown_chunk_location');
+    png_get_unknown_chunks := PngLibrary.Symbol('png_get_unknown_chunks');
+    png_set_invalid := PngLibrary.Symbol('png_set_invalid');
+    png_read_png := PngLibrary.Symbol('png_read_png');
+    png_write_png := PngLibrary.Symbol('png_write_png');
+    png_get_header_ver := PngLibrary.Symbol('png_get_header_ver');
+    png_get_header_version := PngLibrary.Symbol('png_get_header_version');
+
+    { Allow png_set_expand_gray_1_2_4_to_8 to be nil when not found in library }
+    PngLibrary.SymbolError := seReturnNil;
+    png_set_expand_gray_1_2_4_to_8 := PngLibrary.Symbol('png_set_expand_gray_1_2_4_to_8');
+    PngLibrary.SymbolError := seRaise;
+
+    {$ifdef LIBPNG_DEPRECATED}
+    png_check_sig := PngLibrary.Symbol('png_check_sig');
+    png_info_init := PngLibrary.Symbol('png_info_init');
+    png_set_gray_1_2_4_to_8 := PngLibrary.Symbol('png_set_gray_1_2_4_to_8');
+    png_permit_empty_plte := PngLibrary.Symbol('png_permit_empty_plte');
+    png_memcpy_check := PngLibrary.Symbol('png_memcpy_check');
+    png_memset_check := PngLibrary.Symbol('png_memset_check');
+    png_read_destroy := PngLibrary.Symbol('png_read_destroy');
+    png_write_destroy_info := PngLibrary.Symbol('png_write_destroy_info');
+    png_write_destroy := PngLibrary.Symbol('png_write_destroy');
+    png_set_sCAL_s := PngLibrary.Symbol('png_set_sCAL_s');
+    png_set_dither := PngLibrary.Symbol('png_set_dither');
+    {$endif LIBPNG_DEPRECATED}
+    {$endif}
 
     { In case of incompatible version, free PngLibrary,
       making sure that CastlePngInitialized is @false.

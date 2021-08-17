@@ -21,8 +21,8 @@ unit CastleGLUtils;
 
 interface
 
-uses SysUtils, Math, Matrix, Generics.Collections,
-  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+uses SysUtils, Math, {$ifdef FPC} Matrix, {$endif} Generics.Collections,
+  {$ifdef FPC}{$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif} {$else} OpenGL, OpenGLext, {$endif}
   CastleImages, CastleUtils, CastleVectors, CastleRectangles,
   CastleColors, CastleProjection, CastleRenderOptions;
 

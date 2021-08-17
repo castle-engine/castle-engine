@@ -564,7 +564,9 @@ end;
 
 { We dereference here memory allocated with PNG, so pointer checks
   will make false errors. }
+{$ifdef CASTLE_OBJFPC}
 {$checkpointer off}
+{$endif}
 
 procedure our_png_read_fn(png_ptr: png_structp; data: png_bytep; len: png_size_t);
   {$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
@@ -628,7 +630,7 @@ var
   end;
 
 var
-  row_pointers: TFPList;
+  row_pointers: {$ifdef FPC}TFPList{$else}TList{$endif};
   i: Cardinal;
   IsAlpha, IsGrayscale: boolean;
 begin
@@ -736,7 +738,7 @@ begin
          PngResult.PixelSize * PngResult.Width]));
 
    { now ready row_pointers as ScanLines }
-   row_pointers := TFPList.Create;
+   row_pointers := {$ifdef FPC}TFPList{$else}TList{$endif}.Create;
    try
     row_pointers.Count := result.Height;
     for i := 0 to result.Height-1 do
@@ -766,7 +768,7 @@ procedure SavePNG_LibPng(const Img: TEncodedImage; const Stream: TStream; const 
 var png_ptr: png_structp;
     info_ptr: png_infop;
     InterlaceType: LongWord;
-    row_pointers: TFPList;
+    row_pointers: {$ifdef FPC}TFPList{$else}TList{$endif};
     i: Cardinal;
     ColorType: LongInt;
 begin
@@ -813,7 +815,7 @@ begin
     This is much simpler than LoadPNG_LibPng, since we don't need to transform
     the format, e.g. we just use always 8 bits per channel. }
 
-  row_pointers := TFPList.Create;
+  row_pointers := {$ifdef FPC}TFPList{$else}TList{$endif}.Create;
   try
    row_pointers.Count := Img.Height;
    for i := 0 to Img.Height-1 do

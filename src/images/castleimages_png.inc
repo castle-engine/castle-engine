@@ -23,7 +23,12 @@ begin
     Result := LoadPNG_LibPng(Stream, AllowedImageClasses)
   else
   {$endif}
+  {$ifdef FPC}
     Result := LoadPNG_FPImage(Stream, AllowedImageClasses);
+  {$else}
+    raise Exception.Create('LibPNG not initialized');
+    // TODO: Delphi solution
+  {$endif}
 end;
 
 procedure SavePNG(const Img: TEncodedImage; const Stream: TStream);
@@ -33,5 +38,10 @@ begin
     SavePNG_LibPng(Img, Stream)
   else
   {$endif}
+  {$ifdef FPC}
     SavePNG_FPImage(Img, Stream);
+  {$else}
+    raise Exception.Create('LibPNG not initialized');
+    // TODO: Delphi solution
+  {$endif}
 end;
