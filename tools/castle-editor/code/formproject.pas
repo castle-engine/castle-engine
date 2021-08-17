@@ -845,6 +845,7 @@ procedure TProjectForm.FormShow(Sender: TObject);
 
 var
   NewWidth, NewHeight, NewLeft, NewTop, NewControlHeight: Integer;
+  NewWindowState: TWindowState;
 begin
   if UserConfig.GetValue('ProjectForm_Saved', false) then
   begin
@@ -853,17 +854,37 @@ begin
     NewLeft := UserConfig.GetValue('ProjectForm_Left', -MaxInt);
     NewTop := UserConfig.GetValue('ProjectForm_Top', -MaxInt);
     NewControlHeight := UserConfig.GetValue('ProjectForm_PageControlBottom.Height', -MaxInt);
-    WindowState := StrToWindowState(UserConfig.GetValue('ProjectForm_WindowState', 'wsNormal'));
-    if (NewWidth + NewLeft <= Screen.Width + 32) and (NewWidth > 128) and
-       (NewHeight + NewTop <= Screen.Height + 32) and (NewHeight > 128) and
-       (NewControlHeight < NewHeight) and (NewControlHeight >= 0) and
-       (NewLeft > -32) and (NewTop > -32) then
-    begin
-      Width := NewWidth;
-      Height := NewHeight;
-      Left := NewLeft;
-      Top := NewTop;
-      PageControlBottom.Height := NewControlHeight;
+    NewWindowState := StrToWindowState(UserConfig.GetValue('ProjectForm_WindowState', 'wsNormal'));
+
+    { Apply new values.
+      Note that we don't apply position/size values when NewWindowState <> wsMaximized,
+      as on Windows this causes form to flicker when it appears (initially with invalid sizes
+      inside a maximized form). }
+    case NewWindowState of
+      wsNormal:
+        begin
+          WindowState := NewWindowState;
+          if (NewWidth + NewLeft <= Screen.Width + 32) and (NewWidth > 128) and
+             (NewHeight + NewTop <= Screen.Height + 32) and (NewHeight > 128) and
+             (NewControlHeight < NewHeight) and (NewControlHeight >= 0) and
+             (NewLeft > -32) and (NewTop > -32) then
+          begin
+            Width := NewWidth;
+            Height := NewHeight;
+            Left := NewLeft;
+            Top := NewTop;
+            PageControlBottom.Height := NewControlHeight;
+          end;
+        end;
+      wsMaximized:
+        begin
+          WindowState := NewWindowState;
+          { We use NewControlHeight, just like with wsNormal, but with a different condition. }
+          if (NewControlHeight <= Screen.Height - 32) and (NewControlHeight >= 0) then
+          begin
+            PageControlBottom.Height := NewControlHeight;
+          end;
+        end;
     end;
   end;
 end;
