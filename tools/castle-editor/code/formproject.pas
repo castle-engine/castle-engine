@@ -1552,8 +1552,20 @@ procedure TProjectForm.BuildToolCall(const Commands: array of String;
     end;
   end;
 
+  procedure AddModeParameters(const Params: TStrings);
+  var
+    ModeString: String;
+  begin
+    case BuildMode of
+      bmDebug  : ModeString := '--mode=debug';
+      bmRelease: ModeString := '--mode=release';
+      else raise EInternalError.Create('BuildMode?');
+    end;
+    Params.Add(ModeString);
+  end;
+
 var
-  BuildToolExe, ModeString, Command: String;
+  BuildToolExe, Command: String;
   QueueItem: TAsynchronousProcessQueue.TQueueItem;
 begin
   if RunningProcess <> nil then
@@ -1564,12 +1576,6 @@ begin
   begin
     ErrorBox('Cannot find build tool (castle-engine). Set the $CASTLE_ENGINE_PATH or $PATH environment variables or place all tools in CGE bin/ subdirectory.');
     Exit;
-  end;
-
-  case BuildMode of
-    bmDebug  : ModeString := '--mode=debug';
-    bmRelease: ModeString := '--mode=release';
-    else raise EInternalError.Create('BuildMode?');
   end;
 
   SetEnabledCommandRun(false);
@@ -1585,14 +1591,26 @@ begin
     QueueItem := TAsynchronousProcessQueue.TQueueItem.Create;
     QueueItem.ExeName := BuildToolExe;
     QueueItem.CurrentDirectory := ProjectPath;
-    QueueItem.Parameters.Add(ModeString);
     QueueItem.Parameters.Add(Command);
+    // add --mode=xxx parameter
+    if not (
+        (Command = 'package-source') or
+        (Command = 'clean') or
+        (Command = 'auto-generate-textures') or
+        (Command = 'auto-generate-clean') or
+        (Command = 'generate-program') or
+        (Command = 'editor') or
+        (Command = 'editor-rebuild-if-needed') or
+        (Command = 'editor-run')
+      ) then
+      AddModeParameters(QueueItem.Parameters);
+    // add --target, --os, --cpu parameters
     if (Command = 'compile') or
        (Command = 'run') or
        (Command = 'package') or
        (Command = 'install') then
       AddPlatformParameters(QueueItem.Parameters, PlatformsInfo[CurrentPlatformInfo]);
-    // editor always does --fast, as its more comfortable for normal development
+    // editor always add --fast to package, as its more comfortable for normal development
     if (Command = 'package') then
       QueueItem.Parameters.Add('--fast');
     RunningProcess.Queue.Add(QueueItem);
