@@ -78,24 +78,24 @@ procedure InfoWriteParts(const TitleFormat: string; const Messages: array of str
     if you use LCL.
 
   @groupBegin }
-procedure WindowsErrorBox  (const Text:string; const caption:string ='Error'      ; parent:HWND =0); forward;
-procedure WindowsInfoBox   (const Text:string; const caption:string ='Information'; parent:HWND =0); forward;
-procedure WindowsWarningBox(const Text:string; const caption:string ='Warning'    ; parent:HWND =0); forward;
+procedure WindowsErrorBox  (const Text: String; const Caption: String = 'Error'      ; const Parent: HWND = 0); forward;
+procedure WindowsInfoBox   (const Text: String; const Caption: String = 'Information'; const Parent: HWND = 0); forward;
+procedure WindowsWarningBox(const Text: String; const Caption: String = 'Warning'    ; const Parent: HWND = 0); forward;
 { @groupEnd }
 
-procedure WindowsErrorBox(const Text:string; const caption:string; parent:HWND);
+procedure WindowsErrorBox(const Text: String; const Caption: String; const Parent: HWND);
 begin
- MessageBox(parent,PChar(Text),PChar(caption),MB_OK or MB_ICONERROR or MB_TASKMODAL);
+  MessageBox(Parent, PChar(Text), PChar(Caption), MB_OK or MB_ICONERROR or MB_TASKMODAL);
 end;
 
-procedure WindowsInfoBox(const Text:string; const caption:string;parent:HWND);
+procedure WindowsInfoBox(const Text: String; const Caption: String; const Parent: HWND);
 begin
- MessageBox(parent,PChar(Text),PChar(caption),MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
+  MessageBox(Parent, PChar(Text), PChar(Caption), MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
 end;
 
-procedure WindowsWarningBox(const Text:string; const caption:string;parent:HWND);
+procedure WindowsWarningBox(const Text: String; const Caption: String; const Parent: HWND);
 begin
- MessageBox(parent,PChar(Text),PChar(caption),MB_OK or MB_ICONWARNING or MB_TASKMODAL);
+  MessageBox(Parent, PChar(Text), PChar(Caption), MB_OK or MB_ICONWARNING or MB_TASKMODAL);
 end;
 
 {$endif}
