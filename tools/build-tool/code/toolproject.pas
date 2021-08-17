@@ -23,7 +23,7 @@ interface
 uses SysUtils, Classes, Generics.Collections,
   CastleFindFiles, CastleStringUtils, CastleUtils,
   ToolArchitectures, ToolCompile, ToolUtils, ToolServices, ToolAssocDocTypes,
-  ToolPackage, ToolManifest;
+  ToolPackage, ToolManifest, ToolProcessWait;
 
 type
   ECannotGuessManifest = class(Exception);
@@ -120,6 +120,8 @@ type
     procedure DoAutoGenerateClean(const CleanAll: Boolean);
     procedure DoGenerateProgram;
     procedure DoEditor;
+    procedure DoEditorRebuildIfNeeded;
+    procedure DoEditorRun(const WaitForProcessId: TProcessId);
 
     { Information about the project, derived from CastleEngineManifest.xml. }
     { }
@@ -1369,6 +1371,39 @@ begin
 end;
 
 procedure TCastleProject.DoEditor;
+begin
+  DoEditorRebuildIfNeeded;
+  DoEditorRun(0);
+end;
+
+procedure TCastleProject.DoEditorRebuildIfNeeded;
+var
+  CgePath, EditorPath: String;
+begin
+  if Trim(Manifest.EditorUnits) <> '' then
+  begin
+    { Check CastleEnginePath, since without this, compiling custom castle-editor.lpi
+      will always fail. }
+    CgePath := CastleEnginePath;
+    if CgePath = '' then
+      raise Exception.Create('Cannot find Castle Game Engine sources. Make sure that the environment variable CASTLE_ENGINE_PATH is correctly defined.');
+
+    // create custom editor directory
+    EditorPath := TempOutputPath(Path) + 'editor' + PathDelim;
+    { Do not remove previous directory contents,
+      allows to reuse previous lazbuild compilation results.
+      Just silence ExtractTemplate warnings when overriding. }
+    ExtractTemplate('custom_editor_template/', EditorPath, true);
+
+    // use lazbuild to compile CGE packages and CGE editor
+    RunLazbuild(Path, [CgePath + 'packages' + PathDelim + 'castle_base.lpk']);
+    RunLazbuild(Path, [CgePath + 'packages' + PathDelim + 'castle_components.lpk']);
+    RunLazbuild(Path, [EditorPath + 'castle_editor_automatic_package.lpk']);
+    RunLazbuild(Path, [EditorPath + 'castle_editor.lpi']);
+  end;
+end;
+
+procedure TCastleProject.DoEditorRun(const WaitForProcessId: TProcessId);
 
   { Copy external libraries to LibrariesOutputPath. }
   procedure AddExternalLibraries(const LibrariesOutputPath: String);
@@ -1400,8 +1435,11 @@ procedure TCastleProject.DoEditor;
   end;
 
 var
-  EditorExe, CgePath, EditorPath: String;
+  EditorExe, EditorPath: String;
 begin
+  if WaitForProcessId <> 0 then
+    WaitForProcessExit(WaitForProcessId);
+
   if Trim(Manifest.EditorUnits) = '' then
   begin
     EditorExe := FindExeCastleTool('castle-editor');
@@ -1409,26 +1447,12 @@ begin
       raise Exception.Create('Cannot find "castle-editor" program on $PATH or within $CASTLE_ENGINE_PATH/bin directory.');
   end else
   begin
-    { Check CastleEnginePath, since without this, compiling custom castle-editor.lpi
-      will always fail. }
-    CgePath := CastleEnginePath;
-    if CgePath = '' then
-      raise Exception.Create('Cannot find Castle Game Engine sources. Make sure that the environment variable CASTLE_ENGINE_PATH is correctly defined.');
-
-    // create custom editor directory
+    // here EditorPath and EditorExe are calculated like in DoEditorRebuildIfNeeded
     EditorPath := TempOutputPath(Path) + 'editor' + PathDelim;
-    { Do not remove previous directory contents,
-      allows to reuse previous lazbuild compilation results.
-      Just silence ExtractTemplate warnings when overriding. }
-    ExtractTemplate('custom_editor_template/', EditorPath, true);
-
-    // use lazbuild to compile CGE packages and CGE editor
-    RunLazbuild(Path, [CgePath + 'packages' + PathDelim + 'castle_base.lpk']);
-    RunLazbuild(Path, [CgePath + 'packages' + PathDelim + 'castle_components.lpk']);
-    RunLazbuild(Path, [EditorPath + 'castle_editor_automatic_package.lpk']);
-    RunLazbuild(Path, [EditorPath + 'castle_editor.lpi']);
-
+    { This can be done only once previous editor process finished,
+      to not block EXE and DLL files on Windows. }
     AddExternalLibraries(EditorPath);
+    // TODO: rename exe from -new -> ''
 
     EditorExe := EditorPath + 'castle-editor' + ExeExtension;
     if not RegularFileExists(EditorExe) then
@@ -1578,6 +1602,7 @@ begin
   end;
 
   IOSSystemCapabilities := '';
+  // TODO: These service-specifics should be in CastleEngineService.xml now
   if IOSServices.HasService('apple_game_center') then
   begin
     IOSSystemCapabilities := IOSSystemCapabilities +

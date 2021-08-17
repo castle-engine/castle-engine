@@ -253,7 +253,7 @@ type
       PlatformsInfo: TPlatformInfoList;
       CurrentPlatformInfo: Integer; //< Index to PlatformsInfo
     procedure BuildToolCall(const Commands: array of String;
-      const ExitOnSuccess: Boolean = false);
+      const RestartOnSuccess: Boolean = false);
     procedure BuildToolCallFinished(Sender: TObject);
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuItemDesignNewCustomRootClick(Sender: TObject);
@@ -295,6 +295,7 @@ type
       selected item in ShellListView1. }
     procedure ViewFileFrameUpdate;
     procedure MenuItemPlatformChangeClick(Sender: TObject);
+    procedure RestartEditor(Sender: TObject);
   public
     { Open a project, given an absolute path to CastleEngineManifest.xml }
     procedure OpenProject(const ManifestUrl: String);
@@ -316,7 +317,7 @@ uses TypInfo, LCLType,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
   CastleClassUtils,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
-  ToolCompilerInfo, ToolCommonUtils, ToolArchitectures;
+  ToolCompilerInfo, ToolCommonUtils, ToolArchitectures, ToolProcessWait;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
 begin
@@ -352,7 +353,7 @@ end;
 
 procedure TProjectForm.MenuItemRestartRebuildEditorClick(Sender: TObject);
 begin
-  BuildToolCall(['editor'], true);
+  BuildToolCall(['editor-rebuild-if-needed'], true);
 end;
 
 procedure TProjectForm.MenuItemSaveAsDesignClick(Sender: TObject);
@@ -1531,7 +1532,7 @@ begin
 end;
 
 procedure TProjectForm.BuildToolCall(const Commands: array of String;
-  const ExitOnSuccess: Boolean);
+  const RestartOnSuccess: Boolean);
 
   procedure AddPlatformParameters(const Params: TStrings; const PlatformInfo: TPlatformInfo);
   begin
@@ -1561,7 +1562,7 @@ begin
   BuildToolExe := FindExeCastleTool('castle-engine');
   if BuildToolExe = '' then
   begin
-    ErrorBox('Cannot find build tool (castle-engine) on $PATH environment variable.');
+    ErrorBox('Cannot find build tool (castle-engine). Set the $CASTLE_ENGINE_PATH or $PATH environment variables or place all tools in CGE bin/ subdirectory.');
     Exit;
   end;
 
@@ -1597,12 +1598,40 @@ begin
     RunningProcess.Queue.Add(QueueItem);
   end;
 
-  if ExitOnSuccess then
-    RunningProcess.OnSuccessfullyFinishedAll := @MenuItemQuitClick
-  else
-    RunningProcess.OnFinished := @BuildToolCallFinished;
+  if RestartOnSuccess then
+    RunningProcess.OnSuccessfullyFinishedAll := @RestartEditor;
+  RunningProcess.OnFinished := @BuildToolCallFinished;
 
   RunningProcess.Start;
+end;
+
+procedure TProjectForm.RestartEditor(Sender: TObject);
+var
+  BuildToolExe: String;
+begin
+  if ProposeSaveDesign then
+  begin
+    { Run custom editor, and finish current process.
+      We use --wait-for-process-exit primarily because on Windows,
+      we need to "unlock" the exe, to be able to copy new exe over the old exe
+      (otherwise recompiling the custom editor could not just place
+      new editor at the same exe).
+      It is also sensible on all platforms, to make sure previous editor closes
+      stuf (e.g. config files) reliably. }
+    BuildToolExe := FindExeCastleTool('castle-engine');
+    if BuildToolExe = '' then
+    begin
+      ErrorBox('Cannot find build tool (castle-engine). Set the $CASTLE_ENGINE_PATH or $PATH environment variables or place all tools in CGE bin/ subdirectory.');
+      Exit;
+    end;
+
+    RunCommandNoWait(ProjectPath, BuildToolExe,
+      ['editor-run', '--gui-errors', '--wait-for-process-exit', IntToStr(CurrentProcessId)]);
+
+    { Once ProposeSaveDesign and RunCommandNoWait are both successful,
+      we want to terminate ASAP as user is waiting for new editor to run. }
+    Application.Terminate;
+  end;
 end;
 
 procedure TProjectForm.BuildToolCallFinished(Sender: TObject);

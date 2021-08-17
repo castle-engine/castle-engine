@@ -23,13 +23,14 @@
   automatically created by "castle-engine compile". }
 {$ifdef CASTLE_AUTO_GENERATED_RESOURCES} {$R castle-auto-generated-resources.res} {$endif}
 
-uses SysUtils,
+uses {$ifdef MSWINDOWS} Windows, {$endif}
+  SysUtils,
   ToolDisableDynamicLibraries, //< use this unit early, before any other CGE unit
   CastleUtils, CastleParameters, CastleFindFiles, CastleLog,
   CastleFilesUtils, CastleURIUtils, CastleStringUtils,
   CastleApplicationProperties,
   ToolPackage, ToolProject, ToolCompile, ToolIOS, ToolAndroid,
-  ToolNintendoSwitch, ToolCommonUtils, ToolArchitectures, ToolUtils;
+  ToolNintendoSwitch, ToolCommonUtils, ToolArchitectures, ToolUtils, ToolProcessWait;
 
 var
   Target: TTarget;
@@ -44,9 +45,11 @@ var
   PackageNameIncludeVersion: Boolean = true;
   UpdateOnlyCode: Boolean = false;
   CleanAll: Boolean = false;
+  WaitForProcessId: TProcessId = 0;
+  GuiErrors: Boolean = false;
 
 const
-  Options: array [0..19] of TOption =
+  Options: array [0..21] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
@@ -67,7 +70,9 @@ const
     (Short: #0 ; Long: 'update-only-code'; Argument: oaNone),
     (Short: #0 ; Long: 'ios-simulator'; Argument: oaNone),
     (Short: #0 ; Long: 'all'; Argument: oaNone),
-    (Short: #0 ; Long: 'manifest-name'; Argument: oaRequired)
+    (Short: #0 ; Long: 'manifest-name'; Argument: oaRequired),
+    (Short: #0 ; Long: 'wait-for-process-exit'; Argument: oaRequired),
+    (Short: #0 ; Long: 'gui-errors'; Argument: oaNone)
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -97,22 +102,22 @@ begin
             NL+
             'Possible commands:' +NL+
             NL+
-            'create-manifest:' +NL+
+            'create-manifest' +NL+
             '    Creates simple CastleEngineManifest.xml with guessed values.' +NL+
             NL+
-            'compile:' +NL+
+            'compile' +NL+
             '    Compile project.' +NL+
             '    By default compiles for the current OS / current CPU (' + OSToString(DefaultOS) + ' / ' + CPUToString(DefaultCPU) + ').' +NL+
             '    You can use --os / --cpu options to compile to some other OS / CPU.' +NL+
             '    You can use --target to compile for a collection of OS / CPU' +NL+
             '    combination (like "iOS" or "Android").' +NL+
             NL+
-            'package:' +NL+
+            'package' +NL+
             '    Package the application into the best archive format for given' +NL+
             '    operating system (OS) / processor (CPU) / target.' +NL+
             '    The OS, CPU and "target" can be changed just like at "compile".' +NL+
             NL+
-            'install:' +NL+
+            'install' +NL+
             '    Install the application created by previous "package" call.' +NL+
             '    Useful when OS is "android", it installs' +NL+
             '    the apk package created by previous "package" call' +NL+
@@ -120,7 +125,7 @@ begin
             '    connected through USB.' +NL+
             '    Useful also for installing compiled web browser plugin.' +NL+
             NL+
-            'run:' +NL+
+            'run' +NL+
             '    Run the application. ' +NL+
             '    On some platforms, it requires installing the application first' +NL+
             '    (e.g. on Android, where we install and run on a device' +NL+
@@ -129,14 +134,14 @@ begin
             '    it simply runs the last compiled application.' +NL+
             '    So just "compile" the application first.' +NL+
             NL+
-            'package-source:' +NL+
+            'package-source' +NL+
             '    Package the source code of the application.' +NL+
             NL +
-            'clean:' +NL+
+            'clean' +NL+
             '    Clean leftover files from compilation and packaging.' +NL+
             '    Does not remove final packaging output.' +NL+
             NL+
-            'simple-compile:' +NL+
+            'simple-compile' +NL+
             '    Compile the Object Pascal file (unit/program/library) given' +NL+
             '    as a parameter. This does not handle the Castle Game Engine projects' +NL+
             '    defined by CastleEngineManifest.xml files.' +NL+
@@ -145,22 +150,28 @@ begin
             '    Use this instead of "compile" only if there''s some good reason' +NL+
             '    you don''t want to use CastleEngineManifest.xml to your project.' +NL+
             NL+
-            'auto-generate-textures:' +NL+
+            'auto-generate-textures' +NL+
             '    Create GPU-compressed versions of textures,' +NL+
             '    for the textures mentioned in <auto_compressed_textures>' +NL+
             '    inside the file data/material_properties.xml.' +NL+
             NL+
-            'auto-generate-clean:' +NL+
+            'auto-generate-clean' +NL+
             '    Clear "auto_compressed" subdirectories, that should contain only' +NL+
             '    the output created by "auto-generate-textures" target.' +NL+
             NL+
-            'generate-program:' +NL+
+            'generate-program' +NL+
             '    Generate files to edit and run this project in Lazarus: lpr, lpi, castleautogenerated unit.' +NL+
             '    Depends on game_units being defined in the CastleEngineManifest.xml.' +NL+
             NL+
-            'editor:' +NL+
+            'editor' +NL+
             '    Run Castle Game Engine Editor within this project, with possible' +NL+
             '    project-specific components.' +NL+
+            NL+
+            'editor-rebuild-if-needed' +NL+
+            '    Internal. 1st part of "editor" command.' + NL +
+            NL+
+            'editor-run [--wait-for-process-exit PROCESS-ID]' +NL+
+            '    Internal. 2nd part of "editor" command.' + NL +
             NL+
             'Available options are:' +NL+
             HelpOptionHelp +NL+
@@ -240,6 +251,8 @@ begin
     17: IosSimulatorSupport := true;
     18: CleanAll := true;
     19: ManifestName := Argument;
+    20: WaitForProcessId := StrToInt64(Argument);
+    21: GuiErrors := true;
     else raise EInternalError.Create('OptionProc');
   end;
 end;
@@ -366,12 +379,25 @@ begin
       if Command = 'editor' then
         Project.DoEditor
       else
+      if Command = 'editor-rebuild-if-needed' then
+        Project.DoEditorRebuildIfNeeded
+      else
+      if Command = 'editor-run' then
+        Project.DoEditorRun(WaitForProcessId)
+      else
         raise EInvalidParams.CreateFmt('Invalid COMMAND to perform: "%s". Use --help to get usage information', [Command]);
     finally FreeAndNil(Project) end;
   end;
 
   FreeAndNil(CompilerExtraOptions);
 end;
+
+{$ifdef MSWINDOWS}
+procedure WindowsErrorBox(const Text: String; const Caption: String = 'Error'; const Parent: HWND = 0);
+begin
+  MessageBox(Parent, PChar(Text), PChar(Caption), MB_OK or MB_ICONERROR or MB_TASKMODAL);
+end;
+{$endif}
 
 begin
   try
@@ -382,7 +408,12 @@ begin
       { In case of exception, write nice message and exit with non-zero status,
         without dumping any stack trace (because it's normal for build tool to
         exit with exception in case of project/environment error, not a bug). }
-      Writeln(ErrOutput, ExceptMessage(E));
+      {$ifdef MSWINDOWS}
+      if GuiErrors then
+        WindowsErrorBox(ExceptMessage(E))
+      else
+      {$endif}
+        Writeln(ErrOutput, ExceptMessage(E));
       Halt(1);
     end;
   end;
