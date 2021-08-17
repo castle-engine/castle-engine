@@ -174,7 +174,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="castle-editor"/>
+      <Filename Value="castle-editor-new"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="${CASTLE_ENGINE_PATH}src/common_includes;$(ProjOutDir)"/>

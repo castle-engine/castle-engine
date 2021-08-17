@@ -1435,7 +1435,7 @@ procedure TCastleProject.DoEditorRun(const WaitForProcessId: TProcessId);
   end;
 
 var
-  EditorExe, EditorPath: String;
+  EditorExe, NewEditorExe, EditorPath: String;
 begin
   if WaitForProcessId <> 0 then
     WaitForProcessExit(WaitForProcessId);
@@ -1449,14 +1449,16 @@ begin
   begin
     // here EditorPath and EditorExe are calculated like in DoEditorRebuildIfNeeded
     EditorPath := TempOutputPath(Path) + 'editor' + PathDelim;
+
     { This can be done only once previous editor process finished,
       to not block EXE and DLL files on Windows. }
     AddExternalLibraries(EditorPath);
-    // TODO: rename exe from -new -> ''
 
+    NewEditorExe := EditorPath + 'castle-editor-new' + ExeExtension;
     EditorExe := EditorPath + 'castle-editor' + ExeExtension;
-    if not RegularFileExists(EditorExe) then
-      raise Exception.Create('Editor should be compiled, but (for an unknown reason) we cannot find file "' + EditorExe + '"');
+    if not RegularFileExists(NewEditorExe) then
+      raise Exception.Create('Editor should be compiled, but we cannot find file "' + NewEditorExe + '"');
+    CheckRenameFile(NewEditorExe, EditorExe);
   end;
 
   RunCommandNoWait(TempOutputPath(Path), EditorExe, [ManifestFile]);
