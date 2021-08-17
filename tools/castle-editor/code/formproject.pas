@@ -1665,7 +1665,8 @@ begin
     end;
 
     RunCommandNoWait(ProjectPath, BuildToolExe,
-      ['editor-run', '--gui-errors', '--wait-for-process-exit', IntToStr(CurrentProcessId)]);
+      ['editor-run', '--gui-errors', '--wait-for-process-exit', IntToStr(CurrentProcessId)],
+      [rcNoConsole]);
 
     { Once ProposeSaveDesign and RunCommandNoWait are both successful,
       we want to terminate ASAP as user is waiting for new editor to run. }

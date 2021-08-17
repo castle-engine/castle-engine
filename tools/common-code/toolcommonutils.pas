@@ -122,7 +122,8 @@ procedure RunCommandSimple(
   it should exist (and preferably be not visible to user, so only temporary). }
 procedure RunCommandNoWait(
   const CurrentDirectory: string;
-  const ExeName: string; const Options: array of string);
+  const ExeName: string; const Options: array of string;
+  const Flags: TRunCommandFlags = []);
 
 { Determine and create a new (unique, with random number in the name) temp directory. }
 function CreateTemporaryDir: string;
@@ -696,7 +697,8 @@ end;
 
 procedure RunCommandNoWait(
   const CurrentDirectory: string;
-  const ExeName: string; const Options: array of string);
+  const ExeName: string; const Options: array of string;
+  const Flags: TRunCommandFlags = []);
 var
   P: TProcess;
   I: Integer;
@@ -741,6 +743,8 @@ begin
       Following http://wiki.lazarus.freepascal.org/Executing_External_Programs . }
     P.InheritHandles := false;
     P.ShowWindow := swoShow;
+    if rcNoConsole in Flags then
+      P.Options := P.Options + [poNoConsole];
 
     WritelnVerbose('Calling ' + P.Executable); // show P.Executable, not ExeName, as code above may set other P.Executable
     WritelnVerbose('  With Working Directory: ' + P.CurrentDirectory);
