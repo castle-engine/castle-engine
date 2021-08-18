@@ -23,8 +23,7 @@
   automatically created by "castle-engine compile". }
 {$ifdef CASTLE_AUTO_GENERATED_RESOURCES} {$R castle-auto-generated-resources.res} {$endif}
 
-uses {$ifdef MSWINDOWS} Windows, {$endif}
-  SysUtils,
+uses SysUtils,
   ToolDisableDynamicLibraries, //< use this unit early, before any other CGE unit
   CastleUtils, CastleParameters, CastleFindFiles, CastleLog,
   CastleFilesUtils, CastleURIUtils, CastleStringUtils,
@@ -218,6 +217,10 @@ begin
               'Use with "auto-generate-clean" command. Indicates to clean everything auto-generated. By default we only clean unused files from "auto_generated" directories.') +NL+
             OptionDescription('--manifest-name=AlternativeManifest.xml',
               'Search and use given "AlternativeManifest.xml" file instead of standard "CastleEngineManifest.xml". Useful if you need to maintain completely different project configurations for any reason.') +NL+
+            OptionDescription('--wait-for-process-exit=PROCESS-ID',
+              'Internal, useful with "editor-run".') +NL+
+            OptionDescription('--gui-errors',
+              'Show errors as GUI boxes. On Unix, requires "zenity" installed.') +NL+
             TargetOptionHelp + NL +
             OSOptionHelp + NL +
             CPUOptionHelp + NL +
@@ -392,13 +395,6 @@ begin
   FreeAndNil(CompilerExtraOptions);
 end;
 
-{$ifdef MSWINDOWS}
-procedure WindowsErrorBox(const Text: String; const Caption: String = 'Error'; const Parent: HWND = 0);
-begin
-  MessageBox(Parent, PChar(Text), PChar(Caption), MB_OK or MB_ICONERROR or MB_TASKMODAL);
-end;
-{$endif}
-
 begin
   try
     Run;
@@ -408,17 +404,11 @@ begin
       { In case of exception, write nice message and exit with non-zero status,
         without dumping any stack trace (because it's normal for build tool to
         exit with exception in case of project/environment error, not a bug). }
-      {$ifdef MSWINDOWS}
       if GuiErrors then
-        WindowsErrorBox(ExceptMessage(E))
+        ErrorBox(ExceptMessage(E))
       else
-      {$endif}
         Writeln(ErrOutput, ExceptMessage(E));
       Halt(1);
-      { Do not warn on non-Windows that GuiErrors is unused. }
-      if GuiErrors then
-      begin
-      end;
     end;
   end;
 end.
