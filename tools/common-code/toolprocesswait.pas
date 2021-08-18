@@ -109,26 +109,18 @@ begin
   end;
 *)
 
-(*
 // Send a signal to test whether process works.
 // SIGCHLD is ignored by default ( https://en.wikipedia.org/wiki/Signal_(IPC) ).
 var
   Res: CInt;
 begin
-  //Writeln('Waiting on process ', ProcessId);
   repeat
     Res := FpKill(ProcessId, SIGCHLD);
     // once process stops existing, kill will return -1, and FpGetErrno = ESRCH
     if Res = -1 then
-    begin
-      //Writeln('Signalling failed ', FpGetErrno, ' assuming process ended');
       Exit;
-    end;
     Sleep(100);
   until false;
-*)
-begin
-  WritelnWarning(Format('TODO: Not waiting for process %d, not implemented.', [ProcessId]));
 
 {$else}
 begin

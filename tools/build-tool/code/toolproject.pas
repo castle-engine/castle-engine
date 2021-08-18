@@ -240,7 +240,8 @@ type
 
 implementation
 
-uses StrUtils, DOM, Process,
+uses {$ifdef UNIX} BaseUnix, {$endif}
+  StrUtils, DOM, Process,
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils,
   ToolResources, ToolAndroid, ToolWindowsRegistry,
   ToolTextureGeneration, ToolIOS, ToolAndroidMerging, ToolNintendoSwitch,
@@ -1405,6 +1406,43 @@ end;
 
 procedure TCastleProject.DoEditorRun(const WaitForProcessId: TProcessId);
 
+  {$ifdef UNIX}
+  { Copied from FPC packages/fcl-extra/src/unix/daemonapp.inc .
+    We need to become a daemon to reliably keep working even if parent process
+    terminates. Otherwise restarting CGE editor after rebuilding new editor
+    fails. }
+  const
+    SErrFailedToFork          = 'Failed to fork daemon process.';
+
+  procedure DaemonizeProgram;
+  var
+    pid, sid: TPid;
+  begin
+    pid := FpFork;
+    if (pid<0) then
+      raise Exception.Create(SErrFailedToFork);
+    if pid>0 then
+    begin
+      // We are now in the main program, which has to terminate
+      FpExit(0);
+    end
+    else
+    begin
+      // Here we are in the daemonized proces
+      sid := FpSetsid;
+      if sid < 0 then
+        raise Exception.Create(SErrFailedToFork);
+      // Reset the file-mask
+      FpUmask(0);
+      // Change the current directory, to avoid locking the current directory
+      chdir('/');
+      FpClose(StdInputHandle);
+      FpClose(StdOutputHandle);
+      FpClose(StdErrorHandle);
+    end;
+  end;
+  {$endif}
+
   { Copy external libraries to LibrariesOutputPath. }
   procedure AddExternalLibraries(const LibrariesOutputPath: String);
   var
@@ -1437,6 +1475,10 @@ procedure TCastleProject.DoEditorRun(const WaitForProcessId: TProcessId);
 var
   EditorExe, NewEditorExe, EditorPath: String;
 begin
+  {$ifdef UNIX}
+  DaemonizeProgram;
+  {$endif}
+
   if WaitForProcessId <> 0 then
     WaitForProcessExit(WaitForProcessId);
 
