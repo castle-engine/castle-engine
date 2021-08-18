@@ -256,7 +256,7 @@ procedure ErrorBox(const Message: String);
 
 begin
   {$ifdef MSWINDOWS}
-  WindowsErrorBox(ExceptMessage(E));
+  WindowsErrorBox(Message);
   {$else}
   RunCommandSimple('zenity', ['--error', '--no-markup', '--text=' + Message]);
   {$endif}
