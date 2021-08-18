@@ -117,9 +117,7 @@ procedure RunCommandSimple(
   const OverrideEnvironmentName: string = '';
   const OverrideEnvironmentValue: string = ''); overload;
 
-{ Run the command, and return immediately, without waiting for finish.
-  On Unix, CurrentDirectory is also used as a location of temporary "nohup" file,
-  it should exist (and preferably be not visible to user, so only temporary). }
+{ Run the command, and return immediately, without waiting for finish. }
 procedure RunCommandNoWait(
   const CurrentDirectory: string;
   const ExeName: string; const Options: array of string;
@@ -692,6 +690,14 @@ end;
 
     This works, as it always makes the run inside process (like "castle-editor") use output to files,
     so that parent (like "castle-engine editor" call) dying has no effect.
+
+    The additional bonus is that we can put the output files in a temporary directory,
+    or send output to /dev/null,
+    regardless of the CurrentDirectory.
+    In contrast, nohup always put nohup.out in current dir,
+    forcing us to always set current dir to temporary dir (to avoid cluttering user-visible dir),
+    which is not always comfortable (e.g. when editor runs build tool,
+    it's easiest to set current directory = project directory).
 }
 {$define UNIX_RUN_NO_WAIT_BY_SHELL}
 
@@ -702,11 +708,10 @@ procedure RunCommandNoWait(
 var
   P: TProcess;
   I: Integer;
-  {$ifdef UNIX} ShCommand: String; {$endif}
+  {$ifdef UNIX} ShCommand, ShCommandOutput: String; {$endif}
 begin
   P := TProcess.Create(nil);
   try
-    // this is useful on Unix, to place output (from nohup or sh) inside temp directory
     P.CurrentDirectory := CurrentDirectory;
 
     {$if defined(UNIX) and defined(UNIX_RUN_NO_WAIT_BY_SHELL)}
@@ -719,7 +724,11 @@ begin
     ShCommand := '"' + ExeName + '"';
     for I := 0 to High(Options) do
       ShCommand += ' "' + Options[I] + '"';
-    ShCommand += '< /dev/null > run-process-no-wait-' + IntToStr(Random(100000)) + '.log 2>&1';
+    ShCommandOutput :=
+      {$ifdef DEBUG_UNIX_RUN_NO_WAIT_BY_SHELL} InclPathDelim(CreateTemporaryDir) + 'run-process-no-wait-' + IntToStr(Random(100000)) + '.log'
+      {$else} '/dev/null'
+      {$endif};
+    ShCommand += '< /dev/null > ' + ShCommandOutput + ' 2>&1';
     P.Parameters.Add(ShCommand);
 
     {$else}
