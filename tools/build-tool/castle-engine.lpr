@@ -415,6 +415,10 @@ begin
       {$endif}
         Writeln(ErrOutput, ExceptMessage(E));
       Halt(1);
+      { Do not warn on non-Windows that GuiErrors is unused. }
+      if GuiErrors then
+      begin
+      end;
     end;
   end;
 end.
