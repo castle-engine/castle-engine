@@ -1503,7 +1503,14 @@ begin
     CheckRenameFile(NewEditorExe, EditorExe);
   end;
 
-  RunCommandNoWait(TempOutputPath(Path), EditorExe, [ManifestFile]);
+  { Running with CurrentDirectory = Path, so that at least on Windows
+    editor can automatically use the DLL files inside the project, like libeffekseer.dll.
+
+    TODO: In the long run, this should change to use EditorPath as current path.
+    Running editor should not "lock" the project DLLs on Windows.
+    We should have a system of services for desktop, to manage DLLs, including custom
+    DLLs like Effekseer and FMOD. }
+  RunCommandNoWait(Path, EditorExe, [ManifestFile]);
 end;
 
 procedure TCastleProject.AddMacrosAndroid(const Macros: TStringStringMap);
