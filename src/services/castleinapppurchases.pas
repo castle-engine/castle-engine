@@ -1,5 +1,5 @@
 {
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,7 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ In-app purchases (TInAppPurchases). }
+{ In-app purchases (TInAppPurchases).
+  See https://github.com/castle-engine/castle-engine/wiki/In-app-Purchases
+  for detailed instructions how to use this. }
 unit CastleInAppPurchases;
 
 {$I castleconf.inc}
@@ -105,36 +107,8 @@ type
   end;
 
   { Manage in-app purchases in your game.
-
-    Typical usage:
-
-    @orderedList(
-      @item(Construct one instance of this class. Or a subclass --
-        it is useful to override some methods of this class for a particular game.)
-
-      @item(Early (e.g. from @link(TCastleApplication.OnInitialize))
-        call @link(SetAvailableProducts), and wait for @link(OnRefreshedPrices)
-        to know the prices about products (in user's local currency).)
-
-      @item(Query the product information using @link(Product) method,
-        and looking at various @link(TInAppProduct) properties.)
-
-      @item(Buy products using @link(Purchase), consume products using @link(Consume),
-        refresh the ownership information using @link(RefreshPurchases).)
-    )
-
-    You need to add a "service" to include the necessary integration code
-    on Android and iOS. For Android, set project type as @code("integrated")
-    and add the @code("google_in_app_purchases") service
-    (see https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine ).
-    For iOS, add the @code("in_app_purchases") service
-    (see https://github.com/castle-engine/castle-engine/wiki/iOS-Services ).
-
-    You need to define the products you want sell in the @italic(Google Play Developer Console)
-    ( https://developer.android.com/distribute/console/index.html ) for Android,
-    or @italic(iTunes Connect) ( https://itunesconnect.apple.com/ ) for iOS.
-    The names of products you provide to @link(SetAvailableProducts)
-    or @link(Product) methods must correspond to product names you set on these websites. }
+    See https://github.com/castle-engine/castle-engine/wiki/In-app-Purchases
+    for detailed instructions how to use this. }
   TInAppPurchases = class(TComponent)
   private
     type
@@ -274,7 +248,7 @@ type
       for this see @link(OnRefreshedPurchases).
 
       See also @link(RefreshedPrices) method. Instead of assigning this event,
-      you cal override @link(RefreshedPrices) method in descendants. }
+      you can also override @link(RefreshedPrices) method in descendants. }
     property OnRefreshedPrices: TNotifyEvent read FOnRefreshedPrices write FOnRefreshedPrices;
 
     { Called when the ownership status of all products is known.
@@ -314,7 +288,8 @@ end;
 function TInAppProduct.Price(const ValueWhenUnknown: string): string;
 begin
   if PriceRaw = '' then
-    Result := ValueWhenUnknown else
+    Result := ValueWhenUnknown
+  else
     { note: do not use SReplaceChars, as these are UTF-8 chars, not 8-bit chars. }
     Result := ConvertSpecialsToAscii(PriceRaw);
 end;
