@@ -138,7 +138,6 @@ begin
   CarScene := TCastleScene.Create(Application);
   CarScene.Load('castle-data:/car.x3d');
   CarScene.Spatial := [ssRendering, ssDynamicCollisions];
-  CarScene.ProcessEvents := true;
   CarScene.PlayAnimation('wheels_turning', true);
 
   for I := Low(CarTransforms) to High(CarTransforms) do
@@ -153,7 +152,6 @@ begin
   RoadScene := TCastleScene.Create(Application);
   RoadScene.Load('castle-data:/road.x3d');
   RoadScene.Spatial := [ssRendering, ssDynamicCollisions];
-  RoadScene.ProcessEvents := true;
 
   Viewport.Items.Add(RoadScene);
   Viewport.Items.MainScene := RoadScene;
