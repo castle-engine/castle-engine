@@ -204,7 +204,7 @@ begin
     TooltipLabel := TCastleLabelTooltip.Create(nil);
     TooltipLabel.ImageType := tiTooltip;
     TooltipLabel.Frame := true;
-    TooltipLabel.Container := Container;
+    TooltipLabel.InternalSetContainer(Container);
     { we know that GL context now exists, so just directly call GLContextOpen }
     TooltipLabel.GLContextOpen;
   end;

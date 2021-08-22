@@ -23,7 +23,8 @@ interface
 uses SysUtils, Classes,
   CastleVectors, CastleUtils, CastleKeysMouse, CastleBoxes, CastleQuaternions,
   CastleFrustum, CastleUIControls, CastleRays, CastleProjection, CastleTimeUtils,
-  CastleInputs, CastleTriangles, CastleRectangles, CastleClassUtils;
+  CastleInputs, CastleTriangles, CastleRectangles, CastleClassUtils,
+  CastleInternalCameraGestures;
 
 type
   { Possible navigation input types for @link(TCastleNavigation.Input). }

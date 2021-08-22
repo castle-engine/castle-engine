@@ -108,7 +108,9 @@
   For larger programs, it makes more sense to divide functionality into
   controls, which are classes descending from TCastleUserInterface.
   You can override TCastleUserInterface methods to render, capture input and so on
-  (see e.g. @link(TCastleUserInterface.Render), @link(TInputListener.Press), @link(TInputListener.Update).)
+  (see e.g. @link(TCastleUserInterface.Render),
+  @link(TCastleUserInterface.Press),
+  @link(TCastleUserInterface.Update).)
   You can then add your control to the TCastleWindowBase.Controls list.
 
   Some features list:
@@ -1630,7 +1632,7 @@ type
       We consciously decided to not implement anything more involved here.
       If you need really flexible timer mechanism, do not use this.
       Instead use @link(OnUpdate)
-      (or @link(TInputListener.Update) in your @link(TCastleUserInterface) descendant,
+      (or @link(TCastleUserInterface.Update) in your @link(TCastleUserInterface) descendant,
       or @link(TCastleTransform.Update)) and look at it's @code(SecondsPassed)
       value to perform actions (one time or repeated) with a specified delay.
       The engine source is full of examples of this.

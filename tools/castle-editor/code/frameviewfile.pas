@@ -40,7 +40,7 @@ type
     procedure ClickSoundButton(Sender: TObject);
     procedure SoundStop(Sender: TObject);
     procedure FinishLoading(const AURL: String);
-    procedure UpdateLabelVolume(const Sender: TInputListener;
+    procedure UpdateLabelVolume(const Sender: TCastleUserInterface;
       const SecondsPassed: Single; var HandleInput: Boolean);
   protected
     procedure Loaded; override;
@@ -309,7 +309,7 @@ begin
   InternalCastleDesignInvalidate := OldInternalCastleDesignInvalidate;
 end;
 
-procedure TViewFileFrame.UpdateLabelVolume(const Sender: TInputListener;
+procedure TViewFileFrame.UpdateLabelVolume(const Sender: TCastleUserInterface;
   const SecondsPassed: Single; var HandleInput: Boolean);
 var
   S: String;

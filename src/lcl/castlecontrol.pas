@@ -451,7 +451,7 @@ type
       @unorderedList(
         @item(Register an event on @link(OnUpdate) of this component,)
         @item(Add custom @link(TCastleUserInterface) instance to the @link(Controls) list
-          with overridden @link(TInputListener.Update) method,)
+          with overridden @link(TCastleUserInterface.Update) method,)
         @item(Register an event on @link(TCastleApplicationProperties.OnUpdate
           ApplicationProperties.OnUpdate) from the @link(CastleApplicationProperties)
           unit.)

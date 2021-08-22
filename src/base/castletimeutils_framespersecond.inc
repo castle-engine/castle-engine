@@ -124,7 +124,7 @@ type
     { How much time passed since the last "update".
       You should use this inside "update" events and methods
       (@link(TUIContainer.EventUpdate),
-      @link(TInputListener.Update),
+      @link(TCastleUserInterface.Update),
       @link(TCastleTransform.Update)...) to scale the movement.
       This way, your animation will work with the same speed
       (objects will travel at the same speed),
@@ -169,7 +169,7 @@ type
     { Current frame identifier.
 
       Changed when each container "update" event occurs,
-      so this is equal during all @link(TInputListener.Update),
+      so this is equal during all @link(TCastleUserInterface.Update),
       @link(TCastleUserInterface.Render), @link(TCastleTransform.Update),
       @link(TCastleTransform.LocalRender) occuring within the same frame.
       You can use this to avoid performing the same job many times

@@ -317,6 +317,7 @@ begin
 
     P.SourcePath.Add('src' + PathDelim + 'ui');
     P.Targets.AddUnit('castleinputs.pas');
+    P.Targets.AddUnit('castleinternalcameragestures.pas');
     P.Targets.AddUnit('castlekeysmouse.pas');
     P.Targets.AddUnit('castleinternalpk3dconnexion.pas');
     P.Targets.AddUnit('castlejoysticks.pas');
