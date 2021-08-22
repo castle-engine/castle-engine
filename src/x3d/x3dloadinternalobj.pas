@@ -25,6 +25,9 @@ interface
 uses SysUtils, Classes,
   X3DNodes;
 
+var
+  WavefrontPhongMaterials: Boolean = true;
+
 function LoadWavefrontOBJ(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 
 implementation
@@ -192,6 +195,7 @@ type
     Sharpness, IndexOfRefraction: Single;
     DiffuseTexture: TWavefrontTexture;
     NormalTexture: TWavefrontTexture;
+    RoughnessTexture: TWavefrontTexture;
 
     { Initializes material with default values.
       Since Wavefront specification doesn't say what the default values are,
@@ -293,6 +297,7 @@ begin
 
   DiffuseTexture.Init;
   NormalTexture.Init;
+  RoughnessTexture.Init;
 end;
 
 { TWavefrontMaterialList ---------------------------------------------------- }
@@ -513,7 +518,7 @@ constructor TObject3DOBJ.Create(const Stream: TStream; const BaseUrl: String);
         if LineTok = '' then Continue;
 
         case ArrayPosText(LineTok, ['newmtl', 'Ka', 'Kd', 'Ks', 'Tf', 'illum',
-          'd', 'Ns', 'sharpness', 'Ni', 'map_Kd', 'map_bump', 'bump']) of
+          'd', 'Ns', 'sharpness', 'Ni', 'map_Kd', 'map_bump', 'bump', 'map_Pr', 'Pr']) of
           0: begin
                Materials.Add(TWavefrontMaterial.Create(LineAfterMarker));
                IsMaterial := true;
@@ -567,8 +572,13 @@ constructor TObject3DOBJ.Create(const Stream: TStream; const BaseUrl: String);
              end;
           11, 12:
              begin
-               CheckIsMaterial('bump map (map_bump,bump)');
+               CheckIsMaterial('bump map (map_bump)');
                Materials.Last.NormalTexture.ReadFromLine(lineAfterMarker);
+             end;
+          13, 14:
+             begin
+               CheckIsMaterial('roughness map (map_Pr)');
+               Materials.Last.RoughnessTexture.ReadFromLine(lineAfterMarker);
              end;
           else { we ignore other linetoks };
         end;
@@ -656,25 +666,41 @@ const
 
   function MaterialToX3D(const Material: TWavefrontMaterial): TAppearanceNode;
   var
-    Mat: TMaterialNode;
+    MatPhong: TMaterialNode;
+    MatPhysical: TPhysicalMaterialNode;
     TextureTransform: TTextureTransform3DNode;
   begin
     Result := TAppearanceNode.Create(
       MatOBJNameToX3DName(Material.Name), BaseUrl);
 
-    Mat := TMaterialNode.Create('', BaseUrl);
-    Result.Material := Mat;
-    Mat.AmbientIntensity := AmbientIntensity(
-      Material.AmbientColor, Material.DiffuseColor);
-    Mat.DiffuseColor := Material.DiffuseColor;
-    Mat.SpecularColor := Material.SpecularColor;
-    Mat.Transparency := 1 - Material.Opacity;
-    Mat.Shininess := Material.SpecularExponent / 128.0;
+    if WavefrontPhongMaterials then
+    begin
+      MatPhong := TMaterialNode.Create('', BaseUrl);
+      Result.Material := MatPhong;
+      MatPhong.AmbientIntensity := AmbientIntensity(
+        Material.AmbientColor, Material.DiffuseColor);
+      MatPhong.DiffuseColor := Material.DiffuseColor;
+      MatPhong.SpecularColor := Material.SpecularColor;
+      MatPhong.Transparency := 1 - Material.Opacity;
+      MatPhong.Shininess := Material.SpecularExponent / 128.0;
 
-    Mat.DiffuseTexture := Material.DiffuseTexture.CreateNode(BaseUrl);
-    Mat.NormalTexture := Material.NormalTexture.CreateNode(BaseUrl);
-    // if Mat.NormalTexture <> nil then
-    //   Mat.NormalScale := Material.NormalTexture.BumpMultiplier;
+      MatPhong.DiffuseTexture := Material.DiffuseTexture.CreateNode(BaseUrl);
+      MatPhong.NormalTexture := Material.NormalTexture.CreateNode(BaseUrl);
+      // if MatPhong.NormalTexture <> nil then
+      //   MatPhong.NormalScale := Material.NormalTexture.BumpMultiplier;
+    end else
+    begin
+      MatPhysical := TPhysicalMaterialNode.Create('', BaseUrl);
+      Result.Material := MatPhysical;
+      MatPhysical.BaseColor := Material.DiffuseColor;
+      MatPhysical.Transparency := 1 - Material.Opacity;
+
+      MatPhysical.BaseTexture := Material.DiffuseTexture.CreateNode(BaseUrl);
+      MatPhysical.NormalTexture := Material.NormalTexture.CreateNode(BaseUrl);
+      MatPhysical.MetallicRoughnessTexture := Material.RoughnessTexture.CreateNode(BaseUrl);
+      // if MatPhysical.NormalTexture <> nil then
+      //   MatPhysical.NormalScale := Material.NormalTexture.BumpMultiplier;
+    end;
 
     TextureTransform := Material.DiffuseTexture.CreateTextureTransformNode;
     if TextureTransform <> nil then
