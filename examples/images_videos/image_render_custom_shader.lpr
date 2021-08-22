@@ -53,7 +53,7 @@ begin
   Window.Controls.InsertFront(Image);
 end;
 
-procedure WindowOpen(Container: TUIContainer);
+procedure WindowOpen(Container: TCastleContainer);
 begin
   { Create TGLSLProgram instance.
 
@@ -111,13 +111,13 @@ begin
   Image.CustomShader := Shader;
 end;
 
-procedure WindowClose(Container: TUIContainer);
+procedure WindowClose(Container: TCastleContainer);
 begin
   FreeAndNil(Shader);
   Image.CustomShader := nil;
 end;
 
-procedure WindowUpdate(Container: TUIContainer);
+procedure WindowUpdate(Container: TCastleContainer);
 begin
   LifeTime := LifeTime +  Container.Fps.SecondsPassed;
   Shader.Uniform('life_time', uaIgnore).SetValue(LifeTime);

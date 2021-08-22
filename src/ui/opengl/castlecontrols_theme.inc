@@ -153,7 +153,7 @@
       const UIScale: Single; const Color: TCastleColor);
 
     { Font used by dialogs.
-      Leave @nil to use @link(TUIContainer.DefaultFont). }
+      Leave @nil to use @link(TCastleContainer.DefaultFont). }
     property MessageFont: TCastleAbstractFont read FMessageFont write SetMessageFont;
 
     property OwnsMessageFont: boolean

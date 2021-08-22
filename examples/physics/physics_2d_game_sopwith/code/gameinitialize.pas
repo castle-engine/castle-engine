@@ -191,7 +191,7 @@ begin
   Window.Controls.InsertFront(Status);
 end;
 
-procedure WindowUpdate(Container: TUIContainer);
+procedure WindowUpdate(Container: TCastleContainer);
 
   procedure DropBox;
   var
@@ -277,13 +277,13 @@ begin
   Plane.Translation := Vector3(Viewport.PositionTo2DWorld(EventPosition, true), 0);
 end;
 
-procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
+procedure WindowPress(Container: TCastleContainer; const Event: TInputPressRelease);
 begin
   if Event.IsMouseButton(buttonLeft) then
     UpdatePlanePosition(Event.Position);
 end;
 
-procedure WindowMotion(Container: TUIContainer; const Event: TInputMotion);
+procedure WindowMotion(Container: TCastleContainer; const Event: TInputMotion);
 begin
   if buttonLeft in Event.Pressed then
     UpdatePlanePosition(Event.Position);

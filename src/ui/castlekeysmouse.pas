@@ -691,7 +691,7 @@ type
       of TCastleWindowBase or TCastleControlBase). With left-bottom being
       (0,0) and X growing to the right and Y growing up.
       The position is in final device coordinates, i.e. it ignores
-      @link(TUIContainer.UIScaling).
+      @link(TCastleContainer.UIScaling).
       Use e.g. @link(TCastleUserInterface.ContainerToLocalPosition)
       to easily convert this position into a position suitable for given UI control
       children.

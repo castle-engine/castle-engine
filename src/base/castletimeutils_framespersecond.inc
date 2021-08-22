@@ -67,7 +67,7 @@ type
       time spent inside "render" calls (thus ignoring time spent on
       physics and other logic).
 
-      This measures only time spend in @link(TUIContainer.EventRender)
+      This measures only time spend in @link(TCastleContainer.EventRender)
       method (and it's subordinates, like @link(TCastleUserInterface.Render),
       @link(TCastleScene.LocalRender),
       @link(TCastleWindowBase.OnRender)).
@@ -84,7 +84,7 @@ type
       {$ifdef FPC} deprecated 'use OnlyRenderFps'; {$endif}
 
     { How many frames per second were actually rendered.
-      This is the number of @link(TUIContainer.EventRender) calls
+      This is the number of @link(TCastleContainer.EventRender) calls
       that actually happened within a real second of time.
       So it's an actual speed of your program.
       Anything can slow this down, not only long rendering,
@@ -123,7 +123,7 @@ type
 
     { How much time passed since the last "update".
       You should use this inside "update" events and methods
-      (@link(TUIContainer.EventUpdate),
+      (@link(TCastleContainer.EventUpdate),
       @link(TCastleUserInterface.Update),
       @link(TCastleTransform.Update)...) to scale the movement.
       This way, your animation will work with the same speed
@@ -180,7 +180,7 @@ type
       It's a class function, so you can access it like
       @code(TFramesPerSecond.FrameId),
       no need to have a TFramesPerSecond instance (which is usually
-      accessed from TUIContainer, like @link(TUIContainer.Fps),
+      accessed from TCastleContainer, like @link(TCastleContainer.Fps),
       @link(TCastleWindowBase.Fps), @link(TCastleControlBase.Fps). }
     class function FrameId: TFrameId;
   end;

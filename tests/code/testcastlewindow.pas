@@ -32,7 +32,7 @@ type
     { Test TCastleUserInterface.AutoSizeToChildren.
       In this unit, as it requires TCastleWindow (UI container) to make sense. }
     procedure TestAutoSizeToChildren;
-    { Test TUIContainer.Focus.
+    { Test TCastleContainer.Focus.
       In this unit, as it requires TCastleWindow (UI container) to make sense. }
     procedure TestFocus;
     procedure TestEventLoop;

@@ -454,7 +454,7 @@ type
 
       Resulting RayDirection is always normalized.
 
-      WindowPosition is given in the same style as TUIContainer.MousePosition:
+      WindowPosition is given in the same style as TCastleContainer.MousePosition:
       (0, 0) is bottom-left. }
     procedure CustomRay(
       const ViewportRect: TFloatRectangle;
@@ -909,7 +909,7 @@ type
       required for calculating the ray properly.
       Resulting RayDirection is always normalized.
 
-      WindowPosition is given in the same style as TUIContainer.MousePosition:
+      WindowPosition is given in the same style as TCastleContainer.MousePosition:
       (0, 0) is bottom-left. }
     procedure Ray(const WindowPosition: TVector2;
       const Projection: TProjection;
@@ -938,7 +938,7 @@ type
 
       Resulting RayDirection is always normalized.
 
-      WindowPosition is given in the same style as TUIContainer.MousePosition:
+      WindowPosition is given in the same style as TCastleContainer.MousePosition:
       (0, 0) is bottom-left. }
     procedure CustomRay(
       const ViewportRect: TRectangle;

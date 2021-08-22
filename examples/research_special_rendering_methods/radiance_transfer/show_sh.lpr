@@ -38,7 +38,7 @@ var
 
   MinSHValue, MaxSHValue: Float;
 
-procedure Render(Container: TUIContainer);
+procedure Render(Container: TCastleContainer);
 var
   L: Cardinal;
   M: Integer;
@@ -103,7 +103,7 @@ begin
   inherited;
 end;
 
-procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
+procedure MenuClick(Container: TCastleContainer; Item: TMenuItem);
 begin
   case Item.IntData of
     10: LM := ChangeIntCycle(LM, -1, MaxSHBasis - 1);

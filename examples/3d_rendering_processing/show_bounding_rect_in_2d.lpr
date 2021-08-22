@@ -86,7 +86,7 @@ var
 
 { Optionally update the displayed rectangle,
   if the bounding box of your Scene may change every frame. }
-procedure WindowUpdate(Container: TUIContainer);
+procedure WindowUpdate(Container: TCastleContainer);
 begin
   UpdateRectangleCoords(Scene.BoundingBox.RectangleXY, RectCoords);
 end;

@@ -30,7 +30,7 @@ var
   CarScene, RoadScene: TCastleScene;
   CarTransforms: array [1..20] of TCastleTransform;
 
-procedure WindowUpdate(Container: TUIContainer);
+procedure WindowUpdate(Container: TCastleContainer);
 
   procedure UpdateCarTransform(const CarTransform: TCastleTransform);
   var
@@ -53,7 +53,7 @@ begin
     UpdateCarTransform(CarTransforms[I]);
 end;
 
-procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
+procedure WindowPress(Container: TCastleContainer; const Event: TInputPressRelease);
 begin
   if Event.IsKey('c') then
     CarTransforms[1].Exists := not CarTransforms[1].Exists;

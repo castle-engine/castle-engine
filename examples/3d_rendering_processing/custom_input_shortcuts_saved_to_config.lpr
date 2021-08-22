@@ -153,7 +153,7 @@ begin
   Navigation.Input_MoveSpeedDec.MakeClear;
 end;
 
-procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
+procedure WindowPress(Container: TCastleContainer; const Event: TInputPressRelease);
 var
   CarAppearance: TAppearanceNode;
   CarMaterial: TPhysicalMaterialNode;

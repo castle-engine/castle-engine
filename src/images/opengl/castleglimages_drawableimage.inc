@@ -411,7 +411,7 @@ type
 
     { In case of @link(Draw3x3) the corners
       on screen are scaled by this amount. This is especially useful
-      for UI scaling, see @link(TUIContainer.UIScaling)
+      for UI scaling, see @link(TCastleContainer.UIScaling)
       and @link(TCastleUserInterface.UIScale). }
     property ScaleCorners: Single
       read FScaleCorners write FScaleCorners default 1;
@@ -624,7 +624,7 @@ type
       @unorderedList(
         @item(TDrawableImage.Draw (to draw @italic(other) TDrawableImage instances on this one),)
         @item(DrawRectangle, DrawCircle, DrawPrimitive2D and friends in CastleGLUtils,)
-        @item(@link(TUIContainer.RenderControl Window.Container.RenderControl)
+        @item(@link(TCastleContainer.RenderControl Window.Container.RenderControl)
           to render any TCastleUserInterface to this image.)
       )
 

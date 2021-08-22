@@ -98,12 +98,12 @@ begin
   UpdateMainLightLocation;
 end;
 
-procedure WindowRender(Container: TUIContainer);
+procedure WindowRender(Container: TCastleContainer);
 begin
   UIFont.Print(10, 10, Yellow, 'FPS: ' + Container.Fps.ToString);
 end;
 
-procedure WindowUpdate(Container: TUIContainer);
+procedure WindowUpdate(Container: TCastleContainer);
 begin
   Time := Time + Container.Fps.SecondsPassed;
   UpdateMainLightLocation;

@@ -31,7 +31,7 @@ procedure SetUIFontSmall(const Value: TCastleAbstractFont);
 
   Although in most cases it is better to leave @link(UIFont) unchanged
   (treat it like "engine default font"), and instead set your default font by
-  setting @link(TUIContainer.DefaultFont Window.Container.DefaultFont).
+  setting @link(TCastleContainer.DefaultFont Window.Container.DefaultFont).
   You can do it by code, or by editing CastleSettings.xml (this way editor
   will be aware of this new default), see https://castle-engine.io/manual_castle_settings.php .
 

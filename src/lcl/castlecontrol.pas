@@ -54,14 +54,14 @@ type
     Use event @link(OnUpdate) to do something continuously.
 
     By default, the control is filled with simple color from
-    @link(TUIContainer.BackgroundColor Container.BackgroundColor).
+    @link(TCastleContainer.BackgroundColor Container.BackgroundColor).
   }
   TCastleControlBase = class(TCustomOpenGLControl)
   strict private
     type
-      { Non-abstract implementation of TUIContainer that cooperates with
+      { Non-abstract implementation of TCastleContainer that cooperates with
         TCastleControlBase. }
-      TContainer = class(TUIContainer)
+      TContainer = class(TCastleContainer)
       private
         Parent: TCastleControlBase;
       protected
@@ -192,7 +192,7 @@ type
       a small delay). So we use MaxDesiredFPS to cap it. }
     procedure AggressiveUpdate;
   private
-    class function GetMainContainer: TUIContainer;
+    class function GetMainContainer: TCastleContainer;
   protected
     procedure DestroyHandle; override;
     procedure DoExit; override;
@@ -223,7 +223,7 @@ type
       You can add your TCastleUserInterface instances
       (like TCastleViewport, TCastleButton and much more) to this list.
       We will pass events to these controls, draw them etc.
-      See @link(TUIContainer.Controls) for details. }
+      See @link(TCastleContainer.Controls) for details. }
     function Controls: TChildrenControls;
 
     function MakeCurrent(SaveOldToStack: boolean = false): boolean; override;
@@ -233,7 +233,7 @@ type
     { Keys currently pressed. }
     function Pressed: TKeysPressed;
     { Mouse buttons currently pressed.
-      See @link(TUIContainer.MousePressed) for details. }
+      See @link(TCastleContainer.MousePressed) for details. }
     function MousePressed: TCastleMouseButtons;
     procedure ReleaseAllKeysAndMouse;
 
@@ -1280,7 +1280,7 @@ begin
   Result := Container.Controls;
 end;
 
-class function TCastleControlBase.GetMainContainer: TUIContainer;
+class function TCastleControlBase.GetMainContainer: TCastleContainer;
 begin
   if MainControl <> nil then
     Result := MainControl.Container

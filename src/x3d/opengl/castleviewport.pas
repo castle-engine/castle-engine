@@ -217,7 +217,7 @@ type
       regardless if mouse/touch stays over this transform.
 
       The reason and implementation of this mechanism is similar to
-      TUIContainer.FCaptureInput. }
+      TCastleContainer.FCaptureInput. }
     property CapturePointingDevice: TCastleTransform
       read FCapturePointingDevice write SetCapturePointingDevice;
     procedure CapturePointingDeviceFreeNotification(const Sender: TFreeNotificationObserver);
@@ -3316,7 +3316,7 @@ end;
 
 function TCastleViewport.GetMousePosition(out MousePosition: TVector2): Boolean;
 var
-  C: TUIContainer;
+  C: TCastleContainer;
 begin
   C := Container;
   Result := C <> nil;

@@ -653,7 +653,7 @@ end;
 
 { CastleWindow callbacks --------------------------------------------------------- }
 
-procedure Open(Container: TUIContainer);
+procedure Open(Container: TCastleContainer);
 
   procedure Error(const S: String);
   begin
@@ -729,13 +729,13 @@ begin
   WritelnLogMultiline('Shader for 2nd pass', GLSLProgram[1].DebugInfo);
 end;
 
-procedure Close(Container: TUIContainer);
+procedure Close(Container: TCastleContainer);
 begin
   FreeAndNil(GLSLProgram[0]);
   FreeAndNil(GLSLProgram[1]);
 end;
 
-procedure Update(Container: TUIContainer);
+procedure Update(Container: TCastleContainer);
 begin
   if Window.Pressed.Characters['s'] then
   begin
@@ -788,7 +788,7 @@ begin
     Result.Append(M);
 end;
 
-procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
+procedure MenuClick(Container: TCastleContainer; Item: TMenuItem);
 
   { Update SceneElements contents.
 

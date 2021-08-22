@@ -1871,7 +1871,7 @@ var
   CalculatedUIScale: Single;
   H, CalculatedUIScaleStr: String;
 begin
-  // trick to get private TUIContainer.FCalculatedUIScale
+  // trick to get private TCastleContainer.FCalculatedUIScale
   CalculatedUIScale :=  (1 / CastleControl.Container.UnscaledWidth) *
     CastleControl.Container.Width;
   CalculatedUIScaleStr := IntToStr(Round(CalculatedUIScale * 100)) + '%';
