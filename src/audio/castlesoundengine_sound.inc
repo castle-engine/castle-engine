@@ -304,7 +304,13 @@ begin
     else
       SoundLoading := slComplete;
     {$warnings off} // using deprecated that should be internal
-    FBuffer := SoundEngine.LoadBuffer(URL, SoundLoading);
+    { Using ExceptionOnError = false. Because
+      - The programs can generally tolerate missing sound files, and continue just fine.
+      - Error at OggVorbis reading may be caused by
+        EOggVorbisMissingLibraryError, and we try to gracefully react to missing
+        libraries, as it is easy to miss installation of some libs on some systems
+        (like Linux) or package with appropriate DLLs (like Windows). }
+    FBuffer := SoundEngine.LoadBuffer(URL, SoundLoading, false);
     {$warnings on}
     DoChange(scAfterBufferCreated);
   end;
