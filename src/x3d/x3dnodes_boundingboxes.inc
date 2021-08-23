@@ -177,11 +177,13 @@ function TAbstractGeometryNode.BoundingBox(State: TX3DGraphTraverseState;
 var
   C: TMFVec3f;
 begin
+  {$ifndef CASTLE_PRECISE_MESH_BOUNDING_BOXES}
   if (State.ShapeNode <> nil) and
      (not State.ShapeNode.BBox.IsEmpty) then
   begin
     Result := State.ShapeNode.BBox.Transform(State.Transformation.Transform); // use precalculated bounding box, fastest
   end else
+  {$endif}
   if InternalCoord(State, C) then
   begin
     if C <> nil then
