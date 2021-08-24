@@ -190,6 +190,9 @@
         <DCCReference Include="..\..\src\images\opengl\castleglimages.pas"/>
         <DCCReference Include="..\..\src\images\castletextureimages.pas"/>
         <DCCReference Include="..\..\src\images\castlevideos.pas"/>
+        <DCCReference Include="..\..\src\ui\castlekeysmouse.pas"/>
+        <DCCReference Include="..\..\src\files\castlexmlutils.pas"/>
+        <DCCReference Include="..\..\src\files\castlexmlconfig.pas"/>
         <None Include="..\..\src\base\windows\castleutils_os_specific_windows.inc"/>
         <None Include="..\..\src\base\castleutils_math.inc"/>
         <None Include="..\..\src\base\castleutils_delphi_compatibility.inc"/>

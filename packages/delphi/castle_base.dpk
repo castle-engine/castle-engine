@@ -60,6 +60,9 @@ contains
   castleglutils in '..\..\src\images\opengl\castleglutils.pas',
   castleglimages in '..\..\src\images\opengl\castleglimages.pas',
   castletextureimages in '..\..\src\images\castletextureimages.pas',
-  castlevideos in '..\..\src\images\castlevideos.pas';
+  castlevideos in '..\..\src\images\castlevideos.pas',
+  castlekeysmouse in '..\..\src\ui\castlekeysmouse.pas',
+  castlexmlutils in '..\..\src\files\castlexmlutils.pas',
+  castlexmlconfig in '..\..\src\files\castlexmlconfig.pas';
 
 end.
