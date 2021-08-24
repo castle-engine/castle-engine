@@ -161,7 +161,8 @@ begin
  if (URL<>EmptyStr) and Modified then
   begin
     if BlowFishKeyPhrase <> '' then
-      URLWriteXML(Doc, URL, BlowFishKeyPhrase)
+      // TODO: Delphi support
+      URLWriteXML(Doc, URL{$ifdef FPC}, BlowFishKeyPhrase{$endif})
     else
       URLWriteXML(Doc, URL);
     FModified := False;

@@ -1819,7 +1819,7 @@ const
   ('AUTO', 'NONE', 'TEST', 'BLENDING');
 
 type
-  TTextureCompressionInfo = object
+  TTextureCompressionInfo = {$ifdef FPC} object {$else} record {$endif}
     Name: string;
     RequiresPowerOf2: boolean;
     AlphaChannel: TAlphaChannel;

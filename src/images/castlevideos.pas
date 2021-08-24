@@ -414,7 +414,7 @@ const
 
 implementation
 
-uses Classes, CastleClassUtils, CastleUtils, Math, CastleStringUtils,
+uses Classes, {$ifndef FPC} Windows, ShellApi, {$endif} CastleClassUtils, CastleUtils, Math, CastleStringUtils,
   CastleLog, CastleFilesUtils, CastleProgress, CastleTextureImages,
   CastleDownload, CastleURIUtils, CastleFindFiles;
 
@@ -528,7 +528,7 @@ procedure TVideo.LoadFromFile(const URL: string;
 
   function LoadSingleImage(const URL: string): TCastleImage;
   begin
-    Result := LoadImage(URL, TextureImageClasses,
+    Result := CastleImages.LoadImage(URL, TextureImageClasses,
       ResizeToX, ResizeToY, Interpolation, LoadOptions);
   end;
 
@@ -696,12 +696,12 @@ procedure TVideo.SaveToFile(const URL: string);
       for Index := 1 to Count do
       begin
         S := FormatNameCounter(FileName, Index, true);
-        if not DeleteFile(S) then
+        if not DeleteFile(PChar(S)) then
           WritelnWarning('Video', Format('Cannot delete temporary file "%s"', [S]));
       end;
     end else
     begin
-      if not DeleteFile(FileName) then
+      if not DeleteFile(PChar(FileName)) then
         WritelnWarning('Video', Format('Cannot delete temporary file "%s"', [FileName]));
     end;
     WritelnLog('Done removing temporary image files.');
@@ -735,8 +735,18 @@ procedure TVideo.SaveToFile(const URL: string);
       WritelnLog(Executable + ' -f image2 -i "' + TemporaryImagesPattern +
         '" -y -qscale 1 "' + FileName + '"');
 
+      {$ifdef FPC}
       ExecuteProcess(Executable,
         ['-f', 'image2', '-i', TemporaryImagesPattern, '-y', '-qscale', '1', FileName]);
+      {$else}
+      ShellExecute(
+        0,
+        'open',
+        PChar(Executable),
+        PChar('-f image2 -i ' + TemporaryImagesPattern + '-y -qscale 1 ' + FileName),
+        nil,
+        SW_SHOW);
+      {$endif}
 
       RemoveTemporaryImages(TemporaryImagesPattern);
     end;
@@ -1016,7 +1026,11 @@ begin
   { Only for the sake of logging we glue Parameters together.
     For actual execution, we pass Parameters as an array, which is *much*
     safer (no need to worry whether Parameter contains " inside etc.) }
-  S := Executable;
+  {$ifdef FPC}
+    S := Executable;
+  {$else}
+    S := '';
+  {$endif}
   for Parameter in Parameters do
   begin
     S := S + ' ';
@@ -1026,7 +1040,17 @@ begin
       S := S + Parameter;
   end;
   WritelnLog(S);
-  ExecuteProcess(Executable, Parameters);
+  {$ifdef FPC}
+    ExecuteProcess(Executable, Parameters);
+  {$else}
+    ShellExecute(
+      0,
+      'open',
+      PChar(Executable),
+      PChar(S),
+      nil,
+      SW_SHOW);
+  {$endif}
 end;
 
 end.

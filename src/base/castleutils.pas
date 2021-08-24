@@ -120,7 +120,8 @@ interface
 
 uses {$ifdef MSWINDOWS} Windows, {$ifndef FPC} ShlObj, {$endif} {$endif}
   {$ifdef UNIX} BaseUnix, Unix, Dl, {$endif}
-  Variants, SysUtils, Math, Generics.Collections;
+  Variants, SysUtils, Math, Generics.Collections{$ifndef FPC}, OpenGL, OpenGLExt
+  {$endif};
 
 {$define read_interface}
 

@@ -82,7 +82,7 @@
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
         <DCC_CBuilderOutput>All</DCC_CBuilderOutput>
         <SanitizedProjectName>castle_base</SanitizedProjectName>
-        <DCC_UnitSearchPath>..\..\src\base\windows;..\..\src\base;..\..\src\files;..\..\src\compatibility\delphi-only;..\..\src\common_includes;..\..\src\base\opengl;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>..\..\src\base\windows;..\..\src\base;..\..\src\files;..\..\src\compatibility\delphi-only;..\..\src\common_includes;..\..\src\base\opengl;..\..\src\images\opengl\glsl\generated-pascal;..\..\src\images\opengl;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <VerInfo_Locale>1045</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     </PropertyGroup>
@@ -181,12 +181,33 @@
         <DCCReference Include="..\..\src\files\castledownload.pas"/>
         <DCCReference Include="..\..\src\files\castlefilesutils.pas"/>
         <DCCReference Include="..\..\src\files\castlefindfiles.pas"/>
-        <DCCReference Include="..\..\src\images\opengl\castleglutils.pas"/>
         <DCCReference Include="..\..\src\images\castleimages.pas"/>
         <DCCReference Include="..\..\src\images\castleinternalpng.pas"/>
         <DCCReference Include="..\..\src\images\castlecompositeimage.pas"/>
+        <DCCReference Include="..\..\src\images\opengl\castleglshaders.pas"/>
+        <DCCReference Include="..\..\src\images\opengl\castlerendercontext.pas"/>
+        <DCCReference Include="..\..\src\images\opengl\castleglutils.pas"/>
+        <DCCReference Include="..\..\src\images\opengl\castleglimages.pas"/>
+        <DCCReference Include="..\..\src\images\castletextureimages.pas"/>
+        <DCCReference Include="..\..\src\images\castlevideos.pas"/>
         <None Include="..\..\src\base\windows\castleutils_os_specific_windows.inc"/>
         <None Include="..\..\src\base\castleutils_math.inc"/>
+        <None Include="..\..\src\base\castleutils_delphi_compatibility.inc"/>
+        <None Include="..\..\src\images\opengl\castleglimages_drawableimage.inc"/>
+        <None Include="..\..\src\images\opengl\castleglimages_drawableimagecache.inc"/>
+        <None Include="..\..\src\images\opengl\castleglimages_filter.inc"/>
+        <None Include="..\..\src\images\opengl\castleglimages_load_2d.inc"/>
+        <None Include="..\..\src\images\opengl\castleglimages_load_3d.inc"/>
+        <None Include="..\..\src\images\opengl\castleglimages_load_cubemap.inc"/>
+        <None Include="..\..\src\images\opengl\castleglimages_miscellaneous.inc"/>
+        <None Include="..\..\src\images\opengl\castleglimages_packing.inc"/>
+        <None Include="..\..\src\images\opengl\castleglimages_persistentimage.inc"/>
+        <None Include="..\..\src\images\opengl\castleglimages_rendertotexture.inc"/>
+        <None Include="..\..\src\images\opengl\castleglimages_savescreen.inc"/>
+        <None Include="..\..\src\images\opengl\castleglimages_sprite.inc"/>
+        <None Include="..\..\src\images\opengl\castleglimages_texturememoryprofiler.inc"/>
+        <None Include="..\..\src\images\opengl\castleglimages_video.inc"/>
+        <None Include="..\..\src\images\opengl\castleglimages_wrap.inc"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

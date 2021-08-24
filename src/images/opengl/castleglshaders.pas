@@ -630,13 +630,22 @@ uses CastleStringUtils, CastleLog, CastleGLVersion, CastleRenderContext;
 function GetShaderInfoLog(ShaderId: TGLuint): String;
 var
   Len, Len2: TGLint;
+{$ifndef FPC}
+  AnsiResult: AnsiString;
+{$endif}
 begin
   glGetShaderiv(ShaderId, GL_INFO_LOG_LENGTH, @Len);
 
   if Len <> 0 then
   begin
-    SetLength(Result, Len);
-    glGetShaderInfoLog(ShaderId, Len, @Len2, PAnsiChar(Result));
+    {$ifdef FPC}
+      SetLength(Result, Len);
+      glGetShaderInfoLog(ShaderId, Len, @Len2, PChar(Result));
+    {$else}
+      SetLength(AnsiResult, Len);
+      glGetShaderInfoLog(ShaderId, Len, @Len2, PAnsiChar(AnsiResult));
+      Result := String(AnsiResult);
+    {$endif}
     StringReplaceAllVar(Result, #0, NL);
   end else
     Result := '';
@@ -646,13 +655,22 @@ end;
 function GetProgramInfoLog(ProgramId: TGLuint): String;
 var
   Len, Len2: TGLint;
+{$ifndef FPC}
+  AnsiResult: AnsiString;
+{$endif}
 begin
   glGetProgramiv(ProgramId, GL_INFO_LOG_LENGTH, @Len);
 
   if Len <> 0 then
   begin
-    SetLength(Result, Len);
-    glGetProgramInfoLog(ProgramId, Len, @Len2, PChar(Result));
+    {$ifdef FPC}
+      SetLength(Result, Len);
+      glGetProgramInfoLog(ProgramId, Len, @Len2, PChar(Result));
+    {$else}
+      SetLength(AnsiResult, Len);
+      glGetProgramInfoLog(ProgramId, Len, @Len2, PAnsiChar(AnsiResult));
+      Result := String(AnsiResult);
+    {$endif}
     StringReplaceAllVar(Result, #0, NL);
   end else
     Result := '';
@@ -663,13 +681,22 @@ end;
 function GetInfoLogARB(ObjectId: TGLuint): String;
 var
   Len, Len2: TGLint;
+{$ifndef FPC}
+  AnsiResult: AnsiString;
+{$endif}
 begin
   glGetObjectParameterivARB(GLhandleARB(ObjectId), GL_OBJECT_INFO_LOG_LENGTH_ARB, @Len);
 
   if Len <> 0 then
   begin
-    SetLength(Result, Len);
-    glGetInfoLogARB(GLhandleARB(ObjectId), Len, @Len2, PChar(Result));
+    {$ifdef FPC}
+      SetLength(Result, Len);
+      glGetInfoLogARB(GLhandleARB(ObjectId), Len, @Len2, PChar(Result));
+    {$else}
+      SetLength(AnsiResult, Len);
+      glGetInfoLogARB(GLhandleARB(ObjectId), Len, @Len2, PGLcharARB(AnsiResult));
+      Result := String(AnsiResult);
+    {$endif}
     StringReplaceAllVar(Result, #0, NL);
   end else
     Result := '';
@@ -722,7 +749,7 @@ end;
 
 { TGLSLUniform --------------------------------------------------------------- }
 
-class function TGLSLUniform.NotExisting: TGLSLUniform; static;
+class function TGLSLUniform.NotExisting: TGLSLUniform; {$ifdef FPC} static;{$endif}
 const
   R: TGLSLUniform = (Owner: nil; Name: ''; Location: -1);
 begin
@@ -916,9 +943,9 @@ begin
     Owner.Enable;
     case GLFeatures.Shaders of
       {$ifndef ForceStandardGLSLApi}
-      gsExtension: glUniform1ivARB(Location, Value.Count, Ints.L);
+      gsExtension: glUniform1ivARB(Location, Value.Count, PGLInt(Ints.L));
       {$endif}
-      gsStandard : glUniform1iv   (Location, Value.Count, Ints.L);
+      gsStandard : glUniform1iv   (Location, Value.Count, PGLInt(Ints.L));
       else ;
     end;
     finally FreeAndNil(Ints) end;
@@ -931,9 +958,9 @@ begin
   Owner.Enable;
   case GLFeatures.Shaders of
     {$ifndef ForceStandardGLSLApi}
-    gsExtension: glUniform1ivARB(Location, Value.Count, Value.L);
+    gsExtension: glUniform1ivARB(Location, Value.Count, PGLInt(Value.L));
     {$endif}
-    gsStandard : glUniform1iv   (Location, Value.Count, Value.L);
+    gsStandard : glUniform1iv   (Location, Value.Count, PGLInt(Value.L));
     else ;
   end;
 end;
@@ -944,9 +971,9 @@ begin
   Owner.Enable;
   case GLFeatures.Shaders of
     {$ifndef ForceStandardGLSLApi}
-    gsExtension: glUniform1fvARB(Location, Value.Count, Value.L);
+    gsExtension: glUniform1fvARB(Location, Value.Count, PGLfloat(Value.L));
     {$endif}
-    gsStandard : glUniform1fv   (Location, Value.Count, Value.L);
+    gsStandard : glUniform1fv   (Location, Value.Count, PGLfloat(Value.L));
     else ;
   end;
 end;
@@ -1309,7 +1336,7 @@ begin
   FAttributeLocations := TLocationCache.Create;
 
   {$ifdef CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
-  for ShaderType in TShaderType do
+  for ShaderType := Low(TShaderType) to High(TShaderType) do
     FSource[ShaderType] := TStringList.Create;
   {$endif CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
 end;
@@ -1328,7 +1355,7 @@ begin
     DetachAllShaders;
 
   {$ifdef CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
-  for ShaderType in TShaderType do
+  for ShaderType := Low(TShaderType) to High(TShaderType) do
     FreeAndNil(FSource[ShaderType]);
   {$endif}
 
@@ -1433,7 +1460,7 @@ function TGLSLProgram.DebugInfo: string;
     ReturnedLength: TGLsizei;
     Size: TGLint;
     AType: TGLEnum;
-    Name: string;
+    Name: AnsiString;
     ErrorCode: TGLenum;
   begin
     case FSupport of
@@ -1457,7 +1484,7 @@ function TGLSLProgram.DebugInfo: string;
           begin
             SetLength(Name, UniformMaxLength);
             glGetActiveUniformARB(GLhandleARB(ProgramId), I, UniformMaxLength, @ReturnedLength,
-              @Size, @AType, PCharOrNil(Name));
+              @Size, @AType, PGLcharARBOrNil(Name));
 
             SetLength(Name, ReturnedLength);
             UniformNames.Append(Format('  Name: %s, type: %s, size: %d',
@@ -1485,7 +1512,7 @@ function TGLSLProgram.DebugInfo: string;
           begin
             SetLength(Name, UniformMaxLength);
             glGetActiveUniform(ProgramId, I, UniformMaxLength, @ReturnedLength,
-              @Size, @AType, PCharOrNil(Name));
+              @Size, @AType, PAnsiCharOrNil(Name));
             SetLength(Name, ReturnedLength);
             UniformNames.Append(Format('  Name: %s, type: %s, size: %d',
               [Name, GLShaderVariableTypeName(AType), Size]));
@@ -1502,7 +1529,7 @@ function TGLSLProgram.DebugInfo: string;
     ReturnedLength: TGLsizei;
     Size: TGLint;
     AType: TGLEnum;
-    Name: string;
+    Name: AnsiString;
     ErrorCode: TGLenum;
   begin
     case FSupport of
@@ -1526,7 +1553,7 @@ function TGLSLProgram.DebugInfo: string;
           begin
             SetLength(Name, AttribMaxLength);
             glGetActiveAttribARB(GLhandleARB(ProgramId), I, AttribMaxLength, @ReturnedLength,
-              @Size, @AType, PCharOrNil(Name));
+              @Size, @AType, PGLCharArbOrNil(Name));
             SetLength(Name, ReturnedLength);
             AttribNames.Append(Format('  Name: %s, type: %s, size: %d',
               [Name, GLShaderVariableTypeName(AType), Size]));
@@ -1553,7 +1580,7 @@ function TGLSLProgram.DebugInfo: string;
           begin
             SetLength(Name, AttribMaxLength);
             glGetActiveAttrib(ProgramId, I, AttribMaxLength, @ReturnedLength,
-              @Size, @AType, PCharOrNil(Name));
+              @Size, @AType, PAnsiCharOrNil(Name));
             SetLength(Name, ReturnedLength);
             AttribNames.Append(Format('  Name: %s, type: %s, size: %d',
               [Name, GLShaderVariableTypeName(AType), Size]));
@@ -1845,7 +1872,7 @@ begin
   ShaderIds.Count := 0;
 
   {$ifdef CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
-  for ShaderType in TShaderType do
+  for ShaderType := Low(TShaderType) to High(TShaderType) do
     FSource[ShaderType].Clear;
   {$endif CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
 end;
@@ -1866,7 +1893,7 @@ procedure TGLSLProgram.Link;
     {$ifdef CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
     Message := Message + NL +
       'The shader source code is:' + NL;
-    for ShaderType in TShaderType do
+    for ShaderType := Low(TShaderType) to High(TShaderType) do
       for I := 0 to FSource[ShaderType].Count - 1 do
         Message := Message + Format(
          '%s [%d] -------------------------------------------------------' + NL +
@@ -1967,9 +1994,9 @@ begin
   begin
     case FSupport of
       {$ifndef ForceStandardGLSLApi}
-      gsExtension: Result.Location := glGetUniformLocationARB(GLhandleARB(ProgramId), PCharOrNil(Name));
+      gsExtension: Result.Location := glGetUniformLocationARB(GLhandleARB(ProgramId), PGLcharARBOrNil(Name));
       {$endif}
-      gsStandard : Result.Location := glGetUniformLocation   (ProgramId, PCharOrNil(Name));
+      gsStandard : Result.Location := glGetUniformLocation   (ProgramId, PAnsiCharOrNil(Name));
       else Result.Location := -1;
     end;
     {$ifdef CASTLE_LOG_GET_LOCATIONS}
@@ -2131,9 +2158,9 @@ begin
   begin
     case FSupport of
       {$ifndef ForceStandardGLSLApi}
-      gsExtension: Result.Location := glGetAttribLocationARB(GLhandleARB(ProgramId), PCharOrNil(Name));
+      gsExtension: Result.Location := glGetAttribLocationARB(GLhandleARB(ProgramId), PGLCharARBOrNil(Name));
       {$endif}
-      gsStandard: Result.Location := glGetAttribLocation(ProgramId, PCharOrNil(Name));
+      gsStandard: Result.Location := glGetAttribLocation(ProgramId, PAnsiCharOrNil(Name));
       else Result.Location := -1;
     end;
     {$ifdef CASTLE_LOG_GET_LOCATIONS}

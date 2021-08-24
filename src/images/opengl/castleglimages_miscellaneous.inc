@@ -16,13 +16,16 @@
 { Part of CastleGLImages unit: miscellneous stuff. }
 {$ifdef read_interface}
 
+{$ifdef read_interface_const}
 const
   PixelsImageClasses: array [0..3] of TEncodedImageClass = (
     TRGBImage,
     TRGBAlphaImage,
     TGrayscaleImage,
     TGrayscaleAlphaImage);
+{$endif read_interface_const}
 
+{$ifdef read_interface_func}
 { Return appropriate OpenGL format and type constants
   for given TCastleImage descendant. If you will pass here Img
   that is not a descendant of one of TextureImageClassesAll
@@ -39,15 +42,19 @@ function ImageGLFormat(const Img: TCastleImage): TGLenum;
 function ImageGLInternalFormat(const Img: TEncodedImage): TGLenum;
 function ImageGLType(const Img: TCastleImage): TGLenum;
 { @groupEnd }
+{$endif read_interface_func}
 
-type
+{$ifdef read_interface_type}
+//type - don't add type Delphi can't parse that correctly
   TGLTextureId = TGLuint;
 
   ETextureLoadError = class(Exception);
   EImageClassNotSupportedForOpenGL = class(ETextureLoadError);
   ECannotLoadCompressedTexture = class(ETextureLoadError);
   EInvalidImageForOpenGLTexture = class(ETextureLoadError);
+{$endif read_interface_type}
 
+{$ifdef read_interface_func}
 { If Tex <> 0 then it does glDeleteTextures on Tex and sets Tex to 0.
   In other words, this is a simple wrapper over glDeleteTextures that
   @orderedList(
@@ -63,6 +70,7 @@ procedure glFreeTexture(var Tex: TGLTextureId);
   does nothing), and to query OpenGL limit for Anisotropy (eventually
   clamping provided Anisotropy down). }
 procedure TexParameterMaxAnisotropy(const target: TGLenum; const Anisotropy: TGLfloat);
+{$endif read_interface_func}
 
 {$endif read_interface}
 

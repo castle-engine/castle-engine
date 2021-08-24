@@ -69,7 +69,7 @@ procedure glColorv(const v: TVector4f); overload; //deprecated 'instead of this,
 
 { }
 procedure glTranslatev(const V: TVector3f); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
-{$ifdef FPC} procedure glTranslatev(const V: TVector3_Single); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';{$endif}
+{$ifdef FPC}procedure glTranslatev(const V: TVector3_Single); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';{$endif}
 
 procedure glScalev(const V: Single); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
 procedure glScalev(const V: TVector3f); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
@@ -316,25 +316,25 @@ end;
 
 procedure glTranslatev(const V: TVector3f); begin glTranslatef(V[0], V[1], V[2]); end;
 
-procedure glTranslatev(const V: TVector3_Single); begin glTranslatef(V.Data[0], V.Data[1], V.Data[2]); end;
+{$ifdef FPC}procedure glTranslatev(const V: TVector3_Single); begin glTranslatef(V.Data[0], V.Data[1], V.Data[2]); end;{$endif}
 
 procedure glScalev(const V: Single); begin glScalef(V, V, V); end;
 
 procedure glScalev(const V: TVector3f); begin glScalef(V[0], V[1], V[2]); end;
 
-procedure glScalev(const V: TVector3_Single); begin glScalef(V.Data[0], V.Data[1], V.Data[2]); end;
+{$ifdef FPC}procedure glScalev(const V: TVector3_Single); begin glScalef(V.Data[0], V.Data[1], V.Data[2]); end;{$endif}
 
 procedure glRotatev(const Angle: TGLfloat;  const V: TVector3f); begin glRotatef(Angle, V[0], V[1], V[2]); end;
 
-procedure glVertexv(const v: TVector2_Single);  begin glVertex2fv(@v.Data); end;
+{$ifdef FPC}procedure glVertexv(const v: TVector2_Single);  begin glVertex2fv(@v.Data); end;{$endif}
 
-procedure glVertexv(const v: TVector3_Single);  begin glVertex3fv(@v.Data); end;
+{$ifdef FPC}procedure glVertexv(const v: TVector3_Single);  begin glVertex3fv(@v.Data); end;{$endif}
 
-procedure glVertexv(const v: TVector4_Single);  begin glVertex4fv(@v.Data); end;
+{$ifdef FPC}procedure glVertexv(const v: TVector4_Single);  begin glVertex4fv(@v.Data); end;{$endif}
 
 procedure glClipPlane(plane: GLenum; const V: TVector4Double);
 begin
-  GL.glClipPlane(plane, @V);
+  {$ifdef FPC}GL.{$else}OpenGL.{$endif}glClipPlane(plane, @V);
 end;
 
 procedure glNormalv(const v: TVector3); begin glNormal3fv(@v); end;
@@ -357,8 +357,8 @@ procedure glTexGenv(coord, pname: TGLenum; const params: TVector4f);  begin glTe
 procedure glLightv(light, pname: TGLEnum; const params: TVector4f);  begin glLightfv(light, pname, @params); end;
 procedure glLightv(light, pname: TGLEnum; const params: TVector3f);  begin glLightfv(light, pname, @params); end;
 
-procedure glLightModelv(pname: TGLenum; const params: TVector4f); begin glLightModelfv(pname, @params); end;
-procedure glLightModelv(pname: TGLenum; const params: TVector4i); begin glLightModeliv(pname, @params); end;
+procedure glLightModelv(pname: TGLenum; const params: TVector4f); overload; begin glLightModelfv(pname, @params); end;
+procedure glLightModelv(pname: TGLenum; const params: TVector4i); overload; begin glLightModeliv(pname, @params); end;
 
 procedure glFogv(pname: TGLEnum; const params: TVector4f);  begin glFogfv(pname, @params); end;
 

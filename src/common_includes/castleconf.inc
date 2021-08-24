@@ -453,6 +453,8 @@
 { Define deprecated CastleWindow classes.
   These introduce dependencies on deprecated units like CastleLevels etc.
   which can otherwise be usually avoided. }
-{$define CASTLE_DEPRECATED_WINDOW_CLASSES}
+{$ifndef FPC}
+  {$define CASTLE_DEPRECATED_WINDOW_CLASSES}
+{$endif}
 
 {$endif not CASTLE_CONF_INCLUDED}

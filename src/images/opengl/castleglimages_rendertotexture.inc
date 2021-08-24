@@ -17,7 +17,8 @@
 
 {$ifdef read_interface}
 
-type
+{$ifdef read_interface_type}
+//type - don't add this Delphi can't parse it correctly
   EFramebufferError = class(Exception);
   EFramebufferSizeTooLow = class(EFramebufferError);
   EFramebufferInvalid  = class(EFramebufferError);
@@ -257,6 +258,7 @@ type
     function SaveScreen(const ImageClass: TCastleImageClass;
       const Rect: TRectangle): TCastleImage;
   end;
+{$endif read_interface_type}
 
 {$endif read_interface}
 

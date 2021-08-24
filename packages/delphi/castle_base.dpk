@@ -52,9 +52,14 @@ contains
   castledownload in '..\..\src\files\castledownload.pas',
   castlefilesutils in '..\..\src\files\castlefilesutils.pas',
   castlefindfiles in '..\..\src\files\castlefindfiles.pas',
-  castleglutils in '..\..\src\images\opengl\castleglutils.pas',
   castleimages in '..\..\src\images\castleimages.pas',
   castleinternalpng in '..\..\src\images\castleinternalpng.pas',
-  castlecompositeimage in '..\..\src\images\castlecompositeimage.pas';
+  castlecompositeimage in '..\..\src\images\castlecompositeimage.pas',
+  castleglshaders in '..\..\src\images\opengl\castleglshaders.pas',
+  castlerendercontext in '..\..\src\images\opengl\castlerendercontext.pas',
+  castleglutils in '..\..\src\images\opengl\castleglutils.pas',
+  castleglimages in '..\..\src\images\opengl\castleglimages.pas',
+  castletextureimages in '..\..\src\images\castletextureimages.pas',
+  castlevideos in '..\..\src\images\castlevideos.pas';
 
 end.

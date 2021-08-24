@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2015-2018 Tomasz Wojtyś, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -16,8 +16,8 @@
 { Part of CastleGLImages unit: drawing 2D sprites on screen (TSprite class). }
 
 {$ifdef read_interface}
-
-type
+{$ifdef read_interface_type}
+// type - don't add type delphi can't parse it correctly when some types are forward declared
   { A frame of a custom animation. Part of the TSpriteAnimation. }
   TSpriteAnimationFrame = record
     { Frame number from the sprite. }
@@ -206,6 +206,7 @@ type
     property Y: Single read FY write FY;
     property Position: TVector2 read GetPosition write SetPosition;
 
+    {$ifdef FPC}
     { Center X of rotation. Values between 0 and 1. }
     property CenterX: Single read GetCenterX write SetCenterX default 0.5;
       deprecated 'use RotationCenter';
@@ -213,6 +214,7 @@ type
     { Center Y of rotation. Values between 0 and 1. }
     property CenterY: Single read GetCenterY write SetCenterY default 0.5;
       deprecated 'use RotationCenter';
+    {$endif}
 
     { Destination frame width to draw. }
     property DrawingWidth: Single read FDrawingWidth write FDrawingWidth;
@@ -230,11 +232,13 @@ type
       Default (0.5,0.5). }
     property RotationCenter: TVector2 read GetRotationCenter write SetRotationCenter;
 
+    {$ifdef FPC}
     property Center: TVector2 read GetRotationCenter write SetRotationCenter;
       deprecated 'use RotationCenter';
+    {$endif}
 
     { Rotation in degrees. }
-    property Rotation: Single read GetRotation write SetRotation default 0;
+    property Rotation: Single read GetRotation write SetRotation {$ifdef FPC}default 0{$endif};
 
     { Color multiplier of the sprite, see @link(TDrawableImage.Color) }
     property Color: TCastleColor read GetColor write SetColor;
@@ -248,7 +252,7 @@ type
       has an explicit (possibly different) duration. }
     property FramesPerSecond: Single
       read FFramesPerSecond write SetFramesPerSecond
-      default DefaultFramesPerSecond;
+      {$ifdef FPC}default DefaultFramesPerSecond{$endif};
 
     { Current frame. }
     property Frame: Cardinal read FFrame write SetFrame;
@@ -275,12 +279,12 @@ type
     { X margin for frame position on the underlying image.
       Useful if the first frame doesn't start at X=0. }
     property LeftMargin: Cardinal read FLeftMargin write FLeftMargin default 0;
-    property LeftMarginOffset: Cardinal read FLeftMargin write FLeftMargin default 0; deprecated 'use LeftMargin';
+    {$ifdef FPC}property LeftMarginOffset: Cardinal read FLeftMargin write FLeftMargin default 0; deprecated 'use LeftMargin';{$endif}
 
     { Y margin for frame position on the underlying image.
       Useful if the first frame doesn't start at Y=0. }
     property TopMargin: Cardinal read FTopMargin write FTopMargin default 0;
-    property TopMarginOffset: Cardinal read FTopMargin write FTopMargin default 0; deprecated 'use TopMargin';
+    {$ifdef FPC}property TopMarginOffset: Cardinal read FTopMargin write FTopMargin default 0; deprecated 'use TopMargin';{$endif}
 
     { Horizontal spacing between frames.
       Use this if you have an empty space at the @bold(right) of every frame
@@ -386,6 +390,8 @@ type
 
   { List of sprites. }
   TSpriteList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSprite>;
+
+{$endif read_interface_type}
 
 {$endif read_interface}
 

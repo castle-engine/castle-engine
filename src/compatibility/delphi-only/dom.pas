@@ -30,7 +30,7 @@ uses XMLDoc, XMLIntf, Contnrs, Classes;
 
 type
   DOMString = string;
-
+  TDOMNode = class;
   TDOMNodeList = class;
   TXMLDocument = class;
 
@@ -53,6 +53,11 @@ type
     NOTATION_NODE
   );
 
+  TDOMNamedNodeMap = class
+    public
+      function GetNamedItem(Name: String): TDOMNode;
+  end;
+
   { Node is a general concept in XML, it can be an element, attribute etc.
 
     We use TComponent to represent both TDOMNode and TXMLDocument,
@@ -64,9 +69,11 @@ type
     InternalNode: IXMLNode;
   strict private
     FChildNodes: TDOMNodeList;
+    FAttributes: TDOMNamedNodeMap;
     function GetNodeName: String;
     function GetNodeValue: String;
     procedure SetNodeValue(const Value: String);
+    function GetAttributes: TDOMNamedNodeMap;
   public
     constructor Create(const AOwnerDocument: TXMLDocument; const AInternalNode: IXMLNode); reintroduce;
     destructor Destroy; override;
@@ -75,6 +82,9 @@ type
     property OwnerDocument: TXMLDocument read FOwnerDocument;
     function ChildNodes: TDOMNodeList;
     function NodeType: TXMLNodeType;
+    function FindNode(const NodeName: String): TDOMNode;
+
+    property Attributes: TDOMNamedNodeMap read FAttributes;
   end;
 
   TDOMNodeList = class
@@ -131,6 +141,7 @@ type
     destructor Destroy; override;
     property DocumentElement: TDOMElement read GetDocumentElement;
     function CreateElement(const Name: String): TDOMElement;
+    function ReplaceChild(NewChild, OldChild: TDOMNode): TDOMNode;
     function CreateComment(const CommentContents: String): TDOMComment;
     procedure AppendChild(const Child: TDOMNode);
   end;
@@ -201,6 +212,26 @@ destructor TDOMNode.Destroy;
 begin
   FreeAndNil(FChildNodes);
   inherited;
+end;
+
+function TDOMNode.FindNode(const NodeName: String): TDOMNode;
+var
+  I: Integer;
+begin
+  for I := 0 to ChildNodes.Count do
+  begin
+    if ChildNodes[I].NodeName = NodeName then
+      Exit(ChildNodes[I]);
+  end;
+  Result := nil;
+end;
+
+function TDOMNode.GetAttributes: TDOMNamedNodeMap;
+begin
+  if FAttributes = nil then
+    FAttributes := TDOMNamedNodeMap.Create;
+
+
 end;
 
 function TDOMNode.GetNodeName: String;
@@ -311,6 +342,20 @@ begin
     FDocumentElement := TDOMElement.Create(Self, InternalDocument.DocumentElement);
   Result := FDocumentElement;
 end;
+
+function TXMLDocument.ReplaceChild(NewChild, OldChild: TDOMNode): TDOMNode;
+begin
+  raise Exception.Create('Not implemented in Delphi!');
+end;
+
+{ TDOMNamedNodeMap }
+
+function TDOMNamedNodeMap.GetNamedItem(Name: String): TDOMNode;
+begin
+  // TODO: Delphi support
+  Result := nil;
+end;
+
 
 end.
 

@@ -54,7 +54,7 @@ begin
 
   if glext_ExtensionSupported('GL_EXT_framebuffer_blit', extstring) then
   begin
-    Pointer(glBlitFramebufferEXT) := wglGetProcAddress('glBlitFramebufferEXT');
+    {$ifdef FPC}Pointer({$endif}glBlitFramebufferEXT{$ifdef FPC}){$endif} := wglGetProcAddress('glBlitFramebufferEXT');
     if not Assigned(glBlitFramebufferEXT) then Exit;
     Result := TRUE;
   end;
