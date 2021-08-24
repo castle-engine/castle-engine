@@ -1108,8 +1108,6 @@ type
 
     procedure RecursiveRender(const ViewportRect: TRectangle);
   protected
-    procedure InternalSetContainer(const Value: TCastleContainer);
-
     { Container sizes.
       @groupBegin }
     function ContainerWidth: Cardinal; virtual;
@@ -1163,6 +1161,7 @@ type
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
     function GetEnumerator: TEnumerator;
+    procedure InternalSetContainer(const Value: TCastleContainer); virtual;
 
     (*Handle press or release of a key, mouse button or mouse wheel.
       Return @true if the event was somehow handled,
