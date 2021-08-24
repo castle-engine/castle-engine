@@ -388,7 +388,7 @@ type
     CastleWindow will need to use TCastleContainer type for callback parameter type. }
 
   { }
-  TUIContainer = CastleUIControls.TUIContainer deprecated 'use TCastleContainer';
+  TUIContainer = CastleUIControls.TCastleContainer deprecated 'use TCastleContainer';
   TCastleContainer = CastleUIControls.TCastleContainer;
 
   {$I castlewindowmenu.inc}

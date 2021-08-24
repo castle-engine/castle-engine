@@ -882,7 +882,7 @@ type
       read FBackgroundColor write FBackgroundColor;
   end;
 
-  TUIContainer = TCastleContainer deprecated 'use TUIContainer';
+  TUIContainer = TCastleContainer deprecated 'use TCastleContainer';
 
   { Position for relative layout of one control in respect to another.
     @deprecated Deprecated, rather use cleaner
