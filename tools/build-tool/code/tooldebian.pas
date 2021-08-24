@@ -73,7 +73,9 @@ procedure TPackageDebian.Make(const OutputProjectPath: String; const TempPath: S
       // "s390x"
       { Unofficial Debian ports https://packages.debian.org/sid/bash }
       m68k: Result := 'm68k';
+      {$ifdef VER3_0} // FPC 3.2.2 removed riscv64, see https://github.com/castle-engine/castle-engine/commit/04fed13723a985f37f53b3a852d7d84d7e4b975b
       riscv64: Result := 'riscv64';
+      {$endif} 
       sparc64: Result := 'sparc64';
       // "alpha"
       // "sh4"
