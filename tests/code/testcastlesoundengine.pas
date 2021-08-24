@@ -24,6 +24,8 @@ uses
 
 type
   TTestCastleSoundEngine = class(TCastleTestCase)
+  strict private
+    procedure OnWarningRaiseException(const Category, S: string);
   published
     procedure TestLoadBufferException;
     procedure TestNotPcmEncodingWarning;
@@ -69,25 +71,35 @@ begin
   except on ESoundFileError do ; end;
 end;
 
+procedure TTestCastleSoundEngine.OnWarningRaiseException(const Category, S: string);
+begin
+  raise Exception.CreateFmt('TTestCastleSoundEngine made a warning, and any warning here is an error: %s: %s', [Category, S]);
+end;
+
 procedure TTestCastleSoundEngine.TestNotPcmEncodingWarning;
 begin
-  if SoundEngine.IsContextOpenSuccess then
-  begin
-    try
-      SoundEngine.RepositoryURL := 'castle-data:/sound/not_pcm_encoding/index.xml';
-      Fail('Should have raised EWavLoadError');
-    except
-      on E: Exception do
-      begin
-        if Pos('Loading WAV files not in PCM format not implemented', E.Message) > 0 then
+  ApplicationProperties.OnWarning.Add(@OnWarningRaiseException);
+  try
+    if SoundEngine.IsContextOpenSuccess then
+    begin
+      try
+        SoundEngine.RepositoryURL := 'castle-data:/sound/not_pcm_encoding/index.xml';
+        Fail('Should have raised EWavLoadError');
+      except
+        on E: Exception do
         begin
-          // good, we expect this
-        end else
-          raise;
+          if Pos('Loading WAV files not in PCM format not implemented', E.Message) > 0 then
+          begin
+            // good, we expect this
+          end else
+            raise;
+        end;
       end;
-    end;
-  end else
-    Writeln('OpenAL cannot be initialized, TestNotPcmEncodingWarning doesn''t really do anything');
+    end else
+      Writeln('OpenAL cannot be initialized, TestNotPcmEncodingWarning doesn''t really do anything');
+  finally
+    ApplicationProperties.OnWarning.Remove(@OnWarningRaiseException);
+  end;
 end;
 
 procedure TTestCastleSoundEngine.TestImportancePriority;
