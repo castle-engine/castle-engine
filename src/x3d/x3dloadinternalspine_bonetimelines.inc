@@ -92,6 +92,47 @@ const
   SSpine1KeyFrameWarning = 'Timeline on %s "%s" (animation of %s) has only 1 keyframe. We support it in a consistent way (1 keyframe means that the state is constant), but Spine shows such timeline inconsistently. To avoid confusion, set at least 2 keyframes on every timeline.';
   // SSpineMultipleTimelinesWarning = 'Multiple timelines affect %s "%s" animation of %s';
 
+procedure ReadCurveControlPoints(const OwnerName: String; const Json: TJSONObject;
+  out ControlPoints: TVector4; var Curve: Boolean);
+var
+  CurveTypeJson: TJSONData;
+  C: Integer;
+begin
+  ControlPoints := Vector4(0, 0, 1, 1); // default value, in case curve is later changed from linear to curve
+  CurveTypeJson := Json.Find('curve');
+  if CurveTypeJson <> nil then
+  begin
+    if CurveTypeJson is TJSONArray then // also checks CurveTypeJson <> nil
+    begin
+      C := TJSONArray(CurveTypeJson).Count;
+      if C <> 4 then
+        WritelnWarning('Spine', 'Curve interpolation of "%s" is an array, but has %d elements instead of 4', [
+          OwnerName,
+          C
+        ]);
+      // for counts > 4, we make a warning, but still interpret the 1st 4 elements; TODO what do they mean?
+      if C >= 4 then
+      begin
+        Curve := true;
+        ControlPoints[0] := TJSONArray(CurveTypeJson).Floats[0];
+        ControlPoints[1] := TJSONArray(CurveTypeJson).Floats[1];
+        ControlPoints[2] := TJSONArray(CurveTypeJson).Floats[2];
+        ControlPoints[3] := TJSONArray(CurveTypeJson).Floats[3];
+      end;
+    end;
+
+    { For now, silently ignore warning that we don't handle curve type
+      'stepped'. Spine optimizes it's curves by using 'stepped' where
+      previous and next values are equal, so this is common, and we would
+      flood the warnings console for many models because of this (while in fact
+      models are handled Ok since 'stepped' is only for optimization). }
+    { else
+    if CurveTypeJson.AsString <> 'linear' then
+      WritelnWarning('Spine', 'Found "' + CurveTypeJson.AsString + '" interpolation type on slot timeline of slot ' + Slot.Name + ', we do not support this interpolation type');
+    }
+  end;
+end;
+
 { TBoneTimeline -------------------------------------------------------------- }
 
 constructor TBoneTimeline.Create;
@@ -116,7 +157,6 @@ var
   O: TJSONObject;
   NextTime: Single;
   ControlPoints: TVector4;
-  CurveTypeJson: TJSONData;
 begin
   Curve := false;
 
@@ -131,33 +171,7 @@ begin
       Time.Add(NextTime);
       FMaxTime := NextTime;
 
-      ControlPoints := Vector4(0, 0, 1, 1); // default value, in case curve is later changed from linear to curve
-      CurveTypeJson := O.Find('curve');
-      if CurveTypeJson <> nil then
-      begin
-        if CurveTypeJson is TJSONArray then
-        begin
-          if TJSONArray(CurveTypeJson).Count <> 4 then
-            WritelnWarning('Spine', 'Curve type interpolation is an array, but does not have 4 elements (required for Bezier curve array)') else
-          begin
-            Curve := true;
-            ControlPoints[0] := TJSONArray(CurveTypeJson).Floats[0];
-            ControlPoints[1] := TJSONArray(CurveTypeJson).Floats[1];
-            ControlPoints[2] := TJSONArray(CurveTypeJson).Floats[2];
-            ControlPoints[3] := TJSONArray(CurveTypeJson).Floats[3];
-          end;
-        end;
-
-        { For now, silently ignore warning that we don't handle curve type
-          'stepped'. Spine optimizes it's curves by using 'stepped' where
-          previous and next values are equal, so this is common, and we would
-          flood the warnings console for many models because of this (while in fact
-          models are handled Ok since 'stepped' is only for optimization). }
-        { else
-        if CurveTypeJson.AsString <> 'linear' then
-          WritelnWarning('Spine', 'Found "' + CurveTypeJson.AsString + '" interpolation type on bone timeline of bone ' + Bone.Name + ', we do not support this interpolation type');
-        }
-      end;
+      ReadCurveControlPoints('bone', O, ControlPoints, Curve);
       CurveControlPoints.Add(ControlPoints);
 
       ParseSingleValue(O);
@@ -392,8 +406,15 @@ begin
 end;
 
 procedure TBoneTimelineRotate.ParseSingleValue(const Json: TJSONObject);
+var
+  Angle: Single;
 begin
-  Angles.Add(Json.Get('angle', 0.0));
+  // around Spine >= 4.0 they changed the name of this to "value"
+  if Json.IndexOfName('angle') <> -1 then
+    Angle := Json.Get('angle', 0.0)
+  else
+    Angle := Json.Get('value', 0.0);
+  Angles.Add(Angle);
 end;
 
 procedure TBoneTimelineRotate.BuildNodes(const BaseUrl: string;

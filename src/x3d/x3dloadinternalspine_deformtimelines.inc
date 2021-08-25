@@ -76,7 +76,6 @@ procedure TDeformTimeline.Parse(const Json: TJSONArray);
 var
   I, J, K: Integer;
   Obj: TJSONObject;
-  CurveJson: TJSONData;
   VertexJsonArray: TJSONArray;
   VertexList: TSingleList;
   Offset: Integer;
@@ -88,25 +87,7 @@ begin
     Obj := Json.Items[I] as TJSONObject;
     Time.Add(Obj.Get('time', 0.0));
     Offset := Obj.Get('offset', 0);
-    ControlPoints := Vector4(0, 0, 1, 1);
-    CurveJson := Obj.Find('curve');
-    if CurveJson <> nil then
-    begin
-      if CurveJson is TJSONArray then
-      begin
-        { TODO: Take care of 'curve' field once we implement CubicBezier version of
-          TCoordinateInterpolatorNode }
-        if Attachment.Weights.Count = 0 then
-          WritelnWarning('Spine', 'Deform timeline''s "curve" field is not supported for non-weighted mesh');
-        if TJSONArray(CurveJson).Count <> 4 then
-          WritelnWarning('Spine', 'Curve type interpolation is an array, but does not have 4 elements (required for Bezier curve array)') else
-        Curve := True;
-        ControlPoints[0] := TJSONArray(CurveJson).Floats[0];
-        ControlPoints[1] := TJSONArray(CurveJson).Floats[1];
-        ControlPoints[2] := TJSONArray(CurveJson).Floats[2];
-        ControlPoints[3] := TJSONArray(CurveJson).Floats[3];
-      end;
-    end;
+    ReadCurveControlPoints('deform', Obj, ControlPoints, Curve);
     CurveControlPoints.Add(ControlPoints);
 
     VertexJsonArray := Obj.Get('vertices', TJSONArray(nil));
@@ -155,6 +136,14 @@ begin
     Vertices.Add(VertexList);
   end;
   FMaxTime := Time.Items[Time.Count - 1];
+
+  if Curve then
+  begin
+    { TODO: Take care of 'curve' field once we implement CubicBezier version of
+      TCoordinateInterpolatorNode }
+    if Attachment.Weights.Count = 0 then
+      WritelnWarning('Spine', 'Deform timeline''s "curve" field is not supported for non-weighted mesh');
+  end;
 end;
 
 procedure TDeformTimeline.BuildNodes(const MaxAnimationTime: Single; const Container: TX3DRootNode);

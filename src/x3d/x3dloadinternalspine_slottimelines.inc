@@ -198,35 +198,8 @@ end;
 procedure TSlotTimelineColor.ParseSingleValue(const Json: TJSONObject);
 var
   ControlPoints: TVector4;
-  CurveTypeJson: TJSONData;
 begin
-  ControlPoints := Vector4(0, 0, 1, 1); // default value, in case curve is later changed from linear to curve
-  CurveTypeJson := Json.Find('curve');
-  if CurveTypeJson <> nil then
-  begin
-    if CurveTypeJson is TJSONArray then
-    begin
-      if TJSONArray(CurveTypeJson).Count <> 4 then
-        WritelnWarning('Spine', 'Curve type interpolation is an array, but does not have 4 elements (required for Bezier curve array)') else
-      begin
-        Curve := true;
-        ControlPoints[0] := TJSONArray(CurveTypeJson).Floats[0];
-        ControlPoints[1] := TJSONArray(CurveTypeJson).Floats[1];
-        ControlPoints[2] := TJSONArray(CurveTypeJson).Floats[2];
-        ControlPoints[3] := TJSONArray(CurveTypeJson).Floats[3];
-      end;
-    end;
-
-    { For now, silently ignore warning that we don't handle curve type
-      'stepped'. Spine optimizes it's curves by using 'stepped' where
-      previous and next values are equal, so this is common, and we would
-      flood the warnings console for many models because of this (while in fact
-      models are handled Ok since 'stepped' is only for optimization). }
-    { else
-    if CurveTypeJson.AsString <> 'linear' then
-      WritelnWarning('Spine', 'Found "' + CurveTypeJson.AsString + '" interpolation type on slot timeline of slot ' + Slot.Name + ', we do not support this interpolation type');
-    }
-  end;
+  ReadCurveControlPoints('slot', Json, ControlPoints, Curve);
   CurveControlPoints.Add(ControlPoints);
 
   Colors.Add(HexToColor(Json.Get('color', 'ffffffff')));

@@ -145,6 +145,8 @@ procedure TAnimation.Parse(const Json: TJSONObject;
     end;
 
     ChildArray := Json.Find('color', jtArray) as TJSONArray;
+    if ChildArray = nil then
+      ChildArray := Json.Find('rgba', jtArray) as TJSONArray; // new name around Spine >= 4.0
     if ChildArray <> nil then
     begin
       SlotTimeline := TSlotTimelineColor.Create;

@@ -18,9 +18,18 @@
 type
   TAtlasRegion = class
   public
-    Name: string;
-    Rotate: boolean;
-    XY, Size, Orig, Offset: TVector2Integer;
+    Name: String;
+    Rotate: Boolean;
+    { Left-bottom corner of the place in atlas. In pixels of the atlas image. }
+    XY: TVector2Integer;
+    { Size of the place in atlas. In pixels of the atlas image. }
+    Size: TVector2Integer;
+    { Original region size, before whitespace stripping was done.
+      May be equal Size, or just be left 0, if no whitespace stripping was done. }
+    Orig: TVector2Integer;
+    { Offset is non-zero only it whitespace stripping was done,
+      i.e. the complete texture area is not in the atlas file, as it was stripped. }
+    Offset: TVector2Integer;
     TexCoord: TQuadTexCoord;
     { When Spine atlas creator uses whitespace compression for texture,
       the actual 3D points need to be squeezed a little to show smaller
@@ -72,14 +81,23 @@ procedure TAtlasRegion.CalculateTexCoord(const ImageWidth, ImageHeight: Integer)
 var
   TextureXY, TextureSize: TVector2;
   I: Integer;
+  OriginalSize: TVector2Integer;
 begin
   TextureXY := Vector2(
     XY[0] / ImageWidth,
     XY[1] / ImageHeight);
-  TexRect[0][0] := Offset[0] / Orig[0];
-  TexRect[0][1] := Offset[1] / Orig[1];
-  TexRect[1][0] := (Offset[0] + Size[0]) / Orig[0];
-  TexRect[1][1] := (Offset[1] + Size[1]) / Orig[1];
+
+  OriginalSize := Orig;
+  { if not specified, assume Orig is equal Size. }
+  if OriginalSize[0] = 0 then
+    OriginalSize[0] := Size[0];
+  if OriginalSize[1] = 0 then
+    OriginalSize[1] := Size[1];
+
+  TexRect[0][0] := Offset[0] / OriginalSize[0];
+  TexRect[0][1] := Offset[1] / OriginalSize[1];
+  TexRect[1][0] := (Offset[0] + Size[0]) / OriginalSize[0];
+  TexRect[1][1] := (Offset[1] + Size[1]) / OriginalSize[1];
   if Rotate then
   begin
     TextureSize := Vector2(
@@ -225,6 +243,7 @@ procedure TAtlas.Parse(const URL: string);
       Value := V;
   end;
 
+  (* Not useful now
   function IsNameValueBoolean(const Line, Name: string; var Value: boolean): boolean;
   var
     ValueStr: string;
@@ -233,10 +252,47 @@ procedure TAtlas.Parse(const URL: string);
     if Result then
     begin
       if ValueStr = 'false' then
-        Value := false else
+        Value := false
+      else
       if ValueStr = 'true' then
-        Value := true else
+        Value := true
+      else
         raise ESpineReadError.CreateFmt('Invalid boolean value "%s"', [ValueStr]);
+    end;
+  end;
+  *)
+
+  { Read "rotate" type, which is either boolean or integer (changed somewhere around Spine 4.0 release). }
+  function IsNameValueRotate(const Line, Name: string; var Value: Boolean): Boolean;
+  var
+    ValueStr: String;
+    ValueInt: Integer;
+  begin
+    Result := IsNameValueString(Line, Name, ValueStr);
+    if Result then
+    begin
+      if ValueStr = 'false' then
+        Value := false
+      else
+      if ValueStr = 'true' then
+        Value := true
+      else
+      if TryStrToInt(ValueStr, ValueInt) then
+      begin
+        case ValueInt of
+          0: Value := false;
+          90: Value := true;
+          else
+            begin
+              WritelnWarning('Unsupported "rotate" integer value in atlas "%d"', [ValueInt]);
+              Exit(false);
+            end;
+        end;
+      end else
+      begin
+        WritelnWarning('Unsupported "rotate" value in atlas "%s"', [ValueStr]);
+        Exit(false);
+      end;
     end;
   end;
 
@@ -272,6 +328,50 @@ procedure TAtlas.Parse(const URL: string);
           raise ESpineReadError.CreateFmt('Invalid integer value in vector of 2 integers "%s": %s', [ValueStr, E.Message]);
       end else
         raise ESpineReadError.CreateFmt('Cannot split a vector of 2 integers "%s" by a comma', [ValueStr]);
+    end;
+  end;
+
+  function IsNameValueVector4Integer(const Line, Name: string; var Vector: TVector4Integer): Boolean;
+  var
+    ValueStr: String;
+    Tokens: TCastleStringList;
+    I: Integer;
+  begin
+    Result := IsNameValueString(Line, Name, ValueStr);
+    if Result then
+    begin
+      Tokens := CreateTokens(ValueStr, WhiteSpaces + [',']);
+      try
+        if Tokens.Count <> 4 then
+        begin
+          WritelnWarning('Expected 4 values for "%s", got %d values', [Name, Tokens.Count]);
+          Exit(false);
+        end;
+        try
+          for I := 0 to 3 do
+            Vector[I] := StrToInt(Tokens[I]);
+        except
+          on E: EConvertError do
+          begin
+            WritelnWarning('Invalid integer value in vector of 4 integers "%s": %s', [ValueStr, E.Message]);
+            Exit(false);
+          end;
+        end;
+      finally FreeAndNil(Tokens) end;
+    end;
+  end;
+
+  function IsNameValueTwoVectors2Integer(const Line, Name: string; var V1, V2: TVector2Integer): Boolean;
+  var
+    Bounds: TVector4Integer;
+  begin
+    Result := IsNameValueVector4Integer(Line, Name, Bounds);
+    if Result then
+    begin
+      V1[0] := Bounds[0];
+      V1[1] := Bounds[1];
+      V2[0] := Bounds[2];
+      V2[1] := Bounds[3];
     end;
   end;
 
@@ -328,21 +428,24 @@ begin
           Page := TAtlasPage.Create;
           Page.TextureURL := Trim(Line);
           Pages.Add(Page);
+          Region := nil;
         end;
       end else
       if Trim(Line) = '' then
+      begin
         { end atlas page }
-        Page := nil else
-      if Line[1] <> ' ' then
+        Page := nil;
+        Region := nil;
+      end else
+      if Region = nil then
       begin
         { read per-page (but not per-region) info }
-        Region := nil;
         if IsNameValueString(Line, 'format', Page.Format) then else
         if IsNameValueFilter(Line, 'filter', Page.Filter) then else
         if IsNameValueRepeat(Line, 'repeat', Page.IsRepeat) then else
         if IsNameValueVector2Integer(Line, 'size', Page.Size) then else
         if Pos(':', Line) <> 0 then
-          raise ESpineReadError.CreateFmt('Unhandled name:value pair "%s"', [Line]) else
+          raise ESpineReadError.CreateFmt('Unhandled name:value pair (outside region) "%s"', [Line]) else
         begin
           { new region }
           Region := TAtlasRegion.Create;
@@ -350,18 +453,25 @@ begin
           Page.Regions.Add(Region);
         end;
       end else
-      if Region <> nil then
       begin
         { read per-region info }
-        if IsNameValueBoolean(Line, 'rotate', Region.Rotate) then else
+        if IsNameValueRotate(Line, 'rotate', Region.Rotate) then else
         if IsNameValueVector2Integer(Line, 'xy', Region.XY) then else
         if IsNameValueVector2Integer(Line, 'size', Region.Size) then else
         if IsNameValueVector2Integer(Line, 'orig', Region.Orig) then else
         if IsNameValueVector2Integer(Line, 'offset', Region.Offset) then else
         if IsNameValueInteger(Line, 'index', Region.Index) then else
-          raise ESpineReadError.CreateFmt('Unhandled name:value pair "%s"', [Line]);
-      end else
-        raise ESpineReadError.Create('Atlas file contains indented line, but no region name specified');
+        if IsNameValueTwoVectors2Integer(Line, 'bounds', Region.XY, Region.Size) then else
+        if IsNameValueTwoVectors2Integer(Line, 'offsets', Region.Offset, Region.Orig) then else
+        if Pos(':', Line) <> 0 then
+          raise ESpineReadError.CreateFmt('Unhandled name:value pair (inside region) "%s"', [Line]) else
+        begin
+          { new region }
+          Region := TAtlasRegion.Create;
+          Region.Name := Line;
+          Page.Regions.Add(Region);
+        end;
+      end;
     end;
   finally FreeAndNil(Reader) end;
 
