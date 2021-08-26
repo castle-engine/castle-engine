@@ -80,15 +80,18 @@ var
   VertexList: TSingleList;
   Offset: Integer;
   VB: TMeshVertexBone;
-  ControlPoints: TVector4;
 begin
+  Curve := false;
+
   for I := 0 to Json.Count - 1 do
   begin
     Obj := Json.Items[I] as TJSONObject;
     Time.Add(Obj.Get('time', 0.0));
     Offset := Obj.Get('offset', 0);
-    ReadCurveControlPoints('deform', Obj, ControlPoints, Curve);
-    CurveControlPoints.Add(ControlPoints);
+
+    // only detect whether we have a curve at this point
+    if not Curve then
+      Curve := Obj.Find('curve') is TJSONArray;
 
     VertexJsonArray := Obj.Get('vertices', TJSONArray(nil));
     VertexList := TSingleList.Create;
