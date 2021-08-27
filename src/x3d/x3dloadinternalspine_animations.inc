@@ -199,7 +199,7 @@ procedure TAnimation.Parse(const Json: TJSONObject;
       DeformTimeline := TDeformTimeline.Create;
       DeformTimeline.Slot := Slots.Find(SlotName);
       DeformTimeline.Attachment := Attachment as TMeshAttachment;
-      DeformTimeline.Parse(Json.Items[I] as TJSONArray);
+      DeformTimeline.Parse(Json.Items[I] as TJSONArray, NormalizeCurvesKeyValues);
       DeformTimelines.Add(DeformTimeline);
     end;
   end;
