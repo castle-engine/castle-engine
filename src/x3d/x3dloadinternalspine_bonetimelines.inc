@@ -275,8 +275,8 @@ begin
         { add setup pose transform, as bone timeline is relative to setup pose }
         Bone.Node.FdTranslation.Value[0] + Vectors[I][0],
         Bone.Node.FdTranslation.Value[1] + Vectors[I][1], 0));
-      NC.FdControlPoints.Items.Add(CurveControlPoints[I]);
     end;
+    NC.SetControlPoints(CurveControlPoints);
     NC.OptimizeControlPoints;
     EventValueChanged := NC.EventValue_changed;
     Node := NC;
@@ -356,8 +356,8 @@ begin
     for I := 0 to Vectors.Count - 1 do
     begin
       NC.FdKeyValue.Items.Add(FinalScale(Bone.Node.FdScale.Value, Vectors[I]));
-      NC.FdControlPoints.Items.Add(CurveControlPoints[I]);
     end;
+    NC.SetControlPoints(CurveControlPoints);
     NC.OptimizeControlPoints;
     EventValueChanged := NC.EventValue_changed;
     Node := NC;
