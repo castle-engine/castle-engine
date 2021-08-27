@@ -49,6 +49,7 @@ type
     Filter: string; //< a value allowed by TextureProperties.MinificationFilter and MagnificationFilter
     IsRepeat: boolean;
     Size: TVector2Integer; //< atlas may (but does not have to) contain this
+    Scale: Single; //< scale used at atlas generation; we don't actually need this for anything
     Regions: TAtlasRegionList;
     Node: TImageTextureNode;
     NodeUsedAsChild: boolean;
@@ -142,6 +143,7 @@ constructor TAtlasPage.Create;
 begin
   inherited;
   Regions := TAtlasRegionList.Create;
+  Scale := 1;
 end;
 
 destructor TAtlasPage.Destroy;
@@ -312,6 +314,21 @@ procedure TAtlas.Parse(const URL: string);
     end;
   end;
 
+  function IsNameValueSingle(const Line, Name: string; var Value: Single): boolean;
+  var
+    ValueStr: string;
+  begin
+    Result := IsNameValueString(Line, Name, ValueStr);
+    if Result then
+    begin
+      if not TryStrToFloatDot(ValueStr, Value) then
+      begin
+        WritelnWarning('Invalid float value in atlas "%s"', [ValueStr]);
+        Exit(false);
+      end;
+    end;
+  end;
+
   function IsNameValueVector2Integer(const Line, Name: string; var Vector: TVector2Integer): boolean;
   var
     ValueStr, ValueStr0, ValueStr1: string;
@@ -443,6 +460,7 @@ begin
         if IsNameValueString(Line, 'format', Page.Format) then else
         if IsNameValueFilter(Line, 'filter', Page.Filter) then else
         if IsNameValueRepeat(Line, 'repeat', Page.IsRepeat) then else
+        if IsNameValueSingle(Line, 'scale', Page.Scale) then else
         if IsNameValueVector2Integer(Line, 'size', Page.Size) then else
         if Pos(':', Line) <> 0 then
           raise ESpineReadError.CreateFmt('Unhandled name:value pair (outside region) "%s"', [Line]) else
