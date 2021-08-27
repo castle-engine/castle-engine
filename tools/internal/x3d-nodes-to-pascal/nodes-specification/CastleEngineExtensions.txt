@@ -230,6 +230,11 @@ X3DCubicBezierInterpolator {
   MFVec4f   [in,out]      controlPoints   []
 }
 
+CubicBezierCoordinateInterpolator : X3DInterpolatorNode {
+  MFVec3f    [in,out] keyValue        []
+  MFVec3f    [out]    value_changed
+}
+
 CubicBezier2DOrientationInterpolator : X3DCubicBezierInterpolator {
   default-container-field: children
   MFFloat    [in,out] keyValue        []
