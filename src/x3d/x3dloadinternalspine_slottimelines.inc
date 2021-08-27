@@ -38,11 +38,13 @@
     property MaxTime: Single read FMaxTime;
     constructor Create;
     destructor Destroy; override;
-    procedure Parse(const Json: TJSONArray);
+    procedure Parse(const Json: TJSONArray;
+      const NormalizeCurvesKeyValues: Boolean);
     procedure ParseSingleValue(const Json: TJSONObject); virtual; abstract;
     procedure BuildNodes(const BaseUrl: string;
       const MaxAnimationTime: Single; const Container: TX3DRootNode); virtual;
-    procedure ParseControlPoints(const Json: TJSONArray); virtual; abstract;
+    procedure ParseControlPoints(const Json: TJSONArray;
+      const NormalizeCurvesKeyValues: Boolean); virtual; abstract;
   end;
 
   TSlotTimelineAttachment = class(TSlotTimeline)
@@ -52,7 +54,8 @@
     procedure ParseSingleValue(const Json: TJSONObject); override;
     procedure BuildNodes(const BaseUrl: string;
       const MaxAnimationTime: Single; const Container: TX3DRootNode); override;
-    procedure ParseControlPoints(const Json: TJSONArray); override;
+    procedure ParseControlPoints(const Json: TJSONArray;
+      const NormalizeCurvesKeyValues: Boolean); override;
   end;
 
   TSlotTimelineColor = class(TSlotTimeline)
@@ -62,7 +65,8 @@
     procedure ParseSingleValue(const Json: TJSONObject); override;
     procedure BuildNodes(const BaseUrl: string;
       const MaxAnimationTime: Single; const Container: TX3DRootNode); override;
-    procedure ParseControlPoints(const Json: TJSONArray); override;
+    procedure ParseControlPoints(const Json: TJSONArray;
+      const NormalizeCurvesKeyValues: Boolean); override;
   end;
 
   TSlotTimelineList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSlotTimeline>)
@@ -87,7 +91,8 @@ begin
   inherited;
 end;
 
-procedure TSlotTimeline.Parse(const Json: TJSONArray);
+procedure TSlotTimeline.Parse(const Json: TJSONArray;
+  const NormalizeCurvesKeyValues: Boolean);
 var
   I: Integer;
   O: TJSONObject;
@@ -114,7 +119,7 @@ begin
     end;
 
   if Curve then
-    ParseControlPoints(Json);
+    ParseControlPoints(Json, NormalizeCurvesKeyValues);
 end;
 
 procedure TSlotTimeline.BuildNodes(const BaseUrl: string;
@@ -193,7 +198,8 @@ begin
     WritelnWarning('Spine', Format(SSpine1KeyFrameWarning, ['slot', Slot.Name, 'attachment']));
 end;
 
-procedure TSlotTimelineAttachment.ParseControlPoints(const Json: TJSONArray);
+procedure TSlotTimelineAttachment.ParseControlPoints(const Json: TJSONArray;
+  const NormalizeCurvesKeyValues: Boolean);
 begin
   WritelnWarning('Invalid Spine JSON: Curve interpolation for slot attachments animation is not possible');
 end;
@@ -217,7 +223,8 @@ begin
   Colors.Add(HexToColor(Json.Get('color', 'ffffffff')));
 end;
 
-procedure TSlotTimelineColor.ParseControlPoints(const Json: TJSONArray);
+procedure TSlotTimelineColor.ParseControlPoints(const Json: TJSONArray;
+  const NormalizeCurvesKeyValues: Boolean);
 var
   I: Integer;
   PreviousTime, NextTime: Single;

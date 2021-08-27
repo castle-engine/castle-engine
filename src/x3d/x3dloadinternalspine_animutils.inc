@@ -24,9 +24,6 @@ const
   SSpine1KeyFrameWarning = 'Timeline on %s "%s" (animation of %s) has only 1 keyframe. We support it in a consistent way (1 keyframe means that the state is constant), but Spine shows such timeline inconsistently. To avoid confusion, set at least 2 keyframes on every timeline.';
   // SSpineMultipleTimelinesWarning = 'Multiple timelines affect %s "%s" animation of %s';
 
-  // TODO detect from Spine file version
-  NormalizeCurvesKeyValues = true;
-
 function MapRangeTo01(const SourceVal, SourceBegin, SourceEnd: Single): Single;
 begin
   if SameValue(SourceEnd, SourceBegin) then

@@ -32,12 +32,14 @@
     property MaxTime: Single read FMaxTime;
     constructor Create;
     destructor Destroy; override;
-    procedure Parse(const Json: TJSONArray); virtual;
+    procedure Parse(const Json: TJSONArray;
+      const NormalizeCurvesKeyValues: Boolean); virtual;
     procedure ParseSingleValue(const Json: TJSONObject); virtual; abstract;
     procedure BuildNodes(const BaseUrl: string;
       const MaxAnimationTime: Single; const Container: TX3DRootNode); virtual;
     function DoingSomething: boolean; virtual; abstract;
-    procedure ParseControlPoints(const Json: TJSONArray); virtual; abstract;
+    procedure ParseControlPoints(const Json: TJSONArray;
+      const NormalizeCurvesKeyValues: Boolean); virtual; abstract;
     procedure Backup; virtual;
     procedure Restore; virtual;
   end;
@@ -52,7 +54,8 @@
     destructor Destroy; override;
     procedure Backup; override;
     procedure Restore; override;
-    procedure ParseControlPoints(const Json: TJSONArray); override;
+    procedure ParseControlPoints(const Json: TJSONArray;
+      const NormalizeCurvesKeyValues: Boolean); override;
   end;
 
   TBoneTimelineTranslate = class(TBoneTimelineVector2)
@@ -82,7 +85,8 @@
     function DoingSomething: boolean; override;
     procedure Backup; override;
     procedure Restore; override;
-    procedure ParseControlPoints(const Json: TJSONArray); override;
+    procedure ParseControlPoints(const Json: TJSONArray;
+      const NormalizeCurvesKeyValues: Boolean); override;
   end;
 
   TBoneTimelineList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TBoneTimeline>)
@@ -109,7 +113,8 @@ begin
   inherited;
 end;
 
-procedure TBoneTimeline.Parse(const Json: TJSONArray);
+procedure TBoneTimeline.Parse(const Json: TJSONArray;
+  const NormalizeCurvesKeyValues: Boolean);
 var
   I: Integer;
   O: TJSONObject;
@@ -136,7 +141,7 @@ begin
     end;
 
   if Curve then
-    ParseControlPoints(Json);
+    ParseControlPoints(Json, NormalizeCurvesKeyValues);
 
   //Writeln('got timeline for bone ', Bone.Name, ' with ', Time.Count, ' items');
 end;
@@ -203,7 +208,8 @@ begin
   end;
 end;
 
-procedure TBoneTimelineVector2.ParseControlPoints(const Json: TJSONArray);
+procedure TBoneTimelineVector2.ParseControlPoints(const Json: TJSONArray;
+  const NormalizeCurvesKeyValues: Boolean);
 var
   I: Integer;
   PreviousTime, NextTime: Single;
@@ -533,7 +539,8 @@ begin
   end;
 end;
 
-procedure TBoneTimelineRotate.ParseControlPoints(const Json: TJSONArray);
+procedure TBoneTimelineRotate.ParseControlPoints(const Json: TJSONArray;
+  const NormalizeCurvesKeyValues: Boolean);
 var
   I: Integer;
   PreviousTime, NextTime: Single;
