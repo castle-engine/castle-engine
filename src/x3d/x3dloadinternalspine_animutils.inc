@@ -187,7 +187,7 @@ function ReadCurveControlPointsTimeOnly(const Json: TJSONObject;
 var
   CurveJson: TJSONData;
   CurveJsonArray: TJSONArray;
-  C, J: Integer;
+  J: Integer;
   NewControlPoints: TVector4;
 begin
   Result := Vector4(0, 0, 1, 1); // default value, in case curve changes from "curve" to default linear interpolation
@@ -197,7 +197,6 @@ begin
     if CurveJson is TJSONArray then
     begin
       CurveJsonArray := TJSONArray(CurveJson);
-      C := TJSONArray(CurveJson).Count;
       Result[0] := NormalizeTime (CurveJsonArray.Floats[0]);
       Result[1] := CurveJsonArray.Floats[1];
       Result[2] := NormalizeTime (CurveJsonArray.Floats[2]);
