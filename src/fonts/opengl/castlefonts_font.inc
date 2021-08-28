@@ -597,23 +597,29 @@ procedure TCastleFont.Reload;
     end;
   end;
 
-var
-  CharactersList: TUnicodeCharList;
-begin
-  try
+  // Load, without catching any exceptions
+  procedure LoadCore;
+  var
+    CharactersList: TUnicodeCharList;
+  begin
     CharactersList := GetCharactersList;
     try
       {$warnings off} // this Load is deprecated; actually it should be internal, nested here
       Load(URL, OptimalSize, AntiAliased, CharactersList);
       {$warnings on}
     finally FreeAndNil(CharactersList) end;
-  except
+  end;
+
+begin
+  if CastleDesignMode then
+  begin
     { If loading file failed, and we're inside CGE editor,
       merely report a warning. This allows deserializing in CGE editor
       designs with broken URLs. }
-    on E: Exception do
-    begin
-      if CastleDesignMode then
+    try
+      LoadCore;
+    except
+      on E: Exception do
       begin
         { We unload, otherwise we would keep the font loaded, not correctly reflecting
           some new properties.
@@ -624,9 +630,21 @@ begin
         Unload;
         WritelnWarning('TCastleFont', 'Failed to load font "%s": %s',
           [URIDisplay(URL), ExceptMessage(E)]);
-        Exit;
-      end else
-        raise;
+      end;
+    end;
+  end else
+  begin
+    { When not in editor, most exceptions are just passed upward.
+      But we handle EFreeTypeLibraryNotFound. }
+    try
+      LoadCore;
+    except
+      on E: EFreeTypeLibraryNotFound do
+      begin
+        Unload;
+        WritelnWarning('TCastleFont', 'Failed to load font "%s": %s',
+          [URIDisplay(URL), E.Message]);
+      end;
     end;
   end;
 end;
