@@ -245,12 +245,17 @@ end;
 
 function TCastleUserInterfaceFont.Font: TCastleAbstractFont;
 begin
-  // do not use CustomFont if it is not loaded, as it would not be visible
-  if (CustomFont <> nil) and CustomFont.FontLoaded then
+  { We check everywhere FontLoaded, to not use some font if it is not loaded
+    (e.g. if freetype library not available, or font file failed to load),
+    as it would not be visible.
+    As a last fallback, we can always use UIFont. }
+  if (CustomFont <> nil) and
+     (CustomFont.FontLoaded) then
     Result := CustomFont
   else
   if (Container <> nil) and
-     (Container.DefaultFont <> nil) then
+     (Container.DefaultFont <> nil) and
+     (Container.DefaultFont.FontLoaded) then
     Result := Container.DefaultFont
   else
   { If the Container is not assigned yet, then assume that UI control
@@ -262,7 +267,8 @@ begin
     Testcase: Escape warnings about invalid chars in Japanese version. }
   if (Container = nil) and
      (GetMainContainer <> nil) and
-     (GetMainContainer.DefaultFont <> nil) then
+     (GetMainContainer.DefaultFont <> nil) and
+     (GetMainContainer.DefaultFont.FontLoaded) then
     Result := GetMainContainer.DefaultFont
   else
     Result := UIFont;
