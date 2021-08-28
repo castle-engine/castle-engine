@@ -145,10 +145,7 @@ begin
   FMaxTime := Time.Items[Time.Count - 1];
 
   if Curve then
-  begin
-    if Attachment.Weights.Count = 0 then
-      ParseControlPoints(Json, NormalizeCurvesKeyValues);
-  end;
+    ParseControlPoints(Json, NormalizeCurvesKeyValues);
 end;
 
 procedure TDeformTimeline.BuildNodes(const MaxAnimationTime: Single; const Container: TX3DRootNode);
