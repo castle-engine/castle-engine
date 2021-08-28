@@ -153,7 +153,8 @@ begin
           WritelnWarning('TCastleBitmapFont', 'Failed to load image "%s": %s',
             [URIDisplay(FImageUrl), ExceptMessage(E)]);
           Exit;
-        end;
+        end else
+          raise;
       end;
     end;
   end;

@@ -617,7 +617,7 @@ begin
       begin
         { We unload, otherwise we would keep the font loaded, not correctly reflecting
           some new properties.
-          Testcase: in editor load TTF to some TCastlFont,
+          Testcase: in editor load TTF to some TCastleFont,
           use it with some TCastleLabel.CustomFont,
           then set TCastlFont.LoadBasicCharacters to false -> font should revert
           to default UIFont (with warning "cannot load font with no glyphs"). }
@@ -625,7 +625,8 @@ begin
         WritelnWarning('TCastleFont', 'Failed to load font "%s": %s',
           [URIDisplay(URL), ExceptMessage(E)]);
         Exit;
-      end;
+      end else
+        raise;
     end;
   end;
 end;
