@@ -170,4 +170,40 @@ begin
   end;
 end;
 
+{ Used by deform. In Spine 4, only time is required to normalize back to 0..1 range,
+  while value is still in 0..1 range }
+function ReadCurveControlPointsTimeOnly(const Json: TJSONObject;
+  const NormalizeKeyValues: Boolean;
+  const PreviousTime, NextTime: Single): TVector4;
+
+  function NormalizeTime(const T: Single): Single;
+  begin
+    if NormalizeKeyValues then
+      Result := MapRangeTo01(T, PreviousTime, NextTime)
+    else
+      Result := T;
+  end;
+
+var
+  CurveJson: TJSONData;
+  CurveJsonArray: TJSONArray;
+  C, J: Integer;
+  NewControlPoints: TVector4;
+begin
+  Result := Vector4(0, 0, 1, 1); // default value, in case curve changes from "curve" to default linear interpolation
+  CurveJson := Json.Find('curve');
+  if CurveJson <> nil then
+  begin
+    if CurveJson is TJSONArray then
+    begin
+      CurveJsonArray := TJSONArray(CurveJson);
+      C := TJSONArray(CurveJson).Count;
+      Result[0] := NormalizeTime (CurveJsonArray.Floats[0]);
+      Result[1] := CurveJsonArray.Floats[1];
+      Result[2] := NormalizeTime (CurveJsonArray.Floats[2]);
+      Result[3] := CurveJsonArray.Floats[3];
+    end;
+  end;
+end;
+
 {$endif}
