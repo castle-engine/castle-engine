@@ -187,7 +187,6 @@ function ReadCurveControlPointsTimeOnly(const Json: TJSONObject;
 var
   CurveJson: TJSONData;
   CurveJsonArray: TJSONArray;
-  J: Integer;
 begin
   Result := Vector4(0, 0, 1, 1); // default value, in case curve changes from "curve" to default linear interpolation
   CurveJson := Json.Find('curve');
