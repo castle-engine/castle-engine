@@ -64,7 +64,7 @@
   { Basis for all nodes interpolating (animating) an array of values using cubic Bezier curve. }
   {$ifdef CASTLE_OBJFPC}generic{$endif}
   TAbstractCubicBezierArrayInterpolatorNode<
-    TInterpolatedValue,
+    // TInterpolatedValue, // unused for now
     TKeyValue,
     TKeyValueEvent> = class(TAbstractCubicBezierInterpolatorNode)
   strict private
@@ -136,7 +136,7 @@
     using cubic Bezier curve instead of linear interpolation.
     See https://castle-engine.io/x3d_implementation_interpolation_extensions.php . }
   TCubicBezierCoordinateInterpolatorNode = class(specialize TAbstractCubicBezierArrayInterpolatorNode<
-    TVector3,
+    // TVector3, // unused for now
     TMFVec3f,
     TMFVec3fEvent>)
   public
