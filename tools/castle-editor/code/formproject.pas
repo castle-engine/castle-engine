@@ -1026,7 +1026,10 @@ begin
   begin
     RunningApplication := true;
     SoundEngineSetVolume;
-    BuildToolCall(['compile', 'run']);
+    if PlatformsInfo[CurrentPlatformInfo].Target = targetAndroid then
+      BuildToolCall(['package', 'install', 'run'])
+    else
+      BuildToolCall(['compile', 'run']);
   end;
 end;
 
