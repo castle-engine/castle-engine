@@ -4,7 +4,7 @@ object ProjectForm: TProjectForm
   Top = 273
   Width = 1142
   Caption = ' my-project | Castle Game Engine'
-  ClientHeight = 601
+  ClientHeight = 599
   ClientWidth = 1142
   DesignTimePPI = 120
   Menu = MainMenu1
@@ -19,7 +19,7 @@ object ProjectForm: TProjectForm
   object PageControlBottom: TPageControl
     Left = 0
     Height = 224
-    Top = 377
+    Top = 375
     Width = 1142
     ActivePage = TabFiles
     Align = alBottom
@@ -28,19 +28,19 @@ object ProjectForm: TProjectForm
     TabOrder = 0
     object TabFiles: TTabSheet
       Caption = 'Files'
-      ClientHeight = 187
+      ClientHeight = 185
       ClientWidth = 1132
       ParentFont = False
       object SplitterBetweenFiles: TSplitter
         Left = 0
-        Height = 187
+        Height = 185
         Top = 0
         Width = 6
       end
     end
     object TabOutput: TTabSheet
       Caption = 'Output'
-      ClientHeight = 187
+      ClientHeight = 185
       ClientWidth = 1132
       ParentFont = False
       object ListOutput: TListBox
@@ -60,7 +60,7 @@ object ProjectForm: TProjectForm
     end
     object TabWarnings: TTabSheet
       Caption = 'Warnings'
-      ClientHeight = 187
+      ClientHeight = 185
       ClientWidth = 1132
       ParentFont = False
       TabVisible = False
@@ -183,19 +183,19 @@ object ProjectForm: TProjectForm
     Cursor = crVSplit
     Left = 0
     Height = 6
-    Top = 371
+    Top = 369
     Width = 1142
     Align = alBottom
     ResizeAnchor = akBottom
   end
   object PanelAboveTabs: TPanel
     Left = 0
-    Height = 371
+    Height = 369
     Top = 0
     Width = 1142
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 371
+    ClientHeight = 369
     ClientWidth = 1142
     ParentFont = False
     TabOrder = 2
@@ -208,7 +208,7 @@ object ProjectForm: TProjectForm
       AnchorSideBottom.Side = asrCenter
       Left = 304
       Height = 164
-      Top = 103
+      Top = 102
       Width = 535
       Alignment = taCenter
       Caption = 'To visually design'#10'user interface or 3D/2D game world, '#10'open or create a new design'#10'using the "Design" menu.'
@@ -433,6 +433,9 @@ object ProjectForm: TProjectForm
       object MenuItemPackage: TMenuItem
         Caption = 'Package (Release to Users)'
         OnClick = MenuItemPackageClick
+      end
+      object MenuItemPackageFormat: TMenuItem
+        Caption = 'Package Format'
       end
       object MenuItemPackageSource: TMenuItem
         Caption = 'Package Source'

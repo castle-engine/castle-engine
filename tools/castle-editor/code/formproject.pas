@@ -25,13 +25,15 @@ uses
   ExtCtrls, ComCtrls, CastleShellCtrls, StdCtrls, ValEdit, ActnList, Buttons,
   ProjectUtils, Types, Contnrs, CastleControl, CastleUIControls,
   CastlePropEdits, CastleDialogs, X3DNodes, CastleFindFiles,
-  EditorUtils, FrameDesign, FrameViewFile, FormNewUnit, ToolManifest;
+  EditorUtils, FrameDesign, FrameViewFile, FormNewUnit,
+  ToolManifest, ToolPackageFormat;
 
 type
   { Main project management. }
   TProjectForm = class(TForm)
     ActionNewSpriteSheet: TAction;
     ActionList: TActionList;
+    MenuItemPackageFormat: TMenuItem;
     MenuItemSeparator12312332424: TMenuItem;
     MenuItemInstall: TMenuItem;
     MenuItemSeparator12312131: TMenuItem;
@@ -252,11 +254,13 @@ type
       ShellListViewUpdating: Cardinal;
       PlatformsInfo: TPlatformInfoList;
       CurrentPlatformInfo: Integer; //< Index to PlatformsInfo
+      CurrentPackageFormat: TPackageFormat;
     procedure BuildToolCall(const Commands: array of String;
       const RestartOnSuccess: Boolean = false);
     procedure BuildToolCallFinished(Sender: TObject);
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuItemDesignNewCustomRootClick(Sender: TObject);
+    procedure MenuItemPackageFormatChangeClick(Sender: TObject);
     procedure OpenPascal(const FileName: String);
     procedure RefreshFiles(const RefreshNecessary: TRefreshFiles);
     (*Runs custom code editor.
@@ -772,6 +776,39 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     AddPlatform('FreeBSD 64-bit', targetCustom, FreeBSD, x86_64);
   end;
 
+  procedure BuildPackageFormatsMenu;
+  const
+    PackageFormatCaptions: array [TPackageFormat] of string = (
+      'Default',
+      'Directory',
+      'Compressed zip',
+      'Compressed tar.gz',
+      'Android APK',
+      'Android app bundle (AAB)',
+      'iOS Xcode Project',
+      'iOS Archive -> Development',
+      'iOS Archive -> ad-hoc',
+      'iOS Archive -> AppStore',
+      'Nintendo Switch Project'
+    );
+  var
+    Mi: TMenuItem;
+    P: TPackageFormat;
+  begin
+    for P in TPackageFormat do
+    begin
+      Mi := TMenuItem.Create(MenuItemPackageFormat);
+      Mi.Caption := PackageFormatCaptions[P];
+      Mi.Tag := Ord(P);
+      Mi.OnClick := @MenuItemPackageFormatChangeClick;
+      Mi.GroupIndex := 210;
+      Mi.RadioItem := true;
+      Mi.ShowAlwaysCheckable := true;
+      Mi.Checked := P = CurrentPackageFormat;
+      MenuItemPackageFormat.Add(Mi);
+    end;
+  end;
+
 begin
   OutputList := TOutputList.Create(ListOutput);
   BuildComponentsMenu(
@@ -788,6 +825,7 @@ begin
     @MenuItemAddComponentClick);
   CreateShellViews;
   BuildPlatformsMenu;
+  BuildPackageFormatsMenu;
   ApplicationProperties.OnWarning.Add(@WarningNotification);
 end;
 
@@ -1588,6 +1626,12 @@ procedure TProjectForm.BuildToolCall(const Commands: array of String;
     Params.Add(ModeString);
   end;
 
+  procedure AddPackageFormatParameters(const Params: TStrings; const Format: TPackageFormat);
+  begin
+    if Format <> pfDefault then
+      Params.Add('--package-format=' + PackageFormatToString(Format));
+  end;
+
 var
   BuildToolExe, Command: String;
   QueueItem: TAsynchronousProcessQueue.TQueueItem;
@@ -1634,6 +1678,10 @@ begin
        (Command = 'package') or
        (Command = 'install') then
       AddPlatformParameters(QueueItem.Parameters, PlatformsInfo[CurrentPlatformInfo]);
+    // add --package-format
+    if (Command = 'package') or
+       (Command = 'install') then
+      AddPackageFormatParameters(QueueItem.Parameters, CurrentPackageFormat);
     // editor always add --fast to package, as its more comfortable for normal development
     if (Command = 'package') then
       QueueItem.Parameters.Add('--fast');
@@ -1873,6 +1921,15 @@ var
 begin
   Mi := Sender as TMenuItem;
   CurrentPlatformInfo := Mi.Tag;
+  Mi.Checked := true;
+end;
+
+procedure TProjectForm.MenuItemPackageFormatChangeClick(Sender: TObject);
+var
+  Mi: TMenuItem;
+begin
+  Mi := Sender as TMenuItem;
+  CurrentPackageFormat := TPackageFormat(Mi.Tag);
   Mi.Checked := true;
 end;
 
