@@ -42,7 +42,9 @@ procedure PackageAndroid(const Project: TCastleProject;
   const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode;
   const PackageFormat: TPackageFormatNoDefault; const PackageNameIncludeVersion: Boolean);
 
-procedure InstallAndroid(const Name, QualifiedName, OutputPath: string);
+procedure InstallAndroid(const Project: TCastleProject;
+  const PackageMode: TCompilationMode;
+  const PackageFormat: TPackageFormatNoDefault; const PackageNameIncludeVersion: Boolean);
 
 procedure RunAndroid(const Project: TCastleProject);
 
@@ -153,6 +155,25 @@ begin
   { try to find on $PATH }
   if Result = '' then
     Result := FinishExeSearch(ExeName, BundleName, EnvVarName, Required);
+end;
+
+function AndroidPackageFile(const Project: TCastleProject;
+  const Mode: TCompilationMode;
+  const PackageFormat: TPackageFormatNoDefault;
+  const PackageNameIncludeVersion: Boolean): String;
+begin
+  Result := Project.Name;
+  if PackageNameIncludeVersion and (Project.Version.DisplayValue <> '') then
+    Result += '-' + Project.Version.DisplayValue;
+  Result += '-android' + '-' + PackageModeToName[Mode];
+  case PackageFormat of
+    pfAndroidApk:
+      Result += '.apk';
+    pfAndroidAppBundle:
+      Result += '.aab';
+    else
+      raise Exception.Create('Unexpected PackageFormat in for Android: ' + PackageFormatToString(PackageFormat));
+  end;
 end;
 
 procedure PackageAndroid(const Project: TCastleProject;
@@ -558,14 +579,10 @@ begin
   GenerateLibrary;
   RunGradle(PackageMode);
 
-  PackageName := Project.Name;
-  if PackageNameIncludeVersion and (Project.Version.DisplayValue <> '') then
-    PackageName += '-' + Project.Version.DisplayValue;
-  PackageName += '-android' + '-' + PackageModeToName[PackageMode];
+  PackageName := AndroidPackageFile(Project, PackageMode, PackageFormat, PackageNameIncludeVersion);
   case PackageFormat of
     pfAndroidApk:
       begin
-        PackageName += '.apk';
         CheckRenameFile(AndroidProjectPath + 'app' + PathDelim +
           'build' +  PathDelim +
           'outputs' + PathDelim +
@@ -576,7 +593,6 @@ begin
       end;
     pfAndroidAppBundle:
       begin
-        PackageName += '.aab';
         CheckRenameFile(AndroidProjectPath + 'app' + PathDelim +
           'build' +  PathDelim +
           'outputs' + PathDelim +
@@ -593,28 +609,23 @@ begin
   Writeln('Build ' + PackageName);
 end;
 
-procedure InstallAndroid(const Name, QualifiedName, OutputPath: string);
+procedure InstallAndroid(const Project: TCastleProject;
+  const PackageMode: TCompilationMode;
+  const PackageFormat: TPackageFormatNoDefault; const PackageNameIncludeVersion: Boolean);
 var
-  ApkDebugName, ApkReleaseName, ApkName: string;
+  PackageName: string;
 begin
-  ApkReleaseName := CombinePaths(OutputPath, Name + '-' + PackageModeToName[cmRelease] + '.apk');
-  ApkDebugName   := CombinePaths(OutputPath, Name + '-' + PackageModeToName[cmDebug  ] + '.apk');
-  if RegularFileExists(ApkDebugName) and RegularFileExists(ApkReleaseName) then
-    raise Exception.CreateFmt('Both debug and release apk files exist in this directory: "%s" and "%s". We do not know which to install --- resigning. Simply rename or delete one of the apk files.',
-      [ApkDebugName, ApkReleaseName]);
-  if RegularFileExists(ApkDebugName) then
-    ApkName := ApkDebugName else
-  if RegularFileExists(ApkReleaseName) then
-    ApkName := ApkReleaseName else
-    raise Exception.CreateFmt('No Android apk found in this directory: "%s" or "%s"',
-      [ApkDebugName, ApkReleaseName]);
+  PackageName := AndroidPackageFile(Project, PackageMode, PackageFormat, PackageNameIncludeVersion);
+  if not RegularFileExists(PackageName) then
+    raise Exception.CreateFmt('No Android package found: "%s"', [PackageName]);
 
   { Uninstall and then install, instead of calling "install -r",
     to avoid failures because apk signed with different keys (debug vs release). }
 
-  Writeln('Reinstalling application identified as "' + QualifiedName + '".');
-  Writeln('If this fails, an often cause is that a previous development version of the application, signed with a different key, remains on the device. In this case uninstall it first (note that it will clear your UserConfig data, unless you use -k) by "adb uninstall ' + QualifiedName + '"');
-  RunCommandSimple(AdbExe, ['install', '-r', ApkName]);
+  Writeln('Reinstalling application identified as "' + Project.QualifiedName + '".');
+  Writeln('If this fails, an often cause is that a previous development version of the application, signed with a different key, remains on the device. In this case uninstall it first (note that it will clear your UserConfig data, unless you use -k) by "adb uninstall ' + Project.QualifiedName + '"');
+  Flush(Output); // don't mix output with adb output
+  RunCommandSimple(AdbExe, ['install', '-r', PackageName]);
   Writeln('Install successful.');
 end;
 

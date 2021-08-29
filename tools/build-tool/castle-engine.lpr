@@ -351,7 +351,8 @@ begin
         Project.DoPackage(Target, OS, CPU, Plugin, Mode, PackageFormat, PackageNameIncludeVersion, UpdateOnlyCode);
       end else
       if Command = 'install' then
-        Project.DoInstall(Target, OS, CPU, Plugin) else
+        Project.DoInstall(Target, OS, CPU, Plugin, Mode, PackageFormat, PackageNameIncludeVersion)
+      else
       if Command = 'run' then
       begin
         RestOfParameters := TCastleStringList.Create;

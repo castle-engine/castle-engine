@@ -38,14 +38,13 @@ procedure CompileIOS(
 
 procedure LinkIOSLibrary(const CompilationWorkingDirectory, OutputFile: string);
 
-function PackageFormatWantsIOSArchive(const PackageFormat: TPackageFormat;
+function PackageFormatWantsIOSArchive(const PackageFormat: TPackageFormatNoDefault;
   out ArchiveType: TIosArchiveType; out ExportMethod: String): Boolean;
 
 procedure PackageIOS(const Project: TCastleProject;
   const UpdateOnlyCode: Boolean);
 { Call ArchiveIOS immediately after PackageIOS to perform build + archive using Xcode command-line. }
 procedure ArchiveIOS(const Project: TCastleProject; const ArchiveType: TIosArchiveType);
-procedure InstallIOS(const Project: TCastleProject);
 procedure RunIOS(const Project: TCastleProject);
 
 procedure MergeIOSAppDelegate(const Source, Destination: string;
@@ -434,7 +433,7 @@ begin
   end;
 end;
 
-function PackageFormatWantsIOSArchive(const PackageFormat: TPackageFormat;
+function PackageFormatWantsIOSArchive(const PackageFormat: TPackageFormatNoDefault;
   out ArchiveType: TIosArchiveType; out ExportMethod: String): Boolean;
 begin
   case PackageFormat of
@@ -535,12 +534,6 @@ begin
   // and copy it here to the final place,
   // replacing IOS_EXPORT_METHOD by a special code in this unit.
   // This would allow to simplify PackageFormatWantsIOSArchive?
-end;
-
-procedure InstallIOS(const Project: TCastleProject);
-begin
-  // TODO
-  raise Exception.Create('The "install" command is not implemented for iOS right now');
 end;
 
 procedure RunIOS(const Project: TCastleProject);

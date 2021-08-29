@@ -91,6 +91,12 @@ type
       Allowed Ext values are '.lpr' and '.lpi'. }
     function ExplicitStandaloneFile(const Ext: String): String;
 
+    { Check the PackageFormat (looking at what is allowed for this Target/OS/CPU),
+      finalize the pfDefault to something more concrete. }
+    function PackageFormatFinalize(
+      const Target: TTarget; const OS: TOS; const CPU: TCPU;
+      const PackageFormat: TPackageFormat): TPackageFormatNoDefault;
+
     procedure AddMacrosAndroid(const Macros: TStringStringMap);
     procedure AddMacrosIOS(const Macros: TStringStringMap);
   public
@@ -109,7 +115,9 @@ type
       const PackageFormat: TPackageFormat;
       const PackageNameIncludeVersion, UpdateOnlyCode: Boolean);
     procedure DoInstall(const Target: TTarget; const OS: TOS; const CPU: TCPU;
-      const Plugin: boolean);
+      const Plugin: boolean; const Mode: TCompilationMode;
+      const PackageFormat: TPackageFormat;
+      const PackageNameIncludeVersion: Boolean);
     procedure DoRun(const Target: TTarget; const OS: TOS; const CPU: TCPU;
       const Plugin: boolean; const Params: TCastleStringList);
     procedure DoPackageSource(
@@ -604,6 +612,64 @@ begin
   except FreeAndNil(Result); raise; end;
 end;
 
+function TCastleProject.PackageFormatFinalize(
+  const Target: TTarget; const OS: TOS; const CPU: TCPU;
+  const PackageFormat: TPackageFormat): TPackageFormatNoDefault;
+begin
+  // calculate Result
+
+  if PackageFormat = pfDefault then
+  begin
+    if Target = targetIOS then
+      Result := pfIosXcodeProject
+    else
+    if (Target = targetAndroid) or (OS = Android) then
+      Result := pfAndroidApk
+    else
+    if Target = targetNintendoSwitch then
+      Result := pfNintendoSwitchProject
+    else
+    if OS in AllWindowsOSes then
+      Result := pfZip
+    else
+      Result := pfTarGz;
+  end else
+    Result := PackageFormat;
+
+  // check Result
+
+  if (Result in [
+      pfIosXcodeProject,
+      pfIosArchiveDevelopment,
+      pfIosArchiveAdHoc,
+      pfIosArchiveAppStore
+    ]) and (Target <> targetIOS) then
+  begin
+    raise Exception.CreateFmt('Package format "%s" only makes sense when target is iOS', [
+      PackageFormatToString(Result)
+    ]);
+  end;
+
+  if (Result in [
+      pfAndroidApk,
+      pfAndroidAppBundle
+    ]) and (Target <> targetAndroid) and (OS <> Android) then
+  begin
+    raise Exception.CreateFmt('Package format "%s" only makes sense when target is Android.', [
+      PackageFormatToString(Result)
+    ]);
+  end;
+
+  if (Result in [
+      pfNintendoSwitchProject
+    ]) and (Target <> targetNintendoSwitch) then
+  begin
+    raise Exception.CreateFmt('Package format "%s" only makes sense when target is Nintendo Switch.', [
+      PackageFormatToString(Result)
+    ]);
+  end;
+end;
+
 procedure TCastleProject.DoPackage(const Target: TTarget;
   const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const Mode: TCompilationMode; const PackageFormat: TPackageFormat;
@@ -690,98 +756,86 @@ var
     end;
   end;
 
+  { Handle packaging using TPackageDirectory (to pfDirectory, pfZip, pfTarGz formats,
+    TPackageDirectory.Make will check it). }
+  procedure PackageDirectory(const PackageFormatFinal: TPackageFormatNoDefault);
+  var
+    I: Integer;
+    PackageFileName: string;
+    Files: TCastleStringList;
+    ExecutablePermission: Boolean;
+  begin
+    Pack := TPackageDirectory.Create(Name);
+    try
+      { executable is added 1st, since it's the most likely file
+        to not exist, so we'll fail earlier }
+      AddExecutable;
+      AddExternalLibraries;
+
+      Files := PackageFiles(false, TargetPlatform);
+      try
+        for I := 0 to Files.Count - 1 do
+        begin
+          ExecutablePermission := (Files.Objects[I] <> nil) and (TIncludePath(Files.Objects[I]).ExecutablePermission);
+          Pack.Add(Path + Files[I], Files[I], ExecutablePermission);
+        end;
+      finally FreeAndNil(Files) end;
+
+      Pack.AddDataInformation(TCastleManifest.DataName);
+
+      PackageFileName := PackageName(OS, CPU, PackageFormatFinal, PackageNameIncludeVersion);
+      Pack.Make(OutputPath, PackageFileName, PackageFormatFinal);
+    finally FreeAndNil(Pack) end;
+  end;
+
 var
-  I: Integer;
-  PackageFileName: string;
-  Files: TCastleStringList;
   PackageFormatFinal: TPackageFormatNoDefault;
   WantsIOSArchive: Boolean;
   IOSArchiveType: TIosArchiveType;
-  ExecutablePermission: Boolean;
 begin
-  Writeln(Format('Packaging project "%s" for %s (platform: %s).', [
-    Name,
-    TargetCompleteToString(Target, OS, CPU, Plugin),
-    PlatformToStr(TargetPlatform)
-  ]));
-
   if Plugin then
     raise Exception.Create('The "package" command is not useful to package plugins for now');
 
-  { for iOS, the packaging process is special }
-  if (Target = targetIOS) and
-     (PackageFormat in [pfDefault, pfIosArchiveDevelopment, pfIosArchiveAdHoc, pfIosArchiveAppStore]) then
-  begin
-    // set IOSExportMethod early, as it determines IOS_EXPORT_METHOD macro
-    WantsIOSArchive := PackageFormatWantsIOSArchive(PackageFormat, IOSArchiveType, IOSExportMethod);
-    PackageIOS(Self, UpdateOnlyCode);
-    if WantsIOSArchive then
-      ArchiveIOS(Self, IOSArchiveType);
-    Exit;
-  end;
+  PackageFormatFinal := PackageFormatFinalize(Target, OS, CPU, PackageFormat);
 
-  { for Android, the packaging process is special }
-  if (Target = targetAndroid) or (OS = Android) then
-  begin
-    if (PackageFormat = pfDefault) then
-      PackageFormatFinal := pfAndroidApk
-    else
-      PackageFormatFinal := PackageFormat;
-    if not (PackageFormatFinal in [pfAndroidApk, pfAndroidAppBundle]) then
-      raise Exception.Create('Trying to package for Android, but package format is ' +
-        PackageFormatToString(PackageFormatFinal) + '. Expected: ' +
-        PackageFormatToString(pfAndroidApk) + ' or ' +
-        PackageFormatToString(pfAndroidAppBundle) + '.');
-    if Target = targetAndroid then
-      AndroidCPUS := DetectAndroidCPUS
-    else
-      AndroidCPUS := [CPU];
-    PackageAndroid(Self, OS, AndroidCPUS, Mode, PackageFormatFinal, PackageNameIncludeVersion);
-    Exit;
-  end;
+  Writeln(Format('Packaging project "%s" for %s (platform: %s).' + NL + 'Format: %s.', [
+    Name,
+    TargetCompleteToString(Target, OS, CPU, Plugin),
+    PlatformToStr(TargetPlatform),
+    PackageFormatToString(PackageFormatFinal)
+  ]));
 
-  if PackageFormat = pfDefault then
-  begin
-    { for Nintendo Switch, the packaging process is special }
-    if Target = targetNintendoSwitch then
-    begin
-      PackageNintendoSwitch(Self);
-      Exit;
-    end;
-
-    { calculate PackageFormatFinal }
-    if OS in AllWindowsOSes then
-      PackageFormatFinal := pfZip
-    else
-      PackageFormatFinal := pfTarGz;
-  end else
-    PackageFormatFinal := PackageFormat;
-
-  Pack := TPackageDirectory.Create(Name);
-  try
-    { executable is added 1st, since it's the most likely file
-      to not exist, so we'll fail earlier }
-    AddExecutable;
-    AddExternalLibraries;
-
-    Files := PackageFiles(false, TargetPlatform);
-    try
-      for I := 0 to Files.Count - 1 do
+  case PackageFormatFinal of
+    pfIosXcodeProject, pfIosArchiveDevelopment, pfIosArchiveAdHoc, pfIosArchiveAppStore:
       begin
-        ExecutablePermission := (Files.Objects[I] <> nil) and (TIncludePath(Files.Objects[I]).ExecutablePermission);
-        Pack.Add(Path + Files[I], Files[I], ExecutablePermission);
+        // set IOSExportMethod early, as it determines IOS_EXPORT_METHOD macro
+        WantsIOSArchive := PackageFormatWantsIOSArchive(PackageFormatFinal, IOSArchiveType, IOSExportMethod);
+        PackageIOS(Self, UpdateOnlyCode);
+        if WantsIOSArchive then
+          ArchiveIOS(Self, IOSArchiveType);
       end;
-    finally FreeAndNil(Files) end;
-
-    Pack.AddDataInformation(TCastleManifest.DataName);
-
-    PackageFileName := PackageName(OS, CPU, PackageFormatFinal, PackageNameIncludeVersion);
-    Pack.Make(OutputPath, PackageFileName, PackageFormatFinal);
-  finally FreeAndNil(Pack) end;
+    pfAndroidApk, pfAndroidAppBundle:
+      begin
+        if Target = targetAndroid then
+          AndroidCPUS := DetectAndroidCPUS
+        else
+          AndroidCPUS := [CPU];
+        PackageAndroid(Self, OS, AndroidCPUS, Mode, PackageFormatFinal, PackageNameIncludeVersion);
+      end;
+    pfNintendoSwitchProject:
+      PackageNintendoSwitch(Self);
+    pfDirectory, pfZip, pfTarGz:
+      PackageDirectory(PackageFormatFinal);
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else raise EInternalError.Create('Unhandled PackageFormatFinal in DoPackage');
+    {$endif}
+  end;
 end;
 
 procedure TCastleProject.DoInstall(const Target: TTarget;
-  const OS: TOS; const CPU: TCPU; const Plugin: boolean);
+  const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode;
+  const PackageFormat: TPackageFormat;
+  const PackageNameIncludeVersion: Boolean);
 
   {$ifdef UNIX}
   procedure InstallUnixPlugin;
@@ -808,26 +862,32 @@ procedure TCastleProject.DoInstall(const Target: TTarget;
   end;
   {$endif}
 
+var
+  PackageFormatFinal: TPackageFormatNoDefault;
 begin
   Writeln(Format('Installing project "%s" for %s.',
     [Name, TargetCompleteToString(Target, OS, CPU, Plugin)]));
 
-  if Target = targetIOS then
-    InstallIOS(Self)
-  else
-  if (Target = targetAndroid) or (OS = Android) then
-    InstallAndroid(Name, QualifiedName, OutputPath)
-  else
-  if Plugin and (OS in AllWindowsOSes) then
-    InstallWindowsPluginRegistry(Name, QualifiedName, OutputPath,
-      PluginLibraryFile(OS, CPU), Version.DisplayValue, Author)
-  else
-  {$ifdef UNIX}
-  if Plugin and (OS in AllUnixOSes) then
-    InstallUnixPlugin
-  else
-  {$endif}
-    raise Exception.Create('The "install" command is not useful for this target / OS / CPU right now. Install the application manually.');
+  if Plugin then
+  begin
+    if OS in AllWindowsOSes then
+      InstallWindowsPluginRegistry(Name, QualifiedName, OutputPath,
+        PluginLibraryFile(OS, CPU), Version.DisplayValue, Author);
+    {$ifdef UNIX}
+    if OS in AllUnixOSes then
+      InstallUnixPlugin;
+    {$endif}
+    Exit;
+  end;
+
+  PackageFormatFinal := PackageFormatFinalize(Target, OS, CPU, PackageFormat);
+
+  case PackageFormatFinal of
+    pfAndroidApk, pfAndroidAppBundle:
+      InstallAndroid(Self, Mode, PackageFormatFinal, PackageNameIncludeVersion);
+    else
+      raise Exception.Create('The "install" command is not useful for this target / OS / CPU right now. Install the application manually.');
+  end;
 end;
 
 procedure TCastleProject.DoRun(const Target: TTarget;

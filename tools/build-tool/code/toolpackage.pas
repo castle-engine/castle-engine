@@ -30,9 +30,11 @@ type
     pfTarGz,
     pfAndroidApk,
     pfAndroidAppBundle,
+    pfIosXcodeProject,
     pfIosArchiveDevelopment,
     pfIosArchiveAdHoc,
-    pfIosArchiveAppStore
+    pfIosArchiveAppStore,
+    pfNintendoSwitchProject
   );
   TPackageFormatNoDefault = pfDirectory..High(TPackageFormat);
 
@@ -215,9 +217,11 @@ const
     'targz',
     'android-apk',
     'android-app-bundle',
+    'ios-xcode-project',
     'ios-archive-development',
     'ios-archive-ad-hoc',
-    'ios-archive-app-store'
+    'ios-archive-app-store',
+    'nintendo-switch-project'
   );
 
 function PackageFormatToString(const O: TPackageFormat): string;
