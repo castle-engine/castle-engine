@@ -1679,6 +1679,7 @@ begin
   // bring back volume, in case MuteOnRun
   RunningApplication := false;
   SoundEngineSetVolume;
+  RefreshFiles(rfFilesInCurrentDir); // show new files created by "package"
 end;
 
 procedure TProjectForm.MenuItemAddComponentClick(Sender: TObject);
