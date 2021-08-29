@@ -304,7 +304,10 @@ begin
     win32:
       begin
         if depFreetype in Dependencies then
+        begin
           AddExternalLibrary('freetype.dll');
+          AddExternalLibrary('vcruntime140.dll');
+        end;
         if depZlib in Dependencies then
           AddExternalLibrary('zlib1.dll');
         if depPng in Dependencies then
@@ -331,7 +334,10 @@ begin
     win64:
       begin
         if depFreetype in Dependencies then
+        begin
           AddExternalLibrary('freetype.dll');
+          AddExternalLibrary('vcruntime140.dll');
+        end;
         if depZlib in Dependencies then
           AddExternalLibrary('zlib1.dll');
         if depPng in Dependencies then
