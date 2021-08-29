@@ -784,7 +784,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
       'Compressed zip',
       'Compressed tar.gz',
       'Android APK',
-      'Android app bundle (AAB)',
+      'Android App Bundle (AAB)',
       'iOS Xcode Project',
       'iOS Archive -> Development',
       'iOS Archive -> ad-hoc',
