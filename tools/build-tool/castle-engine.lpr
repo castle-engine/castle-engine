@@ -28,7 +28,7 @@ uses SysUtils,
   CastleUtils, CastleParameters, CastleFindFiles, CastleLog,
   CastleFilesUtils, CastleURIUtils, CastleStringUtils,
   CastleApplicationProperties,
-  ToolPackage, ToolProject, ToolCompile, ToolIOS, ToolAndroid,
+  ToolPackageFormat, ToolProject, ToolCompile, ToolIOS, ToolAndroid,
   ToolNintendoSwitch, ToolCommonUtils, ToolArchitectures, ToolUtils, ToolProcessWait;
 
 var

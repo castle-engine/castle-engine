@@ -20,7 +20,7 @@ interface
 
 uses Classes,
   CastleUtils, CastleStringUtils,
-  ToolUtils, ToolArchitectures, ToolCompile, ToolProject, ToolPackage;
+  ToolUtils, ToolArchitectures, ToolCompile, ToolProject, ToolPackageFormat;
 
 var
   IosSimulatorSupport: Boolean = false;

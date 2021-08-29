@@ -23,7 +23,7 @@ interface
 uses SysUtils, Classes, Generics.Collections,
   CastleFindFiles, CastleStringUtils, CastleUtils,
   ToolArchitectures, ToolCompile, ToolUtils, ToolServices, ToolAssocDocTypes,
-  ToolPackage, ToolManifest, ToolProcessWait;
+  ToolPackage, ToolManifest, ToolProcessWait, ToolPackageFormat;
 
 type
   ECannotGuessManifest = class(Exception);

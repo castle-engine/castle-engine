@@ -22,7 +22,7 @@ interface
 
 uses Classes,
   CastleUtils, CastleStringUtils,
-  ToolArchitectures, ToolCompile, ToolPackage, ToolProject;
+  ToolArchitectures, ToolCompile, ToolPackageFormat, ToolProject;
 
 { Compile (for all possible Android CPUs) Android unit or library.
   When Project <> nil, we assume we compile libraries (one of more .so files),
