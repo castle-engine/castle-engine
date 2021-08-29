@@ -34,15 +34,18 @@
     BackupVertices: TDeformVertexList;
     Curve: Boolean;
     CurveControlPoints: TVector4List;
-    Node: TCoordinateInterpolatorNode;
+    Node: TAbstractInterpolatorNode;
     NodeUsedAsChild: Boolean;
     constructor Create;
     destructor Destroy; override;
-    procedure Parse(const Json: TJSONArray);
+    procedure Parse(const Json: TJSONArray;
+      const NormalizeCurvesKeyValues: Boolean); virtual;
     procedure BuildNodes(const MaxAnimationTime: Single; const Container: TX3DRootNode);
     property MaxTime: Single read FMaxTime;
     procedure Backup;
     procedure Restore;
+    procedure ParseControlPoints(const Json: TJSONArray;
+      const NormalizeCurvesKeyValues: Boolean);
   end;
 
   TDeformTimelineList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TDeformTimeline>)
@@ -72,7 +75,8 @@ begin
   inherited;
 end;
 
-procedure TDeformTimeline.Parse(const Json: TJSONArray);
+procedure TDeformTimeline.Parse(const Json: TJSONArray;
+  const NormalizeCurvesKeyValues: Boolean);
 var
   I, J, K: Integer;
   Obj: TJSONObject;
@@ -141,12 +145,7 @@ begin
   FMaxTime := Time.Items[Time.Count - 1];
 
   if Curve then
-  begin
-    { TODO: Take care of 'curve' field once we implement CubicBezier version of
-      TCoordinateInterpolatorNode }
-    if Attachment.Weights.Count = 0 then
-      WritelnWarning('Spine', 'Deform timeline''s "curve" field is not supported for non-weighted mesh');
-  end;
+    ParseControlPoints(Json, NormalizeCurvesKeyValues);
 end;
 
 procedure TDeformTimeline.BuildNodes(const MaxAnimationTime: Single; const Container: TX3DRootNode);
@@ -154,26 +153,53 @@ var
   I, J: Integer;
   Route: TX3DRoute;
   VertexList: TSingleList;
+  EventValueChanged: TX3DEvent;
+  N: TCoordinateInterpolatorNode;
+  NC: TCubicBezierCoordinateInterpolatorNode;
 begin
-  Node := TCoordinateInterpolatorNode.Create('DeformTimeline_' + Slot.Name);
-  for I := 0 to Time.Count - 1 do
+  if Curve then
   begin
-    Node.FdKey.Items.Add(Time[I] / MaxAnimationTime);
-    VertexList := Vertices.Items[I];
-    Assert(not Odd(VertexList.Count)); // VertexList is a list of 2D coordinates
-    for J := 0 to VertexList.Count div 2 - 1 do
-      Node.FdKeyValue.Items.Add(Vector3(
-        VertexList.Items[2 * J],
-        VertexList.Items[2 * J + 1],
-        0
-      ));
+    NC := TCubicBezierCoordinateInterpolatorNode.Create('DeformTimeline_' + Slot.Name);
+    for I := 0 to Time.Count - 1 do
+    begin
+      NC.FdKey.Items.Add(Time[I] / MaxAnimationTime);
+      VertexList := Vertices.Items[I];
+      Assert(not Odd(VertexList.Count)); // VertexList is a list of 2D coordinates
+      for J := 0 to VertexList.Count div 2 - 1 do
+        NC.FdKeyValue.Items.Add(Vector3(
+          VertexList.Items[2 * J],
+          VertexList.Items[2 * J + 1],
+          0
+        ));
+    end;
+    NC.SetControlPoints(CurveControlPoints);
+    NC.OptimizeControlPoints;
+    EventValueChanged := NC.EventValue_changed;
+    Node := NC;
+  end else
+  begin
+    N := TCoordinateInterpolatorNode.Create('DeformTimeline_' + Slot.Name);
+    for I := 0 to Time.Count - 1 do
+    begin
+      N.FdKey.Items.Add(Time[I] / MaxAnimationTime);
+      VertexList := Vertices.Items[I];
+      Assert(not Odd(VertexList.Count)); // VertexList is a list of 2D coordinates
+      for J := 0 to VertexList.Count div 2 - 1 do
+        N.FdKeyValue.Items.Add(Vector3(
+          VertexList.Items[2 * J],
+          VertexList.Items[2 * J + 1],
+          0
+        ));
+    end;
+    EventValueChanged := N.EventValue_changed;
+    Node := N;
   end;
 
   NodeUsedAsChild := true;
   Container.AddChildren(Node);
 
   Route := TX3DRoute.Create;
-  Route.SetSourceDirectly(Node.EventValue_changed);
+  Route.SetSourceDirectly(EventValueChanged);
   Route.SetDestinationDirectly(Attachment.Coord.FdPoint.EventIn);
   Container.AddRoute(Route);
 end;
@@ -200,6 +226,36 @@ begin
     Vertices.AddRange(BackupVertices);
     IsBackup := False;
   end;
+end;
+
+procedure TDeformTimeline.ParseControlPoints(const Json: TJSONArray;
+  const NormalizeCurvesKeyValues: Boolean);
+var
+  I: Integer;
+  PreviousTime, NextTime: Single;
+  O: TJSONObject;
+begin
+  Assert(Time.Count = Vertices.Count);
+  if Json.Count <> Time.Count then
+  begin
+    WritelnWarning('Invalid Spine JSON: Curve support requires that timeline JSON count is correct');
+    Curve := false;
+    Exit;
+  end;
+  for I := 0 to Time.Count - 2 do
+  begin
+    PreviousTime := Time[I];
+    NextTime     := Time[I + 1];
+    if not (Json[I] is TJSONObject) then
+    begin
+      WritelnWarning('Invalid Spine JSON: Curve support requires that all JSON timeline chldren are object');
+      Curve := false;
+      Exit;
+    end;
+    O := TJSONObject(Json[I]);
+    CurveControlPoints.Add(ReadCurveControlPointsTimeOnly(O, NormalizeCurvesKeyValues, PreviousTime, NextTime));
+  end;
+  CurveControlPoints.Add(Vector4(0, 0, 1, 1)); // TODO: add last dummy value, because our TCubicBezier* may expect it
 end;
 
 {$endif}
