@@ -24,13 +24,21 @@ Origins:
 
   wget 'https://github.com/ubawurinna/freetype-windows-binaries/raw/master/release%20dll/win64/freetype.dll' --output-document=freetype.dll
 
-- vcruntime140.dll (FreeType dependency):
-  https://www.microsoft.com/en-us/download/details.aspx?id=52685
+- Microsoft Redistributables:
 
-  How: Install x64 version, copy dll from c:/windows/system32/vcruntime140.dll .
-  (yes, the 64-bit version is placed in system32.)
+  - General info:
+    How: Install x64 version, copy dll from c:/windows/system32/vcruntime140.dll .
+    (yes, the 64-bit version is placed in system32.)
 
-  Licensing:
+    Licensing:
     https://docs.microsoft.com/en-us/cpp/windows/redistributing-visual-cpp-files?view=msvc-160
     https://visualstudio.microsoft.com/pl/license-terms/mlt552233/
     https://visualstudio.microsoft.com/pl/license-terms/mt171552/
+
+  - vcruntime140.dll (FreeType dependency):
+    Visual C++ 2015 Redistributable
+    https://www.microsoft.com/en-us/download/details.aspx?id=52685
+
+  - msvcrt120.dll (libvorbis.dll, vorbisfile.dll dependency)
+    Visual C++ 2013 Redistributable
+    https://support.microsoft.com/en-us/topic/the-latest-supported-visual-c-downloads-2647da03-1eea-4433-9aff-95f26a218cc0
