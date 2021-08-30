@@ -13,7 +13,7 @@ See https://castle-engine.io/apidoc/html/index.html
 for details what is required for what purpose.
 
 Sources of these DLLs:
-- libpng, zlib, freetype: http://gnuwin32.sourceforge.net/ .
+- libpng, zlib: http://gnuwin32.sourceforge.net/ .
   - libpng depends on zlib.
   - freetype depends on zlib.
 
