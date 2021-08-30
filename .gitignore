@@ -17,6 +17,8 @@ lib/
 *.identcache
 *.stat
 *.dcu
+*.dsk
+*.~dsk
 
 # Other backups
 *.blend1
