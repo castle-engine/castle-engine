@@ -126,6 +126,7 @@ type
     FOwnerDocument: TDOMDocument;
     InternalNode: IXMLNode;
     FParentNode: TDOMNode;
+
   strict private
     FChildNodes: TDOMNodeList;
     function GetNodeName: String;
@@ -136,6 +137,8 @@ type
     procedure InvalidateParent;
     function GetAttributes: TDOMNamedNodeMap; virtual;
     function GetParentNode: TDOMNode; virtual;
+    function GetTextContent: String; virtual;
+    procedure SetTextContent(const Value: String);virtual;
   public
     constructor Create(const AOwnerDocument: TDOMDocument; const AInternalNode: IXMLNode); reintroduce;
     destructor Destroy; override;
@@ -154,6 +157,8 @@ type
     property Attributes: TDOMNamedNodeMap read GetAttributes;
     property ParentNode: TDOMNode read GetParentNode;
     property FirstChild: TDOMNode read GetFirstChild;
+
+    property TextContent: String read GetTextContent write SetTextContent;
   end;
 
   TDOMNodeList = class
@@ -194,6 +199,7 @@ type
     procedure SetAttribute(const Name, Value: String);
     function  GetAttributeNode(const Name: String): TDOMAttr;
     procedure RemoveAttribute(const Name: String);
+
     function TagName: String;
 
     procedure AppendChild(const Child: TDOMNode); override;
@@ -397,6 +403,11 @@ begin
   Result := FParentNode;
 end;
 
+function TDOMNode.GetTextContent: String;
+begin
+  Result := NodeValue;
+end;
+
 function TDOMNode.InsertBefore(NewChild, RefChild: TDOMNode): TDOMNode;
 begin
   raise EDOMHierarchyRequest.Create('Node.InsertBefore');
@@ -438,7 +449,17 @@ begin
   InternalNode.NodeValue := Value;
 end;
 
-{ TDOMElement ---------------------------------------------------------------- }
+procedure TDOMNode.SetTextContent(const Value: String);
+begin
+  SetNodeValue(Value);
+end;
+
+{ procedure TDOMNode.SetTextContent(const Value: String);
+begin
+
+end;
+
+TDOMElement ---------------------------------------------------------------- }
 
 procedure TDOMElement.AppendChild(const Child: TDOMNode);
 begin

@@ -30,7 +30,7 @@ type
 
   TCastleConfigEvent = procedure (const Config: TCastleConfig) of object;
 
-  TCastleConfigEventList = class(specialize TList<TCastleConfigEvent>)
+  TCastleConfigEventList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TCastleConfigEvent>)
   public
     { Call all items. }
     procedure ExecuteAll(const Config: TCastleConfig);
@@ -297,6 +297,7 @@ type
       but creates the necessary elements along the way as needed. }
     function MakePathElement(const APath: string): TDOMElement;
 
+    {$ifdef FPC}
     { For a given path, return corresponding children elements of a given
       DOM element of XML tree. For example, you have an XML like this:
 
@@ -322,6 +323,7 @@ type
       Never returns @nil. }
     function PathChildren(const APath: string; const ChildName: string): TDOMNodeList;
       deprecated 'use PathChildrenIterator';
+    {$endif}
 
     { For a given path, return iterator for elements of a given name.
 
@@ -969,11 +971,14 @@ begin
   end;
 end;
 
+{$ifdef FPC}
 function TCastleConfig.PathChildren(const APath: string;
   const ChildName: string): TDOMNodeList;
 begin
   Result := PathElement(APath, true).GetElementsByTagName(UTF8Decode(ChildName));
 end;
+{$endif}
+
 
 function TCastleConfig.PathChildrenIterator(const APath: string;
   const ChildName: string): TXMLElementIterator;
