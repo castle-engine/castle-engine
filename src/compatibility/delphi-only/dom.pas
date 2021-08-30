@@ -26,11 +26,37 @@ unit DOM;
 
 interface
 
-uses XMLDoc, XMLIntf, Contnrs, Classes;
+uses XMLDoc, XMLIntf, Contnrs, Classes, SysUtils;
+
+const
+
+
+  // DOM Level 1 exception codes:
+
+  INDEX_SIZE_ERR              = 1;  // index or size is negative, or greater than the allowed value
+  DOMSTRING_SIZE_ERR          = 2;  // Specified range of text does not fit into a DOMString
+  HIERARCHY_REQUEST_ERR       = 3;  // node is inserted somewhere it does not belong
+  WRONG_DOCUMENT_ERR          = 4;  // node is used in a different document than the one that created it (that does not support it)
+  INVALID_CHARACTER_ERR       = 5;  // invalid or illegal character is specified, such as in a name
+  NO_DATA_ALLOWED_ERR         = 6;  // data is specified for a node which does not support data
+  NO_MODIFICATION_ALLOWED_ERR = 7;  // an attempt is made to modify an object where modifications are not allowed
+  NOT_FOUND_ERR               = 8;  // an attempt is made to reference a node in a context where it does not exist
+  NOT_SUPPORTED_ERR           = 9;  // implementation does not support the type of object requested
+  INUSE_ATTRIBUTE_ERR         = 10;  // an attempt is made to add an attribute that is already in use elsewhere
+
+  // DOM Level 2 exception codes:
+
+  INVALID_STATE_ERR           = 11;  // an attempt is made to use an object that is not, or is no longer, usable
+  SYNTAX_ERR                  = 12;  // invalid or illegal string specified
+  INVALID_MODIFICATION_ERR    = 13;  // an attempt is made to modify the type of the underlying object
+  NAMESPACE_ERR               = 14;  // an attempt is made to create or change an object in a way which is incorrect with regard to namespaces
+  INVALID_ACCESS_ERR          = 15;  // parameter or operation is not supported by the underlying object
+
 
 type
   DOMString = string;
   TDOMNode = class;
+  TDOMAttr = class;
   TDOMNodeList = class;
   TXMLDocument = class;
 
@@ -53,9 +79,41 @@ type
     NOTATION_NODE
   );
 
+
+  EDOMError = class(Exception)
+  public
+    Code: Integer;
+    constructor Create(ACode: Integer; const ASituation: String);
+  end;
+
+  EDOMHierarchyRequest = class(EDOMError)
+  public
+    constructor Create(const ASituation: String);
+  end;
+
+  EDOMNotFound = class(EDOMError)
+  public
+    constructor Create(const ASituation: String);
+  end;
+
   TDOMNamedNodeMap = class
-    public
-      function GetNamedItem(Name: String): TDOMNode;
+  strict private
+    FOwnerDocument: TXMLDocument;
+    FOwnerNode: TDOMNode;
+    Nodes: TObjectList;
+    InternalList: IXMLNodeList;
+
+    function GetItem(const I: LongWord): TDOMNode;
+    function GetLength: LongWord;
+  private
+    function InternalRemove(const Name: String): TDOMNode;
+  public
+    constructor Create(OwnerNode: TDOMNode);
+    destructor Destroy;override;
+    function GetNamedItem(Name: String): TDOMNode;
+
+
+    procedure InvalidateMap;
   end;
 
   { Node is a general concept in XML, it can be an element, attribute etc.
@@ -67,13 +125,17 @@ type
   private
     FOwnerDocument: TXMLDocument;
     InternalNode: IXMLNode;
+    FParentNode: TDOMNode;
   strict private
     FChildNodes: TDOMNodeList;
-    FAttributes: TDOMNamedNodeMap;
     function GetNodeName: String;
     function GetNodeValue: String;
     procedure SetNodeValue(const Value: String);
-    function GetAttributes: TDOMNamedNodeMap;
+    function  GetFirstChild: TDOMNode; virtual;
+  protected
+    procedure InvalidateParent;
+    function GetAttributes: TDOMNamedNodeMap; virtual;
+    function GetParentNode: TDOMNode; virtual;
   public
     constructor Create(const AOwnerDocument: TXMLDocument; const AInternalNode: IXMLNode); reintroduce;
     destructor Destroy; override;
@@ -82,9 +144,16 @@ type
     property OwnerDocument: TXMLDocument read FOwnerDocument;
     function ChildNodes: TDOMNodeList;
     function NodeType: TXMLNodeType;
+
+    function InsertBefore(NewChild, RefChild: TDOMNode): TDOMNode; virtual;
+    function DetachChild(Child: TDOMNode): TDOMNode;
+    function RemoveChild(Child: TDOMNode): TDOMNode;
+    procedure AppendChild(const Child: TDOMNode); virtual;
     function FindNode(const NodeName: String): TDOMNode;
 
-    property Attributes: TDOMNamedNodeMap read FAttributes;
+    property Attributes: TDOMNamedNodeMap read GetAttributes;
+    property ParentNode: TDOMNode read GetParentNode;
+    property FirstChild: TDOMNode read GetFirstChild;
   end;
 
   TDOMNodeList = class
@@ -94,6 +163,8 @@ type
     Nodes: TObjectList;
     function GetCount: LongWord;
     function GetItem(const I: LongWord): TDOMNode;
+  private
+    procedure RemoveNode(const Child: TDOMNode);
   public
     constructor Create(const ANode: TDOMNode);
     destructor Destroy; override;
@@ -103,6 +174,12 @@ type
   end;
 
   TDOMElement = class(TDOMNode)
+  strict private
+    FAttributes: TDOMNamedNodeMap;
+  protected
+    function GetAttributes: TDOMNamedNodeMap; override;
+
+  public
     { Read from Element attribute value and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value. Value is a "var", not "out" param,
@@ -113,13 +190,23 @@ type
       if the value is explicitly set to empty in XML (by @code(xxx="") in XML). }
     function AttributeString(const Name: String; var Value: String): Boolean; overload;
 
+    function  GetAttribute(const name: String): String;
     procedure SetAttribute(const Name, Value: String);
+    function  GetAttributeNode(const Name: String): TDOMAttr;
+    procedure RemoveAttribute(const Name: String);
     function TagName: String;
-    procedure AppendChild(const Child: TDOMNode);
+
+    procedure AppendChild(const Child: TDOMNode); override;
+
+    property AttribStrings[const Name: String]: String
+      read GetAttribute write SetAttribute; default;
   end;
 
   TDOMCharacterData = class(TDOMNode)
     function Data: String;
+  end;
+
+  TDOMAttr = class (TDOMNode)
   end;
 
   TDOMText = class(TDOMCharacterData)
@@ -148,7 +235,7 @@ type
 
 implementation
 
-uses SysUtils, ComObj;
+uses ComObj;
 
 { TDOMNodeList --------------------------------------------------------------- }
 
@@ -192,7 +279,17 @@ begin
   Result := Nodes[I] as TDOMNode;
 end;
 
+procedure TDOMNodeList.RemoveNode(const Child: TDOMNode);
+begin
+  Nodes.Remove(Child);
+end;
+
 { TDOMNode ------------------------------------------------------------------- }
+
+procedure TDOMNode.AppendChild(const Child: TDOMNode);
+begin
+  raise EDOMHierarchyRequest.Create('Node.AppendChild');
+end;
 
 function TDOMNode.ChildNodes: TDOMNodeList;
 begin
@@ -205,6 +302,7 @@ constructor TDOMNode.Create(const AOwnerDocument: TXMLDocument; const AInternalN
 begin
   inherited Create(OwnerDocument);
   FOwnerDocument := AOwnerDocument;
+  FParentNode := nil;
   InternalNode := AInternalNode;
 end;
 
@@ -212,6 +310,18 @@ destructor TDOMNode.Destroy;
 begin
   FreeAndNil(FChildNodes);
   inherited;
+end;
+
+function TDOMNode.DetachChild(Child: TDOMNode): TDOMNode;
+begin
+  if Child.ParentNode <> Self then
+    raise EDOMNotFound.Create('Node.RemoveChild');
+
+  Child.InvalidateParent;
+
+  InternalNode.ChildNodes.Remove(Child.InternalNode);
+  ChildNodes.RemoveNode(Child);
+  Result := Child;
 end;
 
 function TDOMNode.FindNode(const NodeName: String): TDOMNode;
@@ -228,10 +338,18 @@ end;
 
 function TDOMNode.GetAttributes: TDOMNamedNodeMap;
 begin
-  if FAttributes = nil then
-    FAttributes := TDOMNamedNodeMap.Create;
+  Result := nil;
+end;
 
+function TDOMNode.GetFirstChild: TDOMNode;
+begin
+  if FChildNodes = nil then
+    Exit(nil);
 
+  if FChildNodes.Count = 0 then
+    Exit(nil);
+
+  Result := FChildNodes.Item[0];
 end;
 
 function TDOMNode.GetNodeName: String;
@@ -242,6 +360,47 @@ end;
 function TDOMNode.GetNodeValue: String;
 begin
   Result := InternalNode.NodeValue;
+end;
+
+function TDOMNode.GetParentNode: TDOMNode;
+var
+  InternalParentNode: IXMLNode;
+  I: Integer;
+  NodeToTest: TDOMNode;
+begin
+  InternalParentNode := InternalNode.ParentNode;
+
+  if InternalParentNode = nil then
+    Exit(nil);
+
+  if FParentNode <> nil then
+    Exit(FParentNode);
+
+  for I := 0 to FOwnerDocument.ComponentCount -1 do
+  begin
+    if not (FOwnerDocument.Components[I] is TDOMNode) then
+      continue;
+
+    NodeToTest := TDOMNode(FOwnerDocument.Components[I]);
+
+    if NodeToTest.InternalNode = InternalParentNode then
+    begin
+      FParentNode := NodeToTest;
+      break;
+    end;
+  end;
+
+  Result := FParentNode;
+end;
+
+function TDOMNode.InsertBefore(NewChild, RefChild: TDOMNode): TDOMNode;
+begin
+  raise EDOMHierarchyRequest.Create('Node.InsertBefore');
+end;
+
+procedure TDOMNode.InvalidateParent;
+begin
+  FParentNode := nil;
 end;
 
 function TDOMNode.NodeType: TXMLNodeType;
@@ -263,6 +422,11 @@ const
   );
 begin
   Result := NodeTypeMap[InternalNode.NodeType];
+end;
+
+function TDOMNode.RemoveChild(Child: TDOMNode): TDOMNode;
+begin
+  Result := DetachChild(Child);
 end;
 
 procedure TDOMNode.SetNodeValue(const Value: String);
@@ -289,9 +453,47 @@ begin
     Value := ANodes[Index].NodeValue;
 end;
 
+function TDOMElement.GetAttribute(const name: String): String;
+begin
+  Result := InternalNode.Attributes[Name];
+end;
+
+function TDOMElement.GetAttributeNode(const Name: String): TDOMAttr;
+begin
+  if Assigned(FAttributes) then
+    Result := FAttributes.GetNamedItem(Name) as TDOMAttr
+  else
+    Result := nil;
+end;
+
+function TDOMElement.GetAttributes: TDOMNamedNodeMap;
+begin
+  if FAttributes = nil then
+    FAttributes := TDOMNamedNodeMap.Create(Self);
+
+  Result := FAttributes;
+end;
+
+procedure TDOMElement.RemoveAttribute(const Name: String);
+var
+  AttributeNode: IXMLNode;
+begin
+  AttributeNode := InternalNode.AttributeNodes.FindNode(Name);
+  if Assigned(AttributeNode) then
+  begin
+    if Assigned(FAttributes) then
+    begin
+      FAttributes.InternalRemove(Name);
+    end;
+
+    InternalNode.AttributeNodes.Remove(AttributeNode);
+  end;
+end;
+
 procedure TDOMElement.SetAttribute(const Name, Value: String);
 begin
   InternalNode.Attributes[Name] := Value;
+  FAttributes.InvalidateMap;  // maybe not needed
 end;
 
 function TDOMElement.TagName: String;
@@ -345,17 +547,110 @@ end;
 
 function TXMLDocument.ReplaceChild(NewChild, OldChild: TDOMNode): TDOMNode;
 begin
-  raise Exception.Create('Not implemented in Delphi!');
+  if (OldChild = FDocumentElement) and (NewChild is TDOMElement) then
+  begin
+    FDocumentElement := TDOMElement(NewChild);
+    InternalDocument.DocumentElement := NewChild.InternalNode;
+
+    Result := OldChild;
+  end;
+
+
 end;
 
-{ TDOMNamedNodeMap }
+{ TDOMNamedNodeMap ----------------------------------------------------------- }
+
+constructor TDOMNamedNodeMap.Create(OwnerNode: TDOMNode);
+begin
+  inherited Create;
+  FOwnerNode := OwnerNode;
+  FOwnerDocument := FOwnerNode.FOwnerDocument;
+  InternalList := FOwnerNode.InternalNode.AttributeNodes;
+
+  Nodes := TObjectList.Create(false);
+end;
+
+destructor TDOMNamedNodeMap.Destroy;
+begin
+
+  inherited;
+end;
+
+function TDOMNamedNodeMap.GetItem(const I: LongWord): TDOMNode;
+var
+  NewNode: TDOMNode;
+begin
+  // create on-demand TDOMNode wrapping InternalList[I]
+  if Nodes.Count < Integer(I + 1) then
+    Nodes.Count := I + 1;
+  if Nodes[I] = nil then
+  begin
+    case InternalList[I].NodeType of
+      ntElement  : NewNode := TDOMElement.Create(FOwnerDocument, InternalList[I]);
+      ntText     : NewNode := TDOMText.Create(FOwnerDocument, InternalList[I]);
+      ntComment  : NewNode := TDOMComment.Create(FOwnerDocument, InternalList[I]);
+      ntCData    : NewNode := TDOMCDATASection.Create(FOwnerDocument, InternalList[I]);
+      ntAttribute: NewNode := TDOMAttr.Create(FOwnerDocument, InternalList[I]);
+      else         NewNode := TDOMNode.Create(FOwnerDocument, InternalList[I]);
+    end;
+    Nodes[I] := NewNode;
+  end;
+  Result := Nodes[I] as TDOMNode;
+end;
+
+function TDOMNamedNodeMap.GetLength: LongWord;
+begin
+  Result := InternalList.Count;
+end;
 
 function TDOMNamedNodeMap.GetNamedItem(Name: String): TDOMNode;
+var
+  I: Integer;
 begin
-  // TODO: Delphi support
-  Result := nil;
+  I := InternalList.IndexOf(Name);
+  if I = -1 then
+    Exit(nil);
+  Result := GetItem(I);
 end;
 
+function TDOMNamedNodeMap.InternalRemove(const Name: String): TDOMNode;
+var
+  I: Integer;
+begin
+  I := InternalList.IndexOf(Name);
+  if I = -1 then
+    Exit(nil);
+
+  Result := Nodes[I] as TDOMNode;
+  Nodes.Delete(I);
+end;
+
+procedure TDOMNamedNodeMap.InvalidateMap;
+begin
+  // TODO: maybe after adding attrribute there we should check/update our map
+end;
+
+{ EDOMError ------------------------------------------------------------------ }
+
+constructor EDOMError.Create(ACode: Integer; const ASituation: String);
+begin
+  Code := ACode;
+  inherited Create(Self.ClassName + ' in ' + ASituation);
+end;
+
+{ EDOMHierarchyRequest ------------------------------------------------------- }
+
+constructor EDOMHierarchyRequest.Create(const ASituation: String);
+begin
+  inherited Create(HIERARCHY_REQUEST_ERR, ASituation);
+end;
+
+{ EDOMNotFound --------------------------------------------------------------- }
+
+constructor EDOMNotFound.Create(const ASituation: String);
+begin
+  inherited Create(NOT_FOUND_ERR, ASituation);
+end;
 
 end.
 

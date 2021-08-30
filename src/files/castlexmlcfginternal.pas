@@ -429,7 +429,8 @@ begin
 
   if URIFileExists(AURL) and (not FStartEmpty) then
     if BlowFishKeyPhrase <> '' then
-      URLReadXML(Doc, AURL, BlowFishKeyPhrase)
+      // TODO: Delphi support
+      URLReadXML(Doc, AURL{$ifdef FPC}, BlowFishKeyPhrase{$endif})
     else
       URLReadXML(Doc, AURL);
 
