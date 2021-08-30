@@ -323,7 +323,7 @@ begin
           AddExternalLibrary('vorbis.dll');
           AddExternalLibrary('vorbisenc.dll');
           AddExternalLibrary('vorbisfile.dll');
-          AddExternalLibrary('msvcrt120.dll');
+          AddExternalLibrary('msvcr120.dll');
         end;
         if depHttps in Dependencies then
         begin
@@ -354,7 +354,7 @@ begin
           AddExternalLibrary('libvorbis.dll');
           { AddExternalLibrary('vorbisenc.dll'); not present? }
           AddExternalLibrary('vorbisfile.dll');
-          AddExternalLibrary('msvcrt120.dll');
+          AddExternalLibrary('msvcr120.dll');
         end;
         if depHttps in Dependencies then
         begin
