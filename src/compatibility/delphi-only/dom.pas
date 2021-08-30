@@ -58,7 +58,7 @@ type
   TDOMNode = class;
   TDOMAttr = class;
   TDOMNodeList = class;
-  TXMLDocument = class;
+  TDOMDocument = class;
 
   { Node type.
     This type is not present in FPC DOM unit, instead ELEMENT_NODE
@@ -98,7 +98,7 @@ type
 
   TDOMNamedNodeMap = class
   strict private
-    FOwnerDocument: TXMLDocument;
+    FOwnerDocument: TDOMDocument;
     FOwnerNode: TDOMNode;
     Nodes: TObjectList;
     InternalList: IXMLNodeList;
@@ -123,7 +123,7 @@ type
     Create nodes only by TXMLDocument methods like CreateElement, CreateComment. }
   TDOMNode = class(TComponent)
   private
-    FOwnerDocument: TXMLDocument;
+    FOwnerDocument: TDOMDocument;
     InternalNode: IXMLNode;
     FParentNode: TDOMNode;
   strict private
@@ -137,11 +137,11 @@ type
     function GetAttributes: TDOMNamedNodeMap; virtual;
     function GetParentNode: TDOMNode; virtual;
   public
-    constructor Create(const AOwnerDocument: TXMLDocument; const AInternalNode: IXMLNode); reintroduce;
+    constructor Create(const AOwnerDocument: TDOMDocument; const AInternalNode: IXMLNode); reintroduce;
     destructor Destroy; override;
     property NodeName: String read GetNodeName;
     property NodeValue: String read GetNodeValue write SetNodeValue;
-    property OwnerDocument: TXMLDocument read FOwnerDocument;
+    property OwnerDocument: TDOMDocument read FOwnerDocument;
     function ChildNodes: TDOMNodeList;
     function NodeType: TXMLNodeType;
 
@@ -158,7 +158,7 @@ type
 
   TDOMNodeList = class
   strict private
-    FOwnerDocument: TXMLDocument;
+    FOwnerDocument: TDOMDocument;
     InternalList: IXMLNodeList;
     Nodes: TObjectList;
     function GetCount: LongWord;
@@ -218,7 +218,7 @@ type
   TDOMCDATASection = class(TDOMText)
   end;
 
-  TXMLDocument = class(TComponent)
+  TDOMDocument = class(TComponent)
   strict private
     FDocumentElement: TDOMElement;
     function GetDocumentElement: TDOMElement;
@@ -231,6 +231,10 @@ type
     function ReplaceChild(NewChild, OldChild: TDOMNode): TDOMNode;
     function CreateComment(const CommentContents: String): TDOMComment;
     procedure AppendChild(const Child: TDOMNode);
+  end;
+
+  TXMLDocument = class(TDOMDocument)
+
   end;
 
 implementation
@@ -298,7 +302,7 @@ begin
   Result := FChildNodes;
 end;
 
-constructor TDOMNode.Create(const AOwnerDocument: TXMLDocument; const AInternalNode: IXMLNode);
+constructor TDOMNode.Create(const AOwnerDocument: TDOMDocument; const AInternalNode: IXMLNode);
 begin
   inherited Create(OwnerDocument);
   FOwnerDocument := AOwnerDocument;
@@ -508,14 +512,14 @@ begin
   Result := NodeValue;
 end;
 
-{ TXMLDocument --------------------------------------------------------------- }
+{ TDOMDocument --------------------------------------------------------------- }
 
-procedure TXMLDocument.AppendChild(const Child: TDOMNode);
+procedure TDOMDocument.AppendChild(const Child: TDOMNode);
 begin
   DocumentElement.AppendChild(Child);
 end;
 
-constructor TXMLDocument.Create;
+constructor TDOMDocument.Create;
 begin
   inherited Create(nil);
 
@@ -523,29 +527,29 @@ begin
   CoInitializeEx(nil, 0);
 end;
 
-function TXMLDocument.CreateComment(const CommentContents: String): TDOMComment;
+function TDOMDocument.CreateComment(const CommentContents: String): TDOMComment;
 begin
   Result := TDOMComment.Create(Self, InternalDocument.CreateNode(CommentContents, ntComment));
 end;
 
-function TXMLDocument.CreateElement(const Name: String): TDOMElement;
+function TDOMDocument.CreateElement(const Name: String): TDOMElement;
 begin
   Result := TDOMElement.Create(Self, InternalDocument.CreateElement(Name, ''));
 end;
 
-destructor TXMLDocument.Destroy;
+destructor TDOMDocument.Destroy;
 begin
   inherited;
 end;
 
-function TXMLDocument.GetDocumentElement: TDOMElement;
+function TDOMDocument.GetDocumentElement: TDOMElement;
 begin
   if FDocumentElement = nil then
     FDocumentElement := TDOMElement.Create(Self, InternalDocument.DocumentElement);
   Result := FDocumentElement;
 end;
 
-function TXMLDocument.ReplaceChild(NewChild, OldChild: TDOMNode): TDOMNode;
+function TDOMDocument.ReplaceChild(NewChild, OldChild: TDOMNode): TDOMNode;
 begin
   if (OldChild = FDocumentElement) and (NewChild is TDOMElement) then
   begin
@@ -555,7 +559,7 @@ begin
     Result := OldChild;
   end;
 
-
+  // TODO: Exception? nil?
 end;
 
 { TDOMNamedNodeMap ----------------------------------------------------------- }
