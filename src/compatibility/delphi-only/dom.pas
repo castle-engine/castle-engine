@@ -454,12 +454,7 @@ begin
   SetNodeValue(Value);
 end;
 
-{ procedure TDOMNode.SetTextContent(const Value: String);
-begin
-
-end;
-
-TDOMElement ---------------------------------------------------------------- }
+{ TDOMElement ---------------------------------------------------------------- }
 
 procedure TDOMElement.AppendChild(const Child: TDOMNode);
 begin

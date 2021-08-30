@@ -330,7 +330,7 @@ end;
 
 function UnicodeToUTF8(CodePoint: TUnicodeChar): string;
 var
-  Buf: array[0..6] of Char;
+  Buf: array[0..6] of AnsiChar;
   Len: Integer;
 begin
   Len:=UnicodeToUTF8Inline(CodePoint, @Buf[0]);

@@ -19,6 +19,7 @@
 unit CastleKeysMouse;
 
 {$I castleconf.inc}
+{$ifdef FPC} {$modeswitch advancedrecords} {$endif}
 
 interface
 
@@ -617,7 +618,7 @@ type
     mouse wheel action.
     This is nicely matching with TInputShortcut processing in CastleInputs,
     so it allows to easily store and check for user actions. }
-  TInputPressRelease = object
+  TInputPressRelease = record
     EventType: TInputPressReleaseType;
 
     { When EventType is itKey, this is the key pressed or released.
@@ -751,7 +752,7 @@ type
   end;
 
   { Motion (movement) of mouse or a finger on a touch device. }
-  TInputMotion = object
+  TInputMotion = record
     { Old and new positions of the mouse or finger.
       In the same coordinate system as @link(TInputPressRelease.Position). }
     OldPosition, Position: TVector2;
