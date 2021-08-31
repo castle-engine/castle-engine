@@ -884,6 +884,12 @@ type
     function PositionTo2DWorld(const Position: TVector2;
       const ContainerCoordinates: Boolean): TVector2;
 
+    { Invert @link(PositionTo2DWorld), converting the "world coordinates" (the coordinate
+      space seen by TCastleTransform / TCastleScene inside viewport @link(Items))
+      into final screen position. }
+    function PositionFrom2DWorld(const WorldPosition: TVector2;
+      const ContainerCoordinates: Boolean): TVector2;
+
     { Prepare resources, to make various methods (like @link(Render)) execute fast.
       Call it only when rendering context is initialized (ApplicationProperties.IsGLContextOpen).
       If DisplayProgressTitle <> '', we will display progress bar during loading. }
@@ -3155,6 +3161,26 @@ begin
   );
 
   Result := CameraToWorldMatrix.MultPoint(Vector3(P, 0)).XY;
+end;
+
+function TCastleViewport.PositionFrom2DWorld(const WorldPosition: TVector2;
+  const ContainerCoordinates: Boolean): TVector2;
+var
+  CameraFromWorldMatrix: TMatrix4;
+  P: TVector2;
+begin
+  PositionToPrerequisites;
+
+  CameraFromWorldMatrix := Camera.Matrix;
+  P := CameraFromWorldMatrix.MultPoint(Vector3(WorldPosition, 0)).XY;
+  P := Vector2(
+    MapRange(P.X, FProjection.Dimensions.Left  , FProjection.Dimensions.Right, 0, EffectiveWidth ),
+    MapRange(P.Y, FProjection.Dimensions.Bottom, FProjection.Dimensions.Top  , 0, EffectiveHeight)
+  );
+  if ContainerCoordinates then
+    Result := LocalToContainerPosition(P)
+  else
+    Result := P;
 end;
 
 procedure TCastleViewport.SetItems(const Value: TCastleRootTransform);

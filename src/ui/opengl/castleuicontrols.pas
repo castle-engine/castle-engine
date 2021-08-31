@@ -1764,7 +1764,7 @@ type
 
     function ScreenRect: TRectangle; deprecated 'use RenderRect';
 
-    { Convert position relative to container (in final device coordinates, without UI scaling)
+    { Convert position relative to container (in final device coordinates, without UI scaling, by default)
       into position relative to this UI control (in coordinates with UI scaling).
       Useful e.g. to convert mouse/touch position from
       @link(TInputPressRelease.Position) into position useful for children
@@ -1774,13 +1774,41 @@ type
       AnchorDelta, assuming the child is anchored to the left-bottom (the default state)
       and child has Left = Bottom = 0, sets child position exactly to
       the indicated point on the container.
+
+      @param(ContainerPositionScaled
+        If @true (default) then the container position (the ContainerPosition parameter)
+        is assumed to be in final device pixels,
+        i.e. the window area in X is from 0 to @link(TCastleContainer.Width),
+        in Y from 0 and @link(TCastleContainer.Height).
+        This is useful when the parameter comes e.g. from @link(TInputPressRelease.MousePosition).
+
+        If @false then the container position (the ContainerPosition parameter)
+        is assumed to be in unscaled device pixels,
+        i.e. the window area in X is from 0 to @link(TCastleContainer.UnscaledWidth),
+        in Y from 0 and @link(TCastleContainer.UnscaledHeight).
+      )
     }
-    function ContainerToLocalPosition(const ContainerPosition: TVector2): TVector2;
+    function ContainerToLocalPosition(const ContainerPosition: TVector2;
+      const ContainerPositionScaled: Boolean = true): TVector2;
 
     { Convert position relative to this UI control (in coordinates with UI scaling)
-      into relative to container (in final device coordinates, without UI scaling).
-      Reverses @link(ContainerToLocalPosition). }
-    function LocalToContainerPosition(const LocalPosition: TVector2): TVector2;
+      into relative to container (in final device coordinates, without UI scaling, by default).
+      Reverses @link(ContainerToLocalPosition).
+
+      @param(ContainerPositionScaled
+        If @true (default) then the container position (the result of this method)
+        is assumed to be in final device pixels,
+        i.e. the window area in X is from 0 to @link(TCastleContainer.Width),
+        in Y from 0 and @link(TCastleContainer.Height).
+
+        If @false then the container position (the result of this method)
+        is assumed to be in unscaled device pixels,
+        i.e. the window area in X is from 0 to @link(TCastleContainer.UnscaledWidth),
+        in Y from 0 and @link(TCastleContainer.UnscaledHeight).
+      )
+    }
+    function LocalToContainerPosition(const LocalPosition: TVector2;
+      const ContainerPositionScaled: Boolean = true): TVector2;
 
     { Rectangle filling the parent control (or container), in local coordinates.
       Since this is in local coordinates, the returned rectangle Left and Bottom
@@ -5010,14 +5038,26 @@ begin
   end;
 end;
 
-function TCastleUserInterface.ContainerToLocalPosition(const ContainerPosition: TVector2): TVector2;
+function TCastleUserInterface.ContainerToLocalPosition(ContainerPosition: TVector2;
+  const ContainerPositionScaled: Boolean): TVector2;
 begin
+  { LocalToContainerTranslationShiftBorder is always in scaled coordinates.
+    So to implement ContainerPositionScaled = false, we need to multiply by UIScale,
+    only to later divide by it...
+    This should be cleaned up. But then, more routines like RectWithAnchors,
+    ParentRect will require an alternative "unscaled" variant,
+    or we should just use "unscaled" coordinates more throughout the internal code. }
+  if not ContainerPositionScaled then
+    ContainerPosition := ContainerPosition * UIScale;
   Result := (ContainerPosition - LocalToContainerTranslationShiftBorder) / UIScale;
 end;
 
-function TCastleUserInterface.LocalToContainerPosition(const LocalPosition: TVector2): TVector2;
+function TCastleUserInterface.LocalToContainerPosition(const LocalPosition: TVector2;
+  const ContainerPositionScaled: Boolean): TVector2;
 begin
   Result := LocalPosition * UIScale + LocalToContainerTranslationShiftBorder;
+  if not ContainerPositionScaled then
+    Result := Result / UIScale;
 end;
 
 function TCastleUserInterface.ParentRect: TFloatRectangle;
