@@ -304,6 +304,10 @@ type
     procedure PropertyEditorModified(Sender: TObject);
     procedure PropertyGridCollectionItemClick(Sender: TObject);
     procedure PropertyGridCollectionItemClose(Sender: TObject; var CloseAction: TCloseAction);
+    procedure PropertyGridCollectionItemAdd(Sender: TObject);
+    procedure PropertyGridCollectionItemDelete(Sender: TObject);
+    procedure PropertyGridCollectionItemMoveUp(Sender: TObject);
+    procedure PropertyGridCollectionItemMoveDown(Sender: TObject);
     { Is Child selectable and visible in hierarchy. }
     class function Selectable(const Child: TComponent): Boolean; static;
     { Is Child deletable by user (this implies it is also selectable). }
@@ -2324,6 +2328,30 @@ begin
   UpdateSelectedControl;
 end;
 
+procedure TDesignFrame.PropertyGridCollectionItemAdd(Sender: TObject);
+begin
+  (TButton(Sender).Parent.Parent as TCollectionPropertyEditorForm).actAddExecute(Sender);
+  RecordUndo('Add item', ucLow);
+end;
+
+procedure TDesignFrame.PropertyGridCollectionItemDelete(Sender: TObject);
+begin
+  (TButton(Sender).Parent.Parent as TCollectionPropertyEditorForm).actDelExecute(Sender);
+  RecordUndo('Delete item', ucLow);
+end;
+
+procedure TDesignFrame.PropertyGridCollectionItemMoveUp(Sender: TObject);
+begin
+  (TButton(Sender).Parent.Parent as TCollectionPropertyEditorForm).actMoveUpDownExecute(Sender);
+  RecordUndo('Move item up', ucLow);
+end;
+
+procedure TDesignFrame.PropertyGridCollectionItemMoveDown(Sender: TObject);
+begin
+  (TButton(Sender).Parent.Parent as TCollectionPropertyEditorForm).actMoveUpDownExecute(Sender);
+  RecordUndo('Move item down', ucLow);
+end;
+
 procedure TDesignFrame.RecordUndo(const UndoComment: String;
   const UndoCommentPriority: TUndoCommentPriority; const ItemIndex: Integer = -1);
 var
@@ -2687,6 +2715,16 @@ begin
           Fm.FormStyle := fsStayOnTop;
           Fm.OnClose := nil; // Avoid to trigger event in case we set it before
           Fm.CollectionListBox.OnClick := @PropertyGridCollectionItemClick;
+          { We remove TToolButton's actions and use our own's OnClick events
+            instead so that we can hook our undo/redo system in }
+          Fm.AddButton.Action := nil;
+          Fm.DeleteButton.Action := nil;
+          Fm.MoveUpButton.Action := nil;
+          Fm.MoveDownButton.Action := nil;
+          Fm.AddButton.OnClick := @PropertyGridCollectionItemAdd;
+          Fm.DeleteButton.OnClick := @PropertyGridCollectionItemDelete;
+          Fm.MoveUpButton.OnClick := @PropertyGridCollectionItemMoveUp;
+          Fm.MoveDownButton.OnClick := @PropertyGridCollectionItemMoveDown;
           Fm.Close;
           Fm.OnClose := @PropertyGridCollectionItemClose;
         end;
