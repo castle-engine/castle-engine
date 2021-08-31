@@ -27,6 +27,7 @@ uses
   Spin, Buttons, Menus, Contnrs, Generics.Collections,
   // for TOIPropertyGrid usage
   ObjectInspector, PropEdits, PropEditUtils, GraphPropEdits,
+  CollectionPropEditForm,
   // CGE units
   CastleControl, CastleUIControls, CastlePropEdits, CastleDialogs,
   CastleSceneCore, CastleKeysMouse, CastleVectors, CastleRectangles,
@@ -301,6 +302,8 @@ type
       then only PropertyEditorModified is called. }
     procedure PropertyGridModified(Sender: TObject);
     procedure PropertyEditorModified(Sender: TObject);
+    procedure PropertyGridCollectionItemClick(Sender: TObject);
+    procedure PropertyGridCollectionItemClose(Sender: TObject; var CloseAction: TCloseAction);
     { Is Child selectable and visible in hierarchy. }
     class function Selectable(const Child: TComponent): Boolean; static;
     { Is Child deletable by user (this implies it is also selectable). }
@@ -2299,6 +2302,43 @@ begin
     raise EInternalError.Create('PropertyEditorModified can only be called with TPropertyEditor as a Sender.');
 end;
 
+procedure TDesignFrame.PropertyGridCollectionItemClick(Sender: TObject);
+var
+  SelectionForOI: TPersistentSelectionList;
+  InspectorType: TInspectorType;
+  Ed: TCollectionPropertyEditorForm;
+  ListBox: TListBox;
+  Item: TCollectionItem = nil;
+  I, J: Integer;
+begin
+  SelectionForOI := TPersistentSelectionList.Create;
+  try
+    ListBox := Sender as TListBox;
+    Ed := ListBox.Parent as TCollectionPropertyEditorForm;
+    for I := 0 to ListBox.Count - 1 do
+    begin
+      for J := 0 to Ed.Collection.Count - 1 do
+      begin
+        if ListBox.Items[I] = (IntToStr(J) + ' - ' + Ed.Collection.Items[J].DisplayName) then
+        begin
+          Item := Ed.Collection.Items[J];
+          SelectionForOI.Add(Item);
+          for InspectorType in TInspectorType do
+            Inspector[InspectorType].Selection := SelectionForOI;
+          Break;
+        end;
+      end;
+      if Item <> nil then
+        Break;
+    end;
+  finally FreeAndNil(SelectionForOI) end;
+end;
+
+procedure TDesignFrame.PropertyGridCollectionItemClose(Sender: TObject; var CloseAction: TCloseAction);
+begin
+  UpdateSelectedControl;
+end;
+
 procedure TDesignFrame.RecordUndo(const UndoComment: String;
   const UndoCommentPriority: TUndoCommentPriority; const ItemIndex: Integer = -1);
 var
@@ -2624,11 +2664,14 @@ procedure TDesignFrame.UpdateSelectedControl;
 var
   Selected: TComponentList;
   SelectionForOI: TPersistentSelectionList;
-  I, SelectedCount: Integer;
+  I, J, SelectedCount: Integer;
   UI: TCastleUserInterface;
   InspectorType: TInspectorType;
   V: TCastleViewport;
   T: TCastleTransform;
+  Row: TOIPropertyGridRow;
+  Ed: TCollectionPropertyEditor;
+  Fm: TCollectionPropertyEditorForm;
 begin
   OnSelectionChanged(Self); // Calling it in ControlsTreeSelectionChanged doesn't seem to be enough as RenamePossible is true there even in case SelectedCount = 0 (does it use some obsolete value?)
 
@@ -2647,7 +2690,22 @@ begin
       for I := 0 to SelectedCount - 1 do
         SelectionForOI.Add(Selected[I]);
       for InspectorType in TInspectorType do
+      begin
         Inspector[InspectorType].Selection := SelectionForOI;
+        for J := 0 to Inspector[InspectorType].RowCount - 1 do
+        begin
+          Row := Inspector[InspectorType].Rows[J];
+          if not (Row.Editor is TCollectionPropertyEditor) then
+            Continue;
+          Ed := TCollectionPropertyEditor(Row.Editor);
+          Fm := TCollectionPropertyEditorForm(Ed.ShowCollectionEditor(nil, nil, ''));
+          Fm.FormStyle := fsStayOnTop;
+          Fm.OnClose := nil; // Avoid to trigger event in case we set it before
+          Fm.CollectionListBox.OnClick := @PropertyGridCollectionItemClick;
+          Fm.Close;
+          Fm.OnClose := @PropertyGridCollectionItemClose;
+        end;
+      end;
     finally FreeAndNil(SelectionForOI) end;
   finally FreeAndNil(Selected) end;
 
