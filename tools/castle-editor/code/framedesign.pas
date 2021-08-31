@@ -228,6 +228,7 @@ type
       ControlsTreeNodeUnderMouseSide: TTreeNodeSide;
       PendingErrorBox: String;
       VisualizeTransformHover, VisualizeTransformSelected: TVisualizeTransform;
+      IsCollectionItemEditFormInitialized: Boolean;
 
     procedure CastleControlOpen(Sender: TObject);
     procedure CastleControlResize(Sender: TObject);
@@ -1009,6 +1010,7 @@ constructor TDesignFrame.Create(TheOwner: TComponent);
 begin
   inherited;
 
+  IsCollectionItemEditFormInitialized := False;
   PropertyEditorHook := TPropertyEditorHook.Create(Self);
 
   FUndoSystem := TUndoSystem.Create(Self);
@@ -2316,10 +2318,13 @@ begin
   SelectionForOI := TPersistentSelectionList.Create;
   try
     ListBox := Sender as TListBox;
-    Ed := ListBox.Parent as TCollectionPropertyEditorForm;
-    SelectionForOI.Add(Ed.Collection.Items[ListBox.ItemIndex]);
-    for InspectorType in TInspectorType do
-      Inspector[InspectorType].Selection := SelectionForOI;
+    if ListBox.ItemIndex >= 0 then
+    begin
+      Ed := ListBox.Parent as TCollectionPropertyEditorForm;
+      SelectionForOI.Add(Ed.Collection.Items[ListBox.ItemIndex]);
+      for InspectorType in TInspectorType do
+        Inspector[InspectorType].Selection := SelectionForOI;
+    end;
   finally FreeAndNil(SelectionForOI) end;
 end;
 
@@ -2705,28 +2710,34 @@ begin
       for InspectorType in TInspectorType do
       begin
         Inspector[InspectorType].Selection := SelectionForOI;
-        for J := 0 to Inspector[InspectorType].RowCount - 1 do
+        if not IsCollectionItemEditFormInitialized then
         begin
-          Row := Inspector[InspectorType].Rows[J];
-          if not (Row.Editor is TCollectionPropertyEditor) then
-            Continue;
-          Ed := TCollectionPropertyEditor(Row.Editor);
-          Fm := TCollectionPropertyEditorForm(Ed.ShowCollectionEditor(nil, nil, ''));
-          Fm.FormStyle := fsStayOnTop;
-          Fm.OnClose := nil; // Avoid to trigger event in case we set it before
-          Fm.CollectionListBox.OnClick := @PropertyGridCollectionItemClick;
-          { We remove TToolButton's actions and use our own's OnClick events
-            instead so that we can hook our undo/redo system in }
-          Fm.AddButton.Action := nil;
-          Fm.DeleteButton.Action := nil;
-          Fm.MoveUpButton.Action := nil;
-          Fm.MoveDownButton.Action := nil;
-          Fm.AddButton.OnClick := @PropertyGridCollectionItemAdd;
-          Fm.DeleteButton.OnClick := @PropertyGridCollectionItemDelete;
-          Fm.MoveUpButton.OnClick := @PropertyGridCollectionItemMoveUp;
-          Fm.MoveDownButton.OnClick := @PropertyGridCollectionItemMoveDown;
-          Fm.Close;
-          Fm.OnClose := @PropertyGridCollectionItemClose;
+          for J := 0 to Inspector[InspectorType].RowCount - 1 do
+          begin
+            Row := Inspector[InspectorType].Rows[J];
+            if not (Row.Editor is TCollectionPropertyEditor) then
+              Continue;
+            Ed := TCollectionPropertyEditor(Row.Editor);
+            Fm := TCollectionPropertyEditorForm(Ed.ShowCollectionEditor(nil, nil, ''));
+            Fm.OnClose := nil; // We remove this event in case we set it before
+            Fm.Close;
+            Fm.OnClose := @PropertyGridCollectionItemClose;
+            Fm.FormStyle := fsStayOnTop;
+            Fm.CollectionListBox.OnClick := @PropertyGridCollectionItemClick;
+            { We remove TToolButton's actions and use our own's OnClick events
+              instead so that we can hook our undo/redo system in }
+            Fm.AddButton.Action := nil;
+            Fm.DeleteButton.Action := nil;
+            Fm.MoveUpButton.Action := nil;
+            Fm.MoveDownButton.Action := nil;
+            Fm.AddButton.OnClick := @PropertyGridCollectionItemAdd;
+            Fm.DeleteButton.OnClick := @PropertyGridCollectionItemDelete;
+            Fm.MoveUpButton.OnClick := @PropertyGridCollectionItemMoveUp;
+            Fm.MoveDownButton.OnClick := @PropertyGridCollectionItemMoveDown;
+            // We only need to initialize TCollectionPropertyEditorForm 1 time,
+            IsCollectionItemEditFormInitialized := True;
+            Break;
+          end;
         end;
       end;
     finally FreeAndNil(SelectionForOI) end;
