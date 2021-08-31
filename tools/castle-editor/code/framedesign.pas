@@ -228,7 +228,7 @@ type
       ControlsTreeNodeUnderMouseSide: TTreeNodeSide;
       PendingErrorBox: String;
       VisualizeTransformHover, VisualizeTransformSelected: TVisualizeTransform;
-      IsCollectionItemEditFormInitialized: Boolean;
+      IsCollectionFormInitialized: Boolean;
 
     procedure CastleControlOpen(Sender: TObject);
     procedure CastleControlResize(Sender: TObject);
@@ -1010,7 +1010,7 @@ constructor TDesignFrame.Create(TheOwner: TComponent);
 begin
   inherited;
 
-  IsCollectionItemEditFormInitialized := False;
+  IsCollectionFormInitialized := False;
   PropertyEditorHook := TPropertyEditorHook.Create(Self);
 
   FUndoSystem := TUndoSystem.Create(Self);
@@ -2679,17 +2679,61 @@ begin
 end;
 
 procedure TDesignFrame.UpdateSelectedControl;
+
+  procedure InitializeCollectionFormEvents(InspectorType: TInspectorType);
+  var
+    I: Integer;
+    Row: TOIPropertyGridRow;
+    Ed: TCollectionPropertyEditor = nil;
+    Fm: TCollectionPropertyEditorForm;
+  begin
+    if not IsCollectionFormInitialized then
+    begin
+      for I := 0 to Inspector[InspectorType].RowCount - 1 do
+      begin
+        Row := Inspector[InspectorType].Rows[I];
+        if Row.Editor is TCollectionPropertyEditor then
+        begin
+          Ed := TCollectionPropertyEditor(Row.Editor);
+          Break;
+        end;
+      end;
+      if Ed <> nil then
+      begin
+        Fm := TCollectionPropertyEditorForm(
+          Ed.ShowCollectionEditor(nil, nil, '')
+        );
+        { We remove close event in case we set it before, so that it doesn't
+          call nil/event with uninitialized variables when we hide this form }
+        Fm.OnClose := nil;
+        Fm.Close; // Hide the form
+        Fm.OnClose := @PropertyGridCollectionItemClose;
+        Fm.FormStyle := fsStayOnTop;
+        Fm.CollectionListBox.OnClick := @PropertyGridCollectionItemClick;
+        { We remove TToolButton's actions and use our own's OnClick events
+          instead so that we can hook our undo/redo system in }
+        Fm.AddButton.Action := nil;
+        Fm.DeleteButton.Action := nil;
+        Fm.MoveUpButton.Action := nil;
+        Fm.MoveDownButton.Action := nil;
+        Fm.AddButton.OnClick := @PropertyGridCollectionItemAdd;
+        Fm.DeleteButton.OnClick := @PropertyGridCollectionItemDelete;
+        Fm.MoveUpButton.OnClick := @PropertyGridCollectionItemMoveUp;
+        Fm.MoveDownButton.OnClick := @PropertyGridCollectionItemMoveDown;
+        { We only need to initialize TCollectionPropertyEditorForm 1 time }
+        IsCollectionFormInitialized := True;
+      end;
+    end;
+  end;
+
 var
   Selected: TComponentList;
+  I, SelectedCount: Integer;
   SelectionForOI: TPersistentSelectionList;
-  I, J, SelectedCount: Integer;
   UI: TCastleUserInterface;
   InspectorType: TInspectorType;
   V: TCastleViewport;
   T: TCastleTransform;
-  Row: TOIPropertyGridRow;
-  Ed: TCollectionPropertyEditor;
-  Fm: TCollectionPropertyEditorForm;
 begin
   OnSelectionChanged(Self); // Calling it in ControlsTreeSelectionChanged doesn't seem to be enough as RenamePossible is true there even in case SelectedCount = 0 (does it use some obsolete value?)
 
@@ -2710,35 +2754,7 @@ begin
       for InspectorType in TInspectorType do
       begin
         Inspector[InspectorType].Selection := SelectionForOI;
-        if not IsCollectionItemEditFormInitialized then
-        begin
-          for J := 0 to Inspector[InspectorType].RowCount - 1 do
-          begin
-            Row := Inspector[InspectorType].Rows[J];
-            if not (Row.Editor is TCollectionPropertyEditor) then
-              Continue;
-            Ed := TCollectionPropertyEditor(Row.Editor);
-            Fm := TCollectionPropertyEditorForm(Ed.ShowCollectionEditor(nil, nil, ''));
-            Fm.OnClose := nil; // We remove this event in case we set it before
-            Fm.Close;
-            Fm.OnClose := @PropertyGridCollectionItemClose;
-            Fm.FormStyle := fsStayOnTop;
-            Fm.CollectionListBox.OnClick := @PropertyGridCollectionItemClick;
-            { We remove TToolButton's actions and use our own's OnClick events
-              instead so that we can hook our undo/redo system in }
-            Fm.AddButton.Action := nil;
-            Fm.DeleteButton.Action := nil;
-            Fm.MoveUpButton.Action := nil;
-            Fm.MoveDownButton.Action := nil;
-            Fm.AddButton.OnClick := @PropertyGridCollectionItemAdd;
-            Fm.DeleteButton.OnClick := @PropertyGridCollectionItemDelete;
-            Fm.MoveUpButton.OnClick := @PropertyGridCollectionItemMoveUp;
-            Fm.MoveDownButton.OnClick := @PropertyGridCollectionItemMoveDown;
-            // We only need to initialize TCollectionPropertyEditorForm 1 time,
-            IsCollectionItemEditFormInitialized := True;
-            Break;
-          end;
-        end;
+        InitializeCollectionFormEvents(InspectorType);
       end;
     finally FreeAndNil(SelectionForOI) end;
   finally FreeAndNil(Selected) end;
