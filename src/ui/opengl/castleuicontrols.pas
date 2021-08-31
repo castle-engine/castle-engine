@@ -1788,7 +1788,7 @@ type
         in Y from 0 and @link(TCastleContainer.UnscaledHeight).
       )
     }
-    function ContainerToLocalPosition(const ContainerPosition: TVector2;
+    function ContainerToLocalPosition(ContainerPosition: TVector2;
       const ContainerPositionScaled: Boolean = true): TVector2;
 
     { Convert position relative to this UI control (in coordinates with UI scaling)
