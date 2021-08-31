@@ -2335,19 +2335,19 @@ end;
 
 procedure TDesignFrame.PropertyGridCollectionItemAdd(Sender: TObject);
 begin
-  (TButton(Sender).Parent.Parent as TCollectionPropertyEditorForm).actAddExecute(Sender);
+  ((Sender as TToolButton).Parent.Parent as TCollectionPropertyEditorForm).actAddExecute(Sender);
   RecordUndo('Add item', ucLow);
 end;
 
 procedure TDesignFrame.PropertyGridCollectionItemDelete(Sender: TObject);
 begin
-  (TButton(Sender).Parent.Parent as TCollectionPropertyEditorForm).actDelExecute(Sender);
+  ((Sender as TToolButton).Parent.Parent as TCollectionPropertyEditorForm).actDelExecute(Sender);
   RecordUndo('Delete item', ucLow);
 end;
 
 procedure TDesignFrame.PropertyGridCollectionItemMoveUp(Sender: TObject);
 begin
-  (TButton(Sender).Parent.Parent as TCollectionPropertyEditorForm).actMoveUpDownExecute(Sender);
+  ((Sender as TToolButton).Parent.Parent as TCollectionPropertyEditorForm).actMoveUpDownExecute(Sender);
   RecordUndo('Move item up', ucLow);
 end;
 
