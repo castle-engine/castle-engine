@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2009-2021 Michalis Kamburelis, Tomasz Wojtyś.
 
   This file is part of "Castle Game Engine".
@@ -20,11 +20,13 @@ unit CastleUIControls;
 
 interface
 
+// TODO: Delphi Serialize
+
 uses SysUtils, Classes, Generics.Collections,
   CastleKeysMouse, CastleUtils, CastleClassUtils, CastleGLUtils, CastleFonts,
   CastleRectangles, CastleTimeUtils, CastleInternalPk3DConnexion, CastleColors,
   CastleImages, CastleVectors, CastleJoysticks, CastleApplicationProperties,
-  CastleGLImages, CastleRenderContext, CastleComponentSerialize;
+  CastleGLImages, CastleRenderContext {$ifdef FPC}, CastleComponentSerialize{$endif};
 
 const
   { Default value for container's Dpi, as is usually set on desktops. }
@@ -297,16 +299,16 @@ type
     procedure UpdateUIScale;
     procedure SetForceCaptureInput(const Value: TCastleUserInterface);
     function PassEvents(const C: TCastleUserInterface;
-      const CheckMousePosition: Boolean = true): Boolean;
+      const CheckMousePosition: Boolean = true): Boolean; overload;
     function PassEvents(const C: TCastleUserInterface;
       const EventPosition: TVector2;
-      const CheckEventPosition: Boolean = true): Boolean;
+      const CheckEventPosition: Boolean = true): Boolean; overload;
     function PassEvents(const C: TCastleUserInterface;
       const Event: TInputPressRelease;
-      const CheckEventPosition: Boolean = true): Boolean;
+      const CheckEventPosition: Boolean = true): Boolean; overload;
     function PassEvents(const C: TCastleUserInterface;
       const Event: TInputMotion;
-      const CheckEventPosition: Boolean = true): Boolean;
+      const CheckEventPosition: Boolean = true): Boolean; overload;
   private
     { FControls cannot be declared as TChildrenControls to avoid
       http://bugs.freepascal.org/view.php?id=22495 }
@@ -336,8 +338,10 @@ type
     { @groupEnd }
 
     procedure SetInternalCursor(const Value: TMouseCursor); virtual;
+    {$ifdef FPC}
     property Cursor: TMouseCursor write SetInternalCursor;
       deprecated 'do not set this, engine will override this. Set TCastleUserInterface.Cursor of your UI controls to control the Cursor.';
+    {$endif}
     property InternalCursor: TMouseCursor write SetInternalCursor;
 
     function GetMousePosition: TVector2; virtual;
@@ -535,7 +539,7 @@ type
       Indexed from 0 to TouchesCount - 1.
       @seealso TouchesCount
       @seealso TTouch }
-    property Touches[Index: Integer]: TTouch read GetTouches;
+    property Touches[const Index: Integer]: TTouch read GetTouches;
 
     { Count of currently active touches (mouse or fingers pressed) on the screen.
       @seealso Touches }
@@ -622,8 +626,8 @@ type
       An example:
       @includeCode(../../../examples/short_api_samples/save_screen_rgba/save_screen_rgba.lpr)
       @groupBegin }
-    function SaveScreenRgba(const SaveRect: TRectangle): TRGBAlphaImage;
-    function SaveScreenRgba: TRGBAlphaImage;
+    function SaveScreenRgba(const SaveRect: TRectangle): TRGBAlphaImage; overload;
+    function SaveScreenRgba: TRGBAlphaImage; overload;
     { @groupEnd }
 
     { Capture the current container (window) contents to an image and save it to file,
@@ -796,7 +800,7 @@ type
 
     { Delay in seconds before showing the tooltip. }
     property TooltipDelay: Single read FTooltipDelay write FTooltipDelay
-      default DefaultTooltipDelay;
+      {$ifdef FPC}default DefaultTooltipDelay{$endif};
     property TooltipDistance: Cardinal read FTooltipDistance write FTooltipDistance
       default DefaultTooltipDistance;
 
@@ -828,16 +832,16 @@ type
       Set both these properties, or set only one (and leave the other as zero).
       @groupBegin }
     property UIReferenceWidth: Single
-      read FUIReferenceWidth write SetUIReferenceWidth default 0;
+      read FUIReferenceWidth write SetUIReferenceWidth {$ifdef FPC}default 0{$endif};
     property UIReferenceHeight: Single
-      read FUIReferenceHeight write SetUIReferenceHeight default 0;
+      read FUIReferenceHeight write SetUIReferenceHeight {$ifdef FPC}default 0{$endif};
     { @groupEnd }
 
     { Scale of the container size (as seen by TCastleUserInterface implementations)
       when UIScaling is usExplicitScale.
       See @link(usExplicitScale) for precise description how this works. }
     property UIExplicitScale: Single
-      read FUIExplicitScale write SetUIExplicitScale default 1.0;
+      read FUIExplicitScale write SetUIExplicitScale {$ifdef FPC}default 1.0{$endif};
 
     { Default font (type, size) to be used by all user interface controls.
       Note that each UI control can customize the used font and/or size
@@ -1394,12 +1398,14 @@ type
       May be @nil if this control is not yet inserted into any container. }
     property Container: TCastleContainer read FContainer;
 
+    {$ifdef FPC}
     { Event called when the @link(Cursor) property changes.
       This event is, in normal circumstances, used by the Container,
       so you should not use it in your own programs. }
     property OnCursorChange: TNotifyEvent
       read FOnCursorChange write FOnCursorChange;
       deprecated 'use OnVisibleChange (or override VisibleChange) and watch for Changes that include chCursor';
+    {$endif}
 
     { Design note: ExclusiveEvents is not published now, as it's too "obscure"
       (for normal usage you don't want to deal with it). Also, it's confusing
@@ -1916,10 +1922,12 @@ type
     procedure EditorAllowResize(out ResizeWidth, ResizeHeight: Boolean;
       out Reason: String); virtual;
 
+    {$ifdef FPC}
     property FloatWidth: Single read FWidth write SetWidth stored false;
       deprecated 'use Width';
     property FloatHeight: Single read FHeight write SetHeight stored false;
       deprecated 'use Height';
+    {$endif}
 
     { A simple shortcut to modify HorizontalAnchorDelta/VerticalAnchorDelta as TVector2 }
     property AnchorDelta: TVector2 read GetAnchorDelta write SetAnchorDelta;
@@ -1935,12 +1943,14 @@ type
     { Color of the @link(Border), by default completely transparent black. }
     property BorderColor: TCastleColor read FBorderColor write SetBorderColor;
 
+    {$ifdef FPC}
     property HasHorizontalAnchor: boolean
       read FHasHorizontalAnchor write FHasHorizontalAnchor stored false;
       deprecated 'this property does not do anything anymore, anchors are always active';
     property HasVerticalAnchor: boolean
       read FHasVerticalAnchor write FHasVerticalAnchor stored false;
       deprecated 'this property does not do anything anymore, anchors are always active';
+    {$endif}
 
     { Is the control possibly visible.
       This is always @true when @link(Culling) is @false (the default). }
@@ -2037,7 +2047,7 @@ type
 
       Note that the effects of this property and @link(HorizontalAnchorDelta)
       are summed, if you set both. }
-    property Left: Single read FLeft write SetLeft stored false default 0;
+    property Left: Single read FLeft write SetLeft stored false {$ifdef FPC}default 0{$endif};
 
     { Position from the bottom side of the parent control.
 
@@ -2048,7 +2058,7 @@ type
 
       Note that the effects of this property and @link(VerticalAnchorDelta)
       are summed, if you set both. }
-    property Bottom: Single read FBottom write SetBottom default 0;
+    property Bottom: Single read FBottom write SetBottom {$ifdef FPC}default 0{$endif};
 
     { When @name, the control will always fill the whole parent area.
       @seealso TCastleUserInterface.EffectiveRect
@@ -2064,10 +2074,10 @@ type
       @seealso TCastleUserInterface.EffectiveWidth
       @seealso TCastleUserInterface.EffectiveHeight
       @groupBegin }
-    property Width: Single read FWidth write SetWidth default DefaultWidth;
-    property Height: Single read FHeight write SetHeight default DefaultHeight;
-    property WidthFraction: Single read FWidthFraction write SetWidthFraction default 0.0;
-    property HeightFraction: Single read FHeightFraction write SetHeightFraction default 0.0;
+    property Width: Single read FWidth write SetWidth {$ifdef FPC}default DefaultWidth{$endif};
+    property Height: Single read FHeight write SetHeight {$ifdef FPC}default DefaultHeight{$endif};
+    property WidthFraction: Single read FWidthFraction write SetWidthFraction {$ifdef FPC}default 0.0{$endif};
+    property HeightFraction: Single read FHeightFraction write SetHeightFraction {$ifdef FPC}default 0.0{$endif};
     { @groupEnd }
 
     { Adjust size to encompass all the children.
@@ -2088,13 +2098,13 @@ type
       to "right" or "left" side now. }
     property AutoSizeToChildrenPaddingRight: Single
       read FAutoSizeToChildrenPaddingRight
-      write SetAutoSizeToChildrenPaddingRight default 0;
+      write SetAutoSizeToChildrenPaddingRight {$ifdef FPC}default 0{$endif};
     { Padding added when @link(AutoSizeToChildren) is used.
       TODO: Should be AutoSizeToChildrenPaddingVertical, there's nothing that makes it specific
       to "top" or "bottom" side now. }
     property AutoSizeToChildrenPaddingTop: Single
       read FAutoSizeToChildrenPaddingTop
-      write SetAutoSizeToChildrenPaddingTop default 0;
+      write SetAutoSizeToChildrenPaddingTop {$ifdef FPC}default 0{$endif};
 
     { Adjust position to align us to the parent horizontally.
       The resulting @link(EffectiveRect) and @link(RenderRect) and @link(RenderRectWithBorder)
@@ -2119,7 +2129,7 @@ type
       read FHorizontalAnchorParent write SetHorizontalAnchorParent default hpLeft;
     { Delta between our border and parent. }
     property HorizontalAnchorDelta: Single
-      read FHorizontalAnchorDelta write SetHorizontalAnchorDelta default 0;
+      read FHorizontalAnchorDelta write SetHorizontalAnchorDelta {$ifdef FPC}default 0{$endif};
 
     { Adjust position to align us to the parent vertically.
       The resulting @link(EffectiveRect) and @link(RenderRect) and @link(RenderRectWithBorder)
@@ -2144,7 +2154,7 @@ type
       read FVerticalAnchorParent write SetVerticalAnchorParent default vpBottom;
     { Delta between our border and parent. }
     property VerticalAnchorDelta: Single
-      read FVerticalAnchorDelta write SetVerticalAnchorDelta default 0;
+      read FVerticalAnchorDelta write SetVerticalAnchorDelta {$ifdef FPC}default 0{$endif};
 
     { Optimize rendering and event processing
       by checking whether the control can be visible.
@@ -2259,7 +2269,7 @@ type
     constructor Create(AParent: TCastleUserInterface);
     destructor Destroy; override;
 
-    property Items[I: Integer]: TCastleUserInterface read GetItem write SetItem; default;
+    property Items[const I: Integer]: TCastleUserInterface read GetItem write SetItem; default;
     function Count: Integer;
     procedure Assign(const Source: TChildrenControls);
     { Remove the Item from this list.

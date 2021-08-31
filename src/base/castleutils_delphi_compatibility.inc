@@ -32,6 +32,7 @@ function GetAppConfigDir(Global : Boolean) : String;
 function StringsReplace(const S: string; OldPattern, NewPattern: array of string;  Flags: TReplaceFlags): string;
 function StrToQWord(const S: String): QWord;
 function IsWild(InputStr, Wilds: string; IgnoreCase: Boolean): Boolean;
+procedure FillByte(var X; Count: SizeInt; Value: Byte);
 procedure FillDWord(var X; const Count: SizeInt; const Value: DWord);
 function glext_ExtensionSupported(const extension: AnsiString; const searchIn: AnsiString): Boolean;
 function Load_GL_ARB_texture_cube_map: Boolean;
@@ -66,6 +67,7 @@ function GetMem(const Size: Integer): Pointer;
 begin
   System.GetMem(Result, Size);
 end;
+
 { Copied from FPC RTL (same license as Castle Game Engine) }
 function VendorName : String;
 begin
@@ -74,6 +76,7 @@ begin
   else
     Result:='';
 end;
+
 { Copied from FPC RTL (same license as Castle Game Engine) }
 function ApplicationName : String;
 begin
@@ -82,6 +85,7 @@ begin
   else
     Result:=ChangeFileExt(ExtractFileName(Paramstr(0)),'');
 end;
+
 { Copied from FPC RTL (same license as Castle Game Engine) and adjusted }
 function GetWindowsSpecialDirUnicode(ID: Integer; CreateIfNotExists: Boolean = True): UnicodeString;
 var
@@ -91,15 +95,18 @@ begin
   if SHGetSpecialFolderPathW(0, @Buffer[0], ID, CreateIfNotExists) then
     Result := IncludeTrailingPathDelimiter(StrPas(Buffer));
 end;
+
 { Copied from FPC RTL (same license as Castle Game Engine) }
 function GetWindowsSpecialDir(ID: Integer; CreateIfNotExists: Boolean = True): String;
 begin
   Result := String(GetWindowsSpecialDirUnicode(ID, CreateIfNotExists));
 end;
+
 function DGetAppConfigDir(Global : Boolean) : String;
 begin
   Result:=ExcludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)));
 end;
+
 { Copied from FPC RTL (same license as Castle Game Engine) }
 function GetAppConfigDir(Global : Boolean) : String;
 begin
@@ -116,6 +123,7 @@ begin
   else
     Result:=IncludeTrailingPathDelimiter(DGetAppConfigDir(Global));
 end;
+
 function StringsReplace(const S: string; OldPattern, NewPattern: array of string;  Flags: TReplaceFlags): string;
 var pc,pcc,lastpc : pchar;
     strcount      : integer;
@@ -170,10 +178,12 @@ begin
     end;
   Result := ResStr;
 end;
+
 function StrToQWord(const S: String): QWord;
 begin
   Result := StrToUInt64(S);
 end;
+
 Function isMatch(level : integer;inputstr,wilds : string; CWild, CinputWord: SizeInt;MaxInputword,maxwilds : SizeInt; Out EOS : Boolean) : Boolean;
   function WildisQuestionmark : boolean;
 begin
@@ -246,6 +256,7 @@ begin
       Result:=False;
     end
 end;
+
 function IsWild(InputStr, Wilds: string; IgnoreCase: Boolean): Boolean;
 var
   i: SizeInt;
@@ -278,6 +289,7 @@ begin
     end;
   Result:=isMatch(1,inputStr,wilds,1,1,MaxinputWord, MaxWilds,EOS);
 end;
+
 procedure FillDWord(var X; const Count: SizeInt; const Value: DWord);
 var
   I: SizeInt;
@@ -290,6 +302,11 @@ begin
     Move(Value, PX^, SizeOf(Value));
     Inc(PX);
   end;
+end;
+
+procedure FillByte(var X; Count: SizeInt; Value: Byte);
+begin
+  FillChar(X, Count, Value);
 end;
 
 function glext_ExtensionSupported(const extension: AnsiString; const searchIn: AnsiString): Boolean;

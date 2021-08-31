@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2015-2019 Tomasz Wojtyś, Michalis Kamburelis.
   Based on zgl_joystick.pas by Andrey Kemka.
 
@@ -413,6 +413,8 @@ begin
     FJoysticks := TJoysticks.Create;
   Result := FJoysticks;
 end;
+
+{$ifndef FPC}initialization{$endif}
 
 finalization
   FreeAndNil(FJoysticks);

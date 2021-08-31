@@ -36,8 +36,10 @@ uses SysUtils, Classes, Generics.Collections, Contnrs,
 
 implementation
 
-uses Math,
-  CastleGLUtils, CastleUtils, CastleComponentSerialize, CastleInternalRichText,
+// TODO: Delphi Serialize
+
+uses Math, {$ifndef FPC} Character,{$endif}
+  CastleGLUtils, CastleUtils, {$ifdef FPC}CastleComponentSerialize,{$endif} CastleInternalRichText,
   CastleLog, CastleURIUtils;
 
 {$define read_implementation}
@@ -50,7 +52,10 @@ uses Math,
 {$undef read_implementation}
 
 initialization
+  // TODO: Delphi Serialize
+  {$ifdef FPC}
   RegisterSerializableComponent(TCastleFont, 'Font');
   RegisterSerializableComponent(TCastleBitmapFont, 'Bitmap Font');
   RegisterSerializableComponent(TCastleFontFamily, 'Font Family');
+  {$endif}
 end.

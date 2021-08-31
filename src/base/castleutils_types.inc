@@ -33,11 +33,9 @@ type
   PBoolean = ^Boolean;
   {$endif}
 
-  {$ifdef FPC}
   { Infinite array of bytes. }
   PByteArray = ^TByteArray;
   TByteArray = array[0..MaxInt div SizeOf(Byte)-1] of Byte;
-  {$endif}
 
   PString = ^AnsiString;
 

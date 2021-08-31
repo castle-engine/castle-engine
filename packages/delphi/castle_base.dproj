@@ -3,7 +3,7 @@
         <ProjectGuid>{9BE47FE5-918F-4C24-8258-96D0C3BFAB48}</ProjectGuid>
         <MainSource>castle_base.dpk</MainSource>
         <ProjectVersion>19.2</ProjectVersion>
-        <FrameworkType>None</FrameworkType>
+        <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
@@ -79,7 +79,7 @@
         <DCC_K>false</DCC_K>
         <GenDll>true</GenDll>
         <GenPackage>true</GenPackage>
-        <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
+        <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <DCC_CBuilderOutput>All</DCC_CBuilderOutput>
         <SanitizedProjectName>castle_base</SanitizedProjectName>
         <DCC_UnitSearchPath>..\..\src\base\windows;..\..\src\base;..\..\src\files;..\..\src\compatibility\delphi-only;..\..\src\common_includes;..\..\src\base\opengl;..\..\src\images\opengl\glsl\generated-pascal;..\..\src\images\opengl;..\..\src\ui;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
@@ -193,6 +193,15 @@
         <DCCReference Include="..\..\src\files\castlexmlutils.pas"/>
         <DCCReference Include="..\..\src\files\castlexmlconfig.pas"/>
         <DCCReference Include="..\..\src\ui\castlekeysmouse.pas"/>
+        <DCCReference Include="..\..\src\ui\opengl\castleuicontrols.pas"/>
+        <DCCReference Include="..\..\src\fonts\opengl\castlefonts.pas"/>
+        <DCCReference Include="..\..\src\fonts\castletexturefontdata.pas"/>
+        <DCCReference Include="..\..\src\fonts\castleinternalfreetype.pas"/>
+        <DCCReference Include="..\..\src\fonts\castleinternalfreetypeh.pas"/>
+        <DCCReference Include="..\..\src\fonts\castleinternalftfont.pas"/>
+        <DCCReference Include="..\..\src\fonts\opengl\castleinternalrichtext.pas"/>
+        <DCCReference Include="..\..\src\ui\windows\castleinternaltdxinput_tlb.pas"/>
+        <DCCReference Include="..\..\src\ui\opengl\castleinternalsettings.pas"/>
         <None Include="..\..\src\base\windows\castleutils_os_specific_windows.inc"/>
         <None Include="..\..\src\base\castleutils_math.inc"/>
         <None Include="..\..\src\base\castleutils_delphi_compatibility.inc"/>

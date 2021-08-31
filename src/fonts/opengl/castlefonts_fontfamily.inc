@@ -51,9 +51,9 @@ type
       Does what it can to fallback on Regular font
       (e.g. when you request ABold = AItalic = @true and BoldItalic is @nil)
       but returns @nil if even Regular font is @nil. }
-    function SubFont(const ABold, AItalic: boolean): TCastleAbstractFont;
-    function SubFont: TCastleAbstractFont;
-  strict protected
+    function SubFont(const ABold, AItalic: boolean): TCastleAbstractFont; overload;
+    function SubFont: TCastleAbstractFont; overload;
+  {$ifdef FPC}strict{$endif} protected
     procedure GLContextClose; override;
     procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Single); override;
   protected
@@ -79,10 +79,12 @@ type
     { Should we customize the outline of the underlying font. }
     property CustomizeOutline: boolean read FCustomizeOutline write FCustomizeOutline default false;
 
+    {$ifdef FPC}
     property RegularFont: TCastleAbstractFont read FRegular write SetRegular; deprecated 'use Regular';
     property BoldFont: TCastleAbstractFont read FBold write SetBold; deprecated 'use Bold';
     property ItalicFont: TCastleAbstractFont read FItalic write SetItalic; deprecated 'use Italic';
     property BoldItalicFont: TCastleAbstractFont read FBoldItalic write SetBoldItalic; deprecated 'use BoldItalic';
+    {$endif FPC}
   published
     property Regular: TCastleAbstractFont read FRegular write SetRegular;
     property Bold: TCastleAbstractFont read FBold write SetBold;
@@ -113,12 +115,13 @@ end;
 
 function TCastleFontFamily.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'Regular', 'Bold', 'Italic', 'BoldItalic':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'Regular') or
+     (PropertyName = 'Bold') or
+     (PropertyName = 'Italic') or
+     (PropertyName = 'BoldItalic') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TCastleFontFamily.SetRegular(const Value: TCastleAbstractFont);
@@ -127,13 +130,13 @@ begin
   begin
     if FRegular <> nil then
     begin
-      FRegular.RemoveFontSizeChangeNotification(@SubFontFontSizeChange);
+      FRegular.RemoveFontSizeChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}SubFontFontSizeChange);
       FRegular.RemoveFreeNotification(Self);
     end;
     FRegular := Value;
     if FRegular <> nil then
     begin
-      FRegular.AddFontSizeChangeNotification(@SubFontFontSizeChange);
+      FRegular.AddFontSizeChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}SubFontFontSizeChange);
       FRegular.FreeNotification(Self);
     end;
   end;
@@ -145,13 +148,13 @@ begin
   begin
     if FBold <> nil then
     begin
-      FBold.RemoveFontSizeChangeNotification(@SubFontFontSizeChange);
+      FBold.RemoveFontSizeChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}SubFontFontSizeChange);
       FBold.RemoveFreeNotification(Self);
     end;
     FBold := Value;
     if FBold <> nil then
     begin
-      FBold.AddFontSizeChangeNotification(@SubFontFontSizeChange);
+      FBold.AddFontSizeChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}SubFontFontSizeChange);
       FBold.FreeNotification(Self);
     end;
   end;
@@ -163,13 +166,13 @@ begin
   begin
     if FItalic <> nil then
     begin
-      FItalic.RemoveFontSizeChangeNotification(@SubFontFontSizeChange);
+      FItalic.RemoveFontSizeChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}SubFontFontSizeChange);
       FItalic.RemoveFreeNotification(Self);
     end;
     FItalic := Value;
     if FItalic <> nil then
     begin
-      FItalic.AddFontSizeChangeNotification(@SubFontFontSizeChange);
+      FItalic.AddFontSizeChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}SubFontFontSizeChange);
       FItalic.FreeNotification(Self);
     end;
   end;
@@ -181,13 +184,13 @@ begin
   begin
     if FBoldItalic <> nil then
     begin
-      FBoldItalic.RemoveFontSizeChangeNotification(@SubFontFontSizeChange);
+      FBoldItalic.RemoveFontSizeChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}SubFontFontSizeChange);
       FBoldItalic.RemoveFreeNotification(Self);
     end;
     FBoldItalic := Value;
     if FBoldItalic <> nil then
     begin
-      FBoldItalic.AddFontSizeChangeNotification(@SubFontFontSizeChange);
+      FBoldItalic.AddFontSizeChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}SubFontFontSizeChange);
       FBoldItalic.FreeNotification(Self);
     end;
   end;

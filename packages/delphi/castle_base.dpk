@@ -63,6 +63,15 @@ contains
   castlevideos in '..\..\src\images\castlevideos.pas',
   castlexmlutils in '..\..\src\files\castlexmlutils.pas',
   castlexmlconfig in '..\..\src\files\castlexmlconfig.pas',
-  castlekeysmouse in '..\..\src\ui\castlekeysmouse.pas';
+  castlekeysmouse in '..\..\src\ui\castlekeysmouse.pas',
+  castleuicontrols in '..\..\src\ui\opengl\castleuicontrols.pas',
+  castlefonts in '..\..\src\fonts\opengl\castlefonts.pas',
+  castletexturefontdata in '..\..\src\fonts\castletexturefontdata.pas',
+  castleinternalfreetype in '..\..\src\fonts\castleinternalfreetype.pas',
+  castleinternalfreetypeh in '..\..\src\fonts\castleinternalfreetypeh.pas',
+  castleinternalftfont in '..\..\src\fonts\castleinternalftfont.pas',
+  castleinternalrichtext in '..\..\src\fonts\opengl\castleinternalrichtext.pas',
+  castleinternaltdxinput_tlb in '..\..\src\ui\windows\castleinternaltdxinput_tlb.pas',
+  castleinternalsettings in '..\..\src\ui\opengl\castleinternalsettings.pas';
 
 end.

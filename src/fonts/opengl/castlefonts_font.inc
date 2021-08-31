@@ -56,17 +56,17 @@ type
     const
       DefaultOptimalSize = 20;
 
-    constructor Create(AOwner: TComponent); override;
+    constructor Create(AOwner: TComponent); overload; override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
-    function FontLoaded: Boolean; override;
+    function FontLoaded: Boolean; overload; override;
 
     constructor Create(const URL: String;
       const ASize: Cardinal; const AnAntiAliased: Boolean;
-      const ACharacters: TUnicodeCharList = nil); reintroduce; deprecated 'use Create(Owner: TComponent), then Load';
+      const ACharacters: TUnicodeCharList = nil); reintroduce; overload; deprecated 'use Create(Owner: TComponent), then Load';
     constructor Create(const URL: String;
       const ASize: Cardinal; const AnAntiAliased: Boolean;
-      const ACharacters: TSetOfChars); deprecated 'use Create(Owner: TComponent), then Load';
+      const ACharacters: TSetOfChars); overload; deprecated 'use Create(Owner: TComponent), then Load';
 
     { Load by reading a FreeType font file, like ttf.
 
@@ -80,7 +80,7 @@ type
     procedure Load(const URL: String;
       const ASize: Cardinal; const AnAntiAliased: Boolean;
       const ACharacters: TUnicodeCharList = nil;
-      const AdjustProperties: Boolean = true); deprecated 'assign properties to load font: OptimalSize, LoadCharacters, AntiAliased, URL';
+      const AdjustProperties: Boolean = true); overload; deprecated 'assign properties to load font: OptimalSize, LoadCharacters, AntiAliased, URL';
 
     { Load from a ready TTextureFontData instance.
       @param(Data TTextureFontData instance containing loaded image
@@ -96,7 +96,7 @@ type
         (and the rest at defaults) when Data = nil.) }
     procedure Load(const Data: TTextureFontData;
       const OwnsData: Boolean = false;
-      const AdjustProperties: Boolean = true);
+      const AdjustProperties: Boolean = true); overload;
 
     procedure PrepareResources; override;
     procedure Print(const X, Y: Single; const Color: TCastleColor;
@@ -106,8 +106,10 @@ type
     function TextHeightBase(const S: string): Single; override;
     function TextMove(const S: string): TVector2; override;
 
+    {$ifdef FPC}
     { Underlying font data. }
     property FontData: TTextureFontData read FFont; deprecated 'you should not need to use this directly';
+    {$endif}
 
     { Scale applied to the rendered font, compared to @link(FontData).Size.
       Changing this is equivalent to changing the Size property. }
@@ -187,7 +189,7 @@ end;
 
 procedure TCastleFont.Load(const URL: String;
   const ASize: Cardinal; const AnAntiAliased: Boolean;
-  const ACharacters: TUnicodeCharList;
+  const ACharacters: TUnicodeCharList = nil;
   const AdjustProperties: Boolean = true);
 var
   NewFontData: TTextureFontData;
@@ -222,7 +224,7 @@ begin
   finally FreeAndNil(Chars) end;
 end;
 
-procedure TCastleFont.Load(const Data: TTextureFontData; const OwnsData: Boolean;
+procedure TCastleFont.Load(const Data: TTextureFontData; const OwnsData: Boolean = false;
   const AdjustProperties: Boolean = true);
 begin
   GLContextClose;
@@ -259,12 +261,14 @@ end;
 
 function TCastleFont.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'URL', 'OptimalSize', 'AntiAliased', 'LoadCharacters', 'LoadBasicCharacters':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'URL') or
+     (PropertyName = 'OptimalSize') or
+     (PropertyName = 'AntiAliased') or
+     (PropertyName = 'LoadCharacters') or
+     (PropertyName = 'LoadBasicCharacters') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 function TCastleFont.GetScale: Single;
@@ -353,13 +357,13 @@ var
         the "A" in "Animations" button in view3dscene gets weird artifact. }
       {.$define EXTRA_GLYPH_SPACE}
 
-      ScreenRect := GlyphsScreenRects.Ptr(GlyphsToRender);
+      ScreenRect := PFloatRectangle(GlyphsScreenRects.Ptr(GlyphsToRender));
       ScreenRect^.Left   := ScreenX - (G.X {$ifdef EXTRA_GLYPH_SPACE} + 0.5 {$endif}) * Scale + OutlineMoveX * Outline;
       ScreenRect^.Bottom := ScreenY - (G.Y {$ifdef EXTRA_GLYPH_SPACE} + 0.5 {$endif}) * Scale + OutlineMoveY * Outline;
       ScreenRect^.Width  := (G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif}) * Scale;
       ScreenRect^.Height := (G.Height {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif}) * Scale;
 
-      ImageRect := GlyphsImageRects.Ptr(GlyphsToRender);
+      ImageRect := PFloatRectangle(GlyphsImageRects.Ptr(GlyphsToRender));
       ImageRect^.Left   := G.ImageX {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif};
       ImageRect^.Bottom := G.ImageY {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif};
       ImageRect^.Width  := G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif};
@@ -371,8 +375,15 @@ var
 
 var
   C: TUnicodeChar;
+  {$ifdef FPC}
   TextPtr: PChar;
-  CharLen, GlyphsPerChar: Integer;
+  CharLen: Integer;
+  {$else}
+  TextIndex: Integer;
+  NextTextIndex: Integer;
+  TextLength: Integer;
+  {$endif}
+  GlyphsPerChar: Integer;
 begin
   if FFont = nil then
     Exit; // font not loaded
@@ -411,11 +422,22 @@ begin
     if TargetImage <> nil then
       FFont.Image.ColorWhenTreatedAsAlpha := Vector3Byte(OutlineColor.XYZ); // ignore OutlineColor[3] for now
 
+    {$ifdef FPC}
     TextPtr := PChar(S);
     C := UTF8CharacterToUnicode(TextPtr, CharLen);
     while (C > 0) and (CharLen > 0) do
+    {$else}
+    TextIndex := 1;
+    TextLength := Length(S);
+    while (TextIndex <= TextLength) do
+    {$endif}
     begin
+      {$ifdef FPC}
       Inc(TextPtr, CharLen);
+      {$else}
+      C := GetUTF32Char(S, TextIndex, NextTextIndex);
+      TextIndex := NextTextIndex;
+      {$endif}
 
       G := FFont.Glyph(C);
       if G <> nil then
@@ -435,11 +457,13 @@ begin
             GlyphDraw(2, 1);
           end;
         end;
-        ScreenX += G.AdvanceX * Scale + Outline * 2;
-        ScreenY += G.AdvanceY * Scale;
+        ScreenX := ScreenX + G.AdvanceX * Scale + Outline * 2;
+        ScreenY := ScreenY + G.AdvanceY * Scale;
       end;
 
+      {$ifdef FPC}
       C := UTF8CharacterToUnicode(TextPtr, CharLen);
+      {$endif}
     end;
 
     if TargetImage = nil then
@@ -459,11 +483,22 @@ begin
   if TargetImage <> nil then
     FFont.Image.ColorWhenTreatedAsAlpha := Vector3Byte(Color.XYZ); // ignore Color[3] for now
 
+  {$ifdef FPC}
   TextPtr := PChar(S);
   C := UTF8CharacterToUnicode(TextPtr, CharLen);
   while (C > 0) and (CharLen > 0) do
+  {$else}
+  TextIndex := 1;
+  TextLength := Length(S);
+  while (TextIndex <= TextLength) do
+  {$endif}
   begin
+    {$ifdef FPC}
     Inc(TextPtr, CharLen);
+    {$else}
+    C := GetUTF32Char(S, TextIndex, NextTextIndex);
+    TextIndex := NextTextIndex;
+    {$endif}
 
     G := FFont.Glyph(C);
     if G <> nil then
@@ -473,11 +508,13 @@ begin
           GlyphDraw(1, 1)
         else
           GlyphDraw(0, 0);
-      ScreenX += G.AdvanceX * Scale + Outline * 2;
-      ScreenY += G.AdvanceY * Scale;
+      ScreenX := ScreenX + G.AdvanceX * Scale + Outline * 2;
+      ScreenY := ScreenY + G.AdvanceY * Scale;
     end;
 
+    {$ifdef FPC}
     C := UTF8CharacterToUnicode(TextPtr, CharLen);
+    {$endif}
   end;
 
   if TargetImage = nil then
@@ -495,7 +532,7 @@ begin
     Exit(0); // font not loaded
   Result := FFont.TextWidth(S) * Scale;
   if Outline <> 0 then
-    Result += Outline * 2 * UTF8Length(S);
+    Result := Result + Outline * 2 * {$ifdef FPC}UTF8Length{$else}GetUTF32Length{$endif}(S);
 end;
 
 function TCastleFont.TextHeight(const S: string): Single;
@@ -522,7 +559,7 @@ begin
   Result := Vector2(M.X, M.Y);
   Result.Data[0] := Result.Data[0] * Scale;
   if Outline <> 0 then
-    Result.Data[0] += Outline * 2 * UTF8Length(S);
+    Result.Data[0] := Result.Data[0] + Outline * 2 * {$ifdef FPC}UTF8Length{$else}GetUTF32Length{$endif}(S);
   Result.Data[1] := Result.Data[1] * Scale;
 end;
 

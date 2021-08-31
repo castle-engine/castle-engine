@@ -177,7 +177,7 @@ type
 
 implementation
 
-uses Classes, SysUtils, CastleInternalFtFont,
+uses Classes, SysUtils, Character, CastleInternalFtFont,
   CastleLog, CastleUtils, CastleURIUtils, CastleFilesUtils, CastleDownload;
 
 { TTextureFontData.TGlyphDictionary ------------------------------------------ }
@@ -223,8 +223,8 @@ var
     Bitmap: PFontBitmap;
   begin
     if AntiAliased then
-      Bitmaps := FontMgr.GetStringGray(FontId, UnicodeToUTF8(C), Size) else
-      Bitmaps := FontMgr.GetString(FontId, UnicodeToUTF8(C), Size);
+      Bitmaps := FontMgr.GetStringGray(FontId, {$ifdef FPC}UnicodeToUTF8(C){$else}ConvertFromUtf32(C){$endif}, Size) else
+      Bitmaps := FontMgr.GetString(FontId, {$ifdef FPC}UnicodeToUTF8(C){$else}ConvertFromUtf32(C){$endif}, Size);
 
     try
       if Bitmaps.Count = 0 then
@@ -302,8 +302,8 @@ var
 
   begin
     if AntiAliased then
-      Bitmaps := FontMgr.GetStringGray(FontId, UnicodeToUTF8(C), Size) else
-      Bitmaps := FontMgr.GetString(FontId, UnicodeToUTF8(C), Size);
+      Bitmaps := FontMgr.GetStringGray(FontId, {$ifdef FPC}UnicodeToUTF8(C){$else}ConvertFromUtf32(C){$endif}, Size) else
+      Bitmaps := FontMgr.GetString(FontId, {$ifdef FPC}UnicodeToUTF8(C){$else}ConvertFromUtf32(C){$endif}, Size);
     try
       Bitmap := Bitmaps.Bitmaps[0];
       if (Bitmap^.Pitch < 0) then
@@ -414,7 +414,7 @@ begin
         MaxVar(MaxHeight, GlyphInfo.Height);
       end else
         WritelnWarning('Font "%s" does not contain requested character %s (Unicode number %d)',
-          [URIDisplay(URL), UnicodeToUTF8(C), C]);
+          [URIDisplay(URL), {$ifdef FPC}UnicodeToUTF8(C){$else}ConvertFromUtf32(C){$endif}, C]);
     end;
 
     if GlyphsCount = 0 then
@@ -474,7 +474,7 @@ constructor TTextureFontData.CreateFromData(const AGlyphs: TGlyphDictionary;
   const ASize: Cardinal; const AnAntiAliased: Boolean);
 var
   C: TUnicodeChar;
-  GlyphPair: TGlyphDictionary.TDictionaryPair;
+  GlyphPair: {$ifdef FPC}TGlyphDictionary.TDictionaryPair{$else}TPair<TUnicodeChar, TGlyph>{$endif};
 begin
   inherited Create;
   FUrl := AImage.URL; // this is only for debug purposes now (to potentially display in debug, profiler etc.)
@@ -511,7 +511,7 @@ var
   C: Byte;
 begin
   FreeAndNil(FGlyphsExtra);
-  for C in Byte do
+  for C := Low(Byte) to High(Byte) do
     FreeAndNil(FGlyphsByte[C]);
   FreeAndNil(FImage);
   inherited;
@@ -558,7 +558,7 @@ begin
   begin
     Inc(FallbackGlyphWarnings);
     WritelnWarning('Font is missing glyph for character %s (Unicode number %d)',
-      [UnicodeToUTF8(C), C]);
+      [{$ifdef FPC}UnicodeToUTF8(C){$else}ConvertFromUtf32(C){$endif}, C]);
     if FallbackGlyphWarnings = MaxFallbackGlyphWarnings then
       WritelnWarning('No further warnings about missing glyphs will be reported for this font (to avoid slowing down the application by flooding the log with warnings)');
   end;
@@ -579,42 +579,78 @@ end;
 function TTextureFontData.TextWidth(const S: string): Integer;
 var
   C: TUnicodeChar;
+  {$ifdef FPC}
   TextPtr: PChar;
   CharLen: Integer;
+  {$else}
+  TextIndex: Integer;
+  NextTextIndex: Integer;
+  TextLength: Integer;
+  {$endif}
   G: TTextureFontData.TGlyph;
 begin
   Result := 0;
 
+  {$ifdef FPC}
   TextPtr := PChar(S);
   C := UTF8CharacterToUnicode(TextPtr, CharLen);
   while (C > 0) and (CharLen > 0) do
+  {$else}
+  TextIndex := 1;
+  TextLength := Length(S);
+  while (TextIndex <= TextLength) do
+  {$endif}
   begin
+    {$ifdef FPC}
     Inc(TextPtr, CharLen);
+    {$else}
+    C := GetUTF32Char(S, TextIndex, NextTextIndex);
+    TextIndex := NextTextIndex;
+    {$endif}
 
     G := Glyph(C);
     if G <> nil then
       Result := Result + G.AdvanceX;
 
+    {$ifdef FPC}
     C := UTF8CharacterToUnicode(TextPtr, CharLen);
+    {$endif}
   end;
 end;
 
 function TTextureFontData.TextHeight(const S: string): Integer;
 var
   C: TUnicodeChar;
+  {$ifdef FPC}
   TextPtr: PChar;
   CharLen: Integer;
+  {$else}
+  TextIndex: Integer;
+  NextTextIndex: Integer;
+  TextLength: Integer;
+  {$endif}
   MinY, MaxY, YOrigin: Integer;
   G: TTextureFontData.TGlyph;
 begin
   MinY := 0;
   MaxY := 0;
 
+  {$ifdef FPC}
   TextPtr := PChar(S);
   C := UTF8CharacterToUnicode(TextPtr, CharLen);
   while (C > 0) and (CharLen > 0) do
+  {$else}
+  TextIndex := 1;
+  TextLength := Length(S);
+  while (TextIndex <= TextLength) do
+  {$endif}
   begin
+    {$ifdef FPC}
     Inc(TextPtr, CharLen);
+    {$else}
+    C := GetUTF32Char(S, TextIndex, NextTextIndex);
+    TextIndex := NextTextIndex;
+    {$endif}
 
     G := Glyph(C);
     if G <> nil then
@@ -624,7 +660,9 @@ begin
       MaxVar(MaxY, G.Height - YOrigin);
     end;
 
+    {$ifdef FPC}
     C := UTF8CharacterToUnicode(TextPtr, CharLen);
+    {$endif}
   end;
   Result := MaxY - MinY;
 end;
@@ -632,17 +670,34 @@ end;
 function TTextureFontData.TextMove(const S: string): TVector2Integer;
 var
   C: TUnicodeChar;
+  {$ifdef FPC}
   TextPtr: PChar;
   CharLen: Integer;
+  {$else}
+  TextIndex: Integer;
+  NextTextIndex: Integer;
+  TextLength: Integer;
+  {$endif}
   G: TTextureFontData.TGlyph;
 begin
   Result := TVector2Integer.Zero;
 
+  {$ifdef FPC}
   TextPtr := PChar(S);
   C := UTF8CharacterToUnicode(TextPtr, CharLen);
   while (C > 0) and (CharLen > 0) do
+  {$else}
+  TextIndex := 1;
+  TextLength := Length(S);
+  while (TextIndex <= TextLength) do
+  {$endif}
   begin
+    {$ifdef FPC}
     Inc(TextPtr, CharLen);
+    {$else}
+    C := GetUTF32Char(S, TextIndex, NextTextIndex);
+    TextIndex := NextTextIndex;
+    {$endif}
 
     G := Glyph(C);
     if G <> nil then
@@ -651,32 +706,53 @@ begin
       Result.Data[1] := Result.Data[1] + G.AdvanceY;
     end;
 
+    {$ifdef FPC}
     C := UTF8CharacterToUnicode(TextPtr, CharLen);
+    {$endif}
   end;
 end;
 
 function TTextureFontData.TextHeightBase(const S: string): Integer;
 var
   C: TUnicodeChar;
+  {$ifdef FPC}
   TextPtr: PChar;
   CharLen: Integer;
+  {$else}
+  TextIndex: Integer;
+  NextTextIndex: Integer;
+  TextLength: Integer;
+  {$endif}
   G: TTextureFontData.TGlyph;
 begin
   Result := 0;
   { This is just like TextHeight implementation, except we only
     calculate (as Result) the MaxY value (assuming that MinY is zero). }
 
+  {$ifdef FPC}
   TextPtr := PChar(S);
   C := UTF8CharacterToUnicode(TextPtr, CharLen);
   while (C > 0) and (CharLen > 0) do
+  {$else}
+  TextIndex := 1;
+  TextLength := Length(S);
+  while (TextIndex <= TextLength) do
+  {$endif}
   begin
+    {$ifdef FPC}
     Inc(TextPtr, CharLen);
+    {$else}
+    C := GetUTF32Char(S, TextIndex, NextTextIndex);
+    TextIndex := NextTextIndex;
+    {$endif}
 
     G := Glyph(C);
     if G <> nil then
       MaxVar(Result, G.Height - G.Y);
 
+    {$ifdef FPC}
     C := UTF8CharacterToUnicode(TextPtr, CharLen);
+    {$endif}
   end;
 end;
 
