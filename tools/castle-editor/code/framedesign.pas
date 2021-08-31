@@ -2308,29 +2308,14 @@ var
   InspectorType: TInspectorType;
   Ed: TCollectionPropertyEditorForm;
   ListBox: TListBox;
-  Item: TCollectionItem = nil;
-  I, J: Integer;
 begin
   SelectionForOI := TPersistentSelectionList.Create;
   try
     ListBox := Sender as TListBox;
     Ed := ListBox.Parent as TCollectionPropertyEditorForm;
-    for I := 0 to ListBox.Count - 1 do
-    begin
-      for J := 0 to Ed.Collection.Count - 1 do
-      begin
-        if ListBox.Items[I] = (IntToStr(J) + ' - ' + Ed.Collection.Items[J].DisplayName) then
-        begin
-          Item := Ed.Collection.Items[J];
-          SelectionForOI.Add(Item);
-          for InspectorType in TInspectorType do
-            Inspector[InspectorType].Selection := SelectionForOI;
-          Break;
-        end;
-      end;
-      if Item <> nil then
-        Break;
-    end;
+    SelectionForOI.Add(Ed.Collection.Items[ListBox.ItemIndex]);
+    for InspectorType in TInspectorType do
+      Inspector[InspectorType].Selection := SelectionForOI;
   finally FreeAndNil(SelectionForOI) end;
 end;
 
