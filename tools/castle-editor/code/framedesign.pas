@@ -2370,7 +2370,7 @@ begin
     { This is a weird decision. It depends on sender's name to determine if
       it should move item up or move item down }
     FakeSender.Name := 'actMoveDown';
-    ((Sender as TToolButton).Parent.Parent as TCollectionPropertyEditorForm).actMoveUpDownExecute(Sender);
+    ((Sender as TToolButton).Parent.Parent as TCollectionPropertyEditorForm).actMoveUpDownExecute(FakeSender);
     RecordUndo('Move item down', ucLow);
   finally
     FreeAndNil(FakeSender);
