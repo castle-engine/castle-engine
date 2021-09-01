@@ -2346,15 +2346,35 @@ begin
 end;
 
 procedure TDesignFrame.PropertyGridCollectionItemMoveUp(Sender: TObject);
+var
+  FakeSender: TComponent;
 begin
-  ((Sender as TToolButton).Parent.Parent as TCollectionPropertyEditorForm).actMoveUpDownExecute(Sender);
-  RecordUndo('Move item up', ucLow);
+  FakeSender := TComponent.Create;
+  try
+    { This is a weird decision. It depends on sender's name to determine if
+      it should move item up or move item down }
+    FakeSender.Name := 'actMoveUp';
+    ((Sender as TToolButton).Parent.Parent as TCollectionPropertyEditorForm).actMoveUpDownExecute(FakeSender);
+    RecordUndo('Move item up', ucLow);
+  finally
+    FreeAndNil(FakeSender);
+  end;
 end;
 
 procedure TDesignFrame.PropertyGridCollectionItemMoveDown(Sender: TObject);
+var
+  FakeSender: TComponent;
 begin
-  (TButton(Sender).Parent.Parent as TCollectionPropertyEditorForm).actMoveUpDownExecute(Sender);
-  RecordUndo('Move item down', ucLow);
+  FakeSender := TComponent.Create;
+  try
+    { This is a weird decision. It depends on sender's name to determine if
+      it should move item up or move item down }
+    FakeSender.Name := 'actMoveDown';
+    ((Sender as TToolButton).Parent.Parent as TCollectionPropertyEditorForm).actMoveUpDownExecute(Sender);
+    RecordUndo('Move item down', ucLow);
+  finally
+    FreeAndNil(FakeSender);
+  end;
 end;
 
 procedure TDesignFrame.RecordUndo(const UndoComment: String;
