@@ -42,6 +42,8 @@ type
       Must be set by all commands that may use our macro system. }
     AndroidCPUS: TCPUS;
     IOSExportMethod: String; // set by DoPackage based on PackageFormat, otherwise ''
+    FLaunchImageStoryboardInitialized: Boolean;
+    FLaunchImageStoryboardWidth, FLaunchImageStoryboardHeight: Integer;
     procedure DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
     function PackageName(const OS: TOS; const CPU: TCPU; const PackageFormat: TPackageFormatNoDefault;
       const PackageNameIncludeVersion: Boolean): string;
@@ -161,6 +163,7 @@ type
     function IOSServices: TServiceList;
     function AssociateDocumentTypes: TAssociatedDocTypeList;
     function LocalizedAppNames: TLocalizedAppNameList;
+    function LaunchImageStoryboard: TLaunchImageStoryboard;
 
     function ReplaceMacros(const Source: string): string;
 
@@ -244,13 +247,15 @@ type
     { Is this filename created by some DoPackage or DoPackageSource command.
       FileName must be relative to project root directory. }
     function PackageOutput(const FileName: String): Boolean;
+
+    function IOSHasLaunchImageStoryboard: Boolean;
   end;
 
 implementation
 
 uses {$ifdef UNIX} BaseUnix, {$endif}
   StrUtils, DOM, Process,
-  CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils,
+  CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils, CastleImages,
   ToolResources, ToolAndroid, ToolWindowsRegistry,
   ToolTextureGeneration, ToolIOS, ToolAndroidMerging, ToolNintendoSwitch,
   ToolCommonUtils, ToolMacros, ToolCompilerInfo, ToolPackageCollectFiles;
@@ -1660,17 +1665,17 @@ end;
 
 procedure TCastleProject.AddMacrosIOS(const Macros: TStringStringMap);
 const
-  IOSScreenOrientation: array [TScreenOrientation] of string =
-  (#9#9'<string>UIInterfaceOrientationPortrait</string>' + NL +
-   #9#9'<string>UIInterfaceOrientationPortraitUpsideDown</string>' + NL +
-   #9#9'<string>UIInterfaceOrientationLandscapeLeft</string>' + NL +
-   #9#9'<string>UIInterfaceOrientationLandscapeRight</string>' + NL,
+  IOSScreenOrientation: array [TScreenOrientation] of string = (
+    #9#9'<string>UIInterfaceOrientationPortrait</string>' + NL +
+    #9#9'<string>UIInterfaceOrientationPortraitUpsideDown</string>' + NL +
+    #9#9'<string>UIInterfaceOrientationLandscapeLeft</string>' + NL +
+    #9#9'<string>UIInterfaceOrientationLandscapeRight</string>' + NL,
 
-   #9#9'<string>UIInterfaceOrientationLandscapeLeft</string>' + NL +
-   #9#9'<string>UIInterfaceOrientationLandscapeRight</string>' + NL,
+    #9#9'<string>UIInterfaceOrientationLandscapeLeft</string>' + NL +
+    #9#9'<string>UIInterfaceOrientationLandscapeRight</string>' + NL,
 
-   #9#9'<string>UIInterfaceOrientationPortrait</string>' + NL +
-   #9#9'<string>UIInterfaceOrientationPortraitUpsideDown</string>' + NL
+    #9#9'<string>UIInterfaceOrientationPortrait</string>' + NL +
+    #9#9'<string>UIInterfaceOrientationPortraitUpsideDown</string>' + NL
   );
 
   IOSCapabilityEnable =
@@ -1687,12 +1692,53 @@ const
       Result := QualifiedName;
   end;
 
+  procedure LaunchImageStoryboardInitialize;
+  var
+    Img: TCastleImage;
+  begin
+    if Manifest.LaunchImageStoryboard.Path <> '' then
+    begin
+      if ExtractFileExt(Manifest.LaunchImageStoryboard.Path) <> '.png' then
+        raise Exception.CreateFmt('Launch image storyboard must be a PNG file, but is "%s"', [
+          Manifest.LaunchImageStoryboard.Path
+        ]);
+      Img := LoadImage(Manifest.LaunchImageStoryboard.Path);
+      try
+        FLaunchImageStoryboardWidth := Img.Width;
+        FLaunchImageStoryboardHeight := Img.Height;
+      finally FreeAndNil(Img) end;
+    end;
+  end;
+
 var
-  P, IOSTargetAttributes, IOSRequiredDeviceCapabilities, IOSSystemCapabilities: string;
+  InfoPList, IOSTargetAttributes, IOSRequiredDeviceCapabilities, IOSSystemCapabilities: string;
   Service: TService;
   IOSVersion: TProjectVersion;
   GccPreprocessorDefinitions: String;
 begin
+  InfoPList := '';
+
+  // first time: initialize launch image storyboard
+  if not FLaunchImageStoryboardInitialized then
+  begin
+    FLaunchImageStoryboardInitialized := true;
+    LaunchImageStoryboardInitialize;
+  end;
+  // define macros related to launch image storyboard
+  if IOSHasLaunchImageStoryboard then
+  begin
+    Macros.Add('IOS_LAUNCH_IMAGE_WIDTH' , IntToStr(FLaunchImageStoryboardWidth));
+    Macros.Add('IOS_LAUNCH_IMAGE_HEIGHT', IntToStr(FLaunchImageStoryboardHeight));
+    Macros.Add('IOS_LAUNCH_IMAGE_DISPLAY_WIDTH' , IntToStr(Round(256 * Manifest.LaunchImageStoryboard.Scale)));
+    Macros.Add('IOS_LAUNCH_IMAGE_DISPLAY_HEIGHT', IntToStr(Round(256 * Manifest.LaunchImageStoryboard.Scale)));
+    Macros.Add('IOS_LAUNCH_BACKGROUND_RED'  , FloatToStrDot(Manifest.LaunchImageStoryboard.BackgroundColor[0]));
+    Macros.Add('IOS_LAUNCH_BACKGROUND_GREEN', FloatToStrDot(Manifest.LaunchImageStoryboard.BackgroundColor[1]));
+    Macros.Add('IOS_LAUNCH_BACKGROUND_BLUE' , FloatToStrDot(Manifest.LaunchImageStoryboard.BackgroundColor[2]));
+    Macros.Add('IOS_LAUNCH_BACKGROUND_ALPHA', FloatToStrDot(Manifest.LaunchImageStoryboard.BackgroundColor[3]));
+    InfoPList := SAppendPart(InfoPList, NL,
+      '<key>UILaunchStoryboardName</key> <string>Launch Screen</string>');
+  end;
+
   if Manifest.IOSOverrideVersion <> nil then
     IOSVersion := Manifest.IOSOverrideVersion
   else
@@ -1703,10 +1749,12 @@ begin
   Macros.Add('IOS_LIBRARY_BASE_NAME' , ExtractFileName(IOSLibraryFile));
   Macros.Add('IOS_STATUSBAR_HIDDEN', BoolToStr(FullscreenImmersive, 'YES', 'NO'));
   Macros.Add('IOS_SCREEN_ORIENTATION', IOSScreenOrientation[ScreenOrientation]);
-  P := AssociateDocumentTypes.ToPListSection(IOSQualifiedName, 'AppIcon');
+  InfoPList := SAppendPart(InfoPList, NL,
+    AssociateDocumentTypes.ToPListSection(IOSQualifiedName, 'AppIcon'));
   if not Manifest.UsesNonExemptEncryption then
-    P := SAppendPart(P, NL, '<key>ITSAppUsesNonExemptEncryption</key> <false/>');
-  Macros.Add('IOS_EXTRA_INFO_PLIST', P);
+    InfoPList := SAppendPart(InfoPList, NL,
+      '<key>ITSAppUsesNonExemptEncryption</key> <false/>');
+  Macros.Add('IOS_EXTRA_INFO_PLIST', InfoPList);
 
   IOSTargetAttributes := '';
   IOSRequiredDeviceCapabilities := '';
@@ -2087,6 +2135,13 @@ begin
   Result := false;
 end;
 
+function TCastleProject.IOSHasLaunchImageStoryboard: Boolean;
+begin
+  Result :=
+    (FLaunchImageStoryboardWidth <> 0) and
+    (FLaunchImageStoryboardHeight <> 0);
+end;
+
 { shortcut methods to acces Manifest.Xxx ------------------------------------- }
 
 function TCastleProject.Version: TProjectVersion;
@@ -2207,6 +2262,11 @@ end;
 function TCastleProject.LocalizedAppNames: TLocalizedAppNameList;
 begin
   Result := Manifest.LocalizedAppNames;
+end;
+
+function TCastleProject.LaunchImageStoryboard: TLaunchImageStoryboard;
+begin
+  Result := Manifest.LaunchImageStoryboard;
 end;
 
 end.
