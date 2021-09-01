@@ -2349,7 +2349,7 @@ procedure TDesignFrame.PropertyGridCollectionItemMoveUp(Sender: TObject);
 var
   FakeSender: TComponent;
 begin
-  FakeSender := TComponent.Create;
+  FakeSender := TComponent.Create(nil);
   try
     { This is a weird decision. It depends on sender's name to determine if
       it should move item up or move item down }
@@ -2365,7 +2365,7 @@ procedure TDesignFrame.PropertyGridCollectionItemMoveDown(Sender: TObject);
 var
   FakeSender: TComponent;
 begin
-  FakeSender := TComponent.Create;
+  FakeSender := TComponent.Create(nil);
   try
     { This is a weird decision. It depends on sender's name to determine if
       it should move item up or move item down }
