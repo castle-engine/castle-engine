@@ -267,7 +267,7 @@ function StringToScreenOrientation(const S: string): TScreenOrientation;
 
 implementation
 
-uses SysUtils,
+uses SysUtils, Math,
   CastleXMLUtils, CastleFilesUtils, CastleLog, CastleURIUtils,
   ToolCommonUtils;
 
@@ -486,6 +486,8 @@ begin
         FLaunchImageStoryboard.Path := Element.AttributeString('path');
         FLaunchImageStoryboard.Scale := Element.AttributeSingleDef('scale', 1.0);
         FLaunchImageStoryboard.BackgroundColor := Element.AttributeColorDef('background_color', Black);
+        if not SameValue(FLaunchImageStoryboard.BackgroundColor[3], 1) then
+          raise Exception.Create('Launch image storyboard background_color alpha must be 1.0, meaning of other values is not defined for now');
       end;
     end;
 
