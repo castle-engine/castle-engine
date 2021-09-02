@@ -232,6 +232,13 @@ type
       user to login to AppStore.
       On Android, this is done automatically at app start, and doesn't ask user anything. }
     procedure RefreshPurchases;
+
+    { For debug purposes, immediately set all @link(TInAppProduct.Owns) to @false.
+      This does @italic(not) reset any persistent knowledge about the ownership of the items
+      of course, it merely resets the temporary (in CGE) knowledge about what is owned.
+      If the purchases communicate with any store (Google Play on Android, AppStore on iOS)
+      then the purchases will be restored next time the @link(RefreshPurchases) are done. }
+    procedure DebugClearPurchases;
   published
     { Called when the prices (and other shop-related information)
       are known about the products. The information is stored inside
@@ -388,7 +395,8 @@ end;
 procedure TInAppPurchases.Purchase(const AProduct: TInAppProduct);
 begin
   if DebugMockupBuying then
-    Owns(AProduct) else
+    Owns(AProduct)
+  else
     Messaging.Send(['in-app-purchases-purchase', AProduct.Name]);
 end;
 
@@ -475,6 +483,14 @@ begin
   {$warnings off} // deliberately calling deprecated, to keep it working
   KnownCompletely;
   {$warnings on}
+end;
+
+procedure TInAppPurchases.DebugClearPurchases;
+var
+  I: Integer;
+begin
+  for I := 0 to List.Count - 1 do
+    List[I].FOwns := false;
 end;
 
 end.
