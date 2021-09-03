@@ -52,7 +52,7 @@
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
         <DCC_CBuilderOutput>All</DCC_CBuilderOutput>
         <SanitizedProjectName>castle_base</SanitizedProjectName>
-        <DCC_UnitSearchPath>..\..\src\base\windows;..\..\src\base;..\..\src\files;..\..\src\compatibility\delphi-only;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>..\..\src\base\windows;..\..\src\base;..\..\src\files;..\..\src\compatibility\delphi-only;..\..\src\common_includes;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <VerInfo_Locale>1045</VerInfo_Locale>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">

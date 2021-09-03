@@ -199,7 +199,7 @@ end;
 var
   Viewport: TMyViewport;
 
-procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
+procedure MenuClick(Container: TCastleContainer; Item: TMenuItem);
 begin
   case Item.IntData of
     10: ViewMode := vmNormal;
@@ -213,7 +213,7 @@ begin
   Window.Invalidate;
 end;
 
-procedure Update(Container: TUIContainer);
+procedure Update(Container: TCastleContainer);
 
   procedure ChangeLightPosition(Coord, Change: Integer);
   begin

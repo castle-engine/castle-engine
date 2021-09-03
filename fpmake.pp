@@ -216,6 +216,7 @@ begin
     P.Targets.AddUnit('castleinapppurchases.pas');
     P.Targets.AddUnit('castlephotoservice.pas');
     P.Targets.AddUnit('castleopendocument.pas');
+    P.Targets.AddUnit('castletenjin.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'services' + PathDelim + 'opengl');
     P.Targets.AddUnit('castlegiftiz.pas');
@@ -316,6 +317,7 @@ begin
 
     P.SourcePath.Add('src' + PathDelim + 'ui');
     P.Targets.AddUnit('castleinputs.pas');
+    P.Targets.AddUnit('castleinternalcameragestures.pas');
     P.Targets.AddUnit('castlekeysmouse.pas');
     P.Targets.AddUnit('castleinternalpk3dconnexion.pas');
     P.Targets.AddUnit('castlejoysticks.pas');

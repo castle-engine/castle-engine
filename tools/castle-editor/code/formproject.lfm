@@ -4,8 +4,9 @@ object ProjectForm: TProjectForm
   Top = 273
   Width = 914
   Caption = ' my-project | Castle Game Engine'
-  ClientHeight = 486
-  ClientWidth = 914
+  ClientHeight = 599
+  ClientWidth = 1142
+  DesignTimePPI = 120
   Menu = MainMenu1
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
@@ -15,12 +16,12 @@ object ProjectForm: TProjectForm
   OnShow = FormShow
   Position = poMainFormCenter
   ShowInTaskBar = stAlways
-  LCLVersion = '2.3.0.0'
+  LCLVersion = '2.0.10.0'
   object PageControlBottom: TPageControl
     Left = 0
-    Height = 179
-    Top = 307
-    Width = 914
+    Height = 224
+    Top = 375
+    Width = 1142
     ActivePage = TabFiles
     Align = alBottom
     ParentFont = False
@@ -28,20 +29,20 @@ object ProjectForm: TProjectForm
     TabOrder = 0
     object TabFiles: TTabSheet
       Caption = 'Files'
-      ClientHeight = 151
-      ClientWidth = 906
+      ClientHeight = 185
+      ClientWidth = 1132
       ParentFont = False
       object SplitterBetweenFiles: TSplitter
         Left = 0
-        Height = 151
+        Height = 185
         Top = 0
         Width = 5
       end
     end
     object TabOutput: TTabSheet
       Caption = 'Output'
-      ClientHeight = 151
-      ClientWidth = 906
+      ClientHeight = 185
+      ClientWidth = 1132
       ParentFont = False
       object ListOutput: TListBox
         Left = 0
@@ -59,8 +60,8 @@ object ProjectForm: TProjectForm
     end
     object TabWarnings: TTabSheet
       Caption = 'Warnings'
-      ClientHeight = 151
-      ClientWidth = 906
+      ClientHeight = 185
+      ClientWidth = 1132
       ParentFont = False
       TabVisible = False
       object ListWarnings: TListBox
@@ -182,21 +183,21 @@ object ProjectForm: TProjectForm
   object Splitter2: TSplitter
     Cursor = crVSplit
     Left = 0
-    Height = 5
-    Top = 302
-    Width = 914
+    Height = 6
+    Top = 369
+    Width = 1142
     Align = alBottom
     ResizeAnchor = akBottom
   end
   object PanelAboveTabs: TPanel
     Left = 0
-    Height = 302
+    Height = 369
     Top = 0
     Width = 914
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 302
-    ClientWidth = 914
+    ClientHeight = 369
+    ClientWidth = 1142
     ParentFont = False
     TabOrder = 2
     object LabelNoDesign: TLabel
@@ -206,10 +207,10 @@ object ProjectForm: TProjectForm
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Side = asrCenter
       AnchorSideBottom.Side = asrCenter
-      Left = 246
-      Height = 144
-      Top = 79
-      Width = 423
+      Left = 304
+      Height = 164
+      Top = 102
+      Width = 535
       Alignment = taCenter
       Caption = 'To visually design'#10'user interface or 3D/2D game world, '#10'open or create a new design'#10'using the "Design" menu.'
       Font.Height = -26
@@ -218,8 +219,8 @@ object ProjectForm: TProjectForm
     end
   end
   object MainMenu1: TMainMenu
-    Left = 35
-    Top = 18
+    Left = 44
+    Top = 24
     object MenuItemFile: TMenuItem
       Caption = '&Project'
       object MenuItemRestartRebuildEditor: TMenuItem
@@ -413,6 +414,12 @@ object ProjectForm: TProjectForm
         RadioItem = True
         OnClick = MenuItemModeReleaseClick
       end
+      object MenuItemSeparator12312131: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemPlatform: TMenuItem
+        Caption = 'Platform (To Build And Run)'
+      end
       object MenuItemSeparator2: TMenuItem
         Caption = '-'
       end
@@ -427,9 +434,19 @@ object ProjectForm: TProjectForm
         Caption = 'Package (Release to Users)'
         OnClick = MenuItemPackageClick
       end
+      object MenuItemPackageFormat: TMenuItem
+        Caption = 'Package Format'
+      end
       object MenuItemPackageSource: TMenuItem
         Caption = 'Package Source'
         OnClick = MenuItemPackageSourceClick
+      end
+      object MenuItemSeparator12312332424: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemInstall: TMenuItem
+        Caption = 'Install  (only for Android now)'
+        OnClick = MenuItemInstallClick
       end
       object MenuItemSeparator3: TMenuItem
         Caption = '-'

@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,12 +16,11 @@
 { Various castle-editor utilities. }
 unit EditorUtils;
 
-{$mode objfpc}{$H+}
-
 interface
 
 uses Classes, Types, Controls, StdCtrls, Process, Menus, Generics.Collections,
-  CastleStringUtils;
+  CastleStringUtils,
+  ToolArchitectures;
 
 type
   TMenuItemHelper = class helper for TMenuItem
@@ -29,7 +28,6 @@ type
     procedure SetEnabledVisible(const Value: Boolean);
   end;
 
-type
   TOutputKind = (
     okInfo,
     okImportantInfo,
@@ -126,6 +124,13 @@ type
     procedure Update;
     function Running: Boolean;
   end;
+
+  TPlatformInfo = class
+    Target: TTarget;
+    OS: TOS;
+    CPU: TCPU;
+  end;
+  TPlatformInfoList = specialize TObjectList<TPlatformInfo>;
 
 procedure ErrorBox(const Message: String);
 procedure WarningBox(const Message: String);
@@ -507,10 +512,50 @@ begin
   C := List.Canvas;
   OutputInfo := List.Items.Objects[Index] as TOutputInfo;
 
-  case OutputInfo.Kind of
-    okImportantInfo: C.Font.Bold := true;
-    okWarning      : C.Brush.Color := clYellow;
-    okError        : C.Brush.Color := clRed;
+  { (On Windows only)
+    For unknown reason (LCL bug? our bug?), sometimes OutputInfo is nil,
+    even though we clear the List.Items and we always add to it by
+    AddLine (List.Items.AddObject(S, OutputInfoPerKind[Kind])).
+
+    This can be reproduced in various situations if you hit F9:
+    1. after switching from Lazarus -> CGE editor
+    2. open CGE editor, some project, and use "Restart Editor (with custom components)"
+    3. open CGE editor, some project, open some design, hit F9
+
+    It is *not* 100% reproducible always. Case 1. and 2. was definitely
+    observed (by Michalis and others) but the crash can just disappear by itself
+    after you reproduce it a few times.
+    Case 3. proved to be most reliably reproducible.
+
+    Seen with
+    - Lazarus 2.0.10 + FPC 3.2.0
+    - Lazarus 2.0.12 + FPC 3.2.2
+    Only seen on Windows/x86_64 (though we make a workaround general).
+
+    The log confirms the problem:
+    - AddLine added
+        'Running "...\castle-engine.exe --mode=debug compile"'
+      with OutputInfo <> nil
+    - But then TOutputList.DrawItem is executed with
+        Index = 0
+        List.Items[Index] = 'Running "...\castle-engine.exe --mode=debug compile"'
+        OutputInfo = nil
+  }
+
+  if OutputInfo <> nil then
+  begin
+    case OutputInfo.Kind of
+      okImportantInfo: C.Font.Bold := true;
+      okWarning      : C.Brush.Color := clYellow;
+      okError        : C.Brush.Color := clRed;
+    end;
+  end else
+  begin
+    WritelnLog('Missing OutputInfo for the line "%s", known bug (probably in LCL) on Windows', [
+      List.Items[Index]
+    ]);
+    // assuming okImportantInfo, as the problem occurs with 1st line in list
+    C.Font.Bold := true;
   end;
 
   C.FillRect(ARect);

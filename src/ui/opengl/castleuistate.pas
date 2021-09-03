@@ -74,17 +74,17 @@ type
     This way state can:
 
     @unorderedList(
-      @item(React to @link(TInputListener.Press Press),
-        @link(TInputListener.Release Release) of keys or mouse buttons,)
+      @item(React to @link(TCastleUserInterface.Press Press),
+        @link(TCastleUserInterface.Release Release) of keys or mouse buttons,)
 
-      @item(do something continuos in @link(TInputListener.Update Update).)
+      @item(do something continuos in @link(TCastleUserInterface.Update Update).)
     )
 
     See the TCastleUserInterface class for a lot of useful methods that you can
     override in your state descendants to capture various events. }
   TUIState = class(TCastleUserInterface)
   private
-    FStartContainer: TUIContainer;
+    FStartContainer: TCastleContainer;
     FStartContainerObserver: TFreeNotificationObserver;
     FInterceptInput, FFreeWhenStopped: boolean;
     FFreeAtStop: TComponent;
@@ -121,13 +121,24 @@ type
     class function GetCurrentTop: TUIState; static;
     class function GetStateStack(const Index: Integer): TUIState; static;
   protected
+    { As the state knows about the container it will be put in (StateContainer),
+      the state size is always known.
+      It is known regardless if we are between Start / Stop,
+      regardless if the state is already added to some Container.Items.
+      This makes all other routines, like ParentRect, EffectiveRect, EffectiveWidth,
+      EffectiveHeight also work. }
+    function ContainerWidth: Cardinal; override;
+    function ContainerHeight: Cardinal; override;
+    function ContainerRect: TRectangle; override;
+    function ContainerSizeKnown: boolean; override;
+
     { Container on which state works. By default, this is
       @link(TCastleApplication.MainWindow Application.MainWindow)
       if you use CastleWindow or
       @link(TCastleControlBase.MainControl) if you use CastleControl.
       When the state is current, then @link(Container) property (from
       ancestor, see TCastleUserInterface.Container) is equal to this. }
-    function StateContainer: TUIContainer; virtual;
+    function StateContainer: TCastleContainer; virtual;
 
     { Position on @code(StateContainer.Controls) where we insert this state.
       By default, state is inserted as the front-most control, so position is equal
@@ -335,6 +346,7 @@ type
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
     procedure Render; override;
+    function UIScale: Single; override;
 
     { Load and show a user interface from a .castle-user-interface file,
       designed in Castle Game Engine Editor.
@@ -709,7 +721,7 @@ begin
   Assert(FStartContainer = nil);
 end;
 
-function TUIState.StateContainer: TUIContainer;
+function TUIState.StateContainer: TCastleContainer;
 begin
   if FStartContainer <> nil then
     { between Start and Stop, be sure to return the same thing
@@ -984,6 +996,34 @@ begin
   if FDesignLoaded = nil then
     ErrorDesignLoaded;
   Result := FDesignLoadedOwner.FindRequiredComponent(ComponentName);
+end;
+
+function TUIState.ContainerWidth: Cardinal;
+begin
+  Result := StateContainer.Width;
+end;
+
+function TUIState.ContainerHeight: Cardinal;
+begin
+  Result := StateContainer.Height;
+end;
+
+function TUIState.ContainerRect: TRectangle;
+begin
+  Result := StateContainer.Rect;
+end;
+
+function TUIState.ContainerSizeKnown: boolean;
+begin
+  Result := true;
+end;
+
+function TUIState.UIScale: Single;
+begin
+  if EnableUIScaling then
+    Result := StateContainer.UIScale
+  else
+    Result := 1.0;
 end;
 
 end.

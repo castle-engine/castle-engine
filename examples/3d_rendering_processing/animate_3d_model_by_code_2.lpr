@@ -38,7 +38,7 @@ var
   Time: TFloatTime;
   Transform: array [0 .. XCount - 1, 0 .. YCount - 1] of TTransformNode;
 
-procedure Update(Container: TUIContainer);
+procedure Update(Container: TCastleContainer);
 var
   I, J: Integer;
   T: TVector3;

@@ -101,18 +101,60 @@ procedure TSkeleton.Parse(const BaseUrl: string; const Json: TJSONData; const Sk
     end;
   end;
 
+  { Parse version from String.
+    Leaves unchanged the version components not found in file, or invalid.
+
+    Note: We don't want to ever fail at some weird version number.
+    So this is written even to tolerate weird things like "4-alpha.51a.beta9",
+    it will just return zeros. }
+  procedure ParseVersion(const S: String; var Major, Minor, Release: Integer);
+  var
+    SeekPos: Integer;
+    Token: String;
+  begin
+    SeekPos := 1;
+
+    Token := NextToken(S, SeekPos, ['.']);
+    if Token = '' then Exit;
+    if not TryStrToInt(Token, Major) then Exit;
+
+    Token := NextToken(S, SeekPos, ['.']);
+    if Token = '' then Exit;
+    if not TryStrToInt(Token, Minor) then Exit;
+
+    Token := NextToken(S, SeekPos, ['.']);
+    if Token = '' then Exit;
+    if not TryStrToInt(Token, Release) then Exit;
+  end;
+
 var
-  O: TJSONObject;
+  JsonSkeleton, O: TJSONObject;
   JsonArmatureArray: TJSONArray;
-  DragonBonesFormat: boolean;
+  DragonBonesFormat, NormalizeCurvesKeyValues: boolean;
+  VersionMajor, VersionMinor, VersionRelease: Integer;
 begin
   if not (Json is TJSONObject) then
     raise ESpineReadError.Create('Spine JSON skeleton: Expected JSONObject at root');
   O := TJSONObject(Json);
 
+  // calculate VersionMajor/Minor/Release and JsonSkeleton
+  VersionMajor := 0;
+  VersionMinor := 0;
+  VersionRelease := 0;
+  JsonSkeleton := O.Find('skeleton', jtObject) as TJSONObject;
+  if JsonSkeleton <> nil then
+  begin
+    ParseVersion(JsonSkeleton.Get('spine', '0.0.0'), VersionMajor, VersionMinor, VersionRelease);
+    // WritelnLog('Spine version parsed: %d.%d.%d', [VersionMajor, VersionMinor, VersionRelease]);
+  end;
+
+  // calculate NormalizeCurvesKeyValues
+  NormalizeCurvesKeyValues := VersionMajor >= 4;
+
+  // calculate DragonBonesFormat
   DragonBonesFormat :=
-    (O.Find('armature', jtArray) <> nil) and
-    (O.Find('skeleton', jtObject) = nil);
+    (JsonSkeleton = nil) and
+    (O.Find('armature', jtArray) <> nil);
 
   if DragonBonesFormat then
   begin
@@ -137,7 +179,7 @@ begin
   end;
   SkinLog;
 
-  Animations.Parse(O, Bones, Slots, CurrentSkin);
+  Animations.Parse(O, Bones, Slots, CurrentSkin, NormalizeCurvesKeyValues);
 
   // WritelnLog('Spine', Format('Skeleton read, bones: %d, slots: %d, skins: %d, animations: %d',
   //   [Bones.Count, Slots.Count, Skins.Count, Animations.Count]));

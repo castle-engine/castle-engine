@@ -129,7 +129,7 @@ end;
 var
   ChangeableMenu: TMenu;
 
-procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
+procedure MenuClick(Container: TCastleContainer; Item: TMenuItem);
 
   procedure ChangeChecked(Item: TMenuItemRadio);
   begin

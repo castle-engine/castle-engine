@@ -54,7 +54,9 @@ implementation
 
 uses SysUtils,
   CastleComponentSerialize, CastleImages, CastleRectangles, CastleStringUtils,
-  CastleUtils, CastleLog, CastleURIUtils;
+  CastleUtils, CastleLog, CastleURIUtils
+  { Use CastlePropEdits, and thus LCL and castle_components, only when part of the editor. }
+  {$ifdef CASTLE_DESIGN_MODE} , PropEdits, CastlePropEdits {$endif};
 
 constructor TImageGrid.Create(AOwner: TComponent);
 var
@@ -155,4 +157,7 @@ end;
 
 initialization
   RegisterSerializableComponent(TImageGrid, 'Image Grid');
+  {$ifdef CASTLE_DESIGN_MODE}
+  RegisterPropertyEditor(TypeInfo(AnsiString), TImageGrid, 'URL', TImageURLPropertyEditor);
+  {$endif}
 end.

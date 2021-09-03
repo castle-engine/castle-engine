@@ -30,21 +30,26 @@
     bbox than using LocalBoundingBox and transforming it.
 }
 
-{ Two optimizations:
+{ By default bounding boxes we calculate for meshes are larger than necessary
+  in some situations (e.g. when you have a shape that is rotated).
+  That it because we do 2 optimizations:
 
-  - Calculate bounding boxes of transformed shapes as
+  1. Calculate bounding boxes of transformed shapes as
     a "transformed(bounding box, for all vertexes)".
     This results in worse box than using "bounding boxm for all trasform(vertex)",
     but it avoids multiplying each vertex by a matrix.
 
-  - Calculate bounding boxes of indexed and non-indexed shapes the same way,
+  2. Calculate bounding boxes of indexed and non-indexed shapes the same way,
     by just iterating over coordinates, without paying attention to indexes.
     This results in worse box than looking at indexes
     (in case coordinates contain distant and unused vertexes) but is faster.
-}
-{$define FAST_MESH_BOUNDING_BOXES}
 
-{$ifndef FAST_MESH_BOUNDING_BOXES}
+  You can define CASTLE_PRECISE_MESH_BOUNDING_BOXES to restore
+  slower but more precise bounding boxes.
+}
+{.$define CASTLE_PRECISE_MESH_BOUNDING_BOXES}
+
+{$ifdef CASTLE_PRECISE_MESH_BOUNDING_BOXES}
 type
   TGI_BBox_Calculator = class
   public
@@ -79,7 +84,7 @@ begin
     0..VertIndices.Count-1 }
   Result := CoordIndex.Items.List^[IndexNum];
 end;
-{$endif not FAST_MESH_BOUNDING_BOXES}
+{$endif CASTLE_PRECISE_MESH_BOUNDING_BOXES}
 
 function Coords_BoundingBox(State: TX3DGraphTraverseState;
   Coord: TMFVec3f): TBox3D; forward;
@@ -89,7 +94,7 @@ function Coords_LocalBoundingBox(State: TX3DGraphTraverseState;
 function IndexedCoords_BoundingBox(Geometry: TAbstractGeometryNode;
   State: TX3DGraphTraverseState;
   Coord: TMFVec3f; CoordIndex: TMFLong): TBox3D;
-{$ifdef FAST_MESH_BOUNDING_BOXES}
+{$ifndef CASTLE_PRECISE_MESH_BOUNDING_BOXES}
 begin
   Result := Coords_BoundingBox(State, Coord);
 {$else}
@@ -116,7 +121,7 @@ end;
 function IndexedCoords_LocalBoundingBox(Geometry: TAbstractGeometryNode;
   State: TX3DGraphTraverseState;
   Coord: TMFVec3f; CoordIndex: TMFLong): TBox3D;
-{$ifdef FAST_MESH_BOUNDING_BOXES}
+{$ifndef CASTLE_PRECISE_MESH_BOUNDING_BOXES}
 begin
   Result := Coords_LocalBoundingBox(State, Coord);
 {$else}
@@ -141,7 +146,7 @@ end;
 
 function Coords_BoundingBox(State: TX3DGraphTraverseState;
   Coord: TMFVec3f): TBox3D;
-{$ifdef FAST_MESH_BOUNDING_BOXES}
+{$ifndef CASTLE_PRECISE_MESH_BOUNDING_BOXES}
 begin
   Result := Coords_LocalBoundingBox(State, Coord).Transform(
     State.Transformation.Transform);
@@ -172,11 +177,13 @@ function TAbstractGeometryNode.BoundingBox(State: TX3DGraphTraverseState;
 var
   C: TMFVec3f;
 begin
+  {$ifndef CASTLE_PRECISE_MESH_BOUNDING_BOXES}
   if (State.ShapeNode <> nil) and
      (not State.ShapeNode.BBox.IsEmpty) then
   begin
     Result := State.ShapeNode.BBox.Transform(State.Transformation.Transform); // use precalculated bounding box, fastest
   end else
+  {$endif}
   if InternalCoord(State, C) then
   begin
     if C <> nil then

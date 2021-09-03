@@ -18,6 +18,18 @@ You can download the precompiled version from https://castle-engine.itch.io/plat
 
 Using [Castle Game Engine](https://castle-engine.io/).
 
+## Keys, mouse, touch input
+
+You can use keys, mouse or touch (on mobile) input to fully control the game. On mobile, multi-touch works, so you can e.g. move left and jump at the same time.
+
+- Move left: "A" key, or "left arrow" key, or press mouse/finger in the left-bottom screen part.
+
+- Move right: "D" key, or "right arrow" key, or press mouse/finger in the right-bottom screen part.
+
+- Jump: "W" key, or "up arrow" key, or press mouse/finger in the upper screen part.
+
+- Shoot: "Space" key, or press right mouse button, or press at least 2 fingers on the touch device.
+
 ## Building
 
 Compile by:

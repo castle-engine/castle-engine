@@ -79,11 +79,11 @@ begin
   Assert('myfile.html' = URI.Document);
 
   // CGE data
-  Writeln('ApplicationData(''): ', ApplicationData(''));
+  Writeln('ApplicationData(''''): ', ApplicationData(''));
   // Go 2 parent dirs up
   ExePath := ParentPath(ParentPath(ParentPath(ParamStr(0), false), false), false);
   ApplicationDataOverride := FilenameToURISafe(ExePath + 'data/');
-  Writeln('ApplicationData('') after ApplicationDataOverride: ', ApplicationData(''));
+  Writeln('ApplicationData('''') after ApplicationDataOverride: ', ApplicationData(''));
   Writeln('castle-data:/image.png: ', ResolveCastleDataURL('castle-data:/image.png'));
 
   // CastleFilesUtils test

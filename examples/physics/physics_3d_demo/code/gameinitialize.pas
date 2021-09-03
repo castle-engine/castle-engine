@@ -154,7 +154,7 @@ begin
   Window.Controls.InsertFront(ButtonLevelComplex);
 end;
 
-procedure WindowRender(Container: TUIContainer);
+procedure WindowRender(Container: TCastleContainer);
 begin
   UIFont.PrintStrings(10, 10, Yellow, [
     Format('FPS: %s', [Container.Fps.ToString]),
@@ -165,7 +165,7 @@ begin
   ], false, 0);
 end;
 
-procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
+procedure WindowPress(Container: TCastleContainer; const Event: TInputPressRelease);
 
   procedure Spawn(const Template: TCastleScene; const Collider: TCollider;
     const RigidBody: TRigidBody);

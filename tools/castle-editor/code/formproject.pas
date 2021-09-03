@@ -28,7 +28,7 @@ uses
   CastlePropEdits, CastleDialogs, X3DNodes, CastleFindFiles,
   EditorUtils, FrameDesign, FrameViewFile, FormNewUnit, ToolManifest,
   FormDesignHierarchy, FormDesignProperties, FormDesignExplorer, FormDesign,
-  FormDesignFiles, FormDesignOutput, FormDesignWarnings;
+  FormDesignFiles, FormDesignOutput, FormDesignWarnings, ToolPackageFormat;
 
 const
   DockLayoutFileName = 'layout.dock-layout';
@@ -54,6 +54,11 @@ type
     MenuItemUIDesign: TMenuItem;
     MenuItem9: TMenuItem;
     MenuItemWindow: TMenuItem;
+    MenuItemPackageFormat: TMenuItem;
+    MenuItemSeparator12312332424: TMenuItem;
+    MenuItemInstall: TMenuItem;
+    MenuItemSeparator12312131: TMenuItem;
+    MenuItemPlatform: TMenuItem;
     MenuItemDesignNewNonVisualCustomRoot: TMenuItem;
     MenuItemDesignNewNonVisual: TMenuItem;
     MenuItemDesignAddNonVisual: TMenuItem;
@@ -197,6 +202,7 @@ type
     procedure ListOutputClick(Sender: TObject);
     procedure MenuItemDesignNewNonVisualClick(Sender: TObject);
     procedure MenuItemEnableDisableDockingClick(Sender: TObject);
+    procedure MenuItemInstallClick(Sender: TObject);
     procedure MenuItemNewDirectoryClick(Sender: TObject);
     procedure MenuItemRenameClick(Sender: TObject);
     procedure MenuItemShellTreeRefreshClick(Sender: TObject);
@@ -280,11 +286,15 @@ type
       { Non-zero prevents the ShellListViewSelectItem from updating
         preview window (ViewFileFrame). }
       ShellListViewUpdating: Cardinal;
+      PlatformsInfo: TPlatformInfoList;
+      CurrentPlatformInfo: Integer; //< Index to PlatformsInfo
+      CurrentPackageFormat: TPackageFormat;
     procedure BuildToolCall(const Commands: array of String;
-      const ExitOnSuccess: Boolean = false);
+      const RestartOnSuccess: Boolean = false);
     procedure BuildToolCallFinished(Sender: TObject);
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuItemDesignNewCustomRootClick(Sender: TObject);
+    procedure MenuItemPackageFormatChangeClick(Sender: TObject);
     procedure OpenPascal(const FileName: String);
     procedure RefreshFiles(const RefreshNecessary: TRefreshFiles);
     (*Runs custom code editor.
@@ -324,6 +334,8 @@ type
     procedure ViewFileFrameUpdate;
     procedure LoadDockLayout;
     procedure SaveDockLayout;
+    procedure MenuItemPlatformChangeClick(Sender: TObject);
+    procedure RestartEditor(Sender: TObject);
   public
     { Open a project, given an absolute path to CastleEngineManifest.xml }
     procedure OpenProject(const ManifestUrl: String);
@@ -345,7 +357,7 @@ uses TypInfo, LCLType,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
   CastleClassUtils,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
-  ToolCompilerInfo, ToolCommonUtils;
+  ToolCompilerInfo, ToolCommonUtils, ToolArchitectures, ToolProcessWait;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
 begin
@@ -381,7 +393,7 @@ end;
 
 procedure TProjectForm.MenuItemRestartRebuildEditorClick(Sender: TObject);
 begin
-  BuildToolCall(['editor'], true);
+  BuildToolCall(['editor-rebuild-if-needed'], true);
 end;
 
 procedure TProjectForm.MenuItemSaveAsDesignClick(Sender: TObject);
@@ -794,17 +806,109 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     ShellListView1.OnSelectItem := @ShellListViewSelectItem;
     ShellListView1.Hint := 'Double-click to open.' + NL +
       NL +
-      '- Scenes open in engine viewer (view3dscene).' + NL +
-      '- Images open in engine viewer (castle-view-image).' + NL +
-      '- Design opens in this editor window.' + NL +
-      '- Pascal files open in Lazarus.' + NL +
-      '- Other files open in external applications.';
+      '- Scenes and images open in engine viewers (view3dscene, castle-view-image).' + NL +
+      '- Designs open in this editor.' + NL +
+      '- Pascal files open in the code editor.' + NL +
+      '- Other files open in OS default applications.';
     ShellListView1.PopupMenu := ShellListPopupMenu;
     ShellListView1.SmallImages := ShellIcons;
     ShellListView1.DragMode := dmAutomatic;
 
     ShellTreeView1.ShellListView := ShellListView1;
     ShellListView1.ShellTreeView := ShellTreeView1;
+  end;
+
+  procedure BuildPlatformsMenu;
+
+    procedure AddPlatform(const Name: String; const Target: TTarget; const OS: TOS; const CPU: TCPU);
+    var
+      Mi: TMenuItem;
+      MiCaption: String;
+      P: TPlatformInfo;
+    begin
+      Mi := TMenuItem.Create(MenuItemPlatform);
+      MiCaption := Name;
+      if Target = targetCustom then
+        MiCaption += ' (' + OSToString(OS) + ' / ' + CPUToString(CPU) + ')';
+      Mi.Caption := MiCaption;
+      Mi.Tag := PlatformsInfo.Count;
+      Mi.OnClick := @MenuItemPlatformChangeClick;
+      Mi.GroupIndex := 200;
+      Mi.RadioItem := true;
+      Mi.ShowAlwaysCheckable := true;
+      Mi.Checked := Mi.Tag = CurrentPlatformInfo;
+      MenuItemPlatform.Add(Mi);
+
+      P := TPlatformInfo.Create;
+      P.Target := Target;
+      P.OS := OS;
+      P.CPU := CPU;
+      PlatformsInfo.Add(P);
+    end;
+
+    procedure AddPlatformSeparator;
+    var
+      Mi: TMenuItem;
+    begin
+      Mi := TMenuItem.Create(MenuItemPlatform);
+      Mi.Caption := '-';
+      MenuItemPlatform.Add(Mi);
+    end;
+
+  begin
+    PlatformsInfo := TPlatformInfoList.Create(true);
+    AddPlatform('Default', targetCustom, DefaultOS, DefaultCPU);
+    AddPlatformSeparator;
+    AddPlatform('Android (Arm 32-bit and 64-bit)', targetAndroid, { OS and CPU ignored } DefaultOS, DefaultCPU);
+    AddPlatformSeparator;
+    AddPlatform('iOS (Arm 32-bit and 64-bit)', targetIOS, { OS and CPU ignored } DefaultOS, DefaultCPU);
+    AddPlatformSeparator;
+    AddPlatform('Linux 32-bit', targetCustom, Linux, i386);
+    AddPlatform('Linux 64-bit', targetCustom, Linux, x86_64);
+    AddPlatform('Linux Arm 32-bit', targetCustom, Linux, Arm);
+    AddPlatform('Linux Arm 64-bit', targetCustom, Linux, Aarch64);
+    AddPlatformSeparator;
+    AddPlatform('Windows 32-bit', targetCustom, Win32, i386);
+    AddPlatform('Windows 64-bit', targetCustom, Win64, x86_64);
+    AddPlatformSeparator;
+    AddPlatform('macOS 64-bit', targetCustom, Darwin, i386);
+    AddPlatform('macOS Arm 64-bit', targetCustom, Darwin, Aarch64);
+    AddPlatformSeparator;
+    AddPlatform('FreeBSD 32-bit', targetCustom, FreeBSD, i386);
+    AddPlatform('FreeBSD 64-bit', targetCustom, FreeBSD, x86_64);
+  end;
+
+  procedure BuildPackageFormatsMenu;
+  const
+    PackageFormatCaptions: array [TPackageFormat] of string = (
+      'Default',
+      'Directory',
+      'Compressed zip',
+      'Compressed tar.gz',
+      'Android APK',
+      'Android App Bundle (AAB)',
+      'iOS Xcode Project',
+      'iOS Archive -> Development',
+      'iOS Archive -> ad-hoc',
+      'iOS Archive -> AppStore',
+      'Nintendo Switch Project'
+    );
+  var
+    Mi: TMenuItem;
+    P: TPackageFormat;
+  begin
+    for P in TPackageFormat do
+    begin
+      Mi := TMenuItem.Create(MenuItemPackageFormat);
+      Mi.Caption := PackageFormatCaptions[P];
+      Mi.Tag := Ord(P);
+      Mi.OnClick := @MenuItemPackageFormatChangeClick;
+      Mi.GroupIndex := 210;
+      Mi.RadioItem := true;
+      Mi.ShowAlwaysCheckable := true;
+      Mi.Checked := P = CurrentPackageFormat;
+      MenuItemPackageFormat.Add(Mi);
+    end;
   end;
 
 begin
@@ -823,6 +927,8 @@ begin
     MenuItemDesignAddNonVisual,
     @MenuItemAddComponentClick);
   CreateShellViews;
+  BuildPlatformsMenu;
+  BuildPackageFormatsMenu;
   ApplicationProperties.OnWarning.Add(@WarningNotification);
   if IsDockUIEnabled then
   begin
@@ -889,6 +995,7 @@ begin
     FreeAndNil(DesignOutputForm);
     FreeAndNil(DesignWarningsForm);
   end;
+  FreeAndNil(PlatformsInfo);
 end;
 
 procedure TProjectForm.FormHide(Sender: TObject);
@@ -904,20 +1011,23 @@ procedure TProjectForm.FormHide(Sender: TObject);
   end;
 
 begin
-  UserConfig.SetValue('ProjectForm_Saved', true);
-  UserConfig.SetValue('ProjectForm_Width', Width);
-  UserConfig.SetValue('ProjectForm_Height', Height);
-  UserConfig.SetValue('ProjectForm_Left', Left);
-  UserConfig.SetValue('ProjectForm_Top', Top);
-  UserConfig.SetValue('ProjectForm_WindowState', WindowStateToStr(WindowState));
-  UserConfig.SetValue('ProjectForm_PageControlBottom.Height', PageControlBottom.Height);
-  if Design <> nil then
+  if not IsDockUIEnabled then
   begin
-    UserConfig.SetValue('ProjectForm_DesignSaved', true);
-    UserConfig.SetValue('ProjectForm_Design.PanelRight.Width', Design.PanelRight.Width);
-    UserConfig.SetValue('ProjectForm_Design.PanelLeft.Width', Design.PanelLeft.Width);
+    UserConfig.SetValue('ProjectForm_Saved', true);
+    UserConfig.SetValue('ProjectForm_Width', Width);
+    UserConfig.SetValue('ProjectForm_Height', Height);
+    UserConfig.SetValue('ProjectForm_Left', Left);
+    UserConfig.SetValue('ProjectForm_Top', Top);
+    UserConfig.SetValue('ProjectForm_WindowState', WindowStateToStr(WindowState));
+    UserConfig.SetValue('ProjectForm_PageControlBottom.Height', PageControlBottom.Height);
+    if Design <> nil then
+    begin
+      UserConfig.SetValue('ProjectForm_DesignSaved', true);
+      UserConfig.SetValue('ProjectForm_Design.PanelRight.Width', Design.PanelRight.Width);
+      UserConfig.SetValue('ProjectForm_Design.PanelLeft.Width', Design.PanelLeft.Width);
+    end;
+    UserConfig.Save;
   end;
-  UserConfig.Save;
 end;
 
 procedure TProjectForm.FormShow(Sender: TObject);
@@ -934,25 +1044,46 @@ procedure TProjectForm.FormShow(Sender: TObject);
 
 var
   NewWidth, NewHeight, NewLeft, NewTop, NewControlHeight: Integer;
+  NewWindowState: TWindowState;
 begin
-  if UserConfig.GetValue('ProjectForm_Saved', false) then
+  if (not IsDockUIEnabled) and UserConfig.GetValue('ProjectForm_Saved', false) then
   begin
     NewWidth := UserConfig.GetValue('ProjectForm_Width', -MaxInt);
     NewHeight := UserConfig.GetValue('ProjectForm_Height', -MaxInt);
     NewLeft := UserConfig.GetValue('ProjectForm_Left', -MaxInt);
     NewTop := UserConfig.GetValue('ProjectForm_Top', -MaxInt);
     NewControlHeight := UserConfig.GetValue('ProjectForm_PageControlBottom.Height', -MaxInt);
-    WindowState := StrToWindowState(UserConfig.GetValue('ProjectForm_WindowState', 'wsNormal'));
-    if (NewWidth + NewLeft <= Screen.Width + 32) and (NewWidth > 128) and
-       (NewHeight + NewTop <= Screen.Height + 32) and (NewHeight > 128) and
-       (NewControlHeight < NewHeight) and (NewControlHeight >= 0) and
-       (NewLeft > -32) and (NewTop > -32) then
-    begin
-      Width := NewWidth;
-      Height := NewHeight;
-      Left := NewLeft;
-      Top := NewTop;
-      PageControlBottom.Height := NewControlHeight;
+    NewWindowState := StrToWindowState(UserConfig.GetValue('ProjectForm_WindowState', 'wsNormal'));
+
+    { Apply new values.
+      Note that we don't apply position/size values when NewWindowState <> wsMaximized,
+      as on Windows this causes form to flicker when it appears (initially with invalid sizes
+      inside a maximized form). }
+    case NewWindowState of
+      wsNormal:
+        begin
+          WindowState := NewWindowState;
+          if (NewWidth + NewLeft <= Screen.Width + 32) and (NewWidth > 128) and
+             (NewHeight + NewTop <= Screen.Height + 32) and (NewHeight > 128) and
+             (NewControlHeight < NewHeight) and (NewControlHeight >= 0) and
+             (NewLeft > -32) and (NewTop > -32) then
+          begin
+            Width := NewWidth;
+            Height := NewHeight;
+            Left := NewLeft;
+            Top := NewTop;
+            PageControlBottom.Height := NewControlHeight;
+          end;
+        end;
+      wsMaximized:
+        begin
+          WindowState := NewWindowState;
+          { We use NewControlHeight, just like with wsNormal, but with a different condition. }
+          if (NewControlHeight <= Screen.Height - 32) and (NewControlHeight >= 0) then
+          begin
+            PageControlBottom.Height := NewControlHeight;
+          end;
+        end;
     end;
   end;
 end;
@@ -975,6 +1106,11 @@ begin
   MessageDlg('', 'Please restart the editor in order for the changes to take effect.',
     mtInformation, [mbYes], 0);
   MenuItemEnableDisableDocking.Enabled := False;
+end;
+
+procedure TProjectForm.MenuItemInstallClick(Sender: TObject);
+begin
+  BuildToolCall(['install']);
 end;
 
 procedure TProjectForm.MenuItemNewDirectoryClick(Sender: TObject);
@@ -1142,7 +1278,10 @@ begin
   begin
     RunningApplication := true;
     SoundEngineSetVolume;
-    BuildToolCall(['compile', 'run']);
+    if PlatformsInfo[CurrentPlatformInfo].Target = targetAndroid then
+      BuildToolCall(['package', 'install', 'run'])
+    else
+      BuildToolCall(['compile', 'run']);
   end;
 end;
 
@@ -1682,9 +1821,46 @@ begin
 end;
 
 procedure TProjectForm.BuildToolCall(const Commands: array of String;
-  const ExitOnSuccess: Boolean);
+  const RestartOnSuccess: Boolean);
+
+  procedure AddPlatformParameters(const Params: TStrings; const PlatformInfo: TPlatformInfo);
+  begin
+    if (PlatformInfo.Target = targetCustom) and
+       (PlatformInfo.OS = DefaultOS) and
+       (PlatformInfo.CPU = DefaultCPU) then
+      // keep command-line simple, to be simpler for user; no point is adding extra parameters
+      Exit;
+
+    if PlatformInfo.Target <> targetCustom then
+    begin
+      Params.Add('--target=' + TargetToString(PlatformInfo.Target));
+    end else
+    begin
+      Params.Add('--os=' + OSToString(PlatformInfo.OS));
+      Params.Add('--cpu=' + CPUToString(PlatformInfo.CPU));
+    end;
+  end;
+
+  procedure AddModeParameters(const Params: TStrings);
+  var
+    ModeString: String;
+  begin
+    case BuildMode of
+      bmDebug  : ModeString := '--mode=debug';
+      bmRelease: ModeString := '--mode=release';
+      else raise EInternalError.Create('BuildMode?');
+    end;
+    Params.Add(ModeString);
+  end;
+
+  procedure AddPackageFormatParameters(const Params: TStrings; const Format: TPackageFormat);
+  begin
+    if Format <> pfDefault then
+      Params.Add('--package-format=' + PackageFormatToString(Format));
+  end;
+
 var
-  BuildToolExe, ModeString, Command: String;
+  BuildToolExe, Command: String;
   QueueItem: TAsynchronousProcessQueue.TQueueItem;
 begin
   if RunningProcess <> nil then
@@ -1693,14 +1869,8 @@ begin
   BuildToolExe := FindExeCastleTool('castle-engine');
   if BuildToolExe = '' then
   begin
-    ErrorBox('Cannot find build tool (castle-engine) on $PATH environment variable.');
+    ErrorBox('Cannot find build tool (castle-engine). Set the $CASTLE_ENGINE_PATH or $PATH environment variables or place all tools in CGE bin/ subdirectory.');
     Exit;
-  end;
-
-  case BuildMode of
-    bmDebug  : ModeString := '--mode=debug';
-    bmRelease: ModeString := '--mode=release';
-    else raise EInternalError.Create('BuildMode?');
   end;
 
   SetEnabledCommandRun(false);
@@ -1716,17 +1886,70 @@ begin
     QueueItem := TAsynchronousProcessQueue.TQueueItem.Create;
     QueueItem.ExeName := BuildToolExe;
     QueueItem.CurrentDirectory := ProjectPath;
-    QueueItem.Parameters.Add(ModeString);
     QueueItem.Parameters.Add(Command);
+    // add --mode=xxx parameter
+    if not (
+        (Command = 'package-source') or
+        (Command = 'clean') or
+        (Command = 'auto-generate-textures') or
+        (Command = 'auto-generate-clean') or
+        (Command = 'generate-program') or
+        (Command = 'editor') or
+        (Command = 'editor-rebuild-if-needed') or
+        (Command = 'editor-run')
+      ) then
+      AddModeParameters(QueueItem.Parameters);
+    // add --target, --os, --cpu parameters
+    if (Command = 'compile') or
+       (Command = 'run') or
+       (Command = 'package') or
+       (Command = 'install') then
+      AddPlatformParameters(QueueItem.Parameters, PlatformsInfo[CurrentPlatformInfo]);
+    // add --package-format
+    if (Command = 'package') or
+       (Command = 'install') then
+      AddPackageFormatParameters(QueueItem.Parameters, CurrentPackageFormat);
+    // editor always add --fast to package, as its more comfortable for normal development
+    if (Command = 'package') then
+      QueueItem.Parameters.Add('--fast');
     RunningProcess.Queue.Add(QueueItem);
   end;
 
-  if ExitOnSuccess then
-    RunningProcess.OnSuccessfullyFinishedAll := @MenuItemQuitClick
-  else
-    RunningProcess.OnFinished := @BuildToolCallFinished;
+  if RestartOnSuccess then
+    RunningProcess.OnSuccessfullyFinishedAll := @RestartEditor;
+  RunningProcess.OnFinished := @BuildToolCallFinished;
 
   RunningProcess.Start;
+end;
+
+procedure TProjectForm.RestartEditor(Sender: TObject);
+var
+  BuildToolExe: String;
+begin
+  if ProposeSaveDesign then
+  begin
+    { Run custom editor, and finish current process.
+      We use --wait-for-process-exit primarily because on Windows,
+      we need to "unlock" the exe, to be able to copy new exe over the old exe
+      (otherwise recompiling the custom editor could not just place
+      new editor at the same exe).
+      It is also sensible on all platforms, to make sure previous editor closes
+      stuf (e.g. config files) reliably. }
+    BuildToolExe := FindExeCastleTool('castle-engine');
+    if BuildToolExe = '' then
+    begin
+      ErrorBox('Cannot find build tool (castle-engine). Set the $CASTLE_ENGINE_PATH or $PATH environment variables or place all tools in CGE bin/ subdirectory.');
+      Exit;
+    end;
+
+    RunCommandNoWait(ProjectPath, BuildToolExe,
+      ['editor-run', '--gui-errors', '--wait-for-process-exit', IntToStr(CurrentProcessId)],
+      [rcNoConsole]);
+
+    { Once ProposeSaveDesign and RunCommandNoWait are both successful,
+      we want to terminate ASAP as user is waiting for new editor to run. }
+    Application.Terminate;
+  end;
 end;
 
 procedure TProjectForm.BuildToolCallFinished(Sender: TObject);
@@ -1734,6 +1957,7 @@ begin
   // bring back volume, in case MuteOnRun
   RunningApplication := false;
   SoundEngineSetVolume;
+  RefreshFiles(rfFilesInCurrentDir); // show new files created by "package"
 end;
 
 procedure TProjectForm.MenuItemAddComponentClick(Sender: TObject);
@@ -1763,6 +1987,7 @@ begin
   MenuItemClean.Enabled := AEnabled;
   MenuItemPackage.Enabled := AEnabled;
   MenuItemPackageSource.Enabled := AEnabled;
+  MenuItemInstall.Enabled := AEnabled;
   MenuItemAutoGenerateTextures.Enabled := AEnabled;
   MenuItemAutoGenerateClean.Enabled := AEnabled;
   MenuItemRestartRebuildEditor.Enabled := AEnabled;
@@ -1915,6 +2140,24 @@ begin
     if ShellListViewUpdating = 0 then
       ViewFileFrameUpdate;
   end;
+end;
+
+procedure TProjectForm.MenuItemPlatformChangeClick(Sender: TObject);
+var
+  Mi: TMenuItem;
+begin
+  Mi := Sender as TMenuItem;
+  CurrentPlatformInfo := Mi.Tag;
+  Mi.Checked := true;
+end;
+
+procedure TProjectForm.MenuItemPackageFormatChangeClick(Sender: TObject);
+var
+  Mi: TMenuItem;
+begin
+  Mi := Sender as TMenuItem;
+  CurrentPackageFormat := TPackageFormat(Mi.Tag);
+  Mi.Checked := true;
 end;
 
 initialization

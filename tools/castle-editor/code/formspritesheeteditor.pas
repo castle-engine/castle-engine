@@ -23,7 +23,7 @@ uses
   Classes, SysUtils, Generics.Collections, Forms, Controls, Graphics, Dialogs,
   ExtCtrls, ComCtrls, Buttons, ActnList, StdCtrls, Spin, Menus,
   CastleControl, CastleDialogs, CastleScene, CastleInternalSpriteSheet, CastleVectors,
-  CastleViewport,
+  CastleViewport, CastleCameras,
   DataModuleIcons;
 
 type
@@ -222,6 +222,7 @@ type
       FSpriteSheet: TCastleSpriteSheet;
       FPreviewScene: TCastleScene;
       FViewport: TCastleViewport;
+      FNavigation: TCastle2DNavigation;
       FWindowTitle: String;
       CurrentFrameIconSize: TVector2Integer; // current frame size in list view
       { Should we select added animation (not always desirable) }
@@ -845,12 +846,6 @@ begin
   SetAtlasError('');
   SetAtlasWarning('');
   NewSpriteSheet;
-
-  { adjust InitialDir values to make open/save dialogs natural }
-  OpenDialog.InitialDir := URIToFilenameSafe('castle-data:/');
-  SaveDialog.InitialDir := URIToFilenameSafe('castle-data:/');
-  CastleOpenImageDialog.InitialDir := URIToFilenameSafe('castle-data:/');
-  CastleImportAtlasDialog.InitialDir := URIToFilenameSafe('castle-data:/');
 end;
 
 procedure TSpriteSheetEditorForm.FormDestroy(Sender: TObject);
@@ -874,6 +869,18 @@ begin
     { Update actions state after FormShow - I think this is next GTK2 bug. }
     UpdateActions;
   {$endif}
+
+  { Adjust InitialDir values to make open/save dialogs natural, and clear URL.
+    Do this in FormShow, as one instance of TSpriteSheetEditorForm may exist across
+    many CGE projects being open. }
+  OpenDialog.InitialDir := URIToFilenameSafe('castle-data:/');
+  SaveDialog.InitialDir := URIToFilenameSafe('castle-data:/');
+  CastleOpenImageDialog.InitialDir := URIToFilenameSafe('castle-data:/');
+  CastleImportAtlasDialog.InitialDir := URIToFilenameSafe('castle-data:/');
+  OpenDialog.URL := '';
+  SaveDialog.URL := '';
+  CastleOpenImageDialog.URL := '';
+  CastleImportAtlasDialog.URL := '';
 end;
 
 procedure TSpriteSheetEditorForm.ListViewAnimationsDragDrop(Sender,
@@ -1289,15 +1296,16 @@ procedure TSpriteSheetEditorForm.CreatePreviewUIIfNeeded;
 begin
   if FPreviewScene = nil then
   begin
-    FViewport := TCastleViewport.Create(Application);
+    FNavigation := TCastle2DNavigation.Create(Self);
+
+    FViewport := TCastleViewport.Create(Self);
     FViewport.FullSize := true;
-    FViewport.AutoCamera := true;
-    FViewport.AutoNavigation := true;
+    FViewport.Navigation := FNavigation;
     FViewport.Setup2D;
     FViewport.Camera.Orthographic.Origin := Vector2(0.5, 0.5);
     CastleControlPreview.Controls.InsertFront(FViewport);
 
-    FPreviewScene := TCastleScene.Create(FViewport);
+    FPreviewScene := TCastleScene.Create(Self);
 
     FViewport.Items.Add(FPreviewScene);
     FViewport.Items.MainScene := FPreviewScene;
@@ -1338,6 +1346,7 @@ procedure TSpriteSheetEditorForm.UpdatePreview(
       FPreviewScene.Exists := true;
       FViewport.Camera.Orthographic.Width := Animation.Frame[0].FrameWidth +
         PreviewMargin * 2;
+      FViewport.AssignDefaultCamera; // reset camera
       FPreviewScene.PlayAnimation(Animation.Name, true, true);
     end;
   end;
@@ -1377,6 +1386,7 @@ begin
     FPreviewScene.Scale := Vector3(1.0, 1.0, 1.0);
     FPreviewScene.Load(FSpriteSheet.ToX3D, true);
     FViewport.Camera.Orthographic.Width := DefaultFrameIconSize + PreviewMargin * 2;
+    FViewport.AssignDefaultCamera; // reset camera
   except
     on E: Exception do
     begin
@@ -1447,7 +1457,8 @@ begin
 
   { Always set to the width of the first frame because we want to see the
     size difference }
-  FViewport.Camera.Orthographic.Width := Frame.Animation.Frame[0].FrameWidth
+  FViewport.Camera.Orthographic.Width := Frame.Animation.Frame[0].FrameWidth;
+  FViewport.AssignDefaultCamera; // reset camera
 end;
 
 procedure TSpriteSheetEditorForm.LockUpdatePreview;

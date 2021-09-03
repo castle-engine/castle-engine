@@ -57,7 +57,7 @@ var
   TransformBox3: TTransformNode;
   TransformBox4: TTransformNode;
 
-procedure Update(Container: TUIContainer);
+procedure Update(Container: TCastleContainer);
 begin
   Time += Container.Fps.SecondsPassed;
 

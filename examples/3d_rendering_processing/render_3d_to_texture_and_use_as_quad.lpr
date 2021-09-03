@@ -78,7 +78,7 @@ begin
     SourceScene := TCastleScene.Create(nil);
     SourceScene.Load(
       //'castle-data:/bridge_final.x3dv'
-      //'castle-data:/car.x3d'
+      //'castle-data:/car.gltf'
       'castle-data:/raptor_1.x3d'
     );
 

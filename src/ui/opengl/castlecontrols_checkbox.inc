@@ -88,8 +88,8 @@
       default DefaultCheckboxSize;
 
     { Font used for the caption.
-      When this is @nil then the @link(TUIContainer.DefaultFont) is used,
-      or (when @link(TUIContainer.DefaultFont) is also @nil) the global @link(UIFont). }
+      When this is @nil then the @link(TCastleContainer.DefaultFont) is used,
+      or (when @link(TCastleContainer.DefaultFont) is also @nil) the global @link(UIFont). }
     property CustomFont: TCastleAbstractFont
       read GetCustomFont write SetCustomFont;
 
@@ -243,7 +243,7 @@ begin
     FPressed := false;
     FImagePressedBackground.Exists := FPressed;
 
-    { Because of mouse capture mechanism in TUIContainer,
+    { Because of mouse capture mechanism in TCastleContainer,
       we receive Release notifications about all clicks that started
       within our rect, regardless where they finished.
 

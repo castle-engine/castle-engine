@@ -74,7 +74,7 @@ function WarmupCacheFormats: TWarmupCacheFormatList;
 { Load CastleSettings.xml ( https://castle-engine.io/manual_castle_settings.php )
   into a container.
   This also creates a TWarmupCache that is owned by the container. }
-procedure SettingsLoad(const Container: TUIContainer; const SettingsUrl: String);
+procedure SettingsLoad(const Container: TCastleContainer; const SettingsUrl: String);
 
 implementation
 
@@ -168,7 +168,7 @@ begin
   Result := FWarmupCacheFormats;
 end;
 
-procedure SettingsLoad(const Container: TUIContainer; const SettingsUrl: String);
+procedure SettingsLoad(const Container: TCastleContainer; const SettingsUrl: String);
 
   function UIScalingToString(const UIScaling: TUIScaling): String;
   begin

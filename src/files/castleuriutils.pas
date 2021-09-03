@@ -371,12 +371,94 @@ function ResolveCastleDataURL(const URL: String): String;
   If the URL does not point to a file in data, it is returned untouched. }
 function RelativeToCastleDataURL(const URL: String; out WasInsideData: Boolean): String;
 
+var
+  { On systems where filesystems are usually case-sensitive (Unix),
+    accept also 'castle-data:/xxx` URLs that have different case than the actual files.
+
+    @bold(This is not advised to be used in production applications.)
+    It is slow (searching for case-insensitive match at each subdirectory and filename).
+    But it is a quick way to run applications prepared for case-insensitive
+    systems (like Windows) on Unix. }
+  CastleDataIgnoreCase: Boolean = false;
+
 implementation
 
 uses SysUtils, URIParser,
   CastleUtils, CastleDataURI, CastleLog, CastleFilesUtils,
-  CastleInternalDirectoryInformation
+  CastleInternalDirectoryInformation, CastleFindFiles
   {$ifdef CASTLE_NINTENDO_SWITCH} , CastleInternalNxBase {$endif};
+
+{ Escape and Unescape --------------------------------------------------------
+  Copied from URIParser, as they are internal there.
+}
+
+function Unescape(const s: String): String;
+
+  function HexValue(c: Char): Integer;
+  begin
+    case c of
+      '0'..'9': Result := ord(c) - ord('0');
+      'A'..'F': Result := ord(c) - (ord('A') - 10);
+      'a'..'f': Result := ord(c) - (ord('a') - 10);
+    else
+      Result := 0;
+    end;
+  end;
+
+var
+  i, RealLength: Integer;
+  P: PChar;
+begin
+  SetLength(Result, Length(s));
+  i := 1;
+  P := PChar(Result);  { use PChar to prevent numerous calls to UniqueString }
+  RealLength := 0;
+  while i <= Length(s) do
+  begin
+    if s[i] = '%' then
+    begin
+      P[RealLength] := Chr(HexValue(s[i + 1]) shl 4 or HexValue(s[i + 2]));
+      Inc(i, 3);
+    end else
+    begin
+      P[RealLength] := s[i];
+      Inc(i);
+    end;
+    Inc(RealLength);
+  end;
+  SetLength(Result, RealLength);
+end;
+
+function Escape(const s: String; const Allowed: TSysCharSet): String;
+var
+  i, L: Integer;
+  P: PChar;
+begin
+  L := Length(s);
+  for i := 1 to Length(s) do
+    if not CharInSet(s[i], Allowed) then Inc(L,2);
+  if L = Length(s) then
+  begin
+    Result := s;
+    Exit;
+  end;
+
+  SetLength(Result, L);
+  P := @Result[1];
+  for i := 1 to Length(s) do
+  begin
+    if not CharInSet(s[i], Allowed) then
+    begin
+      P^ := '%'; Inc(P);
+      StrFmt(P, '%.2x', [ord(s[i])]); Inc(P);
+    end
+    else
+      P^ := s[i];
+    Inc(P);
+  end;
+end;
+
+{ other routines ------------------------------------------------------------- }
 
 procedure URIGetAnchor(const URI: string; out Anchor: string;
   const RecognizeEvenEscapedHash: boolean = false);
@@ -491,12 +573,16 @@ function RawURIDecode(const S: string): string;
     { Assume C is valid hex digit, return it's value (in 0..15 range). }
     function HexDigit(const C: char): Byte;
     begin
-      if C in ['0'..'9'] then
-        Result := Ord(C) - Ord('0') else
-      if C in ['a'..'f'] then
-        Result := 10 + Ord(C) - Ord('a') else
-      if C in ['A'..'F'] then
-        Result := 10 + Ord(C) - Ord('A');
+      if CharInSet(C, ['0'..'9']) then
+        Result := Ord(C) - Ord('0')
+      else
+      if CharInSet(C, ['a'..'f']) then
+        Result := 10 + Ord(C) - Ord('a')
+      else
+      if CharInSet(C, ['A'..'F']) then
+        Result := 10 + Ord(C) - Ord('A')
+      else
+        raise EInternalError.Create('Invalid hex character');
     end;
 
   begin
@@ -510,8 +596,8 @@ function RawURIDecode(const S: string): string;
         Exit(false);
       end;
 
-      if (not (S[Position + 1] in ValidHexaChars)) or
-         (not (S[Position + 2] in ValidHexaChars)) then
+      if (not CharInSet(S[Position + 1], ValidHexaChars)) or
+         (not CharInSet(S[Position + 2], ValidHexaChars)) then
       begin
         WritelnWarning('URI', Format(
           'URI "%s" incorrectly encoded, %s if not a valid hexadecimal number',
@@ -581,16 +667,16 @@ begin
         ecmascript:..." }
     *)
     FirstCharacter := 1;
-    while (FirstCharacter < Colon) and (S[FirstCharacter] in WhiteSpaces) do
+    while (FirstCharacter < Colon) and CharInSet(S[FirstCharacter], WhiteSpaces) do
       Inc(FirstCharacter);
     if FirstCharacter >= Colon then
       Exit;
 
     { Protocol name can only contain specific characters. }
-    if not (S[FirstCharacter] in ProtoFirstChar) then
+    if not CharInSet(S[FirstCharacter], ProtoFirstChar) then
       Exit;
     for I := FirstCharacter + 1 to Colon - 1 do
-      if not (S[I] in ProtoChar) then
+      if not CharInSet(S[I], ProtoChar) then
         Exit;
 
     { Do not treat drive names in Windows filenames as protocol.
@@ -751,36 +837,6 @@ const
   DIGIT = ['0'..'9'];
   Unreserved = ALPHA + DIGIT + ['-', '.', '_', '~'];
   ValidPathChars = Unreserved + SubDelims + ['@', ':', '/'];
-
-  function Escape(const s: String; const Allowed: TSysCharSet): String;
-  var
-    i, L: Integer;
-    P: PChar;
-  begin
-    L := Length(s);
-    for i := 1 to Length(s) do
-      if not (s[i] in Allowed) then Inc(L,2);
-    if L = Length(s) then
-    begin
-      Result := s;
-      Exit;
-    end;
-
-    SetLength(Result, L);
-    P := @Result[1];
-    for i := 1 to Length(s) do
-    begin
-      if not (s[i] in Allowed) then
-      begin
-        P^ := '%'; Inc(P);
-        StrFmt(P, '%.2x', [ord(s[i])]); Inc(P);
-      end
-      else
-        P^ := s[i];
-      Inc(P);
-    end;
-  end;
-
 var
   I: Integer;
   FilenamePart: string;
@@ -1169,7 +1225,7 @@ var
   L: Integer;
 begin
   L := Length(URL);
-  if (L <> 0) and (URL[L] in ['/', '\']) then
+  if (L <> 0) and CharInSet(URL[L], ['/', '\']) then
     Result := Copy(URL, 1, L - 1)
   else
     Result := URL;
@@ -1271,11 +1327,79 @@ begin
   Result := FilenameToURISafe(InclPathDelim(GetCurrentDir));
 end;
 
+type
+  TFixCaseHandler = class
+    SearchName: String;
+    FoundName: String;
+  end;
+
+procedure FixCaseCallback(const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
+var
+  H: TFixCaseHandler;
+begin
+  H := TFixCaseHandler(Data);
+  if AnsiSameText(FileInfo.Name, H.SearchName) then
+  begin
+    if H.FoundName <> '' then
+      raise Exception.CreateFmt('Ambiguous files found in directory "%s": "%s" and "%s" (and CastleDataIgnoreCase was used)', [
+        ExtractURIPath(FileInfo.URL),
+        FileInfo.Name,
+        H.FoundName
+      ]);
+    H.FoundName := FileInfo.Name;
+  end;
+end;
+
 function ResolveCastleDataURL(const URL: String): String;
+
+  { Fix case for the URL relative to data. }
+  function FixCase(const RelativeToData: String): String;
+  var
+    Parts: TCastleStringList;
+    H: TFixCaseHandler;
+    ParentUrl: String;
+    I: Integer;
+  begin
+    ParentUrl := URIIncludeSlash(ApplicationData(''));
+    Result := '';
+
+    H := TFixCaseHandler.Create;
+    try
+      Parts := SplitString(Unescape(RelativeToData), '/');
+      try
+        for I := 0 to Parts.Count - 1 do
+        begin
+          H.SearchName := Parts[I];
+          H.FoundName := '';
+          FindFiles(ParentUrl, '*', { assume that even final part may be directory } true, @FixCaseCallback, H, []);
+          if H.FoundName = '' then
+            raise Exception.CreateFmt('Cannot find file "%s" in directory "%s" (even with case-insensitive search, because CastleDataIgnoreCase was used)', [
+              H.SearchName,
+              ParentUrl
+            ]);
+          ParentUrl := SAppendPart(ParentUrl, '/', H.FoundName);
+          Result := SAppendPart(Result, '/', H.FoundName);
+        end;
+      finally FreeAndNil(Parts) end;
+    finally FreeAndNil(H) end;
+
+    // if RelativeToData ends with slash, also make Result end with slash
+    if IsSuffix('/', RelativeToData) then
+      Result := URIIncludeSlash(Result);
+  end;
+
+var
+  RelativeToData: String;
 begin
   if URIProtocol(URL) = 'castle-data' then
-    Result := ApplicationData(PrefixRemove('/', URIDeleteProtocol(URL), false))
-  else
+  begin
+    RelativeToData := PrefixRemove('/', URIDeleteProtocol(URL), false);
+    {$warnings off} // don't warn that CastleDataIgnoreCase is experimental
+    if CastleDataIgnoreCase and FileNameCaseSensitive then
+    {$warnings on}
+      RelativeToData := FixCase(RelativeToData);
+    Result := ApplicationData(RelativeToData);
+  end else
     Result := URL;
 end;
 

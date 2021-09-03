@@ -81,13 +81,13 @@ end;
 
 { routines ------------------------------------------------------------------- }
 
-procedure WindowUpdate(Container: TUIContainer);
+procedure WindowUpdate(Container: TCastleContainer);
 begin
   // ... do something every frame
   Status.Caption := 'FPS: ' + Container.Fps.ToString;
 end;
 
-procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
+procedure WindowPress(Container: TCastleContainer; const Event: TInputPressRelease);
 begin
   // ... react to press of key, mouse, touch
 end;

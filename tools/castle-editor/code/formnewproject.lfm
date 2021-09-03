@@ -7682,6 +7682,7 @@ object NewProjectForm: TNewProjectForm
     ParentFont = False
     TabOrder = 2
     Text = 'my-new-project'
+    OnUTF8KeyPress = EditProjectNameUTF8KeyPress
   end
   object LabelProjectLocation: TLabel
     AnchorSideLeft.Control = LabelTitle

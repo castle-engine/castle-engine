@@ -60,7 +60,7 @@ var
   RenderProgram, TransformFeedbackProgram: TGLSLProgram;
   PingPong: Integer = 0;
 
-procedure Update(Container: TUIContainer);
+procedure Update(Container: TCastleContainer);
 var
   I: Integer;
 begin
@@ -90,7 +90,7 @@ begin
   end;
 end;
 
-procedure Render(Container: TUIContainer);
+procedure Render(Container: TCastleContainer);
 begin
   // Update vertices
   { Some drivers may complain about program not having fragment shader if we

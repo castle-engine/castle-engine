@@ -49,7 +49,7 @@ const
 
 { CastleWindow callbacks ------------------------------------------------------- }
 
-procedure Render(Container: TUIContainer);
+procedure Render(Container: TCastleContainer);
 var
   DrawableImage: TDrawableImage;
 begin
@@ -59,7 +59,7 @@ begin
   finally FreeAndNil(DrawableImage) end;
 end;
 
-procedure CloseQueryNotAllowed(Container: TUIContainer); begin end;
+procedure CloseQueryNotAllowed(Container: TCastleContainer); begin end;
 
 { curve generation ------------------------------------------------------------ }
 

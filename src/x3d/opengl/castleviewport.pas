@@ -217,7 +217,7 @@ type
       regardless if mouse/touch stays over this transform.
 
       The reason and implementation of this mechanism is similar to
-      TUIContainer.FCaptureInput. }
+      TCastleContainer.FCaptureInput. }
     property CapturePointingDevice: TCastleTransform
       read FCapturePointingDevice write SetCapturePointingDevice;
     procedure CapturePointingDeviceFreeNotification(const Sender: TFreeNotificationObserver);
@@ -882,6 +882,12 @@ type
       These are default camera direction, up and projection types set
       by @link(Setup2D). }
     function PositionTo2DWorld(const Position: TVector2;
+      const ContainerCoordinates: Boolean): TVector2;
+
+    { Invert @link(PositionTo2DWorld), converting the "world coordinates" (the coordinate
+      space seen by TCastleTransform / TCastleScene inside viewport @link(Items))
+      into final screen position. }
+    function PositionFrom2DWorld(const WorldPosition: TVector2;
       const ContainerCoordinates: Boolean): TVector2;
 
     { Prepare resources, to make various methods (like @link(Render)) execute fast.
@@ -2099,7 +2105,14 @@ begin
   { We need infinite ZFar in case of shadow volumes.
     But only perspective projection supports ZFar in infinity. }
   if (Result.ProjectionType = ptPerspective) and
-     GLFeatures.ShadowVolumesPossible and
+     { Check "GLFeatures = nil" to allow using CalculateProjection and
+       things depending on it when no OpenGL context available.
+
+       Testcase: open CGE editor, open a project with any sprite sheet,
+       open sprite sheet editor with some .castle-sprite-sheet file,
+       then do "Close Project" (without closing sprite sheet editor
+       explicitly). It should not crash. }
+     ((GLFeatures = nil) or GLFeatures.ShadowVolumesPossible) and
      ShadowVolumes then
     Result.ProjectionFar := ZFarInfinity;
 
@@ -3150,6 +3163,26 @@ begin
   Result := CameraToWorldMatrix.MultPoint(Vector3(P, 0)).XY;
 end;
 
+function TCastleViewport.PositionFrom2DWorld(const WorldPosition: TVector2;
+  const ContainerCoordinates: Boolean): TVector2;
+var
+  CameraFromWorldMatrix: TMatrix4;
+  P: TVector2;
+begin
+  PositionToPrerequisites;
+
+  CameraFromWorldMatrix := Camera.Matrix;
+  P := CameraFromWorldMatrix.MultPoint(Vector3(WorldPosition, 0)).XY;
+  P := Vector2(
+    MapRange(P.X, FProjection.Dimensions.Left  , FProjection.Dimensions.Right, 0, EffectiveWidth ),
+    MapRange(P.Y, FProjection.Dimensions.Bottom, FProjection.Dimensions.Top  , 0, EffectiveHeight)
+  );
+  if ContainerCoordinates then
+    Result := LocalToContainerPosition(P)
+  else
+    Result := P;
+end;
+
 procedure TCastleViewport.SetItems(const Value: TCastleRootTransform);
 begin
   if FItems <> Value then
@@ -3309,7 +3342,7 @@ end;
 
 function TCastleViewport.GetMousePosition(out MousePosition: TVector2): Boolean;
 var
-  C: TUIContainer;
+  C: TCastleContainer;
 begin
   C := Container;
   Result := C <> nil;

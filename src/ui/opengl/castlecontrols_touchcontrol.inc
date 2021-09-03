@@ -52,12 +52,12 @@
 
     { Set position of touch control. Right now this simply sets
       the anchor using @link(TCastleUserInterface.Anchor) and friends.
-      Tip: Use @link(TUIContainer.UIScaling) to have the anchors automatically
+      Tip: Use @link(TCastleContainer.UIScaling) to have the anchors automatically
       scale with screen size.
 
       The size of the control is set to be constant physical size,
-      so it's not affected by @link(TUIContainer.UIScaling), only by
-      @link(TUIContainer.Dpi). }
+      so it's not affected by @link(TCastleContainer.UIScaling), only by
+      @link(TCastleContainer.Dpi). }
     property Position: TCastleTouchPosition
       read FPosition write SetPosition default tpManual;
 
