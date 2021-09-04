@@ -28,6 +28,7 @@
 type
   TUrlData = class
     class function Read(const Url: string; out MimeType: string): TStream;
+    class function MimeType(const URI: string; out Gzipped: Boolean): String;
   end;
 
 class function TUrlData.Read(const Url: string; out MimeType: string): TStream;
@@ -43,6 +44,20 @@ begin
     MimeType := DataUri.MimeType;
     Assert(Result <> nil, 'DataUri.ExtractStream must be non-nil when DataUri.Valid is true');
   finally FreeAndNil(DataUri) end;
+end;
+
+class function TUrlData.MimeType(const URI: string; out Gzipped: Boolean): String;
+var
+  DataURI: TDataURI;
+begin
+  Result := '';
+  Gzipped := false;
+
+  DataURI := TDataURI.Create;
+  try
+    DataURI.URI := URI;
+    if DataURI.Valid then Result := DataURI.MimeType;
+  finally FreeAndNil(DataURI) end;
 end;
 
 {$endif}
