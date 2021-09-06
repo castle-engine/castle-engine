@@ -51,8 +51,8 @@ end;
 
 {$ifdef read_implementation_constructor}
   FTextColorPersistent := TCastleColorPersistent.Create;
-  FTextColorPersistent.InternalGetValue := @GetTextColorForPersistent;
-  FTextColorPersistent.InternalSetValue := @SetTextColorForPersistent;
+  FTextColorPersistent.InternalGetValue := {$ifdef CASTLE_OBJFPC}@{$endif}GetTextColorForPersistent;
+  FTextColorPersistent.InternalSetValue := {$ifdef CASTLE_OBJFPC}@{$endif}SetTextColorForPersistent;
   FTextColorPersistent.InternalDefaultValue := TextColor; // current value is default
 {$endif read_implementation_constructor}
 
@@ -113,8 +113,8 @@ end;
 
 {$ifdef read_implementation_constructor}
   FCheckboxColorPersistent := TCastleColorPersistent.Create;
-  FCheckboxColorPersistent.InternalGetValue := @GetCheckboxColorForPersistent;
-  FCheckboxColorPersistent.InternalSetValue := @SetCheckboxColorForPersistent;
+  FCheckboxColorPersistent.InternalGetValue := {$ifdef CASTLE_OBJFPC}@{$endif}GetCheckboxColorForPersistent;
+  FCheckboxColorPersistent.InternalSetValue := {$ifdef CASTLE_OBJFPC}@{$endif}SetCheckboxColorForPersistent;
   FCheckboxColorPersistent.InternalDefaultValue := CheckboxColor; // current value is default
 {$endif read_implementation_constructor}
 

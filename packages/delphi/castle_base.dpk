@@ -28,7 +28,8 @@ package castle_base;
 
 requires
   rtl,
-  xmlrtl;
+  xmlrtl,
+  vcl;
 
 contains
   castleapplicationproperties in '..\..\src\base\castleapplicationproperties.pas',
@@ -72,6 +73,17 @@ contains
   castleinternalftfont in '..\..\src\fonts\castleinternalftfont.pas',
   castleinternalrichtext in '..\..\src\fonts\opengl\castleinternalrichtext.pas',
   castleinternaltdxinput_tlb in '..\..\src\ui\windows\castleinternaltdxinput_tlb.pas',
-  castleinternalsettings in '..\..\src\ui\opengl\castleinternalsettings.pas';
+  castleinternalsettings in '..\..\src\ui\opengl\castleinternalsettings.pas',
+  castlecontrols in '..\..\src\ui\opengl\castlecontrols.pas',
+  castletexturefont_djvsans_20 in '..\..\src\fonts\castletexturefont_djvsans_20.pas',
+  castletexturefont_dejavusans_10 in '..\..\src\fonts\castletexturefont_dejavusans_10.pas',
+  castlesoundengine in '..\..\src\audio\castlesoundengine.pas',
+  castlesoundbase in '..\..\src\audio\castlesoundbase.pas',
+  castleinternalsoundfile in '..\..\src\audio\castleinternalsoundfile.pas',
+  castleinternalvorbisfile in '..\..\src\audio\ogg_vorbis\castleinternalvorbisfile.pas',
+  ctypes in '..\..\src\compatibility\delphi-only\ctypes.pas',
+  castleinternalvorbiscodec in '..\..\src\audio\ogg_vorbis\castleinternalvorbiscodec.pas',
+  castleinternalogg in '..\..\src\audio\ogg_vorbis\castleinternalogg.pas',
+  castleinternalvorbisdecoder in '..\..\src\audio\ogg_vorbis\castleinternalvorbisdecoder.pas';
 
 end.

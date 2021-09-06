@@ -121,22 +121,24 @@
       total vertical padding is the sum @code(PaddingVertical + Padding).
       @groupBegin }
     property PaddingHorizontal: Single
-      read FPaddingHorizontal write SetPaddingHorizontal default 0;
+      read FPaddingHorizontal write SetPaddingHorizontal {$ifdef FPC}default 0{$endif};
     property PaddingVertical: Single
-      read FPaddingVertical write SetPaddingVertical default 0;
+      read FPaddingVertical write SetPaddingVertical {$ifdef FPC}default 0{$endif};
     property Padding: Single
-      read FPadding write SetPadding default DefaultPadding;
+      read FPadding write SetPadding {$ifdef FPC}default DefaultPadding{$endif};
     { @groupEnd }
 
     { Draw frame around the box. Frame uses theme image tiEdit,
       see TCastleTheme.Images if you want to customize it. }
     property Frame: boolean read FFrame write SetFrame default true;
 
+    {$ifdef FPC}
     { Should we capture input regardless of the currently focused control.
       This is in practice only sensible if this is the only edit box currently
       visible on the screen. }
     property CaptureAllInput: boolean read FCaptureAllInput write FCaptureAllInput;
       deprecated 'use Container.ForceCaptureInput instead of this';
+    {$endif}
 
     { When true, it shows the software keyboard on Android. }
     property AutoOnScreenKeyboard: Boolean
@@ -201,11 +203,11 @@
     property Text stored false;
     property TextTranslate default false;
 
-    property Value: Single read GetValue write SetValue default 0;
+    property Value: Single read GetValue write SetValue {$ifdef FPC}default 0{$endif};
     { Minimum and maximum limits.
       Applied only if Min <= Max, which is not the case by default. }
-    property Min: Single read FMin write FMin default 1.0;
-    property Max: Single read FMax write FMax default 0.0;
+    property Min: Single read FMin write FMin {$ifdef FPC}default 1.0{$endif};
+    property Max: Single read FMax write FMax {$ifdef FPC}default 0.0{$endif};
     { How many decimal digits to display (and preserve).
       Set to -1 to display (and preserve) all digits,
       but beware that many numbers will then look hard to
@@ -415,12 +417,12 @@ end;
 
 function TCastleEdit.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'Text', 'Alignment', 'Enabled':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'Text') or
+     (PropertyName = 'Alignment') or
+     (PropertyName = 'Enabled') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TCastleEdit.Render;
@@ -544,7 +546,11 @@ begin
   begin
     if Text <> '' then
     begin
+      {$ifdef FPC}
       Text := UTF8Copy(Text, 1, UTF8Length(Text) - 1);
+      {$else}
+      Text := UTF32Copy(Text, 1, GetUTF32Length(Text) - 1);
+      {$endif}
       DoChange;
     end;
     Result := ExclusiveEvents;
@@ -589,11 +595,13 @@ end;
 
 function TCastleEdit.CapturesEventsAtPosition(const Position: TVector2): boolean;
 begin
+  {$ifdef FPC}
   {$warnings off} // using deprecated just to keep it working
   if CaptureAllInput then
     Result := true // always capture
   else
   {$warnings on}
+  {$endif}
     Result := inherited CapturesEventsAtPosition(Position);
 end;
 
@@ -684,7 +692,7 @@ begin
   FMin := 1;
   FMax := 0;
   Assert(not (Min <= Max)); // deliberately, so that limits do not work by default
-  AllowedChars := ['-', '+', '0'..'9'] + [DefaultFormatSettings.DecimalSeparator];
+  AllowedChars := ['-', '+', '0'..'9'] + [{$ifdef FPC}DefaultFormatSettings.{$else}FormatSettings.{$endif}DecimalSeparator];
   FDecimalDigits := 2;
   Value := 0.0; // will also assign Text
 end;
@@ -698,14 +706,14 @@ end;
 
 function TCastleFloatEdit.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'Text':
-      Result := []; // override TCastleEdit that made it [psBasic], we instead expose Value
-    'Value', 'Min', 'Max':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'Text') then
+    Result := [] // override TCastleEdit that made it [psBasic], we instead expose Value
+  else if (PropertyName = 'Value') or
+          (PropertyName = 'Min') or
+          (PropertyName = 'Max') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 function TCastleFloatEdit.GetValue: Single;
@@ -756,14 +764,14 @@ end;
 
 function TCastleIntegerEdit.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'Text':
-      Result := []; // override TCastleEdit that made it [psBasic], we instead expose Value
-    'Value', 'Min', 'Max':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'Text') then
+    Result := [] // override TCastleEdit that made it [psBasic], we instead expose Value
+  else if (PropertyName = 'Value') or
+          (PropertyName = 'Min') or
+          (PropertyName = 'Max') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 function TCastleIntegerEdit.GetValue: Int64;

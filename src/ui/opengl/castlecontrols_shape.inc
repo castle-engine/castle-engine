@@ -90,7 +90,7 @@
       @bold(outline widths thicker than 1 pixel are not guaranteed
       to be supported. In particular they will almost never work on mobile (OpenGLES).)
       Change OutlineThick to @true to have reliable thick outlines. }
-    property OutlineWidth: Single read FOutlineWidth write SetOutlineWidth default 1.0;
+    property OutlineWidth: Single read FOutlineWidth write SetOutlineWidth {$ifdef FPC}default 1.0{$endif};
   published
     property ShapeType: TShapeType read FShapeType write SetShapeType default stRectangle;
 

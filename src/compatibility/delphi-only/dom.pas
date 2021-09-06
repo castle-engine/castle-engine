@@ -199,6 +199,7 @@ type
     procedure SetAttribute(const Name, Value: String);
     function  GetAttributeNode(const Name: String): TDOMAttr;
     procedure RemoveAttribute(const Name: String);
+    function HasAttribute(const Name: String): Boolean;
 
     function TagName: String;
 
@@ -492,6 +493,11 @@ begin
     FAttributes := TDOMNamedNodeMap.Create(Self);
 
   Result := FAttributes;
+end;
+
+function TDOMElement.HasAttribute(const Name: String): Boolean;
+begin
+  Result := InternalNode.HasAttribute(Name);
 end;
 
 procedure TDOMElement.RemoveAttribute(const Name: String);

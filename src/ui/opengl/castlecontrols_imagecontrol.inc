@@ -180,6 +180,7 @@
       @seealso TCastleImagePersistent.Color }
     property Color: TCastleColor read GetColor write SetColor;
 
+    {$ifdef FPC}
     { Corners and edges of the image that are not stretched even
       when @link(Stretch) is used.
       See @link(TDrawableImage.Draw3x3) for the details how such drawing works. }
@@ -193,6 +194,7 @@
     { Y coordinate of the center of rotation. Value from 0 to 1. Default value 0.5. }
     property CenterY: Single read GetCenterY write SetCenterY default 0.5;
       deprecated 'use RotationCenter';
+    {$endif}
 
     { Center of rotation.
       Expressed as a fraction within the drawn ScreenRectangle,
@@ -221,12 +223,14 @@
       @seealso TCastleImagePersistent.CustomShader }
     property CustomShader: TGLSLProgram read GetCustomShader write SetCustomShader;
 
+    {$ifdef FPC}
     property Blending: boolean read GetBlending write SetBlending stored false;
       deprecated 'use AlphaChannel';
     property Proportional: boolean read GetProportional write SetProportional stored false default false;
       deprecated 'use ProportionalScaling';
     property FileName: string read GetURL write SetURL stored false;
       deprecated 'use URL';
+    {$endif}
   published
     { Image contents to display. }
     property Content: TCastleImagePersistent read FContent;
@@ -348,7 +352,7 @@
 
     { Rotation in radians. Default value 0.
       @seealso TCastleImagePersistent.Rotation }
-    property Rotation: Single read GetRotation write SetRotation stored false default 0;
+    property Rotation: Single read GetRotation write SetRotation stored false {$ifdef FPC}default 0{$endif};
 
     { Clip the image by an arbitrary 2D line defined in @link(ClipLine).
       @seealso TCastleImagePersistent.Clip }
@@ -369,7 +373,7 @@ constructor TCastleImageControl.Create(AOwner: TComponent);
 begin
   inherited;
   FContent := TCastleImagePersistent.Create;
-  FContent.OnChange := @ContentChanged;
+  FContent.OnChange := {$ifdef CASTLE_OBJFPC}@{$endif}ContentChanged;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleimagecontrol_persistent_vectors.inc}
@@ -456,7 +460,7 @@ begin
   FContent.ScaleCorners := UIScale;
   FContent.InternalVisualizeProtectedSides := Stretch;
   FContent.Draw(RenderRect);
-  FContent.OnChange := @ContentChanged;
+  FContent.OnChange := {$ifdef CASTLE_OBJFPC}@{$endif}ContentChanged;
 end;
 
 procedure TCastleImageControl.PreferredSize(var PreferredWidth, PreferredHeight: Single);
@@ -469,8 +473,8 @@ begin
   ImageHeight := FContent.DrawableImage.Height;
   if FDetectScaleFromUrl and (FContent.ScaleFromUrl <> 1) then
   begin
-    ImageWidth  /= FContent.ScaleFromUrl;
-    ImageHeight /= FContent.ScaleFromUrl;
+    ImageWidth  := ImageWidth / FContent.ScaleFromUrl;
+    ImageHeight := ImageHeight / FContent.ScaleFromUrl;
   end;
 
   if not Stretch then
@@ -701,13 +705,19 @@ end;
 function TCastleImageControl.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'URL', 'Stretch', 'ProportionalScaling', 'ColorPersistent', 'SmoothScaling', 'AlphaChannel',
-    'FlipHorizontal', 'FlipVertical', 'ProtectedSides', 'Rotation':
-      Result := [psBasic]
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'URL') or
+     (PropertyName = 'Stretch') or
+     (PropertyName = 'ProportionalScaling') or
+     (PropertyName = 'ColorPersistent') or
+     (PropertyName = 'SmoothScaling') or
+     (PropertyName = 'AlphaChannel') or
+     (PropertyName = 'FlipHorizontal') or
+     (PropertyName = 'FlipVertical') or
+     (PropertyName = 'ProtectedSides') or
+     (PropertyName = 'Rotation') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 function TCastleImageControl.GetCenterX: Single;

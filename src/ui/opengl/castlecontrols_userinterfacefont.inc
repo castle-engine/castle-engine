@@ -87,6 +87,7 @@
       not recalculate sizes automatically. In this case, call this method. }
     procedure FontChanged; virtual;
 
+    {$ifdef FPC}
     property OwnsCustomFont: boolean
       read FOwnsCustomFont write FOwnsCustomFont default false;
       deprecated 'use TCastleAbstractFont (inherited from TComponent) owner mechanism';
@@ -94,7 +95,8 @@
     { Use smaller font.
       Right now this just says to scale font by 0.5. }
     property SmallFont: boolean read FSmallFont write SetSmallFont default false;
-      {$ifdef FPC} deprecated 'use "FontScale := 0.5" or "CustomFont := MySmalFont" instead of "SmallFont := true", this is more flexible'; {$endif}
+      deprecated 'use "FontScale := 0.5" or "CustomFont := MySmalFont" instead of "SmallFont := true", this is more flexible';
+    {$endif}
 
     { Outline color, used only if Outline <> 0. Default is black.
       @seealso Outline }
@@ -114,13 +116,13 @@
 
     { Use given font size when drawing. Leave at default zero to use
       the default size of the current font. }
-    property FontSize: Single read FFontSize write SetFontSize default 0.0;
+    property FontSize: Single read FFontSize write SetFontSize {$ifdef FPC}default 0.0{$endif};
 
     { Scale the font. This additionally scales the font defined
       by all other properties of this class, thus you can use it to reliably
       scale the font (regardless if you use @link(CustomFont) or not,
       regardless if you set @link(FontSize) or not). }
-    property FontScale: Single read FFontScale write SetFontScale default 1.0;
+    property FontScale: Single read FFontScale write SetFontScale {$ifdef FPC}default 1.0{$endif};
 
     { Outline size around the font.
       Note that the current implementation is very simple, it will only
@@ -271,15 +273,17 @@ begin
      (GetMainContainer.DefaultFont.FontLoaded) then
     Result := GetMainContainer.DefaultFont
   else
-    Result := UIFont;
+    Result := GetUIFont;
 
   { if needed, wrap Result in TCastleFontFamily instance }
   if (FontSize <> 0) or
      (FontScale <> 1) or
      (UIScale <> 1) or
+     {$ifdef FPC}
      {$warnings off} // using deprecated to keep it working
      SmallFont or
      {$warnings on}
+     {$endif}
      (Outline <> 0) then
   begin
     if FCustomizedFont = nil then
@@ -289,10 +293,12 @@ begin
     else
       FCustomizedFont.Size := Result.EffectiveSize; // to have something to multiply in line below
     FCustomizedFont.Size := FCustomizedFont.Size * UIScale * FontScale;
+    {$ifdef FPC}
     {$warnings off} // using deprecated to keep it working
     if SmallFont then
       FCustomizedFont.Size := FCustomizedFont.Size * 0.5;
     {$warnings on}
+    {$endif}
     if Result is TCastleFontFamily then
     begin
       { copying Result to FCustomizedFont this way allows to render with HTML
@@ -326,13 +332,15 @@ begin
     if FCustomFont <> nil then
     begin
       FCustomFont.RemoveFreeNotification(Self);
-      FCustomFont.RemoveFontSizeChangeNotification(@CustomFontSizeChanged);
+      FCustomFont.RemoveFontSizeChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}CustomFontSizeChanged);
     end;
+    {$ifdef FPC}
     {$warnings off}
     if OwnsCustomFont then
       FreeAndNil(FCustomFont) else
       FCustomFont := nil;
     {$warnings on}
+    {$endif}
     FCustomFont := Value;
     if FCustomFont <> nil then
     begin
@@ -342,7 +350,7 @@ begin
         Testcase: assing to TCastleLabel.CustomFont some TCastleFont,
         then change the TCastleFont.URL (without changing anything
         at TCastleLabel directly) -- the TCastleLabel size should change. }
-      FCustomFont.AddFontSizeChangeNotification(@CustomFontSizeChanged);
+      FCustomFont.AddFontSizeChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}CustomFontSizeChanged);
     end;
     { don't call virtual function, that may try to measure the text by accessing Font
       (needlessly using UIFont, possibly even recreating UIFont if "finalization"
@@ -362,9 +370,11 @@ begin
     { set to nil by SetCustomFont to clean nicely }
     { since it's already being freed, do not apply OwnsCustomFont effect
       inside SetCustomFont. }
+    {$ifdef FPC}
     {$warnings off}
     OwnsCustomFont := false;
     {$warnings on}
+    {$endif}
     CustomFont := nil;
   end;
 end;
@@ -472,12 +482,11 @@ end;
 function TCastleUserInterfaceFont.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'FontSize', 'CustomFont':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'FontSize') or
+     (PropertyName = 'CustomFont') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TCastleUserInterfaceFont.CustomFontSizeChanged(Sender: TObject);

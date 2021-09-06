@@ -55,7 +55,7 @@ type
     const Event: TInputMotion; var Handled: Boolean) of object;
 
   { Tracking of a touch by a single finger, used by TTouchList. }
-  TTouch = object
+  TTouch = record
   public
     { Index of the finger/mouse. Always simply zero on traditional desktops with
       just a single mouse device. For devices with multi-touch
@@ -315,7 +315,7 @@ type
     FControls: TObject;
     procedure ControlsVisibleChange(const Sender: TCastleUserInterface;
       const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean);
-    class procedure RenderControlPrepare(const ViewportRect: TRectangle); static;
+    class procedure RenderControlPrepare(const ViewportRect: TRectangle);
     { Called when the control C is destroyed or just removed from Controls list. }
     procedure DetachNotification(const C: TCastleUserInterface);
   protected
@@ -1128,10 +1128,12 @@ type
     function ContainerSizeKnown: boolean; virtual;
     { @groupEnd }
 
+    {$ifdef FPC}
     { Called when @link(Cursor) changed.
       In TCastleUserInterface class, just calls OnCursorChange. }
     procedure DoCursorChange; virtual;
       deprecated 'better override VisibleChange and watch for chCursor in Changes';
+    {$endif}
 
     procedure DefineProperties(Filer: TFiler); override;
 
@@ -2402,7 +2404,7 @@ implementation
 uses DOM, TypInfo, Math,
   CastleLog, CastleXMLUtils, CastleStringUtils,
   CastleInternalSettings, CastleFilesUtils, CastleURIUtils, CastleRenderOptions,
-  {$ifdef CASTLE_OBJFPC} CastleGL {$else} GL, GLExt {$endif};
+  {$ifdef FPC}{$ifdef CASTLE_OBJFPC}CastleGL;{$else}GL, GLExt;{$endif}{$else}OpenGL, OpenGLext;{$endif}
 
 {$define read_implementation}
 {$I castleuicontrols_serialize.inc}
@@ -2439,7 +2441,7 @@ begin
   if Index <> -1 then
     List^[Index].Position := Value else
   begin
-    NewTouch := Add;
+    NewTouch := PTouch(Add);
     NewTouch^.FingerIndex := FingerIndex;
     NewTouch^.Position := Value;
   end;
@@ -2557,7 +2559,7 @@ end;
 
 function TCastleContainer.TryGetFingerOfControl(const C: TCastleUserInterface; out Finger: TFingerIndex): boolean;
 var
-  FingerControlPair: TFingerIndexCaptureMap.TDictionaryPair;
+  FingerControlPair: {$ifdef FPC}TFingerIndexCaptureMap.TDictionaryPair{$else}TPair<TFingerIndex, TCastleUserInterface>{$endif};
 begin
   { search for control C among the FCaptureInput values, and return corresponding key }
   for FingerControlPair in FCaptureInput do
@@ -3453,7 +3455,7 @@ begin
   if Assigned(OnBeforeRender) then OnBeforeRender(Self);
 end;
 
-class procedure TCastleContainer.RenderControlPrepare(const ViewportRect: TRectangle); static;
+class procedure TCastleContainer.RenderControlPrepare(const ViewportRect: TRectangle);
 begin
   if GLFeatures.EnableFixedFunction then
   begin
@@ -3696,7 +3698,7 @@ begin
 
   if (not FMouseLookWaitingForMiddle) and SettingMousePositionCausesMotion then
   begin
-    Result -= FMouseLookMotionToSubtract;
+    Result := Result - FMouseLookMotionToSubtract;
     FMouseLookMotionToSubtract := TVector2.Zero;
   end;
 
@@ -3704,7 +3706,7 @@ begin
   if not ValidArea(Event.Position, Middle, 1 / 4) then
   begin
     if not FMouseLookWaitingForMiddle then
-      FMouseLookMotionToSubtract += Middle - Event.Position;
+      FMouseLookMotionToSubtract := FMouseLookMotionToSubtract + Middle - Event.Position;
     MousePosition := Middle;
     FMouseLookWaitingForMiddle := true;
   end;
@@ -3988,7 +3990,7 @@ begin
   FCapturesEvents := true;
   FWidth := DefaultWidth;
   FHeight := DefaultHeight;
-  FBorder := TBorder.Create(@BorderChange);
+  FBorder := TBorder.Create({$ifdef CASTLE_OBJFPC}@{$endif}BorderChange);
   FLastSeenUIScale := 1.0;
 
   {$define read_implementation_constructor}
@@ -4144,18 +4146,22 @@ begin
   begin
     FCursor := Value;
     VisibleChange([chCursor]);
+    {$ifdef FPC}
     {$warnings off} // keep deprecated method working
     DoCursorChange;
     {$warnings on}
+    {$endif}
   end;
 end;
 
+{$ifdef FPC}
 procedure TCastleUserInterface.DoCursorChange;
 begin
   {$warnings off} // keep deprecated event working
   if Assigned(OnCursorChange) then OnCursorChange(Self);
   {$warnings on}
 end;
+{$endif FPC}
 
 destructor TCastleUserInterface.Destroy;
 begin
@@ -4173,9 +4179,9 @@ procedure TCastleUserInterface.CustomSerialization(const SerializationProcess: T
 begin
   inherited;
   SerializationProcess.ReadWrite('Children',
-    @SerializeChildrenEnumerate,
-    @SerializeChildrenAdd,
-    @SerializeChildrenClear);
+    {$ifdef CASTLE_OBJFPC}@{$endif}SerializeChildrenEnumerate,
+    {$ifdef CASTLE_OBJFPC}@{$endif}SerializeChildrenAdd,
+    {$ifdef CASTLE_OBJFPC}@{$endif}SerializeChildrenClear);
 end;
 
 procedure TCastleUserInterface.SerializeChildrenEnumerate(const Proc: TGetChildProc);
@@ -4697,32 +4703,30 @@ end;
 function TCastleUserInterface.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'Exists':
-      Result := [psBasic];
-    'FullSize':
-      Result := [psBasic, psLayout];
-    'Width',
-    'Height',
-    'HeightFraction',
-    'WidthFraction',
-    'AutoSizeToChildren',
-    'AutoSizeToChildrenPaddingTop',
-    'AutoSizeToChildrenPaddingRight',
-    'HorizontalAnchorSelf',
-    'HorizontalAnchorDelta',
-    'HorizontalAnchorParent',
-    'VerticalAnchorSelf',
-    'VerticalAnchorDelta',
-    'VerticalAnchorParent',
-    'Left',
-    'Bottom',
-    'Border',
-    'BorderColorPersistent':
-      Result := [psLayout];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if      PropertyName = 'Exists' then
+    Result := [psBasic]
+  else if PropertyName = 'FullSize' then
+    Result := [psBasic, psLayout]
+  else if (PropertyName = 'Width') or
+          (PropertyName = 'Height') or
+          (PropertyName = 'HeightFraction') or
+          (PropertyName = 'WidthFraction') or
+          (PropertyName = 'AutoSizeToChildren') or
+          (PropertyName = 'AutoSizeToChildrenPaddingTop') or
+          (PropertyName = 'AutoSizeToChildrenPaddingRight') or
+          (PropertyName = 'HorizontalAnchorSelf') or
+          (PropertyName = 'HorizontalAnchorDelta') or
+          (PropertyName = 'HorizontalAnchorParent') or
+          (PropertyName = 'VerticalAnchorSelf') or
+          (PropertyName = 'VerticalAnchorDelta') or
+          (PropertyName = 'VerticalAnchorParent') or
+          (PropertyName = 'Left') or
+          (PropertyName = 'Bottom') or
+          (PropertyName = 'Border') or
+          (PropertyName = 'BorderColorPersistent') then
+    Result := [psLayout]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TCastleUserInterface.SetLeft(const Value: Single);
@@ -4854,8 +4858,8 @@ function TCastleUserInterface.RectWithoutAnchors: TFloatRectangle;
       MaxVar(FSizeFromChildrenHeight, ChildRect.Bottom + ChildRect.Height + Abs(C.VerticalAnchorDelta)   + FBorder.TotalHeight);
     end;
 
-    FSizeFromChildrenWidth  += AutoSizeToChildrenPaddingRight;
-    FSizeFromChildrenHeight += AutoSizeToChildrenPaddingTop;
+    FSizeFromChildrenWidth  := FSizeFromChildrenWidth + AutoSizeToChildrenPaddingRight;
+    FSizeFromChildrenHeight := FSizeFromChildrenHeight + AutoSizeToChildrenPaddingTop;
   end;
 
 var
@@ -4864,7 +4868,7 @@ var
 begin
   if FInsideRectWithoutAnchors then
   begin
-    WriteLnWarning('UI control ' + DebugName + ' encountered an endless loop when trying to calculate it''s size. This means that UI child size depends on the parent (e.g. using FullSize or WidthFraction or HeightFraction), while at the same time UI parent size depends on the child (e.g. using AutoSizeToChildren).');
+    WriteLnWarning('UI control ' + DebugName + ' encountered an endless loop when trying to calculate it''s size. This means that UI child size depends on the parent (e.g. using FullSize or WidthFraction or HeightFraction),' + ' while at the same time UI parent size depends on the child (e.g. using AutoSizeToChildren).');
     Exit(TFloatRectangle.Empty);
   end;
   FInsideRectWithoutAnchors := true;
@@ -5060,8 +5064,8 @@ begin
   Result := LocalToContainerTranslation;
   if FBorder.Exists then // optimize common case
   begin
-    Result.Data[0] += FBorder.TotalLeft   * UIScale;
-    Result.Data[1] += FBorder.TotalBottom * UIScale;
+    Result.Data[0] := Result.Data[0] + FBorder.TotalLeft   * UIScale;
+    Result.Data[1] := Result.Data[1] + FBorder.TotalBottom * UIScale;
   end;
 end;
 
@@ -5781,7 +5785,10 @@ end;
 
 procedure DoInitialization;
 begin
+  // TODO: Delphi serialization
+  {$ifdef FPC}
   RegisterSerializableComponent(TCastleUserInterface, 'Empty Rectangle');
+  {$endif}
 end;
 
 initialization

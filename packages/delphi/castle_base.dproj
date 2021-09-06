@@ -82,7 +82,7 @@
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <DCC_CBuilderOutput>All</DCC_CBuilderOutput>
         <SanitizedProjectName>castle_base</SanitizedProjectName>
-        <DCC_UnitSearchPath>..\..\src\base\windows;..\..\src\base;..\..\src\files;..\..\src\compatibility\delphi-only;..\..\src\common_includes;..\..\src\base\opengl;..\..\src\images\opengl\glsl\generated-pascal;..\..\src\images\opengl;..\..\src\ui;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>..\..\src\base\windows;..\..\src\base;..\..\src\files;..\..\src\compatibility\delphi-only;..\..\src\common_includes;..\..\src\base\opengl;..\..\src\images\opengl\glsl\generated-pascal;..\..\src\images\opengl;..\..\src\ui;..\..\src\ui\opengl;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <VerInfo_Locale>1045</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     </PropertyGroup>
@@ -160,6 +160,7 @@
         </DelphiCompile>
         <DCCReference Include="rtl.dcp"/>
         <DCCReference Include="xmlrtl.dcp"/>
+        <DCCReference Include="vcl.dcp"/>
         <DCCReference Include="..\..\src\base\castleapplicationproperties.pas"/>
         <DCCReference Include="..\..\src\base\castleclassutils.pas"/>
         <DCCReference Include="..\..\src\base\castlecolors.pas"/>
@@ -202,24 +203,17 @@
         <DCCReference Include="..\..\src\fonts\opengl\castleinternalrichtext.pas"/>
         <DCCReference Include="..\..\src\ui\windows\castleinternaltdxinput_tlb.pas"/>
         <DCCReference Include="..\..\src\ui\opengl\castleinternalsettings.pas"/>
-        <None Include="..\..\src\base\windows\castleutils_os_specific_windows.inc"/>
-        <None Include="..\..\src\base\castleutils_math.inc"/>
-        <None Include="..\..\src\base\castleutils_delphi_compatibility.inc"/>
-        <None Include="..\..\src\images\opengl\castleglimages_drawableimage.inc"/>
-        <None Include="..\..\src\images\opengl\castleglimages_drawableimagecache.inc"/>
-        <None Include="..\..\src\images\opengl\castleglimages_filter.inc"/>
-        <None Include="..\..\src\images\opengl\castleglimages_load_2d.inc"/>
-        <None Include="..\..\src\images\opengl\castleglimages_load_3d.inc"/>
-        <None Include="..\..\src\images\opengl\castleglimages_load_cubemap.inc"/>
-        <None Include="..\..\src\images\opengl\castleglimages_miscellaneous.inc"/>
-        <None Include="..\..\src\images\opengl\castleglimages_packing.inc"/>
-        <None Include="..\..\src\images\opengl\castleglimages_persistentimage.inc"/>
-        <None Include="..\..\src\images\opengl\castleglimages_rendertotexture.inc"/>
-        <None Include="..\..\src\images\opengl\castleglimages_savescreen.inc"/>
-        <None Include="..\..\src\images\opengl\castleglimages_sprite.inc"/>
-        <None Include="..\..\src\images\opengl\castleglimages_texturememoryprofiler.inc"/>
-        <None Include="..\..\src\images\opengl\castleglimages_video.inc"/>
-        <None Include="..\..\src\images\opengl\castleglimages_wrap.inc"/>
+        <DCCReference Include="..\..\src\ui\opengl\castlecontrols.pas"/>
+        <DCCReference Include="..\..\src\fonts\castletexturefont_djvsans_20.pas"/>
+        <DCCReference Include="..\..\src\fonts\castletexturefont_dejavusans_10.pas"/>
+        <DCCReference Include="..\..\src\audio\castlesoundengine.pas"/>
+        <DCCReference Include="..\..\src\audio\castlesoundbase.pas"/>
+        <DCCReference Include="..\..\src\audio\castleinternalsoundfile.pas"/>
+        <DCCReference Include="..\..\src\audio\ogg_vorbis\castleinternalvorbisfile.pas"/>
+        <DCCReference Include="..\..\src\compatibility\delphi-only\ctypes.pas"/>
+        <DCCReference Include="..\..\src\audio\ogg_vorbis\castleinternalvorbiscodec.pas"/>
+        <DCCReference Include="..\..\src\audio\ogg_vorbis\castleinternalogg.pas"/>
+        <DCCReference Include="..\..\src\audio\ogg_vorbis\castleinternalvorbisdecoder.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -241,10 +235,7 @@
                     <Source Name="MainSource">castle_base.dpk</Source>
                 </Source>
                 <Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\bcboffice2k270.bpl">Embarcadero C++Builder Office 2000 Servers Package</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\bcbofficexp270.bpl">Embarcadero C++Builder Office XP Servers Package</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k270.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp270.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\21.0\Bpl\castle_window.bpl">(untitled)</Excluded_Packages>
                 </Excluded_Packages>
             </Delphi.Personality>
             <Platforms>

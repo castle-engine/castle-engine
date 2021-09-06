@@ -80,7 +80,7 @@ implementation
 
 uses Math, TypInfo,
   CastleLog, CastleXMLUtils, CastleStringUtils, CastleGLImages,
-  CastleUnicode, CastleUriUtils, CastleLocalizationGetText;
+  CastleUnicode, CastleUriUtils{$ifdef FPC}, CastleLocalizationGetText{$endif};
 
 { TWarmupCacheFormatList ----------------------------------------------------- }
 
@@ -163,7 +163,7 @@ begin
   begin
     FWarmupCacheFormats := TWarmupCacheFormatList.Create(true);
     // register formats implemented in this unit
-    FWarmupCacheFormats.RegisterFormat('image_ui', @TImageUiCache(nil).Event);
+    FWarmupCacheFormats.RegisterFormat('image_ui', {$ifdef CASTLE_OBJFPC}@{$endif}TImageUiCache(nil).Event);
   end;
   Result := FWarmupCacheFormats;
 end;
@@ -204,7 +204,7 @@ type
       if IntegerList.Count = 0 then
         raise EInvalidSettingsXml.Create('sizes_at_load parameter is an empty list in CastleSettings.xml');
 
-      Result := IntegerList.ToArray;
+      Result := TDynIntegerArray(IntegerList.ToArray);
     finally FreeAndNil(IntegerList) end;
   end;
 
@@ -251,6 +251,8 @@ type
         UnicodeCharList.Add(SimpleAsciiCharacters);
       UnicodeCharList.Add(FontElement.AttributeStringDef('sample_text', ''));
       { Load characters from one or several translation files }
+      // TODO: Delphi Localization
+      {$ifdef FPC}
       RawString := FontElement.AttributeStringDef('sample_get_text_mo', '');
       if RawString <> '' then
       begin
@@ -259,6 +261,7 @@ type
           AddTranslatedCharacters(CombineURI(SettingsUrl, S), UnicodeCharList);
         FreeAndNil(StringList);
       end;
+      {$endif}
       { Loads a comma/whitespace separated list of UTF8 characters decimal code }
       RawString := FontElement.AttributeStringDef('sample_code', '');
       if RawString <> '' then
@@ -358,6 +361,8 @@ begin
   Container.UIReferenceHeight := NewUIReferenceHeight;
   Container.DefaultFont := NewDefaultFont;
 end;
+
+{$ifndef FPC}initialization{$endif}
 
 finalization
   FreeAndNil(FWarmupCacheFormats);
