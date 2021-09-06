@@ -240,7 +240,7 @@ end;
 procedure RegisterUrlProtocol(const Protocol: String;
   const ReadEvent: TUrlReadEvent;
   const WriteEvent: TUrlWriteEvent;
-  const AsynchronousReader: TUrlAsynchronousReaderClass;
+  const AsynchronousReader: TUrlAsynchronousReaderClass = nil;
   const DetectMimeTypeFromExtension: Boolean = true);
 var
   MimeTypeEvent: TUrlMimeTypeEvent;

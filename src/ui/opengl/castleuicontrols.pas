@@ -1423,7 +1423,7 @@ type
     property ExclusiveEvents: boolean
       read FExclusiveEvents write FExclusiveEvents default true;
 
-    property Controls [Index: Integer]: TCastleUserInterface read GetControls write SetControls;
+    property Controls [const Index: Integer]: TCastleUserInterface read GetControls write SetControls;
     function ControlsCount: Integer;
 
     { Add child control, at the front of other children. }
