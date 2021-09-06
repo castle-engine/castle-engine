@@ -98,7 +98,7 @@ var
   Attribs: TLongIntList;
 const
   ContextAttribs: array [0..2] of EGLint =
-  ( EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE);
+  ( EGL_CONTEXT_CLIENT_VERSION, {$ifdef OpenGLES3}3{$else}2{$endif}, EGL_NONE);
 begin
   Display := eglGetDisplay(EGL_DEFAULT_DISPLAY);
   if Display = EGL_NO_DISPLAY then
