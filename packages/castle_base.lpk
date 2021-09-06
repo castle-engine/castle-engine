@@ -74,7 +74,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="5"/>
-    <Files Count="935">
+    <Files Count="936">
       <Item1>
         <Filename Value="../src/3d/auto_generated_persistent_vectors/tcastlecamera_persistent_vectors.inc"/>
         <Type Value="Include"/>
@@ -3842,6 +3842,10 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/x3d/auto_generated_node_helpers/x3dnodes_cubicbeziercoordinateinterpolator.inc"/>
         <Type Value="Include"/>
       </Item935>
+      <Item936>
+        <Filename Value="../src/files/castledownload_mime.inc"/>
+        <Type Value="Include"/>
+      </Item936>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>
