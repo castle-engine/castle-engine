@@ -1,8 +1,10 @@
-{ OpenGL ES 2.0 API.
+{ OpenGL ES 3.x headers.
 
-  Copied from fpc/trunk/packages/opengles/src/gles20.pas.
-  For some reason, this unit is not compiled by default for Android
-  (FPC 2.7.1 includes it for normal Linux). }
+  A modified version of OpenGL ES 2.0 headers by Trung Le (kagamma), which adds
+  support for OpenGL ES 3.x APIs.
+  Currently it only support necessary APIs for setting up Transform Feedback
+  and hardware instancing.
+}
 
 {** OpenGL ES 2.0 headers
  **
@@ -32,12 +34,13 @@
  ** TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  ** MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  **
- ** GLESv2 part:
+ ** GLESv3 part:
  **
  ** This document is licensed under the SGI Free Software B License Version
  ** 2.0. For details, see http://oss.sgi.com/projects/FreeB/
  **}
-unit CastleGLES20;
+
+unit CastleGLES;
 {$i castleconf.inc}
 
 {$ifdef linux}
@@ -1113,6 +1116,19 @@ type
     glVertexAttribPointer : procedure(indx:GLuint; size:GLint; _type:GLenum; normalized:GLboolean; stride:GLsizei;
       ptr:pointer);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glViewport : procedure(x:GLint; y:GLint; width:GLsizei; height:GLsizei);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+
+    { OpenGL ES 3.0 APIs }
+    glTransformFeedbackVaryings: procedure(Prog: GLuint; Count: GLsizei; const Varyings: PPAnsiChar; BufferMode: GLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glDrawArraysInstanced: procedure(Mode: GLuint; First, Count, InstanceCount: GLsizei);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glDrawElementsInstanced: procedure(Mode: GLuint; Count, Kind: GLsizei; Indices: PGLuint; InstanceCount: GLsizei);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glBindVertexArray: procedure(A: GLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glBindBufferBase: procedure(Target, Ind, Buffer: GLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glBeginTransformFeedback: procedure(Mode: GLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glEndTransformFeedback: procedure();{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glVertexAttribDivisor: procedure(Ind, Divisor: GLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGenVertexArrays: procedure(Count: GLuint; P: PGLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glDeleteVertexArrays: procedure(Count: GLuint; P: PGLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+
   {------------------------------------------------------------------------*
    * IMG extension tokens
    *------------------------------------------------------------------------ }
@@ -1239,6 +1255,14 @@ type
   { GL_OES_compressed_paletted_texture  }
      GL_OES_compressed_paletted_texture = 1;
   { GL_OES_EGL_image  }
+
+  { OpenGL ES 3.0 constants }
+  const
+    GL_INTERLEAVED_ATTRIBS = $8C8C;
+    GL_SEPARATE_ATTRIBS = $8C8D;
+    GL_TRANSFORM_FEEDBACK_BUFFER = $8C8E;
+    GL_TRANSFORM_FEEDBACK_BUFFER_BINDING = $8C8F;
+    GL_RASTERIZER_DISCARD = $8C89;
 
   var
     glEGLImageTargetTexture2DOES : procedure(target:GLenum; image:GLeglImageOES);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
@@ -1372,6 +1396,9 @@ type
 function glGetProcAddress(ahlib:tlibhandle;ProcName:pchar):pointer;
 
 procedure GLES20Initialization;
+procedure GLES30Initialization;
+procedure GLES31Initialization;
+procedure GLES32Initialization;
 
 implementation
 
@@ -1526,12 +1553,12 @@ implementation
 {$endif EGL}
 
   var
-    GLESv2Lib : tlibhandle;
+    GLESLib : tlibhandle;
 
-  procedure FreeGLESv2;
+  procedure FreeGLESv3;
     begin
-      if GLESv2Lib<>0 then
-        FreeLibrary(GLESv2Lib);
+      if GLESLib<>0 then
+        FreeLibrary(GLESLib);
 
       glActiveTexture:=nil;
       glAttachShader:=nil;
@@ -1699,188 +1726,213 @@ implementation
       glBeginPerfMonitorAMD:=nil;
       glEndPerfMonitorAMD:=nil;
       glGetPerfMonitorCounterDataAMD:=nil;
+      //
+      glTransformFeedbackVaryings := nil;
+      glDrawArraysInstanced := nil;
+      glDrawElementsInstanced := nil;
+      glBindVertexArray := nil;
+      glBindBufferBase := nil;
+      glBeginTransformFeedback := nil;
+      glEndTransformFeedback := nil;
+      glVertexAttribDivisor := nil;
+      glGenVertexArrays := nil;
+      glDeleteVertexArrays := nil;
     end;
 
 
-  procedure LoadGLESv2(const Lib: string; const AltLibName: string = '');
+  procedure LoadGLES(const IsVersion3: Boolean; const Lib: string; const AltLibName: string = '');
     begin
-      FreeGLESv2;
+      FreeGLESv3;
 {$ifdef OpenGLES}
-      GLESv2Lib:=dynlibs.LoadLibrary(Lib);
-      if (GLESv2Lib=0) and (AltLibName <> '') then
-        GLESv2Lib:=dynlibs.LoadLibrary(AltLibName);
-      if GLESv2Lib=0 then
+      GLESLib:=dynlibs.LoadLibrary(Lib);
+      if (GLESLib=0) and (AltLibName <> '') then
+        GLESLib:=dynlibs.LoadLibrary(AltLibName);
+      if GLESLib=0 then
         raise Exception.Create(format('Could not load library: %s',[Lib]));
 {$else}
       Exit;
 {$endif}
-
-      pointer(glActiveTexture):=glGetProcAddress(GLESv2Lib,'glActiveTexture');
-      pointer(glAttachShader):=glGetProcAddress(GLESv2Lib,'glAttachShader');
-      pointer(glBindAttribLocation):=glGetProcAddress(GLESv2Lib,'glBindAttribLocation');
-      pointer(glBindBuffer):=glGetProcAddress(GLESv2Lib,'glBindBuffer');
-      pointer(glBindFramebuffer):=glGetProcAddress(GLESv2Lib,'glBindFramebuffer');
-      pointer(glBindRenderbuffer):=glGetProcAddress(GLESv2Lib,'glBindRenderbuffer');
-      pointer(glBindTexture):=glGetProcAddress(GLESv2Lib,'glBindTexture');
-      pointer(glBlendColor):=glGetProcAddress(GLESv2Lib,'glBlendColor');
-      pointer(glBlendEquation):=glGetProcAddress(GLESv2Lib,'glBlendEquation');
-      pointer(glBlendEquationSeparate):=glGetProcAddress(GLESv2Lib,'glBlendEquationSeparate');
-      pointer(glBlendFunc):=glGetProcAddress(GLESv2Lib,'glBlendFunc');
-      pointer(glBlendFuncSeparate):=glGetProcAddress(GLESv2Lib,'glBlendFuncSeparate');
-      pointer(glBufferData):=glGetProcAddress(GLESv2Lib,'glBufferData');
-      pointer(glBufferSubData):=glGetProcAddress(GLESv2Lib,'glBufferSubData');
-      pointer(glCheckFramebufferStatus):=glGetProcAddress(GLESv2Lib,'glCheckFramebufferStatus');
-      pointer(glClear):=glGetProcAddress(GLESv2Lib,'glClear');
-      pointer(glClearColor):=glGetProcAddress(GLESv2Lib,'glClearColor');
-      pointer(glClearDepthf):=glGetProcAddress(GLESv2Lib,'glClearDepthf');
-      pointer(glClearStencil):=glGetProcAddress(GLESv2Lib,'glClearStencil');
-      pointer(glColorMask):=glGetProcAddress(GLESv2Lib,'glColorMask');
-      pointer(glCompileShader):=glGetProcAddress(GLESv2Lib,'glCompileShader');
-      pointer(glCompressedTexImage2D):=glGetProcAddress(GLESv2Lib,'glCompressedTexImage2D');
-      pointer(glCompressedTexSubImage2D):=glGetProcAddress(GLESv2Lib,'glCompressedTexSubImage2D');
-      pointer(glCopyTexImage2D):=glGetProcAddress(GLESv2Lib,'glCopyTexImage2D');
-      pointer(glCopyTexSubImage2D):=glGetProcAddress(GLESv2Lib,'glCopyTexSubImage2D');
-      pointer(glCreateProgram):=glGetProcAddress(GLESv2Lib,'glCreateProgram');
-      pointer(glCreateShader):=glGetProcAddress(GLESv2Lib,'glCreateShader');
-      pointer(glCullFace):=glGetProcAddress(GLESv2Lib,'glCullFace');
-      pointer(glDeleteBuffers):=glGetProcAddress(GLESv2Lib,'glDeleteBuffers');
-      pointer(glDeleteFramebuffers):=glGetProcAddress(GLESv2Lib,'glDeleteFramebuffers');
-      pointer(glDeleteProgram):=glGetProcAddress(GLESv2Lib,'glDeleteProgram');
-      pointer(glDeleteRenderbuffers):=glGetProcAddress(GLESv2Lib,'glDeleteRenderbuffers');
-      pointer(glDeleteShader):=glGetProcAddress(GLESv2Lib,'glDeleteShader');
-      pointer(glDeleteTextures):=glGetProcAddress(GLESv2Lib,'glDeleteTextures');
-      pointer(glDepthFunc):=glGetProcAddress(GLESv2Lib,'glDepthFunc');
-      pointer(glDepthMask):=glGetProcAddress(GLESv2Lib,'glDepthMask');
-      pointer(glDepthRangef):=glGetProcAddress(GLESv2Lib,'glDepthRangef');
-      pointer(glDetachShader):=glGetProcAddress(GLESv2Lib,'glDetachShader');
-      pointer(glDisable):=glGetProcAddress(GLESv2Lib,'glDisable');
-      pointer(glDisableVertexAttribArray):=glGetProcAddress(GLESv2Lib,'glDisableVertexAttribArray');
-      pointer(glDrawArrays):=glGetProcAddress(GLESv2Lib,'glDrawArrays');
-      pointer(glDrawElements):=glGetProcAddress(GLESv2Lib,'glDrawElements');
-      pointer(glEnable):=glGetProcAddress(GLESv2Lib,'glEnable');
-      pointer(glEnableVertexAttribArray):=glGetProcAddress(GLESv2Lib,'glEnableVertexAttribArray');
-      pointer(glFinish):=glGetProcAddress(GLESv2Lib,'glFinish');
-      pointer(glFlush):=glGetProcAddress(GLESv2Lib,'glFlush');
-      pointer(glFramebufferRenderbuffer):=glGetProcAddress(GLESv2Lib,'glFramebufferRenderbuffer');
-      pointer(glFramebufferTexture2D):=glGetProcAddress(GLESv2Lib,'glFramebufferTexture2D');
-      pointer(glFrontFace):=glGetProcAddress(GLESv2Lib,'glFrontFace');
-      pointer(glGenBuffers):=glGetProcAddress(GLESv2Lib,'glGenBuffers');
-      pointer(glGenerateMipmap):=glGetProcAddress(GLESv2Lib,'glGenerateMipmap');
-      pointer(glGenFramebuffers):=glGetProcAddress(GLESv2Lib,'glGenFramebuffers');
-      pointer(glGenRenderbuffers):=glGetProcAddress(GLESv2Lib,'glGenRenderbuffers');
-      pointer(glGenTextures):=glGetProcAddress(GLESv2Lib,'glGenTextures');
-      pointer(glGetActiveAttrib):=glGetProcAddress(GLESv2Lib,'glGetActiveAttrib');
-      pointer(glGetActiveUniform):=glGetProcAddress(GLESv2Lib,'glGetActiveUniform');
-      pointer(glGetAttachedShaders):=glGetProcAddress(GLESv2Lib,'glGetAttachedShaders');
-      pointer(glGetAttribLocation):=glGetProcAddress(GLESv2Lib,'glGetAttribLocation');
-      pointer(glGetBooleanv):=glGetProcAddress(GLESv2Lib,'glGetBooleanv');
-      pointer(glGetBufferParameteriv):=glGetProcAddress(GLESv2Lib,'glGetBufferParameteriv');
-      pointer(glGetError):=glGetProcAddress(GLESv2Lib,'glGetError');
-      pointer(glGetFloatv):=glGetProcAddress(GLESv2Lib,'glGetFloatv');
-      pointer(glGetFramebufferAttachmentParameteriv):=glGetProcAddress(GLESv2Lib,'glGetFramebufferAttachmentParameteriv');
-      pointer(glGetIntegerv):=glGetProcAddress(GLESv2Lib,'glGetIntegerv');
-      pointer(glGetProgramiv):=glGetProcAddress(GLESv2Lib,'glGetProgramiv');
-      pointer(glGetProgramInfoLog):=glGetProcAddress(GLESv2Lib,'glGetProgramInfoLog');
-      pointer(glGetRenderbufferParameteriv):=glGetProcAddress(GLESv2Lib,'glGetRenderbufferParameteriv');
-      pointer(glGetShaderiv):=glGetProcAddress(GLESv2Lib,'glGetShaderiv');
-      pointer(glGetShaderInfoLog):=glGetProcAddress(GLESv2Lib,'glGetShaderInfoLog');
-      pointer(glGetShaderPrecisionFormat):=glGetProcAddress(GLESv2Lib,'glGetShaderPrecisionFormat');
-      pointer(glGetShaderSource):=glGetProcAddress(GLESv2Lib,'glGetShaderSource');
-      pointer(glGetString):=glGetProcAddress(GLESv2Lib,'glGetString');
-      pointer(glGetTexParameterfv):=glGetProcAddress(GLESv2Lib,'glGetTexParameterfv');
-      pointer(glGetTexParameteriv):=glGetProcAddress(GLESv2Lib,'glGetTexParameteriv');
-      pointer(glGetUniformfv):=glGetProcAddress(GLESv2Lib,'glGetUniformfv');
-      pointer(glGetUniformiv):=glGetProcAddress(GLESv2Lib,'glGetUniformiv');
-      pointer(glGetUniformLocation):=glGetProcAddress(GLESv2Lib,'glGetUniformLocation');
-      pointer(glGetVertexAttribfv):=glGetProcAddress(GLESv2Lib,'glGetVertexAttribfv');
-      pointer(glGetVertexAttribiv):=glGetProcAddress(GLESv2Lib,'glGetVertexAttribiv');
-      pointer(glGetVertexAttribPointerv):=glGetProcAddress(GLESv2Lib,'glGetVertexAttribPointerv');
-      pointer(glHint):=glGetProcAddress(GLESv2Lib,'glHint');
-      pointer(glIsBuffer):=glGetProcAddress(GLESv2Lib,'glIsBuffer');
-      pointer(glIsEnabled):=glGetProcAddress(GLESv2Lib,'glIsEnabled');
-      pointer(glIsFramebuffer):=glGetProcAddress(GLESv2Lib,'glIsFramebuffer');
-      pointer(glIsProgram):=glGetProcAddress(GLESv2Lib,'glIsProgram');
-      pointer(glIsRenderbuffer):=glGetProcAddress(GLESv2Lib,'glIsRenderbuffer');
-      pointer(glIsShader):=glGetProcAddress(GLESv2Lib,'glIsShader');
-      pointer(glIsTexture):=glGetProcAddress(GLESv2Lib,'glIsTexture');
-      pointer(glLineWidth):=glGetProcAddress(GLESv2Lib,'glLineWidth');
-      pointer(glLinkProgram):=glGetProcAddress(GLESv2Lib,'glLinkProgram');
-      pointer(glPixelStorei):=glGetProcAddress(GLESv2Lib,'glPixelStorei');
-      pointer(glPolygonOffset):=glGetProcAddress(GLESv2Lib,'glPolygonOffset');
-      pointer(glReadPixels):=glGetProcAddress(GLESv2Lib,'glReadPixels');
-      pointer(glReleaseShaderCompiler):=glGetProcAddress(GLESv2Lib,'glReleaseShaderCompiler');
-      pointer(glRenderbufferStorage):=glGetProcAddress(GLESv2Lib,'glRenderbufferStorage');
-      pointer(glSampleCoverage):=glGetProcAddress(GLESv2Lib,'glSampleCoverage');
-      pointer(glScissor):=glGetProcAddress(GLESv2Lib,'glScissor');
-      pointer(glShaderBinary):=glGetProcAddress(GLESv2Lib,'glShaderBinary');
-      pointer(glShaderSource):=glGetProcAddress(GLESv2Lib,'glShaderSource');
-      pointer(glStencilFunc):=glGetProcAddress(GLESv2Lib,'glStencilFunc');
-      pointer(glStencilFuncSeparate):=glGetProcAddress(GLESv2Lib,'glStencilFuncSeparate');
-      pointer(glStencilMask):=glGetProcAddress(GLESv2Lib,'glStencilMask');
-      pointer(glStencilMaskSeparate):=glGetProcAddress(GLESv2Lib,'glStencilMaskSeparate');
-      pointer(glStencilOp):=glGetProcAddress(GLESv2Lib,'glStencilOp');
-      pointer(glStencilOpSeparate):=glGetProcAddress(GLESv2Lib,'glStencilOpSeparate');
-      pointer(glTexImage2D):=glGetProcAddress(GLESv2Lib,'glTexImage2D');
-      pointer(glTexParameterf):=glGetProcAddress(GLESv2Lib,'glTexParameterf');
-      pointer(glTexParameterfv):=glGetProcAddress(GLESv2Lib,'glTexParameterfv');
-      pointer(glTexParameteri):=glGetProcAddress(GLESv2Lib,'glTexParameteri');
-      pointer(glTexParameteriv):=glGetProcAddress(GLESv2Lib,'glTexParameteriv');
-      pointer(glTexSubImage2D):=glGetProcAddress(GLESv2Lib,'glTexSubImage2D');
-      pointer(glUniform1f):=glGetProcAddress(GLESv2Lib,'glUniform1f');
-      pointer(glUniform1fv):=glGetProcAddress(GLESv2Lib,'glUniform1fv');
-      pointer(glUniform1i):=glGetProcAddress(GLESv2Lib,'glUniform1i');
-      pointer(glUniform1iv):=glGetProcAddress(GLESv2Lib,'glUniform1iv');
-      pointer(glUniform2f):=glGetProcAddress(GLESv2Lib,'glUniform2f');
-      pointer(glUniform2fv):=glGetProcAddress(GLESv2Lib,'glUniform2fv');
-      pointer(glUniform2i):=glGetProcAddress(GLESv2Lib,'glUniform2i');
-      pointer(glUniform2iv):=glGetProcAddress(GLESv2Lib,'glUniform2iv');
-      pointer(glUniform3f):=glGetProcAddress(GLESv2Lib,'glUniform3f');
-      pointer(glUniform3fv):=glGetProcAddress(GLESv2Lib,'glUniform3fv');
-      pointer(glUniform3i):=glGetProcAddress(GLESv2Lib,'glUniform3i');
-      pointer(glUniform3iv):=glGetProcAddress(GLESv2Lib,'glUniform3iv');
-      pointer(glUniform4f):=glGetProcAddress(GLESv2Lib,'glUniform4f');
-      pointer(glUniform4fv):=glGetProcAddress(GLESv2Lib,'glUniform4fv');
-      pointer(glUniform4i):=glGetProcAddress(GLESv2Lib,'glUniform4i');
-      pointer(glUniform4iv):=glGetProcAddress(GLESv2Lib,'glUniform4iv');
-      pointer(glUniformMatrix2fv):=glGetProcAddress(GLESv2Lib,'glUniformMatrix2fv');
-      pointer(glUniformMatrix3fv):=glGetProcAddress(GLESv2Lib,'glUniformMatrix3fv');
-      pointer(glUniformMatrix4fv):=glGetProcAddress(GLESv2Lib,'glUniformMatrix4fv');
-      pointer(glUseProgram):=glGetProcAddress(GLESv2Lib,'glUseProgram');
-      pointer(glValidateProgram):=glGetProcAddress(GLESv2Lib,'glValidateProgram');
-      pointer(glVertexAttrib1f):=glGetProcAddress(GLESv2Lib,'glVertexAttrib1f');
-      pointer(glVertexAttrib1fv):=glGetProcAddress(GLESv2Lib,'glVertexAttrib1fv');
-      pointer(glVertexAttrib2f):=glGetProcAddress(GLESv2Lib,'glVertexAttrib2f');
-      pointer(glVertexAttrib2fv):=glGetProcAddress(GLESv2Lib,'glVertexAttrib2fv');
-      pointer(glVertexAttrib3f):=glGetProcAddress(GLESv2Lib,'glVertexAttrib3f');
-      pointer(glVertexAttrib3fv):=glGetProcAddress(GLESv2Lib,'glVertexAttrib3fv');
-      pointer(glVertexAttrib4f):=glGetProcAddress(GLESv2Lib,'glVertexAttrib4f');
-      pointer(glVertexAttrib4fv):=glGetProcAddress(GLESv2Lib,'glVertexAttrib4fv');
-      pointer(glVertexAttribPointer):=glGetProcAddress(GLESv2Lib,'glVertexAttribPointer');
-      pointer(glViewport):=glGetProcAddress(GLESv2Lib,'glViewport');
-      pointer(glEGLImageTargetTexture2DOES):=glGetProcAddress(GLESv2Lib,'glEGLImageTargetTexture2DOES');
-      pointer(glEGLImageTargetRenderbufferStorageOES):=glGetProcAddress(GLESv2Lib,'glEGLImageTargetRenderbufferStorageOES');
-      pointer(glGetProgramBinaryOES):=glGetProcAddress(GLESv2Lib,'glGetProgramBinaryOES');
-      pointer(glProgramBinaryOES):=glGetProcAddress(GLESv2Lib,'glProgramBinaryOES');
-      pointer(glMapBufferOES):=glGetProcAddress(GLESv2Lib,'glMapBufferOES');
-      pointer(glUnmapBufferOES):=glGetProcAddress(GLESv2Lib,'glUnmapBufferOES');
-      pointer(glGetBufferPointervOES):=glGetProcAddress(GLESv2Lib,'glGetBufferPointervOES');
-      pointer(glTexImage3DOES):=glGetProcAddress(GLESv2Lib,'glTexImage3DOES');
-      pointer(glTexSubImage3DOES):=glGetProcAddress(GLESv2Lib,'glTexSubImage3DOES');
-      pointer(glCopyTexSubImage3DOES):=glGetProcAddress(GLESv2Lib,'glCopyTexSubImage3DOES');
-      pointer(glCompressedTexImage3DOES):=glGetProcAddress(GLESv2Lib,'glCompressedTexImage3DOES');
-      pointer(glCompressedTexSubImage3DOES):=glGetProcAddress(GLESv2Lib,'glCompressedTexSubImage3DOES');
-      pointer(glFramebufferTexture3DOES):=glGetProcAddress(GLESv2Lib,'glFramebufferTexture3DOES');
-      pointer(glGetPerfMonitorGroupsAMD):=glGetProcAddress(GLESv2Lib,'glGetPerfMonitorGroupsAMD');
-      pointer(glGetPerfMonitorCountersAMD):=glGetProcAddress(GLESv2Lib,'glGetPerfMonitorCountersAMD');
-      pointer(glGetPerfMonitorGroupStringAMD):=glGetProcAddress(GLESv2Lib,'glGetPerfMonitorGroupStringAMD');
-      pointer(glGetPerfMonitorCounterStringAMD):=glGetProcAddress(GLESv2Lib,'glGetPerfMonitorCounterStringAMD');
-      pointer(glGetPerfMonitorCounterInfoAMD):=glGetProcAddress(GLESv2Lib,'glGetPerfMonitorCounterInfoAMD');
-      pointer(glGenPerfMonitorsAMD):=glGetProcAddress(GLESv2Lib,'glGenPerfMonitorsAMD');
-      pointer(glDeletePerfMonitorsAMD):=glGetProcAddress(GLESv2Lib,'glDeletePerfMonitorsAMD');
-      pointer(glSelectPerfMonitorCountersAMD):=glGetProcAddress(GLESv2Lib,'glSelectPerfMonitorCountersAMD');
-      pointer(glBeginPerfMonitorAMD):=glGetProcAddress(GLESv2Lib,'glBeginPerfMonitorAMD');
-      pointer(glEndPerfMonitorAMD):=glGetProcAddress(GLESv2Lib,'glEndPerfMonitorAMD');
-      pointer(glGetPerfMonitorCounterDataAMD):=glGetProcAddress(GLESv2Lib,'glGetPerfMonitorCounterDataAMD');
+      { OpenGL ES 2.0 APIs }
+      pointer(glActiveTexture):=glGetProcAddress(GLESLib,'glActiveTexture');
+      pointer(glAttachShader):=glGetProcAddress(GLESLib,'glAttachShader');
+      pointer(glBindAttribLocation):=glGetProcAddress(GLESLib,'glBindAttribLocation');
+      pointer(glBindBuffer):=glGetProcAddress(GLESLib,'glBindBuffer');
+      pointer(glBindFramebuffer):=glGetProcAddress(GLESLib,'glBindFramebuffer');
+      pointer(glBindRenderbuffer):=glGetProcAddress(GLESLib,'glBindRenderbuffer');
+      pointer(glBindTexture):=glGetProcAddress(GLESLib,'glBindTexture');
+      pointer(glBlendColor):=glGetProcAddress(GLESLib,'glBlendColor');
+      pointer(glBlendEquation):=glGetProcAddress(GLESLib,'glBlendEquation');
+      pointer(glBlendEquationSeparate):=glGetProcAddress(GLESLib,'glBlendEquationSeparate');
+      pointer(glBlendFunc):=glGetProcAddress(GLESLib,'glBlendFunc');
+      pointer(glBlendFuncSeparate):=glGetProcAddress(GLESLib,'glBlendFuncSeparate');
+      pointer(glBufferData):=glGetProcAddress(GLESLib,'glBufferData');
+      pointer(glBufferSubData):=glGetProcAddress(GLESLib,'glBufferSubData');
+      pointer(glCheckFramebufferStatus):=glGetProcAddress(GLESLib,'glCheckFramebufferStatus');
+      pointer(glClear):=glGetProcAddress(GLESLib,'glClear');
+      pointer(glClearColor):=glGetProcAddress(GLESLib,'glClearColor');
+      pointer(glClearDepthf):=glGetProcAddress(GLESLib,'glClearDepthf');
+      pointer(glClearStencil):=glGetProcAddress(GLESLib,'glClearStencil');
+      pointer(glColorMask):=glGetProcAddress(GLESLib,'glColorMask');
+      pointer(glCompileShader):=glGetProcAddress(GLESLib,'glCompileShader');
+      pointer(glCompressedTexImage2D):=glGetProcAddress(GLESLib,'glCompressedTexImage2D');
+      pointer(glCompressedTexSubImage2D):=glGetProcAddress(GLESLib,'glCompressedTexSubImage2D');
+      pointer(glCopyTexImage2D):=glGetProcAddress(GLESLib,'glCopyTexImage2D');
+      pointer(glCopyTexSubImage2D):=glGetProcAddress(GLESLib,'glCopyTexSubImage2D');
+      pointer(glCreateProgram):=glGetProcAddress(GLESLib,'glCreateProgram');
+      pointer(glCreateShader):=glGetProcAddress(GLESLib,'glCreateShader');
+      pointer(glCullFace):=glGetProcAddress(GLESLib,'glCullFace');
+      pointer(glDeleteBuffers):=glGetProcAddress(GLESLib,'glDeleteBuffers');
+      pointer(glDeleteFramebuffers):=glGetProcAddress(GLESLib,'glDeleteFramebuffers');
+      pointer(glDeleteProgram):=glGetProcAddress(GLESLib,'glDeleteProgram');
+      pointer(glDeleteRenderbuffers):=glGetProcAddress(GLESLib,'glDeleteRenderbuffers');
+      pointer(glDeleteShader):=glGetProcAddress(GLESLib,'glDeleteShader');
+      pointer(glDeleteTextures):=glGetProcAddress(GLESLib,'glDeleteTextures');
+      pointer(glDepthFunc):=glGetProcAddress(GLESLib,'glDepthFunc');
+      pointer(glDepthMask):=glGetProcAddress(GLESLib,'glDepthMask');
+      pointer(glDepthRangef):=glGetProcAddress(GLESLib,'glDepthRangef');
+      pointer(glDetachShader):=glGetProcAddress(GLESLib,'glDetachShader');
+      pointer(glDisable):=glGetProcAddress(GLESLib,'glDisable');
+      pointer(glDisableVertexAttribArray):=glGetProcAddress(GLESLib,'glDisableVertexAttribArray');
+      pointer(glDrawArrays):=glGetProcAddress(GLESLib,'glDrawArrays');
+      pointer(glDrawElements):=glGetProcAddress(GLESLib,'glDrawElements');
+      pointer(glEnable):=glGetProcAddress(GLESLib,'glEnable');
+      pointer(glEnableVertexAttribArray):=glGetProcAddress(GLESLib,'glEnableVertexAttribArray');
+      pointer(glFinish):=glGetProcAddress(GLESLib,'glFinish');
+      pointer(glFlush):=glGetProcAddress(GLESLib,'glFlush');
+      pointer(glFramebufferRenderbuffer):=glGetProcAddress(GLESLib,'glFramebufferRenderbuffer');
+      pointer(glFramebufferTexture2D):=glGetProcAddress(GLESLib,'glFramebufferTexture2D');
+      pointer(glFrontFace):=glGetProcAddress(GLESLib,'glFrontFace');
+      pointer(glGenBuffers):=glGetProcAddress(GLESLib,'glGenBuffers');
+      pointer(glGenerateMipmap):=glGetProcAddress(GLESLib,'glGenerateMipmap');
+      pointer(glGenFramebuffers):=glGetProcAddress(GLESLib,'glGenFramebuffers');
+      pointer(glGenRenderbuffers):=glGetProcAddress(GLESLib,'glGenRenderbuffers');
+      pointer(glGenTextures):=glGetProcAddress(GLESLib,'glGenTextures');
+      pointer(glGetActiveAttrib):=glGetProcAddress(GLESLib,'glGetActiveAttrib');
+      pointer(glGetActiveUniform):=glGetProcAddress(GLESLib,'glGetActiveUniform');
+      pointer(glGetAttachedShaders):=glGetProcAddress(GLESLib,'glGetAttachedShaders');
+      pointer(glGetAttribLocation):=glGetProcAddress(GLESLib,'glGetAttribLocation');
+      pointer(glGetBooleanv):=glGetProcAddress(GLESLib,'glGetBooleanv');
+      pointer(glGetBufferParameteriv):=glGetProcAddress(GLESLib,'glGetBufferParameteriv');
+      pointer(glGetError):=glGetProcAddress(GLESLib,'glGetError');
+      pointer(glGetFloatv):=glGetProcAddress(GLESLib,'glGetFloatv');
+      pointer(glGetFramebufferAttachmentParameteriv):=glGetProcAddress(GLESLib,'glGetFramebufferAttachmentParameteriv');
+      pointer(glGetIntegerv):=glGetProcAddress(GLESLib,'glGetIntegerv');
+      pointer(glGetProgramiv):=glGetProcAddress(GLESLib,'glGetProgramiv');
+      pointer(glGetProgramInfoLog):=glGetProcAddress(GLESLib,'glGetProgramInfoLog');
+      pointer(glGetRenderbufferParameteriv):=glGetProcAddress(GLESLib,'glGetRenderbufferParameteriv');
+      pointer(glGetShaderiv):=glGetProcAddress(GLESLib,'glGetShaderiv');
+      pointer(glGetShaderInfoLog):=glGetProcAddress(GLESLib,'glGetShaderInfoLog');
+      pointer(glGetShaderPrecisionFormat):=glGetProcAddress(GLESLib,'glGetShaderPrecisionFormat');
+      pointer(glGetShaderSource):=glGetProcAddress(GLESLib,'glGetShaderSource');
+      pointer(glGetString):=glGetProcAddress(GLESLib,'glGetString');
+      pointer(glGetTexParameterfv):=glGetProcAddress(GLESLib,'glGetTexParameterfv');
+      pointer(glGetTexParameteriv):=glGetProcAddress(GLESLib,'glGetTexParameteriv');
+      pointer(glGetUniformfv):=glGetProcAddress(GLESLib,'glGetUniformfv');
+      pointer(glGetUniformiv):=glGetProcAddress(GLESLib,'glGetUniformiv');
+      pointer(glGetUniformLocation):=glGetProcAddress(GLESLib,'glGetUniformLocation');
+      pointer(glGetVertexAttribfv):=glGetProcAddress(GLESLib,'glGetVertexAttribfv');
+      pointer(glGetVertexAttribiv):=glGetProcAddress(GLESLib,'glGetVertexAttribiv');
+      pointer(glGetVertexAttribPointerv):=glGetProcAddress(GLESLib,'glGetVertexAttribPointerv');
+      pointer(glHint):=glGetProcAddress(GLESLib,'glHint');
+      pointer(glIsBuffer):=glGetProcAddress(GLESLib,'glIsBuffer');
+      pointer(glIsEnabled):=glGetProcAddress(GLESLib,'glIsEnabled');
+      pointer(glIsFramebuffer):=glGetProcAddress(GLESLib,'glIsFramebuffer');
+      pointer(glIsProgram):=glGetProcAddress(GLESLib,'glIsProgram');
+      pointer(glIsRenderbuffer):=glGetProcAddress(GLESLib,'glIsRenderbuffer');
+      pointer(glIsShader):=glGetProcAddress(GLESLib,'glIsShader');
+      pointer(glIsTexture):=glGetProcAddress(GLESLib,'glIsTexture');
+      pointer(glLineWidth):=glGetProcAddress(GLESLib,'glLineWidth');
+      pointer(glLinkProgram):=glGetProcAddress(GLESLib,'glLinkProgram');
+      pointer(glPixelStorei):=glGetProcAddress(GLESLib,'glPixelStorei');
+      pointer(glPolygonOffset):=glGetProcAddress(GLESLib,'glPolygonOffset');
+      pointer(glReadPixels):=glGetProcAddress(GLESLib,'glReadPixels');
+      pointer(glReleaseShaderCompiler):=glGetProcAddress(GLESLib,'glReleaseShaderCompiler');
+      pointer(glRenderbufferStorage):=glGetProcAddress(GLESLib,'glRenderbufferStorage');
+      pointer(glSampleCoverage):=glGetProcAddress(GLESLib,'glSampleCoverage');
+      pointer(glScissor):=glGetProcAddress(GLESLib,'glScissor');
+      pointer(glShaderBinary):=glGetProcAddress(GLESLib,'glShaderBinary');
+      pointer(glShaderSource):=glGetProcAddress(GLESLib,'glShaderSource');
+      pointer(glStencilFunc):=glGetProcAddress(GLESLib,'glStencilFunc');
+      pointer(glStencilFuncSeparate):=glGetProcAddress(GLESLib,'glStencilFuncSeparate');
+      pointer(glStencilMask):=glGetProcAddress(GLESLib,'glStencilMask');
+      pointer(glStencilMaskSeparate):=glGetProcAddress(GLESLib,'glStencilMaskSeparate');
+      pointer(glStencilOp):=glGetProcAddress(GLESLib,'glStencilOp');
+      pointer(glStencilOpSeparate):=glGetProcAddress(GLESLib,'glStencilOpSeparate');
+      pointer(glTexImage2D):=glGetProcAddress(GLESLib,'glTexImage2D');
+      pointer(glTexParameterf):=glGetProcAddress(GLESLib,'glTexParameterf');
+      pointer(glTexParameterfv):=glGetProcAddress(GLESLib,'glTexParameterfv');
+      pointer(glTexParameteri):=glGetProcAddress(GLESLib,'glTexParameteri');
+      pointer(glTexParameteriv):=glGetProcAddress(GLESLib,'glTexParameteriv');
+      pointer(glTexSubImage2D):=glGetProcAddress(GLESLib,'glTexSubImage2D');
+      pointer(glUniform1f):=glGetProcAddress(GLESLib,'glUniform1f');
+      pointer(glUniform1fv):=glGetProcAddress(GLESLib,'glUniform1fv');
+      pointer(glUniform1i):=glGetProcAddress(GLESLib,'glUniform1i');
+      pointer(glUniform1iv):=glGetProcAddress(GLESLib,'glUniform1iv');
+      pointer(glUniform2f):=glGetProcAddress(GLESLib,'glUniform2f');
+      pointer(glUniform2fv):=glGetProcAddress(GLESLib,'glUniform2fv');
+      pointer(glUniform2i):=glGetProcAddress(GLESLib,'glUniform2i');
+      pointer(glUniform2iv):=glGetProcAddress(GLESLib,'glUniform2iv');
+      pointer(glUniform3f):=glGetProcAddress(GLESLib,'glUniform3f');
+      pointer(glUniform3fv):=glGetProcAddress(GLESLib,'glUniform3fv');
+      pointer(glUniform3i):=glGetProcAddress(GLESLib,'glUniform3i');
+      pointer(glUniform3iv):=glGetProcAddress(GLESLib,'glUniform3iv');
+      pointer(glUniform4f):=glGetProcAddress(GLESLib,'glUniform4f');
+      pointer(glUniform4fv):=glGetProcAddress(GLESLib,'glUniform4fv');
+      pointer(glUniform4i):=glGetProcAddress(GLESLib,'glUniform4i');
+      pointer(glUniform4iv):=glGetProcAddress(GLESLib,'glUniform4iv');
+      pointer(glUniformMatrix2fv):=glGetProcAddress(GLESLib,'glUniformMatrix2fv');
+      pointer(glUniformMatrix3fv):=glGetProcAddress(GLESLib,'glUniformMatrix3fv');
+      pointer(glUniformMatrix4fv):=glGetProcAddress(GLESLib,'glUniformMatrix4fv');
+      pointer(glUseProgram):=glGetProcAddress(GLESLib,'glUseProgram');
+      pointer(glValidateProgram):=glGetProcAddress(GLESLib,'glValidateProgram');
+      pointer(glVertexAttrib1f):=glGetProcAddress(GLESLib,'glVertexAttrib1f');
+      pointer(glVertexAttrib1fv):=glGetProcAddress(GLESLib,'glVertexAttrib1fv');
+      pointer(glVertexAttrib2f):=glGetProcAddress(GLESLib,'glVertexAttrib2f');
+      pointer(glVertexAttrib2fv):=glGetProcAddress(GLESLib,'glVertexAttrib2fv');
+      pointer(glVertexAttrib3f):=glGetProcAddress(GLESLib,'glVertexAttrib3f');
+      pointer(glVertexAttrib3fv):=glGetProcAddress(GLESLib,'glVertexAttrib3fv');
+      pointer(glVertexAttrib4f):=glGetProcAddress(GLESLib,'glVertexAttrib4f');
+      pointer(glVertexAttrib4fv):=glGetProcAddress(GLESLib,'glVertexAttrib4fv');
+      pointer(glVertexAttribPointer):=glGetProcAddress(GLESLib,'glVertexAttribPointer');
+      pointer(glViewport):=glGetProcAddress(GLESLib,'glViewport');
+      pointer(glEGLImageTargetTexture2DOES):=glGetProcAddress(GLESLib,'glEGLImageTargetTexture2DOES');
+      pointer(glEGLImageTargetRenderbufferStorageOES):=glGetProcAddress(GLESLib,'glEGLImageTargetRenderbufferStorageOES');
+      pointer(glGetProgramBinaryOES):=glGetProcAddress(GLESLib,'glGetProgramBinaryOES');
+      pointer(glProgramBinaryOES):=glGetProcAddress(GLESLib,'glProgramBinaryOES');
+      pointer(glMapBufferOES):=glGetProcAddress(GLESLib,'glMapBufferOES');
+      pointer(glUnmapBufferOES):=glGetProcAddress(GLESLib,'glUnmapBufferOES');
+      pointer(glGetBufferPointervOES):=glGetProcAddress(GLESLib,'glGetBufferPointervOES');
+      pointer(glTexImage3DOES):=glGetProcAddress(GLESLib,'glTexImage3DOES');
+      pointer(glTexSubImage3DOES):=glGetProcAddress(GLESLib,'glTexSubImage3DOES');
+      pointer(glCopyTexSubImage3DOES):=glGetProcAddress(GLESLib,'glCopyTexSubImage3DOES');
+      pointer(glCompressedTexImage3DOES):=glGetProcAddress(GLESLib,'glCompressedTexImage3DOES');
+      pointer(glCompressedTexSubImage3DOES):=glGetProcAddress(GLESLib,'glCompressedTexSubImage3DOES');
+      pointer(glFramebufferTexture3DOES):=glGetProcAddress(GLESLib,'glFramebufferTexture3DOES');
+      pointer(glGetPerfMonitorGroupsAMD):=glGetProcAddress(GLESLib,'glGetPerfMonitorGroupsAMD');
+      pointer(glGetPerfMonitorCountersAMD):=glGetProcAddress(GLESLib,'glGetPerfMonitorCountersAMD');
+      pointer(glGetPerfMonitorGroupStringAMD):=glGetProcAddress(GLESLib,'glGetPerfMonitorGroupStringAMD');
+      pointer(glGetPerfMonitorCounterStringAMD):=glGetProcAddress(GLESLib,'glGetPerfMonitorCounterStringAMD');
+      pointer(glGetPerfMonitorCounterInfoAMD):=glGetProcAddress(GLESLib,'glGetPerfMonitorCounterInfoAMD');
+      pointer(glGenPerfMonitorsAMD):=glGetProcAddress(GLESLib,'glGenPerfMonitorsAMD');
+      pointer(glDeletePerfMonitorsAMD):=glGetProcAddress(GLESLib,'glDeletePerfMonitorsAMD');
+      pointer(glSelectPerfMonitorCountersAMD):=glGetProcAddress(GLESLib,'glSelectPerfMonitorCountersAMD');
+      pointer(glBeginPerfMonitorAMD):=glGetProcAddress(GLESLib,'glBeginPerfMonitorAMD');
+      pointer(glEndPerfMonitorAMD):=glGetProcAddress(GLESLib,'glEndPerfMonitorAMD');
+      pointer(glGetPerfMonitorCounterDataAMD):=glGetProcAddress(GLESLib,'glGetPerfMonitorCounterDataAMD');
+      { OpenGL ES 3.0 APIs }
+      if  IsVersion3 then
+      begin
+         pointer(glTransformFeedbackVaryings) := glGetProcAddress(GLESLib, 'glTransformFeedbackVaryings');
+         pointer(glDrawArraysInstanced) := glGetProcAddress(GLESLib, 'glDrawArraysInstanced');
+         pointer(glDrawElementsInstanced) := glGetProcAddress(GLESLib, 'glDrawElementsInstanced');
+         pointer(glBindVertexArray) := glGetProcAddress(GLESLib, 'glBindVertexArray');
+         pointer(glBindBufferBase) := glGetProcAddress(GLESLib, 'glBindBufferBase');
+         pointer(glBeginTransformFeedback) := glGetProcAddress(GLESLib, 'glBeginTransformFeedback');
+         pointer(glEndTransformFeedback) := glGetProcAddress(GLESLib, 'glEndTransformFeedback');
+         pointer(glVertexAttribDivisor) := glGetProcAddress(GLESLib, 'glVertexAttribDivisor');
+         pointer(glGenVertexArrays) := glGetProcAddress(GLESLib, 'glGenVertexArrays');
+         pointer(glDeleteVertexArrays) := glGetProcAddress(GLESLib, 'glDeleteVertexArrays');
+      end;
     end;
 
 procedure GLES20Initialization;
@@ -1894,7 +1946,8 @@ begin
     {$endif});
   {$endif}
 
-  LoadGLESv2(
+  LoadGLES(
+     False,
     {$ifdef darwin} '/System/Library/Frameworks/OpenGLES.framework/OpenGLES'
     {$else}
       {$ifdef windows} 'libGLESv2.dll'
@@ -1905,16 +1958,38 @@ begin
     {$endif});
 end;
 
+procedure GLES30Initialization;
+begin
+  LoadGLES(
+     True,
+    {$ifdef darwin} '/System/Library/Frameworks/OpenGLES.framework/OpenGLES'
+    {$else}
+      {$ifdef windows} 'libGLESv2.dll'
+      {$else} 'libGLESv3.so'
+      {$endif}
+    {$endif});
+end;
+
+procedure GLES31Initialization;
+begin
+  // TODO:
+end;
+
+procedure GLES32Initialization;
+begin
+  // TODO:
+end;
+
 initialization
   {$ifdef EGL}
   EGLLib:=0;
   {$endif}
-  GLESv2Lib:=0;
+  GLESLib:=0;
   {$ifdef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
   GLES20Initialization;
   {$endif}
 finalization
-  FreeGLESv2;
+  FreeGLESv3;
 {$ifdef EGL}
   FreeEGL;
 {$endif}

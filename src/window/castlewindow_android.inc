@@ -742,11 +742,7 @@ begin
     may be called many times, because ANativeActivity_onCreate may be called
     multple times. So things below must be implemented in a secure way,
     to work Ok when executed multiple times. }
-  {$ifdef OpenGLES3}
-    GLES30Initialization;
-  {$else}
-    GLES20Initialization;
-  {$endif}
+  GLES20Initialization;
   OpenALInitialization;
   VorbisFileInitialization;
   InitializeAndroidCWString;

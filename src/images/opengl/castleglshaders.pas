@@ -1792,12 +1792,11 @@ begin;
   if VaryingLength > 0 then
   begin
     {$ifdef OpenGLES}
-      {$ifndef OpenGLES3}
-        raise EGLSLTransformFeedbackError.Create('OpenGL ES 2.0 doesn''t support Transform Feedback');
-      {$endif}
+    if not (GLFeatures.VersionES_3_0) then
+      raise EGLSLTransformFeedbackError.Create('OpenGL ES 2.0 doesn''t support Transform Feedback');
     {$else}
-    if not (GLVersion.AtLeast(3, 0) and (FSupport = gsStandard)) then
-      raise EGLSLTransformFeedbackError.Create('Transform feedback not supported by your OpenGL version');
+    if not (GLFeatures.Version_3_0 and (FSupport = gsStandard)) then
+      raise EGLSLTransformFeedbackError.Create('Transform feedback not supported by your OpenGL(ES) version');
     {$endif}
     if IsSingleBufferMode then
       TransformFeedbackBufferMode := GL_INTERLEAVED_ATTRIBS

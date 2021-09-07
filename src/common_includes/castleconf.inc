@@ -256,13 +256,7 @@
     {$ifdef CASTLE_NINTENDO_SWITCH}
       {$define CastleGL := CastleInternalNxGLES20}
     {$else}
-      { Use OpenGL ES 3.x APIs }
-      {.$define OpenGLES3}
-      {$ifdef OpenGLES3}
-        {$define CastleGL := CastleGLES30}
-      {$else}
-        {$define CastleGL := CastleGLES20}
-      {$endif}
+      {$define CastleGL := CastleGLES}
     {$endif}
   {$endif}
 
