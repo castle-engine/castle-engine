@@ -166,6 +166,10 @@ var
 begin
   if Find(Protocol) <> nil then
     raise EProtocolAlreadyRegistered.CreateFmt('URL protocol "%s" is already registered', [Protocol]);
+  // We allow Protocol = '', as it is used internally
+  if (Protocol <> '') and
+     (not URIValidProtocol(Protocol)) then
+    raise Exception.CreateFmt('URL protocol name "%s" is invalid (see URIValidProtocol for the requirements on protocol name)', [Protocol]);
   P := TRegisteredProtocol.Create;
   P.Protocol := Protocol;
   P.ReadEvent := ReadEvent;
