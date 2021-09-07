@@ -439,14 +439,6 @@ begin
   FVersionES_3_0 := GLVersion.AtLeast(3, 0);
   FVersionES_3_1 := GLVersion.AtLeast(3, 1);
   FVersionES_3_2 := GLVersion.AtLeast(3, 2);
-    {$ifndef CASTLE_NINTENDO_SWITCH}
-    if FVersionES_3_0 then
-      GLES30Initialization;
-    if FVersionES_3_1 then
-      GLES31Initialization;
-    if FVersionES_3_2 then
-      GLES32Initialization;
-    {$endif}
   {$endif}
 
   {$ifdef OpenGLES}

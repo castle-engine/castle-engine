@@ -1395,10 +1395,7 @@ type
 
 function glGetProcAddress(ahlib:tlibhandle;ProcName:pchar):pointer;
 
-procedure GLES20Initialization;
-procedure GLES30Initialization;
-procedure GLES31Initialization;
-procedure GLES32Initialization;
+procedure GLESInitialization;
 
 implementation
 
@@ -1740,7 +1737,7 @@ implementation
     end;
 
 
-  procedure LoadGLES(const IsVersion3: Boolean; const Lib: string; const AltLibName: string = '');
+  procedure LoadGLES(const Lib: string; const AltLibName: string = '');
     begin
       FreeGLES;
 {$ifdef OpenGLES}
@@ -1919,23 +1916,21 @@ implementation
       pointer(glBeginPerfMonitorAMD):=glGetProcAddress(GLESLib,'glBeginPerfMonitorAMD');
       pointer(glEndPerfMonitorAMD):=glGetProcAddress(GLESLib,'glEndPerfMonitorAMD');
       pointer(glGetPerfMonitorCounterDataAMD):=glGetProcAddress(GLESLib,'glGetPerfMonitorCounterDataAMD');
+
       { OpenGL ES 3.0 APIs }
-      if  IsVersion3 then
-      begin
-         pointer(glTransformFeedbackVaryings) := glGetProcAddress(GLESLib, 'glTransformFeedbackVaryings');
-         pointer(glDrawArraysInstanced) := glGetProcAddress(GLESLib, 'glDrawArraysInstanced');
-         pointer(glDrawElementsInstanced) := glGetProcAddress(GLESLib, 'glDrawElementsInstanced');
-         pointer(glBindVertexArray) := glGetProcAddress(GLESLib, 'glBindVertexArray');
-         pointer(glBindBufferBase) := glGetProcAddress(GLESLib, 'glBindBufferBase');
-         pointer(glBeginTransformFeedback) := glGetProcAddress(GLESLib, 'glBeginTransformFeedback');
-         pointer(glEndTransformFeedback) := glGetProcAddress(GLESLib, 'glEndTransformFeedback');
-         pointer(glVertexAttribDivisor) := glGetProcAddress(GLESLib, 'glVertexAttribDivisor');
-         pointer(glGenVertexArrays) := glGetProcAddress(GLESLib, 'glGenVertexArrays');
-         pointer(glDeleteVertexArrays) := glGetProcAddress(GLESLib, 'glDeleteVertexArrays');
-      end;
+      pointer(glTransformFeedbackVaryings) := glGetProcAddress(GLESLib, 'glTransformFeedbackVaryings');
+      pointer(glDrawArraysInstanced) := glGetProcAddress(GLESLib, 'glDrawArraysInstanced');
+      pointer(glDrawElementsInstanced) := glGetProcAddress(GLESLib, 'glDrawElementsInstanced');
+      pointer(glBindVertexArray) := glGetProcAddress(GLESLib, 'glBindVertexArray');
+      pointer(glBindBufferBase) := glGetProcAddress(GLESLib, 'glBindBufferBase');
+      pointer(glBeginTransformFeedback) := glGetProcAddress(GLESLib, 'glBeginTransformFeedback');
+      pointer(glEndTransformFeedback) := glGetProcAddress(GLESLib, 'glEndTransformFeedback');
+      pointer(glVertexAttribDivisor) := glGetProcAddress(GLESLib, 'glVertexAttribDivisor');
+      pointer(glGenVertexArrays) := glGetProcAddress(GLESLib, 'glGenVertexArrays');
+      pointer(glDeleteVertexArrays) := glGetProcAddress(GLESLib, 'glDeleteVertexArrays');
     end;
 
-procedure GLES20Initialization;
+procedure GLESInitialization;
 begin
   {$ifdef EGL}
   LoadEGL(
@@ -1947,7 +1942,6 @@ begin
   {$endif}
 
   LoadGLES(
-     False,
     {$ifdef darwin} '/System/Library/Frameworks/OpenGLES.framework/OpenGLES'
     {$else}
       {$ifdef windows} 'libGLESv2.dll'
@@ -1958,35 +1952,13 @@ begin
     {$endif});
 end;
 
-procedure GLES30Initialization;
-begin
-  LoadGLES(
-     True,
-    {$ifdef darwin} '/System/Library/Frameworks/OpenGLES.framework/OpenGLES'
-    {$else}
-      {$ifdef windows} 'libGLESv2.dll'
-      {$else} 'libGLESv3.so'
-      {$endif}
-    {$endif});
-end;
-
-procedure GLES31Initialization;
-begin
-  // TODO:
-end;
-
-procedure GLES32Initialization;
-begin
-  // TODO:
-end;
-
 initialization
   {$ifdef EGL}
   EGLLib:=0;
   {$endif}
   GLESLib:=0;
   {$ifdef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
-  GLES20Initialization;
+  GLESInitialization;
   {$endif}
 finalization
   FreeGLES;
