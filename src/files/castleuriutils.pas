@@ -122,7 +122,22 @@ function URIProtocol(const URI: string): string;
   ":" character. }
 function URIProtocolIs(const S: string; const Protocol: string; out Colon: Integer): boolean;
 
+{ Remove the protocol part from URI. }
 function URIDeleteProtocol(const S: string): string;
+  deprecated 'use ParseURI to extract URI.Path + URI.Document, instead of this routine that doesn''t do decoding';
+
+{ Is the S a valid protocol scheme.
+
+  Following https://datatracker.ietf.org/doc/html/rfc3986 ,
+  protocol scheme must
+
+  @unorderedList(
+    @item(begin with an (ASCII) letter)
+
+    @item(and be followed by any combination of (ASCII) letters, digits, plus ("+"), period ("."), or hyphen ("-").)
+  )
+}
+function URIValidProtocol(const P: String): Boolean;
 
 { Return absolute URI, given base and relative URI.
 
@@ -639,18 +654,30 @@ begin
   SetLength(Result, ResultI - 1);
 end;
 
+const
+  { These constants match URIParser algorithm, which in turn follows RFC. }
+  ALPHA = ['A'..'Z', 'a'..'z'];
+  DIGIT = ['0'..'9'];
+  ProtocolFirstChar = ALPHA;
+  ProtocolChar = ALPHA + DIGIT + ['+', '-', '.'];
+
+function URIValidProtocol(const P: String): Boolean;
+var
+  I: Integer;
+begin
+  Result := (P <> '') and (P[1] in ProtocolFirstChar);
+  if Result then
+    for I := 2 to Length(P) do
+      if not (P[I] in ProtocolChar) then
+        Exit(false);
+end;
+
 { Detect protocol delimiting positions.
   If returns true, then for sure:
   - FirstCharacter < Colon
   - FirstCharacter >= 1
   - Colon > 1 }
 function URIProtocolIndex(const S: string; out FirstCharacter, Colon: Integer): boolean;
-const
-  { These constants match URIParser algorithm, which in turn follows RFC. }
-  ALPHA = ['A'..'Z', 'a'..'z'];
-  DIGIT = ['0'..'9'];
-  ProtoFirstChar = ALPHA;
-  ProtoChar = ALPHA + DIGIT + ['+', '-', '.'];
 var
   I: Integer;
 begin
@@ -670,10 +697,10 @@ begin
       Exit;
 
     { Protocol name can only contain specific characters. }
-    if not CharInSet(S[FirstCharacter], ProtoFirstChar) then
+    if not CharInSet(S[FirstCharacter], ProtocolFirstChar) then
       Exit;
     for I := FirstCharacter + 1 to Colon - 1 do
-      if not CharInSet(S[I], ProtoChar) then
+      if not CharInSet(S[I], ProtocolChar) then
         Exit;
 
     { Do not treat drive names in Windows filenames as protocol.
@@ -1139,9 +1166,9 @@ begin
   end;
 end;
 
-function ResolveCastleDataURL(const URL: String): String;
+function ResolveCastleDataUrl(const Url: String): String;
 
-  { Fix case for the URL relative to data. }
+  { Fix case for the Url relative to data. }
   function FixCase(const RelativeToData: String): String;
   var
     Parts: TCastleStringList;
@@ -1178,18 +1205,20 @@ function ResolveCastleDataURL(const URL: String): String;
   end;
 
 var
+  U: TURI;
   RelativeToData: String;
 begin
-  if URIProtocol(URL) = 'castle-data' then
+  if URIProtocol(Url) = 'castle-data' then
   begin
-    RelativeToData := PrefixRemove('/', URIDeleteProtocol(URL), false);
+    U := ParseURI(Url);
+    RelativeToData := PrefixRemove('/', U.Path + U.Document, false);
     {$warnings off} // don't warn that CastleDataIgnoreCase is experimental
     if CastleDataIgnoreCase and FileNameCaseSensitive then
     {$warnings on}
       RelativeToData := FixCase(RelativeToData);
     Result := ApplicationData(RelativeToData);
   end else
-    Result := URL;
+    Result := Url;
 end;
 
 function RelativeToCastleDataURL(const Url: String; out WasInsideData: Boolean): String;

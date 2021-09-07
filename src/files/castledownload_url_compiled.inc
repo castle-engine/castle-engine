@@ -33,7 +33,7 @@ type
 class function TUrlCompiled.Read(const Url: string; out MimeType: string): TStream;
 begin
   MimeType := 'text/x-castle-compiled';
-  Result := MemoryStreamLoadFromString(URIDeleteProtocol(URL));
+  Result := MemoryStreamLoadFromString(InternalURIDeleteProtocol(URL));
 end;
 
 class function TUrlCompiled.MimeType(const URI: string; out Gzipped: Boolean): String;

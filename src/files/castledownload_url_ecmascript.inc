@@ -33,7 +33,7 @@ type
 class function TUrlEcmaScript.Read(const Url: string; out MimeType: string): TStream;
 begin
   MimeType := 'application/javascript';
-  Result := MemoryStreamLoadFromString(URIDeleteProtocol(URL));
+  Result := MemoryStreamLoadFromString(InternalURIDeleteProtocol(URL));
 end;
 
 class function TUrlEcmaScript.MimeType(const URI: string; out Gzipped: Boolean): String;
