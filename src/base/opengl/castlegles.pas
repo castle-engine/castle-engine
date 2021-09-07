@@ -1989,7 +1989,7 @@ initialization
   GLES20Initialization;
   {$endif}
 finalization
-  FreeGLESv3;
+  FreeGLES;
 {$ifdef EGL}
   FreeEGL;
 {$endif}
