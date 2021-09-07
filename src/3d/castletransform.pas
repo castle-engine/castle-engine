@@ -386,6 +386,7 @@ type
       FParent: TCastleTransform;
       FCollisionSphereRadius: Single;
       FListenPressRelease: Boolean;
+      RegisteredGLContextCloseListener: Boolean;
 
       // transformation
       FCenter: TVector3;
@@ -461,7 +462,12 @@ type
     procedure RemoveBehaviorIndex(const BehaviorIndex: Integer);
     procedure SetListenPressRelease(const Value: Boolean);
     function GetBehaviors(const Index: Integer): TCastleBehavior;
+    procedure GLContextCloseEvent(Sender: TObject);
   protected
+    { Call this when doing anything that allocates GL resources.
+      This will make sure GLContextClose will get called. }
+    procedure RegisterGLContextClose;
+
     { Called when the current @link(World) that contains this object changes.
       In the usual case, @link(World) corresponds to a @link(TCastleViewport.Items)
       instance, and when this method is called it means that object
@@ -2372,7 +2378,7 @@ function StrToOrientationType(const S: String): TOrientationType;
 
 implementation
 
-uses CastleLog, CastleQuaternions, X3DTriangles;
+uses CastleLog, CastleQuaternions, X3DTriangles, CastleApplicationProperties;
 
 {$define read_implementation}
 {$I castletransform_physics.inc}
@@ -2607,11 +2613,18 @@ begin
   {$undef read_implementation_destructor}
 
   PhysicsDestroy;
+
+  if RegisteredGLContextCloseListener then
+  begin
+    ApplicationProperties.OnGLContextCloseObject.Remove(@GLContextCloseEvent);
+    RegisteredGLContextCloseListener := false;
+  end;
+  GLContextClose;
+
   FreeAndNil(FList);
   FreeAndNil(FBehaviors);
   { set to nil, to detach free notification }
   ChangeWorld(nil);
-  GLContextClose;
   inherited;
 end;
 
@@ -3046,6 +3059,20 @@ begin
   end;
 end;
 
+procedure TCastleTransform.GLContextCloseEvent(Sender: TObject);
+begin
+  GLContextClose;
+end;
+
+procedure TCastleTransform.RegisterGLContextClose;
+begin
+  if not RegisteredGLContextCloseListener then
+  begin
+    RegisteredGLContextCloseListener := true;
+    ApplicationProperties.OnGLContextCloseObject.Add(@GLContextCloseEvent);
+  end;
+end;
+
 procedure TCastleTransform.PrepareResources(const Options: TPrepareResourcesOptions;
   const ProgressStep: boolean; const Params: TPrepareParams);
 var
@@ -3053,6 +3080,7 @@ var
 begin
   for I := 0 to List.Count - 1 do
     List[I].PrepareResources(Options, ProgressStep, Params);
+  RegisterGLContextClose;
 end;
 
 function TCastleTransform.PrepareResourcesSteps: Cardinal;
