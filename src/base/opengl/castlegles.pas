@@ -1555,7 +1555,7 @@ implementation
   var
     GLESLib : tlibhandle;
 
-  procedure FreeGLESv3;
+  procedure FreeGLES;
     begin
       if GLESLib<>0 then
         FreeLibrary(GLESLib);
@@ -1742,7 +1742,7 @@ implementation
 
   procedure LoadGLES(const IsVersion3: Boolean; const Lib: string; const AltLibName: string = '');
     begin
-      FreeGLESv3;
+      FreeGLES;
 {$ifdef OpenGLES}
       GLESLib:=dynlibs.LoadLibrary(Lib);
       if (GLESLib=0) and (AltLibName <> '') then
