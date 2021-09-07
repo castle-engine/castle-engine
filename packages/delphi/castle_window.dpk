@@ -32,6 +32,8 @@ requires
   castle_base;
 
 contains
-  castlewindow in '..\..\src\window\castlewindow.pas';
+  castlewindow in '..\..\src\window\castlewindow.pas',
+  castleinternalwindowmodes in '..\..\src\window\castleinternalwindowmodes.pas',
+  castlemessages in '..\..\src\window\castlemessages.pas';
 
 end.

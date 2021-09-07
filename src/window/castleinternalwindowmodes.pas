@@ -269,9 +269,11 @@ begin
   OldCloseQuery := Window.OnCloseQuery;
   OldResize := Window.OnResize;
   OldUpdate := Window.OnUpdate;
+  {$ifdef FPC}
   {$warnings off} // keep deprecated working
   OldTimer := Window.OnTimer;
   {$warnings on}
+  {$endif}
   OldMenuClick := Window.OnMenuClick;
   oldCaption := Window.Caption;
   oldUserdata := Window.Userdata;
@@ -314,9 +316,11 @@ begin
   Window.OnCloseQuery := OldCloseQuery;
   Window.OnResize := OldResize;
   Window.OnUpdate := OldUpdate;
+  {$ifdef FPC}
   {$warnings off} // keep deprecated working
   Window.OnTimer := OldTimer;
   {$warnings on}
+  {$endif}
   Window.OnMenuClick := OldMenuClick;
   Window.Caption := oldCaption;
   Window.Userdata := oldUserdata;
@@ -388,8 +392,8 @@ end;
 procedure TGLMode.TWindowState.SetStandardState(
   NewRender, NewResize, NewCloseQuery: TContainerEvent);
 begin
-  Window.OnOpenObject := @WindowOpen;
-  Window.OnCloseObject := @WindowClose;
+  Window.OnOpenObject := {$ifdef CASTLE_OBJFPC}@{$endif}WindowOpen;
+  Window.OnCloseObject := {$ifdef CASTLE_OBJFPC}@{$endif}WindowClose;
   Window.OnMotion := nil;
   Window.OnPress := nil;
   Window.OnRelease := nil;
@@ -397,9 +401,11 @@ begin
   Window.OnRender := nil;
   Window.OnCloseQuery := nil;
   Window.OnUpdate := nil;
+  {$ifdef FPC}
   {$warnings off} // keep deprecated working
   Window.OnTimer := nil;
   {$warnings on}
+  {$endif}
   Window.OnResize := nil;
   Window.OnMenuClick := nil;
   Window.OnRender := NewRender;

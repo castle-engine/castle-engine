@@ -50,6 +50,7 @@ begin
 
   if Result then
   begin
+    {$ifdef FPC}
     {$ifdef CASTLE_OBJFPC}Pointer{$endif} (alGenEffects) := alGetProcAddress('alGenEffects'); if not Assigned(alGenEffects) then Exit(false);
     {$ifdef CASTLE_OBJFPC}Pointer{$endif} (alDeleteEffects) := alGetProcAddress('alDeleteEffects'); if not Assigned(alDeleteEffects) then Exit(false);
     {$ifdef CASTLE_OBJFPC}Pointer{$endif} (alIsEffect) := alGetProcAddress('alIsEffect'); if not Assigned(alIsEffect) then Exit(false);
@@ -83,6 +84,41 @@ begin
     {$ifdef CASTLE_OBJFPC}Pointer{$endif} (alGetAuxiliaryEffectSlotiv) := alGetProcAddress('alGetAuxiliaryEffectSlotiv'); if not Assigned(alGetAuxiliaryEffectSlotiv) then Exit(false);
     {$ifdef CASTLE_OBJFPC}Pointer{$endif} (alGetAuxiliaryEffectSlotf) := alGetProcAddress('alGetAuxiliaryEffectSlotf'); if not Assigned(alGetAuxiliaryEffectSlotf) then Exit(false);
     {$ifdef CASTLE_OBJFPC}Pointer{$endif} (alGetAuxiliaryEffectSlotfv) := alGetProcAddress('alGetAuxiliaryEffectSlotfv'); if not Assigned(alGetAuxiliaryEffectSlotfv) then Exit(false);
+    {$else}
+    alGenEffects := alGetProcAddress('alGenEffects'); if not Assigned(alGenEffects) then Exit(false);
+    alDeleteEffects := alGetProcAddress('alDeleteEffects'); if not Assigned(alDeleteEffects) then Exit(false);
+    alIsEffect := alGetProcAddress('alIsEffect'); if not Assigned(alIsEffect) then Exit(false);
+    alEffecti := alGetProcAddress('alEffecti'); if not Assigned(alEffecti) then Exit(false);
+    alEffectiv := alGetProcAddress('alEffectiv'); if not Assigned(alEffectiv) then Exit(false);
+    alEffectf := alGetProcAddress('alEffectf'); if not Assigned(alEffectf) then Exit(false);
+    alEffectfv := alGetProcAddress('alEffectfv'); if not Assigned(alEffectfv) then Exit(false);
+    alGetEffecti := alGetProcAddress('alGetEffecti'); if not Assigned(alGetEffecti) then Exit(false);
+    alGetEffectiv := alGetProcAddress('alGetEffectiv'); if not Assigned(alGetEffectiv) then Exit(false);
+    alGetEffectf := alGetProcAddress('alGetEffectf'); if not Assigned(alGetEffectf) then Exit(false);
+    alGetEffectfv := alGetProcAddress('alGetEffectfv'); if not Assigned(alGetEffectfv) then Exit(false);
+    alGenFilters := alGetProcAddress('alGenFilters'); if not Assigned(alGenFilters) then Exit(false);
+    alDeleteFilters := alGetProcAddress('alDeleteFilters'); if not Assigned(alDeleteFilters) then Exit(false);
+    alIsFilter := alGetProcAddress('alIsFilter'); if not Assigned(alIsFilter) then Exit(false);
+    alFilteri := alGetProcAddress('alFilteri'); if not Assigned(alFilteri) then Exit(false);
+    alFilteriv := alGetProcAddress('alFilteriv'); if not Assigned(alFilteriv) then Exit(false);
+    alFilterf := alGetProcAddress('alFilterf'); if not Assigned(alFilterf) then Exit(false);
+    alFilterfv := alGetProcAddress('alFilterfv'); if not Assigned(alFilterfv) then Exit(false);
+    alGetFilteri := alGetProcAddress('alGetFilteri'); if not Assigned(alGetFilteri) then Exit(false);
+    alGetFilteriv := alGetProcAddress('alGetFilteriv'); if not Assigned(alGetFilteriv) then Exit(false);
+    alGetFilterf := alGetProcAddress('alGetFilterf'); if not Assigned(alGetFilterf) then Exit(false);
+    alGetFilterfv := alGetProcAddress('alGetFilterfv'); if not Assigned(alGetFilterfv) then Exit(false);
+    alGenAuxiliaryEffectSlots := alGetProcAddress('alGenAuxiliaryEffectSlots'); if not Assigned(alGenAuxiliaryEffectSlots) then Exit(false);
+    alDeleteAuxiliaryEffectSlots := alGetProcAddress('alDeleteAuxiliaryEffectSlots'); if not Assigned(alDeleteAuxiliaryEffectSlots) then Exit(false);
+    alIsAuxiliaryEffectSlot := alGetProcAddress('alIsAuxiliaryEffectSlot'); if not Assigned(alIsAuxiliaryEffectSlot) then Exit(false);
+    alAuxiliaryEffectSloti := alGetProcAddress('alAuxiliaryEffectSloti'); if not Assigned(alAuxiliaryEffectSloti) then Exit(false);
+    alAuxiliaryEffectSlotiv := alGetProcAddress('alAuxiliaryEffectSlotiv'); if not Assigned(alAuxiliaryEffectSlotiv) then Exit(false);
+    alAuxiliaryEffectSlotf := alGetProcAddress('alAuxiliaryEffectSlotf'); if not Assigned(alAuxiliaryEffectSlotf) then Exit(false);
+    alAuxiliaryEffectSlotfv := alGetProcAddress('alAuxiliaryEffectSlotfv'); if not Assigned(alAuxiliaryEffectSlotfv) then Exit(false);
+    alGetAuxiliaryEffectSloti := alGetProcAddress('alGetAuxiliaryEffectSloti'); if not Assigned(alGetAuxiliaryEffectSloti) then Exit(false);
+    alGetAuxiliaryEffectSlotiv := alGetProcAddress('alGetAuxiliaryEffectSlotiv'); if not Assigned(alGetAuxiliaryEffectSlotiv) then Exit(false);
+    alGetAuxiliaryEffectSlotf := alGetProcAddress('alGetAuxiliaryEffectSlotf'); if not Assigned(alGetAuxiliaryEffectSlotf) then Exit(false);
+    alGetAuxiliaryEffectSlotfv := alGetProcAddress('alGetAuxiliaryEffectSlotfv'); if not Assigned(alGetAuxiliaryEffectSlotfv) then Exit(false);
+    {$endif}
   end;
 end;
 

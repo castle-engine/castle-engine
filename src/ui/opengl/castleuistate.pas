@@ -20,9 +20,11 @@ unit CastleUIState;
 
 interface
 
+// TODO: Delphi serialization
+
 uses Classes, Generics.Collections,
   CastleConfig, CastleKeysMouse, CastleImages, CastleUIControls, CastleClassUtils,
-  CastleGLImages, CastleVectors, CastleRectangles, CastleComponentSerialize;
+  CastleGLImages, CastleVectors, CastleRectangles{$ifdef FPC}, CastleComponentSerialize{$endif};
 
 type
   TUIStateList = class;
@@ -96,7 +98,10 @@ type
     FDesignLoaded: TCastleUserInterface;
     FDesignLoadedOwner: TComponent;
     FDesignPreload: Boolean;
+    // TODO: Delphi serialization
+    {$ifdef FPC}
     FDesignPreloadedSerialized: TSerializedComponent;
+    {$endif}
     FDesignPreloaded: TCastleUserInterface;
     FDesignPreloadedOwner: TComponent;
 
@@ -194,7 +199,7 @@ type
     class procedure Push(const NewState: TUIState);
 
     { Pop the current top-most state, reversing the @link(Push) operation. }
-    class procedure Pop;
+    class procedure Pop; overload;
 
     { Pop the current top-most state, reversing the @link(Push) operation,
       also checking whether the current top-most state is as expected.
@@ -202,7 +207,7 @@ type
       Makes a warning, and does nothing, if the current top-most state
       is different than indicated. This is usually a safer (more chance
       to easily catch bugs) version of Pop than the parameter-less version. }
-    class procedure Pop(const CurrentTopMostState: TUIState);
+    class procedure Pop(const CurrentTopMostState: TUIState); overload;
 
     { Count of states in the state stack.
       State stack is managed using Start / Push / Pop. }
@@ -348,6 +353,7 @@ type
     procedure Render; override;
     function UIScale: Single; override;
 
+    {$ifdef FPC}
     { Load and show a user interface from a .castle-user-interface file,
       designed in Castle Game Engine Editor.
 
@@ -376,6 +382,7 @@ type
       out Ui: TCastleUserInterface; out UiOwner: TComponent); deprecated 'instead of this, set DesignUrl in constructor';
     procedure InsertUserInterface(const ADesignUrl: String;
       const FinalOwner: TComponent; out UiOwner: TComponent); deprecated 'instead of this, set DesignUrl in constructor';
+    {$endif}
 
     { Wait until the render event happens (to redraw current state),
       and then call Event.
@@ -486,7 +493,7 @@ type
     property FullSize default true;
   end;
 
-  TUIStateList = class(specialize TObjectList<TUIState>);
+  TUIStateList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TUIState>);
 
 implementation
 
@@ -501,6 +508,8 @@ begin
   raise EInternalError.Create(Message);
 end;
 
+// TODO: Delphi serialization
+{$ifdef FPC}
 type
   { Helper methods extending TSerializedComponent.
     Do not use TSerializedComponentHelper from CastleViewport,
@@ -516,6 +525,7 @@ function TSerializedComponentHelper.UserInterfaceLoad(const Owner: TComponent): 
 begin
   Result := ComponentLoad(Owner) as TCastleUserInterface;
 end;
+{$endif}
 
 { TUIState --------------------------------------------------------------------- }
 
@@ -743,7 +753,7 @@ begin
   FWaitingForRender := TNotifyEventList.Create;
   FCallBeforeUpdate := TNotifyEventList.Create;
   FStartContainerObserver := TFreeNotificationObserver.Create(Self);
-  FStartContainerObserver.OnFreeNotification := @StartContainerFreeNotification;
+  FStartContainerObserver.OnFreeNotification := {$ifdef CASTLE_OBJFPC}@{$endif}StartContainerFreeNotification;
 end;
 
 constructor TUIState.CreateUntilStopped;
@@ -859,6 +869,7 @@ begin
   end;
 end;
 
+{$ifdef FPC}
 procedure TUIState.InsertUserInterface(const ADesignUrl: String;
   const FinalOwner: TComponent;
   out Ui: TCastleUserInterface; out UiOwner: TComponent);
@@ -878,6 +889,7 @@ begin
   {$warnings on}
   // ignore the returned Ui reference
 end;
+{$endif}
 
 procedure TUIState.Render;
 begin
@@ -893,6 +905,8 @@ end;
 
 procedure TUIState.LoadDesign;
 begin
+  // TODO: Delphi serialization
+  {$ifdef FPC}
   if DesignUrl <> '' then
   begin
     FDesignLoadedOwner := TComponent.Create(nil);
@@ -902,6 +916,9 @@ begin
       FDesignLoaded := UserInterfaceLoad(DesignUrl, FDesignLoadedOwner);
     InsertFront(FDesignLoaded);
   end;
+  {$else}
+  raise Exception.Create('Not implemented in delphi!');
+  {$endif}
 end;
 
 procedure TUIState.UnLoadDesign;
@@ -912,6 +929,8 @@ end;
 
 procedure TUIState.PreloadDesign;
 begin
+  // TODO: Delphi serialization
+  {$ifdef FPC}
   if DesignUrl <> '' then
   begin
     // load FDesignPreloadedSerialized to be able to faster load design, without parsing JSON
@@ -921,6 +940,9 @@ begin
     FDesignPreloadedOwner := TComponent.Create(nil);
     FDesignPreloaded := FDesignPreloadedSerialized.UserInterfaceLoad(FDesignPreloadedOwner);
   end;
+  {$else}
+  raise Exception.Create('Not implemented in delphi!');
+  {$endif}
 end;
 
 procedure TUIState.UnPreloadDesign;
@@ -931,7 +953,10 @@ begin
     This makes it easier to think about them. }
   FreeAndNil(FDesignPreloadedOwner);
   FDesignPreloaded := nil;// freeing FDesignPreloadedOwner must have freed this too
+  // TODO: Delphi serialization
+  {$ifdef FPC}
   FreeAndNil(FDesignPreloadedSerialized);
+  {$endif}
 end;
 
 procedure TUIState.SetDesignUrl(const Value: String);
@@ -995,7 +1020,12 @@ function TUIState.DesignedComponent(const ComponentName: String): TComponent;
 begin
   if FDesignLoaded = nil then
     ErrorDesignLoaded;
+  // TODO: Delphi serialization
+  {$ifdef FPC}
   Result := FDesignLoadedOwner.FindRequiredComponent(ComponentName);
+  {$else}
+  raise Exception.Create('Not implemented in Delphi');
+  {$endif}
 end;
 
 function TUIState.ContainerWidth: Cardinal;

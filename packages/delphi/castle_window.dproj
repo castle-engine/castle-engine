@@ -147,6 +147,8 @@
         <DCCReference Include="rtl.dcp"/>
         <DCCReference Include="castle_base.dcp"/>
         <DCCReference Include="..\..\src\window\castlewindow.pas"/>
+        <DCCReference Include="..\..\src\window\castleinternalwindowmodes.pas"/>
+        <DCCReference Include="..\..\src\window\castlemessages.pas"/>
         <None Include="..\..\src\window\windows\castlewindow_winapi.inc"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>

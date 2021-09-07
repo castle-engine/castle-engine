@@ -51,8 +51,8 @@ end;
 
 {$ifdef read_implementation_constructor}
   FBackgroundColorPersistent := TCastleColorPersistent.Create;
-  FBackgroundColorPersistent.InternalGetValue := @GetBackgroundColorForPersistent;
-  FBackgroundColorPersistent.InternalSetValue := @SetBackgroundColorForPersistent;
+  FBackgroundColorPersistent.InternalGetValue := {$ifdef CASTLE_OBJFPC}@{$endif}GetBackgroundColorForPersistent;
+  FBackgroundColorPersistent.InternalSetValue := {$ifdef CASTLE_OBJFPC}@{$endif}SetBackgroundColorForPersistent;
   FBackgroundColorPersistent.InternalDefaultValue := BackgroundColor; // current value is default
 {$endif read_implementation_constructor}
 

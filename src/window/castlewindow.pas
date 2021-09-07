@@ -301,7 +301,7 @@ uses {$define read_interface_uses}
   {$I castlewindow_backend.inc}
   {$undef read_interface_uses}
   { FPC units }
-  SysUtils, Classes, Generics.Collections, {$ifdef FPC}CustApp,{$endif}
+  SysUtils, Classes, Generics.Collections, CustApp,
   { Castle Game Engine units }
   {$ifdef FPC}{$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif} {$else} OpenGL, OpenGLext, {$endif}
   CastleVectors, CastleRectangles, CastleColors,
@@ -430,7 +430,7 @@ type
     procedure SetInternalCursor(const Value: TMouseCursor); override;
     function GetTouches(const Index: Integer): TTouch; override;
     function TouchesCount: Integer; override;
-    function SaveScreen(const SaveRect: TRectangle): TRGBImage; override; overload;
+    function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload; override;
     function SettingMousePositionCausesMotion: Boolean; override;
   end deprecated 'do not descend from this, instead use custom TUIState descendants';
 
@@ -574,8 +574,8 @@ type
     { Convert window position from the usual window system convention,
       where (0,0) is left-top, and the window has size FRealWidth/FRealHeight,
       to CGE convention where (0,0) is left-bottom. }
-    function LeftTopToCastle(const V: TVector2): TVector2;
-    function LeftTopToCastle(const X, Y: Single): TVector2;
+    function LeftTopToCastle(const V: TVector2): TVector2; overload;
+    function LeftTopToCastle(const X, Y: Single): TVector2; overload;
 
     { Convert window position from the CGE convention to window system
       convention where (0,0) is left-top, also rounding it.
@@ -995,7 +995,7 @@ type
       "how to scale the user-interface", where 96 (DefaultDpi) is default.
       So do not depend that it is actually related to the physical monitor size.
       See https://developer.gnome.org/gdk2/stable/GdkScreen.html#gdk-screen-set-resolution . }
-    property Dpi: Single read FDpi write FDpi default DefaultDpi;
+    property Dpi: Single read FDpi write FDpi {$ifdef FPC}default DefaultDpi{$endif};
 
     { Window position on the screen. If one (or both) of them is equal
       to WindowPositionCenter at the initialization (Open) time,
@@ -1128,7 +1128,7 @@ type
       Indexed from 0 to TouchesCount - 1.
       @seealso TouchesCount
       @seealso TTouch }
-    property Touches[Index: Integer]: TTouch read GetTouches;
+    property Touches[const Index: Integer]: TTouch read GetTouches;
 
     { Count of currently active touches (mouse or fingers pressed) on the screen.
       @seealso Touches }
@@ -1395,6 +1395,7 @@ type
     property AlphaBits: Cardinal
       read FAlphaBits write FAlphaBits default 0;
 
+    {$ifdef FPC}
     { Required number of bits in color channels of accumulation buffer.
       Color channel is 0..3: red, green, blue, alpha.
       Zero means that given channel of accumulation buffer is not needed,
@@ -1411,6 +1412,7 @@ type
       buffer. It may not be supported by some backends (e.g. now LCL backend,
       the default backend on macOS, doesn't support it). }
     property AccumBits: TVector4Cardinal read FAccumBits write FAccumBits; deprecated;
+    {$endif FPC}
 
     { Name of the icon for this window used by GTK 2 backend.
 
@@ -1497,8 +1499,10 @@ type
       using @code(Controls.InsertBack(MyBackgroundControl);). }
     property OnRender: TContainerEvent read GetOnRender write SetOnRender;
 
+    {$ifdef FPC}
     { @deprecated Deprecated name for OnRender. }
     property OnDraw: TContainerEvent read GetOnRender write SetOnRender; deprecated;
+    {$endif}
 
     { Always called right before EventRender (OnRender).
       These two events, EventBeforeRender (OnBeforeRender) and EventRender (OnRender),
@@ -1621,6 +1625,7 @@ type
       OnUpdate and other events of a window that displays a modal box. }
     property OnUpdate: TContainerEvent read GetOnUpdate write SetOnUpdate;
 
+    {$ifdef FPC}
     { @deprecated Deprecated name for OnUpdate. }
     property OnIdle: TContainerEvent read GetOnUpdate write SetOnUpdate; deprecated;
 
@@ -1643,6 +1648,7 @@ type
       Under Lazarus, you can of course also use LCL timers. }
     property OnTimer: TContainerEvent read FOnTimer write FOnTimer;
       deprecated 'use TCastleTimer to perform periodic operations, or track time delay in OnUpdate';
+    {$endif FPC}
 
     { Called when user drag and drops file(s) on the window.
       In case of macOS bundle, this is also called when user opens a document
@@ -1727,8 +1733,10 @@ type
       we call this window's event. }
     property OnMenuClick: TMenuClickFunc read FOnMenuClick write FOnMenuClick;
 
+    {$ifdef FPC}
     { Deprecated name for OnMenuClick. }
     property OnMenuCommand: TMenuClickFunc read FOnMenuClick write FOnMenuClick; deprecated;
+    {$endif}
 
     { @section(Mouse state) -------------------------------------------------- }
 
@@ -1747,8 +1755,10 @@ type
 
     property Closed: boolean read FClosed default true;
 
+    {$ifdef FPC}
     property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
       deprecated 'do not set this, engine will override this. Set TCastleUserInterface.Cursor of your UI controls to control the Cursor.';
+    {$endif}
 
     { Mouse cursor appearance over this window.
       See TMouseCursor for a list of possible values and their meanings.
@@ -1829,7 +1839,7 @@ type
         this fallback mechanism, to code which OpenGL context features
         may be turned off.)
     }
-    procedure Open;
+    procedure Open; overload;
 
     { Open the window with OpenGL context, allowing you to lower
       the OpenGL context requirements and retry.
@@ -1856,7 +1866,7 @@ type
       @raises(EGLContextNotPossible If it's not possible to obtain
         requested OpenGL context, and the @code(Retry) callback
         returned @false.) }
-    procedure Open(const Retry: TGLContextRetryOpenFunc);
+    procedure Open(const Retry: TGLContextRetryOpenFunc); overload;
 
     { Close window.
 
@@ -2157,9 +2167,9 @@ type
       Alpha always remains unchanged.
 
       @groupBegin }
-    function ColorDialog(var Color: TCastleColor): boolean;
-    function ColorDialog(var Color: TVector3): boolean;
-    function ColorDialog(var Color: TVector3Byte): boolean;
+    function ColorDialog(var Color: TCastleColor): boolean; overload;
+    function ColorDialog(var Color: TVector3): boolean; overload;
+    function ColorDialog(var Color: TVector3Byte): boolean; overload;
     { @groupEnd }
 
     { Show some information and just ask to press "OK",
@@ -2214,7 +2224,7 @@ type
       slowdowns, and you will not see anything better). }
     property FpsCaptionUpdateDelay: Single
       read FFpsCaptionUpdateDelay write FFpsCaptionUpdateDelay
-      default DefaultFpsCaptionUpdateDelay;
+      {$ifdef FPC}default DefaultFpsCaptionUpdateDelay{$endif};
 
     { Configure some options typically used by "demo" applications. }
     procedure SetDemoOptions(const ASwapFullScreen_Key: TKey;
@@ -2305,7 +2315,7 @@ type
 
   {$endif}
 
-  TWindowList = class(specialize TObjectList<TCastleWindowBase>)
+  TWindowList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCastleWindowBase>)
   private
     { Call wszystkie OnUpdate / OnTimer for all windows on this list.
       Using Application.OpenWindows.DoUpdate / DoTimer  is a simplest
@@ -2430,8 +2440,8 @@ type
       and call OnRender on all necessary windows.
       This allows some backends to easily do everything that typically needs
       to be done continuosly (without the need for any message from the outside). }
-    procedure UpdateAndRenderEverything(out WasAnyRendering: boolean);
-    procedure UpdateAndRenderEverything;
+    procedure UpdateAndRenderEverything(out WasAnyRendering: boolean); overload;
+    procedure UpdateAndRenderEverything; overload;
 
     procedure MarkSleeping;
 
@@ -2461,7 +2471,7 @@ type
   protected
     { Override TCustomApplication to pass TCustomApplication.Log
       to CastleLog logger. }
-    procedure DoLog(EventType : TEventType; const Msg : String); override;
+    procedure DoLog(EventType: TEventType; const Msg: String); override;
     { Every backend must override this. TCustomApplication will
       automatically catch exceptions occuring inside DoRun. }
     procedure DoRun; override;
@@ -2561,6 +2571,7 @@ type
       @seealso TCastleWindowBase.OnUpdate }
     property OnUpdate: TUpdateFunc read FOnUpdate write FOnUpdate;
 
+    {$ifdef FPC}
     { @deprecated Deprecated name for OnUpdate. }
     property OnIdle: TUpdateFunc read FOnUpdate write FOnUpdate; deprecated;
 
@@ -2576,6 +2587,7 @@ type
     property TimerMilisec: Cardinal read FTimerMilisec write FTimerMilisec default 1000;
       deprecated 'use TCastleTimer to perform periodic operations, or track time delay in OnUpdate';
     { @groupEnd }
+    {$endif FPC}
 
     { Main window used for various purposes.
       On targets when only one TCastleWindowBase instance makes sense
@@ -2738,12 +2750,14 @@ type
     { Are we using OpenGLES for rendering. }
     function OpenGLES: Boolean;
 
+    {$ifdef FPC}
     property LimitFPS: Single read GetLimitFPS write SetLimitFPS;
       deprecated 'use ApplicationProperties.LimitFps';
     property Version: string read GetVersion write SetVersion;
       deprecated 'use ApplicationProperties.Version';
     property TouchDevice: boolean read GetTouchDevice write SetTouchDevice;
       deprecated 'use ApplicationProperties.TouchDevice';
+    {$endif FPC}
   end;
 
   { @deprecated Deprecated name for TCastleApplication. }
@@ -2794,7 +2808,7 @@ uses CastleLog, CastleGLVersion, CastleURIUtils, CastleControls, CastleMessaging
   {$define read_implementation_uses}
   {$I castlewindow_backend.inc}
   {$undef read_implementation_uses}
-  X3DLoad, Math;
+  {$ifdef FPC}X3DLoad, {$endif}Math;
 
 {$define read_implementation}
 

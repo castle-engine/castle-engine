@@ -20,11 +20,29 @@ type
   PQWord = PUInt64;
   PtrInt = NativeInt;
   PtrUInt = NativeUInt;
+  WINBOOL = longbool;
   TGetVendorNameEvent  = function: string;
   TGetAppNameEvent  = function: string;
+  TEventType = (etCustom, etInfo, etWarning, etError, etDebug);
+  TEventTypes = Set of TEventType;
+
+  { TOwnerStream from FPC }
+  TOwnerStream = Class(TStream)
+  protected
+    FOwner : Boolean;
+    FSource : TStream;
+  public
+    constructor Create(ASource : TStream);
+    destructor Destroy; override;
+    property Source : TStream Read FSource;
+    property SourceOwner : Boolean Read Fowner Write FOwner;
+  end;
+
 var
   OnGetVendorName      : TGetVendorNameEvent;
   OnGetApplicationName : TGetAppNameEvent;
+  wglGetExtensionsStringARB: function(hdc: HDC): PAnsiChar;
+
 function GetMem(const Size: Integer): Pointer;
 function VendorName: string;
 function ApplicationName: string;
@@ -59,10 +77,24 @@ function Load_GL_MESA_window_pos: Boolean;
 function Load_GL_ARB_shadow: Boolean;
 function Load_GL_EXT_fog_coord: Boolean;
 function Load_GL_NV_multisample_filter_hint: Boolean;
+function Load_WGL_ARB_extensions_string: Boolean;
 
 
 {$endif read_interface}
 {$ifdef read_implementation}
+
+constructor TOwnerStream.Create(ASource: TStream);
+begin
+  FSource:=ASource;
+end;
+
+destructor TOwnerStream.Destroy;
+begin
+  If FOwner then
+    FreeAndNil(FSource);
+  inherited Destroy;
+end;
+
 function GetMem(const Size: Integer): Pointer;
 begin
   System.GetMem(Result, Size);
@@ -1134,6 +1166,26 @@ begin
   end;
 
 end;
+
+function Load_WGL_ARB_extensions_string: Boolean;
+var
+  extstring: AnsiString;
+begin
+
+  Result := FALSE;
+  wglGetExtensionsStringARB := wglGetProcAddress('wglGetExtensionsStringARB');
+  if not Assigned(wglGetExtensionsStringARB) then Exit;
+  extstring := wglGetExtensionsStringARB(wglGetCurrentDC);
+
+  if glext_ExtensionSupported('WGL_ARB_extensions_string', extstring) then
+  begin
+    wglGetExtensionsStringARB := wglGetProcAddress('wglGetExtensionsStringARB');
+    if not Assigned(wglGetExtensionsStringARB) then Exit;
+    Result := TRUE;
+  end;
+
+end;
+
 
 {$endif read_implementation}
 {$endif not FPC}

@@ -27,7 +27,8 @@ uses SysUtils, Classes, XMLDoc,
 type
   EXMLReadError = class(Exception);
 
-procedure ReadXMLFile(out Doc: TXMLDocument; const Stream: TStream);
+procedure ReadXMLFile(out Doc: TXMLDocument; const Stream: TStream); overload;
+procedure ReadXMLFile(out Doc: TXMLDocument; const Stream: TStream; const ABaseURI: String); overload;
 
 implementation
 
@@ -43,5 +44,19 @@ begin
       raise EXMLReadError.Create('Error when reading XML: ' + E.Message);
   end;
 end;
+
+// TODO: BaseURI
+procedure ReadXMLFile(out Doc: TXMLDocument; const Stream: TStream; const ABaseURI: String); overload;
+begin
+  Doc := TXMLDocument.Create;
+  Doc.InternalDocument := XMLDoc.TXMLDocument.Create(nil);
+  try
+    Doc.InternalDocument.LoadFromStream(Stream);
+  except
+    on E: Exception do
+      raise EXMLReadError.Create('Error when reading XML: ' + E.Message);
+  end;
+end;
+
 
 end.

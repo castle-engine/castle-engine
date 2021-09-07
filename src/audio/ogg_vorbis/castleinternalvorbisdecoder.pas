@@ -210,7 +210,8 @@ begin
   Frequency := OggInfo^.rate;
 
   DurationRaw := ov_time_total(@VorbisFile, -1);
-  if Int64(DurationRaw) = OV_EINVAL then
+  if {$ifdef FPC} Int64(DurationRaw) {$else} {$ifndef CASTLE_TREMOLO}
+     Trunc(DurationRaw) {$else} DurationRaw {$endif} {$endif FPC} = OV_EINVAL then
   begin
     WritelnWarning('Cannot read OggVorbis duration, the requested bitstream may not be seekable');
     DurationRaw := 0;
@@ -325,5 +326,5 @@ begin
 end;
 
 initialization
-  RegisterSoundFormat('audio/ogg', @TOggVorbisStream(nil).ReadStream);
+  RegisterSoundFormat('audio/ogg', {$ifdef CASTLE_OBJFPC}@{$endif}TOggVorbisStream(nil).ReadStream);
 end.

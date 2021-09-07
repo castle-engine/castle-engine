@@ -84,6 +84,12 @@ contains
   ctypes in '..\..\src\compatibility\delphi-only\ctypes.pas',
   castleinternalvorbiscodec in '..\..\src\audio\ogg_vorbis\castleinternalvorbiscodec.pas',
   castleinternalogg in '..\..\src\audio\ogg_vorbis\castleinternalogg.pas',
-  castleinternalvorbisdecoder in '..\..\src\audio\ogg_vorbis\castleinternalvorbisdecoder.pas';
+  castleinternalvorbisdecoder in '..\..\src\audio\ogg_vorbis\castleinternalvorbisdecoder.pas',
+  castleinternalabstractsoundbackend in '..\..\src\audio\castleinternalabstractsoundbackend.pas',
+  castleopenalsoundbackend in '..\..\src\audio\openal\castleopenalsoundbackend.pas',
+  castleinternalopenal in '..\..\src\audio\openal\castleinternalopenal.pas',
+  castleinternalalutils in '..\..\src\audio\openal\castleinternalalutils.pas',
+  castleinternalefx in '..\..\src\audio\openal\castleinternalefx.pas',
+  xmlread in '..\..\src\compatibility\delphi-only\xmlread.pas';
 
 end.

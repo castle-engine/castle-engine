@@ -141,7 +141,7 @@ type
     ReadEvent: TSoundReadEvent;
   end;
 
-  TRegisteredSoundFormats = class(specialize TObjectList<TRegisteredSoundFormat>)
+  TRegisteredSoundFormats = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TRegisteredSoundFormat>)
     { @nil if not found. }
     function Find(const MimeType: String): TRegisteredSoundFormat;
 
@@ -569,7 +569,8 @@ begin
   begin
     FRegisteredSoundFormats := TRegisteredSoundFormats.Create(true);
     // register default formats, handled in this unit
-    FRegisteredSoundFormats.Add('audio/x-wav', @TWAVReader(nil).Read);
+    FRegisteredSoundFormats.Add('audio/x-wav',
+      {$ifdef CASTLE_OBJFPC}@{$endif}TWAVReader(nil).Read);
   end;
   Result := FRegisteredSoundFormats;
 end;
@@ -579,6 +580,8 @@ procedure RegisterSoundFormat(const MimeType: String;
 begin
   RegisteredSoundFormats.Add(MimeType, SoundReader);
 end;
+
+{$ifndef FPC}initialization{$endif}
 
 finalization
   FreeAndNil(FRegisteredSoundFormats);
