@@ -492,6 +492,7 @@ type
   PGLsizei  = ^GLsizei;
   PGLuint  = ^GLuint;
   PGLchar = PChar;
+  PPGLchar = PPChar;
 
   {-------------------------------------------------------------------------
    * Data type definitions
@@ -1061,7 +1062,7 @@ type
     glShaderBinary : procedure(n:GLsizei; shaders:pGLuint; binaryformat:GLenum; binary:pointer; length:GLsizei);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
 (* Const before type ignored *)
 (* Const before type ignored *)
-    glShaderSource : procedure(shader:GLuint; count:GLsizei; _string:Ppchar; length:pGLint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glShaderSource : procedure(shader:GLuint; count:GLsizei; _string:PPGLchar; length:pGLint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glStencilFunc : procedure(func:GLenum; ref:GLint; mask:GLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glStencilFuncSeparate : procedure(face:GLenum; func:GLenum; ref:GLint; mask:GLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glStencilMask : procedure(mask:GLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
@@ -1201,7 +1202,7 @@ type
     glClearBufferfi: procedure(buffer:TGLenum; drawbuffer:TGLint; depth:TGLfloat; stencil:TGLint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetStringi: function(name:TGLenum; ind:TGLuint):PGLubyte; {$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glCopyBufferSubData: procedure(readTarget:TGLenum; writeTarget:TGLenum; readOffset:TGLintptr; writeOffset:TGLintptr; size:TGLsizeiptr); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
-    glGetUniformIndices: procedure(prog:TGLuint; uniformCount:TGLsizei; uniformNames:PPChar; uniformIndices:PGLuint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetUniformIndices: procedure(prog:TGLuint; uniformCount:TGLsizei; uniformNames:PPGLchar; uniformIndices:PGLuint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetActiveUniformsiv: procedure(prog:TGLuint; uniformCount:TGLsizei; uniformIndices:PGLuint; pname:TGLenum; params:PGLint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetUniformBlockIndex: function(prog:TGLuint; uniformBlockName:PGLchar):TGLuint; {$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetActiveUniformBlockiv: procedure(prog:TGLuint; uniformBlockIndex:TGLuint; pname:TGLenum; params:PGLint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
