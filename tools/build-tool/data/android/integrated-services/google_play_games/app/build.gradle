@@ -2,8 +2,7 @@
 <build_gradle_merge>
   <dependencies>
     <!-- See https://developers.google.com/android/guides/setup#split -->
-    <dependency>implementation 'com.google.android.gms:play-services-games:18.0.0'</dependency>
-    <!-- for savegames, the drive API is also needed -->
-    <dependency>implementation 'com.google.android.gms:play-services-drive:17.0.0'</dependency>
+    <dependency>implementation 'com.google.android.gms:play-services-games:21.0.0'</dependency>
+    <dependency>implementation 'com.google.android.gms:play-services-auth:19.2.0'</dependency>
   </dependencies>
 </build_gradle_merge>
