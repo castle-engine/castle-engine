@@ -2,8 +2,7 @@
 
   A modified version of OpenGL ES 2.0 headers by Trung Le (kagamma), which adds
   support for OpenGL ES 3.x APIs.
-  Currently it only support necessary APIs for setting up Transform Feedback
-  and hardware instancing.
+  Currently it supports OpenGL ES 2.0 and OpenGL ES 3.0 APIs.
 }
 
 {** OpenGL ES 2.0 headers
@@ -492,6 +491,7 @@ type
   PGLint  = ^GLint;
   PGLsizei  = ^GLsizei;
   PGLuint  = ^GLuint;
+  PGLchar = PChar;
 
   {-------------------------------------------------------------------------
    * Data type definitions
@@ -541,9 +541,21 @@ type
   { GL types for handling large vertex buffer objects  }
 
      GLintptr = ptrint;
+     TGLintptr = GLintptr;
 
      GLsizeiptr = ptrint;
+     TGLsizeiptr = GLsizeiptr;
   { OpenGL ES core versions  }
+     GLuint64 = QWord;
+     TGLuint64 = GLuint64;
+     PGLuint64 = ^GLuint64;
+
+     GLint64 = Int64;
+     TGLint64 = GLint64;
+     PGLint64 = ^GLint64;
+
+     GLsync = Pointer;
+     TGLsync = GLsync;
 
   const
      GL_ES_VERSION_2_0 = 1;
@@ -1118,16 +1130,121 @@ type
     glViewport : procedure(x:GLint; y:GLint; width:GLsizei; height:GLsizei);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
 
     { OpenGL ES 3.0 APIs }
-    glTransformFeedbackVaryings: procedure(Prog: GLuint; Count: GLsizei; const Varyings: PPAnsiChar; BufferMode: GLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
-    glDrawArraysInstanced: procedure(Mode: GLuint; First, Count, InstanceCount: GLsizei);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
-    glDrawElementsInstanced: procedure(Mode: GLuint; Count, Kind: GLsizei; Indices: PGLuint; InstanceCount: GLsizei);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glReadBuffer: procedure(Src: GLenum); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glDrawRangeElements: procedure(Mode: GLenum; Start, Endd: GLuint; Count: GLsizei; Kind: GLenum; Indices: Pointer); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glTexImage3D: procedure(target:TGLenum; level:TGLint; internalformat:TGLint; width:TGLsizei; height:TGLsizei;
+              depth:TGLsizei; border:TGLint; format:TGLenum; _type:TGLenum; pixels:pointer); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glTexSubImage3D: procedure(target:TGLenum; level:TGLint; xoffset:TGLint; yoffset:TGLint; zoffset:TGLint; 
+              width:TGLsizei; height:TGLsizei; depth:TGLsizei; format:TGLenum; _type:TGLenum; 
+              pixels:pointer); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glCopyTexSubImage3D: procedure(target:TGLenum; level:TGLint; xoffset:TGLint; yoffset:TGLint; zoffset:TGLint; 
+              x:TGLint; y:TGLint; width:TGLsizei; height:TGLsizei); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glCompressedTexImage3D: procedure(target:TGLenum; level:TGLint; internalformat:TGLenum; width:TGLsizei; height:TGLsizei; 
+              depth:TGLsizei; border:TGLint; imageSize:TGLsizei; data:pointer); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glCompressedTexSubImage3D: procedure(target:TGLenum; level:TGLint; xoffset:TGLint; yoffset:TGLint; zoffset:TGLint; 
+              width:TGLsizei; height:TGLsizei; depth:TGLsizei; format:TGLenum; imageSize:TGLsizei;
+              data:pointer); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGenQueries: procedure(n:TGLsizei; ids:PGLuint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glDeleteQueries: procedure(n:TGLsizei; ids:PGLuint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glIsQuery: function(id:TGLuint): GLboolean; {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glBeginQuery: procedure(target:TGLenum; id:TGLuint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glEndQuery: procedure(target:TGLenum); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetQueryiv: procedure(target:TGLenum; pname:TGLenum; params:PGLint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetQueryObjectuiv: procedure(id:TGLuint; pname:TGLenum; params:PGLuint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glUnmapBuffer: function(Target: GLuint): GLboolean;{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetBufferPointerv: procedure(target:TGLenum; pname:TGLenum; params:Ppointer); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glDrawBuffers: procedure(n:TGLsizei; bufs:PGLenum); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glUniformMatrix2x3fv: procedure(location:TGLint; count:TGLsizei; transpose:TGLboolean; value:PGLfloat); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glUniformMatrix3x2fv: procedure(location:TGLint; count:TGLsizei; transpose:TGLboolean; value:PGLfloat); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glUniformMatrix2x4fv: procedure(location:TGLint; count:TGLsizei; transpose:TGLboolean; value:PGLfloat); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glUniformMatrix4x2fv: procedure(location:TGLint; count:TGLsizei; transpose:TGLboolean; value:PGLfloat); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glUniformMatrix3x4fv: procedure(location:TGLint; count:TGLsizei; transpose:TGLboolean; value:PGLfloat); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glUniformMatrix4x3fv: procedure(location:TGLint; count:TGLsizei; transpose:TGLboolean; value:PGLfloat); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glBlitFramebuffer: procedure(srcX0:TGLint; srcY0:TGLint; srcX1:TGLint; srcY1:TGLint; dstX0:TGLint;
+              dstY0:TGLint; dstX1:TGLint; dstY1:TGLint; mask:TGLbitfield; filter:TGLenum); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glRenderbufferStorageMultisample: procedure(target:TGLenum; samples:TGLsizei; internalformat:TGLenum; width:TGLsizei; height:TGLsizei); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glFramebufferTextureLayer: procedure(target:TGLenum; attachment:TGLenum; texture:TGLuint; level:TGLint; layer:TGLint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glMapBufferRange: function(Target: GLuint; Offset: GLintptr; Len: GLsizeiptr; Access: GLbitfield): Pointer;{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glFlushMappedBufferRange: procedure(target:TGLenum; offset:TGLintptr; length:TGLsizeiptr); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glBindVertexArray: procedure(A: GLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
-    glBindBufferBase: procedure(Target, Ind, Buffer: GLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glDeleteVertexArrays: procedure(Count: GLuint; P: PGLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGenVertexArrays: procedure(Count: GLuint; P: PGLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glIsVertexArray: function(arr:TGLuint):TGLboolean; {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetIntegeri_v: procedure(target:TGLenum; ind:TGLuint; data:PGLint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glBeginTransformFeedback: procedure(Mode: GLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glEndTransformFeedback: procedure();{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glBindBufferRange: procedure(target:TGLenum; ind:TGLuint; buffer:TGLuint; offset:TGLintptr; size:TGLsizeiptr); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glBindBufferBase: procedure(Target, Ind, Buffer: GLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glTransformFeedbackVaryings: procedure(Prog: GLuint; Count: GLsizei; const Varyings: PPAnsiChar; BufferMode: GLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetTransformFeedbackVarying: procedure(prog:TGLuint; ind:TGLuint; bufSize:TGLsizei; length:PGLsizei; size:PGLsizei; 
+              _type:PGLenum; name:PGLchar); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glVertexAttribIPointer: procedure(ind:TGLuint; size:TGLint; _type:TGLenum; stride:TGLsizei; p:pointer); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetVertexAttribIiv: procedure(ind:TGLuint; pname:TGLenum; params:PGLint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetVertexAttribIuiv: procedure(ind:TGLuint; pname:TGLenum; params:PGLuint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glVertexAttribI4i: procedure(ind:TGLuint; x:TGLint; y:TGLint; z:TGLint; w:TGLint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glVertexAttribI4ui: procedure(ind:TGLuint; x:TGLuint; y:TGLuint; z:TGLuint; w:TGLuint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glVertexAttribI4iv: procedure(ind:TGLuint; v:PGLint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glVertexAttribI4uiv: procedure(ind:TGLuint; v:PGLuint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetUniformuiv: procedure(prog:TGLuint; location:TGLint; params:PGLuint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetFragDataLocation: function(prog:TGLuint; name:PGLchar):TGLint; {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glUniform1ui: procedure(location:TGLint; v0:TGLuint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glUniform2ui: procedure(location:TGLint; v0:TGLuint; v1:TGLuint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glUniform3ui: procedure(location:TGLint; v0:TGLuint; v1:TGLuint; v2:TGLuint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glUniform4ui: procedure(location:TGLint; v0:TGLuint; v1:TGLuint; v2:TGLuint; v3:TGLuint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glUniform1uiv: procedure(location:TGLint; count:TGLsizei; value:PGLuint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glUniform2uiv: procedure(location:TGLint; count:TGLsizei; value:PGLuint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glUniform3uiv: procedure(location:TGLint; count:TGLsizei; value:PGLuint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glUniform4uiv: procedure(location:TGLint; count:TGLsizei; value:PGLuint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glClearBufferiv: procedure(buffer:TGLenum; drawbuffer:TGLint; value:PGLint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glClearBufferuiv: procedure(buffer:TGLenum; drawbuffer:TGLint; value:PGLuint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glClearBufferfv: procedure(buffer:TGLenum; drawbuffer:TGLint; value:PGLfloat); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glClearBufferfi: procedure(buffer:TGLenum; drawbuffer:TGLint; depth:TGLfloat; stencil:TGLint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetStringi: function(name:TGLenum; ind:TGLuint):PGLubyte; {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glCopyBufferSubData: procedure(readTarget:TGLenum; writeTarget:TGLenum; readOffset:TGLintptr; writeOffset:TGLintptr; size:TGLsizeiptr); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetUniformIndices: procedure(prog:TGLuint; uniformCount:TGLsizei; uniformNames:PPChar; uniformIndices:PGLuint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetActiveUniformsiv: procedure(prog:TGLuint; uniformCount:TGLsizei; uniformIndices:PGLuint; pname:TGLenum; params:PGLint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetUniformBlockIndex: function(prog:TGLuint; uniformBlockName:PGLchar):TGLuint; {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetActiveUniformBlockiv: procedure(prog:TGLuint; uniformBlockIndex:TGLuint; pname:TGLenum; params:PGLint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetActiveUniformBlockName: procedure(prog:TGLuint; uniformBlockIndex:TGLuint; bufSize:TGLsizei; length:PGLsizei; uniformBlockName:PGLchar); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glUniformBlockBinding: procedure(prog:TGLuint; uniformBlockIndex:TGLuint; uniformBlockBinding:TGLuint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glDrawArraysInstanced: procedure(Mode: GLuint; First, Count, InstanceCount: GLsizei);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glDrawElementsInstanced: procedure(Mode: GLuint; Count, Kind: GLsizei; Indices: PGLuint; InstanceCount: GLsizei);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glFenceSync: function(condition:TGLenum; flags:TGLbitfield):TGLsync; {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glIsSync: function(sync:TGLsync):TGLboolean; {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glDeleteSync: procedure(sync:TGLsync); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glClientWaitSync: function(sync:TGLsync; flags:TGLbitfield; timeout:TGLuint64):TGLenum; {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glWaitSync: procedure(sync:TGLsync; flags:TGLbitfield; timeout:TGLuint64); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetInteger64v: procedure(pname:TGLenum; data:PGLint64); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetSynciv: procedure(sync:TGLsync; pname:TGLenum; count:TGLsizei; length:PGLsizei; values:PGLint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetInteger64i_v: procedure(target:TGLenum; ind:TGLuint; data:PGLint64); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetBufferParameteri64v: procedure(target:TGLenum; pname:TGLenum; params:PGLint64); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGenSamplers: procedure(count:TGLsizei; samplers:PGLuint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glDeleteSamplers: procedure(count:TGLsizei; samplers:PGLuint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glIsSampler: function(sampler:TGLuint):TGLboolean; {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glBindSampler: procedure(u:TGLuint; sampler:TGLuint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glSamplerParameteri: procedure(sampler:TGLuint; pname:TGLenum; param:TGLint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glSamplerParameteriv: procedure(sampler:TGLuint; pname:TGLenum; param:PGLint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glSamplerParameterf: procedure(sampler:TGLuint; pname:TGLenum; param:TGLfloat); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glSamplerParameterfv: procedure(sampler:TGLuint; pname:TGLenum; param:PGLfloat); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetSamplerParameteriv: procedure(sampler:TGLuint; pname:TGLenum; params:PGLint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetSamplerParameterfv: procedure(sampler:TGLuint; pname:TGLenum; params:PGLfloat); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glVertexAttribDivisor: procedure(Ind, Divisor: GLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
-    glGenVertexArrays: procedure(Count: GLuint; P: PGLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
-    glDeleteVertexArrays: procedure(Count: GLuint; P: PGLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glBindTransformFeedback: procedure(target:TGLenum; id:TGLuint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glDeleteTransformFeedbacks: procedure(n:TGLsizei; ids:PGLuint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGenTransformFeedbacks: procedure(n:TGLsizei; ids:PGLuint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glIsTransformFeedback: function(id:TGLuint):TGLboolean; {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glPauseTransformFeedback: procedure(); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glResumeTransformFeedback: procedure(); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetProgramBinary: procedure(prog:TGLuint; bufSize:TGLsizei; length:PGLsizei; binaryFormat:PGLenum; binary:pointer); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glProgramBinary: procedure(prog:TGLuint; binaryFormat:TGLenum; binary:pointer; length:TGLsizei); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glProgramParameteri: procedure(prog:TGLuint; pname:TGLenum; value:TGLint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glInvalidateFramebuffer: procedure(target:TGLenum; numAttachments:TGLsizei; attachments:PGLenum); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glInvalidateSubFramebuffer: procedure(target:TGLenum; numAttachments:TGLsizei; attachments:PGLenum; x:TGLint; y:TGLint; 
+              width:TGLsizei; height:TGLsizei); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glTexStorage2D: procedure(target:TGLenum; levels:TGLsizei; internalformat:TGLenum; width:TGLsizei; height:TGLsizei); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glTexStorage3D: procedure(target:TGLenum; levels:TGLsizei; internalformat:TGLenum; width:TGLsizei; height:TGLsizei; 
+              depth:TGLsizei); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetInternalformativ: procedure(target:TGLenum; internalformat:TGLenum; pname:TGLenum; count:TGLsizei; params:PGLint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
 
   {------------------------------------------------------------------------*
    * IMG extension tokens
@@ -1258,11 +1375,327 @@ type
 
   { OpenGL ES 3.0 constants }
   const
+    GL_READ_BUFFER = $0C02;
+    GL_UNPACK_ROW_LENGTH = $0CF2;
+    GL_UNPACK_SKIP_ROWS = $0CF3;
+    GL_UNPACK_SKIP_PIXELS = $0CF4;
+    GL_PACK_ROW_LENGTH = $0D02;
+    GL_PACK_SKIP_ROWS = $0D03;
+    GL_PACK_SKIP_PIXELS = $0D04;
+    GL_COLOR = $1800;
+    GL_DEPTH = $1801;
+    GL_STENCIL = $1802;
+    GL_RED = $1903;
+    GL_RGB8 = $8051;
+    GL_RGBA8 = $8058;
+    GL_RGB10_A2 = $8059;
+    GL_TEXTURE_BINDING_3D = $806A;
+    GL_UNPACK_SKIP_IMAGES = $806D;
+    GL_UNPACK_IMAGE_HEIGHT = $806E;
+    GL_TEXTURE_3D = $806F;
+    GL_TEXTURE_WRAP_R = $8072;
+    GL_MAX_3D_TEXTURE_SIZE = $8073;
+    GL_UNSIGNED_INT_2_10_10_10_REV = $8368;
+    GL_MAX_ELEMENTS_VERTICES = $80E8;
+    GL_MAX_ELEMENTS_INDICES = $80E9;
+    GL_TEXTURE_MIN_LOD = $813A;
+    GL_TEXTURE_MAX_LOD = $813B;
+    GL_TEXTURE_BASE_LEVEL = $813C;
+    GL_TEXTURE_MAX_LEVEL = $813D;
+    GL_MIN = $8007;
+    GL_MAX = $8008;
+    GL_DEPTH_COMPONENT24 = $81A6;
+    GL_MAX_TEXTURE_LOD_BIAS = $84FD;
+    GL_TEXTURE_COMPARE_MODE = $884C;
+    GL_TEXTURE_COMPARE_FUNC = $884D;
+    GL_CURRENT_QUERY = $8865;
+    GL_QUERY_RESULT = $8866;
+    GL_QUERY_RESULT_AVAILABLE = $8867;
+    GL_BUFFER_MAPPED = $88BC;
+    GL_BUFFER_MAP_POINTER = $88BD;
+    GL_STREAM_READ = $88E1;
+    GL_STREAM_COPY = $88E2;
+    GL_STATIC_READ = $88E5;
+    GL_STATIC_COPY = $88E6;
+    GL_DYNAMIC_READ = $88E9;
+    GL_DYNAMIC_COPY = $88EA;
+    GL_MAX_DRAW_BUFFERS = $8824;
+    GL_DRAW_BUFFER0 = $8825;
+    GL_DRAW_BUFFER1 = $8826;
+    GL_DRAW_BUFFER2 = $8827;
+    GL_DRAW_BUFFER3 = $8828;
+    GL_DRAW_BUFFER4 = $8829;
+    GL_DRAW_BUFFER5 = $882A;
+    GL_DRAW_BUFFER6 = $882B;
+    GL_DRAW_BUFFER7 = $882C;
+    GL_DRAW_BUFFER8 = $882D;
+    GL_DRAW_BUFFER9 = $882E;
+    GL_DRAW_BUFFER10 = $882F;
+    GL_DRAW_BUFFER11 = $8830;
+    GL_DRAW_BUFFER12 = $8831;
+    GL_DRAW_BUFFER13 = $8832;
+    GL_DRAW_BUFFER14 = $8833;
+    GL_DRAW_BUFFER15 = $8834;
+    GL_MAX_FRAGMENT_UNIFORM_COMPONENTS = $8B49;
+    GL_MAX_VERTEX_UNIFORM_COMPONENTS = $8B4A;
+    GL_SAMPLER_3D = $8B5F;
+    GL_SAMPLER_2D_SHADOW = $8B62;
+    GL_FRAGMENT_SHADER_DERIVATIVE_HINT = $8B8B;
+    GL_PIXEL_PACK_BUFFER = $88EB;
+    GL_PIXEL_UNPACK_BUFFER = $88EC;
+    GL_PIXEL_PACK_BUFFER_BINDING = $88ED;
+    GL_PIXEL_UNPACK_BUFFER_BINDING = $88EF;
+    GL_FLOAT_MAT2x3 = $8B65;
+    GL_FLOAT_MAT2x4 = $8B66;
+    GL_FLOAT_MAT3x2 = $8B67;
+    GL_FLOAT_MAT3x4 = $8B68;
+    GL_FLOAT_MAT4x2 = $8B69;
+    GL_FLOAT_MAT4x3 = $8B6A;
+    GL_SRGB = $8C40;
+    GL_SRGB8 = $8C41;
+    GL_SRGB8_ALPHA8 = $8C43;
+    GL_COMPARE_REF_TO_TEXTURE = $884E;
+    GL_MAJOR_VERSION = $821B;
+    GL_MINOR_VERSION = $821C;
+    GL_NUM_EXTENSIONS = $821D;
+    GL_RGBA32F = $8814;
+    GL_RGB32F = $8815;
+    GL_RGBA16F = $881A;
+    GL_RGB16F = $881B;
+    GL_VERTEX_ATTRIB_ARRAY_INTEGER = $88FD;
+    GL_MAX_ARRAY_TEXTURE_LAYERS = $88FF;
+    GL_MIN_PROGRAM_TEXEL_OFFSET = $8904;
+    GL_MAX_PROGRAM_TEXEL_OFFSET = $8905;
+    GL_MAX_VARYING_COMPONENTS = $8B4B;
+    GL_TEXTURE_2D_ARRAY = $8C1A;
+    GL_TEXTURE_BINDING_2D_ARRAY = $8C1D;
+    GL_R11F_G11F_B10F = $8C3A;
+    GL_UNSIGNED_INT_10F_11F_11F_REV = $8C3B;
+    GL_RGB9_E5 = $8C3D;
+    GL_UNSIGNED_INT_5_9_9_9_REV = $8C3E;
+    GL_TRANSFORM_FEEDBACK_VARYING_MAX_LENGTH = $8C76;
+    GL_TRANSFORM_FEEDBACK_BUFFER_MODE = $8C7F;
+    GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS = $8C80;
+    GL_TRANSFORM_FEEDBACK_VARYINGS = $8C83;
+    GL_TRANSFORM_FEEDBACK_BUFFER_START = $8C84;
+    GL_TRANSFORM_FEEDBACK_BUFFER_SIZE = $8C85;
+    GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN = $8C88;
+    GL_RASTERIZER_DISCARD = $8C89;
+    GL_MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS = $8C8A;
+    GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS = $8C8B;
     GL_INTERLEAVED_ATTRIBS = $8C8C;
     GL_SEPARATE_ATTRIBS = $8C8D;
     GL_TRANSFORM_FEEDBACK_BUFFER = $8C8E;
     GL_TRANSFORM_FEEDBACK_BUFFER_BINDING = $8C8F;
-    GL_RASTERIZER_DISCARD = $8C89;
+    GL_RGBA32UI = $8D70;
+    GL_RGB32UI = $8D71;
+    GL_RGBA16UI = $8D76;
+    GL_RGB16UI = $8D77;
+    GL_RGBA8UI = $8D7C;
+    GL_RGB8UI = $8D7D;
+    GL_RGBA32I = $8D82;
+    GL_RGB32I = $8D83;
+    GL_RGBA16I = $8D88;
+    GL_RGB16I = $8D89;
+    GL_RGBA8I = $8D8E;
+    GL_RGB8I = $8D8F;
+    GL_RED_INTEGER = $8D94;
+    GL_RGB_INTEGER = $8D98;
+    GL_RGBA_INTEGER = $8D99;
+    GL_SAMPLER_2D_ARRAY = $8DC1;
+    GL_SAMPLER_2D_ARRAY_SHADOW = $8DC4;
+    GL_SAMPLER_CUBE_SHADOW = $8DC5;
+    GL_UNSIGNED_INT_VEC2 = $8DC6;
+    GL_UNSIGNED_INT_VEC3 = $8DC7;
+    GL_UNSIGNED_INT_VEC4 = $8DC8;
+    GL_INT_SAMPLER_2D = $8DCA;
+    GL_INT_SAMPLER_3D = $8DCB;
+    GL_INT_SAMPLER_CUBE = $8DCC;
+    GL_INT_SAMPLER_2D_ARRAY = $8DCF;
+    GL_UNSIGNED_INT_SAMPLER_2D = $8DD2;
+    GL_UNSIGNED_INT_SAMPLER_3D = $8DD3;
+    GL_UNSIGNED_INT_SAMPLER_CUBE = $8DD4;
+    GL_UNSIGNED_INT_SAMPLER_2D_ARRAY = $8DD7;
+    GL_BUFFER_ACCESS_FLAGS = $911F;
+    GL_BUFFER_MAP_LENGTH = $9120;
+    GL_BUFFER_MAP_OFFSET = $9121;
+    GL_DEPTH_COMPONENT32F = $8CAC;
+    GL_DEPTH32F_STENCIL8 = $8CAD;
+    GL_FLOAT_32_UNSIGNED_INT_24_8_REV = $8DAD;
+    GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING = $8210;
+    GL_FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE = $8211;
+    GL_FRAMEBUFFER_ATTACHMENT_RED_SIZE = $8212;
+    GL_FRAMEBUFFER_ATTACHMENT_GREEN_SIZE = $8213;
+    GL_FRAMEBUFFER_ATTACHMENT_BLUE_SIZE = $8214;
+    GL_FRAMEBUFFER_ATTACHMENT_ALPHA_SIZE = $8215;
+    GL_FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE = $8216;
+    GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE = $8217;
+    GL_FRAMEBUFFER_DEFAULT = $8218;
+    GL_FRAMEBUFFER_UNDEFINED = $8219;
+    GL_DEPTH_STENCIL_ATTACHMENT = $821A;
+    GL_DEPTH_STENCIL = $84F9;
+    GL_UNSIGNED_INT_24_8 = $84FA;
+    GL_DEPTH24_STENCIL8 = $88F0;
+    GL_UNSIGNED_NORMALIZED = $8C17;
+    GL_DRAW_FRAMEBUFFER_BINDING = $8CA6;
+    GL_READ_FRAMEBUFFER = $8CA8;
+    GL_DRAW_FRAMEBUFFER = $8CA9;
+    GL_READ_FRAMEBUFFER_BINDING = $8CAA;
+    GL_RENDERBUFFER_SAMPLES = $8CAB;
+    GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER = $8CD4;
+    GL_MAX_COLOR_ATTACHMENTS = $8CDF;
+    GL_COLOR_ATTACHMENT1 = $8CE1;
+    GL_COLOR_ATTACHMENT2 = $8CE2;
+    GL_COLOR_ATTACHMENT3 = $8CE3;
+    GL_COLOR_ATTACHMENT4 = $8CE4;
+    GL_COLOR_ATTACHMENT5 = $8CE5;
+    GL_COLOR_ATTACHMENT6 = $8CE6;
+    GL_COLOR_ATTACHMENT7 = $8CE7;
+    GL_COLOR_ATTACHMENT8 = $8CE8;
+    GL_COLOR_ATTACHMENT9 = $8CE9;
+    GL_COLOR_ATTACHMENT10 = $8CEA;
+    GL_COLOR_ATTACHMENT11 = $8CEB;
+    GL_COLOR_ATTACHMENT12 = $8CEC;
+    GL_COLOR_ATTACHMENT13 = $8CED;
+    GL_COLOR_ATTACHMENT14 = $8CEE;
+    GL_COLOR_ATTACHMENT15 = $8CEF;
+    GL_COLOR_ATTACHMENT16 = $8CF0;
+    GL_COLOR_ATTACHMENT17 = $8CF1;
+    GL_COLOR_ATTACHMENT18 = $8CF2;
+    GL_COLOR_ATTACHMENT19 = $8CF3;
+    GL_COLOR_ATTACHMENT20 = $8CF4;
+    GL_COLOR_ATTACHMENT21 = $8CF5;
+    GL_COLOR_ATTACHMENT22 = $8CF6;
+    GL_COLOR_ATTACHMENT23 = $8CF7;
+    GL_COLOR_ATTACHMENT24 = $8CF8;
+    GL_COLOR_ATTACHMENT25 = $8CF9;
+    GL_COLOR_ATTACHMENT26 = $8CFA;
+    GL_COLOR_ATTACHMENT27 = $8CFB;
+    GL_COLOR_ATTACHMENT28 = $8CFC;
+    GL_COLOR_ATTACHMENT29 = $8CFD;
+    GL_COLOR_ATTACHMENT30 = $8CFE;
+    GL_COLOR_ATTACHMENT31 = $8CFF;
+    GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE = $8D56;
+    GL_MAX_SAMPLES = $8D57;
+    GL_HALF_FLOAT = $140B;
+    GL_MAP_READ_BIT = $0001;
+    GL_MAP_WRITE_BIT = $0002;
+    GL_MAP_INVALIDATE_RANGE_BIT = $0004;
+    GL_MAP_INVALIDATE_BUFFER_BIT = $0008;
+    GL_MAP_FLUSH_EXPLICIT_BIT = $0010;
+    GL_MAP_UNSYNCHRONIZED_BIT = $0020;
+    GL_RG = $8227;
+    GL_RG_INTEGER = $8228;
+    GL_R8 = $8229;
+    GL_RG8 = $822B;
+    GL_R16F = $822D;
+    GL_R32F = $822E;
+    GL_RG16F = $822F;
+    GL_RG32F = $8230;
+    GL_R8I = $8231;
+    GL_R8UI = $8232;
+    GL_R16I = $8233;
+    GL_R16UI = $8234;
+    GL_R32I = $8235;
+    GL_R32UI = $8236;
+    GL_RG8I = $8237;
+    GL_RG8UI = $8238;
+    GL_RG16I = $8239;
+    GL_RG16UI = $823A;
+    GL_RG32I = $823B;
+    GL_RG32UI = $823C;
+    GL_VERTEX_ARRAY_BINDING = $85B5;
+    GL_R8_SNORM = $8F94;
+    GL_RG8_SNORM = $8F95;
+    GL_RGB8_SNORM = $8F96;
+    GL_RGBA8_SNORM = $8F97;
+    GL_SIGNED_NORMALIZED = $8F9C;
+    GL_PRIMITIVE_RESTART_FIXED_INDEX = $8D69;
+    GL_COPY_READ_BUFFER = $8F36;
+    GL_COPY_WRITE_BUFFER = $8F37;
+    GL_COPY_READ_BUFFER_BINDING = $8F36;
+    GL_COPY_WRITE_BUFFER_BINDING = $8F37;
+    GL_UNIFORM_BUFFER = $8A11;
+    GL_UNIFORM_BUFFER_BINDING = $8A28;
+    GL_UNIFORM_BUFFER_START = $8A29;
+    GL_UNIFORM_BUFFER_SIZE = $8A2A;
+    GL_MAX_VERTEX_UNIFORM_BLOCKS = $8A2B;
+    GL_MAX_FRAGMENT_UNIFORM_BLOCKS = $8A2D;
+    GL_MAX_COMBINED_UNIFORM_BLOCKS = $8A2E;
+    GL_MAX_UNIFORM_BUFFER_BINDINGS = $8A2F;
+    GL_MAX_UNIFORM_BLOCK_SIZE = $8A30;
+    GL_MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS = $8A31;
+    GL_MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS = $8A33;
+    GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT = $8A34;
+    GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH = $8A35;
+    GL_ACTIVE_UNIFORM_BLOCKS = $8A36;
+    GL_UNIFORM_TYPE = $8A37;
+    GL_UNIFORM_SIZE = $8A38;
+    GL_UNIFORM_NAME_LENGTH = $8A39;
+    GL_UNIFORM_BLOCK_INDEX = $8A3A;
+    GL_UNIFORM_OFFSET = $8A3B;
+    GL_UNIFORM_ARRAY_STRIDE = $8A3C;
+    GL_UNIFORM_MATRIX_STRIDE = $8A3D;
+    GL_UNIFORM_IS_ROW_MAJOR = $8A3E;
+    GL_UNIFORM_BLOCK_BINDING = $8A3F;
+    GL_UNIFORM_BLOCK_DATA_SIZE = $8A40;
+    GL_UNIFORM_BLOCK_NAME_LENGTH = $8A41;
+    GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS = $8A42;
+    GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES = $8A43;
+    GL_UNIFORM_BLOCK_REFERENCED_BY_VERTEX_SHADER = $8A44;
+    GL_UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER = $8A46;
+    GL_INVALID_INDEX = $FFFFFFFF;
+    GL_MAX_VERTEX_OUTPUT_COMPONENTS = $9122;
+    GL_MAX_FRAGMENT_INPUT_COMPONENTS = $9125;
+    GL_MAX_SERVER_WAIT_TIMEOUT = $9111;
+    GL_OBJECT_TYPE = $9112;
+    GL_SYNC_CONDITION = $9113;
+    GL_SYNC_STATUS = $9114;
+    GL_SYNC_FLAGS = $9115;
+    GL_SYNC_FENCE = $9116;
+    GL_SYNC_GPU_COMMANDS_COMPLETE = $9117;
+    GL_UNSIGNALED = $9118;
+    GL_SIGNALED = $9119;
+    GL_ALREADY_SIGNALED = $911A;
+    GL_TIMEOUT_EXPIRED = $911B;
+    GL_CONDITION_SATISFIED = $911C;
+    GL_WAIT_FAILED = $911D;
+    GL_SYNC_FLUSH_COMMANDS_BIT = $00000001;
+    GL_TIMEOUT_IGNORED = $FFFFFFFFFFFFFFFF;
+    GL_VERTEX_ATTRIB_ARRAY_DIVISOR = $88FE;
+    GL_ANY_SAMPLES_PASSED = $8C2F;
+    GL_ANY_SAMPLES_PASSED_CONSERVATIVE = $8D6A;
+    GL_SAMPLER_BINDING = $8919;
+    GL_RGB10_A2UI = $906F;
+    GL_TEXTURE_SWIZZLE_R = $8E42;
+    GL_TEXTURE_SWIZZLE_G = $8E43;
+    GL_TEXTURE_SWIZZLE_B = $8E44;
+    GL_TEXTURE_SWIZZLE_A = $8E45;
+    GL_GREEN = $1904;
+    GL_BLUE = $1905;
+    GL_INT_2_10_10_10_REV = $8D9F;
+    GL_TRANSFORM_FEEDBACK = $8E22;
+    GL_TRANSFORM_FEEDBACK_PAUSED = $8E23;
+    GL_TRANSFORM_FEEDBACK_ACTIVE = $8E24;
+    GL_TRANSFORM_FEEDBACK_BINDING = $8E25;
+    GL_PROGRAM_BINARY_RETRIEVABLE_HINT = $8257;
+    GL_PROGRAM_BINARY_LENGTH = $8741;
+    GL_NUM_PROGRAM_BINARY_FORMATS = $87FE;
+    GL_PROGRAM_BINARY_FORMATS = $87FF;
+    GL_COMPRESSED_R11_EAC = $9270;
+    GL_COMPRESSED_SIGNED_R11_EAC = $9271;
+    GL_COMPRESSED_RG11_EAC = $9272;
+    GL_COMPRESSED_SIGNED_RG11_EAC = $9273;
+    GL_COMPRESSED_RGB8_ETC2 = $9274;
+    GL_COMPRESSED_SRGB8_ETC2 = $9275;
+    GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2 = $9276;
+    GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2 = $9277;
+    GL_COMPRESSED_RGBA8_ETC2_EAC = $9278;
+    GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC = $9279;
+    GL_TEXTURE_IMMUTABLE_FORMAT = $912F;
+    GL_MAX_ELEMENT_INDEX = $8D6B;
+    GL_NUM_SAMPLE_COUNTS = $9380;
+    GL_TEXTURE_IMMUTABLE_LEVELS = $82DF;
 
   var
     glEGLImageTargetTexture2DOES : procedure(target:GLenum; image:GLeglImageOES);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
@@ -1724,16 +2157,110 @@ implementation
       glEndPerfMonitorAMD:=nil;
       glGetPerfMonitorCounterDataAMD:=nil;
       //
-      glTransformFeedbackVaryings := nil;
-      glDrawArraysInstanced := nil;
-      glDrawElementsInstanced := nil;
+      glReadBuffer := nil;
+      glDrawRangeElements := nil;
+      glTexImage3D := nil;
+      glTexSubImage3D := nil;
+      glCopyTexSubImage3D := nil;
+      glCompressedTexImage3D := nil;
+      glCompressedTexSubImage3D := nil;
+      glGenQueries := nil;
+      glDeleteQueries := nil;
+      glIsQuery := nil;
+      glBeginQuery := nil;
+      glEndQuery := nil;
+      glGetQueryiv := nil;
+      glGetQueryObjectuiv := nil;
+      glUnmapBuffer := nil;
+      glGetBufferPointerv := nil;
+      glDrawBuffers := nil;
+      glUniformMatrix2x3fv := nil;
+      glUniformMatrix3x2fv := nil;
+      glUniformMatrix2x4fv := nil;
+      glUniformMatrix4x2fv := nil;
+      glUniformMatrix3x4fv := nil;
+      glUniformMatrix4x3fv := nil;
+      glBlitFramebuffer := nil;
+      glRenderbufferStorageMultisample := nil;
+      glFramebufferTextureLayer := nil;
+      glMapBufferRange := nil;
+      glFlushMappedBufferRange := nil;
       glBindVertexArray := nil;
-      glBindBufferBase := nil;
+      glDeleteVertexArrays := nil;
+      glGenVertexArrays := nil;
+      glIsVertexArray := nil;
+      glGetIntegeri_v := nil;
       glBeginTransformFeedback := nil;
       glEndTransformFeedback := nil;
+      glBindBufferRange := nil;
+      glBindBufferBase := nil;
+      glTransformFeedbackVaryings := nil;
+      glGetTransformFeedbackVarying := nil;
+      glVertexAttribIPointer := nil;
+      glGetVertexAttribIiv := nil;
+      glGetVertexAttribIuiv := nil;
+      glVertexAttribI4i := nil;
+      glVertexAttribI4ui := nil;
+      glVertexAttribI4iv := nil;
+      glVertexAttribI4uiv := nil;
+      glGetUniformuiv := nil;
+      glGetFragDataLocation := nil;
+      glUniform1ui := nil;
+      glUniform2ui := nil;
+      glUniform3ui := nil;
+      glUniform4ui := nil;
+      glUniform1uiv := nil;
+      glUniform2uiv := nil;
+      glUniform3uiv := nil;
+      glUniform4uiv := nil;
+      glClearBufferiv := nil;
+      glClearBufferuiv := nil;
+      glClearBufferfv := nil;
+      glClearBufferfi := nil;
+      glGetStringi := nil;
+      glCopyBufferSubData := nil;
+      glGetUniformIndices := nil;
+      glGetActiveUniformsiv := nil;
+      glGetUniformBlockIndex := nil;
+      glGetActiveUniformBlockiv := nil;
+      glGetActiveUniformBlockName := nil;
+      glUniformBlockBinding := nil;
+      glDrawArraysInstanced := nil;
+      glDrawElementsInstanced := nil;
+      glFenceSync := nil;
+      glIsSync := nil;
+      glDeleteSync := nil;
+      glClientWaitSync := nil;
+      glWaitSync := nil;
+      glGetInteger64v := nil;
+      glGetSynciv := nil;
+      glGetInteger64i_v := nil;
+      glGetBufferParameteri64v := nil;
+      glGenSamplers := nil;
+      glDeleteSamplers := nil;
+      glIsSampler := nil;
+      glBindSampler := nil;
+      glSamplerParameteri := nil;
+      glSamplerParameteriv := nil;
+      glSamplerParameterf := nil;
+      glSamplerParameterfv := nil;
+      glGetSamplerParameteriv := nil;
+      glGetSamplerParameterfv := nil;
       glVertexAttribDivisor := nil;
-      glGenVertexArrays := nil;
-      glDeleteVertexArrays := nil;
+      glBindTransformFeedback := nil;
+      glDeleteTransformFeedbacks := nil;
+      glGenTransformFeedbacks := nil;
+      glIsTransformFeedback := nil;
+      glPauseTransformFeedback := nil;
+      glResumeTransformFeedback := nil;
+      glGetProgramBinary := nil;
+      glProgramBinary := nil;
+      glProgramParameteri := nil;
+      glInvalidateFramebuffer := nil;
+      glInvalidateSubFramebuffer := nil;
+      glTexStorage2D := nil;
+      glTexStorage3D := nil;
+      glGetInternalformativ := nil;
     end;
 
 
@@ -1918,16 +2445,110 @@ implementation
       pointer(glGetPerfMonitorCounterDataAMD):=glGetProcAddress(GLESLib,'glGetPerfMonitorCounterDataAMD');
 
       { OpenGL ES 3.0 APIs }
-      pointer(glTransformFeedbackVaryings) := glGetProcAddress(GLESLib, 'glTransformFeedbackVaryings');
-      pointer(glDrawArraysInstanced) := glGetProcAddress(GLESLib, 'glDrawArraysInstanced');
-      pointer(glDrawElementsInstanced) := glGetProcAddress(GLESLib, 'glDrawElementsInstanced');
+      pointer(glReadBuffer) := glGetProcAddress(GLESLib, 'glReadBuffer');
+      pointer(glDrawRangeElements) := glGetProcAddress(GLESLib, 'glDrawRangeElements');
+      pointer(glTexImage3D) := glGetProcAddress(GLESLib, 'glTexImage3D');
+      pointer(glTexSubImage3D) := glGetProcAddress(GLESLib, 'glTexSubImage3D');
+      pointer(glCopyTexSubImage3D) := glGetProcAddress(GLESLib, 'glCopyTexSubImage3D');
+      pointer(glCompressedTexImage3D) := glGetProcAddress(GLESLib, 'glCompressedTexImage3D');
+      pointer(glCompressedTexSubImage3D) := glGetProcAddress(GLESLib, 'glCompressedTexSubImage3D');
+      pointer(glGenQueries) := glGetProcAddress(GLESLib, 'glGenQueries');
+      pointer(glDeleteQueries) := glGetProcAddress(GLESLib, 'glDeleteQueries');
+      pointer(glIsQuery) := glGetProcAddress(GLESLib, 'glIsQuery');
+      pointer(glBeginQuery) := glGetProcAddress(GLESLib, 'glBeginQuery');
+      pointer(glEndQuery) := glGetProcAddress(GLESLib, 'glEndQuery');
+      pointer(glGetQueryiv) := glGetProcAddress(GLESLib, 'glGetQueryiv');
+      pointer(glGetQueryObjectuiv) := glGetProcAddress(GLESLib, 'glGetQueryObjectuiv');
+      pointer(glUnmapBuffer) := glGetProcAddress(GLESLib, 'glUnmapBuffer');
+      pointer(glGetBufferPointerv) := glGetProcAddress(GLESLib, 'glGetBufferPointerv');
+      pointer(glDrawBuffers) := glGetProcAddress(GLESLib, 'glDrawBuffers');
+      pointer(glUniformMatrix2x3fv) := glGetProcAddress(GLESLib, 'glUniformMatrix2x3fv');
+      pointer(glUniformMatrix3x2fv) := glGetProcAddress(GLESLib, 'glUniformMatrix3x2fv');
+      pointer(glUniformMatrix2x4fv) := glGetProcAddress(GLESLib, 'glUniformMatrix2x4fv');
+      pointer(glUniformMatrix4x2fv) := glGetProcAddress(GLESLib, 'glUniformMatrix4x2fv');
+      pointer(glUniformMatrix3x4fv) := glGetProcAddress(GLESLib, 'glUniformMatrix3x4fv');
+      pointer(glUniformMatrix4x3fv) := glGetProcAddress(GLESLib, 'glUniformMatrix4x3fv');
+      pointer(glBlitFramebuffer) := glGetProcAddress(GLESLib, 'glBlitFramebuffer');
+      pointer(glRenderbufferStorageMultisample) := glGetProcAddress(GLESLib, 'glRenderbufferStorageMultisample');
+      pointer(glFramebufferTextureLayer) := glGetProcAddress(GLESLib, 'glFramebufferTextureLayer');
+      pointer(glMapBufferRange) := glGetProcAddress(GLESLib, 'glMapBufferRange');
+      pointer(glFlushMappedBufferRange) := glGetProcAddress(GLESLib, 'glFlushMappedBufferRange');
       pointer(glBindVertexArray) := glGetProcAddress(GLESLib, 'glBindVertexArray');
-      pointer(glBindBufferBase) := glGetProcAddress(GLESLib, 'glBindBufferBase');
+      pointer(glDeleteVertexArrays) := glGetProcAddress(GLESLib, 'glDeleteVertexArrays');
+      pointer(glGenVertexArrays) := glGetProcAddress(GLESLib, 'glGenVertexArrays');
+      pointer(glIsVertexArray) := glGetProcAddress(GLESLib, 'glIsVertexArray');
+      pointer(glGetIntegeri_v) := glGetProcAddress(GLESLib, 'glGetIntegeri_v');
       pointer(glBeginTransformFeedback) := glGetProcAddress(GLESLib, 'glBeginTransformFeedback');
       pointer(glEndTransformFeedback) := glGetProcAddress(GLESLib, 'glEndTransformFeedback');
+      pointer(glBindBufferRange) := glGetProcAddress(GLESLib, 'glBindBufferRange');
+      pointer(glBindBufferBase) := glGetProcAddress(GLESLib, 'glBindBufferBase');
+      pointer(glTransformFeedbackVaryings) := glGetProcAddress(GLESLib, 'glTransformFeedbackVaryings');
+      pointer(glGetTransformFeedbackVarying) := glGetProcAddress(GLESLib, 'glGetTransformFeedbackVarying');
+      pointer(glVertexAttribIPointer) := glGetProcAddress(GLESLib, 'glVertexAttribIPointer');
+      pointer(glGetVertexAttribIiv) := glGetProcAddress(GLESLib, 'glGetVertexAttribIiv');
+      pointer(glGetVertexAttribIuiv) := glGetProcAddress(GLESLib, 'glGetVertexAttribIuiv');
+      pointer(glVertexAttribI4i) := glGetProcAddress(GLESLib, 'glVertexAttribI4i');
+      pointer(glVertexAttribI4ui) := glGetProcAddress(GLESLib, 'glVertexAttribI4ui');
+      pointer(glVertexAttribI4iv) := glGetProcAddress(GLESLib, 'glVertexAttribI4iv');
+      pointer(glVertexAttribI4uiv) := glGetProcAddress(GLESLib, 'glVertexAttribI4uiv');
+      pointer(glGetUniformuiv) := glGetProcAddress(GLESLib, 'glGetUniformuiv');
+      pointer(glGetFragDataLocation) := glGetProcAddress(GLESLib, 'glGetFragDataLocation');
+      pointer(glUniform1ui) := glGetProcAddress(GLESLib, 'glUniform1ui');
+      pointer(glUniform2ui) := glGetProcAddress(GLESLib, 'glUniform2ui');
+      pointer(glUniform3ui) := glGetProcAddress(GLESLib, 'glUniform3ui');
+      pointer(glUniform4ui) := glGetProcAddress(GLESLib, 'glUniform4ui');
+      pointer(glUniform1uiv) := glGetProcAddress(GLESLib, 'glUniform1uiv');
+      pointer(glUniform2uiv) := glGetProcAddress(GLESLib, 'glUniform2uiv');
+      pointer(glUniform3uiv) := glGetProcAddress(GLESLib, 'glUniform3uiv');
+      pointer(glUniform4uiv) := glGetProcAddress(GLESLib, 'glUniform4uiv');
+      pointer(glClearBufferiv) := glGetProcAddress(GLESLib, 'glClearBufferiv');
+      pointer(glClearBufferuiv) := glGetProcAddress(GLESLib, 'glClearBufferuiv');
+      pointer(glClearBufferfv) := glGetProcAddress(GLESLib, 'glClearBufferfv');
+      pointer(glClearBufferfi) := glGetProcAddress(GLESLib, 'glClearBufferfi');
+      pointer(glGetStringi) := glGetProcAddress(GLESLib, 'glGetStringi');
+      pointer(glCopyBufferSubData) := glGetProcAddress(GLESLib, 'glCopyBufferSubData');
+      pointer(glGetUniformIndices) := glGetProcAddress(GLESLib, 'glGetUniformIndices');
+      pointer(glGetActiveUniformsiv) := glGetProcAddress(GLESLib, 'glGetActiveUniformsiv');
+      pointer(glGetUniformBlockIndex) := glGetProcAddress(GLESLib, 'glGetUniformBlockIndex');
+      pointer(glGetActiveUniformBlockiv) := glGetProcAddress(GLESLib, 'glGetActiveUniformBlockiv');
+      pointer(glGetActiveUniformBlockName) := glGetProcAddress(GLESLib, 'glGetActiveUniformBlockName');
+      pointer(glUniformBlockBinding) := glGetProcAddress(GLESLib, 'glUniformBlockBinding');
+      pointer(glDrawArraysInstanced) := glGetProcAddress(GLESLib, 'glDrawArraysInstanced');
+      pointer(glDrawElementsInstanced) := glGetProcAddress(GLESLib, 'glDrawElementsInstanced');
+      pointer(glFenceSync) := glGetProcAddress(GLESLib, 'glFenceSync');
+      pointer(glIsSync) := glGetProcAddress(GLESLib, 'glIsSync');
+      pointer(glDeleteSync) := glGetProcAddress(GLESLib, 'glDeleteSync');
+      pointer(glClientWaitSync) := glGetProcAddress(GLESLib, 'glClientWaitSync');
+      pointer(glWaitSync) := glGetProcAddress(GLESLib, 'glWaitSync');
+      pointer(glGetInteger64v) := glGetProcAddress(GLESLib, 'glGetInteger64v');
+      pointer(glGetSynciv) := glGetProcAddress(GLESLib, 'glGetSynciv');
+      pointer(glGetInteger64i_v) := glGetProcAddress(GLESLib, 'glGetInteger64i_v');
+      pointer(glGetBufferParameteri64v) := glGetProcAddress(GLESLib, 'glGetBufferParameteri64v');
+      pointer(glGenSamplers) := glGetProcAddress(GLESLib, 'glGenSamplers');
+      pointer(glDeleteSamplers) := glGetProcAddress(GLESLib, 'glDeleteSamplers');
+      pointer(glIsSampler) := glGetProcAddress(GLESLib, 'glIsSampler');
+      pointer(glBindSampler) := glGetProcAddress(GLESLib, 'glBindSampler');
+      pointer(glSamplerParameteri) := glGetProcAddress(GLESLib, 'glSamplerParameteri');
+      pointer(glSamplerParameteriv) := glGetProcAddress(GLESLib, 'glSamplerParameteriv');
+      pointer(glSamplerParameterf) := glGetProcAddress(GLESLib, 'glSamplerParameterf');
+      pointer(glSamplerParameterfv) := glGetProcAddress(GLESLib, 'glSamplerParameterfv');
+      pointer(glGetSamplerParameteriv) := glGetProcAddress(GLESLib, 'glGetSamplerParameteriv');
+      pointer(glGetSamplerParameterfv) := glGetProcAddress(GLESLib, 'glGetSamplerParameterfv');
       pointer(glVertexAttribDivisor) := glGetProcAddress(GLESLib, 'glVertexAttribDivisor');
-      pointer(glGenVertexArrays) := glGetProcAddress(GLESLib, 'glGenVertexArrays');
-      pointer(glDeleteVertexArrays) := glGetProcAddress(GLESLib, 'glDeleteVertexArrays');
+      pointer(glBindTransformFeedback) := glGetProcAddress(GLESLib, 'glBindTransformFeedback');
+      pointer(glDeleteTransformFeedbacks) := glGetProcAddress(GLESLib, 'glDeleteTransformFeedbacks');
+      pointer(glGenTransformFeedbacks) := glGetProcAddress(GLESLib, 'glGenTransformFeedbacks');
+      pointer(glIsTransformFeedback) := glGetProcAddress(GLESLib, 'glIsTransformFeedback');
+      pointer(glPauseTransformFeedback) := glGetProcAddress(GLESLib, 'glPauseTransformFeedback');
+      pointer(glResumeTransformFeedback) := glGetProcAddress(GLESLib, 'glResumeTransformFeedback');
+      pointer(glGetProgramBinary) := glGetProcAddress(GLESLib, 'glGetProgramBinary');
+      pointer(glProgramBinary) := glGetProcAddress(GLESLib, 'glProgramBinary');
+      pointer(glProgramParameteri) := glGetProcAddress(GLESLib, 'glProgramParameteri');
+      pointer(glInvalidateFramebuffer) := glGetProcAddress(GLESLib, 'glInvalidateFramebuffer');
+      pointer(glInvalidateSubFramebuffer) := glGetProcAddress(GLESLib, 'glInvalidateSubFramebuffer');
+      pointer(glTexStorage2D) := glGetProcAddress(GLESLib, 'glTexStorage2D');
+      pointer(glTexStorage3D) := glGetProcAddress(GLESLib, 'glTexStorage3D');
+      pointer(glGetInternalformativ) := glGetProcAddress(GLESLib, 'glGetInternalformativ');
     end;
 
 procedure GLESInitialization;
