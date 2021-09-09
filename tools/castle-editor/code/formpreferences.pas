@@ -24,12 +24,17 @@ uses
 
 type
   TPreferencesForm = class(TForm)
+    ButtonRegisterLazarusPackages: TButton;
     ButtonPanel1: TButtonPanel;
     CheckBoxMuteOnRun: TCheckBox;
     DirectoryEditFpc: TDirectoryEdit;
     DirectoryEditLazarus: TDirectoryEdit;
     EditCodeEditorCommand: TFileNameEdit;
     EditCodeEditorCommandProject: TFileNameEdit;
+    LabelInstructions0: TLabel;
+    LabelInstructions1: TLabel;
+    LabelInstructions2: TLabel;
+    LabelLazarusWebsite: TLabel;
     LabelVolume: TLabel;
     LabelCodeEditorCommandInstructions: TLabel;
     LabelCodeEditorCommand: TLabel;
@@ -38,22 +43,20 @@ type
     LabelSound: TLabel;
     LabelFpc: TLabel;
     LabelFpcAutoDetectedCaption: TLabel;
-    LabelInstructions0: TLabel;
     LabelLazarus: TLabel;
-    LabelInstructions1: TLabel;
     LabelLazarusAutoDetectedCaption: TLabel;
     LabelTitle: TLabel;
-    LabelInstructions2: TLabel;
     LabelFpcAutoDetected: TLabel;
     LabelLazarusAutoDetected: TLabel;
-    LabelLazarusWebsite: TLabel;
     ListPages: TListBox;
+    PanelInstructions: TPanel;
     PanelCodeEditor: TPanel;
     PanelSound: TPanel;
     PanelFpcLazarusConfig: TPanel;
     RadioCodeEditorLazarus: TRadioButton;
     RadioCodeEditorCustom: TRadioButton;
     TrackVolume: TTrackBar;
+    procedure ButtonRegisterLazarusPackagesClick(Sender: TObject);
     procedure DirectoryEditFpcChange(Sender: TObject);
     procedure DirectoryEditLazarusChange(Sender: TObject);
     procedure EditCodeEditorCommandAcceptFileName(Sender: TObject;
@@ -81,7 +84,7 @@ var
 implementation
 
 uses CastleOpenDocument, CastleUtils, CastleLog, CastleSoundEngine,
-  ToolCompilerInfo, ToolFpcVersion,
+  ToolCompilerInfo, ToolFpcVersion, ToolCommonUtils,
   EditorUtils;
 
 {$R *.lfm}
@@ -231,6 +234,53 @@ procedure TPreferencesForm.DirectoryEditFpcChange(Sender: TObject);
 begin
   FpcCustomPath := DirectoryEditFpc.Directory;
   UpdateAutoDetectedLabels;
+end;
+
+procedure TPreferencesForm.ButtonRegisterLazarusPackagesClick(Sender: TObject);
+var
+  ExecutionLog: String;
+
+  procedure RegisterPackage(const Name: String);
+  var
+    LazbuildExe, LazbuildOutput, PackageFileName, CommandLog: String;
+    LazbuildExitStatus: integer;
+  begin
+    LazbuildExe := FindExeLazarus('lazbuild');
+    if LazbuildExe = '' then
+      raise EExecutableNotFound.Create('Cannot find "lazbuild" program. Make sure it is installed, and set Lazarus location in CGE editor "Preferences".');
+
+    PackageFileName := CastleEnginePath + 'packages' + PathDelim + Name + '.lpk';
+
+    MyRunCommandIndir(
+      GetCurrentDir { no better directory, but also should not matter },
+      LazbuildExe, [
+        '--add-package-link',
+        PackageFileName
+      ], LazbuildOutput, LazbuildExitStatus);
+
+    CommandLog := 'lazbuild --add-package-link "' + PackageFileName + '"';
+    ExecutionLog := ExecutionLog + NL + NL + CommandLog;
+    WritelnLog('lazbuild status %d, output:' + NL + '%s', [LazbuildExitStatus, LazbuildOutput]);
+
+    if (LazbuildExitStatus <> 0) or
+       (Pos('Invalid option', LazbuildOutput) <> 0) { lazbuild has exit status 0 in this case } then
+      raise Exception.Create('Executing lazbuild failed:' + NL + NL + LazbuildOutput);
+  end;
+
+begin
+  ExecutionLog := 'Lazarus packages registed successfully.' + NL + NL +
+    'Executed the following commands:';
+  try
+    RegisterPackage('castle_base');
+    RegisterPackage('castle_window');
+    RegisterPackage('castle_components');
+    RegisterPackage('alternative_castle_window_based_on_lcl');
+    RegisterPackage('castle_indy');
+    ShowMessage(ExecutionLog);
+  except
+    on E: Exception do
+      ErrorBox(E.Message);
+  end;
 end;
 
 procedure TPreferencesForm.DirectoryEditLazarusChange(Sender: TObject);

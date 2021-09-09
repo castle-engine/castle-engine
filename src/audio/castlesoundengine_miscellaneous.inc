@@ -62,7 +62,7 @@ var
 
 const
   { Special sound type that indicates that there is actually no sound.
-    @link(TRepoSoundEngine.Sound) and @link(TRepoSoundEngine.Sound3D)
+    @link(TSoundEngine.Sound) and @link(TSoundEngine.Sound3D)
     will do nothing when called with this sound type. }
   stNone: TCastleSound = nil deprecated 'use nil';
 

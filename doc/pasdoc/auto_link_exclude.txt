@@ -260,6 +260,7 @@ pitch
 plane
 planes
 platform
+play
 played
 player
 playing

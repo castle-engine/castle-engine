@@ -188,8 +188,7 @@
         MySound1 := SoundEngine.SoundFromName('my_sound_1');
         MySound2 := SoundEngine.SoundFromName('my_sound_2');
         // ... and later in your game you can do stuff like this:
-        SoundEngine.Sound(MySound1);
-        SoundEngine.Sound3D(MySound1, Vector3(0, 0, 10));
+        SoundEngine.Play(MySound1);
       #)
 
       See https://castle-engine.io/manual_data_directory.php
@@ -255,7 +254,7 @@
 
     { Comfortable way to play and control the music.
       Simply assign @link(TLoopingChannel.Sound MusicPlayer.Sound)
-      to play music. Set it to @link(nil) to stop playing music.
+      to play music. Set it to @nil to stop playing music.
       This is just a shortcut for @link(LoopingChannel LoopingChannel[0]). }
     property MusicPlayer: TLoopingChannel read GetMusicPlayer; deprecated 'use LoopingChannel[0]';
 
@@ -268,7 +267,7 @@
       @longCode(# LoopingChannel[0].Sound := MyMusicTrack; #)
 
       You stop by setting @link(TLoopingChannel.Sound) to something else,
-      which can be @link(nil) to just stop playing any looping
+      which can be @nil to just stop playing any looping
       sound on this channel. For example:
 
       @longCode(# LoopingChannel[0].Sound := nil; #)
@@ -296,7 +295,7 @@
       in game.
 
       Note that, if this does nothing, but you later set @link(RepositoryURL)
-      or do @link(LoadBuffer) or @link(PlaySound), then sound context will
+      or do @link(LoadBuffer) or @link(Play), then sound context will
       be created on-demand anyway. So calling this is always optional. }
     procedure PrepareResources;
   end;
@@ -382,6 +381,11 @@ begin
   if Target.Count = 0 then
     raise EInvalidSoundRepositoryXml.CreateFmt('Alias "%s" does not define any targets',
       [Name]);
+
+  if Target.Count > 1 then
+    WritelnWarning('Choosing sound at random is no longer supported, alias "%s" is no longer a random sound', [
+      Name
+    ]);
 end;
 
 procedure TRepoSoundEngine.TSoundInfoAlias.ResolveNames(const AllSounds: TSoundInfoList);
@@ -406,10 +410,6 @@ const
 var
   RandomTarget: TSoundInfo;
 begin
-  if Target.Count > 1 then
-    WritelnWarning('Choosing sound at random is no longer supported, alias "%s" is no longer a random sound', [
-      Name
-    ]);
   RandomTarget := Target.Objects[Random(Target.Count)] as TSoundInfo;
   { Instead of returning RandomTarget, we return RandomTarget.FinalSound.
     This way an <alias> may point to another <alias>.

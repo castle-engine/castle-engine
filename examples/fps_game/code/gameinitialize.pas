@@ -438,7 +438,7 @@ end;
 
 { Window callbacks ----------------------------------------------------------- }
 
-procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
+procedure Press(Container: TCastleContainer; const Event: TInputPressRelease);
 begin
   { We simulate button presses on some key presses. There is no automatic
     mechanism to assign key shortcut to a TCastleButton right now.

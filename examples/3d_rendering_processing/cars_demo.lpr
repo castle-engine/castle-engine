@@ -30,7 +30,7 @@ var
   CarScene, RoadScene: TCastleScene;
   CarTransforms: array [1..20] of TCastleTransform;
 
-procedure WindowUpdate(Container: TUIContainer);
+procedure WindowUpdate(Container: TCastleContainer);
 
   procedure UpdateCarTransform(const CarTransform: TCastleTransform);
   var
@@ -38,11 +38,11 @@ procedure WindowUpdate(Container: TUIContainer);
   begin
     T := CarTransform.Translation;
     { Thanks to multiplying by SecondsPassed, it is a time-based operation,
-      and will always move 40 units / per second along the -Z axis. }
-    T := T + Vector3(0, 0, -40) * Container.Fps.SecondsPassed;
+      and will always move 40 units / per second along the +Z axis. }
+    T := T + Vector3(0, 0, 40) * Container.Fps.SecondsPassed;
     { Wrap the Z position, to move in a loop }
-    if T.Z < -70.0 then
-      T.Z := 50.0;
+    if T.Z > 70 then
+      T.Z := -50;
     CarTransform.Translation := T;
   end;
 
@@ -53,7 +53,7 @@ begin
     UpdateCarTransform(CarTransforms[I]);
 end;
 
-procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
+procedure WindowPress(Container: TCastleContainer; const Event: TInputPressRelease);
 begin
   if Event.IsKey('c') then
     CarTransforms[1].Exists := not CarTransforms[1].Exists;
@@ -136,24 +136,22 @@ begin
   Window.Controls.InsertFront(Viewport);
 
   CarScene := TCastleScene.Create(Application);
-  CarScene.Load('castle-data:/car.x3d');
+  CarScene.Load('castle-data:/car.gltf');
   CarScene.Spatial := [ssRendering, ssDynamicCollisions];
-  CarScene.ProcessEvents := true;
   CarScene.PlayAnimation('wheels_turning', true);
 
   for I := Low(CarTransforms) to High(CarTransforms) do
   begin
     CarTransforms[I] := TCastleTransform.Create(Application);
     CarTransforms[I].Translation := Vector3(
-      -6 + Random(4) * 6, 0, RandomFloatRange(-70, 50));
+       (Random(4) - 2) * 6, 0, RandomFloatRange(-70, 50));
     CarTransforms[I].Add(CarScene);
     Viewport.Items.Add(CarTransforms[I]);
   end;
 
   RoadScene := TCastleScene.Create(Application);
-  RoadScene.Load('castle-data:/road.x3d');
+  RoadScene.Load('castle-data:/road.gltf');
   RoadScene.Spatial := [ssRendering, ssDynamicCollisions];
-  RoadScene.ProcessEvents := true;
 
   Viewport.Items.Add(RoadScene);
   Viewport.Items.MainScene := RoadScene;
@@ -161,16 +159,11 @@ begin
   Viewport.Items.Add(CreateBoxesScene);
 
   Viewport.Camera.SetView(
-    Vector3(-43.30, 27.23, -80.74),
-    Vector3(  0.60, -0.36,   0.70),
-    Vector3(  0.18,  0.92,   0.32)
+    Vector3(-11.34, 30.04, 96.07), // position
+    Vector3(0.10, -0.49, -0.87), // direction
+    Vector3(0.35, 0.83, -0.43), // up (current)
+    Vector3(0.00, 1.00, 0.00) // gravity up
   );
-  // better camera for only a car:
-  {Viewport.Camera.SetView(
-    Vector3(-7.83,  6.15, -7.55),
-    Vector3( 0.47, -0.30,  0.82),
-    Vector3( 0.16,  0.95,  0.25)
-  );}
 
   Window.OnUpdate := @WindowUpdate;
   Window.OnPress := @WindowPress;

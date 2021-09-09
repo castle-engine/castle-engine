@@ -197,7 +197,7 @@ begin
   Output.ImageChanged;
 end;
 
-procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
+procedure MenuClick(Container: TCastleContainer; Item: TMenuItem);
 begin
   case Item.IntData of
     10: Application.Quit;

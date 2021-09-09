@@ -58,7 +58,7 @@ begin
   Window.Controls.InsertFront(Viewport);
 
   Scene := TCastleScene.Create(Application { Owner that will free the Scene });
-  Scene.Load('data/bridge_final.x3dv');
+  Scene.Load('castle-data:/bridge_final.x3dv');
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
   Viewport.Items.Add(Scene);

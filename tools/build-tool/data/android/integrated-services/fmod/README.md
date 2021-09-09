@@ -12,7 +12,7 @@ Declare it like this in [CastleEngineManifest.xml](https://github.com/castle-eng
   <android>
     <services>
       <service name="fmod">
-        <parameter key="library_path" value="libraries/android" />
+        <parameter key="library_path" value="fmod-android-library" />
       </service>
     </services>
   </android>

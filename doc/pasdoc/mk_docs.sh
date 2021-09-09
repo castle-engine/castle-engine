@@ -95,7 +95,7 @@ if (( $# == 0 )); then
   #   like castleinternalpk3dconnexion.pas and castleinternaltdxinput_tlb.pas.
   #
   #   There are two units that are "somewhat internal":
-  #   glext.pas, castlegles20.pas. We want them to be treated as internal
+  #   glext.pas, castlegles.pas. We want them to be treated as internal
   #   for most games. But sometimes users can also use them directly,
   #   to do some advanced tricks (direct OpenGL / OpenGLES rendering,
   #   mixed with CGE rendering).
@@ -111,7 +111,7 @@ if (( $# == 0 )); then
             -not '(' \
               '(' -iwholename '*/base/android/*.pas' ')' -or \
               '(' -iwholename '*/castlelib_dynloader.pas' ')' -or \
-              '(' -iwholename '*/castlegles20.pas' ')' -or \
+              '(' -iwholename '*/castlegles.pas' ')' -or \
               '(' -iname 'x3dloadinternal*.pas' ')' -or \
               '(' -iname 'castleinternal*.pas' ')' -or \
               '(' -iname 'castleshapeinternal*.pas' ')' -or \
@@ -132,6 +132,7 @@ else
 fi
 
 PASDOC_INCLUDE_DIRS="\
+  --include common_includes/\
   --include 3d/\
   --include 3d/opengl/\
   --include x3d/\

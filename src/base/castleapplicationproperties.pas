@@ -106,20 +106,20 @@ type
       A "touch device" means that:
 
       @unorderedList(
-        @item(We cannot track @link(TUIContainer.MousePosition)
-          when nothing is pressed (@link(TUIContainer.MousePressed) is [])
+        @item(We cannot track @link(TCastleContainer.MousePosition)
+          when nothing is pressed (@link(TCastleContainer.MousePressed) is [])
           on a touch device.)
 
         @item(The only "mouse button" you will ever see pressed
           on a touch device is buttonLeft.)
 
         @item(On the other hand, touch devices support multitouch, exposed by
-          @link(TUIContainer.Touches) and @link(TUIContainer.TouchesCount).
-          On touch devices, @link(TUIContainer.TouchesCount) can range
+          @link(TCastleContainer.Touches) and @link(TCastleContainer.TouchesCount).
+          On touch devices, @link(TCastleContainer.TouchesCount) can range
           from 0 to a few (modern touch devices support up to 5 simultaneous
           touches).
 
-          On non-touch devices, @link(TUIContainer.TouchesCount) is always 1.)
+          On non-touch devices, @link(TCastleContainer.TouchesCount) is always 1.)
       )
 
       As a debugging feature, you can set this to @true
@@ -385,7 +385,7 @@ begin
   FOnLog := TLogEventList.Create;
   FFileAccessSafe := true;
   FTouchDevice :=
-    {$if defined(ANDROID) or defined(IOS) or defined(CASTLE_NINTENDO_SWITCH)}
+    {$if defined(ANDROID) or defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH)}
       true
     {$else}
       false
@@ -395,7 +395,7 @@ begin
     E.g. on other consoles, FTouchDevice may be false,
     but FShowUserInterfaceToQuit may be true. }
   FShowUserInterfaceToQuit :=
-    {$if defined(ANDROID) or defined(IOS) or defined(CASTLE_NINTENDO_SWITCH)}
+    {$if defined(ANDROID) or defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH)}
       false
     {$else}
       true

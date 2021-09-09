@@ -35,7 +35,7 @@ var
   ViewMoveX, ViewMoveY: Single;
   ViewFollowsPlayer: boolean = true;
 
-procedure WindowRender(Container: TUIContainer);
+procedure WindowRender(Container: TCastleContainer);
 var
   RealViewMoveX, RealViewMoveY: Integer;
 
@@ -130,7 +130,7 @@ begin
   end;
 end;
 
-procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
+procedure WindowPress(Container: TCastleContainer; const Event: TInputPressRelease);
 var
   NewViewMoveX, NewViewMoveY: Integer;
 
@@ -236,7 +236,7 @@ begin
   end;
 end;
 
-procedure WindowUpdate(Container: TUIContainer);
+procedure WindowUpdate(Container: TCastleContainer);
 const
   ViewMoveChangeSpeed = 10.0 * 50.0;
 begin

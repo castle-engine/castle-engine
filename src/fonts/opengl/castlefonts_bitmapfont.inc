@@ -24,7 +24,7 @@ type
     By default this class makes some assumptions about how the font image looks like:
     the characters are placed on the image in their Unicode order,
     starting from space in the upper-left corner.
-    TODO: Use @link(OnGlyph) event to customize it.
+    TODO: Use OnGlyph event to customize it.
 
     Examples of such fonts:
 
@@ -84,16 +84,15 @@ type
     { Image that contains the characters.
       The characters are placed on the image in their Unicode order,
       starting from space in the upper-left corner.
-      TODO: Use @link(OnGlyph) event to customize it.
 
       The characters are organized in ImageColumns columns and ImageRows rows,
       and have ImageMargin space between them. }
     property ImageUrl: String read FImageUrl write SetImageUrl;
-    { Columns of the characters in @link(Image). }
+    { Columns of the characters in the image @link(ImageUrl). }
     property ImageColumns: Cardinal read FImageColumns write SetImageColumns default 8;
-    { Rows of the characters in @link(Image). }
+    { Rows of the characters in the image @link(ImageUrl). }
     property ImageRows: Cardinal read FImageRows write SetImageRows default 8;
-    { Margin between characters in the @link(Image). }
+    { Margin between characters in the image @link(ImageUrl). }
     property ImageMargin: Cardinal read FImageMargin write SetImageMargin default 0;
     { Spacing between characters when rendering the font.
       This is independent from @link(ImageMargin). }
@@ -154,7 +153,8 @@ begin
           WritelnWarning('TCastleBitmapFont', 'Failed to load image "%s": %s',
             [URIDisplay(FImageUrl), ExceptMessage(E)]);
           Exit;
-        end;
+        end else
+          raise;
       end;
     end;
   end;

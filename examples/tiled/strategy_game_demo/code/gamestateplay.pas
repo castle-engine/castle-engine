@@ -40,7 +40,7 @@ type
     procedure ClickQuit(Sender: TObject);
     procedure ClickInstructions(Sender: TObject);
     procedure ClickEndTurn(Sender: TObject);
-    procedure MapPress(const Sender: TInputListener;
+    procedure MapPress(const Sender: TCastleUserInterface;
       const Event: TInputPressRelease; var Handled: Boolean);
     procedure UpdateTurnStatus;
   public
@@ -190,7 +190,7 @@ begin
   UpdateTurnStatus;
 end;
 
-procedure TStatePlay.MapPress(const Sender: TInputListener;
+procedure TStatePlay.MapPress(const Sender: TCastleUserInterface;
   const Event: TInputPressRelease; var Handled: Boolean);
 
   procedure CheckWin;

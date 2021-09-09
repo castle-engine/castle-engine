@@ -1,4 +1,4 @@
-{ TUIContainer.SaveScreenRgba example.
+{ TCastleContainer.SaveScreenRgba example.
 
   This example relies on OpenGL color buffer that can store alpha information,
   which you request by "Window.AlphaBits := 8".
@@ -19,7 +19,7 @@ uses SysUtils,
   CastleWindow, CastleLog, CastleVectors, CastleUIControls, CastleScene,
   CastleViewport, CastleKeysMouse, CastleImages;
 
-procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
+procedure Press(Container: TCastleContainer; const Event: TInputPressRelease);
 var
   Image: TRGBAlphaImage;
 begin

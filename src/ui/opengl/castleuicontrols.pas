@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2020 Michalis Kamburelis, Tomasz Wojtyś.
+  Copyright 2009-2021 Michalis Kamburelis, Tomasz Wojtyś.
 
   This file is part of "Castle Game Engine".
 
@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ User interface basic classes: @link(TCastleUserInterface), @link(TUIContainer). }
+{ User interface basic classes: @link(TCastleUserInterface), @link(TCastleContainer). }
 unit CastleUIControls;
 
 {$I castleconf.inc}
@@ -35,22 +35,21 @@ const
 type
   TBorder = CastleVectors.TBorder;
 
-  TInputListener = class;
   TCastleUserInterface = class;
   TChildrenControls = class;
-  TUIContainer = class;
+  TCastleContainer = class;
 
-  TContainerEvent = procedure (Container: TUIContainer);
-  TContainerObjectEvent = procedure (Container: TUIContainer) of object;
-  TInputPressReleaseEvent = procedure (Container: TUIContainer; const Event: TInputPressRelease);
-  TInputMotionEvent = procedure (Container: TUIContainer; const Event: TInputMotion);
+  TContainerEvent = procedure (Container: TCastleContainer);
+  TContainerObjectEvent = procedure (Container: TCastleContainer) of object;
+  TInputPressReleaseEvent = procedure (Container: TCastleContainer; const Event: TInputPressRelease);
+  TInputMotionEvent = procedure (Container: TCastleContainer; const Event: TInputMotion);
 
   TUiNotifyEvent = procedure (const Sender: TCastleUserInterface) of object;
-  TUiUpdateEvent = procedure (const Sender: TInputListener;
+  TUiUpdateEvent = procedure (const Sender: TCastleUserInterface;
     const SecondsPassed: Single; var HandleInput: Boolean) of object;
-  TUiPressReleaseEvent = procedure (const Sender: TInputListener;
+  TUiPressReleaseEvent = procedure (const Sender: TCastleUserInterface;
     const Event: TInputPressRelease; var Handled: Boolean) of object;
-  TUiMotionEvent = procedure (const Sender: TInputListener;
+  TUiMotionEvent = procedure (const Sender: TCastleUserInterface;
     const Event: TInputMotion; var Handled: Boolean) of object;
 
   { Tracking of a touch by a single finger, used by TTouchList. }
@@ -63,10 +62,10 @@ type
       In other words: the FinderIndex stays constant while user moves
       a finger over a touch device.
 
-      All the touches on a TUIContainer.Touches array always have different
+      All the touches on a TCastleContainer.Touches array always have different
       FingerIndex value.
 
-      Note that the index of TTouch structure in TUIContainer.Touches array is
+      Note that the index of TTouch structure in TCastleContainer.Touches array is
       @italic(not) necessarily equal to the FingerIndex. It cannot be ---
       imagine you press 1st finger, then press 2nd finger, then let go of
       the 1st finger. The FingerIndex of the 2nd finger cannot change
@@ -125,14 +124,14 @@ type
 
   TCastleUserInterfaceList = class;
 
-  { Possible values for TUIContainer.UIScaling. }
+  { Possible values for TCastleContainer.UIScaling. }
   TUIScaling = (
     { Do not scale UI. }
     usNone,
 
     { Scale to fake that the container sizes enclose
-      @link(TUIContainer.UIReferenceWidth) and
-      @link(TUIContainer.UIReferenceHeight).
+      @link(TCastleContainer.UIReferenceWidth) and
+      @link(TCastleContainer.UIReferenceHeight).
       So one size will be equal to reference size, and the other will be equal
       or larger to reference.
 
@@ -142,8 +141,8 @@ type
     usEncloseReferenceSize,
 
     { Scale to fake that the container sizes fit inside
-      @link(TUIContainer.UIReferenceWidth) and
-      @link(TUIContainer.UIReferenceHeight).
+      @link(TCastleContainer.UIReferenceWidth) and
+      @link(TCastleContainer.UIReferenceHeight).
       So one size will be equal to reference size, and the other will be equal
       or smaller to reference.
 
@@ -153,28 +152,28 @@ type
     usFitReferenceSize,
 
     { Scale to fake that the container sizes are smaller/larger
-      by an explicit factor @link(TUIContainer.UIExplicitScale).
+      by an explicit factor @link(TCastleContainer.UIExplicitScale).
       Controls that look at @link(TCastleUserInterface.UIScale)
       will be affected by this.
 
       Like usEncloseReferenceSize or usFitReferenceSize,
       this allows to design a scalable UI.
       In this case, the scale factor has to be calculated by your code
-      (by default @link(TUIContainer.UIExplicitScale) is 1.0 and the engine will
+      (by default @link(TCastleContainer.UIExplicitScale) is 1.0 and the engine will
       not modify it automatically in any way),
       which allows customizing the scale to your requirements. }
     usExplicitScale,
 
     { Scale to pretend that the container size is smaller/larger
-      by a factor derived from @link(TUIContainer.Dpi).
+      by a factor derived from @link(TCastleContainer.Dpi).
 
       This allows to adjust controls to:
 
       @unorderedList(
         @item(The physical size
-          (@link(TUIContainer.Dpi) on iOS and Android really reflects physical size).)
+          (@link(TCastleContainer.Dpi) on iOS and Android really reflects physical size).)
         @item(Or at least to follow user preferred UI scaling
-          (@link(TUIContainer.Dpi) desktop is often more like "configurable
+          (@link(TCastleContainer.Dpi) desktop is often more like "configurable
           way to scale UI" than derived from actual monitor physical size).)
       )
 
@@ -185,7 +184,7 @@ type
     usDpiScale
   );
 
-  { Things that can cause @link(TInputListener.VisibleChange) notification. }
+  { Things that can cause @link(TCastleUserInterface.VisibleChange) notification. }
   TCastleUserInterfaceChange = (
     { The look of this control changed.
       This concerns all the things that affect what @link(TCastleUserInterface.Render) does.
@@ -219,7 +218,7 @@ type
     chChildrenExists
   );
   TCastleUserInterfaceChanges = set of TCastleUserInterfaceChange;
-  TCastleUserInterfaceChangeEvent = procedure(const Sender: TInputListener;
+  TCastleUserInterfaceChangeEvent = procedure(const Sender: TCastleUserInterface;
     const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean)
     of object;
 
@@ -227,7 +226,7 @@ type
     code with Castle Game Engine controls (TCastleUserInterface, that is the basis
     for all our 2D and 3D rendering). When you use TCastleWindowBase
     (a window) or TCastleControlBase (Lazarus component), they provide
-    you a non-abstract implementation of TUIContainer.
+    you a non-abstract implementation of TCastleContainer.
 
     Basically, this class manages a @link(Controls) list.
 
@@ -243,10 +242,10 @@ type
     returns @link(TCastleUserInterface.CapturesEventsAtPosition) = @true.
 
     We also call various methods to every control.
-    These include @link(TInputListener.Update), @link(TCastleUserInterface.Render),
-    @link(TInputListener.Resize). }
-  TUIContainer = class abstract(TComponent)
-  private
+    These include @link(TCastleUserInterface.Update), @link(TCastleUserInterface.Render),
+    @link(TCastleUserInterface.Resize). }
+  TCastleContainer = class abstract(TComponent)
+  strict private
     type
       TFingerIndexCaptureMap = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<TFingerIndex, TCastleUserInterface>;
     var
@@ -257,9 +256,6 @@ type
     FOnPress, FOnRelease: TInputPressReleaseEvent;
     FOnMotion: TInputMotionEvent;
     FOnUpdate: TContainerEvent;
-    { FControls cannot be declared as TChildrenControls to avoid
-      http://bugs.freepascal.org/view.php?id=22495 }
-    FControls: TObject;
     FFocus, FNewFocus: TCastleUserInterfaceList;
     { Capture controls, for each FingerIndex.
       The values in this map are never nil. }
@@ -278,7 +274,7 @@ type
     FUIReferenceWidth: Single;
     FUIReferenceHeight: Single;
     FUIExplicitScale: Single;
-    FCalculatedUIScale: Single; //< set on all children
+    FUIScale: Single;
     FFps: TFramesPerSecond;
     FPressed: TKeysPressed;
     FMousePressed: TCastleMouseButtons;
@@ -292,10 +288,6 @@ type
     FBackgroundEnable: Boolean;
     FBackgroundColor: TCastleColor;
 
-    procedure ControlsVisibleChange(const Sender: TInputListener;
-      const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean);
-    { Called when the control C is destroyed or just removed from Controls list. }
-    procedure DetachNotification(const C: TCastleUserInterface);
     function UseForceCaptureInput: boolean;
     function TryGetFingerOfControl(const C: TCastleUserInterface; out Finger: TFingerIndex): boolean;
     procedure SetUIScaling(const Value: TUIScaling);
@@ -304,7 +296,6 @@ type
     procedure SetUIExplicitScale(const Value: Single);
     procedure UpdateUIScale;
     procedure SetForceCaptureInput(const Value: TCastleUserInterface);
-    class procedure RenderControlPrepare(const ViewportRect: TRectangle); static;
     function PassEvents(const C: TCastleUserInterface;
       const CheckMousePosition: Boolean = true): Boolean;
     function PassEvents(const C: TCastleUserInterface;
@@ -316,6 +307,15 @@ type
     function PassEvents(const C: TCastleUserInterface;
       const Event: TInputMotion;
       const CheckEventPosition: Boolean = true): Boolean;
+  private
+    { FControls cannot be declared as TChildrenControls to avoid
+      http://bugs.freepascal.org/view.php?id=22495 }
+    FControls: TObject;
+    procedure ControlsVisibleChange(const Sender: TCastleUserInterface;
+      const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean);
+    class procedure RenderControlPrepare(const ViewportRect: TRectangle); static;
+    { Called when the control C is destroyed or just removed from Controls list. }
+    procedure DetachNotification(const C: TCastleUserInterface);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -352,14 +352,6 @@ type
       Just run examples/window/window_events.lpr,
       move mouse around, and press "5" (this does "MousePosition := window middle"). }
     function SettingMousePositionCausesMotion: Boolean; virtual;
-
-    { Get the default UI scale of controls.
-      Useful only when GLInitialized, when we know that our size is sensible.
-      Almost all UI code should rather be placed in TCastleUserInterface,
-      and use TCastleUserInterface.UIScale,
-      not directly accessing Container.DefaultUIScale or
-      Container.FCalculatedUIScale. }
-    function DefaultUIScale: Single;
   public
     const
       DefaultBackgroundColor: TVector4 = (Data: (0.1, 0.1, 0.1, 1));
@@ -377,7 +369,7 @@ type
       by the container owner, like TCastleWindowBase or TCastleControlBase.
       Some are called by @link(EventUpdate),
       which is special in this regard, as @link(EventUpdate) is not only
-      responsible for calling @link(TInputListener.Update) on all @link(Controls),
+      responsible for calling @link(TCastleUserInterface.Update) on all @link(Controls),
       it also calls
       @link(EventJoyAxisMove),
       @link(EventJoyButtonPress),
@@ -400,6 +392,22 @@ type
     function EventSensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; virtual;
     function EventSensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; virtual;
     { @groupEnd }
+
+    { Get the default UI scale of controls.
+      Useful only when GLInitialized, when we know that our size is sensible.
+
+      UI code should prefer to use TCastleUserInterface.UIScale,
+      not directly accessing this TCastleContainer.UIScale
+      (this way the code respects the TCastleUserInterface.EnableUIScaling value). }
+    property UIScale: Single read FUIScale;
+
+    { @exclude }
+    class function InternalCalculateUIScale(
+      const AUIScaling: TUIScaling;
+      const AUIReferenceWidth: Single;
+      const AUIReferenceHeight: Single;
+      const AUIExplicitScale: Single;
+      const ADpi, AWidth, AHeight: Single): Single;
 
     { Controls listening for events (user input, resize, and such) of this container.
 
@@ -472,7 +480,7 @@ type
       So the UI size is "unscaled" when it's expressed in your "desired size".
       We usually don't use the prefix "unscaled" (e.g. @link(TCastleUserInterface.Width)
       is "unscaled" by we don't call it "UnscaledWidth"). But here, we use prefix "unscaled",
-      because the @link(TUIContainer.Width) is (for historic reasons) the "real" size.
+      because the @link(TCastleContainer.Width) is (for historic reasons) the "real" size.
 
       @seealso UnscaledHeight }
     function UnscaledWidth: Single;
@@ -560,7 +568,7 @@ type
 
       @unorderedList(
         @item(Temporarily sets
-          @link(TInputListener.Container Control.Container), if needed.)
+          @link(TCastleUserInterface.Container Control.Container), if needed.)
 
         @item(Makes sure OpenGL resources of the control are initialized.
           If needed, it calls
@@ -583,7 +591,7 @@ type
           Or adding the control to the @link(Controls) list.
         )
 
-        @item(Calls @link(TInputListener.Resize Control.Resize),
+        @item(Calls @link(TCastleUserInterface.Resize Control.Resize),
           which may be expected by some controls.)
 
         @item(Calls @link(TCastleUserInterface.BeforeRender Control.BeforeRender),
@@ -636,8 +644,8 @@ type
       @exclude
 
       Called by controls within this container when something could
-      change the container focused control (in @link(TUIContainer.Focus))
-      (or it's cursor) or @link(TUIContainer.Focused) or MouseLook.
+      change the container focused control (in @link(TCastleContainer.Focus))
+      (or it's cursor) or @link(TCastleContainer.Focused) or MouseLook.
       In practice, called when TCastleUserInterface.Cursor or
       @link(TCastleUserInterface.CapturesEventsAtPosition) (and so also
       @link(TCastleUserInterface.RenderRect)) results change.
@@ -762,7 +770,7 @@ type
       read FForceCaptureInput write SetForceCaptureInput;
 
     { When this is not mcDefault, it sets the cursor, regardless of
-      cursor specified at the @link(TInputListener.Cursor) value of
+      cursor specified at the @link(TCastleUserInterface.Cursor) value of
       the focused control. It even takes precedence over any control using
       mcForceNone (so it can force the cursor to be visible anyway). }
     property OverrideCursor: TMouseCursor read FOverrideCursor write FOverrideCursor
@@ -882,304 +890,7 @@ type
       read FBackgroundColor write FBackgroundColor;
   end;
 
-  { Base class for things that listen to user input. }
-  TInputListener = class(TCastleComponent)
-  private
-    FOnVisibleChange: TCastleUserInterfaceChangeEvent;
-    FContainer: TUIContainer;
-    FLastSeenContainerWidth, FLastSeenContainerHeight: Integer;
-    FLastSeenUIScale: Single;
-    FCursor: TMouseCursor;
-    FOnCursorChange: TNotifyEvent;
-    FExclusiveEvents: boolean;
-    FOnUpdate: TUiUpdateEvent;
-    FOnPress: TUiPressReleaseEvent;
-    FOnRelease: TUiPressReleaseEvent;
-    FOnMotion: TUiMotionEvent;
-    FVisible: Boolean;
-    procedure SetCursor(const Value: TMouseCursor);
-  protected
-    { Container sizes.
-      @groupBegin }
-    function ContainerWidth: Cardinal;
-    function ContainerHeight: Cardinal;
-    function ContainerRect: TRectangle;
-    function ContainerSizeKnown: boolean;
-    { @groupEnd }
-
-    procedure SetContainer(const Value: TUIContainer); virtual;
-    { Called when @link(Cursor) changed.
-      In TCastleUserInterface class, just calls OnCursorChange. }
-    procedure DoCursorChange; virtual;
-      deprecated 'better override VisibleChange and watch for chCursor in Changes';
-  public
-    constructor Create(AOwner: TComponent); override;
-
-    (*Handle press or release of a key, mouse button or mouse wheel.
-      Return @true if the event was somehow handled,
-      which prevents from passing this event to other UI controls.
-
-      When implementing in descendants it is best to override it like this:
-
-      @longCode(#
-      function TMyControl.Press(const Event: TInputPressRelease): boolean;
-      begin
-        Result := inherited;
-        if Result then Exit; // exit if ancestor already handled event
-
-        if Event.IsKey(keyEnter) then
-        begin
-          // do something in reaction on Enter
-          Exit(ExclusiveEvents); // ExclusiveEvents is true by default
-        end;
-
-        if Event.IsMouseButton(buttonLeft) then
-        begin
-          // do something in reaction on Enter
-          Exit(ExclusiveEvents); // ExclusiveEvents is true by default
-        end;
-      end;
-      #)
-
-      Note that releasing of the mouse wheel is not implemented for now,
-      neither by CastleWindow or Lazarus CastleControl.
-
-      The events PreviewPress and PreviewRelease are passed first to
-      the parent control, before children have a chance to process this event.
-      Overriding them makes sense if you draw something
-      in @link(TCastleUserInterface.RenderOverChildren).
-
-      The events Press and Release are passed to the parent only
-      after the children had a chance to process this event.
-      Overriding them makes sense if you draw something
-      in @link(TCastleUserInterface.Render). This is usually more natural, and adviced.
-
-      @groupBegin *)
-    function Press(const Event: TInputPressRelease): boolean; virtual;
-    function Release(const Event: TInputPressRelease): boolean; virtual;
-    function PreviewPress(const Event: TInputPressRelease): boolean; virtual;
-    function PreviewRelease(const Event: TInputPressRelease): boolean; virtual;
-    { @groupEnd }
-
-    { Motion of mouse or touch. }
-    function Motion(const Event: TInputMotion): boolean; virtual;
-
-    { Rotation detected by sensor.
-      Used for example by 3Dconnexion devices or touch controls.
-
-      @param X   X axis (tilt forward/backwards)
-      @param Y   Y axis (rotate)
-      @param Z   Z axis (tilt sidewards)
-      @param Angle   Angle of rotation (in radians)
-      @param(SecondsPassed The time passed since last SensorRotation call.
-        This is necessary because some sensors, e.g. 3Dconnexion,
-        may *not* reported as often as normal @link(Update) calls.) }
-    function SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; virtual;
-
-    { Translation detected by sensor.
-      Used for example by 3Dconnexion devices or touch controls.
-
-      @param X   X axis (move left/right)
-      @param Y   Y axis (move up/down)
-      @param Z   Z axis (move forward/backwards)
-      @param Length   Length of the vector consisting of the above
-      @param(SecondsPassed The time passed since last SensorRotation call.
-        This is necessary because some sensors, e.g. 3Dconnexion,
-        may *not* reported as often as normal @link(Update) calls.) }
-    function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; virtual;
-
-    { Axis movement detected by joystick
-
-      @param JoyID ID of joystick with pressed button
-      @param Axis Number of moved axis }
-    function JoyAxisMove(const JoyID, Axis: Byte): boolean; virtual;
-
-    { Joystick button pressed.
-
-      @param JoyID ID of joystick with pressed button
-      @param Button Number of pressed button }
-    function JoyButtonPress(const JoyID, Button: Byte): boolean; virtual;
-
-    { Control may do here anything that must be continuously repeated.
-      E.g. camera handles here falling down due to gravity,
-      rotating model in Examine mode, and many more.
-
-      @param(SecondsPassed Should be calculated like TFramesPerSecond.SecondsPassed,
-        and usually it's in fact just taken from TCastleWindowBase.Fps.SecondsPassed.)
-
-      This method may be used, among many other things, to continuously
-      react to the fact that user pressed some key (or mouse button).
-      For example, if holding some key should move some 3D object,
-      you should do something like:
-
-      @longCode(#
-        if HandleInput then
-        begin
-          if Container.Pressed[keyArrowRight] then
-            Transform.Position := Transform.Position + Vector3(SecondsPassed * 10, 0, 0);
-          HandleInput := not ExclusiveEvents;
-        end;
-      #)
-
-      Instead of directly using a key code, consider also
-      using TInputShortcut that makes the input key nicely configurable.
-      See engine tutorial about handling inputs.
-
-      Multiplying movement by SecondsPassed makes your
-      operation frame-rate independent. Object will move by 10
-      units in a second, regardless of how many FPS your game has.
-
-      The code related to HandleInput is important if you write
-      a generally-useful control that should nicely cooperate with all other
-      controls, even when placed on top of them or under them.
-      The correct approach is to only look at pressed keys/mouse buttons
-      if HandleInput is @true. Moreover, if you did check
-      that HandleInput is @true, and you did actually handle some keys,
-      then you have to set @code(HandleInput := not ExclusiveEvents).
-      As ExclusiveEvents is @true in normal circumstances,
-      this will prevent the other controls (behind the current control)
-      from handling the keys (they will get HandleInput = @false).
-      And this is important to avoid doubly-processing the same key press,
-      e.g. if two controls react to the same key, only the one on top should
-      process it.
-
-      Note that to handle a single press / release (like "switch
-      light on when pressing a key") you should rather
-      use @link(Press) and @link(Release) methods. Use this method
-      only for continuous handling (like "holding this key makes
-      the light brighter and brighter").
-
-      To understand why such HandleInput approach is needed,
-      realize that the "Update" events are called
-      differently than simple mouse and key events like "Press" and "Release".
-      "Press" and "Release" events
-      return whether the event was somehow "handled", and the container
-      passes them only to the controls under the mouse (decided by
-      @link(TCastleUserInterface.CapturesEventsAtPosition)). And as soon as some control says it "handled"
-      the event, other controls (even if under the mouse) will not
-      receive the event.
-
-      This approach is not suitable for Update events. Some controls
-      need to do the Update job all the time,
-      regardless of whether the control is under the mouse and regardless
-      of what other controls already did. So all controls (well,
-      all controls that exist, in case of TCastleUserInterface,
-      see TCastleUserInterface.GetExists) receive Update calls.
-
-      So the "handled" status is passed through HandleInput.
-      If a control is not under the mouse, it will receive HandleInput
-      = @false. If a control is under the mouse, it will receive HandleInput
-      = @true as long as no other control on top of it didn't already
-      change it to @false. }
-    procedure Update(const SecondsPassed: Single;
-      var HandleInput: boolean); virtual;
-
-    { Called always when something important inside this control (or it's children)
-      changed. To be more precise, this is called when something mentioned among
-      the @link(TCastleUserInterfaceChange) enumerated items changed.
-
-      This is always called with Changes <> [] (non-empty set). }
-    procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
-      const ChangeInitiatedByChildren: boolean = false); overload; virtual;
-    procedure VisibleChange(const RectOrCursorChanged: boolean = false); overload; virtual;
-      deprecated 'use VisibleChange overload with (TCastleUserInterfaceChanges,boolean) parameters';
-
-    { Called always when something important inside this control (or it's children)
-      changed. See @link(VisibleChange) for details about when and how this is called.
-
-      Be careful when handling this event. Various changes may cause this,
-      so be prepared to handle it at any moment, even in the middle when UI control
-      is changing. It may also occur very often.
-      It's usually safest to only set a boolean flag like
-      "something should be recalculated" when this event happens,
-      and do the actual recalculation later. }
-    property OnVisibleChange: TCastleUserInterfaceChangeEvent
-      read FOnVisibleChange write FOnVisibleChange;
-
-    { Allow window containing this control to suspend waiting for user input.
-      Typically you want to override this to return @false when you do
-      something in the overridden @link(Update) method.
-
-      In this class, this simply returns always @true.
-
-      @seeAlso TCastleWindowBase.AllowSuspendForInput }
-    function AllowSuspendForInput: boolean; virtual;
-
-    { Event called when the container (component or window with OpenGL context)
-      size changes.
-
-      You can resize/reposition your component here,
-      for example set @link(TCastleUserInterface.Left) or @link(TCastleUserInterface.Bottom),
-      to react to parent size changes.
-      This is called only when the OpenGL context of the container
-      is initialized, so you can be sure that this is called only between
-      GLContextOpen and GLContextClose.
-
-      We also call this once when inserting into the controls list
-      (like @link(TCastleWindowBase.Controls) or
-      @link(TCastleControlBase.Controls) or inside parent TCastleUserInterface),
-      if inserting into the container/parent
-      with already initialized OpenGL context. If inserting into the container/parent
-      without OpenGL context initialized, it will be called later,
-      when OpenGL context will get initialized, right after GLContextOpen.
-
-      In other words, this is always called to let the control know
-      the size of the container, if and only if the OpenGL context is
-      initialized. }
-    procedure Resize; virtual;
-
-    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); virtual; deprecated 'use Resize';
-
-    { Container of this control. When adding control to container's Controls
-      list (like TCastleWindowBase.Controls) container will automatically
-      set itself here, and when removing from container this will be changed
-      back to @nil.
-
-      May be @nil if this control is not yet inserted into any container. }
-    property Container: TUIContainer read FContainer write SetContainer;
-
-    { Event called when the @link(Cursor) property changes.
-      This event is, in normal circumstances, used by the Container,
-      so you should not use it in your own programs. }
-    property OnCursorChange: TNotifyEvent
-      read FOnCursorChange write FOnCursorChange;
-      deprecated 'use OnVisibleChange (or override VisibleChange) and watch for Changes that include chCursor';
-
-    { Design note: ExclusiveEvents is not published now, as it's too "obscure"
-      (for normal usage you don't want to deal with it). Also, it's confusing
-      on TCastleSceneCore, the name suggests it relates to ProcessEvents (VRML events,
-      totally not related to this property that is concerned with handling
-      TCastleUserInterface events.) }
-
-    { Should we disable further mouse / keys handling for events that
-      we already handled in this control. If @true, then our events will
-      return @true for mouse and key events handled.
-
-      This means that events will not be simultaneously handled by both this
-      control and some other (or camera or normal window callbacks),
-      which is usually more sensible, but sometimes somewhat limiting. }
-    property ExclusiveEvents: boolean
-      read FExclusiveEvents write FExclusiveEvents default true;
-
-  published
-    { Mouse cursor over this control.
-      When user moves mouse over the Container, the currently focused
-      (topmost under the cursor) control determines the mouse cursor look. }
-    property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
-
-    { Event that occurs continuously on each control.
-      See @link(Update) for details. }
-    property OnUpdate: TUiUpdateEvent read FOnUpdate write FOnUpdate;
-    { An input (key, mouse button, mouse wheel) was pressed.
-      See @link(Press) for details. }
-    property OnPress: TUiPressReleaseEvent read FOnPress write FOnPress;
-    { An input (key, mouse button, mouse wheel) was released.
-      See @link(Release) for details. }
-    property OnRelease: TUiPressReleaseEvent read FOnRelease write FOnRelease;
-    { Pointer (mouse or finger) moved.
-      See @link(Motion) for details. }
-    property OnMotion: TUiMotionEvent read FOnMotion write FOnMotion;
-  end;
+  TUIContainer = TCastleContainer deprecated 'use TCastleContainer';
 
   { Position for relative layout of one control in respect to another.
     @deprecated Deprecated, rather use cleaner
@@ -1191,7 +902,7 @@ type
     prHigh
   ) deprecated;
 
-  { Basic user-interface class. All controls derive from this class,
+  { Basic user-interface class. All UI controls derive from this class,
     overriding chosen methods to react to some events.
 
     Every control can have children controls, see @link(Controls) and @link(ControlsCount).
@@ -1236,8 +947,8 @@ type
 
     All the coordinates passed here should follow the Castle Game Engine
     convention that (0, 0) is left-bottom window corner. }
-  TCastleUserInterface = class(TInputListener)
-  private
+  TCastleUserInterface = class(TCastleComponent)
+  strict private
     type
       TEnumerator = record
       private
@@ -1250,6 +961,17 @@ type
         property Current: TCastleUserInterface read GetCurrent;
       end;
     var
+      FOnVisibleChange: TCastleUserInterfaceChangeEvent;
+      FContainer: TCastleContainer;
+      FLastSeenUIScale: Single;
+      FCursor: TMouseCursor;
+      FOnCursorChange: TNotifyEvent;
+      FExclusiveEvents: boolean;
+      FOnUpdate: TUiUpdateEvent;
+      FOnPress: TUiPressReleaseEvent;
+      FOnRelease: TUiPressReleaseEvent;
+      FOnMotion: TUiMotionEvent;
+      FVisible: Boolean;
       FDisableContextOpenClose: Cardinal;
       FFocused: boolean;
       FGLInitialized: boolean;
@@ -1257,7 +979,6 @@ type
       FControls: TChildrenControls;
       FLeft: Single;
       FBottom: Single;
-      FParent: TCastleUserInterface;
       FHasHorizontalAnchor: boolean;
       FHorizontalAnchorSelf, FHorizontalAnchorParent: THorizontalPosition;
       FHorizontalAnchorDelta: Single;
@@ -1353,7 +1074,7 @@ type
       @italic(Why float-based coordinates?)
 
       Using the float-based rectangles and coordinates is better than integer
-      in case you use UI scaling (@link(TUIContainer.UIScaling)).
+      in case you use UI scaling (@link(TCastleContainer.UIScaling)).
       It may sound counter-intuitive, but calculating everything using
       floats results in more precision and better speed
       (because we avoid various rounding in the middle of calculations).
@@ -1369,19 +1090,46 @@ type
     { Like @link(RectWithoutAnchors) but with anchors effect applied. }
     function RectWithAnchors(
       const CalculateEvenWithoutContainer: boolean = false): TFloatRectangle;
+    { How to translate local coordinates to the container.
+      Looks at our and parent's anchors (AnchorDelta) and positon (Left, Bottom).
 
-    procedure RecursiveRender(const ViewportRect: TRectangle);
+      As such it is useful to modify the children UI control position.
+
+      If you use UI scaling, this works in final coordinates
+      (after scaling, real pixels on screen). }
+    function LocalToContainerTranslation: TVector2;
+    { Like LocalToContainerTranslation but also add additional shift because of our Border. }
+    function LocalToContainerTranslationShiftBorder: TVector2;
+
+    procedure SetCursor(const Value: TMouseCursor);
+  private
+    FParent: TCastleUserInterface;
+    FLastSeenContainerWidth, FLastSeenContainerHeight: Integer;
+
+    { Show Name and ClassName for debug/log purposes. }
+    function DebugName: String;
 
     { Recalculate UIScale property value, call UIScaleChanged if needed. }
     procedure CheckUIScaleChanged;
     { Recalculate FLastSeenContainerWidth/Height, call Resize if needed. }
     procedure CheckResize;
 
-    { Show Name and ClassName for debug/log purposes. }
-    function DebugName: String;
+    procedure RecursiveRender(const ViewportRect: TRectangle);
   protected
+    { Container sizes.
+      @groupBegin }
+    function ContainerWidth: Cardinal; virtual;
+    function ContainerHeight: Cardinal; virtual;
+    function ContainerRect: TRectangle; virtual;
+    function ContainerSizeKnown: boolean; virtual;
+    { @groupEnd }
+
+    { Called when @link(Cursor) changed.
+      In TCastleUserInterface class, just calls OnCursorChange. }
+    procedure DoCursorChange; virtual;
+      deprecated 'better override VisibleChange and watch for chCursor in Changes';
+
     procedure DefineProperties(Filer: TFiler); override;
-    procedure SetContainer(const Value: TUIContainer); override;
 
     procedure UIScaleChanged; virtual;
 
@@ -1418,11 +1166,256 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
-      const ChangeInitiatedByChildren: boolean = false); override;
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
     function GetEnumerator: TEnumerator;
+    procedure InternalSetContainer(const Value: TCastleContainer); virtual;
+
+    (*Handle press or release of a key, mouse button or mouse wheel.
+      Return @true if the event was somehow handled,
+      which prevents from passing this event to other UI controls.
+
+      When implementing in descendants it is best to override it like this:
+
+      @longCode(#
+      function TMyControl.Press(const Event: TInputPressRelease): boolean;
+      begin
+        Result := inherited;
+        if Result then Exit; // exit if ancestor already handled event
+
+        if Event.IsKey(keyEnter) then
+        begin
+          // do something in reaction on Enter
+          Exit(ExclusiveEvents); // ExclusiveEvents is true by default
+        end;
+
+        if Event.IsMouseButton(buttonLeft) then
+        begin
+          // do something in reaction on Enter
+          Exit(ExclusiveEvents); // ExclusiveEvents is true by default
+        end;
+      end;
+      #)
+
+      Note that releasing of the mouse wheel is not reported now by any backend.
+      Only releasing of keys and mouse buttons is reported.
+
+      The events PreviewPress and PreviewRelease are passed first to
+      the parent control, before children have a chance to process this event.
+      Overriding them makes sense if you draw something
+      in @link(TCastleUserInterface.RenderOverChildren).
+
+      The events Press and Release are passed to the parent only
+      after the children had a chance to process this event.
+      Overriding them makes sense if you draw something
+      in @link(TCastleUserInterface.Render). This is usually more natural, and adviced.
+
+      @groupBegin *)
+    function Press(const Event: TInputPressRelease): boolean; virtual;
+    function Release(const Event: TInputPressRelease): boolean; virtual;
+    function PreviewPress(const Event: TInputPressRelease): boolean; virtual;
+    function PreviewRelease(const Event: TInputPressRelease): boolean; virtual;
+    { @groupEnd }
+
+    { Motion of mouse or touch. }
+    function Motion(const Event: TInputMotion): boolean; virtual;
+
+    { Rotation detected by 3D sensor.
+      Used for example by 3Dconnexion devices.
+
+      @param X   X axis (tilt forward/backwards)
+      @param Y   Y axis (rotate)
+      @param Z   Z axis (tilt sidewards)
+      @param Angle   Angle of rotation (in radians)
+      @param(SecondsPassed The time passed since last SensorRotation call.
+        This is necessary because some sensors, e.g. 3Dconnexion,
+        may *not* reported as often as normal @link(Update) calls.) }
+    function SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; virtual;
+
+    { Translation detected by 3D sensor.
+      Used for example by 3Dconnexion devices.
+
+      @param X   X axis (move left/right)
+      @param Y   Y axis (move up/down)
+      @param Z   Z axis (move forward/backwards)
+      @param Length   Length of the vector consisting of the above
+      @param(SecondsPassed The time passed since last SensorRotation call.
+        This is necessary because some sensors, e.g. 3Dconnexion,
+        may *not* reported as often as normal @link(Update) calls.) }
+    function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; virtual;
+
+    { Axis movement detected by joystick.
+
+      @param JoyID ID of joystick with pressed button
+      @param Axis Number of moved axis }
+    function JoyAxisMove(const JoyID, Axis: Byte): boolean; virtual;
+      deprecated 'use event Joysticks.OnAxisMove, or just observe Joysticks[0].Axis';
+
+    { Joystick button pressed.
+
+      @param JoyID ID of joystick with pressed button
+      @param Button Number of pressed button }
+    function JoyButtonPress(const JoyID, Button: Byte): boolean; virtual;
+      deprecated 'use Joysticks.OnButtonDown or Joysticks.OnButtonPress';
+
+    { Control may do here anything that must be continuously repeated.
+      E.g. camera handles here falling down due to gravity,
+      rotating model in Examine mode, and many more.
+
+      @param(SecondsPassed Should be calculated like TFramesPerSecond.SecondsPassed,
+        and usually it's in fact just taken from TCastleWindowBase.Fps.SecondsPassed.)
+
+      This method may be used, among many other things, to continuously
+      react to the fact that user pressed some key (or mouse button).
+      For example, if holding some key should move some 3D object,
+      you should do something like:
+
+      @longCode(#
+        if HandleInput then
+        begin
+          if Container.Pressed[keyArrowRight] then
+            Transform.Position := Transform.Position + Vector3(SecondsPassed * 10, 0, 0);
+          HandleInput := not ExclusiveEvents;
+        end;
+      #)
+
+      Instead of directly using a key code, consider also
+      using TInputShortcut that makes the input key nicely configurable.
+      See engine tutorial about handling inputs.
+
+      Multiplying movement by SecondsPassed makes your
+      operation frame-rate independent. Object will move by 10
+      units in a second, regardless of how many FPS your game has.
+
+      The code related to HandleInput is important if you write
+      a generally-useful control that should nicely cooperate with all other
+      controls, even when placed on top of them or under them.
+      The correct approach is to only look at pressed keys/mouse buttons
+      if HandleInput is @true. Moreover, if you did check
+      that HandleInput is @true, and you did actually handle some keys,
+      then you have to set @code(HandleInput := not ExclusiveEvents).
+      As ExclusiveEvents is @true in normal circumstances,
+      this will prevent the other controls (behind the current control)
+      from handling the keys (they will get HandleInput = @false).
+      And this is important to avoid doubly-processing the same key press,
+      e.g. if two controls react to the same key, only the one on top should
+      process it.
+
+      Note that to handle a single press / release (like "switch
+      light on when pressing a key") you should rather
+      use @link(Press) and @link(Release) methods. Use this method
+      only for continuous handling (like "holding this key makes
+      the light brighter and brighter").
+
+      To understand why such HandleInput approach is needed,
+      realize that the "Update" events are called
+      differently than simple mouse and key events like "Press" and "Release".
+      "Press" and "Release" events
+      return whether the event was somehow "handled", and the container
+      passes them only to the controls under the mouse (decided by
+      @link(TCastleUserInterface.CapturesEventsAtPosition)). And as soon as some control says it "handled"
+      the event, other controls (even if under the mouse) will not
+      receive the event.
+
+      This approach is not suitable for Update events. Some controls
+      need to do the Update job all the time,
+      regardless of whether the control is under the mouse and regardless
+      of what other controls already did. So all controls (well,
+      all controls that exist, in case of TCastleUserInterface,
+      see TCastleUserInterface.GetExists) receive Update calls.
+
+      So the "handled" status is passed through HandleInput.
+      If a control is not under the mouse, it will receive HandleInput
+      = @false. If a control is under the mouse, it will receive HandleInput
+      = @true as long as no other control on top of it didn't already
+      change it to @false. }
+    procedure Update(const SecondsPassed: Single;
+      var HandleInput: boolean); virtual;
+
+    { Called always when something important inside this control (or it's children)
+      changed. To be more precise, this is called when something mentioned among
+      the @link(TCastleUserInterfaceChange) enumerated items changed.
+
+      This is always called with Changes <> [] (non-empty set). }
+    procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
+      const ChangeInitiatedByChildren: boolean = false); overload; virtual;
+
+    { Called always when something important inside this control (or it's children)
+      changed. See @link(VisibleChange) for details about when and how this is called.
+
+      Be careful when handling this event. Various changes may cause this,
+      so be prepared to handle it at any moment, even in the middle when UI control
+      is changing. It may also occur very often.
+      It's usually safest to only set a boolean flag like
+      "something should be recalculated" when this event happens,
+      and do the actual recalculation later. }
+    property OnVisibleChange: TCastleUserInterfaceChangeEvent
+      read FOnVisibleChange write FOnVisibleChange;
+
+    { Allow window containing this control to suspend waiting for user input.
+      Typically you want to override this to return @false when you do
+      something in the overridden @link(Update) method.
+
+      In this class, this simply returns always @true.
+
+      @seeAlso TCastleWindowBase.AllowSuspendForInput }
+    function AllowSuspendForInput: boolean; virtual;
+
+    { Event called when the container (component or window with OpenGL context)
+      size changes.
+
+      You can resize/reposition your component here,
+      for example set @link(TCastleUserInterface.Left) or @link(TCastleUserInterface.Bottom),
+      to react to parent size changes.
+      This is called only when the OpenGL context of the container
+      is initialized, so you can be sure that this is called only between
+      GLContextOpen and GLContextClose.
+
+      We also call this once when inserting into the controls list
+      (like @link(TCastleWindowBase.Controls) or
+      @link(TCastleControlBase.Controls) or inside parent TCastleUserInterface),
+      if inserting into the container/parent
+      with already initialized OpenGL context. If inserting into the container/parent
+      without OpenGL context initialized, it will be called later,
+      when OpenGL context will get initialized, right after GLContextOpen.
+
+      In other words, this is always called to let the control know
+      the size of the container, if and only if the OpenGL context is
+      initialized. }
+    procedure Resize; virtual;
+
+    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); virtual; deprecated 'use Resize';
+
+    { Container of this control. When adding control to container's Controls
+      list (like TCastleWindowBase.Controls) container will automatically
+      set itself here, and when removing from container this will be changed
+      back to @nil.
+
+      May be @nil if this control is not yet inserted into any container. }
+    property Container: TCastleContainer read FContainer;
+
+    { Event called when the @link(Cursor) property changes.
+      This event is, in normal circumstances, used by the Container,
+      so you should not use it in your own programs. }
+    property OnCursorChange: TNotifyEvent
+      read FOnCursorChange write FOnCursorChange;
+      deprecated 'use OnVisibleChange (or override VisibleChange) and watch for Changes that include chCursor';
+
+    { Design note: ExclusiveEvents is not published now, as it's too "obscure"
+      (for normal usage you don't want to deal with it). Also, it's confusing
+      on TCastleSceneCore, the name suggests it relates to ProcessEvents (VRML events,
+      totally not related to this property that is concerned with handling
+      TCastleUserInterface events.) }
+
+    { Should we disable further mouse / keys handling for events that
+      we already handled in this control. If @true, then our events will
+      return @true for mouse and key events handled.
+
+      This means that events will not be simultaneously handled by both this
+      control and some other (or camera or normal window callbacks),
+      which is usually more sensible, but sometimes somewhat limiting. }
+    property ExclusiveEvents: boolean
+      read FExclusiveEvents write FExclusiveEvents default true;
 
     property Controls [Index: Integer]: TCastleUserInterface read GetControls write SetControls;
     function ControlsCount: Integer;
@@ -1467,7 +1460,7 @@ type
       #) }
     function GetExists: boolean; virtual;
 
-    { Does this control capture events under this screen position.
+    { Does this control capture events under this container position.
       The default implementation simply checks whether Position
       is inside @link(RenderRect).
       It also checks whether @link(CapturesEvents) is @true.
@@ -1482,8 +1475,8 @@ type
 
       @bold(Do not explicitly call this method.)
       Instead, render controls by adding them to the
-      @link(TUIContainer.Controls) list, or render them explicitly
-      (for off-screen rendering) by @link(TUIContainer.RenderControl).
+      @link(TCastleContainer.Controls) list, or render them explicitly
+      (for off-screen rendering) by @link(TCastleContainer.RenderControl).
     }
     procedure BeforeRender; virtual;
 
@@ -1492,8 +1485,8 @@ type
 
       @bold(Do not explicitly call this method.)
       Instead, render controls by adding them to the
-      @link(TUIContainer.Controls) list, or render them explicitly
-      (for off-screen rendering) by @link(TUIContainer.RenderControl).
+      @link(TCastleContainer.Controls) list, or render them explicitly
+      (for off-screen rendering) by @link(TCastleContainer.RenderControl).
       This is method should only be overridden in your own code.
 
       Before calling this method we always set some OpenGL state,
@@ -1586,11 +1579,11 @@ type
 
       When non-zero, control will not receive GLContextOpen and
       GLContextClose events when it is added/removed from the
-      @link(TUIContainer.Controls) list.
+      @link(TCastleContainer.Controls) list.
 
       This can be useful as an optimization, to keep the OpenGL resources
       created even for controls that are not present on the
-      @link(TUIContainer.Controls) list. @italic(This must used
+      @link(TCastleContainer.Controls) list. @italic(This must used
       very, very carefully), as bad things will happen if the actual OpenGL
       context will be destroyed while the control keeps the OpenGL resources
       (because it had DisableContextOpenClose > 0). The control will then
@@ -1599,21 +1592,21 @@ type
 
       Most of the time, when you think of using this, you should instead
       use the @link(TCastleUserInterface.Exists) property. This allows you to keep the control
-      of the @link(TUIContainer.Controls) list, and it will be receive
+      of the @link(TCastleContainer.Controls) list, and it will be receive
       GLContextOpen and GLContextClose events as usual, but will not exist
       for all other purposes.
 
       Using this mechanism is only sensible if you want to reliably hide a control,
-      but also allow readding it to the @link(TUIContainer.Controls) list,
+      but also allow readding it to the @link(TCastleContainer.Controls) list,
       and then you want to show it again. This is useful for CastleInternalWindowModes,
       that must push (and then pop) the controls, but then allows the caller
       to modify the controls list. And some games, e.g. castle1, add back
       some (but not all) of the just-hidden controls. For example the TCastleNotifications
       instance is added back, to be visible even in the menu mode.
-      This means that CastleInternalWindowModes cannot just modify the TUIContainer.Exists
-      value, leaving the control on the @link(TUIContainer.Controls) list:
-      it would leave the TCastleUserInterface existing many times on the @link(TUIContainer.Controls)
-      list, with the undefined TUIContainer.Exists value. }
+      This means that CastleInternalWindowModes cannot just modify the TCastleContainer.Exists
+      value, leaving the control on the @link(TCastleContainer.Controls) list:
+      it would leave the TCastleUserInterface existing many times on the @link(TCastleContainer.Controls)
+      list, with the undefined TCastleContainer.Exists value. }
     property DisableContextOpenClose: Cardinal
       read FDisableContextOpenClose write FDisableContextOpenClose;
 
@@ -1770,18 +1763,60 @@ type
     function CalculatedHeight: Cardinal; deprecated 'use EffectiveHeight';
     function CalculatedRect: TRectangle; deprecated 'use EffectiveRect';
 
-    { Position and size of this control, assuming it exists, in screen (container)
-      coordinates. The primary use of this is inside @link(Render).
+    { Position and size of this control, assuming it exists, in container
+      coordinates (in final device pixels).
+      The primary use of this is inside @link(Render).
       A proper UI control should adjust to draw precisely in this rectangle. }
     function RenderRect: TFloatRectangle;
     function RenderRectWithBorder: TFloatRectangle;
 
     function ScreenRect: TRectangle; deprecated 'use RenderRect';
 
-    { How to translate local coords to screen.
-      If you use UI scaling, this works in final coordinates
-      (after scaling, real pixels on screen). }
-    function LocalToScreenTranslation: TVector2;
+    { Convert position relative to container (in final device coordinates, without UI scaling, by default)
+      into position relative to this UI control (in coordinates with UI scaling).
+      Useful e.g. to convert mouse/touch position from
+      @link(TInputPressRelease.Position) into position useful for children
+      of this UI control.
+
+      The exact definition is that using the result of this to set our child
+      AnchorDelta, assuming the child is anchored to the left-bottom (the default state)
+      and child has Left = Bottom = 0, sets child position exactly to
+      the indicated point on the container.
+
+      @param(ContainerPositionScaled
+        If @true (default) then the container position (the ContainerPosition parameter)
+        is assumed to be in final device pixels,
+        i.e. the window area in X is from 0 to @link(TCastleContainer.Width),
+        in Y from 0 and @link(TCastleContainer.Height).
+        This is useful when the parameter comes e.g. from @link(TInputPressRelease.MousePosition).
+
+        If @false then the container position (the ContainerPosition parameter)
+        is assumed to be in unscaled device pixels,
+        i.e. the window area in X is from 0 to @link(TCastleContainer.UnscaledWidth),
+        in Y from 0 and @link(TCastleContainer.UnscaledHeight).
+      )
+    }
+    function ContainerToLocalPosition(ContainerPosition: TVector2;
+      const ContainerPositionScaled: Boolean = true): TVector2;
+
+    { Convert position relative to this UI control (in coordinates with UI scaling)
+      into relative to container (in final device coordinates, without UI scaling, by default).
+      Reverses @link(ContainerToLocalPosition).
+
+      @param(ContainerPositionScaled
+        If @true (default) then the container position (the result of this method)
+        is assumed to be in final device pixels,
+        i.e. the window area in X is from 0 to @link(TCastleContainer.Width),
+        in Y from 0 and @link(TCastleContainer.Height).
+
+        If @false then the container position (the result of this method)
+        is assumed to be in unscaled device pixels,
+        i.e. the window area in X is from 0 to @link(TCastleContainer.UnscaledWidth),
+        in Y from 0 and @link(TCastleContainer.UnscaledHeight).
+      )
+    }
+    function LocalToContainerPosition(const LocalPosition: TVector2;
+      const ContainerPositionScaled: Boolean = true): TVector2;
 
     { Rectangle filling the parent control (or container), in local coordinates.
       Since this is in local coordinates, the returned rectangle Left and Bottom
@@ -1826,7 +1861,7 @@ type
     procedure AlignHorizontal(
       const ControlPosition: TPositionRelative = prMiddle;
       const ContainerPosition: TPositionRelative = prMiddle;
-      const X: Single = 0); deprecated 'use Align or Anchor';
+      const X: Single = 0); deprecated 'use Anchor';
 
     { Immediately position the control with respect to the parent
       by adjusting @link(Left).
@@ -1839,7 +1874,7 @@ type
     procedure Align(
       const ControlPosition: THorizontalPosition;
       const ContainerPosition: THorizontalPosition;
-      const X: Single = 0); overload;
+      const X: Single = 0); overload; deprecated 'use Anchor';
 
     { Immediately position the control with respect to the parent
       by adjusting @link(Bottom).
@@ -1847,7 +1882,7 @@ type
     procedure AlignVertical(
       const ControlPosition: TPositionRelative = prMiddle;
       const ContainerPosition: TPositionRelative = prMiddle;
-      const Y: Single = 0); deprecated 'use Align or Anchor';
+      const Y: Single = 0); deprecated 'use Anchor';
 
     { Immediately position the control with respect to the parent
       by adjusting @link(Bottom).
@@ -1860,7 +1895,7 @@ type
     procedure Align(
       const ControlPosition: TVerticalPosition;
       const ContainerPosition: TVerticalPosition;
-      const Y: Single = 0); overload;
+      const Y: Single = 0); overload; deprecated 'use Anchor';
 
     { Immediately center the control within the parent,
       both horizontally and vertically.
@@ -1871,11 +1906,11 @@ type
       In contrast, adjusting position using this method
       will typically need to be repeated at each window on resize,
       like in @link(TCastleWindowBase.OnResize). }
-    procedure Center;
+    procedure Center; deprecated 'use Anchor(hpMiddle); Anchor(vpMiddle); to reliably center the control';
 
     { UI scale of this control, derived from container
-      (see @link(TUIContainer.UIScaling) and @link(EnableUIScaling)). }
-    property UIScale: Single read FLastSeenUIScale;
+      (see @link(TCastleContainer.UIScaling) and @link(EnableUIScaling)). }
+    function UIScale: Single; virtual;
 
     { Override this to prevent resizing some dimension in CGE editor. }
     procedure EditorAllowResize(out ResizeWidth, ResizeHeight: Boolean;
@@ -1893,7 +1928,7 @@ type
       when inserting.
 
       TODO: Do not change this property while the control is already
-      a children of something. }
+      a child of something. }
     property KeepInFront: boolean read FKeepInFront write FKeepInFront
       default false;
 
@@ -1912,7 +1947,7 @@ type
     property Visible: Boolean read FVisible;
 
     { Enable or disable UI scaling for this particular control.
-      See more about UI scaling on @link(TUIContainer.UIScaling) and
+      See more about UI scaling on @link(TCastleContainer.UIScaling) and
       @link(TCastleUserInterface.UIScale). Setting this to @false forces
       @link(TCastleUserInterface.UIScale) to always return 1.0.
 
@@ -1931,9 +1966,9 @@ type
       and @link(Update) will always be called with HandleInput = @false.
       The control will never behave like focused.
 
-      The only exception is when this control is set as @link(TUIContainer.ForceCaptureInput).
+      The only exception is when this control is set as @link(TCastleContainer.ForceCaptureInput).
       In this case, the control will receive inputs.
-      In other words, @link(TUIContainer.ForceCaptureInput) overrides
+      In other words, @link(TCastleContainer.ForceCaptureInput) overrides
       the intent of this property.
 
       @italic(This property may be replaced by something like
@@ -1959,6 +1994,27 @@ type
     property OnInternalMouseLeave: TUiNotifyEvent
       read FOnInternalMouseLeave write FOnInternalMouseLeave;
   published
+    { Mouse cursor over this control.
+      When user moves mouse over the Container, the currently focused
+      (topmost under the cursor) control determines the mouse cursor look. }
+    property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
+
+    { Event that occurs continuously on each control.
+      See @link(Update) for details. }
+    property OnUpdate: TUiUpdateEvent read FOnUpdate write FOnUpdate;
+
+    { An input (key, mouse button, mouse wheel) was pressed.
+      See @link(Press) for details. }
+    property OnPress: TUiPressReleaseEvent read FOnPress write FOnPress;
+
+    { An input (key, mouse button, mouse wheel) was released.
+      See @link(Release) for details. }
+    property OnRelease: TUiPressReleaseEvent read FOnRelease write FOnRelease;
+
+    { Pointer (mouse or finger) moved.
+      See @link(Motion) for details. }
+    property OnMotion: TUiMotionEvent read FOnMotion write FOnMotion;
+
     { Control is being displayed.
       See @link(Render) for details.
       This event it called @italic(after) the @link(Render) method
@@ -2052,7 +2108,7 @@ type
       are ignored when @link(FullSize) is set to true.
       In case of @link(FullSize), the control fills the parent perfectly.
 
-      @italic(Anchor distance is automatically affected by @link(TUIContainer.UIScaling).)
+      @italic(Anchor distance is automatically affected by @link(TCastleContainer.UIScaling).)
 
       Which @bold(our) border to align (it's aligned
       to parent @link(HorizontalAnchorParent) border). }
@@ -2077,7 +2133,7 @@ type
       are ignored when @link(FullSize) is set to true.
       In case of @link(FullSize), the control fills the parent perfectly.
 
-      @italic(Anchor distance is automatically affected by @link(TUIContainer.UIScaling).)
+      @italic(Anchor distance is automatically affected by @link(TCastleContainer.UIScaling).)
 
       Which @bold(our) border to align (it's aligned
       to parent @link(VerticalAnchorParent) border). }
@@ -2167,16 +2223,15 @@ type
 
   { List of UI controls, with a parent control and container.
     Ordered from back to front.
-    Used for @link(TUIContainer.Controls). }
+    Used for @link(TCastleContainer.Controls). }
   TChildrenControls = class
-  private
+  strict private
     FParent: TCastleUserInterface;
-    FContainer: TUIContainer;
+    FContainer: TCastleContainer;
 
-    procedure RegisterContainer(const C: TCastleUserInterface; const AContainer: TUIContainer);
-    procedure UnregisterContainer(const C: TCastleUserInterface; const AContainer: TUIContainer);
-    procedure SetContainer(const AContainer: TUIContainer);
-    property Container: TUIContainer read FContainer write SetContainer;
+    procedure RegisterContainer(const C: TCastleUserInterface; const AContainer: TCastleContainer);
+    procedure UnregisterContainer(const C: TCastleUserInterface; const AContainer: TCastleContainer);
+    procedure SetContainer(const AContainer: TCastleContainer);
 
     type
       TMyObjectList = class(TCastleObjectList)
@@ -2198,6 +2253,8 @@ type
     procedure SetItem(const I: Integer; const Item: TCastleUserInterface);
     { React to add/remove notifications. }
     procedure Notify(Ptr: Pointer; Action: TListNotification);
+  private
+    property Container: TCastleContainer read FContainer write SetContainer;
   public
     constructor Create(AParent: TCastleUserInterface);
     destructor Destroy; override;
@@ -2251,12 +2308,11 @@ type
   TUIControl = TCastleUserInterface deprecated 'use TCastleUserInterface';
   TUIControlSizeable = TCastleUserInterface deprecated 'use TCastleUserInterface';
   TCastleUserInterfaceRect = TCastleUserInterface deprecated 'use TCastleUserInterface';
-  // TODO: These aliases will soon be deprecated too.
-  { }
-  TUIControlChange = TCastleUserInterfaceChange;
-  TUIControlChanges = TCastleUserInterfaceChanges;
-  TUIControlList = TCastleUserInterfaceList;
-  TUIControlChangeEvent = TCastleUserInterfaceChangeEvent;
+  TInputListener = TCastleUserInterface deprecated 'use TCastleUserInterface';
+  TUIControlChange = TCastleUserInterfaceChange deprecated 'use TCastleUserInterfaceChange';
+  TUIControlChanges = TCastleUserInterfaceChanges deprecated 'use TCastleUserInterfaceChanges';
+  TUIControlList = TCastleUserInterfaceList deprecated 'use TCastleUserInterfaceList';
+  TUIControlChangeEvent = TCastleUserInterfaceChangeEvent deprecated 'use TCastleUserInterfaceChangeEvent';
 
 function OnGLContextOpen: TGLContextEventList; deprecated 'use ApplicationProperties.OnGLContextOpen';
 function OnGLContextClose: TGLContextEventList; deprecated 'use ApplicationProperties.OnGLContextClose';
@@ -2279,7 +2335,7 @@ type
   { Internal for communication with CastleWindow or CastleControl.
     See @link(GetMainContainer).
     @exclude }
-  TOnMainContainer = function: TUIContainer of object;
+  TOnMainContainer = function: TCastleContainer of object;
 
 var
   { Internal for communication with CastleWindow or CastleControl.
@@ -2298,7 +2354,7 @@ var
   (possible if you don't set Application.MainWindow or TCastleControlBase.MainControl).
 
   @exclude }
-function GetMainContainer: TUIContainer;
+function GetMainContainer: TCastleContainer;
 
 { Render control contents to an RGBA image, using off-screen rendering.
   The background behind the control is filled with BackgroundColor
@@ -2311,18 +2367,18 @@ function GetMainContainer: TUIContainer;
   Make sure that the control is nicely positioned to fill the ViewportRect.
   Usually you want to adjust control size and position,
   and disable UI scaling (set TCastleUserInterface.EnableUIScaling = @false
-  if you use TUIContainer.UIScaling).
+  if you use TCastleContainer.UIScaling).
 
   This is the @italic(easiest) way to make off-screen rendering,
   i.e. to render 3D things (like TCastleScene in TCastleViewport)
   into an image. This is @italic(not the fastest way), as it creates
   new TGLRenderToTexture instance each time,
   and it grabs the image contents to CPU.
-  If you want a faster approach, use @link(TUIContainer.RenderControl)
+  If you want a faster approach, use @link(TCastleContainer.RenderControl)
   and render into @link(TDrawableImage) using @link(TDrawableImage.RenderToImageBegin)
   and @link(TDrawableImage.RenderToImageEnd).
 }
-function RenderControlToImage(const Container: TUIContainer;
+function RenderControlToImage(const Container: TCastleContainer;
   const Control: TCastleUserInterface;
   const ViewportRect: TRectangle;
   const BackgroundColor: TCastleColor): TRGBAlphaImage; overload;
@@ -2388,9 +2444,9 @@ begin
     Delete(Index);
 end;
 
-{ TUIContainer --------------------------------------------------------------- }
+{ TCastleContainer --------------------------------------------------------------- }
 
-constructor TUIContainer.Create(AOwner: TComponent);
+constructor TCastleContainer.Create(AOwner: TComponent);
 begin
   inherited;
   FControls := TChildrenControls.Create(nil);
@@ -2400,7 +2456,7 @@ begin
   FCaptureInput := TFingerIndexCaptureMap.Create;
   FUIScaling := usNone;
   FUIExplicitScale := 1.0;
-  FCalculatedUIScale := 1.0; // default safe value, in case some TCastleUserInterface will look here
+  FUIScale := 1.0; // default safe value, in case some TCastleUserInterface will look here
   FFocus := TCastleUserInterfaceList.Create(false);
   FNewFocus := TCastleUserInterfaceList.Create(false);
   FFps := TFramesPerSecond.Create;
@@ -2420,7 +2476,7 @@ begin
   end;
 end;
 
-destructor TUIContainer.Destroy;
+destructor TCastleContainer.Destroy;
 begin
   if RenderContext = FContext then
     RenderContext := nil;
@@ -2437,7 +2493,7 @@ begin
   inherited;
 end;
 
-procedure TUIContainer.Notification(AComponent: TComponent; Operation: TOperation);
+procedure TCastleContainer.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   inherited;
 
@@ -2452,7 +2508,7 @@ begin
     DetachNotification(TCastleUserInterface(AComponent));
 end;
 
-procedure TUIContainer.SetForceCaptureInput(const Value: TCastleUserInterface);
+procedure TCastleContainer.SetForceCaptureInput(const Value: TCastleUserInterface);
 begin
   if FForceCaptureInput <> Value then
   begin
@@ -2464,7 +2520,7 @@ begin
   end;
 end;
 
-procedure TUIContainer.DetachNotification(const C: TCastleUserInterface);
+procedure TCastleContainer.DetachNotification(const C: TCastleUserInterface);
 var
   Index: Integer;
   FingerIndex: TFingerIndex;
@@ -2489,7 +2545,7 @@ begin
   end;
 end;
 
-function TUIContainer.TryGetFingerOfControl(const C: TCastleUserInterface; out Finger: TFingerIndex): boolean;
+function TCastleContainer.TryGetFingerOfControl(const C: TCastleUserInterface; out Finger: TFingerIndex): boolean;
 var
   FingerControlPair: TFingerIndexCaptureMap.TDictionaryPair;
 begin
@@ -2504,7 +2560,7 @@ begin
   Result := false;
 end;
 
-function TUIContainer.UseForceCaptureInput: boolean;
+function TCastleContainer.UseForceCaptureInput: boolean;
 begin
   Result :=
     (ForceCaptureInput <> nil) and
@@ -2512,7 +2568,7 @@ begin
     ForceCaptureInput.GetExists;
 end;
 
-function TUIContainer.PassEvents(const C: TCastleUserInterface;
+function TCastleContainer.PassEvents(const C: TCastleUserInterface;
   const EventPosition: TVector2;
   const CheckEventPosition: Boolean = true): Boolean;
 begin
@@ -2520,30 +2576,30 @@ begin
     (not (csDestroying in C.ComponentState)) and
     C.GetExists and
     ((not CheckEventPosition) or C.CapturesEventsAtPosition(EventPosition)) and
-    C.FVisible;
+    C.Visible;
 end;
 
-function TUIContainer.PassEvents(const C: TCastleUserInterface;
+function TCastleContainer.PassEvents(const C: TCastleUserInterface;
   const Event: TInputPressRelease;
   const CheckEventPosition: Boolean = true): Boolean;
 begin
   Result := PassEvents(C, Event.Position, CheckEventPosition);
 end;
 
-function TUIContainer.PassEvents(const C: TCastleUserInterface;
+function TCastleContainer.PassEvents(const C: TCastleUserInterface;
   const Event: TInputMotion;
   const CheckEventPosition: Boolean = true): Boolean;
 begin
   Result := PassEvents(C, Event.Position, CheckEventPosition);
 end;
 
-function TUIContainer.PassEvents(const C: TCastleUserInterface;
+function TCastleContainer.PassEvents(const C: TCastleUserInterface;
   const CheckMousePosition: Boolean): Boolean;
 begin
   Result := PassEvents(C, MousePosition, CheckMousePosition);
 end;
 
-procedure TUIContainer.UpdateFocusAndMouseCursor;
+procedure TCastleContainer.UpdateFocusAndMouseCursor;
 var
   AnythingForcesNoneCursor: boolean;
 
@@ -2643,7 +2699,7 @@ begin
 
   { FNewFocus is only used by this method. It is only managed by TCastleUserInterface
     to avoid constructing/destructing it in every
-    TUIContainer.UpdateFocusAndMouseCursor call. }
+    TCastleContainer.UpdateFocusAndMouseCursor call. }
   FNewFocus.Clear;
   AnythingForcesNoneCursor := false;
 
@@ -2686,7 +2742,7 @@ begin
   FFocusAndMouseCursorValid := true;
 end;
 
-function TUIContainer.EventSensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean;
+function TCastleContainer.EventSensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean;
 
   function RecursiveSensorRotation(const C: TCastleUserInterface): boolean;
   var
@@ -2715,7 +2771,7 @@ begin
   Result := false;
 end;
 
-function TUIContainer.EventSensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean;
+function TCastleContainer.EventSensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean;
 
   function RecursiveSensorTranslation(const C: TCastleUserInterface): boolean;
   var
@@ -2744,7 +2800,7 @@ begin
   Result := false;
 end;
 
-function TUIContainer.EventJoyAxisMove(const JoyID, Axis: Byte): boolean;
+function TCastleContainer.EventJoyAxisMove(const JoyID, Axis: Byte): boolean;
 
   function RecursiveJoyAxisMove(const C: TCastleUserInterface): boolean;
   var
@@ -2756,8 +2812,10 @@ function TUIContainer.EventJoyAxisMove(const JoyID, Axis: Byte): boolean;
         if RecursiveJoyAxisMove(C.Controls[I]) then
           Exit(true);
 
+      {$warnings off} // keeping deprecated working
       if C.JoyAxisMove(JoyID, Axis) then
         Exit(true);
+      {$warnings on}
     end;
 
     Result := false;
@@ -2773,7 +2831,7 @@ begin
   Result := false;
 end;
 
-function TUIContainer.EventJoyButtonPress(const JoyID, Button: Byte): boolean;
+function TCastleContainer.EventJoyButtonPress(const JoyID, Button: Byte): boolean;
 
   function RecursiveJoyButtonPress(const C: TCastleUserInterface): boolean;
   var
@@ -2785,8 +2843,10 @@ function TUIContainer.EventJoyButtonPress(const JoyID, Button: Byte): boolean;
         if RecursiveJoyButtonPress(C.Controls[I]) then
           Exit(true);
 
+      {$warnings off} // keeping deprecated working
       if C.JoyButtonPress(JoyID, Button) then
         Exit(true);
+      {$warnings on}
     end;
 
     Result := false;
@@ -2802,7 +2862,7 @@ begin
   Result := false;
 end;
 
-procedure TUIContainer.EventUpdate;
+procedure TCastleContainer.EventUpdate;
 
   procedure UpdateTooltip;
   var
@@ -2999,7 +3059,7 @@ begin
   if Assigned(OnUpdate) then OnUpdate(Self);
 end;
 
-function TUIContainer.EventPress(const Event: TInputPressRelease): boolean;
+function TCastleContainer.EventPress(const Event: TInputPressRelease): boolean;
 
   function RecursivePress(const C: TCastleUserInterface): boolean;
   var
@@ -3076,7 +3136,7 @@ begin
   end;
 end;
 
-function TUIContainer.EventRelease(const Event: TInputPressRelease): boolean;
+function TCastleContainer.EventRelease(const Event: TInputPressRelease): boolean;
 
   function RecursiveRelease(const C: TCastleUserInterface): boolean;
   var
@@ -3155,7 +3215,7 @@ begin
   end;
 end;
 
-procedure TUIContainer.ReleaseCapture(const C: TCastleUserInterface);
+procedure TCastleContainer.ReleaseCapture(const C: TCastleUserInterface);
 var
   FingerIndex: TFingerIndex;
 begin
@@ -3163,7 +3223,7 @@ begin
     FCaptureInput.Remove(FingerIndex);
 end;
 
-procedure TUIContainer.EventOpen(const OpenWindowsCount: Cardinal);
+procedure TCastleContainer.EventOpen(const OpenWindowsCount: Cardinal);
 
   procedure RecursiveGLContextOpen(const C: TCastleUserInterface);
   var
@@ -3195,7 +3255,7 @@ begin
   if Assigned(OnOpenObject) then OnOpenObject(Self);
 end;
 
-procedure TUIContainer.EventClose(const OpenWindowsCount: Cardinal);
+procedure TCastleContainer.EventClose(const OpenWindowsCount: Cardinal);
 
   procedure RecursiveGLContextClose(const C: TCastleUserInterface);
   var
@@ -3240,7 +3300,7 @@ begin
   end;
 end;
 
-function TUIContainer.AllowSuspendForInput: boolean;
+function TCastleContainer.AllowSuspendForInput: boolean;
 
   function RecursiveAllowSuspendForInput(const C: TCastleUserInterface): boolean;
   var
@@ -3274,7 +3334,7 @@ begin
   Result := true;
 end;
 
-procedure TUIContainer.EventMotion(const Event: TInputMotion);
+procedure TCastleContainer.EventMotion(const Event: TInputMotion);
 
   function RecursiveMotion(const C: TCastleUserInterface): boolean;
   var
@@ -3337,13 +3397,13 @@ begin
     OnMotion(Self, Event);
 end;
 
-procedure TUIContainer.ControlsVisibleChange(const Sender: TInputListener;
+procedure TCastleContainer.ControlsVisibleChange(const Sender: TCastleUserInterface;
   const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean);
 begin
   { We abort when ChangeInitiatedByChildren = true,
     because this event will be also called with ChangeInitiatedByChildren = false
     for every possible change.
-    So this makes a possible optimization for some TUIContainer descendants:
+    So this makes a possible optimization for some TCastleContainer descendants:
     no need to call Invalidate so many times. }
 
   if not ChangeInitiatedByChildren then
@@ -3354,7 +3414,7 @@ begin
   end;
 end;
 
-procedure TUIContainer.EventBeforeRender;
+procedure TCastleContainer.EventBeforeRender;
 
   procedure RecursiveBeforeRender(const C: TCastleUserInterface);
   var
@@ -3383,7 +3443,7 @@ begin
   if Assigned(OnBeforeRender) then OnBeforeRender(Self);
 end;
 
-class procedure TUIContainer.RenderControlPrepare(const ViewportRect: TRectangle); static;
+class procedure TCastleContainer.RenderControlPrepare(const ViewportRect: TRectangle); static;
 begin
   if GLFeatures.EnableFixedFunction then
   begin
@@ -3412,7 +3472,7 @@ begin
   end;
 end;
 
-procedure TUIContainer.EventRender;
+procedure TCastleContainer.EventRender;
 var
   I: Integer;
 begin
@@ -3433,11 +3493,11 @@ begin
   if Assigned(OnRender) then OnRender(Self);
 end;
 
-procedure TUIContainer.RenderControl(const Control: TCastleUserInterface;
+procedure TCastleContainer.RenderControl(const Control: TCastleUserInterface;
   const ViewportRect: TRectangle);
 var
   NeedsContainerSet, NeedsGLOpen: boolean;
-  OldContainer: TUIContainer;
+  OldContainer: TCastleContainer;
 begin
   NeedsContainerSet := Control.Container <> Self;
   NeedsGLOpen := not Control.GLInitialized;
@@ -3447,7 +3507,7 @@ begin
   if NeedsContainerSet then
   begin
     OldContainer := Control.Container;
-    Control.Container := Self;
+    Control.InternalSetContainer(Self);
   end;
   if NeedsGLOpen then
     Control.GLContextOpen;
@@ -3458,16 +3518,16 @@ begin
   { TODO: calling the methods below is not recursive,
     it will not unprepare the children correctly. }
   if NeedsContainerSet then
-    Control.Container := OldContainer;
+    Control.InternalSetContainer(OldContainer);
   if NeedsGLOpen then
     Control.GLContextClose;
 end;
 
-procedure TUIContainer.EventResize;
+procedure TCastleContainer.EventResize;
 begin
   if UIScaling in [usEncloseReferenceSize, usFitReferenceSize] then
     { usXxxReferenceSize adjust current Width/Height to reference,
-      so the FCalculatedUIScale must be adjusted on each resize. }
+      so the FUIScale must be adjusted on each resize. }
     UpdateUIScale;
 
   { Note that we don't cause TCastleUserInterface.Resize calls now.
@@ -3482,34 +3542,34 @@ begin
   if Assigned(OnResize) then OnResize(Self);
 end;
 
-function TUIContainer.Controls: TChildrenControls;
+function TCastleContainer.Controls: TChildrenControls;
 begin
   Result := TChildrenControls(FControls);
 end;
 
-function TUIContainer.SettingMousePositionCausesMotion: Boolean;
+function TCastleContainer.SettingMousePositionCausesMotion: Boolean;
 begin
   Result := true;
 end;
 
-procedure TUIContainer.MouseLookPress;
+procedure TCastleContainer.MouseLookPress;
 begin
   FMouseLookIgnoreNextMotion := false;
   FMouseLookWaitingForMiddle := false;
   FMouseLookMotionToSubtract := TVector2.Zero;
 end;
 
-procedure TUIContainer.MouseLookUpdate;
+procedure TCastleContainer.MouseLookUpdate;
 begin
   // Nothing useful to do here
 end;
 
-procedure TUIContainer.MouseLookIgnoreNextMotion;
+procedure TCastleContainer.MouseLookIgnoreNextMotion;
 begin
   FMouseLookIgnoreNextMotion := true;
 end;
 
-function TUIContainer.MouseLookDelta(const Event: TInputMotion): TVector2;
+function TCastleContainer.MouseLookDelta(const Event: TInputMotion): TVector2;
 
   { There's a lot of tricky things in implementing this correctly.
 
@@ -3640,7 +3700,7 @@ begin
   end;
 end;
 
-procedure TUIContainer.SetUIScaling(const Value: TUIScaling);
+procedure TCastleContainer.SetUIScaling(const Value: TUIScaling);
 begin
   if FUIScaling <> Value then
   begin
@@ -3649,7 +3709,7 @@ begin
   end;
 end;
 
-procedure TUIContainer.SetUIReferenceWidth(const Value: Single);
+procedure TCastleContainer.SetUIReferenceWidth(const Value: Single);
 begin
   if FUIReferenceWidth <> Value then
   begin
@@ -3658,7 +3718,7 @@ begin
   end;
 end;
 
-procedure TUIContainer.SetUIReferenceHeight(const Value: Single);
+procedure TCastleContainer.SetUIReferenceHeight(const Value: Single);
 begin
   if FUIReferenceHeight <> Value then
   begin
@@ -3667,7 +3727,7 @@ begin
   end;
 end;
 
-procedure TUIContainer.SetUIExplicitScale(const Value: Single);
+procedure TCastleContainer.SetUIExplicitScale(const Value: Single);
 begin
   if FUIExplicitScale <> Value then
   begin
@@ -3676,34 +3736,36 @@ begin
   end;
 end;
 
-function TUIContainer.DefaultUIScale: Single;
+class function TCastleContainer.InternalCalculateUIScale(
+  const AUIScaling: TUIScaling;
+  const AUIReferenceWidth: Single;
+  const AUIReferenceHeight: Single;
+  const AUIExplicitScale: Single;
+  const ADpi, AWidth, AHeight: Single): Single;
 begin
-  case UIScaling of
+  case AUIScaling of
     usNone         : Result := 1;
-    usExplicitScale: Result := UIExplicitScale;
-    usDpiScale     : Result := Dpi / DefaultDpi;
+    usExplicitScale: Result := AUIExplicitScale;
+    usDpiScale     : Result := ADpi / DefaultDpi;
     usEncloseReferenceSize, usFitReferenceSize:
       begin
         Result := 1;
-
-        { don't do adjustment before our Width/Height are sensible }
-        if not GLInitialized then Exit;
-
-        if (UIReferenceWidth <> 0) and (Width > 0) then
+        if (AUIReferenceWidth <> 0) and (AWidth > 0) then
         begin
-          Result := Width / UIReferenceWidth;
-          if (UIReferenceHeight <> 0) and (Height > 0) then
-            if UIScaling = usEncloseReferenceSize then
-              MinVar(Result, Height / UIReferenceHeight) else
-              MaxVar(Result, Height / UIReferenceHeight);
+          Result := AWidth / AUIReferenceWidth;
+          if (AUIReferenceHeight <> 0) and (AHeight > 0) then
+            if AUIScaling = usEncloseReferenceSize then
+              MinVar(Result, AHeight / AUIReferenceHeight)
+            else
+              MaxVar(Result, AHeight / AUIReferenceHeight);
         end else
-        if (UIReferenceHeight <> 0) and (Height > 0) then
-          Result := Height / UIReferenceHeight;
+        if (AUIReferenceHeight <> 0) and (AHeight > 0) then
+          Result := AHeight / AUIReferenceHeight;
         // Too talkative when resizing a window (also in castle-editor)
         // WritelnLog('Scaling', 'Automatic scaling to reference sizes %f x %f in effect. Actual window size is %d x %d. Calculated scale is %f, which simulates surface of size %f x %f.',
-        //   [UIReferenceWidth, UIReferenceHeight,
-        //    Width, Height,
-        //    Result, Width / Result, Height / Result]);
+        //   [AUIReferenceWidth, AUIReferenceHeight,
+        //    AWidth, AHeight,
+        //    Result, AWidth / Result, AHeight / Result]);
       end;
     {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('UIScaling unknown');
@@ -3711,9 +3773,17 @@ begin
   end;
 end;
 
-procedure TUIContainer.UpdateUIScale;
+
+procedure TCastleContainer.UpdateUIScale;
 begin
-  FCalculatedUIScale := DefaultUIScale;
+  if (not GLInitialized) and
+     (UIScaling in [usEncloseReferenceSize, usFitReferenceSize]) then
+    // don't adjust FUIScale before our Width/Height are sensible
+    FUIScale := 1
+  else
+    FUIScale := InternalCalculateUIScale(
+      UIScaling, UIReferenceWidth, UIReferenceHeight, UIExplicitScale,
+      Dpi, Width, Height);
 
   { Note that we don't cause TCastleUserInterface.UIScaleChanged calls now.
     They are done before BeforeRender, this way culled UI controls
@@ -3723,32 +3793,32 @@ begin
     (lots of off-screen controls). }
 end;
 
-function TUIContainer.UnscaledWidth: Single;
+function TCastleContainer.UnscaledWidth: Single;
 begin
-  Result := Width / FCalculatedUIScale;
+  Result := Width / FUIScale;
 end;
 
-function TUIContainer.UnscaledHeight: Single;
+function TCastleContainer.UnscaledHeight: Single;
 begin
-  Result := Height / FCalculatedUIScale;
+  Result := Height / FUIScale;
 end;
 
-function TUIContainer.UnscaledRect: TFloatRectangle;
+function TCastleContainer.UnscaledRect: TFloatRectangle;
 begin
   Result := FloatRectangle(Rect);
   if not Result.IsEmpty then
   begin
-    Result.Width  := Result.Width  / FCalculatedUIScale;
-    Result.Height := Result.Height / FCalculatedUIScale;
+    Result.Width  := Result.Width  / FUIScale;
+    Result.Height := Result.Height / FUIScale;
   end;
 end;
 
-function TUIContainer.StatusBarHeight: Single;
+function TCastleContainer.StatusBarHeight: Single;
 begin
-  Result := ScaledStatusBarHeight / FCalculatedUIScale;
+  Result := ScaledStatusBarHeight / FUIScale;
 end;
 
-function TUIContainer.SaveScreen(const SaveRect: TRectangle): TRGBImage;
+function TCastleContainer.SaveScreen(const SaveRect: TRectangle): TRGBImage;
 begin
   EventBeforeRender;
   EventRender;
@@ -3756,7 +3826,7 @@ begin
   Result := SaveScreen_NoFlush(SaveRect, cbBack);
 end;
 
-procedure TUIContainer.SaveScreen(const URL: string);
+procedure TCastleContainer.SaveScreen(const URL: string);
 var
   Image: TRGBImage;
 begin
@@ -3767,17 +3837,17 @@ begin
   finally FreeAndNil(Image) end;
 end;
 
-function TUIContainer.SaveScreen: TRGBImage;
+function TCastleContainer.SaveScreen: TRGBImage;
 begin
   Result := SaveScreen(Rect);
 end;
 
-function TUIContainer.SaveScreen(const SaveRect: TFloatRectangle): TRGBImage;
+function TCastleContainer.SaveScreen(const SaveRect: TFloatRectangle): TRGBImage;
 begin
   Result := SaveScreen(SaveRect.Round);
 end;
 
-function TUIContainer.SaveScreenToDefaultFile: String;
+function TCastleContainer.SaveScreenToDefaultFile: String;
 var
   Path: String;
 begin
@@ -3791,7 +3861,7 @@ begin
     Result := '';
 end;
 
-function TUIContainer.SaveScreenRgba(const SaveRect: TRectangle): TRGBAlphaImage;
+function TCastleContainer.SaveScreenRgba(const SaveRect: TRectangle): TRGBAlphaImage;
 begin
   EventBeforeRender;
   EventRender;
@@ -3799,263 +3869,80 @@ begin
   Result := SaveScreen_NoFlush(TRGBAlphaImage, SaveRect, cbBack) as TRGBAlphaImage;
 end;
 
-function TUIContainer.SaveScreenRgba: TRGBAlphaImage;
+function TCastleContainer.SaveScreenRgba: TRGBAlphaImage;
 begin
   Result := SaveScreenRgba(Rect);
 end;
 
-function TUIContainer.Dpi: Single;
+function TCastleContainer.Dpi: Single;
 begin
   { Default implementation, if you cannot query real dpi value of the screen. }
   Result := DefaultDpi;
 end;
 
-function TUIContainer.Rect: TRectangle;
+function TCastleContainer.Rect: TRectangle;
 begin
   Result := Rectangle(0, 0, Width, Height);
 end;
 
-function TUIContainer.ScaledStatusBarHeight: Cardinal;
+function TCastleContainer.ScaledStatusBarHeight: Cardinal;
 begin
   Result := 0;
 end;
 
-procedure TUIContainer.Invalidate;
+procedure TCastleContainer.Invalidate;
 begin
   { Default implementation, does nothing, assuming the main program redraws in a loop. }
 end;
 
-function TUIContainer.Focused: boolean;
+function TCastleContainer.Focused: boolean;
 begin
   { Default implementation, assuming that the context is always focused. }
   Result := true;
 end;
 
-procedure TUIContainer.SetInternalCursor(const Value: TMouseCursor);
+procedure TCastleContainer.SetInternalCursor(const Value: TMouseCursor);
 begin
   { Default implementation, ignores new cursor value. }
 end;
 
-function TUIContainer.GetMousePosition: TVector2;
+function TCastleContainer.GetMousePosition: TVector2;
 begin
   { Default implementation, assuming mouse is glued to the middle of the screen.
-    Some methods, like TUIContainer.UpdateFocusAndMouseCursor,
+    Some methods, like TCastleContainer.UpdateFocusAndMouseCursor,
     use this to calculate "focused" CGE control.
   }
   Result := Vector2(Width / 2, Height / 2);
 end;
 
-procedure TUIContainer.SetMousePosition(const Value: TVector2);
+procedure TCastleContainer.SetMousePosition(const Value: TVector2);
 begin
   { Default implementation, ignores new mouse position. }
 end;
 
-function TUIContainer.GetTouches(const Index: Integer): TTouch;
+function TCastleContainer.GetTouches(const Index: Integer): TTouch;
 begin
-  Assert(Index = 0, 'Base TUIContainer implementation does not support multi-touch, so you can only access Touches[0]');
+  Assert(Index = 0, 'Base TCastleContainer implementation does not support multi-touch, so you can only access Touches[0]');
   Result.FingerIndex := 0;
   Result.Position := MousePosition;
 end;
 
-function TUIContainer.TouchesCount: Integer;
+function TCastleContainer.TouchesCount: Integer;
 begin
   Result := 1;
 end;
 
-function TUIContainer.GLInitialized: boolean;
+function TCastleContainer.GLInitialized: boolean;
 begin
   { Default implementation, assuming the OpenGL context is always initialized. }
   Result := true;
 end;
 
-procedure TUIContainer.LoadSettings(const SettingsUrl: String);
+procedure TCastleContainer.LoadSettings(const SettingsUrl: String);
 begin
   if not ApplicationProperties.IsGLContextOpen then
     raise Exception.Create('Rendering context not open when calling TUIContainer.LoadSettings. Call LoadSettings later, e.g. in Application.OnInitialize, TCastleWindowBase.OnOpen, TCastleControlBase.OnOpen');
   SettingsLoad(Self, SettingsUrl);
-end;
-
-{ TInputListener ------------------------------------------------------------- }
-
-constructor TInputListener.Create(AOwner: TComponent);
-begin
-  inherited;
-  FExclusiveEvents := true;
-  FCursor := mcDefault;
-  FVisible := true;
-end;
-
-function TInputListener.Press(const Event: TInputPressRelease): boolean;
-begin
-  Result := false;
-  if Assigned(OnPress) then
-    OnPress(Self, Event, Result);
-end;
-
-function TInputListener.Release(const Event: TInputPressRelease): boolean;
-begin
-  Result := false;
-  if Assigned(OnRelease) then
-    OnRelease(Self, Event, Result);
-end;
-
-function TInputListener.PreviewPress(const Event: TInputPressRelease): boolean;
-begin
-  Result := false;
-end;
-
-function TInputListener.PreviewRelease(const Event: TInputPressRelease): boolean;
-begin
-  Result := false;
-end;
-
-function TInputListener.Motion(const Event: TInputMotion): boolean;
-begin
-  Result := false;
-  if Assigned(OnMotion) then
-    OnMotion(Self, Event, Result);
-end;
-
-function TInputListener.SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean;
-begin
-  Result := false;
-end;
-
-function TInputListener.SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean;
-begin
-  Result := false;
-end;
-
-function TInputListener.JoyAxisMove(const JoyID, Axis: Byte): boolean;
-begin
-  Result := False;
-end;
-
-function TInputListener.JoyButtonPress(const JoyID, Button: Byte): boolean;
-begin
-  Result := False;
-end;
-
-procedure TInputListener.Update(const SecondsPassed: Single;
-  var HandleInput: boolean);
-begin
-  if Assigned(OnUpdate) then
-    OnUpdate(Self, SecondsPassed, HandleInput);
-end;
-
-procedure TInputListener.VisibleChange(const RectOrCursorChanged: boolean = false);
-begin
-end;
-
-procedure TInputListener.VisibleChange(const Changes: TCastleUserInterfaceChanges;
-  const ChangeInitiatedByChildren: boolean);
-begin
-  Assert(Changes <> [], 'Never call VisibleChange with an empty set');
-
-  { Debug:
-  Writeln(ClassName, '.VisibleChange: [',
-    Iff(chRender    in Changes, 'chRender, '   , ''),
-    Iff(chRectangle in Changes, 'chRectangle, ', ''),
-    Iff(chCursor    in Changes, 'chCursor, '   , ''),
-    Iff(chCamera    in Changes, 'chCamera, '   , ''),
-    Iff(chExists    in Changes, 'chExists, '   , ''),
-    Iff(chChildren  in Changes, 'chChildren, ' , ''),
-    ']'
-  ); }
-
-  if not ChangeInitiatedByChildren then
-  begin
-    {$warnings off}
-    VisibleChange([chRectangle, chCursor] * Changes <> []);
-    {$warnings on}
-  end;
-
-  if Container <> nil then
-    Container.ControlsVisibleChange(Self, Changes, ChangeInitiatedByChildren);
-  if Assigned(OnVisibleChange) then
-    OnVisibleChange(Self, Changes, ChangeInitiatedByChildren);
-end;
-
-function TInputListener.AllowSuspendForInput: boolean;
-begin
-  Result := true;
-end;
-
-procedure TInputListener.Resize;
-begin
-  {$warnings off}
-  ContainerResize(ContainerWidth, ContainerHeight); // call deprecated, to keep it working
-  {$warnings on}
-end;
-
-procedure TInputListener.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
-begin
-end;
-
-function TInputListener.ContainerWidth: Cardinal;
-begin
-  if ContainerSizeKnown then
-    Result := Container.Width else
-    Result := 0;
-end;
-
-function TInputListener.ContainerHeight: Cardinal;
-begin
-  if ContainerSizeKnown then
-    Result := Container.Height else
-    Result := 0;
-end;
-
-function TInputListener.ContainerRect: TRectangle;
-begin
-  if ContainerSizeKnown then
-    Result := Container.Rect
-  else
-    Result := TRectangle.Empty;
-end;
-
-function TInputListener.ContainerSizeKnown: boolean;
-begin
-  { Note that ContainerSizeKnown is calculated looking at current Container,
-    without waiting for Resize. This way it works even before
-    we receive Resize method, which may happen to be useful:
-    if you insert some TCastleUserInterface to a window before it's open,
-    and then you do something inside OnOpen that wants to render
-    this viewport (which may happen if you simply initialize a progress bar
-    without any predefined loading_image). TCastleUserInterface did not receive
-    a Resize in this case yet (it will receive it from OnResize,
-    which happens after OnOpen).
-
-    See castle_game_engine/tests/testcontainer.pas for cases
-    when this is really needed. }
-
-  Result := (Container <> nil) and
-    (not (csDestroying in Container.ComponentState)) and
-    Container.GLInitialized;
-end;
-
-procedure TInputListener.SetCursor(const Value: TMouseCursor);
-begin
-  if Value <> FCursor then
-  begin
-    FCursor := Value;
-    VisibleChange([chCursor]);
-    {$warnings off} // keep deprecated method working
-    DoCursorChange;
-    {$warnings on}
-  end;
-end;
-
-procedure TInputListener.DoCursorChange;
-begin
-  {$warnings off} // keep deprecated event working
-  if Assigned(OnCursorChange) then OnCursorChange(Self);
-  {$warnings on}
-end;
-
-procedure TInputListener.SetContainer(const Value: TUIContainer);
-begin
-  FContainer := Value;
 end;
 
 { TCastleUserInterface.TEnumerator ------------------------------------------------- }
@@ -4083,6 +3970,9 @@ end;
 constructor TCastleUserInterface.Create(AOwner: TComponent);
 begin
   inherited;
+  FExclusiveEvents := true;
+  FCursor := mcDefault;
+  FVisible := true;
   FExists := true;
   FEnableUIScaling := true;
   FCapturesEvents := true;
@@ -4094,6 +3984,167 @@ begin
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleuserinterface_persistent_vectors.inc}
   {$undef read_implementation_constructor}
+end;
+
+function TCastleUserInterface.Press(const Event: TInputPressRelease): boolean;
+begin
+  Result := false;
+  if Assigned(OnPress) then
+    OnPress(Self, Event, Result);
+end;
+
+function TCastleUserInterface.Release(const Event: TInputPressRelease): boolean;
+begin
+  Result := false;
+  if Assigned(OnRelease) then
+    OnRelease(Self, Event, Result);
+end;
+
+function TCastleUserInterface.PreviewPress(const Event: TInputPressRelease): boolean;
+begin
+  Result := false;
+end;
+
+function TCastleUserInterface.PreviewRelease(const Event: TInputPressRelease): boolean;
+begin
+  Result := false;
+end;
+
+function TCastleUserInterface.Motion(const Event: TInputMotion): boolean;
+begin
+  Result := false;
+  if Assigned(OnMotion) then
+    OnMotion(Self, Event, Result);
+end;
+
+function TCastleUserInterface.SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean;
+begin
+  Result := false;
+end;
+
+function TCastleUserInterface.SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean;
+begin
+  Result := false;
+end;
+
+function TCastleUserInterface.JoyAxisMove(const JoyID, Axis: Byte): boolean;
+begin
+  Result := False;
+end;
+
+function TCastleUserInterface.JoyButtonPress(const JoyID, Button: Byte): boolean;
+begin
+  Result := False;
+end;
+
+procedure TCastleUserInterface.Update(const SecondsPassed: Single;
+  var HandleInput: boolean);
+begin
+  if Assigned(OnUpdate) then
+    OnUpdate(Self, SecondsPassed, HandleInput);
+end;
+
+procedure TCastleUserInterface.VisibleChange(const Changes: TCastleUserInterfaceChanges;
+  const ChangeInitiatedByChildren: boolean);
+begin
+  Assert(Changes <> [], 'Never call VisibleChange with an empty set');
+
+  { Debug:
+  Writeln(ClassName, '.VisibleChange: [',
+    Iff(chRender    in Changes, 'chRender, '   , ''),
+    Iff(chRectangle in Changes, 'chRectangle, ', ''),
+    Iff(chCursor    in Changes, 'chCursor, '   , ''),
+    Iff(chCamera    in Changes, 'chCamera, '   , ''),
+    Iff(chExists    in Changes, 'chExists, '   , ''),
+    Iff(chChildren  in Changes, 'chChildren, ' , ''),
+    ']'
+  ); }
+
+  if Container <> nil then
+    Container.ControlsVisibleChange(Self, Changes, ChangeInitiatedByChildren);
+  if Assigned(OnVisibleChange) then
+    OnVisibleChange(Self, Changes, ChangeInitiatedByChildren);
+  if Parent <> nil then
+    Parent.VisibleChange(Changes, true);
+  if [chRectangle, chChildren] * Changes <> [] then
+    FSizeFromChildrenValid := false;
+end;
+
+function TCastleUserInterface.AllowSuspendForInput: boolean;
+begin
+  Result := true;
+end;
+
+procedure TCastleUserInterface.Resize;
+begin
+  {$warnings off}
+  ContainerResize(ContainerWidth, ContainerHeight); // call deprecated, to keep it working
+  {$warnings on}
+end;
+
+procedure TCastleUserInterface.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
+begin
+end;
+
+function TCastleUserInterface.ContainerWidth: Cardinal;
+begin
+  if ContainerSizeKnown then
+    Result := Container.Width else
+    Result := 0;
+end;
+
+function TCastleUserInterface.ContainerHeight: Cardinal;
+begin
+  if ContainerSizeKnown then
+    Result := Container.Height else
+    Result := 0;
+end;
+
+function TCastleUserInterface.ContainerRect: TRectangle;
+begin
+  if ContainerSizeKnown then
+    Result := Container.Rect
+  else
+    Result := TRectangle.Empty;
+end;
+
+function TCastleUserInterface.ContainerSizeKnown: boolean;
+begin
+  { Note that ContainerSizeKnown is calculated looking at current Container,
+    without waiting for Resize. This way it works even before
+    we receive Resize method, which may happen to be useful:
+    if you insert some TCastleUserInterface to a window before it's open,
+    and then you do something inside OnOpen that wants to render
+    this viewport (which may happen if you simply initialize a progress bar
+    without any predefined loading_image). TCastleUserInterface did not receive
+    a Resize in this case yet (it will receive it from OnResize,
+    which happens after OnOpen).
+
+    See castle_game_engine/tests/testcontainer.pas for cases
+    when this is really needed. }
+
+  Result := (Container <> nil) and
+    (not (csDestroying in Container.ComponentState)) and
+    Container.GLInitialized;
+end;
+
+procedure TCastleUserInterface.SetCursor(const Value: TMouseCursor);
+begin
+  if Value <> FCursor then
+  begin
+    FCursor := Value;
+    VisibleChange([chCursor]);
+    {$warnings off} // keep deprecated method working
+    DoCursorChange;
+    {$warnings on}
+  end;
+end;
+
+procedure TCastleUserInterface.DoCursorChange;
+begin
+  {$warnings off} // keep deprecated event working
+  if Assigned(OnCursorChange) then OnCursorChange(Self);
+  {$warnings on}
 end;
 
 destructor TCastleUserInterface.Destroy;
@@ -4236,16 +4287,16 @@ begin
     Result := 0;
 end;
 
-procedure TCastleUserInterface.SetContainer(const Value: TUIContainer);
+procedure TCastleUserInterface.InternalSetContainer(const Value: TCastleContainer);
 var
   I: Integer;
 begin
-  inherited;
+  FContainer := Value;
   if FControls <> nil then
   begin
     TChildrenControls(FControls).Container := Value;
     for I := 0 to FControls.Count - 1 do
-      FControls[I].SetContainer(Value);
+      FControls[I].InternalSetContainer(Value);
   end;
 end;
 
@@ -4295,12 +4346,17 @@ begin
   Result := false;
 end;
 
+function TCastleUserInterface.UIScale: Single;
+begin
+  Result := FLastSeenUIScale;
+end;
+
 procedure TCastleUserInterface.CheckUIScaleChanged;
 var
   NewUIScale: Single;
 begin
   if (Container <> nil) and EnableUIScaling then
-    NewUIScale := Container.FCalculatedUIScale
+    NewUIScale := Container.UIScale
   else
     NewUIScale := 1;
   if FLastSeenUIScale <> NewUIScale then
@@ -4371,7 +4427,7 @@ procedure TCastleUserInterface.RecursiveRender(const ViewportRect: TRectangle);
     if FBorderColor[3] = 0 then Exit; // early exit in a common case
     { RenderControlPrepare necessary, since TCastleViewport could have
       changed RenderContext.Viewport. }
-    TUIContainer.RenderControlPrepare(ViewportRect);
+    TCastleContainer.RenderControlPrepare(ViewportRect);
 
     DrawBorderRectangle(RectBorder.TopPart(Border.TotalTop * UIScale));
     DrawBorderRectangle(RectBorder.BottomPart(Border.TotalBottom * UIScale));
@@ -4454,19 +4510,19 @@ begin
 
       { We check GLInitialized, because it may happen that a control
         did not receive GLContextOpen yet, in case we cause some rendering
-        during TUIContainer.EventOpen (e.g. because some TCastleUserInterface.GLContextOpen
+        during TCastleContainer.EventOpen (e.g. because some TCastleUserInterface.GLContextOpen
         calls Window.Screenshot, so everything is rendered
         before even the rest of controls received TCastleUserInterface.GLContextOpen).
         See castle_game_engine/tests/testcontainer.pas . }
 
       if GLInitialized then
       begin
-        TUIContainer.RenderControlPrepare(ViewportRect);
+        TCastleContainer.RenderControlPrepare(ViewportRect);
         Render;
 
         if Assigned(OnRender) then
         begin
-          TUIContainer.RenderControlPrepare(ViewportRect);
+          TCastleContainer.RenderControlPrepare(ViewportRect);
           OnRender(Self);
         end;
       end;
@@ -4476,7 +4532,7 @@ begin
 
       if GLInitialized then
       begin
-        TUIContainer.RenderControlPrepare(ViewportRect);
+        TCastleContainer.RenderControlPrepare(ViewportRect);
         RenderOverChildren;
       end;
 
@@ -4529,16 +4585,6 @@ begin
   else
   if OldValue and (not Value) then
     DoInternalMouseLeave;
-end;
-
-procedure TCastleUserInterface.VisibleChange(const Changes: TCastleUserInterfaceChanges;
-  const ChangeInitiatedByChildren: boolean);
-begin
-  inherited;
-  if Parent <> nil then
-    Parent.VisibleChange(Changes, true);
-  if [chRectangle, chChildren] * Changes <> [] then
-    FSizeFromChildrenValid := false;
 end;
 
 procedure TCastleUserInterface.SetExists(const Value: boolean);
@@ -4708,9 +4754,11 @@ procedure TCastleUserInterface.AlignHorizontal(
   const ContainerPosition: TPositionRelative;
   const X: Single);
 begin
+  {$warnings off} // using deprecated in deprecated
   Align(
     THorizontalPosition(ControlPosition),
     THorizontalPosition(ContainerPosition), X);
+  {$warnings on}
 end;
 
 procedure TCastleUserInterface.AlignVertical(
@@ -4718,15 +4766,19 @@ procedure TCastleUserInterface.AlignVertical(
   const ContainerPosition: TPositionRelative;
   const Y: Single);
 begin
+  {$warnings off} // using deprecated in deprecated
   Align(
     TVerticalPosition(ControlPosition),
     TVerticalPosition(ContainerPosition), Y);
+  {$warnings on}
 end;
 
 procedure TCastleUserInterface.Center;
 begin
+  {$warnings off} // using deprecated in deprecated
   Align(hpMiddle, hpMiddle);
   Align(vpMiddle, vpMiddle);
+  {$warnings on}
 end;
 
 function TCastleUserInterface.Rect: TFloatRectangle;
@@ -4954,10 +5006,13 @@ var
   T: TVector2;
 begin
   Result := RectWithAnchors;
-  { transform local to screen space }
-  T := LocalToScreenTranslation;
-  Result.Left := Result.Left + T[0];
-  Result.Bottom := Result.Bottom + T[1];
+  { transform local to container }
+  if Parent <> nil then
+  begin
+    T := Parent.LocalToContainerTranslation;
+    Result.Left := Result.Left + T[0];
+    Result.Bottom := Result.Bottom + T[1];
+  end;
 end;
 
 function TCastleUserInterface.RenderRect: TFloatRectangle;
@@ -4976,18 +5031,50 @@ begin
   Result := RenderRect.Round;
 end;
 
-function TCastleUserInterface.LocalToScreenTranslation: TVector2;
+function TCastleUserInterface.LocalToContainerTranslation: TVector2;
 var
   RA: TFloatRectangle;
 begin
   if Parent <> nil then
-  begin
-    Result := Parent.LocalToScreenTranslation;
-    RA := Parent.RectWithAnchors;
-    Result.Data[0] := Result.Data[0] + RA.Left;
-    Result.Data[1] := Result.Data[1] + RA.Bottom;
-  end else
+    Result := Parent.LocalToContainerTranslation
+  else
     Result := TVector2.Zero;
+
+  RA := RectWithAnchors;
+  Result.Data[0] := Result.Data[0] + RA.Left;
+  Result.Data[1] := Result.Data[1] + RA.Bottom;
+end;
+
+function TCastleUserInterface.LocalToContainerTranslationShiftBorder: TVector2;
+begin
+  Result := LocalToContainerTranslation;
+  if FBorder.Exists then // optimize common case
+  begin
+    Result.Data[0] += FBorder.TotalLeft   * UIScale;
+    Result.Data[1] += FBorder.TotalBottom * UIScale;
+  end;
+end;
+
+function TCastleUserInterface.ContainerToLocalPosition(ContainerPosition: TVector2;
+  const ContainerPositionScaled: Boolean): TVector2;
+begin
+  { LocalToContainerTranslationShiftBorder is always in scaled coordinates.
+    So to implement ContainerPositionScaled = false, we need to multiply by UIScale,
+    only to later divide by it...
+    This should be cleaned up. But then, more routines like RectWithAnchors,
+    ParentRect will require an alternative "unscaled" variant,
+    or we should just use "unscaled" coordinates more throughout the internal code. }
+  if not ContainerPositionScaled then
+    ContainerPosition := ContainerPosition * UIScale;
+  Result := (ContainerPosition - LocalToContainerTranslationShiftBorder) / UIScale;
+end;
+
+function TCastleUserInterface.LocalToContainerPosition(const LocalPosition: TVector2;
+  const ContainerPositionScaled: Boolean): TVector2;
+begin
+  Result := LocalPosition * UIScale + LocalToContainerTranslationShiftBorder;
+  if not ContainerPositionScaled then
+    Result := Result / UIScale;
 end;
 
 function TCastleUserInterface.ParentRect: TFloatRectangle;
@@ -5407,7 +5494,7 @@ begin
   case Action of
     lnAdded:
       begin
-        if ((C.FContainer <> nil) or (C.FParent <> nil)) and
+        if ((C.Container <> nil) or (C.Parent <> nil)) and
            ((Container <> nil) or (FParent <> nil)) then
           WritelnWarning('UI', 'Inserting to the UI list (InsertFront, InsertBack) an item that is already a part of other UI list: ' + C.DebugName + '. The result is undefined, you cannot insert the same TCastleUserInterface instance multiple times.');
         C.FreeNotification(FCaptureFreeNotifications);
@@ -5426,7 +5513,7 @@ begin
   end;
 
   { This notification may get called during FreeAndNil(FControls)
-    in TUIContainer.Destroy. Then FControls is already nil, and we're
+    in TCastleContainer.Destroy. Then FControls is already nil, and we're
     getting remove notification for all items (as FreeAndNil first sets
     object to nil). Testcase: lets_take_a_walk exit. }
   if (FContainer <> nil) and
@@ -5478,12 +5565,12 @@ begin
 end;
 
 procedure TChildrenControls.RegisterContainer(
-  const C: TCastleUserInterface; const AContainer: TUIContainer);
+  const C: TCastleUserInterface; const AContainer: TCastleContainer);
 begin
   { Register AContainer to be notified of control destruction. }
   C.FreeNotification(AContainer);
 
-  C.Container := AContainer;
+  C.InternalSetContainer(AContainer);
   C.CheckUIScaleChanged;
 
   { Make sure Resize is called at the nearest opportunity.
@@ -5506,7 +5593,7 @@ begin
 end;
 
 procedure TChildrenControls.UnregisterContainer(
-  const C: TCastleUserInterface; const AContainer: TUIContainer);
+  const C: TCastleUserInterface; const AContainer: TCastleContainer);
 begin
   if AContainer.GLInitialized and
      (C.DisableContextOpenClose = 0) then
@@ -5515,10 +5602,10 @@ begin
   C.RemoveFreeNotification(AContainer);
   AContainer.DetachNotification(C);
 
-  C.Container := nil;
+  C.InternalSetContainer(nil);
 end;
 
-procedure TChildrenControls.SetContainer(const AContainer: TUIContainer);
+procedure TChildrenControls.SetContainer(const AContainer: TCastleContainer);
 var
   I: Integer;
 begin
@@ -5620,7 +5707,7 @@ begin
   Result := ApplicationProperties.IsGLContextOpen;
 end;
 
-function RenderControlToImage(const Container: TUIContainer;
+function RenderControlToImage(const Container: TCastleContainer;
   const Control: TCastleUserInterface;
   const ViewportRect: TRectangle;
   const BackgroundColor: TCastleColor): TRGBAlphaImage;
@@ -5672,7 +5759,7 @@ begin
   finally FreeAndNil(RenderToTexture) end;
 end;
 
-function GetMainContainer: TUIContainer;
+function GetMainContainer: TCastleContainer;
 begin
   if Assigned(OnMainContainer) then
     Result := OnMainContainer()

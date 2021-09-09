@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -54,14 +54,14 @@ type
     Use event @link(OnUpdate) to do something continuously.
 
     By default, the control is filled with simple color from
-    @link(TUIContainer.BackgroundColor Container.BackgroundColor).
+    @link(TCastleContainer.BackgroundColor Container.BackgroundColor).
   }
   TCastleControlBase = class(TCustomOpenGLControl)
   strict private
     type
-      { Non-abstract implementation of TUIContainer that cooperates with
+      { Non-abstract implementation of TCastleContainer that cooperates with
         TCastleControlBase. }
-      TContainer = class(TUIContainer)
+      TContainer = class(TCastleContainer)
       private
         Parent: TCastleControlBase;
       protected
@@ -192,7 +192,7 @@ type
       a small delay). So we use MaxDesiredFPS to cap it. }
     procedure AggressiveUpdate;
   private
-    class function GetMainContainer: TUIContainer;
+    class function GetMainContainer: TCastleContainer;
   protected
     procedure DestroyHandle; override;
     procedure DoExit; override;
@@ -223,7 +223,7 @@ type
       You can add your TCastleUserInterface instances
       (like TCastleViewport, TCastleButton and much more) to this list.
       We will pass events to these controls, draw them etc.
-      See @link(TUIContainer.Controls) for details. }
+      See @link(TCastleContainer.Controls) for details. }
     function Controls: TChildrenControls;
 
     function MakeCurrent(SaveOldToStack: boolean = false): boolean; override;
@@ -233,7 +233,7 @@ type
     { Keys currently pressed. }
     function Pressed: TKeysPressed;
     { Mouse buttons currently pressed.
-      See @link(TUIContainer.MousePressed) for details. }
+      See @link(TCastleContainer.MousePressed) for details. }
     function MousePressed: TCastleMouseButtons;
     procedure ReleaseAllKeysAndMouse;
 
@@ -451,7 +451,7 @@ type
       @unorderedList(
         @item(Register an event on @link(OnUpdate) of this component,)
         @item(Add custom @link(TCastleUserInterface) instance to the @link(Controls) list
-          with overridden @link(TInputListener.Update) method,)
+          with overridden @link(TCastleUserInterface.Update) method,)
         @item(Register an event on @link(TCastleApplicationProperties.OnUpdate
           ApplicationProperties.OnUpdate) from the @link(CastleApplicationProperties)
           unit.)
@@ -1027,9 +1027,12 @@ begin
     // KeyString already pressed
     ((NewEvent.KeyString = '') or Pressed.Strings[NewEvent.KeyString]);
 
+  { Note that Event has invalid position (TLCLKeyPressHandler always sends
+    zero). So all the following code has to use NewEvent instead. }
+
   Pressed.KeyDown(NewEvent.Key, NewEvent.KeyString);
 
-  Container.EventPress(Event);
+  Container.EventPress(NewEvent);
 
   { The result of "Container.EventPress" (whether the key was handled)
     is for now not used anywhere.
@@ -1277,7 +1280,7 @@ begin
   Result := Container.Controls;
 end;
 
-class function TCastleControlBase.GetMainContainer: TUIContainer;
+class function TCastleControlBase.GetMainContainer: TCastleContainer;
 begin
   if MainControl <> nil then
     Result := MainControl.Container

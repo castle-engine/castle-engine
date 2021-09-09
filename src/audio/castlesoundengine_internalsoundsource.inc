@@ -165,7 +165,7 @@
       like in a loop, but without using the @link(Loop) property.
       The idea is that you leave @link(Loop) set to @false,
       and you keep calling this method from some "update" event
-      (like some @link(TInputListener.Update) implementation).
+      (like some @link(TCastleUserInterface.Update) implementation).
       Once you stop calling this method, the sound will automatically stop
       (once it finishes the current cycle).
 

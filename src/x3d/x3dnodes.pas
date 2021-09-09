@@ -419,6 +419,7 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator2d.inc}
 {$I auto_generated_node_helpers/x3dnodes_cubicbezier2dorientationinterpolator.inc}
 {$I auto_generated_node_helpers/x3dnodes_cubicbezierpositioninterpolator.inc}
+{$I auto_generated_node_helpers/x3dnodes_cubicbeziercoordinateinterpolator.inc}
 {$I auto_generated_node_helpers/x3dnodes_cylinder.inc}
 {$I auto_generated_node_helpers/x3dnodes_cylindersensor.inc}
 {$I auto_generated_node_helpers/x3dnodes_directionallight.inc}

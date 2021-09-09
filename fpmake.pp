@@ -7,6 +7,11 @@
 
 program fpmake;
 
+// FPC defines iOS as a separate OS since FPC 3.2.2.
+{$define HAS_SEPARATE_IOS}
+{$ifdef VER3_0} {$undef HAS_SEPARATE_IOS} {$endif}
+{$ifdef VER3_2_0} {$undef HAS_SEPARATE_IOS} {$endif}
+
 uses
   { It seems that FPC > 3.0.x requires thread support for FpMkUnit. }
   {$ifdef UNIX} {$ifndef VER3_0} CThreads, {$endif} {$endif}
@@ -14,7 +19,7 @@ uses
 
 var
   P: TPackage;
-  IOS: boolean; //< compiling for iOS target
+  LikeIOS: boolean; //< compiling for iOS target (physical or simulator)
   Xlib: boolean; //< OS has working Xlib packages
 begin
   with Installer do
@@ -23,13 +28,20 @@ begin
 
     { Should work on AllUnixOSes, actually.
       But let's limit the list only to the OSes actually tested. }
-    P.OSes := [Darwin, Linux, Freebsd, Win32, Win64, IPhoneSim, Android];
+    P.OSes := [Darwin, Linux, Freebsd, Win32, Win64, IPhoneSim, Android
+      {$ifdef HAS_SEPARATE_IOS} , iOS {$endif}
+    ];
 
     P.Options.Text := '@castle-fpc.cfg';
 
     { Some variables derived from Defaults.OS/CPU. }
-    IOS := (Defaults.OS = IPhoneSim) or
-      ((Defaults.OS = Darwin) and (Defaults.CPU = Arm));
+    LikeIOS := (Defaults.OS = IPhoneSim) or
+      {$ifdef HAS_SEPARATE_IOS}
+      (Defaults.OS = iOS)
+      {$else}
+      // FPC 3.0.2 and 3.0.4 do not define AArch64
+      ((Defaults.OS = Darwin) and (Defaults.CPU in [Arm {$ifndef VER3_0} , AArch64 {$endif}]))
+      {$endif};
     Xlib := Defaults.OS in (AllUnixOSes - [Android]);
 
     { Add dependencies on FPC packages.
@@ -37,7 +49,7 @@ begin
       point to them anyway. They are needed only when compiling with --nofpccfg.
       Anyway, maybe this is a good place to document my dependencies
       on FPC packages --- so let's do this. }
-    if (Defaults.OS <> Android) and (not IOS) then
+    if (Defaults.OS <> Android) and (not LikeIOS) then
       P.Dependencies.Add('opengl');
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-image');
@@ -192,7 +204,7 @@ begin
     P.Targets.AddUnit('castlevectorsinternaldouble.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'base' + PathDelim + 'opengl');
-    P.Targets.AddUnit('castlegles20.pas');
+    P.Targets.AddUnit('castlegles.pas');
     P.Targets.AddUnit('castleglversion.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'services');
@@ -204,6 +216,7 @@ begin
     P.Targets.AddUnit('castleinapppurchases.pas');
     P.Targets.AddUnit('castlephotoservice.pas');
     P.Targets.AddUnit('castleopendocument.pas');
+    P.Targets.AddUnit('castletenjin.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'services' + PathDelim + 'opengl');
     P.Targets.AddUnit('castlegiftiz.pas');
@@ -304,6 +317,7 @@ begin
 
     P.SourcePath.Add('src' + PathDelim + 'ui');
     P.Targets.AddUnit('castleinputs.pas');
+    P.Targets.AddUnit('castleinternalcameragestures.pas');
     P.Targets.AddUnit('castlekeysmouse.pas');
     P.Targets.AddUnit('castleinternalpk3dconnexion.pas');
     P.Targets.AddUnit('castlejoysticks.pas');

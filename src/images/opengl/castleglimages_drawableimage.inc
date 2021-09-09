@@ -27,16 +27,24 @@ type
     @link(TCastleControlBase.OnRender).
 
     See the manual about drawing using TDrawableImage:
-    https://castle-engine.io/manual_quick_2d_game.php ,
     https://castle-engine.io/manual_2d_ui_custom_drawn.php .
     See the description how to render 2D stuff using Castle Game Engine:
     https://github.com/castle-engine/castle-engine/wiki/2D-Games .
 
-    An alternative way to show a 2D image is to use the full-featured
-    2D control @link(TCastleImageControl). This will perform the drawing
-    by itself, you only add it to
-    @link(TCastleWindowBase.Controls) or
-    @link(TCastleControlBase.Controls). }
+    We have a few (probably too many) ways to show a 2D image.
+    Alternatives to TDrawableImage are:
+
+    @unorderedList(
+      @item(TCastleImagePersistent: Wraps TEncodedImage and TDrawableImage in a class
+        that has comfortable published properties (so it can be edited in CGE editor,
+        can be saved to CGE design files). Also adds caching.)
+
+      @item(TCastleImageControl: UI control to draw an image, using TCastleImagePersistent.
+        This will perform the drawing by itself.)
+
+      @item(TCastleScene: You can also load an image to TCastleScene.Load to create
+        a rectangle displaying this texture, which can be rendered in 2D and 3D.)
+    ) }
   TDrawableImage = class(TNoParameterlessContructor)
   strict private
     type
@@ -403,7 +411,7 @@ type
 
     { In case of @link(Draw3x3) the corners
       on screen are scaled by this amount. This is especially useful
-      for UI scaling, see @link(TUIContainer.UIScaling)
+      for UI scaling, see @link(TCastleContainer.UIScaling)
       and @link(TCastleUserInterface.UIScale). }
     property ScaleCorners: Single
       read FScaleCorners write FScaleCorners default 1;
@@ -616,7 +624,7 @@ type
       @unorderedList(
         @item(TDrawableImage.Draw (to draw @italic(other) TDrawableImage instances on this one),)
         @item(DrawRectangle, DrawCircle, DrawPrimitive2D and friends in CastleGLUtils,)
-        @item(@link(TUIContainer.RenderControl Window.Container.RenderControl)
+        @item(@link(TCastleContainer.RenderControl Window.Container.RenderControl)
           to render any TCastleUserInterface to this image.)
       )
 
@@ -686,9 +694,6 @@ constructor TDrawableImage.Create(const AImage: TEncodedImage;
   const ASmoothScaling, AOwnsImage: boolean);
 begin
   inherited Create;
-
-  // TODO: use texture cache here, like GL renderer does for textures for 3D.
-  // no need to create new OpenGL texture for the same image.
 
   FColor := White;
   FScaleCorners := 1;

@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,10 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ Load Wavefront OBJ 3D format.
+{ Load Wavefront OBJ 3D format (with an accompanying MTL).
   See [http://www.fileformat.info/format/wavefrontobj/]
-  and [http://www.fileformat.info/format/material/].
-  Texture URL is also read from material file. }
+  and [http://www.fileformat.info/format/material/]. }
 unit X3DLoadInternalOBJ;
 
 {$I castleconf.inc}
@@ -25,6 +24,9 @@ interface
 
 uses SysUtils, Classes,
   X3DNodes;
+
+var
+  WavefrontPhongMaterials: Boolean = true;
 
 function LoadWavefrontOBJ(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 
@@ -35,6 +37,154 @@ uses Generics.Collections,
   CastleClassUtils, X3DLoadInternalUtils, CastleURIUtils,
   CastleDownload;
 
+{ TWavefrontTexture ---------------------------------------------------------- }
+
+type
+  TWavefrontTexture = record
+    URL: String;
+    BlendU, BlendV, Clamp: Boolean;
+    ColorCorrection: Boolean; // not for NormalTexture
+    Offset, Scale, Turbulence: TVector3;
+    BumpMultiplier: Single; // only for NormalTexture
+    procedure Init;
+    procedure ReadFromLine(const S: String);
+    function CreateNode(const BaseUrl: String): TImageTextureNode;
+    function CreateTextureTransformNode: TTextureTransform3DNode;
+  end;
+
+procedure TWavefrontTexture.Init;
+begin
+  URL := '';
+  BlendU := true;
+  BlendV := true;
+  Clamp := false;
+  ColorCorrection := true;
+  Offset := TVector3.Zero;
+  Scale := Vector3(1, 1, 1);
+  Turbulence := TVector3.Zero;
+  BumpMultiplier := 1;
+end;
+
+procedure TWavefrontTexture.ReadFromLine(const S: String);
+var
+  SeekPos: Integer;
+
+  procedure ReadBoolean(var Value: Boolean);
+  var
+    Token: String;
+  begin
+    Token := NextToken(S, SeekPos);
+    if SameText(Token, 'on') then
+      Value := true
+    else
+    if SameText(Token, 'off') then
+      Value := false
+    else
+      WritelnWarning('Expected "on" of "off", got "%s"', [Token]);
+  end;
+
+  procedure ReadSingle(var Value: Single);
+  var
+    Token: String;
+  begin
+    Token := NextToken(S, SeekPos);
+    Value := StrToFloatDefDot(Token, Value);
+  end;
+
+  procedure ReadVector3(var Value: TVector3);
+  var
+    NewSeekPos, I: Integer;
+    Token: String;
+  begin
+    for I := 0 to 2 do
+    begin
+      NewSeekPos := SeekPos;
+      Token := NextToken(S, NewSeekPos);
+      try
+        Value.Data[I] := StrToFloatDefDot(Token, Value.Data[I]);
+        // update SeekPos if this is a successfull float, as Y and Z vector values are optional in MTL
+        SeekPos := NewSeekPos;
+      except
+        on EConvertError do
+          Exit; // Y and Z vector values are optional in MTL, so just exit if missing
+      end;
+    end;
+  end;
+
+var
+  Token: String;
+begin
+  Init;
+
+  SeekPos := 1;
+  repeat
+    Token := NextToken(S, SeekPos);
+    if Token = '' then break;
+
+    { See https://en.wikipedia.org/wiki/Wavefront_.obj_file#Texture_options
+      and http://paulbourke.net/dataformats/mtl/
+      for texture options spec. }
+    case Token of
+      '-blendu': ReadBoolean(BlendU);
+      '-blendv': ReadBoolean(BlendV);
+      '-clamp': ReadBoolean(Clamp);
+      '-cc': ReadBoolean(ColorCorrection);
+      '-boost', '-texres', '-imfchan':
+        begin
+          // skip 1 next token
+          NextToken(S, SeekPos);
+        end;
+      '-mm':
+        begin
+          // skip 2 next tokens
+          NextToken(S, SeekPos);
+          NextToken(S, SeekPos);
+        end;
+      '-o': ReadVector3(Offset);
+      '-s': ReadVector3(Scale);
+      '-t': ReadVector3(Turbulence);
+      '-bm': ReadSingle(BumpMultiplier);
+      else
+        begin
+          if URL <> '' then
+            WritelnWarning('Texture line contains more than one URL (submit a CGE bug): "%s", "%s"', [
+              URL,
+              Token
+            ]);
+          URL := Token;
+        end;
+    end;
+  until false;
+end;
+
+function TWavefrontTexture.CreateNode(const BaseUrl: String): TImageTextureNode;
+begin
+  if URL <> '' then
+  begin
+    Result := TImageTextureNode.Create('', BaseUrl);
+    Result.SetUrl([SearchTextureFile(BaseUrl, URL)]);
+    Result.RepeatS := not Clamp;
+    Result.RepeatT := not Clamp;
+  end else
+    Result := nil;
+end;
+
+function TWavefrontTexture.CreateTextureTransformNode: TTextureTransform3DNode;
+begin
+  if (URL <> '') and
+     ( (not TVector3.PerfectlyEquals(Scale, Vector3(1, 1, 1))) or
+       (not TVector3.PerfectlyEquals(Offset, Vector3(0, 0, 0)))
+     ) then
+  begin
+    Result := TTextureTransform3DNode.Create;
+    Result.Scale := Scale;
+    Result.Translation := Offset;
+  end else
+    Result := nil;
+end;
+
+{ ---------------------------------------------------------------------------- }
+
 type
   TWavefrontMaterial = class
     Name: string;
@@ -43,8 +193,9 @@ type
     Opacity: Single;
     SpecularExponent: Single;
     Sharpness, IndexOfRefraction: Single;
-    DiffuseTextureURL: string;
-    BumpTextureURL: string;
+    DiffuseTexture: TWavefrontTexture;
+    NormalTexture: TWavefrontTexture;
+    RoughnessTexture: TWavefrontTexture;
 
     { Initializes material with default values.
       Since Wavefront specification doesn't say what the default values are,
@@ -144,8 +295,9 @@ begin
   Sharpness := 60;
   IndexOfRefraction := 1;
 
-  DiffuseTextureURL := '';
-  BumpTextureURL := '';
+  DiffuseTexture.Init;
+  NormalTexture.Init;
+  RoughnessTexture.Init;
 end;
 
 { TWavefrontMaterialList ---------------------------------------------------- }
@@ -338,16 +490,6 @@ constructor TObject3DOBJ.Create(const Stream: TStream; const BaseUrl: String);
           'Material not named yet, but it''s %s specified', [AttributeName]);
     end;
 
-    function FixBumpTextureUrl(const S: string): string;
-    var
-      P: Integer;
-    begin
-      Result := S;
-      P := Pos(' -bm', S);
-      if P <> 0 then
-        Result := Copy(S, 1, P - 1);
-    end;
-
   var
     F: TTextReader;
     LineTok, LineAfterMarker: string;
@@ -376,7 +518,7 @@ constructor TObject3DOBJ.Create(const Stream: TStream; const BaseUrl: String);
         if LineTok = '' then Continue;
 
         case ArrayPosText(LineTok, ['newmtl', 'Ka', 'Kd', 'Ks', 'Tf', 'illum',
-          'd', 'Ns', 'sharpness', 'Ni', 'map_Kd', 'map_bump', 'bump']) of
+          'd', 'Ns', 'sharpness', 'Ni', 'map_Kd', 'map_bump', 'bump', 'map_Pr', 'Pr']) of
           0: begin
                Materials.Add(TWavefrontMaterial.Create(LineAfterMarker));
                IsMaterial := true;
@@ -426,12 +568,17 @@ constructor TObject3DOBJ.Create(const Stream: TStream; const BaseUrl: String);
              end;
           10:begin
                CheckIsMaterial('diffuse map (map_Kd)');
-               Materials.Last.DiffuseTextureURL := LineAfterMarker;
+               Materials.Last.DiffuseTexture.ReadFromLine(lineAfterMarker);
              end;
           11, 12:
              begin
-               CheckIsMaterial('bump map (map_bump,bump)');
-               Materials.Last.BumpTextureURL := FixBumpTextureUrl(LineAfterMarker);
+               CheckIsMaterial('bump map (map_bump)');
+               Materials.Last.NormalTexture.ReadFromLine(lineAfterMarker);
+             end;
+          13, 14:
+             begin
+               CheckIsMaterial('roughness map (map_Pr)');
+               Materials.Last.RoughnessTexture.ReadFromLine(lineAfterMarker);
              end;
           else { we ignore other linetoks };
         end;
@@ -519,33 +666,51 @@ const
 
   function MaterialToX3D(const Material: TWavefrontMaterial): TAppearanceNode;
   var
-    Mat: TMaterialNode;
-    Texture: TImageTextureNode;
+    MatPhong: TMaterialNode;
+    MatPhysical: TPhysicalMaterialNode;
+    TextureTransform: TTextureTransform3DNode;
   begin
     Result := TAppearanceNode.Create(
       MatOBJNameToX3DName(Material.Name), BaseUrl);
 
-    Mat := TMaterialNode.Create('', BaseUrl);
-    Result.Material := Mat;
-    Mat.AmbientIntensity := AmbientIntensity(
-      Material.AmbientColor, Material.DiffuseColor);
-    Mat.DiffuseColor := Material.DiffuseColor;
-    Mat.SpecularColor := Material.SpecularColor;
-    Mat.Transparency := 1 - Material.Opacity;
-    Mat.Shininess := Material.SpecularExponent / 128.0;
-
-    if Material.DiffuseTextureURL <> '' then
+    if WavefrontPhongMaterials then
     begin
-      Texture := TImageTextureNode.Create('', BaseUrl);
-      Result.Texture := Texture;
-      Texture.SetUrl([SearchTextureFile(BaseUrl, Material.DiffuseTextureURL)]);
+      MatPhong := TMaterialNode.Create('', BaseUrl);
+      Result.Material := MatPhong;
+      MatPhong.AmbientIntensity := AmbientIntensity(
+        Material.AmbientColor, Material.DiffuseColor);
+      MatPhong.DiffuseColor := Material.DiffuseColor;
+      MatPhong.SpecularColor := Material.SpecularColor;
+      MatPhong.Transparency := 1 - Material.Opacity;
+      MatPhong.Shininess := Material.SpecularExponent / 128.0;
 
-      if Material.BumpTextureURL <> '' then
-      begin
-        Texture := TImageTextureNode.Create('', BaseUrl);
-        Result.NormalMap := Texture;
-        Texture.SetUrl([SearchTextureFile(BaseUrl, Material.BumpTextureURL)]);
-      end;
+      MatPhong.DiffuseTexture := Material.DiffuseTexture.CreateNode(BaseUrl);
+      MatPhong.NormalTexture := Material.NormalTexture.CreateNode(BaseUrl);
+      // if MatPhong.NormalTexture <> nil then
+      //   MatPhong.NormalScale := Material.NormalTexture.BumpMultiplier;
+    end else
+    begin
+      MatPhysical := TPhysicalMaterialNode.Create('', BaseUrl);
+      Result.Material := MatPhysical;
+      MatPhysical.BaseColor := Material.DiffuseColor;
+      MatPhysical.Transparency := 1 - Material.Opacity;
+
+      MatPhysical.BaseTexture := Material.DiffuseTexture.CreateNode(BaseUrl);
+      MatPhysical.NormalTexture := Material.NormalTexture.CreateNode(BaseUrl);
+      MatPhysical.MetallicRoughnessTexture := Material.RoughnessTexture.CreateNode(BaseUrl);
+      // if MatPhysical.NormalTexture <> nil then
+      //   MatPhysical.NormalScale := Material.NormalTexture.BumpMultiplier;
+    end;
+
+    TextureTransform := Material.DiffuseTexture.CreateTextureTransformNode;
+    if TextureTransform <> nil then
+    begin
+      Result.TextureTransform := TextureTransform;
+      if (Material.NormalTexture.URL <> '') and
+         ( (not TVector3.PerfectlyEquals(Material.NormalTexture.Scale, Material.DiffuseTexture.Scale)) or
+           (not TVector3.PerfectlyEquals(Material.NormalTexture.Offset, Material.DiffuseTexture.Offset))
+         ) then
+        WritelnWarning('OBJ texture transformation that differs for diffuse and normalMap is not supported; we will apply the same transformation for diffuse and normalMap.');
     end;
   end;
 

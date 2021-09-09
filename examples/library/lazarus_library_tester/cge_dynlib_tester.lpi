@@ -24,7 +24,7 @@
             <Filename Value="cge_dynlib_tester"/>
           </Target>
           <SearchPaths>
-            <IncludeFiles Value="$(ProjOutDir);..\..\..\src\base"/>
+            <IncludeFiles Value="$(ProjOutDir);..\..\..\src\common_includes"/>
             <OtherUnitFiles Value="..\..\..\src\library"/>
             <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
@@ -74,7 +74,7 @@
             <Filename Value="cge_dynlib_tester"/>
           </Target>
           <SearchPaths>
-            <IncludeFiles Value="$(ProjOutDir);..\..\..\src\base"/>
+            <IncludeFiles Value="$(ProjOutDir);..\..\..\src\common_includes"/>
             <OtherUnitFiles Value="..\..\..\src\library"/>
             <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
@@ -150,7 +150,7 @@
       <Filename Value="cge_dynlib_tester"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="$(ProjOutDir);..\..\..\src\base"/>
+      <IncludeFiles Value="$(ProjOutDir);..\..\..\src\common_includes"/>
       <OtherUnitFiles Value="..\..\..\src\library"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>

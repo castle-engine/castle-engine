@@ -29,7 +29,8 @@
 /* Called by in_app_purchase service to notify all other services
    (e.g. analytics) that a purchase occured.
 */
-- (void)onPurchase:(AvailableProduct*) product;
+- (void)onPurchase:(AvailableProduct*) product
+  withTransaction:(SKPaymentTransaction*) transaction;
 
 @property (strong, nonatomic) UIWindow *window;
 

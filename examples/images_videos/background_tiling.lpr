@@ -140,7 +140,7 @@ var
   { Single instance of TTilingBackground in this application. }
   TilingBackground: TTilingBackground;
 
-procedure Update(Container: TUIContainer);
+procedure Update(Container: TCastleContainer);
 
   procedure Move(const X, Y: Single);
   const

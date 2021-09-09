@@ -13,7 +13,7 @@ VERBOSE=false
 check_fpc_version ()
 {
   local FPC_VERSION=`fpc -iV`
-  local REQUIRED_FPC_VERSION='3.2.0'
+  local REQUIRED_FPC_VERSION='3.2.2'
   if [ "${FPC_VERSION}" '!=' "${REQUIRED_FPC_VERSION}" ]; then
     echo "pack_release: Expected FPC version ${REQUIRED_FPC_VERSION}, but got ${FPC_VERSION}"
     exit 1

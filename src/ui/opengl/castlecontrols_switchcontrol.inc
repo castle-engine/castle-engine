@@ -152,7 +152,7 @@ begin
   begin
     FPressed := false;
 
-    { Because of mouse capture mechanism in TUIContainer,
+    { Because of mouse capture mechanism in TCastleContainer,
       we receive Release notifications about all clicks that started
       within our rect, regardless where they finished.
 

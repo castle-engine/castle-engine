@@ -130,7 +130,6 @@
   published
     { URL of the sound file.
       Set this to load a new sound buffer, you can set to '' to clear the sound buffer.
-      Changing this also changes @link(Buffer).
 
       If you plan to change @link(Stream), note that it is best to do it before
       setting @link(URL). Changing @link(Stream) while @link(URL) is already set
@@ -201,7 +200,7 @@
       100 levels in Wwise). Also, "higher is more important" seems just more natural. }
     property Priority: Single read FPriority write SetPriority default 0.5;
 
-    { Spatial sound is fully audible (with @link(Gain)) at this distance.
+    { Spatial sound is fully audible (with @link(Volume)) at this distance.
       See TSoundDistanceModel for a description how distance affects the sound volume. }
     property ReferenceDistance: Single read FReferenceDistance write SetReferenceDistance
       default DefaultReferenceDistance;
@@ -305,7 +304,13 @@ begin
     else
       SoundLoading := slComplete;
     {$warnings off} // using deprecated that should be internal
-    FBuffer := SoundEngine.LoadBuffer(URL, SoundLoading);
+    { Using ExceptionOnError = false. Because
+      - The programs can generally tolerate missing sound files, and continue just fine.
+      - Error at OggVorbis reading may be caused by
+        EOggVorbisMissingLibraryError, and we try to gracefully react to missing
+        libraries, as it is easy to miss installation of some libs on some systems
+        (like Linux) or package with appropriate DLLs (like Windows). }
+    FBuffer := SoundEngine.LoadBuffer(URL, SoundLoading, false);
     {$warnings on}
     DoChange(scAfterBufferCreated);
   end;

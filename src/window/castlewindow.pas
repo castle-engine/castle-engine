@@ -91,7 +91,7 @@
     var
       Window: TCastleWindowBase;
 
-    procedure Render(Sender: TUIContainer);
+    procedure Render(Sender: TCastleContainer);
     begin
       // ... e.g. DrawRectangle or TDrawableImage.Draw calls inside
     end;
@@ -108,7 +108,9 @@
   For larger programs, it makes more sense to divide functionality into
   controls, which are classes descending from TCastleUserInterface.
   You can override TCastleUserInterface methods to render, capture input and so on
-  (see e.g. @link(TCastleUserInterface.Render), @link(TInputListener.Press), @link(TInputListener.Update).)
+  (see e.g. @link(TCastleUserInterface.Render),
+  @link(TCastleUserInterface.Press),
+  @link(TCastleUserInterface.Update).)
   You can then add your control to the TCastleWindowBase.Controls list.
 
   Some features list:
@@ -203,7 +205,7 @@ unit CastleWindow;
          {$elseif defined(UNIX)}
            {$if defined(ANDROID)}
              {$define CASTLE_WINDOW_ANDROID}
-           {$elseif defined(IOS) or defined(CASTLE_NINTENDO_SWITCH)}
+           {$elseif defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH)}
              {$define CASTLE_WINDOW_LIBRARY}
            {$elseif defined(DARWIN)}
              // various possible backends on macOS (desktop):
@@ -382,9 +384,12 @@ const
 type
   TCastleWindowBase = class;
 
-  { Expose TUIContainer type from CastleWindow unit, since almost all code using
-    CastleWindow will need to use TUIContainer type for callback parameter type. }
-  TUIContainer = CastleUIControls.TUIContainer;
+  { Expose TCastleContainer type from CastleWindow unit, since almost all code using
+    CastleWindow will need to use TCastleContainer type for callback parameter type. }
+
+  { }
+  TUIContainer = CastleUIControls.TCastleContainer deprecated 'use TCastleContainer';
+  TCastleContainer = CastleUIControls.TCastleContainer;
 
   {$I castlewindowmenu.inc}
 
@@ -392,8 +397,8 @@ type
   TWindowMessageType = (mtInfo, mtWarning, mtQuestion, mtError, mtOther);
 
   TUpdateFunc = procedure;
-  TMenuClickFunc = procedure (Container: TUIContainer; Item: TMenuItem);
-  TDropFilesFunc = procedure (Container: TUIContainer; const FileNames: array of string);
+  TMenuClickFunc = procedure (Container: TCastleContainer; Item: TMenuItem);
+  TDropFilesFunc = procedure (Container: TCastleContainer; const FileNames: array of string);
   TGLContextRetryOpenFunc = function (Window: TCastleWindowBase): boolean;
 
   TResizeAllowed = (raNotAllowed, raOnlyAtOpen, raAllowed);
@@ -402,11 +407,11 @@ type
 
   TCaptionPart = (cpPublic, cpFps);
 
-  { Non-abstract implementation of TUIContainer that cooperates with TCastleWindowBase.
+  { Non-abstract implementation of TCastleContainer that cooperates with TCastleWindowBase.
     To use it, you need to also create descendant of TCastleWindowBase,
     and override TCastleWindowBase.CreateContainer.
     That said, it is much better to use TUIState and override methods there. }
-  TWindowContainer = class(TUIContainer)
+  TWindowContainer = class(TCastleContainer)
   private
     Parent: TCastleWindowBase;
   public
@@ -443,7 +448,7 @@ type
     Use event @link(OnUpdate) to do something continuously.
 
     By default, the window is filled with simple color from
-    @link(TUIContainer.BackgroundColor Container.BackgroundColor).
+    @link(TCastleContainer.BackgroundColor Container.BackgroundColor).
 
     If you're looking for an analogous Lazarus component
     (that does basically the same, but can be placed on a Lazarus form)
@@ -1630,7 +1635,7 @@ type
       We consciously decided to not implement anything more involved here.
       If you need really flexible timer mechanism, do not use this.
       Instead use @link(OnUpdate)
-      (or @link(TInputListener.Update) in your @link(TCastleUserInterface) descendant,
+      (or @link(TCastleUserInterface.Update) in your @link(TCastleUserInterface) descendant,
       or @link(TCastleTransform.Update)) and look at it's @code(SecondsPassed)
       value to perform actions (one time or repeated) with a specified delay.
       The engine source is full of examples of this.
@@ -1728,7 +1733,7 @@ type
     { @section(Mouse state) -------------------------------------------------- }
 
     { Mouse buttons currently pressed.
-      See @link(TUIContainer.MousePressed) for details. }
+      See @link(TCastleContainer.MousePressed) for details. }
     function MousePressed: TCastleMouseButtons;
 
     { Is the window focused now, which means that keys/mouse events
@@ -1770,7 +1775,7 @@ type
       write SetCustomCursor;
 
     { List of user-interface controls currently active.
-      See @link(TUIContainer.Controls) for details. }
+      See @link(TCastleContainer.Controls) for details. }
     function Controls: TChildrenControls;
 
     { Is the OpenGL context initialized. This is equivalent to @code(not Closed),
@@ -1878,7 +1883,7 @@ type
     { @deprecated Deprecated name for @link(Invalidate). }
     procedure PostRedisplay; deprecated;
 
-    { See TUIContainer.Invalidate. }
+    { See TCastleContainer.Invalidate. }
     procedure Invalidate;
 
     { Make the OpenGL context of this window @italic(current). Following OpenGL
@@ -2452,7 +2457,7 @@ type
     procedure SetTouchDevice(const Value: boolean);
     function GetLimitFPS: Single;
     procedure SetLimitFPS(const Value: Single);
-    function GetMainContainer: TUIContainer;
+    function GetMainContainer: TCastleContainer;
   protected
     { Override TCustomApplication to pass TCustomApplication.Log
       to CastleLog logger. }
@@ -2757,7 +2762,7 @@ function Application: TCastleApplication;
     RenderContext.Viewport := Window.Rect;
     OrthoProjection(0, Window.Width, 0, Window.Height);
   #) }
-procedure Resize2D(Container: TUIContainer);
+procedure Resize2D(Container: TCastleContainer);
 
 { Describe given key. Key is given as combination of character (UTF-8 character as String, may be '')
   and Key code (may be keyNone), and additional required @code(Modifiers)
@@ -2978,12 +2983,14 @@ procedure TCastleWindowBase.OpenCore;
       the whole screen area anyway. }
     RenderContext.Clear([cbColor], Theme.LoadingBackgroundColor);
 
-    UIScale := FRealHeight / Theme.LoadingImageForWindowHeight;
+    UIScale := TCastleContainer.InternalCalculateUIScale(
+      Theme.LoadingUIScaling, Theme.LoadingUIReferenceWidth, Theme.LoadingUIReferenceHeight, Theme.LoadingUIExplicitScale,
+      Dpi, FRealWidth, FRealHeight);
     TextRect := Theme.ImagesPersistent[tiLoading].Image.Rect.
       ScaleAroundCenter(UIScale).
       Align(hpMiddle, WindowRect, hpMiddle).
       Align(vpMiddle, WindowRect, vpMiddle);
-    Theme.Draw(TextRect, tiLoading, UIScale, Theme.LoadingTextColor);
+    Theme.Draw(TextRect, tiLoading, UIScale, Theme.LoadingColor);
 
     // just like TCastleWindowBase.DoRender
     if DoubleBuffer then SwapBuffers else glFlush;
@@ -4695,7 +4702,7 @@ begin
   ApplicationProperties.LimitFPS := Value;
 end;
 
-function TCastleApplication.GetMainContainer: TUIContainer;
+function TCastleApplication.GetMainContainer: TCastleContainer;
 begin
   if MainWindow <> nil then
     Result := MainWindow.Container
@@ -5254,7 +5261,7 @@ end;
 
 { global --------------------------------------------------------------------- }
 
-procedure Resize2D(Container: TUIContainer);
+procedure Resize2D(Container: TCastleContainer);
 begin
   RenderContext.Viewport := Container.Rect;
   OrthoProjection(FloatRectangle(Container.Rect));

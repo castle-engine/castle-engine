@@ -445,11 +445,11 @@ type
     property Size: TVector2 read GetSize write SetSize;
 
     { Add 4 corners of this rectangle to the list, in CCW order, starting from left-bottom. }
-    procedure AddToCoords(const Coords: TVector2List);
+    procedure AddToCoords(const Coords: TVector2List); overload;
 
     { Add 4 corners of this rectangle to the list, in CCW order, starting from left-bottom.
       Set the Z coordinate of all added (3D) points to the one you specify by the Z parameter. }
-    procedure AddToCoords(const Coords: TVector3List; const Z: Single);
+    procedure AddToCoords(const Coords: TVector3List; const Z: Single); overload;
   end;
 
   PFloatRectangle = ^TFloatRectangle;

@@ -30,15 +30,14 @@
     you display in the game.
 
     This class hides this limitation, by managing a pool of sound sources,
-    and returning on demand (by @link(AllocateSound) method) the next unused
-    sound source (or @nil). It can prioritize sound sources,
+    and returning on demand the next unused sound source (or @nil).
+    It can prioritize sound sources,
     it can reuse sound sources that finished playing,
-    it can even interrupt a lower-priority sound when necessary to play
+    it can interrupt a lower-priority sound when necessary to play
     a higher-priority sound.
 
     This is automatically used by higher-level comfortable methods to play
-    sounds: @link(TSoundEngine.PlaySound),
-    @link(TRepoSoundEngine.Sound) and @link(TRepoSoundEngine.Sound3D). }
+    sounds like @link(TSoundEngine.Play). }
   TSoundAllocator = class
   strict private
     FAllocatedSources: TInternalSoundSourceList;

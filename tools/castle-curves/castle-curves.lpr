@@ -307,7 +307,7 @@ begin
   ClampVar(SceneZoom, 0.01, 100);
 end;
 
-procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
+procedure Press(Container: TCastleContainer; const Event: TInputPressRelease);
 
   procedure ClosestControlPoint(const Point: TVector2;
     var CurveNum, PointNum: Integer);
@@ -377,7 +377,7 @@ begin
   Window.Invalidate;
 end;
 
-procedure Release(Container: TUIContainer; const Event: TInputPressRelease);
+procedure Release(Container: TCastleContainer; const Event: TInputPressRelease);
 begin
   if Event.IsMouseButton(buttonLeft) then
   begin
@@ -386,7 +386,7 @@ begin
   end;
 end;
 
-procedure Motion(Container: TUIContainer; const Event: TInputMotion);
+procedure Motion(Container: TCastleContainer; const Event: TInputMotion);
 const
   DraggingFarEnough = 5;
 var
@@ -422,7 +422,7 @@ begin
   end;
 end;
 
-procedure Update(Container: TUIContainer);
+procedure Update(Container: TCastleContainer);
 
   procedure ChangeMove(const X, Y: Single);
   const
@@ -451,7 +451,7 @@ end;
 
 { menu ------------------------------------------------------------ }
 
-procedure MenuClick(Container: TUIContainer; MenuItem: TMenuItem);
+procedure MenuClick(Container: TCastleContainer; MenuItem: TMenuItem);
 
   procedure ChangeSelectedCurve(Next: boolean);
   var

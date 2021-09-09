@@ -76,7 +76,7 @@ begin
   RGBFloatImageGL := TDrawableImage.Create(RGBFloatImage,true,true);
 end;
 
-procedure DoRender(Container: TUIContainer);
+procedure DoRender(Container: TCastleContainer);
 begin
   RGBAlphaImageGL.Draw(0, 0 * TestSize);
   RGBImageGL.Draw(0, 1 * TestSize);

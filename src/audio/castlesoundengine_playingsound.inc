@@ -39,7 +39,7 @@
     with the playback of the sound. }
   TCastlePlayingSound = class(TComponent)
   strict private
-    FSound: TCastleSound; // @nil => not playing (when not playing, it can be nil or non-nil)
+    FSound: TCastleSound; //< @nil => not playing (when not playing, it can be nil or non-nil)
     FSource: TInternalSoundSource; //< @nil <=> not playing; we only keep FSource with Used=true
     FFreeOnStop: Boolean;
     FOnStop: TNotifyEvent;
@@ -337,6 +337,7 @@ begin
       end;
     scBeforeBufferDestroyed:
       Stop;
+    else ;
   end;
 end;
 

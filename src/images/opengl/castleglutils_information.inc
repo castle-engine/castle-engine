@@ -81,7 +81,8 @@ const
         '  Buggy GLSL gl_FrontFacing: %s' + NL +
         '  Buggy GLSL read varying: %s' + NL +
         '  Buggy Pure Shader Pipeline: %s' + NL +
-        '  Buggy Texture Size Above 2048: %s',
+        '  Buggy Texture Size Above 2048: %s' + NL +
+        '  Buggy Shader Bump Mapping num_steps: %s',
         [ Version.VendorMajor, Version.VendorMinor, Version.VendorRelease,
           PChar(glGetString(GL_VENDOR)),
           VendorTypeToStr(Version.VendorType),
@@ -100,7 +101,8 @@ const
           BoolToStr(Version.BuggyGLSLFrontFacing, true),
           BoolToStr(Version.BuggyGLSLReadVarying, true),
           BoolToStr(Version.BuggyPureShaderPipeline, true),
-          BoolToStr(Version.BuggyTextureSizeAbove2048, true)
+          BoolToStr(Version.BuggyTextureSizeAbove2048, true),
+          BoolToStr(Version.BuggyGLSLBumpMappingNumSteps, true)
         ]);
   end;
 
@@ -174,7 +176,17 @@ begin
     VendorReport(GLVersion) + NL +
     NL +
 
-    {$ifndef OpenGLES}
+    {$ifdef OpenGLES}
+    '------------------------' + NL +
+    'Versions available:' + NL +
+    NL +
+    '  2_0: ' + BoolToStr(GLFeatures.VersionES_2_0, true) + NL +
+    '  3.0: ' + BoolToStr(GLFeatures.VersionES_3_0, true) + NL +
+    '  3.1: ' + BoolToStr(GLFeatures.VersionES_3_1, true) + NL +
+    '  3.2: ' + BoolToStr(GLFeatures.VersionES_3_2, true) + NL +
+    NL +
+
+    {$else}
     '------------------------' + NL +
     'Real versions available:' + NL +
     '(checks both version string and actual functions availability in GL library, to secure from buggy implementations)' + NL +
