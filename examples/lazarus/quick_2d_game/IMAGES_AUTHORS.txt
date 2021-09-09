@@ -1,9 +1,0 @@
-The png images in this directory are from:
-  https://openclipart.org/detail/170302/vector-basketball
-  https://openclipart.org/detail/5451/basketball-rim
-  (public domain, https://openclipart.org/share )
-
-Note that you could also put them inside "data" subdirectory.
-Loading them using the 'castle-data:/my_image.png'
-will automatically look inside "data" subdirectory,
-if it exists.

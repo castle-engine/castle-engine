@@ -132,6 +132,7 @@
 }
 
 - (void)onPurchase:(AvailableProduct*) availableProduct
+  withTransaction:(SKPaymentTransaction*) transaction
 {
     if (!initialized) {
         return;

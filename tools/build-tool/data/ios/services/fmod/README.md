@@ -12,14 +12,14 @@ Declare it like this in [CastleEngineManifest.xml](https://github.com/castle-eng
   <ios>
     <services>
       <service name="fmod">
-        <parameter key="library_file" value="libraries/ios/libfmod_iphoneos.a" />
+        <parameter key="library_path" value="fmod-ios-library" />
       </service>
     </services>
   </ios>
 </project>
 ~~~~
 
-The `library_file` parameter is the location of the FMOD for iOS library. You need to download it from https://www.fmod.com/ yourself.
+The `library_path` parameter is the location of the FMOD for iOS library. You need to download it from https://www.fmod.com/ yourself. We expect to find in this directory a file `libfmod_iphoneos.a`.
 
 ## Use FMOD sound backend from Pascal
 

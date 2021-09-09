@@ -24,4 +24,5 @@ sed --in-place \
   -e 's|<OtherUnitFiles Value="../common-code;code"/>|<OtherUnitFiles Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code;${CASTLE_ENGINE_PATH}tools/common-code"/>|' \
   -e 's|</SearchPaths>|<Libraries Value="${ABSOLUTE_LIBRARY_PATHS}" /> </SearchPaths>|' \
   -e 's|<ConfigFilePath Value="../../castle-fpc-messages.cfg"/>|<ConfigFilePath Value="${CASTLE_ENGINE_PATH}castle-fpc-messages.cfg"/>|' \
+  -e 's|<Filename Value="castle-editor"/>|<Filename Value="castle-editor-new"/>|' \
   custom_editor_template/castle_editor.lpi

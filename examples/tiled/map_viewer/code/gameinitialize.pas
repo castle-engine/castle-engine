@@ -43,12 +43,12 @@ type
     procedure Initialize(Sender: TObject);
 
     { Various events. }
-    procedure Update(const Sender: TInputListener;
+    procedure Update(const Sender: TCastleUserInterface;
       const SecondsPassed: Single; var HandleInput: Boolean);
     procedure ClickOpen(Sender: TObject);
-    procedure MapMotion(const Sender: TInputListener;
+    procedure MapMotion(const Sender: TCastleUserInterface;
       const Event: TInputMotion; var Handled: Boolean);
-    procedure MapPress(const Sender: TInputListener;
+    procedure MapPress(const Sender: TCastleUserInterface;
       const Event: TInputPressRelease; var Handled: Boolean);
     procedure CheckboxSmoothScalingChange(Sender: TObject);
     procedure CheckboxSmoothScalingSafeBorderChange(Sender: TObject);
@@ -88,7 +88,7 @@ begin
     TiledMap.URL := 'castle-data:/maps/desert.tmx';
 end;
 
-procedure TEventsHandler.Update(const Sender: TInputListener;
+procedure TEventsHandler.Update(const Sender: TCastleUserInterface;
   const SecondsPassed: Single; var HandleInput: Boolean);
 begin
   LabelFps.Caption := 'FPS: ' + Window.Fps.ToString;
@@ -103,7 +103,7 @@ begin
     TiledMap.URL := URL;
 end;
 
-procedure TEventsHandler.MapMotion(const Sender: TInputListener;
+procedure TEventsHandler.MapMotion(const Sender: TCastleUserInterface;
   const Event: TInputMotion; var Handled: Boolean);
 begin
   if buttonLeft in Event.Pressed then
@@ -114,7 +114,7 @@ begin
   end;
 end;
 
-procedure TEventsHandler.MapPress(const Sender: TInputListener;
+procedure TEventsHandler.MapPress(const Sender: TCastleUserInterface;
   const Event: TInputPressRelease; var Handled: Boolean);
 const
   MinScale = 0.1;

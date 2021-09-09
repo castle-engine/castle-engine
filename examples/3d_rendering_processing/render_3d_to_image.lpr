@@ -119,7 +119,7 @@ begin
 
     RenderScene('castle-data:/boxes.x3dv');
     RenderScene('castle-data:/bridge_final.x3dv');
-    RenderScene('castle-data:/car.x3d');
+    RenderScene('castle-data:/car.gltf');
     RenderScene('castle-data:/teapot.x3dv');
 
   finally FreeAndNil(Image) end;

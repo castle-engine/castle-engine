@@ -28,6 +28,7 @@
 type
   TUrlData = class
     class function Read(const Url: string; out MimeType: string): TStream;
+    class function MimeType(const URI: string; out Gzipped: Boolean): String;
   end;
 
 class function TUrlData.Read(const Url: string; out MimeType: string): TStream;
@@ -37,12 +38,34 @@ begin
   DataUri := TDataUri.Create;
   try
     DataUri.Uri := Url;
+
+    { Otherwise it returns TBase64DecodingStream that raises error at Seek,
+      and using Download(..., [soForceMemoryStream]) fails because
+      CreateMemoryStream relies on TMemoryStream.LoadFromStream that
+      first does "Stream.Position := 0" at source...
+      Testcase: open with view3dscene demo-models/x3d/data_uri.x3dv . }
+    DataUri.ForceMemoryStream := true;
+
     if not DataUri.Valid then
       raise EDownloadError.Create('Invalid data: URI scheme');
     Result := DataUri.ExtractStream;
     MimeType := DataUri.MimeType;
     Assert(Result <> nil, 'DataUri.ExtractStream must be non-nil when DataUri.Valid is true');
   finally FreeAndNil(DataUri) end;
+end;
+
+class function TUrlData.MimeType(const URI: string; out Gzipped: Boolean): String;
+var
+  DataURI: TDataURI;
+begin
+  Result := '';
+  Gzipped := false;
+
+  DataURI := TDataURI.Create;
+  try
+    DataURI.URI := URI;
+    if DataURI.Valid then Result := DataURI.MimeType;
+  finally FreeAndNil(DataURI) end;
 end;
 
 {$endif}

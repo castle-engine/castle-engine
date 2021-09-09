@@ -57,7 +57,7 @@
     { Font used for rendering and measuring this control.
 
       Depending on which one is set, this method returns
-      @link(CustomFont) or @link(TUIContainer.DefaultFont) or global @link(UIFont).
+      @link(CustomFont) or @link(TCastleContainer.DefaultFont) or global @link(UIFont).
       It may also return a TCastleFontFamily instance that wraps (and scales)
       one of them. }
     function Font: TCastleAbstractFont;
@@ -66,7 +66,7 @@
       and eventually call FontChanged method @italic(now).
 
       You only need to explicitly call this in very specific circumstances,
-      when you just changed @link(UIFont) or @link(TUIContainer.DefaultFont)
+      when you just changed @link(UIFont) or @link(TCastleContainer.DefaultFont)
       and you want control size to be updated immediately
       (for example, you need @link(EffectiveHeight)
       to be immediately valid). Without calling this,
@@ -79,7 +79,7 @@
 
       @italic(Usually, you don't need to call this explicitly from the outside.)
       Changing font, like @link(CustomFont)
-      or @link(TUIContainer.DefaultFont) or @link(UIFont),
+      or @link(TCastleContainer.DefaultFont) or @link(UIFont),
       or any property that may affect the font is automatically applied.
 
       But there are exceptions: right now, if you call @link(TCastleFont.Load Load)
@@ -107,8 +107,8 @@
     property Tooltip: string read FTooltip write FTooltip;
 
     { Font used to render text of this control.
-      When this is @nil then the @link(TUIContainer.DefaultFont) is used,
-      or (when @link(TUIContainer.DefaultFont) is also @nil) the global @link(UIFont). }
+      When this is @nil then the @link(TCastleContainer.DefaultFont) is used,
+      or (when @link(TCastleContainer.DefaultFont) is also @nil) the global @link(UIFont). }
     property CustomFont: TCastleAbstractFont
       read FCustomFont write SetCustomFont;
 
@@ -131,7 +131,7 @@
       Specifying a non-zero outline for a label overrides the default outline
       settings for the current font. By default, fonts do not have an outline.
 
-      TODO: UI scaling (@link(TUIContainer.UIScaling))
+      TODO: UI scaling (@link(TCastleContainer.UIScaling))
       doesn't affect outline size now.
 
       @seealso OutlineHighQuality }
@@ -204,7 +204,7 @@ begin
     TooltipLabel := TCastleLabelTooltip.Create(nil);
     TooltipLabel.ImageType := tiTooltip;
     TooltipLabel.Frame := true;
-    TooltipLabel.Container := Container;
+    TooltipLabel.InternalSetContainer(Container);
     { we know that GL context now exists, so just directly call GLContextOpen }
     TooltipLabel.GLContextOpen;
   end;
@@ -245,12 +245,17 @@ end;
 
 function TCastleUserInterfaceFont.Font: TCastleAbstractFont;
 begin
-  // do not use CustomFont if it is not loaded, as it would not be visible
-  if (CustomFont <> nil) and CustomFont.FontLoaded then
+  { We check everywhere FontLoaded, to not use some font if it is not loaded
+    (e.g. if freetype library not available, or font file failed to load),
+    as it would not be visible.
+    As a last fallback, we can always use UIFont. }
+  if (CustomFont <> nil) and
+     (CustomFont.FontLoaded) then
     Result := CustomFont
   else
   if (Container <> nil) and
-     (Container.DefaultFont <> nil) then
+     (Container.DefaultFont <> nil) and
+     (Container.DefaultFont.FontLoaded) then
     Result := Container.DefaultFont
   else
   { If the Container is not assigned yet, then assume that UI control
@@ -262,7 +267,8 @@ begin
     Testcase: Escape warnings about invalid chars in Japanese version. }
   if (Container = nil) and
      (GetMainContainer <> nil) and
-     (GetMainContainer.DefaultFont <> nil) then
+     (GetMainContainer.DefaultFont <> nil) and
+     (GetMainContainer.DefaultFont.FontLoaded) then
     Result := GetMainContainer.DefaultFont
   else
     Result := UIFont;

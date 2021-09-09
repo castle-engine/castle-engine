@@ -308,7 +308,7 @@
       that collide during this event.
       It would free the rigid body instance, which will crash the physics engine for now.
       Instead, you can set @link(TCastleTransform.Exists) to @false
-      (you can free it later, e.g. during @link(TInputListener.OnUpdate)). }
+      (you can free it later, e.g. during @link(TCastleUserInterface.OnUpdate)). }
     property OnCollisionEnter: TCollisionEvent read FOnCollisionEnter write SetOnCollisionEnter;
 
     { Occurs when TRigidBody stops colliding with another TRigidBody.
@@ -317,7 +317,7 @@
       that collide during this event.
       It would free the rigid body instance, which will crash the physics engine for now.
       Instead, you can set @link(TCastleTransform.Exists) to @false
-      (you can free it later, e.g. during @link(TInputListener.OnUpdate)). }
+      (you can free it later, e.g. during @link(TCastleUserInterface.OnUpdate)). }
     property OnCollisionExit: TCollisionEvent read FOnCollisionExit write SetOnCollisionExit;
 
     { Occurs when TRigidBody still collides with another TRigidBody.
@@ -326,7 +326,7 @@
       that collide during this event.
       It would free the rigid body instance, which will crash the physics engine for now.
       Instead, you can set @link(TCastleTransform.Exists) to @false
-      (you can free it later, e.g. during @link(TInputListener.OnUpdate)). }
+      (you can free it later, e.g. during @link(TCastleUserInterface.OnUpdate)). }
     property OnCollisionStay: TCollisionEvent read FOnCollisionStay write SetOnCollisionStay;
 
   published

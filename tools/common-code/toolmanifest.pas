@@ -22,7 +22,7 @@ unit ToolManifest;
 interface
 
 uses DOM, Classes, Generics.Collections,
-  CastleStringUtils, CastleImages, CastleUtils, CastleFindFiles,
+  CastleStringUtils, CastleImages, CastleUtils, CastleFindFiles, CastleColors,
   ToolServices, ToolAssocDocTypes;
 
 type
@@ -64,6 +64,13 @@ type
       Try to read it to a class that supports nice-quality resizing (TResizeInterpolationFpImage).
       @nil if not found. }
     function FindReadable: TCastleImage;
+  end;
+
+  TLaunchImageStoryboard = class
+    BaseUrl, Path: String;
+    Scale: Single;
+    BackgroundColor: TCastleColor;
+    constructor Create;
   end;
 
   { Parsing of CastleEngineManifest.xml files. }
@@ -111,6 +118,7 @@ type
       FExcludePaths: TCastleStringList;
       FExtraCompilerOptions, FExtraCompilerOptionsAbsolute: TCastleStringList;
       FIcons, FLaunchImages: TImageFileNames;
+      FLaunchImageStoryboard: TLaunchImageStoryboard;
       FSearchPaths, FLibraryPaths: TStringList;
       FStandaloneSource, FAndroidSource, FIOSSource, FPluginSource: string;
       FLazarusProject: String;
@@ -140,6 +148,7 @@ type
     function ReadVersion(const Element: TDOMElement): TProjectVersion;
     procedure CreateFinish;
     procedure FindPascalFilesCallback(const FileInfo: TFileInfo; var StopSearch: boolean);
+    procedure SetBaseUrl(const Value: String);
   public
     const
       DataName = 'data';
@@ -190,6 +199,9 @@ type
     property ScreenOrientation: TScreenOrientation read FScreenOrientation;
     property Icons: TImageFileNames read FIcons;
     property LaunchImages: TImageFileNames read FLaunchImages;
+    { iOS launch image storyboard (see https://github.com/castle-engine/castle-engine/wiki/CastleEngineManifest.xml-examples#launch-images-for-now-only-for-ios ).
+      Never @nil (but check Path <> '' before actually using it). }
+    property LaunchImageStoryboard: TLaunchImageStoryboard read FLaunchImageStoryboard;
     property SearchPaths: TStringList read FSearchPaths;
     property LibraryPaths: TStringList read FLibraryPaths;
     property AssociateDocumentTypes: TAssociatedDocTypeList read FAssociateDocumentTypes;
@@ -255,7 +267,7 @@ function StringToScreenOrientation(const S: string): TScreenOrientation;
 
 implementation
 
-uses SysUtils,
+uses SysUtils, Math,
   CastleXMLUtils, CastleFilesUtils, CastleLog, CastleURIUtils,
   ToolCommonUtils;
 
@@ -295,6 +307,16 @@ begin
   AppName := AAppName;
 end;
 
+{ TLaunchImageStoryboard ----------------------------------------------------- }
+
+constructor TLaunchImageStoryboard.Create;
+begin
+  inherited;
+  // default values
+  Scale := 1;
+  BackgroundColor := Black;
+end;
+
 { TCastleManifest ------------------------------------------------------------ }
 
 constructor TCastleManifest.Create(const APath: String);
@@ -307,6 +329,7 @@ begin
   FExtraCompilerOptionsAbsolute := TCastleStringList.Create;
   FIcons := TImageFileNames.Create;
   FLaunchImages := TImageFileNames.Create;
+  FLaunchImageStoryboard := TLaunchImageStoryboard.Create;
   FSearchPaths := TStringList.Create;
   FLibraryPaths := TStringList.Create;
   FAndroidProjectType := apIntegrated;
@@ -341,8 +364,7 @@ begin
   FVersion := TProjectVersion.Create(OwnerComponent);
   FVersion.Code := DefautVersionCode;
   FVersion.DisplayValue := DefautVersionDisplayValue;
-  Icons.BaseUrl := FilenameToURISafe(InclPathDelim(GetCurrentDir));
-  LaunchImages.BaseUrl := FilenameToURISafe(InclPathDelim(GetCurrentDir));
+  SetBaseUrl(FilenameToURISafe(InclPathDelim(GetCurrentDir)));
 
   CreateFinish;
 end;
@@ -357,9 +379,7 @@ var
   IncludePath: TIncludePath;
 begin
   Create(APath);
-
-  Icons.BaseUrl := ManifestUrl;
-  LaunchImages.BaseUrl := ManifestUrl;
+  SetBaseUrl(ManifestUrl);
 
   Doc := URLReadXML(ManifestURL);
   try
@@ -459,6 +479,16 @@ begin
           LaunchImages.Add(ChildElement.AttributeString('path'));
         end;
       finally FreeAndNil(ChildElements) end;
+
+      Element := Element.ChildElement('storyboard', false);
+      if Element <> nil then
+      begin
+        FLaunchImageStoryboard.Path := Element.AttributeString('path');
+        FLaunchImageStoryboard.Scale := Element.AttributeSingleDef('scale', 1.0);
+        FLaunchImageStoryboard.BackgroundColor := Element.AttributeColorDef('background_color', Black);
+        if not SameValue(FLaunchImageStoryboard.BackgroundColor[3], 1) then
+          raise Exception.Create('Launch image storyboard background_color alpha must be 1.0, meaning of other values is not defined for now');
+      end;
     end;
 
     Element := Doc.DocumentElement.ChildElement('localization', false);
@@ -607,6 +637,7 @@ begin
   FreeAndNil(FExtraCompilerOptionsAbsolute);
   FreeAndNil(FIcons);
   FreeAndNil(FLaunchImages);
+  FreeAndNil(FLaunchImageStoryboard);
   FreeAndNil(FSearchPaths);
   FreeAndNil(FLibraryPaths);
   FreeAndNil(FAndroidServices);
@@ -614,6 +645,13 @@ begin
   FreeAndNil(FAssociateDocumentTypes);
   FreeAndNil(FLocalizedAppNames);
   inherited;
+end;
+
+procedure TCastleManifest.SetBaseUrl(const Value: String);
+begin
+  Icons.BaseUrl := Value;
+  LaunchImages.BaseUrl := Value;
+  LaunchImageStoryboard.BaseUrl := Value;
 end;
 
 function TCastleManifest.DefaultQualifiedName(const AName: String): String;

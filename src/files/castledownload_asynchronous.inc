@@ -517,7 +517,9 @@ begin
   if soGzip in Options then
     FContents := ReadGzipped(UnderlyingStream, soForceMemoryStream in Options)
   else
-  if soForceMemoryStream in Options then
+  if (soForceMemoryStream in Options) and
+     // if UnderlyingStream is already TMemoryStream, like with data URI, then we're OK
+     (not (UnderlyingStream is TMemoryStream)) then
     FContents := CreateMemoryStream(UnderlyingStream)
   else
     FContents := UnderlyingStream;

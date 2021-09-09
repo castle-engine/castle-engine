@@ -2944,6 +2944,8 @@ begin
     Define('CASTLE_BUGGY_FRONT_FACING', stFragment);
   if GLVersion.BuggyGLSLReadVarying then
     Define('CASTLE_BUGGY_GLSL_READ_VARYING', stVertex);
+  if GLVersion.BuggyGLSLBumpMappingNumSteps then
+    Define('CASTLE_BUGGY_BUMP_MAPPING_NUM_STEPS', stFragment);
   if GammaCorrection then
     Define('CASTLE_GAMMA_CORRECTION', stFragment);
   case ToneMapping of

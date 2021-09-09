@@ -59,11 +59,13 @@ type
     ImageKey: TCastleImageControl;
     CoinsRoot: TCastleTransform;
 
-    { Checks this is firs Update when W key (jump) was pressed }
-    WasJumpKeyPressed: Boolean;
+    { Checks this is first Update when the InputJump occurred.
+      See ../README.md for documentation about allowed keys/mouse/touch input. }
+    WasInputJump: Boolean;
 
-    { Checks this is firs Update when Space key (shot) was pressed }
-    WasShotKeyPressed: Boolean;
+    { Checks this is firs Update when InputShot occurred.
+      See ../README.md for documentation about allowed keys/mouse/touch input. }
+    WasInputShot: Boolean;
 
     { Player abilities }
     PlayerCanDoubleJump: Boolean;
@@ -153,6 +155,13 @@ type
     procedure OnAnimationStop(const Scene: TCastleSceneCore;
       const Animation: TTimeSensorNode);
 
+    { Check pressed keys and mouse/touch, to support both keyboard
+      and mouse and touch (on mobile) navigation. }
+    function InputLeft: Boolean;
+    function InputRight: Boolean;
+    function InputJump: Boolean;
+    function InputShot: Boolean;
+
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -234,6 +243,67 @@ constructor TStatePlay.Create(AOwner: TComponent);
 begin
   inherited;
   DesignUrl := 'castle-data:/gamestateplay.castle-user-interface';
+end;
+
+function TStatePlay.InputLeft: Boolean;
+var
+  I: Integer;
+begin
+  Result :=
+    Container.Pressed.Items[keyA] or
+    Container.Pressed.Items[keyArrowLeft];
+
+  { Mouse, or any finger, pressing in left-lower part of the screen.
+
+    Note: if we would not need to support multi-touch (and only wanted
+    to check 1st finger) then we would use simpler "Container.MousePosition"
+    instead of "Container.TouchesCount", "Container.Touches[..].Position". }
+
+  if buttonLeft in Container.MousePressed then
+    for I := 0 to Container.TouchesCount - 1 do
+      if (Container.Touches[I].Position.X < Container.Width * 0.5) and
+         (Container.Touches[I].Position.Y < Container.Height * 0.5) then
+        Exit(true);
+end;
+
+function TStatePlay.InputRight: Boolean;
+var
+  I: Integer;
+begin
+  Result :=
+    Container.Pressed.Items[keyD] or
+    Container.Pressed.Items[keyArrowRight];
+
+  { Mouse, or any finger, pressing in left-lower part of the screen. }
+  if buttonLeft in Container.MousePressed then
+    for I := 0 to Container.TouchesCount - 1 do
+      if (Container.Touches[I].Position.X >= Container.Width * 0.5) and
+         (Container.Touches[I].Position.Y < Container.Height * 0.5) then
+        Exit(true);
+end;
+
+function TStatePlay.InputJump: Boolean;
+var
+  I: Integer;
+begin
+  Result :=
+    Container.Pressed.Items[keyW] or
+    Container.Pressed.Items[keyArrowUp];
+
+  { Mouse, or any finger, pressing in upper part of the screen. }
+  if buttonLeft in Container.MousePressed then
+    for I := 0 to Container.TouchesCount - 1 do
+      if (Container.Touches[I].Position.Y >= Container.Height * 0.5) then
+        Exit(true);
+end;
+
+function TStatePlay.InputShot: Boolean;
+begin
+  Result :=
+    Container.Pressed.Items[keySpace] or
+    { Right mouse button, or 2 fingers, are held. }
+    (buttonRight in Container.MousePressed) or
+    (Container.TouchesCount >= 2);
 end;
 
 procedure TStatePlay.ConfigurePlatformPhysics(Platform: TCastleScene);
@@ -456,7 +526,7 @@ begin
 
   Player.RigidBody := RBody;
 
-  WasJumpKeyPressed := false;
+  WasInputJump := false;
 end;
 
 procedure TStatePlay.ConfigurePlayerAbilities(const Player: TCastleScene);
@@ -603,23 +673,23 @@ begin
     for someone }
   PlayerOnGround := (Abs(Vel.Y) < 10);
 
-  if Container.Pressed.Items[keyW] then
+  if InputJump then
   begin
-    if (not WasJumpKeyPressed) and PlayerOnGround then
+    if (not WasInputJump) and PlayerOnGround then
     begin
       DeltaVelocity.Y := JumpVelocity;
-      WasJumpKeyPressed := true;
+      WasInputJump := true;
     end;
   end else
-    WasJumpKeyPressed := false;
+    WasInputJump := false;
 
 
-  if Container.Pressed.Items[keyD] and PlayerOnGround then
+  if InputRight and PlayerOnGround then
   begin
     DeltaVelocity.x := MaxHorizontalVelocity / 2;
   end;
 
-  if Container.Pressed.Items[keyA] and PlayerOnGround then
+  if InputLeft and PlayerOnGround then
   begin
     DeltaVelocity.x := - MaxHorizontalVelocity / 2;
   end;
@@ -633,7 +703,7 @@ begin
   Vel.Z := 0;
 
   { Stop the player without slipping }
-  if PlayerOnGround and (Container.Pressed.Items[keyD] = false) and (Container.Pressed.Items[keyA] = false) then
+  if PlayerOnGround and (not InputRight) and (not InputLeft) then
     Vel.X := 0;
 
   ScenePlayer.RigidBody.LinearVelocity := Vel;
@@ -718,23 +788,23 @@ begin
       PlayerOnGround := false;
   end;
 
-  if Container.Pressed.Items[keyW] then
+  if InputJump then
   begin
-    if (not WasJumpKeyPressed) and PlayerOnGround then
+    if (not WasInputJump) and PlayerOnGround then
     begin
       DeltaVelocity.Y := JumpVelocity;
-      WasJumpKeyPressed := true;
+      WasInputJump := true;
     end;
   end else
-    WasJumpKeyPressed := false;
+    WasInputJump := false;
 
 
-  if Container.Pressed.Items[keyD] and PlayerOnGround then
+  if InputRight and PlayerOnGround then
   begin
     DeltaVelocity.x := MaxHorizontalVelocity / 2;
   end;
 
-  if Container.Pressed.Items[keyA] and PlayerOnGround then
+  if InputLeft and PlayerOnGround then
   begin
     DeltaVelocity.x := - MaxHorizontalVelocity / 2;
   end;
@@ -748,7 +818,7 @@ begin
   Vel.Z := 0;
 
   { Stop the player without slipping }
-  if PlayerOnGround and (Container.Pressed.Items[keyD] = false) and (Container.Pressed.Items[keyA] = false) then
+  if PlayerOnGround and (not InputRight) and (not InputLeft) then
     Vel.X := 0;
 
   ScenePlayer.RigidBody.LinearVelocity := Vel;
@@ -839,9 +909,9 @@ begin
   if PlayerOnGround then
     WasDoubleJump := false;
 
-  if Container.Pressed.Items[keyW] then
+  if InputJump then
   begin
-    if (not WasJumpKeyPressed) and (PlayerOnGround or (PlayerCanDoubleJump and (not WasDoubleJump))) then
+    if (not WasInputJump) and (PlayerOnGround or (PlayerCanDoubleJump and (not WasDoubleJump))) then
     begin
       if not PlayerOnGround then
       begin
@@ -851,12 +921,12 @@ begin
         DeltaVelocity.Y := JumpVelocity - Vel.Y;
       end else
         DeltaVelocity.Y := JumpVelocity;
-      WasJumpKeyPressed := true;
+      WasInputJump := true;
     end;
   end else
-    WasJumpKeyPressed := false;
+    WasInputJump := false;
 
-  if Container.Pressed.Items[keyD] then
+  if InputRight then
   begin
     if PlayerOnGround then
       DeltaVelocity.x := MaxHorizontalVelocity / 2
@@ -869,7 +939,7 @@ begin
       DeltaVelocity.x := MaxHorizontalVelocity / 20;
   end;
 
-  if Container.Pressed.Items[keyA] then
+  if InputLeft then
   begin
     if PlayerOnGround then
       DeltaVelocity.x := - MaxHorizontalVelocity / 2
@@ -891,7 +961,7 @@ begin
   Vel.Z := 0;
 
   { Stop the player without slipping }
-  if PlayerOnGround and (Container.Pressed.Items[keyD] = false) and (Container.Pressed.Items[keyA] = false) then
+  if PlayerOnGround and (not InputRight) and (not InputLeft) then
     Vel.X := 0;
 
   ScenePlayer.RigidBody.LinearVelocity := Vel;
@@ -969,9 +1039,9 @@ begin
   if PlayerOnGround then
     WasDoubleJump := false;
 
-  if Container.Pressed.Items[keyW] then
+  if InputJump then
   begin
-    if (not WasJumpKeyPressed) and (PlayerOnGround or (PlayerCanDoubleJump and (not WasDoubleJump))) then
+    if (not WasInputJump) and (PlayerOnGround or (PlayerCanDoubleJump and (not WasDoubleJump))) then
     begin
       if not PlayerOnGround then
       begin
@@ -981,12 +1051,12 @@ begin
         DeltaVelocity.Y := JumpVelocity - Vel.Y;
       end else
         DeltaVelocity.Y := JumpVelocity;
-      WasJumpKeyPressed := true;
+      WasInputJump := true;
     end;
   end else
-    WasJumpKeyPressed := false;
+    WasInputJump := false;
 
-  if Container.Pressed.Items[keyD] then
+  if InputRight then
   begin
     if PlayerOnGround then
       DeltaVelocity.x := MaxHorizontalVelocity / 2
@@ -999,7 +1069,7 @@ begin
       DeltaVelocity.x := MaxHorizontalVelocity / 20;
   end;
 
-  if Container.Pressed.Items[keyA] then
+  if InputLeft then
   begin
     if PlayerOnGround then
       DeltaVelocity.x := - MaxHorizontalVelocity / 2
@@ -1021,7 +1091,7 @@ begin
   Vel.Z := 0;
 
   { Stop the player without slipping }
-  if PlayerOnGround and (Container.Pressed.Items[keyD] = false) and (Container.Pressed.Items[keyA] = false) then
+  if PlayerOnGround and (not InputRight) and (not InputLeft) then
     Vel.X := 0;
 
   ScenePlayer.RigidBody.LinearVelocity := Vel;
@@ -1132,14 +1202,14 @@ begin
 
   { Flag for velocity calculation when second jump starts in this Update }
   InSecondJump := false;
-  if Container.Pressed.Items[keyW] then
+  if InputJump then
   begin
     { Player can jump when:
       - is on ground
       - he can double jump and there was not WasDoubleJump
       - here we also check if the key has just been pressed (when it is held,
         the player should not keep jumping) }
-    if (not WasJumpKeyPressed) and (PlayerOnGround or (PlayerCanDoubleJump and (not WasDoubleJump))) then
+    if (not WasInputJump) and (PlayerOnGround or (PlayerCanDoubleJump and (not WasDoubleJump))) then
     begin
       SoundEngine.Play(SoundEngine.SoundFromName('jump'));
       if not PlayerOnGround then
@@ -1150,12 +1220,12 @@ begin
         DeltaVelocity.Y := JumpVelocity - Vel.Y;
       end else
         DeltaVelocity.Y := JumpVelocity;
-      WasJumpKeyPressed := true;
+      WasInputJump := true;
     end;
   end else
-    WasJumpKeyPressed := false;
+    WasInputJump := false;
 
-  if Container.Pressed.Items[keyD] then
+  if InputRight then
   begin
     if PlayerOnGround then
       DeltaVelocity.x := MaxHorizontalVelocityChange * SecondsPassed / 2
@@ -1168,7 +1238,7 @@ begin
       DeltaVelocity.x := MaxHorizontalVelocityChange * SecondsPassed / 14;
   end;
 
-  if Container.Pressed.Items[keyA] then
+  if InputLeft then
   begin
     if PlayerOnGround then
       DeltaVelocity.x := - MaxHorizontalVelocityChange * SecondsPassed / 2
@@ -1190,7 +1260,7 @@ begin
   Vel.Z := 0;
 
   { Stop the player without slipping }
-  if PlayerOnGround and (Container.Pressed.Items[keyD] = false) and (Container.Pressed.Items[keyA] = false) then
+  if PlayerOnGround and (not InputRight) and (not InputLeft) then
     Vel.X := 0;
 
   { Player can't move when hurt on ground }
@@ -1235,18 +1305,18 @@ begin
 
   if PlayerCanShot then
   begin
-    if Container.Pressed.Items[keySpace] then
+    if InputShot then
     begin
-      if WasShotKeyPressed = false  then
+      if WasInputShot = false  then
       begin
         SoundEngine.Play(SoundEngine.SoundFromName('shot'));
-        WasShotKeyPressed := true;
+        WasInputShot := true;
 
         Shot(ScenePlayer, ScenePlayer.LocalToWorld(Vector3(ScenePLayer.BoundingBox.SizeX / 2 + 5, 0, 0)),
           Vector3(ScenePlayer.Scale.X, 1, 0));
       end;
     end else
-      WasShotKeyPressed := false;
+      WasInputShot := false;
   end;
 end;
 
@@ -1401,16 +1471,16 @@ begin
   LabelCollectedCoins := DesignedComponent('LabelCollectedCoins') as TCastleLabel;
   MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
   CheckboxCameraFollow := DesignedComponent('CheckboxCameraFollow') as TCastleCheckbox;
-  CheckboxAdvancedPlayer := DesignedComponent('AdvancedPlayer') as TCastleCheckbox;
+  CheckboxAdvancedPlayer := DesignedComponent('CheckboxAdvancedPlayer') as TCastleCheckbox;
   ImageHitPoint1 := DesignedComponent('ImageHitPoint1') as TCastleImageControl;
   ImageHitPoint2 := DesignedComponent('ImageHitPoint2') as TCastleImageControl;
   ImageHitPoint3 := DesignedComponent('ImageHitPoint3') as TCastleImageControl;
   ImageHitPoint4 := DesignedComponent('ImageHitPoint4') as TCastleImageControl;
-  ImageKey := DesignedComponent('GoldKey') as TCastleImageControl;
+  ImageKey := DesignedComponent('ImageKey') as TCastleImageControl;
 
   ScenePlayer := DesignedComponent('ScenePlayer') as TCastleScene;
 
-  WasShotKeyPressed := false;
+  WasInputShot := false;
 
   { Configure physics and behaviors for platforms }
   MovingPlatforms := TMovingPlatformList.Create(true);

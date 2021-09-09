@@ -431,7 +431,7 @@ procedure CopyDirectory(SourcePath, DestinationPath: string);
   #)
 
   Note that to save a screenshot in the most cross-platform way possible, we advise using
-  @link(TUIContainer.SaveScreenToDefaultFile Window.Container.SaveScreenToDefaultFile)
+  @link(TCastleContainer.SaveScreenToDefaultFile Window.Container.SaveScreenToDefaultFile)
   instead, it will use @link(SaveScreenPath) or more elebarate mechanism to work on all platforms.
 
   Example usage to save anything else to user config:
@@ -655,7 +655,7 @@ function ApplicationData(const Path: string): string;
     {$ifdef DARWIN}
     if BundlePath <> '' then
     begin
-      {$ifdef IOS}
+      {$ifdef CASTLE_IOS}
       Result := BundlePath + 'data/';
       {$else}
       Result := BundlePath + 'Contents/Resources/data/';
@@ -1115,7 +1115,7 @@ begin
 end;
 {$endif}
 
-{$if defined(UNIX) and (not (defined(DARWIN) or defined(ANDROID) or defined(CASTLE_NINTENDO_SWITCH) or defined(IOS)))}
+{$if defined(UNIX) and (not (defined(DARWIN) or defined(ANDROID) or defined(CASTLE_NINTENDO_SWITCH) or defined(CASTLE_IOS)))}
 { Get preferred user directory, by calling xdg-user-dir
   ( https://jlk.fjfi.cvut.cz/arch/manpages/man/xdg-user-dir.1.en ).
 
@@ -1280,7 +1280,7 @@ begin
   if HasCachedSaveScreenPath then
     Exit(CachedSaveScreenPath);
 
-  {$if defined(ANDROID) or defined(IOS) or defined(CASTLE_NINTENDO_SWITCH)}
+  {$if defined(ANDROID) or defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH)}
   { These platforms require special treatment. Although we could use
 
       Result := URIToFilenameSafe(ApplicationConfig(''));

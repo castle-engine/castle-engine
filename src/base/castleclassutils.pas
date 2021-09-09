@@ -1195,13 +1195,17 @@ end;
 function TPeekCharStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
 begin
   raise EStreamNotImplementedSeek.Create('TPeekCharStream.Seek not supported');
+  {$ifdef FPC}
   Result := 0; { just to get rid of dummy fpc warning }
+  {$endif}
 end;
 
 function TPeekCharStream.Write(const Buffer; Count: Longint): Longint;
 begin
   raise EStreamNotImplementedWrite.Create('TPeekCharStream.Write not supported');
+  {$ifdef FPC}
   Result := 0; { just to get rid of dummy fpc warning }
+  {$endif}
 end;
 
 procedure TPeekCharStream.UpdateLineColumn(const C: AnsiChar);
@@ -1638,9 +1642,9 @@ end;
 procedure TCastleComponent.CustomSerialization(const SerializationProcess: TSerializationProcess);
 begin
   SerializationProcess.ReadWrite('NonVisualComponents',
-    @SerializeNonVisualComponentsEnumerate,
-    @SerializeNonVisualComponentsAdd,
-    @SerializeNonVisualComponentsClear);
+    {$ifdef CASTLE_OBJFPC}@{$endif} SerializeNonVisualComponentsEnumerate,
+    {$ifdef CASTLE_OBJFPC}@{$endif} SerializeNonVisualComponentsAdd,
+    {$ifdef CASTLE_OBJFPC}@{$endif} SerializeNonVisualComponentsClear);
 end;
 
 procedure TCastleComponent.SerializeNonVisualComponentsEnumerate(const Proc: TGetChildProc);

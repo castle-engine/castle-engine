@@ -78,7 +78,7 @@ type
     FCustomAnimations: TSpriteAnimations;
     FCurrentAnimation: Integer;
     FCustomAnimTimestamp: TFloatTime;
-    FHorizontalFlip, FVerticalFlip, FDiagonalFlip: Boolean;
+    FHorizontalFlip, FVerticalFlip: Boolean;
     FSmoothScalingSafeBorder, FSmoothScaling: Boolean;
     FOwnsImage: Boolean;
     function GetCenterX: Single;
@@ -190,14 +190,13 @@ type
     { @groupEnd }
 
     { Draw the sprite, optionally flipped horizontally and/or vertically.
-      These methods ignore the @link(HorizontalFlip), @link(VerticalFlip),
-      and @link(DiagonalFlip) -- which axis is flipped (if any) depends
-      only on the parameters to these methods.
+      These methods ignore the @link(HorizontalFlip), @link(VerticalFlip)
+      -- which axis is flipped (if any) depends only on the parameters to these methods.
       @groupBegin }
     procedure DrawFlipped(const ScreenRect: TRectangle;
-      const FlipHorizontal, FlipVertical: boolean); overload;
+      const FlipHorizontal, FlipVertical: Boolean); overload;
     procedure DrawFlipped(const ScreenRect: TFloatRectangle;
-      const FlipHorizontal, FlipVertical: boolean); overload;
+      const FlipHorizontal, FlipVertical: Boolean); overload;
     { @groupEnd }
 
     { Move sprite to position and rotation. }
@@ -349,9 +348,6 @@ type
 
     { Is sprite vertical flipped? }
     property VerticalFlip: Boolean read FVerticalFlip write FVerticalFlip default False;
-
-    { Is sprite diagonal flipped? }
-    property DiagonalFlip: Boolean read FDiagonalFlip write FDiagonalFlip default False;
 
      { Use smooth "bilinear" filtering when this is scaled. }
     property SmoothScaling: boolean read FSmoothScaling write SetSmoothScaling;
@@ -648,18 +644,18 @@ end;
 procedure TSprite.Draw(const ScreenRectangle: TFloatRectangle);
 begin
   DrawFlipped(ScreenRectangle,
-    HorizontalFlip xor DiagonalFlip,
-    VerticalFlip xor DiagonalFlip);
+    HorizontalFlip,
+    VerticalFlip);
 end;
 
 procedure TSprite.DrawFlipped(const ScreenRect: TRectangle;
-  const FlipHorizontal, FlipVertical: boolean);
+  const FlipHorizontal, FlipVertical: Boolean);
 begin
   DrawFlipped(FloatRectangle(ScreenRect), FlipHorizontal, FlipVertical);
 end;
 
 procedure TSprite.DrawFlipped(const ScreenRect: TFloatRectangle;
-  const FlipHorizontal, FlipVertical: boolean);
+  const FlipHorizontal, FlipVertical: Boolean);
 var
   F: TFloatRectangle;
 begin

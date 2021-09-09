@@ -41,6 +41,9 @@
 '  /* At smaller view angles, much more iterations needed, otherwise ugly' + LineEnding +
 '     aliasing artifacts quickly appear. */' + LineEnding +
 '  float num_steps = mix(30.0, 10.0, v_to_eye.z);' + LineEnding +
+'#ifdef CASTLE_BUGGY_BUMP_MAPPING_NUM_STEPS' + LineEnding +
+'  num_steps = clamp(num_steps, 10.0, 30.0);' + LineEnding +
+'#endif' + LineEnding +
 '  float step = 1.0 / num_steps;' + LineEnding +
 '' + LineEnding +
 '  /* Should we remove "v_to_eye.z" below, i.e. should we apply' + LineEnding +

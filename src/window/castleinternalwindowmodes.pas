@@ -70,8 +70,8 @@ type
         OldClose_KeyString: String;
         OldControls: TChildrenControls;
         OldAutomaticTouchControl: boolean;
-        procedure WindowOpen(Container: TUIContainer);
-        procedure WindowClose(Container: TUIContainer);
+        procedure WindowOpen(Container: TCastleContainer);
+        procedure WindowClose(Container: TCastleContainer);
       public
         { When adding new attributes to TCastleWindowBase that should be saved/restored,
           you must remember to
@@ -241,7 +241,7 @@ type
 
 { Empty TCastleWindowBase callback, useful as TCastleWindowBase.OnCloseQuery
   to disallow closing the window by user. }
-procedure NoClose(Container: TUIContainer);
+procedure NoClose(Container: TCastleContainer);
 
 implementation
 
@@ -349,7 +349,7 @@ begin
   inherited;
 end;
 
-procedure TGLMode.TWindowState.WindowOpen(Container: TUIContainer);
+procedure TGLMode.TWindowState.WindowOpen(Container: TCastleContainer);
 var
   I: Integer;
   C: TCastleUserInterface;
@@ -367,7 +367,7 @@ begin
   end;
 end;
 
-procedure TGLMode.TWindowState.WindowClose(Container: TUIContainer);
+procedure TGLMode.TWindowState.WindowClose(Container: TCastleContainer);
 var
   I: Integer;
   C: TCastleUserInterface;
@@ -560,7 +560,7 @@ end;
 
 { routines ------------------------------------------------------------------- }
 
-procedure NoClose(Container: TUIContainer);
+procedure NoClose(Container: TCastleContainer);
 begin
 end;
 

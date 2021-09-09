@@ -76,7 +76,7 @@ type
     Ignored if LineFiltering is nil.)
 }
 procedure MyRunCommandIndir(
-  const CurDir: string; const ExeName: string;
+  const CurrentDirectory: string; const ExeName: string;
   const Options: array of string;
   out OutputString: string; out ExitStatus: integer;
   const LineFiltering: TLineFiltering = nil;
@@ -97,7 +97,7 @@ procedure MyRunCommandIndir(
     When not empty, this environment variable has set
     value OverrideEnvironmentValue in the process.) }
 procedure RunCommandIndirPassthrough(
-  const CurDir: string; const ExeName: string;
+  const CurrentDirectory: string; const ExeName: string;
   const Options: array of string;
   var OutputString: String; var ExitStatus: Integer;
   const OverrideEnvironmentName: string = '';
@@ -113,15 +113,15 @@ procedure RunCommandIndirPassthrough(
 procedure RunCommandSimple(
   const ExeName: string; const Options: array of string); overload;
 procedure RunCommandSimple(
-  const CurDir: string; const ExeName: string; const Options: array of string;
+  const CurrentDirectory: string; const ExeName: string; const Options: array of string;
   const OverrideEnvironmentName: string = '';
   const OverrideEnvironmentValue: string = ''); overload;
 
-{ Run the command, and return immediately, without waiting for finish.
-  On Unix, TempPath is used as a location of temporary "nohup" file, it should exist. }
+{ Run the command, and return immediately, without waiting for finish. }
 procedure RunCommandNoWait(
-  const TempPath: string;
-  const ExeName: string; const Options: array of string);
+  const CurrentDirectory: string;
+  const ExeName: string; const Options: array of string;
+  const Flags: TRunCommandFlags = []);
 
 { Determine and create a new (unique, with random number in the name) temp directory. }
 function CreateTemporaryDir: string;
@@ -466,7 +466,7 @@ end;
 
 { Running processes ---------------------------------------------------------- }
 
-procedure MyRunCommandIndir(const CurDir: string;
+procedure MyRunCommandIndir(const CurrentDirectory: string;
   const ExeName: string;const Options: array of string;
   out OutputString: string; out ExitStatus: integer;
   const LineFiltering: TLineFiltering = nil;
@@ -488,8 +488,8 @@ begin
   try
     P := TProcess.Create(nil);
     P.Executable := ExeName;
-    if CurDir <> '' then
-      P.CurrentDirectory := CurDir;
+    if CurrentDirectory <> '' then
+      P.CurrentDirectory := CurrentDirectory;
     if High(Options) >= 0 then
       for I := Low(Options) to High(Options) do
         P.Parameters.Add(Options[I]);
@@ -516,7 +516,7 @@ begin
   end;
 end;
 
-procedure RunCommandIndirPassthrough(const CurDir: string;
+procedure RunCommandIndirPassthrough(const CurrentDirectory: string;
   const ExeName: string;
   const Options: array of string;
   var OutputString: String; var ExitStatus: Integer;
@@ -538,8 +538,8 @@ begin
   try
     P := TProcess.Create(nil);
     P.Executable := ExeName;
-    if CurDir <> '' then
-      P.CurrentDirectory := CurDir;
+    if CurrentDirectory <> '' then
+      P.CurrentDirectory := CurrentDirectory;
     if High(Options) >= 0 then
      for I := Low(Options) to High(Options) do
        P.Parameters.Add(Options[I]);
@@ -583,7 +583,7 @@ begin
 end;
 
 procedure RunCommandSimple(
-  const CurDir: string; const ExeName: string; const Options: array of string;
+  const CurrentDirectory: string; const ExeName: string; const Options: array of string;
   const OverrideEnvironmentName: string = '';
   const OverrideEnvironmentValue: string = '');
 
@@ -593,7 +593,7 @@ procedure RunCommandSimple(
 
     ( Use RunCommandIndirPassthrough to capture output to String and pass-through,
     use RunCommandIndir to only capture output to String. ) }
-  procedure RunCommandNoPipes(const CurDir: string;
+  procedure RunCommandNoPipes(const CurrentDirectory: string;
     const ExeName: string;
     const Options: array of string;
     var ExitStatus: Integer;
@@ -611,8 +611,8 @@ procedure RunCommandSimple(
     try
       P := TProcess.Create(nil);
       P.Executable := ExeName;
-      if CurDir <> '' then
-        P.CurrentDirectory := CurDir;
+      if CurrentDirectory <> '' then
+        P.CurrentDirectory := CurrentDirectory;
       if High(Options) >= 0 then
        for I := Low(Options) to High(Options) do
          P.Parameters.Add(Options[I]);
@@ -655,7 +655,7 @@ begin
         [ExeName, ExeName]);
   end;
 
-  RunCommandNoPipes(CurDir, AbsoluteExeName, Options,
+  RunCommandNoPipes(CurrentDirectory, AbsoluteExeName, Options,
     ProcessStatus, OverrideEnvironmentName, OverrideEnvironmentValue);
 
   // this will cause our own status be non-zero
@@ -678,7 +678,7 @@ end;
     First execution of "Restart and Rebuild" is OK,
     but then doing again "Restart and Rebuild" from this editor
     (that is already under nohup) makes editor instance without output redirected to nohup.out
-    (even when TempPath is random every time to make nohup.out land in different dir),
+    (even when CurrentDirectory is random every time to make nohup.out land in different dir),
     possibly because nohup didn't detect
     that input/output should be redirected to file.
 
@@ -690,21 +690,29 @@ end;
 
     This works, as it always makes the run inside process (like "castle-editor") use output to files,
     so that parent (like "castle-engine editor" call) dying has no effect.
+
+    The additional bonus is that we can put the output files in a temporary directory,
+    or send output to /dev/null,
+    regardless of the CurrentDirectory.
+    In contrast, nohup always put nohup.out in current dir,
+    forcing us to always set current dir to temporary dir (to avoid cluttering user-visible dir),
+    which is not always comfortable (e.g. when editor runs build tool,
+    it's easiest to set current directory = project directory).
 }
 {$define UNIX_RUN_NO_WAIT_BY_SHELL}
 
 procedure RunCommandNoWait(
-  const TempPath: string;
-  const ExeName: string; const Options: array of string);
+  const CurrentDirectory: string;
+  const ExeName: string; const Options: array of string;
+  const Flags: TRunCommandFlags = []);
 var
   P: TProcess;
   I: Integer;
-  {$ifdef UNIX} ShCommand: String; {$endif}
+  {$ifdef UNIX} ShCommand, ShCommandOutput: String; {$endif}
 begin
   P := TProcess.Create(nil);
   try
-    // this is useful on Unix, to place output (from nohup or sh) inside temp directory
-    P.CurrentDirectory := TempPath;
+    P.CurrentDirectory := CurrentDirectory;
 
     {$if defined(UNIX) and defined(UNIX_RUN_NO_WAIT_BY_SHELL)}
     P.Executable := FindExe('sh');
@@ -716,7 +724,11 @@ begin
     ShCommand := '"' + ExeName + '"';
     for I := 0 to High(Options) do
       ShCommand += ' "' + Options[I] + '"';
-    ShCommand += '< /dev/null > run-process-no-wait-' + IntToStr(Random(100000)) + '.log 2>&1';
+    ShCommandOutput :=
+      {$ifdef DEBUG_UNIX_RUN_NO_WAIT_BY_SHELL} InclPathDelim(CreateTemporaryDir) + 'run-process-no-wait-' + IntToStr(Random(100000)) + '.log'
+      {$else} '/dev/null'
+      {$endif};
+    ShCommand += '< /dev/null > ' + ShCommandOutput + ' 2>&1';
     P.Parameters.Add(ShCommand);
 
     {$else}
@@ -740,6 +752,8 @@ begin
       Following http://wiki.lazarus.freepascal.org/Executing_External_Programs . }
     P.InheritHandles := false;
     P.ShowWindow := swoShow;
+    if rcNoConsole in Flags then
+      P.Options := P.Options + [poNoConsole];
 
     WritelnVerbose('Calling ' + P.Executable); // show P.Executable, not ExeName, as code above may set other P.Executable
     WritelnVerbose('  With Working Directory: ' + P.CurrentDirectory);

@@ -171,7 +171,7 @@ type
 
     { In case of @link(TDrawableImage.Draw3x3) the corners
       on screen are scaled by this amount. This is especially useful
-      for UI scaling, see @link(TUIContainer.UIScaling)
+      for UI scaling, see @link(TCastleContainer.UIScaling)
       and @link(TCastleUserInterface.UIScale). }
     property ScaleCorners: Single
       read FScaleCorners write SetScaleCorners default 1;

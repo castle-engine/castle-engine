@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,9 +20,9 @@ function GetUIFont: TCastleAbstractFont;
 procedure SetUIFont(const Value: TCastleAbstractFont);
 
 function GetUIFontSmall: TCastleAbstractFont;
-  deprecated 'use UIFont and temporarily change the size to be smaller, or use TCastleUserInterfaceFont.SmallFont';
+  deprecated 'use any other font (like UIFont or Container.DefaultFont) and just set smaller size (e.g. by TCastleLabel.FontSize)';
 procedure SetUIFontSmall(const Value: TCastleAbstractFont);
-  deprecated 'use UIFont and temporarily change the size to be smaller, or use TCastleUserInterfaceFont.SmallFont';
+  deprecated 'use any other font (like UIFont or Container.DefaultFont) and just set smaller size (e.g. by TCastleLabel.FontSize)';
 
 (*The default font, used throughout the engine as a fallback.
   By default, this is a modern sans-serif font hardcoded into the engine.
@@ -31,7 +31,7 @@ procedure SetUIFontSmall(const Value: TCastleAbstractFont);
 
   Although in most cases it is better to leave @link(UIFont) unchanged
   (treat it like "engine default font"), and instead set your default font by
-  setting @link(TUIContainer.DefaultFont Window.Container.DefaultFont).
+  setting @link(TCastleContainer.DefaultFont Window.Container.DefaultFont).
   You can do it by code, or by editing CastleSettings.xml (this way editor
   will be aware of this new default), see https://castle-engine.io/manual_castle_settings.php .
 

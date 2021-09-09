@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2018 Michalis Kamburelis.
+  Copyright 2014-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Android or iOS services and their configurations. }
+{ Services (on Android and iOS) definitions (parameters) in CastleEngineManifest. }
 unit ToolServices;
 
 interface

@@ -117,7 +117,7 @@ end;
 
 { routines ------------------------------------------------------------------- }
 
-procedure WindowUpdate(Container: TUIContainer);
+procedure WindowUpdate(Container: TCastleContainer);
 begin
   LabelFPS.Caption := 'FPS: ' + Container.Fps.ToString;
 end;

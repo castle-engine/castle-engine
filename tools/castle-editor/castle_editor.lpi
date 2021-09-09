@@ -34,7 +34,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="20">
+    <Units Count="21">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -164,6 +164,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="EditorCodeTools"/>
       </Unit19>
+      <Unit20>
+        <Filename Value="code/castleshellctrls.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="CastleShellCtrls"/>
+      </Unit20>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

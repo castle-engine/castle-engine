@@ -126,8 +126,10 @@ type
     { What happens when @link(Symbol) fails. }
     property SymbolError: TDynLibSymbolError
       read FSymbolError write FSymbolError default seRaise;
+    {$ifdef FPC}
     property SymbolErrorBehaviour: TDynLibSymbolError
       read FSymbolError write FSymbolError default seRaise; deprecated 'use SymbolError';
+    {$endif}
 
     { Return address of given symbol (function name etc.) from loaded dynamic
       library. If the symbol doesn't exist, then SymbolError

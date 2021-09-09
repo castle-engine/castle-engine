@@ -20,10 +20,17 @@
 
 #define MAX_TOUCHES 12
 
+typedef struct TouchInfo {
+    // nil if nothing registered
+    UITouch* uiTouch;
+    // We should send motion event for this
+    bool pendingMotion;
+} TouchInfo;
+
 @interface OpenGLController ()
 {
     CGFloat m_fScale;
-    UITouch* m_arrTouches[MAX_TOUCHES];
+    TouchInfo m_touches[MAX_TOUCHES];
     int m_currentViewWidth;
     int m_currentViewHeight;
 }
@@ -39,7 +46,13 @@
 {
     [super viewDidLoad];
 
-    self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+    // Try to initialize OpenGLES 3, fallback on version 2
+    // (following https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/OpenGLES_ProgrammingGuide/WorkingwithOpenGLESContexts/WorkingwithOpenGLESContexts.html )
+    EAGLContext *context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
+    if (context == nil) {
+        context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+    }
+    self.context = context;
 
     if (!self.context) {
         NSLog(@"Failed to create ES context");
@@ -81,7 +94,10 @@
     // initialize input
 
     self.view.multipleTouchEnabled = YES;
-    for (int i = 0; i < MAX_TOUCHES; i++) m_arrTouches[i] = nil;
+    for (int i = 0; i < MAX_TOUCHES; i++) {
+        m_touches[i].uiTouch = nil;
+        m_touches[i].pendingMotion = FALSE;
+    }
 
     [self setupGL];
 }
@@ -197,14 +213,16 @@
 	CGEApp_Resize(newViewWidth, newViewHeight, [self statusBarHeight]);
     }
 
-    // send accumulated touch positions (sending them right away jams the engine)
+    // send accumulated motion events (sending them right away can jam the engine)
     for (NSInteger i = 0; i < MAX_TOUCHES; i++)
     {
-        if (m_arrTouches[i] == nil) continue;
+        if (m_touches[i].uiTouch == nil) continue;
+        if (!m_touches[i].pendingMotion) continue;
 
-        CGPoint pt = [m_arrTouches[i] locationInView:self.view];
+        CGPoint pt = [m_touches[i].uiTouch locationInView:self.view];
         [self RecalcTouchPosForCGE:&pt];
         CGEApp_Motion(pt.x, pt.y, (int)i);
+        m_touches[i].pendingMotion = FALSE;
     }
 
     CGEApp_Update();
@@ -230,7 +248,9 @@
 - (NSInteger)IndexOfTouch:(UITouch*)touch
 {
     for (NSInteger i = 0; i < MAX_TOUCHES; i++)
-        if (m_arrTouches[i] == touch) return i;
+        if (m_touches[i].uiTouch == touch) {
+            return i;
+        }
     return -1;
 }
 
@@ -244,10 +264,11 @@
 
         for (NSInteger i = 0; i < MAX_TOUCHES; i++)
         {
-            if (m_arrTouches[i]==nil)    // find empty place
+            if (m_touches[i].uiTouch == nil)    // find empty place
             {
                 nFingerIdx = i;
-                m_arrTouches[i] = touch;
+                m_touches[i].uiTouch = touch;
+                m_touches[i].pendingMotion = FALSE; // initial value
                 break;
             }
         }
@@ -269,7 +290,7 @@
         NSInteger nFingerIdx = [self IndexOfTouch:touch];
         if (nFingerIdx == -1) continue;
 
-        m_arrTouches[nFingerIdx] = nil;
+        m_touches[nFingerIdx].uiTouch = nil;
 
         CGPoint pt = [touch locationInView:self.view];
         [self RecalcTouchPosForCGE:&pt];
@@ -294,17 +315,14 @@
 //-----------------------------------------------------------------
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    // note: motions are called in update function. Calling it too frequently jams the engine.
-    /*
+    // CGEApp_Motion will be called in the Update function. Calling it too frequently can jam the engine.
     for (UITouch *touch in touches)
     {
         NSInteger nFingerIdx = [self IndexOfTouch:touch];
         if (nFingerIdx == -1) continue;
 
-        CGPoint pt = [touch locationInView:self.view];
-        [self RecalcTouchPosForCGE:&pt];
-        CGEApp_Motion(pt.x, pt.y, nFingerIdx);
-    }*/
+        m_touches[nFingerIdx].pendingMotion = TRUE;
+    }
 
     [super touchesMoved:touches withEvent:event];
 }
