@@ -101,7 +101,7 @@ public class ServiceTenjin extends ServiceAbstract
             return;
         }
 
-        double price = ((double) product.priceAmountMicros / 10000.0);
+        double price = ((double) product.priceAmountMicros / 1000000.0);
         tenjinInstance.transaction(product.id, product.priceCurrencyCode, 1, price, purchaseData, signature);
     }
 }
