@@ -1350,7 +1350,9 @@ begin
   UpdateRenameItem(nil);
   UpdateFormCaption(nil);
 
-  if (Design <> nil) and UserConfig.GetValue('ProjectForm_DesignSaved', false) then
+  if (Design <> nil) and
+     UserConfig.GetValue('ProjectForm_DesignSaved', false) and
+     (not IsDockUIEnabled) then
   begin
     NewPanelRightWidth := UserConfig.GetValue('ProjectForm_Design.PanelRight.Width', -MaxInt);
     NewPanelLeftWidth := UserConfig.GetValue('ProjectForm_Design.PanelLeft.Width', -MaxInt);
