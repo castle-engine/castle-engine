@@ -742,7 +742,7 @@ begin
     may be called many times, because ANativeActivity_onCreate may be called
     multple times. So things below must be implemented in a secure way,
     to work Ok when executed multiple times. }
-  GLES20Initialization;
+  GLESInitialization;
   OpenALInitialization;
   VorbisFileInitialization;
   InitializeAndroidCWString;

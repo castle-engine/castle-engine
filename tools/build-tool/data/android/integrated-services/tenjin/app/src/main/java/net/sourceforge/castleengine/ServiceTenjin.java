@@ -30,7 +30,9 @@ public class ServiceTenjin extends ServiceAbstract
 {
     private static final String CATEGORY = "ServiceTenjin";
 
-    private boolean connected;
+    private boolean initialized;
+    private boolean resumed;
+    private String apiKey = ""; // never null
     private TenjinSDK tenjinInstance;
 
     public ServiceTenjin(MainActivity activity)
@@ -46,8 +48,15 @@ public class ServiceTenjin extends ServiceAbstract
     @Override
     public boolean messageReceived(String[] parts)
     {
+        if (parts.length == 2 && parts[0].equals("tenjin-initialize")) {
+            apiKey = parts[1];
+            if (resumed) {
+                initialize();
+            }
+            return true;
+        } else
         if (parts.length == 2 && parts[0].equals("tenjin-send-event")) {
-            if (connected) {
+            if (initialized) {
                 tenjinInstance.eventWithName(parts[1]);
             }
             return true;
@@ -57,18 +66,38 @@ public class ServiceTenjin extends ServiceAbstract
         }
     }
 
+    // Initilize Tenjin. Call only when resumed, and apiKey is non-empty.
+    private void initialize()
+    {
+        if ((!resumed) || apiKey.isEmpty()) {
+            logWarning(CATEGORY, "initialize called when not resumed, or not set apiKey");
+            return;
+        }
+
+        tenjinInstance = TenjinSDK.getInstance(getActivity(), apiKey);
+        tenjinInstance.connect();
+        initialized = true;
+    }
+
     @Override
     public void onResume()
     {
-        tenjinInstance = TenjinSDK.getInstance(getActivity(), "${ANDROID.TENJIN.API_KEY}");
-        tenjinInstance.connect();
-        connected = true;
+        resumed = true;
+        if (!apiKey.isEmpty()) {
+            initialize();
+        }
+    }
+
+    @Override
+    public void onPause()
+    {
+        resumed = false;
     }
 
     @Override
     public void onPurchase(AvailableProduct product, String purchaseData, String signature)
     {
-        if (!connected) {
+        if (!initialized) {
             return;
         }
 

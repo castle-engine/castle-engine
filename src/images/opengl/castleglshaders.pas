@@ -1785,32 +1785,29 @@ end;
 
 procedure TGLSLProgram.SetTransformFeedbackVaryings(const Varyings: array of PChar; const IsSingleBufferMode: Boolean);
 var
-  {$ifndef OpenGLES}
   TransformFeedbackBufferMode, ErrorCode: TGLuint;
-  {$endif}
   VaryingLength: Cardinal;
 begin;
   VaryingLength := Length(Varyings);
   if VaryingLength > 0 then
   begin
     {$ifdef OpenGLES}
-    raise EGLSLTransformFeedbackError.Create('Transform feedback not supported by OpenGLES 2.0');
+    if not (GLFeatures.VersionES_3_0) then
+      raise EGLSLTransformFeedbackError.Create('OpenGL ES 2.0 doesn''t support Transform Feedback');
     {$else}
-    if GLVersion.AtLeast(3, 0) and (FSupport = gsStandard) then
-    begin
-      if IsSingleBufferMode then
-        TransformFeedbackBufferMode := GL_INTERLEAVED_ATTRIBS
-      else
-        TransformFeedbackBufferMode := GL_SEPARATE_ATTRIBS;
-      glTransformFeedbackVaryings(ProgramId, VaryingLength, @Varyings[0], TransformFeedbackBufferMode);
-      ErrorCode := glGetError();
-      if ErrorCode = GL_INVALID_VALUE then
-      begin
-        raise EGLSLTransformFeedbackError.Create('Error occured after setting transform feedback varyings');
-      end;
-    end else
-      raise EGLSLTransformFeedbackError.Create('Transform feedback not supported by your OpenGL version');
+    if not (GLFeatures.Version_3_0 and (FSupport = gsStandard)) then
+      raise EGLSLTransformFeedbackError.Create('Transform feedback not supported by your OpenGL(ES) version');
     {$endif}
+    if IsSingleBufferMode then
+      TransformFeedbackBufferMode := GL_INTERLEAVED_ATTRIBS
+    else
+      TransformFeedbackBufferMode := GL_SEPARATE_ATTRIBS;
+    glTransformFeedbackVaryings(ProgramId, VaryingLength, @Varyings[0], TransformFeedbackBufferMode);
+    ErrorCode := glGetError();
+    if ErrorCode = GL_INVALID_VALUE then
+    begin
+      raise EGLSLTransformFeedbackError.Create('Error occured after setting transform feedback varyings');
+    end;
   end;
 end;
 

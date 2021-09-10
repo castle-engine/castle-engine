@@ -133,7 +133,6 @@ type
       FDistanceCulling: Single;
 
       FReceiveShadowVolumes: boolean;
-      RegisteredGLContextCloseListener: boolean;
       FTempPrepareParams: TPrepareParams;
       { Camera position, in local scene coordinates, known during the Render call. }
       RenderCameraPosition: TVector3;
@@ -216,8 +215,6 @@ type
     procedure LocalRenderOutside(
       const TestShapeVisibility: TTestShapeVisibility;
       const Params: TRenderParams);
-
-    procedure GLContextCloseEvent(Sender: TObject);
 
     function Batching: TBatchShapes;
 
@@ -714,13 +711,8 @@ begin
   FreeAndNil(FTempPrepareParams);
   FreeAndNil(FBatching);
 
-  if RegisteredGLContextCloseListener and
-     (ApplicationProperties <> nil) then
-  begin
-    ApplicationProperties.OnGLContextCloseObject.Remove(@GLContextCloseEvent);
-    RegisteredGLContextCloseListener := false;
-  end;
-
+  { Make sure to free TCastleScene resources now, even though TCastleTransform.Destroy
+    will also call it later -- but then we are in more "uninitialized" state. }
   GLContextClose;
 
   { Note that this calls Renderer.RenderOptions, so use this before
@@ -849,11 +841,6 @@ begin
 
   if FBatching <> nil then
     FBatching.GLContextClose;
-end;
-
-procedure TCastleScene.GLContextCloseEvent(Sender: TObject);
-begin
-  GLContextClose;
 end;
 
 function TCastleScene.ShapeFog(const Shape: TShape; const GlobalFog: TFogNode): TFogFunctionality;
@@ -1318,12 +1305,6 @@ begin
   begin
     WritelnLog('PrepareResources', 'OpenGL context not available, skipping preparing TCastleScene OpenGL resources');
     Exit;
-  end;
-
-  if not RegisteredGLContextCloseListener then
-  begin
-    RegisteredGLContextCloseListener := true;
-    ApplicationProperties.OnGLContextCloseObject.Add(@GLContextCloseEvent);
   end;
 
   { When preparing resources, files (like textures) may get loaded,
@@ -2116,11 +2097,7 @@ begin
     Testcase: otherwise the noise1 texture of the screen effect in
     "The Unholy Society" is not released from OpenGL, we get warning from
     TextureMemoryProfiler. }
-  if not RegisteredGLContextCloseListener then
-  begin
-    RegisteredGLContextCloseListener := true;
-    ApplicationProperties.OnGLContextCloseObject.Add(@GLContextCloseEvent);
-  end;
+  RegisterGLContextClose;
 
   for I := 0 to ScreenEffectNodes.Count - 1 do
   begin

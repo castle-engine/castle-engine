@@ -256,7 +256,7 @@
     {$ifdef CASTLE_NINTENDO_SWITCH}
       {$define CastleGL := CastleInternalNxGLES20}
     {$else}
-      {$define CastleGL := CastleGLES20}
+      {$define CastleGL := CastleGLES}
     {$endif}
   {$endif}
 

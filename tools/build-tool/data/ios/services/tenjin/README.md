@@ -16,7 +16,6 @@ Declare it like this in [CastleEngineManifest.xml](https://github.com/castle-eng
   <ios>
     <services>
       <service name="tenjin">
-        <parameter key="api_key" value="xxx" />
         <parameter key="user_tracking_usage_description" value="Installation statistics help us improve the game" />
       </service>
     </services>
@@ -25,3 +24,28 @@ Declare it like this in [CastleEngineManifest.xml](https://github.com/castle-eng
 ~~~~
 
 The `user_tracking_usage_description` value is specified for Apple [NSUserTrackingUsageDescription](https://developer.apple.com/documentation/bundleresources/information_property_list/nsusertrackingusagedescription), it is shown to the user by the iOS, to explain why Tenjin needs to identify user for statistics.
+
+## Use from Pascal
+
+*(Note that working with Tenjin on Android and iOS is the same from Pascal, so you can use a single code to handle both.)*
+
+Create a single instance of `TCastleTenjin` class (from `CastleTenjin` unit). You can do this e.g. in the `Application.OnInitialize` callback. You can use the fact that `TCastleTenjin` descends from `TComponent`, and set the owner of it to be `Application`, to make it freed automatically.
+
+Then initialize the analytics reporting. Make sure to ask users for permission to do this, in particular in EU where GDPR is in effect. Make sure to mention this in your application's privacy policy too.
+
+Like this:
+
+```pascal
+var
+  MyTenjin: TCastleTenjin;
+
+procedure ApplicationInitialize;
+begin
+  ...
+
+  MyTenjin := TCastleTenjin.Create(Application);
+  MyTenjin.Initialize('YOUR-TENJIN-API-KEY');
+end;
+```
+
+Optionally you can also send custom events to Tenjin. Just call from anywhere `MyTenjin.SendEvent('event_name');`.

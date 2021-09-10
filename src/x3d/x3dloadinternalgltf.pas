@@ -1100,6 +1100,20 @@ var
     end;
   end;
 
+  function FixTextureUrl(const Url: String): String;
+  begin
+    Result := Url;
+
+    { Workaround https://github.com/castle-engine/castle-engine/issues/339 }
+    if Pos('\', Result) <> 0 then
+    begin
+      WritelnWarning('URL in glTF contains a backslash "\", assuming that slash was meant "/": "%s"', [
+        Result
+      ]);
+      StringReplaceAllVar(Result, '\', '/');
+    end;
+  end;
+
   procedure ReadTexture(const GltfTextureAtMaterial: TTexture;
     out Texture: TAbstractX3DTexture2DNode; out TexMapping: String);
   var
@@ -1126,13 +1140,13 @@ var
             if FfmpegVideoMimeType(URIMimeType(GltfImage.URI), false) then
             begin
               Texture := TMovieTextureNode.Create('', BaseUrl);
-              TMovieTextureNode(Texture).SetUrl([GltfImage.URI]);
+              TMovieTextureNode(Texture).SetUrl([FixTextureUrl(GltfImage.URI)]);
               TMovieTextureNode(Texture).FlipVertically := true;
               TMovieTextureNode(Texture).Loop := true;
             end else
             begin
               Texture := TImageTextureNode.Create('', BaseUrl);
-              TImageTextureNode(Texture).SetUrl([GltfImage.URI]);
+              TImageTextureNode(Texture).SetUrl([FixTextureUrl(GltfImage.URI)]);
 
               { glTF specification defines (0,0) texture coord to be
                 at top-left corner, while X3D and OpenGL and OpenGLES expect it be

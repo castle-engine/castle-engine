@@ -27,32 +27,37 @@
 
 @implementation TenjinService
 
-- (void)application:(UIApplication *) application
-    didFinishLaunchingWithOptions:(NSDictionary *) launchOptions
+- (void)initialize:(NSString*) apiKey
 {
-    [TenjinSDK initialize:@"${IOS.TENJIN.API_KEY}"];
+    [TenjinSDK initialize:apiKey];
 
-    connected = FALSE;
+    initialized = FALSE;
 
     if (@available(iOS 14, *)) {
         /* initialize Tenjin using iOS >= 14 prompt that allows to cancel tracking,
            https://docs.tenjin.com/en/send-events/ios.html */
         [ATTrackingManager requestTrackingAuthorizationWithCompletionHandler:^(ATTrackingManagerAuthorizationStatus status) {
             [TenjinSDK connect];
-            connected = TRUE;
+            initialized = TRUE;
         }];
     } else {
         [TenjinSDK connect];
-        connected = TRUE;
+        initialized = TRUE;
     }
 }
 
 - (bool)messageReceived:(NSArray* )message
 {
     if (message.count == 2 &&
+        [[message objectAtIndex: 0] isEqualToString:@"tenjin-initialize"])
+    {
+        [self initialize: [message objectAtIndex: 1]];
+        return TRUE;
+    } else
+    if (message.count == 2 &&
         [[message objectAtIndex: 0] isEqualToString:@"tenjin-send-event"])
     {
-        if (connected) {
+        if (initialized) {
             [TenjinSDK sendEventWithName: [message objectAtIndex: 1]];
         }
         return TRUE;
@@ -64,7 +69,7 @@
 - (void)onPurchase:(AvailableProduct*) product
   withTransaction:(SKPaymentTransaction*) transaction
 {
-    if (!connected) {
+    if (!initialized) {
         return;
     }
 

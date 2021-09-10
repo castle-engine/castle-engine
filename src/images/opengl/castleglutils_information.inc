@@ -176,7 +176,17 @@ begin
     VendorReport(GLVersion) + NL +
     NL +
 
-    {$ifndef OpenGLES}
+    {$ifdef OpenGLES}
+    '------------------------' + NL +
+    'Versions available:' + NL +
+    NL +
+    '  2_0: ' + BoolToStr(GLFeatures.VersionES_2_0, true) + NL +
+    '  3.0: ' + BoolToStr(GLFeatures.VersionES_3_0, true) + NL +
+    '  3.1: ' + BoolToStr(GLFeatures.VersionES_3_1, true) + NL +
+    '  3.2: ' + BoolToStr(GLFeatures.VersionES_3_2, true) + NL +
+    NL +
+
+    {$else}
     '------------------------' + NL +
     'Real versions available:' + NL +
     '(checks both version string and actual functions availability in GL library, to secure from buggy implementations)' + NL +

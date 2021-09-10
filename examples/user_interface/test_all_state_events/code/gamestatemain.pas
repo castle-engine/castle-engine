@@ -32,6 +32,9 @@ type
     Timer: TCastleTimer;
     LabelCharsPressed: TCastleLabel;
     LabelKeysPressed: TCastleLabel;
+    LabelMousePressed: TCastleLabel;
+    LabelTouches: TCastleLabel;
+    LabelModifierKeys: TCastleLabel;
 
     { Other }
     Notifications: TCastleNotifications;
@@ -51,8 +54,8 @@ var
 
 implementation
 
-uses CastleWindow, CastleVectors, CastleColors,
-  SysUtils;
+uses SysUtils,
+  CastleWindow, CastleVectors, CastleColors, CastleStringUtils;
 
 { TStateMain ----------------------------------------------------------------- }
 
@@ -72,6 +75,9 @@ begin
   Timer := DesignedComponent('Timer') as TCastleTimer;
   LabelCharsPressed := DesignedComponent('LabelCharsPressed') as TCastleLabel;
   LabelKeysPressed := DesignedComponent('LabelKeysPressed') as TCastleLabel;
+  LabelMousePressed := DesignedComponent('LabelMousePressed') as TCastleLabel;
+  LabelTouches := DesignedComponent('LabelTouches') as TCastleLabel;
+  LabelModifierKeys := DesignedComponent('LabelModifierKeys') as TCastleLabel;
 
   { Add TCastleNotifications from code, as for now we don't expose them in editor. }
   Notifications := TCastleNotifications.Create(FreeAtStop);
@@ -159,7 +165,9 @@ procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolea
 var
   C: Char;
   Key: TKey;
-  S: string;
+  MouseButton: TCastleMouseButton;
+  S: String;
+  I: Integer;
 begin
   inherited; // allow the ancestor to handle event
 
@@ -170,22 +178,32 @@ begin
   S := '';
   for C := Low(C) to High(C) do
     if Container.Pressed.Characters[C] then
-    begin
-      if S <> '' then S += ', ';
-      S += CharToNiceStr(C);
-    end;
-  S := 'Characters pressed now: [' + S + ']';
+      S := SAppendPart(S, ', ', CharToNiceStr(C));
+  S := 'Characters pressed: [' + S + ']';
   LabelCharsPressed.Caption := S;
 
   S := '';
   for Key := Low(Key) to High(Key) do
     if Container.Pressed[Key] then
-    begin
-      if S <> '' then S += ', ';
-      S += KeyToStr(Key);
-    end;
-  S := 'Keys pressed now: [' + S + ']';
+      S := SAppendPart(S, ', ', KeyToStr(Key));
+  S := 'Keys pressed: [' + S + ']';
   LabelKeysPressed.Caption := S;
+
+  LabelModifierKeys.Caption := 'Modifier keys pressed: ' +
+    ModifierKeysToNiceStr(Container.Pressed.Modifiers);
+
+  S := '';
+  for MouseButton := Low(MouseButton) to High(MouseButton) do
+    if MouseButton in Container.MousePressed then
+      S := SAppendPart(S, ', ', MouseButtonStr[MouseButton]);
+  S := 'Mouse buttons pressed: [' + S + ']';
+  LabelMousePressed.Caption := S;
+
+  S := '';
+  for I := 0 to Container.TouchesCount - 1 do
+    S := SAppendPart(S, ', ', IntToStr(Container.Touches[I].FingerIndex));
+  S := 'Fingers touched: [' + S + ']';
+  LabelTouches.Caption := S;
 
   // Just a test that checking for keys, and using MessageOk, works from Update
   if Container.Pressed[keyF12] then
