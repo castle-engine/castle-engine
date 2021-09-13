@@ -14,6 +14,71 @@
 {$ifdef read_interface}
 const
   LineEnding = SLineBreak;
+
+  // WGL constants
+  WGL_NUMBER_PIXEL_FORMATS_ARB = $2000;
+  WGL_DRAW_TO_WINDOW_ARB = $2001;
+  WGL_DRAW_TO_BITMAP_ARB = $2002;
+  WGL_ACCELERATION_ARB = $2003;
+  WGL_NEED_PALETTE_ARB = $2004;
+  WGL_NEED_SYSTEM_PALETTE_ARB = $2005;
+  WGL_SWAP_LAYER_BUFFERS_ARB = $2006;
+  WGL_SWAP_METHOD_ARB = $2007;
+  WGL_NUMBER_OVERLAYS_ARB = $2008;
+  WGL_NUMBER_UNDERLAYS_ARB = $2009;
+  WGL_TRANSPARENT_ARB = $200A;
+  WGL_TRANSPARENT_RED_VALUE_ARB = $2037;
+  WGL_TRANSPARENT_GREEN_VALUE_ARB = $2038;
+  WGL_TRANSPARENT_BLUE_VALUE_ARB = $2039;
+  WGL_TRANSPARENT_ALPHA_VALUE_ARB = $203A;
+  WGL_TRANSPARENT_INDEX_VALUE_ARB = $203B;
+  WGL_SHARE_DEPTH_ARB = $200C;
+  WGL_SHARE_STENCIL_ARB = $200D;
+  WGL_SHARE_ACCUM_ARB = $200E;
+  WGL_SUPPORT_GDI_ARB = $200F;
+  WGL_SUPPORT_OPENGL_ARB = $2010;
+  WGL_DOUBLE_BUFFER_ARB = $2011;
+  WGL_STEREO_ARB = $2012;
+  WGL_PIXEL_TYPE_ARB = $2013;
+  WGL_COLOR_BITS_ARB = $2014;
+  WGL_RED_BITS_ARB = $2015;
+  WGL_RED_SHIFT_ARB = $2016;
+  WGL_GREEN_BITS_ARB = $2017;
+  WGL_GREEN_SHIFT_ARB = $2018;
+  WGL_BLUE_BITS_ARB = $2019;
+  WGL_BLUE_SHIFT_ARB = $201A;
+  WGL_ALPHA_BITS_ARB = $201B;
+  WGL_ALPHA_SHIFT_ARB = $201C;
+  WGL_ACCUM_BITS_ARB = $201D;
+  WGL_ACCUM_RED_BITS_ARB = $201E;
+  WGL_ACCUM_GREEN_BITS_ARB = $201F;
+  WGL_ACCUM_BLUE_BITS_ARB = $2020;
+  WGL_ACCUM_ALPHA_BITS_ARB = $2021;
+  WGL_DEPTH_BITS_ARB = $2022;
+  WGL_STENCIL_BITS_ARB = $2023;
+  WGL_AUX_BUFFERS_ARB = $2024;
+  WGL_NO_ACCELERATION_ARB = $2025;
+  WGL_GENERIC_ACCELERATION_ARB = $2026;
+  WGL_FULL_ACCELERATION_ARB = $2027;
+  WGL_SWAP_EXCHANGE_ARB = $2028;
+  WGL_SWAP_COPY_ARB = $2029;
+  WGL_SWAP_UNDEFINED_ARB = $202A;
+  WGL_TYPE_RGBA_ARB = $202B;
+  WGL_TYPE_COLORINDEX_ARB = $202C;
+  WGL_SAMPLE_BUFFERS_ARB = $2041;
+  WGL_SAMPLES_ARB = $2042;
+
+  // https://community.embarcadero.com/article/technical-articles/149-tools/13303-detecting-plugnplay-hardware-changes
+  DBT_DEVICEARRIVAL = $8000;
+  DBT_DEVICEQUERYREMOVE = $8001;
+  DBT_DEVICEQUERYREMOVEFAILED = $8002;
+  DBT_DEVICEREMOVEPENDING = $8003;
+  DBT_DEVICEREMOVECOMPLETE = $8004;
+  DBT_DEVICETYPESPECIFIC = $8005;
+  DBT_CONFIGCHANGED = $0018;
+
+  DBT_DEVTYP_DEVICEINTERFACE = $00000005;
+
 type
   SizeInt = Integer;
   QWord = UInt64;
@@ -38,10 +103,21 @@ type
     property SourceOwner : Boolean Read Fowner Write FOwner;
   end;
 
+  DEV_BROADCAST_DEVICEINTERFACE = record
+    dbcc_size: DWORD;
+    dbcc_devicetype: DWORD;
+    dbcc_reserved: DWORD;
+    dbcc_classguid: TGuid;
+    dbcc_name: array [0..0] of Char;
+  end;
+
 var
   OnGetVendorName      : TGetVendorNameEvent;
   OnGetApplicationName : TGetAppNameEvent;
-  wglGetExtensionsStringARB: function(hdc: HDC): PAnsiChar;
+  wglGetExtensionsStringARB: function(hdc: HDC): PAnsiChar; stdcall;
+  wglGetPixelFormatAttribivARB: function(hdc: HDC; iPixelFormat: GLint; iLayerPlane: GLint; nAttributes: GLuint; const piAttributes: PGLint; piValues: PGLint): BOOL; stdcall;
+  wglGetPixelFormatAttribfvARB: function(hdc: HDC; iPixelFormat: GLint; iLayerPlane: GLint; nAttributes: GLuint; const piAttributes: PGLint; pfValues: PGLfloat): BOOL; stdcall;
+  wglChoosePixelFormatARB: function(hdc: HDC; const piAttribIList: PGLint; const pfAttribFList: PGLfloat; nMaxFormats: GLuint; piFormats: PGLint; nNumFormats: PGLuint): BOOL; stdcall;
 
 function GetMem(const Size: Integer): Pointer;
 function VendorName: string;
@@ -78,6 +154,7 @@ function Load_GL_ARB_shadow: Boolean;
 function Load_GL_EXT_fog_coord: Boolean;
 function Load_GL_NV_multisample_filter_hint: Boolean;
 function Load_WGL_ARB_extensions_string: Boolean;
+function Load_WGL_ARB_pixel_format: Boolean;
 
 
 {$endif read_interface}
@@ -1181,6 +1258,29 @@ begin
   begin
     wglGetExtensionsStringARB := wglGetProcAddress('wglGetExtensionsStringARB');
     if not Assigned(wglGetExtensionsStringARB) then Exit;
+    Result := TRUE;
+  end;
+
+end;
+
+function Load_WGL_ARB_pixel_format: Boolean;
+var
+  extstring: AnsiString;
+begin
+
+  Result := FALSE;
+  wglGetExtensionsStringARB := wglGetProcAddress('wglGetExtensionsStringARB');
+  if not Assigned(wglGetExtensionsStringARB) then Exit;
+  extstring := wglGetExtensionsStringARB(wglGetCurrentDC);
+
+  if glext_ExtensionSupported('WGL_ARB_pixel_format', extstring) then
+  begin
+    wglGetPixelFormatAttribivARB := wglGetProcAddress('wglGetPixelFormatAttribivARB');
+    if not Assigned(wglGetPixelFormatAttribivARB) then Exit;
+    wglGetPixelFormatAttribfvARB := wglGetProcAddress('wglGetPixelFormatAttribfvARB');
+    if not Assigned(wglGetPixelFormatAttribfvARB) then Exit;
+    wglChoosePixelFormatARB := wglGetProcAddress('wglChoosePixelFormatARB');
+    if not Assigned(wglChoosePixelFormatARB) then Exit;
     Result := TRUE;
   end;
 

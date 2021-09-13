@@ -547,10 +547,13 @@ begin
 
   { This needs to be called before using COM interfaces with MSXML. }
   CoInitializeEx(nil, 0);
+
+  InternalDocument := XMLDoc.TXMLDocument.Create(Self);
 end;
 
 function TDOMDocument.CreateComment(const CommentContents: String): TDOMComment;
 begin
+
   Result := TDOMComment.Create(Self, InternalDocument.CreateNode(CommentContents, ntComment));
 end;
 

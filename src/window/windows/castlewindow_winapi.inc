@@ -39,6 +39,8 @@
   first position in the uses list to be overwritten by subsequent used units }
 {$ifdef FPC}
 JwaWinUser, JwaDbt,
+{$else}
+Winapi.Messages, Character,
 {$endif}
 { /note }
 Windows, CommDlg,
@@ -393,8 +395,11 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
         We then hackishly ignored MultiByteToWideChar result,
         and used first returned WideChar.
     }
-
+    {$ifdef FPC}
     Exit(UTF8Encode(WideChar(CharMsgWParam)));
+    {$else}
+    Exit(WideChar(CharMsgWParam));
+    {$endif}
   end;
 
   { Handle WinAPI WM_KEYDOWN message by calling DoKeyDown method.
@@ -432,7 +437,7 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
       gets characters in ANSI encoding.
     }
 
-    if PeekMessageW(@CharMsg, h_Wnd, WM_CHAR, WM_CHAR, PM_REMOVE) then
+    if PeekMessageW({$ifdef FPC}@{$endif}CharMsg, h_Wnd, WM_CHAR, WM_CHAR, PM_REMOVE) then
       KeyString := ConvertWmCharToString(CharMsg.wParam)
     else
       KeyString := '';
@@ -450,15 +455,20 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
       to left/right bracket. }
     if Key = keyNone then
     begin
-      case KeyString of
-        '[' : begin VK_LeftBracket_Exists  := true; VK_LeftBracket  := wParm; Key := keyLeftBracket ; end;
-        ']' : begin VK_RightBracket_Exists := true; VK_RightBracket := wParm; Key := keyRightBracket; end;
-        '''': begin VK_Apostrophe_Exists   := true; VK_Apostrophe   := wParm; Key := keyApostrophe  ; end;
-        ';' : begin VK_Semicolon_Exists    := true; VK_Semicolon    := wParm; Key := keySemicolon   ; end;
-        '/' : begin VK_Slash_Exists        := true; VK_Slash        := wParm; Key := keySlash       ; end;
-        '`' : begin VK_BackQuote_Exists    := true; VK_BackQuote    := wParm; Key := keyBackQuote   ; end;
-        '\' : begin VK_BackSlash_Exists    := true; VK_BackSlash    := wParm; Key := keyBackSlash   ; end;
-      end;
+      if KeyString = '[' then
+        begin VK_LeftBracket_Exists  := true; VK_LeftBracket  := wParm; Key := keyLeftBracket ; end
+      else if KeyString = ']' then
+        begin VK_RightBracket_Exists := true; VK_RightBracket := wParm; Key := keyRightBracket; end
+      else if KeyString = '''' then
+        begin VK_Apostrophe_Exists   := true; VK_Apostrophe   := wParm; Key := keyApostrophe  ; end
+      else if KeyString = ';' then
+        begin VK_Semicolon_Exists    := true; VK_Semicolon    := wParm; Key := keySemicolon   ; end
+      else if KeyString = '/' then
+        begin VK_Slash_Exists        := true; VK_Slash        := wParm; Key := keySlash       ; end
+      else if KeyString = '`' then
+        begin VK_BackQuote_Exists    := true; VK_BackQuote    := wParm; Key := keyBackQuote   ; end
+      else if KeyString = '\' then
+        begin VK_BackSlash_Exists    := true; VK_BackSlash    := wParm; Key := keyBackSlash   ; end;
     end;
 
     { Fix some cases when KeyString should better correspond to Key }
@@ -512,7 +522,7 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
     KeyString := ConvertWmCharToString(WParm);
     if KeyString <> '' then
       DoKeyDown(keyNone, KeyString);
-    WritelnLog('Received WM_CHAR. Test information for https://github.com/castle-engine/castle-engine/issues/159 : WParam ' + IntToStr(WParm) + ' string: ' + UTF8ToHtmlEntities(KeyString));
+    WritelnLog('Received WM_CHAR. Test information for https://github.com/castle-engine/castle-engine/issues/159 : WParam ' + IntToStr(WParm) + ' string: ' + {$ifdef FPC}UTF8ToHtmlEntities({$endif}KeyString{$ifdef FPC}){$endif});
   end;
 
   { Handle WM_UNICHAR that reports a key press as 32-bit Unicode character.
@@ -552,7 +562,7 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
         This is the same: https://en.wikipedia.org/wiki/UTF-32,
         """Each 32-bit value in UTF-32 represents one Unicode code point and is exactly equal to that code point's numerical value. """
       }
-      KeyString := UnicodeToUTF8(WParm);
+      KeyString := {$ifdef FPC}UnicodeToUTF8(WParm){$else}ConvertFromUtf32(WParm){$endif};
       if KeyString <> '' then
         DoKeyDown(keyNone, KeyString);
     end;
@@ -665,7 +675,7 @@ begin
           (This is also non-perfect anyway, because WM_MOVE message may not get to
           FullScreen window at all, so in OpenBackend I also do this trick.) }
         if FullScreen and (MainMenu <> nil) and MainMenuVisible then
-          FTop += GetSystemMetrics(SM_CYMENU);
+          FTop := FTop + GetSystemMetrics(SM_CYMENU);
 
         { TODO: Only position actually changed, not size.
           Do we really need to call DoResize, OnResize?
@@ -993,7 +1003,7 @@ procedure TCastleWindowBase.OpenBackend;
   var
     InitialCursorPos: Windows.TPoint;
   begin
-    if GetCursorPos(@InitialCursorPos) then
+    if GetCursorPos({$ifdef FPC}@{$endif}InitialCursorPos) then
     begin
       FMousePosition := LeftTopToCastle(
         InitialCursorPos.X - ClientRect.Left,
@@ -1013,22 +1023,22 @@ procedure TCastleWindowBase.OpenBackend;
   procedure RegisterForJoystickEvents;
   var
     BroadcastDeviceInterface: DEV_BROADCAST_DEVICEINTERFACE;
-    GUID_DEVINTERFACE_HID: GUID;
+    GUID_DEVINTERFACE_HID: TGuid;
     DeviceNotification: Pointer; // HDEVNOTIFY;
   begin
     { Construct GUID that corresponds to Joysticks/controllers devices
       The values have been taken from SDL2 SDL_windowsjoystick.c }
-    GUID_DEVINTERFACE_HID.Data1 := $4D1E55B2;
-    GUID_DEVINTERFACE_HID.Data2 := $F16F;
-    GUID_DEVINTERFACE_HID.Data3 := $11CF;
-    GUID_DEVINTERFACE_HID.Data4[0] := $88;
-    GUID_DEVINTERFACE_HID.Data4[1] := $CB;
-    GUID_DEVINTERFACE_HID.Data4[2] := 0;
-    GUID_DEVINTERFACE_HID.Data4[3] := $11;
-    GUID_DEVINTERFACE_HID.Data4[4] := $11;
-    GUID_DEVINTERFACE_HID.Data4[5] := 0;
-    GUID_DEVINTERFACE_HID.Data4[6] := 0;
-    GUID_DEVINTERFACE_HID.Data4[7] := $30;
+    GUID_DEVINTERFACE_HID.D1 := $4D1E55B2;
+    GUID_DEVINTERFACE_HID.D2 := $F16F;
+    GUID_DEVINTERFACE_HID.D3 := $11CF;
+    GUID_DEVINTERFACE_HID.D4[0] := $88;
+    GUID_DEVINTERFACE_HID.D4[1] := $CB;
+    GUID_DEVINTERFACE_HID.D4[2] := 0;
+    GUID_DEVINTERFACE_HID.D4[3] := $11;
+    GUID_DEVINTERFACE_HID.D4[4] := $11;
+    GUID_DEVINTERFACE_HID.D4[5] := 0;
+    GUID_DEVINTERFACE_HID.D4[6] := 0;
+    GUID_DEVINTERFACE_HID.D4[7] := $30;
 
     //construct BroadcastDeviceInterface record
     FillChar(BroadcastDeviceInterface, SizeOf(BroadcastDeviceInterface), 0);
@@ -1158,7 +1168,7 @@ begin
   end;
   { See WM_MOVE handling comments why this is needed to make Top correct. }
   if FullScreen and (MainMenu <> nil) and MainMenuVisible then
-    FTop += GetSystemMetrics(SM_CYMENU);
+    FTop := FTop + GetSystemMetrics(SM_CYMENU);
 
   SetWindowLongPtr(h_Wnd, GWL_USERDATA, PtrUInt(Self));
 
@@ -1225,7 +1235,7 @@ begin
       within the window.
 
       This is similar to what glut for Win32 does in glutSetCursor. }
-    GetCursorPos(@Point);
+    GetCursorPos({$ifdef FPC}@{$endif}Point);
     if h_Wnd = WindowFromPoint(Point) then
       PostMessage(h_Wnd, WM_SETCURSOR, h_Wnd, 0 { not important});
   end;
@@ -1362,18 +1372,18 @@ function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: 
     begin
       Filter := FileFilters[I];
 
-      Result += Filter.Name + #0;
+      Result := Result + Filter.Name + #0;
 
       for J := 0 to Filter.Patterns.Count - 1 do
       begin
-        if J <> 0 then Result += ';';
-        Result += Filter.Patterns[J];
+        if J <> 0 then Result := Result + ';';
+        Result := Result + Filter.Patterns[J];
       end;
 
-      Result += #0;
+      Result := Result + #0;
     end;
 
-    Result += #0;
+    Result := Result + #0;
   end;
 
   function SearchFirstPatternWithExtension(const Ext: string): Integer;
@@ -1405,6 +1415,7 @@ function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: 
 var
   Struct: TOpenFileName;
   FileNameBuffer: array [0..6000] of char;
+  {$ifndef FPC}FileNameString: String;{$endif}
   FilePath: string;
   Mode: TGLModeFrozenScreen;
   CurrentFileNameExt: string;
@@ -1414,7 +1425,11 @@ begin
   Struct.lStructSize := SizeOf(Struct);
   Struct.hwndOwner := H_Wnd;
 
+  {$ifdef FPC}
   FileNameBuffer := ExtractFileName(FileName);
+  {$else}
+  StrPLCopy(FileNameBuffer, ExtractFileName(FileName), High(FileNameBuffer));
+  {$endif}
   Struct.lpstrFile := @FileNameBuffer;
 
   { As for FileNameBuffer size:
@@ -1508,7 +1523,17 @@ begin
       if CurrentFormatIndex <> -1 then
       begin
         { We can use workaround described above. }
+        {$ifdef FPC}
         FileNameBuffer := DeleteFileExt(FileNameBuffer);
+        {$else}
+        if Length(FileNameBuffer) > 0 then
+          SetString(FileNameString, PChar(@FileNameBuffer[0]), Length(FileNameBuffer))
+        else
+          FileNameString := '';
+
+        FileNameString := DeleteFileExt(FileNameString);
+        StrPLCopy(FileNameBuffer, ExtractFileName(FileNameString), High(FileNameBuffer));
+        {$endif}
         Struct.nFilterIndex := CurrentFormatIndex + 1;
 
         { If user selects something like "all files" then also append this extension.
@@ -1530,8 +1555,8 @@ begin
   Mode := TGLModeFrozenScreen.Create(Self);
   try
     if OpenDialog then
-      Result := GetOpenFileName(@Struct) else
-      Result := GetSaveFileName(@Struct);
+      Result := GetOpenFileName({$ifdef FPC}@{$endif}Struct) else
+      Result := GetSaveFileName({$ifdef FPC}@{$endif}Struct);
   finally Mode.Free end;
 
   if Result then
@@ -1581,7 +1606,7 @@ begin
 
   Mode := TGLModeFrozenScreen.Create(Self);
   try
-    Result := ChooseColor(@Struct);
+    Result := ChooseColor({$ifdef FPC}@{$endif}Struct);
   finally Mode.Free end;
 
   if Result then
@@ -1797,7 +1822,8 @@ end;
 procedure TCastleApplication.VideoReset;
 begin
   { switch back to the desktop mode }
-  if DisplaySettingsChanged then ChangeDisplaySettings(nil, 0);
+  if DisplaySettingsChanged then
+    ChangeDisplaySettings({$ifdef FPC}nil{$else}TDeviceMode(nil^){$endif}, 0);
 end;
 
 function TCastleApplication.TryVideoChange: boolean;
@@ -1892,7 +1918,7 @@ begin
         So I guess that I should just set this to 0 ? }
       dmDriverExtra := 0;
 
-      ChangeResult := ChangeDisplaySettings(@dmScreenSettings, CDS_FullScreen);
+      ChangeResult := ChangeDisplaySettings({$ifdef FPC}@{$endif}dmScreenSettings, CDS_FullScreen);
       Result := ChangeResult = DISP_CHANGE_SUCCESSFUL;
       { tests: InfoWrite('ChangeResult = '+ DispChangeToStr(ChangeResult)); }
       if Result then DisplaySettingsChanged := true;
@@ -1914,7 +1940,7 @@ begin
     if DisplaySettingsChanged then VideoChange(true);
   end else
   if appActive and not value then
-    ChangeDisplaySettings(nil, 0);
+    ChangeDisplaySettings({$ifdef FPC}nil{$else}TDeviceMode(nil^){$endif} , 0);
 
   fappActive := value;
 

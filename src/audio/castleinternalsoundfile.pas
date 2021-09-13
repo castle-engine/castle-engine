@@ -570,7 +570,7 @@ begin
     FRegisteredSoundFormats := TRegisteredSoundFormats.Create(true);
     // register default formats, handled in this unit
     FRegisteredSoundFormats.Add('audio/x-wav',
-      {$ifdef CASTLE_OBJFPC}@{$endif}TWAVReader(nil).Read);
+      {$ifdef CASTLE_OBJFPC}@{$endif}TWAVReader{$ifdef FPC}(nil){$endif}.Read);
   end;
   Result := FRegisteredSoundFormats;
 end;

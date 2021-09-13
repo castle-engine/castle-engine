@@ -2946,7 +2946,7 @@ begin
   CreateBackend;
 
   if Messaging <> nil then
-    Messaging.OnReceive.Add(@MessageReceived);
+    Messaging.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif}MessageReceived);
 end;
 
 destructor TCastleWindowBase.Destroy;
@@ -2962,7 +2962,7 @@ begin
   end;
 
   if Messaging <> nil then
-    Messaging.OnReceive.Remove(@MessageReceived);
+    Messaging.OnReceive.Remove({$ifdef CASTLE_OBJFPC}@{$endif}MessageReceived);
 
   FreeAndNil(FContainer);
   FreeAndNil(FTouches);
@@ -3591,10 +3591,12 @@ end;
 procedure TCastleWindowBase.DoTimer;
 begin
   MakeCurrent;
+  {$ifdef FPC}
   {$warnings off} // keep deprecated working
   if Assigned(OnTimer) then
     OnTimer(Container);
   {$warnings on}
+  {$endif}
 end;
 
 procedure TCastleWindowBase.DoMenuClick(Item: TMenuItem);
@@ -3637,7 +3639,7 @@ function TCastleWindowBase.AllowSuspendForInput: boolean;
 begin
   {$warnings off} // keep deprecated working - OnTimer
   Result := Container.AllowSuspendForInput and
-    not (Invalidated or Assigned(OnUpdate) or Assigned(OnTimer) or FpsShowOnCaption);
+    not (Invalidated or Assigned(OnUpdate) {$ifdef FPC}or Assigned(OnTimer){$endif} or FpsShowOnCaption);
   {$warnings on}
 end;
 
@@ -4110,18 +4112,18 @@ begin
    Result := 'double buffered' else
    Result := 'single buffered';
  if ColorBits > 0 then
-   Result += Format(', with RGB colors bits (%d, %d, %d) (total %d color bits)', [RedBits, GreenBits, BlueBits, ColorBits]);
+   Result := Result + Format(', with RGB colors bits (%d, %d, %d) (total %d color bits)', [RedBits, GreenBits, BlueBits, ColorBits]);
  if DepthBits > 0 then
-   Result += Format(', with %d-bits sized depth buffer', [DepthBits]);
+   Result := Result + Format(', with %d-bits sized depth buffer', [DepthBits]);
  if StencilBits > 0 then
-   Result += Format(', with %d-bits sized stencil buffer', [StencilBits]);
+   Result := Result + Format(', with %d-bits sized stencil buffer', [StencilBits]);
  if AlphaBits > 0 then
-   Result += Format(', with %d-bits sized alpha channel', [AlphaBits]);
+   Result := Result + Format(', with %d-bits sized alpha channel', [AlphaBits]);
  if not FAccumBits.IsZero then
-   Result += Format(', with (%d,%d,%d,%d)-bits sized accumulation buffer',
+   Result := Result + Format(', with (%d,%d,%d,%d)-bits sized accumulation buffer',
     [FAccumBits[0], FAccumBits[1], FAccumBits[2], FAccumBits[3]]);
  if MultiSampling > 1 then
-   Result += Format(', with multisampling (%d samples)', [MultiSampling]);
+   Result := Result + Format(', with multisampling (%d samples)', [MultiSampling]);
 end;
 
 procedure TCastleWindowBase.CheckRequestedBufferAttributes(
@@ -4262,7 +4264,7 @@ begin
     FFullScreenWanted := Value;
 
     if FDuringOpen and Value then
-      WriteLnWarning('Window', 'TCastleWindowBase.FullScreen is changed during the initial Application.OnInitialize / OnOpen / OnResize events. This works, but is unoptimal (the window will start non-fullscreen and will only change to fullscreen later). Usually you should rather initialize "Window.FullScreen" in the main unit "initialization" section.');
+      WriteLnWarning('Window', 'TCastleWindowBase.FullScreen is changed during the initial Application.OnInitialize / OnOpen / OnResize events. This works, but is unoptimal (the window will start non-fullscreen and will only change to fullscreen later). ' + 'Usually you should rather initialize "Window.FullScreen" in the main unit "initialization" section.');
 
     { When the window is Closed, updating FFullScreenBackend is trivial
       and can be done automatically. Otherwise, it is delated
@@ -4679,7 +4681,7 @@ begin
   FTimerMilisec := 1000;
   FDefaultWindowClass := TCastleWindowBase;
   CreateBackend;
-  OnMainContainer := @GetMainContainer;
+  OnMainContainer := {$ifdef CASTLE_OBJFPC}@{$endif}GetMainContainer;
 end;
 
 destructor TCastleApplication.Destroy;
@@ -4973,7 +4975,7 @@ begin
   {$warnings off} // keep deprecated working - OnTimer
   Result := not (
     Assigned(OnUpdate) or
-    Assigned(OnTimer) or
+    {$ifdef FPC}Assigned(OnTimer) or{$endif}
     (ApplicationProperties.OnUpdate.Count <> 0));
   {$warnings on}
   if not Result then Exit;
@@ -5002,11 +5004,11 @@ function TCastleApplication.VideoSettingsDescribe: string;
 begin
   Result := '';
   if VideoResize then
-    Result += Format('  Screen size :  %dx%d', [VideoResizeWidth, VideoResizeHeight]) + nl;
+    Result := Result + Format('  Screen size :  %dx%d', [VideoResizeWidth, VideoResizeHeight]) + nl;
   if VideoColorBits <> 0 then
-    Result += Format('  Color bits per pixel : %d', [VideoColorBits]) + nl;
+    Result := Result + Format('  Color bits per pixel : %d', [VideoColorBits]) + nl;
   if VideoFrequency <> 0 then
-    Result += Format('  Display frequency : %d', [VideoFrequency]) + nl;
+    Result := Result + Format('  Display frequency : %d', [VideoFrequency]) + nl;
 
   if Result = '' then
     Result := '  No display settings change' + nl;
@@ -5094,12 +5096,14 @@ procedure TCastleApplication.HandleException(Sender: TObject);
   var
     OriginalObj: TObject;
     OriginalAddr: Pointer;
+    {$ifdef FPC}
     OriginalFrameCount: Longint;
     OriginalFrame: Pointer;
+    {$endif}
     ErrMessage: string;
     ContinueApp: Boolean;
   begin
-    ErrMessage := ExceptMessage(ExceptObject) + NL + NL + DumpExceptionBackTraceToString;
+    ErrMessage := ExceptMessage(ExceptObject) {$ifdef FPC} + NL + NL + DumpExceptionBackTraceToString{$endif};
     { in case the following code, trying to handle the exception with nice GUI,
       will fail and crash horribly -- make sure to log the exception. }
     WritelnLog('Exception', ErrMessage);
@@ -5115,8 +5119,10 @@ procedure TCastleApplication.HandleException(Sender: TObject);
       try
         OriginalObj := ExceptObject;
         OriginalAddr := ExceptAddr;
+        {$ifdef FPC}
         OriginalFrameCount := ExceptFrameCount;
         OriginalFrame := ExceptFrames;
+        {$endif}
         Theme.InternalForceOpaqueBackground := true;
         ContinueApp := GuessedMainWindow.MessageYesNo(
           'An error occurred. Try to continue the application?' + NL + NL +
@@ -5126,12 +5132,15 @@ procedure TCastleApplication.HandleException(Sender: TObject);
         on E: TObject do
         begin
           WritelnWarning('Exception', 'Exception ' + E.ClassName + ' occurred in the error handler itself. This means we cannot report the exception by a nice dialog box. The *original* exception report follows.');
-          ExceptProc(OriginalObj, OriginalAddr, OriginalFrameCount, OriginalFrame);
+          // TODO: ExceptProc on Delphi:
+          {$ifdef FPC}
+          ExceptProc(OriginalObj, OriginalAddr {$ifdef FPC}, OriginalFrameCount, OriginalFrame{$endif});
           WritelnWarning('Exception', 'And below is a report about the exception within exception handler.');
           ExceptProc(SysUtils.ExceptObject, SysUtils.ExceptAddr, SysUtils.ExceptFrameCount, SysUtils.ExceptFrames);
           { Setting ErrorAddr avoids HeapTrc outputting looong useless output
             (since memory leaks are normal when you exit with Halt(...)
             and no finalization blocks are run). }
+          {$endif}
           ErrorAddr := OriginalAddr;
           Halt(1);
         end;
@@ -5155,7 +5164,10 @@ procedure TCastleApplication.HandleException(Sender: TObject);
       raise ExceptObject at ExceptAddr;
       }
       { this works best: }
+      // TODO: ExceptProc
+      {$ifdef FPC}
       ExceptProc(ExceptObject, ExceptAddr, ExceptFrameCount, ExceptFrames);
+      {$endif}
       Halt(1);
     end;
   end;
