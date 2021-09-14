@@ -292,8 +292,8 @@ type
    ppng_uint_16p = ^png_uint_16p;
    png_int_16p = Ppng_int_16;
 (* Const before type ignored *)
-   png_const_charp = Pchar;
-   png_charp = Pchar;
+   png_const_charp = PAnsichar;
+   png_charp = PAnsichar;
    ppng_charp = ^png_charp;
    png_fixed_point_p = Ppng_fixed_point;
    TFile = Pointer;
@@ -305,15 +305,15 @@ type
    png_uint_16pp = PPpng_uint_16;
    png_int_16pp = PPpng_int_16;
  (* Const before type ignored *)
-   png_const_charpp = PPchar;
-   png_charpp = PPchar;
+   png_const_charpp = PPAnsichar;
+   png_charpp = PPAnsichar;
    ppng_charpp = ^png_charpp;
    png_fixed_point_pp = PPpng_fixed_point;
    PPDouble = ^PDouble;
    png_doublepp = PPdouble;
-   PPPChar = ^PPCHar;
-   png_charppp = PPPchar;
-   Pcharf = Pchar;
+   PPPChar = ^PPAnsiCHar;
+   png_charppp = PPPAnsichar;
+   Pcharf = PAnsichar;
    PPcharf = ^Pcharf;
    png_zcharp = Pcharf;
    png_zcharpp = PPcharf;

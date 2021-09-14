@@ -26,7 +26,7 @@ type
 
   Raises ELibPngNotAvailable exception if libpng library
   was not available or had incorrect version (not CastlePngInitialized). }
-function CurrentLibpngVersion: PChar; forward;
+function CurrentLibpngVersion: PAnsiChar; forward;
 
 { Use all functions below ONLY when CastlePngInitialized = true. }
 
@@ -60,17 +60,17 @@ function PngTextCompressionToStr(const PngTextCompression: longint): string; for
 
 var
   { Call InitializePNG to set these variables }
-  FCurrentLibpngVersion: string;
+  FCurrentLibpngVersion: AnsiString;
   FCurrentLibpngVersionMajor,
   FCurrentLibpngVersionMinor,
   FCurrentLibpngVersionRelease: Integer;
 
-function CurrentLibpngVersion: PChar;
+function CurrentLibpngVersion: PAnsiChar;
 begin
   if not CastlePngInitialized then
     raise ELibPngNotAvailable.Create('LibPng (or it''s dependency, ZLib) is not available, or has incorrect version. Make sure that the dynamic libraries for LibPng and ZLib are installed (or placed alongside the exe file on Windows).');
 
-  Result := PChar(FCurrentLibpngVersion);
+  Result := PAnsiChar(FCurrentLibpngVersion);
 end;
 
 { ------------------------------------------------------------------------------------ }
