@@ -311,7 +311,7 @@ end;
 
 constructor TDOMNode.Create(const AOwnerDocument: TDOMDocument; const AInternalNode: IXMLNode);
 begin
-  inherited Create(OwnerDocument);
+  inherited Create(AOwnerDocument);
   FOwnerDocument := AOwnerDocument;
   FParentNode := nil;
   InternalNode := AInternalNode;
@@ -538,7 +538,19 @@ end;
 
 procedure TDOMDocument.AppendChild(const Child: TDOMNode);
 begin
-  DocumentElement.AppendChild(Child);
+  { We support only one root element now. To change that we should
+    use InternalDocument.DomDocument API and IDOMNode interface not
+    IXMLNode. }
+
+  if InternalDocument.DocumentElement = nil then
+  begin
+    if Child is TDOMElement then
+    begin
+      InternalDocument.DocumentElement := Child.InternalNode;
+      FDocumentElement := TDOMElement(Child);
+    end else
+      FreeAndNil(Child);
+  end;
 end;
 
 constructor TDOMDocument.Create;
@@ -549,6 +561,8 @@ begin
   CoInitializeEx(nil, 0);
 
   InternalDocument := XMLDoc.TXMLDocument.Create(Self);
+  InternalDocument.Active := true;
+  FDocumentElement := nil;
 end;
 
 function TDOMDocument.CreateComment(const CommentContents: String): TDOMComment;
@@ -569,8 +583,8 @@ end;
 
 function TDOMDocument.GetDocumentElement: TDOMElement;
 begin
-  if FDocumentElement = nil then
-    FDocumentElement := TDOMElement.Create(Self, InternalDocument.DocumentElement);
+  {if FDocumentElement = nil then
+    FDocumentElement := TDOMElement.Create(Self, InternalDocument.DocumentElement);}
   Result := FDocumentElement;
 end;
 
