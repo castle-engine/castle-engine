@@ -340,8 +340,8 @@ var
 procedure GLInformationInitialize;
 begin
   FreeAndNil(GLVersion);
-  GLVersion := TGLVersion.Create(PChar(glGetString(GL_VERSION)),
-    PChar(glGetString(GL_VENDOR)), PChar(glGetString(GL_RENDERER)));
+  GLVersion := TGLVersion.Create( PGLChar(glGetString(GL_VERSION)),
+    PGLChar(glGetString(GL_VENDOR)), PGLChar(glGetString(GL_RENDERER)));
 
   FreeAndNil(GLFeatures);
   GLFeatures := TGLFeatures.Create;
@@ -770,10 +770,10 @@ end;
 
 constructor TGLMemoryInfo.Create;
 var
-  SupportedExtensions: string;
+  SupportedExtensions: AnsiString;
 begin
   inherited;
-  SupportedExtensions := PChar(glGetString(GL_EXTENSIONS));
+  SupportedExtensions := PAnsiChar(glGetString(GL_EXTENSIONS));
   ExtensionNVidia := glext_ExtensionSupported('GL_NVX_gpu_memory_info', SupportedExtensions);
   ExtensionATI := glext_ExtensionSupported('GL_ATI_meminfo', SupportedExtensions);
   Refresh;
