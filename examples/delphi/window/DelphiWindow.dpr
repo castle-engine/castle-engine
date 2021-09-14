@@ -5,7 +5,7 @@ program DelphiWindow;
 {$R *.res}
 
 uses
-  System.SysUtils, CastleLog, CastleWindow;
+  System.SysUtils, CastleLog, CastleWindow, CastleGLShaders;
 
 var
   Window: TCastleWindowBase;
@@ -17,9 +17,9 @@ var
 
   begin
     InitializeLog;
-    WritelnLog('Simplest CastleWindow on Delphi');
+    //LogShaders := true;
+    WritelnLog('Simplest CastleWindow in Delphi');
     Window := TCastleWindowBase.Create(Application);
-    //Window1.OnResize := Resize;
-    Window.Caption := 'Simplest CastleWindow on Delphi';
+    Window.Caption := 'Simplest CastleWindow in Delphi';
     Window.OpenAndRun;
-  end.end.
+  end.
