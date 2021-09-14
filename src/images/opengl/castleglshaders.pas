@@ -1675,13 +1675,22 @@ var
   {$ifndef ForceStandardGLSLApi}
   function CreateShaderARB(const S: string): TGLuint;
   var
-    SrcPtr: PChar;
+    SrcPtr: PGLcharARB;
     SrcLength: Cardinal;
     Compiled: TGLint;
+    {$ifndef FPC}
+    AnsiS: AnsiString;
+    {$endif}
   begin
     GLhandleARB(Result) := glCreateShaderObjectARB(AType);
-    SrcPtr := PChar(S);
+    {$ifdef FPC}
+    SrcPtr := PGLcharARB(S);
     SrcLength := Length(S);
+    {$else}
+    AnsiS := AnsiString(S);
+    SrcPtr := PGLcharARB(AnsiS);
+    SrcLength := Length(AnsiS);
+    {$endif}
     glShaderSourceARB(GLhandleARB(Result), 1, @SrcPtr, @SrcLength);
     try
       glCompileShaderARB(GLhandleARB(Result));
@@ -1697,13 +1706,22 @@ var
   { Based on Dean Ellis BasicShader.dpr }
   function CreateShader(const S: string): TGLuint;
   var
-    SrcPtr: PChar;
+    SrcPtr: PGLChar;
     SrcLength: Cardinal;
     Compiled: TGLint;
+    {$ifndef FPC}
+    AnsiS: AnsiString;
+    {$endif}
   begin
     Result := glCreateShader(AType);
-    SrcPtr := PChar(S);
+    {$ifdef FPC}
+    SrcPtr := PGLChar(S);
     SrcLength := Length(S);
+    {$else}
+    AnsiS := AnsiString(S);
+    SrcPtr := PGLChar(AnsiS);
+    SrcLength := Length(AnsiS);
+    {$endif}
     glShaderSource(Result, 1, @SrcPtr, @SrcLength);
     try
       glCompileShader(Result);
