@@ -23,8 +23,6 @@ uses FpcUnit, TestUtils, TestRegistry, CastleTestCase;
 
 type
   TTestWindow = class(TCastleTestCase)
-  strict private
-    procedure OnWarningRaiseException(const Category, S: string);
   published
     procedure Test1;
     procedure TestNotifications;
@@ -261,11 +259,6 @@ begin
     AssertTrue(Window.Container.Focus[4] is TCastleInspectorControl);
     AssertTrue(Window.Container.Focus[5] is TCastleRectangleControl); // internal in TCastleInspectorControl
   finally FreeAndNil(Window) end;
-end;
-
-procedure TTestWindow.OnWarningRaiseException(const Category, S: string);
-begin
-  raise Exception.CreateFmt('TTestWindow made a warning, and any warning here is an error: %s: %s', [Category, S]);
 end;
 
 procedure TTestWindow.TestEventLoop;

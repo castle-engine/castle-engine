@@ -32,7 +32,6 @@ type
     WarningFlag: Boolean;
     function SearchingForDescriptionCallback(Node: TX3DNode): Pointer;
     procedure NodeMultipleTimesWarning(const Category, S: string);
-    procedure OnWarningRaiseException(const Category, S: string);
     procedure OnWarningFlag(const Category, S: string);
     { Load scene and expect a warning during loading.
       Raises error if no warnings occurred. }
@@ -421,11 +420,6 @@ begin
     FreeAndNil(Scene1);
     FreeAndNil(Scene2);
   end;
-end;
-
-procedure TTestSceneCore.OnWarningRaiseException(const Category, S: string);
-begin
-  raise Exception.CreateFmt('TTestSceneCore made a warning, and any warning here is an error: %s: %s', [Category, S]);
 end;
 
 procedure TTestSceneCore.TestSpineUtf8Names;
