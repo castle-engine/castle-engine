@@ -115,17 +115,6 @@ begin
   ParentDirName := ExtractFileName(ExclPathDelim(ExtractFileDir(FileInfo.AbsoluteName)));
   if ParentDirName = 'errors' then Exit;
 
-  if GLVersion.Fglrx and
-    ( (FileInfo.Name = 'ssao_stairs.x3dv') or
-      (FileInfo.Name = 'twoboxes_ssao.x3dv') or
-      (FileInfo.Name = 'ssao_barna29_0.x3dv') or
-      (FileInfo.Name = 'ssao_stairs_with_test_plane.x3dv')
-    ) then
-  begin
-    WritelnLog('Not testing "' + FileInfo.AbsoluteName + '": known to fail on fglrx (fucking ATI)');
-    Exit;
-  end;
-
   TestScene(FileInfo.AbsoluteName);
 end;
 
