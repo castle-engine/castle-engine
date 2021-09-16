@@ -360,7 +360,10 @@
       See https://github.com/castle-engine/castle-engine/wiki/Build-Tool .
       It will also be placed alongside your .exe when you do "castle-engine compile ...".
 
-    - For macOS, see https://castle-engine.io/macosx_requirements.php .
+    - On macOS, see https://castle-engine.io/macosx_requirements.php .
+
+    - On Android, we have a "png" service with libpng included.
+      See tools/build-tool/data/android/integrated-services/png/README.md .
 
   3.If CASTLE_PNG_STATIC is defined, we statically link to libpng.
     The presense of static libpng library (libpng.a on Unix) is then
@@ -373,7 +376,7 @@
 
   { On most platforms, try dynamic libpng (will fallback on FpImage at runtime).
     Except on platforms where we know it would not work. }
-  {$if not (defined(CASTLE_IOS) or defined(ANDROID) or defined(CASTLE_NINTENDO_SWITCH))}
+  {$if not (defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH))}
     {$define CASTLE_PNG_DYNAMIC}
   {$endif}
 

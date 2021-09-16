@@ -1606,7 +1606,8 @@ const
 
   function AndroidActivityLoadLibraries: string;
   begin
-    { some Android devices work without this clause, some don't }
+    { Some Android devices work without this clause, some don't.
+      TODO: This should be moved to CastleEngineService.xml, not hardcoded here. }
     Result := '';
     if depSound in Dependencies then
       Result += 'safeLoadLibrary("openal");' + NL;
@@ -1614,6 +1615,8 @@ const
       Result += 'safeLoadLibrary("tremolo");' + NL;
     if depFreetype in Dependencies then
       Result += 'safeLoadLibrary("freetype");' + NL;
+    if depPng in Dependencies then
+      Result += 'safeLoadLibrary("png");' + NL;
     { Necessary, otherwise FMOD is not initialized correctly, and reports
         [ERR] FMOD_JNI_GetEnv                          : JNI_OnLoad has not run, should have occurred during System.LoadLibrary.
       and reports internal error even from FMOD_System_Create. }
