@@ -962,7 +962,8 @@ begin
     PngLibrary := TDynLib.Load('libpng14.so', false);
   if PngLibrary = nil then
     PngLibrary := TDynLib.Load('libpng12.so.0', false);
-  { As a final fallback, use the libpng that comes from a package like libpng-dev. }
+  { As a final fallback, use the libpng that comes from a package like libpng-dev.
+    Also this matches name on Android. }
   if PngLibrary = nil then
     PngLibrary := TDynLib.Load('libpng.so', false);
   {$endif DARWIN}

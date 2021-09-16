@@ -22,7 +22,7 @@
 
 @interface TenjinService : ServiceAbstract
 {
-    bool connected;
+    bool initialized;
 }
 
 @end

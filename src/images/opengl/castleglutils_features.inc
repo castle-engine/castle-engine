@@ -69,6 +69,11 @@ type
     FVersion_3_2: Boolean;
     FVersion_3_3: Boolean;
     FVersion_4_0: Boolean;
+    {$else}
+    FVersionES_2_0: Boolean;
+    FVersionES_3_0: Boolean;
+    FVersionES_3_1: Boolean;
+    FVersionES_3_2: Boolean;
     {$endif}
     FARB_shadow: Boolean;
     FEXT_texture_filter_anisotropic: Boolean;
@@ -141,6 +146,11 @@ type
     property Version_3_2: Boolean read FVersion_3_2;
     property Version_3_3: Boolean read FVersion_3_3;
     property Version_4_0: Boolean read FVersion_4_0;
+    {$else}
+    property VersionES_2_0: Boolean read FVersionES_2_0;
+    property VersionES_3_0: Boolean read FVersionES_3_0;
+    property VersionES_3_1: Boolean read FVersionES_3_1;
+    property VersionES_3_2: Boolean read FVersionES_3_2;
     {$endif}
 
     { Is the extension below loaded.
@@ -439,8 +449,11 @@ begin
   FARB_shadow := Load_GL_ARB_shadow;
   FEXT_fog_coord := Load_GL_EXT_fog_coord;
   FNV_multisample_filter_hint := Load_GL_NV_multisample_filter_hint;
-
-
+  {$else}
+  FVersionES_2_0 := GLVersion.AtLeast(2, 0);
+  FVersionES_3_0 := GLVersion.AtLeast(3, 0);
+  FVersionES_3_1 := GLVersion.AtLeast(3, 1);
+  FVersionES_3_2 := GLVersion.AtLeast(3, 2);
   {$endif}
 
   {$ifdef OpenGLES}

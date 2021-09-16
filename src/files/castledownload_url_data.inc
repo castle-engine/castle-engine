@@ -38,14 +38,6 @@ begin
   DataUri := TDataUri.Create;
   try
     DataUri.Uri := Url;
-
-    { Otherwise it returns TBase64DecodingStream that raises error at Seek,
-      and using Download(..., [soForceMemoryStream]) fails because
-      CreateMemoryStream relies on TMemoryStream.LoadFromStream that
-      first does "Stream.Position := 0" at source...
-      Testcase: open with view3dscene demo-models/x3d/data_uri.x3dv . }
-    DataUri.ForceMemoryStream := true;
-
     if not DataUri.Valid then
       raise EDownloadError.Create('Invalid data: URI scheme');
     Result := DataUri.ExtractStream;

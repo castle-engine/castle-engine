@@ -27,21 +27,65 @@ type
     On Android ( https://github.com/castle-engine/castle-engine/blob/master/tools/build-tool/data/android/integrated-services/tenjin/README.md )
     and on iOS ( https://github.com/castle-engine/castle-engine/blob/master/tools/build-tool/data/ios/services/tenjin/README.md ).
 
-    For now the only point of this class is a class method @link(SendEvent).
+    Usage:
+
+    @orderedList(
+      @item(Create an instance of this class (only a single instance allowed).)
+      @item(Call @link(Initialize).)
+      @item(As necessary, use @link(SendEvent) to report custom events.)
+    )
+
+    Note that Tenjin is not part of TAnalytics, as you may want to send less events
+    to Tenjin than to other analytics services -- as Tenjin's main strength is in
+    the installation attribution, and custom events are paid above a certain count.
   }
-  TCastleTenjin = class
+  TCastleTenjin = class(TComponent)
+  strict private
+    FLastApiKey: string;
+    procedure ReinitializeJavaActivity(Sender: TObject);
   public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
+    { Initialize Tenjin analytics. }
+    procedure Initialize(const ApiKey: String);
     { Send a custom event name to Tenjin. }
-    class procedure SendEvent(const Name: String); static;
+    procedure SendEvent(const EventName: String);
   end;
 
 implementation
 
-uses CastleMessaging;
+uses CastleApplicationProperties, CastleMessaging;
 
-class procedure TCastleTenjin.SendEvent(const Name: String);
+constructor TCastleTenjin.Create(AOwner: TComponent);
 begin
-  Messaging.Send(['tenjin-send-event', Name]);
+  inherited;
+  ApplicationProperties.OnInitializeJavaActivity.Add(@ReinitializeJavaActivity);
+end;
+
+destructor TCastleTenjin.Destroy;
+begin
+  if ApplicationProperties(false) <> nil then
+    ApplicationProperties(false).OnInitializeJavaActivity.Remove(@ReinitializeJavaActivity);
+  inherited;
+end;
+
+procedure TCastleTenjin.ReinitializeJavaActivity(Sender: TObject);
+begin
+  { in case Java activity got killed and is created again, reinitialize services }
+  if FLastApiKey <> '' then
+    Initialize(FLastApiKey);
+end;
+
+procedure TCastleTenjin.Initialize(const ApiKey: String);
+begin
+  FLastApiKey := ApiKey;
+  Messaging.Send(['tenjin-initialize', ApiKey]);
+end;
+
+procedure TCastleTenjin.SendEvent(const EventName: String);
+begin
+  Messaging.Send(['tenjin-send-event', EventName]);
 end;
 
 end.

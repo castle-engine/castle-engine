@@ -204,7 +204,7 @@ begin
     P.Targets.AddUnit('castlevectorsinternaldouble.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'base' + PathDelim + 'opengl');
-    P.Targets.AddUnit('castlegles20.pas');
+    P.Targets.AddUnit('castlegles.pas');
     P.Targets.AddUnit('castleglversion.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'services');

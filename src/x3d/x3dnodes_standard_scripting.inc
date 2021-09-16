@@ -275,7 +275,7 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
 
           FreeAndNil(CompiledScriptContents);
           CompiledScriptContents := TStringList.Create;
-          CompiledScriptContents.Text := URIDeleteProtocol(Url);
+          CompiledScriptContents.Text := ScriptContents;
 
           Result := true;
           FInitializedScriptType := stCompiled;

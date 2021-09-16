@@ -24,8 +24,6 @@ uses
 
 type
   TTestCastleSoundEngine = class(TCastleTestCase)
-  strict private
-    procedure OnWarningRaiseException(const Category, S: string);
   published
     procedure TestLoadBufferException;
     procedure TestNotPcmEncodingWarning;
@@ -69,11 +67,6 @@ begin
     else
       Fail('Should have raised ESoundFileError 4');
   except on ESoundFileError do ; end;
-end;
-
-procedure TTestCastleSoundEngine.OnWarningRaiseException(const Category, S: string);
-begin
-  raise Exception.CreateFmt('TTestCastleSoundEngine made a warning, and any warning here is an error: %s: %s', [Category, S]);
 end;
 
 procedure TTestCastleSoundEngine.TestNotPcmEncodingWarning;

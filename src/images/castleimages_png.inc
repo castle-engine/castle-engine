@@ -20,8 +20,11 @@ function LoadPNG(const Stream: TStream;
 begin
   {$if defined(CASTLE_PNG_DYNAMIC) or defined(CASTLE_PNG_STATIC)}
   if CastlePngInitialized then
-    Result := LoadPNG_LibPng(Stream, AllowedImageClasses)
-  else
+  begin
+    // Necessary on Android, where InitializePNGUsingLibpng in "initialization" was too early.
+    InitializePNGUsingLibpng;
+    Result := LoadPNG_LibPng(Stream, AllowedImageClasses);
+  end else
   {$endif}
   {$ifdef FPC}
     Result := LoadPNG_FPImage(Stream, AllowedImageClasses);
@@ -35,8 +38,11 @@ procedure SavePNG(const Img: TEncodedImage; const Stream: TStream);
 begin
   {$if defined(CASTLE_PNG_DYNAMIC) or defined(CASTLE_PNG_STATIC)}
   if CastlePngInitialized then
+  begin
+    // Necessary on Android, where InitializePNGUsingLibpng in "initialization" was too early.
+    InitializePNGUsingLibpng;
     SavePNG_LibPng(Img, Stream)
-  else
+  end else
   {$endif}
   {$ifdef FPC}
     SavePNG_FPImage(Img, Stream);

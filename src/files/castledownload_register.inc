@@ -97,6 +97,12 @@ procedure RegisterUrlProtocol(const Protocol: String;
   const AsynchronousReader: TUrlAsynchronousReaderClass = nil;
   const DetectMimeTypeFromExtension: Boolean = true);
 
+{ Is given protocol name registered with @link(RegisterUrlProtocol). }
+function RegisteredUrlProtocol(const Protocol: String): Boolean;
+
+{ Unregister protocol, reverting the @link(RegisterUrlProtocol). }
+procedure UnregisterUrlProtocol(const Protocol: String);
+
 {$endif}
 
 {$ifdef read_implementation}
@@ -166,6 +172,10 @@ var
 begin
   if Find(Protocol) <> nil then
     raise EProtocolAlreadyRegistered.CreateFmt('URL protocol "%s" is already registered', [Protocol]);
+  // We allow Protocol = '', as it is used internally
+  if (Protocol <> '') and
+     (not URIValidProtocol(Protocol)) then
+    raise Exception.CreateFmt('URL protocol name "%s" is invalid (see URIValidProtocol for the requirements on protocol name)', [Protocol]);
   P := TRegisteredProtocol.Create;
   P.Protocol := Protocol;
   P.ReadEvent := ReadEvent;
@@ -250,6 +260,20 @@ begin
   else
     MimeTypeEvent := nil;
   RegisteredProtocols.Add(Protocol, ReadEvent, WriteEvent, AsynchronousReader, MimeTypeEvent);
+end;
+
+function RegisteredUrlProtocol(const Protocol: String): Boolean;
+begin
+  Result := RegisteredProtocols.Find(Protocol) <> nil;
+end;
+
+procedure UnregisterUrlProtocol(const Protocol: String);
+var
+  P: TRegisteredProtocol;
+begin
+  P := RegisteredProtocols.Find(Protocol);
+  if P <> nil then
+    RegisteredProtocols.Remove(P);
 end;
 
 {$endif}
