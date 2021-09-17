@@ -181,7 +181,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="../../src/common_includes;$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../common-code;code;code/docking_forms"/>
+      <OtherUnitFiles Value="../common-code;code"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Parsing>
