@@ -312,7 +312,7 @@ type
    PPDouble = ^PDouble;
    png_doublepp = PPdouble;
    PPPChar = ^PPAnsiCHar;
-   png_charppp = PPPAnsichar;
+   png_charppp = PPPchar;
    Pcharf = PAnsichar;
    PPcharf = ^Pcharf;
    png_zcharp = Pcharf;
