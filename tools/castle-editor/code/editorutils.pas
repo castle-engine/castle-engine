@@ -133,6 +133,7 @@ type
   TPlatformInfoList = specialize TObjectList<TPlatformInfo>;
 
 procedure ErrorBox(const Message: String);
+procedure InfoBox(const Message: String);
 procedure WarningBox(const Message: String);
 function YesNoBox(const Message: String): Boolean;
 function YesNoBox(const Caption, Message: String): Boolean;
@@ -659,6 +660,11 @@ end;
 procedure ErrorBox(const Message: String);
 begin
   MessageDlg('Error', Message, mtError, [mbOK], 0);
+end;
+
+procedure InfoBox(const Message: String);
+begin
+  MessageDlg('Information', Message, mtInformation, [mbOK], 0);
 end;
 
 procedure WarningBox(const Message: String);
