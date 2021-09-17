@@ -1127,9 +1127,8 @@ end;
 
 procedure TProjectForm.MenuItemEnableDisableDockingClick(Sender: TObject);
 begin
-  WantedDocking := not WantedDocking;
   InfoBox('Please close the project window and open it again to activate / deactivate the Docking Layout.');
-  MenuItemEnableDisableDocking.Enabled := false;
+  WantedDocking := not WantedDocking;
   MenuItemEnableDisableDocking.Checked := WantedDocking;
 end;
 
