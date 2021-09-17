@@ -769,7 +769,7 @@ begin
       DockMaster.SaveLayoutToConfig(XMLConfig);
       XMLConfig.WriteToDisk;
     finally
-      XMLConfig.Free;
+      FreeAndNil(XMLConfig);
     end;
   except
     on E: Exception do
