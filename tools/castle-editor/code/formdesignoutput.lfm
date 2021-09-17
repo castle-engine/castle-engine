@@ -1,8 +1,0 @@
-object DesignOutputForm: TDesignOutputForm
-  Left = 759
-  Height = 240
-  Top = 546
-  Width = 320
-  Caption = 'Output'
-  LCLVersion = '2.3.0.0'
-end

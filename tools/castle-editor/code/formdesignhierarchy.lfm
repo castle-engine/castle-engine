@@ -1,8 +1,0 @@
-object DesignHierarchyForm: TDesignHierarchyForm
-  Left = 9
-  Height = 240
-  Top = 10
-  Width = 320
-  Caption = 'Hierarchy'
-  LCLVersion = '2.0.10.0'
-end

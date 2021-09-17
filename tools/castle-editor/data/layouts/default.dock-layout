@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <CONFIG>
   <MainConfig>
-    <Nodes ChildCount="1" PixelsPerInch="0">
+    <Nodes ChildCount="1">
       <Item1 Name="ProjectForm" Type="CustomSite" ChildCount="1" WindowState="Maximized">
         <Bounds Top="-8" Left="-8" Width="1920" Height="1017">
           <WorkArea>
             <Rect Right="1920" Bottom="1040"/>
           </WorkArea>
         </Bounds>
-        <Item1 Name="AnchorDockSite1" Type="Layout" ChildCount="7" WindowState="Maximized">
+        <Item1 Name="AnchorDockSite8" Type="Layout" ChildCount="7" WindowState="Maximized">
           <Bounds Width="1920" Height="997"/>
           <Anchors Align="Client"/>
           <Item1 Name="DesignForm" Type="Control" WindowState="Maximized">
@@ -33,11 +33,11 @@
             <Bounds Top="730" Left="328" Width="1246" Height="4"/>
             <Anchors Left="AnchorDockSplitter2" Right="AnchorDockSplitter3"/>
           </Item6>
-          <Item7 Name="AnchorDockSite4" Type="Pages" ChildCount="3" WindowState="Maximized">
+          <Item7 Name="AnchorDockSite9" Type="Pages" ChildCount="3" WindowState="Maximized">
             <Bounds Top="734" Left="328" Width="1246" Height="263"/>
             <Anchors Top="AnchorDockSplitter4" Left="AnchorDockSplitter2" Right="AnchorDockSplitter3"/>
             <Item1 Name="AnchorDockSite10" Type="Layout" ChildCount="3" WindowState="Maximized">
-              <Bounds Width="1225" Height="235"/>
+              <Bounds Width="1238" Height="235"/>
               <Anchors Align="Client"/>
               <Item1 Name="DesignExplorerForm" Type="Control" WindowState="Maximized">
                 <Bounds Width="303" Height="235"/>
@@ -47,7 +47,7 @@
                 <Bounds Left="303" Width="4" Height="235"/>
               </Item2>
               <Item3 Name="DesignFilesForm" Type="Control" WindowState="Maximized">
-                <Bounds Left="307" Width="918" Height="235"/>
+                <Bounds Left="307" Width="931" Height="235"/>
                 <Anchors Left="AnchorDockSplitter5"/>
               </Item3>
             </Item1>

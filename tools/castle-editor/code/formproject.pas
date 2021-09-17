@@ -27,8 +27,7 @@ uses
   ProjectUtils, Types, Contnrs, CastleControl, CastleUIControls,
   CastlePropEdits, CastleDialogs, X3DNodes, CastleFindFiles,
   EditorUtils, FrameDesign, FrameViewFile, FormNewUnit, ToolManifest,
-  FormDesignHierarchy, FormDesignProperties, FormDesignExplorer, FormDesign,
-  FormDesignFiles, FormDesignOutput, FormDesignWarnings, ToolPackageFormat;
+  ToolPackageFormat;
 
 const
   DockLayoutFileName = 'layout.dock-layout';
@@ -36,9 +35,6 @@ const
 
 type
   { Main project management. }
-
-  { TProjectForm }
-
   TProjectForm = class(TForm)
     ActionNewSpriteSheet: TAction;
     ActionList: TActionList;
@@ -279,9 +275,8 @@ type
       ShellTreeView1: TCastleShellTreeView;
       ViewFileFrame: TViewFileFrame;
       SplitterBetweenViewFile: TSplitter;
-      IsDockUIEnabled: Boolean;
-      IsDockUIEnabledChanged: Boolean;
-      IsDockUIEnabledRequested: Boolean;
+      Docking: Boolean;
+      WantedDocking: Boolean;
       ErrorShownRefreshFilesMissingDirectory: Boolean;
       { Non-zero prevents the ShellListViewSelectItem from updating
         preview window (ViewFileFrame). }
@@ -289,6 +284,14 @@ type
       PlatformsInfo: TPlatformInfoList;
       CurrentPlatformInfo: Integer; //< Index to PlatformsInfo
       CurrentPackageFormat: TPackageFormat;
+      { Anchor docking forms }
+      DesignForm: TForm;
+      DesignHierarchyForm: TForm;
+      DesignPropertiesForm: TForm;
+      DesignExplorerForm: TForm;
+      DesignFilesForm: TForm;
+      DesignOutputForm: TForm;
+      DesignWarningsForm: TForm;
     procedure BuildToolCall(const Commands: array of String;
       const RestartOnSuccess: Boolean = false);
     procedure BuildToolCallFinished(Sender: TObject);
@@ -706,38 +709,52 @@ end;
 
 procedure TProjectForm.LoadDockLayout;
 var
-  XMLConfig: TXMLConfigStorage;
+  XMLConfig, XMLConfigDefault: TXMLConfigStorage;
   Site: TAnchorDockHostSite;
   URLFileName: String;
 begin
-  if not IsDockUIEnabled then Exit;
+  if not Docking then Exit;
   URLFileName := ApplicationConfig(DockLayoutFileName);
+  { Try to load default layout if user layout is not exist }
   if not URIFileExists(URLFileName) then
-  begin
     URLFileName := EditorApplicationData + 'layouts/' + DockLayoutFileNameDefault;
-    if not URIFileExists(URLFileName) then
-    begin
-      // If no layout setting is found, we manually dock design form to main
-      // form, and let other forms scatter around
-      Site := DockMaster.GetAnchorSite(DesignForm);
-      DockMaster.ManualDock(Site, Self, alClient);
-      Exit;
-    end;
-  end;
   try
     XMLConfig := TXMLConfigStorage.Create(URIToFilenameSafe(URLFileName), True);
     try
       DockMaster.LoadLayoutFromConfig(XMLConfig, True);
     finally
-      XMLConfig.Free;
+      FreeAndNil(XMLConfig);
     end;
   except
     on E: Exception do
-      MessageDlg(
-        'Error',
-        'Error loading layout:'#13 + E.Message,
-        mtError,
-        [mbCancel], 0);
+    begin
+      ErrorBox('Error while loading layout:' + NL + E.Message + NL + NL +
+        'The editor will try to use default layout instead.');
+      URLFileName := EditorApplicationData + 'layouts/' + DockLayoutFileNameDefault;
+      if not URIFileExists(URLFileName) then
+      begin
+        { If no default layout setting is found, we manually dock design form to
+          main form, and let other forms scatter around }
+        Site := DockMaster.GetAnchorSite(DesignForm);
+        DockMaster.ManualDock(Site, Self, alClient);
+        Exit;
+      end else
+      begin
+        XMLConfigDefault := TXMLConfigStorage.Create(URIToFilenameSafe(URLFileName), True);
+        try
+          try
+            DockMaster.LoadLayoutFromConfig(XMLConfigDefault, True);
+          finally
+            FreeAndNil(XMLConfigDefault);
+          end;
+        except
+          { This should never happen, the default layout ship with editor must
+            always be valid }
+          on E: Exception do
+            ErrorBox('Error while loading default layout:' + NL + E.Message);
+        end;
+      end;
+    end;
   end;
 end;
 
@@ -745,9 +762,9 @@ procedure TProjectForm.SaveDockLayout;
 var
   XMLConfig: TXMLConfigStorage;
 begin
-  if not IsDockUIEnabled then Exit;
+  if not Docking then Exit;
   try
-    XMLConfig := TXMLConfigStorage.Create(URIToFilenameSafe(ApplicationConfig(DockLayoutFileName)), False);
+    XMLConfig := TXMLConfigStorage.Create(URIToFilenameSafe(ApplicationConfig(DockLayoutFileName)), false);
     try
       DockMaster.SaveLayoutToConfig(XMLConfig);
       XMLConfig.WriteToDisk;
@@ -756,11 +773,7 @@ begin
     end;
   except
     on E: Exception do
-      MessageDlg(
-        'Error',
-        'Error saving layout:'#13 + E.Message,
-        mtError,
-        [mbCancel], 0);
+      ErrorBox('Error saving layout:' + NL + E.Message);
   end;
 end;
 
@@ -912,7 +925,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
   end;
 
 begin
-  IsDockUIEnabled := UserConfig.GetValue('ProjectForm_DockUI', False);
+  Docking := UserConfig.GetValue('ProjectForm_Docking', false);
   OutputList := TOutputList.Create(ListOutput);
   BuildComponentsMenu(
     MenuItemDesignNewUserInterfaceCustomRoot,
@@ -930,26 +943,40 @@ begin
   BuildPlatformsMenu;
   BuildPackageFormatsMenu;
   ApplicationProperties.OnWarning.Add(@WarningNotification);
-  if IsDockUIEnabled then
+  if Docking then
   begin
     // Create dockable forms
     //  DockMaster.DockSitesCanBeMinimized := True;
     DockMaster.MakeDockSite(Self, [akBottom], admrpNone);
-    DesignForm := TDesignForm.Create(nil);
-    DesignHierarchyForm := TDesignHierarchyForm.Create(nil);
-    DesignPropertiesForm := TDesignPropertiesForm.Create(nil);
-    DesignExplorerForm := TDesignExplorerForm.Create(nil);     
-    DesignFilesForm := TDesignFilesForm.Create(nil);
-    DesignOutputForm := TDesignOutputForm.Create(nil);
-    DesignWarningsForm := TDesignWarningsForm.Create(nil);
-    DockMaster.MakeDockable(DesignForm, True, True);
-    DockMaster.MakeDockable(DesignHierarchyForm, True, True);
-    DockMaster.MakeDockable(DesignPropertiesForm, True, True);
-    DockMaster.MakeDockable(DesignExplorerForm, True, True);
-    DockMaster.MakeDockable(DesignFilesForm, True, True);
-    DockMaster.MakeDockable(DesignOutputForm, True, True);
-    DockMaster.MakeDockable(DesignWarningsForm, True, True);
-    //
+    DesignForm := TForm.CreateNew(nil);
+    DesignForm.Name := 'DesignForm';
+    DesignForm.Caption := 'Design';
+    DesignHierarchyForm := TForm.CreateNew(nil);
+    DesignHierarchyForm.Name := 'DesignHierarchyForm';
+    DesignHierarchyForm.Caption := 'Hierarchy';
+    DesignPropertiesForm := TForm.CreateNew(nil);
+    DesignPropertiesForm.Name := 'DesignPropertiesForm';
+    DesignPropertiesForm.Caption := 'Properties';
+    DesignExplorerForm := TForm.CreateNew(nil);
+    DesignExplorerForm.Name := 'DesignExplorerForm';
+    DesignExplorerForm.Caption := 'Explorer';
+    DesignFilesForm := TForm.CreateNew(nil);
+    DesignFilesForm.Name := 'DesignFilesForm';
+    DesignFilesForm.Caption := 'Files';
+    DesignOutputForm := TForm.CreateNew(nil);
+    DesignOutputForm.Name := 'DesignOutputForm';
+    DesignOutputForm.Caption := 'Output';
+    DesignWarningsForm := TForm.CreateNew(nil);
+    DesignWarningsForm.Name := 'DesignWarningsForm';
+    DesignWarningsForm.Caption := 'Warnings';
+    DockMaster.MakeDockable(DesignForm, true, true);
+    DockMaster.MakeDockable(DesignHierarchyForm, true, true);
+    DockMaster.MakeDockable(DesignPropertiesForm, true, true);
+    DockMaster.MakeDockable(DesignExplorerForm, true, true);
+    DockMaster.MakeDockable(DesignFilesForm, true, true);
+    DockMaster.MakeDockable(DesignOutputForm, true, true);
+    DockMaster.MakeDockable(DesignWarningsForm, true, true);
+
     PageControlBottom.Parent := DesignExplorerForm;
     PageControlBottom.Align := alClient;
     ShellListView1.Parent := DesignFilesForm;
@@ -958,43 +985,42 @@ begin
     ListOutput.Parent := DesignOutputForm;
     ListWarnings.Parent := DesignWarningsForm;
     PanelWarnings.Parent := DesignWarningsForm;
-    // Hide splitters, as they dont need anymore since we use docked forms
-    Splitter2.Visible := False;
-    SplitterBetweenFiles.Visible := False;
+    // Hide splitters, as they aren't needed anymore since we use docked forms
+    Splitter2.Visible := false;
+    SplitterBetweenFiles.Visible := false;
     // Hide bottom tab's header
-    PageControlBottom.ShowTabs := False;
-    //
+    PageControlBottom.ShowTabs := false;
+
     LoadDockLayout;
-    MenuItemEnableDisableDocking.Caption := 'Disable docking';
   end;
-  MenuItemUIDesign.Enabled := IsDockUIEnabled; 
-  MenuItemUIExplorer.Enabled := IsDockUIEnabled;
-  MenuItemUIHierarchy.Enabled := IsDockUIEnabled;
-  MenuItemUIProperties.Enabled := IsDockUIEnabled;
+  WantedDocking := Docking;
+  MenuItemEnableDisableDocking.Checked := Docking;
+  MenuItemUIRestoreDefaultDockSettings.Enabled := Docking;
+  MenuItemUIDesign.Enabled := Docking; 
+  MenuItemUIExplorer.Enabled := Docking;
+  MenuItemUIHierarchy.Enabled := Docking;
+  MenuItemUIProperties.Enabled := Docking;
+  MenuItemUIFiles.Enabled := Docking;    
+  MenuItemUIOutput.Enabled := Docking;
+  MenuItemUIWarnings.Enabled := Docking;
 end;
 
 procedure TProjectForm.FormDestroy(Sender: TObject);
 begin
-  { Only save ProjectForm_DockUI when close the application, to make sure
-    dock ui disable/enable only take effect after application restart }
-  if IsDockUIEnabledRequested then
-    UserConfig.SetValue('ProjectForm_DockUI', IsDockUIEnabledChanged);
+  UserConfig.SetValue('ProjectForm_Docking', WantedDocking);
   FormHide(Self); //to save config properly
   ApplicationProperties.OnWarning.Remove(@WarningNotification);
   ApplicationDataOverride := '';
   FreeProcess;
   FreeAndNil(OutputList);
   FreeAndNil(Manifest);
-  if IsDockUIEnabled then
-  begin
-    FreeAndNil(DesignForm);
-    FreeAndNil(DesignHierarchyForm);
-    FreeAndNil(DesignPropertiesForm);
-    FreeAndNil(DesignExplorerForm);
-    FreeAndNil(DesignFilesForm);
-    FreeAndNil(DesignOutputForm);
-    FreeAndNil(DesignWarningsForm);
-  end;
+  FreeAndNil(DesignForm);
+  FreeAndNil(DesignHierarchyForm);
+  FreeAndNil(DesignPropertiesForm);
+  FreeAndNil(DesignExplorerForm);
+  FreeAndNil(DesignFilesForm);
+  FreeAndNil(DesignOutputForm);
+  FreeAndNil(DesignWarningsForm);
   FreeAndNil(PlatformsInfo);
 end;
 
@@ -1011,7 +1037,7 @@ procedure TProjectForm.FormHide(Sender: TObject);
   end;
 
 begin
-  if not IsDockUIEnabled then
+  if not Docking then
   begin
     UserConfig.SetValue('ProjectForm_Saved', true);
     UserConfig.SetValue('ProjectForm_Width', Width);
@@ -1046,7 +1072,7 @@ var
   NewWidth, NewHeight, NewLeft, NewTop, NewControlHeight: Integer;
   NewWindowState: TWindowState;
 begin
-  if (not IsDockUIEnabled) and UserConfig.GetValue('ProjectForm_Saved', false) then
+  if (not Docking) and UserConfig.GetValue('ProjectForm_Saved', false) then
   begin
     NewWidth := UserConfig.GetValue('ProjectForm_Width', -MaxInt);
     NewHeight := UserConfig.GetValue('ProjectForm_Height', -MaxInt);
@@ -1101,11 +1127,10 @@ end;
 
 procedure TProjectForm.MenuItemEnableDisableDockingClick(Sender: TObject);
 begin
-  IsDockUIEnabledRequested := True;
-  IsDockUIEnabledChanged := not IsDockUIEnabled;
-  MessageDlg('', 'Please restart the editor in order for the changes to take effect.',
-    mtInformation, [mbYes], 0);
-  MenuItemEnableDisableDocking.Enabled := False;
+  WantedDocking := not WantedDocking;
+  InfoBox('Please close the project window and open it again to activate / deactivate the Docking Layout.');
+  MenuItemEnableDisableDocking.Enabled := false;
+  MenuItemEnableDisableDocking.Checked := WantedDocking;
 end;
 
 procedure TProjectForm.MenuItemInstallClick(Sender: TObject);
@@ -1170,10 +1195,13 @@ end;
 
 procedure TProjectForm.MenuItemUIRestoreDefaultDockSettingsClick(Sender: TObject
   );
+var
+  DockLayoutUrl: String;
 begin
   { Simply remove the dock ui config file in order to restore default settings }
-  if URIFileExists(ApplicationConfig(DockLayoutFileName)) then
-    DeleteFile(URIToFilenameSafe(ApplicationConfig(DockLayoutFileName)));
+  DockLayoutUrl := ApplicationConfig(DockLayoutFileName);
+  if URIFileExists(DockLayoutUrl) then
+    CheckDeleteFile(URIToFilenameSafe(DockLayoutUrl));
   LoadDockLayout;
 end;
 
@@ -1352,7 +1380,7 @@ begin
 
   if (Design <> nil) and
      UserConfig.GetValue('ProjectForm_DesignSaved', false) and
-     (not IsDockUIEnabled) then
+     (not Docking) then
   begin
     NewPanelRightWidth := UserConfig.GetValue('ProjectForm_Design.PanelRight.Width', -MaxInt);
     NewPanelLeftWidth := UserConfig.GetValue('ProjectForm_Design.PanelLeft.Width', -MaxInt);
@@ -1378,7 +1406,7 @@ begin
     Design.UndoSystem.OnUpdateUndo := @UpdateUndo;
     Design.OnSelectionChanged := @UpdateRenameItem;
     DesignExistenceChanged;
-    if IsDockUIEnabled then
+    if Docking then
     begin
       // Transfer controls to dock forms, and modify it's align rule
       Design.Parent := DesignForm;

@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="12"/>
+    <Version Value="11"/>
     <General>
-      <Flags>
-        <CompatibilityMode Value="True"/>
-      </Flags>
       <SessionStorage Value="InProjectDir"/>
+      <MainUnit Value="0"/>
       <Title Value="castle_editor"/>
       <Scaled Value="True"/>
       <ResourceType Value="res"/>
@@ -26,6 +24,7 @@
     </PublishOptions>
     <RunParams>
       <FormatVersion Value="2"/>
+      <Modes Count="0"/>
     </RunParams>
     <RequiredPackages Count="3">
       <Item1>
@@ -38,7 +37,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="28">
+    <Units Count="21">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -169,66 +168,10 @@
         <UnitName Value="EditorCodeTools"/>
       </Unit19>
       <Unit20>
-        <Filename Value="code/formdesignhierarchy.pas"/>
-        <IsPartOfProject Value="True"/>
-        <ComponentName Value="DesignHierarchyForm"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-        <UnitName Value="FormDesignHierarchy"/>
-      </Unit20>
-      <Unit21>
-        <Filename Value="code/formdesignproperties.pas"/>
-        <IsPartOfProject Value="True"/>
-        <ComponentName Value="DesignPropertiesForm"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-        <UnitName Value="FormDesignProperties"/>
-      </Unit21>
-      <Unit22>
-        <Filename Value="code/formdesignexplorer.pas"/>
-        <IsPartOfProject Value="True"/>
-        <ComponentName Value="DesignExplorerForm"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-        <UnitName Value="FormDesignExplorer"/>
-      </Unit22>
-      <Unit23>
-        <Filename Value="code/formdesign.pas"/>
-        <IsPartOfProject Value="True"/>
-        <ComponentName Value="DesignForm"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-        <UnitName Value="FormDesign"/>
-      </Unit23>
-      <Unit24>
-        <Filename Value="code/formdesignfiles.pas"/>
-        <IsPartOfProject Value="True"/>
-        <ComponentName Value="DesignFilesForm"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-        <UnitName Value="FormDesignFiles"/>
-      </Unit24>
-      <Unit25>
-        <Filename Value="code/formdesignoutput.pas"/>
-        <IsPartOfProject Value="True"/>
-        <ComponentName Value="DesignOutputForm"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-        <UnitName Value="FormDesignOutput"/>
-      </Unit25>
-      <Unit26>
-        <Filename Value="code/formdesignwarnings.pas"/>
-        <IsPartOfProject Value="True"/>
-        <ComponentName Value="DesignWarningsForm"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-        <UnitName Value="FormDesignWarnings"/>
-      </Unit26>
-      <Unit27>
         <Filename Value="code/castleshellctrls.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="CastleShellCtrls"/>
-      </Unit27>
+      </Unit20>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -238,7 +181,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="../../src/common_includes;$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../common-code;code"/>
+      <OtherUnitFiles Value="../common-code;code;code/docking_forms"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Parsing>

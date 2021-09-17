@@ -1,8 +1,0 @@
-object DesignWarningsForm: TDesignWarningsForm
-  Left = 1089
-  Height = 240
-  Top = 551
-  Width = 320
-  Caption = 'Warnings'
-  LCLVersion = '2.3.0.0'
-end
