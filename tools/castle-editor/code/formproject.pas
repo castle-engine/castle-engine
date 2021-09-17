@@ -709,7 +709,7 @@ end;
 
 procedure TProjectForm.LoadDockLayout;
 var
-  XMLConfig, XMLConfigDefault: TXMLConfigStorage;
+  XMLConfig: TXMLConfigStorage;
   Site: TAnchorDockHostSite;
   URLFileName: String;
 begin
@@ -728,32 +728,12 @@ begin
   except
     on E: Exception do
     begin
+      { If no default layout setting is found, we manually dock design form to
+        main form, and let other forms scatter around. }
       ErrorBox('Error while loading layout:' + NL + E.Message + NL + NL +
         'The editor will try to use default layout instead.');
-      URLFileName := EditorApplicationData + 'layouts/' + DockLayoutFileNameDefault;
-      if not URIFileExists(URLFileName) then
-      begin
-        { If no default layout setting is found, we manually dock design form to
-          main form, and let other forms scatter around }
-        Site := DockMaster.GetAnchorSite(DesignForm);
-        DockMaster.ManualDock(Site, Self, alClient);
-        Exit;
-      end else
-      begin
-        XMLConfigDefault := TXMLConfigStorage.Create(URIToFilenameSafe(URLFileName), True);
-        try
-          try
-            DockMaster.LoadLayoutFromConfig(XMLConfigDefault, True);
-          finally
-            FreeAndNil(XMLConfigDefault);
-          end;
-        except
-          { This should never happen, the default layout ship with editor must
-            always valid }
-          on E: Exception do
-            ErrorBox('Error while loading default layout:' + NL + E.Message);
-        end;
-      end;
+      Site := DockMaster.GetAnchorSite(DesignForm);
+      DockMaster.ManualDock(Site, Self, alClient);
     end;
   end;
 end;
