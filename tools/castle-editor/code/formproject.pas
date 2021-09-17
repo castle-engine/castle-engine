@@ -934,21 +934,31 @@ begin
     DesignHierarchyForm := TForm.CreateNew(nil);
     DesignHierarchyForm.Name := 'DesignHierarchyForm';
     DesignHierarchyForm.Caption := 'Hierarchy';
+    { We need to set the DesignTimePPI on new forms,
+      otherwise when user has system-wide font scaling 125% then the layout
+      from the initial LoadDockLayout call is not correct (and only calling
+      later "Restore Default Docking Layout" helps). }
+    DesignHierarchyForm.DesignTimePPI := DesignTimePPI;
     DesignPropertiesForm := TForm.CreateNew(nil);
     DesignPropertiesForm.Name := 'DesignPropertiesForm';
     DesignPropertiesForm.Caption := 'Properties';
+    DesignPropertiesForm.DesignTimePPI := DesignTimePPI;
     DesignExplorerForm := TForm.CreateNew(nil);
     DesignExplorerForm.Name := 'DesignExplorerForm';
     DesignExplorerForm.Caption := 'Explorer';
+    DesignExplorerForm.DesignTimePPI := DesignTimePPI;
     DesignFilesForm := TForm.CreateNew(nil);
     DesignFilesForm.Name := 'DesignFilesForm';
     DesignFilesForm.Caption := 'Files';
+    DesignFilesForm.DesignTimePPI := DesignTimePPI;
     DesignOutputForm := TForm.CreateNew(nil);
     DesignOutputForm.Name := 'DesignOutputForm';
     DesignOutputForm.Caption := 'Output';
+    DesignOutputForm.DesignTimePPI := DesignTimePPI;
     DesignWarningsForm := TForm.CreateNew(nil);
     DesignWarningsForm.Name := 'DesignWarningsForm';
     DesignWarningsForm.Caption := 'Warnings';
+    DesignWarningsForm.DesignTimePPI := DesignTimePPI;
     DockMaster.MakeDockable(DesignForm, true, true);
     DockMaster.MakeDockable(DesignHierarchyForm, true, true);
     DockMaster.MakeDockable(DesignPropertiesForm, true, true);
