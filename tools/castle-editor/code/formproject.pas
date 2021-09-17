@@ -996,11 +996,11 @@ begin
   WantedDocking := Docking;
   MenuItemEnableDisableDocking.Checked := Docking;
   MenuItemUIRestoreDefaultDockSettings.Enabled := Docking;
-  MenuItemUIDesign.Enabled := Docking; 
+  MenuItemUIDesign.Enabled := Docking;
   MenuItemUIExplorer.Enabled := Docking;
   MenuItemUIHierarchy.Enabled := Docking;
   MenuItemUIProperties.Enabled := Docking;
-  MenuItemUIFiles.Enabled := Docking;    
+  MenuItemUIFiles.Enabled := Docking;
   MenuItemUIOutput.Enabled := Docking;
   MenuItemUIWarnings.Enabled := Docking;
 end;
