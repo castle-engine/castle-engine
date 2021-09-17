@@ -46,9 +46,6 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
-  protected
-    procedure Show;
-    procedure Hide;
   private
     RecentProjects: TCastleRecentFiles;
     CommandLineHandled: Boolean;
@@ -76,36 +73,6 @@ uses CastleConfig, CastleLCLUtils, CastleURIUtils, CastleUtils,
   FormProject, FormNewUnit;
 
 { TChooseProjectForm ------------------------------------------------------------- }
-
-procedure TChooseProjectForm.Show;
-begin
-  { Special Show/Hide on Windows, to fix taskbar button visible on Windows
-    (to keep CGE on taskbar, once project is chosen).
-
-    Comment out, this is not a good solution: while it keeps CGE in taskbar,
-    but it also prevents the ChooseProjectForm from being hidden,
-    for Lazarus 2.0.8 and 2.0.10.
-    It is even more important when running editor with project on command-line
-    (which also happens when you rebuild editor with project-specific components),
-    then the ChooseProjectForm may be on top on ProjectForm after start.
-
-    TODO: how to fix CGE on taskbar on Windows correctly? }
-
-  //{$ifdef MSWINDOWS}
-  //Application.ShowMainForm := True;
-  //{$else}
-  inherited Show;
-  //{$endif}
-end;
-
-procedure TChooseProjectForm.Hide;
-begin
-  //{$ifdef MSWINDOWS}
-  //Application.ShowMainForm := False;
-  //{$else}
-  inherited Hide;
-  //{$endif}
-end;
 
 procedure TChooseProjectForm.ProjectOpen(ManifestUrl: string);
 begin
