@@ -749,7 +749,7 @@ begin
           end;
         except
           { This should never happen, the default layout ship with editor must
-            always be valid }
+            always valid }
           on E: Exception do
             ErrorBox('Error while loading default layout:' + NL + E.Message);
         end;
