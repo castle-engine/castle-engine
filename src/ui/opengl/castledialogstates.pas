@@ -113,7 +113,7 @@ type
       FBackgroundScreenshot: boolean;
       FPopOnAnswered: boolean;
       FDialog: TDialog; // non-nil only between Start and Stop
-      FOverrrideContainer: TUIContainer;
+      FOverrrideContainer: TCastleContainer;
     function GetCaption: string;
     procedure SetCaption(const Value: string);
     function GetInputText: string;
@@ -121,7 +121,7 @@ type
   protected
     type
       TButtonArray = array of TCastleButton;
-    function StateContainer: TUIContainer; override;
+    function StateContainer: TCastleContainer; override;
     procedure InitializeButtons(var Buttons: TButtonArray); virtual;
     function DrawInputText: boolean; virtual;
     procedure DoAnswered;
@@ -205,12 +205,12 @@ type
     property PopOnAnswered: boolean
       read FPopOnAnswered write FPopOnAnswered default true;
 
-    { Force state to use indicated TUIContainer to insert itself and get screenshot.
+    { Force state to use indicated TCastleContainer to insert itself and get screenshot.
       By default it uses
       @link(TCastleApplication.MainWindow Application.MainWindow)
       if you use CastleWindow or
       @link(TCastleControlBase.MainControl) if you use CastleControl. }
-    property OverrrideContainer: TUIContainer
+    property OverrrideContainer: TCastleContainer
       read FOverrrideContainer write FOverrrideContainer;
 
   {$define read_interface_class}
@@ -435,7 +435,7 @@ begin
   inherited;
 end;
 
-function TStateDialog.StateContainer: TUIContainer;
+function TStateDialog.StateContainer: TCastleContainer;
 begin
   if OverrrideContainer <> nil then
     Result := OverrrideContainer

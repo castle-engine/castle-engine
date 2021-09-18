@@ -33,32 +33,92 @@
       "Name" : "Timer"
     },
     {
-      "$$ClassName" : "TCastleLabel",
-      "ColorPersistent" : {
-        "$$ClassName" : "TCastleColorPersistent",
-        "Blue" : 5.0196081399917603E-001,
-        "Red" : 5.0196081399917603E-001
-      },
-      "HorizontalAnchorDelta" : 4.0000000000000000E+001,
-      "Name" : "LabelCharsPressed",
-      "Text" : [
-        "LabelCharsPressed"
-      ],
-      "VerticalAnchorDelta" : 1.3000000000000000E+002
-    },
-    {
-      "$$ClassName" : "TCastleLabel",
-      "ColorPersistent" : {
-        "$$ClassName" : "TCastleColorPersistent",
-        "Blue" : 5.0196081399917603E-001,
-        "Green" : 5.0196081399917603E-001
-      },
-      "HorizontalAnchorDelta" : 4.0000000000000000E+001,
-      "Name" : "LabelKeysPressed",
-      "Text" : [
-        "LabelKeysPressed"
-      ],
-      "VerticalAnchorDelta" : 2.2000000000000000E+002
+      "$$ClassName" : "TCastleVerticalGroup",
+      "Name" : "VerticalGroup1",
+      "Padding" : 5.0000000000000000E+001,
+      "Spacing" : 5.0000000000000000E+001,
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 5.0196081399917603E-001,
+            "Red" : 5.0196081399917603E-001
+          },
+          "HorizontalAnchorDelta" : 5.0000000000000000E+001,
+          "Name" : "LabelCharsPressed",
+          "Text" : [
+            "LabelCharsPressed"
+          ],
+          "VerticalAnchorDelta" : -5.0000000000000000E+001,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 5.0196081399917603E-001,
+            "Green" : 5.0196081399917603E-001
+          },
+          "HorizontalAnchorDelta" : 5.0000000000000000E+001,
+          "Name" : "LabelKeysPressed",
+          "Text" : [
+            "LabelKeysPressed"
+          ],
+          "VerticalAnchorDelta" : -1.2200000000000000E+002,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 5.0196081399917603E-001,
+            "Green" : 5.0196081399917603E-001
+          },
+          "HorizontalAnchorDelta" : 5.0000000000000000E+001,
+          "Name" : "LabelModifierKeys",
+          "Text" : [
+            "LabelModifierKeys"
+          ],
+          "VerticalAnchorDelta" : -1.9400000000000000E+002,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 5.0196081399917603E-001,
+            "Red" : 5.0196081399917603E-001
+          },
+          "HorizontalAnchorDelta" : 5.0000000000000000E+001,
+          "Name" : "LabelMousePressed",
+          "Text" : [
+            "LabelMousePressed"
+          ],
+          "VerticalAnchorDelta" : -2.6600000000000000E+002,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 5.0196081399917603E-001,
+            "Red" : 5.0196081399917603E-001
+          },
+          "HorizontalAnchorDelta" : 5.0000000000000000E+001,
+          "Name" : "LabelTouches",
+          "Text" : [
+            "LabelTouches"
+          ],
+          "VerticalAnchorDelta" : -3.3800000000000000E+002,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        }
+      ]
     }
   ]
 }

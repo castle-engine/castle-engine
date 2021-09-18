@@ -68,7 +68,7 @@ end;
 
 var
   { May also be given on command-line. }
-  URL: string = 'data/compiled_script_tests.x3dv';
+  URL: string = 'castle-data:/compiled_script_tests.x3dv';
 begin
   Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then

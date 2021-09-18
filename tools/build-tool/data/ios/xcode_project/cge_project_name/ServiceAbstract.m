@@ -71,6 +71,7 @@
 }
 
 - (void)onPurchase:(AvailableProduct*) product
+  withTransaction:(SKPaymentTransaction*) transaction
 {
 }
 

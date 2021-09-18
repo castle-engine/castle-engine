@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2018 Michalis Kamburelis.
+  Copyright 2014-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,11 +32,14 @@
     property MaxTime: Single read FMaxTime;
     constructor Create;
     destructor Destroy; override;
-    procedure Parse(const Json: TJSONArray); virtual;
+    procedure Parse(const Json: TJSONArray;
+      const NormalizeCurvesKeyValues: Boolean); virtual;
     procedure ParseSingleValue(const Json: TJSONObject); virtual; abstract;
     procedure BuildNodes(const BaseUrl: string;
       const MaxAnimationTime: Single; const Container: TX3DRootNode); virtual;
     function DoingSomething: boolean; virtual; abstract;
+    procedure ParseControlPoints(const Json: TJSONArray;
+      const NormalizeCurvesKeyValues: Boolean); virtual; abstract;
     procedure Backup; virtual;
     procedure Restore; virtual;
   end;
@@ -51,6 +54,8 @@
     destructor Destroy; override;
     procedure Backup; override;
     procedure Restore; override;
+    procedure ParseControlPoints(const Json: TJSONArray;
+      const NormalizeCurvesKeyValues: Boolean); override;
   end;
 
   TBoneTimelineTranslate = class(TBoneTimelineVector2)
@@ -80,6 +85,8 @@
     function DoingSomething: boolean; override;
     procedure Backup; override;
     procedure Restore; override;
+    procedure ParseControlPoints(const Json: TJSONArray;
+      const NormalizeCurvesKeyValues: Boolean); override;
   end;
 
   TBoneTimelineList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TBoneTimeline>)
@@ -87,10 +94,6 @@
 {$endif}
 
 {$ifdef read_implementation}
-
-const
-  SSpine1KeyFrameWarning = 'Timeline on %s "%s" (animation of %s) has only 1 keyframe. We support it in a consistent way (1 keyframe means that the state is constant), but Spine shows such timeline inconsistently. To avoid confusion, set at least 2 keyframes on every timeline.';
-  // SSpineMultipleTimelinesWarning = 'Multiple timelines affect %s "%s" animation of %s';
 
 { TBoneTimeline -------------------------------------------------------------- }
 
@@ -110,13 +113,12 @@ begin
   inherited;
 end;
 
-procedure TBoneTimeline.Parse(const Json: TJSONArray);
+procedure TBoneTimeline.Parse(const Json: TJSONArray;
+  const NormalizeCurvesKeyValues: Boolean);
 var
   I: Integer;
   O: TJSONObject;
   NextTime: Single;
-  ControlPoints: TVector4;
-  CurveTypeJson: TJSONData;
 begin
   Curve := false;
 
@@ -131,37 +133,16 @@ begin
       Time.Add(NextTime);
       FMaxTime := NextTime;
 
-      ControlPoints := Vector4(0, 0, 1, 1); // default value, in case curve is later changed from linear to curve
-      CurveTypeJson := O.Find('curve');
-      if CurveTypeJson <> nil then
-      begin
-        if CurveTypeJson is TJSONArray then
-        begin
-          if TJSONArray(CurveTypeJson).Count <> 4 then
-            WritelnWarning('Spine', 'Curve type interpolation is an array, but does not have 4 elements (required for Bezier curve array)') else
-          begin
-            Curve := true;
-            ControlPoints[0] := TJSONArray(CurveTypeJson).Floats[0];
-            ControlPoints[1] := TJSONArray(CurveTypeJson).Floats[1];
-            ControlPoints[2] := TJSONArray(CurveTypeJson).Floats[2];
-            ControlPoints[3] := TJSONArray(CurveTypeJson).Floats[3];
-          end;
-        end;
-
-        { For now, silently ignore warning that we don't handle curve type
-          'stepped'. Spine optimizes it's curves by using 'stepped' where
-          previous and next values are equal, so this is common, and we would
-          flood the warnings console for many models because of this (while in fact
-          models are handled Ok since 'stepped' is only for optimization). }
-        { else
-        if CurveTypeJson.AsString <> 'linear' then
-          WritelnWarning('Spine', 'Found "' + CurveTypeJson.AsString + '" interpolation type on bone timeline of bone ' + Bone.Name + ', we do not support this interpolation type');
-        }
-      end;
-      CurveControlPoints.Add(ControlPoints);
+      // only detect whether we have a curve at this point
+      if not Curve then
+        Curve := O.Find('curve') is TJSONArray;
 
       ParseSingleValue(O);
     end;
+
+  if Curve then
+    ParseControlPoints(Json, NormalizeCurvesKeyValues);
+
   //Writeln('got timeline for bone ', Bone.Name, ' with ', Time.Count, ' items');
 end;
 
@@ -227,6 +208,46 @@ begin
   end;
 end;
 
+procedure TBoneTimelineVector2.ParseControlPoints(const Json: TJSONArray;
+  const NormalizeCurvesKeyValues: Boolean);
+var
+  I: Integer;
+  PreviousTime, NextTime: Single;
+  PreviousValue, NextValue: TVector4;
+  O: TJSONObject;
+begin
+  Assert(Time.Count = Vectors.Count);
+  if Json.Count <> Time.Count then
+  begin
+    WritelnWarning('Invalid Spine JSON: Curve support requires that timeline JSON count is correct');
+    Curve := false;
+    Exit;
+  end;
+
+  for I := 0 to Time.Count - 2 do
+  begin
+    PreviousTime := Time[I];
+    NextTime     := Time[I + 1];
+    PreviousValue := Vector4(Vectors.List^[I    ].Data[0], Vectors.List^[I    ].Data[1], 0, 0);
+    NextValue     := Vector4(Vectors.List^[I + 1].Data[0], Vectors.List^[I + 1].Data[1], 0, 0);
+
+    if not (Json[I] is TJSONObject) then
+    begin
+      WritelnWarning('Invalid Spine JSON: Curve support requires that all JSON timeline chldren are object');
+      Curve := false;
+      Exit;
+    end;
+
+    O := TJSONObject(Json[I]);
+
+    CurveControlPoints.Add(ReadCurveControlPoints('bone(2D)', O, NormalizeCurvesKeyValues, 2,
+      PreviousTime, NextTime,
+      PreviousValue, NextValue));
+  end;
+
+  CurveControlPoints.Add(Vector4(0, 0, 1, 1)); // TODO: add last dummy value, because our TCubicBezier* may expect it
+end;
+
 { TBoneTimelineTranslate ----------------------------------------------------- }
 
 procedure TBoneTimelineTranslate.ParseSingleValue(const Json: TJSONObject);
@@ -254,8 +275,8 @@ begin
         { add setup pose transform, as bone timeline is relative to setup pose }
         Bone.Node.FdTranslation.Value[0] + Vectors[I][0],
         Bone.Node.FdTranslation.Value[1] + Vectors[I][1], 0));
-      NC.FdControlPoints.Items.Add(CurveControlPoints[I]);
     end;
+    NC.SetControlPoints(CurveControlPoints);
     NC.OptimizeControlPoints;
     EventValueChanged := NC.EventValue_changed;
     Node := NC;
@@ -335,8 +356,8 @@ begin
     for I := 0 to Vectors.Count - 1 do
     begin
       NC.FdKeyValue.Items.Add(FinalScale(Bone.Node.FdScale.Value, Vectors[I]));
-      NC.FdControlPoints.Items.Add(CurveControlPoints[I]);
     end;
+    NC.SetControlPoints(CurveControlPoints);
     NC.OptimizeControlPoints;
     EventValueChanged := NC.EventValue_changed;
     Node := NC;
@@ -392,8 +413,15 @@ begin
 end;
 
 procedure TBoneTimelineRotate.ParseSingleValue(const Json: TJSONObject);
+var
+  Angle: Single;
 begin
-  Angles.Add(Json.Get('angle', 0.0));
+  // around Spine >= 4.0 they changed the name of this to "value"
+  if Json.IndexOfName('angle') <> -1 then
+    Angle := Json.Get('angle', 0.0)
+  else
+    Angle := Json.Get('value', 0.0);
+  Angles.Add(Angle);
 end;
 
 procedure TBoneTimelineRotate.BuildNodes(const BaseUrl: string;
@@ -509,6 +537,46 @@ begin
     Angles.AddRange(BackupAngles);
     IsBackup := False;
   end;
+end;
+
+procedure TBoneTimelineRotate.ParseControlPoints(const Json: TJSONArray;
+  const NormalizeCurvesKeyValues: Boolean);
+var
+  I: Integer;
+  PreviousTime, NextTime: Single;
+  PreviousValue, NextValue: TVector4;
+  O: TJSONObject;
+begin
+  Assert(Time.Count = Angles.Count);
+  if Json.Count <> Time.Count then
+  begin
+    WritelnWarning('Invalid Spine JSON: Curve support requires that timeline JSON count is correct');
+    Curve := false;
+    Exit;
+  end;
+
+  for I := 0 to Time.Count - 2 do
+  begin
+    PreviousTime := Time[I];
+    NextTime     := Time[I + 1];
+    PreviousValue := Vector4(Angles.List^[I    ], 0, 0, 0);
+    NextValue     := Vector4(Angles.List^[I + 1], 0, 0, 0);
+
+    if not (Json[I] is TJSONObject) then
+    begin
+      WritelnWarning('Invalid Spine JSON: Curve support requires that all JSON timeline chldren are object');
+      Curve := false;
+      Exit;
+    end;
+
+    O := TJSONObject(Json[I]);
+
+    CurveControlPoints.Add(ReadCurveControlPoints('bone(rotation)', O, NormalizeCurvesKeyValues, 1,
+      PreviousTime, NextTime,
+      PreviousValue, NextValue));
+  end;
+
+  CurveControlPoints.Add(Vector4(0, 0, 1, 1)); // TODO: add last dummy value, because our TCubicBezier* may expect it
 end;
 
 {$endif}

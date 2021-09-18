@@ -74,17 +74,17 @@ type
     This way state can:
 
     @unorderedList(
-      @item(React to @link(TInputListener.Press Press),
-        @link(TInputListener.Release Release) of keys or mouse buttons,)
+      @item(React to @link(TCastleUserInterface.Press Press),
+        @link(TCastleUserInterface.Release Release) of keys or mouse buttons,)
 
-      @item(do something continuos in @link(TInputListener.Update Update).)
+      @item(do something continuos in @link(TCastleUserInterface.Update Update).)
     )
 
     See the TCastleUserInterface class for a lot of useful methods that you can
     override in your state descendants to capture various events. }
   TUIState = class(TCastleUserInterface)
   private
-    FStartContainer: TUIContainer;
+    FStartContainer: TCastleContainer;
     FStartContainerObserver: TFreeNotificationObserver;
     FInterceptInput, FFreeWhenStopped: boolean;
     FFreeAtStop: TComponent;
@@ -138,7 +138,7 @@ type
       @link(TCastleControlBase.MainControl) if you use CastleControl.
       When the state is current, then @link(Container) property (from
       ancestor, see TCastleUserInterface.Container) is equal to this. }
-    function StateContainer: TUIContainer; virtual;
+    function StateContainer: TCastleContainer; virtual;
 
     { Position on @code(StateContainer.Controls) where we insert this state.
       By default, state is inserted as the front-most control, so position is equal
@@ -721,7 +721,7 @@ begin
   Assert(FStartContainer = nil);
 end;
 
-function TUIState.StateContainer: TUIContainer;
+function TUIState.StateContainer: TCastleContainer;
 begin
   if FStartContainer <> nil then
     { between Start and Stop, be sure to return the same thing

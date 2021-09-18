@@ -29,13 +29,15 @@
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject;
       const Bones: TBoneList; const Slots: TSlotList; const CurrentSkin: TSkin;
+      const NormalizeCurvesKeyValues: Boolean;
       var CurvesRemoved: Cardinal);
     procedure BuildNodes(const BaseUrl: string; const Container: TX3DRootNode);
   end;
 
   TAnimationList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAnimation>)
     procedure Parse(const Json: TJSONObject;
-      const Bones: TBoneList; const Slots: TSlotList; const CurrentSkin: TSkin);
+      const Bones: TBoneList; const Slots: TSlotList; const CurrentSkin: TSkin;
+      const NormalizeCurvesKeyValues: Boolean);
     procedure BuildNodes(const BaseUrl: string; const Container: TX3DRootNode);
     { Add all TimeSensors to EXPORTed nodes. }
     procedure Exported(const RootNode: TX3DRootNode);
@@ -71,6 +73,7 @@ end;
 
 procedure TAnimation.Parse(const Json: TJSONObject;
   const Bones: TBoneList; const Slots: TSlotList; const CurrentSkin: TSkin;
+  const NormalizeCurvesKeyValues: Boolean;
   var CurvesRemoved: Cardinal);
 
   procedure ReadBoneTimelines(const Bone: TBone; const Json: TJSONObject);
@@ -83,7 +86,7 @@ procedure TAnimation.Parse(const Json: TJSONObject;
     begin
       BoneTimeline := TBoneTimelineTranslate.Create;
       BoneTimeline.Bone := Bone;
-      BoneTimeline.Parse(ChildArray);
+      BoneTimeline.Parse(ChildArray, NormalizeCurvesKeyValues);
 
       if BoneTimeline.DoingSomething then
       begin
@@ -100,7 +103,7 @@ procedure TAnimation.Parse(const Json: TJSONObject;
     begin
       BoneTimeline := TBoneTimelineScale.Create;
       BoneTimeline.Bone := Bone;
-      BoneTimeline.Parse(ChildArray);
+      BoneTimeline.Parse(ChildArray, NormalizeCurvesKeyValues);
 
       if BoneTimeline.DoingSomething then
       begin
@@ -117,7 +120,7 @@ procedure TAnimation.Parse(const Json: TJSONObject;
     begin
       BoneTimeline := TBoneTimelineRotate.Create;
       BoneTimeline.Bone := Bone;
-      BoneTimeline.Parse(ChildArray);
+      BoneTimeline.Parse(ChildArray, NormalizeCurvesKeyValues);
 
       if BoneTimeline.DoingSomething then
       begin
@@ -140,16 +143,18 @@ procedure TAnimation.Parse(const Json: TJSONObject;
     begin
       SlotTimeline := TSlotTimelineAttachment.Create;
       SlotTimeline.Slot := Slot;
-      SlotTimeline.Parse(ChildArray);
+      SlotTimeline.Parse(ChildArray, NormalizeCurvesKeyValues);
       SlotTimelines.Add(SlotTimeline);
     end;
 
     ChildArray := Json.Find('color', jtArray) as TJSONArray;
+    if ChildArray = nil then
+      ChildArray := Json.Find('rgba', jtArray) as TJSONArray; // new name around Spine >= 4.0
     if ChildArray <> nil then
     begin
       SlotTimeline := TSlotTimelineColor.Create;
       SlotTimeline.Slot := Slot;
-      SlotTimeline.Parse(ChildArray);
+      SlotTimeline.Parse(ChildArray, NormalizeCurvesKeyValues);
       SlotTimelines.Add(SlotTimeline);
     end;
   end;
@@ -194,7 +199,7 @@ procedure TAnimation.Parse(const Json: TJSONObject;
       DeformTimeline := TDeformTimeline.Create;
       DeformTimeline.Slot := Slots.Find(SlotName);
       DeformTimeline.Attachment := Attachment as TMeshAttachment;
-      DeformTimeline.Parse(Json.Items[I] as TJSONArray);
+      DeformTimeline.Parse(Json.Items[I] as TJSONArray, NormalizeCurvesKeyValues);
       DeformTimelines.Add(DeformTimeline);
     end;
   end;
@@ -409,7 +414,8 @@ end;
 { TAnimationList ------------------------------------------------------------- }
 
 procedure TAnimationList.Parse(const Json: TJSONObject;
-  const Bones: TBoneList; const Slots: TSlotList; const CurrentSkin: TSkin);
+  const Bones: TBoneList; const Slots: TSlotList; const CurrentSkin: TSkin;
+  const NormalizeCurvesKeyValues: Boolean);
 var
   I: Integer;
   Animation: TAnimation;
@@ -432,7 +438,7 @@ begin
         Add(Animation);
         Animation.Name := ChildObj.Names[I];
         Animation.Parse(TJSONObject(ChildObj.Items[I]), Bones, Slots,
-          CurrentSkin, CurvesRemoved);
+          CurrentSkin, NormalizeCurvesKeyValues, CurvesRemoved);
       end;
 
     // WritelnLog('Spine', 'Spine animations curves parsed, empty curves removed: %d',

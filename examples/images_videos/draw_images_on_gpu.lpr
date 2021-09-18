@@ -24,7 +24,7 @@ var
   SourceImage: TDrawableImage;
   DestImage: TDrawableImage;
 
-procedure Render(Container: TUIContainer);
+procedure Render(Container: TCastleContainer);
 begin
   DestImage.Draw(0, 0);
 end;

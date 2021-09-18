@@ -97,8 +97,10 @@ var
   NumConfig: EGLint;
   Attribs: TLongIntList;
 const
-  ContextAttribs: array [0..2] of EGLint =
+  ContextAttribsv2: array [0..2] of EGLint =
   ( EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE);
+  ContextAttribsv3: array [0..2] of EGLint =
+  ( EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE);
 begin
   Display := eglGetDisplay(EGL_DEFAULT_DISPLAY);
   if Display = EGL_NO_DISPLAY then
@@ -129,7 +131,9 @@ begin
   if Application.FOpenWindows.Count <> 0 then
     ShareContext := Application.FOpenWindows[0].Context else
     ShareContext := EGL_NO_CONTEXT;
-  Context := eglCreateContext(Display, Config, ShareContext, @ContextAttribs);
+  Context := eglCreateContext(Display, Config, ShareContext, @ContextAttribsv3);
+  if Context = EGL_NO_CONTEXT then
+    Context := eglCreateContext(Display, Config, ShareContext, @ContextAttribsv2);
   if Context = EGL_NO_CONTEXT then
     raise EGLContextNotPossible.Create('EGL: Cannot create context: ' + EGLError);
 

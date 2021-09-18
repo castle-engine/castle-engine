@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -15,8 +15,6 @@
 
 { Various castle-editor utilities. }
 unit EditorUtils;
-
-{$mode objfpc}{$H+}
 
 interface
 
@@ -135,6 +133,7 @@ type
   TPlatformInfoList = specialize TObjectList<TPlatformInfo>;
 
 procedure ErrorBox(const Message: String);
+procedure InfoBox(const Message: String);
 procedure WarningBox(const Message: String);
 function YesNoBox(const Message: String): Boolean;
 function YesNoBox(const Caption, Message: String): Boolean;
@@ -661,6 +660,11 @@ end;
 procedure ErrorBox(const Message: String);
 begin
   MessageDlg('Error', Message, mtError, [mbOK], 0);
+end;
+
+procedure InfoBox(const Message: String);
+begin
+  MessageDlg('Information', Message, mtInformation, [mbOK], 0);
 end;
 
 procedure WarningBox(const Message: String);

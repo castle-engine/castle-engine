@@ -12,7 +12,7 @@ Test two approaches to implement dragging in CGE:
 
 2. Use the same logic as MouseLook.
    In this case the mouse cursor should be hidden,
-   and you use TUIContainer.MouseLookDelta and friends to
+   and you use TCastleContainer.MouseLookDelta and friends to
 
    - read mouse motion movement,
    - and keep the mouse position around the middle of the window

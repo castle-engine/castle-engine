@@ -33,13 +33,18 @@
     Time: TSingleList;
     Node1, Node2: TKeyedNode;
     HasNode2: boolean;
+    Curve: boolean;
+    CurveControlPoints: TVector4List;
     property MaxTime: Single read FMaxTime;
     constructor Create;
     destructor Destroy; override;
-    procedure Parse(const Json: TJSONArray);
+    procedure Parse(const Json: TJSONArray;
+      const NormalizeCurvesKeyValues: Boolean);
     procedure ParseSingleValue(const Json: TJSONObject); virtual; abstract;
     procedure BuildNodes(const BaseUrl: string;
       const MaxAnimationTime: Single; const Container: TX3DRootNode); virtual;
+    procedure ParseControlPoints(const Json: TJSONArray;
+      const NormalizeCurvesKeyValues: Boolean); virtual; abstract;
   end;
 
   TSlotTimelineAttachment = class(TSlotTimeline)
@@ -49,17 +54,19 @@
     procedure ParseSingleValue(const Json: TJSONObject); override;
     procedure BuildNodes(const BaseUrl: string;
       const MaxAnimationTime: Single; const Container: TX3DRootNode); override;
+    procedure ParseControlPoints(const Json: TJSONArray;
+      const NormalizeCurvesKeyValues: Boolean); override;
   end;
 
   TSlotTimelineColor = class(TSlotTimeline)
     Colors: TVector4List;
-    Curve: boolean;
-    CurveControlPoints: TVector4List;
     constructor Create;
     destructor Destroy; override;
     procedure ParseSingleValue(const Json: TJSONObject); override;
     procedure BuildNodes(const BaseUrl: string;
       const MaxAnimationTime: Single; const Container: TX3DRootNode); override;
+    procedure ParseControlPoints(const Json: TJSONArray;
+      const NormalizeCurvesKeyValues: Boolean); override;
   end;
 
   TSlotTimelineList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSlotTimeline>)
@@ -74,20 +81,25 @@ constructor TSlotTimeline.Create;
 begin
   inherited;
   Time := TSingleList.Create;
+  CurveControlPoints := TVector4List.Create;
 end;
 
 destructor TSlotTimeline.Destroy;
 begin
   FreeAndNil(Time);
+  FreeAndNil(CurveControlPoints);
   inherited;
 end;
 
-procedure TSlotTimeline.Parse(const Json: TJSONArray);
+procedure TSlotTimeline.Parse(const Json: TJSONArray;
+  const NormalizeCurvesKeyValues: Boolean);
 var
   I: Integer;
   O: TJSONObject;
   NextTime: Single;
 begin
+  Curve := false;
+
   for I := 0 to Json.Count - 1 do
     if Json[I] is TJSONObject then
     begin
@@ -99,8 +111,15 @@ begin
       Time.Add(NextTime);
       FMaxTime := NextTime;
 
+      // only detect whether we have a curve at this point
+      if not Curve then
+        Curve := O.Find('curve') is TJSONArray;
+
       ParseSingleValue(O);
     end;
+
+  if Curve then
+    ParseControlPoints(Json, NormalizeCurvesKeyValues);
 end;
 
 procedure TSlotTimeline.BuildNodes(const BaseUrl: string;
@@ -179,57 +198,69 @@ begin
     WritelnWarning('Spine', Format(SSpine1KeyFrameWarning, ['slot', Slot.Name, 'attachment']));
 end;
 
+procedure TSlotTimelineAttachment.ParseControlPoints(const Json: TJSONArray;
+  const NormalizeCurvesKeyValues: Boolean);
+begin
+  WritelnWarning('Invalid Spine JSON: Curve interpolation for slot attachments animation is not possible');
+end;
+
 { TSlotTimelineColor --------------------------------------------------------- }
 
 constructor TSlotTimelineColor.Create;
 begin
   inherited Create;
   Colors := TVector4List.Create;
-  CurveControlPoints := TVector4List.Create;
 end;
 
 destructor TSlotTimelineColor.Destroy;
 begin
   FreeAndNil(Colors);
-  FreeAndNil(CurveControlPoints);
   inherited;
 end;
 
 procedure TSlotTimelineColor.ParseSingleValue(const Json: TJSONObject);
-var
-  ControlPoints: TVector4;
-  CurveTypeJson: TJSONData;
 begin
-  ControlPoints := Vector4(0, 0, 1, 1); // default value, in case curve is later changed from linear to curve
-  CurveTypeJson := Json.Find('curve');
-  if CurveTypeJson <> nil then
+  Colors.Add(HexToColor(Json.Get('color', 'ffffffff')));
+end;
+
+procedure TSlotTimelineColor.ParseControlPoints(const Json: TJSONArray;
+  const NormalizeCurvesKeyValues: Boolean);
+var
+  I: Integer;
+  PreviousTime, NextTime: Single;
+  PreviousValue, NextValue: TVector4;
+  O: TJSONObject;
+begin
+  Assert(Time.Count = Colors.Count);
+  if Json.Count <> Time.Count then
   begin
-    if CurveTypeJson is TJSONArray then
+    WritelnWarning('Invalid Spine JSON: Curve support requires that timeline JSON count is correct');
+    Curve := false;
+    Exit;
+  end;
+
+  for I := 0 to Time.Count - 2 do
+  begin
+    PreviousTime := Time[I];
+    NextTime     := Time[I + 1];
+    PreviousValue := Colors.List^[I    ];
+    NextValue     := Colors.List^[I + 1];
+
+    if not (Json[I] is TJSONObject) then
     begin
-      if TJSONArray(CurveTypeJson).Count <> 4 then
-        WritelnWarning('Spine', 'Curve type interpolation is an array, but does not have 4 elements (required for Bezier curve array)') else
-      begin
-        Curve := true;
-        ControlPoints[0] := TJSONArray(CurveTypeJson).Floats[0];
-        ControlPoints[1] := TJSONArray(CurveTypeJson).Floats[1];
-        ControlPoints[2] := TJSONArray(CurveTypeJson).Floats[2];
-        ControlPoints[3] := TJSONArray(CurveTypeJson).Floats[3];
-      end;
+      WritelnWarning('Invalid Spine JSON: Curve support requires that all JSON timeline chldren are object');
+      Curve := false;
+      Exit;
     end;
 
-    { For now, silently ignore warning that we don't handle curve type
-      'stepped'. Spine optimizes it's curves by using 'stepped' where
-      previous and next values are equal, so this is common, and we would
-      flood the warnings console for many models because of this (while in fact
-      models are handled Ok since 'stepped' is only for optimization). }
-    { else
-    if CurveTypeJson.AsString <> 'linear' then
-      WritelnWarning('Spine', 'Found "' + CurveTypeJson.AsString + '" interpolation type on slot timeline of slot ' + Slot.Name + ', we do not support this interpolation type');
-    }
-  end;
-  CurveControlPoints.Add(ControlPoints);
+    O := TJSONObject(Json[I]);
 
-  Colors.Add(HexToColor(Json.Get('color', 'ffffffff')));
+    CurveControlPoints.Add(ReadCurveControlPoints('slot(color)', O, NormalizeCurvesKeyValues, 4,
+      PreviousTime, NextTime,
+      PreviousValue, NextValue));
+  end;
+
+  CurveControlPoints.Add(Vector4(0, 0, 1, 1)); // TODO: add last dummy value, because our TCubicBezier* may expect it
 end;
 
 procedure TSlotTimelineColor.BuildNodes(const BaseUrl: string;

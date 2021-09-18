@@ -26,11 +26,11 @@ type
   TGLMode = CastleInternalWindowModes.TGLMode;
   TGLModeFrozenScreen = CastleInternalWindowModes.TGLModeFrozenScreen;
 
-procedure NoClose(Container: TUIContainer);
+procedure NoClose(Container: TCastleContainer);
 
 implementation
 
-procedure NoClose(Container: TUIContainer);
+procedure NoClose(Container: TCastleContainer);
 begin
   CastleInternalWindowModes.NoClose(Container);
 end;

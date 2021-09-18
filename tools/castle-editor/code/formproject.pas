@@ -23,15 +23,34 @@ interface
 uses
   Classes, SysUtils, DOM, FileUtil, Forms, Controls, Graphics, Dialogs, Menus,
   ExtCtrls, ComCtrls, CastleShellCtrls, StdCtrls, ValEdit, ActnList, Buttons,
+  AnchorDocking, XMLPropStorage,
   ProjectUtils, Types, Contnrs, CastleControl, CastleUIControls,
   CastlePropEdits, CastleDialogs, X3DNodes, CastleFindFiles,
-  EditorUtils, FrameDesign, FrameViewFile, FormNewUnit, ToolManifest;
+  EditorUtils, FrameDesign, FrameViewFile, FormNewUnit, ToolManifest,
+  ToolPackageFormat;
+
+const
+  DockLayoutFileName = 'layout.dock-layout';
+  DockLayoutFileNameDefault = 'default.dock-layout';
 
 type
   { Main project management. }
   TProjectForm = class(TForm)
     ActionNewSpriteSheet: TAction;
     ActionList: TActionList;
+    MenuItemUIOutput: TMenuItem;
+    MenuItemUIWarnings: TMenuItem;
+    MenuItemUIFiles: TMenuItem;
+    MenuItemUIRestoreDefaultDockSettings: TMenuItem;
+    MenuItemEnableDisableDocking: TMenuItem;
+    MenuItemUIProperties: TMenuItem;
+    MenuItem5: TMenuItem;
+    MenuItemUIHierarchy: TMenuItem;
+    MenuItemUIExplorer: TMenuItem;
+    MenuItemUIDesign: TMenuItem;
+    MenuItem9: TMenuItem;
+    MenuItemWindow: TMenuItem;
+    MenuItemPackageFormat: TMenuItem;
     MenuItemSeparator12312332424: TMenuItem;
     MenuItemInstall: TMenuItem;
     MenuItemSeparator12312131: TMenuItem;
@@ -170,6 +189,7 @@ type
     procedure ApplicationProperties1Activate(Sender: TObject);
     procedure ApplicationProperties1Exception(Sender: TObject; E: Exception);
     procedure ButtonClearWarningsClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -177,10 +197,19 @@ type
     procedure FormShow(Sender: TObject);
     procedure ListOutputClick(Sender: TObject);
     procedure MenuItemDesignNewNonVisualClick(Sender: TObject);
+    procedure MenuItemEnableDisableDockingClick(Sender: TObject);
     procedure MenuItemInstallClick(Sender: TObject);
     procedure MenuItemNewDirectoryClick(Sender: TObject);
     procedure MenuItemRenameClick(Sender: TObject);
     procedure MenuItemShellTreeRefreshClick(Sender: TObject);
+    procedure MenuItemUIDesignClick(Sender: TObject);
+    procedure MenuItemUIExplorerClick(Sender: TObject);
+    procedure MenuItemUIFilesClick(Sender: TObject);
+    procedure MenuItemUIHierarchyClick(Sender: TObject);
+    procedure MenuItemUIOutputClick(Sender: TObject);
+    procedure MenuItemUIPropertiesClick(Sender: TObject);
+    procedure MenuItemUIRestoreDefaultDockSettingsClick(Sender: TObject);
+    procedure MenuItemUIWarningsClick(Sender: TObject);
     procedure UpdateUndo(Sender: TObject);
     procedure UpdateRenameItem(Sender: TObject);
     procedure MenuItemRedoClick(Sender: TObject);
@@ -246,17 +275,29 @@ type
       ShellTreeView1: TCastleShellTreeView;
       ViewFileFrame: TViewFileFrame;
       SplitterBetweenViewFile: TSplitter;
+      Docking: Boolean;
+      WantedDocking: Boolean;
       ErrorShownRefreshFilesMissingDirectory: Boolean;
       { Non-zero prevents the ShellListViewSelectItem from updating
         preview window (ViewFileFrame). }
       ShellListViewUpdating: Cardinal;
       PlatformsInfo: TPlatformInfoList;
       CurrentPlatformInfo: Integer; //< Index to PlatformsInfo
+      CurrentPackageFormat: TPackageFormat;
+      { Anchor docking forms }
+      DesignForm: TForm;
+      DesignHierarchyForm: TForm;
+      DesignPropertiesForm: TForm;
+      DesignExplorerForm: TForm;
+      DesignFilesForm: TForm;
+      DesignOutputForm: TForm;
+      DesignWarningsForm: TForm;
     procedure BuildToolCall(const Commands: array of String;
-      const ExitOnSuccess: Boolean = false);
+      const RestartOnSuccess: Boolean = false);
     procedure BuildToolCallFinished(Sender: TObject);
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuItemDesignNewCustomRootClick(Sender: TObject);
+    procedure MenuItemPackageFormatChangeClick(Sender: TObject);
     procedure OpenPascal(const FileName: String);
     procedure RefreshFiles(const RefreshNecessary: TRefreshFiles);
     (*Runs custom code editor.
@@ -294,7 +335,10 @@ type
     { Update ViewFileFrame existence and visibility to show currently
       selected item in ShellListView1. }
     procedure ViewFileFrameUpdate;
+    procedure LoadDockLayout;
+    procedure SaveDockLayout;
     procedure MenuItemPlatformChangeClick(Sender: TObject);
+    procedure RestartEditor(Sender: TObject);
   public
     { Open a project, given an absolute path to CastleEngineManifest.xml }
     procedure OpenProject(const ManifestUrl: String);
@@ -316,7 +360,7 @@ uses TypInfo, LCLType,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
   CastleClassUtils,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
-  ToolCompilerInfo, ToolCommonUtils, ToolArchitectures;
+  ToolCompilerInfo, ToolCommonUtils, ToolArchitectures, ToolProcessWait;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
 begin
@@ -352,7 +396,7 @@ end;
 
 procedure TProjectForm.MenuItemRestartRebuildEditorClick(Sender: TObject);
 begin
-  BuildToolCall(['editor'], true);
+  BuildToolCall(['editor-rebuild-if-needed'], true);
 end;
 
 procedure TProjectForm.MenuItemSaveAsDesignClick(Sender: TObject);
@@ -457,6 +501,12 @@ end;
 procedure TProjectForm.ButtonClearWarningsClick(Sender: TObject);
 begin
   ClearAllWarnings;
+end;
+
+procedure TProjectForm.FormClose(Sender: TObject; var CloseAction: TCloseAction
+  );
+begin
+  SaveDockLayout;
 end;
 
 procedure TProjectForm.ActionNewSpriteSheetExecute(Sender: TObject);
@@ -657,6 +707,56 @@ begin
   ErrorBox(E.Message);
 end;
 
+procedure TProjectForm.LoadDockLayout;
+var
+  XMLConfig: TXMLConfigStorage;
+  Site: TAnchorDockHostSite;
+  URLFileName: String;
+begin
+  if not Docking then Exit;
+  URLFileName := ApplicationConfig(DockLayoutFileName);
+  { Try to load default layout if user layout is not exist }
+  if not URIFileExists(URLFileName) then
+    URLFileName := EditorApplicationData + 'layouts/' + DockLayoutFileNameDefault;
+  try
+    XMLConfig := TXMLConfigStorage.Create(URIToFilenameSafe(URLFileName), True);
+    try
+      DockMaster.LoadLayoutFromConfig(XMLConfig, True);
+    finally
+      FreeAndNil(XMLConfig);
+    end;
+  except
+    on E: Exception do
+    begin
+      { If no default layout setting is found, we manually dock design form to
+        main form, and let other forms scatter around. }
+      ErrorBox('Error while loading layout:' + NL + E.Message + NL + NL +
+        'The editor will try to use default layout instead.');
+      Site := DockMaster.GetAnchorSite(DesignForm);
+      DockMaster.ManualDock(Site, Self, alClient);
+    end;
+  end;
+end;
+
+procedure TProjectForm.SaveDockLayout;
+var
+  XMLConfig: TXMLConfigStorage;
+begin
+  if not Docking then Exit;
+  try
+    XMLConfig := TXMLConfigStorage.Create(URIToFilenameSafe(ApplicationConfig(DockLayoutFileName)), false);
+    try
+      DockMaster.SaveLayoutToConfig(XMLConfig);
+      XMLConfig.WriteToDisk;
+    finally
+      FreeAndNil(XMLConfig);
+    end;
+  except
+    on E: Exception do
+      ErrorBox('Error saving layout:' + NL + E.Message);
+  end;
+end;
+
 procedure TProjectForm.FormCreate(Sender: TObject);
 
   { We create some components by code, this way we don't have to put
@@ -765,13 +865,47 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     AddPlatform('Windows 64-bit', targetCustom, Win64, x86_64);
     AddPlatformSeparator;
     AddPlatform('macOS 64-bit', targetCustom, Darwin, i386);
-    AddPlatform('macOS Arm 64-bit', targetCustom, Darwin, i386);
+    AddPlatform('macOS Arm 64-bit', targetCustom, Darwin, Aarch64);
     AddPlatformSeparator;
     AddPlatform('FreeBSD 32-bit', targetCustom, FreeBSD, i386);
     AddPlatform('FreeBSD 64-bit', targetCustom, FreeBSD, x86_64);
   end;
 
+  procedure BuildPackageFormatsMenu;
+  const
+    PackageFormatCaptions: array [TPackageFormat] of string = (
+      'Default',
+      'Directory',
+      'Compressed zip',
+      'Compressed tar.gz',
+      'Android APK',
+      'Android App Bundle (AAB)',
+      'iOS Xcode Project',
+      'iOS Archive -> Development',
+      'iOS Archive -> ad-hoc',
+      'iOS Archive -> AppStore',
+      'Nintendo Switch Project'
+    );
+  var
+    Mi: TMenuItem;
+    P: TPackageFormat;
+  begin
+    for P in TPackageFormat do
+    begin
+      Mi := TMenuItem.Create(MenuItemPackageFormat);
+      Mi.Caption := PackageFormatCaptions[P];
+      Mi.Tag := Ord(P);
+      Mi.OnClick := @MenuItemPackageFormatChangeClick;
+      Mi.GroupIndex := 210;
+      Mi.RadioItem := true;
+      Mi.ShowAlwaysCheckable := true;
+      Mi.Checked := P = CurrentPackageFormat;
+      MenuItemPackageFormat.Add(Mi);
+    end;
+  end;
+
 begin
+  Docking := UserConfig.GetValue('ProjectForm_Docking', false);
   OutputList := TOutputList.Create(ListOutput);
   BuildComponentsMenu(
     MenuItemDesignNewUserInterfaceCustomRoot,
@@ -787,17 +921,96 @@ begin
     @MenuItemAddComponentClick);
   CreateShellViews;
   BuildPlatformsMenu;
+  BuildPackageFormatsMenu;
   ApplicationProperties.OnWarning.Add(@WarningNotification);
+  if Docking then
+  begin
+    // Create dockable forms
+    //  DockMaster.DockSitesCanBeMinimized := True;
+    DockMaster.MakeDockSite(Self, [akBottom], admrpNone);
+    DesignForm := TForm.CreateNew(nil);
+    DesignForm.Name := 'DesignForm';
+    DesignForm.Caption := 'Design';
+    DesignHierarchyForm := TForm.CreateNew(nil);
+    DesignHierarchyForm.Name := 'DesignHierarchyForm';
+    DesignHierarchyForm.Caption := 'Hierarchy';
+    { We need to set the DesignTimePPI on new forms,
+      otherwise when user has system-wide font scaling 125% then the layout
+      from the initial LoadDockLayout call is not correct (and only calling
+      later "Restore Default Docking Layout" helps). }
+    DesignHierarchyForm.DesignTimePPI := DesignTimePPI;
+    DesignPropertiesForm := TForm.CreateNew(nil);
+    DesignPropertiesForm.Name := 'DesignPropertiesForm';
+    DesignPropertiesForm.Caption := 'Properties';
+    DesignPropertiesForm.DesignTimePPI := DesignTimePPI;
+    DesignExplorerForm := TForm.CreateNew(nil);
+    DesignExplorerForm.Name := 'DesignExplorerForm';
+    DesignExplorerForm.Caption := 'Explorer';
+    DesignExplorerForm.DesignTimePPI := DesignTimePPI;
+    DesignFilesForm := TForm.CreateNew(nil);
+    DesignFilesForm.Name := 'DesignFilesForm';
+    DesignFilesForm.Caption := 'Files';
+    DesignFilesForm.DesignTimePPI := DesignTimePPI;
+    DesignOutputForm := TForm.CreateNew(nil);
+    DesignOutputForm.Name := 'DesignOutputForm';
+    DesignOutputForm.Caption := 'Output';
+    DesignOutputForm.DesignTimePPI := DesignTimePPI;
+    DesignWarningsForm := TForm.CreateNew(nil);
+    DesignWarningsForm.Name := 'DesignWarningsForm';
+    DesignWarningsForm.Caption := 'Warnings';
+    DesignWarningsForm.DesignTimePPI := DesignTimePPI;
+    DockMaster.MakeDockable(DesignForm, true, true);
+    DockMaster.MakeDockable(DesignHierarchyForm, true, true);
+    DockMaster.MakeDockable(DesignPropertiesForm, true, true);
+    DockMaster.MakeDockable(DesignExplorerForm, true, true);
+    DockMaster.MakeDockable(DesignFilesForm, true, true);
+    DockMaster.MakeDockable(DesignOutputForm, true, true);
+    DockMaster.MakeDockable(DesignWarningsForm, true, true);
+
+    PageControlBottom.Parent := DesignExplorerForm;
+    PageControlBottom.Align := alClient;
+    ShellListView1.Parent := DesignFilesForm;
+    ShellTreeView1.Align := alClient;
+    ShellListView1.Align := alClient;
+    ListOutput.Parent := DesignOutputForm;
+    ListWarnings.Parent := DesignWarningsForm;
+    PanelWarnings.Parent := DesignWarningsForm;
+    // Hide splitters, as they aren't needed anymore since we use docked forms
+    Splitter2.Visible := false;
+    SplitterBetweenFiles.Visible := false;
+    // Hide bottom tab's header
+    PageControlBottom.ShowTabs := false;
+
+    LoadDockLayout;
+  end;
+  WantedDocking := Docking;
+  MenuItemEnableDisableDocking.Checked := Docking;
+  MenuItemUIRestoreDefaultDockSettings.Enabled := Docking;
+  MenuItemUIDesign.Enabled := Docking;
+  MenuItemUIExplorer.Enabled := Docking;
+  MenuItemUIHierarchy.Enabled := Docking;
+  MenuItemUIProperties.Enabled := Docking;
+  MenuItemUIFiles.Enabled := Docking;
+  MenuItemUIOutput.Enabled := Docking;
+  MenuItemUIWarnings.Enabled := Docking;
 end;
 
 procedure TProjectForm.FormDestroy(Sender: TObject);
 begin
+  UserConfig.SetValue('ProjectForm_Docking', WantedDocking);
   FormHide(Self); //to save config properly
   ApplicationProperties.OnWarning.Remove(@WarningNotification);
   ApplicationDataOverride := '';
   FreeProcess;
   FreeAndNil(OutputList);
   FreeAndNil(Manifest);
+  FreeAndNil(DesignForm);
+  FreeAndNil(DesignHierarchyForm);
+  FreeAndNil(DesignPropertiesForm);
+  FreeAndNil(DesignExplorerForm);
+  FreeAndNil(DesignFilesForm);
+  FreeAndNil(DesignOutputForm);
+  FreeAndNil(DesignWarningsForm);
   FreeAndNil(PlatformsInfo);
 end;
 
@@ -814,20 +1027,23 @@ procedure TProjectForm.FormHide(Sender: TObject);
   end;
 
 begin
-  UserConfig.SetValue('ProjectForm_Saved', true);
-  UserConfig.SetValue('ProjectForm_Width', Width);
-  UserConfig.SetValue('ProjectForm_Height', Height);
-  UserConfig.SetValue('ProjectForm_Left', Left);
-  UserConfig.SetValue('ProjectForm_Top', Top);
-  UserConfig.SetValue('ProjectForm_WindowState', WindowStateToStr(WindowState));
-  UserConfig.SetValue('ProjectForm_PageControlBottom.Height', PageControlBottom.Height);
-  if Design <> nil then
+  if not Docking then
   begin
-    UserConfig.SetValue('ProjectForm_DesignSaved', true);
-    UserConfig.SetValue('ProjectForm_Design.PanelRight.Width', Design.PanelRight.Width);
-    UserConfig.SetValue('ProjectForm_Design.PanelLeft.Width', Design.PanelLeft.Width);
+    UserConfig.SetValue('ProjectForm_Saved', true);
+    UserConfig.SetValue('ProjectForm_Width', Width);
+    UserConfig.SetValue('ProjectForm_Height', Height);
+    UserConfig.SetValue('ProjectForm_Left', Left);
+    UserConfig.SetValue('ProjectForm_Top', Top);
+    UserConfig.SetValue('ProjectForm_WindowState', WindowStateToStr(WindowState));
+    UserConfig.SetValue('ProjectForm_PageControlBottom.Height', PageControlBottom.Height);
+    if Design <> nil then
+    begin
+      UserConfig.SetValue('ProjectForm_DesignSaved', true);
+      UserConfig.SetValue('ProjectForm_Design.PanelRight.Width', Design.PanelRight.Width);
+      UserConfig.SetValue('ProjectForm_Design.PanelLeft.Width', Design.PanelLeft.Width);
+    end;
+    UserConfig.Save;
   end;
-  UserConfig.Save;
 end;
 
 procedure TProjectForm.FormShow(Sender: TObject);
@@ -844,25 +1060,46 @@ procedure TProjectForm.FormShow(Sender: TObject);
 
 var
   NewWidth, NewHeight, NewLeft, NewTop, NewControlHeight: Integer;
+  NewWindowState: TWindowState;
 begin
-  if UserConfig.GetValue('ProjectForm_Saved', false) then
+  if (not Docking) and UserConfig.GetValue('ProjectForm_Saved', false) then
   begin
     NewWidth := UserConfig.GetValue('ProjectForm_Width', -MaxInt);
     NewHeight := UserConfig.GetValue('ProjectForm_Height', -MaxInt);
     NewLeft := UserConfig.GetValue('ProjectForm_Left', -MaxInt);
     NewTop := UserConfig.GetValue('ProjectForm_Top', -MaxInt);
     NewControlHeight := UserConfig.GetValue('ProjectForm_PageControlBottom.Height', -MaxInt);
-    WindowState := StrToWindowState(UserConfig.GetValue('ProjectForm_WindowState', 'wsNormal'));
-    if (NewWidth + NewLeft <= Screen.Width + 32) and (NewWidth > 128) and
-       (NewHeight + NewTop <= Screen.Height + 32) and (NewHeight > 128) and
-       (NewControlHeight < NewHeight) and (NewControlHeight >= 0) and
-       (NewLeft > -32) and (NewTop > -32) then
-    begin
-      Width := NewWidth;
-      Height := NewHeight;
-      Left := NewLeft;
-      Top := NewTop;
-      PageControlBottom.Height := NewControlHeight;
+    NewWindowState := StrToWindowState(UserConfig.GetValue('ProjectForm_WindowState', 'wsNormal'));
+
+    { Apply new values.
+      Note that we don't apply position/size values when NewWindowState <> wsMaximized,
+      as on Windows this causes form to flicker when it appears (initially with invalid sizes
+      inside a maximized form). }
+    case NewWindowState of
+      wsNormal:
+        begin
+          WindowState := NewWindowState;
+          if (NewWidth + NewLeft <= Screen.Width + 32) and (NewWidth > 128) and
+             (NewHeight + NewTop <= Screen.Height + 32) and (NewHeight > 128) and
+             (NewControlHeight < NewHeight) and (NewControlHeight >= 0) and
+             (NewLeft > -32) and (NewTop > -32) then
+          begin
+            Width := NewWidth;
+            Height := NewHeight;
+            Left := NewLeft;
+            Top := NewTop;
+            PageControlBottom.Height := NewControlHeight;
+          end;
+        end;
+      wsMaximized:
+        begin
+          WindowState := NewWindowState;
+          { We use NewControlHeight, just like with wsNormal, but with a different condition. }
+          if (NewControlHeight <= Screen.Height - 32) and (NewControlHeight >= 0) then
+          begin
+            PageControlBottom.Height := NewControlHeight;
+          end;
+        end;
     end;
   end;
 end;
@@ -876,6 +1113,13 @@ procedure TProjectForm.MenuItemDesignNewNonVisualClick(Sender: TObject);
 begin
   if ProposeSaveDesign then
     NewDesign(TCastleComponent, nil);
+end;
+
+procedure TProjectForm.MenuItemEnableDisableDockingClick(Sender: TObject);
+begin
+  InfoBox('Please close the project window and open it again to activate / deactivate the Docking Layout.');
+  WantedDocking := not WantedDocking;
+  MenuItemEnableDisableDocking.Checked := WantedDocking;
 end;
 
 procedure TProjectForm.MenuItemInstallClick(Sender: TObject);
@@ -906,6 +1150,53 @@ end;
 procedure TProjectForm.MenuItemShellTreeRefreshClick(Sender: TObject);
 begin
   RefreshFiles(rfEverything);
+end;
+
+procedure TProjectForm.MenuItemUIDesignClick(Sender: TObject);
+begin
+  DockMaster.MakeDockable(DesignForm, True, True);
+end;
+
+procedure TProjectForm.MenuItemUIExplorerClick(Sender: TObject);
+begin
+  DockMaster.MakeDockable(DesignExplorerForm, True, True);
+end;
+
+procedure TProjectForm.MenuItemUIFilesClick(Sender: TObject);
+begin
+  DockMaster.MakeDockable(DesignFilesForm, True, True);
+end;
+
+procedure TProjectForm.MenuItemUIHierarchyClick(Sender: TObject);
+begin
+  DockMaster.MakeDockable(DesignHierarchyForm, True, True);
+end;
+
+procedure TProjectForm.MenuItemUIOutputClick(Sender: TObject);
+begin
+  DockMaster.MakeDockable(DesignOutputForm, True, True);
+end;
+
+procedure TProjectForm.MenuItemUIPropertiesClick(Sender: TObject);
+begin
+  DockMaster.MakeDockable(DesignPropertiesForm, True, True);
+end;
+
+procedure TProjectForm.MenuItemUIRestoreDefaultDockSettingsClick(Sender: TObject
+  );
+var
+  DockLayoutUrl: String;
+begin
+  { Simply remove the dock ui config file in order to restore default settings }
+  DockLayoutUrl := ApplicationConfig(DockLayoutFileName);
+  if URIFileExists(DockLayoutUrl) then
+    CheckDeleteFile(URIToFilenameSafe(DockLayoutUrl));
+  LoadDockLayout;
+end;
+
+procedure TProjectForm.MenuItemUIWarningsClick(Sender: TObject);
+begin
+  DockMaster.MakeDockable(DesignWarningsForm, True, True);
 end;
 
 procedure TProjectForm.UpdateRenameItem(Sender: TObject);
@@ -1004,7 +1295,10 @@ begin
   begin
     RunningApplication := true;
     SoundEngineSetVolume;
-    BuildToolCall(['compile', 'run']);
+    if PlatformsInfo[CurrentPlatformInfo].Target = targetAndroid then
+      BuildToolCall(['package', 'install', 'run'])
+    else
+      BuildToolCall(['compile', 'run']);
   end;
 end;
 
@@ -1073,7 +1367,9 @@ begin
   UpdateRenameItem(nil);
   UpdateFormCaption(nil);
 
-  if (Design <> nil) and UserConfig.GetValue('ProjectForm_DesignSaved', false) then
+  if (Design <> nil) and
+     UserConfig.GetValue('ProjectForm_DesignSaved', false) and
+     (not Docking) then
   begin
     NewPanelRightWidth := UserConfig.GetValue('ProjectForm_Design.PanelRight.Width', -MaxInt);
     NewPanelLeftWidth := UserConfig.GetValue('ProjectForm_Design.PanelLeft.Width', -MaxInt);
@@ -1099,6 +1395,19 @@ begin
     Design.UndoSystem.OnUpdateUndo := @UpdateUndo;
     Design.OnSelectionChanged := @UpdateRenameItem;
     DesignExistenceChanged;
+    if Docking then
+    begin
+      // Transfer controls to dock forms, and modify it's align rule
+      Design.Parent := DesignForm;
+      Design.PanelLeft.Parent := DesignHierarchyForm;
+      Design.PanelRight.Parent := DesignPropertiesForm;
+      Design.Align := alClient;
+      Design.PanelLeft.Align := alClient;
+      Design.PanelRight.Align := alClient;
+      // Hide splitters, as they dont need anymore since we use docked forms
+      Design.SplitterLeft.Visible := False;
+      Design.SplitterRight.Visible := False;
+    end;
   end;
 end;
 
@@ -1531,7 +1840,7 @@ begin
 end;
 
 procedure TProjectForm.BuildToolCall(const Commands: array of String;
-  const ExitOnSuccess: Boolean);
+  const RestartOnSuccess: Boolean);
 
   procedure AddPlatformParameters(const Params: TStrings; const PlatformInfo: TPlatformInfo);
   begin
@@ -1551,8 +1860,26 @@ procedure TProjectForm.BuildToolCall(const Commands: array of String;
     end;
   end;
 
+  procedure AddModeParameters(const Params: TStrings);
+  var
+    ModeString: String;
+  begin
+    case BuildMode of
+      bmDebug  : ModeString := '--mode=debug';
+      bmRelease: ModeString := '--mode=release';
+      else raise EInternalError.Create('BuildMode?');
+    end;
+    Params.Add(ModeString);
+  end;
+
+  procedure AddPackageFormatParameters(const Params: TStrings; const Format: TPackageFormat);
+  begin
+    if Format <> pfDefault then
+      Params.Add('--package-format=' + PackageFormatToString(Format));
+  end;
+
 var
-  BuildToolExe, ModeString, Command: String;
+  BuildToolExe, Command: String;
   QueueItem: TAsynchronousProcessQueue.TQueueItem;
 begin
   if RunningProcess <> nil then
@@ -1561,14 +1888,8 @@ begin
   BuildToolExe := FindExeCastleTool('castle-engine');
   if BuildToolExe = '' then
   begin
-    ErrorBox('Cannot find build tool (castle-engine) on $PATH environment variable.');
+    ErrorBox('Cannot find build tool (castle-engine). Set the $CASTLE_ENGINE_PATH or $PATH environment variables or place all tools in CGE bin/ subdirectory.');
     Exit;
-  end;
-
-  case BuildMode of
-    bmDebug  : ModeString := '--mode=debug';
-    bmRelease: ModeString := '--mode=release';
-    else raise EInternalError.Create('BuildMode?');
   end;
 
   SetEnabledCommandRun(false);
@@ -1584,25 +1905,70 @@ begin
     QueueItem := TAsynchronousProcessQueue.TQueueItem.Create;
     QueueItem.ExeName := BuildToolExe;
     QueueItem.CurrentDirectory := ProjectPath;
-    QueueItem.Parameters.Add(ModeString);
     QueueItem.Parameters.Add(Command);
+    // add --mode=xxx parameter
+    if not (
+        (Command = 'package-source') or
+        (Command = 'clean') or
+        (Command = 'auto-generate-textures') or
+        (Command = 'auto-generate-clean') or
+        (Command = 'generate-program') or
+        (Command = 'editor') or
+        (Command = 'editor-rebuild-if-needed') or
+        (Command = 'editor-run')
+      ) then
+      AddModeParameters(QueueItem.Parameters);
+    // add --target, --os, --cpu parameters
     if (Command = 'compile') or
        (Command = 'run') or
        (Command = 'package') or
        (Command = 'install') then
       AddPlatformParameters(QueueItem.Parameters, PlatformsInfo[CurrentPlatformInfo]);
-    // editor always does --fast, as its more comfortable for normal development
+    // add --package-format
+    if (Command = 'package') or
+       (Command = 'install') then
+      AddPackageFormatParameters(QueueItem.Parameters, CurrentPackageFormat);
+    // editor always add --fast to package, as its more comfortable for normal development
     if (Command = 'package') then
       QueueItem.Parameters.Add('--fast');
     RunningProcess.Queue.Add(QueueItem);
   end;
 
-  if ExitOnSuccess then
-    RunningProcess.OnSuccessfullyFinishedAll := @MenuItemQuitClick
-  else
-    RunningProcess.OnFinished := @BuildToolCallFinished;
+  if RestartOnSuccess then
+    RunningProcess.OnSuccessfullyFinishedAll := @RestartEditor;
+  RunningProcess.OnFinished := @BuildToolCallFinished;
 
   RunningProcess.Start;
+end;
+
+procedure TProjectForm.RestartEditor(Sender: TObject);
+var
+  BuildToolExe: String;
+begin
+  if ProposeSaveDesign then
+  begin
+    { Run custom editor, and finish current process.
+      We use --wait-for-process-exit primarily because on Windows,
+      we need to "unlock" the exe, to be able to copy new exe over the old exe
+      (otherwise recompiling the custom editor could not just place
+      new editor at the same exe).
+      It is also sensible on all platforms, to make sure previous editor closes
+      stuf (e.g. config files) reliably. }
+    BuildToolExe := FindExeCastleTool('castle-engine');
+    if BuildToolExe = '' then
+    begin
+      ErrorBox('Cannot find build tool (castle-engine). Set the $CASTLE_ENGINE_PATH or $PATH environment variables or place all tools in CGE bin/ subdirectory.');
+      Exit;
+    end;
+
+    RunCommandNoWait(ProjectPath, BuildToolExe,
+      ['editor-run', '--gui-errors', '--wait-for-process-exit', IntToStr(CurrentProcessId)],
+      [rcNoConsole]);
+
+    { Once ProposeSaveDesign and RunCommandNoWait are both successful,
+      we want to terminate ASAP as user is waiting for new editor to run. }
+    Application.Terminate;
+  end;
 end;
 
 procedure TProjectForm.BuildToolCallFinished(Sender: TObject);
@@ -1610,6 +1976,7 @@ begin
   // bring back volume, in case MuteOnRun
   RunningApplication := false;
   SoundEngineSetVolume;
+  RefreshFiles(rfFilesInCurrentDir); // show new files created by "package"
 end;
 
 procedure TProjectForm.MenuItemAddComponentClick(Sender: TObject);
@@ -1800,6 +2167,15 @@ var
 begin
   Mi := Sender as TMenuItem;
   CurrentPlatformInfo := Mi.Tag;
+  Mi.Checked := true;
+end;
+
+procedure TProjectForm.MenuItemPackageFormatChangeClick(Sender: TObject);
+var
+  Mi: TMenuItem;
+begin
+  Mi := Sender as TMenuItem;
+  CurrentPackageFormat := TPackageFormat(Mi.Tag);
   Mi.Checked := true;
 end;
 

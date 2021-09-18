@@ -6215,6 +6215,7 @@
       "$Children" : [
         {
           "$$ClassName" : "TCastle2DNavigation",
+          "Exists" : false,
           "Name" : "Navigation2D1"
         }
       ]
@@ -6265,7 +6266,7 @@
             "Green" : 1.1372549086809158E-001,
             "Red" : 8.5098040103912354E-001
           },
-          "VerticalAnchorDelta" : -1.4799999237060547E+001,
+          "VerticalAnchorDelta" : -1.4800000190734863E+001,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
         },

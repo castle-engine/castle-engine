@@ -53,7 +53,7 @@ begin
   finally Progress.Fini end;
 end;
 
-procedure WindowOpen1(Container: TUIContainer);
+procedure WindowOpen1(Container: TCastleContainer);
 var
   I: Integer;
 begin
@@ -100,7 +100,7 @@ begin
   FreeAndNil(Image);
 end;
 
-procedure WindowOpen2(Container: TUIContainer);
+procedure WindowOpen2(Container: TCastleContainer);
 var
   Image: TCastleImage;
 begin
@@ -140,7 +140,7 @@ begin
   (Application.MainWindow as TCastleWindow).SceneManager.LoadLevel('level_without_loading_image');
 end;
 
-procedure WindowOpen3(Container: TUIContainer);
+procedure WindowOpen3(Container: TCastleContainer);
 begin
   (Application.MainWindow as TCastleWindow).SceneManager.LoadLevel('level_without_loading_image');
 end;

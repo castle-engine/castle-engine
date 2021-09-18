@@ -119,7 +119,7 @@ begin
 
   { Add car model to Viewport }
   CarScene := TCastleScene.Create(Application { Owner that will free the Scene });
-  CarScene.Load('castle-data:/car.x3d');
+  CarScene.Load('castle-data:/car.gltf');
   CarScene.Spatial := [ssRendering, ssDynamicCollisions];
   CarScene.ProcessEvents := true;
 
@@ -153,17 +153,25 @@ begin
   Navigation.Input_MoveSpeedDec.MakeClear;
 end;
 
-procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
+procedure WindowPress(Container: TCastleContainer; const Event: TInputPressRelease);
 var
-  CarMaterial: TMaterialNode;
+  CarAppearance: TAppearanceNode;
+  CarMaterial: TPhysicalMaterialNode;
 begin
   { This is an example how to detect whether a given TInputShortcut was pressed,
     when you have Event as TInputPressRelease instance. }
 
   if Input_DoSomethingCrazy.IsEvent(Event) then
   begin
-    CarMaterial := CarScene.Node('MA_Material') as TMaterialNode;
-    CarMaterial.DiffuseColor := Vector3(Random, Random, Random);
+    { Car model was exported from Blender, using Blender->glTF exporter,
+      and Blender material for shell was called just "Material".
+      That's why we know that
+      - it has a node TAppearanceNode called "Material"
+      - this has a material of type TPhysicalMaterialNode.
+    }
+    CarAppearance := CarScene.Node('Material') as TAppearanceNode;
+    CarMaterial := CarAppearance.Material as TPhysicalMaterialNode;
+    CarMaterial.BaseColor := Vector3(Random, Random, Random);
   end;
 end;
 

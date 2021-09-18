@@ -281,7 +281,7 @@ end;
 
 { other routines ------------------------------------------------------------- }
 
-procedure WindowUpdate(Container: TUIContainer);
+procedure WindowUpdate(Container: TCastleContainer);
 begin
   { update JoyAxisVisualize.Axis }
   if SelectedJoystick <> -1 then

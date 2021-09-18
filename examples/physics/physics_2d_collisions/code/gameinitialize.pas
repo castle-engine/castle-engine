@@ -244,7 +244,7 @@ begin
   Window.Controls.InsertFront(Status);
 end;
 
-procedure WindowUpdate(Container: TUIContainer);
+procedure WindowUpdate(Container: TCastleContainer);
 var
   CollisionsList: TCastleTransformList;
   CollisionsListTXT: String;
@@ -290,7 +290,7 @@ begin
     Status.Caption := Status.Caption + NL + 'Paused';
 end;
 
-procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
+procedure WindowPress(Container: TCastleContainer; const Event: TInputPressRelease);
 
   procedure Move(const X, Y: Single);
   begin

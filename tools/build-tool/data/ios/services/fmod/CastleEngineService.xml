@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <package>
+    <copy source="${IOS.FMOD.LIBRARY_PATH}/libfmod_iphoneos.a" target="libfmod_iphoneos.a" />
+  </package>
+</service>

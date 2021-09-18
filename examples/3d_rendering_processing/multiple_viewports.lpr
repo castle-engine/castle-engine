@@ -142,7 +142,7 @@ var
 const
   Margin = 5;
 
-procedure Resize(Container: TUIContainer);
+procedure Resize(Container: TCastleContainer);
 var
   W, H, TopMargin: Single;
 begin

@@ -71,6 +71,8 @@ type
 
     procedure AssertFrustumEquals(const Expected, Actual: TFrustum; const Epsilon: Single; AErrorAddrs: Pointer = nil);
     procedure AssertFrustumEquals(const Expected, Actual: TFrustum; AErrorAddrs: Pointer = nil);
+
+    procedure OnWarningRaiseException(const Category, S: string);
   end;
 
 implementation
@@ -468,6 +470,11 @@ begin
       ]), AErrorAddrs);
     end;
   end;
+end;
+
+procedure TCastleTestCase.OnWarningRaiseException(const Category, S: string);
+begin
+  raise Exception.CreateFmt(ClassName + ': received a warning, and any warning here is an error: %s: %s', [Category, S]);
 end;
 
 end.

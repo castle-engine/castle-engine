@@ -52,22 +52,46 @@
       It's a dark gray color (0.33, 0.33, 0.33) by default. }
     BackgroundOpaqueColor: TCastleColorRGB;
 
-    { Colors used when displaying the "Loading..." text when Android application
-      is resuming. Note that you can also customize the tiLoading image.
-      By default, LoadingBackgroundColor is black, and LoadingTextColor is white. }
-    LoadingBackgroundColor, LoadingTextColor: TCastleColor;
+    { Colors used when displaying the loading image (by default just with the "Loading..." text)
+      when application is loading (before proper CGE UI can be displayed).
+      By default, LoadingBackgroundColor is black, and LoadingColor is white.
 
-    { For what window height was the Images[tiLoading] prepared.
-      If you set Images[tiLoading], then most likely you will want to set it too.
-      The rendered size of Images[tiLoading] is adjusted, looking at actual
-      window height and this property.
+      See https://castle-engine.io/manual_2d_user_interface.php#section_loading_image for
+      an example how to set loading image. }
+    LoadingBackgroundColor, LoadingColor: TCastleColor;
 
-      Note that when rendering Images[tiLoading], TCastleApplication.OnInitialize
-      is not run, so Container.UIScaling is usually not initialized yet.
-      That's why we instead do this special scaling approach for Images[tiLoading].
+    { Adjust loading image following the UI scaling determined by these properties.
+      They determine for what window reference size was the loading image prepared.
+      The loading image is whatever you set at @code(ImagesPersistent[tiLoading]).
+      See https://castle-engine.io/manual_2d_user_interface.php#section_loading_image for
+      an example how to set loading image.
 
-      By default this is 1000. }
-    LoadingImageForWindowHeight: Single;
+      These properties deliberately match the behavior of
+      @link(TCastleContainer.UIScaling),
+      @link(TCastleContainer.UIReferenceWidth),
+      @link(TCastleContainer.UIReferenceHeight),
+      @link(TCastleContainer.UIExplicitScale).
+      If these LoadingUIXxx properties are equal to the
+      @link(TCastleContainer).UIXxx properties, then the rendered image size will
+      be precisely equal to how TCastleImageControl rendering of this image
+      (with anchors set to middle) would look.
+
+      The reason why these properties exist is that when rendering
+      @code(ImagesPersistent[tiLoading]), TCastleApplication.OnInitialize
+      is not yet run, and so @link(TCastleContainer.UIScaling) may be not yet be initialized
+      (because you cannot read CastleSettings.xml earlier).
+
+      By default, we set LoadingUIScaling = usEncloseReferenceSize,
+      LoadingUIReferenceWidth = 1600,
+      LoadingUIReferenceHeight = 900. Note that this is in contrast to
+      @link(TCastleContainer).UIXxx properties, that by default set no UI scaling.
+
+      @groupBegin }
+    LoadingUIScaling: TUIScaling;
+    LoadingUIReferenceWidth: Single;
+    LoadingUIReferenceHeight: Single;
+    LoadingUIExplicitScale: Single;
+    { @groupEnd }
 
     { Width of scrollbar for TCastleScrollView. }
     ScrollBarWidth: Single;
@@ -130,7 +154,8 @@
       it determines how the image is stretched.
       The corners are specified as 4D vector, order like in CSS: top, right, down,
       left. }
-    property Corners[const ImageType: TThemeImage]: TVector4 read GetCorners write SetCorners; deprecated 'use ImagesPersistent[...].ProtectedSides';
+    property Corners[const ImageType: TThemeImage]: TVector4 read GetCorners write SetCorners;
+      deprecated 'use ImagesPersistent[...].ProtectedSides';
 
     { Draw the selected theme image on screen.
 
@@ -153,7 +178,7 @@
       const UIScale: Single; const Color: TCastleColor);
 
     { Font used by dialogs.
-      Leave @nil to use @link(TUIContainer.DefaultFont). }
+      Leave @nil to use @link(TCastleContainer.DefaultFont). }
     property MessageFont: TCastleAbstractFont read FMessageFont write SetMessageFont;
 
     property OwnsMessageFont: boolean
@@ -161,6 +186,13 @@
 
     { Set dialogs theme to light. }
     procedure DialogsLight;
+
+    property LoadingTextColor: TCastleColor
+      read LoadingColor write LoadingColor;
+      deprecated 'use LoadingColor';
+    property LoadingImageForWindowHeight: Single
+      read LoadingUIReferenceHeight write LoadingUIReferenceHeight;
+      deprecated 'use LoadingUIReferenceHeight';
   end;
 
 function Theme: TCastleTheme;
@@ -184,10 +216,12 @@ begin
   BackgroundColor        := Vector4(0, 0, 0, 0.25);
   BackgroundOpaqueColor  := Vector3(0.33, 0.33, 0.33);
   LoadingBackgroundColor := Black;
-  LoadingTextColor       := White;
-  LoadingImageForWindowHeight := 1000;
+  LoadingColor           := White;
   ScrollBarWidth := 20;
   MinimumScrollbarSliderHeight := 20;
+  LoadingUIScaling := usEncloseReferenceSize;
+  LoadingUIReferenceWidth := 1600;
+  LoadingUIReferenceHeight := 900;
 
   FOwnsMessageFont := true;
 
