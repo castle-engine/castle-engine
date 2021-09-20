@@ -19,7 +19,7 @@ var
   begin
     DrawableImage := TDrawableImage.Create('castle-data:/patreonlogoorange_45px.png');
     DrawableImageCGE := TDrawableImage.Create('castle-data:/cge_384px.png');
-    DrawableImageDelphi := TDrawableImage.Create('castle-data:/daaelphi_11_384px.png');
+    DrawableImageDelphi := TDrawableImage.Create('castle-data:/delphi_11_384px.png');
   end;
 
   procedure ReleaseImg(Sender: TCastleContainer);
