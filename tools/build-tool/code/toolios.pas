@@ -250,6 +250,28 @@ var
     end;
   end;
 
+  { Generate "Launch Screen.storyboard" and LaunchScreenImage.png it references. }
+  procedure GenerateLaunchImageStoryboard;
+  var
+    Storyboard, ProjectOutputUrl, ImageUrl: String;
+  begin
+    if Project.IOSHasLaunchImageStoryboard then
+    begin
+      ProjectOutputUrl := FilenameToURISafe(XcodeProject + Project.Name + PathDelim);
+
+      Storyboard := FileToString('castle-data:/ios/Launch%20Screen.storyboard');
+      Storyboard := Project.ReplaceMacros(Storyboard);
+      StringToFile(ProjectOutputUrl + 'Launch%20Screen.storyboard', Storyboard);
+
+      ImageUrl := CombineURI(
+        Project.LaunchImageStoryboard.BaseUrl,
+        Project.LaunchImageStoryboard.Path);
+      CheckCopyFile(
+        URIToFilenameSafe(ImageUrl),
+        URIToFilenameSafe(ProjectOutputUrl + 'LaunchScreenImage.png'));
+    end;
+  end;
+
   { Generate launch images, in various sizes,
     from the most suitable launch images specified. }
   procedure GenerateLaunchImages;
@@ -419,7 +441,8 @@ begin
     GenerateServicesFromTemplates;
     PackageServices(Project, Project.IOSServices,
       'castle-data:/ios/services/', XcodeProject);
-    FixPbxProjectFile; // must be done *after* all files for services are created, so also after ServiceOperations
+    GenerateLaunchImageStoryboard;
+    FixPbxProjectFile; // must be done *after* all files that have to be in PBX are in place, so after PackageServices and GenerateLaunchImageStoryboard
     GenerateIcons;
     GenerateLaunchImages;
     GenerateData;

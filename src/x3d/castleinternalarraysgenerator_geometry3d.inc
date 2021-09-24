@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,6 +29,10 @@ type
 
     procedure PrepareIndexesTriangle1(const TriIndices: TVector3Integer);
     procedure PrepareIndexesTriangle2(const TriIndices: TVector3Integer);
+
+    { Add triangle indexes to IndexesFromCoordIndex, TrivialIndexesFromCoordIndex,
+      increase IFSNextIndex by 3. }
+    procedure AddTriangleIndexes(const T0, T1, T2: TGeometryIndex);
 
     procedure PrepareIndexesCoordsRange1(
       const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
@@ -216,12 +220,21 @@ begin
   end;
 end;
 
+procedure TAbstractIndexedFaceSetGenerator.AddTriangleIndexes(const T0, T1, T2: TGeometryIndex);
+begin
+  TrivialIndexesFromCoordIndex.L[IFSNextIndex] := T0; IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[T0]; Inc(IFSNextIndex);
+  TrivialIndexesFromCoordIndex.L[IFSNextIndex] := T1; IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[T1]; Inc(IFSNextIndex);
+  TrivialIndexesFromCoordIndex.L[IFSNextIndex] := T2; IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[T2]; Inc(IFSNextIndex);
+end;
+
 procedure TAbstractIndexedFaceSetGenerator.PrepareIndexesTriangle2(
   const TriIndices: TVector3Integer);
 begin
-  IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[TriIndices[0]]; Inc(IFSNextIndex);
-  IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[TriIndices[1]]; Inc(IFSNextIndex);
-  IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[TriIndices[2]]; Inc(IFSNextIndex);
+  AddTriangleIndexes(
+    TriIndices.Data[0],
+    TriIndices.Data[1],
+    TriIndices.Data[2]
+  );
 end;
 
 procedure TAbstractIndexedFaceSetGenerator.PrepareIndexesCoordsRange2(
@@ -240,9 +253,11 @@ begin
   begin
     for I := BeginIndex to EndIndex - 3 do
     begin
-      IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[BeginIndex]; Inc(IFSNextIndex);
-      IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[I + 1];      Inc(IFSNextIndex);
-      IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[I + 2];      Inc(IFSNextIndex);
+      AddTriangleIndexes(
+        BeginIndex,
+        I + 1,
+        I + 2
+      );
     end;
   end;
 
@@ -266,9 +281,11 @@ begin
     Arrays.Faces.Count := IFSIndexesCount;
   end;
 
-  { calculate IndexesFromCoordIndex contents: triangulate }
+  { calculate TrivialIndexesFromCoordIndex, IndexesFromCoordIndex contents: triangulate }
   IndexesFromCoordIndex := TGeometryIndexList.Create;
   IndexesFromCoordIndex.Count := IFSIndexesCount;
+  TrivialIndexesFromCoordIndex := TGeometryIndexList.Create;
+  TrivialIndexesFromCoordIndex.Count := IFSIndexesCount;
   IFSNextIndex := 0;
   Geometry.InternalMakeCoordRanges(State, @PrepareIndexesCoordsRange2);
   Assert(IFSNextIndex = IFSIndexesCount);

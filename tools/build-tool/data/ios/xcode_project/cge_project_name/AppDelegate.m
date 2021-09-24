@@ -66,11 +66,7 @@ AppDelegate* getAppDelegate()
 {
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
 
-    EAGLContext * context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
     GLKView *view = [[GLKView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-    view.context = context;
-    view.drawableStencilFormat = GLKViewDrawableStencilFormat8;
-    view.drawableDepthFormat = GLKViewDrawableDepthFormat24;
 
     OpenGLController * viewController = [[OpenGLController alloc] initWithNibName:nil bundle:nil];
     viewController.view = view;

@@ -30,6 +30,7 @@ uses SysUtils, Classes,
 {$I castledownload_save.inc}
 {$I castledownload_text.inc}
 {$I castledownload_strings_helper.inc}
+{$I castledownload_mime.inc}
 {$I castledownload_utils.inc}
 {$undef read_interface}
 
@@ -61,6 +62,7 @@ uses URIParser, Math, Generics.Collections,
 {$I castledownload_save.inc}
 {$I castledownload_text.inc}
 {$I castledownload_strings_helper.inc}
+{$I castledownload_mime.inc}
 {$I castledownload_utils.inc}
 
 initialization

@@ -401,6 +401,14 @@ type
       (this way the code respects the TCastleUserInterface.EnableUIScaling value). }
     property UIScale: Single read FUIScale;
 
+    { @exclude }
+    class function InternalCalculateUIScale(
+      const AUIScaling: TUIScaling;
+      const AUIReferenceWidth: Single;
+      const AUIReferenceHeight: Single;
+      const AUIExplicitScale: Single;
+      const ADpi, AWidth, AHeight: Single): Single;
+
     { Controls listening for events (user input, resize, and such) of this container.
 
       Usually you explicitly add / remove controls to this list
@@ -3728,45 +3736,54 @@ begin
   end;
 end;
 
-procedure TCastleContainer.UpdateUIScale;
-
-  function CalculateUIScale: Single;
-  begin
-    case UIScaling of
-      usNone         : Result := 1;
-      usExplicitScale: Result := UIExplicitScale;
-      usDpiScale     : Result := Dpi / DefaultDpi;
-      usEncloseReferenceSize, usFitReferenceSize:
-        begin
-          Result := 1;
-
-          { don't do adjustment before our Width/Height are sensible }
-          if not GLInitialized then Exit;
-
-          if (UIReferenceWidth <> 0) and (Width > 0) then
-          begin
-            Result := Width / UIReferenceWidth;
-            if (UIReferenceHeight <> 0) and (Height > 0) then
-              if UIScaling = usEncloseReferenceSize then
-                MinVar(Result, Height / UIReferenceHeight) else
-                MaxVar(Result, Height / UIReferenceHeight);
-          end else
-          if (UIReferenceHeight <> 0) and (Height > 0) then
-            Result := Height / UIReferenceHeight;
-          // Too talkative when resizing a window (also in castle-editor)
-          // WritelnLog('Scaling', 'Automatic scaling to reference sizes %f x %f in effect. Actual window size is %d x %d. Calculated scale is %f, which simulates surface of size %f x %f.',
-          //   [UIReferenceWidth, UIReferenceHeight,
-          //    Width, Height,
-          //    Result, Width / Result, Height / Result]);
-        end;
-      {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('UIScaling unknown');
-      {$endif}
-    end;
-  end;
-
+class function TCastleContainer.InternalCalculateUIScale(
+  const AUIScaling: TUIScaling;
+  const AUIReferenceWidth: Single;
+  const AUIReferenceHeight: Single;
+  const AUIExplicitScale: Single;
+  const ADpi, AWidth, AHeight: Single): Single;
 begin
-  FUIScale := CalculateUIScale;
+  case AUIScaling of
+    usNone         : Result := 1;
+    usExplicitScale: Result := AUIExplicitScale;
+    usDpiScale     : Result := ADpi / DefaultDpi;
+    usEncloseReferenceSize, usFitReferenceSize:
+      begin
+        Result := 1;
+        if (AUIReferenceWidth <> 0) and (AWidth > 0) then
+        begin
+          Result := AWidth / AUIReferenceWidth;
+          if (AUIReferenceHeight <> 0) and (AHeight > 0) then
+            if AUIScaling = usEncloseReferenceSize then
+              MinVar(Result, AHeight / AUIReferenceHeight)
+            else
+              MaxVar(Result, AHeight / AUIReferenceHeight);
+        end else
+        if (AUIReferenceHeight <> 0) and (AHeight > 0) then
+          Result := AHeight / AUIReferenceHeight;
+        // Too talkative when resizing a window (also in castle-editor)
+        // WritelnLog('Scaling', 'Automatic scaling to reference sizes %f x %f in effect. Actual window size is %d x %d. Calculated scale is %f, which simulates surface of size %f x %f.',
+        //   [AUIReferenceWidth, AUIReferenceHeight,
+        //    AWidth, AHeight,
+        //    Result, AWidth / Result, AHeight / Result]);
+      end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else raise EInternalError.Create('UIScaling unknown');
+    {$endif}
+  end;
+end;
+
+
+procedure TCastleContainer.UpdateUIScale;
+begin
+  if (not GLInitialized) and
+     (UIScaling in [usEncloseReferenceSize, usFitReferenceSize]) then
+    // don't adjust FUIScale before our Width/Height are sensible
+    FUIScale := 1
+  else
+    FUIScale := InternalCalculateUIScale(
+      UIScaling, UIReferenceWidth, UIReferenceHeight, UIExplicitScale,
+      Dpi, Width, Height);
 
   { Note that we don't cause TCastleUserInterface.UIScaleChanged calls now.
     They are done before BeforeRender, this way culled UI controls

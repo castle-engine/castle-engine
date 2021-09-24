@@ -2983,12 +2983,14 @@ procedure TCastleWindowBase.OpenCore;
       the whole screen area anyway. }
     RenderContext.Clear([cbColor], Theme.LoadingBackgroundColor);
 
-    UIScale := FRealHeight / Theme.LoadingImageForWindowHeight;
+    UIScale := TCastleContainer.InternalCalculateUIScale(
+      Theme.LoadingUIScaling, Theme.LoadingUIReferenceWidth, Theme.LoadingUIReferenceHeight, Theme.LoadingUIExplicitScale,
+      Dpi, FRealWidth, FRealHeight);
     TextRect := Theme.ImagesPersistent[tiLoading].Image.Rect.
       ScaleAroundCenter(UIScale).
       Align(hpMiddle, WindowRect, hpMiddle).
       Align(vpMiddle, WindowRect, vpMiddle);
-    Theme.Draw(TextRect, tiLoading, UIScale, Theme.LoadingTextColor);
+    Theme.Draw(TextRect, tiLoading, UIScale, Theme.LoadingColor);
 
     // just like TCastleWindowBase.DoRender
     if DoubleBuffer then SwapBuffers else glFlush;

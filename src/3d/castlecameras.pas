@@ -236,8 +236,21 @@ type
 
               If the displayed viewport aspect ratio wil be different than given
               @link(Width) and @link(Height) ratio, then these value will be
-              treated as minimum values, and they will be adjusted.
-              This follows the X3D OrthoViewpoint.fieldOfView specification.)
+              treated as minimum values, and they will be adjusted (one of them will be increased)
+              for the purposes of rendering.
+              You can read the @link(EffectiveWidth), @link(EffectiveHeight) to know
+              the adjusted values.
+
+              Note that the @link(TCamera.Position) is considered to be relative
+              to unadjusted @link(Width) and @link(Height), not to the adjusted
+              @link(EffectiveWidth), @link(EffectiveHeight).
+              In effect, when @link(Origin) is zero, the @link(TCamera.Position) does not point
+              to the left-bottom of the whole viewport.
+              It points to the left-bottom of the rectangle of aspect ratio
+              @link(Width) / @link(Height) within the viewport.
+              This way the enlarged viewport shows equal amount of additional space on the left and right
+              (or bottom and top) of the @link(Width) / @link(Height) rectangle within.
+            )
 
             @item(When @link(Stretch) = @true, these values are used directly,
               even if it means that aspect ratio of the projection
