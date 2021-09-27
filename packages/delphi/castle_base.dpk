@@ -91,6 +91,8 @@ contains
   castleinternalopenal in '..\..\src\audio\openal\castleinternalopenal.pas',
   castleinternalalutils in '..\..\src\audio\openal\castleinternalalutils.pas',
   castleinternalefx in '..\..\src\audio\openal\castleinternalefx.pas',
-  xmlread in '..\..\src\compatibility\delphi-only\xmlread.pas';
+  xmlread in '..\..\src\compatibility\delphi-only\xmlread.pas',
+  castlecomponentserialize in '..\..\src\3d\castlecomponentserialize.pas',
+  fphashcompatibility in '..\..\src\compatibility\delphi-only\fphashcompatibility.pas';
 
 end.

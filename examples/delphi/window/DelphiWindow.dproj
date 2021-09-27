@@ -81,7 +81,7 @@
         <SanitizedProjectName>DelphiWindow</SanitizedProjectName>
         <VerInfo_Locale>1045</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
-        <DCC_UnitSearchPath>..\..\..\src\base\windows;..\..\..\src\base;..\..\..\src\files;..\..\..\src\compatibility\delphi-only;..\..\..\src\common_includes;..\..\..\src\window\windows;..\..\..\src\base\opengl;..\..\..\src\images\opengl\glsl\generated-pascal;..\..\..\src\ui;..\..\..\src\ui\opengl;..\..\..\src\window;..\..\..\src\images\opengl;..\..\..\src\images;..\..\..\src\fonts\opengl;..\..\..\src\fonts\;..\..\..\src\ui\windows;..\..\..\src\audio;..\..\..\src\audio\ogg_vorbis;..\..\..\src\audio\openal;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>..\..\..\src\base\windows;..\..\..\src\base;..\..\..\src\files;..\..\..\src\compatibility\delphi-only;..\..\..\src\compatibility\delphi-only\fcl-json;..\..\..\src\common_includes;..\..\..\src\window\windows;..\..\..\src\base\opengl;..\..\..\src\images\opengl\glsl\generated-pascal;..\..\..\src\ui;..\..\..\src\ui\opengl;..\..\..\src\window;..\..\..\src\images\opengl;..\..\..\src\images;..\..\..\src\fonts\opengl;..\..\..\src\fonts\;..\..\..\src\ui\windows;..\..\..\src\audio;..\..\..\src\audio\ogg_vorbis;..\..\..\src\audio\openal;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Android)'!=''">
         <DCC_UsePackage>DBXSqliteDriver;RESTComponents;DBXInterBaseDriver;emsclientfiredac;tethering;DataSnapFireDAC;bindcompfmx;FmxTeeUI;fmx;FireDACIBDriver;FireDACDBXDriver;dbexpress;IndyCore;dsnap;emsclient;DataSnapCommon;FireDACCommon;RESTBackendComponents;soapserver;bindengine;CloudService;FireDACCommonDriver;DataSnapClient;inet;IndyIPCommon;bindcompdbx;IndyIPServer;IndySystem;fmxFireDAC;FireDAC;FireDACSqliteDriver;FMXTee;soaprtl;DbxCommonDriver;xmlrtl;soapmidas;DataSnapNativeClient;FireDACDSDriver;rtl;DbxClientDriver;CustomIPTransport;bindcomp;IndyIPClient;dbxcds;dsnapxml;DataSnapProviderClient;dbrtl;IndyProtocols;$(DCC_UsePackage)</DCC_UsePackage>
@@ -172,6 +172,8 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
+        <DCCReference Include="TestFpJsonRTTI.pas"/>
+        <DCCReference Include="TestFpJson.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -192,9 +194,7 @@
                 <Source>
                     <Source Name="MainSource">DelphiWindow.dpr</Source>
                 </Source>
-                <Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\21.0\Bpl\castle_window.bpl">(untitled)</Excluded_Packages>
-                </Excluded_Packages>
+                <Excluded_Packages/>
             </Delphi.Personality>
             <Deployment Version="3">
                 <DeployFile LocalName="$(BDS)\Redist\osx32\libcgunwind.1.0.dylib" Class="DependencyModule">

@@ -5,8 +5,23 @@ program DelphiWindow;
 {$R *.res}
 
 uses
-  System.SysUtils, CastleLog, CastleWindow, CastleGLShaders, CastleGLUtils,
-  CastleRectangles, CastleColors, CastleGLImages, CastleControls, castlevectors;
+  System.SysUtils,
+  Classes,
+  CastleLog,
+  CastleWindow,
+  CastleGLShaders,
+  CastleGLUtils,
+  CastleRectangles,
+  CastleColors,
+  CastleGLImages,
+  CastleControls,
+  castlevectors,
+  fpjson,
+  jsonparser,
+  CastleUtils,
+  fpjsonrtti,
+  TestFpJsonRTTI in 'TestFpJsonRTTI.pas',
+  TestFpJson in 'TestFpJson.pas';
 
 var
   Window: TCastleWindowBase;
@@ -49,7 +64,15 @@ var
   begin
     InitializeLog;
     //LogShaders := true;
+
+    TestFpJson1;
+    // simpledemo form fcl-json examples
+    TestFpJson2;
+
+    TestRTTI;
+
     WritelnLog('Simplest CastleWindow in Delphi');
+
     Window := TCastleWindowBase.Create(Application);
     Window.Caption := 'Simplest CastleWindow in Delphi';
     Window.OnRender := Render;
