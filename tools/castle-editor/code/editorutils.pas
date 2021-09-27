@@ -164,7 +164,7 @@ function ApiReference(const PropertyObject: TObject;
 
   All created menu items have OnClick set to OnClickEvent. }
 procedure BuildComponentsMenu(
-  const ParentUserInterface, ParentTransform, ParentBehavior, ParentNonVisual: TMenuItem;
+  const ParentNavigation, ParentUserInterface, ParentTransform, ParentBehavior, ParentNonVisual: TMenuItem;
   const OnClickEvent: TNotifyEvent);
 
 type
@@ -787,7 +787,7 @@ begin
 end;
 
 procedure BuildComponentsMenu(
-  const ParentUserInterface, ParentTransform, ParentBehavior, ParentNonVisual: TMenuItem;
+  const ParentNavigation, ParentUserInterface, ParentTransform, ParentBehavior, ParentNonVisual: TMenuItem;
   const OnClickEvent: TNotifyEvent);
 
   function CreateMenuItemForComponent(const OwnerAndParent: TMenuItem;
@@ -823,9 +823,8 @@ begin
     if not R.IsDeprecated then
     begin
       if R.ComponentClass.InheritsFrom(TCastleNavigation) then
-      begin
-        { do nothing, TCastleNavigation are in viewport "hamburger" menu }
-      end else
+        CreateMenuItemForComponent(ParentNavigation, R)
+      else
       if R.ComponentClass.InheritsFrom(TCastleUserInterface) then
         CreateMenuItemForComponent(ParentUserInterface, R)
       else

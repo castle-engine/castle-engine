@@ -908,12 +908,14 @@ begin
   Docking := UserConfig.GetValue('ProjectForm_Docking', false);
   OutputList := TOutputList.Create(ListOutput);
   BuildComponentsMenu(
+    nil,
     MenuItemDesignNewUserInterfaceCustomRoot,
     MenuItemDesignNewTransformCustomRoot,
     nil,
     MenuItemDesignNewNonVisualCustomRoot,
     @MenuItemDesignNewCustomRootClick);
   BuildComponentsMenu(
+    nil,
     MenuItemDesignAddUserInterface,
     MenuItemDesignAddTransform,
     MenuItemDesignAddBehavior,
