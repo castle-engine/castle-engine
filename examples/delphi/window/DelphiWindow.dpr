@@ -15,20 +15,23 @@ uses
   CastleColors,
   CastleGLImages,
   CastleControls,
-  castlevectors,
+  CastleVectors,
+  CastleComponentSerialize,
+  CastleClassUtils,
   fpjson,
   jsonparser,
   CastleUtils,
   fpjsonrtti,
   TestFpJsonRTTI in 'TestFpJsonRTTI.pas',
-  TestFpJson in 'TestFpJson.pas';
+  TestFpJson in 'TestFpJson.pas',
+  TestCastleConfig in 'testcastleconfig.pas',
+  TestCastleSerialization in 'testcastleserialization.pas';
 
 var
   Window: TCastleWindowBase;
   DrawableImage: TDrawableImage;
   DrawableImageCGE: TDrawableImage;
   DrawableImageDelphi: TDrawableImage;
-
 
   procedure Init(Sender: TCastleContainer);
   begin
@@ -61,6 +64,7 @@ var
     DrawableImage.Draw(600,30);
   end;
 
+
   begin
     InitializeLog;
     //LogShaders := true;
@@ -70,6 +74,10 @@ var
     TestFpJson2;
 
     TestRTTI;
+
+    TestRTTICastle;
+
+    //TestCastleConfig1;
 
     WritelnLog('Simplest CastleWindow in Delphi');
 
