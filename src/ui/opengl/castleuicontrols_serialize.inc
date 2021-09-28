@@ -28,17 +28,12 @@ function UserInterfaceLoad(const Url: String; const Owner: TComponent): TCastleU
 
 procedure UserInterfaceSave(const C: TCastleUserInterface; const Url: String);
 begin
-// TODO: Delphi serialization
-  {$ifdef FPC}
   ComponentSave(C, Url);
-  {$endif}
 end;
 
 function UserInterfaceLoad(const Url: String; const Owner: TComponent): TCastleUserInterface;
 begin
-  {$ifdef FPC}
   Result := ComponentLoad(Url, Owner) as TCastleUserInterface;
-  {$endif}
 end;
 
 {$endif read_implementation}

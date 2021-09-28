@@ -49,14 +49,12 @@ type
 
 implementation
 
-// TODO: Delphi serialization
-
 uses XMLRead, StrUtils, Generics.Defaults,
   CastleUtils, CastleLog, CastleProgress, CastleInternalVorbisFile,
   CastleParameters, CastleXMLUtils, CastleFilesUtils, CastleConfig,
   CastleURIUtils, CastleDownload, CastleMessaging, CastleApplicationProperties
   {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_OPENAL}, CastleOpenALSoundBackend{$endif}
-  {$ifdef FPC}, CastleComponentSerialize{$endif};
+  , CastleComponentSerialize;
 
 {$define read_implementation}
 {$I castlesoundengine_miscellaneous.inc} // must be first, as defines some internal globals
@@ -72,10 +70,7 @@ uses XMLRead, StrUtils, Generics.Defaults,
 {$undef read_implementation}
 
 initialization
-// TODO: Delphi serialization
-  {$ifdef FPC}
   RegisterSerializableComponent(TCastleSound, 'Sound');
-  {$endif}
 finalization
   FreeAndNil(FSoundEngine);
 end.

@@ -164,7 +164,7 @@ implementation
 // TODO: Delphi Serialize
 
 uses SysUtils, StrUtils, Math, {$ifndef FPC} Character,{$endif}
-  CastleUtils, CastleStringUtils, CastleLog, CastleUnicode{$ifdef FPC}, CastleComponentSerialize{$endif};
+  CastleUtils, CastleStringUtils, CastleLog, CastleUnicode, CastleComponentSerialize;
 
 { TPrintState ---------------------------------------------------------------- }
 

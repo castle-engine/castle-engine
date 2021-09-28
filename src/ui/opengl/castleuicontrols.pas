@@ -20,13 +20,11 @@ unit CastleUIControls;
 
 interface
 
-// TODO: Delphi Serialize
-
 uses SysUtils, Classes, Generics.Collections,
   CastleKeysMouse, CastleUtils, CastleClassUtils, CastleGLUtils, CastleFonts,
   CastleRectangles, CastleTimeUtils, CastleInternalPk3DConnexion, CastleColors,
   CastleImages, CastleVectors, CastleJoysticks, CastleApplicationProperties,
-  CastleGLImages, CastleRenderContext {$ifdef FPC}, CastleComponentSerialize{$endif};
+  CastleGLImages, CastleRenderContext, CastleComponentSerialize;
 
 const
   { Default value for container's Dpi, as is usually set on desktops. }
@@ -5785,10 +5783,7 @@ end;
 
 procedure DoInitialization;
 begin
-  // TODO: Delphi serialization
-  {$ifdef FPC}
   RegisterSerializableComponent(TCastleUserInterface, 'Empty Rectangle');
-  {$endif}
 end;
 
 initialization

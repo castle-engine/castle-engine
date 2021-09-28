@@ -63,11 +63,9 @@ procedure Register;
 
 implementation
 
-// TODO: Delphi serialization
-
 uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
   CastleTextureFont_DejaVuSans_10, CastleTextureImages,
-  CastleApplicationProperties, CastleMessaging, {$ifdef FPC}CastleComponentSerialize,{$endif}
+  CastleApplicationProperties, CastleMessaging, CastleComponentSerialize,
   CastleUnicode;
 
 {$define read_implementation}
@@ -109,8 +107,6 @@ end;
 initialization
   FTheme := TCastleTheme.Create;
 
-  // TODO: Delphi serialization
-  {$ifdef FPC}
   RegisterSerializableComponent(TCastleButton, 'Button');
   RegisterSerializableComponent(TCastleImageControl, 'Image');
   RegisterSerializableComponent(TCastleRectangleControl, 'Color Rectangle');
@@ -130,7 +126,6 @@ initialization
   RegisterSerializableComponent(TCastleCheckbox, 'Checkbox');
   RegisterSerializableComponent(TCastleSwitchControl, 'Switch');
   RegisterSerializableComponent(TCastleDesign, 'Design (Reference Another castle-user-interface File)');
-  {$endif FPC}
 finalization
   FreeAndNil(FTheme);
   FinalizationUIFonts;

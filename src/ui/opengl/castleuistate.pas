@@ -20,11 +20,9 @@ unit CastleUIState;
 
 interface
 
-// TODO: Delphi serialization
-
 uses Classes, Generics.Collections,
   CastleConfig, CastleKeysMouse, CastleImages, CastleUIControls, CastleClassUtils,
-  CastleGLImages, CastleVectors, CastleRectangles{$ifdef FPC}, CastleComponentSerialize{$endif};
+  CastleGLImages, CastleVectors, CastleRectangles, CastleComponentSerialize;
 
 type
   TUIStateList = class;
@@ -98,10 +96,7 @@ type
     FDesignLoaded: TCastleUserInterface;
     FDesignLoadedOwner: TComponent;
     FDesignPreload: Boolean;
-    // TODO: Delphi serialization
-    {$ifdef FPC}
     FDesignPreloadedSerialized: TSerializedComponent;
-    {$endif}
     FDesignPreloaded: TCastleUserInterface;
     FDesignPreloadedOwner: TComponent;
 
@@ -353,7 +348,6 @@ type
     procedure Render; override;
     function UIScale: Single; override;
 
-    {$ifdef FPC}
     { Load and show a user interface from a .castle-user-interface file,
       designed in Castle Game Engine Editor.
 
@@ -379,10 +373,9 @@ type
     }
     procedure InsertUserInterface(const ADesignUrl: String;
       const FinalOwner: TComponent;
-      out Ui: TCastleUserInterface; out UiOwner: TComponent); deprecated 'instead of this, set DesignUrl in constructor';
+      out Ui: TCastleUserInterface; out UiOwner: TComponent); overload; deprecated 'instead of this, set DesignUrl in constructor';
     procedure InsertUserInterface(const ADesignUrl: String;
-      const FinalOwner: TComponent; out UiOwner: TComponent); deprecated 'instead of this, set DesignUrl in constructor';
-    {$endif}
+      const FinalOwner: TComponent; out UiOwner: TComponent); overload; deprecated 'instead of this, set DesignUrl in constructor';
 
     { Wait until the render event happens (to redraw current state),
       and then call Event.
@@ -508,8 +501,6 @@ begin
   raise EInternalError.Create(Message);
 end;
 
-// TODO: Delphi serialization
-{$ifdef FPC}
 type
   { Helper methods extending TSerializedComponent.
     Do not use TSerializedComponentHelper from CastleViewport,
@@ -525,7 +516,6 @@ function TSerializedComponentHelper.UserInterfaceLoad(const Owner: TComponent): 
 begin
   Result := ComponentLoad(Owner) as TCastleUserInterface;
 end;
-{$endif}
 
 { TUIState --------------------------------------------------------------------- }
 
@@ -869,7 +859,6 @@ begin
   end;
 end;
 
-{$ifdef FPC}
 procedure TUIState.InsertUserInterface(const ADesignUrl: String;
   const FinalOwner: TComponent;
   out Ui: TCastleUserInterface; out UiOwner: TComponent);
@@ -889,7 +878,6 @@ begin
   {$warnings on}
   // ignore the returned Ui reference
 end;
-{$endif}
 
 procedure TUIState.Render;
 begin
@@ -905,8 +893,6 @@ end;
 
 procedure TUIState.LoadDesign;
 begin
-  // TODO: Delphi serialization
-  {$ifdef FPC}
   if DesignUrl <> '' then
   begin
     FDesignLoadedOwner := TComponent.Create(nil);
@@ -916,9 +902,6 @@ begin
       FDesignLoaded := UserInterfaceLoad(DesignUrl, FDesignLoadedOwner);
     InsertFront(FDesignLoaded);
   end;
-  {$else}
-  raise Exception.Create('Not implemented in delphi!');
-  {$endif}
 end;
 
 procedure TUIState.UnLoadDesign;
@@ -929,8 +912,6 @@ end;
 
 procedure TUIState.PreloadDesign;
 begin
-  // TODO: Delphi serialization
-  {$ifdef FPC}
   if DesignUrl <> '' then
   begin
     // load FDesignPreloadedSerialized to be able to faster load design, without parsing JSON
@@ -940,9 +921,6 @@ begin
     FDesignPreloadedOwner := TComponent.Create(nil);
     FDesignPreloaded := FDesignPreloadedSerialized.UserInterfaceLoad(FDesignPreloadedOwner);
   end;
-  {$else}
-  raise Exception.Create('Not implemented in delphi!');
-  {$endif}
 end;
 
 procedure TUIState.UnPreloadDesign;
@@ -953,10 +931,7 @@ begin
     This makes it easier to think about them. }
   FreeAndNil(FDesignPreloadedOwner);
   FDesignPreloaded := nil;// freeing FDesignPreloadedOwner must have freed this too
-  // TODO: Delphi serialization
-  {$ifdef FPC}
   FreeAndNil(FDesignPreloadedSerialized);
-  {$endif}
 end;
 
 procedure TUIState.SetDesignUrl(const Value: String);
@@ -1020,12 +995,7 @@ function TUIState.DesignedComponent(const ComponentName: String): TComponent;
 begin
   if FDesignLoaded = nil then
     ErrorDesignLoaded;
-  // TODO: Delphi serialization
-  {$ifdef FPC}
   Result := FDesignLoadedOwner.FindRequiredComponent(ComponentName);
-  {$else}
-  raise Exception.Create('Not implemented in Delphi');
-  {$endif}
 end;
 
 function TUIState.ContainerWidth: Cardinal;
