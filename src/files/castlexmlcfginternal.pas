@@ -130,7 +130,7 @@ type
 
 implementation
 
-uses CastleXMLUtils, CastleURIUtils, CastleStringUtils {$ifndef FPC},StrUtils{$endif};
+uses CastleXMLUtils, CastleURIUtils, CastleStringUtils;
 
 constructor TXMLConfig.Create(AOwner: TComponent);
 begin
@@ -381,7 +381,7 @@ begin
   if StartPos = 0 then
     NodeName := APath
   else
-    NodeName := Copy(APath, StartPos + 1, Length(APath) - (StartPos + 1));
+    NodeName := Copy(APath, StartPos + 1, Length(APath) - StartPos);
 
   if (not Assigned(TDOMElement(Node).GetAttributeNode(NodeName))) then
     Exit;
