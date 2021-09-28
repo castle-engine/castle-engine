@@ -8,6 +8,8 @@ procedure TestRTTICastle;
 
 implementation
 
+uses CastleLog;
+
 type
   TFakeCastleScene = class(TCastleComponent)
   private
