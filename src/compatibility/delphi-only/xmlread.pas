@@ -36,9 +36,8 @@ implementation
 procedure ReadXMLFile(out Doc: TXMLDocument; const Stream: TStream);
 begin
   Doc := TXMLDocument.Create;
-  Doc.InternalDocument := XMLDoc.TXMLDocument.Create(nil);
   try
-    Doc.InternalDocument.LoadFromStream(Stream);
+    Doc.LoadFromStream(Stream);
   except
     on E: Exception do
       raise EXMLReadError.Create('Error when reading XML: ' + E.Message);
@@ -49,9 +48,8 @@ end;
 procedure ReadXMLFile(out Doc: TXMLDocument; const Stream: TStream; const ABaseURI: String); overload;
 begin
   Doc := TXMLDocument.Create;
-  Doc.InternalDocument := XMLDoc.TXMLDocument.Create(nil);
   try
-    Doc.InternalDocument.LoadFromStream(Stream);
+    Doc.LoadFromStream(Stream);
   except
     on E: Exception do
       raise EXMLReadError.Create('Error when reading XML: ' + E.Message);

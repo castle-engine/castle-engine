@@ -233,6 +233,9 @@ type
     InternalDocument: IXMLDocument;
     constructor Create; reintroduce;
     destructor Destroy; override;
+
+    procedure LoadFromStream(Stream: TStream);
+
     property DocumentElement: TDOMElement read GetDocumentElement;
     function CreateElement(const Name: String): TDOMElement;
     function ReplaceChild(NewChild, OldChild: TDOMNode): TDOMNode;
@@ -339,7 +342,7 @@ function TDOMNode.FindNode(const NodeName: String): TDOMNode;
 var
   I: Integer;
 begin
-  for I := 0 to ChildNodes.Count do
+  for I := 0 to ChildNodes.Count - 1 do
   begin
     if ChildNodes[I].NodeName = NodeName then
       Exit(ChildNodes[I]);
@@ -481,10 +484,7 @@ end;
 
 function TDOMElement.GetAttributeNode(const Name: String): TDOMAttr;
 begin
-  if Assigned(FAttributes) then
-    Result := FAttributes.GetNamedItem(Name) as TDOMAttr
-  else
-    Result := nil;
+  Result := GetAttributes.GetNamedItem(Name) as TDOMAttr
 end;
 
 function TDOMElement.GetAttributes: TDOMNamedNodeMap;
@@ -550,7 +550,8 @@ begin
       FDocumentElement := TDOMElement(Child);
     end else
       FreeAndNil(Child);
-  end;
+  end else
+    raise Exception.Create('Delphi limitation: There can be only one root element!');
 end;
 
 constructor TDOMDocument.Create;
@@ -583,9 +584,19 @@ end;
 
 function TDOMDocument.GetDocumentElement: TDOMElement;
 begin
-  {if FDocumentElement = nil then
-    FDocumentElement := TDOMElement.Create(Self, InternalDocument.DocumentElement);}
   Result := FDocumentElement;
+end;
+
+procedure TDOMDocument.LoadFromStream(Stream: TStream);
+begin
+  FreeAndNil(FDocumentElement);
+
+  InternalDocument.LoadFromStream(Stream);
+
+  if InternalDocument.DocumentElement <> nil then
+  begin
+    FDocumentElement := TDOMElement.Create(Self, InternalDocument.DocumentElement);
+  end;
 end;
 
 function TDOMDocument.ReplaceChild(NewChild, OldChild: TDOMNode): TDOMNode;
@@ -637,6 +648,7 @@ begin
       else         NewNode := TDOMNode.Create(FOwnerDocument, InternalList[I]);
     end;
     Nodes[I] := NewNode;
+    NewNode.FParentNode := FOwnerNode;
   end;
   Result := Nodes[I] as TDOMNode;
 end;

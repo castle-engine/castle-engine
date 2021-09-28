@@ -964,7 +964,7 @@ begin
     { create child if necessary }
     if NewResult = nil then
     begin
-      NewResult := Document.CreateElement(UTF8Decode(PathComponent));
+      NewResult := Document.CreateElement({$ifdef FPC}UTF8Decode({$endif}PathComponent{$ifdef FPC}){$endif});
       Result.AppendChild(NewResult);
     end;
     Result := NewResult;

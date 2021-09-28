@@ -18,6 +18,7 @@ uses
   CastleVectors,
   CastleComponentSerialize,
   CastleClassUtils,
+  CastleApplicationProperties,
   fpjson,
   jsonparser,
   CastleUtils,
@@ -66,6 +67,7 @@ var
 
 
   begin
+    ApplicationProperties.ApplicationName := 'delphi_window';
     InitializeLog;
     //LogShaders := true;
 
@@ -77,7 +79,7 @@ var
 
     TestRTTICastle;
 
-    //TestCastleConfig1;
+    TestCastleConfig1;
 
     WritelnLog('Simplest CastleWindow in Delphi');
 

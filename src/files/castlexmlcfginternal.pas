@@ -130,7 +130,7 @@ type
 
 implementation
 
-uses CastleXMLUtils, CastleURIUtils;
+uses CastleXMLUtils, CastleURIUtils, CastleStringUtils {$ifndef FPC},StrUtils{$endif};
 
 constructor TXMLConfig.Create(AOwner: TComponent);
 begin
@@ -232,10 +232,16 @@ procedure TXMLConfig.SetValue(const APath, AValue: String);
 var
   Node, Child: TDOMNode;
   NodeName: String;
-  PathLen: integer;
-  StartPos, EndPos: integer;
+  {$ifdef FPC}
+  PathLen: Integer;
+  StartPos, EndPos: Integer;
+  {$else}
+  NodeNames: TStrings;
+  I: Integer;
+  {$endif}
 begin
   Node := Doc.DocumentElement;
+  {$ifdef FPC}
   PathLen := Length(APath);
   StartPos:=1;
   while True do
@@ -269,6 +275,37 @@ begin
     TDOMElement(Node)[UTF8decode(NodeName)] := UTF8Decode(AValue);
     FModified := True;
   end;
+  {$else}
+  NodeNames := TStringList.Create;
+  try
+    ExtractStrings(['/'], [], PWideChar(APath), NodeNames);
+
+    if NodeNames.Count = 0 then
+      Exit;
+
+    if NodeNames.Count > 1 then
+      for I := 0 to NodeNames.Count - 2 do
+      begin
+        NodeName := Escape(NodeNames[I]);
+        Child := Node.FindNode(NodeName);
+        if not Assigned(Child) then
+        begin
+          Child := Doc.CreateElement(NodeName);
+          Node.AppendChild(Child);
+        end;
+        Node := Child;
+      end;
+    NodeName := Escape(NodeNames[NodeNames.Count - 1]);
+    if (not Assigned(TDOMElement(Node).GetAttributeNode(NodeName))) or
+      (TDOMElement(Node)[NodeName] <> AValue) then
+    begin
+      TDOMElement(Node)[NodeName] := AValue;
+      FModified := True;
+    end;
+  finally
+    FreeAndNil(NodeNames);
+  end;
+  {$endif}
 end;
 
 procedure TXMLConfig.SetDeleteValue(const APath, AValue, DefValue: String);
@@ -324,19 +361,32 @@ end;
 procedure TXMLConfig.DeleteValue(const APath: string);
 var
   Node: TDomNode;
-  StartPos: integer;
-  NodeName: string;
+  NodeName: String;
+  StartPos: Integer;
 begin
   Node := FindNode(APath, True);
   if not Assigned(Node) then
     exit;
+
+  {$ifdef FPC}
   StartPos := Length(APath);
   while (StartPos > 0) and (APath[StartPos] <> '/') do
    Dec(StartPos);
   NodeName := Escape(Copy(APath, StartPos+1, Length(APath) - StartPos));
   if (not Assigned(TDOMElement(Node).GetAttributeNode(UTF8Decode(NodeName)))) then
-    exit;
+    Exit;
   TDOMElement(Node).RemoveAttribute(UTF8Decode(NodeName));
+  {$else}
+  StartPos := BackPos('/', APath);
+  if StartPos = 0 then
+    NodeName := APath
+  else
+    NodeName := Copy(APath, StartPos + 1, Length(APath) - (StartPos + 1));
+
+  if (not Assigned(TDOMElement(Node).GetAttributeNode(NodeName))) then
+    Exit;
+  TDOMElement(Node).RemoveAttribute(NodeName);
+  {$endif}
   FModified := True;
 end;
 
@@ -351,10 +401,16 @@ function TXMLConfig.FindNode(const APath: String;
   PathHasValue: boolean): TDomNode;
 var
   NodePath: String;
+  {$ifdef FPC}
   StartPos, EndPos: integer;
   PathLen: integer;
+  {$else}
+  NodeNames: TStrings;
+  I, Count: Integer;
+  {$endif}
 begin
   Result := Doc.DocumentElement;
+  {$ifdef FPC}
   PathLen := Length(APath);
   StartPos := 1;
   while Assigned(Result) do
@@ -374,6 +430,32 @@ begin
       exit;
   end;
   Result := nil;
+  {$else}
+  NodeNames := TStringList.Create;
+  try
+    ExtractStrings(['/'], [], PWideChar(APath), NodeNames);
+
+    if NodeNames.Count = 0 then
+      Exit(nil);
+
+    if PathHasValue and (NodeNames.Count = 1) then
+      Exit;
+
+    if PathHasValue then
+      Count := NodeNames.Count - 1
+    else
+      Count := NodeNames.Count;
+
+    for I := 0 to Count - 1 do
+    begin
+      Result := Result.FindNode(NodeNames[I]);
+      if not Assigned(Result) then
+        Exit;
+    end;
+  finally
+    FreeAndNil(NodeNames);
+  end;
+  {$endif}
 end;
 
 function TXMLConfig.Escape(const s: String): String;
