@@ -515,12 +515,12 @@ begin
       while ScalesIterator.GetNext do
       begin
         Scale.Value := StrToScale(ScalesIterator.Current.AttributeString('value'));
-	Scale.Platforms := AllPlatforms;
+        Scale.Platforms := AllPlatforms;
 
         PlatformsElement := ScalesIterator.Current.ChildElement('platforms', false);
         if PlatformsElement <> nil then
         begin
-	  Scale.Platforms := [];
+          Scale.Platforms := [];
           PlatformsIterator := PlatformsElement.ChildrenIterator('platform');
           try
             while PlatformsIterator.GetNext do
@@ -535,6 +535,14 @@ begin
     finally
       FreeAndNil(ScalesIterator);
     end;
+  end;
+
+  // no <scale> or <scales> in material_properties.xml file -> do not downscale
+  if FScales.Count = 0 then
+  begin
+    Scale.Value := 1;
+    Scale.Platforms := AllPlatforms;
+    FScales.Add(Scale);
   end;
 
   PreferredOutputFormatElement := Element.ChildElement('preferred_output_format', false);
@@ -625,8 +633,8 @@ begin
     if IncludePathsRecursive[I] then
       FindOptions := [ffRecursive] else
       { not recursive, so that e.g. <include path="my_texture.png" />
-	or <include path="subdir/my_texture.png" />
-	should not include *all* my_texture.png files inside. }
+        or <include path="subdir/my_texture.png" />
+        should not include *all* my_texture.png files inside. }
       FindOptions := [];
     FindFiles(IncludePaths[I], false, {$ifdef CASTLE_OBJFPC}@{$endif} GatherCallback, FindOptions);
   end;
