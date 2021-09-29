@@ -228,11 +228,11 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
             try {
                 // See https://developer.android.com/google/play/billing/integrate#show-products
                 if (billingResult.getResponseCode() == BillingResponseCode.OK && purchases != null) {
-                    for (Purchase purchase : purchases) {
-                        for (String productName : purchase.getSkus()) {
-                            owns(productName, purchase);
-                        }
-                    }
+                    /* To allow purchases outside of app (e.g. promo codes redeemed in Google Play),
+                       we react to purchases detected by OperationRefreshPurchased (done from onResume)
+                       just like to regular purchases.
+                       They will be acknowledged, send to analytics, call owns(). */
+                    handlePurchases(purchases);
                     messageSend(new String[]{"in-app-purchases-refreshed-purchases"});
                 } else if (billingResult.getResponseCode() == BillingResponseCode.USER_CANCELED) {
                     // No error or warning, this is normal
@@ -280,11 +280,14 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
                     return;
                 }
 
-                BillingFlowParams purchaseParams =
-                    BillingFlowParams.newBuilder()
-                            .setSkuDetails(product.skuDetails)
-                            .build();
-                billingClient.launchBillingFlow(getActivity(), purchaseParams);
+                BillingFlowParams purchaseParams = BillingFlowParams.newBuilder()
+                    .setSkuDetails(product.skuDetails)
+                    .build();
+
+                BillingResult billingResult = billingClient.launchBillingFlow(getActivity(), purchaseParams);
+                if (billingResult.getResponseCode() != BillingResponseCode.OK) {
+                    logError(CATEGORY, "Error when launchBillingFlow: " + billingResult.getDebugMessage());
+                }
             } finally{
                 currentOperationFinished();
             }
@@ -322,53 +325,54 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
             }
             String purchaseToken = purchaseTokens.get(productName);
 
-            ConsumeParams consumeParams =
-                ConsumeParams.newBuilder()
-                    .setPurchaseToken(purchaseToken)
-                    .build();
+            ConsumeParams consumeParams = ConsumeParams.newBuilder()
+                .setPurchaseToken(purchaseToken)
+                .build();
             billingClient.consumeAsync(consumeParams, this);
         }
     }
 
     /* main class implementation --------------------------------------------- */
 
-    /* Handle purchases, initiated by our own code (from OperationPurchase) and outside of our code
-       (e.g. by user using promo code in Google Play app).
-     */
-    @Override
-    public void onPurchasesUpdated(BillingResult responseCode, @Nullable List<Purchase> purchases)
+    private void acknowledgeIfNeeded(Purchase purchase)
     {
-        if (responseCode.getResponseCode() == BillingResponseCode.OK && purchases != null) {
-            for (Purchase purchase : purchases) {
-                String signature = purchase.getSignature();
+        /* We need to do acknowledgePurchase so that one-time purchases (non-consumable)
+           are acknowledged, and not refunded.
 
-                // Watch out, signature may be null, tested on Pawel Android 4.3.
-                // Should not be possible with Android SDK versions though, result is @NonNull
-                /*
-                if (signature == null) {
-                    logWarning(CATEGORY, "Missing purchase signature");
-                }
-                */
+           For consumables, this is not necessary.
+           Pascal must call Consume which calls Java consumeAsync,
+           and it acknowledges already.
+           But it seems simpler to acknowledge just always.
+        */
+        if (!purchase.isAcknowledged()) {
+            String purchaseToken = purchase.getPurchaseToken();
 
-                String purchaseToken = purchase.getPurchaseToken();
+            AcknowledgePurchaseParams acknowledgePurchaseParams =
+                AcknowledgePurchaseParams.newBuilder()
+                    .setPurchaseToken(purchaseToken)
+                    .build();
+            billingClient.acknowledgePurchase(acknowledgePurchaseParams, this);
+        }
+    }
 
-                /* We need to do acknowledgePurchase so that one-time purchases (non-consumable)
-                   are acknowledged, and not refunded.
+    private void handlePurchases(@NonNull List<Purchase> purchases)
+    {
+        for (Purchase purchase : purchases) {
+            String signature = purchase.getSignature();
 
-                   For consumables, this is not necessary.
-                   Pascal must call Consume which calls Java consumeAsync,
-                   and it acknowledges already.
-                   But it seems simpler to acknowledge just always.
-                */
-                if (purchase.getPurchaseState() == PurchaseState.PURCHASED) {
-                    if (!purchase.isAcknowledged()) {
-                        AcknowledgePurchaseParams acknowledgePurchaseParams =
-                            AcknowledgePurchaseParams.newBuilder()
-                                .setPurchaseToken(purchaseToken)
-                                .build();
-                        billingClient.acknowledgePurchase(acknowledgePurchaseParams, this);
-                    }
-                }
+            // Watch out, signature may be null, tested on Pawel Android 4.3.
+            // Should not be possible with Android SDK versions though, result is @NonNull
+            /*
+            if (signature == null) {
+                logWarning(CATEGORY, "Missing purchase signature");
+            }
+            */
+
+            /* Only handle purchases with state PURCHASED.
+               Ignore PENDING purchases, see https://developer.android.com/google/play/billing/integrate#pending
+            */
+            if (purchase.getPurchaseState() == PurchaseState.PURCHASED) {
+                acknowledgeIfNeeded(purchase);
 
                 for (String productName : purchase.getSkus()) {
                     if (debug) {
@@ -395,6 +399,17 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
                     owns(productName, purchase);
                 }
             }
+        }
+    }
+
+    /* Handle purchases, initiated by our own code (from OperationPurchase) and outside of our code
+       (e.g. by user using promo code in Google Play app).
+     */
+    @Override
+    public void onPurchasesUpdated(BillingResult responseCode, @Nullable List<Purchase> purchases)
+    {
+        if (responseCode.getResponseCode() == BillingResponseCode.OK && purchases != null) {
+            handlePurchases(purchases);
         } else {
             logWarning(CATEGORY, "Purchase failed: " + responseCode.getDebugMessage());
         }
@@ -444,6 +459,8 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
             @Override
             public void onBillingServiceDisconnected() {
                 billingClientConnected = false;
+                // TODO: Try to restart the connection on the next request to
+                // Google Play by calling the startConnection() method.
             }
         });
     }
@@ -472,18 +489,20 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
     }
 
     /* Internal notification that productName is owned, along with the Purchase instance
-       (never null) that indicates the ownership.
+     * (never null) that indicates the ownership.
+     *
+     * This can be called only when purchase.getPurchaseState() == PurchaseState.PURCHASED!
      */
     private void owns(String productName, Purchase purchase)
     {
-        String purchaseToken;
-
+        // Should not happen, according to our usage of owns()
         int purchaseState = purchase.getPurchaseState();
         if (purchaseState != PurchaseState.PURCHASED) {
-            logWarning(CATEGORY, "Ignoring owns(" + productName + "), as item not in PURCHASED state " + purchaseState);
+            logError(CATEGORY, "Ignoring owns(" + productName + "), as item not in PURCHASED state: " + purchaseState);
             return;
         }
-        purchaseToken = purchase.getPurchaseToken();
+
+        String purchaseToken = purchase.getPurchaseToken();
 
         /* Use purchaseTokens to avoid sending multiple "in-app-purchases-owns"
          * for the same item, when no new purchase occurred.
