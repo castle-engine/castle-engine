@@ -21,7 +21,7 @@ public class MainActivity extends NativeActivity
     private static final String CATEGORY = "MainActivity";
 
     private ServiceMessaging messaging;
-    private List<ServiceAbstract> services = new ArrayList<ServiceAbstract>();
+    private final List<ServiceAbstract> services = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -170,11 +170,11 @@ public class MainActivity extends NativeActivity
         return result;
     }
 
-    public void onPurchase(AvailableProduct product, String purchaseData, String signature)
+    public void onPurchase(AvailableProduct product, String originalJson, String signature)
     {
         ServiceAbstract.logInfo(CATEGORY, "purchase " + product.id);
         for (ServiceAbstract service : services) {
-            service.onPurchase(product, purchaseData, signature);
+            service.onPurchase(product, originalJson, signature);
         }
     }
 
@@ -183,7 +183,7 @@ public class MainActivity extends NativeActivity
     public native String jniMessage(String messageToPascal, byte[] messageToPascalStream);
     public native void jniLanguage(String javaToNative);
 
-    public static final void safeLoadLibrary(String libName)
+    public static void safeLoadLibrary(String libName)
     {
         try {
             System.loadLibrary(libName);

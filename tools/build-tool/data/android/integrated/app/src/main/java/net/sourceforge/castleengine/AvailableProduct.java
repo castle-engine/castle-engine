@@ -1,6 +1,8 @@
 /* -*- tab-width: 4 -*- */
 package net.sourceforge.castleengine;
 
+import com.android.billingclient.api.SkuDetails;
+
 /* Information about the product available for purchase.
    Used by in-app purchases and analytics services.
 */
@@ -41,4 +43,9 @@ public class AvailableProduct
      * See https://developer.android.com/google/play/billing/billing_reference.html
      */
     String priceCurrencyCode;
+
+    /* Google Play Billing instance of SkuDetails describing this product.
+     * null if not known yet.
+     */
+    SkuDetails skuDetails;
 }
