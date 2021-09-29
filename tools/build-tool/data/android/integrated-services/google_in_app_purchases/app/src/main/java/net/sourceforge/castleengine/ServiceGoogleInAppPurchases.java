@@ -425,9 +425,10 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
     @Override
     public void onCreate()
     {
-        billingClient = BillingClient.newBuilder(getActivity()).
-                setListener(this).
-                build();
+        billingClient = BillingClient.newBuilder(getActivity())
+            .enablePendingPurchases()
+            .setListener(this)
+            .build();
         billingClient.startConnection(new BillingClientStateListener() {
             @Override
             public void onBillingSetupFinished(@NonNull BillingResult billingResult) {
