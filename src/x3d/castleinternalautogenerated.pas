@@ -153,6 +153,9 @@ type
     function Used(const Url: string): Boolean;
   end;
 
+function PlatformsToStr(const Platforms: TCastlePlatforms): String;
+function StrToPlatforms(const S: String): TCastlePlatforms;
+
 implementation
 
 uses SysUtils,
@@ -494,13 +497,4 @@ begin
   Result := false;
 end;
 
-{$ifdef DEBUG}
-initialization
-  // TODO: move these tests to tests/ subdir
-  Assert(StrToPlatforms('') = []);
-  Assert(StrToPlatforms('all') = AllPlatforms);
-  Assert(StrToPlatforms('Desktop') = [cpDesktop]);
-  Assert(StrToPlatforms('Android;iOS;Nintendo Switch') = [cpAndroid, cpIOS, cpNintendoSwitch]);
-  Assert(StrToPlatforms('ANDROID;IOS;NINTENDO SWITCH') = [cpAndroid, cpIOS, cpNintendoSwitch]); // case ignored
-{$endif}
 end.
