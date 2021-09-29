@@ -1147,7 +1147,7 @@ type
       Contents of this tree are read-only from outside. }
     property Shapes: TShapeTree read FShapes;
 
-    // { Bounding box of all occurences of the given X3D Shape node. }
+    // { Bounding box of all occurrences of the given X3D Shape node. }
     // function ShapeBoundingBox(const Node: TShapeNode): TBox3D;
 
     { Number of active shapes in the @link(Shapes) tree.

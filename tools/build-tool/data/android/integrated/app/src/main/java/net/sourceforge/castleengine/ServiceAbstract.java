@@ -131,7 +131,7 @@ public abstract class ServiceAbstract
      * Split the string by char code.
      *
      * The splitting is done "strictly", which means that we always return exactly
-     * one more part than the occurences of delimiter in the source string.
+     * one more part than the occurrences of delimiter in the source string.
      *
      * This is an equivalent of Object Pascal SplitString function in CastleStringUtils,
      * and the reverse of Object Pascal GlueStrings function in CastleStringUtils.
