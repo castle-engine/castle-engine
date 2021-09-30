@@ -372,31 +372,69 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
                Ignore PENDING purchases, see https://developer.android.com/google/play/billing/integrate#pending
             */
             if (purchase.getPurchaseState() == PurchaseState.PURCHASED) {
-                acknowledgeIfNeeded(purchase);
 
-                for (String productName : purchase.getSkus()) {
-                    if (debug) {
-                        logInfo(CATEGORY, "Product " + productName + " purchased");
+                /* Use purchaseTokens to avoid applying the same purchase multiple times.
+                 *
+                 * This way:
+                 *
+                 * - We avoid sending multiple "in-app-purchases-owns" (from owns() call)
+                 *   for the same item, when no new purchase occurred.
+                 *   While this is not really prohibited (our CastleInAppPurchases documentation
+                 *   talks about this, and insists that you depend on SuccessfullyConsumed
+                 *   for consumables), we try to avoid it in the common case.
+                 *
+                 *   And it would occur almost always after buying (if not for this safeguard).
+                 *   We refresh purchases after onResume, which happens also when returning
+                 *   from "buy" dialog. In this case, OperationPurchase and then OperationRefreshPurchased
+                 *   notify about owning the same item (unless the OperationConsume
+                 *   will happen between, but it may not have a chance).
+                 *   So you would always get two "in-app-purchases-owns" messages,
+                 *   which in some cases means getting two consume() calls,
+                 *   which means you get 1 error
+                 *
+                 *     Cannot consume item " + productName + ", purchaseToken unknown (it seems item is not purchased yet)"
+                 *
+                 *   for every purchase.
+                 *
+                 * - We avoid sending acknowledgeIfNeeded 2x times for the same item.
+                 *   Asking for acknowledge 2nd time, when the 1st acknowledge request is in progress,
+                 *   would mean that we send to Google request to acknowledge something that is already
+                 *   (on server) acknowledged. Resulting in logs like this:
+                 *
+                 *     09-30 01:37:36.618 28171 30469 I dragon_squash: ServiceGoogleInAppPurchases: Acknowledged purchase OK
+                 *     09-30 01:37:36.722 28171 31165 E dragon_squash: ServiceGoogleInAppPurchases: Error acknowledging purchase: Server error, please try again.
+                 *
+                 *   (so purchase caused 2x acknowledgeIfNeeded, and 2nd one of course failed on server).
+                 *
+                 * - Finally, this effectively checks that each purchase token in used only once.
+                 *
+                 *   So it's some anti-fraud system (but limited to frontend) recommended by
+                 *   https://developer.android.com/google/play/billing/security ,
+                 *   https://developer.android.com/google/play/billing/developer-payload .
+                 */
+                String purchaseToken = purchase.getPurchaseToken();
+                if (!purchaseTokens.containsValue(purchaseToken)) {
+                    acknowledgeIfNeeded(purchase);
+
+                    for (String productName : purchase.getSkus()) {
+                        purchaseTokens.put(productName, purchaseToken);
+
+                        if (debug) {
+                            logInfo(CATEGORY, "Product " + productName + " purchased");
+                        }
+
+                        AvailableProduct product;
+                        if (availableProducts.containsKey(productName)) {
+                            product = availableProducts.get(productName);
+                        } else {
+                            product = new AvailableProduct(productName);
+                        }
+
+                        String originalJson = purchase.getOriginalJson();
+
+                        getActivity().onPurchase(product, originalJson, signature);
+                        owns(productName, purchase);
                     }
-
-                    /*
-
-                    TODO: Check each purchase token in used only once.
-                    Following https://developer.android.com/google/play/billing/security ,
-                    https://developer.android.com/google/play/billing/developer-payload .
-                    */
-
-                    AvailableProduct product;
-                    if (availableProducts.containsKey(productName)) {
-                        product = availableProducts.get(productName);
-                    } else {
-                        product = new AvailableProduct(productName);
-                    }
-
-                    String originalJson = purchase.getOriginalJson();
-
-                    getActivity().onPurchase(product, originalJson, signature);
-                    owns(productName, purchase);
                 }
             }
         }
@@ -502,33 +540,7 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
             return;
         }
 
-        String purchaseToken = purchase.getPurchaseToken();
-
-        /* Use purchaseTokens to avoid sending multiple "in-app-purchases-owns"
-         * for the same item, when no new purchase occurred.
-         * While this is not really prohibited (our CastleInAppPurchases documentation
-         * talks about this, and insists that you depend on SuccessfullyConsumed
-         * for consumables), we try to avoid it in the common case.
-         *
-         * And it would occur almost always after buying (if not for this safeguard).
-         * We refresh purchases after onResume, which happens also when returning
-         * from "buy" dialog. In this case, OperationPurchase and then OperationRefreshPurchased
-         * notify about owning the same item (unless the OperationConsume
-         * will happen between, but it may not have a chance).
-         * So you would always get two "in-app-purchases-owns" messages,
-         * which in some cases means getting two consume() calls,
-         * which means you get 1 error
-         *
-         *   Cannot consume item " + productName + ", purchaseToken unknown (it seems item is not purchased yet)"
-         *
-         * for every purchase.
-         */
-        String knownPurchaseToken = purchaseTokens.get(productName);
-        // Note: we know that purchaseToken != null, as we only insert non-nulls, Java compiler warns if we break it
-        if (!purchaseToken.equals(knownPurchaseToken)) {
-            purchaseTokens.put(productName, purchaseToken);
-            messageSend(new String[]{"in-app-purchases-owns", productName});
-        }
+        messageSend(new String[]{"in-app-purchases-owns", productName});
     }
 
     private void setAvailableProducts(String productsListStr)
