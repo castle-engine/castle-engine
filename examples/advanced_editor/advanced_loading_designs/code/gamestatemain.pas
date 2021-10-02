@@ -51,9 +51,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleVectors, CastleTransform,
-  { needed in the uses clause, to register TImageGrid }
-  GameControls;
+  CastleVectors, CastleTransform;
 
 { TStateMain ----------------------------------------------------------------- }
 

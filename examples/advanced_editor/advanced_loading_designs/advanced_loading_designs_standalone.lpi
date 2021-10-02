@@ -10,7 +10,7 @@
         <MainUnitHasScaledStatement Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="advanced_editor"/>
+      <Title Value="advanced_loading_designs"/>
     </General>
     <RequiredPackages Count="2">
       <Item1>
@@ -22,7 +22,7 @@
     </RequiredPackages>
     <Units Count="5">
       <Unit0>
-        <Filename Value="advanced_editor_standalone.lpr"/>
+        <Filename Value="advanced_loading_designs_standalone.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
@@ -50,7 +50,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="advanced_editor"/>
+      <Filename Value="advanced_loading_designs"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="code/"/>

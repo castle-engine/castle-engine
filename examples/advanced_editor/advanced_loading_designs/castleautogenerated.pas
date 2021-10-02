@@ -14,8 +14,8 @@ implementation
 uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
-  ApplicationProperties.ApplicationName := 'advanced_editor';
-  ApplicationProperties.Caption := 'Advanced Editor Usage';
+  ApplicationProperties.ApplicationName := 'advanced_loading_designs';
+  ApplicationProperties.Caption := 'Advanced Loading Of Designs';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then
