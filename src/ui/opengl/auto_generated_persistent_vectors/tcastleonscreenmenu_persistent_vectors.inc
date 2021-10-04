@@ -51,8 +51,8 @@ end;
 
 {$ifdef read_implementation_constructor}
   FCurrentItemBorderColor1Persistent := TCastleColorPersistent.Create;
-  FCurrentItemBorderColor1Persistent.InternalGetValue := @GetCurrentItemBorderColor1ForPersistent;
-  FCurrentItemBorderColor1Persistent.InternalSetValue := @SetCurrentItemBorderColor1ForPersistent;
+  FCurrentItemBorderColor1Persistent.InternalGetValue := {$ifdef CASTLE_OBJFPC}@{$endif}GetCurrentItemBorderColor1ForPersistent;
+  FCurrentItemBorderColor1Persistent.InternalSetValue := {$ifdef CASTLE_OBJFPC}@{$endif}SetCurrentItemBorderColor1ForPersistent;
   FCurrentItemBorderColor1Persistent.InternalDefaultValue := CurrentItemBorderColor1; // current value is default
 {$endif read_implementation_constructor}
 
@@ -113,8 +113,8 @@ end;
 
 {$ifdef read_implementation_constructor}
   FCurrentItemBorderColor2Persistent := TCastleColorPersistent.Create;
-  FCurrentItemBorderColor2Persistent.InternalGetValue := @GetCurrentItemBorderColor2ForPersistent;
-  FCurrentItemBorderColor2Persistent.InternalSetValue := @SetCurrentItemBorderColor2ForPersistent;
+  FCurrentItemBorderColor2Persistent.InternalGetValue := {$ifdef CASTLE_OBJFPC}@{$endif}GetCurrentItemBorderColor2ForPersistent;
+  FCurrentItemBorderColor2Persistent.InternalSetValue := {$ifdef CASTLE_OBJFPC}@{$endif}SetCurrentItemBorderColor2ForPersistent;
   FCurrentItemBorderColor2Persistent.InternalDefaultValue := CurrentItemBorderColor2; // current value is default
 {$endif read_implementation_constructor}
 
@@ -175,8 +175,8 @@ end;
 
 {$ifdef read_implementation_constructor}
   FCurrentItemColorPersistent := TCastleColorPersistent.Create;
-  FCurrentItemColorPersistent.InternalGetValue := @GetCurrentItemColorForPersistent;
-  FCurrentItemColorPersistent.InternalSetValue := @SetCurrentItemColorForPersistent;
+  FCurrentItemColorPersistent.InternalGetValue := {$ifdef CASTLE_OBJFPC}@{$endif}GetCurrentItemColorForPersistent;
+  FCurrentItemColorPersistent.InternalSetValue := {$ifdef CASTLE_OBJFPC}@{$endif}SetCurrentItemColorForPersistent;
   FCurrentItemColorPersistent.InternalDefaultValue := CurrentItemColor; // current value is default
 {$endif read_implementation_constructor}
 
@@ -237,8 +237,8 @@ end;
 
 {$ifdef read_implementation_constructor}
   FNonCurrentItemColorPersistent := TCastleColorPersistent.Create;
-  FNonCurrentItemColorPersistent.InternalGetValue := @GetNonCurrentItemColorForPersistent;
-  FNonCurrentItemColorPersistent.InternalSetValue := @SetNonCurrentItemColorForPersistent;
+  FNonCurrentItemColorPersistent.InternalGetValue := {$ifdef CASTLE_OBJFPC}@{$endif}GetNonCurrentItemColorForPersistent;
+  FNonCurrentItemColorPersistent.InternalSetValue := {$ifdef CASTLE_OBJFPC}@{$endif}SetNonCurrentItemColorForPersistent;
   FNonCurrentItemColorPersistent.InternalDefaultValue := NonCurrentItemColor; // current value is default
 {$endif read_implementation_constructor}
 
@@ -299,8 +299,8 @@ end;
 
 {$ifdef read_implementation_constructor}
   FNonFocusableItemColorPersistent := TCastleColorPersistent.Create;
-  FNonFocusableItemColorPersistent.InternalGetValue := @GetNonFocusableItemColorForPersistent;
-  FNonFocusableItemColorPersistent.InternalSetValue := @SetNonFocusableItemColorForPersistent;
+  FNonFocusableItemColorPersistent.InternalGetValue := {$ifdef CASTLE_OBJFPC}@{$endif}GetNonFocusableItemColorForPersistent;
+  FNonFocusableItemColorPersistent.InternalSetValue := {$ifdef CASTLE_OBJFPC}@{$endif}SetNonFocusableItemColorForPersistent;
   FNonFocusableItemColorPersistent.InternalDefaultValue := NonFocusableItemColor; // current value is default
 {$endif read_implementation_constructor}
 
