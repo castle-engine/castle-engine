@@ -1,8 +1,6 @@
 /* -*- tab-width: 4 -*- */
 package net.sourceforge.castleengine;
 
-import com.android.billingclient.api.SkuDetails;
-
 /* Information about the product available for purchase.
    Used by in-app purchases and analytics services.
 */
@@ -46,6 +44,8 @@ public class AvailableProduct
 
     /* Google Play Billing instance of SkuDetails describing this product.
      * null if not known yet.
+     * This is always a SkuDetails class (but we don't want to declare it as such, as this class must
+     * compile even when com.android.billingclient.api is not available).
      */
-    SkuDetails skuDetails;
+    Object skuDetails;
 }

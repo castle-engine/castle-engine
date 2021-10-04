@@ -281,7 +281,7 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
                 }
 
                 BillingFlowParams purchaseParams = BillingFlowParams.newBuilder()
-                    .setSkuDetails(product.skuDetails)
+                    .setSkuDetails((SkuDetails)product.skuDetails)
                     .build();
 
                 BillingResult billingResult = billingClient.launchBillingFlow(getActivity(), purchaseParams);
