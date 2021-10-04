@@ -366,7 +366,7 @@ var
 begin
   Node := FindNode(APath, True);
   if not Assigned(Node) then
-    exit;
+    Exit;
 
   {$ifdef FPC}
   StartPos := Length(APath);

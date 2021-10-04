@@ -519,7 +519,7 @@ end;
 procedure TDOMElement.SetAttribute(const Name, Value: String);
 begin
   InternalNode.Attributes[Name] := Value;
-  FAttributes.InvalidateMap;  // maybe not needed
+  FAttributes.InvalidateMap;
 end;
 
 function TDOMElement.TagName: String;
@@ -682,7 +682,13 @@ end;
 
 procedure TDOMNamedNodeMap.InvalidateMap;
 begin
-  // TODO: maybe after adding attrribute there we should check/update our map
+  // after adding a new attribute InternalNode.AttributeNodes returns
+  // new IXMLNodeList with NEW nodes so we need change InternalList pointer
+  // this solution is not perfect, previously retrieved attributes will
+  // consume memory until the document is released
+
+  InternalList := FOwnerNode.InternalNode.AttributeNodes;
+  Nodes.Clear;
 end;
 
 { EDOMError ------------------------------------------------------------------ }
