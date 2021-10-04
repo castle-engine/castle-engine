@@ -128,6 +128,8 @@ function StrToQWord(const S: String): QWord;
 function IsWild(InputStr, Wilds: string; IgnoreCase: Boolean): Boolean;
 procedure FillByte(var X; Count: SizeInt; Value: Byte);
 procedure FillDWord(var X; const Count: SizeInt; const Value: DWord);
+function BoolToStr(B: boolean; const TrueS, FalseS: string): string; // from FPC
+
 function glext_ExtensionSupported(const extension: AnsiString; const searchIn: AnsiString): Boolean;
 function Load_GL_ARB_texture_cube_map: Boolean;
 function Load_GL_EXT_texture3D: Boolean;
@@ -416,6 +418,11 @@ end;
 procedure FillByte(var X; Count: SizeInt; Value: Byte);
 begin
   FillChar(X, Count, Value);
+end;
+
+function BoolToStr(B: boolean; const TrueS, FalseS: string): string;
+begin
+  if B then Result:=TrueS else BoolToStr:=FalseS;
 end;
 
 function glext_ExtensionSupported(const extension: AnsiString; const searchIn: AnsiString): Boolean;

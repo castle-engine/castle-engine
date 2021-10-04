@@ -110,9 +110,9 @@ type
       so a message is normally visible only for the @code(Timeout - Fade) seconds,
       and then it starts fading out. }
     property Timeout: Single
-      read FTimeout write FTimeout default DefaultTimeout;
+      read FTimeout write FTimeout {$ifdef FPC}default DefaultTimeout{$endif};
 
-    property Fade: Single read FFade write FFade default DefaultFade;
+    property Fade: Single read FFade write FFade {$ifdef FPC}default DefaultFade{$endif};
 
     { Turn this on to have all the messages you pass to @link(Show) be collected
       inside @link(History) string list. @link(History) is expanded by @link(Show),

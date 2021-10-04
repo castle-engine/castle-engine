@@ -33,8 +33,8 @@ type
   published
     property CustomBackground default true;
     property CustomTextColorUse default true;
-    property PaddingHorizontal default 0;
-    property PaddingVertical default 0;
+    property PaddingHorizontal {$ifdef FPC}default 0{$endif};
+    property PaddingVertical {$ifdef FPC}default 0{$endif};
   end deprecated 'use TCastleOnScreenMenuItem';
 
   { Button that looks nice as an "accessory" that can be toggled
@@ -212,10 +212,10 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    procedure Add(const S: string);
-    procedure Add(const S: string; const Accessory: TCastleUserInterface);
-    procedure Add(const S: string; const ItemOnClick: TNotifyEvent);
-    procedure Add(const NewItem: TCastleUserInterface);
+    procedure Add(const S: string); overload;
+    procedure Add(const S: string; const Accessory: TCastleUserInterface); overload;
+    procedure Add(const S: string; const ItemOnClick: TNotifyEvent); overload;
+    procedure Add(const NewItem: TCastleUserInterface); overload;
 
     { Currently selected child index.
       This is always some number between @code(0) and @code(MenuItems.ControlsCount - 1).
@@ -309,10 +309,12 @@ type
     function SpaceBetweenItems(const NextItemIndex: Cardinal): Single; virtual;
       deprecated 'ignored now; if you want to add extra space, add TCastleUserInterface with explicit Height to MenuItems';
 
+    {$ifdef FPC}
     { Called when user will select CurrentItem.
       @seealso Click }
     property OnClick: TNotifyEvent read FOnClick write FOnClick;
       deprecated 'use Add method to add a particular menu item with it''s own click callback; or just add TCastleMenuButton and handle it''s OnClick event';
+    {$endif}
   published
     property AutoSizeToChildren default true;
 
@@ -324,11 +326,11 @@ type
     property         BackgroundOpacityFocused: Single
       read          FBackgroundOpacityFocused
       write         FBackgroundOpacityFocused
-      default DefaultBackgroundOpacityFocused;
+      {$ifdef FPC}default DefaultBackgroundOpacityFocused{$endif};
     property         BackgroundOpacityNotFocused: Single
       read          FBackgroundOpacityNotFocused
       write         FBackgroundOpacityNotFocused
-      default DefaultBackgroundOpacityNotFocused;
+      {$ifdef FPC}default DefaultBackgroundOpacityNotFocused{$endif};
     { @groupEnd }
 
     property DrawBackgroundRectangle: boolean
@@ -341,7 +343,7 @@ type
       space between some menu items), override SpaceBetweenItems method. }
     property RegularSpaceBetweenItems: Single
       read FRegularSpaceBetweenItems write SetRegularSpaceBetweenItems
-      default DefaultRegularSpaceBetweenItems;
+      {$ifdef FPC}default DefaultRegularSpaceBetweenItems{$endif};
 
     { Draw a flashing border around the menu when we are focused. }
     property DrawFocusedBorder: boolean read FDrawFocusedBorder write FDrawFocusedBorder
@@ -715,9 +717,9 @@ begin
   AutoSizeToChildren := true;
 
   FSoundClickObserver := TFreeNotificationObserver.Create(Self);
-  FSoundClickObserver.OnFreeNotification := @SoundClickFreeNotification;
+  FSoundClickObserver.OnFreeNotification := {$ifdef CASTLE_OBJFPC}@{$endif}SoundClickFreeNotification;
   FSoundCurrentItemChangedObserver := TFreeNotificationObserver.Create(Self);
-  FSoundCurrentItemChangedObserver.OnFreeNotification := @SoundCurrentItemChangedFreeNotification;
+  FSoundCurrentItemChangedObserver.OnFreeNotification := {$ifdef CASTLE_OBJFPC}@{$endif}SoundCurrentItemChangedFreeNotification;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleonscreenmenu_persistent_vectors.inc}
@@ -827,7 +829,7 @@ begin
     if MenuItems.Controls[I] is TCastleOnScreenMenuItem then
       MaxVar(MaxLeftColumnWidth, TCastleOnScreenMenuItem(MenuItems.Controls[I]).LeftColumnWidth);
   if MaxLeftColumnWidth <> 0 then
-    MaxLeftColumnWidth += MarginBeforeAccessory;
+    MaxLeftColumnWidth := MaxLeftColumnWidth + MarginBeforeAccessory;
   for I := 0 to MenuItems.ControlsCount - 1 do
     if MenuItems.Controls[I] is TCastleOnScreenMenuItem then
       TCastleOnScreenMenuItem(MenuItems.Controls[I]).PositionChildren(MaxLeftColumnWidth);
@@ -912,9 +914,12 @@ end;
 
 procedure TCastleOnScreenMenu.Click;
 begin
+  // TODO: check this in Delphi
+  {$ifdef FPC}
   {$warnings off}
   if Assigned(OnClick) then OnClick(Self);
   {$warnings on}
+  {$endif}
 end;
 
 procedure TCastleOnScreenMenu.CurrentItemChanged;
