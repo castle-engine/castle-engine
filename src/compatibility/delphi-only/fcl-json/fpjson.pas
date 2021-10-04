@@ -1651,7 +1651,7 @@ end;
 
 procedure TJSONString.SetAsBoolean(const AValue: Boolean);
 begin
-  FValue:=BoolToStr(AValue);
+  FValue:=SysUtils.BoolToStr(AValue);
 end;
 
 procedure TJSONString.SetAsFloat(const AValue: TJSONFloat);
@@ -1794,7 +1794,7 @@ end;
 
 function TJSONBoolean.GetAsString: TJSONStringType;
 begin
-  Result:=BoolToStr(FValue, True);
+  Result:=SysUtils.BoolToStr(FValue, True);
 end;
 
 procedure TJSONBoolean.SetAsString(const AValue: TJSONStringType);

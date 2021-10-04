@@ -1629,7 +1629,7 @@ begin
   Result := Result +  NL + 'Program info log:' + NL + ProgramInfoLog ;
 
   Result := Result + NL + 'Program detected as running in hardware: ' +
-    BoolToStr(RunningInHardware, true) ;
+    SysUtils.BoolToStr(RunningInHardware, true) ;
 end;
 
 procedure TGLSLProgram.AttachShader(const ShaderType: TShaderType; const S: string);

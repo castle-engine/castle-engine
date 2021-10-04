@@ -934,7 +934,7 @@ begin
       [URIDisplay(URL), ProcessTimerSeconds(ProcessTimer, Start)]);
     if AlphaChannel <> acNone then
       S := S + '. Detected as simple yes/no ("test") alpha channel: ' +
-           BoolToStr(AlphaChannel = acTest, true);
+           SysUtils.BoolToStr(AlphaChannel = acTest, true);
     WritelnLog('++', S);
   end;
 end;

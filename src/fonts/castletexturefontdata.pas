@@ -436,7 +436,7 @@ begin
     // Image.URL doesn't change image contents, it is only information for profiler
     Image.URL := URL + Format('[font converted to a texture, size: %d, anti-aliased: %s]', [
       Size,
-      BoolToStr(AntiAliased, true)
+      SysUtils.BoolToStr(AntiAliased, true)
     ]);
 
     ImageX := 0;
