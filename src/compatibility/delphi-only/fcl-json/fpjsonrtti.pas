@@ -491,6 +491,8 @@ begin
         I:=PropData.AsInteger
       else if PropData.JSONType=jtString then
         I:=GetEnumValue(TI,PropData.AsString)
+      else if PropData.JSONType=jtBoolean then
+        I:=GetEnumValue(TI,PropData.AsString)
       else
         Error(SErrUnSupportedEnumDataType,[PI^.Name,GetEnumName(TypeInfo(TJSONType),Ord(PropData.JSONType))]);
       SetOrdProp(AObject,PI,I);
