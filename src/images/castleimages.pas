@@ -78,7 +78,7 @@ uses SysUtils, Classes, Math, Generics.Collections,
   FPReadJPEG, FPWriteJPEG, FPReadPNM, FPReadPNG, FPWritePNG,
   {$else}
   { Delphi units }
-
+  Vcl.Imaging.PngImage,
   {$endif}
   { CGE units }
   CastleInternalPng, CastleUtils, CastleVectors, CastleRectangles,
@@ -2001,6 +2001,7 @@ uses {$ifdef FPC} ExtInterpolation, FPCanvas, FPImgCanv, {$endif}
 {$I castleimages_bmp.inc}
 {$I castleimages_libpng.inc}
 {$I castleimages_fpimage.inc}
+{$I castleimages_vcl_imaging.inc}
 {$I castleimages_png.inc} // must be included after castleimages_libpng.inc and castleimages_fpimage.inc
 {$I castleimages_ppm.inc}
 {$I castleimages_ipl.inc}
