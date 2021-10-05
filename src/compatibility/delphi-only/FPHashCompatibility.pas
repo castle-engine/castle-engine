@@ -37,9 +37,9 @@ type
   PHashItem=^THashItem;
 
 const
-  MaxHashListSize = Maxint div 16;
+  MaxHashListSize = Maxint div SizeOf(THashItem);
   MaxHashStrSize  = Maxint;
-  MaxHashTableSize = Maxint div 4;
+  MaxHashTableSize = Maxint div SizeOf(Integer);
 
   MaxItemsPerHash = 3;
   SListIndexError               = 'List index (%d) out of bounds';

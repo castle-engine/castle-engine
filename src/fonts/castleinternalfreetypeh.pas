@@ -131,9 +131,13 @@ type
   FT_UShort = word;
   FT_Int = longint;
   FT_UInt = longword;
+  { TODO: Is this correct under Delphi+Windows64?
+    It will be used, because Delphi doesn't define CPUX86_64.
+    But it seems it should not be used.
+    Test with FPC+Windows64: what is SizeOf(FT_Long)? }
   {$if defined(cpu64) and not(defined(win64) and defined(cpux86_64))}
   FT_Long = int64;
-  FT_ULong = qword;
+  FT_ULong = {$ifdef FPC} qword {$else} UInt64 {$endif};
   FT_Pos = int64;
   {$ELSE}
   FT_Long = longint;

@@ -361,7 +361,7 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
       it allows to specify signedness of values as you wish. }
     TWinParam = packed record
       case Integer of
-        0:(Signed: LongInt {$ifdef CPUX86_64}; Dummy: LongWord {$endif});
+        0:(Signed: LongInt {$if defined(cpu64)}; Dummy: LongWord {$endif});
         1:(LoWord, HiWord: Word);
         2:(LoSmallint, HiSmallint: Smallint);
         3:(LowestByte, LowerByte, HigherByte, HighestByte: byte);

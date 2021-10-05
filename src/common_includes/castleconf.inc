@@ -325,6 +325,15 @@
     {$define ForceStandardGLSLApi}
   {$endif}
 {$endif}
+{$ifndef FPC}
+  { Delphi cannot compile related constructs like
+      GLhandleARB(ProgramId) := glCreateProgramObjectARB();
+    on Windows-64.
+    TODO: Maybe they are bad with FPC too?
+    What are GLhandleARB, ProgramId sizes?
+  }
+  {$define ForceStandardGLSLApi}
+{$endif}
 
 { PNG ------------------------------------------------------------------------ }
 
