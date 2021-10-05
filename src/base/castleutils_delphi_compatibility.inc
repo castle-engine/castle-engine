@@ -404,13 +404,13 @@ end;
 procedure FillDWord(var X; const Count: SizeInt; const Value: DWord);
 var
   I: SizeInt;
-  PX: PDWord;
+  PX, PEnd: PDWord;
 begin
-  // TODO: Find better solution
-  PX := Pointer(X);
-  for I := 0 to Count - 1 do
+  PX := @X;
+  PEnd := Pointer(PtrUInt(PX) + SizeOf(DWord) * Count);
+  while PX <> PEnd do
   begin
-    Move(Value, PX^, SizeOf(Value));
+    PX^ := Value;
     Inc(PX);
   end;
 end;

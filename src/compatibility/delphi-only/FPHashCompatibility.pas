@@ -339,7 +339,7 @@ Procedure TFPHashList.ReHash;
 var
   i : Integer;
 begin
-  FillDword(FHashTable, FHashCapacity,LongWord(-1));
+  FillDword(FHashTable^, FHashCapacity,LongWord(-1));
   for i:=0 to FCount-1 do
     AddToHashTable(i);
 end;
