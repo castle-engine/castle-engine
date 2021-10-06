@@ -164,7 +164,10 @@ end;
 function TProjection.Initialized: Boolean;
 begin
   Result :=
-    (ProjectionNear <> 0) and
+    { ProjectionNear may remain = 0 in case of orthographic projection,
+      see TCastleViewport.CalculateProjection .
+      Testcase: glTF-Sample-Models/2.0/Cameras/glTF/Cameras.gltf , switch to ortho viewpoint. }
+    // (ProjectionNear <> 0) and
     (ProjectionFarFinite <> 0) and
     (Dimensions.Width <> 0) and
     (Dimensions.Height <> 0);
