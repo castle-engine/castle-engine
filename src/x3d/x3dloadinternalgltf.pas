@@ -1141,7 +1141,8 @@ var
             begin
               Texture := TMovieTextureNode.Create('', BaseUrl);
               TMovieTextureNode(Texture).SetUrl([FixTextureUrl(GltfImage.URI)]);
-              TMovieTextureNode(Texture).FlipVertically := true;
+              if CastleX3dExtensions then
+                TMovieTextureNode(Texture).FlipVertically := true;
               TMovieTextureNode(Texture).Loop := true;
             end else
             begin
@@ -1158,7 +1159,8 @@ var
                 So we flip the textures.
                 This way we can use original texture coordinates from glTF
                 file (no need to process them, by doing "y := 1 - y"). }
-              TImageTextureNode(Texture).FlipVertically := true;
+              if CastleX3dExtensions then
+                TImageTextureNode(Texture).FlipVertically := true;
             end;
           end else
           if GltfImage.BufferView >= 0 then
@@ -1194,7 +1196,8 @@ var
               { Same reason as for TImageTextureNode.FlipVertically above:
                 glTF specification defines (0,0) texture coord to be
                 at top-left corner. }
-              TPixelTextureNode(Texture).FdImage.Value.FlipVertical;
+              if CastleX3dExtensions then
+                TPixelTextureNode(Texture).FdImage.Value.FlipVertical;
             finally FreeAndNil(Stream) end;
           end;
         end;
@@ -1582,6 +1585,14 @@ var
     MultiTexCoord.FdTexCoord.Add(SingleTexCoord);
   end;
 
+  procedure FlipTextureCoordinates(const TexCoord: TVector2SingleList);
+  var
+    I: Integer;
+  begin
+    for I := 0 to TexCoord.Count - 1 do
+      TexCoord.List^[I].Data[1] := 1  - TexCoord.List^[I].Data[1];
+  end;
+
   procedure ReadPrimitive(const Primitive: TPasGLTF.TMesh.TPrimitive;
     const ParentGroup: TGroupNode);
   var
@@ -1659,6 +1670,11 @@ var
         TexCoord := TTextureCoordinateNode.Create;
         TexCoord.Mapping := AttributeName;
         AccessorToVector2(Primitive.Attributes[AttributeName], TexCoord.FdPoint, false);
+        { We prefer to flip the texture, using TImageTextureNode.FlipVertically,
+          and not make a (slower) flipping of texture coordinates.
+          But when CastleX3dExtensions = false, we have no other choice right now but to flip them. }
+        if not CastleX3dExtensions then
+          FlipTextureCoordinates(TexCoord.FdPoint.Items);
         SetMultiTextureCoordinate(Geometry, TexCoord);
       end else
       if (AttributeName = 'NORMAL') and (Geometry is TAbstractComposedGeometryNode) then
@@ -1686,13 +1702,16 @@ var
       end else
       if (AttributeName = 'TANGENT') and (Geometry is TAbstractComposedGeometryNode) then
       begin
-        Tangent := TTangentNode.Create;
-        Tangent4D := TVector4List.Create;
-        try
-          AccessorToVector4(Primitive.Attributes[AttributeName], Tangent4D, false);
-          Tangent.SetVector4D(Tangent4D);
-        finally FreeAndNil(Tangent4D) end;
-        TAbstractComposedGeometryNode(Geometry).FdTangent.Value := Tangent;
+        if CastleX3dExtensions then
+        begin
+          Tangent := TTangentNode.Create;
+          Tangent4D := TVector4List.Create;
+          try
+            AccessorToVector4(Primitive.Attributes[AttributeName], Tangent4D, false);
+            Tangent.SetVector4D(Tangent4D);
+          finally FreeAndNil(Tangent4D) end;
+          TAbstractComposedGeometryNode(Geometry).FdTangent.Value := Tangent;
+        end;
       end else
       if (AttributeName = 'JOINTS_0') then
       begin
@@ -1722,7 +1741,8 @@ var
     // apply additional TGltfAppearanceNode parameters, specified in X3D at geometry
     Geometry.Solid := not Appearance.DoubleSided;
 
-    Shape.GenerateTangents;
+    if CastleX3dExtensions then
+      Shape.GenerateTangents;
 
     MetadataCollision := ParentGroup.MetadataString['CastleCollision'];
     case MetadataCollision of
@@ -1769,7 +1789,8 @@ var
     begin
       OrthoViewpoint := TOrthoViewpointNode.Create;
       OrthoViewpoint.X3DName := Camera.Name;
-      OrthoViewpoint.GravityTransform := false;
+      if CastleX3dExtensions then
+        OrthoViewpoint.GravityTransform := false;
       ParentGroup.AddChildren(OrthoViewpoint);
 
       ReadMetadata(Camera.Extras, OrthoViewpoint);
@@ -1779,7 +1800,8 @@ var
       Viewpoint.X3DName := Camera.Name;
       if Camera.Perspective.YFov <> 0 then
         Viewpoint.FieldOfView := Camera.Perspective.YFov / 2;
-      Viewpoint.GravityTransform := false;
+      if CastleX3dExtensions then
+        Viewpoint.GravityTransform := false;
       ParentGroup.AddChildren(Viewpoint);
 
       ReadMetadata(Camera.Extras, Viewpoint);
