@@ -904,8 +904,12 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     end;
   end;
 
+var
+  EnableDocking: Boolean;
 begin
-  Docking := UserConfig.GetValue('ProjectForm_Docking', false);
+  EnableDocking := URIFileExists(ApplicationConfig('enable-docking.txt'));
+  MenuItemWindow.SetEnabledVisible(EnableDocking);
+  Docking := EnableDocking and UserConfig.GetValue('ProjectForm_Docking', false);
   OutputList := TOutputList.Create(ListOutput);
   BuildComponentsMenu(
     nil,
