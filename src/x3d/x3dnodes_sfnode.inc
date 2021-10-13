@@ -305,7 +305,7 @@ procedure TSFNode.WarningIfUnusedWeakLink;
 begin
   if WeakLink and
      (Value <> nil) and
-     (Value.FVRML1Parents.Count = 0) and
+     (Value.VRML1ParentsCount = 0) and
      (Value.FParentFields.Count = 0) and
      (Value.KeepExisting = 0) then
   begin
