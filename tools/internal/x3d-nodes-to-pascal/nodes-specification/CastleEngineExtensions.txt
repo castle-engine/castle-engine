@@ -143,17 +143,6 @@ ScreenEffect : X3DChildNode {
     range: X3DShaderNode
 }
 
-# See https://castle-engine.io/x3d_implementation_interpolation.php
-ColorSetInterpolator : X3DInterpolatorNode {
-  MFColor  [in,out]  keyValue           []
-  MFColor  [out]     value_changed
-}
-
-VectorInterpolator : X3DInterpolatorNode {
-  MFFloat  [in,out]  keyValue           []
-  MFFloat  [out]     value_changed
-}
-
 # See https://castle-engine.io/compositing_shaders.php
 Effect : X3DChildNode {
   SFString   []            language    ""

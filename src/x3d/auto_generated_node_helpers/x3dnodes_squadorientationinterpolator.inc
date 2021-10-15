@@ -29,12 +29,26 @@
     function GetNormalizeVelocity: Boolean;
     procedure SetNormalizeVelocity(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdKeyValue: TMFRotation;
+    { X3D field "keyValue". } { }
+    public property FdKeyValue: TMFRotation read FFdKeyValue;
     { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: array of TVector4);
     { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: TVector4List);
+
+    strict private FFdNormalizeVelocity: TSFBool;
+    { X3D field "normalizeVelocity". } { }
+    public property FdNormalizeVelocity: TSFBool read FFdNormalizeVelocity;
     { X3D field "normalizeVelocity". } { }
     property NormalizeVelocity: Boolean read GetNormalizeVelocity write SetNormalizeVelocity;
+
+    strict private FEventValue_changed: TSFRotationEvent;
+    { X3D out event "value_changed". } { }
+    public property EventValue_changed: TSFRotationEvent read FEventValue_changed;
 
 {$endif read_interface}
 
@@ -60,6 +74,27 @@ end;
 procedure TSquadOrientationInterpolatorNode.SetNormalizeVelocity(const Value: Boolean);
 begin
   FdNormalizeVelocity.Send(Value);
+end;
+
+class function TSquadOrientationInterpolatorNode.ClassX3DType: String;
+begin
+  Result := 'SquadOrientationInterpolator';
+end;
+
+procedure TSquadOrientationInterpolatorNode.CreateNode;
+begin
+  inherited;
+
+  FFdKeyValue := TMFRotation.Create(Self, True, 'keyValue', []);
+   FdKeyValue.ChangeAlways := chNone;
+  AddField(FFdKeyValue);
+
+  FFdNormalizeVelocity := TSFBool.Create(Self, True, 'normalizeVelocity', false);
+   FdNormalizeVelocity.ChangeAlways := chNone;
+  AddField(FFdNormalizeVelocity);
+
+  FEventValue_changed := TSFRotationEvent.Create(Self, 'value_changed', false);
+  AddEvent(FEventValue_changed);
 end;
 
 {$endif read_implementation}

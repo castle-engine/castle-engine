@@ -26,6 +26,8 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
     { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: array of TCastleColorRGB);
     { Set X3D field "keyValue". } { }
@@ -45,6 +47,16 @@ end;
 procedure TColorInterpolatorNode.SetKeyValue(const Value: TVector3List);
 begin
   FdKeyValue.Send(Value);
+end;
+
+class function TColorInterpolatorNode.ClassX3DType: String;
+begin
+  Result := 'ColorInterpolator';
+end;
+
+procedure TColorInterpolatorNode.CreateNode;
+begin
+  inherited;
 end;
 
 {$endif read_implementation}
