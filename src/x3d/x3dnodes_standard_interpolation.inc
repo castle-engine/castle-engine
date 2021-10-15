@@ -36,6 +36,11 @@
   TAbstractInterpolatorNode = class(TAbstractChildNode)
   strict protected
     function KeyRange(const Fraction: Single; out T: Single): Integer;
+  public
+    { TODO: Interpolation is now a regular Pascal class field,
+      not X3D field, to conserve memory use.
+      This matters greatly in case of e.g. https://github.com/castle-engine/castle-engine/issues/285 }
+    Interpolation: TInterpolation;
 
   {$I auto_generated_node_helpers/x3dnodes_x3dinterpolatornode.inc}
   end;

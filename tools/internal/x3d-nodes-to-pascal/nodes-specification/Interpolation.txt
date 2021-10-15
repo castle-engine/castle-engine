@@ -5,10 +5,15 @@ X3DInterpolatorNode : X3DChildNode {
   MFFloat      [in,out] key           []
     range: (-Inf,Inf)
     change: chNone
-  SFString [in,out]     interpolation            "LINEAR"
-    range: ["LINEAR"|"STEP"]
-    enumerated-type: TInterpolation InterpolationNames inLinear
-    change: chNone
+
+  # TODO: Interpolation is now a regular Pascal class field,
+  # not X3D field, to conserve memory use.
+  # This matters greatly in case of e.g. https://github.com/castle-engine/castle-engine/issues/285 }
+  #
+  # SFString [in,out]     interpolation            "LINEAR"
+  #   range: ["LINEAR"|"STEP"]
+  #   enumerated-type: TInterpolation InterpolationNames inLinear
+  #   change: chNone
 }
 
 ColorInterpolator : X3DInterpolatorNode {
