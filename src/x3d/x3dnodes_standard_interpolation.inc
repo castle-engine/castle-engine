@@ -14,6 +14,24 @@
 }
 
 {$ifdef read_interface}
+  { Interpolation mode, for @link(TAbstractInterpolatorNode.Interpolation). }
+  TInterpolation = (
+    { The value changes linearly from previous to next. }
+    inLinear,
+    { The value changes immediately from previous to next,
+      at the time of next key.
+      Before the time of 1st key, the value is equal to the 1st value.
+
+      E.g. key = [ 0.1, 0.2 ], keyValue = [ 1 2 ] =>
+      value is 1 when time is [0, 0.2),
+      value is 2 when time is [0.2, ...].
+
+      This is consistent with glTF "step" interpolation,
+      see https://www.khronos.org/registry/glTF/specs/2.0/glTF-2.0.html#appendix-c-interpolation . }
+    inStep
+  );
+
+
   { Basis for all nodes interpolating (animating) values. }
   TAbstractInterpolatorNode = class(TAbstractChildNode)
   strict protected
@@ -223,6 +241,12 @@
 
 {$ifdef read_implementation}
 
+const
+  InterpolationNames: array [TInterpolation] of String = (
+    'LINEAR',
+    'STEP'
+  );
+
 { TAbstractInterpolatorNode -------------------------------------------------- }
 
 function TAbstractInterpolatorNode.KeyRange(
@@ -274,7 +298,15 @@ begin
   if Range = KeyCount then
     OutputValue := KeyValue(KeyCount - 1)
   else
-    OutputValue := InterpolatorLerp(T, KeyValue(Range - 1), KeyValue(Range));
+  begin
+    case Interpolation of
+      inLinear: OutputValue := InterpolatorLerp(T, KeyValue(Range - 1), KeyValue(Range));
+      inStep  : OutputValue := KeyValue(Range - 1);
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('TAbstractSingleInterpolatorNode:Interpolation?');
+      {$endif}
+    end;
+  end;
 
   EventValue_Changed.Send(OutputValue, Time, Value.InternalPartialSend);
 end;
@@ -391,7 +423,16 @@ begin
   if Range = KeyCount then
     OutputValue := KeyValue(KeyCount - 1, KeyCount)
   else
-    OutputValue := KeyValueLerp(T, Range - 1, Range, KeyCount);
+  begin
+    case Interpolation of
+      inLinear: OutputValue := KeyValueLerp(T, Range - 1, Range, KeyCount);
+      inStep  : OutputValue := KeyValue(Range - 1, KeyCount);
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('TAbstractSingleInterpolatorNode:Interpolation?');
+      {$endif}
+    end;
+  end;
+
   OutputValue.InternalPartialSend := Value.InternalPartialSend;
   try
     EventValue_Changed.Send(OutputValue, Time);

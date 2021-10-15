@@ -27,13 +27,6 @@ uses Classes,
   This routine is internally used by the @link(LoadNode) to load an Gltf file. }
 function LoadGltf(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 
-{ Process a list of key and key values to turn linear into step interpolation.
-  This is internal, exposed only for tests. }
-procedure ProcessStepTimeline(const Times: TSingleList;
-  const Values: TVector3List); overload;
-procedure ProcessStepTimeline(const Times: TSingleList;
-  const Values: TVector4List); overload;
-
 implementation
 
 uses SysUtils, TypInfo, Math, PasGLTF, PasJSON, Generics.Collections,
@@ -81,84 +74,6 @@ uses SysUtils, TypInfo, Math, PasGLTF, PasJSON, Generics.Collections,
 
   - See https://castle-engine.io/planned_features.php .
 }
-
-{ other utilities ------------------------------------------------------------ }
-
-procedure ProcessStepTimeline(const Times: TSingleList;
-  const Values: TVector3List); overload;
-var
-  C, NewC: SizeInt;
-  I: Integer;
-  TimesPtr: PSingle;
-  ValuesPtr: PVector3;
-begin
-  if Times.Count > 1 then
-  begin
-    C := Times.Count;
-    if C <> Values.Count then
-    begin
-      WritelnWarning('"Step" timeline has different number of keys than key values');
-      Exit;
-    end;
-
-    NewC := (C - 1) * 2 + 1;
-
-    Times.Count := NewC;
-    Values.Count := NewC;
-
-    TimesPtr := PSingle(Times.List);
-    ValuesPtr := PVector3(Values.List);
-
-    // fill new values, going downward, to not overwrite the useful values
-    ValuesPtr[NewC - 1] := ValuesPtr[C- 1];
-    TimesPtr[NewC - 1] := TimesPtr[C- 1];
-    for I := C - 2 downto 0 do
-    begin
-      ValuesPtr[I * 2 + 1] := ValuesPtr[I];
-      ValuesPtr[I * 2    ] := ValuesPtr[I];
-      TimesPtr [I * 2 + 1] := TimesPtr [I + 1];
-      TimesPtr [I * 2    ] := TimesPtr [I];
-    end;
-  end;
-end;
-
-procedure ProcessStepTimeline(const Times: TSingleList;
-  const Values: TVector4List); overload;
-var
-  C, NewC: SizeInt;
-  I: Integer;
-  TimesPtr: PSingle;
-  ValuesPtr: PVector4;
-begin
-  if Times.Count > 1 then
-  begin
-    C := Times.Count;
-    if C <> Values.Count then
-    begin
-      WritelnWarning('"Step" timeline has different number of keys than key values');
-      Exit;
-    end;
-
-    NewC := (C - 1) * 2 + 1;
-
-    Times.Count := NewC;
-    Values.Count := NewC;
-
-    TimesPtr := PSingle(Times.List);
-    ValuesPtr := PVector4(Values.List);
-
-    // fill new values, going downward, to not overwrite the useful values
-    ValuesPtr[NewC - 1] := ValuesPtr[C- 1];
-    TimesPtr[NewC - 1] := TimesPtr[C- 1];
-    for I := C - 2 downto 0 do
-    begin
-      ValuesPtr[I * 2 + 1] := ValuesPtr[I];
-      ValuesPtr[I * 2    ] := ValuesPtr[I];
-      TimesPtr [I * 2 + 1] := TimesPtr [I + 1];
-      TimesPtr [I * 2    ] := TimesPtr [I];
-    end;
-  end;
-end;
 
 { Convert simple types ------------------------------------------------------- }
 
@@ -1987,21 +1902,7 @@ var
     case Sampler.Interpolation of
       TPasGLTF.TAnimation.TSampler.TSamplerType.Linear: ; // nothing to do
       TPasGLTF.TAnimation.TSampler.TSamplerType.Step:
-        begin
-          case Path of
-            gsTranslation, gsScale:
-              ProcessStepTimeline(
-                InterpolatePosition.FdKey.Items,
-                InterpolatePosition.FdKeyValue.Items);
-            gsRotation:
-              ProcessStepTimeline(
-                InterpolateOrientation.FdKey.Items,
-                InterpolateOrientation.FdKeyValue.Items);
-            {$ifndef COMPILER_CASE_ANALYSIS}
-            else raise EInternalError.Create('ReadSampler - Path?');
-            {$endif}
-          end;
-        end;
+        Interpolator.Interpolation := inStep;
       TPasGLTF.TAnimation.TSampler.TSamplerType.CubicSpline:
         begin
           // May spam too much. Assume that our current approximation is good enough.

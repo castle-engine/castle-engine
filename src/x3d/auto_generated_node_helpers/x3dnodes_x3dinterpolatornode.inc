@@ -25,6 +25,9 @@
 
 {$ifdef read_interface}
 
+  strict private
+    function GetInterpolation: TInterpolation;
+    procedure SetInterpolation(const Value: TInterpolation);
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -40,6 +43,12 @@
     procedure SetKey(const Value: array of Single);
     { Set X3D field "key". } { }
     procedure SetKey(const Value: TSingleList);
+
+    strict private FFdInterpolation: TSFStringEnum;
+    { X3D field "interpolation". } { }
+    public property FdInterpolation: TSFStringEnum read FFdInterpolation;
+    { X3D field "interpolation". } { }
+    property Interpolation: TInterpolation read GetInterpolation write SetInterpolation;
 
 {$endif read_interface}
 
@@ -57,6 +66,16 @@ begin
   FdKey.Send(Value);
 end;
 
+function TAbstractInterpolatorNode.GetInterpolation: TInterpolation;
+begin
+  Result := TInterpolation(FdInterpolation.EnumValue);
+end;
+
+procedure TAbstractInterpolatorNode.SetInterpolation(const Value: TInterpolation);
+begin
+  FdInterpolation.SendEnumValue(Ord(Value));
+end;
+
 class function TAbstractInterpolatorNode.ClassX3DType: String;
 begin
   Result := 'X3DInterpolatorNode';
@@ -72,6 +91,10 @@ begin
   FFdKey := TMFFloat.Create(Self, True, 'key', []);
    FdKey.ChangeAlways := chNone;
   AddField(FFdKey);
+
+  FFdInterpolation := TSFStringEnum.Create(Self, True, 'interpolation', InterpolationNames, Ord(inLinear));
+   FdInterpolation.ChangeAlways := chNone;
+  AddField(FFdInterpolation);
 end;
 
 {$endif read_implementation}

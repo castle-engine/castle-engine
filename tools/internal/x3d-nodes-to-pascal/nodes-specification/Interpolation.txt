@@ -5,6 +5,10 @@ X3DInterpolatorNode : X3DChildNode {
   MFFloat      [in,out] key           []
     range: (-Inf,Inf)
     change: chNone
+  SFString [in,out]     interpolation            "LINEAR"
+    range: ["LINEAR"|"STEP"]
+    enumerated-type: TInterpolation InterpolationNames inLinear
+    change: chNone
 }
 
 ColorInterpolator : X3DInterpolatorNode {

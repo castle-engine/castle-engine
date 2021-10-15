@@ -683,7 +683,9 @@ procedure TCastleSpriteSheetX3DExporter.PrepareAnimation(const Name: String);
 begin
   TimeSensor := TTimeSensorNode.Create(Name);
   CoordInterp := TCoordinateInterpolatorNode.Create(Name + '_Coord');
+  CoordInterp.Interpolation := inStep;
   TexCoordInterp := TCoordinateInterpolator2DNode.Create(Name + '_TexCoord');
+  TexCoordInterp.Interpolation := inStep;
 end;
 
 procedure TCastleSpriteSheetX3DExporter.AddAnimation(
@@ -701,21 +703,9 @@ begin
   for I := 0 to FrameCount - 1 do
   begin
     Key := I / FrameCount;
-
     CoordInterp.FdKey.Items.Add(Key);
     TexCoordInterp.FdKey.Items.Add(Key);
-    if I > 0 then
-    begin
-      CoordInterp.FdKey.Items.Add(Key);
-      TexCoordInterp.FdKey.Items.Add(Key);
-    end;
   end;
-
-  { This way, we have keys like
-    0 0.333 0.333 0.666 0.666 1
-    That is, all keys are repeated, except 0 and 1. }
-  CoordInterp.FdKey.Items.Add(1.0);
-  TexCoordInterp.FdKey.Items.Add(1.0);
 
   { Add TimeSensor, CoordinateInterpolatorNode,
     CoordinateInterpolator2DNode to Root node }
@@ -731,9 +721,6 @@ end;
 
 procedure TCastleSpriteSheetX3DExporter.AddFrame;
 begin
-  CoordInterp.FdKeyValue.Items.AddRange(FCoordArray);
-  TexCoordInterp.FdKeyValue.Items.AddRange(FTexCoordArray);
-  { Repeat all keyValues, to avoid interpolating them smoothly between two keys }
   CoordInterp.FdKeyValue.Items.AddRange(FCoordArray);
   TexCoordInterp.FdKeyValue.Items.AddRange(FTexCoordArray);
 end;
