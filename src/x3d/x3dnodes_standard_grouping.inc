@@ -554,7 +554,10 @@ begin
   AddEvent(FEventRemoveChildren);
   EventRemoveChildren.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventRemoveChildrenReceive);
 
-  FFdChildren := TMFNode.Create(Self, true, 'children', [TAbstractChildNode]);
+  { Add TAbstractGeometryNode_1 to allow VRML 1.0 geometry nodes (that cannot be TAbstractChildNode)
+    to be present at top-level of the file.
+    Testcase: demo-models/vrml_1/castle_extensions/multi_root.wrl }
+  FFdChildren := TMFNode.Create(Self, true, 'children', [TAbstractChildNode, TAbstractGeometryNode_1]);
    FdChildren.ChangeAlways := chGroupChildren;
   AddField(FFdChildren);
 
@@ -891,9 +894,16 @@ begin
     Also, add LayerSet (not allowed in Group.FdChildren).
     This is special (see http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/Part01/concepts.html#Rootnodes),
     "4.3.2 Root nodes" from X3D 3.2 spec.
+
+    Also add TAbstractGeometryNode_1 to enable VRML 1.0 geometry nodes at top-level,
+    like in demo-models/vrml_1/castle_extensions/multi_root.wrl .
   }
 
-  if not ((Child is TAbstractChildNode) or (Child is TLayerSetNode)) then
+  if not (
+       (Child is TAbstractChildNode) or
+       (Child is TAbstractGeometryNode_1) or
+       (Child is TLayerSetNode)
+     ) then
     WritelnWarning('VRML/X3D', Format('Node "%s" is not allowed at the top level of the X3D file',
       [Child.X3DType]));
 end;

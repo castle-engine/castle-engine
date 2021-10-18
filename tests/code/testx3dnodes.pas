@@ -400,13 +400,13 @@ begin
       to mix VRML 1.0 inside VRML 2.0. }
 
     { Inventor spec nodes }
-    // TIndexedTriangleMeshNode_1,
+    TIndexedTriangleMeshNode_1,
     TRotationXYZNode,
 
     { VRML 1.0 spec nodes }
-    // TAsciiTextNode_1, TConeNode_1, TCubeNode_1, TCylinderNode_1,
-    // TIndexedFaceSetNode_1, TIndexedLineSetNode_1,
-    // TPointSetNode_1, TSphereNode_1,
+    TAsciiTextNode_1, TConeNode_1, TCubeNode_1, TCylinderNode_1,
+    TIndexedFaceSetNode_1, TIndexedLineSetNode_1,
+    TPointSetNode_1, TSphereNode_1,
     TCoordinate3Node_1, TFontStyleNode_1, TInfoNode_1, TLODNode_1, TMaterialNode_1,
 
     { TNormalNode used to also be allowed here, but it's also used by X3D,
@@ -566,18 +566,25 @@ begin
   try
     for I := 0 to AllowedChildrenNodes.Count - 1 do
     try
-      AssertTrue(AllowedChildrenNodes[I].InheritsFrom(TAbstractChildNode));
+      AssertTrue(
+        // this check corresponds to TX3DRootNode.FdChildren constraints
+        AllowedChildrenNodes[I].InheritsFrom(TAbstractChildNode) or
+        AllowedChildrenNodes[I].InheritsFrom(TAbstractGeometryNode_1)
+      );
 
       { Just to make sure, check also the created class
         (I don't trust FPC interfaces for now...) }
       N := AllowedChildrenNodes[I].Create;
       try
-        AssertTrue(N is TAbstractChildNode);
+        AssertTrue(
+          (N is TAbstractChildNode) or
+          (N is TAbstractGeometryNode_1)
+        );
       finally FreeAndNil(N) end;
     except
       on E: Exception do
       begin
-        Writeln('Failed on ', AllowedChildrenNodes[I].ClassName, ' is IAbstractChildNode');
+        Writeln('Failed on ', AllowedChildrenNodes[I].ClassName, ' is IAbstractChildNode|TAbstractGeometryNode_1');
         raise;
       end;
     end;
