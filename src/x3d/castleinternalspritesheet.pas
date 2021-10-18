@@ -691,9 +691,41 @@ end;
 procedure TCastleSpriteSheetX3DExporter.AddAnimation(
   const Animation: TCastleSpriteSheetAnimation);
 var
+  FrameCount: Integer;
+
+  { CoordInterp often has a dummy animation, that actually wants the same coordinates
+    every frame. In this case it can be simplified. }
+  procedure OptimizeCoordInterp;
+  const
+    PerFrameValues = 6;
+  var
+    Values: TVector3List;
+    I: Integer;
+  begin
+    Assert(CoordInterp.FdKeyValue.Count = PerFrameValues * FrameCount);
+    Assert(FShapeCoord.FdPoint.Count = PerFrameValues);
+
+    Values := CoordInterp.FdKeyValue.Items;
+    for I := 1 to FrameCount - 1 do
+    begin
+      if not CompareMem(Values.List, Values.Ptr(I * PerFrameValues), SizeOf(TVector3) * PerFrameValues) then
+        Exit; // optimization not possible
+    end;
+
+    { optimization possible: simplify CoordInterp to 1 frame, or even remove CoordInterp }
+    if CompareMem(Values.List, FShapeCoord.FdPoint.Items.List, SizeOf(TVector3) * PerFrameValues) then
+    begin
+      FreeIfUnusedAndNil(CoordInterp);
+    end else
+    begin
+      CoordInterp.FdKey.Count := 1;
+      CoordInterp.FdKeyValue.Count := PerFrameValues;
+    end;
+  end;
+
+var
   I: Integer;
   Key: Single;
-  FrameCount: Integer;
 begin
   FrameCount := Animation.FrameCount;
   { Set Cycle Interval becouse we know now frame count }
@@ -707,16 +739,23 @@ begin
     TexCoordInterp.FdKey.Items.Add(Key);
   end;
 
-  { Add TimeSensor, CoordinateInterpolatorNode,
-    CoordinateInterpolator2DNode to Root node }
+  OptimizeCoordInterp;
+
+  { Add TimeSensor to Root node }
   FRoot.AddChildren(TimeSensor);
-  FRoot.AddChildren(CoordInterp);
+
+  { Add TextureCoordinate animation }
   FRoot.AddChildren(TexCoordInterp);
-  { Create routes. }
-  FRoot.AddRoute(TimeSensor.EventFraction_changed, CoordInterp.EventSet_fraction);
   FRoot.AddRoute(TimeSensor.EventFraction_changed, TexCoordInterp.EventSet_fraction);
-  FRoot.AddRoute(CoordInterp.EventValue_changed, FShapeCoord.FdPoint);
   FRoot.AddRoute(TexCoordInterp.EventValue_changed, FShapeTexCoord.FdPoint);
+
+  { Add Coordinate animation }
+  if CoordInterp <> nil then
+  begin
+    FRoot.AddChildren(CoordInterp);
+    FRoot.AddRoute(TimeSensor.EventFraction_changed, CoordInterp.EventSet_fraction);
+    FRoot.AddRoute(CoordInterp.EventValue_changed, FShapeCoord.FdPoint);
+  end;
 end;
 
 procedure TCastleSpriteSheetX3DExporter.AddFrame;
