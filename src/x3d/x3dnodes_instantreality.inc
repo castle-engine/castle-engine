@@ -24,16 +24,26 @@
     See https://castle-engine.io/x3d_extensions.php#section_ext_matrix_transform .
     It is compatible with InstantReality,
     see http://instant-reality.com/documentation/nodetype/MatrixTransform/ . }
-  TMatrixTransformNode = class(TAbstractX3DGroupingNode, ITransformNode)
+  TMatrixTransformNode = class(TAbstractX3DGroupingNode)
+  strict private
+    type
+      TMatrixTransformNodeTransformFunctionality = class(TTransformFunctionality)
+      strict private
+        FParent: TMatrixTransformNode;
+      public
+        constructor Create(const AParent: TMatrixTransformNode);
+        property Parent: TMatrixTransformNode read FParent;
+        procedure ApplyTransform(var Transformation: TTransformation); override;
+      end;
+    var
+      FTransformFunctionality: TMatrixTransformNodeTransformFunctionality;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
-    procedure ApplyTransform(var Transformation: TTransformation); override;
-
-    {$I auto_generated_node_helpers/x3dnodes_matrixtransform.inc}
+  {$I auto_generated_node_helpers/x3dnodes_matrixtransform.inc}
   end;
   TMatrixTransformNode_2 = TMatrixTransformNode;
 
@@ -543,10 +553,32 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TMatrixTransformNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+
+{ TMatrixTransformNode.TMatrixTransformNodeTransformFunctionality --------------------------- }
+
+constructor TMatrixTransformNode.TMatrixTransformNodeTransformFunctionality.
+  Create(const AParent: TMatrixTransformNode);
+begin
+  inherited Create(AParent);
+  FParent := AParent;
+end;
+
+procedure TMatrixTransformNode.TMatrixTransformNodeTransformFunctionality.
+  ApplyTransform(var Transformation: TTransformation);
+begin
+  inherited;
+  Transformation.MultiplyMatrix(Parent.Matrix);
+end;
+
+{ TMatrixTransformNode --------------------------------------------------------------- }
+
+constructor TMatrixTransformNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
   FdMatrix.ChangeAlways := chTransform;
+
+  FTransformFunctionality := TMatrixTransformNodeTransformFunctionality.Create(Self);
+  AddFunctionality(FTransformFunctionality);
 end;
 
 class function TMatrixTransformNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -564,12 +596,6 @@ begin
     Result := Func(Self, FdChildren[I]);
     if Result <> nil then Exit;
   end;
-end;
-
-procedure TMatrixTransformNode.ApplyTransform(var Transformation: TTransformation);
-begin
-  inherited;
-  Transformation.MultiplyMatrix(Matrix);
 end;
 
 function TMatrixTransformNode.TransformationChange: TNodeTransformationChange;

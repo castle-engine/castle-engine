@@ -144,7 +144,7 @@
     {$I auto_generated_node_helpers/x3dnodes_geolocation.inc}
   end;
 
-  TGeoLODNode = class(TAbstractGroupingNode, IAbstractBoundedObject)
+  TGeoLODNode = class(TAbstractGroupingNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;

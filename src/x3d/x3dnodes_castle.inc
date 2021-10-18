@@ -323,7 +323,7 @@
 
   { Part of a shader effect, used with @link(TEffectNode).
     See https://castle-engine.io/compositing_shaders.php . }
-  TEffectPartNode = class(TAbstractNode, IAbstractUrlObject)
+  TEffectPartNode = class(TAbstractNode)
   strict private
     ContentsCached: boolean;
     ContentsCache: string;
@@ -334,6 +334,7 @@
     function GetContents: string;
     procedure SetContents(const Value: string);
   public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -791,6 +792,12 @@ end;
 procedure TEffectNode.SetLanguage(const Value: TShaderLanguage);
 begin
   FdLanguage.SendEnumValue(Ord(Value));
+end;
+
+constructor TEffectPartNode.Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  AddFunctionality(TUrlFunctionality.Create(Self));
 end;
 
 procedure TEffectPartNode.CreateNode;

@@ -103,10 +103,12 @@
 
       All node classes descend from the base TX3DNode class.
 
-      Some abstract nodes have also Pascal interfaces, like IAbstractXxxNode.
-      Some ideas of X3D specification (although not many)
-      need multiple inheritance, so interfaces have to be used.
-      They all descend from IX3DNode.)
+      When X3D design needs multiple inheritance, we use TNodeFunctionality,
+      to expose interface and have implementation that does "something",
+      but is not tied to the inheritance. E.g. varios unrelated nodes may support
+      TTransformFunctionality. We don't use interfaces for this -- this avoids
+      COM interface design weirdness (and in Delphi we're limited to COM interfaces),
+      and allows to share implemetation too.)
 
     @item(
       Optional suffix _1 or _2 at the node class name indicates that

@@ -110,12 +110,13 @@
   end;
 
   { Cube environment map texture loaded from a single file, like DDS. }
-  TImageCubeMapTextureNode = class(TAbstractEnvironmentTextureNode, IAbstractUrlObject)
+  TImageCubeMapTextureNode = class(TAbstractEnvironmentTextureNode)
   strict private
     FAlphaChannelData: TAlphaChannel;
   strict protected
     function AlphaChannelData: TAlphaChannel; override;
   public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -278,6 +279,12 @@ end;
 procedure TGeneratedCubeMapTextureNode.SetUpdate(const Value: TTextureUpdate);
 begin
   FdUpdate.Send(Value);
+end;
+
+constructor TImageCubeMapTextureNode.Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  AddFunctionality(TUrlFunctionality.Create(Self));
 end;
 
 procedure TImageCubeMapTextureNode.CreateNode;

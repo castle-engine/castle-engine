@@ -90,13 +90,14 @@
   end;
 
   { 3D texture loaded from a single file like DDS. }
-  TImageTexture3DNode = class(TAbstractTexture3DNode, IAbstractUrlObject)
+  TImageTexture3DNode = class(TAbstractTexture3DNode)
   strict private
     FAlphaChannelData: TAlphaChannel;
   strict protected
     function AlphaChannelData: TAlphaChannel; override;
     procedure LoadTextureData; override;
   public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -345,6 +346,14 @@ end;
 function TComposedTexture3DNode.AlphaChannelData: TAlphaChannel;
 begin
   Result := FAlphaChannelData;
+end;
+
+{ TImageTexture3DNode -------------------------------------------------------- }
+
+constructor TImageTexture3DNode.Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  AddFunctionality(TUrlFunctionality.Create(Self));
 end;
 
 procedure TImageTexture3DNode.CreateNode;

@@ -53,15 +53,27 @@
 
   { Central node for moving the animated humanoid. It contains the skeleton,
     and other information necessary for animation. }
-  THAnimHumanoidNode = class(TAbstractChildNode, IAbstractBoundedObject, ITransformNode)
+  THAnimHumanoidNode = class(TAbstractChildNode)
   strict private
-    VertexJoints: TVertexJointsList;
+    type
+      THAnimHumanoidNodeTransformFunctionality = class(TTransformFunctionality)
+      strict private
+        FParent: THAnimHumanoidNode;
+      public
+        constructor Create(const AParent: THAnimHumanoidNode);
+        property Parent: THAnimHumanoidNode read FParent;
+        procedure ApplyTransform(var Transformation: TTransformation); override;
+      end;
+    var
+      FTransformFunctionality: THAnimHumanoidNodeTransformFunctionality;
+      VertexJoints: TVertexJointsList;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure ParseAfter(Reader: TX3DReaderNames); override;
   public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     procedure CreateNode; override;
     destructor Destroy; override;
     class function ClassX3DType: string; override;
@@ -137,10 +149,21 @@
 
   { Joint of an animated humanoid.
     Joints are organized in a hierarchy, like bones. }
-  THAnimJointNode = class(TAbstractX3DGroupingNode, ITransformNode)
+  THAnimJointNode = class(TAbstractX3DGroupingNode)
   strict private
-    AnimateSkinTransform: TMatrix4;
-    RestCenter: TVector3;
+    type
+      THAnimJointNodeTransformFunctionality = class(TTransformFunctionality)
+      strict private
+        FParent: THAnimJointNode;
+      public
+        constructor Create(const AParent: THAnimJointNode);
+        property Parent: THAnimJointNode read FParent;
+        procedure ApplyTransform(const State: TX3DGraphTraverseState); override;
+      end;
+    var
+      FTransformFunctionality: THAnimJointNodeTransformFunctionality;
+      AnimateSkinTransform: TMatrix4;
+      RestCenter: TVector3;
   private
     { Animate point, based on it's rest position.
 
@@ -159,9 +182,9 @@
     function AnimateSkinPoint(const Point: TVector3): TVector3;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
-    procedure ApplyTransform(const State: TX3DGraphTraverseState); override;
     procedure ParseAfter(Reader: TX3DReaderNames); override;
   public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     function TransformationChange: TNodeTransformationChange; override;
@@ -210,11 +233,23 @@
 
   { Visible segment of an animated humanoid,
     always a child of a TJointNode. }
-  THAnimSegmentNode = class(TAbstractX3DGroupingNode, ITransformNode)
+  THAnimSegmentNode = class(TAbstractX3DGroupingNode)
+  strict private
+    type
+      THAnimSegmentNodeTransformFunctionality = class(TTransformFunctionality)
+      strict private
+        FParent: THAnimSegmentNode;
+      public
+        constructor Create(const AParent: THAnimSegmentNode);
+        property Parent: THAnimSegmentNode read FParent;
+        procedure ApplyTransform(var Transformation: TTransformation); override;
+      end;
+    var
+      FTransformFunctionality: THAnimSegmentNodeTransformFunctionality;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
-    procedure ApplyTransform(var Transformation: TTransformation); override;
   public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     function TransformationChange: TNodeTransformationChange; override;
@@ -257,11 +292,23 @@
 
   { An attachment point of an animated humanoid,
     to attach something that held, worm or such by a humanoid. }
-  THAnimSiteNode = class(TAbstractX3DGroupingNode, ITransformNode)
+  THAnimSiteNode = class(TAbstractX3DGroupingNode)
+  strict private
+    type
+      THAnimSiteNodeTransformFunctionality = class(TTransformFunctionality)
+      strict private
+        FParent: THAnimSiteNode;
+      public
+        constructor Create(const AParent: THAnimSiteNode);
+        property Parent: THAnimSiteNode read FParent;
+        procedure ApplyTransform(var Transformation: TTransformation); override;
+      end;
+    var
+      FTransformFunctionality: THAnimSiteNodeTransformFunctionality;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
-    procedure ApplyTransform(var Transformation: TTransformation); override;
   public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     function TransformationChange: TNodeTransformationChange; override;
@@ -326,6 +373,35 @@ begin
   Weights[Count - 1] := Weight;
 end;
 
+{ THAnimHumanoidNode.THAnimHumanoidNodeTransformFunctionality ------------------------------ }
+
+constructor THAnimHumanoidNode.THAnimHumanoidNodeTransformFunctionality.Create(const AParent: THAnimHumanoidNode);
+begin
+  inherited Create(AParent);
+  FParent := AParent;
+end;
+
+procedure THAnimHumanoidNode.THAnimHumanoidNodeTransformFunctionality.ApplyTransform(var Transformation: TTransformation);
+begin
+  inherited;
+
+  Transformation.Multiply(
+    Parent.Center,
+    Parent.Rotation,
+    Parent.Scale,
+    Parent.ScaleOrientation,
+    Parent.Translation);
+end;
+
+{ THAnimHumanoidNode --------------------------------------------------------- }
+
+constructor THAnimHumanoidNode.Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  FTransformFunctionality := THAnimHumanoidNodeTransformFunctionality.Create(Self);
+  AddFunctionality(FTransformFunctionality);
+end;
+
 procedure THAnimHumanoidNode.CreateNode;
 begin
   inherited;
@@ -368,7 +444,7 @@ begin
   FFdSkeleton := TMFNode.Create(Self, true, 'skeleton', [THAnimJointNode, THAnimSiteNode]);
   AddField(FFdSkeleton);
 
-  { HAnim 1.1 specificaion uses "humanoidBody" instead of "skeleton",
+  { HAnim 1.1 specification uses "humanoidBody" instead of "skeleton",
     also HAnim 200x specification examples show usage of this (although
     HAnim 200x specs talks only about "skeleton"). }
   Fdskeleton.AddAlternativeName('humanoidBody', 0);
@@ -465,12 +541,7 @@ begin
   StateStack.Top.Humanoid := Self;
   StateStack.Top.HumanoidTransformation.Init;
 
-  StateStack.Top.Transformation.Multiply(
-    Center,
-    Rotation,
-    Scale,
-    ScaleOrientation,
-    Translation);
+  FTransformFunctionality.ApplyTransform(StateStack.Top.Transformation);
 end;
 
 function THAnimHumanoidNode.AnimateSkin: TMFVec3f;
@@ -580,6 +651,100 @@ begin
   Result := ntcTransform;
 end;
 
+{ THAnimJointNode.THAnimJointNodeTransformFunctionality -------------------------- }
+
+constructor THAnimJointNode.THAnimJointNodeTransformFunctionality.Create(const AParent: THAnimJointNode);
+begin
+  inherited Create(AParent);
+  FParent := AParent;
+end;
+
+procedure THAnimJointNode.THAnimJointNodeTransformFunctionality.ApplyTransform(const State: TX3DGraphTraverseState);
+var
+  I: Integer;
+  ChildJoint: THAnimJointNode;
+  LocalCenter, NewChildCenter: TVector3;
+  TempToSend: TSFVec3f;
+begin
+  inherited;
+
+  { Spec says center / scale / scaleOrientation / translation
+    are relative to humanoid root, but rotations are accumulated.
+    http://h-anim.org/Specifications/H-Anim200x/ISO_IEC_FCD_19774/ObjectInterfaces.html
+    So rotations are affected by center/etc. of joints above,
+    which means that I have to apply here LocalCenter, LocalScale and such?
+    But how? TODO: for now, we only apply LocalCenter.
+
+    Fortunately, normal State isn't really used for skinned animation. }
+
+  LocalCenter := State.HumanoidTransformation.InverseTransform.MultPoint(Parent.Center);
+  State.Transformation.Multiply(
+    LocalCenter,
+    Parent.Rotation,
+    Parent.Scale,
+    Parent.ScaleOrientation,
+    Parent.Translation);
+
+  { update State.HumanoidTransformation for child joints. }
+  State.HumanoidTransformation.Multiply(
+    LocalCenter,
+    Parent.Rotation,
+    Parent.Scale,
+    Parent.ScaleOrientation,
+    Parent.Translation);
+
+  Parent.AnimateSkinTransform := State.HumanoidTransformation.Transform;
+
+  { animate centers of children joints }
+  for I := 0 to FdChildren.Count - 1 do
+    if FdChildren[I] is THAnimJointNode then
+    begin
+      ChildJoint := THAnimJointNode(FdChildren[I]);
+
+      { TODO: it's very hacky to update ChildJoint.FdCenter this way.
+        The cleaner way would be to just
+
+          ChildJoint.FdCenter.Send(AnimateSkinPoint(ChildJoint.RestCenter))
+
+        This would already do compare, send event if needed etc. (useful
+        for view3dscene H-Anim joints visualization).
+        But it would also notify the scene (events processor), and this causes
+        slowdown and bugs (on lucy) right now. }
+
+      NewChildCenter := Parent.AnimateSkinPoint(ChildJoint.RestCenter);
+      if not TVector3.PerfectlyEquals(ChildJoint.FdCenter.Value, NewChildCenter) then
+      begin
+        ChildJoint.FdCenter.Value := NewChildCenter;
+
+        if ChildJoint.FdCenter.Exposed then
+        begin
+          TempToSend := TSFVec3f.Create(ChildJoint, false, 'center', NewChildCenter);
+          try
+            ChildJoint.FdCenter.EventOut.Send(TempToSend);
+          finally FreeAndNil(TempToSend) end;
+        end;
+
+        { Note that Send() above will use Scene.NextEventTime
+          which with increase time by a "tick".
+          This is good --- if you'll next want to traverse a parent joint,
+          this center will again be changed, and should be send (otherwise
+          routes e.g. in Humanoid Visualization in view3dscene will not work).
+
+          Note that Scene may be nil now --- reproduce by:
+          view3dscene ~/NextCloud/3dmodels/vrmlx3d/hanim/kambi_hanim_200_spec/hanim_loa_3.wrl }
+      end;
+    end;
+end;
+
+{ THAnimJointNode ------------------------------------------------------------ }
+
+constructor THAnimJointNode.Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  FTransformFunctionality := THAnimJointNodeTransformFunctionality.Create(Self);
+  AddFunctionality(FTransformFunctionality);
+end;
+
 procedure THAnimJointNode.CreateNode;
 begin
   inherited;
@@ -664,86 +829,35 @@ begin
   RestCenter := FdCenter.Value;
 end;
 
-procedure THAnimJointNode.ApplyTransform(const State: TX3DGraphTraverseState);
-var
-  I: Integer;
-  ChildJoint: THAnimJointNode;
-  LocalCenter, NewChildCenter: TVector3;
-  TempToSend: TSFVec3f;
-begin
-  inherited;
-
-  { Spec says center / scale / scaleOrientation / translation
-    are relative to humanoid root, but rotations are accumulated.
-    http://h-anim.org/Specifications/H-Anim200x/ISO_IEC_FCD_19774/ObjectInterfaces.html
-    So rotations are affected by center/etc. of joints above,
-    which means that I have to apply here LocalCenter, LocalScale and such?
-    But how? TODO: for now, we only apply LocalCenter.
-
-    Fortunately, normal State isn't really used for skinned animation. }
-
-  LocalCenter := State.HumanoidTransformation.InverseTransform.MultPoint(Center);
-  State.Transformation.Multiply(
-    LocalCenter,
-    Rotation,
-    Scale,
-    ScaleOrientation,
-    Translation);
-
-  { update State.HumanoidTransformation for child joints. }
-  State.HumanoidTransformation.Multiply(
-    LocalCenter,
-    Rotation,
-    Scale,
-    ScaleOrientation,
-    Translation);
-
-  AnimateSkinTransform := State.HumanoidTransformation.Transform;
-
-  { animate centers of children joints }
-  for I := 0 to FdChildren.Count - 1 do
-    if FdChildren[I] is THAnimJointNode then
-    begin
-      ChildJoint := THAnimJointNode(FdChildren[I]);
-
-      { TODO: it's very hacky to update ChildJoint.FdCenter this way.
-        The cleaner way would be to just
-
-          ChildJoint.FdCenter.Send(AnimateSkinPoint(ChildJoint.RestCenter))
-
-        This would already do compare, send event if needed etc. (useful
-        for view3dscene H-Anim joints visualization).
-        But it would also notify the scene (events processor), and this causes
-        slowdown and bugs (on lucy) right now. }
-
-      NewChildCenter := AnimateSkinPoint(ChildJoint.RestCenter);
-      if not TVector3.PerfectlyEquals(ChildJoint.FdCenter.Value, NewChildCenter) then
-      begin
-        ChildJoint.FdCenter.Value := NewChildCenter;
-
-        if ChildJoint.FdCenter.Exposed then
-        begin
-          TempToSend := TSFVec3f.Create(ChildJoint, false, 'center', NewChildCenter);
-          try
-            ChildJoint.FdCenter.EventOut.Send(TempToSend);
-          finally FreeAndNil(TempToSend) end;
-        end;
-
-        { Note that Send() above will use Scene.NextEventTime
-          which with increase time by a "tick".
-          This is good --- if you'll next want to traverse a parent joint,
-          this center will again be changed, and should be send (otherwise
-          routes e.g. in Humanoid Visualization in view3dscene will not work).
-
-          Note that Scene may be nil now --- reproduce by:
-          view3dscene ~/ownCloud/3dmodels/vrmlx3d/hanim/kambi_hanim_200_spec/hanim_loa_3.wrl }
-      end;
-    end;
-end;
-
 function THAnimJointNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcTransform;
+end;
+
+{ THAnimSegmentNode.THAnimSegmentNodeTransformFunctionality ---------------------------------------- }
+
+constructor THAnimSegmentNode.THAnimSegmentNodeTransformFunctionality.Create(const AParent: THAnimSegmentNode);
+begin
+  inherited Create(AParent);
+  FParent := AParent;
+end;
+
+procedure THAnimSegmentNode.THAnimSegmentNodeTransformFunctionality.ApplyTransform(var Transformation: TTransformation);
+begin
+  inherited;
+  Transformation.Multiply(
+    Parent.Rotation,
+    Parent.Scale,
+    Parent.Translation);
+end;
+
+{ THAnimSegmentNode ---------------------------------------------------------- }
+
+constructor THAnimSegmentNode.Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  FTransformFunctionality := THAnimSegmentNodeTransformFunctionality.Create(Self);
+  AddFunctionality(FTransformFunctionality);
 end;
 
 procedure THAnimSegmentNode.CreateNode;
@@ -800,18 +914,37 @@ begin
   if Result <> nil then Exit;
 end;
 
-procedure THAnimSegmentNode.ApplyTransform(var Transformation: TTransformation);
-begin
-  inherited;
-  Transformation.Multiply(
-    Rotation,
-    Scale,
-    Translation);
-end;
-
 function THAnimSegmentNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcTransform;
+end;
+
+{ THAnimSiteNode.THAnimSiteNodeTransformFunctionality ---------------------------------------- }
+
+constructor THAnimSiteNode.THAnimSiteNodeTransformFunctionality.Create(const AParent: THAnimSiteNode);
+begin
+  inherited Create(AParent);
+  FParent := AParent;
+end;
+
+procedure THAnimSiteNode.THAnimSiteNodeTransformFunctionality.ApplyTransform(var Transformation: TTransformation);
+begin
+  inherited;
+  Transformation.Multiply(
+    Parent.Center,
+    Parent.Rotation,
+    Parent.Scale,
+    Parent.ScaleOrientation,
+    Parent.Translation);
+end;
+
+{ THAnimSiteNode ---------------------------------------------------------- }
+
+constructor THAnimSiteNode.Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  FTransformFunctionality := THAnimSiteNodeTransformFunctionality.Create(Self);
+  AddFunctionality(FTransformFunctionality);
 end;
 
 procedure THAnimSiteNode.CreateNode;
@@ -858,17 +991,6 @@ function THAnimSiteNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction):
 begin
   Result := FdChildren.Enumerate(Func);
   if Result <> nil then Exit;
-end;
-
-procedure THAnimSiteNode.ApplyTransform(var Transformation: TTransformation);
-begin
-  inherited;
-  Transformation.Multiply(
-    Center,
-    Rotation,
-    Scale,
-    ScaleOrientation,
-    Translation);
 end;
 
 function THAnimSiteNode.TransformationChange: TNodeTransformationChange;

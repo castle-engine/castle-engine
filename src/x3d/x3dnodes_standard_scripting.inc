@@ -18,7 +18,7 @@
   TScriptType = (stCompiled, stCastleScript);
 
   { Abstract node type for all scripting nodes. }
-  TAbstractScriptNode = class(TAbstractChildNode, IAbstractUrlObject)
+  TAbstractScriptNode = class(TAbstractChildNode)
   strict private
     FInitialized: boolean;
     procedure SetInitialized(const Value: boolean);
@@ -35,6 +35,7 @@
     procedure ExecuteScript(const FunctionName: string;
       ReceivedValue: TX3DField; const Time: TX3DTime);
   public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     procedure CreateNode; override;
     destructor Destroy; override;
 
@@ -90,6 +91,12 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
+constructor TAbstractScriptNode.Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  AddFunctionality(TUrlFunctionality.Create(Self));
+end;
+
 procedure TAbstractScriptNode.CreateNode;
 begin
   inherited;

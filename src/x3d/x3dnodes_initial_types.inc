@@ -71,6 +71,8 @@
   TAbstractTextureTransformNode = class;
   TAbstractSingleTextureCoordinateNode = class;
   TTangentNode = class;
+  TTransformFunctionality = class;
+  TTimeDependentFunctionality = class;
 
   TX3DNodeClass = class of TX3DNode;
 
@@ -106,7 +108,7 @@
     ntcNone,
     ntcSwitch, //< TSwitchNode
     ntcLOD, //< TAbstractLODNode
-    ntcTransform, //< ITransformNode
+    ntcTransform, //< anything with TTransformFunctionality
     ntcGeometry, //< TAbstractGeometryNode
     ntcBackground, //< TAbstractBackgroundNode
     ntcFog, //< TFogNode

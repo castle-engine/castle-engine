@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,11 +22,10 @@
     {$I auto_generated_node_helpers/x3dnodes_x3dnetworksensornode.inc}
   end;
 
-  { Abstract interface used by all nodes that contain data located
-    on the World Wide Web. }
-  IAbstractUrlObject = interface(IX3DNode)
-  ['{668420DB-20F7-4A5E-BB89-52F29CA39057}']
-    property FdUrl: TMFString { read GetFdurl }; { }
+  { Functionality used by all nodes that contain data located on the World Wide Web.
+    This corresponds to X3D abstract type X3DUrlObject supported by various nodes. }
+  TUrlFunctionality = class(TNodeFunctionality)
+    // FdUrl: TMFString
   end;
 
   TAbstractViewpointNode = class;
@@ -105,7 +104,7 @@
   end;
 
   { Embed another X3D scene into the current scene. }
-  TInlineNode = class(TAbstractGroupingNode, IAbstractBoundedObject, IAbstractUrlObject)
+  TInlineNode = class(TAbstractGroupingNode)
   strict private
     procedure EventLoadReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
@@ -131,6 +130,7 @@
   protected
     function DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode; override;
   public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -388,6 +388,12 @@ begin
     end;
   end;
   Result := false;
+end;
+
+constructor TInlineNode.Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  AddFunctionality(TUrlFunctionality.Create(Self));
 end;
 
 procedure TInlineNode.CreateNode;
@@ -679,7 +685,7 @@ begin
   FFdTimeOut := TSFTime.Create(Self, true, 'timeOut', 0);
   AddField(FFdTimeOut);
 
-  FFdWatchList := TMFNode.Create(Self, true, 'watchList', IAbstractUrlObject);
+  FFdWatchList := TMFNode.Create(Self, true, 'watchList', TUrlFunctionality);
   AddField(FFdWatchList);
 
   FEventIsLoaded := TSFBoolEvent.Create(Self, 'isLoaded', false);

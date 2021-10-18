@@ -242,7 +242,7 @@ type
       which is great to do some operations very quickly.
 
       Right now:
-      - TShapeTreeTransform is associated with ITransformNode
+      - TShapeTreeTransform is associated with node implementing TTransformFunctionality
         (like TTransformNode, TBillboardNode).
 
       - TShape is associated with
@@ -803,9 +803,9 @@ type
     as a transformation node and also may be handled by this). }
   TShapeTreeTransform = class(TShapeTreeGroup)
   strict private
-    FTransformNode: TX3DNode;
+    FTransformFunctionality: TTransformFunctionality;
     FTransformState: TX3DGraphTraverseState;
-    procedure SetTransformNode(const Value: TX3DNode);
+    procedure SetTransformFunctionality(const Value: TTransformFunctionality);
   private
     procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
       const ParentTransformation: TTransformation); override;
@@ -814,14 +814,10 @@ type
     destructor Destroy; override;
     procedure FastTransformUpdate(var AnythingChanged: Boolean); override;
 
-    { Internal note: We don't declare TransformNode as ITransformNode interface,
-      because we don't want to keep reference to it too long,
-      as it's manually freed. That's safer. }
-    { Transforming VRML/X3D node. Always assigned, always may be casted
-      to ITransformNode interface.
-      Note that it doesn't have to be TTransformNode,
-      e.g. TBillboardNode also supports ITransformNode. }
-    property TransformNode: TX3DNode read FTransformNode write SetTransformNode;
+    property TransformFunctionality: TTransformFunctionality
+      read FTransformFunctionality write SetTransformFunctionality;
+
+    function TransformNode: TX3DNode;
 
     { State right before traversing the TransformNode.
       Owned by this TShapeTreeTransform instance. You should assign
@@ -3269,21 +3265,21 @@ end;
 
 destructor TShapeTreeTransform.Destroy;
 begin
-  if FTransformNode <> nil then
-    UnAssociateNode(FTransformNode);
+  if FTransformFunctionality <> nil then
+    UnAssociateNode(FTransformFunctionality.Parent);
   FreeAndNil(FTransformState);
   inherited;
 end;
 
-procedure TShapeTreeTransform.SetTransformNode(const Value: TX3DNode);
+procedure TShapeTreeTransform.SetTransformFunctionality(const Value: TTransformFunctionality);
 begin
-  if FTransformNode <> Value then
+  if FTransformFunctionality <> Value then
   begin
-    if FTransformNode <> nil then
-      UnAssociateNode(FTransformNode);
-    FTransformNode := Value;
-    if FTransformNode <> nil then
-      AssociateNode(FTransformNode);
+    if FTransformFunctionality <> nil then
+      UnAssociateNode(FTransformFunctionality.Parent);
+    FTransformFunctionality := Value;
+    if FTransformFunctionality <> nil then
+      AssociateNode(FTransformFunctionality.Parent);
   end;
 end;
 
@@ -3307,16 +3303,14 @@ begin
     FTransformState.Transformation := ParentTransformation;
   end;
 
-  // TODO: use TransformFunctionality to handle this nicely
-  // and ApplyTransform should remain private then
-
-  if FTransformNode is TTransformNode then
-    TTransformNode(FTransformNode).ApplyTransform(NewTransformation)
-  else
-  if FTransformNode is TMatrixTransformNode then
-    TMatrixTransformNode(FTransformNode).ApplyTransform(NewTransformation);
+  TransformFunctionality.ApplyTransform(NewTransformation);
 
   inherited FastTransformUpdateCore(AnythingChanged, NewTransformation);
+end;
+
+function TShapeTreeTransform.TransformNode: TX3DNode;
+begin
+  Result := TransformFunctionality.Parent;
 end;
 
 { TShapeTreeLOD ------------------------------------------------------- }

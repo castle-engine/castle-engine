@@ -56,7 +56,9 @@ CoordinateInterpolator2D : X3DInterpolatorNode {
     field-generate-more: false
 }
 
-EaseInEaseOut : X3DNode {
+# Note: X3D spec doesn't say this descends from X3DChildNode,
+# but it is natural (where else would you put this node?)
+EaseInEaseOut : X3DChildNode {
   auto-generate-more: true
   SFFloat [in]     set_fraction
     range: (-Inf,Inf)

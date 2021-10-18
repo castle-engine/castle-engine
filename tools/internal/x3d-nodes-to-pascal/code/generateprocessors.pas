@@ -49,8 +49,8 @@ type
     Fields: TX3DFieldInformationList;
     constructor Create;
     destructor Destroy; override;
-    function PascalType(const ForceAsInterface: boolean = false): string;
-    function IsInterface: boolean;
+    function PascalType(const ForceAsFunctionality: boolean = false): string;
+    function IsFunctionality: boolean;
     function IsAbstract: boolean;
   end;
 
@@ -159,12 +159,12 @@ begin
       EventInOrOut := 'in'
     else
       EventInOrOut := 'out';
-    if Node.IsInterface then
+    if Node.IsFunctionality then
     begin
       OutputInterface +=
         Field.ConditionsBegin +
         '    { X3D ' + EventInOrOut + ' event "' + Field.X3DName + '". } { }' + NL +
-        '    property ' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ';' + NL +
+        '    // property ' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ';' + NL +
         Field.ConditionsEnd;
     end else
     begin
@@ -185,12 +185,12 @@ begin
     end;
   end else
   begin
-    if Node.IsInterface then
+    if Node.IsFunctionality then
     begin
       OutputInterface +=
         Field.ConditionsBegin +
         '    { X3D field "' + Field.X3DName + '". } { }' + NL +
-        '    property ' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ';' + NL +
+        '    // property ' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ';' + NL +
         Field.ConditionsEnd;
     end else
     begin
@@ -253,7 +253,7 @@ begin
   inherited;
 end;
 
-function TX3DNodeInformation.IsInterface: boolean;
+function TX3DNodeInformation.IsFunctionality: boolean;
 begin
   Result := IsSuffix('Object', X3DType);
 end;
@@ -263,34 +263,38 @@ begin
   Result := IsPrefix('X3D', X3DType);
 end;
 
-function TX3DNodeInformation.PascalType(const ForceAsInterface: boolean): string;
+function TX3DNodeInformation.PascalType(const ForceAsFunctionality: boolean): string;
 begin
   Result := X3DType;
 
-  // replace X3D prefix with Abstract prefix
-  if IsAbstract then
+  if ForceAsFunctionality or IsFunctionality then
   begin
-    { On X3DGroupingNode, we have both
-      TAbstractX3DGroupingNode and TAbstractGroupingNode,
-      to support also older VRML versions. }
-    if X3DType <> 'X3DGroupingNode' then
-      Result := PrefixRemove('X3D', Result, true);
-    Result := 'Abstract' + Result;
-  end;
-
-  // always end with Node suffix
-  Result := SuffixRemove('Node', Result, true);
-  Result := Result + 'Node';
-
-  // avoid TAbstractMetadataObjectNode, make it just TAbstractMetadataNode
-  if IsSuffix('ObjectNode', Result) then
-    Result := SuffixRemove('ObjectNode', Result, true) + 'Node';
-
-  if ForceAsInterface or IsInterface then
-  begin
-    Result := 'I' + Result;
+    // change 'X3DUrlObject' into 'TUrlFunctionality'
+    Result := PrefixRemove('X3D', Result, true);
+    // Result := SuffixRemove('Node', Result, true); // not needed
+    Result := SuffixRemove('Object', Result, true);
+    Result := 'T' + Result + 'Functionality';
   end else
   begin
+    // replace X3D prefix with Abstract prefix
+    if IsAbstract then
+    begin
+      { On X3DGroupingNode, we have both
+        TAbstractX3DGroupingNode and TAbstractGroupingNode,
+        to support also older VRML versions. }
+      if X3DType <> 'X3DGroupingNode' then
+        Result := PrefixRemove('X3D', Result, true);
+      Result := 'Abstract' + Result;
+    end;
+
+    // always end with Node suffix
+    Result := SuffixRemove('Node', Result, true);
+    Result := Result + 'Node';
+
+    // avoid TAbstractMetadataObjectNode, make it just TAbstractMetadataNode
+    if IsSuffix('ObjectNode', Result) then
+      Result := SuffixRemove('ObjectNode', Result, true) + 'Node';
+
     Result := 'T' + Result;
   end;
 end;
@@ -1066,7 +1070,7 @@ begin
     { All the conditions below may be eventually removed.
       We're just not ready for it yet, the generated code is not ready for them. }
     if (Field.AllowedChildrenNodes.Count = 1) and
-       (not Field.AllowedChildrenNodes[0].IsInterface) then
+       (not Field.AllowedChildrenNodes[0].IsFunctionality) then
     begin
       AllowedPascalClass := Field.AllowedChildrenNodes[0].PascalType;
       if Field.X3DType = 'SFNode' then
@@ -1305,8 +1309,8 @@ begin
   if OutputPublicInterface <> '' then
     OutputPublicInterface := '  public' + NL + OutputPublicInterface;
 
-  // no helpers for interfaces
-  if not Node.IsInterface then
+  // no helpers for functionalities, for now
+  if not Node.IsFunctionality then
     GenerateOutput(
       // '  ' + Node.PascalType + 'Helper = class helper for ' + Node.PascalType + NL +
       OutputPrivateInterface +

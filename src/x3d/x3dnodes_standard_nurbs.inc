@@ -337,7 +337,7 @@
 
   { Groups a set of NURBS surface nodes to a common group
     for rendering purposes, to ensure a common tesselation within the group. }
-  TNurbsSetNode = class(TAbstractChildNode, IAbstractBoundedObject)
+  TNurbsSetNode = class(TAbstractChildNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;

@@ -48,8 +48,9 @@
     {$I auto_generated_node_helpers/x3dnodes_disentitymanager.inc}
   end;
 
-  TDISEntityTypeMappingNode = class(TAbstractInfoNode, IAbstractUrlObject)
+  TDISEntityTypeMappingNode = class(TAbstractInfoNode)
   public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -80,7 +81,7 @@
     {$I auto_generated_node_helpers/x3dnodes_disentitytypemapping.inc}
   end;
 
-  TEspduTransformNode = class(TAbstractX3DGroupingNode, IAbstractSensorNode)
+  TEspduTransformNode = class(TAbstractX3DGroupingNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -364,7 +365,7 @@
     {$I auto_generated_node_helpers/x3dnodes_espdutransform.inc}
   end;
 
-  TReceiverPduNode = class(TAbstractSensorNode, IAbstractBoundedObject)
+  TReceiverPduNode = class(TAbstractSensorNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -455,7 +456,7 @@
     {$I auto_generated_node_helpers/x3dnodes_receiverpdu.inc}
   end;
 
-  TSignalPduNode = class(TAbstractSensorNode, IAbstractBoundedObject)
+  TSignalPduNode = class(TAbstractSensorNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -546,7 +547,7 @@
     {$I auto_generated_node_helpers/x3dnodes_signalpdu.inc}
   end;
 
-  TTransmitterPduNode = class(TAbstractSensorNode, IAbstractBoundedObject)
+  TTransmitterPduNode = class(TAbstractSensorNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -722,6 +723,12 @@ end;
 class function TDISEntityManagerNode.ClassX3DType: string;
 begin
   Result := 'DISEntityManager';
+end;
+
+constructor TDISEntityTypeMappingNode.Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  AddFunctionality(TUrlFunctionality.Create(Self));
 end;
 
 procedure TDISEntityTypeMappingNode.CreateNode;

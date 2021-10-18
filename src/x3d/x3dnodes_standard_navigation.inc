@@ -86,14 +86,25 @@
     The local Z axis of the children faces the camera,
     rotating around @link(AxisOfRotation) (it it is non-zero)
     or rotating freely in 3D (when @link(AxisOfRotation) is exactly zero). }
-  TBillboardNode = class(TAbstractX3DGroupingNode, ITransformNode)
+  TBillboardNode = class(TAbstractX3DGroupingNode)
   strict private
-    FCameraVectors: TCameraVectors;
-    FCameraVectorsKnown: boolean;
+    type
+      TBillboardNodeTransformFunctionality = class(TTransformFunctionality)
+      strict private
+        FParent: TBillboardNode;
+      public
+        constructor Create(const AParent: TBillboardNode);
+        property Parent: TBillboardNode read FParent;
+        procedure ApplyTransform(var Transformation: TTransformation); override;
+      end;
+    var
+      FTransformFunctionality: TBillboardNodeTransformFunctionality;
+      FCameraVectors: TCameraVectors;
+      FCameraVectorsKnown: boolean;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
-    procedure ApplyTransform(var Transformation: TTransformation); override;
   public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     function TransformationChange: TNodeTransformationChange; override;
@@ -109,7 +120,7 @@
 
   { Grouping node that specifies the collision detection properties
     for its children. }
-  TCollisionNode = class(TAbstractX3DGroupingNode, IAbstractSensorNode)
+  TCollisionNode = class(TAbstractX3DGroupingNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     function DirectEnumerateActiveForTraverse(
@@ -514,31 +525,15 @@ begin
   Result := ProjectionMatrix * ModelviewMatrix;
 end;
 
-{ TBillboardNode ------------------------------------------------------------- }
+{ TBillboardNode.TBillboardNodeTransformFunctionality ---------------------------- }
 
-procedure TBillboardNode.CreateNode;
+constructor TBillboardNode.TBillboardNodeTransformFunctionality.Create(const AParent: TBillboardNode);
 begin
-  inherited;
-
-  FFdAxisOfRotation := TSFVec3f.Create(Self, true, 'axisOfRotation', Vector3(0, 1, 0));
-  AddField(FFdAxisOfRotation);
-  { X3D specification comment: (-Inf,Inf) }
-
-  DefaultContainerField := 'children';
+  inherited Create(AParent);
+  FParent := AParent;
 end;
 
-class function TBillboardNode.ClassX3DType: string;
-begin
-  Result := 'Billboard';
-end;
-
-function TBillboardNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
-begin
-  Result := FdChildren.Enumerate(Func);
-  if Result <> nil then Exit;
-end;
-
-procedure TBillboardNode.ApplyTransform(var Transformation: TTransformation);
+procedure TBillboardNode.TBillboardNodeTransformFunctionality.ApplyTransform(var Transformation: TTransformation);
 var
   NewX, NewY, NewZ, BillboardToViewer, P1, P2, LocalDirection, LocalUp: TVector3;
   Angle: Single;
@@ -546,12 +541,12 @@ var
   PlaneAxis: TVector4;
   PlaneAxisDir: TVector3 absolute PlaneAxis;
 begin
-  if FCameraVectorsKnown then
+  if Parent.FCameraVectorsKnown then
   begin
-    if FdAxisOfRotation.Value.IsPerfectlyZero then
+    if Parent.FdAxisOfRotation.Value.IsPerfectlyZero then
     begin
-      LocalDirection := Transformation.InverseTransform.MultDirection(FCameraVectors.Direction);
-      LocalUp        := Transformation.InverseTransform.MultDirection(FCameraVectors.Up);
+      LocalDirection := Transformation.InverseTransform.MultDirection(Parent.FCameraVectors.Direction);
+      LocalUp        := Transformation.InverseTransform.MultDirection(Parent.FCameraVectors.Up);
       { although FCameraVectors.Direction/Up are for sure normalized and orthogonal,
         but Transformation.InverseTransform may contain scaling,
         so be sure to normalize again the result.
@@ -570,10 +565,10 @@ begin
     end else
     begin
       { vector from node origin to FCameraVectors.Position, in local coords }
-      BillboardToViewer := Transformation.InverseTransform.MultPoint(FCameraVectors.Position);
+      BillboardToViewer := Transformation.InverseTransform.MultPoint(Parent.FCameraVectors.Position);
 
       { plane of axisOfRotation }
-      PlaneAxisDir := FdAxisOfRotation.Value;
+      PlaneAxisDir := Parent.FdAxisOfRotation.Value;
       PlaneAxis[3] := 0;
 
       { we want to have a rotation that changes TVector3.One[2]
@@ -603,16 +598,47 @@ begin
         But that's not really a future-proof solution, to repeat this code.
         It's safer (even if a little slower) to capture exception here. }
       try
-        Angle := RotationAngleRadBetweenVectors(P1, P2, FdAxisOfRotation.Value);
+        Angle := RotationAngleRadBetweenVectors(P1, P2, Parent.FdAxisOfRotation.Value);
       except
         on EVectorInvalidOp do Exit;
       end;
 
-      RotationMatricesRad(Angle, FdAxisOfRotation.Value, M, IM);
+      RotationMatricesRad(Angle, Parent.FdAxisOfRotation.Value, M, IM);
       Transformation.Transform := Transformation.Transform * M;
       Transformation.InverseTransform := IM * Transformation.InverseTransform;
     end;
   end;
+end;
+
+{ TBillboardNode ------------------------------------------------------------- }
+
+constructor TBillboardNode.Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  FTransformFunctionality := TBillboardNodeTransformFunctionality.Create(Self);
+  AddFunctionality(FTransformFunctionality);
+end;
+
+procedure TBillboardNode.CreateNode;
+begin
+  inherited;
+
+  FFdAxisOfRotation := TSFVec3f.Create(Self, true, 'axisOfRotation', Vector3(0, 1, 0));
+  AddField(FFdAxisOfRotation);
+  { X3D specification comment: (-Inf,Inf) }
+
+  DefaultContainerField := 'children';
+end;
+
+class function TBillboardNode.ClassX3DType: string;
+begin
+  Result := 'Billboard';
+end;
+
+function TBillboardNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
+begin
+  Result := FdChildren.Enumerate(Func);
+  if Result <> nil then Exit;
 end;
 
 procedure TBillboardNode.InternalCameraChanged(const ACameraVectors: TCameraVectors);
@@ -646,7 +672,7 @@ begin
   FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
   AddEvent(FEventIsActive);
 
-  FFdProxy := TSFNode.Create(Self, false, 'proxy', IAbstractChildNode);
+  FFdProxy := TSFNode.Create(Self, false, 'proxy', [TAbstractChildNode]);
    FdProxy.ChangeAlways := chEverything;
   AddField(FFdProxy);
 

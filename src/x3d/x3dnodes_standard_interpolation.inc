@@ -144,7 +144,7 @@
   { Support controlled gradual transitions by modifying
     TimeSensor node fractions.
     @bold(Not implemented yet.) }
-  TEaseInEaseOutNode = class(TAbstractNode)
+  TEaseInEaseOutNode = class(TAbstractChildNode)
   {$I auto_generated_node_helpers/x3dnodes_easeineaseout.inc}
   end;
 

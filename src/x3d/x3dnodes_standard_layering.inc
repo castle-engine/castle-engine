@@ -33,7 +33,7 @@
     {$I auto_generated_node_helpers/x3dnodes_layerset.inc}
   end;
 
-  TViewportNode = class(TAbstractX3DGroupingNode, IAbstractBoundedObject)
+  TViewportNode = class(TAbstractX3DGroupingNode)
     {$I auto_generated_node_helpers/x3dnodes_viewport.inc}
   end;
 

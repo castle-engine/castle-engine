@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,16 +19,9 @@
     {$I auto_generated_node_helpers/x3dnodes_x3dsoundnode.inc}
   end;
 
-  { Interface for all nodes that can emit audio data. }
-  IAbstractSoundSourceNode = interface(IAbstractTimeDependentNode)
-  ['{5E3D46A0-71B5-4561-B6B4-43A5BE5896EF}']
-    property FdDescription: TSFString { read FFdDescription } { };
-    property FdPitch: TSFFloat { read FFdPitch } { };
-    property EventDuration_changed: TX3DEvent { read FEventDuration_changed } { };
-  end;
-
-  { Base class for (most) nodes that can emit audio data. }
-  TAbstractSoundSourceNode = class(TAbstractTimeDependentNode, IAbstractSoundSourceNode)
+  { Base class for most (but not all) nodes that can emit audio data.
+    We may introduce TSoundSourceFunctionality is needed to express exactly X3DSoundSourceObject. }
+  TAbstractSoundSourceNode = class(TAbstractTimeDependentNode)
   public
     { Pitch, corrected to always be > 0. }
     function SafePitch: Single;
@@ -37,7 +30,7 @@
   end;
 
   { Buffer for sound data, which can be played by the @link(TSoundNode). }
-  TAudioClipNode = class(TAbstractSoundSourceNode, IAbstractUrlObject)
+  TAudioClipNode = class(TAbstractSoundSourceNode)
   strict private
     FBufferLoaded: Boolean;
     InsideLoadBuffer: Cardinal;
@@ -110,6 +103,8 @@ begin
   EventIsPaused.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} UpdatePlayingEvent);
 
   SoundEngine.OnOpenClose.Add({$ifdef CASTLE_OBJFPC}@{$endif} SoundOpenClose);
+
+  AddFunctionality(TUrlFunctionality.Create(Self));
 end;
 
 destructor TAudioClipNode.Destroy;
@@ -128,7 +123,7 @@ begin
     - It's necessary to make PlayingSound.Sound.Duration good,
       making CycleInterval good,
       which is necessary for time-dependent mechanism (in
-      TInternalTimeDependentHandler) to always work Ok (see e.g. at thunder.x3dv,
+      TTimeDependentFunctionality) to always work Ok (see e.g. at thunder.x3dv,
       when AudioClip.startTime is set by script to future time.
 
     But don't do it if URL field is empty.

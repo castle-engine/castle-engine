@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,13 +14,6 @@
 }
 
 {$ifdef read_interface}
-  { }
-  IAbstractPickableObject = interface(IX3DNode)
-  ['{700E1CE8-97BD-44D2-A60F-D8639F4E72EC}']
-    property FdObjectType: TMFString { read GetFdobjectType }; { }
-    property FdPickable: TSFBool { read GetFdpickable }; { }
-  end;
-
   TAbstractPickSensorNode = class(TAbstractSensorNode)
   public
     procedure CreateNode; override;
@@ -67,7 +60,7 @@
     {$I auto_generated_node_helpers/x3dnodes_linepicksensor.inc}
   end;
 
-  TPickableGroupNode = class(TAbstractX3DGroupingNode, IAbstractPickableObject)
+  TPickableGroupNode = class(TAbstractX3DGroupingNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;

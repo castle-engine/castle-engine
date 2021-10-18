@@ -55,15 +55,9 @@
     {$I auto_generated_node_helpers/x3dnodes_x3dvertexattributenode.inc}
   end;
 
-  { Interface for all nodes that specify arbitrary fields for interfacing
-    with per-object attribute values in shaders. }
-  IAbstractProgrammableShaderObject = interface
-  ['{B027FD9B-2A68-4653-8A26-91DB51BE47ED}']
-  end;
-
   { OpenGL Shading Language (GLSL) shader container,
     which should be composed from multiple @link(TShaderPartNode) instances. }
-  TComposedShaderNode = class(TAbstractShaderNode, IAbstractProgrammableShaderObject)
+  TComposedShaderNode = class(TAbstractShaderNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -115,8 +109,9 @@
 
   { Single file that may contain a number of shaders and combined effects.
     @bold(Not implemented.) }
-  TPackagedShaderNode = class(TAbstractShaderNode, IAbstractUrlObject, IAbstractProgrammableShaderObject)
+  TPackagedShaderNode = class(TAbstractShaderNode)
   public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -143,7 +138,7 @@
 
   { OpenGL Shading Language (GLSL) shader part,
     used inside @link(TComposedShaderNode). }
-  TShaderPartNode = class(TAbstractNode, IAbstractUrlObject)
+  TShaderPartNode = class(TAbstractNode)
   strict private
     ContentsCached: boolean;
     ContentsCache: string;
@@ -152,6 +147,7 @@
     function GetContents: string;
     procedure SetContents(const Value: string);
   public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -179,8 +175,9 @@
   { Self-container shader part used with @link(TProgramShaderNode),
     for example with Microsoft HLSL shader language.
     @bold(Not implemented.) }
-  TShaderProgramNode = class(TAbstractNode, IAbstractUrlObject, IAbstractProgrammableShaderObject)
+  TShaderProgramNode = class(TAbstractNode)
   public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -306,6 +303,12 @@ begin
   Result := 'Matrix4VertexAttribute';
 end;
 
+constructor TPackagedShaderNode.Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  AddFunctionality(TUrlFunctionality.Create(Self));
+end;
+
 procedure TPackagedShaderNode.CreateNode;
 begin
   inherited;
@@ -334,6 +337,12 @@ end;
 class function TProgramShaderNode.ClassX3DType: string;
 begin
   Result := 'ProgramShader';
+end;
+
+constructor TShaderPartNode.Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  AddFunctionality(TUrlFunctionality.Create(Self));
 end;
 
 procedure TShaderPartNode.CreateNode;
@@ -426,6 +435,12 @@ procedure TShaderPartNode.EventUrlReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   ContentsCached := false;
+end;
+
+constructor TShaderProgramNode.Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  AddFunctionality(TUrlFunctionality.Create(Self));
 end;
 
 procedure TShaderProgramNode.CreateNode;

@@ -15,9 +15,9 @@
 
 {$ifdef read_interface}
 
-  TAllowedChildren = (acAll, acClasses, acInterface);
+  TAllowedChildren = (acAll, acClasses, acFunctionality);
 
-  { VRML/X3D field holding a reference to a single node.
+  { X3D field holding a reference to a single node.
     It's defined in this unit, not in X3DFields, since it uses
     TX3DNode definition. NULL value of the field is indicated by
     Value field = nil.
@@ -36,7 +36,7 @@
     FParentNode: TX3DNode;
     AllowedChildren: TAllowedChildren;
     AllowedChildrenClasses: TX3DNodeClassesList;
-    AllowedChildrenInterface: TGUID;
+    AllowedChildrenFunctionality: TNodeFunctionalityClass;
     FDefaultValue: TX3DNode;
     FDefaultValueExists: boolean;
     FWeakLink: boolean;
@@ -67,10 +67,10 @@
       const AExposed: boolean; const AName: string;
       const AAllowedChildrenClasses: TX3DNodeClassesList;
       const AValue: TX3DNode = nil); overload;
-    { Constructor that allows as children any implementor of given interface. }
+    { Constructor that allows as children any implementor of given functionality. }
     constructor Create(const AParentNode: TX3DNode;
       const AExposed: boolean; const AName: string;
-      const AnAllowedChildrenInterface: TGUID;
+      const AnAllowedChildrenFunctionality: TNodeFunctionalityClass;
       const AValue: TX3DNode = nil); overload;
     destructor Destroy; override;
 
@@ -240,7 +240,7 @@ end;
 
 constructor TSFNode.Create(const AParentNode: TX3DNode;
   const AExposed: boolean; const AName: string;
-  const AnAllowedChildrenInterface: TGUID;
+  const AnAllowedChildrenFunctionality: TNodeFunctionalityClass;
   const AValue: TX3DNode);
 begin
   inherited Create(AParentNode, AExposed, AName);
@@ -249,8 +249,8 @@ begin
     but casted to TX3DNode }
   FParentNode := AParentNode;
 
-  AllowedChildren := acInterface;
-  AllowedChildrenInterface := AnAllowedChildrenInterface;
+  AllowedChildren := acFunctionality;
+  AllowedChildrenFunctionality := AnAllowedChildrenFunctionality;
 
   Value := AValue;
   AssignDefaultValueFromValue;
@@ -269,9 +269,9 @@ end;
 function TSFNode.ChildAllowed(Child: TX3DNode): boolean;
 begin
   case AllowedChildren of
-    acAll      : Result := true;
-    acClasses  : Result := (Child = nil) or (AllowedChildrenClasses.IndexOfAnyAncestor(Child) <> -1);
-    acInterface: Result := (Child = nil) or Supports(Child, AllowedChildrenInterface);
+    acAll          : Result := true;
+    acClasses      : Result := (Child = nil) or (AllowedChildrenClasses.IndexOfAnyAncestor(Child) <> -1);
+    acFunctionality: Result := (Child = nil) or (Child.Functionality(AllowedChildrenFunctionality) <> nil);
     {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('AllowedChildren?');
     {$endif}

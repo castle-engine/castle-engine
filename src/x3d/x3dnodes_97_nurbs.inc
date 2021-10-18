@@ -330,7 +330,7 @@ begin
   FEventremoveChildren := TMFNodeEvent.Create(Self, 'removeChildren', true);
   AddEvent(FEventremoveChildren);
 
-  FFdchildren := TMFNode.Create(Self, true, 'children', IAbstractChildNode);
+  FFdchildren := TMFNode.Create(Self, true, 'children', [TAbstractChildNode]);
   AddField(FFdchildren);
 
   FFdcontrolPoint := TMFVec3f.Create(Self, true, 'controlPoint', []);

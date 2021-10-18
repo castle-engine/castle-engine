@@ -79,7 +79,7 @@
   TFogTypeOrNone = (ftLinear, ftExp, ftNone);
   TFogType = ftLinear..ftExp;
 
-  { Functionality that describes a fog (blend objects with a fog color).
+  { Functionality of node that describes a fog (blend objects with a fog color).
     Used by various X3D fog nodes, like TLocalFogNode, TFogNode. }
   TFogFunctionality = class(TNodeFunctionality)
   public
@@ -143,17 +143,13 @@
         function VolumetricVisibilityStart: Single; override;
       end;
 
-    var
-      FogFunctionality: TFogNodeFogFunctionality;
-
     procedure EventSet_BindReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     procedure CreateNode; override;
-    destructor Destroy; override;
     class function ClassX3DType: string; override;
     function TransformationChange: TNodeTransformationChange; override;
-    function Functionality(const FunctionalityClass: TNodeFunctionalityClass): TNodeFunctionality; override;
 
     strict private FFdColor: TSFColor;
     public property FdColor: TSFColor read FFdColor;
@@ -222,7 +218,7 @@
   TLocalFogNode = class(TAbstractChildNode)
   strict private
     type
-      TFogNodeFogFunctionality = class(TFogFunctionality)
+      TLocalFogNodeFogFunctionality = class(TFogFunctionality)
       strict private
         FParent: TLocalFogNode;
       public
@@ -239,16 +235,14 @@
       end;
 
     var
-      FogFunctionality: TFogNodeFogFunctionality;
       FTransformScale: Single;
   protected
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean); override;
   public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     procedure CreateNode; override;
-    destructor Destroy; override;
     class function ClassX3DType: string; override;
-    function Functionality(const FunctionalityClass: TNodeFunctionalityClass): TNodeFunctionality; override;
 
     strict private FFdColor: TSFColor;
     public property FdColor: TSFColor read FFdColor;
@@ -564,14 +558,12 @@ begin
   DefaultContainerField := 'children';
 
   Eventset_bind.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
-
-  FogFunctionality := TFogNode.TFogNodeFogFunctionality.Create(Self);
 end;
 
-destructor TFogNode.Destroy;
+constructor TFogNode.Create(const AX3DName, ABaseUrl: String);
 begin
-  FreeAndNil(FogFunctionality);
   inherited;
+  AddFunctionality(TFogNode.TFogNodeFogFunctionality.Create(Self));
 end;
 
 class function TFogNode.ClassX3DType: string;
@@ -683,15 +675,6 @@ begin
   end;
 end;
 
-function TFogNode.Functionality(
-  const FunctionalityClass: TNodeFunctionalityClass): TNodeFunctionality;
-begin
-  if FogFunctionality.InheritsFrom(FunctionalityClass) then
-    Result := FogFunctionality
-  else
-    Result := nil;
-end;
-
 { TFogCoordinateNode --------------------------------------------------------- }
 
 procedure TFogCoordinateNode.CreateNode;
@@ -710,30 +693,30 @@ begin
   Result := 'FogCoordinate';
 end;
 
-{ TLocalFogNode.TFogNodeFogFunctionality ------------------------------------------ }
+{ TLocalFogNode.TLocalFogNodeFogFunctionality ------------------------------------------ }
 
-constructor TLocalFogNode.TFogNodeFogFunctionality.Create(const AParent: TLocalFogNode);
+constructor TLocalFogNode.TLocalFogNodeFogFunctionality.Create(const AParent: TLocalFogNode);
 begin
   inherited Create(AParent);
   FParent := AParent;
 end;
 
-function TLocalFogNode.TFogNodeFogFunctionality.Color: TCastleColorRGB;
+function TLocalFogNode.TLocalFogNodeFogFunctionality.Color: TCastleColorRGB;
 begin
   Result := Parent.Color;
 end;
 
-function TLocalFogNode.TFogNodeFogFunctionality.FogType: TFogType;
+function TLocalFogNode.TLocalFogNodeFogFunctionality.FogType: TFogType;
 begin
   Result := Parent.FogType;
 end;
 
-function TLocalFogNode.TFogNodeFogFunctionality.VisibilityRange: Single;
+function TLocalFogNode.TLocalFogNodeFogFunctionality.VisibilityRange: Single;
 begin
   Result := Parent.VisibilityRange;
 end;
 
-function TLocalFogNode.TFogNodeFogFunctionality.TransformScale: Single;
+function TLocalFogNode.TLocalFogNodeFogFunctionality.TransformScale: Single;
 begin
   { TODO: this is actually bad, each LocalFog occurrence may have
     different scale, depending on parent transform node.
@@ -741,17 +724,17 @@ begin
   Result := Parent.FTransformScale;
 end;
 
-function TLocalFogNode.TFogNodeFogFunctionality.Volumetric: Boolean;
+function TLocalFogNode.TLocalFogNodeFogFunctionality.Volumetric: Boolean;
 begin
   Result := Parent.Volumetric;
 end;
 
-function TLocalFogNode.TFogNodeFogFunctionality.VolumetricDirection: TVector3;
+function TLocalFogNode.TLocalFogNodeFogFunctionality.VolumetricDirection: TVector3;
 begin
   Result := Parent.VolumetricDirection;
 end;
 
-function TLocalFogNode.TFogNodeFogFunctionality.VolumetricVisibilityStart: Single;
+function TLocalFogNode.TLocalFogNodeFogFunctionality.VolumetricVisibilityStart: Single;
 begin
   Result := Parent.VolumetricVisibilityStart;
 end;
@@ -792,14 +775,12 @@ begin
   DefaultContainerField := 'children';
 
   FTransformScale := 1;
-
-  FogFunctionality := TLocalFogNode.TFogNodeFogFunctionality.Create(Self);
 end;
 
-destructor TLocalFogNode.Destroy;
+constructor TLocalFogNode.Create(const AX3DName, ABaseUrl: String);
 begin
-  FreeAndNil(FogFunctionality);
   inherited;
+  AddFunctionality(TLocalFogNode.TLocalFogNodeFogFunctionality.Create(Self));
 end;
 
 procedure TLocalFogNode.BeforeTraverse(StateStack: TX3DGraphTraverseStateStack);
@@ -829,15 +810,6 @@ begin
     WritelnWarning('VRML/X3D', 'Unknown fog type "' + FdFogType.Value + '"');
     Result := ftLinear;
   end;
-end;
-
-function TLocalFogNode.Functionality(
-  const FunctionalityClass: TNodeFunctionalityClass): TNodeFunctionality;
-begin
-  if FogFunctionality.InheritsFrom(FunctionalityClass) then
-    Result := FogFunctionality
-  else
-    Result := nil;
 end;
 
 { TTextureBackgroundNode ----------------------------------------------------- }
