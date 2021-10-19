@@ -823,6 +823,8 @@ type
       Owned by this TShapeTreeTransform instance. You should assign
       to it when you set TransformNode. }
     property TransformState: TX3DGraphTraverseState read FTransformState;
+
+    function DebugInfo(const Indent: string = ''): string; override;
   end;
 
   { Node of the TShapeTree representing the LOD (level of detail) alternative.
@@ -3311,6 +3313,23 @@ end;
 function TShapeTreeTransform.TransformNode: TX3DNode;
 begin
   Result := TransformFunctionality.Parent;
+end;
+
+function TShapeTreeTransform.DebugInfo(const Indent: string): string;
+var
+  I: Integer;
+  TransformNodeName: String;
+begin
+  if TransformFunctionality <> nil then
+    TransformNodeName :=
+      TransformFunctionality.Parent.NiceName + ': ' +
+      TransformFunctionality.Parent.ClassName
+  else
+    TransformNodeName := 'nil';
+
+  Result := Indent + ClassName + ' (' + TransformNodeName + ')' + NL;
+  for I := 0 to Children.Count - 1 do
+    Result += Children[I].DebugInfo(Indent + Format('  %3d:', [I]));
 end;
 
 { TShapeTreeLOD ------------------------------------------------------- }
