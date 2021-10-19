@@ -4800,7 +4800,7 @@ var
       TransformationDirty := true
     end else
     begin
-      Check(ANode.TransformFunctionality <> nil, 'chTransform flag may be set only for ITransformNode');
+      Check(ANode.TransformFunctionality <> nil, 'chTransform flag may be set only for node with TTransformFunctionality');
       TransformationChanged(ANode.TransformFunctionality);
     end;
 
