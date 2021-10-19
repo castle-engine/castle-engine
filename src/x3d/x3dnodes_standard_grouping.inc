@@ -786,8 +786,9 @@ begin
   FSaveAsRootNode := true;
   FScale := 1;
 
-  FTransformFunctionality := TX3DRootNodeTransformFunctionality.Create(Self);
-  AddFunctionality(FTransformFunctionality);
+  // TODO: temporary commented out to fix demo-models/animation/simple_tests_interpolation_and_time/test_interpolator_no_key.x3dv
+  // FTransformFunctionality := TX3DRootNodeTransformFunctionality.Create(Self);
+  // AddFunctionality(FTransformFunctionality);
 end;
 
 destructor TX3DRootNode.Destroy;
