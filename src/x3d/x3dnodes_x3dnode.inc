@@ -3497,6 +3497,9 @@ procedure TX3DNode.AddFunctionality(const F: TNodeFunctionality);
   end;
 
 begin
+  Assert(not ( (F is TTransformFunctionality) and (FTransformFunctionality <> nil) ), 'Do not add 2 functionalities implementing TTransformFunctionality');
+  Assert(not ( (F is TTimeDependentFunctionality) and (FTimeFunctionality <> nil) ), 'Do not add 2 functionalities implementing TTimeDependentFunctionality');
+
   if FFunctionalityList = nil then
     FFunctionalityList := TNodeFunctionalityList.Create(true);
   FFunctionalityList.Add(F);
