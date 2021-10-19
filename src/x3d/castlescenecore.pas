@@ -3657,7 +3657,9 @@ function TChangedAllTraverser.Traverse(
       So we know that previous state lies safely at PreviousTop.
 
       Exception: As TX3DRootNode.SeparateGroup is false now,
-      it needs special case to look at just StateStack.PreviousTop. }
+      it needs special case to look at just StateStack.Top.
+      TODO: This is wrong though, i.e. the StateStack.Top has the TX3DRootNode
+      already applied. There's no state without the TX3DRootNode applied... }
     if TransformNode is TX3DRootNode then
       TransformTree.TransformState.Assign(StateStack.Top)
     else
@@ -4327,8 +4329,17 @@ function TTransformChangeHelper.TransformChangeTraverse(
     Inc(Shapes^.Index);
 
     { update transformation inside Transform nodes that are *within*
-      the modified Transform node }
-    ShapeTransform.TransformState.AssignTransform(StateStack.PreviousTop);
+      the modified Transform node.
+
+      As in TChangedAllTraverser.Traverse, we apply special treatment
+      for TX3DRootNode.
+      TODO: As in TChangedAllTraverser.Traverse, this StateStack.Top is actually
+      not correct in case TX3DRootNode does any scaling. StateStack.Top has the scaling
+      applied, we want transformation before. }
+    if TransformNode is TX3DRootNode then
+      ShapeTransform.TransformState.AssignTransform(StateStack.Top)
+    else
+      ShapeTransform.TransformState.AssignTransform(StateStack.PreviousTop);
 
     OldShapes := Shapes;
     try
