@@ -75,6 +75,8 @@ type
       Both this and TX3DNodeInformation.AutoGenerateMore must be true to make it happen.
       This is by default @true. }
     GenerateMore: boolean;
+    { Set TSFFloat.Angle (to make it treated as an angle for UNIT conversions. }
+    Angle: Boolean;
     constructor Create;
     destructor Destroy; override;
     function AccessType: TX3DAccessType;
@@ -203,6 +205,8 @@ begin
         Field.ConditionsEnd;
 
       FieldConfigure += '   ' + Field.PascalNamePrefixed + '.ChangeAlways := ' + Field.ChangeAlways + ';' + NL;
+      if Field.Angle then
+        FieldConfigure += '   ' + Field.PascalNamePrefixed + '.Angle := true;' + NL;
       FieldExposed := BoolToStr(Field.AccessType = atInputOutput, true);
 
       if Field.Comment <> '' then
@@ -672,33 +676,48 @@ procedure TProcessor.ProcessFile(const InputFileName: string);
       Field.DefaultValue += ']';
       Inc(SeekPos);
     end else
-    if (Field.X3DType = 'SFVec2d') or
-       (Field.X3DType = 'SFVec2f') or
-       (Field.X3DType = 'MFVec2d') or
+    if (Field.X3DType = 'SFVec2f') or
        (Field.X3DType = 'MFVec2f') then
     begin
       Field.DefaultValue := 'Vector2(' + NextToken(Line, SeekPos, WhiteSpaces);
       Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces) + ')';
     end else
+    if (Field.X3DType = 'SFVec2d') or
+       (Field.X3DType = 'MFVec2d') then
+    begin
+      Field.DefaultValue := 'Vector2Double(' + NextToken(Line, SeekPos, WhiteSpaces);
+      Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces) + ')';
+    end else
     if (Field.X3DType = 'SFColor') or
-       (Field.X3DType = 'SFVec3d') or
        (Field.X3DType = 'SFVec3f') or
        (Field.X3DType = 'MFColor') or
-       (Field.X3DType = 'MFVec3d') or
        (Field.X3DType = 'MFVec3f') then
     begin
       Field.DefaultValue := 'Vector3(' + NextToken(Line, SeekPos, WhiteSpaces);
       Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
       Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces) + ')';
     end else
+    if (Field.X3DType = 'SFVec3d') or
+       (Field.X3DType = 'MFVec3d') then
+    begin
+      Field.DefaultValue := 'Vector3Double(' + NextToken(Line, SeekPos, WhiteSpaces);
+      Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
+      Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces) + ')';
+    end else
     if (Field.X3DType = 'SFColorRGBA') or
-       (Field.X3DType = 'SFVec4d') or
        (Field.X3DType = 'SFVec4f') or
        (Field.X3DType = 'MFColorRGBA') or
-       (Field.X3DType = 'MFVec4d') or
        (Field.X3DType = 'MFVec4f') then
     begin
       Field.DefaultValue := 'Vector4(' + NextToken(Line, SeekPos, WhiteSpaces);
+      Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
+      Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
+      Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces) + ')';
+    end else
+    if (Field.X3DType = 'SFVec4d') or
+       (Field.X3DType = 'MFVec4d') then
+    begin
+      Field.DefaultValue := 'Vector4Double(' + NextToken(Line, SeekPos, WhiteSpaces);
       Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
       Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
       Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces) + ')';
@@ -903,6 +922,13 @@ begin
           begin
             ValidatePerFieldCommand('not-slim');
             LastField.NotSlim := true;
+          end else
+
+          if (Tokens.Count = 1) and
+             (Tokens[0] = 'angle') then
+          begin
+            ValidatePerFieldCommand('angle');
+            LastField.Angle := true;
           end else
 
           if (Tokens.Count = 2) and

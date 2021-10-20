@@ -100,6 +100,7 @@ ElevationGrid : X3DGeometryNode {
   SFFloat []       creaseAngle     0
     range: [0,Inf)
     change: chGeometry
+    angle
   MFFloat []       height          []
     range: (-Inf,Inf)
     change: chGeometry
@@ -141,6 +142,7 @@ Extrusion : X3DGeometryNode {
   SFFloat    []       creaseAngle      0
     range: [0,Inf)
     change: chGeometry
+    angle
   MFVec2f    []       crossSection     [ Vector2(1, 1), Vector2(1, -1), Vector2(-1, -1), Vector2(-1, 1), Vector2(1, 1) ]
     range: (-Inf,Inf)
     change: chGeometry
@@ -190,6 +192,7 @@ IndexedFaceSet : X3DComposedGeometryNode {
   SFFloat []       creaseAngle       0
     range: [0,Inf)
     change: chGeometry
+    angle
   MFInt32 []       normalIndex       []
     range: [0,Inf) or -1
     change: chGeometry

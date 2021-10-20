@@ -363,7 +363,6 @@ constructor TElevationGridNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
   Eventset_height.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_HeightReceive);
-  FdCreaseAngle.Angle := true;
 end;
 
 function TElevationGridNode.IsNotEmpty: boolean;
@@ -428,7 +427,6 @@ begin
   Eventset_orientation.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_orientationReceive);
   Eventset_scale.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_scaleReceive);
   Eventset_spine.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_spineReceive);
-  FdCreaseAngle.Angle := true;
 end;
 
 function TExtrusionNode.CrossSection3D(Index: integer): TVector3;
@@ -799,7 +797,6 @@ begin
   Eventset_texCoordIndex.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_texCoordIndexReceive);
   {$endif}
   FdColorIndex.SaveToStreamLineUptoNegative := true;
-  FdCreaseAngle.Angle := true;
   FdCoordIndex.SaveToStreamLineUptoNegative := true;
   FdNormalIndex.SaveToStreamLineUptoNegative := true;
   FdTexCoordIndex.SaveToStreamLineUptoNegative := true;

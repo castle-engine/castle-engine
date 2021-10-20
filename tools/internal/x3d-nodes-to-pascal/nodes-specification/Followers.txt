@@ -1,9 +1,13 @@
 X3DChaserNode : X3DFollowerNode {
+  auto-generate-more: true
+
   SFTime       []       duration           0
     range: [0,Inf)
 }
 
 X3DDamperNode : X3DFollowerNode {
+  auto-generate-more: true
+
   SFTime       [in,out] tau                0
     range: [0,Inf)
   SFFloat      [in,out] tolerance          -1
@@ -13,10 +17,14 @@ X3DDamperNode : X3DFollowerNode {
 }
 
 X3DFollowerNode : X3DChildNode {
+  auto-generate-more: true
+
   SFBool       [out]    isActive
 }
 
 ColorDamper : X3DDamperNode {
+  auto-generate-more: true
+
   SFColor [in]     set_destination
   SFColor [in]     set_value
   SFColor [out]    value_changed
@@ -25,14 +33,18 @@ ColorDamper : X3DDamperNode {
 }
 
 CoordinateDamper : X3DDamperNode {
+  auto-generate-more: true
+
   MFVec3f [in]     set_destination
   MFVec3f [in]     set_value
   MFVec3f [out]    value_changed
-  MFVec3f []       initialDestination [0 0 0]
-  MFVec3f []       initialValue       0 0 0
+  MFVec3f []       initialDestination [Vector3(0, 0, 0)]
+  MFVec3f []       initialValue       [Vector3(0, 0, 0)]
 }
 
 OrientationChaser : X3DChaserNode {
+  auto-generate-more: true
+
   SFRotation [in]     set_destination
   SFRotation [in]     set_value
   SFRotation [out]    value_changed
@@ -41,6 +53,8 @@ OrientationChaser : X3DChaserNode {
 }
 
 OrientationDamper : X3DDamperNode {
+  auto-generate-more: true
+
   SFRotation [in]     set_destination
   SFRotation [in]     set_value
   SFRotation [out]    value_changed
@@ -49,6 +63,8 @@ OrientationDamper : X3DDamperNode {
 }
 
 PositionChaser : X3DChaserNode {
+  auto-generate-more: true
+
   SFVec3f [in]     set_destination
   SFVec3f [in]     set_value
   SFVec3f [out]    value_changed
@@ -57,6 +73,8 @@ PositionChaser : X3DChaserNode {
 }
 
 PositionChaser2D : X3DChaserNode {
+  auto-generate-more: true
+
   SFVec2f [in]     set_destination
   SFVec2f [in]     set_value
   SFVec2f [out]    value_changed
@@ -65,6 +83,8 @@ PositionChaser2D : X3DChaserNode {
 }
 
 PositionDamper : X3DDamperNode {
+  auto-generate-more: true
+
   SFVec3f [in]     set_destination
   SFVec3f [in]     set_value
   SFVec3f [out]    value_changed
@@ -73,6 +93,8 @@ PositionDamper : X3DDamperNode {
 }
 
 PositionDamper2D : X3DDamperNode {
+  auto-generate-more: true
+
   SFVec2f [in]     set_destination
   SFVec2f [in]     set_value
   SFVec2f [out]    value_changed
@@ -81,6 +103,8 @@ PositionDamper2D : X3DDamperNode {
 }
 
 ScalarChaser : X3DChaserNode {
+  auto-generate-more: true
+
   SFFloat [in]     set_destination
   SFFloat [in]     set_value
   SFFloat [out]    value_changed
@@ -89,6 +113,8 @@ ScalarChaser : X3DChaserNode {
 }
 
 TexCoordDamper2D : X3DDamperNode {
+  auto-generate-more: true
+
   MFVec2f [in]     set_destination
   MFVec2f [in]     set_value
   MFVec2f [out]    value_changed

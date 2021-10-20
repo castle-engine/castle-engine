@@ -350,6 +350,7 @@ begin
 
   FFdCreaseAngle := TSFFloat.Create(Self, False, 'creaseAngle', 0);
    FdCreaseAngle.ChangeAlways := chGeometry;
+   FdCreaseAngle.Angle := true;
   AddField(FFdCreaseAngle);
 
   FFdHeight := TMFFloat.Create(Self, False, 'height', []);

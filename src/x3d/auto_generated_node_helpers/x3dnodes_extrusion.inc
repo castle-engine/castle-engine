@@ -257,6 +257,7 @@ begin
 
   FFdCreaseAngle := TSFFloat.Create(Self, False, 'creaseAngle', 0);
    FdCreaseAngle.ChangeAlways := chGeometry;
+   FdCreaseAngle.Angle := true;
   AddField(FFdCreaseAngle);
 
   FFdCrossSection := TMFVec2f.Create(Self, False, 'crossSection', [ Vector2(1, 1), Vector2(1, -1), Vector2(-1, -1), Vector2(-1, 1), Vector2(1, 1) ]);
