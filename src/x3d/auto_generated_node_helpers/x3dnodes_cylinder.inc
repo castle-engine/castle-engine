@@ -41,18 +41,56 @@
     function GetStacks: Integer;
     procedure SetStacks(const Value: Integer);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdBottom: TSFBool;
+    { X3D field "bottom". } { }
+    public property FdBottom: TSFBool read FFdBottom;
     { X3D field "bottom". } { }
     property Bottom: Boolean read GetBottom write SetBottom;
+
+    strict private FFdHeight: TSFFloat;
+    { X3D field "height". } { }
+    public property FdHeight: TSFFloat read FFdHeight;
     { X3D field "height". } { }
     property Height: Single read GetHeight write SetHeight;
+
+    strict private FFdRadius: TSFFloat;
+    { X3D field "radius". } { }
+    public property FdRadius: TSFFloat read FFdRadius;
     { X3D field "radius". } { }
     property Radius: Single read GetRadius write SetRadius;
+
+    strict private FFdSide: TSFBool;
+    { X3D field "side". } { }
+    public property FdSide: TSFBool read FFdSide;
     { X3D field "side". } { }
     property Side: Boolean read GetSide write SetSide;
+
+    strict private FFdSolid: TSFBool;
+    { X3D field "solid". } { }
+    public property FdSolid: TSFBool read FFdSolid;
+
+    strict private FFdTop: TSFBool;
+    { X3D field "top". } { }
+    public property FdTop: TSFBool read FFdTop;
     { X3D field "top". } { }
     property Top: Boolean read GetTop write SetTop;
+
+    strict private FFdTexCoord: TSFNode;
+    { X3D field "texCoord". } { }
+    public property FdTexCoord: TSFNode read FFdTexCoord;
+
+    strict private FFdSlices: TSFInt32;
+    { X3D field "slices". } { }
+    public property FdSlices: TSFInt32 read FFdSlices;
     { X3D field "slices". } { }
     property Slices: Integer read GetSlices write SetSlices;
+
+    strict private FFdStacks: TSFInt32;
+    { X3D field "stacks". } { }
+    public property FdStacks: TSFInt32 read FFdStacks;
     { X3D field "stacks". } { }
     property Stacks: Integer read GetStacks write SetStacks;
 
@@ -130,6 +168,52 @@ end;
 procedure TCylinderNode.SetStacks(const Value: Integer);
 begin
   FdStacks.Send(Value);
+end;
+
+class function TCylinderNode.ClassX3DType: String;
+begin
+  Result := 'Cylinder';
+end;
+
+procedure TCylinderNode.CreateNode;
+begin
+  inherited;
+
+  FFdBottom := TSFBool.Create(Self, False, 'bottom', true);
+   FdBottom.ChangeAlways := chGeometry;
+  AddField(FFdBottom);
+
+  FFdHeight := TSFFloat.Create(Self, False, 'height', 2);
+   FdHeight.ChangeAlways := chGeometry;
+  AddField(FFdHeight);
+
+  FFdRadius := TSFFloat.Create(Self, False, 'radius', 1);
+   FdRadius.ChangeAlways := chGeometry;
+  AddField(FFdRadius);
+
+  FFdSide := TSFBool.Create(Self, False, 'side', true);
+   FdSide.ChangeAlways := chGeometry;
+  AddField(FFdSide);
+
+  FFdSolid := TSFBool.Create(Self, False, 'solid', true);
+   FdSolid.ChangeAlways := chGeometry;
+  AddField(FFdSolid);
+
+  FFdTop := TSFBool.Create(Self, False, 'top', true);
+   FdTop.ChangeAlways := chGeometry;
+  AddField(FFdTop);
+
+  FFdTexCoord := TSFNode.Create(Self, True, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiGeneratedTextureCoordinateNode]);
+   FdTexCoord.ChangeAlways := chGeometry;
+  AddField(FFdTexCoord);
+
+  FFdSlices := TSFInt32.Create(Self, True, 'slices', -1);
+   FdSlices.ChangeAlways := chGeometry;
+  AddField(FFdSlices);
+
+  FFdStacks := TSFInt32.Create(Self, True, 'stacks', -1);
+   FdStacks.ChangeAlways := chGeometry;
+  AddField(FFdStacks);
 end;
 
 {$endif read_implementation}

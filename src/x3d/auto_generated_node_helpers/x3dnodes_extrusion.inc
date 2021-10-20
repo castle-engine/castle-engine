@@ -37,32 +37,94 @@
     function GetEndCap: Boolean;
     procedure SetEndCap(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventSet_crossSection: TMFVec2fEvent;
+    { X3D in event "set_crossSection". } { }
+    public property EventSet_crossSection: TMFVec2fEvent read FEventSet_crossSection;
+
+    strict private FEventSet_orientation: TMFRotationEvent;
+    { X3D in event "set_orientation". } { }
+    public property EventSet_orientation: TMFRotationEvent read FEventSet_orientation;
+
+    strict private FEventSet_scale: TMFVec2fEvent;
+    { X3D in event "set_scale". } { }
+    public property EventSet_scale: TMFVec2fEvent read FEventSet_scale;
+
+    strict private FEventSet_spine: TMFVec3fEvent;
+    { X3D in event "set_spine". } { }
+    public property EventSet_spine: TMFVec3fEvent read FEventSet_spine;
+
+    strict private FFdBeginCap: TSFBool;
+    { X3D field "beginCap". } { }
+    public property FdBeginCap: TSFBool read FFdBeginCap;
     { X3D field "beginCap". } { }
     property BeginCap: Boolean read GetBeginCap write SetBeginCap;
+
+    strict private FFdCcw: TSFBool;
+    { X3D field "ccw". } { }
+    public property FdCcw: TSFBool read FFdCcw;
     { X3D field "ccw". } { }
     property Ccw: Boolean read GetCcw write SetCcw;
+
+    strict private FFdConvex: TSFBool;
+    { X3D field "convex". } { }
+    public property FdConvex: TSFBool read FFdConvex;
     { X3D field "convex". } { }
     property Convex: Boolean read GetConvex write SetConvex;
+
+    strict private FFdCreaseAngle: TSFFloat;
+    { X3D field "creaseAngle". } { }
+    public property FdCreaseAngle: TSFFloat read FFdCreaseAngle;
     { X3D field "creaseAngle". } { }
     property CreaseAngle: Single read GetCreaseAngle write SetCreaseAngle;
+
+    strict private FFdCrossSection: TMFVec2f;
+    { X3D field "crossSection". } { }
+    public property FdCrossSection: TMFVec2f read FFdCrossSection;
     { Set X3D field "crossSection". } { }
     procedure SetCrossSection(const Value: array of TVector2);
     { Set X3D field "crossSection". } { }
     procedure SetCrossSection(const Value: TVector2List);
+
+    strict private FFdEndCap: TSFBool;
+    { X3D field "endCap". } { }
+    public property FdEndCap: TSFBool read FFdEndCap;
     { X3D field "endCap". } { }
     property EndCap: Boolean read GetEndCap write SetEndCap;
+
+    strict private FFdOrientation: TMFRotation;
+    { X3D field "orientation". } { }
+    public property FdOrientation: TMFRotation read FFdOrientation;
     { Set X3D field "orientation". } { }
     procedure SetOrientation(const Value: array of TVector4);
     { Set X3D field "orientation". } { }
     procedure SetOrientation(const Value: TVector4List);
+
+    strict private FFdScale: TMFVec2f;
+    { X3D field "scale". } { }
+    public property FdScale: TMFVec2f read FFdScale;
     { Set X3D field "scale". } { }
     procedure SetScale(const Value: array of TVector2);
     { Set X3D field "scale". } { }
     procedure SetScale(const Value: TVector2List);
+
+    strict private FFdSolid: TSFBool;
+    { X3D field "solid". } { }
+    public property FdSolid: TSFBool read FFdSolid;
+
+    strict private FFdSpine: TMFVec3f;
+    { X3D field "spine". } { }
+    public property FdSpine: TMFVec3f read FFdSpine;
     { Set X3D field "spine". } { }
     procedure SetSpine(const Value: array of TVector3);
     { Set X3D field "spine". } { }
     procedure SetSpine(const Value: TVector3List);
+
+    strict private FFdTexCoord: TSFNode;
+    { X3D field "texCoord". } { }
+    public property FdTexCoord: TSFNode read FFdTexCoord;
 
 {$endif read_interface}
 
@@ -158,6 +220,72 @@ end;
 procedure TExtrusionNode.SetSpine(const Value: TVector3List);
 begin
   FdSpine.Send(Value);
+end;
+
+class function TExtrusionNode.ClassX3DType: String;
+begin
+  Result := 'Extrusion';
+end;
+
+procedure TExtrusionNode.CreateNode;
+begin
+  inherited;
+
+  FEventSet_crossSection := TMFVec2fEvent.Create(Self, 'set_crossSection', true);
+  AddEvent(FEventSet_crossSection);
+
+  FEventSet_orientation := TMFRotationEvent.Create(Self, 'set_orientation', true);
+  AddEvent(FEventSet_orientation);
+
+  FEventSet_scale := TMFVec2fEvent.Create(Self, 'set_scale', true);
+  AddEvent(FEventSet_scale);
+
+  FEventSet_spine := TMFVec3fEvent.Create(Self, 'set_spine', true);
+  AddEvent(FEventSet_spine);
+
+  FFdBeginCap := TSFBool.Create(Self, False, 'beginCap', true);
+   FdBeginCap.ChangeAlways := chGeometry;
+  AddField(FFdBeginCap);
+
+  FFdCcw := TSFBool.Create(Self, False, 'ccw', true);
+   FdCcw.ChangeAlways := chGeometry;
+  AddField(FFdCcw);
+
+  FFdConvex := TSFBool.Create(Self, False, 'convex', true);
+   FdConvex.ChangeAlways := chGeometry;
+  AddField(FFdConvex);
+
+  FFdCreaseAngle := TSFFloat.Create(Self, False, 'creaseAngle', 0);
+   FdCreaseAngle.ChangeAlways := chGeometry;
+  AddField(FFdCreaseAngle);
+
+  FFdCrossSection := TMFVec2f.Create(Self, False, 'crossSection', [ Vector2(1, 1), Vector2(1, -1), Vector2(-1, -1), Vector2(-1, 1), Vector2(1, 1) ]);
+   FdCrossSection.ChangeAlways := chGeometry;
+  AddField(FFdCrossSection);
+
+  FFdEndCap := TSFBool.Create(Self, False, 'endCap', true);
+   FdEndCap.ChangeAlways := chGeometry;
+  AddField(FFdEndCap);
+
+  FFdOrientation := TMFRotation.Create(Self, False, 'orientation', [ Vector4(0, 0, 1, 0) ]);
+   FdOrientation.ChangeAlways := chGeometry;
+  AddField(FFdOrientation);
+
+  FFdScale := TMFVec2f.Create(Self, False, 'scale', [ Vector2(1, 1) ]);
+   FdScale.ChangeAlways := chGeometry;
+  AddField(FFdScale);
+
+  FFdSolid := TSFBool.Create(Self, False, 'solid', true);
+   FdSolid.ChangeAlways := chGeometry;
+  AddField(FFdSolid);
+
+  FFdSpine := TMFVec3f.Create(Self, False, 'spine', [ Vector3(0, 0, 0), Vector3(0, 1, 0) ]);
+   FdSpine.ChangeAlways := chGeometry;
+  AddField(FFdSpine);
+
+  FFdTexCoord := TSFNode.Create(Self, True, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiGeneratedTextureCoordinateNode]);
+   FdTexCoord.ChangeAlways := chGeometry;
+  AddField(FFdTexCoord);
 end;
 
 {$endif read_implementation}

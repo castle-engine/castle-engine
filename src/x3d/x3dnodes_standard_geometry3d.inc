@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,25 +17,8 @@
   { Rectangular box. }
   TBoxNode = class(TAbstractGeometryNode)
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdSize: TSFVec3f;
-    public property FdSize: TSFVec3f read FFdSize;
-
-    strict private FFdSolid: TSFBool;
-    public property FdSolid: TSFBool read FFdSolid;
-
-    strict private FFdCcw: TSFBool;
-    public property FdCcw: TSFBool read FFdCcw;
-
-    strict private FFdTexCoord: TSFNode;
-    public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
     function SolidField: TSFBool; override;
-
-    strict private FFdDivisions: TSFInt32;
-    public property FdDivisions: TSFInt32 read FFdDivisions;
     function CalculateDivisions: Cardinal;
 
     function Proxy(var State: TX3DGraphTraverseState;
@@ -48,7 +31,7 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function AutoGenerate3DTexCoords: boolean; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_box.inc}
+  {$I auto_generated_node_helpers/x3dnodes_box.inc}
   end;
 
   { Cone. }
@@ -56,35 +39,9 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdBottom: TSFBool;
-    public property FdBottom: TSFBool read FFdBottom;
-
-    strict private FFdBottomRadius: TSFFloat;
-    public property FdBottomRadius: TSFFloat read FFdBottomRadius;
-
-    strict private FFdHeight: TSFFloat;
-    public property FdHeight: TSFFloat read FFdHeight;
-
-    strict private FFdSide: TSFBool;
-    public property FdSide: TSFBool read FFdSide;
-
-    strict private FFdSolid: TSFBool;
-    public property FdSolid: TSFBool read FFdSolid;
-
-    strict private FFdTexCoord: TSFNode;
-    public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
     function SolidField: TSFBool; override;
-
-    strict private FFdSlices: TSFInt32;
-    public property FdSlices: TSFInt32 read FFdSlices;
     function CalculateSlices: Cardinal;
-
-    strict private FFdStacks: TSFInt32;
-    public property FdStacks: TSFInt32 read FFdStacks;
     function CalculateStacks: Cardinal;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -99,7 +56,7 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function AutoGenerate3DTexCoords: boolean; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_cone.inc}
+  {$I auto_generated_node_helpers/x3dnodes_cone.inc}
   end;
   TConeNode_2 = TConeNode;
 
@@ -108,38 +65,9 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdBottom: TSFBool;
-    public property FdBottom: TSFBool read FFdBottom;
-
-    strict private FFdHeight: TSFFloat;
-    public property FdHeight: TSFFloat read FFdHeight;
-
-    strict private FFdRadius: TSFFloat;
-    public property FdRadius: TSFFloat read FFdRadius;
-
-    strict private FFdSide: TSFBool;
-    public property FdSide: TSFBool read FFdSide;
-
-    strict private FFdSolid: TSFBool;
-    public property FdSolid: TSFBool read FFdSolid;
-
-    strict private FFdTop: TSFBool;
-    public property FdTop: TSFBool read FFdTop;
-
-    strict private FFdTexCoord: TSFNode;
-    public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
     function SolidField: TSFBool; override;
-
-    strict private FFdSlices: TSFInt32;
-    public property FdSlices: TSFInt32 read FFdSlices;
     function CalculateSlices: Cardinal;
-
-    strict private FFdStacks: TSFInt32;
-    public property FdStacks: TSFInt32 read FFdStacks;
     function CalculateStacks: Cardinal;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -154,7 +82,7 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function AutoGenerate3DTexCoords: boolean; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_cylinder.inc}
+  {$I auto_generated_node_helpers/x3dnodes_cylinder.inc}
   end;
   TCylinderNode_2 = TCylinderNode;
 
@@ -165,57 +93,7 @@
     procedure EventSet_HeightReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    { Event in } { }
-    strict private FEventSet_height: TMFFloatEvent;
-    public property EventSet_height: TMFFloatEvent read FEventSet_height;
-
-    strict private FFdAttrib: TMFNode;
-    public property FdAttrib: TMFNode read FFdAttrib;
-
-    strict private FFdColor: TSFNode;
-    public property FdColor: TSFNode read FFdColor;
-
-    strict private FFdFogCoord: TSFNode;
-    public property FdFogCoord: TSFNode read FFdFogCoord;
-
-    strict private FFdNormal: TSFNode;
-    public property FdNormal: TSFNode read FFdNormal;
-
-    strict private FFdTexCoord: TSFNode;
-    public property FdTexCoord: TSFNode read FFdTexCoord;
-
-    strict private FFdCcw: TSFBool;
-    public property FdCcw: TSFBool read FFdCcw;
-
-    strict private FFdColorPerVertex: TSFBool;
-    public property FdColorPerVertex: TSFBool read FFdColorPerVertex;
-
-    strict private FFdCreaseAngle: TSFFloat;
-    public property FdCreaseAngle: TSFFloat read FFdCreaseAngle;
-
-    strict private FFdHeight: TMFFloat;
-    public property FdHeight: TMFFloat read FFdHeight;
-
-    strict private FFdNormalPerVertex: TSFBool;
-    public property FdNormalPerVertex: TSFBool read FFdNormalPerVertex;
-
-    strict private FFdSolid: TSFBool;
-    public property FdSolid: TSFBool read FFdSolid;
-
-    strict private FFdXDimension: TSFInt32;
-    public property FdXDimension: TSFInt32 read FFdXDimension;
-
-    strict private FFdXSpacing: TSFFloat;
-    public property FdXSpacing: TSFFloat read FFdXSpacing;
-
-    strict private FFdZDimension: TSFInt32;
-    public property FdZDimension: TSFInt32 read FFdZDimension;
-
-    strict private FFdZSpacing: TSFFloat;
-    public property FdZSpacing: TSFFloat read FFdZSpacing;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
 
     { This checks whether xDimension and zDimension are >= 2,
       xSpacing and zSpacing are > 0 and height has at least the
@@ -241,7 +119,7 @@
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_elevationgrid.inc}
+  {$I auto_generated_node_helpers/x3dnodes_elevationgrid.inc}
   end;
 
   { 2D cross-section shape extruded along a 3D spine. }
@@ -258,57 +136,8 @@
     procedure Eventset_spineReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
 
-    { Event in } { }
-    strict private FEventSet_crossSection: TMFVec2fEvent;
-    public property EventSet_crossSection: TMFVec2fEvent read FEventSet_crossSection;
-
-    { Event in } { }
-    strict private FEventSet_orientation: TMFRotationEvent;
-    public property EventSet_orientation: TMFRotationEvent read FEventSet_orientation;
-
-    { Event in } { }
-    strict private FEventSet_scale: TMFVec2fEvent;
-    public property EventSet_scale: TMFVec2fEvent read FEventSet_scale;
-
-    { Event in } { }
-    strict private FEventSet_spine: TMFVec3fEvent;
-    public property EventSet_spine: TMFVec3fEvent read FEventSet_spine;
-
-    strict private FFdBeginCap: TSFBool;
-    public property FdBeginCap: TSFBool read FFdBeginCap;
-
-    strict private FFdCcw: TSFBool;
-    public property FdCcw: TSFBool read FFdCcw;
-
-    strict private FFdConvex: TSFBool;
-    public property FdConvex: TSFBool read FFdConvex;
-
-    strict private FFdCreaseAngle: TSFFloat;
-    public property FdCreaseAngle: TSFFloat read FFdCreaseAngle;
-
-    strict private FFdCrossSection: TMFVec2f;
-    public property FdCrossSection: TMFVec2f read FFdCrossSection;
-
-    strict private FFdEndCap: TSFBool;
-    public property FdEndCap: TSFBool read FFdEndCap;
-
-    strict private FFdOrientation: TMFRotation;
-    public property FdOrientation: TMFRotation read FFdOrientation;
-
-    strict private FFdScale: TMFVec2f;
-    public property FdScale: TMFVec2f read FFdScale;
-
-    strict private FFdSolid: TSFBool;
-    public property FdSolid: TSFBool read FFdSolid;
-
-    strict private FFdSpine: TMFVec3f;
-    public property FdSpine: TMFVec3f read FFdSpine;
-
-    strict private FFdTexCoord: TSFNode;
-    public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
     function SolidField: TSFBool; override;
     function ConvexField: TSFBool; override;
@@ -338,7 +167,7 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function AutoGenerate3DTexCoords: boolean; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_extrusion.inc}
+  {$I auto_generated_node_helpers/x3dnodes_extrusion.inc}
   end;
 
   { Mesh with faces (polygons) constructed from vertices.
@@ -355,45 +184,9 @@
     procedure Eventset_texCoordIndexReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
 
-    {$ifndef CASTLE_SLIM_NODES}
-    { Event in } { }
-    strict private FEventSet_colorIndex: TMFInt32Event;
-    public property EventSet_colorIndex: TMFInt32Event read FEventSet_colorIndex;
-
-    { Event in } { }
-    strict private FEventSet_coordIndex: TMFInt32Event;
-    public property EventSet_coordIndex: TMFInt32Event read FEventSet_coordIndex;
-
-    { Event in } { }
-    strict private FEventSet_normalIndex: TMFInt32Event;
-    public property EventSet_normalIndex: TMFInt32Event read FEventSet_normalIndex;
-
-    { Event in } { }
-    strict private FEventSet_texCoordIndex: TMFInt32Event;
-    public property EventSet_texCoordIndex: TMFInt32Event read FEventSet_texCoordIndex;
-    {$endif}
-
-    strict private FFdColorIndex: TMFInt32;
-    public property FdColorIndex: TMFInt32 read FFdColorIndex;
-
-    strict private FFdConvex: TSFBool;
-    public property FdConvex: TSFBool read FFdConvex;
     function ConvexField: TSFBool; override;
-
-    strict private FFdCoordIndex: TMFInt32;
-    public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
-
-    strict private FFdCreaseAngle: TSFFloat;
-    public property FdCreaseAngle: TSFFloat read FFdCreaseAngle;
-
-    strict private FFdNormalIndex: TMFInt32;
-    public property FdNormalIndex: TMFInt32 read FFdNormalIndex;
-
-    strict private FFdTexCoordIndex: TMFInt32;
-    public property FdTexCoordIndex: TMFInt32 read FFdTexCoordIndex;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
@@ -407,33 +200,16 @@
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_indexedfaceset.inc}
+  {$I auto_generated_node_helpers/x3dnodes_indexedfaceset.inc}
   end;
   TIndexedFaceSetNode_2 = TIndexedFaceSetNode;
 
   { Sphere. }
   TSphereNode = class(TAbstractGeometryNode)
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdRadius: TSFFloat;
-    public property FdRadius: TSFFloat read FFdRadius;
-
-    strict private FFdSolid: TSFBool;
-    public property FdSolid: TSFBool read FFdSolid;
-
-    strict private FFdTexCoord: TSFNode;
-    public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
     function SolidField: TSFBool; override;
-
-    strict private FFdSlices: TSFInt32;
-    public property FdSlices: TSFInt32 read FFdSlices;
     function CalculateSlices: Cardinal;
-
-    strict private FFdStacks: TSFInt32;
-    public property FdStacks: TSFInt32 read FFdStacks;
     function CalculateStacks: Cardinal;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -449,43 +225,15 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function AutoGenerate3DTexCoords: boolean; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_sphere.inc}
+  {$I auto_generated_node_helpers/x3dnodes_sphere.inc}
   end;
   TSphereNode_2 = TSphereNode;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TBoxNode.CreateNode;
-begin
-  inherited;
 
-  FFdSize := TSFVec3f.Create(Self, false, 'size', Vector3(2, 2, 2));
-   FdSize.ChangeAlways := chGeometry;
-  AddField(FFdSize);
-  { X3D specification comment: (0,Inf) }
-
-  FFdSolid := TSFBool.Create(Self, false, 'solid', true);
-   FdSolid.ChangeAlways := chGeometry;
-  AddField(FFdSolid);
-
-  FFdCcw := TSFBool.Create(Self, false, 'ccw', true);
-   FdCcw.ChangeAlways := chGeometry;
-  AddField(FFdCcw);
-
-  FFdTexCoord := TSFNode.Create(Self, true, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
-   FdTexCoord.ChangeAlways := chGeometry;
-  AddField(FFdTexCoord);
-
-  FFdDivisions := TSFInt32.Create(Self, true, 'divisions', -1);
-   FdDivisions.ChangeAlways := chGeometry;
-  AddField(FFdDivisions);
-end;
-
-class function TBoxNode.ClassX3DType: string;
-begin
-  Result := 'Box';
-end;
+{ TBoxNode ------------------------------------------------------------------- }
 
 function TBoxNode.TexCoordField: TSFNode;
 begin
@@ -512,50 +260,6 @@ begin
 end;
 
 { TConeNode ------------------------------------------------------------------ }
-
-procedure TConeNode.CreateNode;
-begin
-  inherited;
-
-  FFdBottom := TSFBool.Create(Self, false, 'bottom', true);
-   FdBottom.ChangeAlways := chGeometry;
-  AddField(FFdBottom);
-
-  FFdBottomRadius := TSFFloat.Create(Self, false, 'bottomRadius', 1);
-   FdBottomRadius.ChangeAlways := chGeometry;
-  AddField(FFdBottomRadius);
-  { X3D specification comment: (0,Inf) }
-
-  FFdHeight := TSFFloat.Create(Self, false, 'height', 2);
-   FdHeight.ChangeAlways := chGeometry;
-  AddField(FFdHeight);
-  { X3D specification comment: (0,Inf) }
-
-  FFdSide := TSFBool.Create(Self, false, 'side', true);
-   FdSide.ChangeAlways := chGeometry;
-  AddField(FFdSide);
-
-  FFdSolid := TSFBool.Create(Self, false, 'solid', true);
-   FdSolid.ChangeAlways := chGeometry;
-  AddField(FFdSolid);
-
-  FFdTexCoord := TSFNode.Create(Self, true, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
-   FdTexCoord.ChangeAlways := chGeometry;
-  AddField(FFdTexCoord);
-
-  FFdSlices := TSFInt32.Create(Self, true, 'slices', -1);
-   FdSlices.ChangeAlways := chGeometry;
-  AddField(FFdSlices);
-
-  FFdStacks := TSFInt32.Create(Self, true, 'stacks', -1);
-   FdStacks.ChangeAlways := chGeometry;
-  AddField(FFdStacks);
-end;
-
-class function TConeNode.ClassX3DType: string;
-begin
-  Result := 'Cone';
-end;
 
 class function TConeNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
@@ -606,54 +310,6 @@ end;
 
 { TCylinderNode -------------------------------------------------------------- }
 
-procedure TCylinderNode.CreateNode;
-begin
-  inherited;
-
-  FFdBottom := TSFBool.Create(Self, false, 'bottom', true);
-   FdBottom.ChangeAlways := chGeometry;
-  AddField(FFdBottom);
-
-  FFdHeight := TSFFloat.Create(Self, false, 'height', 2);
-   FdHeight.ChangeAlways := chGeometry;
-  AddField(FFdHeight);
-  { X3D specification comment: (0,Inf) }
-
-  FFdRadius := TSFFloat.Create(Self, false, 'radius', 1);
-   FdRadius.ChangeAlways := chGeometry;
-  AddField(FFdRadius);
-  { X3D specification comment: (0,Inf) }
-
-  FFdSide := TSFBool.Create(Self, false, 'side', true);
-   FdSide.ChangeAlways := chGeometry;
-  AddField(FFdSide);
-
-  FFdSolid := TSFBool.Create(Self, false, 'solid', true);
-   FdSolid.ChangeAlways := chGeometry;
-  AddField(FFdSolid);
-
-  FFdTop := TSFBool.Create(Self, false, 'top', true);
-   FdTop.ChangeAlways := chGeometry;
-  AddField(FFdTop);
-
-  FFdTexCoord := TSFNode.Create(Self, true, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
-   FdTexCoord.ChangeAlways := chGeometry;
-  AddField(FFdTexCoord);
-
-  FFdSlices := TSFInt32.Create(Self, true, 'slices', -1);
-   FdSlices.ChangeAlways := chGeometry;
-  AddField(FFdSlices);
-
-  FFdStacks := TSFInt32.Create(Self, true, 'stacks', -1);
-   FdStacks.ChangeAlways := chGeometry;
-  AddField(FFdStacks);
-end;
-
-class function TCylinderNode.ClassX3DType: string;
-begin
-  Result := 'Cylinder';
-end;
-
 class function TCylinderNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major >= 2;
@@ -703,85 +359,11 @@ end;
 
 { TElevationGridNode --------------------------------------------------------- }
 
-procedure TElevationGridNode.CreateNode;
+constructor TElevationGridNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FEventSet_height := TMFFloatEvent.Create(Self, 'set_height', true);
-  AddEvent(FEventSet_height);
   Eventset_height.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_HeightReceive);
-
-  FFdAttrib := TMFNode.Create(Self, true, 'attrib', [TAbstractVertexAttributeNode]);
-   FdAttrib.ChangeAlways := chGeometry;
-  AddField(FFdAttrib);
-
-  FFdColor := TSFNode.Create(Self, true, 'color', [TAbstractColorNode]);
-   FdColor.ChangeAlways := chGeometry;
-  AddField(FFdColor);
-
-  FFdFogCoord := TSFNode.Create(Self, true, 'fogCoord', [TFogCoordinateNode]);
-   FdFogCoord.ChangeAlways := chGeometry;
-  AddField(FFdFogCoord);
-
-  FFdNormal := TSFNode.Create(Self, true, 'normal', [TAbstractNormalNode]);
-   FdNormal.ChangeAlways := chGeometry;
-  AddField(FFdNormal);
-
-  FFdTexCoord := TSFNode.Create(Self, true, 'texCoord', [TAbstractTextureCoordinateNode]);
-   FdTexCoord.ChangeAlways := chGeometry;
-  AddField(FFdTexCoord);
-
-  FFdCcw := TSFBool.Create(Self, false, 'ccw', true);
-   FdCcw.ChangeAlways := chGeometry;
-  AddField(FFdCcw);
-
-  FFdColorPerVertex := TSFBool.Create(Self, false, 'colorPerVertex', true);
-   FdColorPerVertex.ChangeAlways := chGeometry;
-  AddField(FFdColorPerVertex);
-
-  FFdCreaseAngle := TSFFloat.Create(Self, false, 'creaseAngle', 0);
-   FdCreaseAngle.Angle := true;
-   FdCreaseAngle.ChangeAlways := chGeometry;
-  AddField(FFdCreaseAngle);
-  { X3D specification comment: [0,Inf) }
-
-  FFdHeight := TMFFloat.Create(Self, false, 'height', []);
-   FdHeight.ChangeAlways := chGeometry;
-  AddField(FFdHeight);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdNormalPerVertex := TSFBool.Create(Self, false, 'normalPerVertex', true);
-   FdNormalPerVertex.ChangeAlways := chGeometry;
-  AddField(FFdNormalPerVertex);
-
-  FFdSolid := TSFBool.Create(Self, false, 'solid', true);
-   FdSolid.ChangeAlways := chGeometry;
-  AddField(FFdSolid);
-
-  FFdXDimension := TSFInt32.Create(Self, false, 'xDimension', 0);
-   FdXDimension.ChangeAlways := chGeometry;
-  AddField(FFdXDimension);
-  { X3D specification comment: [0,Inf) }
-
-  FFdXSpacing := TSFFloat.Create(Self, false, 'xSpacing', 1.0);
-   FdXSpacing.ChangeAlways := chGeometry;
-  AddField(FFdXSpacing);
-  { X3D specification comment: (0,Inf) }
-
-  FFdZDimension := TSFInt32.Create(Self, false, 'zDimension', 0);
-   FdZDimension.ChangeAlways := chGeometry;
-  AddField(FFdZDimension);
-  { X3D specification comment: [0,Inf) }
-
-  FFdZSpacing := TSFFloat.Create(Self, false, 'zSpacing', 1.0);
-   FdZSpacing.ChangeAlways := chGeometry;
-  AddField(FFdZSpacing);
-  { X3D specification comment: (0,Inf) }
-end;
-
-class function TElevationGridNode.ClassX3DType: string;
-begin
-  Result := 'ElevationGrid';
+  FdCreaseAngle.Angle := true;
 end;
 
 function TElevationGridNode.IsNotEmpty: boolean;
@@ -839,80 +421,14 @@ end;
 
 { TExtrusionNode ------------------------------------------------------------- }
 
-procedure TExtrusionNode.CreateNode;
+constructor TExtrusionNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FEventSet_crossSection := TMFVec2fEvent.Create(Self, 'set_crossSection', true);
-  AddEvent(FEventSet_crossSection);
   Eventset_crossSection.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_crossSectionReceive);
-
-  FEventSet_orientation := TMFRotationEvent.Create(Self, 'set_orientation', true);
-  AddEvent(FEventSet_orientation);
   Eventset_orientation.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_orientationReceive);
-
-  FEventSet_scale := TMFVec2fEvent.Create(Self, 'set_scale', true);
-  AddEvent(FEventSet_scale);
   Eventset_scale.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_scaleReceive);
-
-  FEventSet_spine := TMFVec3fEvent.Create(Self, 'set_spine', true);
-  AddEvent(FEventSet_spine);
   Eventset_spine.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_spineReceive);
-
-  FFdBeginCap := TSFBool.Create(Self, false, 'beginCap', true);
-   FdBeginCap.ChangeAlways := chGeometry;
-  AddField(FFdBeginCap);
-
-  FFdCcw := TSFBool.Create(Self, false, 'ccw', true);
-   FdCcw.ChangeAlways := chGeometry;
-  AddField(FFdCcw);
-
-  FFdConvex := TSFBool.Create(Self, false, 'convex', true);
-   FdConvex.ChangeAlways := chGeometry;
-  AddField(FFdConvex);
-
-  FFdCreaseAngle := TSFFloat.Create(Self, false, 'creaseAngle', 0);
-   FdCreaseAngle.Angle := true;
-   FdCreaseAngle.ChangeAlways := chGeometry;
-  AddField(FFdCreaseAngle);
-  { X3D specification comment: [0,Inf) }
-
-  FFdCrossSection := TMFVec2f.Create(Self, false, 'crossSection', [ Vector2(1, 1), Vector2(1, -1),  Vector2(-1, -1), Vector2(-1, 1), Vector2(1, 1) ]);
-   FdCrossSection.ChangeAlways := chGeometry;
-  AddField(FFdCrossSection);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdEndCap := TSFBool.Create(Self, false, 'endCap', true);
-   FdEndCap.ChangeAlways := chGeometry;
-  AddField(FFdEndCap);
-
-  FFdOrientation := TMFRotation.Create(Self, false, 'orientation', [ Vector4(0, 0, 1, 0) ]);
-   FdOrientation.ChangeAlways := chGeometry;
-  AddField(FFdOrientation);
-  { X3D specification comment: [-1,1] or (-Inf,Inf) }
-
-  FFdScale := TMFVec2f.Create(Self, false, 'scale', Vector2(1, 1));
-   FdScale.ChangeAlways := chGeometry;
-  AddField(FFdScale);
-  { X3D specification comment: (0,Inf) }
-
-  FFdSolid := TSFBool.Create(Self, false, 'solid', true);
-   FdSolid.ChangeAlways := chGeometry;
-  AddField(FFdSolid);
-
-  FFdSpine := TMFVec3f.Create(Self, false, 'spine', [ Vector3(0, 0, 0), Vector3(0, 1, 0) ]);
-   FdSpine.ChangeAlways := chGeometry;
-  AddField(FFdSpine);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdTexCoord := TSFNode.Create(Self, true, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
-   FdTexCoord.ChangeAlways := chGeometry;
-  AddField(FFdTexCoord);
-end;
-
-class function TExtrusionNode.ClassX3DType: string;
-begin
-  Result := 'Extrusion';
+  FdCreaseAngle.Angle := true;
 end;
 
 function TExtrusionNode.CrossSection3D(Index: integer): TVector3;
@@ -1273,66 +789,20 @@ end;
 
 { TIndexedFaceSetNode -------------------------------------------------------- }
 
-procedure TIndexedFaceSetNode.CreateNode;
+constructor TIndexedFaceSetNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
   {$ifndef CASTLE_SLIM_NODES}
-  FEventSet_colorIndex := TMFInt32Event.Create(Self, 'set_colorIndex', true);
-  AddEvent(FEventSet_colorIndex);
   Eventset_colorIndex.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_colorIndexReceive);
-
-  FEventSet_coordIndex := TMFInt32Event.Create(Self, 'set_coordIndex', true);
-  AddEvent(FEventSet_coordIndex);
   Eventset_coordIndex.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_coordIndexReceive);
-
-  FEventSet_normalIndex := TMFInt32Event.Create(Self, 'set_normalIndex', true);
-  AddEvent(FEventSet_normalIndex);
   Eventset_normalIndex.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_normalIndexReceive);
-
-  FEventSet_texCoordIndex := TMFInt32Event.Create(Self, 'set_texCoordIndex', true);
-  AddEvent(FEventSet_texCoordIndex);
   Eventset_texCoordIndex.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_texCoordIndexReceive);
   {$endif}
-
-  FFdColorIndex := TMFInt32.Create(Self, false, 'colorIndex', []);
-   FdColorIndex.SaveToStreamLineUptoNegative := true;
-   FdColorIndex.ChangeAlways := chGeometry;
-  AddField(FFdColorIndex);
-  { X3D specification comment: [0,Inf) or -1 }
-
-  FFdConvex := TSFBool.Create(Self, false, 'convex', true);
-   FdConvex.ChangeAlways := chGeometry;
-  AddField(FFdConvex);
-
-  FFdCoordIndex := TMFInt32.Create(Self, false, 'coordIndex', []);
-   FdCoordIndex.SaveToStreamLineUptoNegative := true;
-   FdCoordIndex.ChangeAlways := chGeometry;
-  AddField(FFdCoordIndex);
-  { X3D specification comment: [0,Inf) or -1 }
-
-  FFdCreaseAngle := TSFFloat.Create(Self, false, 'creaseAngle', 0);
-   FdCreaseAngle.Angle := true;
-   FdCreaseAngle.ChangeAlways := chGeometry;
-  AddField(FFdCreaseAngle);
-  { X3D specification comment: [0,Inf) }
-
-  FFdNormalIndex := TMFInt32.Create(Self, false, 'normalIndex', []);
-   FdNormalIndex.SaveToStreamLineUptoNegative := true;
-   FdNormalIndex.ChangeAlways := chGeometry;
-  AddField(FFdNormalIndex);
-  { X3D specification comment: [0,Inf) or -1 }
-
-  FFdTexCoordIndex := TMFInt32.Create(Self, false, 'texCoordIndex', []);
-   FdTexCoordIndex.SaveToStreamLineUptoNegative := true;
-   FdTexCoordIndex.ChangeAlways := chGeometry;
-  AddField(FFdTexCoordIndex);
-  { X3D specification comment: [-1,Inf) }
-end;
-
-class function TIndexedFaceSetNode.ClassX3DType: string;
-begin
-  Result := 'IndexedFaceSet';
+  FdColorIndex.SaveToStreamLineUptoNegative := true;
+  FdCreaseAngle.Angle := true;
+  FdCoordIndex.SaveToStreamLineUptoNegative := true;
+  FdNormalIndex.SaveToStreamLineUptoNegative := true;
+  FdTexCoordIndex.SaveToStreamLineUptoNegative := true;
 end;
 
 class function TIndexedFaceSetNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -1376,37 +846,6 @@ end;
 function TIndexedFaceSetNode.ConvexField: TSFBool;
 begin
   Result := FdConvex;
-end;
-
-procedure TSphereNode.CreateNode;
-begin
-  inherited;
-
-  FFdRadius := TSFFloat.Create(Self, false, 'radius', 1);
-   FdRadius.ChangeAlways := chGeometry;
-  AddField(FFdRadius);
-  { X3D specification comment: (0,Inf) }
-
-  FFdSolid := TSFBool.Create(Self, false, 'solid', true);
-   FdSolid.ChangeAlways := chGeometry;
-  AddField(FFdSolid);
-
-  FFdTexCoord := TSFNode.Create(Self, true, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
-   FdTexCoord.ChangeAlways := chGeometry;
-  AddField(FFdTexCoord);
-
-  FFdSlices := TSFInt32.Create(Self, true, 'slices', -1);
-   FdSlices.ChangeAlways := chGeometry;
-  AddField(FFdSlices);
-
-  FFdStacks := TSFInt32.Create(Self, true, 'stacks', -1);
-   FdStacks.ChangeAlways := chGeometry;
-  AddField(FFdStacks);
-end;
-
-class function TSphereNode.ClassX3DType: string;
-begin
-  Result := 'Sphere';
 end;
 
 class function TSphereNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
