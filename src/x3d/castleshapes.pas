@@ -3321,9 +3321,7 @@ var
   TransformNodeName: String;
 begin
   if TransformFunctionality <> nil then
-    TransformNodeName :=
-      TransformFunctionality.Parent.NiceName + ': ' +
-      TransformFunctionality.Parent.ClassName
+    TransformNodeName := TransformFunctionality.Parent.NiceName
   else
     TransformNodeName := 'nil';
 

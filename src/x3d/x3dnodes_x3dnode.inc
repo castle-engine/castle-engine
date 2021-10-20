@@ -3294,6 +3294,11 @@ end;
 function TX3DNode.NiceName: string;
 begin
   Result := X3DType;
+
+  // show ClassName *and* X3DType e.g. for Group:TX3DRootNode
+  if not SameText(ClassName, 'T' + X3DName + 'Node') then
+    Result := Result + ':' + ClassName;
+
   if X3DName <> '' then
     Result := Result + '(' + X3DName + ')';
 end;
