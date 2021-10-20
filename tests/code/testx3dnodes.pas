@@ -30,6 +30,15 @@ type
   TTestX3DNodes = class(TCastleTestCase)
   private
     procedure WeakLinkUnusedWarning(const Category, S: string);
+  protected
+    { Every possible X3D nodes that makes no errors when instantiated.
+      Above NodesManager, this also includes some abstract node classes
+      (not to be used in X3D files, but that make sense to instantiate)
+      and TX3DRootNode (non-abstract (Pascal code can create it)
+      but also not available in X3D files explicitly). }
+    InstantiableNodes: TX3DNodeClassesList;
+    procedure SetUp; override;
+    procedure TearDown; override;
   published
     procedure TestNodesManager;
 
@@ -120,6 +129,29 @@ begin
 end;
 
 { ------------------------------------------------------------ }
+
+procedure TTestX3DNodes.SetUp;
+var
+  I: Integer;
+begin
+  inherited;
+
+  InstantiableNodes := TX3DNodeClassesList.Create;
+
+  for I := 0 to NodesManager.RegisteredCount - 1 do
+    InstantiableNodes.Add(NodesManager.Registered[I]);
+
+  InstantiableNodes.Add(TX3DRootNode);
+  InstantiableNodes.Add(TX3DNode);
+  InstantiableNodes.Add(TAbstractGroupingNode);
+  InstantiableNodes.Add(TAbstractX3DGroupingNode);
+end;
+
+procedure TTestX3DNodes.TearDown;
+begin
+  FreeAndNil(InstantiableNodes);
+  inherited;
+end;
 
 procedure TTestX3DNodes.TestNodesManager;
 begin
@@ -334,9 +366,9 @@ var
   N: TX3DNode;
   CurrentName: string;
 begin
-  for I := 0 to NodesManager.RegisteredCount - 1 do
+  for I := 0 to InstantiableNodes.Count - 1 do
   begin
-    N := NodesManager.Registered[I].Create;
+    N := InstantiableNodes[I].Create;
     try
       { Test that all fields, events names are different.
 
@@ -852,9 +884,9 @@ begin
     AssertTrue(ContainerFieldList.IndexOfName('Anchor') <> -1);
     AssertTrue(ContainerFieldList.IndexOfName('NotExisting') = -1);
 
-    for I := 0 to NodesManager.RegisteredCount - 1 do
+    for I := 0 to InstantiableNodes.Count - 1 do
     begin
-      N := NodesManager.Registered[I].Create;
+      N := InstantiableNodes[I].Create;
       try
         Index := ContainerFieldList.IndexOfName(N.X3DType);
         if (Index <> -1) and
@@ -881,9 +913,9 @@ var
   I: Integer;
   N: TX3DNode;
 begin
-  for I := 0 to NodesManager.RegisteredCount - 1 do
+  for I := 0 to InstantiableNodes.Count - 1 do
   begin
-    N := NodesManager.Registered[I].Create;
+    N := InstantiableNodes[I].Create;
     try
       if (N is TAbstractGeometryNode) and
          { TContour2DNode_2 is an exception, it has containerField=trimmingContour.
@@ -950,9 +982,9 @@ var
 begin
   State := TX3DGraphTraverseState.Create;
   try
-    for I := 0 to NodesManager.RegisteredCount - 1 do
+    for I := 0 to InstantiableNodes.Count - 1 do
     begin
-      N := NodesManager.Registered[I].Create;
+      N := InstantiableNodes[I].Create;
       try
         if N is TAbstractGeometryNode then
         try
@@ -990,9 +1022,9 @@ var
   I, J: Integer;
   N: TX3DNode;
 begin
-  for I := 0 to NodesManager.RegisteredCount - 1 do
+  for I := 0 to InstantiableNodes.Count - 1 do
   begin
-    N := NodesManager.Registered[I].Create;
+    N := InstantiableNodes[I].Create;
     try
       if N is TAbstractGeometryNode then
       begin
@@ -1018,9 +1050,9 @@ var
   I, J: Integer;
   N: TX3DNode;
 begin
-  for I := 0 to NodesManager.RegisteredCount - 1 do
+  for I := 0 to InstantiableNodes.Count - 1 do
   begin
-    N := NodesManager.Registered[I].Create;
+    N := InstantiableNodes[I].Create;
     try
       if N is TAbstractColorNode then
       begin
@@ -1053,9 +1085,9 @@ var
   I, J: Integer;
   N: TX3DNode;
 begin
-  for I := 0 to NodesManager.RegisteredCount - 1 do
+  for I := 0 to InstantiableNodes.Count - 1 do
   begin
-    N := NodesManager.Registered[I].Create;
+    N := InstantiableNodes[I].Create;
     try
       if N is TAbstractTextureCoordinateNode then
       begin
@@ -1112,9 +1144,9 @@ var
   I: Integer;
   N: TX3DNode;
 begin
-  for I := 0 to NodesManager.RegisteredCount - 1 do
+  for I := 0 to InstantiableNodes.Count - 1 do
   begin
-    N := NodesManager.Registered[I].Create;
+    N := InstantiableNodes[I].Create;
     try
       CheckTimeDependentFunctionality(N);
     except
@@ -1141,9 +1173,9 @@ var
   I: Integer;
   N: TX3DNode;
 begin
-  for I := 0 to NodesManager.RegisteredCount - 1 do
+  for I := 0 to InstantiableNodes.Count - 1 do
   begin
-    N := NodesManager.Registered[I].Create;
+    N := InstantiableNodes[I].Create;
     try
       AssertTrue(
         N.Functionality(TTransformFunctionality) = N.TransformFunctionality);

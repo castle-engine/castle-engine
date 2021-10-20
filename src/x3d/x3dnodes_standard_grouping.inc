@@ -231,6 +231,7 @@
 
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
+    function TransformationChange: TNodeTransformationChange; override;
 
     { Should SaveToStream take care to nicely save us, treating as
       a root node of whole VRML file or prototype.
@@ -786,9 +787,8 @@ begin
   FSaveAsRootNode := true;
   FScale := 1;
 
-  // TODO: temporary commented out to fix demo-models/animation/simple_tests_interpolation_and_time/test_interpolator_no_key.x3dv
-  // FTransformFunctionality := TX3DRootNodeTransformFunctionality.Create(Self);
-  // AddFunctionality(FTransformFunctionality);
+  FTransformFunctionality := TX3DRootNodeTransformFunctionality.Create(Self);
+  AddFunctionality(FTransformFunctionality);
 end;
 
 destructor TX3DRootNode.Destroy;
@@ -931,6 +931,11 @@ end;
 procedure TX3DRootNode.ExportNode(const Node: TX3DNode);
 begin
   ExportNode(Node, Node.X3DName);
+end;
+
+function TX3DRootNode.TransformationChange: TNodeTransformationChange;
+begin
+  Result := ntcTransform;
 end;
 
 { TStaticGroupNode ----------------------------------------------------------- }
