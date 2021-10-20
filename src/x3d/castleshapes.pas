@@ -243,7 +243,7 @@ type
 
       Right now:
       - TShapeTreeTransform is associated with node implementing TTransformFunctionality
-        (like TTransformNode, TBillboardNode).
+        (like TTransformNode, TBillboardNode, TX3DRootNode).
 
       - TShape is associated with
         TShapeNode,
