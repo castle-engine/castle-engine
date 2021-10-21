@@ -215,28 +215,6 @@ ViewpointMirror {
   SFFloat   [in,out]      distanceFromShape 0.01
 }
 
-X3DCubicBezierInterpolator {
-  MFVec4f   [in,out]      controlPoints   []
-}
-
-CubicBezierCoordinateInterpolator : X3DInterpolatorNode {
-  MFVec3f    [in,out] keyValue        []
-  MFVec3f    [out]    value_changed
-}
-
-CubicBezier2DOrientationInterpolator : X3DCubicBezierInterpolator {
-  default-container-field: children
-  MFFloat    [in,out] keyValue        []
-  SFVec3f    [in,out] axis            0 0 1
-  SFRotation [out]    value_changed
-}
-
-CubicBezierPositionInterpolator : X3DCubicBezierInterpolator {
-  default-container-field: children
-  MFVec3f    [in,out] keyValue        []
-  SFVec3f    [out]    value_changed
-}
-
 OrientationInterpolator2D : X3DInterpolatorNode {
   MFFloat    [in,out] keyValue      []
   SFVec3f    [in,out] axis          0 0 1

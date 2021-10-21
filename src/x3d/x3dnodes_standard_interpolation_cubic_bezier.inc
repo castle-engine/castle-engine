@@ -47,18 +47,14 @@
     function DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode; override;
 
   public
-    procedure CreateNode; override;
     destructor Destroy; override;
-
-    strict private FFdControlPoints: TMFVec4f;
-    public property FdControlPoints: TMFVec4f read FFdControlPoints;
 
     { Once the FdControlPoints value is settled, call this to precalculate
       curve parameters. This makes the following interpolation using this node
       work fast. }
     procedure OptimizeControlPoints;
 
-    {$I auto_generated_node_helpers/x3dnodes_x3dcubicbezierinterpolator.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dcubicbezierinterpolator.inc}
   end;
 
   { Basis for all nodes interpolating (animating) an array of values using cubic Bezier curve. }
@@ -77,6 +73,7 @@
       const Fraction: Single; const F1, F2: TKeyValue;
       const Index1, Index2, ACount: Integer); virtual;
   public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     procedure CreateNode; override;
 
     strict private FFdKeyValue: TKeyValue;
@@ -95,20 +92,8 @@
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdKeyValue: TMFFloat;
-    public property FdKeyValue: TMFFloat read FFdKeyValue;
-
-    strict private FFdAxis: TSFVec3f;
-    public property FdAxis: TSFVec3f read FFdAxis;
-
-    { Event out } { }
-    strict private FEventValue_changed: TSFRotationEvent;
-    public property EventValue_changed: TSFRotationEvent read FEventValue_changed;
-
-    {$I auto_generated_node_helpers/x3dnodes_cubicbezier2dorientationinterpolator.inc}
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
+  {$I auto_generated_node_helpers/x3dnodes_cubicbezier2dorientationinterpolator.inc}
   end;
 
   { Interpolate (animate) a set of 3D positions,
@@ -119,17 +104,8 @@
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdKeyValue: TMFVec3f;
-    public property FdKeyValue: TMFVec3f read FFdKeyValue;
-
-    { Event out } { }
-    strict private FEventValue_changed: TSFVec3fEvent;
-    public property EventValue_changed: TSFVec3fEvent read FEventValue_changed;
-
-    {$I auto_generated_node_helpers/x3dnodes_cubicbezierpositioninterpolator.inc}
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
+  {$I auto_generated_node_helpers/x3dnodes_cubicbezierpositioninterpolator.inc}
   end;
 
   { Interpolate (animate) a set of 3D vertices,
@@ -139,10 +115,7 @@
     // TVector3, // unused for now
     TMFVec3f,
     TMFVec3fEvent>)
-  public
-    class function ClassX3DType: string; override;
-
-    {$I auto_generated_node_helpers/x3dnodes_cubicbeziercoordinateinterpolator.inc}
+  {$I auto_generated_node_helpers/x3dnodes_cubicbeziercoordinateinterpolator.inc}
   end;
 {$endif read_interface}
 
@@ -261,14 +234,6 @@ begin
     CalculatedCurve2D(FdControlPoints.Items.List^[I], FCalculatedCurves.List^[I]);
 end;
 
-procedure TAbstractCubicBezierInterpolatorNode.CreateNode;
-begin
-  inherited;
-
-  FFdControlPoints := TMFVec4f.Create(Self, true, 'controlPoints', []);
-  AddField(FFdControlPoints);
-end;
-
 function TAbstractCubicBezierInterpolatorNode.CubicBezierValue(
   const T: Single; const ControlPointsIndex: Integer): Single;
 var
@@ -312,6 +277,29 @@ begin
 end;
 
 { TAbstractCubicBezierArrayInterpolatorNode --------------------------------------------- }
+
+constructor TAbstractCubicBezierArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
+  TKeyValue,
+  TKeyValueEvent>{$endif} .Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  EventSet_Fraction.AddNotification(
+    {$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
+end;
+
+procedure TAbstractCubicBezierArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
+  TKeyValue,
+  TKeyValueEvent>{$endif} .
+  CreateNode;
+begin
+  inherited;
+
+  FFdKeyValue := TKeyValue.Create(Self, true, 'keyValue', []);
+  AddField(FFdKeyValue);
+
+  FEventValue_changed := TKeyValueEvent.Create(Self, 'value_changed', false);
+  AddEvent(FEventValue_changed);
+end;
 
 function TAbstractCubicBezierArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
   TKeyValue,
@@ -406,25 +394,6 @@ end;
 procedure TAbstractCubicBezierArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
   TKeyValue,
   TKeyValueEvent>{$endif} .
-  CreateNode;
-begin
-  inherited;
-
-  FFdKeyValue := TKeyValue.Create(Self, true, 'keyValue', []);
-  AddField(FFdKeyValue);
-
-  FEventValue_changed := TKeyValueEvent.Create(Self, 'value_changed', false);
-  AddEvent(FEventValue_changed);
-
-  DefaultContainerField := 'children';
-
-  EventSet_Fraction.AddNotification(
-    {$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
-end;
-
-procedure TAbstractCubicBezierArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
-  TKeyValue,
-  TKeyValueEvent>{$endif} .
   InterpolatorLerp(const Target: TKeyValue;
   const Fraction: Single; const F1, F2: TKeyValue;
   const Index1, Index2, ACount: Integer);
@@ -434,28 +403,11 @@ end;
 
 { TCubicBezier2DOrientationInterpolatorNode ---------------------------------- }
 
-procedure TCubicBezier2DOrientationInterpolatorNode.CreateNode;
+constructor TCubicBezier2DOrientationInterpolatorNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FFdKeyValue := TMFFloat.Create(Self, true, 'keyValue', []);
-  AddField(FFdKeyValue);
-
-  FFdAxis := TSFVec3f.Create(Self, true, 'axis', Vector3(0, 0, 1));
-  AddField(FFdAxis);
-
-  FEventValue_changed := TSFRotationEvent.Create(Self, 'value_changed', false);
-  AddEvent(FEventValue_changed);
-
-  DefaultContainerField := 'children';
-
   EventSet_Fraction.AddNotification(
     {$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
-end;
-
-class function TCubicBezier2DOrientationInterpolatorNode.ClassX3DType: string;
-begin
-  Result := 'CubicBezier2DOrientationInterpolator';
 end;
 
 procedure TCubicBezier2DOrientationInterpolatorNode.EventSet_FractionReceive(
@@ -499,26 +451,11 @@ end;
 
 { TCubicBezierPositionInterpolatorNode --------------------------------------- }
 
-procedure TCubicBezierPositionInterpolatorNode.CreateNode;
+constructor TCubicBezierPositionInterpolatorNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FFdKeyValue := TMFVec3f.Create(Self, true, 'keyValue', []);
-  AddField(FFdKeyValue);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FEventValue_changed := TSFVec3fEvent.Create(Self, 'value_changed', false);
-  AddEvent(FEventValue_changed);
-
-  DefaultContainerField := 'children';
-
   EventSet_Fraction.AddNotification(
     {$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
-end;
-
-class function TCubicBezierPositionInterpolatorNode.ClassX3DType: string;
-begin
-  Result := 'CubicBezierPositionInterpolator';
 end;
 
 procedure TCubicBezierPositionInterpolatorNode.EventSet_FractionReceive(
@@ -558,13 +495,6 @@ begin
     end;
   end;
   EventValue_Changed.Send(OutputValue, Time, Value.InternalPartialSend);
-end;
-
-{ TCubicBezierCoordinateInterpolatorNode ------------------------------------- }
-
-class function TCubicBezierCoordinateInterpolatorNode.ClassX3DType: string;
-begin
-  Result := 'CubicBezierCoordinateInterpolator';
 end;
 
 { registration --------------------------------------------------------------- }

@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,33 +14,30 @@
 }
 
 {$ifdef read_interface}
-  { }
-  TScriptType = (stCompiled, stCastleScript);
 
   { Abstract node type for all scripting nodes. }
   TAbstractScriptNode = class(TAbstractChildNode)
   strict private
-    FInitialized: boolean;
+    type
+      TScriptType = (stCompiled, stCastleScript);
+    var
+      FInitialized: boolean;
+      FInitializedScriptType: TScriptType;
+
+      CompiledScriptContents: TStringList;
+
+      CastleScriptProgram: TCasScriptProgram;
+      CastleScriptVariables: TCasScriptX3DValueList;
+
     procedure SetInitialized(const Value: boolean);
-  private
-    FInitializedScriptType: TScriptType;
-
-    CompiledScriptContents: TStringList;
-
-    CastleScriptProgram: TCasScriptProgram;
-    CastleScriptVariables: TCasScriptX3DValueList;
-
     procedure EventUrlReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  protected
     procedure ExecuteScript(const FunctionName: string;
       ReceivedValue: TX3DField; const Time: TX3DTime);
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
-    procedure CreateNode; override;
     destructor Destroy; override;
-
-    strict private FFdUrl: TMFString;
-    public property FdUrl: TMFString read FFdUrl;
 
     { Initialize / shutdown of the script. Read this to know current
       script state, write this is to actually initialize/shutdown if needed.
@@ -65,7 +62,7 @@
         TCasScriptVRMLValuesList.ResetLastEventTimes }
     procedure ResetLastEventTimes;
 
-    {$I auto_generated_node_helpers/x3dnodes_x3dscriptnode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dscriptnode.inc}
   end;
 
   { Program behavior in a scene using scripts. }
@@ -74,39 +71,21 @@
     procedure IDeclEventReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdDirectOutput: TSFBool;
-    public property FdDirectOutput: TSFBool read FFdDirectOutput;
-
-    strict private FFdMustEvaluate: TSFBool;
-    public property FdMustEvaluate: TSFBool read FFdMustEvaluate;
-
     procedure PostAddInterfaceDeclaration(IDecl: TX3DInterfaceDeclaration); override;
-
-    {$I auto_generated_node_helpers/x3dnodes_script.inc}
+  {$I auto_generated_node_helpers/x3dnodes_script.inc}
   end;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+{ TAbstractScriptNode -------------------------------------------------------- }
+
 constructor TAbstractScriptNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
   AddFunctionality(TUrlFunctionality.Create(Self));
-end;
-
-procedure TAbstractScriptNode.CreateNode;
-begin
-  inherited;
-
-  FFdUrl := TMFString.Create(Self, true, 'url', []);
-  AddField(FFdUrl);
   Fdurl.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventUrlReceive);
-  { X3D specification comment: [URI] }
-
-  DefaultContainerField := 'children';
 
   { VRML 97 says this is RestrictedAccessTypes.
     X3D (both the general spec, and X3D classic encoding grammar,
@@ -352,23 +331,7 @@ begin
     CastleScriptVariables.ResetLastEventTimes;
 end;
 
-procedure TScriptNode.CreateNode;
-begin
-  inherited;
-
-  FFdDirectOutput := TSFBool.Create(Self, false, 'directOutput', false);
-  AddField(FFdDirectOutput);
-
-  FFdMustEvaluate := TSFBool.Create(Self, false, 'mustEvaluate', false);
-  AddField(FFdMustEvaluate);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TScriptNode.ClassX3DType: string;
-begin
-  Result := 'Script';
-end;
+{ TScriptNode ---------------------------------------------------------------- }
 
 procedure TScriptNode.PostAddInterfaceDeclaration(
   IDecl: TX3DInterfaceDeclaration);

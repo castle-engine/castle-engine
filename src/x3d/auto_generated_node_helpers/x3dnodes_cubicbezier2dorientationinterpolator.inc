@@ -29,12 +29,26 @@
     function GetAxis: TVector3;
     procedure SetAxis(const Value: TVector3);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdKeyValue: TMFFloat;
+    { X3D field "keyValue". } { }
+    public property FdKeyValue: TMFFloat read FFdKeyValue;
     { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: array of Single);
     { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: TSingleList);
+
+    strict private FFdAxis: TSFVec3f;
+    { X3D field "axis". } { }
+    public property FdAxis: TSFVec3f read FFdAxis;
     { X3D field "axis". } { }
     property Axis: TVector3 read GetAxis write SetAxis;
+
+    strict private FEventValue_changed: TSFRotationEvent;
+    { X3D out event "value_changed". } { }
+    public property EventValue_changed: TSFRotationEvent read FEventValue_changed;
 
 {$endif read_interface}
 
@@ -60,6 +74,27 @@ end;
 procedure TCubicBezier2DOrientationInterpolatorNode.SetAxis(const Value: TVector3);
 begin
   FdAxis.Send(Value);
+end;
+
+class function TCubicBezier2DOrientationInterpolatorNode.ClassX3DType: String;
+begin
+  Result := 'CubicBezier2DOrientationInterpolator';
+end;
+
+procedure TCubicBezier2DOrientationInterpolatorNode.CreateNode;
+begin
+  inherited;
+
+  FFdKeyValue := TMFFloat.Create(Self, True, 'keyValue', []);
+   FdKeyValue.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdKeyValue);
+
+  FFdAxis := TSFVec3f.Create(Self, True, 'axis', Vector3(0, 0, 1));
+   FdAxis.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAxis);
+
+  FEventValue_changed := TSFRotationEvent.Create(Self, 'value_changed', false);
+  AddEvent(FEventValue_changed);
 end;
 
 {$endif read_implementation}

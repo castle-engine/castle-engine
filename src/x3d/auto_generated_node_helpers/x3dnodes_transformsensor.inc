@@ -25,11 +25,46 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdTargetObject: TSFNode;
+    { X3D field "targetObject". } { }
+    public property FdTargetObject: TSFNode read FFdTargetObject;
+
+    strict private FEventOrientation_changed: TSFRotationEvent;
+    { X3D out event "orientation_changed". } { }
+    public property EventOrientation_changed: TSFRotationEvent read FEventOrientation_changed;
+
+    strict private FEventPosition_changed: TSFVec3fEvent;
+    { X3D out event "position_changed". } { }
+    public property EventPosition_changed: TSFVec3fEvent read FEventPosition_changed;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TTransformSensorNode ----------------------------------------------- }
+
+class function TTransformSensorNode.ClassX3DType: String;
+begin
+  Result := 'TransformSensor';
+end;
+
+procedure TTransformSensorNode.CreateNode;
+begin
+  inherited;
+
+  FFdTargetObject := TSFNode.Create(Self, True, 'targetObject', [TAbstractX3DGroupingNode, TAbstractShapeNode]);
+   FdTargetObject.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdTargetObject);
+
+  FEventOrientation_changed := TSFRotationEvent.Create(Self, 'orientation_changed', false);
+  AddEvent(FEventOrientation_changed);
+
+  FEventPosition_changed := TSFVec3fEvent.Create(Self, 'position_changed', false);
+  AddEvent(FEventPosition_changed);
+end;
 
 {$endif read_implementation}

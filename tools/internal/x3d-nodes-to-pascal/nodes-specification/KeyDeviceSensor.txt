@@ -1,7 +1,10 @@
 X3DKeyDeviceSensorNode : X3DSensorNode {
+  auto-generate-more: true
 }
 
 KeySensor : X3DKeyDeviceSensorNode {
+  auto-generate-more: true
+  
   SFInt32  [out]    actionKeyPress   
   SFInt32  [out]    actionKeyRelease 
   SFBool   [out]    altKey           
@@ -12,6 +15,8 @@ KeySensor : X3DKeyDeviceSensorNode {
 }
 
 StringSensor  : X3DKeyDeviceSensorNode {
+  auto-generate-more: true
+  
   SFBool   [in,out] deletionAllowed TRUE
   SFString [out]    enteredText       
   SFString [out]    finalText         
