@@ -70,6 +70,11 @@ type
     function UseBlending: Boolean;
   end;
 
+{ Checks that any occlusion query algorithm should be used,
+  equivalent to
+  "ReallyOcclusionQuery(RenderOptions) or ReallyHierarchicalOcclusionQuery(RenderOptions)". }
+function ReallyAnyOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
+
 { Checks OcclusionQuery, existence of GL_ARB_occlusion_query,
   and GLQueryCounterBits > 0. If @false, ARB_occlusion_query just cannot
   be used.
@@ -224,6 +229,23 @@ begin
 end;
 
 { global routines ------------------------------------------------------------ }
+
+function ReallyAnyOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
+begin
+  {$warnings off}
+  Result :=
+    (RenderOptions.OcclusionQuery or RenderOptions.HierarchicalOcclusionQuery) and
+    GLFeatures.ARB_occlusion_query and
+    GLFeatures.VertexBufferObject and
+    (GLFeatures.QueryCounterBits > 0);
+  {$warnings on}
+
+  // unoptimal version
+  Assert(Result = (
+    ReallyOcclusionQuery(RenderOptions) or
+    ReallyHierarchicalOcclusionQuery(RenderOptions)
+  ));
+end;
 
 function ReallyOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
 begin

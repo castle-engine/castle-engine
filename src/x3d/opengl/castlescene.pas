@@ -909,11 +909,17 @@ var
     IsVisibleNow := true;
   end;
 
+  { Checks DynamicBatching and not occlusion query. }
+  function ReallyDynamicBatching: Boolean;
+  begin
+    Result := DynamicBatching and not ReallyAnyOcclusionQuery(RenderOptions);
+  end;
+
   { Renders Shape, testing only Batching.Collect before RenderShape_NoTests.
     This sets Shape.ModelView and other properties necessary right before rendering. }
   procedure RenderShape_BatchingTest(const Shape: TGLShape);
   begin
-    if not (DynamicBatching and Batching.Collect(Shape)) then
+    if not (ReallyDynamicBatching and Batching.Collect(Shape)) then
       RenderShape_NoTests(Shape);
   end;
 
@@ -921,7 +927,7 @@ var
   var
     Shape: TShape;
   begin
-    if DynamicBatching then
+    if ReallyDynamicBatching then
     begin
       Batching.Commit;
       for Shape in Batching.Collected do
@@ -1076,7 +1082,7 @@ var
               twice. This is a good thing: it means that sorting below has
               much less shapes to consider. }
             FilteredShapes.SortFrontToBack(RenderCameraPosition);
-            if DynamicBatching then
+            if ReallyDynamicBatching then
               Batching.PreserveShapeOrder := true;
             for I := 0 to FilteredShapes.Count - 1 do
               RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
@@ -1096,7 +1102,7 @@ var
             ShapesFilterBlending(Shapes, true, true, false,
               TestShapeVisibility, FilteredShapes, true);
             FilteredShapes.SortBackToFront(RenderCameraPosition, EffectiveBlendingSort = bs3D);
-            if DynamicBatching then
+            if ReallyDynamicBatching then
               Batching.PreserveShapeOrder := true;
             for I := 0 to FilteredShapes.Count - 1 do
               RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
@@ -1132,8 +1138,7 @@ begin
   ModelView := GetModelViewTransform;
 
   { update OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix if necessary }
-  if ReallyOcclusionQuery(RenderOptions) or
-     ReallyHierarchicalOcclusionQuery(RenderOptions) then
+  if ReallyAnyOcclusionQuery(RenderOptions) then
   begin
     OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix :=
       RenderContext.ProjectionMatrix * ModelView;
