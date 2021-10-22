@@ -906,12 +906,12 @@ procedure TDesignFrame.TDesignerLayer.Render;
           at least the beginning looks OK.
         - We don't want left-bottom corner, as that's where child controls
           are placed by default, so the text would be over them too often. }
-      Rect.Anchor(hpLeft, UIRect.Left);
+      Rect.Anchor(hpLeft, Max(0, UIRect.Left));
       Rect.Anchor(vpBottom, UIRect.Top);
 
       if Rect.RenderRect.Top > Rect.Container.Height then
         // put Rect inside UI, otherwise it would be offscreen
-        Rect.Anchor(vpTop, vpBottom, UIRect.Top);
+        Rect.Anchor(vpTop, vpBottom, Min(Rect.Container.Height, UIRect.Top));
     end else
       Rect.Exists := false;
   end;
