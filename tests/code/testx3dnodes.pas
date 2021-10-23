@@ -97,6 +97,7 @@ type
     procedure TestAddChildrenAllowDuplicates;
     procedure TestMetadata;
     procedure TestMetadataArray;
+    procedure TestNiceName;
   end;
 
 implementation
@@ -2113,6 +2114,38 @@ begin
   Assert((Transform.Metadata as TMetadataSetNode).FdValue.Items[4] = MetadataString);
 
   FreeAndNil(Transform);
+end;
+
+procedure TTestX3DNodes.TestNiceName;
+var
+  N: TX3DNode;
+begin
+  N := TX3DNode.Create;
+  AssertEquals('TX3DNode', N.NiceName);
+  FreeAndNil(N);
+
+  N := TX3DRootNode.Create;
+  AssertEquals('Group:TX3DRootNode', N.NiceName);
+  FreeAndNil(N);
+
+  N := TGroupNode.Create;
+  AssertEquals('Group', N.NiceName);
+  FreeAndNil(N);
+
+  N := TX3DNode.Create;
+  N.X3DName := 'Foo';
+  AssertEquals('TX3DNode(Foo)', N.NiceName);
+  FreeAndNil(N);
+
+  N := TX3DRootNode.Create;
+  N.X3DName := 'Foo';
+  AssertEquals('Group:TX3DRootNode(Foo)', N.NiceName);
+  FreeAndNil(N);
+
+  N := TGroupNode.Create;
+  N.X3DName := 'Foo';
+  AssertEquals('Group(Foo)', N.NiceName);
+  FreeAndNil(N);
 end;
 
 initialization
