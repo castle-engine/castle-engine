@@ -176,10 +176,12 @@ begin
 {$ifdef UNIX}
 begin
   // TODO: simplest implementation hardcoded now, look how FPC implements it
-  Result :=
-    IncludeTrailingPathDelimiter(GetEnvironmentVariable('HOME')) +
-    '.config' + PathDelim +
-    ApplicationName + PathDelim;
+  if Global then
+    Result := '/etc/' + ApplicationName + PathDelim
+  else
+    Result := IncludeTrailingPathDelimiter(GetEnvironmentVariable('HOME')) +
+      '.config' + PathDelim +
+      ApplicationName + PathDelim;
 {$endif}
 end;
 
