@@ -1,5 +1,5 @@
 {
-  Copyright 2000-2018 Michalis Kamburelis.
+  Copyright 2000-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -878,7 +878,9 @@ type
 
 implementation
 
-uses {$ifdef UNIX} Unix {$endif} {$ifdef MSWINDOWS} Windows {$endif},
+uses
+  {$ifdef UNIX} {$ifdef FPC} Unix, {$endif} {$endif}
+  {$ifdef MSWINDOWS} Windows, {$endif}
   StrUtils, Math {$ifdef FPC}, StreamIO, RTTIUtils {$endif}, TypInfo;
 
 { TStrings helpers ------------------------------------------------------- }
@@ -1377,7 +1379,7 @@ begin
     if LongWord(Count) < BufferSize then
     begin
       FillBuffer;
-      CopyCount := Min(Count, BufferEnd - BufferPos);
+      CopyCount := Min(LongWord(Count), BufferEnd - BufferPos);
       Move(Buffer^[0], PChar(@LocalBuffer)[Result], CopyCount);
       BufferPos := BufferPos + CopyCount;
       Result := Result + LongInt(CopyCount);

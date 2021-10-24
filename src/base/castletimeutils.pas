@@ -26,7 +26,11 @@ interface
 
 uses
   {$ifdef MSWINDOWS} Windows, {$endif}
-  {$ifdef UNIX} BaseUnix, Unix, Dl, {$endif} {$ifdef ANDROID} Linux, {$endif}
+  {$ifdef UNIX}
+    {$ifdef FPC} BaseUnix, Unix, Dl,
+    {$else} Posix.SysTypes, Posix.SysTime, Posix.SysTimes, {$endif}
+  {$endif}
+  {$ifdef ANDROID} Linux, {$endif}
   SysUtils, Math, Generics.Collections,
   CastleUtils;
 
