@@ -80,8 +80,13 @@ begin
 
   // CGE data
   Writeln('ApplicationData(''''): ', ApplicationData(''));
+  {$ifdef MSWINDOWS}
   // Go 2 parent dirs up
   ExePath := ParentPath(ParentPath(ParentPath(ParamStr(0), false), false), false);
+  {$else}
+  ExePath := InclPathDelim(GetCurrentDir);
+  {$endif}
+  Writeln('Detected ExePath: ', ExePath);
   ApplicationDataOverride := FilenameToURISafe(ExePath + 'data/');
   Writeln('ApplicationData('''') after ApplicationDataOverride: ', ApplicationData(''));
   Writeln('castle-data:/image.png: ', ResolveCastleDataURL('castle-data:/image.png'));
