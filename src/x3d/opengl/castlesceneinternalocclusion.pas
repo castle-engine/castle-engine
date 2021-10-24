@@ -49,7 +49,7 @@ type
     ModelViewProjectionMatrix: TMatrix4;
     ModelViewProjectionMatrixChanged: boolean;
     procedure GLContextClose;
-    procedure OcclusionBoxStateEnd;
+    procedure OcclusionBoxStateEnd(const RestoreDefaults: Boolean);
   end;
 
   TSimpleOcclusionQueryRenderer = class
@@ -189,7 +189,7 @@ begin
   end;
 end;
 
-procedure TOcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
+procedure TOcclusionQueryUtilsRenderer.OcclusionBoxStateEnd(const RestoreDefaults: Boolean);
 begin
   if OcclusionBoxState then
   begin
@@ -200,9 +200,17 @@ begin
       {$endif}
     end;
 
-    RenderContext.DepthBufferUpdate := SavedDepthBufferUpdate;
-    RenderContext.ColorChannels := SavedColorChannels;
-    RenderContext.CullFace := SavedCullFace;
+    if RestoreDefaults then
+    begin
+      RenderContext.DepthBufferUpdate := true;
+      RenderContext.ColorChannels := [0..3];
+      RenderContext.CullFace := false;
+    end else
+    begin
+      RenderContext.DepthBufferUpdate := SavedDepthBufferUpdate;
+      RenderContext.ColorChannels := SavedColorChannels;
+      RenderContext.CullFace := SavedCullFace;
+    end;
 
     if SimplestProgram <> nil then
     begin

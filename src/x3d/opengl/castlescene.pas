@@ -184,7 +184,8 @@ type
 
       @unorderedList(
         @item(
-          OpenGL state of glDepthMask, glEnable/Disable(GL_BLEND), glBlendFunc
+          OpenGL state of glDepthMask (RenderContext.DepthBufferUpdate),
+          glEnable/Disable(GL_BLEND), glBlendFunc
           is controlled by this function. This function will unconditionally
           change (and restore later to original value) this state,
           to perform correct blending (transparency rendering).
@@ -899,7 +900,7 @@ var
     Shape.ModelView := ModelView;
     Shape.Fog := ShapeFog(Shape, Params.GlobalFog as TFogNode);
 
-    OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
+    OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd(false);
 
     if (Params.InternalPass = 0) and not ExcludeFromStatistics then
       Inc(Params.Statistics.ShapesRendered);
@@ -1159,7 +1160,8 @@ begin
   try
     case RenderOptions.Mode of
       rmDepth:
-        { When not rmFull, we don't want to do anything with glDepthMask
+        { When not rmFull, we don't want to do anything with
+          glDepthMask (RenderContext.DepthBufferUpdate)
           or GL_BLEND enable state. Just render everything
           (except: don't render partially transparent stuff for shadow maps). }
         RenderAllAsOpaque(true);
@@ -1178,14 +1180,9 @@ begin
       since BatchingCommit may render some shapes }
     BlendingRenderer.RenderEnd;
 
-    { Each RenderShape_SomeTests inside could set OcclusionBoxState.
-
-      TODO: in case of fixed-function path,
-      glPopAttrib inside could restore now
-      glDepthMask(GL_TRUE) and glDisable(GL_BLEND).
-      This problem will disappear when we'll get rid of fixed-function
-      possibility in OcclusionBoxStateEnd. }
-    OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
+    { As each RenderShape_SomeTests inside could set OcclusionBoxState,
+      be sure to restore state now. }
+    OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd(true);
   finally Renderer.RenderEnd end;
 
   {$ifndef OpenGLES}

@@ -219,7 +219,7 @@ type
       This affects all rendering that enables depth testing
       (which in practice means only TCastleScene in CGE). }
     property DepthBufferUpdate: Boolean
-      read FDepthBufferUpdate write FDepthBufferUpdate default true;
+      read FDepthBufferUpdate write SetDepthBufferUpdate default true;
 
     { Controls OpenGL viewport. This is always shifted by ViewportDelta. }
     property Viewport: TRectangle read FViewport write SetViewport;

@@ -666,7 +666,7 @@ const
     but stencil_wrap will hopefully in this case minimize artifacts. }
   StencilShadowBits = $FF;
 var
-  OldCount: boolean;
+  SavedCount: boolean;
   SavedDepthBufferUpdate: Boolean;
   SavedColorChannels: TColorChannels;
 begin
@@ -712,11 +712,11 @@ begin
 
           { Render back facing shadow shadow volume faces. }
           StencilSetupKind := ssBack;
-          OldCount := Count;
+          SavedCount := Count;
           Count := false;
           glCullFace(GL_FRONT);
           RenderShadowVolumes;
-          Count := OldCount;
+          Count := SavedCount;
         end;
 
       RenderContext.DepthBufferUpdate := SavedDepthBufferUpdate;
@@ -805,18 +805,22 @@ begin
 
   if DrawShadowVolumes then
   begin
-    OldCount := Count;
+    SavedCount := Count;
     Count := false;
+    SavedDepthBufferUpdate := RenderContext.DepthBufferUpdate;
+    RenderContext.DepthBufferUpdate := false;
+
     glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_ENABLE_BIT);
       glEnable(GL_DEPTH_TEST);
       glDisable(GL_LIGHTING);
       glColor4f(1, 1, 0, 0.3);
-      glDepthMask(GL_FALSE);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       glEnable(GL_BLEND);
       RenderShadowVolumes;
     glPopAttrib;
-    Count := OldCount;
+
+    RenderContext.DepthBufferUpdate := SavedDepthBufferUpdate;
+    Count := SavedCount;
   end;
 
   Params.InShadow := false;
