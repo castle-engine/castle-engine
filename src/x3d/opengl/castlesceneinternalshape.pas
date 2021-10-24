@@ -235,6 +235,7 @@ begin
   {$warnings off}
   Result :=
     (RenderOptions.OcclusionQuery or RenderOptions.HierarchicalOcclusionQuery) and
+    (GLFeatures <> nil) and // this can be called when GL context not initialized, like from TCastleScene.ViewChangedSuddenly
     GLFeatures.ARB_occlusion_query and
     GLFeatures.VertexBufferObject and
     (GLFeatures.QueryCounterBits > 0);
@@ -252,6 +253,7 @@ begin
   {$warnings off}
   Result := RenderOptions.OcclusionQuery and
     (not RenderOptions.HierarchicalOcclusionQuery) and
+    (GLFeatures <> nil) and // this can be called when GL context not initialized, like from TCastleScene.ViewChangedSuddenly
     GLFeatures.ARB_occlusion_query and
     GLFeatures.VertexBufferObject and
     (GLFeatures.QueryCounterBits > 0);
@@ -262,6 +264,7 @@ function ReallyHierarchicalOcclusionQuery(const RenderOptions: TCastleRenderOpti
 begin
   {$warnings off}
   Result := RenderOptions.HierarchicalOcclusionQuery and
+    (GLFeatures <> nil) and // this can be called when GL context not initialized, like from TCastleScene.ViewChangedSuddenly
     GLFeatures.ARB_occlusion_query and
     GLFeatures.VertexBufferObject and
     (GLFeatures.QueryCounterBits > 0);
