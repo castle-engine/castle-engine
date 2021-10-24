@@ -508,7 +508,7 @@ var
   V: TVector2;
 begin
   inherited;
-  ReadVector2List(Json, 'vertices', Vertices);
+  ReadVector2List(Json, 'vertices', Vertices, true);
 
   if Vertices.Count > UVs.Count then
   begin
