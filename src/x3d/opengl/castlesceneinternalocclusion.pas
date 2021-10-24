@@ -24,7 +24,7 @@ interface
 
 uses
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
-  CastleVectors, CastleSceneCore, CastleSceneInternalShape,
+  CastleVectors, CastleSceneCore, CastleSceneInternalShape, CastleRenderContext,
   CastleFrustum, CastleGLShaders, CastleBoxes, CastleTransform;
 
 type
@@ -34,7 +34,9 @@ type
   strict private
     GLInitiliazed: boolean;
     OcclusionBoxState: boolean;
-    SavedCullFace: boolean;
+    SavedDepthBufferUpdate: Boolean;
+    SavedColorChannels: TColorChannels;
+    SavedCullFace: Boolean;
     VboVertex, VboIndex: TGLuint;
     SimplestProgram: TGLSLProgram;
     UniformModelViewProjectionMatrix: TGLSLUniform;
@@ -79,7 +81,7 @@ implementation
 
 uses SysUtils,
   CastleClassUtils, CastleInternalShapeOctree, CastleGLUtils,
-  CastleRenderOptions, CastleRenderContext;
+  CastleRenderOptions;
 
 { TOcclusionQueryUtilsRenderer ------------------------------------------------- }
 
@@ -144,7 +146,12 @@ begin
     if not GLInitiliazed then
       GLContextOpen;
 
-    glSetDepthAndColorWriteable(false);
+    SavedDepthBufferUpdate := RenderContext.DepthBufferUpdate;
+    RenderContext.DepthBufferUpdate := false;
+
+    SavedColorChannels := RenderContext.ColorChannels;
+    RenderContext.ColorChannels := [];
+
     SavedCullFace := RenderContext.CullFace;
     RenderContext.CullFace := false;
 
@@ -193,7 +200,8 @@ begin
       {$endif}
     end;
 
-    glSetDepthAndColorWriteable(true);
+    RenderContext.DepthBufferUpdate := SavedDepthBufferUpdate;
+    RenderContext.ColorChannels := SavedColorChannels;
     RenderContext.CullFace := SavedCullFace;
 
     if SimplestProgram <> nil then

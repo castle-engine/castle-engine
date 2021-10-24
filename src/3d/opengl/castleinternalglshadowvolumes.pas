@@ -233,7 +233,7 @@ implementation
 
 uses SysUtils,
   CastleUtils, CastleStringUtils, CastleLog, CastleGLVersion,
-  CastleTriangles, CastleRenderOptions;
+  CastleTriangles, CastleRenderOptions, CastleRenderContext;
 
 constructor TGLShadowVolumeRenderer.Create;
 begin
@@ -667,6 +667,8 @@ const
   StencilShadowBits = $FF;
 var
   OldCount: boolean;
+  SavedDepthBufferUpdate: Boolean;
+  SavedColorChannels: TColorChannels;
 begin
   Params.InShadow := false;
   Params.Transparent := false;
@@ -685,9 +687,14 @@ begin
       { saves Enable(GL_DEPTH_TEST), Enable(GL_CULL_FACE) });
       glEnable(GL_DEPTH_TEST);
 
-      { Calculate shadows to the stencil buffer.
-        Don't write anything to depth or color buffers. }
-      glSetDepthAndColorWriteable(false);
+      { Calculate shadows to the stencil buffer. }
+
+      { Don't write anything to depth or color buffers. }
+      SavedDepthBufferUpdate := RenderContext.DepthBufferUpdate;
+      SavedColorChannels := RenderContext.ColorChannels;
+      RenderContext.DepthBufferUpdate := false;
+      RenderContext.ColorChannels := [];
+
         glStencilFunc(GL_ALWAYS, 0, 0);
 
         if StencilTwoSided then
@@ -712,7 +719,8 @@ begin
           Count := OldCount;
         end;
 
-      glSetDepthAndColorWriteable(true);
+      RenderContext.DepthBufferUpdate := SavedDepthBufferUpdate;
+      RenderContext.ColorChannels := SavedColorChannels;
     glPopAttrib;
   glDisable(GL_STENCIL_TEST);
 

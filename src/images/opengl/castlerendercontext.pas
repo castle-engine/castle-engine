@@ -92,6 +92,7 @@ type
       FDepthRange: TDepthRange;
       FCullFace, FFrontFaceCcw: boolean;
       FColorChannels: TColorChannels;
+      FDepthBufferUpdate: Boolean;
       FViewport: TRectangle;
       FViewportDelta: TVector2Integer;
       WarningViewportTooLargeDone: Boolean;
@@ -108,6 +109,7 @@ type
       function GetColorMask: boolean;
       procedure SetColorMask(const Value: boolean);
       procedure SetColorChannels(const Value: TColorChannels);
+      procedure SetDepthBufferUpdate(const Value: boolean);
       procedure SetViewport(const Value: TRectangle);
       procedure SetViewportDelta(const Value: TVector2Integer);
       procedure UpdateViewport;
@@ -180,12 +182,12 @@ type
     property FrontFaceCcw: boolean read FFrontFaceCcw write SetFrontFaceCcw
       default true;
 
-    { Which color buffer channels are touched by rendering. }
+    { Are color buffer channels changed by rendering. }
     property ColorMask: boolean
       read GetColorMask write SetColorMask default true;
       deprecated 'use ColorChannels';
 
-    { Which color buffer channels are touched by rendering.
+    { Which color buffer channels are written by rendering.
       This affects all rendering, including @link(TDrawableImage.Draw).
 
       Note that this state may be internally modified by various engine rendering
@@ -212,6 +214,12 @@ type
     }
     property ColorChannels: TColorChannels
       read FColorChannels write SetColorChannels default [0..3];
+
+    { Is depth buffer updated by rendering.
+      This affects all rendering that enables depth testing
+      (which in practice means only TCastleScene in CGE). }
+    property DepthBufferUpdate: Boolean
+      read FDepthBufferUpdate write FDepthBufferUpdate default true;
 
     { Controls OpenGL viewport. This is always shifted by ViewportDelta. }
     property Viewport: TRectangle read FViewport write SetViewport;
@@ -275,6 +283,7 @@ begin
   FCullFace := false;
   FFrontFaceCcw := true;
   FColorChannels := [0..3];
+  FDepthBufferUpdate := true;
   FViewport := TRectangle.Empty;
 end;
 
@@ -482,6 +491,18 @@ begin
       BoolToGL(2 in FColorChannels),
       BoolToGL(3 in FColorChannels)
     );
+  end;
+end;
+
+procedure TRenderContext.SetDepthBufferUpdate(const Value: boolean);
+begin
+  if Self <> RenderContext then
+    WarnContextNotCurrent;
+
+  if FDepthBufferUpdate <> Value then
+  begin
+    FDepthBufferUpdate := Value;
+    glDepthMask(BoolToGL(Value));
   end;
 end;
 
