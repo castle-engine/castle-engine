@@ -855,6 +855,21 @@ function FilenameToURISafe(FileName: string): string;
   We also make sure to call ExpandFileName,
   and so we don't need checks for IsAbsFilename. }
 
+  { Like ExpandFileName, but guarantees that if input ends with directory separator,
+    then output will end with it too.
+    This is necessary on Delphi+Posix. }
+  function ExpandFileNameFixed(const S: String): String;
+  begin
+    Result := ExpandFileName(S);
+    {$ifndef FPC}
+    if (S <> '') and
+       CharInSet(S[Length(S)], AllowDirectorySeparators) and
+       ( (Result = '') or
+         (not CharInSet(Result[Length(Result)], AllowDirectorySeparators) ) ) then
+      Result := InclPathDelim(Result);
+    {$endif}
+  end;
+
 const
   SubDelims = ['!', '$', '&', '''', '(', ')', '*', '+', ',', ';', '='];
   ALPHA = ['A'..'Z', 'a'..'z'];
@@ -865,7 +880,7 @@ var
   I: Integer;
   FilenamePart: string;
 begin
-  FileName := ExpandFileName(FileName);
+  FileName := ExpandFileNameFixed(FileName);
 
   Result := 'file:';
 
