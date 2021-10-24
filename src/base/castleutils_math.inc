@@ -90,6 +90,16 @@ procedure MaxVar(var a: Extended; const b: Extended); overload; {$ifdef SUPPORTS
 {$endif}
 { @groupEnd }
 
+{$ifndef FPC}
+{$ifndef MSWINDOWS}
+// TODO: why is this necessary on Linux with Delphi? What is Integer, Cardinal then?
+procedure MaxVar(var a: LongInt ; const b: LongInt ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MinVar(var a: LongInt ; const b: LongInt ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MaxVar(var a: LongWord; const b: LongWord); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MinVar(var a: LongWord; const b: LongWord); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+{$endif}
+{$endif}
+
 type
   { Index of axis in 3D. }
   T3DAxis = 0..2;
@@ -445,6 +455,15 @@ procedure MaxVar(var a: Single  ; const b: Single  ); begin if B > A then A := B
 procedure MaxVar(var a: Double  ; const b: Double  ); begin if B > A then A := B end;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
 procedure MaxVar(var a: Extended; const b: Extended); begin if B > A then A := B end;
+{$endif}
+
+{$ifndef FPC}
+{$ifndef MSWINDOWS}
+procedure MaxVar(var a: LongInt ; const b: LongInt ); begin if B > A then A := B end;
+procedure MinVar(var a: LongInt ; const b: LongInt ); begin if B < A then A := B end;
+procedure MaxVar(var a: LongWord; const b: LongWord); begin if B > A then A := B end;
+procedure MinVar(var a: LongWord; const b: LongWord); begin if B < A then A := B end;
+{$endif}
 {$endif}
 
 function IndexMax(const a0, a1, a2: Double): T3DAxis;

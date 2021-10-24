@@ -118,10 +118,11 @@ unit CastleUtils;
 
 interface
 
-uses {$ifdef MSWINDOWS} Windows, {$ifndef FPC} ShlObj, {$endif} {$endif}
-  {$ifdef UNIX} BaseUnix, Unix, Dl, {$endif}
-  Variants, SysUtils, Math, Generics.Collections{$ifndef FPC}, Classes, OpenGL,
-   OpenGLExt{$endif};
+uses
+  {$ifdef MSWINDOWS} Windows, {$ifndef FPC} ShlObj, {$endif} {$endif}
+  {$ifdef UNIX} {$ifdef FPC} BaseUnix, Unix, Dl, {$else} Posix.Unistd, {$endif} {$endif}
+  {$ifndef FPC} Classes, {$endif}
+  Variants, SysUtils, Math, Generics.Collections;
 
 {$define read_interface}
 
@@ -193,8 +194,10 @@ initialization
     So Include/ExcludeTrailingPathDelimiter are basically buggy by default.
 
     Fortunately we can fix it by globally changing AllowDirectorySeparators. }
+  {$ifdef FPC}
   {$ifndef MSWINDOWS}
   AllowDirectorySeparators := AllowDirectorySeparators - ['\'];
+  {$endif}
   {$endif}
 
   { Set UTF-8 in AnsiStrings, just like Lazarus
