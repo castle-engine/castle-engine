@@ -344,7 +344,16 @@ var
     OneDistance: Single;
     ZeroWorld, OneWorld, OneProjected3, ZeroProjected3, CameraPos, CameraSide: TVector3;
     CameraNearPlane: TVector4;
+    SceneSizeMultiplier: Single;
   begin
+    { In theory, any value of SceneSizeMultiplier is OK,
+      and it could be always 1.0.
+      But on large scenes, this makes huge precision problems with calculation
+      below, as OneWorld will be very close to ZeroWorld and then OneDistance is tiny.
+      So we use to calculate in larger coordinates, and then scale it back to achieve the same.
+      Testcase: gizmo_flickering_bug . }
+    SceneSizeMultiplier := World.BoundingBox.AverageSize(false, 1.0);
+
     BeginWorldTransform;
 
     { Map two points from gizmo local transformation,
@@ -358,7 +367,7 @@ var
     ZeroWorld := LocalToWorld(TVector3.Zero);
     { Note: We use Camera.Up, not Camera.GravityUp, to work sensibly even
       when looking at world at a direction similar to +Y. }
-    OneWorld := LocalToWorld(WorldToLocalDirection(Camera.Up).Normalize);
+    OneWorld := LocalToWorld(WorldToLocalDirection(Camera.Up).AdjustToLength(SceneSizeMultiplier));
 
     EndWorldTransform;
 
@@ -372,7 +381,7 @@ var
     CameraNearPlane.XYZ := Camera.Direction;
     { plane equation should yield 0 when used with point in front of camera }
     CameraNearPlane.W := - TVector3.DotProduct(
-      CameraPos + Camera.Direction * AssumeNear, Camera.Direction);
+      CameraPos + Camera.Direction * AssumeNear * SceneSizeMultiplier, Camera.Direction);
     if not TryPlaneLineIntersection(OneProjected3, CameraNearPlane, CameraPos, OneWorld - CameraPos) then
       Exit(1.0); // no valid value can be calculated
     if not TryPlaneLineIntersection(ZeroProjected3, CameraNearPlane, CameraPos, ZeroWorld - CameraPos) then
@@ -386,9 +395,12 @@ var
     OneDistance := PointsDistance(ZeroProjected, OneProjected);
 
     if IsZero(OneDistance) then
-      Result := 1
+      Result := SceneSizeMultiplier
     else
-      Result := BaseGizmoScale / OneDistance;
+      { Multiply by SceneSizeMultiplier 2x because
+        1. it increases OneWorld
+        2. it increases camera near (at AssumeNear) }
+      Result := Sqr(SceneSizeMultiplier) * BaseGizmoScale / OneDistance;
   end;
 
 var
