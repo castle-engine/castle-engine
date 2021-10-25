@@ -27,7 +27,7 @@ type
   TTestX3DFields = class(TCastleTestCase)
   strict private
     Counter: Integer;
-    procedure Check123(Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+    procedure Check123(const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   published
     procedure TestNotification;
   end;
@@ -36,7 +36,7 @@ implementation
 
 uses CastleSceneCore, X3DNodes;
 
-procedure TTestX3DFields.Check123(Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+procedure TTestX3DFields.Check123(const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   AssertTrue(Value is TSFInt32);
   AssertEquals(123, (Value as TSFInt32).Value);

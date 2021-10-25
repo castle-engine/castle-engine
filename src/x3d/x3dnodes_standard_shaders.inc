@@ -143,7 +143,7 @@
     ContentsCached: boolean;
     ContentsCache: string;
     procedure EventUrlReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     function GetContents: string;
     procedure SetContents(const Value: string);
   public
@@ -432,7 +432,7 @@ begin
 end;
 
 procedure TShaderPartNode.EventUrlReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   ContentsCached := false;
 end;

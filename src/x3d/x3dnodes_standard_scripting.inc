@@ -31,7 +31,7 @@
 
     procedure SetInitialized(const Value: boolean);
     procedure EventUrlReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   protected
     procedure ExecuteScript(const FunctionName: string;
       ReceivedValue: TX3DField; const Time: TX3DTime);
@@ -69,7 +69,7 @@
   TScriptNode = class(TAbstractScriptNode)
   strict private
     procedure IDeclEventReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
     procedure PostAddInterfaceDeclaration(IDecl: TX3DInterfaceDeclaration); override;
   {$I auto_generated_node_helpers/x3dnodes_script.inc}
@@ -113,7 +113,7 @@ begin
 end;
 
 procedure TAbstractScriptNode.EventUrlReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   { Simply shutdown + initialize from new URL }
   Initialized := false;
@@ -345,7 +345,7 @@ begin
 end;
 
 procedure TScriptNode.IDeclEventReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 var
   FunctionName: string;
 begin

@@ -187,7 +187,7 @@
   strict private
     FakingTime: Integer;
     procedure EventElapsedTimeReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     { CycleInterval that is always > 0. }
     function SafeCycleInterval: TFloatTime;
   public
@@ -726,7 +726,7 @@ begin
 end;
 
 procedure TTimeSensorNode.EventElapsedTimeReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 var
   Fraction: Single;
 begin

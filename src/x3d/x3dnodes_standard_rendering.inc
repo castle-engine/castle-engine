@@ -570,9 +570,9 @@
   TIndexedLineSetNode = class(TAbstractGeometryNode)
   strict private
     procedure EventSet_ColorIndexReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     procedure EventSet_CoordIndexReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -596,7 +596,7 @@
   TIndexedTriangleFanSetNode = class(TAbstractComposedGeometryNode)
   strict private
     procedure EventSet_IndexReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
@@ -614,7 +614,7 @@
   TIndexedTriangleSetNode = class(TAbstractComposedGeometryNode)
   strict private
     procedure EventSet_IndexReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
@@ -632,7 +632,7 @@
   TIndexedTriangleStripSetNode = class(TAbstractComposedGeometryNode)
   strict private
     procedure EventSet_IndexReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
@@ -1340,14 +1340,14 @@ begin
 end;
 
 procedure TIndexedLineSetNode.EventSet_ColorIndexReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   FdColorIndex.Assign(Value);
   FdColorIndex.Changed;
 end;
 
 procedure TIndexedLineSetNode.EventSet_CoordIndexReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   FdCoordIndex.Assign(Value);
   FdCoordIndex.Changed;
@@ -1373,7 +1373,7 @@ begin
 end;
 
 procedure TIndexedTriangleFanSetNode.EventSet_IndexReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   FdIndex.Send(Value);
 end;
@@ -1399,7 +1399,7 @@ begin
 end;
 
 procedure TIndexedTriangleSetNode.EventSet_IndexReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   FdIndex.Send(Value);
 end;
@@ -1425,7 +1425,7 @@ begin
 end;
 
 procedure TIndexedTriangleStripSetNode.EventSet_IndexReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   FdIndex.Send(Value);
 end;

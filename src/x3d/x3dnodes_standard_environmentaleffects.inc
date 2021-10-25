@@ -21,7 +21,7 @@
   TAbstractBackgroundNode = class(TAbstractBindableNode)
   strict private
     procedure EventSet_BindReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
@@ -144,7 +144,7 @@
       end;
 
     procedure EventSet_BindReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     procedure CreateNode; override;
@@ -342,7 +342,7 @@ begin
 end;
 
 procedure TAbstractBackgroundNode.EventSet_BindReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   if Scene <> nil then
   begin
@@ -572,7 +572,7 @@ begin
 end;
 
 procedure TFogNode.EventSet_BindReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   if Scene <> nil then
   begin

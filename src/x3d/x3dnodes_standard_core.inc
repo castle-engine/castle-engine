@@ -145,7 +145,7 @@
     FBound: Boolean;
     FTransform: TMatrix4;
     FTransformScale: Single;
-    procedure EventIsBoundReceive(Event: TX3DEvent; AValue: TX3DField;
+    procedure EventIsBoundReceive(const Event: TX3DEvent; const AValue: TX3DField;
       const Time: TX3DTime);
     procedure SetBound(const Value: Boolean);
   protected
@@ -577,7 +577,7 @@ begin
 end;
 
 procedure TAbstractBindableNode.EventIsBoundReceive(
-  Event: TX3DEvent; AValue: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const AValue: TX3DField; const Time: TX3DTime);
 begin
   FBound := (AValue as TSFBool).Value;
 end;

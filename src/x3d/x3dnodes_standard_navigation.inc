@@ -19,7 +19,7 @@
   TAbstractViewpointNode = class(TAbstractBindableNode)
   strict private
     procedure EventSet_BindReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     function GetPosition: TVector3;
     procedure SetPosition(const Value: TVector3);
   strict protected
@@ -169,7 +169,7 @@
   TNavigationInfoNode = class(TAbstractBindableNode)
   strict private
     procedure EventSet_BindReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
 
@@ -328,7 +328,7 @@ begin
 end;
 
 procedure TAbstractViewpointNode.EventSet_BindReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   if Scene <> nil then
     Scene.GetViewpointStack.Set_Bind(Self, (Value as TSFBool).Value);
@@ -611,7 +611,7 @@ begin
 end;
 
 procedure TNavigationInfoNode.EventSet_BindReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   if Scene <> nil then
     Scene.GetNavigationInfoStack.Set_Bind(Self, (Value as TSFBool).Value);

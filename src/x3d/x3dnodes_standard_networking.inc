@@ -92,9 +92,9 @@
   TInlineNode = class(TAbstractGroupingNode)
   strict private
     procedure EventLoadReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     procedure EventUrlReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   private
     { Is the inline currently loaded. This means "loaded",
       not "successfully loaded": when InlinedLoaded := true,
@@ -496,7 +496,7 @@ begin
 end;
 
 procedure TInlineNode.EventLoadReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   { Changing the "load" and "url" fields causes LoadInlined or UnLoadInlined,
     so the VRML graph changes, so they deserve ChangedAll.
@@ -525,7 +525,7 @@ begin
 end;
 
 procedure TInlineNode.EventUrlReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   if FdLoad.Value then
   begin

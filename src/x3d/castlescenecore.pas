@@ -655,7 +655,7 @@ type
 
     { Always assigned to PlayingAnimationNode.EventIsActive. }
     procedure PlayingAnimationIsActive(
-      Event: TX3DEvent; Value: TX3DField; const ATime: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const ATime: TX3DTime);
 
     procedure SetPrimitiveGeometry(const AValue: TPrimitiveGeometry);
 
@@ -8389,7 +8389,7 @@ begin
 end;
 
 procedure TCastleSceneCore.PlayingAnimationIsActive(
-  Event: TX3DEvent; Value: TX3DField; const ATime: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const ATime: TX3DTime);
 var
   Val: boolean;
 begin

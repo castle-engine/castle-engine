@@ -66,7 +66,7 @@
   strict private
     function KeyValue(const Index, KeyCount: Integer): TKeyValue;
     function KeyValueLerp(const T: Single; const Index1, Index2, KeyCount: Integer): TKeyValue;
-    procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
+    procedure EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
   strict protected
     procedure InterpolatorLerp(const Target: TKeyValue;
@@ -89,7 +89,7 @@
     See https://castle-engine.io/x3d_implementation_interpolation_extensions.php . }
   TCubicBezier2DOrientationInterpolatorNode = class(TAbstractCubicBezierInterpolatorNode)
   strict private
-    procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
+    procedure EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
@@ -101,7 +101,7 @@
     See https://castle-engine.io/x3d_implementation_interpolation_extensions.php . }
   TCubicBezierPositionInterpolatorNode = class(TAbstractCubicBezierInterpolatorNode)
   strict private
-    procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
+    procedure EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
@@ -350,7 +350,7 @@ end;
 procedure TAbstractCubicBezierArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
   TKeyValue,
   TKeyValueEvent>{$endif} .
-  EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 var
   KeyCount: Integer;
   T: Single;
@@ -411,7 +411,7 @@ begin
 end;
 
 procedure TCubicBezier2DOrientationInterpolatorNode.EventSet_FractionReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 
   function KeyValue(Index: Integer): Single;
   begin
@@ -459,7 +459,7 @@ begin
 end;
 
 procedure TCubicBezierPositionInterpolatorNode.EventSet_FractionReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 
   function KeyValue(Index: Integer): TVector3;
   begin

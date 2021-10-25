@@ -258,7 +258,7 @@
   { Interpolate (animate) orientations as tangent vectors of the 3D NURBS curve. }
   TNurbsOrientationInterpolatorNode = class(TAbstractChildNode)
   strict private
-    procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
+    procedure EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -301,7 +301,7 @@
   { Interpolate (animate) positions along the 3D NURBS curve. }
   TNurbsPositionInterpolatorNode = class(TAbstractChildNode)
   strict private
-    procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
+    procedure EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -374,7 +374,7 @@
     from an input 2D surface parameters. }
   TNurbsSurfaceInterpolatorNode = class(TAbstractChildNode)
   strict private
-    procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
+    procedure EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -997,7 +997,7 @@ begin
 end;
 
 procedure TNurbsOrientationInterpolatorNode.EventSet_FractionReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 var
   ControlPointList: TVector3List;
   Knot: TDoubleList;
@@ -1493,7 +1493,7 @@ begin
 end;
 
 procedure TNurbsPositionInterpolatorNode.EventSet_FractionReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 var
   ControlPointList: TVector3List;
   Knot: TDoubleList;
@@ -1625,7 +1625,7 @@ begin
 end;
 
 procedure TNurbsSurfaceInterpolatorNode.EventSet_FractionReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 var
   ControlPointList: TVector3List;
   OutputNormal: TVector3;

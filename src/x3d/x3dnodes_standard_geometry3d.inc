@@ -91,7 +91,7 @@
   TElevationGridNode = class(TAbstractGeometryNode)
   strict private
     procedure EventSet_HeightReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
 
@@ -128,13 +128,13 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   strict private
     procedure Eventset_crossSectionReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     procedure Eventset_orientationReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     procedure Eventset_scaleReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     procedure Eventset_spineReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
 
@@ -176,13 +176,13 @@
   TIndexedFaceSetNode = class(TAbstractComposedGeometryNode)
   strict private
     procedure Eventset_colorIndexReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     procedure Eventset_coordIndexReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     procedure Eventset_normalIndexReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     procedure Eventset_texCoordIndexReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
 
@@ -397,7 +397,7 @@ begin
 end;
 
 procedure TElevationGridNode.EventSet_HeightReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   FdHeight.Send(Value);
 end;
@@ -748,28 +748,28 @@ begin
 end;
 
 procedure TExtrusionNode.EventSet_crossSectionReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   FdcrossSection.Assign(Value);
   FdcrossSection.Changed;
 end;
 
 procedure TExtrusionNode.EventSet_orientationReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   Fdorientation.Assign(Value);
   Fdorientation.Changed;
 end;
 
 procedure TExtrusionNode.EventSet_scaleReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   Fdscale.Assign(Value);
   Fdscale.Changed;
 end;
 
 procedure TExtrusionNode.EventSet_spineReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   Fdspine.Assign(Value);
   Fdspine.Changed;
@@ -813,28 +813,28 @@ begin
 end;
 
 procedure TIndexedFaceSetNode.EventSet_colorIndexReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   FdcolorIndex.Assign(Value);
   FdcolorIndex.Changed;
 end;
 
 procedure TIndexedFaceSetNode.EventSet_coordIndexReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   FdcoordIndex.Assign(Value);
   FdcoordIndex.Changed;
 end;
 
 procedure TIndexedFaceSetNode.EventSet_normalIndexReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   FdnormalIndex.Assign(Value);
   FdnormalIndex.Changed;
 end;
 
 procedure TIndexedFaceSetNode.EventSet_texCoordIndexReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   FdtexCoordIndex.Assign(Value);
   FdtexCoordIndex.Changed;

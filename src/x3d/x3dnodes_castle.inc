@@ -328,7 +328,7 @@
     ContentsCached: boolean;
     ContentsCache: string;
     procedure EventUrlReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     function GetShaderType: TShaderType;
     procedure SetShaderType(const Value: TShaderType);
     function GetContents: string;
@@ -385,7 +385,7 @@
     during which angle changes but axis remains constant. }
   TOrientationInterpolator2DNode = class(TAbstractInterpolatorNode)
   strict private
-    procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
+    procedure EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
@@ -842,7 +842,7 @@ begin
 end;
 
 procedure TEffectPartNode.EventUrlReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   ContentsCached := false;
 end;
@@ -898,7 +898,7 @@ begin
 end;
 
 procedure TOrientationInterpolator2DNode.EventSet_FractionReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 
   function KeyValue(Index: Integer): Single;
   begin

@@ -22,7 +22,7 @@
 
   { Called when @link(TX3DEvent) is received,
     see @link(TX3DEvent.AddNotification). }
-  TX3DEventReceive = procedure (Event: TX3DEvent; Value: TX3DField;
+  TX3DEventReceive = procedure (const Event: TX3DEvent; const Value: TX3DField;
     const Time: TX3DTime) of object;
 
   { Send along with the animation that should be applied only partially
@@ -95,7 +95,7 @@
 
     { Handle exposed input event. Checks OnInputIgnore,
       assigns value, sends an output event, notifies @link(Changed). }
-    procedure ExposedEventReceive(Event: TX3DEvent; Value: TX3DField;
+    procedure ExposedEventReceive(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
   private
     type
@@ -685,7 +685,7 @@ begin
     (not CanAssignLerp);
 end;
 
-procedure TX3DField.ExposedEventReceive(Event: TX3DEvent; Value: TX3DField;
+procedure TX3DField.ExposedEventReceive(const Event: TX3DEvent; const Value: TX3DField;
   const Time: TX3DTime);
 var
   ValuePossiblyChanged: boolean;

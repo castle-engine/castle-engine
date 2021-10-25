@@ -71,7 +71,7 @@
   strict private
     LogFileStream: TStream;
     procedure EventWriteReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     destructor Destroy; override;
@@ -81,7 +81,7 @@
   TConverterNode = class(TAbstractChildNode)
   strict private
     procedure EventInReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -214,15 +214,15 @@
     function IgnoreWhenDisabled(const ChangingField: TX3DField; const Event: TX3DEvent;
       const Value: TX3DField; const Time: TX3DTime): Boolean;
     procedure EventStatusReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     procedure EventNotStatusReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     procedure EventToggleReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     procedure EventSetReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     procedure EventResetReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     procedure CreateNode; override;
@@ -700,7 +700,7 @@ begin
 end;
 
 procedure TLoggerNode.EventWriteReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 
   function FieldValueToString(const Field: TX3DField): String;
   var
@@ -773,7 +773,7 @@ begin
 end;
 
 procedure TConverterNode.EventInReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   if FdEnabled.Value then
     { TODO: we cannot convert here (as we don't know to what we should
@@ -986,7 +986,7 @@ begin
 end;
 
 procedure TTogglerNode.EventStatusReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   { Do not send event to notStatus, if it already has correct value
     (so our own value didn't actually changed).
@@ -1002,7 +1002,7 @@ begin
 end;
 
 procedure TTogglerNode.EventNotStatusReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   { Do not send event to status, if it already has correct value
     (so our own value didn't actually changed).
@@ -1018,21 +1018,21 @@ begin
 end;
 
 procedure TTogglerNode.EventToggleReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   if FdEnabled.Value then
     FdStatus.Send(not FdStatus.Value, Value.InternalPartialSend);
 end;
 
 procedure TTogglerNode.EventSetReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   if FdEnabled.Value then
     FdStatus.Send(true, Value.InternalPartialSend);
 end;
 
 procedure TTogglerNode.EventResetReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   if FdEnabled.Value then
     FdStatus.Send(false, Value.InternalPartialSend);

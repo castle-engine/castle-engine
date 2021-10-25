@@ -88,7 +88,7 @@
   TAbstractTouchSensorNode = class(TAbstractPointingDeviceSensorNode)
   strict private
     FOnClick: TNotifyEvent;
-    procedure EventTouchTimeReceive(Event: TX3DEvent; AValue: TX3DField;
+    procedure EventTouchTimeReceive(const Event: TX3DEvent; const AValue: TX3DField;
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
@@ -370,7 +370,7 @@ begin
 end;
 
 procedure TAbstractTouchSensorNode.EventTouchTimeReceive(
-  Event: TX3DEvent; AValue: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const AValue: TX3DField; const Time: TX3DTime);
 begin
   if Assigned(FOnClick) then
     FOnClick(Self);

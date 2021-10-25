@@ -32,7 +32,7 @@
     InsideLoadBuffer: Cardinal;
     PlayingSound: TCastlePlayingSoundSource;
     procedure SetBufferLoaded(const Value: boolean);
-    procedure UpdatePlayingEvent(Event: TX3DEvent; Value: TX3DField;
+    procedure UpdatePlayingEvent(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
     procedure UpdatePlaying;
     procedure SoundOpenClose(Sender: TObject);
@@ -65,7 +65,7 @@
     SoundSourceTransform: TCastleTransform;
     procedure UpdateSoundSource;
     procedure EventLocationReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     { Location expressed in Scene coordinate-space, that is: transformed
       by X3D transformations in this X3D scene graph. }
     function SceneLocation: TVector3;
@@ -154,7 +154,7 @@ begin
     Result := 0;
 end;
 
-procedure TAudioClipNode.UpdatePlayingEvent(Event: TX3DEvent; Value: TX3DField;
+procedure TAudioClipNode.UpdatePlayingEvent(const Event: TX3DEvent; const Value: TX3DField;
   const Time: TX3DTime);
 begin
   UpdatePlaying;
@@ -349,7 +349,7 @@ begin
 end;
 
 procedure TSoundNode.EventLocationReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   UpdateSoundSource;
 end;

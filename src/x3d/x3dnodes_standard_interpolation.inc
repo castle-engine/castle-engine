@@ -55,7 +55,7 @@
     TKeyValueEvent> = class(TAbstractInterpolatorNode)
   strict private
     function KeyValue(Index: Integer): TInterpolatedValue;
-    procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
+    procedure EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
   strict protected
     function InterpolatorDefault: TInterpolatedValue; virtual;
@@ -80,7 +80,7 @@
   strict private
     function KeyValue(const Index, KeyCount: Integer): TKeyValue;
     function KeyValueLerp(const T: Single; const Index1, Index2, KeyCount: Integer): TKeyValue;
-    procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
+    procedure EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
   strict protected
     procedure InterpolatorLerp(const Target: TKeyValue;
@@ -292,7 +292,7 @@ procedure TAbstractSingleInterpolatorNode {$ifndef CASTLE_OBJFPC} <
   TInterpolatedValue,
   TKeyValue,
   TKeyValueEvent>{$endif} .
-  EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 var
   T: Single;
   OutputValue: TInterpolatedValue;
@@ -414,7 +414,7 @@ end;
 procedure TAbstractArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
   TKeyValue,
   TKeyValueEvent>{$endif} .
-  EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 var
   KeyCount: Integer;
   T: Single;
