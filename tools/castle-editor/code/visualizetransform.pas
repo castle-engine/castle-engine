@@ -534,7 +534,7 @@ begin
               is applied before rotation technically.
               So we need to manually multiply Diff by curent rotation. }
             Diff := RotatePointAroundAxis(UniqueParent.Rotation, Diff);
-            if DraggingCoord <> -1 then
+            if DraggingCoord >= 0 then
               { We need to apply only scale in 1 axis,
                 https://forum.castle-engine.io/t/creating-a-non-linear-strategic-adventure/403/22 }
               Diff := Diff * UniqueParent.Scale[DraggingCoord]
