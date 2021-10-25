@@ -846,7 +846,7 @@ type
     knows whether to initiate level_changes event sending.) }
   TShapeTreeLOD = class(TShapeTreeGroup)
   strict private
-    FLODNode: TAbstractLODNode;
+    FLODNode: TLODNode;
     FLODInverseTransform: TMatrix4;
     FLevel: Cardinal;
     FWasLevel_ChangedSend: boolean;
@@ -856,7 +856,7 @@ type
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false); override;
   public
-    property LODNode: TAbstractLODNode read FLODNode write FLODNode;
+    property LODNode: TLODNode read FLODNode write FLODNode;
     function LODInverseTransform: PMatrix4;
 
     { Calculate @link(Level). This only calculates level, doesn't

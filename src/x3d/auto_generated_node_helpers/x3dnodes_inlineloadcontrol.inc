@@ -29,49 +29,27 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    strict private FEventSet_index: TMFInt32Event;
-    { X3D in event "set_index". } { }
-    public property EventSet_index: TMFInt32Event read FEventSet_index;
-
-    strict private FFdIndex: TMFInt32;
-    { X3D field "index". } { }
-    public property FdIndex: TMFInt32 read FFdIndex;
-    { Set X3D field "index". } { }
-    procedure SetIndex(const Value: array of LongInt);
-    { Set X3D field "index". } { }
-    procedure SetIndex(const Value: TLongIntList);
+    strict private FEventChildren: TMFNodeEvent;
+    { X3D out event "children". } { }
+    public property EventChildren: TMFNodeEvent read FEventChildren;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-{ TIndexedTriangleSetNode ----------------------------------------------- }
+{ TInlineLoadControlNode ----------------------------------------------- }
 
-procedure TIndexedTriangleSetNode.SetIndex(const Value: array of LongInt);
+class function TInlineLoadControlNode.ClassX3DType: String;
 begin
-  FdIndex.Send(Value);
+  Result := 'InlineLoadControl';
 end;
 
-procedure TIndexedTriangleSetNode.SetIndex(const Value: TLongIntList);
-begin
-  FdIndex.Send(Value);
-end;
-
-class function TIndexedTriangleSetNode.ClassX3DType: String;
-begin
-  Result := 'IndexedTriangleSet';
-end;
-
-procedure TIndexedTriangleSetNode.CreateNode;
+procedure TInlineLoadControlNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_index := TMFInt32Event.Create(Self, 'set_index', true);
-  AddEvent(FEventSet_index);
-
-  FFdIndex := TMFInt32.Create(Self, False, 'index', []);
-   FdIndex.ChangeAlways := chGeometry;
-  AddField(FFdIndex);
+  FEventChildren := TMFNodeEvent.Create(Self, 'children', false);
+  AddEvent(FEventChildren);
 end;
 
 {$endif read_implementation}

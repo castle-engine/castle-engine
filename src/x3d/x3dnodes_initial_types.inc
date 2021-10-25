@@ -107,7 +107,7 @@
   TNodeTransformationChange = (
     ntcNone,
     ntcSwitch, //< TSwitchNode
-    ntcLOD, //< TAbstractLODNode
+    ntcLOD, //< TLODNode
     ntcTransform, //< anything with TTransformFunctionality
     ntcGeometry, //< TAbstractGeometryNode
     ntcBackground, //< TAbstractBackgroundNode

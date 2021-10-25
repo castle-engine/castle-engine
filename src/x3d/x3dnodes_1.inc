@@ -1344,7 +1344,7 @@ end;
 function TLODNode_1.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   { TODO: we should use here the LOD matching camera distance.
-    For now, just like TAbstractLODNode.DirectEnumerateActive, we ignore the issue. }
+    For now, just like TLODNode.DirectEnumerateActive, we ignore the issue. }
   if VRML1ChildrenCount = 0 then
     raise EX3DError.Create('LOD node must have at least one child');
 

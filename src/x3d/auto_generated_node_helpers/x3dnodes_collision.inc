@@ -31,8 +31,26 @@
     function GetProxy: TAbstractChildNode;
     procedure SetProxy(const Value: TAbstractChildNode);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdEnabled: TSFBool;
+    { X3D field "enabled". } { }
+    public property FdEnabled: TSFBool read FFdEnabled;
     { X3D field "enabled". } { }
     property Enabled: Boolean read GetEnabled write SetEnabled;
+
+    strict private FEventCollideTime: TSFTimeEvent;
+    { X3D out event "collideTime". } { }
+    public property EventCollideTime: TSFTimeEvent read FEventCollideTime;
+
+    strict private FEventIsActive: TSFBoolEvent;
+    { X3D out event "isActive". } { }
+    public property EventIsActive: TSFBoolEvent read FEventIsActive;
+
+    strict private FFdProxy: TSFNode;
+    { X3D field "proxy". } { }
+    public property FdProxy: TSFNode read FFdProxy;
     { X3D field "proxy". } { }
     property Proxy: TAbstractChildNode read GetProxy write SetProxy;
 
@@ -63,6 +81,30 @@ end;
 procedure TCollisionNode.SetProxy(const Value: TAbstractChildNode);
 begin
   FdProxy.Send(Value);
+end;
+
+class function TCollisionNode.ClassX3DType: String;
+begin
+  Result := 'Collision';
+end;
+
+procedure TCollisionNode.CreateNode;
+begin
+  inherited;
+
+  FFdEnabled := TSFBool.Create(Self, True, 'enabled', true);
+   FdEnabled.ChangeAlways := chEverything;
+  AddField(FFdEnabled);
+
+  FEventCollideTime := TSFTimeEvent.Create(Self, 'collideTime', false);
+  AddEvent(FEventCollideTime);
+
+  FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
+  AddEvent(FEventIsActive);
+
+  FFdProxy := TSFNode.Create(Self, False, 'proxy', [TAbstractChildNode]);
+   FdProxy.ChangeAlways := chEverything;
+  AddField(FFdProxy);
 end;
 
 {$endif read_implementation}

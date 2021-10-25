@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,23 +20,7 @@
   { Alter the shape of coordinate-based geometry within parent H-Anim nodes.
     For example, different HAnimDisplacer may be used for each facial expression. }
   THAnimDisplacerNode = class(TAbstractGeometricPropertyNode)
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdCoordIndex: TMFInt32;
-    public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
-
-    strict private FFdDisplacements: TMFVec3f;
-    public property FdDisplacements: TMFVec3f read FFdDisplacements;
-
-    strict private FFdName: TSFString;
-    public property FdName: TSFString read FFdName;
-
-    strict private FFdWeight: TSFFloat;
-    public property FdWeight: TSFFloat read FFdWeight;
-
-    {$I auto_generated_node_helpers/x3dnodes_hanimdisplacer.inc}
+  {$I auto_generated_node_helpers/x3dnodes_hanimdisplacer.inc}
   end;
 
   THAnimJointNode = class;
@@ -74,64 +58,8 @@
     procedure ParseAfter(Reader: TX3DReaderNames); override;
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
-    procedure CreateNode; override;
     destructor Destroy; override;
-    class function ClassX3DType: string; override;
     function TransformationChange: TNodeTransformationChange; override;
-
-    strict private FFdCenter: TSFVec3f;
-    public property FdCenter: TSFVec3f read FFdCenter;
-
-    strict private FFdInfo: TMFString;
-    public property FdInfo: TMFString read FFdInfo;
-
-    strict private FFdJoints: TMFNode;
-    public property FdJoints: TMFNode read FFdJoints;
-
-    strict private FFdName: TSFString;
-    public property FdName: TSFString read FFdName;
-
-    strict private FFdRotation: TSFRotation;
-    public property FdRotation: TSFRotation read FFdRotation;
-
-    strict private FFdScale: TSFVec3f;
-    public property FdScale: TSFVec3f read FFdScale;
-
-    strict private FFdScaleOrientation: TSFRotation;
-    public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
-
-    strict private FFdSegments: TMFNode;
-    public property FdSegments: TMFNode read FFdSegments;
-
-    strict private FFdSites: TMFNode;
-    public property FdSites: TMFNode read FFdSites;
-
-    strict private FFdSkeleton: TMFNode;
-    public property FdSkeleton: TMFNode read FFdSkeleton;
-
-    strict private FFdSkin: TMFNode;
-    public property FdSkin: TMFNode read FFdSkin;
-
-    strict private FFdSkinCoord: TSFNode;
-    public property FdSkinCoord: TSFNode read FFdSkinCoord;
-
-    strict private FFdSkinNormal: TSFNode;
-    public property FdSkinNormal: TSFNode read FFdSkinNormal;
-
-    strict private FFdTranslation: TSFVec3f;
-    public property FdTranslation: TSFVec3f read FFdTranslation;
-
-    strict private FFdVersion: TSFString;
-    public property FdVersion: TSFString read FFdVersion;
-
-    strict private FFdViewpoints: TMFNode;
-    public property FdViewpoints: TMFNode read FFdViewpoints;
-
-    strict private FFdBboxCenter: TSFVec3f;
-    public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
-
-    strict private FFdBboxSize: TSFVec3f;
-    public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
     { Change the skin (in skinCoord), to follow the animation of joints.
       Joints that changed are assumed to be already traversed by TX3DNode.Traverse
@@ -144,7 +72,7 @@
       TCastleSceneCore initialization, when there's no point in notifying about this). }
     function AnimateSkin: TMFVec3f;
 
-    {$I auto_generated_node_helpers/x3dnodes_hanimhumanoid.inc}
+  {$I auto_generated_node_helpers/x3dnodes_hanimhumanoid.inc}
   end;
 
   { Joint of an animated humanoid.
@@ -185,50 +113,9 @@
     procedure ParseAfter(Reader: TX3DReaderNames); override;
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
     function TransformationChange: TNodeTransformationChange; override;
 
-    strict private FFdCenter: TSFVec3f;
-    public property FdCenter: TSFVec3f read FFdCenter;
-
-    strict private FFdDisplacers: TMFNode;
-    public property FdDisplacers: TMFNode read FFdDisplacers;
-
-    strict private FFdLimitOrientation: TSFRotation;
-    public property FdLimitOrientation: TSFRotation read FFdLimitOrientation;
-
-    strict private FFdLlimit: TMFFloat;
-    public property FdLlimit: TMFFloat read FFdLlimit;
-
-    strict private FFdName: TSFString;
-    public property FdName: TSFString read FFdName;
-
-    strict private FFdRotation: TSFRotation;
-    public property FdRotation: TSFRotation read FFdRotation;
-
-    strict private FFdScale: TSFVec3f;
-    public property FdScale: TSFVec3f read FFdScale;
-
-    strict private FFdScaleOrientation: TSFRotation;
-    public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
-
-    strict private FFdSkinCoordIndex: TMFInt32;
-    public property FdSkinCoordIndex: TMFInt32 read FFdSkinCoordIndex;
-
-    strict private FFdSkinCoordWeight: TMFFloat;
-    public property FdSkinCoordWeight: TMFFloat read FFdSkinCoordWeight;
-
-    strict private FFdStiffness: TMFFloat;
-    public property FdStiffness: TMFFloat read FFdStiffness;
-
-    strict private FFdTranslation: TSFVec3f;
-    public property FdTranslation: TSFVec3f read FFdTranslation;
-
-    strict private FFdUlimit: TMFFloat;
-    public property FdUlimit: TMFFloat read FFdUlimit;
-
-    {$I auto_generated_node_helpers/x3dnodes_hanimjoint.inc}
+  {$I auto_generated_node_helpers/x3dnodes_hanimjoint.inc}
   end;
 
   { Visible segment of an animated humanoid,
@@ -250,44 +137,9 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
     function TransformationChange: TNodeTransformationChange; override;
 
-    strict private FFdCenterOfMass: TSFVec3f;
-    public property FdCenterOfMass: TSFVec3f read FFdCenterOfMass;
-
-    strict private FFdCoord: TSFNode;
-    public property FdCoord: TSFNode read FFdCoord;
-
-    strict private FFdDisplacers: TMFNode;
-    public property FdDisplacers: TMFNode read FFdDisplacers;
-
-    strict private FFdMass: TSFFloat;
-    public property FdMass: TSFFloat read FFdMass;
-
-    strict private FFdMomentsOfInertia: TMFFloat;
-    public property FdMomentsOfInertia: TMFFloat read FFdMomentsOfInertia;
-
-    strict private FFdName: TSFString;
-    public property FdName: TSFString read FFdName;
-
-    { Segment.rotation, scale, translation are extensions of Blaxxun
-      avatars, at least that's what
-      [http://tecfa.unige.ch/vrml/objects/avatars/blaxxun/]
-      suggests.
-      They are not conforming to HAnim 1.0 or 200x specification. }
-
-    strict private FFdRotation: TSFRotation;
-    public property FdRotation: TSFRotation read FFdRotation;
-
-    strict private FFdScale: TSFVec3f;
-    public property FdScale: TSFVec3f read FFdScale;
-
-    strict private FFdTranslation: TSFVec3f;
-    public property FdTranslation: TSFVec3f read FFdTranslation;
-
-    {$I auto_generated_node_helpers/x3dnodes_hanimsegment.inc}
+  {$I auto_generated_node_helpers/x3dnodes_hanimsegment.inc}
   end;
 
   { An attachment point of an animated humanoid,
@@ -309,60 +161,16 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
     function TransformationChange: TNodeTransformationChange; override;
 
-    strict private FFdCenter: TSFVec3f;
-    public property FdCenter: TSFVec3f read FFdCenter;
-
-    strict private FFdName: TSFString;
-    public property FdName: TSFString read FFdName;
-
-    strict private FFdRotation: TSFRotation;
-    public property FdRotation: TSFRotation read FFdRotation;
-
-    strict private FFdScale: TSFVec3f;
-    public property FdScale: TSFVec3f read FFdScale;
-
-    strict private FFdScaleOrientation: TSFRotation;
-    public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
-
-    strict private FFdTranslation: TSFVec3f;
-    public property FdTranslation: TSFVec3f read FFdTranslation;
-
-    {$I auto_generated_node_helpers/x3dnodes_hanimsite.inc}
+  {$I auto_generated_node_helpers/x3dnodes_hanimsite.inc}
   end;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-procedure THAnimDisplacerNode.CreateNode;
-begin
-  inherited;
-
-  FFdCoordIndex := TMFInt32.Create(Self, true, 'coordIndex', []);
-  AddField(FFdCoordIndex);
-  { X3D specification comment: [0,Inf) or -1 }
-
-  FFdDisplacements := TMFVec3f.Create(Self, true, 'displacements', []);
-  AddField(FFdDisplacements);
-
-  FFdName := TSFString.Create(Self, true, 'name', '');
-  AddField(FFdName);
-
-  FFdWeight := TSFFloat.Create(Self, true, 'weight', 0.0);
-  AddField(FFdWeight);
-  { X3D specification comment: (-Inf,Inf) }
-
-  DefaultContainerField := 'displacers';
-end;
-
-class function THAnimDisplacerNode.ClassX3DType: string;
-begin
-  Result := 'HAnimDisplacer';
-end;
+{ TVertexJoints -------------------------------------------------------------- }
 
 procedure TVertexJoints.Add(Joint: THAnimJointNode; const Weight: Single);
 begin
@@ -400,107 +208,17 @@ begin
   inherited;
   FTransformFunctionality := THAnimHumanoidNodeTransformFunctionality.Create(Self);
   AddFunctionality(FTransformFunctionality);
-end;
-
-procedure THAnimHumanoidNode.CreateNode;
-begin
-  inherited;
-
-  FFdCenter := TSFVec3f.Create(Self, true, 'center', Vector3(0, 0, 0));
-   FdCenter.ChangeAlways := chTransform;
-  AddField(FFdCenter);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdInfo := TMFString.Create(Self, true, 'info', []);
-  AddField(FFdInfo);
-
-  FFdJoints := TMFNode.Create(Self, true, 'joints', [THAnimJointNode]);
-  AddField(FFdJoints);
-
-  FFdName := TSFString.Create(Self, true, 'name', '');
-  AddField(FFdName);
-
-  FFdRotation := TSFRotation.Create(Self, true, 'rotation', Vector3(0, 0, 1), 0);
-   FdRotation.ChangeAlways := chTransform;
-  AddField(FFdRotation);
-  { X3D specification comment: (-Inf,Inf)|[-1,1] }
-
-  FFdScale := TSFVec3f.Create(Self, true, 'scale', Vector3(1, 1, 1));
-   FdScale.ChangeAlways := chTransform;
-  AddField(FFdScale);
-  { X3D specification comment: (0,Inf) }
-
-  FFdScaleOrientation := TSFRotation.Create(Self, true, 'scaleOrientation', Vector3(0, 0, 1), 0);
-   FdScaleOrientation.ChangeAlways := chTransform;
-  AddField(FFdScaleOrientation);
-  { X3D specification comment: (-Inf,Inf)|[-1,1] }
-
-  FFdSegments := TMFNode.Create(Self, true, 'segments', [THAnimSegmentNode]);
-  AddField(FFdSegments);
-
-  FFdSites := TMFNode.Create(Self, true, 'sites', [THAnimSiteNode]);
-  AddField(FFdSites);
-
-  FFdSkeleton := TMFNode.Create(Self, true, 'skeleton', [THAnimJointNode, THAnimSiteNode]);
-  AddField(FFdSkeleton);
 
   { HAnim 1.1 specification uses "humanoidBody" instead of "skeleton",
     also HAnim 200x specification examples show usage of this (although
     HAnim 200x specs talks only about "skeleton"). }
   Fdskeleton.AddAlternativeName('humanoidBody', 0);
-
-  FFdSkin := TMFNode.Create(Self, true, 'skin', [TAbstractChildNode]);
-  AddField(FFdSkin);
-
-  FFdSkinCoord := TSFNode.Create(Self, true, 'skinCoord', [TAbstractCoordinateNode]);
-  AddField(FFdSkinCoord);
-
-  FFdSkinNormal := TSFNode.Create(Self, true, 'skinNormal', [TAbstractNormalNode]);
-  AddField(FFdSkinNormal);
-
-  FFdTranslation := TSFVec3f.Create(Self, true, 'translation', Vector3(0, 0, 0));
-   FdTranslation.ChangeAlways := chTransform;
-  AddField(FFdTranslation);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdVersion := TSFString.Create(Self, true, 'version', '');
-  AddField(FFdVersion);
-
-  FFdViewpoints := TMFNode.Create(Self, true, 'viewpoints', [
-    { X3D specificaion indicates that THAnimSiteNode is allowed here,
-      but textual description in HAnim specification indicates that
-      it's an error: viewpoints should be allowed here.
-      Confirmed by testing models from
-      http://www.web3d.org/x3d/content/examples/Basic/HumanoidAnimation/
-
-      To be on the safest side, I allow both THAnimSiteNode and viewpoint
-      classes.  }
-    THAnimSiteNode,
-    TAbstractViewpointNode,
-    TViewpointGroupNode
-  ]);
-  AddField(FFdViewpoints);
-
-  FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', Vector3(0, 0, 0));
-  AddField(FFdBboxCenter);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdBboxSize := TSFVec3f.Create(Self, false, 'bboxSize', Vector3(-1, -1, -1));
-  AddField(FFdBboxSize);
-  { X3D specification comment: [0,Inf) or -1 -1 -1 }
-
-  DefaultContainerField := 'children';
 end;
 
 destructor THAnimHumanoidNode.Destroy;
 begin
   FreeAndNil(VertexJoints);
   inherited;
-end;
-
-class function THAnimHumanoidNode.ClassX3DType: string;
-begin
-  Result := 'HAnimHumanoid';
 end;
 
 function THAnimHumanoidNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -743,73 +461,7 @@ begin
   inherited;
   FTransformFunctionality := THAnimJointNodeTransformFunctionality.Create(Self);
   AddFunctionality(FTransformFunctionality);
-end;
-
-procedure THAnimJointNode.CreateNode;
-begin
-  inherited;
-
-  FFdCenter := TSFVec3f.Create(Self, true, 'center', Vector3(0, 0, 0));
-   FdCenter.ChangeAlways := chTransform;
-  AddField(FFdCenter);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdDisplacers := TMFNode.Create(Self, true, 'displacers', [THAnimDisplacerNode]);
-  AddField(FFdDisplacers);
-
-  FFdLimitOrientation := TSFRotation.Create(Self, true, 'limitOrientation', Vector3(0, 0, 1), 0);
-  AddField(FFdLimitOrientation);
-  { X3D specification comment: (-Inf,Inf)|[-1,1] }
-
-  FFdLlimit := TMFFloat.Create(Self, true, 'llimit', []);
-  AddField(FFdLlimit);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdName := TSFString.Create(Self, true, 'name', '');
-  AddField(FFdName);
-
-  FFdRotation := TSFRotation.Create(Self, true, 'rotation', Vector3(0, 0, 1), 0);
-   FdRotation.ChangeAlways := chTransform;
-  AddField(FFdRotation);
-  { X3D specification comment: (-Inf,Inf)|[-1,1] }
-
-  FFdScale := TSFVec3f.Create(Self, true, 'scale', Vector3(1, 1, 1));
-   FdScale.ChangeAlways := chTransform;
-  AddField(FFdScale);
-  { X3D specification comment: (0,Inf) }
-
-  FFdScaleOrientation := TSFRotation.Create(Self, true, 'scaleOrientation', Vector3(0, 0, 1), 0);
-   FdScaleOrientation.ChangeAlways := chTransform;
-  AddField(FFdScaleOrientation);
-  { X3D specification comment: (-Inf,Inf)|[-1,1] }
-
-  FFdSkinCoordIndex := TMFInt32.Create(Self, true, 'skinCoordIndex', []);
-  AddField(FFdSkinCoordIndex);
-
-  FFdSkinCoordWeight := TMFFloat.Create(Self, true, 'skinCoordWeight', []);
-  AddField(FFdSkinCoordWeight);
-
-  FFdStiffness := TMFFloat.Create(Self, true, 'stiffness', [0, 0, 0]);
-  AddField(FFdStiffness);
-  { X3D specification comment: [0,1] }
-
-  FFdTranslation := TSFVec3f.Create(Self, true, 'translation', Vector3(0, 0, 0));
-   FdTranslation.ChangeAlways := chTransform;
-  AddField(FFdTranslation);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdUlimit := TMFFloat.Create(Self, true, 'ulimit', []);
-  AddField(FFdUlimit);
-  { X3D specification comment: (-Inf,Inf) }
-
-  DefaultContainerField := 'children';
-
   AnimateSkinTransform := TMatrix4.Identity;
-end;
-
-class function THAnimJointNode.ClassX3DType: string;
-begin
-  Result := 'HAnimJoint';
 end;
 
 function THAnimJointNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -860,54 +512,6 @@ begin
   AddFunctionality(FTransformFunctionality);
 end;
 
-procedure THAnimSegmentNode.CreateNode;
-begin
-  inherited;
-
-  FFdCenterOfMass := TSFVec3f.Create(Self, true, 'centerOfMass', Vector3(0, 0, 0));
-  AddField(FFdCenterOfMass);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdCoord := TSFNode.Create(Self, true, 'coord', [TAbstractCoordinateNode]);
-  AddField(FFdCoord);
-
-  FFdDisplacers := TMFNode.Create(Self, true, 'displacers', [THAnimDisplacerNode]);
-  AddField(FFdDisplacers);
-
-  FFdMass := TSFFloat.Create(Self, true, 'mass', 0);
-  AddField(FFdMass);
-  { X3D specification comment: [0,Inf) }
-
-  FFdMomentsOfInertia := TMFFloat.Create(Self, true, 'momentsOfInertia', [0, 0, 0, 0, 0, 0, 0, 0, 0]);
-  AddField(FFdMomentsOfInertia);
-  { X3D specification comment: [0,Inf) }
-
-  FFdName := TSFString.Create(Self, true, 'name', '');
-  AddField(FFdName);
-
-  FFdRotation := TSFRotation.Create(Self, true, 'rotation', Vector3(0, 0, 1), 0);
-   FdRotation.ChangeAlways := chTransform;
-  AddField(FFdRotation);
-  { X3D specification comment: [-1,1] or (-Inf,Inf) }
-
-  FFdScale := TSFVec3f.Create(Self, true, 'scale', Vector3(1, 1, 1));
-   FdScale.ChangeAlways := chTransform;
-  AddField(FFdScale);
-  { X3D specification comment: (-Inf, Inf) }
-
-  FFdTranslation := TSFVec3f.Create(Self, true, 'translation', Vector3(0, 0, 0));
-   FdTranslation.ChangeAlways := chTransform;
-  AddField(FFdTranslation);
-  { X3D specification comment: (-Inf,Inf) }
-
-  DefaultContainerField := 'children';
-end;
-
-class function THAnimSegmentNode.ClassX3DType: string;
-begin
-  Result := 'HAnimSegment';
-end;
-
 function THAnimSegmentNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   Result := FdChildren.Enumerate(Func);
@@ -945,46 +549,6 @@ begin
   inherited;
   FTransformFunctionality := THAnimSiteNodeTransformFunctionality.Create(Self);
   AddFunctionality(FTransformFunctionality);
-end;
-
-procedure THAnimSiteNode.CreateNode;
-begin
-  inherited;
-
-  FFdCenter := TSFVec3f.Create(Self, true, 'center', Vector3(0, 0, 0));
-   FdCenter.ChangeAlways := chTransform;
-  AddField(FFdCenter);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdName := TSFString.Create(Self, true, 'name', '');
-  AddField(FFdName);
-
-  FFdRotation := TSFRotation.Create(Self, true, 'rotation', Vector3(0, 0, 1), 0);
-   FdRotation.ChangeAlways := chTransform;
-  AddField(FFdRotation);
-  { X3D specification comment: (-Inf,Inf)|[-1,1] }
-
-  FFdScale := TSFVec3f.Create(Self, true, 'scale', Vector3(1, 1, 1));
-   FdScale.ChangeAlways := chTransform;
-  AddField(FFdScale);
-  { X3D specification comment: (0,Inf) }
-
-  FFdScaleOrientation := TSFRotation.Create(Self, true, 'scaleOrientation', Vector3(0, 0, 1), 0);
-   FdScaleOrientation.ChangeAlways := chTransform;
-  AddField(FFdScaleOrientation);
-  { X3D specification comment: (-Inf,Inf)|[-1,1] }
-
-  FFdTranslation := TSFVec3f.Create(Self, true, 'translation', Vector3(0, 0, 0));
-   FdTranslation.ChangeAlways := chTransform;
-  AddField(FFdTranslation);
-  { X3D specification comment: (-Inf,Inf)|[-1,1] }
-
-  DefaultContainerField := 'children';
-end;
-
-class function THAnimSiteNode.ClassX3DType: string;
-begin
-  Result := 'HAnimSite';
 end;
 
 function THAnimSiteNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;

@@ -26,6 +26,12 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdTexture: TMFNode;
+    { X3D field "texture". } { }
+    public property FdTexture: TMFNode read FFdTexture;
     { Set X3D field "texture". } { }
     procedure SetTexture(const Value: array of TAbstractTexture2DNode);
 
@@ -45,6 +51,20 @@ begin
   if L > 0 then
     Move(Value[0], A[0], L * SizeOf(TAbstractTexture2DNode));
   FdTexture.Send(A);
+end;
+
+class function TComposedTexture3DNode.ClassX3DType: String;
+begin
+  Result := 'ComposedTexture3D';
+end;
+
+procedure TComposedTexture3DNode.CreateNode;
+begin
+  inherited;
+
+  FFdTexture := TMFNode.Create(Self, True, 'texture', [TAbstractTexture2DNode]);
+   FdTexture.ChangeAlways := chTextureImage;
+  AddField(FFdTexture);
 end;
 
 {$endif read_implementation}

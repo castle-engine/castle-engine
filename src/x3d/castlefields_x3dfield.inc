@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -42,6 +42,10 @@
     constructor Create;
     destructor Destroy; override;
   end;
+
+  TInputIgnoreEvent = function (
+    const Field: TX3DField; const Event: TX3DEvent;
+    const Value: TX3DField; const Time: TX3DTime): Boolean of object;
 
   { Base class for all VRML/X3D fields.
 
@@ -88,6 +92,11 @@
     function GetExposedEvents(InEvent: boolean): TX3DEvent;
     procedure SetExposedEventsLinked(const Value: boolean);
     function AbortAssignValue(const Source: TX3DField): Boolean;
+
+    { Handle exposed input event. Checks OnInputIgnore,
+      assigns value, sends an output event, notifies @link(Changed). }
+    procedure ExposedEventReceive(Event: TX3DEvent; Value: TX3DField;
+      const Time: TX3DTime);
   private
     type
       { Tracking of fading-in/out animation state on this particular field. }
@@ -205,18 +214,9 @@
       E.g. TSFTextureUpdate class, that wants to be fully compatible with normal
       TSFString. }
     class function ExposedEventsFieldClass: TX3DFieldClass; virtual;
-
-    { Handle exposed input event. In TX3DField class, this does everything
-      usually needed --- assigns value, sends an output event, notifies
-      @link(Changed).
-
-      You can override this for some special purposes. For special needs,
-      you do not even need to call @code(inherited) in overriden versions.
-      This is suitable e.g. for cases when TimeSensor.set_startTime or such
-      must be ignored. }
-    procedure ExposedEventReceive(Event: TX3DEvent; Value: TX3DField;
-      const Time: TX3DTime); virtual;
   public
+    OnInputIgnore: TInputIgnoreEvent;
+
     { Normal constructor.
 
       @italic(Descendants implementors notes:)
@@ -694,7 +694,11 @@ begin
   Assert(Event = FExposedEvents[true]);
   Assert(Value is ExposedEventsFieldClass);
 
-  if AbortAssignValue(Value) then Exit;
+  if Assigned(OnInputIgnore) and OnInputIgnore(Self, Event, Value, Time) then
+    Exit;
+
+  if AbortAssignValue(Value) then
+    Exit;
 
   { When not ValuePossiblyChanged, we don't have to call InternalChangedField.
     (Although we still have to call FExposedEvents[false].Send,

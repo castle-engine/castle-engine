@@ -47,30 +47,86 @@
     function GetNormalPerVertex: Boolean;
     procedure SetNormalPerVertex(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+{$ifndef CASTLE_SLIM_NODES}
+    strict private FFdAttrib: TMFNode;
+    { X3D field "attrib". } { }
+    public property FdAttrib: TMFNode read FFdAttrib;
+{$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "attrib". } { }
     procedure SetAttrib(const Value: array of TAbstractVertexAttributeNode);
 {$endif not CASTLE_SLIM_NODES}
+
+    strict private FFdColor: TSFNode;
+    { X3D field "color". } { }
+    public property FdColor: TSFNode read FFdColor;
     { X3D field "color". } { }
     property Color: TAbstractColorNode read GetColor write SetColor;
+
+    strict private FFdCoord: TSFNode;
+    { X3D field "coord". } { }
+    public property FdCoord: TSFNode read FFdCoord;
     { X3D field "coord". } { }
     property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
+
+{$ifndef CASTLE_SLIM_NODES}
+    strict private FFdFogCoord: TSFNode;
+    { X3D field "fogCoord". } { }
+    public property FdFogCoord: TSFNode read FFdFogCoord;
+{$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
     { X3D field "fogCoord". } { }
     property FogCoord: TFogCoordinateNode read GetFogCoord write SetFogCoord;
 {$endif not CASTLE_SLIM_NODES}
+
+    strict private FFdNormal: TSFNode;
+    { X3D field "normal". } { }
+    public property FdNormal: TSFNode read FFdNormal;
     { X3D field "normal". } { }
     property Normal: TAbstractNormalNode read GetNormal write SetNormal;
+
+    strict private FFdTangent: TSFNode;
+    { X3D field "tangent". } { }
+    public property FdTangent: TSFNode read FFdTangent;
     { X3D field "tangent". } { }
     property Tangent: TTangentNode read GetTangent write SetTangent;
+
+    strict private FFdTexCoord: TSFNode;
+    { X3D field "texCoord". } { }
+    public property FdTexCoord: TSFNode read FFdTexCoord;
     { X3D field "texCoord". } { }
     property TexCoord: TAbstractTextureCoordinateNode read GetTexCoord write SetTexCoord;
+
+    strict private FFdCcw: TSFBool;
+    { X3D field "ccw". } { }
+    public property FdCcw: TSFBool read FFdCcw;
     { X3D field "ccw". } { }
     property Ccw: Boolean read GetCcw write SetCcw;
+
+    strict private FFdColorPerVertex: TSFBool;
+    { X3D field "colorPerVertex". } { }
+    public property FdColorPerVertex: TSFBool read FFdColorPerVertex;
     { X3D field "colorPerVertex". } { }
     property ColorPerVertex: Boolean read GetColorPerVertex write SetColorPerVertex;
+
+    strict private FFdNormalPerVertex: TSFBool;
+    { X3D field "normalPerVertex". } { }
+    public property FdNormalPerVertex: TSFBool read FFdNormalPerVertex;
     { X3D field "normalPerVertex". } { }
     property NormalPerVertex: Boolean read GetNormalPerVertex write SetNormalPerVertex;
+
+    strict private FFdSolid: TSFBool;
+    { X3D field "solid". } { }
+    public property FdSolid: TSFBool read FFdSolid;
+
+{$ifndef CASTLE_SLIM_NODES}
+    strict private FFdRadianceTransfer: TMFVec3f;
+    { X3D field "radianceTransfer". } { }
+    public property FdRadianceTransfer: TMFVec3f read FFdRadianceTransfer;
+{$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "radianceTransfer". } { }
     procedure SetRadianceTransfer(const Value: array of TVector3);
@@ -224,4 +280,68 @@ begin
 end;
 
 {$endif not CASTLE_SLIM_NODES}
+class function TAbstractComposedGeometryNode.ClassX3DType: String;
+begin
+  Result := 'X3DComposedGeometryNode';
+end;
+
+procedure TAbstractComposedGeometryNode.CreateNode;
+begin
+  inherited;
+
+{$ifndef CASTLE_SLIM_NODES}
+  FFdAttrib := TMFNode.Create(Self, True, 'attrib', [TAbstractVertexAttributeNode]);
+   FdAttrib.ChangeAlways := chGeometry;
+  AddField(FFdAttrib);
+{$endif not CASTLE_SLIM_NODES}
+
+  FFdColor := TSFNode.Create(Self, True, 'color', [TAbstractColorNode]);
+   FdColor.ChangeAlways := chGeometry;
+  AddField(FFdColor);
+
+  FFdCoord := TSFNode.Create(Self, True, 'coord', [TAbstractCoordinateNode]);
+   FdCoord.ChangeAlways := chGeometry;
+  AddField(FFdCoord);
+
+{$ifndef CASTLE_SLIM_NODES}
+  FFdFogCoord := TSFNode.Create(Self, True, 'fogCoord', [TFogCoordinateNode]);
+   FdFogCoord.ChangeAlways := chGeometry;
+  AddField(FFdFogCoord);
+{$endif not CASTLE_SLIM_NODES}
+
+  FFdNormal := TSFNode.Create(Self, True, 'normal', [TAbstractNormalNode]);
+   FdNormal.ChangeAlways := chGeometry;
+  AddField(FFdNormal);
+
+  FFdTangent := TSFNode.Create(Self, True, 'tangent', [TTangentNode]);
+   FdTangent.ChangeAlways := chGeometry;
+  AddField(FFdTangent);
+
+  FFdTexCoord := TSFNode.Create(Self, True, 'texCoord', [TAbstractTextureCoordinateNode]);
+   FdTexCoord.ChangeAlways := chGeometry;
+  AddField(FFdTexCoord);
+
+  FFdCcw := TSFBool.Create(Self, False, 'ccw', true);
+   FdCcw.ChangeAlways := chGeometry;
+  AddField(FFdCcw);
+
+  FFdColorPerVertex := TSFBool.Create(Self, False, 'colorPerVertex', true);
+   FdColorPerVertex.ChangeAlways := chGeometry;
+  AddField(FFdColorPerVertex);
+
+  FFdNormalPerVertex := TSFBool.Create(Self, False, 'normalPerVertex', true);
+   FdNormalPerVertex.ChangeAlways := chGeometry;
+  AddField(FFdNormalPerVertex);
+
+  FFdSolid := TSFBool.Create(Self, False, 'solid', true);
+   FdSolid.ChangeAlways := chGeometry;
+  AddField(FFdSolid);
+
+{$ifndef CASTLE_SLIM_NODES}
+  FFdRadianceTransfer := TMFVec3f.Create(Self, True, 'radianceTransfer', []);
+   FdRadianceTransfer.ChangeAlways := chGeometry;
+  AddField(FFdRadianceTransfer);
+{$endif not CASTLE_SLIM_NODES}
+end;
+
 {$endif read_implementation}

@@ -22,11 +22,7 @@
   { Base class for most (but not all) nodes that can emit audio data.
     We may introduce TSoundSourceFunctionality is needed to express exactly X3DSoundSourceObject. }
   TAbstractSoundSourceNode = class(TAbstractTimeDependentNode)
-  public
-    { Pitch, corrected to always be > 0. }
-    function SafePitch: Single;
-
-    {$I auto_generated_node_helpers/x3dnodes_x3dsoundsourcenode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dsoundsourcenode.inc}
   end;
 
   { Buffer for sound data, which can be played by the @link(TSoundNode). }
@@ -44,13 +40,18 @@
     { Did we attempt loading Buffer. You still have to check Buffer <> 0 to know
       if it's successfully loaded. }
     property BufferLoaded: boolean read FBufferLoaded write SetBufferLoaded;
+    { Final length (in seconds) of this sound, adjusted by pitch.
+      See @link(TTimeDependentFunctionality.CycleInterval),
+      this must return the relevant value. }
+    function GetCycleInterval: TFloatTime;
+    { Pitch, corrected to always be > 0. }
+    function SafePitch: Single;
   protected
     procedure ParseAfter(Reader: TX3DReaderNames); override;
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     destructor Destroy; override;
-    function GetCycleInterval: TFloatTime; override;
 
     {$I auto_generated_node_helpers/x3dnodes_audioclip.inc}
   end;
@@ -82,20 +83,14 @@
 
 {$ifdef read_implementation}
 
-{ TAbstractSoundSourceNode --------------------------------------------------- }
-
-function TAbstractSoundSourceNode.SafePitch: Single;
-begin
-  Result := Pitch;
-  if Result <= 0 then
-    Result := 1; { assign default pitch in case of trouble }
-end;
-
 { TAudioClipNode ------------------------------------------------------------- }
 
 constructor TAudioClipNode.Create(const AX3DName: string; const ABaseUrl: string);
 begin
   inherited;
+
+  FTimeFunctionality.OnCycleInterval := {$ifdef CASTLE_OBJFPC}@{$endif} GetCycleInterval;
+
   PlayingSound := TCastlePlayingSoundSource.Create(nil);
   PlayingSound.Sound := TCastleSound.Create(PlayingSound);
 
@@ -142,6 +137,13 @@ begin
     BufferLoaded := true;
 end;
 
+function TAudioClipNode.SafePitch: Single;
+begin
+  Result := Pitch;
+  if Result <= 0 then
+    Result := 1; { assign default pitch in case of trouble }
+end;
+
 function TAudioClipNode.GetCycleInterval: TFloatTime;
 begin
   { Secure from invalid PlayingSound.Sound.Duration
@@ -171,7 +173,7 @@ procedure TAudioClipNode.UpdatePlaying;
 var
   SoundNode: TSoundNode;
 begin
-  if IsActive and not IsPaused then
+  if FTimeFunctionality.IsActive and (not FTimeFunctionality.IsPaused) then
   begin
     { if not playing, try to start playing }
     if not PlayingSound.Playing then

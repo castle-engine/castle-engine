@@ -211,6 +211,8 @@
   { Utility for setting and observing a boolean value in various ways. }
   TTogglerNode = class(TAbstractChildNode)
   strict private
+    function IgnoreWhenDisabled(const ChangingField: TX3DField; const Event: TX3DEvent;
+      const Value: TX3DField; const Time: TX3DTime): Boolean;
     procedure EventStatusReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
     procedure EventNotStatusReceive(
@@ -222,6 +224,7 @@
     procedure EventResetReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -923,39 +926,32 @@ begin
   Result := false;
 end;
 
-type
-  TSFBoolIgnorable = class(TSFBool)
-  strict protected
-    class function ExposedEventsFieldClass: TX3DFieldClass; override;
-    procedure ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
-      const Time: TX3DTime); override;
-  end;
+{ TTogglerNode --------------------------------------------------------------- }
 
-class function TSFBoolIgnorable.ExposedEventsFieldClass: TX3DFieldClass;
+constructor TTogglerNode.Create(const AX3DName, ABaseUrl: String);
 begin
-  Result := TSFBool;
+  inherited;
+  FdStatus.OnInputIgnore := {$ifdef CASTLE_OBJFPC}@{$endif} IgnoreWhenDisabled;
+  FdNotStatus.OnInputIgnore := {$ifdef CASTLE_OBJFPC}@{$endif} IgnoreWhenDisabled;
 end;
 
-procedure TSFBoolIgnorable.ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
-  const Time: TX3DTime);
+function TTogglerNode.IgnoreWhenDisabled(const ChangingField: TX3DField; const Event: TX3DEvent;
+  const Value: TX3DField; const Time: TX3DTime): Boolean;
 begin
   { This makes status and notStatus input events ignored,
     and output events not generated when enabled = FALSE. }
-  if (ParentNode <> nil) and
-     (not (ParentNode as TTogglerNode).FdEnabled.Value) then Exit;
-
-  inherited;
+  Result := not Enabled;
 end;
 
 procedure TTogglerNode.CreateNode;
 begin
   inherited;
 
-  FFdStatus := TSFBoolIgnorable.Create(Self, true, 'status', false);
+  FFdStatus := TSFBool.Create(Self, true, 'status', false);
    FdStatus.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventStatusReceive);
   AddField(FFdStatus);
 
-  FFdNotStatus := TSFBoolIgnorable.Create(Self, true, 'notStatus', true);
+  FFdNotStatus := TSFBool.Create(Self, true, 'notStatus', true);
    FdNotstatus.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventNotStatusReceive);
   AddField(FFdNotStatus);
 

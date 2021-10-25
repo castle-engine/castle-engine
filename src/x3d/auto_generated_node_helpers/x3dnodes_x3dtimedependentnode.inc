@@ -37,16 +37,50 @@
     function GetStopTime: TFloatTime;
     procedure SetStopTime(const Value: TFloatTime);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdLoop: TSFBool;
+    { X3D field "loop". } { }
+    public property FdLoop: TSFBool read FFdLoop;
     { X3D field "loop". } { }
     property Loop: Boolean read GetLoop write SetLoop;
+
+    strict private FFdPauseTime: TSFTime;
+    { X3D field "pauseTime". } { }
+    public property FdPauseTime: TSFTime read FFdPauseTime;
     { X3D field "pauseTime". } { }
     property PauseTime: TFloatTime read GetPauseTime write SetPauseTime;
+
+    strict private FFdResumeTime: TSFTime;
+    { X3D field "resumeTime". } { }
+    public property FdResumeTime: TSFTime read FFdResumeTime;
     { X3D field "resumeTime". } { }
     property ResumeTime: TFloatTime read GetResumeTime write SetResumeTime;
+
+    strict private FFdStartTime: TSFTime;
+    { X3D field "startTime". } { }
+    public property FdStartTime: TSFTime read FFdStartTime;
     { X3D field "startTime". } { }
     property StartTime: TFloatTime read GetStartTime write SetStartTime;
+
+    strict private FFdStopTime: TSFTime;
+    { X3D field "stopTime". } { }
+    public property FdStopTime: TSFTime read FFdStopTime;
     { X3D field "stopTime". } { }
     property StopTime: TFloatTime read GetStopTime write SetStopTime;
+
+    strict private FEventElapsedTime: TSFTimeEvent;
+    { X3D out event "elapsedTime". } { }
+    public property EventElapsedTime: TSFTimeEvent read FEventElapsedTime;
+
+    strict private FEventIsActive: TSFBoolEvent;
+    { X3D out event "isActive". } { }
+    public property EventIsActive: TSFBoolEvent read FEventIsActive;
+
+    strict private FEventIsPaused: TSFBoolEvent;
+    { X3D out event "isPaused". } { }
+    public property EventIsPaused: TSFBoolEvent read FEventIsPaused;
 
 {$endif read_interface}
 
@@ -102,6 +136,45 @@ end;
 procedure TAbstractTimeDependentNode.SetStopTime(const Value: TFloatTime);
 begin
   FdStopTime.Send(Value);
+end;
+
+class function TAbstractTimeDependentNode.ClassX3DType: String;
+begin
+  Result := 'X3DTimeDependentNode';
+end;
+
+procedure TAbstractTimeDependentNode.CreateNode;
+begin
+  inherited;
+
+  FFdLoop := TSFBool.Create(Self, True, 'loop', false);
+   FdLoop.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdLoop);
+
+  FFdPauseTime := TSFTime.Create(Self, True, 'pauseTime', 0);
+   FdPauseTime.ChangeAlways := chTimeStopStart;
+  AddField(FFdPauseTime);
+
+  FFdResumeTime := TSFTime.Create(Self, True, 'resumeTime', 0);
+   FdResumeTime.ChangeAlways := chTimeStopStart;
+  AddField(FFdResumeTime);
+
+  FFdStartTime := TSFTime.Create(Self, True, 'startTime', 0);
+   FdStartTime.ChangeAlways := chTimeStopStart;
+  AddField(FFdStartTime);
+
+  FFdStopTime := TSFTime.Create(Self, True, 'stopTime', 0);
+   FdStopTime.ChangeAlways := chTimeStopStart;
+  AddField(FFdStopTime);
+
+  FEventElapsedTime := TSFTimeEvent.Create(Self, 'elapsedTime', false);
+  AddEvent(FEventElapsedTime);
+
+  FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
+  AddEvent(FEventIsActive);
+
+  FEventIsPaused := TSFBoolEvent.Create(Self, 'isPaused', false);
+  AddEvent(FEventIsPaused);
 end;
 
 {$endif read_implementation}

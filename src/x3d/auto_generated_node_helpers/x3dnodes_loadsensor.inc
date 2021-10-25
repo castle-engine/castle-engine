@@ -29,8 +29,30 @@
     function GetTimeOut: TFloatTime;
     procedure SetTimeOut(const Value: TFloatTime);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdTimeOut: TSFTime;
+    { X3D field "timeOut". } { }
+    public property FdTimeOut: TSFTime read FFdTimeOut;
     { X3D field "timeOut". } { }
     property TimeOut: TFloatTime read GetTimeOut write SetTimeOut;
+
+    strict private FFdWatchList: TMFNode;
+    { X3D field "watchList". } { }
+    public property FdWatchList: TMFNode read FFdWatchList;
+
+    strict private FEventIsLoaded: TSFBoolEvent;
+    { X3D out event "isLoaded". } { }
+    public property EventIsLoaded: TSFBoolEvent read FEventIsLoaded;
+
+    strict private FEventLoadTime: TSFTimeEvent;
+    { X3D out event "loadTime". } { }
+    public property EventLoadTime: TSFTimeEvent read FEventLoadTime;
+
+    strict private FEventProgress: TSFFloatEvent;
+    { X3D out event "progress". } { }
+    public property EventProgress: TSFFloatEvent read FEventProgress;
 
 {$endif read_interface}
 
@@ -46,6 +68,33 @@ end;
 procedure TLoadSensorNode.SetTimeOut(const Value: TFloatTime);
 begin
   FdTimeOut.Send(Value);
+end;
+
+class function TLoadSensorNode.ClassX3DType: String;
+begin
+  Result := 'LoadSensor';
+end;
+
+procedure TLoadSensorNode.CreateNode;
+begin
+  inherited;
+
+  FFdTimeOut := TSFTime.Create(Self, True, 'timeOut', 0);
+   FdTimeOut.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdTimeOut);
+
+  FFdWatchList := TMFNode.Create(Self, True, 'watchList', TUrlFunctionality);
+   FdWatchList.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdWatchList);
+
+  FEventIsLoaded := TSFBoolEvent.Create(Self, 'isLoaded', false);
+  AddEvent(FEventIsLoaded);
+
+  FEventLoadTime := TSFTimeEvent.Create(Self, 'loadTime', false);
+  AddEvent(FEventLoadTime);
+
+  FEventProgress := TSFFloatEvent.Create(Self, 'progress', false);
+  AddEvent(FEventProgress);
 end;
 
 {$endif read_implementation}

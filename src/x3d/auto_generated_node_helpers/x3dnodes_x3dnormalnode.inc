@@ -25,11 +25,26 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TAbstractNormalNode ----------------------------------------------- }
+
+class function TAbstractNormalNode.ClassX3DType: String;
+begin
+  Result := 'X3DNormalNode';
+end;
+
+procedure TAbstractNormalNode.CreateNode;
+begin
+  inherited;
+
+  DefaultContainerField := 'normal';
+end;
 
 {$endif read_implementation}

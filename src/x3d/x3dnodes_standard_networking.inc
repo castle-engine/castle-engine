@@ -16,10 +16,7 @@
 {$ifdef read_interface}
   { Basis for all sensors that generate events based on network activity. }
   TAbstractNetworkSensorNode = class(TAbstractSensorNode)
-  public
-    procedure CreateNode; override;
-
-    {$I auto_generated_node_helpers/x3dnodes_x3dnetworksensornode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dnetworksensornode.inc}
   end;
 
   { Functionality used by all nodes that contain data located on the World Wide Web.
@@ -36,18 +33,6 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdDescription: TSFString;
-    public property FdDescription: TSFString read FFdDescription;
-
-    strict private FFdParameter: TMFString;
-    public property FdParameter: TMFString read FFdParameter;
-
-    strict private FFdUrl: TMFString;
-    public property FdUrl: TMFString read FFdUrl;
-
     { Load the document, world and/or viewpoint referenced by this Anchor node.
 
       This iterates over url field, for each URL trying to load
@@ -100,7 +85,7 @@
       out NewViewpoint: TAbstractViewpointNode;
       CurrentRootNode: TX3DRootNode): boolean;
 
-    {$I auto_generated_node_helpers/x3dnodes_anchor.inc}
+  {$I auto_generated_node_helpers/x3dnodes_anchor.inc}
   end;
 
   { Embed another X3D scene into the current scene. }
@@ -131,20 +116,6 @@
     function DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode; override;
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdLoad: TSFBool;
-    public property FdLoad: TSFBool read FFdLoad;
-
-    strict private FFdUrl: TMFString;
-    public property FdUrl: TMFString read FFdUrl;
-
-    strict private FFdBboxCenter: TSFVec3f;
-    public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
-
-    strict private FFdBboxSize: TSFVec3f;
-    public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
     class function VRML1ChildrenSaveToStream: boolean; override;
 
@@ -190,86 +161,33 @@
       But it will always be enumerated by things like TX3DNode.EnumerateNodes. }
     property Inlined: TX3DRootNode read FInlined;
 
-    {$I auto_generated_node_helpers/x3dnodes_inline.inc}
+  {$I auto_generated_node_helpers/x3dnodes_inline.inc}
   end;
 
   { Embed another X3D scene into the current scene,
-    with explicit "load" control (VRML 97 version).
+    with additional output event when they are loaded (VRML 97 version).
 
-    Note that our TInlineNode conforms to the newer X3D standard,
-    and so it already has a @link(TInlineNode.Load) property.
     This node is implemented only for compatibility with VRML 97.
-    It has additional "children" output field. }
+    It has additional "children" output field.
+    See VRML 97 Amendment spec,
+    https://www.web3d.org/documents/specifications/14772-1/V2.1/index.html . }
   TInlineLoadControlNode = class(TInlineNode)
   protected
     procedure AfterLoadInlined; override;
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
 
-    { Event out } { }
-    strict private FEventChildren: TMFNodeEvent;
-    public property EventChildren: TMFNodeEvent read FEventChildren;
+  {$I auto_generated_node_helpers/x3dnodes_inlineloadcontrol.inc}
   end;
 
   { Monitors the progress and success of downloading URL elements over a network. }
   TLoadSensorNode = class(TAbstractNetworkSensorNode)
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdTimeOut: TSFTime;
-    public property FdTimeOut: TSFTime read FFdTimeOut;
-
-    strict private FFdWatchList: TMFNode;
-    public property FdWatchList: TMFNode read FFdWatchList;
-
-    { Event out } { }
-    strict private FEventIsLoaded: TSFBoolEvent;
-    public property EventIsLoaded: TSFBoolEvent read FEventIsLoaded;
-
-    { Event out } { }
-    strict private FEventLoadTime: TSFTimeEvent;
-    public property EventLoadTime: TSFTimeEvent read FEventLoadTime;
-
-    { Event out } { }
-    strict private FEventProgress: TSFFloatEvent;
-    public property EventProgress: TSFFloatEvent read FEventProgress;
-
-    {$I auto_generated_node_helpers/x3dnodes_loadsensor.inc}
+  {$I auto_generated_node_helpers/x3dnodes_loadsensor.inc}
   end;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TAbstractNetworkSensorNode.CreateNode;
-begin
-  inherited;
 
-  DefaultContainerField := 'children';
-end;
-
-procedure TAnchorNode.CreateNode;
-begin
-  inherited;
-
-  FFdDescription := TSFString.Create(Self, true, 'description', '');
-  AddField(FFdDescription);
-
-  FFdParameter := TMFString.Create(Self, true, 'parameter', []);
-  AddField(FFdParameter);
-
-  FFdUrl := TMFString.Create(Self, true, 'url', []);
-  AddField(FFdUrl);
-  { X3D specification comment: [url or urn] }
-
-  DefaultContainerField := 'children';
-end;
-
-class function TAnchorNode.ClassX3DType: string;
-begin
-  Result := 'Anchor';
-end;
+{ TAnchorNode ---------------------------------------------------------------- }
 
 function TAnchorNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 var
@@ -390,45 +308,21 @@ begin
   Result := false;
 end;
 
+{ TInlineNode ---------------------------------------------------------------- }
+
 constructor TInlineNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
   AddFunctionality(TUrlFunctionality.Create(Self));
-end;
 
-procedure TInlineNode.CreateNode;
-begin
-  inherited;
-
-  FFdLoad := TSFBool.Create(Self, true, 'load', true);
-   FdLoad.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventLoadReceive);
-  AddField(FFdLoad);
-
-  FFdUrl := TMFString.Create(Self, true, 'url', []);
-   FdUrl.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventUrlReceive);
-  AddField(FFdUrl);
-  { X3D specification comment: [url or urn] }
-
-  FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', Vector3(0, 0, 0));
-  AddField(FFdBboxCenter);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdBboxSize := TSFVec3f.Create(Self, false, 'bboxSize', Vector3(-1, -1, -1));
-  AddField(FFdBboxSize);
-  { X3D specification comment: [0,Inf) or -1 -1 -1 }
-
-  DefaultContainerField := 'children';
+  FdLoad.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventLoadReceive);
+  FdUrl.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventUrlReceive);
 
   { To allow inlined children (they are loaded as VRML 1.0 style children) }
   VRML1ChildrenAllowed := true;
   VRML1ChildrenParsingAllowed := false;
 
   FInlined := nil;
-end;
-
-class function TInlineNode.ClassX3DType: string;
-begin
-  Result := 'Inline';
 end;
 
 procedure TInlineNode.ParseAfter(Reader: TX3DReaderNames);
@@ -642,20 +536,7 @@ begin
   end;
 end;
 
-procedure TInlineLoadControlNode.CreateNode;
-begin
-  inherited;
-
-  FEventChildren := TMFNodeEvent.Create(Self, 'children', false);
-  AddEvent(FEventChildren);
-
-  FInlined := nil;
-end;
-
-class function TInlineLoadControlNode.ClassX3DType: string;
-begin
-  Result := 'InlineLoadControl';
-end;
+{ TInlineLoadControlNode ----------------------------------------------------- }
 
 procedure TInlineLoadControlNode.AfterLoadInlined;
 var
@@ -676,33 +557,6 @@ begin
       EventChildren.Send(ChildrenToSend, Scene.NextEventTime);
     finally FreeAndNil(ChildrenToSend) end;
   end;
-end;
-
-procedure TLoadSensorNode.CreateNode;
-begin
-  inherited;
-
-  FFdTimeOut := TSFTime.Create(Self, true, 'timeOut', 0);
-  AddField(FFdTimeOut);
-
-  FFdWatchList := TMFNode.Create(Self, true, 'watchList', TUrlFunctionality);
-  AddField(FFdWatchList);
-
-  FEventIsLoaded := TSFBoolEvent.Create(Self, 'isLoaded', false);
-  AddEvent(FEventIsLoaded);
-
-  FEventLoadTime := TSFTimeEvent.Create(Self, 'loadTime', false);
-  AddEvent(FEventLoadTime);
-
-  FEventProgress := TSFFloatEvent.Create(Self, 'progress', false);
-  AddEvent(FEventProgress);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TLoadSensorNode.ClassX3DType: string;
-begin
-  Result := 'LoadSensor';
 end;
 
 procedure RegisterNetworkingNodes;

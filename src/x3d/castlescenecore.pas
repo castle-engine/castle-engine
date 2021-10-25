@@ -3719,7 +3719,7 @@ function TChangedAllTraverser.Traverse(
     TraverseIntoChildren := false;
   end;
 
-  procedure HandleLOD(LODNode: TAbstractLODNode);
+  procedure HandleLOD(LODNode: TLODNode);
   var
     LODTree: TShapeTreeLOD;
     Traverser: TChangedAllTraverser;
@@ -3850,9 +3850,9 @@ begin
   begin
     HandleSwitch(TSwitchNode(Node));
   end else
-  if Node is TAbstractLODNode then
+  if Node is TLODNode then
   begin
-    HandleLOD(TAbstractLODNode(Node));
+    HandleLOD(TLODNode(Node));
   end else
   if Node.TransformFunctionality <> nil then
   begin
@@ -4394,7 +4394,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
     TraverseIntoChildren := false;
   end;
 
-  procedure HandleLOD(LODNode: TAbstractLODNode);
+  procedure HandleLOD(LODNode: TLODNode);
   var
     I: Integer;
     ShapeLOD: TShapeTreeLOD;
@@ -4537,7 +4537,7 @@ begin
   case Node.TransformationChange of
     ntcNone: ;
     ntcSwitch: HandleSwitch(TSwitchNode(Node));
-    ntcLOD: HandleLOD(TAbstractLODNode(Node));
+    ntcLOD: HandleLOD(TLODNode(Node));
     ntcTransform: HandleTransform(Node);
     ntcGeometry:
       begin

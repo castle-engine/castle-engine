@@ -473,6 +473,7 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_indexedtriangleset.inc}
 {$I auto_generated_node_helpers/x3dnodes_indexedtrianglestripset.inc}
 {$I auto_generated_node_helpers/x3dnodes_inline.inc}
+{$I auto_generated_node_helpers/x3dnodes_inlineloadcontrol.inc}
 {$I auto_generated_node_helpers/x3dnodes_integersequencer.inc}
 {$I auto_generated_node_helpers/x3dnodes_integertrigger.inc}
 {$I auto_generated_node_helpers/x3dnodes_kambiappearance.inc}

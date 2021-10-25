@@ -516,7 +516,6 @@ begin
       node, it also doesn't say it's not valid. Common sense says
       it's valid. }
     TInlineLoadControlNode,
-    TLODNode_2,
     //TMaterialNode,
     //TMovieTextureNode,
     TNavigationInfoNode,
