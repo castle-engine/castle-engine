@@ -51,6 +51,7 @@
     var
       FTransformFunctionality: THAnimHumanoidNodeTransformFunctionality;
       VertexJoints: TVertexJointsList;
+    procedure AddJoint(Node: TX3DNode);
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
@@ -308,7 +309,28 @@ begin
   inherited;
 end;
 
+procedure THAnimHumanoidNode.AddJoint(Node: TX3DNode);
+begin
+  FdJoints.Add(Node);
+end;
+
 procedure THAnimHumanoidNode.ParseAfter(Reader: TX3DReaderNames);
+
+  { It is a common mistake to leave HAnimHumanoid.joints empty,
+    which means that CGE would not animate humanoid at all (contrary to other
+    X3D browsers that don't rely on "joints").
+    So we fix the HAnimHumanoid.joints list. }
+  procedure CalculateJoints;
+  begin
+    if FdJoints.Count = 0 then
+    begin
+      EnumerateNodes(THAnimJointNode, {$ifdef CASTLE_OBJFPC}@{$endif} AddJoint, false);
+      if FdJoints.Count <> 0 then
+        WritelnWarning('HAnimHumanoid.joints list was empty, fixed to list all %d joints', [
+          FdJoints.Count
+        ]);
+    end;
+  end;
 
   procedure CalculateVertexJoints;
   var
@@ -361,6 +383,7 @@ procedure THAnimHumanoidNode.ParseAfter(Reader: TX3DReaderNames);
 
 begin
   inherited;
+  CalculateJoints;
   CalculateVertexJoints;
 end;
 

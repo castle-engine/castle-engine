@@ -263,7 +263,7 @@
     function ParseNodeBodyElement(Lexer: TX3DLexer; Reader: TX3DReaderNames;
       const APositionInParent: Integer): boolean; virtual;
 
-    { Called at the end of parsing (in both classic and XML encoding). }
+    { Called at the end of parsing this node (including children) in any encoding. }
     procedure ParseAfter(Reader: TX3DReaderNames); virtual;
 
     procedure CreateNode; virtual;
