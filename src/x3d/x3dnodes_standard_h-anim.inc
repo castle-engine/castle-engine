@@ -414,10 +414,10 @@ begin
   Parent.AnimateSkinTransform := State.HumanoidTransformation.Transform;
 
   { animate centers of children joints }
-  for I := 0 to FdChildren.Count - 1 do
-    if FdChildren[I] is THAnimJointNode then
+  for I := 0 to Parent.FdChildren.Count - 1 do
+    if Parent.FdChildren[I] is THAnimJointNode then
     begin
-      ChildJoint := THAnimJointNode(FdChildren[I]);
+      ChildJoint := THAnimJointNode(Parent.FdChildren[I]);
 
       { TODO: it's very hacky to update ChildJoint.FdCenter this way.
         The cleaner way would be to just
