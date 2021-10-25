@@ -258,7 +258,7 @@ begin
     {$else}
 
     {$ifdef DCC}
-    'Delphi'
+    'Delphi ' + FloatToStr(CompilerVersion)
     {$else}
 
     {$ifdef __GPC__}
@@ -272,15 +272,16 @@ end;
 
 function SPlatformDescription: String;
 begin
-  Result := PlatformToStr(Platform);
-  {$ifdef FPC}
-  Result +=
+  Result := PlatformToStr(Platform) +
+    {$ifdef FPC}
     ', OS: ' + {$I %FPCTARGETOS%} +
     ', CPU: ' + {$I %FPCTARGETCPU%} +
+    {$else}
+    ', OS Version: ' + TOSVersion.ToString +
+    {$endif}
     { Clearly stating CPU bits is more obvious in some cases.
       E.g. this avoids the question "what does Arm mean, is it 32-bit or 64-bit Arm?". }
-    ' (' + IntToStr(SizeOf(Pointer) * 8) + '-bit)';
-  {$endif}
+    ' (this exe is using ' + IntToStr(SizeOf(Pointer) * 8) + '-bit architecture)';
 end;
 
 function SCastleEngineProgramHelpSuffix(const AppName, AppVersion: String; const Ignored: Boolean): String;
