@@ -1185,7 +1185,8 @@ begin
         OutputPublicInterface +=
           Field.ConditionsBegin +
           '    { Set X3D field "' + Field.X3DName + '". } { }' + NL +
-          '    procedure Set' + Field.PascalName + '(const Value: ' + SetterType + ');' + NL +
+          '    procedure Set' + Field.PascalName + '(const Value: ' + SetterType + ');' +
+          Iff(SetterTypes.Count > 1,' overload;', '')  + NL + // Delphi need overload when we have more than one setter wit hte same name
           Field.ConditionsEnd;
         OutputImplementation +=
           Field.ConditionsBegin +
