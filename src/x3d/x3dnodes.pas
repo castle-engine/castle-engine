@@ -161,7 +161,7 @@ unit X3DNodes;
 
 interface
 
-uses SysUtils, Generics.Collections, Classes, XMLRead, DOM,
+uses SysUtils, Generics.Collections, Classes{$ifndef FPC}, Rtti{$endif}, XMLRead, DOM,
   CastleVectors, CastleRectangles, CastleTimeUtils, CastleFonts,
   CastleInternalX3DLexer, CastleUtils, CastleClassUtils,
   X3DFields, CastleBoxes, CastleImages, CastleColors, CastleCameras,
@@ -730,7 +730,10 @@ initialization
   RegisterLightingNodes;
   RegisterTexturingNodes;
   RegisterInterpolationNodes;
+  // TODO: Delphi support
+  {$ifdef FPC}
   RegisterInterpolationCubicBezierNodes;
+  {$endif}
   RegisterPointingDeviceSensorNodes;
   RegisterKeyDeviceSensorNodes;
   RegisterEnvironmentalSensorNodes;

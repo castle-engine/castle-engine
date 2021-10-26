@@ -65,7 +65,13 @@ type
 
   { List of strings. This is a slightly extended version of standard TStringList.
     The default CaseSensitive value is @true. }
-  TCastleStringList = class(TStringList)
+  TCastleStringList = class(TStringList{$ifndef FPC}, ICastleItemList<String, TStringList>{$endif})
+  {$ifndef FPC}
+  strict private
+    function _AddRef: Integer; stdcall;
+    function _Release: Integer; stdcall;
+    function QueryInterface(const IID: TGUID; out Obj): Hresult; virtual; stdcall;
+  {$endif}
   private
     procedure SetCount(const Value: Integer);
     function GetL(const Index: Integer): string;
@@ -77,6 +83,12 @@ type
   public
     constructor Create;
     property Count: Integer read GetCount write SetCount;
+
+    {$ifndef FPC}
+    procedure AddSubRange(Source: TStringList; Index, AddCount: Integer);
+    procedure AssignLerp(const Fraction: Single;
+      V1, V2: TStringList; Index1, Index2, ACount: Integer);
+    {$endif}
 
     { Add strings from Source list.
       Alias for AddStrings, useful for usage with macros,
@@ -116,6 +128,11 @@ type
 
     { Reverse the order of items on the array. }
     procedure Reverse;
+
+    {$ifndef FPC}
+    function InternalGetItem(const Index: Integer): string;
+    function GetInternalItems: TStringList;
+    {$endif}
 
     { Access strings. This is exactly equivalent to just using standard
       TStringList.Strings property, and is useful only for implementing macros
@@ -1072,6 +1089,25 @@ begin
   end;
 end;
 
+{$ifndef FPC}
+procedure TCastleStringList.AddSubRange(Source: TStringList; Index, AddCount: Integer);
+var
+  I: Integer;
+begin
+  for I := Index to Index + AddCount do
+  begin
+    Add(Source[I]);
+  end;
+end;
+
+procedure TCastleStringList.AssignLerp(const Fraction: Single;
+      V1, V2: TStringList; Index1, Index2, ACount: Integer);
+begin
+  raise Exception.Create('Can''t AssignLerp on TCastleStringList');
+end;
+
+{$endif}
+
 procedure TCastleStringList.AddRange(const Source: TStrings);
 begin
   AddStrings(Source);
@@ -1170,6 +1206,38 @@ procedure TCastleStringList.SetL(const Index: Integer; const S: string);
 begin
   Strings[Index] := S;
 end;
+
+{$ifndef FPC}
+
+function TCastleStringList._AddRef: Integer;
+begin
+  Result := -1;
+end;
+
+function TCastleStringList._Release: Integer;
+begin
+  Result := -1;
+end;
+
+function TCastleStringList.QueryInterface(const IID: TGUID; out Obj): Hresult;
+begin
+  if GetInterface(IID, Obj) then
+    Result := S_OK
+  else
+    Result := E_NOINTERFACE;
+end;
+
+function TCastleStringList.InternalGetItem(const Index: Integer): string;
+begin
+  Result := GetL(Index);
+end;
+
+function TCastleStringList.GetInternalItems: TStringList;
+begin
+  Result := Self;
+end;
+
+{$endif}
 
 { TStringStringMap ----------------------------------------------------------- }
 

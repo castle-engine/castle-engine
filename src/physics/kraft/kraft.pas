@@ -141,9 +141,9 @@ unit kraft;
     kraft.s:86938: Info:    	fadd s0,s0,s1
     kraft.pas(33101) Error: Error while assembling exitcode 1
 }
-{$if defined(VER3_3) and (defined(DARWIN) or defined(CPUARM) or defined(CPUAARCH64))}
+{$if defined(FPC) and defined(VER3_3) and (defined(DARWIN) or defined(CPUARM) or defined(CPUAARCH64))}
   {$undef caninline}
-{$endif}
+{$ifend}
 
 {-$define UseMoreCollisionGroups}
 

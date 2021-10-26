@@ -172,7 +172,7 @@ procedure TDrawOrderTimelineList.Parse(const Json: TJSONArray; const Slots: TSlo
     I, J, LastUnchangedDrawOrder, FollowingUnchangedDrawOrder,
       FirstChanged, LastChanged, NextUnchangedSlot: Integer;
     SlotsOrdered, SlotsUnchanged: TSlotList;
-    SlotByDrawOrderPair: TSlotsByDrawOrder.TDictionaryPair;
+    SlotByDrawOrderPair: {$ifdef FPC}TSlotsByDrawOrder.TDictionaryPair{$else}TPair<Integer, TSlot>{$endif};
   begin
     SlotsOrdered := nil;
     SlotsUnchanged := nil;
@@ -235,7 +235,7 @@ procedure TDrawOrderTimelineList.Parse(const Json: TJSONArray; const Slots: TSlo
     Timeline: TDrawOrderTimeline;
     SlotName: string;
     Slot: TSlot;
-    SlotsToFloatDrawOrderPair: TSlotsToFloatDrawOrder.TDictionaryPair;
+    SlotsToFloatDrawOrderPair: {$ifdef FPC}TSlotsToFloatDrawOrder.TDictionaryPair{$else}TPair<TSlot, Single>{$endif};
   begin
     SlotsByDrawOrder := nil;
     SlotsToFloatDrawOrder := nil;

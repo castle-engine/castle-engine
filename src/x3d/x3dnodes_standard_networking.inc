@@ -26,7 +26,10 @@
     on the World Wide Web. }
   IAbstractUrlObject = interface(IX3DNode)
   ['{668420DB-20F7-4A5E-BB89-52F29CA39057}']
+  // TODO: Delphi
+  {$ifdef FPC}
     property FdUrl: TMFString { read GetFdurl }; { }
+  {$endif}
   end;
 
   TAbstractViewpointNode = class;

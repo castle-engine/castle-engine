@@ -107,7 +107,8 @@ end;
 
 { TX3DFileItemList --------------------------------------------------------- }
 
-function IsSmallerPositionInParent(constref A, B: TX3DFileItem): Integer;
+function IsSmallerPositionInParent(
+  {$ifdef FPC}constref{$else}const{$endif} A, B: TX3DFileItem): Integer;
 begin
   Result := A.PositionInParent - B.PositionInParent;
   if Result = 0 then
@@ -118,7 +119,8 @@ procedure TX3DFileItemList.SortPositionInParent;
 type
   TX3DFileItemComparer = {$ifdef CASTLE_OBJFPC}specialize{$endif} TComparer<TX3DFileItem>;
 begin
-  Sort(TX3DFileItemComparer.Construct(@IsSmallerPositionInParent));
+  Sort(TX3DFileItemComparer.Construct(
+    {$ifdef CASTLE_OBJFPC}@{$endif}IsSmallerPositionInParent));
 end;
 
 procedure TX3DFileItemList.SaveToStream(Writer: TX3DWriter);

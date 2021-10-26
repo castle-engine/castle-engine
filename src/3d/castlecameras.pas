@@ -133,7 +133,7 @@ type
       The @link(FieldOfViewAxis) determines whether this is horizontal
       or vertical angle. }
     property FieldOfView: Single read FFieldOfView write SetFieldOfView
-      stored IsStoredFieldOfView default DefaultFieldOfView;
+      stored IsStoredFieldOfView {$ifdef FPC}default DefaultFieldOfView{$endif};
 
     { Which axis is determined explicitly by @link(FieldOfView).
       @seealso TFieldOfViewAxis }
@@ -270,8 +270,8 @@ type
       the above algorithm.
 
       @groupBegin }
-    property Width: Single read FWidth write SetWidth default 0;
-    property Height: Single read FHeight write SetHeight default 0;
+    property Width: Single read FWidth write SetWidth {$ifdef FPC}default 0{$endif};
+    property Height: Single read FHeight write SetHeight {$ifdef FPC}default 0{$endif};
     { @groupEnd }
 
     { Scales the projection size derived from @link(Width) and @link(Height).
@@ -281,7 +281,7 @@ type
       of the viewport.
       When @link(Origin) is (0.5,0.5), this behaves like scaling around
       the middle of the viewport. }
-    property Scale: Single read FScale write SetScale default 1;
+    property Scale: Single read FScale write SetScale {$ifdef FPC}default 1{$endif};
 
     { Allow non-proportional stretch of projection.
       In effect the @link(Width) and @link(Height)
@@ -378,7 +378,7 @@ type
       (preserving the given direction value),
       otherwise we will adjust the direction (preserving the given up value). }
     procedure SetView(const ADir, AUp: TVector3;
-      const AdjustUp: boolean = true);
+      const AdjustUp: boolean = true); overload;
     procedure SetView(const APos, ADir, AUp: TVector3;
       const AdjustUp: boolean = true); overload;
     procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3;
@@ -488,8 +488,10 @@ type
       and starts the new animation from the current position.
 
       @groupBegin }
-    procedure AnimateTo(const OtherCamera: TCastleCamera; const Time: TFloatTime);
-    procedure AnimateTo(const APos, ADir, AUp: TVector3; const Time: TFloatTime);
+    procedure AnimateTo(const OtherCamera: TCastleCamera;
+      const Time: TFloatTime); overload;
+    procedure AnimateTo(const APos, ADir, AUp: TVector3;
+      const Time: TFloatTime); overload;
     { @groupEnd }
 
     { Are we currently during animation (caused by @link(AnimateTo)).
@@ -579,12 +581,12 @@ type
 
       For orthographic projection, all values are valid and reasonable,
       including 0 and < 0 values. }
-    property ProjectionNear: Single read FProjectionNear write SetProjectionNear default 0;
+    property ProjectionNear: Single read FProjectionNear write SetProjectionNear {$ifdef FPC}default 0{$endif};
 
     { Projection far plane distance.
       Use 0 to auto-calculate this each frame, based on world bounding box.
       If shadow volumes are used, this may be overridden to be infinite. }
-    property ProjectionFar: Single read FProjectionFar write SetProjectionFar default 0;
+    property ProjectionFar: Single read FProjectionFar write SetProjectionFar {$ifdef FPC}default 0{$endif};
 
     { Perspective or orthographic projection.
       Depending on it, we either use @link(Perspective) or @link(Orthographic) settings. }
@@ -803,6 +805,7 @@ type
       which is 1.0. }
     function RotationMatrix: TMatrix4; deprecated 'use Viewport.Camera.RotationMatrix';
 
+    {$ifdef FPC}
     { Deprecated, use more flexible @link(Input) instead.
       @code(IgnoreAllInputs := true) is equivalent to @code(Input := []),
       @code(IgnoreAllInputs := false) is equivalent to @code(Input := DefaultInput).
@@ -826,6 +829,7 @@ type
       this is automatically correctly set. }
     property ProjectionMatrix: TMatrix4
       read GetProjectionMatrix write SetProjectionMatrix; deprecated 'use Viewport.Camera.ProjectionMatrix';
+    {$endif FPC}
 
     { The radius of a sphere around the camera
       that makes collisions with the world.
@@ -845,7 +849,7 @@ type
           Input_IncreasePreferredHeight, Input_DecreasePreferredHeight.
         )
       ) }
-    property Radius: Single read FRadius write SetRadius default DefaultRadius;
+    property Radius: Single read FRadius write SetRadius {$ifdef FPC}default DefaultRadius{$endif};
 
     { Express current view as camera vectors: position, direction, up.
 
@@ -873,6 +877,7 @@ type
       const AdjustUp: boolean = true); overload;
       deprecated 'use Viewport.Camera.SetView';
 
+    {$ifdef FPC}
     { Camera position, looking direction and up vector.
 
       Initially (after creating this object) they are equal to
@@ -909,6 +914,7 @@ type
       @link(Up) and
       @link(InitialUp) vectors). }
     property GravityUp: TVector3 read GetGravityUp write SetGravityUp; deprecated 'use Viewport.Camera.GravityUp';
+    {$endif FPC}
 
     { Calculate a 3D ray picked by the WindowX, WindowY position on the window.
 
@@ -968,9 +974,9 @@ type
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
 
-    procedure AnimateTo(const OtherCamera: TCastleCamera; const Time: TFloatTime); deprecated 'use Viewport.Camera.AnimateTo';
-    procedure AnimateTo(const OtherNavigation: TCastleNavigation; const Time: TFloatTime); deprecated 'use AnimateTo with TCastleCamera, not TCastleNavigation';
-    procedure AnimateTo(const APos, ADir, AUp: TVector3; const Time: TFloatTime); deprecated 'use Viewport.Camera.AnimateTo';
+    procedure AnimateTo(const OtherCamera: TCastleCamera; const Time: TFloatTime); overload; deprecated 'use Viewport.Camera.AnimateTo';
+    procedure AnimateTo(const OtherNavigation: TCastleNavigation; const Time: TFloatTime); overload; deprecated 'use AnimateTo with TCastleCamera, not TCastleNavigation';
+    procedure AnimateTo(const APos, ADir, AUp: TVector3; const Time: TFloatTime); overload; deprecated 'use Viewport.Camera.AnimateTo';
     function Animation: boolean; deprecated 'use Viewport.Camera.Animation';
     function InitialPosition : TVector3; deprecated 'use Viewport.Camera.InitialPosition';
     function InitialDirection: TVector3; deprecated 'use Viewport.Camera.InitialDirection';
@@ -1001,7 +1007,7 @@ type
       See CorrectPreferredHeight for important property
       of PreferredHeight that you should keep. }
     property PreferredHeight: Single
-      read FPreferredHeight write FPreferredHeight default DefaultPreferredHeight;
+      read FPreferredHeight write FPreferredHeight {$ifdef FPC}default DefaultPreferredHeight{$endif};
 
     { Correct PreferredHeight based on @link(Radius)
       and on current @link(HeadBobbing).
@@ -1042,7 +1048,7 @@ type
       crouching, although it's better to do this by calling MakeClear
       on Input_Crouch). }
     property CrouchHeight: Single
-      read FCrouchHeight write FCrouchHeight default DefaultCrouchHeight;
+      read FCrouchHeight write FCrouchHeight {$ifdef FPC}default DefaultCrouchHeight{$endif};
 
     { When @link(TCastleWalkNavigation) moves, it may make a "head bobbing" effect,
       by moving the camera a bit up and down.
@@ -1055,7 +1061,7 @@ type
 
       This is meaningfull only when @link(TCastleWalkNavigation.Gravity) works. }
     property HeadBobbing: Single
-      read FHeadBobbing write FHeadBobbing default DefaultHeadBobbing;
+      read FHeadBobbing write FHeadBobbing {$ifdef FPC}default DefaultHeadBobbing{$endif};
 
     { Controls head bobbing frequency. In the time of HeadBobbingTime seconds,
       we do full head bobbing sequence (camera swing up, then down again).
@@ -1071,7 +1077,7 @@ type
       in fact). }
     property HeadBobbingTime: Single
       read FHeadBobbingTime write FHeadBobbingTime
-      default DefaultHeadBobbingTime;
+      {$ifdef FPC}default DefaultHeadBobbingTime{$endif};
 
     { Moving speeds, only used by @link(TCastleWalkNavigation) descendant.
       MoveHorizontalSpeed is only for horizontal movement,
@@ -1090,10 +1096,10 @@ type
 
       @groupBegin }
     property MoveHorizontalSpeed: Single
-      read FMoveHorizontalSpeed write FMoveHorizontalSpeed default 1.0;
+      read FMoveHorizontalSpeed write FMoveHorizontalSpeed {$ifdef FPC}default 1.0{$endif};
     property MoveVerticalSpeed: Single
-      read FMoveVerticalSpeed write FMoveVerticalSpeed default 1.0;
-    property MoveSpeed: Single read FMoveSpeed write FMoveSpeed default 1.0;
+      read FMoveVerticalSpeed write FMoveVerticalSpeed {$ifdef FPC}default 1.0{$endif};
+    property MoveSpeed: Single read FMoveSpeed write FMoveSpeed {$ifdef FPC}default 1.0{$endif};
     { @groupEnd }
 
     { The tallest height that you can climb,
@@ -1278,13 +1284,15 @@ type
     property RotationsAnim: TVector3 read FRotationsAnim write SetRotationsAnim;
 
     { How fast user moves the scene by mouse/touch dragging. }
-    property DragMoveSpeed: Single read FDragMoveSpeed write FDragMoveSpeed default 1.0;
+    property DragMoveSpeed: Single read FDragMoveSpeed write FDragMoveSpeed {$ifdef FPC}default 1.0{$endif};
 
     { How fast user moves the scene by pressing keys. }
-    property KeysMoveSpeed: Single read FKeysMoveSpeed write FKeysMoveSpeed default 1.0;
+    property KeysMoveSpeed: Single read FKeysMoveSpeed write FKeysMoveSpeed {$ifdef FPC}default 1.0{$endif};
 
+    {$ifdef FPC}
     property MoveAmount: TVector3 read GetTranslation write SetTranslation;
       deprecated 'use Translation';
+    {$endif}
 
     { How much to move the model. By default, zero. }
     property Translation: TVector3 read GetTranslation write SetTranslation;
@@ -1293,14 +1301,16 @@ type
     property Turntable: boolean
       read FTurntable write FTurntable default false;
 
+    {$ifdef FPC}
     { Scale the projection size. }
     property ScaleFactor: Single
       read GetScaleFactor write SetScaleFactor default 1;
       deprecated 'use Camera.Orthographic.Scale';
+    {$endif}
     property ScaleFactorMin: Single
-      read FScaleFactorMin write SetScaleFactorMin default 0.01;
+      read FScaleFactorMin write SetScaleFactorMin {$ifdef FPC}default 0.01{$endif};
     property ScaleFactorMax: Single
-      read FScaleFactorMax write SetScaleFactorMax default 100.0;
+      read FScaleFactorMax write SetScaleFactorMax {$ifdef FPC}default 100.0{$endif};
 
     { Initialize most important properties of this class:
       sets ModelBox and goes to a nice view over the entire scene.
@@ -1364,22 +1374,24 @@ type
     property Input_Home: TInputShortcut read FInput_Home;
     property Input_StopRotating: TInputShortcut read FInput_StopRotating;
 
+    {$ifdef FPC}
     { @Deprecated Include/exclude niMouseDragging from @link(Input) instead. }
     property MouseNavigation: boolean
       read GetMouseNavigation write SetMouseNavigation default true; deprecated;
+    {$endif}
 
     { Speed to change the rotation acceleration,
       used when RotationAccelerate = @true. }
     property RotationAccelerationSpeed: Single
       read FRotationAccelerationSpeed
       write FRotationAccelerationSpeed
-      default DefaultRotationAccelerationSpeed;
+      {$ifdef FPC}default DefaultRotationAccelerationSpeed{$endif};
 
     { Speed to change the rotation, used when RotationAccelerate = @false. }
     property RotationSpeed: Single
       read FRotationSpeed
       write FRotationSpeed
-      default DefaultRotationSpeed;
+      {$ifdef FPC}default DefaultRotationSpeed{$endif};
   published
     { Enable rotating the camera around the model by user input.
       When @false, no keys / mouse dragging / 3D mouse etc. can cause a rotation.
@@ -1474,10 +1486,10 @@ type
       @groupBegin }
     property MouseLookHorizontalSensitivity: Single
       read FMouseLookHorizontalSensitivity write FMouseLookHorizontalSensitivity
-      default DefaultMouseLookHorizontalSensitivity;
+      {$ifdef FPC}default DefaultMouseLookHorizontalSensitivity{$endif};
     property MouseLookVerticalSensitivity: Single
       read FMouseLookVerticalSensitivity write FMouseLookVerticalSensitivity
-      default DefaultMouseLookVerticalSensitivity;
+      {$ifdef FPC}default DefaultMouseLookVerticalSensitivity{$endif};
     { @groupEnd }
 
     { If this is @true and MouseLook works, then the meaning of vertical mouse
@@ -1785,7 +1797,7 @@ type
       a "cleaner way" by calling MakeClear on Input_UpRotate and Input_DownRotate). }
     property MinAngleFromGravityUp: Single
       read FMinAngleFromGravityUp write FMinAngleFromGravityUp
-      default DefaultMinAngleFromGravityUp;
+      {$ifdef FPC}default DefaultMinAngleFromGravityUp{$endif};
 
     function Motion(const Event: TInputMotion): boolean; override;
 
@@ -1807,14 +1819,14 @@ type
       speed used the next time. }
     property FallSpeedStart: Single
       read FFallSpeedStart write FFallSpeedStart
-      default DefaultFallSpeedStart;
+      {$ifdef FPC}default DefaultFallSpeedStart{$endif};
 
     { When falling down, the speed increases.
       Set this to 1.0 to fall down with constant speed
       (taken from FallSpeedStart). }
     property FallSpeedIncrease: Single
       read FFallSpeedIncrease write FFallSpeedIncrease
-      default DefaultFallSpeedIncrease;
+      {$ifdef FPC}default DefaultFallSpeedIncrease{$endif};
 
     { Are we currently falling down because of gravity. }
     property Falling: boolean read FFalling write FFalling;
@@ -1857,13 +1869,14 @@ type
       determines the speed of this growth. }
     property GrowSpeed: Single
       read FGrowSpeed write FGrowSpeed
-      default DefaultGrowSpeed;
+      {$ifdef FPC}default DefaultGrowSpeed{$endif};
 
     { How high can you jump ?
       The max jump distance is calculated as
       JumpMaxHeight * PreferredHeight, see MaxJumpDistance. }
     property JumpMaxHeight: Single
-      read FJumpMaxHeight write FJumpMaxHeight default DefaultJumpMaxHeight;
+      read FJumpMaxHeight write FJumpMaxHeight
+      {$ifdef FPC}default DefaultJumpMaxHeight{$endif};
 
     { Returns just JumpMaxHeight * PreferredHeight,
       see JumpMaxHeight for explanation. }
@@ -1875,12 +1888,12 @@ type
     { Scales the speed of horizontal moving during jump. }
     property JumpHorizontalSpeedMultiply: Single
       read FJumpHorizontalSpeedMultiply write FJumpHorizontalSpeedMultiply
-      default DefaultJumpHorizontalSpeedMultiply;
+      {$ifdef FPC}default DefaultJumpHorizontalSpeedMultiply{$endif};
 
     { How fast do you jump up. This is the time, in seconds, in takes
       to reach MaxJumpDistance height when jumping. }
     property JumpTime: Single read FJumpTime write FJumpTime
-      default DefaultJumpTime;
+      {$ifdef FPC}default DefaultJumpTime{$endif};
 
     { Is player crouching right now. }
     property IsCrouching: boolean read FIsCrouching;
@@ -1956,8 +1969,10 @@ type
     property Input_Backward: TInputShortcut read FInput_Backward;
     property Input_LeftRotate: TInputShortcut read FInput_LeftRotate;
     property Input_RightRotate: TInputShortcut read FInput_RightRotate;
+    {$ifdef FPC}
     property Input_LeftRot: TInputShortcut read FInput_LeftRotate; deprecated 'use Input_LeftRotate';
     property Input_RightRot: TInputShortcut read FInput_RightRotate; deprecated 'use Input_RightRotate';
+    {$endif}
     property Input_LeftStrafe: TInputShortcut read FInput_LeftStrafe;
     property Input_RightStrafe: TInputShortcut read FInput_RightStrafe;
     property Input_UpRotate: TInputShortcut read FInput_UpRotate;
@@ -2017,7 +2032,8 @@ type
       Note that when non-zero this may (for now) move the camera without actually checking
       OnMoveAllowed. }
     property RotationHorizontalPivot: Single
-      read FRotationHorizontalPivot write FRotationHorizontalPivot default 0;
+      read FRotationHorizontalPivot write FRotationHorizontalPivot
+      {$ifdef FPC}default 0{$endif};
   published
     property MouseLook;
     property MouseLookHorizontalSensitivity;
@@ -2028,11 +2044,11 @@ type
       @groupBegin }
     property RotationHorizontalSpeed: Single
       read FRotationHorizontalSpeed write FRotationHorizontalSpeed
-      default DefaultRotationHorizontalSpeed;
+      {$ifdef FPC}default DefaultRotationHorizontalSpeed{$endif};
 
     property RotationVerticalSpeed: Single
       read FRotationVerticalSpeed write FRotationVerticalSpeed
-      default DefaultRotationVerticalSpeed;
+      {$ifdef FPC}default DefaultRotationVerticalSpeed{$endif};
     { @groupEnd }
 
     { Speed (radians per pixel delta) of rotations by mouse dragging.
@@ -2044,17 +2060,17 @@ type
       @groupBegin }
     property MouseDraggingHorizontalRotationSpeed: Single
       read FMouseDraggingHorizontalRotationSpeed write FMouseDraggingHorizontalRotationSpeed
-      default DefaultMouseDraggingHorizontalRotationSpeed;
+      {$ifdef FPC}default DefaultMouseDraggingHorizontalRotationSpeed{$endif};
     property MouseDraggingVerticalRotationSpeed: Single
       read FMouseDraggingVerticalRotationSpeed write FMouseDraggingVerticalRotationSpeed
-      default DefaultMouseDraggingVerticalRotationSpeed;
+      {$ifdef FPC}default DefaultMouseDraggingVerticalRotationSpeed{$endif};
     { @groupEnd }
 
     { Moving speed when mouse dragging.
       Relevant only when @code((MouseDragMode is mdWalk) and (niMouseDragging in Input)). }
     property MouseDraggingMoveSpeed: Single
       read FMouseDraggingMoveSpeed write FMouseDraggingMoveSpeed
-      default DefaultMouseDraggingMoveSpeed;
+      {$ifdef FPC}default DefaultMouseDraggingMoveSpeed{$endif};
 
     { What mouse dragging does. Used only when niMouseDragging in @link(Input). }
     property MouseDragMode: TMouseDragMode
@@ -2142,11 +2158,11 @@ const
   before passing here).
 
   @groupBegin }
-function OrientationFromDirectionUp(const Direction, Up: TVector3): TVector4;
+function OrientationFromDirectionUp(const Direction, Up: TVector3): TVector4; overload;
 procedure OrientationFromDirectionUp(const Direction, Up: TVector3;
-  out Axis: TVector3; out Angle: Single);
+  out Axis: TVector3; out Angle: Single); overload;
 function OrientationFromDirectionUp(const Direction, Up: TVector3;
-  const DefaultDirection, DefaultUp: TVector3): TVector4;
+  const DefaultDirection, DefaultUp: TVector3): TVector4; overload;
 { @groupEnd }
 
 { Convert rotation (X3D orientation) to a direction vector,
@@ -2157,10 +2173,10 @@ function OrientationToDirection(const OrientationRotation: TVector4): TVector3;
   reversing the @link(OrientationFromDirectionUp). }
 function OrientationToUp(const OrientationRotation: TVector4): TVector3;
 
-function CamDirUp2Orient(const Direction, Up: TVector3): TVector4;
+function CamDirUp2Orient(const Direction, Up: TVector3): TVector4; overload;
   deprecated 'use OrientationFromDirectionUp';
 procedure CamDirUp2Orient(const Direction, Up: TVector3;
-  out Axis: TVector3; out Angle: Single);
+  out Axis: TVector3; out Angle: Single); overload;
   deprecated 'use OrientationFromDirectionUp';
 
 { Convert camera direction and up vectors into a "rotation quaternion".
@@ -2168,8 +2184,9 @@ procedure CamDirUp2Orient(const Direction, Up: TVector3;
   not an axis-angle vector.
   @groupBegin }
 function OrientationQuaternionFromDirectionUp(Direction, Up: TVector3;
-  const DefaultDirection, DefaultUp: TVector3): TQuaternion;
-function OrientationQuaternionFromDirectionUp(const Direction, Up: TVector3): TQuaternion;
+  const DefaultDirection, DefaultUp: TVector3): TQuaternion; overload;
+function OrientationQuaternionFromDirectionUp(const Direction,
+  Up: TVector3): TQuaternion; overload;
 { @groupEnd }
 
 function CamDirUp2OrientQuat(const Direction, Up: TVector3): TQuaternion;

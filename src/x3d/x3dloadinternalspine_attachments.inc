@@ -398,7 +398,7 @@ begin
       (TexRect[0][1] <> 1) or
       (TexRect[1][1] <> 1)) and
      SpineVerboseWarnings then
-    WritelnLog('Spine', Format('Slot "%s" with attachment "%s" uses "mesh" attachment type, and you exported atlas with "compress whitespace" option selected. Rendering artifacts may occur if mesh faces use the texture in "whitespace" region --- in such case, export again with "compress whitespace" turned off at atlas generation.',
+    WritelnLog('Spine', Format('Slot "%s" with attachment "%s" uses "mesh" attachment type, and you exported atlas with "compress whitespace" option selected. '+'Rendering artifacts may occur if mesh faces use the texture in "whitespace" region --- in such case, export again with "compress whitespace" turned off at atlas generation.',
       [SlotName, Name]));
 
   if TexRotated then
@@ -460,8 +460,9 @@ var
   BonesCount: Cardinal;
   V: TMeshVertex;
   I: Integer;
-  Offset: Integer = 0;
+  Offset: Integer;
 begin
+  Offset := 0;
   I := 0;
   while I < JsonArray.Count do
   begin

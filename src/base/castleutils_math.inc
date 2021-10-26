@@ -370,18 +370,41 @@ function Swap64(Value: QWord): QWord;
 function SwapEndian(const Value: Single): Single; overload;
 function SwapEndian(const Value: Double): Double; overload;
 
+{$ifndef FPC}
+function NtoLE(const Value: Word): Word; overload;
+function NtoLE(const Value: DWord): DWord; overload;
+function NtoLE(const Value: QWord): QWord; overload;
+function NtoLE(const Value: Int64): Int64; overload;
+{$endif}
+
 function NtoLE(const Value: Single): Single; overload;
 function NtoLE(const Value: Double): Double; overload;
 
+{$ifndef FPC}
+function NtoBE(const Value: Word): Word; overload;
+function NtoBE(const Value: DWord): DWord; overload;
+function NtoBE(const Value: QWord): QWord; overload;
+function NtoBE(const Value: Int64): Int64; overload;
+{$endif}
+
 function NtoBE(const Value: Single): Single; overload;
 function NtoBE(const Value: Double): Double; overload;
+
+{$ifndef FPC}
+function LEtoN(const Value: Word): Word; overload;
+function LEtoN(const Value: DWord): DWord; overload;
+function LEtoN(const Value: QWord): QWord; overload;
+function LEtoN(const Value: Int64): Int64; overload;
+{$endif}
 
 function LEtoN(const Value: Single): Single; overload;
 function LEtoN(const Value: Double): Double; overload;
 
 {$ifndef FPC}
+function BEtoN(const Value: Word): Word; overload;
 function BEtoN(const Value: DWord): DWord; overload;
 function BEtoN(const Value: QWord): QWord; overload;
+function BEtoN(const Value: Int64): Int64; overload;
 {$endif}
 function BEtoN(const Value: Single): Single; overload;
 function BEtoN(const Value: Double): Double; overload;
@@ -1123,6 +1146,47 @@ begin
   PQWord(@Result)^ := Swap64(PQWord(@Value)^);
 end;
 
+
+{$ifndef FPC}
+  function NtoLE(const Value: Word): Word;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Swap(Value);
+  {$else ENDIAN_BIG}
+    Result := Value;
+  {$endif ENDIAN_BIG}
+  end;
+
+  function NtoLE(const Value: DWord): DWord;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Swap32(Value);
+  {$else ENDIAN_BIG}
+    Result := Value;
+  {$endif ENDIAN_BIG}
+  end;
+
+  function NtoLE(const Value: QWord): QWord;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Swap64(Value);
+  {$else ENDIAN_BIG}
+    Result := Value;
+  {$endif ENDIAN_BIG}
+  end;
+
+  function NtoLE(const Value: Int64): Int64; overload;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Swap64(Value);
+  {$else ENDIAN_BIG}
+    Result := Value;
+  {$endif ENDIAN_BIG}
+  end;
+
+{$endif}
+
+
 function NtoLE(const Value: Single): Single;
 begin
 {$ifdef ENDIAN_BIG}
@@ -1141,6 +1205,47 @@ begin
 {$endif ENDIAN_BIG}
 end;
 
+{$ifndef FPC}
+  function NtoBE(const Value: Word): Word;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Value;
+  {$else ENDIAN_BIG}
+    Result := Swap(Value);
+  {$endif ENDIAN_BIG}
+  end;
+
+  function NtoBE(const Value: DWord): DWord;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Value;
+  {$else ENDIAN_BIG}
+    Result := Swap32(Value);
+  {$endif ENDIAN_BIG}
+  end;
+
+
+  function NtoBE(const Value: QWord): QWord;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Value;
+  {$else ENDIAN_BIG}
+    Result := Swap64(Value);
+  {$endif ENDIAN_BIG}
+  end;
+
+  function NtoBE(const Value: Int64): Int64;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Value;
+  {$else ENDIAN_BIG}
+    Result := Swap64(Value);
+  {$endif ENDIAN_BIG}
+  end;
+
+{$endif}
+
+
 function NtoBE(const Value: Single): Single;
 begin
 {$ifdef ENDIAN_BIG}
@@ -1158,6 +1263,46 @@ begin
   Result := SwapEndian(Value);
 {$endif ENDIAN_BIG}
 end;
+
+{$ifndef FPC}
+  function LEtoN(const Value: Word): Word;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Swap(Value);
+  {$else ENDIAN_BIG}
+    Result := Value;
+  {$endif ENDIAN_BIG}
+  end;
+
+  function LEtoN(const Value: DWord): DWord;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Swap32(Value);
+  {$else ENDIAN_BIG}
+    Result := Value;
+  {$endif ENDIAN_BIG}
+  end;
+
+  function LEtoN(const Value: QWord): QWord;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Swap64(Value);
+  {$else ENDIAN_BIG}
+    Result := Value;
+  {$endif ENDIAN_BIG}
+  end;
+
+  function LEtoN(const Value: Int64): Int64;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Swap64(Value);
+  {$else ENDIAN_BIG}
+    Result := Value;
+  {$endif ENDIAN_BIG}
+  end;
+
+
+{$endif FPC}
 
 function LEtoN(const Value: Single): Single;
 begin
@@ -1178,6 +1323,16 @@ begin
 end;
 
 {$ifndef FPC}
+
+  function BEtoN(const Value: Word): Word;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Value;
+  {$else ENDIAN_BIG}
+    Result := Swap(Value);
+  {$endif ENDIAN_BIG}
+  end;
+
   function BEtoN(const Value: DWord): DWord;
   begin
   {$ifdef ENDIAN_BIG}
@@ -1195,6 +1350,16 @@ end;
     Result := Swap64(Value);
   {$endif ENDIAN_BIG}
   end;
+
+  function BEtoN(const Value: Int64): Int64;
+  begin
+  {$ifdef ENDIAN_BIG}
+    Result := Value;
+  {$else ENDIAN_BIG}
+    Result := Swap64(Value);
+  {$endif ENDIAN_BIG}
+  end;
+
 {$endif}
 
 

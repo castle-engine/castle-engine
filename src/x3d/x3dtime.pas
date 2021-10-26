@@ -94,7 +94,7 @@ type
 
 implementation
 
-class function TX3DTime.Oldest: TX3DTime; static;
+class function TX3DTime.Oldest: TX3DTime;
 const
   R: TX3DTime = (Seconds: OldestTime; PlusTicks: 0);
 begin

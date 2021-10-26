@@ -232,6 +232,8 @@ type
 
 implementation
 
+{$ifndef FPC}uses CastleUtils;{$endif}
+
 constructor TFrustum.Init(const Matrix: TMatrix4);
 begin
   { Based on [http://www2.ravensoft.com/users/ggribb/plane%20extraction.pdf].

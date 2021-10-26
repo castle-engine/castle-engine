@@ -16,6 +16,9 @@
 {$ifdef read_interface}
 
   TX3DSingleField = class(TX3DField)
+///  {$ifndef FPC}
+///    function GetValue: TValue; virtual; abstract;
+///  {$endif}
   end;
   TX3DSingleFieldClass = class of TX3DSingleField;
 

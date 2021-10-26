@@ -236,10 +236,13 @@
     (and most, but not all, sensors descend also from @link(TAbstractSensorNode).) }
   IAbstractSensorNode = interface(IAbstractChildNode)
   ['{7434C62F-8084-40C3-AA57-08F9B574655A}']
+  // TODO: delphi can't have properties in interfaces
+  {$ifdef FPC}
     property FdEnabled: TSFBool;
 
     { Event: out } { }
     property EventIsActive: TSFBoolEvent;
+  {$endif}
   end;
 
   { Base abstract class for all sensors. }

@@ -1374,8 +1374,12 @@ end;
 
 class procedure TCasScriptInteger.ConvertFromBool(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
-  BoolTo01: array [boolean] of Int64 = (0, 1);
+  BoolTo01: array [boolean] of Int64 {$ifdef FPC}= (0, 1){$endif};
 begin
+  {$ifndef FPC}
+  BoolTo01[false] := 0;
+  BoolTo01[true] := 1;
+  {$endif}
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptInteger);
   TCasScriptInteger(AResult).Value := BoolTo01[TCasScriptBoolean(Arguments[0]).Value];
 end;
@@ -1739,8 +1743,12 @@ end;
 
 class procedure TCasScriptFloat.ConvertFromBool(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
-  BoolTo01: array [boolean] of Float = (0, 1);
+  BoolTo01: array [boolean] of Float {$ifdef FPC} = (0, 1){$endif};
 begin
+  {$ifndef FPC}
+  BoolTo01[false] := 0;
+  BoolTo01[true] := 1;
+  {$endif}
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := BoolTo01[TCasScriptBoolean(Arguments[0]).Value];
 end;
@@ -2002,8 +2010,12 @@ end;
 
 class procedure TCasScriptString.ConvertFromBool(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
-  BoolTo01: array [boolean] of string = ('false', 'true');
+  BoolTo01: array [boolean] of string {$ifdef FPC}= ('false', 'true'){$endif};
 begin
+  {$ifndef FPC}
+  BoolTo01[false] := 'false';
+  BoolTo01[true] := 'true';
+  {$endif}
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptString);
   TCasScriptString(AResult).Value := BoolTo01[TCasScriptBoolean(Arguments[0]).Value];
 end;

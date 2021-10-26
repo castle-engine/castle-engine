@@ -26,7 +26,7 @@
         References: Cardinal;
         Node: TX3DRootNode;
       end;
-      TCachedNodeDictionary = specialize TObjectDictionary<String, TCachedNode>;
+      TCachedNodeDictionary = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectDictionary<String, TCachedNode>;
     var
       CachedNodes: TCachedNodeDictionary;
     function FindCachedNode(const Node: TX3DRootNode): TCachedNode;

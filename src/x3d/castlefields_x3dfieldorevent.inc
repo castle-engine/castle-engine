@@ -64,7 +64,7 @@
       http://www.web3d.org/documents/specifications/19776-2/V3.3/Part02/grammar.html ).
       We don't want to confuse these two properties. }
     property X3DName: string read FX3DName;
-    property Name: string read FX3DName; deprecated 'use X3DName';
+    {$ifdef FPC} property Name: string read FX3DName; deprecated 'use X3DName';{$endif}
 
     { X3D node containing this field/event.
       This must always contain an instance

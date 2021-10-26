@@ -18,15 +18,15 @@
 
 { Decode color from integer value, following VRML/X3D SFImage specification.
   @groupBegin }
-procedure DecodeX3DColor(const Pixel: LongWord; var G: Byte);
-procedure DecodeX3DColor(const Pixel: LongWord; var GA: TVector2Byte);
-procedure DecodeX3DColor(const Pixel: LongWord; var RGB: TVector3Byte);
-procedure DecodeX3DColor(const Pixel: LongWord; var RGBA: TVector4Byte);
+procedure DecodeX3DColor(const Pixel: LongWord; var G: Byte); overload;
+procedure DecodeX3DColor(const Pixel: LongWord; var GA: TVector2Byte); overload;
+procedure DecodeX3DColor(const Pixel: LongWord; var RGB: TVector3Byte); overload;
+procedure DecodeX3DColor(const Pixel: LongWord; var RGBA: TVector4Byte); overload;
 
-procedure DecodeX3DColor(const Pixel: LongInt; var G: Byte);
-procedure DecodeX3DColor(const Pixel: LongInt; var GA: TVector2Byte);
-procedure DecodeX3DColor(const Pixel: LongInt; var RGB: TVector3Byte);
-procedure DecodeX3DColor(const Pixel: LongInt; var RGBA: TVector4Byte);
+procedure DecodeX3DColor(const Pixel: LongInt; var G: Byte); overload;
+procedure DecodeX3DColor(const Pixel: LongInt; var GA: TVector2Byte); overload;
+procedure DecodeX3DColor(const Pixel: LongInt; var RGB: TVector3Byte); overload;
+procedure DecodeX3DColor(const Pixel: LongInt; var RGBA: TVector4Byte); overload;
 { @groupEnd }
 
 const

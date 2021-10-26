@@ -63,10 +63,10 @@
     property LinearVelocityRK4Integration: Boolean read FLinearVelocityRK4Integration write SetLinearVelocityRK4Integration default DefaultLinearVelocityRK4Integration;
     { How often should the physics simulation run in a second.
       Larger values increase accuracy (up to a certain point), but also increase the CPU overhead. }
-    property Frequency: Single read FFrequency write SetFrequency default DefaultFrequency;
+    property Frequency: Single read FFrequency write SetFrequency {$ifdef FPC}default DefaultFrequency{$endif};
     { Physics gravity is set using the -GravityUp vector (from main camera)
       multiplied with GravityStrength. }
-    property GravityStrength: Single read FGravityStrength write FGravityStrength default DefaultGravityStrength;
+    property GravityStrength: Single read FGravityStrength write FGravityStrength {$ifdef FPC}default DefaultGravityStrength{$endif};
 
     { Non-zero value avoids the "spiral of death" when the physics takes
       a long time to calculate.
@@ -118,14 +118,18 @@
       (volume is automatically calculated by the physics engine).
       If you instead prefer to explicitly set mass, set @link(Mass)
       property to something non-zero. }
-    property Density: Single read FDensity write FDensity default DefaultDensity;
+    property Density: Single read FDensity write FDensity
+      {$ifdef FPC}default DefaultDensity{$endif};
 
     { Mass in kg. When non-zero, this overrides the automatically calculated
       mass from the volume and @link(Density). }
-    property Mass: Single read FMass write FMass default DefaultMass;
+    property Mass: Single read FMass write FMass
+      {$ifdef FPC}default DefaultMass{$endif};
 
-    property Restitution: Single read FRestitution write FRestitution default DefaultRestitution;
-    property Friction: Single read FFriction write FFriction default DefaultFriction;
+    property Restitution: Single read FRestitution write FRestitution
+      {$ifdef FPC}default DefaultRestitution{$endif};
+    property Friction: Single read FFriction write FFriction
+      {$ifdef FPC}default DefaultFriction{$endif};
   end;
 
   { Collide as an infinite plane.
@@ -281,9 +285,9 @@
       Returns @nil (Distance is undefined in this case) if nothing was hit.
       @groupBegin }
     function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
-      const MaxDistance: Single): TCastleTransform;
+      const MaxDistance: Single): TCastleTransform; overload;
     function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
-      const MaxDistance: Single; out Distance: Single): TCastleTransform;
+      const MaxDistance: Single; out Distance: Single): TCastleTransform; overload;
     { @groupEnd }
 
     property AngularVelocity: TVector3 read FAngularVelocity write SetAngularVelocity;
@@ -294,10 +298,12 @@
     property LinearVelocityDamp: Single read FLinearVelocityDamp write SetLinearVelocityDamp;
     property MaximalLinearVelocity: Single read FMaximalLinearVelocity write SetMaximalLinearVelocity;
 
+    {$ifdef FPC}
     property InitialAngularVelocity: TVector3 read FAngularVelocity write SetAngularVelocity;
       deprecated 'use AngularVelocity';
     property InitialLinearVelocity: TVector3 read FLinearVelocity write SetLinearVelocity;
       deprecated 'use LinearVelocity';
+    {$endif}
 
     { Occurs when TRigidBody starts colliding with another TRigidBody.
 

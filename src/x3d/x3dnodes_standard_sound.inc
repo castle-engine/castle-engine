@@ -22,9 +22,12 @@
   { Interface for all nodes that can emit audio data. }
   IAbstractSoundSourceNode = interface(IAbstractTimeDependentNode)
   ['{5E3D46A0-71B5-4561-B6B4-43A5BE5896EF}']
+  // TODO: Delphi
+  {$ifdef FPC}
     property FdDescription: TSFString { read FFdDescription } { };
     property FdPitch: TSFFloat { read FFdPitch } { };
     property EventDuration_changed: TX3DEvent { read FEventDuration_changed } { };
+  {$endif}
   end;
 
   { Base class for (most) nodes that can emit audio data. }

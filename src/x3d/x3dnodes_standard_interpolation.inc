@@ -34,9 +34,19 @@
   { Basis for all nodes interpolating (animating) a single value. }
   {$ifdef CASTLE_OBJFPC}generic{$endif}
   TAbstractSingleInterpolatorNode<
-    TInterpolatedValue,
-    TKeyValue,
-    TKeyValueEvent> = class(TAbstractInterpolatorNode)
+    TInterpolatedValue;
+    {$ifndef FPC}
+    TSingleField: TX3DSingleField;
+    TInternalItemList: class;
+    TItemList: ICastleItemList<TInterpolatedValue, TInternalItemList>;
+    TEvent;
+    {$endif}
+///    {$ifndef FPC}
+///    TInternalItemList: class; // neded to make conversion from TItemList available
+///    TItemList: ICastleItemList<TInterpolatedValue, TInternalItemList>;
+///    {$endif}
+    TKeyValue{$ifndef FPC}: TX3DSimpleMultField<TInterpolatedValue, TSingleField, TInternalItemList, TItemList, TEvent>{$endif};///{$ifndef FPC}: IX3DSimpleMultField<TInterpolatedValue, TInternalItemList, TItemList>{$endif};
+    TKeyValueEvent{$ifndef FPC}{:TX3DEvent}: IX3DEvent<TInterpolatedValue>{$endif} > = class(TAbstractInterpolatorNode)
   strict private
     function KeyValue(Index: Integer): TInterpolatedValue;
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
@@ -59,8 +69,20 @@
   { Basis for all nodes interpolating (animating) an array of values. }
   {$ifdef CASTLE_OBJFPC}generic{$endif}
   TAbstractArrayInterpolatorNode<
-    TKeyValue,
-    TKeyValueEvent> = class(TAbstractInterpolatorNode)
+    {$ifndef FPC}
+    TInterpolatedValue;
+    TSingleField: TX3DSingleField;
+    TInternalItemList: class;
+    TItemList: ICastleItemList<TInterpolatedValue, TInternalItemList>;
+    TEvent;
+    {$endif}
+///    {$ifndef FPC}
+///    TInterpolatedValue;
+///    TInternalItemList;
+///    TItemList: ICastleItemList<TInterpolatedValue, TInternalItemList>;
+///    {$endif}
+    TKeyValue{$ifndef FPC}: TX3DSimpleMultField<TInterpolatedValue, TSingleField, TInternalItemList, TItemList, TEvent>{$endif}; ///{$ifndef FPC}: IX3DSimpleMultField<TInterpolatedValue, TInternalItemList, TItemList>{$endif};
+    TKeyValueEvent{$ifndef FPC}:TX3DEvent{$endif}> = class(TAbstractInterpolatorNode)
   strict private
     function KeyValue(const Index, KeyCount: Integer): TKeyValue;
     function KeyValueLerp(const T: Single; const Index1, Index2, KeyCount: Integer): TKeyValue;
@@ -82,8 +104,18 @@
   end;
 
   { Interpolate (animate) a single color. }
-  TColorInterpolatorNode = class(specialize TAbstractSingleInterpolatorNode<
+  TColorInterpolatorNode = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TAbstractSingleInterpolatorNode<
     TVector3,
+    {$ifndef FPC}
+    TSFVec3f,
+    TStructList<TVector3>,
+    TVector3List,
+    TMFVec3fEvent,
+    {$endif}
+///    {$ifndef FPC}
+///    TStructList<TVector3>,
+///    TVector3List,
+///    {$endif}
     TMFColor,
     TSFColorEvent>)
   strict protected
@@ -98,7 +130,14 @@
   { Interpolate (animate) a set of colors,
     for example to animate a set of @link(TBackgroundNode)
     or @link(TColorNode) colors. }
-  TColorSetInterpolatorNode = class(specialize TAbstractArrayInterpolatorNode<
+  TColorSetInterpolatorNode = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TAbstractArrayInterpolatorNode<
+    {$ifndef FPC}
+    TVector3,
+    TSFVec3f,
+    TStructList<TVector3>,
+    TVector3List,
+    TMFVec3fEvent,
+    {$endif}
     TMFColor,
     TMFColorEvent>)
   strict protected
@@ -113,7 +152,14 @@
 
   { Interpolate (animate) a set of 3D positions,
     for example to animate @link(TCoordinateNode coordinates) of a mesh. }
-  TCoordinateInterpolatorNode = class(specialize TAbstractArrayInterpolatorNode<
+  TCoordinateInterpolatorNode = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TAbstractArrayInterpolatorNode<
+    {$ifndef FPC}
+    TVector3,
+    TSFVec3f,
+    TStructList<TVector3>,
+    TVector3List,
+    TMFVec3fEvent,
+    {$endif}
     TMFVec3f,
     TMFVec3fEvent>)
   public
@@ -124,7 +170,14 @@
 
   { Interpolate (animate) a set of 2D positions,
     for example to animate 2D texture coordinates. }
-  TCoordinateInterpolator2DNode = class(specialize TAbstractArrayInterpolatorNode<
+  TCoordinateInterpolator2DNode = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TAbstractArrayInterpolatorNode<
+    {$ifndef FPC}
+    TVector2,
+    TSFVec2f,
+    TStructList<TVector2>,
+    TVector2List,
+    TMFVec2fEvent,
+    {$endif}
     TMFVec2f,
     TMFVec2fEvent>)
   public
@@ -159,7 +212,15 @@
   end;
 
   { Interpolate (animate) a set of 3D directions, for example normal vectors. }
-  TNormalInterpolatorNode = class(specialize TAbstractArrayInterpolatorNode<
+  TNormalInterpolatorNode = class({$ifdef CASTLE_OBJFPC}specialize{$endif}
+    TAbstractArrayInterpolatorNode<
+    {$ifndef FPC}
+    TVector3,
+    TSFVec3f,
+    TStructList<TVector3>,
+    TVector3List,
+    TMFVec3fEvent,
+    {$endif}
     TMFVec3f,
     TMFVec3fEvent>)
   strict protected
@@ -174,8 +235,15 @@
 
   { Interpolate (animate) an orientation,
     for example to animate @link(TTransformNode.Rotation). }
-  TOrientationInterpolatorNode = class(specialize TAbstractSingleInterpolatorNode<
+  TOrientationInterpolatorNode = class({$ifdef CASTLE_OBJFPC}specialize{$endif}
+    TAbstractSingleInterpolatorNode<
     TVector4,
+    {$ifndef FPC}
+    TSFRotation,
+    TStructList<TVector4>,
+    TVector4List,
+    TMFRotationEvent,
+    {$endif}
     TMFRotation,
     TSFRotationEvent>)
   strict protected
@@ -189,8 +257,15 @@
 
   { Interpolate (animate) a 3D position,
     for example to animate @link(TTransformNode.Translation). }
-  TPositionInterpolatorNode = class(specialize TAbstractSingleInterpolatorNode<
+  TPositionInterpolatorNode = class({$ifdef CASTLE_OBJFPC}specialize{$endif}
+    TAbstractSingleInterpolatorNode<
     TVector3,
+    {$ifndef FPC}
+    TSFVec3f,
+    TStructList<TVector3>,
+    TVector3List,
+    TMFVec3fEvent,
+    {$endif}
     TMFVec3f,
     TSFVec3fEvent>)
   strict protected
@@ -203,8 +278,15 @@
   end;
 
   { Interpolate (animate) a 2D position. }
-  TPositionInterpolator2DNode = class(specialize TAbstractSingleInterpolatorNode<
+  TPositionInterpolator2DNode = class({$ifdef CASTLE_OBJFPC}specialize{$endif}
+    TAbstractSingleInterpolatorNode<
     TVector2,
+    {$ifndef FPC}
+    TSFVec2f,
+    TStructList<TVector2>,
+    TVector2List,
+    TMFVec2fEvent,
+    {$endif}
     TMFVec2f,
     TSFVec2fEvent>)
   strict protected
@@ -218,8 +300,15 @@
 
   { Interpolate (animate) a single floating-point value,
     for example to animate @link(TMaterialNode.Transparency). }
-  TScalarInterpolatorNode = class(specialize TAbstractSingleInterpolatorNode<
+  TScalarInterpolatorNode = class({$ifdef CASTLE_OBJFPC}specialize{$endif}
+    TAbstractSingleInterpolatorNode<
     Single,
+    {$ifndef FPC}
+    TSFFloat,
+    TStructList<Single>,
+    TSingleList,
+    TMFFloatEvent,
+    {$endif}
     TMFFloat,
     TSFFloatEvent>)
   strict protected
@@ -331,7 +420,15 @@
 
   { Interpolate (animate) a set of floats, for example to animate
     @link(TElevationGridNode) heights. }
-  TVectorInterpolatorNode = class(specialize TAbstractArrayInterpolatorNode<
+  TVectorInterpolatorNode = class({$ifdef CASTLE_OBJFPC}specialize{$endif}
+    TAbstractArrayInterpolatorNode<
+    {$ifndef FPC}
+    Single,
+    TSFFloat,
+    TStructList<Single>,
+    TSingleList,
+    TMFFloatEvent,
+    {$endif}
     TMFFloat,
     TMFFloatEvent>)
   public
@@ -370,18 +467,34 @@ end;
 
 function TAbstractSingleInterpolatorNode {$ifndef CASTLE_OBJFPC} <
   TInterpolatedValue,
+  {$ifndef FPC}
+  TSingleField,
+  TInternalItemList,
+  TItemList,
+  TEvent,
+  {$endif}
   TKeyValue,
   TKeyValueEvent>{$endif} .
   KeyValue(Index: Integer): TInterpolatedValue;
 begin
   if Index < FdKeyValue.Items.Count then
+  {$ifdef FPC}
     Result := FdKeyValue.Items.List^[Index]
+  {$else}
+    Result := FdKeyValue.Items.InternalGetItem(Index)
+  {$endif}
   else
     Result := InterpolatorDefault;
 end;
 
 procedure TAbstractSingleInterpolatorNode {$ifndef CASTLE_OBJFPC} <
   TInterpolatedValue,
+  {$ifndef FPC}
+  TSingleField,
+  TInternalItemList,
+  TItemList,
+  TEvent,
+  {$endif}
   TKeyValue,
   TKeyValueEvent>{$endif} .
   EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
@@ -416,17 +529,73 @@ end;
 
 procedure TAbstractSingleInterpolatorNode {$ifndef CASTLE_OBJFPC} <
   TInterpolatedValue,
+  {$ifndef FPC}
+  TSingleField,
+  TInternalItemList,
+  TItemList,
+  TEvent,
+  {$endif}
   TKeyValue,
   TKeyValueEvent>{$endif} .
   CreateNode;
+{$ifndef FPC}
+var
+  AValue: TValue;
+  RttiContext: TRttiContext;
+  KeyType: TRttiType;
+  AMethCreate: TRttiMethod;
+  InstanceType: TRttiInstanceType;
+  ArrayOfTInterpolatedValue: TArray<TInterpolatedValue>;
+  ArrayValue: TValue;
+{$endif}
 begin
   inherited;
-
+  {$ifdef FPC}
   FFdKeyValue := TKeyValue.Create(Self, true, 'keyValue', []);
+
   AddField(FFdKeyValue);
 
   FEventValue_changed := TKeyValueEvent.Create(Self, 'value_changed', false);
   AddEvent(FEventValue_changed);
+  {$else}
+  SetLength(ArrayOfTInterpolatedValue, 0);
+
+  { https://stackoverflow.com/questions/8355456/creating-object-instance-based-on-unconstrained-generic-type }
+  RttiContext := TRttiContext.Create;
+  try
+    KeyType := RttiContext.GetType(TypeInfo(TKeyValue));
+    for AMethCreate in KeyType.GetMethods do
+    begin
+      if (AMethCreate.IsConstructor) and (Length(AMethCreate.GetParameters) = 4) then
+      begin
+        InstanceType := KeyType.AsInstance;
+        ArrayValue := TValue.From<TArray<TInterpolatedValue>>(ArrayOfTInterpolatedValue);
+        AValue := AMethCreate.Invoke(InstanceType.MetaclassType, [Self, true, 'keyValue',
+          ArrayValue]);
+        FFdKeyValue := AValue.AsType<TKeyValue>;
+
+        break;
+      end;
+    end;
+
+    AddField(FFdKeyValue as TX3DField);
+
+    KeyType := RttiContext.GetType(TypeInfo(TKeyValueEvent));
+    for AMethCreate in KeyType.GetMethods do
+    begin
+      if (AMethCreate.IsConstructor) and (Length(AMethCreate.GetParameters) = 3) then
+      begin
+        InstanceType := KeyType.AsInstance;
+        AValue := AMethCreate.Invoke(InstanceType.MetaclassType, [Self, 'value_changed', false]);
+        FEventValue_changed := AValue.AsType<TKeyValueEvent>;
+        AddEvent(FEventValue_changed as TX3DEvent);
+        break;
+      end;
+    end;
+  finally
+    RttiContext.Free;
+  end;
+  {$endif}
 
   DefaultContainerField := 'children';
 
@@ -436,6 +605,12 @@ end;
 
 function TAbstractSingleInterpolatorNode {$ifndef CASTLE_OBJFPC} <
   TInterpolatedValue,
+  {$ifndef FPC}
+  TSingleField,
+  TInternalItemList,
+  TItemList,
+  TEvent,
+  {$endif}
   TKeyValue,
   TKeyValueEvent>{$endif}
   .InterpolatorDefault: TInterpolatedValue;
@@ -452,11 +627,25 @@ end;
 { TAbstractArrayInterpolatorNode --------------------------------------------- }
 
 function TAbstractArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
+  {$ifndef FPC}
+  TInterpolatedValue,
+  TSingleField,
+  TInternalItemList,
+  TItemList,
+  TEvent,
+  {$endif}
   TKeyValue,
   TKeyValueEvent>{$endif} .
   KeyValue(const Index, KeyCount: Integer): TKeyValue;
 var
   FrameValues: Integer;
+  {$ifndef FPC}
+  AValue: TValue;
+  RttiContext: TRttiContext;
+  KeyType: TRttiType;
+  AMethCreate: TRttiMethod;
+  InstanceType: TRttiInstanceType;
+  {$endif}
 begin
   FrameValues := FdKeyValue.Items.Count div KeyCount;
 
@@ -465,28 +654,86 @@ begin
   // This is not required, ParentNode could be @nil and everything
   // will work Ok, but setting ParentNode allows InstantReality Logger node
   // to display "sending node" information, useful for debugging.
+  {$ifdef FPC}
   Result := TKeyValue.CreateUndefined(Self, false, '');
+  {$else}
+  { https://stackoverflow.com/questions/8355456/creating-object-instance-based-on-unconstrained-generic-type }
+  RttiContext := TRttiContext.Create;
+  try
+    KeyType := RttiContext.GetType(TypeInfo(TKeyValue));
+    for AMethCreate in KeyType.GetMethods do
+    begin
+      if (AMethCreate.IsConstructor) and (Length(AMethCreate.GetParameters) = 3) then
+      begin
+        InstanceType := KeyType.AsInstance;
+        AValue := AMethCreate.Invoke(InstanceType.MetaclassType, [Self, false, '']);
+        Result := AValue.AsType<TKeyValue>;
+        break;
+      end;
+    end;
+  finally
+    RttiContext.Free;
+  end;
+  {$endif}
 
   if (Index + 1) * FrameValues <= FdKeyValue.Items.Count then
   begin
+  {$ifdef FPC}
     Result.Items.AddSubRange(FdKeyValue.Items, Index * FrameValues, FrameValues);
+  {$else}
+    Result.Items.AddSubRange(FdKeyValue.GetInternalItems, Index * FrameValues, FrameValues);
+  {$endif}
   end else
     WritelnWarning('VRML/X3D', Format('Not enough keyValue items for %s interpolator',
       [X3DType]));
 end;
 
 function TAbstractArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
+  {$ifndef FPC}
+  TInterpolatedValue,
+  TSingleField,
+  TInternalItemList,
+  TItemList,
+  TEvent,
+  {$endif}
   TKeyValue,
   TKeyValueEvent>{$endif} .
   KeyValueLerp(const T: Single; const Index1, Index2, KeyCount: Integer): TKeyValue;
 var
   FrameValues: Integer;
+  {$ifndef FPC}
+  AValue: TValue;
+  RttiContext: TRttiContext;
+  KeyType: TRttiType;
+  AMethCreate: TRttiMethod;
+  InstanceType: TRttiInstanceType;
+  {$endif}
 begin
   // This actually knows that Index2 = Index1 + 1, but assumes only
   // Index2 > Index1
 
   FrameValues := FdKeyValue.Items.Count div KeyCount;
+  {$ifdef FPC}
   Result := TKeyValue.CreateUndefined(Self, false, '');
+  {$else}
+  { https://stackoverflow.com/questions/8355456/creating-object-instance-based-on-unconstrained-generic-type }
+  RttiContext := TRttiContext.Create;
+  try
+    KeyType := RttiContext.GetType(TypeInfo(TKeyValue));
+    for AMethCreate in KeyType.GetMethods do
+    begin
+      if (AMethCreate.IsConstructor) and (Length(AMethCreate.GetParameters) = 3) then
+      begin
+        InstanceType := KeyType.AsInstance;
+        AValue := AMethCreate.Invoke(InstanceType.MetaclassType, [Self, false, '']);
+        Result := AValue.AsType<TKeyValue>;
+        break;
+      end;
+    end;
+  finally
+    RttiContext.Free;
+  end;
+  {$endif}
 
   if (Index2 + 1) * FrameValues <= FdKeyValue.Items.Count then
   begin
@@ -498,6 +745,13 @@ begin
 end;
 
 procedure TAbstractArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
+  {$ifndef FPC}
+  TInterpolatedValue,
+  TSingleField,
+  TInternalItemList,
+  TItemList,
+  TEvent,
+  {$endif}
   TKeyValue,
   TKeyValueEvent>{$endif} .
   EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
@@ -538,17 +792,75 @@ begin
 end;
 
 procedure TAbstractArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
+  {$ifndef FPC}
+  TInterpolatedValue,
+  TSingleField,
+  TInternalItemList,
+  TItemList,
+  TEvent,
+  {$endif}
   TKeyValue,
   TKeyValueEvent>{$endif} .
   CreateNode;
+{$ifndef FPC}
+var
+  AValue: TValue;
+  RttiContext: TRttiContext;
+  KeyType: TRttiType;
+  AMethCreate: TRttiMethod;
+  InstanceType: TRttiInstanceType;
+  ArrayOfTInterpolatedValue: TArray<TInterpolatedValue>;
+  ArrayValue: TValue;
+{$endif}
 begin
   inherited;
 
+  {$ifdef FPC}
   FFdKeyValue := TKeyValue.Create(Self, true, 'keyValue', []);
   AddField(FFdKeyValue);
 
   FEventValue_changed := TKeyValueEvent.Create(Self, 'value_changed', false);
   AddEvent(FEventValue_changed);
+  {$else}
+  SetLength(ArrayOfTInterpolatedValue, 0);
+
+  { https://stackoverflow.com/questions/8355456/creating-object-instance-based-on-unconstrained-generic-type }
+  RttiContext := TRttiContext.Create;
+  try
+    KeyType := RttiContext.GetType(TypeInfo(TKeyValue));
+    for AMethCreate in KeyType.GetMethods do
+    begin
+      if (AMethCreate.IsConstructor) and (Length(AMethCreate.GetParameters) = 4) then
+      begin
+        InstanceType := KeyType.AsInstance;
+        ArrayValue := TValue.From<TArray<TInterpolatedValue>>(ArrayOfTInterpolatedValue);
+        AValue := AMethCreate.Invoke(InstanceType.MetaclassType, [Self, true, 'keyValue',
+          ArrayValue]);
+        FFdKeyValue := AValue.AsType<TKeyValue>;
+
+        break;
+      end;
+    end;
+
+    AddField(FFdKeyValue as TX3DField);
+
+    KeyType := RttiContext.GetType(TypeInfo(TKeyValueEvent));
+    for AMethCreate in KeyType.GetMethods do
+    begin
+      if (AMethCreate.IsConstructor) and (Length(AMethCreate.GetParameters) = 3) then
+      begin
+        InstanceType := KeyType.AsInstance;
+        AValue := AMethCreate.Invoke(InstanceType.MetaclassType, [Self, 'value_changed', false]);
+        FEventValue_changed := AValue.AsType<TKeyValueEvent>;
+        AddEvent(FEventValue_changed as TX3DEvent);
+        break;
+      end;
+    end;
+  finally
+    RttiContext.Free;
+  end;
+  {$endif}
+
 
   DefaultContainerField := 'children';
 
@@ -557,13 +869,24 @@ begin
 end;
 
 procedure TAbstractArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
+  {$ifndef FPC}
+  TInterpolatedValue,
+  TSingleField,
+  TInternalItemList,
+  TItemList,
+  TEvent,
+  {$endif}
   TKeyValue,
   TKeyValueEvent>{$endif} .
   InterpolatorLerp(const Target: TKeyValue;
   const Fraction: Single; const F1, F2: TKeyValue;
   const Index1, Index2, ACount: Integer);
 begin
+  {$ifdef FPC}
   Target.Items.AssignLerp(Fraction, F1.Items, F2.Items, Index1, Index2, ACount);
+  {$else}
+  Target.Items.AssignLerp(Fraction, F1.GetInternalItems, F2.GetInternalItems, Index1, Index2, ACount);
+  {$endif}
 end;
 
 { TColorInterpolatorNode ----------------------------------------------------- }

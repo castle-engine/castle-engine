@@ -18,9 +18,10 @@
   { Multiple value (MF) fields ----------------------------------------------- }
 
   { }
-  TMFBool = class(specialize TX3DSimpleMultField<
+  TMFBool = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TX3DSimpleMultField<
     boolean,
     TSFBool,
+    {$ifndef FPC}TStructList<boolean>,{$endif}
     TBooleanList,
     TMFBoolEvent>)
   strict protected
@@ -29,9 +30,10 @@
     class function X3DType: string; override;
   end;
 
-  TMFLong = class(specialize TX3DSimpleMultField<
+  TMFLong = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TX3DSimpleMultField<
     LongInt,
     TSFLong,
+    {$ifndef FPC}TStructList<LongInt>,{$endif}
     TLongIntList,
     TMFLongEvent>)
   strict private
@@ -79,9 +81,10 @@
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
   end;
 
-  TMFMatrix3f = class(specialize TX3DSimpleMultField<
+  TMFMatrix3f = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TX3DSimpleMultField<
     TMatrix3,
     TSFMatrix3f,
+    {$ifndef FPC}TStructList<TMatrix3>,{$endif}
     TMatrix3List,
     TMFMatrix3fEvent>)
   strict protected
@@ -92,9 +95,10 @@
     class function X3DType: string; override;
   end;
 
-  TMFMatrix3d = class(specialize TX3DSimpleMultField<
+  TMFMatrix3d = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TX3DSimpleMultField<
     TMatrix3Double,
     TSFMatrix3d,
+    {$ifndef FPC}TStructList<TMatrix3Double>,{$endif}
     TMatrix3DoubleList,
     TMFMatrix3dEvent>)
   strict protected
@@ -105,9 +109,10 @@
     class function X3DType: string; override;
   end;
 
-  TMFMatrix4f = class(specialize TX3DSimpleMultField<
+  TMFMatrix4f = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TX3DSimpleMultField<
     TMatrix4,
     TSFMatrix4f,
+    {$ifndef FPC}TStructList<TMatrix4>,{$endif}
     TMatrix4List,
     TMFMatrix4fEvent>)
   strict protected
@@ -118,9 +123,10 @@
     class function X3DType: string; override;
   end;
 
-  TMFMatrix4d = class(specialize TX3DSimpleMultField<
+  TMFMatrix4d = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TX3DSimpleMultField<
     TMatrix4Double,
     TSFMatrix4d,
+    {$ifndef FPC}TStructList<TMatrix4Double>,{$endif}
     TMatrix4DoubleList,
     TMFMatrix4dEvent>)
   strict protected
@@ -131,9 +137,10 @@
     class function X3DType: string; override;
   end;
 
-  TMFVec2f = class(specialize TX3DSimpleMultField<
+  TMFVec2f = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TX3DSimpleMultField<
     TVector2,
     TSFVec2f,
+    {$ifndef FPC}TStructList<TVector2>,{$endif}
     TVector2List,
     TMFVec2fEvent>)
   strict protected
@@ -144,9 +151,10 @@
     class function X3DType: string; override;
   end;
 
-  TMFVec3f = class(specialize TX3DSimpleMultField<
+  TMFVec3f = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TX3DSimpleMultField<
     TVector3,
     TSFVec3f,
+    {$ifndef FPC}TStructList<TVector3>,{$endif}
     TVector3List,
     TMFVec3fEvent>)
   strict protected
@@ -163,9 +171,10 @@
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
   end;
 
-  TMFVec4f = class(specialize TX3DSimpleMultField<
+  TMFVec4f = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TX3DSimpleMultField<
     TVector4,
     TSFVec4f,
+    {$ifndef FPC}TStructList<TVector4>,{$endif}
     TVector4List,
     TMFVec4fEvent>)
   strict protected
@@ -182,9 +191,10 @@
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
   end;
 
-  TMFVec2d = class(specialize TX3DSimpleMultField<
+  TMFVec2d = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TX3DSimpleMultField<
     TVector2Double,
     TSFVec2d,
+    {$ifndef FPC}TStructList<TVector2Double>,{$endif}
     TVector2DoubleList,
     TMFVec2dEvent>)
   strict protected
@@ -195,9 +205,10 @@
     class function X3DType: string; override;
   end;
 
-  TMFVec3d = class(specialize TX3DSimpleMultField<
+  TMFVec3d = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TX3DSimpleMultField<
     TVector3Double,
     TSFVec3d,
+    {$ifndef FPC}TStructList<TVector3Double>,{$endif}
     TVector3DoubleList,
     TMFVec3dEvent>)
   strict protected
@@ -208,9 +219,10 @@
     class function X3DType: string; override;
   end;
 
-  TMFVec4d = class(specialize TX3DSimpleMultField<
+  TMFVec4d = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TX3DSimpleMultField<
     TVector4Double,
     TSFVec4d,
+    {$ifndef FPC}TStructList<TVector4Double>,{$endif}
     TVector4DoubleList,
     TMFVec4dEvent>)
   strict protected
@@ -221,9 +233,10 @@
     class function X3DType: string; override;
   end;
 
-  TMFRotation = class(specialize TX3DSimpleMultField<
+  TMFRotation = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TX3DSimpleMultField<
     TVector4,
     TSFRotation,
+    {$ifndef FPC}TStructList<TVector4>,{$endif}
     TVector4List,
     TMFRotationEvent>)
   strict protected
@@ -234,9 +247,10 @@
     class function X3DType: string; override;
   end;
 
-  TMFFloat = class(specialize TX3DSimpleMultField<
+  TMFFloat = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TX3DSimpleMultField<
     Single,
     TSFFloat,
+    {$ifndef FPC}TStructList<Single>,{$endif}
     TSingleList,
     TMFFloatEvent>)
   strict private
@@ -256,9 +270,10 @@
     class function X3DType: string; override;
   end;
 
-  TMFDouble = class(specialize TX3DSimpleMultField<
+  TMFDouble = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TX3DSimpleMultField<
     Double,
     TSFDouble,
+    {$ifndef FPC}TStructList<Double>,{$endif}
     TDoubleList,
     TMFDoubleEvent>)
   strict protected
@@ -276,9 +291,10 @@
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
   end;
 
-  TMFString = class(specialize TX3DSimpleMultField<
+  TMFString = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TX3DSimpleMultField<
     string,
     TSFString,
+    {$ifndef FPC}TStringList,{$endif}
     TCastleStringList,
     TMFStringEvent>)
   strict protected

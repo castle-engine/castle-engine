@@ -299,7 +299,7 @@
 
       All fields on this list are owned by this instance.
       @groupBegin }
-    property Fields [Index: Integer]: TX3DField read GetFields;
+    property Fields [const Index: Integer]: TX3DField read GetFields;
     function FieldsCount: Integer;
     procedure AddField(const Value: TX3DField);
     function IndexOfField(const AName: string): Integer;
@@ -308,7 +308,7 @@
     { Explicit events (that is, not exposed by some field) of this node.
       For exposed events, see each field's property ExposedEvents.
       @groupBegin }
-    property Events [Index: Integer]: TX3DEvent read GetEvents;
+    property Events [const Index: Integer]: TX3DEvent read GetEvents;
     function EventsCount: Integer;
     procedure AddEvent(const Value: TX3DEvent);
     function IndexOfEvent(const AName: string): Integer;
@@ -481,7 +481,9 @@
       http://www.web3d.org/documents/specifications/19776-2/V3.3/Part02/grammar.html ).
       We don't want to confuse these two properties. }
     property X3DName: string read FX3DName write FX3DName;
+    {$ifdef FPC}
     property NodeName: string read FX3DName write FX3DName; deprecated 'use X3DName';
+    {$endif FPC}
 
     { Base URL for all URLs inside our fields.
       Used everywhere as a base for relative URLs, to handle fields that refer
@@ -498,8 +500,10 @@
       like Inline or ImageTexture immediately after parsing them. }
     property BaseUrl: string read FBaseUrl write FBaseUrl;
 
+    {$ifdef FPC}
     { Old deprecated name for BaseUrl. @deprecated }
     property WWWBasePath: string read FBaseUrl write FBaseUrl; deprecated;
+    {$endif}
 
     { Returns an absolute path, assuming that RelativePath is relative
       path from BaseUrl or that RelativePath is already absolute. }
@@ -865,20 +869,20 @@
     function RemoveChildrenWithMatchingName(
       const Wildcard: string; IgnoreCase: Boolean): Cardinal;
 
-    property Prototypes [Index: Integer]: TX3DPrototypeBase read GetPrototypes;
+    property Prototypes [const Index: Integer]: TX3DPrototypeBase read GetPrototypes;
     function PrototypesCount: Integer;
     procedure AddPrototype(const Value: TX3DPrototypeBase);
 
-    property Routes [Index: Integer]: TX3DRoute read GetRoutes;
+    property Routes [const Index: Integer]: TX3DRoute read GetRoutes;
     function RoutesCount: Integer;
-    procedure AddRoute(const Value: TX3DRoute);
-    procedure AddRoute(const Source, Destination: TX3DFieldOrEvent);
+    procedure AddRoute(const Value: TX3DRoute); overload;
+    procedure AddRoute(const Source, Destination: TX3DFieldOrEvent); overload;
 
-    property ImportsList [Index: Integer]: TX3DImport read GetImports;
+    property ImportsList [const Index: Integer]: TX3DImport read GetImports;
     function ImportsCount: Integer;
     procedure AddImport(const Value: TX3DImport);
 
-    property ExportsList [Index: Integer]: TX3DExport read GetExports;
+    property ExportsList [const Index: Integer]: TX3DExport read GetExports;
     function ExportsCount: Integer;
     procedure AddExport(const Value: TX3DExport);
 
@@ -1118,8 +1122,8 @@
 
     procedure AddIfNotExists(const Node: TX3DNode);
     function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
-    procedure Assign(const Source: TX3DNodeList);
-    procedure Assign(const Source: array of TX3DNode);
+    procedure Assign(const Source: TX3DNodeList); overload;
+    procedure Assign(const Source: array of TX3DNode); overload;
   end;
 
 {$endif read_interface}

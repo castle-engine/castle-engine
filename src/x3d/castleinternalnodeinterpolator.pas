@@ -31,8 +31,9 @@ type
   TNodeInterpolator = class
   strict private
     { Helpers for Load implementation. }
-    LoadToX3D_KeyNodes: TX3DNodeList; static;
-    LoadToX3D_KeyTimes: TSingleList; static;
+  class var
+    LoadToX3D_KeyNodes: TX3DNodeList;
+    LoadToX3D_KeyTimes: TSingleList;
     class procedure LoadToX3D_GetKeyNodeWithTime(const Index: Cardinal;
       out KeyNode: TX3DRootNode; out Time: Single);
   public
@@ -860,16 +861,15 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const Stream: TStream;
           end else
           begin
             MimeType := FrameElement.AttributeStringDef('mime_type', '');
-            case MimeType of
-              '', 'model/x3d+xml':
-                NewNode := LoadX3DXmlInternal(FrameElement.ChildElement('X3D'), AbsoluteBaseUrl);
-              'model/gltf+json':
-                NewNode := LoadGLTFFromString(FrameElement.TextData, AbsoluteBaseUrl);
-              else
-                raise Exception.CreateFmt('Cannot use mime_type "%s" for a frame in castle-anim-frames', [
-                  MimeType
-                ]);
-            end;
+            if (MimeType = '') or (MimeType = 'model/x3d+xml') then
+              NewNode := LoadX3DXmlInternal(FrameElement.ChildElement('X3D'), AbsoluteBaseUrl)
+            else
+            if (MimeType = 'model/gltf+json') then
+              NewNode := LoadGLTFFromString(FrameElement.TextData, AbsoluteBaseUrl)
+            else
+              raise Exception.CreateFmt('Cannot use mime_type "%s" for a frame in castle-anim-frames', [
+                MimeType
+              ]);
           end;
 
           if FrameElement.AttributeVector3('bounding_box_center', FrameBoxCenter) and

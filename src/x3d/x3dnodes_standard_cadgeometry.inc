@@ -17,7 +17,10 @@
   { Interface for nodes that are valid product structure children. }
   IAbstractX3DProductStructureChildNode = interface(IAbstractChildNode)
   ['{318249E0-BACF-4F16-9E49-3E912F24E0AA}']
-    property FdName: TSFString { read FFdName} { };
+  // TODO: Delphi
+  {$ifdef FPC}
+    property FdName: TSFString  { read FFdName } { };
+  {$endif}
   end;
 
   { Abstract class for (most) nodes that are valid product structure children. }

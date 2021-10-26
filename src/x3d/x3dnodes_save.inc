@@ -430,7 +430,7 @@ var
 
     procedure SaveComponents(Root: TX3DRootNode);
     var
-      ComponentLevel: TStringLongIntMap.TDictionaryPair;
+      ComponentLevel: {$ifdef FPC}TStringLongIntMap.TDictionaryPair{$else}TPair<string, LongInt>{$endif};
     begin
       for ComponentLevel in Root.Components do
         Writer.Writeln(Format('COMPONENT %s:%d',
@@ -442,7 +442,7 @@ var
 
     procedure SaveMetas(Root: TX3DRootNode);
     var
-      MetaPair: TStringStringMap.TDictionaryPair;
+      MetaPair: {$ifdef FPC}TStringStringMap.TDictionaryPair{$else}TPair<string, string>{$endif};
     begin
       for MetaPair in Root.Meta do
         Writer.Writeln(Format('META %s %s',
@@ -520,7 +520,7 @@ var
 
     procedure SaveComponents(Root: TX3DRootNode);
     var
-      ComponentLevel: TStringLongIntMap.TDictionaryPair;
+      ComponentLevel: {$ifdef FPC}TStringLongIntMap.TDictionaryPair{$else}TPair<string, LongInt>{$endif};
     begin
       for ComponentLevel in Root.Components do
         Writer.WritelnIndent(Format('<component name=%s level="%d" />',
@@ -530,7 +530,7 @@ var
 
     procedure SaveMetas(Root: TX3DRootNode);
     var
-      MetaPair: TStringStringMap.TDictionaryPair;
+      MetaPair: {$ifdef FPC}TStringStringMap.TDictionaryPair{$else}TPair<string, string>{$endif};
     begin
       for MetaPair in Root.Meta do
         Writer.WritelnIndent(Format('<meta name=%s content=%s />',

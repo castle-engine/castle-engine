@@ -179,7 +179,7 @@
     function DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DRoute;
   end;
 
-  TX3DRouteList = class(specialize TObjectList<TX3DRoute>);
+  TX3DRouteList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DRoute>);
 
 {$endif read_interface}
 

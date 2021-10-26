@@ -15,14 +15,35 @@
 
 {$ifdef read_interface}
 
+{$ifndef FPC}
+  { Needed by Delphi generics }
+  IX3DSimpleMultField<
+    TItem;
+    TInternalItemList;
+    TItemList: ICastleItemList<TItem, TInternalItemList>> = interface
+  ['{3B8A5F76-4B00-439A-B906-D081C6BC325F}']
+    function GetItems: TItemList;
+    procedure SetItems(const Value: TItemList);
+
+    function GetInternalItems: TInternalItemList;
+    property Items: TItemList read GetItems write SetItems;
+
+    function GetInternalPartialSend: TPartialSend;
+    procedure SetInternalPartialSend(const Value: TPartialSend);
+    property InternalPartialSend: TPartialSend read GetInternalPartialSend write SetInternalPartialSend;
+  end;
+{$endif}
+
+
   { X3D field with a list of values.
     This is an ancestor of most multiple-value X3D fields. }
   {$ifdef CASTLE_OBJFPC}generic{$endif}
   TX3DSimpleMultField<
-    TItem,
-    TSingleField,
-    TItemList,
-    TEvent> = class(TX3DMultField)
+    TItem;
+    TSingleField{$ifndef FPC}: TX3DSingleField{$endif};
+    {$ifndef FPC}TInternalItemList: class;{$endif}
+    TItemList{$ifndef FPC}: ICastleItemList<TItem, TInternalItemList>{$endif};
+    TEvent> = class(TX3DMultField{$ifndef FPC}{, IX3DSimpleMultField<TItem, TInternalItemList, TItemList>}{$endif})
   strict private
     WarningDoneInvalidIndex: boolean;
 
@@ -95,6 +116,10 @@
 
     property Items: TItemList read GetItems write SetItems;
 
+    {$ifndef FPC}
+    function GetInternalItems: TInternalItemList;
+    {$endif}
+
     { Copy another field value, default value and other properties. }
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
@@ -127,18 +152,87 @@
     procedure Send(const AValue: TItemList); overload;
   end;
 
+  {$ifndef FPC}
+  TAccessSingleFieldValue<T: class> = class
+    class function GetValue(SingleField: T; Variable: String):TValue;
+  end;
+  {$endif}
+
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TX3DSimpleMultField ------------------------------------------------------- }
 
-function TX3DSimpleMultField.CreateItemBeforeParse: TSingleField;
+function TX3DSimpleMultField{$ifndef CASTLE_OBJFPC} <
+    TItem;
+    TSingleField;
+    {$ifndef FPC}TInternalItemList;{$endif}
+    TItemList;
+    TEvent
+  > {$endif} .
+  CreateItemBeforeParse: TSingleField;
+  {$ifndef FPC}
+var
+  AValue: TValue;
+  RttiContext: TRttiContext;
+  SingleFieldType: TRttiType;
+  AMethCreate: TRttiMethod;
+  InstanceType: TRttiInstanceType;
+  {$endif}
 begin
-  result := TSingleField.CreateUndefined(ParentNode, false, '');
+  {$ifdef FPC}
+  Result := TSingleField.CreateUndefined(ParentNode, false, '');
+  {$else}
+  RttiContext := TRttiContext.Create;
+  try
+    SingleFieldType := RttiContext.GetType(TypeInfo(TSingleField));
+    for AMethCreate in SingleFieldType.GetMethods do
+    begin
+      if (AMethCreate.IsConstructor) and (Length(AMethCreate.GetParameters) = 3) then
+      begin
+        InstanceType := SingleFieldType.AsInstance;
+        AValue := AMethCreate.Invoke(InstanceType.MetaclassType, [ParentNode, false, '']);
+        Result := AValue.AsType<TSingleField>;
+        break;
+      end;
+    end;
+  finally
+    RttiContext.Free;
+  end;
+  {$endif}
 end;
 
-procedure TX3DSimpleMultField.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
+{$ifndef FPC}
+class function TAccessSingleFieldValue<T>.GetValue(SingleField: T; Variable: String): TValue;
+var
+  RttiContext: TRTTIContext;
+  SingleFieldType: TRttiType;
+  RttiVariable: TRttiField;
+begin
+  RttiContext := TRTTIContext.Create;
+  try
+    SingleFieldType := RttiContext.GetType(TypeInfo(T));
+    RttiVariable := SingleFieldType.GetField(Variable);
+    if RttiVariable = nil then
+      Exit(nil);
+
+    Result := RttiVariable.GetValue(Pointer(SingleField));
+  finally
+    RttiContext.Free;
+  end;
+end;
+{$endif}
+
+procedure TX3DSimpleMultField{$ifndef CASTLE_OBJFPC} <
+    TItem;
+    TSingleField;
+    {$ifndef FPC}TInternalItemList;{$endif}
+    TItemList;
+    TEvent
+  > {$endif} .
+  ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 var
   SingleItem: TSingleField;
 begin
@@ -160,7 +254,12 @@ begin
       { we always look now at "]" or next single value }
       begin
         SingleItem.ParseValue(Lexer, Reader);
+        {$ifdef FPC}
         Items.Add(SingleItem.Value);
+        {$else}
+        Items.Add(TAccessSingleFieldValue<TSingleField>.GetValue(
+          SingleItem, 'Value').asType<TItem>);
+        {$endif}
 
         if Lexer.Token = vtCloseSqBracket then break;
 
@@ -183,13 +282,25 @@ begin
     begin
       { one single field - not enclosed in [] brackets }
       SingleItem.ParseValue(Lexer, Reader);
+      {$ifdef FPC}
       Items.Add(SingleItem.Value);
+      {$else}
+      Items.Add(TAccessSingleFieldValue<TSingleField>.GetValue(
+        SingleItem, 'Value').asType<TItem>);
+      {$endif}
     end;
 
   finally FreeAndNil(SingleItem) end;
 end;
 
-procedure TX3DSimpleMultField.ParseXMLAttributeLexer(Lexer: TX3DLexer; Reader: TX3DReader);
+procedure TX3DSimpleMultField{$ifndef CASTLE_OBJFPC} <
+    TItem;
+    TSingleField;
+    {$ifndef FPC}TInternalItemList;{$endif}
+    TItemList;
+    TEvent
+  > {$endif} .
+  ParseXMLAttributeLexer(Lexer: TX3DLexer; Reader: TX3DReader);
 var
   SingleItem: TSingleField;
 begin
@@ -209,12 +320,24 @@ begin
     while Lexer.Token <> vtEnd do
     begin
       SingleItem.ParseValue(Lexer, Reader);
+      {$ifdef FPC}
       Items.Add(SingleItem.Value);
+      {$else}
+      Items.Add(TAccessSingleFieldValue<TSingleField>.GetValue(
+        SingleItem, 'Value').asType<TItem>);
+      {$endif}
     end;
   finally FreeAndNil(SingleItem) end;
 end;
 
-procedure TX3DSimpleMultField.SaveToStreamValue(Writer: TX3DWriter);
+procedure TX3DSimpleMultField{$ifndef CASTLE_OBJFPC} <
+    TItem;
+    TSingleField;
+    {$ifndef FPC}TInternalItemList;{$endif}
+    TItemList;
+    TEvent
+  > {$endif} .
+  SaveToStreamValue(Writer: TX3DWriter);
 var
   i: integer;
   WriteIndentNextTime: boolean;
@@ -268,20 +391,41 @@ begin
   end;
 end;
 
-function TX3DSimpleMultField.SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean;
+function TX3DSimpleMultField{$ifndef CASTLE_OBJFPC} <
+    TItem;
+    TSingleField;
+    {$ifndef FPC}TInternalItemList;{$endif}
+    TItemList;
+    TEvent
+  > {$endif} .
+  SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean;
 begin
   Result := true;
 end;
 
-function TX3DSimpleMultField.Equals(SecondValue: TX3DField): boolean;
+function TX3DSimpleMultField{$ifndef CASTLE_OBJFPC} <
+    TItem;
+    TSingleField;
+    {$ifndef FPC}TInternalItemList;{$endif}
+    TItemList;
+    TEvent
+  > {$endif} .
+  Equals(SecondValue: TX3DField): boolean;
 begin
   Result :=
     (inherited Equals(SecondValue)) and
-    (SecondValue is TX3DSimpleMultField) and
-    Items.Equals(TX3DSimpleMultField(SecondValue).Items);
+    (SecondValue is TX3DSimpleMultField{$ifndef FPC}<TItem, TSingleField, TInternalItemList, TItemList, TEvent>{$endif}) and
+    Items.Equals(TX3DSimpleMultField{$ifndef FPC}<TItem, TSingleField, TInternalItemList, TItemList, TEvent>{$endif}(SecondValue).Items);
 end;
 
-function TX3DSimpleMultField.EqualsDefaultValue: boolean;
+function TX3DSimpleMultField{$ifndef CASTLE_OBJFPC} <
+    TItem;
+    TSingleField;
+    {$ifndef FPC}TInternalItemList;{$endif}
+    TItemList;
+    TEvent
+  > {$endif} .
+  EqualsDefaultValue: boolean;
 var
   Tmp: TItemList;
 begin
@@ -371,6 +515,13 @@ procedure TX3DSimpleMultField.SetItems(const Value: TItemList);
 begin
   TItemList(FItems).Assign(Value);
 end;
+
+{$ifndef FPC}
+function TX3DSimpleMultField.GetInternalItems: TInternalItemList;
+begin
+  Result := TInternalItemList(FItems);
+end;
+{$endif}
 
 procedure TX3DSimpleMultField.Assign(Source: TPersistent);
 begin

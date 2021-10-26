@@ -112,7 +112,8 @@ type
     destructor Destroy;override;
     function GetNamedItem(Name: String): TDOMNode;
 
-
+    property Item[const Index: LongWord]: TDOMNode read GetItem; default;
+    property Length: LongWord read GetLength;
     procedure InvalidateMap;
   end;
 

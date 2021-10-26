@@ -21,7 +21,16 @@ type
   { List of structures.
     This is just TList class from Generics.Collections, with some useful helpers. }
   {$ifdef CASTLE_OBJFPC}generic{$endif}
-  TStructList<T> = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<T>)
+  TStructList<T> = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<T>
+    {$ifndef FPC}, ICastleItemList<T, TStructList<T>>{$endif})
+  {$ifndef FPC}
+  strict private
+    procedure SetCount(const Value: Integer);
+    function GetCount: Integer;
+    function _AddRef: Integer; stdcall;
+    function _Release: Integer; stdcall;
+    function QueryInterface(const IID: TGUID; out Obj): Hresult; virtual; stdcall;
+  {$endif}
   public
     type
       PtrT = ^T;
@@ -72,6 +81,13 @@ type
       @seealso List }
     function L: PtrT;
 
+    {$ifndef FPC}
+    function InternalGetItem(const Index: Integer): T;
+    function GetInternalItems: TStructList<T>;
+    //procedure InternalAddSubRange(Source: TList<T>; Index, AddCount: Integer);
+
+    {$endif}
+
     { Increase Count and return pointer to new item.
       Comfortable and efficient way to add a new item that you want to immediately
       initialize. }
@@ -84,10 +100,18 @@ type
     procedure Assign(const A: array of T); overload;
 
     function ItemSize: SizeInt;
+    {$ifndef FPC}
+    procedure AddSubRange(Source: TStructList<T>; Index, AddCount: Integer);
+    procedure AssignLerp(const Fraction: Single;
+      V1, V2: TStructList<T>; Index1, Index2, ACount: Integer); virtual;
+    {$endif}
 
     procedure AddArray(const A: array of T); deprecated 'use AddRange';
     procedure AddList(const Source: TStructList {$ifndef CASTLE_OBJFPC}<T>{$endif}); deprecated 'use AddRange';
     procedure AssignArray(const A: array of T); deprecated 'use Assign';
+    {$ifndef FPC}
+    property Count: Integer read GetCount write SetCount;
+    {$endif}
   end;
 
 {$endif}
@@ -144,9 +168,71 @@ begin
   AddRange(Source);
 end;
 
+{$ifndef FPC}
+procedure TStructList<T>.AddSubRange(Source: TStructList<T>; Index, AddCount: Integer);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + AddCount;
+  if Source.Count <> 0 then
+    System.Move(Source.List^[Index], List^[OldCount], SizeOf(T) * AddCount);
+end;
+
+procedure TStructList<T>.AssignLerp(const Fraction: Single;
+      V1, V2: TStructList<T>; Index1, Index2, ACount: Integer);
+var
+  I: Integer;
+begin
+  raise Exception.Create('Not implemented');
+end;
+
+{$endif}
+
 procedure TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.AssignArray(const A: array of T);
 begin
   Assign(A);
 end;
+
+{$ifndef FPC}
+function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.GetCount: Integer;
+begin
+  Result := TList(Self).Count;
+end;
+
+procedure TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.SetCount(const Value: Integer);
+begin
+  inherited Count := Value;
+end;
+
+function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}._AddRef: Integer;
+begin
+  Result := -1;
+end;
+
+function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}._Release: Integer;
+begin
+  Result := -1;
+end;
+
+function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.QueryInterface(const IID: TGUID; out Obj): HResult;
+begin
+  if GetInterface(IID, Obj) then
+    Result := S_OK
+  else
+    Result := E_NOINTERFACE;
+end;
+
+function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.InternalGetItem(const Index: Integer): T;
+begin
+  Result := List^[Index];
+end;
+
+function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.GetInternalItems: TStructList<T>;
+begin
+  Result := Self;
+end;
+
+{$endif}
 
 {$endif read_implementation}

@@ -372,6 +372,7 @@ type
     class property One [const Index: TIndex]: TGenericVector4 read GetOne;
   end;
 
+
   { 2x2 matrix of floating-point values.
     @seealso TGenericMatrix3 }
   TGenericMatrix2 = record

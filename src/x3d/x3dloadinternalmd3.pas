@@ -452,7 +452,7 @@ var
   begin
     Result := TCoordinateNode.Create('', BaseUrl);
     Result.FdPoint.Items.Count := VertexesInFrameCount;
-    V := Vertexes.Ptr(VertexesInFrameCount * FrameNumber);
+    V := PMd3Vertex(Vertexes.Ptr(VertexesInFrameCount * FrameNumber));
     for I := 0 to VertexesInFrameCount - 1 do
     begin
       Result.FdPoint.Items.List^[I] := Vector3(
@@ -473,7 +473,7 @@ var
   begin
     Result := TTextureCoordinateNode.Create('', BaseUrl);
     Result.FdPoint.Items.Count := TextureCoords.Count;
-    V := TextureCoords.L;
+    V := PVector2(TextureCoords.L);
     for I := 0 to TextureCoords.Count - 1 do
     begin
       Result.FdPoint.Items.List^[I] := Vector2(V^[0], 1-V^[1]);

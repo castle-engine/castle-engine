@@ -69,7 +69,8 @@ type
 
       You can conigure @link(TCastleTransform.Middle Parent.Middle)
       using @link(TCastleTransform.MiddleHeight Parent.MiddleHeight). }
-    property SoundHeight: Single read FSoundHeight write FSoundHeight default 0.0;
+    property SoundHeight: Single read FSoundHeight write FSoundHeight
+      {$ifdef FPC}default 0.0{$endif};
   end;
 
   { Behavior to play spatial sounds, that automatically follow
@@ -95,7 +96,7 @@ type
     procedure SoundStop;
   private
     type
-      TCastlePlayingSoundSourceList = specialize TObjectList<TCastlePlayingSoundSource>;
+      TCastlePlayingSoundSourceList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCastlePlayingSoundSource>;
     var
       AllPlayingSounds: TCastlePlayingSoundSourceList;
       MainPlayingSound: TCastlePlayingSoundSource; //< TCastlePlayingSoundSource corresponding to main Sound
@@ -112,7 +113,7 @@ type
     { Play given sound once (not looping).
       If the sound is spatial (TCastleSound.Spatial),
       it's 3D position will reflect the @link(Parent) (TCastleTransform) position. }
-    procedure Play(const ASound: TCastleSound);
+    procedure Play(const ASound: TCastleSound); overload;
 
     { Play given sound.
       If the sound is spatial (TCastleSound.Spatial),
@@ -129,7 +130,7 @@ type
 
       Consider using @link(TCastlePlayingSound.FreeOnStop) if you don't want
       to manage the lifetime of the @link(TCastlePlayingSound) instance. }
-    procedure Play(const PlayingSound: TCastlePlayingSoundSource);
+    procedure Play(const PlayingSound: TCastlePlayingSoundSource); overload;
   published
     { Sound to play, always looping.
 
@@ -161,7 +162,8 @@ type
       and finally by a master @link(TSoundEngine.Volume SoundEngine.Volume).
 
       Any value > 0 is allowed. }
-    property Volume: Single read FVolume write SetVolume default 1.0;
+    property Volume: Single read FVolume write SetVolume
+      {$ifdef FPC}default 1.0{$endif};
 
     { Sound playing speed.
 
@@ -169,7 +171,8 @@ type
       @link(TCastlePlayingSound.Pitch) and @link(TCastleSoundSource.Pitch).
 
       Any value > 0 is allowed. }
-    property Pitch: Single read FPitch write SetPitch default 1.0;
+    property Pitch: Single read FPitch write SetPitch
+      {$ifdef FPC}default 1.0{$endif};
   end;
 
 {$endif read_interface}

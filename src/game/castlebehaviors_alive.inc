@@ -103,7 +103,7 @@ type
     property Attacker: TCastleAliveBehavior read FAttacker write SetAttacker;
   published
     { Current Life. The object is considered "dead" when this is <= 0. }
-    property Life: Single read FLife write FLife default DefaultLife;
+    property Life: Single read FLife write FLife {$ifdef FPC}default DefaultLife{$endif};
 
     { Maximum amount of life.
       Can be also used for information (to display on player HUDs and such).
@@ -113,7 +113,7 @@ type
       to account for special game mechanisms,
       like "magic life boost to make health temporarily larger than normal".
       It is up to your game whether such situation will actually happen. }
-    property MaxLife: Single read FMaxLife write FMaxLife default DefaultLife;
+    property MaxLife: Single read FMaxLife write FMaxLife {$ifdef FPC}default DefaultLife{$endif};
   end;
 
 {$endif read_interface}

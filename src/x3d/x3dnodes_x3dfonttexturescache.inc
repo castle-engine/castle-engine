@@ -31,7 +31,7 @@
         FontTexture: TPixelTextureNode;
       end;
 
-      TCachedFontTextureList = specialize TObjectList<TCachedFontTexture>;
+      TCachedFontTextureList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCachedFontTexture>;
 
     var
       CachedFontTextures: TCachedFontTextureList;
@@ -87,7 +87,7 @@ begin
       if Log then
         WritelnLog('++', 'Font texture %s, blending %s : %d', [
           URIDisplay(Font.Image.URL),
-          BoolToStr(Blending, true),
+          SysUtils.BoolToStr(Blending, true),
           C.References
         ]);
 
@@ -123,7 +123,7 @@ begin
   if Log then
     WritelnLog('++', 'Font texture %s, blending %s : %d', [
       URIDisplay(Font.Image.URL),
-      BoolToStr(Blending, true),
+      SysUtils.BoolToStr(Blending, true),
       1
     ]);
 end;
@@ -143,7 +143,7 @@ begin
       if Log then
         WritelnLog('--', 'Font texture %s, blending %s : %d', [
           URIDisplay(C.Font.Image.URL),
-          BoolToStr(C.Blending, true),
+          SysUtils.BoolToStr(C.Blending, true),
           C.References - 1
         ]);
 

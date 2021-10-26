@@ -17,8 +17,11 @@
   { }
   IAbstractPickableObject = interface(IX3DNode)
   ['{700E1CE8-97BD-44D2-A60F-D8639F4E72EC}']
+  // TODO: Delphi
+  {$ifdef FPC}
     property FdObjectType: TMFString { read GetFdobjectType }; { }
     property FdPickable: TSFBool { read GetFdpickable }; { }
+  {$endif}
   end;
 
   TAbstractPickSensorNode = class(TAbstractSensorNode)

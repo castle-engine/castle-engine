@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2017-2018 Trung Le (kagamma),
   Copyright 2020-2020 Andrzej Kilijański (and3md)
 
@@ -40,7 +40,7 @@ function LoadCocos2d(const Stream: TStream; const BaseUrl: String): TX3DRootNode
 
 implementation
 
-uses StrUtils, DOM, XMLRead,
+uses Generics.Collections, StrUtils, DOM, XMLRead,
   CastleImages, CastleLog, CastleStringUtils, CastleTextureImages,
   CastleURIUtils, CastleUtils, CastleVectors, CastleXMLUtils;
 
@@ -83,8 +83,8 @@ type
 
         procedure ReadFormDict(const KeyNode, DictNode: TDOMElement;
           const ImageWidth, ImageHeight: Integer);
-        class function ReadDual(const ASrc: String; out V1, V2: Integer): Boolean;
-        class function ReadDual(const ASrc: String; out V1, V2: Single): Boolean;
+        class function ReadDual(const ASrc: String; out V1, V2: Integer): Boolean; overload;
+        class function ReadDual(const ASrc: String; out V1, V2: Single): Boolean; overload;
         class function ReadQuad(const ASrc: String; out V1, V2, V3, V4: Integer): Boolean;
       end;
     var
@@ -180,7 +180,11 @@ begin
   { Some times this names can be like "walk/0001.png" }
   AnimationName := DeleteFileExt(FrameFileName);
 
+  {$ifdef FPC}
   RemoveTrailingChars(AnimationName, ['0'..'9']);
+  {$else}
+  AnimationName.TrimRight(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
+  {$endif}
 
   if (Length(AnimationName) > 1) and ((AnimationName[Length(AnimationName)] = '_')
     or (AnimationName[Length(AnimationName)] = '-')
@@ -236,35 +240,33 @@ begin
 
       ValueNode := I.Current;
 
-      case KeyNode.TextData of
-        'frame':
-          begin
-            { Sprite position and size in the texture - the same as textureRect in format 3 }
-            if ReadQuad(ValueNode.TextData, X, Y, Width, Height) then
-            begin
-              X1 := X;
-              Y1 := Y;
-              WasFrame := true;
-            end;
-          end;
-        'sourceColorRect':
-          begin
-            { rect of the trimmed sprite }
-            ReadQuad(ValueNode.TextData, FrameXTrimed, FrameYTrimed, FrameWidthTrimed, FrameHeightTrimed);
-            Trimmed := true;
-          end;
-        'anchor':
-          begin
-            { Anchor point for the sprite in coordinates relative to the original sprite size }
-            if ReadDual(ValueNode.TextData, AnchorX, AnchorY) then
-              HasAnchor := true;
-          end;
-        'sourceSize':
-          begin
-            { full size of the sprite, the same as spriteSourceSize in format 3 }
-            if ReadDual(ValueNode.TextData, FullFrameWidth, FullFrameHeight) then
-              WasFrameSize := true;
-          end;
+      if KeyNode.TextData = 'frame' then
+      begin
+        { Sprite position and size in the texture - the same as textureRect in format 3 }
+        if ReadQuad(ValueNode.TextData, X, Y, Width, Height) then
+        begin
+          X1 := X;
+          Y1 := Y;
+          WasFrame := true;
+        end;
+      end else
+      if KeyNode.TextData = 'sourceColorRect' then
+      begin
+        { rect of the trimmed sprite }
+        ReadQuad(ValueNode.TextData, FrameXTrimed, FrameYTrimed, FrameWidthTrimed, FrameHeightTrimed);
+        Trimmed := true;
+      end else
+      if KeyNode.TextData = 'anchor' then
+      begin
+        { Anchor point for the sprite in coordinates relative to the original sprite size }
+        if ReadDual(ValueNode.TextData, AnchorX, AnchorY) then
+          HasAnchor := true;
+      end else
+      if KeyNode.TextData = 'sourceSize' then
+      begin
+        { full size of the sprite, the same as spriteSourceSize in format 3 }
+        if ReadDual(ValueNode.TextData, FullFrameWidth, FullFrameHeight) then
+          WasFrameSize := true;
       end;
     end;
   finally
@@ -339,35 +341,33 @@ begin
 
       ValueNode := I.Current;
 
-      case KeyNode.TextData of
-        'textureRect':
-          begin
-            { Sprite position and size in the texture - the same as frame in format 2 }
-            if ReadQuad(ValueNode.TextData, X, Y, Width, Height) then
-            begin
-              X1 := X;
-              Y1 := Y;
-              WasTextureFrame := true;
-            end;
-          end;
-        'spriteOffset':
-          begin
-            { offset in sprite }
-            ReadDual(ValueNode.TextData, FrameXTrimOffset, FrameYTrimOffset);
-            Trimmed := true;
-          end;
-        'anchor':
-          begin
-            { Anchor point for the sprite in coordinates relative to the original sprite size }
-            if ReadDual(ValueNode.TextData, AnchorX, AnchorY) then
-              HasAnchor := true;
-          end;
-        'spriteSourceSize':
-          begin
-            { full size of the sprite, the same as sourceSize in format 2 }
-            if ReadDual(ValueNode.TextData, FullFrameWidth, FullFrameHeight) then
-              WasFrameFullSize := true;
-          end;
+      if KeyNode.TextData = 'textureRect' then
+      begin
+        { Sprite position and size in the texture - the same as frame in format 2 }
+        if ReadQuad(ValueNode.TextData, X, Y, Width, Height) then
+        begin
+          X1 := X;
+          Y1 := Y;
+          WasTextureFrame := true;
+        end;
+      end else
+      if KeyNode.TextData = 'spriteOffset' then
+      begin
+        { offset in sprite }
+        ReadDual(ValueNode.TextData, FrameXTrimOffset, FrameYTrimOffset);
+        Trimmed := true;
+      end else
+      if KeyNode.TextData = 'anchor' then
+      begin
+        { Anchor point for the sprite in coordinates relative to the original sprite size }
+        if ReadDual(ValueNode.TextData, AnchorX, AnchorY) then
+          HasAnchor := true;
+      end else
+      if KeyNode.TextData = 'spriteSourceSize' then
+      begin
+        { full size of the sprite, the same as sourceSize in format 2 }
+        if ReadDual(ValueNode.TextData, FullFrameWidth, FullFrameHeight) then
+          WasFrameFullSize := true;
       end;
     end;
   finally
@@ -412,7 +412,7 @@ begin
   inherited Create;
   FDisplayUrl := DisplayUrl;
   { By default, use format 3 }
-  FParseFrameDictionary := @ParseFrameDictionaryFormat3;
+  FParseFrameDictionary := {$ifdef CASTLE_OBJFPC}@{$endif}ParseFrameDictionaryFormat3;
 end;
 
 procedure TCocos2dLoader.TCocosFrame.SetCocosFormat(const Format: Integer);
@@ -420,12 +420,12 @@ begin
   FCocosFormat := Format;
   case Format of
     2:
-      FParseFrameDictionary := @ParseFrameDictionaryFormat2;
+      FParseFrameDictionary := {$ifdef CASTLE_OBJFPC}@{$endif}ParseFrameDictionaryFormat2;
     3:
-      FParseFrameDictionary := @ParseFrameDictionaryFormat3;
+      FParseFrameDictionary := {$ifdef CASTLE_OBJFPC}@{$endif}ParseFrameDictionaryFormat3;
     else
       { If format is unsupported try use latest supported version and add warning. }
-      FParseFrameDictionary := @ParseFrameDictionaryFormat3;
+      FParseFrameDictionary := {$ifdef CASTLE_OBJFPC}@{$endif}ParseFrameDictionaryFormat3;
       WritelnWarning('Cocos2d',
         'Unsupported format version %d in "%s", trying to load with the latest importer (format = 3).',
         [Format, FDisplayUrl]);
@@ -525,7 +525,7 @@ end;
 procedure TCocos2dLoader.ReadImportSettings;
 var
   SettingsMap: TStringStringMap;
-  Setting: TStringStringMap.TDictionaryPair;
+  Setting: {$ifdef FPC}TStringStringMap.TDictionaryPair{$else}TPair<String, String>{$endif};
 begin
   // default values
   FFramesPerSecond := DefaultSpriteSheetFramesPerSecond;
@@ -576,19 +576,21 @@ begin
 
       ValueNode := I.Current;
 
-      case KeyNode.TextData of
-        'realTextureFileName':
-          RealTextureFileName := ValueNode.TextData;
-        'textureFileName':
-          TextureFileName := ValueNode.TextData;
-        'size':
-          if not TCocosFrame.ReadDual(ValueNode.TextData, FImageWidth, FImageHeight) then
-            raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - invalid size.', [FDisplayUrl]);
-        'format':
-          FCocosFormat := StrToInt(ValueNode.TextData);
-        else
-          continue;
-      end;
+      if KeyNode.TextData = 'realTextureFileName' then
+          RealTextureFileName := ValueNode.TextData
+      else
+      if KeyNode.TextData = 'textureFileName' then
+        TextureFileName := ValueNode.TextData
+      else
+      if KeyNode.TextData = 'size' then
+      begin
+        if not TCocosFrame.ReadDual(ValueNode.TextData, FImageWidth, FImageHeight) then
+          raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - invalid size.', [FDisplayUrl]);
+      end else
+      if KeyNode.TextData = 'format' then
+        FCocosFormat := StrToInt(ValueNode.TextData)
+      else
+        continue;
     end;
   finally
     FreeAndNil(I);
@@ -910,6 +912,7 @@ begin
 
       { Doc.FindNode('plist') can fail here because of plist Apple DOCTYPE
         above plist element. }
+      {$ifdef FPC}
       Node := Doc.FirstChild;
       while Node <> nil do
       begin
@@ -920,6 +923,11 @@ begin
         end;
         Node := Node.NextSibling;
       end;
+      {$else}
+         // Should workmin delphi becaouse current we have only one element in document
+         // TODO: Check more samples
+         Node := Doc.DocumentElement;
+      {$endif}
 
       if PlistNode = nil then
         raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - plist node not found.', [FDisplayUrl]);
@@ -949,14 +957,14 @@ begin
             raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - dict node expected.', [FDisplayUrl]);
 
           { Check KeyNode.TextData to decide what this is metadata, texture or frames}
-          case KeyNode.TextData of
-            'frames':
-                FramesDictNode := DictNode;
-            'textures':
-                TextureDictNode := DictNode;
-            'metadata':
-                MetadataDictNode := DictNode;
-          end;
+          if KeyNode.TextData = 'frames' then
+            FramesDictNode := DictNode
+          else
+          if KeyNode.TextData = 'textures' then
+            TextureDictNode := DictNode
+          else
+          if KeyNode.TextData = 'metadata' then
+            MetadataDictNode := DictNode;
         end;
       finally
         FreeAndNil(I);

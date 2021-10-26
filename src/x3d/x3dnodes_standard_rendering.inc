@@ -2014,8 +2014,8 @@ begin
   FdVector.Items.Count := Len;
   if Len = 0 then Exit;
 
-  Source := List.L;
-  Dest := FdVector.Items.L;
+  Source := PVector4(List.L);
+  Dest := PVector3(FdVector.Items.L);
   for I := 0 to Len - 1 do
   begin
     // convert tangents to right-handed

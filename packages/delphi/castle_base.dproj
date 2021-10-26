@@ -82,7 +82,7 @@
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <DCC_CBuilderOutput>All</DCC_CBuilderOutput>
         <SanitizedProjectName>castle_base</SanitizedProjectName>
-        <DCC_UnitSearchPath>..\..\src\base\windows;..\..\src\base;..\..\src\files;..\..\src\compatibility\delphi-only;..\..\src\compatibility\delphi-only\fcl-json;..\..\src\common_includes;..\..\src\base\opengl;..\..\src\images\opengl\glsl\generated-pascal;..\..\src\images\opengl;..\..\src\ui;..\..\src\ui\opengl;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>..\..\src\base\windows;..\..\src\base;..\..\src\files;..\..\src\compatibility\delphi-only;..\..\src\compatibility\delphi-only\fcl-json;..\..\src\common_includes;..\..\src\base\opengl;..\..\src\images\opengl\glsl\generated-pascal;..\..\src\images\opengl;..\..\src\ui;..\..\src\ui\opengl;..\..\src\x3d;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <VerInfo_Locale>1045</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <RuntimeOnlyPackage>true</RuntimeOnlyPackage>
@@ -223,6 +223,46 @@
         <DCCReference Include="..\..\src\compatibility\delphi-only\xmlread.pas"/>
         <DCCReference Include="..\..\src\3d\castlecomponentserialize.pas"/>
         <DCCReference Include="..\..\src\compatibility\delphi-only\fphashcompatibility.pas"/>
+        <DCCReference Include="..\..\src\x3d\opengl\castleviewport.pas"/>
+        <DCCReference Include="..\..\src\x3d\x3dnodes.pas"/>
+        <DCCReference Include="..\..\src\x3d\castleinternalx3dlexer.pas"/>
+        <DCCReference Include="..\..\src\x3d\x3dloadinternalutils.pas"/>
+        <DCCReference Include="..\..\src\x3d\x3dfields.pas"/>
+        <DCCReference Include="..\..\src\x3d\x3dtime.pas"/>
+        <DCCReference Include="..\..\src\3d\castlequaternions.pas"/>
+        <DCCReference Include="..\..\src\3d\castleboxes.pas"/>
+        <DCCReference Include="..\..\src\3d\castletriangles.pas"/>
+        <DCCReference Include="..\..\src\3d\castlecameras.pas"/>
+        <DCCReference Include="..\..\src\3d\castlefrustum.pas"/>
+        <DCCReference Include="..\..\src\3d\castlerays.pas"/>
+        <DCCReference Include="..\..\src\3d\castletransform.pas"/>
+        <DCCReference Include="..\..\src\physics\kraft\kraft.pas"/>
+        <DCCReference Include="..\..\src\x3d\x3dcastlescript.pas"/>
+        <DCCReference Include="..\..\src\castlescript\castlescript.pas"/>
+        <DCCReference Include="..\..\src\castlescript\castlescriptcorefunctions.pas"/>
+        <DCCReference Include="..\..\src\3d\castleinternaloctree.pas"/>
+        <DCCReference Include="..\..\src\game\castlebehaviors.pas"/>
+        <DCCReference Include="..\..\src\3d\castlesectors.pas"/>
+        <DCCReference Include="..\..\src\x3d\opengl\castlescene.pas"/>
+        <DCCReference Include="..\..\src\fonts\castletexturefont_djvsansb_20.pas"/>
+        <DCCReference Include="..\..\src\fonts\castletexturefont_djvsanso_20.pas"/>
+        <DCCReference Include="..\..\src\fonts\castletexturefont_djvsansbo_20.pas"/>
+        <DCCReference Include="..\..\src\fonts\castletexturefont_djvmono_20.pas"/>
+        <DCCReference Include="..\..\src\fonts\castletexturefont_djvmonoo_20.pas"/>
+        <DCCReference Include="..\..\src\fonts\castletexturefont_djvmonobo_20.pas"/>
+        <DCCReference Include="..\..\src\fonts\castletexturefont_djvmonob_20.pas"/>
+        <DCCReference Include="..\..\src\fonts\castletexturefont_djvserif_20.pas"/>
+        <DCCReference Include="..\..\src\fonts\castletexturefont_djvserifi_20.pas"/>
+        <DCCReference Include="..\..\src\fonts\castletexturefont_djvserifbi_20.pas"/>
+        <DCCReference Include="..\..\src\fonts\castletexturefont_djvserifb_20.pas"/>
+        <DCCReference Include="..\..\src\castlescript\castlecurves.pas"/>
+        <DCCReference Include="..\..\src\pasgltf\PasGLTF.pas"/>
+        <DCCReference Include="..\..\src\pasgltf\PasJSON.pas"/>
+        <DCCReference Include="..\..\src\pasgltf\PasDblStrUtils.pas"/>
+        <DCCReference Include="..\..\src\castlescript\castlescriptparser.pas"/>
+        <DCCReference Include="..\..\src\castlescript\castlescriptlexer.pas"/>
+        <DCCReference Include="..\..\src\3d\castlenurbs.pas"/>
+        <DCCReference Include="..\..\src\services\castleopendocument.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

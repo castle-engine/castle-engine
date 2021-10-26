@@ -52,8 +52,8 @@
 
       Almost all descendants should override only the overload changing
       TTransformation. }
-    procedure ApplyTransform(const State: TX3DGraphTraverseState); virtual;
-    procedure ApplyTransform(var Transformation: TTransformation); virtual;
+    procedure ApplyTransform(const State: TX3DGraphTraverseState); overload; virtual;
+    procedure ApplyTransform(var Transformation: TTransformation); overload; virtual;
   public
     procedure CreateNode; override;
     destructor Destroy; override;
@@ -62,8 +62,10 @@
   { Basis for all node types that have bounds specified as part of the definition. }
   IAbstractBoundedObject = interface(IX3DNode)
   ['{0EF47711-754B-4BA8-97E5-0A9601E9C542}']
+  {$ifdef FPC}
     property FdBboxCenter: TSFVec3f { read GetFdbboxCenter }; { }
     property FdBboxSize: TSFVec3f { read GetFdbboxSize }; { }
+  {$endif}
   end;
 
   { Base node that contains children nodes, in X3D and VRML 2.0. }
@@ -295,7 +297,7 @@
       inside another (e.g. using X3D Inline node), this is adjusted to
       the existing scale of the outer model (always to make the resulting
       complete node graph keep the assumption 1 unit = 1 meter). }
-    property Scale: Single read FScale write FScale default 1.0;
+    property Scale: Single read FScale write FScale {$ifdef FPC}default 1.0{$endif};
 
     { Export node, to have its name known by X3D graph that includes this graph by "Inline" node.
 
@@ -713,7 +715,7 @@ end;
 
 procedure TStringLongIntMap.Assign(const Source: TStringLongIntMap);
 var
-  Pair: TDictionaryPair;
+  Pair: {$ifdef FPC}TDictionaryPair{$else}TPair<string, LongInt>{$endif};
 begin
   Clear;
   for Pair in Source do

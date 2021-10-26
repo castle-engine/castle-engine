@@ -73,10 +73,12 @@ procedure TWeightedMeshTimeline.Parse;
   var
     I, J: Integer;
     Value: Single;
-    IsRotationRequired: Boolean = False;
-    IsCurved: Boolean = False;
+    IsRotationRequired: Boolean;
+    IsCurved: Boolean;
     IsTimeframeTooLow: Boolean;
   begin
+    IsRotationRequired := False;
+    IsCurved := False;
     // For bone timelines
     for I := 0 to AffectedBoneTimelines.Count - 1 do
     begin

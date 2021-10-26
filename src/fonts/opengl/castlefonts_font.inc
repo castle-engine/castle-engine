@@ -106,10 +106,9 @@ type
     function TextHeightBase(const S: string): Single; override;
     function TextMove(const S: string): TVector2; override;
 
-    {$ifdef FPC}
+
     { Underlying font data. }
-    property FontData: TTextureFontData read FFont; deprecated 'you should not need to use this directly';
-    {$endif}
+    property FontData: TTextureFontData read FFont; {$ifdef FPC}deprecated 'you should not need to use this directly';{$endif} // can't be removed from delphi because x3dnodes_standard_text.inc uses that
 
     { Scale applied to the rendered font, compared to @link(FontData).Size.
       Changing this is equivalent to changing the Size property. }

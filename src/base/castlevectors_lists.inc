@@ -44,7 +44,7 @@ type
       @raises EListsDifferentCount If V1 and V2 have different count. }
     procedure AssignLerp(const Fraction: Single; const V1, V2: TVector2List); overload;
 
-    procedure AddRange(const Source: TVector2List);
+    procedure AddRange(const Source: TVector2List); overload;
     procedure AddSubRange(const Source: TVector2List; const Index, AddCount: Integer);
     procedure AddListRange(const Source: TVector2List; const Index, AddCount: Integer); deprecated 'use AddSubRange';
 
@@ -101,7 +101,7 @@ type
     procedure AssignLerpRgbInHsv(const Fraction: Single;
       V1, V2: TVector3List; Index1, Index2, ACount: Integer);
 
-    procedure AddRange(const Source: TVector3List);
+    procedure AddRange(const Source: TVector3List); overload;
     procedure AddSubRange(const Source: TVector3List; const Index, AddCount: Integer);
     procedure AddListRange(const Source: TVector3List; const Index, AddCount: Integer); deprecated 'use AddSubRange';
 

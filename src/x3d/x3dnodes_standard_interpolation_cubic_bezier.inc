@@ -12,7 +12,7 @@
 
   ----------------------------------------------------------------------------
 }
-
+{$ifdef FPC}
 {$ifdef read_interface}
   TAbstractCubicBezierInterpolatorNode = class(TAbstractInterpolatorNode)
   strict private
@@ -135,7 +135,8 @@
   { Interpolate (animate) a set of 3D vertices,
     using cubic Bezier curve instead of linear interpolation.
     See https://castle-engine.io/x3d_implementation_interpolation_extensions.php . }
-  TCubicBezierCoordinateInterpolatorNode = class(specialize TAbstractCubicBezierArrayInterpolatorNode<
+  TCubicBezierCoordinateInterpolatorNode = class({$ifdef CASTLE_OBJFPC}specialize{$endif}
+    TAbstractCubicBezierArrayInterpolatorNode<
     // TVector3, // unused for now
     TMFVec3f,
     TMFVec3fEvent>)
@@ -152,7 +153,7 @@
 
 class function TAbstractCubicBezierInterpolatorNode.KeyRangeArray2D(
   Key: array of TVector2;
-  const Fraction: Single; out T: Single): Integer; static;
+  const Fraction: Single; out T: Single): Integer; {$ifdef FPC}static;{$endif}
 var
   KeyCount, A, B: Integer;
 begin
@@ -213,7 +214,7 @@ end;
 class function TAbstractCubicBezierInterpolatorNode.CubicBezierPercent(
   const T: Single;
   const ControlPoints: TVector4;
-  const Curve: TCalculatedCurve2D): Single; static;
+  const Curve: TCalculatedCurve2D): Single; {$ifdef FPC}static;{$endif}
 var
   Range: Integer;
   FractionBetweenCurvePoints: Single;
@@ -234,7 +235,7 @@ end;
 
 class procedure TAbstractCubicBezierInterpolatorNode.CalculatedCurve2D(
   const KeyValue: TVector4;
-  out Curve: TCalculatedCurve2D); static;
+  out Curve: TCalculatedCurve2D); {$ifdef FPC}static;{$endif}
 var
   CurvePoints: TCubicBezier2DPoints;
   I: Integer;
@@ -277,7 +278,7 @@ var
 begin
   { Call CubicBezierPercent, using ready FCalculatedCurves
     if possible. }
-  ControlPointPtr := FdControlPoints.Items.Ptr(ControlPointsIndex);
+  ControlPointPtr := PVector4(FdControlPoints.Items.Ptr(ControlPointsIndex));
   if (FCalculatedCurves <> nil) and
      (FCalculatedCurves.Count = FdControlPoints.Count) then
   begin
@@ -579,3 +580,5 @@ begin
 end;
 
 {$endif read_implementation}
+
+{$endif FPC}

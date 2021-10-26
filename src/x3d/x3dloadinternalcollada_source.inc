@@ -107,7 +107,8 @@ begin
     Exit(false);
   end;
 
-  MinCount := Offset + Stride * (Count - 1) + MaxValue([XIndex, YIndex, ZIndex]) + 1;
+  MinCount := Offset + Stride * (Count - 1) +
+    {$ifndef FPC}MaxIntValue{$else}MaxIntValue{$endif}([XIndex, YIndex, ZIndex]) + 1;
   Result := Floats.Count >= MinCount;
   if not Result then
   begin

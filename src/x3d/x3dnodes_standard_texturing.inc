@@ -1306,7 +1306,7 @@ begin
     result := Format('inlined image (width = %d; height = %d; with alpha = %s)',
       [ FdImage.Value.Width,
         FdImage.Value.Height,
-        BoolToStr(FdImage.Value.HasAlpha, true) ]) else
+        SysUtils.BoolToStr(FdImage.Value.HasAlpha, true) ]) else
     result := 'none';
 end;
 

@@ -851,8 +851,8 @@ end;
 
 destructor TTrimesh3ds.Destroy;
 begin
-  FreeMemNiling(Verts);
-  FreeMemNiling(Faces);
+  FreeMemNiling(Pointer(Verts));
+  FreeMemNiling(Pointer(Faces));
   inherited;
 end;
 

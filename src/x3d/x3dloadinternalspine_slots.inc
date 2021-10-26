@@ -104,8 +104,8 @@ end;
 procedure TSlot.BuildNodes(const BaseUrl: string;
   const AttachmentsPreferred, AttachmentsDefault: TAttachmentList);
 var
-  IsWeightedMeshAttachmentExisted: Boolean = False;
-  IsOtherAttachmentExisted: Boolean = False;
+  IsWeightedMeshAttachmentExisted: Boolean {$ifdef FPC}= False{$endif};
+  IsOtherAttachmentExisted: Boolean {$ifdef FPC}= False{$endif};
 
   { Node for a single AttachmentName. Never @nil. }
   function AttachmentNode(const AttachmentName: string): TAbstractChildNode;
@@ -178,6 +178,12 @@ var
 var
   I: Integer;
 begin
+  {$ifndef FPC}
+  // can't initialize local variables in Delphi
+  IsWeightedMeshAttachmentExisted := false;
+  IsOtherAttachmentExisted := false;
+  {$endif}
+
   Node := TTransformNode.Create('SlotTransform_' + Name, BaseUrl);
   Node.FdTranslation.Value := Vector3(0, 0, DrawOrder * DrawOrderZ);
   NodeUsedAsChild := true;

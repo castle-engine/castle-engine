@@ -204,7 +204,9 @@
     constructor Create;
     destructor Destroy; override;
     property X3DName: string read FX3DName write FX3DName;
+    {$ifdef FPC}
     property Name: string read FX3DName write FX3DName; deprecated 'use X3DName';
+    {$endif}
     property InterfaceDeclarations: TX3DInterfaceDeclarationList
       read FInterfaceDeclarations;
 
@@ -221,7 +223,7 @@
     property BaseUrl: string read FBaseUrl write FBaseUrl;
   end;
 
-  TX3DPrototypeBaseList = class(specialize TObjectList<TX3DPrototypeBase>);
+  TX3DPrototypeBaseList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DPrototypeBase>);
 
   TX3DPrototype = class(TX3DPrototypeBase)
   strict private

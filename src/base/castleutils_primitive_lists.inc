@@ -61,6 +61,11 @@ type
     procedure AssignLerp(const Fraction: Single;
       V1, V2: TSingleList; Index1, Index2, ACount: Integer); overload;
 
+    {$ifndef FPC}
+    procedure AssignLerp(const Fraction: Single;
+      V1, V2: TStructList<Single>; Index1, Index2, ACount: Integer); overload; override;
+    {$endif}
+
     procedure AddSubRange(Source: TSingleList; Index, AddCount: Integer);
     procedure AddListRange(Source: TSingleList; Index, AddCount: Integer); deprecated 'use AddSubRange';
 
@@ -112,7 +117,7 @@ type
     function Sum: Cardinal;
   end;
 
-  TBooleanList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<boolean>)
+  TBooleanList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<boolean> {$ifndef FPC}, ICastleItemList<boolean, TStructList<boolean>> {$endif})
   public
     { Set appropriate item to given value.
       These are useful methods to pass as callback in some situations
@@ -269,6 +274,18 @@ begin
   for I := 0 to Count - 1 do
     Items[I] := Lerp(Fraction, V1.Items[Index1 + I], V2.Items[Index2 + I]);
 end;
+
+{$ifndef FPC}
+procedure TSingleList.AssignLerp(const Fraction: Single;
+      V1, V2: TStructList<Single>; Index1, Index2, ACount: Integer);
+var
+  I: Integer;
+begin
+  Count := ACount;
+  for I := 0 to Count - 1 do
+    Items[I] := Lerp(Fraction, V1.Items[Index1 + I], V2.Items[Index2 + I]);
+end;
+{$endif}
 
 procedure TSingleList.AddListRange(Source: TSingleList; Index, AddCount: Integer);
 begin

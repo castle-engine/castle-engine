@@ -159,8 +159,15 @@
         (Value parameter in TX3DEventReceive callback),
         in case they correspond to a fading-in or fading-out animation. }
       FPartialSend: TPartialSend;
-      FPartialSendIgnore: Cardinal; static;
 
+      {$ifndef FPC}
+      function GetInternalPartialSend: TPartialSend;
+      procedure SetInternalPartialSend(const Value: TPartialSend);
+      {$endif}
+    class var
+      FPartialSendIgnore: Cardinal;
+
+    var
       { Used by fields that have their value affected by the fading-in/fading-out
         animation. }
       PartialReceived: TPartialReceived;
@@ -341,7 +348,7 @@
       parsing (like names for TSFEnum and TSFBitMask) or allowed
       future values (like TSFFloat.MustBeNonnegative).
     }
-    function Equals(SecondValue: TX3DField): boolean; virtual; reintroduce;
+    function Equals(SecondValue: TX3DField): boolean; reintroduce; virtual;
 
     { Compare value of this field, with other field, fast.
 
@@ -543,7 +550,7 @@
         @item(Otherwise, we will just set the fields value.
           And then notify the scenes (including events engine).)
       ) }
-    procedure Send(Value: TX3DField);
+    procedure Send(Value: TX3DField); overload;
 
     { Notifications when exposed field received new value through VRML/X3D event.
       Use only for exposed fields.
@@ -571,7 +578,8 @@
     { @exclude Internal routine, needed by animation blending. }
     procedure InternalRemovePartial;
     { @exclude Internal property, needed by animation blending. }
-    property InternalPartialSend: TPartialSend read FPartialSend write FPartialSend;
+    property InternalPartialSend: TPartialSend {$ifdef FPC} read FPartialSend
+      write FPartialSend {$else} read GetInternalPartialSend write SetInternalPartialSend {$endif};
     { @exclude Internal property, needed by animation code.
       Saves the current field value,
       to be used as "value when this field is not animated". }
@@ -786,8 +794,34 @@ begin
 end;
 
 class function TX3DField.ExposedEventsFieldClass: TX3DFieldClass;
+{$ifndef FPC}
+var
+  ClType: TClass;
+  RttiContext : TRttiContext;
+  RttiType: TRttiType;
+{$endif}
 begin
+  {$ifdef FPC}
   Result := TX3DFieldClass(ClassType);
+  {$else}
+  { In delphi TObject.ClassType is not class method so we need use RTTI or
+    GetClass if all TX3DField classes are registered
+    https://stackoverflow.com/questions/29471798/get-class-by-its-name-in-delphi }
+  ClType := GetClass(ClassName);
+  if ClType = nil then
+  begin
+    { Class is not registered so we need use RTTI }
+    RttiContext := TRttiContext.Create;
+    try
+      RttiType := RttiContext.FindType(QualifiedClassName);
+      if (RttiType <> nil) and (RttiType.IsInstance) then
+        ClType := RttiType.AsInstance.MetaClassType;
+    finally
+      RttiContext.Free;
+    end;
+  end;
+  Result := TX3DFieldClass(ClType);
+  {$endif}
 end;
 
 class function TX3DField.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
@@ -1053,7 +1087,7 @@ procedure TX3DField.AssignValue(Source: TX3DField);
         PartialReceived.PartialValue, Source);
     end;
     Assert(PartialReceived.ToBeApplied); // we have initialized PartialReceived.PartialValue
-    PartialReceived.Partial += PartialSend.Partial;
+    PartialReceived.Partial := PartialReceived.Partial + PartialSend.Partial;
     // note that we can add duplicates to PartialSend.AffectedFields, that's OK
     PartialSend.AffectedFields.Add(Self);
   end;
@@ -1180,6 +1214,18 @@ begin
   Assert(Exposed, 'Use TX3DField.RemoveNotification only on Exposed fields');
   FExposedEvents[false].RemoveNotification(Notification);
 end;
+
+{$ifndef FPC}
+function TX3DField.GetInternalPartialSend: TPartialSend;
+begin
+  Result := FPartialSend;
+end;
+
+procedure TX3DField.SetInternalPartialSend(const Value: TPartialSend);
+begin
+  FPartialSend := Value;
+end;
+{$endif}
 
 { TX3DFieldList ------------------------------------------------------------- }
 

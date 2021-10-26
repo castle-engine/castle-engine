@@ -111,6 +111,32 @@ type
     dbcc_name: array [0..0] of Char;
   end;
 
+  {$ifndef FPC}
+  ICastleItemList <T; TList> = interface
+  ['{3B8A5F76-4B00-439A-B906-D081C6BC325F}']
+    procedure SetCount(const Value: Integer);
+    function GetCount: Integer;
+//    function GetL(const Index: Integer): string;
+//    procedure SetL(const Index: Integer; const S: string);
+
+//    property L[const Index: Integer]: string read GetL write SetL;
+    ///function InternalL: Pointer;
+    procedure AddSubRange(Source: TList; Index, AddCount: Integer);
+    procedure AssignLerp(const Fraction: Single;
+      V1, V2: TList; Index1, Index2, ACount: Integer);
+    function InternalGetItem(const Index: Integer): T;
+    function Add(const Value: T): Integer;
+    function Equals(SecondValue: TObject): boolean;
+    //procedure InternalAddSubRange(Source: TList<T>; Index, AddCount: Integer);
+    property Count: Integer read GetCount write SetCount;
+  end;
+
+  //ICastleSimpleField = interface
+  //  ['{CE9C40CA-9780-4C1A-A986-0605B50F839B}']
+  //  procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
+  //end;
+  {$endif}
+
 var
   OnGetVendorName      : TGetVendorNameEvent;
   OnGetApplicationName : TGetAppNameEvent;

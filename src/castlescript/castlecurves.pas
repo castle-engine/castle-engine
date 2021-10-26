@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2004-2018 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -17,7 +17,9 @@
 unit CastleCurves;
 
 {$I castleconf.inc}
+{$ifdef FPC}
 {$modeswitch nestedprocvars}{$H+}
+{$endif}
 
 interface
 
@@ -40,8 +42,8 @@ type
   public
     { The valid range of curve function argument. Must be TBegin <= TEnd.
       @groupBegin }
-    property TBegin: Single read FTBegin write FTBegin default 0;
-    property TEnd: Single read FTEnd write FTEnd default 1;
+    property TBegin: Single read FTBegin write FTBegin {$ifdef FPC}default 0{$endif};
+    property TEnd: Single read FTEnd write FTEnd {$ifdef FPC}default 1{$endif};
     { @groupEnd }
 
     { Curve function, for each parameter value determine the 3D point.
@@ -505,7 +507,7 @@ end;
 
 procedure TControlPointsCurve.UpdateControlPoints;
 begin
-  FBoundingBox := CalculateBoundingBox(ControlPoints.L,
+  FBoundingBox := CalculateBoundingBox(PVector3(ControlPoints.L),
     ControlPoints.Count, 0);
 end;
 
@@ -726,7 +728,7 @@ procedure TPiecewiseCubicBezier.UpdateControlPoints;
 
   procedure UpdateBoundingBox;
   begin
-    FBoundingBox := CalculateBoundingBox(ConvexHullPoints.L,
+    FBoundingBox := CalculateBoundingBox(PVector3(ConvexHullPoints.L),
       ConvexHullPoints.Count, 0);
   end;
 
@@ -802,13 +804,13 @@ type
     Arguments[IndexOfRightValue] to the [0..1] range.
     IOW, this is the curve-specific equation, with all boring special cases
     eliminated. }
-  TCurveSegmentFunction = function (const IndexOfRightValue: Integer;
-    const XInSegment: Single): Single is nested;
+  TCurveSegmentFunction = {$ifndef FPC}reference to{$endif} function (const IndexOfRightValue: Integer;
+    const XInSegment: Single): Single{$ifdef FPC} is nested{$endif};
 
 { General spline calculation, using SegmentFunction for a curve-specific equation. }
 function CalculateSpline(const X: Single; const Loop: boolean;
   const Arguments, Values: TSingleList;
-  const SegmentFunction: TCurveSegmentFunction): Single;
+  SegmentFunction: TCurveSegmentFunction): Single;
 
   { Calculate assuming that X is between [First..Last], and Count > 1. }
   function CalculateInRange(const X: Single): Single;
@@ -874,8 +876,17 @@ end;
 function CatmullRomSpline(const X: Single; const Loop: boolean;
   const Arguments: TSingleList;
   const Values: TSingleList): Single;
-
+{$ifdef FPC}
   function CatmullRomSegment(const I: Integer; const XInSegment: Single): Single;
+{$else}
+  { We use delphi anonymous type here, see:
+   https://stackoverflow.com/questions/60737750/cannot-capture-symbol-for-local-procedure-in-synchronize
+   Without CaptureCatmullRomSegment function Delphi gets
+   [dcc32 Error] E2555 Cannot capture symbol error }
+  function CaptureCatmullRomSegment: TCurveSegmentFunction;
+  begin
+    Result :=  function (const I: Integer; const XInSegment: Single): Single
+{$endif}
   var
     C: Integer;
     V0, V1, V2, V3: Single;
@@ -903,12 +914,14 @@ function CatmullRomSpline(const X: Single; const Loop: boolean;
 
     Result := CatmullRom(V0, V1, V2, V3, XInSegment);
   end;
-
+{$ifndef FPC}
+  end;
+{$endif}
 begin
   if Arguments.Count <> Values.Count then
     raise Exception.Create('CatmullRomSpline: Arguments and Values lists must have equal count');
   Result := CalculateSpline(X, Loop, Arguments, Values,
-    {$ifdef CASTLE_OBJFPC}@{$endif} CatmullRomSegment);
+    {$ifdef CASTLE_OBJFPC}@{$endif} {$ifdef FPC}CatmullRomSegment{$else} CaptureCatmullRomSegment(){$endif});
 end;
 
 function Hermite(const V0, V1, Tangent0, Tangent1, X: Single): Single;
@@ -928,19 +941,32 @@ end;
 function HermiteSpline(const X: Single; const Loop: boolean;
   const Arguments, Values, Tangents: TSingleList): Single;
 
+  {$ifdef FPC}
   function HermiteSegment(const I: Integer; const XInSegment: Single): Single;
+  {$else}
+  { We use delphi anonymous type here, see:
+   https://stackoverflow.com/questions/60737750/cannot-capture-symbol-for-local-procedure-in-synchronize
+   Without CaptureHermiteSegment function Delphi gets
+   [dcc32 Error] E2555 Cannot capture symbol error }
+  function CaptureHermiteSegment: TCurveSegmentFunction;
+  begin
+    Result :=  function (const I: Integer; const XInSegment: Single): Single
+  {$endif}
   begin
     Result := Hermite(
       Values  .List^[I - 1], Values  .List^[I],
       Tangents.List^[I - 1], Tangents.List^[I], XInSegment);
   end;
-
+  {$ifndef FPC}
+  end;
+  {$endif}
 begin
   if (Arguments.Count <> Values.Count) or
      (Arguments.Count <> Tangents.Count) then
     raise Exception.Create('HermiteSpline: Arguments and Values and Tangents lists must have equal count');
+
   Result := CalculateSpline(X, Loop, Arguments, Values,
-    {$ifdef CASTLE_OBJFPC}@{$endif} HermiteSegment);
+    {$ifdef CASTLE_OBJFPC}@{$endif} {$ifdef FPC}HermiteSegment{$else}CaptureHermiteSegment(){$endif});
 end;
 
 function HermiteTense(const V0, V1, X: Single): Single;
@@ -957,17 +983,29 @@ end;
 function HermiteTenseSpline(const X: Single; const Loop: boolean;
   const Arguments, Values: TSingleList): Single;
 
+  {$ifdef FPC}
   function HermiteTenseSegment(const I: Integer; const XInSegment: Single): Single;
+  {$else}
+  { We use delphi anonymous type here, see:
+   https://stackoverflow.com/questions/60737750/cannot-capture-symbol-for-local-procedure-in-synchronize
+   Without CaptureHermiteTenseSegment function Delphi gets
+   [dcc32 Error] E2555 Cannot capture symbol error }
+  function CaptureHermiteTenseSegment: TCurveSegmentFunction;
+  begin
+    Result :=  function (const I: Integer; const XInSegment: Single): Single
+  {$endif}
   begin
     Result := HermiteTense(
       Values.List^[I - 1], Values.List^[I], XInSegment);
   end;
-
+  {$ifndef FPC}
+  end;
+  {$endif}
 begin
   if Arguments.Count <> Values.Count then
     raise Exception.Create('HermiteTenseSpline: Arguments and Values lists must have equal count');
   Result := CalculateSpline(X, Loop, Arguments, Values,
-    {$ifdef CASTLE_OBJFPC}@{$endif} HermiteTenseSegment);
+    {$ifdef CASTLE_OBJFPC}@{$endif} {$ifdef FPC}HermiteTenseSegment{$else}CaptureHermiteTenseSegment(){$endif});
 end;
 
 { Calculate the convex hull ignoring Z coordinates of pixels.

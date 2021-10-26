@@ -19,7 +19,7 @@
   TX3DEvent = class(TX3DFieldOrEvent)
   strict private
     type
-      TX3DEventReceiveList = class(specialize TList<TX3DEventReceive>)
+      TX3DEventReceiveList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TX3DEventReceive>)
       public
         { Call all functions. }
         procedure ExecuteAll(Event: TX3DEvent; Value: TX3DField;
@@ -156,7 +156,7 @@
     procedure Assign(Source: TPersistent); override;
   end;
 
-  TX3DEventList = class(specialize TObjectList<TX3DEvent>)
+  TX3DEventList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DEvent>)
   strict private
     function GetByName(const AName: string): TX3DEvent;
   public

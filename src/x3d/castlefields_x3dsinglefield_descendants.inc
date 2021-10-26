@@ -325,7 +325,7 @@
     class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
-    procedure Send(const AValue: LongInt); virtual; overload;
+    procedure Send(const AValue: LongInt); overload; virtual;
   end;
 
   { X3D field containing an single integer 32-bit value.
@@ -337,6 +337,7 @@
     procedure Send(const AValue: LongInt); override;
   end;
 
+  {$ifdef FPC}
   { Generic class for an X3D field containing a single matrix value. }
   {$ifdef CASTLE_OBJFPC}generic{$endif}
   TSFGenericMatrix<
@@ -371,40 +372,161 @@
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
   end;
+  {$endif}
 
   { X3D field containing a 3x3 matrix with Single precision. }
-  TSFMatrix3f = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TSFGenericMatrix<
+  TSFMatrix3f = class({$ifdef FPC}{$ifdef CASTLE_OBJFPC}specialize{$endif} TSFGenericMatrix<
     TMatrix3,
     TVector3,
-    TSFMatrix3fEvent>)
+    TSFMatrix3fEvent>{$else}TX3DSingleField{$endif})
+  {$ifndef FPC}
+  strict private
+    FValue: TMatrix3;
+    DefaultValue: TMatrix3;
+    DefaultValueExists: boolean;
+    class function MatrixSize: Integer;
+  strict protected
+    procedure SaveToStreamValue(Writer: TX3DWriter); override;
+  {$endif}
   public
+    {$ifndef FPC}
+    constructor Create(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string; const AValue: TMatrix3);
+
+    property Value: TMatrix3 read FValue write FValue;
+
+    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
+
+    function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TX3DField): boolean; override;
+    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
+
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
+    function CanAssignLerp: boolean; override;
+    procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TX3DField); override;
+    procedure AssignDefaultValueFromValue; override;
+    procedure Send(const AValue: TMatrix3); overload;
+
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    {$endif}
     class function X3DType: string; override;
   end;
 
   { X3D field containing a 3x3 matrix with Double precision. }
-  TSFMatrix3d = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TSFGenericMatrix<
+  TSFMatrix3d = class({$ifdef FPC}{$ifdef CASTLE_OBJFPC}specialize{$endif} TSFGenericMatrix<
     TMatrix3Double,
     TVector3Double,
-    TSFMatrix3dEvent>)
+    TSFMatrix3dEvent>{$else}TX3DSingleField{$endif})
+  {$ifndef FPC}
+  strict private
+    FValue: TMatrix3Double;
+    DefaultValue: TMatrix3Double;
+    DefaultValueExists: boolean;
+    class function MatrixSize: Integer;
+  strict protected
+    procedure SaveToStreamValue(Writer: TX3DWriter); override;
+  {$endif}
   public
+    {$ifndef FPC}
+    constructor Create(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string; const AValue: TMatrix3Double);
+
+    property Value: TMatrix3Double read FValue write FValue;
+
+    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
+
+    function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TX3DField): boolean; override;
+    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
+
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
+    function CanAssignLerp: boolean; override;
+    procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TX3DField); override;
+    procedure AssignDefaultValueFromValue; override;
+    procedure Send(const AValue: TMatrix3Double); overload;
+
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    {$endif}
     class function X3DType: string; override;
   end;
 
   { X3D field containing a 4x4 matrix with Single precision. }
-  TSFMatrix4f = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TSFGenericMatrix<
+  TSFMatrix4f = class({$ifdef FPC}{$ifdef CASTLE_OBJFPC}specialize{$endif} TSFGenericMatrix<
     TMatrix4,
     TVector4,
-    TSFMatrix4fEvent>)
+    TSFMatrix4fEvent>{$else}TX3DSingleField{$endif})
+  {$ifndef FPC}
+  strict private
+    FValue: TMatrix4;
+    DefaultValue: TMatrix4;
+    DefaultValueExists: boolean;
+    class function MatrixSize: Integer;
+  strict protected
+    procedure SaveToStreamValue(Writer: TX3DWriter); override;
+  {$endif}
   public
+    {$ifndef FPC}
+    constructor Create(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string; const AValue: TMatrix4);
+
+    property Value: TMatrix4 read FValue write FValue;
+
+    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
+
+    function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TX3DField): boolean; override;
+    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
+
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
+    function CanAssignLerp: boolean; override;
+    procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TX3DField); override;
+    procedure AssignDefaultValueFromValue; override;
+    procedure Send(const AValue: TMatrix4); overload;
+
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    {$endif}
     class function X3DType: string; override;
   end;
 
   { X3D field containing a 4x4 matrix with Double precision. }
-  TSFMatrix4d = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TSFGenericMatrix<
+  TSFMatrix4d = class({$ifdef FPC}{$ifdef CASTLE_OBJFPC}specialize{$endif} TSFGenericMatrix<
     TMatrix4Double,
     TVector4Double,
-    TSFMatrix4dEvent>)
+    TSFMatrix4dEvent>{$else}TX3DSingleField{$endif})
+  {$ifndef FPC}
+  strict private
+    FValue: TMatrix4Double;
+    DefaultValue: TMatrix4Double;
+    DefaultValueExists: boolean;
+    class function MatrixSize: Integer;
+  strict protected
+    procedure SaveToStreamValue(Writer: TX3DWriter); override;
+  {$endif}
   public
+    {$ifndef FPC}
+    constructor Create(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string; const AValue: TMatrix4Double);
+
+    property Value: TMatrix4Double read FValue write FValue;
+
+    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
+
+    function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TX3DField): boolean; override;
+    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
+
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
+    function CanAssignLerp: boolean; override;
+    procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TX3DField); override;
+    procedure AssignDefaultValueFromValue; override;
+    procedure Send(const AValue: TMatrix4Double); overload;
+
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    {$endif}
     class function X3DType: string; override;
   end;
 
@@ -1331,16 +1453,24 @@ begin
 end;
 
 { TSFGenericMatrix ---------------------------------------------------------------------------- }
-
-constructor TSFGenericMatrix.Create(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string; const AValue: TItem);
+{$ifdef FPC}
+constructor TSFGenericMatrix{$ifndef CASTLE_OBJFPC}<
+  TItem,
+  TItemColumn,
+  TEvent>{$endif} .
+  Create(const AParentNode: TX3DFileItem;
+    const AExposed: boolean; const AName: string; const AValue: TItem);
 begin
   inherited Create(AParentNode, AExposed, AName);
   FValue := AValue;
   AssignDefaultValueFromValue;
 end;
 
-procedure TSFGenericMatrix.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
+procedure TSFGenericMatrix{$ifndef CASTLE_OBJFPC}<
+  TItem,
+  TItemColumn,
+  TEvent>{$endif} .
+  ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 var
   Column, Row: integer;
 begin
@@ -1454,6 +1584,7 @@ begin
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
 end;
+{$endif}
 
 { TSFMatrix3f ------------------------------------------------------------------ }
 
@@ -1861,7 +1992,7 @@ begin
 end;
 
 { TSFGenericVector ----------------------------------------------------------- }
-
+{$ifdef FPC}
 constructor TSFGenericVector.Create(const AParentNode: TX3DFileItem;
   const AExposed: boolean; const AName: string; const AValue: TItem);
 begin
@@ -1966,6 +2097,7 @@ begin
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
 end;
+{$endif FPC}
 
 { TSFVec2f ------------------------------------------------------------------- }
 

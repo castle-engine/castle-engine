@@ -15,19 +15,23 @@
 
 {$ifdef FPC} {$interfaces com} {$endif}
 
-{ In FPC > 2.4.2, IInterface methods signature changed.
-  See
-  http://wiki.freepascal.org/User_Changes_Trunk#IInterface.QueryInterface.2C_._AddRef_and_._Release_definitions_have_been_changed }
-{$ifdef VER2_0} {$define OLD_IINTERFACE_METHODS} {$endif}
-{$ifdef VER2_2} {$define OLD_IINTERFACE_METHODS} {$endif}
-{$ifdef VER2_4} {$define OLD_IINTERFACE_METHODS} {$endif}
+{$ifdef FPC}
+  { In FPC > 2.4.2, IInterface methods signature changed.
+    See
+    http://wiki.freepascal.org/User_Changes_Trunk#IInterface.QueryInterface.2C_._AddRef_and_._Release_definitions_have_been_changed }
+  {$ifdef VER2_0} {$define OLD_IINTERFACE_METHODS} {$endif}
+  {$ifdef VER2_2} {$define OLD_IINTERFACE_METHODS} {$endif}
+  {$ifdef VER2_4} {$define OLD_IINTERFACE_METHODS} {$endif}
 
-{ IInterface methods are stdcall always with older FPC, or only on Windows
-  with newer FPC.
-  When IINTERFACE_STDCALL is not defined, it means to use cdecl. }
-{$ifdef OLD_IINTERFACE_METHODS} {$define IINTERFACE_STDCALL} {$endif}
-{$ifdef MSWINDOWS}              {$define IINTERFACE_STDCALL} {$endif}
-
+  { IInterface methods are stdcall always with older FPC, or only on Windows
+    with newer FPC.
+    When IINTERFACE_STDCALL is not defined, it means to use cdecl. }
+  {$ifdef OLD_IINTERFACE_METHODS} {$define IINTERFACE_STDCALL} {$endif}
+  {$ifdef MSWINDOWS}              {$define IINTERFACE_STDCALL} {$endif}
+{$else}
+  { Delphi uses stdcall}
+  {$define IINTERFACE_STDCALL}
+{$endif}
 { TODO: We should switch to use CORBA interfaces, instead of COM,
   and then this unit, and classes inside, should not be needed anymore.
   See http://michalis.ii.uni.wroc.pl/~michalis/modern_pascal_introduction/modern_pascal_introduction.html
@@ -58,7 +62,7 @@ type
   protected
     function _AddRef: Integer; {$ifdef IINTERFACE_STDCALL} stdcall {$else} cdecl {$endif};
     function _Release: Integer; {$ifdef IINTERFACE_STDCALL} stdcall {$else} cdecl {$endif};
-    function QueryInterface({$ifdef OLD_IINTERFACE_METHODS} const {$else} constref {$endif} IID: TGUID; out Obj): Hresult; virtual; {$ifdef IINTERFACE_STDCALL} stdcall {$else} cdecl {$endif};
+    function QueryInterface({$ifdef FPC} {$ifdef OLD_IINTERFACE_METHODS} const {$else} constref {$endif} {$else} const {$endif} IID: TGUID; out Obj): Hresult; virtual; {$ifdef IINTERFACE_STDCALL} stdcall {$else} cdecl {$endif};
   end;
 
   { A TPersistent descendant that can use interfaces and
@@ -67,7 +71,7 @@ type
   protected
     function _AddRef: Integer; {$ifdef IINTERFACE_STDCALL} stdcall {$else} cdecl {$endif};
     function _Release: Integer; {$ifdef IINTERFACE_STDCALL} stdcall {$else} cdecl {$endif};
-    function QueryInterface({$ifdef OLD_IINTERFACE_METHODS} const {$else} constref {$endif} IID: TGUID; out Obj): Hresult; virtual; {$ifdef IINTERFACE_STDCALL} stdcall {$else} cdecl {$endif};
+    function QueryInterface({$ifdef FPC} {$ifdef OLD_IINTERFACE_METHODS} const {$else} constref {$endif} {$else} const {$endif} IID: TGUID; out Obj): Hresult; virtual; {$ifdef IINTERFACE_STDCALL} stdcall {$else} cdecl {$endif};
   end;
 
 implementation
@@ -87,7 +91,7 @@ begin
 end;
 
 function TNonRefCountedInterfacedObject.QueryInterface(
-  {$ifdef OLD_IINTERFACE_METHODS} const {$else} constref {$endif} IID: TGUID;
+  {$ifdef FPC}{$ifdef OLD_IINTERFACE_METHODS} const {$else} constref {$endif} {$else} const {$endif} IID: TGUID;
   out Obj): Hresult;
   {$ifdef IINTERFACE_STDCALL} stdcall {$else} cdecl {$endif};
 begin
@@ -111,7 +115,7 @@ begin
 end;
 
 function TNonRefCountedInterfacedPersistent.QueryInterface(
-  {$ifdef OLD_IINTERFACE_METHODS} const {$else} constref {$endif} IID: TGUID;
+  {$ifdef FPC} {$ifdef OLD_IINTERFACE_METHODS} const {$else} constref {$endif} {$else} const {$endif} IID: TGUID;
   out Obj): Hresult;
   {$ifdef IINTERFACE_STDCALL} stdcall {$else} cdecl {$endif};
 begin

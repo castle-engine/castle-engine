@@ -17,12 +17,12 @@
 unit CastleScene;
 
 {$I castleconf.inc}
-{$modeswitch nestedprocvars}{$H+}
+{$ifdef FPC}{$modeswitch nestedprocvars}{$H+}{$endif}
 
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  {$ifdef FPC}{$ifdef CASTLE_OBJFPC}CastleGL, {$else}GL, GLExt, {$endif}{$else}OpenGL, OpenGLext, {$endif}
   CastleVectors, CastleBoxes, X3DNodes, CastleClassUtils, CastleFonts,
   CastleUtils, CastleSceneCore, CastleInternalRenderer, CastleInternalBackground,
   CastleGLUtils, CastleInternalShapeOctree, CastleInternalGLShadowVolumes, X3DFields,
