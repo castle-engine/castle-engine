@@ -366,7 +366,10 @@ type
       It avoids corner cases when PlayAnimation restarts playing the current
       animation. This notification will happen when the animation that you
       caused (by the call to @link(TCastleSceneCore.PlayAnimation)) stops,
-      not at other times. }
+      not at other times.
+
+      Example usage:
+      @includeCode(../../examples/short_api_samples/animation_stop_notification/animation_stop_notification.lpr) }
     StopNotification: TStopAnimationEvent;
 
     { Time, in seconds, when this animation fades-in (and the previous
