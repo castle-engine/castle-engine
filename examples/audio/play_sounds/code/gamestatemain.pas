@@ -49,7 +49,7 @@ type
           const GroupPlayingSounds: TCastleVerticalGroup); reintroduce;
       end;
 
-      TPlayingSoundUiOwnerList = specialize TObjectList<TPlayingSoundUiOwner>;
+      TPlayingSoundUiOwnerList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TPlayingSoundUiOwner>;
 
     var
       PlayingSoundUiTemplate: TSerializedComponent;
