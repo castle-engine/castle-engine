@@ -37,16 +37,42 @@
     function GetOffset: Single;
     procedure SetOffset(const Value: Single);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdAxisRotation: TSFRotation;
+    { X3D field "axisRotation". } { }
+    public property FdAxisRotation: TSFRotation read FFdAxisRotation;
     { X3D field "axisRotation". } { }
     property AxisRotation: TVector4 read GetAxisRotation write SetAxisRotation;
+
+    strict private FFdDiskAngle: TSFFloat;
+    { X3D field "diskAngle". } { }
+    public property FdDiskAngle: TSFFloat read FFdDiskAngle;
     { X3D field "diskAngle". } { }
     property DiskAngle: Single read GetDiskAngle write SetDiskAngle;
+
+    strict private FFdMaxAngle: TSFFloat;
+    { X3D field "maxAngle". } { }
+    public property FdMaxAngle: TSFFloat read FFdMaxAngle;
     { X3D field "maxAngle". } { }
     property MaxAngle: Single read GetMaxAngle write SetMaxAngle;
+
+    strict private FFdMinAngle: TSFFloat;
+    { X3D field "minAngle". } { }
+    public property FdMinAngle: TSFFloat read FFdMinAngle;
     { X3D field "minAngle". } { }
     property MinAngle: Single read GetMinAngle write SetMinAngle;
+
+    strict private FFdOffset: TSFFloat;
+    { X3D field "offset". } { }
+    public property FdOffset: TSFFloat read FFdOffset;
     { X3D field "offset". } { }
     property Offset: Single read GetOffset write SetOffset;
+
+    strict private FEventRotation_changed: TSFRotationEvent;
+    { X3D out event "rotation_changed". } { }
+    public property EventRotation_changed: TSFRotationEvent read FEventRotation_changed;
 
 {$endif read_interface}
 
@@ -102,6 +128,39 @@ end;
 procedure TCylinderSensorNode.SetOffset(const Value: Single);
 begin
   FdOffset.Send(Value);
+end;
+
+class function TCylinderSensorNode.ClassX3DType: String;
+begin
+  Result := 'CylinderSensor';
+end;
+
+procedure TCylinderSensorNode.CreateNode;
+begin
+  inherited;
+
+  FFdAxisRotation := TSFRotation.Create(Self, True, 'axisRotation', Vector3(0, 1, 0), 0);
+   FdAxisRotation.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAxisRotation);
+
+  FFdDiskAngle := TSFFloat.Create(Self, True, 'diskAngle', Pi/12);
+   FdDiskAngle.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDiskAngle);
+
+  FFdMaxAngle := TSFFloat.Create(Self, True, 'maxAngle', -1);
+   FdMaxAngle.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMaxAngle);
+
+  FFdMinAngle := TSFFloat.Create(Self, True, 'minAngle', 0);
+   FdMinAngle.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMinAngle);
+
+  FFdOffset := TSFFloat.Create(Self, True, 'offset', 0);
+   FdOffset.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdOffset);
+
+  FEventRotation_changed := TSFRotationEvent.Create(Self, 'rotation_changed', false);
+  AddEvent(FEventRotation_changed);
 end;
 
 {$endif read_implementation}

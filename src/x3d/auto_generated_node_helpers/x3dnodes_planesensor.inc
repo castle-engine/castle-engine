@@ -35,14 +35,36 @@
     function GetOffset: TVector3;
     procedure SetOffset(const Value: TVector3);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdAxisRotation: TSFRotation;
+    { X3D field "axisRotation". } { }
+    public property FdAxisRotation: TSFRotation read FFdAxisRotation;
     { X3D field "axisRotation". } { }
     property AxisRotation: TVector4 read GetAxisRotation write SetAxisRotation;
+
+    strict private FFdMaxPosition: TSFVec2f;
+    { X3D field "maxPosition". } { }
+    public property FdMaxPosition: TSFVec2f read FFdMaxPosition;
     { X3D field "maxPosition". } { }
     property MaxPosition: TVector2 read GetMaxPosition write SetMaxPosition;
+
+    strict private FFdMinPosition: TSFVec2f;
+    { X3D field "minPosition". } { }
+    public property FdMinPosition: TSFVec2f read FFdMinPosition;
     { X3D field "minPosition". } { }
     property MinPosition: TVector2 read GetMinPosition write SetMinPosition;
+
+    strict private FFdOffset: TSFVec3f;
+    { X3D field "offset". } { }
+    public property FdOffset: TSFVec3f read FFdOffset;
     { X3D field "offset". } { }
     property Offset: TVector3 read GetOffset write SetOffset;
+
+    strict private FEventTranslation_changed: TSFVec3fEvent;
+    { X3D out event "translation_changed". } { }
+    public property EventTranslation_changed: TSFVec3fEvent read FEventTranslation_changed;
 
 {$endif read_interface}
 
@@ -88,6 +110,35 @@ end;
 procedure TPlaneSensorNode.SetOffset(const Value: TVector3);
 begin
   FdOffset.Send(Value);
+end;
+
+class function TPlaneSensorNode.ClassX3DType: String;
+begin
+  Result := 'PlaneSensor';
+end;
+
+procedure TPlaneSensorNode.CreateNode;
+begin
+  inherited;
+
+  FFdAxisRotation := TSFRotation.Create(Self, True, 'axisRotation', Vector3(0, 0, 1), 0);
+   FdAxisRotation.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAxisRotation);
+
+  FFdMaxPosition := TSFVec2f.Create(Self, True, 'maxPosition', Vector2(-1, -1));
+   FdMaxPosition.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMaxPosition);
+
+  FFdMinPosition := TSFVec2f.Create(Self, True, 'minPosition', Vector2(0, 0));
+   FdMinPosition.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMinPosition);
+
+  FFdOffset := TSFVec3f.Create(Self, True, 'offset', Vector3(0, 0, 0));
+   FdOffset.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdOffset);
+
+  FEventTranslation_changed := TSFVec3fEvent.Create(Self, 'translation_changed', false);
+  AddEvent(FEventTranslation_changed);
 end;
 
 {$endif read_implementation}

@@ -75,7 +75,7 @@ type
       Both this and TX3DNodeInformation.AutoGenerateMore must be true to make it happen.
       This is by default @true. }
     GenerateMore: boolean;
-    { Set TSFFloat.Angle (to make it treated as an angle for UNIT conversions. }
+    { Set TSFFloat/TMFFloat.Angle (to make it treated as an angle for UNIT conversions. }
     Angle: Boolean;
     constructor Create;
     destructor Destroy; override;

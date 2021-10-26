@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,19 +22,13 @@
 
   { Base type for nodes that provide control curve information in 2D space. }
   TAbstractNurbsControlCurveNode = class(TAbstractNode)
-  public
-    procedure CreateNode; override;
-
-    strict private FFdControlPoint: TMFVec2d;
-    public property FdControlPoint: TMFVec2d read FFdControlPoint;
-
-    {$I auto_generated_node_helpers/x3dnodes_x3dnurbscontrolcurvenode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dnurbscontrolcurvenode.inc}
   end;
 
   { Base type for all geometry node types that are created parametrically
     and use control points to describe the final shape of the surface. }
   TAbstractParametricGeometryNode = class(TAbstractGeometryNode)
-    {$I auto_generated_node_helpers/x3dnodes_x3dparametricgeometrynode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dparametricgeometrynode.inc}
   end;
 
   { Abstract geometry type for all types of NURBS surfaces. }
@@ -42,8 +36,6 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    procedure CreateNode; override;
-
     function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
@@ -57,48 +49,6 @@
       out ACoord: TMFVec3f): boolean; override;
     function CoordField: TSFNode; override;
     function SolidField: TSFBool; override;
-
-    strict private FFdControlPoint: TSFNode;
-    public property FdControlPoint: TSFNode read FFdControlPoint;
-
-    strict private FFdTexCoord: TSFNode;
-    public property FdTexCoord: TSFNode read FFdTexCoord;
-
-    strict private FFdUTessellation: TSFInt32;
-    public property FdUTessellation: TSFInt32 read FFdUTessellation;
-
-    strict private FFdVTessellation: TSFInt32;
-    public property FdVTessellation: TSFInt32 read FFdVTessellation;
-
-    strict private FFdWeight: TMFDouble;
-    public property FdWeight: TMFDouble read FFdWeight;
-
-    strict private FFdSolid: TSFBool;
-    public property FdSolid: TSFBool read FFdSolid;
-
-    strict private FFdUClosed: TSFBool;
-    public property FdUClosed: TSFBool read FFdUClosed;
-
-    strict private FFdUDimension: TSFInt32;
-    public property FdUDimension: TSFInt32 read FFdUDimension;
-
-    strict private FFdUKnot: TMFDouble;
-    public property FdUKnot: TMFDouble read FFdUKnot;
-
-    strict private FFdUOrder: TSFInt32;
-    public property FdUOrder: TSFInt32 read FFdUOrder;
-
-    strict private FFdVClosed: TSFBool;
-    public property FdVClosed: TSFBool read FFdVClosed;
-
-    strict private FFdVDimension: TSFInt32;
-    public property FdVDimension: TSFInt32 read FFdVDimension;
-
-    strict private FFdVKnot: TMFDouble;
-    public property FdVKnot: TMFDouble read FFdVKnot;
-
-    strict private FFdVOrder: TSFInt32;
-    public property FdVOrder: TSFInt32 read FFdVOrder;
 
     { Get the position of a point on the surface.
 
@@ -114,7 +64,7 @@
         at this point.) }
     function Point(const U, V: Single; const OutputNormal: PVector3 = nil): TVector3;
 
-    {$I auto_generated_node_helpers/x3dnodes_x3dnurbssurfacegeometrynode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dnurbssurfacegeometrynode.inc}
   end;
 
   { Groups a set of curve segments for a composite contour, for X3D.
@@ -126,46 +76,21 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
-
-    { Event in } { }
-    strict private FEventAddChildren: TMFNodeEvent;
-    public property EventAddChildren: TMFNodeEvent read FEventAddChildren;
-
-    { Event in } { }
-    strict private FEventRemoveChildren: TMFNodeEvent;
-    public property EventRemoveChildren: TMFNodeEvent read FEventRemoveChildren;
-
-    strict private FFdChildren: TMFNode;
-    public property FdChildren: TMFNode read FFdChildren;
-
-    {$I auto_generated_node_helpers/x3dnodes_contour2d.inc}
+  {$I auto_generated_node_helpers/x3dnodes_contour2d.inc}
   end;
 
   { Piecewise linear curve segment as a part
     of a trimming contour in the u, v domain of a surface. }
   TContourPolyline2DNode = class(TAbstractNurbsControlCurveNode)
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    {$I auto_generated_node_helpers/x3dnodes_contourpolyline2d.inc}
+  {$I auto_generated_node_helpers/x3dnodes_contourpolyline2d.inc}
   end;
 
   { 3D coordinates defines using double precision floating point values. }
   TCoordinateDoubleNode = class(TAbstractCoordinateNode)
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdPoint: TMFVec3d;
-    public property FdPoint: TMFVec3d read FFdPoint;
-
     function CoordCount: Cardinal; override;
-
-    {$I auto_generated_node_helpers/x3dnodes_coordinatedouble.inc}
+  {$I auto_generated_node_helpers/x3dnodes_coordinatedouble.inc}
   end;
 
   { Visible NURBS curve in 3D. }
@@ -173,29 +98,7 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdControlPoint: TSFNode;
-    public property FdControlPoint: TSFNode read FFdControlPoint;
-
-    strict private FFdTessellation: TSFInt32;
-    public property FdTessellation: TSFInt32 read FFdTessellation;
-
-    strict private FFdWeight: TMFDouble;
-    public property FdWeight: TMFDouble read FFdWeight;
-
-    strict private FFdClosed: TSFBool;
-    public property FdClosed: TSFBool read FFdClosed;
-
-    strict private FFdKnot: TMFDouble;
-    public property FdKnot: TMFDouble read FFdKnot;
-
-    strict private FFdOrder: TSFInt32;
-    public property FdOrder: TSFInt32 read FFdOrder;
-
     class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
-
     function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
@@ -233,26 +136,7 @@
   { Trimming segment that is expressed a NURBS curve and is
     part of a trimming contour in the u,v domain of the surface. }
   TNurbsCurve2DNode = class(TAbstractNurbsControlCurveNode)
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdTessellation: TSFInt32;
-    public property FdTessellation: TSFInt32 read FFdTessellation;
-
-    strict private FFdWeight: TMFDouble;
-    public property FdWeight: TMFDouble read FFdWeight;
-
-    strict private FFdClosed: TSFBool;
-    public property FdClosed: TSFBool read FFdClosed;
-
-    strict private FFdKnot: TMFDouble;
-    public property FdKnot: TMFDouble read FFdKnot;
-
-    strict private FFdOrder: TSFInt32;
-    public property FdOrder: TSFInt32 read FFdOrder;
-
-    {$I auto_generated_node_helpers/x3dnodes_nurbscurve2d.inc}
+  {$I auto_generated_node_helpers/x3dnodes_nurbscurve2d.inc}
   end;
 
   { Interpolate (animate) orientations as tangent vectors of the 3D NURBS curve. }
@@ -263,39 +147,13 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    { Event in } { }
-    strict private FEventSet_fraction: TSFFloatEvent;
-    public property EventSet_fraction: TSFFloatEvent read FEventSet_fraction;
-
-    strict private FFdControlPoint: TSFNode;
-    public property FdControlPoint: TSFNode read FFdControlPoint;
-
-    strict private FFdKnot: TMFDouble;
-    public property FdKnot: TMFDouble read FFdKnot;
-
-    strict private FFdOrder: TSFInt32;
-    public property FdOrder: TSFInt32 read FFdOrder;
-
-    strict private FFdWeight: TMFDouble;
-    public property FdWeight: TMFDouble read FFdWeight;
-
-    { Event out } { }
-    strict private FEventValue_changed: TSFRotationEvent;
-    public property EventValue_changed: TSFRotationEvent read FEventValue_changed;
-
-    {$I auto_generated_node_helpers/x3dnodes_nurbsorientationinterpolator.inc}
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+  {$I auto_generated_node_helpers/x3dnodes_nurbsorientationinterpolator.inc}
   end;
 
   { Visible NURBS 3D surface. }
   TNurbsPatchSurfaceNode = class(TAbstractNurbsSurfaceGeometryNode)
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    {$I auto_generated_node_helpers/x3dnodes_nurbspatchsurface.inc}
+  {$I auto_generated_node_helpers/x3dnodes_nurbspatchsurface.inc}
   end;
 
   { Interpolate (animate) positions along the 3D NURBS curve. }
@@ -306,29 +164,7 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    { Event in } { }
-    strict private FEventSet_fraction: TSFFloatEvent;
-    public property EventSet_fraction: TSFFloatEvent read FEventSet_fraction;
-
-    strict private FFdControlPoint: TSFNode;
-    public property FdControlPoint: TSFNode read FFdControlPoint;
-
-    strict private FFdKnot: TMFDouble;
-    public property FdKnot: TMFDouble read FFdKnot;
-
-    strict private FFdOrder: TSFInt32;
-    public property FdOrder: TSFInt32 read FFdOrder;
-
-    strict private FFdWeight: TMFDouble;
-    public property FdWeight: TMFDouble read FFdWeight;
-
-    { Event out } { }
-    strict private FEventValue_changed: TSFVec3fEvent;
-    public property EventValue_changed: TSFVec3fEvent read FEventValue_changed;
-
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_nurbspositioninterpolator.inc}
@@ -339,35 +175,13 @@
     for rendering purposes, to ensure a common tesselation within the group. }
   TNurbsSetNode = class(TAbstractChildNode)
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    { Event in } { }
-    strict private FEventAddGeometry: TMFNodeEvent;
-    public property EventAddGeometry: TMFNodeEvent read FEventAddGeometry;
-
-    { Event in } { }
-    strict private FEventRemoveGeometry: TMFNodeEvent;
-    public property EventRemoveGeometry: TMFNodeEvent read FEventRemoveGeometry;
-
     { Implementation note: Fdgeometry is not enumerated in DirectEnumerateActive,
       as it's not actually rendered from NurbsSet node.
       Children here have to be placed elsewhere, in some Shape,
       to actually get enumerated as "active". }
     { }
-    strict private FFdGeometry: TMFNode;
-    public property FdGeometry: TMFNode read FFdGeometry;
 
-    strict private FFdTessellationScale: TSFFloat;
-    public property FdTessellationScale: TSFFloat read FFdTessellationScale;
-
-    strict private FFdBboxCenter: TSFVec3f;
-    public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
-
-    strict private FFdBboxSize: TSFVec3f;
-    public property FdBboxSize: TSFVec3f read FFdBboxSize;
-
-    {$I auto_generated_node_helpers/x3dnodes_nurbsset.inc}
+  {$I auto_generated_node_helpers/x3dnodes_nurbsset.inc}
   end;
 
   { Interpolate (animate) by sampling a position and normal at 3D NURBS surface
@@ -379,46 +193,8 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    { Event in } { }
-    strict private FEventSet_fraction: TSFVec2fEvent;
-    public property EventSet_fraction: TSFVec2fEvent read FEventSet_fraction;
-
-    strict private FFdControlPoint: TSFNode;
-    public property FdControlPoint: TSFNode read FFdControlPoint;
-
-    strict private FFdWeight: TMFDouble;
-    public property FdWeight: TMFDouble read FFdWeight;
-
-    { Event out } { }
-    strict private FEventPosition_changed: TSFVec3fEvent;
-    public property EventPosition_changed: TSFVec3fEvent read FEventPosition_changed;
-
-    { Event out } { }
-    strict private FEventNormal_changed: TSFVec3fEvent;
-    public property EventNormal_changed: TSFVec3fEvent read FEventNormal_changed;
-
-    strict private FFdUDimension: TSFInt32;
-    public property FdUDimension: TSFInt32 read FFdUDimension;
-
-    strict private FFdUKnot: TMFDouble;
-    public property FdUKnot: TMFDouble read FFdUKnot;
-
-    strict private FFdUOrder: TSFInt32;
-    public property FdUOrder: TSFInt32 read FFdUOrder;
-
-    strict private FFdVDimension: TSFInt32;
-    public property FdVDimension: TSFInt32 read FFdVDimension;
-
-    strict private FFdVKnot: TMFDouble;
-    public property FdVKnot: TMFDouble read FFdVKnot;
-
-    strict private FFdVOrder: TSFInt32;
-    public property FdVOrder: TSFInt32 read FFdVOrder;
-
-    {$I auto_generated_node_helpers/x3dnodes_nurbssurfaceinterpolator.inc}
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+  {$I auto_generated_node_helpers/x3dnodes_nurbssurfaceinterpolator.inc}
   end;
 
   { Path in 2D space (that can be constructed from NURBS curves,
@@ -428,22 +204,7 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
     function SolidField: TSFBool; override;
-
-    strict private FFdCrossSectionCurve: TSFNode;
-    public property FdCrossSectionCurve: TSFNode read FFdCrossSectionCurve;
-
-    strict private FFdTrajectoryCurve: TSFNode;
-    public property FdTrajectoryCurve: TSFNode read FFdTrajectoryCurve;
-
-    strict private FFdCcw: TSFBool;
-    public property FdCcw: TSFBool read FFdCcw;
-
-    strict private FFdSolid: TSFBool;
-    public property FdSolid: TSFBool read FFdSolid;
-
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
@@ -451,7 +212,7 @@
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_nurbssweptsurface.inc}
+  {$I auto_generated_node_helpers/x3dnodes_nurbssweptsurface.inc}
   end;
 
   { Path in 2D space (that can be constructed from NURBS curves,
@@ -461,22 +222,7 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
     function SolidField: TSFBool; override;
-
-    strict private FFdProfileCurve: TSFNode;
-    public property FdProfileCurve: TSFNode read FFdProfileCurve;
-
-    strict private FFdTrajectoryCurve: TSFNode;
-    public property FdTrajectoryCurve: TSFNode read FFdTrajectoryCurve;
-
-    strict private FFdCcw: TSFBool;
-    public property FdCcw: TSFBool read FFdCcw;
-
-    strict private FFdSolid: TSFBool;
-    public property FdSolid: TSFBool read FFdSolid;
-
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
@@ -491,35 +237,7 @@
     specifying the mapping of the texture onto the surface.
     @bold(Not implemented yet.) }
   TNurbsTextureCoordinateNode = class(TAbstractNode)
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdControlPoint: TMFVec2f;
-    public property FdControlPoint: TMFVec2f read FFdControlPoint;
-
-    strict private FFdWeight: TMFFloat;
-    public property FdWeight: TMFFloat read FFdWeight;
-
-    strict private FFdUDimension: TSFInt32;
-    public property FdUDimension: TSFInt32 read FFdUDimension;
-
-    strict private FFdUKnot: TMFDouble;
-    public property FdUKnot: TMFDouble read FFdUKnot;
-
-    strict private FFdUOrder: TSFInt32;
-    public property FdUOrder: TSFInt32 read FFdUOrder;
-
-    strict private FFdVDimension: TSFInt32;
-    public property FdVDimension: TSFInt32 read FFdVDimension;
-
-    strict private FFdVKnot: TMFDouble;
-    public property FdVKnot: TMFDouble read FFdVKnot;
-
-    strict private FFdVOrder: TSFInt32;
-    public property FdVOrder: TSFInt32 read FFdVOrder;
-
-    {$I auto_generated_node_helpers/x3dnodes_nurbstexturecoordinate.inc}
+  {$I auto_generated_node_helpers/x3dnodes_nurbstexturecoordinate.inc}
   end;
 
   { Visible 3D NURBS surface (like a @link(TNurbsPatchSurfaceNode))
@@ -531,109 +249,14 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    { Event in } { }
-    strict private FEventAddTrimmingContour: TMFNodeEvent;
-    public property EventAddTrimmingContour: TMFNodeEvent read FEventAddTrimmingContour;
-
-    { Event in } { }
-    strict private FEventRemoveTrimmingContour: TMFNodeEvent;
-    public property EventRemoveTrimmingContour: TMFNodeEvent read FEventRemoveTrimmingContour;
-
-    strict private FFdTrimmingContour: TMFNode;
-    public property FdTrimmingContour: TMFNode read FFdTrimmingContour;
-
     function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
-
-    {$I auto_generated_node_helpers/x3dnodes_nurbstrimmedsurface.inc}
+  {$I auto_generated_node_helpers/x3dnodes_nurbstrimmedsurface.inc}
   end;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TAbstractNurbsControlCurveNode.CreateNode;
-begin
-  inherited;
-
-  FFdControlPoint := TMFVec2d.Create(Self, true, 'controlPoint', []);
-  AddField(FFdControlPoint);
-  { X3D specification comment: (-Inf,Inf) }
-
-  DefaultContainerField := 'children';
-end;
-
-procedure TAbstractNurbsSurfaceGeometryNode.CreateNode;
-begin
-  inherited;
-
-  FFdControlPoint := TSFNode.Create(Self, true, 'controlPoint', [TAbstractCoordinateNode]);
-   FdControlPoint.ChangeAlways := chGeometry;
-  AddField(FFdControlPoint);
-
-  FFdTexCoord := TSFNode.Create(Self, true, 'texCoord', [TAbstractTextureCoordinateNode, TNurbsTextureCoordinateNode]);
-   FdTexCoord.ChangeAlways := chGeometry;
-  AddField(FFdTexCoord);
-
-  FFdUTessellation := TSFInt32.Create(Self, true, 'uTessellation', 0);
-   FdUTessellation.ChangeAlways := chGeometry;
-  AddField(FFdUTessellation);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdVTessellation := TSFInt32.Create(Self, true, 'vTessellation', 0);
-   FdVTessellation.ChangeAlways := chGeometry;
-  AddField(FFdVTessellation);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdWeight := TMFDouble.Create(Self, true, 'weight', []);
-   FdWeight.ChangeAlways := chGeometry;
-  AddField(FFdWeight);
-  { X3D specification comment: (0,Inf) }
-
-  FFdSolid := TSFBool.Create(Self, false, 'solid', true);
-   FdSolid.ChangeAlways := chGeometry;
-  AddField(FFdSolid);
-
-  FFdUClosed := TSFBool.Create(Self, false, 'uClosed', false);
-   FdUClosed.ChangeAlways := chGeometry;
-  AddField(FFdUClosed);
-
-  FFdUDimension := TSFInt32.Create(Self, false, 'uDimension', 0);
-   FdUDimension.ChangeAlways := chGeometry;
-  AddField(FFdUDimension);
-  { X3D specification comment: [0,Inf) }
-
-  FFdUKnot := TMFDouble.Create(Self, false, 'uKnot', []);
-   FdUKnot.ChangeAlways := chGeometry;
-  AddField(FFdUKnot);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdUOrder := TSFInt32.Create(Self, false, 'uOrder', 3);
-   FdUOrder.ChangeAlways := chGeometry;
-  AddField(FFdUOrder);
-  { X3D specification comment: [2,Inf) }
-
-  FFdVClosed := TSFBool.Create(Self, false, 'vClosed', false);
-   FdVClosed.ChangeAlways := chGeometry;
-  AddField(FFdVClosed);
-
-  FFdVDimension := TSFInt32.Create(Self, false, 'vDimension', 0);
-   FdVDimension.ChangeAlways := chGeometry;
-  AddField(FFdVDimension);
-  { X3D specification comment: [0,Inf) }
-
-  FFdVKnot := TMFDouble.Create(Self, false, 'vKnot', []);
-   FdVKnot.ChangeAlways := chGeometry;
-  AddField(FFdVKnot);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdVOrder := TSFInt32.Create(Self, false, 'vOrder', 3);
-   FdVOrder.ChangeAlways := chGeometry;
-  AddField(FFdVOrder);
-  { X3D specification comment: [2,Inf) }
-end;
 
 function TAbstractNurbsSurfaceGeometryNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
@@ -642,28 +265,6 @@ begin
 
   Result := FdtexCoord.Enumerate(Func);
   if Result <> nil then Exit;
-end;
-
-procedure TContour2DNode.CreateNode;
-begin
-  inherited;
-
-  FEventAddChildren := TMFNodeEvent.Create(Self, 'addChildren', true);
-  AddEvent(FEventAddChildren);
-
-  FEventRemoveChildren := TMFNodeEvent.Create(Self, 'removeChildren', true);
-  AddEvent(FEventRemoveChildren);
-
-  FFdChildren := TMFNode.Create(Self, true, 'children', [TNurbsCurve2DNode, TContourPolyline2DNode]);
-   FdChildren.ChangeAlways := chEverything;
-  AddField(FFdChildren);
-
-  DefaultContainerField := 'trimmingContour';
-end;
-
-class function TContour2DNode.ClassX3DType: string;
-begin
-  Result := 'Contour2D';
 end;
 
 class function TContour2DNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -677,75 +278,9 @@ begin
   if Result <> nil then Exit;
 end;
 
-procedure TContourPolyline2DNode.CreateNode;
-begin
-  inherited;
-
-  DefaultContainerField := 'geometry';
-end;
-
-class function TContourPolyline2DNode.ClassX3DType: string;
-begin
-  Result := 'ContourPolyline2D';
-end;
-
-procedure TCoordinateDoubleNode.CreateNode;
-begin
-  inherited;
-
-  FFdPoint := TMFVec3d.Create(Self, true, 'point', []);
-   { Not really handled for now }
-   FdPoint.ChangeAlways := chCoordinate;
-  AddField(FFdPoint);
-  { X3D specification comment: (-Inf,Inf) }
-end;
-
-class function TCoordinateDoubleNode.ClassX3DType: string;
-begin
-  Result := 'CoordinateDouble';
-end;
-
 function TCoordinateDoubleNode.CoordCount: Cardinal;
 begin
   Result := FdPoint.Items.Count;
-end;
-
-procedure TNurbsCurveNode.CreateNode;
-begin
-  inherited;
-
-  FFdControlPoint := TSFNode.Create(Self, true, 'controlPoint', [TAbstractCoordinateNode]);
-   FdControlPoint.ChangeAlways := chGeometry;
-  AddField(FFdControlPoint);
-
-  FFdTessellation := TSFInt32.Create(Self, true, 'tessellation', 0);
-   FdTessellation.ChangeAlways := chGeometry;
-  AddField(FFdTessellation);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdWeight := TMFDouble.Create(Self, true, 'weight', []);
-   FdWeight.ChangeAlways := chGeometry;
-  AddField(FFdWeight);
-  { X3D specification comment: (0,Inf) }
-
-  FFdClosed := TSFBool.Create(Self, false, 'closed', false);
-   FdClosed.ChangeAlways := chGeometry;
-  AddField(FFdClosed);
-
-  FFdKnot := TMFDouble.Create(Self, false, 'knot', []);
-   FdKnot.ChangeAlways := chGeometry;
-  AddField(FFdKnot);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdOrder := TSFInt32.Create(Self, false, 'order', 3);
-   FdOrder.ChangeAlways := chGeometry;
-  AddField(FFdOrder);
-  { X3D specification comment: [2,Inf) }
-end;
-
-class function TNurbsCurveNode.ClassX3DType: string;
-begin
-  Result := 'NurbsCurve';
 end;
 
 class function TNurbsCurveNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -924,70 +459,12 @@ begin
   FreeAndNil(CurrentKnot);
 end;
 
-procedure TNurbsCurve2DNode.CreateNode;
+{ TNurbsOrientationInterpolatorNode ------------------------------------------ }
+
+constructor TNurbsOrientationInterpolatorNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FFdTessellation := TSFInt32.Create(Self, true, 'tessellation', 0);
-  AddField(FFdTessellation);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdWeight := TMFDouble.Create(Self, true, 'weight', []);
-  AddField(FFdWeight);
-  { X3D specification comment: (0,Inf) }
-
-  FFdClosed := TSFBool.Create(Self, false, 'closed', false);
-  AddField(FFdClosed);
-
-  FFdKnot := TMFDouble.Create(Self, false, 'knot', []);
-  AddField(FFdKnot);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdOrder := TSFInt32.Create(Self, false, 'order', 3);
-  AddField(FFdOrder);
-  { X3D specification comment: [2,Inf) }
-
-  DefaultContainerField := 'children';
-end;
-
-class function TNurbsCurve2DNode.ClassX3DType: string;
-begin
-  Result := 'NurbsCurve2D';
-end;
-
-procedure TNurbsOrientationInterpolatorNode.CreateNode;
-begin
-  inherited;
-
-  FEventSet_fraction := TSFFloatEvent.Create(Self, 'set_fraction', true);
-  AddEvent(FEventSet_fraction);
-
-  FFdControlPoint := TSFNode.Create(Self, true, 'controlPoint', [TAbstractCoordinateNode]);
-  AddField(FFdControlPoint);
-
-  FFdKnot := TMFDouble.Create(Self, true, 'knot', []);
-  AddField(FFdKnot);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdOrder := TSFInt32.Create(Self, true, 'order', 3);
-  AddField(FFdOrder);
-  { X3D specification comment: (2,Inf) }
-
-  FFdWeight := TMFDouble.Create(Self, true, 'weight', []);
-  AddField(FFdWeight);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FEventValue_changed := TSFRotationEvent.Create(Self, 'value_changed', false);
-  AddEvent(FEventValue_changed);
-
-  DefaultContainerField := 'children';
-
   EventSet_Fraction.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
-end;
-
-class function TNurbsOrientationInterpolatorNode.ClassX3DType: string;
-begin
-  Result := 'NurbsOrientationInterpolator';
 end;
 
 function TNurbsOrientationInterpolatorNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -1041,16 +518,6 @@ begin
   Orientation := OrientationFromDirectionUp(Tangent, AnyOrthogonalVector(Tangent));
 
   EventValue_Changed.Send(Orientation, Time);
-end;
-
-procedure TNurbsPatchSurfaceNode.CreateNode;
-begin
-  inherited;
-end;
-
-class function TNurbsPatchSurfaceNode.ClassX3DType: string;
-begin
-  Result := 'NurbsPatchSurface';
 end;
 
 { Converting X3D NurbsPatchSurface and VRML 97 NurbsSurface to
@@ -1446,39 +913,10 @@ begin
   FreeAndNil(VKnot);
 end;
 
-procedure TNurbsPositionInterpolatorNode.CreateNode;
+constructor TNurbsPositionInterpolatorNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FEventSet_fraction := TSFFloatEvent.Create(Self, 'set_fraction', true);
-  AddEvent(FEventSet_fraction);
-
-  FFdControlPoint := TSFNode.Create(Self, true, 'controlPoint', [TAbstractCoordinateNode]);
-  AddField(FFdControlPoint);
-
-  FFdKnot := TMFDouble.Create(Self, true, 'knot', []);
-  AddField(FFdKnot);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdOrder := TSFInt32.Create(Self, true, 'order', 3);
-  AddField(FFdOrder);
-  { X3D specification comment: (2,Inf) }
-
-  FFdWeight := TMFDouble.Create(Self, true, 'weight', []);
-  AddField(FFdWeight);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FEventValue_changed := TSFVec3fEvent.Create(Self, 'value_changed', false);
-  AddEvent(FEventValue_changed);
-
-  DefaultContainerField := 'children';
-
   EventSet_Fraction.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
-end;
-
-class function TNurbsPositionInterpolatorNode.ClassX3DType: string;
-begin
-  Result := 'NurbsPositionInterpolator';
 end;
 
 class function TNurbsPositionInterpolatorNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -1531,91 +969,12 @@ begin
   EventValue_Changed.Send(OutputValue, Time);
 end;
 
-procedure TNurbsSetNode.CreateNode;
+{ TNurbsSurfaceInterpolatorNode ---------------------------------------------- }
+
+constructor TNurbsSurfaceInterpolatorNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FEventAddGeometry := TMFNodeEvent.Create(Self, 'addGeometry', true);
-  AddEvent(FEventAddGeometry);
-
-  FEventRemoveGeometry := TMFNodeEvent.Create(Self, 'removeGeometry', true);
-  AddEvent(FEventRemoveGeometry);
-
-  FFdGeometry := TMFNode.Create(Self, true, 'geometry', [TAbstractParametricGeometryNode]);
-  AddField(FFdGeometry);
-
-  FFdTessellationScale := TSFFloat.Create(Self, true, 'tessellationScale', 1.0);
-  AddField(FFdTessellationScale);
-  { X3D specification comment: (0,Inf) }
-
-  FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', Vector3(0, 0, 0));
-  AddField(FFdBboxCenter);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdBboxSize := TSFVec3f.Create(Self, false, 'bboxSize', Vector3(-1, -1, -1));
-  AddField(FFdBboxSize);
-  { X3D specification comment: [0,Inf) or -1 -1 -1 }
-
-  DefaultContainerField := 'children';
-end;
-
-class function TNurbsSetNode.ClassX3DType: string;
-begin
-  Result := 'NurbsSet';
-end;
-
-procedure TNurbsSurfaceInterpolatorNode.CreateNode;
-begin
-  inherited;
-
-  FEventSet_fraction := TSFVec2fEvent.Create(Self, 'set_fraction', true);
-  AddEvent(FEventSet_fraction);
-
-  FFdControlPoint := TSFNode.Create(Self, true, 'controlPoint', [TAbstractCoordinateNode]);
-  AddField(FFdControlPoint);
-
-  FFdWeight := TMFDouble.Create(Self, true, 'weight', []);
-  AddField(FFdWeight);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FEventPosition_changed := TSFVec3fEvent.Create(Self, 'position_changed', false);
-  AddEvent(FEventPosition_changed);
-
-  FEventNormal_changed := TSFVec3fEvent.Create(Self, 'normal_changed', false);
-  AddEvent(FEventNormal_changed);
-
-  FFdUDimension := TSFInt32.Create(Self, false, 'uDimension', 0);
-  AddField(FFdUDimension);
-  { X3D specification comment: [0,Inf) }
-
-  FFdUKnot := TMFDouble.Create(Self, false, 'uKnot', []);
-  AddField(FFdUKnot);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdUOrder := TSFInt32.Create(Self, false, 'uOrder', 3);
-  AddField(FFdUOrder);
-  { X3D specification comment: [2,Inf) }
-
-  FFdVDimension := TSFInt32.Create(Self, false, 'vDimension', 0);
-  AddField(FFdVDimension);
-  { X3D specification comment: [0,Inf) }
-
-  FFdVKnot := TMFDouble.Create(Self, false, 'vKnot', []);
-  AddField(FFdVKnot);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdVOrder := TSFInt32.Create(Self, false, 'vOrder', 3);
-  AddField(FFdVOrder);
-  { X3D specification comment: [2,Inf) }
-
-  DefaultContainerField := 'children';
-
   EventSet_Fraction.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
-end;
-
-class function TNurbsSurfaceInterpolatorNode.ClassX3DType: string;
-begin
-  Result := 'NurbsSurfaceInterpolator';
 end;
 
 function TNurbsSurfaceInterpolatorNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -1701,32 +1060,6 @@ begin
   EventNormal_Changed.Send(OutputNormal, Time);
 end;
 
-procedure TNurbsSweptSurfaceNode.CreateNode;
-begin
-  inherited;
-
-  FFdCrossSectionCurve := TSFNode.Create(Self, true, 'crossSectionCurve', [TAbstractNurbsControlCurveNode]);
-   FdCrossSectionCurve.ChangeAlways := chGeometry;
-  AddField(FFdCrossSectionCurve);
-
-  FFdTrajectoryCurve := TSFNode.Create(Self, true, 'trajectoryCurve', [TNurbsCurveNode]);
-   FdTrajectoryCurve.ChangeAlways := chGeometry;
-  AddField(FFdTrajectoryCurve);
-
-  FFdCcw := TSFBool.Create(Self, false, 'ccw', true);
-   FdCcw.ChangeAlways := chGeometry;
-  AddField(FFdCcw);
-
-  FFdSolid := TSFBool.Create(Self, false, 'solid', true);
-   FdSolid.ChangeAlways := chGeometry;
-  AddField(FFdSolid);
-end;
-
-class function TNurbsSweptSurfaceNode.ClassX3DType: string;
-begin
-  Result := 'NurbsSweptSurface';
-end;
-
 function TNurbsSweptSurfaceNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   Result := FdcrossSectionCurve.Enumerate(Func);
@@ -1762,32 +1095,6 @@ begin
   Result := FdSolid;
 end;
 
-procedure TNurbsSwungSurfaceNode.CreateNode;
-begin
-  inherited;
-
-  FFdProfileCurve := TSFNode.Create(Self, true, 'profileCurve', [TAbstractNurbsControlCurveNode]);
-   FdProfileCurve.ChangeAlways := chGeometry;
-  AddField(FFdProfileCurve);
-
-  FFdTrajectoryCurve := TSFNode.Create(Self, true, 'trajectoryCurve', [TAbstractNurbsControlCurveNode]);
-   FdTrajectoryCurve.ChangeAlways := chGeometry;
-  AddField(FFdTrajectoryCurve);
-
-  FFdCcw := TSFBool.Create(Self, false, 'ccw', true);
-   FdCcw.ChangeAlways := chGeometry;
-  AddField(FFdCcw);
-
-  FFdSolid := TSFBool.Create(Self, false, 'solid', true);
-   FdSolid.ChangeAlways := chGeometry;
-  AddField(FFdSolid);
-end;
-
-class function TNurbsSwungSurfaceNode.ClassX3DType: string;
-begin
-  Result := 'NurbsSwungSurface';
-end;
-
 function TNurbsSwungSurfaceNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   Result := FdprofileCurve.Enumerate(Func);
@@ -1821,70 +1128,6 @@ end;
 function TNurbsSwungSurfaceNode.SolidField: TSFBool;
 begin
   Result := FdSolid;
-end;
-
-procedure TNurbsTextureCoordinateNode.CreateNode;
-begin
-  inherited;
-
-  FFdControlPoint := TMFVec2f.Create(Self, true, 'controlPoint', []);
-  AddField(FFdControlPoint);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdWeight := TMFFloat.Create(Self, true, 'weight', []);
-  AddField(FFdWeight);
-  { X3D specification comment: (0,Inf) }
-
-  FFdUDimension := TSFInt32.Create(Self, false, 'uDimension', 0);
-  AddField(FFdUDimension);
-  { X3D specification comment: [0,Inf) }
-
-  FFdUKnot := TMFDouble.Create(Self, false, 'uKnot', []);
-  AddField(FFdUKnot);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdUOrder := TSFInt32.Create(Self, false, 'uOrder', 3);
-  AddField(FFdUOrder);
-  { X3D specification comment: [2,Inf) }
-
-  FFdVDimension := TSFInt32.Create(Self, false, 'vDimension', 0);
-  AddField(FFdVDimension);
-  { X3D specification comment: [0,Inf) }
-
-  FFdVKnot := TMFDouble.Create(Self, false, 'vKnot', []);
-  AddField(FFdVKnot);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdVOrder := TSFInt32.Create(Self, false, 'vOrder', 3);
-  AddField(FFdVOrder);
-  { X3D specification comment: [2,Inf) }
-
-  DefaultContainerField := 'texCoord';
-end;
-
-class function TNurbsTextureCoordinateNode.ClassX3DType: string;
-begin
-  Result := 'NurbsTextureCoordinate';
-end;
-
-procedure TNurbsTrimmedSurfaceNode.CreateNode;
-begin
-  inherited;
-
-  FEventAddTrimmingContour := TMFNodeEvent.Create(Self, 'addTrimmingContour', true);
-  AddEvent(FEventAddTrimmingContour);
-
-  FEventRemoveTrimmingContour := TMFNodeEvent.Create(Self, 'removeTrimmingContour', true);
-  AddEvent(FEventRemoveTrimmingContour);
-
-  FFdTrimmingContour := TMFNode.Create(Self, true, 'trimmingContour', [TContour2DNode]);
-   FdTrimmingContour.ChangeAlways := chGeometry;
-  AddField(FFdTrimmingContour);
-end;
-
-class function TNurbsTrimmedSurfaceNode.ClassX3DType: string;
-begin
-  Result := 'NurbsTrimmedSurface';
 end;
 
 function TNurbsTrimmedSurfaceNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;

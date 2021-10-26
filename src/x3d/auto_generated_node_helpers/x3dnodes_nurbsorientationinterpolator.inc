@@ -31,18 +31,44 @@
     function GetOrder: Integer;
     procedure SetOrder(const Value: Integer);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventSet_fraction: TSFFloatEvent;
+    { X3D in event "set_fraction". } { }
+    public property EventSet_fraction: TSFFloatEvent read FEventSet_fraction;
+
+    strict private FFdControlPoint: TSFNode;
+    { X3D field "controlPoint". } { }
+    public property FdControlPoint: TSFNode read FFdControlPoint;
     { X3D field "controlPoint". } { }
     property ControlPoint: TAbstractCoordinateNode read GetControlPoint write SetControlPoint;
+
+    strict private FFdKnot: TMFDouble;
+    { X3D field "knot". } { }
+    public property FdKnot: TMFDouble read FFdKnot;
     { Set X3D field "knot". } { }
     procedure SetKnot(const Value: array of Double);
     { Set X3D field "knot". } { }
     procedure SetKnot(const Value: TDoubleList);
+
+    strict private FFdOrder: TSFInt32;
+    { X3D field "order". } { }
+    public property FdOrder: TSFInt32 read FFdOrder;
     { X3D field "order". } { }
     property Order: Integer read GetOrder write SetOrder;
+
+    strict private FFdWeight: TMFDouble;
+    { X3D field "weight". } { }
+    public property FdWeight: TMFDouble read FFdWeight;
     { Set X3D field "weight". } { }
     procedure SetWeight(const Value: array of Double);
     { Set X3D field "weight". } { }
     procedure SetWeight(const Value: TDoubleList);
+
+    strict private FEventValue_changed: TSFRotationEvent;
+    { X3D out event "value_changed". } { }
+    public property EventValue_changed: TSFRotationEvent read FEventValue_changed;
 
 {$endif read_interface}
 
@@ -91,6 +117,38 @@ end;
 procedure TNurbsOrientationInterpolatorNode.SetWeight(const Value: TDoubleList);
 begin
   FdWeight.Send(Value);
+end;
+
+class function TNurbsOrientationInterpolatorNode.ClassX3DType: String;
+begin
+  Result := 'NurbsOrientationInterpolator';
+end;
+
+procedure TNurbsOrientationInterpolatorNode.CreateNode;
+begin
+  inherited;
+
+  FEventSet_fraction := TSFFloatEvent.Create(Self, 'set_fraction', true);
+  AddEvent(FEventSet_fraction);
+
+  FFdControlPoint := TSFNode.Create(Self, True, 'controlPoint', [TAbstractCoordinateNode]);
+   FdControlPoint.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdControlPoint);
+
+  FFdKnot := TMFDouble.Create(Self, True, 'knot', []);
+   FdKnot.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdKnot);
+
+  FFdOrder := TSFInt32.Create(Self, True, 'order', 3);
+   FdOrder.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdOrder);
+
+  FFdWeight := TMFDouble.Create(Self, True, 'weight', []);
+   FdWeight.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdWeight);
+
+  FEventValue_changed := TSFRotationEvent.Create(Self, 'value_changed', false);
+  AddEvent(FEventValue_changed);
 end;
 
 {$endif read_implementation}

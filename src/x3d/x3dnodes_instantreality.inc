@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -687,7 +687,7 @@ begin
   Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
 
-constructor TLoggerNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TLoggerNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
   FEventWrite.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventWriteReceive);

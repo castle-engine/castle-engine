@@ -543,6 +543,7 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_polyline2d.inc}
 {$I auto_generated_node_helpers/x3dnodes_polylineemitter.inc}
 {$I auto_generated_node_helpers/x3dnodes_polypoint2d.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dpositionallightnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_positionchaser.inc}
 {$I auto_generated_node_helpers/x3dnodes_positionchaser2d.inc}
 {$I auto_generated_node_helpers/x3dnodes_positiondamper.inc}
@@ -635,6 +636,7 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_x3dcoordinatenode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dcubicbezierinterpolator.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3ddampernode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3ddirectionallightnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3ddragsensornode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3denvironmentalsensornode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3denvironmenttexturenode.inc}
@@ -664,6 +666,7 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_x3dparticlephysicsmodelnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dpicksensornode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dpointingdevicesensornode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dpointlightnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dproductstructurechildnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dpunctuallightnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3drigidjointnode.inc}
