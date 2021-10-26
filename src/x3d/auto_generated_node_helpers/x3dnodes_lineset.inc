@@ -48,9 +48,9 @@
     property FogCoord: TFogCoordinateNode read GetFogCoord write SetFogCoord;
 {$endif not CASTLE_SLIM_NODES}
     { Set X3D field "vertexCount". } { }
-    procedure SetVertexCount(const Value: array of LongInt);
+    procedure SetVertexCount(const Value: array of LongInt); overload;
     { Set X3D field "vertexCount". } { }
-    procedure SetVertexCount(const Value: TLongIntList);
+    procedure SetVertexCount(const Value: TLongIntList); overload;
 
 {$endif read_interface}
 

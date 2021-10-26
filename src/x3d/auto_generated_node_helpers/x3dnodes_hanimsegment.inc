@@ -50,9 +50,9 @@
     { X3D field "mass". } { }
     property Mass: Single read GetMass write SetMass;
     { Set X3D field "momentsOfInertia". } { }
-    procedure SetMomentsOfInertia(const Value: array of Single);
+    procedure SetMomentsOfInertia(const Value: array of Single); overload;
     { Set X3D field "momentsOfInertia". } { }
-    procedure SetMomentsOfInertia(const Value: TSingleList);
+    procedure SetMomentsOfInertia(const Value: TSingleList); overload;
     { X3D field "name". } { }
     property NameField: String read GetNameField write SetNameField;
     { X3D field "rotation". } { }

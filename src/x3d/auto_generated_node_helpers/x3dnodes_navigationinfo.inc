@@ -36,9 +36,9 @@
     procedure SetVisibilityLimit(const Value: Single);
   public
     { Set X3D field "avatarSize". } { }
-    procedure SetAvatarSize(const Value: array of Single);
+    procedure SetAvatarSize(const Value: array of Single); overload;
     { Set X3D field "avatarSize". } { }
-    procedure SetAvatarSize(const Value: TSingleList);
+    procedure SetAvatarSize(const Value: TSingleList); overload;
     { X3D field "headlight". } { }
     property Headlight: Boolean read GetHeadlight write SetHeadlight;
     { X3D field "speed". } { }
@@ -46,13 +46,13 @@
     { X3D field "transitionTime". } { }
     property TransitionTime: TFloatTime read GetTransitionTime write SetTransitionTime;
     { Set X3D field "transitionType". } { }
-    procedure SetTransitionType(const Value: array of string);
+    procedure SetTransitionType(const Value: array of string); overload;
     { Set X3D field "transitionType". } { }
-    procedure SetTransitionType(const Value: TCastleStringList);
+    procedure SetTransitionType(const Value: TCastleStringList); overload;
     { Set X3D field "type". } { }
-    procedure SetType(const Value: array of string);
+    procedure SetType(const Value: array of string); overload;
     { Set X3D field "type". } { }
-    procedure SetType(const Value: TCastleStringList);
+    procedure SetType(const Value: TCastleStringList); overload;
     { X3D field "visibilityLimit". } { }
     property VisibilityLimit: Single read GetVisibilityLimit write SetVisibilityLimit;
 

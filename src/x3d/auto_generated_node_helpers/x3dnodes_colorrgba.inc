@@ -27,9 +27,9 @@
 
   public
     { Set X3D field "color". } { }
-    procedure SetColor(const Value: array of TCastleColor);
+    procedure SetColor(const Value: array of TCastleColor); overload;
     { Set X3D field "color". } { }
-    procedure SetColor(const Value: TVector4List);
+    procedure SetColor(const Value: TVector4List); overload;
 
 {$endif read_interface}
 

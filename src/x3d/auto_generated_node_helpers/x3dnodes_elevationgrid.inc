@@ -68,9 +68,9 @@
     { X3D field "creaseAngle". } { }
     property CreaseAngle: Single read GetCreaseAngle write SetCreaseAngle;
     { Set X3D field "height". } { }
-    procedure SetHeight(const Value: array of Single);
+    procedure SetHeight(const Value: array of Single); overload;
     { Set X3D field "height". } { }
-    procedure SetHeight(const Value: TSingleList);
+    procedure SetHeight(const Value: TSingleList); overload;
     { X3D field "normalPerVertex". } { }
     property NormalPerVertex: Boolean read GetNormalPerVertex write SetNormalPerVertex;
     { X3D field "xDimension". } { }

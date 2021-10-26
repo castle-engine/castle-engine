@@ -34,15 +34,15 @@
     { X3D field "controlPoint". } { }
     property ControlPoint: TAbstractCoordinateNode read GetControlPoint write SetControlPoint;
     { Set X3D field "knot". } { }
-    procedure SetKnot(const Value: array of Double);
+    procedure SetKnot(const Value: array of Double); overload;
     { Set X3D field "knot". } { }
-    procedure SetKnot(const Value: TDoubleList);
+    procedure SetKnot(const Value: TDoubleList); overload;
     { X3D field "order". } { }
     property Order: Integer read GetOrder write SetOrder;
     { Set X3D field "weight". } { }
-    procedure SetWeight(const Value: array of Double);
+    procedure SetWeight(const Value: array of Double); overload;
     { Set X3D field "weight". } { }
-    procedure SetWeight(const Value: TDoubleList);
+    procedure SetWeight(const Value: TDoubleList); overload;
 
 {$endif read_interface}
 

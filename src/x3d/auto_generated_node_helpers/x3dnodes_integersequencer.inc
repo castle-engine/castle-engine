@@ -33,9 +33,9 @@
     { X3D field "keyValue". } { }
     public property FdKeyValue: TMFInt32 read FFdKeyValue;
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: array of LongInt);
+    procedure SetKeyValue(const Value: array of LongInt); overload;
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: TLongIntList);
+    procedure SetKeyValue(const Value: TLongIntList); overload;
 
     strict private FEventValue_changed: TSFInt32Event;
     { X3D out event "value_changed". } { }

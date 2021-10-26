@@ -34,9 +34,9 @@
     { X3D field "geoCoords". } { }
     property GeoCoords: TVector3Double read GetGeoCoords write SetGeoCoords;
     { Set X3D field "geoSystem". } { }
-    procedure SetGeoSystem(const Value: array of string);
+    procedure SetGeoSystem(const Value: array of string); overload;
     { Set X3D field "geoSystem". } { }
-    procedure SetGeoSystem(const Value: TCastleStringList);
+    procedure SetGeoSystem(const Value: TCastleStringList); overload;
     { X3D field "rotateYUp". } { }
     property RotateYUp: Boolean read GetRotateYUp write SetRotateYUp;
 

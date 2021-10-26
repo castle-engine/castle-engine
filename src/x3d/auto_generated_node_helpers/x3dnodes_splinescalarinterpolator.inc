@@ -34,13 +34,13 @@
     { X3D field "closed". } { }
     property Closed: Boolean read GetClosed write SetClosed;
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: array of Single);
+    procedure SetKeyValue(const Value: array of Single); overload;
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: TSingleList);
+    procedure SetKeyValue(const Value: TSingleList); overload;
     { Set X3D field "keyVelocity". } { }
-    procedure SetKeyVelocity(const Value: array of Single);
+    procedure SetKeyVelocity(const Value: array of Single); overload;
     { Set X3D field "keyVelocity". } { }
-    procedure SetKeyVelocity(const Value: TSingleList);
+    procedure SetKeyVelocity(const Value: TSingleList); overload;
     { X3D field "normalizeVelocity". } { }
     property NormalizeVelocity: Boolean read GetNormalizeVelocity write SetNormalizeVelocity;
 

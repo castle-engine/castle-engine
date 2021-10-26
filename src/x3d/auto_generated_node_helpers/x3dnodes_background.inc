@@ -27,29 +27,29 @@
 
   public
     { Set X3D field "backUrl". } { }
-    procedure SetBackUrl(const Value: array of string);
+    procedure SetBackUrl(const Value: array of string); overload;
     { Set X3D field "backUrl". } { }
-    procedure SetBackUrl(const Value: TCastleStringList);
+    procedure SetBackUrl(const Value: TCastleStringList); overload;
     { Set X3D field "bottomUrl". } { }
-    procedure SetBottomUrl(const Value: array of string);
+    procedure SetBottomUrl(const Value: array of string); overload;
     { Set X3D field "bottomUrl". } { }
-    procedure SetBottomUrl(const Value: TCastleStringList);
+    procedure SetBottomUrl(const Value: TCastleStringList); overload;
     { Set X3D field "frontUrl". } { }
-    procedure SetFrontUrl(const Value: array of string);
+    procedure SetFrontUrl(const Value: array of string); overload;
     { Set X3D field "frontUrl". } { }
-    procedure SetFrontUrl(const Value: TCastleStringList);
+    procedure SetFrontUrl(const Value: TCastleStringList); overload;
     { Set X3D field "leftUrl". } { }
-    procedure SetLeftUrl(const Value: array of string);
+    procedure SetLeftUrl(const Value: array of string); overload;
     { Set X3D field "leftUrl". } { }
-    procedure SetLeftUrl(const Value: TCastleStringList);
+    procedure SetLeftUrl(const Value: TCastleStringList); overload;
     { Set X3D field "rightUrl". } { }
-    procedure SetRightUrl(const Value: array of string);
+    procedure SetRightUrl(const Value: array of string); overload;
     { Set X3D field "rightUrl". } { }
-    procedure SetRightUrl(const Value: TCastleStringList);
+    procedure SetRightUrl(const Value: TCastleStringList); overload;
     { Set X3D field "topUrl". } { }
-    procedure SetTopUrl(const Value: array of string);
+    procedure SetTopUrl(const Value: array of string); overload;
     { Set X3D field "topUrl". } { }
-    procedure SetTopUrl(const Value: TCastleStringList);
+    procedure SetTopUrl(const Value: TCastleStringList); overload;
 
 {$endif read_interface}
 

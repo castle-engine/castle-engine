@@ -46,23 +46,23 @@
     { X3D field "creaseAngle". } { }
     property CreaseAngle: Single read GetCreaseAngle write SetCreaseAngle;
     { Set X3D field "crossSection". } { }
-    procedure SetCrossSection(const Value: array of TVector2);
+    procedure SetCrossSection(const Value: array of TVector2); overload;
     { Set X3D field "crossSection". } { }
-    procedure SetCrossSection(const Value: TVector2List);
+    procedure SetCrossSection(const Value: TVector2List); overload;
     { X3D field "endCap". } { }
     property EndCap: Boolean read GetEndCap write SetEndCap;
     { Set X3D field "orientation". } { }
-    procedure SetOrientation(const Value: array of TVector4);
+    procedure SetOrientation(const Value: array of TVector4); overload;
     { Set X3D field "orientation". } { }
-    procedure SetOrientation(const Value: TVector4List);
+    procedure SetOrientation(const Value: TVector4List); overload;
     { Set X3D field "scale". } { }
-    procedure SetScale(const Value: array of TVector2);
+    procedure SetScale(const Value: array of TVector2); overload;
     { Set X3D field "scale". } { }
-    procedure SetScale(const Value: TVector2List);
+    procedure SetScale(const Value: TVector2List); overload;
     { Set X3D field "spine". } { }
-    procedure SetSpine(const Value: array of TVector3);
+    procedure SetSpine(const Value: array of TVector3); overload;
     { Set X3D field "spine". } { }
-    procedure SetSpine(const Value: TVector3List);
+    procedure SetSpine(const Value: TVector3List); overload;
 
 {$endif read_interface}
 

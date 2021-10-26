@@ -27,9 +27,9 @@
 
   public
     { Set X3D field "point". } { }
-    procedure SetPoint(const Value: array of TVector3);
+    procedure SetPoint(const Value: array of TVector3); overload;
     { Set X3D field "point". } { }
-    procedure SetPoint(const Value: TVector3List);
+    procedure SetPoint(const Value: TVector3List); overload;
 
 {$endif read_interface}
 

@@ -36,9 +36,9 @@
     { X3D field "texture". } { }
     property Texture: TAbstractTextureNode read GetTexture write SetTexture;
     { Set X3D field "texCoords". } { }
-    procedure SetTexCoords(const Value: array of TVector2);
+    procedure SetTexCoords(const Value: array of TVector2); overload;
     { Set X3D field "texCoords". } { }
-    procedure SetTexCoords(const Value: TVector2List);
+    procedure SetTexCoords(const Value: TVector2List); overload;
 
 {$endif read_interface}
 

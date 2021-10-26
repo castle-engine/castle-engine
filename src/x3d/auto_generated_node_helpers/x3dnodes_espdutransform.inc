@@ -134,25 +134,25 @@
     { X3D field "articulationParameterCount". } { }
     property ArticulationParameterCount: Integer read GetArticulationParameterCount write SetArticulationParameterCount;
     { Set X3D field "articulationParameterDesignatorArray". } { }
-    procedure SetArticulationParameterDesignatorArray(const Value: array of LongInt);
+    procedure SetArticulationParameterDesignatorArray(const Value: array of LongInt); overload;
     { Set X3D field "articulationParameterDesignatorArray". } { }
-    procedure SetArticulationParameterDesignatorArray(const Value: TLongIntList);
+    procedure SetArticulationParameterDesignatorArray(const Value: TLongIntList); overload;
     { Set X3D field "articulationParameterChangeIndicatorArray". } { }
-    procedure SetArticulationParameterChangeIndicatorArray(const Value: array of LongInt);
+    procedure SetArticulationParameterChangeIndicatorArray(const Value: array of LongInt); overload;
     { Set X3D field "articulationParameterChangeIndicatorArray". } { }
-    procedure SetArticulationParameterChangeIndicatorArray(const Value: TLongIntList);
+    procedure SetArticulationParameterChangeIndicatorArray(const Value: TLongIntList); overload;
     { Set X3D field "articulationParameterIdPartAttachedToArray". } { }
-    procedure SetArticulationParameterIdPartAttachedToArray(const Value: array of LongInt);
+    procedure SetArticulationParameterIdPartAttachedToArray(const Value: array of LongInt); overload;
     { Set X3D field "articulationParameterIdPartAttachedToArray". } { }
-    procedure SetArticulationParameterIdPartAttachedToArray(const Value: TLongIntList);
+    procedure SetArticulationParameterIdPartAttachedToArray(const Value: TLongIntList); overload;
     { Set X3D field "articulationParameterTypeArray". } { }
-    procedure SetArticulationParameterTypeArray(const Value: array of LongInt);
+    procedure SetArticulationParameterTypeArray(const Value: array of LongInt); overload;
     { Set X3D field "articulationParameterTypeArray". } { }
-    procedure SetArticulationParameterTypeArray(const Value: TLongIntList);
+    procedure SetArticulationParameterTypeArray(const Value: TLongIntList); overload;
     { Set X3D field "articulationParameterArray". } { }
-    procedure SetArticulationParameterArray(const Value: array of Single);
+    procedure SetArticulationParameterArray(const Value: array of Single); overload;
     { Set X3D field "articulationParameterArray". } { }
-    procedure SetArticulationParameterArray(const Value: TSingleList);
+    procedure SetArticulationParameterArray(const Value: TSingleList); overload;
     { X3D field "center". } { }
     property Center: TVector3 read GetCenter write SetCenter;
     { X3D field "collisionType". } { }

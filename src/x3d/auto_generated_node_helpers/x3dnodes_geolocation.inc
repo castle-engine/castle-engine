@@ -36,9 +36,9 @@
     { X3D field "geoOrigin". } { }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
     { Set X3D field "geoSystem". } { }
-    procedure SetGeoSystem(const Value: array of string);
+    procedure SetGeoSystem(const Value: array of string); overload;
     { Set X3D field "geoSystem". } { }
-    procedure SetGeoSystem(const Value: TCastleStringList);
+    procedure SetGeoSystem(const Value: TCastleStringList); overload;
 
 {$endif read_interface}
 

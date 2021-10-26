@@ -27,13 +27,13 @@
 
   public
     { Set X3D field "easeInEaseOut". } { }
-    procedure SetEaseInEaseOut(const Value: array of TVector2);
+    procedure SetEaseInEaseOut(const Value: array of TVector2); overload;
     { Set X3D field "easeInEaseOut". } { }
-    procedure SetEaseInEaseOut(const Value: TVector2List);
+    procedure SetEaseInEaseOut(const Value: TVector2List); overload;
     { Set X3D field "key". } { }
-    procedure SetKey(const Value: array of Single);
+    procedure SetKey(const Value: array of Single); overload;
     { Set X3D field "key". } { }
-    procedure SetKey(const Value: TSingleList);
+    procedure SetKey(const Value: TSingleList); overload;
 
 {$endif read_interface}
 

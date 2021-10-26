@@ -40,15 +40,15 @@
     { X3D field "headlight". } { }
     property Headlight: Boolean read GetHeadlight write SetHeadlight;
     { Set X3D field "navType". } { }
-    procedure SetNavType(const Value: array of string);
+    procedure SetNavType(const Value: array of string); overload;
     { Set X3D field "navType". } { }
-    procedure SetNavType(const Value: TCastleStringList);
+    procedure SetNavType(const Value: TCastleStringList); overload;
     { X3D field "geoOrigin". } { }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
     { Set X3D field "geoSystem". } { }
-    procedure SetGeoSystem(const Value: array of string);
+    procedure SetGeoSystem(const Value: array of string); overload;
     { Set X3D field "geoSystem". } { }
-    procedure SetGeoSystem(const Value: TCastleStringList);
+    procedure SetGeoSystem(const Value: TCastleStringList); overload;
     { X3D field "speedFactor". } { }
     property SpeedFactor: Single read GetSpeedFactor write SetSpeedFactor;
 

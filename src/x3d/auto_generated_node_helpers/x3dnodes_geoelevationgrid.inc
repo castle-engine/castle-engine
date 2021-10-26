@@ -74,13 +74,13 @@
     { X3D field "geoOrigin". } { }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
     { Set X3D field "geoSystem". } { }
-    procedure SetGeoSystem(const Value: array of string);
+    procedure SetGeoSystem(const Value: array of string); overload;
     { Set X3D field "geoSystem". } { }
-    procedure SetGeoSystem(const Value: TCastleStringList);
+    procedure SetGeoSystem(const Value: TCastleStringList); overload;
     { Set X3D field "height". } { }
-    procedure SetHeight(const Value: array of Double);
+    procedure SetHeight(const Value: array of Double); overload;
     { Set X3D field "height". } { }
-    procedure SetHeight(const Value: TDoubleList);
+    procedure SetHeight(const Value: TDoubleList); overload;
     { X3D field "normalPerVertex". } { }
     property NormalPerVertex: Boolean read GetNormalPerVertex write SetNormalPerVertex;
     { X3D field "xDimension". } { }

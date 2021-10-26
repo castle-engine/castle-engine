@@ -33,9 +33,9 @@
     { X3D field "keyValue". } { }
     public property FdKeyValue: TMFBool read FFdKeyValue;
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: array of boolean);
+    procedure SetKeyValue(const Value: array of boolean); overload;
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: TBooleanList);
+    procedure SetKeyValue(const Value: TBooleanList); overload;
 
     strict private FEventValue_changed: TSFBoolEvent;
     { X3D out event "value_changed". } { }

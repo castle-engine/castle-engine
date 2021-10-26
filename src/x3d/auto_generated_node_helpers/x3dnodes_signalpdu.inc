@@ -68,9 +68,9 @@
     { X3D field "applicationID". } { }
     property ApplicationID: Integer read GetApplicationID write SetApplicationID;
     { Set X3D field "data". } { }
-    procedure SetData(const Value: array of LongInt);
+    procedure SetData(const Value: array of LongInt); overload;
     { Set X3D field "data". } { }
-    procedure SetData(const Value: TLongIntList);
+    procedure SetData(const Value: TLongIntList); overload;
     { X3D field "dataLength". } { }
     property DataLength: Integer read GetDataLength write SetDataLength;
     { X3D field "encodingScheme". } { }

@@ -27,9 +27,9 @@
 
   public
     { Set X3D field "stripCount". } { }
-    procedure SetStripCount(const Value: array of LongInt);
+    procedure SetStripCount(const Value: array of LongInt); overload;
     { Set X3D field "stripCount". } { }
-    procedure SetStripCount(const Value: TLongIntList);
+    procedure SetStripCount(const Value: TLongIntList); overload;
 
 {$endif read_interface}
 

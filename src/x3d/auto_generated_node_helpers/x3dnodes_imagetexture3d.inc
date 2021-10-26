@@ -27,9 +27,9 @@
 
   public
     { Set X3D field "url". } { }
-    procedure SetUrl(const Value: array of string);
+    procedure SetUrl(const Value: array of string); overload;
     { Set X3D field "url". } { }
-    procedure SetUrl(const Value: TCastleStringList);
+    procedure SetUrl(const Value: TCastleStringList); overload;
 
 {$endif read_interface}
 

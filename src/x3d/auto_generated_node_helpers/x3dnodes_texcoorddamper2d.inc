@@ -27,13 +27,13 @@
 
   public
     { Set X3D field "initialDestination". } { }
-    procedure SetInitialDestination(const Value: array of TVector2);
+    procedure SetInitialDestination(const Value: array of TVector2); overload;
     { Set X3D field "initialDestination". } { }
-    procedure SetInitialDestination(const Value: TVector2List);
+    procedure SetInitialDestination(const Value: TVector2List); overload;
     { Set X3D field "initialValue". } { }
-    procedure SetInitialValue(const Value: array of TVector2);
+    procedure SetInitialValue(const Value: array of TVector2); overload;
     { Set X3D field "initialValue". } { }
-    procedure SetInitialValue(const Value: TVector2List);
+    procedure SetInitialValue(const Value: TVector2List); overload;
 
 {$endif read_interface}
 

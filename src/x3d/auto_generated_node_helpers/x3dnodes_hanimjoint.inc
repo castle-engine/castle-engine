@@ -48,9 +48,9 @@
     { X3D field "limitOrientation". } { }
     property LimitOrientation: TVector4 read GetLimitOrientation write SetLimitOrientation;
     { Set X3D field "llimit". } { }
-    procedure SetLlimit(const Value: array of Single);
+    procedure SetLlimit(const Value: array of Single); overload;
     { Set X3D field "llimit". } { }
-    procedure SetLlimit(const Value: TSingleList);
+    procedure SetLlimit(const Value: TSingleList); overload;
     { X3D field "name". } { }
     property NameField: String read GetNameField write SetNameField;
     { X3D field "rotation". } { }
@@ -60,23 +60,23 @@
     { X3D field "scaleOrientation". } { }
     property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
     { Set X3D field "skinCoordIndex". } { }
-    procedure SetSkinCoordIndex(const Value: array of LongInt);
+    procedure SetSkinCoordIndex(const Value: array of LongInt); overload;
     { Set X3D field "skinCoordIndex". } { }
-    procedure SetSkinCoordIndex(const Value: TLongIntList);
+    procedure SetSkinCoordIndex(const Value: TLongIntList); overload;
     { Set X3D field "skinCoordWeight". } { }
-    procedure SetSkinCoordWeight(const Value: array of Single);
+    procedure SetSkinCoordWeight(const Value: array of Single); overload;
     { Set X3D field "skinCoordWeight". } { }
-    procedure SetSkinCoordWeight(const Value: TSingleList);
+    procedure SetSkinCoordWeight(const Value: TSingleList); overload;
     { Set X3D field "stiffness". } { }
-    procedure SetStiffness(const Value: array of Single);
+    procedure SetStiffness(const Value: array of Single); overload;
     { Set X3D field "stiffness". } { }
-    procedure SetStiffness(const Value: TSingleList);
+    procedure SetStiffness(const Value: TSingleList); overload;
     { X3D field "translation". } { }
     property Translation: TVector3 read GetTranslation write SetTranslation;
     { Set X3D field "ulimit". } { }
-    procedure SetUlimit(const Value: array of Single);
+    procedure SetUlimit(const Value: array of Single); overload;
     { Set X3D field "ulimit". } { }
-    procedure SetUlimit(const Value: TSingleList);
+    procedure SetUlimit(const Value: TSingleList); overload;
 
 {$endif read_interface}
 

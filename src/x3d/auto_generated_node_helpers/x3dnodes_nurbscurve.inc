@@ -40,15 +40,15 @@
     { X3D field "tessellation". } { }
     property Tessellation: Integer read GetTessellation write SetTessellation;
     { Set X3D field "weight". } { }
-    procedure SetWeight(const Value: array of Double);
+    procedure SetWeight(const Value: array of Double); overload;
     { Set X3D field "weight". } { }
-    procedure SetWeight(const Value: TDoubleList);
+    procedure SetWeight(const Value: TDoubleList); overload;
     { X3D field "closed". } { }
     property Closed: Boolean read GetClosed write SetClosed;
     { Set X3D field "knot". } { }
-    procedure SetKnot(const Value: array of Double);
+    procedure SetKnot(const Value: array of Double); overload;
     { Set X3D field "knot". } { }
-    procedure SetKnot(const Value: TDoubleList);
+    procedure SetKnot(const Value: TDoubleList); overload;
     { X3D field "order". } { }
     property Order: Integer read GetOrder write SetOrder;
 

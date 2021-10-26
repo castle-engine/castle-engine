@@ -22,7 +22,7 @@
   - and regenerate include files by running x3d-nodes-to-pascal .
 
   The documentation for properties should go to x3dnodes_documentation.txt . }
-
+{$ifdef FPC}
 {$ifdef read_interface}
 
   strict private
@@ -30,9 +30,9 @@
     procedure SetAxis(const Value: TVector3);
   public
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: array of Single);
+    procedure SetKeyValue(const Value: array of Single); overload;
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: TSingleList);
+    procedure SetKeyValue(const Value: TSingleList); overload;
     { X3D field "axis". } { }
     property Axis: TVector3 read GetAxis write SetAxis;
 
@@ -63,3 +63,5 @@ begin
 end;
 
 {$endif read_implementation}
+
+{$endif FPC}

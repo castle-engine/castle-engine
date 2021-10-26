@@ -34,9 +34,9 @@
     { X3D field "load". } { }
     property Load: Boolean read GetLoad write SetLoad;
     { Set X3D field "url". } { }
-    procedure SetUrl(const Value: array of string);
+    procedure SetUrl(const Value: array of string); overload;
     { Set X3D field "url". } { }
-    procedure SetUrl(const Value: TCastleStringList);
+    procedure SetUrl(const Value: TCastleStringList); overload;
     { X3D fields "bboxCenter" and "bboxSize" are get/set as TBox3D. } { }
     property BBox: TBox3D read GetBBox write SetBBox;
 

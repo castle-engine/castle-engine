@@ -32,13 +32,13 @@
     procedure SetWeight(const Value: Single);
   public
     { Set X3D field "coordIndex". } { }
-    procedure SetCoordIndex(const Value: array of LongInt);
+    procedure SetCoordIndex(const Value: array of LongInt); overload;
     { Set X3D field "coordIndex". } { }
-    procedure SetCoordIndex(const Value: TLongIntList);
+    procedure SetCoordIndex(const Value: TLongIntList); overload;
     { Set X3D field "displacements". } { }
-    procedure SetDisplacements(const Value: array of TVector3);
+    procedure SetDisplacements(const Value: array of TVector3); overload;
     { Set X3D field "displacements". } { }
-    procedure SetDisplacements(const Value: TVector3List);
+    procedure SetDisplacements(const Value: TVector3List); overload;
     { X3D field "name". } { }
     property NameField: String read GetNameField write SetNameField;
     { X3D field "weight". } { }

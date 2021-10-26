@@ -36,17 +36,17 @@
     { X3D field "color". } { }
     property Color: TCastleColorRGB read GetColor write SetColor;
     { Set X3D field "function". } { }
-    procedure SetFunction(const Value: array of string);
+    procedure SetFunction(const Value: array of string); overload;
     { Set X3D field "function". } { }
-    procedure SetFunction(const Value: TCastleStringList);
+    procedure SetFunction(const Value: TCastleStringList); overload;
     { Set X3D field "mode". } { }
-    procedure SetMode(const Value: array of string);
+    procedure SetMode(const Value: array of string); overload;
     { Set X3D field "mode". } { }
-    procedure SetMode(const Value: TCastleStringList);
+    procedure SetMode(const Value: TCastleStringList); overload;
     { Set X3D field "source". } { }
-    procedure SetSource(const Value: array of string);
+    procedure SetSource(const Value: array of string); overload;
     { Set X3D field "source". } { }
-    procedure SetSource(const Value: TCastleStringList);
+    procedure SetSource(const Value: TCastleStringList); overload;
     { Set X3D field "texture". } { }
     procedure SetTexture(const Value: array of TAbstractSingleTextureNode);
 

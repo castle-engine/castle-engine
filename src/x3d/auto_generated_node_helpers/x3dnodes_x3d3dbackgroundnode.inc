@@ -30,21 +30,21 @@
     procedure SetTransparency(const Value: Single);
   public
     { Set X3D field "groundAngle". } { }
-    procedure SetGroundAngle(const Value: array of Single);
+    procedure SetGroundAngle(const Value: array of Single); overload;
     { Set X3D field "groundAngle". } { }
-    procedure SetGroundAngle(const Value: TSingleList);
+    procedure SetGroundAngle(const Value: TSingleList); overload;
     { Set X3D field "groundColor". } { }
-    procedure SetGroundColor(const Value: array of TCastleColorRGB);
+    procedure SetGroundColor(const Value: array of TCastleColorRGB); overload;
     { Set X3D field "groundColor". } { }
-    procedure SetGroundColor(const Value: TVector3List);
+    procedure SetGroundColor(const Value: TVector3List); overload;
     { Set X3D field "skyAngle". } { }
-    procedure SetSkyAngle(const Value: array of Single);
+    procedure SetSkyAngle(const Value: array of Single); overload;
     { Set X3D field "skyAngle". } { }
-    procedure SetSkyAngle(const Value: TSingleList);
+    procedure SetSkyAngle(const Value: TSingleList); overload;
     { Set X3D field "skyColor". } { }
-    procedure SetSkyColor(const Value: array of TCastleColorRGB);
+    procedure SetSkyColor(const Value: array of TCastleColorRGB); overload;
     { Set X3D field "skyColor". } { }
-    procedure SetSkyColor(const Value: TVector3List);
+    procedure SetSkyColor(const Value: TVector3List); overload;
     { X3D field "transparency". } { }
     property Transparency: Single read GetTransparency write SetTransparency;
 

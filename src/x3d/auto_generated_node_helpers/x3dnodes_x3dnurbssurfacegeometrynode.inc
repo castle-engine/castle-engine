@@ -52,17 +52,17 @@
     { X3D field "vTessellation". } { }
     property VTessellation: Integer read GetVTessellation write SetVTessellation;
     { Set X3D field "weight". } { }
-    procedure SetWeight(const Value: array of Double);
+    procedure SetWeight(const Value: array of Double); overload;
     { Set X3D field "weight". } { }
-    procedure SetWeight(const Value: TDoubleList);
+    procedure SetWeight(const Value: TDoubleList); overload;
     { X3D field "uClosed". } { }
     property UClosed: Boolean read GetUClosed write SetUClosed;
     { X3D field "uDimension". } { }
     property UDimension: Integer read GetUDimension write SetUDimension;
     { Set X3D field "uKnot". } { }
-    procedure SetUKnot(const Value: array of Double);
+    procedure SetUKnot(const Value: array of Double); overload;
     { Set X3D field "uKnot". } { }
-    procedure SetUKnot(const Value: TDoubleList);
+    procedure SetUKnot(const Value: TDoubleList); overload;
     { X3D field "uOrder". } { }
     property UOrder: Integer read GetUOrder write SetUOrder;
     { X3D field "vClosed". } { }
@@ -70,9 +70,9 @@
     { X3D field "vDimension". } { }
     property VDimension: Integer read GetVDimension write SetVDimension;
     { Set X3D field "vKnot". } { }
-    procedure SetVKnot(const Value: array of Double);
+    procedure SetVKnot(const Value: array of Double); overload;
     { Set X3D field "vKnot". } { }
-    procedure SetVKnot(const Value: TDoubleList);
+    procedure SetVKnot(const Value: TDoubleList); overload;
     { X3D field "vOrder". } { }
     property VOrder: Integer read GetVOrder write SetVOrder;
 

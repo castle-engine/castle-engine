@@ -58,9 +58,9 @@
     { X3D field "stopTime". } { }
     property StopTime: TFloatTime read GetStopTime write SetStopTime;
     { Set X3D field "url". } { }
-    procedure SetUrl(const Value: array of string);
+    procedure SetUrl(const Value: array of string); overload;
     { Set X3D field "url". } { }
-    procedure SetUrl(const Value: TCastleStringList);
+    procedure SetUrl(const Value: TCastleStringList); overload;
     { X3D field "flipVertically". } { }
     property FlipVertically: Boolean read GetFlipVertically write SetFlipVertically;
 

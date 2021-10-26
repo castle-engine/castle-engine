@@ -50,15 +50,15 @@
     property FogCoord: TFogCoordinateNode read GetFogCoord write SetFogCoord;
 {$endif not CASTLE_SLIM_NODES}
     { Set X3D field "colorIndex". } { }
-    procedure SetColorIndex(const Value: array of LongInt);
+    procedure SetColorIndex(const Value: array of LongInt); overload;
     { Set X3D field "colorIndex". } { }
-    procedure SetColorIndex(const Value: TLongIntList);
+    procedure SetColorIndex(const Value: TLongIntList); overload;
     { X3D field "colorPerVertex". } { }
     property ColorPerVertex: Boolean read GetColorPerVertex write SetColorPerVertex;
     { Set X3D field "coordIndex". } { }
-    procedure SetCoordIndex(const Value: array of LongInt);
+    procedure SetCoordIndex(const Value: array of LongInt); overload;
     { Set X3D field "coordIndex". } { }
-    procedure SetCoordIndex(const Value: TLongIntList);
+    procedure SetCoordIndex(const Value: TLongIntList); overload;
 
 {$endif read_interface}
 

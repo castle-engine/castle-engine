@@ -30,9 +30,9 @@
     procedure SetNumComponents(const Value: Integer);
   public
     { Set X3D field "value". } { }
-    procedure SetValue(const Value: array of Single);
+    procedure SetValue(const Value: array of Single); overload;
     { Set X3D field "value". } { }
-    procedure SetValue(const Value: TSingleList);
+    procedure SetValue(const Value: TSingleList); overload;
     { X3D field "numComponents". } { }
     property NumComponents: Integer read GetNumComponents write SetNumComponents;
 

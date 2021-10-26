@@ -38,33 +38,33 @@
     { X3D field "center". } { }
     property Center: TVector3Double read GetCenter write SetCenter;
     { Set X3D field "child1Url". } { }
-    procedure SetChild1Url(const Value: array of string);
+    procedure SetChild1Url(const Value: array of string); overload;
     { Set X3D field "child1Url". } { }
-    procedure SetChild1Url(const Value: TCastleStringList);
+    procedure SetChild1Url(const Value: TCastleStringList); overload;
     { Set X3D field "child2Url". } { }
-    procedure SetChild2Url(const Value: array of string);
+    procedure SetChild2Url(const Value: array of string); overload;
     { Set X3D field "child2Url". } { }
-    procedure SetChild2Url(const Value: TCastleStringList);
+    procedure SetChild2Url(const Value: TCastleStringList); overload;
     { Set X3D field "child3Url". } { }
-    procedure SetChild3Url(const Value: array of string);
+    procedure SetChild3Url(const Value: array of string); overload;
     { Set X3D field "child3Url". } { }
-    procedure SetChild3Url(const Value: TCastleStringList);
+    procedure SetChild3Url(const Value: TCastleStringList); overload;
     { Set X3D field "child4Url". } { }
-    procedure SetChild4Url(const Value: array of string);
+    procedure SetChild4Url(const Value: array of string); overload;
     { Set X3D field "child4Url". } { }
-    procedure SetChild4Url(const Value: TCastleStringList);
+    procedure SetChild4Url(const Value: TCastleStringList); overload;
     { X3D field "geoOrigin". } { }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
     { Set X3D field "geoSystem". } { }
-    procedure SetGeoSystem(const Value: array of string);
+    procedure SetGeoSystem(const Value: array of string); overload;
     { Set X3D field "geoSystem". } { }
-    procedure SetGeoSystem(const Value: TCastleStringList);
+    procedure SetGeoSystem(const Value: TCastleStringList); overload;
     { X3D field "range". } { }
     property Range: Single read GetRange write SetRange;
     { Set X3D field "rootUrl". } { }
-    procedure SetRootUrl(const Value: array of string);
+    procedure SetRootUrl(const Value: array of string); overload;
     { Set X3D field "rootUrl". } { }
-    procedure SetRootUrl(const Value: TCastleStringList);
+    procedure SetRootUrl(const Value: TCastleStringList); overload;
     { Set X3D field "rootNode". } { }
     procedure SetRootNode(const Value: array of TAbstractChildNode);
     { X3D fields "bboxCenter" and "bboxSize" are get/set as TBox3D. } { }

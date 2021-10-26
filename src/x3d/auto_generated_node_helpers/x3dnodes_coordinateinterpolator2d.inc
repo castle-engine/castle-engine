@@ -27,9 +27,9 @@
 
   public
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: array of TVector2);
+    procedure SetKeyValue(const Value: array of TVector2); overload;
     { Set X3D field "keyValue". } { }
-    procedure SetKeyValue(const Value: TVector2List);
+    procedure SetKeyValue(const Value: TVector2List); overload;
 
 {$endif read_interface}
 

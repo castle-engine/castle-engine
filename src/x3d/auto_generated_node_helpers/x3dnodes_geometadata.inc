@@ -29,13 +29,13 @@
     { Set X3D field "data". } { }
     procedure SetData(const Value: array of TAbstractNode);
     { Set X3D field "summary". } { }
-    procedure SetSummary(const Value: array of string);
+    procedure SetSummary(const Value: array of string); overload;
     { Set X3D field "summary". } { }
-    procedure SetSummary(const Value: TCastleStringList);
+    procedure SetSummary(const Value: TCastleStringList); overload;
     { Set X3D field "url". } { }
-    procedure SetUrl(const Value: array of string);
+    procedure SetUrl(const Value: array of string); overload;
     { Set X3D field "url". } { }
-    procedure SetUrl(const Value: TCastleStringList);
+    procedure SetUrl(const Value: TCastleStringList); overload;
 
 {$endif read_interface}
 

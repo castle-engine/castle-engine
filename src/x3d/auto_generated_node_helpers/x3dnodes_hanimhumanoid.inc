@@ -48,9 +48,9 @@
     { X3D field "center". } { }
     property Center: TVector3 read GetCenter write SetCenter;
     { Set X3D field "info". } { }
-    procedure SetInfo(const Value: array of string);
+    procedure SetInfo(const Value: array of string); overload;
     { Set X3D field "info". } { }
-    procedure SetInfo(const Value: TCastleStringList);
+    procedure SetInfo(const Value: TCastleStringList); overload;
     { Set X3D field "joints". } { }
     procedure SetJoints(const Value: array of THAnimJointNode);
     { X3D field "name". } { }

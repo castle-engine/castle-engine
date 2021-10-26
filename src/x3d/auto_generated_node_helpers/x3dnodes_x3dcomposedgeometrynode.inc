@@ -73,11 +73,11 @@
     property NormalPerVertex: Boolean read GetNormalPerVertex write SetNormalPerVertex;
 {$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "radianceTransfer". } { }
-    procedure SetRadianceTransfer(const Value: array of TVector3);
+    procedure SetRadianceTransfer(const Value: array of TVector3); overload;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "radianceTransfer". } { }
-    procedure SetRadianceTransfer(const Value: TVector3List);
+    procedure SetRadianceTransfer(const Value: TVector3List); overload;
 {$endif not CASTLE_SLIM_NODES}
 
 {$endif read_interface}

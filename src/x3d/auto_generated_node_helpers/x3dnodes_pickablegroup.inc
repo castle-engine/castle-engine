@@ -30,9 +30,9 @@
     procedure SetPickable(const Value: Boolean);
   public
     { Set X3D field "objectType". } { }
-    procedure SetObjectType(const Value: array of string);
+    procedure SetObjectType(const Value: array of string); overload;
     { Set X3D field "objectType". } { }
-    procedure SetObjectType(const Value: TCastleStringList);
+    procedure SetObjectType(const Value: TCastleStringList); overload;
     { X3D field "pickable". } { }
     property Pickable: Boolean read GetPickable write SetPickable;
 
