@@ -59,9 +59,14 @@ function FindExeFpcCompiler: String;
   @raises EExecutableNotFound When the exe is not found. }
 function FindExeLazarusIDE: String;
 
+{ Find the path of Delphi installation.
+  Empty if not found. Othewise ends with PathDelim. }
+function FindDelphiPath: String;
+
 implementation
 
-uses CastleFilesUtils, CastleStringUtils,
+uses CastleFilesUtils, CastleStringUtils, CastleLog,
+  {$ifdef MSWINDOWS} Registry, {$endif}
   ToolArchitectures;
 
 function FindExeFpc(const ExeName: String): String;
@@ -145,6 +150,86 @@ begin
       // Note: FormProject using this message also for ErrorBox, so make sure it looks sensible.
       raise EExecutableNotFound.Create('Cannot find "lazarus" or "lazarus-ide" program. Make sure it is installed, and available on environment variable $PATH. If you use the CGE editor, you can also set Lazarus location in "Preferences".');
   end;
+end;
+
+function FindDelphiPath: String;
+{$ifdef MSWINDOWS}
+
+{ Our algorithm to find Delphi location in the registry (using some guesswork and regedit searching, confirmed by
+  https://docwiki.embarcadero.com/RADStudio/Sydney/en/System_Registry_Keys_for_IDE_Visual_Settings
+  https://stackoverflow.com/questions/6870282/how-are-delphi-environment-variables-such-as-bds-evaluated ) :
+
+  - Read subdirs from current user: HKEY_CURRENT_USER\SOFTWARE\Embarcadero\BDS\
+  - Read subdirs from machine: HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Embarcadero\BDS\
+  - Each subdirectory is the version number. Pick the latest.
+    Pick user-specific latest, if both HKEY_CURRENT_USER and HKEY_LOCAL_MACHINE will have the same versions.
+    To compare them, treat as floats (as they look like "22.0").
+  - Inside the chosen subdir, use:
+    - key "App" which is like "c:\program files (x86)\embarcadero\studio\22.0\bin\bds.exe".
+    - key "RootDir", like "c:\program files (x86)\embarcadero\studio\22.0\"
+      (without "bin" or exe inside).
+}
+
+var
+  R: TRegistry;
+  LargestKeyAsFloat: Double;
+  LargestKeyDelphiRootDir: String;
+
+  procedure ScanRegistry(const RootKey: HKEY; const BasePath: UnicodeString);
+  var
+    KeyName: UnicodeString;
+    KeyNames: TUnicodeStringArray;
+    DelphiRootDir, BdsExe: String;
+    KeyFloat: Double;
+  begin
+    R.RootKey := RootKey;
+
+    R.OpenKeyReadOnly(BasePath);
+    KeyNames := R.GetKeyNames;
+    R.CloseKey;
+
+    for KeyName in KeyNames do
+      if TryStrToFloatDot(UTF8Encode(KeyName), KeyFloat) and
+         (KeyFloat >= LargestKeyAsFloat) then
+      begin
+        R.OpenKeyReadOnly(BasePath + KeyName);
+        DelphiRootDir := R.ReadString('RootDir');
+        R.CloseKey;
+        if DelphiRootDir <> '' then
+        begin
+          BdsExe := InclPathDelim(DelphiRootDir) + 'bin' + PathDelim + 'bds' + ExeExtension;
+          if not RegularFileExists(BdsExe) then
+          begin
+            WritelnWarning('Found Delphi path "%s" but no BDS exe inside "%s"', [
+              DelphiRootDir,
+              BdsExe
+            ]);
+            Continue;
+          end;
+          LargestKeyAsFloat := KeyFloat;
+          LargestKeyDelphiRootDir := DelphiRootDir;
+          //WritelnLog('Delphi %f found in %s', [LargestKeyAsFloat, LargestKeyDelphiRootDir]);
+        end;
+      end;
+  end;
+
+begin
+  R := TRegistry.Create(KEY_READ);
+  try
+    LargestKeyAsFloat := 0;
+    ScanRegistry(HKEY_LOCAL_MACHINE, 'SOFTWARE\WOW6432Node\Embarcadero\BDS\');
+    ScanRegistry(HKEY_CURRENT_USER, 'SOFTWARE\Embarcadero\BDS\');
+
+    Result := LargestKeyDelphiRootDir;
+    if Result <> '' then
+      Result := InclPathDelim(Result);
+  finally FreeAndNil(R)end;
+{$else}
+  // just in case Delphi IDE will be available on non-Windows some day
+  Result := FindExe('dcc32');
+  if Result <> '' then
+    Result := ExtractFilePath(Result);
+{$endif}
 end;
 
 end.

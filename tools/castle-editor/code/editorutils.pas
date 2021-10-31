@@ -169,8 +169,14 @@ procedure BuildComponentsMenu(
 
 type
   TCodeEditor = (
+    { Autodetect one of the below (Lazarus, Delphi, VS Code) and use hardcoded logic suitable for it. }
+    ceAutodetect,
     { Use hardcoded logic suitable for Lazarus. }
     ceLazarus,
+    { Use hardcoded logic suitable for Delphi. }
+    ceDelphi,
+    { Use hardcoded logic suitable for Visual Studio Code. }
+    ceVSCode,
     { Use custom commands from CodeEditor, CodeEditorProject. }
     ceCustom
   );
@@ -206,6 +212,9 @@ procedure SoundEngineSetVolume;
 { Update SoundEngine.Volume based on
   global MuteOnRun, RunningApplication and parameter FakeVolume. }
 procedure SoundEngineSetVolume(const FakeVolume: Single);
+
+{ Find Visual Studio Code, or '' if cannot find. }
+function FindExeVSCode: String;
 
 implementation
 
@@ -869,6 +878,11 @@ begin
     SoundEngine.Volume := 0
   else
     SoundEngine.Volume := FakeVolume;
+end;
+
+function FindExeVSCode: String;
+begin
+  Result := FindExeLazarus('code');
 end;
 
 end.

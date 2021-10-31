@@ -31,6 +31,10 @@ type
     DirectoryEditLazarus: TDirectoryEdit;
     EditCodeEditorCommand: TFileNameEdit;
     EditCodeEditorCommandProject: TFileNameEdit;
+    LabelCodeEditorAutodetect: TLabel;
+    LabelCodeEditorLazarus: TLabel;
+    LabelCodeEditorDelphi: TLabel;
+    LabelCodeEditorVSCode: TLabel;
     LabelInstructions0: TLabel;
     LabelInstructions1: TLabel;
     LabelInstructions2: TLabel;
@@ -53,8 +57,11 @@ type
     PanelCodeEditor: TPanel;
     PanelSound: TPanel;
     PanelFpcLazarusConfig: TPanel;
-    RadioCodeEditorLazarus: TRadioButton;
+    RadioCodeEditorAutodetect: TRadioButton;
     RadioCodeEditorCustom: TRadioButton;
+    RadioCodeEditorLazarus: TRadioButton;
+    RadioCodeEditorDelphi: TRadioButton;
+    RadioCodeEditorVSCode: TRadioButton;
     TrackVolume: TTrackBar;
     procedure ButtonRegisterLazarusPackagesClick(Sender: TObject);
     procedure DirectoryEditFpcChange(Sender: TObject);
@@ -117,8 +124,9 @@ end;
 
 procedure TPreferencesForm.UpdateAutoDetectedLabels;
 var
-  FpcExe, FpcVer, LazarusExe: String;
+  FpcExe, FpcVer, LazarusExe, DelphiPath, VSCodeExe: String;
 begin
+  FpcExe := '';
   try
     FpcExe := FindExeFpcCompiler;
     FpcVer := FpcVersion.ToString;
@@ -135,6 +143,7 @@ begin
     end;
   end;
 
+  LazarusExe := '';
   try
     LazarusExe := FindExeLazarusIDE;
     LabelLazarusAutoDetected.Caption :=
@@ -148,6 +157,34 @@ begin
         'Make sure Lazarus is installed, and available on $PATH or configured above.';
     end;
   end;
+
+  if LazarusExe <> '' then
+    LabelCodeEditorLazarus.Caption := 'Detected: ' + LazarusExe
+  else
+    LabelCodeEditorLazarus.Caption := 'Not found.';
+
+  DelphiPath := FindDelphiPath;
+  if DelphiPath <> '' then
+    LabelCodeEditorDelphi.Caption := 'Detected: ' + DelphiPath
+  else
+    LabelCodeEditorDelphi.Caption := 'Not found.';
+
+  VSCodeExe := FindExeVSCode;
+  if VSCodeExe <> '' then
+    LabelCodeEditorVSCode.Caption := 'Detected: ' + VSCodeExe
+  else
+    LabelCodeEditorVSCode.Caption := 'Not found.';
+
+  if LazarusExe <> '' then
+    LabelCodeEditorAutodetect.Caption := 'First auto-detected IDE: Lazarus'
+  else
+  if DelphiPath <> '' then
+    LabelCodeEditorAutodetect.Caption := 'First auto-detected IDE: Delphi'
+  else
+  if VSCodeExe <> '' then
+    LabelCodeEditorAutodetect.Caption := 'First auto-detected IDE: Visual Studio Code'
+  else
+    LabelCodeEditorAutodetect.Caption := 'First auto-detected IDE: None';
 end;
 
 procedure TPreferencesForm.FormShow(Sender: TObject);
@@ -169,8 +206,11 @@ begin
 
   // Note that making any RadioCodeEditorXxx checked will uncheck the others
   case CodeEditor of
-    ceCustom: RadioCodeEditorCustom.Checked := true;
+    ceAutodetect: RadioCodeEditorAutodetect.Checked := true;
     ceLazarus: RadioCodeEditorLazarus.Checked := true;
+    ceDelphi: RadioCodeEditorDelphi.Checked := true;
+    ceVSCode: RadioCodeEditorVSCode.Checked := true;
+    ceCustom: RadioCodeEditorCustom.Checked := true;
     else raise EInternalError.Create('CodeEditor?');
   end;
   EditCodeEditorCommand.Text := CodeEditorCommand;
