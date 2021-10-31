@@ -528,8 +528,14 @@ end;
 procedure TProjectForm.ActionOpenProjectCodeExecute(Sender: TObject);
 var
   Exe: String;
+  Ce: TCodeEditor;
 begin
-  case CodeEditor of
+  if CodeEditor = ceAutodetect then
+    Ce := AutodetectCodeEditor
+  else
+    Ce := CodeEditor;
+
+  case Ce of
     ceCustom:
       begin
         if CodeEditorCommandProject <> '' then
@@ -555,6 +561,30 @@ begin
           ErrorBox('Lazarus project not defined (neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml).' + NL +
             NL +
             'Create Lazarus project (e.g. by "castle-engine generate-program") and update CastleEngineManifest.xml.');
+      end;
+    ceDelphi:
+      begin
+        Exe := FindExeDelphiIDE(true);
+        if ProjectStandaloneSource= '' then
+        begin
+          ErrorBox('Delphi project not defined (neither "standalone_source" nor "delphi_project" were specified in CastleEngineManifest.xml).' + NL +
+            NL +
+            'Create Delphi project (e.g. by "castle-engine generate-program") and update CastleEngineManifest.xml.');
+          Exit;
+        end;
+        RunCommandNoWait(ProjectPath, Exe, [
+          FindDelphiPath + 'bin' + PathDelim + 'BDS' + ExeExtension,
+          '/np',
+          ProjectStandaloneSource
+        ]);
+      end;
+    ceVSCode:
+      begin
+        Exe := FindExeVSCode(true);
+        RunCommandNoWait(ProjectPath, Exe, [
+          '--add',
+          ProjectPath
+        ]);
       end;
     else raise EInternalError.Create('CodeEditor?');
   end;
@@ -1710,8 +1740,14 @@ end;
 procedure TProjectForm.OpenPascal(const FileName: String);
 var
   Exe: String;
+  Ce: TCodeEditor;
 begin
-  case CodeEditor of
+  if CodeEditor = ceAutodetect then
+    Ce := AutodetectCodeEditor
+  else
+    Ce := CodeEditor;
+
+  case Ce of
     ceCustom:
       begin
         RunCustomCodeEditor(CodeEditorCommand, FileName);
@@ -1744,6 +1780,24 @@ begin
         //   WritelnWarning('Lazarus project not defined ("standalone_source" was not specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
 
         RunCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
+      end;
+    ceDelphi:
+      begin
+        Exe := FindExeDelphiIDE(true);
+        RunCommandNoWait(ProjectPath, Exe, [
+          FindDelphiPath + 'bin' + PathDelim + 'BDS' + ExeExtension,
+          '/np',
+          FileName
+        ]);
+      end;
+    ceVSCode:
+      begin
+        Exe := FindExeVSCode(true);
+        RunCommandNoWait(ProjectPath, Exe, [
+          '--add',
+          ProjectPath,
+          FileName
+        ]);
       end;
     else raise EInternalError.Create('CodeEditor?');
   end;

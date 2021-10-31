@@ -169,7 +169,7 @@ begin
   else
     LabelCodeEditorDelphi.Caption := 'Not found.';
 
-  VSCodeExe := FindExeVSCode;
+  VSCodeExe := FindExeVSCode(false);
   if VSCodeExe <> '' then
     LabelCodeEditorVSCode.Caption := 'Detected: ' + VSCodeExe
   else
@@ -232,7 +232,20 @@ begin
     if RadioCodeEditorCustom.Checked then
       CodeEditor := ceCustom
     else
-      CodeEditor := ceLazarus;
+    if RadioCodeEditorAutodetect.Checked then
+      CodeEditor := ceAutodetect
+    else
+    if RadioCodeEditorLazarus.Checked then
+      CodeEditor := ceLazarus
+    else
+    if RadioCodeEditorDelphi.Checked then
+      CodeEditor := ceDelphi
+    else
+    if RadioCodeEditorVSCode.Checked then
+      CodeEditor := ceVSCode
+    else
+      raise EInternalError.Create('Cannot determine CodeEditor choice, no radio selected');
+
     CodeEditorCommand := EditCodeEditorCommand.Text;
     CodeEditorCommandProject := EditCodeEditorCommandProject.Text;
 

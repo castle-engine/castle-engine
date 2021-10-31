@@ -50,18 +50,24 @@ type
   It uses FindExeFpc, searching for 'fpc.sh' (script set by fpcupdeluxe
   that should be used to run FPC)
   or just 'fpc' (normal way to run FPC).
-  It raises EExecutableNotFound in case it failed.
-  @raises EExecutableNotFound }
-function FindExeFpcCompiler: String;
+
+  @raises EExecutableNotFound When the exe is not found and ExceptionWhenMissing. }
+function FindExeFpcCompiler(const ExceptionWhenMissing: Boolean = true): String;
 
 { Find the main executable of Lazarus IDE.
   This uses FindExeLazarus for common executable names like 'lazarus' or 'lazarus-ide'.
-  @raises EExecutableNotFound When the exe is not found. }
-function FindExeLazarusIDE: String;
+
+  @raises EExecutableNotFound When the exe is not found and ExceptionWhenMissing. }
+function FindExeLazarusIDE(const ExceptionWhenMissing: Boolean = true): String;
 
 { Find the path of Delphi installation.
   Empty if not found. Othewise ends with PathDelim. }
 function FindDelphiPath: String;
+
+{ Find the main executable of Delphi IDE (BDSLauncher).
+  When missing: ExceptionWhenMissing -> raise EExecutableNotFound,
+  otherwise return ''. }
+function FindExeDelphiIDE(const ExceptionWhenMissing: Boolean): String;
 
 implementation
 
@@ -129,16 +135,17 @@ begin
     Result := PathAppend(Result, LazarusCustomPath);
 end;
 
-function FindExeFpcCompiler: String;
+function FindExeFpcCompiler(const ExceptionWhenMissing: Boolean): String;
 begin
   Result := FindExeFpc('fpc.sh');
   if Result = '' then
     Result := FindExeFpc('fpc');
-  if Result = '' then
+
+  if (Result = '') and ExceptionWhenMissing then
     raise EExecutableNotFound.Create('Cannot find "fpc" program. Make sure it is installed, and available on environment variable $PATH. If you use the CGE editor, you can also set FPC location in "Preferences".');
 end;
 
-function FindExeLazarusIDE: String;
+function FindExeLazarusIDE(const ExceptionWhenMissing: Boolean): String;
 begin
   Result := FindExeLazarus('lazarus');
   if Result = '' then
@@ -146,10 +153,11 @@ begin
     { Alternative possible Lazarus executable name on non-Windows,
       if installed from deb files or by "make install". }
     Result := FindExeLazarus('lazarus-ide');
-    if Result = '' then
-      // Note: FormProject using this message also for ErrorBox, so make sure it looks sensible.
-      raise EExecutableNotFound.Create('Cannot find "lazarus" or "lazarus-ide" program. Make sure it is installed, and available on environment variable $PATH. If you use the CGE editor, you can also set Lazarus location in "Preferences".');
   end;
+
+  if (Result = '') and ExceptionWhenMissing then
+    // Note: FormProject using this message also for ErrorBox, so make sure it looks sensible.
+    raise EExecutableNotFound.Create('Cannot find "lazarus" or "lazarus-ide" program. Make sure it is installed, and available on environment variable $PATH. If you use the CGE editor, you can also set Lazarus location in "Preferences".');
 end;
 
 function FindDelphiPath: String;
@@ -179,7 +187,7 @@ var
   var
     KeyName: UnicodeString;
     KeyNames: TUnicodeStringArray;
-    DelphiRootDir, BdsExe: String;
+    DelphiRootDir, BdsLauncherExe: String;
     KeyFloat: Double;
   begin
     R.RootKey := RootKey;
@@ -197,12 +205,12 @@ var
         R.CloseKey;
         if DelphiRootDir <> '' then
         begin
-          BdsExe := InclPathDelim(DelphiRootDir) + 'bin' + PathDelim + 'bds' + ExeExtension;
-          if not RegularFileExists(BdsExe) then
+          BdsLauncherExe := InclPathDelim(DelphiRootDir) + 'bin' + PathDelim + 'BDSLauncher' + ExeExtension;
+          if not RegularFileExists(BdsLauncherExe) then
           begin
             WritelnWarning('Found Delphi path "%s" but no BDS exe inside "%s"', [
               DelphiRootDir,
-              BdsExe
+              BdsLauncherExe
             ]);
             Continue;
           end;
@@ -230,6 +238,20 @@ begin
   if Result <> '' then
     Result := ExtractFilePath(Result);
 {$endif}
+end;
+
+function FindExeDelphiIDE(const ExceptionWhenMissing: Boolean): String;
+var
+  P: String;
+begin
+  P := FindDelphiPath;
+  if P <> '' then
+    Result := P + 'bin' + PathDelim + 'BDSLauncher' + ExeExtension
+  else
+    Result := '';
+
+  if (Result = '') and ExceptionWhenMissing then
+    raise EExecutableNotFound.Create('Cannot find Delphi installation in the registry. Make sure Delphi is installed correctly.');
 end;
 
 end.

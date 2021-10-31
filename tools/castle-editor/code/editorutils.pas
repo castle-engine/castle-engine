@@ -182,7 +182,7 @@ type
   );
 
 const
-  DefaultCodeEditor = ceLazarus;
+  DefaultCodeEditor = ceAutodetect;
 
 var
   { Which code editor to use. Current user preference. }
@@ -214,7 +214,11 @@ procedure SoundEngineSetVolume;
 procedure SoundEngineSetVolume(const FakeVolume: Single);
 
 { Find Visual Studio Code, or '' if cannot find. }
-function FindExeVSCode: String;
+function FindExeVSCode(const ExceptionWhenMissing: Boolean): String;
+
+{ Return auto-detected code editor, never ceAutodetect.
+  @eaises Exception if cannot autodetect, no IDE available. }
+function AutodetectCodeEditor: TCodeEditor;
 
 implementation
 
@@ -880,9 +884,25 @@ begin
     SoundEngine.Volume := FakeVolume;
 end;
 
-function FindExeVSCode: String;
+function FindExeVSCode(const ExceptionWhenMissing: Boolean): String;
 begin
   Result := FindExeLazarus('code');
+  if (Result = '') and ExceptionWhenMissing then
+    raise EExecutableNotFound.Create('Cannot find Visual Studio Code. Make sure it is installed, and available on environment variable $PATH (there should be an option to set this up during VS Code installlation).');
+end;
+
+function AutodetectCodeEditor: TCodeEditor;
+begin
+  if FindExeLazarusIDE(false) <> '' then
+    Result := ceLazarus
+  else
+  if FindDelphiPath <> '' then
+    Result := ceDelphi
+  else
+  if FindExeVSCode(false) <> '' then
+    Result := ceVSCode
+  else
+    raise Exception.Create('Cannot auto-detect IDE. Install one of the supported IDEs: Lazarus, Delphi or Visual Studio Code.');
 end;
 
 end.
