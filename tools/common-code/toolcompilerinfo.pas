@@ -61,13 +61,12 @@ function FindExeFpcCompiler(const ExceptionWhenMissing: Boolean = true): String;
 function FindExeLazarusIDE(const ExceptionWhenMissing: Boolean = true): String;
 
 { Find the path of Delphi installation.
-  Empty if not found. Othewise ends with PathDelim. }
-function FindDelphiPath: String;
+  Ends with PathDelim.
+  We check it has BSDLauncher, BDS inside.
 
-{ Find the main executable of Delphi IDE (BDSLauncher).
   When missing: ExceptionWhenMissing -> raise EExecutableNotFound,
   otherwise return ''. }
-function FindExeDelphiIDE(const ExceptionWhenMissing: Boolean): String;
+function FindDelphiPath(const ExceptionWhenMissing: Boolean): String;
 
 implementation
 
@@ -160,7 +159,7 @@ begin
     raise EExecutableNotFound.Create('Cannot find "lazarus" or "lazarus-ide" program. Make sure it is installed, and available on environment variable $PATH. If you use the CGE editor, you can also set Lazarus location in "Preferences".');
 end;
 
-function FindDelphiPath: String;
+function FindDelphiPath(const ExceptionWhenMissing: Boolean): String;
 {$ifdef MSWINDOWS}
 
 { Our algorithm to find Delphi location in the registry (using some guesswork and regedit searching, confirmed by
@@ -187,7 +186,7 @@ var
   var
     KeyName: UnicodeString;
     KeyNames: TUnicodeStringArray;
-    DelphiRootDir, BdsLauncherExe: String;
+    DelphiRootDir, TestExe: String;
     KeyFloat: Double;
   begin
     R.RootKey := RootKey;
@@ -205,12 +204,21 @@ var
         R.CloseKey;
         if DelphiRootDir <> '' then
         begin
-          BdsLauncherExe := InclPathDelim(DelphiRootDir) + 'bin' + PathDelim + 'BDSLauncher' + ExeExtension;
-          if not RegularFileExists(BdsLauncherExe) then
+          TestExe := InclPathDelim(DelphiRootDir) + 'bin' + PathDelim + 'BDSLauncher' + ExeExtension;
+          if not RegularFileExists(TestExe) then
           begin
-            WritelnWarning('Found Delphi path "%s" but no BDS exe inside "%s"', [
+            WritelnWarning('Found Delphi path "%s" but missing file "%s"', [
               DelphiRootDir,
-              BdsLauncherExe
+              TestExe
+            ]);
+            Continue;
+          end;
+          TestExe := InclPathDelim(DelphiRootDir) + 'bin' + PathDelim + 'BDSLauncher' + ExeExtension;
+          if not RegularFileExists(TestExe) then
+          begin
+            WritelnWarning('Found Delphi path "%s" but missing file "%s"', [
+              DelphiRootDir,
+              TestExe
             ]);
             Continue;
           end;
@@ -238,17 +246,6 @@ begin
   if Result <> '' then
     Result := ExtractFilePath(Result);
 {$endif}
-end;
-
-function FindExeDelphiIDE(const ExceptionWhenMissing: Boolean): String;
-var
-  P: String;
-begin
-  P := FindDelphiPath;
-  if P <> '' then
-    Result := P + 'bin' + PathDelim + 'BDSLauncher' + ExeExtension
-  else
-    Result := '';
 
   if (Result = '') and ExceptionWhenMissing then
     raise EExecutableNotFound.Create('Cannot find Delphi installation in the registry. Make sure Delphi is installed correctly.');

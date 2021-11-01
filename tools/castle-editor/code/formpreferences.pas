@@ -163,7 +163,7 @@ begin
   else
     LabelCodeEditorLazarus.Caption := 'Not found.';
 
-  DelphiPath := FindDelphiPath;
+  DelphiPath := FindDelphiPath(false);
   if DelphiPath <> '' then
     LabelCodeEditorDelphi.Caption := 'Detected path: ' + DelphiPath
   else

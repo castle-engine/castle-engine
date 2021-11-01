@@ -527,7 +527,7 @@ end;
 
 procedure TProjectForm.ActionOpenProjectCodeExecute(Sender: TObject);
 var
-  Exe: String;
+  Exe, DelphiPath: String;
   Ce: TCodeEditor;
 begin
   if CodeEditor = ceAutodetect then
@@ -564,16 +564,17 @@ begin
       end;
     ceDelphi:
       begin
-        Exe := FindExeDelphiIDE(true);
-        if ProjectStandaloneSource= '' then
+        DelphiPath := FindDelphiPath(true);
+        if ProjectStandaloneSource = '' then
         begin
           ErrorBox('Delphi project not defined (neither "standalone_source" nor "delphi_project" were specified in CastleEngineManifest.xml).' + NL +
             NL +
             'Create Delphi project (e.g. by "castle-engine generate-program") and update CastleEngineManifest.xml.');
           Exit;
         end;
-        RunCommandNoWait(ProjectPath, Exe, [
-          FindDelphiPath + 'bin' + PathDelim + 'BDS' + ExeExtension,
+        RunCommandNoWait(ProjectPath,
+          DelphiPath + 'bin' + PathDelim + 'BDSLauncher' + ExeExtension, [
+          DelphiPath + 'bin' + PathDelim + 'BDS' + ExeExtension,
           '/np',
           ProjectStandaloneSource
         ]);
@@ -1745,7 +1746,7 @@ end;
 
 procedure TProjectForm.OpenPascal(const FileName: String);
 var
-  Exe: String;
+  Exe, DelphiPath: String;
   Ce: TCodeEditor;
 begin
   if CodeEditor = ceAutodetect then
@@ -1789,9 +1790,10 @@ begin
       end;
     ceDelphi:
       begin
-        Exe := FindExeDelphiIDE(true);
-        RunCommandNoWait(ProjectPath, Exe, [
-          FindDelphiPath + 'bin' + PathDelim + 'BDS' + ExeExtension,
+        DelphiPath := FindDelphiPath(true);
+        RunCommandNoWait(ProjectPath,
+          DelphiPath + 'bin' + PathDelim + 'BDSLauncher' + ExeExtension, [
+          DelphiPath + 'bin' + PathDelim + 'BDS' + ExeExtension,
           '/np',
           FileName
         ]);

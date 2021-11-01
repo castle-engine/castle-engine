@@ -933,7 +933,7 @@ begin
   if FindExeLazarusIDE(false) <> '' then
     Result := ceLazarus
   else
-  if FindDelphiPath <> '' then
+  if FindDelphiPath(false) <> '' then
     Result := ceDelphi
   else
   if FindExeVSCode(false) <> '' then
