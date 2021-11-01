@@ -223,7 +223,7 @@ function AutodetectCodeEditor: TCodeEditor;
 implementation
 
 uses SysUtils, Dialogs, Graphics, TypInfo, Generics.Defaults,
-  CastleUtils, CastleLog, CastleSoundEngine,
+  CastleUtils, CastleLog, CastleSoundEngine, CastleFilesUtils,
   CastleComponentSerialize, CastleUiControls, CastleCameras, CastleTransform,
   ToolCompilerInfo;
 
@@ -886,10 +886,47 @@ end;
 
 function FindExeVSCode(const ExceptionWhenMissing: Boolean): String;
 begin
-  Result := FindExeLazarus('code');
+  Result := FindExe('code');
+
+  (*Failed workaround to fix handling filenames/dirnames with spaces inside
+    as "code" arguments.
+    I hoped that calling code.exe directly, instead of code.cmd, will help
+    -- it doesn't.
+
+  {$ifdef MSWINDOWS}
+  if (Result <> '') and (SameText(ExtractFileName(Result), 'code.cmd')) then
+    Result := ParentPath(ExtractFileDir(Result), false) + 'code.exe';
+  {$endif}
+  *)
+
   if (Result = '') and ExceptionWhenMissing then
     raise EExecutableNotFound.Create('Cannot find Visual Studio Code. Make sure it is installed, and available on environment variable $PATH (there should be an option to set this up during VS Code installlation).');
 end;
+
+(*Another failed workaround to fix handling filenames/dirnames with spaces inside
+  as "code" arguments.
+  I hoped that using URL, with spaces encoded as %20, will solve the problem.
+  Unfortunately VS code doesn't seem to understand %20 in URLs at all.
+
+function PathToVSCode(const Path: String): String;
+var
+  URI: TURI;
+begin
+  Result := Path;
+  Assert(IsPathAbsolute(Path));
+
+  FillByte(URI, SizeOf(URI), 0);
+  URI.Protocol := 'vscode';
+  { We want // between vscode and "file", see
+    https://code.visualstudio.com/docs/editor/command-line }
+  URI.HasAuthority := true;
+  URI.Document := 'file' +
+    {$ifdef MSWINDOWS} '/' + SReplaceChars(Path, '\', '/')
+    {$else} Path
+    {$endif};
+  Result := EncodeURI(URI);
+end;
+*)
 
 function AutodetectCodeEditor: TCodeEditor;
 begin

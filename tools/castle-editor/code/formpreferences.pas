@@ -165,7 +165,7 @@ begin
 
   DelphiPath := FindDelphiPath;
   if DelphiPath <> '' then
-    LabelCodeEditorDelphi.Caption := 'Detected: ' + DelphiPath
+    LabelCodeEditorDelphi.Caption := 'Detected path: ' + DelphiPath
   else
     LabelCodeEditorDelphi.Caption := 'Not found.';
 

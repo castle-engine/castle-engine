@@ -582,9 +582,15 @@ begin
       begin
         Exe := FindExeVSCode(true);
         RunCommandNoWait(ProjectPath, Exe, [
-          '--add',
-          ProjectPath
-        ]);
+          { --add would add project to workspace in current window.
+            See OpenPascal for comments. }
+          //'--add',
+
+          { We pass relative filenames, not absolute, to avoid
+            VS Code on Windows inability to deal with spaces in filenames.
+            See OpenPascal for comments. }
+          '.'
+        ], [rcNoConsole]);
       end;
     else raise EInternalError.Create('CodeEditor?');
   end;
@@ -1794,10 +1800,31 @@ begin
       begin
         Exe := FindExeVSCode(true);
         RunCommandNoWait(ProjectPath, Exe, [
-          '--add',
-          ProjectPath,
-          FileName
-        ]);
+          { --add would add project to workspace in current window.
+            It avoids opening new window ever,
+            but it seems more confusing than helpful in our case
+            -- it creates multi-root workspace which may be surprising to users.
+
+            Instead we just pass project dir, as ".", to make sure this is
+            opened as a workspace.
+            See https://code.visualstudio.com/docs/editor/command-line ,
+            https://stackoverflow.com/questions/29955785/opening-microsoft-visual-studio-code-from-command-prompt-windows }
+          //'--add',
+
+          { We pass relative filenames, not absolute, to avoid
+            VS Code on Windows inability to deal with spaces in filenames.
+            Other solutions tried:
+
+            - calling code.exe without intermediate code.cmd
+            - using vscode:// URL with spaces encoded using %20.
+
+            See EditorUtils -- nothing helped.
+
+            Using relative paths is a workaround, as long as you don't
+            place Pascal code in subdirectory with spaces. }
+          '.',
+          ExtractRelativePath(ProjectPath, FileName)
+        ], [rcNoConsole]);
       end;
     else raise EInternalError.Create('CodeEditor?');
   end;
