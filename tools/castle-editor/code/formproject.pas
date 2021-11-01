@@ -266,7 +266,8 @@ type
     var
       Manifest: TCastleManifest;
       ProjectName: String;
-      ProjectPath, ProjectPathUrl, ProjectStandaloneSource, ProjectLazarus: String;
+      ProjectPath, ProjectPathUrl, ProjectStandaloneSource,
+        ProjectLazarus, ProjectDelphi: String;
       BuildMode: TBuildMode;
       OutputList: TOutputList;
       RunningProcess: TAsynchronousProcessQueue;
@@ -565,19 +566,37 @@ begin
     ceDelphi:
       begin
         DelphiPath := FindDelphiPath(true);
-        if ProjectStandaloneSource = '' then
+
+        { Open through DPROJ, this seems to be the only thing that works reliably. }
+        if ProjectDelphi = '' then
         begin
           ErrorBox('Delphi project not defined (neither "standalone_source" nor "delphi_project" were specified in CastleEngineManifest.xml).' + NL +
             NL +
             'Create Delphi project (e.g. by "castle-engine generate-program") and update CastleEngineManifest.xml.');
           Exit;
         end;
+        if not RegularFileExists(ProjectDelphi) then
+        begin
+          ErrorBox(Format('Delphi project file does not exist: %s.' + NL +
+            NL +
+            'Create Delphi project (by "castle-engine generate-program" or using Delphi).', [
+            ProjectDelphi
+          ]));
+          Exit;
+        end;
+
+        OpenDocument(ProjectDelphi);
+
+        (*
+        TODO: how to force Delphi command-line to open project reliably?
         RunCommandNoWait(ProjectPath,
-          DelphiPath + 'bin' + PathDelim + 'BDSLauncher' + ExeExtension, [
-          DelphiPath + 'bin' + PathDelim + 'BDS' + ExeExtension,
+          // DelphiPath + 'bin' + PathDelim + 'BDSLauncher' + ExeExtension, [
+          DelphiPath + 'bin' + PathDelim + 'BDS' + ExeExtension, [
           '/np',
-          ProjectStandaloneSource
+          ProjectDelphi
+          //ProjectStandaloneSource
         ]);
+        *)
       end;
     ceVSCode:
       begin
@@ -1791,12 +1810,36 @@ begin
     ceDelphi:
       begin
         DelphiPath := FindDelphiPath(true);
+
+        { Open through DPROJ, this seems to be the only thing that works reliably. }
+        if ProjectDelphi = '' then
+        begin
+          ErrorBox('Delphi project not defined (neither "standalone_source" nor "delphi_project" were specified in CastleEngineManifest.xml).' + NL +
+            NL +
+            'Create Delphi project (e.g. by "castle-engine generate-program") and update CastleEngineManifest.xml.');
+          Exit;
+        end;
+        if not RegularFileExists(ProjectDelphi) then
+        begin
+          ErrorBox(Format('Delphi project file does not exist: %s.' + NL +
+            NL +
+            'Create Delphi project (by "castle-engine generate-program" or using Delphi).', [
+            ProjectDelphi
+          ]));
+          Exit;
+        end;
+
+        OpenDocument(FileName);
+
+        (*
+        TODO: how to force Delphi command-line to open project file reliably?
         RunCommandNoWait(ProjectPath,
-          DelphiPath + 'bin' + PathDelim + 'BDSLauncher' + ExeExtension, [
-          DelphiPath + 'bin' + PathDelim + 'BDS' + ExeExtension,
+          // DelphiPath + 'bin' + PathDelim + 'BDSLauncher' + ExeExtension, [
+          DelphiPath + 'bin' + PathDelim + 'BDS' + ExeExtension, [
           '/np',
           FileName
         ]);
+        *)
       end;
     ceVSCode:
       begin
@@ -2157,6 +2200,7 @@ begin
   ProjectPathUrl := Manifest.PathUrl;
   ProjectStandaloneSource := Manifest.StandaloneSource;
   ProjectLazarus := Manifest.LazarusProject;
+  ProjectDelphi := Manifest.DelphiProject;
   if (Manifest.EditorUnits <> '') and
      (not InternalHasCustomComponents) then
     WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
@@ -2166,6 +2210,8 @@ begin
     ProjectStandaloneSource := CombinePaths(ProjectPath, ProjectStandaloneSource);
   if ProjectLazarus <> '' then
     ProjectLazarus := CombinePaths(ProjectPath, ProjectLazarus);
+  if ProjectDelphi <> '' then
+    ProjectDelphi := CombinePaths(ProjectPath, ProjectDelphi);
 
   { override ApplicationData interpretation, and castle-data:/xxx URL,
     while this project is open. }

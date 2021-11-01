@@ -175,6 +175,25 @@ function FindDelphiPath(const ExceptionWhenMissing: Boolean): String;
     - key "App" which is like "c:\program files (x86)\embarcadero\studio\22.0\bin\bds.exe".
     - key "RootDir", like "c:\program files (x86)\embarcadero\studio\22.0\"
       (without "bin" or exe inside).
+
+  Things inside Delphi path:
+
+    bin/bds.exe - Delphi IDE
+    bin/dcc[xxx].exe - Delphi compiler, name determines target OS/arch:
+      dcc32 - Win32
+      dcc64 - Win64
+      dccaarm - Android/Arm
+      dccaarm64 - Android/Arm64
+      dcciosarm64 - iOS/Arm64
+      dcclinux64 - Linux/x86_64
+      dccosx64 - macos/x86_64
+      dccosxarm64 - macos/Arm64
+
+  See also
+  https://docwiki.embarcadero.com/RADStudio/Sydney/en/Delphi_Compiler
+  https://docwiki.embarcadero.com/RADStudio/Alexandria/en/Delphi_Toolchains
+  https://docwiki.embarcadero.com/RADStudio/Alexandria/en/IDE_Command_Line_Switches_and_Options
+
 }
 
 var

@@ -121,7 +121,7 @@ type
       FLaunchImageStoryboard: TLaunchImageStoryboard;
       FSearchPaths, FLibraryPaths: TStringList;
       FStandaloneSource, FAndroidSource, FIOSSource, FPluginSource: string;
-      FLazarusProject: String;
+      FLazarusProject, FDelphiProject: String;
       FBuildUsingLazbuild: Boolean;
       FGameUnits, FEditorUnits: string;
       FVersion: TProjectVersion;
@@ -176,6 +176,7 @@ type
 
     property Version: TProjectVersion read FVersion;
     property LazarusProject: String read FLazarusProject;
+    property DelphiProject: String read FDelphiProject;
     property BuildUsingLazbuild: Boolean read FBuildUsingLazbuild;
     property GameUnits: String read FGameUnits;
     property EditorUnits: String read FEditorUnits;
@@ -361,6 +362,7 @@ begin
   FExecutableName := FName;
   FStandaloneSource := FName + '.lpr';
   FLazarusProject := FName + '.lpi';
+  FDelphiProject := FName + '.dproj';
   FVersion := TProjectVersion.Create(OwnerComponent);
   FVersion.Code := DefautVersionCode;
   FVersion.DisplayValue := DefautVersionDisplayValue;
@@ -375,7 +377,7 @@ var
   AndroidProjectTypeStr: string;
   ChildElements: TXMLElementIterator;
   Element, ChildElement: TDOMElement;
-  NewCompilerOption, DefaultLazarusProject, NewSearchPath: String;
+  NewCompilerOption, DefaultLazarusProject, DefaultDelphiProject, NewSearchPath: String;
   IncludePath: TIncludePath;
 begin
   Create(APath);
@@ -391,10 +393,16 @@ begin
     FExecutableName := Doc.DocumentElement.AttributeStringDef('executable_name', FName);
     FStandaloneSource := Doc.DocumentElement.AttributeStringDef('standalone_source', '');
     if FStandaloneSource <> '' then
-      DefaultLazarusProject := ChangeFileExt(FStandaloneSource, '.lpi')
-    else
+    begin
+      DefaultLazarusProject := ChangeFileExt(FStandaloneSource, '.lpi');
+      DefaultDelphiProject := ChangeFileExt(FStandaloneSource, '.dproj');
+    end else
+    begin
       DefaultLazarusProject := '';
+      DefaultDelphiProject := '';
+    end;
     FLazarusProject := Doc.DocumentElement.AttributeStringDef('lazarus_project', DefaultLazarusProject);
+    FDelphiProject := Doc.DocumentElement.AttributeStringDef('delphi_project', DefaultDelphiProject);
     FAndroidSource := Doc.DocumentElement.AttributeStringDef('android_source', '');
     FIOSSource := Doc.DocumentElement.AttributeStringDef('ios_source', '');
     FPluginSource := Doc.DocumentElement.AttributeStringDef('plugin_source', '');
