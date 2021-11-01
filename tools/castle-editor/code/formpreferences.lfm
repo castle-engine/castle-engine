@@ -20,8 +20,8 @@ object PreferencesForm: TPreferencesForm
     Align = alLeft
     BorderSpacing.Around = 8
     Items.Strings = (
-      'FPC and Lazarus'
       'Code Editor'
+      'FPC and Lazarus'
       'Sound'
     )
     ItemHeight = 20

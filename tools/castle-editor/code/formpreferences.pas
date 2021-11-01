@@ -361,8 +361,8 @@ var
   SelectedPage: TPanel;
 begin
   case ListPages.ItemIndex of
-    0: SelectedPage := PanelFpcLazarusConfig;
-    1: SelectedPage := PanelCodeEditor;
+    0: SelectedPage := PanelCodeEditor;
+    1: SelectedPage := PanelFpcLazarusConfig;
     2: SelectedPage := PanelSound;
     else raise Exception.CreateFmt('Unexpected ListPages.ItemIndex %d', [ListPages.ItemIndex]);
   end;
