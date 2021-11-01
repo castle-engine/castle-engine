@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -258,7 +258,11 @@ begin
     {$else}
 
     {$ifdef DCC}
-    'Delphi ' + FloatToStr(CompilerVersion)
+    { Make it clear we show compiler version, not Delphi version, as they are different things:
+      https://docwiki.embarcadero.com/RADStudio/Sydney/en/Compiler_Versions .
+      E.g. Delphi 11 = product version 28 = compiler version 35.
+    }
+    'Delphi (Compiler Version ' + FloatToStr(CompilerVersion) + ')'
     {$else}
 
     {$ifdef __GPC__}
