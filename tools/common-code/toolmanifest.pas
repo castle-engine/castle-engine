@@ -26,6 +26,8 @@ uses DOM, Classes, Generics.Collections,
   ToolServices, ToolAssocDocTypes;
 
 type
+  TCompiler = (coFpc, coDelphi);
+
   TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis, depHttps);
   TDependencies = set of TDependency;
 
@@ -121,6 +123,7 @@ type
       FLaunchImageStoryboard: TLaunchImageStoryboard;
       FSearchPaths, FLibraryPaths: TStringList;
       FStandaloneSource, FAndroidSource, FIOSSource, FPluginSource: string;
+      FCompiler: TCompiler;
       FLazarusProject, FDelphiProject: String;
       FBuildUsingLazbuild: Boolean;
       FGameUnits, FEditorUnits: string;
@@ -175,6 +178,7 @@ type
     { }
 
     property Version: TProjectVersion read FVersion;
+    property Compiler: TCompiler read FCompiler;
     property LazarusProject: String read FLazarusProject;
     property DelphiProject: String read FDelphiProject;
     property BuildUsingLazbuild: Boolean read FBuildUsingLazbuild;
@@ -272,6 +276,17 @@ uses SysUtils, Math,
   CastleXMLUtils, CastleFilesUtils, CastleLog, CastleURIUtils,
   ToolCommonUtils;
 
+function StrToCompiler(const S: String): TCompiler;
+begin
+  if SameText(S, 'fpc') then
+    Result := coFpc
+  else
+  if SameText(S, 'delphi') then
+    Result := coDelphi
+  else
+    raise Exception.CreateFmt('Invalid compiler name "%s"', [S]);
+end;
+
 { TImageFileNames ------------------------------------------------------------- }
 
 function TImageFileNames.FindExtension(const Extensions: array of string): string;
@@ -360,6 +375,7 @@ begin
   FCaption := FName;
   FQualifiedName := DefaultQualifiedName(FName);
   FExecutableName := FName;
+  FCompiler := coFpc;
   FStandaloneSource := FName + '.lpr';
   FLazarusProject := FName + '.lpi';
   FDelphiProject := FName + '.dproj';
@@ -392,6 +408,7 @@ begin
     FQualifiedName := Doc.DocumentElement.AttributeStringDef('qualified_name', DefaultQualifiedName(FName));
     FExecutableName := Doc.DocumentElement.AttributeStringDef('executable_name', FName);
     FStandaloneSource := Doc.DocumentElement.AttributeStringDef('standalone_source', '');
+    FCompiler := StrToCompiler(Doc.DocumentElement.AttributeStringDef('compiler', 'fpc'));
     if FStandaloneSource <> '' then
     begin
       DefaultLazarusProject := ChangeFileExt(FStandaloneSource, '.lpi');

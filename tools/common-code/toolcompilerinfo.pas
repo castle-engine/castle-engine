@@ -179,15 +179,8 @@ function FindDelphiPath(const ExceptionWhenMissing: Boolean): String;
   Things inside Delphi path:
 
     bin/bds.exe - Delphi IDE
-    bin/dcc[xxx].exe - Delphi compiler, name determines target OS/arch:
-      dcc32 - Win32
-      dcc64 - Win64
-      dccaarm - Android/Arm
-      dccaarm64 - Android/Arm64
-      dcciosarm64 - iOS/Arm64
-      dcclinux64 - Linux/x86_64
-      dccosx64 - macos/x86_64
-      dccosxarm64 - macos/Arm64
+    bin/dcc[xxx].exe - Delphi compiler, name determines target OS/arch.
+      See CompileDelphi for a list.
 
   See also
   https://docwiki.embarcadero.com/RADStudio/Sydney/en/Delphi_Compiler
