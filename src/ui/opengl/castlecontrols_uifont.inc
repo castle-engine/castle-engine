@@ -16,6 +16,7 @@
 
 {$ifdef read_interface}
 
+{ }
 function GetUIFont: TCastleAbstractFont;
 procedure SetUIFont(const Value: TCastleAbstractFont);
 
