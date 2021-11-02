@@ -248,11 +248,13 @@
 
 {$ifdef read_implementation}
 
+{ // unused for now
 const
   InterpolationNames: array [TInterpolation] of String = (
     'LINEAR',
     'STEP'
   );
+}
 
 { TAbstractInterpolatorNode -------------------------------------------------- }
 
