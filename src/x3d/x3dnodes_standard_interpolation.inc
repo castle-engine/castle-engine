@@ -38,8 +38,8 @@
     {$ifndef FPC}
     TSingleField: TX3DSingleField;
     TInternalItemList: class;
-    TItemList: ICastleItemList<TInterpolatedValue, TInternalItemList>;
-    TEvent;
+    TItemList: ICastleItemList<TInterpolatedValue, TInternalItemList>, class, constructor;
+    TEvent: TX3DEvent, constructor;
     {$endif}
 ///    {$ifndef FPC}
 ///    TInternalItemList: class; // neded to make conversion from TItemList available
@@ -73,8 +73,8 @@
     TInterpolatedValue;
     TSingleField: TX3DSingleField;
     TInternalItemList: class;
-    TItemList: ICastleItemList<TInterpolatedValue, TInternalItemList>;
-    TEvent;
+    TItemList: ICastleItemList<TInterpolatedValue, TInternalItemList>, class, constructor;
+    TEvent: TX3DEvent, constructor;
     {$endif}
 ///    {$ifndef FPC}
 ///    TInterpolatedValue;

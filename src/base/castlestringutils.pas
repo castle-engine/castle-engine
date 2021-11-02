@@ -101,6 +101,9 @@ type
 
     procedure AssignArray(const A: array of string); deprecated 'use Assign';
     procedure Assign(const A: array of string); {$ifndef FPC} reintroduce; {$endif} overload;
+    {$ifndef FPC}
+    procedure Assign(const Source: TStringList); overload;
+    {$endif}
 
     { Does another string list have equal length and content.
 
@@ -131,6 +134,7 @@ type
 
     {$ifndef FPC}
     function InternalGetItem(const Index: Integer): string;
+    procedure InternalSetItem(const Index: Integer; Value: string);
     function GetInternalItems: TStringList;
     {$endif}
 
@@ -1142,6 +1146,13 @@ begin
   AddRange(A);
 end;
 
+{$ifndef FPC}
+procedure TCastleStringList.Assign(const Source: TStringList);
+begin
+  Assign(Source.ToStringArray);
+end;
+{$endif}
+
 procedure TCastleStringList.Reverse;
 var
   I: Integer;
@@ -1230,6 +1241,11 @@ end;
 function TCastleStringList.InternalGetItem(const Index: Integer): string;
 begin
   Result := GetL(Index);
+end;
+
+procedure TCastleStringList.InternalSetItem(const Index: Integer; Value: string);
+begin
+  SetL(Index, Value);
 end;
 
 function TCastleStringList.GetInternalItems: TStringList;

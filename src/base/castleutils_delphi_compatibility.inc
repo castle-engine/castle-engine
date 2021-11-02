@@ -116,19 +116,29 @@ type
   ['{3B8A5F76-4B00-439A-B906-D081C6BC325F}']
     procedure SetCount(const Value: Integer);
     function GetCount: Integer;
+    function GetCapacity: Integer;
+    procedure SetCapacity(Value: Integer);
 //    function GetL(const Index: Integer): string;
 //    procedure SetL(const Index: Integer; const S: string);
 
 //    property L[const Index: Integer]: string read GetL write SetL;
     ///function InternalL: Pointer;
+    procedure Assign(const Source: TList); overload;
+    procedure Assign(const A: array of T); overload;
     procedure AddSubRange(Source: TList; Index, AddCount: Integer);
+    procedure AddRange(const AValues: array of T); overload;
     procedure AssignLerp(const Fraction: Single;
       V1, V2: TList; Index1, Index2, ACount: Integer);
+    // needed because in TCastleStringList L is property and in TStructList is function
     function InternalGetItem(const Index: Integer): T;
+    procedure InternalSetItem(const Index: Integer; Value: T);
     function Add(const Value: T): Integer;
     function Equals(SecondValue: TObject): boolean;
+    function PerfectlyEquals(SecondValue: TObject): boolean;
+    procedure Clear;
     //procedure InternalAddSubRange(Source: TList<T>; Index, AddCount: Integer);
     property Count: Integer read GetCount write SetCount;
+    property Capacity: SizeInt read GetCapacity write SetCapacity;
   end;
 
   //ICastleSimpleField = interface

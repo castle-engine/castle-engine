@@ -27,6 +27,8 @@ type
   strict private
     procedure SetCount(const Value: Integer);
     function GetCount: Integer;
+    procedure SetCapacity(Value: Integer);
+    function GetCapacity: Integer;
     function _AddRef: Integer; stdcall;
     function _Release: Integer; stdcall;
     function QueryInterface(const IID: TGUID; out Obj): Hresult; virtual; stdcall;
@@ -83,6 +85,7 @@ type
 
     {$ifndef FPC}
     function InternalGetItem(const Index: Integer): T;
+    procedure InternalSetItem(const Index: Integer; Value: T);
     function GetInternalItems: TStructList<T>;
     //procedure InternalAddSubRange(Source: TList<T>; Index, AddCount: Integer);
 
@@ -104,6 +107,7 @@ type
     procedure AddSubRange(Source: TStructList<T>; Index, AddCount: Integer);
     procedure AssignLerp(const Fraction: Single;
       V1, V2: TStructList<T>; Index1, Index2, ACount: Integer); virtual;
+    function PerfectlyEquals(SecondValue: TObject): boolean; virtual; abstract;
     {$endif}
 
     procedure AddArray(const A: array of T); deprecated 'use AddRange';
@@ -205,6 +209,16 @@ begin
   inherited Count := Value;
 end;
 
+function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.GetCapacity: Integer;
+begin
+  Result := TList(Self).Capacity;
+end;
+
+procedure TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.SetCapacity(Value: Integer);
+begin
+  inherited Capacity := Value;
+end;
+
 function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}._AddRef: Integer;
 begin
   Result := -1;
@@ -223,12 +237,20 @@ begin
     Result := E_NOINTERFACE;
 end;
 
-function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.InternalGetItem(const Index: Integer): T;
+function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.InternalGetItem(
+  const Index: Integer): T;
 begin
   Result := List^[Index];
 end;
 
-function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.GetInternalItems: TStructList<T>;
+procedure TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.InternalSetItem(
+  const Index: Integer; Value: T);
+begin
+  Items[Index] := Value;
+end;
+
+function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.GetInternalItems:
+  TStructList<T>;
 begin
   Result := Self;
 end;
