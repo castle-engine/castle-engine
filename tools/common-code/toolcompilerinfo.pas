@@ -253,6 +253,7 @@ begin
       Result := InclPathDelim(Result);
   finally FreeAndNil(R)end;
 {$else}
+begin
   // just in case Delphi IDE will be available on non-Windows some day
   Result := FindExe('dcc32');
   if Result <> '' then
