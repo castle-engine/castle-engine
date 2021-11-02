@@ -72,6 +72,8 @@ uses Math, Generics.Defaults,
 {$I castlefields_x3dfieldsmanager.inc}
 {$I castlefields_miscglobals.inc}
 
+initialization // empty but needed by Delphi
+
 finalization
   FreeAndNil(FX3DFieldsManager);
 end.

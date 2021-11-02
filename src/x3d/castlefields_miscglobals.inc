@@ -147,8 +147,8 @@ begin
   for C := Low(C) to High(C) do
     if C in Changes then
     begin
-      if Result <> '' then Result += ',';
-      Result += X3DChangeToStr[C];
+      if Result <> '' then Result := Result + ',';
+      Result := Result + X3DChangeToStr[C];
     end;
   Result := '[' + Result + ']';
 end;
