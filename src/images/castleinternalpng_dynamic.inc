@@ -975,7 +975,7 @@ begin
     {$ifdef ANDROID}
     { Temporarily continue, despite missing symbols, on Android, as a workaround for
       https://trello.com/c/wmxWrx8d/190-android-50-libpng-not-found }
-    PngLibrary.SymbolErrorBehaviour := seWarnAndReturnNil;
+    PngLibrary.SymbolError := seWarnAndReturnNil;
     {$endif}
 
     Pointer(png_access_version_number) := PngLibrary.Symbol('png_access_version_number');
