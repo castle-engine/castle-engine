@@ -315,7 +315,7 @@ type
 
     { Scales how far the knockback effect pushes this creature/player. }
     property KnockBackSpeed: Single read FKnockBackSpeed write FKnockBackSpeed
-      default DefaultKnockBackSpeed;
+      {$ifdef FPC} default DefaultKnockBackSpeed{$endif};
   end deprecated 'use TCastleAliveBehavior, or implement "being alive" logic in your own game';
 
   { Contents of this transformation are loaded from an indicated file
@@ -748,7 +748,7 @@ constructor TCastleTransformDesign.Create(AOwner: TComponent);
 begin
   inherited;
   FDesignObserver := TFreeNotificationObserver.Create(Self);
-  FDesignObserver.OnFreeNotification := @DesignFreeNotification;
+  FDesignObserver.OnFreeNotification := {$ifdef CASTLE_OBJFPC}@{$endif}DesignFreeNotification;
 end;
 
 destructor TCastleTransformDesign.Destroy;
@@ -806,12 +806,10 @@ end;
 function TCastleTransformDesign.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'URL':
-      Result := [psBasic];
+  if PropertyName = 'URL' then
+      Result := [psBasic]
     else
       Result := inherited PropertySections(PropertyName);
-  end;
 end;
 
 initialization

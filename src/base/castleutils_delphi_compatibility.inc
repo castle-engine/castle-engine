@@ -91,6 +91,9 @@ type
   TEventType = (etCustom, etInfo, etWarning, etError, etDebug);
   TEventTypes = Set of TEventType;
 
+  TGLint = GLint;
+  TGLuint = GLuint;
+
   { TOwnerStream from FPC }
   TOwnerStream = Class(TStream)
   protected
@@ -193,6 +196,8 @@ function Load_GL_EXT_fog_coord: Boolean;
 function Load_GL_NV_multisample_filter_hint: Boolean;
 function Load_WGL_ARB_extensions_string: Boolean;
 function Load_WGL_ARB_pixel_format: Boolean;
+function Load_GL_EXT_stencil_wrap: Boolean;
+function Load_GL_ATI_separate_stencil: Boolean;
 
 
 {$endif read_interface}
@@ -1327,6 +1332,37 @@ begin
     Result := TRUE;
   end;
 
+end;
+
+function Load_GL_EXT_stencil_wrap: Boolean;
+var
+  extstring: AnsiString;
+begin
+
+  Result := FALSE;
+  extstring := glGetString(GL_EXTENSIONS);
+
+  if glext_ExtensionSupported('GL_EXT_stencil_wrap', extstring) then
+  begin
+    Result := TRUE;
+  end;
+end;
+
+function Load_GL_ATI_separate_stencil: Boolean;
+var
+  extstring: AnsiString;
+begin
+  Result := FALSE;
+  extstring := glGetString(GL_EXTENSIONS);
+
+  if glext_ExtensionSupported('GL_ATI_separate_stencil', extstring) then
+  begin
+    @glStencilOpSeparateATI := wglGetProcAddress('glStencilOpSeparateATI');
+    if not Assigned(glStencilOpSeparateATI) then Exit;
+    @glStencilFuncSeparateATI := wglGetProcAddress('glStencilFuncSeparateATI');
+    if not Assigned(glStencilFuncSeparateATI) then Exit;
+    Result := TRUE;
+  end;
 end;
 
 

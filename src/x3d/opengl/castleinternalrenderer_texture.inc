@@ -133,7 +133,7 @@
       Returns @nil if not found. }
     function TextureNode(ANode: TAbstractTextureNode): TGLTextureNode;
 
-    property Items[Index: Integer]: TGLTextureNode read GetItems; default;
+    property Items[const Index: Integer]: TGLTextureNode read GetItems; default;
 
     { Prepare texture node, adding it to the list, if not prepared already.
       Accepts multi texture or not-multi texture nodes, accepts (and ignores)

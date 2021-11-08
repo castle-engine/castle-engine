@@ -68,7 +68,7 @@ implementation
 // TODO: This unit temporarily uses RenderingCamera singleton,
 // to keep it working for backward compatibility.
 uses SysUtils,
-  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  {$ifdef FPC}{$ifdef CASTLE_OBJFPC}CastleGL, {$else}GL, GLExt, {$endif}{$else}OpenGL, OpenGLext, {$endif}
   CastleRenderingCamera, CastleGLUtils, CastleUtils, CastleShapes, CastleImages,
   CastleRenderContext;
 {$warnings on}
@@ -182,7 +182,7 @@ var
     EdgeV0, EdgeV1: PVector3;
     TrianglePtr: PTriangle3;
   begin
-    TrianglePtr := Triangles.Ptr(EdgePtr^.Triangles[0]);
+    TrianglePtr := PTriangle3(Triangles.Ptr(EdgePtr^.Triangles[0]));
     EdgeV0 := @TrianglePtr^.Data[(EdgePtr^.VertexIndex + P0Index) mod 3];
     EdgeV1 := @TrianglePtr^.Data[(EdgePtr^.VertexIndex + P1Index) mod 3];
 
@@ -207,7 +207,7 @@ var
     EdgeV0, EdgeV1: PVector3;
     TrianglePtr: PTriangle3;
   begin
-    TrianglePtr := Triangles.Ptr(EdgePtr^.TriangleIndex);
+    TrianglePtr := PTriangle3(Triangles.Ptr(EdgePtr^.TriangleIndex));
     EdgeV0 := @TrianglePtr^.Data[(EdgePtr^.VertexIndex + P0Index) mod 3];
     EdgeV1 := @TrianglePtr^.Data[(EdgePtr^.VertexIndex + P1Index) mod 3];
 
@@ -404,11 +404,13 @@ var
       OpaqueTrianglesBegin else
       TransparentTrianglesBegin;
 
+    {$ifndef FPC}{$POINTERMATH ON}{$endif}
     for I := 0 to Triangles.Count - 1 do
     begin
       TrianglesPlaneSide.L[I] := PlaneSide(TrianglePtr^);
       Inc(TrianglePtr);
     end;
+    {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 
     if ForceOpaque or not (TShape(FShape).AlphaChannel = acBlending) then
       OpaqueTrianglesEnd else
@@ -450,8 +452,10 @@ begin
       ManifoldEdgePtr := PManifoldEdge(ManifoldEdgesNow.List);
       for I := 0 to ManifoldEdgesNow.Count - 1 do
       begin
+        {$ifndef FPC}{$POINTERMATH ON}{$endif}
         PlaneSide0 := TrianglesPlaneSide.L[ManifoldEdgePtr^.Triangles[0]];
         PlaneSide1 := TrianglesPlaneSide.L[ManifoldEdgePtr^.Triangles[1]];
+        {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 
         { Only if PlaneSide0 <> PlaneSide1 it's a silhouette edge,
           so only then render it's shadow quad.
@@ -493,7 +497,9 @@ begin
       BorderEdgePtr := PBorderEdge(BorderEdgesNow.List);
       for I := 0 to BorderEdgesNow.Count - 1 do
       begin
+        {$ifndef FPC}{$POINTERMATH ON}{$endif}
         PlaneSide0 := TrianglesPlaneSide.L[BorderEdgePtr^.TriangleIndex];
+        {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 
         { We want to have consistent CCW orientation of shadow quads faces,
           so that face is oriented CCW <=> you're looking at it from outside

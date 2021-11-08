@@ -128,7 +128,8 @@ end;
 
 procedure TAbstractIndexedFaceSetGenerator.GenerateCoordinate;
 begin
-  Geometry.InternalMakeCoordRanges(State, @GenerateCoordsRange);
+  Geometry.InternalMakeCoordRanges(State,
+    {$ifdef CASTLE_OBJFPC}@{$endif}GenerateCoordsRange);
 end;
 
 procedure TAbstractIndexedFaceSetGenerator.AutoGenerateNormals(
@@ -185,7 +186,7 @@ begin
   begin
     TriangulateFace(PLongIntArray(CoordIndex.Items.Ptr(BeginIndex)),
       EndIndex - BeginIndex, PVector3Array(Coord.Items.List), Coord.Count,
-      @GenerateTriangle, BeginIndex);
+      {$ifdef CASTLE_OBJFPC}@{$endif}GenerateTriangle, BeginIndex);
   end else
   begin
     (* Alternative version:
@@ -203,7 +204,7 @@ end;
 procedure TAbstractIndexedFaceSetGenerator.PrepareIndexesTriangle1(
   const TriIndices: TVector3Integer);
 begin
-  IFSIndexesCount += 3;
+  Inc(IFSIndexesCount, 3);
 end;
 
 procedure TAbstractIndexedFaceSetGenerator.PrepareIndexesCoordsRange1(
@@ -213,18 +214,20 @@ begin
   begin
     TriangulateFace(PLongIntArray(CoordIndex.Items.Ptr(BeginIndex)),
       EndIndex - BeginIndex, PVector3Array(Coord.Items.List), Coord.Count,
-      @PrepareIndexesTriangle1, BeginIndex);
+      {$ifdef CASTLE_OBJFPC}@{$endif}PrepareIndexesTriangle1, BeginIndex);
   end else
   begin
-    IFSIndexesCount += Max(EndIndex - BeginIndex - 2, 0) * 3;
+    IFSIndexesCount := IFSIndexesCount + Max(EndIndex - BeginIndex - 2, 0) * 3;
   end;
 end;
 
 procedure TAbstractIndexedFaceSetGenerator.AddTriangleIndexes(const T0, T1, T2: TGeometryIndex);
 begin
+  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   TrivialIndexesFromCoordIndex.L[IFSNextIndex] := T0; IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[T0]; Inc(IFSNextIndex);
   TrivialIndexesFromCoordIndex.L[IFSNextIndex] := T1; IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[T1]; Inc(IFSNextIndex);
   TrivialIndexesFromCoordIndex.L[IFSNextIndex] := T2; IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[T2]; Inc(IFSNextIndex);
+  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 end;
 
 procedure TAbstractIndexedFaceSetGenerator.PrepareIndexesTriangle2(
@@ -248,7 +251,7 @@ begin
   begin
     TriangulateFace(PLongIntArray(CoordIndex.Items.Ptr(BeginIndex)),
       EndIndex - BeginIndex, PVector3Array(Coord.Items.List), Coord.Count,
-      @PrepareIndexesTriangle2, BeginIndex);
+      {$ifdef CASTLE_OBJFPC}@{$endif}PrepareIndexesTriangle2, BeginIndex);
   end else
   begin
     for I := BeginIndex to EndIndex - 3 do
@@ -261,19 +264,22 @@ begin
     end;
   end;
 
+  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   if FacesNeeded then
     for I := IFSNextIndexBegin to IFSNextIndex - 1 do
     begin
       Arrays.Faces.L[I].IndexBegin := BeginIndex;
       Arrays.Faces.L[I].IndexEnd := EndIndex;
     end;
+  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 end;
 
 procedure TAbstractIndexedFaceSetGenerator.PrepareIndexesPrimitives;
 begin
   { calculate IFSIndexesCount by one iteration over coordIndex }
   IFSIndexesCount := 0;
-  Geometry.InternalMakeCoordRanges(State, @PrepareIndexesCoordsRange1);
+  Geometry.InternalMakeCoordRanges(State,
+    {$ifdef CASTLE_OBJFPC}@{$endif}PrepareIndexesCoordsRange1);
 
   if FacesNeeded then
   begin
@@ -287,7 +293,8 @@ begin
   TrivialIndexesFromCoordIndex := TGeometryIndexList.Create;
   TrivialIndexesFromCoordIndex.Count := IFSIndexesCount;
   IFSNextIndex := 0;
-  Geometry.InternalMakeCoordRanges(State, @PrepareIndexesCoordsRange2);
+  Geometry.InternalMakeCoordRanges(State,
+    {$ifdef CASTLE_OBJFPC}@{$endif}PrepareIndexesCoordsRange2);
   Assert(IFSNextIndex = IFSIndexesCount);
 end;
 

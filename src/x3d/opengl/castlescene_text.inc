@@ -108,12 +108,12 @@ type
     { Size of the text, given as height of a single line of text.
       See https://www.web3d.org/specifications/X3Dv4Draft/ISO-IEC19775-1v4-CD/Part01/components/text.html#FontStyle
       for an illustrative image. }
-    property Size: Single read FSize write SetSize default 1.0;
+    property Size: Single read FSize write SetSize {$ifdef FPC}default 1.0{$endif};
 
     { Spacing between lines of text, to make lines more distant (with values > 1) or more squeezed (with values < 1).
       See https://www.web3d.org/specifications/X3Dv4Draft/ISO-IEC19775-1v4-CD/Part01/components/text.html#FontStyle
       for an illustrative image. }
-    property Spacing: Single read FSpacing write SetSpacing default 1.0;
+    property Spacing: Single read FSpacing write SetSpacing {$ifdef FPC}default 1.0{$endif};
 
     { Adjust the font. }
     property CustomFont: TCastleFont read FCustomFont write SetCustomFont;

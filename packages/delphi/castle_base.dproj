@@ -238,8 +238,6 @@
         <DCCReference Include="..\..\src\3d\castletransform.pas"/>
         <DCCReference Include="..\..\src\physics\kraft\kraft.pas"/>
         <DCCReference Include="..\..\src\x3d\x3dcastlescript.pas"/>
-        <DCCReference Include="..\..\src\castlescript\castlescript.pas"/>
-        <DCCReference Include="..\..\src\castlescript\castlescriptcorefunctions.pas"/>
         <DCCReference Include="..\..\src\3d\castleinternaloctree.pas"/>
         <DCCReference Include="..\..\src\game\castlebehaviors.pas"/>
         <DCCReference Include="..\..\src\3d\castlesectors.pas"/>
@@ -259,8 +257,6 @@
         <DCCReference Include="..\..\src\pasgltf\PasGLTF.pas"/>
         <DCCReference Include="..\..\src\pasgltf\PasJSON.pas"/>
         <DCCReference Include="..\..\src\pasgltf\PasDblStrUtils.pas"/>
-        <DCCReference Include="..\..\src\castlescript\castlescriptparser.pas"/>
-        <DCCReference Include="..\..\src\castlescript\castlescriptlexer.pas"/>
         <DCCReference Include="..\..\src\3d\castlenurbs.pas"/>
         <DCCReference Include="..\..\src\services\castleopendocument.pas"/>
         <BuildConfiguration Include="Release">

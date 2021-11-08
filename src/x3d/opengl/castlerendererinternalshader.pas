@@ -60,13 +60,13 @@ type
     procedure AddInteger(const I: Integer);
     procedure AddFloat(const F: Single; const UniquePrimeNumber: Cardinal);
     procedure AddPointer(Ptr: Pointer);
-    procedure AddEffects(Nodes: TX3DNodeList);
-    procedure AddEffects(Nodes: TMFNode);
+    procedure AddEffects(Nodes: TX3DNodeList); overload;
+    procedure AddEffects(Nodes: TMFNode); overload;
 
     function ToString: string;
     procedure Clear;
 
-    class operator = (const A, B: TShaderCodeHash): boolean;
+    class operator {$ifdef FPC}={$else}Equal{$endif} (const A, B: TShaderCodeHash): boolean;
   end;
 
   { GLSL program that may be used by the X3D renderer.
@@ -128,11 +128,11 @@ type
     AmbientColor, Color: TVector3;
 
     procedure SetUniform(const NamePattern: string;
-      var CurrentValue: Single; const NewValue: Single);
+      var CurrentValue: Single; const NewValue: Single); overload;
     procedure SetUniform(const NamePattern: string;
-      var CurrentValue: TVector3; const NewValue: TVector3);
+      var CurrentValue: TVector3; const NewValue: TVector3); overload;
     procedure SetUniform(const NamePattern: string;
-      var CurrentValue: TVector4; const NewValue: TVector4);
+      var CurrentValue: TVector4; const NewValue: TVector4); overload;
   end;
 
   TLightUniformsList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TLightUniforms>;
@@ -198,8 +198,8 @@ type
       Texture fields have to be updated by descendant (like TX3DGLSLProgram),
       using the UniformsTextures list. These methods add fields to this list.
       @groupBegin }
-    procedure BindUniforms(const Node: TX3DNode; const EnableDisable: boolean);
-    procedure BindUniforms(const Nodes: TX3DNodeList; const EnableDisable: boolean);
+    procedure BindUniforms(const Node: TX3DNode; const EnableDisable: boolean); overload;
+    procedure BindUniforms(const Nodes: TX3DNodeList; const EnableDisable: boolean); overload;
     { @groupEnd }
   end;
 
@@ -212,7 +212,7 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    property Source [AType: TShaderType]: TCastleStringList read GetSource; default;
+    property Source [const AType: TShaderType]: TCastleStringList read GetSource; default;
 
     { Append AppendCode to our code.
       Has some special features:
@@ -269,7 +269,7 @@ type
     procedure SetDynamicUniforms(AProgram: TX3DShaderProgram);
   end;
 
-  TLightShaders = class(specialize TObjectList<TLightShader>)
+  TLightShaders = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TLightShader>)
   private
     function Find(const Node: TAbstractLightNode; out Shader: TLightShader): boolean;
   end;
@@ -324,7 +324,7 @@ type
         GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string); override;
   end;
 
-  TTextureCoordinateShaderList = specialize TObjectList<TTextureCoordinateShader>;
+  TTextureCoordinateShaderList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTextureCoordinateShader>;
 
   TDynamicUniform = class abstract
   public
@@ -359,7 +359,7 @@ type
     procedure SetUniform(AProgram: TX3DShaderProgram); override;
   end;
 
-  TDynamicUniformList = specialize TObjectList<TDynamicUniform>;
+  TDynamicUniformList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TDynamicUniform>;
 
   TSurfaceTextureShader = record
     Enable: boolean;
@@ -446,10 +446,10 @@ type
 
     procedure EnableEffects(Effects: TMFNode;
       const Code: TShaderSource = nil;
-      const ForwardDeclareInFinalShader: boolean = false);
+      const ForwardDeclareInFinalShader: boolean = false); overload;
     procedure EnableEffects(Effects: TX3DNodeList;
       const Code: TShaderSource = nil;
-      const ForwardDeclareInFinalShader: boolean = false);
+      const ForwardDeclareInFinalShader: boolean = false); overload;
 
     { Special form of Plug. It inserts the PlugValue source code directly
       at the position of given plug comment (no function call
@@ -570,10 +570,10 @@ type
       const ShadowLight: TAbstractLightNode = nil);
     procedure EnableTexGen(const TextureUnit: Cardinal;
       const Generation: TTexGenerationComponent; const Component: TTexComponent;
-      const Plane: TVector4);
+      const Plane: TVector4); overload;
     procedure EnableTexGen(const TextureUnit: Cardinal;
       const Generation: TTexGenerationComplete;
-      const TransformToWorldSpace: boolean = false);
+      const TransformToWorldSpace: boolean = false); overload;
     { Disable fixed-function texgen of given texture unit.
       Guarantees to also set active texture unit to TexUnit (if multi-texturing
       available at all). }
@@ -652,7 +652,7 @@ type
 implementation
 
 uses SysUtils, StrUtils,
-  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  {$ifdef FPC}{$ifdef CASTLE_OBJFPC}CastleGL, {$else}GL, GLExt, {$endif}{$else}OpenGL, OpenGLext, {$endif}
   CastleGLUtils, CastleLog, CastleGLVersion,
   CastleScreenEffects, CastleInternalX3DLexer;
 

@@ -109,8 +109,8 @@ contains
   castletransform in '..\..\src\3d\castletransform.pas',
   kraft in '..\..\src\physics\kraft\kraft.pas',
   x3dcastlescript in '..\..\src\x3d\x3dcastlescript.pas',
-  castlescript in '..\..\src\castlescript\castlescript.pas',
-  castlescriptcorefunctions in '..\..\src\castlescript\castlescriptcorefunctions.pas',
+  //castlescript in '..\..\src\castlescript\castlescript.pas',
+  //castlescriptcorefunctions in '..\..\src\castlescript\castlescriptcorefunctions.pas',
   castleinternaloctree in '..\..\src\3d\castleinternaloctree.pas',
   castlebehaviors in '..\..\src\game\castlebehaviors.pas',
   castlesectors in '..\..\src\3d\castlesectors.pas',
@@ -130,9 +130,10 @@ contains
   PasGLTF in '..\..\src\pasgltf\PasGLTF.pas',
   PasJSON in '..\..\src\pasgltf\PasJSON.pas',
   PasDblStrUtils in '..\..\src\pasgltf\PasDblStrUtils.pas',
-  castlescriptparser in '..\..\src\castlescript\castlescriptparser.pas',
-  castlescriptlexer in '..\..\src\castlescript\castlescriptlexer.pas',
+  //castlescriptparser in '..\..\src\castlescript\castlescriptparser.pas',
+  //castlescriptlexer in '..\..\src\castlescript\castlescriptlexer.pas',
   castlenurbs in '..\..\src\3d\castlenurbs.pas',
   castleopendocument in '..\..\src\services\castleopendocument.pas';
+  //castlescriptvectors in '..\..\src\castlescript\castlescriptvectors.pas';
 
 end.

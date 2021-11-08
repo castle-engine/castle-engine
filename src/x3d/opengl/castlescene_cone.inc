@@ -33,10 +33,10 @@ type
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     { Cone bottom radius. }
-    property BottomRadius: Single read FBottomRadius write SetBottomRadius default 1;
+    property BottomRadius: Single read FBottomRadius write SetBottomRadius {$ifdef FPC}default 1{$endif};
 
     { Cone height. }
-    property Height: Single read FHeight write SetHeight default 2;
+    property Height: Single read FHeight write SetHeight {$ifdef FPC}default 2{$endif};
 
     { When this is @true, the object is visible (and lit) from both sides. }
     property DoubleSided: Boolean read FDoubleSided write SetDoubleSided default false;

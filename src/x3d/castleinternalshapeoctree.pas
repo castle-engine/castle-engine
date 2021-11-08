@@ -807,10 +807,10 @@ function TShapeOctree.StatisticsBonus: string;
 begin
   Result := NL;
   if ShapesList.Count = 0 then
-    Result += NL + NL +
+    Result := Result + NL + NL +
       '  Empty octree - scene has no Shapes, i.e. no visible nodes.' + NL
   else
-    Result += Format(
+    Result := Result + Format(
       '  %d items (=Shapes) defined for octree, %d items in octree''s leafs' + NL +
       '  - so each shape is present in tree about %f times.' + NL +
       '  (Not counting shapes duplicated in internal nodes.)' + NL,
@@ -838,7 +838,7 @@ var
 begin
   Result := 0;
   for I := 0 to ShapesList.Count - 1 do
-    Result += ShapesList.Items[I].InternalOctreeTriangles.TrianglesCount;
+    Result := Result + ShapesList.Items[I].InternalOctreeTriangles.TrianglesCount;
 end;
 
 end.

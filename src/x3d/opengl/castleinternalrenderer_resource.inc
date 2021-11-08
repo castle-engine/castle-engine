@@ -43,7 +43,7 @@
     procedure Unprepare; virtual;
   end;
 
-  TResourceRendererList = class(specialize TObjectList<TResourceRenderer>)
+  TResourceRendererList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TResourceRenderer>)
   private
     InsideUnprepareAll: Cardinal;
   public

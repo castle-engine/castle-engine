@@ -65,7 +65,7 @@ type
   end;
   PManifoldEdge = ^TManifoldEdge;
 
-  TManifoldEdgeList = specialize TStructList<TManifoldEdge>;
+  TManifoldEdgeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TManifoldEdge>;
 
   { Edge that has one neighbor, i.e. border edge.
     It's used by @link(TShapeShadowVolumes.BorderEdges),
@@ -83,7 +83,7 @@ type
   end;
   PBorderEdge = ^TBorderEdge;
 
-  TBorderEdgeList = specialize TStructList<TBorderEdge>;
+  TBorderEdgeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TBorderEdge>;
 
   { Triangles array for shadow casting shape. In local shape coordinates. }
   TTrianglesShadowCastersList = TTriangle3List;
@@ -237,7 +237,8 @@ function TShapeShadowVolumes.TrianglesListShadowCasters: TTrianglesShadowCasters
       try
         TriangleAdder.TriangleList := Result;
         if ShadowCaster(Shape) then
-          Shape.LocalTriangulate(false, @TriangleAdder.AddTriangle);
+          Shape.LocalTriangulate(false,
+            {$ifdef CASTLE_OBJFPC}@{$endif}TriangleAdder.AddTriangle);
         if LogShadowVolumes then
           WritelnLog('Shadow volumes', Format('Shadows casters triangles: %d',
             [Result.Count]));
@@ -321,7 +322,9 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
               deleting only from the end (normal Delete would want to shift
               EdgesSingle contents in memory, to preserve order of items;
               but we don't care about order). }
+            {$ifndef FPC}{$POINTERMATH ON}{$endif}
             EdgePtr^ := EdgesSingle.L[EdgesSingle.Count - 1];
+            {$ifndef FPC}{$POINTERMATH OFF}{$endif}
             EdgesSingle.Count := EdgesSingle.Count - 1;
 
             Exit;
@@ -331,7 +334,7 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
       end;
 
       { New edge: add new item to EdgesSingle }
-      EdgePtr := EdgesSingle.Add;
+      EdgePtr := PManifoldEdge(EdgesSingle.Add);
       EdgePtr^.VertexIndex := VertexIndex;
       EdgePtr^.Triangles[0] := TriangleIndex;
       EdgePtr^.V0 := V0;
@@ -382,11 +385,13 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
           (the case with more than 2 is already eliminated above).
           So we copy EdgesSingle to BorderEdges. }
         FBorderEdges.Count := EdgesSingle.Count;
+        {$ifndef FPC}{$POINTERMATH ON}{$endif}
         for I := 0 to EdgesSingle.Count - 1 do
         begin
           FBorderEdges.L[I].VertexIndex := EdgesSingle.L[I].VertexIndex;
           FBorderEdges.L[I].TriangleIndex := EdgesSingle.L[I].Triangles[0];
         end;
+        {$ifndef FPC}{$POINTERMATH OFF}{$endif}
       end;
     finally FreeAndNil(EdgesSingle); end;
 

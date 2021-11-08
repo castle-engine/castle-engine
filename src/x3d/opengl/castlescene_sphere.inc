@@ -30,7 +30,7 @@ type
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     { Sphere radius. }
-    property Radius: Single read FRadius write SetRadius default 1;
+    property Radius: Single read FRadius write SetRadius {$ifdef FPC}default 1{$endif};
 
     { When this is @true, the object is visible (and lit) from both sides. }
     property DoubleSided: Boolean read FDoubleSided write SetDoubleSided default false;

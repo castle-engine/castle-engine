@@ -24,7 +24,7 @@ unit CastleCurves;
 interface
 
 uses SysUtils, Classes, Generics.Collections, DOM,
-  CastleVectors, CastleBoxes, CastleUtils, CastleScript,
+  CastleVectors, CastleBoxes, CastleUtils, {$ifdef FPC}CastleScript,{$endif}
   CastleClassUtils, CastleFrustum;
 
 type
@@ -85,6 +85,7 @@ type
     procedure SaveToFile(const URL: string);
   end;
 
+  {$ifdef FPC}
   { Curve defined by explicitly giving functions for
     Point(t) = x(t), y(t), z(t) as CastleScript expressions. }
   TCasScriptCurve = class(TCurve)
@@ -131,6 +132,7 @@ type
 
     destructor Destroy; override;
   end;
+  {$endif FPC}
 
   { A basic abstract class for curves determined my some set of ControlPoints.
     Note: it is @italic(not) defined in this class any correspondence between
@@ -175,11 +177,13 @@ type
     { Constructor. }
     constructor Create;
 
+    {$ifdef FPC}
     { Calculate initial control points by sampling given TCasScriptCurve,
       with analytical curve equation.
       TBegin and TEnd are copied from CasScriptCurve. }
     constructor CreateFromEquation(CasScriptCurve: TCasScriptCurve;
       ControlPointsCount: Cardinal);
+    {$endif}
 
     destructor Destroy; override;
 
@@ -358,8 +362,10 @@ begin
         CurveTypeStr := I.Current.AttributeString('type');
         if SameText(CurveTypeStr, TPiecewiseCubicBezier.ClassName) then
           Curve := TPiecewiseCubicBezier.Create else
+        {$ifdef FPC}
         if SameText(CurveTypeStr, TCasScriptCurve.ClassName) then
           Curve := TCasScriptCurve.Create else
+        {$endif}
           raise ECurveFileInvalid.CreateFmt('Curve type "%s" unknown', [CurveTypeStr]);
         Curve.LoadFromElement(I.Current);
         if Curve is TControlPointsCurve then
@@ -390,7 +396,7 @@ begin
 end;
 
 { TCasScriptCurve ------------------------------------------------------------ }
-
+{$ifdef FPC}
 procedure TCasScriptCurve.SetTVariable(AValue: TCasScriptFloat);
 begin
   if FTVariable = AValue then Exit;
@@ -497,6 +503,7 @@ begin
   inherited SaveToStream(Stream);
   // TODO: save TCasScriptCurve specifics
 end;
+{$endif FPC}
 
 { TControlPointsCurve ------------------------------------------------ }
 
@@ -550,6 +557,7 @@ begin
   FBoundingBox := TBox3D.Empty;
 end;
 
+{$ifdef FPC}
 constructor TControlPointsCurve.CreateFromEquation(
   CasScriptCurve: TCasScriptCurve; ControlPointsCount: Cardinal);
 var
@@ -563,6 +571,7 @@ begin
     ControlPoints.List^[i] := CasScriptCurve.PointOfSegment(i, ControlPointsCount-1);
   UpdateControlPoints;
 end;
+{$endif}
 
 destructor TControlPointsCurve.Destroy;
 begin

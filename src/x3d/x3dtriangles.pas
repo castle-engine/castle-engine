@@ -440,13 +440,13 @@ type
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const TriangleToIgnore: PTriangle = nil;
-      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc = nil): boolean;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc = nil): boolean; overload;
     function MoveCollision(
       const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const TriangleToIgnore: PTriangle = nil;
-      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc = nil): boolean;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc = nil): boolean; overload;
     { @groupEnd }
 
     { For given camera position and up vector, calculate camera height
@@ -695,15 +695,14 @@ function TBaseTrianglesOctreeNode.CommonRay(
 
 { TBaseTrianglesOctree --------------------------------------------------- }
 
-{$define SegmentCollision_CommonParams :=
+function TBaseTrianglesOctree.SegmentCollision(
+  out Intersection: TVector3;
+  out IntersectionDistance: Single;
   const pos1, pos2: TVector3;
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc
-}
-
-{$define SegmentCollision_Implementation :=
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 begin
   Result := TBaseTrianglesOctreeNode(InternalTreeRoot).SegmentCollision(
     Intersection, IntersectionDistance,
@@ -711,37 +710,62 @@ begin
     AssignNewTag,
     ReturnClosestIntersection, TriangleToIgnore, IgnoreMarginAtStart,
     TrianglesToIgnoreFunc);
-end;}
+end;
 
-  function TBaseTrianglesOctree.SegmentCollision(
-    out Intersection: TVector3;
-    out IntersectionDistance: Single;
-    SegmentCollision_CommonParams): PTriangle;
-  SegmentCollision_Implementation
+function TBaseTrianglesOctree.SegmentCollision(
+  out Intersection: TVector3;
+  const pos1, pos2: TVector3;
+  const ReturnClosestIntersection: boolean;
+  const TriangleToIgnore: PTriangle;
+  const IgnoreMarginAtStart: boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc
+): PTriangle;
+var
+  IntersectionDistance: Single;
+begin
+  Result := TBaseTrianglesOctreeNode(InternalTreeRoot).SegmentCollision(
+    Intersection, IntersectionDistance,
+    Pos1, Pos2,
+    AssignNewTag,
+    ReturnClosestIntersection, TriangleToIgnore, IgnoreMarginAtStart,
+    TrianglesToIgnoreFunc);
+end;
 
-  function TBaseTrianglesOctree.SegmentCollision(
-    out Intersection: TVector3;
-    SegmentCollision_CommonParams): PTriangle;
-  var
-    IntersectionDistance: Single;
-  SegmentCollision_Implementation
+function TBaseTrianglesOctree.SegmentCollision(
+  out IntersectionDistance: Single;
+  const pos1, pos2: TVector3;
+  const ReturnClosestIntersection: boolean;
+  const TriangleToIgnore: PTriangle;
+  const IgnoreMarginAtStart: boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
+var
+  Intersection: TVector3;
+begin
+  Result := TBaseTrianglesOctreeNode(InternalTreeRoot).SegmentCollision(
+    Intersection, IntersectionDistance,
+    Pos1, Pos2,
+    AssignNewTag,
+    ReturnClosestIntersection, TriangleToIgnore, IgnoreMarginAtStart,
+    TrianglesToIgnoreFunc);
+end;
 
-  function TBaseTrianglesOctree.SegmentCollision(
-    out IntersectionDistance: Single;
-    SegmentCollision_CommonParams): PTriangle;
-  var
-    Intersection: TVector3;
-  SegmentCollision_Implementation
-
-  function TBaseTrianglesOctree.SegmentCollision(
-    SegmentCollision_CommonParams): PTriangle;
-  var
-    Intersection: TVector3;
-    IntersectionDistance: Single;
-  SegmentCollision_Implementation
-
-{$undef SegmentCollision_CommonParams}
-{$undef SegmentCollision_Implementation}
+function TBaseTrianglesOctree.SegmentCollision(
+  const pos1, pos2: TVector3;
+  const ReturnClosestIntersection: boolean;
+  const TriangleToIgnore: PTriangle;
+  const IgnoreMarginAtStart: boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
+var
+  Intersection: TVector3;
+  IntersectionDistance: Single;
+begin
+  Result := TBaseTrianglesOctreeNode(InternalTreeRoot).SegmentCollision(
+    Intersection, IntersectionDistance,
+    Pos1, Pos2,
+    AssignNewTag,
+    ReturnClosestIntersection, TriangleToIgnore, IgnoreMarginAtStart,
+    TrianglesToIgnoreFunc);
+end;
 
 function TBaseTrianglesOctree.IsSegmentCollision(
   const pos1, pos2: TVector3;
@@ -824,15 +848,14 @@ begin
     ABox, TriangleToIgnore, TrianglesToIgnoreFunc);
 end;
 
-{$define RayCollision_CommonParams :=
+function TBaseTrianglesOctree.RayCollision(
+  out Intersection: TVector3;
+  out IntersectionDistance: Single;
   const RayOrigin, RayDirection: TVector3;
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc
-}
-
-{$define RayCollision_Implementation :=
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 begin
   Result := TBaseTrianglesOctreeNode(InternalTreeRoot).RayCollision(
     Intersection, IntersectionDistance,
@@ -840,37 +863,64 @@ begin
     AssignNewTag,
     ReturnClosestIntersection, TriangleToIgnore, IgnoreMarginAtStart,
     TrianglesToIgnoreFunc);
-end;}
+end;
 
-  function TBaseTrianglesOctree.RayCollision(
-    out Intersection: TVector3;
-    out IntersectionDistance: Single;
-    RayCollision_CommonParams): PTriangle;
-  RayCollision_Implementation
+function TBaseTrianglesOctree.RayCollision(
+  out Intersection: TVector3;
+  const RayOrigin, RayDirection: TVector3;
+  const ReturnClosestIntersection: boolean;
+  const TriangleToIgnore: PTriangle;
+  const IgnoreMarginAtStart: boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
+var
+  IntersectionDistance: Single;
+begin
+  Result := TBaseTrianglesOctreeNode(InternalTreeRoot).RayCollision(
+    Intersection, IntersectionDistance,
+    RayOrigin, RayDirection,
+    AssignNewTag,
+    ReturnClosestIntersection, TriangleToIgnore, IgnoreMarginAtStart,
+    TrianglesToIgnoreFunc);
+end;
 
-  function TBaseTrianglesOctree.RayCollision(
-    out Intersection: TVector3;
-    RayCollision_CommonParams): PTriangle;
-  var
-    IntersectionDistance: Single;
-  RayCollision_Implementation
 
-  function TBaseTrianglesOctree.RayCollision(
-    out IntersectionDistance: Single;
-    RayCollision_CommonParams): PTriangle;
-  var
-    Intersection: TVector3;
-  RayCollision_Implementation
+function TBaseTrianglesOctree.RayCollision(
+  out IntersectionDistance: Single;
+  const RayOrigin, RayDirection: TVector3;
+  const ReturnClosestIntersection: boolean;
+  const TriangleToIgnore: PTriangle;
+  const IgnoreMarginAtStart: boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
+var
+  Intersection: TVector3;
+begin
+  Result := TBaseTrianglesOctreeNode(InternalTreeRoot).RayCollision(
+    Intersection, IntersectionDistance,
+    RayOrigin, RayDirection,
+    AssignNewTag,
+    ReturnClosestIntersection, TriangleToIgnore, IgnoreMarginAtStart,
+    TrianglesToIgnoreFunc);
+end;
 
-  function TBaseTrianglesOctree.RayCollision(
-    RayCollision_CommonParams): PTriangle;
-  var
-    Intersection: TVector3;
-    IntersectionDistance: Single;
-  RayCollision_Implementation
 
-{$undef RayCollision_CommonParams}
-{$undef RayCollision_Implementation}
+function TBaseTrianglesOctree.RayCollision(
+  const RayOrigin, RayDirection: TVector3;
+  const ReturnClosestIntersection: boolean;
+  const TriangleToIgnore: PTriangle;
+  const IgnoreMarginAtStart: boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
+var
+  Intersection: TVector3;
+  IntersectionDistance: Single;
+begin
+  Result := TBaseTrianglesOctreeNode(InternalTreeRoot).RayCollision(
+    Intersection, IntersectionDistance,
+    RayOrigin, RayDirection,
+    AssignNewTag,
+    ReturnClosestIntersection, TriangleToIgnore, IgnoreMarginAtStart,
+    TrianglesToIgnoreFunc);
+end;
+
 
 function TBaseTrianglesOctree.IsRayCollision(
   const RayOrigin, RayDirection: TVector3;
@@ -935,7 +985,7 @@ function TBaseTrianglesOctree.MoveCollision(
     which means we can't really calculate a vector to make
     proper wall-sliding. We do some tricks to still perform wall-sliding
     in many positions, but it's not perfect. }
-  function MoveAlongTheBlocker(Blocker: PTriangle): boolean;
+  function MoveAlongTheBlocker(Blocker: PTriangle): boolean; overload;
   var
     {$ifdef CONSERVE_TRIANGLE_MEMORY_MORE}
     Plane: TVector4;
@@ -991,7 +1041,7 @@ function TBaseTrianglesOctree.MoveCollision(
   function MoveAlongTheBlocker(
     const BlockerIntersection: TVector3;
     SegmentCollision: boolean;
-    Blocker: PTriangle): boolean;
+    Blocker: PTriangle): boolean; overload;
   var
     {$ifdef CONSERVE_TRIANGLE_MEMORY_MORE}
     Plane: TVector4;
@@ -1270,8 +1320,8 @@ begin
        RenderDir,
        LightedPointPlane)) and
    (SegmentCollision(LightedPoint, LightPos,
-     false, TriangleToIgnore, IgnoreMarginAtStart, @IgnoreForShadowRays)
-     = nil);
+     false, TriangleToIgnore, IgnoreMarginAtStart,
+     {$ifdef CASTLE_OBJFPC}@{$endif}IgnoreForShadowRays) = nil);
 end;
 
 { TOctreeIgnoreForShadowRaysAndOneItem -------------------------------------- }

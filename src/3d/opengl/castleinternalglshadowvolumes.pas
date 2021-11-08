@@ -21,7 +21,7 @@ unit CastleInternalGLShadowVolumes;
 interface
 
 uses
-  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  {$ifdef FPC}{$ifdef CASTLE_OBJFPC}CastleGL, {$else}GL, GLExt, {$endif}{$else}OpenGL, OpenGLext, {$endif}
   CastleTransform, CastleVectors, CastleBoxes, CastleGLUtils, CastleFrustum;
 
 type
@@ -273,7 +273,7 @@ begin
   { This again looks hacky but is Ok, glStencilOpSeparateATI has the same
     call semantics as glStencilOpSeparate, in fact glStencilOpSeparate
     is just an extension promoted to standard in GL 2.0... }
-  if (glStencilOpSeparate = nil) and Load_GL_ATI_separate_stencil then
+  if ({$ifndef FPC}@{$endif}glStencilOpSeparate = nil) and Load_GL_ATI_separate_stencil then
   begin
     if LogShadowVolumes then
       WritelnLog('Shadow volumes',
@@ -285,14 +285,14 @@ begin
   {$endif}
 
   // In case of Nintendo Switch, glStencilOpSeparate isn't a function pointer
-  FStencilTwoSided := {$ifdef CASTLE_NINTENDO_SWITCH} true {$else} glStencilOpSeparate <> nil {$endif};
+  FStencilTwoSided := {$ifdef CASTLE_NINTENDO_SWITCH} true {$else} {$ifndef FPC}@{$endif}glStencilOpSeparate <> nil {$endif};
 
   if LogShadowVolumes then
     WritelnLogMultiline('Shadow volumes',
       Format('GL_INCR/DECR_WRAP_EXT available: %s' + nl +
              'Two-sided stencil test available: %s',
-            [ BoolToStr(WrapAvailable, true),
-              BoolToStr(StencilTwoSided, true) ]));
+            [ SysUtils.BoolToStr(WrapAvailable, true),
+              SysUtils.BoolToStr(StencilTwoSided, true) ]));
 end;
 
 procedure TGLShadowVolumeRenderer.InitFrustumAndLight(

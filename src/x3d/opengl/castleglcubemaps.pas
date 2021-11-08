@@ -20,12 +20,12 @@ unit CastleGLCubeMaps;
 
 interface
 
-uses {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+uses {$ifdef FPC}{$ifdef CASTLE_OBJFPC}CastleGL, {$else}GL, GLExt, {$endif}{$else}OpenGL, OpenGLext, {$endif}
   CastleVectors, CastleCubeMaps, CastleImages, CastleCompositeImage,
   CastleGLImages, CastleTransform, CastleGLUtils;
 
 type
-  TCubeMapRenderEvent = procedure (const RenderParams: TRenderParams) of object; experimental;
+  TCubeMapRenderEvent = procedure (const RenderParams: TRenderParams) of object; {$ifdef FPC}experimental;{$endif}
 
 { Calculate spherical harmonics basis describing environment rendered
   by OpenGL. Environment is rendered by

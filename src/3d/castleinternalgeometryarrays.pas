@@ -82,7 +82,7 @@ type
     { Offset, only for Generation = tgExplicit. }
     Offset: Integer;
   end;
-  TGeometryTexCoordList = specialize TObjectList<TGeometryTexCoord>;
+  TGeometryTexCoordList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TGeometryTexCoord>;
 
   TGeometryAttribType = (atFloat, atVector2, atVector3, atVector4,
     atMatrix3, atMatrix4);
@@ -98,7 +98,7 @@ type
     AType: TGeometryAttribType;
     Offset: Integer;
   end;
-  TGeometryAttribList = class(specialize TObjectList<TGeometryAttrib>)
+  TGeometryAttribList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TGeometryAttrib>)
   public
     function Find(const Name: string): TGeometryAttrib;
   end;
@@ -164,9 +164,9 @@ type
     function AddGLSLAttribute(const AType: TGeometryAttribType;
       const Name: string; const Internal: boolean): TGeometryAttrib;
     function GLSLAttributeIndex(const AType: TGeometryAttribType;
-      const Name: string; const Index: Cardinal): PtrUInt;
+      const Name: string; const Index: Cardinal): PtrUInt; overload;
     function GLSLAttributeIndex(const AType: TGeometryAttribType;
-      const A: TGeometryAttrib; const Index: Cardinal): PtrUInt;
+      const A: TGeometryAttrib; const Index: Cardinal): PtrUInt; overload;
   public
     constructor Create;
     destructor Destroy; override;
@@ -248,8 +248,8 @@ type
     property AttributeSize: Cardinal read FAttributeSize;
     { @groupEnd }
 
-    function Position: PVector3;
-    function Position(const Index: Cardinal): PVector3;
+    function Position: PVector3; overload;
+    function Position(const Index: Cardinal): PVector3; overload;
 
     { Allocated number of items in vertex positions, normals, colors
       and such arrays.
@@ -261,8 +261,8 @@ type
       Also, IndexesCount and HasIndexes is stored at this point. }
     property Count: Integer read FCount write SetCount;
 
-    function Normal: PVector3;
-    function Normal(const Index: Cardinal): PVector3;
+    function Normal: PVector3; overload;
+    function Normal(const Index: Cardinal): PVector3; overload;
 
     { Add tangent information per-vertex to CoordinateArray. }
     procedure AddTangent;
@@ -339,19 +339,19 @@ type
 
     function GLSLAttribute(const A: TGeometryAttrib; const Offset: PtrUInt = 0): PtrUInt;
 
-    function GLSLAttributeFloat(const Name: string; const Index: Cardinal = 0): PSingle; deprecated 'use GLSLAttributeFloat with TGeometryAttrib parameter, it is faster in the usual case';
-    function GLSLAttributeVector2(const Name: string; const Index: Cardinal = 0): PVector2; deprecated 'use GLSLAttributeVector2 with TGeometryAttrib parameter, it is faster in the usual case';
-    function GLSLAttributeVector3(const Name: string; const Index: Cardinal = 0): PVector3; deprecated 'use GLSLAttributeVector3 with TGeometryAttrib parameter, it is faster in the usual case';
-    function GLSLAttributeVector4(const Name: string; const Index: Cardinal = 0): PVector4; deprecated 'use GLSLAttributeVector4 with TGeometryAttrib parameter, it is faster in the usual case';
-    function GLSLAttributeMatrix3(const Name: string; const Index: Cardinal = 0): PMatrix3; deprecated 'use GLSLAttributeMatrix3 with TGeometryAttrib parameter, it is faster in the usual case';
-    function GLSLAttributeMatrix4(const Name: string; const Index: Cardinal = 0): PMatrix4; deprecated 'use GLSLAttributeMatrix4 with TGeometryAttrib parameter, it is faster in the usual case';
+    function GLSLAttributeFloat(const Name: string; const Index: Cardinal = 0): PSingle; overload; deprecated 'use GLSLAttributeFloat with TGeometryAttrib parameter, it is faster in the usual case';
+    function GLSLAttributeVector2(const Name: string; const Index: Cardinal = 0): PVector2; overload; deprecated 'use GLSLAttributeVector2 with TGeometryAttrib parameter, it is faster in the usual case';
+    function GLSLAttributeVector3(const Name: string; const Index: Cardinal = 0): PVector3; overload; deprecated 'use GLSLAttributeVector3 with TGeometryAttrib parameter, it is faster in the usual case';
+    function GLSLAttributeVector4(const Name: string; const Index: Cardinal = 0): PVector4; overload; deprecated 'use GLSLAttributeVector4 with TGeometryAttrib parameter, it is faster in the usual case';
+    function GLSLAttributeMatrix3(const Name: string; const Index: Cardinal = 0): PMatrix3; overload; deprecated 'use GLSLAttributeMatrix3 with TGeometryAttrib parameter, it is faster in the usual case';
+    function GLSLAttributeMatrix4(const Name: string; const Index: Cardinal = 0): PMatrix4; overload; deprecated 'use GLSLAttributeMatrix4 with TGeometryAttrib parameter, it is faster in the usual case';
 
-    function GLSLAttributeFloat(const A: TGeometryAttrib; const Index: Cardinal = 0): PSingle;
-    function GLSLAttributeVector2(const A: TGeometryAttrib; const Index: Cardinal = 0): PVector2;
-    function GLSLAttributeVector3(const A: TGeometryAttrib; const Index: Cardinal = 0): PVector3;
-    function GLSLAttributeVector4(const A: TGeometryAttrib; const Index: Cardinal = 0): PVector4;
-    function GLSLAttributeMatrix3(const A: TGeometryAttrib; const Index: Cardinal = 0): PMatrix3;
-    function GLSLAttributeMatrix4(const A: TGeometryAttrib; const Index: Cardinal = 0): PMatrix4;
+    function GLSLAttributeFloat(const A: TGeometryAttrib; const Index: Cardinal = 0): PSingle; overload;
+    function GLSLAttributeVector2(const A: TGeometryAttrib; const Index: Cardinal = 0): PVector2; overload;
+    function GLSLAttributeVector3(const A: TGeometryAttrib; const Index: Cardinal = 0): PVector3; overload;
+    function GLSLAttributeVector4(const A: TGeometryAttrib; const Index: Cardinal = 0): PVector4; overload;
+    function GLSLAttributeMatrix3(const A: TGeometryAttrib; const Index: Cardinal = 0): PMatrix3; overload;
+    function GLSLAttributeMatrix4(const A: TGeometryAttrib; const Index: Cardinal = 0): PMatrix4; overload;
 
     { Should we use backface-culling (ignore some faces during rendering).
 
@@ -451,7 +451,7 @@ function TGeometryArrays.IndexesPtr(const Index: Cardinal): PtrUInt;
 begin
   Result := Index * SizeOf(TGeometryIndex);
   if not DataFreed then
-    PtrUInt(Result) += PtrUInt(FIndexes.L);
+    PtrUInt(Result) := PtrUInt(Result) + PtrUInt(FIndexes.L);
 end;
 
 function TGeometryArrays.Position: PVector3;
@@ -486,7 +486,7 @@ begin
   begin
     FHasTangent := true;
     FTangentOffset := FCoordinateSize;
-    FCoordinateSize += SizeOf(TVector3);
+    FCoordinateSize := FCoordinateSize + SizeOf(TVector3);
   end;
 end;
 
@@ -506,11 +506,11 @@ begin
   if WithAlpha then
   begin
     FColorType := ctRgbAlpha;
-    FAttributeSize += SizeOf(TVector4);
+    FAttributeSize := FAttributeSize + SizeOf(TVector4);
   end else
   begin
     FColorType := ctRgb;
-    FAttributeSize += SizeOf(TVector3);
+    FAttributeSize := FAttributeSize + SizeOf(TVector3);
   end;
 end;
 
@@ -538,7 +538,7 @@ begin
   begin
     FHasFogCoord := true;
     FogCoordOffset := AttributeSize;
-    FAttributeSize += SizeOf(Single);
+    FAttributeSize := FAttributeSize + SizeOf(Single);
   end;
 end;
 
@@ -576,7 +576,7 @@ begin
     if Generation = tgExplicit then
     begin
       TexCoords[TextureUnit].Offset := AttributeSize;
-      FAttributeSize += SizeOf(Single) * Dimensions;
+      FAttributeSize := FAttributeSize + SizeOf(Single) * Dimensions;
     end;
   end else
   if TexCoords[TextureUnit].Dimensions <> Dimensions then
@@ -701,7 +701,7 @@ begin
     Result.AType := AType;
     Result.Offset := AttributeSize;
     Result.Internal := Internal;
-    FAttributeSize += AttribSizes[AType];
+    FAttributeSize := FAttributeSize + AttribSizes[AType];
 
     Attribs.Add(Result);
   end;

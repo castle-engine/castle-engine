@@ -406,7 +406,7 @@ function ArrayPosX3DKeywords(const s: string; out Index: TX3DKeyword): boolean;
 var
   I: TX3DKeyword;
 begin
-  for I := Low(X3DKeywords) to High(X3DKeywords) do
+  for I {$ifdef FPC}:= Low(X3DKeywords) to High(X3DKeywords) {$else}in X3DKeywords{$endif} do
     if X3DKeywordsName[I] = s then
     begin
       Index := I;

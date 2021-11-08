@@ -18,17 +18,18 @@
 unit CastleSceneInternalOcclusion;
 
 {$I castleconf.inc}
-{$modeswitch nestedprocvars}{$H+}
+{$ifdef FPC}{$modeswitch nestedprocvars}{$H+}{$endif}
 
 interface
 
 uses
-  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
-  CastleVectors, CastleSceneCore, CastleSceneInternalShape,
+  {$ifdef FPC}{$ifdef CASTLE_OBJFPC}CastleGL, {$else}GL, GLExt, {$endif}{$else}OpenGL, OpenGLext, {$endif}
+  CastleVectors, CastleSceneCore, CastleSceneInternalShape, {$ifndef FPC}CastleUtils, {$endif}
   CastleFrustum, CastleGLShaders, CastleBoxes, CastleTransform;
 
 type
-  TShapeProcedure = procedure (const Shape: TGLShape) is nested;
+  TShapeProcedure = {$ifndef FPC}reference to{$endif} procedure (const Shape: TGLShape)
+    {$ifdef FPC} is nested{$endif};
 
   TOcclusionQueryUtilsRenderer = class
   strict private
@@ -377,6 +378,7 @@ var
     begin
       { Render all shapes within this leaf, taking care to render
         shape only once within this frame (FrameId is useful here). }
+      {$ifndef FPC}{$POINTERMATH ON}{$endif}
       for I := 0 to Node.ItemsIndices.Count - 1 do
       begin
         Shape := TGLShape(Scene.InternalOctreeRendering.ShapesList[Node.ItemsIndices.L[I]]);
@@ -386,6 +388,7 @@ var
           Shape.RenderedFrameId := FrameId;
         end;
       end;
+      {$ifndef FPC}{$POINTERMATH OFF}{$endif}
     end else
     begin
       { Push Node children onto TraversalStack.
@@ -432,12 +435,14 @@ var
       that's Ok and may actually speed up. }
     Box := TBox3D.Empty;
 
+    {$ifndef FPC}{$POINTERMATH ON}{$endif}
     for I := 0 to Node.ItemsIndices.Count - 1 do
     begin
       Shape := TGLShape(Scene.InternalOctreeRendering.ShapesList[Node.ItemsIndices.L[I]]);
       if Shape.RenderedFrameId <> FrameId then
         Box.Include(Shape.BoundingBox);
     end;
+    {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 
     Utils.DrawBox(Box);
     if (Params.InternalPass = 0) and not Scene.ExcludeFromStatistics then

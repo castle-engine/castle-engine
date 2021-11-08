@@ -18,7 +18,7 @@
 unit CastleSceneInternalBlending;
 
 {$I castleconf.inc}
-{$modeswitch nestedprocvars}{$H+}
+{$ifdef FPC}{$modeswitch nestedprocvars}{$H+}{$endif}
 
 interface
 
@@ -62,7 +62,7 @@ procedure ShapesFilterBlending(
 implementation
 
 uses SysUtils,
-  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  {$ifdef FPC}{$ifdef CASTLE_OBJFPC}CastleGL, {$else}GL, GLExt, {$endif}{$else}OpenGL, OpenGLext, {$endif}
   CastleLog, X3DNodes, CastleScene, CastleTimeUtils;
 
 { Given blending name (as defined by X3D BlendMode node spec,

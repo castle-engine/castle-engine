@@ -142,7 +142,12 @@ constructor TBatchShapes.Create(const CreateShape: TCreateShapeEvent);
 
   function MergePipelineToStr(const P: TBatchShapes.TMergePipeline): String;
   begin
+    {$ifdef FPC}
     WriteStr(Result, P);
+    {$else}
+    // TODO: Delphi Support
+    raise Exception.Create('Delphi not implemented!');
+    {$endif}
   end;
 
   procedure InitializePool;
@@ -155,8 +160,8 @@ constructor TBatchShapes.Create(const CreateShape: TCreateShapeEvent);
     P: TMergePipeline;
     Slot: TMergeSlot;
   begin
-    for P in TMergePipeline do
-      for Slot in TMergeSlot do
+    for P := Low(TMergePipeline) to High(TMergePipeline)  do
+      for Slot := Low(TMergeSlot) to High(TMergeSlot) do
       begin
         // initialize Geometry and ShapeNode
         Geometry := TIndexedFaceSetNode.CreateWithShape(ShapeNode);
@@ -205,8 +210,8 @@ begin
   GLContextClose;
 
   FreeAndNil(FCollected);
-  for P in TMergePipeline do
-    for Slot in TMergeSlot do
+  for P := Low(TMergePipeline) to High(TMergePipeline) do
+    for Slot := Low(TMergeSlot) to High(TMergeSlot) do
       FreeAndNil(FPool[P, Slot]);
   FreeAndNil(FPoolGeometries);
   inherited;
@@ -425,11 +430,18 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
   function FindMergeable(const Shapes: TMergingShapes;
     const P: TMergePipeline; const Shape: TGLShape;
     out MergeSlot: TMergeSlot): Boolean;
+  {$ifndef FPC}
+  var
+    MS: TMergeSlot;
+  {$endif}
   begin
-    for MergeSlot in TMergeSlot do
+    for {$ifdef FPC}MergeSlot{$else}MS{$endif} := Low(TMergeSlot) to High(TMergeSlot) do
+    begin
+      {$ifndef FPC}MergeSlot := MS;{$endif}
       if Shapes[P, MergeSlot] <> nil then
         if Mergeable(Shape, Shapes[P, MergeSlot], P) then
           Exit(true);
+    end;
     Result := false;
   end;
 
@@ -596,9 +608,9 @@ var
   Slot: TMergeSlot;
 begin
   FCollected.Clear;
-  for P in TMergePipeline do
+  for P := Low(TMergePipeline) to High(TMergePipeline) do
   begin
-    for Slot in TMergeSlot do
+    for Slot := Low(TMergeSlot) to High(TMergeSlot) do
       if FMergeTarget[P, Slot] <> nil then
       begin
         // don't wait for ClearMerge for this, do this earlier to release reference count
@@ -646,8 +658,8 @@ var
   P: TMergePipeline;
   Slot: TMergeSlot;
 begin
-  for P in TMergePipeline do
-    for Slot in TMergeSlot do
+  for P := Low(TMergePipeline) to High(TMergePipeline) do
+    for Slot := Low(TMergeSlot) to High(TMergeSlot) do
     begin
       if FUnorderedPreviousShapes[P, Slot] <> nil then
       begin
@@ -683,8 +695,8 @@ var
   P: TMergePipeline;
   Slot: TMergeSlot;
 begin
-  for P in TMergePipeline do
-    for Slot in TMergeSlot do
+  for P := Low(TMergePipeline) to High(TMergePipeline) do
+    for Slot := Low(TMergeSlot) to High(TMergeSlot) do
       FPool[P, Slot].GLContextClose;
 end;
 

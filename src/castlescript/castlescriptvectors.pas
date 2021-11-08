@@ -280,7 +280,7 @@ type
 
 implementation
 
-uses Math,
+uses Math,{$ifndef FPC} Rtti, Classes, {$endif}
   CastleScriptCoreFunctions, CastleUtils, CastleLog, CastleCameras,
   CastleQuaternions, CastleColors;
 
@@ -290,8 +290,34 @@ class function TCasScriptVec {$ifndef CASTLE_OBJFPC} <
   TVectorXxx,
   TCasScriptVectorFunXxx> {$endif} .
   CreateValueIfNeededSelf(var Value: TCasScriptValue; var ParentOfValue: boolean): TSelfClass;
+{$ifndef FPC}
+var
+  ClType: TClass;
+  RttiContext : TRttiContext;
+  RttiType: TRttiType;
+{$endif}
 begin
+  {$ifdef FPC}
   CreateValueIfNeeded(Value, ParentOfValue, TCasScriptValueClass(ClassType));
+  {$else}
+  { In delphi TObject.ClassType is not class method so we need use RTTI or
+    GetClass if all TX3DField classes are registered
+    https://stackoverflow.com/questions/29471798/get-class-by-its-name-in-delphi }
+  ClType := GetClass(ClassName);
+  if ClType = nil then
+  begin
+    { Class is not registered so we need use RTTI }
+    RttiContext := TRttiContext.Create;
+    try
+      RttiType := RttiContext.FindType(QualifiedClassName);
+      if (RttiType <> nil) and (RttiType.IsInstance) then
+        ClType := RttiType.AsInstance.MetaClassType;
+    finally
+      RttiContext.Free;
+    end;
+  end;
+  CreateValueIfNeeded(Value, ParentOfValue, TCasScriptValueClass(ClType));
+  {$endif}
   Result := TSelfClass(Value);
 end;
 
@@ -302,6 +328,9 @@ class procedure TCasScriptVec {$ifndef CASTLE_OBJFPC} <
 var
   I: Integer;
   MyResult: TSelfClass;
+  {$ifndef FPC}
+  Arg: TSelfClass;
+  {$endif}
 begin
   MyResult := CreateValueIfNeededSelf(AResult, ParentOfResult);
 
@@ -309,8 +338,12 @@ begin
     registered only for TCasScriptVec values, so we can safely take
     the first arg as TCasScriptVec. }
   MyResult.Value := TSelfClass(Arguments[0]).Value;
+
   for I := 1 to Length(Arguments) - 1 do
-    MyResult.Value := MyResult.Value + TSelfClass(Arguments[I]).Value;
+  begin
+    {$ifndef FPC}Arg := (Arguments[I] as TSelfClass);{$endif}
+    MyResult.Value := MyResult.Value + {$ifdef FPC}TSelfClass(Arguments[I]){$else}Arg{$endif}.Value;
+  end;
 end;
 
 class procedure TCasScriptVec {$ifndef CASTLE_OBJFPC} <

@@ -33,6 +33,13 @@ uses SysUtils, Classes, Generics.Collections,
 
 {$define read_interface}
 
+const
+  prRenderSelf = CastleTransform.prRenderSelf;
+  prRenderClones = CastleTransform.prRenderClones;
+  prBackground = CastleTransform.prBackground;
+  prBoundingBox = CastleTransform.prBoundingBox;
+  prShadowVolume = CastleTransform.prShadowVolume;
+
 type
   TCastleSceneList = class;
 
@@ -44,14 +51,6 @@ type
   TPrepareResourcesOption = CastleTransform.TPrepareResourcesOption;
   TPrepareResourcesOptions = CastleTransform.TPrepareResourcesOptions;
 
-const
-  prRenderSelf = CastleTransform.prRenderSelf;
-  prRenderClones = CastleTransform.prRenderClones;
-  prBackground = CastleTransform.prBackground;
-  prBoundingBox = CastleTransform.prBoundingBox;
-  prShadowVolume = CastleTransform.prShadowVolume;
-
-type
   { Possible checks done while frustum culling.
 
     This is used by TCastleScene.FrustumCulling (what checks
@@ -360,7 +359,7 @@ type
 
     property BackgroundSkySphereRadius: Single
       read FBackgroundSkySphereRadius write SetBackgroundSkySphereRadius
-      default 1;
+      {$ifdef FPC}default 1{$endif};
 
     { TBackground instance to render current background. Current background
       is the top node on the BackgroundStack of this scene, following X3D
@@ -412,6 +411,7 @@ type
       in @link(RenderOptions). }
     function Clone(const AOwner: TComponent): TCastleScene;
 
+    {$ifdef FPC}
     { What kind of per-shape frustum culling do when
       ShapeFrustumCulling is @true,
       and we don't have octree (ssRendering is not included in @link(TCastleSceneCore.Spatial)). }
@@ -425,6 +425,7 @@ type
     property OctreeFrustumCulling: TFrustumCulling
       read FOctreeFrustumCulling write SetOctreeFrustumCulling default fcBox;
       deprecated 'use simpler ShapeFrustumCulling';
+    {$endif}
   published
     { Improve performance of rendering by checking for each shape whether
       it is inside frustum (camera pyramid of view) before rendering.
@@ -455,7 +456,7 @@ type
 
     { Cull shapes farther than this distance. Ignored if <= 0. }
     property DistanceCulling: Single
-      read FDistanceCulling write SetDistanceCulling default 0;
+      read FDistanceCulling write SetDistanceCulling {$ifdef FPC}default 0{$endif};
 
     { Rendering options.
       You are free to change them at any time. }
@@ -464,10 +465,10 @@ type
 
   TCastleSceneClass = class of TCastleScene;
 
-  TCastleSceneList = class(specialize TObjectList<TCastleScene>)
+  TCastleSceneList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCastleScene>)
   end;
 
-  TTriangle4List = specialize TStructList<TTriangle4>;
+  TTriangle4List = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TTriangle4>;
 
   { @exclude Internal.
 
@@ -489,7 +490,7 @@ type
     FBaseLights: TLightInstancesList;
     constructor Create;
     destructor Destroy; override;
-    function BaseLights(Scene: TCastleTransform): TLightInstancesList; override;
+    function BaseLights(Scene: TCastleTransform): TLightInstancesList;
   end;
 
 procedure Register;

@@ -85,7 +85,7 @@ type
 implementation
 
 uses SysUtils, Math,
-  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  {$ifdef FPC}{$ifdef CASTLE_OBJFPC}CastleGL, {$else}GL, GLExt, {$endif}{$else}OpenGL, OpenGLext, {$endif}
   CastleUtils;
 
 { Set and enable OpenGL light properties based on VRML/X3D light.
@@ -148,7 +148,7 @@ begin
     Exit;
   LightNode := TAbstractPunctualLightNode(Light.Node);
 
-  glLightNum += GL_LIGHT0;
+  glLightNum := glLightNum + GL_LIGHT0;
 
   glPushMatrix;
   try
