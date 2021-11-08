@@ -82,7 +82,7 @@
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <DCC_CBuilderOutput>All</DCC_CBuilderOutput>
         <SanitizedProjectName>castle_base</SanitizedProjectName>
-        <DCC_UnitSearchPath>..\..\src\base\windows;..\..\src\base;..\..\src\files;..\..\src\compatibility\delphi-only;..\..\src\compatibility\delphi-only\fcl-json;..\..\src\common_includes;..\..\src\base\opengl;..\..\src\images\opengl\glsl\generated-pascal;..\..\src\images\opengl;..\..\src\ui;..\..\src\ui\opengl;..\..\src\x3d;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>..\..\src\base\windows;..\..\src\base;..\..\src\files;..\..\src\compatibility\delphi-only;..\..\src\compatibility\delphi-only\fcl-json;..\..\src\common_includes;..\..\src\base\opengl;..\..\src\images\opengl\glsl\generated-pascal;..\..\src\images\opengl;..\..\src\ui;..\..\src\ui\opengl;..\..\src\x3d;..\..\src\x3d\opengl\glsl\generated-pascal;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <VerInfo_Locale>1045</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <RuntimeOnlyPackage>true</RuntimeOnlyPackage>
@@ -259,6 +259,26 @@
         <DCCReference Include="..\..\src\pasgltf\PasDblStrUtils.pas"/>
         <DCCReference Include="..\..\src\3d\castlenurbs.pas"/>
         <DCCReference Include="..\..\src\services\castleopendocument.pas"/>
+        <DCCReference Include="..\..\src\3d\castleinternalgeometryarrays.pas"/>
+        <DCCReference Include="..\..\src\3d\castletriangulate.pas"/>
+        <DCCReference Include="..\..\src\game\castletransformextra.pas"/>
+        <DCCReference Include="..\..\src\x3d\opengl\castleinternalrenderer.pas"/>
+        <DCCReference Include="..\..\src\x3d\opengl\castlerendererinternallights.pas"/>
+        <DCCReference Include="..\..\src\x3d\opengl\castlerendererinternalshader.pas"/>
+        <DCCReference Include="..\..\src\x3d\opengl\castlerendererinternaltextureenv.pas"/>
+        <DCCReference Include="..\..\src\x3d\opengl\castlescreeneffects.pas"/>
+        <DCCReference Include="..\..\src\x3d\opengl\castleglcubemaps.pas"/>
+        <DCCReference Include="..\..\src\3d\castlecubemaps.pas"/>
+        <DCCReference Include="..\..\src\3d\castlesphericalharmonics.pas"/>
+        <DCCReference Include="..\..\src\3d\castlespheresampling.pas"/>
+        <DCCReference Include="..\..\src\x3d\opengl\castlesceneinternalshape.pas"/>
+        <DCCReference Include="..\..\src\x3d\opengl\castleinternalbackground.pas"/>
+        <DCCReference Include="..\..\src\3d\opengl\castleinternalglshadowvolumes.pas"/>
+        <DCCReference Include="..\..\src\x3d\opengl\castlesceneinternalocclusion.pas"/>
+        <DCCReference Include="..\..\src\x3d\opengl\castlesceneinternalblending.pas"/>
+        <DCCReference Include="..\..\src\x3d\opengl\castleinternalbatchshapes.pas"/>
+        <DCCReference Include="..\..\src\3d\castlerenderingcamera.pas"/>
+        <DCCReference Include="..\..\src\x3d\opengl\castleshapeinternalrendershadowvolumes.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

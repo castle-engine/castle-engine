@@ -109,8 +109,6 @@ contains
   castletransform in '..\..\src\3d\castletransform.pas',
   kraft in '..\..\src\physics\kraft\kraft.pas',
   x3dcastlescript in '..\..\src\x3d\x3dcastlescript.pas',
-  //castlescript in '..\..\src\castlescript\castlescript.pas',
-  //castlescriptcorefunctions in '..\..\src\castlescript\castlescriptcorefunctions.pas',
   castleinternaloctree in '..\..\src\3d\castleinternaloctree.pas',
   castlebehaviors in '..\..\src\game\castlebehaviors.pas',
   castlesectors in '..\..\src\3d\castlesectors.pas',
@@ -130,10 +128,29 @@ contains
   PasGLTF in '..\..\src\pasgltf\PasGLTF.pas',
   PasJSON in '..\..\src\pasgltf\PasJSON.pas',
   PasDblStrUtils in '..\..\src\pasgltf\PasDblStrUtils.pas',
-  //castlescriptparser in '..\..\src\castlescript\castlescriptparser.pas',
-  //castlescriptlexer in '..\..\src\castlescript\castlescriptlexer.pas',
   castlenurbs in '..\..\src\3d\castlenurbs.pas',
-  castleopendocument in '..\..\src\services\castleopendocument.pas';
-  //castlescriptvectors in '..\..\src\castlescript\castlescriptvectors.pas';
+  castleopendocument in '..\..\src\services\castleopendocument.pas',
+  castleinternalgeometryarrays in '..\..\src\3d\castleinternalgeometryarrays.pas',
+  castletriangulate in '..\..\src\3d\castletriangulate.pas',
+  castletransformextra in '..\..\src\game\castletransformextra.pas',
+  castleinternalrenderer in '..\..\src\x3d\opengl\castleinternalrenderer.pas',
+  castlerendererinternallights in '..\..\src\x3d\opengl\castlerendererinternallights.pas',
+  castlerendererinternalshader in '..\..\src\x3d\opengl\castlerendererinternalshader.pas',
+  castlerendererinternaltextureenv in '..\..\src\x3d\opengl\castlerendererinternaltextureenv.pas',
+  castlescreeneffects in '..\..\src\x3d\opengl\castlescreeneffects.pas',
+  castleglcubemaps in '..\..\src\x3d\opengl\castleglcubemaps.pas',
+  castlecubemaps in '..\..\src\3d\castlecubemaps.pas',
+  castlesphericalharmonics in '..\..\src\3d\castlesphericalharmonics.pas',
+  castlespheresampling in '..\..\src\3d\castlespheresampling.pas',
+  castlesceneinternalshape in '..\..\src\x3d\opengl\castlesceneinternalshape.pas',
+  castleinternalbackground in '..\..\src\x3d\opengl\castleinternalbackground.pas',
+  castleinternalglshadowvolumes in '..\..\src\3d\opengl\castleinternalglshadowvolumes.pas',
+  castlesceneinternalocclusion in '..\..\src\x3d\opengl\castlesceneinternalocclusion.pas',
+  castlesceneinternalblending in '..\..\src\x3d\opengl\castlesceneinternalblending.pas',
+  castleinternalbatchshapes in '..\..\src\x3d\opengl\castleinternalbatchshapes.pas',
+  castlerenderingcamera in '..\..\src\3d\castlerenderingcamera.pas',
+  castleshapeinternalrendershadowvolumes in '..\..\src\x3d\opengl\castleshapeinternalrendershadowvolumes.pas';
+
+//castlescriptvectors in '..\..\src\castlescript\castlescriptvectors.pas';
 
 end.
