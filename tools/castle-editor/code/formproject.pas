@@ -18,6 +18,12 @@ unit FormProject;
 
 {$mode objfpc}{$H+}
 
+{ Hack to use OpenDocument instead of RunCommandNoWait to execute Delphi.
+  This assumes that Delphi is associated on your system with Pascal files.
+  OTOH it will work a bit nicer, not opening new Delphi instance each time,
+  as Windows underneath will use DDE to communicate with Delphi BDSLauncher. }
+{.$define DELPHI_OPEN_SHELL}
+
 interface
 
 uses
@@ -585,10 +591,14 @@ begin
           Exit;
         end;
 
+        {$ifdef DELPHI_OPEN_SHELL}
+        OpenDocument(ProjectDelphi); // hack to open Pascal names in existing Delphi window, using DDE
+        {$else}
         RunCommandNoWait(ProjectPath, DelphiExe, [
           ProjectDelphi
           //ProjectStandaloneSource
         ]);
+        {$endif}
       end;
     ceVSCode:
       begin
@@ -1825,17 +1835,33 @@ begin
 
         { We use DelphiExe, which is BDS.exe.
 
-          Note: Do not use BDSLauncher.exe. This is defined in registry as "shell open",
-          but using BDSLauncher is not so easy: we would need then to pass filename
-          using DDE (Windows inter-process communication API).
+          Notes:
 
-          Using just BDS is simpler.
+          - Do not use BDSLauncher.exe. BDSLauncher is defined in registry as the application
+            doing "shell open", but using BDSLauncher is not so easy: we would need
+            then to pass filename using DDE (Windows inter-process communication API).
+            Using just BDS is simpler.
 
-          Note: using /np doesn't work, in fact it makes the following filename ignored. }
+          - Multiple filenames are not supported.
+            We cannot point to the project *and* filename within, it seems.
+            TODO: Need to use Delphi DDE for this?
 
+          - We cannot open in existing Delphi instance?
+            TODO: Need to use Delphi DDE for this?
+
+          - Using /np doesn't work, in fact it makes the following filename ignored.
+            Maybe BDS doesn't understand /np at all, and treats it as another filename?
+            And only 1 filename is handler, as stated above.
+        }
+
+        {$ifdef DELPHI_OPEN_SHELL}
+        OpenDocument(FileName); // hack to open Pascal names in existing Delphi window, using DDE
+        {$else}
         RunCommandNoWait(ProjectPath, DelphiExe, [
           FileName
         ]);
+        {$endif}
+
       end;
     ceVSCode:
       begin
