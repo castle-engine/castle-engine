@@ -89,10 +89,10 @@ begin
   ButtonTestRay := DesignedComponent('ButtonTestRay') as TCastleButton;
   MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
 
-  ButtonTestMove.OnClick := @ClickTestMove;
-  ButtonTestBox.OnClick := @ClickTestBox;
-  ButtonTestSphere.OnClick := @ClickTestSphere;
-  ButtonTestRay.OnClick := @ClickTestRay;
+  ButtonTestMove.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ClickTestMove;
+  ButtonTestBox.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ClickTestBox;
+  ButtonTestSphere.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ClickTestSphere;
+  ButtonTestRay.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ClickTestRay;
 
   SetTestMode(tmMove);
 end;

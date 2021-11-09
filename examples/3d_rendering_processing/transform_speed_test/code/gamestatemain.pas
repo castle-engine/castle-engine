@@ -58,7 +58,7 @@ procedure TStateMain.TRotateBehavior.Update(const SecondsPassed: Single;
   var RemoveMe: TRemoveType);
 begin
   inherited;
-  LifeTime += SecondsPassed;
+  LifeTime := LifeTime + SecondsPassed;
   Parent.Rotation := Vector4(0, 0, 1, LifeTime);
 end;
 
