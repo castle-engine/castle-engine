@@ -128,7 +128,7 @@ begin
   FLife := DefaultLife;
   FMaxLife := DefaultLife;
   FAttackerObserver := TFreeNotificationObserver.Create(Self);
-  FAttackerObserver.OnFreeNotification := @AttackerFreeNotification;
+  FAttackerObserver.OnFreeNotification := {$ifdef CASTLE_OBJFPC}@{$endif}AttackerFreeNotification;
 end;
 
 procedure TCastleAliveBehavior.ParentChanged;
@@ -165,12 +165,11 @@ end;
 function TCastleAliveBehavior.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'Life', 'MaxLife':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'Life') or
+     (PropertyName = 'MaxLife') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 function TCastleAliveBehavior.Dead: Boolean;

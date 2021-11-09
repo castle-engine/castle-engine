@@ -96,18 +96,14 @@ contains
   fphashcompatibility in '..\..\src\compatibility\delphi-only\fphashcompatibility.pas',
   castleviewport in '..\..\src\x3d\opengl\castleviewport.pas',
   x3dnodes in '..\..\src\x3d\x3dnodes.pas',
-  castleinternalx3dlexer in '..\..\src\x3d\castleinternalx3dlexer.pas',
   x3dloadinternalutils in '..\..\src\x3d\x3dloadinternalutils.pas',
   x3dfields in '..\..\src\x3d\x3dfields.pas',
   x3dtime in '..\..\src\x3d\x3dtime.pas',
   castlequaternions in '..\..\src\3d\castlequaternions.pas',
   castleboxes in '..\..\src\3d\castleboxes.pas',
-  castletriangles in '..\..\src\3d\castletriangles.pas',
   castlecameras in '..\..\src\3d\castlecameras.pas',
-  castlefrustum in '..\..\src\3d\castlefrustum.pas',
   castlerays in '..\..\src\3d\castlerays.pas',
   castletransform in '..\..\src\3d\castletransform.pas',
-  kraft in '..\..\src\physics\kraft\kraft.pas',
   x3dcastlescript in '..\..\src\x3d\x3dcastlescript.pas',
   castleinternaloctree in '..\..\src\3d\castleinternaloctree.pas',
   castlebehaviors in '..\..\src\game\castlebehaviors.pas',
@@ -149,7 +145,12 @@ contains
   castlesceneinternalblending in '..\..\src\x3d\opengl\castlesceneinternalblending.pas',
   castleinternalbatchshapes in '..\..\src\x3d\opengl\castleinternalbatchshapes.pas',
   castlerenderingcamera in '..\..\src\3d\castlerenderingcamera.pas',
-  castleshapeinternalrendershadowvolumes in '..\..\src\x3d\opengl\castleshapeinternalrendershadowvolumes.pas';
+  castleshapeinternalrendershadowvolumes in '..\..\src\x3d\opengl\castleshapeinternalrendershadowvolumes.pas',
+  castleinternalx3dlexer in '..\..\src\x3d\castleinternalx3dlexer.pas',
+  castletriangles in '..\..\src\3d\castletriangles.pas',
+  castlefrustum in '..\..\src\3d\castlefrustum.pas',
+  kraft in '..\..\src\physics\kraft\kraft.pas',
+  castlescenecore in '..\..\src\x3d\castlescenecore.pas';
 
 //castlescriptvectors in '..\..\src\castlescript\castlescriptvectors.pas';
 

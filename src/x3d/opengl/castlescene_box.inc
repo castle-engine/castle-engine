@@ -76,12 +76,11 @@ end;
 
 function TCastleBox.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'SizePersistent', 'DoubleSided':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'SizePersistent') or
+     (PropertyName = 'DoubleSided') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TCastleBox.SetSize(const Value: TVector3);

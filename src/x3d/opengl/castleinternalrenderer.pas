@@ -768,7 +768,7 @@ begin
   TextureCubeMapCaches := TTextureCubeMapCacheList.Create;
   Texture3DCaches := TTexture3DCacheList.Create;
   TextureDepthOrFloatCaches := TTextureDepthOrFloatCacheList.Create;
-  for B in Boolean do
+  for B := Low(Boolean) to High(Boolean) do
     ShapeCaches[B] := TShapeCacheList.Create;
   ProgramCaches := TShaderProgramCacheList.Create;
 end;
@@ -823,12 +823,12 @@ begin
     FreeAndNil(TextureDepthOrFloatCaches);
   end;
 
-  for B in Boolean do
+  for B := Low(Boolean) to High(Boolean) do
     if ShapeCaches[B] <> nil then
     begin
       Assert(ShapeCaches[B].Count = 0, Format('%d references to shapes still exist on ShapeCaches[%s] when freeing TGLRendererContextCache', [
         ShapeCaches[B].Count,
-        BoolToStr(B, true)
+        SysUtils.BoolToStr(B, true)
         // ShapeCaches[B][0].ToString // not printed, risks further SEGFAULT during log output in case invalid reference remained on the list
       ]));
       FreeAndNil(ShapeCaches[B]);
@@ -1832,7 +1832,7 @@ end;
 
 procedure TGLRenderer.Prepare(Shape: TX3DRendererShape);
 begin
-  Shape.EnumerateTextures(@PrepareTexture);
+  Shape.EnumerateTextures({$ifdef CASTLE_OBJFPC}@{$endif}PrepareTexture);
 end;
 
 procedure TGLRenderer.PrepareScreenEffect(Node: TScreenEffectNode);
@@ -2241,12 +2241,14 @@ procedure TGLRenderer.RenderShape(const Shape: TX3DRendererShape);
     I: Integer;
     Lights: TLightInstancesList;
   begin
+    {$ifndef FPC}{$POINTERMATH ON}{$endif}
     Lights := Shape.State.Lights;
     if Lights <> nil then
       for I := 0 to Lights.Count - 1 do
         if Lights.L[I].Node is TEnvironmentLightNode then
           Exit(true);
     Result := false;
+    {$ifndef FPC}{$POINTERMATH OFF}{$endif}
   end;
 
   function ShapeMaybeUsesShadowMaps(const Shape: TX3DRendererShape): boolean;
@@ -2705,7 +2707,7 @@ var
     if (GLFeatures.MaxClipPlanes > 0) and (ClipPlanes <> nil) then
       for I := 0 to ClipPlanes.Count - 1 do
       begin
-        ClipPlane := ClipPlanes.Ptr(I);
+        ClipPlane := PClipPlane(ClipPlanes.Ptr(I));
         if ClipPlane^.Node.FdEnabled.Value then
         begin
           Assert(ClipPlanesEnabled < GLFeatures.MaxClipPlanes);
@@ -2804,8 +2806,6 @@ begin
   end;
 end;
 
-{$define MeshRenderer := TMeshRenderer(ExposedMeshRenderer) }
-
 procedure TGLRenderer.RenderShapeShaders(const Shape: TX3DRendererShape;
   const Shader: TShader;
   const Lighting: boolean;
@@ -2901,7 +2901,7 @@ begin
   end;
 
   RenderShapeTextures(Shape, Shader, Lighting,
-    GeneratorClass, MeshRenderer, UsedGLSLTexCoordsNeeded);
+    GeneratorClass, TMeshRenderer(ExposedMeshRenderer), UsedGLSLTexCoordsNeeded);
 end;
 
 procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
@@ -3063,7 +3063,7 @@ procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
 begin
   RenderTexturesBegin;
   try
-    RenderShapeInside(Shape, Shader, Lighting, GeneratorClass, MeshRenderer);
+    RenderShapeInside(Shape, Shader, Lighting, GeneratorClass, TMeshRenderer(ExposedMeshRenderer));
   finally RenderTexturesEnd end;
 end;
 
@@ -3103,7 +3103,7 @@ function FastUpdateArrays(const Shape: TX3DRendererShape): Boolean;
 
       ItemSize := SizeOf(TVector3) * 2;
       if Tangents <> nil then
-        ItemSize += SizeOf(TVector3);
+        ItemSize := ItemSize + SizeOf(TVector3);
       Size := Count * ItemSize;
 
       if (Cache.VboAllocatedUsage = GL_STREAM_DRAW) and
@@ -3129,23 +3129,23 @@ function FastUpdateArrays(const Shape: TX3DRendererShape): Boolean;
               for I := 0 to Count - 1 do
               begin
                 PVector3(NewCoord)^ := Coords.List^[I];
-                PtrUInt(NewCoord) += SizeOf(TVector3);
+                PtrUInt(NewCoord) := PtrUInt(NewCoord) + SizeOf(TVector3);
 
                 PVector3(NewCoord)^ := Normals.List^[I];
-                PtrUInt(NewCoord) += SizeOf(TVector3);
+                PtrUInt(NewCoord) := PtrUInt(NewCoord) + SizeOf(TVector3);
 
                 PVector3(NewCoord)^ := Tangents.List^[I];
-                PtrUInt(NewCoord) += SizeOf(TVector3);
+                PtrUInt(NewCoord) := PtrUInt(NewCoord) + SizeOf(TVector3);
               end;
             end else
             begin
               for I := 0 to Count - 1 do
               begin
                 PVector3(NewCoord)^ := Coords.List^[I];
-                PtrUInt(NewCoord) += SizeOf(TVector3);
+                PtrUInt(NewCoord) := PtrUInt(NewCoord) + SizeOf(TVector3);
 
                 PVector3(NewCoord)^ := Normals.List^[I];
-                PtrUInt(NewCoord) += SizeOf(TVector3);
+                PtrUInt(NewCoord) := PtrUInt(NewCoord) + SizeOf(TVector3);
               end;
             end;
 
@@ -3222,8 +3222,8 @@ begin
   { initialize TBaseCoordinateRenderer.Arrays now }
   if GeneratorClass <> nil then
   begin
-    Assert(MeshRenderer is TBaseCoordinateRenderer);
-    CoordinateRenderer := TBaseCoordinateRenderer(MeshRenderer);
+    Assert(TMeshRenderer(ExposedMeshRenderer) is TBaseCoordinateRenderer);
+    CoordinateRenderer := TBaseCoordinateRenderer(ExposedMeshRenderer);
 
     { calculate Shape.Cache }
     if Shape.Cache = nil then
@@ -3267,8 +3267,8 @@ begin
     CoordinateRenderer.Lighting := Lighting;
   end;
 
-  MeshRenderer.PrepareRenderShape := RenderMode in [rmPrepareRenderSelf, rmPrepareRenderClones];
-  MeshRenderer.Render;
+  TMeshRenderer(ExposedMeshRenderer).PrepareRenderShape := RenderMode in [rmPrepareRenderSelf, rmPrepareRenderClones];
+  TMeshRenderer(ExposedMeshRenderer).Render;
 
   if (GeneratorClass <> nil) and GLFeatures.VertexBufferObject then
   begin

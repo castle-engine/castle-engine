@@ -82,7 +82,7 @@ type
   { Information about ray collision with a single 3D object.
     Everything (Point, RayOrigin, RayDirection) is expressed
     in the parent coordinate system of this TCastleTransform (in @link(Item)). }
-  TRayCollisionNode = object
+  TRayCollisionNode = record
   public
     { Colliding object. }
     Item: TCastleTransform;
@@ -163,7 +163,7 @@ type
   end;
 
   { Detailed information about collision with a single 3D object. }
-  TCollisionDetailsItem = object
+  TCollisionDetailsItem = record
   public
     { Colliding 3D object. }
     Item: TCastleTransform;
@@ -2490,7 +2490,7 @@ procedure TCollisionDetails.Add(const Item: TCastleTransform);
 var
   NewItem: PCollisionDetailsItem;
 begin
-  NewItem := inherited Add();
+  NewItem := PCollisionDetailsItem(inherited Add());
   NewItem^.Item := Item;
 end;
 
@@ -2623,7 +2623,7 @@ begin
 
   if RegisteredGLContextCloseListener then
   begin
-    ApplicationProperties.OnGLContextCloseObject.Remove(@GLContextCloseEvent);
+    ApplicationProperties.OnGLContextCloseObject.Remove({$ifdef CASTLE_OBJFPC}@{$endif}GLContextCloseEvent);
     RegisteredGLContextCloseListener := false;
   end;
   GLContextClose;
@@ -2701,7 +2701,7 @@ begin
   if FWorld <> Value then
   begin
     if FWorld <> nil then
-      raise ECannotAddToAnotherWorld.Create('Cannot add object existing in one TCastleRootTransform to another. This usually means that your object is part of "Viewport1.Items", and you are adding it to "Viewport2.Items". You have to remove it from "Viewport1.Items" first, or set both "Viewport1.Items" and "Viewport2.Items" to be equal.');
+      raise ECannotAddToAnotherWorld.Create('Cannot add object existing in one TCastleRootTransform to another. ' + 'This usually means that your object is part of "Viewport1.Items", and you are adding it to "Viewport2.Items". You have to remove it from "Viewport1.Items" first, or set both "Viewport1.Items" and "Viewport2.Items" to be equal.');
     ChangeWorld(Value);
   end else
     Inc(FWorldReferences);
@@ -2719,7 +2719,7 @@ begin
   Assert(Value <> nil);
   Assert(FWorldReferences > 0);
   if FWorld <> Value then
-    WritelnWarning('TCastleTransform.RemoveFromWorld: Removing from World you were not part of. This probably means that you added one TCastleTransform instance to multiple TCastleRootTransform trees, which is not allowed. Always remove TCastleTransform from previous viewport (e.g. by "Viewport1.Items.Remove(xxx)") before adding to the new viewport.');
+    WritelnWarning('TCastleTransform.RemoveFromWorld: Removing from World you were not part of. ' + 'This probably means that you added one TCastleTransform instance to multiple TCastleRootTransform trees, which is not allowed. Always remove TCastleTransform from previous viewport (e.g. by "Viewport1.Items.Remove(xxx)") before adding to the new viewport.');
 
   Dec(FWorldReferences);
   if FWorldReferences = 0 then
@@ -3076,7 +3076,7 @@ begin
   if not RegisteredGLContextCloseListener then
   begin
     RegisteredGLContextCloseListener := true;
-    ApplicationProperties.OnGLContextCloseObject.Add(@GLContextCloseEvent);
+    ApplicationProperties.OnGLContextCloseObject.Add({$ifdef CASTLE_OBJFPC}@{$endif}GLContextCloseEvent);
   end;
 end;
 
@@ -3793,13 +3793,13 @@ procedure TCastleTransform.CustomSerialization(const SerializationProcess: TSeri
 begin
   inherited;
   SerializationProcess.ReadWrite('Children',
-    @SerializeChildrenEnumerate,
-    @SerializeChildrenAdd,
-    @SerializeChildrenClear);
+    {$ifdef CASTLE_OBJFPC}@{$endif}SerializeChildrenEnumerate,
+    {$ifdef CASTLE_OBJFPC}@{$endif}SerializeChildrenAdd,
+    {$ifdef CASTLE_OBJFPC}@{$endif}SerializeChildrenClear);
   SerializationProcess.ReadWrite('Behaviors',
-    @SerializeBehaviorsEnumerate,
-    @SerializeBehaviorsAdd,
-    @SerializeBehaviorsClear);
+    {$ifdef CASTLE_OBJFPC}@{$endif}SerializeBehaviorsEnumerate,
+    {$ifdef CASTLE_OBJFPC}@{$endif}SerializeBehaviorsAdd,
+    {$ifdef CASTLE_OBJFPC}@{$endif}SerializeBehaviorsClear);
 end;
 
 procedure TCastleTransform.SerializeChildrenEnumerate(const Proc: TGetChildProc);
@@ -3850,18 +3850,17 @@ end;
 
 function TCastleTransform.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'Exists':
-      Result := [psBasic];
-    'CenterPersistent',
-    'RotationPersistent',
-    'ScalePersistent',
-    'ScaleOrientationPersistent',
-    'TranslationPersistent':
-      Result := [psBasic, psLayout];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'Exists') then
+      Result := [psBasic]
+  else
+  if (PropertyName = 'CenterPersistent') or
+     (PropertyName = 'RotationPersistent') or
+     (PropertyName = 'ScalePersistent') or
+     (PropertyName = 'ScaleOrientationPersistent') or
+     (PropertyName = 'TranslationPersistent') then
+    Result := [psBasic, psLayout]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 { We try hard to keep FOnlyTranslation return fast, and return with true.
@@ -4133,7 +4132,7 @@ begin
   FPhysicsProperties.RootTransform := Self;
 
   FMainCameraObserver := TFreeNotificationObserver.Create(Self);
-  FMainCameraObserver.OnFreeNotification := @MainCameraFreeNotification;
+  FMainCameraObserver.OnFreeNotification := {$ifdef CASTLE_OBJFPC}@{$endif}MainCameraFreeNotification;
 
   FTimeScale := 1;
   FMoveLimit := TBox3D.Empty;
@@ -4195,7 +4194,7 @@ begin
   Result := not SegmentCollision(Pos1, Pos2,
     { Ignore transparent materials, this means that creatures can see through
       glass --- even though they can't walk through it. }
-    @TBaseTrianglesOctree(nil).IgnoreTransparentItem,
+    {$ifdef CASTLE_OBJFPC}@{$endif}TBaseTrianglesOctree{$ifdef FPC}(nil){$endif}.IgnoreTransparentItem,
     true);
 end;
 
@@ -4365,7 +4364,7 @@ function StrToOrientationType(const S: String): TOrientationType;
 begin
   if S = 'default' then
     Exit(TCastleTransform.DefaultOrientation);
-  for Result in TOrientationType do
+  for Result := Low(TOrientationType) to High(TOrientationType) do
     if OrientationNames[Result] = S then
       Exit;
   raise Exception.CreateFmt('Invalid orientation name "%s"', [S]);

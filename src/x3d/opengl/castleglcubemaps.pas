@@ -196,7 +196,7 @@ begin
       (on cube map, pixels have different solid angles),
       so below we divide by 4*Pi (sphere area, sum of solid angles for every
       pixel). }
-    SHVector[SHBasis] /= 4 * Pi;
+    SHVector[SHBasis] := SHVector[SHBasis] / (4 * Pi);
   end;
 end;
 

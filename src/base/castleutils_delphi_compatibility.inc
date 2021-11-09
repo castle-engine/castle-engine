@@ -93,6 +93,7 @@ type
 
   TGLint = GLint;
   TGLuint = GLuint;
+  TGLenum = GLenum;
 
   { TOwnerStream from FPC }
   TOwnerStream = Class(TStream)

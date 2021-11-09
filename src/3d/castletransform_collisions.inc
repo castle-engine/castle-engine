@@ -237,7 +237,7 @@ begin
 
     if Result <> nil then
     begin
-      NewNode := Result.Add;
+      NewNode := PRayCollisionNode(Result.Add);
       PreviousNode := @(Result.List^[Result.Count - 2]);
       NewNode^.Item := Self;
       NewNode^.Point := PreviousNode^.Point;

@@ -41,7 +41,7 @@
 
   THAnimJointNode = class;
 
-  TVertexJoints = object
+  TVertexJoints = record
     RestPosition: TVector3;
     Count: Cardinal;
     Joints: array of THAnimJointNode;

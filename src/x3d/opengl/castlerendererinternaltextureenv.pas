@@ -55,7 +55,7 @@ type
   TSourcePerChannel = array [TChannel] of TColorSource;
 
   { How to mix the current texture color into the fragment color. }
-  TTextureEnv = object
+  TTextureEnv = record
   public
     { How to calculate given fragment channel using this texture unit.
       Returned values correspond to parameters of

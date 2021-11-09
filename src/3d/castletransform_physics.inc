@@ -917,7 +917,7 @@ begin
     Exit;
 
   if Assigned(FOnCollisionEnter) or Assigned(FOnCollisionStay) or Assigned(FOnCollisionExit) then
-    FKraftBody.OnPostStep := @PhysicsPostStep
+    FKraftBody.OnPostStep := {$ifdef CASTLE_OBJFPC}@{$endif}PhysicsPostStep
   else
     FKraftBody.OnPostStep := nil;
 end;

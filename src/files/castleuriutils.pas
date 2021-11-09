@@ -1018,7 +1018,14 @@ begin
     would cause trouble: it would be considered a drive letter separator,
     and change the result. }
   URLWithoutAnchor := URIDeleteAnchor(URL, DefaultRecognizeEvenEscapedHash);
+  {$ifdef FPC}
   Result := ExtractFilePath(URLWithoutAnchor);
+  {$else}
+  { TODO: Better solution }
+  { In Delphi / separator is not recognized soo we need replace all / to \
+    This is temporary solution. }
+  Result := ExtractFilePath(StringReplace(URLWithoutAnchor,'/','\',[rfReplaceAll]));
+  {$endif}
 end;
 
 function URIIncludeSlash(const URL: String): String;

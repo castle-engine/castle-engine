@@ -19,7 +19,7 @@
 {$ifdef read_interface}
 
 type
-  TNodeAvailableInLibrary = object
+  TNodeAvailableInLibrary = record
     Element: TDOMElement;
     Handled: boolean;
   end;
@@ -107,7 +107,7 @@ begin
     try
       while I.GetNext do
       begin
-        NodeAvail := LibraryNodesAvailable.Add;
+        NodeAvail := PNodeAvailableInLibrary(LibraryNodesAvailable.Add);
         NodeAvail^.Handled := false;
         NodeAvail^.Element := I.Current;
       end;

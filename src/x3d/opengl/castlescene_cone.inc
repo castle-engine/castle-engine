@@ -76,12 +76,14 @@ end;
 
 function TCastleCone.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'BottomRadius', 'Height', 'DoubleSided', 'Bottom', 'Side':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'BottomRadius') or
+     (PropertyName = 'Height') or
+     (PropertyName = 'DoubleSided') or
+     (PropertyName = 'Bottom') or
+     (PropertyName = 'Side') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TCastleCone.SetBottomRadius(const Value: Single);

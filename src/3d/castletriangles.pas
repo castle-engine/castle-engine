@@ -197,7 +197,7 @@ type
     editing / removing a face corresponding to a given triangle.
 
     Otherwise, both IndexBegin and IndexEnd are -1. }
-  TFaceIndex = object
+  TFaceIndex = record
     IndexBegin, IndexEnd: Integer;
   end;
 

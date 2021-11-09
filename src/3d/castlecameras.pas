@@ -3179,7 +3179,7 @@ begin
   FRotationAccelerationSpeed := DefaultRotationAccelerationSpeed;
   FRotationSpeed := DefaultRotationSpeed;
   FPinchGestureRecognizer := TCastlePinchPanGestureRecognizer.Create;
-  FPinchGestureRecognizer.OnGestureChanged := @OnGestureRecognized;
+  FPinchGestureRecognizer.OnGestureChanged := {$ifdef CASTLE_OBJFPC}@{$endif}OnGestureRecognized;
 
   FMouseButtonRotate := buttonLeft;
   FMouseButtonMove := buttonMiddle;
@@ -3942,12 +3942,14 @@ end;
 function TCastleExamineNavigation.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'MoveEnabled', 'RotationEnabled', 'ZoomEnabled', 'RotationAccelerate', 'ExactMovement':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'MoveEnabled') or
+     (PropertyName = 'RotationEnabled') or
+     (PropertyName = 'ZoomEnabled') or
+     (PropertyName = 'RotationAccelerate') or
+     (PropertyName = 'ExactMovement') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 { TCastleMouseLookNavigation ------------------------------------------------- }
@@ -5442,16 +5444,25 @@ end;
 function TCastleWalkNavigation.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'Gravity', 'MoveSpeed', 'Radius', 'PreferredHeight', 'MoveHorizontalSpeed', 'MoveVerticalSpeed',
-    'MouseDraggingHorizontalRotationSpeed', 'MouseDraggingVerticalRotationSpeed',
-    'MouseDraggingMoveSpeed', 'MouseDragMode', 'RotationHorizontalSpeed', 'RotationVerticalSpeed',
-    // 'MouseLook', // hard to get out of it, as it captures mouse
-    'MouseLookHorizontalSensitivity', 'MouseLookVerticalSensitivity', 'InvertVerticalMouseLook':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'Gravity') or
+     (PropertyName = 'MoveSpeed') or
+     (PropertyName = 'Radius') or
+     (PropertyName = 'PreferredHeight') or
+     (PropertyName = 'MoveHorizontalSpeed') or
+     (PropertyName = 'MoveVerticalSpeed') or
+     (PropertyName = 'MouseDraggingHorizontalRotationSpeed' ) or
+     (PropertyName = 'MouseDraggingVerticalRotationSpeed' ) or
+     (PropertyName = 'MouseDraggingMoveSpeed') or
+     (PropertyName = 'MouseDragMode') or
+     (PropertyName = 'RotationHorizontalSpeed') or
+     (PropertyName = 'RotationVerticalSpeed') or
+     // 'MouseLook', // hard to get out of it, as it captures mouse
+     (PropertyName = 'MouseLookHorizontalSensitivity') or
+     (PropertyName = 'MouseLookVerticalSensitivity') or
+     (PropertyName = 'InvertVerticalMouseLook') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 { global ------------------------------------------------------------ }

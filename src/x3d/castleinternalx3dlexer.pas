@@ -100,7 +100,7 @@ const
 type
   TX3DEncoding = (xeClassic, xeXML);
 
-  TX3DVersion = object
+  TX3DVersion = record
     Major, Minor: Integer;
     function FileExtension(const Encoding: TX3DEncoding;
       const ForceConvertingToX3D: boolean = false): string;

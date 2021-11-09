@@ -150,7 +150,7 @@ begin
   FVerticalAlignment := vpBottom;
 
   FCustomFontObserver := TFreeNotificationObserver.Create(Self);
-  FCustomFontObserver.OnFreeNotification := @CustomFontFreeNotification;
+  FCustomFontObserver.OnFreeNotification := {$ifdef CASTLE_OBJFPC}@{$endif}CustomFontFreeNotification;
 end;
 
 destructor TCastleText.Destroy;
@@ -161,13 +161,17 @@ end;
 
 function TCastleText.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'Caption', 'Text', 'DoubleSided', 'Size', 'Spacing', 'Alignment', 'VerticalAlignment',
-    'CustomFont':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'Caption') or
+     (PropertyName = 'Text') or
+     (PropertyName = 'DoubleSided') or
+     (PropertyName = 'Size') or
+     (PropertyName = 'Spacing') or
+     (PropertyName = 'Alignment') or
+     (PropertyName = 'VerticalAlignment') or
+     (PropertyName = 'CustomFont') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 function TCastleText.GetCaption: String;
@@ -304,10 +308,12 @@ begin
   if FCustomFont <> Value then
   begin
     if FCustomFont <> nil then
-      FCustomFont.RemoveFontSizeChangeNotification(@CustomFontSizeChanged);
+      FCustomFont.RemoveFontSizeChangeNotification(
+        {$ifdef CASTLE_OBJFPC}@{$endif}CustomFontSizeChanged);
     FCustomFont := Value;
     if FCustomFont <> nil then
-      FCustomFont.AddFontSizeChangeNotification(@CustomFontSizeChanged);
+      FCustomFont.AddFontSizeChangeNotification(
+        {$ifdef CASTLE_OBJFPC}@{$endif}CustomFontSizeChanged);
 
     // modify X3D nodes
     FontStyleNode.CustomFont := Value;

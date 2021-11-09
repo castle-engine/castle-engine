@@ -83,12 +83,15 @@ end;
 
 function TCastleCylinder.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'Radius', 'Height', 'DoubleSided', 'Bottom', 'Side', 'Top':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'Radius') or
+     (PropertyName = 'Height') or
+     (PropertyName = 'DoubleSided') or
+     (PropertyName = 'Bottom') or
+     (PropertyName = 'Side') or
+     (PropertyName = 'Top') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TCastleCylinder.SetRadius(const Value: Single);

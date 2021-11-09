@@ -430,17 +430,17 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
   function FindMergeable(const Shapes: TMergingShapes;
     const P: TMergePipeline; const Shape: TGLShape;
     out MergeSlot: TMergeSlot): Boolean;
-  {$ifndef FPC}
   var
     MS: TMergeSlot;
-  {$endif}
   begin
-    for {$ifdef FPC}MergeSlot{$else}MS{$endif} := Low(TMergeSlot) to High(TMergeSlot) do
+    for MS := Low(TMergeSlot) to High(TMergeSlot) do
     begin
-      {$ifndef FPC}MergeSlot := MS;{$endif}
-      if Shapes[P, MergeSlot] <> nil then
-        if Mergeable(Shape, Shapes[P, MergeSlot], P) then
+      if Shapes[P, MS] <> nil then
+        if Mergeable(Shape, Shapes[P, MS], P) then
+        begin
+          MergeSlot := MS;
           Exit(true);
+        end;
     end;
     Result := false;
   end;

@@ -225,18 +225,14 @@
         <DCCReference Include="..\..\src\compatibility\delphi-only\fphashcompatibility.pas"/>
         <DCCReference Include="..\..\src\x3d\opengl\castleviewport.pas"/>
         <DCCReference Include="..\..\src\x3d\x3dnodes.pas"/>
-        <DCCReference Include="..\..\src\x3d\castleinternalx3dlexer.pas"/>
         <DCCReference Include="..\..\src\x3d\x3dloadinternalutils.pas"/>
         <DCCReference Include="..\..\src\x3d\x3dfields.pas"/>
         <DCCReference Include="..\..\src\x3d\x3dtime.pas"/>
         <DCCReference Include="..\..\src\3d\castlequaternions.pas"/>
         <DCCReference Include="..\..\src\3d\castleboxes.pas"/>
-        <DCCReference Include="..\..\src\3d\castletriangles.pas"/>
         <DCCReference Include="..\..\src\3d\castlecameras.pas"/>
-        <DCCReference Include="..\..\src\3d\castlefrustum.pas"/>
         <DCCReference Include="..\..\src\3d\castlerays.pas"/>
         <DCCReference Include="..\..\src\3d\castletransform.pas"/>
-        <DCCReference Include="..\..\src\physics\kraft\kraft.pas"/>
         <DCCReference Include="..\..\src\x3d\x3dcastlescript.pas"/>
         <DCCReference Include="..\..\src\3d\castleinternaloctree.pas"/>
         <DCCReference Include="..\..\src\game\castlebehaviors.pas"/>
@@ -279,6 +275,11 @@
         <DCCReference Include="..\..\src\x3d\opengl\castleinternalbatchshapes.pas"/>
         <DCCReference Include="..\..\src\3d\castlerenderingcamera.pas"/>
         <DCCReference Include="..\..\src\x3d\opengl\castleshapeinternalrendershadowvolumes.pas"/>
+        <DCCReference Include="..\..\src\x3d\castleinternalx3dlexer.pas"/>
+        <DCCReference Include="..\..\src\3d\castletriangles.pas"/>
+        <DCCReference Include="..\..\src\3d\castlefrustum.pas"/>
+        <DCCReference Include="..\..\src\physics\kraft\kraft.pas"/>
+        <DCCReference Include="..\..\src\x3d\castlescenecore.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

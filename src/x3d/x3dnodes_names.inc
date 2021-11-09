@@ -16,7 +16,7 @@
 {$ifdef read_interface}
 
   { }
-  TX3DNodeNameRec = object
+  TX3DNodeNameRec = record
     Node: TX3DNode;
     Name: string;
     Finished: boolean;
@@ -160,8 +160,8 @@ begin
   begin
     I := IndexOfName(BindToName);
     if I <> -1 then
-      P := Ptr(I) else
-      P := Add;
+      P := PX3DNodeNameRec(Ptr(I)) else
+      P := PX3DNodeNameRec(Add);
     P^.Node := Node;
     P^.Name := BindToName;
     P^.Finished := NodeFinished;

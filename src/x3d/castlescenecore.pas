@@ -4074,7 +4074,7 @@ procedure TCastleSceneCore.ChangedAll(const OnlyAdditions: Boolean);
 
     for I := 0 to GlobalLights.Count - 1 do
     begin
-      L := GlobalLights.Ptr(I);
+      L := PLightInstance(GlobalLights.Ptr(I));
       LNode := L^.Node;
 
       { TODO: for spot lights, it would be an optimization to also limit
@@ -4918,7 +4918,7 @@ var
       if Shape.State.Lights <> nil then
         for J := 0 to Shape.State.Lights.Count - 1 do
         begin
-          LightInstance := Shape.State.Lights.Ptr(J);
+          LightInstance := PLightInstance(Shape.State.Lights.Ptr(J));
           if LightInstance^.Node = LightNode then
           begin
             LightNode.UpdateLightInstance(LightInstance^);
@@ -4964,7 +4964,7 @@ var
       for a testcase. }
     for I := 0 to GlobalLights.Count - 1 do
     begin
-      L := GlobalLights.Ptr(I);
+      L := PLightInstance(GlobalLights.Ptr(I));
       if L^.Node = ANode then
         L^.Node.UpdateLightInstance(L^);
     end;

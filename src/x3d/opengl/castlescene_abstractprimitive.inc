@@ -284,12 +284,15 @@ end;
 
 function TCastleAbstractPrimitive.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'ColorPersistent', 'Material', 'TextureNormalMap', 'Texture', 'PreciseCollisions', 'RenderOptions':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'ColorPersistent') or
+     (PropertyName = 'Material') or
+     (PropertyName = 'TextureNormalMap') or
+     (PropertyName = 'Texture') or
+     (PropertyName = 'PreciseCollisions') or
+     (PropertyName = 'RenderOptions') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TCastleAbstractPrimitive.SetPreciseCollisions(const Value: Boolean);

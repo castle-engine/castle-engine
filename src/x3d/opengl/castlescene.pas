@@ -157,6 +157,16 @@ type
       HierarchicalOcclusionQueryRenderer: THierarchicalOcclusionQueryRenderer;
       BlendingRenderer: TBlendingRenderer;
 
+    {$ifndef FPC}
+    { A lot of nested procedures from LocalRenderInside must be here because of
+      a lot of capture errors in delphi }
+    procedure RenderShape_NoTests(const Params: TRenderParams; const ModelView: TMatrix4; const Shape: TGLShape);
+    procedure RenderShape_BatchingTest(const Params: TRenderParams; const ModelView: TMatrix4; const Shape: TGLShape);
+    procedure RenderShape_SomeTests(const Params: TRenderParams; const ModelView: TMatrix4; const Shape: TGLShape);
+    procedure RenderShape_AllTests(const TestShapeVisibility: TTestShapeVisibility; const Params: TRenderParams; const ModelView: TMatrix4; const Shape: TShape);
+    procedure RenderShape_AllTests_Opaque(const TestShapeVisibility: TTestShapeVisibility; const Params: TRenderParams; const ModelView: TMatrix4; const Shape: TShape);
+    procedure RenderShape_AllTests_Blending(const TestShapeVisibility: TTestShapeVisibility; const Params: TRenderParams; const ModelView: TMatrix4; const Shape: TShape);
+    {$endif}
     { Render everything using Renderer.
 
       Calls Renderer.RenderBegin.
@@ -871,31 +881,19 @@ begin
     Result := RenderOptions.BlendingSort;
 end;
 
+{$ifdef FPC}
 procedure TCastleScene.LocalRenderInside(
   const TestShapeVisibility: TTestShapeVisibility;
   const Params: TRenderParams);
 var
   ModelView: TMatrix4;
-
-  { Transformation of Params.Transform and current RenderingCamera
-    expressed as a single combined matrix. }
-  function GetModelViewTransform: TMatrix4;
-  var
-    CameraMatrix: PMatrix4;
-  begin
-    if Params.RenderingCamera.RotationOnly then
-      CameraMatrix := @Params.RenderingCamera.RotationMatrix
-    else
-      CameraMatrix := @Params.RenderingCamera.Matrix;
-
-    if Params.TransformIdentity then
-      Result := CameraMatrix^
-    else
-      Result := CameraMatrix^ * Params.Transform^;
-  end;
+{$endif}
 
   { Renders Shape, caling unconditionally Renderer.RenderShape. }
-  procedure RenderShape_NoTests(const Shape: TGLShape);
+  procedure {$ifndef FPC}TCastleScene.{$endif}RenderShape_NoTests(
+    {$ifndef FPC}const Params: TRenderParams;
+    const ModelView: TMatrix4;{$endif}
+    const Shape: TGLShape);
   begin
     Shape.ModelView := ModelView;
     Shape.Fog := ShapeFog(Shape, Params.GlobalFog as TFogNode);
@@ -912,31 +910,32 @@ var
 
   { Renders Shape, testing only Batching.Collect before RenderShape_NoTests.
     This sets Shape.ModelView and other properties necessary right before rendering. }
-  procedure RenderShape_BatchingTest(const Shape: TGLShape);
+  procedure {$ifndef FPC}TCastleScene.{$endif}RenderShape_BatchingTest(
+    {$ifndef FPC}const Params: TRenderParams;
+    const ModelView: TMatrix4;{$endif}
+    const Shape: TGLShape);
   begin
     if not (DynamicBatching and Batching.Collect(Shape)) then
-      RenderShape_NoTests(Shape);
-  end;
-
-  procedure BatchingCommit;
-  var
-    Shape: TShape;
-  begin
-    if DynamicBatching then
-    begin
-      Batching.Commit;
-      for Shape in Batching.Collected do
-      begin
-        TGLShape(Shape).PrepareResources; // otherwise, shapes from batching FPool would never have PrepareResources called?
-        RenderShape_NoTests(TGLShape(Shape));
-      end;
-      Batching.FreeCollected;
-    end;
+      RenderShape_NoTests({$ifndef FPC}Params, ModelView,{$endif} Shape);
   end;
 
   { Render Shape if all tests pass, except TestShapeVisibility callback is ignored.
     It assumes that filtering by TestShapeVisibility is already done. }
-  procedure RenderShape_SomeTests(const Shape: TGLShape);
+  procedure {$ifndef FPC}TCastleScene.{$endif}RenderShape_SomeTests(
+  {$ifndef FPC}const Params: TRenderParams;
+  const ModelView: TMatrix4;{$endif}
+  const Shape: TGLShape);
+
+    {$ifndef FPC}
+    function CaptureRenderShape_BatchingTest: TShapeProcedure;
+    begin
+      Result := procedure(const Shape: TGLShape)
+      begin
+        RenderShape_BatchingTest(Params, ModelView, Shape);
+      end;
+    end;
+    {$endif}
+
   begin
     if (Shape <> AvoidShapeRendering) and
        ( (not AvoidNonShadowCasterRendering) or Shape.ShadowCaster) and
@@ -959,7 +958,8 @@ var
       if ReallyOcclusionQuery(RenderOptions) and
          (Params.RenderingCamera.Target = rtScreen) then
       begin
-        SimpleOcclusionQueryRenderer.Render(Shape, @RenderShape_BatchingTest, Params);
+        SimpleOcclusionQueryRenderer.Render(Shape,
+          {$ifdef FPC}{$ifdef CASTLE_OBJFPC}@{$endif}RenderShape_BatchingTest{$else}CaptureRenderShape_BatchingTest(){$endif}, Params);
       end else
       {$warnings off}
       if RenderOptions.DebugHierOcclusionQueryResults and
@@ -967,45 +967,131 @@ var
       {$warnings on}
       begin
         if HierarchicalOcclusionQueryRenderer.WasLastVisible(Shape) then
-          RenderShape_BatchingTest(Shape);
+          RenderShape_BatchingTest({$ifndef FPC}Params, ModelView,{$endif} Shape);
       end else
         { No occlusion query-related stuff. Just render the shape. }
-        RenderShape_BatchingTest(Shape);
+        RenderShape_BatchingTest({$ifndef FPC}Params, ModelView,{$endif} Shape);
     end;
   end;
 
   { Render Shape if all tests pass. }
-  procedure RenderShape_AllTests(const Shape: TShape);
+  procedure {$ifndef FPC}TCastleScene.{$endif}RenderShape_AllTests(
+    {$ifndef FPC}
+    const TestShapeVisibility: TTestShapeVisibility;
+    const Params: TRenderParams;
+    const ModelView: TMatrix4;
+    {$endif}
+    const Shape: TShape);
   begin
     if ( (not Assigned(TestShapeVisibility)) or
          TestShapeVisibility(TGLShape(Shape))) then
-      RenderShape_SomeTests(TGLShape(Shape));
+      RenderShape_SomeTests({$ifndef FPC}Params, ModelView,{$endif} TGLShape(Shape));
   end;
 
   { Render Shape if all tests pass, and it is opaque. }
-  procedure RenderShape_AllTests_Opaque(const Shape: TShape);
+  procedure {$ifndef FPC}TCastleScene.{$endif}RenderShape_AllTests_Opaque(
+    {$ifndef FPC}
+    const TestShapeVisibility: TTestShapeVisibility;
+    const Params: TRenderParams;
+    const ModelView: TMatrix4;
+    {$endif}
+    const Shape: TShape);
   begin
     if not TGLShape(Shape).UseBlending then
-      RenderShape_AllTests(Shape);
+    begin
+      RenderShape_AllTests({$ifndef FPC}TestShapeVisibility, Params, ModelView,{$endif} Shape);
+    end;
   end;
 
   { Render Shape if all tests pass, and it is using blending. }
-  procedure RenderShape_AllTests_Blending(const Shape: TShape);
+  procedure {$ifndef FPC}TCastleScene.{$endif}RenderShape_AllTests_Blending(
+    {$ifndef FPC}
+    const TestShapeVisibility: TTestShapeVisibility;
+    const Params: TRenderParams;
+    const ModelView: TMatrix4;
+    {$endif}
+    const Shape: TShape);
   begin
     if TGLShape(Shape).UseBlending then
-      RenderShape_AllTests(Shape);
+      RenderShape_AllTests({$ifndef FPC}TestShapeVisibility, Params, ModelView,{$endif} Shape);
   end;
+
+{$ifndef FPC}
+procedure TCastleScene.LocalRenderInside(
+  const TestShapeVisibility: TTestShapeVisibility;
+  const Params: TRenderParams);
+var
+  ModelView: TMatrix4;
+{$endif}
+
+  { Transformation of Params.Transform and current RenderingCamera
+    expressed as a single combined matrix. }
+  function GetModelViewTransform: TMatrix4;
+  var
+    CameraMatrix: PMatrix4;
+  begin
+    if Params.RenderingCamera.RotationOnly then
+      CameraMatrix := @Params.RenderingCamera.RotationMatrix
+    else
+      CameraMatrix := @Params.RenderingCamera.Matrix;
+
+    if Params.TransformIdentity then
+      Result := CameraMatrix^
+    else
+      Result := CameraMatrix^ * Params.Transform^;
+  end;
+
+  procedure BatchingCommit;
+  var
+    Shape: TShape;
+  begin
+    if DynamicBatching then
+    begin
+      Batching.Commit;
+      for Shape in Batching.Collected do
+      begin
+        TGLShape(Shape).PrepareResources; // otherwise, shapes from batching FPool would never have PrepareResources called?
+        RenderShape_NoTests({$ifndef FPC}Params, ModelView,{$endif} TGLShape(Shape));
+      end;
+      Batching.FreeCollected;
+    end;
+  end;
+
+  {$ifndef FPC}
+  function CaptureRenderShape_AllTests_Opaque: TShapeTraverseFunc;
+  begin
+    Result := procedure(const Shape: TShape)
+    begin
+      RenderShape_AllTests_Opaque(TestShapeVisibility, Params, ModelView, Shape);
+    end;
+  end;
+  {$endif}
 
   procedure RenderAllAsOpaque(
     const IgnoreShapesWithBlending: Boolean = false;
     const BlendingPipeline: Boolean = false);
+
+    {$ifndef FPC}
+    function CaptureRenderShape_AllTests: TShapeTraverseFunc;
+    begin
+      Result := procedure(const Shape: TShape)
+      begin
+        RenderShape_AllTests(TestShapeVisibility, Params, ModelView, Shape);
+      end;
+    end;
+    {$endif}
+
   begin
     if BlendingPipeline = Params.Transparent then
     begin
       if IgnoreShapesWithBlending then
-        Shapes.Traverse(@RenderShape_AllTests_Opaque, true, true)
+        Shapes.Traverse(
+          {$ifdef FPC}{$ifdef CASTLE_OBJFPC}@{$endif}RenderShape_AllTests_Opaque{$else}
+          CaptureRenderShape_AllTests_Opaque(){$endif}, true, true)
       else
-        Shapes.Traverse(@RenderShape_AllTests, true, true);
+        Shapes.Traverse(
+          {$ifdef FPC}{$ifdef CASTLE_OBJFPC}@{$endif}RenderShape_AllTests{$else}
+          CaptureRenderShape_AllTests(){$endif}, true, true);
     end;
   end;
 
@@ -1014,7 +1100,7 @@ var
     J: Integer;
     Instances: TVisibilitySensorInstanceList;
     NewActive: boolean;
-    VisibilitySensorsPair: TVisibilitySensors.TDictionaryPair;
+    VisibilitySensorsPair: {$ifdef FPC}TVisibilitySensors.TDictionaryPair{$else}TPair<TVisibilitySensorNode, TVisibilitySensorInstanceList>{$endif};
   begin
     { optimize for common case: exit early if nothing to do }
     if VisibilitySensors.Count = 0 then Exit;
@@ -1051,14 +1137,35 @@ var
   procedure RenderModeFull;
   var
     I: Integer;
+
+    {$ifndef FPC}
+    function CaptureRenderShape_SomeTests: TShapeProcedure;
+    begin
+      Result := procedure(const Shape: TGLShape)
+      begin
+        RenderShape_SomeTests(Params, ModelView, Shape);
+      end;
+    end;
+
+    function CaptureRenderShape_AllTests_Blending: TShapeTraverseFunc;
+    begin
+      Result := procedure(const Shape: TShape)
+      begin
+        RenderShape_AllTests_Blending(TestShapeVisibility, Params, ModelView, Shape);
+      end;
+    end;
+    {$endif}
+
   begin
     if ReallyHierarchicalOcclusionQuery(RenderOptions) and
        (not RenderOptions.DebugHierOcclusionQueryResults) and
        (Params.RenderingCamera.Target = rtScreen) and
        (InternalOctreeRendering <> nil) then
     begin
-      HierarchicalOcclusionQueryRenderer.Render(@RenderShape_SomeTests,
-        Params, RenderCameraPosition);
+      HierarchicalOcclusionQueryRenderer.Render(
+        {$ifdef FPC}{$ifdef CASTLE_OBJFPC}@{$endif}RenderShape_SomeTests{$else}
+        CaptureRenderShape_SomeTests(){$endif}, Params,
+        RenderCameraPosition);
     end else
     begin
       if RenderOptions.Blending then
@@ -1080,9 +1187,10 @@ var
             if DynamicBatching then
               Batching.PreserveShapeOrder := true;
             for I := 0 to FilteredShapes.Count - 1 do
-              RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
+              RenderShape_SomeTests({$ifndef FPC}Params, ModelView,{$endif} TGLShape(FilteredShapes[I]));
           end else
-            Shapes.Traverse(@RenderShape_AllTests_Opaque, true, true, false);
+            Shapes.Traverse({$ifdef FPC}{$ifdef CASTLE_OBJFPC}@{$endif}RenderShape_AllTests_Opaque{$else}
+            CaptureRenderShape_AllTests_Opaque(){$endif}, true, true, false);
         end else
         { this means Params.Transparent = true }
         begin
@@ -1100,9 +1208,10 @@ var
             if DynamicBatching then
               Batching.PreserveShapeOrder := true;
             for I := 0 to FilteredShapes.Count - 1 do
-              RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
+              RenderShape_SomeTests({$ifndef FPC}Params, ModelView,{$endif} TGLShape(FilteredShapes[I]));
           end else
-            Shapes.Traverse(@RenderShape_AllTests_Blending, true, true, false);
+            Shapes.Traverse({$ifdef FPC}{$ifdef CASTLE_OBJFPC}@{$endif}RenderShape_AllTests_Blending{$else}
+              CaptureRenderShape_AllTests_Blending(){$endif}, true, true, false);
         end;
 
       end else
@@ -1120,13 +1229,14 @@ begin
   if (not Params.Transparent) and (Params.InternalPass = 0) then
   begin
     if not ExcludeFromStatistics then
-      Params.Statistics.ShapesVisible += ShapesActiveVisibleCount;
+      Params.Statistics.ShapesVisible := Params.Statistics.ShapesVisible +
+        ShapesActiveVisibleCount;
     { also do this only once per frame }
     UpdateVisibilitySensors;
   end;
 
   if Params.InShadow then
-    LightRenderEvent := @LightRenderInShadow
+    LightRenderEvent := {$ifdef CASTLE_OBJFPC}@{$endif}LightRenderInShadow
   else
     LightRenderEvent := nil;
 
@@ -1511,12 +1621,14 @@ procedure TCastleScene.LocalRenderOutside(
         NewShaders := ShadowMapsProgram;
       end;
 
+      {$ifdef FPC}
       {$warnings off}
       SavedShaders.Shader          := RenderOptions.CustomShader as TX3DShaderProgramBase;
       SavedShaders.ShaderAlphaTest := RenderOptions.CustomShaderAlphaTest as TX3DShaderProgramBase;
       RenderOptions.CustomShader          := NewShaders.Shader;
       RenderOptions.CustomShaderAlphaTest := NewShaders.ShaderAlphaTest;
       {$warnings on}
+      {$endif}
     end;
 
     RenderWithWireframeEffect;
@@ -1524,10 +1636,12 @@ procedure TCastleScene.LocalRenderOutside(
     if Params.RenderingCamera.Target in [rtVarianceShadowMap, rtShadowMap] then
     begin
       RenderOptions.Mode := SavedMode;
+      {$ifdef FPC}
       {$warnings off}
       RenderOptions.CustomShader          := SavedShaders.Shader;
       RenderOptions.CustomShaderAlphaTest := SavedShaders.ShaderAlphaTest;
       {$warnings on}
+      {$endif}
     end;
   end;
 
@@ -1715,10 +1829,10 @@ procedure TCastleScene.UpdateShapeCullingCallbacks;
   begin
     if DoDistanceCulling then
       case FC of
-        fcNone  : Result := @DistanceCulling_FrustumCulling_None;
-        fcSphere: Result := @DistanceCulling_FrustumCulling_Sphere;
-        fcBox   : Result := @DistanceCulling_FrustumCulling_Box;
-        fcBoth  : Result := @DistanceCulling_FrustumCulling_Both;
+        fcNone  : Result := {$ifdef CASTLE_OBJFPC}@{$endif}DistanceCulling_FrustumCulling_None;
+        fcSphere: Result := {$ifdef CASTLE_OBJFPC}@{$endif}DistanceCulling_FrustumCulling_Sphere;
+        fcBox   : Result := {$ifdef CASTLE_OBJFPC}@{$endif}DistanceCulling_FrustumCulling_Box;
+        fcBoth  : Result := {$ifdef CASTLE_OBJFPC}@{$endif}DistanceCulling_FrustumCulling_Both;
         {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('ShapeCullingToCallback:FC?');
         {$endif}
@@ -1727,12 +1841,12 @@ procedure TCastleScene.UpdateShapeCullingCallbacks;
       case FC of
         fcNone  :
           if MustBeAssigned then
-            Result := @FrustumCulling_None
+            Result := {$ifdef CASTLE_OBJFPC}@{$endif}FrustumCulling_None
           else
             Result := nil; // FrustumCulling_None always returns true
-        fcSphere: Result := @FrustumCulling_Sphere;
-        fcBox   : Result := @FrustumCulling_Box;
-        fcBoth  : Result := @FrustumCulling_Both;
+        fcSphere: Result := {$ifdef CASTLE_OBJFPC}@{$endif}FrustumCulling_Sphere;
+        fcBox   : Result := {$ifdef CASTLE_OBJFPC}@{$endif}FrustumCulling_Box;
+        fcBoth  : Result := {$ifdef CASTLE_OBJFPC}@{$endif}FrustumCulling_Both;
         {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('ShapeCullingToCallback:FC?');
         {$endif}
@@ -1862,9 +1976,11 @@ procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemove
 
     for I := 0 to GeneratedTextures.Count - 1 do
     begin
+      {$ifndef FPC}{$POINTERMATH ON}{$endif}
       Shape := TGLShape(GeneratedTextures.L[I].Shape);
       TextureNode := GeneratedTextures.L[I].TextureNode;
       Handler := GeneratedTextures.L[I].Handler;
+      {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 
       { update Handler.UpdateNeeded }
       if TextureNode is TGeneratedShadowMapNode then
@@ -1926,15 +2042,25 @@ procedure TCastleScene.LocalRender(const Params: TRenderParams);
 
   procedure TestOctreeWithFrustum(Octree: TShapeOctree);
 
+    {$ifdef FPC}
     procedure ResetShapeVisible(const Shape: TShape);
+    {$else}
+    function CaptureResetShapeVisible: TShapeTraverseFunc;
+    begin
+      Result := procedure(const Shape: TShape)
+    {$endif}
     begin
       TGLShape(Shape).PassedShapeCulling := false;
     end;
+    {$ifndef FPC}
+    end;
+    {$endif}
 
   begin
-    Shapes.Traverse(@ResetShapeVisible, false, true);
+    Shapes.Traverse({$ifdef FPC}{$ifdef CASTLE_OBJFPC}@{$endif}ResetShapeVisible
+      {$else}CaptureResetShapeVisible(){$endif}, false, true);
     Octree.EnumerateCollidingOctreeItems(Params.Frustum^,
-      @RenderWithOctree_CheckShapeCulling);
+      {$ifdef CASTLE_OBJFPC}@{$endif}RenderWithOctree_CheckShapeCulling);
   end;
 
 begin
@@ -1982,7 +2108,7 @@ begin
         ShapeCullingOctreeFunc test. Thanks to octree, many shapes
         don't even reach the stage when ShapeCullingOctreeFunc could be called. }
       TestOctreeWithFrustum(InternalOctreeRendering);
-      LocalRenderOutside(@RenderFrustumOctree_TestShape, Params);
+      LocalRenderOutside({$ifdef CASTLE_OBJFPC}@{$endif}RenderFrustumOctree_TestShape, Params);
     end else
       LocalRenderOutside(ShapeCullingFunc, Params);
 
@@ -2076,7 +2202,7 @@ var
   I: Integer;
 begin
   inherited;
-
+  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   for I := 0 to GeneratedTextures.Count - 1 do
     if GeneratedTextures.L[I].TextureNode is TRenderedTextureNode then
       { Camera change causes regenerate of RenderedTexture,
@@ -2084,6 +2210,7 @@ begin
         See demo_models/rendered_texture/rendered_texture_no_headlight.x3dv
         testcase. }
       GeneratedTextures.L[I].Handler.InternalUpdateNeeded := true;
+  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 end;
 
 function TCastleScene.ScreenEffectsCount: Integer;
@@ -2210,7 +2337,7 @@ initialization
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleScene;
   R.Caption := 'Scene (Optimal Blending for 2D Models)';
-  R.OnCreate := @TCastleScene(nil).CreateComponent2D;
+  R.OnCreate := {$ifdef CASTLE_OBJFPC}@{$endif}TCastleScene{$ifdef FPC}(nil){$endif}.CreateComponent2D;
   RegisterSerializableComponent(R);
 
   RegisterSerializableComponent(TCastleBox, 'Box');

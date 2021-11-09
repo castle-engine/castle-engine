@@ -295,12 +295,13 @@ end;
 
 function TCastleSoundSource.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'Sound', 'Spatial', 'Volume', 'Pitch':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'Sound') or
+     (PropertyName = 'Spatial') or
+     (PropertyName = 'Volume') or
+     (PropertyName = 'Pitch') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TCastleSoundSource.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
@@ -422,13 +423,13 @@ begin
     if FSound <> nil then
     begin
       SoundStop;
-      FSound.InternalRemoveChangeNotification(@SoundChange);
+      FSound.InternalRemoveChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}SoundChange);
       FSound.RemoveFreeNotification(Self);
     end;
     FSound := Value;
     if FSound <> nil then
     begin
-      FSound.InternalAddChangeNotification(@SoundChange);
+      FSound.InternalAddChangeNotification({$ifdef CASTLE_OBJFPC}@{$endif}SoundChange);
       FSound.FreeNotification(Self);
       SoundStart;
     end;

@@ -163,7 +163,7 @@ begin
   begin
     FWarmupCacheFormats := TWarmupCacheFormatList.Create(true);
     // register formats implemented in this unit
-    FWarmupCacheFormats.RegisterFormat('image_ui', {$ifdef CASTLE_OBJFPC}@{$endif}TImageUiCache(nil).Event);
+    FWarmupCacheFormats.RegisterFormat('image_ui', {$ifdef CASTLE_OBJFPC}@{$endif}TImageUiCache{$ifdef FPC}(nil){$endif}.Event);
   end;
   Result := FWarmupCacheFormats;
 end;

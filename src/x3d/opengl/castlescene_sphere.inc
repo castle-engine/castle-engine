@@ -64,12 +64,11 @@ end;
 
 function TCastleSphere.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  case PropertyName of
-    'Radius', 'DoubleSided':
-      Result := [psBasic];
-    else
-      Result := inherited PropertySections(PropertyName);
-  end;
+  if (PropertyName = 'Radius') or
+     (PropertyName = 'DoubleSided') then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TCastleSphere.SetRadius(const Value: Single);
