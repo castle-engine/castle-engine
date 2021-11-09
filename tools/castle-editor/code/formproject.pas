@@ -528,7 +528,7 @@ end;
 
 procedure TProjectForm.ActionOpenProjectCodeExecute(Sender: TObject);
 var
-  Exe, DelphiPath: String;
+  Exe, DelphiExe: String;
   Ce: TCodeEditor;
 begin
   if CodeEditor = ceAutodetect then
@@ -565,7 +565,7 @@ begin
       end;
     ceDelphi:
       begin
-        DelphiPath := FindDelphiPath(true);
+        FindDelphiPath(true, DelphiExe);
 
         { Open through DPROJ, this seems to be the only thing that works reliably. }
         if ProjectDelphi = '' then
@@ -585,18 +585,10 @@ begin
           Exit;
         end;
 
-        OpenDocument(ProjectDelphi);
-
-        (*
-        TODO: how to force Delphi command-line to open project reliably?
-        RunCommandNoWait(ProjectPath,
-          // DelphiPath + 'bin' + PathDelim + 'BDSLauncher' + ExeExtension, [
-          DelphiPath + 'bin' + PathDelim + 'BDS' + ExeExtension, [
-          '/np',
+        RunCommandNoWait(ProjectPath, DelphiExe, [
           ProjectDelphi
           //ProjectStandaloneSource
         ]);
-        *)
       end;
     ceVSCode:
       begin
@@ -1765,7 +1757,7 @@ end;
 
 procedure TProjectForm.OpenPascal(const FileName: String);
 var
-  Exe, DelphiPath: String;
+  Exe, DelphiExe: String;
   Ce: TCodeEditor;
 begin
   if CodeEditor = ceAutodetect then
@@ -1809,9 +1801,10 @@ begin
       end;
     ceDelphi:
       begin
-        DelphiPath := FindDelphiPath(true);
+        FindDelphiPath(true, DelphiExe);
 
-        { Open through DPROJ, this seems to be the only thing that works reliably. }
+        { Open through DPROJ }
+        (*
         if ProjectDelphi = '' then
         begin
           ErrorBox('Delphi project not defined (neither "standalone_source" nor "delphi_project" were specified in CastleEngineManifest.xml).' + NL +
@@ -1828,18 +1821,21 @@ begin
           ]));
           Exit;
         end;
+        *)
 
-        OpenDocument(FileName);
+        { We use DelphiExe, which is BDS.exe.
 
-        (*
-        TODO: how to force Delphi command-line to open project file reliably?
-        RunCommandNoWait(ProjectPath,
-          // DelphiPath + 'bin' + PathDelim + 'BDSLauncher' + ExeExtension, [
-          DelphiPath + 'bin' + PathDelim + 'BDS' + ExeExtension, [
-          '/np',
+          Note: Do not use BDSLauncher.exe. This is defined in registry as "shell open",
+          but using BDSLauncher is not so easy: we would need then to pass filename
+          using DDE (Windows inter-process communication API).
+
+          Using just BDS is simpler.
+
+          Note: using /np doesn't work, in fact it makes the following filename ignored. }
+
+        RunCommandNoWait(ProjectPath, DelphiExe, [
           FileName
         ]);
-        *)
       end;
     ceVSCode:
       begin
