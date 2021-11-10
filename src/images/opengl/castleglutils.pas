@@ -21,7 +21,10 @@ unit CastleGLUtils;
 
 interface
 
-uses SysUtils, Math, {$ifdef FPC} Matrix, {$endif} Generics.Collections,
+uses
+  // needed by castleglutils_delphi_wgl.inc
+  {$ifndef FPC} {$ifdef MSWINDOWS} Windows, {$endif} {$endif}
+  SysUtils, Math, {$ifdef FPC} Matrix, {$endif} Generics.Collections,
   {$ifdef FPC}{$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif} {$else} OpenGL, OpenGLext, {$endif}
   CastleImages, CastleUtils, CastleVectors, CastleRectangles,
   CastleColors, CastleProjection, CastleRenderOptions;
@@ -36,6 +39,7 @@ uses SysUtils, Math, {$ifdef FPC} Matrix, {$endif} Generics.Collections,
 {$I castleglutils_information.inc}
 {$I castleglutils_mipmaps.inc}
 {$I castleglutils_ext_framebuffer_blit.inc}
+{$I castleglutils_delphi_wgl.inc}
 
 {$undef read_interface}
 
@@ -55,6 +59,7 @@ uses
 {$I castleglutils_information.inc}
 {$I castleglutils_mipmaps.inc}
 {$I castleglutils_ext_framebuffer_blit.inc}
+{$I castleglutils_delphi_wgl.inc}
 
 { initialization, finalization ----------------------------------------------- }
 

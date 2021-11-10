@@ -44,7 +44,6 @@ unit CastleStringUtils;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  {$ifdef FPC}{$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif} {$else} OpenGL, OpenGLext, {$endif}
   CastleUtils;
 
 type
@@ -969,11 +968,6 @@ function PCharOrNil(const s: string): PChar;
   If string is empty, this returns @nil, otherwise it works just like
   PAnsiChar(S): returns a Pointer(S) with appropriate type cast. }
 function PAnsiCharOrNil(const s: AnsiString): PAnsiChar;
-
-{ PGLcharARBOrNil simply returns a Pointer(S), you can think of it as a NO-OP.
-  If string is empty, this returns @nil, otherwise it works just like
-  PGLcharARBOrNil(S): returns a Pointer(S) with appropriate type cast. }
-function PGLcharARBOrNil(const s: AnsiString): PGLcharARB;
 
 { Replace any number of consecutive whitespace (including newlines)
   with a single whitespace. This is nice when you have a string
@@ -2636,10 +2630,6 @@ begin if s = '' then result := nil else result := PChar(s); end;
 
 function PAnsiCharOrNil(const s: AnsiString): PAnsiChar;
 begin if s = '' then result := nil else result := PAnsiChar(s); end;
-
-function PGLcharARBOrNil(const s: AnsiString): PGLcharARB;
-begin if s = '' then result := nil else result := PGLcharARB(s); end;
-
 
 function SCompressWhiteSpace(const S: string): string;
 var

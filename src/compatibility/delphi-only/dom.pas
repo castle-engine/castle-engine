@@ -250,7 +250,9 @@ type
 
 implementation
 
+{$ifdef MSWINDOWS}
 uses ComObj;
+{$endif}
 
 { TDOMNodeList --------------------------------------------------------------- }
 
@@ -559,8 +561,10 @@ constructor TDOMDocument.Create;
 begin
   inherited Create(nil);
 
+  {$ifdef MSWINDOWS}
   { This needs to be called before using COM interfaces with MSXML. }
   CoInitializeEx(nil, 0);
+  {$endif}
 
   InternalDocument := XMLDoc.TXMLDocument.Create(Self);
   InternalDocument.Active := true;

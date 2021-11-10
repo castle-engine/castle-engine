@@ -136,12 +136,16 @@
 
 {$define TOBJECT_HAS_EQUALS}
 
-{ Delphi compatibility: Define in Delphi CPU32/64, like FPC does. }
+{ Delphi compatibility }
 {$ifndef FPC}
+  { Define in Delphi CPU32/64, like FPC does. }
   {$ifdef CPUX86} {$define CPU32} {$endif}
   {$ifdef CPU32BITS} {$define CPU32} {$endif}
   {$ifdef CPUX64} {$define CPU64} {$endif}
   {$ifdef CPU64BITS} {$define CPU64} {$endif}
+
+  { Define in Delphi UNIX when LINUX, like FPC does. }
+  {$ifdef LINUX} {$define UNIX} {$endif}
 {$endif}
 
 { Traditionally, CGE defined CPUARM64 also for 64-bit iOS.
@@ -332,6 +336,15 @@
       don't need the ARB extensions to access the shaders. *)
     {$define ForceStandardGLSLApi}
   {$endif}
+{$endif}
+{$ifndef FPC}
+  { Delphi cannot compile related constructs like
+      GLhandleARB(ProgramId) := glCreateProgramObjectARB();
+    on Windows-64.
+    TODO: Maybe they are bad with FPC too?
+    What are GLhandleARB, ProgramId sizes?
+  }
+  {$define ForceStandardGLSLApi}
 {$endif}
 
 { PNG ------------------------------------------------------------------------ }

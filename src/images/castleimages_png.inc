@@ -29,8 +29,7 @@ begin
   {$ifdef FPC}
     Result := LoadPNG_FPImage(Stream, AllowedImageClasses);
   {$else}
-    raise Exception.Create('LibPNG not initialized');
-    // TODO: Delphi solution
+    Result := LoadPNG_PngImage(Stream, AllowedImageClasses);
   {$endif}
 end;
 

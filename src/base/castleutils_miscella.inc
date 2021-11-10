@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -258,7 +258,11 @@ begin
     {$else}
 
     {$ifdef DCC}
-    'Delphi'
+    { Make it clear we show compiler version, not Delphi version, as they are different things:
+      https://docwiki.embarcadero.com/RADStudio/Sydney/en/Compiler_Versions .
+      E.g. Delphi 11 = product version 28 = compiler version 35.
+    }
+    'Delphi (Compiler Version ' + FloatToStr(CompilerVersion) + ')'
     {$else}
 
     {$ifdef __GPC__}
@@ -272,15 +276,16 @@ end;
 
 function SPlatformDescription: String;
 begin
-  Result := PlatformToStr(Platform);
-  {$ifdef FPC}
-  Result +=
+  Result := PlatformToStr(Platform) +
+    {$ifdef FPC}
     ', OS: ' + {$I %FPCTARGETOS%} +
     ', CPU: ' + {$I %FPCTARGETCPU%} +
+    {$else}
+    ', OS Version: ' + TOSVersion.ToString +
+    {$endif}
     { Clearly stating CPU bits is more obvious in some cases.
       E.g. this avoids the question "what does Arm mean, is it 32-bit or 64-bit Arm?". }
-    ' (' + IntToStr(SizeOf(Pointer) * 8) + '-bit)';
-  {$endif}
+    ' (this exe is using ' + IntToStr(SizeOf(Pointer) * 8) + '-bit architecture)';
 end;
 
 function SCastleEngineProgramHelpSuffix(const AppName, AppVersion: String; const Ignored: Boolean): String;
