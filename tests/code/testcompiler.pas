@@ -19,6 +19,8 @@ unit TestCompiler;
 
 interface
 
+{$I castleconf.inc}
+
 uses
   Classes, SysUtils, FpcUnit, TestUtils, TestRegistry;
 
@@ -26,6 +28,7 @@ type
   TTestCompiler = class(TTestCase)
     procedure TestIs;
     procedure TestSinglePrecision;
+    procedure TestSizes;
   end;
 
 implementation
@@ -72,6 +75,43 @@ var
 begin
   for I := -32000 to 32000 do
     AssertEquals(I, Round(Single(I)));
+end;
+
+procedure TTestCompiler.TestSizes;
+begin
+  AssertEquals(1, SizeOf(Byte));
+  AssertEquals(1, SizeOf(ShortInt));
+
+  AssertEquals(2, SizeOf(Word));
+  AssertEquals(2, SizeOf(SmallInt));
+
+  AssertEquals(4, SizeOf(Int32));
+  AssertEquals(4, SizeOf(UInt32));
+
+  AssertEquals(8, SizeOf(Int64));
+  AssertEquals(8, SizeOf(UInt64));
+  AssertEquals(8, SizeOf(QWord));
+
+  { Both in FPC and Delphi, Integer/Cardinal remained 4-byte (even though
+    in old days the Integer/Cardinal were documented as potentially
+    platform-dependent size).
+    See (Delphi): https://docwiki.embarcadero.com/RADStudio/Sydney/en/Simple_Types_(Delphi) }
+  AssertEquals(4, SizeOf(Integer));
+  AssertEquals(4, SizeOf(Cardinal));
+
+  AssertEquals(4, SizeOf(Single));
+  AssertEquals(8, SizeOf(Double));
+
+  { TODO: Delphi on some platforms (
+    64-bit Intel Linux
+    32-bit Intel macOS
+    32-bit Intel iOS Simulator
+    ) defines Extended as 16-byte.
+    See https://docwiki.embarcadero.com/RADStudio/Sydney/en/Simple_Types_(Delphi)#Real_Types
+    We'll have to adjust to this.
+    Most of CGE code should not use Extended anyway,
+    see https://github.com/castle-engine/castle-engine/wiki/Coding-Conventions/ }
+  AssertEquals({$ifdef EXTENDED_EQUALS_DOUBLE} 8 {$else} 10 {$endif}, SizeOf(Extended));
 end;
 
 initialization
