@@ -500,7 +500,7 @@ type
     FBaseLights: TLightInstancesList;
     constructor Create;
     destructor Destroy; override;
-    function BaseLights(Scene: TCastleTransform): TLightInstancesList;
+    function BaseLights(Scene: TCastleTransform): TAbstractLightInstancesList; override;
   end;
 
 procedure Register;
@@ -2322,7 +2322,7 @@ begin
   inherited;
 end;
 
-function TBasicRenderParams.BaseLights(Scene: TCastleTransform): TLightInstancesList;
+function TBasicRenderParams.BaseLights(Scene: TCastleTransform): TAbstractLightInstancesList;
 begin
   Result := FBaseLights;
 end;

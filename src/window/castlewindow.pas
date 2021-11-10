@@ -2313,6 +2313,14 @@ type
       deprecated 'create TCastleViewport and use TCastleViewport.NavigationType';
   end deprecated 'use TCastleWindowBase and create instance of TCastleViewport explicitly';
 
+  {$else}
+
+  { In the future, TCastleWindowBase should be renamed to just TCastleWindow.
+    The "Base" suffix is just a temporary measure, as we transition from older
+    TCastleWindow with predefined SceneManager.
+    You can try it right now with this line. }
+  //TCastleWindow = TCastleWindowBase;
+
   {$endif}
 
   TWindowList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCastleWindowBase>)
