@@ -815,7 +815,9 @@ procedure TX3DSimpleMultField{$ifndef CASTLE_OBJFPC} <
 var
   FieldValue: TX3DSimpleMultField{$ifndef FPC}<TItem, TSingleField,
     TInternalItemList, TItemList, TEvent>{$endif};
+  {$ifndef FPC}
   I: Integer;
+  {$endif}
 begin
   { This is a copy-paste of implementation of Send(const AValue: array of TItem) }
   if SendsByEvent then

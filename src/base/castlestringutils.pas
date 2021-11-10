@@ -72,7 +72,8 @@ type
     function QueryInterface(const IID: TGUID; out Obj): Hresult; virtual; stdcall;
   {$endif}
   private
-    procedure SetCount(const Value: TListSize);
+    { Takes Integer, not TListSize -- in FPC, this is also defined as Integer, not TListSize. }
+    procedure SetCount(const Value: Integer);
     function GetL(const Index: TListSize): string;
     procedure SetL(const Index: TListSize; const S: string);
   {$ifndef FPC}
@@ -81,7 +82,7 @@ type
   {$endif}
   public
     constructor Create;
-    property Count: TListSize read GetCount write SetCount;
+    property Count: Integer read GetCount write SetCount;
 
     {$ifndef FPC}
     procedure AddSubRange(const Source: TStringList; const Index, AddCount: TListSize);
@@ -1071,7 +1072,7 @@ begin
   CaseSensitive := true;
 end;
 
-procedure TCastleStringList.SetCount(const Value: TListSize);
+procedure TCastleStringList.SetCount(const Value: Integer);
 var
   I: TListSize;
 begin

@@ -42,9 +42,15 @@ type
 
   ECheckFailed = class(Exception);
 
-type
   { Simple notify event with no Sender }
   TSimpleNotifyEvent = procedure of object;
+
+  { Size (signed) used for various list types Count, Capacity, index variables.
+
+    Delphi uses Integer for this.
+    FPC uses SizeInt for this (which may have larger size than Integer,
+    FPC docs say it is matching pointer size, so 64-bit on 64-bit platforms). }
+  TListSize = {$ifdef FPC} SizeInt {$else} Integer {$endif};
 
 { Check condition.
   @raises ECheckFailed Raised with ErrMessage if condition TrueValue if false. }

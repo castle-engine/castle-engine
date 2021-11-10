@@ -22,7 +22,7 @@
     </RequiredPackages>
     <Units Count="4">
       <Unit0>
-        <Filename Value="state_events_standalone.lpr"/>
+        <Filename Value="state_events_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
