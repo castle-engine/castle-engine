@@ -126,6 +126,14 @@
 }
 {$define SUPPORTS_INLINE}
 
+{ Delphi does not support "inline" with types that are not in units explicitly
+  used on the "uses" list.
+  Avoid flood of hints like this:
+  "[dcc32 Hint] castlerendercontext.pas(313): H2443 Inline function 'TGenericVector4.GetItems' has not been expanded because unit 'CastleVectorsInternalSingle' is not specified in USES list" }
+{$if defined(FPC) and defined(SUPPORTS_INLINE)}
+  {$define INLINE_GENERIC_VECTORS}
+{$endif}
+
 {$define TOBJECT_HAS_EQUALS}
 
 { Delphi compatibility: Define in Delphi CPU32/64, like FPC does. }

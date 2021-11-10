@@ -80,7 +80,14 @@ const
   DBT_DEVTYP_DEVICEINTERFACE = $00000005;
 
 type
-  SizeInt = Integer;
+  { Size (signed) used for various list types Count, Capacity, index variables.
+
+    Delphi uses Integer for this.
+    FPC uses SizeInt for this (which may have larger size than Integer,
+    FPC docs say it is matching pointer size, so 64-bit on 64-bit platforms). }
+  TListSize = Integer;
+  SizeInt = NativeInt;
+  SizeUInt = NativeUInt;
   QWord = UInt64;
   PQWord = PUInt64;
   PtrInt = NativeInt;
@@ -118,31 +125,31 @@ type
   {$ifndef FPC}
   ICastleItemList <T; TList> = interface
   ['{3B8A5F76-4B00-439A-B906-D081C6BC325F}']
-    procedure SetCount(const Value: Integer);
-    function GetCount: Integer;
-    function GetCapacity: Integer;
-    procedure SetCapacity(Value: Integer);
-//    function GetL(const Index: Integer): string;
-//    procedure SetL(const Index: Integer; const S: string);
+    procedure SetCount(const Value: TListSize);
+    function GetCount: TListSize;
+    function GetCapacity: TListSize;
+    procedure SetCapacity(Value: TListSize); // no "const" at argument, it would be incompatible with Delphi TStringList.SetCapacity
+//    function GetL(const Index: TListSize): string;
+//    procedure SetL(const Index: TListSize; const S: string);
 
-//    property L[const Index: Integer]: string read GetL write SetL;
+//    property L[const Index: TListSize]: string read GetL write SetL;
     ///function InternalL: Pointer;
     procedure Assign(const Source: TList); overload;
     procedure Assign(const A: array of T); overload;
-    procedure AddSubRange(Source: TList; Index, AddCount: Integer);
+    procedure AddSubRange(const Source: TList; const Index, AddCount: TListSize);
     procedure AddRange(const AValues: array of T); overload;
     procedure AssignLerp(const Fraction: Single;
-      V1, V2: TList; Index1, Index2, ACount: Integer);
+      const V1, V2: TList; const Index1, Index2, ACount: TListSize);
     // needed because in TCastleStringList L is property and in TStructList is function
-    function InternalGetItem(const Index: Integer): T;
-    procedure InternalSetItem(const Index: Integer; Value: T);
-    function Add(const Value: T): Integer;
+    function InternalGetItem(const Index: TListSize): T;
+    procedure InternalSetItem(const Index: TListSize; const Value: T);
+//    function Add(const Value: T): TListSize;
     function Equals(SecondValue: TObject): boolean;
     function PerfectlyEquals(SecondValue: TObject): boolean;
     procedure Clear;
-    //procedure InternalAddSubRange(Source: TList<T>; Index, AddCount: Integer);
-    property Count: Integer read GetCount write SetCount;
-    property Capacity: SizeInt read GetCapacity write SetCapacity;
+    //procedure InternalAddSubRange(Source: TList<T>; Index, AddCount: TListSize);
+    property Count: TListSize read GetCount write SetCount;
+    property Capacity: TListSize read GetCapacity write SetCapacity;
   end;
 
   //ICastleSimpleField = interface
@@ -487,7 +494,7 @@ begin
   begin
     where := StrPos(start, PAnsiChar(extension));
     if where = nil then Break;
-    terminator := Pointer(PtrUInt(where) + Length(extension));
+    terminator := Pointer(PtrUInt(where) + PtrUInt(Length(extension)));
     if (where = start) or (PAnsiChar(PtrUInt(where) - 1)^ = ' ') then
     begin
       if (terminator^ = ' ') or (terminator^ = #0) then

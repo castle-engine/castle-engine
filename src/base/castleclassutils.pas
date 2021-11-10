@@ -670,19 +670,19 @@ type
   { Extended TObjectStack for Castle Game Engine. }
   TCastleObjectStack = class(Contnrs.TObjectStack)
   private
-    function GetCapacity: Integer;
-    procedure SetCapacity(const Value: Integer);
+    function GetCapacity: TListSize;
+    procedure SetCapacity(const Value: TListSize);
   public
-    property Capacity: Integer read GetCapacity write SetCapacity;
+    property Capacity: TListSize read GetCapacity write SetCapacity;
   end;
 
   { Extended TObjectQueue for Castle Game Engine. }
   TCastleObjectQueue = class(Contnrs.TObjectQueue)
   private
-    function GetCapacity: Integer;
-    procedure SetCapacity(const Value: Integer);
+    function GetCapacity: TListSize;
+    procedure SetCapacity(const Value: TListSize);
   public
-    property Capacity: Integer read GetCapacity write SetCapacity;
+    property Capacity: TListSize read GetCapacity write SetCapacity;
   end;
 
   { Extended TObjectList for Castle Game Engine. }
@@ -1793,24 +1793,24 @@ end;
 
 { TCastleObjectStack ------------------------------------------------------------ }
 
-function TCastleObjectStack.GetCapacity: Integer;
+function TCastleObjectStack.GetCapacity: TListSize;
 begin
   Result := List.Capacity;
 end;
 
-procedure TCastleObjectStack.SetCapacity(const Value: Integer);
+procedure TCastleObjectStack.SetCapacity(const Value: TListSize);
 begin
   List.Capacity := Value;
 end;
 
 { TCastleObjectQueue ------------------------------------------------------------ }
 
-function TCastleObjectQueue.GetCapacity: Integer;
+function TCastleObjectQueue.GetCapacity: TListSize;
 begin
   Result := List.Capacity;
 end;
 
-procedure TCastleObjectQueue.SetCapacity(const Value: Integer);
+procedure TCastleObjectQueue.SetCapacity(const Value: TListSize);
 begin
   List.Capacity := Value;
 end;

@@ -73,21 +73,21 @@ type
     function QueryInterface(const IID: TGUID; out Obj): Hresult; virtual; stdcall;
   {$endif}
   private
-    procedure SetCount(const Value: Integer);
-    function GetL(const Index: Integer): string;
-    procedure SetL(const Index: Integer; const S: string);
+    procedure SetCount(const Value: TListSize);
+    function GetL(const Index: TListSize): string;
+    procedure SetL(const Index: TListSize; const S: string);
   {$ifndef FPC}
   protected
     function DoCompareText(const A, B: string): Integer;
   {$endif}
   public
     constructor Create;
-    property Count: Integer read GetCount write SetCount;
+    property Count: TListSize read GetCount write SetCount;
 
     {$ifndef FPC}
-    procedure AddSubRange(Source: TStringList; Index, AddCount: Integer);
+    procedure AddSubRange(const Source: TStringList; const Index, AddCount: TListSize);
     procedure AssignLerp(const Fraction: Single;
-      V1, V2: TStringList; Index1, Index2, ACount: Integer);
+      const V1, V2: TStringList; const Index1, Index2, ACount: TListSize);
     {$endif}
 
     { Add strings from Source list.
@@ -133,15 +133,15 @@ type
     procedure Reverse;
 
     {$ifndef FPC}
-    function InternalGetItem(const Index: Integer): string;
-    procedure InternalSetItem(const Index: Integer; Value: string);
+    function InternalGetItem(const Index: TListSize): string;
+    procedure InternalSetItem(const Index: TListSize; const Value: string);
     function GetInternalItems: TStringList;
     {$endif}
 
     { Access strings. This is exactly equivalent to just using standard
       TStringList.Strings property, and is useful only for implementing macros
       that work for both TCastleStringList and TStructList. }
-    property L[const Index: Integer]: string read GetL write SetL;
+    property L[const Index: TListSize]: string read GetL write SetL;
   end;
 
   { String-to-string map. Note that in simple cases you can also
@@ -1077,9 +1077,9 @@ begin
   CaseSensitive := true;
 end;
 
-procedure TCastleStringList.SetCount(const Value: Integer);
+procedure TCastleStringList.SetCount(const Value: TListSize);
 var
-  I: Integer;
+  I: TListSize;
 begin
   { Use local variable I, instead of comparing Value = Count for,
     to possibly speed up a little (GetCount is virtual) }
@@ -1094,9 +1094,9 @@ begin
 end;
 
 {$ifndef FPC}
-procedure TCastleStringList.AddSubRange(Source: TStringList; Index, AddCount: Integer);
+procedure TCastleStringList.AddSubRange(const Source: TStringList; const Index, AddCount: TListSize);
 var
-  I: Integer;
+  I: TListSize;
 begin
   for I := Index to Index + AddCount do
   begin
@@ -1105,7 +1105,7 @@ begin
 end;
 
 procedure TCastleStringList.AssignLerp(const Fraction: Single;
-      V1, V2: TStringList; Index1, Index2, ACount: Integer);
+  const V1, V2: TStringList; const Index1, Index2, ACount: TListSize);
 begin
   raise Exception.Create('Can''t AssignLerp on TCastleStringList');
 end;
@@ -1124,7 +1124,7 @@ end;
 
 procedure TCastleStringList.AddRange(const A: array of string);
 var
-  I: Integer;
+  I: TListSize;
 begin
   for I := 0 to High(A) do
     Add(A[I]);
@@ -1155,7 +1155,7 @@ end;
 
 procedure TCastleStringList.Reverse;
 var
-  I: Integer;
+  I: TListSize;
 begin
   { Need to specially check for Count = 0 case, since (0-1) div 2 = -1 div 2 = 0
     which means that loop would try invalid Exchange(0, -1). }
@@ -1176,7 +1176,7 @@ end;
 
 function TCastleStringList.Equals(SecondValue: TObject): boolean;
 var
-  I: Integer;
+  I: TListSize;
 begin
   Result := SecondValue is TStrings;
   if Result then
@@ -1194,7 +1194,7 @@ end;
 
 function TCastleStringList.Equals(const A: array of string): boolean;
 var
-  I: Integer;
+  I: TListSize;
 begin
   if High(A) <> Count - 1 then Exit(false);
   for I := 0 to Count - 1 do
@@ -1208,12 +1208,12 @@ begin
   Result := Equals(SecondValue);
 end;
 
-function TCastleStringList.GetL(const Index: Integer): string;
+function TCastleStringList.GetL(const Index: TListSize): string;
 begin
   Result := Strings[Index];
 end;
 
-procedure TCastleStringList.SetL(const Index: Integer; const S: string);
+procedure TCastleStringList.SetL(const Index: TListSize; const S: string);
 begin
   Strings[Index] := S;
 end;
@@ -1238,12 +1238,12 @@ begin
     Result := E_NOINTERFACE;
 end;
 
-function TCastleStringList.InternalGetItem(const Index: Integer): string;
+function TCastleStringList.InternalGetItem(const Index: TListSize): string;
 begin
   Result := GetL(Index);
 end;
 
-procedure TCastleStringList.InternalSetItem(const Index: Integer; Value: string);
+procedure TCastleStringList.InternalSetItem(const Index: TListSize; const Value: string);
 begin
   SetL(Index, Value);
 end;
@@ -1424,7 +1424,7 @@ end;
 
 function SReplaceChars(const s: string; const FromChars: TSetOfChars; const ToChar: char): string;
 var
-  I: integer;
+  I: TListSize;
 begin
   Result := s;
   for I := 1 to Length(Result) do
@@ -1434,7 +1434,7 @@ end;
 
 function SReplaceChars(const s: string; const FromChar, ToChar: char): string;
 var
-  i: Integer;
+  i: TListSize;
 begin
   Result := S;
   for i := 1 to Length(Result) do

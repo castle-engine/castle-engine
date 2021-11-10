@@ -84,8 +84,8 @@
 
     procedure WritelnWarning_InvalidIndex(const Index, ACount: Integer);
 
-    function GetCount: SizeInt; override;
-    procedure SetCount(const Value: SizeInt); override;
+    function GetCount: TListSize; override;
+    procedure SetCount(const Value: TListSize); override;
 
     { SaveToStreamValue overriden for MF fields. This class handles
       SaveToStreamValue fully, no need to override it again in
@@ -103,9 +103,9 @@
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; virtual;
 
     procedure Clear;
-    function GetCapacity: SizeInt;
-    procedure SetCapacity(const Value: SizeInt);
-    property Capacity: SizeInt read GetCapacity write SetCapacity;
+    function GetCapacity: TListSize;
+    procedure SetCapacity(const Value: TListSize);
+    property Capacity: TListSize read GetCapacity write SetCapacity;
   public
     constructor Create(const AParentNode: TX3DFileItem;
       const AExposed: boolean; const AName: string;
@@ -516,7 +516,7 @@ function TX3DSimpleMultField{$ifndef CASTLE_OBJFPC} <
     TItemList;
     TEvent
   > {$endif} .
-  GetCount: SizeInt;
+  GetCount: TListSize;
 begin
   Result := FItems.Count;
 end;
@@ -528,7 +528,7 @@ procedure TX3DSimpleMultField{$ifndef CASTLE_OBJFPC} <
     TItemList;
     TEvent
   > {$endif} .
-  SetCount(const Value: SizeInt);
+  SetCount(const Value: TListSize);
 begin
   FItems.Count := Value;
 end;
@@ -540,7 +540,7 @@ function TX3DSimpleMultField{$ifndef CASTLE_OBJFPC} <
     TItemList;
     TEvent
   > {$endif} .
-  GetCapacity: SizeInt;
+  GetCapacity: TListSize;
 begin
   Result := FItems.Capacity;
 end;
@@ -552,7 +552,7 @@ procedure TX3DSimpleMultField{$ifndef CASTLE_OBJFPC} <
     TItemList;
     TEvent
   > {$endif} .
-  SetCapacity(const Value: SizeInt);
+  SetCapacity(const Value: TListSize);
 begin
   FItems.Capacity := Value;
 end;
