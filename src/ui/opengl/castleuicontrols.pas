@@ -967,7 +967,11 @@ type
       FContainer: TCastleContainer;
       FLastSeenUIScale: Single;
       FCursor: TMouseCursor;
+      {$ifdef FPC}
       FOnCursorChange: TNotifyEvent;
+      FHasHorizontalAnchor: boolean;
+      FHasVerticalAnchor: boolean;
+      {$endif}
       FExclusiveEvents: boolean;
       FOnUpdate: TUiUpdateEvent;
       FOnPress: TUiPressReleaseEvent;
@@ -981,10 +985,8 @@ type
       FControls: TChildrenControls;
       FLeft: Single;
       FBottom: Single;
-      FHasHorizontalAnchor: boolean;
       FHorizontalAnchorSelf, FHorizontalAnchorParent: THorizontalPosition;
       FHorizontalAnchorDelta: Single;
-      FHasVerticalAnchor: boolean;
       FVerticalAnchorSelf, FVerticalAnchorParent: TVerticalPosition;
       FVerticalAnchorDelta: Single;
       FEnableUIScaling: boolean;
@@ -1861,6 +1863,8 @@ type
       const AVerticalAnchorSelf, AVerticalAnchorParent: TVerticalPosition;
       const AVerticalAnchorDelta: Single = 0); overload;
 
+    {$warnings off} // using deprecated TPositionRelative in deprecated
+
     { Immediately position the control with respect to the parent
       by adjusting @link(Left).
       Deprecated, use @link(Align) with THorizontalPosition. }
@@ -1902,6 +1906,8 @@ type
       const ControlPosition: TVerticalPosition;
       const ContainerPosition: TVerticalPosition;
       const Y: Single = 0); overload; deprecated 'use Anchor';
+
+    {$warnings on}
 
     { Immediately center the control within the parent,
       both horizontally and vertically.
@@ -4761,16 +4767,16 @@ begin
   Bottom := FastRectWithoutAnchors.AlignCore(ControlPosition, ParentRect, ContainerPosition, Y);
 end;
 
+{$warnings off} // using deprecated in deprecated
+
 procedure TCastleUserInterface.AlignHorizontal(
   const ControlPosition: TPositionRelative;
   const ContainerPosition: TPositionRelative;
   const X: Single);
 begin
-  {$warnings off} // using deprecated in deprecated
   Align(
     THorizontalPosition(ControlPosition),
     THorizontalPosition(ContainerPosition), X);
-  {$warnings on}
 end;
 
 procedure TCastleUserInterface.AlignVertical(
@@ -4778,20 +4784,18 @@ procedure TCastleUserInterface.AlignVertical(
   const ContainerPosition: TPositionRelative;
   const Y: Single);
 begin
-  {$warnings off} // using deprecated in deprecated
   Align(
     TVerticalPosition(ControlPosition),
     TVerticalPosition(ContainerPosition), Y);
-  {$warnings on}
 end;
 
 procedure TCastleUserInterface.Center;
 begin
-  {$warnings off} // using deprecated in deprecated
   Align(hpMiddle, hpMiddle);
   Align(vpMiddle, vpMiddle);
-  {$warnings on}
 end;
+
+{$warnings on}
 
 function TCastleUserInterface.Rect: TFloatRectangle;
 begin

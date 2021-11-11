@@ -477,7 +477,9 @@ type
       of MaxWidth etc. }
     FRealWidth, FRealHeight: Integer;
     FOnCloseQuery: TContainerEvent;
+    {$ifdef FPC}
     FOnTimer: TContainerEvent;
+    {$endif}
     FOnDropFiles: TDropFilesFunc;
     { FFullScreenWanted is the value set by FullScreen property by the user.
       FFullScreenBackend is the last value of FullScreen known to the backend
@@ -2468,13 +2470,14 @@ type
       application work. }
     procedure CloseAllOpenWindows;
 
+    {$ifdef FPC}
     function GetVersion: string;
     procedure SetVersion(const Value: string);
-
     function GetTouchDevice: boolean;
     procedure SetTouchDevice(const Value: boolean);
     function GetLimitFPS: Single;
     procedure SetLimitFPS(const Value: Single);
+    {$endif}
     function GetMainContainer: TCastleContainer;
   protected
     { Override TCustomApplication to pass TCustomApplication.Log
@@ -4716,16 +4719,6 @@ begin
   inherited;
 end;
 
-function TCastleApplication.GetLimitFPS: Single;
-begin
-  Result := ApplicationProperties.LimitFPS;
-end;
-
-procedure TCastleApplication.SetLimitFPS(const Value: Single);
-begin
-  ApplicationProperties.LimitFPS := Value;
-end;
-
 function TCastleApplication.GetMainContainer: TCastleContainer;
 begin
   if MainWindow <> nil then
@@ -5124,9 +5117,9 @@ procedure TCastleApplication.HandleException(Sender: TObject);
          Prevent the loop with just crash in this case. }
        (not Theme.InternalForceOpaqueBackground) then
     begin
+      OriginalObj := ExceptObject;
+      OriginalAddr := ExceptAddr;
       try
-        OriginalObj := ExceptObject;
-        OriginalAddr := ExceptAddr;
         {$ifdef FPC}
         OriginalFrameCount := ExceptFrameCount;
         OriginalFrame := ExceptFrames;
@@ -5273,6 +5266,18 @@ begin
   Result := {$ifdef OpenGLES} true {$else} false {$endif};
 end;
 
+{$ifdef FPC}
+
+function TCastleApplication.GetLimitFPS: Single;
+begin
+  Result := ApplicationProperties.LimitFPS;
+end;
+
+procedure TCastleApplication.SetLimitFPS(const Value: Single);
+begin
+  ApplicationProperties.LimitFPS := Value;
+end;
+
 function TCastleApplication.GetVersion: string;
 begin
   Result := ApplicationProperties.Version;
@@ -5292,6 +5297,8 @@ procedure TCastleApplication.SetTouchDevice(const Value: boolean);
 begin
   ApplicationProperties.TouchDevice := Value;
 end;
+
+{$endif}
 
 { global --------------------------------------------------------------------- }
 
