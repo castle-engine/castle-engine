@@ -25,8 +25,7 @@ interface
 uses
   CastleVectors, CastleSceneCore, CastleSceneInternalShape, {$ifndef FPC}CastleUtils, {$endif}
   {$ifdef FPC}{$ifdef CASTLE_OBJFPC}CastleGL, {$else}GL, GLExt, {$endif}{$else}OpenGL, OpenGLext, {$endif}
-  CastleVectors, CastleSceneCore, CastleSceneInternalShape, CastleRenderContext,
-  CastleFrustum, CastleGLShaders, CastleBoxes, CastleTransform;
+  CastleRenderContext, CastleFrustum, CastleGLShaders, CastleBoxes, CastleTransform;
 
 type
   TShapeProcedure = {$ifndef FPC}reference to{$endif} procedure (const Shape: TGLShape)
