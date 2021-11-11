@@ -121,7 +121,7 @@ begin
     FinalOutputResourcePath + ResName,
     FinalOutputResourcePath + ChangeFileExt(DeprecatedRcName[Plugin], '.res'));
 
-  WritelnVerbose('Generated ' + ResName + ', make sure you include it in your .lpr source file like this:');
+  WritelnVerbose('Generated ' + ResName + ', make sure you include it in your dpr/lpr source file like this:');
   WritelnVerbose('  {$ifdef CASTLE_AUTO_GENERATED_RESOURCES} {$R ' + ResName + '} {$endif}');
 end;
 

@@ -75,12 +75,6 @@ var
     (official "FPC for iOS" installation). }
   FpcVersionForIPhoneSimulator: string = 'auto';
 
-implementation
-
-uses SysUtils, Process,
-  CastleUtils, CastleLog, CastleFilesUtils, CastleFindFiles,
-  ToolCommonUtils, ToolUtils, ToolFpcVersion, ToolCompilerInfo;
-
 const
   { Paths with units and include files that are for all OSes and all compilers.
 
@@ -100,6 +94,7 @@ const
 
       So it is simpler to just name all includes and units differently,
       even across system-specific dirs. }
+
   EnginePaths: array [0..37] of String = (
     'base',
     'common_includes',
@@ -146,6 +141,12 @@ const
     'compatibility/delphi-only',
     'compatibility/delphi-only/fcl-json'
   );
+
+implementation
+
+uses SysUtils, Process,
+  CastleUtils, CastleLog, CastleFilesUtils, CastleFindFiles,
+  ToolCommonUtils, ToolUtils, ToolFpcVersion, ToolCompilerInfo;
 
 type
   TFpcVersionForIPhoneSimulatorChecked = class

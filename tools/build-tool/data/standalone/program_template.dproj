@@ -1,7 +1,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{A369DB29-1514-4B41-9120-E64D208B2BFD}</ProjectGuid>
-        <MainSource>state_events_standalone.dpr</MainSource>
+        <ProjectGuid>${PROJECT_GUID}</ProjectGuid>
+        <MainSource>${EXPLICIT_STANDALONE_SOURCE}</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
         <TargetedPlatforms>33939</TargetedPlatforms>
@@ -73,13 +73,13 @@
         <DCC_N>false</DCC_N>
         <DCC_S>false</DCC_S>
         <DCC_ImageBase>00400000</DCC_ImageBase>
-        <SanitizedProjectName>state_events</SanitizedProjectName>
+        <SanitizedProjectName>${NAME}</SanitizedProjectName>
         <VerInfo_Locale>1045</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=;CFBundleName=</VerInfo_Keys>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
         <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
         <Icns_MainIcns>$(BDS)\bin\delphi_PROJECTICNS.icns</Icns_MainIcns>
-        <DCC_UnitSearchPath>..\..\..\src/base;..\..\..\src/common_includes;..\..\..\src/base/android;..\..\..\src/base/windows;..\..\..\src/base/unix;..\..\..\src/base/opengl;..\..\..\src/fonts;..\..\..\src/fonts/opengl;..\..\..\src/window;..\..\..\src/window/gtk;..\..\..\src/window/windows;..\..\..\src/window/unix;..\..\..\src/window/deprecated_units;..\..\..\src/images;..\..\..\src/images/opengl;..\..\..\src/images/opengl/glsl/generated-pascal;..\..\..\src/3d;..\..\..\src/3d/opengl;..\..\..\src/x3d;..\..\..\src/x3d/opengl;..\..\..\src/x3d/opengl/glsl/generated-pascal;..\..\..\src/audio;..\..\..\src/audio/fmod;..\..\..\src/audio/openal;..\..\..\src/audio/ogg_vorbis;..\..\..\src/files;..\..\..\src/files/indy;..\..\..\src/castlescript;..\..\..\src/ui;..\..\..\src/ui/windows;..\..\..\src/ui/opengl;..\..\..\src/game;..\..\..\src/services;..\..\..\src/services/opengl;..\..\..\src/physics;..\..\..\src/physics/kraft;..\..\..\src/pasgltf;..\..\..\src/deprecated_units;..\..\..\src/compatibility/delphi-only;..\..\..\src/compatibility/delphi-only/fcl-json;code/;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>${DELPHI_SEARCH_PATHS};$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_DcuOutput>castle-engine-output\compilation\delphi</DCC_DcuOutput>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Android)'!=''">
@@ -124,10 +124,10 @@
         <BT_BuildType>Debug</BT_BuildType>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <Icon_MainIcon></Icon_MainIcon>
+        <Icon_MainIcon>${ICO_PATH}</Icon_MainIcon>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
-        <Icon_MainIcon></Icon_MainIcon>
+        <Icon_MainIcon>${ICO_PATH}</Icon_MainIcon>
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
         <BT_BuildType>Debug</BT_BuildType>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
@@ -155,7 +155,7 @@
     <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
-        <Icon_MainIcon></Icon_MainIcon>
+        <Icon_MainIcon>${ICO_PATH}</Icon_MainIcon>
         <Manifest_File>(None)</Manifest_File>
     </PropertyGroup>
     <ItemGroup>
@@ -180,7 +180,7 @@
         <BorlandProject>
             <Delphi.Personality>
                 <Source>
-                    <Source Name="MainSource">state_events_standalone.dpr</Source>
+                    <Source Name="MainSource">${EXPLICIT_STANDALONE_SOURCE}</Source>
                 </Source>
                 <Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\bcboffice2k280.bpl">Embarcadero C++Builder Office 2000 Servers Package</Excluded_Packages>
