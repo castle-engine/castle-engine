@@ -201,93 +201,93 @@ begin
   if ALLibrary <> nil then
   begin
     { alXxx functions -------------------------------------------------------- }
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alEnable, 'alEnable');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alDisable, 'alDisable');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alIsEnabled, 'alIsEnabled');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alGetBooleanv, 'alGetBooleanv');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alGetIntegerv, 'alGetIntegerv');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alGetFloatv, 'alGetFloatv');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alGetDoublev, 'alGetDoublev');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alGetString, 'alGetString');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alGetBoolean, 'alGetBoolean');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alGetInteger, 'alGetInteger');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alGetFloat, 'alGetFloat');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alGetDouble, 'alGetDouble');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alGetError, 'alGetError');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alIsExtensionPresent, 'alIsExtensionPresent');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alGetProcAddress, 'alGetProcAddress');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alGetEnumValue, 'alGetEnumValue');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alListenerf, 'alListenerf');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alListeneri, 'alListeneri');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alListener3f, 'alListener3f');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alListenerfv, 'alListenerfv');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alGetListeneri, 'alGetListeneri');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alGetListenerf, 'alGetListenerf');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alGetListenerfv, 'alGetListenerfv');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alGetListener3f, 'alGetListener3f');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alGenSources, 'alGenSources');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alDeleteSources, 'alDeleteSources');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alIsSource, 'alIsSource');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alSourcei, 'alSourcei');
+    Pointer({$ifndef FPC}@{$endif} alEnable) := ALLibrary.Symbol('alEnable');
+    Pointer({$ifndef FPC}@{$endif} alDisable) := ALLibrary.Symbol('alDisable');
+    Pointer({$ifndef FPC}@{$endif} alIsEnabled) := ALLibrary.Symbol('alIsEnabled');
+    Pointer({$ifndef FPC}@{$endif} alGetBooleanv) := ALLibrary.Symbol('alGetBooleanv');
+    Pointer({$ifndef FPC}@{$endif} alGetIntegerv) := ALLibrary.Symbol('alGetIntegerv');
+    Pointer({$ifndef FPC}@{$endif} alGetFloatv) := ALLibrary.Symbol('alGetFloatv');
+    Pointer({$ifndef FPC}@{$endif} alGetDoublev) := ALLibrary.Symbol('alGetDoublev');
+    Pointer({$ifndef FPC}@{$endif} alGetString) := ALLibrary.Symbol('alGetString');
+    Pointer({$ifndef FPC}@{$endif} alGetBoolean) := ALLibrary.Symbol('alGetBoolean');
+    Pointer({$ifndef FPC}@{$endif} alGetInteger) := ALLibrary.Symbol('alGetInteger');
+    Pointer({$ifndef FPC}@{$endif} alGetFloat) := ALLibrary.Symbol('alGetFloat');
+    Pointer({$ifndef FPC}@{$endif} alGetDouble) := ALLibrary.Symbol('alGetDouble');
+    Pointer({$ifndef FPC}@{$endif} alGetError) := ALLibrary.Symbol('alGetError');
+    Pointer({$ifndef FPC}@{$endif} alIsExtensionPresent) := ALLibrary.Symbol('alIsExtensionPresent');
+    Pointer({$ifndef FPC}@{$endif} alGetProcAddress) := ALLibrary.Symbol('alGetProcAddress');
+    Pointer({$ifndef FPC}@{$endif} alGetEnumValue) := ALLibrary.Symbol('alGetEnumValue');
+    Pointer({$ifndef FPC}@{$endif} alListenerf) := ALLibrary.Symbol('alListenerf');
+    Pointer({$ifndef FPC}@{$endif} alListeneri) := ALLibrary.Symbol('alListeneri');
+    Pointer({$ifndef FPC}@{$endif} alListener3f) := ALLibrary.Symbol('alListener3f');
+    Pointer({$ifndef FPC}@{$endif} alListenerfv) := ALLibrary.Symbol('alListenerfv');
+    Pointer({$ifndef FPC}@{$endif} alGetListeneri) := ALLibrary.Symbol('alGetListeneri');
+    Pointer({$ifndef FPC}@{$endif} alGetListenerf) := ALLibrary.Symbol('alGetListenerf');
+    Pointer({$ifndef FPC}@{$endif} alGetListenerfv) := ALLibrary.Symbol('alGetListenerfv');
+    Pointer({$ifndef FPC}@{$endif} alGetListener3f) := ALLibrary.Symbol('alGetListener3f');
+    Pointer({$ifndef FPC}@{$endif} alGenSources) := ALLibrary.Symbol('alGenSources');
+    Pointer({$ifndef FPC}@{$endif} alDeleteSources) := ALLibrary.Symbol('alDeleteSources');
+    Pointer({$ifndef FPC}@{$endif} alIsSource) := ALLibrary.Symbol('alIsSource');
+    Pointer({$ifndef FPC}@{$endif} alSourcei) := ALLibrary.Symbol('alSourcei');
 
     { alSource3i possibily not present in older < 1.1 OpenAL implementations,
       in particular in Loki versions. Handle gracefully: set to @nil, allowing
       programs that don't use alSource3i to still work. }
     try
-      ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alSource3i, 'alSource3i');
+      Pointer({$ifndef FPC}@{$endif} alSource3i) := ALLibrary.Symbol('alSource3i');
     except
       on EDynLibError do alSource3i := nil;
     end;
 
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alSourcef, 'alSourcef');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alSource3f, 'alSource3f');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alSourcefv, 'alSourcefv');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alGetSourcei, 'alGetSourcei');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alGetSourcef, 'alGetSourcef');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alGetSourcefv, 'alGetSourcefv');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alSourcePlayv, 'alSourcePlayv');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alSourceStopv, 'alSourceStopv');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alSourceRewindv, 'alSourceRewindv');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alSourcePausev, 'alSourcePausev');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alSourcePlay, 'alSourcePlay');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alSourcePause, 'alSourcePause');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alSourceRewind, 'alSourceRewind');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alSourceStop, 'alSourceStop');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alGenBuffers, 'alGenBuffers');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alDeleteBuffers, 'alDeleteBuffers');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alIsBuffer, 'alIsBuffer');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alBufferData, 'alBufferData');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alGetBufferi, 'alGetBufferi');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alGetBufferf, 'alGetBufferf');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alSourceQueueBuffers, 'alSourceQueueBuffers');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alSourceUnqueueBuffers, 'alSourceUnqueueBuffers');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alDopplerFactor, 'alDopplerFactor');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alDopplerVelocity, 'alDopplerVelocity');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alDistanceModel, 'alDistanceModel');
+    Pointer({$ifndef FPC}@{$endif} alSourcef) := ALLibrary.Symbol('alSourcef');
+    Pointer({$ifndef FPC}@{$endif} alSource3f) := ALLibrary.Symbol('alSource3f');
+    Pointer({$ifndef FPC}@{$endif} alSourcefv) := ALLibrary.Symbol('alSourcefv');
+    Pointer({$ifndef FPC}@{$endif} alGetSourcei) := ALLibrary.Symbol('alGetSourcei');
+    Pointer({$ifndef FPC}@{$endif} alGetSourcef) := ALLibrary.Symbol('alGetSourcef');
+    Pointer({$ifndef FPC}@{$endif} alGetSourcefv) := ALLibrary.Symbol('alGetSourcefv');
+    Pointer({$ifndef FPC}@{$endif} alSourcePlayv) := ALLibrary.Symbol('alSourcePlayv');
+    Pointer({$ifndef FPC}@{$endif} alSourceStopv) := ALLibrary.Symbol('alSourceStopv');
+    Pointer({$ifndef FPC}@{$endif} alSourceRewindv) := ALLibrary.Symbol('alSourceRewindv');
+    Pointer({$ifndef FPC}@{$endif} alSourcePausev) := ALLibrary.Symbol('alSourcePausev');
+    Pointer({$ifndef FPC}@{$endif} alSourcePlay) := ALLibrary.Symbol('alSourcePlay');
+    Pointer({$ifndef FPC}@{$endif} alSourcePause) := ALLibrary.Symbol('alSourcePause');
+    Pointer({$ifndef FPC}@{$endif} alSourceRewind) := ALLibrary.Symbol('alSourceRewind');
+    Pointer({$ifndef FPC}@{$endif} alSourceStop) := ALLibrary.Symbol('alSourceStop');
+    Pointer({$ifndef FPC}@{$endif} alGenBuffers) := ALLibrary.Symbol('alGenBuffers');
+    Pointer({$ifndef FPC}@{$endif} alDeleteBuffers) := ALLibrary.Symbol('alDeleteBuffers');
+    Pointer({$ifndef FPC}@{$endif} alIsBuffer) := ALLibrary.Symbol('alIsBuffer');
+    Pointer({$ifndef FPC}@{$endif} alBufferData) := ALLibrary.Symbol('alBufferData');
+    Pointer({$ifndef FPC}@{$endif} alGetBufferi) := ALLibrary.Symbol('alGetBufferi');
+    Pointer({$ifndef FPC}@{$endif} alGetBufferf) := ALLibrary.Symbol('alGetBufferf');
+    Pointer({$ifndef FPC}@{$endif} alSourceQueueBuffers) := ALLibrary.Symbol('alSourceQueueBuffers');
+    Pointer({$ifndef FPC}@{$endif} alSourceUnqueueBuffers) := ALLibrary.Symbol('alSourceUnqueueBuffers');
+    Pointer({$ifndef FPC}@{$endif} alDopplerFactor) := ALLibrary.Symbol('alDopplerFactor');
+    Pointer({$ifndef FPC}@{$endif} alDopplerVelocity) := ALLibrary.Symbol('alDopplerVelocity');
+    Pointer({$ifndef FPC}@{$endif} alDistanceModel) := ALLibrary.Symbol('alDistanceModel');
 
     {$ifdef OPENAL_DEPRECATED}
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alGetBufferiv, 'alGetBufferiv');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alGetBufferfv, 'alGetBufferfv');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alGetSourceiv, 'alGetSourceiv');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alGetListeneriv, 'alGetListeneriv');
+    Pointer({$ifndef FPC}@{$endif} alGetBufferiv) := ALLibrary.Symbol('alGetBufferiv');
+    Pointer({$ifndef FPC}@{$endif} alGetBufferfv) := ALLibrary.Symbol('alGetBufferfv');
+    Pointer({$ifndef FPC}@{$endif} alGetSourceiv) := ALLibrary.Symbol('alGetSourceiv');
+    Pointer({$ifndef FPC}@{$endif} alGetListeneriv) := ALLibrary.Symbol('alGetListeneriv');
     {$endif OPENAL_DEPRECATED}
 
     { alcXxx functions ---------------------------------------- }
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alcCreateContext, 'alcCreateContext');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alcMakeContextCurrent, 'alcMakeContextCurrent');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alcProcessContext, 'alcProcessContext');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alcSuspendContext, 'alcSuspendContext');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alcDestroyContext, 'alcDestroyContext');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alcGetError, 'alcGetError');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alcGetCurrentContext, 'alcGetCurrentContext');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alcOpenDevice, 'alcOpenDevice');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alcCloseDevice, 'alcCloseDevice');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alcIsExtensionPresent, 'alcIsExtensionPresent');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alcGetProcAddress, 'alcGetProcAddress');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alcGetEnumValue, 'alcGetEnumValue');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alcGetContextsDevice, 'alcGetContextsDevice');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alcGetString, 'alcGetString');
-    ALLibrary.SetSymbol({$ifndef FPC}@{$endif} alcGetIntegerv, 'alcGetIntegerv');
+    Pointer({$ifndef FPC}@{$endif} alcCreateContext) := ALLibrary.Symbol('alcCreateContext');
+    Pointer({$ifndef FPC}@{$endif} alcMakeContextCurrent) := ALLibrary.Symbol('alcMakeContextCurrent');
+    Pointer({$ifndef FPC}@{$endif} alcProcessContext) := ALLibrary.Symbol('alcProcessContext');
+    Pointer({$ifndef FPC}@{$endif} alcSuspendContext) := ALLibrary.Symbol('alcSuspendContext');
+    Pointer({$ifndef FPC}@{$endif} alcDestroyContext) := ALLibrary.Symbol('alcDestroyContext');
+    Pointer({$ifndef FPC}@{$endif} alcGetError) := ALLibrary.Symbol('alcGetError');
+    Pointer({$ifndef FPC}@{$endif} alcGetCurrentContext) := ALLibrary.Symbol('alcGetCurrentContext');
+    Pointer({$ifndef FPC}@{$endif} alcOpenDevice) := ALLibrary.Symbol('alcOpenDevice');
+    Pointer({$ifndef FPC}@{$endif} alcCloseDevice) := ALLibrary.Symbol('alcCloseDevice');
+    Pointer({$ifndef FPC}@{$endif} alcIsExtensionPresent) := ALLibrary.Symbol('alcIsExtensionPresent');
+    Pointer({$ifndef FPC}@{$endif} alcGetProcAddress) := ALLibrary.Symbol('alcGetProcAddress');
+    Pointer({$ifndef FPC}@{$endif} alcGetEnumValue) := ALLibrary.Symbol('alcGetEnumValue');
+    Pointer({$ifndef FPC}@{$endif} alcGetContextsDevice) := ALLibrary.Symbol('alcGetContextsDevice');
+    Pointer({$ifndef FPC}@{$endif} alcGetString) := ALLibrary.Symbol('alcGetString');
+    Pointer({$ifndef FPC}@{$endif} alcGetIntegerv) := ALLibrary.Symbol('alcGetIntegerv');
 
     { --------------------------------------------------------------------------
       ALC_xxx constants depending on Sample Implementation or not }

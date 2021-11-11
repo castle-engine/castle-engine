@@ -72,7 +72,7 @@ type
         ALLibrary: TDynLib = nil;
       initialization
         ALLibrary := TDynLib.Load('libopenal.so.1');
-        { ... some calls to ALLibrary.SetSymbol() ... }
+        { ... some calls to ALLibrary.Symbol() ... }
       finalization
         FreeAndNil(ALLibrary);
       end.
@@ -153,29 +153,6 @@ type
 
     }
     function Symbol(const SymbolName: PChar): Pointer;
-
-    (*Shortcut for doing "F := Symbol(SymbolName)", which can be used
-      in a way that looks concise and still works with both FPC and Delphi.
-
-      For code that needs to work with both FPC and Delphi, use it like this:
-
-      @longCode(#
-        Library.SetSymbol({$ifndef FPC}@{$endif} Foo, 'foo');
-      #)
-
-      Otherwise you'd have to write
-
-      @longCode(#
-        {$ifdef FPC}Pointer({$endif} Foo {$ifdef FPC}){$endif} := Library.Symbol('foo');
-      #)
-
-      or
-
-      @longCode(#
-        Pointer({$ifndef FPC}@{$endif} Foo) := Library.Symbol('foo');
-      #)
-    *)
-    procedure SetSymbol(var F: Pointer; const SymbolName: PChar);
   end;
 
 var
@@ -284,11 +261,6 @@ begin
       else raise EInternalError.Create('SymbolError=?');
       {$endif}
     end;
-end;
-
-procedure TDynLib.SetSymbol(var F: Pointer; const SymbolName: PChar);
-begin
-  F := Symbol(SymbolName);
 end;
 
 end.
