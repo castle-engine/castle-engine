@@ -2655,6 +2655,9 @@ constructor TSFStringEnum.Create(const AParentNode: TX3DFileItem;
 var
   I: Integer;
 begin
+  FEnumNames := TStringListCaseSens.Create;
+  AddStrArrayToStrings(AEnumNames, FEnumNames);
+
   AllNamesUpperCase := true;
   for I := 0 to FEnumNames.Count - 1 do
     if FEnumNames[I] <> UpperCase(FEnumNames[I]) then
