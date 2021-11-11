@@ -187,8 +187,7 @@ uses CastleUtils;
     var
       p,pmax : PAnsiChar;
     begin
-///{$push}
-///{$Q-}
+{$I norqcheckbegin.inc}
       Result:=0;
       p:=@s[1];
       pmax:=@s[length(s)+1];
@@ -197,15 +196,14 @@ uses CastleUtils;
           Result:=LongWord(LongInt(Result shl 5) - LongInt(Result)) xor LongWord(P^);
           Inc(p);
         end;
-///{$pop}
+{$I norqcheckend.inc}
     end;
 
     Function FPHash(P: PAnsiChar; Len: Integer): LongWord; overload;
     var
       pmax : PAnsiChar;
     begin
-///{$push}
-///{$Q-}
+{$I norqcheckbegin.inc}
       Result:=0;
       pmax:=p+len;
       while (p<pmax) do
@@ -213,7 +211,7 @@ uses CastleUtils;
           Result:=LongWord(LongInt(Result shl 5) - LongInt(Result)) xor LongWord(P^);
           Inc(p);
         end;
-///{$pop}
+{$I norqcheckend.inc}
     end;
 
 
