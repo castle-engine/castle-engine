@@ -421,9 +421,9 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_coordinatedouble.inc}
 {$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator.inc}
 {$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator2d.inc}
-{$I auto_generated_node_helpers/x3dnodes_cubicbezier2dorientationinterpolator.inc}
-{$I auto_generated_node_helpers/x3dnodes_cubicbezierpositioninterpolator.inc}
-{$I auto_generated_node_helpers/x3dnodes_cubicbeziercoordinateinterpolator.inc}
+{$ifdef FPC}{$I auto_generated_node_helpers/x3dnodes_cubicbezier2dorientationinterpolator.inc}{$endif}
+{$ifdef FPC}{$I auto_generated_node_helpers/x3dnodes_cubicbezierpositioninterpolator.inc}{$endif}
+{$ifdef FPC}{$I auto_generated_node_helpers/x3dnodes_cubicbeziercoordinateinterpolator.inc}{$endif}
 {$I auto_generated_node_helpers/x3dnodes_cylinder.inc}
 {$I auto_generated_node_helpers/x3dnodes_cylindersensor.inc}
 {$I auto_generated_node_helpers/x3dnodes_directionallight.inc}
@@ -637,7 +637,7 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_x3dcolornode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dcomposedgeometrynode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dcoordinatenode.inc}
-{$I auto_generated_node_helpers/x3dnodes_x3dcubicbezierinterpolator.inc}
+{$ifdef FPC}{$I auto_generated_node_helpers/x3dnodes_x3dcubicbezierinterpolator.inc}{$endif}
 {$I auto_generated_node_helpers/x3dnodes_x3ddampernode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3ddirectionallightnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3ddragsensornode.inc}

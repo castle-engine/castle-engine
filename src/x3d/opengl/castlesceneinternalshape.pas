@@ -23,7 +23,7 @@ interface
 
 uses X3DNodes, X3DFields, CastleImages,
   {$ifdef FPC}{$ifdef CASTLE_OBJFPC}CastleGL, {$else}GL, GLExt, {$endif}{$else}OpenGL, OpenGLext, {$endif}
-  CastleInternalRenderer, CastleRenderOptions {$ifndef FPC}, CastleUtils{$endif};
+  CastleGLUtils, CastleInternalRenderer, CastleRenderOptions;
 
 type
   { Shape within a scene rendered using OpenGL.
@@ -94,7 +94,7 @@ function ReallyHierarchicalOcclusionQuery(const RenderOptions: TCastleRenderOpti
 
 implementation
 
-uses CastleScene, CastleVectors, CastleGLUtils;
+uses CastleScene, CastleVectors;
 
 { TGLShape --------------------------------------------------------------- }
 

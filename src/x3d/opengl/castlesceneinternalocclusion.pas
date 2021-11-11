@@ -23,9 +23,10 @@ unit CastleSceneInternalOcclusion;
 interface
 
 uses
-  CastleVectors, CastleSceneCore, CastleSceneInternalShape, {$ifndef FPC}CastleUtils, {$endif}
+  CastleVectors, CastleSceneCore, CastleSceneInternalShape,
   {$ifdef FPC}{$ifdef CASTLE_OBJFPC}CastleGL, {$else}GL, GLExt, {$endif}{$else}OpenGL, OpenGLext, {$endif}
-  CastleRenderContext, CastleFrustum, CastleGLShaders, CastleBoxes, CastleTransform;
+  CastleGLUtils, CastleRenderContext, CastleFrustum, CastleGLShaders,
+  CastleBoxes, CastleTransform;
 
 type
   TShapeProcedure = {$ifndef FPC}reference to{$endif} procedure (const Shape: TGLShape)
@@ -81,8 +82,8 @@ type
 implementation
 
 uses SysUtils,
-  CastleClassUtils, CastleInternalShapeOctree, CastleGLUtils,
-  CastleRenderOptions;
+  CastleClassUtils, CastleInternalShapeOctree, CastleRenderOptions,
+  CastleUtils;
 
 { TOcclusionQueryUtilsRenderer ------------------------------------------------- }
 

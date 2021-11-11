@@ -273,7 +273,7 @@ begin
   { This again looks hacky but is Ok, glStencilOpSeparateATI has the same
     call semantics as glStencilOpSeparate, in fact glStencilOpSeparate
     is just an extension promoted to standard in GL 2.0... }
-  if ({$ifndef FPC}@{$endif}glStencilOpSeparate = nil) and Load_GL_ATI_separate_stencil then
+  if (not Assigned(glStencilOpSeparate)) and Load_GL_ATI_separate_stencil then
   begin
     if LogShadowVolumes then
       WritelnLog('Shadow volumes',

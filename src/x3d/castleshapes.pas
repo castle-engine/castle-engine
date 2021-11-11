@@ -3361,7 +3361,7 @@ begin
 
   Result := Indent + ClassName + ' (' + TransformNodeName + ')' + NL;
   for I := 0 to Children.Count - 1 do
-    Result += Children[I].DebugInfo(Indent + Format('  %3d:', [I]));
+    Result := Result + Children[I].DebugInfo(Indent + Format('  %3d:', [I]));
 end;
 
 { TShapeTreeLOD ------------------------------------------------------- }

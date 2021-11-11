@@ -5773,7 +5773,7 @@ initialization
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleWalkNavigation;
   R.Caption := 'Fly (Walk with Gravity=false)';
-  R.OnCreate := @TCastleWalkNavigation(nil).CreateComponentFly;
+  R.OnCreate := {$ifdef CASTLE_OBJFPC}@{$endif}TCastleWalkNavigation{$ifdef FPC}(nil){$endif}.CreateComponentFly;
   RegisterSerializableComponent(R);
 
   RegisterSerializableComponent(TCastleWalkNavigation, 'Walk');

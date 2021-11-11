@@ -912,7 +912,11 @@ var
   { Checks DynamicBatching and not occlusion query. }
   function ReallyDynamicBatching: Boolean;
   begin
-    Result := DynamicBatching and not ReallyAnyOcclusionQuery(RenderOptions);
+    Result := DynamicBatching
+      // TODO: This is a hasty conversion to Delphi, we should pass and look at RenderOptions in both FPC and Delphi
+      {$ifdef FPC}
+      and not ReallyAnyOcclusionQuery(RenderOptions)
+      {$endif};
   end;
 
   { Renders Shape, testing only Batching.Collect before RenderShape_NoTests.
