@@ -46,4 +46,11 @@ type
     nasty errors). }
   PtrObject = ^TObject;
 
+  { Size (signed) used for various list types Count, Capacity, index variables.
+
+    Delphi uses Integer for this.
+    FPC uses SizeInt for this (which may have larger size than Integer,
+    FPC docs say it is matching pointer size, so 64-bit on 64-bit platforms). }
+  TListSize = {$ifdef FPC} SizeInt {$else} Integer {$endif};
+
 {$endif}
