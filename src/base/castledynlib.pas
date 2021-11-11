@@ -72,7 +72,7 @@ type
         ALLibrary: TDynLib = nil;
       initialization
         ALLibrary := TDynLib.Load('libopenal.so.1');
-        { ... some calls to ALLibrary.Symbol() ... }
+        { ... some calls to ALLibrary.SetSymbol() ... }
       finalization
         FreeAndNil(ALLibrary);
       end.
@@ -137,22 +137,45 @@ type
 
       @unorderedList(
         @item(seRaise (default), then EDynLibError will be raised.)
-	@item(seReturnNil, then return @nil (and continue, ignoring error).)
-	@item(seWarnAndReturnNil, then write warning (using WarningWrite)
-	  and return @nil (and continue, ignoring error).
+        @item(seReturnNil, then return @nil (and continue, ignoring error).)
+        @item(seWarnAndReturnNil, then write warning (using WarningWrite)
+          and return @nil (and continue, ignoring error).
 
           This is useful for debugging : you can easily open the library and after
-	  one run of the program you can see what symbols (that you requested)
-	  were missing from the library. This is useful when you have a library
-	  but you are not sure whether it is compatible and contains all the
-	  symbols that you want.)
+          one run of the program you can see what symbols (that you requested)
+          were missing from the library. This is useful when you have a library
+          but you are not sure whether it is compatible and contains all the
+          symbols that you want.)
       )
 
       @raises(EDynLibError If SymbolName doesn't exist and
         SymbolError is seRaise.)
 
     }
-    function Symbol(SymbolName: PChar): Pointer;
+    function Symbol(const SymbolName: PChar): Pointer;
+
+    (*Shortcut for doing "F := Symbol(SymbolName)", which can be used
+      in a way that looks concise and still works with both FPC and Delphi.
+
+      For code that needs to work with both FPC and Delphi, use it like this:
+
+      @longCode(#
+        Library.SetSymbol({$ifndef FPC}@{$endif} Foo, 'foo');
+      #)
+
+      Otherwise you'd have to write
+
+      @longCode(#
+        {$ifdef FPC}Pointer({$endif} Foo {$ifdef FPC}){$endif} := Library.Symbol('foo');
+      #)
+
+      or
+
+      @longCode(#
+        Pointer({$ifndef FPC}@{$endif} Foo) := Library.Symbol('foo');
+      #)
+    *)
+    procedure SetSymbol(var F: Pointer; const SymbolName: PChar);
   end;
 
 var
@@ -243,7 +266,7 @@ begin
     Result := Self.Create(AName, Handle);
 end;
 
-function TDynLib.Symbol(SymbolName: PChar): Pointer;
+function TDynLib.Symbol(const SymbolName: PChar): Pointer;
 
   function ErrStr: string;
   begin
@@ -261,6 +284,11 @@ begin
       else raise EInternalError.Create('SymbolError=?');
       {$endif}
     end;
+end;
+
+procedure TDynLib.SetSymbol(var F: Pointer; const SymbolName: PChar);
+begin
+  F := Symbol(SymbolName);
 end;
 
 end.

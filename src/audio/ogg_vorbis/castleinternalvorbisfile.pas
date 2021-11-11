@@ -239,96 +239,49 @@ begin
 
   if VorbisFileLibrary <> nil then
   begin
+    VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_clear, 'ov_clear');
+    //VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_open, 'ov_open');
+    VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_open_callbacks, 'ov_open_callbacks');
 
-  {$ifdef FPC}
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_clear) := VorbisFileLibrary.Symbol('ov_clear');
-    //{$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_open) := VorbisFileLibrary.Symbol('ov_open');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_open_callbacks) := VorbisFileLibrary.Symbol('ov_open_callbacks');
+    //VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_test, 'ov_test');
+    VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_test_callbacks, 'ov_test_callbacks');
+    VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_test_open, 'ov_test_open');
 
-    //{$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_test) := VorbisFileLibrary.Symbol('ov_test');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_test_callbacks) := VorbisFileLibrary.Symbol('ov_test_callbacks');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_test_open) := VorbisFileLibrary.Symbol('ov_test_open');
+    VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_bitrate, 'ov_bitrate');
+    VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_bitrate_instant, 'ov_bitrate_instant');
+    VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_streams, 'ov_streams');
+    VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_seekable, 'ov_seekable');
+    VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_serialnumber, 'ov_serialnumber');
 
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_bitrate) := VorbisFileLibrary.Symbol('ov_bitrate');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_bitrate_instant) := VorbisFileLibrary.Symbol('ov_bitrate_instant');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_streams) := VorbisFileLibrary.Symbol('ov_streams');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_seekable) := VorbisFileLibrary.Symbol('ov_seekable');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_serialnumber) := VorbisFileLibrary.Symbol('ov_serialnumber');
+    VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_raw_total, 'ov_raw_total');
+    VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_pcm_total, 'ov_pcm_total');
+    VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_time_total, 'ov_time_total');
 
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_raw_total) := VorbisFileLibrary.Symbol('ov_raw_total');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_pcm_total) := VorbisFileLibrary.Symbol('ov_pcm_total');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_time_total) := VorbisFileLibrary.Symbol('ov_time_total');
+    VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_raw_seek, 'ov_raw_seek');
+    VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_pcm_seek, 'ov_pcm_seek');
+    VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_pcm_seek_page, 'ov_pcm_seek_page');
+    VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_time_seek, 'ov_time_seek');
+    VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_time_seek_page, 'ov_time_seek_page');
 
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_raw_seek) := VorbisFileLibrary.Symbol('ov_raw_seek');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_pcm_seek) := VorbisFileLibrary.Symbol('ov_pcm_seek');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_pcm_seek_page) := VorbisFileLibrary.Symbol('ov_pcm_seek_page');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_time_seek) := VorbisFileLibrary.Symbol('ov_time_seek');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_time_seek_page) := VorbisFileLibrary.Symbol('ov_time_seek_page');
+    // VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_raw_seek_lap, 'ov_raw_seek_lap'); // not available in libtremolo
+    // VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_pcm_seek_lap, 'ov_pcm_seek_lap'); // not available in libtremolo
+    // VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_pcm_seek_page_lap, 'ov_pcm_seek_page_lap'); // not available in libtremolo
+    // VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_time_seek_lap, 'ov_time_seek_lap'); // not available in libtremolo
+    // VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_time_seek_page_lap, 'ov_time_seek_page_lap'); // not available in libtremolo
 
-    // {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_raw_seek_lap) := VorbisFileLibrary.Symbol('ov_raw_seek_lap'); // not available in libtremolo
-    // {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_pcm_seek_lap) := VorbisFileLibrary.Symbol('ov_pcm_seek_lap'); // not available in libtremolo
-    // {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_pcm_seek_page_lap) := VorbisFileLibrary.Symbol('ov_pcm_seek_page_lap'); // not available in libtremolo
-    // {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_time_seek_lap) := VorbisFileLibrary.Symbol('ov_time_seek_lap'); // not available in libtremolo
-    // {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_time_seek_page_lap) := VorbisFileLibrary.Symbol('ov_time_seek_page_lap'); // not available in libtremolo
+    VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_raw_tell, 'ov_raw_tell');
+    VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_pcm_tell, 'ov_pcm_tell');
+    VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_time_tell, 'ov_time_tell');
 
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_raw_tell) := VorbisFileLibrary.Symbol('ov_raw_tell');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_pcm_tell) := VorbisFileLibrary.Symbol('ov_pcm_tell');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_time_tell) := VorbisFileLibrary.Symbol('ov_time_tell');
+    VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_info, 'ov_info');
+    //VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_comment, 'ov_comment');
 
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_info) := VorbisFileLibrary.Symbol('ov_info');
-    //{$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_comment) := VorbisFileLibrary.Symbol('ov_comment');
+    //VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_read_float, 'ov_read_float');
+    VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_read, 'ov_read');
+    //VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_crosslap, 'ov_crosslap');
 
-    //{$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_read_float) := VorbisFileLibrary.Symbol('ov_read_float');
-    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_read) := VorbisFileLibrary.Symbol('ov_read');
-    //{$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_crosslap) := VorbisFileLibrary.Symbol('ov_crosslap');
-
-    //{$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_halfrate) := VorbisFileLibrary.Symbol('ov_halfrate');
-    //{$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_halfrate_p) := VorbisFileLibrary.Symbol('ov_halfrate_p');
-    {$else}
-    ov_clear := VorbisFileLibrary.Symbol('ov_clear');
-    //{$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_open) := VorbisFileLibrary.Symbol('ov_open');
-    ov_open_callbacks := VorbisFileLibrary.Symbol('ov_open_callbacks');
-
-    //{$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_test) := VorbisFileLibrary.Symbol('ov_test');
-    ov_test_callbacks := VorbisFileLibrary.Symbol('ov_test_callbacks');
-    ov_test_open := VorbisFileLibrary.Symbol('ov_test_open');
-
-    ov_bitrate := VorbisFileLibrary.Symbol('ov_bitrate');
-    ov_bitrate_instant := VorbisFileLibrary.Symbol('ov_bitrate_instant');
-    ov_streams := VorbisFileLibrary.Symbol('ov_streams');
-    ov_seekable := VorbisFileLibrary.Symbol('ov_seekable');
-    ov_serialnumber := VorbisFileLibrary.Symbol('ov_serialnumber');
-
-    ov_raw_total := VorbisFileLibrary.Symbol('ov_raw_total');
-    ov_pcm_total := VorbisFileLibrary.Symbol('ov_pcm_total');
-    ov_time_total := VorbisFileLibrary.Symbol('ov_time_total');
-
-    ov_raw_seek := VorbisFileLibrary.Symbol('ov_raw_seek');
-    ov_pcm_seek := VorbisFileLibrary.Symbol('ov_pcm_seek');
-    ov_pcm_seek_page := VorbisFileLibrary.Symbol('ov_pcm_seek_page');
-    ov_time_seek := VorbisFileLibrary.Symbol('ov_time_seek');
-    ov_time_seek_page := VorbisFileLibrary.Symbol('ov_time_seek_page');
-
-    // {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_raw_seek_lap) := VorbisFileLibrary.Symbol('ov_raw_seek_lap'); // not available in libtremolo
-    // {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_pcm_seek_lap) := VorbisFileLibrary.Symbol('ov_pcm_seek_lap'); // not available in libtremolo
-    // {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_pcm_seek_page_lap) := VorbisFileLibrary.Symbol('ov_pcm_seek_page_lap'); // not available in libtremolo
-    // {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_time_seek_lap) := VorbisFileLibrary.Symbol('ov_time_seek_lap'); // not available in libtremolo
-    // {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_time_seek_page_lap) := VorbisFileLibrary.Symbol('ov_time_seek_page_lap'); // not available in libtremolo
-
-    ov_raw_tell := VorbisFileLibrary.Symbol('ov_raw_tell');
-    ov_pcm_tell := VorbisFileLibrary.Symbol('ov_pcm_tell');
-    ov_time_tell := VorbisFileLibrary.Symbol('ov_time_tell');
-
-    ov_info := VorbisFileLibrary.Symbol('ov_info');
-    //{$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_comment) := VorbisFileLibrary.Symbol('ov_comment');
-
-    //{$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_read_float) := VorbisFileLibrary.Symbol('ov_read_float');
-    ov_read := VorbisFileLibrary.Symbol('ov_read');
-    //{$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_crosslap) := VorbisFileLibrary.Symbol('ov_crosslap');
-
-    //{$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_halfrate) := VorbisFileLibrary.Symbol('ov_halfrate');
-    //{$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_halfrate_p) := VorbisFileLibrary.Symbol('ov_halfrate_p');
-    {$endif}
+    //VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_halfrate, 'ov_halfrate');
+    //VorbisFileLibrary.SetSymbol({$ifndef FPC}@{$endif} ov_halfrate_p, 'ov_halfrate_p');
   end;
 end;
 
