@@ -81,6 +81,7 @@
       Default implementation in this class uses simply
       calls TSingleField.CreateUndefined. }
     function CreateItemBeforeParse: TSingleField; virtual;
+    procedure AddToList(const ItemList: TItemList; const Item: TSingleField); virtual; abstract;
 
     procedure WritelnWarning_InvalidIndex(const Index, ACount: Integer);
 
@@ -152,13 +153,6 @@
     procedure Send(const AValue: TItemList); overload;
   end;
 
-  {$ifndef FPC}
-  TAccessSingleFieldValue<T: class> = class
-    class function GetValue(SingleField: T; Variable: String):TValue;
-  end;
-  {$endif}
-
-
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -204,27 +198,6 @@ begin
   {$endif}
 end;
 
-{$ifndef FPC}
-class function TAccessSingleFieldValue<T>.GetValue(SingleField: T; Variable: String): TValue;
-var
-  RttiContext: TRTTIContext;
-  SingleFieldType: TRttiType;
-  RttiVariable: TRttiField;
-begin
-  RttiContext := TRTTIContext.Create;
-  try
-    SingleFieldType := RttiContext.GetType(TypeInfo(T));
-    RttiVariable := SingleFieldType.GetField(Variable);
-    if RttiVariable = nil then
-      Exit(nil);
-
-    Result := RttiVariable.GetValue(Pointer(SingleField));
-  finally
-    RttiContext.Free;
-  end;
-end;
-{$endif}
-
 procedure TX3DSimpleMultField{$ifndef CASTLE_OBJFPC} <
     TItem;
     TSingleField;
@@ -254,12 +227,7 @@ begin
       { we always look now at "]" or next single value }
       begin
         SingleItem.ParseValue(Lexer, Reader);
-        {$ifdef FPC}
-        Items.Add(SingleItem.Value);
-        {$else}
-        Items.Add(TAccessSingleFieldValue<TSingleField>.GetValue(
-          SingleItem, 'Value').asType<TItem>);
-        {$endif}
+        AddToList(Items, SingleItem);
 
         if Lexer.Token = vtCloseSqBracket then break;
 
@@ -282,12 +250,7 @@ begin
     begin
       { one single field - not enclosed in [] brackets }
       SingleItem.ParseValue(Lexer, Reader);
-      {$ifdef FPC}
-      Items.Add(SingleItem.Value);
-      {$else}
-      Items.Add(TAccessSingleFieldValue<TSingleField>.GetValue(
-        SingleItem, 'Value').asType<TItem>);
-      {$endif}
+      AddToList(Items, SingleItem);
     end;
 
   finally FreeAndNil(SingleItem) end;
@@ -320,12 +283,7 @@ begin
     while Lexer.Token <> vtEnd do
     begin
       SingleItem.ParseValue(Lexer, Reader);
-      {$ifdef FPC}
-      Items.Add(SingleItem.Value);
-      {$else}
-      Items.Add(TAccessSingleFieldValue<TSingleField>.GetValue(
-        SingleItem, 'Value').asType<TItem>);
-      {$endif}
+      AddToList(Items, SingleItem);
     end;
   finally FreeAndNil(SingleItem) end;
 end;
@@ -437,7 +395,10 @@ begin
     begin
       Tmp := TItemList.Create;
       try
+        //TODO how to translate to Delphi
+        {$ifdef FPC}
         Tmp.Add(DefaultValue);
+        {$endif}
         Result := Tmp.PerfectlyEquals(Items);
       finally FreeAndNil(Tmp) end;
     end else
@@ -826,14 +787,7 @@ begin
     TInternalItemList, TItemList, TEvent>{$endif}(
       TX3DFieldClass(ClassType).CreateUndefined(ParentNode, false, X3DName));
     try
-      {$ifdef FPC}
-      FieldValue.Items.AddRange(AValue);
-      {$else}
-      { On Dlephi AddRange is TEnumerable<T> in TList but in
-        TStringList is TStrings and better/simpler way is to just iterate }
-      for I := 0 to AValue.Count - 1 do
-        FieldValue.Items.Add(AValue.InternalGetItem(I));
-      {$endif}
+      FieldValue.Items.Assign(AValue{$ifndef FPC} as TInternalItemList{$endif});
       Send(FieldValue);
     finally FreeAndNil(FieldValue) end;
   end else

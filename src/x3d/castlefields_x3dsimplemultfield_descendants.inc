@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,6 +26,7 @@
     TMFBoolEvent>)
   strict protected
     function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
+    procedure AddToList(const ItemList: TBooleanList; const Item: TSFBool); override;
   public
     class function X3DType: string; override;
   end;
@@ -41,6 +42,7 @@
     WrongVertexIndexWarnings: Integer;
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    procedure AddToList(const ItemList: TLongIntList; const Item: TSFLong); override;
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
   public
     { When saving to VRML/X3D classic encoding,
@@ -89,6 +91,7 @@
     TMFMatrix3fEvent>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    procedure AddToList(const ItemList: TMatrix3List; const Item: TSFMatrix3f); override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
@@ -103,6 +106,7 @@
     TMFMatrix3dEvent>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    procedure AddToList(const ItemList: TMatrix3DoubleList; const Item: TSFMatrix3d); override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
@@ -117,6 +121,7 @@
     TMFMatrix4fEvent>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    procedure AddToList(const ItemList: TMatrix4List; const Item: TSFMatrix4f); override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
@@ -131,6 +136,7 @@
     TMFMatrix4dEvent>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    procedure AddToList(const ItemList: TMatrix4DoubleList; const Item: TSFMatrix4d); override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
@@ -145,6 +151,7 @@
     TMFVec2fEvent>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    procedure AddToList(const ItemList: TVector2List; const Item: TSFVec2f); override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
@@ -159,6 +166,7 @@
     TMFVec3fEvent>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    procedure AddToList(const ItemList: TVector3List; const Item: TSFVec3f); override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
@@ -179,6 +187,7 @@
     TMFVec4fEvent>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    procedure AddToList(const ItemList: TVector4List; const Item: TSFVec4f); override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
@@ -199,6 +208,7 @@
     TMFVec2dEvent>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    procedure AddToList(const ItemList: TVector2DoubleList; const Item: TSFVec2d); override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
@@ -213,6 +223,7 @@
     TMFVec3dEvent>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    procedure AddToList(const ItemList: TVector3DoubleList; const Item: TSFVec3d); override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
@@ -227,6 +238,7 @@
     TMFVec4dEvent>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    procedure AddToList(const ItemList: TVector4DoubleList; const Item: TSFVec4d); override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
@@ -241,6 +253,7 @@
     TMFRotationEvent>)
   strict protected
     function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
+    procedure AddToList(const ItemList: TVector4List; const Item: TSFRotation); override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
@@ -257,6 +270,7 @@
     FAngle: boolean;
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    procedure AddToList(const ItemList: TSingleList; const Item: TSFFloat); override;
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
     function CreateItemBeforeParse: TSFFloat; override;
   public
@@ -278,6 +292,7 @@
     TMFDoubleEvent>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    procedure AddToList(const ItemList: TDoubleList; const Item: TSFDouble); override;
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
@@ -299,6 +314,7 @@
     TMFStringEvent>)
   strict protected
     function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
+    procedure AddToList(const ItemList: TCastleStringList; const Item: TSFString); override;
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
     class function X3DType: string; override;
@@ -317,6 +333,11 @@ begin
   Result := BoolKeywords[Encoding][Items[ItemNum]];
 end;
 
+procedure TMFBool.AddToList(const ItemList: TBooleanList; const Item: TSFBool);
+begin
+  Items.Add(Item.Value);
+end;
+
 class function TMFBool.X3DType: string;
 begin
   Result := 'MFBool';
@@ -332,6 +353,11 @@ end;
 function TMFLong.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
 begin
   Result := IntToStr(Items[ItemNum])
+end;
+
+procedure TMFLong.AddToList(const ItemList: TLongIntList; const Item: TSFLong);
+begin
+  Items.Add(Item.Value);
 end;
 
 class function TMFLong.X3DType: string;
@@ -378,6 +404,11 @@ begin
   Result := Items.List^[ItemNum].ToRawString;
 end;
 
+procedure TMFMatrix3f.AddToList(const ItemList: TMatrix3List; const Item: TSFMatrix3f);
+begin
+  Items.Add(Item.Value);
+end;
+
 procedure TMFMatrix3f.AssignLerp(const A: Double; Value1, Value2: TX3DField);
 begin
   Items.AssignLerp(A, (Value1 as TMFMatrix3f).Items, (Value2 as TMFMatrix3f).Items);
@@ -398,6 +429,11 @@ end;
 function TMFMatrix3d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
 begin
   Result := Items.List^[ItemNum].ToRawString;
+end;
+
+procedure TMFMatrix3d.AddToList(const ItemList: TMatrix3DoubleList; const Item: TSFMatrix3d);
+begin
+  Items.Add(Item.Value);
 end;
 
 procedure TMFMatrix3d.AssignLerp(const A: Double; Value1, Value2: TX3DField);
@@ -422,6 +458,11 @@ begin
   Result := Items.List^[ItemNum].ToRawString;
 end;
 
+procedure TMFMatrix4f.AddToList(const ItemList: TMatrix4List; const Item: TSFMatrix4f);
+begin
+  Items.Add(Item.Value);
+end;
+
 procedure TMFMatrix4f.AssignLerp(const A: Double; Value1, Value2: TX3DField);
 begin
   Items.AssignLerp(A, (Value1 as TMFMatrix4f).Items, (Value2 as TMFMatrix4f).Items);
@@ -442,6 +483,11 @@ end;
 function TMFMatrix4d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
 begin
   Result := Items.List^[ItemNum].ToRawString;
+end;
+
+procedure TMFMatrix4d.AddToList(const ItemList: TMatrix4DoubleList; const Item: TSFMatrix4d);
+begin
+  Items.Add(Item.Value);
 end;
 
 procedure TMFMatrix4d.AssignLerp(const A: Double; Value1, Value2: TX3DField);
@@ -466,6 +512,11 @@ begin
   Result := Items.List^[ItemNum].ToRawString;
 end;
 
+procedure TMFVec2f.AddToList(const ItemList: TVector2List; const Item: TSFVec2f);
+begin
+  Items.Add(Item.Value);
+end;
+
 procedure TMFVec2f.AssignLerp(const A: Double; Value1, Value2: TX3DField);
 begin
   Items.AssignLerp(A, (Value1 as TMFVec2f).Items, (Value2 as TMFVec2f).Items);
@@ -486,6 +537,11 @@ end;
 function TMFVec3f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
 begin
   Result := Items.List^[ItemNum].ToRawString;
+end;
+
+procedure TMFVec3f.AddToList(const ItemList: TVector3List; const Item: TSFVec3f);
+begin
+  Items.Add(Item.Value);
 end;
 
 procedure TMFVec3f.AssignLerp(const A: Double; Value1, Value2: TX3DField);
@@ -522,6 +578,11 @@ begin
   Result := Items.List^[ItemNum].ToRawString;
 end;
 
+procedure TMFVec4f.AddToList(const ItemList: TVector4List; const Item: TSFVec4f);
+begin
+  Items.Add(Item.Value);
+end;
+
 procedure TMFVec4f.AssignLerp(const A: Double; Value1, Value2: TX3DField);
 begin
   Items.AssignLerp(A, (Value1 as TMFVec4f).Items, (Value2 as TMFVec4f).Items);
@@ -556,6 +617,11 @@ begin
   Result := Items.List^[ItemNum].ToRawString;
 end;
 
+procedure TMFVec2d.AddToList(const ItemList: TVector2DoubleList; const Item: TSFVec2d);
+begin
+  Items.Add(Item.Value);
+end;
+
 procedure TMFVec2d.AssignLerp(const A: Double; Value1, Value2: TX3DField);
 begin
   Items.AssignLerp(A, (Value1 as TMFVec2d).Items, (Value2 as TMFVec2d).Items);
@@ -576,6 +642,11 @@ end;
 function TMFVec3d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
 begin
   Result := Items.List^[ItemNum].ToRawString;
+end;
+
+procedure TMFVec3d.AddToList(const ItemList: TVector3DoubleList; const Item: TSFVec3d);
+begin
+  Items.Add(Item.Value);
 end;
 
 procedure TMFVec3d.AssignLerp(const A: Double; Value1, Value2: TX3DField);
@@ -600,6 +671,11 @@ begin
   Result := Items.List^[ItemNum].ToRawString;
 end;
 
+procedure TMFVec4d.AddToList(const ItemList: TVector4DoubleList; const Item: TSFVec4d);
+begin
+  Items.Add(Item.Value);
+end;
+
 procedure TMFVec4d.AssignLerp(const A: Double; Value1, Value2: TX3DField);
 begin
   Items.AssignLerp(A, (Value1 as TMFVec4d).Items, (Value2 as TMFVec4d).Items);
@@ -622,6 +698,11 @@ begin
   Result := Items.List^[ItemNum].ToRawString;
 end;
 
+procedure TMFRotation.AddToList(const ItemList: TVector4List; const Item: TSFRotation);
+begin
+  Items.Add(Item.Value);
+end;
+
 procedure TMFRotation.AssignLerp(const A: Double; Value1, Value2: TX3DField);
 begin
   Items.AssignLerp(A, (Value1 as TMFRotation).Items, (Value2 as TMFRotation).Items);
@@ -642,6 +723,11 @@ end;
 function TMFFloat.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
 begin
   Result := Format('%g', [Items[ItemNum]]);
+end;
+
+procedure TMFFloat.AddToList(const ItemList: TSingleList; const Item: TSFFloat);
+begin
+  Items.Add(Item.Value);
 end;
 
 procedure TMFFloat.AssignLerp(const A: Double; Value1, Value2: TX3DField);
@@ -678,6 +764,11 @@ end;
 function TMFDouble.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
 begin
   Result := Format('%g', [Items[ItemNum]]);
+end;
+
+procedure TMFDouble.AddToList(const ItemList: TDoubleList; const Item: TSFDouble);
+begin
+  Items.Add(Item.Value);
 end;
 
 procedure TMFDouble.AssignLerp(const A: Double; Value1, Value2: TX3DField);
@@ -718,6 +809,11 @@ begin
     else raise EInternalError.Create('TMFString.RawItemToString Encoding?');
     {$endif}
   end;
+end;
+
+procedure TMFString.AddToList(const ItemList: TCastleStringList; const Item: TSFString);
+begin
+  Items.Add(Item.Value);
 end;
 
 class function TMFString.X3DType: string;
