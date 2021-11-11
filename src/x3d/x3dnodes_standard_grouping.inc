@@ -174,8 +174,8 @@
     { Change State.Transformation for children nodes.
       Almost all descendants should override only the overload changing
       TTransformation. }
-    procedure ApplyTransform(const State: TX3DGraphTraverseState); virtual;
-    procedure ApplyTransform(var Transformation: TTransformation); virtual;
+    procedure ApplyTransform(const State: TX3DGraphTraverseState); overload; virtual;
+    procedure ApplyTransform(var Transformation: TTransformation); overload; virtual;
   end;
 
   { A top-level VRML/X3D node. This is what you get by loading 3D model from file.

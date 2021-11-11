@@ -374,7 +374,7 @@
       is already equal to NewChildren, it does nothing.
 
       @groupBegin }
-    property VRML1Children [I: Integer]: TX3DNode read GetVRML1Child write SetVRML1Child;
+    property VRML1Children [const I: Integer]: TX3DNode read GetVRML1Child write SetVRML1Child;
     function VRML1ChildrenCount: integer;
     { @groupEnd }
 
@@ -404,7 +404,7 @@
       list.
 
       @groupBegin }
-    property VRML1Parents [I: Integer] :TX3DNode read GetVRML1Parent;
+    property VRML1Parents [const I: Integer] :TX3DNode read GetVRML1Parent;
     function VRML1ParentsCount: integer;
     { @groupEnd }
 

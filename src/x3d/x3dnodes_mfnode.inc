@@ -56,8 +56,8 @@
       usually assumes that all MFNode children are non-nil.
       (As VRML/X3D spec don't really allow NULL items inside MFNode fields.)
       @groupBegin }
-    function GetCount: SizeInt; override;
-    procedure SetCount(const Value: SizeInt); override;
+    function GetCount: TListSize; override;
+    procedure SetCount(const Value: TListSize); override;
     { @groupEnd }
   public
     { Construct a field allowing any children class.
@@ -312,12 +312,12 @@ begin
   Result := sxChildElement;
 end;
 
-function TMFNode.GetCount: SizeInt;
+function TMFNode.GetCount: TListSize;
 begin
   Result := FItems.Count;
 end;
 
-procedure TMFNode.SetCount(const Value: SizeInt);
+procedure TMFNode.SetCount(const Value: TListSize);
 var
   I: Integer;
 begin
