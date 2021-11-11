@@ -14,29 +14,20 @@
 }
 
 {$ifdef read_interface}
-  { Interface for nodes that are valid product structure children. }
-  IAbstractX3DProductStructureChildNode = interface(IAbstractChildNode)
-  ['{318249E0-BACF-4F16-9E49-3E912F24E0AA}']
-  // TODO: Delphi
-  {$ifdef FPC}
-    property FdName: TSFString  { read FFdName } { };
-  {$endif}
-  end;
-
   { Abstract class for (most) nodes that are valid product structure children. }
-  TAbstractProductStructureChildNode = class(TAbstractChildNode, IAbstractX3DProductStructureChildNode)
+  TAbstractProductStructureChildNode = class(TAbstractChildNode)
     {$I auto_generated_node_helpers/x3dnodes_x3dproductstructurechildnode.inc}
   end;
 
   { Holds a set of assemblies or parts grouped together. }
-  TCADAssemblyNode = class(TAbstractX3DGroupingNode, IAbstractX3DProductStructureChildNode)
+  TCADAssemblyNode = class(TAbstractX3DGroupingNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     {$I auto_generated_node_helpers/x3dnodes_cadassembly.inc}
   end;
 
   { Holds the geometry representing a face of a part. }
-  TCADFaceNode = class(TAbstractProductStructureChildNode, IAbstractBoundedObject)
+  TCADFaceNode = class(TAbstractProductStructureChildNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     {$I auto_generated_node_helpers/x3dnodes_cadface.inc}
@@ -50,13 +41,25 @@
   end;
 
   { Represents the location and faces that constitute a part in the CAD model. }
-  TCADPartNode = class(TAbstractX3DGroupingNode, IAbstractX3DProductStructureChildNode, ITransformNode)
+  TCADPartNode = class(TAbstractX3DGroupingNode)
+  strict private
+    type
+      TCADPartNodeTransformFunctionality = class(TTransformFunctionality)
+      strict private
+        FParent: TCADPartNode;
+      public
+        constructor Create(const AParent: TCADPartNode);
+        property Parent: TCADPartNode read FParent;
+        procedure ApplyTransform(var Transformation: TTransformation); override;
+      end;
+    var
+      FTransformFunctionality: TCADPartNodeTransformFunctionality;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
-    procedure ApplyTransform(var Transformation: TTransformation); override;
   public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     function TransformationChange: TNodeTransformationChange; override;
-    {$I auto_generated_node_helpers/x3dnodes_cadpart.inc}
+  {$I auto_generated_node_helpers/x3dnodes_cadpart.inc}
   end;
 
   { Quads. }
@@ -115,6 +118,35 @@ begin
     if Result <> nil then Exit;
   end;
 end;
+
+{ TCADPartNode.TCADPartNodeTransformFunctionality ----------------------------------------- }
+
+constructor TCADPartNode.TCADPartNodeTransformFunctionality.Create(const AParent: TCADPartNode);
+begin
+  inherited Create(AParent);
+  FParent := AParent;
+end;
+
+procedure TCADPartNode.TCADPartNodeTransformFunctionality.ApplyTransform(var Transformation: TTransformation);
+begin
+  inherited;
+  Transformation.Multiply(
+    Parent.Center,
+    Parent.Rotation,
+    Parent.Scale,
+    Parent.ScaleOrientation,
+    Parent.Translation);
+end;
+
+{ TCADPartNode --------------------------------------------------------------- }
+
+constructor TCADPartNode.Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  FTransformFunctionality := TCADPartNodeTransformFunctionality.Create(Self);
+  AddFunctionality(FTransformFunctionality);
+end;
+
 function TCADPartNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   Result := FdChildren.Enumerate(Func);
@@ -124,17 +156,6 @@ end;
 function TCADPartNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcTransform;
-end;
-
-procedure TCADPartNode.ApplyTransform(var Transformation: TTransformation);
-begin
-  inherited;
-  Transformation.Multiply(
-    Center,
-    Rotation,
-    Scale,
-    ScaleOrientation,
-    Translation);
 end;
 
 function TIndexedQuadSetNode.CoordIndexField: TMFLong;

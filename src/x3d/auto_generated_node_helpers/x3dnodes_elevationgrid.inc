@@ -51,34 +51,100 @@
     function GetZSpacing: Single;
     procedure SetZSpacing(const Value: Single);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventSet_height: TMFFloatEvent;
+    { X3D in event "set_height". } { }
+    public property EventSet_height: TMFFloatEvent read FEventSet_height;
+
+    strict private FFdAttrib: TMFNode;
+    { X3D field "attrib". } { }
+    public property FdAttrib: TMFNode read FFdAttrib;
     { Set X3D field "attrib". } { }
     procedure SetAttrib(const Value: array of TAbstractVertexAttributeNode);
+
+    strict private FFdColor: TSFNode;
+    { X3D field "color". } { }
+    public property FdColor: TSFNode read FFdColor;
     { X3D field "color". } { }
     property Color: TAbstractColorNode read GetColor write SetColor;
+
+    strict private FFdFogCoord: TSFNode;
+    { X3D field "fogCoord". } { }
+    public property FdFogCoord: TSFNode read FFdFogCoord;
     { X3D field "fogCoord". } { }
     property FogCoord: TFogCoordinateNode read GetFogCoord write SetFogCoord;
+
+    strict private FFdNormal: TSFNode;
+    { X3D field "normal". } { }
+    public property FdNormal: TSFNode read FFdNormal;
     { X3D field "normal". } { }
     property Normal: TAbstractNormalNode read GetNormal write SetNormal;
+
+    strict private FFdTexCoord: TSFNode;
+    { X3D field "texCoord". } { }
+    public property FdTexCoord: TSFNode read FFdTexCoord;
     { X3D field "texCoord". } { }
     property TexCoord: TAbstractTextureCoordinateNode read GetTexCoord write SetTexCoord;
+
+    strict private FFdCcw: TSFBool;
+    { X3D field "ccw". } { }
+    public property FdCcw: TSFBool read FFdCcw;
     { X3D field "ccw". } { }
     property Ccw: Boolean read GetCcw write SetCcw;
+
+    strict private FFdColorPerVertex: TSFBool;
+    { X3D field "colorPerVertex". } { }
+    public property FdColorPerVertex: TSFBool read FFdColorPerVertex;
     { X3D field "colorPerVertex". } { }
     property ColorPerVertex: Boolean read GetColorPerVertex write SetColorPerVertex;
+
+    strict private FFdCreaseAngle: TSFFloat;
+    { X3D field "creaseAngle". } { }
+    public property FdCreaseAngle: TSFFloat read FFdCreaseAngle;
     { X3D field "creaseAngle". } { }
     property CreaseAngle: Single read GetCreaseAngle write SetCreaseAngle;
+
+    strict private FFdHeight: TMFFloat;
+    { X3D field "height". } { }
+    public property FdHeight: TMFFloat read FFdHeight;
     { Set X3D field "height". } { }
     procedure SetHeight(const Value: array of Single); overload;
     { Set X3D field "height". } { }
     procedure SetHeight(const Value: TSingleList); overload;
+
+    strict private FFdNormalPerVertex: TSFBool;
+    { X3D field "normalPerVertex". } { }
+    public property FdNormalPerVertex: TSFBool read FFdNormalPerVertex;
     { X3D field "normalPerVertex". } { }
     property NormalPerVertex: Boolean read GetNormalPerVertex write SetNormalPerVertex;
+
+    strict private FFdSolid: TSFBool;
+    { X3D field "solid". } { }
+    public property FdSolid: TSFBool read FFdSolid;
+
+    strict private FFdXDimension: TSFInt32;
+    { X3D field "xDimension". } { }
+    public property FdXDimension: TSFInt32 read FFdXDimension;
     { X3D field "xDimension". } { }
     property XDimension: Integer read GetXDimension write SetXDimension;
+
+    strict private FFdXSpacing: TSFFloat;
+    { X3D field "xSpacing". } { }
+    public property FdXSpacing: TSFFloat read FFdXSpacing;
     { X3D field "xSpacing". } { }
     property XSpacing: Single read GetXSpacing write SetXSpacing;
+
+    strict private FFdZDimension: TSFInt32;
+    { X3D field "zDimension". } { }
+    public property FdZDimension: TSFInt32 read FFdZDimension;
     { X3D field "zDimension". } { }
     property ZDimension: Integer read GetZDimension write SetZDimension;
+
+    strict private FFdZSpacing: TSFFloat;
+    { X3D field "zSpacing". } { }
+    public property FdZSpacing: TSFFloat read FFdZSpacing;
     { X3D field "zSpacing". } { }
     property ZSpacing: Single read GetZSpacing write SetZSpacing;
 
@@ -240,6 +306,80 @@ end;
 procedure TElevationGridNode.SetZSpacing(const Value: Single);
 begin
   FdZSpacing.Send(Value);
+end;
+
+class function TElevationGridNode.ClassX3DType: String;
+begin
+  Result := 'ElevationGrid';
+end;
+
+procedure TElevationGridNode.CreateNode;
+begin
+  inherited;
+
+  FEventSet_height := TMFFloatEvent.Create(Self, 'set_height', true);
+  AddEvent(FEventSet_height);
+
+  FFdAttrib := TMFNode.Create(Self, True, 'attrib', [TAbstractVertexAttributeNode]);
+   FdAttrib.ChangeAlways := chGeometry;
+  AddField(FFdAttrib);
+
+  FFdColor := TSFNode.Create(Self, True, 'color', [TAbstractColorNode]);
+   FdColor.ChangeAlways := chGeometry;
+  AddField(FFdColor);
+
+  FFdFogCoord := TSFNode.Create(Self, True, 'fogCoord', [TFogCoordinateNode]);
+   FdFogCoord.ChangeAlways := chGeometry;
+  AddField(FFdFogCoord);
+
+  FFdNormal := TSFNode.Create(Self, True, 'normal', [TAbstractNormalNode]);
+   FdNormal.ChangeAlways := chGeometry;
+  AddField(FFdNormal);
+
+  FFdTexCoord := TSFNode.Create(Self, True, 'texCoord', [TAbstractTextureCoordinateNode]);
+   FdTexCoord.ChangeAlways := chGeometry;
+  AddField(FFdTexCoord);
+
+  FFdCcw := TSFBool.Create(Self, False, 'ccw', true);
+   FdCcw.ChangeAlways := chGeometry;
+  AddField(FFdCcw);
+
+  FFdColorPerVertex := TSFBool.Create(Self, False, 'colorPerVertex', true);
+   FdColorPerVertex.ChangeAlways := chGeometry;
+  AddField(FFdColorPerVertex);
+
+  FFdCreaseAngle := TSFFloat.Create(Self, False, 'creaseAngle', 0);
+   FdCreaseAngle.ChangeAlways := chGeometry;
+   FdCreaseAngle.Angle := true;
+  AddField(FFdCreaseAngle);
+
+  FFdHeight := TMFFloat.Create(Self, False, 'height', []);
+   FdHeight.ChangeAlways := chGeometry;
+  AddField(FFdHeight);
+
+  FFdNormalPerVertex := TSFBool.Create(Self, False, 'normalPerVertex', true);
+   FdNormalPerVertex.ChangeAlways := chGeometry;
+  AddField(FFdNormalPerVertex);
+
+  FFdSolid := TSFBool.Create(Self, False, 'solid', true);
+   FdSolid.ChangeAlways := chGeometry;
+  AddField(FFdSolid);
+
+  FFdXDimension := TSFInt32.Create(Self, False, 'xDimension', 0);
+   FdXDimension.ChangeAlways := chGeometry;
+  AddField(FFdXDimension);
+
+  FFdXSpacing := TSFFloat.Create(Self, False, 'xSpacing', 1.0);
+   FdXSpacing.ChangeAlways := chGeometry;
+  AddField(FFdXSpacing);
+
+  FFdZDimension := TSFInt32.Create(Self, False, 'zDimension', 0);
+   FdZDimension.ChangeAlways := chGeometry;
+  AddField(FFdZDimension);
+
+  FFdZSpacing := TSFFloat.Create(Self, False, 'zSpacing', 1.0);
+   FdZSpacing.ChangeAlways := chGeometry;
+  AddField(FFdZSpacing);
 end;
 
 {$endif read_implementation}

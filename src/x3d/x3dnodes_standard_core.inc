@@ -14,20 +14,8 @@
 }
 
 {$ifdef read_interface}
-  { Interface for a base X3D node that can have some metadata. }
-  IAbstractNode = interface(IX3DNode)
-  ['{399AC6B2-C2B3-4EEA-AB74-D52C4836B3B9}']
-  end;
-
-  { Interface for an abstract node type that indicates that the node may be used as
-    a child of a grouping node,
-    e.g. inside @link(TAbstractX3DGroupingNode.FdChildren). }
-  IAbstractChildNode = interface(IAbstractNode)
-  ['{ECE6F71D-CA90-4B6C-8835-EAA68EEDAEED}']
-  end;
-
   { Base X3D node that can have some metadata. }
-  TAbstractNode = class(TX3DNode, IAbstractNode)
+  TAbstractNode = class(TX3DNode)
   strict private
     procedure InsertMetadata(const M: TAbstractMetadataNode);
 
@@ -147,7 +135,7 @@
   { Abstract node type that indicates that the node may be used as
     a child of a grouping node,
     e.g. inside @link(TAbstractX3DGroupingNode.FdChildren). }
-  TAbstractChildNode = class(TAbstractNode, IAbstractChildNode)
+  TAbstractChildNode = class(TAbstractNode)
     {$I auto_generated_node_helpers/x3dnodes_x3dchildnode.inc}
   end;
 
@@ -157,7 +145,7 @@
     FBound: Boolean;
     FTransform: TMatrix4;
     FTransformScale: Single;
-    procedure EventIsBoundReceive(Event: TX3DEvent; AValue: TX3DField;
+    procedure EventIsBoundReceive(const Event: TX3DEvent; const AValue: TX3DField;
       const Time: TX3DTime);
     procedure SetBound(const Value: Boolean);
   protected
@@ -228,66 +216,54 @@
   { Base class for all nodes that contain only information without visual
     semantics. }
   TAbstractInfoNode = class(TAbstractChildNode)
-    {$I auto_generated_node_helpers/x3dnodes_x3dinfonode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dinfonode.inc}
   end;
 
-  { Base interface type for all sensors.
-    All sensors implement this
-    (and most, but not all, sensors descend also from @link(TAbstractSensorNode).) }
-  IAbstractSensorNode = interface(IAbstractChildNode)
-  ['{7434C62F-8084-40C3-AA57-08F9B574655A}']
-  // TODO: delphi can't have properties in interfaces
-  {$ifdef FPC}
-    property FdEnabled: TSFBool;
-
-    { Event: out } { }
-    property EventIsActive: TSFBoolEvent;
-  {$endif}
-  end;
-
-  { Base abstract class for all sensors. }
-  TAbstractSensorNode = class(TAbstractChildNode, IAbstractSensorNode)
-    {$I auto_generated_node_helpers/x3dnodes_x3dsensornode.inc}
+  { Base abstract class for most (but not all) sensors.
+    We may introduce TSensorFunctionality in the future if it will be necessary,
+    to express X3DSensorNode exactly. }
+  TAbstractSensorNode = class(TAbstractChildNode)
+  {$I auto_generated_node_helpers/x3dnodes_x3dsensornode.inc}
   end;
 
   { A metadata (extra, custom information at a node) with a boolean type. }
   TMetadataBooleanNode = class(TAbstractMetadataNode)
-    {$I auto_generated_node_helpers/x3dnodes_metadataboolean.inc}
+  {$I auto_generated_node_helpers/x3dnodes_metadataboolean.inc}
   end;
 
   { A metadata (extra, custom information at a node) with
     a double-precision floating point number type. }
   TMetadataDoubleNode = class(TAbstractMetadataNode)
-    {$I auto_generated_node_helpers/x3dnodes_metadatadouble.inc}
+  {$I auto_generated_node_helpers/x3dnodes_metadatadouble.inc}
   end;
 
   { A metadata (extra, custom information at a node) with
     a single-precision floating point number type. }
   TMetadataFloatNode = class(TAbstractMetadataNode)
-    {$I auto_generated_node_helpers/x3dnodes_metadatafloat.inc}
+  {$I auto_generated_node_helpers/x3dnodes_metadatafloat.inc}
   end;
 
   { A metadata (extra, custom information at a node) with an integer type. }
   TMetadataIntegerNode = class(TAbstractMetadataNode)
-    {$I auto_generated_node_helpers/x3dnodes_metadatainteger.inc}
+  {$I auto_generated_node_helpers/x3dnodes_metadatainteger.inc}
   end;
 
   { A metadata (extra, custom information at a node) set,
     to reference of collection of other metadata nodes. }
   TMetadataSetNode = class(TAbstractMetadataNode)
-    {$I auto_generated_node_helpers/x3dnodes_metadataset.inc}
+  {$I auto_generated_node_helpers/x3dnodes_metadataset.inc}
   end;
 
   { A metadata (extra, custom information at a node) with a string type. }
   TMetadataStringNode = class(TAbstractMetadataNode)
-    {$I auto_generated_node_helpers/x3dnodes_metadatastring.inc}
+  {$I auto_generated_node_helpers/x3dnodes_metadatastring.inc}
   end;
 
   { Information about the world.
     This node is strictly for documentation purposes
     and has no effect on the visual appearance or behavior of the world. }
   TWorldInfoNode = class(TAbstractInfoNode)
-    {$I auto_generated_node_helpers/x3dnodes_worldinfo.inc}
+  {$I auto_generated_node_helpers/x3dnodes_worldinfo.inc}
   end;
 
 {$endif read_interface}
@@ -601,7 +577,7 @@ begin
 end;
 
 procedure TAbstractBindableNode.EventIsBoundReceive(
-  Event: TX3DEvent; AValue: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const AValue: TX3DField; const Time: TX3DTime);
 begin
   FBound := (AValue as TSFBool).Value;
 end;

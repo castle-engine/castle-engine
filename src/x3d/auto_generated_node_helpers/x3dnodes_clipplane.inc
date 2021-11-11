@@ -31,8 +31,18 @@
     function GetPlane: TVector4;
     procedure SetPlane(const Value: TVector4);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdEnabled: TSFBool;
+    { X3D field "enabled". } { }
+    public property FdEnabled: TSFBool read FFdEnabled;
     { X3D field "enabled". } { }
     property Enabled: Boolean read GetEnabled write SetEnabled;
+
+    strict private FFdPlane: TSFVec4f;
+    { X3D field "plane". } { }
+    public property FdPlane: TSFVec4f read FFdPlane;
     { X3D field "plane". } { }
     property Plane: TVector4 read GetPlane write SetPlane;
 
@@ -60,6 +70,24 @@ end;
 procedure TClipPlaneNode.SetPlane(const Value: TVector4);
 begin
   FdPlane.Send(Value);
+end;
+
+class function TClipPlaneNode.ClassX3DType: String;
+begin
+  Result := 'ClipPlane';
+end;
+
+procedure TClipPlaneNode.CreateNode;
+begin
+  inherited;
+
+  FFdEnabled := TSFBool.Create(Self, True, 'enabled', true);
+   FdEnabled.ChangeAlways := chClipPlane;
+  AddField(FFdEnabled);
+
+  FFdPlane := TSFVec4f.Create(Self, True, 'plane', Vector4(0, 1, 0, 0));
+   FdPlane.ChangeAlways := chClipPlane;
+  AddField(FFdPlane);
 end;
 
 {$endif read_implementation}

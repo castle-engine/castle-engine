@@ -231,6 +231,8 @@ begin
 end;
 
 procedure TInternalSoundSource.Release;
+var
+  SavedOnRelease: TInternalSoundSourceEvent;
 begin
   FUsed := false;
 
@@ -244,8 +246,18 @@ begin
 
   if Assigned(OnRelease) then
   begin
-    OnRelease(Self);
+    { Note that calling OnRelease may do anything, it may even reuse this sound
+      and set the OnRelease again. This is possible though TCastlePlayingSound:
+      if in OnStop of one TCastlePlayingSound, you will start playing another
+      TCastlePlayingSound, it may reuse the same TInternalSoundSource.
+
+      So *do not* do "OnRelease := nil" after calling OnRelease, do it before.
+      That's why we need to keep it in SavedOnRelease.
+
+      Testcase: https://github.com/castle-engine/castle-engine/issues/344 }
+    SavedOnRelease := OnRelease;
     OnRelease := nil;
+    SavedOnRelease(Self);
   end;
 end;
 

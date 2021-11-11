@@ -62,6 +62,11 @@ function SearchTextureFile(const BaseUrl: string; Base: string): string;
   https://sourceforge.net/p/castle-engine/tickets/21/ ) seems more common. }
 function FixRelativeUrl(const URL: string): string;
 
+var
+  { Use CGE X3D extensions when importing the model.
+    Set to false to force creating a valid X3D model (but maybe with less functionality). }
+  CastleX3dExtensions: Boolean = true;
+
 implementation
 
 uses SysUtils, Math, URIParser, StrUtils,

@@ -31,12 +31,26 @@
     function GetRotateYUp: Boolean;
     procedure SetRotateYUp(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdGeoCoords: TSFVec3d;
+    { X3D field "geoCoords". } { }
+    public property FdGeoCoords: TSFVec3d read FFdGeoCoords;
     { X3D field "geoCoords". } { }
     property GeoCoords: TVector3Double read GetGeoCoords write SetGeoCoords;
+
+    strict private FFdGeoSystem: TMFString;
+    { X3D field "geoSystem". } { }
+    public property FdGeoSystem: TMFString read FFdGeoSystem;
     { Set X3D field "geoSystem". } { }
     procedure SetGeoSystem(const Value: array of string); overload;
     { Set X3D field "geoSystem". } { }
     procedure SetGeoSystem(const Value: TCastleStringList); overload;
+
+    strict private FFdRotateYUp: TSFBool;
+    { X3D field "rotateYUp". } { }
+    public property FdRotateYUp: TSFBool read FFdRotateYUp;
     { X3D field "rotateYUp". } { }
     property RotateYUp: Boolean read GetRotateYUp write SetRotateYUp;
 
@@ -74,6 +88,30 @@ end;
 procedure TGeoOriginNode.SetRotateYUp(const Value: Boolean);
 begin
   FdRotateYUp.Send(Value);
+end;
+
+class function TGeoOriginNode.ClassX3DType: String;
+begin
+  Result := 'GeoOrigin';
+end;
+
+procedure TGeoOriginNode.CreateNode;
+begin
+  inherited;
+
+  FFdGeoCoords := TSFVec3d.Create(Self, True, 'geoCoords', Vector3Double(0, 0, 0));
+   FdGeoCoords.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdGeoCoords);
+
+  FFdGeoSystem := TMFString.Create(Self, False, 'geoSystem', ['GD','WE']);
+   FdGeoSystem.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdGeoSystem);
+
+  FFdRotateYUp := TSFBool.Create(Self, False, 'rotateYUp', false);
+   FdRotateYUp.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdRotateYUp);
+
+  DefaultContainerField := 'geoOrigin';
 end;
 
 {$endif read_implementation}

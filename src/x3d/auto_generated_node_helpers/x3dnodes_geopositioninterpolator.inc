@@ -29,12 +29,34 @@
     function GetGeoOrigin: TGeoOriginNode;
     procedure SetGeoOrigin(const Value: TGeoOriginNode);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdKeyValue: TMFVec3d;
+    { X3D field "keyValue". } { }
+    public property FdKeyValue: TMFVec3d read FFdKeyValue;
     { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: array of TVector3Double); overload;
     { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: TVector3DoubleList); overload;
+
+    strict private FEventGeovalue_changed: TSFVec3dEvent;
+    { X3D out event "geovalue_changed". } { }
+    public property EventGeovalue_changed: TSFVec3dEvent read FEventGeovalue_changed;
+
+    strict private FEventValue_changed: TSFVec3fEvent;
+    { X3D out event "value_changed". } { }
+    public property EventValue_changed: TSFVec3fEvent read FEventValue_changed;
+
+    strict private FFdGeoOrigin: TSFNode;
+    { X3D field "geoOrigin". } { }
+    public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
     { X3D field "geoOrigin". } { }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
+
+    strict private FFdGeoSystem: TMFString;
+    { X3D field "geoSystem". } { }
+    public property FdGeoSystem: TMFString read FFdGeoSystem;
     { Set X3D field "geoSystem". } { }
     procedure SetGeoSystem(const Value: array of string); overload;
     { Set X3D field "geoSystem". } { }
@@ -77,6 +99,34 @@ end;
 procedure TGeoPositionInterpolatorNode.SetGeoSystem(const Value: TCastleStringList);
 begin
   FdGeoSystem.Send(Value);
+end;
+
+class function TGeoPositionInterpolatorNode.ClassX3DType: String;
+begin
+  Result := 'GeoPositionInterpolator';
+end;
+
+procedure TGeoPositionInterpolatorNode.CreateNode;
+begin
+  inherited;
+
+  FFdKeyValue := TMFVec3d.Create(Self, True, 'keyValue', []);
+   FdKeyValue.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdKeyValue);
+
+  FEventGeovalue_changed := TSFVec3dEvent.Create(Self, 'geovalue_changed', false);
+  AddEvent(FEventGeovalue_changed);
+
+  FEventValue_changed := TSFVec3fEvent.Create(Self, 'value_changed', false);
+  AddEvent(FEventValue_changed);
+
+  FFdGeoOrigin := TSFNode.Create(Self, False, 'geoOrigin', [TGeoOriginNode]);
+   FdGeoOrigin.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdGeoOrigin);
+
+  FFdGeoSystem := TMFString.Create(Self, False, 'geoSystem', ['GD','WE']);
+   FdGeoSystem.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdGeoSystem);
 end;
 
 {$endif read_implementation}

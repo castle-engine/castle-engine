@@ -39,18 +39,48 @@
     function GetGeoOrigin: TGeoOriginNode;
     procedure SetGeoOrigin(const Value: TGeoOriginNode);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdGeoCenter: TSFVec3d;
+    { X3D field "geoCenter". } { }
+    public property FdGeoCenter: TSFVec3d read FFdGeoCenter;
     { X3D field "geoCenter". } { }
     property GeoCenter: TVector3Double read GetGeoCenter write SetGeoCenter;
+
+    strict private FFdRotation: TSFRotation;
+    { X3D field "rotation". } { }
+    public property FdRotation: TSFRotation read FFdRotation;
     { X3D field "rotation". } { }
     property Rotation: TVector4 read GetRotation write SetRotation;
+
+    strict private FFdScale: TSFVec3f;
+    { X3D field "scale". } { }
+    public property FdScale: TSFVec3f read FFdScale;
     { X3D field "scale". } { }
     property Scale: TVector3 read GetScale write SetScale;
+
+    strict private FFdScaleOrientation: TSFRotation;
+    { X3D field "scaleOrientation". } { }
+    public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
     { X3D field "scaleOrientation". } { }
     property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
+
+    strict private FFdTranslation: TSFVec3f;
+    { X3D field "translation". } { }
+    public property FdTranslation: TSFVec3f read FFdTranslation;
     { X3D field "translation". } { }
     property Translation: TVector3 read GetTranslation write SetTranslation;
+
+    strict private FFdGeoOrigin: TSFNode;
+    { X3D field "geoOrigin". } { }
+    public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
     { X3D field "geoOrigin". } { }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
+
+    strict private FFdGeoSystem: TMFString;
+    { X3D field "geoSystem". } { }
+    public property FdGeoSystem: TMFString read FFdGeoSystem;
     { Set X3D field "geoSystem". } { }
     procedure SetGeoSystem(const Value: array of string); overload;
     { Set X3D field "geoSystem". } { }
@@ -133,6 +163,44 @@ end;
 procedure TGeoTransformNode.SetGeoSystem(const Value: TCastleStringList);
 begin
   FdGeoSystem.Send(Value);
+end;
+
+class function TGeoTransformNode.ClassX3DType: String;
+begin
+  Result := 'GeoTransform';
+end;
+
+procedure TGeoTransformNode.CreateNode;
+begin
+  inherited;
+
+  FFdGeoCenter := TSFVec3d.Create(Self, True, 'geoCenter', Vector3Double(0, 0, 0));
+   FdGeoCenter.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdGeoCenter);
+
+  FFdRotation := TSFRotation.Create(Self, True, 'rotation', Vector3(0, 0, 1), 0);
+   FdRotation.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdRotation);
+
+  FFdScale := TSFVec3f.Create(Self, True, 'scale', Vector3(1, 1, 1));
+   FdScale.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdScale);
+
+  FFdScaleOrientation := TSFRotation.Create(Self, True, 'scaleOrientation', Vector3(0, 0, 1), 0);
+   FdScaleOrientation.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdScaleOrientation);
+
+  FFdTranslation := TSFVec3f.Create(Self, True, 'translation', Vector3(0, 0, 0));
+   FdTranslation.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdTranslation);
+
+  FFdGeoOrigin := TSFNode.Create(Self, False, 'geoOrigin', [TGeoOriginNode]);
+   FdGeoOrigin.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdGeoOrigin);
+
+  FFdGeoSystem := TMFString.Create(Self, False, 'geoSystem', ['GD','WE']);
+   FdGeoSystem.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdGeoSystem);
 end;
 
 {$endif read_implementation}

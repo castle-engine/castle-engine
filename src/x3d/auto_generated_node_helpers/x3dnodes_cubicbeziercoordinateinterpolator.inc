@@ -22,10 +22,12 @@
   - and regenerate include files by running x3d-nodes-to-pascal .
 
   The documentation for properties should go to x3dnodes_documentation.txt . }
-{$ifdef FPC}
+
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
     { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: array of TVector3); overload;
     { Set X3D field "keyValue". } { }
@@ -47,5 +49,14 @@ begin
   FdKeyValue.Send(Value);
 end;
 
+class function TCubicBezierCoordinateInterpolatorNode.ClassX3DType: String;
+begin
+  Result := 'CubicBezierCoordinateInterpolator';
+end;
+
+procedure TCubicBezierCoordinateInterpolatorNode.CreateNode;
+begin
+  inherited;
+end;
+
 {$endif read_implementation}
-{$endif FPC}

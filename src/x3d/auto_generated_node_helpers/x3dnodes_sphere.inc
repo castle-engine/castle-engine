@@ -33,10 +33,32 @@
     function GetStacks: Integer;
     procedure SetStacks(const Value: Integer);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdRadius: TSFFloat;
+    { X3D field "radius". } { }
+    public property FdRadius: TSFFloat read FFdRadius;
     { X3D field "radius". } { }
     property Radius: Single read GetRadius write SetRadius;
+
+    strict private FFdSolid: TSFBool;
+    { X3D field "solid". } { }
+    public property FdSolid: TSFBool read FFdSolid;
+
+    strict private FFdTexCoord: TSFNode;
+    { X3D field "texCoord". } { }
+    public property FdTexCoord: TSFNode read FFdTexCoord;
+
+    strict private FFdSlices: TSFInt32;
+    { X3D field "slices". } { }
+    public property FdSlices: TSFInt32 read FFdSlices;
     { X3D field "slices". } { }
     property Slices: Integer read GetSlices write SetSlices;
+
+    strict private FFdStacks: TSFInt32;
+    { X3D field "stacks". } { }
+    public property FdStacks: TSFInt32 read FFdStacks;
     { X3D field "stacks". } { }
     property Stacks: Integer read GetStacks write SetStacks;
 
@@ -74,6 +96,36 @@ end;
 procedure TSphereNode.SetStacks(const Value: Integer);
 begin
   FdStacks.Send(Value);
+end;
+
+class function TSphereNode.ClassX3DType: String;
+begin
+  Result := 'Sphere';
+end;
+
+procedure TSphereNode.CreateNode;
+begin
+  inherited;
+
+  FFdRadius := TSFFloat.Create(Self, False, 'radius', 1);
+   FdRadius.ChangeAlways := chGeometry;
+  AddField(FFdRadius);
+
+  FFdSolid := TSFBool.Create(Self, False, 'solid', true);
+   FdSolid.ChangeAlways := chGeometry;
+  AddField(FFdSolid);
+
+  FFdTexCoord := TSFNode.Create(Self, True, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiGeneratedTextureCoordinateNode]);
+   FdTexCoord.ChangeAlways := chGeometry;
+  AddField(FFdTexCoord);
+
+  FFdSlices := TSFInt32.Create(Self, True, 'slices', -1);
+   FdSlices.ChangeAlways := chGeometry;
+  AddField(FFdSlices);
+
+  FFdStacks := TSFInt32.Create(Self, True, 'stacks', -1);
+   FdStacks.ChangeAlways := chGeometry;
+  AddField(FFdStacks);
 end;
 
 {$endif read_implementation}

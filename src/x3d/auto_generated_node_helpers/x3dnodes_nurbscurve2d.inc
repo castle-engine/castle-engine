@@ -33,18 +33,40 @@
     function GetOrder: Integer;
     procedure SetOrder(const Value: Integer);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdTessellation: TSFInt32;
+    { X3D field "tessellation". } { }
+    public property FdTessellation: TSFInt32 read FFdTessellation;
     { X3D field "tessellation". } { }
     property Tessellation: Integer read GetTessellation write SetTessellation;
+
+    strict private FFdWeight: TMFDouble;
+    { X3D field "weight". } { }
+    public property FdWeight: TMFDouble read FFdWeight;
     { Set X3D field "weight". } { }
     procedure SetWeight(const Value: array of Double); overload;
     { Set X3D field "weight". } { }
     procedure SetWeight(const Value: TDoubleList); overload;
+
+    strict private FFdClosed: TSFBool;
+    { X3D field "closed". } { }
+    public property FdClosed: TSFBool read FFdClosed;
     { X3D field "closed". } { }
     property Closed: Boolean read GetClosed write SetClosed;
+
+    strict private FFdKnot: TMFDouble;
+    { X3D field "knot". } { }
+    public property FdKnot: TMFDouble read FFdKnot;
     { Set X3D field "knot". } { }
     procedure SetKnot(const Value: array of Double); overload;
     { Set X3D field "knot". } { }
     procedure SetKnot(const Value: TDoubleList); overload;
+
+    strict private FFdOrder: TSFInt32;
+    { X3D field "order". } { }
+    public property FdOrder: TSFInt32 read FFdOrder;
     { X3D field "order". } { }
     property Order: Integer read GetOrder write SetOrder;
 
@@ -102,6 +124,36 @@ end;
 procedure TNurbsCurve2DNode.SetOrder(const Value: Integer);
 begin
   FdOrder.Send(Value);
+end;
+
+class function TNurbsCurve2DNode.ClassX3DType: String;
+begin
+  Result := 'NurbsCurve2D';
+end;
+
+procedure TNurbsCurve2DNode.CreateNode;
+begin
+  inherited;
+
+  FFdTessellation := TSFInt32.Create(Self, True, 'tessellation', 0);
+   FdTessellation.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdTessellation);
+
+  FFdWeight := TMFDouble.Create(Self, True, 'weight', []);
+   FdWeight.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdWeight);
+
+  FFdClosed := TSFBool.Create(Self, False, 'closed', false);
+   FdClosed.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdClosed);
+
+  FFdKnot := TMFDouble.Create(Self, False, 'knot', []);
+   FdKnot.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdKnot);
+
+  FFdOrder := TSFInt32.Create(Self, False, 'order', 3);
+   FdOrder.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdOrder);
 end;
 
 {$endif read_implementation}

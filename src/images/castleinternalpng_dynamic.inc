@@ -972,6 +972,12 @@ begin
 
   if PngLibrary <> nil then
   begin
+    {$ifdef ANDROID}
+    { Temporarily continue, despite missing symbols, on Android, as a workaround for
+      https://trello.com/c/wmxWrx8d/190-android-50-libpng-not-found }
+    PngLibrary.SymbolError := seWarnAndReturnNil;
+    {$endif}
+
     PngLibrary.SetSymbol({$ifndef FPC}@{$endif} png_access_version_number, 'png_access_version_number');
     PngLibrary.SetSymbol({$ifndef FPC}@{$endif} png_set_sig_bytes, 'png_set_sig_bytes');
     PngLibrary.SetSymbol({$ifndef FPC}@{$endif} png_sig_cmp, 'png_sig_cmp');

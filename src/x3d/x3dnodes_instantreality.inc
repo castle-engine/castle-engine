@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,16 +24,26 @@
     See https://castle-engine.io/x3d_extensions.php#section_ext_matrix_transform .
     It is compatible with InstantReality,
     see http://instant-reality.com/documentation/nodetype/MatrixTransform/ . }
-  TMatrixTransformNode = class(TAbstractX3DGroupingNode, ITransformNode)
+  TMatrixTransformNode = class(TAbstractX3DGroupingNode)
+  strict private
+    type
+      TMatrixTransformNodeTransformFunctionality = class(TTransformFunctionality)
+      strict private
+        FParent: TMatrixTransformNode;
+      public
+        constructor Create(const AParent: TMatrixTransformNode);
+        property Parent: TMatrixTransformNode read FParent;
+        procedure ApplyTransform(var Transformation: TTransformation); override;
+      end;
+    var
+      FTransformFunctionality: TMatrixTransformNodeTransformFunctionality;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
-    procedure ApplyTransform(var Transformation: TTransformation); override;
-
-    {$I auto_generated_node_helpers/x3dnodes_matrixtransform.inc}
+  {$I auto_generated_node_helpers/x3dnodes_matrixtransform.inc}
   end;
   TMatrixTransformNode_2 = TMatrixTransformNode;
 
@@ -61,7 +71,7 @@
   strict private
     LogFileStream: TStream;
     procedure EventWriteReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     destructor Destroy; override;
@@ -71,7 +81,7 @@
   TConverterNode = class(TAbstractChildNode)
   strict private
     procedure EventInReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -201,17 +211,20 @@
   { Utility for setting and observing a boolean value in various ways. }
   TTogglerNode = class(TAbstractChildNode)
   strict private
+    function IgnoreWhenDisabled(const ChangingField: TX3DField; const Event: TX3DEvent;
+      const Value: TX3DField; const Time: TX3DTime): Boolean;
     procedure EventStatusReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     procedure EventNotStatusReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     procedure EventToggleReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     procedure EventSetReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     procedure EventResetReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -543,10 +556,32 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TMatrixTransformNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+
+{ TMatrixTransformNode.TMatrixTransformNodeTransformFunctionality --------------------------- }
+
+constructor TMatrixTransformNode.TMatrixTransformNodeTransformFunctionality.
+  Create(const AParent: TMatrixTransformNode);
+begin
+  inherited Create(AParent);
+  FParent := AParent;
+end;
+
+procedure TMatrixTransformNode.TMatrixTransformNodeTransformFunctionality.
+  ApplyTransform(var Transformation: TTransformation);
+begin
+  inherited;
+  Transformation.MultiplyMatrix(Parent.Matrix);
+end;
+
+{ TMatrixTransformNode --------------------------------------------------------------- }
+
+constructor TMatrixTransformNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
   FdMatrix.ChangeAlways := chTransform;
+
+  FTransformFunctionality := TMatrixTransformNodeTransformFunctionality.Create(Self);
+  AddFunctionality(FTransformFunctionality);
 end;
 
 class function TMatrixTransformNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -564,12 +599,6 @@ begin
     Result := Func(Self, FdChildren[I]);
     if Result <> nil then Exit;
   end;
-end;
-
-procedure TMatrixTransformNode.ApplyTransform(var Transformation: TTransformation);
-begin
-  inherited;
-  Transformation.MultiplyMatrix(Matrix);
 end;
 
 function TMatrixTransformNode.TransformationChange: TNodeTransformationChange;
@@ -658,7 +687,7 @@ begin
   Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
 
-constructor TLoggerNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TLoggerNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
   FEventWrite.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventWriteReceive);
@@ -671,7 +700,7 @@ begin
 end;
 
 procedure TLoggerNode.EventWriteReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 
   function FieldValueToString(const Field: TX3DField): String;
   var
@@ -744,7 +773,7 @@ begin
 end;
 
 procedure TConverterNode.EventInReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   if FdEnabled.Value then
     { TODO: we cannot convert here (as we don't know to what we should
@@ -897,39 +926,32 @@ begin
   Result := false;
 end;
 
-type
-  TSFBoolIgnorable = class(TSFBool)
-  strict protected
-    class function ExposedEventsFieldClass: TX3DFieldClass; override;
-    procedure ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
-      const Time: TX3DTime); override;
-  end;
+{ TTogglerNode --------------------------------------------------------------- }
 
-class function TSFBoolIgnorable.ExposedEventsFieldClass: TX3DFieldClass;
+constructor TTogglerNode.Create(const AX3DName, ABaseUrl: String);
 begin
-  Result := TSFBool;
+  inherited;
+  FdStatus.OnInputIgnore := {$ifdef CASTLE_OBJFPC}@{$endif} IgnoreWhenDisabled;
+  FdNotStatus.OnInputIgnore := {$ifdef CASTLE_OBJFPC}@{$endif} IgnoreWhenDisabled;
 end;
 
-procedure TSFBoolIgnorable.ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
-  const Time: TX3DTime);
+function TTogglerNode.IgnoreWhenDisabled(const ChangingField: TX3DField; const Event: TX3DEvent;
+  const Value: TX3DField; const Time: TX3DTime): Boolean;
 begin
   { This makes status and notStatus input events ignored,
     and output events not generated when enabled = FALSE. }
-  if (ParentNode <> nil) and
-     (not (ParentNode as TTogglerNode).FdEnabled.Value) then Exit;
-
-  inherited;
+  Result := not Enabled;
 end;
 
 procedure TTogglerNode.CreateNode;
 begin
   inherited;
 
-  FFdStatus := TSFBoolIgnorable.Create(Self, true, 'status', false);
+  FFdStatus := TSFBool.Create(Self, true, 'status', false);
    FdStatus.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventStatusReceive);
   AddField(FFdStatus);
 
-  FFdNotStatus := TSFBoolIgnorable.Create(Self, true, 'notStatus', true);
+  FFdNotStatus := TSFBool.Create(Self, true, 'notStatus', true);
    FdNotstatus.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventNotStatusReceive);
   AddField(FFdNotStatus);
 
@@ -964,7 +986,7 @@ begin
 end;
 
 procedure TTogglerNode.EventStatusReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   { Do not send event to notStatus, if it already has correct value
     (so our own value didn't actually changed).
@@ -980,7 +1002,7 @@ begin
 end;
 
 procedure TTogglerNode.EventNotStatusReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   { Do not send event to status, if it already has correct value
     (so our own value didn't actually changed).
@@ -996,21 +1018,21 @@ begin
 end;
 
 procedure TTogglerNode.EventToggleReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   if FdEnabled.Value then
     FdStatus.Send(not FdStatus.Value, Value.InternalPartialSend);
 end;
 
 procedure TTogglerNode.EventSetReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   if FdEnabled.Value then
     FdStatus.Send(true, Value.InternalPartialSend);
 end;
 
 procedure TTogglerNode.EventResetReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   if FdEnabled.Value then
     FdStatus.Send(false, Value.InternalPartialSend);

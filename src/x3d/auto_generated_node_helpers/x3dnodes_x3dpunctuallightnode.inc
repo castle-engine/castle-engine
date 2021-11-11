@@ -30,6 +30,8 @@
     procedure SetShadows(const Value: Boolean);
     function GetShadowVolumesMain: Boolean;
     procedure SetShadowVolumesMain(const Value: Boolean);
+    function GetShowProxyGeometry: Boolean;
+    procedure SetShowProxyGeometry(const Value: Boolean);
     function GetProjectionNear: Single;
     procedure SetProjectionNear(const Value: Single);
     function GetProjectionFar: Single;
@@ -39,16 +41,48 @@
     function GetDefaultShadowMap: TGeneratedShadowMapNode;
     procedure SetDefaultShadowMap(const Value: TGeneratedShadowMapNode);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdShadows: TSFBool;
+    { X3D field "shadows". } { }
+    public property FdShadows: TSFBool read FFdShadows;
     { X3D field "shadows". } { }
     property Shadows: Boolean read GetShadows write SetShadows;
+
+    strict private FFdShadowVolumesMain: TSFBool;
+    { X3D field "shadowVolumesMain". } { }
+    public property FdShadowVolumesMain: TSFBool read FFdShadowVolumesMain;
     { X3D field "shadowVolumesMain". } { }
     property ShadowVolumesMain: Boolean read GetShadowVolumesMain write SetShadowVolumesMain;
+
+    strict private FFdShowProxyGeometry: TSFBool;
+    { X3D field "showProxyGeometry". } { }
+    public property FdShowProxyGeometry: TSFBool read FFdShowProxyGeometry;
+    { X3D field "showProxyGeometry". } { }
+    property ShowProxyGeometry: Boolean read GetShowProxyGeometry write SetShowProxyGeometry;
+
+    strict private FFdProjectionNear: TSFFloat;
+    { X3D field "projectionNear". } { }
+    public property FdProjectionNear: TSFFloat read FFdProjectionNear;
     { X3D field "projectionNear". } { }
     property ProjectionNear: Single read GetProjectionNear write SetProjectionNear;
+
+    strict private FFdProjectionFar: TSFFloat;
+    { X3D field "projectionFar". } { }
+    public property FdProjectionFar: TSFFloat read FFdProjectionFar;
     { X3D field "projectionFar". } { }
     property ProjectionFar: Single read GetProjectionFar write SetProjectionFar;
+
+    strict private FFdUp: TSFVec3f;
+    { X3D field "up". } { }
+    public property FdUp: TSFVec3f read FFdUp;
     { X3D field "up". } { }
     property Up: TVector3 read GetUp write SetUp;
+
+    strict private FFdDefaultShadowMap: TSFNode;
+    { X3D field "defaultShadowMap". } { }
+    public property FdDefaultShadowMap: TSFNode read FFdDefaultShadowMap;
     { X3D field "defaultShadowMap". } { }
     property DefaultShadowMap: TGeneratedShadowMapNode read GetDefaultShadowMap write SetDefaultShadowMap;
 
@@ -76,6 +110,16 @@ end;
 procedure TAbstractPunctualLightNode.SetShadowVolumesMain(const Value: Boolean);
 begin
   FdShadowVolumesMain.Send(Value);
+end;
+
+function TAbstractPunctualLightNode.GetShowProxyGeometry: Boolean;
+begin
+  Result := FdShowProxyGeometry.Value;
+end;
+
+procedure TAbstractPunctualLightNode.SetShowProxyGeometry(const Value: Boolean);
+begin
+  FdShowProxyGeometry.Send(Value);
 end;
 
 function TAbstractPunctualLightNode.GetProjectionNear: Single;
@@ -119,6 +163,44 @@ end;
 procedure TAbstractPunctualLightNode.SetDefaultShadowMap(const Value: TGeneratedShadowMapNode);
 begin
   FdDefaultShadowMap.Send(Value);
+end;
+
+class function TAbstractPunctualLightNode.ClassX3DType: String;
+begin
+  Result := 'X3DPunctualLightNode';
+end;
+
+procedure TAbstractPunctualLightNode.CreateNode;
+begin
+  inherited;
+
+  FFdShadows := TSFBool.Create(Self, False, 'shadows', false);
+   FdShadows.ChangeAlways := chShadowMaps;
+  AddField(FFdShadows);
+
+  FFdShadowVolumesMain := TSFBool.Create(Self, True, 'shadowVolumesMain', false);
+   FdShadowVolumesMain.ChangeAlways := chLightForShadowVolumes;
+  AddField(FFdShadowVolumesMain);
+
+  FFdShowProxyGeometry := TSFBool.Create(Self, True, 'showProxyGeometry', false);
+   FdShowProxyGeometry.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdShowProxyGeometry);
+
+  FFdProjectionNear := TSFFloat.Create(Self, True, 'projectionNear', 0);
+   FdProjectionNear.ChangeAlways := chVisibleGeometry;
+  AddField(FFdProjectionNear);
+
+  FFdProjectionFar := TSFFloat.Create(Self, True, 'projectionFar', 0);
+   FdProjectionFar.ChangeAlways := chVisibleGeometry;
+  AddField(FFdProjectionFar);
+
+  FFdUp := TSFVec3f.Create(Self, True, 'up', Vector3(0, 0, 0));
+   FdUp.ChangeAlways := chVisibleGeometry;
+  AddField(FFdUp);
+
+  FFdDefaultShadowMap := TSFNode.Create(Self, False, 'defaultShadowMap', [TGeneratedShadowMapNode]);
+   FdDefaultShadowMap.ChangeAlways := chEverything;
+  AddField(FFdDefaultShadowMap);
 end;
 
 {$endif read_implementation}

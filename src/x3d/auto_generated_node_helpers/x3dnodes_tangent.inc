@@ -63,7 +63,7 @@ begin
   inherited;
 
   FFdVector := TMFVec3f.Create(Self, True, 'vector', []);
-   FdVector.ChangeAlways := chVisibleNonGeometry;
+   FdVector.ChangeAlways := chTangent;
   AddField(FFdVector);
 
   DefaultContainerField := 'tangent';

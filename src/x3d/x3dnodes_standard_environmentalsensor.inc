@@ -16,69 +16,22 @@
 {$ifdef read_interface}
   { Base type for all the environmental sensor nodes. }
   TAbstractEnvironmentalSensorNode = class(TAbstractSensorNode)
-  public
-    procedure CreateNode; override;
-
-    strict private FFdCenter: TSFVec3f;
-    public property FdCenter: TSFVec3f read FFdCenter;
-
-    strict private FFdSize: TSFVec3f;
-    public property FdSize: TSFVec3f read FFdSize;
-
-    { Event out } { }
-    strict private FEventEnterTime: TSFTimeEvent;
-    public property EventEnterTime: TSFTimeEvent read FEventEnterTime;
-
-    { Event out } { }
-    strict private FEventExitTime: TSFTimeEvent;
-    public property EventExitTime: TSFTimeEvent read FEventExitTime;
-
-    {$I auto_generated_node_helpers/x3dnodes_x3denvironmentalsensornode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3denvironmentalsensornode.inc}
   end;
 
   { Generate events when the viewer enters, exits, and/or moves within
     a region of 3D space. }
   TProximitySensorNode = class(TAbstractEnvironmentalSensorNode)
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
     function TransformationChange: TNodeTransformationChange; override;
-
-    { Event out } { }
-    strict private FEventCenterOfRotation_changed: TSFVec3fEvent;
-    public property EventCenterOfRotation_changed: TSFVec3fEvent read FEventCenterOfRotation_changed;
-
-    { Event out } { }
-    strict private FEventOrientation_changed: TSFRotationEvent;
-    public property EventOrientation_changed: TSFRotationEvent read FEventOrientation_changed;
-
-    { Event out } { }
-    strict private FEventPosition_changed: TSFVec3fEvent;
-    public property EventPosition_changed: TSFVec3fEvent read FEventPosition_changed;
-
-    {$I auto_generated_node_helpers/x3dnodes_proximitysensor.inc}
+  {$I auto_generated_node_helpers/x3dnodes_proximitysensor.inc}
   end;
 
   { Generates events when the target object
     enters, exits, and moves within a region of 3D space.
     @bold(Not implemented yet.) }
   TTransformSensorNode = class(TAbstractEnvironmentalSensorNode)
-  public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdTargetObject: TSFNode;
-    public property FdTargetObject: TSFNode read FFdTargetObject;
-
-    { Event out } { }
-    strict private FEventOrientation_changed: TSFRotationEvent;
-    public property EventOrientation_changed: TSFRotationEvent read FEventOrientation_changed;
-
-    { Event out } { }
-    strict private FEventPosition_changed: TSFVec3fEvent;
-    public property EventPosition_changed: TSFVec3fEvent read FEventPosition_changed;
-
-    {$I auto_generated_node_helpers/x3dnodes_transformsensor.inc}
+  {$I auto_generated_node_helpers/x3dnodes_transformsensor.inc}
   end;
 
   { Detects visibility changes of a rectangular box as the user navigates the world. }
@@ -86,99 +39,22 @@
   strict private
     FIsActive: boolean;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
     function TransformationChange: TNodeTransformationChange; override;
     function Box: TBox3D;
 
     property IsActive: boolean read FIsActive;
     procedure SetIsActive(const Value: boolean; const Time: TX3DTime);
 
-    {$I auto_generated_node_helpers/x3dnodes_visibilitysensor.inc}
+  {$I auto_generated_node_helpers/x3dnodes_visibilitysensor.inc}
   end;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TAbstractEnvironmentalSensorNode.CreateNode;
-begin
-  inherited;
-
-  FFdCenter := TSFVec3f.Create(Self, true, 'center', Vector3(0, 0, 0));
-   FdCenter.ChangeAlways := chEnvironmentalSensorBounds;
-  AddField(FFdCenter);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdSize := TSFVec3f.Create(Self, true, 'size', Vector3(0, 0, 0));
-   FdSize.ChangeAlways := chEnvironmentalSensorBounds;
-  AddField(FFdSize);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FEventEnterTime := TSFTimeEvent.Create(Self, 'enterTime', false);
-  AddEvent(FEventEnterTime);
-
-  FEventExitTime := TSFTimeEvent.Create(Self, 'exitTime', false);
-  AddEvent(FEventExitTime);
-
-  DefaultContainerField := 'children';
-end;
-
-procedure TProximitySensorNode.CreateNode;
-begin
-  inherited;
-
-  FEventCenterOfRotation_changed := TSFVec3fEvent.Create(Self, 'centerOfRotation_changed', false);
-  AddEvent(FEventCenterOfRotation_changed);
-
-  FEventOrientation_changed := TSFRotationEvent.Create(Self, 'orientation_changed', false);
-  AddEvent(FEventOrientation_changed);
-
-  FEventPosition_changed := TSFVec3fEvent.Create(Self, 'position_changed', false);
-  AddEvent(FEventPosition_changed);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TProximitySensorNode.ClassX3DType: string;
-begin
-  Result := 'ProximitySensor';
-end;
 
 function TProximitySensorNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcProximitySensor;
-end;
-
-procedure TTransformSensorNode.CreateNode;
-begin
-  inherited;
-
-  FFdTargetObject := TSFNode.Create(Self, true, 'targetObject', [TAbstractX3DGroupingNode, TAbstractShapeNode]);
-  AddField(FFdTargetObject);
-
-  FEventOrientation_changed := TSFRotationEvent.Create(Self, 'orientation_changed', false);
-  AddEvent(FEventOrientation_changed);
-
-  FEventPosition_changed := TSFVec3fEvent.Create(Self, 'position_changed', false);
-  AddEvent(FEventPosition_changed);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TTransformSensorNode.ClassX3DType: string;
-begin
-  Result := 'TransformSensor';
-end;
-
-procedure TVisibilitySensorNode.CreateNode;
-begin
-  inherited;
-  DefaultContainerField := 'children';
-end;
-
-class function TVisibilitySensorNode.ClassX3DType: string;
-begin
-  Result := 'VisibilitySensor';
 end;
 
 function TVisibilitySensorNode.TransformationChange: TNodeTransformationChange;

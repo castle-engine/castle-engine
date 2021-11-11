@@ -1625,6 +1625,7 @@ type
 
     HeadBobbingPosition: Single;
     function UseHeadBobbing: boolean;
+    class procedure CreateComponentFly(Sender: TObject);
   private
     FIsCrouching: boolean;
 
@@ -5465,6 +5466,11 @@ begin
     Result := inherited PropertySections(PropertyName);
 end;
 
+class procedure TCastleWalkNavigation.CreateComponentFly(Sender: TObject);
+begin
+  (Sender as TCastleWalkNavigation).Gravity := false;
+end;
+
 { global ------------------------------------------------------------ }
 
 procedure CorrectPreferredHeight(var PreferredHeight: Single;
@@ -5761,8 +5767,16 @@ begin
   Position := Vector3(PositionXY, PositionZ);
 end;
 
+var
+  R: TRegisteredComponent;
 initialization
-  RegisterSerializableComponent(TCastleExamineNavigation, 'Examine Navigation');
-  RegisterSerializableComponent(TCastle2DNavigation, '2D Navigation');
-  RegisterSerializableComponent(TCastleWalkNavigation, 'Walk Navigation');
+  R := TRegisteredComponent.Create;
+  R.ComponentClass := TCastleWalkNavigation;
+  R.Caption := 'Fly (Walk with Gravity=false)';
+  R.OnCreate := @TCastleWalkNavigation(nil).CreateComponentFly;
+  RegisterSerializableComponent(R);
+
+  RegisterSerializableComponent(TCastleWalkNavigation, 'Walk');
+  RegisterSerializableComponent(TCastleExamineNavigation, 'Examine');
+  RegisterSerializableComponent(TCastle2DNavigation, '2D');
 end.

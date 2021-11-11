@@ -35,16 +35,46 @@
     function GetSiteID: Integer;
     procedure SetSiteID(const Value: Integer);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdAddress: TSFString;
+    { X3D field "address". } { }
+    public property FdAddress: TSFString read FFdAddress;
     { X3D field "address". } { }
     property Address: String read GetAddress write SetAddress;
+
+    strict private FFdApplicationID: TSFInt32;
+    { X3D field "applicationID". } { }
+    public property FdApplicationID: TSFInt32 read FFdApplicationID;
     { X3D field "applicationID". } { }
     property ApplicationID: Integer read GetApplicationID write SetApplicationID;
+
+    strict private FFdMapping: TMFNode;
+    { X3D field "mapping". } { }
+    public property FdMapping: TMFNode read FFdMapping;
     { Set X3D field "mapping". } { }
     procedure SetMapping(const Value: array of TDISEntityTypeMappingNode);
+
+    strict private FFdPort: TSFInt32;
+    { X3D field "port". } { }
+    public property FdPort: TSFInt32 read FFdPort;
     { X3D field "port". } { }
     property Port: Integer read GetPort write SetPort;
+
+    strict private FFdSiteID: TSFInt32;
+    { X3D field "siteID". } { }
+    public property FdSiteID: TSFInt32 read FFdSiteID;
     { X3D field "siteID". } { }
     property SiteID: Integer read GetSiteID write SetSiteID;
+
+    strict private FEventAddedEntities: TMFNodeEvent;
+    { X3D out event "addedEntities". } { }
+    public property EventAddedEntities: TMFNodeEvent read FEventAddedEntities;
+
+    strict private FEventRemovedEntities: TMFNodeEvent;
+    { X3D out event "removedEntities". } { }
+    public property EventRemovedEntities: TMFNodeEvent read FEventRemovedEntities;
 
 {$endif read_interface}
 
@@ -102,6 +132,42 @@ end;
 procedure TDISEntityManagerNode.SetSiteID(const Value: Integer);
 begin
   FdSiteID.Send(Value);
+end;
+
+class function TDISEntityManagerNode.ClassX3DType: String;
+begin
+  Result := 'DISEntityManager';
+end;
+
+procedure TDISEntityManagerNode.CreateNode;
+begin
+  inherited;
+
+  FFdAddress := TSFString.Create(Self, True, 'address', 'localhost');
+   FdAddress.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAddress);
+
+  FFdApplicationID := TSFInt32.Create(Self, True, 'applicationID', 1);
+   FdApplicationID.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdApplicationID);
+
+  FFdMapping := TMFNode.Create(Self, True, 'mapping', [TDISEntityTypeMappingNode]);
+   FdMapping.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMapping);
+
+  FFdPort := TSFInt32.Create(Self, True, 'port', 0);
+   FdPort.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdPort);
+
+  FFdSiteID := TSFInt32.Create(Self, True, 'siteID', 0);
+   FdSiteID.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSiteID);
+
+  FEventAddedEntities := TMFNodeEvent.Create(Self, 'addedEntities', false);
+  AddEvent(FEventAddedEntities);
+
+  FEventRemovedEntities := TMFNodeEvent.Create(Self, 'removedEntities', false);
+  AddEvent(FEventRemovedEntities);
 end;
 
 {$endif read_implementation}

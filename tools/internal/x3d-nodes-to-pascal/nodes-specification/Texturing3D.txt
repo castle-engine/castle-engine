@@ -1,47 +1,77 @@
 X3DTexture3DNode : X3DSingleTextureNode {
+  auto-generate-more: true
+
   SFBool []       repeatS           FALSE
+    change: chTextureRendererProperties
   SFBool []       repeatT           FALSE
+    change: chTextureRendererProperties
   SFBool []       repeatR           FALSE
+    change: chTextureRendererProperties
   SFNode []       textureProperties NULL
     range: TextureProperties
+    change: chTextureRendererProperties
 }
 
 ComposedTexture3D : X3DTexture3DNode {
+  auto-generate-more: true
+
   MFNode [in,out] texture  []
     range: X3DTexture2DNode
+    change: chTextureImage
 }
 
 ImageTexture3D : X3DTexture3DNode, X3DUrlObject {
+  auto-generate-more: true
+
   MFString [in,out] url               []
     range: [URI]
+    change: chTextureImage
 }
 
 PixelTexture3D : X3DTexture3DNode {
-  MFInt32 [in,out] image             [0 0 0 0]
+  auto-generate-more: true
+
+  MFInt32 [in,out] image             [0, 0, 0, 0]
+    change: chTextureImage
 }
 
 TextureCoordinate3D : X3DSingleTextureCoordinateNode {
+  auto-generate-more: true
+
   MFVec3f [in,out] point    []
     range: (-Inf,Inf)
+    change: chTextureCoordinate
 }
 
 TextureCoordinate4D : X3DSingleTextureCoordinateNode {
+  auto-generate-more: true
+
   MFVec4f [in,out] point    []
     range: (-Inf,Inf)
+    change: chTextureCoordinate
 }
 
 TextureTransformMatrix3D : X3DSingleTextureTransformNode {
-  SFMatrix4f [in,out] matrix      1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1
+  auto-generate-more: true
+
+  SFMatrix4f [in,out] matrix      identity
     range: (-Inf,Inf)
+    change: chTextureTransform
 }
 
 TextureTransform3D : X3DSingleTextureTransformNode {
+  auto-generate-more: true
+
   SFVec3f    [in,out] center      0 0 0
     range: (-Inf,Inf)
+    change: chTextureTransform
   SFRotation [in,out] rotation    0 0 1 0
     range: (-Inf,Inf)
+    change: chTextureTransform
   SFVec3f    [in,out] scale       1 1 1
     range: (-Inf,Inf)
+    change: chTextureTransform
   SFVec3f    [in,out] translation 0 0 0
     range: (-Inf,Inf)
+    change: chTextureTransform
 }

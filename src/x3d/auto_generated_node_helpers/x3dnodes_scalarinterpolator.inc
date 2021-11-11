@@ -26,6 +26,8 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
     { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: array of Single); overload;
     { Set X3D field "keyValue". } { }
@@ -45,6 +47,16 @@ end;
 procedure TScalarInterpolatorNode.SetKeyValue(const Value: TSingleList);
 begin
   FdKeyValue.Send(Value);
+end;
+
+class function TScalarInterpolatorNode.ClassX3DType: String;
+begin
+  Result := 'ScalarInterpolator';
+end;
+
+procedure TScalarInterpolatorNode.CreateNode;
+begin
+  inherited;
 end;
 
 {$endif read_implementation}

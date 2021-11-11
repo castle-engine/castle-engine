@@ -25,11 +25,55 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventLevel_changed: TSFInt32Event;
+    { X3D out event "level_changed". } { }
+    public property EventLevel_changed: TSFInt32Event read FEventLevel_changed;
+
+    strict private FFdCenter: TSFVec3f;
+    { X3D field "center". } { }
+    public property FdCenter: TSFVec3f read FFdCenter;
+
+    strict private FFdForceTransitions: TSFBool;
+    { X3D field "forceTransitions". } { }
+    public property FdForceTransitions: TSFBool read FFdForceTransitions;
+
+    strict private FFdRange: TMFFloat;
+    { X3D field "range". } { }
+    public property FdRange: TMFFloat read FFdRange;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TLODNode ----------------------------------------------- }
+
+class function TLODNode.ClassX3DType: String;
+begin
+  Result := 'LOD';
+end;
+
+procedure TLODNode.CreateNode;
+begin
+  inherited;
+
+  FEventLevel_changed := TSFInt32Event.Create(Self, 'level_changed', false);
+  AddEvent(FEventLevel_changed);
+
+  FFdCenter := TSFVec3f.Create(Self, False, 'center', Vector3(0, 0, 0));
+   FdCenter.ChangeAlways := chRedisplay;
+  AddField(FFdCenter);
+
+  FFdForceTransitions := TSFBool.Create(Self, False, 'forceTransitions', false);
+   FdForceTransitions.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdForceTransitions);
+
+  FFdRange := TMFFloat.Create(Self, False, 'range', []);
+   FdRange.ChangeAlways := chRedisplay;
+  AddField(FFdRange);
+end;
 
 {$endif read_implementation}

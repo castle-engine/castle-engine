@@ -26,6 +26,12 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdVector: TMFVec3f;
+    { X3D field "vector". } { }
+    public property FdVector: TMFVec3f read FFdVector;
     { Set X3D field "vector". } { }
     procedure SetVector(const Value: array of TVector3); overload;
     { Set X3D field "vector". } { }
@@ -45,6 +51,20 @@ end;
 procedure TNormalNode.SetVector(const Value: TVector3List);
 begin
   FdVector.Send(Value);
+end;
+
+class function TNormalNode.ClassX3DType: String;
+begin
+  Result := 'Normal';
+end;
+
+procedure TNormalNode.CreateNode;
+begin
+  inherited;
+
+  FFdVector := TMFVec3f.Create(Self, True, 'vector', []);
+   FdVector.ChangeAlways := chNormal;
+  AddField(FFdVector);
 end;
 
 {$endif read_implementation}

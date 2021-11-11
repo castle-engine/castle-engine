@@ -35,18 +35,44 @@
     procedure SetFogCoord(const Value: TFogCoordinateNode);
 {$endif not CASTLE_SLIM_NODES}
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+{$ifndef CASTLE_SLIM_NODES}
+    strict private FFdAttrib: TMFNode;
+    { X3D field "attrib". } { }
+    public property FdAttrib: TMFNode read FFdAttrib;
+{$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "attrib". } { }
     procedure SetAttrib(const Value: array of TAbstractVertexAttributeNode);
 {$endif not CASTLE_SLIM_NODES}
+
+    strict private FFdColor: TSFNode;
+    { X3D field "color". } { }
+    public property FdColor: TSFNode read FFdColor;
     { X3D field "color". } { }
     property Color: TAbstractColorNode read GetColor write SetColor;
+
+    strict private FFdCoord: TSFNode;
+    { X3D field "coord". } { }
+    public property FdCoord: TSFNode read FFdCoord;
     { X3D field "coord". } { }
     property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
+
+{$ifndef CASTLE_SLIM_NODES}
+    strict private FFdFogCoord: TSFNode;
+    { X3D field "fogCoord". } { }
+    public property FdFogCoord: TSFNode read FFdFogCoord;
+{$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
     { X3D field "fogCoord". } { }
     property FogCoord: TFogCoordinateNode read GetFogCoord write SetFogCoord;
 {$endif not CASTLE_SLIM_NODES}
+
+    strict private FFdVertexCount: TMFInt32;
+    { X3D field "vertexCount". } { }
+    public property FdVertexCount: TMFInt32 read FFdVertexCount;
     { Set X3D field "vertexCount". } { }
     procedure SetVertexCount(const Value: array of LongInt); overload;
     { Set X3D field "vertexCount". } { }
@@ -121,6 +147,40 @@ end;
 procedure TLineSetNode.SetVertexCount(const Value: TLongIntList);
 begin
   FdVertexCount.Send(Value);
+end;
+
+class function TLineSetNode.ClassX3DType: String;
+begin
+  Result := 'LineSet';
+end;
+
+procedure TLineSetNode.CreateNode;
+begin
+  inherited;
+
+{$ifndef CASTLE_SLIM_NODES}
+  FFdAttrib := TMFNode.Create(Self, True, 'attrib', [TAbstractVertexAttributeNode]);
+   FdAttrib.ChangeAlways := chGeometry;
+  AddField(FFdAttrib);
+{$endif not CASTLE_SLIM_NODES}
+
+  FFdColor := TSFNode.Create(Self, True, 'color', [TAbstractColorNode]);
+   FdColor.ChangeAlways := chGeometry;
+  AddField(FFdColor);
+
+  FFdCoord := TSFNode.Create(Self, True, 'coord', [TAbstractCoordinateNode]);
+   FdCoord.ChangeAlways := chGeometry;
+  AddField(FFdCoord);
+
+{$ifndef CASTLE_SLIM_NODES}
+  FFdFogCoord := TSFNode.Create(Self, True, 'fogCoord', [TFogCoordinateNode]);
+   FdFogCoord.ChangeAlways := chGeometry;
+  AddField(FFdFogCoord);
+{$endif not CASTLE_SLIM_NODES}
+
+  FFdVertexCount := TMFInt32.Create(Self, True, 'vertexCount', []);
+   FdVertexCount.ChangeAlways := chGeometry;
+  AddField(FFdVertexCount);
 end;
 
 {$endif read_implementation}

@@ -29,22 +29,44 @@
     function GetTransparency: Single;
     procedure SetTransparency(const Value: Single);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdGroundAngle: TMFFloat;
+    { X3D field "groundAngle". } { }
+    public property FdGroundAngle: TMFFloat read FFdGroundAngle;
     { Set X3D field "groundAngle". } { }
     procedure SetGroundAngle(const Value: array of Single); overload;
     { Set X3D field "groundAngle". } { }
     procedure SetGroundAngle(const Value: TSingleList); overload;
+
+    strict private FFdGroundColor: TMFColor;
+    { X3D field "groundColor". } { }
+    public property FdGroundColor: TMFColor read FFdGroundColor;
     { Set X3D field "groundColor". } { }
     procedure SetGroundColor(const Value: array of TCastleColorRGB); overload;
     { Set X3D field "groundColor". } { }
     procedure SetGroundColor(const Value: TVector3List); overload;
+
+    strict private FFdSkyAngle: TMFFloat;
+    { X3D field "skyAngle". } { }
+    public property FdSkyAngle: TMFFloat read FFdSkyAngle;
     { Set X3D field "skyAngle". } { }
     procedure SetSkyAngle(const Value: array of Single); overload;
     { Set X3D field "skyAngle". } { }
     procedure SetSkyAngle(const Value: TSingleList); overload;
+
+    strict private FFdSkyColor: TMFColor;
+    { X3D field "skyColor". } { }
+    public property FdSkyColor: TMFColor read FFdSkyColor;
     { Set X3D field "skyColor". } { }
     procedure SetSkyColor(const Value: array of TCastleColorRGB); overload;
     { Set X3D field "skyColor". } { }
     procedure SetSkyColor(const Value: TVector3List); overload;
+
+    strict private FFdTransparency: TSFFloat;
+    { X3D field "transparency". } { }
+    public property FdTransparency: TSFFloat read FFdTransparency;
     { X3D field "transparency". } { }
     property Transparency: Single read GetTransparency write SetTransparency;
 
@@ -102,6 +124,38 @@ end;
 procedure TAbstract3DBackgroundNode.SetTransparency(const Value: Single);
 begin
   FdTransparency.Send(Value);
+end;
+
+class function TAbstract3DBackgroundNode.ClassX3DType: String;
+begin
+  Result := 'X3D3DBackgroundNode';
+end;
+
+procedure TAbstract3DBackgroundNode.CreateNode;
+begin
+  inherited;
+
+  FFdGroundAngle := TMFFloat.Create(Self, True, 'groundAngle', []);
+   FdGroundAngle.ChangeAlways := chBackground;
+   FdGroundAngle.Angle := true;
+  AddField(FFdGroundAngle);
+
+  FFdGroundColor := TMFColor.Create(Self, True, 'groundColor', []);
+   FdGroundColor.ChangeAlways := chBackground;
+  AddField(FFdGroundColor);
+
+  FFdSkyAngle := TMFFloat.Create(Self, True, 'skyAngle', []);
+   FdSkyAngle.ChangeAlways := chBackground;
+   FdSkyAngle.Angle := true;
+  AddField(FFdSkyAngle);
+
+  FFdSkyColor := TMFColor.Create(Self, True, 'skyColor', Vector3(0, 0, 0));
+   FdSkyColor.ChangeAlways := chBackground;
+  AddField(FFdSkyColor);
+
+  FFdTransparency := TSFFloat.Create(Self, True, 'transparency', 0);
+   FdTransparency.ChangeAlways := chBackground;
+  AddField(FFdTransparency);
 end;
 
 {$endif read_implementation}

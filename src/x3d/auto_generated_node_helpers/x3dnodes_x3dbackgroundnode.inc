@@ -25,11 +25,68 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdShaders: TMFNode;
+    { X3D field "shaders". } { }
+    public property FdShaders: TMFNode read FFdShaders;
+    { Set X3D field "shaders". } { }
+    procedure SetShaders(const Value: array of TAbstractShaderNode);
+
+    strict private FFdEffects: TMFNode;
+    { X3D field "effects". } { }
+    public property FdEffects: TMFNode read FFdEffects;
+    { Set X3D field "effects". } { }
+    procedure SetEffects(const Value: array of TEffectNode);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TAbstractBackgroundNode ----------------------------------------------- }
+
+procedure TAbstractBackgroundNode.SetShaders(const Value: array of TAbstractShaderNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TAbstractShaderNode));
+  FdShaders.Send(A);
+end;
+
+procedure TAbstractBackgroundNode.SetEffects(const Value: array of TEffectNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TEffectNode));
+  FdEffects.Send(A);
+end;
+
+class function TAbstractBackgroundNode.ClassX3DType: String;
+begin
+  Result := 'X3DBackgroundNode';
+end;
+
+procedure TAbstractBackgroundNode.CreateNode;
+begin
+  inherited;
+
+  FFdShaders := TMFNode.Create(Self, True, 'shaders', [TAbstractShaderNode]);
+   FdShaders.ChangeAlways := chEverything;
+  AddField(FFdShaders);
+
+  FFdEffects := TMFNode.Create(Self, False, 'effects', [TEffectNode]);
+   FdEffects.ChangeAlways := chEverything;
+  AddField(FFdEffects);
+end;
 
 {$endif read_implementation}

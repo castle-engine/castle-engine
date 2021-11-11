@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,7 +19,7 @@
   TAbstractViewpointNode = class(TAbstractBindableNode)
   strict private
     procedure EventSet_BindReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     function GetPosition: TVector3;
     procedure SetPosition(const Value: TVector3);
   strict protected
@@ -70,7 +70,7 @@
     function GetProjectorMatrix: TMatrix4;
     { @groupEnd }
 
-    {$I auto_generated_node_helpers/x3dnodes_x3dviewpointnode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dviewpointnode.inc}
   end;
 
   TAbstractX3DViewpointNode = TAbstractViewpointNode deprecated 'use TAbstractViewpointNode';
@@ -86,52 +86,43 @@
     The local Z axis of the children faces the camera,
     rotating around @link(AxisOfRotation) (it it is non-zero)
     or rotating freely in 3D (when @link(AxisOfRotation) is exactly zero). }
-  TBillboardNode = class(TAbstractX3DGroupingNode, ITransformNode)
+  TBillboardNode = class(TAbstractX3DGroupingNode)
   strict private
-    FCameraVectors: TCameraVectors;
-    FCameraVectorsKnown: boolean;
+    type
+      TBillboardNodeTransformFunctionality = class(TTransformFunctionality)
+      strict private
+        FParent: TBillboardNode;
+      public
+        constructor Create(const AParent: TBillboardNode);
+        property Parent: TBillboardNode read FParent;
+        procedure ApplyTransform(var Transformation: TTransformation); override;
+      end;
+    var
+      FTransformFunctionality: TBillboardNodeTransformFunctionality;
+      FCameraVectors: TCameraVectors;
+      FCameraVectorsKnown: boolean;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
-    procedure ApplyTransform(var Transformation: TTransformation); override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     function TransformationChange: TNodeTransformationChange; override;
 
     { Change transformation to reflect current camera. @exclude }
     procedure InternalCameraChanged(const ACameraVectors: TCameraVectors);
 
-    strict private FFdAxisOfRotation: TSFVec3f;
-    public property FdAxisOfRotation: TSFVec3f read FFdAxisOfRotation;
-
-    {$I auto_generated_node_helpers/x3dnodes_billboard.inc}
+  {$I auto_generated_node_helpers/x3dnodes_billboard.inc}
   end;
 
   { Grouping node that specifies the collision detection properties
     for its children. }
-  TCollisionNode = class(TAbstractX3DGroupingNode, IAbstractSensorNode)
+  TCollisionNode = class(TAbstractX3DGroupingNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     function DirectEnumerateActiveForTraverse(
       Func: TEnumerateChildrenFunction;
       StateStack: TX3DGraphTraverseStateStack): Pointer; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdEnabled: TSFBool;
-    public property FdEnabled: TSFBool read FFdEnabled;
-
-    { Event out } { }
-    strict private FEventCollideTime: TSFTimeEvent;
-    public property EventCollideTime: TSFTimeEvent read FEventCollideTime;
-
-    { Event out } { }
-    strict private FEventIsActive: TSFBoolEvent;
-    public property EventIsActive: TSFBoolEvent read FEventIsActive;
-
-    strict private FFdProxy: TSFNode;
-    public property FdProxy: TSFNode read FFdProxy;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
 
     { Setup this Collision node to collide as a Box.
 
@@ -151,82 +142,26 @@
     procedure CollideAsBox(const Box: TBox3D); overload;
     procedure CollideAsBox(const VisibleNode: TX3DNode; const Box: TBox3D); overload;
 
-    {$I auto_generated_node_helpers/x3dnodes_collision.inc}
+  {$I auto_generated_node_helpers/x3dnodes_collision.inc}
   end;
 
   { Provides various levels of detail for a given object,
     only one of which will be visible at a given time.
 
-    It's a common ancestor for VRML 2.0 LOD (TLODNode_2) and X3D LOD (TLODNode).
-    Unfortunately, we cannot have a simple common class for both VRML 97
-    and X3D because there would be a name clash for "level_changed" event:
-
-    @unorderedList(
-      @item(
-        For VRML 2.0, main MFNode field was named "level" and so "level_changed"
-        is an event reporting when MFNode changed.)
-
-      @item(For X3D, main MFNode field is named "children", and so "children_changed"
-        reports MFNode changes. "level_changed" is a new field, SFInt32,
-        indicating which child is chosen.)
-    )
-
-    So level_changed has completely different meanings for VRML 97 and X3D.
-    As an extension we'll add "levelIndex_changed", SFInt32, to be analogous
-    to X3D "level_changed". This way both VRML 2.0 and X3D LOD nodes have
-    the same capabilities, and common interface for programmer
-    (programmer should use X3D event/fields names for Pascal property names),
-    but for parser they will use different names.
+    Note that it follows X3D naming.
+    There were some differences between VRML 2.0 LOD and X3D LOD (TLODNode):
+    "level" -> "children", so also "level_changed" -> "children_changed".
+    In X3D "level_changed" indicates just integer.
+    We don't implement VRML 97 version due to low usage.
   }
-  TAbstractLODNode = class(TAbstractX3DGroupingNode)
+  TLODNode = class(TAbstractX3DGroupingNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
-    function GetCenter: TVector3;
-    procedure SetCenter(const Value: TVector3);
-    function GetForceTransitions: boolean;
-    procedure SetForceTransitions(const Value: boolean);
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdCenter: TSFVec3f;
-    public property FdCenter: TSFVec3f read FFdCenter;
-    property Center: TVector3 read GetCenter write SetCenter;
-
-    strict private FFdRange: TMFFloat;
-    public property FdRange: TMFFloat read FFdRange;
-
-    strict private FFdForceTransitions: TSFBool;
-    public property FdForceTransitions: TSFBool read FFdForceTransitions;
-    property ForceTransitions: boolean read GetForceTransitions write SetForceTransitions;
-
-    { Event out } { }
-    strict private FEventLevel_changed: TSFInt32Event;
-    public property EventLevel_changed: TSFInt32Event read FEventLevel_changed;
-
     function TransformationChange: TNodeTransformationChange; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_lod.inc}
+  {$I auto_generated_node_helpers/x3dnodes_lod.inc}
   end;
-
-  { Provides various levels of detail for a given object,
-    only one of which will be visible at a given time, for VRML 2.0. }
-  TLODNode_2 = class(TAbstractLODNode)
-  public
-    procedure CreateNode; override;
-
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
-      override;
-  end;
-
-  { Provides various levels of detail for a given object,
-    only one of which will be visible at a given time, for X3D. }
-  TLODNode = class(TAbstractLODNode)
-  public
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
-      override;
-  end;
-  TLODNode_3 = TLODNode;
 
   TOptionalBlendingSort = (obsDefault, obsNone, obs2D, obs3D);
 
@@ -234,44 +169,11 @@
   TNavigationInfoNode = class(TAbstractBindableNode)
   strict private
     procedure EventSet_BindReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
-    function GetBlendingSort: TOptionalBlendingSort;
-    procedure SetBlendingSort(const Value: TOptionalBlendingSort);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
 
-    strict private FFdAvatarSize: TMFFloat;
-    public property FdAvatarSize: TMFFloat read FFdAvatarSize;
-
-    strict private FFdHeadlight: TSFBool;
-    public property FdHeadlight: TSFBool read FFdHeadlight;
-
-    strict private FFdSpeed: TSFFloat;
-    public property FdSpeed: TSFFloat read FFdSpeed;
-
-    strict private FFdTransitionTime: TSFTime;
-    public property FdTransitionTime: TSFTime read FFdTransitionTime;
-
-    strict private FFdTransitionType: TMFString;
-    public property FdTransitionType: TMFString read FFdTransitionType;
-
-    strict private FFdType: TMFString;
-    public property FdType: TMFString read FFdType;
-
-    strict private FFdVisibilityLimit: TSFFloat;
-    public property FdVisibilityLimit: TSFFloat read FFdVisibilityLimit;
-
-    strict private FFdBlendingSort: TSFStringEnum;
-    public property FdBlendingSort: TSFStringEnum read FFdBlendingSort;
-    property BlendingSort: TOptionalBlendingSort
-      read GetBlendingSort write SetBlendingSort;
-
-    { Event out } { }
-    strict private FEventTransitionComplete: TSFBoolEvent;
-    public property EventTransitionComplete: TSFBoolEvent read FEventTransitionComplete;
-
-    {$I auto_generated_node_helpers/x3dnodes_navigationinfo.inc}
+  {$I auto_generated_node_helpers/x3dnodes_navigationinfo.inc}
   end;
 
   { Viewpoint that provides an orthographic view of the scene. }
@@ -287,12 +189,6 @@
   strict protected
     function PositionField: TSFVec3f; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdFieldOfView: TMFFloat;
-    public property FdFieldOfView: TMFFloat read FFdFieldOfView;
-
     { Field of view determines how much you see in the camera.
       Use this e.g. to zoom in/out.
 
@@ -322,9 +218,6 @@
     property FieldOfViewMaxY: Single index 3 read GetFieldOfView
       write SetFieldOfViewDelphiCompat;
 
-    strict private FFdPosition: TSFVec3f;
-    public property FdPosition: TSFVec3f read FFdPosition;
-
     class function ProjectionType: TProjectionType; override;
     function ProjectionMatrix: TMatrix4; override;
 
@@ -336,7 +229,7 @@
       const AFieldOfView: TFloatRectangle;
       const ViewportWidth, ViewportHeight: Single): TFloatRectangle;
 
-    {$I auto_generated_node_helpers/x3dnodes_orthoviewpoint.inc}
+  {$I auto_generated_node_helpers/x3dnodes_orthoviewpoint.inc}
   end;
 
   { Viewpoint that provides a perspective view of the scene. }
@@ -344,18 +237,6 @@
   strict protected
     function PositionField: TSFVec3f; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdFieldOfView: TSFFloat;
-    public property FdFieldOfView: TSFFloat read FFdFieldOfView;
-
-    strict private FFdFieldOfViewForceVertical: TSFBool;
-    public property FdFieldOfViewForceVertical: TSFBool read FFdFieldOfViewForceVertical;
-
-    strict private FFdPosition: TSFVec3f;
-    public property FdPosition: TSFVec3f read FFdPosition;
-
     class function ProjectionType: TProjectionType; override;
 
     { Calculate both perspective angles (in radians),
@@ -372,7 +253,7 @@
 
     function ProjectionMatrix: TMatrix4; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_viewpoint.inc}
+  {$I auto_generated_node_helpers/x3dnodes_viewpoint.inc}
   end;
 
   { Group of viewpoints. You can (optionally) arrange viewpoints in groups
@@ -381,36 +262,19 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdCenter: TSFVec3f;
-    public property FdCenter: TSFVec3f read FFdCenter;
-
-    strict private FFdChildren: TMFNode;
-    public property FdChildren: TMFNode read FFdChildren;
-
-    strict private FFdDescription: TSFString;
-    public property FdDescription: TSFString read FFdDescription;
-
-    strict private FFdDisplayed: TSFBool;
-    public property FdDisplayed: TSFBool read FFdDisplayed;
-
-    strict private FFdRetainUserOffsets: TSFBool;
-    public property FdRetainUserOffsets: TSFBool read FFdRetainUserOffsets;
-
-    strict private FFdSize: TSFVec3f;
-    public property FdSize: TSFVec3f read FFdSize;
-
     { Description generated smart (trying to use FdDescription field,
       falling back on other information to help user identify the node). }
     function SmartDescription: string;
 
-    {$I auto_generated_node_helpers/x3dnodes_viewpointgroup.inc}
+  {$I auto_generated_node_helpers/x3dnodes_viewpointgroup.inc}
   end;
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+const
+  BlendingSortNames: array [TOptionalBlendingSort] of string =
+  ('DEFAULT', 'NONE', '2D', '3D');
 
 { TAbstractViewpointNode -------------------------------------------------- }
 
@@ -472,7 +336,7 @@ begin
 end;
 
 procedure TAbstractViewpointNode.EventSet_BindReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   if Scene <> nil then
     Scene.GetViewpointStack.Set_Bind(Self, (Value as TSFBool).Value);
@@ -522,31 +386,15 @@ begin
   Result := ProjectionMatrix * ModelviewMatrix;
 end;
 
-{ TBillboardNode ------------------------------------------------------------- }
+{ TBillboardNode.TBillboardNodeTransformFunctionality ---------------------------- }
 
-procedure TBillboardNode.CreateNode;
+constructor TBillboardNode.TBillboardNodeTransformFunctionality.Create(const AParent: TBillboardNode);
 begin
-  inherited;
-
-  FFdAxisOfRotation := TSFVec3f.Create(Self, true, 'axisOfRotation', Vector3(0, 1, 0));
-  AddField(FFdAxisOfRotation);
-  { X3D specification comment: (-Inf,Inf) }
-
-  DefaultContainerField := 'children';
+  inherited Create(AParent);
+  FParent := AParent;
 end;
 
-class function TBillboardNode.ClassX3DType: string;
-begin
-  Result := 'Billboard';
-end;
-
-function TBillboardNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
-begin
-  Result := FdChildren.Enumerate(Func);
-  if Result <> nil then Exit;
-end;
-
-procedure TBillboardNode.ApplyTransform(var Transformation: TTransformation);
+procedure TBillboardNode.TBillboardNodeTransformFunctionality.ApplyTransform(var Transformation: TTransformation);
 var
   NewX, NewY, NewZ, BillboardToViewer, P1, P2, LocalDirection, LocalUp: TVector3;
   Angle: Single;
@@ -554,12 +402,12 @@ var
   PlaneAxis: TVector4;
   PlaneAxisDir: TVector3 absolute PlaneAxis;
 begin
-  if FCameraVectorsKnown then
+  if Parent.FCameraVectorsKnown then
   begin
-    if FdAxisOfRotation.Value.IsPerfectlyZero then
+    if Parent.FdAxisOfRotation.Value.IsPerfectlyZero then
     begin
-      LocalDirection := Transformation.InverseTransform.MultDirection(FCameraVectors.Direction);
-      LocalUp        := Transformation.InverseTransform.MultDirection(FCameraVectors.Up);
+      LocalDirection := Transformation.InverseTransform.MultDirection(Parent.FCameraVectors.Direction);
+      LocalUp        := Transformation.InverseTransform.MultDirection(Parent.FCameraVectors.Up);
       { although FCameraVectors.Direction/Up are for sure normalized and orthogonal,
         but Transformation.InverseTransform may contain scaling,
         so be sure to normalize again the result.
@@ -578,10 +426,10 @@ begin
     end else
     begin
       { vector from node origin to FCameraVectors.Position, in local coords }
-      BillboardToViewer := Transformation.InverseTransform.MultPoint(FCameraVectors.Position);
+      BillboardToViewer := Transformation.InverseTransform.MultPoint(Parent.FCameraVectors.Position);
 
       { plane of axisOfRotation }
-      PlaneAxisDir := FdAxisOfRotation.Value;
+      PlaneAxisDir := Parent.FdAxisOfRotation.Value;
       PlaneAxis[3] := 0;
 
       { we want to have a rotation that changes TVector3.One[2]
@@ -611,16 +459,31 @@ begin
         But that's not really a future-proof solution, to repeat this code.
         It's safer (even if a little slower) to capture exception here. }
       try
-        Angle := RotationAngleRadBetweenVectors(P1, P2, FdAxisOfRotation.Value);
+        Angle := RotationAngleRadBetweenVectors(P1, P2, Parent.FdAxisOfRotation.Value);
       except
         on EVectorInvalidOp do Exit;
       end;
 
-      RotationMatricesRad(Angle, FdAxisOfRotation.Value, M, IM);
+      RotationMatricesRad(Angle, Parent.FdAxisOfRotation.Value, M, IM);
       Transformation.Transform := Transformation.Transform * M;
       Transformation.InverseTransform := IM * Transformation.InverseTransform;
     end;
   end;
+end;
+
+{ TBillboardNode ------------------------------------------------------------- }
+
+constructor TBillboardNode.Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  FTransformFunctionality := TBillboardNodeTransformFunctionality.Create(Self);
+  AddFunctionality(FTransformFunctionality);
+end;
+
+function TBillboardNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
+begin
+  Result := FdChildren.Enumerate(Func);
+  if Result <> nil then Exit;
 end;
 
 procedure TBillboardNode.InternalCameraChanged(const ACameraVectors: TCameraVectors);
@@ -636,34 +499,14 @@ end;
 
 { TCollisionNode ------------------------------------------------------------- }
 
-procedure TCollisionNode.CreateNode;
+constructor TCollisionNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
 
-  FFdEnabled := TSFBool.Create(Self, true, 'enabled', true);
-  { In VRML 2.0, Collision didn't descent from X3DSensorName and had
+  { In VRML 2.0, Collision didn't descend from X3DSensorName and had
     special field "collide". In X3D, "enabled" is used for the exact
     same purpose. }
-   FdEnabled.AddAlternativeName('collide', 2);
-   FdEnabled.ChangeAlways := chEverything;
-  AddField(FFdEnabled);
-
-  FEventCollideTime := TSFTimeEvent.Create(Self, 'collideTime', false);
-  AddEvent(FEventCollideTime);
-
-  FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
-  AddEvent(FEventIsActive);
-
-  FFdProxy := TSFNode.Create(Self, false, 'proxy', IAbstractChildNode);
-   FdProxy.ChangeAlways := chEverything;
-  AddField(FFdProxy);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TCollisionNode.ClassX3DType: string;
-begin
-  Result := 'Collision';
+  FdEnabled.AddAlternativeName('collide', 2);
 end;
 
 function TCollisionNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -748,38 +591,9 @@ begin
   FdChildren.Add(VisibleNode);
 end;
 
-{ TAbstractLODNode ----------------------------------------------------------- }
+{ TLODNode ----------------------------------------------------------- }
 
-procedure TAbstractLODNode.CreateNode;
-begin
-  inherited;
-
-  FFdCenter := TSFVec3f.Create(Self, false, 'center', TVector3.Zero);
-   { Just redisplay, and new appropriate LOD children will be displayed. }
-   FdCenter.ChangeAlways := chRedisplay;
-  AddField(FFdCenter);
-
-  FFdRange := TMFFloat.Create(Self, false, 'range', []);
-   { Just redisplay, and new appropriate LOD children will be displayed. }
-   FdRange.ChangeAlways := chRedisplay;
-  AddField(FFdRange);
-  { X3D specification comment: [0,Inf) or -1 }
-
-  FFdForceTransitions := TSFBool.Create(Self, false, 'forceTransitions', false);
-  AddField(FFdForceTransitions);
-
-  FEventLevel_changed := TSFInt32Event.Create(Self, 'level_changed', false);
-  AddEvent(FEventLevel_changed);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TAbstractLODNode.ClassX3DType: string;
-begin
-  Result := 'LOD';
-end;
-
-function TAbstractLODNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
+function TLODNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   Result := nil;
   { For now we simply always use the best LOD version,
@@ -791,151 +605,27 @@ begin
   end;
 end;
 
-function TAbstractLODNode.TransformationChange: TNodeTransformationChange;
+function TLODNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcLOD;
 end;
 
-function TAbstractLODNode.GetCenter: TVector3;
-begin
-  Result := FdCenter.Value;
-end;
-
-procedure TAbstractLODNode.SetCenter(const Value: TVector3);
-begin
-  FdCenter.Send(Value);
-end;
-
-function TAbstractLODNode.GetForceTransitions: boolean;
-begin
-  Result := FdForceTransitions.Value;
-end;
-
-procedure TAbstractLODNode.SetForceTransitions(const Value: boolean);
-begin
-  FdForceTransitions.Send(Value);
-end;
-
-{ TLODNode_2 ----------------------------------------------------------------- }
-
-procedure TLODNode_2.CreateNode;
-begin
-  inherited;
-  FdChildren.AddAlternativeName('level', 2);
-  Eventlevel_changed.AddAlternativeName('levelIndex_changed', 2);
-end;
-
-class function TLODNode_2.ForVRMLVersion(const Version: TX3DVersion): boolean;
-begin
-  Result := Version.Major = 2;
-end;
-
-{ TLODNode ------------------------------------------------------------------- }
-
-class function TLODNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
-begin
-  Result := Version.Major >= 3;
-end;
-
 { TNavigationInfoNode -------------------------------------------------------- }
 
-procedure TNavigationInfoNode.CreateNode;
-const
-  BlendingSortNames: array [TOptionalBlendingSort] of string =
-  ('DEFAULT', 'NONE', '2D', '3D');
+constructor TNavigationInfoNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FFdAvatarSize := TMFFloat.Create(Self, true, 'avatarSize', [0.25, 1.6, 0.75]);
-   FdAvatarSize.ChangeAlways := chNavigationInfo;
-  AddField(FFdAvatarSize);
-  { X3D specification comment: [0,Inf) }
-
-  FFdHeadlight := TSFBool.Create(Self, true, 'headlight', true);
-   FdHeadlight.ChangeAlways := chHeadLightOn;
-  AddField(FFdHeadlight);
-
-  FFdSpeed := TSFFloat.Create(Self, true, 'speed', 1.0);
-   FdSpeed.ChangeAlways := chNavigationInfo;
-  AddField(FFdSpeed);
-  { X3D specification comment: [0,Inf) }
-
-  FFdTransitionTime := TSFTime.Create(Self, true, 'transitionTime', 1.0);
-  AddField(FFdTransitionTime);
-  { X3D specification comment: [0, Inf) }
-
-  FFdTransitionType := TMFString.Create(Self, true, 'transitionType', ['LINEAR']);
-  AddField(FFdTransitionType);
-  { X3D specification comment: ["TELEPORT","LINEAR","ANIMATE",...] }
-
-  { TODO: default value was ["WALK", "ANY"] in VRML 97.
-    X3D changed default value. }
-  FFdType := TMFString.Create(Self, true, 'type', ['EXAMINE', 'ANY']);
-   FdType.ChangeAlways := chNavigationInfo;
-  AddField(FFdType);
-  { X3D specification comment: ["ANY","WALK","EXAMINE","FLY","LOOKAT","NONE",...] }
-
-  FFdVisibilityLimit := TSFFloat.Create(Self, true, 'visibilityLimit', 0.0);
-  AddField(FFdVisibilityLimit);
-  { X3D specification comment: [0,Inf) }
-
-  FEventTransitionComplete := TSFBoolEvent.Create(Self, 'transitionComplete', false);
-  AddEvent(FEventTransitionComplete);
-
-  FFdBlendingSort := TSFStringEnum.Create(Self, true, 'blendingSort', BlendingSortNames, Ord(obsDefault));
-   FdBlendingSort.ChangeAlways := chRedisplay;
-  AddField(FFdBlendingSort);
-
-  DefaultContainerField := 'children';
-
   Eventset_bind.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
 end;
 
-class function TNavigationInfoNode.ClassX3DType: string;
-begin
-  Result := 'NavigationInfo';
-end;
-
 procedure TNavigationInfoNode.EventSet_BindReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   if Scene <> nil then
     Scene.GetNavigationInfoStack.Set_Bind(Self, (Value as TSFBool).Value);
 end;
 
-function TNavigationInfoNode.GetBlendingSort: TOptionalBlendingSort;
-begin
-  Result := TOptionalBlendingSort(FdBlendingSort.EnumValue);
-end;
-
-procedure TNavigationInfoNode.SetBlendingSort(const Value: TOptionalBlendingSort);
-begin
-  FdBlendingSort.SendEnumValue(Ord(Value));
-end;
-
 { TOrthoViewpointNode -------------------------------------------------------- }
-
-procedure TOrthoViewpointNode.CreateNode;
-begin
-  inherited;
-
-  FFdFieldOfView := TMFFloat.Create(Self, true, 'fieldOfView', [-1, -1, 1, 1]);
-   FdFieldOfView.ChangeAlways := chViewpointProjection;
-  AddField(FFdFieldOfView);
-  { X3D specification comment:  (-Inf,Inf) }
-
-  FFdPosition := TSFVec3f.Create(Self, true, 'position', Vector3(0, 0, 10));
-   FdPosition.ChangeAlways := chViewpointVectors;
-  AddField(FFdPosition);
-  { X3D specification comment: (-Inf,Inf) }
-
-  DefaultContainerField := 'children';
-end;
-
-class function TOrthoViewpointNode.ClassX3DType: string;
-begin
-  Result := 'OrthoViewpoint';
-end;
 
 function TOrthoViewpointNode.PositionField: TSFVec3f;
 begin
@@ -1067,32 +757,6 @@ end;
 
 { TViewpointNode ------------------------------------------------------------- }
 
-procedure TViewpointNode.CreateNode;
-begin
-  inherited;
-
-  FFdFieldOfView := TSFFloat.Create(Self, true, 'fieldOfView', DefaultViewpointFieldOfView);
-   FdFieldOfView.ChangeAlways := chViewpointProjection;
-  AddField(FFdFieldOfView);
-  { X3D specification comment: (0,Pi) }
-
-  FFdFieldOfViewForceVertical := TSFBool.Create(Self, true, 'fieldOfViewForceVertical', false);
-   FdFieldOfViewForceVertical.ChangeAlways := chViewpointProjection;
-  AddField(FdFieldOfViewForceVertical);
-
-  FFdPosition := TSFVec3f.Create(Self, true, 'position', Vector3(0, 0, 10));
-   FdPosition.ChangeAlways := chViewpointVectors;
-  AddField(FFdPosition);
-  { X3D specification comment: (-Inf,Inf) }
-
-  DefaultContainerField := 'children';
-end;
-
-class function TViewpointNode.ClassX3DType: string;
-begin
-  Result := 'Viewpoint';
-end;
-
 function TViewpointNode.PositionField: TSFVec3f;
 begin
   Result := FdPosition;
@@ -1184,38 +848,6 @@ end;
 
 { TViewpointGroupNode -------------------------------------------------------- }
 
-procedure TViewpointGroupNode.CreateNode;
-begin
-  inherited;
-
-  FFdCenter := TSFVec3f.Create(Self, true, 'center', Vector3(0, 0, 0));
-  AddField(FFdCenter);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdChildren := TMFNode.Create(Self, true, 'children', [TAbstractViewpointNode, TViewpointGroupNode]);
-  AddField(FFdChildren);
-
-  FFdDescription := TSFString.Create(Self, true, 'description', '');
-  AddField(FFdDescription);
-
-  FFdDisplayed := TSFBool.Create(Self, true, 'displayed', true);
-  AddField(FFdDisplayed);
-
-  FFdRetainUserOffsets := TSFBool.Create(Self, true, 'retainUserOffsets', false);
-  AddField(FFdRetainUserOffsets);
-
-  FFdSize := TSFVec3f.Create(Self, true, 'size', Vector3(0, 0, 0));
-  AddField(FFdSize);
-  { X3D specification comment: (-Inf,Inf) }
-
-  DefaultContainerField := 'children';
-end;
-
-class function TViewpointGroupNode.ClassX3DType: string;
-begin
-  Result := 'ViewpointGroup';
-end;
-
 function TViewpointGroupNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   Result := inherited;
@@ -1239,7 +871,6 @@ begin
   NodesManager.RegisterNodeClasses([
     TBillboardNode,
     TCollisionNode,
-    TLODNode_2,
     TLODNode,
     TNavigationInfoNode,
     TOrthoViewpointNode,

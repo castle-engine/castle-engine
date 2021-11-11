@@ -26,6 +26,8 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
     { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: array of TVector2); overload;
     { Set X3D field "keyValue". } { }
@@ -45,6 +47,16 @@ end;
 procedure TCoordinateInterpolator2DNode.SetKeyValue(const Value: TVector2List);
 begin
   FdKeyValue.Send(Value);
+end;
+
+class function TCoordinateInterpolator2DNode.ClassX3DType: String;
+begin
+  Result := 'CoordinateInterpolator2D';
+end;
+
+procedure TCoordinateInterpolator2DNode.CreateNode;
+begin
+  inherited;
 end;
 
 {$endif read_implementation}

@@ -22,62 +22,97 @@ X3DViewpointNode : X3DBindableNode {
 }
 
 Billboard : X3DGroupingNode {
+  auto-generate-more: true
+
   SFVec3f [in,out] axisOfRotation 0 1 0
     range: (-Inf,Inf)
 }
 
 Collision : X3DGroupingNode, X3DSensorNode {
-  SFBool  [in,out] enabled
+  auto-generate-more: true
+
+  SFBool  [in,out] enabled TRUE
+    change: chEverything
   SFTime  [out]    collideTime
   SFBool  [out]    isActive
   SFNode  []       proxy          NULL
     range: X3DChildNode
+    change: chEverything
 }
 
 LOD : X3DGroupingNode {
+  auto-generate-more: true
+
   SFInt32 [out]    level_changed
   SFVec3f []       center           0 0 0
     range: (-Inf,Inf)
+    # Just redisplay, and new appropriate LOD children will be displayed
+    change: chRedisplay
   SFBool  []       forceTransitions FALSE
   MFFloat []       range            []
     range: [0,Inf) or -1
+    # Just redisplay, and new appropriate LOD children will be displayed
+    change: chRedisplay
 }
 
 NavigationInfo : X3DBindableNode {
-  MFFloat  [in,out] avatarSize      [0.25 1.6 0.75]
+  auto-generate-more: true
+
+  MFFloat  [in,out] avatarSize      [0.25, 1.6, 0.75]
     range: [0,Inf)
+    change: chNavigationInfo
   SFBool   [in,out] headlight       TRUE
+    change: chHeadLightOn
   SFFloat  [in,out] speed           1.0
     range: [0,Inf)
+    change: chNavigationInfo
   SFTime   [in,out] transitionTime  1.0
     range: [0, Inf)
   MFString [in,out] transitionType  ["LINEAR"]
     range: ["TELEPORT","LINEAR","ANIMATE",...]
-  MFString [in,out] type            ["EXAMINE" "ANY"]
+  MFString [in,out] type            ["EXAMINE", "ANY"]
+    # Note: default value was ["WALK", "ANY"] in VRML 97.
+    # X3D changed default value. We follow newer X3D.
     range: ["ANY","WALK","EXAMINE","FLY","LOOKAT","NONE",...]
+    change: chNavigationInfo
   SFFloat  [in,out] visibilityLimit 0.0
     range: [0,Inf)
   SFBool   [out]    transitionComplete
+  SFString [in,out] blendingSort    "DEFAULT"
+    range: ["DEFAULT", "NONE", "2D", "3D"]
+    enumerated-type: TOptionalBlendingSort BlendingSortNames obsDefault
+    change: chRedisplay
 }
 
 OrthoViewpoint : X3DViewpointNode {
+  auto-generate-more: true
+
   MFFloat    [in,out] fieldOfView       [-1, -1, 1, 1]
     range: (-Inf,Inf)
+    change: chViewpointProjection
   SFVec3f    [in,out] position          0 0 10
     range: (-Inf,Inf)
+    change: chViewpointVectors
 }
 
 Viewpoint : X3DViewpointNode {
+  auto-generate-more: true
+
   SFFloat    [in,out] fieldOfView       Pi/4
     range: (0,Pi)
+    change: chViewpointProjection
   SFVec3f    [in,out] position          0 0 10
     range: (-Inf,Inf)
+    change: chViewpointVectors
 
   # CASTLE GAME ENGINE EXTENSIONS:
   SFBool     [in,out] fieldOfViewForceVertical FALSE
+    change: chViewpointProjection
 }
 
 ViewpointGroup : X3DChildNode {
+  auto-generate-more: true
+
   SFVec3f  [in,out] center            0 0 0
     range: (-Inf,Inf)
   MFNode   [in,out] children          []

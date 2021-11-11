@@ -366,7 +366,10 @@ type
       It avoids corner cases when PlayAnimation restarts playing the current
       animation. This notification will happen when the animation that you
       caused (by the call to @link(TCastleSceneCore.PlayAnimation)) stops,
-      not at other times. }
+      not at other times.
+
+      Example usage:
+      @includeCode(../../examples/short_api_samples/animation_stop_notification/animation_stop_notification.lpr) }
     StopNotification: TStopAnimationEvent;
 
     { Time, in seconds, when this animation fades-in (and the previous
@@ -468,8 +471,8 @@ type
       end;
 
       TProximitySensorInstanceList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TProximitySensorInstance>;
-      TTimeDependentHandlerList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TInternalTimeDependentHandler>)
-        procedure AddIfNotExists(const Item: TInternalTimeDependentHandler);
+      TTimeDependentList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTimeDependentFunctionality>)
+        procedure AddIfNotExists(const Item: TTimeDependentFunctionality);
       end;
 
       TCompiledScriptHandler = procedure (
@@ -486,14 +489,18 @@ type
       strict private
         ChildObserver: TFreeNotificationObserver;
         WarningDone: Boolean;
+        FNode: TTransformNode;
+        FTransformFunctionality: TTransformFunctionality;
+        FChild: TCastleTransform;
+        FParentScene: TCastleSceneCore;
         procedure ChildFreeNotification(const Sender: TFreeNotificationObserver);
       public
-        Node: TTransformNode;
-        Child: TCastleTransform;
-        ParentScene: TCastleSceneCore;
         constructor Create(const AParentScene: TCastleSceneCore;
           const ANode: TTransformNode; const AChild: TCastleTransform);
         destructor Destroy; override;
+        property Node: TTransformNode read FNode;
+        property Child: TCastleTransform read FChild;
+        property ParentScene: TCastleSceneCore read FParentScene;
         procedure Synchronize;
         class function X3dNameToPascal(const Prefix, S: String): String; static;
       end;
@@ -577,7 +584,7 @@ type
     FAnimationsList: TStrings;
     FTimeAtLoad: TFloatTime;
 
-    { Some TimeSensor with DetectAffectedFields exists on TimeDependentHandlers list. }
+    { Some TimeSensor with DetectAffectedFields exists on TimeDependentList . }
     NeedsDetectAffectedFields: Boolean;
     AnimationAffectedFields: TX3DFieldList;
 
@@ -603,15 +610,15 @@ type
     FExposeTransformsPrefix: String;
 
     { Perform animation fade-in and fade-out by initializing
-      TInternalTimeDependentHandler.PartialSend before
-      TInternalTimeDependentHandler.SetTime. }
-    procedure PartialSendBegin(const TimeHandler: TInternalTimeDependentHandler);
+      TTimeDependentFunctionality.PartialSend before
+      TTimeDependentFunctionality.SetTime. }
+    procedure PartialSendBegin(const TimeFunctionality: TTimeDependentFunctionality);
 
     { Finalize what PartialSendBegin started,
-      after TInternalTimeDependentHandler.SetTime was called. }
-    procedure PartialSendEnd(const TimeHandler: TInternalTimeDependentHandler);
+      after TTimeDependentFunctionality.SetTime was called. }
+    procedure PartialSendEnd(const TimeFunctionality: TTimeDependentFunctionality);
 
-    { Call this if during this frame, TimeHandler.PartialSend always remained @nil. }
+    { Call this if during this frame, TTimeDependentFunctionality.PartialSend always remained @nil. }
     procedure NoPartialSend;
 
     { Recalculate and update LODTree.Level.
@@ -625,10 +632,9 @@ type
     procedure SetShadowMaps(const Value: boolean);
     procedure SetShadowMapsDefaultSize(const Value: Cardinal);
 
-    { Handle change of transformation of ITransformNode node.
-      TransformNode must not be @nil here.
-      It must be associated only with TShapeTreeTransform,
-      which must be true for all ITransformNode nodes.
+    { Handle change of transformation of a node with TTransformFunctionality.
+      TransformFunctionality.Parent must be associated only with TShapeTreeTransform,
+      which must be true for all nodes implementing TTransformFunctionality.
       Changes must include chTransform, may also include other changes
       (this will be passed to shapes affected).
 
@@ -639,7 +645,7 @@ type
       TShapeTreeTransform.Transform invalid,
       which will cause TransformationChanged result invalid.
     }
-    procedure TransformationChanged(const TransformNode: TX3DNode);
+    procedure TransformationChanged(const TransformFunctionality: TTransformFunctionality);
     { Like TransformationChanged, but specialized for TransformNode = RootNode. }
     procedure RootTransformationChanged;
 
@@ -652,7 +658,7 @@ type
 
     { Always assigned to PlayingAnimationNode.EventIsActive. }
     procedure PlayingAnimationIsActive(
-      Event: TX3DEvent; Value: TX3DField; const ATime: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const ATime: TX3DTime);
 
     procedure SetPrimitiveGeometry(const AValue: TPrimitiveGeometry);
 
@@ -671,10 +677,10 @@ type
       is not visible.  Otherwise stop/start time would be delayed too until
       it becomes visible, which is not perfect (although it would be Ok
       in practice too?) }
-    procedure UpdateNewPlayingAnimation(out NeedsUpdateTimeDependentHandlers: Boolean);
+    procedure UpdateNewPlayingAnimation(out NeedsUpdateTimeDependent: Boolean);
 
-    { Call SetTime on all TimeDependentHandlers. }
-    procedure UpdateTimeDependentHandlers(const TimeIncrease: TFloatTime; const ResetTime: boolean);
+    { Call SetTime on all things in TimeDependentList. }
+    procedure UpdateTimeDependentList(const TimeIncrease: TFloatTime; const ResetTime: boolean);
 
     function SensibleCameraRadius(const WorldBox: TBox3D;
       out RadiusAutomaticallyDerivedFromBox: Boolean): Single;
@@ -728,7 +734,7 @@ type
     procedure SetProcessEvents(const Value: boolean);
   private
     KeyDeviceSensorNodes: TX3DNodeList;
-    TimeDependentHandlers: TTimeDependentHandlerList;
+    TimeDependentList: TTimeDependentList;
     ProximitySensors: TProximitySensorInstanceList;
     FVisibilitySensors: TVisibilitySensors;
     BillboardNodes: TX3DNodeList;
@@ -1147,7 +1153,7 @@ type
       Contents of this tree are read-only from outside. }
     property Shapes: TShapeTree read FShapes;
 
-    // { Bounding box of all occurences of the given X3D Shape node. }
+    // { Bounding box of all occurrences of the given X3D Shape node. }
     // function ShapeBoundingBox(const Node: TShapeNode): TBox3D;
 
     { Number of active shapes in the @link(Shapes) tree.
@@ -2336,8 +2342,8 @@ type
     { Should the event mechanism (a basic of animations and interactions) work.
 
       If @true, then events will be send and received
-      through X3D routes, time dependent nodes (X3DTimeDependentNode,
-      like TimeSensor) will be activated and updated from @link(Time) time
+      through X3D routes, time dependent nodes (TTimeDependentFunctionality,
+      like TTimeSensorNode) will be activated and updated from @link(Time) time
       property, @link(Press), @link(Release) and other methods will activate
       key/mouse sensor nodes, scripts will be initialized and work, etc.
 
@@ -2889,9 +2895,9 @@ begin
       List^[I].Handler.InternalUpdateNeeded := true;
 end;
 
-{ TTimeDependentHandlerList ------------------------------------------------- }
+{ TTimeDependentList ------------------------------------------------- }
 
-procedure TCastleSceneCore.TTimeDependentHandlerList.AddIfNotExists(const Item: TInternalTimeDependentHandler);
+procedure TCastleSceneCore.TTimeDependentList.AddIfNotExists(const Item: TTimeDependentFunctionality);
 begin
   if IndexOf(Item) = -1 then
     Add(Item);
@@ -2920,9 +2926,11 @@ constructor TCastleSceneCore.TExposedTransform.Create(const AParentScene: TCastl
   const ANode: TTransformNode; const AChild: TCastleTransform);
 begin
   inherited Create;
-  ParentScene := AParentScene;
-  Node := ANode;
-  Child := AChild;
+  FParentScene := AParentScene;
+  FNode := ANode;
+  FTransformFunctionality := Node.TransformFunctionality;
+  Assert(FTransformFunctionality <> nil);
+  FChild := AChild;
 
   // create ChildObserver
   ChildObserver := TFreeNotificationObserver.Create(nil);
@@ -2978,7 +2986,7 @@ begin
   Assert(C = 1);
   ShapeTransform := TShapeTree.AssociatedShape(Node, 0) as TShapeTreeTransform;
   T :=  ShapeTransform.TransformState.Transformation;
-  Node.ApplyTransform(T);
+  FTransformFunctionality.ApplyTransform(T);
   MatrixDecompose(T.Transform, Translation, Rotation, Scale);
 
   { Apply to Child the accumulated transformation within this TTransformNode,
@@ -3206,7 +3214,7 @@ begin
   ScheduledHumanoidAnimateSkin := TX3DNodeList.Create(false);
   KeyDeviceSensorNodes := TX3DNodeList.Create(false);
   BillboardNodes := TX3DNodeList.Create(false);
-  TimeDependentHandlers := TTimeDependentHandlerList.Create(false);
+  TimeDependentList := TTimeDependentList.Create(false);
   FAnimationsList := TStringList.Create;
   TStringList(FAnimationsList).CaseSensitive := true; // X3D node names are case-sensitive
   AnimationAffectedFields := TX3DFieldList.Create(false);
@@ -3247,7 +3255,7 @@ begin
   FreeAndNil(FCompiledScriptHandlers);
   FreeAndNil(KeyDeviceSensorNodes);
   FreeAndNil(BillboardNodes);
-  FreeAndNil(TimeDependentHandlers);
+  FreeAndNil(TimeDependentList);
 
   FreeAndNil(FBackgroundStack);
   FreeAndNil(FFogStack);
@@ -3638,14 +3646,17 @@ function TChangedAllTraverser.Traverse(
   Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
 
-  { Handle ITransformNode node }
-  procedure HandleTransform(TransformNode: TX3DNode);
+  { Handle node with TTransformFunctionality }
+  procedure HandleTransform(const TransformFunctionality: TTransformFunctionality);
   var
+    TransformNode: TX3DNode;
     TransformTree: TShapeTreeTransform;
     Traverser: TChangedAllTraverser;
   begin
+    TransformNode := TransformFunctionality.Parent;
+
     TransformTree := TShapeTreeTransform.Create(ParentScene);
-    TransformTree.TransformNode := TransformNode;
+    TransformTree.TransformFunctionality := TransformFunctionality;
 
     { We want to save at TransformState the state right before traversing
       inside this TransformNode.
@@ -3656,12 +3667,21 @@ function TChangedAllTraverser.Traverse(
       it's transformation. Clearly, TransformState must not depend on
       current TransformNode transformation.
 
-      So we cheat a little, knowing that internally every ITransformNode
+      So we cheat a little, knowing that internally every node implementing TTransformFunctionality
       does StateStack.Push inside BeforeTraverse exactly once and then
-      modifies transformation.(This happens for both TAbstractGroupingNode
-      and THAnimHumanoidNode. Right now, ITransformNode is always one of those.)
-      So we know that previous state lies safely at PreviousTop. }
-    TransformTree.TransformState.Assign(StateStack.PreviousTop);
+      modifies transformation.
+      (This happens for both TAbstractGroupingNode and THAnimHumanoidNode.
+      Right now, node with TTransformFunctionality is always one of those.)
+      So we know that previous state lies safely at PreviousTop.
+
+      Exception: As TX3DRootNode.SeparateGroup is false now,
+      it needs special case to look at just StateStack.Top.
+      TODO: This is wrong though, i.e. the StateStack.Top has the TX3DRootNode
+      already applied. There's no state without the TX3DRootNode applied... }
+    if TransformNode is TX3DRootNode then
+      TransformTree.TransformState.Assign(StateStack.Top)
+    else
+      TransformTree.TransformState.Assign(StateStack.PreviousTop);
 
     ShapesGroup.Children.Add(TransformTree);
 
@@ -3717,7 +3737,7 @@ function TChangedAllTraverser.Traverse(
     TraverseIntoChildren := false;
   end;
 
-  procedure HandleLOD(LODNode: TAbstractLODNode);
+  procedure HandleLOD(LODNode: TLODNode);
   var
     LODTree: TShapeTreeLOD;
     Traverser: TChangedAllTraverser;
@@ -3848,13 +3868,13 @@ begin
   begin
     HandleSwitch(TSwitchNode(Node));
   end else
-  if Node is TAbstractLODNode then
+  if Node is TLODNode then
   begin
-    HandleLOD(TAbstractLODNode(Node));
+    HandleLOD(TLODNode(Node));
   end else
-  if Supports(Node, ITransformNode) then
+  if Node.TransformFunctionality <> nil then
   begin
-    HandleTransform(Node);
+    HandleTransform(Node.TransformFunctionality);
   end else
 
   if (Node is TAbstractBindableNode) and
@@ -3949,7 +3969,7 @@ begin
   ScreenEffectNodes.Count := 0;
   ScheduledHumanoidAnimateSkin.Count := 0;
   KeyDeviceSensorNodes.Clear;
-  TimeDependentHandlers.Clear;
+  TimeDependentList.Clear;
   FExposedTransforms.Clear;
 
   { clear animation stuff, since any TTimeSensorNode may be freed soon }
@@ -3997,8 +4017,6 @@ begin
 end;
 
 procedure TCastleSceneCore.ChangedAllEnumerateCallback(Node: TX3DNode);
-var
-  TimeDependentHandler: TInternalTimeDependentHandler;
 begin
   if not FStatic then
   begin
@@ -4022,10 +4040,9 @@ begin
   if Node is TAbstractKeyDeviceSensorNode then
     KeyDeviceSensorNodes.AddIfNotExists(Node)
   else
-  if Supports(Node, IAbstractTimeDependentNode) then
+  if Node.TimeFunctionality <> nil then
   begin
-    TimeDependentHandler := (Node as IAbstractTimeDependentNode).InternalTimeDependentHandler;
-    TimeDependentHandlers.AddIfNotExists(TimeDependentHandler);
+    TimeDependentList.AddIfNotExists(Node.TimeFunctionality);
 
     // update NeedsDetectAffectedFields if necessary
     if (Node is TTimeSensorNode) and TTimeSensorNode(Node).DetectAffectedFields then
@@ -4088,7 +4105,7 @@ procedure TCastleSceneCore.ChangedAll(const OnlyAdditions: Boolean);
   end;
 
   { Assigns nodes TX3DNode.Scene, and adds nodes to KeyDeviceSensorNodes
-    and TimeDependentHandlers lists. }
+    and TimeDependentList lists. }
   procedure EnumerateNodes;
   begin
     if RootNode <> nil then
@@ -4294,7 +4311,7 @@ type
   TTransformChangeHelper = class
     ParentScene: TCastleSceneCore;
     Shapes: PShapesParentInfo;
-    ChangingNode: TX3DNode; {< must be also ITransformNode }
+    ChangingNode: TX3DNode;
     AnythingChanged: boolean;
     Inside: boolean;
     { If = 0, we're in active or inactive graph part (we don't know).
@@ -4312,8 +4329,8 @@ function TTransformChangeHelper.TransformChangeTraverse(
   Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
 
-  { Handle ITransformNode }
-  procedure HandleTransform(TransformNode: TX3DNode);
+  { Handle node with TTransformFunctionality }
+  procedure HandleTransform(const TransformNode: TX3DNode);
   var
     ShapeTransform: TShapeTreeTransform;
     OldShapes: PShapesParentInfo;
@@ -4322,7 +4339,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
     if TransformNode = ChangingNode then
     begin
       if Inside then
-        WritelnLog('VRML transform', 'Cycle in VRML/X3D graph detected: transform node is a child of itself');
+        WritelnLog('X3D transform', 'Cycle in X3D graph detected: transform node is a child of itself');
       Inside := true;
       { Nothing to do, in particular: do not enter inside.
         Our Shapes^.Group and Shapes^.Index is already correctly set
@@ -4335,8 +4352,17 @@ function TTransformChangeHelper.TransformChangeTraverse(
     Inc(Shapes^.Index);
 
     { update transformation inside Transform nodes that are *within*
-      the modified Transform node }
-    ShapeTransform.TransformState.AssignTransform(StateStack.PreviousTop);
+      the modified Transform node.
+
+      As in TChangedAllTraverser.Traverse, we apply special treatment
+      for TX3DRootNode.
+      TODO: As in TChangedAllTraverser.Traverse, this StateStack.Top is actually
+      not correct in case TX3DRootNode does any scaling. StateStack.Top has the scaling
+      applied, we want transformation before. }
+    if TransformNode is TX3DRootNode then
+      ShapeTransform.TransformState.AssignTransform(StateStack.Top)
+    else
+      ShapeTransform.TransformState.AssignTransform(StateStack.PreviousTop);
 
     OldShapes := Shapes;
     try
@@ -4394,7 +4420,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
     TraverseIntoChildren := false;
   end;
 
-  procedure HandleLOD(LODNode: TAbstractLODNode);
+  procedure HandleLOD(LODNode: TLODNode);
   var
     I: Integer;
     ShapeLOD: TShapeTreeLOD;
@@ -4539,7 +4565,7 @@ begin
   case Node.TransformationChange of
     ntcNone: ;
     ntcSwitch: HandleSwitch(TSwitchNode(Node));
-    ntcLOD: HandleLOD(TAbstractLODNode(Node));
+    ntcLOD: HandleLOD(TLODNode(Node));
     ntcTransform: HandleTransform(Node);
     ntcGeometry:
       begin
@@ -4600,7 +4626,7 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.TransformationChanged(const TransformNode: TX3DNode);
+procedure TCastleSceneCore.TransformationChanged(const TransformFunctionality: TTransformFunctionality);
 var
   TransformChangeHelper: TTransformChangeHelper;
   TransformShapesParentInfo: TShapesParentInfo;
@@ -4608,7 +4634,10 @@ var
   C, I: Integer;
   TransformShapeTree: TShapeTreeTransform;
   DoVisibleChanged: boolean;
+  TransformNode: TX3DNode;
 begin
+  TransformNode := TransformFunctionality.Parent;
+
   { This is the optimization for changing VRML >= 2.0 transformation
     (most fields of Transform node like translation, scale, center etc.,
     also some HAnim nodes like Joint and Humanoid have this behavior.).
@@ -4793,7 +4822,7 @@ var
     WritelnLog('X3D change', S);
   end;
 
-  { Handle VRML >= 2.0 transformation changes. }
+  { Handle VRML >= 2.0 transformation changes (node with TTransformFunctionality). }
   procedure HandleChangeTransform;
   begin
     if OptimizeExtensiveTransformations then
@@ -4801,9 +4830,8 @@ var
       TransformationDirty := true
     end else
     begin
-      Check(Supports(ANode, ITransformNode),
-        'chTransform flag may be set only for ITransformNode');
-      TransformationChanged(ANode);
+      Check(ANode.TransformFunctionality <> nil, 'chTransform flag may be set only for node with TTransformFunctionality');
+      TransformationChanged(ANode.TransformFunctionality);
     end;
 
     if not ProcessEvents then
@@ -5113,21 +5141,10 @@ var
   end;
 
   procedure HandleChangeTimeStopStart;
-
-    function GetInternalTimeDependentHandler(ANode: TX3DNode): TInternalTimeDependentHandler;
-    begin
-      if Supports(ANode, IAbstractTimeDependentNode) then
-        Result := (ANode as IAbstractTimeDependentNode).InternalTimeDependentHandler else
-        Result := nil;
-    end;
-
-  var
-    Handler: TInternalTimeDependentHandler;
   begin
-    Handler := GetInternalTimeDependentHandler(ANode);
-    if Handler = nil then Exit; {< ANode not time-dependent. }
+    if ANode.TimeFunctionality = nil then Exit; {< ANode not time-dependent. }
 
-    { Why do we want to call Handler.SetTime now?
+    { Why do we want to call TimeFunctionality.SetTime now?
 
       Although (de)activation of time-dependent nodes will be also caught
       by the nearest IncreaseTime run, it's good to explicitly
@@ -5146,7 +5163,7 @@ var
       we would mistakenly interpret resuming (from paused state) just like
       activation (from stopped state), testcase time_sensor_3.x3dv. }
 
-    Handler.SetTime(Time, 0, false);
+    ANode.TimeFunctionality.SetTime(Time, 0, false);
 
     { No need to do VisibleChangeHere.
       Redisplay will be done by next IncreaseTime run, if active now. }
@@ -6712,9 +6729,9 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.UpdateNewPlayingAnimation(out NeedsUpdateTimeDependentHandlers: Boolean);
+procedure TCastleSceneCore.UpdateNewPlayingAnimation(out NeedsUpdateTimeDependent: Boolean);
 begin
-  NeedsUpdateTimeDependentHandlers := false;
+  NeedsUpdateTimeDependent := false;
 
   if NewPlayingAnimationUse then
   begin
@@ -6736,11 +6753,11 @@ begin
       we have to make sure it actually starts playing from the start.
       For the StartTime below to be correctly applied, we have to make
       sure the node actually *stops* temporarily (otherwise the
-      TInternalTimeDependentHandler.SetTime never "sees" the node
+      TTimeDependentFunctionality.SetTime never "sees" the node
       in the Enabled = false state). }
     if (PlayingAnimationNode = NewPlayingAnimationNode) and
        (PlayingAnimationNode <> nil) then
-      PlayingAnimationNode.InternalTimeDependentHandler.SetTime(Time, 0, false);
+      PlayingAnimationNode.TimeFunctionality.SetTime(Time, 0, false);
 
     { set PreviousPlayingAnimationXxx }
     PreviousPlayingAnimation := PlayingAnimationNode;
@@ -6748,8 +6765,7 @@ begin
     begin
       PreviousPlayingAnimationLoop := PreviousPlayingAnimation.Loop;
       PreviousPlayingAnimationForward := PreviousPlayingAnimation.FractionIncreasing;
-      PreviousPlayingAnimationTimeInAnimation :=
-        PreviousPlayingAnimation.InternalTimeDependentHandler.ElapsedTime;
+      PreviousPlayingAnimationTimeInAnimation := PreviousPlayingAnimation.TimeFunctionality.ElapsedTime;
     end;
 
     { If current animation node changes (to non-nil) call ResetAnimatedFields,
@@ -6821,7 +6837,7 @@ begin
       ResetAnimationState(NewPlayingAnimationNode);
       { As soon as possible, we need to process TimeSensors, otherwise user would
         see a default animation pose. }
-      NeedsUpdateTimeDependentHandlers := true;
+      NeedsUpdateTimeDependent := true;
     end;
 
     PlayingAnimationNode := NewPlayingAnimationNode;
@@ -6847,31 +6863,28 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.UpdateTimeDependentHandlers(
+procedure TCastleSceneCore.UpdateTimeDependentList(
   const TimeIncrease: TFloatTime; const ResetTime: boolean);
 var
   SomethingVisibleChanged, SomePartialSend: boolean;
-  I: Integer;
   T: TFloatTime;
-  TimeHandler: TInternalTimeDependentHandler;
+  TimeFunctionality: TTimeDependentFunctionality;
 begin
   SomethingVisibleChanged := false;
   T := Time;
   SomePartialSend := false;
 
-  for I := 0 to TimeDependentHandlers.Count - 1 do
+  for TimeFunctionality in TimeDependentList do
   begin
-    TimeHandler := TimeDependentHandlers[I];
-
-    PartialSendBegin(TimeHandler);
-    if TimeHandler.PartialSend <> nil then
+    PartialSendBegin(TimeFunctionality);
+    if TimeFunctionality.PartialSend <> nil then
       SomePartialSend := true;
 
-    if TimeHandler.SetTime(T, TimeIncrease, ResetTime) and
-      (TimeHandler.Node is TMovieTextureNode) then
+    if TimeFunctionality.SetTime(T, TimeIncrease, ResetTime) and
+      (TimeFunctionality.Parent is TMovieTextureNode) then
       SomethingVisibleChanged := true;
 
-    PartialSendEnd(TimeHandler);
+    PartialSendEnd(TimeFunctionality);
   end;
 
   if not SomePartialSend then
@@ -6885,27 +6898,27 @@ end;
 procedure TCastleSceneCore.InternalSetTime(
   const NewValue: TFloatTime; const TimeIncrease: TFloatTime; const ResetTime: boolean);
 
-  { Call UpdateTimeDependentHandlers, but only if AnimateOnlyWhenVisible logic agrees.
-    When ResetTime, we force always an UpdateTimeDependentHandlers(0.0) call.
-    @param NeedsUpdate Forces always *some* UpdateTimeDependentHandlers call. }
-  procedure UpdateTimeDependentHandlersIfVisible(const NeedsUpdate: Boolean);
+  { Call UpdateTimeDependentList, but only if AnimateOnlyWhenVisible logic agrees.
+    When ResetTime, we force always an UpdateTimeDependentList(0.0) call.
+    @param NeedsUpdate Forces always *some* UpdateTimeDependentList call. }
+  procedure UpdateTimeDependentListIfVisible(const NeedsUpdate: Boolean);
   begin
     if ResetTime then
     begin
-      { Call UpdateTimeDependentHandlers and reset FAnimateGatheredTime.
+      { Call UpdateTimeDependentList and reset FAnimateGatheredTime.
         However, do not reset AnimateSkipNextTicks (this would synchronize
         all skipping ticks if multiple animations are reset at the beginning
         of game, making randomization in SetAnimateSkipTicks pointless). }
       FAnimateGatheredTime := 0;
-      UpdateTimeDependentHandlers(TimeIncrease + FAnimateGatheredTime, ResetTime);
+      UpdateTimeDependentList(TimeIncrease + FAnimateGatheredTime, ResetTime);
     end else
     if NeedsUpdate then
     begin
-      { Call UpdateTimeDependentHandlers regardless of visibility and
+      { Call UpdateTimeDependentList regardless of visibility and
         of AnimateSkipNextTicks. Note that we do not reset AnimateSkipNextTicks
         (to avoid synchronizing AnimateSkipNextTicks of multiple animations
         started in the sam frame). }
-      UpdateTimeDependentHandlers(TimeIncrease + FAnimateGatheredTime, ResetTime);
+      UpdateTimeDependentList(TimeIncrease + FAnimateGatheredTime, ResetTime);
       FAnimateGatheredTime := 0;
     end else
     if FAnimateOnlyWhenVisible and (not IsVisibleNow) then
@@ -6918,7 +6931,7 @@ procedure TCastleSceneCore.InternalSetTime(
       FAnimateGatheredTime := FAnimateGatheredTime + TimeIncrease;
     end else
     begin
-      UpdateTimeDependentHandlers(TimeIncrease + FAnimateGatheredTime, ResetTime);
+      UpdateTimeDependentList(TimeIncrease + FAnimateGatheredTime, ResetTime);
       AnimateSkipNextTicks := AnimateSkipTicks;
       FAnimateGatheredTime := 0;
     end;
@@ -6944,7 +6957,7 @@ procedure TCastleSceneCore.InternalSetTime(
   end;
 
 var
-  NeedsUpdateTimeDependentHandlers: Boolean;
+  NeedsUpdateTimeDependent: Boolean;
 begin
   FTimeNow.Seconds := NewValue;
   FTimeNow.PlusTicks := 0; // using InternalSetTime always resets PlusTicks
@@ -6953,13 +6966,13 @@ begin
   begin
     BeginChangesSchedule;
     try
-      { UpdateNewPlayingAnimation must be called before UpdateTimeDependentHandlersIfVisible.
+      { UpdateNewPlayingAnimation must be called before UpdateTimeDependentListIfVisible.
         This way if we called StopAnimation, then UpdateNewPlayingAnimation
         first stops it (preventing from sending any events),
         so a stopped animation will *not* send any events after StopAnimation
         (making it useful to call ResetAnimationState right after StopAnimation call). }
-      UpdateNewPlayingAnimation(NeedsUpdateTimeDependentHandlers);
-      UpdateTimeDependentHandlersIfVisible(NeedsUpdateTimeDependentHandlers);
+      UpdateNewPlayingAnimation(NeedsUpdateTimeDependent);
+      UpdateTimeDependentListIfVisible(NeedsUpdateTimeDependent);
       UpdateHumanoidSkin;
       { Process TransformationDirty at the end of increasing time, to apply scheduled
         TransformationDirty in the same Update, as soon as possible
@@ -7080,7 +7093,7 @@ procedure TCastleSceneCore.InternalCameraChanged;
       if OptimizeExtensiveTransformations then
         TransformationDirty := true
       else
-        TransformationChanged(BillboardNodes[I]);
+        TransformationChanged(BillboardNodes[I].TransformFunctionality);
     end;
   end;
 
@@ -7156,7 +7169,7 @@ begin
   FrameProfiler.Stop(fmUpdateScene);
 end;
 
-procedure TCastleSceneCore.PartialSendBegin(const TimeHandler: TInternalTimeDependentHandler);
+procedure TCastleSceneCore.PartialSendBegin(const TimeFunctionality: TTimeDependentFunctionality);
 var
   T: TFloatTime;
   PartialSend: TPartialSend;
@@ -7164,12 +7177,12 @@ begin
   T := Time;
 
   if (PlayingAnimationTransitionDuration <> 0) { often early exit } and
-     (TimeHandler.Node = PlayingAnimationNode) and
+     (TimeFunctionality.Parent = PlayingAnimationNode) and
      (T >= PlayingAnimationStartTime) { only sanity check } and
      (T < PlayingAnimationStartTime + PlayingAnimationTransitionDuration) then
   begin
     PartialSend := TPartialSend.Create;
-    TimeHandler.PartialSend := PartialSend;
+    TimeFunctionality.PartialSend := PartialSend;
 
     if PreviousPlayingAnimation <> nil then
     begin
@@ -7182,7 +7195,7 @@ begin
         - PreviousPlayingAnimation may be equal to PlayingAnimationNode
           (in case when PlayAnimation starts the same animation from beginning)
           and we still must work correctly.
-        - We do not use FadingOutAnimation.InternalTimeDependentHandler.SetTime,
+        - We do not use FadingOutAnimation.TimeFunctionality.SetTime,
           as we do not want to activate/deactivate PreviousPlayingAnimation
           time sensor,
           and we do not want to look at enabled state of time sensor.
@@ -7201,10 +7214,10 @@ begin
       PlayingAnimationTransitionDuration;
     PartialSend.IgnoreIfCannotLerp := false;
   end else
-    TimeHandler.PartialSend := nil;
+    TimeFunctionality.PartialSend := nil;
 end;
 
-procedure TCastleSceneCore.PartialSendEnd(const TimeHandler: TInternalTimeDependentHandler);
+procedure TCastleSceneCore.PartialSendEnd(const TimeFunctionality: TTimeDependentFunctionality);
 
   function FieldsEqual(const L1, L2: TX3DFieldList): boolean;
   var
@@ -7221,11 +7234,11 @@ var
   F: TX3DField;
   AffectedFields: TX3DFieldList;
 begin
-  if TimeHandler.PartialSend <> nil then
+  if TimeFunctionality.PartialSend <> nil then
   begin
-    AffectedFields := TimeHandler.PartialSend.AffectedFields;
-    TimeHandler.PartialSend.AffectedFields := nil; // do not free by TPartialSend.Destroy
-    FreeAndNil(TimeHandler.PartialSend);
+    AffectedFields := TimeFunctionality.PartialSend.AffectedFields;
+    TimeFunctionality.PartialSend.AffectedFields := nil; // do not free by TPartialSend.Destroy
+    FreeAndNil(TimeFunctionality.PartialSend);
 
     { call InternalAffectedPartial on all AffectedFields, to correctly update
       their values. }
@@ -8429,7 +8442,7 @@ begin
 end;
 
 procedure TCastleSceneCore.PlayingAnimationIsActive(
-  Event: TX3DEvent; Value: TX3DField; const ATime: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const ATime: TX3DTime);
 var
   Val: boolean;
 begin
@@ -8460,14 +8473,14 @@ end;
 
 function TCastleSceneCore.ApplyNewPlayingAnimation: Boolean;
 var
-  NeedsUpdateTimeDependentHandlers: Boolean;
+  NeedsUpdateTimeDependent: Boolean;
 begin
   Result := true;
   if NewPlayingAnimationUse then
   begin
-    UpdateNewPlayingAnimation(NeedsUpdateTimeDependentHandlers);
+    UpdateNewPlayingAnimation(NeedsUpdateTimeDependent);
 
-    { The case of NeedsUpdateTimeDependentHandlers = true is normal,
+    { The case of NeedsUpdateTimeDependent = true is normal,
       and we should handle it.
       It can easily occur if the first thing you do with Scene is call Scene.PlayAnimation(...),
       then Scene.StopAnimation within the same frame.
@@ -8476,12 +8489,12 @@ begin
       Such ApplyNewPlayingAnimation cannot Exit(false), as it would make StopAnimation to fail,
       see https://github.com/castle-engine/castle-engine/issues/273 .
 
-      It is tempting to do nothing and ignore NeedsUpdateTimeDependentHandlers here.
+      It is tempting to do nothing and ignore NeedsUpdateTimeDependent here.
       It could be often OK, since we stop the animation?
-      But doing UpdateTimeDependentHandlers is what is consistent with normal code flow,
+      But doing UpdateTimeDependentList is what is consistent with normal code flow,
       so safest. }
-    if NeedsUpdateTimeDependentHandlers then
-      UpdateTimeDependentHandlers(0, false); // update TimeSensors
+    if NeedsUpdateTimeDependent then
+      UpdateTimeDependentList(0, false); // update TimeSensors
 
     if NewPlayingAnimationUse then
     begin

@@ -22,19 +22,33 @@
   - and regenerate include files by running x3d-nodes-to-pascal .
 
   The documentation for properties should go to x3dnodes_documentation.txt . }
-{$ifdef FPC}
+
 {$ifdef read_interface}
 
   strict private
     function GetAxis: TVector3;
     procedure SetAxis(const Value: TVector3);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdKeyValue: TMFFloat;
+    { X3D field "keyValue". } { }
+    public property FdKeyValue: TMFFloat read FFdKeyValue;
     { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: array of Single); overload;
     { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: TSingleList); overload;
+
+    strict private FFdAxis: TSFVec3f;
+    { X3D field "axis". } { }
+    public property FdAxis: TSFVec3f read FFdAxis;
     { X3D field "axis". } { }
     property Axis: TVector3 read GetAxis write SetAxis;
+
+    strict private FEventValue_changed: TSFRotationEvent;
+    { X3D out event "value_changed". } { }
+    public property EventValue_changed: TSFRotationEvent read FEventValue_changed;
 
 {$endif read_interface}
 
@@ -62,6 +76,25 @@ begin
   FdAxis.Send(Value);
 end;
 
-{$endif read_implementation}
+class function TCubicBezier2DOrientationInterpolatorNode.ClassX3DType: String;
+begin
+  Result := 'CubicBezier2DOrientationInterpolator';
+end;
 
-{$endif FPC}
+procedure TCubicBezier2DOrientationInterpolatorNode.CreateNode;
+begin
+  inherited;
+
+  FFdKeyValue := TMFFloat.Create(Self, True, 'keyValue', []);
+   FdKeyValue.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdKeyValue);
+
+  FFdAxis := TSFVec3f.Create(Self, True, 'axis', Vector3(0, 0, 1));
+   FdAxis.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAxis);
+
+  FEventValue_changed := TSFRotationEvent.Create(Self, 'value_changed', false);
+  AddEvent(FEventValue_changed);
+end;
+
+{$endif read_implementation}

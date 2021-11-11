@@ -201,15 +201,16 @@ begin
       [Result]);
 end;
 
+{ Check is Path a sensible CGE sources path.
+  Requires Path to end with PathDelim. }
+function CheckCastlePath(const Path: String): Boolean;
+begin
+  Result :=
+    DirectoryExists(Path + 'src') and
+    DirectoryExists(Path + 'tools' + PathDelim + 'build-tool' + PathDelim + 'data');
+end;
+
 function GetCastleEnginePathFromExeName: String;
-
-  function CheckCastlePath(const Path: String): Boolean;
-  begin
-    Result :=
-      DirectoryExists(Path + 'src') and
-      DirectoryExists(Path + 'tools' + PathDelim + 'build-tool' + PathDelim + 'data');
-  end;
-
 var
   ToolDir: String;
 begin
@@ -230,7 +231,7 @@ begin
     Result := InclPathDelim(ExtractFileDir(ToolDir));
     if CheckCastlePath(Result) then
       Exit;
-    { Check ../ of current exe, makes sense in development when
+    { Check ../../ of current exe, makes sense in development when
       each tool is compiled by various scripts in tools/xxx/ subdirectory. }
     Result := InclPathDelim(ExtractFileDir(ExtractFileDir(ToolDir)));
     if CheckCastlePath(Result) then
@@ -243,6 +244,21 @@ begin
   end;
 end;
 
+function GetCastleEnginePathSystemWide: String;
+begin
+  {$ifdef UNIX}
+  Result := '/usr/src/castle-engine/';
+  if CheckCastlePath(Result) then
+    Exit;
+
+  Result := '/usr/local/src/castle-engine/';
+  if CheckCastlePath(Result) then
+    Exit;
+  {$endif}
+
+  Result := '';
+end;
+
 var
   CastleEnginePathIsCached: Boolean;
   CastleEnginePathCached: String;
@@ -253,9 +269,14 @@ begin
     Result := CastleEnginePathCached
   else
   begin
+    // try to find CGE on $CASTLE_ENGINE_PATH
     Result := GetCastleEnginePathFromEnv;
-    if Result = '' then // if not $CASTLE_ENGINE_PATH, try to find CGE harder
+    // try to find CGE on path relative to current exe
+    if Result = '' then
       Result := GetCastleEnginePathFromExeName;
+    // try to find CGE on system-wide paths
+    if Result = '' then
+      Result := GetCastleEnginePathSystemWide;
 
     if Result <> '' then
       WritelnVerbose('Castle Game Engine directory detected: ' + Result)

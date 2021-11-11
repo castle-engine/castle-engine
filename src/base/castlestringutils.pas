@@ -413,7 +413,7 @@ function CreateTokens(const s: string;
   @code('foo') and @code('bar').
 
   The splitting is done "strictly", which means that we always return exactly
-  one more part than the occurences of delimiter in the source string.
+  one more part than the occurrences of delimiter in the source string.
 
   In particular, this means that:
   @unorderedList(

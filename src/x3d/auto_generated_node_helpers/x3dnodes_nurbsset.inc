@@ -31,12 +31,38 @@
     function GetBBox: TBox3D;
     procedure SetBBox(const Value: TBox3D);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventAddGeometry: TMFNodeEvent;
+    { X3D in event "addGeometry". } { }
+    public property EventAddGeometry: TMFNodeEvent read FEventAddGeometry;
+
+    strict private FEventRemoveGeometry: TMFNodeEvent;
+    { X3D in event "removeGeometry". } { }
+    public property EventRemoveGeometry: TMFNodeEvent read FEventRemoveGeometry;
+
+    strict private FFdGeometry: TMFNode;
+    { X3D field "geometry". } { }
+    public property FdGeometry: TMFNode read FFdGeometry;
     { Set X3D field "geometry". } { }
     procedure SetGeometry(const Value: array of TAbstractNurbsSurfaceGeometryNode);
+
+    strict private FFdTessellationScale: TSFFloat;
+    { X3D field "tessellationScale". } { }
+    public property FdTessellationScale: TSFFloat read FFdTessellationScale;
     { X3D field "tessellationScale". } { }
     property TessellationScale: Single read GetTessellationScale write SetTessellationScale;
+
+    strict private FFdBboxCenter: TSFVec3f;
+    { X3D field "bboxCenter". } { }
+    public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
     { X3D fields "bboxCenter" and "bboxSize" are get/set as TBox3D. } { }
     property BBox: TBox3D read GetBBox write SetBBox;
+
+    strict private FFdBboxSize: TSFVec3f;
+    { X3D field "bboxSize". } { }
+    public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
 {$endif read_interface}
 
@@ -78,6 +104,38 @@ begin
   Value.ToCenterSize(ValueCenter, ValueSize);
   FdBBoxCenter.Send(ValueCenter);
   FdBBoxSize.Send(ValueSize);
+end;
+
+class function TNurbsSetNode.ClassX3DType: String;
+begin
+  Result := 'NurbsSet';
+end;
+
+procedure TNurbsSetNode.CreateNode;
+begin
+  inherited;
+
+  FEventAddGeometry := TMFNodeEvent.Create(Self, 'addGeometry', true);
+  AddEvent(FEventAddGeometry);
+
+  FEventRemoveGeometry := TMFNodeEvent.Create(Self, 'removeGeometry', true);
+  AddEvent(FEventRemoveGeometry);
+
+  FFdGeometry := TMFNode.Create(Self, True, 'geometry', [TAbstractNurbsSurfaceGeometryNode]);
+   FdGeometry.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdGeometry);
+
+  FFdTessellationScale := TSFFloat.Create(Self, True, 'tessellationScale', 1.0);
+   FdTessellationScale.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdTessellationScale);
+
+  FFdBboxCenter := TSFVec3f.Create(Self, False, 'bboxCenter', Vector3(0, 0, 0));
+   FdBboxCenter.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBboxCenter);
+
+  FFdBboxSize := TSFVec3f.Create(Self, False, 'bboxSize', Vector3(-1, -1, -1));
+   FdBboxSize.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBboxSize);
 end;
 
 {$endif read_implementation}

@@ -31,10 +31,28 @@
     function GetSize: TVector3;
     procedure SetSize(const Value: TVector3);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdCenter: TSFVec3f;
+    { X3D field "center". } { }
+    public property FdCenter: TSFVec3f read FFdCenter;
     { X3D field "center". } { }
     property Center: TVector3 read GetCenter write SetCenter;
+
+    strict private FFdSize: TSFVec3f;
+    { X3D field "size". } { }
+    public property FdSize: TSFVec3f read FFdSize;
     { X3D field "size". } { }
     property Size: TVector3 read GetSize write SetSize;
+
+    strict private FEventEnterTime: TSFTimeEvent;
+    { X3D out event "enterTime". } { }
+    public property EventEnterTime: TSFTimeEvent read FEventEnterTime;
+
+    strict private FEventExitTime: TSFTimeEvent;
+    { X3D out event "exitTime". } { }
+    public property EventExitTime: TSFTimeEvent read FEventExitTime;
 
 {$endif read_interface}
 
@@ -60,6 +78,30 @@ end;
 procedure TAbstractEnvironmentalSensorNode.SetSize(const Value: TVector3);
 begin
   FdSize.Send(Value);
+end;
+
+class function TAbstractEnvironmentalSensorNode.ClassX3DType: String;
+begin
+  Result := 'X3DEnvironmentalSensorNode';
+end;
+
+procedure TAbstractEnvironmentalSensorNode.CreateNode;
+begin
+  inherited;
+
+  FFdCenter := TSFVec3f.Create(Self, True, 'center', Vector3(0, 0, 0));
+   FdCenter.ChangeAlways := chEnvironmentalSensorBounds;
+  AddField(FFdCenter);
+
+  FFdSize := TSFVec3f.Create(Self, True, 'size', Vector3(0, 0, 0));
+   FdSize.ChangeAlways := chEnvironmentalSensorBounds;
+  AddField(FFdSize);
+
+  FEventEnterTime := TSFTimeEvent.Create(Self, 'enterTime', false);
+  AddEvent(FEventEnterTime);
+
+  FEventExitTime := TSFTimeEvent.Create(Self, 'exitTime', false);
+  AddEvent(FEventExitTime);
 end;
 
 {$endif read_implementation}

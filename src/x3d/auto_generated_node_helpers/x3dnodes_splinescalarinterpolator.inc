@@ -31,18 +31,40 @@
     function GetNormalizeVelocity: Boolean;
     procedure SetNormalizeVelocity(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdClosed: TSFBool;
+    { X3D field "closed". } { }
+    public property FdClosed: TSFBool read FFdClosed;
     { X3D field "closed". } { }
     property Closed: Boolean read GetClosed write SetClosed;
+
+    strict private FFdKeyValue: TMFFloat;
+    { X3D field "keyValue". } { }
+    public property FdKeyValue: TMFFloat read FFdKeyValue;
     { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: array of Single); overload;
     { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: TSingleList); overload;
+
+    strict private FFdKeyVelocity: TMFFloat;
+    { X3D field "keyVelocity". } { }
+    public property FdKeyVelocity: TMFFloat read FFdKeyVelocity;
     { Set X3D field "keyVelocity". } { }
     procedure SetKeyVelocity(const Value: array of Single); overload;
     { Set X3D field "keyVelocity". } { }
     procedure SetKeyVelocity(const Value: TSingleList); overload;
+
+    strict private FFdNormalizeVelocity: TSFBool;
+    { X3D field "normalizeVelocity". } { }
+    public property FdNormalizeVelocity: TSFBool read FFdNormalizeVelocity;
     { X3D field "normalizeVelocity". } { }
     property NormalizeVelocity: Boolean read GetNormalizeVelocity write SetNormalizeVelocity;
+
+    strict private FEventValue_changed: TSFFloatEvent;
+    { X3D out event "value_changed". } { }
+    public property EventValue_changed: TSFFloatEvent read FEventValue_changed;
 
 {$endif read_interface}
 
@@ -88,6 +110,35 @@ end;
 procedure TSplineScalarInterpolatorNode.SetNormalizeVelocity(const Value: Boolean);
 begin
   FdNormalizeVelocity.Send(Value);
+end;
+
+class function TSplineScalarInterpolatorNode.ClassX3DType: String;
+begin
+  Result := 'SplineScalarInterpolator';
+end;
+
+procedure TSplineScalarInterpolatorNode.CreateNode;
+begin
+  inherited;
+
+  FFdClosed := TSFBool.Create(Self, True, 'closed', false);
+   FdClosed.ChangeAlways := chNone;
+  AddField(FFdClosed);
+
+  FFdKeyValue := TMFFloat.Create(Self, True, 'keyValue', []);
+   FdKeyValue.ChangeAlways := chNone;
+  AddField(FFdKeyValue);
+
+  FFdKeyVelocity := TMFFloat.Create(Self, True, 'keyVelocity', []);
+   FdKeyVelocity.ChangeAlways := chNone;
+  AddField(FFdKeyVelocity);
+
+  FFdNormalizeVelocity := TSFBool.Create(Self, True, 'normalizeVelocity', false);
+   FdNormalizeVelocity.ChangeAlways := chNone;
+  AddField(FFdNormalizeVelocity);
+
+  FEventValue_changed := TSFFloatEvent.Create(Self, 'value_changed', false);
+  AddEvent(FEventValue_changed);
 end;
 
 {$endif read_implementation}

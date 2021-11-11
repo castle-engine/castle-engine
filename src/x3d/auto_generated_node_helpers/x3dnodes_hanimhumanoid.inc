@@ -45,38 +45,110 @@
     function GetBBox: TBox3D;
     procedure SetBBox(const Value: TBox3D);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdCenter: TSFVec3f;
+    { X3D field "center". } { }
+    public property FdCenter: TSFVec3f read FFdCenter;
     { X3D field "center". } { }
     property Center: TVector3 read GetCenter write SetCenter;
+
+    strict private FFdInfo: TMFString;
+    { X3D field "info". } { }
+    public property FdInfo: TMFString read FFdInfo;
     { Set X3D field "info". } { }
     procedure SetInfo(const Value: array of string); overload;
     { Set X3D field "info". } { }
     procedure SetInfo(const Value: TCastleStringList); overload;
+
+    strict private FFdJoints: TMFNode;
+    { X3D field "joints". } { }
+    public property FdJoints: TMFNode read FFdJoints;
     { Set X3D field "joints". } { }
     procedure SetJoints(const Value: array of THAnimJointNode);
+
+    strict private FFdName: TSFString;
+    { X3D field "name". } { }
+    public property FdName: TSFString read FFdName;
     { X3D field "name". } { }
     property NameField: String read GetNameField write SetNameField;
+
+    strict private FFdRotation: TSFRotation;
+    { X3D field "rotation". } { }
+    public property FdRotation: TSFRotation read FFdRotation;
     { X3D field "rotation". } { }
     property Rotation: TVector4 read GetRotation write SetRotation;
+
+    strict private FFdScale: TSFVec3f;
+    { X3D field "scale". } { }
+    public property FdScale: TSFVec3f read FFdScale;
     { X3D field "scale". } { }
     property Scale: TVector3 read GetScale write SetScale;
+
+    strict private FFdScaleOrientation: TSFRotation;
+    { X3D field "scaleOrientation". } { }
+    public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
     { X3D field "scaleOrientation". } { }
     property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
+
+    strict private FFdSegments: TMFNode;
+    { X3D field "segments". } { }
+    public property FdSegments: TMFNode read FFdSegments;
     { Set X3D field "segments". } { }
     procedure SetSegments(const Value: array of THAnimSegmentNode);
+
+    strict private FFdSites: TMFNode;
+    { X3D field "sites". } { }
+    public property FdSites: TMFNode read FFdSites;
     { Set X3D field "sites". } { }
     procedure SetSites(const Value: array of THAnimSiteNode);
+
+    strict private FFdSkeleton: TMFNode;
+    { X3D field "skeleton". } { }
+    public property FdSkeleton: TMFNode read FFdSkeleton;
+
+    strict private FFdSkin: TMFNode;
+    { X3D field "skin". } { }
+    public property FdSkin: TMFNode read FFdSkin;
     { Set X3D field "skin". } { }
     procedure SetSkin(const Value: array of TAbstractChildNode);
+
+    strict private FFdSkinCoord: TSFNode;
+    { X3D field "skinCoord". } { }
+    public property FdSkinCoord: TSFNode read FFdSkinCoord;
+
+    strict private FFdSkinNormal: TSFNode;
+    { X3D field "skinNormal". } { }
+    public property FdSkinNormal: TSFNode read FFdSkinNormal;
     { X3D field "skinNormal". } { }
     property SkinNormal: TAbstractNormalNode read GetSkinNormal write SetSkinNormal;
+
+    strict private FFdTranslation: TSFVec3f;
+    { X3D field "translation". } { }
+    public property FdTranslation: TSFVec3f read FFdTranslation;
     { X3D field "translation". } { }
     property Translation: TVector3 read GetTranslation write SetTranslation;
+
+    strict private FFdVersion: TSFString;
+    { X3D field "version". } { }
+    public property FdVersion: TSFString read FFdVersion;
     { X3D field "version". } { }
     property Version: String read GetVersion write SetVersion;
-    { Set X3D field "viewpoints". } { }
-    procedure SetViewpoints(const Value: array of THAnimSiteNode);
+
+    strict private FFdViewpoints: TMFNode;
+    { X3D field "viewpoints". } { }
+    public property FdViewpoints: TMFNode read FFdViewpoints;
+
+    strict private FFdBboxCenter: TSFVec3f;
+    { X3D field "bboxCenter". } { }
+    public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
     { X3D fields "bboxCenter" and "bboxSize" are get/set as TBox3D. } { }
     property BBox: TBox3D read GetBBox write SetBBox;
+
+    strict private FFdBboxSize: TSFVec3f;
+    { X3D field "bboxSize". } { }
+    public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
 {$endif read_interface}
 
@@ -225,18 +297,6 @@ begin
   FdVersion.Send(Value);
 end;
 
-procedure THAnimHumanoidNode.SetViewpoints(const Value: array of THAnimSiteNode);
-var
-  L: Integer;
-  A: array of TX3DNode;
-begin
-  L := High(Value) + 1;
-  SetLength(A, L);
-  if L > 0 then
-    Move(Value[0], A[0], L * SizeOf(THAnimSiteNode));
-  FdViewpoints.Send(A);
-end;
-
 function THAnimHumanoidNode.GetBBox: TBox3D;
 begin
   Result := TBox3D.FromCenterSize(FdBBoxCenter.Value, FdBBoxSize.Value);
@@ -249,6 +309,88 @@ begin
   Value.ToCenterSize(ValueCenter, ValueSize);
   FdBBoxCenter.Send(ValueCenter);
   FdBBoxSize.Send(ValueSize);
+end;
+
+class function THAnimHumanoidNode.ClassX3DType: String;
+begin
+  Result := 'HAnimHumanoid';
+end;
+
+procedure THAnimHumanoidNode.CreateNode;
+begin
+  inherited;
+
+  FFdCenter := TSFVec3f.Create(Self, True, 'center', Vector3(0, 0, 0));
+   FdCenter.ChangeAlways := chTransform;
+  AddField(FFdCenter);
+
+  FFdInfo := TMFString.Create(Self, True, 'info', []);
+   FdInfo.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdInfo);
+
+  FFdJoints := TMFNode.Create(Self, True, 'joints', [THAnimJointNode]);
+   FdJoints.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdJoints);
+
+  FFdName := TSFString.Create(Self, True, 'name', '');
+   FdName.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdName);
+
+  FFdRotation := TSFRotation.Create(Self, True, 'rotation', Vector3(0, 0, 1), 0);
+   FdRotation.ChangeAlways := chTransform;
+  AddField(FFdRotation);
+
+  FFdScale := TSFVec3f.Create(Self, True, 'scale', Vector3(1, 1, 1));
+   FdScale.ChangeAlways := chTransform;
+  AddField(FFdScale);
+
+  FFdScaleOrientation := TSFRotation.Create(Self, True, 'scaleOrientation', Vector3(0, 0, 1), 0);
+   FdScaleOrientation.ChangeAlways := chTransform;
+  AddField(FFdScaleOrientation);
+
+  FFdSegments := TMFNode.Create(Self, True, 'segments', [THAnimSegmentNode]);
+   FdSegments.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSegments);
+
+  FFdSites := TMFNode.Create(Self, True, 'sites', [THAnimSiteNode]);
+   FdSites.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSites);
+
+  FFdSkeleton := TMFNode.Create(Self, True, 'skeleton', [THAnimJointNode, THAnimSiteNode]);
+   FdSkeleton.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSkeleton);
+
+  FFdSkin := TMFNode.Create(Self, True, 'skin', [TAbstractChildNode]);
+   FdSkin.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSkin);
+
+  FFdSkinCoord := TSFNode.Create(Self, True, 'skinCoord', [TAbstractCoordinateNode]);
+   FdSkinCoord.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSkinCoord);
+
+  FFdSkinNormal := TSFNode.Create(Self, True, 'skinNormal', [TAbstractNormalNode]);
+   FdSkinNormal.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSkinNormal);
+
+  FFdTranslation := TSFVec3f.Create(Self, True, 'translation', Vector3(0, 0, 0));
+   FdTranslation.ChangeAlways := chTransform;
+  AddField(FFdTranslation);
+
+  FFdVersion := TSFString.Create(Self, True, 'version', '');
+   FdVersion.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdVersion);
+
+  FFdViewpoints := TMFNode.Create(Self, True, 'viewpoints', [THAnimSiteNode, TAbstractViewpointNode, TViewpointGroupNode]);
+   FdViewpoints.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdViewpoints);
+
+  FFdBboxCenter := TSFVec3f.Create(Self, False, 'bboxCenter', Vector3(0, 0, 0));
+   FdBboxCenter.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBboxCenter);
+
+  FFdBboxSize := TSFVec3f.Create(Self, False, 'bboxSize', Vector3(-1, -1, -1));
+   FdBboxSize.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBboxSize);
 end;
 
 {$endif read_implementation}

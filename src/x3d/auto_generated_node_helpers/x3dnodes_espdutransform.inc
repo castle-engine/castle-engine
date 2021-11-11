@@ -106,6 +106,8 @@
     procedure SetMunitionSiteID(const Value: Integer);
     function GetMunitionStartPoint: TVector3;
     procedure SetMunitionStartPoint(const Value: TVector3);
+    function GetNetworkMode: TDISNetworkMode;
+    procedure SetNetworkMode(const Value: TDISNetworkMode);
     function GetPort: Integer;
     procedure SetPort(const Value: Integer);
     function GetReadInterval: TFloatTime;
@@ -127,124 +129,460 @@
     function GetRtpHeaderExpected: Boolean;
     procedure SetRtpHeaderExpected(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventSet_articulationParameterValue0: TSFFloatEvent;
+    { X3D in event "set_articulationParameterValue0". } { }
+    public property EventSet_articulationParameterValue0: TSFFloatEvent read FEventSet_articulationParameterValue0;
+
+    strict private FEventSet_articulationParameterValue1: TSFFloatEvent;
+    { X3D in event "set_articulationParameterValue1". } { }
+    public property EventSet_articulationParameterValue1: TSFFloatEvent read FEventSet_articulationParameterValue1;
+
+    strict private FEventSet_articulationParameterValue2: TSFFloatEvent;
+    { X3D in event "set_articulationParameterValue2". } { }
+    public property EventSet_articulationParameterValue2: TSFFloatEvent read FEventSet_articulationParameterValue2;
+
+    strict private FEventSet_articulationParameterValue3: TSFFloatEvent;
+    { X3D in event "set_articulationParameterValue3". } { }
+    public property EventSet_articulationParameterValue3: TSFFloatEvent read FEventSet_articulationParameterValue3;
+
+    strict private FEventSet_articulationParameterValue4: TSFFloatEvent;
+    { X3D in event "set_articulationParameterValue4". } { }
+    public property EventSet_articulationParameterValue4: TSFFloatEvent read FEventSet_articulationParameterValue4;
+
+    strict private FEventSet_articulationParameterValue5: TSFFloatEvent;
+    { X3D in event "set_articulationParameterValue5". } { }
+    public property EventSet_articulationParameterValue5: TSFFloatEvent read FEventSet_articulationParameterValue5;
+
+    strict private FEventSet_articulationParameterValue6: TSFFloatEvent;
+    { X3D in event "set_articulationParameterValue6". } { }
+    public property EventSet_articulationParameterValue6: TSFFloatEvent read FEventSet_articulationParameterValue6;
+
+    strict private FEventSet_articulationParameterValue7: TSFFloatEvent;
+    { X3D in event "set_articulationParameterValue7". } { }
+    public property EventSet_articulationParameterValue7: TSFFloatEvent read FEventSet_articulationParameterValue7;
+
+    strict private FFdAddress: TSFString;
+    { X3D field "address". } { }
+    public property FdAddress: TSFString read FFdAddress;
     { X3D field "address". } { }
     property Address: String read GetAddress write SetAddress;
+
+    strict private FFdApplicationID: TSFInt32;
+    { X3D field "applicationID". } { }
+    public property FdApplicationID: TSFInt32 read FFdApplicationID;
     { X3D field "applicationID". } { }
     property ApplicationID: Integer read GetApplicationID write SetApplicationID;
+
+    strict private FFdArticulationParameterCount: TSFInt32;
+    { X3D field "articulationParameterCount". } { }
+    public property FdArticulationParameterCount: TSFInt32 read FFdArticulationParameterCount;
     { X3D field "articulationParameterCount". } { }
     property ArticulationParameterCount: Integer read GetArticulationParameterCount write SetArticulationParameterCount;
+
+    strict private FFdArticulationParameterDesignatorArray: TMFInt32;
+    { X3D field "articulationParameterDesignatorArray". } { }
+    public property FdArticulationParameterDesignatorArray: TMFInt32 read FFdArticulationParameterDesignatorArray;
     { Set X3D field "articulationParameterDesignatorArray". } { }
     procedure SetArticulationParameterDesignatorArray(const Value: array of LongInt); overload;
     { Set X3D field "articulationParameterDesignatorArray". } { }
     procedure SetArticulationParameterDesignatorArray(const Value: TLongIntList); overload;
+
+    strict private FFdArticulationParameterChangeIndicatorArray: TMFInt32;
+    { X3D field "articulationParameterChangeIndicatorArray". } { }
+    public property FdArticulationParameterChangeIndicatorArray: TMFInt32 read FFdArticulationParameterChangeIndicatorArray;
     { Set X3D field "articulationParameterChangeIndicatorArray". } { }
     procedure SetArticulationParameterChangeIndicatorArray(const Value: array of LongInt); overload;
     { Set X3D field "articulationParameterChangeIndicatorArray". } { }
     procedure SetArticulationParameterChangeIndicatorArray(const Value: TLongIntList); overload;
+
+    strict private FFdArticulationParameterIdPartAttachedToArray: TMFInt32;
+    { X3D field "articulationParameterIdPartAttachedToArray". } { }
+    public property FdArticulationParameterIdPartAttachedToArray: TMFInt32 read FFdArticulationParameterIdPartAttachedToArray;
     { Set X3D field "articulationParameterIdPartAttachedToArray". } { }
     procedure SetArticulationParameterIdPartAttachedToArray(const Value: array of LongInt); overload;
     { Set X3D field "articulationParameterIdPartAttachedToArray". } { }
     procedure SetArticulationParameterIdPartAttachedToArray(const Value: TLongIntList); overload;
+
+    strict private FFdArticulationParameterTypeArray: TMFInt32;
+    { X3D field "articulationParameterTypeArray". } { }
+    public property FdArticulationParameterTypeArray: TMFInt32 read FFdArticulationParameterTypeArray;
     { Set X3D field "articulationParameterTypeArray". } { }
     procedure SetArticulationParameterTypeArray(const Value: array of LongInt); overload;
     { Set X3D field "articulationParameterTypeArray". } { }
     procedure SetArticulationParameterTypeArray(const Value: TLongIntList); overload;
+
+    strict private FFdArticulationParameterArray: TMFFloat;
+    { X3D field "articulationParameterArray". } { }
+    public property FdArticulationParameterArray: TMFFloat read FFdArticulationParameterArray;
     { Set X3D field "articulationParameterArray". } { }
     procedure SetArticulationParameterArray(const Value: array of Single); overload;
     { Set X3D field "articulationParameterArray". } { }
     procedure SetArticulationParameterArray(const Value: TSingleList); overload;
+
+    strict private FFdCenter: TSFVec3f;
+    { X3D field "center". } { }
+    public property FdCenter: TSFVec3f read FFdCenter;
     { X3D field "center". } { }
     property Center: TVector3 read GetCenter write SetCenter;
+
+    strict private FFdCollisionType: TSFInt32;
+    { X3D field "collisionType". } { }
+    public property FdCollisionType: TSFInt32 read FFdCollisionType;
     { X3D field "collisionType". } { }
     property CollisionType: Integer read GetCollisionType write SetCollisionType;
+
+    strict private FFdDeadReckoning: TSFInt32;
+    { X3D field "deadReckoning". } { }
+    public property FdDeadReckoning: TSFInt32 read FFdDeadReckoning;
     { X3D field "deadReckoning". } { }
     property DeadReckoning: Integer read GetDeadReckoning write SetDeadReckoning;
+
+    strict private FFdDetonationLocation: TSFVec3f;
+    { X3D field "detonationLocation". } { }
+    public property FdDetonationLocation: TSFVec3f read FFdDetonationLocation;
     { X3D field "detonationLocation". } { }
     property DetonationLocation: TVector3 read GetDetonationLocation write SetDetonationLocation;
+
+    strict private FFdDetonationRelativeLocation: TSFVec3f;
+    { X3D field "detonationRelativeLocation". } { }
+    public property FdDetonationRelativeLocation: TSFVec3f read FFdDetonationRelativeLocation;
     { X3D field "detonationRelativeLocation". } { }
     property DetonationRelativeLocation: TVector3 read GetDetonationRelativeLocation write SetDetonationRelativeLocation;
+
+    strict private FFdDetonationResult: TSFInt32;
+    { X3D field "detonationResult". } { }
+    public property FdDetonationResult: TSFInt32 read FFdDetonationResult;
     { X3D field "detonationResult". } { }
     property DetonationResult: Integer read GetDetonationResult write SetDetonationResult;
+
+    strict private FFdEnabled: TSFBool;
+    { X3D field "enabled". } { }
+    public property FdEnabled: TSFBool read FFdEnabled;
     { X3D field "enabled". } { }
     property Enabled: Boolean read GetEnabled write SetEnabled;
+
+    strict private FFdEntityCategory: TSFInt32;
+    { X3D field "entityCategory". } { }
+    public property FdEntityCategory: TSFInt32 read FFdEntityCategory;
     { X3D field "entityCategory". } { }
     property EntityCategory: Integer read GetEntityCategory write SetEntityCategory;
+
+    strict private FFdEntityCountry: TSFInt32;
+    { X3D field "entityCountry". } { }
+    public property FdEntityCountry: TSFInt32 read FFdEntityCountry;
     { X3D field "entityCountry". } { }
     property EntityCountry: Integer read GetEntityCountry write SetEntityCountry;
+
+    strict private FFdEntityDomain: TSFInt32;
+    { X3D field "entityDomain". } { }
+    public property FdEntityDomain: TSFInt32 read FFdEntityDomain;
     { X3D field "entityDomain". } { }
     property EntityDomain: Integer read GetEntityDomain write SetEntityDomain;
+
+    strict private FFdEntityExtra: TSFInt32;
+    { X3D field "entityExtra". } { }
+    public property FdEntityExtra: TSFInt32 read FFdEntityExtra;
     { X3D field "entityExtra". } { }
     property EntityExtra: Integer read GetEntityExtra write SetEntityExtra;
+
+    strict private FFdEntityID: TSFInt32;
+    { X3D field "entityID". } { }
+    public property FdEntityID: TSFInt32 read FFdEntityID;
     { X3D field "entityID". } { }
     property EntityID: Integer read GetEntityID write SetEntityID;
+
+    strict private FFdEntityKind: TSFInt32;
+    { X3D field "entityKind". } { }
+    public property FdEntityKind: TSFInt32 read FFdEntityKind;
     { X3D field "entityKind". } { }
     property EntityKind: Integer read GetEntityKind write SetEntityKind;
+
+    strict private FFdEntitySpecific: TSFInt32;
+    { X3D field "entitySpecific". } { }
+    public property FdEntitySpecific: TSFInt32 read FFdEntitySpecific;
     { X3D field "entitySpecific". } { }
     property EntitySpecific: Integer read GetEntitySpecific write SetEntitySpecific;
+
+    strict private FFdEntitySubCategory: TSFInt32;
+    { X3D field "entitySubCategory". } { }
+    public property FdEntitySubCategory: TSFInt32 read FFdEntitySubCategory;
     { X3D field "entitySubCategory". } { }
     property EntitySubCategory: Integer read GetEntitySubCategory write SetEntitySubCategory;
+
+    strict private FFdEventApplicationID: TSFInt32;
+    { X3D field "eventApplicationID". } { }
+    public property FdEventApplicationID: TSFInt32 read FFdEventApplicationID;
     { X3D field "eventApplicationID". } { }
     property EventApplicationID: Integer read GetEventApplicationID write SetEventApplicationID;
+
+    strict private FFdEventEntityID: TSFInt32;
+    { X3D field "eventEntityID". } { }
+    public property FdEventEntityID: TSFInt32 read FFdEventEntityID;
     { X3D field "eventEntityID". } { }
     property EventEntityID: Integer read GetEventEntityID write SetEventEntityID;
+
+    strict private FFdEventNumber: TSFInt32;
+    { X3D field "eventNumber". } { }
+    public property FdEventNumber: TSFInt32 read FFdEventNumber;
     { X3D field "eventNumber". } { }
     property EventNumber: Integer read GetEventNumber write SetEventNumber;
+
+    strict private FFdEventSiteID: TSFInt32;
+    { X3D field "eventSiteID". } { }
+    public property FdEventSiteID: TSFInt32 read FFdEventSiteID;
     { X3D field "eventSiteID". } { }
     property EventSiteID: Integer read GetEventSiteID write SetEventSiteID;
+
+    strict private FFdFired1: TSFBool;
+    { X3D field "fired1". } { }
+    public property FdFired1: TSFBool read FFdFired1;
     { X3D field "fired1". } { }
     property Fired1: Boolean read GetFired1 write SetFired1;
+
+    strict private FFdFired2: TSFBool;
+    { X3D field "fired2". } { }
+    public property FdFired2: TSFBool read FFdFired2;
     { X3D field "fired2". } { }
     property Fired2: Boolean read GetFired2 write SetFired2;
+
+    strict private FFdFireMissionIndex: TSFInt32;
+    { X3D field "fireMissionIndex". } { }
+    public property FdFireMissionIndex: TSFInt32 read FFdFireMissionIndex;
     { X3D field "fireMissionIndex". } { }
     property FireMissionIndex: Integer read GetFireMissionIndex write SetFireMissionIndex;
+
+    strict private FFdFiringRange: TSFFloat;
+    { X3D field "firingRange". } { }
+    public property FdFiringRange: TSFFloat read FFdFiringRange;
     { X3D field "firingRange". } { }
     property FiringRange: Single read GetFiringRange write SetFiringRange;
+
+    strict private FFdFiringRate: TSFInt32;
+    { X3D field "firingRate". } { }
+    public property FdFiringRate: TSFInt32 read FFdFiringRate;
     { X3D field "firingRate". } { }
     property FiringRate: Integer read GetFiringRate write SetFiringRate;
+
+    strict private FFdForceID: TSFInt32;
+    { X3D field "forceID". } { }
+    public property FdForceID: TSFInt32 read FFdForceID;
     { X3D field "forceID". } { }
     property ForceID: Integer read GetForceID write SetForceID;
+
+    strict private FFdFuse: TSFInt32;
+    { X3D field "fuse". } { }
+    public property FdFuse: TSFInt32 read FFdFuse;
     { X3D field "fuse". } { }
     property Fuse: Integer read GetFuse write SetFuse;
+
+    strict private FFdLinearVelocity: TSFVec3f;
+    { X3D field "linearVelocity". } { }
+    public property FdLinearVelocity: TSFVec3f read FFdLinearVelocity;
     { X3D field "linearVelocity". } { }
     property LinearVelocity: TVector3 read GetLinearVelocity write SetLinearVelocity;
+
+    strict private FFdLinearAcceleration: TSFVec3f;
+    { X3D field "linearAcceleration". } { }
+    public property FdLinearAcceleration: TSFVec3f read FFdLinearAcceleration;
     { X3D field "linearAcceleration". } { }
     property LinearAcceleration: TVector3 read GetLinearAcceleration write SetLinearAcceleration;
+
+    strict private FFdMarking: TSFString;
+    { X3D field "marking". } { }
+    public property FdMarking: TSFString read FFdMarking;
     { X3D field "marking". } { }
     property Marking: String read GetMarking write SetMarking;
+
+    strict private FFdMulticastRelayHost: TSFString;
+    { X3D field "multicastRelayHost". } { }
+    public property FdMulticastRelayHost: TSFString read FFdMulticastRelayHost;
     { X3D field "multicastRelayHost". } { }
     property MulticastRelayHost: String read GetMulticastRelayHost write SetMulticastRelayHost;
+
+    strict private FFdMulticastRelayPort: TSFInt32;
+    { X3D field "multicastRelayPort". } { }
+    public property FdMulticastRelayPort: TSFInt32 read FFdMulticastRelayPort;
     { X3D field "multicastRelayPort". } { }
     property MulticastRelayPort: Integer read GetMulticastRelayPort write SetMulticastRelayPort;
+
+    strict private FFdMunitionApplicationID: TSFInt32;
+    { X3D field "munitionApplicationID". } { }
+    public property FdMunitionApplicationID: TSFInt32 read FFdMunitionApplicationID;
     { X3D field "munitionApplicationID". } { }
     property MunitionApplicationID: Integer read GetMunitionApplicationID write SetMunitionApplicationID;
+
+    strict private FFdMunitionEndPoint: TSFVec3f;
+    { X3D field "munitionEndPoint". } { }
+    public property FdMunitionEndPoint: TSFVec3f read FFdMunitionEndPoint;
     { X3D field "munitionEndPoint". } { }
     property MunitionEndPoint: TVector3 read GetMunitionEndPoint write SetMunitionEndPoint;
+
+    strict private FFdMunitionEntityID: TSFInt32;
+    { X3D field "munitionEntityID". } { }
+    public property FdMunitionEntityID: TSFInt32 read FFdMunitionEntityID;
     { X3D field "munitionEntityID". } { }
     property MunitionEntityID: Integer read GetMunitionEntityID write SetMunitionEntityID;
+
+    strict private FFdMunitionQuantity: TSFInt32;
+    { X3D field "munitionQuantity". } { }
+    public property FdMunitionQuantity: TSFInt32 read FFdMunitionQuantity;
     { X3D field "munitionQuantity". } { }
     property MunitionQuantity: Integer read GetMunitionQuantity write SetMunitionQuantity;
+
+    strict private FFdMunitionSiteID: TSFInt32;
+    { X3D field "munitionSiteID". } { }
+    public property FdMunitionSiteID: TSFInt32 read FFdMunitionSiteID;
     { X3D field "munitionSiteID". } { }
     property MunitionSiteID: Integer read GetMunitionSiteID write SetMunitionSiteID;
+
+    strict private FFdMunitionStartPoint: TSFVec3f;
+    { X3D field "munitionStartPoint". } { }
+    public property FdMunitionStartPoint: TSFVec3f read FFdMunitionStartPoint;
     { X3D field "munitionStartPoint". } { }
     property MunitionStartPoint: TVector3 read GetMunitionStartPoint write SetMunitionStartPoint;
+
+    strict private FFdNetworkMode: TSFStringEnum;
+    { X3D field "networkMode". } { }
+    public property FdNetworkMode: TSFStringEnum read FFdNetworkMode;
+    { X3D field "networkMode". } { }
+    property NetworkMode: TDISNetworkMode read GetNetworkMode write SetNetworkMode;
+
+    strict private FFdPort: TSFInt32;
+    { X3D field "port". } { }
+    public property FdPort: TSFInt32 read FFdPort;
     { X3D field "port". } { }
     property Port: Integer read GetPort write SetPort;
+
+    strict private FFdReadInterval: TSFTime;
+    { X3D field "readInterval". } { }
+    public property FdReadInterval: TSFTime read FFdReadInterval;
     { X3D field "readInterval". } { }
     property ReadInterval: TFloatTime read GetReadInterval write SetReadInterval;
+
+    strict private FFdRotation: TSFRotation;
+    { X3D field "rotation". } { }
+    public property FdRotation: TSFRotation read FFdRotation;
     { X3D field "rotation". } { }
     property Rotation: TVector4 read GetRotation write SetRotation;
+
+    strict private FFdScale: TSFVec3f;
+    { X3D field "scale". } { }
+    public property FdScale: TSFVec3f read FFdScale;
     { X3D field "scale". } { }
     property Scale: TVector3 read GetScale write SetScale;
+
+    strict private FFdScaleOrientation: TSFRotation;
+    { X3D field "scaleOrientation". } { }
+    public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
     { X3D field "scaleOrientation". } { }
     property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
+
+    strict private FFdSiteID: TSFInt32;
+    { X3D field "siteID". } { }
+    public property FdSiteID: TSFInt32 read FFdSiteID;
     { X3D field "siteID". } { }
     property SiteID: Integer read GetSiteID write SetSiteID;
+
+    strict private FFdTranslation: TSFVec3f;
+    { X3D field "translation". } { }
+    public property FdTranslation: TSFVec3f read FFdTranslation;
     { X3D field "translation". } { }
     property Translation: TVector3 read GetTranslation write SetTranslation;
+
+    strict private FFdWarhead: TSFInt32;
+    { X3D field "warhead". } { }
+    public property FdWarhead: TSFInt32 read FFdWarhead;
     { X3D field "warhead". } { }
     property Warhead: Integer read GetWarhead write SetWarhead;
+
+    strict private FFdWriteInterval: TSFTime;
+    { X3D field "writeInterval". } { }
+    public property FdWriteInterval: TSFTime read FFdWriteInterval;
     { X3D field "writeInterval". } { }
     property WriteInterval: TFloatTime read GetWriteInterval write SetWriteInterval;
+
+    strict private FEventArticulationParameterValue0_changed: TSFFloatEvent;
+    { X3D out event "articulationParameterValue0_changed". } { }
+    public property EventArticulationParameterValue0_changed: TSFFloatEvent read FEventArticulationParameterValue0_changed;
+
+    strict private FEventArticulationParameterValue1_changed: TSFFloatEvent;
+    { X3D out event "articulationParameterValue1_changed". } { }
+    public property EventArticulationParameterValue1_changed: TSFFloatEvent read FEventArticulationParameterValue1_changed;
+
+    strict private FEventArticulationParameterValue2_changed: TSFFloatEvent;
+    { X3D out event "articulationParameterValue2_changed". } { }
+    public property EventArticulationParameterValue2_changed: TSFFloatEvent read FEventArticulationParameterValue2_changed;
+
+    strict private FEventArticulationParameterValue3_changed: TSFFloatEvent;
+    { X3D out event "articulationParameterValue3_changed". } { }
+    public property EventArticulationParameterValue3_changed: TSFFloatEvent read FEventArticulationParameterValue3_changed;
+
+    strict private FEventArticulationParameterValue4_changed: TSFFloatEvent;
+    { X3D out event "articulationParameterValue4_changed". } { }
+    public property EventArticulationParameterValue4_changed: TSFFloatEvent read FEventArticulationParameterValue4_changed;
+
+    strict private FEventArticulationParameterValue5_changed: TSFFloatEvent;
+    { X3D out event "articulationParameterValue5_changed". } { }
+    public property EventArticulationParameterValue5_changed: TSFFloatEvent read FEventArticulationParameterValue5_changed;
+
+    strict private FEventArticulationParameterValue6_changed: TSFFloatEvent;
+    { X3D out event "articulationParameterValue6_changed". } { }
+    public property EventArticulationParameterValue6_changed: TSFFloatEvent read FEventArticulationParameterValue6_changed;
+
+    strict private FEventArticulationParameterValue7_changed: TSFFloatEvent;
+    { X3D out event "articulationParameterValue7_changed". } { }
+    public property EventArticulationParameterValue7_changed: TSFFloatEvent read FEventArticulationParameterValue7_changed;
+
+    strict private FEventCollideTime: TSFTimeEvent;
+    { X3D out event "collideTime". } { }
+    public property EventCollideTime: TSFTimeEvent read FEventCollideTime;
+
+    strict private FEventDetonateTime: TSFTimeEvent;
+    { X3D out event "detonateTime". } { }
+    public property EventDetonateTime: TSFTimeEvent read FEventDetonateTime;
+
+    strict private FEventFiredTime: TSFTimeEvent;
+    { X3D out event "firedTime". } { }
+    public property EventFiredTime: TSFTimeEvent read FEventFiredTime;
+
+    strict private FEventIsActive: TSFBoolEvent;
+    { X3D out event "isActive". } { }
+    public property EventIsActive: TSFBoolEvent read FEventIsActive;
+
+    strict private FEventIsCollided: TSFBoolEvent;
+    { X3D out event "isCollided". } { }
+    public property EventIsCollided: TSFBoolEvent read FEventIsCollided;
+
+    strict private FEventIsDetonated: TSFBoolEvent;
+    { X3D out event "isDetonated". } { }
+    public property EventIsDetonated: TSFBoolEvent read FEventIsDetonated;
+
+    strict private FEventIsNetworkReader: TSFBoolEvent;
+    { X3D out event "isNetworkReader". } { }
+    public property EventIsNetworkReader: TSFBoolEvent read FEventIsNetworkReader;
+
+    strict private FEventIsNetworkWriter: TSFBoolEvent;
+    { X3D out event "isNetworkWriter". } { }
+    public property EventIsNetworkWriter: TSFBoolEvent read FEventIsNetworkWriter;
+
+    strict private FEventIsRtpHeaderHeard: TSFBoolEvent;
+    { X3D out event "isRtpHeaderHeard". } { }
+    public property EventIsRtpHeaderHeard: TSFBoolEvent read FEventIsRtpHeaderHeard;
+
+    strict private FEventIsStandAlone: TSFBoolEvent;
+    { X3D out event "isStandAlone". } { }
+    public property EventIsStandAlone: TSFBoolEvent read FEventIsStandAlone;
+
+    strict private FEventTimestamp: TSFTimeEvent;
+    { X3D out event "timestamp". } { }
+    public property EventTimestamp: TSFTimeEvent read FEventTimestamp;
+
+    strict private FFdRtpHeaderExpected: TSFBool;
+    { X3D field "rtpHeaderExpected". } { }
+    public property FdRtpHeaderExpected: TSFBool read FFdRtpHeaderExpected;
     { X3D field "rtpHeaderExpected". } { }
     property RtpHeaderExpected: Boolean read GetRtpHeaderExpected write SetRtpHeaderExpected;
 
@@ -704,6 +1042,16 @@ begin
   FdMunitionStartPoint.Send(Value);
 end;
 
+function TEspduTransformNode.GetNetworkMode: TDISNetworkMode;
+begin
+  Result := TDISNetworkMode(FdNetworkMode.EnumValue);
+end;
+
+procedure TEspduTransformNode.SetNetworkMode(const Value: TDISNetworkMode);
+begin
+  FdNetworkMode.SendEnumValue(Ord(Value));
+end;
+
 function TEspduTransformNode.GetPort: Integer;
 begin
   Result := FdPort.Value;
@@ -802,6 +1150,321 @@ end;
 procedure TEspduTransformNode.SetRtpHeaderExpected(const Value: Boolean);
 begin
   FdRtpHeaderExpected.Send(Value);
+end;
+
+class function TEspduTransformNode.ClassX3DType: String;
+begin
+  Result := 'EspduTransform';
+end;
+
+procedure TEspduTransformNode.CreateNode;
+begin
+  inherited;
+
+  FEventSet_articulationParameterValue0 := TSFFloatEvent.Create(Self, 'set_articulationParameterValue0', true);
+  AddEvent(FEventSet_articulationParameterValue0);
+
+  FEventSet_articulationParameterValue1 := TSFFloatEvent.Create(Self, 'set_articulationParameterValue1', true);
+  AddEvent(FEventSet_articulationParameterValue1);
+
+  FEventSet_articulationParameterValue2 := TSFFloatEvent.Create(Self, 'set_articulationParameterValue2', true);
+  AddEvent(FEventSet_articulationParameterValue2);
+
+  FEventSet_articulationParameterValue3 := TSFFloatEvent.Create(Self, 'set_articulationParameterValue3', true);
+  AddEvent(FEventSet_articulationParameterValue3);
+
+  FEventSet_articulationParameterValue4 := TSFFloatEvent.Create(Self, 'set_articulationParameterValue4', true);
+  AddEvent(FEventSet_articulationParameterValue4);
+
+  FEventSet_articulationParameterValue5 := TSFFloatEvent.Create(Self, 'set_articulationParameterValue5', true);
+  AddEvent(FEventSet_articulationParameterValue5);
+
+  FEventSet_articulationParameterValue6 := TSFFloatEvent.Create(Self, 'set_articulationParameterValue6', true);
+  AddEvent(FEventSet_articulationParameterValue6);
+
+  FEventSet_articulationParameterValue7 := TSFFloatEvent.Create(Self, 'set_articulationParameterValue7', true);
+  AddEvent(FEventSet_articulationParameterValue7);
+
+  FFdAddress := TSFString.Create(Self, True, 'address', 'localhost');
+   FdAddress.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAddress);
+
+  FFdApplicationID := TSFInt32.Create(Self, True, 'applicationID', 1);
+   FdApplicationID.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdApplicationID);
+
+  FFdArticulationParameterCount := TSFInt32.Create(Self, True, 'articulationParameterCount', 0);
+   FdArticulationParameterCount.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdArticulationParameterCount);
+
+  FFdArticulationParameterDesignatorArray := TMFInt32.Create(Self, True, 'articulationParameterDesignatorArray', []);
+   FdArticulationParameterDesignatorArray.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdArticulationParameterDesignatorArray);
+
+  FFdArticulationParameterChangeIndicatorArray := TMFInt32.Create(Self, True, 'articulationParameterChangeIndicatorArray', []);
+   FdArticulationParameterChangeIndicatorArray.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdArticulationParameterChangeIndicatorArray);
+
+  FFdArticulationParameterIdPartAttachedToArray := TMFInt32.Create(Self, True, 'articulationParameterIdPartAttachedToArray', []);
+   FdArticulationParameterIdPartAttachedToArray.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdArticulationParameterIdPartAttachedToArray);
+
+  FFdArticulationParameterTypeArray := TMFInt32.Create(Self, True, 'articulationParameterTypeArray', []);
+   FdArticulationParameterTypeArray.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdArticulationParameterTypeArray);
+
+  FFdArticulationParameterArray := TMFFloat.Create(Self, True, 'articulationParameterArray', []);
+   FdArticulationParameterArray.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdArticulationParameterArray);
+
+  FFdCenter := TSFVec3f.Create(Self, True, 'center', Vector3(0, 0, 0));
+   FdCenter.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdCenter);
+
+  FFdCollisionType := TSFInt32.Create(Self, True, 'collisionType', 0);
+   FdCollisionType.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdCollisionType);
+
+  FFdDeadReckoning := TSFInt32.Create(Self, True, 'deadReckoning', 0);
+   FdDeadReckoning.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDeadReckoning);
+
+  FFdDetonationLocation := TSFVec3f.Create(Self, True, 'detonationLocation', Vector3(0, 0, 0));
+   FdDetonationLocation.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDetonationLocation);
+
+  FFdDetonationRelativeLocation := TSFVec3f.Create(Self, True, 'detonationRelativeLocation', Vector3(0, 0, 0));
+   FdDetonationRelativeLocation.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDetonationRelativeLocation);
+
+  FFdDetonationResult := TSFInt32.Create(Self, True, 'detonationResult', 0);
+   FdDetonationResult.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDetonationResult);
+
+  FFdEnabled := TSFBool.Create(Self, True, 'enabled', true);
+   FdEnabled.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdEnabled);
+
+  FFdEntityCategory := TSFInt32.Create(Self, True, 'entityCategory', 0);
+   FdEntityCategory.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdEntityCategory);
+
+  FFdEntityCountry := TSFInt32.Create(Self, True, 'entityCountry', 0);
+   FdEntityCountry.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdEntityCountry);
+
+  FFdEntityDomain := TSFInt32.Create(Self, True, 'entityDomain', 0);
+   FdEntityDomain.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdEntityDomain);
+
+  FFdEntityExtra := TSFInt32.Create(Self, True, 'entityExtra', 0);
+   FdEntityExtra.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdEntityExtra);
+
+  FFdEntityID := TSFInt32.Create(Self, True, 'entityID', 0);
+   FdEntityID.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdEntityID);
+
+  FFdEntityKind := TSFInt32.Create(Self, True, 'entityKind', 0);
+   FdEntityKind.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdEntityKind);
+
+  FFdEntitySpecific := TSFInt32.Create(Self, True, 'entitySpecific', 0);
+   FdEntitySpecific.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdEntitySpecific);
+
+  FFdEntitySubCategory := TSFInt32.Create(Self, True, 'entitySubCategory', 0);
+   FdEntitySubCategory.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdEntitySubCategory);
+
+  FFdEventApplicationID := TSFInt32.Create(Self, True, 'eventApplicationID', 1);
+   FdEventApplicationID.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdEventApplicationID);
+
+  FFdEventEntityID := TSFInt32.Create(Self, True, 'eventEntityID', 0);
+   FdEventEntityID.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdEventEntityID);
+
+  FFdEventNumber := TSFInt32.Create(Self, True, 'eventNumber', 0);
+   FdEventNumber.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdEventNumber);
+
+  FFdEventSiteID := TSFInt32.Create(Self, True, 'eventSiteID', 0);
+   FdEventSiteID.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdEventSiteID);
+
+  FFdFired1 := TSFBool.Create(Self, True, 'fired1', false);
+   FdFired1.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdFired1);
+
+  FFdFired2 := TSFBool.Create(Self, True, 'fired2', false);
+   FdFired2.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdFired2);
+
+  FFdFireMissionIndex := TSFInt32.Create(Self, True, 'fireMissionIndex', 0);
+   FdFireMissionIndex.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdFireMissionIndex);
+
+  FFdFiringRange := TSFFloat.Create(Self, True, 'firingRange', 0.0);
+   FdFiringRange.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdFiringRange);
+
+  FFdFiringRate := TSFInt32.Create(Self, True, 'firingRate', 0);
+   FdFiringRate.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdFiringRate);
+
+  FFdForceID := TSFInt32.Create(Self, True, 'forceID', 0);
+   FdForceID.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdForceID);
+
+  FFdFuse := TSFInt32.Create(Self, True, 'fuse', 0);
+   FdFuse.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdFuse);
+
+  FFdLinearVelocity := TSFVec3f.Create(Self, True, 'linearVelocity', Vector3(0, 0, 0));
+   FdLinearVelocity.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdLinearVelocity);
+
+  FFdLinearAcceleration := TSFVec3f.Create(Self, True, 'linearAcceleration', Vector3(0, 0, 0));
+   FdLinearAcceleration.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdLinearAcceleration);
+
+  FFdMarking := TSFString.Create(Self, True, 'marking', '');
+   FdMarking.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMarking);
+
+  FFdMulticastRelayHost := TSFString.Create(Self, True, 'multicastRelayHost', '');
+   FdMulticastRelayHost.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMulticastRelayHost);
+
+  FFdMulticastRelayPort := TSFInt32.Create(Self, True, 'multicastRelayPort', 0);
+   FdMulticastRelayPort.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMulticastRelayPort);
+
+  FFdMunitionApplicationID := TSFInt32.Create(Self, True, 'munitionApplicationID', 1);
+   FdMunitionApplicationID.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMunitionApplicationID);
+
+  FFdMunitionEndPoint := TSFVec3f.Create(Self, True, 'munitionEndPoint', Vector3(0, 0, 0));
+   FdMunitionEndPoint.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMunitionEndPoint);
+
+  FFdMunitionEntityID := TSFInt32.Create(Self, True, 'munitionEntityID', 0);
+   FdMunitionEntityID.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMunitionEntityID);
+
+  FFdMunitionQuantity := TSFInt32.Create(Self, True, 'munitionQuantity', 0);
+   FdMunitionQuantity.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMunitionQuantity);
+
+  FFdMunitionSiteID := TSFInt32.Create(Self, True, 'munitionSiteID', 0);
+   FdMunitionSiteID.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMunitionSiteID);
+
+  FFdMunitionStartPoint := TSFVec3f.Create(Self, True, 'munitionStartPoint', Vector3(0, 0, 0));
+   FdMunitionStartPoint.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMunitionStartPoint);
+
+  FFdNetworkMode := TSFStringEnum.Create(Self, True, 'networkMode', DISNetworkModeNames, Ord(nmStandAlone));
+   FdNetworkMode.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdNetworkMode);
+
+  FFdPort := TSFInt32.Create(Self, True, 'port', 0);
+   FdPort.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdPort);
+
+  FFdReadInterval := TSFTime.Create(Self, True, 'readInterval', 0.1);
+   FdReadInterval.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdReadInterval);
+
+  FFdRotation := TSFRotation.Create(Self, True, 'rotation', Vector3(0, 0, 1), 0);
+   FdRotation.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdRotation);
+
+  FFdScale := TSFVec3f.Create(Self, True, 'scale', Vector3(1, 1, 1));
+   FdScale.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdScale);
+
+  FFdScaleOrientation := TSFRotation.Create(Self, True, 'scaleOrientation', Vector3(0, 0, 1), 0);
+   FdScaleOrientation.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdScaleOrientation);
+
+  FFdSiteID := TSFInt32.Create(Self, True, 'siteID', 0);
+   FdSiteID.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSiteID);
+
+  FFdTranslation := TSFVec3f.Create(Self, True, 'translation', Vector3(0, 0, 0));
+   FdTranslation.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdTranslation);
+
+  FFdWarhead := TSFInt32.Create(Self, True, 'warhead', 0);
+   FdWarhead.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdWarhead);
+
+  FFdWriteInterval := TSFTime.Create(Self, True, 'writeInterval', 1.0);
+   FdWriteInterval.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdWriteInterval);
+
+  FEventArticulationParameterValue0_changed := TSFFloatEvent.Create(Self, 'articulationParameterValue0_changed', false);
+  AddEvent(FEventArticulationParameterValue0_changed);
+
+  FEventArticulationParameterValue1_changed := TSFFloatEvent.Create(Self, 'articulationParameterValue1_changed', false);
+  AddEvent(FEventArticulationParameterValue1_changed);
+
+  FEventArticulationParameterValue2_changed := TSFFloatEvent.Create(Self, 'articulationParameterValue2_changed', false);
+  AddEvent(FEventArticulationParameterValue2_changed);
+
+  FEventArticulationParameterValue3_changed := TSFFloatEvent.Create(Self, 'articulationParameterValue3_changed', false);
+  AddEvent(FEventArticulationParameterValue3_changed);
+
+  FEventArticulationParameterValue4_changed := TSFFloatEvent.Create(Self, 'articulationParameterValue4_changed', false);
+  AddEvent(FEventArticulationParameterValue4_changed);
+
+  FEventArticulationParameterValue5_changed := TSFFloatEvent.Create(Self, 'articulationParameterValue5_changed', false);
+  AddEvent(FEventArticulationParameterValue5_changed);
+
+  FEventArticulationParameterValue6_changed := TSFFloatEvent.Create(Self, 'articulationParameterValue6_changed', false);
+  AddEvent(FEventArticulationParameterValue6_changed);
+
+  FEventArticulationParameterValue7_changed := TSFFloatEvent.Create(Self, 'articulationParameterValue7_changed', false);
+  AddEvent(FEventArticulationParameterValue7_changed);
+
+  FEventCollideTime := TSFTimeEvent.Create(Self, 'collideTime', false);
+  AddEvent(FEventCollideTime);
+
+  FEventDetonateTime := TSFTimeEvent.Create(Self, 'detonateTime', false);
+  AddEvent(FEventDetonateTime);
+
+  FEventFiredTime := TSFTimeEvent.Create(Self, 'firedTime', false);
+  AddEvent(FEventFiredTime);
+
+  FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
+  AddEvent(FEventIsActive);
+
+  FEventIsCollided := TSFBoolEvent.Create(Self, 'isCollided', false);
+  AddEvent(FEventIsCollided);
+
+  FEventIsDetonated := TSFBoolEvent.Create(Self, 'isDetonated', false);
+  AddEvent(FEventIsDetonated);
+
+  FEventIsNetworkReader := TSFBoolEvent.Create(Self, 'isNetworkReader', false);
+  AddEvent(FEventIsNetworkReader);
+
+  FEventIsNetworkWriter := TSFBoolEvent.Create(Self, 'isNetworkWriter', false);
+  AddEvent(FEventIsNetworkWriter);
+
+  FEventIsRtpHeaderHeard := TSFBoolEvent.Create(Self, 'isRtpHeaderHeard', false);
+  AddEvent(FEventIsRtpHeaderHeard);
+
+  FEventIsStandAlone := TSFBoolEvent.Create(Self, 'isStandAlone', false);
+  AddEvent(FEventIsStandAlone);
+
+  FEventTimestamp := TSFTimeEvent.Create(Self, 'timestamp', false);
+  AddEvent(FEventTimestamp);
+
+  FFdRtpHeaderExpected := TSFBool.Create(Self, False, 'rtpHeaderExpected', false);
+   FdRtpHeaderExpected.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdRtpHeaderExpected);
 end;
 
 {$endif read_implementation}

@@ -31,10 +31,40 @@
     function GetGeoOrigin: TGeoOriginNode;
     procedure SetGeoOrigin(const Value: TGeoOriginNode);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdGeoCenter: TSFVec3d;
+    { X3D field "geoCenter". } { }
+    public property FdGeoCenter: TSFVec3d read FFdGeoCenter;
     { X3D field "geoCenter". } { }
     property GeoCenter: TVector3Double read GetGeoCenter write SetGeoCenter;
+
+    strict private FEventCenterOfRotation_changed: TSFVec3fEvent;
+    { X3D out event "centerOfRotation_changed". } { }
+    public property EventCenterOfRotation_changed: TSFVec3fEvent read FEventCenterOfRotation_changed;
+
+    strict private FEventGeoCoord_changed: TSFVec3dEvent;
+    { X3D out event "geoCoord_changed". } { }
+    public property EventGeoCoord_changed: TSFVec3dEvent read FEventGeoCoord_changed;
+
+    strict private FEventOrientation_changed: TSFRotationEvent;
+    { X3D out event "orientation_changed". } { }
+    public property EventOrientation_changed: TSFRotationEvent read FEventOrientation_changed;
+
+    strict private FEventPosition_changed: TSFVec3fEvent;
+    { X3D out event "position_changed". } { }
+    public property EventPosition_changed: TSFVec3fEvent read FEventPosition_changed;
+
+    strict private FFdGeoOrigin: TSFNode;
+    { X3D field "geoOrigin". } { }
+    public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
     { X3D field "geoOrigin". } { }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
+
+    strict private FFdGeoSystem: TMFString;
+    { X3D field "geoSystem". } { }
+    public property FdGeoSystem: TMFString read FFdGeoSystem;
     { Set X3D field "geoSystem". } { }
     procedure SetGeoSystem(const Value: array of string); overload;
     { Set X3D field "geoSystem". } { }
@@ -77,6 +107,40 @@ end;
 procedure TGeoProximitySensorNode.SetGeoSystem(const Value: TCastleStringList);
 begin
   FdGeoSystem.Send(Value);
+end;
+
+class function TGeoProximitySensorNode.ClassX3DType: String;
+begin
+  Result := 'GeoProximitySensor';
+end;
+
+procedure TGeoProximitySensorNode.CreateNode;
+begin
+  inherited;
+
+  FFdGeoCenter := TSFVec3d.Create(Self, True, 'geoCenter', Vector3Double(0, 0, 0));
+   FdGeoCenter.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdGeoCenter);
+
+  FEventCenterOfRotation_changed := TSFVec3fEvent.Create(Self, 'centerOfRotation_changed', false);
+  AddEvent(FEventCenterOfRotation_changed);
+
+  FEventGeoCoord_changed := TSFVec3dEvent.Create(Self, 'geoCoord_changed', false);
+  AddEvent(FEventGeoCoord_changed);
+
+  FEventOrientation_changed := TSFRotationEvent.Create(Self, 'orientation_changed', false);
+  AddEvent(FEventOrientation_changed);
+
+  FEventPosition_changed := TSFVec3fEvent.Create(Self, 'position_changed', false);
+  AddEvent(FEventPosition_changed);
+
+  FFdGeoOrigin := TSFNode.Create(Self, False, 'geoOrigin', [TGeoOriginNode]);
+   FdGeoOrigin.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdGeoOrigin);
+
+  FFdGeoSystem := TMFString.Create(Self, False, 'geoSystem', ['GD','WE']);
+   FdGeoSystem.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdGeoSystem);
 end;
 
 {$endif read_implementation}

@@ -26,10 +26,20 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdFieldOfView: TMFFloat;
+    { X3D field "fieldOfView". } { }
+    public property FdFieldOfView: TMFFloat read FFdFieldOfView;
     { Set X3D field "fieldOfView". } { }
     procedure SetFieldOfView(const Value: array of Single); overload;
     { Set X3D field "fieldOfView". } { }
     procedure SetFieldOfView(const Value: TSingleList); overload;
+
+    strict private FFdPosition: TSFVec3f;
+    { X3D field "position". } { }
+    public property FdPosition: TSFVec3f read FFdPosition;
 
 {$endif read_interface}
 
@@ -45,6 +55,24 @@ end;
 procedure TOrthoViewpointNode.SetFieldOfView(const Value: TSingleList);
 begin
   FdFieldOfView.Send(Value);
+end;
+
+class function TOrthoViewpointNode.ClassX3DType: String;
+begin
+  Result := 'OrthoViewpoint';
+end;
+
+procedure TOrthoViewpointNode.CreateNode;
+begin
+  inherited;
+
+  FFdFieldOfView := TMFFloat.Create(Self, True, 'fieldOfView', [-1, -1, 1, 1]);
+   FdFieldOfView.ChangeAlways := chViewpointProjection;
+  AddField(FFdFieldOfView);
+
+  FFdPosition := TSFVec3f.Create(Self, True, 'position', Vector3(0, 0, 10));
+   FdPosition.ChangeAlways := chViewpointVectors;
+  AddField(FFdPosition);
 end;
 
 {$endif read_implementation}

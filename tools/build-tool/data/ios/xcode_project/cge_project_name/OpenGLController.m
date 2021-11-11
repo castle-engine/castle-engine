@@ -48,10 +48,27 @@ typedef struct TouchInfo {
 
     // Try to initialize OpenGLES 3, fallback on version 2
     // (following https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/OpenGLES_ProgrammingGuide/WorkingwithOpenGLESContexts/WorkingwithOpenGLESContexts.html )
+    /*
     EAGLContext *context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
     if (context == nil) {
         context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
     }
+    */
+    /* TODO: OpenGLES 3 commented out for now.
+       It breaks Unholy rendering of "evil plane".
+       Looks like on iOS, something in OpenGLES3 is subtly broken compared to OpenGLES2,
+       maybe related to ScreenFbo which is already weird (non-zero) in OpenGLES2,
+       see
+       src/images/opengl/castleglimages_rendertotexture.inc
+       https://stackoverflow.com/questions/11617013/why-would-glbindframebuffergl-framebuffer-0-result-in-blank-screen-in-cocos2d)
+
+       Ideally we should just fix it, and work flawlessly in both OpenGLES2 and OpenGLES3 on iOS.
+
+       Eventually we can add a flag, like IOS_ENABLE_ES3, to make it optional decision
+       per-application.
+    */
+    EAGLContext *context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+
     self.context = context;
 
     if (!self.context) {
@@ -208,9 +225,9 @@ typedef struct TouchInfo {
     if (m_currentViewWidth  != newViewWidth ||
         m_currentViewHeight != newViewHeight)
     {
-	m_currentViewWidth  = newViewWidth;
-	m_currentViewHeight = newViewHeight;
-	CGEApp_Resize(newViewWidth, newViewHeight, [self statusBarHeight]);
+        m_currentViewWidth  = newViewWidth;
+        m_currentViewHeight = newViewHeight;
+        CGEApp_Resize(newViewWidth, newViewHeight, [self statusBarHeight]);
     }
 
     // send accumulated motion events (sending them right away can jam the engine)

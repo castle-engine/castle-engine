@@ -265,14 +265,18 @@ type
     property WireframeColor: TCastleColorRGB
       read FWireframeColor write FWireframeColor;
 
-    { Should we use ARB_occlusion_query (if available) with
-      a hierarchical algorithm to avoid rendering
-      shapes that didn't pass occlusion test in previous frame.
-      Ignored if GPU doesn't support ARB_occlusion_query.
+    { Use the advanced version of the occlusion query:
+      "Coherent Hierarchical Culling", to optimize the rendered shapes.
+      The shapes obscured by other shapes will not be rendered.
 
-      @true may give you a large speedup in some scenes.
+      This is ignored if GPU doesn't support the necessary functionality
+      (for OpenGL, we require ARB_occlusion_query).
 
-      This method doesn't impose any lag of one frame (like @link(OcclusionQuery)).
+      We don't advise this approach to occlusion query now.
+      While this avoids the problem of "lag of one frame" (compared to @link(OcclusionQuery))
+      when the object should appear...
+      But the resulting algorithm (at least in our current implementation)
+      is slow and it does not treat transparent shapes correctly.
 
       This requires the usage of ssRendering in TCastleSceneCore.Spatial.
       Also, it always does frustum culling (like fcBox for now),
@@ -493,25 +497,17 @@ type
     property SilhouetteScale: Single read FSilhouetteScale write FSilhouetteScale {$ifdef FPC}default DefaultSilhouetteScale{$endif};
     property SilhouetteBias: Single read FSilhouetteBias write FSilhouetteBias {$ifdef FPC}default DefaultSilhouetteBias{$endif};
 
-    { Should we use ARB_occlusion_query (if available) to avoid rendering
-      shapes that didn't pass occlusion test in previous frame.
-      Ignored if GPU doesn't support ARB_occlusion_query.
+    { Use the occlusion query to optimize the rendering.
+      The shapes obscured by other shapes will not be rendered.
+      This makes sense when in your view, many shapes are typically obscured by others.
 
-      @true may give you a large speedup in some scenes.
-      OTOH, a lag of one frame may happen between an object should
-      be rendered and it actually appears.
+      See the https://github.com/castle-engine/castle-engine/wiki/Occlusion-Query
+      for details how does this work.
 
-      When you render more than once the same instance of TCastleScene scene,
-      you should not activate it (as the occlusion query doesn't make sense
-      if each following render of the scene takes place at totally different
-      translation). Also, when rendering something more than just
-      one TCastleScene scene (maybe many times the same TCastleScene instance,
-      maybe many different TCastleScene instances, maybe some other
-      3D objects) you should try to sort rendering order
-      from the most to the least possible occluder (otherwise occlusion
-      query will not be as efficient at culling).
+      This is ignored if HierarchicalOcclusionQuery.
 
-      This is ignored if HierarchicalOcclusionQuery. }
+      This is ignored if GPU doesn't support the necessary functionality
+      (for OpenGL, we require ARB_occlusion_query). }
     property OcclusionQuery: boolean
       read FOcclusionQuery write SetOcclusionQuery default false;
 

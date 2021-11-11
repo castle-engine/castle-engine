@@ -29,12 +29,26 @@
     function GetDescription: String;
     procedure SetDescription(const Value: String);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdDescription: TSFString;
+    { X3D field "description". } { }
+    public property FdDescription: TSFString read FFdDescription;
     { X3D field "description". } { }
     property Description: String read GetDescription write SetDescription;
+
+    strict private FFdParameter: TMFString;
+    { X3D field "parameter". } { }
+    public property FdParameter: TMFString read FFdParameter;
     { Set X3D field "parameter". } { }
     procedure SetParameter(const Value: array of string); overload;
     { Set X3D field "parameter". } { }
     procedure SetParameter(const Value: TCastleStringList); overload;
+
+    strict private FFdUrl: TMFString;
+    { X3D field "url". } { }
+    public property FdUrl: TMFString read FFdUrl;
     { Set X3D field "url". } { }
     procedure SetUrl(const Value: array of string); overload;
     { Set X3D field "url". } { }
@@ -74,6 +88,28 @@ end;
 procedure TAnchorNode.SetUrl(const Value: TCastleStringList);
 begin
   FdUrl.Send(Value);
+end;
+
+class function TAnchorNode.ClassX3DType: String;
+begin
+  Result := 'Anchor';
+end;
+
+procedure TAnchorNode.CreateNode;
+begin
+  inherited;
+
+  FFdDescription := TSFString.Create(Self, True, 'description', '');
+   FdDescription.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDescription);
+
+  FFdParameter := TMFString.Create(Self, True, 'parameter', []);
+   FdParameter.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdParameter);
+
+  FFdUrl := TMFString.Create(Self, True, 'url', []);
+   FdUrl.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdUrl);
 end;
 
 {$endif read_implementation}

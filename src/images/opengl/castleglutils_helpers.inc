@@ -206,12 +206,18 @@ procedure glFreeDisplayList(var list: TGLuint); deprecated 'do not use display l
 procedure glFreeBuffer(var Buffer: TGLuint);
 
 { Set color and depth buffers writeable or not.
-  This is just a shortcut for
+
+  This is just a shortcut for setting
+  RenderContext.DepthBufferUpdate,
+  RenderContext.ColorChannels.
+
+  Which are in turn shortcuts to doing this in OpenGL(ES):
   @longcode(#
     glDepthMask(Writeable);
     glColorMask(Writeable, Writeable, Writeable, Writeable);
   #) }
 procedure glSetDepthAndColorWriteable(const Writeable: boolean);
+  deprecated 'set RenderContext.DepthBufferUpdate, RenderContext.ColorChannels explicitly, this allows to save/restore them reiably';
 
 { Global position for drawing 2D stuff.
   @deprecated Do this use this.
@@ -535,7 +541,7 @@ end;
 
 procedure glSetDepthAndColorWriteable(const Writeable: boolean);
 begin
-  glDepthMask(BoolToGL(Writeable));
+  RenderContext.DepthBufferUpdate := Writeable;
   if Writeable then
     RenderContext.ColorChannels := [0..3]
   else

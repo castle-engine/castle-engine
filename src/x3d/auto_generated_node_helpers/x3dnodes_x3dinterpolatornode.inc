@@ -26,6 +26,16 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventSet_fraction: TSFFloatEvent;
+    { X3D in event "set_fraction". } { }
+    public property EventSet_fraction: TSFFloatEvent read FEventSet_fraction;
+
+    strict private FFdKey: TMFFloat;
+    { X3D field "key". } { }
+    public property FdKey: TMFFloat read FFdKey;
     { Set X3D field "key". } { }
     procedure SetKey(const Value: array of Single); overload;
     { Set X3D field "key". } { }
@@ -45,6 +55,23 @@ end;
 procedure TAbstractInterpolatorNode.SetKey(const Value: TSingleList);
 begin
   FdKey.Send(Value);
+end;
+
+class function TAbstractInterpolatorNode.ClassX3DType: String;
+begin
+  Result := 'X3DInterpolatorNode';
+end;
+
+procedure TAbstractInterpolatorNode.CreateNode;
+begin
+  inherited;
+
+  FEventSet_fraction := TSFFloatEvent.Create(Self, 'set_fraction', true);
+  AddEvent(FEventSet_fraction);
+
+  FFdKey := TMFFloat.Create(Self, True, 'key', []);
+   FdKey.ChangeAlways := chNone;
+  AddField(FFdKey);
 end;
 
 {$endif read_implementation}

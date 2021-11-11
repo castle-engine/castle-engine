@@ -28,7 +28,7 @@ uses SysUtils,
   CastleUtils, CastleParameters, CastleFindFiles, CastleLog,
   CastleFilesUtils, CastleURIUtils, CastleStringUtils,
   CastleApplicationProperties,
-  ToolPackageFormat, ToolProject, ToolCompile, ToolIOS, ToolAndroid,
+  ToolPackageFormat, ToolProject, ToolCompile, ToolIOS, ToolAndroid, ToolManifest,
   ToolNintendoSwitch, ToolCommonUtils, ToolArchitectures, ToolUtils, ToolProcessWait;
 
 var
@@ -46,6 +46,9 @@ var
   CleanAll: Boolean = false;
   WaitForProcessId: TProcessId = 0;
   GuiErrors: Boolean = false;
+  { Compiler used by simple-compile.
+    TODO: Allow to adjust it, and also make it override compiler used for project commands. }
+  Compiler: TCompiler = coFpc;
 
 const
   Options: array [0..21] of TOption =
@@ -320,9 +323,9 @@ begin
       so calling "castle-engine simple-compile somesubdir/myunit.pas" works.
       Working dir for FPC must be equal to our own working dir. }
     case Target of
-      targetCustom        : Compile(OS, CPU, Plugin, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
-      targetAndroid       : CompileAndroid(nil, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
-      targetIOS           : CompileIOS(Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
+      targetCustom        : Compile(Compiler, OS, CPU, Plugin, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
+      targetAndroid       : CompileAndroid(Compiler, nil, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
+      targetIOS           : CompileIOS(Compiler, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
       targetNintendoSwitch: CompileNintendoSwitch(Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
       {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('Operation not implemented for this target');

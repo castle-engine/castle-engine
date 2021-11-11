@@ -22,10 +22,16 @@
   - and regenerate include files by running x3d-nodes-to-pascal .
 
   The documentation for properties should go to x3dnodes_documentation.txt . }
-{$ifdef FPC}
+
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdControlPoints: TMFVec4f;
+    { X3D field "controlPoints". } { }
+    public property FdControlPoints: TMFVec4f read FFdControlPoints;
     { Set X3D field "controlPoints". } { }
     procedure SetControlPoints(const Value: array of TVector4); overload;
     { Set X3D field "controlPoints". } { }
@@ -47,5 +53,18 @@ begin
   FdControlPoints.Send(Value);
 end;
 
+class function TAbstractCubicBezierInterpolatorNode.ClassX3DType: String;
+begin
+  Result := 'X3DCubicBezierInterpolator';
+end;
+
+procedure TAbstractCubicBezierInterpolatorNode.CreateNode;
+begin
+  inherited;
+
+  FFdControlPoints := TMFVec4f.Create(Self, True, 'controlPoints', []);
+   FdControlPoints.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdControlPoints);
+end;
+
 {$endif read_implementation}
-{$endif}

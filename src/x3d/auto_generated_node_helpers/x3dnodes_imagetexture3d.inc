@@ -26,6 +26,12 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdUrl: TMFString;
+    { X3D field "url". } { }
+    public property FdUrl: TMFString read FFdUrl;
     { Set X3D field "url". } { }
     procedure SetUrl(const Value: array of string); overload;
     { Set X3D field "url". } { }
@@ -45,6 +51,20 @@ end;
 procedure TImageTexture3DNode.SetUrl(const Value: TCastleStringList);
 begin
   FdUrl.Send(Value);
+end;
+
+class function TImageTexture3DNode.ClassX3DType: String;
+begin
+  Result := 'ImageTexture3D';
+end;
+
+procedure TImageTexture3DNode.CreateNode;
+begin
+  inherited;
+
+  FFdUrl := TMFString.Create(Self, True, 'url', []);
+   FdUrl.ChangeAlways := chTextureImage;
+  AddField(FFdUrl);
 end;
 
 {$endif read_implementation}

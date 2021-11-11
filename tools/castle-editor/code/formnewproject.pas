@@ -192,9 +192,18 @@ end;
 
 procedure TNewProjectForm.EditProjectNameUTF8KeyPress(Sender: TObject;
   var UTF8Key: TUTF8Char);
+const
+  { Although these chars are not allowed in project name,
+    but they are allowed by this routine, as they allow to edit the text
+    (e.g. delete by backspace, cut/copy/paste by Ctrl+X/C/V). }
+  ControlChars = [CtrlA .. CtrlZ] +
+    { actually this is already in CtrlA .. CtrlZ, but seemed more obvious to list it explicitly. }
+    [CharBackspace];
 begin
   if (Length(UTF8Key) <> 1) or
-     (UTF8Key[1] in InvalidProjectNameChars) then
+     ( (UTF8Key[1] in InvalidProjectNameChars) and
+       (not (UTF8Key[1] in ControlChars))
+     ) then
     UTF8Key := '';
 end;
 

@@ -26,6 +26,12 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdImage: TMFInt32;
+    { X3D field "image". } { }
+    public property FdImage: TMFInt32 read FFdImage;
     { Set X3D field "image". } { }
     procedure SetImage(const Value: array of LongInt); overload;
     { Set X3D field "image". } { }
@@ -45,6 +51,20 @@ end;
 procedure TPixelTexture3DNode.SetImage(const Value: TLongIntList);
 begin
   FdImage.Send(Value);
+end;
+
+class function TPixelTexture3DNode.ClassX3DType: String;
+begin
+  Result := 'PixelTexture3D';
+end;
+
+procedure TPixelTexture3DNode.CreateNode;
+begin
+  inherited;
+
+  FFdImage := TMFInt32.Create(Self, True, 'image', [0, 0, 0, 0]);
+   FdImage.ChangeAlways := chTextureImage;
+  AddField(FFdImage);
 end;
 
 {$endif read_implementation}

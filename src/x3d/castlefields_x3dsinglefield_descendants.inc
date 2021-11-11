@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -643,6 +643,7 @@
     FEnumNames: TStringList;
     FEnumValue: Integer;
     FDefaultEnumValue: Integer;
+    AllNamesUpperCase: Boolean;
     procedure SetEnumValue(const NewEnumValue: Integer);
     procedure SetDefaultEnumValue(const NewDefaultEnumValue: Integer);
   strict protected
@@ -2651,9 +2652,13 @@ end;
 
 constructor TSFStringEnum.Create(const AParentNode: TX3DFileItem;
   const AExposed: boolean; const AName: string; const AEnumNames: array of string; const AValue: integer);
+var
+  I: Integer;
 begin
-  FEnumNames := TStringListCaseSens.Create;
-  AddStrArrayToStrings(AEnumNames, FEnumNames);
+  AllNamesUpperCase := true;
+  for I := 0 to FEnumNames.Count - 1 do
+    if FEnumNames[I] <> UpperCase(FEnumNames[I]) then
+      AllNamesUpperCase := false;
 
   inherited Create(AParentNode, AExposed, AName, FEnumNames[AValue]);
   { inherited Create will assign Value, and in SetValue should cause setting
@@ -2674,14 +2679,18 @@ end;
 
 function TSFStringEnum.StringToEnumValue(const NewValue: string): Integer;
 var
-  UpperValue: string;
+  NewValueFixedCase: string;
 begin
-  UpperValue := UpperCase(NewValue);
-  if UpperValue <> NewValue then
-    WritelnWarning('X3D', Format('Field "%s" value should be uppercase, but is not: "%s"',
-      [X3DName, NewValue]));
+  if AllNamesUpperCase then
+  begin
+    NewValueFixedCase := UpperCase(NewValue);
+    if NewValueFixedCase <> NewValue then
+      WritelnWarning('X3D', Format('Field "%s" value should be uppercase, but is not: "%s"',
+        [X3DName, NewValue]));
+  end else
+    NewValueFixedCase := NewValue;
 
-  Result := FEnumNames.IndexOf(UpperValue);
+  Result := FEnumNames.IndexOf(NewValueFixedCase);
   if Result = -1 then
   begin
     Result := DefaultEnumValue;

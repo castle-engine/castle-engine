@@ -15,16 +15,10 @@
 
 {$ifdef read_interface}
 
-  { Base class for any item within VRML/X3D file: a node, a field, a route,
+  { Base class for any item within X3D file: a node, a field, a route,
     a prototype etc. We need a common base class for all such things
-    to store PositionInParent.
-
-    About ancestry: TX3DFieldOrEvent make use of Assign mechanism
-    and so need to descend from TPersistent. TX3DNode make use
-    of interfaces and so must descend from something like
-    TNonRefCountedInterfacedXxx. These are the only reasons, for now,
-    why this descends from TNonRefCountedInterfacedPersistent. }
-  TX3DFileItem = class(TNonRefCountedInterfacedPersistent)
+    to store PositionInParent. }
+  TX3DFileItem = class(TPersistent)
   private
     FPositionInParent: Integer;
 

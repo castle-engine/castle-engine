@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,34 +19,20 @@
     {$I auto_generated_node_helpers/x3dnodes_x3dsoundnode.inc}
   end;
 
-  { Interface for all nodes that can emit audio data. }
-  IAbstractSoundSourceNode = interface(IAbstractTimeDependentNode)
-  ['{5E3D46A0-71B5-4561-B6B4-43A5BE5896EF}']
-  // TODO: Delphi
-  {$ifdef FPC}
-    property FdDescription: TSFString { read FFdDescription } { };
-    property FdPitch: TSFFloat { read FFdPitch } { };
-    property EventDuration_changed: TX3DEvent { read FEventDuration_changed } { };
-  {$endif}
-  end;
-
-  { Base class for (most) nodes that can emit audio data. }
-  TAbstractSoundSourceNode = class(TAbstractTimeDependentNode, IAbstractSoundSourceNode)
-  public
-    { Pitch, corrected to always be > 0. }
-    function SafePitch: Single;
-
-    {$I auto_generated_node_helpers/x3dnodes_x3dsoundsourcenode.inc}
+  { Base class for most (but not all) nodes that can emit audio data.
+    We may introduce TSoundSourceFunctionality is needed to express exactly X3DSoundSourceObject. }
+  TAbstractSoundSourceNode = class(TAbstractTimeDependentNode)
+  {$I auto_generated_node_helpers/x3dnodes_x3dsoundsourcenode.inc}
   end;
 
   { Buffer for sound data, which can be played by the @link(TSoundNode). }
-  TAudioClipNode = class(TAbstractSoundSourceNode, IAbstractUrlObject)
+  TAudioClipNode = class(TAbstractSoundSourceNode)
   strict private
     FBufferLoaded: Boolean;
     InsideLoadBuffer: Cardinal;
     PlayingSound: TCastlePlayingSoundSource;
     procedure SetBufferLoaded(const Value: boolean);
-    procedure UpdatePlayingEvent(Event: TX3DEvent; Value: TX3DField;
+    procedure UpdatePlayingEvent(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
     procedure UpdatePlaying;
     procedure SoundOpenClose(Sender: TObject);
@@ -54,13 +40,18 @@
     { Did we attempt loading Buffer. You still have to check Buffer <> 0 to know
       if it's successfully loaded. }
     property BufferLoaded: boolean read FBufferLoaded write SetBufferLoaded;
+    { Final length (in seconds) of this sound, adjusted by pitch.
+      See @link(TTimeDependentFunctionality.CycleInterval),
+      this must return the relevant value. }
+    function GetCycleInterval: TFloatTime;
+    { Pitch, corrected to always be > 0. }
+    function SafePitch: Single;
   protected
     procedure ParseAfter(Reader: TX3DReaderNames); override;
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     destructor Destroy; override;
-    function GetCycleInterval: TFloatTime; override;
 
     {$I auto_generated_node_helpers/x3dnodes_audioclip.inc}
   end;
@@ -74,7 +65,7 @@
     SoundSourceTransform: TCastleTransform;
     procedure UpdateSoundSource;
     procedure EventLocationReceive(
-      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     { Location expressed in Scene coordinate-space, that is: transformed
       by X3D transformations in this X3D scene graph. }
     function SceneLocation: TVector3;
@@ -92,20 +83,14 @@
 
 {$ifdef read_implementation}
 
-{ TAbstractSoundSourceNode --------------------------------------------------- }
-
-function TAbstractSoundSourceNode.SafePitch: Single;
-begin
-  Result := Pitch;
-  if Result <= 0 then
-    Result := 1; { assign default pitch in case of trouble }
-end;
-
 { TAudioClipNode ------------------------------------------------------------- }
 
 constructor TAudioClipNode.Create(const AX3DName: string; const ABaseUrl: string);
 begin
   inherited;
+
+  FTimeFunctionality.OnCycleInterval := {$ifdef CASTLE_OBJFPC}@{$endif} GetCycleInterval;
+
   PlayingSound := TCastlePlayingSoundSource.Create(nil);
   PlayingSound.Sound := TCastleSound.Create(PlayingSound);
 
@@ -113,6 +98,8 @@ begin
   EventIsPaused.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} UpdatePlayingEvent);
 
   SoundEngine.OnOpenClose.Add({$ifdef CASTLE_OBJFPC}@{$endif} SoundOpenClose);
+
+  AddFunctionality(TUrlFunctionality.Create(Self));
 end;
 
 destructor TAudioClipNode.Destroy;
@@ -131,7 +118,7 @@ begin
     - It's necessary to make PlayingSound.Sound.Duration good,
       making CycleInterval good,
       which is necessary for time-dependent mechanism (in
-      TInternalTimeDependentHandler) to always work Ok (see e.g. at thunder.x3dv,
+      TTimeDependentFunctionality) to always work Ok (see e.g. at thunder.x3dv,
       when AudioClip.startTime is set by script to future time.
 
     But don't do it if URL field is empty.
@@ -150,6 +137,13 @@ begin
     BufferLoaded := true;
 end;
 
+function TAudioClipNode.SafePitch: Single;
+begin
+  Result := Pitch;
+  if Result <= 0 then
+    Result := 1; { assign default pitch in case of trouble }
+end;
+
 function TAudioClipNode.GetCycleInterval: TFloatTime;
 begin
   { Secure from invalid PlayingSound.Sound.Duration
@@ -160,7 +154,7 @@ begin
     Result := 0;
 end;
 
-procedure TAudioClipNode.UpdatePlayingEvent(Event: TX3DEvent; Value: TX3DField;
+procedure TAudioClipNode.UpdatePlayingEvent(const Event: TX3DEvent; const Value: TX3DField;
   const Time: TX3DTime);
 begin
   UpdatePlaying;
@@ -179,7 +173,7 @@ procedure TAudioClipNode.UpdatePlaying;
 var
   SoundNode: TSoundNode;
 begin
-  if IsActive and not IsPaused then
+  if FTimeFunctionality.IsActive and (not FTimeFunctionality.IsPaused) then
   begin
     { if not playing, try to start playing }
     if not PlayingSound.Playing then
@@ -355,7 +349,7 @@ begin
 end;
 
 procedure TSoundNode.EventLocationReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   UpdateSoundSource;
 end;

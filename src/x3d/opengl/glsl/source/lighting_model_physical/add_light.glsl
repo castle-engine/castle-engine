@@ -1,5 +1,5 @@
 /*
-  Copyright 2020-2020 Michalis Kamburelis and glTF-Sample-Viewer authors.
+  Copyright 2020-2021 Michalis Kamburelis and glTF-Sample-Viewer authors.
 
   This file is part of "Castle Game Engine".
 
@@ -51,12 +51,19 @@ uniform vec3 castle_LightSource<Light>Attenuation;
 uniform float castle_LightSource<Light>Radius;
 #endif
 
+/* EnvironmentLight parameters */
+#ifdef LIGHT<Light>_TYPE_ENVIRONMENT
+uniform samplerCube diffuseTexture;
+uniform samplerCube specularTexture;
+#endif
+
 // In case of OpenGLES, all shader code is glued, so this is already declared
 #ifndef GL_ES
-vec3 getPointShade(const in vec3 pointToLight,
-  const in MaterialInfo materialInfo,
-  const in vec3 normal,
-  const in vec3 view);
+AngularInfo getAngularInfo(const in vec3 pointToLight, const in vec3 normal, const in vec3 view);
+vec3 specularReflection(const in MaterialInfo materialInfo, const in AngularInfo angularInfo);
+float visibilityOcclusion(const in MaterialInfo materialInfo, const in AngularInfo angularInfo);
+float microfacetDistribution(const in MaterialInfo materialInfo, const in AngularInfo angularInfo);
+vec3 diffuse(const in MaterialInfo materialInfo);
 #endif
 
 /* Add light contribution.
@@ -71,12 +78,16 @@ void PLUG_add_light(inout vec4 color,
   vec3 light_dir;
 
 /* Calculate light_dir */
-#ifdef LIGHT<Light>_TYPE_POSITIONAL
-  light_dir = castle_LightSource<Light>Position - vec3(vertex_eye);
-  float distance_to_light = length(light_dir);
-  light_dir /= distance_to_light;
+#ifdef LIGHT<Light>_TYPE_PUNCTUAL
+  #ifdef LIGHT<Light>_TYPE_POSITIONAL
+    light_dir = castle_LightSource<Light>Position - vec3(vertex_eye);
+    float distance_to_light = length(light_dir);
+    light_dir /= distance_to_light;
+  #else
+    light_dir = normalize(castle_LightSource<Light>Position);
+  #endif
 #else
-  light_dir = normalize(castle_LightSource<Light>Position);
+  light_dir = normal_eye;
 #endif
 
 #ifdef LIGHT<Light>_TYPE_SPOT
@@ -119,8 +130,39 @@ void PLUG_add_light(inout vec4 color,
     scale = 0.0;
 #endif
 
-  vec3 light_shade = castle_LightSource<Light>Color *
-    getPointShade(light_dir, material_info, normal_eye, view);
+  /* Main code that calculates per-light-source contribution to the final color.
+     Was called "getPointShade" in glTF-Sample-Viewer.
 
-  color.rgb += light_shade * scale;
+     light_dir now must be the direction from current vertex to light source.
+     It is assumed to be already normalized.
+
+     view is direction from current vertex to camera, in eye-space,
+     already normalized.
+     IOW, "normalize(- vertex_eye)" because camera position is zero in eye-space.
+  */
+  AngularInfo angularInfo = getAngularInfo(light_dir, normal_eye, view);
+
+  if (angularInfo.NdotL > 0.0 || angularInfo.NdotV > 0.0)
+  {
+    // Calculate the shading terms for the microfacet specular shading model
+    vec3 F = specularReflection(material_info, angularInfo);
+    float Vis = visibilityOcclusion(material_info, angularInfo);
+    float D = microfacetDistribution(material_info, angularInfo);
+
+    // Calculation of analytical lighting contribution
+    vec3 diffuseContrib = (1.0 - F) * diffuse(material_info);
+    vec3 specContrib = F * Vis * D;
+
+#ifdef LIGHT<Light>_TYPE_ENVIRONMENT
+  diffuseContrib *= textureCube(diffuseTexture, light_dir).rgb;
+  specContrib *= textureCube(specularTexture, light_dir).rgb;
+#endif
+
+    // Obtain final intensity as reflectance (BRDF) scaled by the energy of the light (cosine law)
+    vec3 light_contribution = angularInfo.NdotL * (diffuseContrib + specContrib);
+
+    color.rgb += castle_LightSource<Light>Color *
+      light_contribution *
+      scale;
+  }
 }

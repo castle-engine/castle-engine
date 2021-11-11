@@ -101,7 +101,7 @@ const
   VRML1Version: TX3DVersion = (Major: 1; Minor: 0);
   VRML2Version: TX3DVersion = (Major: 2; Minor: 0);
   { Latest X3D version supported. }
-  X3DVersion: TX3DVersion = (Major: 3; Minor: 2);
+  X3DVersion: TX3DVersion = (Major: 4; Minor: 0);
 
   xeClassic = CastleInternalX3DLexer.xeClassic;
   xeXML = CastleInternalX3DLexer.xeXML;

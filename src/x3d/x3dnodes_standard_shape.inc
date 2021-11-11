@@ -66,7 +66,7 @@
   );
 
   { Base node type for all Shape nodes. }
-  TAbstractShapeNode = class(TAbstractChildNode, IAbstractBoundedObject)
+  TAbstractShapeNode = class(TAbstractChildNode)
   strict private
     function GetMaterial: TAbstractMaterialNode;
     procedure SetMaterial(const Value: TAbstractMaterialNode);

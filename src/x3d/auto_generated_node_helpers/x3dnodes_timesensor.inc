@@ -26,6 +26,8 @@
 {$ifdef read_interface}
 
   strict private
+    function GetCycleInterval: TFloatTime;
+    procedure SetCycleInterval(const Value: TFloatTime);
     function GetEnabled: Boolean;
     procedure SetEnabled(const Value: Boolean);
     function GetFractionIncreasing: Boolean;
@@ -33,10 +35,42 @@
     function GetDetectAffectedFields: Boolean;
     procedure SetDetectAffectedFields(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdCycleInterval: TSFTime;
+    { X3D field "cycleInterval". } { }
+    public property FdCycleInterval: TSFTime read FFdCycleInterval;
+    { X3D field "cycleInterval". } { }
+    property CycleInterval: TFloatTime read GetCycleInterval write SetCycleInterval;
+
+    strict private FEventCycleTime: TSFTimeEvent;
+    { X3D out event "cycleTime". } { }
+    public property EventCycleTime: TSFTimeEvent read FEventCycleTime;
+
+    strict private FEventFraction_changed: TSFFloatEvent;
+    { X3D out event "fraction_changed". } { }
+    public property EventFraction_changed: TSFFloatEvent read FEventFraction_changed;
+
+    strict private FEventTime: TSFTimeEvent;
+    { X3D out event "time". } { }
+    public property EventTime: TSFTimeEvent read FEventTime;
+
+    strict private FFdEnabled: TSFBool;
+    { X3D field "enabled". } { }
+    public property FdEnabled: TSFBool read FFdEnabled;
     { X3D field "enabled". } { }
     property Enabled: Boolean read GetEnabled write SetEnabled;
+
+    strict private FFdFractionIncreasing: TSFBool;
+    { X3D field "fractionIncreasing". } { }
+    public property FdFractionIncreasing: TSFBool read FFdFractionIncreasing;
     { X3D field "fractionIncreasing". } { }
     property FractionIncreasing: Boolean read GetFractionIncreasing write SetFractionIncreasing;
+
+    strict private FFdDetectAffectedFields: TSFBool;
+    { X3D field "detectAffectedFields". } { }
+    public property FdDetectAffectedFields: TSFBool read FFdDetectAffectedFields;
     { X3D field "detectAffectedFields". } { }
     property DetectAffectedFields: Boolean read GetDetectAffectedFields write SetDetectAffectedFields;
 
@@ -45,6 +79,16 @@
 {$ifdef read_implementation}
 
 { TTimeSensorNode ----------------------------------------------- }
+
+function TTimeSensorNode.GetCycleInterval: TFloatTime;
+begin
+  Result := FdCycleInterval.Value;
+end;
+
+procedure TTimeSensorNode.SetCycleInterval(const Value: TFloatTime);
+begin
+  FdCycleInterval.Send(Value);
+end;
 
 function TTimeSensorNode.GetEnabled: Boolean;
 begin
@@ -74,6 +118,41 @@ end;
 procedure TTimeSensorNode.SetDetectAffectedFields(const Value: Boolean);
 begin
   FdDetectAffectedFields.Send(Value);
+end;
+
+class function TTimeSensorNode.ClassX3DType: String;
+begin
+  Result := 'TimeSensor';
+end;
+
+procedure TTimeSensorNode.CreateNode;
+begin
+  inherited;
+
+  FFdCycleInterval := TSFTime.Create(Self, True, 'cycleInterval', 1);
+   FdCycleInterval.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdCycleInterval);
+
+  FEventCycleTime := TSFTimeEvent.Create(Self, 'cycleTime', false);
+  AddEvent(FEventCycleTime);
+
+  FEventFraction_changed := TSFFloatEvent.Create(Self, 'fraction_changed', false);
+  AddEvent(FEventFraction_changed);
+
+  FEventTime := TSFTimeEvent.Create(Self, 'time', false);
+  AddEvent(FEventTime);
+
+  FFdEnabled := TSFBool.Create(Self, True, 'enabled', true);
+   FdEnabled.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdEnabled);
+
+  FFdFractionIncreasing := TSFBool.Create(Self, True, 'fractionIncreasing', true);
+   FdFractionIncreasing.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdFractionIncreasing);
+
+  FFdDetectAffectedFields := TSFBool.Create(Self, False, 'detectAffectedFields', true);
+   FdDetectAffectedFields.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDetectAffectedFields);
 end;
 
 {$endif read_implementation}

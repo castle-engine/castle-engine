@@ -30,6 +30,15 @@ type
   TTestX3DNodes = class(TCastleTestCase)
   private
     procedure WeakLinkUnusedWarning(const Category, S: string);
+  protected
+    { Every possible X3D nodes that makes no errors when instantiated.
+      Above NodesManager, this also includes some abstract node classes
+      (not to be used in X3D files, but that make sense to instantiate)
+      and TX3DRootNode (non-abstract (Pascal code can create it)
+      but also not available in X3D files explicitly). }
+    InstantiableNodes: TX3DNodeClassesList;
+    procedure SetUp; override;
+    procedure TearDown; override;
   published
     procedure TestNodesManager;
 
@@ -47,7 +56,8 @@ type
     procedure TestParseSaveToFile;
 
     procedure TestUniqueFields;
-    procedure TestInterfaceSupports;
+    procedure TestInheritsFrom;
+    procedure TestIndexOfAnyAncestor;
     procedure TestAllowedChildren;
     procedure TestContainerFieldList;
     procedure TestContainerFieldGeometry;
@@ -66,12 +76,11 @@ type
     { All tex coord nodes should have Change = [chTextureCoordinate] }
     procedure TestTextureCoordinate;
 
-    { Try calling GetInternalTimeDependentHandler
-      on every IAbstractTimeDependentNode, and use the handler.
+    { Try getting TTimeDependentFunctionality and use the handler.
       Catches e.g. not overriden CycleInterval. }
-    procedure TestInternalTimeDependentHandlerAvailable;
+    procedure TestTimeDependentFunctionality;
 
-    procedure TestITransformNode;
+    procedure TestTransformFunctionality;
     procedure TestSortPositionInParent;
     procedure TestRootNodeMeta;
     procedure TestConvertToX3D;
@@ -88,6 +97,7 @@ type
     procedure TestAddChildrenAllowDuplicates;
     procedure TestMetadata;
     procedure TestMetadataArray;
+    procedure TestNiceName;
   end;
 
 implementation
@@ -120,6 +130,29 @@ begin
 end;
 
 { ------------------------------------------------------------ }
+
+procedure TTestX3DNodes.SetUp;
+var
+  I: Integer;
+begin
+  inherited;
+
+  InstantiableNodes := TX3DNodeClassesList.Create;
+
+  for I := 0 to NodesManager.RegisteredCount - 1 do
+    InstantiableNodes.Add(NodesManager.Registered[I]);
+
+  InstantiableNodes.Add(TX3DRootNode);
+  InstantiableNodes.Add(TX3DNode);
+  InstantiableNodes.Add(TAbstractGroupingNode);
+  InstantiableNodes.Add(TAbstractX3DGroupingNode);
+end;
+
+procedure TTestX3DNodes.TearDown;
+begin
+  FreeAndNil(InstantiableNodes);
+  inherited;
+end;
 
 procedure TTestX3DNodes.TestNodesManager;
 begin
@@ -291,7 +324,17 @@ begin
   // TestReadWrite('data/demo-models-copy/tricky_def_use.x3dv');
 end;
 
-procedure TTestX3DNodes.TestInterfaceSupports;
+procedure TTestX3DNodes.TestInheritsFrom;
+begin
+  AssertTrue(TGroupNode_2.InheritsFrom(TAbstractChildNode));
+  AssertTrue(TSwitchNode_2.InheritsFrom(TAbstractChildNode));
+  AssertFalse(TConeNode_2.InheritsFrom(TAbstractChildNode));
+  AssertFalse(TAppearanceNode.InheritsFrom(TAbstractChildNode));
+  AssertFalse(TX3DNode.InheritsFrom(TAbstractChildNode));
+  AssertFalse(TObject.InheritsFrom(TAbstractChildNode));
+end;
+
+procedure TTestX3DNodes.TestIndexOfAnyAncestor;
 var
   L: TX3DNodeClassesList;
 
@@ -306,27 +349,15 @@ var
   end;
 
 begin
-  { When our interfaces have appropriate GUIDs, "Supports" works Ok. }
-
-  AssertTrue(Supports(TGroupNode_2, IAbstractChildNode));
-  AssertTrue(Supports(TSwitchNode_2, IAbstractChildNode));
-  AssertTrue(not Supports(TConeNode_2, IAbstractChildNode));
-  AssertTrue(not Supports(TAppearanceNode, IAbstractChildNode));
-  AssertTrue(not Supports(TX3DNode, IAbstractChildNode));
-  AssertTrue(not Supports(TObject, IAbstractChildNode));
-
   L := TX3DNodeClassesList.Create;
   try
-    L.AddRegisteredImplementing(IAbstractChildNode);
-    { similar to above tests, but now using L.IndexOfAnyAncestor.
-      So we test IndexOfAnyAncestor and AddRegisteredImplementing,
-      AddRegisteredImplementing also uses "Supports" under the hood
-      and results should be the same. }
+    L.Add(TAbstractChildNode);
+    { Test L.IndexOfAnyAncestor }
     AssertTrue(IndexOfAnyAncestorByClass(TGroupNode_2));
     AssertTrue(IndexOfAnyAncestorByClass(TSwitchNode_2));
-    AssertTrue(not IndexOfAnyAncestorByClass(TConeNode_2));
-    AssertTrue(not IndexOfAnyAncestorByClass(TAppearanceNode));
-    AssertTrue(not IndexOfAnyAncestorByClass(TX3DNode));
+    AssertFalse(IndexOfAnyAncestorByClass(TConeNode_2));
+    AssertFalse(IndexOfAnyAncestorByClass(TAppearanceNode));
+    AssertFalse(IndexOfAnyAncestorByClass(TX3DNode));
   finally FreeAndNil(L) end;
 end;
 
@@ -336,13 +367,10 @@ var
   N: TX3DNode;
   CurrentName: string;
 begin
-  for I := 0 to NodesManager.RegisteredCount - 1 do
+  for I := 0 to InstantiableNodes.Count - 1 do
   begin
-    N := NodesManager.Registered[I].Create;
+    N := InstantiableNodes[I].Create;
     try
-
-      { Writeln(N.X3DType, ' ', Supports(N, IAbstractChildNode)); }
-
       { Test that all fields, events names are different.
 
         Doesn't detect if two alternative names match each other for now!
@@ -390,10 +418,7 @@ begin
 
     They were removed from X3DNodes, since using X3D inheritance
     is obiously much simpler and long-term solution. For example,
-    all children nodes simply inherit from TAbstractChildNode
-    (actually, IAbstractChildNode, and since FPC "Supports" doesn't work
-    we simply have IAbstractChildNode_Descendants lists... still, it's much
-    shorter list than AllowedChildrenNodes).
+    all children nodes simply inherit from TAbstractChildNode.
     This avoids the need to maintain long lists like these below, that would be
     nightmare considering large number of X3D nodes.
 
@@ -408,7 +433,8 @@ begin
       to mix VRML 1.0 inside VRML 2.0. }
 
     { Inventor spec nodes }
-    TIndexedTriangleMeshNode_1, TRotationXYZNode,
+    TIndexedTriangleMeshNode_1,
+    TRotationXYZNode,
 
     { VRML 1.0 spec nodes }
     TAsciiTextNode_1, TConeNode_1, TCubeNode_1, TCylinderNode_1,
@@ -490,7 +516,6 @@ begin
       node, it also doesn't say it's not valid. Common sense says
       it's valid. }
     TInlineLoadControlNode,
-    TLODNode_2,
     //TMaterialNode,
     //TMovieTextureNode,
     TNavigationInfoNode,
@@ -573,18 +598,25 @@ begin
   try
     for I := 0 to AllowedChildrenNodes.Count - 1 do
     try
-      AssertTrue(Supports(AllowedChildrenNodes[I], IAbstractChildNode));
+      AssertTrue(
+        // this check corresponds to TX3DRootNode.FdChildren constraints
+        AllowedChildrenNodes[I].InheritsFrom(TAbstractChildNode) or
+        AllowedChildrenNodes[I].InheritsFrom(TAbstractGeometryNode_1)
+      );
 
       { Just to make sure, check also the created class
         (I don't trust FPC interfaces for now...) }
       N := AllowedChildrenNodes[I].Create;
       try
-        AssertTrue(Supports(N, IAbstractChildNode));
+        AssertTrue(
+          (N is TAbstractChildNode) or
+          (N is TAbstractGeometryNode_1)
+        );
       finally FreeAndNil(N) end;
     except
       on E: Exception do
       begin
-        Writeln('Failed on ', AllowedChildrenNodes[I].ClassName, ' is IAbstractChildNode');
+        Writeln('Failed on ', AllowedChildrenNodes[I].ClassName, ' is IAbstractChildNode|TAbstractGeometryNode_1');
         raise;
       end;
     end;
@@ -852,9 +884,9 @@ begin
     AssertTrue(ContainerFieldList.IndexOfName('Anchor') <> -1);
     AssertTrue(ContainerFieldList.IndexOfName('NotExisting') = -1);
 
-    for I := 0 to NodesManager.RegisteredCount - 1 do
+    for I := 0 to InstantiableNodes.Count - 1 do
     begin
-      N := NodesManager.Registered[I].Create;
+      N := InstantiableNodes[I].Create;
       try
         Index := ContainerFieldList.IndexOfName(N.X3DType);
         if (Index <> -1) and
@@ -881,9 +913,9 @@ var
   I: Integer;
   N: TX3DNode;
 begin
-  for I := 0 to NodesManager.RegisteredCount - 1 do
+  for I := 0 to InstantiableNodes.Count - 1 do
   begin
-    N := NodesManager.Registered[I].Create;
+    N := InstantiableNodes[I].Create;
     try
       if (N is TAbstractGeometryNode) and
          { TContour2DNode_2 is an exception, it has containerField=trimmingContour.
@@ -950,9 +982,9 @@ var
 begin
   State := TX3DGraphTraverseState.Create;
   try
-    for I := 0 to NodesManager.RegisteredCount - 1 do
+    for I := 0 to InstantiableNodes.Count - 1 do
     begin
-      N := NodesManager.Registered[I].Create;
+      N := InstantiableNodes[I].Create;
       try
         if N is TAbstractGeometryNode then
         try
@@ -990,9 +1022,9 @@ var
   I, J: Integer;
   N: TX3DNode;
 begin
-  for I := 0 to NodesManager.RegisteredCount - 1 do
+  for I := 0 to InstantiableNodes.Count - 1 do
   begin
-    N := NodesManager.Registered[I].Create;
+    N := InstantiableNodes[I].Create;
     try
       if N is TAbstractGeometryNode then
       begin
@@ -1018,9 +1050,9 @@ var
   I, J: Integer;
   N: TX3DNode;
 begin
-  for I := 0 to NodesManager.RegisteredCount - 1 do
+  for I := 0 to InstantiableNodes.Count - 1 do
   begin
-    N := NodesManager.Registered[I].Create;
+    N := InstantiableNodes[I].Create;
     try
       if N is TAbstractColorNode then
       begin
@@ -1053,9 +1085,9 @@ var
   I, J: Integer;
   N: TX3DNode;
 begin
-  for I := 0 to NodesManager.RegisteredCount - 1 do
+  for I := 0 to InstantiableNodes.Count - 1 do
   begin
-    N := NodesManager.Registered[I].Create;
+    N := InstantiableNodes[I].Create;
     try
       if N is TAbstractTextureCoordinateNode then
       begin
@@ -1082,46 +1114,50 @@ begin
   end;
 end;
 
-procedure TTestX3DNodes.TestInternalTimeDependentHandlerAvailable;
+procedure TTestX3DNodes.TestTimeDependentFunctionality;
 
-  procedure CheckInternalTimeDependentHandler(N: TX3DNode);
+  procedure CheckTimeDependentFunctionality(const N: TX3DNode);
   var
     B: boolean;
     C: TFloatTime;
+    F: TTimeDependentFunctionality;
   begin
-    { CheckInternalTimeDependentHandler is a separate procedure,
-      to limit lifetime of temporary IAbstractTimeDependentNode,
-      see "Reference counting" notes on
-      http://freepascal.org/docs-html/ref/refse40.html }
-    if Supports(N, IAbstractTimeDependentNode) then
-    begin
-      B := (N as IAbstractTimeDependentNode).InternalTimeDependentHandler.IsActive;
-      C := (N as IAbstractTimeDependentNode).InternalTimeDependentHandler.CycleInterval;
-    end else
-    if (N is TMovieTextureNode) or
+    AssertTrue(
+      N.Functionality(TTimeDependentFunctionality) = N.TimeFunctionality);
+
+    if (N is TAbstractTimeDependentNode) or
+       // this lists some types that should descend already from TAbstractTimeDependentNode
+       (N is TMovieTextureNode) or
        (N is TAudioClipNode) or
        (N is TTimeSensorNode) then
-      Fail('Node ' + N.ClassName + ' should support IAbstractTimeDependentNode');
+      AssertTrue(N.Functionality(TTimeDependentFunctionality) <> nil);
+
+    F := N.Functionality(TTimeDependentFunctionality) as TTimeDependentFunctionality;
+    if F <> nil then
+    begin
+      B := F.IsActive;
+      C := F.CycleInterval;
+    end;
   end;
 
 var
   I: Integer;
   N: TX3DNode;
 begin
-  for I := 0 to NodesManager.RegisteredCount - 1 do
+  for I := 0 to InstantiableNodes.Count - 1 do
   begin
-    N := NodesManager.Registered[I].Create;
+    N := InstantiableNodes[I].Create;
     try
-      CheckInternalTimeDependentHandler(N);
+      CheckTimeDependentFunctionality(N);
     except
-      Writeln('TestInternalTimeDependentHandlerAvailable failed for ', N.ClassName);
+      Writeln('TestTimeDependentFunctionality failed for ', N.ClassName);
       raise;
     end;
     FreeAndNil(N);
   end;
 end;
 
-procedure TTestX3DNodes.TestITransformNode;
+procedure TTestX3DNodes.TestTransformFunctionality;
 
   function ContainsCHTransformField(const N: TX3DNode): boolean;
   var
@@ -1137,22 +1173,28 @@ var
   I: Integer;
   N: TX3DNode;
 begin
-  for I := 0 to NodesManager.RegisteredCount - 1 do
+  for I := 0 to InstantiableNodes.Count - 1 do
   begin
-    N := NodesManager.Registered[I].Create;
+    N := InstantiableNodes[I].Create;
     try
-      { if a node has field with chTransform, it must support ITransformNode.
+      AssertTrue(
+        N.Functionality(TTransformFunctionality) = N.TransformFunctionality);
+
+      { if a node has field with chTransform, it must support TTransformFunctionality.
         TCastleSceneCore.HandleChangeTransform assumes this. }
       if ContainsCHTransformField(N) then
-        AssertTrue(Supports(N, ITransformNode));
+      begin
+        AssertTrue(N.Functionality(TTransformFunctionality) <> nil);
+        AssertTrue(N.TransformFunctionality <> nil);
+      end;
 
-      { if, and only if, a node supports ITransformNode, it must have
+      { if, and only if, a node implements TTransformFunctionality, it must have
         TransformationChange = ntcTransform }
       AssertTrue(
-        Supports(N, ITransformNode) =
+        (N.Functionality(TTransformFunctionality) <> nil) =
         (N.TransformationChange = ntcTransform));
     except
-      Writeln('TestITransformNode failed for ', N.ClassName);
+      Writeln('TestTransformFunctionality failed for ', N.ClassName);
       raise;
     end;
     FreeAndNil(N);
@@ -1553,9 +1595,9 @@ begin
     AssertTrue(IFS.Solid);
 
     IFS.Solid := false;
-    AssertTrue(not IFS.FdSolid.Value);
-    AssertTrue(not IFS.SolidField.Value);
-    AssertTrue(not IFS.Solid);
+    AssertFalse(IFS.FdSolid.Value);
+    AssertFalse(IFS.SolidField.Value);
+    AssertFalse(IFS.Solid);
   finally FreeAndNil(IFS) end;
 
   // LineSet doesn't have FdSolid field, but still Solid property should exist
@@ -1566,9 +1608,9 @@ begin
     AssertTrue(LineSet.Solid);
 
     LineSet.Solid := false;
-    //AssertTrue(not LineSet.FdSolid.Value);
+    //AssertFalse(LineSet.FdSolid.Value);
     AssertTrue(LineSet.SolidField = nil);
-    AssertTrue(not LineSet.Solid);
+    AssertFalse(LineSet.Solid);
   finally FreeAndNil(LineSet) end;
 end;
 
@@ -1584,9 +1626,9 @@ begin
     AssertTrue(IFS.Convex);
 
     IFS.Convex := false;
-    AssertTrue(not IFS.FdConvex.Value);
-    AssertTrue(not IFS.ConvexField.Value);
-    AssertTrue(not IFS.Convex);
+    AssertFalse(IFS.FdConvex.Value);
+    AssertFalse(IFS.ConvexField.Value);
+    AssertFalse(IFS.Convex);
   finally FreeAndNil(IFS) end;
 
   // LineSet doesn't have FdConvex field, but still Convex property should exist
@@ -1597,9 +1639,9 @@ begin
     AssertTrue(LineSet.Convex);
 
     LineSet.Convex := false;
-    //AssertTrue(not LineSet.FdConvex.Value);
+    //AssertFalse(LineSet.FdConvex.Value);
     AssertTrue(LineSet.ConvexField = nil);
-    AssertTrue(not LineSet.Convex);
+    AssertFalse(LineSet.Convex);
   finally FreeAndNil(LineSet) end;
 end;
 
@@ -2071,6 +2113,38 @@ begin
   Assert((Transform.Metadata as TMetadataSetNode).FdValue.Items[4] = MetadataString);
 
   FreeAndNil(Transform);
+end;
+
+procedure TTestX3DNodes.TestNiceName;
+var
+  N: TX3DNode;
+begin
+  N := TX3DNode.Create;
+  AssertEquals('TX3DNode', N.NiceName);
+  FreeAndNil(N);
+
+  N := TX3DRootNode.Create;
+  AssertEquals('Group:TX3DRootNode', N.NiceName);
+  FreeAndNil(N);
+
+  N := TGroupNode.Create;
+  AssertEquals('Group', N.NiceName);
+  FreeAndNil(N);
+
+  N := TX3DNode.Create;
+  N.X3DName := 'Foo';
+  AssertEquals('TX3DNode(Foo)', N.NiceName);
+  FreeAndNil(N);
+
+  N := TX3DRootNode.Create;
+  N.X3DName := 'Foo';
+  AssertEquals('Group:TX3DRootNode(Foo)', N.NiceName);
+  FreeAndNil(N);
+
+  N := TGroupNode.Create;
+  N.X3DName := 'Foo';
+  AssertEquals('Group(Foo)', N.NiceName);
+  FreeAndNil(N);
 end;
 
 initialization

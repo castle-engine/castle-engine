@@ -63,7 +63,7 @@ implementation
 
 uses SysUtils,
   {$ifdef FPC}{$ifdef CASTLE_OBJFPC}CastleGL, {$else}GL, GLExt, {$endif}{$else}OpenGL, OpenGLext, {$endif}
-  CastleLog, X3DNodes, CastleScene, CastleTimeUtils;
+  CastleLog, X3DNodes, CastleScene, CastleTimeUtils, CastleRenderContext;
 
 { Given blending name (as defined by X3D BlendMode node spec,
   http://www.instantreality.org/documentation/nodetype/BlendMode/),
@@ -240,7 +240,7 @@ procedure TBlendingRenderer.RenderBegin;
 begin
   Active := true;
 
-  glDepthMask(GL_FALSE);
+  RenderContext.DepthBufferUpdate := false;
   glEnable(GL_BLEND);
 
   { Set glBlendFunc using RenderOptions.BlendingXxxFactor }
@@ -256,7 +256,7 @@ begin
   Active := false;
 
   { restore glDepthMask and blending state to default values }
-  glDepthMask(GL_TRUE);
+  RenderContext.DepthBufferUpdate := true;
   glDisable(GL_BLEND);
 end;
 

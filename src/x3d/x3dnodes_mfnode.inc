@@ -42,7 +42,7 @@
     FParentNode: TX3DNode;
     AllowedChildren: TAllowedChildren;
     AllowedChildrenClasses: TX3DNodeClassesList;
-    AllowedChildrenInterface: TGUID;
+    AllowedChildrenFunctionality: TNodeFunctionalityClass;
     function GetItems(const Index: Integer): TX3DNode;
   strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
@@ -75,10 +75,10 @@
     constructor Create(const AParentNode: TX3DNode;
       const AExposed: boolean; const AName: string;
       const AAllowedChildrenClasses: TX3DNodeClassesList); overload;
-    { Constructor that allows as children any implementor of given interface. }
+    { Constructor that allows as children any implementor of given functionality. }
     constructor Create(const AParentNode: TX3DNode;
       const AExposed: boolean; const AName: string;
-      const AnAllowedChildrenInterface: TGUID); overload;
+      const AnAllowedChildrenFunctionality: TNodeFunctionalityClass); overload;
     destructor Destroy; override;
 
     procedure Replace(const Index: Integer; Node: TX3DNode);
@@ -243,13 +243,13 @@ end;
 
 constructor TMFNode.Create(const AParentNode: TX3DNode;
   const AExposed: boolean; const AName: string;
-  const AnAllowedChildrenInterface: TGUID);
+  const AnAllowedChildrenFunctionality: TNodeFunctionalityClass);
 begin
   inherited Create(AParentNode, AExposed, AName);
   FParentNode := AParentNode;
 
-  AllowedChildren := acInterface;
-  AllowedChildrenInterface := AnAllowedChildrenInterface;
+  AllowedChildren := acFunctionality;
+  AllowedChildrenFunctionality := AnAllowedChildrenFunctionality;
 
   { In the future, this constructor may also allow setting DefaultItems
     from parameters. For now, this is not needed anywhere.
@@ -439,9 +439,9 @@ end;
 function TMFNode.ChildAllowed(Child: TX3DNode): boolean;
 begin
   case AllowedChildren of
-    acAll      : Result := true;
-    acClasses  : Result := (Child = nil) or (AllowedChildrenClasses.IndexOfAnyAncestor(Child) <> -1);
-    acInterface: Result := (Child = nil) or Supports(Child, AllowedChildrenInterface);
+    acAll          : Result := true;
+    acClasses      : Result := (Child = nil) or (AllowedChildrenClasses.IndexOfAnyAncestor(Child) <> -1);
+    acFunctionality: Result := (Child = nil) or (Child.Functionality(AllowedChildrenFunctionality) <> nil);
     {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('AllowedChildren?');
     {$endif}
@@ -595,8 +595,8 @@ var
 begin
   Result := nil;
   for I := 0 to Count - 1 do
-  { checking ChildAllowed is not really necessary here,
-    and costs time, because it may do a slow Supports() call }
+  { Checking ChildAllowed is not really necessary here,
+    and costs time, because it may do a slow Supports / Functionality call }
   //if ChildAllowed(Items[I]) then
   begin
     Result := Func(ParentNode, FItems[I]);

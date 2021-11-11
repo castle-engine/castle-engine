@@ -34,27 +34,69 @@
     procedure SetTransitionTime(const Value: TFloatTime);
     function GetVisibilityLimit: Single;
     procedure SetVisibilityLimit(const Value: Single);
+    function GetBlendingSort: TOptionalBlendingSort;
+    procedure SetBlendingSort(const Value: TOptionalBlendingSort);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdAvatarSize: TMFFloat;
+    { X3D field "avatarSize". } { }
+    public property FdAvatarSize: TMFFloat read FFdAvatarSize;
     { Set X3D field "avatarSize". } { }
     procedure SetAvatarSize(const Value: array of Single); overload;
     { Set X3D field "avatarSize". } { }
     procedure SetAvatarSize(const Value: TSingleList); overload;
+
+    strict private FFdHeadlight: TSFBool;
+    { X3D field "headlight". } { }
+    public property FdHeadlight: TSFBool read FFdHeadlight;
     { X3D field "headlight". } { }
     property Headlight: Boolean read GetHeadlight write SetHeadlight;
+
+    strict private FFdSpeed: TSFFloat;
+    { X3D field "speed". } { }
+    public property FdSpeed: TSFFloat read FFdSpeed;
     { X3D field "speed". } { }
     property Speed: Single read GetSpeed write SetSpeed;
+
+    strict private FFdTransitionTime: TSFTime;
+    { X3D field "transitionTime". } { }
+    public property FdTransitionTime: TSFTime read FFdTransitionTime;
     { X3D field "transitionTime". } { }
     property TransitionTime: TFloatTime read GetTransitionTime write SetTransitionTime;
+
+    strict private FFdTransitionType: TMFString;
+    { X3D field "transitionType". } { }
+    public property FdTransitionType: TMFString read FFdTransitionType;
     { Set X3D field "transitionType". } { }
     procedure SetTransitionType(const Value: array of string); overload;
     { Set X3D field "transitionType". } { }
     procedure SetTransitionType(const Value: TCastleStringList); overload;
+
+    strict private FFdType: TMFString;
+    { X3D field "type". } { }
+    public property FdType: TMFString read FFdType;
     { Set X3D field "type". } { }
     procedure SetType(const Value: array of string); overload;
     { Set X3D field "type". } { }
     procedure SetType(const Value: TCastleStringList); overload;
+
+    strict private FFdVisibilityLimit: TSFFloat;
+    { X3D field "visibilityLimit". } { }
+    public property FdVisibilityLimit: TSFFloat read FFdVisibilityLimit;
     { X3D field "visibilityLimit". } { }
     property VisibilityLimit: Single read GetVisibilityLimit write SetVisibilityLimit;
+
+    strict private FEventTransitionComplete: TSFBoolEvent;
+    { X3D out event "transitionComplete". } { }
+    public property EventTransitionComplete: TSFBoolEvent read FEventTransitionComplete;
+
+    strict private FFdBlendingSort: TSFStringEnum;
+    { X3D field "blendingSort". } { }
+    public property FdBlendingSort: TSFStringEnum read FFdBlendingSort;
+    { X3D field "blendingSort". } { }
+    property BlendingSort: TOptionalBlendingSort read GetBlendingSort write SetBlendingSort;
 
 {$endif read_interface}
 
@@ -130,6 +172,61 @@ end;
 procedure TNavigationInfoNode.SetVisibilityLimit(const Value: Single);
 begin
   FdVisibilityLimit.Send(Value);
+end;
+
+function TNavigationInfoNode.GetBlendingSort: TOptionalBlendingSort;
+begin
+  Result := TOptionalBlendingSort(FdBlendingSort.EnumValue);
+end;
+
+procedure TNavigationInfoNode.SetBlendingSort(const Value: TOptionalBlendingSort);
+begin
+  FdBlendingSort.SendEnumValue(Ord(Value));
+end;
+
+class function TNavigationInfoNode.ClassX3DType: String;
+begin
+  Result := 'NavigationInfo';
+end;
+
+procedure TNavigationInfoNode.CreateNode;
+begin
+  inherited;
+
+  FFdAvatarSize := TMFFloat.Create(Self, True, 'avatarSize', [0.25, 1.6, 0.75]);
+   FdAvatarSize.ChangeAlways := chNavigationInfo;
+  AddField(FFdAvatarSize);
+
+  FFdHeadlight := TSFBool.Create(Self, True, 'headlight', true);
+   FdHeadlight.ChangeAlways := chHeadLightOn;
+  AddField(FFdHeadlight);
+
+  FFdSpeed := TSFFloat.Create(Self, True, 'speed', 1.0);
+   FdSpeed.ChangeAlways := chNavigationInfo;
+  AddField(FFdSpeed);
+
+  FFdTransitionTime := TSFTime.Create(Self, True, 'transitionTime', 1.0);
+   FdTransitionTime.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdTransitionTime);
+
+  FFdTransitionType := TMFString.Create(Self, True, 'transitionType', ['LINEAR']);
+   FdTransitionType.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdTransitionType);
+
+  FFdType := TMFString.Create(Self, True, 'type', ['EXAMINE', 'ANY']);
+   FdType.ChangeAlways := chNavigationInfo;
+  AddField(FFdType);
+
+  FFdVisibilityLimit := TSFFloat.Create(Self, True, 'visibilityLimit', 0.0);
+   FdVisibilityLimit.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdVisibilityLimit);
+
+  FEventTransitionComplete := TSFBoolEvent.Create(Self, 'transitionComplete', false);
+  AddEvent(FEventTransitionComplete);
+
+  FFdBlendingSort := TSFStringEnum.Create(Self, True, 'blendingSort', BlendingSortNames, Ord(obsDefault));
+   FdBlendingSort.ChangeAlways := chRedisplay;
+  AddField(FFdBlendingSort);
 end;
 
 {$endif read_implementation}

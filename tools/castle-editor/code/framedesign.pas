@@ -48,10 +48,11 @@ type
     LabelEventsInfo: TLabel;
     LabelSizeInfo: TLabel;
     LabelSelectedViewport: TLabel;
+    MenuItemSeparator898989: TMenuItem;
+    MenuItemViewportNavigationNone: TMenuItem;
     MenuTreeViewItemSeparator127u30130120983: TMenuItem;
     MenuTreeViewItemAddNonVisual: TMenuItem;
     MenuTreeViewItemAddBehavior: TMenuItem;
-    MenuViewportNavigation2D: TMenuItem;
     MenuTreeViewItemRename: TMenuItem;
     MenuTreeViewItemAddTransform: TMenuItem;
     MenuTreeViewItemAddUserInterface: TMenuItem;
@@ -59,7 +60,6 @@ type
     MenuTreeViewItemPaste: TMenuItem;
     MenuTreeViewItemCopy: TMenuItem;
     MenuTreeViewItemDuplicate: TMenuItem;
-    MenuViewportNavigationFly: TMenuItem;
     MenuItemViewportCameraCurrentFromInitial: TMenuItem;
     MenuItemSeparator123: TMenuItem;
     MenuItemSeparator2: TMenuItem;
@@ -68,10 +68,7 @@ type
     MenuItemViewportCameraViewAll: TMenuItem;
     MenuItemSeparator1: TMenuItem;
     MenuItemViewportSort2D: TMenuItem;
-    MenuViewportNavigationWalk: TMenuItem;
-    MenuViewportNavigationThirdPerson: TMenuItem;
-    MenuViewportNavigationExamine: TMenuItem;
-    MenuViewportNavigationNone: TMenuItem;
+    MenuItemViewportChangeNavigation: TMenuItem;
     PanelLayoutTop: TPanel;
     PanelLayoutTransform: TPanel;
     PanelEventsInfo: TPanel;
@@ -140,12 +137,7 @@ type
     procedure MenuItemViewportSort2DClick(Sender: TObject);
     procedure MenuTreeViewItemPasteClick(Sender: TObject);
     procedure MenuTreeViewPopup(Sender: TObject);
-    procedure MenuViewportNavigation2DClick(Sender: TObject);
-    procedure MenuViewportNavigationExamineClick(Sender: TObject);
-    procedure MenuViewportNavigationFlyClick(Sender: TObject);
-    procedure MenuViewportNavigationNoneClick(Sender: TObject);
-    procedure MenuViewportNavigationWalkClick(Sender: TObject);
-    procedure MenuViewportNavigationThirdPersonClick(Sender: TObject);
+    procedure MenuItemViewportChangeNavigationNoneClick(Sender: TObject);
     procedure ClearDesign;
     procedure RenameSelectedItem;
     procedure PerformUndoRedo(const UHE: TUndoHistoryElement);
@@ -241,6 +233,7 @@ type
     procedure FrameAnchorsChange(Sender: TObject);
     procedure AdjustUserInterfaceAnchorsToKeepRect(const UI: TCastleUserInterface;
       const RenderRectBeforeChange: TFloatRectangle);
+    procedure MenuItemViewportChangeNavigationClick(Sender: TObject);
     // Save and restore selection.
     // Careful: you can use it only if the operation between will *never* free any of them.
     //procedure SelectionRestoreAndFree(var Selection: Classes.TList);
@@ -913,12 +906,12 @@ procedure TDesignFrame.TDesignerLayer.Render;
           at least the beginning looks OK.
         - We don't want left-bottom corner, as that's where child controls
           are placed by default, so the text would be over them too often. }
-      Rect.Anchor(hpLeft, UIRect.Left);
+      Rect.Anchor(hpLeft, Max(0, UIRect.Left));
       Rect.Anchor(vpBottom, UIRect.Top);
 
       if Rect.RenderRect.Top > Rect.Container.Height then
         // put Rect inside UI, otherwise it would be offscreen
-        Rect.Anchor(vpTop, vpBottom, UIRect.Top);
+        Rect.Anchor(vpTop, vpBottom, Min(Rect.Container.Height, UIRect.Top));
     end else
       Rect.Exists := false;
   end;
@@ -1062,11 +1055,19 @@ begin
   ChangeMode(moModifyUi); // most expected default, it seems
 
   BuildComponentsMenu(
+    nil,
     MenuTreeViewItemAddUserInterface,
     MenuTreeViewItemAddTransform,
     MenuTreeViewItemAddBehavior,
     MenuTreeViewItemAddNonVisual,
     @MenuItemAddComponentClick);
+  BuildComponentsMenu(
+    MenuItemViewportChangeNavigation,
+    nil,
+    nil,
+    nil,
+    nil,
+    @MenuItemViewportChangeNavigationClick);
   // Input_Interact (for gizmos) reacts to both left and right
   Input_Interact.MouseButton2Use := true;
   Input_Interact.MouseButton2 := buttonRight;
@@ -3247,11 +3248,6 @@ begin
   MenuTreeView.PopupComponent := ControlsTree; // I'm not sure what it means, something like menu owner?
 end;
 
-procedure TDesignFrame.MenuViewportNavigation2DClick(Sender: TObject);
-begin
-  ChangeViewportNavigation(TCastle2DNavigation.Create(DesignOwner));
-end;
-
 procedure TDesignFrame.MenuTreeViewItemDuplicateClick(Sender: TObject);
 begin
   DuplicateComponent;
@@ -3399,40 +3395,23 @@ begin
   ModifiedOutsideObjectInspector('Change Viewport Navigation for ' + V.Name, ucHigh);
 end;
 
-procedure TDesignFrame.MenuViewportNavigationNoneClick(Sender: TObject);
+procedure TDesignFrame.MenuItemViewportChangeNavigationNoneClick(Sender: TObject);
 begin
   ChangeViewportNavigation(nil);
 end;
 
-procedure TDesignFrame.MenuViewportNavigationExamineClick(Sender: TObject);
-begin
-  ChangeViewportNavigation(TCastleExamineNavigation.Create(DesignOwner));
-end;
-
-procedure TDesignFrame.MenuViewportNavigationFlyClick(Sender: TObject);
+procedure TDesignFrame.MenuItemViewportChangeNavigationClick(Sender: TObject);
 var
-  W: TCastleWalkNavigation;
+  R: TRegisteredComponent;
+  Nav: TCastleNavigation;
 begin
-  W := TCastleWalkNavigation.Create(DesignOwner);
-  W.Gravity := false;
-  ChangeViewportNavigation(W);
-end;
+  R := TRegisteredComponent(Pointer((Sender as TComponent).Tag));
 
-procedure TDesignFrame.MenuViewportNavigationWalkClick(Sender: TObject);
-var
-  W: TCastleWalkNavigation;
-begin
-  W := TCastleWalkNavigation.Create(DesignOwner);
-  W.Gravity := true;
-  ChangeViewportNavigation(W);
-end;
+  Nav := R.ComponentClass.Create(DesignOwner) as TCastleNavigation;
+  if Assigned(R.OnCreate) then // call OnCreate ASAP after constructor
+    R.OnCreate(Nav);
 
-procedure TDesignFrame.MenuViewportNavigationThirdPersonClick(Sender: TObject);
-var
-  N: TCastleThirdPersonNavigation;
-begin
-  N := TCastleThirdPersonNavigation.Create(DesignOwner);
-  ChangeViewportNavigation(N);
+  ChangeViewportNavigation(Nav);
 end;
 
 procedure TDesignFrame.SetParent(AParent: TWinControl);

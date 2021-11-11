@@ -53,7 +53,7 @@
       var Node: TX3DNode; var Event: TX3DEvent;
       const DestEnding: boolean);
 
-    procedure EventReceive(Event: TX3DEvent; Value: TX3DField;
+    procedure EventReceive(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
   public
     constructor Create;
@@ -288,7 +288,7 @@ begin
 end;
 
 procedure TX3DRoute.EventReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   Assert(Event = SourceEvent);
 

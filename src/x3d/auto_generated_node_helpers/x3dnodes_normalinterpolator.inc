@@ -26,6 +26,8 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
     { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: array of TVector3); overload;
     { Set X3D field "keyValue". } { }
@@ -45,6 +47,16 @@ end;
 procedure TNormalInterpolatorNode.SetKeyValue(const Value: TVector3List);
 begin
   FdKeyValue.Send(Value);
+end;
+
+class function TNormalInterpolatorNode.ClassX3DType: String;
+begin
+  Result := 'NormalInterpolator';
+end;
+
+procedure TNormalInterpolatorNode.CreateNode;
+begin
+  inherited;
 end;
 
 {$endif read_implementation}

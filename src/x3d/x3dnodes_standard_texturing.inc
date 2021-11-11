@@ -289,12 +289,13 @@
   end;
 
   { Texture image loaded from a file. }
-  TImageTextureNode = class(TAbstractX3DTexture2DNode, IAbstractUrlObject)
+  TImageTextureNode = class(TAbstractX3DTexture2DNode)
   strict private
     function LoadOptions: TLoadImageOptions;
   strict protected
     procedure LoadTextureData(out WasCacheUsed: boolean); override;
   public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -340,120 +341,47 @@
   end;
 
   { Movie file, that can be played and displayed as a texture. }
-  TMovieTextureNode = class(TAbstractX3DTexture2DNode, IAbstractSoundSourceNode,
-    IAbstractUrlObject, IAbstractTimeDependentNode)
+  TMovieTextureNode = class(TAbstractX3DTexture2DNode)
   strict private
     FDuration: TFloatTime;
-    FInternalTimeDependentHandler: TInternalTimeDependentHandler;
+    FTimeFunctionality: TTimeDependentFunctionality;
+    { Final length (in seconds) of this movie, adjusted by Speed.
+      See @link(TTimeDependentFunctionality.CycleInterval),
+      this must return the relevant value. }
     function GetCycleInterval: TFloatTime;
-  private
-    function GetInternalTimeDependentHandler: TInternalTimeDependentHandler;
+    function IgnoreWhenActive(const ChangingField: TX3DField; const Event: TX3DEvent;
+      const Value: TX3DField; const Time: TX3DTime): Boolean;
+    function IgnoreStopTime(const ChangingField: TX3DField; const Event: TX3DEvent;
+      const Value: TX3DField; const Time: TX3DTime): Boolean;
   strict protected
     procedure LoadTextureData(out WasCacheUsed: boolean); override;
   public
-    procedure CreateNode; override;
-    destructor Destroy; override;
-
-    class function ClassX3DType: string; override;
-
-    strict private FFdDescription: TSFString;
-    public property FdDescription: TSFString read FFdDescription;
-
-    strict private FFdLoop: TSFBool;
-    public property FdLoop: TSFBool read FFdLoop;
-
-    strict private FFdPauseTime: TSFTime;
-    public property FdPauseTime: TSFTime read FFdPauseTime;
-
-    strict private FFdResumeTime: TSFTime;
-    public property FdResumeTime: TSFTime read FFdResumeTime;
-
-    strict private FFdSpeed: TSFFloat;
-    public property FdSpeed: TSFFloat read FFdSpeed;
-
-    strict private FFdStartTime: TSFTime;
-    public property FdStartTime: TSFTime read FFdStartTime;
-
-    strict private FFdStopTime: TSFTime;
-    public property FdStopTime: TSFTime read FFdStopTime;
-
-    strict private FFdUrl: TMFString;
-    public property FdUrl: TMFString read FFdUrl;
-
-    strict private FFdFlipVertically: TSFBool;
-    public property FdFlipVertically: TSFBool read FFdFlipVertically;
-
-    { Event out } { }
-    strict private FEventDuration_changed: TSFTimeEvent;
-    public property EventDuration_changed: TSFTimeEvent read FEventDuration_changed;
-
-    { Event out } { }
-    strict private FEventElapsedTime: TSFTimeEvent;
-    public property EventElapsedTime: TSFTimeEvent read FEventElapsedTime;
-
-    { Event out } { }
-    strict private FEventIsActive: TSFBoolEvent;
-    public property EventIsActive: TSFBoolEvent read FEventIsActive;
-
-    { Event out } { }
-    strict private FEventIsPaused: TSFBoolEvent;
-    public property EventIsPaused: TSFBoolEvent read FEventIsPaused;
-
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     function TextureDescription: string; override;
 
-    { Internal time-dependent logic handler. }
-    property InternalTimeDependentHandler: TInternalTimeDependentHandler
-      read FInternalTimeDependentHandler;
-
-    { Duration for this time-dependent node.
+    { Duration of this movie, in seconds.
       Duration is initialized from loaded video length (default is -1).
       So it's automatically initialized when you call IsTextureVideo,
       TextureVideo methods.
 
-      cycleInterval is just set to duration scaled by 1/Abs(speed),
-      like required by X3D spec.
+      This is not multiplied by @link(Speed).
+      Use @code(MyMovieTextureNode.TimeFunctionality.CycleInterval)
+      to get this duration multiplied by Abs(Speed).
 
-      Duration (and so, also cycleInterval) is not reset when video
-      is freed (like when you set
+      This duration is not reset when video is freed (like when you set
       IsTextureLoaded to @false, maybe implicitly by calling
       TCastleSceneCore.FreeResources with frTextureDataInNodes).
       This way this is available even you freed the texture video data to
       save memory. }
     property Duration: TFloatTime read FDuration;
 
-    function IsActive: boolean;
-    function IsPaused: boolean;
-    function ElapsedTime: TFloatTime;
-    function ElapsedTimeInCycle: TFloatTime;
-
-    {$I auto_generated_node_helpers/x3dnodes_movietexture.inc}
+  {$I auto_generated_node_helpers/x3dnodes_movietexture.inc}
   end;
 
   { Application of several individual textures on top of each other,
     used instead of a single texture when desired. }
   TMultiTextureNode = class(TAbstractTextureNode)
   public
-    procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdAlpha: TSFFloat;
-    public property FdAlpha: TSFFloat read FFdAlpha;
-
-    strict private FFdColor: TSFColor;
-    public property FdColor: TSFColor read FFdColor;
-
-    strict private FFdFunction: TMFString;
-    public property FdFunction: TMFString read FFdFunction;
-
-    strict private FFdMode: TMFString;
-    public property FdMode: TMFString read FFdMode;
-
-    strict private FFdSource: TMFString;
-    public property FdSource: TMFString read FFdSource;
-
-    strict private FFdTexture: TMFNode;
-    public property FdTexture: TMFNode read FFdTexture;
-
     function AlphaChannelData: TAlphaChannel; override;
 
     {$I auto_generated_node_helpers/x3dnodes_multitexture.inc}
@@ -902,6 +830,12 @@ end;
 
 { TImageTextureNode ---------------------------------------------------------- }
 
+constructor TImageTextureNode.Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  AddFunctionality(TUrlFunctionality.Create(Self));
+end;
+
 procedure TImageTextureNode.CreateNode;
 begin
   inherited;
@@ -1026,90 +960,43 @@ begin
     Scene.InternalChangedField(FdUrl);
 end;
 
-procedure TMovieTextureNode.CreateNode;
+constructor TMovieTextureNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-
-  FFdDescription := TSFString.Create(Self, true, 'description', '');
-  AddField(FFdDescription);
-
-  FFdLoop := TSFBool.Create(Self, true, 'loop', false);
-  AddField(FFdLoop);
-
-  FFdPauseTime := TSFTime.Create(Self, true, 'pauseTime', 0);
-   FdPauseTime.ChangeAlways := chTimeStopStart;
-  AddField(FFdPauseTime);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdResumeTime := TSFTime.Create(Self, true, 'resumeTime', 0);
-   FdResumeTime.ChangeAlways := chTimeStopStart;
-  AddField(FFdResumeTime);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdSpeed := TSFFloat.Create(Self, true, 'speed', 1.0);
-  AddField(FFdSpeed);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdStartTime := TSFTimeIgnoreWhenActive.Create(Self, true, 'startTime', 0);
-   FdStartTime.ChangeAlways := chTimeStopStart;
-  AddField(FFdStartTime);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdStopTime := TSFStopTime.Create(Self, true, 'stopTime', 0);
-   FdStopTime.ChangeAlways := chTimeStopStart;
-  AddField(FFdStopTime);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdUrl := TMFString.Create(Self, true, 'url', []);
-   FdUrl.ChangeAlways := chTextureImage;
-  AddField(FFdUrl);
-  { X3D specification comment: [URI] }
-
-  FFdFlipVertically := TSFBool.Create(Self, false, 'flipVertically', false);
-  AddField(FFdFlipVertically);
-
-  FEventDuration_changed := TSFTimeEvent.Create(Self, 'duration_changed', false);
-  AddEvent(FEventDuration_changed);
-
-  FEventElapsedTime := TSFTimeEvent.Create(Self, 'elapsedTime', false);
-  AddEvent(FEventElapsedTime);
-
-  FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
-  AddEvent(FEventIsActive);
-
-  FEventIsPaused := TSFBoolEvent.Create(Self, 'isPaused', false);
-  AddEvent(FEventIsPaused);
-
+  FdStartTime.OnInputIgnore := {$ifdef CASTLE_OBJFPC}@{$endif} IgnoreWhenActive;
+  FdStopTime.OnInputIgnore := {$ifdef CASTLE_OBJFPC}@{$endif} IgnoreStopTime;
   FDuration := -1;
 
-  FInternalTimeDependentHandler := TInternalTimeDependentHandler.Create;
-  FInternalTimeDependentHandler.Node := Self;
-  FInternalTimeDependentHandler.Fdloop := FdLoop;
-  FInternalTimeDependentHandler.FdpauseTime := FdPauseTime;
-  FInternalTimeDependentHandler.FdresumeTime := FdResumeTime;
-  FInternalTimeDependentHandler.FdstartTime := FdStartTime;
-  FInternalTimeDependentHandler.FdstopTime := FdStopTime;
-  FInternalTimeDependentHandler.EventisActive:= EventisActive;
-  FInternalTimeDependentHandler.EventisPaused := EventisPaused;
-  FInternalTimeDependentHandler.EventelapsedTime := EventelapsedTime;
-  FInternalTimeDependentHandler.OnCycleInterval :=
-    {$ifdef CASTLE_OBJFPC}@{$endif} GetCycleInterval;
+  AddFunctionality(TUrlFunctionality.Create(Self));
+
+  FTimeFunctionality := TTimeDependentFunctionality.Create(Self);
+  FTimeFunctionality.Fdloop := FdLoop;
+  FTimeFunctionality.FdpauseTime := FdPauseTime;
+  FTimeFunctionality.FdresumeTime := FdResumeTime;
+  FTimeFunctionality.FdstartTime := FdStartTime;
+  FTimeFunctionality.FdstopTime := FdStopTime;
+  FTimeFunctionality.EventisActive:= EventisActive;
+  FTimeFunctionality.EventisPaused := EventisPaused;
+  FTimeFunctionality.EventelapsedTime := EventelapsedTime;
+  FTimeFunctionality.OnCycleInterval := {$ifdef CASTLE_OBJFPC}@{$endif} GetCycleInterval;
+
+  AddFunctionality(FTimeFunctionality);
 end;
 
-function TMovieTextureNode.GetInternalTimeDependentHandler: TInternalTimeDependentHandler;
+function TMovieTextureNode.IgnoreWhenActive(
+  const ChangingField: TX3DField; const Event: TX3DEvent;
+  const Value: TX3DField; const Time: TX3DTime): Boolean;
 begin
-  Result := FInternalTimeDependentHandler;
+  Result := {(InternalNeverIgnore = 0) and} FTimeFunctionality.IsActive;
 end;
 
-destructor TMovieTextureNode.Destroy;
+function TMovieTextureNode.IgnoreStopTime(
+  const ChangingField: TX3DField; const Event: TX3DEvent;
+  const Value: TX3DField; const Time: TX3DTime): Boolean;
 begin
-  FreeAndNil(FInternalTimeDependentHandler);
-  inherited;
-end;
-
-class function TMovieTextureNode.ClassX3DType: string;
-begin
-  Result := 'MovieTexture';
+  Result := {(InternalNeverIgnore = 0) and}
+    FTimeFunctionality.IsActive and
+    ( (Value as TSFTime).Value <= FdStartTime.Value );
 end;
 
 procedure TMovieTextureNode.LoadTextureData(out WasCacheUsed: boolean);
@@ -1162,67 +1049,11 @@ begin
     Result := 0;
 end;
 
-function TMovieTextureNode.IsActive: boolean;
-begin
-  Result := InternalTimeDependentHandler.IsActive;
-end;
-
-function TMovieTextureNode.IsPaused: boolean;
-begin
-  Result := InternalTimeDependentHandler.IsPaused;
-end;
-
-function TMovieTextureNode.ElapsedTime: TFloatTime;
-begin
-  Result := InternalTimeDependentHandler.ElapsedTime;
-end;
-
-function TMovieTextureNode.ElapsedTimeInCycle: TFloatTime;
-begin
-  Result := InternalTimeDependentHandler.ElapsedTimeInCycle;
-end;
-
 function TMovieTextureNode.TextureDescription: string;
 begin
   if TextureUsedFullUrl <> '' then
     Result := 'video from file "' + TextureUsedFullUrl + '"' else
     Result := 'none';
-end;
-
-procedure TMultiTextureNode.CreateNode;
-begin
-  inherited;
-
-  FFdAlpha := TSFFloat.Create(Self, true, 'alpha', 1);
-   FdAlpha.ChangeAlways := chTextureRendererProperties;
-  AddField(FFdAlpha);
-  { X3D specification comment: [0,1] }
-
-  FFdColor := TSFColor.Create(Self, true, 'color', Vector3(1, 1, 1));
-   FdColor.ChangeAlways := chTextureRendererProperties;
-  AddField(FFdColor);
-  { X3D specification comment: [0,1] }
-
-  FFdFunction := TMFString.Create(Self, true, 'function', []);
-   FdFunction.ChangeAlways := chTextureRendererProperties;
-  AddField(FFdFunction);
-
-  FFdMode := TMFString.Create(Self, true, 'mode', []);
-   FdMode.ChangeAlways := chTextureRendererProperties;
-  AddField(FFdMode);
-
-  FFdSource := TMFString.Create(Self, true, 'source', []);
-   FdSource.ChangeAlways := chTextureRendererProperties;
-  AddField(FFdSource);
-
-  FFdTexture := TMFNode.Create(Self, true, 'texture', [TAbstractSingleTextureNode]);
-   FdTexture.ChangeAlways := chTextureRendererProperties;
-  AddField(FFdTexture);
-end;
-
-class function TMultiTextureNode.ClassX3DType: string;
-begin
-  Result := 'MultiTexture';
 end;
 
 function TMultiTextureNode.AlphaChannelData: TAlphaChannel;

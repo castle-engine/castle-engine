@@ -22,14 +22,24 @@
   - and regenerate include files by running x3d-nodes-to-pascal .
 
   The documentation for properties should go to x3dnodes_documentation.txt . }
-{$ifdef FPC}
+
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdKeyValue: TMFVec3f;
+    { X3D field "keyValue". } { }
+    public property FdKeyValue: TMFVec3f read FFdKeyValue;
     { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: array of TVector3); overload;
     { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: TVector3List); overload;
+
+    strict private FEventValue_changed: TSFVec3fEvent;
+    { X3D out event "value_changed". } { }
+    public property EventValue_changed: TSFVec3fEvent read FEventValue_changed;
 
 {$endif read_interface}
 
@@ -47,5 +57,21 @@ begin
   FdKeyValue.Send(Value);
 end;
 
+class function TCubicBezierPositionInterpolatorNode.ClassX3DType: String;
+begin
+  Result := 'CubicBezierPositionInterpolator';
+end;
+
+procedure TCubicBezierPositionInterpolatorNode.CreateNode;
+begin
+  inherited;
+
+  FFdKeyValue := TMFVec3f.Create(Self, True, 'keyValue', []);
+   FdKeyValue.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdKeyValue);
+
+  FEventValue_changed := TSFVec3fEvent.Create(Self, 'value_changed', false);
+  AddEvent(FEventValue_changed);
+end;
+
 {$endif read_implementation}
-{$endif}

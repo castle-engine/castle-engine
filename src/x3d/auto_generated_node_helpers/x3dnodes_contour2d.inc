@@ -25,11 +25,48 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FEventAddChildren: TMFNodeEvent;
+    { X3D in event "addChildren". } { }
+    public property EventAddChildren: TMFNodeEvent read FEventAddChildren;
+
+    strict private FEventRemoveChildren: TMFNodeEvent;
+    { X3D in event "removeChildren". } { }
+    public property EventRemoveChildren: TMFNodeEvent read FEventRemoveChildren;
+
+    strict private FFdChildren: TMFNode;
+    { X3D field "children". } { }
+    public property FdChildren: TMFNode read FFdChildren;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TContour2DNode ----------------------------------------------- }
+
+class function TContour2DNode.ClassX3DType: String;
+begin
+  Result := 'Contour2D';
+end;
+
+procedure TContour2DNode.CreateNode;
+begin
+  inherited;
+
+  FEventAddChildren := TMFNodeEvent.Create(Self, 'addChildren', true);
+  AddEvent(FEventAddChildren);
+
+  FEventRemoveChildren := TMFNodeEvent.Create(Self, 'removeChildren', true);
+  AddEvent(FEventRemoveChildren);
+
+  FFdChildren := TMFNode.Create(Self, True, 'children', [TNurbsCurve2DNode, TContourPolyline2DNode]);
+   FdChildren.ChangeAlways := chEverything;
+  AddField(FFdChildren);
+
+  DefaultContainerField := 'trimmingContour';
+end;
 
 {$endif read_implementation}

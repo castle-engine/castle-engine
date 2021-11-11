@@ -43,26 +43,80 @@
     function GetFlipVertically: Boolean;
     procedure SetFlipVertically(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdDescription: TSFString;
+    { X3D field "description". } { }
+    public property FdDescription: TSFString read FFdDescription;
     { X3D field "description". } { }
     property Description: String read GetDescription write SetDescription;
+
+    strict private FFdLoop: TSFBool;
+    { X3D field "loop". } { }
+    public property FdLoop: TSFBool read FFdLoop;
     { X3D field "loop". } { }
     property Loop: Boolean read GetLoop write SetLoop;
+
+    strict private FFdPauseTime: TSFTime;
+    { X3D field "pauseTime". } { }
+    public property FdPauseTime: TSFTime read FFdPauseTime;
     { X3D field "pauseTime". } { }
     property PauseTime: TFloatTime read GetPauseTime write SetPauseTime;
+
+    strict private FFdResumeTime: TSFTime;
+    { X3D field "resumeTime". } { }
+    public property FdResumeTime: TSFTime read FFdResumeTime;
     { X3D field "resumeTime". } { }
     property ResumeTime: TFloatTime read GetResumeTime write SetResumeTime;
+
+    strict private FFdSpeed: TSFFloat;
+    { X3D field "speed". } { }
+    public property FdSpeed: TSFFloat read FFdSpeed;
     { X3D field "speed". } { }
     property Speed: Single read GetSpeed write SetSpeed;
+
+    strict private FFdStartTime: TSFTime;
+    { X3D field "startTime". } { }
+    public property FdStartTime: TSFTime read FFdStartTime;
     { X3D field "startTime". } { }
     property StartTime: TFloatTime read GetStartTime write SetStartTime;
+
+    strict private FFdStopTime: TSFTime;
+    { X3D field "stopTime". } { }
+    public property FdStopTime: TSFTime read FFdStopTime;
     { X3D field "stopTime". } { }
     property StopTime: TFloatTime read GetStopTime write SetStopTime;
+
+    strict private FFdUrl: TMFString;
+    { X3D field "url". } { }
+    public property FdUrl: TMFString read FFdUrl;
     { Set X3D field "url". } { }
     procedure SetUrl(const Value: array of string); overload;
     { Set X3D field "url". } { }
     procedure SetUrl(const Value: TCastleStringList); overload;
+
+    strict private FFdFlipVertically: TSFBool;
+    { X3D field "flipVertically". } { }
+    public property FdFlipVertically: TSFBool read FFdFlipVertically;
     { X3D field "flipVertically". } { }
     property FlipVertically: Boolean read GetFlipVertically write SetFlipVertically;
+
+    strict private FEventDuration_changed: TSFTimeEvent;
+    { X3D out event "duration_changed". } { }
+    public property EventDuration_changed: TSFTimeEvent read FEventDuration_changed;
+
+    strict private FEventElapsedTime: TSFTimeEvent;
+    { X3D out event "elapsedTime". } { }
+    public property EventElapsedTime: TSFTimeEvent read FEventElapsedTime;
+
+    strict private FEventIsActive: TSFBoolEvent;
+    { X3D out event "isActive". } { }
+    public property EventIsActive: TSFBoolEvent read FEventIsActive;
+
+    strict private FEventIsPaused: TSFBoolEvent;
+    { X3D out event "isPaused". } { }
+    public property EventIsPaused: TSFBoolEvent read FEventIsPaused;
 
 {$endif read_interface}
 
@@ -158,6 +212,64 @@ end;
 procedure TMovieTextureNode.SetFlipVertically(const Value: Boolean);
 begin
   FdFlipVertically.Send(Value);
+end;
+
+class function TMovieTextureNode.ClassX3DType: String;
+begin
+  Result := 'MovieTexture';
+end;
+
+procedure TMovieTextureNode.CreateNode;
+begin
+  inherited;
+
+  FFdDescription := TSFString.Create(Self, True, 'description', '');
+   FdDescription.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDescription);
+
+  FFdLoop := TSFBool.Create(Self, True, 'loop', false);
+   FdLoop.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdLoop);
+
+  FFdPauseTime := TSFTime.Create(Self, True, 'pauseTime', 0);
+   FdPauseTime.ChangeAlways := chTimeStopStart;
+  AddField(FFdPauseTime);
+
+  FFdResumeTime := TSFTime.Create(Self, True, 'resumeTime', 0);
+   FdResumeTime.ChangeAlways := chTimeStopStart;
+  AddField(FFdResumeTime);
+
+  FFdSpeed := TSFFloat.Create(Self, True, 'speed', 1.0);
+   FdSpeed.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSpeed);
+
+  FFdStartTime := TSFTime.Create(Self, True, 'startTime', 0);
+   FdStartTime.ChangeAlways := chTimeStopStart;
+  AddField(FFdStartTime);
+
+  FFdStopTime := TSFTime.Create(Self, True, 'stopTime', 0);
+   FdStopTime.ChangeAlways := chTimeStopStart;
+  AddField(FFdStopTime);
+
+  FFdUrl := TMFString.Create(Self, True, 'url', []);
+   FdUrl.ChangeAlways := chTextureImage;
+  AddField(FFdUrl);
+
+  FFdFlipVertically := TSFBool.Create(Self, False, 'flipVertically', false);
+   FdFlipVertically.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdFlipVertically);
+
+  FEventDuration_changed := TSFTimeEvent.Create(Self, 'duration_changed', false);
+  AddEvent(FEventDuration_changed);
+
+  FEventElapsedTime := TSFTimeEvent.Create(Self, 'elapsedTime', false);
+  AddEvent(FEventElapsedTime);
+
+  FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
+  AddEvent(FEventIsActive);
+
+  FEventIsPaused := TSFBoolEvent.Create(Self, 'isPaused', false);
+  AddEvent(FEventIsPaused);
 end;
 
 {$endif read_implementation}

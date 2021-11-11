@@ -26,6 +26,8 @@
 {$ifdef read_interface}
 
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
     { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: array of TVector4); overload;
     { Set X3D field "keyValue". } { }
@@ -45,6 +47,16 @@ end;
 procedure TOrientationInterpolatorNode.SetKeyValue(const Value: TVector4List);
 begin
   FdKeyValue.Send(Value);
+end;
+
+class function TOrientationInterpolatorNode.ClassX3DType: String;
+begin
+  Result := 'OrientationInterpolator';
+end;
+
+procedure TOrientationInterpolatorNode.CreateNode;
+begin
+  inherited;
 end;
 
 {$endif read_implementation}

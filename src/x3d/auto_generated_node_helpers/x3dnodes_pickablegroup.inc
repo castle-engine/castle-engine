@@ -29,10 +29,20 @@
     function GetPickable: Boolean;
     procedure SetPickable(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdObjectType: TMFString;
+    { X3D field "objectType". } { }
+    public property FdObjectType: TMFString read FFdObjectType;
     { Set X3D field "objectType". } { }
     procedure SetObjectType(const Value: array of string); overload;
     { Set X3D field "objectType". } { }
     procedure SetObjectType(const Value: TCastleStringList); overload;
+
+    strict private FFdPickable: TSFBool;
+    { X3D field "pickable". } { }
+    public property FdPickable: TSFBool read FFdPickable;
     { X3D field "pickable". } { }
     property Pickable: Boolean read GetPickable write SetPickable;
 
@@ -60,6 +70,24 @@ end;
 procedure TPickableGroupNode.SetPickable(const Value: Boolean);
 begin
   FdPickable.Send(Value);
+end;
+
+class function TPickableGroupNode.ClassX3DType: String;
+begin
+  Result := 'PickableGroup';
+end;
+
+procedure TPickableGroupNode.CreateNode;
+begin
+  inherited;
+
+  FFdObjectType := TMFString.Create(Self, True, 'objectType', ['ALL']);
+   FdObjectType.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdObjectType);
+
+  FFdPickable := TSFBool.Create(Self, True, 'pickable', true);
+   FdPickable.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdPickable);
 end;
 
 {$endif read_implementation}
