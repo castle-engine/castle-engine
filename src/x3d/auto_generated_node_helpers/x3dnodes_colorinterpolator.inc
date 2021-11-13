@@ -28,10 +28,18 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
+
+    strict private FFdKeyValue: TMFColor;
+    { X3D field "keyValue". } { }
+    public property FdKeyValue: TMFColor read FFdKeyValue;
     { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: array of TCastleColorRGB); overload;
     { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: TVector3List); overload;
+
+    strict private FEventValue_changed: TSFColorEvent;
+    { X3D out event "value_changed". } { }
+    public property EventValue_changed: TSFColorEvent read FEventValue_changed;
 
 {$endif read_interface}
 
@@ -57,6 +65,13 @@ end;
 procedure TColorInterpolatorNode.CreateNode;
 begin
   inherited;
+
+  FFdKeyValue := TMFColor.Create(Self, True, 'keyValue', []);
+   FdKeyValue.ChangeAlways := chNone;
+  AddField(FFdKeyValue);
+
+  FEventValue_changed := TSFColorEvent.Create(Self, 'value_changed', false);
+  AddEvent(FEventValue_changed);
 end;
 
 {$endif read_implementation}
