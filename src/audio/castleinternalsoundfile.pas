@@ -398,9 +398,9 @@ class function TWAVReader.Read(const Url: string; const Stream: TStream;
   a little more updated. }
 
 type
-  TID = array [0..3] of char;
+  TID = array [0..3] of AnsiChar;
 
-  function IdCompare(const id: TID; const s: string): boolean;
+  function IdCompare(const id: TID; const s: AnsiString): boolean;
   begin
     Result := (Length(s) = 4) and (id[0] = s[1]) and (id[1] = s[2])
                               and (id[2] = s[3]) and (id[3] = s[4]);
@@ -409,7 +409,7 @@ type
 type
   TWavChunkHeader = packed record
     ID: TID;
-    Len: LongWord; {< This *doesn't* include SizeOf(TWavChunkHeader) itself. }
+    Len: UInt32; {< This *doesn't* include SizeOf(TWavChunkHeader) itself. }
   end;
 
   { The whole WAV file is just one RIFF chunk. }
