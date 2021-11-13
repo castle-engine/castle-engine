@@ -74,7 +74,7 @@ var
 
 implementation
 
-uses SysUtils,
+uses SysUtils, TypInfo,
   CastleProgress, CastleWindow, CastleFilesUtils, CastleFindFiles,
   CastleOpenDocument, CastleMessages, CastleLog, CastleApplicationProperties, CastleUtils;
 
@@ -82,6 +82,16 @@ procedure FindFilesCallback(const FileInfo: TFileInfo; Data: Pointer; var StopSe
 begin
   WritelnLog('FindFiles', 'Found URL:%s, Name:%s, AbsoluteName:%s, Directory:%s',
     [FileInfo.URL, FileInfo.Name, FileInfo.AbsoluteName, BoolToStr(FileInfo.Directory, true)]);
+end;
+
+function TouchInterfaceToStr(const Value: TTouchInterface): String;
+begin
+  Result := GetEnumName(TypeInfo(TTouchInterface), Ord(Value));
+end;
+
+function TextureUpdateToStr(const Value: TTextureUpdate): String;
+begin
+  Result := GetEnumName(TypeInfo(TTextureUpdate), Ord(Value));
 end;
 
 { TStateMain ----------------------------------------------------------------- }
@@ -117,18 +127,18 @@ begin
   SoundOgg := DesignedComponent('SoundOgg') as TCastleSound;
 
   { assign events }
-  ButtonToggleShader.OnClick := @ClickToggleShader;
-  ButtonToggleScreenEffect.OnClick := @ClickToggleScreenEffect;
-  ButtonToggleSSAO.OnClick := @ClickToggleSSAO;
-  ButtonTouchNavigation.OnClick := @ClickTouchNavigation;
-  ButtonMessage.OnClick := @ClickMessage;
-  ButtonProgress.OnClick := @ClickProgress;
-  ButtonReopenContext.OnClick := @ClickReopenContext;
-  ButtonToggleTextureUpdates.OnClick := @ClickToggleTextureUpdates;
-  ButtonPlaySoundWav.OnClick := @ClickPlaySoundWav;
-  ButtonPlaySoundOgg.OnClick := @ClickPlaySoundOgg;
-  ButtonVibrate.OnClick := @ClickVibrate;
-  ButtonTerminate.OnClick := @ClickTerminate;
+  ButtonToggleShader.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ClickToggleShader;
+  ButtonToggleScreenEffect.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ClickToggleScreenEffect;
+  ButtonToggleSSAO.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ClickToggleSSAO;
+  ButtonTouchNavigation.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ClickTouchNavigation;
+  ButtonMessage.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ClickMessage;
+  ButtonProgress.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ClickProgress;
+  ButtonReopenContext.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ClickReopenContext;
+  ButtonToggleTextureUpdates.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ClickToggleTextureUpdates;
+  ButtonPlaySoundWav.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ClickPlaySoundWav;
+  ButtonPlaySoundOgg.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ClickPlaySoundOgg;
+  ButtonVibrate.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ClickVibrate;
+  ButtonTerminate.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ClickTerminate;
 
   { configure components }
   ButtonMessage.Exists := ApplicationProperties.PlatformAllowsModalRoutines;
@@ -148,18 +158,15 @@ begin
 
   { Test that FindFiles works also on Android asset filesystem.
     These calls don't do anything (they merely output some log messages about found files). }
-  FindFiles('castle-data:/', '*', true, @FindFilesCallback, nil, [ffRecursive]);
-  FindFiles('castle-data:/skies', '*', true, @FindFilesCallback, nil, [ffRecursive]);
-  FindFiles('castle-data:/textures/castle', '*', true, @FindFilesCallback, nil, [ffRecursive]);
-  FindFiles('castle-data:/textures/castle/', '*', true, @FindFilesCallback, nil, [ffRecursive]);
+  FindFiles('castle-data:/', '*', true, {$ifdef CASTLE_OBJFPC}@{$endif}FindFilesCallback, nil, [ffRecursive]);
+  FindFiles('castle-data:/skies', '*', true, {$ifdef CASTLE_OBJFPC}@{$endif}FindFilesCallback, nil, [ffRecursive]);
+  FindFiles('castle-data:/textures/castle', '*', true, {$ifdef CASTLE_OBJFPC}@{$endif}FindFilesCallback, nil, [ffRecursive]);
+  FindFiles('castle-data:/textures/castle/', '*', true, {$ifdef CASTLE_OBJFPC}@{$endif}FindFilesCallback, nil, [ffRecursive]);
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
-var
-  TouchInterfaceStr: String;
 begin
   inherited;
-  WriteStr(TouchInterfaceStr, TouchNavigation.TouchInterface);
 
   StatusText.Caption := Format('FPS : %s' + NL +
     'Shapes : %d / %d' + NL +
@@ -167,7 +174,7 @@ begin
     Container.Fps.ToString,
     MainViewport.Statistics.ShapesRendered,
     MainViewport.Statistics.ShapesVisible,
-    TouchInterfaceStr
+    TouchInterfaceToStr(TouchNavigation.TouchInterface)
   ]);
 end;
 
@@ -265,20 +272,19 @@ end;
 procedure TStateMain.ToggleTextureUpdatesCallback(Node: TX3DNode);
 var
   CubeMap: TGeneratedCubeMapTextureNode;
-  LogStr: string;
 begin
   CubeMap := Node as TGeneratedCubeMapTextureNode;
   if CubeMap.Update = upNone then
     CubeMap.Update := upAlways else
     CubeMap.Update := upNone;
-  WriteStr(LogStr, 'Toggled updates on ' + CubeMap.NiceName + ' to ', CubeMap.Update);
-  WritelnLog('CubeMap', LogStr);
+  WritelnLog('CubeMap', 'Toggled updates on ' + CubeMap.NiceName +
+    ' to ' + TextureUpdateToStr(CubeMap.Update));
 end;
 
 procedure TStateMain.ClickToggleTextureUpdates(Sender: TObject);
 begin
   MainScene.RootNode.EnumerateNodes(
-    TGeneratedCubeMapTextureNode, @ToggleTextureUpdatesCallback, false);
+    TGeneratedCubeMapTextureNode, {$ifdef CASTLE_OBJFPC}@{$endif}ToggleTextureUpdatesCallback, false);
 end;
 
 procedure TStateMain.ClickPlaySoundWav(Sender: TObject);
