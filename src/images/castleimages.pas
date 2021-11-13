@@ -2293,19 +2293,27 @@ end;
 procedure TCastleImage.Resize(ResizeWidth, ResizeHeight: Cardinal;
   const Interpolation: TResizeInterpolation;
   const ProgressTitle: string);
-{$ifdef FPC}
 var
   NewPixels: Pointer;
+{$ifdef FPC}
   NewFpImage: TInternalCastleFpImage;
+{$endif FPC}
 begin
   if (Interpolation >= Low(TResizeInterpolationFpImage)) and
      (Interpolation <= High(TResizeInterpolationFpImage)) then
   begin
+    {$ifdef FPC}
     // TODO; ProgressTitle not supported for this
     NewFpImage := MakeResizedToFpImage(ResizeWidth, ResizeHeight, Interpolation);
     try
       FromFpImage(NewFpImage);
     finally FreeAndNil(NewFpImage) end;
+    {$else FPC}
+    WritelnWarning('Resizing with interpolation %d not supported with Delphi, falling back to bilinear', [
+      Ord(Interpolation)
+    ]);
+    Resize(ResizeWidth, ResizeHeight, riBilinear, ProgressTitle);
+    {$endif FPC}
   end else
   begin
     if ((ResizeWidth <> 0) and (ResizeWidth <> Width)) or
@@ -2328,12 +2336,6 @@ begin
     end;
   end;
 end;
-{$else FPC}
-begin
-  // TODO: Delphi support
-  raise Exception.Create('Not implemented (Delphi)!');
-end;
-{$endif FPC}
 
 function TCastleImage.MakeResized(ResizeWidth, ResizeHeight: Cardinal;
   const Interpolation: TResizeInterpolation;
@@ -2341,16 +2343,24 @@ function TCastleImage.MakeResized(ResizeWidth, ResizeHeight: Cardinal;
 {$ifdef FPC}
 var
   NewFpImage: TInternalCastleFpImage;
+{$endif FPC}
 begin
   if (Interpolation >= Low(TResizeInterpolationFpImage)) and
      (Interpolation <= High(TResizeInterpolationFpImage)) then
   begin
+    {$ifdef FPC}
     // TODO; ProgressTitle not supported for this
     NewFpImage := MakeResizedToFpImage(ResizeWidth, ResizeHeight, Interpolation);
     try
       // since we request our own class as output, CreateFromFpImage must return some TCastleImage
       Result := CreateFromFpImage(NewFpImage, [TCastleImageClass(ClassType)]) as TCastleImage;
     finally FreeAndNil(NewFpImage) end;
+    {$else FPC}
+    WritelnWarning('Resizing with interpolation %d not supported with Delphi, falling back to bilinear', [
+      Ord(Interpolation)
+    ]);
+    Result := MakeResized(ResizeWidth, ResizeHeight, riBilinear, ProgressTitle);
+    {$endif FPC}
   end else
   begin
     { Make both ResizeTo* non-zero. }
@@ -2368,13 +2378,6 @@ begin
     except Result.Free; raise end;
   end;
 end;
-{$else FPC}
-begin
-  // TODO: Delphi support
-  raise Exception.Create('Not implemented (Delphi)!');
-end;
-{$endif FPC}
-
 
 procedure TCastleImage.Resize3x3(const ResizeWidth, ResizeHeight: Cardinal;
   var Corners: TVector4Integer;
