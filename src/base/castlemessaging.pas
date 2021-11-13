@@ -293,8 +293,7 @@ end;
 
 class function TMessaging.BoolToStr(const Value: boolean): string;
 begin
-  Result := {$ifdef FPC} SysUtils.BoolToStr {$else} Iff {$endif}
-    (Value, 'true', 'false');
+  Result := Iff(Value, 'true', 'false');
 end;
 
 class function TMessaging.TimeToStr(const Value: TFloatTime): string;

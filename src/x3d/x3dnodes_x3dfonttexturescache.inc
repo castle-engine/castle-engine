@@ -87,7 +87,7 @@ begin
       if Log then
         WritelnLog('++', 'Font texture %s, blending %s : %d', [
           URIDisplay(Font.Image.URL),
-          SysUtils.BoolToStr(Blending, true),
+          BoolToStr(Blending, true),
           C.References
         ]);
 
@@ -123,7 +123,7 @@ begin
   if Log then
     WritelnLog('++', 'Font texture %s, blending %s : %d', [
       URIDisplay(Font.Image.URL),
-      SysUtils.BoolToStr(Blending, true),
+      BoolToStr(Blending, true),
       1
     ]);
 end;
@@ -143,7 +143,7 @@ begin
       if Log then
         WritelnLog('--', 'Font texture %s, blending %s : %d', [
           URIDisplay(C.Font.Image.URL),
-          SysUtils.BoolToStr(C.Blending, true),
+          BoolToStr(C.Blending, true),
           C.References - 1
         ]);
 

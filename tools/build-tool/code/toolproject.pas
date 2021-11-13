@@ -1755,7 +1755,7 @@ begin
   Macros.Add('IOS_VERSION', IOSVersion.DisplayValue);
   Macros.Add('IOS_VERSION_CODE', IntToStr(IOSVersion.Code));
   Macros.Add('IOS_LIBRARY_BASE_NAME' , ExtractFileName(IOSLibraryFile));
-  Macros.Add('IOS_STATUSBAR_HIDDEN', BoolToStr(FullscreenImmersive, 'YES', 'NO'));
+  Macros.Add('IOS_STATUSBAR_HIDDEN', Iff(FullscreenImmersive, 'YES', 'NO'));
   Macros.Add('IOS_SCREEN_ORIENTATION', IOSScreenOrientation[ScreenOrientation]);
   InfoPList := SAppendPart(InfoPList, NL,
     AssociateDocumentTypes.ToPListSection(IOSQualifiedName, 'AppIcon'));

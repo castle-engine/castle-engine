@@ -4150,7 +4150,7 @@ begin
 
   if LogChanges then
     WritelnLog('X3D changes', 'ChangedAll (OnlyAdditions: %s)',
-      [SysUtils.BoolToStr(OnlyAdditions, true)]);
+      [BoolToStr(OnlyAdditions, true)]);
 
   { TODO:
     We ignore OnlyAdditions now.

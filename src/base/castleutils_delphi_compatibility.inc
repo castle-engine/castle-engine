@@ -128,7 +128,6 @@ function StrToQWord(const S: String): QWord;
 function IsWild(InputStr, Wilds: string; IgnoreCase: Boolean): Boolean;
 procedure FillByte(var X; Count: SizeInt; Value: Byte);
 procedure FillDWord(var X; const Count: SizeInt; const Value: DWord);
-function BoolToStr(B: boolean; const TrueS, FalseS: string): string; // from FPC
 
 {$endif read_interface}
 {$ifdef read_implementation}
@@ -404,11 +403,6 @@ end;
 procedure FillByte(var X; Count: SizeInt; Value: Byte);
 begin
   FillChar(X, Count, Value);
-end;
-
-function BoolToStr(B: boolean; const TrueS, FalseS: string): string;
-begin
-  if B then Result:=TrueS else BoolToStr:=FalseS;
 end;
 
 {$endif read_implementation}

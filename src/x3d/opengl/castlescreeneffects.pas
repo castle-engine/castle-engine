@@ -608,7 +608,7 @@ var
       WritelnLog('Screen effects', Format('Created texture for screen effects, with size %d x %d, with depth texture: %s',
         [ ScreenEffectTextureWidth,
           ScreenEffectTextureHeight,
-          SysUtils.BoolToStr(CurrentScreenEffectsNeedDepth, true) ]));
+          BoolToStr(CurrentScreenEffectsNeedDepth, true) ]));
     end;
 
     RenderContext.Viewport := SR;

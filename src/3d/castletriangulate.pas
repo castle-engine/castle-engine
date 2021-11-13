@@ -381,7 +381,7 @@ var
 
     if LogTriangulation then
       WritelnLog('Triangulation', Format('Border vertex %d (part of %d - %d - %d) considered inside triangle? %s.',
-        [Border, BorderPrevious, Border, BorderNext, SysUtils.BoolToStr(Result, true)]));
+        [Border, BorderPrevious, Border, BorderNext, BoolToStr(Result, true)]));
   end;
 
 var
@@ -507,7 +507,7 @@ begin
           EarFound := DistanceSqr <= 1.0;
           if LogTriangulation then
             WritelnLog('Triangulation', Format('Does the ear %d - %d - %d have the same orientation as polygon? %s. (Ear normal: %s, distance to polygon normal: %f.)' ,
-              [P0, P1, P2, SysUtils.BoolToStr(EarFound, true),
+              [P0, P1, P2, BoolToStr(EarFound, true),
                EarNormal.ToString, Sqrt(DistanceSqr)]));
 
           { check is the ear triangle non-empty }

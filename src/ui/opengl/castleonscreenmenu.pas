@@ -399,13 +399,13 @@ constructor TCastleMenuToggle.Create(AOwner: TComponent);
 begin
   inherited;
   Toggle := true;
-  Caption := BoolToStr(Pressed, 'Yes', 'No');
+  Caption := Iff(Pressed, 'Yes', 'No');
 end;
 
 procedure TCastleMenuToggle.SetPressed(const Value: boolean);
 begin
   inherited;
-  Caption := BoolToStr(Pressed, 'Yes', 'No');
+  Caption := Iff(Pressed, 'Yes', 'No');
 end;
 
 procedure TCastleMenuToggle.DoClick;
@@ -662,7 +662,7 @@ end;
 constructor TCastleOnScreenMenuItemToggle.Create(AOwner: TComponent);
 begin
   inherited;
-  RightCaption := BoolToStr(Checked, 'Yes', 'No');
+  RightCaption := Iff(Checked, 'Yes', 'No');
 end;
 
 procedure TCastleOnScreenMenuItemToggle.SetChecked(const Value: boolean);
@@ -670,7 +670,7 @@ begin
   if FChecked <> Value then
   begin
     FChecked := Value;
-    RightCaption := BoolToStr(Checked, 'Yes', 'No');
+    RightCaption := Iff(Checked, 'Yes', 'No');
   end;
 end;
 

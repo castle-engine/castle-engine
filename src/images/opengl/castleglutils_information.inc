@@ -42,7 +42,7 @@ const
 
   function GetBoolean(param: TGLenum): string;
   begin
-    Result := SysUtils.BoolToStr(glGetInteger(Param) = GL_TRUE, true);
+    Result := BoolToStr(glGetInteger(Param) = GL_TRUE, true);
   end;
 
   function VersionReport(Version: TGenericGLVersion): string;
@@ -52,7 +52,7 @@ const
       'release: %d, vendor-specific information: "%s"', [
         Version.Major,
         Version.Minor,
-        SysUtils.BoolToStr(Version.ReleaseExists, true),
+        BoolToStr(Version.ReleaseExists, true),
         Version.Release,
         Version.VendorVersion
       ]);
@@ -87,22 +87,22 @@ const
           PAnsiChar(glGetString(GL_VENDOR)),
           VendorTypeToStr(Version.VendorType),
           PAnsiChar(glGetString(GL_RENDERER)),
-          SysUtils.BoolToStr(Version.Fglrx, true),
-          SysUtils.BoolToStr(Version.Mesa, true),
+          BoolToStr(Version.Fglrx, true),
+          BoolToStr(Version.Mesa, true),
 
-          SysUtils.BoolToStr(Version.BuggyGenerateMipmap, true),
-          SysUtils.BoolToStr(Version.BuggyLightModelTwoSide, true),
-          SysUtils.BoolToStr(Version.BuggyVBO, true),
-          SysUtils.BoolToStr(Version.BuggyShaderShadowMap, true),
-          SysUtils.BoolToStr(Version.BuggyFBOMultiSampling, true),
-          SysUtils.BoolToStr(Version.BuggyFBOCubeMap, true),
-          SysUtils.BoolToStr(Version.BuggySwapNonStandardViewport, true),
-          SysUtils.BoolToStr(Version.BuggyDepth32, true),
-          SysUtils.BoolToStr(Version.BuggyGLSLFrontFacing, true),
-          SysUtils.BoolToStr(Version.BuggyGLSLReadVarying, true),
-          SysUtils.BoolToStr(Version.BuggyPureShaderPipeline, true),
-          SysUtils.BoolToStr(Version.BuggyTextureSizeAbove2048, true),
-          SysUtils.BoolToStr(Version.BuggyGLSLBumpMappingNumSteps, true)
+          BoolToStr(Version.BuggyGenerateMipmap, true),
+          BoolToStr(Version.BuggyLightModelTwoSide, true),
+          BoolToStr(Version.BuggyVBO, true),
+          BoolToStr(Version.BuggyShaderShadowMap, true),
+          BoolToStr(Version.BuggyFBOMultiSampling, true),
+          BoolToStr(Version.BuggyFBOCubeMap, true),
+          BoolToStr(Version.BuggySwapNonStandardViewport, true),
+          BoolToStr(Version.BuggyDepth32, true),
+          BoolToStr(Version.BuggyGLSLFrontFacing, true),
+          BoolToStr(Version.BuggyGLSLReadVarying, true),
+          BoolToStr(Version.BuggyPureShaderPipeline, true),
+          BoolToStr(Version.BuggyTextureSizeAbove2048, true),
+          BoolToStr(Version.BuggyGLSLBumpMappingNumSteps, true)
         ]);
   end;
 
@@ -191,37 +191,37 @@ begin
     'Real versions available:' + NL +
     '(checks both version string and actual functions availability in GL library, to secure from buggy implementations)' + NL +
     NL +
-    '  1.2: ' + SysUtils.BoolToStr(GLFeatures.Version_1_2, true) + NL +
-    '  1.3: ' + SysUtils.BoolToStr(GLFeatures.Version_1_3, true) + NL +
-    '  1.4: ' + SysUtils.BoolToStr(GLFeatures.Version_1_4, true) + NL +
-    '  1.5: ' + SysUtils.BoolToStr(GLFeatures.Version_1_5, true) + NL +
-    '  2.0: ' + SysUtils.BoolToStr(GLFeatures.Version_2_0, true) + NL +
-    '  2.1: ' + SysUtils.BoolToStr(GLFeatures.Version_2_1, true) + NL +
-    '  3.0: ' + SysUtils.BoolToStr(GLFeatures.Version_3_0, true) + NL +
-    '  3.1: ' + SysUtils.BoolToStr(GLFeatures.Version_3_1, true) + NL +
-    '  3.2: ' + SysUtils.BoolToStr(GLFeatures.Version_3_2, true) + NL +
-    '  3.3: ' + SysUtils.BoolToStr(GLFeatures.Version_3_3, true) + NL +
-    '  4.0: ' + SysUtils.BoolToStr(GLFeatures.Version_4_0, true) + NL +
+    '  1.2: ' + BoolToStr(GLFeatures.Version_1_2, true) + NL +
+    '  1.3: ' + BoolToStr(GLFeatures.Version_1_3, true) + NL +
+    '  1.4: ' + BoolToStr(GLFeatures.Version_1_4, true) + NL +
+    '  1.5: ' + BoolToStr(GLFeatures.Version_1_5, true) + NL +
+    '  2.0: ' + BoolToStr(GLFeatures.Version_2_0, true) + NL +
+    '  2.1: ' + BoolToStr(GLFeatures.Version_2_1, true) + NL +
+    '  3.0: ' + BoolToStr(GLFeatures.Version_3_0, true) + NL +
+    '  3.1: ' + BoolToStr(GLFeatures.Version_3_1, true) + NL +
+    '  3.2: ' + BoolToStr(GLFeatures.Version_3_2, true) + NL +
+    '  3.3: ' + BoolToStr(GLFeatures.Version_3_3, true) + NL +
+    '  4.0: ' + BoolToStr(GLFeatures.Version_4_0, true) + NL +
     NL +
     {$endif}
 
     '---------' + NL +
     'Features:' + NL +
     '  Shaders (GLSL) support: ' + GLSupportNames[GLFeatures.Shaders] + NL +
-    '  => Enable deprecated (fixed-function) support: ' + SysUtils.BoolToStr(GLFeatures.EnableFixedFunction, true) + NL +
-    '  Multi-texturing: ' + SysUtils.BoolToStr(GLFeatures.UseMultiTexturing, true) + NL +
+    '  => Enable deprecated (fixed-function) support: ' + BoolToStr(GLFeatures.EnableFixedFunction, true) + NL +
+    '  Multi-texturing: ' + BoolToStr(GLFeatures.UseMultiTexturing, true) + NL +
     '  Framebuffer Object: ' + GLSupportNamesFBO[GLFeatures.Framebuffer] + NL +
-    '  Multi-sampling for FBO buffers and textures: ' + SysUtils.BoolToStr(GLFeatures.FBOMultiSampling, true) + NL +
-    '  Vertex Buffer Object: ' + SysUtils.BoolToStr(GLFeatures.VertexBufferObject, true) + NL +
-    '  GenerateMipmap available (and reliable): ' + SysUtils.BoolToStr(HasGenerateMipmap, true) + NL +
+    '  Multi-sampling for FBO buffers and textures: ' + BoolToStr(GLFeatures.FBOMultiSampling, true) + NL +
+    '  Vertex Buffer Object: ' + BoolToStr(GLFeatures.VertexBufferObject, true) + NL +
+    '  GenerateMipmap available (and reliable): ' + BoolToStr(HasGenerateMipmap, true) + NL +
     '  Cube map textures: ' + GLSupportNames[GLFeatures.TextureCubeMap] + NL +
     '  Compressed textures supported: ' + TextureCompressionsToString(GLFeatures.TextureCompression) + NL +
     '  3D textures: ' + GLSupportNames[GLFeatures.Texture3D] + NL +
-    '  Textures non-power-of-2: ' + SysUtils.BoolToStr(GLFeatures.TextureNonPowerOfTwo, true) + NL +
-    '  Blend constant parameter: ' + SysUtils.BoolToStr(GLFeatures.BlendConstant, true) + NL +
-    '  Float textures: ' + SysUtils.BoolToStr(GLFeatures.TextureFloat, true) + NL +
-    '  Depth textures: ' + SysUtils.BoolToStr(GLFeatures.TextureDepth, true) + NL +
-    '  Packed depth + stencil: ' + SysUtils.BoolToStr(GLFeatures.PackedDepthStencil, true) + NL +
+    '  Textures non-power-of-2: ' + BoolToStr(GLFeatures.TextureNonPowerOfTwo, true) + NL +
+    '  Blend constant parameter: ' + BoolToStr(GLFeatures.BlendConstant, true) + NL +
+    '  Float textures: ' + BoolToStr(GLFeatures.TextureFloat, true) + NL +
+    '  Depth textures: ' + BoolToStr(GLFeatures.TextureDepth, true) + NL +
+    '  Packed depth + stencil: ' + BoolToStr(GLFeatures.PackedDepthStencil, true) + NL +
     NL +
     '  All extensions: ' +PAnsiChar(glGetString(GL_EXTENSIONS)) + NL +
     NL +
@@ -247,7 +247,7 @@ begin
     '  Double buffer: ' + GetBoolean(GL_DOUBLEBUFFER) + NL +
     {$endif}
     '  Multi-sampling (full-screen anti-aliasing) possible: ' +
-    SysUtils.BoolToStr(GLFeatures.Multisample, true) + NL +
+    BoolToStr(GLFeatures.Multisample, true) + NL +
     '    Current: ' + IntToStr(GLFeatures.CurrentMultiSampling) + ' samples per pixel' + NL +
     NL +
 

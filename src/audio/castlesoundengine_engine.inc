@@ -580,7 +580,7 @@ begin
           NL+
           'Library to decode OggVorbis available: %s', [
             MinAllocatedSources, MaxAllocatedSources,
-            SysUtils.BoolToStr(VorbisFileInitialized, true)
+            BoolToStr(VorbisFileInitialized, true)
           ]);
 
       try

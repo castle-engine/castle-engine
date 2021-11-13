@@ -828,7 +828,7 @@ begin
     begin
       Assert(ShapeCaches[B].Count = 0, Format('%d references to shapes still exist on ShapeCaches[%s] when freeing TGLRendererContextCache', [
         ShapeCaches[B].Count,
-        SysUtils.BoolToStr(B, true)
+        BoolToStr(B, true)
         // ShapeCaches[B][0].ToString // not printed, risks further SEGFAULT during log output in case invalid reference remained on the list
       ]));
       FreeAndNil(ShapeCaches[B]);

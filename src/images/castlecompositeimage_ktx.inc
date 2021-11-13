@@ -360,8 +360,8 @@ begin
 
   WritelnLog('KTX', 'Got KTX orientation "%s". RowsTopToBottom: %s, SlicesFrontToBack: %s.',
     [Value,
-     SysUtils.BoolToStr(RowsTopToBottom, true),
-     SysUtils.BoolToStr(SlicesFrontToBack, true)
+     BoolToStr(RowsTopToBottom, true),
+     BoolToStr(SlicesFrontToBack, true)
     ]);
 end;
 

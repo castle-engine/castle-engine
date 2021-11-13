@@ -1731,7 +1731,7 @@ function TTexture2Node_1.TextureDescription: string;
     Result := Format('inlined (width = %d; height = %d; with alpha = %s)',
       [ FdImage.Value.Width,
         FdImage.Value.Height,
-        SysUtils.BoolToStr(FdImage.Value.HasAlpha, true) ]);
+        BoolToStr(FdImage.Value.HasAlpha, true) ]);
   end;
 
 begin

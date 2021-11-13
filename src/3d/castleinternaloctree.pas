@@ -1022,9 +1022,9 @@ end;
 function OctreeSubnodeIndexToNiceStr(const SI: TOctreeSubnodeIndex): string;
 begin
  result :=
-   SysUtils.BoolToStr(SI[0], true) +'-'+
-   SysUtils.BoolToStr(SI[1], true) +'-'+
-   SysUtils.BoolToStr(SI[2], true);
+   BoolToStr(SI[0], true) +'-'+
+   BoolToStr(SI[1], true) +'-'+
+   BoolToStr(SI[2], true);
 end;
 
 function OctreeSubnodeIndexesEqual(const SI1, SI2: TOctreeSubnodeIndex): Boolean;
