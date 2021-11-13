@@ -406,7 +406,7 @@ begin
     Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderGIF.Create, ifGIF);
   {$else}
     // TODO: Delphi support
-    raise Exception.Create('Not implemented (Delphi)!');
+    raise Exception.Create('Reading GIF not implemented (for Delphi)');
   {$endif}
 end;
 
@@ -417,7 +417,7 @@ begin
     Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderTarga.Create, ifTGA);
   {$else}
     // TODO: Delphi support
-    raise Exception.Create('Not implemented (Delphi)!');
+    raise Exception.Create('Reading TGA not implemented (for Delphi)');
   {$endif}
 end;
 
@@ -439,7 +439,7 @@ begin
     Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderXPM.Create, ifXPM);
   {$else}
     // TODO: Delphi support
-    raise Exception.Create('Not implemented (Delphi)!');
+    raise Exception.Create('Reading XPM not implemented (for Delphi)');
   {$endif}
 end;
 
@@ -450,7 +450,7 @@ begin
     Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPSD.Create, ifPSD);
   {$else}
     // TODO: Delphi support
-    raise Exception.Create('Not implemented (Delphi)!');
+    raise Exception.Create('Reading PSD not implemented (for Delphi)');
   {$endif}
 end;
 
@@ -461,7 +461,7 @@ begin
     Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPCX.Create, ifPCX);
   {$else}
     // TODO: Delphi support
-    raise Exception.Create('Not implemented (Delphi)!');
+    raise Exception.Create('Reading PCX not implemented (for Delphi)');
   {$endif}
 end;
 
@@ -472,20 +472,17 @@ begin
     Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderJPEG.Create, ifJPEG);
   {$else}
     // TODO: Delphi support
-    raise Exception.Create('Not implemented (Delphi)!');
+    raise Exception.Create('Reading JPEG not implemented (for Delphi)');
   {$endif}
 end;
 
+{$ifdef FPC}
 function LoadPNG_FPImage(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  {$ifdef FPC}
-    Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPNG.Create, ifPNG);
-  {$else}
-    // TODO: Delphi support
-    raise Exception.Create('Not implemented (Delphi)!');
-  {$endif}
+   Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPNG.Create, ifPNG);
 end;
+{$endif}
 
 function LoadPNM(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
@@ -494,7 +491,7 @@ begin
     Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPNM.Create, ifPNM);
   {$else}
     // TODO: Delphi support
-    raise Exception.Create('Not implemented (Delphi)!');
+    raise Exception.Create('Reading PNM not implemented (for Delphi)');
   {$endif}
 end;
 
@@ -504,7 +501,7 @@ begin
     SaveFpImage(Img, Stream, TFPWriterJPEG.Create);
   {$else}
     // TODO: Delphi support
-    raise Exception.Create('Not implemented (Delphi)!');
+    raise Exception.Create('Saving JPEG not implemented (for Delphi)');
   {$endif}
 end;
 
