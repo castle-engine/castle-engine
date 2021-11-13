@@ -5093,6 +5093,16 @@ end;
     the stacktrace). }
 procedure TCastleApplication.HandleException(Sender: TObject);
 
+  {$ifndef FPC}
+  function ExceptionBackTrace(const E: TObject): String;
+  begin
+    if E is Exception then
+      Result := Exception(E).StackTrace
+    else
+      Result := '';
+  end;
+  {$endif}
+
   procedure DefaultShowException(ExceptObject: TObject; ExceptAddr: Pointer);
   var
     OriginalObj: TObject;
@@ -5104,7 +5114,10 @@ procedure TCastleApplication.HandleException(Sender: TObject);
     ErrMessage: string;
     ContinueApp: Boolean;
   begin
-    ErrMessage := ExceptMessage(ExceptObject) {$ifdef FPC} + NL + NL + DumpExceptionBackTraceToString{$endif};
+    ErrMessage := ExceptMessage(ExceptObject) + NL + NL +
+      {$ifdef FPC} DumpExceptionBackTraceToString
+      {$else} ExceptionBackTrace(ExceptObject)
+      {$endif};
     { in case the following code, trying to handle the exception with nice GUI,
       will fail and crash horribly -- make sure to log the exception. }
     WritelnLog('Exception', ErrMessage);
@@ -5119,11 +5132,11 @@ procedure TCastleApplication.HandleException(Sender: TObject);
     begin
       OriginalObj := ExceptObject;
       OriginalAddr := ExceptAddr;
+      {$ifdef FPC}
+      OriginalFrameCount := ExceptFrameCount;
+      OriginalFrame := ExceptFrames;
+      {$endif}
       try
-        {$ifdef FPC}
-        OriginalFrameCount := ExceptFrameCount;
-        OriginalFrame := ExceptFrames;
-        {$endif}
         Theme.InternalForceOpaqueBackground := true;
         ContinueApp := GuessedMainWindow.MessageYesNo(
           'An error occurred. Try to continue the application?' + NL + NL +
