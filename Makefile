@@ -241,8 +241,6 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/switch_projection \
   examples/3d_rendering_processing/transform_feedback \
   examples/3d_rendering_processing/triangulate_demo \
-  examples/3d_rendering_processing/view_3d_model_advanced \
-  examples/3d_rendering_processing/view_3d_model_basic \
   examples/curves/simplest_curve_read \
   examples/images_videos/background_tiling \
   examples/images_videos/dds_decompose \

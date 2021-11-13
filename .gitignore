@@ -87,8 +87,8 @@ castle-game-engine-*.fpm
 /examples/3d_rendering_processing/transform_scenes_demos
 /examples/3d_rendering_processing/transform_speed_test/transform_speed_test
 /examples/3d_rendering_processing/triangulate_demo
-/examples/3d_rendering_processing/view_3d_model_advanced
-/examples/3d_rendering_processing/view_3d_model_basic
+/examples/3d_rendering_processing/view_3d_model_advanced/view_3d_model_advanced
+/examples/3d_rendering_processing/view_3d_model_basic/view_3d_model_basic
 /examples/advanced_editor/advanced_editor
 /examples/animations/expose_transformations_to_animate_children/expose_transformations_demo
 /examples/animations/play_animation/play_animation

@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -58,7 +58,10 @@ begin
   Window.Controls.InsertFront(Viewport);
 
   Scene := TCastleScene.Create(Application { Owner that will free the Scene });
-  Scene.Load('castle-data:/bridge_final.x3dv');
+  Scene.Load(
+    //'castle-data:/bridge_final.x3dv'
+    'castle-data:/car.gltf'
+  );
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
   Viewport.Items.Add(Scene);

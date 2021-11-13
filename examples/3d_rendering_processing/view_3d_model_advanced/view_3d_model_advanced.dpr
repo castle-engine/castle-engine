@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,7 +20,8 @@ program view_3d_model_advanced;
 
 {$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 
-uses SysUtils, CastleUtils, CastleWindow, CastleProgress, CastleWindowProgress,
+uses SysUtils, Classes,
+  CastleUtils, CastleWindow, CastleProgress, CastleWindowProgress,
   CastleSceneCore, CastleLog, CastleParameters, CastleScene, X3DLoad,
   CastleControls, CastleURIUtils, CastleApplicationProperties, CastleViewport;
 
@@ -29,15 +30,16 @@ var
   Viewport: TCastleViewport;
   Scene: TCastleScene;
   OpenButton: TCastleButton;
-  URL: string = 'data/bridge_final.x3dv';
+  URL: string =
+    //'castle-data:/bridge_final.x3dv';
+    'castle-data:/car.gltf';
 
 type
-  { Dummy class, just to keep OpenButtonClick method. }
-  THelper = class
-    class procedure OpenButtonClick(Sender: TObject);
+  TEventHandler = class(TComponent)
+    procedure OpenButtonClick(Sender: TObject);
   end;
 
-class procedure THelper.OpenButtonClick(Sender: TObject);
+procedure TEventHandler.OpenButtonClick(Sender: TObject);
 begin
   if Window.FileDialog('Open Scene', URL, true, LoadScene_FileFilters) then
   begin
@@ -51,6 +53,8 @@ begin
   end;
 end;
 
+var
+  EventHandler: TEventHandler;
 begin
   { You can specify initial 3D model URL by command-line parameter. }
   Parameters.CheckHighAtMost(1);
@@ -58,9 +62,6 @@ begin
     URL := Parameters[1];
 
   InitializeLog;
-
-  { Output warnings on a console. }
-  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
   Window := TCastleWindowBase.Create(Application);
 
@@ -113,10 +114,12 @@ begin
     Scene.BoundingBox.ToString
   ]);
 
+  EventHandler := TEventHandler.Create(Application);
+
   { add an "Open" button to the window controls }
   OpenButton := TCastleButton.Create(Application);
   OpenButton.Caption := 'Open Scene';
-  OpenButton.OnClick := @THelper(nil).OpenButtonClick;
+  OpenButton.OnClick := {$ifdef FPC}@{$endif} EventHandler.OpenButtonClick;
   OpenButton.Left := 10;
   OpenButton.Bottom := 10;
   OpenButton.AutoSize := false;
