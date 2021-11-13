@@ -2727,7 +2727,7 @@ var
   var
     I: Integer;
   begin
-    for I := 0 to ClipPlanesEnabled - 1 do
+    for I := 0 to Integer(ClipPlanesEnabled) - 1 do
       Shader.DisableClipPlane(I);
     ClipPlanesEnabled := 0; { not really needed, but for safety... }
   end;
@@ -3056,7 +3056,7 @@ procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
   var
     I: Integer;
   begin
-    for I := 0 to TexCoordsNeeded - 1 do
+    for I := 0 to Integer(TexCoordsNeeded) - 1 do
       DisableTexture(I);
   end;
 
