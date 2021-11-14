@@ -610,7 +610,7 @@ var
     FCompositeType, FCubeMapSides, FDepth }
   procedure ReadHeader;
   var
-    Magic: array [0 .. 3] of char;
+    Magic: array [0 .. 3] of AnsiChar;
   begin
     Stream.ReadBuffer(Magic, SizeOf(Magic));
     Check(Magic = 'DDS ', 'DDS file beginning (magic number) invalid, maybe this is not really a DDS file');

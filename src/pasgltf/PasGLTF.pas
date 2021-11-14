@@ -87,6 +87,8 @@ unit PasGLTF;
  {$define CAN_INLINE}
  {$define HAS_ADVANCED_RECORDS}
 {$else}
+ {$warn COMBINING_SIGNED_UNSIGNED64 off} // CGE added
+ {$warn IMPLICIT_STRING_CAST off} // CGE added
  {$realcompatibility off}
  {$localsymbols on}
  {$define LITTLE_ENDIAN}

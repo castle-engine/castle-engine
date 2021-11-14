@@ -157,6 +157,29 @@
   {$define CPUARM64}
 {$endif}
 
+{ Delphi reports many hints/warnings that are known to be harmless in our case. }
+{$ifndef FPC}
+  {$hints off}
+  {$warn COMPARING_SIGNED_UNSIGNED off}
+  {$warn COMBINING_SIGNED_UNSIGNED off}
+  {$warn COMBINING_SIGNED_UNSIGNED64 off}
+  {$warn IMPLICIT_STRING_CAST off}
+  { TODO: We'd like to unhide this. }
+  {$warn IMPLICIT_STRING_CAST_LOSS off}
+  {$warn GARBAGE off}
+  {$warn WIDECHAR_REDUCED off}
+  { We sometimes use deprecated CGE things in CGE itself, to support other
+    deprecated  API for the time being. We actually disable warnings around with
+    $warnings on/off... but not enough for Delphi.
+    TODO: This should eventually by unhidden. }
+  {$warn SYMBOL_DEPRECATED off}
+
+  { The below are problems only for C++.
+    TODO: This should eventually by unhidden and we can support C++ builder. }
+  {$warn DUPLICATE_CTOR_DTOR off}
+  {$warn PRIVATE_PROPACCESSOR off}
+{$endif}
+
 { Define CASTLE_IOS when appropriate ----------------------------------------- }
 
 { Build tool defines CASTLE_IOS automatically.

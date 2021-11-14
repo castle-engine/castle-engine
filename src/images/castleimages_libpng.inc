@@ -517,11 +517,11 @@ begin
       FCurrentLibpngVersionRelease := VerNumber mod 100;
       FCurrentLibpngVersionMinor := (VerNumber mod 10000) div 100;
       FCurrentLibpngVersionMajor := VerNumber div 10000;
-      FCurrentLibpngVersion := Format('%d.%d.%d', [
+      FCurrentLibpngVersion := AnsiString(Format('%d.%d.%d', [
         FCurrentLibpngVersionMajor,
         FCurrentLibpngVersionMinor,
         FCurrentLibpngVersionRelease
-      ]);
+      ]));
       WritelnLog('LibPng detected (version %s).', [FCurrentLibpngVersion]);
     end;
   end else

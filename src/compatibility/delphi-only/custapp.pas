@@ -13,6 +13,8 @@
 
  **********************************************************************}
 
+{$I castleconf.inc} // hide useless Delphi hints/warnings
+
 {$h+}
 unit CustApp;
 

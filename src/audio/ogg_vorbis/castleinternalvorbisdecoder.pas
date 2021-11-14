@@ -302,6 +302,9 @@ var
   IgnoreFrequency: LongWord;
   IgnoreDuration: TFloatTime;
 begin
+  // Seek is also used to track current position, but we don't track it
+  Result := 0;
+
   if (Origin = soCurrent  ) and (Offset = 0) then
     { nothing needs to be done, ok }
     Exit;
@@ -315,7 +318,6 @@ begin
   end;
 
   raise EStreamNotImplementedSeek.Create('TOggVorbisStream.Seek not supported for these arguments (only seeking to current or beginning position are allowed)');
-  Result := 0; // just to get rid of warning
 end;
 
 class function TOggVorbisStream.ReadStream(const Url: string; const Stream: TStream;

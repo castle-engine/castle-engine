@@ -556,6 +556,7 @@ begin
     for I := 0 to ItemsIndices.Count - 1 do
     begin
       Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
+      ThisResult := nil;
       try
         LocalPos1 := Shape.State.Transformation.InverseTransform.MultPoint(Pos1);
         LocalPos2 := Shape.State.Transformation.InverseTransform.MultPoint(Pos2);
@@ -564,7 +565,7 @@ begin
           ReturnClosestIntersection,
           TriangleToIgnore, IgnoreMarginAtStart, TrianglesToIgnoreFunc);
       except
-        on ETransformedResultInvalid do ThisResult := nil;
+        on ETransformedResultInvalid do ;
       end;
       if (ThisResult <> nil) and
          ( (Result = nil) or
@@ -694,6 +695,7 @@ begin
     begin
       Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
       Assert(Shape.InternalOctreeTriangles <> nil);
+      ThisResult := nil;
       try
         LocalRayOrigin := Shape.State.Transformation.InverseTransform.MultPoint(RayOrigin);
         LocalRayDirection := Shape.State.Transformation.InverseTransform.MultDirection(RayDirection);
@@ -702,7 +704,7 @@ begin
           ReturnClosestIntersection,
           TriangleToIgnore, IgnoreMarginAtStart, TrianglesToIgnoreFunc);
       except
-        on ETransformedResultInvalid do ThisResult := nil;
+        on ETransformedResultInvalid do ;
       end;
       if (ThisResult <> nil) and
          ( (Result = nil) or

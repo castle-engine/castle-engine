@@ -3524,7 +3524,8 @@ begin
   begin
     OldContainer := Control.Container;
     Control.InternalSetContainer(Self);
-  end;
+  end else
+    OldContainer := nil; // only to silence warning
   if NeedsGLOpen then
     Control.GLContextOpen;
   Control.CheckResize;

@@ -233,6 +233,8 @@ procedure TWeightedMeshTimeline.Parse;
             // time instead for accurary result
             if BoneTimeline.Curve then
             begin
+              T1 := 0;
+              T2 := 0;
               for K := BoneTimeline.BackupTime.Count - 2 downto 0 do
               begin
                 if (Timeframe > BoneTimeline.BackupTime[K]) then

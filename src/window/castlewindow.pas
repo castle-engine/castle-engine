@@ -5136,6 +5136,7 @@ procedure TCastleApplication.HandleException(Sender: TObject);
       OriginalFrameCount := ExceptFrameCount;
       OriginalFrame := ExceptFrames;
       {$endif}
+      ContinueApp := false; // initialize, in case MessageYesNo will make exception
       try
         Theme.InternalForceOpaqueBackground := true;
         ContinueApp := GuessedMainWindow.MessageYesNo(

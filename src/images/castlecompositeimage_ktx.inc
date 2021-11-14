@@ -385,7 +385,7 @@ begin
       if ValuePadding <> 0 then
         Stream.Seek(ValuePadding, soFromCurrent);
 
-      Key := PChar(@(KeyAndValue[0]));
+      Key := PAnsiChar(@(KeyAndValue[0]));
       SetLength(Value, KeyAndValueByteSize - Length(Key) - 1);
       if Length(Value) > 0 then
       begin

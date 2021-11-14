@@ -160,7 +160,7 @@ type
     constructor Create(const AOwner: TComponent;
       const ACaption: string;
       const AName: string;
-      const AGroup: TInputGroup); overload;
+      const AGroup: TInputGroup); reintroduce; overload;
 
     procedure MakeDefault;
 
@@ -189,7 +189,7 @@ type
       AKeyString: String = '';
       const AMouseButtonUse: boolean = false;
       const AMouseButton: TCastleMouseButton = buttonLeft;
-      const AMouseWheel: TMouseWheelDirection = mwNone); overload;
+      const AMouseWheel: TMouseWheelDirection = mwNone); reintroduce; overload;
 
     { Set keys/mouse buttons of this shortcut.
       Sets only the "current" properties (e.g. it changes @link(Key1),

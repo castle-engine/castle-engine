@@ -95,7 +95,7 @@
     { An easy way to construct float slider. }
     constructor Create(AOwner: TComponent;
       const ValuePointer: PSingle; const AMin, AMax: Single;
-      const AOnChange: TNotifyEvent); overload;
+      const AOnChange: TNotifyEvent); reintroduce; overload;
     procedure Render; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
@@ -147,7 +147,7 @@
     { An easy way to construct integer slider. }
     constructor Create(AOwner: TComponent;
       const ValuePointer: PInteger; const AMin, AMax: Integer;
-      const AOnChange: TNotifyEvent); overload;
+      const AOnChange: TNotifyEvent); reintroduce; overload;
     procedure Render; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;

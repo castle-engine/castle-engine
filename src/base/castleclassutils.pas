@@ -90,16 +90,21 @@ function StreamReadLongWord(Stream: TStream): LongWord;
 procedure StreamWriteByte(Stream: TStream; const Value: Byte);
 function StreamReadByte(Stream: TStream): Byte;
 
-{ Write string contents, as 8-bit string (AnsiString), to stream.
-  This isn't a procedure to encode a string within a binary stream,
-  this only writes string contents (Length(S) bytes) into the stream.
-  Versions with "ln" append newline.
+{ Write string contents, encoded as 8-bit (UTF-8), to stream.
+  Versions with "Ln" suffix append a newline.
   Versions without Stream parameter write to StdOutStream.
   @groupBegin }
-procedure WriteStr(Stream: TStream; const S: AnsiString); overload;
-procedure WritelnStr(Stream: TStream; const S: AnsiString); overload;
+procedure WriteStr(const Stream: TStream; const S: AnsiString); overload;
+procedure WritelnStr(const Stream: TStream; const S: AnsiString); overload;
 procedure WriteStr(const S: AnsiString); overload;
 procedure WritelnStr(const S: AnsiString); overload;
+
+{$ifndef FPC}
+procedure WriteStr(const Stream: TStream; const S: String); overload;
+procedure WritelnStr(const Stream: TStream; const S: String); overload;
+procedure WriteStr(const S: String); overload;
+procedure WritelnStr(const S: String); overload;
+{$endif}
 { @groupEnd }
 
 { Read one character from stream.
@@ -956,12 +961,12 @@ begin
   Stream.ReadBuffer(Result, SizeOf(Result));
 end;
 
-procedure WriteStr(Stream: TStream; const S: AnsiString);
+procedure WriteStr(const Stream: TStream; const S: AnsiString);
 begin
   Stream.WriteBuffer(Pointer(S)^, Length(S));
 end;
 
-procedure WritelnStr(Stream: TStream; const S: AnsiString);
+procedure WritelnStr(const Stream: TStream; const S: AnsiString);
 begin
   WriteStr(Stream, S);
   WriteStr(Stream, nl);
@@ -976,6 +981,32 @@ procedure WritelnStr(const S: AnsiString);
 begin
   WritelnStr(StdOutStream, S);
 end;
+
+{$ifndef FPC}
+{$warnings off}
+
+procedure WriteStr(const Stream: TStream; const S: String);
+begin
+  WriteStr(Stream, AnsiString(S));
+end;
+
+procedure WritelnStr(const Stream: TStream; const S: String);
+begin
+  WritelnStr(Stream, AnsiString(S));
+end;
+
+procedure WriteStr(const S: String);
+begin
+  WriteStr(AnsiString(S));
+end;
+
+procedure WritelnStr(const S: String);
+begin
+  WritelnStr(AnsiString(S));
+end;
+
+{$warnings on}
+{$endif}
 
 function StreamReadChar(Stream: TStream): AnsiChar;
 begin

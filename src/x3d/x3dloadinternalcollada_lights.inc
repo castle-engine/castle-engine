@@ -46,6 +46,7 @@ begin
       if I.Current.AttributeString('id', Id) then
       begin
         Light := nil;
+        LightE := nil;
 
         TechniqueE := I.Current.ChildElement('technique_common', false);
         if TechniqueE <> nil then

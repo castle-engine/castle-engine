@@ -201,7 +201,7 @@ begin
         ValidCharset := SEnding(Part, Length('charset=') + 1) else
         WritelnWarning('Data URI', Format('Invalid part "%s" (expected "base64" or "charset=...")', [Part]));
     end else
-    if Value[PosNow] in [',', ' '] then
+    if CharInSet(Value[PosNow], [',', ' ']) then
     begin
       if Value[PosNow] = ' ' then
         WritelnWarning('Data URI', 'Header terminated by space, which is invalid (you should terminate with a comma)');

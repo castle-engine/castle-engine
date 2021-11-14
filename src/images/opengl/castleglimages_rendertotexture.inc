@@ -637,7 +637,7 @@ begin
         gsExtension: Status := glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
         {$endif}
         gsStandard : Status := glCheckFramebufferStatus   (GL_FRAMEBUFFER    );
-        else ;
+        else Status := GL_FRAMEBUFFER_UNSUPPORTED; // FBO not supported by OpenGL(ES) implementation
       end;
       case Status of
         GL_FRAMEBUFFER_COMPLETE: Success := true;

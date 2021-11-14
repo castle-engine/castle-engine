@@ -12,6 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+{$I castleconf.inc} // hide useless Delphi hints/warnings
+
 /// {$mode objfpc}
 {$h+}
 { $INLINE ON}

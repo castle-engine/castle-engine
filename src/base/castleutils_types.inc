@@ -37,8 +37,6 @@ type
   PByteArray = ^TByteArray;
   TByteArray = array[0..MaxInt div SizeOf(Byte)-1] of Byte;
 
-  PString = ^AnsiString;
-
   { Pointer to TObject.
     Don't call this PObject or PTObject to avoid possible name clashes
     with other units (pointers are often used in situations that prevent

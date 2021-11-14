@@ -126,7 +126,7 @@ const
         Note that we don't worry NonAllowedFirstChars,
         since we add prefix EncodedPrefix anyway, so S[1]
         is not the first character in the final encoded X3D name. }
-      if (C < 128) and (Chr(C) <> '$') and (not (Chr(C) in NonAllowedChars)) then
+      if (C < 128) and (Chr(C) <> '$') and (not CharInSet(Chr(C), NonAllowedChars)) then
         Result := Result + Chr(C)
       else
         Result := Result + '$' + IntToStr(C) + '$';

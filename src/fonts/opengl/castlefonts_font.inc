@@ -66,7 +66,7 @@ type
       const ACharacters: TUnicodeCharList = nil); reintroduce; overload; deprecated 'use Create(Owner: TComponent), then Load';
     constructor Create(const URL: String;
       const ASize: Cardinal; const AnAntiAliased: Boolean;
-      const ACharacters: TSetOfChars); overload; deprecated 'use Create(Owner: TComponent), then Load';
+      const ACharacters: TSetOfChars); reintroduce; overload; deprecated 'use Create(Owner: TComponent), then Load';
 
     { Load by reading a FreeType font file, like ttf.
 

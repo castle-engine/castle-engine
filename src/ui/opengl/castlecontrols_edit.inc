@@ -579,13 +579,13 @@ begin
   end else
   if (Event.EventType = itKey) and
      (Event.KeyString <> '') and
-     (Event.KeyCharacter in AllowedChars) and
+     CharInSet(Event.KeyCharacter, AllowedChars) and
      ((MaxLength = 0) or (Length(Text) < MaxLength)) and
      { Do not add unprintable special characters, like Enter and Escape.
        TCastleEdit doesn't process them,
        but also users don't expect these keys are something added to the edit field.
        Note: The range CtrlA..CtrlZ includes CharEnter. }
-     (not (Event.KeyCharacter in [CtrlA..CtrlZ, CharEscape])) then
+     (not CharInSet(Event.KeyCharacter, [CtrlA..CtrlZ, CharEscape])) then
   begin
     Text := Text + Event.KeyString;
     DoChange;

@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2001-2021 Michalis Kamburelis, Tomasz Wojtyś.
 
   This file is part of "Castle Game Engine".
@@ -1087,12 +1087,12 @@ begin
       [CharBackSpace, CharTab, CharEnter];
 
   { add modifiers description }
-  if (mkShift in Modifiers) or (C in ['A'..'Z']) then
+  if (mkShift in Modifiers) or CharInSet(C, ['A'..'Z']) then
     Result := Result + 'Shift+';
   if mkAlt in Modifiers then
     Result := Result + 'Alt+';
   if (mkCtrl in Modifiers) or
-     (C in CharactersImplicatingCtrlModifier) then
+     CharInSet(C, CharactersImplicatingCtrlModifier) then
   begin
     if CtrlIsCommand then
       Result := Result + 'Command+'

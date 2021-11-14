@@ -1506,15 +1506,16 @@ procedure TCastleScene.LocalRenderOutside(
         SavedSolidColor := RenderOptions.SolidColor;
         RenderOptions.Mode := rmSolidColor;
         RenderOptions.SolidColor := RenderOptions.WireframeColor;
-      end;
 
-      RenderNormal;
+        RenderNormal;
 
-      if UseWireframeColor then
-      begin
         RenderOptions.Mode := SavedMode;
         RenderOptions.SolidColor := SavedSolidColor;
+      end else
+      begin
+        RenderNormal;
       end;
+
     glPopAttrib;
   end;
   {$warnings on}

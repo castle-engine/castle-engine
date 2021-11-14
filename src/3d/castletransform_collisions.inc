@@ -56,6 +56,9 @@ function TCastleTransform.LocalMoveCollision(
 var
   I: Integer;
 begin
+  Result := true;
+  NewPos := ProposedNewPos;
+
   if GetCollides then
   begin
     { We call MoveCollision with separate ProposedNewPos and NewPos
@@ -87,10 +90,6 @@ begin
         if not Result then Exit;
       end;
     end;
-  end else
-  begin
-    Result := true;
-    NewPos := ProposedNewPos;
   end;
 end;
 

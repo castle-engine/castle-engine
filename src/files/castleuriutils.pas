@@ -665,10 +665,10 @@ function URIValidProtocol(const P: String): Boolean;
 var
   I: Integer;
 begin
-  Result := (P <> '') and (P[1] in ProtocolFirstChar);
+  Result := (P <> '') and CharInSet(P[1], ProtocolFirstChar);
   if Result then
     for I := 2 to Length(P) do
-      if not (P[I] in ProtocolChar) then
+      if not CharInSet(P[I], ProtocolChar) then
         Exit(false);
 end;
 

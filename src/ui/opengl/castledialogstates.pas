@@ -684,7 +684,7 @@ begin
   end else
   if (Event.EventType = itKey) and
      (Event.KeyString <> '') and
-     (Event.KeyCharacter in AllowedChars) and
+     CharInSet(Event.KeyCharacter, AllowedChars) and
      ((MaxLength = 0) or (Length(InputText) < MaxLength)) then
   begin
     InputText := InputText + Event.KeyString;

@@ -8074,7 +8074,8 @@ begin
     begin
       OldForceTeleport := ForceTeleportTransitions;
       ForceTeleportTransitions := true;
-    end;
+    end else
+      OldForceTeleport := false; // silence warning
 
     if FViewpointsArray[Idx] = FViewpointStack.Top then
       FViewpointsArray[Idx].Bound := false;

@@ -732,7 +732,7 @@ begin
     if NextChar = -1 then
       raise EX3DLexerError.Create(Self,
         'Unexpected end of file in the middle of string token');
-    if not (Chr(NextChar) in ['"', '\']) then
+    if not CharInSet(Chr(NextChar), ['"', '\']) then
     begin
       WritelnWarning('X3D', 'Invalid X3D file: Invalid sequence in a string: "\%s". Backslash must be followed by another backslash or double quote, for SFString and MFString (in X3D classic (VRML) encoding) and for MFString (in X3D XML encoding).',
         [Chr(NextChar)]);
@@ -926,7 +926,7 @@ function TX3DLexer.NextToken: TX3DToken;
      '-','+','.','0'..'9':ReadFloatOrInteger(FirstBlackChr);
      '"':ReadString;
      else
-      if FirstBlackChr in VRMLNameFirstChars then
+      if CharInSet(FirstBlackChr, VRMLNameFirstChars) then
        ReadNameOrKeyword(FirstBlackChr) else
        raise EX3DLexerError.Create(Self, Format('Illegal character in stream : %s (#%d)',
          [FirstBlackChr, Ord(FirstBlackChr)]));

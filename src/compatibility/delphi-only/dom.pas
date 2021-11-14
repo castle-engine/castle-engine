@@ -614,6 +614,7 @@ begin
     Result := OldChild;
   end;
 
+  Result := nil;
   // TODO: Exception? nil?
 end;
 

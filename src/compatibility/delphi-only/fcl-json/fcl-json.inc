@@ -1,3 +1,5 @@
+{$I castleconf.inc} // hide useless Delphi hints/warnings
+
 {$ifdef FPC}
   {$mode objfpc}{$H+}
   {$if defined(fpc) or defined(NodeJS)}

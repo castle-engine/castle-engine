@@ -78,7 +78,9 @@ unit kraft;
    {$define BIG_ENDIAN}
   {$endif}
  {$endif}
-{$else}
+{$else} // Delphi
+ {$hints off} // added by CGE
+ {$warn SYMBOL_PLATFORM off} // added by CGE
  {$define LITTLE_ENDIAN}
  {$ifndef cpu64}
   {$define cpu32}

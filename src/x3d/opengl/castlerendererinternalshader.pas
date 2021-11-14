@@ -697,7 +697,7 @@ begin
     end;
 
     if (S[P] <> '(') and
-       not (S[P] in WhiteSpaces) then
+       not CharInSet(S[P], WhiteSpaces) then
     begin
       WritelnLog('VRML/X3D', Format('PLUG declaration unexpected character "%s" (expected opening parenthesis "(") in "%s"',
         [S[P], S]));
@@ -2044,17 +2044,17 @@ const
       SearchStart := P + Length(PlugPrefix);
 
       { There must be whitespace before PLUG_ }
-      if (P > 1) and (not (PlugValue[P - 1] in WhiteSpaces)) then Continue;
+      if (P > 1) and (not CharInSet(PlugValue[P - 1], WhiteSpaces)) then Continue;
       P := P + Length(PlugPrefix);
       PBegin := P;
       { There must be at least one identifier char after PLUG_ }
       if (P > Length(PlugValue)) or
-         (not (PlugValue[P] in IdentifierChars)) then Continue;
+         (not CharInSet(PlugValue[P], IdentifierChars)) then Continue;
       repeat
         Inc(P);
-      until (P > Length(PlugValue)) or (not (PlugValue[P] in IdentifierChars));
+      until (P > Length(PlugValue)) or (not CharInSet(PlugValue[P], IdentifierChars));
       { There must be a whitespace or ( after PLUG_xxx }
-      if (P > Length(PlugValue)) or (not (PlugValue[P] in (WhiteSpaces + ['(']))) then
+      if (P > Length(PlugValue)) or (not CharInSet(PlugValue[P], (WhiteSpaces + ['(']))) then
         Continue;
 
       Result := CopyPos(PlugValue, PBegin, P - 1);

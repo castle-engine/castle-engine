@@ -375,7 +375,7 @@ procedure TCastleJsonReader.RestoreProperty(Sender: TObject; AObject: TObject;
   begin
     // calculate P (position of last digit)
     P := Length(NewName) + 1;
-    while (P > 1) and (NewName[P - 1] in ['0'..'9']) do
+    while (P > 1) and CharInSet(NewName[P - 1], ['0'..'9']) do
       Dec(P);
 
     // calculate NameWithoutNumber, Number

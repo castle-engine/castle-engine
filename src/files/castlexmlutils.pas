@@ -27,6 +27,8 @@
 }
 unit CastleXMLUtils;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, DOM, CastleDownload,

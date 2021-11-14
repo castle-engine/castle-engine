@@ -959,10 +959,10 @@ begin
   { We don't do alcProcessContext/alcSuspendContext, no need
     (spec says that context is initially in processing state). }
 
+  Result := false;
   try
     //raise EOpenALError.Create('Test pretend OpenAL fails');
 
-    Result := false;
     FEFXSupported := false;
     Information := '';
     FALMajorVersion := 0;

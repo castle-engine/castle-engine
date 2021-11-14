@@ -102,7 +102,7 @@ type
     procedure AssignArray(const A: array of string); deprecated 'use Assign';
     procedure Assign(const A: array of string); {$ifndef FPC} reintroduce; {$endif} overload;
     {$ifndef FPC}
-    procedure Assign(const Source: TStringList); overload;
+    procedure Assign(const Source: TStringList); reintroduce; overload;
     {$endif}
 
     { Does another string list have equal length and content.
@@ -1884,6 +1884,9 @@ var datapos, formpos: integer;
       raise EDeformatError.Create('Unexpected end of format : "'+format+'"');
   end;
 
+type
+  { Define it only locally, remember String = AnsiString or UnicodeString. }
+  PString = ^String;
 var
   TypeSpecifier: String;
 begin

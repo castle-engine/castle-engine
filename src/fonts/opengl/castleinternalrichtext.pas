@@ -691,7 +691,7 @@ var
     begin
       if not TryStrToInt64(NumStr, SizeRead) then
         Exit(false);
-      if S[I] in ['+', '-'] then
+      if CharInSet(S[I], ['+', '-']) then
         { size is relative to 3.
           See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/font }
         HtmlSize := Clamped(3 + SizeRead, 1, 7)
@@ -821,7 +821,7 @@ begin
   while I <= SLength do
   begin
     { for speed, quickly test and move on if this isn't any special character }
-    if S[I] in ['<', '&'] then
+    if CharInSet(S[I], ['<', '&']) then
     begin
       { handle line-breaking elements specially here }
       if SubstringStartsHere(SLowerCase, I, '<p>', NextChar) then
