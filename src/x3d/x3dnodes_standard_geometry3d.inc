@@ -599,6 +599,7 @@ begin
       begin
         { No need for to create tex coords. }
         IFS.FdTexCoord.Value := FdTexCoord.Value;
+        TexCoordNode := nil;
         TexCoords := nil;
       end else
       begin

@@ -382,7 +382,7 @@ end;
 procedure TFontManager.SetSearchPath (AValue : string);
   procedure AddPath (apath : string);
   begin
-    FPaths.Add (IncludeTrailingBackslash(Apath));
+    FPaths.Add (IncludeTrailingPathDelimiter(Apath));
   end;
 var p : integer;
 begin

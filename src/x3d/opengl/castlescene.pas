@@ -1,3 +1,4 @@
+
 {
   Copyright 2003-2019 Michalis Kamburelis.
 
@@ -18,6 +19,10 @@ unit CastleScene;
 
 {$I castleconf.inc}
 {$ifdef FPC}{$modeswitch nestedprocvars}{$H+}{$endif}
+
+{ TComponent.Height is being hidden by TCastleCone.Height, TCastleCylinder.Height.
+  This is OK. }
+{$ifndef FPC}{$warn HIDING_MEMBER off}{$endif}
 
 interface
 
@@ -1636,12 +1641,9 @@ procedure TCastleScene.LocalRenderOutside(
       RenderOptions.CustomShaderAlphaTest := NewShaders.ShaderAlphaTest;
       {$warnings on}
       {$endif}
-    end;
 
-    RenderWithWireframeEffect;
+      RenderWithWireframeEffect;
 
-    if Params.RenderingCamera.Target in [rtVarianceShadowMap, rtShadowMap] then
-    begin
       RenderOptions.Mode := SavedMode;
       {$ifdef FPC}
       {$warnings off}
@@ -1649,6 +1651,9 @@ procedure TCastleScene.LocalRenderOutside(
       RenderOptions.CustomShaderAlphaTest := SavedShaders.ShaderAlphaTest;
       {$warnings on}
       {$endif}
+    end else
+    begin
+      RenderWithWireframeEffect;
     end;
   end;
 

@@ -408,7 +408,7 @@ type
     procedure RemoveSaveListener(const Listener: TCastleConfigEvent);
     { @groupEnd }
 
-    property Loaded: boolean read FLoaded;
+    property IsLoaded: boolean read FLoaded;
 
     { Load the current persistent data (user preferences, savegames etc.).
 
@@ -1042,7 +1042,7 @@ end;
 
 procedure TCastleConfig.AddLoadListener(const Listener: TCastleConfigEvent);
 begin
-  if Loaded then
+  if IsLoaded then
     Listener(Self);
   FOnLoad.Add(Listener);
 end;

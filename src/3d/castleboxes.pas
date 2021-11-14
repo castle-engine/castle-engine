@@ -962,7 +962,11 @@ begin
     2: Result :=
          (Data[0].Data[0] <= Point.Data[0]) and (Point.Data[0] <=  Data[1].Data[0]) and
          (Data[0].Data[1] <= Point.Data[1]) and (Point.Data[1] <=  Data[1].Data[1]);
-    else Contains2D_InvalidIgnoreIndex;
+    else
+      begin
+        Contains2D_InvalidIgnoreIndex;
+        Result :=  false; // just silence Delphi warning
+      end;
   end;
 end;
 
@@ -1793,7 +1797,11 @@ begin
            Vector2(Data[1].Data[0], Data[1].Data[1]).LengthSqr,
            Vector2(Data[0].Data[0], Data[1].Data[1]).LengthSqr
          ]);
-      else RaiseRadius2DInvalidIgnoreIndex;
+      else
+        begin
+          RaiseRadius2DInvalidIgnoreIndex;
+          Result :=  0; // just silence Delphi warning
+        end;
     end;
 
     Result := Sqrt(Result);

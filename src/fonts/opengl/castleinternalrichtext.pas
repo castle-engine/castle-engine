@@ -204,7 +204,7 @@ function TTextPropertyString.Wrap(const Font: TCastleFontFamily; const State: TT
   const CurrentLine: TTextLine; const CurrentPropertyIndex: Integer): TTextLine;
 
   { Split line in the middle of this TTextPropertyString. }
-  procedure BreakLine(const PropWidthBytes: Integer);
+  procedure BreakLine(const MaximumChars: Integer);
   var
     NewProp: TTextPropertyString;
     ExtractedProp: TTextProperty;
@@ -212,7 +212,7 @@ function TTextPropertyString.Wrap(const Font: TCastleFontFamily; const State: TT
     P: Integer;
   begin
     { We have to break this line now. }
-    P := BackCharsPos(WhiteSpaces, Copy(S, 1, PropWidthBytes));
+    P := BackCharsPos(WhiteSpaces, Copy(S, 1, MaximumChars));
     if P > 0 then
     begin
       BreakOutput1 := Copy(S, 1, P - 1);
@@ -226,7 +226,7 @@ function TTextPropertyString.Wrap(const Font: TCastleFontFamily; const State: TT
           if LineIsNonEmptyAlready then // calculated by looking at CurrentWidth <> 0 when TTextPropertyString.Wrap starts
             BreakOutput1 := ''
           else
-            BreakOutput1 := Copy(S, 1, PropWidthBytes);
+            BreakOutput1 := Copy(S, 1, MaximumChars);
 
         In effect, if we have "blablah<b>foobar</b>", we would prefer to break
         "blablah" + newline + "<b>foobar</b>" (if this would make both lines fit in MaxWidth)
@@ -239,7 +239,7 @@ function TTextPropertyString.Wrap(const Font: TCastleFontFamily; const State: TT
         So the line should should be typically long in Japanese and it should
         be broken where it doesn't fit (not earlier, when bold/non-bold changes).
       }
-      BreakOutput1 := Copy(S, 1, PropWidthBytes);
+      BreakOutput1 := Copy(S, 1, MaximumChars);
       BreakOutput2 := SEnding(S, Length(BreakOutput1) + 1);
     end;
 
@@ -262,9 +262,9 @@ function TTextPropertyString.Wrap(const Font: TCastleFontFamily; const State: TT
   end;
 
 var
-  PropWidthBytes: Integer;
   C: TUnicodeChar;
   {$ifdef FPC}
+  PropWidthBytes: Integer;
   SPtr: PChar;
   CharLen: Integer;
   {$else}
@@ -326,7 +326,7 @@ begin
     {$else}
     if TextIndex <= TextLength then
     {$endif}
-      BreakLine(PropWidthBytes);
+      BreakLine({$ifdef FPC} PropWidthBytes {$else} TextIndex {$endif});
   end;
 end;
 

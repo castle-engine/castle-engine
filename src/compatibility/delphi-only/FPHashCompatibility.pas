@@ -312,8 +312,10 @@ end;
 
 Procedure TFPHashList.SetStrCapacity(NewCapacity: Integer);
 begin
+  {$warn COMPARISON_FALSE off}
   if (NewCapacity < FStrCount) or (NewCapacity > MaxHashStrSize) then
     Error(SListCapacityError, NewCapacity);
+  {$warn COMPARISON_FALSE on}
   if NewCapacity = FStrCapacity then
     Exit;
   ReallocMem(FStrs, NewCapacity);

@@ -581,7 +581,10 @@ begin
         end;
       end;
   else
+  begin
+    Result := tkEOF;
     Error(SErrInvalidCharacter, [CurRow,CurColumn,FTokenStr[0]]);
+  end;
   end;
   FCurToken := Result;
 end;

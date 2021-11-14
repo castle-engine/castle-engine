@@ -167,7 +167,9 @@ procedure TAudioClipNode.UpdatePlaying;
     if (ParentFieldsCount <> 0) and
        (ParentFields[0].ParentNode <> nil) and
        (ParentFields[0].ParentNode is TSoundNode) then
-      Result := TSoundNode(ParentFields[0].ParentNode);
+      Result := TSoundNode(ParentFields[0].ParentNode)
+    else
+      Result := nil;
   end;
 
 var

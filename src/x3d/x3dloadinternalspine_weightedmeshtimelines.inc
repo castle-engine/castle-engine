@@ -364,6 +364,8 @@ procedure TWeightedMeshTimeline.Parse;
             // time instead for accurary result
             if AffectedDeformTimeline.Curve then
             begin
+              T1 := 0;
+              T2 := 0;
               for K := AffectedDeformTimeline.BackupTime.Count - 2 downto 0 do
               begin
                 if (Timeframe > AffectedDeformTimeline.BackupTime[K]) then

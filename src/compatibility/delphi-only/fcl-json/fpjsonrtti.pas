@@ -1,5 +1,8 @@
 unit fpjsonrtti;
 
+{$I castleconf.inc} // avoid useless Delphi warnings
+{$warn USE_BEFORE_DEF off}
+
 /// {$mode objfpc}
 
 interface

@@ -1526,8 +1526,8 @@ begin
         {$ifdef FPC}
         FileNameBuffer := DeleteFileExt(FileNameBuffer);
         {$else}
-        if Length(FileNameBuffer) > 0 then
-          SetString(FileNameString, PChar(@FileNameBuffer[0]), Length(FileNameBuffer))
+        if StrLen(FileNameBuffer) > 0 then
+          SetString(FileNameString, PChar(@FileNameBuffer[0]), StrLen(FileNameBuffer))
         else
           FileNameString := '';
 

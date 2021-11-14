@@ -2305,6 +2305,7 @@ begin
   ReadImportSettings;
 
   LastAnimationName := '';
+  CurrentAnimation := nil;
 
   Doc := nil;
   try

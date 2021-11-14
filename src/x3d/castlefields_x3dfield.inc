@@ -1274,7 +1274,10 @@ begin
     Result := IndexOfName(Copy(EventName, 1,
       Length(EventName) - Length(ChangedSuffix)));
   end else
+  begin
     Result := -1;
+    InEvent := false; // unused, silence Delphi warning
+  end;
 
   { check is field really exposed now }
   if (Result <> -1) and (not Items[Result].Exposed) then

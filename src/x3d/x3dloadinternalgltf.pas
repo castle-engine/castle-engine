@@ -1866,6 +1866,10 @@ var
     TargetField: TX3DField;
     I: Integer;
   begin
+    // silence Delphi warnings
+    InterpolatePosition := nil;
+    InterpolateOrientation := nil;
+
     case Path of
       gsTranslation, gsScale:
         begin
@@ -2586,3 +2590,4 @@ end;
 {$endif}
 
 end.
+
