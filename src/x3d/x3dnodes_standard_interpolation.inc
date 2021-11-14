@@ -583,9 +583,9 @@ procedure TAbstractArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
   const Index1, Index2, ACount: Integer);
 begin
   {$ifdef FPC}
-  Target.Items.AssignLerp(Fraction, F1.Items, F2.Items, Index1, Index2, ACount);
+  Target.Items.AssignLerpRange(Fraction, F1.Items, F2.Items, Index1, Index2, ACount);
   {$else}
-  Target.Items.AssignLerp(Fraction, F1.GetInternalItems, F2.GetInternalItems, Index1, Index2, ACount);
+  Target.Items.AssignLerpRange(Fraction, F1.GetInternalItems, F2.GetInternalItems, Index1, Index2, ACount);
   {$endif}
 end;
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,6 +18,8 @@
 {$ifdef read_interface}
 
 type
+  ELinearInterpolationImpossible = class(Exception);
+
   { List of structures.
     This is just TList class from Generics.Collections, with some useful helpers. }
   {$ifdef CASTLE_OBJFPC}generic{$endif}
@@ -36,6 +38,7 @@ type
   public
     type
       PtrT = ^T;
+      // TODO: better size on Delphi
       TTypeList = array [0 .. {$ifdef FPC} MaxInt div SizeOf(T) - 1 {$else} 1000 * 1000 {$endif}] of T;
       PTypeList = ^TTypeList;
 
@@ -103,12 +106,36 @@ type
     procedure Assign(const A: array of T); overload;
 
     function ItemSize: TListSize;
-    {$ifndef FPC}
-    procedure AddSubRange(const Source: TStructList<T>; const Index, AddCount: TListSize);
+
+    { Add a subrange of another list here.
+
+      This method may ignore the OnNotify mechanism, for the sake of fast execution. }
+    procedure AddSubRange(const Source: TStructList {$ifndef FPC}<T>{$endif};
+      const Index, AddCount: TListSize);
+
+    { Assign here a linear interpolation of two other arrays.
+      We take ACount items, from V1[Index1 ... Index1 + ACount - 1] and
+      V2[Index2 ... Index2 + ACount - 1], and interpolate between them.
+
+      It's Ok for both V1 and V2 to be the same objects.
+      But their ranges should not overlap, for future optimizations.
+
+      @raises(ELinearInterpolationImpossible On classes where linear interpolation is not possible,
+        e.g. we cannot linearly interpolate lists of strings.) }
+    procedure AssignLerpRange(const Fraction: Single;
+      const V1, V2: TStructList {$ifndef FPC}<T>{$endif};
+      const Index1, Index2, ACount: TListSize); virtual;
+
+    { Assign linear interpolation between two other arrays.
+      @raises EListsDifferentCount If V1 and V2 have different count.
+      @raises(ELinearInterpolationImpossible On classes where linear interpolation is not possible,
+        e.g. we cannot linearly interpolate lists of strings.) }
     procedure AssignLerp(const Fraction: Single;
-      const V1, V2: TStructList<T>; const Index1, Index2, ACount: TListSize); virtual;
-    function PerfectlyEquals(SecondValue: TObject): boolean; virtual; abstract;
-    {$endif}
+      const V1, V2: TStructList {$ifndef FPC}<T>{$endif});
+
+    { Does the SecondValue have equal type, length and content.
+      The values are compared perfectly, without any tolerance for difference. }
+    function PerfectlyEquals(SecondValue: TObject): Boolean;
 
     procedure AddArray(const A: array of T); deprecated 'use AddRange';
     procedure AddList(const Source: TStructList {$ifndef CASTLE_OBJFPC}<T>{$endif}); deprecated 'use AddRange';
@@ -172,8 +199,8 @@ begin
   AddRange(Source);
 end;
 
-{$ifndef FPC}
-procedure TStructList<T>.AddSubRange(const Source: TStructList<T>; const Index, AddCount: TListSize);
+procedure TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.AddSubRange(const Source: TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif};
+  const Index, AddCount: TListSize);
 var
   OldCount: TListSize;
 begin
@@ -183,15 +210,31 @@ begin
     System.Move(Source.List^[Index], List^[OldCount], SizeOf(T) * AddCount);
 end;
 
-procedure TStructList<T>.AssignLerp(const Fraction: Single;
-  const V1, V2: TStructList<T>; const Index1, Index2, ACount: TListSize);
-var
-  I: TListSize;
+function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.PerfectlyEquals(SecondValue: TObject): boolean;
+type
+  TSelfType = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<T>;
 begin
-  raise Exception.Create('Not implemented');
+  Result :=
+    (SecondValue is TSelfType) and
+    (Count = TSelfType(SecondValue).Count) and
+    CompareMem(List, TSelfType(SecondValue), SizeOf(T) * Count);
 end;
 
-{$endif}
+procedure TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.AssignLerpRange(const Fraction: Single;
+  const V1, V2: TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif};
+  const Index1, Index2, ACount: TListSize);
+begin
+  raise Exception.Create('AssignLerpRange not implemented for ' + ClassName);
+end;
+
+procedure TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.AssignLerp(const Fraction: Single;
+  const V1, V2: TStructList {$ifndef FPC}<T>{$endif});
+begin
+  if V1.Count <> V2.Count then
+    raise EListsDifferentCount.CreateFmt('Different lists length: %d and %d, cannot do AssignLerp on the lists',
+      [V1.Count, V2.Count]);
+  AssignLerpRange(Fraction, V1, V2, 0, 0, V1.Count);
+end;
 
 procedure TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.AssignArray(const A: array of T);
 begin

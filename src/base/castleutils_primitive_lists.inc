@@ -47,40 +47,19 @@ type
     procedure AppendFloats(Floats: TFloatList);
     function ToDouble: TDoubleList;
 
-    { Assign value from TDoubleList, converting to double-precision. }
+    { Assign value from TDoubleList, converting to single-precision. }
     procedure Assign(const Source: TDoubleList); overload;
 
-    { Assign linear interpolation between two other float arrays.
-      We take ACount items, from V1[Index1 ... Index1 + ACount - 1] and
-      V2[Index2 ... Index2 + ACount - 1], and interpolate between them
-      like normal Lerp functions.
+    procedure AssignLerpRange(const Fraction: Single;
+      const V1, V2: {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<Single>;
+      const Index1, Index2, ACount: TListSize); override;
 
-      It's Ok for both V1 and V2 to be the same objects.
-      But their ranges should not overlap, for future optimizations
-      (although it's Ok for current implementation). }
-    procedure AssignLerp(const Fraction: Single;
-      const V1, V2: TSingleList; const Index1, Index2, ACount: TListSize); overload;
-
-    {$ifndef FPC}
-    procedure AssignLerp(const Fraction: Single;
-      const V1, V2: TStructList<Single>; const Index1, Index2, ACount: TListSize); overload; override;
-    {$endif}
-
-    procedure AddSubRange(const Source: TSingleList; const Index, AddCount: TListSize);
     procedure AddListRange(const Source: TSingleList; const Index, AddCount: TListSize); deprecated 'use AddSubRange';
-
-    { Assign linear interpolation between two other vector arrays.
-      @raises EListsDifferentCount If V1 and V2 have different count. }
-    procedure AssignLerp(const Fraction: Single; const V1, V2: TSingleList); overload;
 
     { Does the SecondValue have equal length and content.
       The values are compared with an Epsilon tolerance, as usual for floating-point
       values. }
     function Equals(SecondValue: TObject): boolean; override;
-
-    { Does the SecondValue have equal length and content.
-      The values are compared perfectly, without any tolerance for difference. }
-    function PerfectlyEquals(SecondValue: TObject): boolean;
 
     function Sum: Single;
 
@@ -98,18 +77,14 @@ type
     { Assign value from TSingleList, converting to single-precision. }
     procedure Assign(const Source: TSingleList); overload;
 
-    { Assign linear interpolation between two other vector arrays.
-      @raises EListsDifferentCount If V1 and V2 have different count. }
-    procedure AssignLerp(const Fraction: Double; const V1, V2: TDoubleList);
+    procedure AssignLerpRange(const Fraction: Single;
+      const V1, V2: {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<Double>;
+      const Index1, Index2, ACount: TListSize); override;
 
     { Does the SecondValue have equal length and content.
       The values are compared with an Epsilon tolerance, as usual for floating-point
       values. }
     function Equals(SecondValue: TObject): boolean; override;
-
-    { Does the SecondValue have equal length and content.
-      The values are compared perfectly, without any tolerance for difference. }
-    function PerfectlyEquals(SecondValue: TObject): boolean;
   end;
 
   TCardinalList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<Cardinal>)
@@ -130,16 +105,10 @@ type
     { @groupEnd }
     function ToLongInt: TLongIntList;
 
-    { Does the SecondValue have equal length and content. }
-    function Equals(SecondValue: TObject): boolean; override;
-
     { Does the SecondValue have equal length and content.
-
-      This method does the same thing as @link(Equals).
-      It is defined for consistency -- on some lists, like @link(TSingleList),
-      there is an important difference between Equals (compares with some
-      epsilon tolerance) and PerfectlyEquals. }
-    function PerfectlyEquals(SecondValue: TObject): boolean;
+      This method does the same thing as @link(PerfectlyEquals)
+      in case of Booleans list, that are always compared perfectly. }
+    function Equals(SecondValue: TObject): boolean; override;
   end;
 
   TLongIntArray = packed array [0..MaxInt div SizeOf(LongInt) - 1] of LongInt;
@@ -153,16 +122,10 @@ type
     { Add given Item a number of times to the list. }
     procedure AddDuplicate(const Item: LongInt; const DuplicateCount: TListSize);
 
-    { Does the SecondValue have equal length and content. }
-    function Equals(SecondValue: TObject): boolean; override;
-
     { Does the SecondValue have equal length and content.
-
-      This method does the same thing as @link(Equals).
-      It is defined for consistency -- on some lists, like @link(TSingleList),
-      there is an important difference between Equals (compares with some
-      epsilon tolerance) and PerfectlyEquals. }
-    function PerfectlyEquals(SecondValue: TObject): boolean;
+      This method does the same thing as @link(PerfectlyEquals)
+      in case of LongInt list, that are always compared perfectly. }
+    function Equals(SecondValue: TObject): boolean; override;
   end;
 
   TIntegerList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<Integer>)
@@ -269,54 +232,30 @@ begin
   end;
 end;
 
-procedure TSingleList.AssignLerp(const Fraction: Single;
-  const V1, V2: TSingleList; const Index1, Index2, ACount: TListSize);
+procedure TSingleList.AssignLerpRange(const Fraction: Single;
+  const V1, V2: {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<Single>;
+  const Index1, Index2, ACount: TListSize);
 var
   I: TListSize;
+  PtrTarget, Ptr1, Ptr2: PSingle;
 begin
   Count := ACount;
+  PtrTarget := PSingle(List);
+  Ptr1 := @V1.List^[Index1];
+  Ptr2 := @V2.List^[Index2];
   for I := 0 to Count - 1 do
-    Items[I] := Lerp(Fraction, V1.Items[Index1 + I], V2.Items[Index2 + I]);
+  begin
+    PtrTarget^ := Lerp(Fraction, Ptr1^, Ptr2^);
+    Inc(PtrTarget);
+    Inc(Ptr1);
+    Inc(Ptr2);
+  end;
 end;
 
-{$ifndef FPC}
-procedure TSingleList.AssignLerp(const Fraction: Single;
-  const V1, V2: TStructList<Single>; const Index1, Index2, ACount: TListSize);
-var
-  I: TListSize;
-begin
-  Count := ACount;
-  for I := 0 to Count - 1 do
-    Items[I] := Lerp(Fraction, V1.Items[Index1 + I], V2.Items[Index2 + I]);
-end;
-{$endif}
-
-procedure TSingleList.AddListRange(const Source: TSingleList; const Index, AddCount: TListSize);
+procedure TSingleList.AddListRange(const Source: TSingleList;
+  const Index, AddCount: TListSize);
 begin
   AddSubRange(Source, Index, AddCount);
-end;
-
-procedure TSingleList.AddSubRange(const Source: TSingleList; const Index, AddCount: TListSize);
-var
-  OldCount: TListSize;
-begin
-  OldCount := Count;
-  Count := Count + AddCount;
-  if Source.Count <> 0 then
-    System.Move(Source.List^[Index], List^[OldCount], SizeOf(Single) * AddCount);
-end;
-
-procedure TSingleList.AssignLerp(const Fraction: Single; const V1, V2: TSingleList);
-var
-  I: TListSize;
-begin
-  if V1.Count <> V2.Count then
-    raise EListsDifferentCount.CreateFmt('Different lists length: %d and %d, cannot do AssignLerp on the lists',
-      [V1.Count, V2.Count]);
-
-  Count := V1.Count;
-  for I := 0 to Count - 1 do
-    List^[I] := Lerp(Fraction, V1.List^[I], V2.List^[I]);
 end;
 
 function TSingleList.Equals(SecondValue: TObject): boolean;
@@ -330,24 +269,6 @@ begin
     if Result then
       for I := 0 to Count - 1 do
         if not SameValue(TSingleList(SecondValue).List^[I], List^[I]) then
-        begin
-          Result := false;
-          Exit;
-        end;
-  end;
-end;
-
-function TSingleList.PerfectlyEquals(SecondValue: TObject): boolean;
-var
-  I: TListSize;
-begin
-  Result := SecondValue is TSingleList;
-  if Result then
-  begin
-    Result := Count = TSingleList(SecondValue).Count;
-    if Result then
-      for I := 0 to Count - 1 do
-        if TSingleList(SecondValue).List^[I] <> List^[I] then
         begin
           Result := false;
           Exit;
@@ -422,17 +343,24 @@ begin
   end;
 end;
 
-procedure TDoubleList.AssignLerp(const Fraction: Double; const V1, V2: TDoubleList);
+procedure TDoubleList.AssignLerpRange(const Fraction: Single;
+  const V1, V2: {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<Double>;
+  const Index1, Index2, ACount: TListSize);
 var
   I: TListSize;
+  PtrTarget, Ptr1, Ptr2: PDouble;
 begin
-  if V1.Count <> V2.Count then
-    raise EListsDifferentCount.CreateFmt('Different lists length: %d and %d, cannot do AssignLerp on the lists',
-      [V1.Count, V2.Count]);
-
-  Count := V1.Count;
+  Count := ACount;
+  PtrTarget := PDouble(List);
+  Ptr1 := @V1.List^[Index1];
+  Ptr2 := @V2.List^[Index2];
   for I := 0 to Count - 1 do
-    List^[I] := Lerp(Fraction, V1.List^[I], V2.List^[I]);
+  begin
+    PtrTarget^ := Lerp(Fraction, Ptr1^, Ptr2^);
+    Inc(PtrTarget);
+    Inc(Ptr1);
+    Inc(Ptr2);
+  end;
 end;
 
 function TDoubleList.Equals(SecondValue: TObject): boolean;
@@ -446,24 +374,6 @@ begin
     if Result then
       for I := 0 to Count - 1 do
         if not SameValue(TDoubleList(SecondValue).List^[I], List^[I]) then
-        begin
-          Result := false;
-          Exit;
-        end;
-  end;
-end;
-
-function TDoubleList.PerfectlyEquals(SecondValue: TObject): boolean;
-var
-  I: TListSize;
-begin
-  Result := SecondValue is TDoubleList;
-  if Result then
-  begin
-    Result := Count = TDoubleList(SecondValue).Count;
-    if Result then
-      for I := 0 to Count - 1 do
-        if TDoubleList(SecondValue).List^[I] <> List^[I] then
         begin
           Result := false;
           Exit;
@@ -514,26 +424,8 @@ begin
 end;
 
 function TBooleanList.Equals(SecondValue: TObject): boolean;
-var
-  I: TListSize;
 begin
-  Result := SecondValue is TBooleanList;
-  if Result then
-  begin
-    Result := Count = TBooleanList(SecondValue).Count;
-    if Result then
-      for I := 0 to Count - 1 do
-        if TBooleanList(SecondValue).List^[I] <> List^[I] then
-        begin
-          Result := false;
-          Exit;
-        end;
-  end;
-end;
-
-function TBooleanList.PerfectlyEquals(SecondValue: TObject): boolean;
-begin
-  Result := Equals(SecondValue);
+  Result := PerfectlyEquals(SecondValue);
 end;
 
 { TLongIntList ----------------------------------------------------------- }
@@ -582,26 +474,8 @@ begin
 end;
 
 function TLongIntList.Equals(SecondValue: TObject): boolean;
-var
-  I: TListSize;
 begin
-  Result := SecondValue is TLongIntList;
-  if Result then
-  begin
-    Result := Count = TLongIntList(SecondValue).Count;
-    if Result then
-      for I := 0 to Count - 1 do
-        if TLongIntList(SecondValue).List^[I] <> List^[I] then
-        begin
-          Result := false;
-          Exit;
-        end;
-  end;
-end;
-
-function TLongIntList.PerfectlyEquals(SecondValue: TObject): boolean;
-begin
-  Result := Equals(SecondValue);
+  Result := PerfectlyEquals(SecondValue);
 end;
 
 { TIntegerList ----------------------------------------------------------- }

@@ -95,7 +95,7 @@ type
     procedure Assign(const A: array of T); overload;
     procedure AddSubRange(const Source: TList; const Index, AddCount: TListSize);
     procedure AddRange(const AValues: array of T); overload;
-    procedure AssignLerp(const Fraction: Single;
+    procedure AssignLerpRange(const Fraction: Single;
       const V1, V2: TList; const Index1, Index2, ACount: TListSize);
     // needed because in TCastleStringList L is property and in TStructList is function
     function InternalGetItem(const Index: TListSize): T;

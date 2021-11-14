@@ -86,7 +86,7 @@ type
 
     {$ifndef FPC}
     procedure AddSubRange(const Source: TStringList; const Index, AddCount: TListSize);
-    procedure AssignLerp(const Fraction: Single;
+    procedure AssignLerpRange(const Fraction: Single;
       const V1, V2: TStringList; const Index1, Index2, ACount: TListSize);
     {$endif}
 
@@ -1099,10 +1099,10 @@ begin
   end;
 end;
 
-procedure TCastleStringList.AssignLerp(const Fraction: Single;
+procedure TCastleStringList.AssignLerpRange(const Fraction: Single;
   const V1, V2: TStringList; const Index1, Index2, ACount: TListSize);
 begin
-  raise Exception.Create('Can''t AssignLerp on TCastleStringList');
+  raise ELinearInterpolationImpossible.Create('AssignLerp not possible on TCastleStringList');
 end;
 
 {$endif}
