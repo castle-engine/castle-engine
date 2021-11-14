@@ -191,7 +191,7 @@ type
     Size: LongWord;
     Flags: LongWord;
     case Integer of
-      0: ( FourCC: array [0 .. 3] of char;
+      0: ( FourCC: array [0 .. 3] of AnsiChar;
            RGBBitCount: LongWord;
            RBitMask: LongWord;
            GBitMask: LongWord;
