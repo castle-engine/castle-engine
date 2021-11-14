@@ -163,7 +163,7 @@ unit X3DNodes;
 
 interface
 
-uses SysUtils, Generics.Collections, Classes{$ifndef FPC}, Rtti{$endif}, XMLRead, DOM,
+uses SysUtils, Generics.Collections, Classes, XMLRead, DOM,
   CastleVectors, CastleRectangles, CastleTimeUtils, CastleFonts,
   CastleInternalX3DLexer, CastleUtils, CastleClassUtils,
   X3DFields, CastleBoxes, CastleImages, CastleColors, CastleCameras,

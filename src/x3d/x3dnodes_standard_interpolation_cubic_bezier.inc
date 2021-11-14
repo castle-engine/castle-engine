@@ -399,7 +399,7 @@ procedure TAbstractCubicBezierArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
   const Fraction: Single; const F1, F2: TKeyValue;
   const Index1, Index2, ACount: Integer);
 begin
-  Target.Items.AssignLerp(Fraction, F1.Items, F2.Items, Index1, Index2, ACount);
+  Target.Items.AssignLerpRange(Fraction, F1.Items, F2.Items, Index1, Index2, ACount);
 end;
 
 { TCubicBezier2DOrientationInterpolatorNode ---------------------------------- }
