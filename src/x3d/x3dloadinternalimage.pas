@@ -225,7 +225,7 @@ constructor TImageAsX3DModelLoader.Create(const Stream: TStream; const BaseUrl, 
 begin
   inherited Create;
 
-  FImage := LoadImage(Stream, MimeType, []);
+  FImage := LoadEncodedImage(Stream, MimeType, []);
   FBaseUrl := BaseUrl;
   FDisplayUrl := URIDisplay(FBaseUrl);
 
