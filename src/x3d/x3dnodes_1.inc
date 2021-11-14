@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -194,7 +194,6 @@
   TIndexedFaceSetNode_1 = class(TIndexedFacesOrTrianglesNode_1)
   public
     procedure CreateNode; override;
-
     class function ClassX3DType: string; override;
 
     procedure InternalCoordPolygons(
@@ -646,7 +645,6 @@
   TOrthographicCameraNode_1 = class(TAbstractCameraNode_1)
   public
     procedure CreateNode; override;
-
     class function ClassX3DType: string; override;
     class function ProjectionType: TProjectionType; override;
 
@@ -657,7 +655,6 @@
   TPerspectiveCameraNode_1 = class(TAbstractCameraNode_1)
   public
     procedure CreateNode; override;
-
     class function ClassX3DType: string; override;
     class function ProjectionType: TProjectionType; override;
 
@@ -668,16 +665,16 @@
   TDirectionalLightNode_1 = class(TAbstractDirectionalLightNode)
   public
     procedure CreateNode; override;
-
+    class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
-
     function Scope: TLightScope; override;
   end;
 
   TPointLightNode_1 = class(TAbstractPointLightNode)
   public
     procedure CreateNode; override;
+    class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
     function HasRadius: boolean; override;
@@ -2105,6 +2102,11 @@ begin
     Result := lsLocalVRML1;
 end;
 
+class function TDirectionalLightNode_1.ClassX3DType: string;
+begin
+  Result := 'DirectionalLight';
+end;
+
 procedure TPointLightNode_1.CreateNode;
 begin
   inherited;
@@ -2134,6 +2136,11 @@ begin
   if FdGlobal.Value then
     Result := lsGlobal else
     Result := lsLocalVRML1;
+end;
+
+class function TPointLightNode_1.ClassX3DType: string;
+begin
+  Result := 'PointLight';
 end;
 
 procedure TSpotLightNode_1.CreateNode;
