@@ -251,7 +251,7 @@ type
 implementation
 
 {$ifdef MSWINDOWS}
-uses ComObj;
+uses ComObj, Xml.Win.msxmldom;
 {$endif}
 
 { TDOMNodeList --------------------------------------------------------------- }
@@ -719,5 +719,10 @@ begin
   inherited Create(NOT_FOUND_ERR, ASituation);
 end;
 
+initialization
+  { Reading X3D XML fails without this.
+    See https://bobsotherblog.wordpress.com/2013/09/19/fixing-dtd-is-prohibited-error-in-delphi/
+    https://docwiki.embarcadero.com/Libraries/Sydney/en/Xml.Win.msxmldom.MSXML6_ProhibitDTD }
+  Xml.Win.msxmldom.MSXMLDOMDocumentFactory.AddDOMProperty('ProhibitDTD', False);
 end.
 

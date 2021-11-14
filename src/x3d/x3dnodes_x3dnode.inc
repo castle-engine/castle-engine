@@ -1985,7 +1985,7 @@ var
     AttrIndex, Index: Integer;
   begin
     { enumerate over all attributes }
-    for AttrIndex := 0 to Element.Attributes.Length - 1 do
+    for AttrIndex := 0 to Integer(Element.Attributes.Length) - 1 do
     begin
       AttrNode := Element.Attributes[AttrIndex];
       Assert(AttrNode.NodeType = ATTRIBUTE_NODE);
