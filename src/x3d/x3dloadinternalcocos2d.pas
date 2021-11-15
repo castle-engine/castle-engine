@@ -183,7 +183,7 @@ begin
   {$ifdef FPC}
   RemoveTrailingChars(AnimationName, ['0'..'9']);
   {$else}
-  AnimationName.TrimRight(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
+  AnimationName := AnimationName.TrimRight(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
   {$endif}
 
   if (Length(AnimationName) > 1) and ((AnimationName[Length(AnimationName)] = '_')
