@@ -805,6 +805,12 @@ var
     OutPath: String;
   begin
     OutPath := CompilationOutputPath(coDelphi, OS, CPU, WorkingDirectory);
+    { Looks like DCCxxx cannot handle parameters with spaces? Answers
+        Fatal: F1026 File not found: 'Game.dpr'
+      for
+        -NUC:\Users\michalis\Documents\Castle Game Engine Projects\my-new-project-delphi3d\castle-engine-output\compilation\delphi\x86_64-win64\
+      Workaround: pass relative paths. }
+    OutPath := ExtractRelativePath(InclPathDelim(WorkingDirectory), OutPath);
     DccOptions.Add('-NU' + OutPath);
     DccOptions.Add('-NH' + OutPath);
     DccOptions.Add('-NO' + OutPath);
