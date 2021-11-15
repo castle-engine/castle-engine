@@ -304,7 +304,7 @@ begin
     V2.Add(Vector3(11.0, 12.0, 13.0));
     V2.Add(Vector3(17.0, 18.0, 19.0));
 
-    V3.AssignLerp(0.2, V1, V2, 0, 1, 2);
+    V3.AssignLerpRange(0.2, V1, V2, 0, 1, 2);
     AssertTrue(V3.Count = 2);
 
     AssertTrue(TVector3.PerfectlyEquals(V3.L[0], Lerp(0.2,
