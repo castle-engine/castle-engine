@@ -318,8 +318,8 @@ type
       very useful to test various player properties without restarting the game.
 
       @groupBegin }
-    procedure LoadFromFile;
-    procedure LoadFromFile(const URL: string);
+    procedure LoadFromFile; overload;
+    procedure LoadFromFile(const URL: string); overload;
     { @groupEnd }
 
     function Ground: PTriangle;
@@ -356,7 +356,7 @@ type
 
     property SickProjectionSpeed: Single
       read FSickProjectionSpeed write FSickProjectionSpeed
-      default DefaultSickProjectionSpeed;
+      {$ifdef FPC}default DefaultSickProjectionSpeed{$endif};
 
     property CollidesWithMoving default true;
     function Sphere(out Radius: Single): boolean; override;
@@ -372,13 +372,17 @@ type
       default DefaultRenderOnTop;
 
     property FallMinHeightToSound: Single
-      read FFallMinHeightToSound write FFallMinHeightToSound default DefaultFallMinHeightToSound;
+      read FFallMinHeightToSound write FFallMinHeightToSound
+      {$ifdef FPC}default DefaultFallMinHeightToSound{$endif};
     property FallMinHeightToDamage: Single
-      read FFallMinHeightToDamage write FFallMinHeightToDamage default DefaultFallMinHeightToDamage;
+      read FFallMinHeightToDamage write FFallMinHeightToDamage
+      {$ifdef FPC}default DefaultFallMinHeightToDamage{$endif};
     property FallDamageScaleMin: Single
-      read FFallDamageScaleMin write FFallDamageScaleMin default DefaultFallDamageScaleMin;
+      read FFallDamageScaleMin write FFallDamageScaleMin
+      {$ifdef FPC}default DefaultFallDamageScaleMin{$endif};
     property FallDamageScaleMax: Single
-      read FFallDamageScaleMax write FFallDamageScaleMax default DefaultFallDamageScaleMax;
+      read FFallDamageScaleMax write FFallDamageScaleMax
+      {$ifdef FPC}default DefaultFallDamageScaleMax{$endif};
     { Sound when falling.
       The default is the sound named 'player_fall'. }
     property FallSound: TCastleSound
@@ -393,22 +397,28 @@ type
       is ignored. Instead, Player properties control TCastleWalkNavigation.HeadBobbing
       and TCastleWalkNavigation.HeadBobbingTime. }
     property HeadBobbing: Single
-      read FHeadBobbing write FHeadBobbing default TCastleWalkNavigation.DefaultHeadBobbing;
+      read FHeadBobbing write FHeadBobbing
+      {$ifdef FPC}default TCastleWalkNavigation.DefaultHeadBobbing{$endif};
 
     { How many seconds you can swin before you start to drown. }
-    property SwimBreath: Single read FSwimBreath write FSwimBreath default DefaultSwimBreath;
+    property SwimBreath: Single read FSwimBreath write FSwimBreath
+      {$ifdef FPC}default DefaultSwimBreath{$endif};
 
     { How many seconds between each drown event.
       Drown event makes stPlayerDrowning sound and causes damage
       DrownDamageConst + Random * DrownDamageRandom. }
-    property DrownPause: Single read FDrownPause write FDrownPause default DefaultDrownPause;
-    property DrownDamageConst: Single read FDrownDamageConst write FDrownDamageConst default DefaultDrownDamageConst;
-    property DrownDamageRandom: Single read FDrownDamageRandom write FDrownDamageRandom default DefaultDrownDamageRandom;
+    property DrownPause: Single read FDrownPause write FDrownPause
+      {$ifdef FPC}default DefaultDrownPause{$endif};
+    property DrownDamageConst: Single read FDrownDamageConst write FDrownDamageConst
+      {$ifdef FPC}default DefaultDrownDamageConst{$endif};
+    property DrownDamageRandom: Single read FDrownDamageRandom write FDrownDamageRandom
+      {$ifdef FPC}default DefaultDrownDamageRandom{$endif};
 
     { Pause, in seconds, between playing stPlayerSwimming sound.
       This should be something that is not easily synchronized
       with SwimDrownPause. }
-    property SwimSoundPause: Single read FSwimSoundPause write FSwimSoundPause default DefaultSwimSoundPause;
+    property SwimSoundPause: Single read FSwimSoundPause write FSwimSoundPause
+      {$ifdef FPC}default DefaultSwimSoundPause{$endif};
 
     { Enable navigation falling down effect due to gravity.
       This indirectly controls @link(TCastleWalkNavigation.FallingEffect)
@@ -442,7 +452,9 @@ type
     { Navigation synchronized with this player instance,
       when @link(UseThirdPerson) is @false. }
     property WalkNavigation: TCastleWalkNavigation read FWalkNavigation;
+    {$ifdef FPC}
     property Camera: TCastleWalkNavigation read FWalkNavigation; deprecated 'use WalkNavigation';
+    {$endif}
 
     { Navigation synchronized with this player instance,
       when @link(UseThirdPerson) is @true.
@@ -460,16 +472,18 @@ type
       @bold(You have to set this before calling @link(TLevel.Load)). }
     property UseThirdPerson: Boolean read FUseThirdPerson write SetUseThirdPerson default false;
 
-    property KnockBackSpeed default DefaultPlayerKnockBackSpeed;
+    property KnockBackSpeed {$ifdef FPC}default DefaultPlayerKnockBackSpeed{$endif};
 
     { Enable navigation by dragging. This results in including
       niMouseDragging in TCastleNavigation.Input (when player is not
       @link(Dead) or @link(Blocked)). }
     property EnableNavigationDragging: boolean
       read FEnableNavigationDragging write SetEnableNavigationDragging default true;
+    {$ifdef FPC}
     property EnableCameraDragging: boolean
       read FEnableNavigationDragging write SetEnableNavigationDragging default true;
       deprecated 'use EnableNavigationDragging';
+    {$endif}
 
     { Show the debug bounding box of the player.
       Warning: It looks a little confusing (since it's a box around camera). }
@@ -614,7 +628,7 @@ begin
   WalkNavigation.Input_DecreasePreferredHeight.MakeClear;
 
   WalkNavigation.CheckModsDown := false;
-  WalkNavigation.OnFall := @NavigationFall;
+  WalkNavigation.OnFall := {$ifdef CASTLE_OBJFPC}@{$endif}NavigationFall;
 
   { Although it will be called in every OnUpdate anyway,
     we also call it here to be sure that right after TPlayer constructor
@@ -692,7 +706,7 @@ var
 begin
   S := Format('You pick "%s"', [Item.Resource.Caption]);
   if Item.Quantity <> 1 then
-    S += Format(' (quantity %d)', [Item.Quantity]);
+    S := S + Format(' (quantity %d)', [Item.Quantity]);
   Notifications.Show(S);
 
   {$warnings off} // just to keep deprecated working
@@ -726,7 +740,7 @@ begin
 
     S := Format('You drop "%s"', [Result.Item.Resource.Caption]);
     if Result.Item.Quantity <> 1 then
-      S += Format(' (quantity %d)', [Result.Item.Quantity]);
+      S := S + Format(' (quantity %d)', [Result.Item.Quantity]);
     Notifications.Show(S);
 
     {$warnings off} // just to keep deprecated working
@@ -1156,7 +1170,7 @@ begin
   UpdateSwimming;
 
   if FFadeOutIntensity > 0 then
-    FFadeOutIntensity -= FadeOutSpeed * SecondsPassed;
+    FFadeOutIntensity := FFadeOutIntensity - FadeOutSpeed * SecondsPassed;
 
   if (EquippedWeapon <> nil) and
      (InternalLevel <> nil) then

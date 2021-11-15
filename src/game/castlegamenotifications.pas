@@ -33,18 +33,21 @@ uses SysUtils, CastleScript;
 
 var
   PreviousOnScriptMessage: TCasScriptMessage;
+  {$ifndef FPC}TestOnScriptMessage:TCasScriptMessage;{$endif}
 
 initialization
   Notifications := TCastleNotifications.Create(nil);
 
   { replace OnScriptMessage to allow using Notifications from CastleScript }
   PreviousOnScriptMessage := OnScriptMessage;
-  OnScriptMessage := @Notifications.Show;
+  OnScriptMessage := {$ifdef CASTLE_OBJFPC}@{$endif}Notifications.Show;
 finalization
+
   { restore original OnScriptMessage }
   if Notifications <> nil then
   begin
-    if OnScriptMessage = @Notifications.Show then
+    {$ifndef FPC}TestOnScriptMessage := Notifications.Show;{$endif}
+    if {$ifndef FPC}@{$endif}OnScriptMessage = {$ifdef FPC}@Notifications.Show{$else}@TestOnScriptMessage{$endif}then
       OnScriptMessage := PreviousOnScriptMessage;
   end;
 

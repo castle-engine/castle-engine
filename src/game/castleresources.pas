@@ -97,6 +97,7 @@ type
       read animation info from resource.xml file. }
     function Defined: boolean;
 
+    {$ifdef FPC}
     { Scene URL, only when each animation is inside a separate 3D file.
       See [https://castle-engine.io/creating_data_resources.php]
       for documentation how you can define creature animations. }
@@ -113,10 +114,12 @@ type
 
       See [https://castle-engine.io/creating_data_resources.php]
       for documentation how you can define creature animations. }
+    {$endif}
     property AnimationName: string read FAnimationName write FAnimationName;
+    {$ifdef FPC}
     property TimeSensor: string read FAnimationName write FAnimationName;
       deprecated 'use AnimationName';
-
+    {$endif}
     property Name: string read FName;
     property Required: boolean read FRequired;
   end;
@@ -284,9 +287,9 @@ type
         See @link(TCastleTransform.PrepareResources) for more comments.)
 
       @groupBegin }
-    procedure Prepare(const Params: TPrepareParams; const GravityUp: TVector3);
+    procedure Prepare(const Params: TPrepareParams; const GravityUp: TVector3); overload;
       deprecated 'use Prepare overload without the GravityUp parameter';
-    procedure Prepare(const Params: TPrepareParams);
+    procedure Prepare(const Params: TPrepareParams); overload;
     procedure Release;
     { @groupEnd }
 
@@ -345,7 +348,7 @@ type
       except our default value is non-zero, and by default TCastleTransform.Gravity
       and TCastleTransform.PreferredHeight are already sensible for creatures/items. }
     property FallSpeed: Single
-      read FFallSpeed write FFallSpeed default DefaultFallSpeed;
+      read FFallSpeed write FFallSpeed {$ifdef FPC}default DefaultFallSpeed{$endif};
 
     { The speed (in units per second) of growing.
 
@@ -360,7 +363,7 @@ type
       except the default value is non-zero, and by default TCastleTransform.Gravity
       and TCastleTransform.PreferredHeight are already sensible for creatures/items. }
     property GrowSpeed: Single
-      read FGrowSpeed write FGrowSpeed default DefaultGrowSpeed;
+      read FGrowSpeed write FGrowSpeed {$ifdef FPC}default DefaultGrowSpeed{$endif};
 
     property ReceiveShadowVolumes: boolean
       read FReceiveShadowVolumes write FReceiveShadowVolumes
@@ -371,7 +374,7 @@ type
 
     { See @link(TCastleSceneCore.DefaultAnimationTransition) }
     property DefaultAnimationTransition: Single
-      read FDefaultAnimationTransition write FDefaultAnimationTransition default 0.0;
+      read FDefaultAnimationTransition write FDefaultAnimationTransition {$ifdef FPC}default 0.0{$endif};
 
     { See @link(TCastleTransform.Orientation), by default this is @link(TCastleTransform.DefaultOrientation).
 
@@ -483,8 +486,8 @@ type
         but you don't want to recreate existing resource instances.)
 
       @groupBegin }
-    procedure LoadFromFiles(const Path: string; const Reload: boolean = false);
-    procedure LoadFromFiles(const Reload: boolean = false);
+    procedure LoadFromFiles(const Path: string; const Reload: boolean = false); overload;
+    procedure LoadFromFiles(const Reload: boolean = false); overload;
     { @groupEnd }
 
     { Load a single resource from resource.xml file.
@@ -697,13 +700,14 @@ end;
 function T3DResourceAnimation.Defined: boolean;
 begin
   {$warnings off} // using deprecated to keep it working
-  Result := (URL <> '') or (AnimationName <> '');
+  Result := {$ifdef FPC}(URL <> '') or {$endif}(AnimationName <> '');
   {$warnings on}
 end;
 
 procedure T3DResourceAnimation.Prepare(const Params: TPrepareParams;
   const DoProgress: boolean);
 begin
+  {$ifdef FPC}
   {$warnings off} // using deprecated to keep it working
   if URL <> '' then
   begin
@@ -714,6 +718,7 @@ begin
       FDuration := FSceneState.Scene.AnimationDuration(TNodeInterpolator.DefaultAnimationName);
   end else
   {$warnings on}
+  {$endif FPC}
   if AnimationName <> '' then
   begin
     if Owner.ModelState.Scene = nil then
@@ -733,6 +738,7 @@ end;
 
 procedure T3DResourceAnimation.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
+  {$ifdef FPC}
   {$warnings off} // using deprecated to keep it working
   if ResourceConfig.GetValue('model/' + Name + '/file_name', '') <> '' then
   begin
@@ -747,6 +753,7 @@ begin
       Owner.Name
     ]);
   {$warnings on}
+  {$endif FPC}
 
   AnimationName := ResourceConfig.GetValue('model/' + Name + '/animation_name', '');
   if AnimationName = '' then
@@ -1151,7 +1158,8 @@ begin
   if not Reload then
     Clear;
   ResourceXmlReload := Reload;
-  FindFiles(Path, 'resource.xml', false, @AddFromInfo, [ffRecursive]);
+  FindFiles(Path, 'resource.xml', false,
+    {$ifdef CASTLE_OBJFPC}@{$endif}AddFromInfo, [ffRecursive]);
 end;
 
 procedure T3DResourceList.LoadFromFiles(const Reload: boolean);
@@ -1302,6 +1310,8 @@ begin
     FResources := T3DResourceList.Create(true);
   Result := FResources;
 end;
+
+initialization // Empty but Delphi need that
 
 finalization
   UnitFinalization := true;

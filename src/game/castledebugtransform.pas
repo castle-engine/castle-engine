@@ -71,8 +71,8 @@ type
     procedure SetBox(const Value: TBox3D);
     procedure SetColor(const AValue: TCastleColor);
   public
-    constructor Create(AOwner: TComponent); override;
-    constructor Create(const AOwner: TComponent; const AColor: TCastleColorRGB); reintroduce;
+    constructor Create(AOwner: TComponent); overload; override;
+    constructor Create(const AOwner: TComponent; const AColor: TCastleColorRGB); reintroduce; overload;
       deprecated 'use Create(AOwner) and adjust Color property';
     property Root: TTransformNode read FTransform;
     property Box: TBox3D {read GetBox} {} write SetBox;

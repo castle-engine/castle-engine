@@ -172,7 +172,7 @@ type
 
       So this is only a "suggested" default for MaxLife of this creature. }
     property DefaultMaxLife: Single
-      read FDefaultMaxLife write FDefaultMaxLife default DefaultDefaultMaxLife;
+      read FDefaultMaxLife write FDefaultMaxLife {$ifdef FPC}default DefaultDefaultMaxLife{$endif};
 
     { Create the TCreature instance using this resource.
       Uses TCreature descendant that can best cooperate with this resource,
@@ -190,7 +190,7 @@ type
     function CreateCreature(
       const ALevel: TAbstractLevel;
       const APosition, ADirection: TVector3;
-      const MaxLife: Single): TCreature; virtual; overload;
+      const MaxLife: Single): TCreature; overload; virtual;
     function CreateCreature(
       const ALevel: TAbstractLevel;
       const APosition, ADirection: TVector3): TCreature; overload;
@@ -222,13 +222,13 @@ type
       which could look bad. This may be changed some day. }
     property KnockBackDistance: Single
       read FKnockBackDistance write FKnockBackDistance
-      default DefaultKnockBackDistance;
+      {$ifdef FPC}default DefaultKnockBackDistance{$endif};
 
     { See TCastleAlive.KnockBackSpeed. }
     {$warnings off} // using deprecated in deprecated
     property KnockBackSpeed: Single
       read FKnockBackSpeed write FKnockBackSpeed
-      default TCastleAlive.DefaultKnockBackSpeed;
+      {$ifdef FPC}default TCastleAlive.DefaultKnockBackSpeed{$endif};
     {$warnings on}
 
     { By default dead creatures (corpses) don't collide, this usually looks better. }
@@ -239,13 +239,13 @@ type
       When we spawn a creature, we set it's scale to random number in
       [ScaleMin, ScaleMax] range. By default both ScaleMin and ScaleMax are 1,
       resulting in no scaling. }
-    property ScaleMin: Single read FScaleMin write FScaleMin default 1;
+    property ScaleMin: Single read FScaleMin write FScaleMin {$ifdef FPC}default 1{$endif};
 
     { Maximum scale when spawning, must be >= ScaleMin.
       When we spawn a creature, we set it's scale to random number in
       [ScaleMin, ScaleMax] range. By default both ScaleMin and ScaleMax are 1,
       resulting in no scaling. }
-    property ScaleMax: Single read FScaleMax write FScaleMax default 1;
+    property ScaleMax: Single read FScaleMax write FScaleMax {$ifdef FPC}default 1{$endif};
 
     { Attack damage.
       Used by the creatures that actually do some kind of direct attack.
@@ -260,11 +260,13 @@ type
 
       @groupBegin }
     property AttackDamageConst: Single
-      read FAttackDamageConst write FAttackDamageConst default DefaultAttackDamageConst;
+      read FAttackDamageConst write FAttackDamageConst
+      {$ifdef FPC}default DefaultAttackDamageConst{$endif};
 
     { Attack damage, see @link(AttackDamageConst) for documentation. }
     property AttackDamageRandom: Single
-      read FAttackDamageRandom write FAttackDamageRandom default DefaultAttackDamageRandom;
+      read FAttackDamageRandom write FAttackDamageRandom
+      {$ifdef FPC}default DefaultAttackDamageRandom{$endif};
     { @groupEnd }
 
     { Attack knockback (how far will the victim be pushed back).
@@ -275,7 +277,8 @@ type
 
       Must be >= 0. Value equal exactly 0 disables any knockback. }
     property AttackKnockbackDistance: Single
-      read FAttackKnockbackDistance write FAttackKnockbackDistance default DefaultAttackKnockbackDistance;
+      read FAttackKnockbackDistance write FAttackKnockbackDistance
+      {$ifdef FPC}default DefaultAttackKnockbackDistance{$endif};
 
     { Height of the eyes of the creature,
       used for various collision detection routines.
@@ -289,29 +292,33 @@ type
       @link(TCreatureResource.RadiusCalculate)). }
     property MiddleHeight: Single
       read FMiddleHeight write FMiddleHeight
-      default TCastleTransform.DefaultMiddleHeight;
+      {$ifdef FPC}default TCastleTransform.DefaultMiddleHeight{$endif};
 
     { When creature is falling down, it needs to fall at least the given distance
       to make a "hurt" sound. }
     property FallMinHeightToSound: Single
-      read FFallMinHeightToSound write FFallMinHeightToSound default DefaultFallMinHeightToSound;
+      read FFallMinHeightToSound write FFallMinHeightToSound
+      {$ifdef FPC}default DefaultFallMinHeightToSound{$endif};
 
     { When creature is falling down, it needs to fall at least the given distance
       to get some damage from the fall.
       The amount of damage is determined by @link(FallDamageScaleMin),
       @link(FallDamageScaleMax). }
     property FallMinHeightToDamage: Single
-      read FFallMinHeightToDamage write FFallMinHeightToDamage default DefaultFallMinHeightToDamage;
+      read FFallMinHeightToDamage write FFallMinHeightToDamage
+      {$ifdef FPC}default DefaultFallMinHeightToDamage{$endif};
 
     { When creature is falling down (at least for @link(FallMinHeightToDamage) distance),
       it will take a random damage in range [FallDamageScaleMin, FallDamageScaleMax]. }
     property FallDamageScaleMin: Single
-      read FFallDamageScaleMin write FFallDamageScaleMin default DefaultFallDamageScaleMin;
+      read FFallDamageScaleMin write FFallDamageScaleMin
+      {$ifdef FPC}default DefaultFallDamageScaleMin{$endif};
 
     { When creature is falling down (at least for @link(FallMinHeightToDamage) distance),
       it will take a random damage in range [FallDamageScaleMin, FallDamageScaleMax]. }
     property FallDamageScaleMax: Single
-      read FFallDamageScaleMax write FFallDamageScaleMax default DefaultFallDamageScaleMax;
+      read FFallDamageScaleMax write FFallDamageScaleMax
+      {$ifdef FPC}default DefaultFallDamageScaleMax{$endif};
 
     { Sound when falling.
       The default is the sound named 'creature_fall'. }
@@ -520,7 +527,7 @@ type
     { The moving speed: how much Direction vector will be scaled
       when moving in csWalk. }
     property MoveSpeed: Single read FMoveSpeed write FMoveSpeed
-      default DefaultMoveSpeed;
+      {$ifdef FPC}default DefaultMoveSpeed{$endif};
 
     { The preferred distance between enemy and the creature.
       The creature will try to walk closer to the enemy if the distance is larger.
@@ -535,7 +542,7 @@ type
       is PreferredDistance. }
     property PreferredDistance: Single
       read FPreferredDistance write FPreferredDistance
-      default DefaultPreferredDistance;
+      {$ifdef FPC}default DefaultPreferredDistance{$endif};
 
     { Minimum delay between one attack and the other, in seconds.
       Note that the duration of AttackAnimation also limits how often creature
@@ -544,7 +551,7 @@ type
       this 1 second will have to pass between actual attack hits). }
     property AttackMinDelay: Single
       read FAttackMinDelay write FAttackMinDelay
-      default DefaultAttackMinDelay;
+      {$ifdef FPC}default DefaultAttackMinDelay{$endif};
 
     { Maximum distance between enemy and creature to allow creature
       to start attack. The distance is measured between
@@ -552,7 +559,7 @@ type
       Middle (see @link(TCastleTransform.Middle)) points. }
     property AttackMaxDistance: Single
       read FAttackMaxDistance write FAttackMaxDistance
-      default DefaultAttackMaxDistance;
+      {$ifdef FPC}default DefaultAttackMaxDistance{$endif};
 
     { The time point within AttackAnimation at which the short-range attack
       happens. When exactly happens depends on the virtual
@@ -560,7 +567,7 @@ type
       in the base TWalkAttackCreature it is a short-range
       attack. }
     property AttackTime: Single read FAttackTime write FAttackTime
-      default DefaultAttackTime;
+      {$ifdef FPC}default DefaultAttackTime{$endif};
 
     { Since most of the creatures will have their weapon
       on their front (teeth, shooting hands, claws, whatever),
@@ -574,7 +581,7 @@ type
       This is in radians. }
     property AttackMaxAngle: Single
       read FAttackMaxAngle write FAttackMaxAngle
-      default DefaultAttackMaxAngle;
+      {$ifdef FPC}default DefaultAttackMaxAngle{$endif};
 
     { Sound played when short-range attack hits.
       None (nil) by default. }
@@ -595,27 +602,31 @@ type
       Must be < than the FireMissileAnimation duration, otherwise we will never
       reach tthis time and missile will never be fired. }
     property FireMissileTime: Single
-      read FFireMissileTime write FFireMissileTime default DefaultFireMissileTime;
+      read FFireMissileTime write FFireMissileTime
+      {$ifdef FPC}default DefaultFireMissileTime{$endif};
 
     { Minimum delay (in seconds) between firing of the missiles.
       The missile will not be fired if a previous missile was fired within last
       FireMissileMinDelay seconds.
       (Even if all other conditions for firing the missile are satisfied.) }
     property FireMissileMinDelay: Single
-      read FFireMissileMinDelay write FFireMissileMinDelay default DefaultFireMissileMinDelay;
+      read FFireMissileMinDelay write FFireMissileMinDelay
+      {$ifdef FPC}default DefaultFireMissileMinDelay{$endif};
 
     { Maximum distance to the enemy to make firing missiles sensible.
       The creature will only fire the missile if enemy is within this distance.
       The creature will also try to shorten distance to the enemy,
       to get within this distance. }
     property FireMissileMaxDistance: Single
-      read FFireMissileMaxDistance write FFireMissileMaxDistance default DefaultFireMissileMaxDistance;
+      read FFireMissileMaxDistance write FFireMissileMaxDistance
+      {$ifdef FPC}default DefaultFireMissileMaxDistance{$endif};
 
     { Maximum angle (in radians) between current direction and
       the direction toward enemy to make firing missiles sensible.
       The creature will only fire the missile if enemy is within a cone of this angle. }
     property FireMissileMaxAngle: Single
-      read FFireMissileMaxAngle write FFireMissileMaxAngle default DefaultFireMissileMaxAngle;
+      read FFireMissileMaxAngle write FFireMissileMaxAngle
+      {$ifdef FPC}default DefaultFireMissileMaxAngle{$endif};
 
     { Name of the creature to fire as missile, at AttackTime during AttackAnimation.
       Leave empty to not fire any missile. }
@@ -625,7 +636,8 @@ type
     { Height (between Position and Middle, usually: legs and eyes)
       of the fired missile (see FireMissileName). }
     property FireMissileHeight: Single
-      read FFireMissileHeight write FFireMissileHeight default DefaultFireMissileHeight;
+      read FFireMissileHeight write FFireMissileHeight
+      {$ifdef FPC}default DefaultFireMissileHeight{$endif};
 
     { Sound played when missile is fired, see FireMissileName.
       None (nil) by default. }
@@ -640,9 +652,10 @@ type
       from the enemy.
       @groupBegin }
     property RunAwayLife: Single
-      read FRunAwayLife write FRunAwayLife default DefaultRunAwayLife;
+      read FRunAwayLife write FRunAwayLife {$ifdef FPC}default DefaultRunAwayLife{$endif};
     property RunAwayDistance: Single
-      read FRunAwayDistance write FRunAwayDistance default DefaultRunAwayDistance;
+      read FRunAwayDistance write FRunAwayDistance
+      {$ifdef FPC}default DefaultRunAwayDistance{$endif};
     { @groupEnd }
 
     { Creature sees other things (like enemies) only within a cone
@@ -657,7 +670,7 @@ type
 
       Creature can also smell others, see SmellDistance. }
     property VisibilityAngle: Single read FVisibilityAngle write FVisibilityAngle
-      default DefaultVisibilityAngle;
+      {$ifdef FPC}default DefaultVisibilityAngle{$endif};
 
     { Creature smells other things (like enemies) within a sphere of this
       radius. This allows to detect enemy regardless of which direction
@@ -672,7 +685,7 @@ type
       Note: If you want the creature to nicely run from behind the corner,
       be sure to setup good sectors/waypoints in your level.}
     property SmellDistance: Single read FSmellDistance write FSmellDistance
-      default DefaultSmellDistance;
+      {$ifdef FPC}default DefaultSmellDistance{$endif};
 
     { When creature is wounded for more than MaxLife * MinLifeLossToHurt
       points and moreover Random < ChanceToHurt then creature will
@@ -686,22 +699,22 @@ type
       significantly lower than DefaultChanceToHurt. }
     property MinLifeLossToHurt: Single
       read FMinLifeLossToHurt write FMinLifeLossToHurt
-      default DefaultMinLifeLossToHurt;
+      {$ifdef FPC}default DefaultMinLifeLossToHurt{$endif};
 
     { See MinLifeLossToHurt. }
     property ChanceToHurt: Single
       read FChanceToHurt write FChanceToHurt
-      default DefaultChanceToHurt;
+      {$ifdef FPC}default DefaultChanceToHurt{$endif};
 
     property MaxHeightAcceptableToFall: Single
       read FMaxHeightAcceptableToFall
       write FMaxHeightAcceptableToFall
-      default DefaultMaxHeightAcceptableToFall;
+      {$ifdef FPC}default DefaultMaxHeightAcceptableToFall{$endif};
 
     property RandomWalkDistance: Single
       read FRandomWalkDistance
       write FRandomWalkDistance
-      default DefaultRandomWalkDistance;
+      {$ifdef FPC}default DefaultRandomWalkDistance{$endif};
 
     property RemoveDead: boolean
       read FRemoveDead write FRemoveDead default DefaultRemoveDead;
@@ -761,7 +774,7 @@ type
     { The moving speed: how much Direction vector will be scaled
       when moving. }
     property MoveSpeed: Single read FMoveSpeed write FMoveSpeed
-      default DefaultMoveSpeed;
+      {$ifdef FPC}default DefaultMoveSpeed{$endif};
 
     { Sound when missile hits anything.
       None (nil) by default. }
@@ -773,7 +786,7 @@ type
     property CloseDirectionToTargetSpeed: Single
       read FCloseDirectionToTargetSpeed
       write FCloseDirectionToTargetSpeed
-      default DefaultCloseDirectionToTargetSpeed;
+      {$ifdef FPC}default DefaultCloseDirectionToTargetSpeed{$endif};
 
     { Sound played continuously when the missile is going.
       None (nil) by default.
@@ -784,7 +797,7 @@ type
     { This should be synchonized with length of SoundIdle sound. }
     property PauseBetweenSoundIdle: Single
       read FPauseBetweenSoundIdle write FPauseBetweenSoundIdle
-      default DefaultPauseBetweenSoundIdle;
+      {$ifdef FPC}default DefaultPauseBetweenSoundIdle{$endif};
 
     property HitsPlayer: boolean
       read FHitsPlayer write FHitsPlayer default DefaultHitsPlayer;
@@ -803,7 +816,7 @@ type
       0 means to not fall down (missile is not affected by gravity). }
     property DirectionFallSpeed: Single
       read FDirectionFallSpeed write FDirectionFallSpeed
-      default DefaultDirectionFallSpeed;
+      {$ifdef FPC}default DefaultDirectionFallSpeed{$endif};
 
     { Should the dead (destroyed) missiles be removed from level.
       Useful if you want to see arrows stuck into walls where they hit.
@@ -881,14 +894,14 @@ type
       Used for AI. @nil if none (maybe because we're not part of any world,
       maybe because sectors of the world were not initialized,
       or maybe simply because we're outside of all sectors). }
-    function Sector(const OtherTransform: TCastleTransform): TSector;
-    function Sector: TSector;
+    function Sector(const OtherTransform: TCastleTransform): TSector; overload;
+    function Sector: TSector; overload;
   public
     class var
       { Render debug bounding boxes and captions at every creature. }
       RenderDebug: boolean;
 
-    constructor Create(AOwner: TComponent; const AMaxLife: Single); virtual; reintroduce;
+    constructor Create(AOwner: TComponent; const AMaxLife: Single); reintroduce; virtual;
     destructor Destroy; override;
     function GetExists: boolean; override;
     function GetCollides: boolean; override;
