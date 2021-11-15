@@ -173,12 +173,18 @@ function TXMLConfig.GetValue(const APath, ADefault: String): String;
 var
   Node, Child, Attr: TDOMNode;
   NodeName: String;
+  {$ifdef FPC}
   PathLen: integer;
   StartPos, EndPos: integer;
+  {$else}
+  NodeNames: TStrings;
+  I: Integer;
+  {$endif}
 begin
   Result := ADefault;
-  PathLen := Length(APath);
   Node := Doc.DocumentElement;
+  {$ifdef FPC}
+  PathLen := Length(APath);
   StartPos := 1;
   while True do
   begin
@@ -202,6 +208,31 @@ begin
   Attr := Node.Attributes.GetNamedItem(UTF8Decode(Escape(NodeName)));
   if Assigned(Attr) then
     Result := Attr.NodeValue8;
+  {$else}
+  NodeNames := TStringList.Create;
+  try
+    ExtractStrings(['/'], [], PWideChar(APath), NodeNames);
+
+    if NodeNames.Count = 0 then
+      Exit;
+
+    if NodeNames.Count > 1 then
+      for I := 0 to NodeNames.Count - 2 do
+      begin
+        NodeName := Escape(NodeNames[I]);
+        Child := Node.FindNode(NodeName);
+        if not Assigned(Child) then
+          Exit;
+        Node := Child;
+      end;
+    NodeName := Escape(NodeNames[NodeNames.Count - 1]);
+    Attr := Node.Attributes.GetNamedItem(Escape(NodeName));
+    if Assigned(Attr) then
+      Result := Attr.NodeValue8;
+  finally
+    FreeAndNil(NodeNames);
+  end;
+  {$endif}
 end;
 
 function TXMLConfig.GetValue(const APath: String; ADefault: Integer): Integer;
