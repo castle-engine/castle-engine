@@ -33,7 +33,7 @@ uses Classes, SysUtils,
   X3DNodes;
 
 type
-  { Starling XML file is not correct }
+  { Cocos2d XML file is not correct }
   EInvalidCocos2dPlist = class(Exception);
 
 function LoadCocos2d(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
