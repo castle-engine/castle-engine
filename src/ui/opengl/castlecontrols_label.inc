@@ -256,7 +256,10 @@ procedure TCastleLabel.PreferredSize(var PreferredWidth, PreferredHeight: Single
 var
   TextToRender: TRichText;
   TextToRenderWidth: Single;
-  TextToRenderCount: Cardinal;
+  { FPC: TStrings.Count is Integer, TObjectList.Count is SizeInt
+    Delphi: TStrings.Count is Integer, TObjectList.Count is Integer so we use
+    TListSize in TextToRenderCount }
+  TextToRenderCount: TListSize;
   PaddingHorizontalScaled, PaddingVerticalScaled, LineSpacingScaled: Single;
   US: Single;
 begin
@@ -279,12 +282,17 @@ begin
     US := UIScale;
     PaddingHorizontalScaled := US * (PaddingHorizontal + Padding);
     PaddingVerticalScaled := US * (PaddingVertical + Padding);
-    LineSpacingScaled := US * LineSpacing;
+    { When text is empty there is 0 lines so we need check that
+      not simply LineSpacingScaled * (TextToRenderCount - 1)}
+    if TextToRenderCount = 0 then
+      LineSpacingScaled := 0
+    else
+      LineSpacingScaled := US * LineSpacing * (TextToRenderCount - 1);
 
     PreferredWidth := TextToRenderWidth + 2 * PaddingHorizontalScaled;
     PreferredHeight :=
       Font.RowHeight * TextToRenderCount +
-      LineSpacingScaled * (TextToRenderCount - 1) +
+      LineSpacingScaled +
       2 * PaddingVerticalScaled +
       { This additional Font.Descend is actually always an empty space on top of
         the text. So we do not have to increase PreferredHeight by this Font.Descend,
