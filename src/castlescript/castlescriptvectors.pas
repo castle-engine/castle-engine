@@ -280,7 +280,7 @@ type
 
 implementation
 
-uses Math,{$ifndef FPC} Rtti, Classes, {$endif}
+uses Math,
   CastleScriptCoreFunctions, CastleUtils, CastleLog, CastleCameras,
   CastleQuaternions, CastleColors;
 
@@ -290,34 +290,9 @@ class function TCasScriptVec {$ifndef CASTLE_OBJFPC} <
   TVectorXxx,
   TCasScriptVectorFunXxx> {$endif} .
   CreateValueIfNeededSelf(var Value: TCasScriptValue; var ParentOfValue: boolean): TSelfClass;
-{$ifndef FPC}
-var
-  ClType: TClass;
-  RttiContext : TRttiContext;
-  RttiType: TRttiType;
-{$endif}
 begin
-  {$ifdef FPC}
-  CreateValueIfNeeded(Value, ParentOfValue, TCasScriptValueClass(ClassType));
-  {$else}
-  { In delphi TObject.ClassType is not class method so we need use RTTI or
-    GetClass if all TX3DField classes are registered
-    https://stackoverflow.com/questions/29471798/get-class-by-its-name-in-delphi }
-  ClType := GetClass(ClassName);
-  if ClType = nil then
-  begin
-    { Class is not registered so we need use RTTI }
-    RttiContext := TRttiContext.Create;
-    try
-      RttiType := RttiContext.FindType(QualifiedClassName);
-      if (RttiType <> nil) and (RttiType.IsInstance) then
-        ClType := RttiType.AsInstance.MetaClassType;
-    finally
-      RttiContext.Free;
-    end;
-  end;
-  CreateValueIfNeeded(Value, ParentOfValue, TCasScriptValueClass(ClType));
-  {$endif}
+  CreateValueIfNeeded(Value, ParentOfValue,
+    {$ifdef FPC}TCasScriptValueClass(ClassType){$else}Self{$endif});
   Result := TSelfClass(Value);
 end;
 

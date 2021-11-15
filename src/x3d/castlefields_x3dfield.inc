@@ -798,34 +798,8 @@ begin
 end;
 
 class function TX3DField.ExposedEventsFieldClass: TX3DFieldClass;
-{$ifndef FPC}
-var
-  ClType: TClass;
-  RttiContext : TRttiContext;
-  RttiType: TRttiType;
-{$endif}
 begin
-  {$ifdef FPC}
-  Result := TX3DFieldClass(ClassType);
-  {$else}
-  { In delphi TObject.ClassType is not class method so we need use RTTI or
-    GetClass if all TX3DField classes are registered
-    https://stackoverflow.com/questions/29471798/get-class-by-its-name-in-delphi }
-  ClType := GetClass(ClassName);
-  if ClType = nil then
-  begin
-    { Class is not registered so we need use RTTI }
-    RttiContext := TRttiContext.Create;
-    try
-      RttiType := RttiContext.FindType(QualifiedClassName);
-      if (RttiType <> nil) and (RttiType.IsInstance) then
-        ClType := RttiType.AsInstance.MetaClassType;
-    finally
-      RttiContext.Free;
-    end;
-  end;
-  Result := TX3DFieldClass(ClType);
-  {$endif}
+  Result := {$ifdef FPC} TX3DFieldClass(ClassType) {$else} Self {$endif};
 end;
 
 class function TX3DField.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
