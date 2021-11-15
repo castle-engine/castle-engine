@@ -1032,6 +1032,7 @@ end;
 function ExtractURIPath(const URL: string): string;
 var
   URLWithoutAnchor: String;
+  {$ifndef FPC} I: Integer; {$endif}
 begin
   { While on non-Windows ExtractFilePath would work on full URL as well,
     but on Windows the ":" inside anchor (like
@@ -1042,10 +1043,15 @@ begin
   {$ifdef FPC}
   Result := ExtractFilePath(URLWithoutAnchor);
   {$else}
-  { TODO: Better solution }
-  { In Delphi / separator is not recognized soo we need replace all / to \
-    This is temporary solution. }
-  Result := ExtractFilePath(StringReplace(URLWithoutAnchor,'/','\',[rfReplaceAll]));
+  { In Delphi, / separator in paths is not recognized, so we cannot use ExtractFilePath.
+    TODO: our own solution should be just used for both compilers.
+    Need autotests to confirm it behaves the same, on both platforms. }
+
+  I := BackCharsPos(['/'], URLWithoutAnchor);
+  if I <> 0 then
+    Result := Copy(URLWithoutAnchor, 1, I)
+  else
+    Result := URLWithoutAnchor;
   {$endif}
 end;
 
