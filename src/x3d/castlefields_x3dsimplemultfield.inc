@@ -80,7 +80,7 @@
       CreateUndefined), since we'll call his Parse method immediately.
       Default implementation in this class uses simply
       calls TSingleField.CreateUndefined. }
-    function CreateItemBeforeParse: TSingleField; virtual;
+    function CreateItemBeforeParse: TSingleField; virtual; abstract;
     procedure AddToList(const ItemList: TItemList; const Item: TSingleField); virtual; abstract;
 
     procedure WritelnWarning_InvalidIndex(const Index, ACount: Integer);
@@ -145,8 +145,6 @@
       and both will produce clear WritelnWarning. }
     property ItemsSafe[Index: Integer]: TItem read GetItemsSafe write SetItemsSafe;
 
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-
     { Set the field's value in a correct way (by sending X3D event, or at least notifying
       the parent scene). }
     procedure Send(const AValue: array of TItem); overload;
@@ -158,45 +156,6 @@
 {$ifdef read_implementation}
 
 { TX3DSimpleMultField ------------------------------------------------------- }
-
-function TX3DSimpleMultField{$ifndef CASTLE_OBJFPC} <
-    TItem;
-    TSingleField;
-    {$ifndef FPC}TInternalItemList;{$endif}
-    TItemList;
-    TEvent
-  > {$endif} .
-  CreateItemBeforeParse: TSingleField;
-  {$ifndef FPC}
-var
-  AValue: TValue;
-  RttiContext: TRttiContext;
-  SingleFieldType: TRttiType;
-  AMethCreate: TRttiMethod;
-  InstanceType: TRttiInstanceType;
-  {$endif}
-begin
-  {$ifdef FPC}
-  Result := TSingleField.CreateUndefined(ParentNode, false, '');
-  {$else}
-  RttiContext := TRttiContext.Create;
-  try
-    SingleFieldType := RttiContext.GetType(TypeInfo(TSingleField));
-    for AMethCreate in SingleFieldType.GetMethods do
-    begin
-      if (AMethCreate.IsConstructor) and (Length(AMethCreate.GetParameters) = 3) then
-      begin
-        InstanceType := SingleFieldType.AsInstance;
-        AValue := AMethCreate.Invoke(InstanceType.MetaclassType, [ParentNode, false, '']);
-        Result := AValue.AsType<TSingleField>;
-        break;
-      end;
-    end;
-  finally
-    RttiContext.Free;
-  end;
-  {$endif}
-end;
 
 procedure TX3DSimpleMultField{$ifndef CASTLE_OBJFPC} <
     TItem;
@@ -680,46 +639,6 @@ begin
   begin
     WritelnWarning_InvalidIndex(Index, Count);
   end;
-end;
-
-class function TX3DSimpleMultField{$ifndef CASTLE_OBJFPC} <
-    TItem;
-    TSingleField;
-    {$ifndef FPC}TInternalItemList;{$endif}
-    TItemList;
-    TEvent
-  > {$endif} .
-  CreateEvent(const AParentNode: TX3DFileItem; const AName: string;
-  const AInEvent: boolean): TX3DEvent;
-{$ifndef FPC}
-var
-  AValue: TValue;
-  RttiContext: TRttiContext;
-  EventType: TRttiType;
-  AMethCreate: TRttiMethod;
-  InstanceType: TRttiInstanceType;
-{$endif}
-begin
-  {$ifdef FPC}
-  Result := TEvent.Create(AParentNode, AName, AInEvent);
-  {$else}
-  RttiContext := TRttiContext.Create;
-  try
-    EventType := RttiContext.GetType(TypeInfo(TEvent));
-    for AMethCreate in EventType.GetMethods do
-    begin
-      if (AMethCreate.IsConstructor) and (Length(AMethCreate.GetParameters) = 3) then
-      begin
-        InstanceType := EventType.AsInstance;
-        AValue := AMethCreate.Invoke(InstanceType.MetaclassType, [AParentNode, AName, AInEvent]);
-        Result := AValue.AsType<TEvent>;
-        break;
-      end;
-    end;
-  finally
-    RttiContext.Free;
-  end;
-  {$endif}
 end;
 
 procedure TX3DSimpleMultField{$ifndef CASTLE_OBJFPC} <

@@ -20,10 +20,9 @@ unit X3DFields;
 
 interface
 
-uses Classes, SysUtils, DOM, Generics.Collections,{$ifndef FPC} RTTI,{$endif}
+uses Classes, SysUtils, DOM, Generics.Collections,
   CastleVectors, CastleInternalX3DLexer, CastleUtils, CastleClassUtils,
-  CastleImages, CastleStringUtils,
-  X3DTime, CastleColors, CastleQuaternions;
+  CastleImages, CastleStringUtils, X3DTime, CastleColors, CastleQuaternions;
 
 {$define read_interface}
 
