@@ -667,7 +667,7 @@ object ChooseProjectForm: TChooseProjectForm
     ParentFont = False
     TabOrder = 3
   end
-  object PanelWarningFpcLazarus: TPanel
+  object PanelWarningMissingCompiler: TPanel
     AnchorSideLeft.Control = ButtonPreferences
     AnchorSideLeft.Side = asrBottom
     Left = 179
@@ -721,7 +721,7 @@ object ChooseProjectForm: TChooseProjectForm
       Top = 8
       Width = 287
       BorderSpacing.Around = 7
-      Caption = 'Warning: FPC or Lazarus not found.'#10'Configure them in "Preferences".'
+      Caption = 'Warning: Compiler (FPC or Delphi) not found.'#10'Install them, or configure in "Preferences".'
       ParentColor = False
       ParentFont = False
     end
