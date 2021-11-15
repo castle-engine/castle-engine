@@ -29,7 +29,7 @@ type
 
 { Compile with Pascal compiler.
   SearchPaths, ExtraOptions may be @nil (same as empty). }
-procedure Compile(const Compiler: TCompiler;
+procedure Compile(Compiler: TCompiler;
   const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
   const SearchPaths, LibraryPaths: TStrings;
@@ -711,20 +711,31 @@ begin
   finally FreeAndNil(FpcOptions) end;
 end;
 
-procedure Compile(const Compiler: TCompiler;
+procedure Compile(Compiler: TCompiler;
   const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
   const SearchPaths, LibraryPaths: TStrings;
   const ExtraOptions: TStrings);
 begin
+  { resolve Compiler to something other than coAutodetect }
+  if Compiler = coAutodetect then
+  begin
+    if FindExeFpcCompiler(false) <> '' then
+      Compiler := coFpc
+    else
+    if FindDelphiPath(false) <> '' then
+      Compiler := coDelphi
+    else
+      raise Exception.Create('Neither FPC nor Delphi found, cannot autodetect compiler');
+  end;
+  Assert(Compiler <> coAutodetect);
+
   case Compiler of
     coFpc: CompileFpc(OS, CPU, Plugin, Mode, WorkingDirectory, CompileFile,
       SearchPaths, LibraryPaths, ExtraOptions);
     coDelphi: CompileDelphi(OS, CPU, Mode, WorkingDirectory, CompileFile,
       SearchPaths, ExtraOptions);
-    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('Compile: Compiler?');
-    {$endif}
   end;
 end;
 
