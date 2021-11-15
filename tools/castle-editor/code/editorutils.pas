@@ -20,7 +20,7 @@ interface
 
 uses Classes, Types, Controls, StdCtrls, Process, Menus, Generics.Collections,
   CastleStringUtils,
-  ToolArchitectures;
+  ToolArchitectures, ToolManifest;
 
 type
   TMenuItemHelper = class helper for TMenuItem
@@ -191,6 +191,10 @@ var
   CodeEditorCommand: String;
   { Code editor used to open project, when CodeEditor = ceCustom. }
   CodeEditorCommandProject: String;
+
+var
+  { Which compiler to use (passed to build tool). Current user preference. }
+  Compiler: TCompiler;
 
 const
   DefaultMuteOnRun = true;

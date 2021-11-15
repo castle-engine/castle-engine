@@ -2026,6 +2026,12 @@ procedure TProjectForm.BuildToolCall(const Commands: array of String;
     Params.Add(ModeString);
   end;
 
+  procedure AddCompilerParameters(const Params: TStrings);
+  begin
+    if Compiler <> DefaultCompiler then
+      Params.Add('--compiler=' + CompilerToString(Compiler));
+  end;
+
   procedure AddPackageFormatParameters(const Params: TStrings; const Format: TPackageFormat);
   begin
     if Format <> pfDefault then
@@ -2072,6 +2078,10 @@ begin
         (Command = 'editor-run')
       ) then
       AddModeParameters(QueueItem.Parameters);
+    // add --compiler parameter
+    if (Command = 'compile') or
+       (Command = 'package') then
+      AddCompilerParameters(QueueItem.Parameters);
     // add --target, --os, --cpu parameters
     if (Command = 'compile') or
        (Command = 'run') or

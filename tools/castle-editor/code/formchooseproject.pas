@@ -69,7 +69,7 @@ implementation
 uses CastleConfig, CastleLCLUtils, CastleURIUtils, CastleUtils,
   CastleFilesUtils, CastleParameters, CastleLog, CastleStringUtils,
   ProjectUtils, EditorUtils, FormNewProject, FormPreferences,
-  ToolCompilerInfo, ToolFpcVersion,
+  ToolCompilerInfo, ToolFpcVersion, ToolManifest,
   FormProject, FormNewUnit;
 
 { TChooseProjectForm ------------------------------------------------------------- }
@@ -226,6 +226,7 @@ procedure TChooseProjectForm.FormCreate(Sender: TObject);
     CodeEditorCommandProject := UserConfig.GetValue('code_editor/command_project', '');
     MuteOnRun := UserConfig.GetValue('sound/mute_on_run', DefaultMuteOnRun);
     EditorVolume := UserConfig.GetFloat('sound/editor_volume', DefaultEditorVolume);
+    Compiler := StringToCompiler(UserConfig.GetValue('compiler', CompilerToString(DefaultCompiler)));
     SoundEngineSetVolume;
   end;
 
@@ -248,6 +249,7 @@ procedure TChooseProjectForm.FormDestroy(Sender: TObject);
     UserConfig.SetDeleteValue('code_editor/command_project', CodeEditorCommandProject, '');
     UserConfig.SetDeleteValue('sound/mute_on_run', MuteOnRun, DefaultMuteOnRun);
     UserConfig.SetDeleteFloat('sound/editor_volume', EditorVolume, DefaultEditorVolume);
+    UserConfig.SetDeleteValue('compiler', CompilerToString(Compiler), CompilerToString(DefaultCompiler));
   end;
 
 begin
