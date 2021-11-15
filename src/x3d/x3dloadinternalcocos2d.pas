@@ -924,9 +924,10 @@ begin
         Node := Node.NextSibling;
       end;
       {$else}
-         // Should workmin delphi becaouse current we have only one element in document
-         // TODO: Check more samples
-         Node := Doc.DocumentElement;
+        // Should work in delphi because current we have only one element in document
+        Node := Doc.DocumentElement;
+        if (Node.NodeName = 'plist') and (Node.NodeType = ELEMENT_NODE) then
+          PlistNode := Node as TDOMElement;
       {$endif}
 
       if PlistNode = nil then
