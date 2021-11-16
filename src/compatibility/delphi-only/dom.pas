@@ -127,10 +127,10 @@ type
     FOwnerDocument: TDOMDocument;
     InternalNode: IXMLNode;
     FParentNode: TDOMNode;
+    function GetNodeName: String;
 
   strict private
     FChildNodes: TDOMNodeList;
-    function GetNodeName: String;
     function GetNodeValue: String;
     procedure SetNodeValue(const Value: String);
     function  GetFirstChild: TDOMNode; virtual;
@@ -215,6 +215,8 @@ type
   end;
 
   TDOMAttr = class (TDOMNode)
+  public
+    property Name: String read GetNodeName;
   end;
 
   TDOMText = class(TDOMCharacterData)
