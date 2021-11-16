@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="physics_3d_demo"
   game_units="GameInitialize"
-  standalone_source="physics_3d_demo_standalone.lpr"
+  standalone_source="physics_3d_demo_standalone.dpr"
   qualified_name="io.castleengine.physics.threed"
 >
   <compiler_options>
