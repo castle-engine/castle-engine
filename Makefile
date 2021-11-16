@@ -378,6 +378,9 @@ clean: cleanexamples
 			   -iname '*.apk' -or \
 			   -iname '*.dbg' -or \
 	                   -iname '*.dcu' -or -iname '*.dpu' -or \
+			   -iname '*.dproj.local' -or \
+			   -iname '*.identcache' -or \
+			   -iname '*.rsm' -or \
 			   -iname 'automatic-windows-resources.res' -or \
 			   -iname 'castle-auto-generated-resources.res' -or \
 	                   -iname '*.log' ')' \
@@ -386,6 +389,7 @@ clean: cleanexamples
 # Note: *.app directory is a macOS bundle
 	$(FIND) . -type d '(' -name 'lib' -or \
 	                      -name 'castle-engine-output' -or \
+			      -name '__recovery' -or \
 			      -name '*.app' ')' \
 	     -exec rm -Rf '{}' ';' -prune
 	rm -Rf bin/ \
