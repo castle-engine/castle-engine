@@ -196,9 +196,9 @@ begin
   { Choose our primes row from Primes table. }
   PPrimes := @Primes[Seed mod (High(Primes)+1)];
 
-  N := UInt32(x) + UInt32(y) * PPrimes[0] + UInt32(z) * PPrimes[1];
+  N := UInt32(x) + UInt32(y) * PPrimes^[0] + UInt32(z) * PPrimes^[1];
   N := N xor (N shl 13);
-  Result := (n * (n * n * PPrimes[2] + PPrimes[3]) + PPrimes[4]);
+  Result := (n * (n * n * PPrimes^[2] + PPrimes^[3]) + PPrimes^[4]);
 end;
 {$I norqcheckend.inc}
 
