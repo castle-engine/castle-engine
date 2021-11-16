@@ -128,7 +128,7 @@ begin
   RBody := TRigidBody.Create(Self);
   RBody.Dynamic := true;
   RBody.Setup2D;
-  RBody.OnCollisionEnter := {$ifdef CASTLE_OBJFPC}@{$endif}CollisionEnter;
+  RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}CollisionEnter;
   RBody.LinearVelocityDamp := 0;
   RBody.MaximalLinearVelocity := 200;
   RBody.AngularVelocityDamp := 0;
