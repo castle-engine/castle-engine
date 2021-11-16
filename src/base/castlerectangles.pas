@@ -753,7 +753,10 @@ begin
   if Width > 0 then
   begin
     Result.Width  := Round(Width  * Factor);
-    Result.Left   := Left   + (Width  - Result.Width ) div 2;
+    if Width > Result.Width then
+      Result.Left   := Left   + (Width  - Result.Width ) div 2
+    else
+      Result.Left   := Left   - (Result.Width - Width) div 2
   end else
   begin
     Result.Width  := Width;
@@ -763,7 +766,10 @@ begin
   if Height > 0 then
   begin
     Result.Height := Round(Height * Factor);
-    Result.Bottom := Bottom + (Height - Result.Height) div 2;
+    if Height > Result.Height then
+      Result.Bottom := Bottom + (Height - Result.Height) div 2
+    else
+      Result.Bottom := Bottom - (Result.Height - Height) div 2;
   end else
   begin
     Result.Height := Height;
