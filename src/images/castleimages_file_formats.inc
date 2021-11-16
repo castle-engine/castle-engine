@@ -106,96 +106,34 @@ function LoadBMP(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
 function LoadGIF(const Stream: TStream;
-  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
-begin
-  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
-  Result := Load_VampyreImaging(Stream, AllowedImageClasses);
-  {$elseif defined(FPC)}
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderGIF.Create, ifGIF);
-  {$else}
-  raise EImageLoadError.Create('Cannot read GIF (neither FpImage nor Vampyre Imaging Library available at compile-time)');
-  {$endif}
-end;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
 function LoadTGA(const Stream: TStream;
-  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
-begin
-  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
-  Result := Load_VampyreImaging(Stream, AllowedImageClasses);
-  {$elseif defined(FPC)}
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderTarga.Create, ifTGA);
-  {$else}
-  raise EImageLoadError.Create('Cannot read TGA (neither FpImage nor Vampyre Imaging Library available at compile-time)');
-  {$endif}
-end;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
+
+{function LoadSGI(const Stream: TStream;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;}
 
 function LoadTIFF(const Stream: TStream;
-  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
-begin
-  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
-  Result := Load_VampyreImaging(Stream, AllowedImageClasses);
-  {$else}
-  raise EImageLoadError.Create('Cannot read TIFF (Vampyre Imaging Library not available at compile-time)');
-  {$endif}
-end;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
 function LoadJP2(const Stream: TStream;
-  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
-begin
-  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
-  Result := Load_VampyreImaging(Stream, AllowedImageClasses);
-  {$else}
-  raise EImageLoadError.Create('Cannot read JP2 (Vampyre Imaging Library not available at compile-time)');
-  {$endif}
-end;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
+
+{function LoadEXR(const Stream: TStream;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;}
 
 function LoadJPEG(const Stream: TStream;
-  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
-begin
-  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
-  Result := Load_VampyreImaging(Stream, AllowedImageClasses);
-  {$elseif defined(FPC)}
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderJPEG.Create, ifJPEG);
-  {$else}
-  raise EImageLoadError.Create('Cannot read JPEG (neither FpImage nor Vampyre Imaging Library available at compile-time)');
-  {$endif}
-end;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
 function LoadXPM(const Stream: TStream;
-  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
-begin
-  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
-  Result := Load_VampyreImaging(Stream, AllowedImageClasses);
-  {$elseif defined(FPC)}
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderXPM.Create, ifXPM);
-  {$else}
-  raise EImageLoadError.Create('Cannot read XPM (neither FpImage nor Vampyre Imaging Library available at compile-time)');
-  {$endif}
-end;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
 function LoadPSD(const Stream: TStream;
-  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
-begin
-  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
-  Result := Load_VampyreImaging(Stream, AllowedImageClasses);
-  {$elseif defined(FPC)}
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPSD.Create, ifPSD);
-  {$else}
-  raise EImageLoadError.Create('Cannot read PSD (neither FpImage nor Vampyre Imaging Library available at compile-time)');
-  {$endif}
-end;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
 function LoadPCX(const Stream: TStream;
-  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
-begin
-  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
-  Result := Load_VampyreImaging(Stream, AllowedImageClasses);
-  {$elseif defined(FPC)}
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPCX.Create, ifPCX);
-  {$else}
-  raise EImageLoadError.Create('Cannot read PCX (neither FpImage nor Vampyre Imaging Library available at compile-time)');
-  {$endif}
-end;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
 { Load PPM image.
   Loads only the first image in .ppm file. }
@@ -205,16 +143,7 @@ function LoadPPM(const Stream: TStream;
 { Load PNM image (PNM, PGM, PBM, PPM) through FpImage.
   Note that for PPM, for now it's more advised to use our LoadPPM. }
 function LoadPNM(const Stream: TStream;
-  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
-begin
-  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
-  Result := Load_VampyreImaging(Stream, AllowedImageClasses);
-  {$elseif defined(FPC)}
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPNM.Create, ifPNM);
-  {$else}
-  raise EImageLoadError.Create('Cannot read PNM (neither FpImage nor Vampyre Imaging Library available at compile-time)');
-  {$endif}
-end;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
 function LoadIPL(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
@@ -256,81 +185,20 @@ function LoadKTX(const Stream: TStream;
 { }
 procedure SaveBMP(const Img: TEncodedImage; const Stream: TStream); forward;
 procedure SavePNG(const Img: TEncodedImage; const Stream: TStream); forward;
+procedure SaveGIF(const Img: TEncodedImage; const Stream: TStream); forward;
+procedure SaveTGA(const Img: TEncodedImage; const Stream: TStream); forward;
+procedure SaveXPM(const Img: TEncodedImage; const Stream: TStream); forward;
+procedure SavePNM(const Img: TEncodedImage; const Stream: TStream); forward;
+
+{ }
+procedure SaveJPEG(const Img: TEncodedImage; const Stream: TStream); forward;
+{ }
 procedure SavePPM(const Img: TEncodedImage; const Stream: TStream; const Binary: boolean); overload; forward;
 procedure SavePPM(const Img: TEncodedImage; const Stream: TStream); { binary = true } overload; forward;
+{ }
 procedure SaveRGBE(const Img: TEncodedImage; const Stream: TStream); forward;
+
 procedure SaveDDS(const Img: TEncodedImage; const Stream: TStream); forward;
-
-procedure SaveJPEG(const Img: TEncodedImage; const Stream: TStream);
-begin
-  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
-  Save_VampyreImaging(Img, Stream, 'jpg');
-  {$elseif defined(FPC)}
-  SaveFpImage(Img, Stream, TFPWriterJPEG.Create);
-  {$else}
-  raise Exception.Create('Cannot save JPEG (neither FpImage nor Vampyre Imaging Library available at compile-time)');
-  {$endif}
-end;
-
-procedure SaveGIF(const Img: TEncodedImage; const Stream: TStream);
-begin
-  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
-  Save_VampyreImaging(Img, Stream, 'gif');
-  {$else}
-  raise EImageSaveError.Create('Cannot save GIF (Vampyre Imaging Library not available at compile-time)');
-  {$endif}
-end;
-
-procedure SaveTGA(const Img: TEncodedImage; const Stream: TStream);
-begin
-  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
-  Save_VampyreImaging(Img, Stream, 'tga');
-  {$else}
-  raise EImageSaveError.Create('Cannot save TGA (Vampyre Imaging Library not available at compile-time)');
-  {$endif}
-end;
-
-(* // produces always 0-size output file
-
-procedure SaveJP2(const Img: TEncodedImage; const Stream: TStream);
-begin
-  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
-  Save_VampyreImaging(Img, Stream, 'jp2');
-  {$else}
-  raise EImageSaveError.Create('Cannot save JP2 (Vampyre Imaging Library not available at compile-time)');
-  {$endif}
-end;
-*)
-
-procedure SaveXPM(const Img: TEncodedImage; const Stream: TStream);
-begin
-  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
-  Save_VampyreImaging(Img, Stream, 'xpm');
-  {$else}
-  raise EImageSaveError.Create('Cannot save XPM (Vampyre Imaging Library not available at compile-time)');
-  {$endif}
-end;
-
-procedure SavePNM(const Img: TEncodedImage; const Stream: TStream);
-begin
-  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
-  Save_VampyreImaging(Img, Stream, 'pnm');
-  {$else}
-  raise EImageSaveError.Create('Cannot save PNM (Vampyre Imaging Library not available at compile-time)');
-  {$endif}
-end;
-
-(* // produces always 0-size output file
-
-procedure SaveTIFF(const Img: TEncodedImage; const Stream: TStream);
-begin
-  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
-  Save_VampyreImaging(Img, Stream, 'tif');
-  {$else}
-  raise EImageSaveError.Create('Cannot save TIFF (Vampyre Imaging Library not available at compile-time)');
-  {$endif}
-end;
-*)
 
 { Detecting class ------------------------------------------------------------ }
 

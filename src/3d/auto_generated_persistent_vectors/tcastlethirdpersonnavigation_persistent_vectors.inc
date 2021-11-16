@@ -51,8 +51,8 @@ end;
 
 {$ifdef read_implementation_constructor}
   FAvatarTargetPersistent := TCastleVector3Persistent.Create;
-  FAvatarTargetPersistent.InternalGetValue := @GetAvatarTargetForPersistent;
-  FAvatarTargetPersistent.InternalSetValue := @SetAvatarTargetForPersistent;
+  FAvatarTargetPersistent.InternalGetValue := {$ifdef CASTLE_OBJFPC}@{$endif}GetAvatarTargetForPersistent;
+  FAvatarTargetPersistent.InternalSetValue := {$ifdef CASTLE_OBJFPC}@{$endif}SetAvatarTargetForPersistent;
   FAvatarTargetPersistent.InternalDefaultValue := AvatarTarget; // current value is default
 {$endif read_implementation_constructor}
 
