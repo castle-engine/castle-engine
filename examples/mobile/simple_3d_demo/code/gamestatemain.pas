@@ -127,18 +127,18 @@ begin
   SoundOgg := DesignedComponent('SoundOgg') as TCastleSound;
 
   { assign events }
-  ButtonToggleShader.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ClickToggleShader;
-  ButtonToggleScreenEffect.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ClickToggleScreenEffect;
-  ButtonToggleSSAO.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ClickToggleSSAO;
-  ButtonTouchNavigation.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ClickTouchNavigation;
-  ButtonMessage.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ClickMessage;
-  ButtonProgress.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ClickProgress;
-  ButtonReopenContext.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ClickReopenContext;
-  ButtonToggleTextureUpdates.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ClickToggleTextureUpdates;
-  ButtonPlaySoundWav.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ClickPlaySoundWav;
-  ButtonPlaySoundOgg.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ClickPlaySoundOgg;
-  ButtonVibrate.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ClickVibrate;
-  ButtonTerminate.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ClickTerminate;
+  ButtonToggleShader.OnClick := {$ifdef FPC}@{$endif}ClickToggleShader;
+  ButtonToggleScreenEffect.OnClick := {$ifdef FPC}@{$endif}ClickToggleScreenEffect;
+  ButtonToggleSSAO.OnClick := {$ifdef FPC}@{$endif}ClickToggleSSAO;
+  ButtonTouchNavigation.OnClick := {$ifdef FPC}@{$endif}ClickTouchNavigation;
+  ButtonMessage.OnClick := {$ifdef FPC}@{$endif}ClickMessage;
+  ButtonProgress.OnClick := {$ifdef FPC}@{$endif}ClickProgress;
+  ButtonReopenContext.OnClick := {$ifdef FPC}@{$endif}ClickReopenContext;
+  ButtonToggleTextureUpdates.OnClick := {$ifdef FPC}@{$endif}ClickToggleTextureUpdates;
+  ButtonPlaySoundWav.OnClick := {$ifdef FPC}@{$endif}ClickPlaySoundWav;
+  ButtonPlaySoundOgg.OnClick := {$ifdef FPC}@{$endif}ClickPlaySoundOgg;
+  ButtonVibrate.OnClick := {$ifdef FPC}@{$endif}ClickVibrate;
+  ButtonTerminate.OnClick := {$ifdef FPC}@{$endif}ClickTerminate;
 
   { configure components }
   ButtonMessage.Exists := ApplicationProperties.PlatformAllowsModalRoutines;
@@ -158,10 +158,10 @@ begin
 
   { Test that FindFiles works also on Android asset filesystem.
     These calls don't do anything (they merely output some log messages about found files). }
-  FindFiles('castle-data:/', '*', true, {$ifdef CASTLE_OBJFPC}@{$endif}FindFilesCallback, nil, [ffRecursive]);
-  FindFiles('castle-data:/skies', '*', true, {$ifdef CASTLE_OBJFPC}@{$endif}FindFilesCallback, nil, [ffRecursive]);
-  FindFiles('castle-data:/textures/castle', '*', true, {$ifdef CASTLE_OBJFPC}@{$endif}FindFilesCallback, nil, [ffRecursive]);
-  FindFiles('castle-data:/textures/castle/', '*', true, {$ifdef CASTLE_OBJFPC}@{$endif}FindFilesCallback, nil, [ffRecursive]);
+  FindFiles('castle-data:/', '*', true, {$ifdef FPC}@{$endif}FindFilesCallback, nil, [ffRecursive]);
+  FindFiles('castle-data:/skies', '*', true, {$ifdef FPC}@{$endif}FindFilesCallback, nil, [ffRecursive]);
+  FindFiles('castle-data:/textures/castle', '*', true, {$ifdef FPC}@{$endif}FindFilesCallback, nil, [ffRecursive]);
+  FindFiles('castle-data:/textures/castle/', '*', true, {$ifdef FPC}@{$endif}FindFilesCallback, nil, [ffRecursive]);
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -284,7 +284,7 @@ end;
 procedure TStateMain.ClickToggleTextureUpdates(Sender: TObject);
 begin
   MainScene.RootNode.EnumerateNodes(
-    TGeneratedCubeMapTextureNode, {$ifdef CASTLE_OBJFPC}@{$endif}ToggleTextureUpdatesCallback, false);
+    TGeneratedCubeMapTextureNode, {$ifdef FPC}@{$endif}ToggleTextureUpdatesCallback, false);
 end;
 
 procedure TStateMain.ClickPlaySoundWav(Sender: TObject);

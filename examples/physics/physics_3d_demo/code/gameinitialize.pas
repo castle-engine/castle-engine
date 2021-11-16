@@ -141,14 +141,14 @@ begin
 
   ButtonLevelSimple := TCastleButton.Create(Application);
   ButtonLevelSimple.Caption := 'Simple Level (Plane Collider)';
-  ButtonLevelSimple.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}TEventHandler{$ifdef FPC}(nil){$endif}.LoadLevelSimple;
+  ButtonLevelSimple.OnClick := {$ifdef FPC}@{$endif}TEventHandler{$ifdef FPC}(nil){$endif}.LoadLevelSimple;
   ButtonLevelSimple.Anchor(hpLeft, 10);
   ButtonLevelSimple.Anchor(vpTop, -10);
   Window.Controls.InsertFront(ButtonLevelSimple);
 
   ButtonLevelComplex := TCastleButton.Create(Application);
   ButtonLevelComplex.Caption := 'Complex Level (Mesh Collider)';
-  ButtonLevelComplex.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}TEventHandler{$ifdef FPC}(nil){$endif}.LoadLevelComplex;
+  ButtonLevelComplex.OnClick := {$ifdef FPC}@{$endif}TEventHandler{$ifdef FPC}(nil){$endif}.LoadLevelComplex;
   ButtonLevelComplex.Anchor(hpLeft, 10);
   ButtonLevelComplex.Anchor(vpTop, -10 - ButtonLevelSimple.EffectiveHeight - 10);
   Window.Controls.InsertFront(ButtonLevelComplex);
