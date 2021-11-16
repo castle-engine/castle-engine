@@ -1087,7 +1087,7 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item248>
       <Item249>
-        <Filename Value="../src/images/castleglutils_delphi_wgl.inc"/>
+        <Filename Value="../src/images/opengl/castleglutils_delphi_wgl.inc"/>
         <Type Value="Include"/>
       </Item249>
       <Item250>
