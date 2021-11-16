@@ -22,8 +22,7 @@
     boolean,
     TSFBool,
     {$ifndef FPC}TStructList<boolean>,{$endif}
-    TBooleanList,
-    TMFBoolEvent>)
+    TBooleanList>)
   strict protected
     function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
     procedure AddToList(const ItemList: TBooleanList; const Item: TSFBool); override;
@@ -37,8 +36,7 @@
     LongInt,
     TSFLong,
     {$ifndef FPC}TStructList<LongInt>,{$endif}
-    TLongIntList,
-    TMFLongEvent>)
+    TLongIntList>)
   strict private
     FSaveToStreamLineUptoNegative: boolean;
     WrongVertexIndexWarnings: Integer;
@@ -91,8 +89,7 @@
     TMatrix3,
     TSFMatrix3f,
     {$ifndef FPC}TStructList<TMatrix3>,{$endif}
-    TMatrix3List,
-    TMFMatrix3fEvent>)
+    TMatrix3List>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
     procedure AddToList(const ItemList: TMatrix3List; const Item: TSFMatrix3f); override;
@@ -108,8 +105,7 @@
     TMatrix3Double,
     TSFMatrix3d,
     {$ifndef FPC}TStructList<TMatrix3Double>,{$endif}
-    TMatrix3DoubleList,
-    TMFMatrix3dEvent>)
+    TMatrix3DoubleList>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
     procedure AddToList(const ItemList: TMatrix3DoubleList; const Item: TSFMatrix3d); override;
@@ -125,8 +121,7 @@
     TMatrix4,
     TSFMatrix4f,
     {$ifndef FPC}TStructList<TMatrix4>,{$endif}
-    TMatrix4List,
-    TMFMatrix4fEvent>)
+    TMatrix4List>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
     procedure AddToList(const ItemList: TMatrix4List; const Item: TSFMatrix4f); override;
@@ -142,8 +137,7 @@
     TMatrix4Double,
     TSFMatrix4d,
     {$ifndef FPC}TStructList<TMatrix4Double>,{$endif}
-    TMatrix4DoubleList,
-    TMFMatrix4dEvent>)
+    TMatrix4DoubleList>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
     procedure AddToList(const ItemList: TMatrix4DoubleList; const Item: TSFMatrix4d); override;
@@ -159,8 +153,7 @@
     TVector2,
     TSFVec2f,
     {$ifndef FPC}TStructList<TVector2>,{$endif}
-    TVector2List,
-    TMFVec2fEvent>)
+    TVector2List>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
     procedure AddToList(const ItemList: TVector2List; const Item: TSFVec2f); override;
@@ -176,8 +169,7 @@
     TVector3,
     TSFVec3f,
     {$ifndef FPC}TStructList<TVector3>,{$endif}
-    TVector3List,
-    TMFVec3fEvent>)
+    TVector3List>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
     procedure AddToList(const ItemList: TVector3List; const Item: TSFVec3f); override;
@@ -199,8 +191,7 @@
     TVector4,
     TSFVec4f,
     {$ifndef FPC}TStructList<TVector4>,{$endif}
-    TVector4List,
-    TMFVec4fEvent>)
+    TVector4List>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
     procedure AddToList(const ItemList: TVector4List; const Item: TSFVec4f); override;
@@ -222,8 +213,7 @@
     TVector2Double,
     TSFVec2d,
     {$ifndef FPC}TStructList<TVector2Double>,{$endif}
-    TVector2DoubleList,
-    TMFVec2dEvent>)
+    TVector2DoubleList>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
     procedure AddToList(const ItemList: TVector2DoubleList; const Item: TSFVec2d); override;
@@ -239,8 +229,7 @@
     TVector3Double,
     TSFVec3d,
     {$ifndef FPC}TStructList<TVector3Double>,{$endif}
-    TVector3DoubleList,
-    TMFVec3dEvent>)
+    TVector3DoubleList>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
     procedure AddToList(const ItemList: TVector3DoubleList; const Item: TSFVec3d); override;
@@ -256,8 +245,7 @@
     TVector4Double,
     TSFVec4d,
     {$ifndef FPC}TStructList<TVector4Double>,{$endif}
-    TVector4DoubleList,
-    TMFVec4dEvent>)
+    TVector4DoubleList>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
     procedure AddToList(const ItemList: TVector4DoubleList; const Item: TSFVec4d); override;
@@ -273,8 +261,7 @@
     TVector4,
     TSFRotation,
     {$ifndef FPC}TStructList<TVector4>,{$endif}
-    TVector4List,
-    TMFRotationEvent>)
+    TVector4List>)
   strict protected
     function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
     procedure AddToList(const ItemList: TVector4List; const Item: TSFRotation); override;
@@ -290,8 +277,7 @@
     Single,
     TSFFloat,
     {$ifndef FPC}TStructList<Single>,{$endif}
-    TSingleList,
-    TMFFloatEvent>)
+    TSingleList>)
   strict private
     FAngle: boolean;
   strict protected
@@ -315,8 +301,7 @@
     Double,
     TSFDouble,
     {$ifndef FPC}TStructList<Double>,{$endif}
-    TDoubleList,
-    TMFDoubleEvent>)
+    TDoubleList>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
     procedure AddToList(const ItemList: TDoubleList; const Item: TSFDouble); override;
@@ -339,8 +324,7 @@
     string,
     TSFString,
     {$ifndef FPC}TStringList,{$endif}
-    TCastleStringList,
-    TMFStringEvent>)
+    TCastleStringList>)
   strict protected
     function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
     procedure AddToList(const ItemList: TCastleStringList; const Item: TSFString); override;

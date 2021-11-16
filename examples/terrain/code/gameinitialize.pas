@@ -383,10 +383,11 @@ begin
     if Value then
     begin
       Viewport.Navigation := ExamineNavigation;
-      ExamineNavigation.Init(Box3D(
+      ExamineNavigation.ModelBox := Box3D(
         Vector3(-1, -1, -1),
-        Vector3( 1,  1,  1)), { Radius } 0.2);
-      ExamineNavigation.SetView(
+        Vector3( 1,  1,  1));
+      ExamineNavigation.Radius := 0.2;
+      Viewport.Camera.SetView(
         Vector3(0, 20, 0),
         Vector3(0, -1, 0),
         Vector3(0, 0, -1)
@@ -394,16 +395,12 @@ begin
     end else
     begin
       Viewport.Navigation := WalkNavigation;
-      WalkNavigation.Init(
-        Vector3(0, 10, 0),
-        Vector3(0, 0, -1),
-        Vector3(0, 1, 0),
-        Vector3(0, 1, 0),
-        { PreferredHeight } 2,
-        { Radius } 0.02);
+      WalkNavigation.Radius := 0.02;
+      WalkNavigation.PreferredHeight := 2;
+      WalkNavigation.CorrectPreferredHeight;
 
       Y := CurrentTerrain.Height(0, 0) + WalkNavigation.PreferredHeight;
-      WalkNavigation.SetView(
+      Viewport.Camera.SetView(
         Vector3(0, Y, 0),
         Vector3(0, 0, -1),
         Vector3(0, 1, 0));
