@@ -97,11 +97,10 @@ type
       read animation info from resource.xml file. }
     function Defined: boolean;
 
-    {$ifdef FPC}
     { Scene URL, only when each animation is inside a separate 3D file.
       See [https://castle-engine.io/creating_data_resources.php]
       for documentation how you can define creature animations. }
-    property URL: string read FURL write FURL; deprecated 'do not use separate URLs for each animation; use one URL with all animations; see https://castle-engine.io/creating_data_resources.php';
+    property URL: string read FURL write FURL; {$ifdef FPC}deprecated 'do not use separate URLs for each animation; use one URL with all animations; see https://castle-engine.io/creating_data_resources.php';{$endif}
 
     { Animation name (like for @link(TCastleSceneCore.PlayAnimation)),
       which is equal to TimeSensor node name.
@@ -114,7 +113,7 @@ type
 
       See [https://castle-engine.io/creating_data_resources.php]
       for documentation how you can define creature animations. }
-    {$endif}
+
     property AnimationName: string read FAnimationName write FAnimationName;
     {$ifdef FPC}
     property TimeSensor: string read FAnimationName write FAnimationName;
@@ -700,14 +699,13 @@ end;
 function T3DResourceAnimation.Defined: boolean;
 begin
   {$warnings off} // using deprecated to keep it working
-  Result := {$ifdef FPC}(URL <> '') or {$endif}(AnimationName <> '');
+  Result := (URL <> '') or (AnimationName <> '');
   {$warnings on}
 end;
 
 procedure T3DResourceAnimation.Prepare(const Params: TPrepareParams;
   const DoProgress: boolean);
 begin
-  {$ifdef FPC}
   {$warnings off} // using deprecated to keep it working
   if URL <> '' then
   begin
@@ -718,7 +716,6 @@ begin
       FDuration := FSceneState.Scene.AnimationDuration(TNodeInterpolator.DefaultAnimationName);
   end else
   {$warnings on}
-  {$endif FPC}
   if AnimationName <> '' then
   begin
     if Owner.ModelState.Scene = nil then
@@ -738,7 +735,6 @@ end;
 
 procedure T3DResourceAnimation.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
-  {$ifdef FPC}
   {$warnings off} // using deprecated to keep it working
   if ResourceConfig.GetValue('model/' + Name + '/file_name', '') <> '' then
   begin
@@ -753,7 +749,6 @@ begin
       Owner.Name
     ]);
   {$warnings on}
-  {$endif FPC}
 
   AnimationName := ResourceConfig.GetValue('model/' + Name + '/animation_name', '');
   if AnimationName = '' then
