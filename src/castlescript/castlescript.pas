@@ -336,8 +336,8 @@ type
     { Comfortable constructor to set initial Value.
       Note that the inherited constructor (without AValue parameter)
       is also fine to use, it will set value to zero. }
-    constructor Create(const AWriteable: boolean; const AValue: Int64); overload;
-    constructor Create(const AWriteable: boolean); overload; override;
+    constructor Create(const AWriteable: boolean; const AValue: Int64); reintroduce; overload;
+    constructor Create(const AWriteable: boolean); reintroduce; overload; override;
     destructor Destroy; override;
 
     property Value: Int64 read FValue write SetValue;
@@ -410,8 +410,8 @@ type
     { Comfortable constructor to set initial Value.
       Note that the inherited constructor (without AValue parameter)
       is also fine to use, it will set value to zero. }
-    constructor Create(const AWriteable: boolean; const AValue: Float); overload;
-    constructor Create(const AWriteable: boolean); overload; override;
+    constructor Create(const AWriteable: boolean; const AValue: Float); reintroduce; overload;
+    constructor Create(const AWriteable: boolean); reintroduce; overload; override;
 
     property Value: Float read FValue write SetValue;
 
@@ -443,8 +443,8 @@ type
     { Comfortable constructor to set initial Value.
       Note that the inherited constructor (without AValue parameter)
       is also fine to use, it will set value to false. }
-    constructor Create(const AWriteable: boolean; const AValue: boolean); overload;
-    constructor Create(const AWriteable: boolean); overload; override;
+    constructor Create(const AWriteable: boolean; const AValue: boolean); reintroduce; overload;
+    constructor Create(const AWriteable: boolean); reintroduce; overload; override;
 
     property Value: boolean read FValue write SetValue;
 
@@ -476,8 +476,8 @@ type
     { Comfortable constructor to set initial Value.
       Note that the inherited constructor (without AValue parameter)
       is also fine to use, it will set value to ''. }
-    constructor Create(const AWriteable: boolean; const AValue: string); overload;
-    constructor Create(const AWriteable: boolean); overload; override;
+    constructor Create(const AWriteable: boolean; const AValue: string); reintroduce; overload;
+    constructor Create(const AWriteable: boolean); reintroduce; overload; override;
 
     property Value: string read FValue write SetValue;
 
