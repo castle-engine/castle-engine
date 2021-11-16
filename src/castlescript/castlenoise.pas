@@ -190,7 +190,7 @@ type
   PUInt32Array = ^TUInt32Array;
 var
   N: LongWord;
-  PPrimes: {$ifdef FPC}PUint32{$else}PUInt32Array{$endif};
+  PPrimes: PUInt32Array;
 {$I norqcheckbegin.inc}
 begin
   { Choose our primes row from Primes table. }
