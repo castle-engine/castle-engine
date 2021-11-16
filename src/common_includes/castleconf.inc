@@ -515,7 +515,7 @@
 { Use Vampyre Imaging to support extra image formats.
 
   This is particularly useful when compiling Delphi, as we otherwise support
-  only a few formats there (built-in DDS, KTX, and PNG by PngImage).
+  only a few formats there (built-in DDS, KTX, BPM, PPM, and PNG by LibPng or PngImage).
 
   When compiling with FPC, we use FpImage by default, that supports a lot of formats.
   Using Vampyre Imaging is still beneficial -- it is faster,
