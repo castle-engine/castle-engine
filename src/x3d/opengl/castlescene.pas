@@ -2359,5 +2359,5 @@ initialization
   RegisterSerializableComponent(TCastleCone, 'Cone');
   RegisterSerializableComponent(TCastleCylinder, 'Cylinder');
 finalization
-  FreeAndNil(GLContextCache);
+  GLContextCache.FreeWhenEmpty(@GLContextCache);
 end.
