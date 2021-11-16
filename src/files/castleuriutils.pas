@@ -1024,9 +1024,22 @@ end;
 function ExtractURIName(const URL: string): string;
 var
   URLWithoutAnchor: String;
+  {$ifndef FPC} I: Integer; {$endif}
 begin
   URLWithoutAnchor := URIDeleteAnchor(URL, DefaultRecognizeEvenEscapedHash);
+  {$ifdef FPC}
   Result := ExtractFileName(URLWithoutAnchor);
+  {$else}
+  { In Delphi, / separator in paths is not recognized, so we cannot use ExtractFilePath.
+    TODO: our own solution should be just used for both compilers.
+    Need autotests to confirm it behaves the same, on both platforms. }
+
+  I := BackCharsPos(['/'], URLWithoutAnchor);
+  if I <> 0 then
+    Result := SEnding(URLWithoutAnchor, I + 1)
+  else
+    Result := '';
+  {$endif}
 end;
 
 function ExtractURIPath(const URL: string): string;

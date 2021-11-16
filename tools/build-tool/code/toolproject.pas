@@ -1456,6 +1456,13 @@ begin
   GenerateStandaloneProgram('.dpr');
   GenerateStandaloneProgram('.lpi');
   GenerateStandaloneProgram('.dproj');
+
+  if (Manifest.StandaloneSource <> '') and
+     (not SameText(ExtractFileExt(Manifest.StandaloneSource), '.dpr')) then
+    WritelnWarning('Main program (standalone_source) does not have ".dpr" extension.' + NL +
+      '  It will not be possible to compile this project with Delphi.' + NL +
+      '  We recommend changing the standalone_source extension to ".dpr".' + NL +
+      '  The ".dpr" extension will work with both FPC/Lazarus and Delphi.');
 end;
 
 procedure TCastleProject.DoEditor;

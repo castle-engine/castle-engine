@@ -212,7 +212,9 @@ end;
 
 function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.PerfectlyEquals(SecondValue: TObject): boolean;
 type
-  TSelfType = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<T>;
+  // This makes FPC 3.2.0 fail with AccessViolation at compile-time
+  //TSelfType = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<T>;
+  TSelfType = TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif};
 begin
   Result :=
     (SecondValue is TSelfType) and

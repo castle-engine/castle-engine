@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="terrain"
-  standalone_source="terrain.lpr"
+  standalone_source="terrain.dpr"
   game_units="GameInitialize"
   screen_orientation="landscape"
   qualified_name="io.castleengine.terrain"

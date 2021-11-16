@@ -22,7 +22,7 @@ unit FormProject;
   This assumes that Delphi is associated on your system with Pascal files.
   OTOH it will work a bit nicer, not opening new Delphi instance each time,
   as Windows underneath will use DDE to communicate with Delphi BDSLauncher. }
-{.$define DELPHI_OPEN_SHELL}
+{$define DELPHI_OPEN_SHELL}
 
 interface
 
