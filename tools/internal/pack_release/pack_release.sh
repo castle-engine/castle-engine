@@ -20,15 +20,29 @@ check_fpc_version ()
   fi
 }
 
-# Compile build tool, put it on $PATH
-prepare_build_tool ()
+# Detect some platform-dependent variables
+detect_platform ()
 {
   if which make.exe > /dev/null; then
     HOST_EXE_EXTENSION='.exe'
   else
     HOST_EXE_EXTENSION=''
   fi
+
   echo "Host exe extension: '${HOST_EXE_EXTENSION}' (should be empty on Unix, '.exe' on Windows)"
+
+  # On Cygwin, make sure to use Cygwin's make, not the one from Embarcadero
+  if which cygpath.exe > /dev/null; then
+    MAKE='/bin/make'
+  else
+    MAKE='make'
+  fi
+  echo "Using make: ${MAKE}"
+}
+
+# Compile build tool, put it on $PATH
+prepare_build_tool ()
+{
 
   if [ "${VERBOSE}" '!=' 'true' ]; then
     CASTLE_FPC_OPTIONS="-vi-"
@@ -78,6 +92,18 @@ lazbuild_twice ()
   fi
 }
 
+# Download URL $1 into filename $2.
+download ()
+{
+  # Both wget and curl should work OK.
+  # But on my Cygwin (possibly some problem specific on Michalis Windows machine), wget fails with "GnuTLS: The request is invalid."
+  if which cygpath.exe > /dev/null; then
+    curl "$1" > "$2"
+  else
+    wget "$1" --output-document "$2"
+  fi
+}
+
 # Download another repository from GitHub, compile with current build tool,
 # move result to $3 .
 # Assumes $CASTLE_BUILD_TOOL_OPTIONS defined.
@@ -89,10 +115,10 @@ add_external_tool ()
   local OUTPUT_BIN="$3"
   shift 2
 
-  local TEMP_PATH_TOOL=/tmp/castle-engine-release-$$/"${GITHUB_NAME}"/
+  local TEMP_PATH_TOOL="/tmp/castle-engine-release-$$/${GITHUB_NAME}/"
   mkdir -p "${TEMP_PATH_TOOL}"
   cd "${TEMP_PATH_TOOL}"
-  wget https://codeload.github.com/castle-engine/"${GITHUB_NAME}"/zip/master --output-document "${GITHUB_NAME}".zip
+  download https://codeload.github.com/castle-engine/"${GITHUB_NAME}"/zip/master "${GITHUB_NAME}".zip
   unzip "${GITHUB_NAME}".zip
   cd "${GITHUB_NAME}"-master
   castle-engine $CASTLE_BUILD_TOOL_OPTIONS compile
@@ -128,9 +154,9 @@ do_pack_platform ()
   fi
 
   # Create temporary CGE copy, for packing
-  local TEMP_PATH=/tmp/castle-engine-release-$$/
+  local TEMP_PATH="/tmp/castle-engine-release-$$/"
   mkdir -p "$TEMP_PATH"
-  local TEMP_PATH_CGE=/tmp/castle-engine-release-$$/castle_game_engine/
+  local TEMP_PATH_CGE="${TEMP_PATH}castle_game_engine/"
   cp -R "${CASTLE_ENGINE_PATH}" "${TEMP_PATH_CGE}"
 
   cd "${TEMP_PATH_CGE}"
@@ -148,15 +174,20 @@ do_pack_platform ()
 
   # update environment to use CGE in temporary location
   export CASTLE_ENGINE_PATH="${TEMP_PATH_CGE}"
+  if which cygpath.exe > /dev/null; then
+    # must be native (i.e. cannot be Unix path on Cygwin) as it is used by CGE native tools
+    CASTLE_ENGINE_PATH="`cygpath --mixed \"${CASTLE_ENGINE_PATH}\"`"
+  fi
+
   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_base.lpk
   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_window.lpk
   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_components.lpk
 
   # Make sure no leftovers from previous compilations remain, to not affect tools, to not pack them in release
-  make cleanmore $MAKE_OPTIONS
+  "${MAKE}" cleanmore "${MAKE_OPTIONS}"
 
   # Compile most tools with FPC, and castle-editor with lazbuild
-  make tools $MAKE_OPTIONS BUILD_TOOL="castle-engine ${CASTLE_BUILD_TOOL_OPTIONS}"
+  "${MAKE}" tools "${MAKE_OPTIONS}" BUILD_TOOL="castle-engine ${CASTLE_BUILD_TOOL_OPTIONS}"
   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/castle_editor.lpi
 
   # Place tools binaries in bin/ subdirectory
@@ -178,13 +209,13 @@ do_pack_platform ()
   esac
 
   # Make sure no leftovers from tools compilation remain
-  make cleanmore $MAKE_OPTIONS
+  "${MAKE}" cleanmore "${MAKE_OPTIONS}"
 
   # After make clean, make sure bin/ exists and is filled with what we need
   mv "${TEMP_PATH_CGE}"bin-to-keep "${TEMP_PATH_CGE}"bin
 
   # Add PasDoc docs
-  make -C doc/pasdoc/ clean html $MAKE_OPTIONS
+  "${MAKE}" -C doc/pasdoc/ clean html "${MAKE_OPTIONS}"
   rm -Rf doc/pasdoc/cache/
 
   # Add tools
@@ -201,6 +232,7 @@ do_pack_platform ()
 
 ORIGINAL_CASTLE_ENGINE_PATH="${CASTLE_ENGINE_PATH}"
 
+detect_platform
 check_fpc_version
 prepare_build_tool
 calculate_cge_version
