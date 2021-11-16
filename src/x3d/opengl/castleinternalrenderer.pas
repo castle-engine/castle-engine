@@ -277,6 +277,8 @@ type
     a single instance of this cache inside @link(GLContextCache). }
   TGLRendererContextCache = class
   private
+    FFreeWhenEmpty: Boolean;
+    FFreeWhenEmptyInstanceToNil: PObject;
     TextureImageCaches: TTextureImageCacheList;
     TextureVideoCaches: TTextureVideoCacheList;
     TextureCubeMapCaches: TTextureCubeMapCacheList;
@@ -284,6 +286,13 @@ type
     TextureDepthOrFloatCaches: TTextureDepthOrFloatCacheList;
     ShapeCaches: array [{ DisableSharedCache } Boolean] of TShapeCacheList;
     ProgramCaches: TShaderProgramCacheList;
+
+    function Empty: Boolean;
+
+    { If we are empty, and FFreeWhenEmpty, then free self.
+      Beware: calling this procedure may free the current instance.
+      Do not access anything from this instance after calling this method. }
+    procedure CheckFreeWhenEmpty;
 
     { Load given texture to OpenGL, using our cache.
 
@@ -392,6 +401,16 @@ type
       Shader: TShader; const ShapeNiceName: string): TShaderProgramCache;
 
     procedure Program_DecReference(var ProgramCache: TShaderProgramCache);
+
+    { Free (and Self <> nil) when the cache will be empty (maybe immediately,
+      maybe later).
+
+      Beware: calling this procedure may free the current instance.
+      Do not access anything from this instance after calling this method.
+
+      After this procedure, any Xxx_DecReference call also may free
+      the cache instance. }
+    procedure FreeWhenEmpty(const InstanceToNil: PObject);
   end;
 
   {$I castleinternalrenderer_resource.inc}
@@ -775,7 +794,7 @@ end;
 
 destructor TGLRendererContextCache.Destroy;
 
-{ $define ONLY_WARN_ON_CACHE_LEAK}
+{.$define ONLY_WARN_ON_CACHE_LEAK}
 
 {$ifdef ONLY_WARN_ON_CACHE_LEAK}
   procedure Assert(const B: boolean; const S: string = '');
@@ -937,6 +956,7 @@ begin
         glFreeTexture(TextureImageCaches[I].GLName);
         TextureImageCaches.Delete(I);
       end;
+      CheckFreeWhenEmpty;
       Exit;
     end;
 
@@ -1016,6 +1036,7 @@ begin
         FreeAndNil(TextureVideoCaches[I].GLVideo);
         TextureVideoCaches.Delete(I);
       end;
+      CheckFreeWhenEmpty;
       Exit;
     end;
 
@@ -1102,6 +1123,7 @@ begin
         glFreeTexture(TextureCubeMapCaches[I].GLName);
         TextureCubeMapCaches.Delete(I);
       end;
+      CheckFreeWhenEmpty;
       Exit;
     end;
 
@@ -1183,6 +1205,7 @@ begin
         glFreeTexture(Texture3DCaches[I].GLName);
         Texture3DCaches.Delete(I);
       end;
+      CheckFreeWhenEmpty;
       Exit;
     end;
 
@@ -1323,6 +1346,7 @@ begin
         glFreeTexture(TextureDepthOrFloatCaches[I].GLName);
         TextureDepthOrFloatCaches.Delete(I);
       end;
+      CheckFreeWhenEmpty;
       Exit;
     end;
 
@@ -1412,6 +1436,7 @@ begin
         glFreeTexture(TextureDepthOrFloatCaches[I].GLName);
         TextureDepthOrFloatCaches.Delete(I);
       end;
+      CheckFreeWhenEmpty;
       Exit;
     end;
 
@@ -1526,6 +1551,7 @@ begin
     if ShapeCache.References = 0 then
       Caches.Delete(I);
     ShapeCache := nil;
+    CheckFreeWhenEmpty;
   end else
     raise EInternalError.Create(
       'TGLRendererContextCache.Shape_DecReference: no reference found');
@@ -1601,12 +1627,45 @@ begin
       if ProgramCache.References = 0 then
         ProgramCaches.Delete(I);
       ProgramCache := nil;
+      CheckFreeWhenEmpty;
       Exit;
     end;
   end;
 
   raise EInternalError.Create(
     'TGLRendererContextCache.Program_DecReference: no reference found');
+end;
+
+function TGLRendererContextCache.Empty: Boolean;
+begin
+  Result :=
+    (TextureImageCaches.Count = 0) and
+    (TextureVideoCaches.Count = 0) and
+    (TextureCubeMapCaches.Count = 0) and
+    (Texture3DCaches.Count = 0) and
+    (TextureDepthOrFloatCaches.Count = 0) and
+    (ShapeCaches[false].Count = 0) and
+    (ShapeCaches[true].Count = 0) and
+    (ProgramCaches.Count = 0);
+end;
+
+procedure TGLRendererContextCache.CheckFreeWhenEmpty;
+begin
+  if FFreeWhenEmpty and Empty then
+  begin
+    FFreeWhenEmptyInstanceToNil^ := nil; // sets global GLContextCache to nil
+    Self.Destroy;
+  end;
+end;
+
+procedure TGLRendererContextCache.FreeWhenEmpty(const InstanceToNil: PObject);
+begin
+  if Self <> nil then // hack to allow calling on nil instance, like standard Free
+  begin
+    FFreeWhenEmptyInstanceToNil := InstanceToNil;
+    FFreeWhenEmpty := true;
+    CheckFreeWhenEmpty;
+  end;
 end;
 
 { TGLRenderer ---------------------------------------------------------- }
