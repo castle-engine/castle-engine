@@ -1990,12 +1990,14 @@ function InternalDetectClassPNG(const Stream: TStream): TEncodedImageClass;
 implementation
 
 uses {$ifdef FPC} ExtInterpolation, FPCanvas, FPImgCanv, {$endif}
+  {$ifdef USE_VAMPYRE_IMAGING} Imaging, ImagingClasses, ImagingTypes, {$endif}
   CastleProgress, CastleStringUtils, CastleFilesUtils, CastleLog,
   CastleCompositeImage, CastleDownload, CastleURIUtils, CastleTimeUtils;
 
 { parts ---------------------------------------------------------------------- }
 
-{$I castleimages_file_formats.inc}
+{$I castleimages_vampyre_imaging.inc}
+{$I castleimages_file_formats.inc} // must be included after castleimages_vampyre_imaging.inc
 {$I castleimages_draw.inc}
 {$I castleimages_paint.inc}
 {$I castleimages_bmp.inc}
@@ -2006,7 +2008,6 @@ uses {$ifdef FPC} ExtInterpolation, FPCanvas, FPImgCanv, {$endif}
 {$I castleimages_ppm.inc}
 {$I castleimages_ipl.inc}
 {$I castleimages_rgbe_fileformat.inc}
-{$I castleimages_external_tool.inc}
 {$I castleimages_composite.inc}
 
 { Colors ------------------------------------------------------------------ }

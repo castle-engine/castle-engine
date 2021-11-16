@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2021 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,10 +16,15 @@
 { Image formats. }
 
 type
-  { Possible image file format. }
+  { Possible image file format.
+
+    The order on this list matters --- it determines the order of filters
+    for open/save dialogs.
+    First we list most adviced and well-known formats, starting from lossless. }
   TImageFormat = (
     { We have full PNG support, for both reading and writing.
-      We will use libpng (if available on given system) or fallback on FpImage reader. }
+      We can use LibPng (if available on given system), (FPC) FpImage,
+      Vampyre Imaging Library, or (Delphi) PngImage. }
     ifPNG,
 
     { We handle uncompressed BMP images. }
@@ -27,8 +32,14 @@ type
 
     ifPPM,
 
-    { Image formats below are supported by FPImage. }
-    ifJPEG, ifGIF, ifTGA, ifXPM, ifPSD, ifPCX, ifPNM,
+    { Image formats below are supported by FPImage and/or Vampyre Imaging Library. }
+    ifJPEG,
+    ifGIF,
+    ifTGA,
+    ifXPM,
+    ifPSD,
+    ifPCX,
+    ifPNM,
 
     { We handle fully DDS (DirectDraw Surface) and KTX image formats.
       They provide images in formats optimal for GPU. }
@@ -63,13 +74,8 @@ type
     ifRGBE,
 
     ifIPL,
-
-    { Image formats below are supported
-      by converting them  "under the hood" with ImageMagick.
-      This is available only if this unit is compiled with FPC
-      (i.e. not with Delphi) on platforms where ExecuteProcess is
-      implemented. And ImageMagick must be installed and available on $PATH. }
-    ifTIFF, ifSGI, ifJP2, ifEXR
+    ifTIFF,
+    ifJP2
   );
   TImageFormats = set of TImageFormat;
 
@@ -100,34 +106,96 @@ function LoadBMP(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
 function LoadGIF(const Stream: TStream;
-  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
+begin
+  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
+  Result := Load_VampyreImaging(Stream, AllowedImageClasses);
+  {$elseif defined(FPC)}
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderGIF.Create, ifGIF);
+  {$else}
+  raise EImageLoadError.Create('Cannot read GIF (neither FpImage nor Vampyre Imaging Library available at compile-time)');
+  {$endif}
+end;
 
 function LoadTGA(const Stream: TStream;
-  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
-
-function LoadSGI(const Stream: TStream;
-  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
+begin
+  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
+  Result := Load_VampyreImaging(Stream, AllowedImageClasses);
+  {$elseif defined(FPC)}
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderTarga.Create, ifTGA);
+  {$else}
+  raise EImageLoadError.Create('Cannot read TGA (neither FpImage nor Vampyre Imaging Library available at compile-time)');
+  {$endif}
+end;
 
 function LoadTIFF(const Stream: TStream;
-  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
+begin
+  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
+  Result := Load_VampyreImaging(Stream, AllowedImageClasses);
+  {$else}
+  raise EImageLoadError.Create('Cannot read TIFF (Vampyre Imaging Library not available at compile-time)');
+  {$endif}
+end;
 
 function LoadJP2(const Stream: TStream;
-  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
-
-function LoadEXR(const Stream: TStream;
-  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
+begin
+  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
+  Result := Load_VampyreImaging(Stream, AllowedImageClasses);
+  {$else}
+  raise EImageLoadError.Create('Cannot read JP2 (Vampyre Imaging Library not available at compile-time)');
+  {$endif}
+end;
 
 function LoadJPEG(const Stream: TStream;
-  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
+begin
+  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
+  Result := Load_VampyreImaging(Stream, AllowedImageClasses);
+  {$elseif defined(FPC)}
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderJPEG.Create, ifJPEG);
+  {$else}
+  raise EImageLoadError.Create('Cannot read JPEG (neither FpImage nor Vampyre Imaging Library available at compile-time)');
+  {$endif}
+end;
 
 function LoadXPM(const Stream: TStream;
-  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
+begin
+  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
+  Result := Load_VampyreImaging(Stream, AllowedImageClasses);
+  {$elseif defined(FPC)}
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderXPM.Create, ifXPM);
+  {$else}
+  raise EImageLoadError.Create('Cannot read XPM (neither FpImage nor Vampyre Imaging Library available at compile-time)');
+  {$endif}
+end;
 
 function LoadPSD(const Stream: TStream;
-  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
+begin
+  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
+  Result := Load_VampyreImaging(Stream, AllowedImageClasses);
+  {$elseif defined(FPC)}
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPSD.Create, ifPSD);
+  {$else}
+  raise EImageLoadError.Create('Cannot read PSD (neither FpImage nor Vampyre Imaging Library available at compile-time)');
+  {$endif}
+end;
 
 function LoadPCX(const Stream: TStream;
-  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
+begin
+  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
+  Result := Load_VampyreImaging(Stream, AllowedImageClasses);
+  {$elseif defined(FPC)}
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPCX.Create, ifPCX);
+  {$else}
+  raise EImageLoadError.Create('Cannot read PCX (neither FpImage nor Vampyre Imaging Library available at compile-time)');
+  {$endif}
+end;
 
 { Load PPM image.
   Loads only the first image in .ppm file. }
@@ -137,7 +205,16 @@ function LoadPPM(const Stream: TStream;
 { Load PNM image (PNM, PGM, PBM, PPM) through FpImage.
   Note that for PPM, for now it's more advised to use our LoadPPM. }
 function LoadPNM(const Stream: TStream;
-  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
+begin
+  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
+  Result := Load_VampyreImaging(Stream, AllowedImageClasses);
+  {$elseif defined(FPC)}
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPNM.Create, ifPNM);
+  {$else}
+  raise EImageLoadError.Create('Cannot read PNM (neither FpImage nor Vampyre Imaging Library available at compile-time)');
+  {$endif}
+end;
 
 function LoadIPL(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
@@ -179,15 +256,81 @@ function LoadKTX(const Stream: TStream;
 { }
 procedure SaveBMP(const Img: TEncodedImage; const Stream: TStream); forward;
 procedure SavePNG(const Img: TEncodedImage; const Stream: TStream); forward;
-{ }
-procedure SaveJPEG(const Img: TEncodedImage; const Stream: TStream); forward;
-{ }
 procedure SavePPM(const Img: TEncodedImage; const Stream: TStream; const Binary: boolean); overload; forward;
 procedure SavePPM(const Img: TEncodedImage; const Stream: TStream); { binary = true } overload; forward;
-{ }
 procedure SaveRGBE(const Img: TEncodedImage; const Stream: TStream); forward;
-
 procedure SaveDDS(const Img: TEncodedImage; const Stream: TStream); forward;
+
+procedure SaveJPEG(const Img: TEncodedImage; const Stream: TStream);
+begin
+  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
+  Save_VampyreImaging(Img, Stream, 'jpg');
+  {$elseif defined(FPC)}
+  SaveFpImage(Img, Stream, TFPWriterJPEG.Create);
+  {$else}
+  raise Exception.Create('Cannot save JPEG (neither FpImage nor Vampyre Imaging Library available at compile-time)');
+  {$endif}
+end;
+
+procedure SaveGIF(const Img: TEncodedImage; const Stream: TStream);
+begin
+  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
+  Save_VampyreImaging(Img, Stream, 'gif');
+  {$else}
+  raise EImageSaveError.Create('Cannot save GIF (Vampyre Imaging Library not available at compile-time)');
+  {$endif}
+end;
+
+procedure SaveTGA(const Img: TEncodedImage; const Stream: TStream);
+begin
+  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
+  Save_VampyreImaging(Img, Stream, 'tga');
+  {$else}
+  raise EImageSaveError.Create('Cannot save TGA (Vampyre Imaging Library not available at compile-time)');
+  {$endif}
+end;
+
+(* // produces always 0-size output file
+
+procedure SaveJP2(const Img: TEncodedImage; const Stream: TStream);
+begin
+  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
+  Save_VampyreImaging(Img, Stream, 'jp2');
+  {$else}
+  raise EImageSaveError.Create('Cannot save JP2 (Vampyre Imaging Library not available at compile-time)');
+  {$endif}
+end;
+*)
+
+procedure SaveXPM(const Img: TEncodedImage; const Stream: TStream);
+begin
+  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
+  Save_VampyreImaging(Img, Stream, 'xpm');
+  {$else}
+  raise EImageSaveError.Create('Cannot save XPM (Vampyre Imaging Library not available at compile-time)');
+  {$endif}
+end;
+
+procedure SavePNM(const Img: TEncodedImage; const Stream: TStream);
+begin
+  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
+  Save_VampyreImaging(Img, Stream, 'pnm');
+  {$else}
+  raise EImageSaveError.Create('Cannot save PNM (Vampyre Imaging Library not available at compile-time)');
+  {$endif}
+end;
+
+(* // produces always 0-size output file
+
+procedure SaveTIFF(const Img: TEncodedImage; const Stream: TStream);
+begin
+  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
+  Save_VampyreImaging(Img, Stream, 'tif');
+  {$else}
+  raise EImageSaveError.Create('Cannot save TIFF (Vampyre Imaging Library not available at compile-time)');
+  {$endif}
+end;
+*)
 
 { Detecting class ------------------------------------------------------------ }
 
@@ -459,9 +602,7 @@ type
 const
   { Information about supported image formats. }
   ImageFormatInfos: array [TImageFormat] of TImageFormatInfo =
-  ( { The order on this list matters --- it determines the order of filters
-      for open/save dialogs.
-      First list most adviced and well-known formats, starting from lossless. }
+  (
 
     { Portable Network Graphic } { }
     ( FormatName: 'PNG image';
@@ -506,15 +647,15 @@ const
       MimeTypes: ('image/gif', '', '', '', '', '');
       ExtsCount: 1; Exts: ('gif', '', '');
       Load: {$ifdef CASTLE_OBJFPC}@{$endif}LoadGIF; LoadedClasses: lcRGB_RGBA;
-      Save: nil; SavedClasses: scRGB;
+      Save: {$ifdef CASTLE_OBJFPC}@{$endif}SaveGIF; SavedClasses: scG_GA_RGB_RGBA;
       DetectClass: nil;
     ),
     ( FormatName: 'TarGA image';
       MimeTypesCount: 2;
       MimeTypes: ('image/x-targa', 'image/x-tga', '', '', '', '');
       ExtsCount: 2; Exts: ('tga', 'tpic', '');
-      Load: {$ifdef CASTLE_OBJFPC}@{$endif}LoadTGA; LoadedClasses: lcRGB_RGBA;
-      Save: nil; SavedClasses: scRGB;
+      Load: {$ifdef CASTLE_OBJFPC}@{$endif}LoadTGA; LoadedClasses: lcG_GA_RGB_RGBA;
+      Save: {$ifdef CASTLE_OBJFPC}@{$endif}SaveTGA; SavedClasses: scG_GA_RGB_RGBA;
       DetectClass: nil;
     ),
     ( FormatName: 'XPM image';
@@ -522,7 +663,7 @@ const
       MimeTypes: ('image/x-xpixmap', '', '', '', '', '');
       ExtsCount: 1; Exts: ('xpm', '', '');
       Load: {$ifdef CASTLE_OBJFPC}@{$endif}LoadXPM; LoadedClasses: lcRGB_RGBA;
-      Save: nil; SavedClasses: scRGB;
+      Save: {$ifdef CASTLE_OBJFPC}@{$endif}SaveXPM; SavedClasses: scG_GA_RGB_RGBA;
       DetectClass: nil;
     ),
     ( FormatName: 'PSD image';
@@ -545,8 +686,8 @@ const
       MimeTypesCount: 6;
       MimeTypes: ('image/x-portable-anymap', 'image/x-portable-graymap', 'image/x-pgm', 'image/x-portable-bitmap', 'image/pbm', 'image/x-pbm');
       ExtsCount: 3; Exts: ('pnm', 'pgm', 'pbm');
-      Load: {$ifdef CASTLE_OBJFPC}@{$endif}LoadPNM; LoadedClasses: lcRGB_RGBA;
-      Save: nil; SavedClasses: scRGB;
+      Load: {$ifdef CASTLE_OBJFPC}@{$endif}LoadPNM; LoadedClasses: lcG_GA_RGB_RGBA;
+      Save: {$ifdef CASTLE_OBJFPC}@{$endif}SavePNM; SavedClasses: scG_GA_RGB_RGBA;
       DetectClass: nil;
     ),
 
@@ -569,9 +710,6 @@ const
       Save: nil; SavedClasses: scG_GA_RGB_RGBA_GPUCompressed;
       DetectClass: nil;
     ),
-
-    { Image formats not well known. }
-
     ( FormatName: 'RGBE (RGB+Exponent) image';
       MimeTypesCount: 1;
       MimeTypes: ('image/vnd.radiance', '', '', '', '', '');
@@ -589,20 +727,15 @@ const
       Save: nil; SavedClasses: scRGB;
       DetectClass: nil;
     ),
-
-    { Image formats loaded using ImageMagick's convert.
-      Placed at the end of the list, to be at the end of open/save dialogs
-      filters, since there's a large chance they will not work,
-      if user didn't install ImageMagick. } { }
-
     ( FormatName: 'TIFF image';
       MimeTypesCount: 1;
       MimeTypes: ('image/tiff', '', '', '', '', '');
       ExtsCount: 2; Exts: ('tiff', 'tif', '');
-      Load: {$ifdef CASTLE_OBJFPC}@{$endif}LoadTIFF; LoadedClasses: lcRGB_RGBA;
-      Save: nil; SavedClasses: scRGB;
+      Load: {$ifdef CASTLE_OBJFPC}@{$endif}LoadTIFF; LoadedClasses: lcG_GA_RGB_RGBA;
+      Save: nil (*{$ifdef CASTLE_OBJFPC}@{$endif}SaveTIFF*); SavedClasses: scG_GA_RGB_RGBA;
       DetectClass: nil;
     ),
+    (*
     ( FormatName: 'SGI image';
       MimeTypesCount: 3;
       MimeTypes: ('image/sgi', 'image/x-sgi', 'image/x-sgi-rgba', '', '', '');
@@ -611,14 +744,16 @@ const
       Save: nil; SavedClasses: scRGB;
       DetectClass: nil;
     ),
+    *)
     ( FormatName: 'JPEG 2000 image';
       MimeTypesCount: 4;
       MimeTypes: ('image/jp2', 'image/jpeg2000', 'image/jpeg2000-image', 'image/x-jpeg2000-image', '', '');
       ExtsCount: 1; Exts: ('jp2', '', '');
       Load: {$ifdef CASTLE_OBJFPC}@{$endif}LoadJP2; LoadedClasses: lcG_GA_RGB_RGBA;
-      Save: nil; SavedClasses: scRGB;
+      Save: nil (*{$ifdef CASTLE_OBJFPC}@{$endif}SaveJP2*); SavedClasses: scG_GA_RGB_RGBA;
       DetectClass: nil;
-    ),
+    )
+    (*
     ( FormatName: 'EXR image';
       MimeTypesCount: 1;
       MimeTypes: ('image/x-exr', '', '', '', '', '');
@@ -627,6 +762,7 @@ const
       Save: nil; SavedClasses: scRGB;
       DetectClass: nil;
     )
+    *)
   );
 
 { image loading utilities --------------------------------------------------- }
