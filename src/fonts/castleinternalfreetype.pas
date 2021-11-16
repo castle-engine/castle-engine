@@ -988,7 +988,7 @@ end;
 {$ifdef win32}
 procedure SetWindowsFontPath;
 begin
-  DefaultSearchPath := includetrailingbackslash({$ifdef FPC}GetEnv{$else}GetEnvironmentVariable{$endif}('windir')) + 'fonts';
+  DefaultSearchPath := IncludeTrailingPathDelimiter({$ifdef FPC}GetEnv{$else}GetEnvironmentVariable{$endif}('windir')) + 'fonts';
 end;
 {$endif}
 
