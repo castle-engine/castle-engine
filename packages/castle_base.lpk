@@ -3862,7 +3862,7 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item940>
       <Item941>
-        <Filename Value="../src/images/castleimages_vampyre_imaginc.inc"/>
+        <Filename Value="../src/images/castleimages_vampyre_imaging.inc"/>
         <Type Value="Include"/>
       </Item941>
       <Item942>
