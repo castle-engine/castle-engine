@@ -265,15 +265,15 @@ end;}
 { TMgrFont }
 
 constructor TMgrFont.Create (aMgr:TFontManager; afilename:string; anindex:integer);
-
 begin
   inherited create;
   Filename := afilename;
   Mgr := aMgr;
   FSizes := TList.create;
   LastSize := nil;
+
   Try
-    FTCheck(FT_New_Face (aMgr.FTLib, pchar(afilename), anindex, font),format (sErrLoadFont,[anindex,afilename]));
+    FTCheck(FT_New_Face (aMgr.FTLib, PAnsiChar(AnsiString(afilename)), anindex, font),format (sErrLoadFont,[anindex,afilename]));
     //WriteFT_Face(font);
   except
     Font:=Nil;
@@ -605,18 +605,20 @@ function TFontManager.MakeString (FontId:integer; Text:string; size:integer; ang
 var g : PMgrGlyph;
     bm : PFT_BitmapGlyph;
     gl : PFT_Glyph;
-    prevIndex, prevx, c, r, rx, cl : integer;
+    prevIndex, prevx, c, r, rx : integer;
     uc : TUnicodeChar;
-    pc : pchar;
-    pre, adv, pos, kern : FT_Vector;
-    buf : CastleUtils.PByteArray;
-    reverse : boolean;
-    trans : FT_Matrix;
-    {$ifndef FPC}
+    {$ifdef FPC}
+    pc : PChar;
+    cl: Integer;
+    {$else}
     TextIndex: Integer;
     NextIndex: Integer;
     TextLength: Integer;
     {$endif}
+    pre, adv, pos, kern : FT_Vector;
+    buf : CastleUtils.PByteArray;
+    reverse : boolean;
+    trans : FT_Matrix;
 begin
   CurFont := GetFont(FontID);
   if  (Angle = 0) or   // no angle asked, or can't work with angles (not scalable)
@@ -642,10 +644,10 @@ begin
     pos.y := 0;
     pre.x := 0;
     pre.y := 0;
-    pc := pchar(text);
     r := -1;
     // get the unicode for the character. Also performed at the end of the while loop.
     {$ifdef FPC}
+    pc := PChar(text);
     uc := UTF8CharacterToUnicode (pc, cl);
     while (uc>0) and (cl>0) do
     {$else}
@@ -736,21 +738,23 @@ begin
     end;
 end;
 
-function TFontManager.MakeString (FontId:integer; Text:string; Size:integer) : TStringBitmaps;
+function TFontManager.MakeString(FontId: Integer; Text: String; Size: Integer): TStringBitmaps;
 var g : PMgrGlyph;
     bm : PFT_BitmapGlyph;
     gl : PFT_Glyph;
-    e, prevIndex, prevx, r, rx, cl : integer;
-    uc : TUnicodeChar;
+    e, prevIndex, prevx, r, rx : integer;
+    {$ifdef FPC}
+    cl : integer;
     pc : pchar;
-    pos, kern : FT_Vector;
-    buf : CastleUtils.PByteArray;
-    reverse : boolean;
-    {$ifndef FPC}
+    {$else}
     TextIndex: Integer;
     NextIndex: Integer;
     TextLength: Integer;
     {$endif}
+    uc : TUnicodeChar;
+    pos, kern : FT_Vector;
+    buf : CastleUtils.PByteArray;
+    reverse : boolean;
 begin
   CurFont := GetFont(FontID);
   InitMakeString (FontID, Size);
@@ -763,10 +767,10 @@ begin
   prevx := 0;
   pos.x := 0;
   pos.y := 0;
-  pc := pchar(text);
   r := -1;
   // get the unicode for the character. Also performed at the end of the while loop.
   {$ifdef FPC}
+  pc := pchar(text);
   uc := UTF8CharacterToUnicode (pc, cl);
   while (cl>0) and (uc>0) do
   {$else}

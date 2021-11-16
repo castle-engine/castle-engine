@@ -433,7 +433,7 @@ var
   I: Integer;
 begin
   Result := 0;
-  I := 0;
+  I := 1;
   while I <= Length(Text) do
   begin
     if IsSurrogate(Text, I) then
