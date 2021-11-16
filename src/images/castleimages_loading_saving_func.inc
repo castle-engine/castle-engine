@@ -43,6 +43,7 @@ begin
   Result := Load_VampyreImaging(Stream, AllowedImageClasses);
   {$else}
   raise EImageLoadError.Create('Cannot read TIFF (Vampyre Imaging Library not available at compile-time)');
+  Result := nil; // just silence FPC warning
   {$endif}
 end;
 
@@ -53,6 +54,7 @@ begin
   Result := Load_VampyreImaging(Stream, AllowedImageClasses);
   {$else}
   raise EImageLoadError.Create('Cannot read JP2 (Vampyre Imaging Library not available at compile-time)');
+  Result := nil; // just silence FPC warning
   {$endif}
 end;
 
