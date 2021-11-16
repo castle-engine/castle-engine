@@ -1523,6 +1523,9 @@ type
     class function PixelSize: Cardinal; override;
     class function ColorComponentsCount: Cardinal; override;
 
+    { Remove alpha channel. }
+    function ToGrayscaleImage: TGrayscaleImage;
+
     function PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): PVector2Byte;
     function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PVector2ByteArray;
 
@@ -4139,10 +4142,25 @@ end;
 procedure TGrayscaleImage.Assign(const Source: TCastleImage);
 var
   RgbaPtr: PVector4Byte;
+  GaPtr: PVector2Byte;
   RgbPtr: PVector3Byte absolute RgbaPtr;
   SelfPtr: PByte;
   I: Cardinal;
 begin
+  if Source is TGrayscaleAlphaImage then
+  begin
+    SetSize(Source);
+    SelfPtr := Pixels;
+    GaPtr := TGrayscaleAlphaImage(Source).Pixels;
+    for I := 1 to Width * Height * Depth do
+    begin
+      SelfPtr^ := GaPtr^.Data[0];
+      Inc(SelfPtr);
+      Inc(GaPtr);
+    end;
+    URL := Source.URL;
+  end else
+
   if Source is TRGBAlphaImage then
   begin
     SetSize(Source);
@@ -4385,6 +4403,13 @@ begin
   Pixel^.Data[1] := Clamped(Round(C.Data[3]         * 255), Low(Byte), High(Byte));
 end;
 
+function TGrayscaleAlphaImage.ToGrayscaleImage: TGrayscaleImage;
+begin
+  Result := TGrayscaleImage.Create(0, 0);
+  Result.Assign(Self);
+  Result.URL := URL + '[ToGrayscaleImage]';
+end;
+
 { RGBE <-> 3 Single color conversion --------------------------------- }
 
 const
@@ -4536,6 +4561,28 @@ begin
       'ImageAddAlphaVar not possible for this image class: ' + Img.ClassName);
 end;
 
+procedure ImageStripAlphaVar(var Img: TEncodedImage);
+var
+  NewImg: TCastleImage;
+begin
+  if Img is TRGBAlphaImage then
+  begin
+    NewImg := TRGBAlphaImage(Img).ToRGBImage;
+    FreeAndNil(Img);
+    Img := NewImg;
+  end else
+  if Img is TGrayscaleAlphaImage then
+  begin
+    NewImg := TGrayscaleAlphaImage(Img).ToGrayscaleImage;
+    FreeAndNil(Img);
+    Img := NewImg;
+  end;
+
+  if Img.HasAlpha then
+    raise EInternalError.Create(
+      'ImageStripAlphaVar not possible for this image class: ' + Img.ClassName);
+end;
+
 function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
   const AllowedImageClasses: array of TEncodedImageClass;
   const Options: TLoadImageOptions = [])
@@ -4592,7 +4639,29 @@ begin
                ClassAllowed(TGrayscaleAlphaImage) or
                ( ClassAllowed(TGPUCompressedImage) and
                  (ImageFormatInfos[StreamFormat].LoadedClasses = lcG_GA_RGB_RGBA_GPUCompressed) ) then
-              Result := Load(Stream, AllowedImageClasses) else
+            begin
+              Result := Load(Stream, AllowedImageClasses);
+
+              { Important for Vampyre Imaging Library, to make code like
+                "LoadImage('a.png', [TRGBImage]) as TRGBImage" work.
+                Testcase: examples/fps_game.
+                Other image loaders honor AllowedImageClasses,
+                but Load_VampyreImaging doesn't (for now).
+
+                TODO: It would be more optimal to do this in Load_VampyreImaging.
+                Although maybe this fallback can also stay, maybe even be extended to work always,
+                regardless of LoadedClasses (and maybe remove the LoadedClasses value then?). }
+              if not ClassAllowed(TEncodedImageClass(Result.ClassType)) then
+              begin
+                if (Result is TRGBAlphaImage) and ClassAllowed(TRGBImage) then
+                  ImageStripAlphaVar(Result)
+                else
+                if (Result is TGrayscaleAlphaImage) and ClassAllowed(TGrayscaleImage) then
+                  ImageStripAlphaVar(Result)
+                else
+                  raise EUnableToLoadImage.Create('LoadEncodedImage cannot satisfy the requested output format. Use less restrictive AllowedImageClasses argument.');
+              end;
+            end else
             if ClassAllowed(TRGBFloatImage) then
             begin
               Result := Load(Stream, [TRGBImage]);
