@@ -15,25 +15,25 @@
 
 type
   TBitmapFileHeader = packed record
-    bfType: array[0..1]of char;
-    bfSize: LongWord;
+    bfType: array[0..1]of AnsiChar;
+    bfSize: UInt32;
     bfReserved1: Word;
     bfReserved2: Word;
-    bfOffBits: LongWord;
+    bfOffBits: UInt32;
   end;
 
   TBitmapInfoHeader = packed record
-    biSize: LongWord;
-    biWidth: Longint;
-    biHeight: Longint;
+    biSize: UInt32;
+    biWidth: Int32;
+    biHeight: Int32;
     biPlanes: Word;
     biBitCount: Word;
-    biCompression: LongWord;
-    biSizeImage: LongWord;
-    biXPelsPerMeter: Longint;
-    biYPelsPerMeter: Longint;
-    biClrUsed: LongWord;
-    biClrImportant: LongWord;
+    biCompression: UInt32;
+    biSizeImage: UInt32;
+    biXPelsPerMeter: Int32;
+    biYPelsPerMeter: Int32;
+    biClrUsed: UInt32;
+    biClrImportant: UInt32;
   end;
 
   TRGBQuad = packed record blue, green, red, reserved : byte end;
