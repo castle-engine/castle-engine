@@ -124,3 +124,12 @@
 {$MINENUMSIZE 4}
 {$ALIGN 8}
 
+{ Castle Game Engine configuration }
+{$ifndef FPC}
+  { Hide some harmless hints/warnings, to have clean compiler output. }
+  {$hints off}
+  {$warn IMPLICIT_STRING_CAST off}
+  {$warn IMPLICIT_STRING_CAST_LOSS off}
+  {$warn COMBINING_SIGNED_UNSIGNED off}
+  {$warn COMBINING_SIGNED_UNSIGNED64 off}
+{$endif}

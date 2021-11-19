@@ -514,22 +514,18 @@
 
 { Use Vampyre Imaging to support extra image formats.
 
-  This is particularly useful when compiling Delphi, as we otherwise support
-  only a few formats there (built-in DDS, KTX, BPM, PPM, and PNG by LibPng or PngImage).
+  This is particularly useful when compiling Delphi, to get additional support
+  for formats like JPG.
+  We may depend on Vampyre Imaging for even more formats in the future,
+  and with FPC too (it works cool, but we need to do testing before enabling
+  it by default for everyone first).
 
-  When compiling with FPC, we use FpImage by default, that supports a lot of formats.
-  Using Vampyre Imaging is still beneficial -- it is faster,
-  and supports some extra formats (loading TIFF, JPEG 2000, saving XPM).
-
-  Right now it is disabled by default, as we don't ship Vampyre Imaging units
-  within CGE -- you have to download them yourself from:
-
-    https://github.com/galfar/imaginglib
-
-  and add paths to Delphi following docs:
-
-    http://galfar.vevb.net/imaging/doc/html/install.html
+  Right now we bundle Vampyre Imaging with CGE (in src/vampyre_imaging),
+  and so it is available automatically without any effort for all CGE devs,
+  and so we just use it automatically.
 }
-{.$define USE_VAMPYRE_IMAGING}
+{$ifndef FPC}
+  {$define USE_VAMPYRE_IMAGING}
+{$endif}
 
 {$endif not CASTLE_CONF_INCLUDED}

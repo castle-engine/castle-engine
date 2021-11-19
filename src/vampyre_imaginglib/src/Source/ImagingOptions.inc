@@ -224,3 +224,17 @@
 {$ENDIF}
 
 
+{ Castle Game Engine configuration }
+{$ifdef FPC}
+  { Make ImagingOpenGL use GL, GLExt, which is what CGE is using with FPC too. }
+  {$define OPENGL_NO_EXT_HEADERS}
+  { Hide some harmless notes, to have clean compiler output. }
+  {$notes off}
+{$else}
+  { Hide some harmless hints/warnings, to have clean compiler output. }
+  {$hints off}
+  {$warn IMPLICIT_STRING_CAST off}
+  {$warn IMPLICIT_STRING_CAST_LOSS off}
+  {$warn COMBINING_SIGNED_UNSIGNED off}
+  {$warn COMBINING_SIGNED_UNSIGNED64 off}
+{$endif}

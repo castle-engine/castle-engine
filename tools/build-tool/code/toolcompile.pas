@@ -95,7 +95,7 @@ const
       So it is simpler to just name all includes and units differently,
       even across system-specific dirs. }
 
-  EnginePaths: array [0..37] of String = (
+  EnginePaths: array [0..44] of String = (
     'base',
     'common_includes',
     'base/android',
@@ -133,13 +133,28 @@ const
     'physics',
     'physics/kraft',
     'pasgltf',
-    'deprecated_units'
+    'deprecated_units',
+    { Vampyre Imaging Library }
+    'vampyre_imaginglib/src/Source',
+    'vampyre_imaginglib/src/Source/JpegLib',
+    'vampyre_imaginglib/src/Source/ZLib',
+    'vampyre_imaginglib/src/Extras/Extensions',
+    'vampyre_imaginglib/src/Extensions/J2KObjects',
+    'vampyre_imaginglib/src/Extensions/LibTiff',
+    'vampyre_imaginglib/src/Extensions'
   );
 
   { Additional include/units paths, only for Delphi. }
   EnginePathsDelphi: array [0..1] of String = (
     'compatibility/delphi-only',
     'compatibility/delphi-only/fcl-json'
+  );
+
+  { Paths for library (object) files.
+    For FPC these are passed using -Fl. }
+  EngineLibraryPaths: array [0..1] of String = (
+    'vampyre_imaginglib/src/Extensions/J2KObjects',
+    'vampyre_imaginglib/src/Extensions/LibTiff/Compiled'
   );
 
 implementation
@@ -338,13 +353,22 @@ var
       end;
   end;
 
+  procedure AddEngineLibraryPaths;
+  var
+    S: String;
+  begin
+    if CastleEngineSrc <> '' then
+      for S in EngineLibraryPaths do
+        FpcOptions.Add('-Fl' + CastleEngineSrc + S);
+  end;
+
   procedure AddLibraryPaths;
   var
-    I: Integer;
+    S: String;
   begin
     if LibraryPaths <> nil then
-      for I := 0 to LibraryPaths.Count - 1 do
-        FpcOptions.Add('-Fl' + LibraryPaths[I]);
+      for S in LibraryPaths do
+        FpcOptions.Add('-Fl' + S);
   end;
 
   function IsIOS: boolean;
@@ -456,6 +480,7 @@ begin
 
     AddEngineSearchPaths;
     AddSearchPaths;
+    AddEngineLibraryPaths;
     AddLibraryPaths;
 
     { Specify the compilation options explicitly,
