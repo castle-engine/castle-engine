@@ -22,7 +22,7 @@
     </RequiredPackages>
     <Units Count="3">
       <Unit0>
-        <Filename Value="edit_test.lpr"/>
+        <Filename Value="edit_test.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>

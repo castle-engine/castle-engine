@@ -13,8 +13,8 @@ implementation
 uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
-  ApplicationProperties.ApplicationName := 'resource_animations';
-  ApplicationProperties.Caption := 'Demo of creature animations defined in resource.xml';
+  ApplicationProperties.ApplicationName := 'show_various_ui_controls';
+  ApplicationProperties.Caption := 'Show Various UI Controls';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

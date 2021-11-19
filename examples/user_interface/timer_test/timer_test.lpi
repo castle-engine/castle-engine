@@ -38,7 +38,7 @@
     </RequiredPackages>
     <Units Count="1">
       <Unit0>
-        <Filename Value="timer_test.lpr"/>
+        <Filename Value="timer_test.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
     </Units>
