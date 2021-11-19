@@ -18,7 +18,7 @@ begin
   {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
   Result := Load_VampyreImaging(Stream, AllowedImageClasses);
   {$elseif defined(FPC)}
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderGIF.Create, ifGIF);
+  Result := Load_FpImage(Stream, AllowedImageClasses, TFPReaderGIF.Create, ifGIF);
   {$else}
   raise EImageLoadError.Create('Cannot read GIF (neither FpImage nor Vampyre Imaging Library available at compile-time)');
   {$endif}
@@ -30,7 +30,7 @@ begin
   {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
   Result := Load_VampyreImaging(Stream, AllowedImageClasses);
   {$elseif defined(FPC)}
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderTarga.Create, ifTGA);
+  Result := Load_FpImage(Stream, AllowedImageClasses, TFPReaderTarga.Create, ifTGA);
   {$else}
   raise EImageLoadError.Create('Cannot read TGA (neither FpImage nor Vampyre Imaging Library available at compile-time)');
   {$endif}
@@ -64,7 +64,7 @@ begin
   {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
   Result := Load_VampyreImaging(Stream, AllowedImageClasses);
   {$elseif defined(FPC)}
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderJPEG.Create, ifJPEG);
+  Result := Load_FpImage(Stream, AllowedImageClasses, TFPReaderJPEG.Create, ifJPEG);
   {$else}
   raise EImageLoadError.Create('Cannot read JPEG (neither FpImage nor Vampyre Imaging Library available at compile-time)');
   {$endif}
@@ -76,7 +76,7 @@ begin
   {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
   Result := Load_VampyreImaging(Stream, AllowedImageClasses);
   {$elseif defined(FPC)}
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderXPM.Create, ifXPM);
+  Result := Load_FpImage(Stream, AllowedImageClasses, TFPReaderXPM.Create, ifXPM);
   {$else}
   raise EImageLoadError.Create('Cannot read XPM (neither FpImage nor Vampyre Imaging Library available at compile-time)');
   {$endif}
@@ -88,7 +88,7 @@ begin
   {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
   Result := Load_VampyreImaging(Stream, AllowedImageClasses);
   {$elseif defined(FPC)}
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPSD.Create, ifPSD);
+  Result := Load_FpImage(Stream, AllowedImageClasses, TFPReaderPSD.Create, ifPSD);
   {$else}
   raise EImageLoadError.Create('Cannot read PSD (neither FpImage nor Vampyre Imaging Library available at compile-time)');
   {$endif}
@@ -100,7 +100,7 @@ begin
   {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
   Result := Load_VampyreImaging(Stream, AllowedImageClasses);
   {$elseif defined(FPC)}
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPCX.Create, ifPCX);
+  Result := Load_FpImage(Stream, AllowedImageClasses, TFPReaderPCX.Create, ifPCX);
   {$else}
   raise EImageLoadError.Create('Cannot read PCX (neither FpImage nor Vampyre Imaging Library available at compile-time)');
   {$endif}
@@ -114,7 +114,7 @@ begin
   {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
   Result := Load_VampyreImaging(Stream, AllowedImageClasses);
   {$elseif defined(FPC)}
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPNM.Create, ifPNM);
+  Result := Load_FpImage(Stream, AllowedImageClasses, TFPReaderPNM.Create, ifPNM);
   {$else}
   raise EImageLoadError.Create('Cannot read PNM (neither FpImage nor Vampyre Imaging Library available at compile-time)');
   {$endif}
@@ -122,7 +122,7 @@ end;
 
 { Saving image (format-specific) --------------------------------------------
 
-  SaveXxx. Each file format may have specialized SaveXxx that allows
+  Each file format may have specialized SaveXxx that allows
   you to give some parameters special for given format.
 
   Each format must also have procedure with two parameters
@@ -144,7 +144,7 @@ begin
   {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
   Save_VampyreImaging(Img, Stream, 'jpg');
   {$elseif defined(FPC)}
-  SaveFpImage(Img, Stream, TFPWriterJPEG.Create);
+  Save_FpImage(Img, Stream, TFPWriterJPEG.Create);
   {$else}
   raise Exception.Create('Cannot save JPEG (neither FpImage nor Vampyre Imaging Library available at compile-time)');
   {$endif}
