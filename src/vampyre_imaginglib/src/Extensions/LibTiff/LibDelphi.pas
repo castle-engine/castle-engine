@@ -2,6 +2,11 @@ unit LibDelphi;
 
 {$ifdef FPC}
   {$MODE OBJFPC}
+{$else}
+  { Castle Game Engine configuration }
+  { Hide some harmless hints/warnings, to have clean compiler output. }
+  {$hints off}
+  {$warn COMPARING_SIGNED_UNSIGNED off}
 {$endif}
 
 interface

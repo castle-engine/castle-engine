@@ -15,6 +15,11 @@ unit LibTiffDelphi;
   {$DEFINE DCC}
   {$ALIGN 8}
   {$MINENUMSIZE 1}
+
+  { Castle Game Engine configuration }
+  { Hide some harmless hints/warnings, to have clean compiler output. }
+  {$hints off}
+  {$warn IMPLICIT_STRING_CAST off}
 {$ENDIF}
 
 interface
@@ -1309,7 +1314,7 @@ function  TIFFInitZIP(tif: PTIFF; scheme: Integer): Integer; cdecl; external;
 
 function NotConfigured(tif: PTIFF; scheme: Integer): Integer; cdecl; external;
 
-{DW 
+{DW
 const
 
   _TIFFBuiltinCODECS: array[0..17] of TIFFCodec = (
@@ -1512,4 +1517,3 @@ initialization
   TIFFSetErrorHandler(@InternallTIFFError);
 
 end.
-
