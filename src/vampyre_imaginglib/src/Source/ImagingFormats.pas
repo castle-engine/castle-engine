@@ -1068,6 +1068,8 @@ begin
       (Byte(ARGB) shl BBitCount shr 8 shl BShift);
 end;
 
+// Castle Game Engine added:
+{$ifdef FPC} {$push} {$warnings off} {$endif} // avoid Warning: Function result variable does not seem to be initialized
 function PFGetColor(const PF: TPixelFormatInfo; Color: UInt32): TColor32;
 {$IFDEF USE_INLINE}inline;{$ENDIF}
 begin
@@ -1079,6 +1081,7 @@ begin
     B := (Color and BBitMask shl BShift) * 255 div BRecDiv;
   end;
 end;
+{$ifdef FPC} {$pop} {$endif}
 
 { Additional image manipulation functions (usually used internally by Imaging unit) }
 
@@ -4155,10 +4158,13 @@ begin
   Result := Width * Height div 4; // 2bits/pixel
 end;
 
+// Castle Game Engine added:
+{$ifdef FPC} {$push} {$warnings off} {$endif} // avoid Warning: Function result does not seem to be set
 function GetBCPixelsSize(Format: TImageFormat; Width, Height: LongInt): LongInt;
 begin
   raise ENotImplemented.Create();
 end;
+{$ifdef FPC} {$pop} {$endif}
 
 procedure CheckBCDimensions(Format: TImageFormat; var Width, Height: LongInt);
 begin

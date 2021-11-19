@@ -230,6 +230,7 @@
   {$define OPENGL_NO_EXT_HEADERS}
   { Hide some harmless notes, to have clean compiler output. }
   {$notes off}
+  {$warnings off}
 {$else}
   { Hide some harmless hints/warnings, to have clean compiler output. }
   {$hints off}
