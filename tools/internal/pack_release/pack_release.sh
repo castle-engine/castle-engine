@@ -28,16 +28,15 @@ detect_platform ()
   else
     HOST_EXE_EXTENSION=''
   fi
-
   echo "Host exe extension: '${HOST_EXE_EXTENSION}' (should be empty on Unix, '.exe' on Windows)"
 
-  # On Cygwin, make sure to use Cygwin's make, not the one from Embarcadero
+  MAKE='make'
+  FIND='find'
+
   if which cygpath.exe > /dev/null; then
-    MAKE='/bin/make'
-  else
-    MAKE='make'
+    MAKE='/bin/make' # On Cygwin, make sure to use Cygwin's make, not the one from Embarcadero
+    FIND='/bin/find' # On Cygwin, make sure to use Cygwin's find, not the one from Windows
   fi
-  echo "Using make: ${MAKE}"
 }
 
 # Compile build tool, put it on $PATH
@@ -60,8 +59,8 @@ prepare_build_tool ()
     echo 'pack_release: After installing CGE build tool, we still cannot find it on $PATH'
     exit 1
   fi
-  FOUND_CGE_BUILD_TOOL="`which castle-engine`"
-  EXPECTED_CGE_BUILD_TOOL="${BIN_TEMP_PATH}/castle-engine${HOST_EXE_EXTENSION}"
+  FOUND_CGE_BUILD_TOOL="`which castle-engine${HOST_EXE_EXTENSION}`"
+  EXPECTED_CGE_BUILD_TOOL="${BIN_TEMP_PATH}castle-engine${HOST_EXE_EXTENSION}"
   if [ "${FOUND_CGE_BUILD_TOOL}" '!=' "${EXPECTED_CGE_BUILD_TOOL}" ]; then
     echo "pack_release: Unexpected CGE build tool on \$PATH: found ${FOUND_CGE_BUILD_TOOL}, expected ${EXPECTED_CGE_BUILD_TOOL}"
     exit 1
@@ -188,6 +187,13 @@ do_pack_platform ()
 
   # Make sure no leftovers from previous compilations remain, to not affect tools, to not pack them in release
   "${MAKE}" cleanmore ${MAKE_OPTIONS}
+
+  # Cleanup .exe more brutally.
+  # TODO: This should not be needed "castle-engine clean" done by "make clean"
+  # should clean all relevant exes, cross-platform.
+  # This is just a temporary workaround of the fact that our Delphi projects right now
+  # sometimes leave artifacts -- xxx_standalone.exe, base_tests/Win32/Debug/xxx.exe .
+  "${FIND}" examples/ -iname '*.exe' -execdir rm -f '{}' ';'
 
   # Compile most tools with FPC, and castle-editor with lazbuild
   "${MAKE}" tools ${MAKE_OPTIONS} BUILD_TOOL="castle-engine ${CASTLE_BUILD_TOOL_OPTIONS}"
