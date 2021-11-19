@@ -12,7 +12,7 @@ VERBOSE=false
 # see https://castle-engine.io/supported_compilers.php .
 check_fpc_version ()
 {
-  local FPC_VERSION=`fpc -iV`
+  local FPC_VERSION=`fpc -iV | tr -d '\r'`
   local REQUIRED_FPC_VERSION='3.2.2'
   if [ "${FPC_VERSION}" '!=' "${REQUIRED_FPC_VERSION}" ]; then
     echo "pack_release: Expected FPC version ${REQUIRED_FPC_VERSION}, but got ${FPC_VERSION}"
