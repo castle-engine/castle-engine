@@ -520,6 +520,26 @@
   and with FPC too (it works cool, but we need to do testing before enabling
   it by default for everyone first).
 
+  To compile Vampyre also with FPC using build tool, just define the symbol
+  USE_VAMPYRE_IMAGING below *always* (remove check for ifndef FPC).
+
+  To compile Vampyre also with FPC using Lazarus:
+
+      As above, just define the symbol USE_VAMPYRE_IMAGING *always*.
+      Also, you need to:
+
+      - Open and compile in Lazarus 2 Vampyre packages:
+        src/vampyre_imaginglib/src/Packages/VampyreImaginePackage.lpk
+        src/vampyre_imaginglib/src/Packages/VampyreImaginePackageExt.lpk
+      - Note: You may want to remove DONT_LINK_EXTRAS symbol defined by default in
+        VampyreImaginePackageExt.lpk.
+        This way e.g. TIFF support will be automatically present.
+      - Edit CGE packages/castle_base.lpk to add the 2 above Vampyre packages
+        as requirements.
+
+      This way CGE packages use Vampyre packages in a clean (Lazarus) way.
+      And we automatically use all compilation configuration done by Vampyre authors.
+
   Right now we bundle Vampyre Imaging with CGE (in src/vampyre_imaging),
   and so it is available automatically without any effort for all CGE devs,
   and so we just use it automatically.

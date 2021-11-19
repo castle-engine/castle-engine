@@ -240,9 +240,19 @@ begin
   TiffIOWrapper := IOWrapper;
 {$ENDIF}
 
+  { Castle Game Engine added }
+  { Avoid range check errors, in case this unit is compiled by CGE build tool
+    in debug mode.
+    Observed with FPC 3.2.2 on Linux/x86_64, open Tiger.tif .
+
+    TODO: The cast to THandle here, and then to 32-bit Cardinal,
+    is bad on 64-bit! }
+
+  {$ifdef FPC} {$push} {$R-} {$endif}
   Tiff := TIFFClientOpen('LibTIFF', 'r', THandle(@IOWrapper), @TIFFReadProc,
     @TIFFWriteProc, @TIFFSeekProc, @TIFFCloseProc,
     @TIFFSizeProc, @TIFFNoMapProc, @TIFFNoUnmapProc);
+  {$ifdef FPC} {$pop} {$endif}
 
   if Tiff <> nil then
     TIFFSetFileNo(Tiff, THandle(@IOWrapper))
