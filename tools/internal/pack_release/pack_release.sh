@@ -144,6 +144,9 @@ do_pack_platform ()
   export CASTLE_FPC_OPTIONS="-T${OS} -P${CPU}"
   export CASTLE_BUILD_TOOL_OPTIONS="--os=${OS} --cpu=${CPU}"
   local  CASTLE_LAZBUILD_OPTIONS="--os=${OS} --cpu=${CPU}"
+  # Note: always use it like ${MAKE_OPTIONS}, without double quotes,
+  # to *allow* treating spaces inside as argument sepaators.
+  # Otherwise we'd get errors that castle-engine doesn't support --quiet.
   local  MAKE_OPTIONS="BUILD_TOOL=castle-engine" # use build tool on $PATH
 
   if [ "${VERBOSE}" '!=' 'true' ]; then
@@ -184,10 +187,10 @@ do_pack_platform ()
   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_components.lpk
 
   # Make sure no leftovers from previous compilations remain, to not affect tools, to not pack them in release
-  "${MAKE}" cleanmore "${MAKE_OPTIONS}"
+  "${MAKE}" cleanmore ${MAKE_OPTIONS}
 
   # Compile most tools with FPC, and castle-editor with lazbuild
-  "${MAKE}" tools "${MAKE_OPTIONS}" BUILD_TOOL="castle-engine ${CASTLE_BUILD_TOOL_OPTIONS}"
+  "${MAKE}" tools ${MAKE_OPTIONS} BUILD_TOOL="castle-engine ${CASTLE_BUILD_TOOL_OPTIONS}"
   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/castle_editor.lpi
 
   # Place tools binaries in bin/ subdirectory
@@ -209,13 +212,13 @@ do_pack_platform ()
   esac
 
   # Make sure no leftovers from tools compilation remain
-  "${MAKE}" cleanmore "${MAKE_OPTIONS}"
+  "${MAKE}" cleanmore ${MAKE_OPTIONS}
 
   # After make clean, make sure bin/ exists and is filled with what we need
   mv "${TEMP_PATH_CGE}"bin-to-keep "${TEMP_PATH_CGE}"bin
 
   # Add PasDoc docs
-  "${MAKE}" -C doc/pasdoc/ clean html "${MAKE_OPTIONS}"
+  "${MAKE}" -C doc/pasdoc/ clean html ${MAKE_OPTIONS}
   rm -Rf doc/pasdoc/cache/
 
   # Add tools
