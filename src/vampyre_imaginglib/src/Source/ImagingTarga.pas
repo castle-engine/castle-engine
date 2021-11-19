@@ -7,12 +7,26 @@
   This Source Code Form is subject to the terms of the Mozilla Public
   License, v. 2.0. If a copy of the MPL was not distributed with this
   file, You can obtain one at https://mozilla.org/MPL/2.0.
-} 
+}
 
 { This unit contains image format loader/saver for Targa images.}
 unit ImagingTarga;
 
 {$I ImagingOptions.inc}
+
+{ Castle Game Engine additions }
+{ Needs overflow checking off.
+
+  Testcase: open TGA from Vampyre Demos,
+    Delphi 11,
+    Windows 64.
+
+  Fails at 177:
+      // set position in source to real end of compressed data
+      Seek(Handle, -(BufSize - (PtrUInt(Src) - PtrUInt(Buffer))),
+        smFromCurrent);
+}
+{$Q-}
 
 interface
 

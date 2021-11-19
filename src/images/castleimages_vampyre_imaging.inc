@@ -50,6 +50,11 @@ var
 begin
   Img := TSingleImage.CreateFromStream(Stream);
   try
+    { convert indexed (palette) -> ARGB.
+      Testcase: vampyre_imaginglib/src/Demos/Data/Tigers.tga }
+    if Img.Format = ifIndex8 then
+      Img.Format := ifA8R8G8B8; // calls ConvertImage and actually changes content
+
     case Img.Format of
       ifGray8: Result := TGrayscaleImage.Create(Img.Width, Img.Height);
       ifA8Gray8: Result := TGrayscaleAlphaImage.Create(Img.Width, Img.Height);
