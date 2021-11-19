@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>Introduction</title>
+  <chapter>
+    <title>Introduction</title>
+    <par>
+      You can find general information on Imaging library in this section.
+      What is it, what it does and similar questions are answered here.
+    </par>
+    
+    <linklist>
+      <title>In This Section</title>
+      <lslink url="About.xml">About</lslink>
+      <lslink url="Features.xml">Features</lslink>
+      <lslink url="History.xml">History</lslink>
+      <lslink url="Future.xml">Future</lslink>
+      <lslink url="Faq.xml">Faq</lslink>
+      <lslink url="Credits.xml">Credits</lslink>
+      <lslink url="Contrib.xml">Contributions</lslink>
+      <lslink url="License.xml">License</lslink>
+    </linklist>
+    
+  </chapter>
+</doc>

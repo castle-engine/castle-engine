@@ -1,0 +1,589 @@
+object MainForm: TMainForm
+  Left = 473
+  Height = 680
+  Top = 405
+  Width = 997
+  AllowDropFiles = True
+  Caption = 'LCL Imager (Vampyre Imaging Library Demo)'
+  ClientHeight = 660
+  ClientWidth = 997
+  Constraints.MinHeight = 240
+  Constraints.MinWidth = 320
+  Icon.Data = {
+    BE0800000000010001002020000100000000A808000016000000280000002000
+    0000400000000100080000000000800400000000000000000000000000000000
+    000000000000000080000080000000808000800000008000800080800000C0C0
+    C000C0DCC000F0CAA6000020400000206000002080000020A0000020C0000020
+    E00000400000004020000040400000406000004080000040A0000040C0000040
+    E00000600000006020000060400000606000006080000060A0000060C0000060
+    E00000800000008020000080400000806000008080000080A0000080C0000080
+    E00000A0000000A0200000A0400000A0600000A0800000A0A00000A0C00000A0
+    E00000C0000000C0200000C0400000C0600000C0800000C0A00000C0C00000C0
+    E00000E0000000E0200000E0400000E0600000E0800000E0A00000E0C00000E0
+    E00040000000400020004000400040006000400080004000A0004000C0004000
+    E00040200000402020004020400040206000402080004020A0004020C0004020
+    E00040400000404020004040400040406000404080004040A0004040C0004040
+    E00040600000406020004060400040606000406080004060A0004060C0004060
+    E00040800000408020004080400040806000408080004080A0004080C0004080
+    E00040A0000040A0200040A0400040A0600040A0800040A0A00040A0C00040A0
+    E00040C0000040C0200040C0400040C0600040C0800040C0A00040C0C00040C0
+    E00040E0000040E0200040E0400040E0600040E0800040E0A00040E0C00040E0
+    E00080000000800020008000400080006000800080008000A0008000C0008000
+    E00080200000802020008020400080206000802080008020A0008020C0008020
+    E00080400000804020008040400080406000804080008040A0008040C0008040
+    E00080600000806020008060400080606000806080008060A0008060C0008060
+    E00080800000808020008080400080806000808080008080A0008080C0008080
+    E00080A0000080A0200080A0400080A0600080A0800080A0A00080A0C00080A0
+    E00080C0000080C0200080C0400080C0600080C0800080C0A00080C0C00080C0
+    E00080E0000080E0200080E0400080E0600080E0800080E0A00080E0C00080E0
+    E000C0000000C0002000C0004000C0006000C0008000C000A000C000C000C000
+    E000C0200000C0202000C0204000C0206000C0208000C020A000C020C000C020
+    E000C0400000C0402000C0404000C0406000C0408000C040A000C040C000C040
+    E000C0600000C0602000C0604000C0606000C0608000C060A000C060C000C060
+    E000C0800000C0802000C0804000C0806000C0808000C080A000C080C000C080
+    E000C0A00000C0A02000C0A04000C0A06000C0A08000C0A0A000C0A0C000C0A0
+    E000C0C00000C0C02000C0C04000C0C06000C0C08000C0C0A000F0FBFF00A4A0
+    A000808080000000FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFF
+    FF00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+    FFFFFFFFFFFFFFFFFFFFFFF6F6F6F6F6F6F6F6FFFFFFFFFFFFFFFFFFFFFFFFFF
+    FFFFFFFFFFFFFFFFFFFFF6F6F6EFEFEFEFF6F6F6F6FFFFFFFFFFFFFFFFFFFFFF
+    FFFFFFFFFFFFFFFFFFF6F6EFEFEFAFEFEFEFEFEFF6F6F6FFFFFFFFFFFFFFFFFF
+    FFFFFFFFFFFFFFFFF6F6EFAFA7A7A7A7A7AFEFEFEFF6F6F6FFFFFFFFFFFFFFFF
+    FFFFFFFFFFFFFFF6F6EF9F97979797979F9FA7AFEFEFEFF6F6FFFFFFFFFFFFFF
+    FFFFFFFFFFFFFFF6E7979797979797979797979FA7EFEFEFF6F6FFFFFFFFFFFF
+    FFFFFFFFFFFFFFF69F97979F9F9FA79F9797979797A7EFEFEFF6F6FFFFFFFFFF
+    FFFFFFFFFFFFFFF69F97A7EFEFF6F6F6EFE79F9797979FEFEFEFF6F6FFFFFFFF
+    FFFFFFFFFFFFFFF6E79FEFF6F6F6F6F6F6F6EFE79797979FEFEFF6F6FFFFFFFF
+    FFFFFFFFFFFFFFF6EFE7EFF6F6F6FFFFFFFFF6F6EF979797A7EFEFF6F6FFFFFF
+    FFFFFFFFFFFFFFFFF6EFEFF6FFFFFFFFFFFFFFF6F6E79797A7EFEFF6F6FFFFFF
+    FFFFFFFFFFFFFFFFF6F6F6F6FFFFFFFFFFFFFFFFF6EF97979FAFEFEFF6FFFFFF
+    FFFFFFFFFFFFFFFFFFFFF6FFFFFFFFFFFFFFFFFFFFF69F9797A7EFEFF6FFFFFF
+    FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF6A79797A7EFEFF6FFFFFF
+    FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF6E797979FEFEFF6FFFFFF
+    FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF6F6F6FFFFFFF6EF97979FEFEFF6FFFFFF
+    FFFFFFFFFFFFFFFFFFFFFFFFFFFFF6F6F6F6F6FFFFF6EF97979FEFEFF6F6FFFF
+    FFFFFFFFFFFFFFFFFFFFFFFFFFF6F6F6F6F6F6FFFFF6EF97979FEFEFF6F6FFFF
+    FFFFFFFFFFFFFFFFFFFFFFFFF6F6F6F6EFF6F6FFFFF6EF97979FEFEFF6F6FFFF
+    FFFFFFFFFFFFFFFFFFFFFFFFF6E7E7EFEFF6F6F6FFF6EF97979FAFEFF6F6FFFF
+    FFFFFFFFFFFFFFFFFFFFFFF6F69F9FEFEFEFF6F6F6F6EF97979FAFEFF6F6FFFF
+    FFFFFFFFFFFFFFFFFFFFFFF6EF9F9FA7EFEFEFEFF6EFEF97979FAFEFF6F6FFFF
+    FFFFFFFFFFFFFFFFFFFFFFF6EF9F97A7EFAFAFEFEFEFA797979FAFEFF6F6FFFF
+    FFFFFFFFFFFFFFFFFFFFFFF6EF9F97A7A7A7A7A7A7A79F9797A7EFEFF6F6FFFF
+    FFFFFFFFFFFFFFFFFFFFFFF6EF9F97979F9F9F9F9F97979797A7EFF6F6F6FFFF
+    FFFFFFFFFFFFFFFFFFFFFFFFF6A79797979797979797979797E7F6F6F6FFFFFF
+    FFFFFFFFFFFFFFFFFFFFFFFFF6EFA79F9F9F9F9F9F9F9F9F9FEFF6F6FFFFFFFF
+    FFFFFFFFFFFFFFFFFFFFFFFFFFF6F6F6F6F6F6F6F6F6F6EFF6F6F6FFFFFFFFFF
+    FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF6F6F6F6FFFFFFF6F6FFFFFFFFFFFFFF
+    FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+    FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+    FFFF000000000000000000000000000000000000000000000000000000000000
+    0000000000000000000000000000000000000000000000000000000000000000
+    0000000000000000000000000000000000000000000000000000000000000000
+    0000000000000000000000000000000000000000000000000000000000000000
+    0000
+  }
+  Menu = MainMenu
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnDropFiles = FormDropFiles
+  OnShow = FormShow
+  Position = poWorkAreaCenter
+  LCLVersion = '2.0.4.0'
+  Visible = True
+  object StatusBar: TStatusBar
+    Left = 0
+    Height = 23
+    Top = 637
+    Width = 997
+    Panels = <>
+  end
+  object PairSplitter: TPairSplitter
+    Left = 0
+    Height = 637
+    Top = 0
+    Width = 997
+    Align = alClient
+    Position = 180
+    object PairSplitterSideLeft: TPairSplitterSide
+      Cursor = crArrow
+      Left = 0
+      Height = 637
+      Top = 0
+      Width = 180
+      ClientWidth = 180
+      ClientHeight = 637
+      object TreeImage: TTreeView
+        Left = 0
+        Height = 637
+        Top = 0
+        Width = 180
+        Align = alClient
+        AutoExpand = True
+        HotTrack = True
+        ParentShowHint = False
+        ReadOnly = True
+        RightClickSelect = True
+        ShowHint = True
+        TabOrder = 0
+        OnSelectionChanged = TreeImageSelectionChanged
+        Options = [tvoAutoExpand, tvoAutoItemHeight, tvoHideSelection, tvoHotTrack, tvoKeepCollapsedNodes, tvoReadOnly, tvoRightClickSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
+      end
+    end
+    object PairSplitterSideRight: TPairSplitterSide
+      Cursor = crArrow
+      Left = 185
+      Height = 637
+      Top = 0
+      Width = 812
+      ClientWidth = 812
+      ClientHeight = 637
+      object Image: TImage
+        Cursor = crHandPoint
+        Left = 4
+        Height = 637
+        Top = 0
+        Width = 804
+        Align = alClient
+        AutoSize = True
+        BorderSpacing.Left = 4
+        BorderSpacing.Right = 4
+        Center = True
+        OnClick = ImageClick
+        Proportional = True
+        Stretch = True
+      end
+    end
+  end
+  object MainMenu: TMainMenu
+    left = 112
+    top = 40
+    object MenuItem1: TMenuItem
+      Caption = 'File'
+      object MenuItem3: TMenuItem
+        Caption = 'Open'
+        ShortCut = 16463
+        OnClick = MenuItem3Click
+      end
+      object MenuItem44: TMenuItem
+        Caption = 'Reload'
+        ShortCut = 16466
+        OnClick = MenuItem44Click
+      end
+      object MenuItem5: TMenuItem
+        Caption = 'Save As...'
+        ShortCut = 16467
+        OnClick = MenuItem5Click
+      end
+      object MenuItem93: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem92: TMenuItem
+        Caption = 'Add Image(s) From File...'
+        OnClick = MenuItem92Click
+      end
+      object MenuItem25: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem7: TMenuItem
+        Caption = 'Exit'
+        OnClick = MenuItem7Click
+      end
+    end
+    object MenuItem6: TMenuItem
+      Caption = 'View'
+      object MenuItem11: TMenuItem
+        Action = ActViewInfo
+        ShortCut = 16457
+        OnClick = ActViewInfoExecute
+      end
+      object MenuItem86: TMenuItem
+        Caption = 'Show Metadata'
+        ShortCut = 16461
+        OnClick = MenuItem86Click
+      end
+      object MenuItem87: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem16: TMenuItem
+        Action = ActViewFitToWindow
+        Checked = True
+        OnClick = ActViewFitToWindowExecute
+      end
+      object MenuItem17: TMenuItem
+        Action = ActViewActualSize
+        OnClick = ActViewActualSizeExecute
+      end
+      object MenuItem32: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemActSubImage: TMenuItem
+        Caption = 'Active Subimage:'
+      end
+      object MenuItem34: TMenuItem
+        Caption = 'Next Subimage'
+        ShortCut = 39
+        OnClick = MenuItem34Click
+      end
+      object MenuItem35: TMenuItem
+        Caption = 'Previous Subimage'
+        ShortCut = 37
+        OnClick = MenuItem35Click
+      end
+    end
+    object FormatItem: TMenuItem
+      Caption = 'Format'
+      object MenuItemConvertAll: TMenuItem
+        AutoCheck = True
+        Caption = 'Convert all subimages'
+        Checked = True
+        GlyphShowMode = gsmNever
+      end
+    end
+    object MenuItem8: TMenuItem
+      Caption = 'Manipulate'
+      object MenuItem2: TMenuItem
+        Caption = 'Flip'
+        OnClick = MenuItem2Click
+      end
+      object MenuItem4: TMenuItem
+        Caption = 'Mirror'
+        OnClick = MenuItem4Click
+      end
+      object MenuItem23: TMenuItem
+        Caption = 'Rotate 90 CW'
+        OnClick = MenuItem23Click
+      end
+      object MenuItem24: TMenuItem
+        Caption = 'Rotate 90 CCW'
+        OnClick = MenuItem24Click
+      end
+      object MenuItem80: TMenuItem
+        Caption = 'Free Rotate'
+        OnClick = MenuItem80Click
+      end
+      object MenuItem21: TMenuItem
+        Caption = 'Resize To 50%'
+        object MenuItem26: TMenuItem
+          Caption = 'Nearest'
+          OnClick = MenuItem26Click
+        end
+        object MenuItem27: TMenuItem
+          Caption = 'Bilinear'
+          OnClick = MenuItem27Click
+        end
+        object MenuItem28: TMenuItem
+          Caption = 'Bicubic'
+          OnClick = MenuItem28Click
+        end
+        object MenuItem88: TMenuItem
+          Caption = 'Lanczos'
+          OnClick = MenuItem88Click
+        end
+      end
+      object MenuItem22: TMenuItem
+        Caption = 'Resize To 200%'
+        object MenuItem29: TMenuItem
+          Caption = 'Nearest'
+          OnClick = MenuItem29Click
+        end
+        object MenuItem30: TMenuItem
+          Caption = 'Bilinear'
+          OnClick = MenuItem30Click
+        end
+        object MenuItem31: TMenuItem
+          Caption = 'Bicubic'
+          OnClick = MenuItem31Click
+        end
+        object MenuItem89: TMenuItem
+          Caption = 'Lanczos'
+          OnClick = MenuItem89Click
+        end
+      end
+      object MenuItem81: TMenuItem
+        Caption = 'Free Resize'
+        object MenuItem83: TMenuItem
+          Caption = 'Nearest'
+          OnClick = MenuItem83Click
+        end
+        object MenuItem84: TMenuItem
+          Caption = 'Bilinear'
+          OnClick = MenuItem84Click
+        end
+        object MenuItem85: TMenuItem
+          Caption = 'Bicubic'
+          OnClick = MenuItem85Click
+        end
+        object MenuItem90: TMenuItem
+          Caption = 'Lanczos'
+          OnClick = MenuItem90Click
+        end
+      end
+      object MenuItem12: TMenuItem
+        Caption = 'Swap Red <=> Blue'
+        OnClick = MenuItem12Click
+      end
+      object MenuItem13: TMenuItem
+        Caption = 'Swap Red <=> Green'
+        OnClick = MenuItem13Click
+      end
+      object MenuItem14: TMenuItem
+        Caption = 'Swap Green <=> Blue'
+        OnClick = MenuItem14Click
+      end
+      object MenuItem15: TMenuItem
+        Caption = 'Set Used Colors To 1024'
+        OnClick = MenuItem15Click
+      end
+      object MenuItem18: TMenuItem
+        Caption = 'Set Used Colors To 256'
+        OnClick = MenuItem18Click
+      end
+      object MenuItem19: TMenuItem
+        Caption = 'Set Used Colors To 64'
+        OnClick = MenuItem19Click
+      end
+      object MenuItem20: TMenuItem
+        Caption = 'Set Used Colors To 16'
+        OnClick = MenuItem20Click
+      end
+      object MenuItem33: TMenuItem
+        Caption = 'Set Used Colors To 2'
+        OnClick = MenuItem33Click
+      end
+    end
+    object MenuItem36: TMenuItem
+      Caption = 'Linear Filters'
+      object MenuItem37: TMenuItem
+        Caption = 'Gaussian Blur'
+        OnClick = MenuItem37Click
+      end
+      object MenuItem38: TMenuItem
+        Caption = 'Gaussian Blur More'
+        OnClick = MenuItem38Click
+      end
+      object MenuItem39: TMenuItem
+        Caption = 'Sharpen'
+        OnClick = MenuItem39Click
+      end
+      object MenuItem40: TMenuItem
+        Caption = 'Sharpen More'
+        OnClick = MenuItem40Click
+      end
+      object MenuItem41: TMenuItem
+        Caption = 'Edge Detect (LoG)'
+        OnClick = MenuItem41Click
+      end
+      object MenuItem42: TMenuItem
+        Caption = 'Edge Detect Horizontal'
+        object MenuItem49: TMenuItem
+          Caption = 'Sobel'
+          OnClick = MenuItem42Click
+        end
+        object MenuItem50: TMenuItem
+          Caption = 'Prewitt'
+          OnClick = MenuItem50Click
+        end
+        object MenuItem51: TMenuItem
+          Caption = 'Kirsh'
+          OnClick = MenuItem51Click
+        end
+      end
+      object MenuItem43: TMenuItem
+        Caption = 'Edge Detect Vertical'
+        object MenuItem52: TMenuItem
+          Caption = 'Sobel'
+          OnClick = MenuItem43Click
+        end
+        object MenuItem53: TMenuItem
+          Caption = 'Prewitt'
+          OnClick = MenuItem53Click
+        end
+        object MenuItem54: TMenuItem
+          Caption = 'Kirsh'
+          OnClick = MenuItem54Click
+        end
+      end
+      object MenuItem48: TMenuItem
+        Caption = 'Edge Enhance'
+        OnClick = MenuItem48Click
+      end
+      object MenuItem46: TMenuItem
+        Caption = 'Emboss'
+        OnClick = MenuItem46Click
+      end
+      object MenuItem45: TMenuItem
+        Caption = 'Glow'
+        OnClick = MenuItem45Click
+      end
+    end
+    object MenuItem63: TMenuItem
+      Caption = 'Nonlinear Filters'
+      object MenuItem64: TMenuItem
+        Caption = 'Median 3x3'
+        OnClick = MenuItem64Click
+      end
+      object MenuItem65: TMenuItem
+        Caption = 'Median 5x5'
+        OnClick = MenuItem65Click
+      end
+      object MenuItem66: TMenuItem
+        Caption = 'Min 3x3'
+        OnClick = MenuItem66Click
+      end
+      object MenuItem67: TMenuItem
+        Caption = 'Min 5x5'
+        OnClick = MenuItem67Click
+      end
+      object MenuItem68: TMenuItem
+        Caption = 'Max 3x3'
+        OnClick = MenuItem68Click
+      end
+      object MenuItem69: TMenuItem
+        Caption = 'Max 5x5'
+        OnClick = MenuItem69Click
+      end
+    end
+    object MenuItem55: TMenuItem
+      Caption = 'Point Transforms'
+      object MenuItem56: TMenuItem
+        Caption = 'Invert Colors'
+        OnClick = MenuItem56Click
+      end
+      object MenuItem47: TMenuItem
+        Caption = '+ Contrast'
+        OnClick = MenuItem47Click
+      end
+      object MenuItem57: TMenuItem
+        Caption = '- Contrast'
+        OnClick = MenuItem57Click
+      end
+      object MenuItem58: TMenuItem
+        Caption = '+ Brightness'
+        OnClick = MenuItem58Click
+      end
+      object MenuItem59: TMenuItem
+        Caption = '- Brightness'
+        OnClick = MenuItem59Click
+      end
+      object MenuItem60: TMenuItem
+        Caption = '+ Gamma'
+        OnClick = MenuItem60Click
+      end
+      object MenuItem61: TMenuItem
+        Caption = '- Gamma'
+        OnClick = MenuItem61Click
+      end
+      object MenuItem62: TMenuItem
+        Caption = 'RGB Tresholding'
+        OnClick = MenuItem62Click
+      end
+      object MenuItem75: TMenuItem
+        Caption = 'Levels (B:0.0;W:0.5;M:1.0)'
+        OnClick = MenuItem75Click
+      end
+      object MenuItem76: TMenuItem
+        Caption = 'Levels (B:0.35;W:1.0;M:0.9)'
+        OnClick = MenuItem76Click
+      end
+      object MenuItem78: TMenuItem
+        Caption = 'Premultiply Alpha'
+        OnClick = MenuItem78Click
+      end
+      object MenuItem79: TMenuItem
+        Caption = 'UnPremultiply Alpha'
+        OnClick = MenuItem79Click
+      end
+    end
+    object MenuItem77: TMenuItem
+      Caption = 'Colors'
+      object AlphaItem: TMenuItem
+        Caption = 'Alpha'
+      end
+      object RedItem: TMenuItem
+        Caption = 'Red'
+      end
+      object GreenItem: TMenuItem
+        Caption = 'Green'
+      end
+      object BlueItem: TMenuItem
+        Caption = 'Blue'
+      end
+      object MenuItem82: TMenuItem
+        Caption = 'Show Histograms'
+        OnClick = MenuItem82Click
+      end
+    end
+    object MIAdditional: TMenuItem
+      Caption = 'Additional Operations'
+      object MIMorphology: TMenuItem
+        Caption = 'Binary Morphology'
+        object MenuItem71: TMenuItem
+          Caption = 'Erode'
+          OnClick = MenuItem71Click
+        end
+        object MenuItem72: TMenuItem
+          Caption = 'Dilate'
+          OnClick = MenuItem72Click
+        end
+        object MenuItem73: TMenuItem
+          Caption = 'Open'
+          OnClick = MenuItem73Click
+        end
+        object MenuItem74: TMenuItem
+          Caption = 'Close'
+          OnClick = MenuItem74Click
+        end
+      end
+      object MenuItem70: TMenuItem
+        Caption = 'Otsu Thresholding'
+        OnClick = MenuItem70Click
+      end
+      object MenuItem91: TMenuItem
+        Caption = 'Deskewing (for text)'
+        OnClick = MenuItem91Click
+      end
+    end
+    object MenuItem9: TMenuItem
+      Caption = 'Help'
+      object MenuItem10: TMenuItem
+        Caption = 'About'
+        OnClick = MenuItem10Click
+      end
+    end
+  end
+  object OpenDialog: TOpenPictureDialog
+    Filter = 'Graphic (*.dds;*.tga;*.png;*.jpe;*.jfif;*.jif;*.jpeg;*.jpg;*.dib;*.bmp;*.ico;*.ppm;*.pgm;*.pbm;*.png;*.xpm;*.bmp)|*.dds;*.tga;*.png;*.jpe;*.jfif;*.jif;*.jpeg;*.jpg;*.dib;*.bmp;*.ico;*.ppm;*.pgm;*.pbm;*.png;*.xpm;*.bmp|DirectDraw Surface (*.dds)|*.dds|True'
+    FilterIndex = 0
+    Options = [ofFileMustExist, ofEnableSizing, ofViewDetail, ofAutoPreview]
+    left = 232
+    top = 104
+  end
+  object ActionList: TActionList
+    left = 112
+    top = 104
+    object ActViewFitToWindow: TAction
+      Category = 'View'
+      Caption = 'Fit To Window'
+      OnExecute = ActViewFitToWindowExecute
+    end
+    object ActViewActualSize: TAction
+      Category = 'View'
+      Caption = 'Actual Size'
+      Checked = True
+      OnExecute = ActViewActualSizeExecute
+    end
+    object ActViewInfo: TAction
+      Category = 'View'
+      Caption = 'Image Info'
+      OnExecute = ActViewInfoExecute
+    end
+  end
+  object SaveDialog: TSavePictureDialog
+    DefaultExt = '.png'
+    Filter = 'Graphic (*.dds;*.tga;*.png;*.jpe;*.jfif;*.jif;*.jpeg;*.jpg;*.dib;*.bmp;*.ico;*.ppm;*.pgm;*.pbm;*.png;*.xpm;*.bmp)|*.dds;*.tga;*.png;*.jpe;*.jfif;*.jif;*.jpeg;*.jpg;*.dib;*.bmp;*.ico;*.ppm;*.pgm;*.pbm;*.png;*.xpm;*.bmp|DirectDraw Surface (*.dds)|*.dds|True'
+    FilterIndex = 0
+    Options = [ofOverwritePrompt, ofHideReadOnly, ofExtensionDifferent, ofPathMustExist, ofEnableSizing, ofViewDetail, ofAutoPreview]
+    left = 232
+    top = 40
+  end
+end

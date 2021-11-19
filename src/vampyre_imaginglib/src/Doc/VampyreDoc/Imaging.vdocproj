@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<?xml-stylesheet type="text/xsl" href="Xsl/proj2html.xsl"?> 
+<vampyredoc>
+  <title>Vampyre Imaging Library</title>
+  <toc>Contents.xml</toc>
+  <root>Root.xml</root>
+  <xsldir>Xsl</xsldir>
+  <output>Imaging</output>
+  <refdir>../RefDoc</refdir>
+</vampyredoc>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Package Version="4">
+    <PathDelim Value="\"/>
+    <Name Value="VampyreImagingPackage_D3D"/>
+    <Author Value="Marek Mauder (http://imaginglib.sourceforge.net)"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <PathDelim Value="\"/>
+      <SearchPaths>
+        <IncludeFiles Value="..\..\Source"/>
+        <OtherUnitFiles Value="..\..\Extensions;..\..\Demos\ObjectPascal\Common"/>
+        <UnitOutputDirectory Value="..\..\Bin\Ppu\$(TargetCPU)-$(TargetOS)"/>
+      </SearchPaths>
+    </CompilerOptions>
+    <Description Value="Vampyre Imaging Library Package for Lazarus - Addon for Direct3D."/>
+    <License Value="Imaging comes with two open source licenses from which you can choose the one which fits your needs best:
+* MPL - Mozilla Public License
+* LGPL - GNU Lesser General Public License"/>
+    <Version Minor="80"/>
+    <Files Count="3">
+      <Item1>
+        <Filename Value="..\..\Extensions\ImagingDirect3D9.pas"/>
+        <UnitName Value="ImagingDirect3D9"/>
+      </Item1>
+      <Item2>
+        <Filename Value="..\..\Demos\ObjectPascal\Common\Direct3D9.pas"/>
+        <UnitName Value="Direct3D9"/>
+      </Item2>
+      <Item3>
+        <Filename Value="..\..\Demos\ObjectPascal\Common\DXTypes.pas"/>
+        <UnitName Value="DXTypes"/>
+      </Item3>
+    </Files>
+    <RequiredPkgs Count="2">
+      <Item1>
+        <PackageName Value="VampyreImagingPackage"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="FCL"/>
+      </Item2>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>

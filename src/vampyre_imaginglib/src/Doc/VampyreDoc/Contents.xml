@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<?xml-stylesheet type="text/xsl" href="Xsl/toc2html.xsl"?> 
+<toc>
+  <title>Table Of Contents</title>
+  <itemlist>
+    <item url="Root.xml" name="Vampyre Imaging Library">
+      <itemlist>
+        <item url="Documentation.xml" name="Documentation">
+          <itemlist>
+            
+            <item url="Introduction/Introduction.xml" name="Introduction">
+              <itemlist>
+                <item url="Introduction/About.xml" name="About" />
+                <item url="Introduction/Features.xml" name="Features" />
+                <item url="Introduction/History.xml" name="History" />
+                <item url="Introduction/Future.xml" name="Future" />
+                <item url="Introduction/Faq.xml" name="FAQ" />
+                <item url="Introduction/Credits.xml" name="Credits" />
+                <item url="Introduction/Contrib.xml" name="Contributions "/>
+                <item url="Introduction/License.xml" name="License" >
+                  <itemlist>
+                    <item url="Introduction/MPL.xml" name="MPL" />
+                    <item url="Introduction/LGPL.xml" name="LGPL" />
+                  </itemlist>  
+                </item>
+
+              </itemlist>
+            </item>
+            
+            <item url="Usage/LibUsage.xml" name="Using Library">
+              <itemlist>
+                <item url="Usage/Supported.xml" name="Supported Compilers and Platforms" />
+                <item url="Usage/Install.xml" name="Install and Compile" />
+                <item url="Usage/LowLevel.xml" name="Low Level Interface" />
+                <item url="Usage/HighLevel.xml" name="High Level Interface" />
+                <item url="Usage/Components.xml" name="VCL/LCL Classes" />
+                <item url="Usage/CanvasUsage.xml" name="Using Canvas Class" />
+              </itemlist>
+            </item>
+            
+            <item url="Extensions/Extensions.xml" name="Extensions">
+              <itemlist>
+                <item url="Extensions/ExtFileFormats.xml" name="File Format Extensions" />
+                <item url="Extensions/OpenGL.xml" name="OpenGL Textures" />
+                <item url="Extensions/Direct3D.xml" name="Direct3D Textures" />
+                <item url="Extensions/SDL.xml" name="SDL Surfaces" />
+              </itemlist>
+            </item>
+            
+            <item url="Procedures/Procedures.xml" name="How To ...">
+              <itemlist>
+                <item url="Procedures/Low/Low.xml" name="Low Level Interface">
+                  <itemlist>
+                    <item url="Procedures/Low/Loading.xml" name="Loading Images" />
+                    <item url="Procedures/Low/Saving.xml" name="Saving Images" />
+                    <item url="Procedures/Low/Manipulating.xml" name="Manipulating Images" />
+                    <item url="Procedures/Low/UsingDll.xml" name="Using dll/so Access" />
+                    <item url="Procedures/Low/DdsFiles.xml" name="Loading and Saving DDS Files" />
+                  </itemlist>
+                </item>
+                <item url="Procedures/High/High.xml" name="High Level Interface" />
+                <item url="Procedures/Components/ProcComp.xml" name="VCL/LCL Classes" />
+                <item url="Procedures/Canvas.xml" name="Canvas Class Tips" />
+              </itemlist>
+            </item>
+
+            <item url="DataFormats/DataFormats.xml" name="Supported Data Formats">
+            </item>
+            
+            <item url="FileFormats/FileFormats.xml" name="Supported File Formats">
+              <itemlist>
+                <item url="FileFormats/Jpeg.xml" name="Jpeg" />
+                <item url="FileFormats/Targa.xml" name="Targa" />
+                <item url="FileFormats/Dds.xml" name="DDS" />
+                <item url="FileFormats/Bitmap.xml" name="Bitmap" />
+                <item url="FileFormats/Png.xml" name="PNG" />
+                <item url="FileFormats/Gif.xml" name="GIF" />
+                <item url="FileFormats/Mng.xml" name="MNG" />
+                <item url="FileFormats/Jng.xml" name="JNG" />
+                <item url="FileFormats/Pnm.xml" name="Portable Maps" />
+                <item url="FileFormats/Psd.xml" name="Photoshop" />
+                <item url="FileFormats/Jpeg2000.xml" name="Jpeg2000" />
+                <item url="FileFormats/Tiff.xml" name="TIFF" />
+                <item url="FileFormats/Pcx.xml" name="PCX" />
+                <item url="FileFormats/Xpm.xml" name="XPM" />
+                <item url="FileFormats/ElderImagery.xml" name="ElderImagery" />
+              </itemlist>
+            </item>
+            
+            <item url="Demos/Demos.xml" name="Demos">
+              <itemlist>
+                <item url="Demos/Pascal.xml" name="Object Pascal" />
+                <item url="Demos/Delphi.NET.xml" name="Delphi.NET" />
+                <item url="Demos/Cpp.xml" name="C/C++" />
+              </itemlist>
+            </item>
+
+            <!--
+            <item url="VampyreDoc/VampyreDoc.xml" name="VampyreDoc Tool">
+              <itemlist>
+                <item url="VampyreDoc/Usage.xml" name="Usage" />
+                <item url="VampyreDoc/TagReference.xml" name="Tag Reference" />
+              </itemlist>
+            </item>
+            -->
+            
+            
+          </itemlist>
+        </item>
+        
+        <item url="Reference.xml" name="Reference">
+        </item>
+        
+      </itemlist>
+    </item>
+  </itemlist>
+</toc>
