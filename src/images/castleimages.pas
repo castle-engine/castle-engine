@@ -5049,7 +5049,21 @@ end;
 initialization
   RegisterMimeTypes;
   InitializeImagesFileFilters;
-  {$if defined(CASTLE_PNG_DYNAMIC) or defined(CASTLE_PNG_STATIC)}
+
+  { If LibPng *can* be available (the LibPng unit is available at compile-time),
+    do InitializePNGUsingLibpng.
+
+    This is determined by "CASTLE_PNG_DYNAMIC or CASTLE_PNG_STATIC"
+    (at most one of them can be defined, castleconf.inc guarantees it).
+
+    However, we actually don't want to call InitializePNGUsingLibpng when
+    CASTLE_PNG_DYNAMIC is defined, but without ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION.
+    This would mean that InitializePNGUsingLibpng can only do now a warning
+    "LibPng not initialized" which would be confusing on platforms without
+    ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION (like Android) that initialize LibPng
+    later, and call InitializePNGUsingLibpng from LoadPng. }
+
+  {$if (defined(CASTLE_PNG_DYNAMIC) and defined(ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION)) or defined(CASTLE_PNG_STATIC)}
   InitializePNGUsingLibpng;
   {$endif}
   LoadImageEvents := TLoadImageEventList.Create;
