@@ -4,7 +4,6 @@
   game_units="GameInitialize"
   qualified_name="io.castleengine.state.events"
   caption="State Events"
-  compiler="delphi"
 >
   <compiler_options>
     <search_paths>
