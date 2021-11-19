@@ -350,8 +350,12 @@ begin
         //TODO how to translate to Delphi
         {$ifdef FPC}
         Tmp.Add(DefaultValue);
-        {$endif}
         Result := Tmp.PerfectlyEquals(Items);
+        {$else}
+        { Invalid implementation on Delphi, but in practice nothing bad
+          will happen if EqualsDefaultValue = always false. }
+        Result := false;
+        {$endif}
       finally FreeAndNil(Tmp) end;
     end else
     if DefaultValuesCount <> 0 then

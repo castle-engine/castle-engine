@@ -135,7 +135,8 @@ type
 
     { Does the SecondValue have equal type, length and content.
       The values are compared perfectly, without any tolerance for difference. }
-    function PerfectlyEquals(SecondValue: TObject): Boolean;
+    function PerfectlyEquals(
+      const SecondValue: TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}): Boolean;
 
     procedure AddArray(const A: array of T); deprecated 'use AddRange';
     procedure AddList(const Source: TStructList {$ifndef CASTLE_OBJFPC}<T>{$endif}); deprecated 'use AddRange';
@@ -199,7 +200,8 @@ begin
   AddRange(Source);
 end;
 
-procedure TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.AddSubRange(const Source: TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif};
+procedure TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.AddSubRange(
+  const Source: TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif};
   const Index, AddCount: TListSize);
 var
   OldCount: TListSize;
@@ -210,16 +212,12 @@ begin
     System.Move(Source.List^[Index], List^[OldCount], SizeOf(T) * AddCount);
 end;
 
-function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.PerfectlyEquals(SecondValue: TObject): boolean;
-type
-  // This makes FPC 3.2.0 fail with AccessViolation at compile-time
-  //TSelfType = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<T>;
-  TSelfType = TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif};
+function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.PerfectlyEquals(
+  const SecondValue: TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}): boolean;
 begin
   Result :=
-    (SecondValue is TSelfType) and
-    (Count = TSelfType(SecondValue).Count) and
-    CompareMem(List, TSelfType(SecondValue), SizeOf(T) * Count);
+    (Count = SecondValue.Count) and
+    CompareMem(List, SecondValue.List, SizeOf(T) * Count);
 end;
 
 procedure TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.AssignLerpRange(const Fraction: Single;

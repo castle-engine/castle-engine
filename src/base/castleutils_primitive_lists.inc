@@ -425,7 +425,7 @@ end;
 
 function TBooleanList.Equals(SecondValue: TObject): boolean;
 begin
-  Result := PerfectlyEquals(SecondValue);
+  Result := (SecondValue is TBooleanList) and PerfectlyEquals(TBooleanList(SecondValue));
 end;
 
 { TLongIntList ----------------------------------------------------------- }
@@ -475,7 +475,7 @@ end;
 
 function TLongIntList.Equals(SecondValue: TObject): boolean;
 begin
-  Result := PerfectlyEquals(SecondValue);
+  Result := (SecondValue is TLongIntList) and PerfectlyEquals(TLongIntList(SecondValue));
 end;
 
 { TIntegerList ----------------------------------------------------------- }

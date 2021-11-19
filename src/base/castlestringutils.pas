@@ -127,7 +127,7 @@ type
       It is defined for consistency -- on some lists, like @link(TSingleList),
       there is an important difference between Equals (compares with some
       epsilon tolerance) and PerfectlyEquals. }
-    function PerfectlyEquals(SecondValue: TObject): boolean;
+    function PerfectlyEquals(const SecondValue: TStringList): boolean;
 
     { Reverse the order of items on the array. }
     procedure Reverse;
@@ -1198,7 +1198,7 @@ begin
   Result := true;
 end;
 
-function TCastleStringList.PerfectlyEquals(SecondValue: TObject): boolean;
+function TCastleStringList.PerfectlyEquals(const SecondValue: TStringList): boolean;
 begin
   Result := Equals(SecondValue);
 end;
