@@ -62,8 +62,8 @@ begin
   Viewport1 := DesignedComponent('Viewport1') as TCastleViewport;
 
   { Assign OnClick events }
-  ButtonAnimationSqueeze.OnClick := @ClickAnimationSqueeze;
-  ButtonAnimationGear.OnClick := @ClickAnimationGear;
+  ButtonAnimationSqueeze.OnClick := {$ifdef FPC}@{$endif}ClickAnimationSqueeze;
+  ButtonAnimationGear.OnClick := {$ifdef FPC}@{$endif}ClickAnimationGear;
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
