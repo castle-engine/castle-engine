@@ -487,7 +487,7 @@ begin
     tkInteger :
       SetOrdProp(AObject,PI,PropData.AsInteger);
     tkInt64 :
-      SetOrdProp(AObject,PI,PropData.AsInt64);
+      SetInt64Prop(AObject,PI,PropData.AsInt64);
     tkEnumeration :
       begin
       if (PropData.JSONType=jtNumber) then
