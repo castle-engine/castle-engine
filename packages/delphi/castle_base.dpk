@@ -30,7 +30,8 @@ package castle_base;
 requires
   rtl,
   xmlrtl,
-  vcl;
+  vcl,
+  vclimg;
 
 contains
   castleapplicationproperties in '..\..\src\base\castleapplicationproperties.pas',
@@ -93,7 +94,7 @@ contains
   castleinternalefx in '..\..\src\audio\openal\castleinternalefx.pas',
   xmlread in '..\..\src\compatibility\delphi-only\xmlread.pas',
   castlecomponentserialize in '..\..\src\3d\castlecomponentserialize.pas',
-  fphashcompatibility in '..\..\src\compatibility\delphi-only\fphashcompatibility.pas',
+  FPHashCompatibility in '..\..\src\compatibility\delphi-only\FPHashCompatibility.pas',
   castleviewport in '..\..\src\x3d\opengl\castleviewport.pas',
   x3dnodes in '..\..\src\x3d\x3dnodes.pas',
   x3dloadinternalutils in '..\..\src\x3d\x3dloadinternalutils.pas',

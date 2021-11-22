@@ -82,7 +82,7 @@
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <DCC_CBuilderOutput>All</DCC_CBuilderOutput>
         <SanitizedProjectName>castle_base</SanitizedProjectName>
-        <DCC_UnitSearchPath>..\..\src\base\windows;..\..\src\base;..\..\src\files;..\..\src\compatibility\delphi-only;..\..\src\compatibility\delphi-only\fcl-json;..\..\src\common_includes;..\..\src\base\opengl;..\..\src\images\opengl\glsl\generated-pascal;..\..\src\images\opengl;..\..\src\ui;..\..\src\ui\opengl;..\..\src\x3d;..\..\src\x3d\opengl\glsl\generated-pascal;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>..\..\src\base\windows;..\..\src\base;..\..\src\files;..\..\src\compatibility\delphi-only;..\..\src\compatibility\delphi-only\fcl-json;..\..\src\common_includes;..\..\src\base\opengl;..\..\src\images\opengl\glsl\generated-pascal;..\..\src\images\opengl;..\..\src\ui;..\..\src\ui\opengl;..\..\src\x3d;..\..\src\x3d\opengl\glsl\generated-pascal;..\..\src\vampyre_imaginglib\src\Source\;..\..\src\vampyre_imaginglib\src\Source\JpegLib;..\..\src\vampyre_imaginglib\src\Source\Zlib;..\..\src\vampyre_imaginglib\src\Extensions;..\..\src\vampyre_imaginglib\src\Extensions\LibTiff;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <VerInfo_Locale>1045</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <RuntimeOnlyPackage>true</RuntimeOnlyPackage>
@@ -162,6 +162,7 @@
         <DCCReference Include="rtl.dcp"/>
         <DCCReference Include="xmlrtl.dcp"/>
         <DCCReference Include="vcl.dcp"/>
+        <DCCReference Include="vclimg.dcp"/>
         <DCCReference Include="..\..\src\base\castleapplicationproperties.pas"/>
         <DCCReference Include="..\..\src\base\castleclassutils.pas"/>
         <DCCReference Include="..\..\src\base\castlecolors.pas"/>
@@ -222,7 +223,7 @@
         <DCCReference Include="..\..\src\audio\openal\castleinternalefx.pas"/>
         <DCCReference Include="..\..\src\compatibility\delphi-only\xmlread.pas"/>
         <DCCReference Include="..\..\src\3d\castlecomponentserialize.pas"/>
-        <DCCReference Include="..\..\src\compatibility\delphi-only\fphashcompatibility.pas"/>
+        <DCCReference Include="..\..\src\compatibility\delphi-only\FPHashCompatibility.pas"/>
         <DCCReference Include="..\..\src\x3d\opengl\castleviewport.pas"/>
         <DCCReference Include="..\..\src\x3d\x3dnodes.pas"/>
         <DCCReference Include="..\..\src\x3d\x3dloadinternalutils.pas"/>
