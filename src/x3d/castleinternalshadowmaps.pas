@@ -261,7 +261,7 @@ procedure TLightList.ShapeAdd(Shape: TShape);
       OldCount := Coords.Count;
       Coords.Count := NewCount;
 
-      for I := OldCount to NewCount - 1 do
+      for I := OldCount to Integer(NewCount) - 1 do
       begin
         NewTexCoordGen := TTextureCoordinateGeneratorNode.Create;
         NewTexCoordGen.FdMode.Value := 'BOUNDS';

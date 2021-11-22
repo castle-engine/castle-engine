@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="test_bump_mapping"
-  standalone_source="test_bump_mapping_standalone.lpr"
+  standalone_source="test_bump_mapping_standalone.dpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.test.bump.mapping"
   caption="Test Bump Mapping"

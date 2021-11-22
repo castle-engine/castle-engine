@@ -105,7 +105,7 @@ begin
 
   CreateEffect(SceneForEffects);
 
-  ButtonRandomizeColor.OnClick := {$ifdef CASTLE_OBJFPC}@{$endif}ClickRandomizeColor;
+  ButtonRandomizeColor.OnClick := {$ifdef FPC}@{$endif} ClickRandomizeColor;
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);

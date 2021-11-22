@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<?xml-stylesheet type="text/xsl" href="../Xsl/doc2html.xsl"?>
+<doc>
+  <title>VampyreDoc Tool </title>
+  <chapter>
+    <title>VampyreDoc Tag Reference</title>
+    <par>Here follows a list of allowed <b>tags</b> which can be used in 
+    VampyreDoc <b>XML</b> files. Each <b>tag</b> can have alternate
+    (shortened) names and zero or more attributes.</par>
+    
+    <bulletlist>
+      <li>
+        <keyword>doc</keyword>
+        <par>This is the root element of the each XML file.</par>       
+      
+      </li>
+    
+    
+    
+    </bulletlist>
+    
+  </chapter>
+</doc>

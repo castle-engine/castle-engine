@@ -1,0 +1,36 @@
+#------------------------------------------------------------------------------
+VERSION = BWS.01
+#------------------------------------------------------------------------------
+!ifndef ROOT
+ROOT = $(MAKEDIR)\..
+!endif
+#------------------------------------------------------------------------------
+MAKE = $(ROOT)\bin\make.exe -$(MAKEFLAGS) -f$**
+DCC = $(ROOT)\bin\dcc32.exe $**
+BRCC = $(ROOT)\bin\brcc32.exe $**
+#------------------------------------------------------------------------------
+PROJECTS = Bench.exe ImgBrowser.exe SDLDemo.exe D3DDemo.exe OpenGLDemo.exe \
+  VampConvert.exe
+#------------------------------------------------------------------------------
+default: $(PROJECTS)
+#------------------------------------------------------------------------------
+
+Bench.exe: Benchmark\Bench.dpr
+  $(DCC)
+
+ImgBrowser.exe: ImageBrowser\ImgBrowser.dpr
+  $(DCC)
+
+SDLDemo.exe: SDLDemo\SDLDemo.dpr
+  $(DCC)
+
+D3DDemo.exe: D3DDemo\D3DDemo.dpr
+  $(DCC)
+
+OpenGLDemo.exe: OpenGLDemo\OpenGLDemo.dpr
+  $(DCC)
+
+VampConvert.exe: VampConvert\VampConvert.dpr
+  $(DCC)
+
+

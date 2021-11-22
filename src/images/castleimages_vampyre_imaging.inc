@@ -67,9 +67,24 @@ begin
       ifDXT1: Result := TGPUCompressedImage.Create(Img.Width, Img.Height, 1, tcDxt1_RGBA);
       ifDXT3: Result := TGPUCompressedImage.Create(Img.Width, Img.Height, 1, tcDxt3);
       ifDXT5: Result := TGPUCompressedImage.Create(Img.Width, Img.Height, 1, tcDxt5);
-      else raise EImageLoadError.CreateFmt('Reading images from Vampyre Imaging format %s not implemented', [
-        GetFormatName(Img.Format)
-      ]);
+      else
+        begin
+          WritelnLog('Converting Vampyre Imaging format %s -> %s', [
+            GetFormatName(Img.Format),
+            GetFormatName(ifA8R8G8B8)
+          ]);
+
+          { This allows to read indexed (palette), like ifIndex8,
+            or 16-bit (ifA16R16G16B16F, ifA16R16G16B16) through standard
+            8-bit ARGB.
+
+            Testcase: vampyre_imaginglib/src/Demos/Data/Tigers.tga
+            Testcase: vampyre_imaginglib/src/Demos/Data/Tigers.tif }
+          Img.Format := ifA8R8G8B8; // calls ConvertImage and actually changes content
+
+          Result := TRGBAlphaImage.Create(Img.Width, Img.Height);
+          SwapChannels(Img.ImageDataPointer^, ChannelRed, ChannelBlue);
+        end;
     end;
 
     if Result is TCastleImage then

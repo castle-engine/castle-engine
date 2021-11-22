@@ -102,7 +102,7 @@ type
     procedure InternalSetItem(const Index: TListSize; const Value: T);
 //    function Add(const Value: T): TListSize;
     function Equals(SecondValue: TObject): boolean;
-    function PerfectlyEquals(SecondValue: TObject): boolean;
+    function PerfectlyEquals(const SecondValue: TList): boolean;
     procedure Clear;
     //procedure InternalAddSubRange(Source: TList<T>; Index, AddCount: TListSize);
     property Count: TListSize read GetCount write SetCount;

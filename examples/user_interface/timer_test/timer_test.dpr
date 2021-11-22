@@ -47,7 +47,7 @@ begin
   begin
     Timer[I] := TCastleTimer.Create(Application);
     Timer[I].IntervalSeconds := Power(2, I - 1); //0.5, 1, 2, 4...
-    Timer[I].OnTimer := {$ifdef CASTLE_OBJFPC}@{$endif}TEventHandler{$ifdef FPC}(nil){$endif}.Timer;
+    Timer[I].OnTimer := {$ifdef FPC}@{$endif}TEventHandler{$ifdef FPC}(nil){$endif}.Timer;
     Timer[I].Tag := I;
     // without this, timers will slightly desynchronize after a couple of seconds
     Timer[I].CounteractDelays := true;

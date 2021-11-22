@@ -519,22 +519,38 @@
 
 { Use Vampyre Imaging to support extra image formats.
 
-  This is particularly useful when compiling Delphi, as we otherwise support
-  only a few formats there (built-in DDS, KTX, BPM, PPM, and PNG by LibPng or PngImage).
+  This is particularly useful when compiling Delphi, to get additional support
+  for formats like JPG.
+  We may depend on Vampyre Imaging for even more formats in the future,
+  and with FPC too (it works cool, but we need to do testing before enabling
+  it by default for everyone first).
 
-  When compiling with FPC, we use FpImage by default, that supports a lot of formats.
-  Using Vampyre Imaging is still beneficial -- it is faster,
-  and supports some extra formats (loading TIFF, JPEG 2000, saving XPM).
+  To compile Vampyre also with FPC using build tool, just define the symbol
+  USE_VAMPYRE_IMAGING below *always* (remove check for ifndef FPC).
 
-  Right now it is disabled by default, as we don't ship Vampyre Imaging units
-  within CGE -- you have to download them yourself from:
+  To compile Vampyre also with FPC using Lazarus:
 
-    https://github.com/galfar/imaginglib
+      As above, just define the symbol USE_VAMPYRE_IMAGING *always*.
+      Also, you need to:
 
-  and add paths to Delphi following docs:
+      - Open and compile in Lazarus 2 Vampyre packages:
+        src/vampyre_imaginglib/src/Packages/VampyreImaginePackage.lpk
+        src/vampyre_imaginglib/src/Packages/VampyreImaginePackageExt.lpk
+      - Note: You may want to remove DONT_LINK_EXTRAS symbol defined by default in
+        VampyreImaginePackageExt.lpk.
+        This way e.g. TIFF support will be automatically present.
+      - Edit CGE packages/castle_base.lpk to add the 2 above Vampyre packages
+        as requirements.
 
-    http://galfar.vevb.net/imaging/doc/html/install.html
+      This way CGE packages use Vampyre packages in a clean (Lazarus) way.
+      And we automatically use all compilation configuration done by Vampyre authors.
+
+  Right now we bundle Vampyre Imaging with CGE (in src/vampyre_imaging),
+  and so it is available automatically without any effort for all CGE devs,
+  and so we just use it automatically.
 }
-{.$define USE_VAMPYRE_IMAGING}
+{$ifndef FPC}
+  {$define USE_VAMPYRE_IMAGING}
+{$endif}
 
 {$endif not CASTLE_CONF_INCLUDED}

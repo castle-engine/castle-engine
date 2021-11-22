@@ -2,7 +2,7 @@
 <project name="show_various_ui_controls"
   caption="Show Various UI Controls"
   qualified_name="io.castleengine.show.various.ui.controls"
-  standalone_source="show_various_ui_controls.lpr"
+  standalone_source="show_various_ui_controls.dpr"
   game_units="GameInitialize"
   author="Michalis Kamburelis"
 >

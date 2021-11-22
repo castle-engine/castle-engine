@@ -27,7 +27,7 @@
   /usr/share/pixmaps/flamerobin.xpm
 }
 
-{$ifdef FPC}
+{$ifdef FPC} // FpImage is only available in FPC
 
 { TInternalCastleFpImage ----------------------------------------------------- }
 
@@ -225,7 +225,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function LoadFpImage(const Stream: TStream;
+function Load_FpImage(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass;
   const Reader: TFPCustomImageReader;
   const ImageFormat: TImageFormat): TEncodedImage;
@@ -379,7 +379,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-procedure SaveFpImage(Img: TEncodedImage; Stream: TStream;
+procedure Save_FpImage(Img: TEncodedImage; Stream: TStream;
   Writer: TFPCustomImageWriter);
 var
   FPImage: TInternalCastleFpImage;

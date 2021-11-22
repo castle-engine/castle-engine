@@ -18,23 +18,24 @@
 function LoadPNG(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
-  Result := Load_VampyreImaging(Stream, AllowedImageClasses);
-  {$else}
-    {$if defined(CASTLE_PNG_DYNAMIC) or defined(CASTLE_PNG_STATIC)} // use LibPng
-    if CastlePngInitialized then
-    begin
-      // Necessary on Android, where InitializePNGUsingLibpng in "initialization" was too early.
-      InitializePNGUsingLibpng;
-      Result := LoadPNG_LibPng(Stream, AllowedImageClasses);
-    end else
-    {$endif}
-    {$ifdef FPC} // fallback LibPng -> FpImage (FPC only)
-      Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPNG.Create, ifPNG)
-    {$else} // fallback LibPng -> PngImage (Delphi only)
-      Result := LoadPNG_PngImage(Stream, AllowedImageClasses);
-    {$endif}
+  // use LibPng, this is the preferred (fastest) option
+  {$if defined(CASTLE_PNG_DYNAMIC) or defined(CASTLE_PNG_STATIC)}
+  if CastlePngInitialized then
+  begin
+    // Necessary on Android, where InitializePNGUsingLibpng in "initialization" was too early.
+    InitializePNGUsingLibpng;
+    Result := LoadPNG_LibPng(Stream, AllowedImageClasses);
+  end else
   {$endif}
+  begin
+    {$if defined(USE_VAMPYRE_IMAGING)} // fallback LibPng -> Vampyre
+    Result := Load_VampyreImaging(Stream, AllowedImageClasses);
+    {$elseif defined(FPC)} // fallback LibPng -> FpImage (FPC only)
+    Result := Load_FpImage(Stream, AllowedImageClasses, TFPReaderPNG.Create, ifPNG)
+    {$else} // fallback LibPng -> PngImage (Delphi only)
+    Result := LoadPNG_PngImage(Stream, AllowedImageClasses);
+    {$endif}
+  end;
 end;
 
 procedure SavePNG(const Img: TEncodedImage; const Stream: TStream);
@@ -52,26 +53,26 @@ procedure SavePNG(const Img: TEncodedImage; const Stream: TStream);
       (as our inputs is 8-bit), and makes "nvcompress" on macOS fail
       on PNG files produced by our "downscaling". }
     Writer.WordSized := false;
-    SaveFpImage(Img, Stream, Writer);
+    Save_FpImage(Img, Stream, Writer);
   end;
   {$endif}
 
 begin
-  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
-  Save_VampyreImaging(Img, Stream, 'jpg');
-  {$else}
-    {$if defined(CASTLE_PNG_DYNAMIC) or defined(CASTLE_PNG_STATIC)}
-    if CastlePngInitialized then
-    begin
-      // Necessary on Android, where InitializePNGUsingLibpng in "initialization" was too early.
-      InitializePNGUsingLibpng;
-      SavePNG_LibPng(Img, Stream);
-    end else
-    {$endif}
-    {$ifdef FPC}
-      SavePNG_FPImage(Img, Stream);
-    {$else}
-      raise Exception.Create('LibPNG not initialized');
-    {$endif}
+  {$if defined(CASTLE_PNG_DYNAMIC) or defined(CASTLE_PNG_STATIC)}
+  if CastlePngInitialized then
+  begin
+    // Necessary on Android, where InitializePNGUsingLibpng in "initialization" was too early.
+    InitializePNGUsingLibpng;
+    SavePNG_LibPng(Img, Stream);
+  end else
   {$endif}
+  begin
+    {$if defined(USE_VAMPYRE_IMAGING)} // fallback LibPng -> Vampyre
+    Save_VampyreImaging(Img, Stream, 'jpg');
+    {$elseif defined(FPC)} // fallback LibPng -> FpImage
+    SavePNG_FPImage(Img, Stream);
+    {$else}
+    raise EImageSaveError.Create('Cannot save PNG: LibPNG not initialized, and Vampyre and FpImage not available at compile-time');
+    {$endif}
+  end;
 end;
