@@ -276,7 +276,7 @@ EXAMPLES_WINDOWS_EXECUTABLES := $(addsuffix .exe,$(EXAMPLES_BASE_NAMES)) \
 .PHONY: test-editor-template
 test-editor-template:
 	$(SED) --in-place=.backup \
-	  -e 's|standalone_source="$${PROJECT_PASCAL_NAME}_standalone.lpr"||' \
+	  -e 's|standalone_source="$${PROJECT_PASCAL_NAME}_standalone.dpr"||' \
 	  -e 's|qualified_name="$${PROJECT_QUALIFIED_NAME}"||' \
 	  -e 's|$${PROJECT_NAME}|test_template_project_name|' \
 	  $(EDITOR_TEMPLATE_PATH)CastleEngineManifest.xml
