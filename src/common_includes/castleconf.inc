@@ -16,15 +16,13 @@
 { Common compiler defines and symbols.
   This is a central include file for Castle Game Engine.
 
-  This file is *not* included in 100% of our units,
-  it's just included where it's needed.
-  We don't try to set compilation options here (like $H+ or FPC objfpc mode)
-  because:
-  - Not all interesting compiler settings can be set here.
-    For example optimization options can only be specified on the command-line
+  This file should be included in *all* Castle Game Engine units.
+  It defines some symbols that are *not* always configured on FPC command-line
+  or in LPK settings, because they cannot, e.g. "modeswitch advancedrecords".
+
+  Note that some required compilation options are still set outside of this file:
+  - For example optimization options can only be specified on the command-line
     (and they are important for a game engine).
-  - It's error prone, it's too easy to forget to include this file in some unit.
-    Using a consistent compiler options in scripts is easier.
 
   The proper compiler options to compile the engine are:
   - in the ../../castle-fpc.cfg configuration file (used also by fpmake
@@ -39,18 +37,17 @@
 
 { Compiler version check ----------------------------------------------------- }
 
-{$ifndef FPC}
-  // See http://delphi.wikia.com/wiki/CompilerVersion_Constant
-  {$if CompilerVersion < 20}
-    {$error Use FPC (Free Pascal Compiler) or Delphi >= 2009 to compile Castle Game Engine. The older Delphi versions are not supported (we need generics).}
+{$ifndef PASDOC} // Avoid Pasdoc warnings, as Pasdoc cannot calculate $if below
+  {$ifdef FPC}
+    {$if defined(VER2) or defined(VER3_0)}
+      {$fatal You need FPC version >= 3.2.0 to compile Castle Game Engine. See https://castle-engine.io/supported_compilers.php}
+    {$endif}
+  {$else}
+    // See http://delphi.wikia.com/wiki/CompilerVersion_Constant
+    {$if CompilerVersion < 20}
+      {$error Use FPC (Free Pascal Compiler) or Delphi >= 2009 to compile Castle Game Engine. The older Delphi versions are not supported (we need generics).}
+    {$endif}
   {$endif}
-{$endif}
-
-{$ifdef VER2}
-  {$fatal You need FPC version >= 3.0.2 to compile Castle Game Engine. See https://castle-engine.io/supported_compilers.php}
-{$endif}
-{$ifdef VER3_0_0}
-  {$fatal You need FPC version >= 3.0.2 to compile Castle Game Engine. See https://castle-engine.io/supported_compilers.php}
 {$endif}
 
 { Configure syntax ----------------------------------------------------------- }
@@ -64,27 +61,13 @@
   in CastleEngineManifest.xml, to compile the application in Delphi mode.
 }
 {$ifdef FPC}
-  {$ifndef CASTLE_ENGINE_TEST_DELPHI_MODE}
-
-    // CASTLE_CONF_DO_NOT_OVERRIDE_MODE is a hack for CastleUtils unit and FPC 3.0.x
-    {$ifndef CASTLE_CONF_DO_NOT_OVERRIDE_MODE}
-      {$mode objfpc}
-      // Using CASTLE_OBJFPC instead of FPC_OBJFPC
-      // allows to workaround FPC bug in some units, FPC seems to "lose"
-      // the fact that FPC_OBJFPC should be defined.
-      // The cleanest solution seems to just ignore FPC_OBJFPC,
-      // and define equivalent symbol (CASTLE_OBJFPC) on our own.
-      {$define CASTLE_OBJFPC}
-    {$endif}
-
-    {$H+}
-    {$macro on}
-  {$endif}
+  {$mode objfpc}
+  {$H+}
+  {$macro on}
+  {$modeswitch advancedrecords} // Note: no way to specify this by FPC command-line.
 {$endif}
 
-{ For FPC, these can only be specified here, not on the FPC command-line. }
-{$writeableconst off}
-{$ifdef FPC} {$modeswitch advancedrecords} {$endif}
+{$writeableconst off} // Note: no way to specify this by FPC command-line.
 
 { Define various necessary things -------------------------------------------- }
 
@@ -275,11 +258,22 @@
 
 { OpenGL[ES] ------------------------------------------------------------------ }
 
-{ Whether we use OpenGL ES or normal OpenGL.
+(*Whether we use OpenGL ES or normal OpenGL.
   OpenGL ES is generally for mobile devices.
   For testing, you can also use OpenGL ES on normal desktop OSes
-  (under Debian, install libegl1-mesa-dev and libgles2-mesa-dev).
-  Put "CastleGL" in uses clause to include the appropriate OpenGL API. }
+  (see https://github.com/castle-engine/castle-engine/wiki/Android-FAQ#testing-mobile-opengl-es-rendering-without-an-android
+  for instructions how to install OpenGL ES on desktop).
+
+  CGE units that directly access OpenGL(ES) should use this line:
+
+    {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+
+  CGE examples don't have castleconf.inc defined, and in general should
+  not need to access OpenGL(ES). But if they have to, they should do
+
+    {$ifdef FPC} GL, GLExt, {$else} OpenGL, OpenGLext, {$endif}
+
+*)
 { $define OpenGLES}
 {$ifdef ANDROID} {$define OpenGLES} {$endif}
 {$ifdef CASTLE_IOS} {$define OpenGLES} {$endif}
@@ -290,8 +284,8 @@
 {$ifdef CASTLE_NINTENDO_SWITCH} {$define OpenGLES} {$endif}
 
 {$ifdef OpenGLES}
-  {$ifdef CASTLE_ENGINE_TEST_DELPHI_MODE}
-    {$error We do not support Android/iOS for Delphi yet, use FPC/Lazarus to develop for Android/iOS and other OpenGLES platforms}
+  {$ifndef FPC}
+    {$error We do not support OpenGLES (necessary for Android, iOS) with Delphi yet}
   {$else}
     {$ifdef CASTLE_NINTENDO_SWITCH}
       {$define CastleGL := CastleInternalNxGLES20}
@@ -318,19 +312,15 @@
     - or split the shapes (but this would complicate the rendering code)
   }
   {$define GLIndexesShort}
+
+  { Define ForceStandardGLSLApi to only use GLSL shaders when included in OpenGL core
+    (or not use GLSL shaders at all),
+    and never use GLSL ARB extensions available on some OpenGL 1.x implementations. }
+  {$define ForceStandardGLSLApi}
 {$else}
-  { In our "Delphi test mode", macros are disabled, just like in actual Delphi. }
-  {$ifndef CASTLE_ENGINE_TEST_DELPHI_MODE}
-    {$define CastleGL := GL, GLExt}
-  {$endif}
+  {$define CastleGL := GL, GLExt}
 {$endif}
 
-{ Define ForceStandardGLSLApi to only use GLSL shaders when included in OpenGL core
-  (or not use GLSL shaders at all),
-  and never use GLSL ARB extensions available on some OpenGL 1.x implementations. }
-{$ifdef OpenGLES}
-  {$define ForceStandardGLSLApi}
-{$endif}
 {$ifdef DARWIN}
   {$ifdef CPU64}
     (*Apple did something really weird, and defined GLhandleARB to be
@@ -365,6 +355,7 @@
     {$define ForceStandardGLSLApi}
   {$endif}
 {$endif}
+
 {$ifndef FPC}
   { Delphi cannot compile related constructs like
       GLhandleARB(ProgramId) := glCreateProgramObjectARB();
@@ -384,6 +375,7 @@
     These mean:
     - FpImage (fcl-image units) with FPC
     - PngImage with Delphi
+    - Vampyre Imaging Library (both FPC and Delphi)
 
     These are used:
     - if neither CASTLE_PNG_DYNAMIC nor CASTLE_PNG_STATIC are defined.
@@ -392,14 +384,15 @@
     - or when CASTLE_PNG_DYNAMIC is defined but libpng cannot be loaded
       at runtime.
 
-    This option is a reliable fallback.
-    It is the simplest to use, since the PNG support is completely
+    Pascal solutions are simplest to use, since the PNG support is completely
     contained in Pascal code, so you don't need to distribute anything,
     and it works on all platforms.
 
-    The downside is that it is slow.
-    Using libpng (see below option) results in drastically faster PNG loading
-    (4x speedup was observed on desktops; 10x speedup was observed on Android).
+    The downside is that it is not optimal.
+    In particular FpImage is extremely slow (LibPng results in drastically faster
+    PNG loading than FpImage; 4x speedup was observed on desktops;
+    10x speedup was observed on Android).
+    TODO: Do speed tests on PngImage, Vampyre -- how do they compare to LibPng?
 
   2.If CASTLE_PNG_DYNAMIC is defined and libpng exists,
     we use libpng from a dynamic library (.so or .dll).
@@ -484,7 +477,7 @@
 
   Note: This does *not* detect the case when threads are possible on this
   platform, but not "compiled in". That is, when using regular Unix
-  (like Linux) this symbol will be defined, regardless if you used CThreads or not. }
+  (like Linux) this symbol will be defined, regardless if you used CThreads or not in FPC. }
 {$define CASTLE_SUPPORTS_THREADING}
 {$ifdef CASTLE_NINTENDO_SWITCH} {$undef CASTLE_SUPPORTS_THREADING} {$endif}
 
@@ -511,9 +504,7 @@
 { Define deprecated CastleWindow classes.
   These introduce dependencies on deprecated units like CastleLevels etc.
   which can otherwise be usually avoided. }
-{$ifndef FPC}
-  {$undef CASTLE_DEPRECATED_WINDOW_CLASSES}
-{$endif}
+{.$define CASTLE_DEPRECATED_WINDOW_CLASSES}
 
 { Vampyre Imaging ------------------------------------------------------------ }
 

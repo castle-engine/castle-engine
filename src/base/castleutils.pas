@@ -89,32 +89,7 @@
 
 unit CastleUtils;
 
-{$ifdef VER3_0}
-  { Almost all CGE code uses ObjFpc mode under FPC,
-    but this unit needs Delphi mode for FPC 3.0.x
-    to workaround FPC 3.0.0 and 3.0.2 bug:
-    they segfault on TStructList definition
-    "generic TStructList<T> = class(specialize TList<T>)".
-
-    Fixed in FPC 3.1.1 already, but CGE needs to work with FPC 3.0.0 and 3.0.2 too.
-
-    We still use ObjFpc for FPC 3.1.1 and newer.
-    This is consistent with the rest of CGE,
-    and makes Lazarus CodeTools working OK in this case,
-    since Lazarus CodeTools cannot parse correctly Delphi generics for now:
-
-    https://bugs.freepascal.org/view.php?id=32358
-    https://bugs.freepascal.org/view.php?id=32291
-    https://bugs.freepascal.org/view.php?id=30271
-    https://bugs.freepascal.org/view.php?id=32291
-    https://bugs.freepascal.org/view.php?id=30227
-  }
-  {$mode delphi}
-  {$define CASTLE_CONF_DO_NOT_OVERRIDE_MODE}
-{$endif}
-
 {$I castleconf.inc}
-{$undef CASTLE_CONF_DO_NOT_OVERRIDE_MODE}
 
 interface
 

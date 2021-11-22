@@ -249,7 +249,7 @@ var
   procedure DeleteFilesRecursive(const Mask: string);
   begin
     FindFiles(Directory, Mask, false,
-      {$ifdef CASTLE_OBJFPC}@{$endif} Helper.DeleteFoundFile, [ffRecursive]);
+      {$ifdef FPC}@{$endif} Helper.DeleteFoundFile, [ffRecursive]);
   end;
 
 begin
@@ -490,20 +490,9 @@ begin
     FpcOptions.Add('-l');
     FpcOptions.Add('-vwn');
     FpcOptions.Add('-Ci');
-    if GetEnvironmentVariable('CASTLE_ENGINE_TEST_DELPHI_MODE') = 'true' then
-    begin
-      FpcOptions.Add('-Mdelphi');
-      FpcOptions.Add('-Sm-');
-      FpcOptions.Add('-Sc-');
-      // Also define it, to allow eventually doing
-      // {$ifdef CASTLE_ENGINE_TEST_DELPHI_MODE}... in code.
-      FpcOptions.Add('-dCASTLE_ENGINE_TEST_DELPHI_MODE');
-    end else
-    begin
-      FpcOptions.Add('-Mobjfpc');
-      FpcOptions.Add('-Sm');
-      FpcOptions.Add('-Sc');
-    end;
+    FpcOptions.Add('-Mobjfpc');
+    FpcOptions.Add('-Sm');
+    FpcOptions.Add('-Sc');
     FpcOptions.Add('-Sg');
     FpcOptions.Add('-Si');
     FpcOptions.Add('-Sh');
