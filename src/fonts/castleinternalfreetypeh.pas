@@ -52,7 +52,7 @@ unit CastleInternalFreeTypeH;
 
 interface
 
-{$ifdef FPC}{$packrecords c}{$else}{$ALIGN 4}{$endif}
+{$ifdef FPC}{$packrecords c}{$endif}
 
 type
   FT_Encoding = array[0..3] of Ansichar;
@@ -131,10 +131,6 @@ type
   FT_UShort = word;
   FT_Int = longint;
   FT_UInt = longword;
-  { TODO: Is this correct under Delphi+Windows64?
-    It will be used, because Delphi doesn't define CPUX86_64.
-    But it seems it should not be used.
-    Test with FPC+Windows64: what is SizeOf(FT_Long)? }
   {$if defined(cpu64) and not(defined(win64) and defined(cpux86_64))}
   FT_Long = int64;
   FT_ULong = {$ifdef FPC} qword {$else} UInt64 {$endif};

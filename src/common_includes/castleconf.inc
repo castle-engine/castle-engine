@@ -144,6 +144,11 @@
   {$ifdef CPUX64} {$define CPU64} {$endif}
   {$ifdef CPU64BITS} {$define CPU64} {$endif}
 
+  { Define platforms like FPC does. }
+  {$ifdef CPUX64} {$define cpux86_64} {$define cpuamd64} {$endif}
+  {$ifdef CPUX86} {$define cpu386} {$define cpui386} {$endif}
+  {$ifdef CPUARM64} {$define CPUAARCH64} {$endif}
+
   { Define in Delphi UNIX when LINUX, like FPC does. }
   {$ifdef LINUX} {$define UNIX} {$endif}
 {$endif}
